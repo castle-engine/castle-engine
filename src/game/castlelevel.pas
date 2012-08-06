@@ -844,10 +844,6 @@ begin
   end;
 
   MainScene.ProcessEvents := true;
-
-  { Needed for sick projection effect, that potentially updates
-    DistortFieldOfViewY and such every frame. }
-  AlwaysApplyProjection := true;
 end;
 
 destructor TGameSceneManager.Destroy;

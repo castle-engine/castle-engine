@@ -63,7 +63,6 @@ type
     FBackgroundWireframe: boolean;
     FOnRender3D: TRender3DEvent;
     FHeadlightFromViewport: boolean;
-    FAlwaysApplyProjection: boolean;
     FUseGlobalLights: boolean;
     DefaultHeadlightNode: TDirectionalLightNode;
 
@@ -99,8 +98,6 @@ type
     FProjectionNear: Single;
     FProjectionFar : Single;
     FProjectionFarFinite: Single;
-
-    ApplyProjectionNeeded: boolean;
 
     { Set these to non-1 to deliberately distort field of view / aspect ratio.
       This is useful for special effects when you want to create unrealistic
@@ -217,7 +214,6 @@ type
     procedure SetCamera(const Value: TCamera); virtual;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure SetContainer(const Value: IUIContainer); override;
-    procedure SetShadowVolumes(const Value: boolean);
 
     { Information about the 3D world.
       For scene maager, these methods simply return it's own properties.
@@ -512,7 +508,7 @@ type
       marked as the main shadow volumes light (kambiShadows = kambiShadowsMain = TRUE).
       See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows]
       for details. }
-    property ShadowVolumes: boolean read FShadowVolumes write SetShadowVolumes default false;
+    property ShadowVolumes: boolean read FShadowVolumes write FShadowVolumes default false;
 
     { Actually draw the shadow volumes to the color buffer, for debugging.
       If shadows are rendered (see GLShadowVolumesPossible and ShadowVolumes),
@@ -576,23 +572,6 @@ type
       undefined then). }
     property HeadlightFromViewport: boolean
       read FHeadlightFromViewport write FHeadlightFromViewport default false;
-
-    { If @false, then we can assume that we're the only thing controlling
-      OpenGL projection matrix. This means that we're the only viewport,
-      and you do not change OpenGL projection matrix yourself.
-
-      By default for custom viewports this is @true,
-      which is safer solution (we always apply
-      OpenGL projection matrix in ApplyProjection method), but also may
-      be slightly slower.
-
-      Note that for TCastleSceneManager, this is by default @false (that is,
-      we assume that scene manager, if used for rendering at all
-      (DefaultViewport = @true), is the only viewport). You should change
-      AlwaysApplyProjection to @true for TCastleSceneManager, if you have
-      both custom viewports and DefaultViewport = @true }
-    property AlwaysApplyProjection: boolean
-      read FAlwaysApplyProjection write FAlwaysApplyProjection default true;
 
     { Let MainScene.GlobalLights shine on every 3D object, not only
       MainScene. This is an easy way to lit your whole world with lights
@@ -962,8 +941,6 @@ type
     property DefaultViewport: boolean
       read FDefaultViewport write SetDefaultViewport default true;
 
-    property AlwaysApplyProjection default false;
-
     { Player in this 3D world. This currently serves various purposes:
 
       @unorderedList(
@@ -1109,7 +1086,6 @@ constructor TCastleAbstractViewport.Create(AOwner: TComponent);
 begin
   inherited;
   FFullSize := true;
-  FAlwaysApplyProjection := true;
   FRenderParams := TManagerRenderParams.Create;
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
@@ -1200,8 +1176,6 @@ begin
       if ContainerSizeKnown then
         FCamera.ContainerResize(ContainerWidth, ContainerHeight);
     end;
-
-    ApplyProjectionNeeded := true;
   end;
 end;
 
@@ -1224,8 +1198,6 @@ begin
     begin
       { set to nil by SetCamera, to clean nicely }
       Camera := nil;
-      { Need ApplyProjection, to create new default camera before rendering. }
-      ApplyProjectionNeeded := true;
     end;
   end;
 end;
@@ -1233,8 +1205,6 @@ end;
 procedure TCastleAbstractViewport.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
 begin
   inherited;
-
-  ApplyProjectionNeeded := true;
 
   if Camera <> nil then
     Camera.ContainerResize(AContainerWidth, AContainerHeight);
@@ -1533,100 +1503,86 @@ begin
   if Camera = nil then
     Camera := CreateDefaultCamera(Self);
 
-  if AlwaysApplyProjection or ApplyProjectionNeeded then
-  begin
-    { We need to know container size now.
-      This assertion can break only if you misuse UseControls property, setting it
-      to false (disallowing ContainerResize), and then trying to use
-      PrepareResources or Render (that call ApplyProjection). }
-    Assert(ContainerSizeKnown, ClassName + ' did not receive ContainerResize event yet, cannnot apply OpenGL projection');
+  { We need to know container size now.
+    This assertion can break only if you misuse UseControls property, setting it
+    to false (disallowing ContainerResize), and then trying to use
+    PrepareResources or Render (that call ApplyProjection). }
+  Assert(ContainerSizeKnown, ClassName + ' did not receive ContainerResize event yet, cannnot apply OpenGL projection');
 
-    Box := GetItems.BoundingBox;
-    ViewportX := CorrectLeft;
-    ViewportY := CorrectBottom;
-    ViewportWidth := CorrectWidth;
-    ViewportHeight := CorrectHeight;
+  Box := GetItems.BoundingBox;
+  ViewportX := CorrectLeft;
+  ViewportY := CorrectBottom;
+  ViewportWidth := CorrectWidth;
+  ViewportHeight := CorrectHeight;
 
-    glViewport(ViewportX, ViewportY, ViewportWidth, ViewportHeight);
+  glViewport(ViewportX, ViewportY, ViewportWidth, ViewportHeight);
 
-    { calculate ViewpointNode }
-    if GetMainScene <> nil then
-      ViewpointNode := GetMainScene.ViewpointStack.Top as TAbstractViewpointNode else
-      ViewpointNode := nil;
+  { calculate ViewpointNode }
+  if GetMainScene <> nil then
+    ViewpointNode := GetMainScene.ViewpointStack.Top as TAbstractViewpointNode else
+    ViewpointNode := nil;
 
-    if (ViewpointNode <> nil) and
-       (ViewpointNode is TViewpointNode) then
-      PerspectiveFieldOfView := TViewpointNode(ViewpointNode).FdFieldOfView.Value else
-    if (ViewpointNode <> nil) and
-       (ViewpointNode is TPerspectiveCameraNode_1) then
-      PerspectiveFieldOfView := TPerspectiveCameraNode_1(ViewpointNode).FdHeightAngle.Value else
-      PerspectiveFieldOfView := DefaultViewpointFieldOfView;
+  if (ViewpointNode <> nil) and
+     (ViewpointNode is TViewpointNode) then
+    PerspectiveFieldOfView := TViewpointNode(ViewpointNode).FdFieldOfView.Value else
+  if (ViewpointNode <> nil) and
+     (ViewpointNode is TPerspectiveCameraNode_1) then
+    PerspectiveFieldOfView := TPerspectiveCameraNode_1(ViewpointNode).FdHeightAngle.Value else
+    PerspectiveFieldOfView := DefaultViewpointFieldOfView;
 
-    FPerspectiveViewAngles[0] := RadToDeg(TViewpointNode.ViewpointAngleOfView(
-      PerspectiveFieldOfView, ViewportWidth / ViewportHeight));
+  FPerspectiveViewAngles[0] := RadToDeg(TViewpointNode.ViewpointAngleOfView(
+    PerspectiveFieldOfView, ViewportWidth / ViewportHeight));
 
-    FPerspectiveViewAngles[1] := AdjustViewAngleDegToAspectRatio(
-      PerspectiveViewAngles[0], ViewportHeight / ViewportWidth);
+  FPerspectiveViewAngles[1] := AdjustViewAngleDegToAspectRatio(
+    PerspectiveViewAngles[0], ViewportHeight / ViewportWidth);
 
-    { Tests:
-      Writeln(Format('Angle of view: x %f, y %f', [PerspectiveViewAngles[0], PerspectiveViewAngles[1]])); }
+  { Tests:
+    Writeln(Format('Angle of view: x %f, y %f', [PerspectiveViewAngles[0], PerspectiveViewAngles[1]])); }
 
-    Assert(Camera.Radius > 0, 'Camera.Radius must be > 0 when using TCastleAbstractViewport.ApplyProjection');
-    FProjectionNear := Camera.Radius * 0.6;
+  Assert(Camera.Radius > 0, 'Camera.Radius must be > 0 when using TCastleAbstractViewport.ApplyProjection');
+  FProjectionNear := Camera.Radius * 0.6;
 
-    { calculate FProjectionFar, algorithm documented at DefaultVisibilityLimit }
-    FProjectionFar := 0;
-    if (GetMainScene <> nil) and
-       (GetMainScene.NavigationInfoStack.Top <> nil) then
-      FProjectionFar := (GetMainScene.NavigationInfoStack.Top as TNavigationInfoNode).
-        FdVisibilityLimit.Value;
-    if FProjectionFar <= 0 then
-      FProjectionFar := DefaultVisibilityLimit;
-    if FProjectionFar <= 0 then
-      FProjectionFar := Box.AverageSize(false,
-        { When box is empty (or has 0 sizes), ProjectionFar is not simply "any dummy value".
-          It must be appropriately larger than ProjectionNear
-          to provide sufficient space for rendering Background node. }
-        FProjectionNear) * 20.0;
+  { calculate FProjectionFar, algorithm documented at DefaultVisibilityLimit }
+  FProjectionFar := 0;
+  if (GetMainScene <> nil) and
+     (GetMainScene.NavigationInfoStack.Top <> nil) then
+    FProjectionFar := (GetMainScene.NavigationInfoStack.Top as TNavigationInfoNode).
+      FdVisibilityLimit.Value;
+  if FProjectionFar <= 0 then
+    FProjectionFar := DefaultVisibilityLimit;
+  if FProjectionFar <= 0 then
+    FProjectionFar := Box.AverageSize(false,
+      { When box is empty (or has 0 sizes), ProjectionFar is not simply "any dummy value".
+        It must be appropriately larger than ProjectionNear
+        to provide sufficient space for rendering Background node. }
+      FProjectionNear) * 20.0;
 
-    { At some point, I was using here larger projection near when
-      (ACamera is TExamineCamera). Reasoning: you do not get so close
-      to the model with Examine view, and you do not need collision detection.
-      Both arguments are wrong now, you can switch between Examine/Walk
-      in view3dscene and easily get close to the model, and collision detection
-      in Examine mode will be some day implemented (VRML/X3D spec require this). }
+  { At some point, I was using here larger projection near when
+    (ACamera is TExamineCamera). Reasoning: you do not get so close
+    to the model with Examine view, and you do not need collision detection.
+    Both arguments are wrong now, you can switch between Examine/Walk
+    in view3dscene and easily get close to the model, and collision detection
+    in Examine mode will be some day implemented (VRML/X3D spec require this). }
 
-    if ViewpointNode <> nil then
-      ProjectionType := ViewpointNode.ProjectionType else
-      ProjectionType := ptPerspective;
+  if ViewpointNode <> nil then
+    ProjectionType := ViewpointNode.ProjectionType else
+    ProjectionType := ptPerspective;
 
-    { Calculate BackgroundSkySphereRadius here,
-      using ProjectionFar that is *not* ZFarInfinity }
-    if GetMainScene <> nil then
-      GetMainScene.BackgroundSkySphereRadius :=
-        TBackground.NearFarToSkySphereRadius(FProjectionNear, FProjectionFar,
-          GetMainScene.BackgroundSkySphereRadius);
+  { Calculate BackgroundSkySphereRadius here,
+    using ProjectionFar that is *not* ZFarInfinity }
+  if GetMainScene <> nil then
+    GetMainScene.BackgroundSkySphereRadius :=
+      TBackground.NearFarToSkySphereRadius(FProjectionNear, FProjectionFar,
+        GetMainScene.BackgroundSkySphereRadius);
 
-    { update ProjectionFarFinite.
-      ProjectionFar may be later changed to ZFarInfinity. }
-    FProjectionFarFinite := FProjectionFar;
+  { update ProjectionFarFinite.
+    ProjectionFar may be later changed to ZFarInfinity. }
+  FProjectionFarFinite := FProjectionFar;
 
-    case ProjectionType of
-      ptPerspective: DoPerspective;
-      ptOrthographic: DoOrthographic;
-      else EInternalError.Create('TCastleScene.GLProjectionCore-ProjectionType?');
-    end;
-
-    ApplyProjectionNeeded := false;
-  end;
-end;
-
-procedure TCastleAbstractViewport.SetShadowVolumes(const Value: boolean);
-begin
-  if ShadowVolumes <> Value then
-  begin
-    FShadowVolumes := Value;
-    ApplyProjectionNeeded := true;
+  case ProjectionType of
+    ptPerspective: DoPerspective;
+    ptOrthographic: DoOrthographic;
+    else EInternalError.Create('TCastleScene.GLProjectionCore-ProjectionType?');
   end;
 end;
 
@@ -2487,7 +2443,6 @@ begin
   FWaterBox := EmptyBox3D;
 
   FDefaultViewport := true;
-  FAlwaysApplyProjection := false;
 
   FViewports := TCastleAbstractViewportList.Create(false);
   if DefaultViewport then FViewports.Add(Self);
@@ -2628,8 +2583,6 @@ begin
       if Camera <> nil then
         MainScene.CameraChanged(Camera, CameraToChanges);
     end;
-
-    ApplyProjectionNeeded := true;
   end;
 end;
 
@@ -2714,11 +2667,7 @@ begin
   begin
     { set to nil by methods (like SetMainScene), to clean nicely }
     if AComponent = FMainScene then
-    begin
       MainScene := nil;
-      { ApplyProjection work depends on MainScene value. }
-      ApplyProjectionNeeded := true;
-    end;
 
     if (AComponent is T3D) and MouseRayHitContains(T3D(AComponent)) then
     begin
@@ -3074,9 +3023,6 @@ procedure TCastleSceneManager.SceneBoundViewpointChanged(Scene: TCastleSceneCore
 begin
   if Camera <> nil then
     Scene.CameraFromViewpoint(Camera, false);
-
-  { bound Viewpoint.fieldOfView changed, so update projection }
-  ApplyProjectionNeeded := true;
 
   if Assigned(OnBoundViewpointChanged) then
     OnBoundViewpointChanged(Self);
