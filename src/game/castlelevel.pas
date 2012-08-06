@@ -102,6 +102,9 @@ type
 
   TLevelAvailableList = class(specialize TFPGObjectList<TLevelAvailable>)
   private
+    { How many TGameSceneManager have references to our children by
+      TGameSceneManager.Info? }
+    References: Cardinal;
     procedure LoadIndexXml(const FileName: string);
     { Save AvailableForNewGame properties of every item. }
     procedure SaveToConfig(const Config: TCastleConfig);
@@ -183,13 +186,12 @@ type
     FMessage: string;
     FMessageDone: boolean;
   public
-    { Message to this display when player enters Box3D.
+    { Message to display when player enters our volume.
       Some formatting strings are allowed inside:
       @unorderedList(
-        @item(%% produces InteractInputDescription in the message.)
-        @item(%% produces one % in the message.)
-      )
-      @noAutoLinkHere }
+        @item @code(%i) produces InteractInputDescription in the message.
+        @item @code(%%) produces one @code(%) in the message.
+      ) }
     property Message: string read FMessage write FMessage;
 
     { Was the @link(Message) already displayed ? If @true,
@@ -735,6 +737,7 @@ begin
     PreviousResources.Assign(Info.Resources);
 
   FInfo := AInfo;
+  Inc(LevelsAvailable.References);
   Info.Resources.Prepare(BaseLights);
 
   PreviousResources.Release;
@@ -833,8 +836,16 @@ end;
 
 destructor TGameSceneManager.Destroy;
 begin
-  if (Info <> nil) and (Info.Resources <> nil) then
-    Info.Resources.Release;
+  if Info <> nil then
+  begin
+    if Info.Resources <> nil then
+      Info.Resources.Release;
+
+    Dec(LevelsAvailable.References);
+    if LevelsAvailable.References = 0 then
+      FreeAndNil(LevelsAvailable);
+  end;
+
   inherited;
 end;
 
@@ -1339,11 +1350,21 @@ end;
 
 initialization
   LevelsAvailable := TLevelAvailableList.Create(true);
+  Inc(LevelsAvailable.References);
+
   Config.OnSave.Add(@LevelsAvailable.SaveToConfig);
 finalization
   FreeAndNil(FLevelClasses);
 
   if (LevelsAvailable <> nil) and (Config <> nil) then
     Config.OnSave.Remove(@LevelsAvailable.SaveToConfig);
-  FreeAndNil(LevelsAvailable);
+
+  { there may still exist TGameSceneManager instances that refer to our
+    TLevelAvailable instances. So we don't always free LevelsAvailable below. }
+  if LevelsAvailable <> nil then
+  begin
+    Dec(LevelsAvailable.References);
+    if LevelsAvailable.References = 0 then
+      FreeAndNil(LevelsAvailable);
+  end;
 end.
