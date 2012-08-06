@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<level
+  id="base"
+  type="Level"
+  scene="base.wrl"
+  title="Base"
+/>

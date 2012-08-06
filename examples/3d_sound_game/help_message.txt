@@ -1,12 +1,8 @@
 Movement:
-  Up / Down = move
-  Left / Right = rotate
-  Comma / Period = strafe move left / right
-  A /Z = jump / crouch
-  PageUp / PageDown = raise / bow your head
-  Home = restore head raise to initial position (neutralize any effect of PageUp / PageDown)
-
-For miscellaneous movement keys, see "view3dscene" in "Walk" mode documentation (http://castle-engine.sourceforge.net/view3dscene.php).
+  A W S D and Arrow keys = move and rotate
+  Space = jump
+  C = crouch
+  And see the rest of default "The Castle" game key shortcuts.
 
 Other:
   F1 = show this help

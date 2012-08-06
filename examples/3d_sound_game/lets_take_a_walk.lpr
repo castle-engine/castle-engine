@@ -32,7 +32,7 @@
   on the ground texture base_shadowed.png.
 
   If you'd like to improve it, here are some ideas (TODOs):
-  - add collisions between rat and tnts and BaseScene
+  - add collisions between rat and tnts and level main scene
   - more interesting rat movement track. Maybe use AI from castle.
   - more elaborate level (initially, some house and more lamps were planned)
   - better rat sound
@@ -42,18 +42,18 @@ program lets_take_a_walk;
 
 uses GL, CastleWindow, CastleScene, X3DNodes, SysUtils,
   CastleUtils, CastleGLUtils, Boxes3D, VectorMath,
-  ProgressUnit, ProgressConsole, ALUtils, CastleStringUtils,
+  ProgressUnit, CastleProgress, ALUtils, CastleStringUtils,
   CastleParameters, Images, Thunder,
   CastleMessages, CastleFilesUtils, GLImages, CastleSceneCore,
   CastleSceneManager, Base3D, ALSoundEngine, ALSoundAllocator, Frustum,
-  RenderingCameraUnit, Classes, CastleControls, CastleLevel;
+  RenderingCameraUnit, Classes, CastleControls, CastleLevel, CastleConfig,
+  CastleInputs, KeysMouse, CastlePlayer;
 
 { global variables ----------------------------------------------------------- }
 
 var
   Window: TCastleWindowCustom;
-
-  BaseScene: TCastleScene;
+  Player: TPlayer;
   TntScene: TCastleScene;
   Rat: T3DTransform;
   RatAngle: Single;
@@ -66,7 +66,7 @@ var
 { scene manager -------------------------------------------------------------- }
 
 type
-  TMySceneManager = class(TCastleSceneManager)
+  TMySceneManager = class(TGameSceneManager)
     procedure InitializeLights(const Lights: TLightInstancesList); override;
   end;
 
@@ -143,12 +143,14 @@ procedure NewTnt(Z: Single);
 var
   TntSize: Single;
   Tnt: TTnt;
+  Box: TBox3D;
 begin
   TntSize := TntScene.BoundingBox.MaxSize;
   Tnt := TTnt.Create(SceneManager);
+  Box := SceneManager.MainScene.BoundingBox;
   Tnt.Translation := Vector3Single(
-    RandomFloatRange(BaseScene.BoundingBox.Data[0, 0], BaseScene.BoundingBox.Data[1, 0]-TntSize),
-    RandomFloatRange(BaseScene.BoundingBox.Data[0, 1], BaseScene.BoundingBox.Data[1, 1]-TntSize),
+    RandomFloatRange(Box.Data[0, 0], Box.Data[1, 0]-TntSize),
+    RandomFloatRange(Box.Data[0, 1], Box.Data[1, 1]-TntSize),
     Z);
   SceneManager.Items.Add(Tnt);
   Inc(TntsCount);
@@ -305,7 +307,27 @@ end;
 { main -------------------------------------------------------------------- }
 
 begin
+  { load config, before SoundEngine.ParseParameters
+    (that may change Enable by --no-sound). }
+  Config.Load;
+
+  { change some CastleInputs shortcuts }
+  CastleInput_Interact.Shortcut.Assign(K_None, K_None, #0, true, mbLeft, mwNone);
+  UseMouseLook := false;
+
+  { init messages }
+  MessagesTheme.RectColor[3] := 0.8;
+
+  { init window }
   Window := TCastleWindowCustom.Create(Application);
+  Window.OnClose := @close;
+  Window.OnResize := @resize;
+  Window.OnIdle := @Idle;
+  Window.OnTimer := @Timer;
+  Window.OnKeyDown := @KeyDown;
+  Window.AutoRedisplay := true;
+  Window.Caption := 'Let''s take a walk';
+  Window.SetDemoOptions(K_F11, CharEscape, true);
 
   { parse parameters }
   Window.FullScreen := true; { by default we open in fullscreen }
@@ -313,24 +335,38 @@ begin
   SoundEngine.ParseParameters;
   Parameters.Parse(Options, @OptionProc, nil);
 
+  { init MuteImage. Before loading level, as loading level initializes camera
+    which already calls UpdateMute. Before opening window, as opening window
+    calls Resize which uses MuteImage. }
+  MuteImage := TCastleImageControl.Create(Application);
+  MuteImage.Blending := true;
+  MuteImage.FileName := ProgramDataPath + 'data' + PathDelim + 'textures' + PathDelim +'mute_sign.png';
+  MuteImage.Exists := false; // don't show it on initial progress
+  Window.Controls.Insert(0, MuteImage);
+
+  { open window, to have OpenGL context }
+  Window.Open;
+
+  { init progress }
+  Progress.UserInterface := WindowProgressInterface;
+  WindowProgressInterface.Window := Window;
+
   { init SceneManager }
   SceneManager := TMySceneManager.Create(Window);
   Window.Controls.Add(SceneManager);
   SceneManager.OnCameraChanged := @TDummy(nil).CameraChanged;
-  SceneManager.UseGlobalLights := true;
 
-  { init level }
-//  LevelsAvailable.LoadFromFiles(ProgramDataPath + 'data' +  PathDelim + 'levels');
+  { init player. It's not strictly necessary to use Player, but it makes
+    some stuff working better/simpler: Player automatically configures
+    camera (to use game-like AWSD shortcuts from CastleInputs,
+    to use gravity), it adds footsteps etc. }
+  Player := TPlayer.Create(SceneManager);
+  SceneManager.Items.Add(Player);
+  SceneManager.Player := Player;
 
-  { init BaseScene }
-  BaseScene := TCastleScene.Create(SceneManager);
-  BaseScene.Load(ProgramDataPath + 'data' +  PathDelim + 'levels' + PathDelim + 'base' + PathDelim + 'base.wrl');
-  Progress.UserInterface := ProgressConsoleInterface;
-  BaseScene.TriangleOctreeProgressTitle := 'Building triangle octree';
-  BaseScene.ShapeOctreeProgressTitle := 'Building Shape octree';
-  BaseScene.Spatial := [ssRendering, ssDynamicCollisions];
-  SceneManager.MainScene := BaseScene;
-  SceneManager.Items.Add(BaseScene);
+  { init level. LoadLevel requires OpenGL context to be available. }
+  LevelsAvailable.LoadFromFiles(ProgramDataPath + 'data' +  PathDelim + 'levels');
+  LevelsAvailable.FindId('base').LoadLevel(SceneManager);
 
   { init Rat }
   Rat := T3DTransform.Create(SceneManager);
@@ -340,21 +376,6 @@ begin
   { init Tnt }
   TntScene := LoadScene('tnt.wrl', SceneManager);
   while TntsCount < MaxTntsCount do NewTnt(0.0);
-
-  { init camera }
-  SceneManager.Camera := SceneManager.CreateDefaultCamera(Window);
-  { Force Camera.Position inside BaseScene.BoundingBox, eventually
-    high above this box (maximum Z = 1000). This makes moving sensible
-    for player. }
-  SceneManager.CameraBox := Box3D(
-    BaseScene.BoundingBox.Data[0],
-    Vector3Single(BaseScene.BoundingBox.Data[1][0], BaseScene.BoundingBox.Data[1][1], 1000));
-
-  { init MuteImage }
-  MuteImage := TCastleImageControl.Create(Application);
-  MuteImage.Blending := true;
-  MuteImage.FileName := ProgramDataPath + 'data' + PathDelim + 'textures' + PathDelim +'mute_sign.png';
-  Window.Controls.Insert(0, MuteImage);
 
   { init 3D sound }
   SoundEngine.ALContextOpen;
@@ -385,20 +406,5 @@ begin
     CheckAL('init OpenAL');
   end;
 
-  UpdateMute;
-
-  { init messages }
-  MessagesTheme.RectColor[3] := 0.8;
-
-  { init window }
-  Window.OnClose := @close;
-  Window.OnResize := @resize;
-  Window.OnIdle := @Idle;
-  Window.OnTimer := @Timer;
-  Window.OnKeyDown := @KeyDown;
-  Window.AutoRedisplay := true;
-  Window.Caption := 'Let''s take a walk';
-  Window.SetDemoOptions(K_F11, CharEscape, true);
-
-  Window.OpenAndRun;
+  Application.Run;
 end.
