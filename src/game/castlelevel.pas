@@ -208,12 +208,13 @@ type
 
     FLevel: TLevel;
     FInfo: TLevelAvailable;
+    MenuBackground: boolean;
 
     procedure SetSickProjection(const Value: boolean);
     procedure SetSickProjectionSpeed(const Value: TFloatTime);
 
     procedure LoadLevel(const AInfo: TLevelAvailable;
-      const MenuBackground: boolean);
+      const AMenuBackground: boolean);
   protected
     procedure InitializeLights(const Lights: TLightInstancesList); override;
     procedure ApplyProjection; override;
@@ -423,7 +424,7 @@ end;
 { TGameSceneManager --------------------------------------------------------------------- }
 
 procedure TGameSceneManager.LoadLevel(const AInfo: TLevelAvailable;
-  const MenuBackground: boolean);
+  const AMenuBackground: boolean);
 var
   { Sometimes it's not comfortable
     to remove the items while traversing --- so we will instead
@@ -632,7 +633,7 @@ var
     MainScene.ChangedAll;
   end;
 
-  { Assign Camera, knowing MainScene and APlayer.
+  { Assign Camera, knowing MainScene and Player.
     We need to assign Camera early, as initial Camera also is used
     when placing initial creatures on the level (to determine their
     gravity up, initial direciton etc.) }
@@ -661,28 +662,36 @@ var
     CorrectPreferredHeight(PreferredHeight, CameraRadius,
       DefaultCrouchHeight, DefaultHeadBobbing);
 
+    if Player <> nil then
+      WalkCamera := (Player as TPlayer).Camera else
+      { If you don't initialize Player (like for castle1 background level
+        or castle-view-level or lets_take_a_walk) then just create a camera. }
+      WalkCamera := TWalkCamera.Create(Self);
+
     { initialize some navigation settings of player }
     if Player <> nil then
     begin
       (Player as TPlayer).DefaultPreferredHeight := PreferredHeight;
-
       if NavigationNode <> nil then
         (Player as TPlayer).DefaultMoveHorizontalSpeed := NavigationNode.FdSpeed.Value else
         (Player as TPlayer).DefaultMoveHorizontalSpeed := 1.0;
-
       (Player as TPlayer).DefaultMoveVerticalSpeed := 20;
+    end else
+    begin
+      { if you use Player with TGameSceneManager, then Player will automatically
+        update camera's speed properties. But if not, we have to set them
+        here. }
+      WalkCamera.PreferredHeight := PreferredHeight;
+      if NavigationNode <> nil then
+        WalkCamera.MoveHorizontalSpeed := NavigationNode.FdSpeed.Value else
+        WalkCamera.MoveHorizontalSpeed := 1.0;
+      WalkCamera.MoveVerticalSpeed := 20;
     end;
 
     { Check GravityUp }
     if not VectorsEqual(GravityUp, Vector3Single(0, 0, 1), 0.001) then
       if Log then
         WritelnLog('Camera', 'Gravity up vector is not +Z. Everything should work fine, but it''s not fully tested');
-
-    if Player <> nil then
-      WalkCamera := (Player as TPlayer).Camera else
-      { Camera suitable for background level and castle-view-level.
-        For actual game, camera will be taken from Player.Camera. }
-      WalkCamera := TWalkCamera.Create(Self);
 
     Camera := WalkCamera;
 
@@ -698,6 +707,8 @@ var
   PreviousResources: T3DResourceList;
   I: Integer;
 begin
+  MenuBackground := AMenuBackground;
+
   { release stuff from previous level. Our items must be clean.
     This releases previous Level (logic), MainScene, our areas added in LoadAreas,
     and our creatures and items --- the ones added in TraverseForCreatures/Items,
@@ -841,7 +852,8 @@ procedure TGameSceneManager.ApplyProjection;
 var
   S, C: Extended;
 begin
-  Assert(Camera <> nil, 'TGameSceneManager always creates camera when loading level');
+  { After LoadLevel, we always have here Camera <> nil.
+    But it's also possible to have Camera = nil if no LoadLevel was called yet. }
 
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
@@ -901,9 +913,10 @@ procedure TGameSceneManager.Idle(const CompSpeed: Single;
   const HandleMouseAndKeys: boolean; var LetOthersHandleMouseAndKeys: boolean);
 begin
   inherited;
-  if (Player = nil) or
-     ((Player is TPlayer) and TPlayer(Player).Blocked) or
-     Player.Dead then
+  if MenuBackground or
+    ( (Player <> nil) and
+      ( ((Player is TPlayer) and TPlayer(Player).Blocked) or
+        Player.Dead ) ) then
     Input_PointingDeviceActivate.MakeClear else
     Input_PointingDeviceActivate.Assign(CastleInput_Interact.Shortcut, false);
 end;
@@ -1174,10 +1187,10 @@ begin
   if not DOMGetAttribute(Element, 'title', Title) then
     MissingRequiredAttribute('title');
 
-  if not DOMGetIntegerAttribute(Element, 'number', Number) then
-    MissingRequiredAttribute('number');
-
   { Optional attributes }
+
+  if not DOMGetIntegerAttribute(Element, 'number', Number) then
+    Number := 0;
 
   if not DOMGetBooleanAttribute(Element, 'demo', Demo) then
     Demo := false;
@@ -1246,13 +1259,16 @@ end;
 function TLevelAvailableList.FindId(const AId: string): TLevelAvailable;
 var
   I: Integer;
+  S: string;
 begin
   for I := 0 to Count - 1 do
     if Items[I].Id = AId then
       Exit(Items[I]);
 
-  raise Exception.CreateFmt(
-    'Level id "%s" not found on LevelsAvailable list', [AId]);
+  S := Format('Level identifier "%s" is not found on the list (LevelsAvailable)', [AId]);
+  if Count = 0 then
+    S += '.' + NL + NL + 'Warning: there are no levels available on the list at all. This means that the game data was not correctly installed (as we did not find any index.xml files defining any levels). Or the developer forgot to call LevelsAvailable.LoadFromFiles.';
+  raise Exception.Create(S);
 end;
 
 function IsSmallerByNumber(const A, B: TLevelAvailable): Integer;
