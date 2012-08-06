@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<sounds>
+  <!-- Standard CastleLevel sound for thunder -->
+  <sound name="thunder" default_importance="level_event"/>
+
+  <!-- lets_take_a_walk specific sounds -->
+  <sound name="rat_sound" default_importance="level_event"/>
+  <sound name="rat_squeak" default_importance="level_event"/>
+  <sound name="kaboom" default_importance="level_event"/>
+  <sound name="cricket" default_importance="level_event"
+    min_gain="0.01" max_gain="0.05" />
+</sounds>

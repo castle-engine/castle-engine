@@ -42,10 +42,9 @@ program lets_take_a_walk;
 
 uses GL, CastleWindow, CastleScene, X3DNodes, SysUtils,
   CastleUtils, CastleGLUtils, Boxes3D, VectorMath,
-  ProgressUnit, CastleProgress, ALUtils, CastleStringUtils,
-  CastleParameters, Images, Thunder,
-  CastleMessages, CastleFilesUtils, GLImages, CastleSceneCore,
-  CastleSceneManager, Base3D, ALSoundEngine, ALSoundAllocator, Frustum,
+  ProgressUnit, CastleProgress, CastleStringUtils,
+  CastleParameters, Images, CastleMessages, CastleFilesUtils, GLImages,
+  Base3D, ALSoundEngine, ALSoundAllocator,
   RenderingCameraUnit, Classes, CastleControls, CastleLevel, CastleConfig,
   CastleInputs, KeysMouse, CastlePlayer;
 
@@ -54,30 +53,16 @@ uses GL, CastleWindow, CastleScene, X3DNodes, SysUtils,
 var
   Window: TCastleWindowCustom;
   Player: TPlayer;
+  SceneManager: TGameSceneManager;
+
   TntScene: TCastleScene;
   Rat: T3DTransform;
   RatAngle: Single;
 
-  RatSoundBuffer, RatSqueakBuffer, NightSoundBuffer, KaboomBuffer: TALBuffer;
+  stRatSound, stRatSqueak, stKaboom, stCricket: TSoundType;
   RatSound: TALSound;
 
   MuteImage: TCastleImageControl;
-
-{ scene manager -------------------------------------------------------------- }
-
-type
-  TMySceneManager = class(TGameSceneManager)
-    procedure InitializeLights(const Lights: TLightInstancesList); override;
-  end;
-
-var
-  SceneManager: TMySceneManager;
-
-procedure TMySceneManager.InitializeLights(const Lights: TLightInstancesList);
-begin
-  inherited;
-  ThunderAddLight(Lights);
-end;
 
 { TNT ------------------------------------------------------------------------ }
 
@@ -111,10 +96,9 @@ begin
   Result := Active and not ToRemove;
   if not Result then Exit;
 
-  SoundEngine.PlaySound(KaboomBuffer, true, false, 0, 1, 0, 1, Translation);
+  SoundEngine.Sound3D(stKaboom, Translation);
   if PointsDistanceSqr(Translation, Rat.Translation) < 1.0 then
-    SoundEngine.PlaySound(RatSqueakBuffer, true, false, 1, 1.0,
-      0, 1, Rat.Translation);
+    SoundEngine.Sound3D(stRatSqueak, Rat.Translation);
 
   ToRemove := true;
   Dec(TntsCount);
@@ -172,8 +156,19 @@ begin
   Rat.Translation := T;
 end;
 
+function LoadScene(const Name: string; AOwner: TComponent): TCastleScene;
+begin
+  Result := TCastleScene.Create(AOwner);
+  Result.Load(ProgramDataPath + 'data' + PathDelim + '3d' + PathDelim + Name);
+end;
+
+type
+  TDummy = class
+    class procedure CameraChanged(Camera: TObject);
+  end;
+
+class procedure TDummy.CameraChanged(Camera: TObject);
 { Update stuff based on whether camera position is inside mute area. }
-procedure UpdateMute;
 
   function PointInsideCylinder(const P: TVector3Single;
     const MiddleX, MiddleY, Radius, MinZ, MaxZ: Single): boolean;
@@ -195,23 +190,7 @@ begin
     SoundEngine.Volume := 1;
 end;
 
-function LoadScene(const Name: string; AOwner: TComponent): TCastleScene;
-begin
-  Result := TCastleScene.Create(AOwner);
-  Result.Load(ProgramDataPath + 'data' + PathDelim + '3d' + PathDelim + Name);
-end;
-
-type
-  TDummy = class
-    class procedure CameraChanged(Camera: TObject);
-  end;
-
-class procedure TDummy.CameraChanged(Camera: TObject);
-begin
-  UpdateMute;
-end;
-
-{ help message ------------------------------------------------------------ }
+{ help message --------------------------------------------------------------- }
 
 const
   Version = '1.2.4';
@@ -254,13 +233,12 @@ end;
 procedure Timer(Window: TCastleWindowBase);
 begin
   while TntsCount < MaxTntsCount do NewTnt(3.0);
-  ThunderIdleSec;
 end;
 
 procedure KeyDown(Window: TCastleWindowBase; Key: TKey; c: char);
 begin
   case key of
-    { K_T: ThunderNow; // just for testing }
+    K_T: SceneManager.Level.ThunderEffect.ForceNow;
     K_F1: ShowHelpMessage;
     K_F5: Window.SaveScreen(FileNameAutoInc('lets_take_a_walk_screen_%d.png'));
   end;
@@ -336,8 +314,8 @@ begin
   Parameters.Parse(Options, @OptionProc, nil);
 
   { init MuteImage. Before loading level, as loading level initializes camera
-    which already calls UpdateMute. Before opening window, as opening window
-    calls Resize which uses MuteImage. }
+    which already causes MuteImage update. Before opening window,
+    as opening window calls Resize which uses MuteImage. }
   MuteImage := TCastleImageControl.Create(Application);
   MuteImage.Blending := true;
   MuteImage.FileName := ProgramDataPath + 'data' + PathDelim + 'textures' + PathDelim +'mute_sign.png';
@@ -352,7 +330,7 @@ begin
   WindowProgressInterface.Window := Window;
 
   { init SceneManager }
-  SceneManager := TMySceneManager.Create(Window);
+  SceneManager := TGameSceneManager.Create(Window);
   Window.Controls.Add(SceneManager);
   SceneManager.OnCameraChanged := @TDummy(nil).CameraChanged;
 
@@ -367,44 +345,28 @@ begin
   { init level. LoadLevel requires OpenGL context to be available. }
   LevelsAvailable.LoadFromFiles(ProgramDataPath + 'data' +  PathDelim + 'levels');
   LevelsAvailable.FindId('base').LoadLevel(SceneManager);
+  SceneManager.Level.ThunderEffect := TThunderEffect.Create;
 
   { init Rat }
   Rat := T3DTransform.Create(SceneManager);
   Rat.Add(LoadScene('rat.x3d', SceneManager));
   SceneManager.Items.Add(Rat);
+  UpdateRatPosition;
 
   { init Tnt }
   TntScene := LoadScene('tnt.wrl', SceneManager);
   while TntsCount < MaxTntsCount do NewTnt(0.0);
 
-  { init 3D sound }
-  SoundEngine.ALContextOpen;
-  Writeln(SoundEngine.SoundInitializationReport);
-  if SoundEngine.ALActive then
-  begin
-    SoundEngine.DistanceModel := dmInverseDistanceClamped; //< OpenAL default
-
-    KaboomBuffer := CreateWAVBuffer('cannon');
-
-    RatSoundBuffer := CreateWAVBuffer('duck');
-
-    UpdateRatPosition;
-    RatSound := SoundEngine.PlaySound(RatSoundBuffer, true, true,
-      1, 1.0, 0, 1, Rat.Translation);
-    if RatSound = nil then
-      raise Exception.Create('Cannot allocate rat sound');
-
-    RatSqueakBuffer := CreateWAVBuffer('catyell');
-
-    { setup night sound souce }
-    NightSoundBuffer := CreateWAVBuffer('cricketnight');
-    SoundEngine.PlaySound(NightSoundBuffer, true, true, 1, 1, 0.01, 0.05,
-      Vector3Single(2.6148309707641602, -1.9643138647079468, 1));
-
-    ThunderALOpen;
-
-    CheckAL('init OpenAL');
-  end;
+  { init 3D sounds }
+  SoundEngine.SoundsXmlFileName := ProgramDataPath + 'data' +
+    PathDelim + 'sounds' + PathDelim + 'index.xml';
+  SoundEngine.DistanceModel := dmInverseDistanceClamped; //< OpenAL default
+  stRatSound  := SoundEngine.SoundFromName('rat_sound');
+  stRatSqueak := SoundEngine.SoundFromName('rat_squeak');
+  stKaboom    := SoundEngine.SoundFromName('kaboom');
+  stCricket   := SoundEngine.SoundFromName('cricket');
+  RatSound := SoundEngine.Sound3D(stRatSound, Rat.Translation, true);
+  SoundEngine.Sound3D(stCricket, Vector3Single(2.61, -1.96, 1), true);
 
   Application.Run;
 end.
