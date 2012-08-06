@@ -343,7 +343,7 @@ implementation
 
 uses Math, SysUtils, CastleClassUtils, CastleUtils, X3DNodes, CastleControls,
   Images, CastleFilesUtils, UIControls, PrecalculatedAnimation, CastleOpenAL,
-  CastleGameNotifications, CastleXMLConfig, GLImages;
+  CastleGameNotifications, CastleXMLConfig, GLImages, DOM;
 
 { TPlayerBox ----------------------------------------------------------------- }
 
@@ -1088,6 +1088,7 @@ end;
 procedure TPlayer.LoadFromFile;
 var
   PlayerConfig: TCastleConfig;
+  PlayerElement: TDOMElement;
 begin
   PlayerConfig := TCastleConfig.Create(nil);
   try
@@ -1111,7 +1112,9 @@ begin
     SickProjectionSpeed := PlayerConfig.GetFloat('player/sick_projection_speed',
       10.0);
 
-    FResources.LoadResources(PlayerConfig.PathElement('player'));
+    PlayerElement := PlayerConfig.PathElement('player');
+    if PlayerElement <> nil then
+      FResources.LoadResources(PlayerElement);
   finally SysUtils.FreeAndNil(PlayerConfig); end;
 end;
 
