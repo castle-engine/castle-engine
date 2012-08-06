@@ -249,12 +249,12 @@ type
       var LetOthersHandleMouseAndKeys: boolean); override;
   end;
 
-  { Rendering and making sound of a thunder (in a storm) effect. }
-  TThunderEffect = class
+  { Rendering and making sound of a thunder (like in a storm) effect. }
+  TThunder = class
   private
     Time, LastBeginTime, NextBeginTime: Single;
-    ThunderLightNode: TDirectionalLightNode;
-    ThunderLight: TLightInstance;
+    LightNode: TDirectionalLightNode;
+    Light: TLightInstance;
     { Add thunder light, if visible. }
     procedure AddLight(const BaseLights: TLightInstancesList);
     procedure Idle(const CompSpeed: Single);
@@ -286,7 +286,7 @@ type
   TLevel = class(T3D)
   private
     FAnimationTime: TFloatTime;
-    FThunderEffect: TThunderEffect;
+    FThunder: TThunder;
   protected
     { Scene manager containing this level. }
     SceneManager: TGameSceneManager;
@@ -361,9 +361,10 @@ type
       This is updated in our Idle. }
     property AnimationTime: TFloatTime read FAnimationTime;
 
-    { For thunder effect. nil if no thunder effect should be done for this level.
+    { Thunder effect, making sound and blinking light like a thunder in a storm.
+      @nil if no thunder effect should be done for this level.
       Descendants can configure and assign this, we will own it (free). }
-    property ThunderEffect: TThunderEffect read FThunderEffect write FThunderEffect;
+    property Thunder: TThunder read FThunder write FThunder;
 
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
 
@@ -870,8 +871,8 @@ begin
 
   { This is used to prepare BaseLights, which may be necessary in constructor
     before we even assign Level. }
-  if (Level <> nil) and (Level.ThunderEffect <> nil) then
-    Level.ThunderEffect.AddLight(Lights);
+  if (Level <> nil) and (Level.Thunder <> nil) then
+    Level.Thunder.AddLight(Lights);
 end;
 
 procedure TGameSceneManager.ApplyProjection;
@@ -947,63 +948,63 @@ begin
     Input_PointingDeviceActivate.Assign(CastleInput_Interact.Shortcut, false);
 end;
 
-{ TThunderEffect ------------------------------------------------------------- }
+{ TThunder ------------------------------------------------------------- }
 
-constructor TThunderEffect.Create;
+constructor TThunder.Create;
 begin
   inherited;
-  ThunderLightNode := TDirectionalLightNode.Create('', '');
-  ThunderLightNode.FdAmbientIntensity.Value := DefaultThunderAmbientIntensity;
-  ThunderLightNode.FdColor.Value := DefaultThunderColor;
-  ThunderLightNode.FdDirection.Value := DefaultThunderDirection;
+  LightNode := TDirectionalLightNode.Create('', '');
+  LightNode.FdAmbientIntensity.Value := DefaultThunderAmbientIntensity;
+  LightNode.FdColor.Value := DefaultThunderColor;
+  LightNode.FdDirection.Value := DefaultThunderDirection;
 
-  ThunderLight.Node := ThunderLightNode;
-  ThunderLight.Transform := IdentityMatrix4Single;
-  ThunderLight.TransformScale := 1;
-  ThunderLight.Location := ZeroVector3Single;
-  ThunderLight.Direction := Normalized(ThunderLightNode.FdDirection.Value);
-  ThunderLight.Radius := MaxSingle;
-  ThunderLight.WorldCoordinates := true;
+  Light.Node := LightNode;
+  Light.Transform := IdentityMatrix4Single;
+  Light.TransformScale := 1;
+  Light.Location := ZeroVector3Single;
+  Light.Direction := Normalized(LightNode.FdDirection.Value);
+  Light.Radius := MaxSingle;
+  Light.WorldCoordinates := true;
 end;
 
-destructor TThunderEffect.Destroy;
+destructor TThunder.Destroy;
 begin
-  FreeAndNil(ThunderLightNode);
+  FreeAndNil(LightNode);
   inherited;
 end;
 
-function TThunderEffect.GetAmbientIntensity: Single;
+function TThunder.GetAmbientIntensity: Single;
 begin
-  Result := ThunderLightNode.FdAmbientIntensity.Value;
+  Result := LightNode.FdAmbientIntensity.Value;
 end;
 
-procedure TThunderEffect.SetAmbientIntensity(const Value: Single);
+procedure TThunder.SetAmbientIntensity(const Value: Single);
 begin
-  ThunderLightNode.FdAmbientIntensity.Send(Value);
+  LightNode.FdAmbientIntensity.Send(Value);
 end;
 
-function TThunderEffect.GetColor: TVector3Single;
+function TThunder.GetColor: TVector3Single;
 begin
-  Result := ThunderLightNode.FdColor.Value;
+  Result := LightNode.FdColor.Value;
 end;
 
-procedure TThunderEffect.SetColor(const Value: TVector3Single);
+procedure TThunder.SetColor(const Value: TVector3Single);
 begin
-  ThunderLightNode.FdColor.Send(Value);
+  LightNode.FdColor.Send(Value);
 end;
 
-function TThunderEffect.GetDirection: TVector3Single;
+function TThunder.GetDirection: TVector3Single;
 begin
-  Result := ThunderLightNode.FdDirection.Value;
+  Result := LightNode.FdDirection.Value;
 end;
 
-procedure TThunderEffect.SetDirection(const Value: TVector3Single);
+procedure TThunder.SetDirection(const Value: TVector3Single);
 begin
-  ThunderLightNode.FdDirection.Send(Value);
-  ThunderLight.Direction := Normalized(Value);
+  LightNode.FdDirection.Send(Value);
+  Light.Direction := Normalized(Value);
 end;
 
-procedure TThunderEffect.AddLight(const BaseLights: TLightInstancesList);
+procedure TThunder.AddLight(const BaseLights: TLightInstancesList);
 
   function Visible: boolean;
   var
@@ -1021,10 +1022,10 @@ procedure TThunderEffect.AddLight(const BaseLights: TLightInstancesList);
 
 begin
   if Visible then
-    BaseLights.Add(ThunderLight);
+    BaseLights.Add(Light);
 end;
 
-procedure TThunderEffect.Idle(const CompSpeed: Single);
+procedure TThunder.Idle(const CompSpeed: Single);
 begin
   Time += CompSpeed;
 
@@ -1040,7 +1041,7 @@ begin
   end;
 end;
 
-procedure TThunderEffect.ForceNow;
+procedure TThunder.ForceNow;
 begin
   NextBeginTime := Time;
 end;
@@ -1060,7 +1061,7 @@ end;
 
 destructor TLevel.Destroy;
 begin
-  FreeAndNil(FThunderEffect);
+  FreeAndNil(FThunder);
   inherited;
 end;
 
@@ -1161,8 +1162,8 @@ procedure TLevel.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
   FAnimationTime += CompSpeed;
-  if ThunderEffect <> nil then
-    ThunderEffect.Idle(CompSpeed);
+  if Thunder <> nil then
+    Thunder.Idle(CompSpeed);
 end;
 
 function TLevel.Background: TBackground;

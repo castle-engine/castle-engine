@@ -238,7 +238,7 @@ end;
 procedure KeyDown(Window: TCastleWindowBase; Key: TKey; c: char);
 begin
   case key of
-    K_T: SceneManager.Level.ThunderEffect.ForceNow;
+    K_T: SceneManager.Level.Thunder.ForceNow;
     K_F1: ShowHelpMessage;
     K_F5: Window.SaveScreen(FileNameAutoInc('lets_take_a_walk_screen_%d.png'));
   end;
@@ -345,7 +345,7 @@ begin
   { init level. LoadLevel requires OpenGL context to be available. }
   LevelsAvailable.LoadFromFiles(ProgramDataPath + 'data' +  PathDelim + 'levels');
   LevelsAvailable.FindId('base').LoadLevel(SceneManager);
-  SceneManager.Level.ThunderEffect := TThunderEffect.Create;
+  SceneManager.Level.Thunder := TThunder.Create;
 
   { init Rat }
   Rat := T3DTransform.Create(SceneManager);
