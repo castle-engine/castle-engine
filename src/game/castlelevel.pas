@@ -33,6 +33,11 @@ uses VectorMath, CastleSceneCore, CastleScene, Boxes3D,
   DOM, ALSoundEngine, Base3D, Shape, GL, CastleConfig, Images,
   Classes, CastleTimeUtils, CastleSceneManager, GLRendererShader, FGL;
 
+const
+  DefaultThunderAmbientIntensity = 1.0;
+  DefaultThunderColor: TVector3Single = (1, 1, 1);
+  DefaultThunderDirection: TVector3Single = (0, 0, -1);
+
 type
   TLevel = class;
   TLevelClass = class of TLevel;
@@ -250,16 +255,27 @@ type
     Time, LastBeginTime, NextBeginTime: Single;
     ThunderLightNode: TDirectionalLightNode;
     ThunderLight: TLightInstance;
-
     { Add thunder light, if visible. }
     procedure AddLight(const BaseLights: TLightInstancesList);
     procedure Idle(const CompSpeed: Single);
+    function GetAmbientIntensity: Single;
+    procedure SetAmbientIntensity(const Value: Single);
+    function GetColor: TVector3Single;
+    procedure SetColor(const Value: TVector3Single);
+    function GetDirection: TVector3Single;
+    procedure SetDirection(const Value: TVector3Single);
   public
     constructor Create;
     destructor Destroy; override;
 
     { Force thunder to happen @italic(now). }
     procedure ForceNow;
+
+    property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity default DefaultThunderAmbientIntensity;
+    { Color. Default value is DefaultThunderColor. }
+    property Color: TVector3Single read GetColor write SetColor;
+    { Direction. Default value is DefaultThunderDirection. }
+    property Direction: TVector3Single read GetDirection write SetDirection;
   end;
 
   { Level logic. We use T3D descendant, since this is the comfortable
@@ -347,8 +363,7 @@ type
 
     { For thunder effect. nil if no thunder effect should be done for this level.
       Descendants can configure and assign this, we will own it (free). }
-    property ThunderEffect: TThunderEffect
-      read FThunderEffect write FThunderEffect;
+    property ThunderEffect: TThunderEffect read FThunderEffect write FThunderEffect;
 
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
 
@@ -938,15 +953,15 @@ constructor TThunderEffect.Create;
 begin
   inherited;
   ThunderLightNode := TDirectionalLightNode.Create('', '');
-  ThunderLightNode.FdDirection.Value := Vector3Single(0, -1, 1);
-  ThunderLightNode.FdAmbientIntensity.Value := 0.5;
-  ThunderLightNode.FdColor.Value := Vector3Single(0.5, 0.5, 1);
+  ThunderLightNode.FdAmbientIntensity.Value := DefaultThunderAmbientIntensity;
+  ThunderLightNode.FdColor.Value := DefaultThunderColor;
+  ThunderLightNode.FdDirection.Value := DefaultThunderDirection;
 
   ThunderLight.Node := ThunderLightNode;
   ThunderLight.Transform := IdentityMatrix4Single;
   ThunderLight.TransformScale := 1;
   ThunderLight.Location := ZeroVector3Single;
-  ThunderLight.Direction := ThunderLightNode.FdDirection.Value;
+  ThunderLight.Direction := Normalized(ThunderLightNode.FdDirection.Value);
   ThunderLight.Radius := MaxSingle;
   ThunderLight.WorldCoordinates := true;
 end;
@@ -955,6 +970,37 @@ destructor TThunderEffect.Destroy;
 begin
   FreeAndNil(ThunderLightNode);
   inherited;
+end;
+
+function TThunderEffect.GetAmbientIntensity: Single;
+begin
+  Result := ThunderLightNode.FdAmbientIntensity.Value;
+end;
+
+procedure TThunderEffect.SetAmbientIntensity(const Value: Single);
+begin
+  ThunderLightNode.FdAmbientIntensity.Send(Value);
+end;
+
+function TThunderEffect.GetColor: TVector3Single;
+begin
+  Result := ThunderLightNode.FdColor.Value;
+end;
+
+procedure TThunderEffect.SetColor(const Value: TVector3Single);
+begin
+  ThunderLightNode.FdColor.Send(Value);
+end;
+
+function TThunderEffect.GetDirection: TVector3Single;
+begin
+  Result := ThunderLightNode.FdDirection.Value;
+end;
+
+procedure TThunderEffect.SetDirection(const Value: TVector3Single);
+begin
+  ThunderLightNode.FdDirection.Send(Value);
+  ThunderLight.Direction := Normalized(Value);
 end;
 
 procedure TThunderEffect.AddLight(const BaseLights: TLightInstancesList);
