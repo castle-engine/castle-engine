@@ -65,6 +65,7 @@ type
     You can explicitly initialize OpenAL context by ALContextOpen,
     and explicitly close it by ALContextClose. If you did not call ALContextOpen
     explicitly (that is, ALInitialized is @false), then the first LoadBuffer
+    or TXmlSoundEngine.Sound or TXmlSoundEngine.Sound3D
     will automatically do it for you. If you do not call ALContextClose
     explicitly, then at destructor we'll do it automatically. }
   TALSoundEngine = class(TALSoundAllocator)
@@ -1197,7 +1198,6 @@ var
   FullFileName: string;
 begin
   if not ALInitialized then ALContextOpen;
-
   if not ALActive then Exit(0);
 
   FullFileName := ExpandFileName(FileName);
@@ -1534,6 +1534,8 @@ end;
 function TXmlSoundEngine.Sound(SoundType: TSoundType;
   const Looping: boolean): TALSound;
 begin
+  if not ALInitialized then ALContextOpen;
+
   Result := PlaySound(
     Sounds[SoundType].Buffer, false, Looping,
     Sounds[SoundType].DefaultImportance,
@@ -1547,6 +1549,8 @@ function TXmlSoundEngine.Sound3d(SoundType: TSoundType;
   const Position: TVector3Single;
   const Looping: boolean): TALSound;
 begin
+  if not ALInitialized then ALContextOpen;
+
   Result := PlaySound(
     Sounds[SoundType].Buffer, true, Looping,
     Sounds[SoundType].DefaultImportance,
