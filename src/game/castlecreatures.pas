@@ -1242,7 +1242,7 @@ end;
 function TCreature.DebugCaption: string;
 begin
   Result := Format('%s [%s / %s]',
-    [Kind.Id, FloatToNiceStr(Life), FloatToNiceStr(MaxLife)]);
+    [Kind.Name, FloatToNiceStr(Life), FloatToNiceStr(MaxLife)]);
 end;
 
 procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
@@ -1429,7 +1429,7 @@ begin
 
   if Distance <= VisibleItemDistance then
   begin
-    S := Format('You see a creature "%s"', [Kind.Id]);
+    S := Format('You see a creature "%s"', [Kind.Name]);
 
     if Life >= MaxLife then
       S += ' (not wounded)' else

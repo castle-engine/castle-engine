@@ -157,7 +157,7 @@ type
     FDamageRandom: Single;
     FAttackKnockbackDistance: Single;
   public
-    constructor Create(const AId: string); override;
+    constructor Create(const AName: string); override;
 
     property DamageConst: Single read FDamageConst write FDamageConst
       default DefaultItemDamageConst;
@@ -390,7 +390,7 @@ begin
 
   FCaption := KindsConfig.GetValue('caption', '');
   if FCaption = '' then
-    raise Exception.CreateFmt('Empty caption attribute for item "%s"', [Id]);
+    raise Exception.CreateFmt('Empty caption attribute for item "%s"', [Name]);
 end;
 
 function TItemKind.Scene: TCastleScene;
@@ -522,7 +522,7 @@ end;
 
 { TItemShortRangeWeaponKind -------------------------------------------------- }
 
-constructor TItemShortRangeWeaponKind.Create(const AId: string);
+constructor TItemShortRangeWeaponKind.Create(const AName: string);
 begin
   inherited;
   FDamageConst := DefaultItemDamageConst;

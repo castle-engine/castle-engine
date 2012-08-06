@@ -343,7 +343,7 @@ begin
 
   { init level. LoadLevel requires OpenGL context to be available. }
   LevelsAvailable.LoadFromFiles(ProgramDataPath + 'data' +  PathDelim + 'levels');
-  LevelsAvailable.FindId('base').LoadLevel(SceneManager);
+  LevelsAvailable.FindName('base').LoadLevel(SceneManager);
   SceneManager.Level.Thunder := TThunder.Create;
 
   { init Rat }

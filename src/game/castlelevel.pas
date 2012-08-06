@@ -66,7 +66,7 @@ type
     { Unique identifier for this level.
       Should be a suitable identifier in Pascal.
       @noAutoLinkHere }
-    Id: string;
+    Name: string;
 
     { 3D file to load level. }
     SceneFileName: string;
@@ -114,8 +114,8 @@ type
     { Save AvailableForNewGame properties of every item. }
     procedure SaveToConfig(const Config: TCastleConfig);
   public
-    { raises Exception if such Id is not on the list. }
-    function FindId(const AId: string): TLevelAvailable;
+    { raises Exception if such Name is not on the list. }
+    function FindName(const AName: string): TLevelAvailable;
 
     procedure SortByNumber;
 
@@ -153,7 +153,7 @@ type
     For now, each area is just one TBox3D. }
   TLevelArea = class(T3D)
   private
-    FId: string;
+    FName: string;
     FBox: TBox3D;
 
     { Area. Default value is EmptyBox3D. }
@@ -164,14 +164,14 @@ type
     { Name used to recognize this object's area in level VRML/X3D file.
 
       If this object is present during ChangeLevelScene call
-      then the shape with a parent named like @link(Id)
+      then the shape with a parent named like @link(Name)
       will be removed from VRML/X3D file, and it's BoundingBox will be used
       as Box3D of this object.
 
       This way you can easily configure area of this object in Blender:
-      just add a cube, set it's mesh name to match with this @link(Id),
+      just add a cube, set it's mesh name to match with this @link(Name),
       and then this cube defines Box3D of this object. }
-    property Id: string read FId write FId;
+    property Name: string read FName write FName;
 
     function PointInside(const Point: TVector3Single): boolean;
 
@@ -217,9 +217,6 @@ type
     FInfo: TLevelAvailable;
     MenuBackground: boolean;
 
-    procedure SetSickProjection(const Value: boolean);
-    procedure SetSickProjectionSpeed(const Value: TFloatTime);
-
     procedure LoadLevel(const AInfo: TLevelAvailable;
       const AMenuBackground: boolean);
   protected
@@ -235,10 +232,8 @@ type
     { Level information, independent from current level state. }
     property Info: TLevelAvailable read FInfo;
 
-    property SickProjection: boolean
-      read FSickProjection write SetSickProjection;
-    property SickProjectionSpeed: TFloatTime
-      read FSickProjectionSpeed write SetSickProjectionSpeed;
+    property SickProjection: boolean read FSickProjection write FSickProjection;
+    property SickProjectionSpeed: TFloatTime read FSickProjectionSpeed write FSickProjectionSpeed;
 
     function CollisionIgnoreItem(
       const Sender: TObject;
@@ -413,7 +408,7 @@ end;
 procedure TLevelArea.ChangeLevelScene(MainScene: TCastleScene);
 begin
   inherited;
-  MainScene.RemoveBlenderBoxCheck(FBox, Id);
+  MainScene.RemoveBlenderBoxCheck(FBox, Name);
 end;
 
 function TLevelArea.PointInside(const Point: TVector3Single): boolean;
@@ -475,7 +470,7 @@ var
         end else
           raise Exception.CreateFmt('Not allowed children element of <area>: "%s"',
             [Child.TagName]);
-        if not DOMGetAttribute(Element, 'id', Result.FId) then
+        if not DOMGetAttribute(Element, 'id', Result.FName) then
           MissingRequiredAttribute('id', 'area');
       end else
       if (Element.TagName = 'resources') or
@@ -513,7 +508,7 @@ var
       Resource: T3DResource;
       ItemKind: TItemKind;
       IgnoredBegin, ItemQuantityBegin: Integer;
-      ItemKindQuantity, ItemKindId: string;
+      ItemKindQuantity, ItemKindName: string;
       ItemQuantity: Cardinal;
       ItemStubBoundingBox: TBox3D;
       ItemPosition: TVector3Single;
@@ -524,22 +519,22 @@ var
         ItemKindQuantity := ItemNodeName else
         ItemKindQuantity := Copy(ItemNodeName, 1, IgnoredBegin - 1);
 
-      { Calculate ItemKindId, ItemQuantity }
+      { Calculate ItemKindName, ItemQuantity }
       ItemQuantityBegin := CharsPos(['0'..'9'], ItemKindQuantity);
       if ItemQuantityBegin = 0 then
       begin
-        ItemKindId := ItemKindQuantity;
+        ItemKindName := ItemKindQuantity;
         ItemQuantity := 1;
       end else
       begin
-        ItemKindId := Copy(ItemKindQuantity, 1, ItemQuantityBegin - 1);
+        ItemKindName := Copy(ItemKindQuantity, 1, ItemQuantityBegin - 1);
         ItemQuantity := StrToInt(SEnding(ItemKindQuantity, ItemQuantityBegin));
       end;
 
-      Resource := AllResources.FindId(ItemKindId);
+      Resource := AllResources.FindName(ItemKindName);
       if not (Resource is TItemKind) then
         raise Exception.CreateFmt('Resource "%s" is not an item, but is referenced in model with Item prefix',
-          [ItemKindId]);
+          [ItemKindName]);
       ItemKind := TItemKind(Resource);
 
       ItemStubBoundingBox := Shape.BoundingBox;
@@ -600,14 +595,14 @@ var
       CreaturePosition[2] := StubBoundingBox.Data[0, 2];
 
       { calculate CreatureKind }
-      Resource := AllResources.FindId(CreatureKindName);
+      Resource := AllResources.FindName(CreatureKindName);
       if not (Resource is TCreatureKind) then
         raise Exception.CreateFmt('Resource "%s" is not a creature, but is referenced in model with Crea prefix',
           [CreatureKindName]);
       CreatureKind := TCreatureKind(Resource);
       if not CreatureKind.Prepared then
         OnWarning(wtMajor, 'Resource', Format('Creature "%s" is initially present on the level, but was not prepared yet --- which probably means you did not add it to <resources> inside level index.xml file. This causes loading on-demand, which is less comfortable for player.',
-          [CreatureKind.Id]));
+          [CreatureKind.Name]));
 
       { calculate CreatureDirection }
       { TODO --- CreatureDirection configurable.
@@ -888,24 +883,6 @@ begin
   end;
 
   inherited;
-end;
-
-procedure TGameSceneManager.SetSickProjection(const Value: boolean);
-begin
-  if FSickProjection <> Value then
-  begin
-    FSickProjection := Value;
-    ApplyProjectionNeeded := true;
-  end;
-end;
-
-procedure TGameSceneManager.SetSickProjectionSpeed(const Value: TFloatTime);
-begin
-  if FSickProjectionSpeed <> Value then
-  begin
-    FSickProjectionSpeed := Value;
-    if SickProjection then ApplyProjectionNeeded := true;
-  end;
 end;
 
 procedure TGameSceneManager.PointingDeviceActivateFailed(const Active: boolean);
@@ -1231,8 +1208,8 @@ begin
 
   { Required atttributes }
 
-  if not DOMGetAttribute(Element, 'id', Id) then
-    MissingRequiredAttribute('id');
+  if not DOMGetAttribute(Element, 'name', Name) then
+    MissingRequiredAttribute('name');
 
   if not DOMGetAttribute(Element, 'scene', SceneFileName) then
     MissingRequiredAttribute('scene');
@@ -1310,16 +1287,16 @@ end;
 
 { TLevelAvailableList ------------------------------------------------------- }
 
-function TLevelAvailableList.FindId(const AId: string): TLevelAvailable;
+function TLevelAvailableList.FindName(const AName: string): TLevelAvailable;
 var
   I: Integer;
   S: string;
 begin
   for I := 0 to Count - 1 do
-    if Items[I].Id = AId then
+    if Items[I].Name = AName then
       Exit(Items[I]);
 
-  S := Format('Level identifier "%s" is not found on the list (LevelsAvailable)', [AId]);
+  S := Format('Level name "%s" is not found on the list (LevelsAvailable)', [AName]);
   if Count = 0 then
     S += '.' + NL + NL + 'Warning: there are no levels available on the list at all. This means that the game data was not correctly installed (as we did not find any index.xml files defining any levels). Or the developer forgot to call LevelsAvailable.LoadFromFiles.';
   raise Exception.Create(S);
@@ -1341,7 +1318,7 @@ var
 begin
   for I := 0 to Count - 1 do
     Items[I].AvailableForNewGame := Config.GetValue(
-      'levels_available/' + Items[I].Id,
+      'levels_available/' + Items[I].Name,
       Items[I].DefaultAvailableForNewGame);
 end;
 
@@ -1351,7 +1328,7 @@ var
 begin
   for I := 0 to Count - 1 do
     Config.SetDeleteValue(
-      'levels_available/' + Items[I].Id,
+      'levels_available/' + Items[I].Name,
       Items[I].AvailableForNewGame,
       Items[I].DefaultAvailableForNewGame);
 end;

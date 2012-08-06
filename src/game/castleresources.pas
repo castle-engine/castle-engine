@@ -35,7 +35,7 @@ type
     But some 3D objects may need to have such resource prepared to work.
 
     It can also load it's configuration from XML config file.
-    For this purpose, it has a unique identifier in @link(Id) property. }
+    For this purpose, it has a unique identifier in @link(Name) property. }
   T3DResource = class
   private
   { Internal design notes: Having resource expressed as
@@ -51,7 +51,7 @@ type
     be no need of Resources list in TCastleSceneManager, simple
     TCastleSceneManager.Items would suffice.) }
 
-    FId: string;
+    FName: string;
     FPrepared: boolean;
     Allocated: T3DListCore;
     FUsageCount: Cardinal;
@@ -107,7 +107,7 @@ type
     procedure ReleaseCore; virtual;
     { @groupEnd }
   public
-    constructor Create(const AId: string); virtual;
+    constructor Create(const AName: string); virtual;
     destructor Destroy; override;
 
     { Are we in a (fully) prepared state. That is after a (fully successfull)
@@ -128,7 +128,7 @@ type
       (Reason: This must be a valid identifier in all possible languages.
       Also digits and underscore are reserved, as we may use them internally
       for other info in VRML/X3D and XML node names.) }
-    property Id: string read FId;
+    property Name: string read FName;
 
     procedure LoadFromFile(KindsConfig: TCastleConfig); virtual;
 
@@ -168,9 +168,9 @@ type
     IndexXmlReload: boolean;
     procedure LoadIndexXml(const FileName: string);
   public
-    { Find resource with given T3DResource.Id.
+    { Find resource with given T3DResource.Name.
       @raises Exception if not found and NilWhenNotFound = false. }
-    function FindId(const AId: string; const NilWhenNotFound: boolean = false): T3DResource;
+    function FindName(const AName: string; const NilWhenNotFound: boolean = false): T3DResource;
 
     { Load all items configuration from XML files.
 
@@ -215,10 +215,10 @@ var
 
 { T3DResource ---------------------------------------------------------------- }
 
-constructor T3DResource.Create(const AId: string);
+constructor T3DResource.Create(const AName: string);
 begin
   inherited Create;
-  FId := AId;
+  FName := AName;
   Allocated := T3DListCore.Create(true, nil);
 end;
 
@@ -268,7 +268,7 @@ var
 begin
   Assert(UsageCount <> 0);
   DoProgress := not Progress.Active;
-  if DoProgress then Progress.Init(PrepareCoreSteps, 'Loading ' + Id);
+  if DoProgress then Progress.Init(PrepareCoreSteps, 'Loading ' + Name);
   try
     { It's important to do ReleaseCore after Progress.Init.
       That is because Progress.Init may do TCastleWindowBase.SaveScreenToDisplayList,
@@ -353,7 +353,7 @@ end;
 procedure T3DResourceList.LoadIndexXml(const FileName: string);
 var
   Xml: TCastleConfig;
-  ResourceClassName, ResourceId: string;
+  ResourceClassName, ResourceName: string;
   ResourceClassIndex: Integer;
   ResourceClass: T3DResourceClass;
   Resource: T3DResource;
@@ -373,21 +373,21 @@ begin
       raise Exception.CreateFmt('Resource type "%s" not found, mentioned in file "%s"',
         [ResourceClassName, FileName]);
 
-    ResourceId := Xml.GetNonEmptyValue('id');
-    Resource := FindId(ResourceId, true);
+    ResourceName := Xml.GetNonEmptyValue('name');
+    Resource := FindName(ResourceName, true);
     if Resource <> nil then
     begin
       if IndexXmlReload then
       begin
         if ResourceClass <> Resource.ClassType then
           raise Exception.CreateFmt('Resource id "%s" already exists, but with different type. Old class is %s, new class is %s. Cannot reload index.xml file in this situation',
-            [ResourceId, Resource.ClassType.ClassName, ResourceClass.ClassName]);
+            [ResourceName, Resource.ClassType.ClassName, ResourceClass.ClassName]);
       end else
         raise Exception.CreateFmt('Resource id "%s" already exists. All resource ids inside index.xml files must be unique',
-          [ResourceId]);
+          [ResourceName]);
     end else
     begin
-      Resource := ResourceClass.Create(ResourceId);
+      Resource := ResourceClass.Create(ResourceName);
       Add(Resource);
     end;
 
@@ -404,26 +404,26 @@ begin
   ScanForFiles(ProgramDataPath + 'data' + PathDelim + 'items', 'index.xml', @LoadIndexXml);
 end;
 
-function T3DResourceList.FindId(const AId: string; const NilWhenNotFound: boolean): T3DResource;
+function T3DResourceList.FindName(const AName: string; const NilWhenNotFound: boolean): T3DResource;
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
   begin
     Result := Items[I];
-    if Result.Id = AId then
+    if Result.Name = AName then
       Exit;
   end;
 
   if NilWhenNotFound then
     Result := nil else
-    raise Exception.CreateFmt('Not existing resource name "%s"', [AId]);
+    raise Exception.CreateFmt('Not existing resource name "%s"', [AName]);
 end;
 
 procedure T3DResourceList.LoadResources(ParentElement: TDOMElement);
 var
   ResourcesElement: TDOMElement;
-  ResourceId: string;
+  ResourceName: string;
   I: TXMLElementIterator;
 begin
   Clear;
@@ -440,9 +440,9 @@ begin
           raise Exception.CreateFmt(
             'Element "%s" is not allowed in <resources>',
             [I.Current.TagName]);
-        if not DOMGetAttribute(I.Current, 'id', ResourceId) then
+        if not DOMGetAttribute(I.Current, 'id', ResourceName) then
           raise Exception.Create('<resource> must have a "id" attribute');
-        Add(AllResources.FindId(ResourceId));
+        Add(AllResources.FindName(ResourceName));
       end;
     finally FreeAndNil(I) end;
   end;
@@ -490,7 +490,7 @@ begin
         begin
           if Log then
             WritelnLog('Resources', Format(
-              'Resource "%s" becomes used, preparing', [Resource.Id]));
+              'Resource "%s" becomes used, preparing', [Resource.Name]));
           Assert(not Resource.Prepared);
           Resource.PrepareCore(BaseLights, DoProgress);
           Resource.FPrepared := true;
@@ -522,7 +522,7 @@ begin
     begin
       if Log then
         WritelnLog('Resources', Format(
-          'Resource "%s" is no longer used, releasing', [Resource.Id]));
+          'Resource "%s" is no longer used, releasing', [Resource.Name]));
       Resource.FPrepared := false;
       Resource.ReleaseCore;
     end;
