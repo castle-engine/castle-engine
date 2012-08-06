@@ -440,8 +440,8 @@ begin
           raise Exception.CreateFmt(
             'Element "%s" is not allowed in <resources>',
             [I.Current.TagName]);
-        if not DOMGetAttribute(I.Current, 'id', ResourceName) then
-          raise Exception.Create('<resource> must have a "id" attribute');
+        if not DOMGetAttribute(I.Current, 'name', ResourceName) then
+          raise Exception.Create('<resource> must have a "name" attribute');
         Add(AllResources.FindName(ResourceName));
       end;
     finally FreeAndNil(I) end;

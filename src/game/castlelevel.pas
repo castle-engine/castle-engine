@@ -470,8 +470,8 @@ var
         end else
           raise Exception.CreateFmt('Not allowed children element of <area>: "%s"',
             [Child.TagName]);
-        if not DOMGetAttribute(Element, 'id', Result.FName) then
-          MissingRequiredAttribute('id', 'area');
+        if not DOMGetAttribute(Element, 'name', Result.FName) then
+          MissingRequiredAttribute('name', 'area');
       end else
       if (Element.TagName = 'resources') or
          (Element.TagName = 'bump_mapping_light') then
