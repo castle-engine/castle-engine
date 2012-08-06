@@ -200,11 +200,6 @@ begin
   { init progress }
   WindowProgressInterface.Window := Window;
   Progress.UserInterface := WindowProgressInterface;
-  { I'm turning UseDescribePosition to false, because it's usually
-    confusing for the user. E.g. count of CreaturesiKinds.Load
-    is calculated in non-trivial way, there's no way we should
-    explain this to user. }
-  Progress.UseDescribePosition := false;
 
   { open OpenAL (after opening Glw and Progress, because ALContextOpen
     wants to display progress of "Loading sounds") }

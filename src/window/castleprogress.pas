@@ -99,7 +99,7 @@ begin
 
   glColor3f(0, 0,0);
   glRasterPos2f(Margin + 20, YMiddle - UIFont.TextHeight('M') div 2);
-  UIFont.Print(Progress.TitleWithPosition(true));
+  UIFont.Print(Progress.Title + ' ...');
 end;
 
 { TWindowProgressInterface  ------------------------------------------------ }

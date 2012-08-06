@@ -142,7 +142,6 @@ finally Progress.Fini; end;
 
     FTitle: string;
     FActive: boolean;
-    FUseDescribePosition: boolean;
   public
     property UserInterface: TProgressUserInterface
       read FUserInterface write FUserInterface;
@@ -167,23 +166,6 @@ finally Progress.Fini; end;
     { Are we between Init and Fini calls.
       Init changes Active to true, Fini changes Active to false. }
     property Active: boolean read FActive;
-
-    { Return description of current Position and Max values.
-      Returns something like Format('(%d / %d)', [Position, Max]).
-      It may be shown to the user, see also TitleWithPosition
-      and UseDescribePosition properties. }
-    function DescribePosition: string;
-
-    { Should be used by UserInterface to determine whether to show
-      somewhere DescribePosition value. }
-    property UseDescribePosition: boolean
-      read FUseDescribePosition write FUseDescribePosition default true;
-
-    { Return Title and DescribePosition, if UseDescribePosition.
-      This always returns the Title. Adds DescribePosition
-      if UseDescribePosition. If not UseDescribePosition,
-      then it adds '...' if AddDots. Otherwise, just returns Title. }
-    function TitleWithPosition(const AddDots: boolean): string;
 
     { Start the progress bar.
       You can call Init only when Active = false (that is, you
@@ -275,20 +257,6 @@ begin
 end;
 
 { TProgress ------------------------------------------------------------------ }
-
-function TProgress.DescribePosition: string;
-begin
- Result := Format('(%d / %d)', [Position, Max]);
-end;
-
-function TProgress.TitleWithPosition(const AddDots: boolean): string;
-begin
-  if UseDescribePosition then
-    Result := Title + ' ' + DescribePosition else
-  if AddDots then
-    Result := Title + ' ...' else
-    Result := Title;
-end;
 
 procedure TProgress.Init(AMax: Cardinal; const ATitle: string;
   const DelayUserInterface: boolean);
@@ -402,7 +370,6 @@ begin
  UpdatePart := DefaultUpdatePart;
  UpdateTicks := DefaultUpdateTicks;
  FActive := false;
- FUseDescribePosition := true;
 end;
 
 { TProgressNullInterface ----------------------------------------------------- }
