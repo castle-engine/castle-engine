@@ -111,21 +111,30 @@ type
 
     procedure SortByNumber;
 
-    { Fill this list with items read from levels/index.xml.
+    { Add all available levels found by scanning for index.xml inside directory
+      LevelsPath. For the specification of index.xml format see
+      castle/data/README_about_index_xml_files.txt.
+      For example, you can use @code(ProgramDataPath + 'data' +  PathDelim + 'levels')
+      as LevelsPath.
 
       All AvailableForNewGame are initially set to @false.
       You must later call LoadFromConfig to read user preferences
       and set AvailableForNewGame correctly (depending on levels that user
       already finished, looking at DefaultAvailableForNewGame).
       That's why LoadFromConfig has to be called explicitly,
-      isn't added to Config.OnLoad list.
+      it isn't added to Config.OnLoad list.
 
-      This can be done only once Window is open,
-      because loading levels requires knowledge of window size
-      (to scale level loading background images).
       Also, this can be done only once creatures and items resources are known,
       as they may be referenced in levels XML files. }
-    procedure LoadFromFiles;
+    procedure LoadFromFiles(const LevelsPath: string);
+
+    { For all available levels, read their TLevelAvailable.AvailableForNewGame
+      from user preferences.
+
+      This is useful only if you actually look at
+      TLevelAvailable.AvailableForNewGame for any purpose (for example,
+      to decide which levels are displayed in the menu). By default,
+      our engine doesn't look at AvailableForNewGame for anything. }
     procedure LoadFromConfig;
   end;
 
@@ -1290,9 +1299,9 @@ begin
   NewLevelAvailable.LoadFromDocument;
 end;
 
-procedure TLevelAvailableList.LoadFromFiles;
+procedure TLevelAvailableList.LoadFromFiles(const LevelsPath: string);
 begin
-  ScanForFiles(ProgramDataPath + 'data' +  PathDelim + 'levels', 'index.xml', @LoadIndexXml);
+  ScanForFiles(LevelsPath, 'index.xml', @LoadIndexXml);
 end;
 
 { globals -------------------------------------------------------------------- }
