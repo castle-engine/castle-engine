@@ -211,37 +211,40 @@ units are allowed to be used by units in specific group.
     Concepts:
 
     @unorderedList(
-      @item("Containers" are tied to a particular windowing library.
+      @item("Containers" are classes that implement IUIContainer interface.
         We have two containers right now:
 
-	@orderedList(
-	  @itemSpacing Compact
-	  @item A window, by our TCastleWindow class (see @code(window) directory).
-	  @item A Lazarus component, by our TCastleControl class (see @code(components) directory).
-	)
+        @orderedList(
+          @itemSpacing Compact
+          @item A window, by our TCastleWindow class (see @code(window) directory).
+          @item A Lazarus component, by our TCastleControl class (see @code(components) directory).
+            This descends from the base TOpenGLControl provided by Lazarus,
+            inheriting it's functionality.
+        )
 
-	The main task of a "container" is to handle a list of controls
-	(instances of TUIControl class). For our two current containers
-	this list is TCastleWindow.Controls and TCastleControl.Controls.
-	Container doesn't care about particular control types,
-	it just handles generic TUIControl classes, passing to them
-	key, mouse events and much more.)
+        Container is tied to a particular windowing library, like GTK or WinAPI
+        or something higher-level like Lazarus LCL.
+        Container is responsible for initializing and managing OpenGL context.
 
-      @item("Controls" may be tied to a particular rendering library,
-        in practice --- all current controls are invisible
-	(like a camera) or use OpenGL rendering.
+        Container handles a list of controls, that is a list of
+        instances of the TUIControl class. For our two current containers
+        this list is TCastleWindow.Controls and TCastleControl.Controls.
+        Container passes to them key events, mouse events and much more.)
 
-        The controls are @italic(not tied to the windowing library),
-        for example you can use our TCastleOnScreenMenu both inside CastleWindow,
-        as well as inside Lazarus GL area component, etc.
-        Everywhere is fine, as long as you have OpenGL rendering context.)
+      @item("Controls" are classes that descend from TUIControl class.
+        They may be tied to a particular rendering library,
+        in practice --- all current controls use OpenGL rendering.
+
+        The controls are not concerned with how you initialized the OpenGL
+        context, so all controls are useful with all containers.
+        For example you can use the same TCastleOnScreenMenu class
+        inside TCastleWindow, or inside Lazarus TCastleControl component, etc.)
     )
 
-    We have a camera control in @link(Cameras) unit,
-    and OpenGL controls (like TCastleOnScreenMenu) in @code(ui/opengl/) subdirectory.
-    Also our 3D scene (TCastleScene) and animation (TCastlePrecalculatedAnimation),
-    and our scene manager (TCastleSceneManager),
-    are controls.
+    We have many OpenGL controls (like TCastleOnScreenMenu and things
+    like buttons inside CastleControls) in @code(ui/opengl/) subdirectory.
+    We also have camera classes (Cameras unit with TCamera descendants),
+    they are used by scene manager.
 
     @italic(Uses:) @code(base), @code(images), @code(3d).)
 
