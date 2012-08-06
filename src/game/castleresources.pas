@@ -183,7 +183,7 @@ type
     procedure LoadFromFiles(const Reload: boolean = false);
 
     { Reads <resources> XML element. <resources> element
-      is required child of given ParentElement.
+      is an optional child of given ParentElement.
       Sets current list value with all mentioned required
       resources (subset of AllResources). }
     procedure LoadResources(ParentElement: TDOMElement);
@@ -428,21 +428,24 @@ var
 begin
   Clear;
 
-  ResourcesElement := DOMGetChildElement(ParentElement, 'resources', true);
+  ResourcesElement := DOMGetChildElement(ParentElement, 'resources', false);
 
-  I := TXMLElementIterator.Create(ResourcesElement);
-  try
-    while I.GetNext do
-    begin
-      if I.Current.TagName <> 'resource' then
-        raise Exception.CreateFmt(
-          'Element "%s" is not allowed in <resources>',
-          [I.Current.TagName]);
-      if not DOMGetAttribute(I.Current, 'id', ResourceId) then
-        raise Exception.Create('<resource> must have a "id" attribute');
-      Add(AllResources.FindId(ResourceId));
-    end;
-  finally FreeAndNil(I) end;
+  if ResourcesElement <> nil then
+  begin
+    I := TXMLElementIterator.Create(ResourcesElement);
+    try
+      while I.GetNext do
+      begin
+        if I.Current.TagName <> 'resource' then
+          raise Exception.CreateFmt(
+            'Element "%s" is not allowed in <resources>',
+            [I.Current.TagName]);
+        if not DOMGetAttribute(I.Current, 'id', ResourceId) then
+          raise Exception.Create('<resource> must have a "id" attribute');
+        Add(AllResources.FindId(ResourceId));
+      end;
+    finally FreeAndNil(I) end;
+  end;
 end;
 
 procedure T3DResourceList.Prepare(const BaseLights: TAbstractLightInstancesList;
