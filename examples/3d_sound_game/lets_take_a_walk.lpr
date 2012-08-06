@@ -46,7 +46,7 @@ uses GL, CastleWindow, CastleScene, X3DNodes, SysUtils,
   CastleParameters, Images, Thunder,
   CastleMessages, CastleFilesUtils, GLImages, CastleSceneCore,
   CastleSceneManager, Base3D, ALSoundEngine, ALSoundAllocator, Frustum,
-  RenderingCameraUnit, Classes, CastleControls;
+  RenderingCameraUnit, Classes, CastleControls, CastleLevel;
 
 { global variables ----------------------------------------------------------- }
 
@@ -319,8 +319,12 @@ begin
   SceneManager.OnCameraChanged := @TDummy(nil).CameraChanged;
   SceneManager.UseGlobalLights := true;
 
+  { init level }
+//  LevelsAvailable.LoadFromFiles(ProgramDataPath + 'data' +  PathDelim + 'levels');
+
   { init BaseScene }
-  BaseScene := LoadScene('base.wrl', SceneManager);
+  BaseScene := TCastleScene.Create(SceneManager);
+  BaseScene.Load(ProgramDataPath + 'data' +  PathDelim + 'levels' + PathDelim + 'base' + PathDelim + 'base.wrl');
   Progress.UserInterface := ProgressConsoleInterface;
   BaseScene.TriangleOctreeProgressTitle := 'Building triangle octree';
   BaseScene.ShapeOctreeProgressTitle := 'Building Shape octree';
@@ -349,8 +353,7 @@ begin
   { init MuteImage }
   MuteImage := TCastleImageControl.Create(Application);
   MuteImage.Blending := true;
-  MuteImage.FileName :=
-    ProgramDataPath + 'data' + PathDelim + 'images' + PathDelim +'mute_sign.png';
+  MuteImage.FileName := ProgramDataPath + 'data' + PathDelim + 'textures' + PathDelim +'mute_sign.png';
   Window.Controls.Insert(0, MuteImage);
 
   { init 3D sound }

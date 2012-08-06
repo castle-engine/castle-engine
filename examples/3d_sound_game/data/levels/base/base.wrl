@@ -36,7 +36,7 @@ Group {
   # billboard z user_help
   Separator {
     Translation { translation -0.55 -0.15 0.6 }
-    Texture2 { filename "textures/user_help.png" }
+    Texture2 { filename "../../textures/user_help.png" }
     Coordinate3 { point [ -0.5 0 -0.5, 0.5 0 -0.5, 0.5 0 0.5, -0.5 0 0.5 ] }
     TextureCoordinate2 { point [ 0 0, 1 0, 1 1, 0 1 ] }
     IndexedFaceSet {
@@ -55,7 +55,7 @@ Group {
     }
     TextureCoordinate2 { point [ 0 0, 0 1, 20 1, 20 0 ] }
     Texture2 {
-      filename "textures/plotek.png"
+      filename "../../textures/plotek.png"
       wrapS REPEAT
       wrapT CLAMP
     }
@@ -78,12 +78,12 @@ Group {
   Separator {
     Rotation { rotation 1 0 0 1.57 }
     Background {
-      backUrl "skies/sky_back.png"
-      bottomUrl "skies/sky_bottom.png"
-      frontUrl "skies/sky_front.png"
-      leftUrl "skies/sky_left.png"
-      rightUrl "skies/sky_right.png"
-      topUrl "skies/sky_top.png"
+      backUrl   "../../skies/sky_back.png"
+      bottomUrl "../../skies/sky_bottom.png"
+      frontUrl  "../../skies/sky_front.png"
+      leftUrl   "../../skies/sky_left.png"
+      rightUrl  "../../skies/sky_right.png"
+      topUrl    "../../skies/sky_top.png"
     }
   }
 
@@ -101,7 +101,7 @@ Group {
 
     Translation { translation 2 0 1.0966200000 }
     Rotation { rotation 1 0 0 1.57 }
-    Texture2 { filename "textures/mute_label_scroll.png" }
+    Texture2 { filename "../../textures/mute_label_scroll.png" }
     KambiTriangulation { quadricStacks 2 }
     Cylinder {
       parts SIDES

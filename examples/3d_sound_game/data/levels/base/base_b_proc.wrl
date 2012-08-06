@@ -42,7 +42,7 @@ Separator {
 		}
 		DEF MeshBasePlane Separator {
 			Texture2 {
-				filename "textures/base_shadowed.png"
+				filename "../../textures/base_shadowed.png"
 				image 0 0 1
 			}
 			TextureCoordinate2 {
