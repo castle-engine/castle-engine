@@ -100,7 +100,14 @@ type
     property MusicSound: TSoundType read FMusicSound write FMusicSound
       default stNone;
 
-    { Load level from file, create camera, octrees, prepare for OpenGL and such. }
+    { Load game level.
+      This clears all 3D items from @link(TCastleSceneManager.Items)
+      list (except @link(TCastleSceneManager.Player)), clears
+      @link(TCastleSceneManager.Camera) and @link(TCastleSceneManager.MainScene)
+      as well. Then it loads a new level and camera, adding to
+      @link(TCastleSceneManager.Items) all creatures and items defined
+      in the level 3D file. It also prepares level for fast processing
+      and rendering (creating octrees, OpenGL resources etc.). }
     procedure LoadLevel(const SceneManager: TGameSceneManager;
       const MenuBackground: boolean = false);
   end;
