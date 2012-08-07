@@ -115,7 +115,7 @@ function VorbisDecode(Stream: TStream; out DataFormat: TALuint;
       [http://xiph.org/vorbis/doc/vorbisfile/return.html] }
     case Err of
       OV_FALSE: ErrDescription := 'No data available';
-      OV_HOLE: ErrDescription := 'Vorbisfile encoutered missing or corrupt data in the bitstream'; {. Recovery is normally automatic and this return code is for informational purposes only. }
+      OV_HOLE: ErrDescription := 'Vorbisfile encountered missing or corrupt data in the bitstream'; {. Recovery is normally automatic and this return code is for informational purposes only. }
       OV_EREAD: ErrDescription := 'Read error while fetching compressed data for decode';
       OV_EFAULT: ErrDescription := 'Internal inconsistency in decode state'; {. Continuing is likely not possible. }
       OV_EIMPL: ErrDescription := 'Feature not implemented';
