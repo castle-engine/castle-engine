@@ -32,6 +32,7 @@ uses Boxes3D, Cameras, CastleItems, VectorMath, GL, GLU,
 
 const
   DefaultPlayerLife = 100;
+  DefaultSickProjectionSpeed = 2.0;
 
 type
   TPlayerSwimming = (psNo,
@@ -286,7 +287,7 @@ type
       properties etc.). }
     property Swimming: TPlayerSwimming read FSwimming write SetSwimming;
 
-    { This loads player's properties from player.xml file.
+    { Loads player properties from player.xml file.
       This is called from constructor, you can also call this
       later (for debug purposes, if you changed something). }
     procedure LoadFromFile;
@@ -1110,7 +1111,7 @@ begin
       PlayerConfig.GetFloat('player/head_bobbing_time',
       DefaultHeadBobbingTime);
     SickProjectionSpeed := PlayerConfig.GetFloat('player/sick_projection_speed',
-      10.0);
+      DefaultSickProjectionSpeed);
 
     PlayerElement := PlayerConfig.PathElement('player');
     if PlayerElement <> nil then

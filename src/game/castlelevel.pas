@@ -210,9 +210,6 @@ type
 
   TGameSceneManager = class(TCastleSceneManager)
   private
-    FSickProjection: boolean;
-    FSickProjectionSpeed: TFloatTime;
-
     FLevel: TLevel;
     FInfo: TLevelAvailable;
     MenuBackground: boolean;
@@ -231,9 +228,6 @@ type
 
     { Level information, independent from current level state. }
     property Info: TLevelAvailable read FInfo;
-
-    property SickProjection: boolean read FSickProjection write FSickProjection;
-    property SickProjectionSpeed: TFloatTime read FSickProjectionSpeed write FSickProjectionSpeed;
 
     function CollisionIgnoreItem(
       const Sender: TObject;
@@ -870,14 +864,12 @@ procedure TGameSceneManager.ApplyProjection;
 var
   S, C: Extended;
 begin
-  { After LoadLevel, we always have here Camera <> nil.
-    But it's also possible to have Camera = nil if no LoadLevel was called yet. }
-
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
-  if SickProjection then
+  if (Player is TPlayer) and
+     (TPlayer(Player).Swimming = psUnderWater) then
   begin
-    SinCos(Level.AnimationTime * SickProjectionSpeed, S, C);
+    SinCos(Level.AnimationTime * TPlayer(Player).SickProjectionSpeed, S, C);
     DistortFieldOfViewY += C * 0.03;
     DistortViewAspect += S * 0.03;
   end;
