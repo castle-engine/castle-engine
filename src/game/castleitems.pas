@@ -370,8 +370,8 @@ var
 
 implementation
 
-uses SysUtils, CastleFilesUtils, CastlePlayer,
-  CastleGameNotifications, CastleConfig, GLImages, CastleGameVideoOptions;
+uses SysUtils, CastleFilesUtils, CastlePlayer, CastleGameNotifications,
+  CastleConfig, GLImages;
 
 { TItemKind ------------------------------------------------------------ }
 
@@ -733,7 +733,7 @@ procedure TItemOnLevel.Render(const Frustum: TFrustum;
   const Params: TRenderParams);
 begin
   inherited;
-  if GetExists and RenderBoundingBoxes and
+  if GetExists and RenderDebugBoundingVolumes and
     (not Params.Transparent) and Params.ShadowVolumesReceivers and
     Frustum.Box3DCollisionPossibleSimple(BoundingBox) then
   begin

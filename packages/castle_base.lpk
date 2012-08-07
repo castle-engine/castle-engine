@@ -44,7 +44,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="173">
+    <Files Count="172">
       <Item1>
         <Filename Value="../src/3d/base3d.pas"/>
         <UnitName Value="Base3D"/>
@@ -404,10 +404,6 @@
         <Filename Value="../src/game/castlegamenotifications.pas"/>
         <UnitName Value="CastleGameNotifications"/>
       </Item89>
-      <Item90>
-        <Filename Value="../src/game/castlegamevideooptions.pas"/>
-        <UnitName Value="CastleGameVideoOptions"/>
-      </Item90>
       <Item91>
         <Filename Value="../src/game/castleinputs.pas"/>
         <UnitName Value="CastleInputs"/>
@@ -743,10 +739,10 @@
         <Filename Value="../src/x3d/x3dshadowmaps.pas"/>
         <UnitName Value="X3DShadowMaps"/>
       </Item172>
-      <Item173>
+      <Item90>
         <Filename Value="../src/x3d/x3dtime.pas"/>
         <UnitName Value="X3DTime"/>
-      </Item173>
+      </Item90>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">

@@ -256,7 +256,6 @@ begin
     P.Targets.AddUnit('castlecreatures.pas');
     P.Targets.AddUnit('castlegamecache.pas');
     P.Targets.AddUnit('castlegamenotifications.pas');
-    P.Targets.AddUnit('castlegamevideooptions.pas');
     P.Targets.AddUnit('castleinputs.pas');
     P.Targets.AddUnit('castleitems.pas');
     P.Targets.AddUnit('castlelevel.pas');

@@ -789,9 +789,8 @@ var
 
 implementation
 
-uses SysUtils, DOM, GL, GLU, CastleGameCache,
-  CastleFilesUtils, CastleGLUtils, ProgressUnit,
-  CastleGameNotifications, CastleGameVideoOptions;
+uses SysUtils, DOM, GL, GLU, CastleGameCache, CastleFilesUtils, CastleGLUtils,
+  ProgressUnit, CastleGameNotifications;
 
 var
   DisableCreatures: Cardinal;
@@ -1181,7 +1180,7 @@ end;
 
 procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams);
 
-  procedure RenderBoundingGeometry;
+  procedure DebugBoundingVolumes;
   var
     Q: PGLUQuadric;
   begin
@@ -1202,7 +1201,7 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
     glPopAttrib;
   end;
 
-  procedure DoRenderDebugCaptions;
+  procedure DebugCaptions;
   const
     FontSize = 0.5;
   begin
@@ -1230,12 +1229,12 @@ begin
       glMultMatrix(Transform);
       if RenderDebugCaptions and
          (not Params.Transparent) and Params.ShadowVolumesReceivers then
-        DoRenderDebugCaptions;
+        DebugCaptions;
     glPopMatrix;
 
-    if RenderBoundingBoxes and
+    if RenderDebugBoundingVolumes and
        (not Params.Transparent) and Params.ShadowVolumesReceivers then
-      RenderBoundingGeometry;
+      DebugBoundingVolumes;
   end;
 end;
 

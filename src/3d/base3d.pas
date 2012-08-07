@@ -1596,6 +1596,15 @@ procedure TransformMatricesMult(var Transform, TransformInverse: TMatrix4Single;
   const ScaleOrientation: TVector4Single;
   const Translation: TVector3Single);
 
+var
+  { Creatures, items and possibly other 3D stuff may look at these variables
+    to display additional features of 3D objects, helpful to debug collisions,
+    AI and other things.
+    @groupBegin }
+  RenderDebugBoundingVolumes: boolean = false;
+  RenderDebugCaptions: boolean = false;
+  { @groupEnd }
+
 implementation
 
 uses SysUtils, Cameras;
