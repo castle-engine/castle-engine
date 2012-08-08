@@ -283,10 +283,8 @@ type
   private
     FTime: TFloatTime;
     FThunder: TThunder;
+    FWorld: T3DWorld;
   protected
-    { Scene manager containing this level. }
-    SceneManager: TGameSceneManager;
-
     FBossCreature: TCreature;
 
     { Load 3D precalculated animation from (*.kanim) file, doing common tasks.
@@ -298,15 +296,11 @@ type
         @item TimePlaying is by default @false, so the animation is not playing.
       )
       @groupBegin }
-    function LoadLevelAnimation(
-      const FileName: string;
-      CreateFirstOctreeCollisions,
-      CreateLastOctreeCollisions: boolean;
+    function LoadLevelAnimation(const FileName: string;
+      const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean;
       const AnimationClass: TCastlePrecalculatedAnimationClass): TCastlePrecalculatedAnimation;
-    function LoadLevelAnimation(
-      const FileName: string;
-      CreateFirstOctreeCollisions,
-      CreateLastOctreeCollisions: boolean): TCastlePrecalculatedAnimation;
+    function LoadLevelAnimation(const FileName: string;
+      const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean): TCastlePrecalculatedAnimation;
     { @groupEnd }
 
     { Load 3D scene from file, doing common tasks.
@@ -319,19 +313,25 @@ type
       )
       @groupBegin }
     function LoadLevelScene(const FileName: string;
-      CreateOctreeCollisions, PrepareBackground: boolean;
+      const CreateOctreeCollisions, PrepareBackground: boolean;
       const SceneClass: TCastleSceneClass): TCastleScene;
     function LoadLevelScene(const FileName: string;
-      CreateOctreeCollisions, PrepareBackground: boolean): TCastleScene;
+      const CreateOctreeCollisions, PrepareBackground: boolean): TCastleScene;
     { @groupEnd }
   public
     { Create new level instance. Called when creatures and hints are already
       initialized. But before creating resources like octrees,
-      so you can modify MainScene contents. }
+      so you can modify MainScene contents.
+
+      You have to provide AWorld instance at construction,
+      and you have to add created TLevel instance to this AWorld,
+      and you cannot change it later. This is necessary, as TLevel descendants
+      at construction may actually modify your world, and depend on it later. }
     constructor Create(AOwner: TComponent; AWorld: T3DWorld;
       MainScene: TCastleScene; DOMElement: TDOMElement); reintroduce; virtual;
     destructor Destroy; override;
     function BoundingBox: TBox3D; override;
+    function World: T3DWorld; override;
 
     { Called when new player starts game on this level.
       This is supposed to equip the player with some basic weapon/items.
@@ -1023,7 +1023,7 @@ constructor TLevel.Create(AOwner: TComponent; AWorld: T3DWorld;
   MainScene: TCastleScene; DOMElement: TDOMElement);
 begin
   inherited Create(AOwner);
-  SceneManager := AOwner as TGameSceneManager;
+  FWorld := AWorld;
   { Actually, the fact that our BoundingBox is empty also prevents collisions.
     But for some methods, knowing that Collides = false allows them to exit
     faster. }
@@ -1034,6 +1034,16 @@ destructor TLevel.Destroy;
 begin
   FreeAndNil(FThunder);
   inherited;
+end;
+
+function TLevel.World: T3DWorld;
+begin
+  Result := FWorld;
+
+  Assert(Result <> nil,
+    'TLevel.World should never be nil, you have to provide World at TLevel constructor');
+  Assert( ((inherited World) = nil) or ((inherited World) = Result),
+    'World specified at TLevel constructor must be the same world where TLevel instance is added');
 end;
 
 function TLevel.BoundingBox: TBox3D;
@@ -1057,8 +1067,9 @@ begin
   { Nothing to do in this class. }
 end;
 
-function TLevel.LoadLevelScene(const FileName: string;
-  CreateOctreeCollisions, PrepareBackground: boolean;
+function TLevel.LoadLevelScene(
+  const FileName: string;
+  const CreateOctreeCollisions, PrepareBackground: boolean;
   const SceneClass: TCastleSceneClass): TCastleScene;
 var
   Options: TPrepareResourcesOptions;
@@ -1073,7 +1084,7 @@ begin
   if GLShadowVolumesPossible then
     Options := Options + prShadowVolume;
 
-  Result.PrepareResources(Options, false, SceneManager.BaseLights);
+  Result.PrepareResources(Options, false, World.BaseLights);
 
   if CreateOctreeCollisions then
     Result.Spatial := [ssDynamicCollisions];
@@ -1083,8 +1094,9 @@ begin
   Result.ProcessEvents := true;
 end;
 
-function TLevel.LoadLevelScene(const FileName: string;
-  CreateOctreeCollisions, PrepareBackground: boolean): TCastleScene;
+function TLevel.LoadLevelScene(
+  const FileName: string;
+  const CreateOctreeCollisions, PrepareBackground: boolean): TCastleScene;
 begin
   Result := LoadLevelScene(FileName, CreateOctreeCollisions, PrepareBackground,
     TCastleScene);
@@ -1092,8 +1104,7 @@ end;
 
 function TLevel.LoadLevelAnimation(
   const FileName: string;
-  CreateFirstOctreeCollisions,
-  CreateLastOctreeCollisions: boolean;
+  const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean;
   const AnimationClass: TCastlePrecalculatedAnimationClass): TCastlePrecalculatedAnimation;
 var
   Options: TPrepareResourcesOptions;
@@ -1106,7 +1117,7 @@ begin
   if GLShadowVolumesPossible then
     Options := Options + prShadowVolume;
 
-  Result.PrepareResources(Options, false, SceneManager.BaseLights);
+  Result.PrepareResources(Options, false, World.BaseLights);
 
   if CreateFirstOctreeCollisions then
     Result.FirstScene.Spatial := [ssDynamicCollisions];
@@ -1121,8 +1132,7 @@ end;
 
 function TLevel.LoadLevelAnimation(
   const FileName: string;
-  CreateFirstOctreeCollisions,
-  CreateLastOctreeCollisions: boolean): TCastlePrecalculatedAnimation;
+  const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean): TCastlePrecalculatedAnimation;
 begin
   Result := LoadLevelAnimation(FileName,
     CreateFirstOctreeCollisions, CreateLastOctreeCollisions,
