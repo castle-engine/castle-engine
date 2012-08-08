@@ -35,13 +35,16 @@
   You can add new inputs simply by creating new TInputConfiguration instances.
   Just make sure you do it before calling @code(Config.Load),
   as some functionality assumes that all shortcuts are already added
-  at the time @code(Config.Load) is called. }
+  at the time @code(Config.Load) is called.
+
+  It also defines new CastleScript function: @code(shortcut),
+  see [http://castle-engine.sourceforge.net/castle_script.php#function_shortcut]. }
 unit CastleInputs;
 
 interface
 
 uses KeysMouse, Cameras, CastleUtils, CastleClassUtils, Classes,
-  FGL, GenericStructList, CastleConfig;
+  FGL, GenericStructList, CastleConfig, CastleScript;
 
 type
   TInputGroup = (kgBasic, kgItems, kgOther);
@@ -114,6 +117,7 @@ type
   private
     procedure LoadFromConfig(const Config: TCastleConfig);
     procedure SaveToConfig(const Config: TCastleConfig);
+    function FindConfigName(const ConfigName: string): TInputConfiguration;
   public
     { Seeks for a Shortcut that has matching key or mouse button or mouse wheel.
       @nil if not found. }
@@ -296,6 +300,16 @@ begin
   Result := false;
 end;
 
+function TInputConfigurationList.FindConfigName(const ConfigName: string): TInputConfiguration;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if Items[I].ConfigName = ConfigName then
+      Exit(Items[I]);
+  Result := nil;
+end;
+
 { TInputChangedEventList -------------------------------------------------- }
 
 procedure TInputChangedEventList.ExecuteAll(
@@ -407,6 +421,37 @@ begin
     InvertVerticalMouseLook, DefaultInvertVerticalMouseLook);
 end;
 
+{ TCasScriptShortcut --------------------------------------------------------- }
+
+type
+  TCasScriptShortcut = class(TCasScriptFunction)
+  public
+    class function ShortName: string; override;
+    class procedure Handle(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  end;
+
+class function TCasScriptShortcut.ShortName: string;
+begin
+  Result := 'shortcut';
+end;
+
+class procedure TCasScriptShortcut.Handle(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  N: string;
+  I: TInputConfiguration;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptString);
+  N := TCasScriptString(Arguments[0]).Value;
+  if CastleAllInputs <> nil then
+  begin
+    I := CastleAllInputs.FindConfigName(N);
+    if I <> nil then
+      TCasScriptString(AResult).Value := I.Description else
+      TCasScriptString(AResult).Value := Format('(shortcut name "%s" undefined)', [N]);
+  end else
+    TCasScriptString(AResult).Value := 'input names not available (finalization of CastleInputs unit is already done)';
+end;
+
 { initialization / finalization ---------------------------------------------- }
 
 procedure DoInitialization;
@@ -455,6 +500,8 @@ begin
 
   Config.OnLoad.Add(@TConfigOptions(nil).LoadFromConfig);
   Config.OnSave.Add(@TConfigOptions(nil).SaveToConfig);
+
+  FunctionHandlers.RegisterHandler(@TCasScriptShortcut(nil).Handle, TCasScriptShortcut, [TCasScriptString], false);
 end;
 
 procedure DoFinalization;

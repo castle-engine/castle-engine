@@ -79,7 +79,7 @@ type
   { @deprecated Deprecated name for ECasScriptAssignError. }
   EKamAssignValueError = ECasScriptAssignError;
 
-  TCasScriptOutputProc = procedure (const S: string) of object;
+  TCasScriptMessage = procedure (const S: string) of object;
 
   { Various information that may be useful for implementing some
     function handlers, but that should be supplied from outside of
@@ -87,14 +87,10 @@ type
   TCasScriptEnvironment = class
   private
     FBaseUrl: string;
-    FOutputProc: TCasScriptOutputProc;
   public
     { Base URL to use for relative filenames.
       Similar to TX3DNode.BaseUrl. }
     property BaseUrl: string read FBaseUrl write FBaseUrl;
-    { If assigned, it will be used to realize writeln()
-      function. If not assigned, we will use OnWarning. }
-    property OutputProc: TCasScriptOutputProc read FOutputProc write FOutputProc;
   end;
 
   TCasScriptExpression = class
@@ -897,6 +893,11 @@ var
 procedure CreateValueIfNeeded(var Value: TCasScriptValue;
   var ParentOfValue: boolean;
   NeededClass: TCasScriptValueClass);
+
+var
+  { Global method to output messages done by CastleScript @code(writeln())
+    function. If not assigned, we will use OnWarning. }
+  OnScriptMessage: TCasScriptMessage;
 
 implementation
 
@@ -1918,9 +1919,8 @@ begin
 
   S := TCasScriptString(Arguments[0]).Value;
 
-  if (AFunction.Environment <> nil) and
-     Assigned(AFunction.Environment.OutputProc) then
-    AFunction.Environment.OutputProc(S) else
+  if Assigned(OnScriptMessage) then
+    OnScriptMessage(S) else
     OnWarning(wtMinor, 'CastleScript', 'Writeln: '+ S);
 end;
 
