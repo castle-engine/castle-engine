@@ -409,9 +409,42 @@ begin
 end;
 
 procedure TLevelArea.ChangeLevelScene(MainScene: TCastleScene);
+var
+  C, S: TVector3Single;
+  M: string;
 begin
   inherited;
   MainScene.RemoveBlenderBoxCheck(FBox, Name);
+
+  { only now we know Box, so now output VRML/X3D version of the hint box.
+    We also use the knowledge that TLevelHintArea is for now the only
+    non-abstract descendant of TLevelArea. }
+  C := Box.Middle;
+  S := Box.Sizes;
+  Writeln(Format(
+    'DEF %s ProximitySensor {' +NL+
+    '  center %f %f %f' +NL+
+    '  size %f %f %f' +NL+
+    '}',
+    [Name,
+     C[0], C[1], C[2],
+     S[0], S[1], S[2]]));
+  M := '''' + (Self as TLevelHintArea).Message + '''';
+  M := StringReplace(M, '%i', ''' + shortcut(''interact'') + ''', [rfReplaceAll]);
+  M := StringReplace(M, ' + ''''', '', [rfReplaceAll]);
+  Writeln(Format(
+    'DEF %sScript Script {' +NL+
+    '  inputOnly SFTime show' +NL+
+    '  inputOutput SFBool done FALSE' +NL+
+    '  url "castlescript:' +NL+
+    '    function show(value, timestamp)' +NL+
+    '      when (not(done),' +NL+
+    '        writeln(' + M + ');' +NL+
+    '        done := true)' +NL+
+    '  "' +NL+
+    '}' +NL+
+    'ROUTE %s.enterTime TO %sScript.show',
+    [Name, Name, Name]));
 end;
 
 function TLevelArea.PointInside(const Point: TVector3Single): boolean;
