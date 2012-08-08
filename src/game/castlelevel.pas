@@ -289,15 +289,15 @@ type
 
     FBossCreature: TCreature;
 
-    { Load TCastlePrecalculatedAnimation from *.kanim file, doing common tasks.
+    { Load 3D precalculated animation from (*.kanim) file, doing common tasks.
       @unorderedList(
-        @item sets Attributes according to AnimationAttributesSet
         @item optionally creates triangle octree for the FirstScene and/or LastScene
         @item(call PrepareResources, with prRender, prBoundingBox, prShadowVolume
           (if shadow volumes possible at all in this OpenGL context))
-        @item FreeExternalResources, since they will not be needed anymore
+        @item Free texture data, since they will not be needed anymore
         @item TimePlaying is by default @false, so the animation is not playing.
-      ) }
+      )
+      @groupBegin }
     function LoadLevelAnimation(
       const FileName: string;
       CreateFirstOctreeCollisions,
@@ -307,21 +307,23 @@ type
       const FileName: string;
       CreateFirstOctreeCollisions,
       CreateLastOctreeCollisions: boolean): TCastlePrecalculatedAnimation;
+    { @groupEnd }
 
-    { Just load TCastleScene from file, doing some common tasks:
+    { Load 3D scene from file, doing common tasks.
       @unorderedList(
-        @item sets Attributes according to AttributesSet
         @item optionally create triangle octree
         @item(call PrepareResources, with prRender, prBoundingBox, prShadowVolume
           (if shadow volumes possible at all in this OpenGL context), optionally
           with prBackground)
-        @item FreeExternalResources, since they will not be needed anymore
-      ) }
+        @item Free texture data, since they will not be needed anymore
+      )
+      @groupBegin }
     function LoadLevelScene(const FileName: string;
       CreateOctreeCollisions, PrepareBackground: boolean;
       const SceneClass: TCastleSceneClass): TCastleScene;
     function LoadLevelScene(const FileName: string;
       CreateOctreeCollisions, PrepareBackground: boolean): TCastleScene;
+    { @groupEnd }
   public
     { Create new level instance. Called when creatures and hints are already
       initialized. But before creating resources like octrees,
