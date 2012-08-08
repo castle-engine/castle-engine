@@ -153,68 +153,6 @@ type
     procedure LoadFromConfig;
   end;
 
-  { Invisible and non-colliding 3D area that has some special purpose.
-    What exactly this "purpose" is, is defined in each TLevelArea descendant.
-
-    This class defines only a properties to define the area.
-    For now, each area is just one TBox3D. }
-  TLevelArea = class(T3D)
-  private
-    FName: string;
-    FBox: TBox3D;
-
-    { Area. Default value is EmptyBox3D. }
-    property Box: TBox3D read FBox write FBox;
-  public
-    constructor Create(AOwner: TComponent); override;
-
-    { Name used to recognize this object's area in level VRML/X3D file.
-
-      If this object is present during ChangeLevelScene call
-      then the shape with a parent named like @link(Name)
-      will be removed from VRML/X3D file, and it's BoundingBox will be used
-      as Box3D of this object.
-
-      This way you can easily configure area of this object in Blender:
-      just add a cube, set it's mesh name to match with this @link(Name),
-      and then this cube defines Box3D of this object. }
-    property Name: string read FName write FName;
-
-    function PointInside(const Point: TVector3Single): boolean;
-
-    function BoundingBox: TBox3D; override;
-
-    { Called when loading level. This is the place when you
-      can modify MainScene, e.g. by calling MainScene.RemoveBlenderBox. }
-    procedure ChangeLevelScene(MainScene: TCastleScene);
-  end;
-
-  { Area on the level that causes
-    a Notification to be displayed when player enters inside.
-    The natural use for it is to display various hint messages when player
-    is close to something. }
-  TLevelHintArea = class(TLevelArea)
-  private
-    FMessage: string;
-    FMessageDone: boolean;
-  public
-    { Message to display when player enters our volume.
-      Some formatting strings are allowed inside:
-      @unorderedList(
-        @item @code(%i) produces InteractInputDescription in the message.
-        @item @code(%%) produces one @code(%) in the message.
-      ) }
-    property Message: string read FMessage write FMessage;
-
-    { Was the @link(Message) already displayed ? If @true,
-      then it will not be displayed again (unless you will
-      reset MessageDone to @false from your TLevel descendant code). }
-    property MessageDone: boolean read FMessageDone write FMessageDone
-      default false;
-
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
-  end;
-
   TGameSceneManager = class(TCastleSceneManager)
   private
     FLevel: TLevel;
@@ -319,7 +257,7 @@ type
       const CreateOctreeCollisions, PrepareBackground: boolean): TCastleScene;
     { @groupEnd }
   public
-    { Create new level instance. Called when creatures and hints are already
+    { Create new level instance. Called when creatures and items are already
       initialized. But before creating resources like octrees,
       so you can modify MainScene contents.
 
@@ -390,87 +328,7 @@ uses SysUtils, Triangle, CastleLog, CastleGLUtils,
   CastleGameNotifications, CastleInputs, CastleGameCache, CastleXMLUtils,
   GLRenderer, RenderingCameraUnit, Math, CastleWarnings;
 
-{ TLevelArea ----------------------------------------------------------------- }
-
-constructor TLevelArea.Create(AOwner: TComponent);
-begin
-  inherited;
-  FBox := EmptyBox3D;
-  { Actually, the fact that our BoundingBox is empty also prevents collisions.
-    But for some methods, knowing that Collides = false allows them to exit
-    faster. }
-  Collides := false;
-end;
-
-function TLevelArea.BoundingBox: TBox3D;
-begin
-  { This object is invisible and non-colliding. }
-  Result := EmptyBox3D;
-end;
-
-procedure TLevelArea.ChangeLevelScene(MainScene: TCastleScene);
-var
-  C, S: TVector3Single;
-  M: string;
-begin
-  inherited;
-  MainScene.RemoveBlenderBoxCheck(FBox, Name);
-
-  { only now we know Box, so now output VRML/X3D version of the hint box.
-    We also use the knowledge that TLevelHintArea is for now the only
-    non-abstract descendant of TLevelArea. }
-  C := Box.Middle;
-  S := Box.Sizes;
-  Writeln(Format(
-    'DEF %s ProximitySensor {' +NL+
-    '  center %f %f %f' +NL+
-    '  size %f %f %f' +NL+
-    '}',
-    [Name,
-     C[0], C[1], C[2],
-     S[0], S[1], S[2]]));
-  M := '''' + (Self as TLevelHintArea).Message + '''';
-  M := StringReplace(M, '%i', ''' + shortcut(''interact'') + ''', [rfReplaceAll]);
-  M := StringReplace(M, ' + ''''', '', [rfReplaceAll]);
-  Writeln(Format(
-    'DEF %sScript Script {' +NL+
-    '  inputOnly SFTime show' +NL+
-    '  inputOutput SFBool done FALSE' +NL+
-    '  url "castlescript:' +NL+
-    '    function show(value, timestamp)' +NL+
-    '      when (not(done),' +NL+
-    '        writeln(' + M + ');' +NL+
-    '        done := true)' +NL+
-    '  "' +NL+
-    '}' +NL+
-    'ROUTE %s.enterTime TO %sScript.show',
-    [Name, Name, Name]));
-end;
-
-function TLevelArea.PointInside(const Point: TVector3Single): boolean;
-begin
-  Result := Box.PointInside(Point);
-end;
-
-{ TLevelHintArea ----------------------------------------------------------- }
-
-procedure TLevelHintArea.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
-var
-  ReplaceInteractInput: TPercentReplace;
-begin
-  inherited;
-  if (not MessageDone) and
-     (World.Player <> nil) and
-     PointInside(World.Player.Position) then
-  begin
-    ReplaceInteractInput.C := 'i';
-    ReplaceInteractInput.S := CastleInput_Interact.Description;
-    Notifications.Show(SPercentReplace(Message, [ReplaceInteractInput], true));
-    MessageDone := true;
-  end;
-end;
-
-{ TGameSceneManager --------------------------------------------------------------------- }
+{ TGameSceneManager ---------------------------------------------------------- }
 
 procedure TGameSceneManager.LoadLevel(const AInfo: TLevelAvailable;
   const AMenuBackground: boolean);
@@ -483,59 +341,6 @@ var
     of another, otherwise freeing one could free the other one too
     early. }
   ItemsToRemove: TX3DNodeList;
-
-  procedure LoadAreas(Element: TDOMElement);
-
-    procedure MissingRequiredAttribute(const AttrName, ElementName: string);
-    begin
-      raise Exception.CreateFmt(
-        'Missing required attribute "%s" of <%s> element', [AttrName, ElementName]);
-    end;
-
-    function LevelAreaFromDOMElement(Element: TDOMElement): TLevelHintArea;
-    var
-      Child: TDOMElement;
-    begin
-      if Element.TagName = 'area' then
-      begin
-        Child := DOMGetOneChildElement(Element);
-        if Child.TagName = 'hint' then
-        begin
-          Result := TLevelHintArea.Create(Self);
-          Result.Message := DOMGetTextData(Child);
-        end else
-          raise Exception.CreateFmt('Not allowed children element of <area>: "%s"',
-            [Child.TagName]);
-        if not DOMGetAttribute(Element, 'name', Result.FName) then
-          MissingRequiredAttribute('name', 'area');
-      end else
-      if (Element.TagName = 'resources') or
-         (Element.TagName = 'bump_mapping_light') then
-      begin
-        { These are handled elsewhere, and don't produce any T3D. }
-        Result := nil;
-      end else
-        raise Exception.CreateFmt('Not allowed children element of <level>: "%s"',
-          [Element.TagName]);
-    end;
-
-  var
-    I: TXMLElementIterator;
-    NewArea: TLevelArea;
-  begin
-    I := TXMLElementIterator.Create(Element);
-    try
-      while I.GetNext do
-      begin
-        NewArea := LevelAreaFromDOMElement(I.Current);
-        if NewArea <> nil then
-        begin
-          NewArea.ChangeLevelScene(MainScene);
-          Items.Add(NewArea);
-        end;
-      end;
-    finally FreeAndNil(I) end;
-  end;
 
   procedure TraverseForItems(Shape: TShape);
 
@@ -759,7 +564,7 @@ begin
   MenuBackground := AMenuBackground;
 
   { release stuff from previous level. Our items must be clean.
-    This releases previous Level (logic), MainScene, our areas added in LoadAreas,
+    This releases previous Level (logic), MainScene,
     and our creatures and items --- the ones added in TraverseForCreatures/Items,
     but also the ones created dynamically (when creature is added to scene manager,
     e.g. because player/creature shoots a missile, or when player drops an item).
@@ -806,8 +611,6 @@ begin
     { Scene must be the first one on Items, this way MoveAllowed will
       use Scene for wall-sliding (see T3DList.MoveAllowed implementation). }
     Items.Insert(0, MainScene);
-
-    LoadAreas(Info.Element);
 
     InitializeCamera;
 
