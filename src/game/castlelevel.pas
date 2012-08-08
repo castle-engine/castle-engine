@@ -220,12 +220,12 @@ type
     FLevel: TLevel;
     FInfo: TLevelAvailable;
     MenuBackground: boolean;
+    SickProjectionTime: TFloatTime;
 
     procedure LoadLevel(const AInfo: TLevelAvailable;
       const AMenuBackground: boolean);
   protected
     procedure InitializeLights(const Lights: TLightInstancesList); override;
-    procedure ApplyProjection; override;
     procedure PointingDeviceActivateFailed(const Active: boolean); override;
   public
     destructor Destroy; override;
@@ -281,7 +281,7 @@ type
     like BossCreatureIndicator. }
   TLevel = class(T3D)
   private
-    FAnimationTime: TFloatTime;
+    FTime: TFloatTime;
     FThunder: TThunder;
   protected
     { Scene manager containing this level. }
@@ -355,7 +355,7 @@ type
 
     { Time of the level, in seconds. Time 0 when level is created.
       This is updated in our Idle. }
-    property AnimationTime: TFloatTime read FAnimationTime;
+    property Time: TFloatTime read FTime;
 
     { Thunder effect, making sound and blinking light like a thunder in a storm.
       @nil if no thunder effect should be done for this level.
@@ -867,23 +867,6 @@ begin
     Level.Thunder.AddLight(Lights);
 end;
 
-procedure TGameSceneManager.ApplyProjection;
-var
-  S, C: Extended;
-begin
-  DistortFieldOfViewY := 1;
-  DistortViewAspect := 1;
-  if (Player is TPlayer) and
-     (TPlayer(Player).Swimming = psUnderWater) then
-  begin
-    SinCos(Level.AnimationTime * TPlayer(Player).SickProjectionSpeed, S, C);
-    DistortFieldOfViewY += C * 0.03;
-    DistortViewAspect += S * 0.03;
-  end;
-
-  inherited;
-end;
-
 procedure TGameSceneManager.PointingDeviceActivateFailed(const Active: boolean);
 begin
   inherited;
@@ -910,8 +893,22 @@ end;
 
 procedure TGameSceneManager.Idle(const CompSpeed: Single;
   const HandleMouseAndKeys: boolean; var LetOthersHandleMouseAndKeys: boolean);
+var
+  S, C: Extended;
 begin
   inherited;
+
+  DistortFieldOfViewY := 1;
+  DistortViewAspect := 1;
+  if (Player is TPlayer) and
+     (TPlayer(Player).Swimming = psUnderWater) then
+  begin
+    SickProjectionTime += CompSpeed;
+    SinCos(SickProjectionTime * TPlayer(Player).SickProjectionSpeed, S, C);
+    DistortFieldOfViewY += C * 0.03;
+    DistortViewAspect += S * 0.03;
+  end;
+
   if MenuBackground or
     ( (Player <> nil) and
       ( ((Player is TPlayer) and TPlayer(Player).Blocked) or
@@ -1133,7 +1130,7 @@ end;
 procedure TLevel.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
-  FAnimationTime += CompSpeed;
+  FTime += CompSpeed;
   if Thunder <> nil then
     Thunder.Idle(CompSpeed);
 end;
