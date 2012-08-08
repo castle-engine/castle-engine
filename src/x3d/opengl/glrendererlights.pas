@@ -115,7 +115,7 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TLightInstance)
     glLightv(glLightNum, GL_POSITION, Vector4Single(LightNode.FdLocation.Value, 1));
 
     glLightv(glLightNum, GL_SPOT_DIRECTION, LightNode.FdDirection.Value);
-    glLightf(glLightNum, GL_SPOT_EXPONENT, LightNode.SpotExp);
+    glLightf(glLightNum, GL_SPOT_EXPONENT, Clamped(LightNode.SpotExp, 0.0, 128.0));
     glLightf(glLightNum, GL_SPOT_CUTOFF,
       { Clamp to 90 for safety, see VRML 2.0 version for comments }
       Min(90, RadToDeg(LightNode.FdCutOffAngle.Value)));
@@ -131,14 +131,13 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TLightInstance)
       GL_SPOT_EXPONENT is an exponent for cosinus.
       beamWidth says to use constant intensity within beamWidth angle,
       and linear drop off to cutOffAngle.
-
       See [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.opengl_rendering.html#section.vrml_lights]
       for more discussion. }
 
     if LightNode.FdBeamWidth.Value >= LightNode.FdCutOffAngle.Value then
       glLightf(glLightNum, GL_SPOT_EXPONENT, 0) else
-      glLightf(glLightNum, GL_SPOT_EXPONENT, 1
-        { 0.5 / (LightNode.FdBeamWidth.Value + 0.1) });
+      glLightf(glLightNum, GL_SPOT_EXPONENT, Clamped(
+        0.5 / Max(LightNode.FdBeamWidth.Value, 0.0001), 0.0, 128.0));
 
     glLightf(glLightNum, GL_SPOT_CUTOFF,
       { Clamp to 90, to protect against user inputting invalid value in VRML,
