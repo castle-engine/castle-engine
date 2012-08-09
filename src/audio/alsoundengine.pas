@@ -386,14 +386,14 @@ type
       MaxGain is not allowed to be > 1 (under Windows impl, Linux impl
       allows it, but that's about it).
 
-      When sound is used for MusicPlayer.PlayedSound:
+      When sound is used for MusicPlayer.Sound:
       1. MinGain, MaxGain are ignored
       2. Gain is always multiplied by MusicVolume when setting AL_GAIN
          of the music source. }
     Gain, MinGain, MaxGain: Single;
 
     { Importance, as passed to TALSoundAllocator.
-      This is ignored when sound is used for MusicPlayer.PlayedSound. }
+      This is ignored when sound is used for MusicPlayer.Sound. }
     DefaultImportance: Cardinal;
 
     { OpenAL buffer of this sound. Zero if buffer is not yet loaded,
@@ -555,18 +555,18 @@ type
     { Engine that owns this music player. }
     FEngine: TXmlSoundEngine;
 
-    FPlayedSound: TSoundType;
-    procedure SetPlayedSound(const Value: TSoundType);
+    FSound: TSoundType;
+    procedure SetSound(const Value: TSoundType);
   private
     { This is nil if we don't play music right now
-      (because OpenAL is not initialized, or PlayedSound = stNone,
+      (because OpenAL is not initialized, or Sound = stNone,
       or PlayerSound.FileName = '' (sound not existing)). }
     FAllocatedSource: TALSound;
 
     procedure AllocatedSourceRelease(Sender: TALSound);
 
     { Called by ALContextOpen. You should check here if
-      PlayedSound <> stNone and eventually initialize FAllocatedSource. }
+      Sound <> stNone and eventually initialize FAllocatedSource. }
     procedure AllocateSource;
   private
     FMusicVolume: Single;
@@ -582,8 +582,7 @@ type
 
       Changing value of this property (when both the old and new values
       are <> stNone and are different) restarts playing the music. }
-    property PlayedSound: TSoundType read FPlayedSound write SetPlayedSound
-      default stNone;
+    property Sound: TSoundType read FSound write SetSound default stNone;
 
     { Music volume. This must always be within 0..1 range.
       0.0 means that there is no music (this case should be optimized).}
@@ -1152,7 +1151,7 @@ begin
 
           Investigation: I found that sometimes changing the buffer
           of the sound doesn't work immediately. Simple
-            Writeln(SoundInfos.L[PlayedSound].Buffer, ' ',
+            Writeln(SoundInfos.L[Sound].Buffer, ' ',
               alGetSource1ui(FAllocatedSource.ALSource, AL_BUFFER));
           right after alCommonSourceSetup shows this (may output
           two different values). Then if you wait a little, OpenAL
@@ -1738,18 +1737,18 @@ end;
 procedure TMusicPlayer.AllocateSource;
 begin
   FAllocatedSource := FEngine.PlaySound(
-    FEngine.Sounds[PlayedSound].Buffer, false, true,
+    FEngine.Sounds[Sound].Buffer, false, true,
     MaxSoundImportance,
-    MusicVolume * FEngine.Sounds[PlayedSound].Gain, 0, 1,
+    MusicVolume * FEngine.Sounds[Sound].Gain, 0, 1,
     ZeroVector3Single);
 
   if FAllocatedSource <> nil then
     FAllocatedSource.OnRelease := @AllocatedSourceRelease;
 end;
 
-procedure TMusicPlayer.SetPlayedSound(const Value: TSoundType);
+procedure TMusicPlayer.SetSound(const Value: TSoundType);
 begin
-  if Value <> FPlayedSound then
+  if Value <> FSound then
   begin
     if FAllocatedSource <> nil then
     begin
@@ -1758,7 +1757,7 @@ begin
       Assert(FAllocatedSource = nil);
     end;
 
-    FPlayedSound := Value;
+    FSound := Value;
 
     AllocateSource;
   end;
@@ -1782,7 +1781,7 @@ begin
   begin
     FMusicVolume := Value;
     if FAllocatedSource <> nil then
-      FAllocatedSource.Gain := MusicVolume * FEngine.Sounds[PlayedSound].Gain;
+      FAllocatedSource.Gain := MusicVolume * FEngine.Sounds[Sound].Gain;
   end;
 end;
 

@@ -677,6 +677,13 @@ begin
     MainScene.PrepareResources([prSpatial], false, BaseLights);
   end;
 
+  if (Player <> nil) and (Player is TPlayer) then
+    TPlayer(Player).LevelChanged;
+
+  SoundEngine.MusicPlayer.Sound := Info.MusicSound;
+  if not MenuBackground then
+    Notifications.Show('Loaded level "' + Info.Title + '"');
+
   MainScene.ProcessEvents := true;
 end;
 
