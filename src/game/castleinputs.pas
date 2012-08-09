@@ -64,7 +64,7 @@ type
     FCaption: string;
     FGroup: TInputGroup;
     FShortcut: TInputShortcut;
-    FConfigName: string;
+    FName: string;
     FGroupOrder: Integer;
     { Index of CastleAllInputs. For now this is useful only for sorting,
       to decide order when GroupOrder is equal between two items. }
@@ -74,7 +74,7 @@ type
     { Constructor. Note that TInputShortcut instance passed here is owned
       by this object, i.e. it will be freed in our destructor. }
     constructor Create(const ACaption: string;
-      const AConfigName: string;
+      const AName: string;
       const AGroup: TInputGroup;
       const AKey1: TKey;
       const AKey2: TKey = K_None;
@@ -93,7 +93,7 @@ type
       and such.
       Must be a valid identifier, that is stick to English letters, underscores
       and digits (and do not start with a digit). }
-    property ConfigName: string read FConfigName;
+    property Name: string read FName;
 
     { Group where this shortcut will be placed. Games may use this
       group to better show the keys configuration for user,
@@ -129,7 +129,7 @@ type
   private
     procedure LoadFromConfig(const Config: TCastleConfig);
     procedure SaveToConfig(const Config: TCastleConfig);
-    function FindConfigName(const ConfigName: string): TInputConfiguration;
+    function FindName(const Name: string): TInputConfiguration;
   public
     { Seeks for a Shortcut that has matching key or mouse button or mouse wheel.
       @nil if not found. }
@@ -223,15 +223,15 @@ var
 begin
   for I := 0 to Count - 1 do
   begin
-    Config.SetDeleteValue('inputs/' + Items[I].ConfigName + '/key1',
+    Config.SetDeleteValue('inputs/' + Items[I].Name + '/key1',
       Items[I].Shortcut.Key1, Items[I].Shortcut.DefaultKey1);
-    Config.SetDeleteValue('inputs/' + Items[I].ConfigName + '/key2',
+    Config.SetDeleteValue('inputs/' + Items[I].Name + '/key2',
       Items[I].Shortcut.Key2, Items[I].Shortcut.DefaultKey2);
-    Config.SetDeleteValue('inputs/' + Items[I].ConfigName + '/mouse_button_use',
+    Config.SetDeleteValue('inputs/' + Items[I].Name + '/mouse_button_use',
       Items[I].Shortcut.MouseButtonUse, Items[I].Shortcut.DefaultMouseButtonUse);
-    Config.SetDeleteValue('inputs/' + Items[I].ConfigName + '/mouse_button',
+    Config.SetDeleteValue('inputs/' + Items[I].Name + '/mouse_button',
       Ord(Items[I].Shortcut.MouseButton), Ord(Items[I].Shortcut.DefaultMouseButton));
-    Config.SetDeleteValue('inputs/' + Items[I].ConfigName + '/mouse_wheel',
+    Config.SetDeleteValue('inputs/' + Items[I].Name + '/mouse_wheel',
       Ord(Items[I].Shortcut.MouseWheel), Ord(Items[I].Shortcut.DefaultMouseWheel));
   end;
 end;
@@ -263,17 +263,17 @@ begin
   for I := 0 to Count - 1 do
   begin
     Items[I].Shortcut.Key1 := Config.GetValue(
-      'inputs/' + Items[I].ConfigName + '/key1', Items[I].Shortcut.DefaultKey1);
+      'inputs/' + Items[I].Name + '/key1', Items[I].Shortcut.DefaultKey1);
     Items[I].Shortcut.Key2 := Config.GetValue(
-      'inputs/' + Items[I].ConfigName + '/key2', Items[I].Shortcut.DefaultKey2);
+      'inputs/' + Items[I].Name + '/key2', Items[I].Shortcut.DefaultKey2);
     Items[I].Shortcut.MouseButtonUse := Config.GetValue(
-      'inputs/' + Items[I].ConfigName + '/mouse_button_use',
+      'inputs/' + Items[I].Name + '/mouse_button_use',
       Items[I].Shortcut.DefaultMouseButtonUse);
     Items[I].Shortcut.MouseButton := TMouseButton(Config.GetValue(
-      'inputs/' + Items[I].ConfigName + '/mouse_button',
+      'inputs/' + Items[I].Name + '/mouse_button',
       Ord(Items[I].Shortcut.DefaultMouseButton)));
     Items[I].Shortcut.MouseWheel := TMouseWheelDirection(Config.GetValue(
-      'inputs/' + Items[I].ConfigName + '/mouse_wheel',
+      'inputs/' + Items[I].Name + '/mouse_wheel',
       Ord(Items[I].Shortcut.DefaultMouseWheel)));
   end;
 
@@ -312,12 +312,12 @@ begin
   Result := false;
 end;
 
-function TInputConfigurationList.FindConfigName(const ConfigName: string): TInputConfiguration;
+function TInputConfigurationList.FindName(const Name: string): TInputConfiguration;
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    if Items[I].ConfigName = ConfigName then
+    if Items[I].Name = Name then
       Exit(Items[I]);
   Result := nil;
 end;
@@ -336,7 +336,7 @@ end;
 { TInputConfiguration ---------------------------------------------------------- }
 
 constructor TInputConfiguration.Create(const ACaption: string;
-  const AConfigName: string;
+  const AName: string;
   const AGroup: TInputGroup;
   const AKey1: TKey;
   const AKey2: TKey;
@@ -347,7 +347,7 @@ constructor TInputConfiguration.Create(const ACaption: string;
 begin
   inherited Create;
   FCaption := ACaption;
-  FConfigName := AConfigName;
+  FName := AName;
   FGroup := AGroup;
 
   FShortcut := TInputShortcut.Create(nil);
@@ -456,7 +456,7 @@ begin
   N := TCasScriptString(Arguments[0]).Value;
   if CastleAllInputs <> nil then
   begin
-    I := CastleAllInputs.FindConfigName(N);
+    I := CastleAllInputs.FindName(N);
     if I <> nil then
       TCasScriptString(AResult).Value := I.Description else
       TCasScriptString(AResult).Value := Format('(shortcut name "%s" undefined)', [N]);
