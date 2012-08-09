@@ -41,7 +41,7 @@ procedure TCasScriptXxxArray.AssignValue(Source: TCasScriptValue);
 begin
   if Source is TCasScriptXxxArray then
     Value := TCasScriptXxxArray(Source).Value else
-    raise EKamAssignValueError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
+    raise ECasScriptAssignError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
 end;
 
 class procedure TCasScriptXxxArray.HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);

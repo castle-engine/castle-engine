@@ -690,7 +690,7 @@ type
   TDynArrayImageClasses = array of TCastleImageClass;
 
   { @deprecated Deprecated name for TCastleImageClass. }
-  TImageClass = TCastleImageClass;
+  TImageClass = TCastleImageClass deprecated;
 
 { Check is ImageClass one of the items in the ImageClasses array,
   or a descendant of one of them. }
@@ -985,7 +985,7 @@ type
   end;
 
   { @deprecated Deprecated name for TCastleImage. }
-  TImage = TCastleImage;
+  TImage = TCastleImage deprecated;
 
 { RGBE <-> 3 Single color convertion --------------------------------- }
 

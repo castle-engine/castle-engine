@@ -235,7 +235,7 @@ type
 
     { Deprecated name for SegmentCollision. @deprecated @exclude }
     function IsSegmentCollision(
-      const Segment1, Segment2: TVector3Single): boolean;
+      const Segment1, Segment2: TVector3Single): boolean; deprecated;
 
     { Collision between axis-aligned box (TBox3D) and 3D plane.
       Returns detailed result as TPlaneCollision. }

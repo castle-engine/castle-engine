@@ -77,7 +77,7 @@ type
   ECasScriptAnyMathError = class(ECasScriptError);
 
   { @deprecated Deprecated name for ECasScriptAssignError. }
-  EKamAssignValueError = ECasScriptAssignError;
+  EKamAssignValueError = ECasScriptAssignError deprecated;
 
   TCasScriptMessage = procedure (const S: string) of object;
 

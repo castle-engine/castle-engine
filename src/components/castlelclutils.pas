@@ -53,11 +53,11 @@ function SQuoteLCLCaption(const S: string): string;
   @deprecated
   @groupBegin }
 procedure FileFiltersToOpenDialog(const FileFilters: string;
-  Dialog: TFileDialog);
+  Dialog: TFileDialog); deprecated;
 procedure FileFiltersToOpenDialog(const FileFilters: string;
-  out LCLFilter: string; out LCLFilterIndex: Integer);
+  out LCLFilter: string; out LCLFilterIndex: Integer); deprecated;
 procedure FileFiltersToOpenDialog(FFList: TFileFilterList;
-  out LCLFilter: string; out LCLFilterIndex: Integer);
+  out LCLFilter: string; out LCLFilterIndex: Integer); deprecated;
 { @groupEnd }
 
 implementation

@@ -1297,10 +1297,10 @@ type
   end;
 
   { Deprecated name for T3DCustomTransform. @deprecated @exclude }
-  T3DCustomTranslated = T3DCustomTransform;
+  T3DCustomTranslated = T3DCustomTransform deprecated;
 
   { Deprecated name for T3DTransform. @deprecated @exclude }
-  T3DTranslated = T3DTransform;
+  T3DTranslated = T3DTransform deprecated;
 
   { 3D object moving and potentially pushing other 3D objects.
     Good for elevators, doors and such.

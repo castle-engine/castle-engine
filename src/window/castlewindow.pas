@@ -1194,7 +1194,7 @@ type
 
       @deprecated }
     property ColorBits: integer
-      read FColorBits write FColorBits default 0;
+      read FColorBits write FColorBits default 0; deprecated;
 
     { Sets mouse cursor appearance over this window.
       See TMouseCursor for a list of possible values and their meanings.

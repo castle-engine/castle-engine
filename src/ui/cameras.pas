@@ -383,7 +383,7 @@ type
       @code(IgnoreAllInputs := false) is equivalent to @code(Input := DefaultCameraInput).
       @deprecated }
     property IgnoreAllInputs: boolean
-      read GetIgnoreAllInputs write SetIgnoreAllInputs default false;
+      read GetIgnoreAllInputs write SetIgnoreAllInputs default false; deprecated;
 
     { Things related to frustum ---------------------------------------- }
 
@@ -1248,7 +1248,7 @@ type
     procedure Init(const box: TBox3D; const ARadius: Single); overload;
 
     { Deprecated name in TWalkCamera for GoToInitial. @deprecated }
-    procedure Home;
+    procedure Home; deprecated;
 
     { This sets the minimal angle (in radians) between GravityUp
       and @link(Direction), and also between -GravityUp and @link(Direction).

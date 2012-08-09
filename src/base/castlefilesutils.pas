@@ -300,7 +300,7 @@ procedure ChangeDir(const NewDir: string);
 function FileNameAutoInc(const FileNamePattern: string): string;
 
 { Deprecated name for FileNameAutoInc. @deprecated }
-function FnameAutoInc(const FileNamePattern: string): string;
+function FnameAutoInc(const FileNamePattern: string): string; deprecated;
 
 { Parent directory name.
 

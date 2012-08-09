@@ -256,7 +256,7 @@ begin
   Pointer({$ifndef FPC_OBJFPC} @ {$endif} alGetSourcei) := ALLibrary.Symbol('alGetSourcei');
   Pointer({$ifndef FPC_OBJFPC} @ {$endif} alGetSourcef) := ALLibrary.Symbol('alGetSourcef');
   Pointer({$ifndef FPC_OBJFPC} @ {$endif} alGetSourcefv) := ALLibrary.Symbol('alGetSourcefv');
-  Pointer({$ifndef FPC_OBJFPC} @ {$endif} alGetSource3f) := ALLibrary.Symbol('alGetSource3f');
+  // Deprecated: Pointer({$ifndef FPC_OBJFPC} @ {$endif} alGetSource3f) := ALLibrary.Symbol('alGetSource3f');
   Pointer({$ifndef FPC_OBJFPC} @ {$endif} alSourcePlayv) := ALLibrary.Symbol('alSourcePlayv');
   Pointer({$ifndef FPC_OBJFPC} @ {$endif} alSourceStopv) := ALLibrary.Symbol('alSourceStopv');
   Pointer({$ifndef FPC_OBJFPC} @ {$endif} alSourceRewindv) := ALLibrary.Symbol('alSourceRewindv');

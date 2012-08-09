@@ -66,8 +66,7 @@ type
     { This will be called if user will press a key when currently
       selected item has this TMenuAccessory.
 
-      You can use ParentMenu to call
-      ParentMenu.CurrentItemAccessoryValueChanged. }
+      You can use ParentMenu to call ParentMenu.AccessoryValueChanged. }
     function KeyDown(Key: TKey; C: char;
       ParentMenu: TCastleOnScreenMenu): boolean; virtual;
 
@@ -91,8 +90,7 @@ type
       moves the mouse also a little down, and suddenly he's over "Music Volume"
       slider and he changed the position of "Music Volume" slider.
 
-      You can use ParentMenu to call
-      ParentMenu.CurrentItemAccessoryValueChanged. }
+      You can use ParentMenu to call ParentMenu.AccessoryValueChanged. }
     function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
       const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu): boolean; virtual;
 
@@ -101,8 +99,7 @@ type
 
       Just like with MouseDown: This will be called only if NewX and NewY
       will be within appropriate Rectangle of accessory.
-      You can use ParentMenu to call
-      ParentMenu.CurrentItemAccessoryValueChanged. }
+      You can use ParentMenu to call ParentMenu.AccessoryValueChanged. }
     procedure MouseMove(const NewX, NewY: Integer;
       const MousePressed: TMouseButtons;
       const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu); virtual;
@@ -482,7 +479,7 @@ type
     procedure Click; virtual;
 
     { @deprecated Deprecated name for Click. }
-    procedure CurrentItemSelected; virtual;
+    procedure CurrentItemSelected; virtual; deprecated;
 
     { Called when the value of current accessory (TMenuAccessory assigned
       to CurrentItem) will change value.
@@ -496,7 +493,7 @@ type
     procedure AccessoryValueChanged; virtual;
 
     { @deprecated Deprecated name for AccessoryValueChanged. }
-    procedure CurrentItemAccessoryValueChanged; virtual;
+    procedure CurrentItemAccessoryValueChanged; virtual; deprecated;
 
     { Called when CurrentItem changed.
       But *not* when CurrentItem changed because of Items.Count changes.
@@ -919,13 +916,13 @@ begin
        (Key = ParentMenu.KeySliderIncrease) then
     begin
       FValue := Min(EndRange, Value + ValueChange);
-      ParentMenu.CurrentItemAccessoryValueChanged;
+      ParentMenu.AccessoryValueChanged;
       Result := ParentMenu.ExclusiveEvents;
     end else
     if Key = ParentMenu.KeySliderDecrease then
     begin
       FValue := Max(BeginRange, Value - ValueChange);
-      ParentMenu.CurrentItemAccessoryValueChanged;
+      ParentMenu.AccessoryValueChanged;
       Result := ParentMenu.ExclusiveEvents
     end;
   end;
@@ -942,7 +939,7 @@ begin
   begin
     FValue := MapRange(XCoordToSliderPosition(MouseX, Rectangle), 0, 1,
       BeginRange, EndRange);
-    ParentMenu.CurrentItemAccessoryValueChanged;
+    ParentMenu.AccessoryValueChanged;
     Result := ParentMenu.ExclusiveEvents;
   end;
 end;
@@ -955,7 +952,7 @@ begin
   begin
     FValue := MapRange(XCoordToSliderPosition(NewX, Rectangle), 0, 1,
       BeginRange, EndRange);
-    ParentMenu.CurrentItemAccessoryValueChanged;
+    ParentMenu.AccessoryValueChanged;
   end;
 end;
 
@@ -1004,13 +1001,13 @@ begin
        (Key = ParentMenu.KeySliderIncrease) then
     begin
       FValue := Min(EndRange, Value + ValueChange);
-      ParentMenu.CurrentItemAccessoryValueChanged;
+      ParentMenu.AccessoryValueChanged;
       Result := ParentMenu.ExclusiveEvents;
     end else
     if Key = ParentMenu.KeySliderDecrease then
     begin
       FValue := Max(BeginRange, Value - ValueChange);
-      ParentMenu.CurrentItemAccessoryValueChanged;
+      ParentMenu.AccessoryValueChanged;
       Result := ParentMenu.ExclusiveEvents;
     end;
   end;
@@ -1036,7 +1033,7 @@ begin
   if Button = mbLeft then
   begin
     FValue := XCoordToValue(MouseX, Rectangle);
-    ParentMenu.CurrentItemAccessoryValueChanged;
+    ParentMenu.AccessoryValueChanged;
     Result := ParentMenu.ExclusiveEvents;
   end;
 end;
@@ -1048,7 +1045,7 @@ begin
   if mbLeft in MousePressed then
   begin
     FValue := XCoordToValue(NewX, Rectangle);
-    ParentMenu.CurrentItemAccessoryValueChanged;
+    ParentMenu.AccessoryValueChanged;
   end;
 end;
 

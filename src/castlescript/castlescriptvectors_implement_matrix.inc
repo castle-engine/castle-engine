@@ -162,7 +162,7 @@ procedure TCasScriptMatrixXx.AssignValue(Source: TCasScriptValue);
 begin
   if Source is TCasScriptMatrixXx then
     Value := TCasScriptMatrixXx(Source).Value else
-    raise EKamAssignValueError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
+    raise ECasScriptAssignError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
 end;
 
 procedure TCasScriptMatrixXx.SetValue(const AValue: TMatrixXxx);

@@ -1639,7 +1639,7 @@ type
 
     { @deprecated }
     function CreateCamera(AOwner: TComponent;
-      const ForceNavigationType: string = ''): TUniversalCamera;
+      const ForceNavigationType: string = ''): TUniversalCamera; deprecated;
 
     { Make Camera go to the view given by Position, Direction, Up.
 

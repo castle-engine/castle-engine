@@ -169,7 +169,8 @@ var
   alGetSourcefv : procedure( sid:TALuint; pname:TALenum; values:PALfloat ); extdecl;
 
   { Deprecated, included for Win compatibility. @deprecated }
-  alGetSource3f : procedure( sid:TALuint; pname:TALenum; value1, value2, value3:PALfloat); extdecl;
+  { alGetSource3f : procedure( sid:TALuint; pname:TALenum; value1, value2, value3:PALfloat) deprecated; extdecl; }
+  { }
 
   alSourcePlayv : procedure( ns:TALsizei; ids:PALuint ); extdecl;
   alSourceStopv : procedure( ns:TALsizei; ids:PALuint ); extdecl;

@@ -455,7 +455,7 @@
     property BaseUrl: string read FBaseUrl write FBaseUrl;
 
     { Old deprecated name for BaseUrl. @deprecated }
-    property WWWBasePath: string read FBaseUrl write FBaseUrl;
+    property WWWBasePath: string read FBaseUrl write FBaseUrl; deprecated;
 
     { Returns an absolute path, assuming that RelativePath is relative
       path from BaseUrl or that RelativePath is already absolute. }
