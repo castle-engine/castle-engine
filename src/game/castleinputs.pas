@@ -61,7 +61,7 @@ type
     modifiers). }
   TInputConfiguration = class
   private
-    FName: string;
+    FCaption: string;
     FGroup: TInputGroup;
     FShortcut: TInputShortcut;
     FConfigName: string;
@@ -73,7 +73,7 @@ type
   public
     { Constructor. Note that TInputShortcut instance passed here is owned
       by this object, i.e. it will be freed in our destructor. }
-    constructor Create(const AName: string;
+    constructor Create(const ACaption: string;
       const AConfigName: string;
       const AGroup: TInputGroup;
       const AKey1: TKey;
@@ -84,8 +84,20 @@ type
       const AMouseWheel: TMouseWheelDirection = mwNone);
     destructor Destroy; override;
 
-    property Name: string read FName;
+    { Nice name to show user. With spaces, localized characters etc. }
+    property Caption: string read FCaption;
+
+    { Short name. Used for config file entries, for CastleScript
+      @code(shortcut()) function
+      [castle-engine.sourceforge.net/castle_script.php#function_shortcut]
+      and such.
+      Must be a valid identifier, that is stick to English letters, underscores
+      and digits (and do not start with a digit). }
     property ConfigName: string read FConfigName;
+
+    { Group where this shortcut will be placed. Games may use this
+      group to better show the keys configuration for user,
+      presenting together keys from the same group. }
     property Group: TInputGroup read FGroup;
 
     { Order of the shortcut within it's @link(Group).
@@ -93,8 +105,8 @@ type
       to user in this order.
       This order is applied (the group is actually sorted by GroupOrder)
       when reading config file.
-      For equal GroupOrder, the order of creation (or so, the order
-      on CastleAllInputs list) decides. }
+      For equal GroupOrder, the order of creation (equal to the order
+      on CastleAllInputs list) decides which is first. }
     property GroupOrder: Integer read FGroupOrder write FGroupOrder;
 
     { The key/mouse shortcut for this action.
@@ -293,7 +305,7 @@ begin
            Items[J].Shortcut.IsMouseButton(Items[I].Shortcut.MouseButton)) then
       begin
         ConflictDescription := Format('"%s" conflicts with "%s"',
-          [Items[I].Name, Items[J].Name]);
+          [Items[I].Caption, Items[J].Caption]);
         Exit(true);
       end;
     end;
@@ -323,7 +335,7 @@ end;
 
 { TInputConfiguration ---------------------------------------------------------- }
 
-constructor TInputConfiguration.Create(const AName: string;
+constructor TInputConfiguration.Create(const ACaption: string;
   const AConfigName: string;
   const AGroup: TInputGroup;
   const AKey1: TKey;
@@ -334,7 +346,7 @@ constructor TInputConfiguration.Create(const AName: string;
   const AMouseWheel: TMouseWheelDirection);
 begin
   inherited Create;
-  FName := AName;
+  FCaption := ACaption;
   FConfigName := AConfigName;
   FGroup := AGroup;
 
@@ -386,7 +398,7 @@ end;
 
 function TInputConfiguration.Description: string;
 begin
-  Result := Shortcut.Description(Format('"%s" key', [Name]));
+  Result := Shortcut.Description(Format('"%s" key', [Caption]));
 end;
 
 { TConfigOptions ------------------------------------------------------------- }
