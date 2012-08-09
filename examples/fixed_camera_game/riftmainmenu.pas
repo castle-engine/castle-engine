@@ -141,7 +141,7 @@ procedure DoMainMenu;
 var
   SavedMode: TGLMode;
 begin
-  SoundEngine.MusicPlayer.PlayedSound := stMainMenuMusic;
+  SoundEngine.MusicPlayer.Sound := stMainMenuMusic;
   SavedMode := TGLMode.CreateReset(Window, 0, false, @Draw, @Resize, @CloseQuery);
   try
     Window.FpsShowOnCaption := DebugMenuFps;
