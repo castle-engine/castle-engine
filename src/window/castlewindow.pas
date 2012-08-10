@@ -668,7 +668,7 @@ type
   TMouseUpDownFunc = procedure(Window: TCastleWindowBase; Button: TMouseButton);
   TMouseWheelFunc = procedure(Window: TCastleWindowBase; const Scroll: Single; const Vertical: boolean);
   TMenuCommandFunc = procedure(Window: TCastleWindowBase; Item: TMenuItem);
-  TGLContextLoweredFunc = procedure(Window: TCastleWindowBase; const FailureMessage: string);
+  TGLContextRetryOpenFunc = function (Window: TCastleWindowBase): boolean;
 
   { Saved state of all callbacks
     of @link(TCastleWindowBase), with the exception of OnOpen and OnClose callbacks.
@@ -1860,7 +1860,7 @@ end;
 
     property Closed: boolean read FClosed default true;
 
-    (*Open the window (create window with GL context, show window).
+    { Create the window with associated OpenGL context and show it.
 
       @unorderedList(
         @item(Create window, it's OpenGL area, optionally it's menu.)
@@ -1871,82 +1871,53 @@ end;
           is ready, like GLVersion, GLUVersion, extensions are checked
           and initialized.)
 
-        @item(Initial events called:@br
-          Call MakeCurrent, EventOpen (OnOpen)@br
-          Call MakeCurrent, EventResize (OnResize)@br
-          Call MakeCurrent once again, to be sure that after Open
-          active OpenGL context is the one associated with newly created
-          window (in case you would change active OpenGL context inside
-          EventResize (OnResize), which is allowed).)
+        @item(Initial events called:
+          @unorderedList(
+            @itemSpacing Compact
+            @item Call MakeCurrent, EventOpen (OnOpen)
+            @item Call MakeCurrent, EventResize (OnResize)
+            @item(Call MakeCurrent once again, to be sure that after Open
+              active OpenGL context is the one associated with newly created
+              window (in case you would change active OpenGL context inside
+              EventResize (OnResize), which is allowed).)
+          )
+        )
       )
 
-      Call to Open is ignored if not Closed., i.e. if window is already inited.
+      Call to this method is ignored if the window is already open
+      (if @link(Closed) = @false).
 
-      Raises EGLContextNotPossible if it's not possible to obtain
-      OpenGL context with specified attributes.
-      For example, maybe you set (Alpha|Depth|Stencil|Accum)Bits properties
-      to too high values. It's guaranteed that even when EGLContextNotPossible
-      was raised, the window remains in correct (Closed) state, so you
-      can try to lower some requirements and call init once again.
-      For example:
+      @raises(EGLContextNotPossible
+        If it's not possible to obtain
+        OpenGL context with specified attributes.
+        For example, maybe you set AlphaBits, DepthBits, StencilBits, AccumBits
+        properties too high?
 
-@longCode(#
-  Shadows := true;
-  Window.StencilBits := 8;
-  try
-    Window.Open;
-  except
-    on EGLContextNotPossible do
-    begin
-      Shadows := false;
-      Window.StencilBits := 0;
-      { try to open once again, this time without requesting stencil buffer }
-      Window.Open;
-    end;
-  end;
-#)
-
-      @raises(EGLContextNotPossible If it's not possible to obtain
-        OpenGL context with specified attributes.)
-    *)
+        It's guaranteed that when EGLContextNotPossible
+        is raised, the window remains in correct (closed) state, so you
+        can try to lower some properties and try to open once again.
+        In fact, there's an overloaded version of @link(Open) that takes
+        a Retry callback and allows to implement it easily.)
+    }
     procedure Open;
 
-    { Version of Open that will eventually turn off multisampling and
-      stencil buffer, if display doesn't support them.
+    { Open the window with OpenGL context, allowing you to lower
+      the OpenGL context requirements and retry.
 
-      @orderedList(
-        @item(First it tries to initialize requested OpenGL context,
-          simply by calling regular @link(Open).)
+      This calls parameterless version of @link(Open),
+      and if it raises EGLContextNotPossible then @link(Retry) callback
+      is called. Inside this callback, you should either
 
-        @item(When this fails, and multisampling was requested (MultiSampling > 1),
-          it will set MultiSampling to 1, call MultiSamplingOff, and retry.)
-
-        @item(When this also fails, and stencil buffer was requested
-          (StencilBits > 0), it will set StencilBits to 0,
-          call StencilOff, and retry.)
-
-        @item(When this also fails, you will get EGLContextNotPossible
-          exception, just like from regular @link(Open) call when
-          initialization failed.)
+      @unorderedList(
+        @item(lower some context requirements (like set MultiSampling to 1
+          if it was > 1) if possible, and return @true to retry, or)
+        @item(do not change context requirements and return @false to give up.)
       )
 
-      At failures, right before retrying, MultiSamplingOff and
-      StencilOff callbacks are called (if assigned).
-      It's important to note that they are called before actually
-      retrying. This means that MultiSamplingOff/StencilOff
-      will be always called before TCastleWindowBase.Open that eventually
-      succeeds, so they will be always called before eventual TCastleWindowBase.OnOpen
-      and such. This is usually what you want.
-
-      FailureMessage passed to *Off callbacks will be the multiline
-      (separated, but not terminated, by newline) messages describing
-      why previous try failed.
-
       @raises(EGLContextNotPossible If it's not possible to obtain
-        requested OpenGL context, even without multisampling and
-        stencil buffer.) }
-    procedure OpenOptionalMultiSamplingAndStencil(
-      const MultiSamplingOff, StencilOff: TGLContextLoweredFunc);
+        requested OpenGL context, and the @link(Retry) callback
+        returned @false.) }
+    procedure Open(const Retry: TGLContextRetryOpenFunc);
 
     { Close window.
 
@@ -3060,59 +3031,15 @@ begin
  end;
 end;
 
-procedure TCastleWindowBase.OpenOptionalMultiSamplingAndStencil(
-  const MultiSamplingOff, StencilOff: TGLContextLoweredFunc);
-const
-  SFailureMessage =
-    'GL context init failed with message "%s".' + NL +
-    '%s turned off, trying to init once again';
-  STurnedOffMultiSampling = 'Multi-sampling (anti-aliasing)';
-  STurnedOffStencil = 'Stencil buffer (shadow volumes)';
-
-  procedure TryOpenContext;
-  begin
-    Open;
-  end;
-
-  procedure TryOpenContext_Shadows;
-  begin
-    try
-      Open;
-    except
-      on E: EGLContextNotPossible do
-      begin
-        if StencilBits > 0 then
-        begin
-          StencilBits := 0;
-          if Assigned(StencilOff) then
-            StencilOff(Self, Format(SFailureMessage, [E.Message, STurnedOffStencil]));
-          TryOpenContext;
-        end else
-          raise;
-      end;
-    end;
-  end;
-
+procedure TCastleWindowBase.Open(const Retry: TGLContextRetryOpenFunc);
 begin
   try
     Open;
   except
     on E: EGLContextNotPossible do
     begin
-      if MultiSampling > 1 then
-      begin
-        MultiSampling := 1;
-        if Assigned(MultiSamplingOff) then
-          MultiSamplingOff(Self, Format(SFailureMessage, [E.Message, STurnedOffMultiSampling]));
-        TryOpenContext_Shadows;
-      end else
-      if StencilBits > 0 then
-      begin
-        StencilBits := 0;
-        if Assigned(StencilOff) then
-          StencilOff(Self, Format(SFailureMessage, [E.Message, STurnedOffStencil]));
-        TryOpenContext;
-      end else
+      if Retry(Self) then
+        Open(Retry) { recursive call } else
         raise;
     end;
   end;
