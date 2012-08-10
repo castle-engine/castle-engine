@@ -35,7 +35,7 @@ var
 
 implementation
 
-uses SysUtils, X3DNodes, GLAntiAliasing, UIControls;
+uses SysUtils, X3DNodes, UIControls;
 
 { initialization / finalization ---------------------------------------------- }
 
@@ -49,9 +49,6 @@ begin
   Font3d := GLContextCache.Fonts_IncReference(
     Font3dFamily, Font3dBold, Font3dItalic,
     TFontStyleNode.ClassTTF_Font(Font3dFamily, Font3dBold, Font3dItalic));
-
-  AntiAliasingGLOpen;
-  AntiAliasingEnable;
 end;
 
 procedure WindowClose(const Container: IUIContainer);

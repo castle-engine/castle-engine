@@ -172,15 +172,17 @@
       for an example how to use the menu.)
 
     @item(Changing screen resolution and bit depth,
-      see TGLApplication.VideoChange.
+      see TGLApplication.VideoChange.)
 
-      Also you can request various OpenGL buffers: color buffer with alpha
+    @item(You can request OpenGL context properties: color buffer with alpha
       channel (@link(TCastleWindowBase.AlphaBits AlphaBits)),
       stencil buffer (@link(TCastleWindowBase.StencilBits StencilBits)),
       double buffer (@link(TCastleWindowBase.DoubleBuffer DoubleBuffer)), accumulation buffer
-      (@link(TCastleWindowBase.AccumBits AccumBits)),
-      multisampling (full-screen antialiasing) buffers (@link(TCastleWindowBase.MultiSampling MultiSampling))?
-      )
+      (@link(TCastleWindowBase.AccumBits AccumBits)).
+      And multisampling (full-screen antialiasing) buffers (by
+      @link(TCastleWindowBase.MultiSampling MultiSampling) or higher-level
+      @link(TCastleWindowBase.AntiAliasing AntiAliasing).)
+    )
 
     @item(You can use native modal dialogs for things such as file selection.
       GTK backend will use GTK dialogs, WinAPI backend
@@ -653,6 +655,30 @@ const
   DefaultLimitFPS = 100.0;
 
 type
+  { Development notes:
+    When extending TAntiAliasing, remember to also
+    update ScreenEffectLibrary implementation to be able to handle them
+    (and screen_effect_library.glsl to handle them in GLSL). }
+  { Anti-aliasing values for TCastleWindowBase.AntiAliasing. }
+  TAntiAliasing = (aaNone,
+    aa2SamplesFaster, //< 2 samples, "don't care" hint.
+    aa2SamplesNicer,  //< 2 samples, "nicest" hint (quincunx (5 taps) for NVidia).
+    aa4SamplesFaster, //< 4 samples, "don't care" hint.
+    aa4SamplesNicer   //< 4 samples, "nicest" hint (9 taps for NVidia).
+  );
+
+const
+  DefaultAntiAliasing = aaNone;
+
+  AntiAliasingNames: array [TAntiAliasing] of string =
+  ( 'None',
+    '2 samples (faster)',
+    '2 samples (nicer)',
+    '4 samples (faster)',
+    '4 samples (nicer)'
+  );
+
+type
   TCastleWindowBase = class;
 
   {$I castlewindowmenu.inc}
@@ -730,21 +756,11 @@ type
     FMousePressed: TMouseButtons;
     FMouseX, FMouseY: integer;
     FRedBits, FGreenBits, FBlueBits: Cardinal;
-    function GetColorBits: Cardinal;
-    procedure SetColorBits(const Value: Cardinal);
-  private
     FCursor: TMouseCursor;
-    procedure SetCursor(const Value: TMouseCursor);
-  private
     FCustomCursor: TRGBAlphaImage;
-    procedure SetCustomCursor(const Value: TRGBAlphaImage);
-  private
     FAutoRedisplay: boolean;
-    procedure SetAutoRedisplay(value: boolean);
-  private
     FCaption: string;
-    procedure SetCaption(const Value: string);
-  private
+
     { FClosed = are we outside of Open..Close }
     FClosed: boolean;
 
@@ -755,6 +771,14 @@ type
     MenuUpdateInside: Cardinal;
     MenuUpdateNeedsInitialize: boolean;
     MenuInitialized: boolean;
+
+    function GetColorBits: Cardinal;
+    procedure SetColorBits(const Value: Cardinal);
+    procedure SetAntiAliasing(const Value: TAntiAliasing);
+    procedure SetCursor(const Value: TMouseCursor);
+    procedure SetCustomCursor(const Value: TRGBAlphaImage);
+    procedure SetAutoRedisplay(value: boolean);
+    procedure SetCaption(const Value: string);
 
     { Used in particular backend, open OpenGL context and do
       Application.OpenWindowsAdd(Self) there.
@@ -966,7 +990,7 @@ type
         So specific CastleWindow backends need not to worry about
         AutoRedisplay. They only have to implement PostRedisplay. }
     procedure DoDraw;
-  private
+
     { DoKeyDown/Up: pass here key that is pressed down or released up.
 
       Only DoKeyDown: pass also CharKey. Pass Key = K_None if this is not
@@ -1051,6 +1075,7 @@ type
     FStencilBits: Cardinal;
     FAlphaBits: Cardinal;
     FMultiSampling: Cardinal;
+    FAntiAliasing: TAntiAliasing;
     FGtkIconName: string;
     FVisible: boolean;
     FPressed: TKeysPressed;
@@ -1394,6 +1419,9 @@ type
       read FStencilBits write FStencilBits default 0;
 
     { How many samples are required for multi-sampling (anti-aliasing).
+      Use @link(AntiAliasing) instead of this for more comfortable
+      (higher-level) way to turn on multi-sampling (anti-aliasing).
+
       1 means that no multi-sampling is required.
       Values larger than 1 mean that we require OpenGL context with
       multi-sampling capabilities. Various GPUs may support various
@@ -1427,6 +1455,18 @@ type
       for you, you can use this. }
     property MultiSampling: Cardinal
       read FMultiSampling write FMultiSampling default 1;
+
+    { Comfortably turn on/off anti-aliasing.
+
+      Setting this property automatically sets also the @link(MultiSampling)
+      property. Although it's easy to request multi-sampling by using the
+      @link(MultiSampling) property directly, using AntiAliasing is a little
+      more comfortable. You don't have to wonder what are the sensible
+      values of @link(MultiSampling) for common GPUs, and we also
+      automatically use NV_multisample_filter_hint for nicer anti-aliasing
+      when possible. }
+    property AntiAliasing: TAntiAliasing
+      read FAntiAliasing write SetAntiAliasing default DefaultAntiAliasing;
 
     { Required number of bits in alpha channel of color buffer.
       Zero means that alpha channel is not needed.
@@ -3003,6 +3043,11 @@ begin
     rzeczywistych rozmiarow okienka) }
   glViewport(0, 0, Width, Height);
 
+  if ( (AntiAliasing = aa2SamplesNicer) or
+       (AntiAliasing = aa4SamplesNicer) ) and
+     GL_NV_multisample_filter_hint then
+    glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+
   { call first EventOpen and EventResize. Zwroc uwage ze te DoResize i DoOpen
     MUSZA byc wykonane na samym koncu procedury Open - jak juz wszystko inne
     zostalo wykonane. Wszystko po to ze juz w pierwszym OnOpen lub OnResize
@@ -3146,6 +3191,17 @@ begin
   BlueBits := Value div 3;
   GreenBits := Value - RedBits - BlueBits;
   Assert(Value = ColorBits);
+end;
+
+procedure TCastleWindowBase.SetAntiAliasing(const Value: TAntiAliasing);
+begin
+  FAntiAliasing := Value;
+  case Value of
+    aaNone: MultiSampling := 1;
+    aa2SamplesFaster..aa2SamplesNicer: MultiSampling := 2;
+    aa4SamplesFaster..aa4SamplesNicer: MultiSampling := 4;
+    else raise EInternalError.Create('AntiAliasing?');
+  end;
 end;
 
 { wszystkie zdarzenia TCastleWindowBase - opakowujace je procedury DoXxx ktore

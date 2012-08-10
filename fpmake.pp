@@ -216,7 +216,6 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'opengl');
     P.Targets.AddUnit('beziercurve.pas');
     P.Targets.AddUnit('curve.pas');
-    P.Targets.AddUnit('glantialiasing.pas');
     P.Targets.AddUnit('glcubemap.pas');
     P.Targets.AddUnit('glimages.pas');
     P.Targets.AddUnit('glshaders.pas');

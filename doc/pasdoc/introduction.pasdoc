@@ -273,7 +273,7 @@ units are allowed to be used by units in specific group.
     OpenGL fonts --- bitmap (OpenGLBmpFonts) and outline (OpenGLTTFonts),
     various OpenGL helpers (CastleGLUtils), handling OpenGL images and textures
     (GLImages),
-    helpers for shadows (ShadowVolumesHelper) and anti-aliasing (GLAntiAliasing).
+    helpers for shadows (ShadowVolumesHelper).
 
     @italic(Uses:) @code(base), @code(images), @code(3d), @code(fonts).)
 
