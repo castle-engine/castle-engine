@@ -473,13 +473,6 @@ unit CastleWindow;
 {$ifdef CASTLE_WINDOW_GTK_ANY} {$define CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN} {$endif}
 {$ifdef CASTLE_WINDOW_XLIB}    {$define CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN} {$endif}
 
-{ Only relevant for CASTLE_WINDOW_GLUT backend:
-  Define to use FPC Glut/FreeGlut unit. Otherwise, our CastleGlut will be used.
-
-  In the future, our CastleGlut unit will be removed. But currently,
-  you need FPC >= 2.5.1 for FreeGlut unit, so keep using CastleGlut by default. }
-{ $define FPC_GLUT_UNIT}
-
 { TODO list ------------------------------------------------------------------
 
   (? means "I'm not sure whether to implement it")
@@ -528,7 +521,7 @@ unit CastleWindow;
 interface
 
 uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
-  {$ifdef CASTLE_WINDOW_GLUT} {$ifdef FPC_GLUT_UNIT} FreeGlut, Glut, {$else} CastleGlut, {$endif} {$endif}
+  {$ifdef CASTLE_WINDOW_GLUT} FreeGlut, Glut, {$endif}
   {$ifdef CASTLE_WINDOW_WINAPI} Windows,
     { In FPC < 2.2.2, CommDlg stuff was inside Windows unit. }
     {$ifndef VER2_2_0} {$ifndef VER2_0_0} CommDlg, {$endif} {$endif}

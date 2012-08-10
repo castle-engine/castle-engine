@@ -117,14 +117,12 @@ GLUTBEGIN
  DoResize(w, h, false);
 GLUTEND;
 
-procedure keyboardByGlut(
-  {$ifdef FPC_GLUT_UNIT} CharKeyByte: Byte; {$else} CharKey: Char; {$endif}
-  x, y: integer); cdecl;
+procedure keyboardByGlut(CharKeyByte: Byte; x, y: integer); cdecl;
 { glut keyboard = robimy GlutDoKeyDown,
   przy okazji robimy tez UpdateGlutModifiers. }
 var
   Key: TKey;
-  {$ifdef FPC_GLUT_UNIT} CharKey: Char absolute CharKeyByte; {$endif}
+  CharKey: Char absolute CharKeyByte;
 GLUTBEGIN
  UpdateGlutModifiers;
  Key := CharToKey(CharKey);

@@ -220,7 +220,6 @@ begin
     P.Targets.AddUnit('glimages.pas');
     P.Targets.AddUnit('glshaders.pas');
     P.Targets.AddUnit('glversionunit.pas');
-    P.Targets.AddUnit('castleglut.pas');
     P.Targets.AddUnit('castleglutils.pas');
     P.Targets.AddUnit('normalizationcubemap.pas');
     P.Targets.AddUnit('openglbmpfonts.pas');
