@@ -550,42 +550,6 @@ implementation
 
 uses CastleUtils, CastleDynLib;
 
-{makra ------------------------------------------------------------------------}
-
- {pod nie-Windowsem glut wymaga troszke dodatkowej robotki.
-
-  1.
-    stale fontow pod glutem (GLUT_BITMAP_xx i GLUT_STROKE_xx) sa
-    troszke kuriozalne pod UNIXem : sa to makra ktore zwracaja adres
-    odpowiednich innych funkcji glutDLL (pod Windows GLUT_BITMAP_xx i GLUT_STROKE_xx
-    to sa stale). W rezultacie musimy recznie inicjowac i zamykac gluta
-    (dlopen/dlclose) aby uzyskac zmienna libglut: pointer przy uzyciu ktorej
-    uzyskujemy adresy odpowiednich procedur przez dlsym(libglut, 'xxx').
-
-    Metoda zrobienia tego bez dlopen/close/sym przez konstrukcje w rodzaju np.
-      function glutStrokeRoman: pointer; external glutdll;
-      function GLUT_STROKE_ROMAN :pointer; begin result := @glutStrokeRoman end;
-    ...zawodzi. Bledne byloby tez przekonanie ze @proc gdzie proc jest
-    eksportowana zwraca adres zmiennej zawierajacej adres funkcji eksportowanej :
-      type PPointer=^pointer;
-      function GLUT_STROKE_ROMAN :pointer;          begin result := PPointer(@glutStrokeRoman)^ end;
-    nie dziala rowniez. Nie dziala tez z
-      type PPPointer=^PPointer;
-      function GLUT_STROKE_ROMAN :pointer;          begin result := PPPointer(@glutStrokeRoman)^^ end;
-    i nic nie pomaga proba wywolywania najpierw glutStrokeRoman (aby
-    na pewno zaladowac najpierw z libglut poprawny adres) - otoz okazuje sie
-    ze nie mozemy wywolac sami glutStrokeRoman, byc moze korzysta ona
-    z jakiejs statycznej zmiennej w libglut ktora nie jest zainicjowana jesli
-    sami wywolamy glutStrokeRoman ? Przeciez faktycznie nikt mi nie pozwalal
-    WYWOLAC glutStrokeRoman, ja mialem tylko przekazac jej adres.
-
-    Jak by nie bylo, nikt mi nie gwarantowal ze jakakolwiek powyzsza metoda
-    zadziala. Ale metoda ktorej uzylem tutaj musiala zadzialac i rzeczywiscie
-    dziala - wiec wszystko ok.
-}
-
-{init/final ----------------------------------------------------------------}
-
 var libglut :TDynLib;
 
 initialization
