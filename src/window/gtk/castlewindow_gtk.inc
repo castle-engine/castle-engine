@@ -869,6 +869,11 @@ begin
     VisualAttr.Add(GDK_GL_DOUBLEBUFFER);
   VisualAttr.AddArray([
     GDK_GL_RGBA,
+
+    GDK_GL_RED_SIZE, RedBits,
+    GDK_GL_GREEN_SIZE, GreenBits,
+    GDK_GL_BLUE_SIZE, BlueBits,
+
     { Note that sizes of buffers in VisualAttr must be given in bits
       (not in e.g. bytes), so this is exactly what I have in my variables. }
     GDK_GL_DEPTH_SIZE, DepthBits,

@@ -729,7 +729,9 @@ type
     FResizeAllowed: TResizeAllowed;
     FMousePressed: TMouseButtons;
     FMouseX, FMouseY: integer;
-    FColorBits: integer;
+    FRedBits, FGreenBits, FBlueBits: Cardinal;
+    function GetColorBits: Cardinal;
+    procedure SetColorBits(const Value: Cardinal);
   private
     FCursor: TMouseCursor;
     procedure SetCursor(const Value: TMouseCursor);
@@ -1176,25 +1178,32 @@ type
       or call glFlush (if not DoubleBuffer). }
     property DoubleBuffer: boolean read FDoubleBuffer write FDoubleBuffer default true;
 
-    { Colors precision for this window.
-      When 0, then we'll use Application.VideoColorBits.
-      When Application.VideoColorBits is also 0, then the default window
-      system color precision will be used.
+    { Required red / green / blue color buffer precision for this window.
+      When 0, the default window system color precision will be used.
 
-      After @link(Open), this is updated to the actual color bits used.
+      You can either set them by separate red / green / blue properties.
+      Or you can use ColorBits that reads / writes all three channels bits.
+      Reading ColorBits simply returns the sum of
+      @code(RedBits + GreenBits + BlueBits).
+      Writing ColorBits simply set RedBits and BlueBits to
+      @code(ColorBits div 3), and sets GreenBits to the remainder.
+      This way green channel has always the best resolution (as is usual,
+      since it's perceived most), and the sum is always as requested.
+      This way setting ColorBits to values like 16 or 24 works as expected.
 
-      In most situations, you will have to change the screen color precision
-      to have the best chance for a given window color precision.
-      So use Application.VideoColorBits and Application.VideoChange.
+      Note that it's also possible to change color resolution by
+      changing the whole screen settings.
+      See TGLApplication.VideoColorBits and TGLApplication.VideoChange for this.
+      These properties only request the color
+      resolution for this window, which is less intrusive (you don't change
+      the whole screen) but also may have a smaller chance of success.
 
-      This is deprecated, don't use. This isn't cross-platform (only Windows),
-      there's no guarantee you actually get the required color bits,
-      and the fact that we change ColorBits after Open is ugly (we should
-      have another property for this).
-
-      @deprecated }
-    property ColorBits: integer
-      read FColorBits write FColorBits default 0; deprecated;
+      @groupBegin }
+    property RedBits: Cardinal read FRedBits write FRedBits default 0;
+    property GreenBits: Cardinal read FGreenBits write FGreenBits default 0;
+    property BlueBits: Cardinal read FBlueBits write FBlueBits default 0;
+    property ColorBits: Cardinal read GetColorBits write SetColorBits stored false default 0;
+    { @groupEnd }
 
     { Sets mouse cursor appearance over this window.
       See TMouseCursor for a list of possible values and their meanings.
@@ -3199,6 +3208,19 @@ begin
   DoMouseUp(MouseX, MouseY, mb);
 end;
 
+function TCastleWindowBase.GetColorBits: Cardinal;
+begin
+  Result := RedBits + GreenBits + BlueBits;
+end;
+
+procedure TCastleWindowBase.SetColorBits(const Value: Cardinal);
+begin
+  RedBits := Value div 3;
+  BlueBits := Value div 3;
+  GreenBits := Value - RedBits - BlueBits;
+  Assert(Value = ColorBits);
+end;
+
 { wszystkie zdarzenia TCastleWindowBase - opakowujace je procedury DoXxx ktore
   robia wszystkie rzeczy niezalezne od implementacji dla danego zdarzenia
   (m.in. wywoluja EventXxx ktore m.in. wywoluje OnXxx jesli jest assigned).
@@ -3933,27 +3955,30 @@ begin
     Format(' - FPS : %f (real : %f)', [Fps.FrameTime, Fps.RealTime]);
 end;
 
-{ TCastleWindowBase miscella ---------------------------------------- }
+{ TCastleWindowBase miscellaneous -------------------------------------------- }
 
 function TCastleWindowBase.RequestedBufferAttributes: string;
 begin
  if DoubleBuffer then
-  result := 'double buffered' else
-  result := 'single buffered';
+   Result := 'double buffered' else
+   Result := 'single buffered';
+ if ColorBits > 0 then
+   Result += Format(', with RGB colors bits (%d, %d, %d) (total %d color bits)', [RedBits, GreenBits, BlueBits, ColorBits]);
  if DepthBits > 0 then
-  result += Format(', with %d-bits sized depth buffer', [DepthBits]);
+   Result += Format(', with %d-bits sized depth buffer', [DepthBits]);
  if StencilBits > 0 then
-  result += Format(', with %d-bits sized stencil buffer', [StencilBits]);
+   Result += Format(', with %d-bits sized stencil buffer', [StencilBits]);
  if AlphaBits > 0 then
-  result += Format(', with %d-bits sized alpha channel', [AlphaBits]);
+   Result += Format(', with %d-bits sized alpha channel', [AlphaBits]);
  if not ZeroVector(AccumBits) then
-  result += Format(', with (%d,%d,%d,%d)-bits sized accumulation buffer',
+   Result += Format(', with (%d,%d,%d,%d)-bits sized accumulation buffer',
     [AccumBits[0], AccumBits[1], AccumBits[2], AccumBits[3]]);
  if MultiSampling > 1 then
-  result += Format(', with multisampling (%d samples)', [MultiSampling]);
+   Result += Format(', with multisampling (%d samples)', [MultiSampling]);
 end;
 
-procedure TCastleWindowBase.CheckRequestedBufferAttributes(const ProviderName: string;
+procedure TCastleWindowBase.CheckRequestedBufferAttributes(
+  const ProviderName: string;
   ProvidedStencilBits, ProvidedDepthBits, ProvidedAlphaBits,
   ProvidedAccumRedBits, ProvidedAccumGreenBits, ProvidedAccumBlueBits,
   ProvidedAccumAlphaBits, ProvidedMultiSampling: Cardinal);

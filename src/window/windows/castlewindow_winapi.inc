@@ -635,7 +635,7 @@ end;
 procedure TCastleWindowBase.OpenWinSystemDepend;
 
   { Both SetPixelFormat* set pixel format (required context capabilities)
-    of Windows H_Dc device context. They try to set it, and eventually rise some
+    of Windows H_Dc device context. They try to set it, and eventually raise some
     exception (e.g. by CheckRequestedBufferAttributes) if it's not possible.
 
     SetPixelFormat_WGLChoose tries to use wglChoosePixelFormat, which is generally
@@ -841,7 +841,9 @@ procedure TCastleWindowBase.OpenWinSystemDepend;
             if DoubleBuffer then
               VisualAttr.AddArray([WGL_DOUBLE_BUFFER_ARB, GL_TRUE]);
             VisualAttr.AddArray([
-              WGL_COLOR_BITS_ARB, ColorBits,
+              WGL_RED_BITS_ARB, RedBits,
+              WGL_GREEN_BITS_ARB, GreenBits,
+              WGL_BLUE_BITS_ARB, BlueBits,
               WGL_DEPTH_BITS_ARB, DepthBits,
               WGL_STENCIL_BITS_ARB, StencilBits,
               WGL_ALPHA_BITS_ARB, AlphaBits,
@@ -912,8 +914,6 @@ var
   WindowRect, ClientRect: TRect;
   H_Menu: HMenu;
 begin
-  if ColorBits = 0 then ColorBits := Application.VideoColorBits;
-
   { optionally hide mouse in FullScreem,
     set dwStyle and dwExStyle for our window }
   if FFullScreen then
@@ -1021,10 +1021,6 @@ begin
 
   if (GetDeviceCaps(h_Dc, RASTERCAPS) and RC_PALETTE) <> 0 then
     raise EGLContextNotPossible.Create('This device is paletted ! Bad display settings !');
-
-  { jezeli ColorBits bylo = 0 to teraz dowiedz sie co dostalismy }
-  if ColorBits = 0 then
-    ColorBits := GetDeviceCaps(h_DC, BITSPIXEL);
 
   { create gl context and make it current }
   h_GLRc := wglCreateContext(h_Dc);
