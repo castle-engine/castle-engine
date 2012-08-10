@@ -772,6 +772,21 @@ type
     MenuUpdateNeedsInitialize: boolean;
     MenuInitialized: boolean;
 
+    FFps: TFramesPerSecond;
+
+    FDepthBits: Cardinal;
+    FStencilBits: Cardinal;
+    FAlphaBits: Cardinal;
+    FMultiSampling: Cardinal;
+    FAntiAliasing: TAntiAliasing;
+    FGtkIconName: string;
+    FVisible: boolean;
+    FPressed: TKeysPressed;
+    FMinWidth: Integer;
+    FMinHeight: Integer;
+    FMaxWidth: Integer;
+    FMaxHeight: Integer;
+
     function GetColorBits: Cardinal;
     procedure SetColorBits(const Value: Cardinal);
     procedure SetAntiAliasing(const Value: TAntiAliasing);
@@ -1033,9 +1048,7 @@ type
         Item.DoCommand,
         optional EventMenuCommand or EventKeyDown }
     procedure DoMenuCommand(Item: TMenuItem);
-  private
-    FFps: TFramesPerSecond;
-  private
+
     { Current OpenGL buffers configuration required.
       Stuff like DoubleBuffer, AlphaBits, DepthBits,
       StencilBits, AccumBits etc.
@@ -1069,20 +1082,6 @@ type
       ProvidedStencilBits, ProvidedDepthBits, ProvidedAlphaBits,
       ProvidedAccumRedBits, ProvidedAccumGreenBits, ProvidedAccumBlueBits,
       ProvidedAccumAlphaBits, ProvidedMultiSampling: Cardinal);
-
-  private
-    FDepthBits: Cardinal;
-    FStencilBits: Cardinal;
-    FAlphaBits: Cardinal;
-    FMultiSampling: Cardinal;
-    FAntiAliasing: TAntiAliasing;
-    FGtkIconName: string;
-    FVisible: boolean;
-    FPressed: TKeysPressed;
-    FMinWidth: Integer;
-    FMinHeight: Integer;
-    FMaxWidth: Integer;
-    FMaxHeight: Integer;
 
     { For IUIContainer interface. Private, since when you have a class
       instance, you just use class properties (that read directly from a field,
