@@ -1042,6 +1042,7 @@ type
         optional EventMenuCommand or EventKeyDown }
     procedure DoMenuCommand(Item: TMenuItem);
 
+    procedure OpenCore;
     { Current OpenGL buffers configuration required.
       Stuff like DoubleBuffer, AlphaBits, DepthBits,
       StencilBits, AccumBits etc.
@@ -1929,7 +1930,15 @@ end;
         is raised, the window remains in correct (closed) state, so you
         can try to lower some properties and try to open once again.
         In fact, there's an overloaded version of @link(Open) that takes
-        a Retry callback and allows to implement it easily.)
+        a Retry callback and allows to implement it easily.
+
+        We automatically turn off multi-sampling (AntiAliasing and MultiSampling
+        properties), and then we turn off
+        stencil buffer (StencilBits), if OpenGL context cannot be initialized.
+        But if it still cannot be initialized, we raise EGLContextNotPossible.
+        You can use overloaded Open version with Retry callback to customize
+        this fallback mechanism, to code which OpenGL context features
+        may be turned off.)
     }
     procedure Open;
 
@@ -2967,7 +2976,7 @@ begin
  inherited;
 end;
 
-procedure TCastleWindowBase.Open;
+procedure TCastleWindowBase.OpenCore;
 begin
  if not FClosed then Exit;
 
@@ -3071,7 +3080,7 @@ end;
 procedure TCastleWindowBase.Open(const Retry: TGLContextRetryOpenFunc);
 begin
   try
-    Open;
+    OpenCore;
   except
     on E: EGLContextNotPossible do
     begin
@@ -3080,6 +3089,30 @@ begin
         raise;
     end;
   end;
+end;
+
+{ Try to lower anti-aliasing (multi-sampling) and shadows (stencil buffer)
+  requirements and initialize worse GL context. }
+function RetryOpen(Window: TCastleWindowBase): boolean;
+begin
+  if Window.AntiAliasing <> aaNone then
+  begin
+    Window.AntiAliasing := aaNone;
+    if Log then WritelnLog('OpenGL context', 'OpenGL context cannot be initialized. Multi-sampling (anti-aliasing) turned off, trying to initialize once again.');
+    Result := true;
+  end else
+  if Window.StencilBits > 0 then
+  begin
+    Window.StencilBits := 0;
+    if Log then WritelnLog('OpenGL context', 'OpenGL context cannot be initialized. Stencil buffer (shadow volumes) turned off, trying to initialize once again.');
+    Result := true;
+  end else
+    Result := false;
+end;
+
+procedure TCastleWindowBase.Open;
+begin
+  Open(@RetryOpen);
 end;
 
 procedure TCastleWindowBase.CloseError(const error: string);

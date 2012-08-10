@@ -56,17 +56,6 @@ begin
   end;
 end;
 
-function RetryOpen(Window: TCastleWindowBase): boolean;
-begin
-  if Window.StencilBits > 0 then
-  begin
-    Window.StencilBits := 0;
-    Writeln('Stencil buffer not available, shadow volumes could not be initialized');
-    Result := true;
-  end else
-    Result := false;
-end;
-
 begin
   { You can specify initial 3D model filename by command-line parameter. }
   Parameters.CheckHighAtMost(1);
@@ -85,13 +74,12 @@ begin
     for documentation how to prepare your model to have shadow volumes,
     and for links to demo models using shadow volumes.
 
-    Besides using ShadowVolumes and StencilBits,
-    we also initialize window by Window.Open(@RetryOpen).
-    This allows us to smoothly fallback on rendering without shadow volumes
-    for (really really old) GPUs that don't support stencil buffer. }
+    Note that for (really really old) GPUs that don't support stencil buffer,
+    our Window.Open call will automatically turn StencilBits to 0 and fallback
+    to OpenGL context without shadow volumes. }
   Window.ShadowVolumes := true;
   Window.StencilBits := 8;
-  Window.Open(@RetryOpen);
+  Window.Open;
 
   { Show progress bar in our window }
   WindowProgressInterface.Window := Window;
