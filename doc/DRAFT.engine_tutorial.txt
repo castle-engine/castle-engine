@@ -290,6 +290,8 @@ XXX (this is just like items, except creature kinds need AI to move; engine 3.1.
 
 As with many other operations, you can add and control sounds to your game either by Pascal code, or by editing your data files. This gives flexibility both to a programmer and the content designer. It's your choice which approach you use &mdash; usually it's better to keep as much as possible in data files, and use code only when necessary for non-trivial situations.
 
+--- Loading and playing sound inside VRML/X3D
+
 First, get a sample sound file and place it within your game data. You can use this sample.wav file.
 
 To add a looping sound to your VRML/X3D file, just open xxx.x3dv and paste there this:
@@ -302,16 +304,66 @@ Sound {
 
 Remember that URL "sample.wav" is specified relative to the location of your xxx.x3dv file. In the simplest case, just place both xxx.x3dv and sample.wav in the same directory, and you're fine.
 
+--- Loading and playing sound inside ObjectPascal code
+
 To play a sound from a code, add this code:
 
 [[
+var
+  Buffer: TALBuffer;
+...
 Buffer := SoundEngine.LoadBuffer('sample.wav');
 SoundEngine.PlaySound(Buffer, ...); // see PlaySound reference for parameters
 ]]
 
 You can free the buffer once the sound has stopped. It's not important for simple programs, as we will take care to always free it before closing OpenAL context.
 
-For more advanced uses, you can use the return value of PlaySound: it's either nil (if no OpenAL resources available to play this sound, and it's priority doesn't allow overriding other sounds) or it's a TALSound instance. If you have TALSound instance, you can use it's TALSound.OnUsingEnd event to be notified when source stops playing. You can also use other TALSound methods, e.g. update TALSound.Position, TALSound.Gain and such. You can stop playing the sound by TALSound.DoUsingEnd.
+--- Sounds repository
+
+Larger games may find it comfortable to define a repository of sounds in an XML file, conventionally named data/sounds/index.xml. See TXmlSoundEngine docs and castle1 game data for example. Assuming your <tt>data/sounds/index.xml</tt> looks like this:
+
+[[
+<?xml version="1.0"?>
+<sounds>
+  <sound name="sample" file_name="sample.wav" />
+  <!-- Actually, you can omit the file_name, it's the same
+    as name with .wav extension.
+    Also, you can add a lot of interesting attributes here, like
+    default_importance, gain, min_gain, max_gain --- see TODO. -->
+</sounds>
+]]
+
+Then you can initialize it inside your game code like this:
+
+[[
+SoundEngine.SoundsXmlFileName := ProgramDataPath + 'data' +
+  PathDelim + 'sounds' + PathDelim + 'index.xml';
+]]
+
+This allows to play sounds like this from ObjectPascal code:
+
+[[
+var
+  SoundType: TSoundType;
+...
+SoundType := SoundEngine.SoundFromName('sample');
+SoundEngine.Sound3D(SoundType, Vector3Single(1, 2, 3), false { looping });
+SoundEngine.Sound(SoundType, false { looping }); // non-3D sound
+]]
+
+The SoundEngine.Sound3D and SoundEngine.Sound are a little simpler to use than SoundEngine.PlaySound, they have fewer parameters. That is because the default sound properties (it's individual gain, importance (priority) and other stuff) is already recorded in the data/sounds/index.xml file. That's the advantage of using the sounds repository: all your sounds properties are centrally stored in the data/sounds/index.xml file.
+
+You can also refer to your sound names from VRML/X3D AudioClip node, using the "game-repository" protocol:
+
+[[
+Sound {
+  source AudioClip { url "game-repository:sample" loop TRUE }
+}
+]]
+
+--- More
+
+For more advanced uses, you can use the return value of PlaySound or Sound or Sound3D: it's either nil (if no OpenAL resources available to play this sound, and it's priority doesn't allow overriding other sounds) or it's a TALSound instance. If you have TALSound instance, you can use it's TALSound.OnRelease event to be notified when source stops playing. You can also use other TALSound methods, e.g. update TALSound.Position, TALSound.Gain and such. You can stop playing the sound by TALSound.Release.
 
 10. Adding an on-screen menu
 
