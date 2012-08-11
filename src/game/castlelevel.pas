@@ -27,7 +27,7 @@ unit CastleLevel;
 interface
 
 uses VectorMath, CastleSceneCore, CastleScene, Boxes3D,
-  X3DNodes, X3DFields, CastleItems, Cameras, CastleCreatures, Background,
+  X3DNodes, X3DFields, CastleItems, Cameras, CastleCreatures,
   CastleUtils, CastleClassUtils, CastlePlayer, CastleResources,
   ProgressUnit, PrecalculatedAnimation,
   DOM, ALSoundEngine, Base3D, Shape, GL, CastleConfig, Images,
@@ -176,7 +176,6 @@ type
     function CollisionIgnoreItem(
       const Sender: TObject;
       const Triangle: P3DTriangle): boolean; override;
-    function Background: TBackground; override;
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
@@ -244,16 +243,15 @@ type
       @unorderedList(
         @item optionally create triangle octree
         @item(call PrepareResources, with prRender, prBoundingBox, prShadowVolume
-          (if shadow volumes possible at all in this OpenGL context), optionally
-          with prBackground)
+          (if shadow volumes possible at all in this OpenGL context),)
         @item Free texture data, since they will not be needed anymore
       )
       @groupBegin }
     function LoadLevelScene(const FileName: string;
-      const CreateOctreeCollisions, PrepareBackground: boolean;
+      const CreateOctreeCollisions: boolean;
       const SceneClass: TCastleSceneClass): TCastleScene;
     function LoadLevelScene(const FileName: string;
-      const CreateOctreeCollisions, PrepareBackground: boolean): TCastleScene;
+      const CreateOctreeCollisions: boolean): TCastleScene;
     { @groupEnd }
   public
     { Create new level instance. Called when creatures and items are already
@@ -302,10 +300,6 @@ type
     property Thunder: TThunder read FThunder write FThunder;
 
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
-
-    { Override background of the world. Leave @nil to let scene manager
-      use default (from MainScene.Background). }
-    function Background: TBackground; virtual;
   end;
 
   TLevelClasses = specialize TFPGMap<string, TLevelClass>;
@@ -719,15 +713,6 @@ begin
     (PTriangle(Triangle)^.State.LastNodes.Material.NodeName = 'MatWater');
 end;
 
-function TGameSceneManager.Background: TBackground;
-begin
-  if Level <> nil then
-    Result := Level.Background else
-    Result := nil;
-  if Result = nil then
-    Result := inherited;
-end;
-
 procedure TGameSceneManager.Idle(const CompSpeed: Single;
   const HandleMouseAndKeys: boolean; var LetOthersHandleMouseAndKeys: boolean);
 var
@@ -904,7 +889,7 @@ end;
 
 function TLevel.LoadLevelScene(
   const FileName: string;
-  const CreateOctreeCollisions, PrepareBackground: boolean;
+  const CreateOctreeCollisions: boolean;
   const SceneClass: TCastleSceneClass): TCastleScene;
 var
   Options: TPrepareResourcesOptions;
@@ -914,8 +899,6 @@ begin
 
   { calculate Options for PrepareResources }
   Options := [prRender, prBoundingBox { always needed }];
-  if PrepareBackground then
-    Include(Options, prBackground);
   if GLShadowVolumesPossible then
     Options := Options + prShadowVolume;
 
@@ -931,10 +914,9 @@ end;
 
 function TLevel.LoadLevelScene(
   const FileName: string;
-  const CreateOctreeCollisions, PrepareBackground: boolean): TCastleScene;
+  const CreateOctreeCollisions: boolean): TCastleScene;
 begin
-  Result := LoadLevelScene(FileName, CreateOctreeCollisions, PrepareBackground,
-    TCastleScene);
+  Result := LoadLevelScene(FileName, CreateOctreeCollisions, TCastleScene);
 end;
 
 function TLevel.LoadLevelAnimation(
@@ -980,11 +962,6 @@ begin
   FTime += CompSpeed;
   if Thunder <> nil then
     Thunder.Idle(CompSpeed);
-end;
-
-function TLevel.Background: TBackground;
-begin
-  Result := nil;
 end;
 
 { TLevelAvailable ------------------------------------------------------------ }
