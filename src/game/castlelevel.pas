@@ -173,9 +173,6 @@ type
     { Level information, independent from current level state. }
     property Info: TLevelAvailable read FInfo;
 
-    function CollisionIgnoreItem(
-      const Sender: TObject;
-      const Triangle: P3DTriangle): boolean; override;
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
@@ -703,14 +700,6 @@ begin
     before we even assign Level. }
   if (Level <> nil) and (Level.Thunder <> nil) then
     Level.Thunder.AddLight(Lights);
-end;
-
-function TGameSceneManager.CollisionIgnoreItem(
-  const Sender: TObject; const Triangle: P3DTriangle): boolean;
-begin
-  Result :=
-    (inherited CollisionIgnoreItem(Sender, Triangle)) or
-    (PTriangle(Triangle)^.State.LastNodes.Material.NodeName = 'MatWater');
 end;
 
 procedure TGameSceneManager.Idle(const CompSpeed: Single;
