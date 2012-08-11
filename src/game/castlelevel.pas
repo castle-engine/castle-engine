@@ -575,8 +575,12 @@ begin
     and this means that resources already loaded for previous level
     don't need to be reloaded for new. }
   PreviousResources := T3DResourceList.Create(false);
-  if (Info <> nil) then
+  if Info <> nil then
+  begin
     PreviousResources.Assign(Info.Resources);
+    Dec(LevelsAvailable.References);
+    FInfo := nil;
+  end;
 
   FInfo := AInfo;
   Inc(LevelsAvailable.References);
