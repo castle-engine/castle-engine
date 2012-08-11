@@ -7,8 +7,6 @@ Next release plans:
 Definitely:
 engine improvements, allow making FPS-like as easily as possible:
 - Move as much as possible castle code to engine. Prepare for new game.
-  In particular: adding creatures / items to game (like in castle)
-  must be much easier using only the engine units.
 - DRAFT.engine_tutorial.txt finish, make prominent links from
   http://castle-engine.sourceforge.net/engine.php (on sidebar,
   near download links, mention in news etc.)
@@ -127,6 +125,7 @@ VSM:
 - Allow to set anisotropic filtering for shadow maps, makes sense for VSM.
 
 - try VSM with multisampling on FBO - GL_EXT_framebuffer_multisample, czarny supports it, chantal too
+  Should work already (we use fbo multisampling when necessary), remains to test?
 
 ------------------------------------------------------------------------------
 Scene manager / controls / better Lazarus integration:
@@ -177,52 +176,6 @@ Scene manager / controls / better Lazarus integration:
        (instead of all on MouseRayHit.Hierarchy.)
 
   - TWalkCamera.AboveGround should be freed when triangle is destroyed.
-
-* Should TSceneManager be free from VRML specifics?
-
-  - Yes-> Can be moved to 3d/ or ui/.
-
-    Advantage: TCastleWindowCustom/TCastleControlCustom could then create
-    and automatically add SceneManager to Controls.
-    This would simplify some stuff, since in new engine (almost)
-    everything will use SceneManager.
-    Also, since SceneManager will set MainScene.GLProjection in
-    ContainerResize, there can be only one SceneManager used at one time.
-
-  - Counterargument for auto-initialization of SceneManager:
-
-    - Some programs want their own TCastleSceneManager descendant.
-    - Some programs may have > 1 SceneManager, if they will have
-      non-default viewports, and both 3d worlds will be separate.
-
-    So it's not true that there's always 1 instance of TCastleSceneManager.
-
-    Although this doesn't rule out the possibility to create SceneManager
-    by default? We could always create default scenemanager on demand
-    (when first calling SceneManager?), and allow to change it anyway
-    by assigning to TCastleWindowCustom.SceneManager property.
-
-    But this is unclean, making unclear what happens with Controls?
-    This has the same conceptual problem as with TCastleWindowCustom.Camera?
-
-  - Counterargument: TSceneManager.MainScene must point to
-    VRML-enabled:TCastleSceneCore.
-
-    Unless we make TCastleSceneCoreManager? Then general TSceneManager
-    will not be dependent on VRML.
-    Or design TBase3D intelligently, maybe there
-    will not be need for any TCastleScene-specific stuff in current
-    TSceneManager.
-
-  Overall, this is quite a large rearrangement for TSceneManager,
-  just to avoid dependencies... Moreover, note that for now Base3D
-  is also dependent on VRML (since it uses Triangle types, to filter
-  out items for collision detection etc.). This would have to be resolved
-  first.
-
-  Probably, resolution: no. This is an VRML/X3D engine, everything important
-  requires VRML/X3D, VRML/X3D is our scene graph. No point in denying it,
-  no point in complicating scene manager.
 
 * Let RenderingCamera use some Camera reference, maybe make TSimpleCamera to avoid
   overloading it with full camera props for temporary camera settings?
@@ -341,12 +294,9 @@ Various ideas:
   2 times import/export.
   Hastened by email, still no ack.
 
-* Use http://wiki.lazarus.freepascal.org/class_extensions_examples once avail
-  in stable FPC, and it gets to e.g. Debian stable.
-  Send kudos to mailing list --- this will be greatly useful :)
-
-- support loading other images (like GIF) through internal lib? fpImage?
-  Notify: jordi (of hiperia)?
+* Use http://wiki.lazarus.freepascal.org/class_extensions_examples .
+  We already depend on FPC >= 2.6.0, so should be fine now?
+  This will be greatly useful :)
 
 * Remove ScheduleChangesAll.
   Just like DoGeometryChanged: everything should be automatically generated,
@@ -442,10 +392,6 @@ Victor Amat list (overlapping with mine, so let's go with it):
 
     Hm, bs contact has "eventOut SFVec2f windowSize", although I don't know on wha node.
     http://www.bitmanagement.com/documents/BS_Contact_VRML_june2006.pdf
-
-- Instead of ViewerChanged and IsLast..., it would be more natural and easier
-  to keep Camera reference in TCastleSceneCore.
-  This could ease some integration between TCastleSceneCore, TCastleScene and viewer.
 
 TGLTextureStorage
     (2D - just a single GLuint for GL_TEXTURE_2D,
@@ -1119,8 +1065,6 @@ Various:
   How to avoid on MouseMove updating MouseRayHit needlessly 2 times
   (once from MouseMove, once from CameraChanged).
 
-- once we migrate to fpc 2.6.0, add deprecated notes to all @deprecated stuff.
-
 - followers component,
   see also x3d mail about new nodes
   http://www.hersto.net/VRML/DampersHowto/?lay=2
@@ -1300,10 +1244,7 @@ will turn out to need them.)
   Actually, current preparation at CreateCreature does the job,
   it seems. But it's not clean.
 
-- We lost --debug-no-creatures feature.
-
-- T3DAlive is a good idea, but maybe would be better in a different unit?
-  Maybe to creatures or player or gameobjectkinds?
+- We lost --debug-no-creatures feature of castle1.
 
 - Add inventory to T3DAlive some day, to allow creature to carry items.
 
