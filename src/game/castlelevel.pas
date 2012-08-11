@@ -164,7 +164,6 @@ type
       const AMenuBackground: boolean);
   protected
     procedure InitializeLights(const Lights: TLightInstancesList); override;
-    procedure PointingDeviceActivateFailed(const Active: boolean); override;
   public
     destructor Destroy; override;
 
@@ -710,13 +709,6 @@ begin
     before we even assign Level. }
   if (Level <> nil) and (Level.Thunder <> nil) then
     Level.Thunder.AddLight(Lights);
-end;
-
-procedure TGameSceneManager.PointingDeviceActivateFailed(const Active: boolean);
-begin
-  inherited;
-  if Active then
-    SoundEngine.Sound(stPlayerInteractFailed);
 end;
 
 function TGameSceneManager.CollisionIgnoreItem(

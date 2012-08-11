@@ -2890,6 +2890,8 @@ end;
 
 procedure TCastleSceneManager.PointingDeviceActivateFailed(const Active: boolean);
 begin
+  if Active then
+    SoundEngine.Sound(stPlayerInteractFailed);
 end;
 
 function TCastleSceneManager.PointingDeviceMove(
