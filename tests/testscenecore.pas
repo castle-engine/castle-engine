@@ -16,12 +16,13 @@ type
     {$ifdef ITERATOR_SPEED_TEST}
     procedure TestIteratorSpeed;
     {$endif ITERATOR_SPEED_TEST}
+    procedure TestFind;
   end;
 
 implementation
 
 uses X3DNodes, CastleSceneCore, X3DLoad, VectorMath, Shape,
-  CastleTimeUtils, CastleStringUtils;
+  CastleTimeUtils, CastleStringUtils, X3DFields;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var
@@ -141,6 +142,59 @@ begin
   CheckIterator('data' + PathDelim + 'extrusion_empty_spine.x3dv');
   CheckIterator('data' + PathDelim + 'extrusion_empty_spine_concave.x3dv');
   CheckIterator('data' + PathDelim + 'extrusion_empty_spine_smooth.x3dv');
+end;
+
+procedure TTestSceneCore.TestFind;
+var
+  Scene: TCastleSceneCore;
+begin
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    try
+      Scene.Node('Left');
+      Assert(false, 'Should fail with EX3DNotFound');
+    except on EX3DNotFound do ; end;
+
+    try
+      Scene.Field('Left', 'translation');
+      Assert(false, 'Should fail with EX3DNotFound');
+    except on EX3DNotFound do ; end;
+
+    try
+      Scene.Event('Left', 'addChildren');
+      Assert(false, 'Should fail with EX3DNotFound');
+    except on EX3DNotFound do ; end;
+
+    Scene.FileName := 'data' + PathDelim + 'switches_and_transforms_2.x3dv';
+    Scene.Node('Left');
+    Scene.Field('Left', 'translation');
+    Scene.Event('Left', 'addChildren');
+
+    try
+      Scene.Node('Blah');
+      Assert(false, 'Should fail with EX3DNotFound');
+    except on EX3DNotFound do ; end;
+
+    try
+      Scene.Field('Blah', 'translation');
+      Assert(false, 'Should fail with EX3DNotFound');
+    except on EX3DNotFound do ; end;
+
+    try
+      Scene.Event('Blah', 'addChildren');
+      Assert(false, 'Should fail with EX3DNotFound');
+    except on EX3DNotFound do ; end;
+
+    try
+      Scene.Field('Left', 'blah');
+      Assert(false, 'Should fail with EX3DNotFound');
+    except on EX3DNotFound do ; end;
+
+    try
+      Scene.Event('Left', 'blah');
+      Assert(false, 'Should fail with EX3DNotFound');
+    except on EX3DNotFound do ; end;
+  finally FreeAndNil(Scene) end;
 end;
 
 initialization
