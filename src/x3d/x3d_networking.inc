@@ -170,7 +170,8 @@
       contents are always loaded. It will be called at the end of Parse
       (this is needed to handle VRML/X3D IMPORT/EXPORT mechanism),
       it will also be called in BeforeTraverse (in case you constructed node
-      by code, not by parsing).
+      by code, not by parsing; this also happens when node was made by expanding
+      a PROTO).
 
       @param(Exported If non-nil, we will assign here node names
         exported from the file. Used to handle IMPORT/EXPORT X3D mechanism.) }
@@ -484,9 +485,13 @@ begin
   Assert(FInlined = nil);
   Assert(VRML1ChildrenCount = 0);
 
-  if not FdLoad.Value then Exit;
-
-  FInlined := nil;
+  if (not FdLoad.Value) or
+     { Do not do anything, in particular do not set Loaded:=true,
+       when url field is empty. This is important in case "url" field value
+       has an IS clause, and it will be really known only after expanding
+       the PROTO, see demo_models/prototypes/proto_inline.x3dv testcase. }
+     (FdUrl.Items.Count = 0) then
+    Exit;
 
   for I := 0 to FdUrl.Items.Count - 1 do
     { For VRML 1.0 WWWInline, an item on "url" (alias "name") field
