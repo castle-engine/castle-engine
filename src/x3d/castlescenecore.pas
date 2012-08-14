@@ -1751,6 +1751,21 @@ type
     { Global lights of this scene. Read-only. May be useful to render
       other 3D objects with lights defined inside this scene. }
     property GlobalLights: TLightInstancesList read FGlobalLights;
+
+    { Simple methods to find a named X3D node (and a field or event
+      within this node) in a current node graph. They search all nodes
+      (in active or not) graph parts.
+
+      For more flexible and extensive search methods, use RootNode property
+      along with TX3DNode.FindNodeByName, TX3DNode.FindNode and other methods.
+
+      @raises(EX3DNotFound If given node (or field/event inside this node)
+        could not be found.)
+      @groupBegin }
+    function Node(const NodeName: string): TX3DNode;
+    function Field(const NodeName, FieldName: string): TX3DField;
+    function Event(const NodeName, EventName: string): TX3DEvent;
+    { @groupEnd }
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Idle) will take care of increasing @link(Time).
@@ -3519,7 +3534,7 @@ end;
 
 procedure TCastleSceneCore.ChangedField(Field: TX3DField);
 var
-  Node: TX3DNode;
+  ANode: TX3DNode;
   Changes: TX3DChanges;
 
   procedure DoLogChanges(const Additional: string = '');
@@ -3528,7 +3543,7 @@ var
   begin
     S := 'ChangedField: ' + X3DChangesToStr(Changes) +
       Format(', node: %s (%s %s) at %s',
-      [ Node.NodeName, Node.NodeTypeName, Node.ClassName, PointerToStr(Node) ]);
+      [ ANode.NodeName, ANode.NodeTypeName, ANode.ClassName, PointerToStr(ANode) ]);
     if Field <> nil then
       S += Format(', field %s (%s)', [ Field.Name, Field.TypeName ]);
     if Additional <> '' then
@@ -3541,19 +3556,19 @@ var
   var
     Instances: TShapeTreeList;
   begin
-    Check(Supports(Node, ITransformNode),
+    Check(Supports(ANode, ITransformNode),
       'chTransform flag may be set only for ITransformNode');
 
-    Instances := TransformInstancesList.Instances(Node, false);
+    Instances := TransformInstancesList.Instances(ANode, false);
     if Instances = nil then
     begin
       if Log and LogChanges then
         WritelnLog('VRML changes', Format('Transform node "%s" has no information, assuming does not exist in our VRML graph',
-          [Node.NodeTypeName]));
+          [ANode.NodeTypeName]));
       Exit;
     end;
 
-    TransformationChanged(Node, Instances, Changes);
+    TransformationChanged(ANode, Instances, Changes);
   end;
 
   procedure HandleChangeCoordinate;
@@ -3586,15 +3601,15 @@ var
     VRML1StateNode: TVRML1StateNode;
     SI: TShapeTreeIterator;
   begin
-    if Node.VRML1StateNode(VRML1StateNode) then
+    if ANode.VRML1StateNode(VRML1StateNode) then
     begin
-      { Node is part of VRML 1.0 state, so it affects Shapes where
+      { ANode is part of VRML 1.0 state, so it affects Shapes where
         it's present on State.LastNodes list. }
       SI := TShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
-          if (SI.Current.State.LastNodes.Nodes[VRML1StateNode] = Node) or
-             (SI.Current.OriginalState.LastNodes.Nodes[VRML1StateNode] = Node) then
+          if (SI.Current.State.LastNodes.Nodes[VRML1StateNode] = ANode) or
+             (SI.Current.OriginalState.LastNodes.Nodes[VRML1StateNode] = ANode) then
             SI.Current.Changed(false, Changes);
       finally FreeAndNil(SI) end;
       VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
@@ -3610,7 +3625,7 @@ var
     SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
-        if SI.Current.State.ShapeNode.Material = Node then
+        if SI.Current.State.ShapeNode.Material = ANode then
           SI.Current.Changed(false, Changes);
     finally FreeAndNil(SI) end;
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
@@ -3623,9 +3638,9 @@ var
     LightInstance: PLightInstance;
     LightNode: TAbstractLightNode;
   begin
-    LightNode := Node as TAbstractLightNode;
+    LightNode := ANode as TAbstractLightNode;
 
-    { Update all TLightInstance records with LightNode = this Node.
+    { Update all TLightInstance records with LightNode = this ANode.
 
       TODO: what if some TX3DGraphTraverseState.Lights need to be updated?
       Code below fails for this.
@@ -3665,7 +3680,7 @@ var
 
   procedure HandleChangeLightLocationDirection;
   begin
-    { If we had calculated MainLightForShadows, and this Node is the
+    { If we had calculated MainLightForShadows, and this ANode is the
       main light for shadows, then update FMainLightForShadows.
       Thanks to varius FMainLightForShadows* properties, we can check
       and recalculate it very fast --- this is good for scenes where main
@@ -3673,7 +3688,7 @@ var
 
     if (fvMainLightForShadows in Validities) and
        FMainLightForShadowsExists and
-       (FMainLightForShadowsNode = Node) then
+       (FMainLightForShadowsNode = ANode) then
     begin
       CalculateMainLightForShadowsPosition;
       VisibleChangeHere([vcVisibleNonGeometry]);
@@ -3724,11 +3739,11 @@ var
     SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
-        if ((SI.Current.Geometry is TAbstractComposedGeometryNode) and (TAbstractComposedGeometryNode(SI.Current.Geometry).FdColor.Value = Node)) or
-           ((SI.Current.Geometry is TIndexedLineSetNode          ) and (TIndexedLineSetNode          (SI.Current.Geometry).FdColor.Value = Node)) or
-           ((SI.Current.Geometry is TLineSetNode                 ) and (TLineSetNode                 (SI.Current.Geometry).FdColor.Value = Node)) or
-           ((SI.Current.Geometry is TPointSetNode                ) and (TPointSetNode                (SI.Current.Geometry).FdColor.Value = Node)) or
-           ((SI.Current.Geometry is TElevationGridNode           ) and (TElevationGridNode           (SI.Current.Geometry).FdColor.Value = Node)) then
+        if ((SI.Current.Geometry is TAbstractComposedGeometryNode) and (TAbstractComposedGeometryNode(SI.Current.Geometry).FdColor.Value = ANode)) or
+           ((SI.Current.Geometry is TIndexedLineSetNode          ) and (TIndexedLineSetNode          (SI.Current.Geometry).FdColor.Value = ANode)) or
+           ((SI.Current.Geometry is TLineSetNode                 ) and (TLineSetNode                 (SI.Current.Geometry).FdColor.Value = ANode)) or
+           ((SI.Current.Geometry is TPointSetNode                ) and (TPointSetNode                (SI.Current.Geometry).FdColor.Value = ANode)) or
+           ((SI.Current.Geometry is TElevationGridNode           ) and (TElevationGridNode           (SI.Current.Geometry).FdColor.Value = ANode)) then
           SI.Current.Changed(false, Changes);
     finally FreeAndNil(SI) end;
   end;
@@ -3744,7 +3759,7 @@ var
     try
       while SI.GetNext do
         if SI.Current.Geometry.TexCoord(SI.Current.State, TexCoord) and
-           (TexCoord = Node) then
+           (TexCoord = ANode) then
           SI.Current.Changed(false, Changes);
     finally FreeAndNil(SI) end;
   end;
@@ -3785,7 +3800,7 @@ var
            (SI.Current.State.ShapeNode.FdAppearance.Value <> nil) and
            (SI.Current.State.ShapeNode.FdAppearance.Value is TAppearanceNode) and
            AppearanceUsesTextureTransform(
-             TAppearanceNode(SI.Current.State.ShapeNode.FdAppearance.Value), Node) then
+             TAppearanceNode(SI.Current.State.ShapeNode.FdAppearance.Value), ANode) then
           SI.Current.Changed(false, Changes);
     finally FreeAndNil(SI) end;
   end;
@@ -3798,8 +3813,8 @@ var
     SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
-        if (SI.Current.Geometry = Node) or
-           (SI.Current.OriginalGeometry = Node) then
+        if (SI.Current.Geometry = ANode) or
+           (SI.Current.OriginalGeometry = ANode) then
           SI.Current.Changed(false, Changes);
     finally FreeAndNil(SI) end;
   end;
@@ -3810,19 +3825,19 @@ var
     VSInstances: TVisibilitySensorInstanceList;
     VS: TVisibilitySensorNode;
   begin
-    if Node is TProximitySensorNode then
+    if ANode is TProximitySensorNode then
     begin
       { Update state for this ProximitySensor node. }
       if CameraViewKnown then
         for I := 0 to ProximitySensors.Count - 1 do
         begin
-          if ProximitySensors[I].Node = Node then
+          if ProximitySensors[I].Node = ANode then
             ProximitySensorUpdate(ProximitySensors[I]);
         end;
     end else
-    if Node is TVisibilitySensorNode then
+    if ANode is TVisibilitySensorNode then
     begin
-      VS := TVisibilitySensorNode(Node);
+      VS := TVisibilitySensorNode(ANode);
       { local Box of this node changed,
         so update transformed Box in all TVisibilitySensorInstance for this node }
       I := VisibilitySensors.IndexOf(VS);
@@ -3837,18 +3852,18 @@ var
 
   procedure HandleChangeTimeStopStart;
 
-    function GetTimeDependentNodeHandler(Node: TX3DNode): TTimeDependentNodeHandler;
+    function GetTimeDependentNodeHandler(ANode: TX3DNode): TTimeDependentNodeHandler;
     begin
-      if Supports(Node, IAbstractTimeDependentNode) then
-        Result := (Node as IAbstractTimeDependentNode).TimeDependentNodeHandler else
+      if Supports(ANode, IAbstractTimeDependentNode) then
+        Result := (ANode as IAbstractTimeDependentNode).TimeDependentNodeHandler else
         Result := nil;
     end;
 
   var
     Handler: TTimeDependentNodeHandler;
   begin
-    Handler := GetTimeDependentNodeHandler(Node);
-    if Handler = nil then Exit; {< Node not time-dependent. }
+    Handler := GetTimeDependentNodeHandler(ANode);
+    if Handler = nil then Exit; {< ANode not time-dependent. }
 
     { Although (de)activation of time-dependent nodes will be also caught
       by the nearest IncreaseTime run, it's good to explicitly
@@ -3875,7 +3890,7 @@ var
 
   procedure HandleChangeViewpointVectors;
   begin
-    if Node = ViewpointStack.Top then
+    if ANode = ViewpointStack.Top then
       DoBoundViewpointVectorsChanged;
       { Nothing needs to be done if
         - non-bound viewpoint changed,
@@ -3893,17 +3908,17 @@ var
         TAbstractTexture2DNode.LoadTextureData, we have to explicitly release
         old texture (otherwise, LoadTextureData will not be called
         to reload the texture). }
-      if Node is TAbstractTexture2DNode then
-        TAbstractTexture2DNode(Node).IsTextureLoaded := false;
-      if Node is TAbstractTexture3DNode then
-        TAbstractTexture3DNode(Node).TextureLoaded := false;
+      if ANode is TAbstractTexture2DNode then
+        TAbstractTexture2DNode(ANode).IsTextureLoaded := false;
+      if ANode is TAbstractTexture3DNode then
+        TAbstractTexture3DNode(ANode).TextureLoaded := false;
     end;
 
     SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
       begin
-        if SI.Current.UsesTexture(TAbstractTextureNode(Node)) then
+        if SI.Current.UsesTexture(TAbstractTextureNode(ANode)) then
           SI.Current.Changed(false, Changes);
       end;
     finally FreeAndNil(SI) end;
@@ -3922,12 +3937,12 @@ var
   var
     Handler: TGeneratedTextureHandler;
   begin
-    if Node is TGeneratedCubeMapTextureNode then
-      Handler := TGeneratedCubeMapTextureNode(Node).GeneratedTextureHandler else
-    if Node is TGeneratedShadowMapNode then
-      Handler := TGeneratedShadowMapNode(Node).GeneratedTextureHandler else
-    if Node is TRenderedTextureNode then
-      Handler := TRenderedTextureNode(Node).GeneratedTextureHandler else
+    if ANode is TGeneratedCubeMapTextureNode then
+      Handler := TGeneratedCubeMapTextureNode(ANode).GeneratedTextureHandler else
+    if ANode is TGeneratedShadowMapNode then
+      Handler := TGeneratedShadowMapNode(ANode).GeneratedTextureHandler else
+    if ANode is TRenderedTextureNode then
+      Handler := TRenderedTextureNode(ANode).GeneratedTextureHandler else
       Exit;
 
     Handler.UpdateNeeded := true;
@@ -3945,7 +3960,7 @@ var
   var
     SI: TShapeTreeIterator;
   begin
-    Assert(Node is TClipPlaneNode);
+    Assert(ANode is TClipPlaneNode);
 
     { Call TShape.Changed for all shapes using this ClipPlane node. }
     SI := TShapeTreeIterator.Create(Shapes, false);
@@ -3953,7 +3968,7 @@ var
       while SI.GetNext do
       begin
         if (SI.Current.State.ClipPlanes <> nil) and
-           (SI.Current.State.ClipPlanes.IndexOfNode(TClipPlaneNode(Node)) <> -1) then
+           (SI.Current.State.ClipPlanes.IndexOfNode(TClipPlaneNode(ANode)) <> -1) then
           SI.Current.Changed(false, Changes);
       end;
     finally FreeAndNil(SI) end;
@@ -3985,7 +4000,7 @@ var
     DragSensor: TAbstractDragSensorNode;
   begin
     Enabled := (Field as TSFBool).Value;
-    DragSensor := Node as TAbstractDragSensorNode;
+    DragSensor := ANode as TAbstractDragSensorNode;
 
     { When we disable an active drag sensor, specification says to
       deactivate it. This cannot be handled fully by TAbstractDragSensorNode
@@ -4002,7 +4017,7 @@ var
 
   procedure HandleChangeNavigationInfo;
   begin
-    if Node = NavigationInfoStack.Top then
+    if ANode = NavigationInfoStack.Top then
       DoBoundNavigationInfoFieldsChanged;
   end;
 
@@ -4010,7 +4025,7 @@ var
   var
     SE: TScreenEffectNode;
   begin
-    SE := Node as TScreenEffectNode;
+    SE := ANode as TScreenEffectNode;
     { Just like TCastleScene.CloseGLScreenEffect: no need to even
       communicate with renderer, just reset ShaderLoaded and Shader.
       At the nearest time, it will be recalculated. }
@@ -4035,8 +4050,8 @@ var
   end;
 
 begin
-  Node := TX3DNode(Field.ParentNode);
-  Assert(Node <> nil);
+  ANode := TX3DNode(Field.ParentNode);
+  Assert(ANode <> nil);
 
   { We used to check here RootNode.IsNodePresent, to eliminate
     changes to nodes not in our graph. This is not done now, because:
@@ -5706,7 +5721,7 @@ end;
 procedure TCastleSceneCore.ProximitySensorUpdate(const PSI: TProximitySensorInstance);
 var
   Position, Direction, Up: TVector3Single;
-  Node: TProximitySensorNode;
+  ProxNode: TProximitySensorNode;
   NewIsActive: boolean;
 begin
   Assert(CameraViewKnown);
@@ -5714,8 +5729,8 @@ begin
   begin
     BeginChangesSchedule;
     try
-      Node := PSI.Node;
-      if not Node.FdEnabled.Value then Exit;
+      ProxNode := PSI.Node;
+      if not ProxNode.FdEnabled.Value then Exit;
 
       { In each ProximitySensorUpdate we transform CameraPosition to
         ProximitySensor coordinate-space. This allows us to check
@@ -5738,26 +5753,26 @@ begin
       Position := MatrixMultPoint(PSI.InvertedTransform, CameraPosition);
 
       NewIsActive :=
-        (Position[0] >= Node.FdCenter.Value[0] - Node.FdSize.Value[0] / 2) and
-        (Position[0] <= Node.FdCenter.Value[0] + Node.FdSize.Value[0] / 2) and
-        (Position[1] >= Node.FdCenter.Value[1] - Node.FdSize.Value[1] / 2) and
-        (Position[1] <= Node.FdCenter.Value[1] + Node.FdSize.Value[1] / 2) and
-        (Position[2] >= Node.FdCenter.Value[2] - Node.FdSize.Value[2] / 2) and
-        (Position[2] <= Node.FdCenter.Value[2] + Node.FdSize.Value[2] / 2) and
+        (Position[0] >= ProxNode.FdCenter.Value[0] - ProxNode.FdSize.Value[0] / 2) and
+        (Position[0] <= ProxNode.FdCenter.Value[0] + ProxNode.FdSize.Value[0] / 2) and
+        (Position[1] >= ProxNode.FdCenter.Value[1] - ProxNode.FdSize.Value[1] / 2) and
+        (Position[1] <= ProxNode.FdCenter.Value[1] + ProxNode.FdSize.Value[1] / 2) and
+        (Position[2] >= ProxNode.FdCenter.Value[2] - ProxNode.FdSize.Value[2] / 2) and
+        (Position[2] <= ProxNode.FdCenter.Value[2] + ProxNode.FdSize.Value[2] / 2) and
         { ... and the box is not empty, which for ProximitySensor
           is signalled by any size <= 0 (yes, equal 0 also means empty).
           We check this at the end, as this is the least common situation? }
-        (Node.FdSize.Value[0] > 0) and
-        (Node.FdSize.Value[1] > 0) and
-        (Node.FdSize.Value[2] > 0);
+        (ProxNode.FdSize.Value[0] > 0) and
+        (ProxNode.FdSize.Value[1] > 0) and
+        (ProxNode.FdSize.Value[2] > 0);
 
       if NewIsActive <> PSI.IsActive then
       begin
         PSI.IsActive := NewIsActive;
-        Node.EventIsActive.Send(NewIsActive, Time);
+        ProxNode.EventIsActive.Send(NewIsActive, Time);
         if NewIsActive then
-          Node.EventEnterTime.Send(Time.Seconds, Time) else
-          Node.EventExitTime.Send(Time.Seconds, Time);
+          ProxNode.EventEnterTime.Send(Time.Seconds, Time) else
+          ProxNode.EventExitTime.Send(Time.Seconds, Time);
       end;
 
       { Call position_changed, orientation_changed, even if this is just
@@ -5768,12 +5783,12 @@ begin
 
       if NewIsActive then
       begin
-        Node.EventPosition_Changed.Send(Position, Time);
-        if Node.EventOrientation_Changed.SendNeeded then
+        ProxNode.EventPosition_Changed.Send(Position, Time);
+        if ProxNode.EventOrientation_Changed.SendNeeded then
         begin
           Direction := MatrixMultDirection(PSI.InvertedTransform, CameraDirection);
           Up        := MatrixMultDirection(PSI.InvertedTransform, CameraUp);
-          Node.EventOrientation_Changed.Send(
+          ProxNode.EventOrientation_Changed.Send(
             CamDirUp2Orient(Direction, Up), Time);
         end;
         { TODO: centerOfRotation_changed }
@@ -6514,6 +6529,29 @@ begin
      (WorldInfoNode.FdTitle.Value <> '') then
     Result := WorldInfoNode.FdTitle.Value else
     Result := ExtractFileName(FileName);
+end;
+
+function TCastleSceneCore.Node(const NodeName: string): TX3DNode;
+begin
+  if RootNode = nil then
+    raise EX3DNotFound.CreateFmt('Cannot find node "%s"', [NodeName]) else
+    Result := RootNode.FindNodeByName(TX3DNode, NodeName, false);
+end;
+
+function TCastleSceneCore.Field(const NodeName, FieldName: string): TX3DField;
+begin
+  if RootNode = nil then
+    raise EX3DNotFound.CreateFmt('Cannot find node "%s"', [NodeName]) else
+    Result := RootNode.FindNodeByName(TX3DNode, NodeName, false).
+      Fields.ByName[FieldName];
+end;
+
+function TCastleSceneCore.Event(const NodeName, EventName: string): TX3DEvent;
+begin
+  if RootNode = nil then
+    raise EX3DNotFound.CreateFmt('Cannot find node "%s"', [NodeName]) else
+    Result := RootNode.FindNodeByName(TX3DNode, NodeName, false).
+      Events.ByName[EventName];
 end;
 
 procedure TCastleSceneCore.InvalidateBackground;

@@ -30,6 +30,9 @@ const
 type
   EX3DFieldAssign = class(Exception);
   EX3DFieldAssignInvalidClass = class(EX3DFieldAssign);
+  { Raised by various X3D methods searching for X3D items (nodes, fields,
+    events and such) when given item cannot be found. }
+  EX3DNotFound = class(Exception);
 
   TX3DEvent = class;
 
@@ -975,8 +978,8 @@ type
   private
     function GetByName(const AName: string): TX3DField;
   public
-    { This is a comfortable property that allows you to access fields by name.
-      Exception will be raised if the given Name doesn't exist. }
+    { Access field by name.
+      @raises EX3DNotFound If the given Name doesn't exist. }
     property ByName[const AName: string]:TX3DField read GetByName;
 
     { Searches for a field with given Name, returns it's index or -1 if not found. }
@@ -3330,18 +3333,20 @@ end;
 
 function TX3DFieldList.IndexOf(const AName: string): integer;
 begin
-  for result := 0 to Count-1 do
-    if Items[result].IsName(AName) then exit;
-  result := -1;
+  for Result := 0 to Count-1 do
+    if Items[Result].IsName(AName) then
+      Exit;
+  Result := -1;
 end;
 
 function TX3DFieldList.GetByName(const AName: string): TX3DField;
-var i: integer;
+var
+  I: integer;
 begin
-  i := IndexOf(AName);
-  if i >= 0 then
-    result := Items[i] else
-    raise Exception.Create('Field name '+AName+' not found');
+  I := IndexOf(AName);
+  if I <> -1 then
+    Result := Items[I] else
+    raise EX3DNotFound.CreateFmt('Field name "%s" not found', [AName]);
 end;
 
 function TX3DFieldList.IndexOfExposedEvent(const EventName: string;

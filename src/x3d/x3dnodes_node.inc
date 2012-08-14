@@ -642,9 +642,10 @@
       they stop at the first occurrence and return it.
 
       TryFindNodeByName and TryFindNode return @nil if such node
-      is not found. FindNodeByName and FindNode raise exception
+      is not found. FindNodeByName and FindNode raise exception EX3DNotFound
       in this case.
-
+      @raises(EX3DNotFound FindNodeByName and FindNode raise
+        this exception when node is not found.)
       @groupBegin }
     function TryFindNodeByName(FindClass: TX3DNodeClass;
       const FindName: string;
@@ -685,6 +686,9 @@
       ("active" as defined by @link(Traverse))
       because you really can't detect what is the "active"
       part of the graph when going upward.
+
+      @raises(EX3DNotFound
+        FindParentByName raises this exception when node is not found.)
 
       @groupBegin }
     function TryFindParentByName(const FindName: string): TX3DNode;
@@ -2111,8 +2115,8 @@ end;
 function TX3DNode.FindNode(FindClass: TX3DNodeClass; OnlyActive: boolean): TX3DNode;
 begin
   result := TryFindNode(FindClass, OnlyActive);
-  Check(result <> nil,
-    'Node class '+FindClass.ClassName+' not found (by TX3DNode.FindNode)');
+  if Result = nil then
+    raise EX3DNotFound.CreateFmt('Node class "%s" not found', [FindClass.ClassName]);
 end;
 
 function TX3DNode.TryFindNodeByName(
@@ -2133,8 +2137,8 @@ function TX3DNode.FindNodeByName(
   OnlyActive: boolean): TX3DNode;
 begin
   result := TryFindNodeByName(FindClass, FindName, OnlyActive);
-  Check(result <> nil,
-    'Node name '+FindName+' not found (by TX3DNode.FindNodeByName)');
+  if Result = nil then
+    raise EX3DNotFound.CreateFmt('Node name "%s" not found', [FindName]);
 end;
 
 { TX3DNode.TryFindNodeState/Transform ----------------------------------------- }
@@ -2250,7 +2254,8 @@ end;
 function TX3DNode.FindParentByName(const FindName: string): TX3DNode;
 begin
   result := TryFindParentByName(FindName);
-  Check(result <> nil, 'Node name '+FindName+' not found in parents');
+  if Result = nil then
+    raise EX3DNotFound.CreateFmt('Node name "%s" not found in parents', [FindName]);
 end;
 
 function TX3DNode.TryFindDirectParentByName(const FindName: string): TX3DNode;

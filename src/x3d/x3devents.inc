@@ -179,7 +179,14 @@
   end;
 
   TX3DEventList = class(specialize TFPGObjectList<TX3DEvent>)
+  private
+    function GetByName(const AName: string): TX3DEvent;
   public
+    { Access event by name.
+      @raises EX3DNotFound If the given Name doesn't exist. }
+    property ByName[const AName: string]: TX3DEvent read GetByName;
+
+    { Find event index on the list. -1 if not found. }
     function IndexOf(const Name: string): Integer;
   end;
 
@@ -613,6 +620,16 @@ begin
   for Result := 0 to Count - 1 do
     if Items[Result].IsName(Name) then Exit;
   Result := -1;
+end;
+
+function TX3DEventList.GetByName(const AName: string): TX3DEvent;
+var
+  I: integer;
+begin
+  I := IndexOf(AName);
+  if I <> -1 then
+    Result := Items[I] else
+    raise EX3DNotFound.CreateFmt('Event name "%s" not found', [AName]);
 end;
 
 {$endif read_implementation}
