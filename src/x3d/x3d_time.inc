@@ -370,9 +370,10 @@ begin
 
   {$ifdef LOG_TIME_DEPENDENT_NODES}
   if Log then
-    WritelnLog('TimeDependentNodes', Format('%s: time changes from %f (by +%f) to %f. Before state: active %s, paused %s, loop %s',
+    WritelnLog('TimeDependentNodes', Format('%s: time changes from %f (by +%f) to %f. Cycle interval: %f. Before state: active %s, paused %s, loop %s',
       [ Node.NodeTypeName,
         OldValue.Seconds, TimeIncrease, NewValue.Seconds,
+        CycleInterval,
         BoolToStr[IsActive], BoolToStr[IsPaused], BoolToStr[FdLoop.Value]
         ]));
   {$endif}
