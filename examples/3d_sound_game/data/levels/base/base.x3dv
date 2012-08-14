@@ -138,3 +138,17 @@ NavigationInfo {
 }
 
 Inline { url "base_b_proc.wrl" }
+
+EXTERNPROTO Thunder [
+  inputOutput SFFloat ambientIntensity
+  inputOutput SFColor color
+  inputOutput SFVec3f direction
+  inputOutput MFString soundUrl
+  inputOutput SFTime blink1Duration
+  inputOutput SFTime blink2Start
+  inputOutput SFTime blink2Duration
+  inputOutput SFTime durationBetweenConst
+  inputOutput SFTime durationBetweenRandom1
+  inputOutput SFTime durationBetweenRandom2
+] [ "thunder.x3dv#Thunder" ]
+Thunder { }

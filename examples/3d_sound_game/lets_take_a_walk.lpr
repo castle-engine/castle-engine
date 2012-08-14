@@ -237,7 +237,7 @@ end;
 procedure KeyDown(Window: TCastleWindowBase; Key: TKey; c: char);
 begin
   case key of
-    K_T: SceneManager.Level.Thunder.ForceNow;
+    K_T: SceneManager.MainScene.Event('MyScript', 'forceThunderNow').Send(true);
     K_F1: ShowHelpMessage;
     K_F5: Window.SaveScreen(FileNameAutoInc('lets_take_a_walk_screen_%d.png'));
   end;
@@ -344,7 +344,10 @@ begin
   { init level. LoadLevel requires OpenGL context to be available. }
   LevelsAvailable.LoadFromFiles(ProgramDataPath + 'data' +  PathDelim + 'levels');
   LevelsAvailable.FindName('base').LoadLevel(SceneManager);
-  SceneManager.Level.Thunder := TThunder.Create;
+  { LoadLevel turns it on, and it's generally helpful, but it makes shooting too
+    easy. It would be a nice thing to switch depending on difficulty setting
+    in a real game. }
+  SceneManager.ApproximateActivation := false;
 
   { init Rat }
   Rat := T3DTransform.Create(SceneManager);

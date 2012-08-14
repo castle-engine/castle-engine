@@ -1,0 +1,101 @@
+#X3D V3.2 utf8
+PROFILE Interactive
+
+# Prototype to make a thunder (like in a storm) lighting and sound effect.
+PROTO Thunder [
+  # Blinking light properties
+  inputOutput SFFloat ambientIntensity 1.0
+  inputOutput SFColor color 1 1 1
+  inputOutput SFVec3f direction 0 0 -1
+  # URL to the thunder sound
+  inputOutput MFString soundUrl "../../sounds/thunder.wav"
+  # Times of the thunder effect.
+  # During a single thunder effect:
+  # - light blinks between 0 .. blink1Duration,
+  # - and then again blinks between blink2Start .. blink2Start + blink2Duration.
+  # All times are in seconds.
+  inputOutput SFTime blink1Duration 1.0
+  inputOutput SFTime blink2Start 1.5
+  inputOutput SFTime blink2Duration 1.0
+  inputOutput SFTime durationBetweenConst 10.0
+  inputOutput SFTime durationBetweenRandom1 10.0
+  inputOutput SFTime durationBetweenRandom2 20.0
+] {
+  Group {
+    children [
+      DEF MyLight DirectionalLight {
+        ambientIntensity IS ambientIntensity
+        color IS color
+        direction IS direction
+        global TRUE
+        on FALSE
+      }
+      # Sound must be in active graph part to play (in this case).
+      Sound {
+        spatialize FALSE
+        source DEF MyAudio AudioClip { url IS soundUrl }
+      }
+    ]
+  }
+  # Script that sets up starting times for everything that happens.
+  DEF MyScript Script {
+    inputOutput SFTime startLight1AndAudio 0
+    inputOutput SFTime startLight2 0
+    inputOutput SFBool light2Active FALSE
+    inputOutput SFBool audioActive FALSE
+
+    # times, parameters of the PROTO
+    inputOutput SFTime blink2Start IS blink2Start
+    inputOutput SFTime durationBetweenConst IS durationBetweenConst
+    inputOutput SFTime durationBetweenRandom1 IS durationBetweenRandom1
+    inputOutput SFTime durationBetweenRandom2 IS durationBetweenRandom2
+
+    # send TRUE value to this field to cause thunder now. FALSE is ignored.
+    inputOnly SFBool forceThunderNow
+
+    url "castlescript:
+function initialize(time)
+  { set up first thunder in the future }
+  startLight1AndAudio :=  time +
+    durationBetweenConst + random() * durationBetweenRandom1;
+  startLight2 := startLight1AndAudio + blink2Start
+
+function forceThunderNow(value, time)
+  when (value,
+    startLight1AndAudio := time;
+    startLight2 := startLight1AndAudio + blink2Start)
+
+function light2Active(value, time)
+  when (and(not(value), not(audioActive)),
+    { Once everything finished (2nd light blink and sound) finished,
+      set up next thunder in the future.
+      We can only do it once everything finished, as X3D spec says that
+      'Any set_startTime events to an active time-dependent node are ignored.' }
+    startLight1AndAudio := startLight1AndAudio +
+      durationBetweenConst + random() * durationBetweenRandom2;
+    startLight2 := startLight1AndAudio + blink2Start)
+
+function audioActive(value, time)
+  when (and(not(value), not(light2Active)),
+    { Exactly like light2Active. We have to watch for both light2Active
+      and audioActive, as we don't know which one takes longer: light blinking
+      or audio sound. }
+    startLight1AndAudio := startLight1AndAudio +
+      durationBetweenConst + random() * durationBetweenRandom2;
+    startLight2 := startLight1AndAudio + blink2Start)
+" }
+
+  # Controls the 1st blink of light.
+  DEF Light1Timer TimeSensor { cycleInterval IS blink1Duration }
+  ROUTE Light1Timer.isActive TO MyLight.on
+  # Controls the 2nd blink of light.
+  DEF Light2Timer TimeSensor { cycleInterval IS blink2Duration }
+  ROUTE Light2Timer.isActive TO MyLight.on
+
+  # ROUTEs in and out of the MyScript
+  ROUTE MyScript.startLight1AndAudio TO Light1Timer.startTime
+  ROUTE MyScript.startLight1AndAudio TO MyAudio.startTime
+  ROUTE MyScript.startLight2         TO Light2Timer.startTime
+  ROUTE Light2Timer.isActive TO MyScript.light2Active
+  ROUTE MyAudio.isActive     TO MyScript.audioActive
+}
