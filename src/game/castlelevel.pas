@@ -33,11 +33,6 @@ uses VectorMath, CastleSceneCore, CastleScene, Boxes3D,
   DOM, ALSoundEngine, Base3D, Shape, GL, CastleConfig, Images,
   Classes, CastleTimeUtils, CastleSceneManager, GLRendererShader, FGL;
 
-const
-  DefaultThunderAmbientIntensity = 1.0;
-  DefaultThunderColor: TVector3Single = (1, 1, 1);
-  DefaultThunderDirection: TVector3Single = (0, 0, -1);
-
 type
   TLevel = class;
   TLevelClass = class of TLevel;
@@ -162,8 +157,6 @@ type
 
     procedure LoadLevel(const AInfo: TLevelAvailable;
       const AMenuBackground: boolean);
-  protected
-    procedure InitializeLights(const Lights: TLightInstancesList); override;
   public
     destructor Destroy; override;
 
@@ -178,35 +171,6 @@ type
       var LetOthersHandleMouseAndKeys: boolean); override;
   end;
 
-  { Rendering and making sound of a thunder (like in a storm) effect. }
-  TThunder = class
-  private
-    Time, LastBeginTime, NextBeginTime: Single;
-    LightNode: TDirectionalLightNode;
-    Light: TLightInstance;
-    { Add thunder light, if visible. }
-    procedure AddLight(const BaseLights: TLightInstancesList);
-    procedure Idle(const CompSpeed: Single);
-    function GetAmbientIntensity: Single;
-    procedure SetAmbientIntensity(const Value: Single);
-    function GetColor: TVector3Single;
-    procedure SetColor(const Value: TVector3Single);
-    function GetDirection: TVector3Single;
-    procedure SetDirection(const Value: TVector3Single);
-  public
-    constructor Create;
-    destructor Destroy; override;
-
-    { Force thunder to happen @italic(now). }
-    procedure ForceNow;
-
-    property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity default DefaultThunderAmbientIntensity;
-    { Color. Default value is DefaultThunderColor. }
-    property Color: TVector3Single read GetColor write SetColor;
-    { Direction. Default value is DefaultThunderDirection. }
-    property Direction: TVector3Single read GetDirection write SetDirection;
-  end;
-
   { Level logic. We use T3D descendant, since this is the comfortable
     way to add any behavior to the 3D world (it doesn't matter that
     "level logic" is not a usual 3D object --- it doesn't have to collide
@@ -215,7 +179,6 @@ type
   TLevel = class(T3D)
   private
     FTime: TFloatTime;
-    FThunder: TThunder;
     FWorld: T3DWorld;
   protected
     FBossCreature: TCreature;
@@ -261,7 +224,6 @@ type
       at construction may actually modify your world, and depend on it later. }
     constructor Create(AOwner: TComponent; AWorld: T3DWorld;
       MainScene: TCastleScene; DOMElement: TDOMElement); reintroduce; virtual;
-    destructor Destroy; override;
     function BoundingBox: TBox3D; override;
     function World: T3DWorld; override;
 
@@ -290,11 +252,6 @@ type
     { Time of the level, in seconds. Time 0 when level is created.
       This is updated in our Idle. }
     property Time: TFloatTime read FTime;
-
-    { Thunder effect, making sound and blinking light like a thunder in a storm.
-      @nil if no thunder effect should be done for this level.
-      Descendants can configure and assign this, we will own it (free). }
-    property Thunder: TThunder read FThunder write FThunder;
 
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
   end;
@@ -696,16 +653,6 @@ begin
   inherited;
 end;
 
-procedure TGameSceneManager.InitializeLights(const Lights: TLightInstancesList);
-begin
-  inherited;
-
-  { This is used to prepare BaseLights, which may be necessary in constructor
-    before we even assign Level. }
-  if (Level <> nil) and (Level.Thunder <> nil) then
-    Level.Thunder.AddLight(Lights);
-end;
-
 procedure TGameSceneManager.Idle(const CompSpeed: Single;
   const HandleMouseAndKeys: boolean; var LetOthersHandleMouseAndKeys: boolean);
 var
@@ -732,104 +679,6 @@ begin
     Input_PointingDeviceActivate.Assign(CastleInput_Interact.Shortcut, false);
 end;
 
-{ TThunder ------------------------------------------------------------- }
-
-constructor TThunder.Create;
-begin
-  inherited;
-  LightNode := TDirectionalLightNode.Create('', '');
-  LightNode.FdAmbientIntensity.Value := DefaultThunderAmbientIntensity;
-  LightNode.FdColor.Value := DefaultThunderColor;
-  LightNode.FdDirection.Value := DefaultThunderDirection;
-
-  Light.Node := LightNode;
-  Light.Transform := IdentityMatrix4Single;
-  Light.TransformScale := 1;
-  Light.Location := ZeroVector3Single;
-  Light.Direction := Normalized(LightNode.FdDirection.Value);
-  Light.Radius := MaxSingle;
-  Light.WorldCoordinates := true;
-end;
-
-destructor TThunder.Destroy;
-begin
-  FreeAndNil(LightNode);
-  inherited;
-end;
-
-function TThunder.GetAmbientIntensity: Single;
-begin
-  Result := LightNode.FdAmbientIntensity.Value;
-end;
-
-procedure TThunder.SetAmbientIntensity(const Value: Single);
-begin
-  LightNode.FdAmbientIntensity.Send(Value);
-end;
-
-function TThunder.GetColor: TVector3Single;
-begin
-  Result := LightNode.FdColor.Value;
-end;
-
-procedure TThunder.SetColor(const Value: TVector3Single);
-begin
-  LightNode.FdColor.Send(Value);
-end;
-
-function TThunder.GetDirection: TVector3Single;
-begin
-  Result := LightNode.FdDirection.Value;
-end;
-
-procedure TThunder.SetDirection(const Value: TVector3Single);
-begin
-  LightNode.FdDirection.Send(Value);
-  Light.Direction := Normalized(Value);
-end;
-
-procedure TThunder.AddLight(const BaseLights: TLightInstancesList);
-
-  function Visible: boolean;
-  var
-    ThunderTime: Single;
-  begin
-    Result := false;
-    if LastBeginTime <> 0 then
-    begin
-      ThunderTime := Time - LastBeginTime;
-      if (ThunderTime < 1.0) or
-         ((1.5 < ThunderTime) and (ThunderTime < 2.5)) then
-        Result := true;
-    end;
-  end;
-
-begin
-  if Visible then
-    BaseLights.Add(Light);
-end;
-
-procedure TThunder.Idle(const CompSpeed: Single);
-begin
-  Time += CompSpeed;
-
-  if NextBeginTime = 0 then
-    NextBeginTime := Time + 10 + Random(10);
-
-  if NextBeginTime <= Time then
-  begin
-    LastBeginTime := Time;
-    NextBeginTime := Time + 10 + Random(20);
-
-    {ThunderAllocatedSound := }SoundEngine.Sound(stThunder);
-  end;
-end;
-
-procedure TThunder.ForceNow;
-begin
-  NextBeginTime := Time;
-end;
-
 { TLevel ---------------------------------------------------------------- }
 
 constructor TLevel.Create(AOwner: TComponent; AWorld: T3DWorld;
@@ -841,12 +690,6 @@ begin
     But for some methods, knowing that Collides = false allows them to exit
     faster. }
   Collides := false;
-end;
-
-destructor TLevel.Destroy;
-begin
-  FreeAndNil(FThunder);
-  inherited;
 end;
 
 function TLevel.World: T3DWorld;
@@ -953,8 +796,6 @@ procedure TLevel.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
   FTime += CompSpeed;
-  if Thunder <> nil then
-    Thunder.Idle(CompSpeed);
 end;
 
 { TLevelAvailable ------------------------------------------------------------ }
