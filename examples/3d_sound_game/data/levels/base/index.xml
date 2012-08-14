@@ -2,6 +2,6 @@
 <level
   name="base"
   type="Level"
-  scene="base.wrl"
+  scene="base.x3dv"
   title="Base"
 />

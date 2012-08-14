@@ -47,6 +47,7 @@ Transform {
       texCoord TextureCoordinate { point [ 0 0, 1 0, 1 1, 0 1 ] }
       coordIndex [ 0, 1, 2, 3 ]
       texCoordIndex [ 0, 1, 2, 3 ]
+      solid FALSE
     }
   }
 }
@@ -54,7 +55,7 @@ Transform {
 # fence around. X1 Y1 X2 Y2 = -4.54 -4.56 5.45 4.23
 Shape {
   appearance Appearance {
-    texture ImageTexture { url "../../textures/user_help.png"
+    texture ImageTexture { url "../../textures/fence.png"
       repeatS TRUE
       repeatT FALSE
     }
@@ -80,6 +81,7 @@ Shape {
       0, 1, 2, 3, -1,
       0, 1, 2, 3, -1,
     ]
+    solid FALSE
   }
 }
 
@@ -121,6 +123,7 @@ Transform {
           bottom FALSE
           top FALSE
           radius 0.38 height 0.105
+          solid FALSE
         }
       }
     ]
