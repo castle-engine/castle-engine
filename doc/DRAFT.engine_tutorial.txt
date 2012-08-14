@@ -351,13 +351,13 @@ SoundEngine.Sound3D(SoundType, Vector3Single(1, 2, 3), false { looping });
 SoundEngine.Sound(SoundType, false { looping }); // non-3D sound
 ]]
 
-The SoundEngine.Sound3D and SoundEngine.Sound are a little simpler to use than SoundEngine.PlaySound, they have fewer parameters. That is because the default sound properties (it's individual gain, importance (priority) and other stuff) is already recorded in the data/sounds/index.xml file. That's the advantage of using the sounds repository: all your sounds properties are centrally stored in the data/sounds/index.xml file.
+The SoundEngine.Sound3D and SoundEngine.Sound are a little simpler to use than SoundEngine.PlaySound, they have fewer parameters. That is because the default sound properties (it's individual gain, importance (priority), actual filename and other stuff) is already recorded in the data/sounds/index.xml file. That's one advantage of using the sounds repository: all your sounds properties are centrally stored in the data/sounds/index.xml file.
 
-You can also refer to your sound names from VRML/X3D AudioClip node, using the "game-repository" protocol:
+You can also refer to your sound names from VRML/X3D AudioClip node, using the "sounds-repository" protocol:
 
 [[
 Sound {
-  source AudioClip { url "game-repository:sample" loop TRUE }
+  source AudioClip { url "sounds-repository:sample" loop TRUE }
 }
 ]]
 
