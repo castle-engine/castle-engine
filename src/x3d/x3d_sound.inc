@@ -64,6 +64,8 @@
     property BufferLoaded: boolean read FBufferLoaded write SetBufferLoaded;
   protected
     function CycleInterval: TFloatTime; override;
+    procedure ParseAfter(Reader: TX3DReaderNames); override;
+    procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -83,6 +85,7 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+    procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -197,6 +200,33 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure TAudioClipNode.ParseAfter(Reader: TX3DReaderNames);
+begin
+  inherited;
+
+  { We want to load buffer early, not on-demand (inside UpdatePlaying):
+    - this avoids sudden delay when 1st playing sound,
+    - it's necessary to make FDuration good, making CycleInterval good,
+      which is necessary for time-dependent mechanism (in
+      TTimeDependentNodeHandler) to always work Ok (see e.g. at thunder.x3dv,
+      when AudioClip.startTime is set by script to future time.
+
+    But don't do it if URL field is empty.
+    This is important in case "url" field value
+    has an IS clause, and it will be really known only after expanding
+    the PROTO, see thunder.x3dv. }
+  if FdUrl.Count <> 0 then
+    BufferLoaded := true;
+end;
+
+procedure TAudioClipNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
+begin
+  inherited;
+  { Reasons for doing this: see ParseAfter }
+  if FdUrl.Count <> 0 then
+    BufferLoaded := true;
 end;
 
 function TAudioClipNode.CycleInterval: TFloatTime;
@@ -390,6 +420,14 @@ begin
 
   FTransform := IdentityMatrix4Single;
   FTransformScale := 1;
+end;
+
+procedure TSoundNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+begin
+  inherited;
+  { Necessary in order to call TAudioClipNode.BeforeTraverse,
+    testcase: thunder.x3dv. }
+  FdSource.EnumerateValid(Func);
 end;
 
 procedure TSoundNode.UpdateSourcePosition;
