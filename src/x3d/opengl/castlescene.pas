@@ -2394,15 +2394,6 @@ procedure TCastleScene.RenderAllShadowVolume(
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
   LightCap, DarkCap: boolean);
-
-{ Zaklada ze wsrod podanych trojkatow wszystkie sa valid (tzn. nie ma
-  zdegenerowanych trojkatow). To jest wazne zeby zagwarantowac to
-  (TrianglesList* gwarantuje to)
-  bo inaczej zdegenerowane trojkaty moga sprawic ze wynik renderowania
-  bedzie nieprawidlowy (pojawia sie na ekranie osobliwe "paski cienia"
-  powstale w wyniku zdegenerowanych trojkatow dla ktorych wszystkie 3 sciany
-  zostaly uznane za "front facing"). }
-
 var
   TrianglesForLightCap: TTriangle3SingleList;
   TrianglesForDarkCap: TTriangle4SingleList;
@@ -2550,6 +2541,11 @@ begin
   TrianglesForLightCap := nil;
   TrianglesForDarkCap := nil;
 
+  { Note that we require that all triangles on Triangles list are valid
+    (have non-zero area). That's Ok, TrianglesListShadowCasters guarantees it.
+    Otherwise, degenerate triangles could cause artifacts --- image a degenerate
+    triangle on the silhouette edge, it will cause two shadow quads (with all
+    it's neighboring triangles) where there should be one. }
   Triangles := TrianglesListShadowCasters;
 
   { If light is directional, no need to render dark cap }
@@ -2647,51 +2643,31 @@ procedure TCastleScene.RenderSilhouetteShadowVolume(
   const Transform: TMatrix4Single;
   const LightCap, DarkCap: boolean);
 
-{ Speed:
+{ Is it worth preparing ManifoldEdges list: yes.
 
   At the beginning we used here the simple algorithm from
-  [http://www.gamedev.net/reference/articles/article1873.asp]
-  (look into SVN revision < 1980 in Kambi private repo).
+  [http://www.gamedev.net/reference/articles/article1873.asp].
   For each triangle with dot > 0, add it to the Edges list
   --- unless it's already there, in which case remove it.
   This way, at the end Edges contain all edges that have on one
   side triangle with dot > 0 and on the other side triangle with dot <= 0.
   In other words, all sihouette edges.
-  (This is all assuming that model is composed from manifold parts,
-  which means that each edge has exactly 2 neighbor triangles).
+  (This is all assuming that model is 2-manifold,
+  so each edge has exactly 2 neighbor triangles).
 
-  But this algorithms proved to be unacceptably slow for typical cases.
+  But this algorithm proved to be unacceptably slow for many cases.
   While it generated much less shadow quads than naive
   RenderAllShadowVolume, the time spent in detecting the silhouette edges
   made the total time even worse than RenderAllShadowVolume.
   Obviously, that's because we started from the list of triangles,
   without any explicit information about the edges.
   The time of this algorithm was n*m, if n is the number of triangles
-  and m the number of edges, and on closed manifold n*3/2 = n so
-  it's just n^2. Terrible, if you take complicated shadow caster.
+  and m the number of edges, and on 2-manifold n*3/2 = m so
+  the time is n^2. Terrible, if you take complicated shadow caster.
 
   To make this faster, we have to know the connections inside the model:
-  that's what ManifoldEdges list is all about. It allowed us to
-  implement this in time proportional to number of edges, which is
-
-  TODO: have some indexed line list to only pass through
-  interesting edges. In other words, once you find one silhouette edge,
-  just travel from this edge to other edges.
-  Advantages:
-  - speed increase because we travel only on the interesting edges
-  - speed increase because we can render quad_strip instead of quads list
-    in case of directional lights, we can even use triangle fan for shadow quads
-    in case of DarkCap (and not directional light), we can render DarkCap
-    as triangle fan also (see "fast, robust and practical sv" paper", this
-    works)
-  Disadvantages:
-  - this would require that we would have to use only really manifold shapes.
-    E.g. right now it's ok to have one manifold scene created by two
-    IndexedFaceSet nodes, that have two Coordinate3 nodes
-    (assuming that appropriate vertexes on Coordinate3 are really exactly
-    the same).
-  - what about shapes that have more than one silhouette edge ?
-    Yes, this happens, since shapes are not necessarily convex.
+  that's what ManifoldEdges list is all about. It allows us to
+  implement this in time proportional to the number of edges.
 }
 
 var
@@ -3056,7 +3032,15 @@ begin
         Inc(ManifoldEdgePtr);
       end;
 
-      { for each border edge, always render it's shadow quad }
+      { For each border edge, always render it's shadow quad.
+        THIS CODE IS NEVER USED NOW (at the beginning of this method,
+        we exit if BorderEdges.Count <> 0). That's because rendering
+        the shadow quads from border edges doesn't solve the problem fully:
+        artifacts are still possible.
+
+        See http://http.developer.nvidia.com/GPUGems3/gpugems3_ch11.html
+        for more involved approach. Rendering shadow quads from border edges,
+        like below, is only part of the solution. }
       BorderEdgesNow := BorderEdges;
       BorderEdgePtr := PBorderEdge(BorderEdgesNow.List);
       for I := 0 to BorderEdgesNow.Count - 1 do
