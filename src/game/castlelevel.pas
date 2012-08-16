@@ -123,7 +123,7 @@ type
 
     { Add all available levels found by scanning for index.xml inside directory
       LevelsPath. For the specification of index.xml format see
-      castle/data/README_about_index_xml_files.txt.
+      http://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine/doc/README_about_index_xml_files.txt .
       For example, you can use @code(ProgramDataPath + 'data' +  PathDelim + 'levels')
       as LevelsPath.
 
