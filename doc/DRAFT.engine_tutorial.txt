@@ -70,9 +70,11 @@ In the simple scenario, by default TCastleSceneManager also acts as a viewport f
 
 As I said, you actually already have SceneManager property of your window/control, so the work is done for you. If more advanced scenarios, you may want to create and manager scene managed yourself, see <a link to vrml_engine_doc about</a>.
 
-4. Adding your game level
+4. Load a 3D model (simple loading of level)
 
-We will load a game level from a 3D file. If you use a VRML/X3D file, this game level doesn't have to be static --- it can already include animated stuff, 3D sounds, scripts, and such.
+We will now load a 3D model from file. This is basic way to load a game level, although you will learn a more advanced way later.
+
+If you use a VRML/X3D file, this game level doesn't have to be static --- it can already include animated stuff, 3D sounds, scripts, and such.
 
 - If you just want to try a ready level, download this 3D file (link to *standalone* vrml file, in a single x3d file, with no textures etc.). You can open it first with view3dscene to see how it looks like.
 
@@ -104,11 +106,117 @@ At the beginning we create a new instance of TCastleScene, and load it's content
 
 The level is added to the scene manager. The level is also set as the "MainScene" of scene manager, this means that some central settings (like initial camera position, initial headlight status and such) can be obtained from this scene.
 
-Alternative 5. and later: Adding creatures and items
+5. Load a game level and a player
+
+Instead of loading level like above, there is a slightly more comfortable and feature-rich way to load a level for a game. Under the hood, it does all mentioned above --- the new 3D model is loaded, and added to the SceneManager.Items, and set as SceneManager.MainScene. But it also does some additional work, like detecting a "placeholders" in your 3D model, which should be replaced with creatures (from CastleCreatures unit) and items (from CastleItems unit).
+
+((Temporary:
+For now, to do this, you need to use TCastleWindowCustom class, and create your own instance of scene manager, using the TGameSceneManager class. This discomfort should disappear in the future, when we will merge all TGameSceneManager class features into the standard TCastleSceneManager class. For now, start you program like this:
+
+[[
+var
+  Window: TCastleWindowCustom;
+  SceneManager: TGameSceneManager;
+begin
+  Window := TCastleWindow.Create(Application);
+  SceneManager := TGameSceneManager.Create(Window);
+  Window.Controls.Add(SceneManager);
+
+  ... and then follow as described below
+end;
+]]
+End of temporary note.))
+
+The TGameSceneManager class allows you to define levels by using simple XML files. For each level, you create a file named "index.xml", with contents like this:
+
+[[
+<?xml version="1.0"?>
+<level
+  name="pits"
+  type="Level"
+  scene="pits.x3dv"
+  title="The Pits of Azeroth"
+/>
+]]
+
+- "name" is a unique internal name for the level, it will come in handy soon.
+- "type" identifies the ObjectPascal class handling the level logic --- type "Level" is always available, for advanced games you can also create and use your own level logic types.
+- "scene" is a filename of the 3D model containing the level.
+- and "title" is just used for some logging and messages. Depending on your game, you may also find this title useful for other purposes, e.g. show the user a list of levels available to start. But this is up to you. The engine itself doesn't really make much use of the title.
+
+See README_about_index_xml_files.txt for more details about the index.xml files (defining levels and other stuff).
+
+Traditionally, I place each level in a subdirectory of data/levels/, along with it's associated 3D models. So I have a structure like this:
+
+[[
+data/
+  levels/
+    pits/
+      index.xml
+      pits.x3dv
+    swamp/
+      index.xml
+      swamp.x3dv
+    mountains/
+      index.xml
+      mountains.x3dv
+    ...
+]]
+
+Although this convention proved comfortable, it's not really necessary. The 3D models files may live in other directories than index.xml files, as "scene" field may contain a relative filename (in future, it should be possible to use there any absolute or relative URL; for now, only filenames are allowed). For now, it's important that the XML files have names "index.xml", and that the directory holding all levels is separate from directories holding creatures/items (as they also use index.xml files) -- but this restriction may be removed in the future.
+
+You can now start a game by creating a player, loading all levels informations from their index.xml files, and finally loading your desired level by referring to it's "name" field:
+
+[[
+  LevelsAvailable.LoadFromFiles(ProgramDataPath + 'data' +  PathDelim + 'levels');
+  LevelsAvailable.FindName('base').LoadLevel(SceneManager);
+]]
+
+The LoadLevel will clear all SceneManager.Items (except Player, more about this in a second). Then it will load new 3D model with a level (adding it to SceneManager.Items and setting as SceneManager.MainScene, just as we did manually in previous chapter), and do some more interesting stuff that we'll learn later.
+
+The important thing here is that (except the "name" of the 1st level) levels are not hardcoded in any way in your program. This makes game data nice for people preparing new content: they can just drop new subdirectory into the data/levels/, and if it will contain proper index.xml file, it will be automatically recognized. A similar scheme will be used for creatures/items in the following chapter. Your game data is immediately friendly to MODders.
+
+For a good measture, it will also be handy later to have a central Player object. This is used for various things:
+- It will make camera automatically tied to the Player, making it a first-person perspective game. (More camera approach, like third-person view, will be available later.)
+- It's also a central enemy of all hostile creatures created using CastleCreatures unit. This will be more configurable in the future.
+
+To load a Player do this (before or after loading a level --- doesn't matter; conceptually, it's cleaner to do this before loading new level, but things will work either way).
+
+[[
+var
+  Player: TPlayer;
+...
+  Player := TPlayer.Create(SceneManager);
+  SceneManager.Items.Add(Player);
+  SceneManager.Player := Player;
+]]
+
+6. Adding creatures and items
+
+Thanks to using TGameSceneManager and LoadLevel, you actually don't need to do much. We have a nice default handling of creatures and items suitable for 3D games in CastleCreatures and CastleItems units.
+
+Creatures/items are XML files named index.xml with the <resource> root node. See for now castle1 daya for examples how such file looks like, e.g. castle/data/creatures/alien/index.xml . See README_about_index_xml_files.txt for more details about the properties you can set in index.xml files.
+
+The common properties about creatures, items and levels index.xml files:
+
+- "name", like mentioned before, this is a unique internal name of the level/resource (resource being creature or item). In case of resources (creatures or items), it's particularly useful, as it can be used as Blender's object name to place initial creatures/items on the level inside Blender.
+- "type" refers to ObjectPascal class handling the actual behavior of this resource. We provide various simple creatures/items, you can also extend our classes to create your own types.
+
+There really isn't much code here. Just add
+
+[[
+  AllResources.LoadFromFiles;
+]]
+
+call somewhere before loading the level. This will cause all information about the creatures and items automatically loaded. Necessary creatures and items will be nicely prepared for each level if you use the <resources> section the levels index.xml files. Player can also contain <resources> section inside the data/player.xml (TODO: describe player.xml later).
+
+The "type" of the creatures determines it's ObjectPascal class, in turn determining creature AI, how many 3D models (or states) it has, and various other properties. Hostile creatures are automatically hostile to our Player.
+
+Items are automatically pickable by player, player backpack is automatically managed.
 
 CastleCreatures unit (see inside src/game/ in sources) allows you to easily create creatures with artificial intelligence.
 
-5.1. For starters, you can just use the existing creature classes on CastleCreatures unit.
+6.1. For starters, you can just use the existing creature classes on CastleCreatures unit.
 
   To get walk-attack-state intelligence, use the TWalkAttackCreatureKind class. Such creature tracks the player (remembers last seen player 3D position, walks/flies to it, possibly through sectors/waypoints — so it can pass through narrow doors in a labyrinth or walk over a narrow bridge), attacks the player from the right distance (this can be either a melee attack, or shooting a missile — which adds a missile to the 3D world), eventually runs from the player (when he's too close and/or our health is low). For now, the player is always the main enemy, and there's no "creature vs creature" fighting, although it can be added easily in the future.
 
@@ -120,7 +228,7 @@ CastleCreatures unit (see inside src/game/ in sources) allows you to easily crea
 
   And there is a TStillCreatureKind that just stands still (it can still show some looping animation, but there is no fancy logic behind it).
 
-5.2. You can also derive simple descendants of CastleCreatures classes, to customize their behavior. For example, "The Castle" customizes walk-attack creature to give both ranged and melee attacks to the Spider Queen, to make werewolves howl from time to time, and such. See castle1 GameCreatures.pas unit sources. We plan to add a simple FPS game to the engine examples, to illustrate this nicer.
+6.2. You can also derive simple descendants of CastleCreatures classes, to customize their behavior. For example, "The Castle" customizes walk-attack creature to give both ranged and melee attacks to the Spider Queen, to make werewolves howl from time to time, and such. See castle1 GameCreatures.pas unit sources. We plan to add a simple FPS game to the engine examples, to illustrate this nicer.
 
   You can start your customizations from full-features classes, like TWalkAttackCreatureKind and TWalkAttackCreature. Or you can take the basic TCreatureKind and TCreature, and extend them to your liking.
 
@@ -136,7 +244,7 @@ CastleCreatures unit (see inside src/game/ in sources) allows you to easily crea
   (TODO: Pasdoc: frame-less layout, to make direct links sensible.
    TODO: Pasdoc: separate pascal_code_formatter, with @longCode formatter extracted, to convert pascal code to HTML-ified or LaTeX-ified output. HTML can of course be adjusted with CSS. I want to have many code snippets in this tutorial (see e.g. Symfony2 docs for inspiration.)
 
-5.3. (After creatures and items section, section "More stuff in your 3D world?")
+6.3. (After creatures and items section, section "More stuff in your 3D world?")
 
   Our creature and items classes in CastleCreatures and CastleItems units are not magic, they do not get any special treatment from the scene manager. Instead, they just extend the base 3D classes in Base3D unit. There are ready classes to represent 3D things, that can move, can collide with other 3D stuff and such. If you find that our creatures/items design is not enough for you, or maybe you want to have in your 3D world something that doesn't really fit the creature/item definition, you can always derive new classes from the Base3D classes. Like T3DAlive, T3DOrient, T3DTransform. Methods MyMove, MyMoveAllowed, MyHeight, MyLineOfSight allow you to add any kind of movement/intelligence to any 3D object.
 
@@ -177,7 +285,8 @@ The notion of direction/up is used by our engine in two places:
 Usually, you want to just set T3DOrient.DefaultOrientation, and then it will be used for all your models.
 ---
 
-5. Adding some items
+7. More manual way of adding new items
+(maybe remove this chapter / rewrite this?)
 
 For the sake of our engine, an item is just a 3D object. So basically, you can just add any T3D descendant (like TCastleScene or TCastlePrecalculatedAnimation) to a scene manager, exactly like we added a level scene in previous section.
 
@@ -268,13 +377,7 @@ var
 
 TODO: engine 3.1.0: We have a comfortable classes to store item information (TItem) and visible item on level (TItemOnLevel). TODO: describe here, probably replace above description. For advanced usage, it's possible that the traditional concepts of "items that can be picked", "creatures" will not suit you particular game. It's important to note that our 3D system is designed around flexible T3D class, that you can group (T3DList) and transform (T3DTransform). You can freely design your own descendants of T3DXxx classes, and have all the flexibility you want in creating... well, anything you want in your 3D world.
 
-6. Letting player pick up items
-
-XXX (follow the castle code, where we just check player's bounding box with items bounding box. make special utilities for this.)
-
-(Actually, TItemOnLevel already gives this functionality automatically.)
-
-7. Display player life and weapon
+8. Display player life and weapon
 
 You often want to display something 2D on player screen. Let's draw a simple meter showing your life points.
 
@@ -282,9 +385,6 @@ TODO: demo of simple TUIControl creation
 
 To show a weapon, or other stuff glued to the player, just add 3D things to TPlayer list. They will be automatically oriented to follow the player position and orientation.
 TODO: describe also the Overlay attribute here, for now not available.
-
-8. Adding some creatures
-XXX (this is just like items, except creature kinds need AI to move; engine 3.1.0 will include ready classes with such AI, for now refer to castle code.)
 
 9. Adding some sounds
 
