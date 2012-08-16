@@ -1,7 +1,9 @@
-TODO: This is a work in progress. I want to finish this for engine 3.1.0 release. This is supposed to be a full tutorial how to make an FPS game, from the basics.
+TODO: This is a work in progress. I want to finish this for next engine release (3.1.0 or maybe 4.0.0). This is supposed to be a full tutorial how to make a FPS game, from the basics (with enough info to make it obvious how to create other types of games, 3D or not).
 
 The tutorial handles both alternatives for creating OpenGL context: as Lazarus component (on Lazarus form), or as our TCastleWindow instance. Appropriate parts of the tutorial will be in 2-column view to visualize this.
 
+------------------------------------------------------------------------------
+TODO: add somewhere here a nice diagram of engine classes, see DRAFT.engine_classes_diagram.txt.
 ------------------------------------------------------------------------------
 0. Introduction
 
@@ -9,6 +11,7 @@ This tutorial shows how to make a simple 3D first-person game using our <i>Castl
 
 Throughout this tutorial you will see a links to our <a>engine reference</a>, and you will eventually want to follow them to read detailed reference of stuff that interests you. Note that you can also just read the units source code --- the reference is automatically generated from the comments in the units interface, so if you're brave enough, you can just dive straight into the source.
 
+------------------------------------------------------------------------------
 1. Download and install the engine, try the demos
 
 If you haven't done it yet, download the engine source code with examples from ....
@@ -23,6 +26,7 @@ Make sure you have installed the necessary libraries first, or some of the demos
 
 Now we'll start creating our own game from scratch.
 
+------------------------------------------------------------------------------
 2. Creating OpenGL context --- a window (TCastleWindow) or a Lazarus component (TCastleControl)
 
 First of all, you need to initialize a rectangular area on the screen that will be able to display 3D content. This is called OpenGL context. There are two ways of doing this:
@@ -60,6 +64,7 @@ In case of using Lazarus forms, you will usually want to place the initializatio
 
 -> Create new project using Lazarus "New Project" menu item. Choose "Application". Drop TCastleControl on your form and resize it to fit the window. Press "Run" and behold :)
 
+------------------------------------------------------------------------------
 3. Creating 3D world --- scene manager
 
 Actually, this step of the tutorial is already done for you: scene manager is already created and ready for use, in SceneManager property of the TCastleControl or TCastleWindow instance. But let's stop for a second to understand what scene manager <b>is</b>, as it's quite central idea to how you work with the engine.
@@ -70,7 +75,8 @@ In the simple scenario, by default TCastleSceneManager also acts as a viewport f
 
 As I said, you actually already have SceneManager property of your window/control, so the work is done for you. If more advanced scenarios, you may want to create and manager scene managed yourself, see <a link to vrml_engine_doc about</a>.
 
-4. Load a 3D model (simple loading of level)
+------------------------------------------------------------------------------
+4. Load a 3D model (simple approach to loading a game level or such)
 
 We will now load a 3D model from file. This is basic way to load a game level, although you will learn a more advanced way later.
 
@@ -106,6 +112,7 @@ At the beginning we create a new instance of TCastleScene, and load it's content
 
 The level is added to the scene manager. The level is also set as the "MainScene" of scene manager, this means that some central settings (like initial camera position, initial headlight status and such) can be obtained from this scene.
 
+------------------------------------------------------------------------------
 5. Load a game level and a player
 
 Instead of loading level like above, there is a slightly more comfortable and feature-rich way to load a level for a game. Under the hood, it does all mentioned above --- the new 3D model is loaded, and added to the SceneManager.Items, and set as SceneManager.MainScene. But it also does some additional work, like detecting a "placeholders" in your 3D model, which should be replaced with creatures (from CastleCreatures unit) and items (from CastleItems unit).
@@ -144,7 +151,7 @@ The TGameSceneManager class allows you to define levels by using simple XML file
 - "scene" is a filename of the 3D model containing the level.
 - and "title" is just used for some logging and messages. Depending on your game, you may also find this title useful for other purposes, e.g. show the user a list of levels available to start. But this is up to you. The engine itself doesn't really make much use of the title.
 
-See README_about_index_xml_files.txt for more details about the index.xml files (defining levels and other stuff).
+See http://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine/doc/README_about_index_xml_files.txt for more details about the index.xml files (defining levels and other stuff).
 
 Traditionally, I place each level in a subdirectory of data/levels/, along with it's associated 3D models. So I have a structure like this:
 
@@ -191,11 +198,12 @@ var
   SceneManager.Player := Player;
 ]]
 
+------------------------------------------------------------------------------
 6. Adding creatures and items
 
 Thanks to using TGameSceneManager and LoadLevel, you actually don't need to do much. We have a nice default handling of creatures and items suitable for 3D games in CastleCreatures and CastleItems units.
 
-Creatures/items are XML files named index.xml with the <resource> root node. See for now castle1 daya for examples how such file looks like, e.g. castle/data/creatures/alien/index.xml . See README_about_index_xml_files.txt for more details about the properties you can set in index.xml files.
+Creatures/items are XML files named index.xml with the <resource> root node. See for now castle1 daya for examples how such file looks like, e.g. castle/data/creatures/alien/index.xml . See http://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine/doc/README_about_index_xml_files.txt for more details about the properties you can set in index.xml files.
 
 The common properties about creatures, items and levels index.xml files:
 
@@ -285,8 +293,15 @@ The notion of direction/up is used by our engine in two places:
 Usually, you want to just set T3DOrient.DefaultOrientation, and then it will be used for all your models.
 ---
 
+------------------------------------------------------------------------------
 7. More manual way of adding new items
-(maybe remove this chapter / rewrite this?)
+
+((Maybe remove this chapter / rewrite this?
+
+In new engine version, we have comfortable classes to store item information (TItem) and visible item on level (TItemOnLevel) and creature (TCreature). However, for advanced usage, it's possible that the traditional concepts of "items that can be picked", "creatures" will not suit you particular game. So the chapter is still somewhat relevant: it's important that our 3D system is designed around flexible T3D class, that you can group (T3DList) and transform (T3DTransform). You can freely design your own descendants of T3DXxx classes, and have all the flexibility you want in creating... well, anything you want in your 3D world.
+
+So, this chapter is probably still relevant, but it should be simplified and rewritten.
+))
 
 For the sake of our engine, an item is just a 3D object. So basically, you can just add any T3D descendant (like TCastleScene or TCastlePrecalculatedAnimation) to a scene manager, exactly like we added a level scene in previous section.
 
@@ -375,8 +390,7 @@ var
   SceneManager.Items.Add(ManaPotionInstance1);
 ]]
 
-TODO: engine 3.1.0: We have a comfortable classes to store item information (TItem) and visible item on level (TItemOnLevel). TODO: describe here, probably replace above description. For advanced usage, it's possible that the traditional concepts of "items that can be picked", "creatures" will not suit you particular game. It's important to note that our 3D system is designed around flexible T3D class, that you can group (T3DList) and transform (T3DTransform). You can freely design your own descendants of T3DXxx classes, and have all the flexibility you want in creating... well, anything you want in your 3D world.
-
+------------------------------------------------------------------------------
 8. Display player life and weapon
 
 You often want to display something 2D on player screen. Let's draw a simple meter showing your life points.
@@ -386,6 +400,7 @@ TODO: demo of simple TUIControl creation
 To show a weapon, or other stuff glued to the player, just add 3D things to TPlayer list. They will be automatically oriented to follow the player position and orientation.
 TODO: describe also the Overlay attribute here, for now not available.
 
+------------------------------------------------------------------------------
 9. Adding some sounds
 
 As with many other operations, you can add and control sounds to your game either by Pascal code, or by editing your data files. This gives flexibility both to a programmer and the content designer. It's your choice which approach you use &mdash; usually it's better to keep as much as possible in data files, and use code only when necessary for non-trivial situations.
@@ -465,6 +480,7 @@ Sound {
 
 For more advanced uses, you can use the return value of PlaySound or Sound or Sound3D: it's either nil (if no OpenAL resources available to play this sound, and it's priority doesn't allow overriding other sounds) or it's a TALSound instance. If you have TALSound instance, you can use it's TALSound.OnRelease event to be notified when source stops playing. You can also use other TALSound methods, e.g. update TALSound.Position, TALSound.Gain and such. You can stop playing the sound by TALSound.Release.
 
+------------------------------------------------------------------------------
 10. Adding an on-screen menu
 
 Our TCastleWindow or TCastleControl have a list of 2D controls visible of the screen. By default, the only thing present there is a scene manager (since scene manager acts as a 2D viewport through which you see the 3D world; that's right --- the 3D stuff is "within" the 2D stuff). This way the scene manager (it's viewport) is visible on the window, which in turn means that all the 3D stuff we will add next is visible too.
@@ -482,6 +498,7 @@ You may also want to change the position, like
 
 There is an example of this in model_3d_with_2d_controls example in engine sources, look for OnScreenMenu1 references in code.
 
+------------------------------------------------------------------------------
 11. Background under on-screen menu
 
 In addition to previous point, you may want to change the menu TCastleOnScreenMenu.FullSize to true. Otherwise, menu receives input only when mouse hovers over it. When FullSize, the menu obscures completely controls under it for key processing (although they are still visible as a background).
@@ -493,6 +510,7 @@ An alternative method to achieve (part) of 2nd choice is to set background level
 
 If you want to place a static 2D image under menu, you can use TCastleImageControl underneath, instead of 3D scene.
 
+------------------------------------------------------------------------------
 12. Making screenshots
 
 Making a screenshot is very easy:
@@ -512,6 +530,7 @@ TRGBImage, and it's ancestor TCastleImage and many other similar classes, is def
 
 Still, we use the excellent FPC FpImage library to load/save some image formats underneath. So we do not implement everything from stratch here, we *are* using FpImage loading/saving features.
 
+------------------------------------------------------------------------------
 13. Recoding movies
 (Not really useful for an interactive game, but useful for various 3D viewers)
 
@@ -541,6 +560,7 @@ The time of the scene and of the camera is actually independent. You can remove 
 
 FrameTime is in seconds, as both TCastleSceneCore.IncreseTime and TCamera.Idle take it's time argument in seconds. But don't worry, this is a float, so actually it honors fractions of seconds as well. So something like 1/25 to get 25 frames per second is Ok.
 
+------------------------------------------------------------------------------
 14. Logging
 
 Easy: Use CastleLog, call InitializeLog, and you have your log on stderr. A lot of engine components will immediately use it. To use it yourself, do
@@ -552,6 +572,7 @@ if Log then
 
 ('Category' is useful to easily spot your messages later. There are no hard rules about it, i.e. you're free to just invent your own category names here, like 'Creatures' or 'Rendering'.)
 
+------------------------------------------------------------------------------
 15. User preferences
 
 Easy: Use CastleConfig. Various engine components automatically register that they can load/save user preferences. So
