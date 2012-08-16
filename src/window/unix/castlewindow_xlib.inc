@@ -161,9 +161,9 @@ begin
       GLX_ACCUM_GREEN_SIZE, AccumBits[1],
       GLX_ACCUM_BLUE_SIZE, AccumBits[2],
       GLX_ACCUM_ALPHA_SIZE, AccumBits[3] ]);
-    if RedBits   <> 0 then Attribs.AddArray([GLX_RED_BITS  , RedBits  ]);
-    if GreenBits <> 0 then Attribs.AddArray([GLX_GREEN_BITS, GreenBits]);
-    if BlueBits  <> 0 then Attribs.AddArray([GLX_BLUE_BITS , BlueBits ]);
+    if RedBits   <> 0 then Attribs.AddArray([GLX_RED_SIZE  , RedBits  ]);
+    if GreenBits <> 0 then Attribs.AddArray([GLX_GREEN_SIZE, GreenBits]);
+    if BlueBits  <> 0 then Attribs.AddArray([GLX_BLUE_SIZE , BlueBits ]);
 
     if MultiSampling > 1 then
     begin
