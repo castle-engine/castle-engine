@@ -92,8 +92,10 @@ http://michalis.ii.uni.wroc.pl/castle-engine-snapshots/docs/reference/html/ .
        of 3D objects using lists and transformations. Maybe it's enough to
        just load your whole 3D model as a single TCastleScene?
        *All actual rendering is always eventually done by TCastleScene.*
-       (Although other T3D classes can also render something, but it's simply
-       not necessary in the engine.)
+       (Although all T3D classes have the possibility to render something
+       by overriding the Render method, but this feature is simply
+       not used for now by existing engine classes --- TCastleScene rendering
+       is so versatile that we use it for everything.)
        So everything else than TCastleScene is just for organizing your 3D data.
 
        Except: usage of TPlayer, TCreature, TItemOnLevel is a little special,
@@ -118,7 +120,7 @@ http://michalis.ii.uni.wroc.pl/castle-engine-snapshots/docs/reference/html/ .
        set SceneManager.MainScene, and do some other stuff helpful for typical
        3D games.)
 
-Global AllResources list, that contains resources of
+Global AllResources list, that contains instances of
 /---
 | T3DResource
 \---
@@ -159,7 +161,7 @@ Possible descendants:
 
  Optionally: it's actually possible to create T3DResource instances
  by pure ObjectPascal code, and add them to AllResources list manually,
- without index.mlx files. But usually that's not comfortable.
+ without index.xml files. But usually that's not comfortable.
 )
 
 Special descendants of T3D:
@@ -177,8 +179,9 @@ Special descendants of T3D:
    |- TStillCreature (has Kind property that refers to TStillCreatureKind)
    (How to use: When you load level using TGameSceneManager.LoadLevel,
     instances of creatures are automatically created for you,
-    by placing placeholder items in 3D file. Just add in Blender object
-    with name 'Crea' + kind name, like 'CreaAlien'.
+    replacing the placeholder items in 3D file. Just add in Blender 3D object
+    (with any mesh, geometry doesn't matter, I usually use wireframe cubes)
+    and name it 'Crea' + kind name, like 'CreaAlien'.
     TODO: it will probably become 'ResAlien', as creatures/items are now uniform
     and do not need separate prefixes 'Crea' / 'Item'.
 
@@ -193,6 +196,14 @@ Special descendants of T3D:
       Alien.CreateCreature(...);
     ]]
    )
+   This is a good way to dynamically make creatures spawn in the 3D world
+   (e.g. maybe you make an ambush, or maybe you want to create a "rush"
+   when monsters attack in waves, or maybe you want to make a crowd...).
+   Make sure that all necessary creatures are declared in level's index.xml
+   file under <resources>, to prepare creatures at level loading
+   (you don't want to cause a sudden delay in the middle of the game).
+   T3DResource and LoadLevel methods will then take care of loading resources
+   when necessary.
 
    /---
    | TItemOnLevel
@@ -204,13 +215,13 @@ Special descendants of T3D:
       -> has Kind property that refers to TItemKind
       Possible descendants:
       |- TItemWeapon (has Kind property that refers to TItemWeaponKind)
-   (How to use: see creature notes above. Items are very similar,
+   (How to use: similar to creatures, see notes above. Items are very similar,
     except TItem is *not* a 3D object (it cannot be directly added to the
     level), only TItemOnLevel is a 3D object.
     - TGameSceneManager.LoadLevel automatically creates instances of TItemOnLevel,
-      along with instances of Item, referring to item kind on AllResources.
+      along with instances of Item, referring to item kinds on AllResources.
       This looks at placeholders: just create in Blender object named
-      'Item' + item kind name.
+      'Item' + item kind name. TODO: probably 'Res' + item kind name in the future.
     - You can create TItem instance by code by Kind.CreateItem
     - You can create TItemOnLevel instance by code by Item.PutOnLevel
 
@@ -218,7 +229,7 @@ Special descendants of T3D:
    | TPlayer
    \---
    -> has a list Items of instances of TItem (player's backpack aka inventory)
-   (How to use: just create an instance of it, and add to SceneManager.Items,
-    like all normal T3D descendants. You will also almost always want to set
-    this as SceneManager.Player, to make it a central player (connected with
-    central camera etc.).)
+   (How to use: just create an instance of TPlayer, and add it
+    to SceneManager.Items, like all normal T3D descendants.
+    You will also almost always want to set this as SceneManager.Player,
+    to make it a central player (connected with central camera etc.).)
