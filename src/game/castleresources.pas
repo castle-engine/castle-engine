@@ -165,22 +165,28 @@ type
 
   T3DResourceList = class(specialize TFPGObjectList<T3DResource>)
   private
-    IndexXmlReload: boolean;
-    procedure LoadIndexXml(const FileName: string);
+    ResourceXmlReload: boolean;
+    procedure LoadResourceXml(const FileName: string);
   public
     { Find resource with given T3DResource.Name.
       @raises Exception if not found and NilWhenNotFound = false. }
     function FindName(const AName: string; const NilWhenNotFound: boolean = false): T3DResource;
 
-    { Load all items configuration from XML files.
+    { Load all resources (creatures and items) information from
+      resource.xml files found in given Path.
+      Overloaded version without Path just scans the whole ProgramDataPath.
 
       If Reload, then we will not clear the initial list contents.
-      Instead, index.xml files found that refer to the existing id
+      Instead, resource.xml files found that refer to the existing id
       will cause T3DResource.LoadFromFile call on an existing resource.
       Using Reload is a nice debug feature, if you want to reload configuration
-      from index.xml files (and eventually add new resources in new index.xml files),
-      but you don't want to recreate existing resource instances. }
+      from resource.xml files (and eventually add new resources in new resource.xml files),
+      but you don't want to recreate existing resource instances.
+
+      @groupBegin }
+    procedure LoadFromFiles(const Path: string; const Reload: boolean = false);
     procedure LoadFromFiles(const Reload: boolean = false);
+    { @groupEnd }
 
     { Reads <resources> XML element. <resources> element
       is an optional child of given ParentElement.
@@ -199,8 +205,8 @@ type
 var
   AllResources: T3DResourceList;
 
-{ Register a class, to allow user to create creatures/items of this class
-  by using appropriate type="xxx" inside index.xml file. }
+{ Register a class, to allow user to create resource (like a creature or item)
+  of this class by using appropriate type="xxx" inside resource.xml file. }
 procedure RegisterResourceClass(const AClass: T3DResourceClass; const TypeName: string);
 
 implementation
@@ -350,7 +356,7 @@ end;
 
 { T3DResourceList ------------------------------------------------------------- }
 
-procedure T3DResourceList.LoadIndexXml(const FileName: string);
+procedure T3DResourceList.LoadResourceXml(const FileName: string);
 var
   Xml: TCastleConfig;
   ResourceClassName, ResourceName: string;
@@ -377,13 +383,13 @@ begin
     Resource := FindName(ResourceName, true);
     if Resource <> nil then
     begin
-      if IndexXmlReload then
+      if ResourceXmlReload then
       begin
         if ResourceClass <> Resource.ClassType then
-          raise Exception.CreateFmt('Resource id "%s" already exists, but with different type. Old class is %s, new class is %s. Cannot reload index.xml file in this situation',
+          raise Exception.CreateFmt('Resource id "%s" already exists, but with different type. Old class is %s, new class is %s. Cannot reload resource.xml file in this situation',
             [ResourceName, Resource.ClassType.ClassName, ResourceClass.ClassName]);
       end else
-        raise Exception.CreateFmt('Resource id "%s" already exists. All resource ids inside index.xml files must be unique',
+        raise Exception.CreateFmt('Resource id "%s" already exists. All resource ids inside resource.xml files must be unique',
           [ResourceName]);
     end else
     begin
@@ -395,13 +401,17 @@ begin
   finally FreeAndNil(Xml) end;
 end;
 
-procedure T3DResourceList.LoadFromFiles(const Reload: boolean);
+procedure T3DResourceList.LoadFromFiles(const Path: string; const Reload: boolean);
 begin
   if not Reload then
     Clear;
-  IndexXmlReload := Reload;
-  ScanForFiles(ProgramDataPath + 'data' + PathDelim + 'creatures', 'index.xml', @LoadIndexXml);
-  ScanForFiles(ProgramDataPath + 'data' + PathDelim + 'items', 'index.xml', @LoadIndexXml);
+  ResourceXmlReload := Reload;
+  ScanForFiles(Path, 'resource.xml', @LoadResourceXml);
+end;
+
+procedure T3DResourceList.LoadFromFiles(const Reload: boolean);
+begin
+  LoadFromFiles(ProgramDataPath, Reload);
 end;
 
 function T3DResourceList.FindName(const AName: string; const NilWhenNotFound: boolean): T3DResource;
