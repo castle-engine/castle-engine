@@ -112,7 +112,7 @@ type
     { How many TGameSceneManager have references to our children by
       TGameSceneManager.Info? }
     References: Cardinal;
-    procedure LoadIndexXml(const FileName: string);
+    procedure LoadLevelXml(const FileName: string);
     { Save AvailableForNewGame properties of every item. }
     procedure SaveToConfig(const Config: TCastleConfig);
   public
@@ -121,11 +121,10 @@ type
 
     procedure SortByNumber;
 
-    { Add all available levels found by scanning for index.xml inside directory
-      LevelsPath. For the specification of index.xml format see
+    { Add all available levels found by scanning for level.xml inside data directory.
+      Overloaded version without parameter just looks inside ProgramDataPath.
+      For the specification of level.xml format see
       http://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine/doc/README_about_index_xml_files.txt .
-      For example, you can use @code(ProgramDataPath + 'data' +  PathDelim + 'levels')
-      as LevelsPath.
 
       All AvailableForNewGame are initially set to @false.
       You must later call LoadFromConfig to read user preferences
@@ -134,9 +133,14 @@ type
       That's why LoadFromConfig has to be called explicitly,
       it isn't added to Config.OnLoad list.
 
-      Also, this can be done only once creatures and items resources are known,
-      as they may be referenced in levels XML files. }
+      This should be called only after creatures and items resources are known,
+      as they may be referenced by level.xml files.
+      So call AllResources.LoadFromFiles before calling this (if you use
+      any creatures / items at all, of course).
+      @groupBegin }
     procedure LoadFromFiles(const LevelsPath: string);
+    procedure LoadFromFiles;
+    { @groupEnd }
 
     { For all available levels, read their TLevelAvailable.AvailableForNewGame
       from user preferences.
@@ -389,7 +393,7 @@ var
           [CreatureKindName]);
       CreatureKind := TCreatureKind(Resource);
       if not CreatureKind.Prepared then
-        OnWarning(wtMajor, 'Resource', Format('Creature "%s" is initially present on the level, but was not prepared yet --- which probably means you did not add it to <resources> inside level index.xml file. This causes loading on-demand, which is less comfortable for player.',
+        OnWarning(wtMajor, 'Resource', Format('Creature "%s" is initially present on the level, but was not prepared yet --- which probably means you did not add it to <resources> inside level level.xml file. This causes loading on-demand, which is less comfortable for player.',
           [CreatureKind.Name]));
 
       { calculate CreatureDirection }
@@ -857,7 +861,7 @@ begin
   Element := Document.DocumentElement;
 
   if Element.TagName <> 'level' then
-    raise Exception.CreateFmt('Root node of levels/*/index.xml file must be <level>, but is "%s", in index.xml inside "%s"',
+    raise Exception.CreateFmt('Root node of level.xml file must be <level>, but is "%s", in "%s"',
       [Element.TagName, DocumentBasePath]);
 
   { Required atttributes }
@@ -952,7 +956,7 @@ begin
 
   S := Format('Level name "%s" is not found on the list (LevelsAvailable)', [AName]);
   if Count = 0 then
-    S += '.' + NL + NL + 'Warning: there are no levels available on the list at all. This means that the game data was not correctly installed (as we did not find any index.xml files defining any levels). Or the developer forgot to call LevelsAvailable.LoadFromFiles.';
+    S += '.' + NL + NL + 'Warning: there are no levels available on the list at all. This means that the game data was not correctly installed (as we did not find any level.xml files defining any levels). Or the developer forgot to call LevelsAvailable.LoadFromFiles.';
   raise Exception.Create(S);
 end;
 
@@ -987,7 +991,7 @@ begin
       Items[I].DefaultAvailableForNewGame);
 end;
 
-procedure TLevelAvailableList.LoadIndexXml(const FileName: string);
+procedure TLevelAvailableList.LoadLevelXml(const FileName: string);
 var
   NewLevelAvailable: TLevelAvailable;
 begin
@@ -1002,7 +1006,12 @@ end;
 
 procedure TLevelAvailableList.LoadFromFiles(const LevelsPath: string);
 begin
-  ScanForFiles(LevelsPath, 'index.xml', @LoadIndexXml);
+  ScanForFiles(LevelsPath, 'level.xml', @LoadLevelXml);
+end;
+
+procedure TLevelAvailableList.LoadFromFiles;
+begin
+  LoadFromFiles(ProgramDataPath);
 end;
 
 { globals -------------------------------------------------------------------- }

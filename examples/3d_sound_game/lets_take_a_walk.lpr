@@ -342,7 +342,7 @@ begin
   SceneManager.Player := Player;
 
   { init level. LoadLevel requires OpenGL context to be available. }
-  LevelsAvailable.LoadFromFiles(ProgramDataPath + 'data' +  PathDelim + 'levels');
+  LevelsAvailable.LoadFromFiles;
   LevelsAvailable.FindName('base').LoadLevel(SceneManager);
   { LoadLevel turns it on, and it's generally helpful, but it makes shooting too
     easy. It would be a nice thing to switch depending on difficulty setting

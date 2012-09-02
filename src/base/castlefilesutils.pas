@@ -375,7 +375,7 @@ const
 type
   THandleFileMethod = procedure (const FileName: string) of object;
 
-{ Scan subdirectories of given path for files named Name.
+{ Scan recursively subdirectories of given path for files named Name.
   For each file, the HandleFile method is called, with filename
   (given filename is relative or absolute, just like given Path parameter). }
 procedure ScanForFiles(Path: string; const Name: string;
@@ -922,15 +922,16 @@ var
   FileName: string;
 begin
   Path := InclPathDelim(Path);
+
+  FileName := Path + Name;
+  if FileExists(FileName) then
+    HandleFile(FileName);
+
   if FindFirst(Path + '*', faDirectory, F) = 0 then
   repeat
     if (F.Attr and faDirectory = faDirectory) and
       not SpecialDirName(F.Name) then
-    begin
-      FileName := Path + F.Name + PathDelim + Name;
-      if FileExists(FileName) then
-        HandleFile(FileName);
-    end;
+      ScanForFiles(Path + F.Name + PathDelim, Name, HandleFile);
   until FindNext(F) <> 0;
   FindClose(F);
 end;

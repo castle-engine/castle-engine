@@ -1,10 +1,16 @@
-About index.xml files:
+About level.xml and resource.xml files:
 
-- Various index.xml files within subdirectories describe particular
-  resources, like a creature, an item (item is something that can be picked
-  and carried by the player) or a level.
+- The data directory of the game is scanned for the special XML files named
+  level.xml and resource.xml. This allows you to define new
+  creatures or items (something that can be picked and carried by the player)
+  or levels to the game simply by adding an additional subdirectory
+  to the game data.
 
-  Each index.xml file may contain relative filenames for
+  What exactly is "data directory"? You give it as parameter to
+  LevelsAvailable.LoadFromFiles and AllResources.LoadFromFiles calls,
+  by default it's the result of ProgramDataPath function.
+
+- Each level.xml / resource.xml file may contain relative filenames for
   3D models and images related to this resource.
   The idea is that the XML file is kept together with the data of particular
   creature, item etc.
@@ -13,7 +19,7 @@ About index.xml files:
   No recompilation, and no modification of any central file,
   are necessary to add e.g. a new creature and a new level using that creature.
 
-- Normally, the index.xml files are scanned and read only once when
+- In normal circumstances, these xml files are scanned and read only once when
   the game starts. For easy editing of game data (to not be forced
   to restart the game after every little tweak in configuration),
   you can also use debug menu (under ` key by default)
@@ -31,8 +37,13 @@ About index.xml files:
   The engine will make sure they are handled OK on all platforms.
 
 ------------------------------------------------------------------------------
-Documentation for creature or item kind description,
-in creatures/*/index.xml and items/*/index.xml:
+Specifically about resource.xml:
+
+- Defines a creature or an item kind. The system is extensible,
+  so it can actually define other 3D resources that are part of the world
+  in your games.
+
+  The root element is <resource>.
 
 - name: the unique object name to indicate initial position of this creature in
   the level 3D file. IOW, this determines Blender object name
@@ -62,7 +73,10 @@ in creatures/*/index.xml and items/*/index.xml:
   can be set by appopriate XML attribute.
 
 ------------------------------------------------------------------------------
-Documentation for level description, in levels/*/index.xml:
+Specifically about level.xml:
+
+- Defines a level.
+  The root element is <level>.
 
 - name: the unique level name, used in scripts and such.
   It must be unique among all levels.
