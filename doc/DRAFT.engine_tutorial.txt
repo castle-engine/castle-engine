@@ -134,7 +134,7 @@ end;
 ]]
 End of temporary note.))
 
-The TGameSceneManager class allows you to define levels by using simple XML files. For each level, you create a file named "index.xml", with contents like this:
+The TGameSceneManager class allows you to define levels by using simple XML files. For each level, you create a file named "level.xml", with contents like this:
 
 [[
 <?xml version="1.0"?>
@@ -151,7 +151,7 @@ The TGameSceneManager class allows you to define levels by using simple XML file
 - "scene" is a filename of the 3D model containing the level.
 - and "title" is just used for some logging and messages. Depending on your game, you may also find this title useful for other purposes, e.g. show the user a list of levels available to start. But this is up to you. The engine itself doesn't really make much use of the title.
 
-See http://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine/doc/README_about_index_xml_files.txt for more details about the index.xml files (defining levels and other stuff).
+See http://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine/doc/README_about_index_xml_files.txt for more details about the level.xml and resource.xml files (defining levels and other stuff).
 
 Traditionally, I place each level in a subdirectory of data/levels/, along with it's associated 3D models. So I have a structure like this:
 
@@ -159,29 +159,29 @@ Traditionally, I place each level in a subdirectory of data/levels/, along with 
 data/
   levels/
     pits/
-      index.xml
+      level.xml
       pits.x3dv
     swamp/
-      index.xml
+      level.xml
       swamp.x3dv
     mountains/
-      index.xml
+      level.xml
       mountains.x3dv
     ...
 ]]
 
-Although this convention proved comfortable, it's not really necessary. The 3D models files may live in other directories than index.xml files, as "scene" field may contain a relative filename (in future, it should be possible to use there any absolute or relative URL; for now, only filenames are allowed). For now, it's important that the XML files have names "index.xml", and that the directory holding all levels is separate from directories holding creatures/items (as they also use index.xml files) -- but this restriction may be removed in the future.
+Although this convention proved comfortable, it's not forced at all. The 3D models files may live in other directories than level.xml files, as "scene" field may contain a relative filename (in future, it should be possible to use there any absolute or relative URL; for now, only filenames are allowed). And level.xml files may be scattered throughout your directory as you wish. And what is "data directory" is configurable (by LevelsAvailable.LoadFromFiles optional parameter, by default we use ProgramDataPath). It's only important that the XML files have names "level.xml".
 
-You can now start a game by creating a player, loading all levels informations from their index.xml files, and finally loading your desired level by referring to it's "name" field:
+You can now start a game by creating a player, loading all levels informations from their level.xml files, and finally loading your desired level by referring to it's "name" field:
 
 [[
-  LevelsAvailable.LoadFromFiles(ProgramDataPath + 'data' +  PathDelim + 'levels');
+  LevelsAvailable.LoadFromFiles;
   LevelsAvailable.FindName('base').LoadLevel(SceneManager);
 ]]
 
 The LoadLevel will clear all SceneManager.Items (except Player, more about this in a second). Then it will load new 3D model with a level (adding it to SceneManager.Items and setting as SceneManager.MainScene, just as we did manually in previous chapter), and do some more interesting stuff that we'll learn later.
 
-The important thing here is that (except the "name" of the 1st level) levels are not hardcoded in any way in your program. This makes game data nice for people preparing new content: they can just drop new subdirectory into the data/levels/, and if it will contain proper index.xml file, it will be automatically recognized. A similar scheme will be used for creatures/items in the following chapter. Your game data is immediately friendly to MODders.
+The important thing here is that (except the "name" of the 1st level) levels are not hardcoded in any way in your program. This makes game data nice for people preparing new content: they can just drop new subdirectory into the data/levels/, and if it will contain proper level.xml file, it will be automatically recognized. A similar scheme will be used for creatures/items in the following chapter. Your game data is immediately friendly to MODders.
 
 For a good measture, it will also be handy later to have a central Player object. This is used for various things:
 - It will make camera automatically tied to the Player, making it a first-person perspective game. (More camera approach, like third-person view, will be available later.)
@@ -203,9 +203,9 @@ var
 
 Thanks to using TGameSceneManager and LoadLevel, you actually don't need to do much. We have a nice default handling of creatures and items suitable for 3D games in CastleCreatures and CastleItems units.
 
-Creatures/items are XML files named index.xml with the <resource> root node. See for now castle1 daya for examples how such file looks like, e.g. castle/data/creatures/alien/index.xml . See http://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine/doc/README_about_index_xml_files.txt for more details about the properties you can set in index.xml files.
+Creatures/items are XML files named resource.xml with the <resource> root node. See for now castle1 daya for examples how such file looks like, e.g. castle/data/creatures/alien/resource.xml . See http://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine/doc/README_about_index_xml_files.txt for more details about the properties you can set in resource.xml files.
 
-The common properties about creatures, items and levels index.xml files:
+The common properties about creatures, items and levels resource.xml and level.xml files:
 
 - "name", like mentioned before, this is a unique internal name of the level/resource (resource being creature or item). In case of resources (creatures or items), it's particularly useful, as it can be used as Blender's object name to place initial creatures/items on the level inside Blender.
 - "type" refers to ObjectPascal class handling the actual behavior of this resource. We provide various simple creatures/items, you can also extend our classes to create your own types.
@@ -216,7 +216,7 @@ There really isn't much code here. Just add
   AllResources.LoadFromFiles;
 ]]
 
-call somewhere before loading the level. This will cause all information about the creatures and items automatically loaded. Necessary creatures and items will be nicely prepared for each level if you use the <resources> section the levels index.xml files. Player can also contain <resources> section inside the data/player.xml (TODO: describe player.xml later).
+call somewhere before loading the level. This will cause all information about the creatures and items automatically loaded. Necessary creatures and items will be nicely prepared for each level if you use the <resources> section the levels level.xml files. Player can also contain <resources> section inside the data/player.xml (TODO: describe player.xml later).
 
 The "type" of the creatures determines it's ObjectPascal class, in turn determining creature AI, how many 3D models (or states) it has, and various other properties. Hostile creatures are automatically hostile to our Player.
 
@@ -228,7 +228,7 @@ CastleCreatures unit (see inside src/game/ in sources) allows you to easily crea
 
   To get walk-attack-state intelligence, use the TWalkAttackCreatureKind class. Such creature tracks the player (remembers last seen player 3D position, walks/flies to it, possibly through sectors/waypoints — so it can pass through narrow doors in a labyrinth or walk over a narrow bridge), attacks the player from the right distance (this can be either a melee attack, or shooting a missile — which adds a missile to the 3D world), eventually runs from the player (when he's too close and/or our health is low). For now, the player is always the main enemy, and there's no "creature vs creature" fighting, although it can be added easily in the future.
 
-  For basic usage, there's no need to even derive new classes. All you need to do is to create a directory holding creature 3D data and index.xml describing it (for example, see various subdirectories of castle/data/creatures/ in SVN).
+  For basic usage, there's no need to even derive new classes. All you need to do is to create a directory holding creature 3D data and resource.xml describing it (for example, see various subdirectories of castle/data/creatures/ in SVN).
 
   There are a lot of settings to achieve particular behavior, e.g. cowardly/brave, offensive/defensive, melee/ranged, etc.
 
@@ -247,7 +247,7 @@ CastleCreatures unit (see inside src/game/ in sources) allows you to easily crea
   * [TCreatureKind], [TCreature]
   * And see the class hierarchy descending from TCreatureKind and TCreature in [class hierarchy diagram]
 
-  Everything is designed to give you a lot of properties to set (most of them are also settable by index.xml files mentioned above) and a lot of methods to override. See not only the TCreature* classes, but also see above T3D classes in Base3D unit, for various things that you can override and use.
+  Everything is designed to give you a lot of properties to set (most of them are also settable by resource.xml files mentioned above) and a lot of methods to override. See not only the TCreature* classes, but also see above T3D classes in Base3D unit, for various things that you can override and use.
 
   (TODO: Pasdoc: frame-less layout, to make direct links sensible.
    TODO: Pasdoc: separate pascal_code_formatter, with @longCode formatter extracted, to convert pascal code to HTML-ified or LaTeX-ified output. HTML can of course be adjusted with CSS. I want to have many code snippets in this tutorial (see e.g. Symfony2 docs for inspiration.)
