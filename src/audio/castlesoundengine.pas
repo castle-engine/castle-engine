@@ -22,12 +22,14 @@ uses SysUtils, Classes, CastleOpenAL, CastleSoundAllocator, VectorMath,
   CastleTimeUtils, CastleXMLConfig, Math, FGL, CastleClassUtils;
 
 type
+  TSoundBuffer = CastleSoundAllocator.TSoundBuffer;
+  TSound = CastleSoundAllocator.TSound;
+  TSoundList = CastleSoundAllocator.TSoundList;
+
   TSoundDistanceModel = (dmNone,
     dmInverseDistance , dmInverseDistanceClamped,
     dmLinearDistance  , dmLinearDistanceClamped,
     dmExponentDistance, dmExponentDistanceClamped);
-
-  TALBuffer = CastleSoundAllocator.TALBuffer;
 
 const
   DefaultVolume = 1.0;
@@ -37,18 +39,15 @@ const
   DefaultDistanceModel = dmLinearDistanceClamped;
 
 type
-  TALSound = CastleSoundAllocator.TALSound;
-  TALSoundList = CastleSoundAllocator.TALSoundList;
+  ESoundBufferNotLoaded = class(Exception);
 
-  EALBufferNotLoaded = class(Exception);
-
-  TALBuffersCache = class
+  TSoundBuffersCache = class
     FileName: string; //< Absolute (expanded) file name.
-    Buffer: TALbuffer;
+    Buffer: TSoundBuffer;
     Duration: TFloatTime;
     References: Cardinal;
   end;
-  TALBuffersCacheList = specialize TFPGObjectList<TALBuffersCache>;
+  TSoundBuffersCacheList = specialize TFPGObjectList<TSoundBuffersCache>;
 
   TSoundDevice = class
   private
@@ -87,7 +86,7 @@ type
     FDefaultReferenceDistance: Single;
     FDefaultMaxDistance: Single;
     FDistanceModel: TSoundDistanceModel;
-    BuffersCache: TALBuffersCacheList;
+    BuffersCache: TSoundBuffersCacheList;
     FDevices: TSoundDeviceList;
     FOnOpenClose: TNotifyEventList;
 
@@ -172,16 +171,16 @@ type
       is released only once you call FreeBuffer as many times as you called
       LoadBuffer for it.
       @groupBegin }
-    function LoadBuffer(const FileName: string; out Duration: TFloatTime): TALBuffer;
-    function LoadBuffer(const FileName: string): TALBuffer;
+    function LoadBuffer(const FileName: string; out Duration: TFloatTime): TSoundBuffer;
+    function LoadBuffer(const FileName: string): TSoundBuffer;
     { @groupEnd }
 
     { Free a sound file buffer. Ignored when buffer is zero.
       Buffer is always set to zero after this.
 
-      @raises(EALBufferNotLoaded When invalid (not zero,
+      @raises(ESoundBufferNotLoaded When invalid (not zero,
         and not returned by LoadBuffer) buffer identifier is given.) }
-    procedure FreeBuffer(var Buffer: TALBuffer);
+    procedure FreeBuffer(var Buffer: TSoundBuffer);
 
     { Play a sound from given buffer.
 
@@ -195,28 +194,28 @@ type
       When Spatial = @false, then Position is ignored
       (you can pass anything, like ZeroVector3Single).
 
-      @returns(The allocated sound as TALSound.
+      @returns(The allocated sound as TSound.
 
         Returns @nil when there were no resources to play another sound
         (and it wasn't important enough to override another sound).
-        Always returns @nil when ALBuffer is zero (indicating that buffer
+        Always returns @nil when SoundBuffer is zero (indicating that buffer
         was not loaded).
 
         In simple cases you can just ignore the result of this method.
         In advanced cases, you can use it to observe and update the sound
         later.) }
-    function PlaySound(const ALBuffer: TALBuffer;
+    function PlaySound(const Buffer: TSoundBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Gain, MinGain, MaxGain: Single;
       const Position: TVector3Single;
-      const Pitch: Single = 1): TALSound;
-    function PlaySound(const ALBuffer: TALBuffer;
+      const Pitch: Single = 1): TSound;
+    function PlaySound(const Buffer: TSoundBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Gain, MinGain, MaxGain: Single;
       const Position: TVector3Single;
       const Pitch: Single;
       const ReferenceDistance: Single;
-      const MaxDistance: Single): TALSound;
+      const MaxDistance: Single): TSound;
 
     { Parse parameters in @link(Parameters) and interprets and removes
       recognized options. Internally it uses Parameters.Parse with
@@ -402,7 +401,7 @@ type
     { OpenAL buffer of this sound. Zero if buffer is not yet loaded,
       which may happen only if TRepoSoundEngine.ALContextOpen was not yet
       called or when sound has FileName = ''. }
-    Buffer: TALbuffer;
+    Buffer: TSoundBuffer;
   end;
 
   TSoundInfoList = specialize TFPGObjectList<TSoundInfo>;
@@ -510,20 +509,20 @@ type
     { Play given sound. This should be used to play sounds
       that are not spatial, i.e. have no place in 3D space.
 
-      Returns used TALSound (or nil if none was available).
-      You don't have to do anything with this returned TALSound. }
+      Returns used TSound (or nil if none was available).
+      You don't have to do anything with this returned TSound. }
     function Sound(SoundType: TSoundType;
-      const Looping: boolean = false): TALSound;
+      const Looping: boolean = false): TSound;
 
     { Play given sound at appropriate position in 3D space.
 
-      Returns used TALSound (or nil if none was available).
-      You don't have to do anything with this returned TALSound.
+      Returns used TSound (or nil if none was available).
+      You don't have to do anything with this returned TSound.
 
       @noAutoLinkHere }
     function Sound3d(SoundType: TSoundType;
       const Position: TVector3Single;
-      const Looping: boolean = false): TALSound; overload;
+      const Looping: boolean = false): TSound; overload;
 
     { Sound importance names and values.
       Each item is a name (as a string) and a value (that is stored in Objects
@@ -564,9 +563,9 @@ type
     { This is nil if we don't play music right now
       (because OpenAL is not initialized, or Sound = stNone,
       or PlayerSound.FileName = '' (sound not existing)). }
-    FAllocatedSource: TALSound;
+    FAllocatedSource: TSound;
 
-    procedure AllocatedSourceRelease(Sender: TALSound);
+    procedure AllocatedSourceRelease(Sender: TSound);
 
     { Called by ALContextOpen. You should check here if
       Sound <> stNone and eventually initialize FAllocatedSource. }
@@ -700,7 +699,7 @@ begin
   FEnable := true;
   FEnableSaveToConfig := true;
   DeviceSaveToConfig := true;
-  BuffersCache := TALBuffersCacheList.Create;
+  BuffersCache := TSoundBuffersCacheList.Create;
   FOnOpenClose := TNotifyEventList.Create;
 
   Config.OnLoad.Add(@LoadFromConfig);
@@ -1089,11 +1088,11 @@ begin
   end;
 end;
 
-function TSoundEngine.PlaySound(const ALBuffer: TALBuffer;
+function TSoundEngine.PlaySound(const Buffer: TSoundBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
   const Gain, MinGain, MaxGain: Single;
   const Position: TVector3Single;
-  const Pitch, ReferenceDistance, MaxDistance: Single): TALSound;
+  const Pitch, ReferenceDistance, MaxDistance: Single): TSound;
 
 const
   { For now, just always use CheckBufferLoaded. It doesn't seem to cause
@@ -1102,12 +1101,12 @@ const
 begin
   Result := nil;
 
-  if ALActive and (ALBuffer <> 0) then
+  if ALActive and (Buffer <> 0) then
   begin
     Result := AllocateSound(Importance);
     if Result <> nil then
     begin
-      Result.Buffer := ALBuffer;
+      Result.Buffer := Buffer;
       Result.Looping := Looping;
       Result.Gain := Gain;
       Result.MinGain := MinGain;
@@ -1171,7 +1170,7 @@ begin
         { We have to do CheckAL first, to catch evantual errors.
           Otherwise the loop would hang. }
         CheckAL('PlaySound');
-        while ALBuffer <> alGetSource1ui(Result.ALSource, AL_BUFFER) do
+        while Buffer <> alGetSource1ui(Result.ALSource, AL_BUFFER) do
           Sleep(10);
       end;
 
@@ -1180,23 +1179,23 @@ begin
   end;
 end;
 
-function TSoundEngine.PlaySound(const ALBuffer: TALBuffer;
+function TSoundEngine.PlaySound(const Buffer: TSoundBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
   const Gain, MinGain, MaxGain: Single;
   const Position: TVector3Single;
-  const Pitch: Single): TALSound;
+  const Pitch: Single): TSound;
 begin
-  Result := PlaySound(ALBuffer, Spatial, Looping, Importance,
+  Result := PlaySound(Buffer, Spatial, Looping, Importance,
     Gain, MinGain, MaxGain, Position, Pitch,
     { use default values for next parameters }
     DefaultReferenceDistance, DefaultMaxDistance);
 end;
 
 function TSoundEngine.LoadBuffer(const FileName: string;
-  out Duration: TFloatTime): TALBuffer;
+  out Duration: TFloatTime): TSoundBuffer;
 var
   I: Integer;
-  Cache: TALBuffersCache;
+  Cache: TSoundBuffersCache;
   FullFileName: string;
 begin
   if not ALInitialized then ALContextOpen;
@@ -1222,7 +1221,7 @@ begin
     TALSoundFile.alBufferDataFromFile(Result, FileName, Duration);
   except alDeleteBuffers(1, @Result); raise end;
 
-  Cache := TALBuffersCache.Create;
+  Cache := TSoundBuffersCache.Create;
   Cache.FileName := FullFileName;
   Cache.Buffer := Result;
   Cache.Duration := Duration;
@@ -1230,14 +1229,14 @@ begin
   BuffersCache.Add(Cache);
 end;
 
-function TSoundEngine.LoadBuffer(const FileName: string): TALBuffer;
+function TSoundEngine.LoadBuffer(const FileName: string): TSoundBuffer;
 var
   Dummy: TFloatTime;
 begin
   Result := LoadBuffer(FileName, Dummy);
 end;
 
-procedure TSoundEngine.FreeBuffer(var Buffer: TALBuffer);
+procedure TSoundEngine.FreeBuffer(var Buffer: TSoundBuffer);
 var
   I: Integer;
 begin
@@ -1256,7 +1255,7 @@ begin
       Exit;
     end;
 
-  raise EALBufferNotLoaded.CreateFmt('OpenAL buffer %d not loaded', [Buffer]);
+  raise ESoundBufferNotLoaded.CreateFmt('OpenAL buffer %d not loaded', [Buffer]);
 end;
 
 procedure TSoundEngine.SetVolume(const Value: Single);
@@ -1534,7 +1533,7 @@ begin
 end;
 
 function TRepoSoundEngine.Sound(SoundType: TSoundType;
-  const Looping: boolean): TALSound;
+  const Looping: boolean): TSound;
 begin
   if not ALInitialized then ALContextOpen;
 
@@ -1549,7 +1548,7 @@ end;
 
 function TRepoSoundEngine.Sound3d(SoundType: TSoundType;
   const Position: TVector3Single;
-  const Looping: boolean): TALSound;
+  const Looping: boolean): TSound;
 begin
   if not ALInitialized then ALContextOpen;
 
@@ -1766,7 +1765,7 @@ begin
   end;
 end;
 
-procedure TMusicPlayer.AllocatedSourceRelease(Sender: TALSound);
+procedure TMusicPlayer.AllocatedSourceRelease(Sender: TSound);
 begin
   Assert(Sender = FAllocatedSource);
   FAllocatedSource.OnRelease := nil;

@@ -564,10 +564,10 @@ type
     FallingDownStartHeight: Single;
     FIsFallingDown: boolean;
 
-    UsedSounds: TALSoundList;
+    UsedSounds: TSoundList;
     FSoundDyingEnabled: boolean;
 
-    procedure SoundRelease(Sender: TALSound);
+    procedure SoundRelease(Sender: TSound);
   protected
     property LifeTime: Single read FLifeTime;
     procedure SetLife(const Value: Single); override;
@@ -1120,7 +1120,7 @@ begin
   Pushable := true;
   MaxLife := AMaxLife;
   FSoundDyingEnabled := true;
-  UsedSounds := TALSoundList.Create(false);
+  UsedSounds := TSoundList.Create(false);
 end;
 
 function TCreature.GetExists: boolean;
@@ -1155,7 +1155,7 @@ begin
   inherited;
 end;
 
-procedure TCreature.SoundRelease(Sender: TALSound);
+procedure TCreature.SoundRelease(Sender: TSound);
 begin
   Sender.UserData.Free;
   Sender.UserData := nil;
@@ -1166,7 +1166,7 @@ end;
 procedure TCreature.Sound3d(const SoundType: TSoundType; const SoundHeight: Single;
   TiedToCreature: boolean);
 var
-  NewSource: TALSound;
+  NewSource: TSound;
   SoundPosition: TVector3Single;
 begin
   SoundPosition := LerpLegsMiddle(SoundHeight);

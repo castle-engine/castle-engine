@@ -20,7 +20,7 @@ uses SysUtils, CastleUtils, CastleOpenAL,
   CastleWarnings, CastleSoundEngine, CastleParameters, CastleTimeUtils, VectorMath;
 
 var
-  Buffer: TALBuffer;
+  Buffer: TSoundBuffer;
   FileName: string;
   Duration: TFloatTime;
 begin
@@ -51,7 +51,7 @@ begin
     In this simple program, we just sleep enough time
     to finish playing sound, with some margin. Alternative, more precise way
     to do this would be query is sound playing (call SoundEngine.RefreshUsedSources
-    from time to time, and watch out for TALSound.OnRelease event;
-    PlaySound returns TALSound instance for such purposes). }
+    from time to time, and watch out for TSound.OnRelease event;
+    PlaySound returns TSound instance for such purposes). }
   Sleep(Round(Duration * 1000)+ 100);
 end.

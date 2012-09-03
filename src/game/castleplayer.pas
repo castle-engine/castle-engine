@@ -107,8 +107,8 @@ type
       always valid when IsLava. }
     LavaLastDamageTime: Single;
 
-    SwimmingChangeSound: TALSound;
-    SwimmingSound: TALSound;
+    SwimmingChangeSound: TSound;
+    SwimmingSound: TSound;
 
     { Did last Idle detected that we are on the ground. }
     IsOnTheGround: boolean;
@@ -120,7 +120,7 @@ type
         FootstepsSound <> nil
       if and only if
         FootstepsSoundPlaying <> stNone. }
-    FootstepsSound: TALSound;
+    FootstepsSound: TSound;
     FootstepsSoundPlaying: TSoundType;
     ReallyWalkingOnTheGroundTime: Single;
 
@@ -147,11 +147,11 @@ type
 
     procedure InputChanged(InputConfiguration: TInputConfiguration);
 
-    procedure SwimmingChangeSoundRelease(Sender: TALSound);
-    procedure SwimmingSoundRelease(Sender: TALSound);
+    procedure SwimmingChangeSoundRelease(Sender: TSound);
+    procedure SwimmingSoundRelease(Sender: TSound);
     procedure SetSwimming(const Value: TPlayerSwimming);
 
-    procedure FootstepsSoundRelease(Sender: TALSound);
+    procedure FootstepsSoundRelease(Sender: TSound);
   protected
     procedure SetLife(const Value: Single); override;
     function GetChild: T3D; override;
@@ -690,7 +690,7 @@ begin
   end;
 end;
 
-procedure TPlayer.FootstepsSoundRelease(Sender: TALSound);
+procedure TPlayer.FootstepsSoundRelease(Sender: TSound);
 begin
   Assert(Sender = FootstepsSound);
   FootstepsSound.OnRelease := nil;
@@ -698,14 +698,14 @@ begin
   FootstepsSoundPlaying := stNone;
 end;
 
-procedure TPlayer.SwimmingChangeSoundRelease(Sender: TALSound);
+procedure TPlayer.SwimmingChangeSoundRelease(Sender: TSound);
 begin
   Assert(Sender = SwimmingChangeSound);
   SwimmingChangeSound.OnRelease := nil;
   SwimmingChangeSound := nil;
 end;
 
-procedure TPlayer.SwimmingSoundRelease(Sender: TALSound);
+procedure TPlayer.SwimmingSoundRelease(Sender: TSound);
 begin
   Assert(Sender = SwimmingSound);
   SwimmingSound.OnRelease := nil;

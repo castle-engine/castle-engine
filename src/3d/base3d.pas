@@ -1427,8 +1427,8 @@ type
     FSoundGoEndPositionLooping: boolean;
     FSoundTracksCurrentPosition: boolean;
 
-    UsedSound: TALSound;
-    procedure SoundRelease(Sender: TALSound);
+    UsedSound: TSound;
+    procedure SoundRelease(Sender: TSound);
     function SoundPosition: TVector3Single;
     procedure PlaySound(SoundType: TSoundType; Looping: boolean);
   public
@@ -3459,7 +3459,7 @@ begin
   inherited;
 end;
 
-procedure T3DLinearMoving.SoundRelease(Sender: TALSound);
+procedure T3DLinearMoving.SoundRelease(Sender: TSound);
 begin
   Assert(Sender = UsedSound);
   UsedSound.OnRelease := nil;

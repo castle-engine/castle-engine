@@ -32,7 +32,7 @@ const
 var
   Window: TCastleWindowDemo;
   PreviousSoundPosition, SoundPosition, ListenerPosition: TVector3Single;
-  Sound: TALSound;
+  Sound: TSound;
 
 procedure Draw(Window: TCastleWindowBase);
 begin
@@ -68,7 +68,7 @@ begin
 end;
 
 var
-  Buffer: TALBuffer;
+   Buffer: TSoundBuffer;
 begin
   Window := TCastleWindowDemo.Create(Application);
 

@@ -40,7 +40,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
-    procedure SourceRelease(Sender: TALSound);
+    procedure SourceRelease(Sender: TSound);
   public
     { public declarations }
   end;
@@ -55,8 +55,8 @@ uses VectorMath, CastleOpenAL, CastleUtils, CastleStringUtils;
 { TMain }
 
 type
-  TALSoundData = class
-    ALBuffer: TALuint;
+  TSoundData = class
+    Buffer: TSoundBuffer;
     FileName: string;
     StartedTime: TTime;
   end;
@@ -82,23 +82,23 @@ end;
 
 procedure TMain.ButtonAllocateAndPlayClick(Sender: TObject);
 var
-  UsedSource: TALSound;
-  UserData: TALSoundData;
-  Buffer: TALBuffer;
+  UsedSource: TSound;
+  UserData: TSoundData;
+  Buffer: TSoundBuffer;
 begin
   Buffer := SoundEngine.LoadBuffer(FileNameEditSound.FileName);
   UsedSource := SoundEngine.AllocateSound(SpinEditSourceImportance.Value);
 
   if UsedSource <> nil then
   begin
-    UserData := TALSoundData.Create;
+    UserData := TSoundData.Create;
     UserData.FileName := FileNameEditSound.FileName;
-    UserData.ALBuffer := Buffer;
+    UserData.Buffer := Buffer;
     UserData.StartedTime := Now;
 
     UsedSource.UserData := UserData;
 
-    UsedSource.Buffer := UserData.ALBuffer;
+    UsedSource.Buffer := UserData.Buffer;
     UsedSource.Relative := true;
     UsedSource.Position := ZeroVector3Single;
     UsedSource.Looping := CheckBoxPlayLooping.Checked;
@@ -112,10 +112,10 @@ begin
   SoundEngine.ALContextClose;
 end;
 
-procedure TMain.SourceRelease(Sender: TALSound);
+procedure TMain.SourceRelease(Sender: TSound);
 begin
   Assert(Sender.UserData <> nil);
-  alDeleteBuffers(1, @TALSoundData(Sender.UserData).ALBuffer);
+  alDeleteBuffers(1, @TSoundData(Sender.UserData).Buffer);
   Sender.UserData.Free;
   Sender.UserData := nil;
 end;
@@ -134,10 +134,10 @@ begin
         BoolToStrYesNo[SoundEngine.AllocatedSources[I].Used] ]);
     if SoundEngine.AllocatedSources[I].Used then
       S += Format(', started on %s, importance: %d, filename: %s',
-        [ FormatDateTime('tt', TALSoundData(
+        [ FormatDateTime('tt', TSoundData(
             SoundEngine.AllocatedSources[I].UserData).StartedTime),
           SoundEngine.AllocatedSources[I].Importance,
-          TALSoundData(SoundEngine.AllocatedSources[I].
+          TSoundData(SoundEngine.AllocatedSources[I].
             UserData).FileName
         ]);
     ListAllocatedSources.Items.Append(S);

@@ -48,12 +48,12 @@
   TAudioClipNode = class(TAbstractSoundSourceNode, IAbstractUrlObject)
   private
     FBufferLoaded: boolean;
-    Buffer: TALBuffer;
+    Buffer: TSoundBuffer;
     FDuration: TFloatTime;
-    Sound: TALSound;
+    Sound: TSound;
     InsideLoadBuffer: Cardinal;
     procedure SetBufferLoaded(const Value: boolean);
-    procedure SoundRelease(ASound: TALSound);
+    procedure SoundRelease(ASound: TSound);
     procedure UpdatePlayingEvent(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
     procedure UpdatePlaying;
@@ -238,7 +238,7 @@ begin
     Result := 0;
 end;
 
-procedure TAudioClipNode.SoundRelease(ASound: TALSound);
+procedure TAudioClipNode.SoundRelease(ASound: TSound);
 begin
   Sound := nil;
 end;

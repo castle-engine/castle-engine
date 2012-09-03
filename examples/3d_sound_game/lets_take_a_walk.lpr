@@ -59,7 +59,7 @@ var
   RatAngle: Single;
 
   stRatSound, stRatSqueak, stKaboom, stCricket: TSoundType;
-  RatSound: TALSound;
+  RatSound: TSound;
 
   MuteImage: TCastleImageControl;
 

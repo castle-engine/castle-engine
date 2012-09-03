@@ -26,19 +26,19 @@ const
   DefaultMaxAllocatedSources = 16;
 
 type
-  TALSound = class;
+  TSound = class;
 
-  TALBuffer = TALuint;
+  TSoundBuffer = type TALuint;
 
-  TALSoundEvent = procedure (Sender: TALSound) of object;
+  TSoundEvent = procedure (Sender: TSound) of object;
 
   ENoMoreOpenALSources = class(Exception);
 
   { Sound (an allocated OpenAL sound source). }
-  TALSound = class
+  TSound = class
   private
     FUsed: boolean;
-    FOnRelease: TALSoundEvent;
+    FOnRelease: TSoundEvent;
     FImportance: Integer;
     FALSource: TALuint;
     { This must be @true for the whole lifetime of this object
@@ -49,7 +49,7 @@ type
     FPosition, FVelocity: TVector3Single;
     FLooping, FRelative: boolean;
     FGain, FMinGain, FMaxGain, FPitch: Single;
-    FBuffer: TALBuffer;
+    FBuffer: TSoundBuffer;
     FRolloffFactor, FReferenceDistance, FMaxDistance: Single;
     procedure SetPosition(const Value: TVector3Single);
     procedure SetVelocity(const Value: TVector3Single);
@@ -58,7 +58,7 @@ type
     procedure SetGain(const Value: Single);
     procedure SetMinGain(const Value: Single);
     procedure SetMaxGain(const Value: Single);
-    procedure SetBuffer(const Value: TALBuffer);
+    procedure SetBuffer(const Value: TSoundBuffer);
     procedure SetPitch(const Value: Single);
     procedure SetRolloffFactor(const Value: Single);
     procedure SetReferenceDistance(const Value: Single);
@@ -112,12 +112,12 @@ type
       from time to time.
 
       In this event you should make sure to delete all references
-      to this sound, because the TALSound instance may
+      to this sound, because the TSound instance may
       be freed after calling OnRelease.
 
       It's guaranteed that when this will be called,
       @link(Used) will be @false and @link(PlayingOrPaused) will be @false. }
-    property OnRelease: TALSoundEvent read FOnRelease write FOnRelease;
+    property OnRelease: TSoundEvent read FOnRelease write FOnRelease;
 
     { Stops playing the source,
       sets Used to @false, and calls OnRelease (if assigned).
@@ -139,7 +139,7 @@ type
     property Gain: Single read FGain write SetGain;
     property MinGain: Single read FMinGain write SetMinGain;
     property MaxGain: Single read FMaxGain write SetMaxGain;
-    property Buffer: TALBuffer read FBuffer write SetBuffer;
+    property Buffer: TSoundBuffer read FBuffer write SetBuffer;
     property Pitch: Single read FPitch write SetPitch;
     property RolloffFactor: Single read FRolloffFactor write SetRolloffFactor;
     property ReferenceDistance: Single read FReferenceDistance write SetReferenceDistance;
@@ -148,12 +148,12 @@ type
     { Is the sound playing or paused. This is almost always @true for sounds
       returned by TSoundAllocator.AllocateSound, when it stops being @true
       --- the sound engine will realize it (soon), which will cause @link(Release)
-      and OnRelease being automatically called, and this TALSound may then
+      and OnRelease being automatically called, and this TSound may then
       be reused for playing other sounds. }
     function PlayingOrPaused: boolean;
   end;
 
-  TALSoundList = class(specialize TFPGObjectList<TALSound>)
+  TSoundList = class(specialize TFPGObjectList<TSound>)
   public
     { Sort sounds by Used + Importance, descending.
       First all sounds with Used = @true are placed,
@@ -199,7 +199,7 @@ type
     yourself often enough. }
   TSoundAllocator = class
   private
-    FAllocatedSources: TALSoundList;
+    FAllocatedSources: TSoundList;
     FMinAllocatedSources: Cardinal;
     FMaxAllocatedSources: Cardinal;
     procedure SetMinAllocatedSources(const Value: Cardinal);
@@ -224,7 +224,7 @@ type
 
     { Allocate sound for playing. You should initialize the OpenAL sound
       properties and start playing the sound (you have
-      OpenAL sound identifier in TALSound.ALSource).
+      OpenAL sound identifier in TSound.ALSource).
 
       Note that if you don't call alSourcePlay, the source may be detected
       as unused (and recycled for another sound) at the next AllocateSound,
@@ -243,16 +243,16 @@ type
       to implement it yourself. Or you can just set Importance of looping
       sounds high enough, and don't use too many looping sounds,
       to never let them be eliminated by other sounds. }
-    function AllocateSound(const Importance: Integer): TALSound;
+    function AllocateSound(const Importance: Integer): TSound;
 
     { All allocated (not necessarily used) OpenAL sources.
       Useful only for advanced or debuging tasks, in normal circumstances
       we mange this completely ourselves. This is @nil when ALContextOpen
       was not yet called. }
-    property AllocatedSources: TALSoundList read FAllocatedSources;
+    property AllocatedSources: TSoundList read FAllocatedSources;
 
     { Detect unused sounds. If you rely on your sources receiving
-      TALSound.OnRelease in a timely manner, be sure to call
+      TSound.OnRelease in a timely manner, be sure to call
       this method often. Otherwise, it's not needed to call this at all
       (unused sounds will be detected automatically on-demand anyway).
 
@@ -297,9 +297,9 @@ implementation
 
 uses ALUtils;
 
-{ TALSound ---------------------------------------------------------- }
+{ TSound ---------------------------------------------------------- }
 
-constructor TALSound.Create;
+constructor TSound.Create;
 var
   ErrorCode: TALenum;
 begin
@@ -308,7 +308,7 @@ begin
   { I must check alGetError now, because I may need to catch
     (and convert to ENoMoreOpenALSources exception) alGetError after
     alCreateSources. So I want to have "clean error state" first. }
-  CheckAL('prevention OpenAL check in TALSound.Create');
+  CheckAL('prevention OpenAL check in TSound.Create');
 
   alCreateSources(1, @FALSource);
 
@@ -319,19 +319,19 @@ begin
     raise EALError.Create(ErrorCode,
       'OpenAL error AL_xxx at creation of sound : ' + alGetString(ErrorCode));
 
-  { This signals to TALSound.Destroy that FALSource contains
+  { This signals to TSound.Destroy that FALSource contains
     valid source name, that should be deleted by alDeleteSources. }
   FALSourceAllocated := true;
 end;
 
-destructor TALSound.Destroy;
+destructor TSound.Destroy;
 begin
   if FALSourceAllocated then
     alDeleteSources(1, @FALSource);
   inherited;
 end;
 
-procedure TALSound.Release;
+procedure TSound.Release;
 begin
   FUsed := false;
 
@@ -351,84 +351,84 @@ begin
     OnRelease(Self);
 end;
 
-procedure TALSound.SetPosition(const Value: TVector3Single);
+procedure TSound.SetPosition(const Value: TVector3Single);
 begin
   FPosition := Value;
   alSourceVector3f(ALSource, AL_POSITION, Value);
 end;
 
-procedure TALSound.SetVelocity(const Value: TVector3Single);
+procedure TSound.SetVelocity(const Value: TVector3Single);
 begin
   FVelocity := Value;
   alSourceVector3f(ALSource, AL_VELOCITY, Value);
 end;
 
-procedure TALSound.SetLooping(const Value: boolean);
+procedure TSound.SetLooping(const Value: boolean);
 begin
   FLooping := Value;
   alSourcei(ALSource, AL_LOOPING, BoolToAL[Value]);
 end;
 
-procedure TALSound.SetRelative(const Value: boolean);
+procedure TSound.SetRelative(const Value: boolean);
 begin
   FRelative := Value;
   alSourcei(ALSource, AL_SOURCE_RELATIVE, BoolToAL[Value]);
 end;
 
-procedure TALSound.SetGain(const Value: Single);
+procedure TSound.SetGain(const Value: Single);
 begin
   FGain := Value;
   alSourcef(ALSource, AL_GAIN, Value);
 end;
 
-procedure TALSound.SetMinGain(const Value: Single);
+procedure TSound.SetMinGain(const Value: Single);
 begin
   FMinGain := Value;
   alSourcef(ALSource, AL_MIN_GAIN, Value);
 end;
 
-procedure TALSound.SetMaxGain(const Value: Single);
+procedure TSound.SetMaxGain(const Value: Single);
 begin
   FMaxGain := Value;
   alSourcef(ALSource, AL_MAX_GAIN, Value);
 end;
 
-procedure TALSound.SetBuffer(const Value: TALBuffer);
+procedure TSound.SetBuffer(const Value: TSoundBuffer);
 begin
   FBuffer := Value;
-  { TALBuffer is unsigned, while alSourcei is declared as taking signed integer.
-    But we know we can pass TALBuffer to alSourcei, just typecasting it to
+  { TSoundBuffer is unsigned, while alSourcei is declared as taking signed integer.
+    But we know we can pass TSoundBuffer to alSourcei, just typecasting it to
     whatever alSourcei requires. }
   {$I norqcheckbegin.inc}
   alSourcei(ALSource, AL_BUFFER, Value);
   {$I norqcheckend.inc}
 end;
 
-procedure TALSound.SetPitch(const Value: Single);
+procedure TSound.SetPitch(const Value: Single);
 begin
   FPitch := Value;
   alSourcef(ALSource, AL_PITCH, Value);
 end;
 
-procedure TALSound.SetRolloffFactor(const Value: Single);
+procedure TSound.SetRolloffFactor(const Value: Single);
 begin
   FRolloffFactor := Value;
   alSourcef(ALSource, AL_ROLLOFF_FACTOR, Value);
 end;
 
-procedure TALSound.SetReferenceDistance(const Value: Single);
+procedure TSound.SetReferenceDistance(const Value: Single);
 begin
   FReferenceDistance := Value;
   alSourcef(ALSource, AL_REFERENCE_DISTANCE, Value);
 end;
 
-procedure TALSound.SetMaxDistance(const Value: Single);
+procedure TSound.SetMaxDistance(const Value: Single);
 begin
   FMaxDistance := Value;
   alSourcef(ALSource, AL_MAX_DISTANCE, Value);
 end;
 
-function TALSound.PlayingOrPaused: boolean;
+function TSound.PlayingOrPaused: boolean;
 var
   SourceState: TALuint;
 begin
@@ -436,9 +436,9 @@ begin
   Result := (SourceState = AL_PLAYING) or (SourceState = AL_PAUSED);
 end;
 
-{ TALSoundList ----------------------------------------------------- }
+{ TSoundList ----------------------------------------------------- }
 
-function IsSmallerByImportance(const AA, BB: TALSound): Integer;
+function IsSmallerByImportance(const AA, BB: TSound): Integer;
 begin
   if (AA.Used and (not BB.Used)) or
      (AA.Used and BB.Used and (AA.Importance > BB.Importance)) then
@@ -449,7 +449,7 @@ begin
     Result :=  0;
 end;
 
-procedure TALSoundList.SortByImportance;
+procedure TSoundList.SortByImportance;
 begin
   Sort(@IsSmallerByImportance);
 end;
@@ -467,10 +467,10 @@ procedure TSoundAllocator.ALContextOpen;
 var
   I: Integer;
 begin
-  FAllocatedSources := TALSoundList.Create(false);
+  FAllocatedSources := TSoundList.Create(false);
   FAllocatedSources.Count := MinAllocatedSources;
   for I := 0 to FAllocatedSources.Count - 1 do
-    FAllocatedSources[I] := TALSound.Create;
+    FAllocatedSources[I] := TSound.Create;
 end;
 
 procedure TSoundAllocator.ALContextClose;
@@ -497,7 +497,7 @@ begin
 end;
 
 function TSoundAllocator.AllocateSound(
-  const Importance: Integer): TALSound;
+  const Importance: Integer): TSound;
 var
   I: Integer;
   MinImportanceIndex: Integer;
@@ -546,10 +546,10 @@ begin
      (Cardinal(FAllocatedSources.Count) < MaxAllocatedSources) then
   begin
     try
-      Result := TALSound.Create;
+      Result := TSound.Create;
       FAllocatedSources.Add(Result);
     except
-      { If TALSound.Create raises ENoMoreOpenALSources ---
+      { If TSound.Create raises ENoMoreOpenALSources ---
         then silence the exception and leave Result = nil. }
       on ENoMoreOpenALSources do ;
     end;
@@ -596,7 +596,7 @@ begin
       OldAllocatedSourcesCount := FAllocatedSources.Count;
       FAllocatedSources.Count := MinAllocatedSources;
       for I := OldAllocatedSourcesCount to FAllocatedSources.Count - 1 do
-        FAllocatedSources[I] := TALSound.Create;
+        FAllocatedSources[I] := TSound.Create;
     end;
   end;
 end;

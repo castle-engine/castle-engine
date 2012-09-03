@@ -157,8 +157,8 @@ begin
 end;
 
 var
-  Buffer: TALBuffer;
-  Sound: TALSound;
+  Buffer: TSoundBuffer;
+  Sound: TSound;
 begin
   SoundEngine.ParseParameters;
   SoundEngine.MinAllocatedSources := 1;
