@@ -106,6 +106,12 @@ type
       can also exist only in player's backpack and such, and then they
       are independent from 3D world. }
     function CreateItem(const AQuantity: Cardinal): TItem;
+
+    { Instantiate placeholder by create new item with CreateItem
+      and putting it on level with TItem.PutOnLevel. }
+    procedure InstantiatePlaceholder(World: T3DWorld;
+      const APosition, ADirection: TVector3Single;
+      const NumberPresent: boolean; const Number: Int64); override;
   end;
 
   TItemWeaponKind = class(TItemKind)
@@ -475,6 +481,20 @@ end;
 function TItemKind.ItemClass: TItemClass;
 begin
   Result := TItem;
+end;
+
+procedure TItemKind.InstantiatePlaceholder(World: T3DWorld;
+  const APosition, ADirection: TVector3Single;
+  const NumberPresent: boolean; const Number: Int64);
+var
+  ItemQuantity: Cardinal;
+begin
+  { calculate ItemQuantity }
+  if NumberPresent then
+    ItemQuantity := Number else
+    ItemQuantity := 1;
+
+  CreateItem(ItemQuantity).PutOnLevel(World, APosition);
 end;
 
 { TItemWeaponKind ------------------------------------------------------------ }

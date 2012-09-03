@@ -26,7 +26,7 @@ unit CastleResources;
 
 interface
 
-uses Classes, CastleXMLConfig, PrecalculatedAnimation,
+uses VectorMath, Classes, CastleXMLConfig, PrecalculatedAnimation,
   CastleScene, X3DNodes, Base3D, DOM, FGL;
 
 type
@@ -159,6 +159,12 @@ type
     procedure Prepare(const BaseLights: TAbstractLightInstancesList);
     procedure Release;
     { @groupEnd }
+
+    { Place an instance of this resource on World, using information
+      from the placeholder on the level. }
+    procedure InstantiatePlaceholder(World: T3DWorld;
+      const APosition, ADirection: TVector3Single;
+      const NumberPresent: boolean; const Number: Int64); virtual; abstract;
   end;
 
   T3DResourceClass = class of T3DResource;

@@ -175,6 +175,11 @@ type
       const APosition, ADirection: TVector3Single): TCreature;
     { @groupEnd }
 
+    { Instantiate creature placeholder, by calling CreateCreature. }
+    procedure InstantiatePlaceholder(World: T3DWorld;
+      const APosition, ADirection: TVector3Single;
+      const NumberPresent: boolean; const Number: Int64); override;
+
     function CreatureClass: TCreatureClass; virtual; abstract;
 
     procedure LoadFromFile(KindsConfig: TCastleConfig); override;
@@ -888,6 +893,26 @@ function TCreatureKind.CreateCreature(World: T3DWorld;
   const APosition, ADirection: TVector3Single): TCreature;
 begin
   Result := CreateCreature(World, APosition, ADirection, DefaultMaxLife);
+end;
+
+procedure TCreatureKind.InstantiatePlaceholder(World: T3DWorld;
+  const APosition, ADirection: TVector3Single;
+  const NumberPresent: boolean; const Number: Int64);
+var
+  CreatureDirection: TVector3Single;
+  MaxLife: Single;
+begin
+  { calculate CreatureDirection }
+  CreatureDirection := ADirection;
+  if not Flying then
+    MakeVectorsOrthoOnTheirPlane(CreatureDirection, World.GravityUp);
+
+  { calculate MaxLife }
+  if NumberPresent then
+    MaxLife := Number else
+    MaxLife := DefaultMaxLife;
+
+  CreateCreature(World, APosition, CreatureDirection, MaxLife);
 end;
 
 { TWalkAttackCreatureKind ---------------------------------------------------- }

@@ -100,8 +100,9 @@ type
       list (except @link(TCastleSceneManager.Player)), clears
       @link(TCastleSceneManager.Camera) and @link(TCastleSceneManager.MainScene)
       as well. Then it loads a new level and camera, adding to
-      @link(TCastleSceneManager.Items) all creatures and items defined
-      in the level 3D file. It also prepares level for fast processing
+      @link(TCastleSceneManager.Items) all resources (creatures and items) defined
+      by placeholders in the level 3D file.
+      It also prepares level for fast processing
       and rendering (creating octrees, OpenGL resources etc.). }
     procedure LoadLevel(const SceneManager: TGameSceneManager;
       const MenuBackground: boolean = false);
@@ -133,7 +134,7 @@ type
       That's why LoadFromConfig has to be called explicitly,
       it isn't added to Config.OnLoad list.
 
-      This should be called only after creatures and items resources are known,
+      This should be called only after resources (creatures and items) are known,
       as they may be referenced by level.xml files.
       So call AllResources.LoadFromFiles before calling this (if you use
       any creatures / items at all, of course).
@@ -218,8 +219,8 @@ type
       const CreateOctreeCollisions: boolean): TCastleScene;
     { @groupEnd }
   public
-    { Create new level instance. Called when creatures and items are already
-      initialized. But before creating resources like octrees,
+    { Create new level instance. Called when resources (creatures and items)
+      are already initialized. But before creating octrees,
       so you can modify MainScene contents.
 
       You have to provide AWorld instance at construction,
@@ -293,135 +294,62 @@ var
     early. }
   ItemsToRemove: TX3DNodeList;
 
-  procedure TraverseForItems(Shape: TShape);
-
-    procedure CreateNewItem(const ItemNodeName: string);
-    var
-      Resource: T3DResource;
-      ItemKind: TItemKind;
-      IgnoredBegin, ItemQuantityBegin: Integer;
-      ItemKindQuantity, ItemKindName: string;
-      ItemQuantity: Cardinal;
-      ItemStubBoundingBox: TBox3D;
-      ItemPosition: TVector3Single;
-    begin
-      { Calculate ItemKindQuantity }
-      IgnoredBegin := Pos('_', ItemNodeName);
-      if IgnoredBegin = 0 then
-        ItemKindQuantity := ItemNodeName else
-        ItemKindQuantity := Copy(ItemNodeName, 1, IgnoredBegin - 1);
-
-      { Calculate ItemKindName, ItemQuantity }
-      ItemQuantityBegin := CharsPos(['0'..'9'], ItemKindQuantity);
-      if ItemQuantityBegin = 0 then
-      begin
-        ItemKindName := ItemKindQuantity;
-        ItemQuantity := 1;
-      end else
-      begin
-        ItemKindName := Copy(ItemKindQuantity, 1, ItemQuantityBegin - 1);
-        ItemQuantity := StrToInt(SEnding(ItemKindQuantity, ItemQuantityBegin));
-      end;
-
-      Resource := AllResources.FindName(ItemKindName);
-      if not (Resource is TItemKind) then
-        raise Exception.CreateFmt('Resource "%s" is not an item, but is referenced in model with Item prefix',
-          [ItemKindName]);
-      ItemKind := TItemKind(Resource);
-
-      ItemStubBoundingBox := Shape.BoundingBox;
-      ItemPosition[0] := (ItemStubBoundingBox.Data[0, 0] + ItemStubBoundingBox.Data[1, 0]) / 2;
-      ItemPosition[1] := (ItemStubBoundingBox.Data[0, 1] + ItemStubBoundingBox.Data[1, 1]) / 2;
-      ItemPosition[2] := ItemStubBoundingBox.Data[0, 2];
-
-      ItemKind.CreateItem(ItemQuantity).PutOnLevel(Items, ItemPosition);
-    end;
-
+  procedure TraverseForResources(Shape: TShape);
   const
-    ItemPrefix = 'Item';
+    ResourcePrefix = 'Res';
+  var
+    S, ResourceName: string;
+    ResourceNumberPresent: boolean;
+    Resource: T3DResource;
+    Box: TBox3D;
+    Position, Direction: TVector3Single;
+    IgnoredBegin, NumberBegin: Integer;
+    ResourceNumber: Int64;
   begin
-    if IsPrefix(ItemPrefix, Shape.BlenderMeshName) then
+    if IsPrefix(ResourcePrefix, Shape.BlenderMeshName) then
     begin
-      { For MenuBackground, item models may be not loaded yet }
+      { For MenuBackground, resource models may be not loaded yet }
       if not MenuBackground then
-        CreateNewItem(SEnding(Shape.BlenderMeshName, Length(ItemPrefix) + 1));
-      { Don't remove BlenderObjectNode now --- will be removed later.
-        This avoids problems with removing nodes while traversing. }
-      ItemsToRemove.Add(Shape.BlenderObjectNode);
-    end;
-  end;
-
-  procedure TraverseForCreatures(Shape: TShape);
-
-    procedure CreateNewCreature(const CreatureNodeName: string);
-    var
-      StubBoundingBox: TBox3D;
-      CreaturePosition, CreatureDirection: TVector3Single;
-      Resource: T3DResource;
-      CreatureKind: TCreatureKind;
-      CreatureKindName: string;
-      IgnoredBegin: Integer;
-      MaxLifeBegin: Integer;
-      IsMaxLife: boolean;
-      MaxLife: Single;
-    begin
-      { calculate CreatureKindName }
-      IgnoredBegin := Pos('_', CreatureNodeName);
-      if IgnoredBegin = 0 then
-        CreatureKindName := CreatureNodeName else
-        CreatureKindName := Copy(CreatureNodeName, 1, IgnoredBegin - 1);
-
-      { possibly calculate MaxLife by truncating last part of CreatureKindName }
-      MaxLifeBegin := CharsPos(['0'..'9'], CreatureKindName);
-      IsMaxLife := MaxLifeBegin <> 0;
-      if IsMaxLife then
       begin
-        MaxLife := StrToFloat(SEnding(CreatureKindName, MaxLifeBegin));
-        CreatureKindName := Copy(CreatureKindName, 1, MaxLifeBegin - 1);
+        { S is now <resource_name>[<resource_number>][_<ignored>] }
+        S := SEnding(Shape.BlenderMeshName, Length(ResourcePrefix) + 1);
+
+        { cut off optional [_<ignored>] suffix }
+        IgnoredBegin := Pos('_', S);
+        if IgnoredBegin <> 0 then
+          S := Copy(S, 1, IgnoredBegin - 1);
+
+        { calculate ResourceName, ResourceNumber, ResourceNumberPresent }
+        NumberBegin := CharsPos(['0'..'9'], S);
+        ResourceNumberPresent := NumberBegin <> 0;
+        if ResourceNumberPresent then
+        begin
+          ResourceName := Copy(S, 1, NumberBegin - 1);
+          ResourceNumber := StrToInt(SEnding(S, NumberBegin));
+        end else
+        begin
+          ResourceName := S;
+          ResourceNumber := 0;
+        end;
+
+        Resource := AllResources.FindName(ResourceName);
+        if not Resource.Prepared then
+          OnWarning(wtMajor, 'Resource', Format('Resource "%s" is initially present on the level, but was not prepared yet --- which probably means you did not add it to <resources> inside level level.xml file. This causes loading on-demand, which is less comfortable for player.',
+            [Resource.Name]));
+
+        Box := Shape.BoundingBox;
+        Position[0] := (Box.Data[0, 0] + Box.Data[1, 0]) / 2;
+        Position[1] := (Box.Data[0, 1] + Box.Data[1, 1]) / 2;
+        Position[2] := Box.Data[0, 2];
+
+        { TODO: for now, Direction is not configurable, it just points
+          to the player start pos. This is more-or-less sensible for creatures. }
+        Direction := Camera.GetPosition - Position;
+
+        Resource.InstantiatePlaceholder(Items, Position, Direction,
+          ResourceNumberPresent, ResourceNumber);
       end;
 
-      { calculate CreaturePosition }
-      StubBoundingBox := Shape.BoundingBox;
-      CreaturePosition[0] := (StubBoundingBox.Data[0, 0] + StubBoundingBox.Data[1, 0]) / 2;
-      CreaturePosition[1] := (StubBoundingBox.Data[0, 1] + StubBoundingBox.Data[1, 1]) / 2;
-      CreaturePosition[2] := StubBoundingBox.Data[0, 2];
-
-      { calculate CreatureKind }
-      Resource := AllResources.FindName(CreatureKindName);
-      if not (Resource is TCreatureKind) then
-        raise Exception.CreateFmt('Resource "%s" is not a creature, but is referenced in model with Crea prefix',
-          [CreatureKindName]);
-      CreatureKind := TCreatureKind(Resource);
-      if not CreatureKind.Prepared then
-        OnWarning(wtMajor, 'Resource', Format('Creature "%s" is initially present on the level, but was not prepared yet --- which probably means you did not add it to <resources> inside level level.xml file. This causes loading on-demand, which is less comfortable for player.',
-          [CreatureKind.Name]));
-
-      { calculate CreatureDirection }
-      { TODO --- CreatureDirection configurable.
-        Right now, it just points to the player start pos --- this is
-        more-or-less sensible, usually. }
-      CreatureDirection := VectorSubtract(Camera.GetPosition, CreaturePosition);
-      if not CreatureKind.Flying then
-        MakeVectorsOrthoOnTheirPlane(CreatureDirection, GravityUp);
-
-      { make sure that MaxLife is initialized now }
-      if not IsMaxLife then
-      begin
-        IsMaxLife := true;
-        MaxLife := CreatureKind.DefaultMaxLife;
-      end;
-
-      CreatureKind.CreateCreature(Items, CreaturePosition, CreatureDirection, MaxLife);
-    end;
-
-  const
-    CreaturePrefix = 'Crea';
-  begin
-    if IsPrefix(CreaturePrefix, Shape.BlenderMeshName) then
-    begin
-      { For MenuBackground, creature models may be not loaded yet }
-      if not MenuBackground then
-        CreateNewCreature(SEnding(Shape.BlenderMeshName, Length(CreaturePrefix) + 1));
       { Don't remove BlenderObjectNode now --- will be removed later.
         This avoids problems with removing nodes while traversing. }
       ItemsToRemove.Add(Shape.BlenderObjectNode);
@@ -440,8 +368,8 @@ var
 
   { Assign Camera, knowing MainScene and Player.
     We need to assign Camera early, as initial Camera also is used
-    when placing initial creatures on the level (to determine their
-    gravity up, initial direciton etc.) }
+    when placing initial resources on the level (to determine their
+    initial direciton, World.GravityUp etc.) }
   procedure InitializeCamera;
   var
     InitialPosition: TVector3Single;
@@ -516,7 +444,7 @@ begin
 
   { release stuff from previous level. Our items must be clean.
     This releases previous Level (logic), MainScene,
-    and our creatures and items --- the ones added in TraverseForCreatures/Items,
+    and our creatures and items --- the ones added in TraverseForResources,
     but also the ones created dynamically (when creature is added to scene manager,
     e.g. because player/creature shoots a missile, or when player drops an item).
     The only thing that can (and should) remain is Player. }
@@ -571,22 +499,14 @@ begin
 
     ItemsToRemove := TX3DNodeList.Create(false);
     try
-      { Initialize Items }
       SI := TShapeTreeIterator.Create(MainScene.Shapes, { OnlyActive } true);
       try
-        while SI.GetNext do TraverseForItems(SI.Current);
+        while SI.GetNext do TraverseForResources(SI.Current);
       finally SysUtils.FreeAndNil(SI) end;
-
-      { Initialize Creatures }
-      SI := TShapeTreeIterator.Create(MainScene.Shapes, { OnlyActive } true);
-      try
-        while SI.GetNext do TraverseForCreatures(SI.Current);
-      finally SysUtils.FreeAndNil(SI) end;
-
       RemoveItemsToRemove;
     finally ItemsToRemove.Free end;
 
-    { Calculate CameraBox. }
+    { Calculate CameraBox }
     if not MainScene.RemoveBlenderBox(NewCameraBox, 'LevelBox') then
     begin
       { Set CameraBox to MainScene.BoundingBox, and make maximum Z larger. }
@@ -600,7 +520,7 @@ begin
 
     CreateSectors(MainScene);
 
-    { create Level after creatures and hint areas are initialized
+    { create Level after resources (creatures and items) are initialized
       (some TLevel descendant constructors depend on this),
       but still before preparing resources like octrees (because we still
       may want to modify MainScene inside Level constructor). }
