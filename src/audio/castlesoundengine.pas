@@ -22,7 +22,7 @@ uses SysUtils, Classes, CastleOpenAL, CastleSoundAllocator, VectorMath,
   CastleTimeUtils, CastleXMLConfig, Math, FGL, CastleClassUtils;
 
 type
-  TALDistanceModel = (dmNone,
+  TSoundDistanceModel = (dmNone,
     dmInverseDistance , dmInverseDistanceClamped,
     dmLinearDistance  , dmLinearDistanceClamped,
     dmExponentDistance, dmExponentDistanceClamped);
@@ -50,14 +50,14 @@ type
   end;
   TALBuffersCacheList = specialize TFPGObjectList<TALBuffersCache>;
 
-  TALDeviceDescription = class
+  TSoundDevice = class
   private
     FName, FNiceName: string;
   public
     property Name: string read FName;
     property NiceName: string read FNiceName;
   end;
-  TALDeviceDescriptionList = specialize TFPGObjectList<TALDeviceDescription>;
+  TSoundDeviceList = specialize TFPGObjectList<TSoundDevice>;
 
   { OpenAL sound engine. Takes care of all the 3D sound stuff,
     wrapping OpenAL is a nice and comfortable interface.
@@ -86,9 +86,9 @@ type
     FDefaultRolloffFactor: Single;
     FDefaultReferenceDistance: Single;
     FDefaultMaxDistance: Single;
-    FDistanceModel: TALDistanceModel;
+    FDistanceModel: TSoundDistanceModel;
     BuffersCache: TALBuffersCacheList;
-    FDevices: TALDeviceDescriptionList;
+    FDevices: TSoundDeviceList;
     FOnOpenClose: TNotifyEventList;
 
     { We record listener state regardless of ALActive. This way at the ALContextOpen
@@ -102,7 +102,7 @@ type
     procedure CheckALC(const situation: string);
 
     procedure SetVolume(const Value: Single);
-    procedure SetDistanceModel(const Value: TALDistanceModel);
+    procedure SetDistanceModel(const Value: TSoundDistanceModel);
     { Call alDistanceModel with parameter derived from current DistanceModel.
       Use only when ALActive. }
     procedure UpdateDistanceModel;
@@ -249,7 +249,7 @@ type
       On some OpenAL implementations, some other @link(Device) values may
       be possible, e.g. old Loki implementation allowed some hints
       to be encoded in Lisp-like language inside the @link(Device) string. }
-    function Devices: TALDeviceDescriptionList;
+    function Devices: TSoundDeviceList;
 
     function DeviceNiceName: string;
 
@@ -334,7 +334,7 @@ type
       The default distance model, DefaultDistanceModel, is the linear model
       most conforming to VRML/X3D sound requirements. You can change it
       if you want (for example, OpenAL default is dmInverseDistanceClamped). }
-    property DistanceModel: TALDistanceModel
+    property DistanceModel: TSoundDistanceModel
       read FDistanceModel write SetDistanceModel default DefaultDistanceModel;
   end;
 
@@ -727,7 +727,7 @@ begin
   inherited;
 end;
 
-function TSoundEngine.Devices: TALDeviceDescriptionList;
+function TSoundEngine.Devices: TSoundDeviceList;
 
   { Find available OpenAL devices, add them to FDevices.
 
@@ -745,9 +745,9 @@ function TSoundEngine.Devices: TALDeviceDescriptionList;
 
     procedure Add(const AName, ANiceName: string);
     var
-      D: TALDeviceDescription;
+      D: TSoundDevice;
     begin
-      D := TALDeviceDescription.Create;
+      D := TSoundDevice.Create;
       D.FName := AName;
       D.FNiceName := ANiceName;
       FDevices.Add(D);
@@ -823,7 +823,7 @@ begin
 
   if FDevices = nil then
   begin
-    FDevices := TALDeviceDescriptionList.Create;
+    FDevices := TSoundDeviceList.Create;
     UpdateDevices;
   end;
   Result := FDevices;
@@ -1279,7 +1279,7 @@ procedure TSoundEngine.UpdateDistanceModel;
   end;
 
 const
-  ALDistanceModelConsts: array [TALDistanceModel] of TALenum =
+  ALDistanceModelConsts: array [TSoundDistanceModel] of TALenum =
   ( AL_NONE,
     AL_INVERSE_DISTANCE, AL_INVERSE_DISTANCE_CLAMPED,
     AL_LINEAR_DISTANCE, AL_LINEAR_DISTANCE_CLAMPED,
@@ -1295,7 +1295,7 @@ begin
     alDistanceModel(ALDistanceModelConsts[DistanceModel]);
 end;
 
-procedure TSoundEngine.SetDistanceModel(const Value: TALDistanceModel);
+procedure TSoundEngine.SetDistanceModel(const Value: TSoundDistanceModel);
 begin
   if Value <> FDistanceModel then
   begin
