@@ -425,7 +425,7 @@ To play a sound from a code, add this code:
 
 [[
 var
-  Buffer: TALBuffer;
+  Buffer: TSoundBuffer;
 ...
 Buffer := SoundEngine.LoadBuffer('sample.wav');
 SoundEngine.PlaySound(Buffer, ...); // see PlaySound reference for parameters
@@ -478,7 +478,7 @@ Sound {
 
 --- More
 
-For more advanced uses, you can use the return value of PlaySound or Sound or Sound3D: it's either nil (if no OpenAL resources available to play this sound, and it's priority doesn't allow overriding other sounds) or it's a TALSound instance. If you have TALSound instance, you can use it's TALSound.OnRelease event to be notified when source stops playing. You can also use other TALSound methods, e.g. update TALSound.Position, TALSound.Gain and such. You can stop playing the sound by TALSound.Release.
+For more advanced uses, you can use the return value of PlaySound or Sound or Sound3D: it's either nil (if no OpenAL resources available to play this sound, and it's priority doesn't allow overriding other sounds) or it's a TSound instance. If you have TSound instance, you can use it's TSound.OnRelease event to be notified when source stops playing. You can also use other TSound methods, e.g. update TSound.Position, TSound.Gain and such. You can stop playing the sound by TSound.Release.
 
 ------------------------------------------------------------------------------
 10. Adding an on-screen menu
