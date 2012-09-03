@@ -26,7 +26,7 @@
 program algets;
 
 uses CastleOpenAL, ALUtils, SysUtils, CastleUtils, VectorMath,
-  CastleStringUtils, EFX, ALSoundEngine, CastleTimeUtils, CastleParameters;
+  CastleStringUtils, EFX, CastleSoundEngine, CastleTimeUtils, CastleParameters;
 
 { force compatibility : use alCreateSources/Buffers instead of alGen*.
 

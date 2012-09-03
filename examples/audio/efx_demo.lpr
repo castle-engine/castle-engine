@@ -19,7 +19,7 @@
 program efx_demo;
 
 uses SysUtils, CastleUtils, CastleOpenAL, ALUtils, EFX,
-  ALSoundEngine, ALSoundAllocator, CastleParameters;
+  CastleSoundEngine, CastleParameters;
 
 type
   TDemoMode = (

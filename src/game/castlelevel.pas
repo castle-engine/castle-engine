@@ -30,7 +30,7 @@ uses VectorMath, CastleSceneCore, CastleScene, Boxes3D,
   X3DNodes, X3DFields, CastleItems, Cameras, CastleCreatures,
   CastleUtils, CastleClassUtils, CastlePlayer, CastleResources,
   ProgressUnit, PrecalculatedAnimation,
-  DOM, ALSoundEngine, Base3D, Shape, GL, CastleConfig, Images,
+  DOM, CastleSoundEngine, Base3D, Shape, GL, CastleConfig, Images,
   Classes, CastleTimeUtils, CastleSceneManager, GLRendererShader, FGL;
 
 type

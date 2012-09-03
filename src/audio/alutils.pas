@@ -13,13 +13,13 @@
   ----------------------------------------------------------------------------
 }
 
-{ Various utilities for working with OpenAL.
+{ Low-level utilities for working with OpenAL.
   Everything is based on my OpenAL bindings in unit CastleOpenAL.
   For higher-level class that takes care of initializing OpenAL
-  and loading and playing sounds, see TALSoundEngine.
+  and loading and playing sounds, see CastleSoundEngine.
 
   You shouldn't use any alc* functions or alutInit/alutExit
-  functions from CastleOpenAL yourself. This unit and ALSoundEngine take care
+  functions from CastleOpenAL yourself. This unit and CastleSoundEngine take care
   about everything needed there.
 }
 

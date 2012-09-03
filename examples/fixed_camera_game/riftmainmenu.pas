@@ -37,7 +37,7 @@ implementation
 uses SysUtils, GL, CastleWindow, CastleFilesUtils,
   CastleGLUtils, CastleMessages, OnScreenMenu, WindowModes, CastleUtils,
   VectorMath, CastleSoundMenu, Classes, CastleStringUtils, CastleControls,
-  GLImages, UIControls, CastleColors, ALSoundEngine,
+  GLImages, UIControls, CastleColors, CastleSoundEngine,
   RiftData, RiftSound, RiftVideoOptions, RiftInspectCreatures, RiftPlay,
   RiftLocations, RiftGame;
 

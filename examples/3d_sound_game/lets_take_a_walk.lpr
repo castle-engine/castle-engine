@@ -43,7 +43,7 @@ uses GL, CastleWindow, CastleScene, X3DNodes, SysUtils,
   CastleUtils, CastleGLUtils, Boxes3D, VectorMath,
   ProgressUnit, CastleProgress, CastleStringUtils,
   CastleParameters, Images, CastleMessages, CastleFilesUtils, GLImages,
-  Base3D, ALSoundEngine, ALSoundAllocator,
+  Base3D, CastleSoundEngine,
   RenderingCameraUnit, Classes, CastleControls, CastleLevel, CastleConfig,
   CastleInputs, KeysMouse, CastlePlayer;
 

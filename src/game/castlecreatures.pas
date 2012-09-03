@@ -27,8 +27,8 @@ interface
 
 uses Classes, VectorMath, PrecalculatedAnimation, Boxes3D, CastleClassUtils, CastleUtils,
   CastleScene, SectorsWaypoints,
-  CastleResources, ALSoundAllocator, CastleXMLConfig, Base3D,
-  ALSoundEngine, Frustum, X3DNodes, CastleColors, FGL;
+  CastleResources, CastleXMLConfig, Base3D,
+  CastleSoundEngine, Frustum, X3DNodes, CastleColors, FGL;
 
 const
   { Default value for TCreatureKind.DefaultMaxLife.

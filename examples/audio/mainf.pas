@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs, Spin,
-  StdCtrls, Buttons, ALSoundAllocator, ALSoundEngine, ExtCtrls, Grids, EditBtn;
+  StdCtrls, Buttons, CastleSoundEngine, ExtCtrls, Grids, EditBtn;
 
 type
   { TMain }

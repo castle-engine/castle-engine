@@ -28,7 +28,7 @@ interface
 uses Boxes3D, X3DNodes, CastleScene, VectorMath, CastleUtils,
   CastleClassUtils, Classes, Images, GL, GLU, CastleGLUtils,
   PrecalculatedAnimation, CastleResources,
-  CastleXMLConfig, ALSoundEngine, Frustum, Base3D, FGL, CastleColors;
+  CastleXMLConfig, CastleSoundEngine, Frustum, Base3D, FGL, CastleColors;
 
 const
   DefaultItemDamageConst = 5.0;

@@ -118,12 +118,12 @@
         <UnitName Value="Triangulator"/>
       </Item18>
       <Item19>
-        <Filename Value="../src/audio/alsoundallocator.pas"/>
-        <UnitName Value="ALSoundAllocator"/>
+        <Filename Value="../src/audio/castlesoundallocator.pas"/>
+        <UnitName Value="CastleSoundAllocator"/>
       </Item19>
       <Item20>
-        <Filename Value="../src/audio/alsoundengine.pas"/>
-        <UnitName Value="ALSoundEngine"/>
+        <Filename Value="../src/audio/castlesoundengine.pas"/>
+        <UnitName Value="CastleSoundEngine"/>
       </Item20>
       <Item21>
         <Filename Value="../src/audio/alutils.pas"/>

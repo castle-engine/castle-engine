@@ -359,7 +359,7 @@ procedure TAudioClipNode.ALOpenClose(Sender: TObject);
 begin
   if InsideLoadBuffer <> 0 then Exit;
 
-  if (Sender as TALSoundEngine).ALActive then
+  if (Sender as TSoundEngine).ALActive then
   begin
     { Maybe we should start playing? }
     BufferLoaded := false; //< force reloading buffer next time

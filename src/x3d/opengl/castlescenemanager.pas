@@ -1047,7 +1047,7 @@ procedure Register;
 implementation
 
 uses SysUtils, RenderingCameraUnit, CastleGLUtils, ProgressUnit, RaysWindow, GLExt,
-  CastleLog, CastleStringUtils, GLRenderer, ALSoundEngine, Math, Triangle,
+  CastleLog, CastleStringUtils, GLRenderer, CastleSoundEngine, Math, Triangle,
   GLVersionUnit, Shape;
 
 procedure Register;

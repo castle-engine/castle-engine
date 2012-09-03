@@ -29,7 +29,7 @@ uses SysUtils, CastleParameters, CastleUtils, CastleWindow,
   CastleClassUtils, CastleStringUtils, CastleProgress, ProgressUnit,
   CastleGLUtils, CastleLog, CastleGameNotifications,
   RiftWindow, RiftVideoOptions, RiftIntro, RiftMainMenu,
-  RiftSound, RiftCreatures, CastleConfig, ALSoundEngine, VectorMath;
+  RiftSound, RiftCreatures, CastleConfig, CastleSoundEngine, VectorMath;
 
 { requested screen size ------------------------------------------------------ }
 

@@ -13,12 +13,12 @@
   ----------------------------------------------------------------------------
 }
 
-{ Menu items (suitable for TCastleOnScreenMenu) to control the TXmlSoundEngine. }
+{ Menu items (suitable for TCastleOnScreenMenu) to control the TRepoSoundEngine. }
 unit CastleSoundMenu;
 
 interface
 
-uses CastleWindow, OnScreenMenu, ALSoundEngine;
+uses CastleWindow, OnScreenMenu, CastleSoundEngine;
 
 type
   { An abstract class for CastleSoundMenu items.

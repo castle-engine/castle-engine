@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ OpenAL sounds smart allocation (TALSoundAllocator). }
-unit ALSoundAllocator;
+{ 3D sound smart allocation (TSoundAllocator). }
+unit CastleSoundAllocator;
 
 interface
 
@@ -66,7 +66,7 @@ type
   public
     { Create sound. This allocates actual OpenAL source.
       @raises(ENoMoreOpenALSources If no more sources available.
-        It should be caught and silenced by TALSoundAllocator.AllocateSound.) }
+        It should be caught and silenced by TSoundAllocator.AllocateSound.) }
     constructor Create;
     destructor Destroy; override;
 
@@ -86,8 +86,8 @@ type
     property Importance: Integer read FImportance default 0;
 
     { Any data comfortable to keep here by the caller of
-      TALSoundAllocator.AllocateSound. It should be initialized
-      after calling TALSoundAllocator.AllocateSound, and should
+      TSoundAllocator.AllocateSound. It should be initialized
+      after calling TSoundAllocator.AllocateSound, and should
       be finalized in OnRelease. }
     property UserData: TObject read FUserData write FUserData;
 
@@ -101,14 +101,14 @@ type
       stopped playing will be immediately reported to OnRelease.
       In fact, a source may be considered in Used = @true state
       for a long time until it stopped playing. That's not a problem
-      for this unit --- TALSoundAllocator.AllocateSound is smart,
+      for this unit --- TSoundAllocator.AllocateSound is smart,
       and it may actually check (and eventually mark with @link(Release))
       whether some sources are in playing state,
       to avoid allocating unnecessary sources.
       However, if this is a problem for you (because e.g. you do
       some expensive operations to update all used sources every time)
       and you really desire OnRelease to be called quickly after
-      sound stoppped playing, you may call TALSoundAllocator.RefreshUsedSources
+      sound stoppped playing, you may call TSoundAllocator.RefreshUsedSources
       from time to time.
 
       In this event you should make sure to delete all references
@@ -146,7 +146,7 @@ type
     property MaxDistance: Single read FMaxDistance write SetMaxDistance;
 
     { Is the sound playing or paused. This is almost always @true for sounds
-      returned by TALSoundAllocator.AllocateSound, when it stops being @true
+      returned by TSoundAllocator.AllocateSound, when it stops being @true
       --- the sound engine will realize it (soon), which will cause @link(Release)
       and OnRelease being automatically called, and this TALSound may then
       be reused for playing other sounds. }
@@ -187,7 +187,7 @@ type
     the number of OpenAL sources are limited. In particular, this
     means that when OpenAL will run out of sources, no OpenAL error
     (alGetError) will be left, and no exception will be raised.
-    In the worst case TALSoundAllocator.AllocateSound will return nil,
+    In the worst case TSoundAllocator.AllocateSound will return nil,
     but in more probable cases some other sources (unused, or with
     less priority) will be reused.
 
@@ -197,7 +197,7 @@ type
     So the code in this unit may in various places raise EALError if you
     made some error in your OpenAL code, and you didn't check alGetError
     yourself often enough. }
-  TALSoundAllocator = class
+  TSoundAllocator = class
   private
     FAllocatedSources: TALSoundList;
     FMinAllocatedSources: Cardinal;
@@ -208,10 +208,10 @@ type
     { Load and save into XML config file some sound engine properties.
       Everything is loaded / saved under the path "sound/" inside Config.
 
-      TALSoundAllocator saves MinAllocatedSources, MaxAllocatedSources.
-      Descendant TALSoundEngine additionally saves current Device, Enable
+      TSoundAllocator saves MinAllocatedSources, MaxAllocatedSources.
+      Descendant TSoundEngine additionally saves current Device, Enable
       (unless Enable was set by @--no-sound command-line option).
-      Descendant TXMLSoundEngine additionally saves sound and music volume.
+      Descendant TRepoSoundEngine additionally saves sound and music volume.
 
       @groupBegin }
     procedure LoadFromConfig(const Config: TCastleConfig); virtual;
@@ -454,16 +454,16 @@ begin
   Sort(@IsSmallerByImportance);
 end;
 
-{ TALSoundAllocator ---------------------------------------------------------- }
+{ TSoundAllocator ---------------------------------------------------------- }
 
-constructor TALSoundAllocator.Create;
+constructor TSoundAllocator.Create;
 begin
   inherited;
   FMinAllocatedSources := DefaultMinAllocatedSources;
   FMaxAllocatedSources := DefaultMaxAllocatedSources;
 end;
 
-procedure TALSoundAllocator.ALContextOpen;
+procedure TSoundAllocator.ALContextOpen;
 var
   I: Integer;
 begin
@@ -473,7 +473,7 @@ begin
     FAllocatedSources[I] := TALSound.Create;
 end;
 
-procedure TALSoundAllocator.ALContextClose;
+procedure TSoundAllocator.ALContextClose;
 var
   I: Integer;
 begin
@@ -496,7 +496,7 @@ begin
   end;
 end;
 
-function TALSoundAllocator.AllocateSound(
+function TSoundAllocator.AllocateSound(
   const Importance: Integer): TALSound;
 var
   I: Integer;
@@ -579,10 +579,10 @@ begin
     Result.FUsed := true;
   end;
 
-  CheckAL('allocating sound source (TALSoundAllocator.AllocateSound)');
+  CheckAL('allocating sound source (TSoundAllocator.AllocateSound)');
 end;
 
-procedure TALSoundAllocator.SetMinAllocatedSources(const Value: Cardinal);
+procedure TSoundAllocator.SetMinAllocatedSources(const Value: Cardinal);
 var
   I: Integer;
   OldAllocatedSourcesCount: Cardinal;
@@ -601,7 +601,7 @@ begin
   end;
 end;
 
-procedure TALSoundAllocator.SetMaxAllocatedSources(const Value: Cardinal);
+procedure TSoundAllocator.SetMaxAllocatedSources(const Value: Cardinal);
 var
   I: Integer;
 begin
@@ -627,7 +627,7 @@ begin
   end;
 end;
 
-procedure TALSoundAllocator.RefreshUsedSources;
+procedure TSoundAllocator.RefreshUsedSources;
 var
   I: Integer;
 begin
@@ -640,7 +640,7 @@ begin
         FAllocatedSources[I].Release;
 end;
 
-procedure TALSoundAllocator.StopAllSources;
+procedure TSoundAllocator.StopAllSources;
 var
   I: Integer;
 begin
@@ -650,7 +650,7 @@ begin
         FAllocatedSources[I].Release;
 end;
 
-procedure TALSoundAllocator.LoadFromConfig(const Config: TCastleConfig);
+procedure TSoundAllocator.LoadFromConfig(const Config: TCastleConfig);
 begin
   MinAllocatedSources := Config.GetValue(
     'sound/allocated_sources/min', DefaultMinAllocatedSources);
@@ -658,7 +658,7 @@ begin
     'sound/allocated_sources/max', DefaultMaxAllocatedSources);
 end;
 
-procedure TALSoundAllocator.SaveToConfig(const Config: TCastleConfig);
+procedure TSoundAllocator.SaveToConfig(const Config: TCastleConfig);
 begin
   Config.SetDeleteValue('sound/allocated_sources/min',
     MinAllocatedSources, DefaultMinAllocatedSources);

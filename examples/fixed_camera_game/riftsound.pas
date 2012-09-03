@@ -25,7 +25,7 @@ unit RiftSound;
 
 interface
 
-uses ALSoundEngine;
+uses CastleSoundEngine;
 
 var
   stIntroMusic,

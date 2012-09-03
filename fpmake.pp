@@ -112,8 +112,8 @@ begin
     P.Targets.AddUnit('glrenderer.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'audio');
-    P.Targets.AddUnit('alsoundallocator.pas');
-    P.Targets.AddUnit('alsoundengine.pas');
+    P.Targets.AddUnit('castlesoundallocator.pas');
+    P.Targets.AddUnit('castlesoundengine.pas');
     P.Targets.AddUnit('alutils.pas');
     P.Targets.AddUnit('castleogg.pas');
     P.Targets.AddUnit('castleopenal.pas');

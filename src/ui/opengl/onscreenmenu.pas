@@ -656,7 +656,7 @@ implementation
 
 uses SysUtils, CastleUtils, Images, CastleFilesUtils, CastleClassUtils,
   CastleStringUtils, GLImages,
-  OnScreenMenuImages, ALSoundEngine, CastleControls;
+  OnScreenMenuImages, CastleSoundEngine, CastleControls;
 
 procedure Register;
 begin

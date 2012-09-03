@@ -13,12 +13,12 @@
   ----------------------------------------------------------------------------
 }
 
-{ OpenAL sound engine (TALSoundEngine and TXmlSoundEngine). }
-unit ALSoundEngine;
+{ 3D sound engine (TSoundEngine and TRepoSoundEngine). }
+unit CastleSoundEngine;
 
 interface
 
-uses SysUtils, Classes, CastleOpenAL, ALSoundAllocator, VectorMath,
+uses SysUtils, Classes, CastleOpenAL, CastleSoundAllocator, VectorMath,
   CastleTimeUtils, CastleXMLConfig, Math, FGL, CastleClassUtils;
 
 type
@@ -27,7 +27,7 @@ type
     dmLinearDistance  , dmLinearDistanceClamped,
     dmExponentDistance, dmExponentDistanceClamped);
 
-  TALBuffer = ALSoundAllocator.TALBuffer;
+  TALBuffer = CastleSoundAllocator.TALBuffer;
 
 const
   DefaultVolume = 1.0;
@@ -37,6 +37,9 @@ const
   DefaultDistanceModel = dmLinearDistanceClamped;
 
 type
+  TALSound = CastleSoundAllocator.TALSound;
+  TALSoundList = CastleSoundAllocator.TALSoundList;
+
   EALBufferNotLoaded = class(Exception);
 
   TALBuffersCache = class
@@ -65,10 +68,10 @@ type
     You can explicitly initialize OpenAL context by ALContextOpen,
     and explicitly close it by ALContextClose. If you did not call ALContextOpen
     explicitly (that is, ALInitialized is @false), then the first LoadBuffer
-    or TXmlSoundEngine.Sound or TXmlSoundEngine.Sound3D
+    or TRepoSoundEngine.Sound or TRepoSoundEngine.Sound3D
     will automatically do it for you. If you do not call ALContextClose
     explicitly, then at destructor we'll do it automatically. }
-  TALSoundEngine = class(TALSoundAllocator)
+  TSoundEngine = class(TSoundAllocator)
   private
     FSoundInitializationReport: string;
     FDevice: string;
@@ -336,15 +339,15 @@ type
   end;
 
 type
-  { Unique sound type identifier for sounds used within TXmlSoundEngine.
+  { Unique sound type identifier for sounds used within TRepoSoundEngine.
 
-    This is actually just an index to TXmlSoundEngine.SoundNames array,
+    This is actually just an index to TRepoSoundEngine.SoundNames array,
     but you should always treat this as an opaque type. }
   TSoundType = Cardinal;
 
 const
   { Special sound type that indicates that there is actually no sound.
-    @link(TXmlSoundEngine.Sound) and @link(TXmlSoundEngine.Sound3d)
+    @link(TRepoSoundEngine.Sound) and @link(TRepoSoundEngine.Sound3d)
     will do nothing when called with this sound type. }
   stNone = 0;
 
@@ -357,7 +360,7 @@ const
   MinorNonSpatialSoundImportance = 100;
 
 type
-  { Sound information, internally used by TXmlSoundEngine.
+  { Sound information, internally used by TRepoSoundEngine.
 
     The fields correspond to appropriate attributes in sounds XML file.
     All of the fields except Buffer are initialized only by ReadSounds.
@@ -392,12 +395,12 @@ type
          of the music source. }
     Gain, MinGain, MaxGain: Single;
 
-    { Importance, as passed to TALSoundAllocator.
+    { Importance, as passed to TSoundAllocator.
       This is ignored when sound is used for MusicPlayer.Sound. }
     DefaultImportance: Cardinal;
 
     { OpenAL buffer of this sound. Zero if buffer is not yet loaded,
-      which may happen only if TXmlSoundEngine.ALContextOpen was not yet
+      which may happen only if TRepoSoundEngine.ALContextOpen was not yet
       called or when sound has FileName = ''. }
     Buffer: TALbuffer;
   end;
@@ -406,20 +409,20 @@ type
 
   TMusicPlayer = class;
 
-  { Sound engine that loads sound data from a nice XML file.
+  { Sound engine that keeps a repository of sounds, defined in a nice XML file.
     This allows to have simple @link(Sound) and @link(Sound3d) methods,
     that take a sound identifier (managing sound buffers will just happen
     automatically under the hood).
 
-    It extends TALSoundEngine, so you can always still load new buffers
-    and play them by TALSoundEngine.LoadBuffer, TALSoundEngine.PlaySound
+    It extends TSoundEngine, so you can always still load new buffers
+    and play them by TSoundEngine.LoadBuffer, TSoundEngine.PlaySound
     and all other methods. This only adds easy preloaded sounds,
     but you're not limited to them.
 
     You have to set the SoundsXmlFileName property, to gain anything
-    from TXmlSoundEngine. Otherwise, it just acts exactly like TALSoundEngine.
+    from TRepoSoundEngine. Otherwise, it just acts exactly like TSoundEngine.
     See SoundsXmlFileName docs for details. }
-  TXmlSoundEngine = class(TALSoundEngine)
+  TRepoSoundEngine = class(TSoundEngine)
   private
     FSoundImportanceNames: TStringList;
     FSounds: TSoundInfoList;
@@ -459,10 +462,10 @@ type
       When OpenAL is initialized, sound buffers will actually be loaded.
 
       If this is empty (the default), then no sounds are loaded,
-      and TXmlSoundEngine doesn't really give you much above standard
-      TALSoundEngine.
+      and TRepoSoundEngine doesn't really give you much above standard
+      TSoundEngine.
 
-      If you want to actually use TXmlSoundEngine features
+      If you want to actually use TRepoSoundEngine features
       (like the @link(Sound) and @link(Sound3d) methods) you have to set this
       property. For example like this:
 
@@ -547,13 +550,13 @@ type
     property MusicPlayer: TMusicPlayer read FMusicPlayer;
   end;
 
-  { Music player, to easily play a sound preloaded by TXmlSoundEngine.
+  { Music player, to easily play a sound preloaded by TRepoSoundEngine.
     Instance of this class should be created only internally
-    by the TXmlSoundEngine, always use this through TXmlSoundEngine.MusicPlayer. }
+    by the TRepoSoundEngine, always use this through TRepoSoundEngine.MusicPlayer. }
   TMusicPlayer = class
   private
     { Engine that owns this music player. }
-    FEngine: TXmlSoundEngine;
+    FEngine: TRepoSoundEngine;
 
     FSound: TSoundType;
     procedure SetSound(const Value: TSoundType);
@@ -573,7 +576,7 @@ type
     function GetMusicVolume: Single;
     procedure SetMusicVolume(const Value: Single);
   public
-    constructor Create(AnEngine: TXmlSoundEngine);
+    constructor Create(AnEngine: TRepoSoundEngine);
     destructor Destroy; override;
 
     { Currently played music.
@@ -594,15 +597,15 @@ var
   { Common sounds.
 
     The sounds types listed below are automatically
-    initialized when you set TXmlSoundEngine.SoundsXmlFileName.
+    initialized when you set TRepoSoundEngine.SoundsXmlFileName.
     All engine units can use them if you define them in your sounds XML file.
     If they are not defined in your XML file (or if you don't even have
-    an XML file, that is you leave TXmlSoundEngine.SoundsXmlFileName empty)
+    an XML file, that is you leave TRepoSoundEngine.SoundsXmlFileName empty)
     then they remain stNone (and nothing will happen if anything will try
-    to play them by TXmlSoundEngine.Sound or TXmlSoundEngine.Sound3d).
+    to play them by TRepoSoundEngine.Sound or TRepoSoundEngine.Sound3d).
 
     Simply define them in your sounds XML file (see
-    TXmlSoundEngine.SoundsXmlFileName)
+    TRepoSoundEngine.SoundsXmlFileName)
     under a suitable name with underscores,
     like 'creature_falled_down' for stCreatureFalledDown. }
 
@@ -639,9 +642,9 @@ var
     :TSoundType;
 
 
-{ The sound engine. Singleton instance of TXmlSoundEngine, the most capable
+{ The sound engine. Singleton instance of TRepoSoundEngine, the most capable
   engine class. Created on first call to this function. }
-function SoundEngine: TXmlSoundEngine;
+function SoundEngine: TRepoSoundEngine;
 
 implementation
 
@@ -684,9 +687,9 @@ begin
   Result := alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT');
 end;
 
-{ TALSoundEngine ------------------------------------------------------------- }
+{ TSoundEngine ------------------------------------------------------------- }
 
-constructor TALSoundEngine.Create;
+constructor TSoundEngine.Create;
 begin
   inherited;
   FVolume := DefaultVolume;
@@ -709,7 +712,7 @@ begin
   ListenerOrientation[1] := Vector3Single(0, 1, 0);
 end;
 
-destructor TALSoundEngine.Destroy;
+destructor TSoundEngine.Destroy;
 begin
   if Config <> nil then
   begin
@@ -724,7 +727,7 @@ begin
   inherited;
 end;
 
-function TALSoundEngine.Devices: TALDeviceDescriptionList;
+function TSoundEngine.Devices: TALDeviceDescriptionList;
 
   { Find available OpenAL devices, add them to FDevices.
 
@@ -803,7 +806,7 @@ function TALSoundEngine.Devices: TALDeviceDescriptionList;
   end;
 
 begin
-  { Create devices on demand (not immediately in TALSoundEngine.Create),
+  { Create devices on demand (not immediately in TSoundEngine.Create),
     because merely using alcGetString(nil, ALC_DEVICE_SPECIFIER)
     may perform some OpenAL initialization (discovery of available devices).
     E.g. with OpenAL Soft 1.13 in Debian. This is not very harmful,
@@ -826,7 +829,7 @@ begin
   Result := FDevices;
 end;
 
-procedure TALSoundEngine.CheckALC(const situation: string);
+procedure TSoundEngine.CheckALC(const situation: string);
 var
   err: TALenum;
   alcErrDescription: PChar;
@@ -851,7 +854,7 @@ begin
   end;
 end;
 
-function TALSoundEngine.GetContextString(Enum: TALCenum): string;
+function TSoundEngine.GetContextString(Enum: TALCenum): string;
 begin
   result := alcGetString(ALDevice, enum);
   try
@@ -870,7 +873,7 @@ begin
   end;
 end;
 
-procedure TALSoundEngine.ALContextOpen;
+procedure TSoundEngine.ALContextOpen;
 
   procedure ParseVersion(const Version: string; out Major, Minor: Integer);
   var
@@ -998,7 +1001,7 @@ begin
   OnOpenClose.ExecuteAll(Self);
 end;
 
-procedure TALSoundEngine.ALContextClose;
+procedure TSoundEngine.ALContextClose;
 
   procedure EndAL;
   begin
@@ -1086,7 +1089,7 @@ begin
   end;
 end;
 
-function TALSoundEngine.PlaySound(const ALBuffer: TALBuffer;
+function TSoundEngine.PlaySound(const ALBuffer: TALBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
   const Gain, MinGain, MaxGain: Single;
   const Position: TVector3Single;
@@ -1177,7 +1180,7 @@ begin
   end;
 end;
 
-function TALSoundEngine.PlaySound(const ALBuffer: TALBuffer;
+function TSoundEngine.PlaySound(const ALBuffer: TALBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
   const Gain, MinGain, MaxGain: Single;
   const Position: TVector3Single;
@@ -1189,7 +1192,7 @@ begin
     DefaultReferenceDistance, DefaultMaxDistance);
 end;
 
-function TALSoundEngine.LoadBuffer(const FileName: string;
+function TSoundEngine.LoadBuffer(const FileName: string;
   out Duration: TFloatTime): TALBuffer;
 var
   I: Integer;
@@ -1227,14 +1230,14 @@ begin
   BuffersCache.Add(Cache);
 end;
 
-function TALSoundEngine.LoadBuffer(const FileName: string): TALBuffer;
+function TSoundEngine.LoadBuffer(const FileName: string): TALBuffer;
 var
   Dummy: TFloatTime;
 begin
   Result := LoadBuffer(FileName, Dummy);
 end;
 
-procedure TALSoundEngine.FreeBuffer(var Buffer: TALBuffer);
+procedure TSoundEngine.FreeBuffer(var Buffer: TALBuffer);
 var
   I: Integer;
 begin
@@ -1256,7 +1259,7 @@ begin
   raise EALBufferNotLoaded.CreateFmt('OpenAL buffer %d not loaded', [Buffer]);
 end;
 
-procedure TALSoundEngine.SetVolume(const Value: Single);
+procedure TSoundEngine.SetVolume(const Value: Single);
 begin
   if Value <> FVolume then
   begin
@@ -1266,7 +1269,7 @@ begin
   end;
 end;
 
-procedure TALSoundEngine.UpdateDistanceModel;
+procedure TSoundEngine.UpdateDistanceModel;
 
   function AtLeast(AMajor, AMinor: Integer): boolean;
   begin
@@ -1292,7 +1295,7 @@ begin
     alDistanceModel(ALDistanceModelConsts[DistanceModel]);
 end;
 
-procedure TALSoundEngine.SetDistanceModel(const Value: TALDistanceModel);
+procedure TSoundEngine.SetDistanceModel(const Value: TALDistanceModel);
 begin
   if Value <> FDistanceModel then
   begin
@@ -1301,7 +1304,7 @@ begin
   end;
 end;
 
-procedure TALSoundEngine.SetDevice(const Value: string);
+procedure TSoundEngine.SetDevice(const Value: string);
 begin
   if Value <> FDevice then
   begin
@@ -1317,7 +1320,7 @@ begin
   end;
 end;
 
-procedure TALSoundEngine.SetEnable(const Value: boolean);
+procedure TSoundEngine.SetEnable(const Value: boolean);
 begin
   if Value <> FEnable then
   begin
@@ -1335,9 +1338,9 @@ end;
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
-  Engine: TALSoundEngine;
+  Engine: TSoundEngine;
 begin
-  Engine := TALSoundEngine(Data);
+  Engine := TSoundEngine(Data);
   case OptionNum of
     0: begin
          Engine.Device := Argument;
@@ -1351,7 +1354,7 @@ begin
   end;
 end;
 
-procedure TALSoundEngine.ParseParameters;
+procedure TSoundEngine.ParseParameters;
 const
   OpenALOptions: array [0..1] of TOption =
   ( (Short: #0; Long: 'audio-device'; Argument: oaRequired),
@@ -1361,7 +1364,7 @@ begin
   Parameters.Parse(OpenALOptions, @OptionProc, Self, true);
 end;
 
-function TALSoundEngine.ParseParametersHelp: string;
+function TSoundEngine.ParseParametersHelp: string;
 
   function DevicesHelp: string;
   var
@@ -1399,7 +1402,7 @@ begin
     '  --no-sound            Turn off sound';
 end;
 
-procedure TALSoundEngine.UpdateListener(const Position, Direction, Up: TVector3Single);
+procedure TSoundEngine.UpdateListener(const Position, Direction, Up: TVector3Single);
 begin
   ListenerPosition := Position;
   ListenerOrientation[0] := Direction;
@@ -1411,7 +1414,7 @@ begin
   end;
 end;
 
-function TALSoundEngine.DeviceNiceName: string;
+function TSoundEngine.DeviceNiceName: string;
 var
   I: Integer;
 begin
@@ -1426,14 +1429,14 @@ const
   DefaultAudioDevice = '';
   DefaultAudioEnable = true;
 
-procedure TALSoundEngine.LoadFromConfig(const Config: TCastleConfig);
+procedure TSoundEngine.LoadFromConfig(const Config: TCastleConfig);
 begin
   inherited;
   Device := Config.GetValue('sound/device', DefaultAudioDevice);
   Enable := Config.GetValue('sound/enable', DefaultAudioEnable);
 end;
 
-procedure TALSoundEngine.SaveToConfig(const Config: TCastleConfig);
+procedure TSoundEngine.SaveToConfig(const Config: TCastleConfig);
 begin
   inherited;
   if DeviceSaveToConfig then
@@ -1442,9 +1445,9 @@ begin
     Config.SetDeleteValue('sound/enable', Enable, DefaultAudioEnable);
 end;
 
-{ TXmlSoundEngine ----------------------------------------------------------- }
+{ TRepoSoundEngine ----------------------------------------------------------- }
 
-constructor TXmlSoundEngine.Create;
+constructor TRepoSoundEngine.Create;
 begin
   inherited;
 
@@ -1466,7 +1469,7 @@ begin
   FMusicPlayer := TMusicPlayer.Create(Self);
 end;
 
-destructor TXmlSoundEngine.Destroy;
+destructor TRepoSoundEngine.Destroy;
 begin
   FreeAndNil(FSoundImportanceNames);
   FreeAndNil(FSounds);
@@ -1474,13 +1477,13 @@ begin
   inherited;
 end;
 
-procedure TXmlSoundEngine.ALContextOpen;
+procedure TRepoSoundEngine.ALContextOpen;
 begin
   inherited;
   LoadSoundsBuffers;
 end;
 
-procedure TXmlSoundEngine.LoadSoundsBuffers;
+procedure TRepoSoundEngine.LoadSoundsBuffers;
 var
   ST: TSoundType;
 begin
@@ -1514,14 +1517,14 @@ begin
   end;
 end;
 
-procedure TXmlSoundEngine.ALContextClose;
+procedure TRepoSoundEngine.ALContextClose;
 var
   ST: TSoundType;
 begin
   if ALActive then
   begin
     StopAllSources;
-    { this is called from TALSoundEngine.Destroy, so be secure and check
+    { this is called from TSoundEngine.Destroy, so be secure and check
       Sounds for nil }
     if Sounds <> nil then
       for ST := 0 to Sounds.Count - 1 do
@@ -1530,7 +1533,7 @@ begin
   inherited;
 end;
 
-function TXmlSoundEngine.Sound(SoundType: TSoundType;
+function TRepoSoundEngine.Sound(SoundType: TSoundType;
   const Looping: boolean): TALSound;
 begin
   if not ALInitialized then ALContextOpen;
@@ -1544,7 +1547,7 @@ begin
     ZeroVector3Single);
 end;
 
-function TXmlSoundEngine.Sound3d(SoundType: TSoundType;
+function TRepoSoundEngine.Sound3d(SoundType: TSoundType;
   const Position: TVector3Single;
   const Looping: boolean): TALSound;
 begin
@@ -1559,7 +1562,7 @@ begin
     Position);
 end;
 
-procedure TXmlSoundEngine.SetSoundsXmlFileName(const Value: string);
+procedure TRepoSoundEngine.SetSoundsXmlFileName(const Value: string);
 var
   SoundConfig: TXMLDocument;
   ImportanceStr: string;
@@ -1669,7 +1672,7 @@ begin
   LoadSoundsBuffers;
 end;
 
-procedure TXmlSoundEngine.ReloadSounds;
+procedure TRepoSoundEngine.ReloadSounds;
 var
   OldSoundsXmlFileName: string;
 begin
@@ -1681,7 +1684,7 @@ begin
   end;
 end;
 
-function TXmlSoundEngine.SoundFromName(const SoundName: string;
+function TRepoSoundEngine.SoundFromName(const SoundName: string;
   const RaiseError: boolean): TSoundType;
 begin
   for Result := 0 to Sounds.Count - 1 do
@@ -1693,13 +1696,13 @@ begin
     Result := stNone;
 end;
 
-procedure TXmlSoundEngine.AddSoundImportanceName(const Name: string;
+procedure TRepoSoundEngine.AddSoundImportanceName(const Name: string;
   Importance: Integer);
 begin
   FSoundImportanceNames.AddObject(Name, TObject(Pointer(PtrUInt(Importance))));
 end;
 
-procedure TXmlSoundEngine.LoadFromConfig(const Config: TCastleConfig);
+procedure TRepoSoundEngine.LoadFromConfig(const Config: TCastleConfig);
 begin
   inherited;
   Volume := Config.GetFloat('sound/volume', DefaultVolume);
@@ -1707,7 +1710,7 @@ begin
     DefaultMusicVolume);
 end;
 
-procedure TXmlSoundEngine.SaveToConfig(const Config: TCastleConfig);
+procedure TRepoSoundEngine.SaveToConfig(const Config: TCastleConfig);
 begin
   inherited;
   Config.SetDeleteFloat('sound/volume', Volume, DefaultVolume);
@@ -1720,7 +1723,7 @@ end;
 
 { TMusicPlayer --------------------------------------------------------------- }
 
-constructor TMusicPlayer.Create(AnEngine: TXmlSoundEngine);
+constructor TMusicPlayer.Create(AnEngine: TRepoSoundEngine);
 begin
   inherited Create;
   FMusicVolume := DefaultMusicVolume;
@@ -1788,12 +1791,12 @@ end;
 { globals -------------------------------------------------------------------- }
 
 var
-  FSoundEngine: TXmlSoundEngine;
+  FSoundEngine: TRepoSoundEngine;
 
-function SoundEngine: TXmlSoundEngine;
+function SoundEngine: TRepoSoundEngine;
 begin
   if FSoundEngine = nil then
-    FSoundEngine := TXmlSoundEngine.Create;
+    FSoundEngine := TRepoSoundEngine.Create;
   Result := FSoundEngine;
 end;
 
