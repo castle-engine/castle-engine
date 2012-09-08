@@ -356,7 +356,7 @@ type
       const Distance: Single): boolean; override;
 
     property Collides default false;
-    property Pushable default true;
+    property CollidesWithMoving default true;
     function Middle: TVector3Single; override;
   end;
 
@@ -729,7 +729,7 @@ constructor TItemOnLevel.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  Pushable := true;
+  CollidesWithMoving := true;
 
   { Items are not collidable, player can enter them to pick them up.
     For now, this also means that creatures can pass through them,

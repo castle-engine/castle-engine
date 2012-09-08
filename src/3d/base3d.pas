@@ -309,7 +309,7 @@ type
     FCollides: boolean;
     FParent: T3DList;
     FCursor: TMouseCursor;
-    FPushable: boolean;
+    FCollidesWithMoving: boolean;
     Disabled: Cardinal;
     procedure SetCursor(const Value: TMouseCursor);
   protected
@@ -452,14 +452,23 @@ type
       You can turn this off, useful to make e.g. "fake" walls
       (to some secret places on level).
 
-      This describes collision resolution with everything --- camera,
+      This describes collision resolution with almost everything --- camera,
       player (in third-person perspective, camera may differ from player),
-      other creatures, other level parts. That is because everything
+      other creatures. That is because everything
       resolves collisions through our methods MoveAllowed and @link(Height)
       (high-level) or SegmentCollision, SphereCollision, BoxCollision
       (low-level). (Note that RayCollision is excluded from this,
       it exceptionally ignores Collides value, as it's primarily used for picking.
       Same for SegmentCollision with LineOfSight=true.)
+
+      The only exception are the collisions with T3DMoving instances
+      (movable world parts like elevators and doors) that have their own
+      detection routines and look at CollidesWithMoving property of other objects.
+      That is, the T3DMoving instance itself must still have Collides = @true,
+      but it interacts with @italic(other) objects if and only if they have
+      CollidesWithMoving = @true (ignoring their Collides value).
+      This allows items to be moved by elevators, but still player and creatures
+      can pass through them.
 
       Note that if not @link(Exists) then this doesn't matter
       (not existing objects never participate in collision detection).
@@ -711,7 +720,7 @@ type
     function Dragging: boolean; virtual;
 
     { What happens when other 3D objects try to push this object.
-      See @link(Pushable) for when it may happen.
+      May only happen if CollidesWithMoving is @true.
       By default, in T3D class, this does nothing. }
     procedure Translate(const T: TVector3Single); virtual;
 
@@ -761,7 +770,7 @@ type
       sphere surrounding the 3D object (it does not have to be a perfect
       bounding sphere around the object), and it may be used for some
       collisions instead of BoundingBox.
-      See @link(Pushable) and @link(MyMoveAllowed) for when it may happen.
+      See @link(CollidesWithMoving) and @link(MyMoveAllowed) for when it may happen.
 
       Must return @false when not GetExists (because we can't express
       "empty sphere" by @link(Sphere) method for now, but BoundingBox can express
@@ -850,22 +859,21 @@ type
       ) }
     function Sphere(out Radius: Single): boolean; virtual;
 
-    { Can this object be pushed (or may block movement of) doors, elevators
-      and other such features. This specifies how moving level parts
-      (T3DMoving instances --- doors, elevators and such) interact with this item.
+    { Can this object be pushed by (or block movement of) doors, elevators
+      and other moving level parts (T3DMoving instances).
 
-      Some 3D moving objects may try to not crush this item. Like an automatic
-      door that stops it's closing animation to not crush things standing
-      in the doorway.
+      Some 3D moving objects may try to avoid crushing this item.
+      Like an automatic door that stops it's closing animation
+      to not crush things standing in the doorway.
 
-      Some other 3D moving objects may transport this object.
+      Some other 3D moving objects may push this object.
       Like elevators (vertical, or horizontal moving platforms).
       We may use sphere (see @link(T3D.Sphere)) for checking
       collisions, or bounding box (@link(T3D.BoundingBox)), depending on need.
       The item is moved using @link(T3D.Translate), so make sure it
       actually does something (for example, by descending from T3DTransform,
       that provides natural @link(T3D.Translate) implementation). }
-    property Pushable: boolean read FPushable write FPushable default false;
+    property CollidesWithMoving: boolean read FCollidesWithMoving write FCollidesWithMoving default false;
 
     { Get height of my point above the rest of the 3D world.
       @groupBegin }
@@ -1307,8 +1315,8 @@ type
 
     Other 3D objects may be pushed, if @link(Pushes).
     There are two methods of pushing available, see @link(PushesEverythingInside).
-    Only the 3D objects with @link(T3D.Pushable) are ever pushed by this object
-    (the rest of 3D world is treated as static, does not interact with
+    Only the 3D objects with @link(T3D.CollidesWithMoving) are ever pushed by
+    this object (the rest of 3D world is treated as static, does not interact with
     elevators / doors or such).
 
     You can also stop/reverse the move to prevent some collisions
@@ -1351,7 +1359,7 @@ type
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
   published
     { Are other 3D objects pushed when this object moves.
-      Only the 3D objects with @link(T3D.Pushable) are ever pushed by this object
+      Only the 3D objects with @link(T3D.CollidesWithMoving) are ever pushed by this object
       (the rest of 3D world is treated as static, does not interact with
       elevators / doors or such).
 
@@ -1363,7 +1371,7 @@ type
 
       @orderedList(
         @item(PushesEverythingInside = @true: We move every
-          pushable 3D object that is inside our bounding box.
+          3D object that is inside our bounding box and has CollidesWithMoving=@true.
           This is sensible if we can reasonably assume that things
           inside our box are standing. For example if this is
           a (vertical or horizontal) elevator, then creatures/items
@@ -1371,7 +1379,8 @@ type
           the same speed (and direction) as the elevator.)
 
         @item(When PushesEverythingInside = @false: We check precise
-          collision between pushable 3D objects and our triangle mesh.
+          collision between 3D objects with CollidesWithMoving=@true
+          and our triangle mesh.
           Actually, we use T3DList.BoxCollision / T3DList.SphereCollsion,
           that will use children's T3D.BoxCollision / T3D.SphereCollsion;
           they check collisions with triangle mesh in case of TCastleScene
@@ -3265,7 +3274,7 @@ end;
 
 { T3DMoving --------------------------------------------------------- }
 
-{ TODO: this browses World list, doesn't take into acount Pushable items
+{ TODO: this browses World list, doesn't take into acount CollidesWithMoving items
   that may be inside a sublist. }
 
 constructor T3DMoving.Create(AOwner: TComponent);
@@ -3382,7 +3391,7 @@ begin
         for I := 0 to World.Count - 1 do
         begin
           Item := World[I];
-          if Item.Pushable then
+          if Item.CollidesWithMoving then
           begin
             { This case doesn't really use Item.Sphere. But it's not really
               terribly important design decision, we may use Item.Sphere
@@ -3399,7 +3408,7 @@ begin
         for I := 0 to World.Count - 1 do
         begin
           Item := World[I];
-          if Item.Pushable then
+          if Item.CollidesWithMoving then
             if Item.Sphere(SphereRadius) then
             begin
               if SphereCollisionAssumeTranslation(NewTranslation,

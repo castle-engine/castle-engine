@@ -332,7 +332,7 @@ type
       It's loaded from player.xml }
     property Resources: T3DResourceList read FResources;
 
-    property Pushable default true;
+    property CollidesWithMoving default true;
     procedure Translate(const T: TVector3Single); override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
@@ -381,7 +381,7 @@ var
   BaseLights: TLightInstancesList;
 begin
   inherited Create(AOwner);
-  Pushable := true;
+  CollidesWithMoving := true;
   Life := DefaultPlayerLife;
   MaxLife := DefaultPlayerLife;
   DefaultMoveHorizontalSpeed := 1.0;

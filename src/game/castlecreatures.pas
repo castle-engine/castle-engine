@@ -663,7 +663,7 @@ type
     function PointingDeviceActivate(const Active: boolean;
       const Distance: Single): boolean; override;
 
-    property Pushable default true;
+    property CollidesWithMoving default true;
   end;
 
   TCreatureList = class(specialize TFPGObjectList<TCreature>)
@@ -1117,7 +1117,7 @@ type
 constructor TCreature.Create(AOwner: TComponent; const AMaxLife: Single);
 begin
   inherited Create(AOwner);
-  Pushable := true;
+  CollidesWithMoving := true;
   MaxLife := AMaxLife;
   FSoundDyingEnabled := true;
   UsedSounds := TSoundList.Create(false);
