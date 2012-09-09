@@ -393,6 +393,9 @@ type
 
     function Equal(const Box2: TBox3D): boolean;
     function Equal(const Box2: TBox3D; const EqualityEpsilon: Single): boolean;
+
+    { Diagonal of the box, zero if empty. }
+    function Diagonal: Single;
   end;
 
   TBox3DBool = array [boolean] of TVector3Single;
@@ -497,7 +500,9 @@ function IsCenteredBox3DPlaneCollision(
 function BoundingBox3DFromSphere(const Center: TVector3Single;
   const Radius: Single): TBox3D;
 
-operator+ (const box1, box2: TBox3D): TBox3D;
+operator+ (const Box1, Box2: TBox3D): TBox3D;
+operator+ (const B: TBox3D; const V: TVector3Single): TBox3D;
+operator+ (const V: TVector3Single; const B: TBox3D): TBox3D;
 
 implementation
 
@@ -1650,6 +1655,15 @@ begin
       VectorsEqual(Data[1], Box2.Data[1], EqualityEpsilon);
 end;
 
+function TBox3D.Diagonal: Single;
+begin
+  if IsEmpty then
+    Result := 0 else
+    Result := Sqrt(Sqr(Data[1][0] - Data[0][0]) +
+                   Sqr(Data[1][1] - Data[0][1]) +
+                   Sqr(Data[1][2] - Data[0][2]));
+end;
+
 { Routines ------------------------------------------------------------------- }
 
 {$define TGenericFloat := Single}
@@ -1872,22 +1886,6 @@ begin
   finally Calculator.Free end;
 end;
 
-operator+ (const box1, box2: TBox3D): TBox3D;
-begin
-  if box1.IsEmpty then
-    Result := box2 else
-  if box2.IsEmpty then
-    Result := box1 else
-  begin
-    result.Data[0, 0] := min(box1.Data[0, 0], box2.Data[0, 0]);
-    result.Data[1, 0] := max(box1.Data[1, 0], box2.Data[1, 0]);
-    result.Data[0, 1] := min(box1.Data[0, 1], box2.Data[0, 1]);
-    result.Data[1, 1] := max(box1.Data[1, 1], box2.Data[1, 1]);
-    result.Data[0, 2] := min(box1.Data[0, 2], box2.Data[0, 2]);
-    result.Data[1, 2] := max(box1.Data[1, 2], box2.Data[1, 2]);
-  end;
-end;
-
 function TriangleBoundingBox(const T: TTriangle3Single): TBox3D;
 begin
   MinMax(T[0][0], T[1][0], T[2][0], Result.Data[0][0], Result.Data[1][0]);
@@ -1907,6 +1905,32 @@ begin
   Result.Data[1][0] += Radius;
   Result.Data[1][1] += Radius;
   Result.Data[1][2] += Radius;
+end;
+
+operator+ (const box1, box2: TBox3D): TBox3D;
+begin
+  if box1.IsEmpty then
+    Result := box2 else
+  if box2.IsEmpty then
+    Result := box1 else
+  begin
+    result.Data[0, 0] := min(box1.Data[0, 0], box2.Data[0, 0]);
+    result.Data[1, 0] := max(box1.Data[1, 0], box2.Data[1, 0]);
+    result.Data[0, 1] := min(box1.Data[0, 1], box2.Data[0, 1]);
+    result.Data[1, 1] := max(box1.Data[1, 1], box2.Data[1, 1]);
+    result.Data[0, 2] := min(box1.Data[0, 2], box2.Data[0, 2]);
+    result.Data[1, 2] := max(box1.Data[1, 2], box2.Data[1, 2]);
+  end;
+end;
+
+operator+ (const B: TBox3D; const V: TVector3Single): TBox3D;
+begin
+  Result := B.Translate(V);
+end;
+
+operator+ (const V: TVector3Single; const B: TBox3D): TBox3D;
+begin
+  Result := B.Translate(V);
 end;
 
 end.
