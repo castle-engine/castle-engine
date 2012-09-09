@@ -734,6 +734,7 @@ type
       default wasStand;
 
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
 
     procedure Hurt(const LifeLoss: Single; const HurtDirection: TVector3Single;
       const AKnockbackDistance: Single); override;
@@ -1269,7 +1270,7 @@ begin
         DebugCaptions;
     glPopMatrix;
 
-    if RenderDebugBoundingVolumes and
+    if RenderDebug3D and
        (not Params.Transparent) and Params.ShadowVolumesReceivers then
       DebugBoundingVolumes;
   end;
@@ -1717,15 +1718,17 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
   procedure InitAlternativeTarget;
   var
     Distance: Single;
+    I: Integer;
   begin
     Distance := WAKind.RandomWalkDistance;
 
     AlternativeTarget := Middle;
-    { TODO: Z up? Look at DefaultOrientation }
-    AlternativeTarget[0] += Random * Distance * 2 - Distance;
-    AlternativeTarget[1] += Random * Distance * 2 - Distance;
-    if WAKind.Flying then
-      AlternativeTarget[2] += Random * Distance * 2 - Distance;
+    { Add random values to the AlternativeTarget, but only on the components
+      where creature can reliably move. Creature that cannot fly cannot
+      move in gravity (UpIndex) direction. }
+    for I := 0 to 2 do
+      if WAKind.Flying or (I <> UpIndex) then
+        AlternativeTarget[I] += Random * Distance * 2 - Distance;
 
     HasAlternativeTarget := true;
 
@@ -2214,6 +2217,30 @@ procedure TWalkAttackCreature.Hurt(const LifeLoss: Single;
 begin
   inherited Hurt(LifeLoss, HurtDirection,
     AKnockbackDistance * WAKind.KnockedBackDistance);
+end;
+
+procedure TWalkAttackCreature.Render(const Frustum: TFrustum; const Params: TRenderParams);
+var
+  AxisSize: Single;
+begin
+  inherited;
+
+  if RenderDebug3D and GetExists and
+     (not Params.Transparent) and Params.ShadowVolumesReceivers then
+  begin
+    AxisSize := BoundingBox.AverageSize(true, 0);
+    if HasAlternativeTarget then
+    begin
+      glColorv(Blue3Single);
+      glDrawAxisWire(AlternativeTarget, AxisSize);
+    end;
+
+    if HasLastSeenPlayer then
+    begin
+      glColorv(Red3Single);
+      glDrawAxisWire(LastSeenPlayer, AxisSize);
+    end;
+  end;
 end;
 
 { TMissileCreature ----------------------------------------------------------- }

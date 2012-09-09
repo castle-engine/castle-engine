@@ -782,7 +782,7 @@ var
   BoxRotated: TBox3D;
 begin
   inherited;
-  if RenderDebugBoundingVolumes and GetExists and
+  if RenderDebug3D and GetExists and
     (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
     BoxRotated := Item.Kind.BoundingBoxRotated(World.GravityUp).Translate(Position);

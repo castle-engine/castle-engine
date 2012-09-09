@@ -1616,7 +1616,7 @@ var
     to display additional features of 3D objects, helpful to debug collisions,
     AI and other things.
     @groupBegin }
-  RenderDebugBoundingVolumes: boolean = false;
+  RenderDebug3D: boolean = false;
   RenderDebugCaptions: boolean = false;
   { @groupEnd }
 
