@@ -4,6 +4,8 @@ The tutorial handles both alternatives for creating OpenGL context: as Lazarus c
 
 ------------------------------------------------------------------------------
 TODO: add somewhere here a nice diagram of engine classes, see DRAFT.engine_classes_diagram.txt.
+
+Add at the beginning of each page: you're welcome to contribute to this tutorial (or any other part of the engine documentation, for that matter): go to <a href="http://sourceforge.net/p/castle-engine/wiki/Home/">our wiki</a> and write there about what you think is useful :) If you want to modify the contents of this tutorial, you're welcome to just start by copy-pasting the relevant text from here to wiki, and the improving it. We will merge the contents of wiki back to our "static" documentation, or (if wiki will prove successfull) we will just start linking to our wiki instead of static docs.
 ------------------------------------------------------------------------------
 0. Introduction
 
