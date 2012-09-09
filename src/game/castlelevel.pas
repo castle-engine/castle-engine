@@ -179,15 +179,12 @@ type
   { Level logic. We use T3D descendant, since this is the comfortable
     way to add any behavior to the 3D world (it doesn't matter that
     "level logic" is not a usual 3D object --- it doesn't have to collide
-    or be visible). And we add some game-specific stuff,
-    like BossCreatureIndicator. }
+    or be visible). }
   TLevel = class(T3D)
   private
     FTime: TFloatTime;
     FWorld: T3DWorld;
   protected
-    FBossCreature: TCreature;
-
     { Load 3D precalculated animation from (*.kanim) file, doing common tasks.
       @unorderedList(
         @item optionally creates triangle octree for the FirstScene and/or LastScene
@@ -243,16 +240,6 @@ type
 
       In TLevel class implementation of this does nothing.  }
     procedure PrepareNewPlayer(NewPlayer: TPlayer); virtual;
-
-    { What to show on boss creature indicator.
-      Default implementation in this class uses BossCreature property:
-      if it's non-nil and BossCreature is alive, then indicator shows
-      BossCreature life. }
-    function BossCreatureIndicator(out Life, MaxLife: Single): boolean; virtual;
-
-    { Instance of boss creature, if any, on the level. @nil if no boss creature
-      exists on this level. }
-    property BossCreature: TCreature read FBossCreature;
 
     { Time of the level, in seconds. Time 0 when level is created.
       This is updated in our Idle. }
@@ -630,16 +617,6 @@ function TLevel.BoundingBox: TBox3D;
 begin
   { This object is invisible and non-colliding. }
   Result := EmptyBox3D;
-end;
-
-function TLevel.BossCreatureIndicator(out Life, MaxLife: Single): boolean;
-begin
-  Result := (BossCreature <> nil) and (not BossCreature.Dead);
-  if Result then
-  begin
-    Life := BossCreature.Life;
-    MaxLife := BossCreature.MaxLife;
-  end;
 end;
 
 procedure TLevel.PrepareNewPlayer(NewPlayer: TPlayer);
