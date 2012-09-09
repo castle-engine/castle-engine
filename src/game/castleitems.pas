@@ -31,28 +31,18 @@ uses Boxes3D, X3DNodes, CastleScene, VectorMath, CastleUtils,
   CastleXMLConfig, CastleSoundEngine, Frustum, Base3D, FGL, CastleColors;
 
 const
-  DefaultItemDamageConst = 5.0;
-  DefaultItemDamageRandom = 5.0;
-  DefaultItemActualAttackTime = 0.0;
-  DefaultItemAttackKnockbackDistance = 1.0;
+  DefaultWeaponDamageConst = 5.0;
+  DefaultWeaponDamageRandom = 5.0;
+  DefaultWeaponActualAttackTime = 0.0;
+  DefaultWeaponAttackKnockbackDistance = 1.0;
 
 type
-  TItem = class;
-  TItemClass = class of TItem;
+  TInventoryItem = class;
+  TInventoryItemClass = class of TInventoryItem;
 
   { Kind of item. }
   TItemKind = class(T3DResource)
   private
-  { Design question: Maybe it's better making TSword a descendant of TItem,
-    and not creating TItemKind class ? This seems somewhat cleaner
-    from OOP approach. Then various functions/properties
-    of TItemKind must be handled as "class function" of TItem.
-    Answer: I once did this (see "Jamy & Nory"), but it turns out that it's
-    not comfortable --- for example I would need associative array
-    (like LoadedModels) to keep TItemKind.FScene value
-    (to not load and not construct new GL display list each time
-    I create TSword instance). }
-
     FSceneFileName: string;
     FScene: TCastleScene;
     FCaption: string;
@@ -66,9 +56,9 @@ type
       const DoProgress: boolean); override;
     function PrepareCoreSteps: Cardinal; override;
     procedure ReleaseCore; override;
-    { Which TItem descendant to create when constructing item
+    { Which TInventoryItem descendant to create when constructing item
       of this kind by CreateItem. }
-    function ItemClass: TItemClass; virtual;
+    function ItemClass: TInventoryItemClass; virtual;
   public
     destructor Destroy; override;
 
@@ -98,17 +88,62 @@ type
       to account the fact that Scene may be rotated around +Z vector. }
     function BoundingBoxRotated: TBox3D;
 
-    { Create item. This is how you should create new TItem instances.
+    { Create item. This is how you should create new TInventoryItem instances.
       It is analogous to TCreatureKind.CreateCreature, but now for items.
 
-      Note that the item itself doesn't exist on a level --- you have to
-      put it there if you want by TItem.PutOnLevel. That is because items
+      Note that the item itself doesn't exist on a 3D world --- you have to
+      put it there if you want by TInventoryItem.PutOnWorld. That is because items
       can also exist only in player's backpack and such, and then they
-      are independent from 3D world. }
-    function CreateItem(const AQuantity: Cardinal): TItem;
+      are independent from 3D world.
+
+      @bold(Examples:)
+
+      You usually define your own item kinds by adding a subdirectory with
+      resource.xml file to your game data. See README_about_index_xml_files.txt
+      and engine tutorial for examples how to do this. Then you load the item
+      kinds with
+
+@longCode(#
+var
+  Sword: TItemKind;
+...
+  AllResources.LoadFromFiles;
+  Sword := AllResources.FindName('Sword') as TItemKind;
+#)
+
+      where 'Sword' is just our example item kind, assuming that one of your
+      resource.xml files has resource with name="Sword".
+
+      Now if you want to add the sword to your 3D world by code:
+
+      Because TInventoryItem instance is automatically
+      owned (freed) by the 3D world or inventory that contains it, a simplest
+      example how to add an item to your 3D world is this:
+
+@longCode(#
+  Sword.CreateItem(1).PutOnWorld(SceneManager.World, Vector3Single(2, 3, 4));
+#)
+
+      This adds 1 item of the MyItemKind to the 3D world,
+      on position (2, 3, 4). In simple cases you can get SceneManager
+      instance from TCastleWindow.SceneManager or TCastleControl.SceneManager.
+
+      If you want to instead add sword to the inventory of Player,
+      you can call
+
+@longCode(#
+  SceneManager.Player.PickItem(Sword.CreateItem(1));
+#)
+
+      This assumes that you use SceneManager.Player property. It's not really
+      obligatory, but it's the simplest way to have player with an inventory.
+      See engine tutorial for examples how to create player.
+      Anyway, if you have any TInventory instance, you can use
+      TInventory.Pick to add TInventoryItem this way. }
+    function CreateItem(const AQuantity: Cardinal): TInventoryItem;
 
     { Instantiate placeholder by create new item with CreateItem
-      and putting it on level with TItem.PutOnLevel. }
+      and putting it on level with TInventoryItem.PutOnWorld. }
     procedure InstantiatePlaceholder(World: T3DWorld;
       const APosition, ADirection: TVector3Single;
       const NumberPresent: boolean; const Number: Int64); override;
@@ -128,7 +163,7 @@ type
       const DoProgress: boolean); override;
     function PrepareCoreSteps: Cardinal; override;
     procedure ReleaseCore; override;
-    function ItemClass: TItemClass; override;
+    function ItemClass: TInventoryItemClass; override;
   public
     { Sound to make on equipping. Each weapon can have it's own
       equipping sound. }
@@ -149,7 +184,7 @@ type
       (hopefully it shouldn't be noticeable to the player). }
     property ActualAttackTime: Single
       read FActualAttackTime write FActualAttackTime
-      default DefaultItemActualAttackTime;
+      default DefaultWeaponActualAttackTime;
 
     property SoundAttackStart: TSoundType
       read FSoundAttackStart write FSoundAttackStart default stNone;
@@ -166,22 +201,23 @@ type
     constructor Create(const AName: string); override;
 
     property DamageConst: Single read FDamageConst write FDamageConst
-      default DefaultItemDamageConst;
+      default DefaultWeaponDamageConst;
     property DamageRandom: Single read FDamageRandom write FDamageRandom
-      default DefaultItemDamageRandom;
+      default DefaultWeaponDamageRandom;
     property AttackKnockbackDistance: Single
       read FAttackKnockbackDistance write FAttackKnockbackDistance
-      default DefaultItemAttackKnockbackDistance;
+      default DefaultWeaponAttackKnockbackDistance;
 
     procedure LoadFromFile(KindsConfig: TCastleConfig); override;
   end;
 
-  TItemOnLevel = class;
+  TItemOnWorld = class;
 
-  { An item.
+  { An item that can be used, kept in the inventory, or (using PutOnWorld
+    that wraps it in TItemOnWorld) dropped on 3D world.
     Thanks to the @link(Quantity) property, this may actually represent
     many "stacked" items, all having the same properties. }
-  TItem = class(TComponent)
+  TInventoryItem = class(TComponent)
   private
     FKind: TItemKind;
     FQuantity: Cardinal;
@@ -193,7 +229,7 @@ type
       of both items are equal, with the exception of Quantity.
 
       TODO: protected virtual in the future? }
-    function Stackable(Item: TItem): boolean;
+    function Stackable(Item: TInventoryItem): boolean;
   public
     property Kind: TItemKind read FKind;
 
@@ -207,17 +243,17 @@ type
       And it lowers our Quantity by QuantitySplit.
 
       Always QuantitySplit must be >= 1 and < Quantity. }
-    function Split(QuantitySplit: Cardinal): TItem;
+    function Split(QuantitySplit: Cardinal): TInventoryItem;
 
-    { Create TItemOnLevel instance referencing this item,
+    { Create TItemOnWorld instance referencing this item,
       and add this to the given 3D AWorld.
       Although normal item knows (through Owner3D) the world it lives in,
       but this method may be used for items that don't have an owner yet,
       so we take AWorld parameter explicitly.
-      This is how you should create new TItemOnLevel instances.
+      This is how you should create new TItemOnWorld instances.
       It is analogous to TCreatureKind.CreateCreature, but now for items. }
-    function PutOnLevel(const AWorld: T3DWorld;
-      const APosition: TVector3Single): TItemOnLevel;
+    function PutOnWorld(const AWorld: T3DWorld;
+      const APosition: TVector3Single): TItemOnWorld;
 
     { Use this item.
 
@@ -239,28 +275,28 @@ type
 
     { 3D owner of the item,
       like a player or creature (if the item is in the backpack)
-      or the TItemOnLevel instance (if the item is lying on the world,
+      or the TItemOnWorld instance (if the item is lying on the world,
       pickable). May be @nil only in special situations (when item is moved
       from one 3D to another, and technically it's safer to @nil this
       property).
 
-      The owner is always responsible for freeing this TItem instance
-      (in case of TItemOnLevel, it does it directly;
-      in case of player or creature, it does it by TItemsInventory). }
+      The owner is always responsible for freeing this TInventoryItem instance
+      (in case of TItemOnWorld, it does it directly;
+      in case of player or creature, it does it by TInventory). }
     property Owner3D: T3D read FOwner3D;
 
     { 3D world of this item, if any.
 
-      Although the TItem, by itself, is not a 3D thing
-      (only pickable TItemOnLevel is a 3D thing).
-      But it exists inside a 3D world: either as pickable (TItemOnLevel),
+      Although the TInventoryItem, by itself, is not a 3D thing
+      (only pickable TItemOnWorld is a 3D thing).
+      But it exists inside a 3D world: either as pickable (TItemOnWorld),
       or as being owned by a 3D object (like player or creature) that are
       part of 3D world. In other words, our Owner3D.World is the 3D world
       this item lives in. }
     function World: T3DWorld;
   end;
 
-  TItemWeapon = class(TItem)
+  TItemWeapon = class(TInventoryItem)
   public
     procedure Use; override;
 
@@ -275,22 +311,22 @@ type
   { List of items, with a 3D object (like a player or creature) owning
     these items. Do not directly change this list, always use
     @link(Pick) or @link(Drop) methods (they make sure that
-    items are correctly stacked, that TItem.Owner3D and memory management
+    items are correctly stacked, that TInventoryItem.Owner3D and memory management
     is good). }
-  TItemsInventory = class(specialize TFPGObjectList<TItem>)
+  TInventory = class(specialize TFPGObjectList<TInventoryItem>)
   private
     FOwner3D: T3DAlive;
 
     { Check is given Item "stackable" with any other item on this list.
       Returns index of item on the list that is stackable with given Item,
       or -1 if none. }
-    function Stackable(Item: TItem): Integer;
+    function Stackable(Item: TInventoryItem): Integer;
   public
     constructor Create(const AOwner3D: T3DAlive);
 
     { Owner of the inventory (like a player or creature).
       Never @nil, always valid for given inventory.
-      All items on this list always have the same TItem.Owner3D value
+      All items on this list always have the same TInventoryItem.Owner3D value
       as the inventory they are in. }
     property Owner3D: T3DAlive read FOwner3D;
 
@@ -305,29 +341,29 @@ type
 
       Using this method means that the memory management of the item
       becomes the responsibility of this list. }
-    function Pick(var Item: TItem): Integer;
+    function Pick(var Item: TInventoryItem): Integer;
 
     { Drop item with given index.
       ItemIndex must be valid (between 0 and Items.Count - 1).
-      You @italic(must) take care yourself of returned TItem memory
+      You @italic(must) take care yourself of returned TInventoryItem memory
       management. }
-    function Drop(const ItemIndex: Integer): TItem;
+    function Drop(const ItemIndex: Integer): TInventoryItem;
 
     { Pass here items owned by this list, immediately after decreasing
       their Quantity. This frees the item (removing it from the list)
       if it's quantity reached zero. }
-    procedure CheckDepleted(const Item: TItem);
+    procedure CheckDepleted(const Item: TInventoryItem);
 
-    { Use the item of given index. Calls TItem.Use, and then checks whether
+    { Use the item of given index. Calls TInventoryItem.Use, and then checks whether
       the item was depleted (and eventually removes it) by CheckDepleted. }
     procedure Use(const Index: Integer);
   end;
 
   { Item that is placed on a 3D world, ready to be picked up.
     It's not in anyone's inventory. }
-  TItemOnLevel = class(T3DOrient)
+  TItemOnWorld = class(T3DOrient)
   private
-    FItem: TItem;
+    FItem: TInventoryItem;
     Rotation: Single;
   protected
     function GetExists: boolean; override;
@@ -336,8 +372,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { The Item owned by this TItemOnLevel instance. Never @nil. }
-    property Item: TItem read FItem;
+    { The Item owned by this TItemOnWorld instance. Never @nil. }
+    property Item: TInventoryItem read FItem;
 
     { Render the item, on current Position with current rotation etc.
       Current matrix should be modelview, this pushes/pops matrix state
@@ -372,7 +408,7 @@ var
   InventoryVisible: boolean;
 
   { Global callback to control items on level existence. }
-  OnItemOnLevelExists: T3DExistsEvent;
+  OnItemOnWorldExists: T3DExistsEvent;
 
 implementation
 
@@ -468,9 +504,9 @@ begin
   inherited;
 end;
 
-function TItemKind.CreateItem(const AQuantity: Cardinal): TItem;
+function TItemKind.CreateItem(const AQuantity: Cardinal): TInventoryItem;
 begin
-  Result := ItemClass.Create(nil { for now, TItem.Owner is always nil });
+  Result := ItemClass.Create(nil { for now, TInventoryItem.Owner is always nil });
   { set properties that in practice must have other-than-default values
     to sensibly use the item }
   Result.FKind := Self;
@@ -478,9 +514,9 @@ begin
   Assert(Result.Quantity >= 1, 'Item''s Quantity must be >= 1');
 end;
 
-function TItemKind.ItemClass: TItemClass;
+function TItemKind.ItemClass: TInventoryItemClass;
 begin
-  Result := TItem;
+  Result := TInventoryItem;
 end;
 
 procedure TItemKind.InstantiatePlaceholder(World: T3DWorld;
@@ -494,7 +530,7 @@ begin
     ItemQuantity := Number else
     ItemQuantity := 1;
 
-  CreateItem(ItemQuantity).PutOnLevel(World, APosition);
+  CreateItem(ItemQuantity).PutOnWorld(World, APosition);
 end;
 
 { TItemWeaponKind ------------------------------------------------------------ }
@@ -524,7 +560,7 @@ begin
   inherited;
 
   ActualAttackTime := KindsConfig.GetFloat('actual_attack_time',
-    DefaultItemActualAttackTime);
+    DefaultWeaponActualAttackTime);
 
   EquippingSound := SoundEngine.SoundFromName(
     KindsConfig.GetValue('equipping_sound', ''));
@@ -535,7 +571,7 @@ begin
   FAttackAnimationFile := KindsConfig.GetFileName('attack_animation');
 end;
 
-function TItemWeaponKind.ItemClass: TItemClass;
+function TItemWeaponKind.ItemClass: TInventoryItemClass;
 begin
   Result := TItemWeapon;
 end;
@@ -545,9 +581,9 @@ end;
 constructor TItemShortRangeWeaponKind.Create(const AName: string);
 begin
   inherited;
-  FDamageConst := DefaultItemDamageConst;
-  FDamageRandom := DefaultItemDamageRandom;
-  FAttackKnockbackDistance := DefaultItemAttackKnockbackDistance;
+  FDamageConst := DefaultWeaponDamageConst;
+  FDamageRandom := DefaultWeaponDamageRandom;
+  FAttackKnockbackDistance := DefaultWeaponAttackKnockbackDistance;
 end;
 
 procedure TItemShortRangeWeaponKind.LoadFromFile(KindsConfig: TCastleConfig);
@@ -555,21 +591,21 @@ begin
   inherited;
 
   DamageConst := KindsConfig.GetFloat('damage/const',
-    DefaultItemDamageConst);
+    DefaultWeaponDamageConst);
   DamageRandom := KindsConfig.GetFloat('damage/random',
-    DefaultItemDamageRandom);
+    DefaultWeaponDamageRandom);
   AttackKnockbackDistance := KindsConfig.GetFloat('attack_knockback_distance',
-    DefaultItemAttackKnockbackDistance);
+    DefaultWeaponAttackKnockbackDistance);
 end;
 
-{ TItem ------------------------------------------------------------ }
+{ TInventoryItem ------------------------------------------------------------ }
 
-function TItem.Stackable(Item: TItem): boolean;
+function TInventoryItem.Stackable(Item: TInventoryItem): boolean;
 begin
   Result := Item.Kind = Kind;
 end;
 
-function TItem.Split(QuantitySplit: Cardinal): TItem;
+function TInventoryItem.Split(QuantitySplit: Cardinal): TInventoryItem;
 begin
   Check(Between(Integer(QuantitySplit), 1, Quantity - 1),
     'You must split >= 1 and less than current Quantity');
@@ -579,10 +615,10 @@ begin
   FQuantity -= QuantitySplit;
 end;
 
-function TItem.PutOnLevel(const AWorld: T3DWorld;
-  const APosition: TVector3Single): TItemOnLevel;
+function TInventoryItem.PutOnWorld(const AWorld: T3DWorld;
+  const APosition: TVector3Single): TItemOnWorld;
 begin
-  Result := TItemOnLevel.Create(AWorld { owner });
+  Result := TItemOnWorld.Create(AWorld { owner });
   { set properties that in practice must have other-than-default values
     to sensibly use the item }
   Result.FItem := Self;
@@ -591,12 +627,12 @@ begin
   AWorld.Add(Result);
 end;
 
-procedure TItem.Use;
+procedure TInventoryItem.Use;
 begin
   Notifications.Show('This item cannot be used');
 end;
 
-function TItem.World: T3DWorld;
+function TInventoryItem.World: T3DWorld;
 begin
   if Owner3D <> nil then
     Result := Owner3D.World else
@@ -617,15 +653,15 @@ begin
   Result := (inherited Kind) as TItemWeaponKind;
 end;
 
-{ TItemsInventory ------------------------------------------------------------ }
+{ TInventory ------------------------------------------------------------ }
 
-constructor TItemsInventory.Create(const AOwner3D: T3DAlive);
+constructor TInventory.Create(const AOwner3D: T3DAlive);
 begin
   inherited Create(true);
   FOwner3D := AOwner3D;
 end;
 
-function TItemsInventory.Stackable(Item: TItem): Integer;
+function TInventory.Stackable(Item: TInventoryItem): Integer;
 begin
   for Result := 0 to Count - 1 do
     if Items[Result].Stackable(Item) then
@@ -633,7 +669,7 @@ begin
   Result := -1;
 end;
 
-function TItemsInventory.FindKind(Kind: TItemKind): Integer;
+function TInventory.FindKind(Kind: TItemKind): Integer;
 begin
   for Result := 0 to Count - 1 do
     if Items[Result].Kind = Kind then
@@ -641,7 +677,7 @@ begin
   Result := -1;
 end;
 
-function TItemsInventory.Pick(var Item: TItem): Integer;
+function TInventory.Pick(var Item: TInventoryItem): Integer;
 begin
   Result := Stackable(Item);
   if Result <> -1 then
@@ -659,9 +695,9 @@ begin
   Item.FOwner3D := Owner3D;
 end;
 
-function TItemsInventory.Drop(const ItemIndex: Integer): TItem;
+function TInventory.Drop(const ItemIndex: Integer): TInventoryItem;
 var
-  SelectedItem: TItem;
+  SelectedItem: TInventoryItem;
   DropQuantity: Cardinal;
 begin
   SelectedItem := Items[ItemIndex];
@@ -700,7 +736,7 @@ begin
   Result.FOwner3D := nil;
 end;
 
-procedure TItemsInventory.CheckDepleted(const Item: TItem);
+procedure TInventory.CheckDepleted(const Item: TInventoryItem);
 var
   Index: Integer;
 begin
@@ -712,9 +748,9 @@ begin
   end;
 end;
 
-procedure TItemsInventory.Use(const Index: Integer);
+procedure TInventory.Use(const Index: Integer);
 var
-  Item: TItem;
+  Item: TInventoryItem;
 begin
   Item := Items[Index];
   Item.Use;
@@ -723,9 +759,9 @@ begin
   CheckDepleted(Item);
 end;
 
-{ TItemOnLevel ------------------------------------------------------------ }
+{ TItemOnWorld ------------------------------------------------------------ }
 
-constructor TItemOnLevel.Create(AOwner: TComponent);
+constructor TItemOnWorld.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
@@ -737,19 +773,19 @@ begin
   Collides := false;
 end;
 
-destructor TItemOnLevel.Destroy;
+destructor TItemOnWorld.Destroy;
 begin
   FreeAndNil(FItem);
   inherited;
 end;
 
-function TItemOnLevel.GetChild: T3D;
+function TItemOnWorld.GetChild: T3D;
 begin
   if (Item = nil) or not Item.Kind.Prepared then Exit(nil);
   Result := Item.Kind.Scene;
 end;
 
-procedure TItemOnLevel.Render(const Frustum: TFrustum;
+procedure TItemOnWorld.Render(const Frustum: TFrustum;
   const Params: TRenderParams);
 begin
   inherited;
@@ -769,14 +805,14 @@ end;
 const
   ItemRadius = 1.0;
 
-procedure TItemOnLevel.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure TItemOnWorld.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 const
   FallingDownSpeed = 10.0;
 var
   AboveHeight: Single;
   ShiftedPosition: TVector3Single;
   FallingDownLength: Single;
-  PickedItem: TItem;
+  PickedItem: TInventoryItem;
 begin
   inherited;
   if not GetExists then Exit;
@@ -828,7 +864,7 @@ begin
   end;
 end;
 
-function TItemOnLevel.PointingDeviceActivate(const Active: boolean;
+function TItemOnWorld.PointingDeviceActivate(const Active: boolean;
   const Distance: Single): boolean;
 const
   VisibleItemDistance = 60.0;
@@ -848,13 +884,13 @@ begin
     Notifications.Show('You see some item, but it''s too far to tell exactly what it is');
 end;
 
-function TItemOnLevel.GetExists: boolean;
+function TItemOnWorld.GetExists: boolean;
 begin
   Result := (inherited GetExists) and
-    ((not Assigned(OnItemOnLevelExists)) or OnItemOnLevelExists(Self));
+    ((not Assigned(OnItemOnWorldExists)) or OnItemOnWorldExists(Self));
 end;
 
-function TItemOnLevel.Middle: TVector3Single;
+function TItemOnWorld.Middle: TVector3Single;
 begin
   Result := inherited Middle;
   Result[2] += ItemRadius;

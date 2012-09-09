@@ -71,7 +71,7 @@ type
   TPlayer = class(T3DAlive)
   private
     FCamera: TWalkCamera;
-    FItems: TItemsInventory;
+    FInventory: TInventory;
     FEquippedWeapon: TItemWeapon;
     LifeTime: Single;
     FBlocked: boolean;
@@ -191,9 +191,7 @@ type
       FlyingMode is always false). }
     procedure CancelFlying;
 
-    { Inventory, items owned by the player.
-      @noAutoLinkHere }
-    property Items: TItemsInventory read FItems;
+    property Inventory: TInventory read FInventory;
 
     { Each player object always has related Camera object.
 
@@ -238,27 +236,27 @@ type
       to do this easily, see TWalkCamera.AnimateTo). }
     property Blocked: boolean read FBlocked write FBlocked;
 
-    { Add Item to Items, with appropriate GameMessage.
-      See also TItemsInventory.Pick (this is a wrapper around it).
+    { Add Item to Inventory, with appropriate GameMessage.
+      See also TInventory.Pick (this is a wrapper around it).
 
       This takes care of adjusting InventoryCurrentItem if needed
       (if no item was selected, then newly picked item becomes selected). }
-    function PickItem(Item: TItem): Integer;
+    function PickItem(Item: TInventoryItem): Integer;
 
-    { Drop given item. ItemIndex must be valid (between 0 and Items.Count - 1).
+    { Drop given item. ItemIndex must be valid (between 0 and Inventory.Count - 1).
       Returns nil if player somehow cancelled operation and nothing is dropped
       (although not really possible now).
-      You *must* take care yourself of returned TItem object (otherwise you will
+      You *must* take care yourself of returned TInventoryItem object (otherwise you will
       get memory leak !). }
-    function DropItem(const ItemIndex: Integer): TItem;
+    function DropItem(const ItemIndex: Integer): TInventoryItem;
 
     { Weapon the player is using right now, or nil if none.
 
       EquippedWeapon.Kind must be TItemWeaponKind.
 
-      You can set this property only to some item existing on Items.
-      When dropping items and current weapon will be dropped,
-      DeleteItem will automatically set this back to nil.
+      You can set this property only to some item existing on Inventory.
+      When you drop the current weapon,
+      DeleteItem will automatically set this to @nil.
 
       When setting this property (to nil or non-nil) player may get
       GameMessage about using/not using a weapon. }
@@ -301,20 +299,20 @@ type
       Note: while we try to always sensibly update InventoryCurrentItem,
       to keep the assumptions that
       @orderedList(
-        @item(Items.Count = 0 => InventoryCurrentItem = -1)
-        @item(Items.Count > 0 =>
-         InventoryCurrentItem between 0 and Items.Count - 1))
+        @item(Inventory.Count = 0 => InventoryCurrentItem = -1)
+        @item(Inventory.Count > 0 =>
+         InventoryCurrentItem between 0 and Inventory.Count - 1))
 
       but you should @italic(nowhere) depend on these assuptions.
-      That's because I want to allow myself freedom to modify Items
+      That's because I want to allow myself freedom to modify Inventory
       in various situations, so InventoryCurrentItem can become
       invalid in many situations.
 
       So every code should check that
       @unorderedList(
-        @item(If InventoryCurrentItem between 0 and Items.Count - 1
+        @item(If InventoryCurrentItem between 0 and Inventory.Count - 1
           then InventoryCurrentItem is selected)
-        @item(Else no item is selected (possibly Items.Count = 0,
+        @item(Else no item is selected (possibly Inventory.Count = 0,
           possibly not)))
     }
     property InventoryCurrentItem: Integer
@@ -390,7 +388,7 @@ begin
 
   Add(TPlayerBox.Create(Self));
 
-  FItems := TItemsInventory.Create(Self);
+  FInventory := TInventory.Create(Self);
   FInventoryCurrentItem := -1;
 
   FCamera := TWalkCamera.Create(nil);
@@ -434,7 +432,7 @@ begin
     OnInputChanged.Remove(@InputChanged);
 
   FreeAndNil(FCamera);
-  FreeAndNil(FItems);
+  FreeAndNil(FInventory);
 
   if FootstepsSound <> nil then
     FootstepsSound.Release;
@@ -480,7 +478,7 @@ begin
   end;
 end;
 
-function TPlayer.PickItem(Item: TItem): Integer;
+function TPlayer.PickItem(Item: TInventoryItem): Integer;
 var
   S: string;
 begin
@@ -491,22 +489,22 @@ begin
 
   SoundEngine.Sound(stPlayerPickItem);
 
-  Result := Items.Pick(Item);
+  Result := Inventory.Pick(Item);
 
   { Automatically equip the weapon. }
   if (Item is TItemWeapon) and (EquippedWeapon = nil) then
     EquippedWeapon := TItemWeapon(Item);
 
   { Update InventoryCurrentItem. }
-  if not Between(InventoryCurrentItem, 0, Items.Count - 1) then
+  if not Between(InventoryCurrentItem, 0, Inventory.Count - 1) then
     InventoryCurrentItem := Result;
 end;
 
-function TPlayer.DropItem(const ItemIndex: Integer): TItem;
+function TPlayer.DropItem(const ItemIndex: Integer): TInventoryItem;
 var
   S: string;
 begin
-  Result := Items.Drop(ItemIndex);
+  Result := Inventory.Drop(ItemIndex);
 
   if Result = EquippedWeapon then
     EquippedWeapon := nil;

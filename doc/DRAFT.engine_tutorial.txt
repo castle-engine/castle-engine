@@ -298,7 +298,7 @@ Usually, you want to just set T3DOrient.DefaultOrientation, and then it will be 
 
 ((Maybe remove this chapter / rewrite this?
 
-In new engine version, we have comfortable classes to store item information (TItem) and visible item on level (TItemOnLevel) and creature (TCreature). However, for advanced usage, it's possible that the traditional concepts of "items that can be picked", "creatures" will not suit you particular game. So the chapter is still somewhat relevant: it's important that our 3D system is designed around flexible T3D class, that you can group (T3DList) and transform (T3DTransform). You can freely design your own descendants of T3DXxx classes, and have all the flexibility you want in creating... well, anything you want in your 3D world.
+In new engine version, we have comfortable classes to store item information (TInventoryItem) and visible item on level (TItemOnLevel) and creature (TCreature). However, for advanced usage, it's possible that the traditional concepts of "items that can be picked", "creatures" will not suit you particular game. So the chapter is still somewhat relevant: it's important that our 3D system is designed around flexible T3D class, that you can group (T3DList) and transform (T3DTransform). You can freely design your own descendants of T3DXxx classes, and have all the flexibility you want in creating... well, anything you want in your 3D world.
 
 So, this chapter is probably still relevant, but it should be simplified and rewritten.
 ))

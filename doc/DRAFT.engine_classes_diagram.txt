@@ -78,7 +78,7 @@ http://michalis.ii.uni.wroc.pl/castle-engine-snapshots/docs/reference/html/ .
       |- T3DList (list of T3D instances)
          |- T3DTransform
          |- T3DOrient
-            |- TItemOnLevel (special, usage described in more detail later)
+            |- TItemOnWorld (special, usage described in more detail later)
             |- T3DAlive
                |- TCreature (special, usage described in more detail later)
                |- TPlayer (special, usage described in more detail later)
@@ -98,7 +98,7 @@ http://michalis.ii.uni.wroc.pl/castle-engine-snapshots/docs/reference/html/ .
        is so versatile that we use it for everything.)
        So everything else than TCastleScene is just for organizing your 3D data.
 
-       Except: usage of TPlayer, TCreature, TItemOnLevel is a little special,
+       Except: usage of TPlayer, TCreature, TItemOnWorld is a little special,
        more about them later.)
    -> MainScene property refers to one (or none) instance of TCastleScene,
       that should also be present in Items. This is used to detect initial
@@ -206,29 +206,29 @@ Special descendants of T3D:
    when necessary.
 
    /---
-   | TItemOnLevel
+   | TItemOnWorld
    \---
    -> has Item property that refers to 1 instance of
       /---
-      | TItem
+      | TInventoryItem
       \---
       -> has Kind property that refers to TItemKind
       Possible descendants:
       |- TItemWeapon (has Kind property that refers to TItemWeaponKind)
    (How to use: similar to creatures, see notes above. Items are very similar,
-    except TItem is *not* a 3D object (it cannot be directly added to the
-    level), only TItemOnLevel is a 3D object.
-    - TGameSceneManager.LoadLevel automatically creates instances of TItemOnLevel,
+    except TInventoryItem is *not* a 3D object (it cannot be directly added to the
+    level), only TItemOnWorld is a 3D object.
+    - TGameSceneManager.LoadLevel automatically creates instances of TItemOnWorld,
       along with instances of Item, referring to item kinds on AllResources.
       This looks at placeholders: just create in Blender object named
       'Item' + item kind name. TODO: probably 'Res' + item kind name in the future.
-    - You can create TItem instance by code by Kind.CreateItem
-    - You can create TItemOnLevel instance by code by Item.PutOnLevel
+    - You can create TInventoryItem instance by code by Kind.CreateItem
+    - You can create TItemOnWorld instance by code by Item.PutOnWorld
 
    /---
    | TPlayer
    \---
-   -> has a list Items of instances of TItem (player's backpack aka inventory)
+   -> has a list Inventory of instances of TInventoryItem
    (How to use: just create an instance of TPlayer, and add it
     to SceneManager.Items, like all normal T3D descendants.
     You will also almost always want to set this as SceneManager.Player,

@@ -44,7 +44,7 @@ type
     3D objects, may be used for different purposes by various 3D objects
     (e.g. various creatures may be in different state / animation time),
     it's users (3D objects) may not always initially exist on the level
-    (e.g. TItem, that is not even T3D, may refer to it), etc.
+    (e.g. TInventoryItem, that is not even T3D, may refer to it), etc.
     There were ideas to unify T3DResource to be like a T3D descendant
     (or ancestor), but they turned out to cause more confusion (special cases,
     special treatment) than the gain from unification (which would
