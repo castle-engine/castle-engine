@@ -181,6 +181,7 @@ function Lerp(const a, l, h: Double): Double;                 overload; {$ifdef 
 const
   enatural = 2.71828182845905;
   sqrt2 = 1.4142135623730950488016887242097;
+  Sqrt3 = 1.7320508075688773;
   { Half of Pi. Taken from FPC sources, file rtl/inc/genmath.inc }
   HalfPi = 1.57079632679489661923;
 
