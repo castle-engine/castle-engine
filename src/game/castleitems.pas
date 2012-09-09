@@ -49,8 +49,6 @@ type
     FImageFileName: string;
     FImage: TCastleImage;
     FGLList_DrawImage: TGLuint;
-    FBoundingBoxRotated: TBox3D;
-    FBoundingBoxRotatedCalculated: boolean;
   protected
     procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
       const DoProgress: boolean); override;
@@ -84,9 +82,18 @@ type
     { OpenGL display list to draw @link(Image). }
     function GLList_DrawImage: TGLuint;
 
-    { This returns Scene.BoundingBox enlarged a little (along X and Y)
-      to account the fact that Scene may be rotated around +Z vector. }
-    function BoundingBoxRotated: TBox3D;
+    { The largest possible bounding box of the 3D item,
+      taking into account that actual item 3D model will be rotated when
+      placed on world. You usually want to add current item position to this.
+
+      Note that this assumes that initial item Scene does not animate.
+      If it animates, possibly the actual bounding box will get larger,
+      we don't account for it here (now).
+
+      @param(GravityUp Because the rotations of TItemOnWorld are around GravityUp,
+        and we don't know the 3D world gravity inside TItemKind,
+        you have to pass it as a parameter (must be a normalized vector).) }
+    function BoundingBoxRotated(const GravityUp: TVector3Single): TBox3D;
 
     { Create item. This is how you should create new TInventoryItem instances.
       It is analogous to TCreatureKind.CreateCreature, but now for items.
@@ -456,37 +463,13 @@ begin
   Result := FGLList_DrawImage;
 end;
 
-function TItemKind.BoundingBoxRotated: TBox3D;
-var
-  HorizontalSize: Single;
+function TItemKind.BoundingBoxRotated(const GravityUp: TVector3Single): TBox3D;
 begin
-  if not FBoundingBoxRotatedCalculated then
-  begin
-    FBoundingBoxRotated := Scene.BoundingBox;
-
-    { Note that I *cannot* assume below that Scene.BoundingBox
-      middle point is (0, 0, 0). So I just take the largest distance
-      from point (0, 0) to any corner of the Box (distance 2D,
-      only horizontally) and this tells me the horizontal sizes of the
-      bounding box.
-
-      This hurts a little (because of 1 call to Sqrt),
-      that's why results of this function are cached if FBoundingBoxRotated. }
-    { TODO: Z up? Look at DefaultOrientation }
-    HorizontalSize := Max(Max(
-      VectorLenSqr(Vector2Single(FBoundingBoxRotated.Data[0, 0], FBoundingBoxRotated.Data[0, 1])),
-      VectorLenSqr(Vector2Single(FBoundingBoxRotated.Data[1, 0], FBoundingBoxRotated.Data[0, 1])),
-      VectorLenSqr(Vector2Single(FBoundingBoxRotated.Data[1, 0], FBoundingBoxRotated.Data[1, 1]))),
-      VectorLenSqr(Vector2Single(FBoundingBoxRotated.Data[0, 0], FBoundingBoxRotated.Data[1, 1])));
-    HorizontalSize := Sqrt(HorizontalSize);
-    FBoundingBoxRotated.Data[0, 0] := -HorizontalSize;
-    FBoundingBoxRotated.Data[0, 1] := -HorizontalSize;
-    FBoundingBoxRotated.Data[1, 0] := +HorizontalSize;
-    FBoundingBoxRotated.Data[1, 1] := +HorizontalSize;
-
-    FBoundingBoxRotatedCalculated := true;
-  end;
-  Result := FBoundingBoxRotated;
+  Result :=
+    Scene.BoundingBox.Transform(RotationMatrixDeg(45         , GravityUp)) +
+    Scene.BoundingBox.Transform(RotationMatrixDeg(45 + 90    , GravityUp)) +
+    Scene.BoundingBox.Transform(RotationMatrixDeg(45 + 90 * 2, GravityUp)) +
+    Scene.BoundingBox.Transform(RotationMatrixDeg(45 + 90 * 3, GravityUp));
 end;
 
 procedure TItemKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
@@ -795,18 +778,24 @@ end;
 
 procedure TItemOnWorld.Render(const Frustum: TFrustum;
   const Params: TRenderParams);
+var
+  BoxRotated: TBox3D;
 begin
   inherited;
-  if GetExists and RenderDebugBoundingVolumes and
-    (not Params.Transparent) and Params.ShadowVolumesReceivers and
-    Frustum.Box3DCollisionPossibleSimple(BoundingBox) then
+  if RenderDebugBoundingVolumes and GetExists and
+    (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
-    glPushAttrib(GL_ENABLE_BIT);
-      glDisable(GL_LIGHTING);
-      glEnable(GL_DEPTH_TEST);
-      glColorv(Gray3Single);
-      glDrawBox3DWire(BoundingBox);
-    glPopAttrib;
+    BoxRotated := Item.Kind.BoundingBoxRotated(World.GravityUp).Translate(Position);
+    if Frustum.Box3DCollisionPossibleSimple(BoxRotated) then
+    begin
+      glPushAttrib(GL_ENABLE_BIT);
+        glDisable(GL_LIGHTING);
+        glEnable(GL_DEPTH_TEST);
+        glColorv(Gray3Single);
+        glDrawBox3DWire(BoundingBox);
+        glDrawBox3DWire(BoxRotated);
+      glPopAttrib;
+    end;
   end;
 end;
 
