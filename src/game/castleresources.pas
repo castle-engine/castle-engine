@@ -165,6 +165,15 @@ type
     procedure InstantiatePlaceholder(World: T3DWorld;
       const APosition, ADirection: TVector3Single;
       const NumberPresent: boolean; const Number: Int64); virtual; abstract;
+
+    { Mechanics of given game may suggest that some 3D resources should
+      always be prepared. For example, in typical 3D game when player
+      has inventory and can drop items from inventory on the ground,
+      then all items should be prepared for all levels, since you can in theory
+      drop everything anywhere.
+
+      Return @true if this is such resource. }
+    function AlwaysPrepared: boolean; virtual;
   end;
 
   T3DResourceClass = class of T3DResource;
@@ -358,6 +367,11 @@ begin
     List.Add(Self);
     List.Release;
   finally FreeAndNil(List) end;
+end;
+
+function T3DResource.AlwaysPrepared: boolean;
+begin
+  Result := false;
 end;
 
 { T3DResourceList ------------------------------------------------------------- }

@@ -27,7 +27,7 @@ unit CastleLevel;
 interface
 
 uses VectorMath, CastleSceneCore, CastleScene, Boxes3D,
-  X3DNodes, X3DFields, CastleItems, Cameras, CastleCreatures,
+  X3DNodes, X3DFields, Cameras,
   CastleUtils, CastleClassUtils, CastlePlayer, CastleResources,
   ProgressUnit, PrecalculatedAnimation,
   DOM, CastleSoundEngine, Base3D, Shape, GL, CastleConfig, Images,
@@ -96,14 +96,36 @@ type
       default stNone;
 
     { Load game level.
-      This clears all 3D items from @link(TCastleSceneManager.Items)
-      list (except @link(TCastleSceneManager.Player)), clears
-      @link(TCastleSceneManager.Camera) and @link(TCastleSceneManager.MainScene)
-      as well. Then it loads a new level and camera, adding to
-      @link(TCastleSceneManager.Items) all resources (creatures and items) defined
-      by placeholders in the level 3D file.
-      It also prepares level for fast processing
-      and rendering (creating octrees, OpenGL resources etc.). }
+
+      @unorderedList(
+        @item(@bold(Set scene manager 3D items):
+
+          Clear all 3D items from @link(TCastleSceneManager.Items)
+          list (except @link(TCastleSceneManager.Player)), clear
+          @link(TCastleSceneManager.Camera)
+          and @link(TCastleSceneManager.MainScene) as well.
+          Then load a new main scene and camera, adding to
+          @link(TCastleSceneManager.Items) all 3D objects (creatures and items)
+          defined by placeholders in the main level 3D file.)
+
+        @item(@bold(Make sure 3D resources are ready:)
+
+          Resources are T3DResource instances on AllResources list.
+          They are heavy (in terms of memory use and preparation time),
+          so you don't want to just load everything for every level.
+          This method makes sure that all resources required by this level
+          are prepared. All resources requested in level.xml file
+          (in <resources> element in level.xml),
+          as well as resources requested in player.xml file,
+          as well as resources with AlwaysPrepared (usually: all possible items
+          that can be dropped from player inventory on any level)
+          will be prepared.)
+
+        @item(@bold(Prepare everything possible for rendering and collision
+          detection) to avoid later preparing things on-demand (which would cause
+          unpleasant delay during gameplay).
+          E.g. prepares octree and OpenGL resources.)
+      ) }
     procedure LoadLevel(const SceneManager: TGameSceneManager;
       const MenuBackground: boolean = false);
   end;
@@ -737,16 +759,13 @@ procedure TLevelAvailable.LoadFromDocument;
       raise Exception.CreateFmt('Unknown level type "%s"', [ValueStr]);
   end;
 
-  { Add all item kinds (TItemKind from AllResources) to the Resources.
-    We use this now, as all levels should prepare all items -- always.
-    This is easier, as player may pick/drop any item on any level,
-    so it's best to have all items prepared. }
-  procedure AddItems(Resources: T3DResourceList);
+  { Add all resources with AlwaysPrepared = true to the Resources. }
+  procedure AddAlwaysPrepared(Resources: T3DResourceList);
   var
     I: Integer;
   begin
     for I := 0 to AllResources.Count - 1 do
-      if (AllResources[I] is TItemKind) and
+      if AllResources[I].AlwaysPrepared and
          (Resources.IndexOf(AllResources[I]) = -1) then
       Resources.Add(AllResources[I]);
   end;
@@ -803,7 +822,7 @@ begin
     LoadingImageBarYPosition := DefaultImageBarYPosition;
 
   Resources.LoadResources(Element);
-  AddItems(Resources);
+  AddAlwaysPrepared(Resources);
 
   if DOMGetAttribute(Element, 'music_sound', SoundName) then
     MusicSound := SoundEngine.SoundFromName(SoundName) else

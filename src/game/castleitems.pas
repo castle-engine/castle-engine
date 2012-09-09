@@ -147,6 +147,8 @@ var
     procedure InstantiatePlaceholder(World: T3DWorld;
       const APosition, ADirection: TVector3Single;
       const NumberPresent: boolean; const Number: Int64); override;
+
+    function AlwaysPrepared: boolean; override;
   end;
 
   TItemWeaponKind = class(TItemKind)
@@ -531,6 +533,11 @@ begin
     ItemQuantity := 1;
 
   CreateItem(ItemQuantity).PutOnWorld(World, APosition);
+end;
+
+function TItemKind.AlwaysPrepared: boolean;
+begin
+  Result := true;
 end;
 
 { TItemWeaponKind ------------------------------------------------------------ }
