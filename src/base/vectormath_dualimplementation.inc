@@ -794,28 +794,30 @@ end;
 
 function PointsDistance(const V1, V2: TVector3): TScalar;
 begin
-  (* result := Sqrt(PointsDistanceSqr(V1, V2));, rozwiniete w nadziei na (drobny)
-     zysk szybkosci *)
+  { Result := Sqrt(PointsDistanceSqr(V1, V2));, expanded for speed }
   result := Sqrt( Sqr(V2[0]-V1[0]) + Sqr(V2[1]-V1[1]) + Sqr(V2[2]-V1[2]) );
 end;
 
 function PointsDistanceSqr(const V1, V2: TVector3): TScalar;
 begin
-  (* result := VectorLenSqr(VectorSubtract(v2, v1));, rozwiniete w nadziei na (drobny)
-     zysk szybkosci *)
+  { Result := VectorLenSqr(VectorSubtract(v2, v1));, expanded for speed }
   result := Sqr(V2[0]-V1[0]) + Sqr(V2[1]-V1[1]) + Sqr(V2[2]-V1[2]);
 end;
 
 function PointsDistanceSqr(const V1, V2: TVector2): TScalar;
 begin
-  (* result := VectorLenSqr(VectorSubtract(v2, v1));, rozwiniete w nadziei na (drobny)
-     zysk szybkosci *)
+  { Result := VectorLenSqr(VectorSubtract(v2, v1));, expanded for speed }
   result := Sqr(V2[0]-V1[0]) + Sqr(V2[1]-V1[1]);
 end;
 
-function PointsDistanceXYSqr(const V1, V2: TVector3): TScalar;
+function PointsDistance2DSqr(const V1, V2: TVector3; const IgnoreIndex: Integer): TScalar;
 begin
-  Result := Sqr(V2[0]-V1[0]) + Sqr(V2[1]-V1[1]);
+  case IgnoreIndex of
+    0: Result := Sqr(V2[1] - V1[1]) + Sqr(V2[2] - V1[2]);
+    1: Result := Sqr(V2[2] - V1[2]) + Sqr(V2[0] - V1[0]);
+    2: Result := Sqr(V2[0] - V1[0]) + Sqr(V2[1] - V1[1]);
+    else PointsDistance2DSqr_InvalidIgnoreIndex;
+  end;
 end;
 
 function VectorsEqual(const V1, V2: TVector2): boolean;

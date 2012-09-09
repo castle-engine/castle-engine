@@ -1302,6 +1302,9 @@ type
       of OpenGL and VRML/X3D). }
     property Orientation: TOrientationType read FOrientation write FOrientation;
 
+    { Index of up coordinate (0, 1 or 2) derived from Orientation. }
+    function UpIndex: Integer;
+
     function Middle: TVector3Single; override;
   end;
 
@@ -3275,6 +3278,11 @@ end;
 procedure T3DOrient.Translate(const T: TVector3Single);
 begin
   Position := Position + T;
+end;
+
+function T3DOrient.UpIndex: Integer;
+begin
+  Result := OrientationUpIndex[Orientation];
 end;
 
 function T3DOrient.Middle: TVector3Single;

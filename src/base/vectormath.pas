@@ -1149,11 +1149,11 @@ function PointsDistanceSqr(const V1, V2: TVector3Double): Double; overload;
 function PointsDistanceSqr(const V1, V2: TVector2Single): Single; overload;
 function PointsDistanceSqr(const V1, V2: TVector2Double): Double; overload;
 
-{ Distance between points projected on the Z = 0 plane.
-  In other words, the Z coord of points is just ignored.
+{ Distance between points projected on the 2D plane.
+  Projection is done by rejecting IgnoreIndex coordinate (must be 0, 1 or 2).
   @groupBegin }
-function PointsDistanceXYSqr(const V1, V2: TVector3Single): Single; overload;
-function PointsDistanceXYSqr(const V1, V2: TVector3Double): Double; overload;
+function PointsDistance2DSqr(const V1, V2: TVector3Single; const IgnoreIndex: Integer): Single; overload;
+function PointsDistance2DSqr(const V1, V2: TVector3Double; const IgnoreIndex: Integer): Double; overload;
 { @groupEnd }
 
 { Compare two vectors, with epsilon to tolerate slightly different floats.
@@ -2195,6 +2195,13 @@ uses Math, CastleStringUtils, CastleColors;
 {$define read_implementation}
 
 {$I vectormath_operators.inc}
+
+{ Separated from PointsDistance2DSqr, to not slowdown it by implicit
+  try/finally section because we use string. }
+procedure PointsDistance2DSqr_InvalidIgnoreIndex;
+begin
+  raise EInternalError.Create('Invalid IgnoreIndex for PointsDistance2DSqr');
+end;
 
 { include vectormath_dualimplementation.inc ---------------------------------- }
 

@@ -43,6 +43,7 @@ type
     procedure TestVector4FromStr;
     procedure TestPlaneTransform;
     procedure TestTransformToFromCoordsMatrix;
+    procedure Test2D;
   end;
 
 function RandomVector: TVector3Single;
@@ -717,6 +718,21 @@ begin
       ' newX=', VectorToRawStr(NewX));
     raise;
   end;
+end;
+
+procedure TTestVectorMath.Test2D;
+const
+  P1: TVector3Single = (1, 2, 3);
+  P2: TVector3Single = (2, 5, 13);
+begin
+  Assert(FloatsEqual(PointsDistanceSqr(P1, P2), Sqr(1) + Sqr(3) + Sqr(10), 0.01));
+  Assert(FloatsEqual(PointsDistance2DSqr(P1, P2, 0), Sqr(3) + Sqr(10), 0.01));
+  Assert(FloatsEqual(PointsDistance2DSqr(P1, P2, 1), Sqr(1) + Sqr(10), 0.01));
+  Assert(FloatsEqual(PointsDistance2DSqr(P1, P2, 2), Sqr(1) + Sqr(3), 0.01));
+  try
+    PointsDistance2DSqr(P1, P2, 3);
+    Assert(false, 'PointsDistance2DSqr with IgnoreIndex = 3 should raise exception');
+  except end;
 end;
 
 initialization

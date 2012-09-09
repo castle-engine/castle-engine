@@ -936,6 +936,8 @@ end;
 
 procedure TWalkAttackCreatureKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
   const DoProgress: boolean);
+var
+  UpIndex: Integer;
 begin
   inherited;
 
@@ -947,9 +949,10 @@ begin
   PreparePrecalculatedAnimation(FDyingBackAnimation  , FDyingBackAnimationFile  , BaseLights, DoProgress);
   PreparePrecalculatedAnimation(FHurtAnimation       , FHurtAnimationFile       , BaseLights, DoProgress);
 
+  UpIndex := OrientationUpIndex[T3DOrient.DefaultOrientation];
   RadiusFromPrepare :=
-    Min(StandAnimation.Scenes[0].BoundingBox.XYRadius,
-        StandAnimation.Scenes[0].BoundingBox.Data[1, 2] * 0.75);
+    Min(StandAnimation.Scenes[0].BoundingBox.Radius2D(UpIndex),
+        StandAnimation.Scenes[0].BoundingBox.Data[1, UpIndex] * 0.75);
 end;
 
 function TWalkAttackCreatureKind.PrepareCoreSteps: Cardinal;
@@ -1028,7 +1031,8 @@ begin
   inherited;
   PreparePrecalculatedAnimation(FAnimation, FAnimationFile, BaseLights, DoProgress);
 
-  RadiusFromPrepare := Animation.Scenes[0].BoundingBox.XYRadius;
+  RadiusFromPrepare := Animation.Scenes[0].BoundingBox.Radius2D(
+    OrientationUpIndex[T3DOrient.DefaultOrientation]);
 end;
 
 function TMissileCreatureKind.PrepareCoreSteps: Cardinal;
@@ -1078,7 +1082,8 @@ begin
   inherited;
   PreparePrecalculatedAnimation(FAnimation, FAnimationFile, BaseLights, DoProgress);
 
-  RadiusFromPrepare := Animation.Scenes[0].BoundingBox.XYRadius;
+  RadiusFromPrepare := Animation.Scenes[0].BoundingBox.Radius2D(
+    OrientationUpIndex[T3DOrient.DefaultOrientation]);
 end;
 
 function TStillCreatureKind.PrepareCoreSteps: Cardinal;
@@ -1181,27 +1186,26 @@ end;
 
 function TCreature.HeightBetweenLegsAndMiddle: Single;
 begin
-  Result := GetChild.BoundingBox.Data[1, OrientationUpIndex[Orientation]] *
-    Kind.MiddleHeight;
+  Result := GetChild.BoundingBox.Data[1, UpIndex] * Kind.MiddleHeight;
 end;
 
 function TCreature.PositionFromMiddle(
   const AssumeMiddle: TVector3Single): TVector3Single;
 begin
   Result := AssumeMiddle;
-  Result[OrientationUpIndex[Orientation]] -= HeightBetweenLegsAndMiddle;
+  Result[UpIndex] -= HeightBetweenLegsAndMiddle;
 end;
 
 function TCreature.LerpLegsMiddle(const A: Single): TVector3Single;
 begin
   Result := Position;
-  Result[OrientationUpIndex[Orientation]] += HeightBetweenLegsAndMiddle * A;
+  Result[UpIndex] += HeightBetweenLegsAndMiddle * A;
 end;
 
 function TCreature.Middle: TVector3Single;
 begin
   Result := inherited Middle;
-  Result[OrientationUpIndex[Orientation]] += HeightBetweenLegsAndMiddle;
+  Result[UpIndex] += HeightBetweenLegsAndMiddle;
 end;
 
 procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams);
@@ -1235,7 +1239,7 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
     H, FontSize: Single;
   begin
     glPushMatrix;
-      H := GetChild.BoundingBox.Data[1, OrientationUpIndex[Orientation]];
+      H := GetChild.BoundingBox.Data[1, UpIndex];
       glTranslatev(World.GravityUp * H);
       { TODO: probably these rotations need adjustment based on Orientation,
         they assume otUpZDirectionX now. }
@@ -1298,7 +1302,7 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
     var
       FallenHeight: Single;
     begin
-      FallenHeight := FallingDownStartHeight - Position[OrientationUpIndex[Orientation]];
+      FallenHeight := FallingDownStartHeight - Position[UpIndex];
       if FallenHeight > 1.0 then
       begin
         Sound3d(stCreatureFalledDown, 0.1, false);
@@ -1342,7 +1346,7 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
     begin
       { Fall down }
       if not FIsFallingDown then
-        FallingDownStartHeight := Position[OrientationUpIndex[Orientation]];
+        FallingDownStartHeight := Position[UpIndex];
 
       FIsFallingDown := true;
 
@@ -1622,8 +1626,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
   begin
     if WAKind.Flying then
       SqrDistanceToTarget := PointsDistanceSqr(Middle, Target) else
-      { TODO: Z up? Look at DefaultOrientation }
-      SqrDistanceToTarget := PointsDistanceXYSqr(Middle, Target);
+      SqrDistanceToTarget := PointsDistance2DSqr(Middle, Target, UpIndex);
     Result :=
       { If creature is ideally at the target
         (for not Flying creatures, this means "ideally under/above the target"),
@@ -1745,8 +1748,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
         SetState(wasWalk) else
       if (not Kind.Flying) and
          (AngleRadBetweenDirectionToPlayer < 0.01) and
-         { TODO: Z up? Look at DefaultOrientation }
-         BoundingBox.PointInsideXY(LastSeenPlayer) then
+         BoundingBox.PointInside2D(LastSeenPlayer, UpIndex) then
       begin
         { Then the player (or it's LastSeenPlayer) is right above or below us.
           Since we can't fly, we can't get there. Standing in place

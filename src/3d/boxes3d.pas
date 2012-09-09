@@ -144,10 +144,10 @@ type
     function PointInside(const Point: TVector3Double): boolean; overload;
     { @groupEnd }
 
-    { Looking only at XY axes, is the point inside the box.
-      The Point[2] component, as well as our Z coordinates (Data[0][2], Data[1][2])
-      are ignored. }
-    function PointInsideXY(const Point: TVector3Single): boolean;
+    { Is the 2D point inside the 2D projection of the box.
+      2D projection (of point and box) is obtained by rejecting
+      the IgnoreIndex coordinate (must be 0, 1 or 2). }
+    function PointInside2D(const Point: TVector3Single; const IgnoreIndex: Integer): boolean;
 
     { Sum two TBox3D values. This calculates the smallest box that encloses
       both Box1 and Box2. You can also use + operator. }
@@ -270,30 +270,15 @@ type
 
     function Collision(const Box2: TBox3D): boolean;
 
-    { This is just like Boxes3DCollision, but it takes into account only
-      XY plane. I.e. it works like Box1 and Box2 are infinitely large in the
-      Z coordinate. Or, in other words, this actually checks collision
-      of 2D rectangles obtained by projecting both boxes on plane XY. }
-    function XYCollision(const Box2: TBox3D): boolean;
-
-    { Calculate maximum Sqr(distance) of 8 box points to the (0, 0, 0)
-      point. This can be useful when you want to get bounding sphere,
-      centered in (0, 0, 0), around this Box. }
-    function SqrRadius: Single;
-
-    { Calculate maximum distance of 8 box points to the (0, 0, 0)
-      point. }
+    { Radius of the minimal sphere that contains this box.
+      Sphere center is assumed to be in (0, 0, 0). }
     function Radius: Single;
 
-    { Project Box on XY plane (that is, we just ignore Z
-      coords of Box points here), and calculate maximum Sqr(distance)
-      in plane XY of 4 Box corners to point (0, 0). }
-    function XYSqrRadius: Single;
-
-    { Project Box on XY plane (that is, we just ignore Z
-      coords of Box points here), and calculate maximum distance
-      in plane XY of 4 Box corners to point (0, 0). }
-    function XYRadius: Single;
+    { Radius of the minimal circle that contains the 2D projection of this box.
+      2D box projection is obtained by rejecting the IgnoreIndex coordinate
+      (must be 0, 1 or 2).
+      Circle center is assumed to be in (0, 0). }
+    function Radius2D(const IgnoreIndex: Integer): Single;
 
     { Check for collision between box and sphere, fast @italic(but not
       entirely correct).
@@ -699,12 +684,29 @@ begin
     (Data[0, 2] <= Point[2]) and (Point[2] <=  Data[1, 2]);
 end;
 
-function TBox3D.PointInsideXY(const Point: TVector3Single): boolean;
+{ Separated from PointInside2D, to not slowdown it by implicit
+  try/finally section because we use string. }
+procedure PointInside2D_InvalidIgnoreIndex;
+begin
+  raise EInternalError.Create('Invalid IgnoreIndex for TBox3D.PointInside2D');
+end;
+
+function TBox3D.PointInside2D(const Point: TVector3Single;
+  const IgnoreIndex: Integer): boolean;
 begin
   if IsEmpty then Exit(false);
-  Result :=
-    (Data[0, 0] <= Point[0]) and (Point[0] <=  Data[1, 0]) and
-    (Data[0, 1] <= Point[1]) and (Point[1] <=  Data[1, 1]);
+  case IgnoreIndex of
+    0: Result :=
+         (Data[0, 1] <= Point[1]) and (Point[1] <=  Data[1, 1]) and
+         (Data[0, 2] <= Point[2]) and (Point[2] <=  Data[1, 2]);
+    1: Result :=
+         (Data[0, 2] <= Point[2]) and (Point[2] <=  Data[1, 2]) and
+         (Data[0, 0] <= Point[0]) and (Point[0] <=  Data[1, 0]);
+    2: Result :=
+         (Data[0, 0] <= Point[0]) and (Point[0] <=  Data[1, 0]) and
+         (Data[0, 1] <= Point[1]) and (Point[1] <=  Data[1, 1]);
+    else PointInside2D_InvalidIgnoreIndex;
+  end;
 end;
 
 procedure TBox3D.Add(const box2: TBox3D);
@@ -1362,18 +1364,9 @@ begin
     (not ((Data[1, 2] < Box2.Data[0, 2]) or (Box2.Data[1, 2] < Data[0, 2])));
 end;
 
-function TBox3D.XYCollision(const Box2: TBox3D): boolean;
+function TBox3D.Radius: Single;
 begin
-  Result :=
-    (not IsEmpty) and
-    (not Box2.IsEmpty) and
-    (not ((Data[1, 0] < Box2.Data[0, 0]) or (Box2.Data[1, 0] < Data[0, 0]))) and
-    (not ((Data[1, 1] < Box2.Data[0, 1]) or (Box2.Data[1, 1] < Data[0, 1])));
-end;
-
-function TBox3D.SqrRadius: Single;
-begin
-  Result := Max(
+  Result := Sqrt(Max(
     Max(Max(VectorLenSqr(Vector3Single(Data[0, 0], Data[0, 1], Data[0, 2])),
             VectorLenSqr(Vector3Single(Data[1, 0], Data[0, 1], Data[0, 2]))),
         Max(VectorLenSqr(Vector3Single(Data[1, 0], Data[1, 1], Data[0, 2])),
@@ -1381,26 +1374,38 @@ begin
     Max(Max(VectorLenSqr(Vector3Single(Data[0, 0], Data[0, 1], Data[1, 2])),
             VectorLenSqr(Vector3Single(Data[1, 0], Data[0, 1], Data[1, 2]))),
         Max(VectorLenSqr(Vector3Single(Data[1, 0], Data[1, 1], Data[1, 2])),
-            VectorLenSqr(Vector3Single(Data[0, 0], Data[1, 1], Data[1, 2])))));
+            VectorLenSqr(Vector3Single(Data[0, 0], Data[1, 1], Data[1, 2]))))));
 end;
 
-function TBox3D.Radius: Single;
+{ Separated from Radius2D, to not slowdown it by implicit
+  try/finally section because we use string. }
+procedure Radius2D_InvalidIgnoreIndex;
 begin
-  Result := Sqrt(SqrRadius);
+  raise EInternalError.Create('Invalid IgnoreIndex for TBox3D.Radius2D');
 end;
 
-function TBox3D.XYSqrRadius: Single;
+function TBox3D.Radius2D(const IgnoreIndex: Integer): Single;
 begin
-  Result := Max(
-    Max(VectorLenSqr(Vector2Single(Data[0, 0], Data[0, 1])),
-        VectorLenSqr(Vector2Single(Data[1, 0], Data[0, 1]))),
-    Max(VectorLenSqr(Vector2Single(Data[1, 0], Data[1, 1])),
-        VectorLenSqr(Vector2Single(Data[0, 0], Data[1, 1]))));
-end;
+  case IgnoreIndex of
+    0: Result := Max(
+         Max(VectorLenSqr(Vector2Single(Data[0, 1], Data[0, 2])),
+             VectorLenSqr(Vector2Single(Data[1, 1], Data[0, 2]))),
+         Max(VectorLenSqr(Vector2Single(Data[1, 1], Data[1, 2])),
+             VectorLenSqr(Vector2Single(Data[0, 1], Data[1, 2]))));
+    1: Result := Max(
+         Max(VectorLenSqr(Vector2Single(Data[0, 2], Data[0, 0])),
+             VectorLenSqr(Vector2Single(Data[1, 2], Data[0, 0]))),
+         Max(VectorLenSqr(Vector2Single(Data[1, 2], Data[1, 0])),
+             VectorLenSqr(Vector2Single(Data[0, 2], Data[1, 0]))));
+    2: Result := Max(
+         Max(VectorLenSqr(Vector2Single(Data[0, 0], Data[0, 1])),
+             VectorLenSqr(Vector2Single(Data[1, 0], Data[0, 1]))),
+         Max(VectorLenSqr(Vector2Single(Data[1, 0], Data[1, 1])),
+             VectorLenSqr(Vector2Single(Data[0, 0], Data[1, 1]))));
+    else Radius2D_InvalidIgnoreIndex;
+  end;
 
-function TBox3D.XYRadius: Single;
-begin
-  Result := Sqrt(XYSqrRadius);
+  Result := Sqrt(Result);
 end;
 
 function TBox3D.SphereSimpleCollision(

@@ -31,6 +31,7 @@ type
     procedure TestBox3DMaximumPlane;
     procedure TestBox3DMinimumPlane;
     procedure TestBox3DPointDistance;
+    procedure Test2D;
   end;
 
 implementation
@@ -792,6 +793,33 @@ begin
     Sqrt( Sqr(10-6) + Sqr(10-5) + Sqr(10-4) ), Epsilon));
   Assert(FloatsEqual(Box.PointDistance(Vector3Single(0, 0, 0)),
     Sqrt( Sqr(0-2)  + Sqr(0-3)  + Sqr(0-1)  ), Epsilon));
+end;
+
+procedure TTestBoxes3D.Test2D;
+const
+  Box: TBox3D = (Data: ((1, 2, 3), (4, 5, 6)) );
+  Box2: TBox3D = (Data: ((1, 2, 3), (2, 5, 13)) );
+begin
+  Assert(Box.PointInside2D(Vector3Single(2, 3, 10), 2));
+  Assert(not Box.PointInside2D(Vector3Single(2, 3, 10), 0));
+  Assert(not Box.PointInside2D(Vector3Single(2, 3, 10), 1));
+  try
+    Box.PointInside2D(Vector3Single(2, 3, 10), 3);
+    Assert(false, 'PointInside2D with IgnoreIndex = 3 should raise exception');
+  except end;
+
+  Assert(FloatsEqual(Box.Radius2D(0), Sqrt(Sqr(5) + Sqr(6)), 0.01));
+  Assert(FloatsEqual(Box.Radius2D(1), Sqrt(Sqr(4) + Sqr(6)), 0.01));
+  Assert(FloatsEqual(Box.Radius2D(2), Sqrt(Sqr(4) + Sqr(5)), 0.01));
+  try
+    Box.Radius2D(3);
+    Assert(false, 'Radius2D with IgnoreIndex = 3 should raise exception');
+  except end;
+
+  Assert(FloatsEqual(Box.Radius, Sqrt(Sqr(4) + Sqr(5) + Sqr(6)), 0.01));
+
+  Assert(FloatsEqual(Box.Diagonal, Sqrt(Sqr(3) + Sqr(3) + Sqr(3)), 0.01));
+  Assert(FloatsEqual(Box2.Diagonal, Sqrt(Sqr(1) + Sqr(10) + Sqr(3)), 0.01));
 end;
 
 initialization
