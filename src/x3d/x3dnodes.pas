@@ -2023,8 +2023,9 @@ var
     but still it's sensible.
 
     Rectangles (used for Cube sides) are also subdivided, for better
-    Gouraud shading. For the exact meaning of Detail_RectDivisions
-    see CastleGLUtils.DrawGLPlane.
+    Gouraud shading. We use Detail_RectDivisions + 1 columns and rows,
+    so we render @code((Detail_RectDivisions + 1)^2) quads
+    for a cube side.
 
     For now, you can change these variables only @italic(before using anything)
     from this module. If you want to change them inside VRML/X3D
