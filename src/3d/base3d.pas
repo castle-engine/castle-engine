@@ -1276,6 +1276,7 @@ type
       They cannot be parallel (will be fixed internally to be exactly orthogonal,
       by changing up vector). }
     procedure SetView(const APos, ADir, AUp: TVector3Single);
+    procedure SetView(const ADir, AUp: TVector3Single);
 
     { Change up vector, but (when it needs to be fixed to have direction and up
       orthogonal) keep the direction unchanged.
@@ -3257,6 +3258,13 @@ end;
 procedure T3DOrient.SetView(const APos, ADir, AUp: TVector3Single);
 begin
   FPosition := APos;
+  FDirection := Normalized(ADir);
+  FUp := Normalized(AUp);
+  MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
+end;
+
+procedure T3DOrient.SetView(const ADir, AUp: TVector3Single);
+begin
   FDirection := Normalized(ADir);
   FUp := Normalized(AUp);
   MakeVectorsOrthoOnTheirPlane(FUp, FDirection);

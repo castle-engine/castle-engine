@@ -807,7 +807,7 @@ const
   FallingDownSpeed = 10.0;
 var
   AboveHeight: Single;
-  ShiftedPosition, U: TVector3Single;
+  ShiftedPosition, DirectionZero, U: TVector3Single;
   FallingDownLength: Single;
   PickedItem: TInventoryItem;
 begin
@@ -816,8 +816,8 @@ begin
 
   Rotation += 2.61 * CompSpeed;
   U := World.GravityUp; // copy to local variable for speed
-  Up := U;
-  Direction := RotatePointAroundAxisRad(Rotation, AnyOrthogonalVector(U), U);
+  DirectionZero := Normalized(AnyOrthogonalVector(U));
+  SetView(RotatePointAroundAxisRad(Rotation, DirectionZero, U), U);
 
   ShiftedPosition := Position + U * ItemRadius;
 
