@@ -1181,6 +1181,7 @@ end;
 
 function TCreature.HeightBetweenLegsAndMiddle: Single;
 begin
+  { TODO: Z up? Look at DefaultOrientation }
   Result := GetChild.BoundingBox.Data[1, 2] * Kind.MiddleHeight;
 end;
 
@@ -1188,18 +1189,21 @@ function TCreature.PositionFromMiddle(
   const AssumeMiddle: TVector3Single): TVector3Single;
 begin
   Result := AssumeMiddle;
+  { TODO: Z up? Look at DefaultOrientation }
   Result[2] -= HeightBetweenLegsAndMiddle;
 end;
 
 function TCreature.LerpLegsMiddle(const A: Single): TVector3Single;
 begin
   Result := Position;
+  { TODO: Z up? Look at DefaultOrientation }
   Result[2] += HeightBetweenLegsAndMiddle * A;
 end;
 
 function TCreature.Middle: TVector3Single;
 begin
   Result := inherited Middle;
+  { TODO: Z up? Look at DefaultOrientation }
   Result[2] += HeightBetweenLegsAndMiddle;
 end;
 
@@ -1231,6 +1235,7 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
     FontSize = 0.5;
   begin
     glPushMatrix;
+      { TODO: Z up? Look at DefaultOrientation }
       glTranslatef(0, 0, GetChild.BoundingBox.Data[1, 2]);
       glRotatef(90, 0, 0, 1);
       glRotatef(90, 1, 0, 0);
@@ -1290,6 +1295,7 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
     var
       FallenHeight: Single;
     begin
+      { TODO: Z up? Look at DefaultOrientation }
       FallenHeight := FallingDownStartHeight - Position[2];
       if FallenHeight > 1.0 then
       begin
@@ -1334,6 +1340,7 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
     begin
       { Fall down }
       if not FIsFallingDown then
+        { TODO: Z up? Look at DefaultOrientation }
         FallingDownStartHeight := Position[2];
 
       FIsFallingDown := true;
@@ -1341,8 +1348,7 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
       FallingDownDistance := Kind.FallingDownSpeed * CompSpeed;
       if IsAbove then
       begin
-        MaximumFallingDownDistance :=
-          AboveHeight - HeightBetweenLegsAndMiddle;
+        MaximumFallingDownDistance := AboveHeight - HeightBetweenLegsAndMiddle;
 
         { If you will fall down by exactly
           AboveHeight - HeightBetweenLegsAndMiddle,
@@ -1615,6 +1621,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
   begin
     if WAKind.Flying then
       SqrDistanceToTarget := PointsDistanceSqr(Middle, Target) else
+      { TODO: Z up? Look at DefaultOrientation }
       SqrDistanceToTarget := PointsDistanceXYSqr(Middle, Target);
     Result :=
       { If creature is ideally at the target
@@ -1710,6 +1717,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
     Distance := WAKind.RandomWalkDistance;
 
     AlternativeTarget := Middle;
+    { TODO: Z up? Look at DefaultOrientation }
     AlternativeTarget[0] += Random * Distance * 2 - Distance;
     AlternativeTarget[1] += Random * Distance * 2 - Distance;
     if WAKind.Flying then
@@ -1736,6 +1744,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
         SetState(wasWalk) else
       if (not Kind.Flying) and
          (AngleRadBetweenDirectionToPlayer < 0.01) and
+         { TODO: Z up? Look at DefaultOrientation }
          BoundingBox.PointInsideXY(LastSeenPlayer) then
       begin
         { Then the player (or it's LastSeenPlayer) is right above or below us.
@@ -2304,8 +2313,8 @@ begin
 
   if MissileKind.FallingDownSpeed <> 0 then
   begin
-    NewDirection := Direction;
-    NewDirection[2] -= MissileKind.FallingDownSpeed * CompSpeed;
+    NewDirection := Direction - World.GravityUp
+      * MissileKind.FallingDownSpeed * CompSpeed;
     Direction := NewDirection;
   end;
 

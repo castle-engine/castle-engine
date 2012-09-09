@@ -472,6 +472,7 @@ begin
 
       This hurts a little (because of 1 call to Sqrt),
       that's why results of this function are cached if FBoundingBoxRotated. }
+    { TODO: Z up? Look at DefaultOrientation }
     HorizontalSize := Max(Max(
       VectorLenSqr(Vector2Single(FBoundingBoxRotated.Data[0, 0], FBoundingBoxRotated.Data[0, 1])),
       VectorLenSqr(Vector2Single(FBoundingBoxRotated.Data[1, 0], FBoundingBoxRotated.Data[0, 1])),
@@ -817,7 +818,7 @@ const
   FallingDownSpeed = 10.0;
 var
   AboveHeight: Single;
-  ShiftedPosition: TVector3Single;
+  ShiftedPosition, U: TVector3Single;
   FallingDownLength: Single;
   PickedItem: TInventoryItem;
 begin
@@ -825,12 +826,11 @@ begin
   if not GetExists then Exit;
 
   Rotation += 2.61 * CompSpeed;
-  Direction := Vector3Single(Sin(Rotation), Cos(Rotation), 0);
-  Up := World.GravityUp; // TODO: should be initially set for all items,
-  // and rotations should be around it
+  U := World.GravityUp; // copy to local variable for speed
+  Up := U;
+  Direction := RotatePointAroundAxisRad(Rotation, AnyOrthogonalVector(U), U);
 
-  ShiftedPosition := Position;
-  ShiftedPosition[2] += ItemRadius;
+  ShiftedPosition := Position + U * ItemRadius;
 
   { Note that I'm using ShiftedPosition, not Position,
     and later I'm comparing "AboveHeight > ItemRadius",
@@ -846,7 +846,7 @@ begin
     FallingDownLength := CompSpeed * FallingDownSpeed;
     MinTo1st(FallingDownLength, AboveHeight - ItemRadius);
 
-    MyMove(Vector3Single(0, 0, -FallingDownLength), true,
+    MyMove(U * (-FallingDownLength), true,
       { TODO: wall-sliding here breaks left life potion on gate:
         it must be corrected (possibly by correcting the large sword mesh)
         to not "slip down" from the sword. }
@@ -900,6 +900,7 @@ end;
 function TItemOnWorld.Middle: TVector3Single;
 begin
   Result := inherited Middle;
+  { TODO: Z up? Look at DefaultOrientation }
   Result[2] += ItemRadius;
 end;
 

@@ -347,6 +347,7 @@ var
             [Resource.Name]));
 
         Box := Shape.BoundingBox;
+        { TODO: Z up? Look at DefaultOrientation }
         Position[0] := (Box.Data[0, 0] + Box.Data[1, 0]) / 2;
         Position[1] := (Box.Data[0, 1] + Box.Data[1, 1]) / 2;
         Position[2] := Box.Data[0, 2];
@@ -431,6 +432,7 @@ var
     end;
 
     { Check GravityUp }
+    { TODO: Z up? Look at DefaultOrientation }
     if not VectorsEqual(GravityUp, Vector3Single(0, 0, 1), 0.001) then
       if Log then
         WritelnLog('Camera', 'Gravity up vector is not +Z. Everything should work fine, but it''s not fully tested');
@@ -519,6 +521,7 @@ begin
     if not MainScene.RemoveBlenderBox(NewCameraBox, 'LevelBox') then
     begin
       { Set CameraBox to MainScene.BoundingBox, and make maximum Z larger. }
+      { TODO: Z up? Look at DefaultOrientation }
       NewCameraBox := MainScene.BoundingBox;
       NewCameraBox.Data[1, 2] += 4 * (NewCameraBox.Data[1, 2] - NewCameraBox.Data[0, 2]);
     end;
