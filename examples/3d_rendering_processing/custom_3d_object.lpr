@@ -52,7 +52,9 @@ begin
       glEnable(GL_LIGHTING);
       glEnable(GL_LIGHT0);
       glEnable(GL_DEPTH_TEST);
-      DrawGLBox(-1, -1, -1, 1, 1, 1, 0, 0, 0, true, false);
+      glDrawBox3DWire(Box3D(
+        Vector3Single(-1, -1, -1),
+        Vector3Single( 1,  1,  1)));
     glPopAttrib;
 
     if not Params.RenderTransformIdentity then
