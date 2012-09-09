@@ -1594,6 +1594,8 @@ type
 const
   MaxSingle = Math.MaxSingle;
 
+  OrientationUpIndex: array [TOrientationType] of Integer = (1, 2, 2);
+
 { Apply transformation to a matrix.
   Calculates at the same time transformation matrix, and it's inverse,
   and multiplies given Transform, TransformInverse appropriately.

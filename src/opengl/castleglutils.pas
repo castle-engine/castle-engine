@@ -722,12 +722,17 @@ procedure CastleGluSphere(
   Orientation: TGLenum = GLU_OUTSIDE;
   DrawStyle: TGLenum = GLU_FILL);
 
-{ Draws a simple lines around this TBox3D.
-  It doesn't generate any texture coords or normal vectors
-  --- it only draws 8 lines. }
+{ Draw axis (3 lines) around given position.
+  Nothing is generated besides vertex positions ---
+  no normal vectors, no texture coords, nothing. }
+procedure glDrawAxisWire(const Position: TVector3Single; Size: Single);
+
+{ Draw the wireframe box.
+  Nothing is generated besides vertex positions ---
+  no normal vectors, no texture coords, nothing. }
 procedure glDrawBox3DWire(const Box: TBox3D);
 
-{ Draw simple box. Nothing is generated besides vertexes position ---
+{ Draw simple box. Nothing is generated besides vertex positions ---
   no normal vectors, no texture coords, nothing. Order is CCW outside
   (so if you want, you can turn on backface culling yourself).
 
@@ -1602,6 +1607,19 @@ begin
   try
     gluSphere(Q, Radius, Slices, Stacks);
   finally gluDeleteQuadric(Q); end;
+end;
+
+procedure glDrawAxisWire(const Position: TVector3Single; Size: Single);
+begin
+  Size /= 2;
+  glBegin(GL_LINES);
+    glVertexv(Position - Vector3Single(Size, 0, 0));
+    glVertexv(Position + Vector3Single(Size, 0, 0));
+    glVertexv(Position - Vector3Single(0, Size, 0));
+    glVertexv(Position + Vector3Single(0, Size, 0));
+    glVertexv(Position - Vector3Single(0, 0, Size));
+    glVertexv(Position + Vector3Single(0, 0, Size));
+  glEnd;
 end;
 
 procedure glDrawBox3DWire(const Box: TBox3D);

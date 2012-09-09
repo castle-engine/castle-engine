@@ -794,6 +794,8 @@ begin
         glColorv(Gray3Single);
         glDrawBox3DWire(BoundingBox);
         glDrawBox3DWire(BoxRotated);
+        glColorv(Yellow3Single);
+        glDrawAxisWire(Middle, BoxRotated.AverageSize(true, 0));
       glPopAttrib;
     end;
   end;
@@ -889,8 +891,7 @@ end;
 function TItemOnWorld.Middle: TVector3Single;
 begin
   Result := inherited Middle;
-  { TODO: Z up? Look at DefaultOrientation }
-  Result[2] += ItemRadius;
+  Result[OrientationUpIndex[Orientation]] += ItemRadius;
 end;
 
 { initialization / finalization ---------------------------------------- }

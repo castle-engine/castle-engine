@@ -1181,30 +1181,27 @@ end;
 
 function TCreature.HeightBetweenLegsAndMiddle: Single;
 begin
-  { TODO: Z up? Look at DefaultOrientation }
-  Result := GetChild.BoundingBox.Data[1, 2] * Kind.MiddleHeight;
+  Result := GetChild.BoundingBox.Data[1, OrientationUpIndex[Orientation]] *
+    Kind.MiddleHeight;
 end;
 
 function TCreature.PositionFromMiddle(
   const AssumeMiddle: TVector3Single): TVector3Single;
 begin
   Result := AssumeMiddle;
-  { TODO: Z up? Look at DefaultOrientation }
-  Result[2] -= HeightBetweenLegsAndMiddle;
+  Result[OrientationUpIndex[Orientation]] -= HeightBetweenLegsAndMiddle;
 end;
 
 function TCreature.LerpLegsMiddle(const A: Single): TVector3Single;
 begin
   Result := Position;
-  { TODO: Z up? Look at DefaultOrientation }
-  Result[2] += HeightBetweenLegsAndMiddle * A;
+  Result[OrientationUpIndex[Orientation]] += HeightBetweenLegsAndMiddle * A;
 end;
 
 function TCreature.Middle: TVector3Single;
 begin
   Result := inherited Middle;
-  { TODO: Z up? Look at DefaultOrientation }
-  Result[2] += HeightBetweenLegsAndMiddle;
+  Result[OrientationUpIndex[Orientation]] += HeightBetweenLegsAndMiddle;
 end;
 
 procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams);
@@ -1227,18 +1224,24 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
           gluSphere(Q, Kind.Radius, 10, 10);
         finally gluDeleteQuadric(Q); end;
       glPopMatrix;
+
+      glColorv(Yellow3Single);
+      glDrawAxisWire(Middle, BoundingBox.AverageSize(true, 0));
     glPopAttrib;
   end;
 
   procedure DebugCaptions;
-  const
-    FontSize = 0.5;
+  var
+    H, FontSize: Single;
   begin
     glPushMatrix;
-      { TODO: Z up? Look at DefaultOrientation }
-      glTranslatef(0, 0, GetChild.BoundingBox.Data[1, 2]);
+      H := GetChild.BoundingBox.Data[1, OrientationUpIndex[Orientation]];
+      glTranslatev(World.GravityUp * H);
+      { TODO: probably these rotations need adjustment based on Orientation,
+        they assume otUpZDirectionX now. }
       glRotatef(90, 0, 0, 1);
       glRotatef(90, 1, 0, 0);
+      FontSize := H / 4;
       glScalef(FontSize / Font3d.RowHeight, FontSize / Font3d.RowHeight, 1);
 
       glPushAttrib(GL_ENABLE_BIT);
@@ -1295,8 +1298,7 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
     var
       FallenHeight: Single;
     begin
-      { TODO: Z up? Look at DefaultOrientation }
-      FallenHeight := FallingDownStartHeight - Position[2];
+      FallenHeight := FallingDownStartHeight - Position[OrientationUpIndex[Orientation]];
       if FallenHeight > 1.0 then
       begin
         Sound3d(stCreatureFalledDown, 0.1, false);
@@ -1340,8 +1342,7 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
     begin
       { Fall down }
       if not FIsFallingDown then
-        { TODO: Z up? Look at DefaultOrientation }
-        FallingDownStartHeight := Position[2];
+        FallingDownStartHeight := Position[OrientationUpIndex[Orientation]];
 
       FIsFallingDown := true;
 
