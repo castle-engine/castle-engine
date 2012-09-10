@@ -55,6 +55,7 @@ type
     FPrepared: boolean;
     Allocated: T3DListCore;
     FUsageCount: Cardinal;
+    ConfigAlwaysPrepared: boolean;
   protected
     { Prepare 3D resource loading it from given filename.
       Loads the resource only if filename is not empty,
@@ -175,7 +176,13 @@ type
       then all items should be prepared for all levels, since you can in theory
       drop everything anywhere.
 
-      Return @true if this is such resource. }
+      Return @true if this is such resource.
+
+      Default implementation in T3DResource returns here the ConfigAlwaysPrepared
+      value, which may be set in resource.xml and by default is false.
+      This allows to configure this using resource.xml files.
+      Descendants may choose to override this, to override value from resource.xml
+      file. }
     function AlwaysPrepared: boolean; virtual;
   end;
 
@@ -285,7 +292,7 @@ end;
 
 procedure T3DResource.LoadFromFile(KindsConfig: TCastleConfig);
 begin
-  { Nothing to do in this class. }
+  ConfigAlwaysPrepared := KindsConfig.GetValue('always_prepared', false);
 end;
 
 procedure T3DResource.RedoPrepare(const BaseLights: TAbstractLightInstancesList;
@@ -378,7 +385,7 @@ end;
 
 function T3DResource.AlwaysPrepared: boolean;
 begin
-  Result := false;
+  Result := ConfigAlwaysPrepared;
 end;
 
 { T3DResourceList ------------------------------------------------------------- }

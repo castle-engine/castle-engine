@@ -127,8 +127,6 @@ type
     FInventoryCurrentItem: Integer;
     FSickProjectionSpeed: Single;
 
-    FResources: T3DResourceList;
-
     function GetFlyingMode: boolean;
     procedure SetEquippedWeapon(Value: TItemWeapon);
 
@@ -322,14 +320,6 @@ type
     property SickProjectionSpeed: Single
       read FSickProjectionSpeed write FSickProjectionSpeed;
 
-    { Resource that have to be prepared for mere presence of player on a level.
-      This is a place for any creatures that may be created by player
-      actions. For example player may always have a bow and shoot an arrow,
-      so this should contain Arrow creature.
-
-      It's loaded from player.xml }
-    property Resources: T3DResourceList read FResources;
-
     property CollidesWithMoving default true;
     procedure Translate(const T: TVector3Single); override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
@@ -375,8 +365,6 @@ end;
 { TPlayer -------------------------------------------------------------------- }
 
 constructor TPlayer.Create(AOwner: TComponent);
-var
-  BaseLights: TLightInstancesList;
 begin
   inherited Create(AOwner);
   CollidesWithMoving := true;
@@ -407,17 +395,7 @@ begin
 
   OnInputChanged.Add(@InputChanged);
 
-  FResources := T3DResourceList.Create(false);
-
   LoadFromFile;
-
-  { TODO: not nice to initialize BaseLights here?
-    player creatures should be required/released at each level start probably. }
-  BaseLights := TLightInstancesList.Create;
-  try
-    { TODO: hardcoded gravity +Z here, we should not do Resources.Prepare here at all! }
-    Resources.Prepare(BaseLights, UnitVector3Single[2]);
-  finally FreeAndNil(BaseLights) end;
 
   { Although it will be called in every OnIdle anyway,
     we also call it here to be sure that right after TPlayer constructor
@@ -443,12 +421,6 @@ begin
 
   if SwimmingSound <> nil then
     SwimmingSound.Release;
-
-  if Resources <> nil then
-  begin
-    Resources.Release;
-    FreeAndNil(FResources);
-  end;
 
   inherited;
 end;
@@ -1088,7 +1060,6 @@ end;
 procedure TPlayer.LoadFromFile;
 var
   PlayerConfig: TCastleConfig;
-  PlayerElement: TDOMElement;
 begin
   PlayerConfig := TCastleConfig.Create(nil);
   try
@@ -1111,10 +1082,6 @@ begin
       DefaultHeadBobbingTime);
     SickProjectionSpeed := PlayerConfig.GetFloat('player/sick_projection_speed',
       DefaultSickProjectionSpeed);
-
-    PlayerElement := PlayerConfig.PathElement('player');
-    if PlayerElement <> nil then
-      FResources.LoadResources(PlayerElement);
   finally SysUtils.FreeAndNil(PlayerConfig); end;
 end;
 
