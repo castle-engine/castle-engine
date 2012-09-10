@@ -1038,6 +1038,17 @@ type
       const Triangle: P3DTriangle): boolean; virtual; abstract;
     { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
     function GravityUp: TVector3Single; virtual; abstract;
+    { The major axis of gravity vector: 0, 1 or 2.
+      This is derived from GravityUp value. It can only truly express
+      GravityUp vector values (1,0,0) or (0,1,0) or (0,0,1),
+      although in practice this is enough for normal games (normal 3D scenes
+      use up either +Y or +Z).
+
+      We try to avoid using it in
+      the engine, and use full GravityUp vector wherever possible.
+      Full GravityUp vector may allow for more fun with weird gravity
+      in future games. }
+    function GravityCoordinate: Integer;
     { Player, see TCastleSceneManager.Player. }
     function Player: T3DAlive; virtual; abstract;
     { Base lights, see TCastleSceneManager.BaseLights. }
@@ -1301,9 +1312,6 @@ type
       By default it's otUpYDirectionMinusZ (matching default cameras
       of OpenGL and VRML/X3D). }
     property Orientation: TOrientationType read FOrientation write FOrientation;
-
-    { Index of up coordinate (0, 1 or 2) derived from Orientation. }
-    function UpIndex: Integer;
 
     function Middle: TVector3Single; override;
   end;
@@ -1596,8 +1604,6 @@ type
 
 const
   MaxSingle = Math.MaxSingle;
-
-  OrientationUpIndex: array [TOrientationType] of Integer = (1, 2, 2);
 
 { Apply transformation to a matrix.
   Calculates at the same time transformation matrix, and it's inverse,
@@ -2754,6 +2760,11 @@ begin
   Result := Self;
 end;
 
+function T3DWorld.GravityCoordinate: Integer;
+begin
+  Result := MaxAbsVectorCoord(GravityUp);
+end;
+
 { T3DCustomTransform -------------------------------------------------------- }
 
 function T3DCustomTransform.GetTranslation: TVector3Single;
@@ -3278,11 +3289,6 @@ end;
 procedure T3DOrient.Translate(const T: TVector3Single);
 begin
   Position := Position + T;
-end;
-
-function T3DOrient.UpIndex: Integer;
-begin
-  Result := OrientationUpIndex[Orientation];
 end;
 
 function T3DOrient.Middle: TVector3Single;

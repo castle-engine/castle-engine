@@ -312,7 +312,7 @@ var
     Resource: T3DResource;
     Box: TBox3D;
     Position, Direction: TVector3Single;
-    IgnoredBegin, NumberBegin, UpIndex: Integer;
+    IgnoredBegin, NumberBegin: Integer;
     ResourceNumber: Int64;
   begin
     if IsPrefix(ResourcePrefix, Shape.BlenderMeshName) then
@@ -348,12 +348,7 @@ var
 
         Box := Shape.BoundingBox;
         Position := Box.Middle;
-        { All existing T3DResource for now place a new T3DOrient on world
-          in their T3DResource.InstantiatePlaceholder method.
-          That's why we use T3DOrient.DefaultOrientation below.
-          Possibly, this should be cleaner in the future. }
-        UpIndex := OrientationUpIndex[T3DOrient.DefaultOrientation];
-        Position[UpIndex] := Box.Data[0, UpIndex];
+        Position[Items.GravityCoordinate] := Box.Data[0, Items.GravityCoordinate];
 
         { TODO: for now, Direction is not configurable, it just points
           to the player start pos. This is more-or-less sensible for creatures. }
@@ -434,12 +429,6 @@ var
       WalkCamera.MoveVerticalSpeed := 20;
     end;
 
-    { Check GravityUp }
-    { TODO: Z up? Look at DefaultOrientation }
-    if not VectorsEqual(GravityUp, Vector3Single(0, 0, 1), 0.001) then
-      if Log then
-        WritelnLog('Camera', 'Gravity up vector is not +Z. Everything should work fine, but it''s not fully tested');
-
     Camera := WalkCamera;
 
     WalkCamera.Init(InitialPosition, InitialDirection,
@@ -487,7 +476,7 @@ begin
 
   FInfo := AInfo;
   Inc(LevelsAvailable.References);
-  Info.Resources.Prepare(BaseLights);
+  Info.Resources.Prepare(BaseLights, {TODO}UnitVector3Single[2]);
 
   PreviousResources.Release;
   FreeAndNil(PreviousResources);
@@ -495,7 +484,7 @@ begin
   Progress.Init(1, 'Loading level "' + Info.Title + '"');
   try
     { disconnect previous Camera from SceneManager.
-      Othwerwise, it would be updated by MainScene loading binding new
+      Otherwise, it would be updated by MainScene loading binding new
       NavigationInfo (with it's speed) and Viewpoint.
       We prefer to do it ourselves in InitializeCamera. }
     Camera := nil;

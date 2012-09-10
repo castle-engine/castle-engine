@@ -102,6 +102,7 @@ type
       In this class, PrepareCoreSteps returns 0.
       @groupBegin }
     procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
+      const GravityUp: TVector3Single;
       const DoProgress: boolean); virtual;
     function PrepareCoreSteps: Cardinal; virtual;
     procedure ReleaseCore; virtual;
@@ -135,7 +136,8 @@ type
     { Release and then immediately prepare again this resource.
       Call only when UsageCount <> 0, that is when resource is prepared.
       Shows nice progress bar, using @link(Progress). }
-    procedure RedoPrepare(const BaseLights: TAbstractLightInstancesList);
+    procedure RedoPrepare(const BaseLights: TAbstractLightInstancesList;
+      const GravityUp: TVector3Single);
 
     { How many times this resource is used. Used by Prepare and Release:
       actual allocation / deallocation happens when this raises from zero
@@ -156,7 +158,8 @@ type
       Show nice progress bar, using @link(Progress).
 
       @groupBegin }
-    procedure Prepare(const BaseLights: TAbstractLightInstancesList);
+    procedure Prepare(const BaseLights: TAbstractLightInstancesList;
+      const GravityUp: TVector3Single);
     procedure Release;
     { @groupEnd }
 
@@ -212,6 +215,7 @@ type
     { Prepare / release all resources on list.
       @groupBegin }
     procedure Prepare(const BaseLights: TAbstractLightInstancesList;
+      const GravityUp: TVector3Single;
       const ResourcesName: string = 'resources');
     procedure Release;
     { @groupEnd }
@@ -252,6 +256,7 @@ begin
 end;
 
 procedure T3DResource.PrepareCore(const BaseLights: TAbstractLightInstancesList;
+  const GravityUp: TVector3Single;
   const DoProgress: boolean);
 begin
 end;
@@ -283,7 +288,8 @@ begin
   { Nothing to do in this class. }
 end;
 
-procedure T3DResource.RedoPrepare(const BaseLights: TAbstractLightInstancesList);
+procedure T3DResource.RedoPrepare(const BaseLights: TAbstractLightInstancesList;
+  const GravityUp: TVector3Single);
 var
   DoProgress: boolean;
 begin
@@ -300,7 +306,7 @@ begin
       So we should call Progress.Init before we make outselves unprepared. }
     FPrepared := false;
     ReleaseCore;
-    PrepareCore(BaseLights, DoProgress);
+    PrepareCore(BaseLights, GravityUp, DoProgress);
     FPrepared := true;
   finally
     if DoProgress then Progress.Fini;
@@ -347,14 +353,15 @@ begin
   if DoProgress then Progress.Step;
 end;
 
-procedure T3DResource.Prepare(const BaseLights: TAbstractLightInstancesList);
+procedure T3DResource.Prepare(const BaseLights: TAbstractLightInstancesList;
+  const GravityUp: TVector3Single);
 var
   List: T3DResourceList;
 begin
   List := T3DResourceList.Create(false);
   try
     List.Add(Self);
-    List.Prepare(BaseLights);
+    List.Prepare(BaseLights, GravityUp);
   finally FreeAndNil(List) end;
 end;
 
@@ -479,6 +486,7 @@ begin
 end;
 
 procedure T3DResourceList.Prepare(const BaseLights: TAbstractLightInstancesList;
+  const GravityUp: TVector3Single;
   const ResourcesName: string);
 var
   I: Integer;
@@ -522,7 +530,7 @@ begin
             WritelnLog('Resources', Format(
               'Resource "%s" becomes used, preparing', [Resource.Name]));
           Assert(not Resource.Prepared);
-          Resource.PrepareCore(BaseLights, DoProgress);
+          Resource.PrepareCore(BaseLights, GravityUp, DoProgress);
           Resource.FPrepared := true;
         end;
       end;

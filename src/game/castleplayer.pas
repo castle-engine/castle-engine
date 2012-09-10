@@ -415,7 +415,8 @@ begin
     player creatures should be required/released at each level start probably. }
   BaseLights := TLightInstancesList.Create;
   try
-    Resources.Prepare(BaseLights);
+    { TODO: hardcoded gravity +Z here, we should not do Resources.Prepare here at all! }
+    Resources.Prepare(BaseLights, UnitVector3Single[2]);
   finally FreeAndNil(BaseLights) end;
 
   { Although it will be called in every OnIdle anyway,

@@ -49,8 +49,10 @@ type
     FImageFileName: string;
     FImage: TCastleImage;
     FGLList_DrawImage: TGLuint;
+    FBoundingBoxRotated: TBox3D;
   protected
     procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
+      const GravityUp: TVector3Single;
       const DoProgress: boolean); override;
     function PrepareCoreSteps: Cardinal; override;
     procedure ReleaseCore; override;
@@ -88,12 +90,8 @@ type
 
       Note that this assumes that initial item Scene does not animate.
       If it animates, possibly the actual bounding box will get larger,
-      we don't account for it here (now).
-
-      @param(GravityUp Because the rotations of TItemOnWorld are around GravityUp,
-        and we don't know the 3D world gravity inside TItemKind,
-        you have to pass it as a parameter (must be a normalized vector).) }
-    function BoundingBoxRotated(const GravityUp: TVector3Single): TBox3D;
+      we don't account for it here (now). }
+    property BoundingBoxRotated: TBox3D read FBoundingBoxRotated;
 
     { Create item. This is how you should create new TInventoryItem instances.
       It is analogous to TCreatureKind.CreateCreature, but now for items.
@@ -169,6 +167,7 @@ var
     FSoundAttackStart: TSoundType;
   protected
     procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
+      const GravityUp: TVector3Single;
       const DoProgress: boolean); override;
     function PrepareCoreSteps: Cardinal; override;
     procedure ReleaseCore; override;
@@ -463,20 +462,17 @@ begin
   Result := FGLList_DrawImage;
 end;
 
-function TItemKind.BoundingBoxRotated(const GravityUp: TVector3Single): TBox3D;
-begin
-  Result :=
-    Scene.BoundingBox.Transform(RotationMatrixDeg(45         , GravityUp)) +
-    Scene.BoundingBox.Transform(RotationMatrixDeg(45 + 90    , GravityUp)) +
-    Scene.BoundingBox.Transform(RotationMatrixDeg(45 + 90 * 2, GravityUp)) +
-    Scene.BoundingBox.Transform(RotationMatrixDeg(45 + 90 * 3, GravityUp));
-end;
-
 procedure TItemKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
+  const GravityUp: TVector3Single;
   const DoProgress: boolean);
 begin
   inherited;
   PrepareScene(FScene, SceneFileName, BaseLights, DoProgress);
+  FBoundingBoxRotated :=
+    Scene.BoundingBox.Transform(RotationMatrixDeg(45         , GravityUp)) +
+    Scene.BoundingBox.Transform(RotationMatrixDeg(45 + 90    , GravityUp)) +
+    Scene.BoundingBox.Transform(RotationMatrixDeg(45 + 90 * 2, GravityUp)) +
+    Scene.BoundingBox.Transform(RotationMatrixDeg(45 + 90 * 3, GravityUp));
 end;
 
 function TItemKind.PrepareCoreSteps: Cardinal;
@@ -527,6 +523,7 @@ end;
 { TItemWeaponKind ------------------------------------------------------------ }
 
 procedure TItemWeaponKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
+  const GravityUp: TVector3Single;
   const DoProgress: boolean);
 begin
   inherited;
@@ -785,7 +782,7 @@ begin
   if RenderDebug3D and GetExists and
     (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
-    BoxRotated := Item.Kind.BoundingBoxRotated(World.GravityUp).Translate(Position);
+    BoxRotated := Item.Kind.BoundingBoxRotated.Translate(Position);
     if Frustum.Box3DCollisionPossibleSimple(BoxRotated) then
     begin
       glPushAttrib(GL_ENABLE_BIT);
@@ -890,8 +887,7 @@ end;
 
 function TItemOnWorld.Middle: TVector3Single;
 begin
-  Result := inherited Middle;
-  Result[OrientationUpIndex[Orientation]] += ItemRadius;
+  Result := (inherited Middle) + World.GravityUp * ItemRadius;
 end;
 
 { initialization / finalization ---------------------------------------- }
