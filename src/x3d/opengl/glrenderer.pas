@@ -1233,11 +1233,16 @@ const
     'Steep Parallax With Self-Shadowing' );
 
 var
-  { Should we log every event of a cache TGLRendererContextCache.
-    You have to InitializeLog first (see CastleLog) to make this actually
-    meaningful. This allows to see how the cache performs. It also causes
-    a @italic(lot) of log messages, usually too many even for debugging. }
+  { Log renderer cache events. Allows to see how the cache performs.
+    A @italic(lot) of log messages.
+
+    Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
   LogRendererCache: boolean = false;
+
+  { Log various renderer information.
+
+    Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
+  LogRenderer: boolean = false;
 
 { Return GLSL library of functions to link with screen effect code.
   This looks at current OpenGL context multi-sampling capabilities
@@ -2433,12 +2438,12 @@ begin
   if NewVbos then
   begin
     glGenBuffersARB(Ord(High(Vbo)) + 1, @Vbo);
-    if Log then
+    if Log and LogRenderer then
       WritelnLog('Renderer', Format('Creating and loading data to VBOs (%d,%d,%d)',
         [Vbo[vtCoordinate], Vbo[vtAttribute], Vbo[vtIndex]]));
   end else
   begin
-    if Log then
+    if Log and LogRenderer then
       WritelnLog('Renderer', Format('Loading data to existing VBOs (%d,%d,%d), reloading %s',
         [Vbo[vtCoordinate], Vbo[vtAttribute], Vbo[vtIndex],
          VboTypesToStr(VboToReload)]));

@@ -782,7 +782,7 @@ begin
     PrepareAttributes(AllowIndexed);
 
     try
-      if Log then
+      if Log and LogShapes then
         WritelnLog('Renderer', Format('Shape %s is rendered with indexes: %s',
           [Shape.NiceName, BoolToStr[AllowIndexed]]));
 

@@ -2124,7 +2124,7 @@ procedure TCastleScene.PrepareResources(
     SI: TShapeTreeIterator;
     Shape: TGLShape;
   begin
-    if Log then
+    if Log and LogRenderer then
       WritelnLog('Renderer', 'Preparing rendering of all shapes');
 
     { Note: we prepare also not visible shapes, in case they become visible. }
@@ -3517,6 +3517,9 @@ begin
 
   if Attributes.ReallyUseOcclusionQuery then
   begin
+    if Log then
+      WritelnLog('Occlusion query', 'View changed suddenly');
+  
     { Set OcclusionQueryAsked := false for all shapes. }
     SI := TShapeTreeIterator.Create(Shapes, false, false, false);
     try

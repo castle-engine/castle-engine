@@ -1896,11 +1896,12 @@ type
   end;
 
 var
-  { Log TCastleSceneCore.ChangedField and TCastleSceneCore.ChangedAll occurrences.
-    Relevant only if CastleLog.Log is also true, that is: you still have
-    to call CastleLog.InitializeLog to enable any logging.
-    Useful for debugging  and optimizing VRML/X3D events engine. }
-  LogChanges: boolean;
+  { Log changes to fields.
+    This debugs what and why happens through TCastleSceneCore.ChangedField method
+    and friends, which is central to VRML/X3D dynamic changes and events engine.
+
+    Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
+  LogChanges: boolean = false;
 
 implementation
 
@@ -3088,7 +3089,7 @@ begin
 
   ForceTeleportTransitions := false;
 
-  if Log then
+  if Log and LogShapes then
     WriteLogMultiline('Shapes tree', Shapes.DebugInfo);
 
   finally Dec(Dirty) end;
@@ -3524,7 +3525,7 @@ begin
   except
     on B: BreakTransformChangeFailed do
     begin
-      if Log then
+      if Log and LogChanges then
         WritelnLog('VRML changes', 'Transform change (because of child: ' + B.Reason + ') causes ChangedAll (no optimized action)');
       ScheduleChangedAll;
       Exit;
@@ -4729,8 +4730,8 @@ function TCastleSceneCore.TrianglesListShadowCasters: TTrianglesShadowCastersLis
           finally FreeAndNil(SI) end;
         end;
 
-        if Log then
-          WritelnLog('Shadows', Format('Shadows casters triangles: %d opaque, %d total',
+        if Log and LogShadowVolumes then
+          WritelnLog('Shadow volumes', Format('Shadows casters triangles: %d opaque, %d total',
             [Result.OpaqueCount, Result.Count]));
 
       finally FreeAndNil(TriangleAdder) end;
@@ -4882,8 +4883,8 @@ procedure TCastleSceneCore.CalculateIfNeededManifoldAndBorderEdges;
       end;
     finally FreeAndNil(EdgesSingle); end;
 
-    if Log then
-      WritelnLog('Shadows', Format(
+    if Log and LogShadowVolumes then
+      WritelnLog('Shadow volumes', Format(
         'Edges: %d manifold, %d border',
         [FManifoldEdges.Count, FBorderEdges.Count] ));
   end;
@@ -6285,9 +6286,6 @@ end;
 
 procedure TCastleSceneCore.ViewChangedSuddenly;
 begin
-  if Log then
-    WritelnLog('Scene', 'Optimizer received hint: View changed suddenly');
-
   { Nothing meaningful to do in this class }
 end;
 

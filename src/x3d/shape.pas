@@ -864,6 +864,12 @@ var
     by it's approximation. }
   DisableAutoDynamicGeometry: Cardinal;
 
+  { Log various information about shapes. This displays quite a lot of non-critical
+    information when opening non-trivial models.
+
+    Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
+  LogShapes: boolean = false;
+
 implementation
 
 uses ProgressUnit, CastleSceneCore, NormalsCalculator, CastleLog, CastleWarnings,
@@ -1649,7 +1655,7 @@ begin
           (FNormalsOverTriangulate = OverTriangulate) and
           (FNormalsCached = ncSmooth)) then
   begin
-    if Log then
+    if Log and LogShapes then
       WritelnLog('Normals', 'Calculating shape smooth normals');
 
     { Free previous normals }
@@ -1677,7 +1683,7 @@ begin
           (FNormalsOverTriangulate = OverTriangulate) and
           (FNormalsCached = ncFlat)) then
   begin
-    if Log then
+    if Log and LogShapes then
       WritelnLog('Normals', 'Calculating shape flat normals');
 
     { Free previous normals }
@@ -1708,7 +1714,7 @@ begin
           (FNormalsOverTriangulate = OverTriangulate) and
           (FNormalsCreaseAngle = CreaseAngle)) then
   begin
-    if Log then
+    if Log and LogShapes then
       WritelnLog('Normals', 'Calculating shape CreaseAngle normals');
 
     { Free previous normals }

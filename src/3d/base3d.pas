@@ -1626,6 +1626,11 @@ var
   RenderDebugCaptions: boolean = false;
   { @groupEnd }
 
+  { Log shadow volume information.
+
+    Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
+  LogShadowVolumes: boolean = false;
+
 implementation
 
 uses SysUtils, Cameras;
