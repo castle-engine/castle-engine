@@ -49,8 +49,6 @@ WWW:
   -->
   (Change it to use castle-engine, if using it.)
 
-- Make g+ page for engine? With posting allowed for all devs.
-
 vrml_engine_doc:
 - move "vrml overview" to the end (maybe an annex or such).
 - The tutorial may be pasted as the 1st chapter of vrml_engine_doc, and partially will replace the current
@@ -1099,13 +1097,6 @@ Various:
   Or not --- it's communicated nicely on www page that you need to install it now.
   When it will be packaged in popular distros, this issue should disappear.
 
-- trim down logs.
-  castle --debug-log should be shorter, warnings (like no creature in <resources>)
-  should be easier to spot.
-  Often repeated stuff should not be shown by default (maybe this should
-  be a rule? only stuff displayed max 1 time for (valid) 3d model are allowed
-  in default log mode?)
-
 - Readd scene manager to component palette?
 
   It was removed at 3.0.0 (when we break compat anyway) because it's
@@ -1224,26 +1215,6 @@ T3D improvements possibly postponed for later releases:
 (These are things not necessarily planned for 3.1 release, unless something else
 will turn out to need them.)
 
-- All ideas to call T3DResource.Prepare automatically failed?
-  - From T3D.PrepareResource: no, that's too late, see comments in
-    TCreatureKind.CreateCreature. Kind needs to be prepared earlier,
-    before next scene manager BeforeDraw (which causes T3D.PrepareResource).
-
-  - From TCastleSceneManager.PrepareResource:
-    will also be too late, see above reasoning for T3D.PrepareResource.
-
-    Also, this will require TCastleSceneManager.Resources list,
-    and we're not 100% sure about it --- it would require calling also
-    GLContextClose on all items, and we don't want to call GLContextClose
-    when scene manager gets GLContextClose, because our kinds live
-    much longer than single level.
-
-    Also, this would require tracking which kinds are already prepared
-    at level, as PrepareResource is called each frame, and we don't want
-    to increase UsageCount each frame.
-  Actually, current preparation at CreateCreature does the job,
-  it seems. But it's not clean.
-
 - We lost --debug-no-creatures feature of castle1.
 
 - Add inventory to T3DAlive some day, to allow creature to carry items.
@@ -1255,9 +1226,6 @@ will turn out to need them.)
 
 - Maybe rename Xxx to MyXxx, and rename MyXxx to just Xxx
   (for T3D collision routines for AI).
-
-- Simplify storing of camera properties in castle/TLevel.
-  We should not store all of them there?
 
 - Future: T3DMoving change into something that can also rotate the objects
   standing on it (e.g. if you stand on a spinning table).
