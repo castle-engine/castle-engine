@@ -476,10 +476,6 @@ begin
 
   FInfo := AInfo;
   Inc(LevelsAvailable.References);
-  Info.Resources.Prepare(BaseLights, {TODO}UnitVector3Single[2]);
-
-  PreviousResources.Release;
-  FreeAndNil(PreviousResources);
 
   Progress.Init(1, 'Loading level "' + Info.Title + '"');
   try
@@ -500,6 +496,22 @@ begin
 
     InitializeCamera;
 
+    Progress.Step;
+  finally
+    Progress.Fini;
+  end;
+
+  { load new resources (and release old unused). This must be done after
+    InitializeCamera (because it uses GravityUp), which is turn must
+    be after loading MainScene (because initial camera looks at MainScene
+    contents).
+    It will show it's own progress bar. }
+  Info.Resources.Prepare(BaseLights, GravityUp);
+  PreviousResources.Release;
+  FreeAndNil(PreviousResources);
+
+  Progress.Init(1, 'Loading level "' + Info.Title + '"');
+  try
     ItemsToRemove := TX3DNodeList.Create(false);
     try
       SI := TShapeTreeIterator.Create(MainScene.Shapes, { OnlyActive } true);
