@@ -312,7 +312,7 @@ var
     Resource: T3DResource;
     Box: TBox3D;
     Position, Direction: TVector3Single;
-    IgnoredBegin, NumberBegin: Integer;
+    IgnoredBegin, NumberBegin, UpIndex: Integer;
     ResourceNumber: Int64;
   begin
     if IsPrefix(ResourcePrefix, Shape.BlenderMeshName) then
@@ -347,10 +347,13 @@ var
             [Resource.Name]));
 
         Box := Shape.BoundingBox;
-        { TODO: Z up? Look at DefaultOrientation }
-        Position[0] := (Box.Data[0, 0] + Box.Data[1, 0]) / 2;
-        Position[1] := (Box.Data[0, 1] + Box.Data[1, 1]) / 2;
-        Position[2] := Box.Data[0, 2];
+        Position := Box.Middle;
+        { All existing T3DResource for now place a new T3DOrient on world
+          in their T3DResource.InstantiatePlaceholder method.
+          That's why we use T3DOrient.DefaultOrientation below.
+          Possibly, this should be cleaner in the future. }
+        UpIndex := OrientationUpIndex[T3DOrient.DefaultOrientation];
+        Position[UpIndex] := Box.Data[0, UpIndex];
 
         { TODO: for now, Direction is not configurable, it just points
           to the player start pos. This is more-or-less sensible for creatures. }
