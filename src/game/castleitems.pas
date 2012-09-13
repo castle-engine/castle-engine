@@ -826,7 +826,7 @@ begin
     Otherwise, I risk that when item will be placed perfectly on the ground,
     it may "slip through" this ground down. }
 
-  MyHeight(ShiftedPosition, AboveHeight);
+  Height(ShiftedPosition, AboveHeight);
   if AboveHeight > ItemRadius then
   begin
     { Item falls down because of gravity. }
@@ -834,7 +834,7 @@ begin
     FallingDownLength := CompSpeed * FallingDownSpeed;
     MinTo1st(FallingDownLength, AboveHeight - ItemRadius);
 
-    MyMove(U * (-FallingDownLength), true,
+    Move(U * (-FallingDownLength), true,
       { TODO: wall-sliding here breaks left life potion on gate:
         it must be corrected (possibly by correcting the large sword mesh)
         to not "slip down" from the sword. }

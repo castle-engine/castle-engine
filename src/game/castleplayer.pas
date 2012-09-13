@@ -324,7 +324,7 @@ type
     procedure Translate(const T: TVector3Single); override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      const LineOfSight: boolean): boolean; override;
+      const ALineOfSight: boolean): boolean; override;
     function Sphere(out Radius: Single): boolean; override;
   end;
 
@@ -1124,11 +1124,11 @@ end;
 
 function TPlayer.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  const LineOfSight: boolean): boolean;
+  const ALineOfSight: boolean): boolean;
 begin
-  if LineOfSight then
+  if ALineOfSight then
     { Player box is collidable (creatures cannot enter on player),
-      but is not visible, so LineOfSight ignores it.
+      but is not visible, so ALineOfSight ignores it.
       This allows creatures to see player's middle point. }
     Result := false else
     Result := inherited;

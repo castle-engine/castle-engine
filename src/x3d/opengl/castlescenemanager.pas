@@ -946,7 +946,7 @@ type
       @unorderedList(
         @item(In the 1st person view, this 3D object guides the camera and
           it never collides with the camera. That is, our CameraMoveAllowed
-          and similar methods simply call Player.MyMoveAllowed,
+          and similar methods simply call Player.MoveAllowed,
           that in turn calls World.WorldMoveAllowed making sure
           that player is temporarily disabled (does not collide with itself).
 
@@ -2308,7 +2308,7 @@ type
     function WorldHeight(const Position: TVector3Single;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function WorldLineOfSight(const Pos1, Pos2: TVector3Single): boolean; override;
-    function WorldRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
+    function WorldRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
   end;
 
 function T3DWorldConcrete.Owner: TCastleSceneManager;
@@ -2417,7 +2417,7 @@ begin
     true);
 end;
 
-function T3DWorldConcrete.WorldRayCollision(
+function T3DWorldConcrete.WorldRay(
   const RayOrigin, RayDirection: TVector3Single): TRayCollision;
 begin
   Result := RayCollision(RayOrigin, RayDirection,
@@ -2992,7 +2992,7 @@ begin
   { Both version result in calling WorldMoveAllowed.
     Player version adds Player.Disable/Enable around, so don't collide with self. }
   if Player <> nil then
-    Result := Player.MyMoveAllowed(ACamera.Position, ProposedNewPos, NewPos, BecauseOfGravity) else
+    Result := Player.MoveAllowed(ACamera.Position, ProposedNewPos, NewPos, BecauseOfGravity) else
     Result := Items.WorldMoveAllowed(ACamera.Position, ProposedNewPos, NewPos,
       true, ACamera.Radius,
       { We prefer to resolve collisions with camera using sphere.
@@ -3008,17 +3008,17 @@ begin
   { Both version result in calling WorldHeight.
     Player version adds Player.Disable/Enable around, so don't collide with self. }
   if Player <> nil then
-    Result := Player.MyHeight(Position, AboveHeight, AboveGround) else
+    Result := Player.Height(Position, AboveHeight, AboveGround) else
     Result := Items.WorldHeight(Position, AboveHeight, AboveGround);
 end;
 
 function TCastleSceneManager.CameraRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
 begin
-  { Both version result in calling WorldRayCollision.
+  { Both version result in calling WorldRay.
     Player version adds Player.Disable/Enable around, so don't collide with self. }
   if Player <> nil then
-    Result := Player.MyRayCollision(RayOrigin, RayDirection) else
-    Result := Items.WorldRayCollision(RayOrigin, RayDirection);
+    Result := Player.Ray(RayOrigin, RayDirection) else
+    Result := Items.WorldRay(RayOrigin, RayDirection);
 end;
 
 procedure TCastleSceneManager.SceneBoundViewpointChanged(Scene: TCastleSceneCore);

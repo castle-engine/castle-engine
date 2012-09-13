@@ -777,7 +777,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      const LineOfSight: boolean): boolean; override;
+      const ALineOfSight: boolean): boolean; override;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
@@ -6428,14 +6428,14 @@ end;
 
 function TCastleSceneCore.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  const LineOfSight: boolean): boolean;
+  const ALineOfSight: boolean): boolean;
 begin
   if OctreeCollisions <> nil then
-    Result := (GetCollides or (LineOfSight and GetExists)) and
+    Result := (GetCollides or (ALineOfSight and GetExists)) and
       OctreeCollisions.IsSegmentCollision(
         Pos1, Pos2,
         nil, false, TrianglesToIgnoreFunc) else
-    Result := inherited SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, LineOfSight);
+    Result := inherited SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, ALineOfSight);
 end;
 
 function TCastleSceneCore.SphereCollision(

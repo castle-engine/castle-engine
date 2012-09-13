@@ -1351,7 +1351,7 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 
     OldIsFallingDown := FIsFallingDown;
 
-    IsAbove := MyHeight(Middle, AboveHeight);
+    IsAbove := Height(Middle, AboveHeight);
 
     if AboveHeight > HeightBetweenLegsAndMiddle * HeightMargin then
     begin
@@ -1399,7 +1399,7 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
         MinTo1st(FallingDownDistance, MaximumFallingDownDistance);
       end;
 
-      if not MyMove(Vector3Single(0, 0, -FallingDownDistance), true) then
+      if not Move(Vector3Single(0, 0, -FallingDownDistance), true) then
         FIsFallingDown := false;
     end else
     begin
@@ -1408,7 +1408,7 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
       if AboveHeight < HeightBetweenLegsAndMiddle / HeightMargin then
       begin
         { Growing up }
-        MyMove(Vector3Single(0, 0, Min(GrowingUpSpeed * CompSpeed,
+        Move(Vector3Single(0, 0, Min(GrowingUpSpeed * CompSpeed,
           HeightBetweenLegsAndMiddle - AboveHeight)), false);
       end;
     end;
@@ -1805,7 +1805,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
         Result := false;
         if not Kind.Flying then
         begin
-          MyHeight(NewMiddle, AboveHeight);
+          Height(NewMiddle, AboveHeight);
           if AboveHeight > WAKind.MaxHeightAcceptableToFall +
               HeightBetweenLegsAndMiddle then
             Result := true;
@@ -1816,12 +1816,12 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
       Result :=
         { First check to not step into some deep fall.
           Note that I'm not using here NewMiddle
-          (that will be calculated later by MyMove)
+          (that will be calculated later by Move)
           because they are too close to Middle to be good to test against.
           I'm calculating here where I would get after 0.2 second. }
         (not TooHighAboveTheGround(Middle + Direction * (WAKind.MoveSpeed * 0.2))) and
 
-        { Use MyMove without wall-sliding here.
+        { Use Move without wall-sliding here.
           Things using MoveAlongTheDirection depend on the fact that
           MoveAlongTheDirection will return false
           if no further way is possible (and wall-sliding would try instead
@@ -1830,7 +1830,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
           Our trick with "AlternativeTarget" should handle
           eventual problems with the track of creature, so wall-sliding
           should not be needed. }
-        MyMove(Direction * (WAKind.MoveSpeed * CompSpeed), false, false);
+        Move(Direction * (WAKind.MoveSpeed * CompSpeed), false, false);
     end;
 
     { Go the way to LastSeenPlayer, *not* by using waypoints.
@@ -2097,7 +2097,7 @@ begin
   end;
 
   Player := World.Player;
-  IdleSeesPlayer := (Player <> nil) and MyLineOfSight(Middle, Player.Position);
+  IdleSeesPlayer := (Player <> nil) and LineOfSight(Middle, Player.Position);
   if IdleSeesPlayer then
   begin
     HasLastSeenPlayer := true;
@@ -2277,7 +2277,7 @@ var
     if (not MissileKind.HitsPlayer) and (Player <> nil) then Player.Disable;
     if not MissileKind.HitsCreatures then Inc(DisableCreatures);
     try
-      Result := MyMoveAllowed(OldPos, NewPos, false);
+      Result := MoveAllowed(OldPos, NewPos, false);
     finally
       if not MissileKind.HitsCreatures then Dec(DisableCreatures);
       if (not MissileKind.HitsPlayer) and (Player <> nil) then Player.Enable;

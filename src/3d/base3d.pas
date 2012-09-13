@@ -396,7 +396,7 @@ type
 
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      const LineOfSight: boolean): boolean; virtual;
+      const ALineOfSight: boolean): boolean; virtual;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
     function BoxCollision(const Box: TBox3D;
@@ -725,13 +725,12 @@ type
     procedure Translate(const T: TVector3Single); virtual;
 
     { Middle point, usually "eye point", of the 3D model.
-      This is used for sphere center (if overriden Sphere returns @true),
-      it is also used as the central point along which collisions
-      (MyMove, MyMoveAllowed, MyHeight, MyLineOfSight) are checked when this object
-      is dynamic.
+      This is used for sphere center (if overriden Sphere returns @true).
+      It is also used as the central point from which collisions of this object
+      are checked (Move, MoveAllowed, Height, LineOfSight).
       For 3D things like level scene this is mostly useless (as you will leave
       Sphere at default @false then, and the scene itself doesn't move),
-      but it's crucial for dynamic 3D things like player and creatures.
+      but it's crucial for dynamic 3D things like player and moving creatures.
 
       It should not be derived from the BoundingBox.Middle,
       or anything else that may dynamically change. Instead it should
@@ -770,7 +769,7 @@ type
       sphere surrounding the 3D object (it does not have to be a perfect
       bounding sphere around the object), and it may be used for some
       collisions instead of BoundingBox.
-      See @link(CollidesWithMoving) and @link(MyMoveAllowed) for when it may happen.
+      See @link(CollidesWithMoving) and @link(MoveAllowed) for when it may happen.
 
       Must return @false when not GetExists (because we can't express
       "empty sphere" by @link(Sphere) method for now, but BoundingBox can express
@@ -876,16 +875,19 @@ type
     property CollidesWithMoving: boolean read FCollidesWithMoving write FCollidesWithMoving default false;
 
     { Get height of my point above the rest of the 3D world.
+
+      This ignores the geometry of this 3D object (to not accidentaly collide
+      with your own geometry), and checks collisions with the rest of the world.
       @groupBegin }
-    function MyHeight(const MyPosition: TVector3Single;
+    function Height(const MyPosition: TVector3Single;
       out AboveHeight: Single): boolean;
-    function MyHeight(const MyPosition: TVector3Single;
+    function Height(const MyPosition: TVector3Single;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
     { @groupEnd }
 
-    function MyLineOfSight(const Pos1, Pos2: TVector3Single): boolean;
+    function LineOfSight(const Pos1, Pos2: TVector3Single): boolean;
 
-    { Is the move from OldPos to ProposedNewPos possible.
+    { Is the move from OldPos to ProposedNewPos possible for me.
       Returns true and sets NewPos if some move is allowed.
       Overloaded version without ProposedNewPos doesn't do wall-sliding,
       and only answers if exactly this move is allowed.
@@ -894,11 +896,13 @@ type
       then this sphere must be centered around OldPos, not some other point.
       That is, we assume that @link(Sphere) returns Center that is equal to OldPos.
 
+      This ignores the geometry of this 3D object (to not accidentaly collide
+      with your own geometry), and checks collisions with the rest of the world.
       @groupBegin }
-    function MyMoveAllowed(const OldPos, ProposedNewPos: TVector3Single;
+    function MoveAllowed(const OldPos, ProposedNewPos: TVector3Single;
       out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean;
-    function MyMoveAllowed(const OldPos, NewPos: TVector3Single;
+    function MoveAllowed(const OldPos, NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean;
     { @groupEnd }
 
@@ -906,13 +910,17 @@ type
       a 3D object, and a basic building block for artificial intelligence
       of creatures.
 
-      Checks move possibility by MyMoveAllowed, using @link(Middle) point.
+      Checks move possibility by MoveAllowed, using @link(Middle) point.
       Actual move is done using @link(Translate). }
-    function MyMove(const Move: TVector3Single;
+    function Move(const Translation: TVector3Single;
       const BecauseOfGravity: boolean;
       const EnableWallSliding: boolean = true): boolean;
 
-    function MyRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
+    { Cast a ray from myself to the world, see what is hit.
+
+      This ignores the geometry of this 3D object (to not accidentaly collide
+      with your own geometry), and checks collisions with the rest of the world. }
+    function Ray(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
   end;
 
   { List of base 3D objects (T3D instances).
@@ -979,7 +987,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      const LineOfSight: boolean): boolean; override;
+      const ALineOfSight: boolean): boolean; override;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
@@ -1063,7 +1071,7 @@ type
       3D world.
 
       Outside code should prefer calling MyXxx methods of Colliders,
-      like T3D.MyMoveAllowed, instead of these WorldXxx methods.
+      like T3D.MoveAllowed, instead of these WorldXxx methods.
       Calling these WorldXxx methods directly still makes sense if your query
       is not initiated by any 3D object that is part of this 3D world.
       @groupBegin }
@@ -1080,7 +1088,7 @@ type
     function WorldHeight(const Position: TVector3Single;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
     function WorldLineOfSight(const Pos1, Pos2: TVector3Single): boolean; virtual; abstract;
-    function WorldRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision; virtual; abstract;
+    function WorldRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; virtual; abstract;
     { @groupEnd }
   end;
 
@@ -1146,7 +1154,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      const LineOfSight: boolean): boolean; override;
+      const ALineOfSight: boolean): boolean; override;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
@@ -1888,9 +1896,9 @@ end;
 
 function T3D.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  const LineOfSight: boolean): boolean;
+  const ALineOfSight: boolean): boolean;
 begin
-  Result := (GetCollides or (LineOfSight and GetExists)) and
+  Result := (GetCollides or (ALineOfSight and GetExists)) and
     BoundingBox.SegmentCollision(Pos1, Pos2);
 end;
 
@@ -1993,15 +2001,15 @@ begin
     Result := nil;
 end;
 
-function T3D.MyHeight(const MyPosition: TVector3Single;
+function T3D.Height(const MyPosition: TVector3Single;
   out AboveHeight: Single): boolean;
 var
   AboveGroundIgnored: P3DTriangle;
 begin
-  Result := MyHeight(MyPosition, AboveHeight, AboveGroundIgnored);
+  Result := Height(MyPosition, AboveHeight, AboveGroundIgnored);
 end;
 
-function T3D.MyHeight(const MyPosition: TVector3Single;
+function T3D.Height(const MyPosition: TVector3Single;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
   Disable;
@@ -2010,7 +2018,7 @@ begin
   finally Enable end;
 end;
 
-function T3D.MyLineOfSight(const Pos1, Pos2: TVector3Single): boolean;
+function T3D.LineOfSight(const Pos1, Pos2: TVector3Single): boolean;
 begin
   Disable;
   try
@@ -2018,7 +2026,7 @@ begin
   finally Enable end;
 end;
 
-function T3D.MyMoveAllowed(
+function T3D.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single;
   out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
@@ -2042,7 +2050,7 @@ begin
   finally Enable end;
 end;
 
-function T3D.MyMoveAllowed(
+function T3D.MoveAllowed(
   const OldPos, NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 var
@@ -2065,16 +2073,16 @@ begin
   finally Enable end;
 end;
 
-function T3D.MyRayCollision(
+function T3D.Ray(
   const RayOrigin, RayDirection: TVector3Single): TRayCollision;
 begin
   Disable;
   try
-    Result := World.WorldRayCollision(RayOrigin, RayDirection);
+    Result := World.WorldRay(RayOrigin, RayDirection);
   finally Enable end;
 end;
 
-function T3D.MyMove(const Move: TVector3Single;
+function T3D.Move(const Translation: TVector3Single;
   const BecauseOfGravity, EnableWallSliding: boolean): boolean;
 var
   OldMiddle, ProposedNewMiddle, NewMiddle: TVector3Single;
@@ -2083,12 +2091,12 @@ begin
 
   if EnableWallSliding then
   begin
-    ProposedNewMiddle := OldMiddle + Move;
-    Result := MyMoveAllowed(OldMiddle, ProposedNewMiddle, NewMiddle, BecauseOfGravity);
+    ProposedNewMiddle := OldMiddle + Translation;
+    Result := MoveAllowed(OldMiddle, ProposedNewMiddle, NewMiddle, BecauseOfGravity);
   end else
   begin
-    NewMiddle := OldMiddle + Move;
-    Result := MyMoveAllowed(OldMiddle, NewMiddle, BecauseOfGravity);
+    NewMiddle := OldMiddle + Translation;
+    Result := MoveAllowed(OldMiddle, NewMiddle, BecauseOfGravity);
   end;
 
   if Result then
@@ -2531,23 +2539,23 @@ end;
 
 function T3DList.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  const LineOfSight: boolean): boolean;
+  const ALineOfSight: boolean): boolean;
 var
   I: Integer;
 begin
   Result := false;
 
-  if GetCollides or (LineOfSight and GetExists) then
+  if GetCollides or (ALineOfSight and GetExists) then
   begin
     if GetChild <> nil then
     begin
-      Result := GetChild.SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, LineOfSight);
+      Result := GetChild.SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, ALineOfSight);
       if Result then Exit;
     end;
 
     for I := 0 to List.Count - 1 do
     begin
-      Result := List[I].SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, LineOfSight);
+      Result := List[I].SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, ALineOfSight);
       if Result then Exit;
     end;
   end;
@@ -3029,25 +3037,25 @@ end;
 
 function T3DCustomTransform.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  const LineOfSight: boolean): boolean;
+  const ALineOfSight: boolean): boolean;
 var
   T: TVector3Single;
   MInverse: TMatrix4Single;
 begin
   { inherited will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not (GetCollides or (LineOfSight and GetExists)) then Exit(false);
+  if not (GetCollides or (ALineOfSight and GetExists)) then Exit(false);
 
   if OnlyTranslation then
   begin
     T := GetTranslation;
-    Result := inherited SegmentCollision(Pos1 - T, Pos2 - T, TrianglesToIgnoreFunc, LineOfSight);
+    Result := inherited SegmentCollision(Pos1 - T, Pos2 - T, TrianglesToIgnoreFunc, ALineOfSight);
   end else
   begin
     MInverse := TransformInverse;
     Result := inherited SegmentCollision(
       MatrixMultPoint(MInverse, Pos1),
-      MatrixMultPoint(MInverse, Pos2), TrianglesToIgnoreFunc, LineOfSight);
+      MatrixMultPoint(MInverse, Pos2), TrianglesToIgnoreFunc, ALineOfSight);
   end;
 end;
 
@@ -3383,7 +3391,7 @@ procedure T3DMoving.BeforeTimeIncrease(
 var
   CurrentBox, NewBox, Box: TBox3D;
   I: Integer;
-  Move: TVector3Single;
+  Translation: TVector3Single;
   CurrentTranslation, NewTranslation: TVector3Single;
   SphereRadius: Single;
   Item: T3D;
@@ -3401,7 +3409,7 @@ begin
 
     if not VectorsPerfectlyEqual(CurrentTranslation, NewTranslation) then
     begin
-      Move := NewTranslation - CurrentTranslation;
+      Translation := NewTranslation - CurrentTranslation;
 
       { TODO: it may be sensible to add a pushing method when we compare
         other object's bounding box (never a sphere, and be sure to use
@@ -3429,7 +3437,7 @@ begin
             Box := Item.BoundingBox;
             if Box.Collision(NewBox) or
                Box.Collision(CurrentBox) then
-              Item.Translate(Move);
+              Item.Translate(Translation);
           end;
         end;
       end else
@@ -3443,13 +3451,13 @@ begin
               if SphereCollisionAssumeTranslation(NewTranslation,
                 Item.Middle, SphereRadius,
                 @World.CollisionIgnoreItem) then
-                Item.Translate(Move);
+                Item.Translate(Translation);
             end else
             begin
               if BoxCollisionAssumeTranslation(NewTranslation,
                 Item.BoundingBox,
                 @World.CollisionIgnoreItem) then
-                Item.Translate(Move);
+                Item.Translate(Translation);
             end;
         end;
       end;
@@ -3668,7 +3676,7 @@ begin
     end else
       FKnockbackDistance -= CurrentKnockBackDistance;
 
-    MyMove(FLastHurtDirection * CurrentKnockBackDistance, false);
+    Move(FLastHurtDirection * CurrentKnockBackDistance, false);
   end;
 end;
 
