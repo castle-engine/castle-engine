@@ -126,12 +126,9 @@ var
     // (in each call to Point) painless. So I don't care about optimizing
     // this by moving W to private class-scope.
     W := TVector3SingleList.Create;
-    W.Count := ControlPoints.Count;
+    W.Assign(ControlPoints);
     Wgh := TFloatList.Create;
-    Wgh.Count := Weights.Count;
-
-    Move(ControlPoints.L[0], W.L[0],   W.Count   * SizeOf(TVector3Single));
-    Move(Weights.L[0],       Wgh.L[0], Wgh.Count * SizeOf(Float));
+    Wgh.Assign(Weights);
 }
 
 { This caculates in W and Wgh k-th step of de Casteljau algorithm.
