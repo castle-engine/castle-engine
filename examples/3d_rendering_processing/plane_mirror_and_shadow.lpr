@@ -317,6 +317,41 @@ var
   Box: TBox3D;
   BoxMaxSize: Single;
 
+  { Draw a simple OpenGL plane, with vertexes and normal vector for lighting.
+    The plane lies in the dimension chosen by ConstCoord (0, 1 or 2).
+    The other two plane coordinates are understood to be RestOf3dCoords from
+    ZCoord. }
+  procedure DrawPlane(const X1, Y1, X2, Y2, ConstValue: Single; const ConstCoord: Integer);
+
+    procedure Vertex(const X, Y: Single);
+    var
+      XCoord, YCoord: Integer;
+      V: TVector3Single;
+    begin
+      if ConstCoord = 1 then
+      begin
+        { TODO: this should be default RestOf3dCoords behavior,
+          it makes normal directions consistent. }
+        XCoord := 2;
+        YCoord := 0;
+      end else
+        RestOf3dCoords(ConstCoord, XCoord, YCoord);
+      V[XCoord] := X;
+      V[YCoord] := Y;
+      V[ConstCoord] := ConstValue;
+      glVertexv(V);
+    end;
+
+  begin
+    glBegin(GL_QUADS);
+      glNormalv(UnitVector3Single[ConstCoord]);
+      Vertex(X1, Y1);
+      Vertex(X2, Y1);
+      Vertex(X2, Y2);
+      Vertex(X1, Y2);
+    glEnd();
+  end;
+
   procedure DrawFloor;
   begin
     { Render the plane where the shadow lies.
@@ -324,12 +359,10 @@ var
       for Scene. }
     glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(0.2, 0.2, 0, 0.3));
     glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(0  , 1  , 0, 0.3));
-
-    DrawGLPlane(Box.Data[0, PlaneOtherCoord1] - BoxMaxSize, Box.Data[0, PlaneOtherCoord2] - BoxMaxSize,
-                Box.Data[1, PlaneOtherCoord1] + BoxMaxSize, Box.Data[1, PlaneOtherCoord2] + BoxMaxSize,
-                Box.Data[0, PlaneConstCoord] - PlaneDistance * BoxMaxSize,
-                PlaneConstCoord,
-                0, 0, true, false);
+    DrawPlane(Box.Data[0, PlaneOtherCoord1] - BoxMaxSize, Box.Data[0, PlaneOtherCoord2] - BoxMaxSize,
+              Box.Data[1, PlaneOtherCoord1] + BoxMaxSize, Box.Data[1, PlaneOtherCoord2] + BoxMaxSize,
+              Box.Data[0, PlaneConstCoord] - PlaneDistance * BoxMaxSize,
+              PlaneConstCoord);
   end;
 
 begin
