@@ -378,46 +378,42 @@ var
   begin
     if IsPrefix(ResourcePrefix, Shape.BlenderMeshName) then
     begin
-      { For MenuBackground, resource models may be not loaded yet }
-      if not MenuBackground then
+      { S is now <resource_name>[<resource_number>][_<ignored>] }
+      S := SEnding(Shape.BlenderMeshName, Length(ResourcePrefix) + 1);
+
+      { cut off optional [_<ignored>] suffix }
+      IgnoredBegin := Pos('_', S);
+      if IgnoredBegin <> 0 then
+        S := Copy(S, 1, IgnoredBegin - 1);
+
+      { calculate ResourceName, ResourceNumber, ResourceNumberPresent }
+      NumberBegin := CharsPos(['0'..'9'], S);
+      ResourceNumberPresent := NumberBegin <> 0;
+      if ResourceNumberPresent then
       begin
-        { S is now <resource_name>[<resource_number>][_<ignored>] }
-        S := SEnding(Shape.BlenderMeshName, Length(ResourcePrefix) + 1);
-
-        { cut off optional [_<ignored>] suffix }
-        IgnoredBegin := Pos('_', S);
-        if IgnoredBegin <> 0 then
-          S := Copy(S, 1, IgnoredBegin - 1);
-
-        { calculate ResourceName, ResourceNumber, ResourceNumberPresent }
-        NumberBegin := CharsPos(['0'..'9'], S);
-        ResourceNumberPresent := NumberBegin <> 0;
-        if ResourceNumberPresent then
-        begin
-          ResourceName := Copy(S, 1, NumberBegin - 1);
-          ResourceNumber := StrToInt(SEnding(S, NumberBegin));
-        end else
-        begin
-          ResourceName := S;
-          ResourceNumber := 0;
-        end;
-
-        Resource := AllResources.FindName(ResourceName);
-        if not Resource.Prepared then
-          OnWarning(wtMajor, 'Resource', Format('Resource "%s" is initially present on the level, but was not prepared yet --- which probably means you did not add it to <resources> inside level level.xml file. This causes loading on-demand, which is less comfortable for player.',
-            [Resource.Name]));
-
-        Box := Shape.BoundingBox;
-        Position := Box.Middle;
-        Position[Items.GravityCoordinate] := Box.Data[0, Items.GravityCoordinate];
-
-        { TODO: for now, Direction is not configurable, it just points
-          to the player start pos. This is more-or-less sensible for creatures. }
-        Direction := Camera.GetPosition - Position;
-
-        Resource.InstantiatePlaceholder(Items, Position, Direction,
-          ResourceNumberPresent, ResourceNumber);
+        ResourceName := Copy(S, 1, NumberBegin - 1);
+        ResourceNumber := StrToInt(SEnding(S, NumberBegin));
+      end else
+      begin
+        ResourceName := S;
+        ResourceNumber := 0;
       end;
+
+      Resource := AllResources.FindName(ResourceName);
+      if not Resource.Prepared then
+        OnWarning(wtMajor, 'Resource', Format('Resource "%s" is initially present on the level, but was not prepared yet --- which probably means you did not add it to <resources> inside level level.xml file. This causes loading on-demand, which is less comfortable for player.',
+          [Resource.Name]));
+
+      Box := Shape.BoundingBox;
+      Position := Box.Middle;
+      Position[Items.GravityCoordinate] := Box.Data[0, Items.GravityCoordinate];
+
+      { TODO: for now, Direction is not configurable, it just points
+        to the player start pos. This is more-or-less sensible for creatures. }
+      Direction := Camera.GetPosition - Position;
+
+      Resource.InstantiatePlaceholder(Items, Position, Direction,
+        ResourceNumberPresent, ResourceNumber);
 
       { Don't remove BlenderObjectNode now --- will be removed later.
         This avoids problems with removing nodes while traversing. }
