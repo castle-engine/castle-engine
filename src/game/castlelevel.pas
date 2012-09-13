@@ -42,8 +42,9 @@ type
 
   TLevelAvailable = class
   private
-    { We keep Document reference through lifetime of this object,
-      because actual TLevel instance also reads some stuff from it. }
+    { We keep XML Document reference through the lifetime of this object,
+      to allow the particular level logic (TLevel descendant)
+      to read some level-logic-specific variables from it. }
     Document: TXMLDocument;
     DocumentBasePath: string;
     FMusicSound: TSoundType;
@@ -52,9 +53,6 @@ type
     constructor Create;
     destructor Destroy; override;
   public
-    AvailableForNewGame: boolean;
-    DefaultAvailableForNewGame: boolean;
-
     { Level logic class. }
     LevelClass: TLevelClass;
 
@@ -63,24 +61,90 @@ type
       @noAutoLinkHere }
     Name: string;
 
-    { 3D file to load level. }
+    { Main level 3D model. This is used for TCastleSceneManager.MainScene,
+      so it determines the default viewpoint, background and such.
+
+      Usually it also contains the most (if not all) of 3D level geometry,
+      scripts and such. Although level logic (TLevel descendant determined
+      by LevelClass) may also add any number of additional 3D objects
+      (T3D instances) to the 3D world. }
     SceneFileName: string;
 
-    { Nice name of the level. }
+    { Nice name of the level for user.
+
+      The CastleLevel unit uses this title only for things like log messages.
+
+      How the level title is presented to the user (if it's presented at all)
+      is not handled in the CastleLevel unit. The engine doesn't dictate
+      how to show the levels to the player. You implement game menus,
+      like "New Game" or similar screens, yourself --- to fit the mood
+      and user interface of your game. Of course the engine gives you
+      2D controls to do this easily, like TCastleOnScreenMenu --- a typical
+      on-screen menu as seen in many games.
+      See also "The Castle" sources for examples how to use this. }
     Title: string;
+
+    { Additional text that may be displayed near level title.
+
+      The engine doesn't use this property at all, it's only loaded from level.xml
+      file. It is available for your "New Game" (or similar screen) implementation
+      (see @link(Title) for more comments about this). }
     TitleHint: string;
 
-    { Level number, shown for the player in the menu.
-      This *does not* determine the order in which levels are played,
-      as levels do not have to be played in linear order.
-      However, they are displayed in menu in linear order, and that's
-      why this is needed. }
+    { Level number.
+
+      The engine doesn't use this property at all, it's only loaded from level.xml
+      file. It is available for your "New Game" (or similar screen) implementation
+      (see @link(Title) for more comments about this).
+
+      For example level number may be used to order levels in the menu.
+      This @italic(does not) determine the order in which levels are played,
+      as levels do not have to be played in a linear order. }
     Number: Integer;
 
-    { Background image when loading, @nil if none. }
+    { Is it a demo level.
+
+      The engine doesn't use this property at all, it's only loaded from level.xml
+      file. It is available for your "New Game" (or similar screen) implementation
+      (see @link(Title) for more comments about this). }
+    Demo: boolean;
+
+    { Was the level played.
+
+      This is automatically managed. Basically, we set it to @true
+      when the level is played, and we save it to disk.
+
+      Details:
+      @unorderedList(
+        @item(It is set to @true when loading level
+          (LoadLevel with MenuBackground = @false).)
+
+        @item(It is saved to disk (user preferences file) when game exits,
+          and loaded when game starts. As long as you call @code(Config.Load),
+          @code(Config.Save) from CastleConfig unit. To load, you must
+          also call explicitly LevelsAvailable.LoadFromConfig now.)
+
+        @item(The default value comes from DefaultPlayed property,
+          which in turn is loaded from level.xml file, and by default is @false.
+          To allows you to artificially mark some levels as "Played" on
+          the first game run, which may be helpful if you use this property
+          e.g. to filter the levels in "New Game" menu.)
+      )
+
+      The engine doesn't look at this property for anything,
+      whether the level is Played or not has no influence over how it works.
+      It is just available for your game, for example to use in your
+      "New Game" (or similar screen) implementation
+      (see @link(Title) for more comments about this). }
+    Played: boolean;
+
+    { Whether to consider the level @link(Played) by default. }
+    DefaultPlayed: boolean;
+
+    { Background image shown when loading level, @nil if none. }
     LoadingImage: TRGBImage;
 
-    { Position of the progress bar when loading, suitable for
+    { Position of the progress bar when loading level, suitable for
       TProgressUserInterface.BarYPosition.
       Used only if LoadingImage <> @nil (as the only purpose of this property
       is to match LoadingImage look). }
@@ -90,8 +154,7 @@ type
 
     Resources: T3DResourceList;
 
-    Demo: boolean;
-
+    { Music played when entering the level. }
     property MusicSound: TSoundType read FMusicSound write FMusicSound
       default stNone;
 
@@ -136,7 +199,7 @@ type
       TGameSceneManager.Info? }
     References: Cardinal;
     procedure LoadLevelXml(const FileName: string);
-    { Save AvailableForNewGame properties of every item. }
+    { Save Played properties of every level. }
     procedure SaveToConfig(const Config: TCastleConfig);
   public
     { raises Exception if such Name is not on the list. }
@@ -149,29 +212,26 @@ type
       For the specification of level.xml format see
       http://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine/doc/README_about_index_xml_files.txt .
 
-      All AvailableForNewGame are initially set to @false.
-      You must later call LoadFromConfig to read user preferences
-      and set AvailableForNewGame correctly (depending on levels that user
-      already finished, looking at DefaultAvailableForNewGame).
-      That's why LoadFromConfig has to be called explicitly,
-      it isn't added to Config.OnLoad list.
-
-      This should be called only after resources (creatures and items) are known,
+      This should be called after resources (creatures and items) are known,
       as they may be referenced by level.xml files.
-      So call AllResources.LoadFromFiles before calling this (if you use
-      any creatures / items at all, of course).
+      So call AllResources.LoadFromFiles @italic(before) calling this (if you
+      want to use any creatures / items at all, of course).
+
+      All TLevelAvailable.Played values are initially set to @false.
+      You must call LoadFromConfig @italic(after) calling this
+      to read TLevelAvailable.Played values from user preferences file.
       @groupBegin }
     procedure LoadFromFiles(const LevelsPath: string);
     procedure LoadFromFiles;
     { @groupEnd }
 
-    { For all available levels, read their TLevelAvailable.AvailableForNewGame
+    { For all available levels, read their TLevelAvailable.Played
       from user preferences.
 
       This is useful only if you actually look at
-      TLevelAvailable.AvailableForNewGame for any purpose (for example,
+      TLevelAvailable.Played for any purpose (for example,
       to decide which levels are displayed in the menu). By default,
-      our engine doesn't look at AvailableForNewGame for anything. }
+      our engine doesn't look at TLevelAvailable.Played for anything. }
     procedure LoadFromConfig;
   end;
 
@@ -251,16 +311,16 @@ type
     function BoundingBox: TBox3D; override;
     function World: T3DWorld; override;
 
-    { Called when new player starts game on this level.
-      This is supposed to equip the player with some basic weapon/items.
+    { Called when new player starts new game on this level.
+      This may be used to equip the player with some basic weapon / items.
 
-      Usually level design assumes that player came to level from some
-      other level in the game, so he already owns some weapon / items etc.
-      But when player uses "New Game" command to get to some already
-      AvailableForNewGame non-first level, this method will be called and it should
-      give player some basic weapon / items suitable for starting this level.
+      This is never called or used by the engine itself.
+      This does nothing in the default TLevel class implementation.
 
-      In TLevel class implementation of this does nothing.  }
+      Your particular game, where you can best decide when the player
+      "starts a new game" and when the player merely "continues the previous
+      game", may call it. And you may override this in your TLevel descendants
+      to equip the player. }
     procedure PrepareNewPlayer(NewPlayer: TPlayer); virtual;
 
     { Time of the level, in seconds. Time 0 when level is created.
@@ -811,9 +871,9 @@ begin
   if not DOMGetAttribute(Element, 'title_hint', TitleHint) then
     TitleHint := '';
 
-  if not DOMGetBooleanAttribute(Element, 'default_available_for_new_game',
-    DefaultAvailableForNewGame) then
-    DefaultAvailableForNewGame := false;
+  if not DOMGetBooleanAttribute(Element, 'default_played',
+    DefaultPlayed) then
+    DefaultPlayed := false;
 
   if not DOMGetLevelClassAttribute(Element, 'type', LevelClass) then
     LevelClass := TLevel;
@@ -844,7 +904,7 @@ procedure TLevelAvailable.LoadLevel(const SceneManager: TGameSceneManager;
   begin
     SceneManager.LoadLevel(Self, MenuBackground);
     if not MenuBackground then
-      AvailableForNewGame := true;
+      Played := true;
   end;
 
 var
@@ -899,9 +959,9 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I].AvailableForNewGame := Config.GetValue(
-      'levels_available/' + Items[I].Name,
-      Items[I].DefaultAvailableForNewGame);
+    Items[I].Played := Config.GetValue(
+      'levels_available/' + Items[I].Name + '/played',
+      Items[I].DefaultPlayed);
 end;
 
 procedure TLevelAvailableList.SaveToConfig(const Config: TCastleConfig);
@@ -910,9 +970,9 @@ var
 begin
   for I := 0 to Count - 1 do
     Config.SetDeleteValue(
-      'levels_available/' + Items[I].Name,
-      Items[I].AvailableForNewGame,
-      Items[I].DefaultAvailableForNewGame);
+      'levels_available/' + Items[I].Name + '/played',
+      Items[I].Played,
+      Items[I].DefaultPlayed);
 end;
 
 procedure TLevelAvailableList.LoadLevelXml(const FileName: string);
@@ -921,7 +981,7 @@ var
 begin
   NewLevelAvailable := TLevelAvailable.Create;
   Add(NewLevelAvailable);
-  NewLevelAvailable.AvailableForNewGame := false;
+  NewLevelAvailable.Played := false;
 
   ReadXMLFile(NewLevelAvailable.Document, FileName);
   NewLevelAvailable.DocumentBasePath := ExtractFilePath(FileName);
