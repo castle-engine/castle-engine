@@ -1231,7 +1231,7 @@ will turn out to need them.)
   standing on it (e.g. if you stand on a spinning table).
   Maybe also scaling (e.g. if you stand on an inflating cushion?).
 
-- In a future it would be cleanest if MoveAllowed would take as params
+- In a future it would be cleanest if MoveCollision would take as params
   just other T3D instance, along with some move description (move vector?).
   This would allow to handle self-collisions (current DisableCollisions),
   and also missiles HitsPlayer (once player is T3D) and HitsCreatures cleanly?

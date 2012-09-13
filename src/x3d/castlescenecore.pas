@@ -762,15 +762,15 @@ type
 
     procedure ExecuteCompiledScript(const HandlerName: string; ReceivedValue: TX3DField); override;
 
-    function Height(const Position, GravityUp: TVector3Single;
+    function HeightCollision(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
-    function MoveAllowed(
+    function MoveCollision(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveAllowed(
+    function MoveCollision(
       const OldPos, NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
@@ -6368,7 +6368,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.Height(const Position, GravityUp: TVector3Single;
+function TCastleSceneCore.HeightCollision(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
@@ -6380,15 +6380,15 @@ begin
 
     if GetCollides then
     begin
-      Result := OctreeCollisions.Height(Position, GravityUp,
+      Result := OctreeCollisions.HeightCollision(Position, GravityUp,
         AboveHeight, PTriangle(AboveGround), nil, TrianglesToIgnoreFunc);
     end;
   end else
-    Result := inherited Height(Position, GravityUp,
+    Result := inherited HeightCollision(Position, GravityUp,
       TrianglesToIgnoreFunc, AboveHeight, AboveGround);
 end;
 
-function TCastleSceneCore.MoveAllowed(
+function TCastleSceneCore.MoveCollision(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -6398,7 +6398,7 @@ begin
   begin
     if GetCollides then
     begin
-      Result := OctreeCollisions.MoveAllowed(OldPos, ProposedNewPos, NewPos,
+      Result := OctreeCollisions.MoveCollision(OldPos, ProposedNewPos, NewPos,
         IsRadius, Radius, OldBox, NewBox, nil, TrianglesToIgnoreFunc);
     end else
     begin
@@ -6406,11 +6406,11 @@ begin
       NewPos := ProposedNewPos;
     end;
   end else
-    Result := inherited MoveAllowed(OldPos, ProposedNewPos, NewPos,
+    Result := inherited MoveCollision(OldPos, ProposedNewPos, NewPos,
       IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
 end;
 
-function TCastleSceneCore.MoveAllowed(
+function TCastleSceneCore.MoveCollision(
   const OldPos, NewPos: TVector3Single;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -6419,10 +6419,10 @@ begin
   if OctreeCollisions <> nil then
   begin
     Result := (not GetCollides) or
-      OctreeCollisions.MoveAllowed(OldPos, NewPos,
+      OctreeCollisions.MoveCollision(OldPos, NewPos,
         IsRadius, Radius, OldBox, NewBox, nil, TrianglesToIgnoreFunc);
   end else
-    Result := inherited MoveAllowed(OldPos, NewPos,
+    Result := inherited MoveCollision(OldPos, NewPos,
       IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
 end;
 

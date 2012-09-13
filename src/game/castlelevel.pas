@@ -278,7 +278,8 @@ var
   { List of all available levels.
     This has all the information needed to present user a list of levels,
     and to actually load a given level (create suitable TLevel instance).
-    Created in initialization of this unit, destroyed in finalization.
+    Created in initialization of this unit, destroyed in finalization
+    (or when the last TGameSceneManager referring to TLevelAvailable is destroyed).
     Owns it's Items. }
   LevelsAvailable: TLevelAvailableList;
 
@@ -490,8 +491,8 @@ begin
 
     MainScene.Attributes.UseSceneLights := true;
 
-    { Scene must be the first one on Items, this way MoveAllowed will
-      use Scene for wall-sliding (see T3DList.MoveAllowed implementation). }
+    { Scene must be the first one on Items, this way Items.MoveCollision will
+      use Scene for wall-sliding (see T3DList.MoveCollision implementation). }
     Items.Insert(0, MainScene);
 
     InitializeCamera;

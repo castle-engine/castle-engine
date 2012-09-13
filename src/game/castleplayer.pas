@@ -154,7 +154,7 @@ type
     procedure SetLife(const Value: Single); override;
     function GetChild: T3D; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    function Height(const APosition, GravityUp: TVector3Single;
+    function HeightCollision(const APosition, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
   public
@@ -1174,7 +1174,7 @@ begin
     FEquippedWeapon := nil;
 end;
 
-function TPlayer.Height(const APosition, GravityUp: TVector3Single;
+function TPlayer.HeightCollision(const APosition, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin

@@ -693,7 +693,7 @@ type
     { Time of last setting HasAlternativeTarget to true and AlternativeTarget
       value, taken from LifeTime. Used to not fall into loop
       when the creature tries to walk to AlternativeTarget, and is not
-      permanently blocked (so MoveAllowed returns true all the time)
+      permanently blocked (so MoveCollision returns true all the time)
       but at the same time the creature can't get close enough to the
       AlternativeTarget. In such case we use this variable to resign from
       AlternativeTarget after some time. }
@@ -1372,18 +1372,18 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
           So actually this is too large MaximumFallingDownDistance.
 
           But actually it's OK when Sphere is used, because then wall-sliding
-          in MoveAllowed can correct new position,
+          in MoveCollision can correct new position,
           so actually it will be slightly above the ground. So falling
           down will work.
 
           But when Sphere is not used, the situation is worse,
-          because then MoveAllowed doesn't do wall-sliding.
+          because then MoveCollision doesn't do wall-sliding.
           And it will always simply reject such move
           with MaximumFallingDownDistance.
           If FPS is low (so we would like to fall down at once
           by large distance), this is noticeable: in such case, instead
           of falling down, creature hangs over the ground,
-          because MoveAllowed simply doesn't allow it fall
+          because MoveCollision simply doesn't allow it fall
           exactly by AboveHeight - HeightBetweenLegsAndMiddle.
           So MaximumFallingDownDistance has to be a little smaller in this case.
           In particular, this was noticeable for the initially dead alien
@@ -1391,9 +1391,9 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
           FPS is low, that's why the bug was noticeable only with shadows = on).
 
           TODO: the better version would be to improve
-          MoveAllowed for Sphere=false case, instead of
+          MoveCollision for Sphere=false case, instead of
           workarounding it here with this epsilon.
-          See TBaseTrianglesOctree.MoveAllowed. }
+          See TBaseTrianglesOctree.MoveCollision. }
         if not Sphere(RadiusIgnored) then
           MaximumFallingDownDistance -= 0.01;
         MinTo1st(FallingDownDistance, MaximumFallingDownDistance);

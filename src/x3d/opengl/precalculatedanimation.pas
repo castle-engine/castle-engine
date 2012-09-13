@@ -145,15 +145,15 @@ type
       ScenesPerTime: Cardinal;
       const EqualityEpsilon: Single);
 
-    function Height(const Position, GravityUp: TVector3Single;
+    function HeightCollision(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
-    function MoveAllowed(
+    function MoveCollision(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveAllowed(
+    function MoveCollision(
       const OldPos, NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
@@ -1825,7 +1825,7 @@ end;
 {$define FirstAnimScene := TAnimationScene(FirstScene)}
 {$define LastAnimScene := TAnimationScene(LastScene)}
 
-function TCastlePrecalculatedAnimation.Height(
+function TCastlePrecalculatedAnimation.HeightCollision(
   const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
@@ -1836,7 +1836,7 @@ function TCastlePrecalculatedAnimation.Height(
     NewAboveHeight: Single;
     NewAboveGround: PTriangle;
   begin
-    NewResult := Scene.Height(
+    NewResult := Scene.HeightCollision(
       Position, GravityUp, TrianglesToIgnoreFunc, NewAboveHeight, NewAboveGround);
 
     if NewAboveHeight < AboveHeight then
@@ -1860,7 +1860,7 @@ begin
   end;
 end;
 
-function TCastlePrecalculatedAnimation.MoveAllowed(
+function TCastlePrecalculatedAnimation.MoveCollision(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -1868,15 +1868,15 @@ function TCastlePrecalculatedAnimation.MoveAllowed(
 begin
   if Loaded and GetCollides then
   begin
-    Result := FirstAnimScene.MoveAllowed(OldPos, ProposedNewPos, NewPos,
+    Result := FirstAnimScene.MoveCollision(OldPos, ProposedNewPos, NewPos,
       IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
 
-    { On the LastScene use MoveAllowed without wall sliding.
-      Reason: see T3DList.MoveAllowed implementation. }
+    { On the LastScene use MoveCollision without wall sliding.
+      Reason: see T3DList.MoveCollision implementation. }
 
     if Result and CollisionUseLastScene then
     begin
-      Result := LastAnimScene.MoveAllowed(OldPos, NewPos,
+      Result := LastAnimScene.MoveCollision(OldPos, NewPos,
         IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
     end;
   end else
@@ -1886,17 +1886,17 @@ begin
   end;
 end;
 
-function TCastlePrecalculatedAnimation.MoveAllowed(
+function TCastlePrecalculatedAnimation.MoveCollision(
   const OldPos, NewPos: TVector3Single;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := (not Loaded) or (not GetCollides) or
-    (FirstAnimScene.MoveAllowed(OldPos, NewPos,
+    (FirstAnimScene.MoveCollision(OldPos, NewPos,
       IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc) and
        ( (not CollisionUseLastScene) or
-         LastAnimScene.MoveAllowed(OldPos, NewPos,
+         LastAnimScene.MoveCollision(OldPos, NewPos,
            IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc) ));
 end;
 

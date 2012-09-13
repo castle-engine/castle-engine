@@ -503,20 +503,20 @@ type
     { @groupEnd }
 
     { Check is move allowed. This is the perfect (precise, using triangle mesh,
-      and fast) implementation of T3D.MoveAllowed interface.
+      and fast) implementation of T3D.MoveCollision interface.
 
       TriangleToIgnore and TrianglesToIgnoreFunc meaning
       is just like for RayCollision. This can be used to allow
       camera to walk thorugh some surfaces (e.g. through water
       surface, or to allow player to walk through some "fake wall"
       and discover secret room in game etc.). }
-    function MoveAllowed(
+    function MoveCollision(
       const OldPos, NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TriangleToIgnore: PTriangle = nil;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc = nil): boolean;
-    function MoveAllowed(
+    function MoveCollision(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
@@ -532,13 +532,13 @@ type
 
       TriangleToIgnore and TrianglesToIgnoreFunc meaning
       is just like for RayCollision. }
-    function Height(
+    function HeightCollision(
       const Position, GravityUp: TVector3Single;
       out AboveHeight: Single; out AboveGround: PTriangle;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 
-    { This ignores (that is, returns @true) transparent triangles
+    { Ignore (return @true) transparent triangles
       (with Material.Transparency > 0).
 
       This is suitable for T3DTriangleIgnoreFunc function, you can pass
@@ -547,7 +547,7 @@ type
       const Sender: TObject;
       const Triangle: P3DTriangle): boolean;
 
-    { This ignores (that is, returns @true) transparent triangles
+    { Ignore (return @true) transparent triangles
       (with Material.Transparency > 0) and non-shadow-casting triangles
       (with Appearance.shadowCaster = FALSE).
 
@@ -1054,9 +1054,9 @@ begin
     TrianglesToIgnoreFunc);
 end;
 
-{ MoveAllowed / Height methods ----------------------------------------------- }
+{ XxxCollision methods ------------------------------------------------------- }
 
-function TBaseTrianglesOctree.MoveAllowed(
+function TBaseTrianglesOctree.MoveCollision(
   const OldPos, NewPos: TVector3Single;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -1076,7 +1076,7 @@ begin
         TriangleToIgnore, TrianglesToIgnoreFunc));
 end;
 
-function TBaseTrianglesOctree.MoveAllowed(
+function TBaseTrianglesOctree.MoveCollision(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -1091,7 +1091,7 @@ function TBaseTrianglesOctree.MoveAllowed(
       Radius. (Exactly on Radius would mean that it's
       sensitive to floating point imprecision, and sometimes the sphere
       could be considered colliding with Blocker anyway, instead
-      of sliding along it. And final MoveAllowed (without wall-sliding) call
+      of sliding along it. And final MoveCollision (without wall-sliding) call
       will then fail, making wall-sliding non-working.)
 
       So this must be something slightly larger than 1.
@@ -1127,9 +1127,9 @@ function TBaseTrianglesOctree.MoveAllowed(
     { Even though I calculated NewPos so that it's not blocked by object
       Blocker, I must check whether it's not blocked by something else
       (e.g. if player is trying to walk into the corner (two walls)).
-      I can do it by using my simple MoveAllowed. }
+      I can do it by using my simple MoveCollision. }
 
-    Result := MoveAllowed(OldPos, NewPos, IsRadius, Radius, OldBox, NewBox,
+    Result := MoveCollision(OldPos, NewPos, IsRadius, Radius, OldBox, NewBox,
       TriangleToIgnore, TrianglesToIgnoreFunc);
 
     {$ifdef DEBUG_WALL_SLIDING}
@@ -1205,9 +1205,9 @@ function TBaseTrianglesOctree.MoveAllowed(
       { Even though I calculated NewPos so that it's not blocked by object
         Blocker, I must check whether it's not blocked by something else
         (e.g. if player is trying to walk into the corner (two walls)).
-        I can do it by using my simple MoveAllowed. }
+        I can do it by using my simple MoveCollision. }
 
-      Result := MoveAllowed(OldPos, NewPos,
+      Result := MoveCollision(OldPos, NewPos,
         IsRadius, Radius, OldBox, NewBox, TriangleToIgnore, TrianglesToIgnoreFunc);
 
       {$ifdef DEBUG_WALL_SLIDING} Writeln('Wall-sliding: Final check of sliding result: ', Result); {$endif}
@@ -1259,7 +1259,7 @@ function TBaseTrianglesOctree.MoveAllowed(
           begin
             VectorAdjustToLengthTo1st(Slide, PointsDistance(OldPos, ProposedNewPos));
             NewPos := VectorAdd(OldPos, Slide);
-            Result := MoveAllowed(OldPos, NewPos,
+            Result := MoveCollision(OldPos, NewPos,
               IsRadius, Radius, OldBox, NewBox, TriangleToIgnore, TrianglesToIgnoreFunc);
 
             {$ifdef DEBUG_WALL_SLIDING} Writeln('Wall-sliding: Better blocker final check of sliding result: ', Result); {$endif}
@@ -1297,7 +1297,7 @@ begin
       without wall-sliding. We can improve this one day to make wall-sliding
       even in this case (NewBox in this case will be shifted
       like ProposedNewPos->NewPos). }
-    Result := MoveAllowed(OldPos, ProposedNewPos,
+    Result := MoveCollision(OldPos, ProposedNewPos,
       IsRadius, Radius, OldBox, NewBox, TriangleToIgnore, TrianglesToIgnoreFunc);
     NewPos := ProposedNewPos;
     Exit;
@@ -1324,7 +1324,7 @@ begin
     Result := MoveAlongTheBlocker(BlockerIntersection, true, Blocker);
 end;
 
-function TBaseTrianglesOctree.Height(
+function TBaseTrianglesOctree.HeightCollision(
   const Position, GravityUp: TVector3Single;
   out AboveHeight: Single; out AboveGround: PTriangle;
   const TriangleToIgnore: PTriangle;

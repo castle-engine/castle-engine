@@ -285,12 +285,12 @@ type
     with our BoundingBox:
 
     @unorderedList(
-      @item(Wall-sliding MoveAllowed version simply calls
+      @item(Wall-sliding MoveCollision version simply calls
         non-wall-sliding version (without separate ProposedNewPos
         and NewPos).)
-      @item(Non-wall-sliding MoveAllowed version,
+      @item(Non-wall-sliding MoveCollision version,
         SegmentCollision, SphereCollision, BoxCollision and RayCollision
-        and @link(Height) check for collisions with our BoundingBox,
+        and HeightCollision check for collisions with our BoundingBox,
         using TBox3D methods:
         @link(TBox3D.TryRayEntrance),
         @link(TBox3D.SegmentCollision),
@@ -298,9 +298,9 @@ type
         @link(TBox3D.Collision).)
     )
 
-    The idea is that by default everything simple uses BoundingBox,
+    The idea is that by default everything simply uses BoundingBox,
     and that is the only method that you really @italic(have) to override.
-    You do not have to (in fact, often you should not) call "inherited"
+    You do not have to (in fact, usually you should not) call "inherited"
     when overriding collision methods mentioned above. }
   T3D = class(TComponent)
   private
@@ -354,7 +354,7 @@ type
         Or to decrease player life points for walking on hot lava.
         See "The Castle" game for examples.)
     }
-    function Height(const Position, GravityUp: TVector3Single;
+    function HeightCollision(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual;
 
@@ -370,7 +370,7 @@ type
       If not IsRadius, or if checking for collisions with sphere is not possible
       for some reasons, then you can check for collisions with boxes.
       OldBox should usually be ignored (it can be useful when collision-checking
-      has to be approximate in some corner cases, see TCreature.MoveAllowed).
+      has to be approximate in some corner cases, see TCreature.MoveCollision).
       NewBox plays the same role as "sphere centered around NewPos" in paragraph
       above.
 
@@ -382,12 +382,12 @@ type
       When this version returns @false, it's undefined what is the NewPos.
 
       @groupBegin }
-    function MoveAllowed(
+    function MoveCollision(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
-    function MoveAllowed(
+    function MoveCollision(
       const OldPos, NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
@@ -455,7 +455,7 @@ type
       This describes collision resolution with almost everything --- camera,
       player (in third-person perspective, camera may differ from player),
       other creatures. That is because everything
-      resolves collisions through our methods MoveAllowed and @link(Height)
+      resolves collisions through our methods MoveCollision and HeightCollision
       (high-level) or SegmentCollision, SphereCollision, BoxCollision
       (low-level). (Note that RayCollision is excluded from this,
       it exceptionally ignores Collides value, as it's primarily used for picking.
@@ -964,15 +964,15 @@ type
       Presence of this item is completely determined by GetChild implementation. }
     function GetChild: T3D; virtual;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    function Height(const Position, GravityUp: TVector3Single;
+    function HeightCollision(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
-    function MoveAllowed(
+    function MoveCollision(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveAllowed(
+    function MoveCollision(
       const OldPos, NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
@@ -1131,15 +1131,15 @@ type
     procedure TransformMatrices(out M, MInverse: TMatrix4Single);
     function AverageScale: Single;
 
-    function Height(const Position, GravityUp: TVector3Single;
+    function HeightCollision(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
-    function MoveAllowed(
+    function MoveCollision(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveAllowed(
+    function MoveCollision(
       const OldPos, NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
@@ -1758,7 +1758,7 @@ procedure T3D.GLContextClose;
 begin
 end;
 
-function T3D.Height(const Position, GravityUp: TVector3Single;
+function T3D.HeightCollision(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 var
@@ -1774,20 +1774,20 @@ begin
     AboveHeight := IntersectionDistance;
 end;
 
-function T3D.MoveAllowed(
+function T3D.MoveCollision(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   { A simple implementation, just don't do wall-sliding. }
-  Result := MoveAllowed(OldPos, ProposedNewPos, IsRadius, Radius, OldBox, NewBox,
+  Result := MoveCollision(OldPos, ProposedNewPos, IsRadius, Radius, OldBox, NewBox,
     TrianglesToIgnoreFunc);
   if Result then
     NewPos := ProposedNewPos;
 end;
 
-function T3D.MoveAllowed(
+function T3D.MoveCollision(
   const OldPos, NewPos: TVector3Single;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -2399,7 +2399,7 @@ begin
     List.DeleteAll(AComponent);
 end;
 
-function T3DList.Height(const Position, GravityUp: TVector3Single;
+function T3DList.HeightCollision(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 var
@@ -2416,7 +2416,7 @@ begin
   begin
     if GetChild <> nil then
     begin
-      NewResult := GetChild.Height(Position, GravityUp, TrianglesToIgnoreFunc,
+      NewResult := GetChild.HeightCollision(Position, GravityUp, TrianglesToIgnoreFunc,
         NewAboveHeight, NewAboveGround);
 
       if NewAboveHeight < AboveHeight then
@@ -2429,7 +2429,7 @@ begin
 
     for I := 0 to List.Count - 1 do
     begin
-      NewResult := List[I].Height(Position, GravityUp, TrianglesToIgnoreFunc,
+      NewResult := List[I].HeightCollision(Position, GravityUp, TrianglesToIgnoreFunc,
         NewAboveHeight, NewAboveGround);
 
       if NewAboveHeight < AboveHeight then
@@ -2442,7 +2442,7 @@ begin
   end;
 end;
 
-function T3DList.MoveAllowed(
+function T3DList.MoveCollision(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -2452,16 +2452,16 @@ var
 begin
   if GetCollides then
   begin
-    { We call MoveAllowed with separate ProposedNewPos and NewPos
+    { We call MoveCollision with separate ProposedNewPos and NewPos
       only on the first scene (or GetChild, if exists).
       This means that only first scene collisions provide wall sliding.
       Collisions with other 3D objects will simply block the player.
 
-      Otherwise, various MoveAllowed could modify NewPos
+      Otherwise, various MoveCollision could modify NewPos
       making it colliding with other items, already checked. This would
       be wrong.
 
-      TODO: this could be improved, to call MoveAllowed
+      TODO: this could be improved, to call MoveCollision
       with separate ProposedNewPos and NewPos
       on the first scene
       where the simple move is not allowed. This would make it more general,
@@ -2470,26 +2470,26 @@ begin
 
     if GetChild <> nil then
     begin
-      Result := GetChild.MoveAllowed(OldPos, ProposedNewPos, NewPos,
+      Result := GetChild.MoveCollision(OldPos, ProposedNewPos, NewPos,
         IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
       if not Result then Exit;
 
       for I := 0 to List.Count - 1 do
       begin
-        Result := List[I].MoveAllowed(OldPos, NewPos,
+        Result := List[I].MoveCollision(OldPos, NewPos,
           IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
         if not Result then Exit;
       end;
     end else
     if List.Count <> 0 then
     begin
-      Result := List[0].MoveAllowed(OldPos, ProposedNewPos, NewPos,
+      Result := List[0].MoveCollision(OldPos, ProposedNewPos, NewPos,
         IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
       if not Result then Exit;
 
       for I := 1 to List.Count - 1 do
       begin
-        Result := List[I].MoveAllowed(OldPos, NewPos,
+        Result := List[I].MoveCollision(OldPos, NewPos,
           IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
         if not Result then Exit;
       end;
@@ -2501,7 +2501,7 @@ begin
   end;
 end;
 
-function T3DList.MoveAllowed(
+function T3DList.MoveCollision(
   const OldPos, NewPos: TVector3Single;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -2515,14 +2515,14 @@ begin
   begin
     if GetChild <> nil then
     begin
-      Result := GetChild.MoveAllowed(OldPos, NewPos,
+      Result := GetChild.MoveCollision(OldPos, NewPos,
         IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
       if not Result then Exit;
     end;
 
     for I := 0 to List.Count - 1 do
     begin
-      Result := List[I].MoveAllowed(OldPos, NewPos,
+      Result := List[I].MoveCollision(OldPos, NewPos,
         IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
       if not Result then Exit;
     end;
@@ -2912,7 +2912,7 @@ begin
       false, MatrixMult(Transform, ParentTransform));
 end;
 
-function T3DCustomTransform.Height(const Position, GravityUp: TVector3Single;
+function T3DCustomTransform.HeightCollision(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 var
@@ -2929,12 +2929,12 @@ begin
   end;
 
   if OnlyTranslation then
-    Result := inherited Height(
+    Result := inherited HeightCollision(
       Position - GetTranslation, GravityUp, TrianglesToIgnoreFunc,
       AboveHeight, AboveGround) else
   begin
     MInverse := TransformInverse;
-    Result := inherited Height(
+    Result := inherited HeightCollision(
       MatrixMultPoint(MInverse, Position),
       MatrixMultDirection(MInverse, GravityUp), TrianglesToIgnoreFunc,
         AboveHeight, AboveGround);
@@ -2944,7 +2944,7 @@ begin
   end;
 end;
 
-function T3DCustomTransform.MoveAllowed(
+function T3DCustomTransform.MoveCollision(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -2964,7 +2964,7 @@ begin
   if OnlyTranslation then
   begin
     T := GetTranslation;
-    Result := inherited MoveAllowed(
+    Result := inherited MoveCollision(
       OldPos         - T,
       ProposedNewPos - T, NewPos,
       IsRadius, Radius,
@@ -2976,7 +2976,7 @@ begin
   end else
   begin
     TransformMatrices(M, MInverse);
-    Result := inherited MoveAllowed(
+    Result := inherited MoveCollision(
       MatrixMultPoint(MInverse, OldPos),
       MatrixMultPoint(MInverse, ProposedNewPos), NewPos,
       IsRadius, Radius / AverageScale,
@@ -2988,7 +2988,7 @@ begin
   end;
 end;
 
-function T3DCustomTransform.MoveAllowed(
+function T3DCustomTransform.MoveCollision(
   const OldPos, NewPos: TVector3Single;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -3007,9 +3007,9 @@ begin
         Items + Translation and (OldPos, NewPos).
       So it's equivalent to checking for collision between
         Items and (OldPos, NewPos) - Translation
-      And this way I can use inherited MoveAllowed. }
+      And this way I can use inherited MoveCollision. }
     T := GetTranslation;
-    Result := inherited MoveAllowed(
+    Result := inherited MoveCollision(
       OldPos - T,
       NewPos - T,
       IsRadius, Radius,
@@ -3018,7 +3018,7 @@ begin
   end else
   begin
     MInverse := TransformInverse;
-    Result := inherited MoveAllowed(
+    Result := inherited MoveCollision(
       MatrixMultPoint(MInverse, OldPos),
       MatrixMultPoint(MInverse, NewPos),
       IsRadius, Radius / AverageScale,
@@ -3356,7 +3356,7 @@ procedure T3DMoving.BeforeTimeIncrease(
     Result := GetCollides;
     if Result then
     begin
-      { We use the same trick as in T3DCustomTransform.MoveAllowed to
+      { We use the same trick as in T3DCustomTransform.MoveCollision to
         use "inherited SphereCollsion" with Translation. }
 
       Result := inherited SphereCollision(
@@ -3372,7 +3372,7 @@ procedure T3DMoving.BeforeTimeIncrease(
     Result := GetCollides;
     if Result then
     begin
-      { We use the same trick as in T3DCustomTransform.MoveAllowed to
+      { We use the same trick as in T3DCustomTransform.MoveCollision to
         use "inherited BoxCollision" with Translation. }
 
       Result := inherited BoxCollision(

@@ -2363,7 +2363,7 @@ function T3DWorldConcrete.WorldMoveAllowed(
   const OldBox, NewBox: TBox3D;
   const BecauseOfGravity: boolean): boolean;
 begin
-  Result := MoveAllowed(OldPos, ProposedNewPos, NewPos, IsRadius, Radius,
+  Result := MoveCollision(OldPos, ProposedNewPos, NewPos, IsRadius, Radius,
     OldBox, NewBox, @CollisionIgnoreItem);
 
   if Result then
@@ -2385,7 +2385,7 @@ function T3DWorldConcrete.WorldMoveAllowed(
   const OldBox, NewBox: TBox3D;
   const BecauseOfGravity: boolean): boolean;
 begin
-  Result := MoveAllowed(OldPos, NewPos, IsRadius, Radius,
+  Result := MoveCollision(OldPos, NewPos, IsRadius, Radius,
     OldBox, NewBox, @CollisionIgnoreItem);
 
   if Result then
@@ -2403,7 +2403,7 @@ end;
 function T3DWorldConcrete.WorldHeight(const Position: TVector3Single;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
-  Result := Height(Position, Owner.GravityUp, @CollisionIgnoreItem,
+  Result := HeightCollision(Position, Owner.GravityUp, @CollisionIgnoreItem,
     AboveHeight, AboveGround);
 end;
 
