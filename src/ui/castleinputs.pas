@@ -93,7 +93,7 @@ uses KeysMouse, CastleUtils, CastleClassUtils, Classes,
   FGL, GenericStructList, CastleConfig, CastleScript, UIControls;
 
 type
-  TInputShortcut = class;
+  TInputGroup = (igLocal, igBasic, igItems, igOther);
 
   { A keyboard and/or mouse shortcut for activating some action.
 
@@ -113,7 +113,14 @@ type
     that cannot be expressed (on their own) as characters.
     Characters are both more and less specific: character "A" (upper letter "a")
     is activated by pressing "a", but only when Shift is pressed or CapsLock is on
-    (window system / GUI toolkit may also allow other ways to input characters). }
+    (window system / GUI toolkit may also allow other ways to input characters).
+
+    Name of this component is additionally used if this is a global
+    input shortcut (with Group <> igLocal, see CastleInputs unit documentation):
+    it is used for config file entries and for the CastleScript
+    @code(shortcut()) function
+    [castle-engine.sourceforge.net/castle_script.php#function_shortcut] .
+    Any valid Pascal identifier will be Ok for these purposes. }
   TInputShortcut = class(TComponent)
   private
     FKey1: TKey;
@@ -122,6 +129,12 @@ type
     FMouseButtonUse: boolean;
     FMouseButton: TMouseButton;
     FMouseWheel: TMouseWheelDirection;
+    FCaption: string;
+    FGroup: TInputGroup;
+    FGroupOrder: Integer;
+    { Index of InputsAll. For now this is useful only for sorting,
+      to decide order when GroupOrder is equal between two items. }
+    Index: Integer;
 
     procedure SetKey1(const Value: TKey);
     procedure SetKey2(const Value: TKey);
@@ -144,6 +157,19 @@ type
       values changed. }
     procedure Changed; virtual;
   public
+    { Constructor that always creates local shortcuts (with Group = igLocal).
+      Caption and Name are left empty (they do not have to be set for
+      local shortcuts; although you may wish to later assign Name anyway,
+      if you use this as sub-component in Lazarus). }
+    constructor Create(AOwner: TComponent); override;
+
+    { Flexible constructor that allows to set Group and choose global or local
+      shortcut. }
+    constructor Create(const AOwner: TComponent;
+      const ACaption: string;
+      const AName: string;
+      const AGroup: TInputGroup);
+
     procedure MakeDefault;
 
     { Assigns to this object the default values from Source. }
@@ -213,6 +239,32 @@ type
 
     { Modifier keys that are relevant to recognize this shortcut. }
     function Modifiers: TModifierKeys;
+
+    { Nice name to show user. With spaces, localized characters etc. }
+    property Caption: string read FCaption;
+
+    { Group of the global shortcut, or igLocal indicating a local shortcut.
+      Games may use this group to better show the keys configuration for user,
+      presenting together keys from the same group. }
+    property Group: TInputGroup read FGroup;
+
+    { Order of the shortcut within it's @link(Group).
+      The order may be important, as menus may show InputsGroup
+      to user in this order.
+      This order is applied (the group is actually sorted by GroupOrder)
+      when reading config file.
+      For equal GroupOrder, the order of creation (equal to the order
+      on InputsAll list) decides which is first. }
+    property GroupOrder: Integer read FGroupOrder write FGroupOrder;
+
+    { Add to Shortcut new key or mouse button or mouse wheel.
+      Only one of them (parameters NewXxx like for TInputShortcut.IsEvent). }
+    procedure AddShortcut(const NewKey: TKey;
+      const NewMousePress: boolean; const NewMouseButton: TMouseButton;
+      const NewMouseWheel: TMouseWheelDirection);
+
+    { Nice text describing the shortcut value. }
+    function Description: string;
   published
     { Key/mouse properties on TInputShortcut are declared without
       "default" specifier, to always save them in Lazarus LFM file.
@@ -284,132 +336,72 @@ type
         Other TExamineCamera are allowed only when modifiers = []. }
   end;
 
-  TInputGroup = (igLocal, igBasic, igItems, igOther);
-
-  { A wrapper around TInputShortcut instance
-    (used to describe key/mouse shortcut for given action)
-    with additional properties describing the group of the action,
-    action name etc.
-
-    Note that "castle" doesn't use TInputShortcut.Character,
-    it's always #0. We detect keys only by TKey, as that's enough for now
-    (and detecting by character also would complicate looking for duplicates,
-    as comparison TKey <-> char is not possible without knowing involved
-    modifiers). }
-  TInputConfiguration = class
-  private
-    FCaption: string;
-    FGroup: TInputGroup;
-    FShortcut: TInputShortcut;
-    FName: string;
-    FGroupOrder: Integer;
-    { Index of InputsAll. For now this is useful only for sorting,
-      to decide order when GroupOrder is equal between two items. }
-    Index: Integer;
-  public
-    { Constructor. Note that TInputShortcut instance passed here is owned
-      by this object, i.e. it will be freed in our destructor. }
-    constructor Create(const ACaption: string;
-      const AName: string;
-      const AGroup: TInputGroup;
-      const AKey1: TKey;
-      const AKey2: TKey = K_None;
-      const ACharacter: Char = #0;
-      const AMouseButtonUse: boolean = false;
-      const AMouseButton: TMouseButton = mbLeft;
-      const AMouseWheel: TMouseWheelDirection = mwNone);
-    destructor Destroy; override;
-
-    { Nice name to show user. With spaces, localized characters etc. }
-    property Caption: string read FCaption;
-
-    { Short name. Used for config file entries, for CastleScript
-      @code(shortcut()) function
-      [castle-engine.sourceforge.net/castle_script.php#function_shortcut]
-      and such.
-      Must be a valid identifier, that is stick to English letters, underscores
-      and digits (and do not start with a digit). }
-    property Name: string read FName;
-
-    { Group of the global shortcut, or igLocal indicating a local shortcut.
-      Games may use this group to better show the keys configuration for user,
-      presenting together keys from the same group. }
-    property Group: TInputGroup read FGroup;
-
-    { Order of the shortcut within it's @link(Group).
-      The order may be important, as menus may show InputsGroup
-      to user in this order.
-      This order is applied (the group is actually sorted by GroupOrder)
-      when reading config file.
-      For equal GroupOrder, the order of creation (equal to the order
-      on InputsAll list) decides which is first. }
-    property GroupOrder: Integer read FGroupOrder write FGroupOrder;
-
-    { The key/mouse shortcut for this action.
-      You can directly change fields of this action. }
-    property Shortcut: TInputShortcut read FShortcut;
-
-    { Add to Shortcut new key or mouse button or mouse wheel.
-      Only one of them (parameters NewXxx like for TInputShortcut.IsEvent). }
-    procedure AddShortcut(const NewKey: TKey;
-      const NewMousePress: boolean; const NewMouseButton: TMouseButton;
-      const NewMouseWheel: TMouseWheelDirection);
-
-    { Nice text describing the shortcut value. }
-    function Description: string;
-  end;
-
-  TInputConfigurationList = class(specialize TFPGObjectList<TInputConfiguration>)
+  TInputShortcutList = class(specialize TFPGObjectList<TInputShortcut>)
   private
     procedure LoadFromConfig(const Config: TCastleConfig);
     procedure SaveToConfig(const Config: TCastleConfig);
-    function FindName(const Name: string): TInputConfiguration;
+    function FindName(const Name: string): TInputShortcut;
   public
     { Seeks for a Shortcut that has matching key or mouse button or mouse wheel.
       @nil if not found. }
     function SeekMatchingShortcut(const Key: TKey;
       const MousePress: boolean; const MouseButton: TMouseButton;
-      const MouseWheel: TMouseWheelDirection): TInputConfiguration;
+      const MouseWheel: TMouseWheelDirection): TInputShortcut;
     procedure RestoreDefaults;
     function SeekConflict(out ConflictDescription: string): boolean;
   end;
 
-  TInputChangedEvent = procedure (InputConfiguration: TInputConfiguration) of object;
-  PInputChangedEvent = ^TInputChangedEvent;
-
-  TInputChangedEventList = class(specialize TGenericStructList<TInputChangedEvent>)
-  public
-    procedure ExecuteAll(InputConfiguration: TInputConfiguration);
-  end;
-
 var
   { Basic shortcuts. }
-  CastleInput_Forward: TInputConfiguration;
-  CastleInput_Backward: TInputConfiguration;
-  CastleInput_LeftRot: TInputConfiguration;
-  CastleInput_RightRot: TInputConfiguration;
-  CastleInput_LeftStrafe: TInputConfiguration;
-  CastleInput_RightStrafe: TInputConfiguration;
-  CastleInput_UpRotate: TInputConfiguration;
-  CastleInput_DownRotate: TInputConfiguration;
-  CastleInput_GravityUp: TInputConfiguration;
-  CastleInput_UpMove: TInputConfiguration;
-  CastleInput_DownMove: TInputConfiguration;
+  CastleInput_Forward: TInputShortcut;
+  CastleInput_Backward: TInputShortcut;
+  CastleInput_LeftRot: TInputShortcut;
+  CastleInput_RightRot: TInputShortcut;
+  CastleInput_LeftStrafe: TInputShortcut;
+  CastleInput_RightStrafe: TInputShortcut;
+  CastleInput_UpRotate: TInputShortcut;
+  CastleInput_DownRotate: TInputShortcut;
+  CastleInput_GravityUp: TInputShortcut;
+  CastleInput_UpMove: TInputShortcut;
+  CastleInput_DownMove: TInputShortcut;
 
   { Other shortcuts. }
-  CastleInput_Interact: TInputConfiguration;
+  CastleInput_Interact: TInputShortcut;
 
   { List of all global inputs.
     Will be created in initialization and freed in finalization of this unit.
-    All TInputConfiguration instances will automatically add to this. }
-  InputsAll: TInputConfigurationList;
-  InputsGroup: array [igBasic..High(TInputGroup)] of TInputConfigurationList;
+    All TInputShortcut instances will automatically add to this. }
+  InputsAll: TInputShortcutList;
+  InputsGroup: array [igBasic..High(TInputGroup)] of TInputShortcutList;
 
 implementation
 
 uses SysUtils, CastleStringUtils;
 
 { TInputShortcut ------------------------------------------------------------- }
+
+constructor TInputShortcut.Create(const AOwner: TComponent;
+  const ACaption: string;
+  const AName: string;
+  const AGroup: TInputGroup);
+begin
+  inherited Create(AOwner);
+  FCaption := ACaption;
+  Name := AName;
+  FGroup := AGroup;
+
+  if Group <> igLocal then
+  begin
+    Index := InputsAll.Count;
+    InputsAll.Add(Self);
+    InputsGroup[Group].Add(Self);
+  end;
+end;
+
+constructor TInputShortcut.Create(AOwner: TComponent);
+begin
+  Create(AOwner, '', '', igLocal);
+end;
 
 procedure TInputShortcut.MakeDefault;
 begin
@@ -618,52 +610,80 @@ begin
   end;
 end;
 
-{ TInputConfigurationList ----------------------------------------------------- }
+procedure TInputShortcut.AddShortcut(const NewKey: TKey;
+  const NewMousePress: boolean; const NewMouseButton: TMouseButton;
+  const NewMouseWheel: TMouseWheelDirection);
+begin
+  if NewMousePress then
+  begin
+    MouseButtonUse := NewMousePress;
+    MouseButton := NewMouseButton;
+  end else
+  if NewMouseWheel <> mwNone then
+    MouseWheel := NewMouseWheel else
+  if Key1 = K_None then
+    Key1 := NewKey else
+  if Key2 = K_None then
+    Key2 := NewKey else
+  begin
+    { We move the previous Key1 to Key2, and set Key1 to new key.
+      This looks nice for user when this is displayed as the menu argument. }
+    Key2 := Key1;
+    Key1 := NewKey;
+  end;
+end;
 
-function TInputConfigurationList.SeekMatchingShortcut(
+function TInputShortcut.Description: string;
+begin
+  Result := Description(Format('"%s" key', [Caption]));
+end;
+
+{ TInputShortcutList ----------------------------------------------------- }
+
+function TInputShortcutList.SeekMatchingShortcut(
   const Key: TKey;
   const MousePress: boolean; const MouseButton: TMouseButton;
-  const MouseWheel: TMouseWheelDirection): TInputConfiguration;
+  const MouseWheel: TMouseWheelDirection): TInputShortcut;
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
   begin
     Result := Items[I];
-    if Result.Shortcut.IsEvent(Key, #0, MousePress, MouseButton, MouseWheel) then
+    if Result.IsEvent(Key, #0, MousePress, MouseButton, MouseWheel) then
       Exit;
   end;
   Result := nil;
 end;
 
-procedure TInputConfigurationList.RestoreDefaults;
+procedure TInputShortcutList.RestoreDefaults;
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I].Shortcut.MakeDefault;
+    Items[I].MakeDefault;
 end;
 
-procedure TInputConfigurationList.SaveToConfig(const Config: TCastleConfig);
+procedure TInputShortcutList.SaveToConfig(const Config: TCastleConfig);
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
   begin
     Config.SetDeleteValue('inputs/' + Items[I].Name + '/key1',
-      Items[I].Shortcut.Key1, Items[I].Shortcut.DefaultKey1);
+      Items[I].Key1, Items[I].DefaultKey1);
     Config.SetDeleteValue('inputs/' + Items[I].Name + '/key2',
-      Items[I].Shortcut.Key2, Items[I].Shortcut.DefaultKey2);
+      Items[I].Key2, Items[I].DefaultKey2);
     Config.SetDeleteValue('inputs/' + Items[I].Name + '/mouse_button_use',
-      Items[I].Shortcut.MouseButtonUse, Items[I].Shortcut.DefaultMouseButtonUse);
+      Items[I].MouseButtonUse, Items[I].DefaultMouseButtonUse);
     Config.SetDeleteValue('inputs/' + Items[I].Name + '/mouse_button',
-      Ord(Items[I].Shortcut.MouseButton), Ord(Items[I].Shortcut.DefaultMouseButton));
+      Ord(Items[I].MouseButton), Ord(Items[I].DefaultMouseButton));
     Config.SetDeleteValue('inputs/' + Items[I].Name + '/mouse_wheel',
-      Ord(Items[I].Shortcut.MouseWheel), Ord(Items[I].Shortcut.DefaultMouseWheel));
+      Ord(Items[I].MouseWheel), Ord(Items[I].DefaultMouseWheel));
   end;
 end;
 
-function SortInputConfiguration(const A, B: TInputConfiguration): Integer;
+function SortInputShortcut(const A, B: TInputShortcut): Integer;
 begin
   Result := A.GroupOrder - B.GroupOrder;
   { since TFPSList.Sort is not stable, we use Index to keep order predictable
@@ -672,7 +692,7 @@ begin
     Result := A.Index - B.Index;
 end;
 
-procedure TInputConfigurationList.LoadFromConfig(const Config: TCastleConfig);
+procedure TInputShortcutList.LoadFromConfig(const Config: TCastleConfig);
 var
   I: Integer;
   ConflictDescription: string;
@@ -685,23 +705,23 @@ begin
       'Default key/mouse shortcuts layout has conflicts: ' + ConflictDescription);
 
   for G := Low(InputsGroup) to High(InputsGroup) do
-    InputsGroup[G].Sort(@SortInputConfiguration);
+    InputsGroup[G].Sort(@SortInputShortcut);
 
   for I := 0 to Count - 1 do
   begin
-    Items[I].Shortcut.Key1 := Config.GetValue(
-      'inputs/' + Items[I].Name + '/key1', Items[I].Shortcut.DefaultKey1);
-    Items[I].Shortcut.Key2 := Config.GetValue(
-      'inputs/' + Items[I].Name + '/key2', Items[I].Shortcut.DefaultKey2);
-    Items[I].Shortcut.MouseButtonUse := Config.GetValue(
+    Items[I].Key1 := Config.GetValue(
+      'inputs/' + Items[I].Name + '/key1', Items[I].DefaultKey1);
+    Items[I].Key2 := Config.GetValue(
+      'inputs/' + Items[I].Name + '/key2', Items[I].DefaultKey2);
+    Items[I].MouseButtonUse := Config.GetValue(
       'inputs/' + Items[I].Name + '/mouse_button_use',
-      Items[I].Shortcut.DefaultMouseButtonUse);
-    Items[I].Shortcut.MouseButton := TMouseButton(Config.GetValue(
+      Items[I].DefaultMouseButtonUse);
+    Items[I].MouseButton := TMouseButton(Config.GetValue(
       'inputs/' + Items[I].Name + '/mouse_button',
-      Ord(Items[I].Shortcut.DefaultMouseButton)));
-    Items[I].Shortcut.MouseWheel := TMouseWheelDirection(Config.GetValue(
+      Ord(Items[I].DefaultMouseButton)));
+    Items[I].MouseWheel := TMouseWheelDirection(Config.GetValue(
       'inputs/' + Items[I].Name + '/mouse_wheel',
-      Ord(Items[I].Shortcut.DefaultMouseWheel)));
+      Ord(Items[I].DefaultMouseWheel)));
   end;
 
   if SeekConflict(ConflictDescription) then
@@ -718,7 +738,7 @@ begin
   end;
 end;
 
-function TInputConfigurationList.SeekConflict(
+function TInputShortcutList.SeekConflict(
   out ConflictDescription: string): boolean;
 var
   I, J: Integer;
@@ -726,10 +746,10 @@ begin
   for I := 0 to Count - 1 do
     for J := I + 1 to Count - 1 do
     begin
-      if Items[J].Shortcut.IsKey(Items[I].Shortcut.Key1, #0) or
-         Items[J].Shortcut.IsKey(Items[I].Shortcut.Key2, #0) or
-         (Items[I].Shortcut.MouseButtonUse and
-           Items[J].Shortcut.IsMouseButton(Items[I].Shortcut.MouseButton)) then
+      if Items[J].IsKey(Items[I].Key1, #0) or
+         Items[J].IsKey(Items[I].Key2, #0) or
+         (Items[I].MouseButtonUse and
+           Items[J].IsMouseButton(Items[I].MouseButton)) then
       begin
         ConflictDescription := Format('"%s" conflicts with "%s"',
           [Items[I].Caption, Items[J].Caption]);
@@ -739,7 +759,7 @@ begin
   Result := false;
 end;
 
-function TInputConfigurationList.FindName(const Name: string): TInputConfiguration;
+function TInputShortcutList.FindName(const Name: string): TInputShortcut;
 var
   I: Integer;
 begin
@@ -747,78 +767,6 @@ begin
     if Items[I].Name = Name then
       Exit(Items[I]);
   Result := nil;
-end;
-
-{ TInputChangedEventList -------------------------------------------------- }
-
-procedure TInputChangedEventList.ExecuteAll(
-  InputConfiguration: TInputConfiguration);
-var
-  I: Integer;
-begin
-  for I := 0 to Count - 1 do
-    Items[I](InputConfiguration);
-end;
-
-{ TInputConfiguration ---------------------------------------------------------- }
-
-constructor TInputConfiguration.Create(const ACaption: string;
-  const AName: string;
-  const AGroup: TInputGroup;
-  const AKey1: TKey;
-  const AKey2: TKey;
-  const ACharacter: Char;
-  const AMouseButtonUse: boolean;
-  const AMouseButton: TMouseButton;
-  const AMouseWheel: TMouseWheelDirection);
-begin
-  inherited Create;
-  FCaption := ACaption;
-  FName := AName;
-  FGroup := AGroup;
-
-  FShortcut := TInputShortcut.Create(nil);
-  FShortcut.Assign(AKey1, AKey2, ACharacter, AMouseButtonUse, AMouseButton, AMouseWheel);
-
-  Index := InputsAll.Count;
-  InputsAll.Add(Self);
-
-  InputsGroup[Group].Add(Self);
-end;
-
-destructor TInputConfiguration.Destroy;
-begin
-  FreeAndNil(FShortcut);
-  inherited;
-end;
-
-procedure TInputConfiguration.AddShortcut(const NewKey: TKey;
-  const NewMousePress: boolean; const NewMouseButton: TMouseButton;
-  const NewMouseWheel: TMouseWheelDirection);
-begin
-  if NewMousePress then
-  begin
-    Shortcut.MouseButtonUse := NewMousePress;
-    Shortcut.MouseButton := NewMouseButton;
-  end else
-  if NewMouseWheel <> mwNone then
-    Shortcut.MouseWheel := NewMouseWheel else
-  if Shortcut.Key1 = K_None then
-    Shortcut.Key1 := NewKey else
-  if Shortcut.Key2 = K_None then
-    Shortcut.Key2 := NewKey else
-  begin
-    { We move the previous Key1 to Key2, and set Key1 to new key.
-      This looks nice for user when Shortcut is displayed as the
-      menu argument. }
-    Shortcut.Key2 := Shortcut.Key1;
-    Shortcut.Key1 := NewKey;
-  end;
-end;
-
-function TInputConfiguration.Description: string;
-begin
-  Result := Shortcut.Description(Format('"%s" key', [Caption]));
 end;
 
 { TCasScriptShortcut --------------------------------------------------------- }
@@ -838,7 +786,7 @@ end;
 class procedure TCasScriptShortcut.Handle(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   N: string;
-  I: TInputConfiguration;
+  I: TInputShortcut;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptString);
   N := TCasScriptString(Arguments[0]).Value;
@@ -858,41 +806,41 @@ procedure DoInitialization;
 var
   G: TInputGroup;
 begin
-  InputsAll := TInputConfigurationList.Create(true);
+  InputsAll := TInputShortcutList.Create(true);
 
   for G := Low(InputsGroup) to High(InputsGroup) do
-    InputsGroup[G] := TInputConfigurationList.Create(false);
+    InputsGroup[G] := TInputShortcutList.Create(false);
 
   { Order of creation below is significant: it determines the order
     of menu entries in "Configure controls". }
 
   { Basic shortcuts. }
-  CastleInput_Forward := TInputConfiguration.Create('Move forward', 'move_forward', igBasic,
-    K_W, K_Up, #0, false, mbLeft);
-  CastleInput_Backward := TInputConfiguration.Create('Move backward', 'move_backward', igBasic,
-    K_S, K_Down, #0, false, mbLeft);
-  CastleInput_LeftStrafe := TInputConfiguration.Create('Move left', 'move_left', igBasic,
-    K_A, K_None, #0, false, mbLeft);
-  CastleInput_RightStrafe := TInputConfiguration.Create('Move right', 'move_right', igBasic,
-    K_D, K_None, #0, false, mbLeft);
-  CastleInput_LeftRot := TInputConfiguration.Create('Turn left', 'turn_left', igBasic,
-    K_Left, K_None, #0, false, mbLeft);
-  CastleInput_RightRot := TInputConfiguration.Create('Turn right', 'turn_right', igBasic,
-    K_Right, K_None, #0, false, mbLeft);
-  CastleInput_UpRotate := TInputConfiguration.Create('Look up', 'look_up', igBasic,
-    K_PageDown, K_None, #0, false, mbLeft);
-  CastleInput_DownRotate := TInputConfiguration.Create('Look down', 'look_down', igBasic,
-    K_Delete, K_None, #0, false, mbLeft);
-  CastleInput_GravityUp := TInputConfiguration.Create('Look straight', 'look_straight', igBasic,
-    K_End, K_None, #0, false, mbLeft);
-  CastleInput_UpMove := TInputConfiguration.Create('Jump (or fly/swim up)', 'move_up', igBasic,
-    K_Space, K_None, #0, true, mbRight);
-  CastleInput_DownMove := TInputConfiguration.Create('Crouch (or fly/swim down)', 'move_down', igBasic,
-    K_C, K_None, #0, false, mbLeft);
+  CastleInput_Forward := TInputShortcut.Create(nil, 'Move forward', 'move_forward', igBasic);
+  CastleInput_Forward.Assign(K_W, K_Up, #0, false, mbLeft);
+  CastleInput_Backward := TInputShortcut.Create(nil, 'Move backward', 'move_backward', igBasic);
+  CastleInput_Backward.Assign(K_S, K_Down, #0, false, mbLeft);
+  CastleInput_LeftStrafe := TInputShortcut.Create(nil, 'Move left', 'move_left', igBasic);
+  CastleInput_LeftStrafe.Assign(K_A, K_None, #0, false, mbLeft);
+  CastleInput_RightStrafe := TInputShortcut.Create(nil, 'Move right', 'move_right', igBasic);
+  CastleInput_RightStrafe.Assign(K_D, K_None, #0, false, mbLeft);
+  CastleInput_LeftRot := TInputShortcut.Create(nil, 'Turn left', 'turn_left', igBasic);
+  CastleInput_LeftRot.Assign(K_Left, K_None, #0, false, mbLeft);
+  CastleInput_RightRot := TInputShortcut.Create(nil, 'Turn right', 'turn_right', igBasic);
+  CastleInput_RightRot.Assign(K_Right, K_None, #0, false, mbLeft);
+  CastleInput_UpRotate := TInputShortcut.Create(nil, 'Look up', 'look_up', igBasic);
+  CastleInput_UpRotate.Assign(K_PageDown, K_None, #0, false, mbLeft);
+  CastleInput_DownRotate := TInputShortcut.Create(nil, 'Look down', 'look_down', igBasic);
+  CastleInput_DownRotate.Assign(K_Delete, K_None, #0, false, mbLeft);
+  CastleInput_GravityUp := TInputShortcut.Create(nil, 'Look straight', 'look_straight', igBasic);
+  CastleInput_GravityUp.Assign(K_End, K_None, #0, false, mbLeft);
+  CastleInput_UpMove := TInputShortcut.Create(nil, 'Jump (or fly/swim up)', 'move_up', igBasic);
+  CastleInput_UpMove.Assign(K_Space, K_None, #0, true, mbRight);
+  CastleInput_DownMove := TInputShortcut.Create(nil, 'Crouch (or fly/swim down)', 'move_down', igBasic);
+  CastleInput_DownMove.Assign(K_C, K_None, #0, false, mbLeft);
 
   { Other shortcuts. }
-  CastleInput_Interact := TInputConfiguration.Create('Interact (press button / open door etc.)', 'interact', igOther,
-    K_E, K_None, #0, false, mbLeft);
+  CastleInput_Interact := TInputShortcut.Create(nil, 'Interact (press button / open door etc.)', 'interact', igOther);
+  CastleInput_Interact.Assign(K_E, K_None, #0, false, mbLeft);
 
   Config.OnLoad.Add(@InputsAll.LoadFromConfig);
   Config.OnSave.Add(@InputsAll.SaveToConfig);

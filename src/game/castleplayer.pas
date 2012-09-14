@@ -552,11 +552,11 @@ begin
       let them work. They work a little strangely (because Up
       is orthogonal to GravityUp), but they still work and player
       can figure it out. }
-    Camera.Input_LeftRot.Assign(CastleInput_LeftRot.Shortcut, false);
-    Camera.Input_RightRot.Assign(CastleInput_RightRot.Shortcut, false);
-    Camera.Input_UpRotate.Assign(CastleInput_UpRotate.Shortcut, false);
-    Camera.Input_DownRotate.Assign(CastleInput_DownRotate.Shortcut, false);
-    Camera.Input_GravityUp.Assign(CastleInput_GravityUp.Shortcut, false);
+    Camera.Input_LeftRot.Assign(CastleInput_LeftRot, false);
+    Camera.Input_RightRot.Assign(CastleInput_RightRot, false);
+    Camera.Input_UpRotate.Assign(CastleInput_UpRotate, false);
+    Camera.Input_DownRotate.Assign(CastleInput_DownRotate, false);
+    Camera.Input_GravityUp.Assign(CastleInput_GravityUp, false);
   end;
 
   if Blocked then
@@ -610,8 +610,8 @@ begin
 
       Camera.Input_Jump.MakeClear;
       Camera.Input_Crouch.MakeClear;
-      Camera.Input_UpMove.Assign(CastleInput_UpMove.Shortcut, false);
-      Camera.Input_DownMove.Assign(CastleInput_DownMove.Shortcut, false);
+      Camera.Input_UpMove.Assign(CastleInput_UpMove, false);
+      Camera.Input_DownMove.Assign(CastleInput_DownMove, false);
 
       { Camera.HeadBobbing and
         Camera.PreferredHeight and
@@ -629,8 +629,8 @@ begin
 
       Camera.Input_Jump.MakeClear;
       Camera.Input_Crouch.MakeClear;
-      Camera.Input_UpMove.Assign(CastleInput_UpMove.Shortcut, false);
-      Camera.Input_DownMove.Assign(CastleInput_DownMove.Shortcut, false);
+      Camera.Input_UpMove.Assign(CastleInput_UpMove, false);
+      Camera.Input_DownMove.Assign(CastleInput_DownMove, false);
 
       Camera.FallingDownStartSpeed := DefaultFallingDownStartSpeed / 6;
       Camera.FallingDownSpeedIncrease := 1.0;
@@ -644,8 +644,8 @@ begin
       Camera.PreferGravityUpForMoving := true;
       Camera.PreferGravityUpForRotations := true;
 
-      Camera.Input_Jump.Assign(CastleInput_UpMove.Shortcut, false);
-      Camera.Input_Crouch.Assign(CastleInput_DownMove.Shortcut, false);
+      Camera.Input_Jump.Assign(CastleInput_UpMove, false);
+      Camera.Input_Crouch.Assign(CastleInput_DownMove, false);
       Camera.Input_UpMove.MakeClear;
       Camera.Input_DownMove.MakeClear;
 
@@ -658,10 +658,10 @@ begin
       Camera.MoveVerticalSpeed := DefaultMoveVerticalSpeed;
     end;
 
-    Camera.Input_Forward.Assign(CastleInput_Forward.Shortcut, false);
-    Camera.Input_Backward.Assign(CastleInput_Backward.Shortcut, false);
-    Camera.Input_LeftStrafe.Assign(CastleInput_LeftStrafe.Shortcut, false);
-    Camera.Input_RightStrafe.Assign(CastleInput_RightStrafe.Shortcut, false);
+    Camera.Input_Forward.Assign(CastleInput_Forward, false);
+    Camera.Input_Backward.Assign(CastleInput_Backward, false);
+    Camera.Input_LeftStrafe.Assign(CastleInput_LeftStrafe, false);
+    Camera.Input_RightStrafe.Assign(CastleInput_RightStrafe, false);
   end;
 end;
 
