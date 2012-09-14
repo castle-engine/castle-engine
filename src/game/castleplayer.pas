@@ -1233,7 +1233,6 @@ initialization
   { Order of creation below is significant: it determines the order
     of menu entries in "Configure controls". }
 
-  { Basic shortcuts. }
   PlayerInput_Forward := TInputShortcut.Create(nil, 'Move forward', 'move_forward', igBasic);
   PlayerInput_Forward.Assign(K_W, K_Up, #0, false, mbLeft);
   PlayerInput_Backward := TInputShortcut.Create(nil, 'Move backward', 'move_backward', igBasic);
