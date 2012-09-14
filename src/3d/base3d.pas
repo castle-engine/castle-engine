@@ -1598,9 +1598,12 @@ type
 
     { Maximum amount of life. Used as default value for Life when sensible.
       Can be also used for information (to display on player HUDs and such).
-      It's not really a limit, that is you're free to set Life
-      to someting larger than MaxLife if you want (it may make some HUD displays
-      confusing, but everything will work perfectly). }
+
+      It's not really a limit, that is you can set Life
+      to something larger than MaxLife if you want. It's normal in some games,
+      where you can get some "magic life boost" that makes your health temporarily
+      larger than normal. Whether it's sensible in your game (and whether your
+      HUD will display it sensibly) is up to you. }
     property MaxLife: Single read FMaxLife write FMaxLife;
 
     { Scales how far the knockback effect pushes this creature/player. }
@@ -1617,7 +1620,8 @@ const
   Calculates at the same time transformation matrix, and it's inverse,
   and multiplies given Transform, TransformInverse appropriately.
   The precise meaning of Center, Translation and such parameters
-  follows exactly the X3D Transform node definition. }
+  follows exactly the X3D Transform node definition (see
+  http://www.web3d.org/files/specifications/19775-1/V3.2/Part01/components/group.html#Transform ). }
 procedure TransformMatricesMult(var Transform, TransformInverse: TMatrix4Single;
   const Center: TVector3Single;
   const Rotation: TVector4Single;
