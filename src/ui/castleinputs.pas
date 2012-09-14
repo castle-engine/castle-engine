@@ -16,23 +16,67 @@
 { Key and mouse shortcuts (TInputShortcut) and global management of them.
 
   TInputShortcut instance represents a key/mouse shortcut.
-  Instances of this class are spread throughout the engine,
-  for example TWalkCamera contains a number of them like TWalkCamera.Input_Forward.
+  Instances of this class are spread throughout the engine.
+  We have two different ways of using TInputShortcut instance:
 
-  Some (but not all) TInputShortcut instances are global,
-  for example CastleSceneManager unit contains Input_PointingDeviceActivate.
-  These global instances are kept in lists InputsAll and InputsGroup.
-  The purpose of such global input map is to be able to detect key conflicts,
-  be able to restore whole inputs to default,
-  load/save them to the user config file, and so on.
+  @unorderedList(
+    @item(
+      @bold(Global)
 
-  You create new inputs simply by creating new TInputShortcut instances.
-  The TInputShortcut.Group = igLocal means that the shortcut will
-  not be added to the global keymap in InputsAll and InputsGroup.
-  Other TInputShortcut.Group mean that the shortcut is global,
-  it will be added InputsAll and InputsGroup[Group].
-  You usually want to set owner of global input shortcurs to InputsAll.
+      TInputShortcut instance with TInputShortcut.Group <> igLocal
+      is called "global". Such instance is automatically (at construction)
+      added to InputsAll and InputsGroup[Group] lists.
 
+      The purpose of such global input map is to be able to detect key conflicts,
+      be able to restore whole input map to default,
+      load/save them to the user config file, and so on.
+      All shortcuts used in a typical 3D game, with normal CastleLevel
+      and CastlePlayer usage, are global.
+
+      Global shortcuts are owned (they will be freed by) this unit
+      (more specifically, they will be freed by InputsAll).
+      When creating them, pass @nil to the Owner parameter
+      of constructor TInputShortcut.Create.
+      This implies that InputsAll and InputsGroup[Group] lists will never shrink,
+      which is useful --- once added, shortcuts will not disappear.
+      Global TInputShortcut instances are always in practice also global variables.
+
+      For example CastleSceneManager unit contains Input_PointingDeviceActivate.
+      For example CastlePlayer contains many inputs.
+    )
+
+    @item(
+      @bold(Local)
+
+      TInputShortcut instance with TInputShortcut.Group = igLocal
+      is called "local". Basically, it means it's a normal component,
+      it's not magically present on any global list, it's not magically
+      managed by any list.
+
+      For example TWalkCamera contains a number of them like
+      TWalkCamera.Input_Forward.
+
+      Although it seems like "global" inputs are such a good idea, there
+      are some reasons for having some inputs "local":
+
+      @unorderedList(
+        @itemSpacing Compact
+        @item(You can set them locally, obviously, not program-wide.)
+        @item(You can set them from Lazarus object inspector e.g. for cameras.)
+        @item(We cannot add shortcuts of both TExamineCamera and TWalkCamera
+          to global, as they would conflict (e.g. "up arrow key" is used
+          by both by default). The InputsAll doesn't have (for now) any mechanism
+          to indicate that only one of the cameras will be in practice
+          used for a given TCastleSceneManager.)
+        @item(We cannot add shortcuts of TCamera descendants also because
+          CastlePlayer has shortcuts that override camera shortcuts.
+          One day this problem may disappear, when TPlayer and TCamera
+          will become integrated more.)
+      )
+    )
+  )
+
+  You create new inputs by simply constructing new TInputShortcut instances.
   Make sure you add all global inputs before calling @code(Config.Load),
   as some functionality assumes that all shortcuts are already added
   at the time @code(Config.Load) is called.
@@ -259,7 +303,7 @@ type
     FShortcut: TInputShortcut;
     FName: string;
     FGroupOrder: Integer;
-    { Index of CastleAllInputs. For now this is useful only for sorting,
+    { Index of InputsAll. For now this is useful only for sorting,
       to decide order when GroupOrder is equal between two items. }
     Index: Integer;
   public
@@ -287,18 +331,18 @@ type
       and digits (and do not start with a digit). }
     property Name: string read FName;
 
-    { Group where this shortcut will be placed. Games may use this
-      group to better show the keys configuration for user,
+    { Group of the global shortcut, or igLocal indicating a local shortcut.
+      Games may use this group to better show the keys configuration for user,
       presenting together keys from the same group. }
     property Group: TInputGroup read FGroup;
 
     { Order of the shortcut within it's @link(Group).
-      The order may be important, as menus may show CastleGroupInputs
+      The order may be important, as menus may show InputsGroup
       to user in this order.
       This order is applied (the group is actually sorted by GroupOrder)
       when reading config file.
       For equal GroupOrder, the order of creation (equal to the order
-      on CastleAllInputs list) decides which is first. }
+      on InputsAll list) decides which is first. }
     property GroupOrder: Integer read FGroupOrder write FGroupOrder;
 
     { The key/mouse shortcut for this action.
@@ -355,11 +399,11 @@ var
   { Other shortcuts. }
   CastleInput_Interact: TInputConfiguration;
 
-  { List of all configurable shortcuts.
+  { List of all global inputs.
     Will be created in initialization and freed in finalization of this unit.
     All TInputConfiguration instances will automatically add to this. }
-  CastleAllInputs: TInputConfigurationList;
-  CastleGroupInputs: array [TInputGroup] of TInputConfigurationList;
+  InputsAll: TInputConfigurationList;
+  InputsGroup: array [igBasic..High(TInputGroup)] of TInputConfigurationList;
 
 implementation
 
@@ -641,7 +685,7 @@ begin
       'Default key/mouse shortcuts layout has conflicts: ' + ConflictDescription);
 
   for G := Low(G) to High(G) do
-    CastleGroupInputs[G].Sort(@SortInputConfiguration);
+    InputsGroup[G].Sort(@SortInputConfiguration);
 
   for I := 0 to Count - 1 do
   begin
@@ -736,10 +780,10 @@ begin
   FShortcut := TInputShortcut.Create(nil);
   FShortcut.Assign(AKey1, AKey2, ACharacter, AMouseButtonUse, AMouseButton, AMouseWheel);
 
-  Index := CastleAllInputs.Count;
-  CastleAllInputs.Add(Self);
+  Index := InputsAll.Count;
+  InputsAll.Add(Self);
 
-  CastleGroupInputs[Group].Add(Self);
+  InputsGroup[Group].Add(Self);
 end;
 
 destructor TInputConfiguration.Destroy;
@@ -798,9 +842,9 @@ var
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptString);
   N := TCasScriptString(Arguments[0]).Value;
-  if CastleAllInputs <> nil then
+  if InputsAll <> nil then
   begin
-    I := CastleAllInputs.FindName(N);
+    I := InputsAll.FindName(N);
     if I <> nil then
       TCasScriptString(AResult).Value := I.Description else
       TCasScriptString(AResult).Value := Format('(shortcut name "%s" undefined)', [N]);
@@ -812,12 +856,12 @@ end;
 
 procedure DoInitialization;
 var
-  InputGroup: TInputGroup;
+  G: TInputGroup;
 begin
-  CastleAllInputs := TInputConfigurationList.Create(true);
+  InputsAll := TInputConfigurationList.Create(true);
 
-  for InputGroup := Low(InputGroup) to High(InputGroup) do
-    CastleGroupInputs[InputGroup] := TInputConfigurationList.Create(false);
+  for G := Low(InputsGroup) to High(InputsGroup) do
+    InputsGroup[G] := TInputConfigurationList.Create(false);
 
   { Order of creation below is significant: it determines the order
     of menu entries in "Configure controls". }
@@ -850,26 +894,26 @@ begin
   CastleInput_Interact := TInputConfiguration.Create('Interact (press button / open door etc.)', 'interact', igOther,
     K_E, K_None, #0, false, mbLeft);
 
-  Config.OnLoad.Add(@CastleAllInputs.LoadFromConfig);
-  Config.OnSave.Add(@CastleAllInputs.SaveToConfig);
+  Config.OnLoad.Add(@InputsAll.LoadFromConfig);
+  Config.OnSave.Add(@InputsAll.SaveToConfig);
 
   FunctionHandlers.RegisterHandler(@TCasScriptShortcut(nil).Handle, TCasScriptShortcut, [TCasScriptString], false);
 end;
 
 procedure DoFinalization;
 var
-  InputGroup: TInputGroup;
+  G: TInputGroup;
 begin
-  if (CastleAllInputs <> nil) and (Config <> nil) then
+  if (InputsAll <> nil) and (Config <> nil) then
   begin
-    Config.OnLoad.Remove(@CastleAllInputs.LoadFromConfig);
-    Config.OnSave.Remove(@CastleAllInputs.SaveToConfig);
+    Config.OnLoad.Remove(@InputsAll.LoadFromConfig);
+    Config.OnSave.Remove(@InputsAll.SaveToConfig);
   end;
 
-  for InputGroup := Low(InputGroup) to High(InputGroup) do
-    FreeAndNil(CastleGroupInputs[InputGroup]);
+  for G := Low(InputsGroup) to High(InputsGroup) do
+    FreeAndNil(InputsGroup[G]);
 
-  FreeAndNil(CastleAllInputs);
+  FreeAndNil(InputsAll);
 end;
 
 initialization
