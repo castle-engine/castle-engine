@@ -50,7 +50,6 @@ uses KeysMouse, CastleUtils, CastleClassUtils, Classes,
 
 type
   TInputShortcut = class;
-  TInputShortcutChangedFunc = procedure (Shortcut: TInputShortcut) of object;
 
   { A keyboard and/or mouse shortcut for activating some action.
 
@@ -93,9 +92,12 @@ type
     FDefaultMouseButtonUse: boolean;
     FDefaultMouseButton: TMouseButton;
     FDefaultMouseWheel: TMouseWheelDirection;
-
-    FOnChanged: TInputShortcutChangedFunc;
   protected
+    { Called always right after the key/character/mouse
+      shortcut value changed. Note that this is called only when
+      the "current" values (Key1, Key2, Character, MouseButtonUse, MouseButton,
+      MouseWheel) changed, and it's not called when just the DefaultXxx
+      values changed. }
     procedure Changed; virtual;
   public
     procedure MakeDefault;
@@ -224,14 +226,6 @@ type
       read FDefaultMouseWheel write FDefaultMouseWheel;
     { @groupEnd }
 
-    { If assigned, this will be called always right after the key/character/mouse
-      shortcut value changed. Note that this is called only when
-      the "current" values (Key1, Key2, Character, MouseButtonUse, MouseButton,
-      MouseWheel) changed, and it's not called when just
-      the DefaultXxx values changed. }
-    property OnChanged: TInputShortcutChangedFunc
-      read FOnChanged write FOnChanged;
-
     { }
     { TODO: Maybe introduce a way to limit (TKey, or all shortcuts?)
       to activate only when specific modifier is pressed.
@@ -268,7 +262,6 @@ type
     { Index of CastleAllInputs. For now this is useful only for sorting,
       to decide order when GroupOrder is equal between two items. }
     Index: Integer;
-    procedure ShortcutChanged(Shortcut: TInputShortcut);
   public
     { Constructor. Note that TInputShortcut instance passed here is owned
       by this object, i.e. it will be freed in our destructor. }
@@ -309,9 +302,7 @@ type
     property GroupOrder: Integer read FGroupOrder write FGroupOrder;
 
     { The key/mouse shortcut for this action.
-      You can directly change fields of this action,
-      but don't mess with it's OnChanged property --- we will use
-      it in this class internally. }
+      You can directly change fields of this action. }
     property Shortcut: TInputShortcut read FShortcut;
 
     { Add to Shortcut new key or mouse button or mouse wheel.
@@ -369,8 +360,6 @@ var
     All TInputConfiguration instances will automatically add to this. }
   CastleAllInputs: TInputConfigurationList;
   CastleGroupInputs: array [TInputGroup] of TInputConfigurationList;
-
-  OnInputChanged: TInputChangedEventList;
 
 implementation
 
@@ -535,8 +524,6 @@ end;
 
 procedure TInputShortcut.Changed;
 begin
-  if Assigned(OnChanged) then
-    OnChanged(Self);
 end;
 
 procedure TInputShortcut.SetKey1(const Value: TKey);
@@ -748,7 +735,6 @@ begin
 
   FShortcut := TInputShortcut.Create(nil);
   FShortcut.Assign(AKey1, AKey2, ACharacter, AMouseButtonUse, AMouseButton, AMouseWheel);
-  FShortcut.OnChanged := @ShortcutChanged;
 
   Index := CastleAllInputs.Count;
   CastleAllInputs.Add(Self);
@@ -760,12 +746,6 @@ destructor TInputConfiguration.Destroy;
 begin
   FreeAndNil(FShortcut);
   inherited;
-end;
-
-procedure TInputConfiguration.ShortcutChanged(Shortcut: TInputShortcut);
-begin
-  Assert(Shortcut = Self.Shortcut);
-  OnInputChanged.ExecuteAll(Self);
 end;
 
 procedure TInputConfiguration.AddShortcut(const NewKey: TKey;
@@ -834,7 +814,6 @@ procedure DoInitialization;
 var
   InputGroup: TInputGroup;
 begin
-  OnInputChanged := TInputChangedEventList.Create;
   CastleAllInputs := TInputConfigurationList.Create(true);
 
   for InputGroup := Low(InputGroup) to High(InputGroup) do
@@ -891,7 +870,6 @@ begin
     FreeAndNil(CastleGroupInputs[InputGroup]);
 
   FreeAndNil(CastleAllInputs);
-  FreeAndNil(OnInputChanged);
 end;
 
 initialization

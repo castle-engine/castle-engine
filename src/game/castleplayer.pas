@@ -141,8 +141,6 @@ type
     procedure SetLifeCustomBlackOut(const Value: Single;
       const Color: TVector3Single);
 
-    procedure InputChanged(InputConfiguration: TInputConfiguration);
-
     procedure SwimmingChangeSoundRelease(Sender: TSound);
     procedure SwimmingSoundRelease(Sender: TSound);
     procedure SetSwimming(const Value: TPlayerSwimming);
@@ -403,8 +401,6 @@ begin
   Camera.CheckModsDown := false;
   Camera.OnFalledDown := @FalledDown;
 
-  OnInputChanged.Add(@InputChanged);
-
   LoadFromFile;
 
   { Although it will be called in every OnIdle anyway,
@@ -416,9 +412,6 @@ end;
 destructor TPlayer.Destroy;
 begin
   EquippedWeapon := nil; { unregister free notification }
-
-  if OnInputChanged <> nil then
-    OnInputChanged.Remove(@InputChanged);
 
   FreeAndNil(FCamera);
   FreeAndNil(FInventory);
@@ -996,11 +989,6 @@ begin
       { TODO: maybe I should allow him to do some "punch" / "kick" here ? }
       Notifications.Show('No weapon equipped');
   end;
-end;
-
-procedure TPlayer.InputChanged(InputConfiguration: TInputConfiguration);
-begin
-  UpdateCamera;
 end;
 
 procedure TPlayer.SetSwimming(const Value: TPlayerSwimming);
