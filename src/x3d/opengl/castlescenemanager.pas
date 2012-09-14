@@ -21,7 +21,8 @@ interface
 uses Classes, VectorMath, X3DNodes, CastleScene, CastleSceneCore, Cameras,
   GLShadowVolumeRenderer, GL, UIControls, Base3D,
   KeysMouse, Boxes3D, Background, CastleUtils, CastleClassUtils,
-  GLShaders, GLImages, CastleTimeUtils, FGL, SectorsWaypoints;
+  GLShaders, GLImages, CastleTimeUtils, FGL, SectorsWaypoints,
+  CastleInputs;
 
 const
   { }

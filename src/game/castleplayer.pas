@@ -326,11 +326,25 @@ type
     function Sphere(out Radius: Single): boolean; override;
   end;
 
+const
+  DefaultUseMouseLook = true;
+  DefaultInvertVerticalMouseLook = false;
+
+var
+  { Game player camera settings.
+    Automatically saved/loaded from user preferences using CastleConfig.
+    @groupBegin }
+  UseMouseLook: boolean = DefaultUseMouseLook;
+  InvertVerticalMouseLook: boolean = DefaultInvertVerticalMouseLook;
+  MouseLookHorizontalSensitivity: Single;
+  MouseLookVerticalSensitivity: Single;
+  { @groupEnd }
+
 implementation
 
 uses Math, SysUtils, CastleClassUtils, CastleUtils, X3DNodes, CastleControls,
   Images, CastleFilesUtils, UIControls, PrecalculatedAnimation, CastleOpenAL,
-  CastleGameNotifications, CastleXMLConfig, GLImages, DOM;
+  CastleGameNotifications, CastleXMLConfig, GLImages, DOM, CastleConfig;
 
 { TPlayerBox ----------------------------------------------------------------- }
 
@@ -518,6 +532,7 @@ begin
     work anyway. }
   Camera.FallingDownEffect := Swimming = psNo;
 
+(* TODO: keep it as local in TPlayer? *)
   Camera.MouseLookHorizontalSensitivity := MouseLookHorizontalSensitivity;
   Camera.MouseLookVerticalSensitivity := MouseLookVerticalSensitivity;
   Camera.InvertVerticalMouseLook := InvertVerticalMouseLook;
@@ -1182,4 +1197,39 @@ begin
   AboveGround := nil;
 end;
 
+{ TConfigOptions ------------------------------------------------------------- }
+
+type
+  TConfigOptions = class
+    class procedure LoadFromConfig(const Config: TCastleConfig);
+    class procedure SaveToConfig(const Config: TCastleConfig);
+  end;
+
+class procedure TConfigOptions.LoadFromConfig(const Config: TCastleConfig);
+begin
+  MouseLookHorizontalSensitivity := Config.GetFloat(
+    'mouse/horizontal_sensitivity', DefaultMouseLookHorizontalSensitivity);
+  MouseLookVerticalSensitivity := Config.GetFloat(
+    'mouse/vertical_sensitivity', DefaultMouseLookVerticalSensitivity);
+  UseMouseLook := Config.GetValue(
+    'mouse/use_mouse_look', DefaultUseMouseLook);
+  InvertVerticalMouseLook := Config.GetValue(
+    'mouse/invert_vertical_mouse_look', DefaultInvertVerticalMouseLook);
+end;
+
+class procedure TConfigOptions.SaveToConfig(const Config: TCastleConfig);
+begin
+  Config.SetDeleteFloat('mouse/horizontal_sensitivity',
+    MouseLookHorizontalSensitivity, DefaultMouseLookHorizontalSensitivity);
+  Config.SetDeleteFloat('mouse/vertical_sensitivity',
+    MouseLookVerticalSensitivity, DefaultMouseLookVerticalSensitivity);
+  Config.SetDeleteValue('mouse/use_mouse_look',
+    UseMouseLook, DefaultUseMouseLook);
+  Config.SetDeleteValue('mouse/invert_vertical_mouse_look',
+    InvertVerticalMouseLook, DefaultInvertVerticalMouseLook);
+end;
+
+initialization
+  Config.OnLoad.Add(@TConfigOptions(nil).LoadFromConfig);
+  Config.OnSave.Add(@TConfigOptions(nil).SaveToConfig);
 end.
