@@ -82,7 +82,6 @@ type
     CurrentScreenEffectsCount: Integer;
     CurrentScreenEffectsNeedDepth: boolean;
 
-    FInput_PointingDeviceActivate: TInputShortcut;
     FApproximateActivation: boolean;
     FDefaultVisibilityLimit: Single;
     FTransparent: boolean;
@@ -91,6 +90,7 @@ type
     SSAOShader: TGLSLProgram;
 
     procedure ItemsAndCameraCursorChange(Sender: TObject);
+    function PlayerNotBlocked: boolean;
   protected
     { These variables are writeable from overridden ApplyProjection. }
     FPerspectiveView: boolean;
@@ -225,6 +225,7 @@ type
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; virtual; abstract;
     function GetMouseRayHit: TRayCollision; virtual; abstract;
     function GetHeadlightCamera: TCamera; virtual; abstract;
+    function GetPlayer: T3DAlive; virtual; abstract;
     { @groupEnd }
 
     { Pass pointing device (mouse) move event to 3D world. }
@@ -585,19 +586,8 @@ type
     property UseGlobalLights: boolean
       read FUseGlobalLights write FUseGlobalLights default false;
 
-    { Input (mouse/key combination) to make pointing device active
-      (used to pick and drag items, possibly using VRML/X3D
-      pointing-device sensors).
-      By default this is left mouse button click.
-
-      You can change it to any other mouse button or even to key combination.
-      Simply change properties like TInputShortcut.Key1
-      or TInputShortcut.MouseButtonUse. }
-    property Input_PointingDeviceActivate: TInputShortcut
-      read FInput_PointingDeviceActivate;
-
     { Help user to activate pointing device sensors and pick items.
-      Every time you press or release Input_PointingDeviceActivate (by default
+      Every time you press or release Input_Interact (by default
       just left mouse button), we look if current mouse position hits 3D object
       that actually does something on activation. 3D objects may do various stuff
       inside T3D.PointingDeviceActivate, generally this causes various
@@ -760,11 +750,12 @@ type
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCamera; override;
+    function GetPlayer: T3DAlive; override;
     function PointingDeviceActivate(const Active: boolean): boolean; override;
     function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
     { Called when PointingDeviceActivate was not handled by any 3D object.
       You can override this to make a message / sound signal to notify user
-      that his Input_PointingDeviceActivate click was not successful. }
+      that his Input_Interact click was not successful. }
     procedure PointingDeviceActivateFailed(const Active: boolean); virtual;
   public
     constructor Create(AOwner: TComponent); override;
@@ -1023,6 +1014,7 @@ type
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCamera; override;
+    function GetPlayer: T3DAlive; override;
     function PointingDeviceActivate(const Active: boolean): boolean; override;
     function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
 
@@ -1044,6 +1036,17 @@ type
   end;
 
 procedure Register;
+
+var
+  { Key/mouse combination to interact with clickable things in 3D world.
+    More precisely, this input will activate pointing device sensors in VRML/X3D,
+    which are used to touch (click) or drag 3D things.
+    By default this is left mouse button click.
+
+    You can change it to any other mouse button or even to key combination.
+    Simply change properties like TInputShortcut.Key1
+    or TInputShortcut.MouseButtonUse. }
+  Input_Interact: TInputShortcut;
 
 implementation
 
@@ -1090,11 +1093,6 @@ begin
   FRenderParams := TManagerRenderParams.Create;
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
-
-  FInput_PointingDeviceActivate := TInputShortcut.Create(Self);
-  Input_PointingDeviceActivate.Assign(K_None, K_None, #0, true, mbLeft);
-  Input_PointingDeviceActivate.SetSubComponent(true);
-  Input_PointingDeviceActivate.Name := 'Input_PointingDeviceActivate';
 end;
 
 destructor TCastleAbstractViewport.Destroy;
@@ -1211,6 +1209,14 @@ begin
     Camera.ContainerResize(AContainerWidth, AContainerHeight);
 end;
 
+function TCastleAbstractViewport.PlayerNotBlocked: boolean;
+var
+  P: T3DAlive;
+begin
+  P := GetPlayer;
+  Result := (P = nil) or (not (P.Blocked or P.Dead));
+end;
+
 function TCastleAbstractViewport.KeyDown(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
@@ -1225,7 +1231,7 @@ begin
   Result := GetItems.KeyDown(Key, C);
   if Result then Exit;
 
-  if Input_PointingDeviceActivate.IsKey(Key, C) then
+  if PlayerNotBlocked and Input_Interact.IsKey(Key, C) then
     Result := PointingDeviceActivate(true);
 end;
 
@@ -1243,7 +1249,7 @@ begin
   Result := GetItems.KeyUp(Key, C);
   if Result then Exit;
 
-  if Input_PointingDeviceActivate.IsKey(Key, C) then
+  if PlayerNotBlocked and Input_Interact.IsKey(Key, C) then
     Result := PointingDeviceActivate(false);
 end;
 
@@ -1258,7 +1264,7 @@ begin
     if Result then Exit;
   end;
 
-  if Input_PointingDeviceActivate.IsMouseButton(Button) then
+  if PlayerNotBlocked and Input_Interact.IsMouseButton(Button) then
     Result := PointingDeviceActivate(true);
 end;
 
@@ -1273,7 +1279,7 @@ begin
     if Result then Exit;
   end;
 
-  if Input_PointingDeviceActivate.IsMouseButton(Button) then
+  if PlayerNotBlocked and Input_Interact.IsMouseButton(Button) then
     Result := PointingDeviceActivate(false);
 end;
 
@@ -3071,6 +3077,11 @@ begin
   Result := Camera;
 end;
 
+function TCastleSceneManager.GetPlayer: T3DAlive;
+begin
+  Result := Player;
+end;
+
 procedure TCastleSceneManager.SetDefaultViewport(const Value: boolean);
 begin
   if Value <> FDefaultViewport then
@@ -3281,6 +3292,11 @@ begin
   Result := SceneManager.Camera;
 end;
 
+function TCastleViewport.GetPlayer: T3DAlive;
+begin
+  Result := SceneManager.Player;
+end;
+
 procedure TCastleViewport.Draw;
 begin
   if not GetExists then Exit;
@@ -3317,4 +3333,7 @@ begin
   end;
 end;
 
+initialization
+  Input_Interact := TInputShortcut.Create(nil, 'Interact (press button / open door etc.)', 'interact', igOther);
+  Input_Interact.Assign(K_None, K_None, #0, true, mbLeft);
 end.

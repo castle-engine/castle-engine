@@ -41,7 +41,7 @@
       which is useful --- once added, shortcuts will not disappear.
       Global TInputShortcut instances are always in practice also global variables.
 
-      For example CastleSceneManager unit contains Input_PointingDeviceActivate.
+      For example CastleSceneManager unit contains Input_Interact.
       For example CastlePlayer contains many inputs.
     )
 
@@ -352,9 +352,6 @@ type
   end;
 
 var
-  { Other shortcuts. }
-  CastleInput_Interact: TInputShortcut;
-
   { List of all global inputs.
     Will be created in initialization and freed in finalization of this unit.
     All TInputShortcut instances will automatically add to this. }
@@ -797,10 +794,6 @@ begin
 
   for G := Low(InputsGroup) to High(InputsGroup) do
     InputsGroup[G] := TInputShortcutList.Create(false);
-
-  { Other shortcuts. }
-  CastleInput_Interact := TInputShortcut.Create(nil, 'Interact (press button / open door etc.)', 'interact', igOther);
-  CastleInput_Interact.Assign(K_E, K_None, #0, false, mbLeft);
 
   Config.OnLoad.Add(@InputsAll.LoadFromConfig);
   Config.OnSave.Add(@InputsAll.SaveToConfig);

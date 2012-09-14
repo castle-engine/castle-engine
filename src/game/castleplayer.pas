@@ -74,7 +74,6 @@ type
     FInventory: TInventory;
     FEquippedWeapon: TItemWeapon;
     LifeTime: Single;
-    FBlocked: boolean;
 
     { This means that weapon AttackAnimation is being done.
       This also means that EquippedWeapon <> nil. }
@@ -223,12 +222,6 @@ type
       )
     }
     property Camera: TWalkCamera read FCamera;
-
-    { Use this to disable user to directly change the camera position.
-      It's useful when you want to temporarily force camera to some specific
-      setting (you can even use handy Player.Camera.AnimateTo method
-      to do this easily, see TWalkCamera.AnimateTo). }
-    property Blocked: boolean read FBlocked write FBlocked;
 
     { Add Item to Inventory, with appropriate GameMessage.
       See also TInventory.Pick (this is a wrapper around it).

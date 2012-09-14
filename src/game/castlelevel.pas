@@ -535,7 +535,6 @@ begin
 
   UseGlobalLights := true;
   ApproximateActivation := true;
-  Input_PointingDeviceActivate.Assign(CastleInput_Interact, false);
 
   { save PreviousResources, before Info is overridden with new level.
     This allows us to keep PreviousResources while new resources are required,
@@ -706,12 +705,6 @@ begin
     DistortFieldOfViewY += C * 0.03;
     DistortViewAspect += S * 0.03;
   end;
-
-  if ((Player <> nil) and
-      ( ((Player is TPlayer) and TPlayer(Player).Blocked) or
-        Player.Dead ) ) then
-    Input_PointingDeviceActivate.MakeClear else
-    Input_PointingDeviceActivate.Assign(CastleInput_Interact, false);
 end;
 
 { TLevel ---------------------------------------------------------------- }

@@ -1555,7 +1555,7 @@ type
   private
     FLife: Single;
     FMaxLife: Single;
-
+    FBlocked: boolean;
     { FKnockbackDistance <= 0 means "no knockback currently" }
     FKnockbackDistance: Single;
     FLastHurtDirection: TVector3Single;
@@ -1592,6 +1592,12 @@ type
       Zero if there was no specific direction of last attack,
       otherwise a normalized (length 1) vector. }
     property LastHurtDirection: TVector3Single read FLastHurtDirection;
+
+    { Useful only when this is the player, disables user from changing the camera.
+      It's useful when you want to temporarily force camera to some specific
+      setting (you can even use handy Player.Camera.AnimateTo method
+      to do this easily, see TWalkCamera.AnimateTo). }
+    property Blocked: boolean read FBlocked write FBlocked;
   published
     { Current Life. We're dead when this is <= 0. }
     property Life: Single read FLife write SetLife;

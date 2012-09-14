@@ -288,8 +288,7 @@ begin
     (that may change Enable by --no-sound). }
   Config.Load;
 
-  { change some CastleInputs shortcuts }
-  CastleInput_Interact.Shortcut.Assign(K_None, K_None, #0, true, mbLeft, mwNone);
+  { change some CastlePlayer shortcuts }
   UseMouseLook := false;
 
   { init messages }
