@@ -24,7 +24,7 @@ interface
 uses
   Classes, SysUtils, OpenGLContext, Controls, Forms,
   VectorMath, KeysMouse, CastleUtils, CastleTimeUtils, StdCtrls, UIControls,
-  Cameras, X3DNodes, CastleScene, CastleSceneManager, Images,
+  Cameras, X3DNodes, CastleScene, CastleLevel, Images,
   pk3DConnexion;
 
 const
@@ -258,7 +258,7 @@ type
     @link(Controls) list for TUIControl instances.
 
     Keeps a @link(Controls) list, so you can easily add TUIControl instances
-    to this window (like TCastleOnScreenMenu, TCastleSceneManager and more).
+    to this window (like TCastleOnScreenMenu, TCastleButton and more).
     We will pass events to these controls, draw them etc. }
   TCastleControlCustom = class(TCastleControlBase, IUIContainer)
   private
@@ -372,7 +372,7 @@ type
     to your world. }
   TCastleControl = class(TCastleControlCustom)
   private
-    FSceneManager: TCastleSceneManager;
+    FSceneManager: TGameSceneManager;
 
     function GetShadowVolumes: boolean;
     function GetShadowVolumesDraw: boolean;
@@ -396,16 +396,16 @@ type
     function MainScene: TCastleScene;
     function Camera: TCamera;
   published
-    property SceneManager: TCastleSceneManager read FSceneManager;
+    property SceneManager: TGameSceneManager read FSceneManager;
 
     property OnCameraChanged: TNotifyEvent
       read GetOnCameraChanged write SetOnCameraChanged;
 
-    { See TCastleSceneManager.ShadowVolumes. }
+    { See TGameSceneManager.ShadowVolumes. }
     property ShadowVolumes: boolean
       read GetShadowVolumes write SetShadowVolumes default false;
 
-    { See TCastleSceneManager.ShadowVolumesDraw. }
+    { See TGameSceneManager.ShadowVolumesDraw. }
     property ShadowVolumesDraw: boolean
       read GetShadowVolumesDraw write SetShadowVolumesDraw default false;
   end;
@@ -1533,7 +1533,7 @@ constructor TCastleControl.Create(AOwner :TComponent);
 begin
   inherited;
 
-  FSceneManager := TCastleSceneManager.Create(Self);
+  FSceneManager := TGameSceneManager.Create(Self);
   { SetSubComponent and Name setting (must be unique only within TCastleControl,
     so no troubles) are necessary to store it in LFM and display in object inspector
     nicely. }

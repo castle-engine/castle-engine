@@ -534,7 +534,7 @@ uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
   CastleStringUtils, CastleFilesUtils, CastleTimeUtils, FileFilters, UIControls,
   FGL, pk3DConnexion,
   { VRML/X3D stuff }
-  X3DNodes, CastleScene, CastleSceneManager;
+  X3DNodes, CastleScene, CastleLevel;
 
 {$define read_interface}
 
@@ -2536,7 +2536,7 @@ end;
     see TCastleControl component. }
   TCastleWindow = class(TCastleWindowCustom)
   private
-    FSceneManager: TCastleSceneManager;
+    FSceneManager: TGameSceneManager;
 
     function GetShadowVolumes: boolean;
     function GetShadowVolumesDraw: boolean;
@@ -2556,7 +2556,7 @@ end;
     procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
 
     function MainScene: TCastleScene;
-    property SceneManager: TCastleSceneManager read FSceneManager;
+    property SceneManager: TGameSceneManager read FSceneManager;
 
     { See TCastleSceneManager.ShadowVolumes. }
     property ShadowVolumes: boolean
@@ -4829,7 +4829,7 @@ constructor TCastleWindow.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FSceneManager := TCastleSceneManager.Create(Self);
+  FSceneManager := TGameSceneManager.Create(Self);
   { SetSubComponent and Name setting below are not really necessary,
     but since TCastleWindow is a TComponent descendant, *maybe* in the future
     we'll make use of it. }

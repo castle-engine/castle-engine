@@ -50,9 +50,9 @@ uses GL, CastleWindow, CastleScene, X3DNodes, SysUtils,
 { global variables ----------------------------------------------------------- }
 
 var
-  Window: TCastleWindowCustom;
-  Player: TPlayer;
-  SceneManager: TGameSceneManager;
+  Window: TCastleWindow;
+  SceneManager: TGameSceneManager; //< same thing as Window.SceneManager
+  Player: TPlayer; //< same thing as Window.SceneManager.Player
 
   TntScene: TCastleScene;
   Rat: T3DTransform;
@@ -296,7 +296,7 @@ begin
   MessagesTheme.RectColor[3] := 0.8;
 
   { init window }
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.OnClose := @close;
   Window.OnResize := @resize;
   Window.OnIdle := @Idle;
@@ -329,8 +329,7 @@ begin
   WindowProgressInterface.Window := Window;
 
   { init SceneManager }
-  SceneManager := TGameSceneManager.Create(Window);
-  Window.Controls.Add(SceneManager);
+  SceneManager := Window.SceneManager;
   SceneManager.OnCameraChanged := @TDummy(nil).CameraChanged;
 
   { init player. It's not strictly necessary to use Player, but it makes
