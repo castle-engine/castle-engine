@@ -268,8 +268,14 @@ type
   all your controls.)
 
   @groupBegin }
-function UIFont: TGLBitmapFont_Abstract;
-function UIFontSmall: TGLBitmapFont_Abstract;
+function GetUIFont: TGLBitmapFont_Abstract;
+procedure SetUIFont(const Value: TGLBitmapFont_Abstract);
+
+function GetUIFontSmall: TGLBitmapFont_Abstract;
+procedure SetUIFontSmall(const Value: TGLBitmapFont_Abstract);
+
+property UIFont: TGLBitmapFont_Abstract read GetUIFont write SetUIFont;
+property UIFontSmall: TGLBitmapFont_Abstract read GetUIFontSmall write SetUIFontSmall;
 { @groupEnd }
 
 const
@@ -966,18 +972,36 @@ var
   FUIFont: TGLBitmapFont_Abstract;
   FUIFontSmall: TGLBitmapFont_Abstract;
 
-function UIFont: TGLBitmapFont_Abstract;
+function GetUIFont: TGLBitmapFont_Abstract;
 begin
   if FUIFont = nil then
     FUIFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
   Result := FUIFont;
 end;
 
-function UIFontSmall: TGLBitmapFont_Abstract;
+procedure SetUIFont(const Value: TGLBitmapFont_Abstract);
+begin
+  if FUIFont <> Value then
+  begin
+    FreeAndNil(FUIFont);
+    FUIFont := Value;
+  end;
+end;
+
+function GetUIFontSmall: TGLBitmapFont_Abstract;
 begin
   if FUIFontSmall = nil then
     FUIFontSmall := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans_m10);
   Result := FUIFontSmall;
+end;
+
+procedure SetUIFontSmall(const Value: TGLBitmapFont_Abstract);
+begin
+  if FUIFontSmall <> Value then
+  begin
+    FreeAndNil(FUIFontSmall);
+    FUIFontSmall := Value;
+  end;
 end;
 
 procedure WindowClose(const Container: IUIContainer);

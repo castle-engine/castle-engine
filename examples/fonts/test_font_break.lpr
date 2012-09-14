@@ -13,21 +13,23 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo of Font.BreakLines method.
+{ Demo of TGLBitmapFont_Abstract.BreakLines method.
   Resize the window and watch how the text lines are automatically broken.
 }
 
 {$apptype GUI}
 
+{$define TEST_FONT_REPLACE}
+
 program test_font_break;
 
 uses CastleWindow, GL, GLU, CastleGLUtils, OpenGLFonts, SysUtils, Classes,
-  CastleUtils, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath,
-  CastleStringUtils, CastleColors;
+  CastleUtils, OpenGLBmpFonts, VectorMath, CastleStringUtils, CastleColors,
+  CastleControls
+  {$ifdef TEST_FONT_REPLACE} , BFNT_BitstreamVeraSansMono_Bold_M15_Unit {$endif};
 
 var
-  Window: TCastleWindowDemo;
-  Font: TGLBitmapFont_Abstract;
+  Window: TCastleWindowCustom;
   BoxWidth: Integer;
 
 procedure Draw(Window: TCastleWindowBase);
@@ -41,7 +43,7 @@ begin
  VerticalGLLine(x1, 0, Window.Height);
  VerticalGLLine(x2, 0, Window.Height);
  glColorv(White3Single);
- Font.PrintBrokenString(
+ UIFont.PrintBrokenString(
    'blah blah blah, I''m a long long long text and'
    +' I''m very curious how I will be broken to fit nicely between those'
    +' two yellow lines on the screen.' +nl+
@@ -51,7 +53,7 @@ begin
    'You can resize this window and watch how this text breaks at'
    +' various line widths.', BoxWidth, x1,
    { Using Font.Descend instead of 0, so that lower parts of the lowest line
-     are visible } Font.Descend,
+     are visible } UIFont.Descend,
    false, 0);
 end;
 
@@ -64,19 +66,15 @@ end;
 
 procedure Open(Window: TCastleWindowBase);
 begin
- Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
-end;
-
-procedure Close(Window: TCastleWindowBase);
-begin
- FreeAndNil(Font);
+{$ifdef TEST_FONT_REPLACE}
+  UIFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_Bold_M15);
+{$endif}
 end;
 
 begin
- Window := TCastleWindowDemo.Create(Application);
+ Window := TCastleWindowCustom.Create(Application);
 
  Window.OnOpen := @Open;
- Window.OnClose := @Close;
  Window.OnResize := @Resize;
  Window.DepthBits := 0;
  Window.SetDemoOptions(K_F11, CharEscape, true);
