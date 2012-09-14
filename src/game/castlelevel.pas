@@ -156,39 +156,6 @@ type
     { Music played when entering the level. }
     property MusicSound: TSoundType read FMusicSound write FMusicSound
       default stNone;
-
-    { Load game level.
-
-      @unorderedList(
-        @item(@bold(Set scene manager 3D items):
-
-          Clear all 3D items from @link(TCastleSceneManager.Items)
-          list (except @link(TCastleSceneManager.Player)), clear
-          @link(TCastleSceneManager.Camera)
-          and @link(TCastleSceneManager.MainScene) as well.
-          Then load a new main scene and camera, adding to
-          @link(TCastleSceneManager.Items) all 3D objects (creatures and items)
-          defined by placeholders in the main level 3D file.)
-
-        @item(@bold(Make sure 3D resources are ready:)
-
-          Resources are T3DResource instances on AllResources list.
-          They are heavy (in terms of memory use and preparation time),
-          so you don't want to just load everything for every level.
-          This method makes sure that all resources required by this level
-          are prepared. All resources requested in level.xml file
-          (in <resources> element in level.xml),
-          as well as resources requested in player.xml file,
-          as well as resources with AlwaysPrepared (usually: all possible items
-          that can be dropped from player inventory on any level)
-          will be prepared.)
-
-        @item(@bold(Prepare everything possible for rendering and collision
-          detection) to avoid later preparing things on-demand (which would cause
-          unpleasant delay during gameplay).
-          E.g. prepares octree and OpenGL resources.)
-      ) }
-    procedure LoadLevel(const SceneManager: TGameSceneManager);
   end;
 
   TLevelAvailableList = class(specialize TFPGObjectList<TLevelAvailable>)
@@ -233,15 +200,73 @@ type
     procedure LoadFromConfig;
   end;
 
+  { Scene manager that can comfortably load and manage a 3D game level.
+    It really adds only one new method to TCastleSceneManager:
+    @link(LoadLevel), see it's documentation to know what it gives you.
+    It also exposes @link(Level) and @link(Info) properties
+    corresponding to the currently loaded level. }
   TGameSceneManager = class(TCastleSceneManager)
   private
     FLevel: TLevel;
     FInfo: TLevelAvailable;
     SickProjectionTime: TFloatTime;
 
-    procedure LoadLevel(const AInfo: TLevelAvailable);
+    { Like LoadLevel, but doesn't care about AInfo.LoadingImage. }
+    procedure LoadLevelCore(const AInfo: TLevelAvailable);
   public
     destructor Destroy; override;
+
+    { Load game level.
+
+      @unorderedList(
+        @item(@bold(Set scene manager 3D items):
+
+          Clear all 3D items from @link(TCastleSceneManager.Items)
+          list (except @link(TCastleSceneManager.Player)), clear
+          @link(TCastleSceneManager.Camera)
+          and @link(TCastleSceneManager.MainScene) as well.
+          Then load a new main scene and camera, adding to
+          @link(TCastleSceneManager.Items) all 3D objects (creatures and items)
+          defined by placeholders in the main level 3D file.)
+
+        @item(@bold(Make sure 3D resources are ready:)
+
+          Resources are T3DResource instances on AllResources list.
+          They are heavy (in terms of memory use and preparation time),
+          so you don't want to just load everything for every level.
+          This method makes sure that all resources required by this level
+          are prepared. All resources requested in level.xml file
+          (in <resources> element in level.xml),
+          as well as resources requested in player.xml file,
+          as well as resources with AlwaysPrepared (usually: all possible items
+          that can be dropped from player inventory on any level)
+          will be prepared.)
+
+        @item(@bold(Prepare everything possible for rendering and collision
+          detection) to avoid later preparing things on-demand (which would cause
+          unpleasant delay during gameplay).
+          E.g. prepares octree and OpenGL resources.)
+      )
+
+      The overloaded version with a LevelName string searches the LevelsAvailable
+      list for a level with given name (and raises exception if it cannot
+      be found). It makes sense if you filled the LevelsAvailable list before,
+      usually by @link(TLevelsAvailable.LoadFromFiles LevelsAvailable.LoadFromFiles)
+      call. So you can easily define a level in your data with @code(name="xxx")
+      in the @code(level.xml) file, and then you can load it
+      by @code(LoadLevel('xxx')) call.
+
+      It's important to note that @bold(you do not have to use
+      this method to make a 3D game). You may as well just load the 3D scene
+      yourself, and add things to TCastleSceneManager.Items and
+      TCastleSceneManager.MainScene directly.
+      This method is just a very comfortable way to set your 3D world in one call
+      --- but it's not the only way.
+
+      @groupBegin }
+    procedure LoadLevel(const LevelName: string);
+    procedure LoadLevel(const AInfo: TLevelAvailable);
+    { @groupEnd }
 
     { Level logic and state. }
     property Level: TLevel read FLevel;
@@ -348,7 +373,7 @@ uses SysUtils, Triangle, CastleLog, CastleGLUtils,
 
 { TGameSceneManager ---------------------------------------------------------- }
 
-procedure TGameSceneManager.LoadLevel(const AInfo: TLevelAvailable);
+procedure TGameSceneManager.LoadLevelCore(const AInfo: TLevelAvailable);
 var
   { Sometimes it's not comfortable
     to remove the items while traversing --- so we will instead
@@ -623,6 +648,32 @@ begin
   MainScene.ProcessEvents := true;
 end;
 
+procedure TGameSceneManager.LoadLevel(const AInfo: TLevelAvailable);
+var
+  SavedImage: TRGBImage;
+  SavedImageBarYPosition: Single;
+begin
+  if AInfo.LoadingImage <> nil then
+  begin
+    SavedImage := Progress.UserInterface.Image;
+    SavedImageBarYPosition := Progress.UserInterface.ImageBarYPosition;
+    try
+      Progress.UserInterface.Image := AInfo.LoadingImage;
+      Progress.UserInterface.ImageBarYPosition := AInfo.LoadingImageBarYPosition;
+      LoadLevelCore(AInfo);
+    finally
+      Progress.UserInterface.Image := SavedImage;
+      Progress.UserInterface.ImageBarYPosition := SavedImageBarYPosition;
+    end;
+  end else
+    LoadLevelCore(AInfo);
+end;
+
+procedure TGameSceneManager.LoadLevel(const LevelName: string);
+begin
+  LoadLevel(LevelsAvailable.FindName(LevelName));
+end;
+
 destructor TGameSceneManager.Destroy;
 begin
   if Info <> nil then
@@ -878,27 +929,6 @@ begin
   if DOMGetAttribute(Element, 'music_sound', SoundName) then
     MusicSound := SoundEngine.SoundFromName(SoundName) else
     MusicSound := stNone;
-end;
-
-procedure TLevelAvailable.LoadLevel(const SceneManager: TGameSceneManager);
-var
-  SavedImage: TRGBImage;
-  SavedImageBarYPosition: Single;
-begin
-  if LoadingImage <> nil then
-  begin
-    SavedImage := Progress.UserInterface.Image;
-    SavedImageBarYPosition := Progress.UserInterface.ImageBarYPosition;
-    try
-      Progress.UserInterface.Image := LoadingImage;
-      Progress.UserInterface.ImageBarYPosition := LoadingImageBarYPosition;
-      SceneManager.LoadLevel(Self);
-    finally
-      Progress.UserInterface.Image := SavedImage;
-      Progress.UserInterface.ImageBarYPosition := SavedImageBarYPosition;
-    end;
-  end else
-    SceneManager.LoadLevel(Self);
 end;
 
 { TLevelAvailableList ------------------------------------------------------- }
