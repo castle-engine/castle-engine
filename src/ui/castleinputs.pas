@@ -684,7 +684,7 @@ begin
     raise EInternalError.Create(
       'Default key/mouse shortcuts layout has conflicts: ' + ConflictDescription);
 
-  for G := Low(G) to High(G) do
+  for G := Low(InputsGroup) to High(InputsGroup) do
     InputsGroup[G].Sort(@SortInputConfiguration);
 
   for I := 0 to Count - 1 do
