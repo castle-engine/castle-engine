@@ -116,8 +116,7 @@ type
 
       Details:
       @unorderedList(
-        @item(It is set to @true when loading level
-          (LoadLevel with MenuBackground = @false).)
+        @item(It is set to @true when loading level.)
 
         @item(It is saved to disk (user preferences file) when game exits,
           and loaded when game starts. As long as you call @code(Config.Load),
@@ -189,8 +188,7 @@ type
           unpleasant delay during gameplay).
           E.g. prepares octree and OpenGL resources.)
       ) }
-    procedure LoadLevel(const SceneManager: TGameSceneManager;
-      const MenuBackground: boolean = false);
+    procedure LoadLevel(const SceneManager: TGameSceneManager);
   end;
 
   TLevelAvailableList = class(specialize TFPGObjectList<TLevelAvailable>)
@@ -239,11 +237,9 @@ type
   private
     FLevel: TLevel;
     FInfo: TLevelAvailable;
-    MenuBackground: boolean;
     SickProjectionTime: TFloatTime;
 
-    procedure LoadLevel(const AInfo: TLevelAvailable;
-      const AMenuBackground: boolean);
+    procedure LoadLevel(const AInfo: TLevelAvailable);
   public
     destructor Destroy; override;
 
@@ -352,8 +348,7 @@ uses SysUtils, Triangle, CastleLog, CastleGLUtils,
 
 { TGameSceneManager ---------------------------------------------------------- }
 
-procedure TGameSceneManager.LoadLevel(const AInfo: TLevelAvailable;
-  const AMenuBackground: boolean);
+procedure TGameSceneManager.LoadLevel(const AInfo: TLevelAvailable);
 var
   { Sometimes it's not comfortable
     to remove the items while traversing --- so we will instead
@@ -500,8 +495,6 @@ var
   PreviousResources: T3DResourceList;
   I: Integer;
 begin
-  MenuBackground := AMenuBackground;
-
   { release stuff from previous level. Our items must be clean.
     This releases previous Level (logic), MainScene,
     and our creatures and items --- the ones added in TraverseForResources,
@@ -616,21 +609,16 @@ begin
 
   { Loading octree have their own Progress, so we load them outside our
     progress. }
-
-  if not MenuBackground then
-  begin
-    MainScene.TriangleOctreeProgressTitle := 'Loading level (triangle octree)';
-    MainScene.ShapeOctreeProgressTitle := 'Loading level (Shape octree)';
-    MainScene.Spatial := [ssRendering, ssDynamicCollisions];
-    MainScene.PrepareResources([prSpatial], false, BaseLights);
-  end;
+  MainScene.TriangleOctreeProgressTitle := 'Loading level (triangle octree)';
+  MainScene.ShapeOctreeProgressTitle := 'Loading level (Shape octree)';
+  MainScene.Spatial := [ssRendering, ssDynamicCollisions];
+  MainScene.PrepareResources([prSpatial], false, BaseLights);
 
   if (Player <> nil) and (Player is TPlayer) then
     TPlayer(Player).LevelChanged;
 
   SoundEngine.MusicPlayer.Sound := Info.MusicSound;
-  if not MenuBackground then
-    Notifications.Show('Loaded level "' + Info.Title + '"');
+  { Notifications.Show('Loaded level "' + Info.Title + '"');}
 
   MainScene.ProcessEvents := true;
 end;
@@ -668,8 +656,7 @@ begin
     DistortViewAspect += S * 0.03;
   end;
 
-  if MenuBackground or
-    ( (Player <> nil) and
+  if ((Player <> nil) and
       ( ((Player is TPlayer) and TPlayer(Player).Blocked) or
         Player.Dead ) ) then
     Input_PointingDeviceActivate.MakeClear else
@@ -893,16 +880,7 @@ begin
     MusicSound := stNone;
 end;
 
-procedure TLevelAvailable.LoadLevel(const SceneManager: TGameSceneManager;
-  const MenuBackground: boolean);
-
-  procedure LoadLevelCore;
-  begin
-    SceneManager.LoadLevel(Self, MenuBackground);
-    if not MenuBackground then
-      Played := true;
-  end;
-
+procedure TLevelAvailable.LoadLevel(const SceneManager: TGameSceneManager);
 var
   SavedImage: TRGBImage;
   SavedImageBarYPosition: Single;
@@ -914,13 +892,13 @@ begin
     try
       Progress.UserInterface.Image := LoadingImage;
       Progress.UserInterface.ImageBarYPosition := LoadingImageBarYPosition;
-      LoadLevelCore;
+      SceneManager.LoadLevel(Self);
     finally
       Progress.UserInterface.Image := SavedImage;
       Progress.UserInterface.ImageBarYPosition := SavedImageBarYPosition;
     end;
   end else
-    LoadLevelCore;
+    SceneManager.LoadLevel(Self);
 end;
 
 { TLevelAvailableList ------------------------------------------------------- }

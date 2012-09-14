@@ -85,8 +85,6 @@ type
       was already called. }
     ActualAttackDone: boolean;
 
-    HintEscapeKeyShown: boolean;
-
     { If Swimming = psUnderWater, then this is the time (from LifeTime)
       of setting Swimming to psUnderWater. }
     SwimBeginTime: Single;
@@ -390,8 +388,6 @@ begin
 
   Camera.CheckModsDown := false;
   Camera.OnFalledDown := @FalledDown;
-
-  HintEscapeKeyShown := false;
 
   OnInputChanged.Add(@InputChanged);
 
@@ -920,12 +916,6 @@ begin
   begin
     ActualAttackDone := true;
     EquippedWeapon.ActualAttack;
-  end;
-
-  if not HintEscapeKeyShown then
-  begin
-    HintEscapeKeyShown := true;
-    Notifications.Show('Hint: press "Escape" for game menu');
   end;
 
   UpdateIsOnTheGround;
