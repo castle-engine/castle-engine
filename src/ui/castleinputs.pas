@@ -352,19 +352,6 @@ type
   end;
 
 var
-  { Basic shortcuts. }
-  CastleInput_Forward: TInputShortcut;
-  CastleInput_Backward: TInputShortcut;
-  CastleInput_LeftRot: TInputShortcut;
-  CastleInput_RightRot: TInputShortcut;
-  CastleInput_LeftStrafe: TInputShortcut;
-  CastleInput_RightStrafe: TInputShortcut;
-  CastleInput_UpRotate: TInputShortcut;
-  CastleInput_DownRotate: TInputShortcut;
-  CastleInput_GravityUp: TInputShortcut;
-  CastleInput_UpMove: TInputShortcut;
-  CastleInput_DownMove: TInputShortcut;
-
   { Other shortcuts. }
   CastleInput_Interact: TInputShortcut;
 
@@ -810,33 +797,6 @@ begin
 
   for G := Low(InputsGroup) to High(InputsGroup) do
     InputsGroup[G] := TInputShortcutList.Create(false);
-
-  { Order of creation below is significant: it determines the order
-    of menu entries in "Configure controls". }
-
-  { Basic shortcuts. }
-  CastleInput_Forward := TInputShortcut.Create(nil, 'Move forward', 'move_forward', igBasic);
-  CastleInput_Forward.Assign(K_W, K_Up, #0, false, mbLeft);
-  CastleInput_Backward := TInputShortcut.Create(nil, 'Move backward', 'move_backward', igBasic);
-  CastleInput_Backward.Assign(K_S, K_Down, #0, false, mbLeft);
-  CastleInput_LeftStrafe := TInputShortcut.Create(nil, 'Move left', 'move_left', igBasic);
-  CastleInput_LeftStrafe.Assign(K_A, K_None, #0, false, mbLeft);
-  CastleInput_RightStrafe := TInputShortcut.Create(nil, 'Move right', 'move_right', igBasic);
-  CastleInput_RightStrafe.Assign(K_D, K_None, #0, false, mbLeft);
-  CastleInput_LeftRot := TInputShortcut.Create(nil, 'Turn left', 'turn_left', igBasic);
-  CastleInput_LeftRot.Assign(K_Left, K_None, #0, false, mbLeft);
-  CastleInput_RightRot := TInputShortcut.Create(nil, 'Turn right', 'turn_right', igBasic);
-  CastleInput_RightRot.Assign(K_Right, K_None, #0, false, mbLeft);
-  CastleInput_UpRotate := TInputShortcut.Create(nil, 'Look up', 'look_up', igBasic);
-  CastleInput_UpRotate.Assign(K_PageDown, K_None, #0, false, mbLeft);
-  CastleInput_DownRotate := TInputShortcut.Create(nil, 'Look down', 'look_down', igBasic);
-  CastleInput_DownRotate.Assign(K_Delete, K_None, #0, false, mbLeft);
-  CastleInput_GravityUp := TInputShortcut.Create(nil, 'Look straight', 'look_straight', igBasic);
-  CastleInput_GravityUp.Assign(K_End, K_None, #0, false, mbLeft);
-  CastleInput_UpMove := TInputShortcut.Create(nil, 'Jump (or fly/swim up)', 'move_up', igBasic);
-  CastleInput_UpMove.Assign(K_Space, K_None, #0, true, mbRight);
-  CastleInput_DownMove := TInputShortcut.Create(nil, 'Crouch (or fly/swim down)', 'move_down', igBasic);
-  CastleInput_DownMove.Assign(K_C, K_None, #0, false, mbLeft);
 
   { Other shortcuts. }
   CastleInput_Interact := TInputShortcut.Create(nil, 'Interact (press button / open door etc.)', 'interact', igOther);

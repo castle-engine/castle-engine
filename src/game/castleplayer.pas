@@ -26,7 +26,7 @@ unit CastlePlayer;
 interface
 
 uses Boxes3D, Cameras, CastleItems, VectorMath, GL, GLU,
-  CastleInputs, CastleResources,
+  CastleInputs, CastleResources, KeysMouse,
   Triangle, CastleTextureProperties, CastleSoundEngine, Classes, Base3D,
   CastleGLUtils, CastleColors;
 
@@ -329,6 +329,18 @@ const
   DefaultInvertVerticalMouseLook = false;
 
 var
+  PlayerInput_Forward: TInputShortcut;
+  PlayerInput_Backward: TInputShortcut;
+  PlayerInput_LeftRot: TInputShortcut;
+  PlayerInput_RightRot: TInputShortcut;
+  PlayerInput_LeftStrafe: TInputShortcut;
+  PlayerInput_RightStrafe: TInputShortcut;
+  PlayerInput_UpRotate: TInputShortcut;
+  PlayerInput_DownRotate: TInputShortcut;
+  PlayerInput_GravityUp: TInputShortcut;
+  PlayerInput_UpMove: TInputShortcut;
+  PlayerInput_DownMove: TInputShortcut;
+
   { Game player camera settings.
     Automatically saved/loaded from user preferences using CastleConfig.
     @groupBegin }
@@ -552,11 +564,11 @@ begin
       let them work. They work a little strangely (because Up
       is orthogonal to GravityUp), but they still work and player
       can figure it out. }
-    Camera.Input_LeftRot.Assign(CastleInput_LeftRot, false);
-    Camera.Input_RightRot.Assign(CastleInput_RightRot, false);
-    Camera.Input_UpRotate.Assign(CastleInput_UpRotate, false);
-    Camera.Input_DownRotate.Assign(CastleInput_DownRotate, false);
-    Camera.Input_GravityUp.Assign(CastleInput_GravityUp, false);
+    Camera.Input_LeftRot.Assign(PlayerInput_LeftRot, false);
+    Camera.Input_RightRot.Assign(PlayerInput_RightRot, false);
+    Camera.Input_UpRotate.Assign(PlayerInput_UpRotate, false);
+    Camera.Input_DownRotate.Assign(PlayerInput_DownRotate, false);
+    Camera.Input_GravityUp.Assign(PlayerInput_GravityUp, false);
   end;
 
   if Blocked then
@@ -610,8 +622,8 @@ begin
 
       Camera.Input_Jump.MakeClear;
       Camera.Input_Crouch.MakeClear;
-      Camera.Input_UpMove.Assign(CastleInput_UpMove, false);
-      Camera.Input_DownMove.Assign(CastleInput_DownMove, false);
+      Camera.Input_UpMove.Assign(PlayerInput_UpMove, false);
+      Camera.Input_DownMove.Assign(PlayerInput_DownMove, false);
 
       { Camera.HeadBobbing and
         Camera.PreferredHeight and
@@ -629,8 +641,8 @@ begin
 
       Camera.Input_Jump.MakeClear;
       Camera.Input_Crouch.MakeClear;
-      Camera.Input_UpMove.Assign(CastleInput_UpMove, false);
-      Camera.Input_DownMove.Assign(CastleInput_DownMove, false);
+      Camera.Input_UpMove.Assign(PlayerInput_UpMove, false);
+      Camera.Input_DownMove.Assign(PlayerInput_DownMove, false);
 
       Camera.FallingDownStartSpeed := DefaultFallingDownStartSpeed / 6;
       Camera.FallingDownSpeedIncrease := 1.0;
@@ -644,8 +656,8 @@ begin
       Camera.PreferGravityUpForMoving := true;
       Camera.PreferGravityUpForRotations := true;
 
-      Camera.Input_Jump.Assign(CastleInput_UpMove, false);
-      Camera.Input_Crouch.Assign(CastleInput_DownMove, false);
+      Camera.Input_Jump.Assign(PlayerInput_UpMove, false);
+      Camera.Input_Crouch.Assign(PlayerInput_DownMove, false);
       Camera.Input_UpMove.MakeClear;
       Camera.Input_DownMove.MakeClear;
 
@@ -658,10 +670,10 @@ begin
       Camera.MoveVerticalSpeed := DefaultMoveVerticalSpeed;
     end;
 
-    Camera.Input_Forward.Assign(CastleInput_Forward, false);
-    Camera.Input_Backward.Assign(CastleInput_Backward, false);
-    Camera.Input_LeftStrafe.Assign(CastleInput_LeftStrafe, false);
-    Camera.Input_RightStrafe.Assign(CastleInput_RightStrafe, false);
+    Camera.Input_Forward.Assign(PlayerInput_Forward, false);
+    Camera.Input_Backward.Assign(PlayerInput_Backward, false);
+    Camera.Input_LeftStrafe.Assign(PlayerInput_LeftStrafe, false);
+    Camera.Input_RightStrafe.Assign(PlayerInput_RightStrafe, false);
   end;
 end;
 
@@ -1218,6 +1230,33 @@ begin
 end;
 
 initialization
+  { Order of creation below is significant: it determines the order
+    of menu entries in "Configure controls". }
+
+  { Basic shortcuts. }
+  PlayerInput_Forward := TInputShortcut.Create(nil, 'Move forward', 'move_forward', igBasic);
+  PlayerInput_Forward.Assign(K_W, K_Up, #0, false, mbLeft);
+  PlayerInput_Backward := TInputShortcut.Create(nil, 'Move backward', 'move_backward', igBasic);
+  PlayerInput_Backward.Assign(K_S, K_Down, #0, false, mbLeft);
+  PlayerInput_LeftStrafe := TInputShortcut.Create(nil, 'Move left', 'move_left', igBasic);
+  PlayerInput_LeftStrafe.Assign(K_A, K_None, #0, false, mbLeft);
+  PlayerInput_RightStrafe := TInputShortcut.Create(nil, 'Move right', 'move_right', igBasic);
+  PlayerInput_RightStrafe.Assign(K_D, K_None, #0, false, mbLeft);
+  PlayerInput_LeftRot := TInputShortcut.Create(nil, 'Turn left', 'turn_left', igBasic);
+  PlayerInput_LeftRot.Assign(K_Left, K_None, #0, false, mbLeft);
+  PlayerInput_RightRot := TInputShortcut.Create(nil, 'Turn right', 'turn_right', igBasic);
+  PlayerInput_RightRot.Assign(K_Right, K_None, #0, false, mbLeft);
+  PlayerInput_UpRotate := TInputShortcut.Create(nil, 'Look up', 'look_up', igBasic);
+  PlayerInput_UpRotate.Assign(K_PageDown, K_None, #0, false, mbLeft);
+  PlayerInput_DownRotate := TInputShortcut.Create(nil, 'Look down', 'look_down', igBasic);
+  PlayerInput_DownRotate.Assign(K_Delete, K_None, #0, false, mbLeft);
+  PlayerInput_GravityUp := TInputShortcut.Create(nil, 'Look straight', 'look_straight', igBasic);
+  PlayerInput_GravityUp.Assign(K_End, K_None, #0, false, mbLeft);
+  PlayerInput_UpMove := TInputShortcut.Create(nil, 'Jump (or fly/swim up)', 'move_up', igBasic);
+  PlayerInput_UpMove.Assign(K_Space, K_None, #0, true, mbRight);
+  PlayerInput_DownMove := TInputShortcut.Create(nil, 'Crouch (or fly/swim down)', 'move_down', igBasic);
+  PlayerInput_DownMove.Assign(K_C, K_None, #0, false, mbLeft);
+
   Config.OnLoad.Add(@TConfigOptions(nil).LoadFromConfig);
   Config.OnSave.Add(@TConfigOptions(nil).SaveToConfig);
 end.
