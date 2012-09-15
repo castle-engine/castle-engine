@@ -22,7 +22,7 @@ uses Classes, VectorMath, X3DNodes, CastleScene, CastleSceneCore, Cameras,
   GLShadowVolumeRenderer, GL, UIControls, Base3D,
   KeysMouse, Boxes3D, Background, CastleUtils, CastleClassUtils,
   GLShaders, GLImages, CastleTimeUtils, FGL, SectorsWaypoints,
-  CastleInputs;
+  CastleInputs, CastlePlayer;
 
 const
   { }
@@ -225,7 +225,7 @@ type
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; virtual; abstract;
     function GetMouseRayHit: TRayCollision; virtual; abstract;
     function GetHeadlightCamera: TCamera; virtual; abstract;
-    function GetPlayer: T3DAlive; virtual; abstract;
+    function GetPlayer: TPlayer; virtual; abstract;
     { @groupEnd }
 
     { Pass pointing device (mouse) move event to 3D world. }
@@ -698,7 +698,7 @@ type
 
     FMouseRayHit: TRayCollision;
 
-    FPlayer: T3DAlive;
+    FPlayer: TPlayer;
 
     { calculated by every PrepareResources }
     ChosenViewport: TCastleAbstractViewport;
@@ -724,7 +724,7 @@ type
 
     procedure SetMouseRayHit(const Value: TRayCollision);
     function MouseRayHitContains(const Item: T3D): boolean;
-    procedure SetPlayer(const Value: T3DAlive);
+    procedure SetPlayer(const Value: TPlayer);
   protected
     procedure SetCamera(const Value: TCamera); override;
 
@@ -750,7 +750,7 @@ type
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCamera; override;
-    function GetPlayer: T3DAlive; override;
+    function GetPlayer: TPlayer; override;
     function PointingDeviceActivate(const Active: boolean): boolean; override;
     function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
     { Called when PointingDeviceActivate was not handled by any 3D object.
@@ -961,7 +961,7 @@ type
           anyone to pick up and carry and equip items.)
       )
     }
-    property Player: T3DAlive read FPlayer write SetPlayer;
+    property Player: TPlayer read FPlayer write SetPlayer;
   end;
 
   { Custom 2D viewport showing 3D world. This uses assigned SceneManager
@@ -1014,7 +1014,7 @@ type
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCamera; override;
-    function GetPlayer: T3DAlive; override;
+    function GetPlayer: TPlayer; override;
     function PointingDeviceActivate(const Active: boolean): boolean; override;
     function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
 
@@ -1211,7 +1211,7 @@ end;
 
 function TCastleAbstractViewport.PlayerNotBlocked: boolean;
 var
-  P: T3DAlive;
+  P: TPlayer;
 begin
   P := GetPlayer;
   Result := (P = nil) or (not (P.Blocked or P.Dead));
@@ -2562,7 +2562,7 @@ begin
     begin
       { When FMainScene = FPlayer or inside MouseRayHit, leave free notification }
       if (not MouseRayHitContains(FMainScene)) { and
-         // impossible, as FMainScene is TCastleScene and FPlayer is T3DAlive
+         // impossible, as FMainScene is TCastleScene and FPlayer is TPlayer
          (FMainScene <> FPlayer) } then
         FMainScene.RemoveFreeNotification(Self);
       FMainScene.OnBoundViewpointVectorsChanged := nil;
@@ -2625,14 +2625,14 @@ begin
   end;
 end;
 
-procedure TCastleSceneManager.SetPlayer(const Value: T3DAlive);
+procedure TCastleSceneManager.SetPlayer(const Value: TPlayer);
 begin
   if FPlayer <> Value then
   begin
     if FPlayer <> nil then
     begin
       { leave free notification for FPlayer if it's also present somewhere else }
-      if { // impossible, as FMainScene is TCastleScene and FPlayer is T3DAlive
+      if { // impossible, as FMainScene is TCastleScene and FPlayer is TPlayer
          (FPlayer <> FMainScene) and }
          (not MouseRayHitContains(FPlayer)) then
         FPlayer.RemoveFreeNotification(Self);
@@ -3077,7 +3077,7 @@ begin
   Result := Camera;
 end;
 
-function TCastleSceneManager.GetPlayer: T3DAlive;
+function TCastleSceneManager.GetPlayer: TPlayer;
 begin
   Result := Player;
 end;
@@ -3292,7 +3292,7 @@ begin
   Result := SceneManager.Camera;
 end;
 
-function TCastleViewport.GetPlayer: T3DAlive;
+function TCastleViewport.GetPlayer: TPlayer;
 begin
   Result := SceneManager.Player;
 end;

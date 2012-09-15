@@ -534,7 +534,7 @@ uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
   CastleStringUtils, CastleFilesUtils, CastleTimeUtils, FileFilters, UIControls,
   FGL, pk3DConnexion,
   { VRML/X3D stuff }
-  X3DNodes, CastleScene, CastleLevel;
+  X3DNodes, CastleScene, CastleLevels;
 
 {$define read_interface}
 

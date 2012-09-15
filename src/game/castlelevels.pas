@@ -22,7 +22,7 @@
 
 { Scene manager that can easily load game levels (TGameSceneManager),
   management of available game levels (LevelsAvailable). }
-unit CastleLevel;
+unit CastleLevels;
 
 interface
 
@@ -72,10 +72,10 @@ type
 
     { Nice name of the level for user.
 
-      The CastleLevel unit uses this title only for things like log messages.
+      The CastleLevels unit uses this title only for things like log messages.
 
       How the level title is presented to the user (if it's presented at all)
-      is not handled in the CastleLevel unit. The engine doesn't dictate
+      is not handled in the CastleLevels unit. The engine doesn't dictate
       how to show the levels to the player. You implement game menus,
       like "New Game" or similar screens, yourself --- to fit the mood
       and user interface of your game. Of course the engine gives you
@@ -481,7 +481,7 @@ var
       DefaultCrouchHeight, DefaultHeadBobbing);
 
     if Player <> nil then
-      WalkCamera := (Player as TPlayer).Camera else
+      WalkCamera := Player.Camera else
       { If you don't initialize Player (like for castle1 background level
         or castle-view-level or lets_take_a_walk) then just create a camera. }
       WalkCamera := TWalkCamera.Create(Self);
@@ -489,11 +489,11 @@ var
     { initialize some navigation settings of player }
     if Player <> nil then
     begin
-      (Player as TPlayer).DefaultPreferredHeight := PreferredHeight;
+      Player.DefaultPreferredHeight := PreferredHeight;
       if NavigationNode <> nil then
-        (Player as TPlayer).DefaultMoveHorizontalSpeed := NavigationNode.FdSpeed.Value else
-        (Player as TPlayer).DefaultMoveHorizontalSpeed := 1.0;
-      (Player as TPlayer).DefaultMoveVerticalSpeed := 20;
+        Player.DefaultMoveHorizontalSpeed := NavigationNode.FdSpeed.Value else
+        Player.DefaultMoveHorizontalSpeed := 1.0;
+      Player.DefaultMoveVerticalSpeed := 20;
     end else
     begin
       { if you use Player with TGameSceneManager, then Player will automatically
@@ -638,8 +638,8 @@ begin
   MainScene.Spatial := [ssRendering, ssDynamicCollisions];
   MainScene.PrepareResources([prSpatial], false, BaseLights);
 
-  if (Player <> nil) and (Player is TPlayer) then
-    TPlayer(Player).LevelChanged;
+  if (Player <> nil) then
+    Player.LevelChanged;
 
   SoundEngine.MusicPlayer.Sound := Info.MusicSound;
   { Notifications.Show('Loaded level "' + Info.Title + '"');}
@@ -697,11 +697,10 @@ begin
 
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
-  if (Player is TPlayer) and
-     (TPlayer(Player).Swimming = psUnderWater) then
+  if (Player <> nil) and (Player.Swimming = psUnderWater) then
   begin
     SickProjectionTime += CompSpeed;
-    SinCos(SickProjectionTime * TPlayer(Player).SickProjectionSpeed, S, C);
+    SinCos(SickProjectionTime * Player.SickProjectionSpeed, S, C);
     DistortFieldOfViewY += C * 0.03;
     DistortViewAspect += S * 0.03;
   end;

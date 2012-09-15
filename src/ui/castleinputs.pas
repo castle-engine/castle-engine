@@ -30,7 +30,7 @@
       The purpose of such global input map is to be able to detect key conflicts,
       be able to restore whole input map to default,
       load/save them to the user config file, and so on.
-      All shortcuts used in a typical 3D game, with normal CastleLevel
+      All shortcuts used in a typical 3D game, with normal CastleLevels
       and CastlePlayer usage, are global.
 
       Global shortcuts are owned (they will be freed by) this unit

@@ -24,7 +24,7 @@ interface
 uses
   Classes, SysUtils, OpenGLContext, Controls, Forms,
   VectorMath, KeysMouse, CastleUtils, CastleTimeUtils, StdCtrls, UIControls,
-  Cameras, X3DNodes, CastleScene, CastleLevel, Images,
+  Cameras, X3DNodes, CastleScene, CastleLevels, Images,
   pk3DConnexion;
 
 const

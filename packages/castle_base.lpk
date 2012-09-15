@@ -413,8 +413,8 @@
         <UnitName Value="CastleItems"/>
       </Item92>
       <Item93>
-        <Filename Value="../src/game/castlelevel.pas"/>
-        <UnitName Value="CastleLevel"/>
+        <Filename Value="../src/game/castlelevels.pas"/>
+        <UnitName Value="CastleLevels"/>
       </Item93>
       <Item94>
         <Filename Value="../src/game/castleplayer.pas"/>
