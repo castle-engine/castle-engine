@@ -122,6 +122,7 @@ type
     ReallyWalkingOnTheGroundTime: Single;
 
     FInventoryCurrentItem: Integer;
+    FInventoryVisible: boolean;
     FSickProjectionSpeed: Single;
 
     function GetFlyingMode: boolean;
@@ -306,6 +307,9 @@ type
       read FInventoryCurrentItem write FInventoryCurrentItem
       default -1;
 
+    property InventoryVisible: boolean
+      read FInventoryVisible write FInventoryVisible default false;
+
     property SickProjectionSpeed: Single
       read FSickProjectionSpeed write FSickProjectionSpeed;
 
@@ -316,6 +320,14 @@ type
       const ALineOfSight: boolean): boolean; override;
     function Sphere(out Radius: Single): boolean; override;
   end;
+
+const
+  DefaultAutoOpenInventory = true;
+
+var
+  { Automatically open TCastlePlayer inventory when picking up an item.
+    Saved/loaded to config file in this unit. }
+  AutoOpenInventory: boolean = DefaultAutoOpenInventory;
 
 var
   PlayerInput_Forward: TInputShortcut;
@@ -334,7 +346,7 @@ implementation
 
 uses Math, SysUtils, CastleClassUtils, CastleUtils, X3DNodes, CastleControls,
   Images, CastleFilesUtils, UIControls, PrecalculatedAnimation, CastleOpenAL,
-  CastleGameNotifications, CastleXMLConfig, GLImages;
+  CastleGameNotifications, CastleXMLConfig, GLImages, CastleConfig;
 
 { TPlayerBox ----------------------------------------------------------------- }
 
@@ -465,6 +477,9 @@ begin
   { Update InventoryCurrentItem. }
   if not Between(InventoryCurrentItem, 0, Inventory.Count - 1) then
     InventoryCurrentItem := Result;
+
+  if AutoOpenInventory then
+    InventoryVisible := true;
 end;
 
 function TPlayer.DropItem(const ItemIndex: Integer): TInventoryItem;
@@ -1159,6 +1174,26 @@ begin
   AboveGround := nil;
 end;
 
+{ initialization / finalization ---------------------------------------- }
+
+type
+  TConfigOptions = class
+    class procedure LoadFromConfig(const Config: TCastleConfig);
+    class procedure SaveToConfig(const Config: TCastleConfig);
+  end;
+
+class procedure TConfigOptions.LoadFromConfig(const Config: TCastleConfig);
+begin
+  AutoOpenInventory := Config.GetValue(
+    'auto_open_inventory', DefaultAutoOpenInventory);
+end;
+
+class procedure TConfigOptions.SaveToConfig(const Config: TCastleConfig);
+begin
+  Config.SetDeleteValue('auto_open_inventory',
+    AutoOpenInventory, DefaultAutoOpenInventory);
+end;
+
 initialization
   { Order of creation below is significant: it determines the order
     of menu entries in "Configure controls". }
@@ -1185,4 +1220,7 @@ initialization
   PlayerInput_UpMove.Assign(K_Space, K_None, #0, true, mbRight);
   PlayerInput_DownMove := TInputShortcut.Create(nil, 'Crouch (or fly/swim down)', 'move_down', igBasic);
   PlayerInput_DownMove.Assign(K_C, K_None, #0, false, mbLeft);
+
+  Config.OnLoad.Add(@TConfigOptions(nil).LoadFromConfig);
+  Config.OnSave.Add(@TConfigOptions(nil).SaveToConfig);
 end.

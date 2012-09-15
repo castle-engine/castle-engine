@@ -404,17 +404,7 @@ var
     function Middle: TVector3Single; override;
   end;
 
-  { TODO: Move to castle1 code? }
-const
-  DefaultAutoOpenInventory = true;
-
 var
-  { Automatically open inventory on pickup ?
-    Saved/loaded to config file in this unit. }
-  AutoOpenInventory: boolean;
-
-  InventoryVisible: boolean;
-
   { Global callback to control items on level existence. }
   OnItemOnWorldExists: T3DExistsEvent;
 
@@ -854,8 +844,6 @@ begin
 
     { Since we cannot live with Item = nil, we free ourselves }
     RemoveMe := rtRemoveAndFree;
-    if AutoOpenInventory then
-      InventoryVisible := true;
   end;
 end;
 
@@ -890,27 +878,4 @@ begin
   Result := (inherited Middle) + World.GravityUp * ItemRadius;
 end;
 
-{ initialization / finalization ---------------------------------------- }
-
-type
-  TConfigOptions = class
-    class procedure LoadFromConfig(const Config: TCastleConfig);
-    class procedure SaveToConfig(const Config: TCastleConfig);
-  end;
-
-class procedure TConfigOptions.LoadFromConfig(const Config: TCastleConfig);
-begin
-  AutoOpenInventory := Config.GetValue(
-    'auto_open_inventory', DefaultAutoOpenInventory);
-end;
-
-class procedure TConfigOptions.SaveToConfig(const Config: TCastleConfig);
-begin
-  Config.SetDeleteValue('auto_open_inventory',
-    AutoOpenInventory, DefaultAutoOpenInventory);
-end;
-
-initialization
-  Config.OnLoad.Add(@TConfigOptions(nil).LoadFromConfig);
-  Config.OnSave.Add(@TConfigOptions(nil).SaveToConfig);
 end.
