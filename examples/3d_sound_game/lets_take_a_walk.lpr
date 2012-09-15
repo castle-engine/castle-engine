@@ -288,9 +288,6 @@ begin
     (that may change Enable by --no-sound). }
   Config.Load;
 
-  { change some CastlePlayer shortcuts }
-  UseMouseLook := false;
-
   { init messages }
   MessagesTheme.RectColor[3] := 0.8;
 
