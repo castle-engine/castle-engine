@@ -39,6 +39,7 @@ color
 comments
 compose
 compression
+config
 container
 controls
 coordinates
