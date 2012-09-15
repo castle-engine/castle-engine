@@ -329,7 +329,6 @@ var
     Saved/loaded to config file in this unit. }
   AutoOpenInventory: boolean = DefaultAutoOpenInventory;
 
-var
   PlayerInput_Forward: TInputShortcut;
   PlayerInput_Backward: TInputShortcut;
   PlayerInput_LeftRot: TInputShortcut;

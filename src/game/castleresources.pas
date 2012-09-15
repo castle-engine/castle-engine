@@ -228,10 +228,12 @@ type
     { @groupEnd }
   end;
 
-var
-  AllResources: T3DResourceList;
+{ All known resources.
+  Usually you call @link(T3DResourceList.LoadFromFiles AllResources.LoadFromFiles)
+  to fill this list, based on resource.xml files present in your data. }
+function AllResources: T3DResourceList;
 
-{ Register a class, to allow user to create resource (like a creature or item)
+{ Register a resource class, to allow creating resources (like a creature or item)
   of this class by using appropriate type="xxx" inside resource.xml file. }
 procedure RegisterResourceClass(const AClass: T3DResourceClass; const TypeName: string);
 
@@ -602,11 +604,19 @@ begin
   end;
 end;
 
+var
+  FAllResources: T3DResourceList;
+
+function AllResources: T3DResourceList;
+begin
+  Result := FAllResources;
+end;
+
 initialization
   OnGLContextClose.Add(@WindowClose);
-  AllResources := T3DResourceList.Create(true);
+  FAllResources := T3DResourceList.Create(true);
   ResourceClasses := TResourceClasses.Create;
 finalization
-  FreeAndNil(AllResources);
+  FreeAndNil(FAllResources);
   FreeAndNil(ResourceClasses);
 end.

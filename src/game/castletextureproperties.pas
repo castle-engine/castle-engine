@@ -89,11 +89,10 @@ type
     function Find(Triangle: PTriangle): TTextureProperties;
   end;
 
-var
-  { Global collection of known texture properties.
-    Set it's @link(TTexturePropertiesList.XmlFileName XmlFileName)
-    to load texture properties from XML file. }
-  TexturesProperties: TTexturePropertiesList;
+{ Known texture properties.
+  Set the @link(TTexturePropertiesList.XmlFileName XmlFileName) property
+  to load texture properties from XML file. }
+function TexturesProperties: TTexturePropertiesList;
 
 implementation
 
@@ -236,8 +235,16 @@ begin
   Triangle_LastResult := Result;
 end;
 
-initialization
-  TexturesProperties := TTexturePropertiesList.Create(true);
+var
+  FTexturesProperties: TTexturePropertiesList;
+
+function TexturesProperties: TTexturePropertiesList;
+begin
+  if FTexturesProperties = nil then
+    FTexturesProperties := TTexturePropertiesList.Create(true);
+  Result := FTexturesProperties;
+end;
+
 finalization
-  FreeAndNil(TexturesProperties);
+  FreeAndNil(FTexturesProperties);
 end.

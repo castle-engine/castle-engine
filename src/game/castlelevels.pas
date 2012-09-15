@@ -363,14 +363,11 @@ type
 
 function LevelClasses: TLevelClasses;
 
-var
-  { List of all available levels.
-    This has all the information needed to present user a list of levels,
-    and to actually load a given level (create suitable TLevel instance).
-    Created in initialization of this unit, destroyed in finalization
-    (or when the last TGameSceneManager referring to TLevelAvailable is destroyed).
-    Owns it's Items. }
-  LevelsAvailable: TLevelAvailableList;
+
+{ All known levels. You can use this to show a list of available levels to user.
+  You can also search it and use TGameSceneManager.LoadLevel to load
+  a given TLevelAvailable instance. }
+function LevelsAvailable: TLevelAvailableList;
 
 implementation
 
@@ -378,6 +375,32 @@ uses SysUtils, Triangle, CastleLog, CastleGLUtils,
   CastleFilesUtils, CastleStringUtils, GLImages, UIControls, XMLRead,
   CastleGameNotifications, CastleInputs, CastleGameCache, CastleXMLUtils,
   GLRenderer, RenderingCameraUnit, Math, CastleWarnings;
+
+{ globals -------------------------------------------------------------------- }
+
+var
+  FLevelClasses: TLevelClasses;
+
+function LevelClasses: TLevelClasses;
+begin
+  if FLevelClasses = nil then
+  begin
+    FLevelClasses := TLevelClasses.Create;
+    FLevelClasses['Level'] := TLevel;
+  end;
+  Result := FLevelClasses;
+end;
+
+var
+  { Created in initialization of this unit, destroyed in finalization
+    (or when the last TGameSceneManager referring to TLevelAvailable is destroyed).
+    Owns it's Items. }
+  FLevelsAvailable: TLevelAvailableList;
+
+function LevelsAvailable: TLevelAvailableList;
+begin
+  Result := FLevelsAvailable;
+end;
 
 { TGameSceneManager ---------------------------------------------------------- }
 
@@ -684,9 +707,9 @@ begin
     if Info.Resources <> nil then
       Info.Resources.Release;
 
-    Dec(LevelsAvailable.References);
-    if LevelsAvailable.References = 0 then
-      FreeAndNil(LevelsAvailable);
+    Dec(FLevelsAvailable.References);
+    if FLevelsAvailable.References = 0 then
+      FreeAndNil(FLevelsAvailable);
   end;
 
   inherited;
@@ -980,40 +1003,25 @@ begin
   LoadFromFiles(ProgramDataPath);
 end;
 
-{ globals -------------------------------------------------------------------- }
-
-var
-  FLevelClasses: TLevelClasses;
-
-function LevelClasses: TLevelClasses;
-begin
-  if FLevelClasses = nil then
-  begin
-    FLevelClasses := TLevelClasses.Create;
-    FLevelClasses['Level'] := TLevel;
-  end;
-  Result := FLevelClasses;
-end;
-
 { initialization / finalization ---------------------------------------------- }
 
 initialization
-  LevelsAvailable := TLevelAvailableList.Create(true);
-  Inc(LevelsAvailable.References);
+  FLevelsAvailable := TLevelAvailableList.Create(true);
+  Inc(FLevelsAvailable.References);
 
-  Config.OnSave.Add(@LevelsAvailable.SaveToConfig);
+  Config.OnSave.Add(@FLevelsAvailable.SaveToConfig);
 finalization
   FreeAndNil(FLevelClasses);
 
-  if (LevelsAvailable <> nil) and (Config <> nil) then
-    Config.OnSave.Remove(@LevelsAvailable.SaveToConfig);
+  if (FLevelsAvailable <> nil) and (Config <> nil) then
+    Config.OnSave.Remove(@FLevelsAvailable.SaveToConfig);
 
   { there may still exist TGameSceneManager instances that refer to our
     TLevelAvailable instances. So we don't always free LevelsAvailable below. }
-  if LevelsAvailable <> nil then
+  if FLevelsAvailable <> nil then
   begin
-    Dec(LevelsAvailable.References);
-    if LevelsAvailable.References = 0 then
-      FreeAndNil(LevelsAvailable);
+    Dec(FLevelsAvailable.References);
+    if FLevelsAvailable.References = 0 then
+      FreeAndNil(FLevelsAvailable);
   end;
 end.
