@@ -567,9 +567,6 @@ begin
     MainScene := TCastleScene.CreateCustomCache(Self, GLContextCache);
     MainScene.Load(Info.SceneFileName);
 
-    { TODO: remove? }
-    MainScene.Attributes.UseSceneLights := true;
-
     { Scene must be the first one on Items, this way Items.MoveCollision will
       use Scene for wall-sliding (see T3DList.MoveCollision implementation). }
     Items.Insert(0, MainScene);
