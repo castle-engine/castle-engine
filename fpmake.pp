@@ -233,6 +233,7 @@ begin
     end;
 
     P.SourcePath.Add('src' + PathDelim + 'ui');
+    P.Targets.AddUnit('castleinputs.pas');
     P.Targets.AddUnit('rectangles.pas');
     P.Targets.AddUnit('keysmouse.pas');
     P.Targets.AddUnit('uicontrols.pas');
@@ -254,12 +255,11 @@ begin
     P.Targets.AddUnit('castlecreatures.pas');
     P.Targets.AddUnit('castlegamecache.pas');
     P.Targets.AddUnit('castlegamenotifications.pas');
-    P.Targets.AddUnit('castleinputs.pas');
     P.Targets.AddUnit('castleitems.pas');
     P.Targets.AddUnit('castlelevels.pas');
     P.Targets.AddUnit('castleplayer.pas');
-    P.Targets.AddUnit('castletextureproperties.pas');
     P.Targets.AddUnit('castleresources.pas');
+    P.Targets.AddUnit('castletextureproperties.pas');
 
     Run;
   end;

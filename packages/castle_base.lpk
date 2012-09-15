@@ -405,7 +405,7 @@
         <UnitName Value="CastleGameNotifications"/>
       </Item89>
       <Item91>
-        <Filename Value="../src/game/castleinputs.pas"/>
+        <Filename Value="../src/ui/castleinputs.pas"/>
         <UnitName Value="CastleInputs"/>
       </Item91>
       <Item92>
