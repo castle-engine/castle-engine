@@ -824,11 +824,7 @@ begin
     FallingDownLength := CompSpeed * FallingDownSpeed;
     MinTo1st(FallingDownLength, AboveHeight - ItemRadius);
 
-    Move(U * (-FallingDownLength), true,
-      { TODO: wall-sliding here breaks left life potion on gate:
-        it must be corrected (possibly by correcting the large sword mesh)
-        to not "slip down" from the sword. }
-      false);
+    Move(U * (-FallingDownLength), true);
   end;
 
   if (World.Player <> nil) and
