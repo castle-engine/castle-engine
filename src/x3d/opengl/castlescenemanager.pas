@@ -99,6 +99,9 @@ type
 
     procedure ItemsAndCameraCursorChange(Sender: TObject);
     function PlayerNotBlocked: boolean;
+    function EventDown(AKey: TKey; ACharacter: char;
+      AMousePress: boolean; AMouseButton: TMouseButton;
+      AMouseWheel: TMouseWheelDirection): boolean;
   protected
     { These variables are writeable from overridden ApplyProjection. }
     FPerspectiveView: boolean;
@@ -1080,6 +1083,24 @@ var
     or TInputShortcut.MouseButtonUse. }
   Input_Interact: TInputShortcut;
 
+  { Key/mouse combination to operate on Player and it's inventory.
+    They are used only when Player is assigned, and only when it's
+    not Dead and not Blocked (see T3DAlive.Dead, TPlayer.Blocked).
+    Also other TCastleAbstractViewport rules for processing
+    inputs must be satisfied, of course (TCastleAbstractViewport must exist,
+    according to TCastleAbstractViewport.GetExists, and not be paused, see
+    TCastleAbstractViewport.Paused). The event must also not be handled
+    first by something else, like camera.
+    @groupBegin }
+  Input_Attack: TInputShortcut;
+  Input_InventoryShow: TInputShortcut;
+  Input_InventoryPrevious: TInputShortcut;
+  Input_InventoryNext: TInputShortcut;
+  Input_UseItem: TInputShortcut;
+  Input_DropItem: TInputShortcut;
+  Input_CancelFlying: TInputShortcut;
+  { @groupEnd }
+
 const
   { Prefix of all placeholders that we seek on 3D models.
     See TCastleSceneManager.CreateSectors and TGameSceneManager.LoadLevel. }
@@ -1270,7 +1291,12 @@ begin
   if Result then Exit;
 
   if PlayerNotBlocked and Input_Interact.IsKey(Key, C) then
+  begin
     Result := PointingDeviceActivate(true);
+    if Result then Exit;
+  end;
+
+  Result := EventDown(Key, C, false, mbLeft, mwNone);
 end;
 
 function TCastleAbstractViewport.KeyUp(Key: TKey; C: char): boolean;
@@ -1288,7 +1314,10 @@ begin
   if Result then Exit;
 
   if PlayerNotBlocked and Input_Interact.IsKey(Key, C) then
+  begin
     Result := PointingDeviceActivate(false);
+    if Result then Exit;
+  end;
 end;
 
 function TCastleAbstractViewport.MouseDown(const Button: TMouseButton): boolean;
@@ -1303,7 +1332,12 @@ begin
   end;
 
   if PlayerNotBlocked and Input_Interact.IsMouseButton(Button) then
+  begin
     Result := PointingDeviceActivate(true);
+    if Result then Exit;
+  end;
+
+  Result := EventDown(K_None, #0, true, Button, mwNone);
 end;
 
 function TCastleAbstractViewport.MouseUp(const Button: TMouseButton): boolean;
@@ -1318,7 +1352,10 @@ begin
   end;
 
   if PlayerNotBlocked and Input_Interact.IsMouseButton(Button) then
+  begin
     Result := PointingDeviceActivate(false);
+    if Result then Exit;
+  end;
 end;
 
 function TCastleAbstractViewport.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
@@ -1369,6 +1406,35 @@ begin
   end;
 
   // Implement when needed: Result := GetItems.MouseWheel(Scroll, Vertical);
+
+  Result := EventDown(K_None, #0, false, mbLeft, MouseWheelDirection(Scroll, Vertical));
+end;
+
+function TCastleAbstractViewport.EventDown(AKey: TKey; ACharacter: char;
+  AMousePress: boolean; AMouseButton: TMouseButton;
+  AMouseWheel: TMouseWheelDirection): boolean;
+var
+  P: TPlayer;
+begin
+  Result := false;
+  P := GetPlayer;
+  if (P <> nil) and not (P.Blocked or P.Dead) then
+  begin
+    if Input_Attack.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
+      begin Result := true; P.Attack; end else
+    if Input_CancelFlying.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
+      begin Result := true; P.CancelFlying; end else
+    if Input_InventoryShow.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
+      begin Result := true; P.InventoryVisible := not P.InventoryVisible; end else
+    if Input_InventoryPrevious.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
+      begin Result := true; P.ChangeInventoryCurrentItem(-1); end else
+    if Input_InventoryNext.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
+      begin Result := true; P.ChangeInventoryCurrentItem(+1); end else
+    if Input_DropItem.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
+      begin Result := true; P.DropCurrentItem; end else
+    if Input_UseItem.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
+      begin Result := true; P.UseCurrentItem; end;
+  end;
 end;
 
 procedure TCastleAbstractViewport.ItemsAndCameraCursorChange(Sender: TObject);
@@ -3372,6 +3438,26 @@ begin
 end;
 
 initialization
+  { Basic shortcuts. }
+  Input_Attack := TInputShortcut.Create(nil, 'Attack', 'attack', igBasic);
+  Input_Attack.Assign(K_Ctrl, K_None, #0, false, mbLeft);
+  Input_Attack.GroupOrder := -100; { before other (player) shortcuts }
+
+  { Items shortcuts. }
+  Input_InventoryShow := TInputShortcut.Create(nil, 'Inventory show / hide', 'inventory_toggle', igItems);
+  Input_InventoryShow.Assign(K_I, K_None, #0, false, mbLeft);
+  Input_InventoryPrevious := TInputShortcut.Create(nil, 'Select previous inventory item', 'inventory_previous', igItems);
+  Input_InventoryPrevious.Assign(K_LeftBracket, K_None, #0, false, mbLeft, mwUp);
+  Input_InventoryNext := TInputShortcut.Create(nil, 'Select next inventory item', 'inventory_next', igItems);
+  Input_InventoryNext.Assign(K_RightBracket, K_None, #0, false, mbLeft, mwDown);
+  Input_UseItem := TInputShortcut.Create(nil, 'Use (or equip) selected inventory item', 'item_use', igItems);
+  Input_UseItem.Assign(K_Enter, K_None, #0, false, mbLeft);
+  Input_DropItem := TInputShortcut.Create(nil, 'Drop selected inventory item', 'item_drop', igItems);
+  Input_DropItem.Assign(K_R, K_None, #0, false, mbLeft);
+
+  { Other shortcuts. }
   Input_Interact := TInputShortcut.Create(nil, 'Interact (press button / open door etc.)', 'interact', igOther);
   Input_Interact.Assign(K_None, K_None, #0, true, mbLeft);
+  Input_CancelFlying := TInputShortcut.Create(nil, 'Cancel flying spell', 'cancel_flying', igOther);
+  Input_CancelFlying.Assign(K_Q, K_None, #0, false, mbLeft);
 end.
