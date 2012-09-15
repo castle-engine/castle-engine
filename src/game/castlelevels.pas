@@ -209,7 +209,6 @@ type
   private
     FLevel: TLevel;
     FInfo: TLevelAvailable;
-    SickProjectionTime: TFloatTime;
 
     { Like LoadLevel, but doesn't care about AInfo.LoadingImage. }
     procedure LoadLevelCore(const AInfo: TLevelAvailable);
@@ -286,10 +285,6 @@ type
 
     { Level information, independent from current level state. }
     property Info: TLevelAvailable read FInfo;
-
-    procedure Idle(const CompSpeed: Single;
-      const HandleMouseAndKeys: boolean;
-      var LetOthersHandleMouseAndKeys: boolean); override;
   end;
 
   { Level logic. We use T3D descendant, since this is the comfortable
@@ -698,24 +693,6 @@ begin
   end;
 
   inherited;
-end;
-
-procedure TGameSceneManager.Idle(const CompSpeed: Single;
-  const HandleMouseAndKeys: boolean; var LetOthersHandleMouseAndKeys: boolean);
-var
-  S, C: Extended;
-begin
-  inherited;
-
-  DistortFieldOfViewY := 1;
-  DistortViewAspect := 1;
-  if (Player <> nil) and (Player.Swimming = psUnderWater) then
-  begin
-    SickProjectionTime += CompSpeed;
-    SinCos(SickProjectionTime * Player.SickProjectionSpeed, S, C);
-    DistortFieldOfViewY += C * 0.03;
-    DistortViewAspect += S * 0.03;
-  end;
 end;
 
 { TLevel ---------------------------------------------------------------- }

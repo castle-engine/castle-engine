@@ -90,6 +90,13 @@ type
     FScreenSpaceAmbientOcclusion: boolean;
     SSAOShader: TGLSLProgram;
 
+    { Set these to non-1 to deliberately distort field of view / aspect ratio.
+      This is useful for special effects when you want to create unrealistic
+      projection. Used only by ApplyProjection. For now, used only in perspective
+      projection. }
+    DistortFieldOfViewY, DistortViewAspect: Single;
+    SickProjectionTime: TFloatTime;
+
     procedure ItemsAndCameraCursorChange(Sender: TObject);
     function PlayerNotBlocked: boolean;
   protected
@@ -100,12 +107,6 @@ type
     FProjectionNear: Single;
     FProjectionFar : Single;
     FProjectionFarFinite: Single;
-
-    { Set these to non-1 to deliberately distort field of view / aspect ratio.
-      This is useful for special effects when you want to create unrealistic
-      projection. Used only by ApplyProjection. For now, used only in perspective
-      projection. }
-    DistortFieldOfViewY, DistortViewAspect: Single;
 
     { Sets OpenGL projection matrix, based on MainScene's
       currently bound Viewpoint, NavigationInfo and used @link(Camera).
@@ -1400,6 +1401,9 @@ end;
 procedure TCastleAbstractViewport.Idle(const CompSpeed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
+var
+  P: TPlayer;
+  S, C: Extended;
 begin
   inherited;
 
@@ -1427,6 +1431,17 @@ begin
     Camera.Idle(CompSpeed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
   end else
     LetOthersHandleMouseAndKeys := true;
+
+  DistortFieldOfViewY := 1;
+  DistortViewAspect := 1;
+  P := GetPlayer;
+  if (P <> nil) and (P.Swimming = psUnderWater) then
+  begin
+    SickProjectionTime += CompSpeed;
+    SinCos(SickProjectionTime * P.SickProjectionSpeed, S, C);
+    DistortFieldOfViewY += C * 0.03;
+    DistortViewAspect += S * 0.03;
+  end;
 end;
 
 function TCastleAbstractViewport.AllowSuspendForInput: boolean;
