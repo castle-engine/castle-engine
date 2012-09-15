@@ -117,24 +117,9 @@ The level is added to the scene manager. The level is also set as the "MainScene
 ------------------------------------------------------------------------------
 5. Load a game level and a player
 
-Instead of loading level like above, there is a slightly more comfortable and feature-rich way to load a level for a game. Under the hood, it does all mentioned above --- the new 3D model is loaded, and added to the SceneManager.Items, and set as SceneManager.MainScene. But it also does some additional work, like detecting a "placeholders" in your 3D model, which should be replaced with creatures (from CastleCreatures unit) and items (from CastleItems unit).
+Instead of loading level like above, there is a slightly more comfortable and feature-rich way to load a level for a game: call the TGameSceneManager.LoadLevel method. Under the hood, TGameSceneManager.LoadLevel does eberything mentioned above --- the new 3D model is loaded, and added to the SceneManager.Items, and set as SceneManager.MainScene. But it also does some additional work, like detecting a "placeholders" in your 3D model, which should be replaced with creatures (from CastleCreatures unit) and items (from CastleItems unit).
 
-((Temporary:
-For now, to do this, you need to use TCastleWindowCustom class, and create your own instance of scene manager, using the TGameSceneManager class. This discomfort should disappear in the future, when we will merge all TGameSceneManager class features into the standard TCastleSceneManager class. For now, start you program like this:
-
-[[
-var
-  Window: TCastleWindowCustom;
-  SceneManager: TGameSceneManager;
-begin
-  Window := TCastleWindow.Create(Application);
-  SceneManager := TGameSceneManager.Create(Window);
-  Window.Controls.Add(SceneManager);
-
-  ... and then follow as described below
-end;
-]]
-End of temporary note.))
+It is also integrated with CastleLevels definition of what a "level" is: namely, it's a level.xml file referencing a 3D model and describing some additional level properties.t
 
 The TGameSceneManager class allows you to define levels by using simple XML files. For each level, you create a file named "level.xml", with contents like this:
 
@@ -178,7 +163,7 @@ You can now start a game by creating a player, loading all levels informations f
 
 [[
   LevelsAvailable.LoadFromFiles;
-  LevelsAvailable.FindName('base').LoadLevel(SceneManager);
+  SceneManager.LoadLevel('base');
 ]]
 
 The LoadLevel will clear all SceneManager.Items (except Player, more about this in a second). Then it will load new 3D model with a level (adding it to SceneManager.Items and setting as SceneManager.MainScene, just as we did manually in previous chapter), and do some more interesting stuff that we'll learn later.
@@ -218,13 +203,15 @@ There really isn't much code here. Just add
   AllResources.LoadFromFiles;
 ]]
 
-call somewhere before loading the level. This will cause all information about the creatures and items automatically loaded. Necessary creatures and items will be nicely prepared for each level if you use the <resources> section the levels level.xml files. Player can also contain <resources> section inside the data/player.xml (TODO: describe player.xml later).
+call somewhere before loading the level. This will cause all information about the creatures and items automatically loaded. Necessary creatures and items will be nicely prepared for each level if you use the <resources> section the levels level.xml files. Some resources may also be prepared always (see T3DResource.AlwaysPrepare).
 
 The "type" of the creatures determines it's ObjectPascal class, in turn determining creature AI, how many 3D models (or states) it has, and various other properties. Hostile creatures are automatically hostile to our Player.
 
 Items are automatically pickable by player, player backpack is automatically managed.
 
 CastleCreatures unit (see inside src/game/ in sources) allows you to easily create creatures with artificial intelligence.
+
+((TODO: describe player.xml somewhere later.)
 
 6.1. For starters, you can just use the existing creature classes on CastleCreatures unit.
 
