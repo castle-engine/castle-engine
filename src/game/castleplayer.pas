@@ -712,9 +712,9 @@ procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
     NewSwimming := psNo;
     if World <> nil then
     begin
-      if World.WaterBox.PointInside(Position) then
+      if World.Water.PointInside(Position) then
         NewSwimming := psUnderWater else
-      if World.WaterBox.PointInside(Position - Camera.PreferredHeight) then
+      if World.Water.PointInside(Position - Camera.PreferredHeight) then
         NewSwimming := psAboveWater;
     end;
     Swimming := NewSwimming;

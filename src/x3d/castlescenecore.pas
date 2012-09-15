@@ -881,9 +881,8 @@ type
     procedure RemoveShapeGeometry(Shape: TShape);
 
     { Find Blender mesh with given name, extract it's bounding box
-      and remove it from scene.
-      See also [http://castle-engine.sourceforge.net/castle-development.php]
-      for description of CameraBox and WaterBox trick.
+      and remove it from scene. Used to handle various placeholders on level,
+      see TGameSceneManager.LoadLevel for a list.
       This changes scene (and it's BoundingBox). }
     function RemoveBlenderBox(out Box: TBox3D; const BlenderMeshName: string): boolean;
 

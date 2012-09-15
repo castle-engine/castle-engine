@@ -104,12 +104,12 @@ DEF OB_CreaAlien Transform {
 		}
 	]
 }
-DEF OB_ObjLevelBox Transform {
+DEF OB_ObjCasMoveLimit Transform {
 	translation -0.115111 -0.038370 0.000000
 	rotation 1.000000 0.000000 0.000000 0.000000
 	scale 3.500000 3.500000 1.000000
-	children [
-		DEF ME_LevelBox Group {
+	children [ 
+		DEF ME_CasMoveLimit Group { # Kambi LevelBox -> CasMoveLimit
 			children [
 				Shape {
 					appearance Appearance {

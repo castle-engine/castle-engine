@@ -206,11 +206,6 @@ var
   W: TWaypoint;
   SectorIndex, WaypointIndex: Integer;
 begin
-  { Note that this method is usually the first to be called after doing
-    things like ExtractBoundingBoxes or ExtractPosotions,
-    so we try here to make nice error messages when some sector
-    or waypoint is not initialized yet (i.e. = nil). }
-
   for SectorIndex := 0 to Count - 1 do
   begin
     S := Items[SectorIndex];

@@ -694,7 +694,7 @@ type
 
     FOnCameraChanged: TNotifyEvent;
     FOnBoundViewpointChanged, FOnBoundNavigationInfoChanged: TNotifyEvent;
-    FCameraBox: TBox3D;
+    FMoveLimit: TBox3D;
     FShadowVolumeRenderer: TGLShadowVolumeRenderer;
 
     FMouseRayHit: TRayCollision;
@@ -707,7 +707,7 @@ type
 
     FSectors: TSectorList;
     Waypoints: TWaypointList;
-    FWaterBox: TBox3D;
+    FWater: TBox3D;
 
     { Call at the beginning of Draw (from both scene manager and custom viewport),
       to make sure UpdateGeneratedTextures was done before actual drawing. }
@@ -791,6 +791,9 @@ type
     function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
 
     { If non-empty, then camera position will be limited to this box.
+      (The meaning of this may be upgraded when we implment 3rd-person camera
+      players.)
+      It may also be used by creature AI (TODO).
 
       When this property specifies an EmptyBox3D (the default value),
       camera position is limited to not fall because of gravity
@@ -799,8 +802,13 @@ type
       of the box.
       Which means user cannot fall into an infinite abyss of our 3D space,
       and also gravity doesn't work outside of Items.BoundingBox.
-      This is usually most natural. }
-    property CameraBox: TBox3D read FCameraBox write FCameraBox;
+      This is usually most natural.
+
+      Note that if you load level through TGameSceneManager.LoadLevel,
+      then this is @italic(never) empty. It's either determined by
+      CasMoveLimit placeholder in the level 3D model, or it's
+      automatically calculated to include level + some space for flying. }
+    property MoveLimit: TBox3D read FMoveLimit write FMoveLimit;
 
     { Renderer of shadow volumes. You can use this to optimize rendering
       of your shadow quads in RenderShadowVolume, and you can control
@@ -844,6 +852,28 @@ type
     { Calculate @link(Sectors) for AI. Also calculates internal waypoints
       list, but it's not public --- you only get waypoints from sectors.
 
+      Looks at objects in MainScene 3D model
+      whose names start with CasSector and CasWaypoint.
+      You can add objects with such names in 3D modeler, like Blender,
+      and they will be automatically understood by the engine when loading level.
+
+      Objects named CasSector<index>[_<ignored>] define sectors.
+      The geometry of a sector with given <index> is set to be the sum
+      of all CasSector<index>* boxes.
+      Sectors are numbered from 0.
+
+      Objects named CasWaypoint[<ignored>] define waypoints.
+      Each waypoint is stored as a 3D point, this point is the middle of the
+      bounding box of the object named CasWaypoint[<ignored>].
+      TODO: In the future we may look at waypoint bounding box instead of
+      SectorsBoxesMargin?
+
+      After extracting from level 3D model,
+      sectors and waypoints are then connected together by
+      TSectorList.LinkToWaypoints. The idea is that you can go from
+      one sector to the other through the waypoint that is placed on
+      the border of both of them.
+
       @param(SectorsBoxesMargin See TSectorList.LinkToWaypoints description,
         in short set this to something much smaller than minimum sector size
         but not zero. In practice, depends on the design of sectors/waypoints
@@ -861,7 +891,7 @@ type
       be extended to represent a set of flexible 3D volumes.
 
       Empty initially. Initialize it however you want. }
-    property WaterBox: TBox3D read FWaterBox write FWaterBox;
+    property Water: TBox3D read FWater write FWater;
   published
     { Tree of 3D objects within your world. This is the place where you should
       add your scenes to have them handled by scene manager.
@@ -1048,6 +1078,11 @@ var
     Simply change properties like TInputShortcut.Key1
     or TInputShortcut.MouseButtonUse. }
   Input_Interact: TInputShortcut;
+
+const
+  { Prefix of all placeholders that we seek on 3D models.
+    See TCastleSceneManager.CreateSectors and TGameSceneManager.LoadLevel. }
+  PlaceholderPrefix = 'Cas';
 
 implementation
 
@@ -2306,7 +2341,7 @@ type
     function Player: T3DAlive; override;
     function BaseLights: TAbstractLightInstancesList; override;
     function Sectors: TSectorList; override;
-    function WaterBox: TBox3D; override;
+    function Water: TBox3D; override;
     function WorldMoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
@@ -2364,9 +2399,9 @@ begin
   Result := Owner.Sectors;
 end;
 
-function T3DWorldConcrete.WaterBox: TBox3D;
+function T3DWorldConcrete.Water: TBox3D;
 begin
-  Result := Owner.WaterBox;
+  Result := Owner.Water;
 end;
 
 function T3DWorldConcrete.WorldMoveAllowed(
@@ -2380,14 +2415,14 @@ begin
 
   if Result then
   begin
-    if Owner.CameraBox.IsEmpty then
+    if Owner.MoveLimit.IsEmpty then
     begin
       { Don't objects to fall outside of the box because of gravity,
         as then they would fall into infinity. }
       if BecauseOfGravity then
         Result := BoundingBox.PointInside(NewPos);
     end else
-      Result := Owner.CameraBox.PointInside(NewPos);
+      Result := Owner.MoveLimit.PointInside(NewPos);
   end;
 end;
 
@@ -2402,13 +2437,13 @@ begin
 
   if Result then
   begin
-    if Owner.CameraBox.IsEmpty then
+    if Owner.MoveLimit.IsEmpty then
     begin
       { Don't let user to fall outside of the box because of gravity. }
       if BecauseOfGravity then
         Result := BoundingBox.PointInside(NewPos);
     end else
-      Result := Owner.CameraBox.PointInside(NewPos);
+      Result := Owner.MoveLimit.PointInside(NewPos);
   end;
 end;
 
@@ -2451,8 +2486,8 @@ begin
   FItems.SetSubComponent(true);
   FItems.Name := 'Items';
 
-  FCameraBox := EmptyBox3D;
-  FWaterBox := EmptyBox3D;
+  FMoveLimit := EmptyBox3D;
+  FWater := EmptyBox3D;
 
   FDefaultViewport := true;
 
@@ -3108,40 +3143,23 @@ end;
 procedure TCastleSceneManager.CreateSectors(
   const Scene: TCastleSceneCore; const SectorsBoxesMargin: Single);
 
-  { Shapes placed under the name Waypoint<index>_<ignored>
-    are removed from the Scene, and are added as new waypoint with
-    given index. Waypoint's Position is set to the middle point
-    of shape's bounding box.
-
-    Count of Waypoints list is enlarged, if necessary,
-    to include all waypoints indicated in the Scene. }
-  procedure CreateNewWaypoint(Shape: TShape; const WaypointNodeName: string);
+  { Shapes placed under the name CasWaypoint[_<ignored>]
+    are removed from the Scene, and are added as new waypoint.
+    Waypoint's Position is set to the middle point of shape's bounding box. }
+  procedure CreateNewWaypoint(Shape: TShape);
   var
-    IgnoredBegin, WaypointIndex: Integer;
-    WaypointPosition: TVector3Single;
+    Waypoint: TWaypoint;
   begin
-    { Calculate WaypointIndex }
-    IgnoredBegin := Pos('_', WaypointNodeName);
-    if IgnoredBegin = 0 then
-      WaypointIndex := StrToInt(WaypointNodeName) else
-      WaypointIndex := StrToInt(Copy(WaypointNodeName, 1, IgnoredBegin - 1));
-
-    WaypointPosition := Shape.BoundingBox.Middle;
-
-    Waypoints.Count := Max(Waypoints.Count, WaypointIndex + 1);
-    if Waypoints[WaypointIndex] <> nil then
-      raise Exception.CreateFmt('Waypoint %d is already initialized',
-        [WaypointIndex]);
-
-    Waypoints[WaypointIndex] := TWaypoint.Create;
-    Waypoints[WaypointIndex].Position := WaypointPosition;
+    Waypoint := TWaypoint.Create;
+    Waypoint.Position := Shape.BoundingBox.Middle;
+    Waypoints.Add(Waypoint);
 
     { Tests:
-    Writeln('Waypoint ', WaypointIndex, ': at position ',
-      VectorToNiceStr(WaypointPosition));}
+    Writeln('Waypoint ', Waypoints.Count - 1, ': at position ',
+      VectorToNiceStr(Waypoint.Position));}
   end;
 
-  { Shapes placed under the name Sector<index>_<ignored>
+  { Shapes placed under the name CasSector<index>[_<ignored>]
     are removed from the Scene, and are added to sector <index> BoundingBoxes.
 
     Count of the Sectors list is enlarged, if necessary,
@@ -3171,8 +3189,8 @@ procedure TCastleSceneManager.CreateSectors(
   end;
 
 const
-  SectorPrefix = 'Sector';
-  WaypointPrefix = 'Waypoint';
+  SectorPrefix = PlaceholderPrefix + 'Sector';
+  WaypointPrefix = PlaceholderPrefix + 'Waypoint';
 var
   NodesToRemove: TX3DNodeList;
   SI: TShapeTreeIterator;
@@ -3203,7 +3221,7 @@ begin
         end else
         if IsPrefix(WaypointPrefix, Shape.BlenderMeshName) then
         begin
-          CreateNewWaypoint(Shape, SEnding(Shape.BlenderMeshName, Length(WaypointPrefix) + 1));
+          CreateNewWaypoint(Shape);
           NodesToRemove.Add(Shape.BlenderObjectNode);
         end;
       end;

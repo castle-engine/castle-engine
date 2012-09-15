@@ -226,8 +226,8 @@ type
           @link(TCastleSceneManager.Camera)
           and @link(TCastleSceneManager.MainScene) as well.
           Then load a new main scene and camera, adding to
-          @link(TCastleSceneManager.Items) all 3D objects (creatures and items)
-          defined by placeholders in the main level 3D file.)
+          @link(TCastleSceneManager.Items) all 3D resources (creatures and items)
+          defined by placeholders named CasRes* in the main level 3D file.)
 
         @item(@bold(Make sure 3D resources are ready:)
 
@@ -241,6 +241,19 @@ type
           as well as resources with AlwaysPrepared (usually: all possible items
           that can be dropped from player inventory on any level)
           will be prepared.)
+
+        @item(@bold(Initialize move limits and water volume from placeholders).
+          Special object names CasMoveLimit and CasWater (in the future:
+          CasWater* with any suffix) in the main scene 3D model
+          determine the places where player can go and where water is.
+
+          When CasMoveLimit object is missing,
+          we calculate it to include the level bounding box, with some
+          additional space above (to allow flying).)
+
+        @item(@bold(Initialize sectors and waypoints from placeholders).
+          Special object names CasSector* and CasWaypoint* can be placed
+          to help creature AI. See TCastleSceneManager.CreateSectors for details.)
 
         @item(@bold(Prepare everything possible for rendering and collision
           detection) to avoid later preparing things on-demand (which would cause
@@ -386,7 +399,7 @@ var
 
   procedure TraverseForResources(Shape: TShape);
   const
-    ResourcePrefix = 'Res';
+    ResourcePrefix = PlaceholderPrefix + 'Res';
   var
     S, ResourceName: string;
     ResourceNumberPresent: boolean;
@@ -515,7 +528,7 @@ var
 
 var
   Options: TPrepareResourcesOptions;
-  NewCameraBox, NewWaterBox: TBox3D;
+  NewMoveLimit, NewWater: TBox3D;
   SI: TShapeTreeIterator;
   PreviousResources: T3DResourceList;
   I: Integer;
@@ -593,18 +606,19 @@ begin
       RemoveItemsToRemove;
     finally ItemsToRemove.Free end;
 
-    { Calculate CameraBox }
-    if not MainScene.RemoveBlenderBox(NewCameraBox, 'LevelBox') then
+    { Calculate MoveLimit }
+    if not MainScene.RemoveBlenderBox(NewMoveLimit, PlaceholderPrefix + 'MoveLimit') then
     begin
-      { Set CameraBox to MainScene.BoundingBox, and make maximum Z larger. }
-      { TODO: Z up? Look at DefaultOrientation }
-      NewCameraBox := MainScene.BoundingBox;
-      NewCameraBox.Data[1, 2] += 4 * (NewCameraBox.Data[1, 2] - NewCameraBox.Data[0, 2]);
+      { Set MoveLimit to MainScene.BoundingBox, and make maximum up larger. }
+      NewMoveLimit := MainScene.BoundingBox;
+      NewMoveLimit.Data[1, Items.GravityCoordinate] +=
+        4 * (NewMoveLimit.Data[1, Items.GravityCoordinate] -
+             NewMoveLimit.Data[0, Items.GravityCoordinate]);
     end;
-    CameraBox := NewCameraBox;
+    MoveLimit := NewMoveLimit;
 
-    if MainScene.RemoveBlenderBox(NewWaterBox, 'WaterBox') then
-      WaterBox := NewWaterBox;
+    if MainScene.RemoveBlenderBox(NewWater, PlaceholderPrefix + 'Water') then
+      Water := NewWater;
 
     CreateSectors(MainScene);
 
