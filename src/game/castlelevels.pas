@@ -533,9 +533,6 @@ begin
       Inc(I);
   FLevel := nil; { it's freed now }
 
-  UseGlobalLights := true;
-  ApproximateActivation := true;
-
   { save PreviousResources, before Info is overridden with new level.
     This allows us to keep PreviousResources while new resources are required,
     and this means that resources already loaded for previous level
@@ -562,6 +559,7 @@ begin
     MainScene := TCastleScene.CreateCustomCache(Self, GLContextCache);
     MainScene.Load(Info.SceneFileName);
 
+    { TODO: remove? }
     MainScene.Attributes.UseSceneLights := true;
 
     { Scene must be the first one on Items, this way Items.MoveCollision will

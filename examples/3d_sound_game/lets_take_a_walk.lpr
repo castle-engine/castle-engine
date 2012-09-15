@@ -330,6 +330,13 @@ begin
   { init SceneManager }
   SceneManager := Window.SceneManager;
   SceneManager.OnCameraChanged := @TDummy(nil).CameraChanged;
+  { If you want to make shooting (which is here realized by picking) easier,
+    you can use
+      SceneManager.ApproximateActivation := true;
+    This could be nice for an "easy" difficulty level of the game.
+    Note that many games use picking for interacting with 3D objects,
+    not for shooting, and then "ApproximateActivation := true" may
+    be applicable always (for any difficulty level). }
 
   { init player. It's not strictly necessary to use Player, but it makes
     some stuff working better/simpler: Player automatically configures
@@ -342,10 +349,6 @@ begin
   { init level. LoadLevel requires OpenGL context to be available. }
   LevelsAvailable.LoadFromFiles;
   SceneManager.LoadLevel('base');
-  { LoadLevel turns it on, and it's generally helpful, but it makes shooting too
-    easy. It would be a nice thing to switch depending on difficulty setting
-    in a real game. }
-  SceneManager.ApproximateActivation := false;
 
   { init Rat }
   Rat := T3DTransform.Create(SceneManager);

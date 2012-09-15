@@ -27,6 +27,7 @@ uses Classes, VectorMath, X3DNodes, CastleScene, CastleSceneCore, Cameras,
 const
   { }
   DefaultScreenSpaceAmbientOcclusion = false;
+  DefaultUseGlobalLights = true;
 
 type
   TCastleAbstractViewport = class;
@@ -584,7 +585,7 @@ type
       the MainScene, it should be placed inside @link(TCastleSceneManager.Items)
       without wrapping in any T3DTransform. }
     property UseGlobalLights: boolean
-      read FUseGlobalLights write FUseGlobalLights default false;
+      read FUseGlobalLights write FUseGlobalLights default DefaultUseGlobalLights;
 
     { Help user to activate pointing device sensors and pick items.
       Every time you press or release Input_Interact (by default
@@ -1089,6 +1090,7 @@ end;
 constructor TCastleAbstractViewport.Create(AOwner: TComponent);
 begin
   inherited;
+  FUseGlobalLights := DefaultUseGlobalLights;
   FFullSize := true;
   FRenderParams := TManagerRenderParams.Create;
   DistortFieldOfViewY := 1;
@@ -1839,7 +1841,10 @@ begin
      (GetMainScene.GlobalLights.Count <> 0) then
   begin
     FRenderParams.MainScene := GetMainScene;
+    { For MainScene, BaseLights are only the ones calculated by InitializeLights }
     FRenderParams.FBaseLights[true].Assign(FRenderParams.FBaseLights[false]);
+    { For others than MainScene, BaseLights are calculated by InitializeLights
+      summed with GetMainScene.GlobalLights. }
     FRenderParams.FBaseLights[false].AppendInWorldCoordinates(GetMainScene.GlobalLights);
   end else
     { Do not use Params.FBaseLights[true] }
