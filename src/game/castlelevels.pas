@@ -578,6 +578,7 @@ begin
 
   FInfo := AInfo;
   Inc(LevelsAvailable.References);
+  Info.Played := true;
 
   Progress.Init(1, 'Loading level "' + Info.Title + '"');
   try
