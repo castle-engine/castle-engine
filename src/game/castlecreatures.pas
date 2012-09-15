@@ -1175,7 +1175,6 @@ procedure TCreature.SoundRelease(Sender: TSound);
 begin
   Sender.UserData.Free;
   Sender.UserData := nil;
-  Sender.OnRelease := nil;
   UsedSounds.Remove(Sender);
 end;
 

@@ -3518,7 +3518,6 @@ end;
 procedure T3DLinearMoving.SoundRelease(Sender: TSound);
 begin
   Assert(Sender = UsedSound);
-  UsedSound.OnRelease := nil;
   UsedSound := nil;
 end;
 

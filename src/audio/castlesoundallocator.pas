@@ -113,7 +113,9 @@ type
 
       In this event you should make sure to delete all references
       to this sound, because the TSound instance may
-      be freed after calling OnRelease.
+      be freed (or reused for other means) after calling OnRelease.
+      For the same reason, after calling this, we always clear it
+      (set OnRelease to @nil).
 
       It's guaranteed that when this will be called,
       @link(Used) will be @false and @link(PlayingOrPaused) will be @false. }
@@ -348,7 +350,10 @@ begin
   Buffer := 0;
 
   if Assigned(OnRelease) then
+  begin
     OnRelease(Self);
+    OnRelease := nil;
+  end;
 end;
 
 procedure TSound.SetPosition(const Value: TVector3Single);

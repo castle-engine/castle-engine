@@ -673,7 +673,6 @@ end;
 procedure TPlayer.FootstepsSoundRelease(Sender: TSound);
 begin
   Assert(Sender = FootstepsSound);
-  FootstepsSound.OnRelease := nil;
   FootstepsSound := nil;
   FootstepsSoundPlaying := stNone;
 end;
@@ -681,14 +680,12 @@ end;
 procedure TPlayer.SwimmingChangeSoundRelease(Sender: TSound);
 begin
   Assert(Sender = SwimmingChangeSound);
-  SwimmingChangeSound.OnRelease := nil;
   SwimmingChangeSound := nil;
 end;
 
 procedure TPlayer.SwimmingSoundRelease(Sender: TSound);
 begin
   Assert(Sender = SwimmingSound);
-  SwimmingSound.OnRelease := nil;
   SwimmingSound := nil;
 end;
 

@@ -1768,7 +1768,6 @@ end;
 procedure TMusicPlayer.AllocatedSourceRelease(Sender: TSound);
 begin
   Assert(Sender = FAllocatedSource);
-  FAllocatedSource.OnRelease := nil;
   FAllocatedSource := nil;
 end;
 
