@@ -104,8 +104,8 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    (*Handle key events.
-      Return @true if the key event was somehow handled.
+    (*Handle press or release of a key, mouse button or mouse wheel.
+      Return @true if the event was somehow handled.
 
       In this class this always returns @false, when implementing
       in descendants you should override it like
@@ -114,22 +114,18 @@ type
   Result := inherited;
   if Result or (not GetExists) then Exit;
   { ... And do the job here.
-    In other words, the handling of keys in inherited
+    In other words, the handling of events in inherited
     class should have a priority. }
 #)
 
+      Note that releasing of mouse wheel is not implemented for now,
+      neither by CastleWindow or Lazarus CastleControl.
       @groupBegin *)
-    function KeyDown(Key: TKey; C: char): boolean; virtual;
-    function KeyUp(Key: TKey; C: char): boolean; virtual;
+    function Press(const Event: TInputPressRelease): boolean; virtual;
+    function Release(const Event: TInputPressRelease): boolean; virtual;
     { @groupEnd }
 
-    { Handle mouse events.
-      @groupBegin }
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; virtual;
-    function MouseDown(const Button: TMouseButton): boolean; virtual;
-    function MouseUp(const Button: TMouseButton): boolean; virtual;
-    function MouseWheel(const Scroll: Single; const Vertical: boolean): boolean; virtual;
-    { @groupEnd }
 
     { Handle 3D mouse events.
       @groupBegin }
@@ -272,7 +268,7 @@ type
     from something outside, like operating system, windowing library etc.)
     implement support for such controls.
 
-    Control may handle mouse/keyboard input, see KeyDown, MouseDown etc.
+    Control may handle mouse/keyboard input, see Press and Release
     methods.
 
     Various methods return boolean saying if input event is handled.
@@ -513,32 +509,17 @@ begin
   FCursor := mcDefault;
 end;
 
-function TInputListener.KeyDown(Key: TKey; C: char): boolean;
+function TInputListener.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := false;
 end;
 
-function TInputListener.KeyUp(Key: TKey; C: char): boolean;
+function TInputListener.Release(const Event: TInputPressRelease): boolean;
 begin
   Result := false;
 end;
 
 function TInputListener.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
-begin
-  Result := false;
-end;
-
-function TInputListener.MouseDown(const Button: TMouseButton): boolean;
-begin
-  Result := false;
-end;
-
-function TInputListener.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
-begin
-  Result := false;
-end;
-
-function TInputListener.MouseUp(const Button: TMouseButton): boolean;
 begin
   Result := false;
 end;

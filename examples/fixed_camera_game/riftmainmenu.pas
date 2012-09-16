@@ -39,7 +39,7 @@ uses SysUtils, GL, CastleWindow, CastleFilesUtils,
   VectorMath, CastleSoundMenu, Classes, CastleStringUtils, CastleControls,
   GLImages, UIControls, CastleColors, CastleSoundEngine,
   RiftData, RiftSound, RiftVideoOptions, RiftInspectCreatures, RiftPlay,
-  RiftLocations, RiftGame;
+  RiftLocations, RiftGame, KeysMouse;
 
 { menu classes and variables  ------------------------------------------------ }
 
@@ -121,12 +121,12 @@ begin
   glCallList(GLList_MenuBg);
 end;
 
-procedure KeyDown(Window: TCastleWindowBase; key: TKey; c: char);
+procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 begin
-  if C = CharEscape then
+  if Event.IsKey(CharEscape) then
     SetCurrentMenu(MainMenu);
 
-  if DebugMenuDesignerAllowed and (Key = K_F12) then
+  if DebugMenuDesignerAllowed and Event.IsKey(K_F12) then
   begin
     CurrentMenu.DesignerMode := not CurrentMenu.DesignerMode;
   end;
@@ -146,7 +146,7 @@ begin
   try
     Window.FpsShowOnCaption := DebugMenuFps;
     Window.AutoRedisplay := true;
-    Window.OnKeyDown := @KeyDown;
+    Window.OnPress := @Press;
     { actually we draw in 2D, but it's the current projection anyway }
     Window.OnDrawStyle := ds3D;
 

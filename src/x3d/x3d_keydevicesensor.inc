@@ -23,12 +23,11 @@
 
       This is used by TCastleSceneCore to communicate with this key sensor.
 
-      Semantics follow TUIControl.KeyDown,
-      TUIControl.KeyUp behavior which in turn follow TCastleWindowBase.OnKeyDown,
-      TCastleWindowBase.OnKeyUp behavior. This means that Key may be K_None (if not
+      Semantics follow TInputPressRelease behavior for EventType = itKey.
+      This means that Key may be K_None (if not
       representable as TKey) and C may be #0 (if not representable as char),
-      although not both at the same time (that is, at least one of Key or C
-      parameters contains some useful value). Also, key presses are affected
+      but not both --- at least one of Key or C must contains something useful.
+      Also, key presses are affected
       by the "key repeat" feature of the OS (windowing system actually), so when
       user holds down a key --- we get many key down messages.
 

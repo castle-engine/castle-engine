@@ -99,7 +99,6 @@ type
 
     procedure ItemsAndCameraCursorChange(Sender: TObject);
     function PlayerNotBlocked: boolean;
-    function EventDown(const Event: TInputEvent): boolean;
   protected
     { These variables are writeable from overridden ApplyProjection. }
     FPerspectiveView: boolean;
@@ -294,11 +293,8 @@ type
     function DrawStyle: TUIControlDrawStyle; override;
 
     function AllowSuspendForInput: boolean; override;
-    function KeyDown(Key: TKey; C: char): boolean; override;
-    function KeyUp(Key: TKey; C: char): boolean; override;
-    function MouseDown(const Button: TMouseButton): boolean; override;
-    function MouseUp(const Button: TMouseButton): boolean; override;
-    function MouseWheel(const Scroll: Single; const Vertical: boolean): boolean; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
     function Mouse3dRotation(X, Y, Z, Angle: Double; CompSpeed: Single): boolean; override;
     function Mouse3dTranslation(X, Y, Z, Length: Double; CompSpeed: Single): boolean; override;
@@ -1274,82 +1270,69 @@ begin
   Result := (P = nil) or (not (P.Blocked or P.Dead));
 end;
 
-function TCastleAbstractViewport.KeyDown(Key: TKey; C: char): boolean;
+function TCastleAbstractViewport.Press(const Event: TInputPressRelease): boolean;
+var
+  P: TPlayer;
 begin
   Result := inherited;
   if Result or Paused or (not GetExists) then Exit;
 
   if Camera <> nil then
   begin
-    Result := Camera.KeyDown(Key, C);
+    Result := Camera.Press(Event);
     if Result then Exit;
   end;
 
-  Result := GetItems.KeyDown(Key, C);
-  if Result then Exit;
+  if Event.EventType = itKey then
+  begin
+    Result := GetItems.KeyDown(Event.Key, Event.KeyCharacter);
+    if Result then Exit;
+  end;
 
-  if PlayerNotBlocked and Input_Interact.IsKey(Key, C) then
+  if PlayerNotBlocked and Input_Interact.IsEvent(Event) then
   begin
     Result := PointingDeviceActivate(true);
     if Result then Exit;
   end;
 
-  Result := EventDown(EventKey(Key, C));
+  P := GetPlayer;
+  if (P <> nil) and not (P.Blocked or P.Dead) then
+  begin
+    if Input_Attack.IsEvent(Event) then
+      begin Result := true; P.Attack; end;
+    if Input_CancelFlying.IsEvent(Event) then
+      begin Result := true; P.CancelFlying; end;
+    if Input_InventoryShow.IsEvent(Event) then
+      begin Result := true; P.InventoryVisible := not P.InventoryVisible; end;
+    if Input_InventoryPrevious.IsEvent(Event) then
+      begin Result := true; P.ChangeInventoryCurrentItem(-1); end;
+    if Input_InventoryNext.IsEvent(Event) then
+      begin Result := true; P.ChangeInventoryCurrentItem(+1); end;
+    if Input_DropItem.IsEvent(Event) then
+      begin Result := true; P.DropCurrentItem; end;
+    if Input_UseItem.IsEvent(Event) then
+      begin Result := true; P.UseCurrentItem; end;
+  end;
 end;
 
-function TCastleAbstractViewport.KeyUp(Key: TKey; C: char): boolean;
+function TCastleAbstractViewport.Release(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
   if Result or Paused or (not GetExists) then Exit;
 
   if Camera <> nil then
   begin
-    Result := Camera.KeyUp(Key, C);
+    Result := Camera.Release(Event);
     if Result then Exit;
   end;
 
-  Result := GetItems.KeyUp(Key, C);
-  if Result then Exit;
-
-  if PlayerNotBlocked and Input_Interact.IsKey(Key, C) then
+  if Event.EventType = itKey then
   begin
-    Result := PointingDeviceActivate(false);
-    if Result then Exit;
-  end;
-end;
-
-function TCastleAbstractViewport.MouseDown(const Button: TMouseButton): boolean;
-begin
-  Result := inherited;
-  if Result or Paused or (not GetExists) then Exit;
-
-  if Camera <> nil then
-  begin
-    Result := Camera.MouseDown(Button);
+    Result := GetItems.KeyUp(Event.Key, Event.KeyCharacter);
     if Result then Exit;
   end;
 
-  if PlayerNotBlocked and Input_Interact.IsMouseButton(Button) then
-  begin
-    Result := PointingDeviceActivate(true);
-    if Result then Exit;
-  end;
-
-  Result := EventDown(EventMouseButton(Button));
-end;
-
-function TCastleAbstractViewport.MouseUp(const Button: TMouseButton): boolean;
-begin
-  Result := inherited;
-  if Result or Paused or (not GetExists) then Exit;
-
-  if Camera <> nil then
-  begin
-    Result := Camera.MouseUp(Button);
-    if Result then Exit;
-  end;
-
-  if PlayerNotBlocked and Input_Interact.IsMouseButton(Button) then
+  if PlayerNotBlocked and Input_Interact.IsEvent(Event) then
   begin
     Result := PointingDeviceActivate(false);
     if Result then Exit;
@@ -1390,47 +1373,6 @@ begin
     a problem for now, as we'll update cursor anyway, as long as it changes
     only during mouse move. }
   ItemsAndCameraCursorChange(Self);
-end;
-
-function TCastleAbstractViewport.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
-begin
-  Result := inherited;
-  if Result or Paused or (not GetExists) then Exit;
-
-  if Camera <> nil then
-  begin
-    Result := Camera.MouseWheel(Scroll, Vertical);
-    if Result then Exit;
-  end;
-
-  // Implement when needed: Result := GetItems.MouseWheel(Scroll, Vertical);
-
-  Result := EventDown(EventMouseWheel(Scroll, Vertical));
-end;
-
-function TCastleAbstractViewport.EventDown(const Event: TInputEvent): boolean;
-var
-  P: TPlayer;
-begin
-  Result := false;
-  P := GetPlayer;
-  if (P <> nil) and not (P.Blocked or P.Dead) then
-  begin
-    if Input_Attack.IsEvent(Event) then
-      begin Result := true; P.Attack; end;
-    if Input_CancelFlying.IsEvent(Event) then
-      begin Result := true; P.CancelFlying; end;
-    if Input_InventoryShow.IsEvent(Event) then
-      begin Result := true; P.InventoryVisible := not P.InventoryVisible; end;
-    if Input_InventoryPrevious.IsEvent(Event) then
-      begin Result := true; P.ChangeInventoryCurrentItem(-1); end;
-    if Input_InventoryNext.IsEvent(Event) then
-      begin Result := true; P.ChangeInventoryCurrentItem(+1); end;
-    if Input_DropItem.IsEvent(Event) then
-      begin Result := true; P.DropCurrentItem; end;
-    if Input_UseItem.IsEvent(Event) then
-      begin Result := true; P.UseCurrentItem; end;
-  end;
 end;
 
 procedure TCastleAbstractViewport.ItemsAndCameraCursorChange(Sender: TObject);

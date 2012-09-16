@@ -303,7 +303,7 @@ begin
   end;
 end;
 
-procedure MouseDown(Window: TCastleWindowBase; Btn: TMouseButton);
+procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 
   procedure SelectClosestControlPoint;
   var
@@ -353,20 +353,19 @@ procedure MouseDown(Window: TCastleWindowBase; Btn: TMouseButton);
   end;
 
 begin
-  case Btn of
-    mbLeft:
-      SelectClosestControlPoint;
-    mbRight:
-      if (CurrentCurve <> -1) and (CurrentPoint <> -1) then
-        Dragging := true;
+  if Event.IsMouseButton(mbLeft) then
+    SelectClosestControlPoint else
+  if Event.IsMouseButton(mbRight) then
+  begin
+    if (CurrentCurve <> -1) and (CurrentPoint <> -1) then
+      Dragging := true;
   end;
 end;
 
-procedure MouseUp(Window: TCastleWindowBase; Btn: TMouseButton);
+procedure Release(Window: TCastleWindowBase; const Event: TInputPressRelease);
 begin
-  case Btn of
-    mbRight: Dragging := false;
-  end;
+  if Event.IsMouseButton(mbRight) then
+    Dragging := false;
 end;
 
 procedure MouseMove(Window: TCastleWindowBase; NewX, NewY: integer);
@@ -614,7 +613,7 @@ begin
   Camera.OnVisibleChange := @Dummy.VisibleChange;
   Camera.Init(Box3D(Vector3Single(0, 0, -1),
                     Vector3Single(1, 1,  1)), 0.2);
-  { conflicts with our MouseDown / MouseMove }
+  { conflicts with our Press / Release }
   Camera.Input := Camera.Input - [ciMouseDragging];
   Camera.Input_StopRotating.MouseButtonUse := false;
   Window.SceneManager.Camera := Camera;
@@ -624,8 +623,8 @@ begin
   Window.OnOpen := @Open;
   Window.OnClose := @Close;
   Window.OnIdle := @Idle;
-  Window.OnMouseDown := @MouseDown;
-  Window.OnMouseUp := @MouseUp;
+  Window.OnPress := @Press;
+  Window.OnRelease := @Release;
   Window.OnMouseMove := @MouseMove;
   Window.OnDraw := @Draw;
   Window.OnDrawStyle := ds2D;

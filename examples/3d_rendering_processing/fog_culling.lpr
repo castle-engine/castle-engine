@@ -34,7 +34,7 @@ uses SysUtils, VectorMath, GL, GLU, CastleWindow, CastleStringUtils,
   CastleClassUtils, CastleUtils, Classes, CastleWarnings,
   CastleGLUtils, X3DNodes, CastleSceneCore, CastleScene,
   ProgressUnit, ProgressConsole, CastleFilesUtils, Base3D,
-  CastleSceneManager, CastleParameters, RenderingCameraUnit;
+  CastleSceneManager, CastleParameters, RenderingCameraUnit, KeysMouse;
 
 var
   Window: TCastleWindowCustom;
@@ -91,26 +91,23 @@ begin
   glHint(GL_FOG_HINT, GL_NICEST);
 end;
 
-procedure KeyDown(Window: TCastleWindowBase; Key: TKey; c: char);
+procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 var
   FogNode: TFogNode;
 begin
-  case Key of
-    K_F:
-      begin
-        FogCulling := not FogCulling;
+  if Event.IsKey(K_F) then
+  begin
+    FogCulling := not FogCulling;
 
-        { Also, turn on/off actual fog on the model (if any).
-          We do it by changing Fog.VisibilityRange (0 means no fog). }
-        FogNode := Scene.FogStack.Top as TFogNode;
-        if FogNode <> nil then
-          if FogCulling then
-            FogNode.FdVisibilityRange.Send(30) else
-            FogNode.FdVisibilityRange.Send(0);
+    { Also, turn on/off actual fog on the model (if any).
+      We do it by changing Fog.VisibilityRange (0 means no fog). }
+    FogNode := Scene.FogStack.Top as TFogNode;
+    if FogNode <> nil then
+      if FogCulling then
+        FogNode.FdVisibilityRange.Send(30) else
+        FogNode.FdVisibilityRange.Send(0);
 
-        Window.PostRedisplay;
-      end;
-    K_F5: Window.SaveScreenDialog(FileNameAutoInc('fog_culling_screen_%d.png'));
+    Window.PostRedisplay;
   end;
 end;
 
@@ -137,7 +134,7 @@ begin
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
 
   Window.OnOpen := @Open;
-  Window.OnKeyDown := @KeyDown;
+  Window.OnPress := @Press;
   Window.SetDemoOptions(K_F11, CharEscape, true);
   Window.OpenAndRun;
 end.

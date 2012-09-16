@@ -52,7 +52,7 @@ type
     procedure EventResize; override;
     procedure EventOpen; override;
     procedure EventClose; override;
-    procedure EventKeyDown(key: TKey; c: char); override;
+    procedure EventPress(const Event: TInputPressRelease); override;
   end;
 
 procedure TMyWindow.EventDraw;
@@ -144,12 +144,12 @@ begin
  inherited;
 end;
 
-procedure TMyWindow.EventKeyDown(key: TKey; c: char);
+procedure TMyWindow.EventPress(const Event: TInputPressRelease);
 var
   FileName: string;
 begin
  inherited;
- case c of
+ case Event.KeyCharacter of
   'l':begin
        OnlyLines := not OnlyLines;
        PostRedisplay;
@@ -185,7 +185,7 @@ begin
   Windws[i].Top := 30 + 250 * (i div 3);
  end;
  try
-  for i := 0 to High(Windws) do 
+  for i := 0 to High(Windws) do
   begin
     Windws[i].Open;
     Windws[i].SetDemoOptions(K_F11, CharEscape, true);

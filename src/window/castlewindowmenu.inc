@@ -237,9 +237,9 @@
       can be explicitly connected with some key press
       (i.e. without doing any special redirection keypress -> DoCommand
       in CastleWindow).
-      So you will not get EventKeyDown (OnKeyDown) messages for such
-      keypresses (that translate to menu click). Although TCastleWindowBase.KeysDown
-      will be appropriately updated, of course.
+      So you will not get EventPress (OnPress) messages for such
+      keypresses (that translate to menu click). Although
+      TCastleWindowBase.Pressed.Keys will be appropriately updated, of course.
 
       Note: Caption of this object should not contain
       description of Key and CharKey, such description will be automatically

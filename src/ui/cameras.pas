@@ -304,8 +304,8 @@ type
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
-    function MouseDown(const Button: TMouseButton): boolean; override;
-    function MouseUp(const Button: TMouseButton): boolean; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
 
     { Animate a camera smoothly into another camera settings.
       This will gradually change our settings (only the most important
@@ -475,10 +475,6 @@ type
     function GetInput_RotateZInc: TInputShortcut;
     function GetInput_RotateZDec: TInputShortcut;
 
-    function EventDown(AKey: TKey; ACharacter: Char;
-      AMousePress: boolean; AMouseButton: TMouseButton;
-      AMouseWheel: TMouseWheelDirection): boolean;
-
     function GetMouseNavigation: boolean;
     procedure SetMouseNavigation(const Value: boolean);
   public
@@ -494,10 +490,8 @@ type
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
     function AllowSuspendForInput: boolean; override;
-    function KeyDown(Key: TKey; C: char): boolean; override;
-    function MouseDown(const Button: TMouseButton): boolean; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
-    function MouseWheel(const Scroll: Single; const Vertical: boolean): boolean; override;
 
     procedure Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single); override;
     procedure Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single); override;
@@ -542,7 +536,7 @@ type
 
       The idea is that usually this is the only property that you have to set.
       ScaleFactor, MoveAmount, RotationsAnim will be almost directly
-      controlled by user (through KeyDown and other events).
+      controlled by user (through @link(Press) and other events).
       @link(Rotations) will be automatically modified by @link(Idle).
 
       So often you only need to set ModelBox, once,
@@ -755,10 +749,6 @@ type
       jump when there's no gravity, or you're already in the middle
       of the jump. Can be useful to determine if key was handled and such. }
     function Jump: boolean;
-
-    function EventDown(AKey: TKey; ACharacter: Char;
-      AMousePress: boolean; AMouseButton: TMouseButton;
-      AMouseWheel: TMouseWheelDirection): boolean;
   private
     { Private things related to gravity ---------------------------- }
 
@@ -822,7 +812,7 @@ type
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
     function AllowSuspendForInput: boolean; override;
-    function KeyDown(Key: TKey; C: char): boolean; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
     procedure Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single); override;
     procedure Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single); override;
 
@@ -1101,9 +1091,6 @@ type
 
     { Call when mouse moves. Must be called to make MouseLook work. }
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
-
-    function MouseDown(const Button: TMouseButton): boolean; override;
-    function MouseWheel(const Scroll: Single; const Vertical: boolean): boolean; override;
 
     { Things related to gravity ---------------------------------------- }
 
@@ -1575,12 +1562,9 @@ type
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
     function AllowSuspendForInput: boolean; override;
-    function KeyDown(Key: TKey; C: char): boolean; override;
-    function KeyUp(Key: TKey; C: char): boolean; override;
-    function MouseDown(const Button: TMouseButton): boolean; override;
-    function MouseUp(const Button: TMouseButton): boolean; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
-    function MouseWheel(const Scroll: Single; const Vertical: boolean): boolean; override;
 
     procedure Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single); override;
     procedure Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single); override;
@@ -1949,12 +1933,14 @@ begin
     Input := DefaultCameraInput;
 end;
 
-function TCamera.MouseDown(const Button: TMouseButton): boolean;
+function TCamera.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
   if Result then Exit;
 
-  if (ciMouseDragging in Input) and EnableDragging then
+  if (Event.EventType = itMouseButton) and
+     (ciMouseDragging in Input) and
+     EnableDragging then
   begin
     MouseDraggingStart[0] := Container.MouseX;
     MouseDraggingStart[1] := Container.MouseY;
@@ -1962,9 +1948,10 @@ begin
   end;
 end;
 
-function TCamera.MouseUp(const Button: TMouseButton): boolean;
+function TCamera.Release(const Event: TInputPressRelease): boolean;
 begin
-  MouseDraggingStarted := false;
+  if Event.EventType = itMouseButton then
+    MouseDraggingStarted := false;
   Result := inherited;
 end;
 
@@ -2333,41 +2320,40 @@ begin
   VisibleChange;
 end;
 
-function TExamineCamera.EventDown(AKey: TKey; ACharacter: Char;
-  AMousePress: boolean; AMouseButton: TMouseButton;
-  AMouseWheel: TMouseWheelDirection): boolean;
-begin
-  if (not (ciNormal in Input)) or Animation then Exit(false);
-
-  if Input_StopRotating.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
-  begin
-    StopRotating;
-    Result := ExclusiveEvents;
-  end else
-  if Input_Home.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
-  begin
-    Home;
-    Result := ExclusiveEvents;
-  end else
-    Result := false;
-end;
-
-function TExamineCamera.KeyDown(Key: TKey; C: char): boolean;
+function TExamineCamera.Press(const Event: TInputPressRelease): boolean;
+var
+  ZoomScale: Single;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or
+     (not (ciNormal in Input)) or
+     Animation or
+     (ModifiersDown(Container.Pressed) <> []) then
+    Exit;
 
-  if ModifiersDown(Container.Pressed) <> [] then Exit;
+  if Event.EventType <> itMouseWheel then
+  begin
+    if Input_StopRotating.IsEvent(Event) then
+    begin
+      StopRotating;
+      Result := ExclusiveEvents;
+    end else
+    if Input_Home.IsEvent(Event) then
+    begin
+      Home;
+      Result := ExclusiveEvents;
+    end else
+      Result := false;
+  end else
+  begin
+    { For now, doing Zoom on mouse wheel is hardcoded, we don't call EventDown here }
 
-  Result := EventDown(Key, C, false, mbLeft, mwNone);
-end;
-
-function TExamineCamera.MouseDown(const Button: TMouseButton): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  Result := EventDown(K_None, #0, true, Button, mwNone);
+    if ArchitectureMode then
+      ZoomScale := 40 else
+      ZoomScale := 10;
+    if Zoom(Event.MouseWheelScroll / ZoomScale) then
+       Result := ExclusiveEvents;
+  end;
 end;
 
 function TExamineCamera.Zoom(const Factor: Single): boolean;
@@ -2567,25 +2553,6 @@ begin
     VisibleChange;
     Result := ExclusiveEvents;
   end;
-end;
-
-function TExamineCamera.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
-var
-  ZoomScale: Single;
-begin
-  Result := inherited;
-  if Result or
-    (not (ciNormal in Input)) or Animation or
-    (ModifiersDown(Container.Pressed) <> []) then
-    Exit;
-
-  { For now, doing Zoom on mouse wheel is hardcoded, we don't call EventDown here }
-
-  if ArchitectureMode then
-    ZoomScale := 40 else
-    ZoomScale := 10;
-  if Zoom(Scroll / ZoomScale) then
-     Result := ExclusiveEvents;
 end;
 
 procedure TExamineCamera.GetView(out APos, ADir, AUp: TVector3Single);
@@ -3982,20 +3949,36 @@ begin
   Result := false;
 end;
 
-function TWalkCamera.EventDown(AKey: TKey; ACharacter: Char;
-  AMousePress: boolean; AMouseButton: TMouseButton;
-  AMouseWheel: TMouseWheelDirection): boolean;
+function TWalkCamera.Press(const Event: TInputPressRelease): boolean;
 begin
+  Result := inherited;
+  if Result then Exit;
+
+  if (Event.EventType = itKey) and
+     CheckModsDown and
+     (ModifiersDown(Container.Pressed) - Input_Run.Modifiers <> []) then
+    Exit;
+
+  if (Event.EventType = itMouseWheel) and
+     (ciMouseDragging in Input) and
+     EnableDragging and
+     Event.MouseWheelVertical then
+  begin
+    RotateVertical(-Event.MouseWheelScroll * 3);
+    Result := true;
+    Exit;
+  end;
+
   if (not (ciNormal in Input)) or Animation then Exit(false);
 
   {$ifdef SINGLE_STEP_ROTATION}
-  if Input_RightRot.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
+  if Input_RightRot.IsEvent(Event) then
     RotateHorizontal(-5) else
-  if Input_LeftRot.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
+  if Input_LeftRot.IsEvent(Event) then
     RotateHorizontal(+5) else
   {$endif SINGLE_STEP_ROTATION}
 
-  if Input_GravityUp.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
+  if Input_GravityUp.IsEvent(Event) then
   begin
     if VectorsParallel(Direction, GravityUp) then
     begin
@@ -4014,47 +3997,11 @@ begin
       Up := GravityUp;
     Result := ExclusiveEvents;
   end else
-  if Input_Jump.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
+  if Input_Jump.IsEvent(Event) then
   begin
     Result := Jump and ExclusiveEvents;
   end else
     Result := false;
-end;
-
-function TWalkCamera.KeyDown(Key: TKey; C: char): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  if (not CheckModsDown) or
-     (ModifiersDown(Container.Pressed) - Input_Run.Modifiers = []) then
-  begin
-    Result := EventDown(Key, C, false, mbLeft, mwNone);
-  end;
-end;
-
-function TWalkCamera.MouseDown(const Button: TMouseButton): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  Result := EventDown(K_None, #0, true, Button, mwNone);
-end;
-
-function TWalkCamera.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  if (ciMouseDragging in Input) and EnableDragging and Vertical then
-  begin
-    RotateVertical(-Scroll * 3);
-    Result := true;
-    Exit;
-  end;
-
-  Result := EventDown(K_None, #0, false, mbLeft,
-    MouseWheelDirection(Scroll, Vertical));
 end;
 
 procedure TWalkCamera.Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single);
@@ -4530,36 +4477,20 @@ begin
   Result := Current.AllowSuspendForInput;
 end;
 
-function TUniversalCamera.KeyDown(Key: TKey; C: char): boolean;
+function TUniversalCamera.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
   if Result then Exit;
 
-  Result := Current.KeyDown(Key, C);
+  Result := Current.Press(Event);
 end;
 
-function TUniversalCamera.KeyUp(Key: TKey; C: char): boolean;
+function TUniversalCamera.Release(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
   if Result then Exit;
 
-  Result := Current.KeyUp(Key, C);
-end;
-
-function TUniversalCamera.MouseDown(const Button: TMouseButton): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  Result := Current.MouseDown(Button);
-end;
-
-function TUniversalCamera.MouseUp(const Button: TMouseButton): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  Result := Current.MouseUp(Button);
+  Result := Current.Release(Event);
 end;
 
 function TUniversalCamera.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
@@ -4568,14 +4499,6 @@ begin
   if Result then Exit;
 
   Result := Current.MouseMove(OldX, OldY, NewX, NewY);
-end;
-
-function TUniversalCamera.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  Result := Current.MouseWheel(Scroll, Vertical);
 end;
 
 procedure TUniversalCamera.SetContainer(const Value: IUIContainer);

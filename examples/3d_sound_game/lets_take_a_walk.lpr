@@ -234,13 +234,14 @@ begin
   while TntsCount < MaxTntsCount do NewTnt(3.0);
 end;
 
-procedure KeyDown(Window: TCastleWindowBase; Key: TKey; c: char);
+procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 begin
-  case key of
-    K_T: SceneManager.MainScene.Event('MyScript', 'forceThunderNow').Send(true);
-    K_F1: ShowHelpMessage;
-    K_F5: Window.SaveScreen(FileNameAutoInc('lets_take_a_walk_screen_%d.png'));
-  end;
+  if Event.EventType = itKey then
+    case Event.Key of
+      K_T: SceneManager.MainScene.Event('MyScript', 'forceThunderNow').Send(true);
+      K_F1: ShowHelpMessage;
+      K_F5: Window.SaveScreen(FileNameAutoInc('lets_take_a_walk_screen_%d.png'));
+    end;
 end;
 
 { parsing parameters --------------------------------------------------------- }
@@ -297,7 +298,7 @@ begin
   Window.OnResize := @resize;
   Window.OnIdle := @Idle;
   Window.OnTimer := @Timer;
-  Window.OnKeyDown := @KeyDown;
+  Window.OnPress := @Press;
   Window.AutoRedisplay := true;
   Window.Caption := 'Let''s take a walk';
   Window.SetDemoOptions(K_F11, CharEscape, true);

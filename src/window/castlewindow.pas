@@ -46,7 +46,7 @@
     @item(Call @link(TGLApplication.Run Application.Run).
       This will enter message loop that will call
       appropriate windows' callbacks at appropriate times
-      (OnDraw, OnKeyDown, OnResize, OnIdle and many more).
+      (OnDraw, OnPress, OnRelease, OnResize, OnIdle and many more).
       There are also some Application callbacks, like
       @link(TGLApplication.OnIdle Application.OnIdle).
 
@@ -680,11 +680,8 @@ type
   TIdleFunc = procedure;
   TWindowFunc = procedure (Window: TCastleWindowBase);
   TDrawFunc = TWindowFunc;
-  TKeyCharFunc = procedure (Window: TCastleWindowBase; Key: TKey; C: char);
   TMouseMoveFunc = procedure (Window: TCastleWindowBase; NewX, NewY: Integer);
-  TMouseUpDownFunc = procedure (Window: TCastleWindowBase; Button: TMouseButton);
-  TMouseWheelFunc = procedure (Window: TCastleWindowBase; const Scroll: Single; const Vertical: boolean);
-  TInputEventFunc = procedure (Window: TCastleWindowBase; const Event: TInputEvent);
+  TInputPressReleaseFunc = procedure (Window: TCastleWindowBase; const Event: TInputPressRelease);
   TMenuCommandFunc = procedure (Window: TCastleWindowBase; Item: TMenuItem);
   TGLContextRetryOpenFunc = function (Window: TCastleWindowBase): boolean;
 
@@ -718,10 +715,8 @@ type
     FOnResize: TWindowFunc;
     FOnClose: TWindowFunc;
     FOnCloseQuery: TWindowFunc;
-    FOnKeyDown, FOnKeyUp: TKeyCharFunc;
+    FOnPress, FOnRelease: TInputPressReleaseFunc;
     FMouseMove: TMouseMoveFunc;
-    FMouseDown, FMouseUp: TMouseUpDownFunc;
-    FMouseWheel: TMouseWheelFunc;
     FOnIdle, FOnTimer: TWindowFunc;
     FFullScreen, FDoubleBuffer: boolean;
     FResizeAllowed: TResizeAllowed;
@@ -988,7 +983,7 @@ type
       Only DoKeyUp: never pass Key = K_None.
 
       If you call DoKeyUp while (not Pressed[Key]) it will be ignored
-      (will not do any EventKeyUp etc. - just NOOP).
+      (will not do any EventRelease etc. - just NOOP).
 
       This will
          update Pressed (Pressed.Keys, Pressed.Characters, etc.) accordingly,
@@ -1094,12 +1089,9 @@ type
     function EventCloseQuery: boolean; virtual;
     procedure EventDraw; virtual;
     procedure EventBeforeDraw; virtual;
-    procedure EventKeyDown(Key: TKey; C: char); virtual;
-    procedure EventKeyUp(key: TKey; C: char); virtual;
+    procedure EventPress(const Event: TInputPressRelease); virtual;
+    procedure EventRelease(const Event: TInputPressRelease); virtual;
     procedure EventMouseMove(newX, newY: integer); virtual;
-    procedure EventMouseDown(btn: TMouseButton); virtual;
-    procedure EventMouseUp(btn: TMouseButton); virtual;
-    procedure EventMouseWheel(const Scroll: Single; const Vertical: boolean); virtual;
     procedure EventIdle; virtual;
     procedure EventTimer; virtual;
     procedure EventMenuCommand(Item: TMenuItem); virtual;
@@ -1581,60 +1573,13 @@ end;
       to OnOpen event. }
     property OnClose: TWindowFunc read FOnClose write FOnClose;
 
-    { Called when user presses a key.
-      Only for keys that can be represented as TKey or Char types.
+    { Called when user presses a key or mouse button or moves mouse wheel. }
+    property OnPress: TInputPressReleaseFunc read FOnPress write FOnPress;
 
-      Not all keyboard keys can be represented as TKey value. There are
-      some keys that generate sensible char values, but still cannot be
-      represented as TKey value, e.g. key '/' does not have any K_Xxx
-      constant for now but can be expressed as char '/'.
-      So you can get Key = K_None is such situations, e.g. OnKeyDown
-      will be called like OnKeyDown(Self, K_None, '/').
+    { Called when user releases a pressed key or mouse button.
 
-      Character c is based on pressed key, current Modifiers state,
-      state of keys like "Caps-Lock" , maybe some OS configurarion
-      (like locale-specific chars, e.g. polish "ogonki"), etc. In general,
-      it is operating-system (and window-system, and CastleWindow-backend)
-      specific. Not all key presses are representable as
-      char, so you may get c = #0 in such situations.
-      E.g. "up arrow" key does not have a corresponding char code,
-      so OnKeyDown may be called like OnKeyDown(Self, K_Up, #0).
-
-      Never will both Key = K_None and c = #0 (this would be rather useless
-      event...). (Unless you will explicitely call EventKeyDown(K_None, #0),
-      which you should never do.)
-
-      Note: once I had here separate events, OnKeyPress (with only c: char)
-      and OnKeyDown (with only Key: TKey). But this was very error-prone:
-      for one user key press you could get two events (e.g.
-      OnKeyDown(K_C) and then OnKeyPress('c')). Problems with this were easily
-      avoidable in small programs (where you can see all your OnKeyDown and
-      OnKeyPress handlers in one file), but in large programs they were producing
-      very nasty bugs. E.g. imagine that you handle in OnKeyDown key K_Enter
-      by doing CastleMessages.MessageOK. But then each time user presses
-      Enter key you
-
-      @orderedList(
-        @item(handle it in OnKeyDown calling CastleMessages.MessageOK)
-        @item(CastleMessages.MessageOK changes your CastleWindow callbacks
-         so that OnKeyPress(#13) makes CastleMessages.MessageOK exit.)
-        @item(but then you're getting OnKeyPress(#13) event (because K_Enter
-         is converted to #13 char). So CastleMessages.MessageOK ends.)
-      )
-
-      This looked like a bug in CastleMessages.MessageOK. But actually
-      it was a bug in callbacks design: you were getting two callbacks
-      (OnKeyDown amd OnKeyPress) for one event (user presses a key).
-
-      When the user holds the key pressed, we will get consecutive
-      key down events. Under some OSes, you will also get consecutive
-      key up events, but it's not guaranteed (on some OSes, you may
-      simply get only consecutive key down). So the more precise
-      definition when OnKeyDown occurs is: it's a notification that
-      the key is (still) pressed down. }
-    property OnKeyDown: TKeyCharFunc read FOnKeyDown write FOnKeyDown;
-
-    { Called when user releases a pressed key. It's called right after
+      Details about key up events:
+      It's called right after
       Pressed[Key] changed from true to false.
 
       Key is never K_None.
@@ -1647,7 +1592,7 @@ end;
       perfect, as various key combinations (sometimes more than one?) may lead
       to generating given character. We have some intelligent algorithm
       for this, used to make Characters table and to detect
-      this C for OnKeyUp callback. The idea is that a character is released
+      this C for OnRelease callback. The idea is that a character is released
       when the key that initially caused the press of this character is
       also released.
 
@@ -1657,7 +1602,7 @@ end;
       released as pressed and then released? yes.
       will small "x" be reported as released at the end? no, as it was never
       pressed.) }
-    property OnKeyUp: TKeyCharFunc read FOnKeyUp write FOnKeyUp;
+    property OnRelease: TInputPressReleaseFunc read FOnRelease write FOnRelease;
 
     { Called when user tries to close the window.
       This is called when you use window manager features to close the window,
@@ -1701,34 +1646,6 @@ end;
       mouse position, while callback parameters NewX, NewY describe
       the @italic(new) mouse position. }
     property OnMouseMove :TMouseMoveFunc read FMouseMove write FMouseMove;
-
-    { Called when you press mouse button. Remember you always have the current
-      mouse position in MouseX, MouseY.
-
-      When user presses the mouse over
-      our window, mouse is automatically captured, so all further OnMouseMove
-      OnMouseUp will be passed to this window (even if user moves mouse
-      outside of this window), until user releases all mouse buttons.
-      Note that this means that mouse positions may be outside
-      of [0..Width - 1, 0..Height - 1] range.
-
-       @groupBegin }
-    property OnMouseDown :TMouseUpDownFunc read FMouseDown write FMouseDown;
-    property OnMouseUp :TMouseUpDownFunc read FMouseUp write FMouseUp;
-    { @groupEnd }
-
-    { Event called when user scrolled with mouse wheel.
-
-      Positive value of Scroll means user scrolled up or left,
-      negative means user scrolled down or right. It is never zero.
-
-      Scroll units are such that 1.0 should be treated like a "one operation",
-      like a one click. On most normal mouses only an integer scroll will be
-      possible to make. On the other hand, on touchpads it's common to be able
-      to scroll by flexible amounts.
-
-      Backends: GTK and Xlib cannot generate Scroll values different than 1 or -1. }
-    property OnMouseWheel: TMouseWheelFunc read FMouseWheel write FMouseWheel;
 
     { Idle event is called for all open windows, all the time.
       It's called when we have no more events to process,
@@ -1807,7 +1724,7 @@ end;
       will be called when user presses some menu item.
       When user presses some keyboard shortcut for some menu item,
       no MenuItem.DoCommand and no EventMenuCommand will be called,
-      but instead normal EventKeyDown (OnKeyDown) will be called.
+      but instead normal EventPress (OnPress) will be called.
 
       When it is useful to set this to false?
       For example hen using WindowModes. When you're changing modes (e.g. at the
@@ -2310,7 +2227,7 @@ end;
     procedure SwapFullScreen;
 
     procedure EventOpen; override;
-    procedure EventKeyDown(Key: TKey; c: char); override;
+    procedure EventPress(const Event: TInputPressRelease); override;
     procedure EventIdle; override;
     function AllowSuspendForInput: boolean; override;
 
@@ -2330,7 +2247,7 @@ end;
     As long as the event is not handled,
     we look for next controls under the mouse position.
     Only if no control handled the event, we pass it to the inherited
-    EventXxx method, which calls normal window callbacks OnKeyDown etc.
+    EventXxx method, which calls normal window callbacks like OnPress.
 
     We also call other methods on every control,
     like TUIControl.Idle, TUIControl.Draw2D, TUIControl.WindowResize.
@@ -2475,12 +2392,9 @@ end;
 
     procedure EventOpen; override;
     procedure EventClose; override;
-    procedure EventKeyDown(Key: TKey; Ch: char); override;
-    procedure EventKeyUp(Key: TKey; Ch: char); override;
+    procedure EventPress(const Event: TInputPressRelease); override;
+    procedure EventRelease(const Event: TInputPressRelease); override;
     procedure EventIdle; override;
-    procedure EventMouseDown(Button: TMouseButton); override;
-    procedure EventMouseUp(Button: TMouseButton); override;
-    procedure EventMouseWheel(const Scroll: Single; const Vertical: boolean); override;
     procedure EventMouseMove(NewX, NewY: Integer); override;
     function AllowSuspendForInput: boolean; override;
     procedure EventBeforeDraw; override;
@@ -3311,7 +3225,7 @@ begin
  end else
  begin
   MakeCurrent;
-  EventKeyDown(Key, CharKey);
+  EventPress(InputKey(Key, CharKey));
  end;
 end;
 
@@ -3325,7 +3239,7 @@ begin
     Assert(Key <> K_None);
     Pressed.KeyUp(Key, C);
     MakeCurrent;
-    EventKeyUp(key, C);
+    EventRelease(InputKey(key, C));
   end;
 end;
 
@@ -3343,7 +3257,7 @@ begin
  FMouseY := y;
  Include(FMousePressed, btn);
  MakeCurrent;
- EventMouseDown(btn);
+ EventPress(InputMouseButton(btn));
 end;
 
 procedure TCastleWindowBase.DoMouseUp(x, y: integer; btn: TMouseButton);
@@ -3352,13 +3266,13 @@ begin
  FMouseY := y;
  Exclude(FMousePressed, btn);
  MakeCurrent;
- EventMouseUp(btn);
+ EventRelease(InputMouseButton(btn));
 end;
 
 procedure TCastleWindowBase.DoMouseWheel(const Scroll: Single; const Vertical: boolean);
 begin
   MakeCurrent;
-  EventMouseWheel(Scroll, Vertical);
+  EventPress(InputMouseWheel(Scroll, Vertical));
 end;
 
 procedure TCastleWindowBase.DoIdle;
@@ -3402,17 +3316,8 @@ procedure TCastleWindowBase.EventClose;                             const EventN
 {$define BONUS_LOG_STRING := Format('NewSize : %d,%d', [Width, Height])}
 procedure TCastleWindowBase.EventResize;                            const EventName = 'Resize';     begin {$I castlewindow_eventbegin.inc} if Assigned(OnResize)      then begin OnResize(Self);            end;   {$I castlewindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
-{$define BONUS_LOG_STRING := Format('Key %s, character %s (ord: %d)', [KeyToStr(Key), CharToNiceStr(c), Ord(c)])}
-procedure TCastleWindowBase.EventKeyDown(Key: TKey; C: char);       const EventName = 'KeyDown';    begin {$I castlewindow_eventbegin.inc} if Assigned(OnKeyDown)     then begin OnKeyDown(Self, Key, C);   end;   {$I castlewindow_eventend.inc} end;
-{$undef BONUS_LOG_STRING}
-{$define BONUS_LOG_STRING := Format('Key %s, character %s (ord: %d)', [KeyToStr(Key), CharToNiceStr(c), Ord(c)])}
-procedure TCastleWindowBase.EventKeyUp(key: TKey; C: char);         const EventName = 'KeyUp';      begin {$I castlewindow_eventbegin.inc} if Assigned(OnKeyUp)       then begin OnKeyUp(Self, key, C);     end;   {$I castlewindow_eventend.inc} end;
-{$undef BONUS_LOG_STRING}
-{$define BONUS_LOG_STRING := Format('Button: %s', [MouseButtonStr[btn]])}
-procedure TCastleWindowBase.EventMouseDown(btn: TMouseButton);      const EventName = 'MouseDown';  begin {$I castlewindow_eventbegin.inc} if Assigned(OnMouseDown)   then begin OnMouseDown(Self, btn);    end;   {$I castlewindow_eventend.inc} end;
-procedure TCastleWindowBase.EventMouseUp(btn: TMouseButton);        const EventName = 'MouseUp';    begin {$I castlewindow_eventbegin.inc} if Assigned(OnMouseUp)     then begin OnMouseUp(Self, btn);      end;   {$I castlewindow_eventend.inc} end;
-{$undef BONUS_LOG_STRING}
-procedure TCastleWindowBase.EventMouseWheel(const Scroll: Single; const Vertical: boolean);  const EventName = 'MouseWheel'; begin {$I castlewindow_eventbegin.inc} if Assigned(OnMouseWheel)  then begin OnMouseWheel(Self, Scroll, Vertical); end;{$I castlewindow_eventend.inc} end;
+procedure TCastleWindowBase.EventPress(const Event: TInputPressRelease);       const EventName = 'Press';    begin {$I castlewindow_eventbegin.inc} if Assigned(OnPress)   then begin OnPress  (Self, Event); end; {$I castlewindow_eventend.inc} end;
+procedure TCastleWindowBase.EventRelease(const Event: TInputPressRelease);     const EventName = 'Release';  begin {$I castlewindow_eventbegin.inc} if Assigned(OnRelease) then begin OnRelease(Self, Event); end; {$I castlewindow_eventend.inc} end;
 procedure TCastleWindowBase.EventMenuCommand(Item: TMenuItem);      const EventName = 'MenuCommand';begin {$I castlewindow_eventbegin.inc} if Assigned(OnMenuCommand) then begin OnMenuCommand(Self, Item); end;   {$I castlewindow_eventend.inc} end;
 
 { Events below happen so often, that they are logged only when
@@ -4080,11 +3985,11 @@ begin
   inherited;
 end;
 
-procedure TCastleWindowDemo.EventKeyDown(Key: TKey; c: char);
+procedure TCastleWindowDemo.EventPress(const Event: TInputPressRelease);
 begin
-  if (c <> #0) and (c = Close_CharKey) then
+  if Event.IsKey(Close_CharKey) then
     Close else
-  if (Key <> K_None) and (Key = SwapFullScreen_Key) then
+  if Event.IsKey(SwapFullScreen_Key) then
     SwapFullScreen else
     inherited;
     { nie wywoluj inherited jesli to byl klawisz Close_CharKey lub
@@ -4409,7 +4314,7 @@ begin
   inherited;
 end;
 
-procedure TCastleWindowCustom.EventKeyDown(Key: TKey; Ch: char);
+procedure TCastleWindowCustom.EventPress(const Event: TInputPressRelease);
 var
   C: TUIControl;
   I: Integer;
@@ -4420,14 +4325,14 @@ begin
     begin
       C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.KeyDown(Key, Ch) then Exit;
+        if C.Press(Event) then Exit;
     end;
   end;
 
   inherited;
 end;
 
-procedure TCastleWindowCustom.EventKeyUp(Key: TKey; Ch: char);
+procedure TCastleWindowCustom.EventRelease(const Event: TInputPressRelease);
 var
   C: TUIControl;
   I: Integer;
@@ -4438,61 +4343,7 @@ begin
     begin
       C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.KeyUp(Key, Ch) then Exit;
-    end;
-  end;
-
-  inherited;
-end;
-
-procedure TCastleWindowCustom.EventMouseDown(Button: TMouseButton);
-var
-  C: TUIControl;
-  I: Integer;
-begin
-  if UseControls then
-  begin
-    for I := 0 to Controls.Count - 1 do
-    begin
-      C := Controls[I];
-      if C.PositionInside(MouseX, MouseY) then
-        if C.MouseDown(Button) then Exit;
-    end;
-  end;
-
-  inherited;
-end;
-
-procedure TCastleWindowCustom.EventMouseUp(Button: TMouseButton);
-var
-  C: TUIControl;
-  I: Integer;
-begin
-  if UseControls then
-  begin
-    for I := 0 to Controls.Count - 1 do
-    begin
-      C := Controls[I];
-      if C.PositionInside(MouseX, MouseY) then
-        if C.MouseUp(Button) then Exit;
-    end;
-  end;
-
-  inherited;
-end;
-
-procedure TCastleWindowCustom.EventMouseWheel(const Scroll: Single; const Vertical: boolean);
-var
-  C: TUIControl;
-  I: Integer;
-begin
-  if UseControls then
-  begin
-    for I := 0 to Controls.Count - 1 do
-    begin
-      C := Controls[I];
-      if C.PositionInside(MouseX, MouseY) then
-        if C.MouseWheel(Scroll, Vertical) then Exit;
+        if C.Release(Event) then Exit;
     end;
   end;
 

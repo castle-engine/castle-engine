@@ -33,7 +33,8 @@ implementation
 
 uses SysUtils, GL, CastleWindow, CastleFilesUtils,
   CastleGLUtils, RiftData, WindowModes, DOM, Images, CastleSoundEngine,
-  GLImages, UIControls, CastleStringUtils, RiftSound, RiftVideoOptions;
+  GLImages, UIControls, CastleStringUtils, RiftSound, RiftVideoOptions,
+  KeysMouse;
 
 { $define DEBUG_INTRO_FAST}
 
@@ -117,20 +118,14 @@ begin
   end;
 end;
 
-procedure KeyDown(Window: TCastleWindowBase; key: TKey; c: char);
+procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 begin
-  if C = CharEscape then
+  if Event.IsKey(CharEscape) then
     UserQuit := true else
   { Don't let player skip to next part before watching the corrode animation.
     Later: this was bothersome, just let player advance to next part always. }
   { if IntroPartTime > IntroParts[IntroPart].CorrodeDuration then }
-    NextIntroPart;
-end;
-
-procedure MouseDown(Window: TCastleWindowBase; Button: TMouseButton);
-begin
-  { Don't let player skip to next part before watching the corrode animation }
-  if IntroPartTime > IntroParts[IntroPart].CorrodeDuration then
+  if Event.EventType in [itKey, itMouseButton] then
     NextIntroPart;
 end;
 
@@ -151,8 +146,7 @@ begin
 
     Window.FpsShowOnCaption := DebugMenuFps;
     Window.AutoRedisplay := true;
-    Window.OnKeyDown := @KeyDown;
-    Window.OnMouseDown := @MouseDown;
+    Window.OnPress := @Press;
     Window.OnIdle := @Idle;
     { actually we draw in 2D, but it's the current projection anyway }
     Window.OnDrawStyle := ds3D;

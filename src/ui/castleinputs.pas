@@ -232,7 +232,7 @@ type
     function IsEvent(AKey: TKey; ACharacter: Char;
       AMousePress: boolean; AMouseButton: TMouseButton;
       AMouseWheel: TMouseWheelDirection): boolean;
-    function IsEvent(const Event: TInputEvent): boolean;
+    function IsEvent(const Event: TInputPressRelease): boolean;
 
     { Describe this input shortcut. If it's not active at all
       (like after MakeClear), we will use NoneString. }
@@ -258,11 +258,8 @@ type
       on InputsAll list) decides which is first. }
     property GroupOrder: Integer read FGroupOrder write FGroupOrder;
 
-    { Add to Shortcut new key or mouse button or mouse wheel.
-      Only one of them (parameters NewXxx like for TInputShortcut.IsEvent). }
-    procedure AddShortcut(const NewKey: TKey;
-      const NewMousePress: boolean; const NewMouseButton: TMouseButton;
-      const NewMouseWheel: TMouseWheelDirection);
+    { Add to shortcut new key or mouse button or mouse wheel. }
+    procedure Add(const NewEvent: TInputPressRelease);
 
     { Nice text describing the shortcut value. }
     function Description: string;
@@ -343,11 +340,9 @@ type
     procedure SaveToConfig(const Config: TCastleConfig);
     function FindName(const Name: string): TInputShortcut;
   public
-    { Seeks for a Shortcut that has matching key or mouse button or mouse wheel.
+    { Seeks for a shortcut that has matching key or mouse button or mouse wheel.
       @nil if not found. }
-    function SeekMatchingShortcut(const Key: TKey;
-      const MousePress: boolean; const MouseButton: TMouseButton;
-      const MouseWheel: TMouseWheelDirection): TInputShortcut;
+    function SeekMatchingShortcut(const Event: TInputPressRelease): TInputShortcut;
     procedure RestoreDefaults;
     function SeekConflict(out ConflictDescription: string): boolean;
   end;
@@ -503,12 +498,12 @@ begin
     Result := IsKey(AKey, ACharacter);
 end;
 
-function TInputShortcut.IsEvent(const Event: TInputEvent): boolean;
+function TInputShortcut.IsEvent(const Event: TInputPressRelease): boolean;
 begin
   case Event.EventType of
-    etKey        : Result := IsKey(Event.Key, Event.KeyCharacter);
-    etMouseButton: Result := IsMouseButton(Event.MouseButton);
-    etMouseWheel : Result := IsMouseWheel(Event.MouseWheel);
+    itKey        : Result := IsKey(Event.Key, Event.KeyCharacter);
+    itMouseButton: Result := IsMouseButton(Event.MouseButton);
+    itMouseWheel : Result := IsMouseWheel(Event.MouseWheel);
     else EInternalError.Create('TInputShortcut.IsEvent: Event.EventType?');
   end;
 end;
@@ -605,26 +600,28 @@ begin
   end;
 end;
 
-procedure TInputShortcut.AddShortcut(const NewKey: TKey;
-  const NewMousePress: boolean; const NewMouseButton: TMouseButton;
-  const NewMouseWheel: TMouseWheelDirection);
+procedure TInputShortcut.Add(const NewEvent: TInputPressRelease);
 begin
-  if NewMousePress then
-  begin
-    MouseButtonUse := NewMousePress;
-    MouseButton := NewMouseButton;
-  end else
-  if NewMouseWheel <> mwNone then
-    MouseWheel := NewMouseWheel else
-  if Key1 = K_None then
-    Key1 := NewKey else
-  if Key2 = K_None then
-    Key2 := NewKey else
-  begin
-    { We move the previous Key1 to Key2, and set Key1 to new key.
-      This looks nice for user when this is displayed as the menu argument. }
-    Key2 := Key1;
-    Key1 := NewKey;
+  case NewEvent.EventType of
+    itMouseButton:
+      begin
+        MouseButtonUse := true;
+        MouseButton := NewEvent.MouseButton;
+      end;
+    itMouseWheel:
+      MouseWheel := NewEvent.MouseWheel;
+    itKey:
+      if Key1 = K_None then
+        Key1 := NewEvent.Key else
+      if Key2 = K_None then
+        Key2 := NewEvent.Key else
+      begin
+        { We move the previous Key1 to Key2, and set Key1 to new key.
+          This looks nice for user when this is displayed as the menu argument. }
+        Key2 := Key1;
+        Key1 := NewEvent.Key;
+      end;
+    else raise EInternalError.Create('TInputShortcut.Add: NewEvent.EventType?');
   end;
 end;
 
@@ -636,16 +633,14 @@ end;
 { TInputShortcutList ----------------------------------------------------- }
 
 function TInputShortcutList.SeekMatchingShortcut(
-  const Key: TKey;
-  const MousePress: boolean; const MouseButton: TMouseButton;
-  const MouseWheel: TMouseWheelDirection): TInputShortcut;
+  const Event: TInputPressRelease): TInputShortcut;
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
   begin
     Result := Items[I];
-    if Result.IsEvent(Key, #0, MousePress, MouseButton, MouseWheel) then
+    if Result.IsEvent(Event) then
       Exit;
   end;
   Result := nil;

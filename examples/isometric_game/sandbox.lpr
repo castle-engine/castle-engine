@@ -138,7 +138,7 @@ begin
   HorizontalGLLine(0, Window.Width, Window.Height / 2); }
 end;
 
-procedure KeyDown(Window: TCastleWindowBase; key: TKey; c: char);
+procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 var
   NewViewMoveX, NewViewMoveY: Integer;
 
@@ -203,31 +203,34 @@ var
 var
   FileName: string;
 begin
-  case C of
-    'f': begin
-           ViewFollowsPlayer := not ViewFollowsPlayer;
-           if not ViewFollowsPlayer then
-           begin
-             { Set ViewMoveX/Y initial values such that the player is still
-               in the middle. This is less confusing for user. }
-             ViewMoveToCenterPosition(Player.X, Player.Y,
-               NewViewMoveX, NewViewMoveY);
-             ViewMoveX := NewViewMoveX;
-             ViewMoveY := NewViewMoveY;
+  if Event.EventType = itKey then
+  begin
+    case Event.KeyCharacter of
+      'f': begin
+             ViewFollowsPlayer := not ViewFollowsPlayer;
+             if not ViewFollowsPlayer then
+             begin
+               { Set ViewMoveX/Y initial values such that the player is still
+                 in the middle. This is less confusing for user. }
+               ViewMoveToCenterPosition(Player.X, Player.Y,
+                 NewViewMoveX, NewViewMoveY);
+               ViewMoveX := NewViewMoveX;
+               ViewMoveY := NewViewMoveY;
+             end;
            end;
-         end;
-    'e': EditBaseTile;
-    'E': EditBonusTile;
-    's': begin
-           FileName := 'new';
-           if MessageInputQuery(Window, 'Save map as name' +
-             ' (don''t specify here initial path and .map extension)',
-             FileName, taLeft) then
-           Map.SaveToFile(ProgramDataPath + 'maps' + PathDelim +
-             FileName + '.map');
-         end;
-    'i': ShowFieldInfo;
-    CharEscape: Quit := true;
+      'e': EditBaseTile;
+      'E': EditBonusTile;
+      's': begin
+             FileName := 'new';
+             if MessageInputQuery(Window, 'Save map as name' +
+               ' (don''t specify here initial path and .map extension)',
+               FileName, taLeft) then
+             Map.SaveToFile(ProgramDataPath + 'maps' + PathDelim +
+               FileName + '.map');
+           end;
+      'i': ShowFieldInfo;
+      CharEscape: Quit := true;
+    end;
   end;
 end;
 
@@ -268,11 +271,6 @@ begin
   Player.Idle;
 end;
 
-procedure MouseDown(Window: TCastleWindowBase; Button: TMouseButton);
-begin
-  { Nothing for now. }
-end;
-
 procedure Game;
 var
   SavedMode: TGLMode;
@@ -280,8 +278,7 @@ begin
   SavedMode := TGLMode.CreateReset(Window, 0, true, @Draw, @Resize2D, nil);
   try
     Window.AutoRedisplay := true;
-    Window.OnKeyDown := @KeyDown;
-    Window.OnMouseDown := @MouseDown;
+    Window.OnPress := @Press;
     Window.OnIdle := @Idle;
 
     Quit := false;

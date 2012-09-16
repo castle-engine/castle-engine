@@ -464,10 +464,9 @@ type
       read FKeySliderDecrease write FKeySliderDecrease
       default DefaultMenuKeySliderDecrease;
 
-    function KeyDown(Key: TKey; C: char): boolean; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
-    function MouseDown(const Button: TMouseButton): boolean; override;
-    function MouseUp(const Button: TMouseButton): boolean; override;
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
@@ -1385,119 +1384,163 @@ begin
     DrawPositionRelativeLine;
 end;
 
-function TCastleOnScreenMenu.KeyDown(Key: TKey; C: char): boolean;
+function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
 
-  function CurrentItemAccessoryKeyDown: boolean;
+  function KeyDown(const Key: TKey; const C: char): boolean;
+
+    function CurrentItemAccessoryKeyDown: boolean;
+    begin
+      Result := false;
+      if Items.Objects[CurrentItem] <> nil then
+      begin
+        Result := TMenuAccessory(Items.Objects[CurrentItem]).KeyDown(
+          Key, C, Self);
+      end;
+    end;
+
+    procedure IncPositionRelative(var P: TPositionRelative);
+    var
+      OldChange, NewChange: TVector2Integer;
+    begin
+      { We want to change P, but preserve PositionAbsolute.
+        I.e. we want to change P, but also adjust Position such that
+        resulting PositionAbsolute will stay the same. This is very comfortable
+        for user is DesignerMode that wants often to change some
+        PositionRelative, but wants to preserve current menu position
+        (as visible on the screen currently) the same.
+
+        Key is the equation
+          PositionAbsolute = Position + PositionScreenRelativeMove - PositionMenuRelativeMove;
+        The part that changes when P changes is
+          (PositionScreenRelativeMove - PositionMenuRelativeMove)
+        Currently it's equal OldChange. So
+          PositionAbsolute = Position + OldChange
+        After P changes and FixItemsRectangles does it's work, it's NewChange. So it's
+          PositionAbsolute = Position + NewChange;
+        But I want PositionAbsolute to stay the same. So I add (OldChange - NewChange)
+        to the equation after:
+          PositionAbsolute = Position + (OldChange - NewChange) + NewChange;
+        This way PositionAbsolute will stay the same. So
+          NewPosition := Position + (OldChange - NewChange); }
+      OldChange := PositionScreenRelativeMove - PositionMenuRelativeMove;
+
+      if P = High(P) then
+        P := Low(P) else
+        P := Succ(P);
+
+      { Call FixItemsRectangles only to set new
+        PositionScreenRelativeMove - PositionMenuRelativeMove. }
+      FixItemsRectangles;
+
+      NewChange := PositionScreenRelativeMove - PositionMenuRelativeMove;
+      Position := Position + OldChange - NewChange;
+
+      { Call FixItemsRectangles once again, since Position changed. }
+      FixItemsRectangles;
+    end;
+
+  const
+    PositionRelativeName: array [TPositionRelative] of string =
+    ( 'prLowerBorder',
+      'prMiddle',
+      'prHigherBorder' );
+    BooleanToStr: array [boolean] of string=('false','true');
+
   begin
     Result := false;
-    if Items.Objects[CurrentItem] <> nil then
+
+    if Key = KeyPreviousItem then
     begin
-      Result := TMenuAccessory(Items.Objects[CurrentItem]).KeyDown(
-        Key, C, Self);
+      PreviousItem;
+      Result := ExclusiveEvents;
+    end else
+    if Key = KeyNextItem then
+    begin
+      NextItem;
+      Result := ExclusiveEvents;
+    end else
+    if Key = KeySelectItem then
+    begin
+      CurrentItemAccessoryKeyDown;
+      Click;
+      Result := ExclusiveEvents;
+    end else
+      Result := CurrentItemAccessoryKeyDown;
+
+    if DesignerMode then
+    begin
+      case C of
+        CtrlB:
+          begin
+            DrawBackgroundRectangle := not DrawBackgroundRectangle;
+            Result := ExclusiveEvents;
+          end;
+        'x': begin IncPositionRelative(FPositionRelativeScreenX); Result := ExclusiveEvents; end;
+        'y': begin IncPositionRelative(FPositionRelativeScreenY); Result := ExclusiveEvents; end;
+        CtrlX: begin IncPositionRelative(FPositionRelativeMenuX); Result := ExclusiveEvents; end;
+        CtrlY: begin IncPositionRelative(FPositionRelativeMenuY); Result := ExclusiveEvents; end;
+        CtrlD:
+          begin
+            InfoWrite(Format(
+              'Position.Init(%f, %f);' +nl+
+              'PositionRelativeScreenX := %s;' +nl+
+              'PositionRelativeScreenY := %s;' +nl+
+              'PositionRelativeMenuX := %s;' +nl+
+              'PositionRelativeMenuY := %s;' +nl+
+              'DrawBackgroundRectangle := %s;',
+              [ Position[0],
+                Position[1],
+                PositionRelativeName[PositionRelativeScreenX],
+                PositionRelativeName[PositionRelativeScreenY],
+                PositionRelativeName[PositionRelativeMenuX],
+                PositionRelativeName[PositionRelativeMenuY],
+                BooleanToStr[DrawBackgroundRectangle] ]));
+            Result := ExclusiveEvents;
+          end;
+      end;
     end;
   end;
 
-  procedure IncPositionRelative(var P: TPositionRelative);
+  function MouseDown(const Button: TMouseButton): boolean;
   var
-    OldChange, NewChange: TVector2Integer;
+    NewItemIndex: Integer;
+    MX, MY: Integer;
   begin
-    { We want to change P, but preserve PositionAbsolute.
-      I.e. we want to change P, but also adjust Position such that
-      resulting PositionAbsolute will stay the same. This is very comfortable
-      for user is DesignerMode that wants often to change some
-      PositionRelative, but wants to preserve current menu position
-      (as visible on the screen currently) the same.
+    Result := false;
 
-      Key is the equation
-        PositionAbsolute = Position + PositionScreenRelativeMove - PositionMenuRelativeMove;
-      The part that changes when P changes is
-        (PositionScreenRelativeMove - PositionMenuRelativeMove)
-      Currently it's equal OldChange. So
-        PositionAbsolute = Position + OldChange
-      After P changes and FixItemsRectangles does it's work, it's NewChange. So it's
-        PositionAbsolute = Position + NewChange;
-      But I want PositionAbsolute to stay the same. So I add (OldChange - NewChange)
-      to the equation after:
-        PositionAbsolute = Position + (OldChange - NewChange) + NewChange;
-      This way PositionAbsolute will stay the same. So
-        NewPosition := Position + (OldChange - NewChange); }
-    OldChange := PositionScreenRelativeMove - PositionMenuRelativeMove;
+    { For TCastleOnScreenMenu, we like MouseY going higher from the bottom to the top. }
+    MX := Container.MouseX;
+    MY := ContainerHeight - Container.MouseY;
 
-    if P = High(P) then
-      P := Low(P) else
-      P := Succ(P);
+    if (CurrentItem <> -1) and
+       (Items.Objects[CurrentItem] <> nil) and
+       (PointInRectangle(MX, MY, FAccessoryRectangles.L[CurrentItem])) and
+       (Container.MousePressed - [Button] = []) then
+    begin
+      ItemAccessoryGrabbed := CurrentItem;
+      TMenuAccessory(Items.Objects[CurrentItem]).MouseDown(
+        MX, MY, Button, FAccessoryRectangles.L[CurrentItem], Self);
+      Result := ExclusiveEvents;
+    end;
 
-    { Call FixItemsRectangles only to set new
-      PositionScreenRelativeMove - PositionMenuRelativeMove. }
-    FixItemsRectangles;
-
-    NewChange := PositionScreenRelativeMove - PositionMenuRelativeMove;
-    Position := Position + OldChange - NewChange;
-
-    { Call FixItemsRectangles once again, since Position changed. }
-    FixItemsRectangles;
+    if Button = mbLeft then
+    begin
+      NewItemIndex := Rectangles.FindRectangle(MX, MY);
+      if NewItemIndex <> -1 then
+      begin
+        CurrentItem := NewItemIndex;
+        Click;
+        Result := ExclusiveEvents;
+      end;
+    end;
   end;
-
-const
-  PositionRelativeName: array [TPositionRelative] of string =
-  ( 'prLowerBorder',
-    'prMiddle',
-    'prHigherBorder' );
-  BooleanToStr: array [boolean] of string=('false','true');
 
 begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
-
-  if Key = KeyPreviousItem then
-  begin
-    PreviousItem;
-    Result := ExclusiveEvents;
-  end else
-  if Key = KeyNextItem then
-  begin
-    NextItem;
-    Result := ExclusiveEvents;
-  end else
-  if Key = KeySelectItem then
-  begin
-    CurrentItemAccessoryKeyDown;
-    Click;
-    Result := ExclusiveEvents;
-  end else
-    Result := CurrentItemAccessoryKeyDown;
-
-  if DesignerMode then
-  begin
-    case C of
-      CtrlB:
-        begin
-          DrawBackgroundRectangle := not DrawBackgroundRectangle;
-          Result := ExclusiveEvents;
-        end;
-      'x': begin IncPositionRelative(FPositionRelativeScreenX); Result := ExclusiveEvents; end;
-      'y': begin IncPositionRelative(FPositionRelativeScreenY); Result := ExclusiveEvents; end;
-      CtrlX: begin IncPositionRelative(FPositionRelativeMenuX); Result := ExclusiveEvents; end;
-      CtrlY: begin IncPositionRelative(FPositionRelativeMenuY); Result := ExclusiveEvents; end;
-      CtrlD:
-        begin
-          InfoWrite(Format(
-            'Position.Init(%f, %f);' +nl+
-            'PositionRelativeScreenX := %s;' +nl+
-            'PositionRelativeScreenY := %s;' +nl+
-            'PositionRelativeMenuX := %s;' +nl+
-            'PositionRelativeMenuY := %s;' +nl+
-            'DrawBackgroundRectangle := %s;',
-            [ Position[0],
-              Position[1],
-              PositionRelativeName[PositionRelativeScreenX],
-              PositionRelativeName[PositionRelativeScreenY],
-              PositionRelativeName[PositionRelativeMenuX],
-              PositionRelativeName[PositionRelativeMenuY],
-              BooleanToStr[DrawBackgroundRectangle] ]));
-          Result := ExclusiveEvents;
-        end;
-    end;
+  case Event.EventType of
+    itKey        : Result := KeyDown(Event.Key, Event.KeyCharacter);
+    itMouseButton: Result := MouseDown(Event.MouseButton);
   end;
 end;
 
@@ -1551,45 +1594,10 @@ begin
   Result := ExclusiveEvents;
 end;
 
-function TCastleOnScreenMenu.MouseDown(const Button: TMouseButton): boolean;
-var
-  NewItemIndex: Integer;
-  MX, MY: Integer;
+function TCastleOnScreenMenu.Release(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  if Result or (not GetExists) then Exit;
-
-  { For TCastleOnScreenMenu, we like MouseY going higher from the bottom to the top. }
-  MX := Container.MouseX;
-  MY := ContainerHeight - Container.MouseY;
-
-  if (CurrentItem <> -1) and
-     (Items.Objects[CurrentItem] <> nil) and
-     (PointInRectangle(MX, MY, FAccessoryRectangles.L[CurrentItem])) and
-     (Container.MousePressed - [Button] = []) then
-  begin
-    ItemAccessoryGrabbed := CurrentItem;
-    TMenuAccessory(Items.Objects[CurrentItem]).MouseDown(
-      MX, MY, Button, FAccessoryRectangles.L[CurrentItem], Self);
-    Result := ExclusiveEvents;
-  end;
-
-  if Button = mbLeft then
-  begin
-    NewItemIndex := Rectangles.FindRectangle(MX, MY);
-    if NewItemIndex <> -1 then
-    begin
-      CurrentItem := NewItemIndex;
-      Click;
-      Result := ExclusiveEvents;
-    end;
-  end;
-end;
-
-function TCastleOnScreenMenu.MouseUp(const Button: TMouseButton): boolean;
-begin
-  Result := inherited;
-  if Result or (not GetExists) then Exit;
+  if Result or (not GetExists) or (Event.EventType <> itMouseButton) then Exit;
 
   { This is actually not needed, smart check for
     (MousePressed - [Button] = []) inside MouseDown handles everything,

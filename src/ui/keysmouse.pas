@@ -440,7 +440,7 @@ function MouseWheelDirection(const Scroll: Single; const Vertical: boolean): TMo
 function StrToKey(const S: string; const DefaultKey: TKey): TKey;
 
 type
-  TInputEventType = (etKey, etMouseButton, etMouseWheel);
+  TInputPressReleaseType = (itKey, itMouseButton, itMouseWheel);
 
   { Input press or release event.
     Either key press/release (see TUIControl.KeyDown, TUIControl.KeyUp) or
@@ -448,33 +448,86 @@ type
     mouse wheel action (see TUIControl.MouseWheel).
     This is nicely matching with TInputShortcut processing in CastleInputs,
     so it allows to easily store and check for user actions. }
-  TInputEvent = object
-    EventType: TInputEventType;
+  TInputPressRelease = object
+    EventType: TInputPressReleaseType;
 
-    { When EventType is etKey, this is the key pressed or released.
+    { When EventType is itKey, this is the key pressed or released.
       Either Key <> K_None or KeyCharacter <> #0 in this case.
+      When EventType <> itKey, then Key = K_None and KeyCharacter = #0.
+
+      Both Key and KeyCharacter represent the same action. Sometimes one,
+      sometimes the other is useful.
+
+      Not all keyboard keys can be represented as TKey value.
+      For example, key '/' does not have any K_Xxx constant (it will have Key = K_None)
+      for now but can be expressed as char '/'.
+      Also not all keys can be represented as character, for example "up arrow"
+      (K_Up) doesn't have a char code (it will have KeyCharacter = #0).
+
+      KeyCharacter is influenced by some other keys state,
+      like Shift or Ctrl or CapsLock or some key to input localized characters
+      (all dependent on your system settings, we don't deal with it in our engine,
+      we merely take what system gives us). For example, you can get "a" or "A"
+      depending of Shift and CapsLock state, or CtrlA if you hold Ctrl.
+
+      When the user holds the key pressed, we will get consecutive
+      key down events. Under some OSes, you will also get consecutive
+      key up events, but it's not guaranteed (on some OSes, you may
+      simply get only consecutive key down). So the more precise
+      definition when key down occurs is: it's a notification that
+      the key is (still) pressed down.
       @groupBegin }
     Key: TKey;
     KeyCharacter: char;
     { @groupEnd }
 
-    { When EventType is etMouseButton, this is the mouse button pressed or released. }
+    { When EventType is itMouseButton, this is the mouse button pressed or released.
+
+      CastleWindow notes (but relevant also to other interfaces, like Lazarus
+      component, although in that case it's beyond our control):
+      When user presses the mouse over
+      our control, mouse is automatically captured, so all further OnMouseMove
+      following mouse release will be passed to this control (even if user moves mouse
+      outside of this control), until user releases all mouse buttons.
+      Note that this means that mouse positions may be outside
+      of [0..Width - 1, 0..Height - 1] range. }
     MouseButton: TMouseButton;
 
-    { When EventType is etMouseWheel, this is the mouse wheel action.
-      MouseWheel is never mwNone in this case.
+    { When EventType is itMouseWheel, this is the mouse wheel action.
+      MouseWheel is mwNone if and only if EventType <> itMouseWheel.
+
+      Positive value of Scroll means user scrolled up or left,
+      negative means user scrolled down or right. It is never zero
+      (as long as EventType = itMouseWheel of course).
+
+      Scroll units are such that 1.0 should be treated like a "one operation",
+      like a one click. On most normal mouses only an integer scroll will be
+      possible to make. On the other hand, on touchpads it's common to be able
+      to scroll by flexible amounts.
+
+      CastleWindow backends notes:
+      GTK and Xlib cannot generate Scroll values different than 1 or -1.
+
       @groupBegin }
     MouseWheelScroll: Single;
     MouseWheelVertical: boolean;
     function MouseWheel: TMouseWheelDirection;
     { @groupEnd }
+
+    { Check is event type correct, and then check if event Key or KeyCharacter
+      matches. Always false for AKey = K_None or AKeyCharacter = #0.
+      @groupBegin }
+    function IsKey(const AKey: TKey): boolean;
+    function IsKey(const AKeyCharacter: char): boolean;
+    { @groupEnd }
+    function IsMouseButton(const AMouseButton: TMouseButton): boolean;
   end;
 
-{ Construct TInputEvent corresponding to given event.
+{ Construct TInputPressRelease corresponding to given event.
   @groupBegin }
-function EventKey(const Key: TKey; const KeyCharacter: Char): TInputEvent;
-function EventMouseButton(const MouseButton: TMouseButton): TInputEvent;
-function EventMouseWheel(const Scroll: Single; const Vertical: boolean): TInputEvent;
+function InputKey(const Key: TKey; const KeyCharacter: Char): TInputPressRelease;
+function InputMouseButton(const MouseButton: TMouseButton): TInputPressRelease;
+function InputMouseWheel(const Scroll: Single; const Vertical: boolean): TInputPressRelease;
 { @groupEnd }
 
 implementation
@@ -790,32 +843,49 @@ begin
   FillChar(PressedCharacterToKey, SizeOf(PressedCharacterToKey), 0);
 end;
 
-{ TInputEvent ---------------------------------------------------------------- }
+{ TInputPressRelease --------------------------------------------------------- }
 
-function TInputEvent.MouseWheel: TMouseWheelDirection;
+function TInputPressRelease.MouseWheel: TMouseWheelDirection;
 begin
-  Result := MouseWheelDirection(MouseWheelScroll, MouseWheelVertical);
+  if EventType = itMouseWheel then
+    Result := mwNone else
+    Result := MouseWheelDirection(MouseWheelScroll, MouseWheelVertical);
 end;
 
-function EventKey(const Key: TKey; const KeyCharacter: Char): TInputEvent;
+function TInputPressRelease.IsKey(const AKey: TKey): boolean;
+begin
+  Result := (AKey <> K_None) and (EventType = itKey) and (Key = AKey);
+end;
+
+function TInputPressRelease.IsKey(const AKeyCharacter: char): boolean;
+begin
+  Result := (AKeyCharacter <> #0) and (EventType = itKey) and (KeyCharacter = AKeyCharacter);
+end;
+
+function TInputPressRelease.IsMouseButton(const AMouseButton: TMouseButton): boolean;
+begin
+  Result := (EventType = itMouseButton) and (MouseButton = AMouseButton);
+end;
+
+function InputKey(const Key: TKey; const KeyCharacter: Char): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
-  Result.EventType := etKey;
+  Result.EventType := itKey;
   Result.Key := Key;
   Result.KeyCharacter := KeyCharacter;
 end;
 
-function EventMouseButton(const MouseButton: TMouseButton): TInputEvent;
+function InputMouseButton(const MouseButton: TMouseButton): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
-  Result.EventType := etMouseButton;
+  Result.EventType := itMouseButton;
   Result.MouseButton := MouseButton;
 end;
 
-function EventMouseWheel(const Scroll: Single; const Vertical: boolean): TInputEvent;
+function InputMouseWheel(const Scroll: Single; const Vertical: boolean): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
-  Result.EventType := etMouseWheel;
+  Result.EventType := itMouseWheel;
   Result.MouseWheelScroll := Scroll;
   Result.MouseWheelVertical := Vertical;
 end;

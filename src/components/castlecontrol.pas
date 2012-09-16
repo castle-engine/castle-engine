@@ -123,7 +123,7 @@ type
       *Event method.
 
       Note that this means that OnKeyDown / OnKeyUp are always fired
-      (this is contrary to the TCastleWindowCustom OnKeyDown / OnKeyUp behaviour,
+      (this is contrary to the TCastleWindowCustom.OnPress / OnRelease behaviour,
       that is called only if no TCastleControlCustom.Controls processed
       this key).
 
@@ -1207,7 +1207,7 @@ begin
     begin
       C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.KeyDown(MyKey, Ch) then
+        if C.Press(InputKey(MyKey, Ch)) then
         begin
           Key := 0;
           Exit;
@@ -1233,7 +1233,7 @@ begin
     begin
       C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.KeyUp(MyKey, Ch) then
+        if C.Release(InputKey(MyKey, Ch)) then
         begin
           Key := 0;
           Exit;
@@ -1257,7 +1257,7 @@ begin
     begin
       C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.MouseDown(MyButton) then
+        if C.Press(InputMouseButton(MyButton)) then
           Exit;
     end;
   end;
@@ -1278,7 +1278,7 @@ begin
     begin
       C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.MouseUp(MyButton) then
+        if C.Release(InputMouseButton(MyButton)) then
           Exit;
     end;
   end;
@@ -1317,7 +1317,7 @@ begin
     begin
       C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.MouseWheel(Scroll, true) then
+        if C.Press(InputMouseWheel(Scroll, true)) then
         begin
           Result := true;
           Exit;

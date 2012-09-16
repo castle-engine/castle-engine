@@ -510,8 +510,8 @@ SIGNAL_WINDOW_BEGIN
 
  { It would be nice to say here Result := true if key was handled
    in DoKeyDown. But I don't have any indicator whether key was handled
-   in EventKeyDown or OnKeyDown (because such thing would complicate
-   implementation of OnKeyDown callback in every program using
+   in EventPress or OnPress (because such thing would complicate
+   implementation of OnPress callback in every program using
    CastleWindow). So I must assume that either (1) always or (2) never
    when I called DoKeyDown key is handled.
    But (1) is actually not acceptable, because it disallows user

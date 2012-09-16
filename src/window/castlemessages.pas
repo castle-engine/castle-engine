@@ -63,7 +63,7 @@
     @item(
       It's implemented using WindowModes approach. Which means that when you call
       some MessageXxx procedure, it temporarily switches all TCastleWindowBase callbacks
-      (OnDraw, OnKeyDown, OnMouseDown, OnIdle etc.) for it's own.
+      (OnDraw, OnPress, OnRelease, OnIdle etc.) for it's own.
       So you can be sure that e.g. no TCastleWindow callbacks that you registered in your
       own programs/units will be called while MessageXxx works.
       When message box ends (e.g. for simple MessageOk, this happens when user
@@ -229,25 +229,20 @@ function MessageKey(Window: TCastleWindowBase; TextList: TStringList;
 
 { Ask user to press any key or mouse button or mouse wheel, and return it.
   The natural use for this is to allow user to configure
-  keybindings of your program, like for Navigation.TInputShortcut.
+  keybindings of your program, like for TInputShortcut.
 
-  If user pressed a mouse button, returns MousePress = @true and relevant
-  MouseButton. If user pressed a mouse wheel, returns MouseWheel
-  (different than mwNone).
-  If user pressed a key, returns appropriate Key (for sure <> K_None).
+  TODO: for historical reasons, in case of key events,
+  it for now returns only events that can be represented as TKey
+  (so Event.Key <> K_None, as long as Event.EventType = itKey).
 
   @groupBegin }
 procedure MessageKeyMouse(Window: TCastleWindowBase; const S: string;
   const ClosingInfo: string; TextAlign: TTextAlign;
-  out Key: TKey;
-  out MousePress: boolean; out MouseButton: TMouseButton;
-  out MouseWheel: TMouseWheelDirection); overload;
+  out Event: TInputPressRelease); overload;
 
 procedure MessageKeyMouse(Window: TCastleWindowBase; TextList: TStringList;
   const ClosingInfo: string; TextAlign: TTextAlign;
-  out Key: TKey;
-  out MousePress: boolean; out MouseButton: TMouseButton;
-  out MouseWheel: TMouseWheelDirection); overload;
+  out Event: TInputPressRelease); overload;
 { @groupEnd }
 
 function MessageYesNo(Window: TCastleWindowBase; const s: string;
@@ -511,12 +506,10 @@ type
     ScrollBarDragging: boolean;
 
     { set in MessageCore, readonly afterwards }
-    OnUserKeyDown: TKeyCharFunc;
-    OnUserMouseDown: TMouseUpDownFunc;
-    OnUserMouseWheel: TMouseWheelFunc;
-    { If @true then OnUserMouseDown will occur only when user clicks
+    OnUserPress: TInputPressReleaseFunc;
+    { If @true then OnUserPress with itMouseButton will occur only when user clicks
       inside the rectangular area of our message window.
-      If @false, OnUserMouseDown will occur on mouse down event
+      If @false, it will occur on mouse down event
       anywhere on our window. }
     UserMouseDownOnlyWithinRect: boolean;
 
@@ -691,70 +684,82 @@ begin
  end;
 end;
 
-procedure KeyDownMessg(Window: TCastleWindowBase; key: TKey; c: char);
+procedure PressMessg(Window: TCastleWindowBase; const Event: TInputPressRelease);
 var
   md: TMessageData;
   KeyHandled: boolean;
+  mx, my: integer; { mousex, y przetlumaczone na wspolrzedne OpenGL'a tego okienka }
 begin
   md := TMessageData(Window.userdata);
+  case Event.EventType of
+    itKey:
+      begin
+        KeyHandled := false;
 
-  KeyHandled := false;
+        { if not ScrollBarVisible then there is no point in doing
+          md.setFloatShiftY (because always
+          minShiftY = maxShiftY = FloatShiftY = 0, see ResizeMessg comments).
 
-  { if not ScrollBarVisible then there is no point in doing
-    md.setFloatShiftY (because always
-    minShiftY = maxShiftY = FloatShiftY = 0, see ResizeMessg comments).
+          This way I allow md.OnUserKeyDown to handle K_PageDown, K_PageUp,
+          K_Home and K_End keys. And this is very handy for MessageKey,
+          when it's used e.g. to allow user to choose any TKey.
+          Otherwise MessageKey would not be able to return
+          K_PageDown, K_PageUp, etc. keys. }
+        if MD.ScrollBarVisible then
+        begin
+          case Event.Key of
+            K_PageUp:   begin md.setFloatShiftYPageUp(Window);         KeyHandled := true; end;
+            K_PageDown: begin md.setFloatShiftYPageDown(Window);       KeyHandled := true; end;
+            K_Home:     begin md.setFloatShiftY(Window, md.minShiftY); KeyHandled := true; end;
+            K_End:      begin md.setFloatShiftY(Window, md.maxShiftY); KeyHandled := true; end;
+          end;
+        end;
 
-    This way I allow md.OnUserKeyDown to handle K_PageDown, K_PageUp,
-    K_Home and K_End keys. And this is very handy for MessageKey,
-    when it's used e.g. to allow user to choose any TKey.
-    Otherwise MessageKey would not be able to return
-    K_PageDown, K_PageUp, etc. keys. }
-  if MD.ScrollBarVisible then
-  begin
-    case Key of
-      K_PageUp:   begin md.setFloatShiftYPageUp(Window);         KeyHandled := true; end;
-      K_PageDown: begin md.setFloatShiftYPageDown(Window);       KeyHandled := true; end;
-      K_Home:     begin md.setFloatShiftY(Window, md.minShiftY); KeyHandled := true; end;
-      K_End:      begin md.setFloatShiftY(Window, md.maxShiftY); KeyHandled := true; end;
-    end;
-  end;
+        if not KeyHandled then
+        begin
+          if Assigned(md.OnUserPress) then
+            md.OnUserPress(Window, Event);
+        end;
+      end;
+    itMouseButton:
+      begin
+        mx := Window.mouseX;
+        my := Window.height-Window.mouseY;
 
-  if not KeyHandled then
-  begin
-    if Assigned(md.OnUserKeyDown) then
-      md.OnUserKeyDown(Window, Key, c);
+        if (Event.MouseButton = mbLeft) and
+          md.ScrollBarVisible and PointInRect(mx, my, md.ScrollBarRect) then
+        begin
+          if my < md.przewVisY1 then md.SetFloatShiftYPageDown(Window) else
+          if my > md.przewVisY2 then md.SetFloatShiftYPageUp(Window) else
+          begin
+            md.ScrollBarDragging := true;
+          end;
+        end else
+        if (not MD.UserMouseDownOnlyWithinRect) or
+           PointInRect(mx, my, md.WholeMessageRect) then
+        begin
+          if Assigned(MD.OnUserPress) then
+            MD.OnUserPress(Window, Event);
+        end;
+      end;
+    itMouseWheel:
+      begin
+        if Event.MouseWheelVertical then
+        begin
+          MD.SetFloatShiftY(Window,
+            MD.ShiftY - Event.MouseWheelScroll * MD.Font.RowHeight);
+
+          if Assigned(MD.OnUserPress) then
+            MD.OnUserPress(Window, Event);
+        end;
+      end;
   end;
 end;
 
-procedure MouseDownMessg(Window: TCastleWindowBase; btn: TMouseButton);
-var mx, my: integer; { mousex, y przetlumaczone na wspolrzedne OpenGL'a tego okienka }
-    md: TMessageData;
+procedure ReleaseMessg(Window: TCastleWindowBase; const Event: TInputPressRelease);
 begin
-  md := TMessageData(Window.userdata);
-
-  mx := Window.mouseX;
-  my := Window.height-Window.mouseY;
-
-  if (btn = mbLeft) and
-    md.ScrollBarVisible and PointInRect(mx, my, md.ScrollBarRect) then
-  begin
-    if my < md.przewVisY1 then md.SetFloatShiftYPageDown(Window) else
-    if my > md.przewVisY2 then md.SetFloatShiftYPageUp(Window) else
-    begin
-      md.ScrollBarDragging := true;
-    end;
-  end else
-  if (not MD.UserMouseDownOnlyWithinRect) or
-     PointInRect(mx, my, md.WholeMessageRect) then
-  begin
-    if Assigned(MD.OnUserMouseDown) then
-      MD.OnUserMouseDown(Window, Btn);
-  end;
-end;
-
-procedure MouseUpMessg(Window: TCastleWindowBase; btn: TMouseButton);
-begin
- if btn = mbLeft then TMessageData(Window.userdata).ScrollBarDragging := false;
+  if Event.IsMouseButton(mbLeft) then
+    TMessageData(Window.userdata).ScrollBarDragging := false;
 end;
 
 procedure MouseMoveMessg(Window: TCastleWindowBase; newx, newy: integer);
@@ -779,20 +784,6 @@ begin
 
  { i gotowe, przesuwamy shiftY o moveY }
  md.setFloatShiftY(Window, md.shiftY + moveY);
-end;
-
-procedure MouseWheelMessg(Window: TCastleWindowBase; const Scroll: Single; const Vertical: boolean);
-var
-  MD: TMessageData;
-begin
-  if Vertical then
-  begin
-    MD := TMessageData(Window.UserData);
-    MD.SetFloatShiftY(Window, MD.ShiftY - Scroll * MD.Font.RowHeight);
-
-    if Assigned(MD.OnUserMouseWheel) then
-      MD.OnUserMouseWheel(Window, Scroll, Vertical);
-  end;
 end;
 
 procedure IdleMessg(Window: TCastleWindowBase);
@@ -1004,16 +995,14 @@ end;
     click on other places.
 }
 procedure MessageCore(Window: TCastleWindowBase; textlist: TStringList;
-  textalign: TTextAlign; MessageOnUserKeyDown: TKeyCharFunc;
-  MessageOnUserMouseDown: TMouseUpDownFunc;
-  MessageOnUserMouseWheel: TMouseWheelFunc;
+  textalign: TTextAlign; MessageOnUserPress: TInputPressReleaseFunc;
   AUserMouseDownOnlyWithinRect: boolean;
   messageUserdata: pointer;
   const AClosingInfo: string; { = '' znaczy "nie rysuj ClosingInfo" }
   AdrawAdditional: boolean; var ASAdditional: string);
 { Robi cos co wyglada jak dialog window w srodku podanego Window.
   Na pewien czas podmienia callbacki Window; mozna podac jaki
-  bedzie callback na OnKeyDown i OnDraw; W callbackach uzywamy
+  bedzie callback na OnPress i OnDraw; W callbackach uzywamy
   ustawianej w tej procedurze strukturze TMessageData (bierzemy ja z
   PMessageData(Window.UserData) ). W ten sposob mozna wywolac na wielu
   roznch okienkach MessageCore i wszystko bedzie dzialalo ok.
@@ -1071,10 +1060,8 @@ begin
 
  with Window do begin
   OnMouseMove := @mouseMoveMessg;
-  OnMouseDown := @mouseDownMessg;
-  OnMouseWheel := @MouseWheelMessg;
-  OnMouseUp := @mouseUpMessg;
-  OnKeyDown := @KeyDownMessg;
+  OnPress := @PressMessg;
+  OnRelease := @ReleaseMessg;
   OnIdle := @idleMessg;
   PostRedisplay;
  end;
@@ -1108,9 +1095,7 @@ begin
     GL_PACK_xxx. }
   with messageData do
   begin
-   OnUserKeyDown := messageOnUserKeyDown;
-   OnUserMouseDown := MessageOnUserMouseDown;
-   OnUserMouseWheel := MessageOnUserMouseWheel;
+   OnUserPress := messageOnUserPress;
    UserMouseDownOnlyWithinRect := AUserMouseDownOnlyWithinRect;
    if Window.DoubleBuffer then
     dlDrawBG := SaveScreen_ToDisplayList_noflush(0, 0, Window.Width, Window.Height, GL_BACK) else
@@ -1172,32 +1157,23 @@ end;
 
 procedure MessageCore_NoAdditional(Window: TCastleWindowBase; textlist: TStringList;
   textalign: TTextAlign;
-  MessageOnUserKeyDown: TKeyCharFunc;
-  MessageOnUserMouseDown: TMouseUpDownFunc;
-  MessageOnUserMouseWheel: TMouseWheelFunc;
+  MessageOnUserPress: TInputPressReleaseFunc;
   AUserMouseDownOnlyWithinRect: boolean;
   messageUserdata: pointer;
   const AClosingInfo: string);
 var dummy: string;
 begin
  dummy := '';
- MessageCore(Window, textlist, textalign, MessageOnUserKeyDown,
-   MessageOnUserMouseDown, MessageOnUserMouseWheel,
+ MessageCore(Window, textlist, textalign, MessageOnUserPress,
    AUserMouseDownOnlyWithinRect,
    messageUserdata, AClosingInfo, false, dummy);
 end;
 
 { MessageOK function with callbacks ------------------------------------------ }
 
-procedure MouseDownMessgOK(Window: TCastleWindowBase; Btn: TMouseButton);
+procedure PressMessgOK(Window: TCastleWindowBase; const Event: TInputPressRelease);
 begin
-  if Btn = mbLeft then
-    TMessageData(Window.UserData).answered := true;
-end;
-
-procedure KeyDownMessgOK(Window: TCastleWindowBase; key: TKey; c: char);
-begin
-  if c = #13 then
+  if Event.IsMouseButton(mbLeft) or Event.IsKey(CharEnter) then
     TMessageData(Window.UserData).answered := true;
 end;
 
@@ -1226,7 +1202,7 @@ procedure MessageOK(Window: TCastleWindowBase;  textlist: TStringList;
   textalign: TTextAlign);
 begin
  MessageCore_NoAdditional(Window, textlist, textalign,
-   @KeyDownMessgOK, @MouseDownMessgOK, nil, true, nil, '[Enter]');
+   @PressMessgOK, true, nil, '[Enter]');
 end;
 
 { MessageInput function with callbacks --------------------------------------- }
@@ -1242,45 +1218,47 @@ type
   end;
   PInputData = ^TInputData;
 
-procedure KeyDownMessgInput(Window: TCastleWindowBase; key: TKey; c: char);
+procedure PressMessgInput(Window: TCastleWindowBase; const Event: TInputPressRelease);
 var md: TMessageData;
     id: PInputData;
 begin
- md := TMessageData(Window.UserData);
- id := PInputData(md.userdata);
+  md := TMessageData(Window.UserData);
+  id := PInputData(md.userdata);
 
- { Under Windows, pressing ctrl+backspace causes key = K_BackSpace with
-   character = CharDelete. That is, Windows automatically replaces ctrl+backspace
-   with delete (leaving it ambigous what should I do --- look at key code or
-   character?). Here, I want to detect ctrl+backspace, and not detect "real" delete
-   key presses (that may be handled in the future, right now there's no cursor
-   so delete doesn't work, only backspace). So I just look at both Key and C
-   to detect backspace. }
- if (C = CharBackSpace) or (Key = K_BackSpace) then
- begin
-   if md.SAdditional <> '' then
-     if mkCtrl in Window.Pressed.Modifiers then
-       md.SetSAdditional(Window, '') else
-       md.SetSAdditional(Window, Copy(md.SAdditional, 1, Length(md.SAdditional)-1));
- end else
- case c of
-  CharEnter:
+  { Under Windows, pressing ctrl+backspace causes key = K_BackSpace with
+    character = CharDelete. That is, Windows automatically replaces ctrl+backspace
+    with delete (leaving it ambigous what should I do --- look at key code or
+    character?). Here, I want to detect ctrl+backspace, and not detect "real" delete
+    key presses (that may be handled in the future, right now there's no cursor
+    so delete doesn't work, only backspace). So I just look at both Key and C
+    to detect backspace. }
+  if Event.IsKey(CharBackSpace) or Event.IsKey(K_BackSpace) then
+  begin
+    if md.SAdditional <> '' then
+      if mkCtrl in Window.Pressed.Modifiers then
+        md.SetSAdditional(Window, '') else
+        md.SetSAdditional(Window, Copy(md.SAdditional, 1, Length(md.SAdditional)-1));
+  end else
+  if Event.IsKey(CharEnter) then
+  begin
     if Length(md.SAdditional) >= id^.answerMinLen then
-     md.answered := true else
-     MessageOk(Window, Format('You must enter at least %d characters.',
-       [id^.answerMinLen]), taMiddle);
-  CharEscape:
+      md.answered := true else
+      MessageOk(Window, Format('You must enter at least %d characters.',
+        [id^.answerMinLen]), taMiddle);
+  end else
+  if Event.IsKey(CharEscape) then
+  begin
     if id^.userCanCancel then
     begin
-     id^.answerCancelled := true;
-     md.answered := true;
+      id^.answerCancelled := true;
+      md.answered := true;
     end;
-  else
-   if (c <> #0) and
-      (c in id^.answerAllowedChars) and
-      ((id^.answerMaxLen = 0) or (length(md.SAdditional) < id^.answerMaxLen)) then
-     md.SetSAdditional(Window, md.SAdditional + c);
- end;
+  end else
+  if (Event.EventType = itKey) and
+     (Event.KeyCharacter <> #0) and
+     (Event.KeyCharacter in id^.answerAllowedChars) and
+     ((id^.answerMaxLen = 0) or (length(md.SAdditional) < id^.answerMaxLen)) then
+    md.SetSAdditional(Window, md.SAdditional + Event.KeyCharacter);
 end;
 
 function MessageInput(Window: TCastleWindowBase; const s: string;
@@ -1308,7 +1286,7 @@ begin
  inputdata.answerCancelled := false;
  result := answerDefault;
  MessageCore(Window, textlist, textalign,
-   @KeyDownMessgInput, nil, nil, false, @inputdata, '', true, result);
+   @PressMessgInput, false, @inputdata, '', true, result);
 end;
 
 function MessageInputQuery(Window: TCastleWindowBase; const s: string;
@@ -1341,8 +1319,7 @@ begin
   answer. }
  SAdditional := answer;
  MessageCore(Window, textlist, textalign,
-   @KeyDownMessgInput, nil, nil, false,
-   @inputdata, 'OK[Enter] / Cancel[Escape]', true, SAdditional);
+   @PressMessgInput, false, @inputdata, 'OK[Enter] / Cancel[Escape]', true, SAdditional);
  result := not inputdata.answerCancelled;
  if result then answer := SAdditional;
 end;
@@ -1357,13 +1334,17 @@ type
   end;
   PCharData = ^TCharData;
 
-procedure KeyDownMessgChar(Window: TCastleWindowBase; key: TKey; c: char);
+procedure PressMessgChar(Window: TCastleWindowBase; const Event: TInputPressRelease);
 var
   md: TMessageData;
   cd: PCharData;
+  C: char;
 begin
   md := TMessageData(Window.UserData);
   cd := PCharData(md.userdata);
+
+  if Event.EventType <> itKey then Exit;
+  C := Event.KeyCharacter;
 
   if cd^.IgnoreCase then
   begin
@@ -1416,7 +1397,7 @@ begin
  chardata.allowedChars := AllowedChars;
  chardata.IgnoreCase := IgnoreCase;
  MessageCore_NoAdditional(Window, textlist, textalign,
-   @KeyDownMessgChar, nil, nil, false,
+   @PressMessgChar, false,
    @chardata, ClosingInfo);
  result := chardata.answer;
 end;
@@ -1429,7 +1410,7 @@ type
   end;
   PMessageKeyData = ^TMessageKeyData;
 
-procedure MessageKey_KeyDown(Window: TCastleWindowBase; Key: TKey; C: char);
+procedure MessageKey_Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 var
   MD: TMessageData;
   KD: PMessageKeyData;
@@ -1437,10 +1418,10 @@ begin
   MD := TMessageData(Window.UserData);
   KD := PMessageKeyData(MD.UserData);
 
-  if Key <> K_None then
+  if (Event.EventType = itKey) and (Event.Key <> K_None) then
   begin
     MD.Answered := true;
-    KD^.Answer := Key;
+    KD^.Answer := Event.Key;
   end;
 end;
 
@@ -1474,7 +1455,7 @@ var
   MessageKeyData: TMessageKeyData;
 begin
   MessageCore_NoAdditional(Window, TextList, TextAlign,
-    @MessageKey_KeyDown, nil, nil, false, @MessageKeyData, ClosingInfo);
+    @MessageKey_Press, false, @MessageKeyData, ClosingInfo);
   Result := MessageKeyData.Answer;
 end;
 
@@ -1482,14 +1463,11 @@ end;
 
 type
   TMessageKeyMouseData = record
-    AnswerKey: TKey;
-    AnswerMousePress: boolean;
-    AnswerMouseButton: TMouseButton;
-    AnswerMouseWheel: TMouseWheelDirection;
+    Answer: TInputPressRelease;
   end;
   PMessageKeyMouseData = ^TMessageKeyMouseData;
 
-procedure MessageKeyMouse_KeyDown(Window: TCastleWindowBase; Key: TKey; C: char);
+procedure MessageKeyMouse_Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 var
   MD: TMessageData;
   KD: PMessageKeyMouseData;
@@ -1497,79 +1475,35 @@ begin
   MD := TMessageData(Window.UserData);
   KD := PMessageKeyMouseData(MD.UserData);
 
-  if Key <> K_None then
+  if (Event.EventType <> itKey) or (Event.Key <> K_None) then
   begin
     MD.Answered := true;
-    KD^.AnswerKey := Key;
-    KD^.AnswerMousePress := false;
-    KD^.AnswerMouseButton := mbLeft; { not relevant }
-    KD^.AnswerMouseWheel := mwNone;
+    KD^.Answer := Event;
   end;
-end;
-
-procedure MessageKeyMouse_MouseDown(Window: TCastleWindowBase; MouseButton: TMouseButton);
-var
-  MD: TMessageData;
-  KD: PMessageKeyMouseData;
-begin
-  MD := TMessageData(Window.UserData);
-  KD := PMessageKeyMouseData(MD.UserData);
-
-  MD.Answered := true;
-  KD^.AnswerKey := K_None;
-  KD^.AnswerMousePress := true;
-  KD^.AnswerMouseButton := MouseButton;
-  KD^.AnswerMouseWheel := mwNone;
-end;
-
-procedure MessageKeyMouse_MouseWheel(Window: TCastleWindowBase;
-  const Scroll: Single; const Vertical: boolean);
-var
-  MD: TMessageData;
-  KD: PMessageKeyMouseData;
-begin
-  MD := TMessageData(Window.UserData);
-  KD := PMessageKeyMouseData(MD.UserData);
-
-  MD.Answered := true;
-  KD^.AnswerKey := K_None;
-  KD^.AnswerMousePress := false;
-  KD^.AnswerMouseButton := mbLeft; { not relevant }
-  KD^.AnswerMouseWheel := MouseWheelDirection(Scroll, Vertical);
 end;
 
 procedure MessageKeyMouse(Window: TCastleWindowBase; const S: string;
   const ClosingInfo: string; TextAlign: TTextAlign;
-  out Key: TKey;
-  out MousePress: boolean; out MouseButton: TMouseButton;
-  out MouseWheel: TMouseWheelDirection);
+  out Event: TInputPressRelease);
 var
   TextList: TStringList;
 begin
   TextList := TStringList.Create;
   try
     Strings_SetText(TextList, S);
-    MessageKeyMouse(Window, TextList, ClosingInfo, TextAlign,
-      Key, MousePress, MouseButton, MouseWheel);
+    MessageKeyMouse(Window, TextList, ClosingInfo, TextAlign, Event);
   finally TextList.Free end;
 end;
 
 procedure MessageKeyMouse(Window: TCastleWindowBase; TextList: TStringList;
   const ClosingInfo: string; TextAlign: TTextAlign;
-  out Key: TKey;
-  out MousePress: boolean; out MouseButton: TMouseButton;
-  out MouseWheel: TMouseWheelDirection);
+  out Event: TInputPressRelease);
 var
   Data: TMessageKeyMouseData;
 begin
   MessageCore_NoAdditional(Window, TextList, TextAlign,
-    @MessageKeyMouse_KeyDown,
-    @MessageKeyMouse_MouseDown,
-    @MessageKeyMouse_MouseWheel, false, @Data, ClosingInfo);
-  Key := Data.AnswerKey;
-  MousePress := Data.AnswerMousePress;
-  MouseButton := Data.AnswerMouseButton;
-  MouseWheel := Data.AnswerMouseWheel;
+    @MessageKeyMouse_Press, false, @Data, ClosingInfo);
+  Event := Data.Answer;
 end;
 
 { MessageYesNo ktore jest po prostu realizowane przez MessageChar ------------ }

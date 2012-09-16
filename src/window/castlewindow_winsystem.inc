@@ -23,7 +23,7 @@
 @longCode(#
   if HasKeyDown then
   try
-    OnKeyDown(...);
+    OnPress(...);
   except
     Close;
     raise;
@@ -82,8 +82,8 @@ private
      dostalismy message jest aktualnie na liscie Application.OpenWindows.
      Pamietajmy bowiem ze do naszej kolejki komunikatow mogly
      trafic message'y dla okienek ktore juz zamknelismy - typowym
-     przykladem jest gdy zamykamy okienko w reakcji na jakies OnKeyDown.
-     Przeciez w kolejce komunikatow moze nam wtedy zostac OnKeyUp
+     przykladem jest gdy zamykamy okienko w reakcji na jakies OnPress.
+     Przeciez w kolejce komunikatow moze nam wtedy zostac OnRelease
      (wyslany przez WindowManagera kiedy mysmy robili cos innego.
      User szybko zrobil key down, potem up, dopiero potem my zauwazylismy
      ze dostalismy KeyDown, zrobilismy sobie Close (moze nawet

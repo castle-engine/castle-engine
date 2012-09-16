@@ -34,7 +34,7 @@ uses GL, CastleGLUtils, CastleWindow, CastleStringUtils, VectorMath, CastleFiles
   RaysWindow, Math, UIControls, GLRenderer,
   RiftVideoOptions, RiftLocations, RiftCreatures, RiftWindow, RiftGame,
   CastleGameNotifications, RenderingCameraUnit, Base3D,
-  RiftSceneManager;
+  RiftSceneManager, KeysMouse;
 
 var
   Player: TPlayer;
@@ -149,52 +149,53 @@ end;
 
 { rest ----------------------------------------------------------------------- }
 
-procedure KeyDown(Window: TCastleWindowBase; key: TKey; c: char);
+procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 var
   FileName: string;
-begin
-  case C of
-    CharEscape: UserQuit := true;
-    { TODO: only debug feature. }
-    's':
-      begin
-        Inc(DebugScene3DDisplay);
-        if DebugScene3DDisplay = 3 then DebugScene3DDisplay := 0;
-        { When DebugScene3DDisplay = 0, the scene only goes to depth buffer,
-          so make it faster. }
-        if DebugScene3DDisplay = 0 then
-          CurrentLocation.Scene.Attributes.Mode := rmDepth else
-          CurrentLocation.Scene.Attributes.Mode := rmFull;
-      end;
-    else
-      case Key of
-        K_F5:
-          begin
-            FileName := FileNameAutoInc('rift_screen_%d.png');
-            Window.SaveScreen(FileName);
-            Notifications.Show(Format('Saved screenshot to "%s"', [FileName]));
-          end;
-      end;
-  end;
-end;
-
-procedure MouseDown(Window: TCastleWindowBase; Button: TMouseButton);
-var
   RayOrigin, RayDirection, SelectedPoint: TVector3Single;
 begin
-  if Button = mbLeft then
-  begin
-    SceneCamera.CustomRay(
-      0, 0, Window.Width, Window.Height, Window.Height,
-      Window.MouseX, Window.MouseY,
-      { Always uses perspective projection, for now }
-      true, Vector2Single(AngleOfViewX, AngleOfViewY), ZeroVector4Single,
-      RayOrigin, RayDirection);
-    if CurrentLocation.Scene.OctreeCollisions.RayCollision(
-         SelectedPoint, RayOrigin, RayDirection, true, nil, false, nil) <> nil then
-    begin
-      Player.WantsToWalk(SelectedPoint);
-    end;
+  case Event.EventType of
+    itKey:
+      case Event.KeyCharacter of
+        CharEscape: UserQuit := true;
+        { TODO: only debug feature. }
+        's':
+          begin
+            Inc(DebugScene3DDisplay);
+            if DebugScene3DDisplay = 3 then DebugScene3DDisplay := 0;
+            { When DebugScene3DDisplay = 0, the scene only goes to depth buffer,
+              so make it faster. }
+            if DebugScene3DDisplay = 0 then
+              CurrentLocation.Scene.Attributes.Mode := rmDepth else
+              CurrentLocation.Scene.Attributes.Mode := rmFull;
+          end;
+        else
+          case Event.Key of
+            K_F5:
+              begin
+                FileName := FileNameAutoInc('rift_screen_%d.png');
+                Window.SaveScreen(FileName);
+                Notifications.Show(Format('Saved screenshot to "%s"', [FileName]));
+              end;
+          end;
+      end;
+    itMouseButton:
+      begin
+        if Event.MouseButton = mbLeft then
+        begin
+          SceneCamera.CustomRay(
+            0, 0, Window.Width, Window.Height, Window.Height,
+            Window.MouseX, Window.MouseY,
+            { Always uses perspective projection, for now }
+            true, Vector2Single(AngleOfViewX, AngleOfViewY), ZeroVector4Single,
+            RayOrigin, RayDirection);
+          if CurrentLocation.Scene.OctreeCollisions.RayCollision(
+               SelectedPoint, RayOrigin, RayDirection, true, nil, false, nil) <> nil then
+          begin
+            Player.WantsToWalk(SelectedPoint);
+          end;
+        end;
+      end;
   end;
 end;
 
@@ -291,8 +292,7 @@ begin
       Window.Controls.Add(SceneManager);
       InitLocation;
 
-      Window.OnKeyDown := @KeyDown;
-      Window.OnMouseDown := @MouseDown;
+      Window.OnPress := @Press;
       Window.OnIdle := @Idle;
       Window.OnDrawStyle := ds3D;
 

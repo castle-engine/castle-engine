@@ -100,9 +100,24 @@ begin
   Notifications.Show(Format('Timer message. Time now %s', [FormatDateTime('tt', Time)]));
 end;
 
-procedure KeyDown(Window: TCastleWindowBase; key: TKey; c: char);
+function EventToStr(const Event: TInputPressRelease): string;
 begin
-  { Tes
+  case Event.EventType of
+    itKey: Result := Format('key %s, char %s (ord %d)',
+      [ KeyToStr(Event.Key),
+        CharToNiceStr(Event.KeyCharacter),
+        Ord(Event.KeyCharacter)]);
+    itMouseButton: Result := 'mouse ' + MouseButtonStr[Event.MouseButton];
+    itMouseWheel: Result := Format('mouse wheel %f, vertical: %s',
+      [ Event.MouseWheelScroll,
+        BoolToStr[Event.MouseWheelVertical]]);
+    else raise EInternalError.Create('EventToStr: Event.EventType?');
+  end;
+end;
+
+procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
+begin
+  { Tests:
   case C of
     'n': Window.Cursor := mcNone;
     'd': Window.Cursor := mcDefault;
@@ -114,46 +129,18 @@ begin
     '5': Window.SetMousePosition(Window.Width div 2, Window.Height div 2);
   end; }
 
-  Notifications.Show(Format('KeyDown message : key %s, char %s (ord %d)',
-    [KeyToStr(key), CharToNiceStr(c), Ord(c)]));
+  Notifications.Show('Press message : ' + EventToStr(Event));
 end;
 
-procedure KeyUp(Window: TCastleWindowBase; key: TKey; c: char);
+procedure Release(Window: TCastleWindowBase; const Event: TInputPressRelease);
 begin
-  Notifications.Show(Format('KeyUp message : key %s, char %s (ord %d)',
-    [KeyToStr(key), CharToNiceStr(c), Ord(c)]));
-end;
-
-function MouseButtonToStr(btn: TMouseButton): string;
-begin
-  case btn of
-    mbLeft: result := 'left';
-    mbMiddle: result := 'middle';
-    mbRight: result := 'right';
-  end;
-end;
-
-procedure MouseDown(Window: TCastleWindowBase; btn: TMouseButton);
-begin
-  Notifications.Show(Format('Mouse Down message : %s (at %d,%d)',
-    [MouseButtonToStr(btn), Window.MouseX, Window.MouseY]));
-end;
-
-procedure MouseUp(Window: TCastleWindowBase; btn: TMouseButton);
-begin
-  Notifications.Show(Format('Mouse Up message : %s (at %d,%d)',
-    [MouseButtonToStr(btn), Window.MouseX, Window.MouseY]));
+  Notifications.Show('Release message : ' + EventToStr(Event));
 end;
 
 procedure MouseMove(Window: TCastleWindowBase; newX, newY: integer);
 begin
   Notifications.Show(Format('Mouse Move : old pos %d %d, new pos %d %d',
     [Window.MouseX, Window.MouseY, newX, newY]));
-end;
-
-procedure MouseWheel(Window: TCastleWindowBase; const Scroll: Single; const Vertical: boolean);
-begin
-  Notifications.Show(Format('Mouse Wheel: %f, vertical: %s', [Scroll, BoolToStr[Vertical]]));
 end;
 
 begin
@@ -166,12 +153,9 @@ begin
   Window.OnResize := @Resize;
   Window.OnBeforeDraw := @BeforeDraw;
   Window.OnDraw := @Draw;
-  Window.OnKeyDown := @KeyDown;
-  Window.OnKeyUp := @KeyUp;
-  Window.OnMouseDown := @MouseDown;
+  Window.OnPress := @Press;
+  Window.OnRelease := @Release;
   Window.OnMouseMove := @MouseMove;
-  Window.OnMouseUp := @MouseUp;
-  Window.OnMouseWheel := @MouseWheel;
   Window.SetDemoOptions(K_F11, CharEscape, true);
 
   Window.OnIdle := @Idle;

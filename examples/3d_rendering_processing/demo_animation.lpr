@@ -68,15 +68,15 @@ uses VectorMath, X3DNodes, GL, GLU, CastleWindow, CastleWarnings,
   CastleClassUtils, CastleUtils, SysUtils, Classes, X3DLoad,
   CastleGLUtils, CastleScene, PrecalculatedAnimation,
   CastleFilesUtils, CastleParameters, CastleProgress, ProgressUnit,
-  CastleStringUtils;
+  CastleStringUtils, KeysMouse;
 
 var
   Window: TCastleWindow;
   Animation: TCastlePrecalculatedAnimation;
 
-procedure KeyDown(Window: TCastleWindowBase; Key: TKey; C: char);
+procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 begin
-  if C = ' ' then
+  if Event.IsKey(' ') then
     Animation.ResetTime(0.0);
 end;
 
@@ -187,7 +187,7 @@ begin
     Progress.UserInterface := WindowProgressInterface;
 
     Window.AutoRedisplay := true;
-    Window.OnKeyDown := @KeyDown;
+    Window.OnPress := @Press;
     Window.Caption := ProgramName;
     Window.SetDemoOptions(K_F11, CharEscape, true);
 

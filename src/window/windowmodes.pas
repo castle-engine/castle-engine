@@ -41,9 +41,7 @@ type
   private
     { TCastleWindowBase attributes }
     OldMouseMove: TMouseMoveFunc;
-    OldMouseDown, OldMouseUp: TMouseUpDownFunc;
-    OldMouseWheel: TMouseWheelFunc;
-    OldKeyDown, OldKeyUp: TKeyCharFunc;
+    OldPress, OldRelease: TInputPressReleaseFunc;
     OldBeforeDraw, OldDraw, OldCloseQuery, OldIdle, OldTimer: TWindowFunc;
     OldResize: TWindowFunc;
     OldMenuCommand: TMenuCommandFunc;
@@ -189,7 +187,7 @@ type
 
         @item(
           All pressed keys and mouse butons are saved and faked to be released,
-          by calling TCastleWindowBase.EventMouseUp, Window.EventKeyUp with original
+          by calling TCastleWindowBase.EventRelease with original
           callbacks.
           This way, if user releases some keys/mouse inside modal box,
           your original TCastleWindowBase callbacks will not miss this fact.
@@ -208,7 +206,7 @@ type
           So the default value of FakeMouseDown is @false.
           But this means that original callbacks have to be careful
           and @italic(never assume) that when some button is pressed
-          (because it's included in MousePressed, or has MouseUp generated for it)
+          (because it's included in MousePressed, or has EventRelease generated for it)
           then for sure there occurred some MouseDown for it.
         )
 
@@ -306,11 +304,8 @@ end;
 procedure TWindowState.GetState(Window: TCastleWindowBase);
 begin
   OldMouseMove := Window.OnMouseMove;
-  OldMouseDown := Window.OnMouseDown;
-  OldMouseUp := Window.OnMouseUp;
-  OldMouseWheel := Window.OnMouseWheel;
-  OldKeyDown := Window.OnKeyDown;
-  OldKeyUp := Window.OnKeyUp;
+  OldPress := Window.OnPress;
+  OldRelease := Window.OnRelease;
   OldBeforeDraw := Window.OnBeforeDraw;
   OldDraw := Window.OnDraw;
   OldCloseQuery := Window.OnCloseQuery;
@@ -345,11 +340,8 @@ end;
 procedure TWindowState.SetState(Window: TCastleWindowBase);
 begin
   Window.OnMouseMove := OldMouseMove;
-  Window.OnMouseDown := OldMouseDown;
-  Window.OnMouseUp := OldMouseUp;
-  Window.OnMouseWheel := OldMouseWheel;
-  Window.OnKeyDown := OldKeyDown;
-  Window.OnKeyUp := OldKeyUp;
+  Window.OnPress := OldPress;
+  Window.OnRelease := OldRelease;
   Window.OnBeforeDraw := OldBeforeDraw;
   Window.OnDraw := OldDraw;
   Window.OnCloseQuery := OldCloseQuery;
@@ -385,11 +377,8 @@ class procedure TWindowState.SetStandardState(Window: TCastleWindowBase;
   NewDraw, NewResize, NewCloseQuery: TWindowFunc);
 begin
   Window.OnMouseMove := nil;
-  Window.OnMouseDown := nil;
-  Window.OnMouseUp := nil;
-  Window.OnMouseWheel := nil;
-  Window.OnKeyDown := nil;
-  Window.OnKeyUp := nil;
+  Window.OnPress := nil;
+  Window.OnRelease := nil;
   Window.OnBeforeDraw := nil;
   Window.OnDraw := nil;
   Window.OnCloseQuery := nil;
@@ -438,13 +427,13 @@ constructor TGLMode.Create(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfiel
       all mouse buttons and key presses now. }
     for Button := Low(Button) to High(Button) do
       if Button in Window.MousePressed then
-        Window.EventMouseUp(Button);
+        Window.EventRelease(InputMouseButton(Button));
     for Key := Low(Key) to High(Key) do
       if Window.Pressed[Key] then
-        Window.EventKeyUp(Key, #0);
+        Window.EventRelease(InputKey(Key, #0));
     for C := Low(C) to High(C) do
       if Window.Pressed.Characters[C] then
-        Window.EventKeyUp(K_None, C);
+        Window.EventRelease(InputKey(K_None, C));
   end;
 
 begin
@@ -565,7 +554,7 @@ begin
    if FakeMouseDown then
      for btn := Low(btn) to High(btn) do
        if btn in Window.mousePressed then
-         Window.EventMouseDown(btn);
+         Window.EventPress(InputMouseButton(btn));
 
    Window.PostRedisplay;
 

@@ -33,7 +33,7 @@ uses WindowModes, Cameras, CastleGLUtils, CastleWindow, GL, VectorMath, SysUtils
   BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts,
   Classes, CastleStringUtils, CastleMessages, CastleFilesUtils,
   RiftVideoOptions, RiftGame, RiftWindow, RiftCreatures,
-  UIControls, RiftSceneManager, CastleColors;
+  UIControls, RiftSceneManager, CastleColors, KeysMouse;
 
 var
   Creature: TCreature;
@@ -66,7 +66,7 @@ begin
   finally S.Free end;
 end;
 
-procedure KeyDown(Window: TCastleWindowBase; key: TKey; c: char);
+procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 
   procedure ChangeState(NewState: TCreatureState);
   begin
@@ -79,17 +79,18 @@ procedure KeyDown(Window: TCastleWindowBase; key: TKey; c: char);
   end;
 
 begin
-  case C of
-    CharEscape: UserQuit := true;
-    'h': (SceneManager.Camera as TWalkCamera).GoToInitial;
-    's': ChangeState(csStand);
-    'w': ChangeState(csWalk);
-    'b': ChangeState(csBored);
-    else
-      case Key of
-        K_F5: Window.SaveScreen(FileNameAutoInc('rift_screen_%d.png'));
-      end;
-  end;
+  if Event.EventType = itKey then
+    case Event.KeyCharacter of
+      CharEscape: UserQuit := true;
+      'h': (SceneManager.Camera as TWalkCamera).GoToInitial;
+      's': ChangeState(csStand);
+      'w': ChangeState(csWalk);
+      'b': ChangeState(csBored);
+      else
+        case Event.Key of
+          K_F5: Window.SaveScreen(FileNameAutoInc('rift_screen_%d.png'));
+        end;
+    end;
 end;
 
 procedure Idle(Window: TCastleWindowBase);
@@ -129,7 +130,7 @@ begin
       SceneManager.Items.Add(Creature);
 
       Window.OnDraw := @Draw2D;
-      Window.OnKeyDown := @KeyDown;
+      Window.OnPress := @Press;
       Window.OnIdle := @Idle;
       Window.OnDrawStyle := ds2D;
 

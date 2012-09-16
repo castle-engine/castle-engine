@@ -168,24 +168,25 @@ begin
   end;
 end;
 
-procedure KeyDown(Window: TCastleWindowBase; Key: TKey; C: char);
+procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 begin
-  case C of
-    'c': begin
-           Writeln(Format('%f %f %f   %f %f %f   %f %f %f',
-             [ Camera.Position[0],
-               Camera.Position[1],
-               Camera.Position[2],
-               Camera.Direction[0],
-               Camera.Direction[1],
-               Camera.Direction[2],
-               Camera.Up[0],
-               Camera.Up[1],
-               Camera.Up[2] ]));
-         end;
-    'h': CameraHome;
-    's': CameraScene;
-  end;
+  if Event.EventType = itKey then
+    case Event.KeyCharacter of
+      'c': begin
+             Writeln(Format('%f %f %f   %f %f %f   %f %f %f',
+               [ Camera.Position[0],
+                 Camera.Position[1],
+                 Camera.Position[2],
+                 Camera.Direction[0],
+                 Camera.Direction[1],
+                 Camera.Direction[2],
+                 Camera.Up[0],
+                 Camera.Up[1],
+                 Camera.Up[2] ]));
+           end;
+      'h': CameraHome;
+      's': CameraScene;
+    end;
 end;
 
 var
@@ -209,7 +210,7 @@ begin
   try
     Window.OnOpen := @Open;
     Window.OnIdle := @Idle;
-    Window.OnKeyDown := @KeyDown;
+    Window.OnPress := @Press;
     Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.AutoRedisplay := true;
 

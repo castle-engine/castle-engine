@@ -91,8 +91,8 @@ type
     function PositionInside(const X, Y: Integer): boolean; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
-    function MouseDown(const Button: TMouseButton): boolean; override;
-    function MouseUp(const Button: TMouseButton): boolean; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
@@ -520,10 +520,10 @@ begin
   inherited;
 end;
 
-function TCastleButton.MouseDown(const Button: KeysMouse.TMouseButton): boolean;
+function TCastleButton.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  if Result or (not GetExists) then Exit;
+  if Result or (not GetExists) or (Event.EventType <> itMouseButton) then Exit;
 
   Result := ExclusiveEvents;
   if not Toggle then FPressed := true;
@@ -532,10 +532,10 @@ begin
   VisibleChange;
 end;
 
-function TCastleButton.MouseUp(const Button: KeysMouse.TMouseButton): boolean;
+function TCastleButton.Release(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  if Result or (not GetExists) then Exit;
+  if Result or (not GetExists) or (Event.EventType <> itMouseButton) then Exit;
 
   if ClickStarted then
   begin
