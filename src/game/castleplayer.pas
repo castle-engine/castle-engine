@@ -197,23 +197,18 @@ type
       You are allowed to read and write:
       @unorderedList(
         @item(Camera.Position, Direction, Up and InitialCameraXxx ---
-          these are exactly player's camera settings.)
+          these are exactly player's camera settings.
+          TODO: Although this may change when we implement 3rd-person cameras.)
         @item(Camera.PreferredHeight. In fact, it's OK to just call
           Camera.Init.)
         @item(Camera.RotationHorizontal/VerticalSpeed
           (you can read and write this --- although it should be
           only for testing/debug purposes, in real game rotation speeds
           should stay constant).)
-        @item(Camera.ProjectionMatrix, to update it in game's
-          OnResize or such.)
-        @item(You can call Camera.KeyDown, MouseDown, Idle.
-          In fact it's OK to just assign Camera to Window.Camera.)
-        @item(You can assign things to Camera.OnMatrixChanged.)
-      )
-
-      You are allowed to read:
-      @unorderedList(
-        @item Camera.RotationMatrix, Matrix, Frustum.
+        @item(It's Ok to assign Camera to TCastleSceneManager.Camera,
+          in fact TGameSceneManager.LoadLevel does exactly this.
+          So scene manager will update Camera.ProjectionMatrix,
+          call camera events like TCamera.Press, TCamera.Idle and such.)
       )
     }
     property Camera: TWalkCamera read FCamera;
