@@ -46,25 +46,25 @@ type
       @item(Now note that when using TCastleSceneCore, Seconds is increased by
         TCastleSceneCore.IncreaseTime. TCastleSceneCore doesn't require how often
         should IncreaseTime be called, in particular you can call multiple
-        times TCastleSceneCore.KeyDown, TCastleSceneCore.KeyUp, TCastleSceneCore.PointingDeviceMove
+        times TCastleSceneCore.Press, TCastleSceneCore.Release, TCastleSceneCore.PointingDeviceMove
         without continously updating time. You can even not update time at all,
-        and still call TCastleSceneCore.KeyDown and such.
+        and still call TCastleSceneCore.Press and such.
 
         This is a good thing --- it allows TCastleSceneCore to be very flexible.
         The idea is that sensors are activated when user interface reports
-        some event. You don't have to update time before every KeyDown / KeyUp
+        some event. You don't have to update time before every TCastleSceneCore.Press
         and such.)
 
       @item(The potential problem here is that when you call
-        TCastleSceneCore.KeyDown twice, without the TCastleSceneCore.IncreaseTime
-        in between, then the second KeyDown event will have "clogged" routes.
-        Events send from the second KeyDown may be blocked on routes,
+        TCastleSceneCore.Press twice, without the TCastleSceneCore.IncreaseTime
+        in between, then the second TCastleSceneCore.Press events will have "clogged" routes.
+        Events send from the second TCastleSceneCore.Press may be blocked on routes,
         since they will be detected as occuring within the same timestamp,
-        so (following VRML standard) they'll have to be ignored.)
+        so (following VRML/X3D standard) they'll have to be ignored.)
 
       @item(Using "Seconds seconds + PlusTicks ticks" allows to avoid this.
-        Each TCastleSceneCore.KeyDown and such increases world time by 1 tick
-        -- this way, the second KeyDown will have one more tick, so will
+        Each TCastleSceneCore.Press and such increases world time by 1 tick
+        -- this way, the second TCastleSceneCore.Press will have one more tick, so will
         always be considered later, and things will work Ok.)
     ) }
   TX3DTime = record

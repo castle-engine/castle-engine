@@ -166,7 +166,7 @@ begin
         Result := K_None;
   end;
 
-  { Note that CastleWindow WinAPI will never generate KeyDown/Up with these keys:
+  { Note that CastleWindow WinAPI will never generate Press/Release with these keys:
       K_Numpad_End;
       K_Numpad_Down;
       K_Numpad_PageDown;

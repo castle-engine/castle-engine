@@ -1335,8 +1335,8 @@ type
       "untie" this node (and all it's children) from this TCastleSceneCore instance. }
     procedure UnregisterScene(Node: TX3DNode);
 
-    function KeyDown(Key: TKey; C: char): boolean; override;
-    function KeyUp(Key: TKey; C: char): boolean; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
 
     function PointingDeviceActivate(const Active: boolean;
       const Distance: Single): boolean; override;
@@ -1801,21 +1801,16 @@ type
       of @name.) }
     property Spatial: TSceneSpatialStructures read FSpatial write SetSpatial;
 
-    { Should the VRML event mechanism work.
+    { Should the VRML/X3D event mechanism work.
 
-      If @true, then we will implement whole VRML event mechanism here,
-      as expected from a VRML browser. Events will be send and received
+      If @true, then events will be send and received
       through routes, time dependent nodes (X3DTimeDependentNode,
       like TimeSensor) will be activated and updated from @link(Time) time
-      property, KeyDown, KeyUp and other methods will activate
+      property, @link(Press), @link(Release) and other methods will activate
       key/mouse sensor nodes, scripts will be initialized and work, etc.
 
-      Appropriate ChangedXxx, like ChangedAll, will be automatically called
-      when necessary.
-
       In other words, this makes the scene fully animated and interacting
-      with the user (provided you will call KeyDown etc. methods when
-      necessary).
+      with the user.
 
       If @false, this all doesn't work, which makes the scene static. }
     property ProcessEvents: boolean
@@ -5116,12 +5111,12 @@ end;
 
 { key sensors handling ------------------------------------------------------- }
 
-function TCastleSceneCore.KeyDown(Key: TKey; C: char): boolean;
+function TCastleSceneCore.Press(const Event: TInputPressRelease): boolean;
 var
   I: Integer;
 begin
   Result := inherited;
-  if Result or (not GetExists) then Exit;
+  if Result or (not GetExists) or (Event.EventType <> itKey) then Exit;
 
   if ProcessEvents then
   begin
@@ -5129,7 +5124,8 @@ begin
     BeginChangesSchedule;
     try
       for I := 0 to KeyDeviceSensorNodes.Count - 1 do
-        (KeyDeviceSensorNodes.Items[I] as TAbstractKeyDeviceSensorNode).KeyDown(Key, C, FTime);
+        (KeyDeviceSensorNodes.Items[I] as TAbstractKeyDeviceSensorNode).
+          KeyDown(Event.Key, Event.KeyCharacter, FTime);
     finally EndChangesSchedule; end;
 
     { Do not treat it as handled (returning ExclusiveEvents),
@@ -5139,12 +5135,12 @@ begin
   end;
 end;
 
-function TCastleSceneCore.KeyUp(Key: TKey; C: char): boolean;
+function TCastleSceneCore.Release(const Event: TInputPressRelease): boolean;
 var
   I: Integer;
 begin
   Result := inherited;
-  if Result or (not GetExists) then Exit;
+  if Result or (not GetExists) or (Event.EventType <> itKey) then Exit;
 
   if ProcessEvents then
   begin
@@ -5152,7 +5148,8 @@ begin
     BeginChangesSchedule;
     try
       for I := 0 to KeyDeviceSensorNodes.Count - 1 do
-        (KeyDeviceSensorNodes.Items[I] as TAbstractKeyDeviceSensorNode).KeyUp(Key, C, FTime);
+        (KeyDeviceSensorNodes.Items[I] as TAbstractKeyDeviceSensorNode).
+          KeyUp(Event.Key, Event.KeyCharacter, FTime);
     finally EndChangesSchedule; end;
 
     { Do not treat it as handled (returning ExclusiveEvents),

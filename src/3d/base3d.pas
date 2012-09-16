@@ -586,11 +586,11 @@ type
       In the base class T3D this just returns 0.  }
     function PrepareResourcesSteps: Cardinal; virtual;
 
-    { Key events. Return @true if you handled them.
+    { Press and release events of key and mouse. Return @true if you handled them.
       See also TUIControl analogous events.
       @groupBegin }
-    function KeyDown(Key: TKey; C: char): boolean; virtual;
-    function KeyUp(Key: TKey; C: char): boolean; virtual;
+    function Press(const Event: TInputPressRelease): boolean; virtual;
+    function Release(const Event: TInputPressRelease): boolean; virtual;
     { @groupEnd }
 
     { Pointing device (usually mouse) events.
@@ -598,7 +598,12 @@ type
 
       @unorderedList(
         @item(PointingDeviceActivate signals that the picking button (usually,
-          left mouse button) is pressed or released (depending on Active parameter).)
+          left mouse button) is pressed or released (depending on Active parameter).
+
+          Note that the exact key or mouse responsible for this is configurable
+          in our engine by Input_Interact. By default it's the left mouse button,
+          as is usual for VRML/X3D browsers. But it can be configured to be other
+          mouse button or a key, for example most 3D games use "e" key to interact.)
 
         @item(PointingDeviceMove signals that pointer moves over this 3D object.)
       )
@@ -1020,8 +1025,8 @@ type
       ProgressStep: boolean;
       BaseLights: TAbstractLightInstancesList); override;
     function PrepareResourcesSteps: Cardinal; override;
-    function KeyDown(Key: TKey; C: char): boolean; override;
-    function KeyUp(Key: TKey; C: char): boolean; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
     procedure GLContextClose; override;
     procedure UpdateGeneratedTextures(
@@ -1713,12 +1718,12 @@ begin
   Result := 0;
 end;
 
-function T3D.KeyDown(Key: TKey; C: char): boolean;
+function T3D.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := false;
 end;
 
-function T3D.KeyUp(Key: TKey; C: char): boolean;
+function T3D.Release(const Event: TInputPressRelease): boolean;
 begin
   Result := false;
 end;
@@ -2294,7 +2299,7 @@ begin
     Result += List[I].PrepareResourcesSteps;
 end;
 
-function T3DList.KeyDown(Key: TKey; C: char): boolean;
+function T3DList.Press(const Event: TInputPressRelease): boolean;
 var
   I: Integer;
 begin
@@ -2302,12 +2307,12 @@ begin
   if Result or (not GetExists) then Exit;
 
   if GetChild <> nil then
-    if GetChild.KeyDown(Key, C) then Exit(true);
+    if GetChild.Press(Event) then Exit(true);
   for I := 0 to List.Count - 1 do
-    if List[I].KeyDown(Key, C) then Exit(true);
+    if List[I].Press(Event) then Exit(true);
 end;
 
-function T3DList.KeyUp(Key: TKey; C: char): boolean;
+function T3DList.Release(const Event: TInputPressRelease): boolean;
 var
   I: Integer;
 begin
@@ -2315,9 +2320,9 @@ begin
   if Result or (not GetExists) then Exit;
 
   if GetChild <> nil then
-    if GetChild.KeyUp(Key, C) then Exit(true);
+    if GetChild.Release(Event) then Exit(true);
   for I := 0 to List.Count - 1 do
-    if List[I].KeyUp(Key, C) then Exit(true);
+    if List[I].Release(Event) then Exit(true);
 end;
 
 procedure T3DList.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);

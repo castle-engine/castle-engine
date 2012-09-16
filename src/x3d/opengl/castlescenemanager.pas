@@ -1283,11 +1283,8 @@ begin
     if Result then Exit;
   end;
 
-  if Event.EventType = itKey then
-  begin
-    Result := GetItems.KeyDown(Event.Key, Event.KeyCharacter);
-    if Result then Exit;
-  end;
+  Result := GetItems.Press(Event);
+  if Result then Exit;
 
   if PlayerNotBlocked and Input_Interact.IsEvent(Event) then
   begin
@@ -1326,11 +1323,8 @@ begin
     if Result then Exit;
   end;
 
-  if Event.EventType = itKey then
-  begin
-    Result := GetItems.KeyUp(Event.Key, Event.KeyCharacter);
-    if Result then Exit;
-  end;
+  Result := GetItems.Release(Event);
+  if Result then Exit;
 
   if PlayerNotBlocked and Input_Interact.IsEvent(Event) then
   begin

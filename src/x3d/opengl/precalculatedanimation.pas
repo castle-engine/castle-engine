@@ -489,11 +489,12 @@ type
       ABoundingBox,
       AManifoldAndBorderEdges: boolean): string;
 
-    { Handling key and mouse events, overriding TUIControl methods.
+    { Handling key and mouse events.
 
       We pass key and mouse events only if there's exactly one scene
       (ScenesCount = 1), as there's no sensible way of activating
-      VRML events when TCastlePrecalculatedAnimation contains more than one scene.
+      VRML/X3D events when TCastlePrecalculatedAnimation contains
+      more than one scene.
       (Precalculated animation of this class, and interactive
       animation by TCastleSceneCore.ProcessEvents do not mix sensibly.)
 
@@ -502,8 +503,8 @@ type
       if you want to make actual use of it.
 
       @groupBegin }
-    function KeyDown(Key: TKey; C: char): boolean; override;
-    function KeyUp(Key: TKey; C: char): boolean; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
     { @groupEnd }
 
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
@@ -1709,17 +1710,17 @@ begin
   end;
 end;
 
-function TCastlePrecalculatedAnimation.KeyDown(Key: TKey; C: char): boolean;
+function TCastlePrecalculatedAnimation.Press(const Event: TInputPressRelease): boolean;
 begin
   if ScenesCount = 1 then
-    Result := Scenes[0].KeyDown(Key, C) else
+    Result := Scenes[0].Press(Event) else
     Result := false;
 end;
 
-function TCastlePrecalculatedAnimation.KeyUp(Key: TKey; C: char): boolean;
+function TCastlePrecalculatedAnimation.Release(const Event: TInputPressRelease): boolean;
 begin
   if ScenesCount = 1 then
-    Result := Scenes[0].KeyUp(Key, C) else
+    Result := Scenes[0].Release(Event) else
     Result := false;
 end;
 
