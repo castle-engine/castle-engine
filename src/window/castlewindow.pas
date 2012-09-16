@@ -127,13 +127,11 @@
 #)
 
   The non-OOP approach has one advantage: you can easily switch all callbacks
-  to some other set of callbacks using TWindowCallbacks,
-  TCastleWindowBase.GetCallbacksState, TCastleWindowBase.SetCallbacksState.
-  Using these functions I implemented unit
-  @link(WindowModes) and then, on top of this, I implemented some very
-  handy things like modal message boxes (unit @link(CastleMessages))
-  and progress bar (unit @link(CastleProgress)). These units give you some typical
-  GUI capabilities, and they are in pure OpenGL.
+  to some other set of callbacks. This allows you to implement modal behaviors,
+  where a function suspends normal callbacks to display some dialog.
+  See @link(WindowModes) unit and, build on top of it,
+  dialog boxes in @link(CastleMessages) and progress bar in @link(CastleProgress).
+  These units give you some typical GUI capabilities, and they are in pure OpenGL.
 
   Using OOP approach (overriding EventXxx methods instead of registering OnXxx
   callbacks) you can not do such things so easily -- in general, you have
@@ -680,34 +678,15 @@ type
   TWindowMessageType = (mtInfo, mtWarning, mtQuestion, mtError, mtOther);
 
   TIdleFunc = procedure;
-  TWindowFunc = procedure(Window: TCastleWindowBase);
+  TWindowFunc = procedure (Window: TCastleWindowBase);
   TDrawFunc = TWindowFunc;
-  TKeyCharFunc = procedure(Window: TCastleWindowBase; Key: TKey; C: char);
-  TMouseMoveFunc = procedure(Window: TCastleWindowBase; NewX, NewY: Integer);
-  TMouseUpDownFunc = procedure(Window: TCastleWindowBase; Button: TMouseButton);
-  TMouseWheelFunc = procedure(Window: TCastleWindowBase; const Scroll: Single; const Vertical: boolean);
-  TMenuCommandFunc = procedure(Window: TCastleWindowBase; Item: TMenuItem);
+  TKeyCharFunc = procedure (Window: TCastleWindowBase; Key: TKey; C: char);
+  TMouseMoveFunc = procedure (Window: TCastleWindowBase; NewX, NewY: Integer);
+  TMouseUpDownFunc = procedure (Window: TCastleWindowBase; Button: TMouseButton);
+  TMouseWheelFunc = procedure (Window: TCastleWindowBase; const Scroll: Single; const Vertical: boolean);
+  TInputEventFunc = procedure (Window: TCastleWindowBase; const Event: TInputEvent);
+  TMenuCommandFunc = procedure (Window: TCastleWindowBase; Item: TMenuItem);
   TGLContextRetryOpenFunc = function (Window: TCastleWindowBase): boolean;
-
-  { Saved state of all callbacks
-    of @link(TCastleWindowBase), with the exception of OnOpen and OnClose callbacks.
-    This is used in @link(TCastleWindowBase.GetCallbacksState)
-    and @link(TCastleWindowBase.SetCallbacksState).
-    See unit WindowModes for example when such thing is useful. }
-  TWindowCallbacks = record
-    MouseMove: TMouseMoveFunc;
-    MouseDown, MouseUp: TMouseUpDownFunc;
-    MouseWheel: TMouseWheelFunc;
-    KeyDown, KeyUp: TKeyCharFunc;
-    BeforeDraw, Draw, CloseQuery, Idle, Timer: TWindowFunc;
-    Resize: TWindowFunc;
-    MenuCommand: TMenuCommandFunc;
-    { When expanding this type: remember to also expand
-      implementation of TCastleWindowBase.GetCallbacksState and
-      TCastleWindowBase.SetCallbacksState.
-
-      @seealso DefaultCallbacksState }
-  end;
 
   { }
   TResizeAllowed = (raNotAllowed, raOnlyAtOpen, raAllowed);
@@ -2073,18 +2052,6 @@ end;
       In case of problems with saving, shows a dialog (doesn't raise exception). }
     procedure SaveScreenDialog(ProposedFileName: string);
 
-    { @groupbegin
-
-      Methods for simply saving and restoring value of all OnXxx
-      callbacks (with the exception of OnOpen and OnClose callbacks,
-      also global UIControls.OnGLContextOpen, UIControls.OnGLContextClose
-      are untouched).
-
-      @seealso DefaultCallbacksState }
-    function GetCallbacksState: TWindowCallbacks;
-    procedure SetCallbacksState(const Callbacks: TWindowCallbacks);
-    { @groupend }
-
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -2893,13 +2860,6 @@ var
     depend on having this variable present all the time. }
   Application: TGLApplication;
 
-const
-  DefaultCallbacksState: TWindowCallbacks =
-  ( MouseMove: nil; MouseDown: nil; MouseUp: nil; MouseWheel: nil;
-    KeyDown: nil; KeyUp: nil;
-    BeforeDraw: nil; Draw: nil; CloseQuery: nil; Idle: nil; Timer: nil; Resize: nil;
-    MenuCommand: nil);
-
 { A simple TCastleWindowBase.OnResize callback implementation, that sets 2D projection.
   You can use it like @code(Window.OnResize := Resize2D;) or just by calling
   it directly from your OnResize callback.
@@ -3640,49 +3600,6 @@ begin
   Result := ColorDialog(ColorSingle);
   if Result then
     Color := Vector3Byte(ColorSingle);
-end;
-
-{ ----------------------------------------------------------------------------
-  Get/Set callbacks State }
-
-function TCastleWindowBase.GetCallbacksState: TWindowCallbacks;
-begin
- with result do
- begin
-  MouseMove := OnMouseMove;
-  MouseDown := OnMouseDown;
-  MouseUp := OnMouseUp;
-  MouseWheel := OnMouseWheel;
-  KeyDown := OnKeyDown;
-  KeyUp := OnKeyUp;
-  BeforeDraw := OnBeforeDraw;
-  Draw := OnDraw;
-  CloseQuery := OnCloseQuery;
-  Resize := OnResize;
-  Idle := OnIdle;
-  Timer := OnTimer;
-  MenuCommand := OnMenuCommand;
- end;
-end;
-
-procedure TCastleWindowBase.SetCallbacksState(const Callbacks: TWindowCallbacks);
-begin
- with Callbacks do
- begin
-  OnMouseMove := MouseMove;
-  OnMouseDown := MouseDown;
-  OnMouseUp := MouseUp;
-  OnMouseWheel := MouseWheel;
-  OnKeyDown := KeyDown;
-  OnKeyUp := KeyUp;
-  OnBeforeDraw := BeforeDraw;
-  OnDraw := Draw;
-  OnCloseQuery := CloseQuery;
-  OnResize := Resize;
-  OnIdle := Idle;
-  OnTimer := Timer;
-  OnMenuCommand := MenuCommand;
- end;
 end;
 
 { OpenAndRun ----------------------------------------------------------------- }

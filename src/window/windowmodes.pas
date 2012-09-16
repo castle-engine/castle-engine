@@ -40,21 +40,27 @@ type
   TWindowState = class
   private
     { TCastleWindowBase attributes }
-    oldCallbacks: TWindowCallbacks;
-    oldCaption: string;
-    oldUserdata: Pointer;
-    oldAutoRedisplay: boolean;
-    oldMainMenu: TMenu;
-    { This is saved value of oldMainMenu.Enabled.
+    OldMouseMove: TMouseMoveFunc;
+    OldMouseDown, OldMouseUp: TMouseUpDownFunc;
+    OldMouseWheel: TMouseWheelFunc;
+    OldKeyDown, OldKeyUp: TKeyCharFunc;
+    OldBeforeDraw, OldDraw, OldCloseQuery, OldIdle, OldTimer: TWindowFunc;
+    OldResize: TWindowFunc;
+    OldMenuCommand: TMenuCommandFunc;
+    OldCaption: string;
+    OldUserdata: Pointer;
+    OldAutoRedisplay: boolean;
+    OldMainMenu: TMenu;
+    { This is the saved value of OldMainMenu.Enabled.
       So that you can change MainMenu.Enabled without changing MainMenu
-      and SeTWindowState will restore this. }
-    oldMainMenuEnabled: boolean;
+      and SetWindowState will restore this. }
+    OldMainMenuEnabled: boolean;
     OldCursor: TMouseCursor;
     OldCustomCursor: TRGBAlphaImage;
     { TCastleWindowDemo attributes } { }
-    oldSwapFullScreen_Key: TKey;
-    oldClose_charkey: char;
-    oldFpsShowOnCaption: boolean;
+    OldSwapFullScreen_Key: TKey;
+    OldClose_charkey: char;
+    OldFpsShowOnCaption: boolean;
     { TCastleWindowCustom attributes } { }
     OldControls: TUIControlList;
     { protected now: OldUseControls: boolean; } { }
@@ -107,7 +113,14 @@ type
       Window properties resetted:
 
       @unorderedList(
-        @item(Callbacks (OnXxx) are set to @nil.)
+        @item(Callbacks (OnXxx) are set to @nil.
+
+          All callbacks are affected except OnOpen and OnClose callbacks,
+          also global UIControls.OnGLContextOpen, UIControls.OnGLContextClose
+          are untouched. It is expected that the window (and OpenGL context)
+          will exist during the lifetime of a single TGLMode,
+          so it makes no sense to deal with them.
+        )
         @item(TCastleWindowBase.Caption and TCastleWindowBase.MainMenu are left as they were.)
         @item(TCastleWindowBase.Cursor is reset to mcDefault.)
         @item(TCastleWindowBase.UserData is reset to @nil.)
@@ -292,7 +305,19 @@ end;
 
 procedure TWindowState.GetState(Window: TCastleWindowBase);
 begin
-  oldCallbacks := Window.GetCallbacksState;
+  OldMouseMove := Window.OnMouseMove;
+  OldMouseDown := Window.OnMouseDown;
+  OldMouseUp := Window.OnMouseUp;
+  OldMouseWheel := Window.OnMouseWheel;
+  OldKeyDown := Window.OnKeyDown;
+  OldKeyUp := Window.OnKeyUp;
+  OldBeforeDraw := Window.OnBeforeDraw;
+  OldDraw := Window.OnDraw;
+  OldCloseQuery := Window.OnCloseQuery;
+  OldResize := Window.OnResize;
+  OldIdle := Window.OnIdle;
+  OldTimer := Window.OnTimer;
+  OldMenuCommand := Window.OnMenuCommand;
   oldCaption := Window.Caption;
   oldUserdata := Window.Userdata;
   oldAutoRedisplay := Window.AutoRedisplay;
@@ -319,7 +344,19 @@ end;
 
 procedure TWindowState.SetState(Window: TCastleWindowBase);
 begin
-  Window.SetCallbacksState(oldCallbacks);
+  Window.OnMouseMove := OldMouseMove;
+  Window.OnMouseDown := OldMouseDown;
+  Window.OnMouseUp := OldMouseUp;
+  Window.OnMouseWheel := OldMouseWheel;
+  Window.OnKeyDown := OldKeyDown;
+  Window.OnKeyUp := OldKeyUp;
+  Window.OnBeforeDraw := OldBeforeDraw;
+  Window.OnDraw := OldDraw;
+  Window.OnCloseQuery := OldCloseQuery;
+  Window.OnResize := OldResize;
+  Window.OnIdle := OldIdle;
+  Window.OnTimer := OldTimer;
+  Window.OnMenuCommand := OldMenuCommand;
   Window.Caption := oldCaption;
   Window.Userdata := oldUserdata;
   Window.AutoRedisplay := oldAutoRedisplay;
@@ -347,7 +384,19 @@ end;
 class procedure TWindowState.SetStandardState(Window: TCastleWindowBase;
   NewDraw, NewResize, NewCloseQuery: TWindowFunc);
 begin
-  Window.SetCallbacksState(DefaultCallbacksState);
+  Window.OnMouseMove := nil;
+  Window.OnMouseDown := nil;
+  Window.OnMouseUp := nil;
+  Window.OnMouseWheel := nil;
+  Window.OnKeyDown := nil;
+  Window.OnKeyUp := nil;
+  Window.OnBeforeDraw := nil;
+  Window.OnDraw := nil;
+  Window.OnCloseQuery := nil;
+  Window.OnIdle := nil;
+  Window.OnTimer := nil;
+  Window.OnResize := nil;
+  Window.OnMenuCommand := nil;
   Window.OnDraw := NewDraw;
   Window.OnResize := NewResize;
   Window.OnCloseQuery := NewCloseQuery;
