@@ -439,6 +439,44 @@ function MouseWheelDirection(const Scroll: Single; const Vertical: boolean): TMo
   If string does not contain any recognized key name, return DefaultKey. }
 function StrToKey(const S: string; const DefaultKey: TKey): TKey;
 
+type
+  TInputEventType = (etKey, etMouseButton, etMouseWheel);
+
+  { Input press or release event.
+    Either key press/release (see TUIControl.KeyDown, TUIControl.KeyUp) or
+    mouse button press/release (see TUIControl.MouseDown, TUIControl.MouseUp) or
+    mouse wheel action (see TUIControl.MouseWheel).
+    This is nicely matching with TInputShortcut processing in CastleInputs,
+    so it allows to easily store and check for user actions. }
+  TInputEvent = object
+    EventType: TInputEventType;
+
+    { When EventType is etKey, this is the key pressed or released.
+      Either Key <> K_None or KeyCharacter <> #0 in this case.
+      @groupBegin }
+    Key: TKey;
+    KeyCharacter: char;
+    { @groupEnd }
+
+    { When EventType is etMouseButton, this is the mouse button pressed or released. }
+    MouseButton: TMouseButton;
+
+    { When EventType is etMouseWheel, this is the mouse wheel action.
+      MouseWheel is never mwNone in this case.
+      @groupBegin }
+    MouseWheelScroll: Single;
+    MouseWheelVertical: boolean;
+    function MouseWheel: TMouseWheelDirection;
+    { @groupEnd }
+  end;
+
+{ Construct TInputEvent corresponding to given event.
+  @groupBegin }
+function EventKey(const Key: TKey; const KeyCharacter: Char): TInputEvent;
+function EventMouseButton(const MouseButton: TMouseButton): TInputEvent;
+function EventMouseWheel(const Scroll: Single; const Vertical: boolean): TInputEvent;
+{ @groupEnd }
+
 implementation
 
 uses SysUtils;
@@ -750,6 +788,36 @@ begin
   FillChar(Characters, SizeOf(Characters), 0);
   FillChar(PressedKeyToCharacter, SizeOf(PressedKeyToCharacter), 0);
   FillChar(PressedCharacterToKey, SizeOf(PressedCharacterToKey), 0);
+end;
+
+{ TInputEvent ---------------------------------------------------------------- }
+
+function TInputEvent.MouseWheel: TMouseWheelDirection;
+begin
+  Result := MouseWheelDirection(MouseWheelScroll, MouseWheelVertical);
+end;
+
+function EventKey(const Key: TKey; const KeyCharacter: Char): TInputEvent;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+  Result.EventType := etKey;
+  Result.Key := Key;
+  Result.KeyCharacter := KeyCharacter;
+end;
+
+function EventMouseButton(const MouseButton: TMouseButton): TInputEvent;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+  Result.EventType := etMouseButton;
+  Result.MouseButton := MouseButton;
+end;
+
+function EventMouseWheel(const Scroll: Single; const Vertical: boolean): TInputEvent;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+  Result.EventType := etMouseWheel;
+  Result.MouseWheelScroll := Scroll;
+  Result.MouseWheelVertical := Vertical;
 end;
 
 end.

@@ -232,6 +232,7 @@ type
     function IsEvent(AKey: TKey; ACharacter: Char;
       AMousePress: boolean; AMouseButton: TMouseButton;
       AMouseWheel: TMouseWheelDirection): boolean;
+    function IsEvent(const Event: TInputEvent): boolean;
 
     { Describe this input shortcut. If it's not active at all
       (like after MakeClear), we will use NoneString. }
@@ -500,6 +501,16 @@ begin
   if AMouseWheel <> mwNone then
     Result := IsMouseWheel(AMouseWheel) else
     Result := IsKey(AKey, ACharacter);
+end;
+
+function TInputShortcut.IsEvent(const Event: TInputEvent): boolean;
+begin
+  case Event.EventType of
+    etKey        : Result := IsKey(Event.Key, Event.KeyCharacter);
+    etMouseButton: Result := IsMouseButton(Event.MouseButton);
+    etMouseWheel : Result := IsMouseWheel(Event.MouseWheel);
+    else EInternalError.Create('TInputShortcut.IsEvent: Event.EventType?');
+  end;
 end;
 
 function TInputShortcut.Description(const NoneString: string): string;

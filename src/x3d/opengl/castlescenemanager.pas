@@ -99,9 +99,7 @@ type
 
     procedure ItemsAndCameraCursorChange(Sender: TObject);
     function PlayerNotBlocked: boolean;
-    function EventDown(AKey: TKey; ACharacter: char;
-      AMousePress: boolean; AMouseButton: TMouseButton;
-      AMouseWheel: TMouseWheelDirection): boolean;
+    function EventDown(const Event: TInputEvent): boolean;
   protected
     { These variables are writeable from overridden ApplyProjection. }
     FPerspectiveView: boolean;
@@ -1296,7 +1294,7 @@ begin
     if Result then Exit;
   end;
 
-  Result := EventDown(Key, C, false, mbLeft, mwNone);
+  Result := EventDown(EventKey(Key, C));
 end;
 
 function TCastleAbstractViewport.KeyUp(Key: TKey; C: char): boolean;
@@ -1337,7 +1335,7 @@ begin
     if Result then Exit;
   end;
 
-  Result := EventDown(K_None, #0, true, Button, mwNone);
+  Result := EventDown(EventMouseButton(Button));
 end;
 
 function TCastleAbstractViewport.MouseUp(const Button: TMouseButton): boolean;
@@ -1407,12 +1405,10 @@ begin
 
   // Implement when needed: Result := GetItems.MouseWheel(Scroll, Vertical);
 
-  Result := EventDown(K_None, #0, false, mbLeft, MouseWheelDirection(Scroll, Vertical));
+  Result := EventDown(EventMouseWheel(Scroll, Vertical));
 end;
 
-function TCastleAbstractViewport.EventDown(AKey: TKey; ACharacter: char;
-  AMousePress: boolean; AMouseButton: TMouseButton;
-  AMouseWheel: TMouseWheelDirection): boolean;
+function TCastleAbstractViewport.EventDown(const Event: TInputEvent): boolean;
 var
   P: TPlayer;
 begin
@@ -1420,19 +1416,19 @@ begin
   P := GetPlayer;
   if (P <> nil) and not (P.Blocked or P.Dead) then
   begin
-    if Input_Attack.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
+    if Input_Attack.IsEvent(Event) then
       begin Result := true; P.Attack; end;
-    if Input_CancelFlying.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
+    if Input_CancelFlying.IsEvent(Event) then
       begin Result := true; P.CancelFlying; end;
-    if Input_InventoryShow.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
+    if Input_InventoryShow.IsEvent(Event) then
       begin Result := true; P.InventoryVisible := not P.InventoryVisible; end;
-    if Input_InventoryPrevious.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
+    if Input_InventoryPrevious.IsEvent(Event) then
       begin Result := true; P.ChangeInventoryCurrentItem(-1); end;
-    if Input_InventoryNext.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
+    if Input_InventoryNext.IsEvent(Event) then
       begin Result := true; P.ChangeInventoryCurrentItem(+1); end;
-    if Input_DropItem.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
+    if Input_DropItem.IsEvent(Event) then
       begin Result := true; P.DropCurrentItem; end;
-    if Input_UseItem.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
+    if Input_UseItem.IsEvent(Event) then
       begin Result := true; P.UseCurrentItem; end;
   end;
 end;
