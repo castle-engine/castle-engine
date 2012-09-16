@@ -1421,17 +1421,17 @@ begin
   if (P <> nil) and not (P.Blocked or P.Dead) then
   begin
     if Input_Attack.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
-      begin Result := true; P.Attack; end else
+      begin Result := true; P.Attack; end;
     if Input_CancelFlying.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
-      begin Result := true; P.CancelFlying; end else
+      begin Result := true; P.CancelFlying; end;
     if Input_InventoryShow.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
-      begin Result := true; P.InventoryVisible := not P.InventoryVisible; end else
+      begin Result := true; P.InventoryVisible := not P.InventoryVisible; end;
     if Input_InventoryPrevious.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
-      begin Result := true; P.ChangeInventoryCurrentItem(-1); end else
+      begin Result := true; P.ChangeInventoryCurrentItem(-1); end;
     if Input_InventoryNext.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
-      begin Result := true; P.ChangeInventoryCurrentItem(+1); end else
+      begin Result := true; P.ChangeInventoryCurrentItem(+1); end;
     if Input_DropItem.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
-      begin Result := true; P.DropCurrentItem; end else
+      begin Result := true; P.DropCurrentItem; end;
     if Input_UseItem.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
       begin Result := true; P.UseCurrentItem; end;
   end;
