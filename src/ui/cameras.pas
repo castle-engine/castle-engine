@@ -222,7 +222,7 @@ type
 
           Especially useful if you let
           user change PreferredHeight at runtime by
-          Input_IncreasePreferredHeight, Input_DcreasePreferredHeight.
+          Input_IncreasePreferredHeight, Input_DecreasePreferredHeight.
 
           This is actually the whole use of @link(Radius) inside @link(Cameras) unit
           and classes. But the code all around the engine also looks for
@@ -586,11 +586,23 @@ type
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
 
     procedure VisibleChange; override;
-  published
-    { Deprecated, include/exclude ciMouseDragging from @link(Input) instead. }
-    property MouseNavigation: boolean
-      read GetMouseNavigation write SetMouseNavigation default true;
 
+    { TODO: Input_Xxx not published, although setting them in object inspector
+      actually works Ok. They are not published, because they would be always
+      stored in lfm (because each has different defaults, so they
+      would be stored even if developer didn't touch them),
+      and we may want to break compatibility here at some point
+      (when implementing 3rd-person cameras). If they would be stored in lfm
+      (always), breaking compatibility would be bad (causing errors
+      when reading old lfm files about missing properties,
+      *even if developer didn't customize any of these Input_Xxx properties*).
+      Also, the defaults would be stored in lfm file.
+
+      Until I am sure that this is how I want to presents inputs
+      (see CastleInputs discussion about local vs global),
+      better to keep it only in public.
+    }
+    { }
     property Input_MoveXInc: TInputShortcut read GetInput_MoveXInc;
     property Input_MoveXDec: TInputShortcut read GetInput_MoveXDec;
     property Input_MoveYInc: TInputShortcut read GetInput_MoveYInc;
@@ -607,6 +619,10 @@ type
     property Input_ScaleSmaller: TInputShortcut read FInput_ScaleSmaller;
     property Input_Home: TInputShortcut read FInput_Home;
     property Input_StopRotating: TInputShortcut read FInput_StopRotating;
+  published
+    { Deprecated, include/exclude ciMouseDragging from @link(Input) instead. }
+    property MouseNavigation: boolean
+      read GetMouseNavigation write SetMouseNavigation default true;
 
     { When @true, rotation keys make the rotation faster, and the model keeps
       rotating even when you don't hold any keys. When @false, you have to
@@ -1416,7 +1432,10 @@ type
     property AboveHeight: Single read FAboveHeight;
     property AboveGround: P3DTriangle read FAboveGround write FAboveGround;
     { @groupEnd }
-  published
+
+    { TODO: Input_Xxx not published. See TExamineCamera Input_Xxx notes
+      for reasoning. }
+    { }
     property Input_Forward: TInputShortcut read FInput_Forward;
     property Input_Backward: TInputShortcut read FInput_Backward;
     property Input_LeftRot: TInputShortcut read FInput_LeftRot;
@@ -1443,7 +1462,7 @@ type
     property Input_Jump: TInputShortcut read FInput_Jump;
     property Input_Crouch: TInputShortcut read FInput_Crouch;
     { @groupEnd }
-
+  published
     { If @true then all rotation keys
       (Input_RightRot, Input_LeftRot, Input_UpRotate, Input_DownRotate)
       will work 10x slower when Ctrl modified is pressed. }
