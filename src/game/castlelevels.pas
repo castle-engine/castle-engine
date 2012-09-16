@@ -41,6 +41,7 @@ type
     Document: TXMLDocument;
     DocumentBasePath: string;
     FMusicSound: TSoundType;
+    LevelResources: T3DResourceList;
     procedure LoadFromDocument;
   public
     constructor Create;
@@ -144,8 +145,6 @@ type
 
     Element: TDOMElement;
 
-    Resources: T3DResourceList;
-
     { Music played when entering the level. }
     property MusicSound: TSoundType read FMusicSound write FMusicSound
       default stNone;
@@ -170,7 +169,8 @@ type
 
       This should be called after resources (creatures and items) are known,
       as they may be referenced by level.xml files.
-      So call AllResources.LoadFromFiles @italic(before) calling this (if you
+      So call @link(T3DResourceList.LoadFromFiles Resources.LoadFromFiles)
+      @italic(before) calling this (if you
       want to use any creatures / items at all, of course).
 
       All TLevelInfo.Played values are initially set to @false.
@@ -221,7 +221,7 @@ type
 
         @item(@bold(Make sure 3D resources are ready:)
 
-          Resources are T3DResource instances on AllResources list.
+          Resources are T3DResource instances on @link(Resources) list.
           They are heavy (in terms of memory use and preparation time),
           so you don't want to just load everything for every level.
           This method makes sure that all resources required by this level
@@ -441,7 +441,7 @@ var
         ResourceNumber := 0;
       end;
 
-      Resource := AllResources.FindName(ResourceName);
+      Resource := Resources.FindName(ResourceName);
       if not Resource.Prepared then
         OnWarning(wtMajor, 'Resource', Format('Resource "%s" is initially present on the level, but was not prepared yet --- which probably means you did not add it to <resources> inside level level.xml file. This causes loading on-demand, which is less comfortable for player.',
           [Resource.Name]));
@@ -562,7 +562,7 @@ begin
   PreviousResources := T3DResourceList.Create(false);
   if Info <> nil then
   begin
-    PreviousResources.Assign(Info.Resources);
+    PreviousResources.Assign(Info.LevelResources);
     Dec(Levels.References);
     FInfo := nil;
   end;
@@ -598,7 +598,7 @@ begin
     be after loading MainScene (because initial camera looks at MainScene
     contents).
     It will show it's own progress bar. }
-  Info.Resources.Prepare(BaseLights, GravityUp);
+  Info.LevelResources.Prepare(BaseLights, GravityUp);
   PreviousResources.Release;
   FreeAndNil(PreviousResources);
 
@@ -696,8 +696,8 @@ destructor TGameSceneManager.Destroy;
 begin
   if Info <> nil then
   begin
-    if Info.Resources <> nil then
-      Info.Resources.Release;
+    if Info.LevelResources <> nil then
+      Info.LevelResources.Release;
 
     Dec(FLevels.References);
     if FLevels.References = 0 then
@@ -821,13 +821,13 @@ end;
 constructor TLevelInfo.Create;
 begin
   inherited;
-  Resources := T3DResourceList.Create(false);
+  LevelResources := T3DResourceList.Create(false);
 end;
 
 destructor TLevelInfo.Destroy;
 begin
   FreeAndNil(Document);
-  FreeAndNil(Resources);
+  FreeAndNil(LevelResources);
   FreeAndNil(LoadingImage);
   inherited;
 end;
@@ -854,15 +854,15 @@ procedure TLevelInfo.LoadFromDocument;
       raise Exception.CreateFmt('Unknown level type "%s"', [ValueStr]);
   end;
 
-  { Add all resources with AlwaysPrepared = true to the Resources. }
-  procedure AddAlwaysPrepared(Resources: T3DResourceList);
+  { Add all resources with AlwaysPrepared = true to the LevelResources. }
+  procedure AddAlwaysPreparedResources;
   var
     I: Integer;
   begin
-    for I := 0 to AllResources.Count - 1 do
-      if AllResources[I].AlwaysPrepared and
-         (Resources.IndexOf(AllResources[I]) = -1) then
-      Resources.Add(AllResources[I]);
+    for I := 0 to Resources.Count - 1 do
+      if Resources[I].AlwaysPrepared and
+         (LevelResources.IndexOf(Resources[I]) = -1) then
+      LevelResources.Add(Resources[I]);
   end;
 
 var
@@ -916,8 +916,8 @@ begin
     LoadingImageBarYPosition) then
     LoadingImageBarYPosition := DefaultImageBarYPosition;
 
-  Resources.LoadResources(Element);
-  AddAlwaysPrepared(Resources);
+  LevelResources.LoadResources(Element);
+  AddAlwaysPreparedResources;
 
   if DOMGetAttribute(Element, 'music_sound', SoundName) then
     MusicSound := SoundEngine.SoundFromName(SoundName) else

@@ -105,8 +105,8 @@ type
 var
   Sword: TItemKind;
 ...
-  AllResources.LoadFromFiles;
-  Sword := AllResources.FindName('Sword') as TItemKind;
+  Resources.LoadFromFiles;
+  Sword := Resources.FindName('Sword') as TItemKind;
 #)
 
       where 'Sword' is just our example item kind, assuming that one of your

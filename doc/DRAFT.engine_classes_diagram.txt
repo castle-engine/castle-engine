@@ -123,7 +123,7 @@ http://michalis.ii.uni.wroc.pl/castle-engine-snapshots/docs/reference/html/ .
        3D games, like handle placeholders --- see TGameSceneManager.LoadLevel
        docs.)
 
-Global AllResources list, that contains instances of
+Global Resources list, that contains instances of
 /---
 | T3DResource
 \---
@@ -135,9 +135,9 @@ Possible descendants:
 |- TItemKind
    |- TItemWeaponKind
 (How to use: Put index.xml files with <resource> root in your game's
- data/creatures/ and data/items directories. Call AllResources.LoadFromFiles
+ data/creatures/ and data/items directories. Call Resources.LoadFromFiles
  at the beginning of your game to create T3DResource instances
- and add them to AllResources list.
+ and add them to Resources list.
 
  Optionally: If you need to have the instances
  available in ObjectPascal code, you can get them like
@@ -145,7 +145,7 @@ Possible descendants:
  var
    Sword: TItemWeaponKind;
  ...
-   Sword := AllResources.FindName('Sword') as TItemWeaponKind;
+   Sword := Resources.FindName('Sword') as TItemWeaponKind;
  ]]
  You refer to each creature/item kind by it's unique name, so in this example
  you expect that some index.xml will have name="Sword" inside.
@@ -155,7 +155,7 @@ Possible descendants:
  [[
    RegisterResourceClass(TItemMeleeWeaponKind, 'MeleeWeapon');
  ]]
- before doing AllResources.LoadFromFiles. This allows you to use
+ before doing Resources.LoadFromFiles. This allows you to use
  type="MeleeWeapon" in index.xml files for items.
  Many items may use the same type.
 
@@ -163,7 +163,7 @@ Possible descendants:
  for more details.
 
  Optionally: it's actually possible to create T3DResource instances
- by pure ObjectPascal code, and add them to AllResources list manually,
+ by pure ObjectPascal code, and add them to Resources list manually,
  without index.xml files. But usually that's not comfortable.
 )
 
@@ -194,7 +194,7 @@ Special descendants of T3D:
     var
       Alien: TItemWeaponKind;
     ...
-      Alien := AllResources.FindName('Alien') as TCreatureKind;
+      Alien := Resources.FindName('Alien') as TCreatureKind;
     ...
       Alien.CreateCreature(...);
     ]]
@@ -222,7 +222,7 @@ Special descendants of T3D:
     except TInventoryItem is *not* a 3D object (it cannot be directly added to the
     level), only TItemOnWorld is a 3D object.
     - TGameSceneManager.LoadLevel automatically creates instances of TItemOnWorld,
-      along with instances of Item, referring to item kinds on AllResources.
+      along with instances of Item, referring to item kinds on Resources.
       This looks at placeholders: just create in Blender object named
       'Item' + item kind name. TODO: probably 'Res' + item kind name in the future.
     - You can create TInventoryItem instance by code by Kind.CreateItem

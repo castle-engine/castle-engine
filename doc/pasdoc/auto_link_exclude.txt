@@ -118,6 +118,7 @@ last
 left
 length
 level
+levels
 lighting
 lights
 link
@@ -185,6 +186,7 @@ render
 renderer
 reset
 resize
+resources
 reverse
 root
 rotate

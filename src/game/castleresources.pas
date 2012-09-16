@@ -209,7 +209,7 @@ type
     { Reads <resources> XML element. <resources> element
       is an optional child of given ParentElement.
       Sets current list value with all mentioned required
-      resources (subset of AllResources). }
+      resources (subset of @link(Resources)). }
     procedure LoadResources(ParentElement: TDOMElement);
 
     { Prepare / release all resources on list.
@@ -222,9 +222,9 @@ type
   end;
 
 { All known resources.
-  Usually you call @link(T3DResourceList.LoadFromFiles AllResources.LoadFromFiles)
+  Usually you call @link(T3DResourceList.LoadFromFiles Resources.LoadFromFiles)
   to fill this list, based on resource.xml files present in your data. }
-function AllResources: T3DResourceList;
+function Resources: T3DResourceList;
 
 { Register a resource class, to allow creating resources (like a creature or item)
   of this class by using appropriate type="xxx" inside resource.xml file. }
@@ -481,7 +481,7 @@ begin
             [I.Current.TagName]);
         if not DOMGetAttribute(I.Current, 'name', ResourceName) then
           raise Exception.Create('<resource> must have a "name" attribute');
-        Add(AllResources.FindName(ResourceName));
+        Add(Resources.FindName(ResourceName));
       end;
     finally FreeAndNil(I) end;
   end;
@@ -582,34 +582,34 @@ procedure WindowClose(const Container: IUIContainer);
 var
   I: Integer;
 begin
-  { AllResources may be nil here, because
+  { Resources may be nil here, because
     WindowClose may be called from CastleWindow unit finalization
     that will be done after this unit's finalization (DoFinalization).
 
     That's OK --- DoFinalization already freed
-    every item on AllResources, and this implicitly did GLContextClose,
+    every item on Resources, and this implicitly did GLContextClose,
     so everything is OK. }
 
-  if AllResources <> nil then
+  if Resources <> nil then
   begin
-    for I := 0 to AllResources.Count - 1 do
-      AllResources[I].GLContextClose;
+    for I := 0 to Resources.Count - 1 do
+      Resources[I].GLContextClose;
   end;
 end;
 
 var
-  FAllResources: T3DResourceList;
+  FResources: T3DResourceList;
 
-function AllResources: T3DResourceList;
+function Resources: T3DResourceList;
 begin
-  Result := FAllResources;
+  Result := FResources;
 end;
 
 initialization
   OnGLContextClose.Add(@WindowClose);
-  FAllResources := T3DResourceList.Create(true);
+  FResources := T3DResourceList.Create(true);
   ResourceClasses := TResourceClasses.Create;
 finalization
-  FreeAndNil(FAllResources);
+  FreeAndNil(FResources);
   FreeAndNil(ResourceClasses);
 end.
