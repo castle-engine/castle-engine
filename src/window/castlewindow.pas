@@ -26,7 +26,7 @@
 
   @orderedList(
     @item(Declare and create @link(TCastleWindowBase) instance. (Or a descendant
-      like @link(TCastleWindowCustom) or @link(TCastleWindowDemo).))
+      like @link(TCastleWindow).))
 
     @item(Assign Glw properties and callbacks like
       @link(TCastleWindowBase.OnDraw OnDraw),
