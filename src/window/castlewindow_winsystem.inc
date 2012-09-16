@@ -13,29 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ This is the common code for CASTLE_WINDOW_XLIB and CASTLE_WINDOW_WINAPI implementations.
-
-  Note that if you let some exception to be raised out of
-  some event (like OnXxx) then this window may be closed
-  while recovering from this exception. I.e. CastleWindow implementation
-  is free to implement part of ProcessMessage like
-
-@longCode(#
-  if HasKeyDown then
-  try
-    OnPress(...);
-  except
-    Close;
-    raise;
-  end;
-#)
-
-  TODO: this behavior is currently done only by Xlib and WinAPI
-  implementation, in castlewindow_winsystem.inc.
-  Is there really any good reason why we can't remove this behavior?
-}
-
-
+{ This is the common code for CASTLE_WINDOW_XLIB and CASTLE_WINDOW_WINAPI implementations. }
 
 {$ifdef read_window_interface}
 private
