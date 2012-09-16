@@ -344,7 +344,7 @@ begin
   SceneManager.Player := Player;
 
   { init level. LoadLevel requires OpenGL context to be available. }
-  LevelsAvailable.LoadFromFiles;
+  Levels.LoadFromFiles;
   SceneManager.LoadLevel('base');
 
   { init Rat }

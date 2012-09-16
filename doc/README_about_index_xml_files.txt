@@ -7,7 +7,7 @@ About level.xml and resource.xml files:
   to the game data.
 
   What exactly is "data directory"? You give it as parameter to
-  LevelsAvailable.LoadFromFiles and AllResources.LoadFromFiles calls,
+  Levels.LoadFromFiles and Resources.LoadFromFiles calls,
   by default it's the result of ProgramDataPath function.
 
 - Each level.xml / resource.xml file may contain relative filenames for
@@ -93,15 +93,20 @@ Specifically about level.xml:
 - type: (optional, default just generic "Level")
   Use specific ObjectPascal class to implement this level behavior.
   Default value is "Level", which means that the level will be
-  handled with vanilla TLevel implementation.
+  handled with vanilla TLevelLogic implementation.
   Many advanced tricks are possible by implementing in the game code
-  (GameLevelSpecific unit) a descendant class of TLevel that does
-  something special, then you should set this attribute to the id
-  of that class (see bottom of GameLevelSpecific for possible names).
+  a descendant class of TLevelLogic that does something special,
+  you can then register it by "LevelClasses['My'] := TMyLogic;",
+  and then type="My" is allowed in level.xml file.
+  See castle1 GameLevelSpecific unit for examples.
 
-- default_available_for_new_game: (optional, default "false")
-  Should the level be initially available (visible in "New Game" menu)
-  for new players.
+- default_played: (optional, default "false")
+  Should the level be initially considered "played".
+  This sets TLevelInfo.DefaultPlayed property, which in turn
+  (if nothing is stored in user preferences file about it) sets
+  TLevelInfo.Played. How is this useful, depends on a particular game:
+  some games may decide to show in the "New Game" menu levels with Played=true.
+  Some games may ignore it.
 
 - loading_image (optional, default empty): filename of image file to display
   while loading the level (under the progress bar).
@@ -112,4 +117,4 @@ Specifically about level.xml:
   Between 0 and 1, default value 0.5 means "middle of the screen".
   Should be synchronized with loading_bg image, to look right.
 
-- See TLevelAvailable properties documentation if in doubt.
+- See TLevelInfo properties documentation if in doubt.

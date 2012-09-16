@@ -110,15 +110,18 @@ http://michalis.ii.uni.wroc.pl/castle-engine-snapshots/docs/reference/html/ .
       (How to use: To load a game level, you can simply create
        TCastleScene instance, add it to SceneManager.Items, and set it as
        SceneManager.MainScene.
-       You can also use the TLevelAvailable.LoadLevel(SceneManager)
+       You can also use the TGameSceneManager.LoadLevel()
        method, usually like this:
        [[
-         LevelsAvailable.LoadFromFiles(...);
-         LevelsAvailable.FindName('myLevelName').LoadLevel(SceneManager);
+         Levels.LoadFromFiles(...);
+         SceneManager.LoadLevel('myLevelName');
+         // the 2nd line is a shortcut for
+         // SceneManager.LoadLevel(Levels.FindName('myLevelName'));
        ]]
        This will create TCastleScene, update SceneManager.Items,
        set SceneManager.MainScene, and do some other stuff helpful for typical
-       3D games.)
+       3D games, like handle placeholders --- see TGameSceneManager.LoadLevel
+       docs.)
 
 Global AllResources list, that contains instances of
 /---

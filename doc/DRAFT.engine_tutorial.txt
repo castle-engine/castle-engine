@@ -157,13 +157,15 @@ data/
     ...
 ]]
 
-Although this convention proved comfortable, it's not forced at all. The 3D models files may live in other directories than level.xml files, as "scene" field may contain a relative filename (in future, it should be possible to use there any absolute or relative URL; for now, only filenames are allowed). And level.xml files may be scattered throughout your directory as you wish. And what is "data directory" is configurable (by LevelsAvailable.LoadFromFiles optional parameter, by default we use ProgramDataPath). It's only important that the XML files have names "level.xml".
+Although this convention proved comfortable, it's not forced at all. The 3D models files may live in other directories than level.xml files, as "scene" field may contain a relative filename (in future, it should be possible to use there any absolute or relative URL; for now, only filenames are allowed). And level.xml files may be scattered throughout your directory as you wish. And what is "data directory" is configurable (by Levels.LoadFromFiles optional parameter, by default we use ProgramDataPath). It's only important that the XML files have names "level.xml".
 
 You can now start a game by creating a player, loading all levels informations from their level.xml files, and finally loading your desired level by referring to it's "name" field:
 
 [[
-  LevelsAvailable.LoadFromFiles;
+  Levels.LoadFromFiles;
   SceneManager.LoadLevel('base');
+  // the 2nd line is a shortcut for
+  / SceneManager.LoadLevel(Levels.FindName('base'));
 ]]
 
 The LoadLevel will clear all SceneManager.Items (except Player, more about this in a second). Then it will load new 3D model with a level (adding it to SceneManager.Items and setting as SceneManager.MainScene, just as we did manually in previous chapter), and do some more interesting stuff that we'll learn later.

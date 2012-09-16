@@ -14,7 +14,7 @@
 }
 
 { Scene manager that can easily load game levels (TGameSceneManager),
-  management of available game levels (LevelsAvailable). }
+  management of available game levels (TLevelInfo, @link(Levels)). }
 unit CastleLevels;
 
 interface
@@ -27,16 +27,16 @@ uses VectorMath, CastleSceneCore, CastleScene, Boxes3D,
   Classes, CastleTimeUtils, CastleSceneManager, GLRendererShader, FGL;
 
 type
-  TLevel = class;
-  TLevelClass = class of TLevel;
+  TLevelLogic = class;
+  TLevelLogicClass = class of TLevelLogic;
   TCastleSceneClass = class of TCastleScene;
   TCastlePrecalculatedAnimationClass = class of TCastlePrecalculatedAnimation;
   TGameSceneManager = class;
 
-  TLevelAvailable = class
+  TLevelInfo = class
   private
     { We keep XML Document reference through the lifetime of this object,
-      to allow the particular level logic (TLevel descendant)
+      to allow the particular level logic (TLevelLogic descendant)
       to read some level-logic-specific variables from it. }
     Document: TXMLDocument;
     DocumentBasePath: string;
@@ -47,7 +47,7 @@ type
     destructor Destroy; override;
   public
     { Level logic class. }
-    LevelClass: TLevelClass;
+    LogicClass: TLevelLogicClass;
 
     { Unique identifier for this level.
       Should be a suitable identifier in Pascal.
@@ -58,7 +58,7 @@ type
       so it determines the default viewpoint, background and such.
 
       Usually it also contains the most (if not all) of 3D level geometry,
-      scripts and such. Although level logic (TLevel descendant determined
+      scripts and such. Although level logic (TLevelLogic descendant determined
       by LevelClass) may also add any number of additional 3D objects
       (T3D instances) to the 3D world. }
     SceneFileName: string;
@@ -114,7 +114,7 @@ type
         @item(It is saved to disk (user preferences file) when game exits,
           and loaded when game starts. As long as you call @code(Config.Load),
           @code(Config.Save) from CastleConfig unit. To load, you must
-          also call explicitly LevelsAvailable.LoadFromConfig now.)
+          also call explicitly @link(TLevelInfoList.LoadFromConfig Levels.LoadFromConfig) now.)
 
         @item(The default value comes from DefaultPlayed property,
           which in turn is loaded from level.xml file, and by default is @false.
@@ -151,7 +151,7 @@ type
       default stNone;
   end;
 
-  TLevelAvailableList = class(specialize TFPGObjectList<TLevelAvailable>)
+  TLevelInfoList = class(specialize TFPGObjectList<TLevelInfo>)
   private
     { How many TGameSceneManager have references to our children by
       TGameSceneManager.Info? }
@@ -161,9 +161,7 @@ type
     procedure SaveToConfig(const Config: TCastleConfig);
   public
     { raises Exception if such Name is not on the list. }
-    function FindName(const AName: string): TLevelAvailable;
-
-    procedure SortByNumber;
+    function FindName(const AName: string): TLevelInfo;
 
     { Add all available levels found by scanning for level.xml inside data directory.
       Overloaded version without parameter just looks inside ProgramDataPath.
@@ -175,21 +173,21 @@ type
       So call AllResources.LoadFromFiles @italic(before) calling this (if you
       want to use any creatures / items at all, of course).
 
-      All TLevelAvailable.Played values are initially set to @false.
+      All TLevelInfo.Played values are initially set to @false.
       You must call LoadFromConfig @italic(after) calling this
-      to read TLevelAvailable.Played values from user preferences file.
+      to read TLevelInfo.Played values from user preferences file.
       @groupBegin }
     procedure LoadFromFiles(const LevelsPath: string);
     procedure LoadFromFiles;
     { @groupEnd }
 
-    { For all available levels, read their TLevelAvailable.Played
+    { For all available levels, read their TLevelInfo.Played
       from user preferences.
 
       This is useful only if you actually look at
-      TLevelAvailable.Played for any purpose (for example,
+      TLevelInfo.Played for any purpose (for example,
       to decide which levels are displayed in the menu). By default,
-      our engine doesn't look at TLevelAvailable.Played for anything. }
+      our engine doesn't look at TLevelInfo.Played for anything. }
     procedure LoadFromConfig;
   end;
 
@@ -200,11 +198,11 @@ type
     corresponding to the currently loaded level. }
   TGameSceneManager = class(TCastleSceneManager)
   private
-    FLevel: TLevel;
-    FInfo: TLevelAvailable;
+    FLogic: TLevelLogic;
+    FInfo: TLevelInfo;
 
     { Like LoadLevel, but doesn't care about AInfo.LoadingImage. }
-    procedure LoadLevelCore(const AInfo: TLevelAvailable);
+    procedure LoadLevelCore(const AInfo: TLevelInfo);
   public
     destructor Destroy; override;
 
@@ -253,10 +251,10 @@ type
           E.g. prepares octree and OpenGL resources.)
       )
 
-      The overloaded version with a LevelName string searches the LevelsAvailable
+      The overloaded version with a LevelName string searches the @link(Levels)
       list for a level with given name (and raises exception if it cannot
-      be found). It makes sense if you filled the LevelsAvailable list before,
-      usually by @link(TLevelsAvailable.LoadFromFiles LevelsAvailable.LoadFromFiles)
+      be found). It makes sense if you filled the @link(Levels) list before,
+      usually by @link(TLevelInfoList.LoadFromFiles Levels.LoadFromFiles)
       call. So you can easily define a level in your data with @code(name="xxx")
       in the @code(level.xml) file, and then you can load it
       by @code(LoadLevel('xxx')) call.
@@ -270,21 +268,21 @@ type
 
       @groupBegin }
     procedure LoadLevel(const LevelName: string);
-    procedure LoadLevel(const AInfo: TLevelAvailable);
+    procedure LoadLevel(const AInfo: TLevelInfo);
     { @groupEnd }
 
     { Level logic and state. }
-    property Level: TLevel read FLevel;
+    property Logic: TLevelLogic read FLogic;
 
     { Level information, independent from current level state. }
-    property Info: TLevelAvailable read FInfo;
+    property Info: TLevelInfo read FInfo;
   end;
 
   { Level logic. We use T3D descendant, since this is the comfortable
     way to add any behavior to the 3D world (it doesn't matter that
     "level logic" is not a usual 3D object --- it doesn't have to collide
     or be visible). }
-  TLevel = class(T3D)
+  TLevelLogic = class(T3D)
   private
     FTime: TFloatTime;
     FWorld: T3DWorld;
@@ -325,8 +323,8 @@ type
       so you can modify MainScene contents.
 
       You have to provide AWorld instance at construction,
-      and you have to add created TLevel instance to this AWorld,
-      and you cannot change it later. This is necessary, as TLevel descendants
+      and you have to add created TLevelLogic instance to this AWorld,
+      and you cannot change it later. This is necessary, as TLevelLogic descendants
       at construction may actually modify your world, and depend on it later. }
     constructor Create(AOwner: TComponent; AWorld: T3DWorld;
       MainScene: TCastleScene; DOMElement: TDOMElement); reintroduce; virtual;
@@ -337,11 +335,11 @@ type
       This may be used to equip the player with some basic weapon / items.
 
       This is never called or used by the engine itself.
-      This does nothing in the default TLevel class implementation.
+      This does nothing in the default TLevelLogic class implementation.
 
       Your particular game, where you can best decide when the player
       "starts a new game" and when the player merely "continues the previous
-      game", may call it. And you may override this in your TLevel descendants
+      game", may call it. And you may override this in your TLevelLogic descendants
       to equip the player. }
     procedure PrepareNewPlayer(NewPlayer: TPlayer); virtual;
 
@@ -352,15 +350,15 @@ type
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
   end;
 
-  TLevelClasses = specialize TFPGMap<string, TLevelClass>;
+  TLevelLogicClasses = specialize TFPGMap<string, TLevelLogicClass>;
 
-function LevelClasses: TLevelClasses;
+function LevelLogicClasses: TLevelLogicClasses;
 
 
 { All known levels. You can use this to show a list of available levels to user.
   You can also search it and use TGameSceneManager.LoadLevel to load
-  a given TLevelAvailable instance. }
-function LevelsAvailable: TLevelAvailableList;
+  a given TLevelInfo instance. }
+function Levels: TLevelInfoList;
 
 implementation
 
@@ -372,32 +370,32 @@ uses SysUtils, Triangle, CastleLog, CastleGLUtils,
 { globals -------------------------------------------------------------------- }
 
 var
-  FLevelClasses: TLevelClasses;
+  FLevelLogicClasses: TLevelLogicClasses;
 
-function LevelClasses: TLevelClasses;
+function LevelLogicClasses: TLevelLogicClasses;
 begin
-  if FLevelClasses = nil then
+  if FLevelLogicClasses = nil then
   begin
-    FLevelClasses := TLevelClasses.Create;
-    FLevelClasses['Level'] := TLevel;
+    FLevelLogicClasses := TLevelLogicClasses.Create;
+    FLevelLogicClasses['Level'] := TLevelLogic;
   end;
-  Result := FLevelClasses;
+  Result := FLevelLogicClasses;
 end;
 
 var
   { Created in initialization of this unit, destroyed in finalization
-    (or when the last TGameSceneManager referring to TLevelAvailable is destroyed).
+    (or when the last TGameSceneManager referring to TLevelInfo is destroyed).
     Owns it's Items. }
-  FLevelsAvailable: TLevelAvailableList;
+  FLevels: TLevelInfoList;
 
-function LevelsAvailable: TLevelAvailableList;
+function Levels: TLevelInfoList;
 begin
-  Result := FLevelsAvailable;
+  Result := FLevels;
 end;
 
 { TGameSceneManager ---------------------------------------------------------- }
 
-procedure TGameSceneManager.LoadLevelCore(const AInfo: TLevelAvailable);
+procedure TGameSceneManager.LoadLevelCore(const AInfo: TLevelInfo);
 var
   { Sometimes it's not comfortable
     to remove the items while traversing --- so we will instead
@@ -555,7 +553,7 @@ begin
     if Items[I] <> Player then
       Items[I].Free else
       Inc(I);
-  FLevel := nil; { it's freed now }
+  FLogic := nil; { it's freed now }
 
   { save PreviousResources, before Info is overridden with new level.
     This allows us to keep PreviousResources while new resources are required,
@@ -565,12 +563,12 @@ begin
   if Info <> nil then
   begin
     PreviousResources.Assign(Info.Resources);
-    Dec(LevelsAvailable.References);
+    Dec(Levels.References);
     FInfo := nil;
   end;
 
   FInfo := AInfo;
-  Inc(LevelsAvailable.References);
+  Inc(Levels.References);
   Info.Played := true;
 
   Progress.Init(1, 'Loading level "' + Info.Title + '"');
@@ -632,11 +630,11 @@ begin
     CreateSectors(MainScene);
 
     { create Level after resources (creatures and items) are initialized
-      (some TLevel descendant constructors depend on this),
+      (some TLevelLogic descendant constructors depend on this),
       but still before preparing resources like octrees (because we still
       may want to modify MainScene inside Level constructor). }
-    FLevel := Info.LevelClass.Create(Self, Items, MainScene, Info.Element);
-    Items.Add(Level);
+    FLogic := Info.LogicClass.Create(Self, Items, MainScene, Info.Element);
+    Items.Add(Logic);
 
     { calculate Options for PrepareResources }
     Options := [prRender, prBackground, prBoundingBox];
@@ -668,7 +666,7 @@ begin
   MainScene.ProcessEvents := true;
 end;
 
-procedure TGameSceneManager.LoadLevel(const AInfo: TLevelAvailable);
+procedure TGameSceneManager.LoadLevel(const AInfo: TLevelInfo);
 var
   SavedImage: TRGBImage;
   SavedImageBarYPosition: Single;
@@ -691,7 +689,7 @@ end;
 
 procedure TGameSceneManager.LoadLevel(const LevelName: string);
 begin
-  LoadLevel(LevelsAvailable.FindName(LevelName));
+  LoadLevel(Levels.FindName(LevelName));
 end;
 
 destructor TGameSceneManager.Destroy;
@@ -701,17 +699,17 @@ begin
     if Info.Resources <> nil then
       Info.Resources.Release;
 
-    Dec(FLevelsAvailable.References);
-    if FLevelsAvailable.References = 0 then
-      FreeAndNil(FLevelsAvailable);
+    Dec(FLevels.References);
+    if FLevels.References = 0 then
+      FreeAndNil(FLevels);
   end;
 
   inherited;
 end;
 
-{ TLevel ---------------------------------------------------------------- }
+{ TLevelLogic ---------------------------------------------------------------- }
 
-constructor TLevel.Create(AOwner: TComponent; AWorld: T3DWorld;
+constructor TLevelLogic.Create(AOwner: TComponent; AWorld: T3DWorld;
   MainScene: TCastleScene; DOMElement: TDOMElement);
 begin
   inherited Create(AOwner);
@@ -722,28 +720,28 @@ begin
   Collides := false;
 end;
 
-function TLevel.World: T3DWorld;
+function TLevelLogic.World: T3DWorld;
 begin
   Result := FWorld;
 
   Assert(Result <> nil,
-    'TLevel.World should never be nil, you have to provide World at TLevel constructor');
+    'TLevelLogic.World should never be nil, you have to provide World at TLevelLogic constructor');
   Assert( ((inherited World) = nil) or ((inherited World) = Result),
-    'World specified at TLevel constructor must be the same world where TLevel instance is added');
+    'World specified at TLevelLogic constructor must be the same world where TLevelLogic instance is added');
 end;
 
-function TLevel.BoundingBox: TBox3D;
+function TLevelLogic.BoundingBox: TBox3D;
 begin
   { This object is invisible and non-colliding. }
   Result := EmptyBox3D;
 end;
 
-procedure TLevel.PrepareNewPlayer(NewPlayer: TPlayer);
+procedure TLevelLogic.PrepareNewPlayer(NewPlayer: TPlayer);
 begin
   { Nothing to do in this class. }
 end;
 
-function TLevel.LoadLevelScene(
+function TLevelLogic.LoadLevelScene(
   const FileName: string;
   const CreateOctreeCollisions: boolean;
   const SceneClass: TCastleSceneClass): TCastleScene;
@@ -768,14 +766,14 @@ begin
   Result.ProcessEvents := true;
 end;
 
-function TLevel.LoadLevelScene(
+function TLevelLogic.LoadLevelScene(
   const FileName: string;
   const CreateOctreeCollisions: boolean): TCastleScene;
 begin
   Result := LoadLevelScene(FileName, CreateOctreeCollisions, TCastleScene);
 end;
 
-function TLevel.LoadLevelAnimation(
+function TLevelLogic.LoadLevelAnimation(
   const FileName: string;
   const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean;
   const AnimationClass: TCastlePrecalculatedAnimationClass): TCastlePrecalculatedAnimation;
@@ -803,7 +801,7 @@ begin
   Result.TimePlaying := false;
 end;
 
-function TLevel.LoadLevelAnimation(
+function TLevelLogic.LoadLevelAnimation(
   const FileName: string;
   const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean): TCastlePrecalculatedAnimation;
 begin
@@ -812,21 +810,21 @@ begin
     TCastlePrecalculatedAnimation);
 end;
 
-procedure TLevel.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure TLevelLogic.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
   FTime += CompSpeed;
 end;
 
-{ TLevelAvailable ------------------------------------------------------------ }
+{ TLevelInfo ------------------------------------------------------------ }
 
-constructor TLevelAvailable.Create;
+constructor TLevelInfo.Create;
 begin
   inherited;
   Resources := T3DResourceList.Create(false);
 end;
 
-destructor TLevelAvailable.Destroy;
+destructor TLevelInfo.Destroy;
 begin
   FreeAndNil(Document);
   FreeAndNil(Resources);
@@ -834,7 +832,7 @@ begin
   inherited;
 end;
 
-procedure TLevelAvailable.LoadFromDocument;
+procedure TLevelInfo.LoadFromDocument;
 
   procedure MissingRequiredAttribute(const AttrName: string);
   begin
@@ -842,17 +840,17 @@ procedure TLevelAvailable.LoadFromDocument;
       'Missing required attribute "%s" of <level> element', [AttrName]);
   end;
 
-  { Like DOMGetAttribute, but reads TLevelClass value. }
-  function DOMGetLevelClassAttribute(const Element: TDOMElement;
-    const AttrName: string; var Value: TLevelClass): boolean;
+  { Like DOMGetAttribute, but reads TLevelLogicClass value. }
+  function DOMGetLevelLogicClassAttribute(const Element: TDOMElement;
+    const AttrName: string; var Value: TLevelLogicClass): boolean;
   var
     ValueStr: string;
     LevelClassIndex: Integer;
   begin
     Result := DOMGetAttribute(Element, AttrName, ValueStr);
-    LevelClassIndex := LevelClasses.IndexOf(ValueStr);
+    LevelClassIndex := LevelLogicClasses.IndexOf(ValueStr);
     if LevelClassIndex <> -1 then
-      Value := LevelClasses.Data[LevelClassIndex] else
+      Value := LevelLogicClasses.Data[LevelClassIndex] else
       raise Exception.CreateFmt('Unknown level type "%s"', [ValueStr]);
   end;
 
@@ -904,8 +902,8 @@ begin
     DefaultPlayed) then
     DefaultPlayed := false;
 
-  if not DOMGetLevelClassAttribute(Element, 'type', LevelClass) then
-    LevelClass := TLevel;
+  if not DOMGetLevelLogicClassAttribute(Element, 'type', LogicClass) then
+    LogicClass := TLevelLogic;
 
   FreeAndNil(LoadingImage); { make sure LoadingImage is clear first }
   if DOMGetAttribute(Element, 'loading_image', LoadingImageFileName) then
@@ -926,9 +924,9 @@ begin
     MusicSound := stNone;
 end;
 
-{ TLevelAvailableList ------------------------------------------------------- }
+{ TLevelInfoList ------------------------------------------------------- }
 
-function TLevelAvailableList.FindName(const AName: string): TLevelAvailable;
+function TLevelInfoList.FindName(const AName: string): TLevelInfo;
 var
   I: Integer;
   S: string;
@@ -937,23 +935,18 @@ begin
     if Items[I].Name = AName then
       Exit(Items[I]);
 
-  S := Format('Level name "%s" is not found on the list (LevelsAvailable)', [AName]);
+  S := Format('Level name "%s" is not found on the Levels list', [AName]);
   if Count = 0 then
-    S += '.' + NL + NL + 'Warning: there are no levels available on the list at all. This means that the game data was not correctly installed (as we did not find any level.xml files defining any levels). Or the developer forgot to call LevelsAvailable.LoadFromFiles.';
+    S += '.' + NL + NL + 'Warning: there are no levels available on the list at all. This means that the game data was not correctly installed (as we did not find any level.xml files defining any levels). Or the developer forgot to call Levels.LoadFromFiles.';
   raise Exception.Create(S);
 end;
 
-function IsSmallerByNumber(const A, B: TLevelAvailable): Integer;
+function IsSmallerByNumber(const A, B: TLevelInfo): Integer;
 begin
   Result := A.Number - B.Number;
 end;
 
-procedure TLevelAvailableList.SortByNumber;
-begin
-  Sort(@IsSmallerByNumber);
-end;
-
-procedure TLevelAvailableList.LoadFromConfig;
+procedure TLevelInfoList.LoadFromConfig;
 var
   I: Integer;
 begin
@@ -963,7 +956,7 @@ begin
       Items[I].DefaultPlayed);
 end;
 
-procedure TLevelAvailableList.SaveToConfig(const Config: TCastleConfig);
+procedure TLevelInfoList.SaveToConfig(const Config: TCastleConfig);
 var
   I: Integer;
 begin
@@ -974,48 +967,49 @@ begin
       Items[I].DefaultPlayed);
 end;
 
-procedure TLevelAvailableList.LoadLevelXml(const FileName: string);
+procedure TLevelInfoList.LoadLevelXml(const FileName: string);
 var
-  NewLevelAvailable: TLevelAvailable;
+  NewLevelInfo: TLevelInfo;
 begin
-  NewLevelAvailable := TLevelAvailable.Create;
-  Add(NewLevelAvailable);
-  NewLevelAvailable.Played := false;
+  NewLevelInfo := TLevelInfo.Create;
+  Add(NewLevelInfo);
+  NewLevelInfo.Played := false;
 
-  ReadXMLFile(NewLevelAvailable.Document, FileName);
-  NewLevelAvailable.DocumentBasePath := ExtractFilePath(FileName);
-  NewLevelAvailable.LoadFromDocument;
+  ReadXMLFile(NewLevelInfo.Document, FileName);
+  NewLevelInfo.DocumentBasePath := ExtractFilePath(FileName);
+  NewLevelInfo.LoadFromDocument;
 end;
 
-procedure TLevelAvailableList.LoadFromFiles(const LevelsPath: string);
+procedure TLevelInfoList.LoadFromFiles(const LevelsPath: string);
 begin
   ScanForFiles(LevelsPath, 'level.xml', @LoadLevelXml);
 end;
 
-procedure TLevelAvailableList.LoadFromFiles;
+procedure TLevelInfoList.LoadFromFiles;
 begin
   LoadFromFiles(ProgramDataPath);
+  Sort(@IsSmallerByNumber);
 end;
 
 { initialization / finalization ---------------------------------------------- }
 
 initialization
-  FLevelsAvailable := TLevelAvailableList.Create(true);
-  Inc(FLevelsAvailable.References);
+  FLevels := TLevelInfoList.Create(true);
+  Inc(FLevels.References);
 
-  Config.OnSave.Add(@FLevelsAvailable.SaveToConfig);
+  Config.OnSave.Add(@FLevels.SaveToConfig);
 finalization
-  FreeAndNil(FLevelClasses);
+  FreeAndNil(FLevelLogicClasses);
 
-  if (FLevelsAvailable <> nil) and (Config <> nil) then
-    Config.OnSave.Remove(@FLevelsAvailable.SaveToConfig);
+  if (FLevels <> nil) and (Config <> nil) then
+    Config.OnSave.Remove(@FLevels.SaveToConfig);
 
   { there may still exist TGameSceneManager instances that refer to our
-    TLevelAvailable instances. So we don't always free LevelsAvailable below. }
-  if FLevelsAvailable <> nil then
+    TLevelInfo instances. So we don't always free Levels below. }
+  if FLevels <> nil then
   begin
-    Dec(FLevelsAvailable.References);
-    if FLevelsAvailable.References = 0 then
-      FreeAndNil(FLevelsAvailable);
+    Dec(FLevels.References);
+    if FLevels.References = 0 then
+      FreeAndNil(FLevels);
   end;
 end.
