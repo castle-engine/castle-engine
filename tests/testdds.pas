@@ -41,9 +41,9 @@ procedure TTestDDS.TestLoadSaveDDS;
     Assert(I1.Depth     = I2.Depth);
     if I1 is TCastleImage then
     begin
-      Assert(TImage(I1).PixelSize = TImage(I2).PixelSize);
+      Assert(TCastleImage(I1).PixelSize = TCastleImage(I2).PixelSize);
       Assert(CompareMem(I1.RawPixels, I2.RawPixels,
-        I1.Width * I1.Height * I1.Depth * TImage(I1).PixelSize));
+        I1.Width * I1.Height * I1.Depth * TCastleImage(I1).PixelSize));
     end;
   end;
 
