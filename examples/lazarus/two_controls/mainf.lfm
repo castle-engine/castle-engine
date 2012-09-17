@@ -1,32 +1,32 @@
 object Main: TMain
   Left = 434
-  Height = 299
+  Height = 474
   Top = 173
-  Width = 457
+  Width = 617
   Caption = 'Main'
-  ClientHeight = 299
-  ClientWidth = 457
+  ClientHeight = 474
+  ClientWidth = 617
   OnCreate = FormCreate
   LCLVersion = '1.1'
   object CastleControl2: TCastleControl
     AnchorSideLeft.Control = CastleControl1
     AnchorSideLeft.Side = asrBottom
-    AnchorSideBottom.Control = ButtonLoad2
-    Left = 248
-    Height = 234
+    AnchorSideBottom.Control = LabelFps2
+    Left = 304
+    Height = 375
     Top = 8
-    Width = 198
+    Width = 302
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Left = 8
     BorderSpacing.Bottom = 8
     TabOrder = 0
   end
   object CastleControl1: TCastleControl
-    AnchorSideBottom.Control = ButtonLoad1
+    AnchorSideBottom.Control = LabelFps1
     Left = 8
-    Height = 234
+    Height = 375
     Top = 8
-    Width = 232
+    Width = 288
     Anchors = [akTop, akLeft, akBottom]
     BorderSpacing.Bottom = 8
     TabOrder = 1
@@ -36,7 +36,7 @@ object Main: TMain
     AnchorSideTop.Side = asrBottom
     Left = 9
     Height = 37
-    Top = 250
+    Top = 425
     Width = 131
     Anchors = [akLeft, akBottom]
     AutoSize = True
@@ -46,25 +46,54 @@ object Main: TMain
     TabOrder = 2
   end
   object ButtonLoad2: TButton
+    AnchorSideLeft.Control = CastleControl1
+    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = CastleControl2
     AnchorSideTop.Side = asrBottom
-    Left = 248
+    Left = 304
     Height = 37
-    Top = 250
+    Top = 425
     Width = 134
     Anchors = [akLeft, akBottom]
     AutoSize = True
+    BorderSpacing.Left = 8
     BorderSpacing.Top = 8
     Caption = 'Load 2nd scene'
     OnClick = ButtonLoad2Click
     TabOrder = 3
   end
-  object OpenDialog1: TOpenDialog
-    left = 56
-    top = 176
+  object LabelFps1: TLabel
+    AnchorSideBottom.Control = ButtonLoad1
+    Left = 8
+    Height = 26
+    Top = 391
+    Width = 166
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Bottom = 8
+    Caption = 'FPS: 123 (real: 456)'
+    ParentColor = False
   end
-  object OpenDialog2: TOpenDialog
-    left = 280
-    top = 176
+  object LabelFps2: TLabel
+    AnchorSideLeft.Control = CastleControl1
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideBottom.Control = ButtonLoad2
+    Left = 304
+    Height = 26
+    Top = 391
+    Width = 166
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Left = 8
+    BorderSpacing.Bottom = 8
+    Caption = 'FPS: 123 (real: 456)'
+    ParentColor = False
+  end
+  object OpenDialog: TOpenDialog
+    left = 46
+    top = 112
+  end
+  object Timer: TTimer
+    OnTimer = TimerTimer
+    left = 46
+    top = 36
   end
 end

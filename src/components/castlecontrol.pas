@@ -79,9 +79,6 @@ type
 
     FFps: TFramesPerSecond;
 
-    ApplicationProperties: TApplicationProperties;
-    procedure ApplicationPropertiesIdle(Sender: TObject; var Done: Boolean);
-
     procedure AggressiveUpdateTick;
 
     { Sometimes, releasing shift / alt / ctrl keys will not be reported
@@ -518,6 +515,59 @@ begin
   end;
 end;
 
+{ TCastleApplicationIdle -------------------------------------------------- }
+
+type
+  TCastleApplicationIdle = class
+    class procedure ApplicationIdle(Sender: TObject; var Done: Boolean);
+  end;
+
+class procedure TCastleApplicationIdle.ApplicationIdle(Sender: TObject; var Done: Boolean);
+var
+  I: Integer;
+  C: TCastleControlBase;
+  AllowLimitFPS: boolean;
+begin
+  AllowLimitFPS := true;
+
+  { Call Idle for all TCastleControl instances.
+    Also, calculate AllowLimitFPS. }
+  for I := 0 to CastleControls.Count - 1 do
+  begin
+    C := CastleControls[I] as TCastleControlBase;
+    C.Idle;
+    AllowLimitFPS := AllowLimitFPS and
+      (not C.AggressiveUpdate) and not (csDesigning in C.ComponentState);
+  end;
+
+  if AllowLimitFPS then
+    DoLimitFPS;
+
+  { With Done := true (this is actually default Done value here),
+    ApplicationIdle events are not occuring as often
+    as we need. Test e.g. GTK2 with clicking on spheres on
+    demo_models/sensors_pointing_device/touch_sensor_tests.x3dv .
+    That's because Done := true allows for WidgetSet.AppWaitMessage
+    inside lcl/include/application.inc .
+    We don't want that, we want continous idle events.
+
+    So we have to use Done := false.
+
+    Unfortunately, Done := false prevents other idle actions
+    (other TApplicationProperties.OnIdle) from working.
+    See TApplication.Idle and TApplication.NotifyIdleHandler implementation
+    in lcl/include/application.inc .
+    To at least allow all TCastleControlBase work, we use a central
+    ApplicationIdle callback (we don't use separate TApplicationProperties
+    for each TCastleControl; in fact, we don't need TApplicationProperties
+    at all). }
+
+  Done := false;
+end;
+
+var
+  ApplicationIdleSet: boolean;
+
 { TCastleControlBaseCore -------------------------------------------------- }
 
 constructor TCastleControlBase.Create(AOwner: TComponent);
@@ -535,25 +585,33 @@ begin
   LastAggressiveUpdateTime := 0;
   Invalidated := false;
 
-  ApplicationProperties := TApplicationProperties.Create(Self);
-  ApplicationProperties.OnIdle := @ApplicationPropertiesIdle;
+  if not ApplicationIdleSet then
+  begin
+    ApplicationIdleSet := true;
+    Application.AddOnIdleHandler(@(TCastleApplicationIdle(nil).ApplicationIdle));
+  end;
 end;
 
 destructor TCastleControlBase.Destroy;
 begin
+  if ApplicationIdleSet and
+     (CastleControls <> nil) and
+     { If CastleControls.Count will become 0 after this destructor,
+       then unregisted our idle callback.
+       If everyhting went Ok, CastleControls.Count = 1 should always imply
+       that we're the only control there. But check "CastleControls[0] = Self"
+       in case we're in destructor because there was an exception
+       in the constructor. }
+     (CastleControls.Count = 1) and
+     (CastleControls[0] = Self) then
+  begin
+    ApplicationIdleSet := false;
+    Application.RemoveOnIdleHandler(@(TCastleApplicationIdle(nil).ApplicationIdle));
+  end;
+
   FreeAndNil(FPressed);
   FreeAndNil(FFps);
   inherited;
-end;
-
-procedure TCastleControlBase.ApplicationPropertiesIdle(Sender: TObject; var Done: Boolean);
-begin
-  Idle;
-  { You have to leave Done = true, otherwise other idle actions
-    (like ApplicationPropertiesIdle in other TCastleControl) will not work.
-    See TApplication.Idle and TApplication.NotifyIdleHandler implementation
-    in lcl/include/application.inc: you have to keep Done := true to let
-    others do the work. }
 end;
 
 { Initial idea was to do
@@ -818,9 +876,6 @@ end;
 
 procedure TCastleControlBase.Idle;
 begin
-  if (not AggressiveUpdate) and not (csDesigning in ComponentState) then
-    DoLimitFPS;
-
   Fps._IdleBegin;
 end;
 
