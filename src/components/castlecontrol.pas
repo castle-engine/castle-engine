@@ -549,7 +549,11 @@ end;
 procedure TCastleControlBase.ApplicationPropertiesIdle(Sender: TObject; var Done: Boolean);
 begin
   Idle;
-  Done := false;
+  { You have to leave Done = true, otherwise other idle actions
+    (like ApplicationPropertiesIdle in other TCastleControl) will not work.
+    See TApplication.Idle and TApplication.NotifyIdleHandler implementation
+    in lcl/include/application.inc: you have to keep Done := true to let
+    others do the work. }
 end;
 
 { Initial idea was to do
