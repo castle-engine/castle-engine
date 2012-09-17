@@ -31,21 +31,9 @@ var
   { Window used for this game. @noAutoLinkHere }
   Window: TCastleWindowCustom;
 
-  { General GL context used everywhere in the game.
-    TODO: use the one from CastleGameCache. }
-  GLContextCache: TGLRendererContextCache;
-
 implementation
 
 initialization
-  Window := TCastleWindowCustom.Create(nil);
+  Window := TCastleWindowCustom.Create(Application);
   Window.OnDrawStyle := ds3D;
-
-  GLContextCache := TGLRendererContextCache.Create;
-finalization
-  { Close window, freeing all VRML scenes from OnClose, before freeing
-    the GLContextCache. }
-  Window.Close;
-  FreeAndNil(GLContextCache);
-  FreeAndNil(Window);
 end.

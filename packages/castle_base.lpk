@@ -44,7 +44,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="171">
+    <Files Count="170">
       <Item1>
         <Filename Value="../src/3d/base3d.pas"/>
         <UnitName Value="Base3D"/>
@@ -396,10 +396,6 @@
         <Filename Value="../src/game/castlecreatures.pas"/>
         <UnitName Value="CastleCreatures"/>
       </Item87>
-      <Item88>
-        <Filename Value="../src/game/castlegamecache.pas"/>
-        <UnitName Value="CastleGameCache"/>
-      </Item88>
       <Item89>
         <Filename Value="../src/game/castlegamenotifications.pas"/>
         <UnitName Value="CastleGameNotifications"/>
@@ -727,10 +723,10 @@
         <Filename Value="../src/x3d/x3dnodes.pas"/>
         <UnitName Value="X3DNodes"/>
       </Item170>
-      <Item171>
+      <Item88>
         <Filename Value="../src/x3d/x3dnodesdetailoptions.pas"/>
         <UnitName Value="X3DNodesDetailOptions"/>
-      </Item171>
+      </Item88>
       <Item109>
         <Filename Value="../src/x3d/x3dshadowmaps.pas"/>
         <UnitName Value="X3DShadowMaps"/>

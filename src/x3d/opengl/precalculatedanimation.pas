@@ -80,7 +80,6 @@ type
   private
     Renderer: TGLRenderer;
     FCache: TGLRendererContextCache;
-    OwnsCache: boolean;
     FTimeBegin, FTimeEnd: Single;
     FTimeLoop: boolean;
     FTimeBackwards: boolean;
@@ -770,10 +769,7 @@ begin
   inherited Create(AOwner);
 
   if Cache = nil then
-  begin
-    OwnsCache := true;
-    FCache := TGLRendererContextCache.Create;
-  end;
+    FCache := GLContextCache;
 
   Renderer := TGLRenderer.Create(TSceneRenderingAttributes, Cache);
 
@@ -788,9 +784,7 @@ end;
 constructor TCastlePrecalculatedAnimation.CreateCustomCache(AOwner: TComponent;
   ACache: TGLRendererContextCache);
 begin
-  OwnsCache := false;
   FCache := ACache;
-
   Create(AOwner);
 end;
 
@@ -798,9 +792,7 @@ destructor TCastlePrecalculatedAnimation.Destroy;
 begin
   Close;
   FreeAndNil(Renderer);
-  if OwnsCache then
-    FreeAndNil(FCache) else
-    FCache := nil;
+  FCache := nil; // just to be safe
   inherited;
 end;
 

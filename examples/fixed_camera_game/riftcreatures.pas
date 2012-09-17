@@ -255,7 +255,7 @@ begin
 
   for S := Low(S) to High(S) do
   begin
-    Animations[S].Animation := TCastlePrecalculatedAnimation.CreateCustomCache(nil, GLContextCache);
+    Animations[S].Animation := TCastlePrecalculatedAnimation.Create(nil);
     Animations[S].Animation.LoadFromFile(Animations[S].FileName, false, true);
     AnimationPrepareResources(Animations[S].Animation);
     Progress.Step;
@@ -286,7 +286,7 @@ begin
           Times.Add(Animations[S].ChangesDuration[SChange]);
 
           Animations[S].ChangesAnimation[SChange] :=
-            TCastlePrecalculatedAnimation.CreateCustomCache(nil, GLContextCache);
+            TCastlePrecalculatedAnimation.Create(nil);
           Animations[S].ChangesAnimation[SChange].Load(
             RootNodes, false, Times,
             ChangeStateScenesPerTime,

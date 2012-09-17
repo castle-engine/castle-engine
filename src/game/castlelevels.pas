@@ -364,7 +364,7 @@ implementation
 
 uses SysUtils, Triangle, CastleLog, CastleGLUtils,
   CastleFilesUtils, CastleStringUtils, GLImages, UIControls, XMLRead,
-  CastleGameNotifications, CastleInputs, CastleGameCache, CastleXMLUtils,
+  CastleGameNotifications, CastleInputs, CastleXMLUtils,
   GLRenderer, RenderingCameraUnit, Math, CastleWarnings;
 
 { globals -------------------------------------------------------------------- }
@@ -579,7 +579,7 @@ begin
       We prefer to do it ourselves in InitializeCamera. }
     Camera := nil;
 
-    MainScene := TCastleScene.CreateCustomCache(Self, GLContextCache);
+    MainScene := TCastleScene.Create(Self);
     MainScene.Load(Info.SceneFileName);
 
     { Scene must be the first one on Items, this way Items.MoveCollision will
@@ -748,7 +748,7 @@ function TLevelLogic.LoadLevelScene(
 var
   Options: TPrepareResourcesOptions;
 begin
-  Result := SceneClass.CreateCustomCache(Self, GLContextCache);
+  Result := SceneClass.Create(Self);
   Result.Load(FileName);
 
   { calculate Options for PrepareResources }
@@ -780,7 +780,7 @@ function TLevelLogic.LoadLevelAnimation(
 var
   Options: TPrepareResourcesOptions;
 begin
-  Result := AnimationClass.CreateCustomCache(Self, GLContextCache);
+  Result := AnimationClass.Create(Self);
   Result.LoadFromFile(FileName, false, true, 1);
 
   { calculate Options for PrepareResources }

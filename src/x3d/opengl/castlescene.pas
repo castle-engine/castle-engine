@@ -437,7 +437,6 @@ type
 
     { Cache used by this scene. Always initialized to non-nil by constructor. }
     Cache: TGLRendererContextCache;
-    OwnsCache: boolean;
 
     { used by RenderScene, to avoid calling ShapesSplitBlending two times. }
     OpaqueShapes, TransparentShapes: TShapeList;
@@ -896,6 +895,13 @@ type
 
 procedure Register;
 
+var
+  { Global OpenGL context cache.
+    This caches common things, like textures, shapes, and much more.
+    Our OpenGL resources are currently shared across all OpenGL contexts,
+    and they all automatically share this cache. }
+  GLContextCache: TGLRendererContextCache;
+
 implementation
 
 uses GLVersionUnit, Images, CastleLog, CastleWarnings,
@@ -1124,10 +1130,7 @@ begin
   { Cache may be already assigned, when we came here from
     CreateCustomRenderer or CreateCustomCache. }
   if Cache = nil then
-  begin
-    OwnsCache := true;
-    Cache := TGLRendererContextCache.Create;
-  end;
+    Cache := GLContextCache;
 
   { Renderer may be already assigned, when we came here from
     CreateCustomRenderer. }
@@ -1165,7 +1168,6 @@ end;
 constructor TCastleScene.CreateCustomCache(
   AOwner: TComponent; ACache: TGLRendererContextCache);
 begin
-  OwnsCache := false;
   Assert(ACache <> nil);
   Cache := ACache;
 
@@ -1225,9 +1227,7 @@ begin
   end else
     Renderer := nil;
 
-  if OwnsCache then
-    FreeAndNil(Cache) else
-    Cache := nil;
+  Cache := nil; // just for safety
 
   inherited;
 end;
@@ -3519,7 +3519,7 @@ begin
   begin
     if Log then
       WritelnLog('Occlusion query', 'View changed suddenly');
-  
+
     { Set OcclusionQueryAsked := false for all shapes. }
     SI := TShapeTreeIterator.Create(Shapes, false, false, false);
     try
@@ -3801,4 +3801,8 @@ begin
      Items[I].ViewChangedSuddenly;
 end;
 
+initialization
+  GLContextCache := TGLRendererContextCache.Create;
+finalization
+  FreeAndNil(GLContextCache);
 end.

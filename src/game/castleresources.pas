@@ -232,7 +232,7 @@ procedure RegisterResourceClass(const AClass: T3DResourceClass; const TypeName: 
 
 implementation
 
-uses SysUtils, ProgressUnit, CastleGameCache, CastleXMLUtils, CastleTimeUtils,
+uses SysUtils, ProgressUnit, CastleXMLUtils, CastleTimeUtils,
   CastleStringUtils, CastleLog, CastleFilesUtils, CastleConfig, UIControls;
 
 type
@@ -323,7 +323,7 @@ procedure T3DResource.PreparePrecalculatedAnimation(
 begin
   if (AnimationFile <> '') and (Anim = nil) then
   begin
-    Anim := TCastlePrecalculatedAnimation.CreateCustomCache(nil, GLContextCache);
+    Anim := TCastlePrecalculatedAnimation.Create(nil);
     Allocated.Add(Anim);
     Anim.LoadFromFile(AnimationFile, { AllowStdIn } false, { LoadTime } true);
   end;
@@ -343,7 +343,7 @@ procedure T3DResource.PrepareScene(
 begin
   if (SceneFileName <> '') and (Scene = nil) then
   begin
-    Scene := TCastleScene.CreateCustomCache(nil, GLContextCache);
+    Scene := TCastleScene.Create(nil);
     Allocated.Add(Scene);
     Scene.Load(SceneFileName);
   end;

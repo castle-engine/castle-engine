@@ -88,7 +88,7 @@ procedure TLocation.LoadInternal(const BaseLights: TLightInstancesList);
 begin
   inherited;
 
-  FScene := TCastleScene.CreateCustomCache(nil, GLContextCache);
+  FScene := TCastleScene.Create(nil);
   FScene.Load(SceneFileName);
   Progress.Step;
 

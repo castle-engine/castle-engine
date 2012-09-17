@@ -791,11 +791,14 @@ var
 
 implementation
 
-uses SysUtils, DOM, GL, GLU, CastleGameCache, CastleFilesUtils, CastleGLUtils,
-  ProgressUnit, CastleGameNotifications;
+uses SysUtils, DOM, GL, GLU, CastleFilesUtils, CastleGLUtils,
+  ProgressUnit, CastleGameNotifications, OpenGLTTFonts, UIControls;
 
 var
   DisableCreatures: Cardinal;
+
+  { OpenGL outline (3D) font for DebugCaption. }
+  Font3d: TGLOutlineFont;
 
 { TCreatureKind -------------------------------------------------------------- }
 
@@ -2432,4 +2435,30 @@ begin
     RemoveMe := rtRemoveAndFree;
 end;
 
+{ initialization / finalization ---------------------------------------------- }
+
+const
+  Font3dFamily = ffSans;
+  Font3dBold = false;
+  Font3dItalic = false;
+
+procedure WindowOpen(const Container: IUIContainer);
+begin
+  Font3d := GLContextCache.Fonts_IncReference(
+    Font3dFamily, Font3dBold, Font3dItalic,
+    TFontStyleNode.ClassTTF_Font(Font3dFamily, Font3dBold, Font3dItalic));
+end;
+
+procedure WindowClose(const Container: IUIContainer);
+begin
+  if Font3d <> nil then
+  begin
+    GLContextCache.Fonts_DecReference(Font3dFamily, Font3dBold, Font3dItalic);
+    Font3d := nil;
+  end;
+end;
+
+initialization
+  OnGLContextOpen.Add(@WindowOpen);
+  OnGLContextClose.Add(@WindowClose);
 end.
