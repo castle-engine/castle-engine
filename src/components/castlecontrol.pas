@@ -451,7 +451,7 @@ var
 implementation
 
 uses LCLType, GL, GLU, GLExt, CastleGLUtils, CastleStringUtils, X3DLoad,
-  GLImages, CastleLog;
+  GLImages, CastleLog, Contnrs;
 
 procedure Register;
 begin
@@ -467,6 +467,13 @@ begin
     { TCastleControlCustom, }
     TCastleControl]);
 end;
+
+var
+  { All TCastleControl instances created. We use this to share OpenGL contexts,
+    as all OpenGL contexts in our engine must share OpenGL resources
+    (our OnGLContextOpen and such callbacks depend on it,
+    and it makes implementation much easier). }
+  CastleControls: TComponentList;
 
 { Limit FPS ------------------------------------------------------------------ }
 
@@ -518,6 +525,10 @@ begin
   inherited;
   FFps := TFramesPerSecond.Create;
   FPressed := TKeysPressed.Create;
+
+  if CastleControls.Count <> 0 then
+    SharedControl := CastleControls[0] as TCastleControl;
+  CastleControls.Add(Self);
 
   FAggressiveUpdate := DefaultAggressiveUpdate;
   FAggressiveUpdateDelay := DefaultAggressiveUpdateDelay;
@@ -1693,5 +1704,8 @@ begin
 end;
 
 initialization
+  CastleControls := TComponentList.Create(false);
+finalization
+  FreeAndNil(CastleControls);
 end.
 

@@ -335,28 +335,11 @@ units are allowed to be used by units in specific group.
 @section(1 SectionMultipleContext Multiple OpenGL contexts)
 
 If you use more than one OpenGL context (TCastleWindow or TCastleControl)
-in a single program, be aware that @italic(some) of our controls require
-you to make all contexts shared. That's because these controls use a global
-cache of resources, assuming that it's common to all OpenGL contexts.
-It's not a permanent problem (we plan to fix it, and most controls
-were written from the beginning to not make this assumption),
-but for current engine version you have to live with it.
-A typical game or tool uses only a single OpenGL context for whole rendering,
-so this should not be a relevant problem for many uses.
+in a single program, they will share OpenGL resources (like textures).
+This happens automatically for TCastleControl.
 
-For TCastleControl use SharedControl property
-to link all controls in a single group, this is actually implemented in base
-TCustomOpenGLControl (see Lazarus OpenGLContext unit).
-For TCastleWindow similar functionality is not yet implemented.
-
-Sharing is necessary so that all context share the same textures, VBO and such
-resources. It applies to:
-
-@unorderedList(
-  @item OnScreenMenu,
-  @item all controls using fonts in CastleControls,
-  @item all stuff using CastleGameCache (practically all stuff in game/ subdirectory).
-)
-
-Other controls don't have this problem (e.g. our based 3D renderer
-in TCastleScene doesn't have this problem).
+TODO: It is not implemented yet for TCastleWindow correctly yet.
+Be careful when you use more than one TCastleWindow with anything
+that uses cache (like textures inside TCastleScene).
+And please let us know on forum that you would like to see this fixed
+--- it's simply a matter of time to finish it.
