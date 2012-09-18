@@ -26,7 +26,7 @@ interface
 
 uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, X3DNodes, CastleClassUtils,
   CastleUtils, TriangleOctree, Frustum, CastleOctree, Triangle,
-  X3DFields, GeometryArrays, FaceIndex, FGL;
+  X3DFields, GeometryArrays, FaceIndex, FGL, GenericStructList;
 
 const
   { }
@@ -144,22 +144,6 @@ type
     function FindShapeWithParentNamed(const ParentNodeName: string;
       OnlyActive: boolean = false): TShape;
 
-    { Assuming that the model was created by Blender VRML 1 or 2 exporter,
-      this searches for a first shape that was created from Blender
-      mesh named BlenderMeshName.
-
-      It follows the logic of two Blender exporters.
-
-      If it doesn't find matching node, returns nil. Otherwise, returns
-      the matching shape.
-
-      Note that FindBlenderObject would be theoreticall possible too,
-      but Blender VRML 1.0 exporter doesn't export anywhere Blender object
-      name. So when working with VRML 1.0, you're stuck with looking
-      for mesh names. }
-    function FindBlenderMesh(const BlenderMeshName: string;
-      OnlyActive: boolean = false): TShape;
-
     { Enumerate all single texture nodes (possibly) used by the shapes.
       This looks into all shapes (not only active, so e.g. it looks into all
       Switch/LOD children, not only the chosen one).
@@ -207,10 +191,15 @@ type
     FGeometry: array [boolean] of TAbstractGeometryNode;
     FState: array [boolean] of TX3DGraphTraverseState;
 
-    FBlenderObjectNode: TX3DNode;
-    FBlenderObjectName: string;
-    FBlenderMeshNode: TX3DNode;
-    FBlenderMeshName: string;
+    { We cheat for BlenderShapeName now: we calculate it in constructor,
+      an merely return in BlenderShapeName.
+      TODO: we don't need this cheat, we can pass in TraverseForPlaceholders
+      a little more info to allow this. }
+    BlenderObjectNode: TX3DNode;
+    BlenderObjectName: string;
+    BlenderMeshNode: TX3DNode;
+    BlenderMeshName: string;
+
     FDynamicGeometry: boolean;
 
     { Just like Geometry() and State(), except return @nil if no proxy available
@@ -555,42 +544,6 @@ type
     procedure LocalTriangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
     { @groupEnd }
 
-    { For scenes exported from Blender, get Blender object/mesh names
-      and nodes. Works assuming that this VRML scene was created by
-      standard Blender VRML 1.0, 2.0 or X3D exporter.
-
-      This is useful if you know that your game data may be exported
-      from Blender, and you want to do some VRML/X3D processing tricks in your
-      game (for example, treat some Blender objects specially).
-      Of course, this is completely optional, our engine is completely
-      independent from Blender and no engine feature depends on it.
-
-      Note that a single BlenderObjectNode and BlenderObjectName may correspond
-      to many VRML/X3D shapes (for example, VRML 2.0 and X3D exporters may split
-      one Blender object with many materials into multiple VRML/X3D shapes).
-      Also mesh may occur many times in the file, as all Blender exporters
-      correctly use DEF/USE mechanism to reuse mesh data (just like
-      Blender itself does), so the same BlenderMeshNode
-      and BlenderMeshName may be found in many shapes.
-
-      Note that Blender VRML 1.0
-      exporter doesn't record anywhere object names (only mesh names),
-      so BlenderObjectName is always '' for VRML 1.0.
-      For VRML 2.0 and X3D exporters it's Ok.
-
-      Implementation of this follows the logic of standard Blender VRML 1.0, 2.0
-      and X3D exporters, there's no other way to implement this.
-      So if you write in Python your own Blender exporter for VRML/X3D,
-      it will not magically work with the properties below (unless you will
-      follow the same convention of naming).
-
-      @groupBegin }
-    property BlenderObjectNode: TX3DNode read FBlenderObjectNode;
-    property BlenderObjectName: string read FBlenderObjectName;
-    property BlenderMeshNode: TX3DNode read FBlenderMeshNode;
-    property BlenderMeshName: string read FBlenderMeshName;
-    { @groupEnd }
-
     function DebugInfo(const Indent: string = ''): string; override;
     function NiceName: string;
 
@@ -870,6 +823,42 @@ var
     Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
   LogShapes: boolean = false;
 
+type
+  { Detect the 3D object name set in the external modeler (like Blender
+    or 3DS Max) for the given VRML/X3D shape in the exported model.
+    Also calculate the X3D node containing this whole 3D object
+    in external modeler (note that it *can* span other VRML/X3D shapes too)
+
+    Returns empty string and Node = @nil if none.
+
+    Preferably, the result should be unique, only for this VRML/X3D shape.
+    But in practice it's the responsibility of the modeler
+    and model author to make it true.
+    For example, modelers that allow multiple materials on object (like
+    Blender) @italic(must) to split a single object into many VRML/X3D shapes.
+    So just don't use shape with multiple materials if this shape name
+    may be meaningful for something.
+
+    This is used only by TGameSceneManager.LoadLevel placeholders.
+    Ultimately, this should be something that is easy to set when creating
+    a 3D model in given external modeler.
+    @italic(Nothing else in our engine depends on a particular modeler
+    strategy for exporting VRML/X3D models.)
+
+    This should be object name (to allow sharing a single mesh underneath).
+    Except when it's not possible (like for old Blender VRML 1.0 exporter),
+    then it can be a mesh name.
+
+    You should register functions for each specific modeler on
+    ModelerShapeNameMap. }
+  TModelerShapeName = function (const Shape: TShape; out Node: TX3DNode): string;
+  TModelerShapeNameMap = specialize TGenericStructMap<string, TModelerShapeName>;
+
+var
+  ModelerShapeNameMap: TModelerShapeNameMap;
+
+function BlenderShapeName(const Shape: TShape; out Node: TX3DNode): string;
+
 implementation
 
 uses ProgressUnit, CastleSceneCore, NormalsCalculator, CastleLog, CastleWarnings,
@@ -921,20 +910,6 @@ begin
   Result := nil;
 end;
 
-function TShapeTree.FindBlenderMesh(
-  const BlenderMeshName: string; OnlyActive: boolean): TShape;
-var
-  SI: TShapeTreeIterator;
-begin
-  SI := TShapeTreeIterator.Create(Self, OnlyActive);
-  try
-    while SI.GetNext do
-      if SI.Current.BlenderMeshName = BlenderMeshName then
-        Exit(SI.Current);
-  finally FreeAndNil(SI) end;
-  Result := nil;
-end;
-
 { TShape -------------------------------------------------------------- }
 
 constructor TShape.Create(AParentScene: TObject;
@@ -950,17 +925,17 @@ constructor TShape.Create(AParentScene: TObject;
         parents, and these are his objects. }
       if ParentInfo <> nil then
       begin
-        FBlenderMeshNode := ParentInfo^.Node;
-        FBlenderMeshName := BlenderMeshNode.NodeName;
+        BlenderMeshNode := ParentInfo^.Node;
+        BlenderMeshName := BlenderMeshNode.NodeName;
 
         ParentInfo := ParentInfo^.ParentInfo;
 
         if ParentInfo <> nil then
         begin
-          FBlenderObjectNode := ParentInfo^.Node;
+          BlenderObjectNode := ParentInfo^.Node;
           { Unfortunately, this will always be ''. Blender VRML 1.0 exporter
             doesn't write this. }
-          FBlenderObjectName := BlenderObjectNode.NodeName;
+          BlenderObjectName := BlenderObjectNode.NodeName;
         end;
       end;
     end else
@@ -982,15 +957,15 @@ constructor TShape.Create(AParentScene: TObject;
 
       if ParentInfo <> nil then
       begin
-        FBlenderMeshNode := ParentInfo^.Node;
-        FBlenderMeshName := PrefixRemove('ME_', BlenderMeshNode.NodeName, false);
+        BlenderMeshNode := ParentInfo^.Node;
+        BlenderMeshName := PrefixRemove('ME_', BlenderMeshNode.NodeName, false);
 
         ParentInfo := ParentInfo^.ParentInfo;
 
         if ParentInfo <> nil then
         begin
-          FBlenderObjectNode := ParentInfo^.Node;
-          FBlenderObjectName := PrefixRemove('OB_', BlenderObjectNode.NodeName, false);
+          BlenderObjectNode := ParentInfo^.Node;
+          BlenderObjectName := PrefixRemove('OB_', BlenderObjectNode.NodeName, false);
         end;
       end;
     end;
@@ -2663,4 +2638,40 @@ begin
   Sort(@IsSmallerBackToFront);
 end;
 
+{ TModelerShapeNameMap ------------------------------------------------------- }
+
+{ For scenes exported from Blender, get Blender object names
+  and nodes. Works assuming that this VRML scene was created by
+  standard Blender VRML 1.0, 2.0 or X3D exporter.
+
+  Note that Blender VRML 1.0
+  exporter doesn't record anywhere object names (only mesh names),
+  so this returns mesh name in this case.
+
+  Implementation of this follows the logic of standard Blender VRML 1.0, 2.0
+  and X3D exporters, there's no other way to implement this.
+  So if you write in Python your own Blender exporter for VRML/X3D,
+  it will not magically work with the properties below (unless you will
+  follow the same convention of naming). You can register
+  in this case your own callback on ModelerShapeNameMap,
+  and indicate it in level.xml by modeler="xxx" attribute. }
+
+function BlenderShapeName(const Shape: TShape; out Node: TX3DNode): string;
+begin
+  if Shape.BlenderObjectName <> '' then
+  begin
+    Result := Shape.BlenderObjectName;
+    Node := Shape.BlenderObjectNode;
+  end else
+  begin
+    Result := Shape.BlenderMeshName;
+    Node := Shape.BlenderMeshNode;
+  end;
+end;
+
+initialization
+  ModelerShapeNameMap := TModelerShapeNameMap.Create;
+  ModelerShapeNameMap['blender'] := @BlenderShapeName;
+finalization
+  FreeAndNil(ModelerShapeNameMap);
 end.

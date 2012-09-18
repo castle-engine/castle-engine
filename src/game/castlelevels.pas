@@ -20,7 +20,7 @@ unit CastleLevels;
 interface
 
 uses VectorMath, CastleSceneCore, CastleScene, Boxes3D,
-  X3DNodes, X3DFields, Cameras,
+  X3DNodes, X3DFields, Cameras, SectorsWaypoints,
   CastleUtils, CastleClassUtils, CastlePlayer, CastleResources,
   ProgressUnit, PrecalculatedAnimation,
   DOM, CastleSoundEngine, Base3D, Shape, GL, CastleConfig, Images,
@@ -203,6 +203,7 @@ type
 
     { Like LoadLevel, but doesn't care about AInfo.LoadingImage. }
     procedure LoadLevelCore(const AInfo: TLevelInfo);
+    function HandlePlaceholder(Shape: TShape; ModelerName: string): boolean;
   public
     destructor Destroy; override;
 
@@ -243,7 +244,27 @@ type
 
         @item(@bold(Initialize sectors and waypoints from placeholders).
           Special object names CasSector* and CasWaypoint* can be placed
-          to help creature AI. See TCastleSceneManager.CreateSectors for details.)
+          to help creature AI.
+
+          Looks at objects in MainScene 3D model
+          whose names start with CasSector and CasWaypoint.
+          You can add objects with such names in 3D modeler, like Blender,
+          and they will be automatically understood by the engine when loading level.
+
+          Objects named CasSector<index>[_<ignored>] define sectors.
+          The geometry of a sector with given <index> is set to be the sum
+          of all CasSector<index>* boxes.
+          Sectors are numbered from 0.
+
+          Objects named CasWaypoint[<ignored>] define waypoints.
+          Each waypoint is stored as a 3D point, this point is the middle of the
+          bounding box of the object named CasWaypoint[<ignored>].
+
+          After extracting from level 3D model,
+          sectors and waypoints are then connected together by
+          TSectorList.LinkToWaypoints. The idea is that you can go from
+          one sector to the other through the waypoint that is placed on
+          the border of both of them.)
 
         @item(@bold(Prepare everything possible for rendering and collision
           detection) to avoid later preparing things on-demand (which would cause
@@ -317,6 +338,11 @@ type
     function LoadLevelScene(const FileName: string;
       const CreateOctreeCollisions: boolean): TCastleScene;
     { @groupEnd }
+
+    { Handle a 3D shape named in external modeler.
+      Return @true if the VRML/X3D node corresponding to the external
+      modeler 3D object should be removed. }
+    function HandlePlaceholder(const Shape: TShape; const ModelerName: string): boolean; virtual;
   public
     { Create new level instance. Called when resources (creatures and items)
       are already initialized. But before creating octrees,
@@ -395,6 +421,123 @@ end;
 
 { TGameSceneManager ---------------------------------------------------------- }
 
+function TGameSceneManager.HandlePlaceholder(Shape: TShape;
+  ModelerName: string): boolean;
+const
+  ResourcePrefix = PlaceholderPrefix + 'Res';
+  MoveLimitName = PlaceholderPrefix + 'MoveLimit';
+  WaterName = PlaceholderPrefix + 'Water';
+  SectorPrefix = PlaceholderPrefix + 'Sector';
+  WaypointPrefix = PlaceholderPrefix + 'Waypoint';
+
+  procedure HandlePlaceholderResource(Shape: TShape; ModelerName: string);
+  var
+    ResourceName: string;
+    ResourceNumberPresent: boolean;
+    Resource: T3DResource;
+    Box: TBox3D;
+    Position, Direction: TVector3Single;
+    IgnoredBegin, NumberBegin: Integer;
+    ResourceNumber: Int64;
+  begin
+    { ModelerName is now <resource_name>[<resource_number>][_<ignored>] }
+
+    { cut off optional [_<ignored>] suffix }
+    IgnoredBegin := Pos('_', ModelerName);
+    if IgnoredBegin <> 0 then
+      ModelerName := Copy(ModelerName, 1, IgnoredBegin - 1);
+
+    { calculate ResourceName, ResourceNumber, ResourceNumberPresent }
+    NumberBegin := CharsPos(['0'..'9'], ModelerName);
+    ResourceNumberPresent := NumberBegin <> 0;
+    if ResourceNumberPresent then
+    begin
+      ResourceName := Copy(ModelerName, 1, NumberBegin - 1);
+      ResourceNumber := StrToInt(SEnding(ModelerName, NumberBegin));
+    end else
+    begin
+      ResourceName := ModelerName;
+      ResourceNumber := 0;
+    end;
+
+    Resource := Resources.FindName(ResourceName);
+    if not Resource.Prepared then
+      OnWarning(wtMajor, 'Resource', Format('Resource "%s" is initially present on the level, but was not prepared yet --- which probably means you did not add it to <resources> inside level level.xml file. This causes loading on-demand, which is less comfortable for player.',
+        [Resource.Name]));
+
+    Box := Shape.BoundingBox;
+    Position := Box.Middle;
+    Position[Items.GravityCoordinate] := Box.Data[0, Items.GravityCoordinate];
+
+    { TODO: for now, Direction is not configurable, it just points
+      to the player start pos. This is more-or-less sensible for creatures. }
+    Direction := Camera.GetPosition - Position;
+
+    Resource.InstantiatePlaceholder(Items, Position, Direction,
+      ResourceNumberPresent, ResourceNumber);
+  end;
+
+  { Shapes placed under the name CasWaypoint[_<ignored>]
+    are removed from the Scene, and are added as new waypoint.
+    Waypoint's Position is set to the middle point of shape's bounding box. }
+  procedure CreateNewWaypoint(Shape: TShape);
+  var
+    Waypoint: TWaypoint;
+  begin
+    Waypoint := TWaypoint.Create;
+    Waypoint.Position := Shape.BoundingBox.Middle;
+    Waypoints.Add(Waypoint);
+
+    { Tests:
+    Writeln('Waypoint ', Waypoints.Count - 1, ': at position ',
+      VectorToNiceStr(Waypoint.Position));}
+  end;
+
+  { Shapes placed under the name CasSector<index>[_<ignored>]
+    are removed from the Scene, and are added to sector <index> BoundingBoxes.
+
+    Count of the Sectors list is enlarged, if necessary,
+    to include all sectors indicated in the Scene. }
+  procedure AddSectorBoundingBox(Shape: TShape; const SectorNodeName: string);
+  var
+    IgnoredBegin, SectorIndex: Integer;
+    SectorBoundingBox: TBox3D;
+  begin
+    { Calculate SectorIndex }
+    IgnoredBegin := Pos('_', SectorNodeName);
+    if IgnoredBegin = 0 then
+      SectorIndex := StrToInt(SectorNodeName) else
+      SectorIndex := StrToInt(Copy(SectorNodeName, 1, IgnoredBegin - 1));
+
+    SectorBoundingBox := Shape.BoundingBox;
+
+    Sectors.Count := Max(Sectors.Count, SectorIndex + 1);
+    if Sectors[SectorIndex] = nil then
+      Sectors[SectorIndex] := TSector.Create;
+
+    Sectors[SectorIndex].BoundingBoxes.Add(SectorBoundingBox);
+
+    { Tests:
+    Writeln('Sector ', SectorIndex, ': added box ',
+      SectorBoundingBox.ToNiceStr); }
+  end;
+
+begin
+  Result := true;
+  if IsPrefix(ResourcePrefix, ModelerName) then
+    HandlePlaceholderResource(Shape, SEnding(ModelerName, Length(ResourcePrefix) + 1)) else
+  if ModelerName = MoveLimitName then
+    MoveLimit := Shape.BoundingBox else
+  if ModelerName = WaterName then
+    Water := Shape.BoundingBox else
+  if IsPrefix(SectorPrefix, ModelerName) then
+    AddSectorBoundingBox(Shape, SEnding(ModelerName, Length(SectorPrefix) + 1)) else
+  if IsPrefix(WaypointPrefix, ModelerName) then
+    CreateNewWaypoint(Shape) else
+    { do not remove }
+    Result := false;
+end;
+
 procedure TGameSceneManager.LoadLevelCore(const AInfo: TLevelInfo);
 var
   { Sometimes it's not comfortable
@@ -406,60 +549,33 @@ var
     early. }
   ItemsToRemove: TX3DNodeList;
 
-  procedure TraverseForResources(Shape: TShape);
-  const
-    ResourcePrefix = PlaceholderPrefix + 'Res';
+  procedure TraverseForPlaceholders(Shape: TShape);
   var
-    S, ResourceName: string;
-    ResourceNumberPresent: boolean;
-    Resource: T3DResource;
-    Box: TBox3D;
-    Position, Direction: TVector3Single;
-    IgnoredBegin, NumberBegin: Integer;
-    ResourceNumber: Int64;
+    ModelerName: string;
+    ModelerNode: TX3DNode;
   begin
-    if IsPrefix(ResourcePrefix, Shape.BlenderMeshName) then
+    ModelerName := BlenderShapeName(Shape, ModelerNode);
+    if HandlePlaceholder(Shape, ModelerName) then
     begin
-      { S is now <resource_name>[<resource_number>][_<ignored>] }
-      S := SEnding(Shape.BlenderMeshName, Length(ResourcePrefix) + 1);
-
-      { cut off optional [_<ignored>] suffix }
-      IgnoredBegin := Pos('_', S);
-      if IgnoredBegin <> 0 then
-        S := Copy(S, 1, IgnoredBegin - 1);
-
-      { calculate ResourceName, ResourceNumber, ResourceNumberPresent }
-      NumberBegin := CharsPos(['0'..'9'], S);
-      ResourceNumberPresent := NumberBegin <> 0;
-      if ResourceNumberPresent then
-      begin
-        ResourceName := Copy(S, 1, NumberBegin - 1);
-        ResourceNumber := StrToInt(SEnding(S, NumberBegin));
-      end else
-      begin
-        ResourceName := S;
-        ResourceNumber := 0;
-      end;
-
-      Resource := Resources.FindName(ResourceName);
-      if not Resource.Prepared then
-        OnWarning(wtMajor, 'Resource', Format('Resource "%s" is initially present on the level, but was not prepared yet --- which probably means you did not add it to <resources> inside level level.xml file. This causes loading on-demand, which is less comfortable for player.',
-          [Resource.Name]));
-
-      Box := Shape.BoundingBox;
-      Position := Box.Middle;
-      Position[Items.GravityCoordinate] := Box.Data[0, Items.GravityCoordinate];
-
-      { TODO: for now, Direction is not configurable, it just points
-        to the player start pos. This is more-or-less sensible for creatures. }
-      Direction := Camera.GetPosition - Position;
-
-      Resource.InstantiatePlaceholder(Items, Position, Direction,
-        ResourceNumberPresent, ResourceNumber);
-
-      { Don't remove BlenderObjectNode now --- will be removed later.
+      { Don't remove ModelerNode now --- will be removed later.
         This avoids problems with removing nodes while traversing. }
-      ItemsToRemove.Add(Shape.BlenderObjectNode);
+      if ItemsToRemove.IndexOf(ModelerNode) = -1 then
+        ItemsToRemove.Add(ModelerNode);
+    end;
+  end;
+
+  procedure TraverseForLevelPlaceholders(Shape: TShape);
+  var
+    ModelerName: string;
+    ModelerNode: TX3DNode;
+  begin
+    ModelerName := BlenderShapeName(Shape, ModelerNode);
+    if Logic.HandlePlaceholder(Shape, ModelerName) then
+    begin
+      { Don't remove ModelerNode now --- will be removed later.
+        This avoids problems with removing nodes while traversing. }
+      if ItemsToRemove.IndexOf(ModelerNode) = -1 then
+        ItemsToRemove.Add(ModelerNode);
     end;
   end;
 
@@ -537,7 +653,7 @@ var
 
 var
   Options: TPrepareResourcesOptions;
-  NewMoveLimit, NewWater: TBox3D;
+  NewMoveLimit: TBox3D;
   SI: TShapeTreeIterator;
   PreviousResources: T3DResourceList;
   I: Integer;
@@ -604,30 +720,35 @@ begin
 
   Progress.Init(1, 'Loading level "' + Info.Title + '"');
   try
+    { We will calculate new Sectors and Waypoints and other stuff
+      based on placeholders. Initialize them now to be empty. }
+    FreeAndNil(FSectors);
+    FreeAndNil(Waypoints);
+    FSectors := TSectorList.Create(true);
+    Waypoints := TWaypointList.Create(true);
+    MoveLimit := EmptyBox3D;
+    Water := EmptyBox3D;
+
     ItemsToRemove := TX3DNodeList.Create(false);
     try
       SI := TShapeTreeIterator.Create(MainScene.Shapes, { OnlyActive } true);
       try
-        while SI.GetNext do TraverseForResources(SI.Current);
+        while SI.GetNext do TraverseForPlaceholders(SI.Current);
       finally SysUtils.FreeAndNil(SI) end;
       RemoveItemsToRemove;
     finally ItemsToRemove.Free end;
 
-    { Calculate MoveLimit }
-    if not MainScene.RemoveBlenderBox(NewMoveLimit, PlaceholderPrefix + 'MoveLimit') then
+    if MoveLimit.IsEmpty then
     begin
       { Set MoveLimit to MainScene.BoundingBox, and make maximum up larger. }
       NewMoveLimit := MainScene.BoundingBox;
       NewMoveLimit.Data[1, Items.GravityCoordinate] +=
         4 * (NewMoveLimit.Data[1, Items.GravityCoordinate] -
              NewMoveLimit.Data[0, Items.GravityCoordinate]);
+      MoveLimit := NewMoveLimit;
     end;
-    MoveLimit := NewMoveLimit;
 
-    if MainScene.RemoveBlenderBox(NewWater, PlaceholderPrefix + 'Water') then
-      Water := NewWater;
-
-    CreateSectors(MainScene);
+    Sectors.LinkToWaypoints(Waypoints, SectorsBoxesMargin);
 
     { create Level after resources (creatures and items) are initialized
       (some TLevelLogic descendant constructors depend on this),
@@ -635,6 +756,15 @@ begin
       may want to modify MainScene inside Level constructor). }
     FLogic := Info.LogicClass.Create(Self, Items, MainScene, Info.Element);
     Items.Add(Logic);
+
+    ItemsToRemove := TX3DNodeList.Create(false);
+    try
+      SI := TShapeTreeIterator.Create(MainScene.Shapes, { OnlyActive } true);
+      try
+        while SI.GetNext do TraverseForLevelPlaceholders(SI.Current);
+      finally SysUtils.FreeAndNil(SI) end;
+      RemoveItemsToRemove;
+    finally ItemsToRemove.Free end;
 
     { calculate Options for PrepareResources }
     Options := [prRender, prBackground, prBoundingBox];
@@ -814,6 +944,12 @@ procedure TLevelLogic.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
   FTime += CompSpeed;
+end;
+
+function TLevelLogic.HandlePlaceholder(const Shape: TShape;
+  const ModelerName: string): boolean;
+begin
+  Result := false;
 end;
 
 { TLevelInfo ------------------------------------------------------------ }

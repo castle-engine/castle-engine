@@ -880,16 +880,6 @@ type
     { Remove the geometry of this shape from the scene. }
     procedure RemoveShapeGeometry(Shape: TShape);
 
-    { Find Blender mesh with given name, extract it's bounding box
-      and remove it from scene. Used to handle various placeholders on level,
-      see TGameSceneManager.LoadLevel for a list.
-      This changes scene (and it's BoundingBox). }
-    function RemoveBlenderBox(out Box: TBox3D; const BlenderMeshName: string): boolean;
-
-    { Like RemoveBoxNode, but raise Exception if not found.
-      @raises Exception When node not found. }
-    procedure RemoveBlenderBoxCheck(out Box: TBox3D; const BlenderMeshName: string);
-
     { Notify scene that potentially everything changed
       in the VRML graph. This includes adding/removal of some nodes within
       RootNode graph and changing their fields' values.
@@ -6560,29 +6550,6 @@ end;
 procedure TCastleSceneCore.UnregisterScene(Node: TX3DNode);
 begin
   Node.EnumerateNodes(TX3DNode, @UnregisterSceneCallback, false);
-end;
-
-function TCastleSceneCore.RemoveBlenderBox(out Box: TBox3D; const BlenderMeshName: string): boolean;
-var
-  BoxShape: TShape;
-begin
-  BoxShape := Shapes.FindBlenderMesh(BlenderMeshName);
-  Result := BoxShape <> nil;
-  if Result then
-  begin
-    { When node with name BlenderMeshName is found, then we calculate our
-      Box from this node (and we delete this node from the scene,
-      as it should not be visible).
-      This way we can comfortably set such boxes from Blender. }
-    Box := BoxShape.BoundingBox;
-    RemoveShapeGeometry(BoxShape);
-  end;
-end;
-
-procedure TCastleSceneCore.RemoveBlenderBoxCheck(out Box: TBox3D; const BlenderMeshName: string);
-begin
-  if not RemoveBlenderBox(Box, BlenderMeshName) then
-    raise EInternalError.CreateFmt('Error: no Blender mesh named "%s" found', [BlenderMeshName]);
 end;
 
 end.
