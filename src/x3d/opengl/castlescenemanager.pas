@@ -28,7 +28,7 @@ const
   { }
   DefaultScreenSpaceAmbientOcclusion = false;
   DefaultUseGlobalLights = true;
-  DafaultSectorsBoxesMargin = 0.5;
+  DefaultSectorsBoxesMargin = 0.5;
 
 type
   TCastleAbstractViewport = class;
@@ -842,12 +842,12 @@ type
     function GravityUp: TVector3Single;
 
     { Sectors and waypoints of this world, for AI in 3D.
-      Initialized by CreateSectors.
-      @nil if you never call CreateSectors.
+      Initialized by TGameSceneManager.LoadLevel.
+      @nil if you never call TGameSceneManager.LoadLevel.
 
       A generic AI code should work regardless if these are @nil or not.
       But if you're making a game and you know you will always call
-      CreateSectors, you can just use them straight away. }
+      TGameSceneManager.LoadLevel, you can just use them straight away. }
     property Sectors: TSectorList read FSectors;
 
     { Margin to include waypoint into sector, for creature AI.
@@ -859,7 +859,7 @@ type
       TODO: In the future we may look at waypoint bounding box instead of
       SectorsBoxesMargin? }
     property SectorsBoxesMargin: Single
-      read FSectorsBoxesMargin write FSectorsBoxesMargin default DafaultSectorsBoxesMargin;
+      read FSectorsBoxesMargin write FSectorsBoxesMargin default DefaultSectorsBoxesMargin;
 
     { Water volume in the scene. It may be used by various 3D objects
       to indicate appropriate behavior --- some things swim,
