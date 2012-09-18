@@ -23,13 +23,16 @@
   names some objects in Blender, and you want to detect this inside the game). }
 program test_blender_exported_hierarchy;
 
-uses SysUtils, CastleUtils, Shape, CastleSceneCore, CastleParameters;
+uses SysUtils, CastleUtils, CastleShape, CastleSceneCore, CastleParameters,
+  X3DNodes;
 
 procedure Traverse(Shape: TShape);
+var
+  ModelerName: string;
+  ModelerNode: TX3DNode;
 begin
-  Writeln(
-    'Blender object "', Shape.BlenderObjectName, '" (VRML/X3D ', Shape.BlenderObjectNode.NodeTypeName, ') -> ' +
-              'mesh "', Shape.BlenderMeshName, '" (VRML/X3D ', Shape.BlenderMeshNode.NodeTypeName, ')');
+  ModelerName := BlenderShapeName(Shape, ModelerNode);
+  Writeln('Blender shape name "', ModelerName, '" (VRML/X3D node "', ModelerNode.NiceName, '")');
 end;
 
 var
