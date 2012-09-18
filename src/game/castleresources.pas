@@ -467,7 +467,7 @@ var
 begin
   Clear;
 
-  ResourcesElement := DOMGetChildElement(ParentElement, 'resources', false);
+  ResourcesElement := DOMGetChildElement(ParentElement, 'prepare_resources', false);
 
   if ResourcesElement <> nil then
   begin
@@ -477,7 +477,7 @@ begin
       begin
         if I.Current.TagName <> 'resource' then
           raise Exception.CreateFmt(
-            'Element "%s" is not allowed in <resources>',
+            'Element "%s" is not allowed in <prepare_resources>',
             [I.Current.TagName]);
         if not DOMGetAttribute(I.Current, 'name', ResourceName) then
           raise Exception.Create('<resource> must have a "name" attribute');
