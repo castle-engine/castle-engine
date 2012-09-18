@@ -609,7 +609,7 @@ type
 
 implementation
 
-uses CastleStringUtils, Shape;
+uses CastleStringUtils, CastleShape;
 
 { TTriangle  ------------------------------------------------------------- }
 

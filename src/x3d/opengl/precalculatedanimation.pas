@@ -666,7 +666,7 @@ procedure Register;
 implementation
 
 uses Math, X3DFields, ProgressUnit, X3DLoad, CastleLog, DateUtils,
-  Shape, CastleConfig;
+  CastleShape, CastleConfig;
 
 procedure Register;
 begin

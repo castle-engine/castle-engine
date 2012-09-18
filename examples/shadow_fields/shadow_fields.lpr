@@ -44,7 +44,7 @@ program shadow_fields;
 uses SysUtils, GL, CastleGLUtils, VectorMath, Boxes3D, CastleColors,
   CastleWindow, CastleScene, Cameras, CastleWarnings, CastleParameters,
   ShadowFields, CastleUtils, CubeMap, X3DNodes, CastleSceneManager, Base3D,
-  SphericalHarmonics, GLCubeMap, CastleMessages, Shape, CastleStringUtils,
+  SphericalHarmonics, GLCubeMap, CastleMessages, CastleShape, CastleStringUtils,
   RenderingCameraUnit;
 
 var

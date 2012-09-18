@@ -23,7 +23,7 @@ uses VectorMath, CastleSceneCore, CastleScene, Boxes3D,
   X3DNodes, X3DFields, Cameras, SectorsWaypoints,
   CastleUtils, CastleClassUtils, CastlePlayer, CastleResources,
   ProgressUnit, PrecalculatedAnimation,
-  DOM, CastleSoundEngine, Base3D, Shape, GL, CastleConfig, Images,
+  DOM, CastleSoundEngine, Base3D, CastleShape, GL, CastleConfig, Images,
   Classes, CastleTimeUtils, CastleSceneManager, GLRendererShader, FGL;
 
 type
@@ -555,7 +555,7 @@ var
     ModelerNode: TX3DNode;
   begin
     ModelerName := BlenderShapeName(Shape, ModelerNode);
-    if HandlePlaceholder(Shape, ModelerName) then
+    if (ModelerName <> '') and HandlePlaceholder(Shape, ModelerName) then
     begin
       { Don't remove ModelerNode now --- will be removed later.
         This avoids problems with removing nodes while traversing. }
@@ -570,7 +570,7 @@ var
     ModelerNode: TX3DNode;
   begin
     ModelerName := BlenderShapeName(Shape, ModelerNode);
-    if Logic.HandlePlaceholder(Shape, ModelerName) then
+    if (ModelerName <> '') and Logic.HandlePlaceholder(Shape, ModelerName) then
     begin
       { Don't remove ModelerNode now --- will be removed later.
         This avoids problems with removing nodes while traversing. }

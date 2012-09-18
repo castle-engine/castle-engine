@@ -14,7 +14,7 @@
 }
 
 { Shape (TShape class) and a simple tree of shapes (TShapeTree class). }
-unit Shape;
+unit CastleShape;
 
 { $define SHAPE_ITERATOR_SOPHISTICATED}
 
