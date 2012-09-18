@@ -221,7 +221,7 @@ uses
   Classes, SysUtils, CastleUtils, VectorMath, GL, GLExt,
   X3DFields, X3DNodes, X3DLexer, OpenGLTTFonts, Images,
   CastleGLUtils, GLRendererLights, TTFontsTypes,
-  GLShaders, GLImages, Videos, X3DTime, Shape,
+  GLShaders, GLImages, Videos, X3DTime, CastleShape,
   GLCubeMap, CastleClassUtils, DDS, Base3D, FGL,
   GeometryArrays, ArraysGenerator, GLRendererShader, X3DShadowMaps,
   GLRendererTextureEnv;

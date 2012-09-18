@@ -21,7 +21,7 @@ type
 
 implementation
 
-uses X3DNodes, CastleSceneCore, X3DLoad, VectorMath, Shape,
+uses X3DNodes, CastleSceneCore, X3DLoad, VectorMath, CastleShape,
   CastleTimeUtils, CastleStringUtils, X3DFields;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
