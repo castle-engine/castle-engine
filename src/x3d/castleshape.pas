@@ -195,10 +195,11 @@ type
       an merely return in BlenderShapeName.
       TODO: we don't need this cheat, we can pass in TraverseForPlaceholders
       a little more info to allow this. }
-    BlenderObjectNode: TX3DNode;
-    BlenderObjectName: string;
-    BlenderMeshNode: TX3DNode;
-    BlenderMeshName: string;
+    BlenderModelerNode: TX3DNode;
+    BlenderModelerName: string;
+    //FGeometryParentNodeName,
+    //FGeometryGrandParentNodeName,
+    //FGeometryGrandGrandParentNodeName: string;
 
     FDynamicGeometry: boolean;
 
@@ -263,6 +264,11 @@ type
       were freed). }
     procedure FreeOctreeTriangles;
   public
+    { Constructor.
+      @param(ParentInfo Resursive information about parents,
+        for the geometry node of given shape.
+        Note that for VRML 2.0/X3D, the immediate parent
+        of geometry node is always TShapeNode.) }
     constructor Create(AParentScene: TObject;
       AOriginalGeometry: TAbstractGeometryNode; AOriginalState: TX3DGraphTraverseState;
       ParentInfo: PTraversingInfo);
@@ -827,7 +833,7 @@ type
   { Detect the 3D shape name set in the external modeler,
     like 3D object name set in Blender or 3DS Max.
     Also calculate the VRML/X3D node containing this whole 3D object
-    in external modeler (note that it *can* span other VRML/X3D shapes too)
+    in external modeler (note that it *can* span other VRML/X3D shapes too).
 
     Assumes that a specific modeler was used to create and export this 3D model.
     Each TModelerShapeName function is made to follow the logic of a single
@@ -930,18 +936,8 @@ constructor TShape.Create(AParentScene: TObject;
         parents, and these are his objects. }
       if ParentInfo <> nil then
       begin
-        BlenderMeshNode := ParentInfo^.Node;
-        BlenderMeshName := BlenderMeshNode.NodeName;
-
-        ParentInfo := ParentInfo^.ParentInfo;
-
-        if ParentInfo <> nil then
-        begin
-          BlenderObjectNode := ParentInfo^.Node;
-          { Unfortunately, this will always be ''. Blender VRML 1.0 exporter
-            doesn't write this. }
-          BlenderObjectName := BlenderObjectNode.NodeName;
-        end;
+        BlenderModelerNode := ParentInfo^.Node;
+        BlenderModelerName := BlenderModelerNode.NodeName;
       end;
     end else
     if (OriginalState.ShapeNode <> nil) and (ParentInfo <> nil) then
@@ -962,15 +958,16 @@ constructor TShape.Create(AParentScene: TObject;
 
       if ParentInfo <> nil then
       begin
-        BlenderMeshNode := ParentInfo^.Node;
-        BlenderMeshName := PrefixRemove('ME_', BlenderMeshNode.NodeName, false);
+        // not needed:
+        // BlenderMeshNode := ParentInfo^.Node;
+        // BlenderMeshName := PrefixRemove('ME_', BlenderMeshNode.NodeName, false);
 
         ParentInfo := ParentInfo^.ParentInfo;
 
         if ParentInfo <> nil then
         begin
-          BlenderObjectNode := ParentInfo^.Node;
-          BlenderObjectName := PrefixRemove('OB_', BlenderObjectNode.NodeName, false);
+          BlenderModelerNode := ParentInfo^.Node;
+          BlenderModelerName := PrefixRemove('OB_', BlenderModelerNode.NodeName, false);
         end;
       end;
     end;
@@ -2663,15 +2660,8 @@ end;
 
 function BlenderShapeName(const Shape: TShape; out Node: TX3DNode): string;
 begin
-  if Shape.BlenderObjectName <> '' then
-  begin
-    Result := Shape.BlenderObjectName;
-    Node := Shape.BlenderObjectNode;
-  end else
-  begin
-    Result := Shape.BlenderMeshName;
-    Node := Shape.BlenderMeshNode;
-  end;
+  Result := Shape.BlenderModelerName;
+  Node := Shape.BlenderModelerNode;
 end;
 
 initialization
