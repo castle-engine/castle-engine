@@ -552,7 +552,7 @@ var
   var
     ModelerName: string;
   begin
-    ModelerName := BlenderShapeName(Shape);
+    ModelerName := BlenderPlaceholder(Shape);
     if (ModelerName <> '') and HandlePlaceholder(Shape, ModelerName) then
     begin
       { Don't remove OriginalGeometry node now --- will be removed later.
@@ -566,7 +566,7 @@ var
   var
     ModelerName: string;
   begin
-    ModelerName := BlenderShapeName(Shape);
+    ModelerName := BlenderPlaceholder(Shape);
     if (ModelerName <> '') and Logic.HandlePlaceholder(Shape, ModelerName) then
     begin
       { Don't remove ModelerNode now --- will be removed later.
