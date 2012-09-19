@@ -345,13 +345,20 @@ type
       and it was handled and relevant shape should be removed from level
       geometry (to not be rendered). }
     function Placeholder(const Shape: TShape; const PlaceholderName: string): boolean; virtual;
-  public
-    { Create new level instance. Called when resources (creatures and items)
-      are already initialized. But before creating octrees,
-      so you can modify MainScene contents.
 
-      You have to provide AWorld instance at construction,
-      and you have to add created TLevelLogic instance to this AWorld,
+    { Called after all placeholders have been processed,
+      that is after TGameSceneManager.LoadLevel placed initial creatures,
+      items and other stuff on the level.
+      Override it to do anything you want. }
+    procedure PlaceholdersEnd; virtual;
+  public
+    { Create new level instance. Called before resources (creatures and items)
+      are initialized (override PlaceholdersEnd if you need to do something
+      after creatures and items are added).
+      You can modify MainScene contents here.
+
+      We provide AWorld instance at construction,
+      and the created TLevelLogic instance will be added to this AWorld,
       and you cannot change it later. This is necessary, as TLevelLogic descendants
       at construction may actually modify your world, and depend on it later. }
     constructor Create(AOwner: TComponent; AWorld: T3DWorld;
@@ -537,8 +544,7 @@ begin
     PlaceholderSector(Shape, SEnding(PlaceholderName, Length(SectorPrefix) + 1)) else
   if IsPrefix(WaypointPrefix, PlaceholderName) then
     PlaceholderWaypoint(Shape) else
-    { do not remove }
-    Result := false;
+    Result := Logic.Placeholder(Shape, PlaceholderName);
 end;
 
 procedure TGameSceneManager.LoadLevelCore(const AInfo: TLevelInfo);
@@ -566,20 +572,6 @@ var
     end;
   end;
 
-  procedure TraverseForLevelPlaceholders(Shape: TShape);
-  var
-    PlaceholderName: string;
-  begin
-    PlaceholderName := Info.PlaceholderName(Shape);
-    if (PlaceholderName <> '') and Logic.Placeholder(Shape, PlaceholderName) then
-    begin
-      { Don't remove ModelerNode now --- will be removed later.
-        This avoids problems with removing nodes while traversing. }
-      if ItemsToRemove.IndexOf(Shape.OriginalGeometry) = -1 then
-        ItemsToRemove.Add(Shape.OriginalGeometry);
-    end;
-  end;
-
   procedure RemoveItemsToRemove;
   var
     I: Integer;
@@ -588,6 +580,26 @@ var
     for I := 0 to ItemsToRemove.Count - 1 do
       ItemsToRemove.Items[I].FreeRemovingFromAllParents;
     MainScene.ChangedAll;
+  end;
+
+  { After placeholders are processed, finish some stuff. }
+  procedure PlaceholdersEnd;
+  var
+    NewMoveLimit: TBox3D;  
+  begin
+    if MoveLimit.IsEmpty then
+    begin
+      { Set MoveLimit to MainScene.BoundingBox, and make maximum up larger. }
+      NewMoveLimit := MainScene.BoundingBox;
+      NewMoveLimit.Data[1, Items.GravityCoordinate] +=
+        4 * (NewMoveLimit.Data[1, Items.GravityCoordinate] -
+             NewMoveLimit.Data[0, Items.GravityCoordinate]);
+      MoveLimit := NewMoveLimit;
+    end;
+
+    Sectors.LinkToWaypoints(Waypoints, SectorsBoxesMargin);
+
+    Logic.PlaceholdersEnd;
   end;
 
   { Assign Camera, knowing MainScene and Player.
@@ -654,7 +666,6 @@ var
 
 var
   Options: TPrepareResourcesOptions;
-  NewMoveLimit: TBox3D;
   SI: TShapeTreeIterator;
   PreviousResources: T3DResourceList;
   I: Integer;
@@ -721,6 +732,10 @@ begin
 
   Progress.Init(1, 'Loading level "' + Info.Title + '"');
   try
+    { create new Logic }
+    FLogic := Info.LogicClass.Create(Self, Items, MainScene, Info.Element);
+    Items.Add(Logic);
+
     { We will calculate new Sectors and Waypoints and other stuff
       based on placeholders. Initialize them now to be empty. }
     FreeAndNil(FSectors);
@@ -739,33 +754,7 @@ begin
       RemoveItemsToRemove;
     finally ItemsToRemove.Free end;
 
-    if MoveLimit.IsEmpty then
-    begin
-      { Set MoveLimit to MainScene.BoundingBox, and make maximum up larger. }
-      NewMoveLimit := MainScene.BoundingBox;
-      NewMoveLimit.Data[1, Items.GravityCoordinate] +=
-        4 * (NewMoveLimit.Data[1, Items.GravityCoordinate] -
-             NewMoveLimit.Data[0, Items.GravityCoordinate]);
-      MoveLimit := NewMoveLimit;
-    end;
-
-    Sectors.LinkToWaypoints(Waypoints, SectorsBoxesMargin);
-
-    { create Level after resources (creatures and items) are initialized
-      (some TLevelLogic descendant constructors depend on this),
-      but still before preparing resources like octrees (because we still
-      may want to modify MainScene inside Level constructor). }
-    FLogic := Info.LogicClass.Create(Self, Items, MainScene, Info.Element);
-    Items.Add(Logic);
-
-    ItemsToRemove := TX3DNodeList.Create(false);
-    try
-      SI := TShapeTreeIterator.Create(MainScene.Shapes, { OnlyActive } true);
-      try
-        while SI.GetNext do TraverseForLevelPlaceholders(SI.Current);
-      finally SysUtils.FreeAndNil(SI) end;
-      RemoveItemsToRemove;
-    finally ItemsToRemove.Free end;
+    PlaceholdersEnd;
 
     { calculate Options for PrepareResources }
     Options := [prRender, prBackground, prBoundingBox];
@@ -951,6 +940,11 @@ function TLevelLogic.Placeholder(const Shape: TShape;
   const PlaceholderName: string): boolean;
 begin
   Result := false;
+end;
+
+procedure TLevelLogic.PlaceholdersEnd;
+begin
+  { Nothing to do in this class. }
 end;
 
 { TLevelInfo ------------------------------------------------------------ }
