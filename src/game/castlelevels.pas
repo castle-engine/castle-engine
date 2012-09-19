@@ -585,7 +585,7 @@ var
   { After placeholders are processed, finish some stuff. }
   procedure PlaceholdersEnd;
   var
-    NewMoveLimit: TBox3D;  
+    NewMoveLimit: TBox3D;
   begin
     if MoveLimit.IsEmpty then
     begin
