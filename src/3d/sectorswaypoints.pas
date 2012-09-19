@@ -15,7 +15,7 @@
 
 { Sectors and waypoints, to improve creature AI in 3D levels.
   For user-oriented description what are sectors and waypoints,
-  when they should be used etc. see "The Castle" developer docs,
+  see "The Castle" developer docs,
   [http://castle-engine.sourceforge.net/castle-development.php]. }
 unit SectorsWaypoints;
 
@@ -35,6 +35,13 @@ type
   public
     Position: TVector3Single;
 
+    { Box of the waypoint is only used by TSectorList.LinkToWaypoints,
+      to detect which sectors contain ths waypoint (presumably,
+      on their border).
+      This box is @italic(not) used by actual AI using waypoints/sectors
+      (only @link(Position) matters then). }
+    Box: TBox3D;
+
     { Sectors that contain this waypoint. }
     property Sectors: TSectorList read FSectors;
   end;
@@ -44,33 +51,23 @@ type
 
   TSector = class
   private
-    FBoundingBoxes: TBox3DList;
+    FBoxes: TBox3DList;
     FVisibleSectors: TBooleanList;
     FWaypoints: TWaypointList;
   public
     constructor Create;
     destructor Destroy; override;
 
-    property BoundingBoxes: TBox3DList read FBoundingBoxes;
+    property Boxes: TBox3DList read FBoxes;
 
     { Returns whether Point is inside the sector.
       Implementation in TSector just returns if Point is inside
-      one of the BoundingBoxes. You can override this to define
-      the sector geometry in a more flexible way.
+      one of the Boxes. You can override this to define
+      the sector geometry in a more flexible way. }
+    function PointInside(const Point: TVector3Single): boolean;
 
-      Remember to also override SectorsBoxesMargin. }
-    function IsPointInside(const Point: TVector3Single): boolean; virtual;
-
-    { This is like IsPointInside, but it's supposed to enlarge the geometry
-      by SectorsBoxesMargin.
-
-      This is used only by LinkToWaypoints.
-      If you don't use LinkToWaypoints (because you create all links
-      between waypoints and sectors some other way, e.g. manually
-      code them in Pascal), you don't have to care about overriding this
-      in descendants. }
-    function IsPointInsideMargin(const Point: TVector3Single;
-      const SectorsBoxesMargin: Single): boolean; virtual;
+    { Does the box collides (at least partially) with sector. }
+    function Collision(const Box: TBox3D): boolean;
 
     { What sectors are visible from this sector.
 
@@ -94,19 +91,16 @@ type
 
   TSectorList = class(specialize TFPGObjectList<TSector>)
   public
-    { This adds appropriate Waypoints to all sectors on this list,
-      and adds appropriate Sectors to all Waypoints on given list.
-
-      A waypoint is considered to be within the sector, if
-      Sector.IsPointInsideMargin(Waypoint.Position, SectorsBoxesMargin)
-      is true. The SectorsBoxesMargin is needed to avoid any kind of
-      uncertainty when the waypoint's position is at the very border
-      of the sector.
+    { Connect sectors and waypoints into a graph.
+      Adds appropriate waypoints to sectors and sectors to waypoints,
+      knowing which waypoint belongs (presumably, lies at the border of)
+      to which sector.
+      A waypoint belongs to the sector simply when TWaypoint.Box
+      collides with one of the sector boxes.
 
       @raises ESectorNotInitialized When some sector is nil.
       @raises EWaypointNotInitialized When some waypoint is nil. }
-    procedure LinkToWaypoints(Waypoints: TWaypointList;
-      const SectorsBoxesMargin: Single);
+    procedure LinkToWaypoints(Waypoints: TWaypointList);
 
     { Returns sector with given point (using IsPointInside of each sector).
       Returns nil if no such sector. }
@@ -161,46 +155,42 @@ end;
 constructor TSector.Create;
 begin
   inherited Create;
-  FBoundingBoxes := TBox3DList.Create;
+  FBoxes := TBox3DList.Create;
   FVisibleSectors := TBooleanList.Create;
   FWaypoints := TWaypointList.Create(false);
 end;
 
 destructor TSector.Destroy;
 begin
-  FreeAndNil(FBoundingBoxes);
+  FreeAndNil(FBoxes);
   FreeAndNil(FVisibleSectors);
   FreeAndNil(FWaypoints);
   inherited;
 end;
 
-function TSector.IsPointInside(const Point: TVector3Single): boolean;
+function TSector.PointInside(const Point: TVector3Single): boolean;
 var
   I: Integer;
 begin
-  { This could be implemented as IsPointInsideMargin(Point, 0),
-    but is not (for speed). }
-  for I := 0 to BoundingBoxes.Count - 1 do
-    if BoundingBoxes.L[I].PointInside(Point) then
+  for I := 0 to Boxes.Count - 1 do
+    if Boxes.L[I].PointInside(Point) then
       Exit(true);
   Result := false;
 end;
 
-function TSector.IsPointInsideMargin(const Point: TVector3Single;
-  const SectorsBoxesMargin: Single): boolean;
+function TSector.Collision(const Box: TBox3D): boolean;
 var
   I: Integer;
 begin
-  for I := 0 to BoundingBoxes.Count - 1 do
-    if BoundingBoxes.L[I].Expand(SectorsBoxesMargin).PointInside(Point) then
+  for I := 0 to Boxes.Count - 1 do
+    if Boxes.L[I].Collision(Box) then
       Exit(true);
   Result := false;
 end;
 
 { TSectorList -------------------------------------------------------- }
 
-procedure TSectorList.LinkToWaypoints(Waypoints: TWaypointList;
-  const SectorsBoxesMargin: Single);
+procedure TSectorList.LinkToWaypoints(Waypoints: TWaypointList);
 var
   S: TSector;
   W: TWaypoint;
@@ -220,7 +210,7 @@ begin
         raise EWaypointNotInitialized.CreateFmt('Waypoint %d not initialized',
           [WaypointIndex]);
 
-      if S.IsPointInsideMargin(W.Position, SectorsBoxesMargin) then
+      if S.Collision(W.Box) then
       begin
         S.Waypoints.Add(W);
         W.Sectors.Add(S);
@@ -237,7 +227,7 @@ begin
   for I := 0 to Count - 1 do
   begin
     Result := Items[I];
-    if Result.IsPointInside(Point) then
+    if Result.PointInside(Point) then
       Exit;
   end;
   Result := nil;

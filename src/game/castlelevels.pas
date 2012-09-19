@@ -495,7 +495,8 @@ const
     Waypoint: TWaypoint;
   begin
     Waypoint := TWaypoint.Create;
-    Waypoint.Position := Shape.BoundingBox.Middle;
+    Waypoint.Box := Shape.BoundingBox;
+    Waypoint.Position := Waypoint.Box.Middle;
     Waypoints.Add(Waypoint);
 
     { Tests:
@@ -511,7 +512,6 @@ const
   procedure PlaceholderSector(Shape: TShape; const SectorNodeName: string);
   var
     IgnoredBegin, SectorIndex: Integer;
-    SectorBoundingBox: TBox3D;
   begin
     { Calculate SectorIndex }
     IgnoredBegin := Pos('_', SectorNodeName);
@@ -519,13 +519,11 @@ const
       SectorIndex := StrToInt(SectorNodeName) else
       SectorIndex := StrToInt(Copy(SectorNodeName, 1, IgnoredBegin - 1));
 
-    SectorBoundingBox := Shape.BoundingBox;
-
     Sectors.Count := Max(Sectors.Count, SectorIndex + 1);
     if Sectors[SectorIndex] = nil then
       Sectors[SectorIndex] := TSector.Create;
 
-    Sectors[SectorIndex].BoundingBoxes.Add(SectorBoundingBox);
+    Sectors[SectorIndex].Boxes.Add(Shape.BoundingBox);
 
     { Tests:
     Writeln('Sector ', SectorIndex, ': added box ',
@@ -597,7 +595,7 @@ var
       MoveLimit := NewMoveLimit;
     end;
 
-    Sectors.LinkToWaypoints(Waypoints, SectorsBoxesMargin);
+    Sectors.LinkToWaypoints(Waypoints);
 
     Logic.PlaceholdersEnd;
   end;

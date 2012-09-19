@@ -28,7 +28,6 @@ const
   { }
   DefaultScreenSpaceAmbientOcclusion = false;
   DefaultUseGlobalLights = true;
-  DefaultSectorsBoxesMargin = 0.5;
 
 type
   TCastleAbstractViewport = class;
@@ -705,7 +704,6 @@ type
     NeedsUpdateGeneratedTextures: boolean;
 
     FWater: TBox3D;
-    FSectorsBoxesMargin: Single;
 
     { Call at the beginning of Draw (from both scene manager and custom viewport),
       to make sure UpdateGeneratedTextures was done before actual drawing. }
@@ -849,17 +847,6 @@ type
       But if you're making a game and you know you will always call
       TGameSceneManager.LoadLevel, you can just use them straight away. }
     property Sectors: TSectorList read FSectors;
-
-    { Margin to include waypoint into sector, for creature AI.
-      See TSectorList.LinkToWaypoints description,
-      in short set this to something much smaller than minimum sector size
-      but not zero. In practice, depends on the design of sectors/waypoints
-      in your scene.
-
-      TODO: In the future we may look at waypoint bounding box instead of
-      SectorsBoxesMargin? }
-    property SectorsBoxesMargin: Single
-      read FSectorsBoxesMargin write FSectorsBoxesMargin default DefaultSectorsBoxesMargin;
 
     { Water volume in the scene. It may be used by various 3D objects
       to indicate appropriate behavior --- some things swim,
@@ -2478,7 +2465,6 @@ begin
 
   FMoveLimit := EmptyBox3D;
   FWater := EmptyBox3D;
-  FSectorsBoxesMargin := DefaultSectorsBoxesMargin;
 
   FDefaultViewport := true;
 
