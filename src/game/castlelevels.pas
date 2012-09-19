@@ -207,7 +207,7 @@ type
 
     { Like LoadLevel, but doesn't care about AInfo.LoadingImage. }
     procedure LoadLevelCore(const AInfo: TLevelInfo);
-    function HandlePlaceholder(Shape: TShape; ModelerName: string): boolean;
+    function Placeholder(Shape: TShape; PlaceholderName: string): boolean;
   public
     destructor Destroy; override;
 
@@ -340,10 +340,11 @@ type
       const CreateOctreeCollisions: boolean): TCastleScene;
     { @groupEnd }
 
-    { Handle a 3D shape named in external modeler.
-      Return @true if the VRML/X3D node corresponding to the external
-      modeler 3D object should be removed. }
-    function HandlePlaceholder(const Shape: TShape; const ModelerName: string): boolean; virtual;
+    { Handle a placeholder named in external modeler.
+      Return @true if this is indeed a recognized placeholder name,
+      and it was handled and relevant shape should be removed from level
+      geometry (to not be rendered). }
+    function Placeholder(const Shape: TShape; const PlaceholderName: string): boolean; virtual;
   public
     { Create new level instance. Called when resources (creatures and items)
       are already initialized. But before creating octrees,
@@ -421,8 +422,8 @@ end;
 
 { TGameSceneManager ---------------------------------------------------------- }
 
-function TGameSceneManager.HandlePlaceholder(Shape: TShape;
-  ModelerName: string): boolean;
+function TGameSceneManager.Placeholder(Shape: TShape;
+  PlaceholderName: string): boolean;
 const
   { Prefix of all placeholders that we seek on 3D models. }
   PlaceholderPrefix = 'Cas';
@@ -432,7 +433,7 @@ const
   SectorPrefix = PlaceholderPrefix + 'Sector';
   WaypointPrefix = PlaceholderPrefix + 'Waypoint';
 
-  procedure HandlePlaceholderResource(Shape: TShape; ModelerName: string);
+  procedure PlaceholderResource(Shape: TShape; PlaceholderName: string);
   var
     ResourceName: string;
     ResourceNumberPresent: boolean;
@@ -442,23 +443,23 @@ const
     IgnoredBegin, NumberBegin: Integer;
     ResourceNumber: Int64;
   begin
-    { ModelerName is now <resource_name>[<resource_number>][_<ignored>] }
+    { PlaceholderName is now <resource_name>[<resource_number>][_<ignored>] }
 
     { cut off optional [_<ignored>] suffix }
-    IgnoredBegin := Pos('_', ModelerName);
+    IgnoredBegin := Pos('_', PlaceholderName);
     if IgnoredBegin <> 0 then
-      ModelerName := Copy(ModelerName, 1, IgnoredBegin - 1);
+      PlaceholderName := Copy(PlaceholderName, 1, IgnoredBegin - 1);
 
     { calculate ResourceName, ResourceNumber, ResourceNumberPresent }
-    NumberBegin := CharsPos(['0'..'9'], ModelerName);
+    NumberBegin := CharsPos(['0'..'9'], PlaceholderName);
     ResourceNumberPresent := NumberBegin <> 0;
     if ResourceNumberPresent then
     begin
-      ResourceName := Copy(ModelerName, 1, NumberBegin - 1);
-      ResourceNumber := StrToInt(SEnding(ModelerName, NumberBegin));
+      ResourceName := Copy(PlaceholderName, 1, NumberBegin - 1);
+      ResourceNumber := StrToInt(SEnding(PlaceholderName, NumberBegin));
     end else
     begin
-      ResourceName := ModelerName;
+      ResourceName := PlaceholderName;
       ResourceNumber := 0;
     end;
 
@@ -482,7 +483,7 @@ const
   { Shapes placed under the name CasWaypoint[_<ignored>]
     are removed from the Scene, and are added as new waypoint.
     Waypoint's Position is set to the middle point of shape's bounding box. }
-  procedure HandlePlaceholderWaypoint(Shape: TShape);
+  procedure PlaceholderWaypoint(Shape: TShape);
   var
     Waypoint: TWaypoint;
   begin
@@ -500,7 +501,7 @@ const
 
     Count of the Sectors list is enlarged, if necessary,
     to include all sectors indicated in the Scene. }
-  procedure HandlePlaceholderSector(Shape: TShape; const SectorNodeName: string);
+  procedure PlaceholderSector(Shape: TShape; const SectorNodeName: string);
   var
     IgnoredBegin, SectorIndex: Integer;
     SectorBoundingBox: TBox3D;
@@ -526,16 +527,16 @@ const
 
 begin
   Result := true;
-  if IsPrefix(ResourcePrefix, ModelerName) then
-    HandlePlaceholderResource(Shape, SEnding(ModelerName, Length(ResourcePrefix) + 1)) else
-  if ModelerName = MoveLimitName then
+  if IsPrefix(ResourcePrefix, PlaceholderName) then
+    PlaceholderResource(Shape, SEnding(PlaceholderName, Length(ResourcePrefix) + 1)) else
+  if PlaceholderName = MoveLimitName then
     MoveLimit := Shape.BoundingBox else
-  if ModelerName = WaterName then
+  if PlaceholderName = WaterName then
     Water := Shape.BoundingBox else
-  if IsPrefix(SectorPrefix, ModelerName) then
-    HandlePlaceholderSector(Shape, SEnding(ModelerName, Length(SectorPrefix) + 1)) else
-  if IsPrefix(WaypointPrefix, ModelerName) then
-    HandlePlaceholderWaypoint(Shape) else
+  if IsPrefix(SectorPrefix, PlaceholderName) then
+    PlaceholderSector(Shape, SEnding(PlaceholderName, Length(SectorPrefix) + 1)) else
+  if IsPrefix(WaypointPrefix, PlaceholderName) then
+    PlaceholderWaypoint(Shape) else
     { do not remove }
     Result := false;
 end;
@@ -553,10 +554,10 @@ var
 
   procedure TraverseForPlaceholders(Shape: TShape);
   var
-    ModelerName: string;
+    PlaceholderName: string;
   begin
-    ModelerName := Info.PlaceholderName(Shape);
-    if (ModelerName <> '') and HandlePlaceholder(Shape, ModelerName) then
+    PlaceholderName := Info.PlaceholderName(Shape);
+    if (PlaceholderName <> '') and Placeholder(Shape, PlaceholderName) then
     begin
       { Don't remove OriginalGeometry node now --- will be removed later.
         This avoids problems with removing nodes while traversing. }
@@ -567,10 +568,10 @@ var
 
   procedure TraverseForLevelPlaceholders(Shape: TShape);
   var
-    ModelerName: string;
+    PlaceholderName: string;
   begin
-    ModelerName := Info.PlaceholderName(Shape);
-    if (ModelerName <> '') and Logic.HandlePlaceholder(Shape, ModelerName) then
+    PlaceholderName := Info.PlaceholderName(Shape);
+    if (PlaceholderName <> '') and Logic.Placeholder(Shape, PlaceholderName) then
     begin
       { Don't remove ModelerNode now --- will be removed later.
         This avoids problems with removing nodes while traversing. }
@@ -946,8 +947,8 @@ begin
   FTime += CompSpeed;
 end;
 
-function TLevelLogic.HandlePlaceholder(const Shape: TShape;
-  const ModelerName: string): boolean;
+function TLevelLogic.Placeholder(const Shape: TShape;
+  const PlaceholderName: string): boolean;
 begin
   Result := false;
 end;
