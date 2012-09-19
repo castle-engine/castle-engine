@@ -195,7 +195,6 @@ type
       an merely return in BlenderShapeName.
       TODO: we don't need this cheat, we can pass in TraverseForPlaceholders
       a little more info to allow this. }
-    BlenderModelerNode: TX3DNode;
     BlenderModelerName: string;
     //FGeometryParentNodeName,
     //FGeometryGrandParentNodeName,
@@ -832,14 +831,17 @@ var
 type
   { Detect the 3D shape name set in the external modeler,
     like 3D object name set in Blender or 3DS Max.
-    Also calculate the VRML/X3D node containing this whole 3D object
-    in external modeler (note that it *can* span other VRML/X3D shapes too).
-
     Assumes that a specific modeler was used to create and export this 3D model.
     Each TModelerShapeName function is made to follow the logic of a single
     modeler, and they are gathered in ModelerShapeNameMap.
 
-    Returns empty string and Node = @nil if none.
+    Returns empty string if none.
+
+    When implementing this, you may find useful the following properties
+    of the shape: TShape.OriginalGeometry.NodeName,
+    TShape.Node.NodeName, TShape.GeometryParentNodeName,
+    TShape.GeometryGrandParentNodeName,
+    TShape.GeometryGrandGrandParentNodeName.
 
     Preferably, the result should be unique, only for this VRML/X3D shape.
     But in practice it's the responsibility of the modeler
@@ -860,7 +862,7 @@ type
     Except when it's not possible (like for old Blender VRML 1.0 exporter,
     when only mesh names are stored in VRML/X3D exported files),
     then it can be a mesh name. }
-  TModelerShapeName = function (const Shape: TShape; out Node: TX3DNode): string;
+  TModelerShapeName = function (const Shape: TShape): string;
   TModelerShapeNameMap = specialize TGenericStructMap<string, TModelerShapeName>;
 
 var
@@ -868,7 +870,7 @@ var
 
 { Detect the 3D object name set in Blender for given VRML/X3D shape.
   See TModelerShapeName. }
-function BlenderShapeName(const Shape: TShape; out Node: TX3DNode): string;
+function BlenderShapeName(const Shape: TShape): string;
 
 implementation
 
@@ -935,10 +937,7 @@ constructor TShape.Create(AParentScene: TObject;
         one parent, and this is his mesh. This mesh may have may
         parents, and these are his objects. }
       if ParentInfo <> nil then
-      begin
-        BlenderModelerNode := ParentInfo^.Node;
-        BlenderModelerName := BlenderModelerNode.NodeName;
-      end;
+        BlenderModelerName := ParentInfo^.Node.NodeName;
     end else
     if (OriginalState.ShapeNode <> nil) and (ParentInfo <> nil) then
     begin
@@ -959,16 +958,12 @@ constructor TShape.Create(AParentScene: TObject;
       if ParentInfo <> nil then
       begin
         // not needed:
-        // BlenderMeshNode := ParentInfo^.Node;
-        // BlenderMeshName := PrefixRemove('ME_', BlenderMeshNode.NodeName, false);
+        // BlenderMeshName := PrefixRemove('ME_', ParentInfo^.Node.NodeName, false);
 
         ParentInfo := ParentInfo^.ParentInfo;
 
         if ParentInfo <> nil then
-        begin
-          BlenderModelerNode := ParentInfo^.Node;
-          BlenderModelerName := PrefixRemove('OB_', BlenderModelerNode.NodeName, false);
-        end;
+          BlenderModelerName := PrefixRemove('OB_', ParentInfo^.Node.NodeName, false);
       end;
     end;
   end;
@@ -2658,10 +2653,9 @@ end;
   in this case your own callback on ModelerShapeNameMap,
   and indicate it in level.xml by modeler="xxx" attribute. }
 
-function BlenderShapeName(const Shape: TShape; out Node: TX3DNode): string;
+function BlenderShapeName(const Shape: TShape): string;
 begin
   Result := Shape.BlenderModelerName;
-  Node := Shape.BlenderModelerNode;
 end;
 
 initialization

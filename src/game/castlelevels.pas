@@ -551,30 +551,28 @@ var
   procedure TraverseForPlaceholders(Shape: TShape);
   var
     ModelerName: string;
-    ModelerNode: TX3DNode;
   begin
-    ModelerName := BlenderShapeName(Shape, ModelerNode);
+    ModelerName := BlenderShapeName(Shape);
     if (ModelerName <> '') and HandlePlaceholder(Shape, ModelerName) then
     begin
-      { Don't remove ModelerNode now --- will be removed later.
+      { Don't remove OriginalGeometry node now --- will be removed later.
         This avoids problems with removing nodes while traversing. }
-      if ItemsToRemove.IndexOf(ModelerNode) = -1 then
-        ItemsToRemove.Add(ModelerNode);
+      if ItemsToRemove.IndexOf(Shape.OriginalGeometry) = -1 then
+        ItemsToRemove.Add(Shape.OriginalGeometry);
     end;
   end;
 
   procedure TraverseForLevelPlaceholders(Shape: TShape);
   var
     ModelerName: string;
-    ModelerNode: TX3DNode;
   begin
-    ModelerName := BlenderShapeName(Shape, ModelerNode);
+    ModelerName := BlenderShapeName(Shape);
     if (ModelerName <> '') and Logic.HandlePlaceholder(Shape, ModelerName) then
     begin
       { Don't remove ModelerNode now --- will be removed later.
         This avoids problems with removing nodes while traversing. }
-      if ItemsToRemove.IndexOf(ModelerNode) = -1 then
-        ItemsToRemove.Add(ModelerNode);
+      if ItemsToRemove.IndexOf(Shape.OriginalGeometry) = -1 then
+        ItemsToRemove.Add(Shape.OriginalGeometry);
     end;
   end;
 
