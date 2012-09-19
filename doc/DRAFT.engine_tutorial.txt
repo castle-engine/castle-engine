@@ -130,13 +130,15 @@ The TGameSceneManager class allows you to define levels by using simple XML file
   type="Level"
   scene="pits.x3dv"
   title="The Pits of Azeroth"
+  placeholders="blender"
 />
 ]]
 
 - "name" is a unique internal name for the level, it will come in handy soon.
 - "type" identifies the ObjectPascal class handling the level logic --- type "Level" is always available, for advanced games you can also create and use your own level logic types.
 - "scene" is a filename of the 3D model containing the level.
-- and "title" is just used for some logging and messages. Depending on your game, you may also find this title useful for other purposes, e.g. show the user a list of levels available to start. But this is up to you. The engine itself doesn't really make much use of the title.
+- "title" is just used for some logging and messages. Depending on your game, you may also find this title useful for other purposes, e.g. show the user a list of levels available to start. But this is up to you. The engine itself doesn't really make much use of the title. There are other optional properties, like "demo" or "number" that you may use.
+- "placeholders" says how to detect placeholders (for creatures and other things) in your 3D level model. This is optional, but highly useful.
 
 See http://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine/doc/README_about_index_xml_files.txt for more details about the level.xml and resource.xml files (defining levels and other stuff).
 

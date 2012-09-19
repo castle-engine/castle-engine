@@ -145,6 +145,10 @@ type
 
     Element: TDOMElement;
 
+    { Placeholder detection method. See TPlaceholderName, and see
+      TGameSceneManager.LoadLevel for a description when we use placeholders. }
+    PlaceholderName: TPlaceholderName;
+
     { Music played when entering the level. }
     property MusicSound: TSoundType read FMusicSound write FMusicSound
       default stNone;
@@ -377,7 +381,6 @@ type
 
 function LevelLogicClasses: TLevelLogicClasses;
 
-
 { All known levels. You can use this to show a list of available levels to user.
   You can also search it and use TGameSceneManager.LoadLevel to load
   a given TLevelInfo instance. }
@@ -552,7 +555,7 @@ var
   var
     ModelerName: string;
   begin
-    ModelerName := BlenderPlaceholder(Shape);
+    ModelerName := Info.PlaceholderName(Shape);
     if (ModelerName <> '') and HandlePlaceholder(Shape, ModelerName) then
     begin
       { Don't remove OriginalGeometry node now --- will be removed later.
@@ -566,7 +569,7 @@ var
   var
     ModelerName: string;
   begin
-    ModelerName := BlenderPlaceholder(Shape);
+    ModelerName := Info.PlaceholderName(Shape);
     if (ModelerName <> '') and Logic.HandlePlaceholder(Shape, ModelerName) then
     begin
       { Don't remove ModelerNode now --- will be removed later.
@@ -1001,6 +1004,7 @@ procedure TLevelInfo.LoadFromDocument;
 var
   LoadingImageFileName: string;
   SoundName: string;
+  PlaceholdersKey: string;
 begin
   Element := Document.DocumentElement;
 
@@ -1037,6 +1041,10 @@ begin
 
   if not DOMGetLevelLogicClassAttribute(Element, 'type', LogicClass) then
     LogicClass := TLevelLogic;
+
+  PlaceholderName := PlaceholderNames['x3dshape'];
+  if DOMGetAttribute(Element, 'placeholders', PlaceholdersKey) then
+    PlaceholderName := PlaceholderNames[PlaceholdersKey];
 
   FreeAndNil(LoadingImage); { make sure LoadingImage is clear first }
   if DOMGetAttribute(Element, 'loading_image', LoadingImageFileName) then

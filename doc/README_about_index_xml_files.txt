@@ -96,7 +96,7 @@ Specifically about level.xml:
   handled with vanilla TLevelLogic implementation.
   Many advanced tricks are possible by implementing in the game code
   a descendant class of TLevelLogic that does something special,
-  you can then register it by "LevelClasses['My'] := TMyLogic;",
+  you can then register it by "LevelLogicClasses['My'] := TMyLogic;",
   and then type="My" is allowed in level.xml file.
   See castle1 GameLevelSpecific unit for examples.
 
@@ -117,4 +117,45 @@ Specifically about level.xml:
   Between 0 and 1, default value 0.5 means "middle of the screen".
   Should be synchronized with loading_bg image, to look right.
 
+- placeholders: You can place placeholders in the level 3D model,
+  to create various things:
+  - creatures/items (commonly called "resources",
+    as they refer to T3DResource) by placeholders named "CasRes...",
+  - water volume by placeholder "CasWater",
+  - move limit by placeholder "CasMoveLimit",
+  - sectors/waypoints (to make creature AI smarter)
+    by placeholders "CasSector..." and "CasWaypoint..."
+  - see TGameSceneManager.LoadLevel docs for full list.
+  - and possibly more, as every level type may allow additional placeholders,
+    you can handle them in a descendant of TLevelLogic by overriding
+    TLevelLogic.Placeholder.
+
+  The "placeholders" attribute in level.xml determines how we derive
+  "placeholder name" from a VRML/X3D shape.
+  - "x3dshape" (default) means that the placeholder name comes from
+    VRML 2.0/X3D Shape node name (set using "DEF" in VRML/X3D).
+  - "blender" means that the placeholder name is detected following
+    standard Blender VRML/X3D exporters behavior.
+    This allows you to set the placeholder name easily in Blender,
+    just set the Blender object name.
+  - and possibly more, see CastleShape.PlaceholderNames.
+    You can define and register your own functions there, to handle
+    other 3D modelers, like 3DSMax or Maya or anything else
+    (and you're welcome to contribute them to include them in engine code,
+    of course!).
+
 - See TLevelInfo properties documentation if in doubt.
+
+- Every TLevelLogic class (you indicate it with "type", see above)
+  may use additional attributes from level.xml file:
+
+  TLevelLogic constructor gets DOMElement: TDOMElement parameter,
+  which is an XML tree of level.xml file. You can read it
+  however you want. We use standard FPC DOM unit and classes,
+  and add a handful of simple comfortable routines in CastleXMLUtils unit,
+  for example you can use
+
+    if not DOMGetBooleanAttribute(DOMElement, 'my_attribute', MyAttribute) then
+      MyAttribute := false; // default value, if not specified in level.xml
+
+  to read a boolean attribute "my_attribute".
