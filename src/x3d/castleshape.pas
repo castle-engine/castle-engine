@@ -873,10 +873,6 @@ type
 var
   PlaceholderNames: TPlaceholderNames;
 
-{ Detect the 3D object name set in Blender for given VRML/X3D shape.
-  See TPlaceholderName. }
-function BlenderPlaceholder(const Shape: TShape): string;
-
 implementation
 
 uses ProgressUnit, CastleSceneCore, NormalsCalculator, CastleLog, CastleWarnings,
