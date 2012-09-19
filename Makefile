@@ -90,7 +90,7 @@ EXAMPLES_BASE_NAMES := \
   examples/terrain/terrain \
   examples/3d_rendering_processing/custom_3d_object \
   examples/3d_rendering_processing/triangulate_demo \
-  examples/3d_rendering_processing/test_blender_exported_hierarchy \
+  examples/3d_rendering_processing/placeholder_names \
   examples/3d_rendering_processing/tools/gen_light_map \
   examples/3d_rendering_processing/tools/kanim_to_interpolators \
   examples/3d_rendering_processing/multiple_viewports \

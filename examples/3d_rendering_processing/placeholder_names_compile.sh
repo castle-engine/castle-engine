@@ -6,6 +6,6 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f test_blender_exported_hierarchy.lpr ]; then cd ../../; fi
+if [ -f placeholder_names.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/3d_rendering_processing/test_blender_exported_hierarchy.lpr
+fpc -dRELEASE @castle-fpc.cfg examples/3d_rendering_processing/placeholder_names.lpr

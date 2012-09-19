@@ -40,7 +40,7 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="test_blender_exported_hierarchy.lpr"/>
+        <Filename Value="placeholder_names.lpr"/>
         <IsPartOfProject Value="True"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
