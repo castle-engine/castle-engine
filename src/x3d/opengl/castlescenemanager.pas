@@ -1077,11 +1077,6 @@ var
   Input_CancelFlying: TInputShortcut;
   { @groupEnd }
 
-const
-  { Prefix of all placeholders that we seek on 3D models.
-    See TGameSceneManager.LoadLevel. }
-  PlaceholderPrefix = 'Cas';
-
 implementation
 
 uses SysUtils, RenderingCameraUnit, CastleGLUtils, ProgressUnit, RaysWindow, GLExt,

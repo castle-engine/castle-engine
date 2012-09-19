@@ -243,12 +243,9 @@ type
           additional space above (to allow flying).)
 
         @item(@bold(Initialize sectors and waypoints from placeholders).
-          Special object names CasSector* and CasWaypoint* can be placed
-          to help creature AI.
-
-          Looks at objects in MainScene 3D model
-          whose names start with CasSector and CasWaypoint.
-          You can add objects with such names in 3D modeler, like Blender,
+          Special shape names CasSector* and CasWaypoint* can be used
+          in level 3D model to help creature AI.
+          You can add and name such shapes in 3D modeler, like Blender,
           and they will be automatically understood by the engine when loading level.
 
           Objects named CasSector<index>[_<ignored>] define sectors.
@@ -424,6 +421,8 @@ end;
 function TGameSceneManager.HandlePlaceholder(Shape: TShape;
   ModelerName: string): boolean;
 const
+  { Prefix of all placeholders that we seek on 3D models. }
+  PlaceholderPrefix = 'Cas';
   ResourcePrefix = PlaceholderPrefix + 'Res';
   MoveLimitName = PlaceholderPrefix + 'MoveLimit';
   WaterName = PlaceholderPrefix + 'Water';
@@ -480,7 +479,7 @@ const
   { Shapes placed under the name CasWaypoint[_<ignored>]
     are removed from the Scene, and are added as new waypoint.
     Waypoint's Position is set to the middle point of shape's bounding box. }
-  procedure CreateNewWaypoint(Shape: TShape);
+  procedure HandlePlaceholderWaypoint(Shape: TShape);
   var
     Waypoint: TWaypoint;
   begin
@@ -498,7 +497,7 @@ const
 
     Count of the Sectors list is enlarged, if necessary,
     to include all sectors indicated in the Scene. }
-  procedure AddSectorBoundingBox(Shape: TShape; const SectorNodeName: string);
+  procedure HandlePlaceholderSector(Shape: TShape; const SectorNodeName: string);
   var
     IgnoredBegin, SectorIndex: Integer;
     SectorBoundingBox: TBox3D;
@@ -531,9 +530,9 @@ begin
   if ModelerName = WaterName then
     Water := Shape.BoundingBox else
   if IsPrefix(SectorPrefix, ModelerName) then
-    AddSectorBoundingBox(Shape, SEnding(ModelerName, Length(SectorPrefix) + 1)) else
+    HandlePlaceholderSector(Shape, SEnding(ModelerName, Length(SectorPrefix) + 1)) else
   if IsPrefix(WaypointPrefix, ModelerName) then
-    CreateNewWaypoint(Shape) else
+    HandlePlaceholderWaypoint(Shape) else
     { do not remove }
     Result := false;
 end;

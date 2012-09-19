@@ -824,10 +824,14 @@ var
   LogShapes: boolean = false;
 
 type
-  { Detect the 3D object name set in the external modeler (like Blender
-    or 3DS Max) for the given VRML/X3D shape in the exported model.
-    Also calculate the X3D node containing this whole 3D object
+  { Detect the 3D shape name set in the external modeler,
+    like 3D object name set in Blender or 3DS Max.
+    Also calculate the VRML/X3D node containing this whole 3D object
     in external modeler (note that it *can* span other VRML/X3D shapes too)
+
+    Assumes that a specific modeler was used to create and export this 3D model.
+    Each TModelerShapeName function is made to follow the logic of a single
+    modeler, and they are gathered in ModelerShapeNameMap.
 
     Returns empty string and Node = @nil if none.
 
@@ -835,9 +839,10 @@ type
     But in practice it's the responsibility of the modeler
     and model author to make it true.
     For example, modelers that allow multiple materials on object (like
-    Blender) @italic(must) to split a single object into many VRML/X3D shapes.
-    So just don't use shape with multiple materials if this shape name
-    may be meaningful for something.
+    Blender) @italic(must) split a single 3D object into many VRML/X3D shapes
+    sometimes.
+    So just don't use shapes with multiple materials if this shape name
+    may be meaningful for a placeholder.
 
     This is used only by TGameSceneManager.LoadLevel placeholders.
     Ultimately, this should be something that is easy to set when creating
@@ -846,17 +851,17 @@ type
     strategy for exporting VRML/X3D models.)
 
     This should be object name (to allow sharing a single mesh underneath).
-    Except when it's not possible (like for old Blender VRML 1.0 exporter),
-    then it can be a mesh name.
-
-    You should register functions for each specific modeler on
-    ModelerShapeNameMap. }
+    Except when it's not possible (like for old Blender VRML 1.0 exporter,
+    when only mesh names are stored in VRML/X3D exported files),
+    then it can be a mesh name. }
   TModelerShapeName = function (const Shape: TShape; out Node: TX3DNode): string;
   TModelerShapeNameMap = specialize TGenericStructMap<string, TModelerShapeName>;
 
 var
   ModelerShapeNameMap: TModelerShapeNameMap;
 
+{ Detect the 3D object name set in Blender for given VRML/X3D shape.
+  See TModelerShapeName. }
 function BlenderShapeName(const Shape: TShape; out Node: TX3DNode): string;
 
 implementation
