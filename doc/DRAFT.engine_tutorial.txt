@@ -18,6 +18,8 @@ Throughout this tutorial you will see a links to our <a>engine reference</a>, an
 
 If you haven't done it yet, download the engine source code with examples from ....
 
+The example program that shows most of the features presented in this tutorial is examples/fps_game/ . I suggest looking at it's source code for a complete implementation that uses all the code snippets shown in this tutorial.
+
 Run Lazarus, and open packages in the castle_game_engine/packages/ subdirectory. Open and compile all three packages (castle_base.lpk, castle_components.lpk, castle_window.lpk), to test that things compile OK. Then install the package <i>castle_components</i>. (Do not install castle_window --- you don't want to have this installed in Lazarus. You can install castle_base explicitly, but there's no need to: installing castle_components will also install castle_base automatically.)
 
 Once packages are successfully installed, Lazarus restarts, and you should see "Castle" tab of components at the top (screenshot). Sorry, we don't have icons for our components yet, so it looks a little boring. Mouse over the icons to see component names.
@@ -115,7 +117,7 @@ At the beginning we create a new instance of TCastleScene, and load it's content
 The level is added to the scene manager. The level is also set as the "MainScene" of scene manager, this means that some central settings (like initial camera position, initial headlight status and such) can be obtained from this scene.
 
 ------------------------------------------------------------------------------
-5. Load a game level and a player
+5. Load a game level
 
 Instead of loading level like above, there is a slightly more comfortable and feature-rich way to load a level for a game: call the TGameSceneManager.LoadLevel method. Under the hood, TGameSceneManager.LoadLevel does eberything mentioned above --- the new 3D model is loaded, and added to the SceneManager.Items, and set as SceneManager.MainScene. But it also does some additional work, like detecting a "placeholders" in your 3D model, which should be replaced with creatures (from CastleCreatures unit) and items (from CastleItems unit).
 
@@ -161,7 +163,7 @@ data/
 
 Although this convention proved comfortable, it's not forced at all. The 3D models files may live in other directories than level.xml files, as "scene" field may contain a relative filename (in future, it should be possible to use there any absolute or relative URL; for now, only filenames are allowed). And level.xml files may be scattered throughout your directory as you wish. And what is "data directory" is configurable (by Levels.LoadFromFiles optional parameter, by default we use ProgramDataPath). It's only important that the XML files have names "level.xml".
 
-You can now start a game by creating a player, loading all levels informations from their level.xml files, and finally loading your desired level by referring to it's "name" field:
+You can now start a game by scanning all levels information from level.xml files, and then loading your desired level by referring to it's "name" field:
 
 [[
   Levels.LoadFromFiles;
@@ -173,6 +175,9 @@ You can now start a game by creating a player, loading all levels informations f
 The LoadLevel will clear all SceneManager.Items (except Player, more about this in a second). Then it will load new 3D model with a level (adding it to SceneManager.Items and setting as SceneManager.MainScene, just as we did manually in previous chapter), and do some more interesting stuff that we'll learn later.
 
 The important thing here is that (except the "name" of the 1st level) levels are not hardcoded in any way in your program. This makes game data nice for people preparing new content: they can just drop new subdirectory into the data/levels/, and if it will contain proper level.xml file, it will be automatically recognized. A similar scheme will be used for creatures/items in the following chapter. Your game data is immediately friendly to MODders.
+
+------------------------------------------------------------------------------
+[TODO: need a chapter number here] Creating a player
 
 For a good measture, it will also be handy later to have a central Player object. This is used for various things:
 - It will make camera automatically tied to the Player, making it a first-person perspective game. (More camera approach, like third-person view, will be available later.)
@@ -188,6 +193,71 @@ var
   SceneManager.Items.Add(Player);
   SceneManager.Player := Player;
 ]]
+
+Player is a descendant of T3DList, which means that you can add additional 3D objects as it's children, like Player.Add(Some3DObject). These 3D objects will always be rendered relative the the player, so they will move along with the player. This is an easy way to add 3D weapon models and similar things to your display. In fact, we do it automatically for TCastlePlayer.EquippedWeapon 3D model. But you can also add/remove additional 3D objects this way.
+
+As an additional feature, all 3D objects that are children of player will always be rendered on top of other 3D world. This means that even if you 3D weapon model is large (like a long sword pointing out from camera), it will never go "inside the wall". You can turn this feature on/off by TCastlePlayer.RenderOnTop property.
+
+Aside from special TCastlePlayer.RenderOnTop behavior, the 3D objects that are children of player are rendered and processed as all other 3D stuff. For example, they can animate (by using TCastlePrecalculatedAnimation or by using TCastleScene with <tt>TCastleScene.ProcessEvents := true</tt>).
+
+Note that the player 3D objects <b>do not</b> make the player collision sphere (aka camera radius) larger. If you want to make the collision sphere larger, you can do it by placing a NavigationInfo node in every level 3D file, and adjusting the 1st item of avatarSize field &mdash; it determines the camera radius.
+
+/---
+ Some box "Advanced":
+There is an alternative way to place things relative to player view: use X3D ProximitySensor node. See demo_models/sensors_environmental/follow_camera_by_proximity_sensor.x3dv for a simple example how to code it in X3D. This allows you to place the 3D things that are relative to player inside a larger X3D file, together e.g. with normal level geometry (which may be an advantage or disadvantage, depending what you want). The disadvantage is that we do not implement layers in X3D now, so such geometry will overlap with 3D level geometry (unless it will always fit within camera radius).
+\---
+
+If you want to add a 2D GUI on your display, for example to display player life, or inventory: you can do it by defining a new TUIControl descendant, where you can draw anything you want in overridden Draw method. You can use the ready UIFont instance to draw a 2D font on the screen. A simple example:
+
+[[
+type
+  TGame2DControls = class(TUIControl)
+  public
+    procedure Draw; override;
+    function DrawStyle: TUIControlDrawStyle; override;
+  end;
+
+function TGame2DControls.DrawStyle: TUIControlDrawStyle;
+begin
+  Result := ds2D;
+end;
+
+procedure TGame2DControls.Draw;
+begin
+  { Set color to yellow }
+  glColorv(Vector3Single(1, 1, 0));
+  { Write text in the upper-left corner.
+    For controls with DrawStyle = ds2D,
+    the (0,0) is always bottom-left corner, (ContainerWidth,ContainerHeight)
+    is top-right corner. As you can see, you can take font measurements
+    by UIFont.RowHeight or UIFont.TextWidth to adjust initial position
+    as needed. }
+  SetWindowPos(0, Window.Height - UIFont.RowHeight - 5);
+  UIFont.Print(Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
+end;
+
+{ When starting your game, create TGame2DControls instance
+  and add it to Window.Controls }
+var
+  Controls2D: TGame2DControls;
+...
+  Controls2D := TGame2DControls.Create(nil);
+  Window.Controls.Add(Controls2D);
+...
+  { When the same ends, you can free Controls2D.
+    They will be automatically removed from Window.Controls upon destruction
+    (thanks to TComponent notification mechanism). }
+  FreeAndNil(Controls2D);
+]]
+
+You can use any 2D engine controls in such way. See CastleControls unit
+for some standard buttons and panels. Although for a specific game you
+will probably want a specialized UI, done like the example above.
+In TGame2DControls.Draw you simply use OpenGL to draw your stuff,
+although we give you a lot of helpers to deal with drawing images, text
+and so on.
+See castle1 unit GamePlay for an example implementation that shows
+player's life indicator, open inventory and other things on the screen.
 
 ------------------------------------------------------------------------------
 6. Adding creatures and items
