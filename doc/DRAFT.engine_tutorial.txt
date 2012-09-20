@@ -177,7 +177,7 @@ The LoadLevel will clear all SceneManager.Items (except Player, more about this 
 The important thing here is that (except the "name" of the 1st level) levels are not hardcoded in any way in your program. This makes game data nice for people preparing new content: they can just drop new subdirectory into the data/levels/, and if it will contain proper level.xml file, it will be automatically recognized. A similar scheme will be used for creatures/items in the following chapter. Your game data is immediately friendly to MODders.
 
 ------------------------------------------------------------------------------
-[TODO: need a chapter number here] Creating a player
+[TODO: need a chapter number here] Create a player, display player weapon
 
 For a good measture, it will also be handy later to have a central Player object. This is used for various things:
 - It will make camera automatically tied to the Player, making it a first-person perspective game. (More camera approach, like third-person view, will be available later.)
@@ -206,58 +206,6 @@ Note that the player 3D objects <b>do not</b> make the player collision sphere (
  Some box "Advanced":
 There is an alternative way to place things relative to player view: use X3D ProximitySensor node. See demo_models/sensors_environmental/follow_camera_by_proximity_sensor.x3dv for a simple example how to code it in X3D. This allows you to place the 3D things that are relative to player inside a larger X3D file, together e.g. with normal level geometry (which may be an advantage or disadvantage, depending what you want). The disadvantage is that we do not implement layers in X3D now, so such geometry will overlap with 3D level geometry (unless it will always fit within camera radius).
 \---
-
-If you want to add a 2D GUI on your display, for example to display player life, or inventory: you can do it by defining a new TUIControl descendant, where you can draw anything you want in overridden Draw method. You can use the ready UIFont instance to draw a 2D font on the screen. A simple example:
-
-[[
-type
-  TGame2DControls = class(TUIControl)
-  public
-    procedure Draw; override;
-    function DrawStyle: TUIControlDrawStyle; override;
-  end;
-
-function TGame2DControls.DrawStyle: TUIControlDrawStyle;
-begin
-  Result := ds2D;
-end;
-
-procedure TGame2DControls.Draw;
-begin
-  { Set color to yellow }
-  glColorv(Vector3Single(1, 1, 0));
-  { Write text in the upper-left corner.
-    For controls with DrawStyle = ds2D,
-    the (0,0) is always bottom-left corner, (ContainerWidth,ContainerHeight)
-    is top-right corner. As you can see, you can take font measurements
-    by UIFont.RowHeight or UIFont.TextWidth to adjust initial position
-    as needed. }
-  SetWindowPos(0, Window.Height - UIFont.RowHeight - 5);
-  UIFont.Print(Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
-end;
-
-{ When starting your game, create TGame2DControls instance
-  and add it to Window.Controls }
-var
-  Controls2D: TGame2DControls;
-...
-  Controls2D := TGame2DControls.Create(nil);
-  Window.Controls.Add(Controls2D);
-...
-  { When the same ends, you can free Controls2D.
-    They will be automatically removed from Window.Controls upon destruction
-    (thanks to TComponent notification mechanism). }
-  FreeAndNil(Controls2D);
-]]
-
-You can use any 2D engine controls in such way. See CastleControls unit
-for some standard buttons and panels. Although for a specific game you
-will probably want a specialized UI, done like the example above.
-In TGame2DControls.Draw you simply use OpenGL to draw your stuff,
-although we give you a lot of helpers to deal with drawing images, text
-and so on.
-See castle1 unit GamePlay for an example implementation that shows
-player's life indicator, open inventory and other things on the screen.
 
 ------------------------------------------------------------------------------
 6. Adding creatures and items
@@ -456,14 +404,79 @@ var
 ]]
 
 ------------------------------------------------------------------------------
-8. Display player life and weapon
+8. Display player HUD, game menu and other 2D things
 
-You often want to display something 2D on player screen. Let's draw a simple meter showing your life points.
+You will often want to draw a 2D controls on your screen, for example to display player life or inventory (the engine does manage the player's inventory automatically for you, in TPlayer.Inventory; however, it's not displayed automatically). You can do it by defining a new TUIControl descendant, where you can draw anything you want in overridden Draw method. You can use the ready UIFont instance to draw a 2D font on the screen. A simple example:
 
-TODO: demo of simple TUIControl creation
+[[
+type
+  TGame2DControls = class(TUIControl)
+  public
+    procedure Draw; override;
+    function DrawStyle: TUIControlDrawStyle; override;
+  end;
 
-To show a weapon, or other stuff glued to the player, just add 3D things to TPlayer list. They will be automatically oriented to follow the player position and orientation.
-TODO: describe also the Overlay attribute here, for now not available.
+function TGame2DControls.DrawStyle: TUIControlDrawStyle;
+begin
+  Result := ds2D;
+end;
+
+procedure TGame2DControls.Draw;
+begin
+  { Set color to yellow }
+  glColorv(Vector3Single(1, 1, 0));
+  { Write text in the upper-left corner.
+    For controls with DrawStyle = ds2D,
+    the (0,0) is always bottom-left corner, (ContainerWidth,ContainerHeight)
+    is top-right corner. As you can see, you can take font measurements
+    by UIFont.RowHeight or UIFont.TextWidth to adjust initial position
+    as needed. }
+  SetWindowPos(0, Window.Height - UIFont.RowHeight - 5);
+  UIFont.Print(Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
+end;
+
+{ When starting your game, create TGame2DControls instance
+  and add it to Window.Controls }
+var
+  Controls2D: TGame2DControls;
+...
+  Controls2D := TGame2DControls.Create(nil);
+  Window.Controls.Add(Controls2D);
+...
+  { When the same ends, you can free Controls2D.
+    They will be automatically removed from Window.Controls upon destruction
+    (thanks to TComponent notification mechanism). }
+  FreeAndNil(Controls2D);
+]]
+
+You can use any 2D engine controls in such way. See CastleControls unit
+for some standard buttons and panels. Although for a specific game you
+will probably want a specialized UI, done like the example above.
+In TGame2DControls.Draw you simply use OpenGL to draw your stuff,
+although we give you a lot of helpers to deal with drawing images, text
+and so on.
+See castle1 unit GamePlay for an example implementation that shows
+player's life indicator, open inventory and other things on the screen.
+
+A similar approach works for displaying in-game menu too.
+We provide a flexible on-screen menu as TCastleOnScreeMenu component.
+Examples how to use it are in examples/lazarus/model_3d_with_2d_controls/
+and a lot of examples are in castle1 code.
+It descends from TUIControl, so it can be added and removed from the scene
+just like every other control (by adding or removing from Window.Controls,
+or by changing it's TUIControl.Exists property).
+
+In single player games, you usually want to pause the game when the on-screen
+menu is displayed. You can do this easily by SceneManager.Paused property.
+As the scene manager handles a lot of stuff automatically,
+processing events and calling Idle methods of all 3D objects periodically.
+Pausing it effectively pauses your whole 3D world, while stil allowing
+it to be displayed as a background under the on-screen menu.
+Alternatively you could also hide the 3D world entirely,
+by changing SceneManager.Exists property to false &mdash;
+the SceneManager with Exists=false is not only paused, it's also not visible.
+You could use TCastleImageControl to show a special image underneath
+an on-screen menu.
 
 ------------------------------------------------------------------------------
 9. Adding some sounds
