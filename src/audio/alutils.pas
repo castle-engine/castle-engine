@@ -170,6 +170,7 @@ procedure alCreateBuffers(n: TALsizei; buffers: PALuint);
 { @section(Other utils) --------------------------------------------------- }
 
 const
+  { }
   BoolToAL: array[boolean] of TALint = (AL_FALSE, AL_TRUE);
 
 { Pass resource to alDeleteSources or alDeleteBuffers,

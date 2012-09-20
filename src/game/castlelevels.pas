@@ -201,7 +201,7 @@ type
   { Scene manager that can comfortably load and manage a 3D game level.
     It really adds only one new method to TCastleSceneManager:
     @link(LoadLevel), see it's documentation to know what it gives you.
-    It also exposes @link(Level) and @link(Info) properties
+    It also exposes @link(Logic) and @link(Info) properties
     corresponding to the currently loaded level. }
   TGameSceneManager = class(TCastleSceneManager)
   private
@@ -221,7 +221,7 @@ type
 
           Clear all 3D items from @link(TCastleSceneManager.Items)
           list (except @link(TCastleSceneManager.Player)), clear
-          @link(TCastleSceneManager.Camera)
+          @link(TCastleAbstractViewport.Camera Camera)
           and @link(TCastleSceneManager.MainScene) as well.
           Then load a new main scene and camera, adding to
           @link(TCastleSceneManager.Items) all 3D resources (creatures and items)
