@@ -20,11 +20,12 @@ interface
 
 uses Boxes3D, Cameras, CastleItems, VectorMath, GL, GLU, CastleInputs, KeysMouse,
   Triangle, CastleTextureProperties, CastleSoundEngine, Classes, Base3D,
-  CastleGLUtils, CastleColors;
+  CastleGLUtils, CastleColors, Frustum;
 
 const
   DefaultPlayerLife = 100;
   DefaultSickProjectionSpeed = 2.0;
+  DefaultRenderOnTop = true;
 
 type
   TPlayerSwimming = (psNo,
@@ -117,6 +118,7 @@ type
     FInventoryVisible: boolean;
     FSickProjectionSpeed: Single;
     FBlocked: boolean;
+    FRenderOnTop: boolean;
 
     function GetFlyingMode: boolean;
     procedure SetEquippedWeapon(Value: TItemWeapon);
@@ -323,12 +325,17 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
     function Sphere(out Radius: Single): boolean; override;
+    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
 
     { Disables changing the camera by user.
       It's useful when you want to temporarily force camera to some specific
       setting (you can even use handy Player.Camera.AnimateTo method
       to do this easily, see TWalkCamera.AnimateTo). }
     property Blocked: boolean read FBlocked write FBlocked;
+
+    { Render 3D children (like EquippedWeapon) on top of everything else. }
+    property RenderOnTop: boolean read FRenderOnTop write FRenderOnTop
+      default DefaultRenderOnTop;
   end;
 
 const
@@ -396,6 +403,7 @@ begin
   DefaultMoveHorizontalSpeed := 1.0;
   DefaultMoveVerticalSpeed := 1.0;
   DefaultPreferredHeight := 0.0;
+  RenderOnTop := DefaultRenderOnTop;
 
   Add(TPlayerBox.Create(Self));
 
@@ -1289,6 +1297,33 @@ begin
   Result := false;
   AboveHeight := MaxSingle;
   AboveGround := nil;
+end;
+
+procedure TPlayer.Render(const Frustum: TFrustum; const Params: TRenderParams);
+begin
+  { TODO: This implementation is a quick hack, that depends on the fact
+    that TPlayer.Render is the *only* thing in the whole engine currently
+    calling glDepthRange.
+
+    - The first frame with TPlayer could be incorrect, as 3D objects drawn before
+      will have 0..1 glDepthRange that may overlap with our weapon.
+      It works now only because default player positions are when
+      the weapon doesn't overlap with level in 3D.
+    - We never fix the glDepthRange back to 0..1.
+
+    The idea of using glDepthRange for layers seems quite good, it's
+    quite a nice solution,
+    - you don't have to split rendering layers in passes, you can render
+      all objects in one pass, just switching glDepthRange as necessary.
+    - you can set glDepthRange for 3D objects inside T3DList,
+      like here TPlayer will just affect every child underneath.
+
+    But it has to be implemented in more extensible manner in the future.
+    It should also enable X3D layers. }
+
+  if RenderOnTop then glDepthRange(0, 0.1);
+    inherited;
+  if RenderOnTop then glDepthRange(0.1, 1);
 end;
 
 { initialization / finalization ---------------------------------------- }
