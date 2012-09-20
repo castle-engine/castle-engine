@@ -479,7 +479,7 @@ You could use TCastleImageControl to show a special image underneath
 an on-screen menu.
 
 ------------------------------------------------------------------------------
-9. Adding some sounds
+9. Sound
 
 As with many other operations, you can add and control sounds to your game either by Pascal code, or by editing your data files. This gives flexibility both to a programmer and the content designer. It's your choice which approach you use &mdash; usually it's better to keep as much as possible in data files, and use code only when necessary for non-trivial situations.
 
@@ -554,10 +554,19 @@ Sound {
 }
 ]]
 
+--- Level music
+
+There is a special comfortable way to enable looping music on a level, if you use level.xml file with TGameSceneManager.LoadLevel. Simply add <tt>music_sound="xxx"</tt> attribute to the root element of your <tt>level.xml</tt> file, where <tt>xxx</tt> refers to a sound name defined in <tt>data/sounds/index.xml</tt>.
+
 --- More
 
 For more advanced uses, you can use the return value of PlaySound or Sound or Sound3D: it's either nil (if no OpenAL resources available to play this sound, and it's priority doesn't allow overriding other sounds) or it's a TSound instance. If you have TSound instance, you can use it's TSound.OnRelease event to be notified when source stops playing. You can also use other TSound methods, e.g. update TSound.Position, TSound.Gain and such. You can stop playing the sound by TSound.Release.
 
+--- Predefined sounds
+
+Various engine components already want to use some sounds. To make it actually happen, you need to create file like <tt>data/sounds/index.xml</tt> described above, and define there sounds with a predefined names.
+
+See "Common sounds" section in CastleSoundEngine unit sources for a current list of predefined sound names.
 ------------------------------------------------------------------------------
 10. Adding an on-screen menu
 
