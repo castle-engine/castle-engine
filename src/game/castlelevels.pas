@@ -399,7 +399,7 @@ function Levels: TLevelInfoList;
 
 implementation
 
-uses SysUtils, Triangle, CastleLog, CastleGLUtils,
+uses SysUtils, CastleGLUtils,
   CastleFilesUtils, CastleStringUtils, GLImages, UIControls, XMLRead,
   CastleGameNotifications, CastleInputs, CastleXMLUtils,
   GLRenderer, RenderingCameraUnit, Math, CastleWarnings;
