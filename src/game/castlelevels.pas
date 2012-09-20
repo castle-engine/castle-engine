@@ -149,6 +149,9 @@ type
       TGameSceneManager.LoadLevel for a description when we use placeholders. }
     PlaceholderName: TPlaceholderName;
 
+    PlaceholderDefaultDirectionSpecified: boolean;
+    PlaceholderDefaultDirection: TVector3Single;
+
     { Music played when entering the level. }
     property MusicSound: TSoundType read FMusicSound write FMusicSound
       default stNone;
@@ -429,6 +432,12 @@ end;
 
 { TGameSceneManager ---------------------------------------------------------- }
 
+const
+  DirectionFromOrientation: array [TOrientationType] of TVector3Single =
+  ( (0, 0, -1),
+    (0, -1, 0),
+    (1, 0, 0) );
+
 function TGameSceneManager.Placeholder(Shape: TShape;
   PlaceholderName: string): boolean;
 const
@@ -479,9 +488,10 @@ const
     Position := Box.Middle;
     Position[Items.GravityCoordinate] := Box.Data[0, Items.GravityCoordinate];
 
-    { TODO: for now, Direction is not configurable, it just points
-      to the player start pos. This is more-or-less sensible for creatures. }
-    Direction := Camera.GetPosition - Position;
+    if Info.PlaceholderDefaultDirectionSpecified then
+      Direction := Info.PlaceholderDefaultDirection else
+      Direction := DirectionFromOrientation[T3DOrient.DefaultOrientation];
+    Direction := MatrixMultDirection(Shape.State.Transform, Direction);
 
     Resource.InstantiatePlaceholder(Items, Position, Direction,
       ResourceNumberPresent, ResourceNumber);
@@ -998,6 +1008,7 @@ var
   LoadingImageFileName: string;
   SoundName: string;
   PlaceholdersKey: string;
+  PlaceholderDefaultDirectionString: string;
 begin
   Element := Document.DocumentElement;
 
@@ -1049,6 +1060,11 @@ begin
   if not DOMGetSingleAttribute(Element, 'loading_image_bar_y_position',
     LoadingImageBarYPosition) then
     LoadingImageBarYPosition := DefaultImageBarYPosition;
+
+  PlaceholderDefaultDirectionSpecified := DOMGetAttribute(Element,
+    'placeholder_default_direction', PlaceholderDefaultDirectionString);
+  if PlaceholderDefaultDirectionSpecified then
+    PlaceholderDefaultDirection := Vector3SingleFromStr(PlaceholderDefaultDirectionString);
 
   LevelResources.LoadResources(Element);
   AddAlwaysPreparedResources;

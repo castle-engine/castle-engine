@@ -144,6 +144,30 @@ Specifically about level.xml:
     (and you're welcome to contribute them to include them in engine code,
     of course!).
 
+- placeholder_default_direction: Some placeholders (currently, only creatures)
+  define not only the position, but also the direction, like the direction
+  the creature is facing. This direction is taken as the transformation
+  of given placeholder applied to this 3D vector.
+
+  By default, we take it as direction implied by the current
+  T3DOrient.DefaultOrientation value. So it is
+  negative Z (that is, (0, 0, -1)) for default otUpYDirectionMinusZ,
+  or negative Y (0, -1, 0) for otUpZDirectionMinusY, and so on.
+  However, using T3DOrient.DefaultOrientation value here is only a wild guess:
+  the main purpose of T3DOrient.DefaultOrientation is to define a vector
+  used inside creature 3D models (see DRAFT.engine_tutorial.txt section
+  "Which way is up?" for details). It really does not need to have any
+  relation at all to the preferred direction the creature is facing
+  on the level 3D model.
+
+  The good value of this property is "whatever looks natural for 3D
+  level author". As the exact mesh you use for placeholders is ignored
+  (only it's transformation and bounding volume matter),
+  you usually create a simple mesh that looks like an arrow for
+  placeholders. The placeholder_default_direction should be the direction
+  of this arrow. When the 3D placeholder shape will not be rotated, it will
+  have exactly this direction.
+
 - See TLevelInfo properties documentation if in doubt.
 
 - Every TLevelLogic class (you indicate it with "type", see above)
