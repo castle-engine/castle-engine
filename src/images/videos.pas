@@ -16,7 +16,7 @@ unit Videos;
 
 interface
 
-uses SysUtils, Images, ImagesCache;
+uses SysUtils, Images;
 
 type
   EInvalidFadeFrames = class(Exception);
@@ -62,7 +62,6 @@ type
     FItems: array of TCastleImage;
     function GetItems(Index: Integer): TCastleImage;
   private
-    FCache: TImagesCache;
     FLoaded: boolean;
     FTimeLoop: boolean;
     FTimeBackwards: boolean;
@@ -149,10 +148,7 @@ type
           I don't know if any video file format supports any kind of
           alpha channel, so using image sequence may be actually your
           only choice for videos with alpha channel.)
-      )
-
-      We load images using the @link(Cache), you must assign it before using
-      this method. }
+      ) }
     procedure LoadFromFile(const FileName: string);
 
     { Save video to file (or image sequence).
@@ -169,11 +165,6 @@ type
     procedure Close;
 
     property Loaded: boolean read FLoaded;
-
-    { Cache used to load images. You @bold(must) assign the cache
-      before loading anything, and the Cache instance must remain constant
-      between loading and closing the video file. }
-    property Cache: TImagesCache read FCache write FCache;
 
     { @abstract(Should the video be played in a loop?)
 
@@ -294,7 +285,8 @@ function FfmpegVideoFileExtension(const Ext: string;
 
 implementation
 
-uses CastleUtils, Math, CastleStringUtils, CastleWarnings, CastleFilesUtils, ProgressUnit;
+uses CastleUtils, Math, CastleStringUtils, CastleWarnings, CastleFilesUtils,
+  ProgressUnit, TextureImages;
 
 { TVideo --------------------------------------------------------------------- }
 
@@ -384,7 +376,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(FItems) do
-    Cache.LoadImage_DecReference(FItems[I]);
+    FreeAndNil(FItems[I]);
   SetLength(FItems, 0);
   FLoaded := false;
 end;
@@ -405,12 +397,10 @@ procedure TVideo.LoadFromFile(const FileName: string);
       S := FormatIndexedName(FileName, Index);
       while FileExists(S) do
       begin
-        { Remember that Cache.LoadImage_IncReference may raise an exception
+        { Remember that LoadImage may raise an exception
           for invalid / not existing / not readable image filenames.
           So don't increase FItems before NewItem is successfully loaded. }
-        NewItem := Cache.LoadImage_IncReference(
-          { Cache.LoadImage_IncReference requires absolute expanded filename }
-          ExpandFileName(S));
+        NewItem := LoadImage(S, TextureImageClasses, []);
         SetLength(FItems, Length(FItems) + 1);
         FItems[High(FItems)] := NewItem;
 
@@ -428,9 +418,7 @@ procedure TVideo.LoadFromFile(const FileName: string);
           [S]);
     end else
     begin
-      NewItem := Cache.LoadImage_IncReference(
-        { Cache.LoadImage_IncReference requires absolute expanded filename }
-        ExpandFileName(FileName));
+      NewItem := LoadImage(FileName, TextureImageClasses, []);
       SetLength(FItems, 1);
       FItems[0] := NewItem;
 
@@ -637,12 +625,6 @@ var
 begin
   Assert(Loaded);
 
-  { TODO: this is not good for the cache, if the image is referenced
-    more than one time than you will modify all occurrences.
-    Some MakeUnique method for TImagesCache needed.
-    Also, simple_video_image_viewer.lpr should use it too
-    before editing. }
-
   if ProgressTitle <> '' then
     Progress.Init((Count div 2) * 2, ProgressTitle);
   try
@@ -657,7 +639,7 @@ begin
     NewCount := (Count div 2) + (Count mod 2);
     for I := NewCount to Count - 1 do
     begin
-      Cache.LoadImage_DecReference(FItems[I]);
+      FreeAndNil(FItems[I]);
       if ProgressTitle <> '' then Progress.Step;
     end;
     SetLength(FItems, NewCount);
@@ -691,7 +673,7 @@ begin
     NewCount := Count - FadeFrames;
     for I := NewCount to Count - 1 do
     begin
-      Cache.LoadImage_DecReference(FItems[I]);
+      FreeAndNil(FItems[I]);
       if ProgressTitle <> '' then Progress.Step;
     end;
     SetLength(FItems, NewCount);

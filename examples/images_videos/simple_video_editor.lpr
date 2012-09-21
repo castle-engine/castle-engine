@@ -24,7 +24,7 @@ program simple_video_editor;
 {$apptype CONSOLE}
 
 uses CastleUtils, SysUtils, CastleWindow, GL, GLU, GLImages,
-  ImagesCache, Videos, CastleStringUtils, CastleMessages, CastleColors,
+  Videos, CastleStringUtils, CastleMessages, CastleColors,
   BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts, CastleParameters,
   CastleGLUtils, VectorMath, Classes, ProgressUnit, CastleProgress, CastleTimeUtils;
 
@@ -297,15 +297,11 @@ begin
     Result.Append(M);
 end;
 
-var
-  Cache: TImagesCache;
 begin
   Window := TCastleWindowDemo.Create(Application);
 
   try
-    Cache := TImagesCache.Create;
     Video := TVideo.Create;
-    Video.Cache := Cache;
 
     { We will actually handle 1st param in Init. }
     Parameters.CheckHighAtMost(1);
@@ -323,6 +319,5 @@ begin
     Window.OpenAndRun;
   finally
     FreeAndNil(Video);
-    FreeAndNil(Cache);
   end;
 end.

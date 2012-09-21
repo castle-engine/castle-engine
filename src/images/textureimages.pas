@@ -13,55 +13,22 @@
   ----------------------------------------------------------------------------
 }
 
-{ Handling of images that will be used as textures.
-  This unit is not OpenGL specific, it should be suitable for all 3D libraries. }
+{ Handling of images for textures.
+  This unit is not OpenGL-specific, it should be suitable for all 3D libraries.
+  See GLImage for OpenGL-specific handling of textures and other images.
+
+  Texture is any TEncodedImage instance. This includes not only
+  a traditional 2D/3D matrix of pixels represented as TCastleImage,
+  but also a compressed texture, TS3TCImage. Moreover, a texture
+  may have mipmaps defined --- they are stored inside TDDSImage
+  instance (that contains a list of TEncodedImage).
+
+  Since not everything can really deal with such flexible definition
+  of a texture, we decided to separate some routines specifically
+  for textures. For example, you have LoadTextureImage to load full texture
+  information --- contrast this with LoadImage routine in Images unit,
+  that only returns TCastleImage (a "normal" way to deal with image data). }
 unit TextureImages;
-
-{ Some internal comments about why this unit is needed at all.
-  For a long, long time all my images were represented by TCastleImage class.
-  There was no DDS, no S3TC and everything was beautiful and simple.
-
-  Well, actually, there was one ugly thing: everything that didn't depend
-  on OpenGL had to take some parameter like AllowedImageClasses,
-  and accept it (and some routines didn't accept it in reality,
-  because TImagesCache didn't honour it, because it would severely
-  complicate it for no practical gain).
-
-  When DDS and S3TC compressed textures came in, problems started.
-  A lot of routines dealing with texture had to be extended to accept
-  TS3TCImage, and generally TEncodedImage. That was good, but it made
-  loading images for them really uncomfortable: special code to
-  take DDS, and optionally extract S3TC from DDS, was needed,
-  instead of previous LoadImage. Moreover, TImagesCache.LoadImage_IncReference
-  couldn't be used.
-
-  One solution, that I was toying with for 2 days, was to make more things
-  to accept TEncodedImage instead of just TCastleImage. For example,
-  allow LoadImage to return any TEncodedImage, and let called specify
-  whether TS3TCImage is allowed by AllowedImageClasses parameter to
-  LoadImage. But this was flawed.
-  It required a huge lot of existing code to be changed, basically
-  just to fail gracefully if "not (Image is TCastleImage)", which was ugly.
-  If you need class checks and casts everywhere around, then something
-  is just wrong. Moreover, and this is really the key point, note that
-  for textures even TEncodedImage is not enough: eventually more texture
-  routines should know about full DDS file, to be able to use mipmaps
-  from DDS file. Trying to push this inside normal LoadImage would be simply
-  wrong. And no, I don't want to make TDDSImage an ancestor or descendant
-  of TEncodedImage --- logically, they should stay independent classes.
-
-  The right solution turned out to be this trivial unit. We simply
-  admit that we need different routines to "load texture" and "load simple
-  editable image", and we need different cache classes for them.
-  Texture loading and cache support TEncodedImage (so they allow S3TC)
-  and allow returning associated DDS file, so texture routines are happy.
-
-  As a side result, this also eliminates the need for all those
-  AllowedImageClasses fields in various VRML texture etc. nodes.
-  This unit, although not dependent on OpenGL, knows which image memory
-  formats are suitable for textures, and that's it.
-}
-{ }
 
 interface
 
@@ -127,8 +94,38 @@ type
     If you used IncReference without DDS parameter, then also
     free using DecReference without DDS parameter.
 
-    See TImagesCache comments for more detailed instructions how to properly
-    use the cache. }
+    The idea is that instead of @code(LoadTextureImage(...)) call
+    @code(Cache.TextureImage_IncReference(...)).
+    Later, instead of freeing this image, call
+    @code(TextureImage_DecReference(Image)). From your point of view, things
+    will work the same. But if you expect to load many textures from the
+    same FileName, then you will get a great speed and memory saving,
+    because image will only be actually loaded once. Notes:
+
+    @unorderedList(
+      @item(All passed here FileNames must be absolute, already expanded paths.
+        In the future it's expected that this (just like LoadImage
+        and LoadTextureImage, actually)
+        will be extended to load images from URLs.)
+
+      @item(Note that in case of problems with loading,
+        TextureImage_IncReference may raise an exception, just like normal
+        LoadTextureImage. In this case it's guaranteed that no reference will
+        be incremented, of course. If LoadTextureImage_IncReference returns
+        in a normal way, then it will return something non-@nil, just like
+        LoadTextureImage does.)
+
+      @item(LoadTextureImage_DecReference alwas sets Image to @nil, like FreeAndNil.)
+    )
+
+    Note that before destroying this object you must free all textures,
+    i.e. call LoadTextureImage_DecReference for all images allocated by
+    LoadTextureImage_IncReference. @italic(This class is not a lousy way
+    of avoiding memory leaks) --- it would be a bad idea, because it would
+    cause sloppy programming, where memory is unnecessarily allocated for
+    a long time. In fact, this class asserts in destructor that no images
+    are in cache anymore, so if you compiled with assertions enabled,
+    this class does the job of memory-leak detector. }
   TTexturesImagesVideosCache = class(TImagesVideosCache)
   private
     CachedTextures: TCachedTextureList;

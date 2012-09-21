@@ -140,7 +140,6 @@ begin
 
   Result := TVideo.Create;
   try
-    Result.Cache := Self;
     Result.LoadFromFile(FileName);
   except
     FreeAndNil(Result);
