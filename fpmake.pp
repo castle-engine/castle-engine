@@ -195,7 +195,6 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'images');
     P.Targets.AddUnit('images.pas');
-    P.Targets.AddUnit('imagescache.pas');
     P.Targets.AddUnit('castlepng.pas');
     P.Targets.AddUnit('videos.pas');
     P.Targets.AddUnit('videoscache.pas');

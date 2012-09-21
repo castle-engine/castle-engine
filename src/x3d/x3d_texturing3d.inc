@@ -17,7 +17,7 @@
   { }
   TAbstractTexture3DNode = class(TAbstractTextureNode)
   private
-    UsedCache: TTexturesImagesVideosCache;
+    UsedCache: TTexturesVideosCache;
 
     FTextureLoaded: boolean;
     procedure SetTextureLoaded(const Value: boolean);

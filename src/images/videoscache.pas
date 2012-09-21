@@ -13,12 +13,12 @@
   ----------------------------------------------------------------------------
 }
 
-{ A cache for loading both videos and images (TImagesVideosCache). }
+{ A cache for loading videos (TVideosCache). }
 unit VideosCache;
 
 interface
 
-uses CastleUtils, ImagesCache, Videos, FGL;
+uses CastleUtils, Videos, FGL;
 
 type
   { Internal for TVideosCache. @exclude }
@@ -57,12 +57,6 @@ type
 
       @item(Video_DecReference alwas sets Video to @nil, like FreeAndNil.)
 
-      @item(As TVideo also uses TImagesCache internally to load single
-        images, and this class descends from TImagesCache, so we naturally
-        set Self as TVideo.Cache. This way you also get images sharing,
-        useful for example if your videos came from images sequence
-        shared by other videos.)
-
       @item(All videos handled here are always loaded.
         So Video_IncReference always returns TVideo with TVideo.Loaded = @true.
         And you are forbidden from closing this video by TVideo.Close
@@ -77,9 +71,15 @@ type
     a long time. In fact, this class asserts in destructor that no videos
     are in cache anymore, so if you compiled with assertions enabled,
     this class does the job of memory-leak detector. }
-  TImagesVideosCache = class(TImagesCache)
+  TVideosCache = class
   private
     CachedVideos: TCachedVideoList;
+    FOnEmpty: TProcedure;
+  protected
+    { If cache is empty, calls OnEmpty. Note that OnEmpty may destroy current
+      instance, so call CheckEmpty only when you finished processing
+      --- Self may be invalid afterwards. }
+    procedure CheckEmpty;
   public
     constructor Create;
     destructor Destroy; override;
@@ -87,7 +87,11 @@ type
     function Video_IncReference(const FileName: string): TVideo;
     procedure Video_DecReference(var Video: TVideo);
 
-    function Empty: boolean; override;
+    function Empty: boolean; virtual;
+
+    { Called when cache becomes empty. This is only for internal usage
+      by X3DNodes unit for now. }
+    property OnEmpty: TProcedure read FOnEmpty write FOnEmpty;
   end;
 
 implementation
@@ -96,24 +100,24 @@ uses SysUtils, CastleStringUtils;
 
 { $define DEBUG_CACHE}
 
-constructor TImagesVideosCache.Create;
+constructor TVideosCache.Create;
 begin
   inherited;
   CachedVideos := TCachedVideoList.Create;
 end;
 
-destructor TImagesVideosCache.Destroy;
+destructor TVideosCache.Destroy;
 begin
   if CachedVideos <> nil then
   begin
     Assert(CachedVideos.Count = 0, ' Some references to videos still exist ' +
-      'when freeing TImagesVideosCache');
+      'when freeing TVideosCache');
     FreeAndNil(CachedVideos);
   end;
   inherited;
 end;
 
-function TImagesVideosCache.Video_IncReference(const FileName: string): TVideo;
+function TVideosCache.Video_IncReference(const FileName: string): TVideo;
 var
   I: Integer;
   C: TCachedVideo;
@@ -157,7 +161,7 @@ begin
   {$endif}
 end;
 
-procedure TImagesVideosCache.Video_DecReference(var Video: TVideo);
+procedure TVideosCache.Video_DecReference(var Video: TVideo);
 var
   I: Integer;
   C: TCachedVideo;
@@ -186,13 +190,20 @@ begin
   end;
 
   raise EInternalError.CreateFmt(
-    'TImagesVideosCache.Video_DecReference: no reference found for video %s',
+    'TVideosCache.Video_DecReference: no reference found for video %s',
     [PointerToStr(Video)]);
 end;
 
-function TImagesVideosCache.Empty: boolean;
+function TVideosCache.Empty: boolean;
 begin
-  Result := (inherited Empty) and (CachedVideos.Count = 0);
+  Result := (CachedVideos.Count = 0);
+end;
+
+procedure TVideosCache.CheckEmpty;
+begin
+  { Check Assigned(OnEmpty) first, as it's usually not assigned. }
+  if Assigned(OnEmpty) and Empty then
+    OnEmpty();
 end;
 
 end.

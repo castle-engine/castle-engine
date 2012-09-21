@@ -1405,7 +1405,7 @@ begin
     TextureCached := TextureImageCaches[I];
 
     { Once I had an idea to make here comparison with
-      TextureImage = TextureCached^.Image. Since we have ImagesCache,
+      TextureImage = TextureCached^.Image. Since we have TTexturesVideosCache,
       so images from the same URL would have the same reference, so this
       would work perfectly, and make comparison with TextureURL obsolete, right ?
 

@@ -123,8 +123,8 @@ type
         exactly the same resource over and over again.)
 
       @item(For frTextureDataInNodes and frBackgroundImageInNodes note that
-        freeing these resources too eagerly may make image cache
-        (see ImagesCache) less effective. In normal circumstances,
+        freeing these resources too eagerly may make texture cache
+        (see TextureImages) less effective. In normal circumstances,
         if you will use the same cache instance throughout the program,
         loaded images are reused. If you free frTextureDataInNodes
         too early, you may remove them from the cache too early, and lose

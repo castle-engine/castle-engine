@@ -44,7 +44,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="170">
+    <Files Count="169">
       <Item1>
         <Filename Value="../src/3d/base3d.pas"/>
         <UnitName Value="Base3D"/>
@@ -436,10 +436,6 @@
         <Filename Value="../src/images/images.pas"/>
         <UnitName Value="Images"/>
       </Item99>
-      <Item100>
-        <Filename Value="../src/images/imagescache.pas"/>
-        <UnitName Value="ImagesCache"/>
-      </Item100>
       <Item101>
         <Filename Value="../src/images/textureimages.pas"/>
         <UnitName Value="TextureImages"/>
@@ -719,10 +715,10 @@
         <Filename Value="../src/x3d/x3dloadinternalutils.pas"/>
         <UnitName Value="X3DLoadInternalUtils"/>
       </Item169>
-      <Item170>
+      <Item100>
         <Filename Value="../src/x3d/x3dnodes.pas"/>
         <UnitName Value="X3DNodes"/>
-      </Item170>
+      </Item100>
       <Item88>
         <Filename Value="../src/x3d/x3dnodesdetailoptions.pas"/>
         <UnitName Value="X3DNodesDetailOptions"/>

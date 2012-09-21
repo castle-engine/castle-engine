@@ -75,7 +75,7 @@ function LoadTextureImage(const FileName: string): TEncodedImage; overload;
 { @groupEnd }
 
 type
-  { Internal for TTexturesImagesVideosCache. @exclude }
+  { Internal for TTexturesVideosCache. @exclude }
   TCachedTexture = class
     References: Cardinal;
     FileName: string;
@@ -126,7 +126,7 @@ type
     a long time. In fact, this class asserts in destructor that no images
     are in cache anymore, so if you compiled with assertions enabled,
     this class does the job of memory-leak detector. }
-  TTexturesImagesVideosCache = class(TImagesVideosCache)
+  TTexturesVideosCache = class(TVideosCache)
   private
     CachedTextures: TCachedTextureList;
   public
@@ -175,28 +175,28 @@ begin
   DDS.Free;
 end;
 
-{ TTexturesImagesVideosCache ------------------------------------------------- }
+{ TTexturesVideosCache ------------------------------------------------- }
 
 { $define DEBUG_CACHE}
 
-constructor TTexturesImagesVideosCache.Create;
+constructor TTexturesVideosCache.Create;
 begin
   inherited;
   CachedTextures := TCachedTextureList.Create;
 end;
 
-destructor TTexturesImagesVideosCache.Destroy;
+destructor TTexturesVideosCache.Destroy;
 begin
   if CachedTextures <> nil then
   begin
     Assert(CachedTextures.Count = 0, ' Some references to texture images still exist ' +
-      'when freeing TTexturesImagesVideosCache');
+      'when freeing TTexturesVideosCache');
     FreeAndNil(CachedTextures);
   end;
   inherited;
 end;
 
-function TTexturesImagesVideosCache.TextureImage_IncReference(
+function TTexturesVideosCache.TextureImage_IncReference(
   const FileName: string; out DDS: TDDSImage): TEncodedImage;
 var
   I: Integer;
@@ -237,7 +237,7 @@ begin
   {$endif}
 end;
 
-procedure TTexturesImagesVideosCache.TextureImage_DecReference(
+procedure TTexturesVideosCache.TextureImage_DecReference(
   var Image: TEncodedImage; var DDS: TDDSImage);
 var
   I: Integer;
@@ -270,7 +270,7 @@ begin
         Only if passed DDS <> nil (we know caller keeps it) then we can
         check it for correctness. }
 
-      Assert((DDS = nil) or (C.DDS = DDS), 'Image pointers match in TTexturesImagesVideosCache, DDS pointers should match too');
+      Assert((DDS = nil) or (C.DDS = DDS), 'Image pointers match in TTexturesVideosCache, DDS pointers should match too');
 
       Image := nil;
       DDS := nil;
@@ -289,11 +289,11 @@ begin
   end;
 
   raise EInternalError.CreateFmt(
-    'TTexturesImagesVideosCache.TextureImage_DecReference: no reference found for texture image %s',
+    'TTexturesVideosCache.TextureImage_DecReference: no reference found for texture image %s',
     [PointerToStr(Image)]);
 end;
 
-function TTexturesImagesVideosCache.TextureImage_IncReference(
+function TTexturesVideosCache.TextureImage_IncReference(
   const FileName: string): TEncodedImage;
 var
   Dummy: TDDSImage;
@@ -301,7 +301,7 @@ begin
   Result := TextureImage_IncReference(FileName, Dummy);
 end;
 
-procedure TTexturesImagesVideosCache.TextureImage_DecReference(
+procedure TTexturesVideosCache.TextureImage_DecReference(
   var Image: TEncodedImage);
 var
   Dummy: TDDSImage;
@@ -310,7 +310,7 @@ begin
   TextureImage_DecReference(Image, Dummy);
 end;
 
-function TTexturesImagesVideosCache.Empty: boolean;
+function TTexturesVideosCache.Empty: boolean;
 begin
   Result := (inherited Empty) and (CachedTextures.Count = 0);
 end;

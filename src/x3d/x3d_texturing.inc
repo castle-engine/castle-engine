@@ -71,7 +71,7 @@
       UsedCache (TextureImage_DecReference or Video_DecReference).
       Also loaded FTextureVideo should always have it's own Cache property set
       to this. }
-    UsedCache: TTexturesImagesVideosCache;
+    UsedCache: TTexturesVideosCache;
 
     FIsTextureLoaded: boolean;
     procedure SetIsTextureLoaded(Value: boolean);

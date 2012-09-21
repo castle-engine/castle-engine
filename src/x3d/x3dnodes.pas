@@ -740,9 +740,9 @@ type
   TCachedNodeList = specialize TFPGObjectList<TCachedNode>;
 
   { Cache for resources not specific to renderer (OpenGL).
-    Includes all TTexturesImagesVideosCache resources (image, texture, movie
+    Includes all TTexturesVideosCache resources (texture, movie
     data) and adds cache for 3D models. }
-  TX3DNodesCache = class(TTexturesImagesVideosCache)
+  TX3DNodesCache = class(TTexturesVideosCache)
   private
     CachedNodes: TCachedNodeList;
   public

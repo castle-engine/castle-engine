@@ -79,7 +79,7 @@
     { Release and set to @nil all images.
       If Cache is @nil, release images by simple FreeAndNil,
       otherwise they are released from the cache by TextureImage_DecReference. }
-    procedure FreeAll(Cache: TTexturesImagesVideosCache);
+    procedure FreeAll(Cache: TTexturesVideosCache);
   end;
 
   TBackgroundNode = class(TAbstractBackgroundNode)
@@ -374,7 +374,7 @@ begin
   Images[bsTop   ] := nil;
 end;
 
-procedure TBackgroundImages.FreeAll(Cache: TTexturesImagesVideosCache);
+procedure TBackgroundImages.FreeAll(Cache: TTexturesVideosCache);
 var
   bs: TBackgroundSide;
 begin
