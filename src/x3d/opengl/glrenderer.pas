@@ -3424,7 +3424,7 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
     begin
       { This works also for TextureNode being TMultiTextureNode,
         since it has smartly calculated AlphaChannelType. }
-      AlphaTest := GLTextureNode.AlphaChannelType = atSimpleYesNo;
+      AlphaTest := TextureNode.AlphaChannel = atSimpleYesNo;
 
       GLTextureNode.EnableAll(GLMaxTextureUnits, TexCoordsNeeded, Shader);
       BoundTextureUnits := TexCoordsNeeded;

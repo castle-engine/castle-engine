@@ -21,6 +21,10 @@
   end;
 
   TComposedCubeMapTextureNode = class(TAbstractEnvironmentTextureNode)
+  private
+    FAlphaChannelData: TAlphaChannelType;
+  protected
+    function AlphaChannelData: TAlphaChannelType; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -105,6 +109,10 @@
   end;
 
   TImageCubeMapTextureNode = class(TAbstractEnvironmentTextureNode, IAbstractUrlObject)
+  private
+    FAlphaChannelData: TAlphaChannelType;
+  protected
+    function AlphaChannelData: TAlphaChannelType; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -212,11 +220,11 @@ function TComposedCubeMapTextureNode.LoadSides: boolean;
     end;
 
     { If any slice has full-range alpha, then assume whole texture does. }
-    AlphaMaxTo1st(AlphaChannelData, SideTex.AlphaChannel);
+    AlphaMaxTo1st(FAlphaChannelData, SideTex.AlphaChannel);
   end;
 
 begin
-  AlphaChannelData := atNone;
+  FAlphaChannelData := atNone;
   Result :=
     SideLoaded(FdBack) and
     SideLoaded(FdBottom) and
@@ -224,6 +232,11 @@ begin
     SideLoaded(FdLeft) and
     SideLoaded(FdRight) and
     SideLoaded(FdTop);
+end;
+
+function TComposedCubeMapTextureNode.AlphaChannelData: TAlphaChannelType;
+begin
+  Result := FAlphaChannelData;
 end;
 
 constructor TGeneratedTextureHandler.Create;
@@ -367,7 +380,7 @@ begin
         end;
       end;
 
-      AlphaChannelData := Result.Images[0].AlphaChannelType;
+      FAlphaChannelData := Result.Images[0].AlphaChannelType;
 
       if Result.DDSType <> dtCubeMap then
       begin
@@ -389,6 +402,11 @@ begin
     { If we got here, then no URL was good. So set Result to @nil. }
     FreeAndNil(Result);
   except FreeAndNil(Result); raise end;
+end;
+
+function TImageCubeMapTextureNode.AlphaChannelData: TAlphaChannelType;
+begin
+  Result := FAlphaChannelData;
 end;
 
 procedure RegisterCubeMapTexturingNodes;

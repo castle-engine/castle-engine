@@ -22,10 +22,12 @@
 
   TAbstractTextureNode = class(TAbstractAppearanceChildNode)
   protected
-    { Alpha channel detected from image contents (ignoring FdAlphaChannel field).
-      Valid only if image data is loaded (e.g. TAbstractTexture2DNode.IsTextureLoaded
-      in case of TAbstractTexture2DNode descendant). }
-    AlphaChannelData: TAlphaChannelType;
+    { Alpha channel detected from image contents (or children nodes),
+      ignoring our FdAlphaChannel field.
+      Actually set only when image data is loaded
+      (e.g. TAbstractTexture2DNode.IsTextureLoaded in case of TAbstractTexture2DNode
+      descendant). }
+    function AlphaChannelData: TAlphaChannelType; virtual;
   public
     procedure CreateNode; override;
 
@@ -62,7 +64,7 @@
   TAbstractTexture2DNode = class(TAbstractTextureNode)
   private
     { Together we call FTextureImage, FTextureDDS,
-      FTextureVideo, AlphaChannelData as "texture data". }
+      FTextureVideo, FAlphaChannelData as "texture data". }
 
     { FTextureImage is <> nil if texture is currently loaded (IsTextureLoaded)
       and it was loaded to an image (not video).
@@ -79,6 +81,8 @@
       Assigned here, should always have TVideo.Loaded = @true. }
     FTextureVideo: TVideo;
 
+    FAlphaChannelData: TAlphaChannelType;
+
     { Non-nil only if FTextureImage, FTextureDDS or FTextueVideo
       should be freed using
       UsedCache (TextureImage_DecReference or Video_DecReference).
@@ -90,6 +94,8 @@
     procedure SetIsTextureLoaded(Value: boolean);
     procedure FreeAndNilTextureData;
   protected
+    function AlphaChannelData: TAlphaChannelType; override;
+  protected
     FTextureUsedFullUrl: string;
 
     { Loads texture data (image or video file).
@@ -99,7 +105,7 @@
       sure @nil). If FTextureImage is set, you can also set FTextureDDS.
       If you leave them as @nil, this means that loading failed
       (and OnWarning didn't cause an exception).
-      You should also set AlphaChannelData.
+      You should also set FAlphaChannelData.
 
       You do not care in this method about things like
       IsImageLoaded --- this method should just always,
@@ -347,6 +353,8 @@
 
     private FFdTexture: TMFNode;
     public property FdTexture: TMFNode read FFdTexture;
+
+    function AlphaChannelData: TAlphaChannelType; override;
   end;
 
   TMultiTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
@@ -524,6 +532,11 @@ begin
   Result := NodeTypeName;
 end;
 
+function TAbstractTextureNode.AlphaChannelData: TAlphaChannelType;
+begin
+  Result := atNone;
+end;
+
 function TAbstractTextureNode.AlphaChannel: TAlphaChannelType;
 type
   TDetectAlphaChannel = (daAuto, daSimpleYesNo, daFullRange);
@@ -682,6 +695,11 @@ begin
   Result := nil;
 end;
 
+function TAbstractTexture2DNode.AlphaChannelData: TAlphaChannelType;
+begin
+  Result := FAlphaChannelData;
+end;
+
 { TAbstractX3DTexture2DNode ------------------------------------------------------ }
 
 procedure TAbstractX3DTexture2DNode.CreateNode;
@@ -796,7 +814,7 @@ procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: boolean);
           [TRGBImage, TRGBAlphaImage, TGrayscaleImage, TGrayscaleAlphaImage], []);
         WasCacheUsed := false;
         FTextureUsedFullUrl := Data.URIPrefix;
-        AlphaChannelData := FTextureImage.AlphaChannelType;
+        FAlphaChannelData := FTextureImage.AlphaChannelType;
         Result := true;
       except
         on E: Exception do
@@ -832,7 +850,7 @@ begin
       FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
       try
         FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureDDS,
-          AlphaChannelData);
+          FAlphaChannelData);
         WasCacheUsed := true;
         FTextureUsedFullUrl := FullUrl;
         Break;
@@ -953,7 +971,7 @@ begin
   begin
     FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
     try
-      FTextureVideo := X3DCache.Video_IncReference(FullUrl, AlphaChannelData);
+      FTextureVideo := X3DCache.Video_IncReference(FullUrl, FAlphaChannelData);
 
       { if loading succeded, set WasCacheUsed and others and break. }
       WasCacheUsed := true;
@@ -1025,6 +1043,21 @@ class function TMultiTextureNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TMultiTextureNode.AlphaChannelData: TAlphaChannelType;
+var
+  ChildTex: TX3DNode;
+  I: Integer;
+begin
+  Result := atNone;
+  for I := 0 to FdTexture.Count - 1 do
+  begin
+    ChildTex := FdTexture[I];
+    if (ChildTex <> nil) and
+       (ChildTex is TAbstractTextureNode) then
+      AlphaMaxTo1st(Result, TAbstractTextureNode(ChildTex).AlphaChannel);
+  end;
 end;
 
 procedure TMultiTextureCoordinateNode.CreateNode;

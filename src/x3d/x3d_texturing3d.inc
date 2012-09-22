@@ -28,7 +28,7 @@
       You can assume here that texture is not loaded now,
       UsedCache, FTextureImage, FTextureDDS are all nil.
       Try to load the texture data, making OnWarning as appropriate,
-      and set all UsedCache, FTextureImage, FTextureDDS, AlphaChannelData. }
+      and set all UsedCache, FTextureImage, FTextureDDS, FAlphaChannelData. }
     procedure LoadTextureData; virtual; abstract;
   public
     procedure CreateNode; override;
@@ -69,6 +69,10 @@
   end;
 
   TComposedTexture3DNode = class(TAbstractTexture3DNode)
+  private
+    FAlphaChannelData: TAlphaChannelType;
+  protected
+    function AlphaChannelData: TAlphaChannelType; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -81,6 +85,10 @@
   end;
 
   TImageTexture3DNode = class(TAbstractTexture3DNode, IAbstractUrlObject)
+  private
+    FAlphaChannelData: TAlphaChannelType;
+  protected
+    function AlphaChannelData: TAlphaChannelType; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -93,6 +101,10 @@
   end;
 
   TPixelTexture3DNode = class(TAbstractTexture3DNode)
+  private
+    FAlphaChannelData: TAlphaChannelType;
+  protected
+    function AlphaChannelData: TAlphaChannelType; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -265,7 +277,7 @@ procedure TComposedTexture3DNode.LoadTextureData;
     Result := TCastleImage(Tex.TextureImage);
 
     { If any slice has full-range alpha, then assume whole texture does. }
-    AlphaMaxTo1st(AlphaChannelData, Tex.AlphaChannel);
+    AlphaMaxTo1st(FAlphaChannelData, Tex.AlphaChannel);
   end;
 
 var
@@ -278,7 +290,7 @@ begin
     Exit;
   end;
 
-  AlphaChannelData := atNone;
+  FAlphaChannelData := atNone;
 
   { First Slice is treated specially, as it determines width/height/class
     of the resulting image. }
@@ -322,6 +334,11 @@ begin
   end;
 end;
 
+function TComposedTexture3DNode.AlphaChannelData: TAlphaChannelType;
+begin
+  Result := FAlphaChannelData;
+end;
+
 procedure TImageTexture3DNode.CreateNode;
 begin
   inherited;
@@ -354,7 +371,7 @@ begin
 
     try
       FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureDDS,
-        AlphaChannelData);
+        FAlphaChannelData);
     except
       on E: Exception do
       begin
@@ -382,6 +399,11 @@ begin
     UsedCache := X3DCache;
     Exit;
   end;
+end;
+
+function TImageTexture3DNode.AlphaChannelData: TAlphaChannelType;
+begin
+  Result := FAlphaChannelData;
 end;
 
 procedure TPixelTexture3DNode.CreateNode;
@@ -476,7 +498,12 @@ begin
     end;
   end;
 
-  AlphaChannelData := FTextureImage.AlphaChannelType;
+  FAlphaChannelData := FTextureImage.AlphaChannelType;
+end;
+
+function TPixelTexture3DNode.AlphaChannelData: TAlphaChannelType;
+begin
+  Result := FAlphaChannelData;
 end;
 
 procedure TTextureCoordinate3DNode.CreateNode;

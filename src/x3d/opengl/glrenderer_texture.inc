@@ -61,12 +61,6 @@
       Calls PrepareCore. }
     procedure Prepare(State: TX3DGraphTraverseState);
   public
-    { Alpha channel of this texture.
-      Should be calculated and set in Prepare, looking at
-      TAbstractTextureNode.AlphaChannel.
-      By default, atNone in this class. }
-    AlphaChannelType: TAlphaChannelType;
-
     { Bind texture for OpenGL (without enabling it).
 
       Just like Enable, returns @false when texture node was not successfully
@@ -787,15 +781,11 @@ end;
 procedure TGLMultiTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 var
   ChildTex: TX3DNode;
-  ChildPrepared: TGLTextureNode;
   I: Integer;
 begin
-  { Prepare all children. }
-
-  AlphaChannelType := atNone; { default value, but set for paranoia anyway }
-
-  { fill PreparedTextureChildren along the way.
-    This will be used in Unprepare. }
+  { Prepare all children.
+    Fill PreparedTextureChildren along the way,
+    they will be used in Unprepare. }
   PreparedTextureChildren.Count := 0;
 
   for I := 0 to TextureNode.FdTexture.Count - 1 do
@@ -808,9 +798,7 @@ begin
         OnWarning(wtMajor, 'VRML/X3D', 'Child of MultiTexture node cannot be another MultiTexture node') else
       begin
         PreparedTextureChildren.Add(ChildTex);
-        ChildPrepared := Renderer.GLTextureNodes.Prepare(State, TAbstractTextureNode(ChildTex), Renderer);
-        if ChildPrepared <> nil then
-          AlphaMaxTo1st(AlphaChannelType, ChildPrepared.AlphaChannelType);
+        Renderer.GLTextureNodes.Prepare(State, TAbstractTextureNode(ChildTex), Renderer);
       end;
     end;
   end;
@@ -1013,7 +1001,6 @@ begin
     Anisotropy,
     TextureWrap,
     TextureNode.TextureDDS);
-  AlphaChannelType := TextureNode.AlphaChannel;
 end;
 
 procedure TGLImageTextureNode.Unprepare;
@@ -1089,7 +1076,6 @@ begin
     MagFilter,
     Anisotropy,
     TextureWrap);
-  AlphaChannelType := TextureNode.AlphaChannel;
 end;
 
 procedure TGLMovieTextureNode.Unprepare;
@@ -1227,7 +1213,6 @@ begin
         Anisotropy,
         TextureWrap,
         nil);
-      AlphaChannelType := TextureNode.AlphaChannel;
 
       { RenderedTexture never has any normal / height map
         (Hm, although it would be possible to generate some in theory
@@ -1573,7 +1558,6 @@ begin
       { positive z } BackRot,
       { negative z } FrontRot,
       nil);
-    AlphaChannelType := TextureNode.AlphaChannel;
   finally
     FreeAndNil(BackRot);
     FreeAndNil(FrontRot);
@@ -1639,7 +1623,6 @@ begin
       DDS.CubeMapImage(dcsPositiveZ),
       DDS.CubeMapImage(dcsNegativeZ),
       DDS);
-    AlphaChannelType := TextureNode.AlphaChannel;
   finally FreeAndNil(DDS); end;
 end;
 
@@ -1716,7 +1699,6 @@ begin
       InitialImage, InitialImage,
       InitialImage, InitialImage,
       nil);
-    AlphaChannelType := TextureNode.AlphaChannel;
   finally FreeAndNil(InitialImage) end;
 
   RenderToTexture := TGLRenderToTexture.Create(Size, Size);
@@ -1821,7 +1803,6 @@ begin
   GLName := Renderer.Cache.Texture3D_IncReference(
     TextureNode, MinFilter, MagFilter, Anisotropy,
     TextureWrap, TextureNode.TextureImage, TextureNode.TextureDDS);
-  AlphaChannelType := TextureNode.AlphaChannel;
 end;
 
 procedure TGL3DTextureNode.Unprepare;
