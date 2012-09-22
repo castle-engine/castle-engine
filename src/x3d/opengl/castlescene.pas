@@ -1581,6 +1581,16 @@ var
       RenderShape_SomeTests(TGLShape(Shape));
   end;
 
+  procedure RenderShape_AllTests_Opaque(Shape: TShape);
+  begin
+    if not TGLShape(Shape).UseBlending then RenderShape_AllTests(Shape);
+  end;
+
+  procedure RenderShape_AllTests_Transparent(Shape: TShape);
+  begin
+    if TGLShape(Shape).UseBlending then RenderShape_AllTests(Shape);
+  end;
+
   procedure RenderAllAsOpaque;
   begin
     if not Params.Transparent then
@@ -1976,48 +1986,48 @@ begin
             glDepthMask(GL_TRUE);
             glDisable(GL_BLEND);
 
-            ShapesFilterBlending(Shapes, true, true, false,
-              TestShapeVisibility, FilteredShapes, false);
-
-            { ShapesSplitBlending already filtered shapes through
-              TestShapeVisibility callback, so later we can render them
-              with RenderShape_SomeTests to skip checking TestShapeVisibility
-              twice. This is a good thing: it means that sorting below has
-              much less shapes to consider. }
-
             if CameraViewKnown and Attributes.ReallyUseOcclusionQuery then
+            begin
+              ShapesFilterBlending(Shapes, true, true, false,
+                TestShapeVisibility, FilteredShapes, false);
+
+              { ShapesSplitBlending already filtered shapes through
+                TestShapeVisibility callback, so later we can render them
+                with RenderShape_SomeTests to skip checking TestShapeVisibility
+                twice. This is a good thing: it means that sorting below has
+                much less shapes to consider. }
               FilteredShapes.SortFrontToBack(CameraPosition);
 
-            for I := 0 to FilteredShapes.Count - 1 do
-              RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
+              for I := 0 to FilteredShapes.Count - 1 do
+                RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
+            end else
+              Shapes.Traverse(@RenderShape_AllTests_Opaque, true, true, false);
           end else
           { this means Params.Transparent = true }
           begin
             { draw partially transparent objects }
 
-            ShapesFilterBlending(Shapes, true, true, false,
-              TestShapeVisibility, FilteredShapes, true);
+            glDepthMask(GL_FALSE);
+            glEnable(GL_BLEND);
 
-            if FilteredShapes.Count <> 0 then
+            { Set glBlendFunc using Attributes.BlendingXxxFactor }
+            BlendingSourceFactorSet := Attributes.BlendingSourceFactor;
+            BlendingDestinationFactorSet := Attributes.BlendingDestinationFactor;
+            glBlendFunc(BlendingSourceFactorSet, BlendingDestinationFactorSet);
+
+            if CameraViewKnown and Attributes.BlendingSort then
             begin
-              glDepthMask(GL_FALSE);
-              glEnable(GL_BLEND);
-
-              { Set glBlendFunc using Attributes.BlendingXxxFactor }
-              BlendingSourceFactorSet := Attributes.BlendingSourceFactor;
-              BlendingDestinationFactorSet := Attributes.BlendingDestinationFactor;
-              glBlendFunc(BlendingSourceFactorSet, BlendingDestinationFactorSet);
-
-              if CameraViewKnown and Attributes.BlendingSort then
-                FilteredShapes.SortBackToFront(CameraPosition);
-
+              ShapesFilterBlending(Shapes, true, true, false,
+                TestShapeVisibility, FilteredShapes, true);
+              FilteredShapes.SortBackToFront(CameraPosition);
               for I := 0 to FilteredShapes.Count - 1 do
               begin
                 AdjustBlendFunc(TGLShape(FilteredShapes[I]),
                   BlendingSourceFactorSet, BlendingDestinationFactorSet);
                 RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
               end;
-            end;
+            end else
+              Shapes.Traverse(@RenderShape_AllTests_Transparent, true, true, false);
           end;
         end else
         begin
