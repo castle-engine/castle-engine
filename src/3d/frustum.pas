@@ -243,6 +243,8 @@ type
 
       @raises(ETransformedResultInvalid In some cases when matrix is not sane.) }
     function Transform(const M: TMatrix4Single): TFrustum;
+    
+    function ToNiceStr(const Indent: string): string;
   end;
   PFrustum = ^TFrustum;
 
@@ -655,6 +657,23 @@ begin
       Result.Planes[I] := PlaneTransform(Planes[I], M);
 
   Result.ZFarInfinity := ZFarInfinity;
+end;
+
+function TFrustum.ToNiceStr(const Indent: string): string;
+var
+  I: TFrustumPlane;
+begin
+  Result := '';
+  if ZFarInfinity then
+  begin
+    Assert(High(I) = fpFar);
+    for I := Low(I) to Pred(High(I)) do
+      Result += Indent + VectorToNiceStr(Planes[I]) + LineEnding;
+    Result += Indent + '(no far plane, frustum goes to infinity)' +
+      LineEnding;
+  end else
+    for I := Low(I) to High(I) do
+      Result += Indent + VectorToNiceStr(Planes[I]) + LineEnding;
 end;
 
 end.
