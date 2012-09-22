@@ -21,7 +21,6 @@
     FTextureLoaded: boolean;
     FTextureImage: TEncodedImage;
     FTextureDDS: TDDSImage;
-    FTextureAlpha: TAlphaChannelType;
     procedure SetTextureLoaded(const Value: boolean);
   protected
     { This does the actual loading of texture data.
@@ -29,7 +28,7 @@
       You can assume here that texture is not loaded now,
       UsedCache, FTextureImage, FTextureDDS are all nil.
       Try to load the texture data, making OnWarning as appropriate,
-      and set all UsedCache, FTextureImage, FTextureDDS, FTextureAlpha. }
+      and set all UsedCache, FTextureImage, FTextureDDS, AlphaChannelData. }
     procedure LoadTextureData; virtual; abstract;
   public
     procedure CreateNode; override;
@@ -67,7 +66,6 @@
 
     property TextureImage: TEncodedImage read FTextureImage;
     property TextureDDS: TDDSImage read FTextureDDS;
-    function AlphaChannel: TAlphaChannelType; override;
   end;
 
   TComposedTexture3DNode = class(TAbstractTexture3DNode)
@@ -213,11 +211,6 @@ begin
   end;
 end;
 
-function TAbstractTexture3DNode.AlphaChannel: TAlphaChannelType;
-begin
-  Result := FTextureAlpha;
-end;
-
 procedure TComposedTexture3DNode.CreateNode;
 begin
   inherited;
@@ -272,8 +265,8 @@ procedure TComposedTexture3DNode.LoadTextureData;
     Result := TCastleImage(Tex.TextureImage);
 
     { If any slice has full-range alpha, then assume whole texture does. }
-    if Tex.AlphaChannel > FTextureAlpha then
-      FTextureAlpha := Tex.AlphaChannel;
+    if Tex.AlphaChannel > AlphaChannelData then
+      AlphaChannelData := Tex.AlphaChannel;
   end;
 
 var
@@ -286,7 +279,7 @@ begin
     Exit;
   end;
 
-  FTextureAlpha := atNone;
+  AlphaChannelData := atNone;
 
   { First Slice is treated specially, as it determines width/height/class
     of the resulting image. }
@@ -362,7 +355,7 @@ begin
 
     try
       FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureDDS,
-        FTextureAlpha);
+        AlphaChannelData);
     except
       on E: Exception do
       begin
@@ -484,7 +477,7 @@ begin
     end;
   end;
 
-  FTextureAlpha := FTextureImage.AlphaChannelType;
+  AlphaChannelData := FTextureImage.AlphaChannelType;
 end;
 
 procedure TTextureCoordinate3DNode.CreateNode;

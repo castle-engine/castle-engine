@@ -21,8 +21,6 @@
   end;
 
   TComposedCubeMapTextureNode = class(TAbstractEnvironmentTextureNode)
-  private
-    FTextureAlpha: TAlphaChannelType;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -56,10 +54,9 @@
       loading S3TC cube map sides to OpenGL is not available).
 
       Also calculate AlphaChannel for the whole cube map.
-      Our overridden AlphaChannel method will reflect the state from
+      Our AlphaChannel method will reflect the state from
       last call of this. }
     function LoadSides: boolean;
-    function AlphaChannel: TAlphaChannelType; override;
   end;
 
   { Helper for all VRML/X3D generated texture nodes. }
@@ -108,8 +105,6 @@
   end;
 
   TImageCubeMapTextureNode = class(TAbstractEnvironmentTextureNode, IAbstractUrlObject)
-  private
-    FTextureAlpha: TAlphaChannelType;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -131,10 +126,8 @@
       If all URLs failed, will return @nil.
 
       Although the loaded image is not saved here, we do save the AlphaChannel
-      type. Our overridden AlphaChannel will reflect last loaded image. }
+      type. Our AlphaChannel method will reflect last loaded image. }
     function LoadImage: TDDSImage;
-
-    function AlphaChannel: TAlphaChannelType; override;
   end;
 
 {$endif read_interface}
@@ -219,12 +212,12 @@ function TComposedCubeMapTextureNode.LoadSides: boolean;
     end;
 
     { If any slice has full-range alpha, then assume whole texture does. }
-    if SideTex.AlphaChannel > FTextureAlpha then
-     FTextureAlpha := SideTex.AlphaChannel;
+    if SideTex.AlphaChannel > AlphaChannelData then
+     AlphaChannelData := SideTex.AlphaChannel;
   end;
 
 begin
-  FTextureAlpha := atNone;
+  AlphaChannelData := atNone;
   Result :=
     SideLoaded(FdBack) and
     SideLoaded(FdBottom) and
@@ -232,11 +225,6 @@ begin
     SideLoaded(FdLeft) and
     SideLoaded(FdRight) and
     SideLoaded(FdTop);
-end;
-
-function TComposedCubeMapTextureNode.AlphaChannel: TAlphaChannelType;
-begin
-  Result := FTextureAlpha;
 end;
 
 constructor TGeneratedTextureHandler.Create;
@@ -380,7 +368,7 @@ begin
         end;
       end;
 
-      FTextureAlpha := Result.Images[0].AlphaChannelType;
+      AlphaChannelData := Result.Images[0].AlphaChannelType;
 
       if Result.DDSType <> dtCubeMap then
       begin
@@ -402,11 +390,6 @@ begin
     { If we got here, then no URL was good. So set Result to @nil. }
     FreeAndNil(Result);
   except FreeAndNil(Result); raise end;
-end;
-
-function TImageCubeMapTextureNode.AlphaChannel: TAlphaChannelType;
-begin
-  Result := FTextureAlpha;
 end;
 
 procedure RegisterCubeMapTexturingNodes;

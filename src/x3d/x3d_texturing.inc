@@ -21,6 +21,11 @@
   end;
 
   TAbstractTextureNode = class(TAbstractAppearanceChildNode)
+  protected
+    { Alpha channel detected from image contents (ignoring FdAlphaChannel field).
+      Valid only if image data is loaded (e.g. TAbstractTexture2DNode.IsTextureLoaded
+      in case of TAbstractTexture2DNode descendant). }
+    AlphaChannelData: TAlphaChannelType;
   public
     procedure CreateNode; override;
 
@@ -39,9 +44,13 @@
     private FFdEffects: TMFNode;
     public property FdEffects: TMFNode read FFdEffects;
 
-    { Alpha channel of the loaded texture data. Relevant only if texture data
-      is loaded. }
-    function AlphaChannel: TAlphaChannelType; virtual;
+    { Alpha channel of the loaded texture data.
+      Looks at loaded texture data, and at alphaChannel field
+      (see http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_alpha_channel_detection ) }
+    function AlphaChannel: TAlphaChannelType;
+
+    private FFdAlphaChannel: TSFString;
+    public property FdAlphaChannel: TSFString read FFdAlphaChannel;
   end;
 
   TTexturePropertiesNode = class;
@@ -53,7 +62,7 @@
   TAbstractTexture2DNode = class(TAbstractTextureNode)
   private
     { Together we call FTextureImage, FTextureDDS,
-      FTextureVideo, FTextureAlpha as "texture data". }
+      FTextureVideo, AlphaChannelData as "texture data". }
 
     { FTextureImage is <> nil if texture is currently loaded (IsTextureLoaded)
       and it was loaded to an image (not video).
@@ -69,10 +78,6 @@
     { Analogous to FTextureImage, this is the loaded video file.
       Assigned here, should always have TVideo.Loaded = @true. }
     FTextureVideo: TVideo;
-
-    { Valid only if IsTextureLoaded. Describes alpha channel detected from
-      image contents (ingoring FdAlphaChannel field). }
-    FTextureAlpha: TAlphaChannelType;
 
     { Non-nil only if FTextureImage, FTextureDDS or FTextueVideo
       should be freed using
@@ -94,7 +99,7 @@
       sure @nil). If FTextureImage is set, you can also set FTextureDDS.
       If you leave them as @nil, this means that loading failed
       (and OnWarning didn't cause an exception).
-      You should also set FTextureAlpha.
+      You should also set AlphaChannelData.
 
       You do not care in this method about things like
       IsImageLoaded --- this method should just always,
@@ -199,11 +204,6 @@
     { Returns TextureProperties node, if this node has some "textureProperties"
       field and it specifies TextureProperties node. Otherwise returns @nil. }
     function TextureProperties: TTexturePropertiesNode; virtual;
-
-    private FFdAlphaChannel: TSFString;
-    public property FdAlphaChannel: TSFString read FFdAlphaChannel;
-
-    function AlphaChannel: TAlphaChannelType; override;
   end;
 
   TAbstractX3DTexture2DNode = class(TAbstractTexture2DNode)
@@ -511,6 +511,11 @@ begin
    FdEffects.ChangesAlways := [chEverything];
   Fields.Add(FFdEffects);
 
+  FFdAlphaChannel := TSFString.Create(Self, 'alphaChannel', 'AUTO');
+   FdAlphaChannel.Exposed := false;
+   FdAlphaChannel.ChangesAlways := [chVisibleVRML1State];
+  Fields.Add(FFdAlphaChannel);
+
   DefaultContainerField := 'texture';
 end;
 
@@ -520,8 +525,39 @@ begin
 end;
 
 function TAbstractTextureNode.AlphaChannel: TAlphaChannelType;
+type
+  TDetectAlphaChannel = (daAuto, daSimpleYesNo, daFullRange);
+
+  function DetectAlphaChannelFromString(S: string): TDetectAlphaChannel;
+  begin
+    S := UpperCase(S);
+    if S = 'AUTO' then
+      Result := daAuto else
+    if S = 'SIMPLE_YES_NO' then
+      Result := daSimpleYesNo else
+    if S = 'FULL_RANGE' then
+      Result := daFullRange else
+    begin
+      OnWarning(wtMajor, 'VRML/X3D', Format('Invalid "alphaChannel" field value "%s"', [S]));
+      Result := daAuto;
+    end;
+  end;
+
+var
+  DetectAlphaChannel: TDetectAlphaChannel;
 begin
-  Result := atNone;
+  DetectAlphaChannel := DetectAlphaChannelFromString(FdAlphaChannel.Value);
+  if DetectAlphaChannel = daAuto then
+    Result := AlphaChannelData else
+  begin
+    if AlphaChannelData <> atNone then
+    begin
+      if DetectAlphaChannel = daFullRange then
+        Result := atFullRange else
+        Result := atSimpleYesNo;
+    end else
+      Result := atNone;
+  end;
 end;
 
 { TAbstractTexture2DNode ----------------------------------------------------------- }
@@ -529,11 +565,6 @@ end;
 procedure TAbstractTexture2DNode.CreateNode;
 begin
   inherited;
-
-  FFdAlphaChannel := TSFString.Create(Self, 'alphaChannel', 'AUTO');
-   FdAlphaChannel.Exposed := false;
-   FdAlphaChannel.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdAlphaChannel);
 
   UsedCache := nil;
   FIsTextureLoaded := false;
@@ -651,42 +682,6 @@ begin
   Result := nil;
 end;
 
-function TAbstractTexture2DNode.AlphaChannel: TAlphaChannelType;
-type
-  TDetectAlphaChannel = (daAuto, daSimpleYesNo, daFullRange);
-
-  function DetectAlphaChannelFromString(S: string): TDetectAlphaChannel;
-  begin
-    S := UpperCase(S);
-    if S = 'AUTO' then
-      Result := daAuto else
-    if S = 'SIMPLE_YES_NO' then
-      Result := daSimpleYesNo else
-    if S = 'FULL_RANGE' then
-      Result := daFullRange else
-    begin
-      OnWarning(wtMajor, 'VRML/X3D', Format('Invalid "alphaChannel" field value "%s"', [S]));
-      Result := daAuto;
-    end;
-  end;
-
-var
-  DetectAlphaChannel: TDetectAlphaChannel;
-begin
-  DetectAlphaChannel := DetectAlphaChannelFromString(FdAlphaChannel.Value);
-  if DetectAlphaChannel = daAuto then
-    Result := FTextureAlpha else
-  begin
-    if FTextureAlpha <> atNone then
-    begin
-      if DetectAlphaChannel = daFullRange then
-        Result := atFullRange else
-        Result := atSimpleYesNo;
-    end else
-      Result := atNone;
-  end;
-end;
-
 { TAbstractX3DTexture2DNode ------------------------------------------------------ }
 
 procedure TAbstractX3DTexture2DNode.CreateNode;
@@ -801,7 +796,7 @@ procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: boolean);
           [TRGBImage, TRGBAlphaImage, TGrayscaleImage, TGrayscaleAlphaImage], []);
         WasCacheUsed := false;
         FTextureUsedFullUrl := Data.URIPrefix;
-        FTextureAlpha := FTextureImage.AlphaChannelType;
+        AlphaChannelData := FTextureImage.AlphaChannelType;
         Result := true;
       except
         on E: Exception do
@@ -837,7 +832,7 @@ begin
       FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
       try
         FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureDDS,
-          FTextureAlpha);
+          AlphaChannelData);
         WasCacheUsed := true;
         FTextureUsedFullUrl := FullUrl;
         Break;
@@ -958,7 +953,7 @@ begin
   begin
     FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
     try
-      FTextureVideo := X3DCache.Video_IncReference(FullUrl, FTextureAlpha);
+      FTextureVideo := X3DCache.Video_IncReference(FullUrl, AlphaChannelData);
 
       { if loading succeded, set WasCacheUsed and others and break. }
       WasCacheUsed := true;
