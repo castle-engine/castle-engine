@@ -262,8 +262,8 @@ type
       if each following render of the scene takes place at totally different
       translation). Also, when rendering something more than just
       one TCastleScene scene (maybe many times the same TCastleScene instance,
-      maybe many different TCastleScene instances, maybe something totally
-      independent from VRML scenes) you should try to sort rendering order
+      maybe many different TCastleScene instances, maybe some other
+      3D objects) you should try to sort rendering order
       from the most to the least possible occluder (otherwise occlusion
       query will not be as efficient at culling).
 
@@ -442,8 +442,8 @@ type
     { Cache used by this scene. Always initialized to non-nil by constructor. }
     Cache: TGLRendererContextCache;
 
-    { used by RenderScene, to avoid calling ShapesSplitBlending two times. }
-    OpaqueShapes, TransparentShapes: TShapeList;
+    { used by RenderScene }
+    FilteredShapes: TShapeList;
 
     { Render everything.
 
@@ -992,53 +992,35 @@ end;
 
 { ShapesSplitBlending ---------------------------------------------------- }
 
-{ Create two TShapeList lists simultaneously, one with opaque shapes
-  (UseBlending = @false), the other with transparent shapes
-  (UseBlending = @true).
-
-  It's exactly like you would create a list TShapeList by traversing
-  the Tree (by @code(TShapeList.Create(Tree: TShapeTree;
-  const OnlyActive, OnlyVisible, OnlyCollidable: boolean))),
-  and then filter it to two lists: one only with UseBlending = @false,
-  the other with the rest.
-
-  Except this procedure does this faster.
-  Also, this makes some rendering code simpler. Having shapes separated
-  into lists, I can sort them easily (sorting is used for BlendingSort,
-  and UseOcclusionQuery). }
-
-procedure ShapesSplitBlending(
+{ Fill a TShapeList with only opaque (UseBlending = @false) or
+  only transparent shapes (UseBlending = @true). }
+procedure ShapesFilterBlending(
   Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
   TestShapeVisibility: TTestShapeVisibility;
-  const OpaqueShapes, TransparentShapes: TShapeList);
-var
-  Shapes: array [boolean] of TShapeList;
+  const FilteredShapes: TShapeList; const UseBlending: boolean);
 
   procedure AddToList(Shape: TShape);
   begin
-    Shapes[TGLShape(Shape).UseBlending].Add(Shape);
+    if TGLShape(Shape).UseBlending = UseBlending then
+      FilteredShapes.Add(Shape);
   end;
 
   procedure AddToListIfTested(Shape: TShape);
   begin
-    if TestShapeVisibility(TGLShape(Shape)) then
-      Shapes[TGLShape(Shape).UseBlending].Add(Shape);
+    if (TGLShape(Shape).UseBlending = UseBlending) and
+       TestShapeVisibility(TGLShape(Shape)) then
+      FilteredShapes.Add(Shape);
   end;
 
 var
   Capacity: Integer;
 begin
-  OpaqueShapes     .Clear;
-  TransparentShapes.Clear;
-
-  Shapes[false] := OpaqueShapes;
-  Shapes[true ] := TransparentShapes;
+  FilteredShapes.Clear;
 
   { Set Capacity to max value at the beginning, to speed adding items later. }
   Capacity := Tree.ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable);
-  OpaqueShapes     .Capacity := Capacity;
-  TransparentShapes.Capacity := Capacity;
+  FilteredShapes.Capacity := Capacity;
 
   if Assigned(TestShapeVisibility) then
     Tree.Traverse(@AddToListIfTested, OnlyActive, OnlyVisible, OnlyCollidable) else
@@ -1115,8 +1097,7 @@ begin
 
   FReceiveShadowVolumes := true;
 
-  OpaqueShapes      := TShapeList.Create;
-  TransparentShapes := TShapeList.Create;
+  FilteredShapes := TShapeList.Create;
 end;
 
 constructor TCastleScene.CreateCustomCache(
@@ -1139,8 +1120,7 @@ end;
 
 destructor TCastleScene.Destroy;
 begin
-  FreeAndNil(OpaqueShapes);
-  FreeAndNil(TransparentShapes);
+  FreeAndNil(FilteredShapes);
 
   GLContextClose;
 
@@ -1991,14 +1971,13 @@ begin
         begin
           if not Params.Transparent then
           begin
-            { draw fully opaque objects.
-              Also prepare OpaqueShapes, TransparentShapes lists. }
+            { draw fully opaque objects }
 
             glDepthMask(GL_TRUE);
             glDisable(GL_BLEND);
 
-            ShapesSplitBlending(Shapes, true, true, false,
-              TestShapeVisibility, OpaqueShapes, TransparentShapes);
+            ShapesFilterBlending(Shapes, true, true, false,
+              TestShapeVisibility, FilteredShapes, false);
 
             { ShapesSplitBlending already filtered shapes through
               TestShapeVisibility callback, so later we can render them
@@ -2007,33 +1986,37 @@ begin
               much less shapes to consider. }
 
             if CameraViewKnown and Attributes.ReallyUseOcclusionQuery then
-              OpaqueShapes.SortFrontToBack(CameraPosition);
+              FilteredShapes.SortFrontToBack(CameraPosition);
 
-            for I := 0 to OpaqueShapes.Count - 1 do
-              RenderShape_SomeTests(TGLShape(OpaqueShapes[I]));
+            for I := 0 to FilteredShapes.Count - 1 do
+              RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
           end else
           { this means Params.Transparent = true }
-          if (TransparentShapes.Count <> 0) then
           begin
-            { draw partially transparent objects.
-              Also destroy OpaqueShapes, TransparentShapes lists. }
+            { draw partially transparent objects }
 
-            glDepthMask(GL_FALSE);
-            glEnable(GL_BLEND);
+            ShapesFilterBlending(Shapes, true, true, false,
+              TestShapeVisibility, FilteredShapes, true);
 
-            { Set glBlendFunc using Attributes.BlendingXxxFactor }
-            BlendingSourceFactorSet := Attributes.BlendingSourceFactor;
-            BlendingDestinationFactorSet := Attributes.BlendingDestinationFactor;
-            glBlendFunc(BlendingSourceFactorSet, BlendingDestinationFactorSet);
-
-            if CameraViewKnown and Attributes.BlendingSort then
-              TransparentShapes.SortBackToFront(CameraPosition);
-
-            for I := 0 to TransparentShapes.Count - 1 do
+            if FilteredShapes.Count <> 0 then
             begin
-              AdjustBlendFunc(TGLShape(TransparentShapes[I]),
-                BlendingSourceFactorSet, BlendingDestinationFactorSet);
-              RenderShape_SomeTests(TGLShape(TransparentShapes[I]));
+              glDepthMask(GL_FALSE);
+              glEnable(GL_BLEND);
+
+              { Set glBlendFunc using Attributes.BlendingXxxFactor }
+              BlendingSourceFactorSet := Attributes.BlendingSourceFactor;
+              BlendingDestinationFactorSet := Attributes.BlendingDestinationFactor;
+              glBlendFunc(BlendingSourceFactorSet, BlendingDestinationFactorSet);
+
+              if CameraViewKnown and Attributes.BlendingSort then
+                FilteredShapes.SortBackToFront(CameraPosition);
+
+              for I := 0 to FilteredShapes.Count - 1 do
+              begin
+                AdjustBlendFunc(TGLShape(FilteredShapes[I]),
+                  BlendingSourceFactorSet, BlendingDestinationFactorSet);
+                RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
+              end;
             end;
           end;
         end else
