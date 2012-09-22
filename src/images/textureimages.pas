@@ -81,7 +81,7 @@ type
     FileName: string;
     Image: TEncodedImage;
     DDS: TDDSImage;
-    Alpha: TAlphaChannelType;
+    AlphaChannel: TAlphaChannelType;
   end;
   TCachedTextureList = specialize TFPGObjectList<TCachedTexture>;
 
@@ -138,8 +138,8 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function TextureImage_IncReference(const FileName: string; out DDS: TDDSImage; out Alpha: TAlphaChannelType): TEncodedImage;
-    function TextureImage_IncReference(const FileName: string; out Alpha: TAlphaChannelType): TEncodedImage;
+    function TextureImage_IncReference(const FileName: string; out DDS: TDDSImage; out AlphaChannel: TAlphaChannelType): TEncodedImage;
+    function TextureImage_IncReference(const FileName: string; out AlphaChannel: TAlphaChannelType): TEncodedImage;
 
     procedure TextureImage_DecReference(var Image: TEncodedImage; var DDS: TDDSImage);
     procedure TextureImage_DecReference(var Image: TEncodedImage);
@@ -202,7 +202,7 @@ begin
 end;
 
 function TTexturesVideosCache.TextureImage_IncReference(
-  const FileName: string; out DDS: TDDSImage; out Alpha: TAlphaChannelType): TEncodedImage;
+  const FileName: string; out DDS: TDDSImage; out AlphaChannel: TAlphaChannelType): TEncodedImage;
 var
   I: Integer;
   C: TCachedTexture;
@@ -219,7 +219,7 @@ begin
       {$endif}
 
       DDS := C.DDS;
-      Alpha := C.Alpha;
+      AlphaChannel := C.AlphaChannel;
       Exit(C.Image);
     end;
   end;
@@ -237,15 +237,15 @@ begin
   C.FileName := FileName;
   C.Image := Result;
   C.DDS := DDS;
-  C.Alpha := Result.AlphaChannelType;
-  Alpha := C.Alpha;
+  C.AlphaChannel := Result.AlphaChannelType;
+  AlphaChannel := C.AlphaChannel;
 
   {$ifdef DEBUG_CACHE}
   Writeln('++ : texture image ', FileName, ' : ', 1);
   {$endif}
-  if Log and (Alpha <> atNone) then
+  if Log and (AlphaChannel <> atNone) then
     WritelnLog('Alpha Detection', 'Texture image ' + FileName +
-      ' detected as simple yes/no alpha channel: ' + BoolToStr[Alpha = atSimpleYesNo]);
+      ' detected as simple yes/no alpha channel: ' + BoolToStr[AlphaChannel = atSimpleYesNo]);
 end;
 
 procedure TTexturesVideosCache.TextureImage_DecReference(
@@ -305,11 +305,11 @@ begin
 end;
 
 function TTexturesVideosCache.TextureImage_IncReference(
-  const FileName: string; out Alpha: TAlphaChannelType): TEncodedImage;
+  const FileName: string; out AlphaChannel: TAlphaChannelType): TEncodedImage;
 var
   Dummy: TDDSImage;
 begin
-  Result := TextureImage_IncReference(FileName, Dummy, Alpha);
+  Result := TextureImage_IncReference(FileName, Dummy, AlphaChannel);
 end;
 
 procedure TTexturesVideosCache.TextureImage_DecReference(
