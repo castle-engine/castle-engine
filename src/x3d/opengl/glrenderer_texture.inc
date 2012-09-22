@@ -785,28 +785,12 @@ begin
 end;
 
 procedure TGLMultiTextureNode.PrepareCore(State: TX3DGraphTraverseState);
-
-  procedure MaxTo1st(var A: TAlphaChannelType; const B: TAlphaChannelType);
-  begin
-    if B > A then A := B;
-  end;
-
 var
   ChildTex: TX3DNode;
   ChildPrepared: TGLTextureNode;
   I: Integer;
 begin
-  { Prepare all children.
-
-    Also, calculate our AlphaChannelType:
-    - if any texture has atFullRange, then we're atFullRange,
-    - otherwise, if any texture has atSimpleYesNo, then we're atSimpleYesNo,
-    - otherwise, we're atNone
-
-    Thanks to how order of TAlphaChannelType is defined,
-    this is equivalent to simple "our AlphaChannelType is maximum
-    AlphaChannelType of our children".
-  }
+  { Prepare all children. }
 
   AlphaChannelType := atNone; { default value, but set for paranoia anyway }
 
@@ -826,7 +810,7 @@ begin
         PreparedTextureChildren.Add(ChildTex);
         ChildPrepared := Renderer.GLTextureNodes.Prepare(State, TAbstractTextureNode(ChildTex), Renderer);
         if ChildPrepared <> nil then
-          MaxTo1st(AlphaChannelType, ChildPrepared.AlphaChannelType);
+          AlphaMaxTo1st(AlphaChannelType, ChildPrepared.AlphaChannelType);
       end;
     end;
   end;

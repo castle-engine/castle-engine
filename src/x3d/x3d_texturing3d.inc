@@ -265,8 +265,7 @@ procedure TComposedTexture3DNode.LoadTextureData;
     Result := TCastleImage(Tex.TextureImage);
 
     { If any slice has full-range alpha, then assume whole texture does. }
-    if Tex.AlphaChannel > AlphaChannelData then
-      AlphaChannelData := Tex.AlphaChannel;
+    AlphaMaxTo1st(AlphaChannelData, Tex.AlphaChannel);
   end;
 
 var

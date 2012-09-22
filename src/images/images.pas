@@ -1632,6 +1632,11 @@ var
   SaveImage_FileFilters: TFileFilterList;
   { @groupEnd }
 
+{ Maximum alpha channel type. Chooses "full range" if anything is "full range",
+  otherwise choose "simple yes/no" if anything is "simple yes/no",
+  otherwise returns "no alpha channel". }
+procedure AlphaMaxTo1st(var A: TAlphaChannelType; const B: TAlphaChannelType);
+
 {$undef read_interface}
 
 implementation
@@ -3674,6 +3679,11 @@ begin
     if Assigned(ImageFormatInfos[Format].Save) then
       AddImageFormat(SaveImage_FileFilters, ImageFormatInfos[Format]);
   end;
+end;
+
+procedure AlphaMaxTo1st(var A: TAlphaChannelType; const B: TAlphaChannelType);
+begin
+  if B > A then A := B;
 end;
 
 initialization
