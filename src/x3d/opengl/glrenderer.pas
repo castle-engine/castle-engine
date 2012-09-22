@@ -596,13 +596,6 @@ type
     Wrap: TTextureWrap2D;
     References: Cardinal;
     GLName: TGLuint;
-
-    { The saved result of TCastleImage.AlphaChannelType.
-
-      Detecting AlphaChannelType is a little time-consuming
-      (iteration over all pixels is needed),
-      so it's done only once and kept in the cache, just like GLName. }
-    AlphaChannelType: TAlphaChannelType;
   end;
   TTextureImageCacheList = specialize TFPGObjectList<TTextureImageCache>;
 
@@ -625,13 +618,6 @@ type
     Wrap: TTextureWrap2D;
     References: Cardinal;
     GLVideo: TGLVideo;
-
-    { The saved result of TVideo.AlphaChannelType.
-
-      Detecting AlphaChannelType is a little time-consuming
-      (iteration over all pixels is needed),
-      so it's done only once and kept in the cache. }
-    AlphaChannelType: TAlphaChannelType;
   end;
   TTextureVideoCacheList = specialize TFPGObjectList<TTextureVideoCache>;
 
@@ -642,13 +628,6 @@ type
     Anisotropy: TGLfloat;
     References: Cardinal;
     GLName: TGLuint;
-
-    { The saved result of TCastleImage.AlphaChannelType.
-
-      Detecting AlphaChannelType is a little time-consuming
-      (iteration over all pixels is needed),
-      so it's done only once and kept in the cache, just like GLName. }
-    AlphaChannelType: TAlphaChannelType;
   end;
   TTextureCubeMapCacheList = specialize TFPGObjectList<TTextureCubeMapCache>;
 
@@ -660,13 +639,6 @@ type
     Wrap: TTextureWrap3D;
     References: Cardinal;
     GLName: TGLuint;
-
-    { The saved result of TCastleImage.AlphaChannelType.
-
-      Detecting AlphaChannelType is a little time-consuming
-      (iteration over all pixels is needed),
-      so it's done only once and kept in the cache, just like GLName. }
-    AlphaChannelType: TAlphaChannelType;
   end;
   TTexture3DCacheList = specialize TFPGObjectList<TTexture3DCache>;
 
@@ -780,8 +752,7 @@ type
       const TextureMinFilter, TextureMagFilter: TGLint;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
-      const DDSForMipmaps: TDDSImage;
-      out AlphaChannelType: TAlphaChannelType): TGLuint;
+      const DDSForMipmaps: TDDSImage): TGLuint;
 
     procedure TextureImage_DecReference(
       const TextureGLName: TGLuint);
@@ -792,8 +763,7 @@ type
       const TextureNode: TMovieTextureNode;
       const TextureMinFilter, TextureMagFilter: TGLint;
       const TextureAnisotropy: TGLfloat;
-      const TextureWrap: TTextureWrap2D;
-      out AlphaChannelType: TAlphaChannelType): TGLVideo;
+      const TextureWrap: TTextureWrap2D): TGLVideo;
 
     procedure TextureVideo_DecReference(
       const TextureVideo: TGLVideo);
@@ -809,8 +779,7 @@ type
       PositiveX, NegativeX,
       PositiveY, NegativeY,
       PositiveZ, NegativeZ: TEncodedImage;
-      DDSForMipmaps: TDDSImage;
-      out AlphaChannelType: TAlphaChannelType): TGLuint;
+      DDSForMipmaps: TDDSImage): TGLuint;
 
     procedure TextureCubeMap_DecReference(
       const TextureGLName: TGLuint);
@@ -851,8 +820,7 @@ type
       const MinFilter, MagFilter: TGLint;
       const Anisotropy: TGLfloat;
       const TextureWrap: TTextureWrap3D;
-      Image: TEncodedImage; DDS: TDDSImage;
-      out AlphaChannelType: TAlphaChannelType): TGLuint;
+      Image: TEncodedImage; DDS: TDDSImage): TGLuint;
 
     procedure Texture3D_DecReference(
       const TextureGLName: TGLuint);
@@ -1170,31 +1138,6 @@ type
 
     procedure RenderShape(Shape: TX3DRendererShape; Fog: IAbstractFogObject);
 
-    { Get calculated TCastleImage.AlphaChannelType for a prepared texture.
-
-      Returns @false if texture is not prepared. If you want to make
-      sure the texture is prepared make sure that
-      @unorderedList(
-        @item(State with this texture was passed to @link(Prepare) method.
-          That is, @link(Prepare) was called with this texture
-          as State.Texture.
-
-          If the State.Texture was multi-texture,
-          then also all it's items (on the list of
-          State.Texture.FdTexture) are prepared.
-          The main multi-texture node is also considered prepared then,
-          it's AlphaChannelType was calculated looking at AlphaChannelType
-          of children.
-        )
-
-        @item(and node must have some texture data
-          (for TAbstractTexture2DNode, check TextureNode.IsTextureImage or
-          TextureNode.IsTextureVideo))
-      ) }
-    function PreparedTextureAlphaChannelType(
-      TextureNode: TAbstractTextureNode;
-      out AlphaChannelType: TAlphaChannelType): boolean;
-
     { Update generated texture for this shape.
 
       NeedsRestoreViewport will be set to @true if viewport was
@@ -1382,11 +1325,6 @@ begin
     WritelnLog('--', 'Font: %d', [Fonts[fsfam, fsbold, fsitalic].References]);
 end;
 
-const
-  { Parameters for AlphaChannelType to detect textures alpha channel }
-  AlphaTolerance = 5;
-  AlphaWrongPixelsTolerance = 0.01;
-
 function TGLRendererContextCache.TextureImage_IncReference(
   const TextureImage: TEncodedImage;
   const TextureFullUrl: string;
@@ -1394,8 +1332,7 @@ function TGLRendererContextCache.TextureImage_IncReference(
   const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
-  const DDSForMipmaps: TDDSImage;
-  out AlphaChannelType: TAlphaChannelType): TGLuint;
+  const DDSForMipmaps: TDDSImage): TGLuint;
 var
   I: Integer;
   TextureCached: TTextureImageCache;
@@ -1436,7 +1373,6 @@ begin
       Inc(TextureCached.References);
       if LogRendererCache and Log then
         WritelnLog('++', '%s: %d', [TextureFullUrl, TextureCached.References]);
-      AlphaChannelType := TextureCached.AlphaChannelType;
       Exit(TextureCached.GLName);
     end;
   end;
@@ -1461,23 +1397,6 @@ begin
   TextureCached.Wrap := TextureWrap;
   TextureCached.References := 1;
   TextureCached.GLName := Result;
-
-  { calculate and save AlphaChannelType in the cache }
-  if TextureNode is TAbstractTexture2DNode then
-  begin
-    TextureCached.AlphaChannelType := TextureImage.AlphaChannelTypeOverride(
-      TAbstractTexture2DNode(TextureNode).DetectAlphaChannel,
-      AlphaTolerance, AlphaWrongPixelsTolerance);
-    if Log and (TextureCached.AlphaChannelType <> atNone)  then
-      WritelnLog('Alpha Detection', 'Alpha texture ' + TextureFullUrl +
-        ' detected as simple yes/no alpha channel: ' +
-        BoolToStr[TextureCached.AlphaChannelType = atSimpleYesNo]);
-  end else
-  begin
-    TextureCached.AlphaChannelType := atNone; { TODO }
-  end;
-
-  AlphaChannelType := TextureCached.AlphaChannelType;
 
   if LogRendererCache and Log then
     WritelnLog('++', '%s: %d', [TextureFullUrl, 1]);
@@ -1514,8 +1433,7 @@ function TGLRendererContextCache.TextureVideo_IncReference(
   const TextureNode: TMovieTextureNode;
   const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureAnisotropy: TGLfloat;
-  const TextureWrap: TTextureWrap2D;
-  out AlphaChannelType: TAlphaChannelType): TGLVideo;
+  const TextureWrap: TTextureWrap2D): TGLVideo;
 var
   I: Integer;
   TextureCached: TTextureVideoCache;
@@ -1535,7 +1453,6 @@ begin
       Inc(TextureCached.References);
       if LogRendererCache and Log then
         WritelnLog('++', '%s: %d', [TextureFullUrl, TextureCached.References]);
-      AlphaChannelType := TextureCached.AlphaChannelType;
       Exit(TextureCached.GLVideo);
     end;
   end;
@@ -1558,17 +1475,6 @@ begin
   TextureCached.Wrap := TextureWrap;
   TextureCached.References := 1;
   TextureCached.GLVideo := Result;
-
-  { calculate and save AlphaChannelType in the cache }
-  TextureCached.AlphaChannelType := TextureVideo.AlphaChannelTypeOverride(
-    TextureNode.DetectAlphaChannel,
-    AlphaTolerance, AlphaWrongPixelsTolerance);
-  if Log and (TextureCached.AlphaChannelType <> atNone)  then
-    WritelnLog('Alpha Detection', 'Alpha texture ' + TextureFullUrl +
-      ' detected as simple yes/no alpha channel: ' +
-      BoolToStr[TextureCached.AlphaChannelType = atSimpleYesNo]);
-
-  AlphaChannelType := TextureCached.AlphaChannelType;
 
   if LogRendererCache and Log then
     WritelnLog('++', '%s: %d', [TextureFullUrl, 1]);
@@ -1606,8 +1512,7 @@ function TGLRendererContextCache.TextureCubeMap_IncReference(
   PositiveX, NegativeX,
   PositiveY, NegativeY,
   PositiveZ, NegativeZ: TEncodedImage;
-  DDSForMipmaps: TDDSImage;
-  out AlphaChannelType: TAlphaChannelType): TGLuint;
+  DDSForMipmaps: TDDSImage): TGLuint;
 var
   I: Integer;
   TextureCached: TTextureCubeMapCache;
@@ -1624,7 +1529,6 @@ begin
       Inc(TextureCached.References);
       if LogRendererCache and Log then
         WritelnLog('++', 'cube map %s: %d', [PointerToStr(Node), TextureCached.References]);
-      AlphaChannelType := TextureCached.AlphaChannelType;
       Exit(TextureCached.GLName);
     end;
   end;
@@ -1655,18 +1559,6 @@ begin
   TextureCached.Anisotropy := Anisotropy;
   TextureCached.References := 1;
   TextureCached.GLName := Result;
-
-  { calculate and save AlphaChannelType in the cache.
-    Use PositiveX image --- it doesn't matter, they all should have
-    the same AlphaChannelType. }
-  TextureCached.AlphaChannelType := PositiveX.AlphaChannelType(
-    AlphaTolerance, AlphaWrongPixelsTolerance);
-  if Log and (TextureCached.AlphaChannelType <> atNone)  then
-    WritelnLog('Alpha Detection', 'Alpha cube map texture ' + PointerToStr(Node) +
-      ' detected as simple yes/no alpha channel: ' +
-      BoolToStr[TextureCached.AlphaChannelType = atSimpleYesNo]);
-
-  AlphaChannelType := TextureCached.AlphaChannelType;
 
   if LogRendererCache and Log then
     WritelnLog('++', 'cube map %s: %d', [PointerToStr(Node), 1]);
@@ -1701,8 +1593,7 @@ function TGLRendererContextCache.Texture3D_IncReference(
   const MinFilter, MagFilter: TGLint;
   const Anisotropy: TGLfloat;
   const TextureWrap: TTextureWrap3D;
-  Image: TEncodedImage; DDS: TDDSImage;
-  out AlphaChannelType: TAlphaChannelType): TGLuint;
+  Image: TEncodedImage; DDS: TDDSImage): TGLuint;
 var
   I: Integer;
   TextureCached: TTexture3DCache;
@@ -1720,7 +1611,6 @@ begin
       Inc(TextureCached.References);
       if LogRendererCache and Log then
         WritelnLog('++', '3d texture %s: %d', [PointerToStr(Node), TextureCached.References]);
-      AlphaChannelType := TextureCached.AlphaChannelType;
       Exit(TextureCached.GLName);
     end;
   end;
@@ -1745,16 +1635,6 @@ begin
   TextureCached.Wrap := TextureWrap;
   TextureCached.References := 1;
   TextureCached.GLName := Result;
-
-  { calculate and save AlphaChannelType in the cache }
-  TextureCached.AlphaChannelType := Image.AlphaChannelType(
-    AlphaTolerance, AlphaWrongPixelsTolerance);
-  if Log and (TextureCached.AlphaChannelType <> atNone)  then
-    WritelnLog('Alpha Detection', 'Alpha 3D texture ' + PointerToStr(Node) +
-      ' detected as simple yes/no alpha channel: ' +
-      BoolToStr[TextureCached.AlphaChannelType = atSimpleYesNo]);
-
-  AlphaChannelType := TextureCached.AlphaChannelType;
 
   if LogRendererCache and Log then
     WritelnLog('++', '3d texture %s: %d', [PointerToStr(Node), 1]);
@@ -2686,19 +2566,6 @@ begin
     (TGLSLProgram.ClassSupport <> gsNone) then
     Result := Attributes.BumpMapping else
     Result := bmNone;
-end;
-
-function TGLRenderer.PreparedTextureAlphaChannelType(
-  TextureNode: TAbstractTextureNode;
-  out AlphaChannelType: TAlphaChannelType): boolean;
-var
-  Index: Integer;
-begin
-  Index := GLTextureNodes.TextureNodeIndex(TextureNode);
-  Result := Index <> -1;
-
-  if Result then
-    AlphaChannelType := GLTextureNodes[Index].AlphaChannelType;
 end;
 
 { Render ---------------------------------------------------------------------- }

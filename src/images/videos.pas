@@ -253,22 +253,11 @@ type
 
     { Alpha channel type of loaded video.
       See TCastleImage.AlphaChannelType for precise meaning of this.
-
       Currently based on the first video image, so it's fast although
       in some cases possibly inaccurate. }
     function AlphaChannelType(
-      const AlphaTolerance: Byte;
-      const WrongPixelsTolerance: Single): TAlphaChannelType;
-
-    { Alpha channel type of loaded video, possibly overridden by
-      DetectAlphaChannel.
-
-      See AlphaChannelType, TCastleImage.AlphaChannelType,
-      TCastleImage.AlphaChannelTypeOverride. }
-    function AlphaChannelTypeOverride(
-      const DetectAlphaChannel: TDetectAlphaChannel;
-      const AlphaTolerance: Byte;
-      const WrongPixelsTolerance: Single): TAlphaChannelType;
+      const AlphaTolerance: Byte = DefaultAlphaTolerance;
+      const WrongPixelsTolerance: Single = DefaultAlphaWrongPixelsTolerance): TAlphaChannelType;
   end;
 
 { Does filename extension Ext looks like a video file extension
@@ -689,16 +678,6 @@ function TVideo.AlphaChannelType(
 begin
   Assert(Loaded);
   Result := Items[0].AlphaChannelType(AlphaTolerance, WrongPixelsTolerance);
-end;
-
-function TVideo.AlphaChannelTypeOverride(
-  const DetectAlphaChannel: TDetectAlphaChannel;
-  const AlphaTolerance: Byte;
-  const WrongPixelsTolerance: Single): TAlphaChannelType;
-begin
-  Assert(Loaded);
-  Result := Items[0].AlphaChannelTypeOverride(DetectAlphaChannel,
-    AlphaTolerance, WrongPixelsTolerance);
 end;
 
 { non-object routines -------------------------------------------------------- }

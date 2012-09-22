@@ -21,6 +21,8 @@
   end;
 
   TComposedCubeMapTextureNode = class(TAbstractEnvironmentTextureNode)
+  private
+    FTextureAlpha: TAlphaChannelType;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -46,6 +48,18 @@
 
     private FFdTextureProperties: TSFNode;
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
+
+    { Make sure all 6 sides are loaded.
+      Make sure that all 6 fields for each cube map side are assigned,
+      are TAbstractTexture2DNode instance (X3D spec requires it),
+      load them, and check are they TCastleImage (not just TEncodedImage;
+      loading S3TC cube map sides to OpenGL is not available).
+
+      Also calculate AlphaChannel for the whole cube map.
+      Our overridden AlphaChannel method will reflect the state from
+      last call of this. }
+    function LoadSides: boolean;
+    function AlphaChannel: TAlphaChannelType; override;
   end;
 
   { Helper for all VRML/X3D generated texture nodes. }
@@ -94,6 +108,8 @@
   end;
 
   TImageCubeMapTextureNode = class(TAbstractEnvironmentTextureNode, IAbstractUrlObject)
+  private
+    FTextureAlpha: TAlphaChannelType;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -112,8 +128,13 @@
       Also problems when url contains valid DDS image,
       but not describing cube map with all 6 sides.
 
-      If all URLs failed, will return @nil. }
+      If all URLs failed, will return @nil.
+
+      Although the loaded image is not saved here, we do save the AlphaChannel
+      type. Our overridden AlphaChannel will reflect last loaded image. }
     function LoadImage: TDDSImage;
+
+    function AlphaChannel: TAlphaChannelType; override;
   end;
 
 {$endif read_interface}
@@ -172,6 +193,50 @@ class function TComposedCubeMapTextureNode.URNMatching(const URN: string): boole
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TComposedCubeMapTextureNode.LoadSides: boolean;
+
+  { Checks is given side has non-nil valid node class,
+    and then if image there can be loaded. }
+  function SideLoaded(SideField: TSFNode): boolean;
+  var
+    SideTex: TAbstractTexture2DNode;
+  begin
+    Result :=
+      (SideField.Value <> nil) and
+      (SideField.Value is TAbstractTexture2DNode);
+    if Result then
+    begin
+      SideTex := TAbstractTexture2DNode(SideField.Value);
+      Result := SideTex.IsTextureImage;
+
+      if Result and not (SideTex.TextureImage is TCastleImage) then
+      begin
+        OnWarning(wtMinor, 'VRML/X3D', 'ComposedCubeMapTexture cannot contain S3TC images, as we have to rotate images within, and we cannot do this (fast) with compressed textures');
+        Result := false;
+      end;
+    end;
+
+    { If any slice has full-range alpha, then assume whole texture does. }
+    if SideTex.AlphaChannel > FTextureAlpha then
+     FTextureAlpha := SideTex.AlphaChannel;
+  end;
+
+begin
+  FTextureAlpha := atNone;
+  Result :=
+    SideLoaded(FdBack) and
+    SideLoaded(FdBottom) and
+    SideLoaded(FdFront) and
+    SideLoaded(FdLeft) and
+    SideLoaded(FdRight) and
+    SideLoaded(FdTop);
+end;
+
+function TComposedCubeMapTextureNode.AlphaChannel: TAlphaChannelType;
+begin
+  Result := FTextureAlpha;
 end;
 
 constructor TGeneratedTextureHandler.Create;
@@ -315,6 +380,8 @@ begin
         end;
       end;
 
+      FTextureAlpha := Result.Images[0].AlphaChannelType;
+
       if Result.DDSType <> dtCubeMap then
       begin
         Result.Close;
@@ -335,6 +402,11 @@ begin
     { If we got here, then no URL was good. So set Result to @nil. }
     FreeAndNil(Result);
   except FreeAndNil(Result); raise end;
+end;
+
+function TImageCubeMapTextureNode.AlphaChannel: TAlphaChannelType;
+begin
+  Result := FTextureAlpha;
 end;
 
 procedure RegisterCubeMapTexturingNodes;

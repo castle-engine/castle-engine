@@ -73,6 +73,12 @@ type
   { See TCastleImage.AlphaChannelType. }
   TAlphaChannelType = (atNone, atSimpleYesNo, atFullRange);
 
+const
+  { Default parameters for TEncodedImage.AlphaChannelType,
+    decide how to detect textures alpha channel. }
+  DefaultAlphaTolerance = 5;
+  DefaultAlphaWrongPixelsTolerance = 0.01;
+
 { Colors ------------------------------------------------------------ }
 
 { Check if the two RGB colors are equal, ignoring small differences.
@@ -91,10 +97,6 @@ type
   EImageLerpError = class(Exception);
   EImageLerpInvalidClasses = class(EImageLerpError);
   EImageLerpDifferentSizes = class(EImageLerpError);
-
-  { Used to potentially override AlphaChannelType detection,
-    see AlphaChannelTypeOverride. }
-  TDetectAlphaChannel = (daAuto, daSimpleYesNo, daFullRange);
 
   { Abstract class for an image with unspecified, possibly compressed,
     memory format. The idea is that both uncompressed images (TCastleImage)
@@ -179,26 +181,9 @@ type
       implement it, honouring AlphaTolerance and WrongPixelsTolerance as
       described. }
     function AlphaChannelType(
-      const AlphaTolerance: Byte = 0;
-      const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType; virtual;
-
-    { Usually calls @link(AlphaChannelType), but allows you to override
-      detection by TDetectAlphaChannel.
-
-      When DetectAlphaChannel is daAuto, this is simply equivalent to
-      normal AlphaChannelType.
-
-      For other values of DetectAlphaChannel,
-      when the image has any alpha channel,
-      then DetectAlphaChannel decides whether this is full range or simple
-      yes/no alpha channel. This means that nice algorithm of AlphaChannelType
-      will not be used. This allows you to give user control over alpha
-      channel detection,
-      like for [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_alpha_channel_detection]. }
-    function AlphaChannelTypeOverride(
-      const DetectAlphaChannel: TDetectAlphaChannel;
-      const AlphaTolerance: Byte = 0;
-      const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType;
+      const AlphaTolerance: Byte = DefaultAlphaTolerance;
+      const WrongPixelsTolerance: Single = DefaultAlphaWrongPixelsTolerance):
+      TAlphaChannelType; virtual;
   end;
 
   { An abstract class representing image as a simple array of pixels.
@@ -879,8 +864,8 @@ type
     function HasAlpha: boolean; override;
 
     function AlphaChannelType(
-      const AlphaTolerance: Byte = 0;
-      const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType; override;
+      const AlphaTolerance: Byte;
+      const WrongPixelsTolerance: Single): TAlphaChannelType; override;
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
 
@@ -978,8 +963,8 @@ type
     function HasAlpha: boolean; override;
 
     function AlphaChannelType(
-      const AlphaTolerance: Byte = 0;
-      const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType; override;
+      const AlphaTolerance: Byte;
+      const WrongPixelsTolerance: Single): TAlphaChannelType; override;
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
   end;
@@ -1770,24 +1755,6 @@ function TEncodedImage.AlphaChannelType(
   const WrongPixelsTolerance: Single): TAlphaChannelType;
 begin
   Result := atNone;
-end;
-
-function TEncodedImage.AlphaChannelTypeOverride(
-  const DetectAlphaChannel: TDetectAlphaChannel;
-  const AlphaTolerance: Byte = 0;
-  const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType;
-begin
-  if DetectAlphaChannel = daAuto then
-    Result := AlphaChannelType(AlphaTolerance, WrongPixelsTolerance) else
-  begin
-    if HasAlpha then
-    begin
-      if DetectAlphaChannel = daFullRange then
-        Result := atFullRange else
-        Result := atSimpleYesNo;
-    end else
-      Result := atNone;
-  end;
 end;
 
 { TCastleImage --------------------------------------------------------------- }

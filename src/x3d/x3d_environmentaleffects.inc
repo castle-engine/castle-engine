@@ -455,13 +455,14 @@ procedure TBackgroundNode.SetBgImagesLoaded(const Value: boolean);
   var
     I: Integer;
     URL: string;
+    IgnoreAlpha: TAlphaChannelType;
   begin
     FBgImages.Images[bs] := nil;
     for i := 0 to Urls.Count-1 do
     begin
       try
         URL := PathFromBaseUrl(Urls.Items[i]);
-        FBgImages.Images[bs] := X3DCache.TextureImage_IncReference(URL);
+        FBgImages.Images[bs] := X3DCache.TextureImage_IncReference(URL, IgnoreAlpha);
         Break;
       except
         on E: Exception do

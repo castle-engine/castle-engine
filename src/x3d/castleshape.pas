@@ -427,8 +427,8 @@ type
       write FTriangleOctreeProgressTitle;
     { @groupEnd }
   public
-    { Looking at material and color nodes, decide if the shape is opaque
-      or (partially) transparent.
+    { Looking at material and color and texture nodes,
+      decide if the shape is opaque or (partially) transparent.
 
       For VRML >= 2.0, shape is transparent if material exists and
       has transparency > 0 (epsilon). It's also transparent if it has
@@ -436,7 +436,15 @@ type
 
       For VRML <= 1.0, for now shape is transparent if all it's
       transparent values (in VRML 1.0, material node has actually many
-      material values) have transparency > 0 (epsilon). }
+      material values) have transparency > 0 (epsilon).
+
+      We also look at texture, does it have a full-range alpha channel
+      (for blending).
+
+      It looks at data of texture node, material node and so on,
+      so should be done before any calls to TCastleSceneCore.FreeResources.
+      It checks AlphaChannel of textures, so assumes that given shape
+      textures are already loaded. }
     function Transparent: boolean;
 
     procedure Traverse(Func: TShapeTraverseFunc;
@@ -876,7 +884,7 @@ var
 implementation
 
 uses ProgressUnit, CastleSceneCore, NormalsCalculator, CastleLog, CastleWarnings,
-  CastleStringUtils, ArraysGenerator;
+  CastleStringUtils, ArraysGenerator, Images;
 
 const
   UnknownTexCoord: TTriangle4Single = (
@@ -1452,6 +1460,7 @@ end;
 function TShape.Transparent: boolean;
 var
   M: TMaterialNode;
+  Tex: TAbstractTextureNode;
 begin
   if State.ShapeNode <> nil then
   begin
@@ -1478,6 +1487,14 @@ begin
     Result := State.LastNodes.Material.AllMaterialsTransparent;
 
   if Geometry.ColorRGBA <> nil then
+    Result := true;
+
+  { If texture exists with full range alpha channel then use blending.
+    Note that State.Texture may be TMultiTextureNode --- that's Ok,
+    it's also prepared by Renderer, and has AlphaChannelType = atFullRange
+    if any child has atFullRange. So it automatically works Ok too. }
+  Tex := State.Texture;
+  if (Tex <> nil) and (Tex.AlphaChannel = atFullRange) then
     Result := true;
 end;
 

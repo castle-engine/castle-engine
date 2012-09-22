@@ -18,19 +18,18 @@
   TAbstractTexture3DNode = class(TAbstractTextureNode)
   private
     UsedCache: TTexturesVideosCache;
-
     FTextureLoaded: boolean;
-    procedure SetTextureLoaded(const Value: boolean);
-  private
     FTextureImage: TEncodedImage;
     FTextureDDS: TDDSImage;
+    FTextureAlpha: TAlphaChannelType;
+    procedure SetTextureLoaded(const Value: boolean);
   protected
     { This does the actual loading of texture data.
 
       You can assume here that texture is not loaded now,
       UsedCache, FTextureImage, FTextureDDS are all nil.
       Try to load the texture data, making OnWarning as appropriate,
-      and set all UsedCache, FTextureImage, FTextureDDS. }
+      and set all UsedCache, FTextureImage, FTextureDDS, FTextureAlpha. }
     procedure LoadTextureData; virtual; abstract;
   public
     procedure CreateNode; override;
@@ -68,6 +67,7 @@
 
     property TextureImage: TEncodedImage read FTextureImage;
     property TextureDDS: TDDSImage read FTextureDDS;
+    function AlphaChannel: TAlphaChannelType; override;
   end;
 
   TComposedTexture3DNode = class(TAbstractTexture3DNode)
@@ -213,6 +213,11 @@ begin
   end;
 end;
 
+function TAbstractTexture3DNode.AlphaChannel: TAlphaChannelType;
+begin
+  Result := FTextureAlpha;
+end;
+
 procedure TComposedTexture3DNode.CreateNode;
 begin
   inherited;
@@ -254,7 +259,7 @@ procedure TComposedTexture3DNode.LoadTextureData;
     Tex := TAbstractTexture2DNode(FdTexture[Index]);
     if not Tex.IsTextureImage then
     begin
-      Exit(nil);{ Tex.IsTextureImage already did proper OnWarning }
+      Exit(nil); { Tex.IsTextureImage already did proper OnWarning }
     end;
 
     if not (Tex.TextureImage is TCastleImage) then
@@ -265,6 +270,10 @@ procedure TComposedTexture3DNode.LoadTextureData;
     end;
 
     Result := TCastleImage(Tex.TextureImage);
+
+    { If any slice has full-range alpha, then assume whole texture does. }
+    if Tex.AlphaChannel > FTextureAlpha then
+      FTextureAlpha := Tex.AlphaChannel;
   end;
 
 var
@@ -276,6 +285,8 @@ begin
     OnWarning(wtMinor, 'VRML/X3D', 'ComposedTexture3D has no textures');
     Exit;
   end;
+
+  FTextureAlpha := atNone;
 
   { First Slice is treated specially, as it determines width/height/class
     of the resulting image. }
@@ -350,7 +361,8 @@ begin
     FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
 
     try
-      FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureDDS);
+      FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureDDS,
+        FTextureAlpha);
     except
       on E: Exception do
       begin
@@ -471,6 +483,8 @@ begin
       Exit;
     end;
   end;
+
+  FTextureAlpha := FTextureImage.AlphaChannelType;
 end;
 
 procedure TTextureCoordinate3DNode.CreateNode;

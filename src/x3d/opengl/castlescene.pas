@@ -961,58 +961,6 @@ end;
 procedure TGLShape.PrepareResources;
 var
   GLScene: TCastleScene;
-
-  { UseBlending is used by RenderScene to decide
-    is Blending used for given shape. Make sure that you called
-    CalculateUseBlending on every shape before
-    using RenderScene.
-
-    Note that CalculateUseBlending checks
-    Renderer.PreparedTextureAlphaChannelType,
-    so assumes that given shape is already prepared for Renderer.
-    It also looks at texture node, material node data,
-    so should be done right after preparing given state,
-    before user calls any FreeResources. }
-
-  procedure CalculateUseBlending;
-  var
-    Tex: TAbstractTextureNode;
-    AlphaChannelType: TAlphaChannelType;
-  begin
-    { Note that we either render the whole geometry node with or without
-      blending.
-
-      Note that this looks at nodes, calling
-      State.LastNodes.Material.AllMaterialsTransparent, possibly looking
-      at TextureNode.TextureImage / TextureVidep etc.
-      So it's important to initialize UseBlending before
-      user has any chance to do FreeResources or to free RootNode
-      (see TCastleSceneCore.RootNode docs).
-
-      TODO: ideally, we would like to just push all our logic into
-      TShape.Transparent, and write just
-        UseBlending := Transparent;
-      But we cannot, for now: we need Renderer to check image's
-      AlphaChannelType efficiently.
-    }
-
-    UseBlending := Transparent;
-
-    if not UseBlending then
-    begin
-      { If texture exists with full range alpha channel then use blending.
-
-        Note that State.Texture may be TMultiTextureNode --- that's Ok,
-        it's also prepared by Renderer, and has AlphaChannelType = atFullRange
-        if any child has atFullRange. So it automatically works Ok too. }
-
-      Tex := State.Texture;
-      if (Tex <> nil) and
-         GLScene.Renderer.PreparedTextureAlphaChannelType(Tex, AlphaChannelType) then
-        UseBlending := AlphaChannelType = atFullRange;
-    end;
-  end;
-
 begin
   GLScene := TCastleScene(ParentScene);
 
@@ -1024,7 +972,9 @@ begin
 
   if not PreparedUseBlending then
   begin
-    CalculateUseBlending;
+    { UseBlending is used by RenderScene to decide is Blending used for given
+      shape. }
+    UseBlending := Transparent;
     PreparedUseBlending := true;
   end;
 

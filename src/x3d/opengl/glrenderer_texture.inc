@@ -61,20 +61,10 @@
       Calls PrepareCore. }
     procedure Prepare(State: TX3DGraphTraverseState);
   public
-    { This is the alpha channel of this texture.
-      Used by TGLRenderer.PreparedTextureAlphaChannelType and bump mapping.
-      Should be calculated and set in Prepare.
-
-      For textures with normal images, this is the saved result of
-      TCastleImage.AlphaChannelType. For videos, saved result of
-      TVideo.AlphaChannelType.
-
-      By default, atNone in this class.
-
-      TODO: it would be better to move this inside, possibly
-      only to applicable class types? And expose only function
-      like UseBlending, and this is the main use of
-      TGLRenderer.PreparedTextureAlphaChannelType ? }
+    { Alpha channel of this texture.
+      Should be calculated and set in Prepare, looking at
+      TAbstractTextureNode.AlphaChannel.
+      By default, atNone in this class. }
     AlphaChannelType: TAlphaChannelType;
 
     { Bind texture for OpenGL (without enabling it).
@@ -1038,10 +1028,8 @@ begin
     MagFilter,
     Anisotropy,
     TextureWrap,
-    TextureNode.TextureDDS,
-    { This way, our AlphaChannelType is calculated (or taken from cache)
-      by TextureImage_IncReference }
-    AlphaChannelType);
+    TextureNode.TextureDDS);
+  AlphaChannelType := TextureNode.AlphaChannel;
 end;
 
 procedure TGLImageTextureNode.Unprepare;
@@ -1116,10 +1104,8 @@ begin
     MinFilter,
     MagFilter,
     Anisotropy,
-    TextureWrap,
-    { This way, our AlphaChannelType is calculated (or taken from cache)
-      by TextureVideo_IncReference }
-    AlphaChannelType);
+    TextureWrap);
+  AlphaChannelType := TextureNode.AlphaChannel;
 end;
 
 procedure TGLMovieTextureNode.Unprepare;
@@ -1256,10 +1242,8 @@ begin
         MagFilter,
         Anisotropy,
         TextureWrap,
-        nil,
-        { This way, our AlphaChannelType is calculated (or taken from cache)
-          by TextureImage_IncReference }
-        AlphaChannelType);
+        nil);
+      AlphaChannelType := TextureNode.AlphaChannel;
 
       { RenderedTexture never has any normal / height map
         (Hm, although it would be possible to generate some in theory
@@ -1563,29 +1547,6 @@ begin
 end;
 
 procedure TGLComposedCubeMapTextureNode.PrepareCore(State: TX3DGraphTraverseState);
-
-  { Checks is given side has non-nil valid node class,
-    and then if image there can be loaded. }
-  function SideLoaded(SideField: TSFNode): boolean;
-  var
-    SideTex: TAbstractTexture2DNode;
-  begin
-    Result :=
-      (SideField.Value <> nil) and
-      (SideField.Value is TAbstractTexture2DNode);
-    if Result then
-    begin
-      SideTex := TAbstractTexture2DNode(SideField.Value);
-      Result := SideTex.IsTextureImage;
-
-      if Result and not (SideTex.TextureImage is TCastleImage) then
-      begin
-        OnWarning(wtMinor, 'VRML/X3D', 'ComposedCubeMapTexture cannot contain S3TC images, as we have to rotate images within, and we cannot do this (fast) with compressed textures');
-        Result := false;
-      end;
-    end;
-  end;
-
 var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
@@ -1597,12 +1558,7 @@ begin
     Exit;
   end;
 
-  if not (SideLoaded(TextureNode.FdBack) and
-     SideLoaded(TextureNode.FdBottom) and
-     SideLoaded(TextureNode.FdFront) and
-     SideLoaded(TextureNode.FdLeft) and
-     SideLoaded(TextureNode.FdRight) and
-     SideLoaded(TextureNode.FdTop)) then
+  if not TextureNode.LoadSides then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Not all sides of a CubeMapTexture are correctly set and loaded, cannot use cube map');
     Exit;
@@ -1632,8 +1588,8 @@ begin
       { negative y } TAbstractTexture2DNode(TextureNode.FdBottom.Value).TextureImage as TCastleImage,
       { positive z } BackRot,
       { negative z } FrontRot,
-      nil,
-      AlphaChannelType);
+      nil);
+    AlphaChannelType := TextureNode.AlphaChannel;
   finally
     FreeAndNil(BackRot);
     FreeAndNil(FrontRot);
@@ -1698,8 +1654,8 @@ begin
       DDS.CubeMapImage(dcsPositiveY),
       DDS.CubeMapImage(dcsPositiveZ),
       DDS.CubeMapImage(dcsNegativeZ),
-      DDS,
-      AlphaChannelType);
+      DDS);
+    AlphaChannelType := TextureNode.AlphaChannel;
   finally FreeAndNil(DDS); end;
 end;
 
@@ -1775,8 +1731,8 @@ begin
       InitialImage, InitialImage,
       InitialImage, InitialImage,
       InitialImage, InitialImage,
-      nil,
-      AlphaChannelType);
+      nil);
+    AlphaChannelType := TextureNode.AlphaChannel;
   finally FreeAndNil(InitialImage) end;
 
   RenderToTexture := TGLRenderToTexture.Create(Size, Size);
@@ -1880,8 +1836,8 @@ begin
 
   GLName := Renderer.Cache.Texture3D_IncReference(
     TextureNode, MinFilter, MagFilter, Anisotropy,
-    TextureWrap, TextureNode.TextureImage, TextureNode.TextureDDS,
-    AlphaChannelType);
+    TextureWrap, TextureNode.TextureImage, TextureNode.TextureDDS);
+  AlphaChannelType := TextureNode.AlphaChannel;
 end;
 
 procedure TGL3DTextureNode.Unprepare;
