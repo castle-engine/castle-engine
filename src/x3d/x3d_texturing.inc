@@ -27,7 +27,7 @@
       Actually set only when image data is loaded
       (e.g. TAbstractTexture2DNode.IsTextureLoaded in case of TAbstractTexture2DNode
       descendant). }
-    function AlphaChannelData: TAlphaChannelType; virtual;
+    function AlphaChannelData: TAlphaChannel; virtual;
   public
     procedure CreateNode; override;
 
@@ -49,7 +49,7 @@
     { Alpha channel of the loaded texture data.
       Looks at loaded texture data, and at alphaChannel field
       (see http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_alpha_channel_detection ) }
-    function AlphaChannel: TAlphaChannelType;
+    function AlphaChannel: TAlphaChannel;
 
     private FFdAlphaChannel: TSFString;
     public property FdAlphaChannel: TSFString read FFdAlphaChannel;
@@ -81,7 +81,7 @@
       Assigned here, should always have TVideo.Loaded = @true. }
     FTextureVideo: TVideo;
 
-    FAlphaChannelData: TAlphaChannelType;
+    FAlphaChannelData: TAlphaChannel;
 
     { Non-nil only if FTextureImage, FTextureDDS or FTextueVideo
       should be freed using
@@ -94,7 +94,7 @@
     procedure SetIsTextureLoaded(Value: boolean);
     procedure FreeAndNilTextureData;
   protected
-    function AlphaChannelData: TAlphaChannelType; override;
+    function AlphaChannelData: TAlphaChannel; override;
   protected
     FTextureUsedFullUrl: string;
 
@@ -354,7 +354,7 @@
     private FFdTexture: TMFNode;
     public property FdTexture: TMFNode read FFdTexture;
 
-    function AlphaChannelData: TAlphaChannelType; override;
+    function AlphaChannelData: TAlphaChannel; override;
   end;
 
   TMultiTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
@@ -532,12 +532,12 @@ begin
   Result := NodeTypeName;
 end;
 
-function TAbstractTextureNode.AlphaChannelData: TAlphaChannelType;
+function TAbstractTextureNode.AlphaChannelData: TAlphaChannel;
 begin
-  Result := atNone;
+  Result := acNone;
 end;
 
-function TAbstractTextureNode.AlphaChannel: TAlphaChannelType;
+function TAbstractTextureNode.AlphaChannel: TAlphaChannel;
 type
   TDetectAlphaChannel = (daAuto, daSimpleYesNo, daFullRange);
 
@@ -563,13 +563,13 @@ begin
   if DetectAlphaChannel = daAuto then
     Result := AlphaChannelData else
   begin
-    if AlphaChannelData <> atNone then
+    if AlphaChannelData <> acNone then
     begin
       if DetectAlphaChannel = daFullRange then
-        Result := atFullRange else
-        Result := atSimpleYesNo;
+        Result := acFullRange else
+        Result := acSimpleYesNo;
     end else
-      Result := atNone;
+      Result := acNone;
   end;
 end;
 
@@ -695,7 +695,7 @@ begin
   Result := nil;
 end;
 
-function TAbstractTexture2DNode.AlphaChannelData: TAlphaChannelType;
+function TAbstractTexture2DNode.AlphaChannelData: TAlphaChannel;
 begin
   Result := FAlphaChannelData;
 end;
@@ -814,7 +814,7 @@ procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: boolean);
           [TRGBImage, TRGBAlphaImage, TGrayscaleImage, TGrayscaleAlphaImage], []);
         WasCacheUsed := false;
         FTextureUsedFullUrl := Data.URIPrefix;
-        FAlphaChannelData := FTextureImage.AlphaChannelType;
+        FAlphaChannelData := FTextureImage.AlphaChannel;
         Result := true;
       except
         on E: Exception do
@@ -1045,12 +1045,12 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TMultiTextureNode.AlphaChannelData: TAlphaChannelType;
+function TMultiTextureNode.AlphaChannelData: TAlphaChannel;
 var
   ChildTex: TX3DNode;
   I: Integer;
 begin
-  Result := atNone;
+  Result := acNone;
   for I := 0 to FdTexture.Count - 1 do
   begin
     ChildTex := FdTexture[I];

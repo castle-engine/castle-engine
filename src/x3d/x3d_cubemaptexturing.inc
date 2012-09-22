@@ -22,9 +22,9 @@
 
   TComposedCubeMapTextureNode = class(TAbstractEnvironmentTextureNode)
   private
-    FAlphaChannelData: TAlphaChannelType;
+    FAlphaChannelData: TAlphaChannel;
   protected
-    function AlphaChannelData: TAlphaChannelType; override;
+    function AlphaChannelData: TAlphaChannel; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -110,9 +110,9 @@
 
   TImageCubeMapTextureNode = class(TAbstractEnvironmentTextureNode, IAbstractUrlObject)
   private
-    FAlphaChannelData: TAlphaChannelType;
+    FAlphaChannelData: TAlphaChannel;
   protected
-    function AlphaChannelData: TAlphaChannelType; override;
+    function AlphaChannelData: TAlphaChannel; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -224,7 +224,7 @@ function TComposedCubeMapTextureNode.LoadSides: boolean;
   end;
 
 begin
-  FAlphaChannelData := atNone;
+  FAlphaChannelData := acNone;
   Result :=
     SideLoaded(FdBack) and
     SideLoaded(FdBottom) and
@@ -234,7 +234,7 @@ begin
     SideLoaded(FdTop);
 end;
 
-function TComposedCubeMapTextureNode.AlphaChannelData: TAlphaChannelType;
+function TComposedCubeMapTextureNode.AlphaChannelData: TAlphaChannel;
 begin
   Result := FAlphaChannelData;
 end;
@@ -380,7 +380,7 @@ begin
         end;
       end;
 
-      FAlphaChannelData := Result.Images[0].AlphaChannelType;
+      FAlphaChannelData := Result.Images[0].AlphaChannel;
 
       if Result.DDSType <> dtCubeMap then
       begin
@@ -404,7 +404,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TImageCubeMapTextureNode.AlphaChannelData: TAlphaChannelType;
+function TImageCubeMapTextureNode.AlphaChannelData: TAlphaChannel;
 begin
   Result := FAlphaChannelData;
 end;

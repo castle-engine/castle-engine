@@ -1491,10 +1491,10 @@ begin
 
   { If texture exists with full range alpha channel then use blending.
     Note that State.Texture may be TMultiTextureNode --- that's Ok,
-    it's also prepared by Renderer, and has AlphaChannelType = atFullRange
+    it has AlphaChannel = atFullRange
     if any child has atFullRange. So it automatically works Ok too. }
   Tex := State.Texture;
-  if (Tex <> nil) and (Tex.AlphaChannel = atFullRange) then
+  if (Tex <> nil) and (Tex.AlphaChannel = acFullRange) then
     Result := true;
 end;
 

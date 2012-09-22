@@ -455,7 +455,7 @@ procedure TBackgroundNode.SetBgImagesLoaded(const Value: boolean);
   var
     I: Integer;
     URL: string;
-    IgnoreAlpha: TAlphaChannelType;
+    IgnoreAlpha: TAlphaChannel;
   begin
     FBgImages.Images[bs] := nil;
     for i := 0 to Urls.Count-1 do

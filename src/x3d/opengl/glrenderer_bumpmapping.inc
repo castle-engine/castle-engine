@@ -134,7 +134,7 @@ function TBumpMappingRenderer.Enable(var BoundTextureUnits: Cardinal;
       if IsGLImageTexture(GLNode) then
       begin
         Result := ImageGLNode.GLName;
-        HeightMapInAlpha := TAbstractTextureNode(Node).AlphaChannel <> atNone;
+        HeightMapInAlpha := TAbstractTextureNode(Node).AlphaChannel <> acNone;
       end;
     end;
   end;

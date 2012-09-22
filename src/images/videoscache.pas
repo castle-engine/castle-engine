@@ -26,7 +26,7 @@ type
     References: Cardinal;
     FileName: string;
     Video: TVideo;
-    AlphaChannel: TAlphaChannelType;
+    AlphaChannel: TAlphaChannel;
   end;
   TCachedVideoList = specialize TFPGObjectList<TCachedVideo>;
 
@@ -85,7 +85,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function Video_IncReference(const FileName: string; out AlphaChannel: TAlphaChannelType): TVideo;
+    function Video_IncReference(const FileName: string; out AlphaChannel: TAlphaChannel): TVideo;
     procedure Video_DecReference(var Video: TVideo);
 
     function Empty: boolean; virtual;
@@ -119,7 +119,7 @@ begin
 end;
 
 function TVideosCache.Video_IncReference(const FileName: string;
-  out AlphaChannel: TAlphaChannelType): TVideo;
+  out AlphaChannel: TAlphaChannel): TVideo;
 var
   I: Integer;
   C: TCachedVideo;
@@ -158,15 +158,15 @@ begin
   C.References := 1;
   C.FileName := FileName;
   C.Video := Result;
-  C.AlphaChannel := Result.AlphaChannelType;
+  C.AlphaChannel := Result.AlphaChannel;
   AlphaChannel := C.AlphaChannel;
 
   {$ifdef DEBUG_CACHE}
   Writeln('++ : video ', FileName, ' : ', 1);
   {$endif}
-  if Log and (AlphaChannel <> atNone) then
+  if Log and (AlphaChannel <> acNone) then
     WritelnLog('Alpha Detection', 'Video ' + FileName +
-      ' detected as simple yes/no alpha channel: ' + BoolToStr[AlphaChannel = atSimpleYesNo]);
+      ' detected as simple yes/no alpha channel: ' + BoolToStr[AlphaChannel = acSimpleYesNo]);
 end;
 
 procedure TVideosCache.Video_DecReference(var Video: TVideo);

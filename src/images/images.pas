@@ -70,11 +70,11 @@ uses SysUtils, Classes, Math, CastleUtils, VectorMath,
   FPReadJPEG, FPWriteJPEG, FPReadPNM;
 
 type
-  { See TCastleImage.AlphaChannelType. }
-  TAlphaChannelType = (atNone, atSimpleYesNo, atFullRange);
+  { See TCastleImage.AlphaChannel. }
+  TAlphaChannel = (acNone, acSimpleYesNo, acFullRange);
 
 const
-  { Default parameters for TEncodedImage.AlphaChannelType,
+  { Default parameters for TEncodedImage.AlphaChannel,
     decide how to detect textures alpha channel. }
   DefaultAlphaTolerance = 5;
   DefaultAlphaWrongPixelsTolerance = 0.01;
@@ -130,11 +130,11 @@ type
 
     { Does an image have an alpha channel.
 
-      You may also be interested in the AlphaChannelType.
-      AlphaChannelType answers always atNone if HasAlpha = false,
-      and always atSimpleYesNo or atFullRange if HasAlpha = true.
-      But AlphaChannelType may perform longer analysis of pixels
-      (to differ between atSimpleYesNo and atFullRange), while this
+      You may also be interested in the AlphaChannel.
+      AlphaChannel answers always atNone if HasAlpha = false,
+      and always acSimpleYesNo or acFullRange if HasAlpha = true.
+      But AlphaChannel may perform longer analysis of pixels
+      (to differ between acSimpleYesNo and acFullRange), while this
       function always executes ultra-fast (as it's constant for each
       TCastleImage descendant).
 
@@ -180,10 +180,10 @@ type
       always returns atNone. For descendants that have alpha channel,
       implement it, honouring AlphaTolerance and WrongPixelsTolerance as
       described. }
-    function AlphaChannelType(
+    function AlphaChannel(
       const AlphaTolerance: Byte = DefaultAlphaTolerance;
       const WrongPixelsTolerance: Single = DefaultAlphaWrongPixelsTolerance):
-      TAlphaChannelType; virtual;
+      TAlphaChannel; virtual;
   end;
 
   { An abstract class representing image as a simple array of pixels.
@@ -622,9 +622,9 @@ type
     property Size: Cardinal read FSize;
 
     function HasAlpha: boolean; override;
-    function AlphaChannelType(
+    function AlphaChannel(
       const AlphaTolerance: Byte;
-      const WrongPixelsTolerance: Single): TAlphaChannelType; override;
+      const WrongPixelsTolerance: Single): TAlphaChannel; override;
 
     { Flip compressed image vertically, losslessly.
 
@@ -863,9 +863,9 @@ type
 
     function HasAlpha: boolean; override;
 
-    function AlphaChannelType(
+    function AlphaChannel(
       const AlphaTolerance: Byte;
-      const WrongPixelsTolerance: Single): TAlphaChannelType; override;
+      const WrongPixelsTolerance: Single): TAlphaChannel; override;
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
 
@@ -962,9 +962,9 @@ type
 
     function HasAlpha: boolean; override;
 
-    function AlphaChannelType(
+    function AlphaChannel(
       const AlphaTolerance: Byte;
-      const WrongPixelsTolerance: Single): TAlphaChannelType; override;
+      const WrongPixelsTolerance: Single): TAlphaChannel; override;
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
   end;
@@ -1635,7 +1635,7 @@ var
 { Maximum alpha channel type. Chooses "full range" if anything is "full range",
   otherwise choose "simple yes/no" if anything is "simple yes/no",
   otherwise returns "no alpha channel". }
-procedure AlphaMaxTo1st(var A: TAlphaChannelType; const B: TAlphaChannelType);
+procedure AlphaMaxTo1st(var A: TAlphaChannel; const B: TAlphaChannel);
 
 {$undef read_interface}
 
@@ -1755,11 +1755,11 @@ begin
   Result := false;
 end;
 
-function TEncodedImage.AlphaChannelType(
+function TEncodedImage.AlphaChannel(
   const AlphaTolerance: Byte;
-  const WrongPixelsTolerance: Single): TAlphaChannelType;
+  const WrongPixelsTolerance: Single): TAlphaChannel;
 begin
-  Result := atNone;
+  Result := acNone;
 end;
 
 { TCastleImage --------------------------------------------------------------- }
@@ -2246,16 +2246,16 @@ begin
   Result := Compression in [s3tcDxt1_RGBA, s3tcDxt3, s3tcDxt5];
 end;
 
-function TS3TCImage.AlphaChannelType(
+function TS3TCImage.AlphaChannel(
   const AlphaTolerance: Byte;
-  const WrongPixelsTolerance: Single): TAlphaChannelType;
+  const WrongPixelsTolerance: Single): TAlphaChannel;
 begin
   { S3TCImage doesn't analyze for alpha channel, instead simply assumes
     image is always full-range alpha it if has alpha channel. }
   case Compression of
-    s3tcDxt1_RGB : Result := atNone;
-    s3tcDxt1_RGBA: Result := atSimpleYesNo;
-    s3tcDxt3, s3tcDxt5: Result := atFullRange;
+    s3tcDxt1_RGB : Result := acNone;
+    s3tcDxt1_RGBA: Result := acSimpleYesNo;
+    s3tcDxt3, s3tcDxt5: Result := acFullRange;
   end;
 end;
 
@@ -2687,9 +2687,9 @@ begin
   Result := true;
 end;
 
-function TRGBAlphaImage.AlphaChannelType(
+function TRGBAlphaImage.AlphaChannel(
   const AlphaTolerance: Byte;
-  const WrongPixelsTolerance: Single): TAlphaChannelType;
+  const WrongPixelsTolerance: Single): TAlphaChannel;
 var
   PtrAlpha: PVector4Byte;
   I, WrongPixels, AllPixels: Cardinal;
@@ -2710,7 +2710,7 @@ begin
           may be so small that it's equal to 0, which would
           cause some wrong pixels to "slip" even with
           WrongPixelsTolerance = 0. }
-        Exit(atFullRange);
+        Exit(acFullRange);
       Inc(PtrAlpha);
     end;
   end else
@@ -2729,13 +2729,13 @@ begin
           Well, sensible WrongPixelsTolerance are very small --- so I
           think this is Ok to check this every time. }
         if WrongPixels / AllPixels > WrongPixelsTolerance then
-          Exit(atFullRange);
+          Exit(acFullRange);
       end;
       Inc(PtrAlpha);
     end;
   end;
 
-  Result := atSimpleYesNo;
+  Result := acSimpleYesNo;
 end;
 
 procedure TRGBAlphaImage.LerpWith(const Value: Single; SecondImage: TCastleImage);
@@ -3050,9 +3050,9 @@ begin
   Result := true;
 end;
 
-function TGrayscaleAlphaImage.AlphaChannelType(
+function TGrayscaleAlphaImage.AlphaChannel(
   const AlphaTolerance: Byte;
-  const WrongPixelsTolerance: Single): TAlphaChannelType;
+  const WrongPixelsTolerance: Single): TAlphaChannel;
 var
   PtrAlpha: PVector2Byte;
   I, WrongPixels, AllPixels: Cardinal;
@@ -3073,7 +3073,7 @@ begin
           may be so small that it's equal to 0, which would
           cause some wrong pixels to "slip" even with
           WrongPixelsTolerance = 0. }
-        Exit(atFullRange);
+        Exit(acFullRange);
       Inc(PtrAlpha);
     end;
   end else
@@ -3092,13 +3092,13 @@ begin
           Well, sensible WrongPixelsTolerance are very small --- so I
           think this is Ok to check this every time. }
         if WrongPixels / AllPixels > WrongPixelsTolerance then
-          Exit(atFullRange);
+          Exit(acFullRange);
       end;
       Inc(PtrAlpha);
     end;
   end;
 
-  Result := atSimpleYesNo;
+  Result := acSimpleYesNo;
 end;
 
 procedure TGrayscaleAlphaImage.LerpWith(const Value: Single; SecondImage: TCastleImage);
@@ -3681,7 +3681,7 @@ begin
   end;
 end;
 
-procedure AlphaMaxTo1st(var A: TAlphaChannelType; const B: TAlphaChannelType);
+procedure AlphaMaxTo1st(var A: TAlphaChannel; const B: TAlphaChannel);
 begin
   if B > A then A := B;
 end;

@@ -252,12 +252,12 @@ type
       const ATimeLoop, ATimeBackwards: boolean): Integer;
 
     { Alpha channel type of loaded video.
-      See TCastleImage.AlphaChannelType for precise meaning of this.
+      See TCastleImage.AlphaChannel for precise meaning of this.
       Currently based on the first video image, so it's fast although
       in some cases possibly inaccurate. }
-    function AlphaChannelType(
+    function AlphaChannel(
       const AlphaTolerance: Byte = DefaultAlphaTolerance;
-      const WrongPixelsTolerance: Single = DefaultAlphaWrongPixelsTolerance): TAlphaChannelType;
+      const WrongPixelsTolerance: Single = DefaultAlphaWrongPixelsTolerance): TAlphaChannel;
   end;
 
 { Does filename extension Ext looks like a video file extension
@@ -672,12 +672,12 @@ begin
   end;
 end;
 
-function TVideo.AlphaChannelType(
+function TVideo.AlphaChannel(
   const AlphaTolerance: Byte;
-  const WrongPixelsTolerance: Single): TAlphaChannelType;
+  const WrongPixelsTolerance: Single): TAlphaChannel;
 begin
   Assert(Loaded);
-  Result := Items[0].AlphaChannelType(AlphaTolerance, WrongPixelsTolerance);
+  Result := Items[0].AlphaChannel(AlphaTolerance, WrongPixelsTolerance);
 end;
 
 { non-object routines -------------------------------------------------------- }

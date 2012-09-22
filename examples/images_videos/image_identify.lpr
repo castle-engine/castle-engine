@@ -25,7 +25,7 @@ uses SysUtils, CastleUtils, Images, CastleParameters;
 var
   I: Integer;
   Img: TCastleImage;
-  AlphaChannelType: string;
+  AlphaChannel: string;
 begin
   if Parameters.High = 0 then
     raise EInvalidParams.Create('No parameters supplied, nothing to do');
@@ -46,16 +46,16 @@ begin
       end;
     end;
     try
-      case Img.AlphaChannelType of
-        atNone       : AlphaChannelType := 'no';
-        atSimpleYesNo: AlphaChannelType := 'simple yes/no (only fully transparent / fully opaque parts)';
-        atFullRange  : AlphaChannelType := 'full range (partially transparent parts)';
-        else raise EInternalError.Create('AlphaChannelType?');
+      case Img.AlphaChannel of
+        acNone       : AlphaChannel := 'no';
+        acSimpleYesNo: AlphaChannel := 'simple yes/no (only fully transparent / fully opaque parts)';
+        acFullRange  : AlphaChannel := 'full range (partially transparent parts)';
+        else raise EInternalError.Create('AlphaChannel?');
       end;
 
       Writeln(Parameters[I], ': ', Img.Width, ' x ', Img.Height,
         ',  type: ', Img.ClassName,
-        ', alpha: ' + AlphaChannelType);
+        ', alpha: ' + AlphaChannel);
     finally FreeAndNil(Img) end;
   end;
 end.

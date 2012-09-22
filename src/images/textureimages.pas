@@ -81,7 +81,7 @@ type
     FileName: string;
     Image: TEncodedImage;
     DDS: TDDSImage;
-    AlphaChannel: TAlphaChannelType;
+    AlphaChannel: TAlphaChannel;
   end;
   TCachedTextureList = specialize TFPGObjectList<TCachedTexture>;
 
@@ -138,8 +138,8 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function TextureImage_IncReference(const FileName: string; out DDS: TDDSImage; out AlphaChannel: TAlphaChannelType): TEncodedImage;
-    function TextureImage_IncReference(const FileName: string; out AlphaChannel: TAlphaChannelType): TEncodedImage;
+    function TextureImage_IncReference(const FileName: string; out DDS: TDDSImage; out AlphaChannel: TAlphaChannel): TEncodedImage;
+    function TextureImage_IncReference(const FileName: string; out AlphaChannel: TAlphaChannel): TEncodedImage;
 
     procedure TextureImage_DecReference(var Image: TEncodedImage; var DDS: TDDSImage);
     procedure TextureImage_DecReference(var Image: TEncodedImage);
@@ -202,7 +202,7 @@ begin
 end;
 
 function TTexturesVideosCache.TextureImage_IncReference(
-  const FileName: string; out DDS: TDDSImage; out AlphaChannel: TAlphaChannelType): TEncodedImage;
+  const FileName: string; out DDS: TDDSImage; out AlphaChannel: TAlphaChannel): TEncodedImage;
 var
   I: Integer;
   C: TCachedTexture;
@@ -237,15 +237,15 @@ begin
   C.FileName := FileName;
   C.Image := Result;
   C.DDS := DDS;
-  C.AlphaChannel := Result.AlphaChannelType;
+  C.AlphaChannel := Result.AlphaChannel;
   AlphaChannel := C.AlphaChannel;
 
   {$ifdef DEBUG_CACHE}
   Writeln('++ : texture image ', FileName, ' : ', 1);
   {$endif}
-  if Log and (AlphaChannel <> atNone) then
+  if Log and (AlphaChannel <> acNone) then
     WritelnLog('Alpha Detection', 'Texture image ' + FileName +
-      ' detected as simple yes/no alpha channel: ' + BoolToStr[AlphaChannel = atSimpleYesNo]);
+      ' detected as simple yes/no alpha channel: ' + BoolToStr[AlphaChannel = acSimpleYesNo]);
 end;
 
 procedure TTexturesVideosCache.TextureImage_DecReference(
@@ -305,7 +305,7 @@ begin
 end;
 
 function TTexturesVideosCache.TextureImage_IncReference(
-  const FileName: string; out AlphaChannel: TAlphaChannelType): TEncodedImage;
+  const FileName: string; out AlphaChannel: TAlphaChannel): TEncodedImage;
 var
   Dummy: TDDSImage;
 begin

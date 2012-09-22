@@ -70,9 +70,9 @@
 
   TComposedTexture3DNode = class(TAbstractTexture3DNode)
   private
-    FAlphaChannelData: TAlphaChannelType;
+    FAlphaChannelData: TAlphaChannel;
   protected
-    function AlphaChannelData: TAlphaChannelType; override;
+    function AlphaChannelData: TAlphaChannel; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -86,9 +86,9 @@
 
   TImageTexture3DNode = class(TAbstractTexture3DNode, IAbstractUrlObject)
   private
-    FAlphaChannelData: TAlphaChannelType;
+    FAlphaChannelData: TAlphaChannel;
   protected
-    function AlphaChannelData: TAlphaChannelType; override;
+    function AlphaChannelData: TAlphaChannel; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -102,9 +102,9 @@
 
   TPixelTexture3DNode = class(TAbstractTexture3DNode)
   private
-    FAlphaChannelData: TAlphaChannelType;
+    FAlphaChannelData: TAlphaChannel;
   protected
-    function AlphaChannelData: TAlphaChannelType; override;
+    function AlphaChannelData: TAlphaChannel; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -290,7 +290,7 @@ begin
     Exit;
   end;
 
-  FAlphaChannelData := atNone;
+  FAlphaChannelData := acNone;
 
   { First Slice is treated specially, as it determines width/height/class
     of the resulting image. }
@@ -334,7 +334,7 @@ begin
   end;
 end;
 
-function TComposedTexture3DNode.AlphaChannelData: TAlphaChannelType;
+function TComposedTexture3DNode.AlphaChannelData: TAlphaChannel;
 begin
   Result := FAlphaChannelData;
 end;
@@ -401,7 +401,7 @@ begin
   end;
 end;
 
-function TImageTexture3DNode.AlphaChannelData: TAlphaChannelType;
+function TImageTexture3DNode.AlphaChannelData: TAlphaChannel;
 begin
   Result := FAlphaChannelData;
 end;
@@ -498,10 +498,10 @@ begin
     end;
   end;
 
-  FAlphaChannelData := FTextureImage.AlphaChannelType;
+  FAlphaChannelData := FTextureImage.AlphaChannel;
 end;
 
-function TPixelTexture3DNode.AlphaChannelData: TAlphaChannelType;
+function TPixelTexture3DNode.AlphaChannelData: TAlphaChannel;
 begin
   Result := FAlphaChannelData;
 end;
