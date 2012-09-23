@@ -456,6 +456,8 @@ begin
     Scene.BoundingBox.Transform(RotationMatrixDeg(45 + 90    , GravityUp)) +
     Scene.BoundingBox.Transform(RotationMatrixDeg(45 + 90 * 2, GravityUp)) +
     Scene.BoundingBox.Transform(RotationMatrixDeg(45 + 90 * 3, GravityUp));
+  { prepare GLImage now }
+  GLImage;
 end;
 
 function TItemKind.PrepareCoreSteps: Cardinal;
