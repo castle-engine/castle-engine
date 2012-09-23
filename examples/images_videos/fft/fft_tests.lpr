@@ -31,9 +31,9 @@ type
   TWindowImage = class(TCastleWindowDemo)
   public
     Image: TRGBImage;
-    ImageDL: TGLuint;
+    GLImage: TGLImage;
     destructor Destroy; override;
-    procedure UpdateDL;
+    procedure UpdateGLImage;
     procedure EventDraw; override;
     procedure EventOpen; override;
   end;
@@ -48,20 +48,21 @@ procedure TWindowImage.EventDraw;
 begin
   inherited;
   glClear(GL_COLOR_BUFFER_BIT);
-  glCallList(ImageDL);
+  if GLImage <> nil then
+    GLImage.Draw;
 end;
 
 procedure TWindowImage.EventOpen;
 begin
   inherited;
-  UpdateDL;
+  UpdateGLImage;
 end;
 
-procedure TWindowImage.UpdateDL;
+procedure TWindowImage.UpdateGLImage;
 begin
   MakeCurrent;
-  glFreeDisplayList(ImageDL);
-  ImageDL := ImageDrawToDisplayList(Image);
+  FreeAndNil(GLImage);
+  GLImage := TGLImage.Create(Image);
   PostRedisplay;
 end;
 
@@ -182,7 +183,7 @@ begin
   end;
 
   Fft.ImageFModulusAsRGB(Freq.Image, 0.01);
-  if not Freq.Closed then Freq.UpdateDL;
+  if not Freq.Closed then Freq.UpdateGLImage;
 
   Fft.Image := Output.Image;
 
@@ -190,7 +191,7 @@ begin
   Fft.IDFT;
   Writeln('Making IDFT: ', ProcessTimerEnd:1:2, ' secs');
 
-  if not Output.Closed then Output.UpdateDL;
+  if not Output.Closed then Output.UpdateGLImage;
 end;
 
 procedure MenuCommand(glwin: TCastleWindowBase; Item: TMenuItem);
