@@ -32,7 +32,7 @@ unit CastleGLUtils;
 interface
 
 uses Math, GL, GLU, GLExt, SysUtils, CastleUtils, VectorMath, Boxes3D,
-  Images, Matrix, Rectangles;
+  CastleImages, Matrix, Rectangles;
 
 {$define read_interface}
 

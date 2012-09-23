@@ -219,7 +219,7 @@ interface
 
 uses
   Classes, SysUtils, CastleUtils, VectorMath, GL, GLExt,
-  X3DFields, X3DNodes, X3DLexer, OpenGLTTFonts, Images,
+  X3DFields, X3DNodes, X3DLexer, OpenGLTTFonts, CastleImages,
   CastleGLUtils, GLRendererLights, TTFontsTypes,
   GLShaders, GLImages, Videos, X3DTime, CastleShape,
   GLCubeMap, CastleClassUtils, DDS, Base3D, FGL,

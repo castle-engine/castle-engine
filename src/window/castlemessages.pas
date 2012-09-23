@@ -365,7 +365,7 @@ var
 
 implementation
 
-uses OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_m18_Unit, Images,
+uses OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_m18_Unit, CastleImages,
   CastleClassUtils, SysUtils, WindowModes, CastleLog, GLImages;
 
 { TIntRect ------------------------------------------------------------------- }

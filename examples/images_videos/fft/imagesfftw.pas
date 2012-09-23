@@ -24,7 +24,7 @@ unit ImagesFftw;
 
 interface
 
-uses Fftw_s, Images;
+uses Fftw_s, CastleImages;
 
 type
   { Image expressed as three arrays of complex values.

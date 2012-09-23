@@ -19,7 +19,7 @@
   See example scripts mkimage_*.castlescript in this directory.
 }
 
-uses SysUtils, CastleUtils, CastleFilesUtils, CastleStringUtils, Images,
+uses SysUtils, CastleUtils, CastleFilesUtils, CastleStringUtils, CastleImages,
   CastleClassUtils, CastleParameters,
   CastleScript, CastleScriptParser, CastleScriptVectors, CastleScriptImages,
   CastleWarnings;

@@ -18,7 +18,7 @@ unit VideosCache;
 
 interface
 
-uses Images, CastleUtils, Videos, FGL;
+uses CastleImages, CastleUtils, Videos, FGL;
 
 type
   { Internal for TVideosCache. @exclude }

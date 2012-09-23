@@ -23,7 +23,7 @@ uses VectorMath, CastleSceneCore, CastleScene, Boxes3D,
   X3DNodes, X3DFields, Cameras, SectorsWaypoints,
   CastleUtils, CastleClassUtils, CastlePlayer, CastleResources,
   ProgressUnit, PrecalculatedAnimation,
-  DOM, CastleSoundEngine, Base3D, CastleShape, GL, CastleConfig, Images,
+  DOM, CastleSoundEngine, Base3D, CastleShape, GL, CastleConfig, CastleImages,
   Classes, CastleTimeUtils, CastleSceneManager, GLRendererShader, FGL;
 
 type

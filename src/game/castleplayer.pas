@@ -361,7 +361,7 @@ var
 implementation
 
 uses Math, SysUtils, CastleClassUtils, CastleUtils, X3DNodes, CastleControls,
-  Images, CastleFilesUtils, UIControls, PrecalculatedAnimation, CastleOpenAL,
+  CastleImages, CastleFilesUtils, UIControls, PrecalculatedAnimation, CastleOpenAL,
   CastleGameNotifications, CastleXMLConfig, GLImages, CastleConfig;
 
 { TPlayerBox ----------------------------------------------------------------- }

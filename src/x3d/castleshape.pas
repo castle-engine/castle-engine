@@ -884,7 +884,7 @@ var
 implementation
 
 uses ProgressUnit, CastleSceneCore, NormalsCalculator, CastleLog, CastleWarnings,
-  CastleStringUtils, ArraysGenerator, Images;
+  CastleStringUtils, ArraysGenerator, CastleImages;
 
 const
   UnknownTexCoord: TTriangle4Single = (

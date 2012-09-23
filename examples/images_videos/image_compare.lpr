@@ -17,7 +17,7 @@
   bother showing visual differences between images. See ImageMagick's
   "compare" tool for such fun (http://www.imagemagick.org/script/compare.php).
 }
-uses SysUtils, CastleUtils, VectorMath, Images, CastleParameters;
+uses SysUtils, CastleUtils, VectorMath, CastleImages, CastleParameters;
 const
   Tolerance = 5;
 var

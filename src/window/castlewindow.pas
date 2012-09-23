@@ -528,7 +528,7 @@ uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
   {$ifdef CASTLE_WINDOW_USE_XF86VMODE} CastleXF86VMode, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} Gdk2X, X, Xlib, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, CastleDynLib, {$endif}
-  CastleUtils, CastleClassUtils, CastleGLUtils, Images, GLImages, KeysMouse,
+  CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, GLImages, KeysMouse,
   CastleStringUtils, CastleFilesUtils, CastleTimeUtils, FileFilters, UIControls,
   FGL, pk3DConnexion,
   { VRML/X3D stuff }
@@ -1494,7 +1494,7 @@ type
       on modern GPUs, and capture it's contents. An example code snippet:
 
 @longCode(#
-{ add GLImages, Images to your uses clause }
+{ add GLImages, CastleImages to your uses clause }
 
 var
   ScreenshotRender: TGLRenderToTexture;

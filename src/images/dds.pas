@@ -18,7 +18,7 @@ unit DDS;
 
 interface
 
-uses Classes, Images;
+uses Classes, CastleImages;
 
 type
   EInvalidDDS = class(EInvalidImageFormat);

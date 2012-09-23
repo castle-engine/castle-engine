@@ -61,7 +61,7 @@ unit GLImages;
 
 interface
 
-uses GL, GLU, GLExt, SysUtils, Images, VectorMath, CastleGLUtils, Videos, DDS;
+uses GL, GLU, GLExt, SysUtils, CastleImages, VectorMath, CastleGLUtils, Videos, DDS;
 
 const
   PixelsImageClasses: array [0..3] of TCastleImageClass = (

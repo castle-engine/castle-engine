@@ -32,7 +32,7 @@ unit TextureImages;
 
 interface
 
-uses Images, DDS, CastleUtils, VideosCache, FGL;
+uses CastleImages, DDS, CastleUtils, VideosCache, FGL;
 
 const
   { Image classes that are handled by absolutely all OpenGL versions. }

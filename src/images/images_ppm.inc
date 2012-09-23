@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Zaczete przy okazji zabaw na PGK (ot, chcialem zobaczyc ze to
-  rzeczywiscie moge latwo wmontowac do mojego modulu Images; i udalo sie) }
+{ PPM save/load support. }
 
 function LoadPPM(Stream: TStream;
   const AllowedImageClasses: array of TCastleImageClass;

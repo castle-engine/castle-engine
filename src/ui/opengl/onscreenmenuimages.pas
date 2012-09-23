@@ -7,7 +7,7 @@ unit OnScreenMenuImages;
 
 interface
 
-uses Images;
+uses CastleImages;
 
 var
   Slider_base: TRGBImage;

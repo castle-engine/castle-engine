@@ -16,7 +16,7 @@ unit Videos;
 
 interface
 
-uses SysUtils, Images;
+uses SysUtils, CastleImages;
 
 type
   EInvalidFadeFrames = class(Exception);

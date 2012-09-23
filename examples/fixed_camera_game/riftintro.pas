@@ -32,7 +32,7 @@ procedure DoIntro;
 implementation
 
 uses SysUtils, GL, CastleWindow, CastleFilesUtils,
-  CastleGLUtils, RiftData, WindowModes, DOM, Images, CastleSoundEngine,
+  CastleGLUtils, RiftData, WindowModes, DOM, CastleImages, CastleSoundEngine,
   GLImages, UIControls, CastleStringUtils, RiftSound, RiftVideoOptions,
   KeysMouse;
 

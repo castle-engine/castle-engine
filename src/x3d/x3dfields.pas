@@ -19,7 +19,7 @@ unit X3DFields;
 interface
 
 uses VectorMath, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
-  Images, CastleStringUtils, CastleInterfaces, X3DTime, DOM,
+  CastleImages, CastleStringUtils, CastleInterfaces, X3DTime, DOM,
   FGL, GenericStructList;
 
 {$define read_interface}

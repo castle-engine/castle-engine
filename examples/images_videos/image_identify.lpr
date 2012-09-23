@@ -20,7 +20,7 @@
   or as a command-line tool similar to ImageMagick "identify". }
 program image_identify;
 
-uses SysUtils, CastleUtils, Images, CastleParameters;
+uses SysUtils, CastleUtils, CastleImages, CastleParameters;
 
 var
   I: Integer;

@@ -20,7 +20,7 @@ unit Background;
 
 interface
 
-uses VectorMath, SysUtils, GL, GLExt, CastleGLUtils, CastleUtils, Images,
+uses VectorMath, SysUtils, GL, GLExt, CastleGLUtils, CastleUtils, CastleImages,
   X3DNodes;
 
 type

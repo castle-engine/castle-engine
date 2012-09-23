@@ -79,7 +79,7 @@ var
 
 implementation
 
-uses SysUtils, DOM, ProgressUnit, Images, GLRenderer, UIControls,
+uses SysUtils, DOM, ProgressUnit, CastleImages, GLRenderer, UIControls,
   CastleGLUtils, CastleWindow, CastleXMLUtils, CastleSceneCore, RiftWindow, RiftData;
 
 { TLocation ------------------------------------------------------------------ }

@@ -139,7 +139,7 @@ var fhead: TBitmapFileHeader;
   { ClassAllowed is only shortcut to global utility. }
   function ClassAllowed(ImageClass: TCastleImageClass): boolean;
   begin
-    Result := Images.ClassAllowed(ImageClass, AllowedImageClasses);
+    Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
 
 var i: integer;

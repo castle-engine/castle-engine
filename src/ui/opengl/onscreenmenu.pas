@@ -659,7 +659,7 @@ property SliderFont: TGLBitmapFont_Abstract read GetUIFontSmall write SetUIFontS
 
 implementation
 
-uses SysUtils, CastleUtils, Images, CastleFilesUtils, CastleClassUtils,
+uses SysUtils, CastleUtils, CastleImages, CastleFilesUtils, CastleClassUtils,
   CastleStringUtils, GLImages,
   OnScreenMenuImages, CastleSoundEngine;
 

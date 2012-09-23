@@ -908,7 +908,7 @@ var
 
 implementation
 
-uses GLVersionUnit, Images, CastleLog, CastleWarnings,
+uses GLVersionUnit, CastleImages, CastleLog, CastleWarnings,
   CastleStringUtils, RenderingCameraUnit;
 
 var

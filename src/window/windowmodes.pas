@@ -32,7 +32,7 @@ unit WindowModes;
 
 interface
 
-uses SysUtils, GL, CastleWindow, CastleGLUtils, Images, CastleMessages,
+uses SysUtils, GL, CastleWindow, CastleGLUtils, CastleImages, CastleMessages,
   UIControls, KeysMouse, GLImages;
 
 type

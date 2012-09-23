@@ -18,7 +18,7 @@ unit GLCubeMap;
 
 interface
 
-uses VectorMath, CubeMap, Images, DDS, GL, GLU, CastleGLUtils,
+uses VectorMath, CubeMap, CastleImages, DDS, GL, GLU, CastleGLUtils,
   RenderingCameraUnit, GLImages, Base3D;
 
 type

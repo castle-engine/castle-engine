@@ -22,7 +22,7 @@
   and the files are saved in $1 directory). }
 program dds_decompose;
 
-uses SysUtils, CastleUtils, Images, DDS, CastleWarnings, CastleStringUtils,
+uses SysUtils, CastleUtils, CastleImages, DDS, CastleWarnings, CastleStringUtils,
   CastleParameters;
 
 var

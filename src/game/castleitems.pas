@@ -19,7 +19,7 @@ unit CastleItems;
 interface
 
 uses Boxes3D, X3DNodes, CastleScene, VectorMath, CastleUtils,
-  CastleClassUtils, Classes, Images, GL, GLU, CastleGLUtils,
+  CastleClassUtils, Classes, CastleImages, GL, GLU, CastleGLUtils,
   PrecalculatedAnimation, CastleResources, GLImages,
   CastleXMLConfig, CastleSoundEngine, Frustum, Base3D, FGL, CastleColors;
 

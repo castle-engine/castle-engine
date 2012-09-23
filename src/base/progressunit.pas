@@ -21,7 +21,7 @@ unit ProgressUnit;
 
 interface
 
-uses SysUtils, CastleUtils, CastleTimeUtils, Images;
+uses SysUtils, CastleUtils, CastleTimeUtils, CastleImages;
 
 const
   { }

@@ -27,7 +27,7 @@ function MakeNormalizationCubeMap: TGLuint;
 
 implementation
 
-uses SysUtils, CastleUtils, Images, VectorMath;
+uses SysUtils, CastleUtils, CastleImages, VectorMath;
 
 { $define DEBUG_SAVE_NORMAL_IMAGES}
 

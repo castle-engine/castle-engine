@@ -18,7 +18,7 @@ unit CastleScriptImages;
 
 interface
 
-uses VectorMath, CastleScript, Images;
+uses VectorMath, CastleScript, CastleImages;
 
 type
   TCasScriptImage = class(TCasScriptValue)

@@ -51,7 +51,7 @@
   library. See GLImages for OpenGL image operations (for textures and others).
 *)
 
-unit Images;
+unit CastleImages;
 
 {
   TODO:
@@ -3333,7 +3333,7 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
   { ClassAllowed is only a shortcut to global utility. }
   function ClassAllowed(ImageClass: TCastleImageClass): boolean;
   begin
-    Result := Images.ClassAllowed(ImageClass, AllowedImageClasses);
+    Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
 
   { On input, Image must be TRGBImage and on output it will be TGrayscaleImage. }

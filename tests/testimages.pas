@@ -32,7 +32,7 @@ type
 
 implementation
 
-uses SysUtils, VectorMath, Images;
+uses SysUtils, VectorMath, CastleImages;
 
 procedure TTestImages.TestLoadAnyImage;
 { testuje czy mechanizm argumentow dla LoadAnyImage (AllowedImageClasses,

@@ -18,7 +18,7 @@ unit Elevations;
 
 interface
 
-uses SysUtils, Classes, CastleScript, Images;
+uses SysUtils, Classes, CastleScript, CastleImages;
 
 type
   { Elevation (height for each X, Y) data. }
@@ -321,7 +321,7 @@ procedure TElevationImage.LoadImage(const AImageFileName: string);
 var
   NewImage: TGrayscaleImage;
 begin
-  NewImage := Images.LoadImage(AImageFileName, [TGrayscaleImage], []) as TGrayscaleImage;
+  NewImage := CastleImages.LoadImage(AImageFileName, [TGrayscaleImage], []) as TGrayscaleImage;
 
   FreeAndNil(FImage);
   FImage := NewImage;

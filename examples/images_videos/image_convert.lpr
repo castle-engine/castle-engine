@@ -17,7 +17,7 @@
 
 program image_convert;
 
-uses SysUtils, CastleUtils, Images, CastleParameters;
+uses SysUtils, CastleUtils, CastleImages, CastleParameters;
 
 var
   { required params }

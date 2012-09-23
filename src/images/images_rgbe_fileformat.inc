@@ -135,12 +135,12 @@ var LoadResult: TCastleImage absolute result;
     global utilities. }
   procedure DoingConversion(const Conv: TImageLoadConversion);
   begin
-    Images.DoingConversion(Conv, ForbiddenConvs);
+    CastleImages.DoingConversion(Conv, ForbiddenConvs);
   end;
 
   function ClassAllowed(ImageClass: TCastleImageClass): boolean;
   begin
-    Result := Images.ClassAllowed(ImageClass, AllowedImageClasses);
+    Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
 
 var

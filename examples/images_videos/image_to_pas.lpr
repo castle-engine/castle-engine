@@ -44,7 +44,7 @@
 
 program image_to_pas;
 
-uses SysUtils, Images, CastleUtils, CastleFilesUtils, ProgressUnit,
+uses SysUtils, CastleImages, CastleUtils, CastleFilesUtils, ProgressUnit,
   ProgressConsole, CastleParameters;
 
 var
@@ -209,7 +209,7 @@ begin
     nl+
     'interface' +nl+
     nl+
-    'uses Images;' +nl+
+    'uses CastleImages;' +nl+
     nl);
   Write(OutputUnit, ImagesInterface);
   Write(OutputUnit,

@@ -109,7 +109,7 @@ implementation
 uses LCLType, LCLIntf, VectorMath, Boxes3D, X3DNodes, GLRenderer,
   GL, GLU, GLExt, CastleClassUtils, CastleUtils, X3DLoad,
   CastleGLUtils, CastleSceneCore, CastleFilesUtils, CastleParameters,
-  OpenGLInformation, CastleLCLUtils, ConsoleF, Images;
+  OpenGLInformation, CastleLCLUtils, ConsoleF, CastleImages;
 
 procedure TMain.OpenScene(const FileName: string);
 begin
