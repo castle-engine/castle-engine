@@ -424,10 +424,15 @@ begin
 end;
 
 procedure TGame2DControls.Draw;
+var
+  Player: TPlayer;
+  I: Integer;
 begin
-  { Set color to yellow }
+  Player := Window.SceneManager.Player;
+
+  { Set text color to yellow }
   glColorv(Vector3Single(1, 1, 0));
-  { Write text in the upper-left corner.
+  { Write text in the upper-left corner of the screen.
     For controls with DrawStyle = ds2D,
     the (0,0) is always bottom-left corner, (ContainerWidth,ContainerHeight)
     is top-right corner. As you can see, you can take font measurements
@@ -435,6 +440,20 @@ begin
     as needed. }
   SetWindowPos(0, Window.Height - UIFont.RowHeight - 5);
   UIFont.Print(Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
+
+  { A simple way to draw player inventory follows.
+    The image representing each item (exactly for purposes like inventory
+    display) is specified in the resource.xml file of each item,
+    as image="xxx" attribute of the root <resource> element.
+    Based on this, the engine initializes TItemKind.Image and TItemKind.GLImage,
+    that you can easily use for any purpose.
+    We assume below that all item images have size 100 x 100,
+    and we assume that all items will always fit within one row. }
+  for I := 0 to Player.Inventory.Count - 1 do
+  begin
+    SetWindowPos(I * 100, 0);
+    Player.Inventory[I].Kind.GLImage.Draw;
+  end;
 end;
 
 { When starting your game, create TGame2DControls instance
@@ -458,7 +477,8 @@ In TGame2DControls.Draw you simply use OpenGL to draw your stuff,
 although we give you a lot of helpers to deal with drawing images, text
 and so on.
 See castle1 unit GamePlay for an example implementation that shows
-player's life indicator, open inventory and other things on the screen.
+more impressive player's life indicator, inventory (with
+more information, like quantity and name) and other things on the screen.
 
 A similar approach works for displaying in-game menu too.
 We provide a flexible on-screen menu as TCastleOnScreeMenu component.
@@ -470,6 +490,33 @@ or by changing it's TUIControl.Exists property).
 
 In single player games, you usually want to pause the game when the on-screen
 menu is displayed. You can do this easily by SceneManager.Paused property.
+Like this:
+
+[[
+...
+{ global / static variables }
+var
+  GameMenu: TCastleOnScreeMenu;
+  GameMenuClosed: boolean;
+...
+  { somewhere at the beginning prepare the menu }
+  GameMenu := TCastleOnScreeMenu.Create(...);
+  { see examples for how to initialize and implement TCastleOnScreeMenu.
+    Make sure that one of the menu items, like "Back",
+    sets GameMenuClosed := true. }
+
+...
+{ when you want to actually show it }
+SceneManager.Paused := true;
+GameMenuClosed := false;
+Window.Controls.Add(GameMenu);
+repeat
+  Application.ProcessMessage(true, true);
+until GameMenuClosed;
+Window.Controls.Remove(GameMenu);
+SceneManager.Paused := false;
+]]
+
 As the scene manager handles a lot of stuff automatically,
 processing events and calling Idle methods of all 3D objects periodically.
 Pausing it effectively pauses your whole 3D world, while stil allowing
