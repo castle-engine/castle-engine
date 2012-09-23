@@ -95,23 +95,42 @@ type
     { For now, we use display lists to store 2D images.
       We will migrate to PBO in the future. }
     DisplayList: TGLuint;
+    FWidth: Cardinal;
+    FHeight: Cardinal;
   public
     { Prepare image for drawing. }
     constructor Create(const Image: TCastleImage);
 
     { Load image from disk, and prepare for drawing.
-      See CastleImages.LoadImage for description of parameters.
-      LoadAsClass may only be a subset of PixelsImageClasses.
-      ResizeToX and/or ResizeToY may be zero to not resize. }
+
+      @param(LoadAsClass Force a specific image class to load.
+        Must be a subset of PixelsImageClasses, as other classes cannot
+        be loaded into OpenGL 2D images.
+        Pass empty set [] to load into any allowed class
+        (it's equivalent to passing LoadAsClass = PixelsImageClasses).
+
+        You can pass e.g. [TRGBImage] to force loading into an RGB image without
+        an alpha channel (it will be stripped from the image if necessary).)
+
+      @param(Forbidden convertions to do when loading,
+        see CastleImages.LoadImage. Pass empty set [] to not forbid anything)
+
+      @param(ResizeToX After loading, resize to given width.
+        Pass 0 to not resize width.)
+
+      @param(ResizeToY After loading, resize to given height.
+        Pass 0 to not resize height.)
+    }
     constructor Create(const FileName: string;
       const LoadAsClass: array of TCastleImageClass;
       const LoadForbiddenConvs: TImageLoadConversions;
-      const ResizeToX, ResizeToY: Cardinal);
+      const ResizeToX: Cardinal = 0;
+      const ResizeToY: Cardinal = 0);
 
     { Prepare part of the image for drawing. }
     constructor CreatePart(
       const Image: TCastleImage;
-      const X0, Y0, Width, Height: Cardinal);
+      const X0, Y0, AWidth, AHeight: Cardinal);
 
     destructor Destroy; override;
 
@@ -129,6 +148,9 @@ type
       This can be affected by glPixelZoom.
       Normal 3D transformations have no effect over how the image is drawn. }
     procedure Draw;
+
+    property Width: Cardinal read FWidth;
+    property Height: Cardinal read FHeight;
   end;
 
 { Draw the image on 2D screen. Note that if you want to use this
@@ -825,6 +847,8 @@ begin
   try
     ImageDraw(Image);
   finally glEndList end;
+  FWidth := Image.Width;
+  FHeight := Image.Height;
 end;
 
 constructor TGLImage.Create(const FileName: string;
@@ -834,8 +858,11 @@ constructor TGLImage.Create(const FileName: string;
 var
   Image: TCastleImage;
 begin
-  Image := LoadImage(FileName, LoadAsClass, LoadForbiddenConvs,
-    ResizeToX, ResizeToY);
+  if High(LoadAsClass) = -1 then
+    Image := LoadImage(FileName, PixelsImageClasses, LoadForbiddenConvs,
+      ResizeToX, ResizeToY) else
+    Image := LoadImage(FileName, LoadAsClass, LoadForbiddenConvs,
+      ResizeToX, ResizeToY);
   try
     Create(Image);
   finally FreeAndNil(Image) end;
@@ -843,13 +870,15 @@ end;
 
 constructor TGLImage.CreatePart(
   const Image: TCastleImage;
-  const X0, Y0, Width, Height: Cardinal);
+  const X0, Y0, AWidth, AHeight: Cardinal);
 begin
   DisplayList := glGenListsCheck(1, 'TGLImage.CreatePart');
   glNewList(DisplayList, GL_COMPILE);
   try
     ImageDrawPart(Image, X0, Y0, Width, Height);
   finally glEndList end;
+  FWidth := AWidth;
+  FHeight := AHeight;
 end;
 
 destructor TGLImage.Destroy;
