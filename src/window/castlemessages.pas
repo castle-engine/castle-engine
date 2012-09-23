@@ -523,7 +523,7 @@ type
       nie modyfikuj tego zawartosci ! }
     MessgText: TStringList;
     Font: TGLBitmapFont_Abstract;   { font ktorego uzyc }
-    dlDrawBG: TGLuint;            { zapamietane tlo okienka }
+    DrawBG: TGLImage;            { zapamietane tlo okienka }
     align: TTextAlign;
     DrawAdditional: boolean; { czy wypisywac SAdditional }
     ClosingInfo: string;     { ClosingInfo : jesli '' to nie bedzie wypisywane }
@@ -865,8 +865,8 @@ begin
  glClear(GL_COLOR_BUFFER_BIT);
  glLoadIdentity;
 
- glRasterPos2i(0, 0);
- glCallList(md.dlDrawBG);
+ SetWindowPosZero;
+ md.DrawBG.Draw;
 
  RealScrollBarWholeWidth := Iff(md.ScrollBarVisible, ScrollBarWholeWidth, 0);
 
@@ -1098,8 +1098,8 @@ begin
    OnUserPress := messageOnUserPress;
    UserMouseDownOnlyWithinRect := AUserMouseDownOnlyWithinRect;
    if Window.DoubleBuffer then
-    dlDrawBG := SaveScreen_ToDisplayList_noflush(0, 0, Window.Width, Window.Height, GL_BACK) else
-    dlDrawBG := SaveScreen_ToDisplayList_noflush(0, 0, Window.Width, Window.Height, GL_FRONT);
+    DrawBG := SaveScreenToGL_noflush(0, 0, Window.Width, Window.Height, GL_BACK) else
+    DrawBG := SaveScreenToGL_noflush(0, 0, Window.Width, Window.Height, GL_FRONT);
    answered := false;
    if MessagesTheme.Font = nil then
     font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_m18) else
@@ -1141,7 +1141,7 @@ begin
 
  { zwolnij zainicjowane messageData }
  finally
-  glDeleteLists(messageData.dlDrawBG, 1);
+  FreeAndNil(messageData.DrawBG);
   messageData.Broken_MessgText.Free;
   messageData.Broken_ClosingInfo.Free;
   messageData.Broken_SAdditional.Free;

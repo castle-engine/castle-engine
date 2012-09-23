@@ -39,13 +39,13 @@ unit CastleProgress;
 
 interface
 
-uses GL, CastleWindow, ProgressUnit, WindowModes, CastleGLUtils, Images;
+uses GL, CastleWindow, ProgressUnit, WindowModes, CastleGLUtils, Images, GLImages;
 
 type
   TWindowProgressInterface = class(TProgressUserInterface)
   private
-    { Background image, as OpenGL list. }
-    ImageList: TGLuint;
+    { Background image. }
+    GLImage: TGLImage;
     BarYPosition: Single;
     FWindow: TCastleWindowBase;
     SavedMode: TGLMode;
@@ -67,7 +67,7 @@ var
 
 implementation
 
-uses SysUtils, CastleUtils, KeysMouse, GLImages, CastleControls;
+uses SysUtils, CastleUtils, KeysMouse, CastleControls;
 
 { display -------------------------------------------------------------------- }
 
@@ -83,7 +83,7 @@ begin
 
   glLoadIdentity;
   glRasterPos2i(0, 0);
-  glCallList(ProgressInterface.ImageList);
+  ProgressInterface.GLImage.Draw;
 
   Margin := 100 * Window.width div 800;
   BarHeight := 50 * Window.height div 600;
@@ -111,7 +111,7 @@ begin
   Check(Window <> nil,
     'TWindowProgressInterface: You must assign Window before doing Init');
 
-  { calculate ImageList }
+  { calculate GLImage }
   if Image <> nil then
   begin
     if (Image.Width <> Window.Width) or
@@ -119,14 +119,14 @@ begin
     begin
       GoodSizeImage := Image.MakeResized(Window.Width, Window.Height);
       try
-        ImageList := ImageDrawToDisplayList(GoodSizeImage);
+        GLImage := TGLImage.Create(GoodSizeImage);
       finally FreeAndNil(GoodSizeImage) end;
     end else
-      ImageList := ImageDrawToDisplayList(Image);
+      GLImage := TGLImage.Create(Image);
     BarYPosition := ImageBarYPosition;
   end else
   begin
-    ImageList := Window.SaveScreen_ToDisplayList;
+    GLImage := Window.SaveScreenToGL;
     BarYPosition := DefaultImageBarYPosition;
   end;
 
@@ -160,7 +160,7 @@ end;
 
 procedure TWindowProgressInterface.Fini(Progress: TProgress);
 begin
-  glFreeDisplayList(ImageList);
+  FreeAndNil(GLImage);
 
   FreeAndNil(SavedMode);
 end;

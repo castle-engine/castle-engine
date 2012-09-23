@@ -528,7 +528,7 @@ uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
   {$ifdef CASTLE_WINDOW_USE_XF86VMODE} CastleXF86VMode, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} Gdk2X, X, Xlib, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, CastleDynLib, {$endif}
-  CastleUtils, CastleClassUtils, CastleGLUtils, Images, KeysMouse,
+  CastleUtils, CastleClassUtils, CastleGLUtils, Images, GLImages, KeysMouse,
   CastleStringUtils, CastleFilesUtils, CastleTimeUtils, FileFilters, UIControls,
   FGL, pk3DConnexion,
   { VRML/X3D stuff }
@@ -1952,15 +1952,15 @@ end;
     { Saves screen, making sure Image width is a multiple of 4 on buggy Radeon
       drivers. The meaningful image width is equal to window's @link(Width). }
     function SaveAlignedScreen: TRGBImage;
-    function SaveScreen_ToDisplayList: TGLuint; overload;
+    function SaveScreenToGL: TGLImage; overload;
     { @groupEnd }
 
     function SaveScreen(
       const xpos, ypos, SavedAreaWidth,
         SavedAreaHeight: integer): TRGBImage; overload;
-    function SaveScreen_ToDisplayList(
+    function SaveScreenToGL(
       const xpos, ypos, SavedAreaWidth,
-        SavedAreaHeight: integer): TGLuint; overload;
+        SavedAreaHeight: integer): TGLImage; overload;
 
     { Asks and saves current screenshot.
       Asks user where to save the file (using @link(FileDialog),
@@ -2793,7 +2793,7 @@ procedure Resize2D(Window: TCastleWindowBase);
 
 implementation
 
-uses CastleParameters, CastleLog, GLImages, GLVersionUnit, X3DLoad
+uses CastleParameters, CastleLog, GLVersionUnit, X3DLoad
   { using here WindowModes/CastleMessages makes recursive CastleWindow usage,
     but it's needed for FileDialog }
   {$ifdef CASTLE_WINDOW_GTK_ANY}, WindowModes {$endif}
@@ -3439,22 +3439,22 @@ begin
     SavedAreaWidth, SavedAreaHeight, ReadBuffer);
 end;
 
-function TCastleWindowBase.SaveScreen_ToDisplayList: TGLuint;
+function TCastleWindowBase.SaveScreenToGL: TGLImage;
 begin
   if DoubleBuffer then
   begin
     EventBeforeDraw;
     EventDraw;
-    Result := SaveScreen_ToDisplayList_NoFlush(0, 0, Width, Height, GL_BACK);
+    Result := SaveScreenToGL_NoFlush(0, 0, Width, Height, GL_BACK);
   end else
   begin
     FlushRedisplay;
-    Result := SaveScreen_ToDisplayList_NoFlush(0, 0, Width, Height, GL_FRONT);
+    Result := SaveScreenToGL_NoFlush(0, 0, Width, Height, GL_FRONT);
   end;
 end;
 
-function TCastleWindowBase.SaveScreen_ToDisplayList(
-  const xpos, ypos, SavedAreaWidth, SavedAreaHeight: integer): TGLuint;
+function TCastleWindowBase.SaveScreenToGL(
+  const xpos, ypos, SavedAreaWidth, SavedAreaHeight: integer): TGLImage;
 var
   ReadBuffer: TGLenum;
 begin
@@ -3468,7 +3468,7 @@ begin
     FlushRedisplay;
     ReadBuffer := GL_FRONT;
   end;
-  Result := SaveScreen_ToDisplayList_NoFlush(xpos, ypos,
+  Result := SaveScreenToGL_NoFlush(xpos, ypos,
     SavedAreaWidth, SavedAreaHeight, ReadBuffer);
 end;
 

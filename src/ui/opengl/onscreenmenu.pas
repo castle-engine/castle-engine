@@ -671,8 +671,8 @@ end;
 var
   ImageSlider: TCastleImage;
   ImageSliderPosition: TCastleImage;
-  GLList_ImageSlider: TGLuint;
-  GLList_ImageSliderPosition: TGLuint;
+  GLImageSlider: TGLImage;
+  GLImageSliderPosition: TGLImage;
 
 procedure ImageSliderInit;
 
@@ -711,17 +711,17 @@ begin
 
   ImageSliderPosition := Slider_Position;
 
-  if GLList_ImageSlider = 0 then
-    GLList_ImageSlider := ImageDrawToDisplayList(ImageSlider);
+  if GLImageSlider = nil then
+    GLImageSlider := TGLImage.Create(ImageSlider);
 
-  if GLList_ImageSliderPosition = 0 then
-    GLList_ImageSliderPosition := ImageDrawToDisplayList(ImageSliderPosition);
+  if GLImageSliderPosition = nil then
+    GLImageSliderPosition := TGLImage.Create(ImageSliderPosition);
 end;
 
 procedure WindowClose(const Container: IUIContainer);
 begin
-  glFreeDisplayList(GLList_ImageSlider);
-  glFreeDisplayList(GLList_ImageSliderPosition);
+  FreeAndNil(GLImageSlider);
+  FreeAndNil(GLImageSliderPosition);
   FreeAndNil(ImageSlider);
 
   { Do not free, this is a reference to Slider_Position (that will be freed at
@@ -834,7 +834,7 @@ begin
   ImageSliderInit;
 
   SetWindowPos(Rectangle.X0, Rectangle.Y0 + (Rectangle.Height - ImageSlider.Height) / 2);
-  glCallList(GLList_ImageSlider);
+  GLImageSlider.Draw;
 end;
 
 const
@@ -850,7 +850,7 @@ begin
       ImageSlider.Width - 2 * ImageSliderPositionMargin -
       ImageSliderPosition.Width),
     Rectangle.Y0 + (Rectangle.Height - ImageSliderPosition.Height) / 2);
-  glCallList(GLList_ImageSliderPosition);
+  GLImageSliderPosition.Draw;
 end;
 
 function TMenuSlider.XCoordToSliderPosition(

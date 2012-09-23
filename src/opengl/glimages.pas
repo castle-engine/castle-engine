@@ -15,118 +15,47 @@
 
 { Using images in OpenGL (as textures and as normal images).
 
-  This unit implements various OpenGL utilities relates to handling images
-  in TCastleImage classes. This includes
+  For non-OpenGL image management, see CastleImages and TextureImages units.
+  They contain functions and classes to load, save and process
+  images.
+
+  This unit has functions and classes to:
+
   @unorderedList(
-    @item(Loading images as OpenGL textures.
-      A lot of utilities: for 2D textures (see LoadGLTexture),
+    @item(Load images as OpenGL textures.
+      You usually do not use these directly, instead TCastleScene
+      automatically uses these to load and render textures as part of 3D models.
+
+      A lot of utilities included: for 2D textures (see LoadGLTexture),
       cube maps (see glTextureCubeMap), 3D textures (see glTextureImage3D).
-      These function can be treated like a high-level wrappers around
-      glTexImage2D and analogous calls,
-      setting also common related texture parameters, generating mipmaps etc.)
+      These functions wrap OpenGL calls like glTexImage2D to handle
+      our images (TEncodedImage (and descendant TCastleImage), TDDSImage),
+      and to automatically set texture parameters, mipmaps and such.)
 
-    @item(Drawing TCastleImage instance in OpenGL buffer.
-      Wrapper around glDrawPixels and related things.
-      See ImageDraw.)
+    @item(Load and draw images in 2D.
+      This is useful to implement various 2D controls.
+      See TGLImage class and friends.)
 
-    @item(Screen saving, that is saving OpenGL buffer contents to TCastleImage instance.
-      Wrapper around glReadPixels and related things.
-      See TCastleWindowBase.SaveScreen, based on SaveScreen_NoFlush in this unit.)
+    @item(Save the current OpenGL screen contents to our TCastleImage.
+      You usually use this through TCastleWindowBase.SaveScreen
+      or TCastleControl.SaveScreen,
+      based on SaveScreen_NoFlush in this unit.)
 
-    @item(Rendering straight to texture (see TGLRenderToTexture class).
-      This is our abstraction
-      over OpenGL framebuffer or glCopyTexSubImage.)
+    @item(Render to texture, see TGLRenderToTexture class.
+      This is our abstraction over OpenGL framebuffer (or glCopyTexSubImage
+      for ancient GPUs).)
   )
 
-  See @link(Images) unit for functions to load, save, process
-  images. Images unit is the non-OpenGL-related helper of this unit.
+  This unit hides from your some details about OpenGL images handling.
+  For example, you don't have to worry about "pixel store alignment",
+  we handle it here internally when transferring images between memory and GPU.
+  You also don't have to worry about texture sizes being power of 2
+  (for OpenGLs with missing or buggy/slow ARB_texture_non_power_of_two),
+  or about maximum texture sizes --- we will resize textures if necessary.
 
-  This unit hides from you some specifics of OpenGL images handling :
-
-  @unorderedList(
-    @item(
-      Don't worry about pixel store alignment, this unit handles it for you.
-
-      Since internally our image formats have no alignment, we call
-      something like
-      @preformatted(
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  glPixelStorei(GL_PACK_ALIGNMENT, 1);
-)
-      when appropriate. Actually, we use @code(Before/After Pack/Unpack NotAlignedImage)
-      procedures from CastleGLUtils unit. )
-
-    @item(
-      Don't worry about texture size being power of 2, or about maximum texture
-      size.
-
-      This unit checks OpenGL capabilities, and if needed will scale your
-      texture to have power of 2 sizes that fit within OpenGL
-      GL_MAX_TEXTURE_SIZE limit.
-
-      @bold(Notes about power-of-two constraint:) Newer OpenGL allows using
-      non-power-of-two textures when extension ARB_texture_non_power_of_two
-      is supported (or version is >= 2.0). We can use this --- the code is
-      ready, just uncomment it in TextureNonPowerOfTwo.
-      But by default we don't use this, that is: we will scale textures
-      to be power of 2, even if we have ARB_texture_non_power_of_two or
-      new OpenGL.
-
-      Reason: well, looks like every vendor screwed it up. Embarassing.
-
-      @unorderedList(
-        @item(On Mesa, small artifacts occur (strange cracks appears on
-          non-power-of-2 texture, see inlined_textures.wrl in demo_models).
-          That's the @italic(best) result compared to other vendors, see below.)
-
-        @item(On ATI (fglrx on Linux on Mac Book Pro),
-          the extension is not present and OpenGL 2.0 entry points
-          are not fully present. (Although GL_VERSION claims 2.1 version,
-          glBlendEquationSeparate entry point from GL 2.0 is not present.)
-          For safety, I just assume that ATI is not able to make OpenGL 2.0,
-          so no extension and no 2.0 means textures must be power of two.
-
-          Just for kicks, I tried anyway to pass texture 4x3 (after all,
-          GL_VERSION claims 2.1 so this should be supported), and... uhh...
-          libGL segfaulted. Congrats, ATI.)
-
-        @item(I thought: Mesa is always buggy and Radeon should not be treated
-          as OpenGL 2.0, so I can live with this. Now let's try
-          great NVidia, they will for sure do this right. Well, yes, it works
-          correctly on NVidia (GeForce FX 5200)... but the slowdown is
-          enormous. For trivial box with 4x3 texture (see
-          inlined_textures.wrl in demo_models), that normally runs with
-          virtually infinite speed, suddenly the speed becomes like 1 frame per second !
-          Other example when the slowdown is enormous: castle/levels/castle_hall.wrl
-
-          You can test yourself (with view3dscene using
-          inlined_textures.wrl model;
-          just compile view3dscene to use non-power-of-2 textures;
-          contact me if you want a binary compiled as such for testing.)
-
-          Such slowdown is not acceptable, I prefer to loose texture quality
-          by scaling them to powers of 2 in this case...)
-      )
-    )
-  )
-
-  Internally, this unit depends on the knowledge of how pixels are stored
-  in TRGBImage and similar classes. For example we know that
-  TRGBImage stores image in format that OpenGL would call "GL_RGB
-  using GL_UNSIGNED_BYTE, without any alignment". Which means that
-  Image.RGBPixels is a pointer to array like
-  @code(packed array[0..Image.Height - 1,  0..Image.Width - 1] of TVector3Byte).
-  So we have rows of TVector3Byte structures, stored from lowest row to
-  highest row.
-
-  Routines in this unit that take TCastleImage or TEncodedImage paramater
+  Routines in this unit that take TCastleImage or TEncodedImage parameter
   are limited to TextureImageClassesAll (for routines dealing with textures)
-  or PixelsImageClasses (for routines dealing with pixel buffer, like
-  glReadPixels, glDrawPixels).
-  Note that *not everywhere* this is checked (especially if you
-  compile with -dRELEASE) so just be sure that you're always passing
-  only image instances of correct class (e.g. using
-  InImageClasses(MyImage, PixelsImageClasses)).
+  or PixelsImageClasses (for routines dealing with images drawn on 2D screen).
 }
 unit GLImages;
 
@@ -141,18 +70,12 @@ const
     TGrayscaleImage,
     TGrayscaleAlphaImage);
 
-{ These functions return appropriate GL_xxx format and type
+{ Return appropriate GL_xxx format and type
   for given TCastleImage descendant. If you will pass here Img
   that is not a descendant of one of TextureImageClassesAll
   or PixelsImageClasses, they will return GL_INVALID_ENUM
   (which is for sure different than any valid value like GL_RGB, GL_RGBA
   in OpenGL API).
-
-  Note that some routines, like ImageDraw, do not check that
-  an image is of appropriate class (e.g. PixelsImageClasses for ImageDraw).
-  Instead they may use ImageGLFormat results blindly, for speed.
-  So when you try to draw an invalid image class, they may
-  pass GL_INVALID_ENUM to OpenGL, and you get OpenGL errors.
 
   ImageGLInternalFormat works with TS3TCImage classes also, returning
   appropriate GL_COMPRESSED_*_S3TC_*_EXT, suitable for glCompressedTexImage2D.
@@ -165,30 +88,58 @@ function ImageGLType(const Img: TCastleImage): TGLenum;
 
 { Loading images ------------------------------------------------------------- }
 
-{ This calls @link(Images.LoadImage) and creates a display-list with
-  an ImageDraw call for this image.
-  Image will be loaded with AllowedImageClasses = LoadAsClass and
-  ForbiddenConvs = LoadForbiddenConvs, see @link(Images.LoadImage)
-  for description what these parameters mean.
-  LoadAsClass may contain only classes present in PixelsImageClasses. }
-function LoadImageToDisplayList(const FileName: string;
-  const LoadAsClass: array of TCastleImageClass;
-  const LoadForbiddenConvs: TImageLoadConversions;
-  const ResizeToX, ResizeToY: Cardinal): TGLuint; overload;
+type
+  { OpenGL image ready to be drawn on 2D screen. }
+  TGLImage = class
+  private
+    { For now, we use display lists to store 2D images.
+      We will migrate to PBO in the future. }
+    DisplayList: TGLuint;
+  public
+    { Prepare image for drawing. }
+    constructor Create(const Image: TCastleImage);
 
-{ Draws the image as 2D on screen.
-  This calls OpenGL glDrawPixels command on this image.
+    { Load image from disk, and prepare for drawing.
+      See CastleImages.LoadImage for description of parameters.
+      LoadAsClass may only be a subset of PixelsImageClasses.
+      ResizeToX and/or ResizeToY may be zero to not resize. }
+    constructor Create(const FileName: string;
+      const LoadAsClass: array of TCastleImageClass;
+      const LoadForbiddenConvs: TImageLoadConversions;
+      const ResizeToX, ResizeToY: Cardinal);
 
-  Don't worry about OpenGL's UNPACK_ALIGNMENT,
-  we will take care here about this
-  (changing it and restoring to previous value if necessary). }
+    { Prepare part of the image for drawing. }
+    constructor CreatePart(
+      const Image: TCastleImage;
+      const X0, Y0, Width, Height: Cardinal);
+
+    destructor Destroy; override;
+
+    { Draw the image as 2D on screen.
+
+      The current OpenGL raster position determines where the left-bottom
+      corner of the image will be placed. Usually it's most comfortable
+      to set the raster in window coordinates by CastleGLUtils.SetWindowPos.
+      You can also set it using OpenGL glRasterPos2i or similar commands
+      (in which case raster is transformed by OpenGL projection and modelview
+      matrices and affected by current OpenGL viewport, so be sure they are Ok).
+
+      The image is drawn in 2D, which means that in normal circumstances
+      1 pixel of the image is just placed over 1 pixel of the screen.
+      This can be affected by glPixelZoom.
+      Normal 3D transformations have no effect over how the image is drawn. }
+    procedure Draw;
+  end;
+
+{ Draw the image on 2D screen. Note that if you want to use this
+  many times, it will be much faster to create TGLImage instance. }
 procedure ImageDraw(const Image: TCastleImage);
 
-{ Same as @link(ImageDraw), but will draw only RowsCount rows
-  starting from Row0. }
+{ Draw the subset of image rows on 2D screen.
+  Draws RowsCount rows starting from Row0. }
 procedure ImageDrawRows(const Image: TCastleImage; Row0, RowsCount: integer);
 
-{ Draw a part of the image by glDrawPixels.
+{ Draw a part of the image on 2D screen.
 
   Part of the image starts from X0, Y0 (where 0, 0 is the left/bottom
   pixel, i.e. where the normal ImageDraw starts) and spans Width/Height.
@@ -209,13 +160,6 @@ procedure ImageDrawPart(const image: TCastleImage;
 procedure ImageDrawPart(const image: TCastleImage;
   const X0, Y0: Cardinal); overload;
 { @groupEnd }
-
-{ This creates new display list with a call to ImageDraw(Img) inside. }
-function ImageDrawToDisplayList(const img: TCastleImage): TGLuint;
-
-function ImageDrawPartToDisplayList(
-  const Image: TCastleImage;
-  const X0, Y0, Width, Height: Cardinal): TGLuint;
 
 { Saving screen to TRGBImage ----------------------------------- }
 
@@ -301,21 +245,10 @@ function SaveAlignedScreen_NoFlush(
   const XPos, YPos: Integer; Width: Cardinal; const Height: Cardinal;
   const ReadBuffer: TGLenum): TRGBImage;
 
-{ Captures current screen and creates a display list to draw it in the future.
-
-  Capturing the screen is done by SaveScreen_NoFlush,
-  drawing of the image is done normally,
-  and placed in a display list.
-
-  Actually, this is more complicated
-  (we capture the screen with SaveAlignedScreen_NoFlush,
-  to workaround GLVersion.BuggyDrawOddWidth bug,
-  we also have to actually draw it a little larger),
-  but the intention of this procedure is to
-  completely hide this completexity from you. }
-function SaveScreen_ToDisplayList_NoFlush(
+{ Captures current screen as a TGLImage instance, ready to be drawn on 2D screen. }
+function SaveScreenToGL_NoFlush(
   const XPos, YPos: Integer; const Width, Height: Cardinal;
-  const ReadBuffer: TGLenum): TGLuint;
+  const ReadBuffer: TGLenum): TGLImage;
 
 { ----------------------------------------------------------------------
   Adjusting image size to load them as textures. }
@@ -883,40 +816,75 @@ begin
     Result := GL_INVALID_ENUM;
 end;
 
-{ Loading images ------------------------------------------------------------- }
+{ TGLImage ------------------------------------------------------------------- }
 
-function LoadImageToDisplayList(const FileName: string;
-  const LoadAsClass: array of TCastleImageClass;
-  const LoadForbiddenConvs: TImageLoadConversions;
-  const ResizeToX, ResizeToY: Cardinal): TGLuint;
-var
-  Img: TCastleImage;
+constructor TGLImage.Create(const Image: TCastleImage);
 begin
-  Img := LoadImage(FileName, LoadAsClass, LoadForbiddenConvs,
-    ResizeToX, ResizeToY);
+  DisplayList := glGenListsCheck(1, 'TGLImage.Create');
+  glNewList(DisplayList, GL_COMPILE);
   try
-    Result := ImageDrawToDisplayList(Img);
-  finally Img.Free end;
+    ImageDraw(Image);
+  finally glEndList end;
 end;
 
-procedure ImageDraw(const Image: TCastleImage);
-var UnpackData: TUnpackNotAlignedData;
+constructor TGLImage.Create(const FileName: string;
+  const LoadAsClass: array of TCastleImageClass;
+  const LoadForbiddenConvs: TImageLoadConversions;
+  const ResizeToX, ResizeToY: Cardinal);
+var
+  Image: TCastleImage;
 begin
- BeforeUnpackImage(UnpackData, image);
- try
-  with image do
-   glDrawPixels(Width, Height, ImageGLFormat(image), ImageGLType(image), RawPixels);
- finally AfterUnpackImage(UnpackData, image) end;
+  Image := LoadImage(FileName, LoadAsClass, LoadForbiddenConvs,
+    ResizeToX, ResizeToY);
+  try
+    Create(Image);
+  finally FreeAndNil(Image) end;
+end;
+
+constructor TGLImage.CreatePart(
+  const Image: TCastleImage;
+  const X0, Y0, Width, Height: Cardinal);
+begin
+  DisplayList := glGenListsCheck(1, 'TGLImage.CreatePart');
+  glNewList(DisplayList, GL_COMPILE);
+  try
+    ImageDrawPart(Image, X0, Y0, Width, Height);
+  finally glEndList end;
+end;
+
+destructor TGLImage.Destroy;
+begin
+  glFreeDisplayList(DisplayList);
+  inherited;
+end;
+
+procedure TGLImage.Draw;
+begin
+  glCallList(DisplayList);
+end;
+
+{ Drawing images on 2D screen ------------------------------------------------ }
+
+procedure ImageDraw(const Image: TCastleImage);
+var
+  UnpackData: TUnpackNotAlignedData;
+begin
+  BeforeUnpackImage(UnpackData, image);
+  try
+    with image do
+      glDrawPixels(Width, Height, ImageGLFormat(image), ImageGLType(image), RawPixels);
+  finally AfterUnpackImage(UnpackData, image) end;
 end;
 
 procedure ImageDrawRows(const Image: TCastleImage; Row0, RowsCount: integer);
-var UnpackData: TUnpackNotAlignedData;
+var
+  UnpackData: TUnpackNotAlignedData;
 begin
- BeforeUnpackImage(UnpackData, image);
- try
-  with image do
-   glDrawPixels(Width, RowsCount, ImageGLFormat(image), ImageGLType(image), Image.RowPtr(Row0));
- finally AfterUnpackImage(UnpackData, image) end;
+  BeforeUnpackImage(UnpackData, image);
+  try
+    with image do
+      glDrawPixels(Width, RowsCount, ImageGLFormat(image), ImageGLType(image), Image.RowPtr(Row0));
+  finally AfterUnpackImage(UnpackData, image) end;
 end;
 
 procedure ImageDrawPart(const image: TCastleImage;
@@ -951,25 +919,6 @@ procedure ImageDrawPart(const image: TCastleImage;
   const X0, Y0: Cardinal);
 begin
   ImageDrawPart(Image, X0, Y0, MaxInt, MaxInt);
-end;
-
-function ImageDrawToDisplayList(const Img: TCastleImage): TGLuint;
-begin
-  Result := glGenListsCheck(1, 'ImageDrawToDisplayList');
-  glNewList(Result, GL_COMPILE);
-  try
-    ImageDraw(Img);
-  finally glEndList end;
-end;
-
-function ImageDrawPartToDisplayList(
-  const image: TCastleImage; const X0, Y0, Width, Height: Cardinal): TGLuint;
-begin
-  Result := glGenListsCheck(1, 'ImageDrawPartToDisplayList');
-  glNewList(Result, GL_COMPILE);
-  try
-    ImageDrawPart(Image, X0, Y0, Width, Height);
-  finally glEndList end;
 end;
 
 { Saving screen to TRGBImage ------------------------------------------------ }
@@ -1017,34 +966,73 @@ begin
   Result := SaveScreen_NoFlush(XPos, YPos, Width, Height, ReadBuffer);
 end;
 
-function SaveScreen_ToDisplayList_NoFlush(
+function SaveScreenToGL_NoFlush(
   const XPos, YPos: Integer; const Width, Height: Cardinal;
-  const ReadBuffer: TGLenum): TGLuint;
+  const ReadBuffer: TGLenum): TGLImage;
+{ We capture the screen with SaveAlignedScreen_NoFlush,
+  to workaround GLVersion.BuggyDrawOddWidth bug.
+  We also have to actually draw it a little larger. }
 var
   ScreenImage: TRGBImage;
 begin
   ScreenImage := SaveAlignedScreen_NoFlush(XPos, YPos, Width, Height, ReadBuffer);
   try
     { There was an idea to do here
-        ImageDrawPartToDisplayList(ScreenImage, 0, 0, Width, Height);
+        TGLImage.CreatePart(ScreenImage, 0, 0, Width, Height);
       to draw only part of the screen when GLVersion.BuggyDrawOddWidth.
       Unfortunately, it doesn't really work, even drawing the screen
       is buggy with GLVersion.BuggyDrawOddWidth... }
-    Result := ImageDrawToDisplayList(ScreenImage);
+    Result := TGLImage.Create(ScreenImage);
   finally FreeAndNil(ScreenImage) end;
 end;
 
 { ----------------------------------------------------------------------
   Adjusting image size for 2D texture. }
 
+{ Check does OpenGL support non-power-of-2 texture sizes.
+  If not, then textures will be scaled to have power-of-2 size before
+  loading them to OpenGL.
+
+  As you can see, for now we just always return false.
+  You can uncomment the "real" check for ARB_texture_non_power_of_two below,
+  and see how it works on your GPU --- in my experience, it's just always
+  horribly slow and/or buggy, on all GPUs.
+
+  @unorderedList(
+    @item(On Mesa, small artifacts occur (strange cracks appears on
+      non-power-of-2 texture, see inlined_textures.wrl in demo_models).
+      That's the @italic(best) result compared to other vendors, see below.)
+
+    @item(On ATI (fglrx on Linux on Mac Book Pro),
+      the extension is not present and OpenGL 2.0 entry points
+      are not fully present. (Although GL_VERSION claims 2.1 version,
+      glBlendEquationSeparate entry point from GL 2.0 is not present.)
+      For safety, I just assume that ATI is not able to make OpenGL 2.0,
+      so no extension and no 2.0 means textures must be power of two.
+
+      Just for kicks, I tried anyway to pass texture 4x3 (after all,
+      GL_VERSION claims 2.1 so this should be supported), and... uhh...
+      libGL segfaulted. Congrats, ATI.)
+
+    @item(Let's try NVidia, they will for sure do this right. Well, yes, it works
+      correctly on NVidia (GeForce FX 5200)... but the slowdown is
+      enormous. For trivial box with 4x3 texture (see
+      inlined_textures.wrl in demo_models), that normally runs with
+      virtually infinite speed, suddenly the speed becomes ~ 1 frame per second.
+      Other example when the slowdown is enormous: castle/levels/castle_hall.wrl
+
+      You can test yourself (with view3dscene using
+      inlined_textures.wrl model;
+      just compile view3dscene to use non-power-of-2 textures;
+      contact me if you want a binary compiled as such for testing.)
+
+      Such slowdown is not acceptable, I prefer to loose texture quality
+      by scaling them to powers of 2 in this case...)
+  )
+}
 function TextureNonPowerOfTwo: boolean;
 begin
-  Result := false
-    { Using this makes OpenGL *sooo* slow...
-      see e.g. castle/levels/castle_hall_final.wrl model or
-      demo_models/inlined_textures.wrl.
-      So it's better to scale textures to be power of 2. }
-    {GL_ARB_texture_non_power_of_two or GL_version_2_0};
+  Result := false {GL_ARB_texture_non_power_of_two or GL_version_2_0};
 end;
 
 function IsTextureSized(const Width, Height: Cardinal): boolean;

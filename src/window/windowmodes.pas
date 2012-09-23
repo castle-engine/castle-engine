@@ -33,7 +33,7 @@ unit WindowModes;
 interface
 
 uses SysUtils, GL, CastleWindow, CastleGLUtils, Images, CastleMessages,
-  UIControls, KeysMouse;
+  UIControls, KeysMouse, GLImages;
 
 type
   { }
@@ -267,7 +267,7 @@ type
      }
   TGLModeFrozenScreen = class(TGLMode)
   private
-    dlScreenImage: TGLuint;
+    ScreenImage: TGLImage;
     SavedScreenWidth, SavedScreenHeight: Cardinal;
     FPolygonStipple: PPolygonStipple;
   public
@@ -284,7 +284,7 @@ procedure NoClose(Window: TCastleWindowBase);
 
 implementation
 
-uses CastleUtils, GLImages;
+uses CastleUtils;
 
 { TWindowState -------------------------------------------------------------- }
 
@@ -589,15 +589,15 @@ begin
   try
    glDisable(GL_DEPTH_TEST);
 
-   glLoadIdentity;
-   glRasterPos2i(0, 0);
-   glCallList(Mode.dlScreenImage);
+   SetWindowPosZero;
+   Mode.ScreenImage.Draw;
 
    if Mode.FPolygonStipple <> nil then
    begin
     glEnable(GL_POLYGON_STIPPLE);
     CastleGLPolygonStipple(Mode.FPolygonStipple);
     glColor3ub(0, 0, 0);
+    glLoadIdentity;
     glRectf(0, 0, Window.Width, Window.Height);
    end;
   finally glPopMatrix end;
@@ -614,7 +614,7 @@ begin
 
  { save screen, before changing state (before changing OnDraw callback
    in SetStandardState, before changing projection in Window.EventResize etc.) }
- DLScreenImage := Window.SaveScreen_ToDisplayList;
+ ScreenImage := Window.SaveScreenToGL;
 
  TWindowState.SetStandardState(AWindow,
    {$ifdef FPC_OBJFPC} @ {$endif} FrozenImageDraw,
@@ -633,7 +633,7 @@ destructor TGLModeFrozenScreen.Destroy;
 begin
  inherited;
  { it's a little safer to call this after inherited }
- glFreeDisplayList(dlScreenImage);
+ FreeAndNil(ScreenImage);
 end;
 
 { routines ------------------------------------------------------------------- }

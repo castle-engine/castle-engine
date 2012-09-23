@@ -19,7 +19,7 @@ unit CastleControls;
 interface
 
 uses Classes, GL, VectorMath, UIControls, OpenGLFonts,
-  KeysMouse, Images, CastleUtils;
+  KeysMouse, Images, CastleUtils, GLImages;
 
 type
   { Base class for all controls inside an OpenGL context using a font. }
@@ -61,7 +61,7 @@ type
     FPressed: boolean;
     FOwnsImage: boolean;
     FImage: TCastleImage;
-    FGLImage: TGLuint;
+    FGLImage: TGLImage;
     FToggle: boolean;
     ClickStarted: boolean;
     FOpacity: Single;
@@ -223,7 +223,7 @@ type
   private
     FFileName: string;
     FImage: TCastleImage;
-    FGLImage: TGLuint;
+    FGLImage: TGLImage;
     FBlending: boolean;
     procedure SetFileName(const Value: string);
     procedure SetImage(const Value: TCastleImage);
@@ -289,7 +289,7 @@ implementation
 
 uses SysUtils,
   BFNT_BitstreamVeraSans_m10_Unit, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts,
-  CastleGLUtils, GLImages, Math;
+  CastleGLUtils, Math;
 
 procedure Register;
 begin
@@ -383,7 +383,7 @@ end;
 destructor TCastleButton.Destroy;
 begin
   if OwnsImage then FreeAndNil(FImage);
-  glFreeDisplayList(FGLImage);
+  FreeAndNil(FGLImage);
   inherited;
 end;
 
@@ -446,15 +446,15 @@ begin
     glColorOpacity(ColText, Opacity);
 
     TextLeft := Left + (Width - TextWidth) div 2;
-    if (FImage <> nil) and (FGLImage <> 0) and (ImageLayout = ilLeft) then
+    if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilLeft) then
       TextLeft += (FImage.Width + ButtonCaptionImageMargin) div 2 else
-    if (FImage <> nil) and (FGLImage <> 0) and (ImageLayout = ilRight) then
+    if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilRight) then
       TextLeft -= (FImage.Width + ButtonCaptionImageMargin) div 2;
 
     TextBottom := Bottom + (Height - TextHeight) div 2;
-    if (FImage <> nil) and (FGLImage <> 0) and (ImageLayout = ilBottom) then
+    if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilBottom) then
       TextBottom += (FImage.Height + ButtonCaptionImageMargin) div 2 else
-    if (FImage <> nil) and (FGLImage <> 0) and (ImageLayout = ilTop) then
+    if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilTop) then
       TextBottom -= (FImage.Height + ButtonCaptionImageMargin) div 2;
 
     glRasterPos2i(TextLeft, TextBottom);
@@ -464,7 +464,7 @@ begin
   if Opacity < 1 then
     glPopAttrib;
 
-  if (FImage <> nil) and (FGLImage <> 0) then
+  if (FImage <> nil) and (FGLImage <> nil) then
   begin
     if FImage.HasAlpha then
     begin
@@ -491,7 +491,7 @@ begin
       ilLeft, ilRight: ImgBottom := Bottom + (Height - FImage.Height) div 2;
     end;
     glRasterPos2i(ImgLeft, ImgBottom);
-    glCallList(FGLImage);
+    FGLImage.Draw;
     if FImage.HasAlpha then
       glPopAttrib;
   end;
@@ -509,14 +509,14 @@ end;
 procedure TCastleButton.GLContextOpen;
 begin
   inherited;
-  if (FGLImage = 0) and (FImage <> nil) then
-    FGLImage := ImageDrawToDisplayList(FImage);
+  if (FGLImage = nil) and (FImage <> nil) then
+    FGLImage := TGLImage.Create(FImage);
   UpdateTextSize;
 end;
 
 procedure TCastleButton.GLContextClose;
 begin
-  glFreeDisplayList(FGLImage);
+  FreeAndNil(FGLImage);
   inherited;
 end;
 
@@ -661,12 +661,12 @@ begin
   if FImage <> Value then
   begin
     if OwnsImage then FreeAndNil(FImage);
-    glFreeDisplayList(FGLImage);
+    FreeAndNil(FGLImage);
 
     FImage := Value;
 
     if GLInitialized and (FImage <> nil) then
-      FGLImage := ImageDrawToDisplayList(FImage);
+      FGLImage := TGLImage.Create(FImage);
 
     UpdateSize;
   end;
@@ -866,7 +866,7 @@ end;
 destructor TCastleImageControl.Destroy;
 begin
   FreeAndNil(FImage);
-  glFreeDisplayList(FGLImage);
+  FreeAndNil(FGLImage);
   inherited;
 end;
 
@@ -886,24 +886,24 @@ begin
   if FImage <> Value then
   begin
     FreeAndNil(FImage);
-    glFreeDisplayList(FGLImage);
+    FreeAndNil(FGLImage);
 
     FImage := Value;
     if GLInitialized and (FImage <> nil) then
-      FGLImage := ImageDrawToDisplayList(FImage);
+      FGLImage := TGLImage.Create(FImage);
   end;
 end;
 
 function TCastleImageControl.DrawStyle: TUIControlDrawStyle;
 begin
-  if GetExists and (FGLImage <> 0) then
+  if GetExists and (FGLImage <> nil) then
     Result := ds2D else
     Result := dsNone;
 end;
 
 procedure TCastleImageControl.Draw;
 begin
-  if not (GetExists and (FGLImage <> 0)) then Exit;
+  if not (GetExists and (FGLImage <> nil)) then Exit;
 
   if Blending then
   begin
@@ -913,7 +913,7 @@ begin
   end;
 
   glRasterPos2i(Left, Bottom);
-  glCallList(FGLImage);
+  FGLImage.Draw;
 
   if Blending then
     glPopAttrib;
@@ -932,13 +932,13 @@ end;
 procedure TCastleImageControl.GLContextOpen;
 begin
   inherited;
-  if (FGLImage = 0) and (FImage <> nil) then
-    FGLImage := ImageDrawToDisplayList(FImage);
+  if (FGLImage = nil) and (FImage <> nil) then
+    FGLImage := TGLImage.Create(FImage);
 end;
 
 procedure TCastleImageControl.GLContextClose;
 begin
-  glFreeDisplayList(FGLImage);
+  FreeAndNil(FGLImage);
   inherited;
 end;
 

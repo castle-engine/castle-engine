@@ -20,7 +20,7 @@ interface
 
 uses Boxes3D, X3DNodes, CastleScene, VectorMath, CastleUtils,
   CastleClassUtils, Classes, Images, GL, GLU, CastleGLUtils,
-  PrecalculatedAnimation, CastleResources,
+  PrecalculatedAnimation, CastleResources, GLImages,
   CastleXMLConfig, CastleSoundEngine, Frustum, Base3D, FGL, CastleColors;
 
 const
@@ -41,7 +41,7 @@ type
     FCaption: string;
     FImageFileName: string;
     FImage: TCastleImage;
-    FGLList_DrawImage: TGLuint;
+    FGLImage: TGLImage;
     FBoundingBoxRotated: TBox3D;
   protected
     procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
@@ -74,8 +74,8 @@ type
 
     property ImageFileName: string read FImageFileName;
 
-    { OpenGL display list to draw @link(Image). }
-    function GLList_DrawImage: TGLuint;
+    { OpenGL resource to draw @link(Image). }
+    function GLImage: TGLImage;
 
     { The largest possible bounding box of the 3D item,
       taking into account that actual item 3D model will be rotated when
@@ -404,7 +404,7 @@ var
 implementation
 
 uses SysUtils, CastleFilesUtils, CastlePlayer, CastleGameNotifications,
-  CastleConfig, GLImages;
+  CastleConfig;
 
 { TItemKind ------------------------------------------------------------ }
 
@@ -438,11 +438,11 @@ begin
   Result := FImage;
 end;
 
-function TItemKind.GLList_DrawImage: TGLuint;
+function TItemKind.GLImage: TGLImage;
 begin
-  if FGLList_DrawImage = 0 then
-    FGLList_DrawImage := ImageDrawToDisplayList(Image);
-  Result := FGLList_DrawImage;
+  if FGLImage = nil then
+    FGLImage := TGLImage.Create(Image);
+  Result := FGLImage;
 end;
 
 procedure TItemKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
@@ -466,6 +466,7 @@ end;
 procedure TItemKind.ReleaseCore;
 begin
   FScene := nil;
+  FreeAndNil(FGLImage);
   inherited;
 end;
 
