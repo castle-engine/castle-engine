@@ -24,7 +24,7 @@ procedure Draw(Window: TCastleWindowBase);
 var
   RealViewMoveX, RealViewMoveY: Integer;
 
-  procedure DrawImageOnTile(X, Y: Cardinal; ImageList: TGLuint;
+  procedure DrawImageOnTile(X, Y: Cardinal; GLImage: TGLImage;
     const SpecialMoveX: Integer = 0;
     const SpecialMoveY: Integer = 0);
   var
@@ -50,7 +50,7 @@ var
       glBitmap(0, 0, 0, 0, PosX, PosY, nil);
     end;
 
-    glCallList(ImageList);
+    GLImage.Draw;
   end;
 
 var
@@ -103,7 +103,7 @@ begin
     for Y := Y1 to Y2 do
     begin
       MapTile := Map.Items[X, Y];
-      DrawImageOnTile(X, Y, MapTile.BaseTile.GLList);
+      DrawImageOnTile(X, Y, MapTile.BaseTile.GLImage);
     end;
 
   { TODO: shitty code, should draw only the part that fits within the window.
@@ -117,17 +117,17 @@ begin
     if Y = Player.Y then
     begin
       if Player.Moving then
-        DrawImageOnTile(Player.X, Player.Y, Player.GLList[Player.Direction],
+        DrawImageOnTile(Player.X, Player.Y, Player.GLImage[Player.Direction],
           Round(Player.MovingSmallMoveX),
           Round(Player.MovingSmallMoveY)) else
-        DrawImageOnTile(Player.X, Player.Y, Player.GLList[Player.Direction]);
+        DrawImageOnTile(Player.X, Player.Y, Player.GLImage[Player.Direction]);
     end;
 
     for X := 0 to Map.Width - 1 do
     begin
       MapTile := Map.Items[X, Y];
       if MapTile.BonusTile <> nil then
-        DrawImageOnTile(X, Y, MapTile.BonusTile.GLList);
+        DrawImageOnTile(X, Y, MapTile.BonusTile.GLImage);
     end;
   end;
 

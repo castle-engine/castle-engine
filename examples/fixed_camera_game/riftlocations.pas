@@ -26,7 +26,7 @@ unit RiftLocations;
 interface
 
 uses CastleUtils, CastleClassUtils, Classes, CastleScene, GL, VectorMath,
-  RiftLoadable, X3DNodes, FGL;
+  RiftLoadable, X3DNodes, FGL, GLImages;
 
 type
   TLocation = class(TLoadable)
@@ -36,7 +36,7 @@ type
     FShadowedImageFileName: string;
     FSceneFileName: string;
     FScene: TCastleScene;
-    FGLList_Image, FGLList_ShadowedImage: TGLuint;
+    FGLImage, FGLShadowedImage: TGLImage;
     FSceneCameraDescription: string;
     FInitialPosition: TVector3Single;
     FInitialDirection: TVector3Single;
@@ -62,8 +62,8 @@ type
     property InitialUp: TVector3Single read FInitialUp;
 
     property Scene: TCastleScene read FScene;
-    property GLList_Image: TGLuint read FGLList_Image;
-    property GLList_ShadowedImage: TGLuint read FGLList_ShadowedImage;
+    property GLImage: TGLImage read FGLImage;
+    property GLShadowedImage: TGLImage read FGLShadowedImage;
   end;
 
   TLocationList = class(specialize TFPGObjectList<TLocation>)
@@ -79,7 +79,7 @@ var
 
 implementation
 
-uses SysUtils, DOM, GLImages, ProgressUnit, Images, GLRenderer, UIControls,
+uses SysUtils, DOM, ProgressUnit, Images, GLRenderer, UIControls,
   CastleGLUtils, CastleWindow, CastleXMLUtils, CastleSceneCore, RiftWindow, RiftData;
 
 { TLocation ------------------------------------------------------------------ }
@@ -110,9 +110,9 @@ begin
 
   Progress.Step;
 
-  FGLList_Image := LoadImageToDisplayList(ImageFileName,
+  FGLImage := TGLImage.Create(ImageFileName,
     [TRGBImage], [], Window.Width, Window.Height);
-  FGLList_ShadowedImage := LoadImageToDisplayList(ShadowedImageFileName,
+  FGLShadowedImage := TGLImage.Create(ShadowedImageFileName,
     [TRGBImage], [], Window.Width, Window.Height);
   Progress.Step;
 end;
@@ -125,8 +125,8 @@ end;
 procedure TLocation.UnLoadInternal;
 begin
   FreeAndNil(FScene);
-  glFreeDisplayList(FGLList_Image);
-  glFreeDisplayList(FGLList_ShadowedImage);
+  FreeAndNil(FGLImage);
+  FreeAndNil(FGLShadowedImage);
   inherited;
 end;
 

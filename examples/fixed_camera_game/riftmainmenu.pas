@@ -98,7 +98,7 @@ var
 
 var
   CurrentMenu: TCastleOnScreenMenu;
-  GLList_MenuBg: TGLuint;
+  GLMenuBg: TGLImage;
   UserQuit: boolean;
 
 { Sets CurrentMenu, taking care of adding this menu / removing existing menu
@@ -118,7 +118,7 @@ procedure Draw(Window: TCastleWindowBase);
 begin
   glLoadIdentity;
   glRasterPos2i(0, 0);
-  glCallList(GLList_MenuBg);
+  GLMenuBg.Draw;
 end;
 
 procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
@@ -341,7 +341,7 @@ begin
   SoundMenu := TRiftSoundMenu.Create(nil);
   ChangeOpenALDeviceMenu := TChangeOpenALDeviceMenu.Create(nil);
 
-  GLList_MenuBg := LoadImageToDisplayList(DataFileNameFromConfig(
+  GLMenuBg := TGLImage.Create(DataFileNameFromConfig(
     DataConfig.GetValue('main_menu/image', 'required_xml_value_missing')),
     [], [], Window.Width, Window.Height);
 end;
@@ -351,7 +351,7 @@ begin
   FreeAndNil(MainMenu);
   FreeAndNil(SoundMenu);
   FreeAndNil(ChangeOpenALDeviceMenu);
-  glFreeDisplayList(GLList_MenuBg);
+  FreeAndNil(GLMenuBg);
 end;
 
 initialization

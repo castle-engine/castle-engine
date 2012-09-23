@@ -99,8 +99,8 @@ begin
           end;
         end;
         if Params.InShadow then
-          glCallList(CurrentLocation.GLList_ShadowedImage) else
-          glCallList(CurrentLocation.GLList_Image);
+          CurrentLocation.GLShadowedImage.Draw else
+          CurrentLocation.GLImage.Draw;
       glPopAttrib;
     end;
 

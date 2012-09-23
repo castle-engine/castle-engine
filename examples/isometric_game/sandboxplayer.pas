@@ -2,7 +2,7 @@ unit SandBoxPlayer;
 
 interface
 
-uses SysUtils, Images, CastleGLUtils;
+uses SysUtils, Images, CastleGLUtils, GLImages;
 
 type
   TDirection = (
@@ -37,7 +37,7 @@ type
     property YPixel: Integer read FYPixel;
   public
     Image: array [TDirection] of TCastleImage;
-    GLList: array [TDirection] of TGLuint;
+    GLImage: array [TDirection] of TGLImage;
 
     property Direction: TDirection read FDirection;
 
@@ -58,7 +58,7 @@ type
 
 implementation
 
-uses CastleFilesUtils, CastleUtils, SandBoxGame, GLImages;
+uses CastleFilesUtils, CastleUtils, SandBoxGame;
 
 constructor TPlayer.Create;
 const
@@ -83,7 +83,7 @@ begin
       'sprites' + PathDelim + 'creatures' + PathDelim + 'observer' + PathDelim +
       'observer_float_' + MoveShortcutNames[Dir] + '_1_hh.png',
       PixelsImageClasses, []);
-    GLList[Dir] := ImageDrawToDisplayList(Image[Dir]);
+    GLImage[Dir] := TGLImage.Create(Image[Dir]);
   end;
 end;
 
@@ -94,7 +94,7 @@ begin
   for Dir := Low(Dir) to High(Dir) do
   begin
     FreeAndNil(Image[Dir]);
-    glFreeDisplayList(GLList[Dir]);
+    FreeAndNil(GLImage[Dir]);
   end;
   inherited;
 end;

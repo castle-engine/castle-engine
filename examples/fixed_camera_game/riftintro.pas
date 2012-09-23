@@ -41,8 +41,8 @@ uses SysUtils, GL, CastleWindow, CastleFilesUtils,
 type
   TIntroPart = record
     CorrodeDuration, IdleDuration: Single;
-    Image: TGLuint;
-    ImageCorroded: TGLuint;
+    Image: TGLImage;
+    ImageCorroded: TGLImage;
   end;
 
 var
@@ -87,7 +87,7 @@ begin
 
   if IntroPartTime >= IntroParts[IntroPart].CorrodeDuration then
   begin
-    glCallList(IntroParts[IntroPart].ImageCorroded);
+    IntroParts[IntroPart].ImageCorroded.Draw;
   end else
   begin
     Corrosion := IntroPartTime / IntroParts[IntroPart].CorrodeDuration;
@@ -101,7 +101,7 @@ begin
     glPixelTransferf(GL_GREEN_SCALE, 1 - Corrosion);
     glPixelTransferf(GL_BLUE_SCALE, 1 - Corrosion);
 
-    glCallList(IntroParts[IntroPart].Image);
+    IntroParts[IntroPart].Image.Draw;
 
     glPixelTransferf(GL_RED_SCALE, Corrosion);
     glPixelTransferf(GL_GREEN_SCALE, Corrosion);
@@ -109,7 +109,7 @@ begin
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
-    glCallList(IntroParts[IntroPart].ImageCorroded);
+    IntroParts[IntroPart].ImageCorroded.Draw;
     glDisable(GL_BLEND);
 
     glPixelTransferf(GL_RED_SCALE, 1);
@@ -193,10 +193,10 @@ procedure WindowOpen(const Container: IUIContainer);
       { calculate IntroParts[I].Image and ImageCorroded }
       ImageName := DataConfig.GetValue(ElementPath + '/image',
         'require_image_name_missing');
-      IntroParts[I].Image := LoadImageToDisplayList(
+      IntroParts[I].Image := TGLImage.Create(
         ProgramDataPath + 'data' + PathDelim + 'images' + PathDelim +
         ImageName + '.png', [TRGBImage], [], Window.Width, Window.Height);
-      IntroParts[I].ImageCorroded := LoadImageToDisplayList(
+      IntroParts[I].ImageCorroded := TGLImage.Create(
         ProgramDataPath + 'data' + PathDelim + 'images' + PathDelim +
         ImageName + '_corroded.png', [TRGBImage], [], Window.Width, Window.Height);
     end;
@@ -214,7 +214,8 @@ procedure WindowClose(const Container: IUIContainer);
   begin
     for I := 0 to High(IntroParts) do
     begin
-      glFreeDisplayList(IntroParts[I].Image);
+      FreeAndNil(IntroParts[I].Image);
+      FreeAndNil(IntroParts[I].ImageCorroded);
     end;
   end;
 
@@ -225,4 +226,10 @@ end;
 initialization
   OnGLContextOpen.Add(@WindowOpen);
   OnGLContextClose.Add(@WindowClose);
+finalization
+  { WindowClose will be done anyway at GL context close,
+    but it may be after finalization of this unit, when IntroParts is
+    automatically set to zero length. So do WindowClose now,
+    to free TGLImage instances inside. }
+  WindowClose(nil);
 end.

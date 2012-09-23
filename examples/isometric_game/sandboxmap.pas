@@ -9,7 +9,7 @@ type
   public
     { @noAutoLinkHere }
     Image: TCastleImage;
-    GLList: TGLuint;
+    GLImage: TGLImage;
     { Relative filename vs tiles directory.
       This is read and written from/to a map file. }
     RelativeFileName: string;
@@ -74,7 +74,7 @@ uses SysUtils, CastleFilesUtils, CastleUtils, SandBoxGame, CastleStringUtils;
 destructor TTile.Destroy;
 begin
   FreeAndNil(Image);
-  glFreeDisplayList(GLList);
+  FreeAndNil(GLImage);
   inherited;
 end;
 
@@ -104,7 +104,7 @@ begin
     SaveImage(Image, FullFileName); }
   end;
 
-  GLList := ImageDrawToDisplayList(Image);
+  GLImage := TGLImage.Create(Image);
 end;
 
 { TBonusTile ----------------------------------------------------------------- }
@@ -112,7 +112,7 @@ end;
 procedure TBonusTile.LoadFromFile;
 begin
   Image := LoadImage(FullFileName, PixelsImageClasses, []);
-  GLList := ImageDrawToDisplayList(Image);
+  GLImage := TGLImage.Create(Image);
 end;
 
 { TMap ----------------------------------------------------------------------- }
