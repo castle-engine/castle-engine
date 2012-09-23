@@ -70,15 +70,19 @@ const
     TGrayscaleImage,
     TGrayscaleAlphaImage);
 
-{ Return appropriate GL_xxx format and type
+type
+  EImageClassNotSupportedForOpenGL = class(Exception);
+
+{ Return appropriate OpenGL format and type constants
   for given TCastleImage descendant. If you will pass here Img
   that is not a descendant of one of TextureImageClassesAll
-  or PixelsImageClasses, they will return GL_INVALID_ENUM
-  (which is for sure different than any valid value like GL_RGB, GL_RGBA
-  in OpenGL API).
+  or PixelsImageClasses, they will raise EImageClassNotSupportedForOpenGL.
 
   ImageGLInternalFormat works with TS3TCImage classes also, returning
   appropriate GL_COMPRESSED_*_S3TC_*_EXT, suitable for glCompressedTexImage2D.
+
+  @raises(EImageClassNotSupportedForOpenGL When Img class is not supported
+    by OpenGL.)
 
   @groupBegin }
 function ImageGLFormat(const Img: TEncodedImage): TGLenum;
@@ -98,14 +102,18 @@ type
     FWidth: Cardinal;
     FHeight: Cardinal;
   public
-    { Prepare image for drawing. }
+    { Prepare image for drawing.
+
+      @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
+        by OpenGL.) }
     constructor Create(const Image: TCastleImage);
 
     { Load image from disk, and prepare for drawing.
 
       @param(LoadAsClass Force a specific image class to load.
         Must be a subset of PixelsImageClasses, as other classes cannot
-        be loaded into OpenGL 2D images.
+        be loaded into OpenGL 2D images, otherwise you may get
+        EImageClassNotSupportedForOpenGL exception.
         Pass empty set [] to load into any allowed class
         (it's equivalent to passing LoadAsClass = PixelsImageClasses).
 
@@ -120,6 +128,9 @@ type
 
       @param(ResizeToY After loading, resize to given height.
         Pass 0 to not resize height.)
+
+      @raises(EImageClassNotSupportedForOpenGL When image class is not supported
+        by OpenGL.)
     }
     constructor Create(const FileName: string;
       const LoadAsClass: array of TCastleImageClass;
@@ -127,7 +138,10 @@ type
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0);
 
-    { Prepare part of the image for drawing. }
+    { Prepare part of the image for drawing.
+
+      @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
+        by OpenGL.) }
     constructor CreatePart(
       const Image: TCastleImage;
       const X0, Y0, AWidth, AHeight: Cardinal);
@@ -154,11 +168,17 @@ type
   end;
 
 { Draw the image on 2D screen. Note that if you want to use this
-  many times, it will be much faster to create TGLImage instance. }
+  many times, it will be much faster to create TGLImage instance.
+
+  @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
+    by OpenGL.) }
 procedure ImageDraw(const Image: TCastleImage);
 
 { Draw the subset of image rows on 2D screen.
-  Draws RowsCount rows starting from Row0. }
+  Draws RowsCount rows starting from Row0.
+
+  @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
+    by OpenGL.) }
 procedure ImageDrawRows(const Image: TCastleImage; Row0, RowsCount: integer);
 
 { Draw a part of the image on 2D screen.
@@ -175,6 +195,9 @@ procedure ImageDrawRows(const Image: TCastleImage; Row0, RowsCount: integer);
   by using tricks with OpenGL pixel store unpack (don't worry, the whole
   state of pixel store unpack will be taken care of and preserved
   by this). So it works fast.
+
+  @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
+    by OpenGL.)
 
   @groupBegin }
 procedure ImageDrawPart(const image: TCastleImage;
@@ -232,6 +255,9 @@ procedure ImageDrawPart(const image: TCastleImage;
   We always take explicit Width, Height (from parameter, or from Image.Width,
   Image.Height). Guessing screen size automatically doesn't really work,
   as the viewport may change when we use custom viewports.
+
+  @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
+    by OpenGL.)
 
   @groupBegin }
 function SaveScreen_NoFlush(xpos, ypos, width, height: integer;
@@ -369,6 +395,9 @@ function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
     This includes EInvalidImageForOpenGLTexture if Image class is invalid
     for an OpenGL texture.)
 
+  @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
+    by OpenGL.)
+
   @groupBegin }
 function LoadGLTexture(const image: TEncodedImage;
   MinFilter, MagFilter: TGLenum;
@@ -391,6 +420,9 @@ function LoadGLTexture(const FileName: string;
   by passing TexNum = 0.
 
   @raises(ETextureLoadError Raised in the same situations as LoadGLTexture.)
+
+  @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
+    by OpenGL.)
 
   @groupBegin }
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
@@ -480,6 +512,9 @@ type
     DDSForMipmaps/glGenerateMipmap not available).
     This includes EInvalidImageForOpenGLTexture if Image class is invalid
     for an OpenGL texture.)
+
+  @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
+    by OpenGL.)
 }
 procedure glTextureCubeMap(
   PositiveX, NegativeX,
@@ -518,7 +553,11 @@ procedure glTextureCubeMap(
     for example it's size is not correct for OpenGL 3D texture (we cannot
     automatically resize 3D textures, at least for now).
     Or it's compressed (although we support here TEncodedImage,
-    OpenGL doesn't have any 3D texture compression available.)) }
+    OpenGL doesn't have any 3D texture compression available.))
+
+  @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
+    by OpenGL.)
+}
 procedure glTextureImage3D(const Image: TEncodedImage;
   MinFilter, MagFilter: TGLenum;
   DDSForMipmaps: TDDSImage);
@@ -806,7 +845,7 @@ begin
     Result := GL_LUMINANCE_ALPHA else
   if Img is TRGBFloatImage then
     Result := GL_RGB else
-    Result := GL_INVALID_ENUM;
+    raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to OpenGL', [Img.ClassName]);
 end;
 
 function ImageGLInternalFormat(const Img: TEncodedImage): TGLenum;
@@ -820,10 +859,11 @@ begin
       s3tcDxt1_RGBA: Result := GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
       s3tcDxt3     : Result := GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
       s3tcDxt5     : Result := GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-      else Result := GL_INVALID_ENUM;
+      else raise EImageClassNotSupportedForOpenGL.Create('TS3TCImage.Compression not supported by OpenGL');
     end;
   end else
-    Result := GL_INVALID_ENUM;
+    raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to OpenGL',
+      [Img.ClassName]);
 end;
 
 function ImageGLType(const Img: TCastleImage): TGLenum;
@@ -835,7 +875,8 @@ begin
     Result := GL_UNSIGNED_BYTE else
   if Img is TRGBFloatImage then
     Result := GL_FLOAT else
-    Result := GL_INVALID_ENUM;
+    raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to OpenGL',
+      [Img.ClassName]);
 end;
 
 { TGLImage ------------------------------------------------------------------- }
