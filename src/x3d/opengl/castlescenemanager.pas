@@ -1068,7 +1068,7 @@ implementation
 
 uses SysUtils, RenderingCameraUnit, CastleGLUtils, ProgressUnit, RaysWindow, GLExt,
   CastleLog, CastleStringUtils, GLRenderer, CastleSoundEngine, Math, Triangle,
-  GLVersionUnit, CastleShape;
+  GLVersionUnit, CastleShapes;
 
 procedure Register;
 begin

@@ -20,7 +20,7 @@ unit X3DShadowMaps;
 
 interface
 
-uses X3DNodes, CastleShape;
+uses X3DNodes, CastleShapes;
 
 type
   TShadowSampling = (ssSimple,

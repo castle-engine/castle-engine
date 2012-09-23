@@ -29,7 +29,7 @@ program dynamic_ambient_occlusion;
 uses VectorMath, GL, GLU, GLExt, CastleWindow,
   CastleClassUtils, CastleUtils, SysUtils, Classes,
   CastleGLUtils, CastleSceneCore, CastleScene, Base3D, CastleParameters,
-  CastleFilesUtils, CastleStringUtils, GLShaders, CastleShape,
+  CastleFilesUtils, CastleStringUtils, GLShaders, CastleShapes,
   X3DFields, CastleImages, GLImages, CastleMessages, CastleWarnings,
   GLVersionUnit, Math, CastleSceneManager, RenderingCameraUnit, GenericStructList;
 

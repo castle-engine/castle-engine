@@ -27,7 +27,7 @@
   placeholders in the engine. }
 program placeholder_names;
 
-uses SysUtils, CastleUtils, CastleShape, CastleSceneCore, CastleParameters,
+uses SysUtils, CastleUtils, CastleShapes, CastleSceneCore, CastleParameters,
   X3DNodes;
 
 var

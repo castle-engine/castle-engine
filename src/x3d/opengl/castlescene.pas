@@ -30,7 +30,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3D, X3DNodes, CastleClassUtils, CastleUtils,
   CastleSceneCore, GLRenderer, GL, GLU, GLExt, Background, CastleGLUtils,
   ShapeOctree, GLShadowVolumeRenderer, X3DFields,
-  GLRendererLights, CastleShape, Frustum, Base3D, GLShaders, FGL, GenericStructList;
+  GLRendererLights, CastleShapes, Frustum, Base3D, GLShaders, FGL, GenericStructList;
 
 {$define read_interface}
 
