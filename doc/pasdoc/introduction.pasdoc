@@ -90,7 +90,7 @@ To use the engine in your own programs, there are a couple of options:
 
 @section(2 SectionLibraries Libraries)
 
-@link(Images) unit requires libpng (libpng.so under UNIXes,
+@link(CastleImages) unit requires libpng (libpng.so under UNIXes,
 libpng12.dll under Windows) installed if you want to load/save
 PNG images. Otherwise you will get ELibPngNotAvailable exception
 when trying to load/save files in PNG format.
@@ -143,53 +143,27 @@ units are allowed to be used by units in specific group.
 @definitionList(
   @itemLabel @code(base)
   @item(
-    These units provide some basic functions and classes.
-    Some units hide OS-specific issues.
-    Most important are CastleUtils, CastleClassUtils, CastleFilesUtils and
-    other Kambi*Utils units which contain many useful routines.
-
-    There are also some templates
-    (see dynarray.inc, dim2array.inc, dim3array.inc, objectslist.inc,
-    and their automatically duplicated versions in templates/ subdirectory).
-
-    There's unit @link(CastleParameters)
-    for command-line parsing, VectorMath unit with a lot of primitive
-    geometry types and functions. And some more.
+    Basic utilities and classes.
 
     @italic(Uses:) Nothing. These units do not depend on units
     from other groups.)
 
   @itemLabel @code(audio)
   @item(
-    3D sound support. @link(ALSoundEngine) gives you a very comfortable way
-    to load and play 3D sounds, you can load and play them dynamically,
-    you can also preload and configure some sounds by
-    a special XML file (see @link(TXmlSoundEngine)).
-
-    Lower-level sound units include OpenAL header translation (CastleOpenAL) and
-    OpenAL helpers (@link(ALUtils)).
-    Sound file formats (currently, WAV and OggVorbis) are handled by the
-    @link(SoundFile) unit.
+    3D sound support based on OpenAL, processing of sound files.
 
     @italic(Uses:) @code(base).)
 
   @itemLabel @code(images)
   @item(
-    This is my @link(Images) unit to load images to 2d pixel arrays.
-    Also an image cache (@link(ImagesCache)) unit, to help avoiding the same
-    images more than once (which is important e.g. when loading game textures).
-    Also some things to handle PasJPEG.
-    Also my binding to libpng library (CastlePng).
+    Image, textures, videos processing. Not OpenGL-specific.
 
     @italic(Uses:) @code(base).)
 
   @itemLabel @code(fonts)
   @item(
-    Units TTFontsTypes and BmpFontsTypes and many units named
-    TTF_* and BFNT_* that depend on TTFontsTypes or BmpFontsTypes.
-    Units TTF_* and BFNT_* are automatically generated using font2pascal
-    program. Also some helpers for Windows fonts and for translating them
-    to Pascal sources (like those TTF_* and BFNT_* units).
+    Font support, including some embedded fonts in TTF_* and BFNT_* units.
+    Not OpenGL-specific.
 
     @italic(Uses:) @code(base).)
 
@@ -203,7 +177,7 @@ units are allowed to be used by units in specific group.
 
   @itemLabel @code(ui)
   @item(
-    User interface of the engine.
+    2D user interface of the engine.
 
     First of all, unit UIControls with basic control class
     TUIControl and basic container interface IUIContainer.
@@ -251,12 +225,6 @@ units are allowed to be used by units in specific group.
   @itemLabel @code(3d)
   @item(
     3D graphics stuff, not X3D-specific.
-    This is the basis for X3D units in @code(x3d) directory.
-
-    Operating on axis-aligned bounding boxes (Boxes3d),
-    loading skyboxes (BackgroundBase),
-    ray-tracer helpers (SpaceFillingCurves and
-    SphereSampling) etc.
 
     Note: VectorMath unit is considered by me as something more general and
     useful --- so it's in @code(base) group, not here.
@@ -268,12 +236,7 @@ units are allowed to be used by units in specific group.
 
   @itemLabel @code(opengl)
   @item(
-    Basic OpenGL units. All the stuff here is usable in any OpenGL context,
-    e.g. both in Lazarus OpenGL control and in CastleWindow.
-    OpenGL fonts --- bitmap (OpenGLBmpFonts) and outline (OpenGLTTFonts),
-    various OpenGL helpers (CastleGLUtils), handling OpenGL images and textures
-    (GLImages),
-    helpers for shadows (ShadowVolumesHelper).
+    OpenGL utilities.
 
     @italic(Uses:) @code(base), @code(images), @code(3d), @code(fonts).)
 
@@ -288,9 +251,9 @@ units are allowed to be used by units in specific group.
     together with CastleWindow, like progress bar display in OpenGL window
     (CastleProgress), messages (CastleMessages, CastleNotifications, CastleInputs).
 
-    @italic(Uses:) These units can use almost any other units:
-    @code(base), @code(images), @code(3d), @code(fonts),
-    @code(opengl), @code(x3d).
+    @italic(Uses:) potentially everything. For comfort, TCastleWindow
+      has a ready link to SceneManager, so it depends on TCastleSceneManager
+      and other 3D classes.
 
     What is important is that no other engine units may depend on
     CastleWindow units. So every OpenGL code outside @code(window)
@@ -299,7 +262,7 @@ units are allowed to be used by units in specific group.
 
   @itemLabel @code(x3d)
   @item(
-    VRML/X3D rendering and processing. This is the core of our engine,
+    VRML/X3D rendering and processing. This is the core of our engine rendering,
     classes to handle and render 3D stuff are here.
 
     X3D file reading, writing and processing (X3DLexer, X3DFields,
@@ -308,24 +271,23 @@ units are allowed to be used by units in specific group.
     loading animations (PrecalculatedAnimationCore),
     load 3D model formats as X3D (X3DLoad).
 
-    @italic(Uses:) @code(base), @code(images), @code(3d), @code(fonts).
-
-    @italic(Subdirectory @code(opengl)) contains OpenGL-specific stuff,
-    that uses also @code(opengl) units.
-
     CastleScene unit provides the complete class
     for dealing with 3D models and displaying them in OpenGL.
     PrecalculatedAnimation also provides a special way
     of animating models by interpolating between a set of 3D files.
+
+    @italic(Uses:) @code(base), @code(images), @code(3d), @code(fonts).
+      As an exception, CastleSceneManager also depends on CastlePlayer unit
+      from the @code(game) group.
+
+    @italic(Subdirectory @code(opengl)) contains OpenGL-specific stuff,
+    that uses also @code(opengl) units.
   )
 
   @itemLabel @code(game)
   @item(
     High level units implementing game mechanics for 3D games.
     They build on top of other units.
-
-    CastleCreatures provides creatures AI, CastleResources
-    manages reference-counted heavy 3D resources.
 
     @italic(Uses:) everything except @code(window), as this must
     be suitable for both TCastleWindow and Lazarus TCastleControl.
