@@ -40,7 +40,7 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry, VectorMath, Triangulator,
-  FpImage, FpCanvas, FpImgCanv, FpWritePNG;
+  FpImage, FpCanvas, FpImgCanv, FpWritePNG, CastleTriangles;
 
 type
   TTestTriangulator = class(TTestCase)

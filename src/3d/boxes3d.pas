@@ -18,7 +18,7 @@ unit Boxes3D;
 
 interface
 
-uses VectorMath, SysUtils, CastleUtils, GenericStructList;
+uses VectorMath, SysUtils, CastleUtils, GenericStructList, CastleTriangles;
 
 type
   EBox3DEmpty = class(Exception);

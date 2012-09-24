@@ -19,7 +19,7 @@ unit LightMap;
 
 interface
 
-uses VectorMath, X3DNodes, CastleImages, Triangle, CastleColors;
+uses VectorMath, X3DNodes, CastleImages, Triangle, CastleColors, CastleTriangles;
 
 type
   TQuad3Single = packed array[0..3]of TVector3Single;

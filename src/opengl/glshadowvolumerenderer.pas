@@ -256,7 +256,8 @@ type
 
 implementation
 
-uses SysUtils, CastleUtils, CastleStringUtils, CastleLog, GLVersionUnit;
+uses SysUtils, CastleUtils, CastleStringUtils, CastleLog, GLVersionUnit,
+  CastleTriangles;
 
 constructor TGLShadowVolumeRenderer.Create;
 begin

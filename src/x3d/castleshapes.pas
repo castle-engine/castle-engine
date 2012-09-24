@@ -26,7 +26,7 @@ interface
 
 uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, X3DNodes, CastleClassUtils,
   CastleUtils, TriangleOctree, Frustum, CastleOctree, Triangle,
-  X3DFields, GeometryArrays, FaceIndex, FGL;
+  X3DFields, GeometryArrays, FaceIndex, FGL, CastleTriangles;
 
 const
   { }

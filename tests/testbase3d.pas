@@ -37,7 +37,8 @@ type
 
 implementation
 
-uses VectorMath, Boxes3D, Base3D, CastleSceneManager, Contnrs, CastleClassUtils;
+uses VectorMath, Boxes3D, Base3D, CastleSceneManager, Contnrs, CastleClassUtils,
+  CastleTriangles;
 
 { TMy3D ---------------------------------------------------------------------- }
 

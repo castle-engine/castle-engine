@@ -18,7 +18,7 @@ unit Surfaces;
 
 interface
 
-uses Math, Curve, Boxes3D;
+uses Math, Curve, Boxes3D, CastleTriangles;
 
 type
   TSurface = class

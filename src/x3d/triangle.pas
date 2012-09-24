@@ -22,7 +22,7 @@ unit Triangle;
 interface
 
 uses VectorMath, SysUtils, CastleUtils, X3DNodes, Base3D, Boxes3D,
-  CastleOctree, FaceIndex, GenericStructList;
+  CastleOctree, FaceIndex, GenericStructList, CastleTriangles;
 
 { TTriangle  ------------------------------------------------------------ }
 
@@ -639,7 +639,7 @@ procedure TTriangle.UpdateWorld;
 begin
   World.Triangle := TriangleTransform(Local.Triangle, State.Transform);
   World.Plane := TriangleNormPlane(World.Triangle);
-  World.Area := VectorMath.TriangleArea(World.Triangle);
+  World.Area := CastleTriangles.TriangleArea(World.Triangle);
 end;
 
 function TTriangle.SegmentDirCollision(

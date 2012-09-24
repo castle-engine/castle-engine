@@ -35,7 +35,7 @@ unit RayTracer;
 interface
 
 uses VectorMath, CastleImages, RaysWindow, CastleUtils, Classes,
-  Triangle, TriangleOctree, X3DNodes, SpaceFillingCurves;
+  Triangle, TriangleOctree, X3DNodes, SpaceFillingCurves, CastleTriangles;
 
 type
   { }

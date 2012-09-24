@@ -20,7 +20,7 @@ interface
 
 uses Boxes3D, Cameras, CastleItems, VectorMath, GL, GLU, CastleInputs, KeysMouse,
   Triangle, CastleTextureProperties, CastleSoundEngine, Classes, Base3D,
-  CastleGLUtils, CastleColors, Frustum;
+  CastleGLUtils, CastleColors, Frustum, CastleTriangles;
 
 const
   DefaultPlayerLife = 100;

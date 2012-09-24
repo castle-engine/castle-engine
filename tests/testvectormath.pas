@@ -52,7 +52,7 @@ function RandomNonProjectionMatrix: TMatrix4Single;
 
 implementation
 
-uses CastleUtils, CastleStringUtils, CastleTimeUtils;
+uses CastleUtils, CastleStringUtils, CastleTimeUtils, CastleTriangles;
 
 const
   {$ifdef VECTOR_MATH_SPEED_TESTS}

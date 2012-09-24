@@ -37,7 +37,7 @@ type
 implementation
 
 uses VectorMath, CastleUtils, Boxes3D, CastleStringUtils, CastleTimeUtils,
-  TestVectorMath;
+  TestVectorMath, CastleTriangles;
 
 procedure TTestBoxes3D.TestIsCenteredBox3DPlaneCollision;
 begin

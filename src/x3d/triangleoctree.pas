@@ -30,7 +30,7 @@ unit TriangleOctree;
 interface
 
 uses VectorMath, SysUtils, CastleUtils, X3DNodes, Boxes3D,
-  CastleOctree, Triangle, Base3D, FaceIndex;
+  CastleOctree, Triangle, Base3D, FaceIndex, CastleTriangles;
 
 {$define read_interface}
 

@@ -20,7 +20,7 @@ interface
 
 uses Classes, Math, VectorMath, Frustum, Boxes3D, CastleClassUtils, KeysMouse,
   CastleUtils, FGL, GenericStructList, CastleTimeUtils,
-  CastleSoundEngine, SectorsWaypoints, Cameras;
+  CastleSoundEngine, SectorsWaypoints, Cameras, CastleTriangles;
 
 const
   DefaultKnockBackSpeed = 1.0;

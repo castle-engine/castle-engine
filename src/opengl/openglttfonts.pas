@@ -187,7 +187,7 @@ type
 
 implementation
 
-uses CastleUtils, VectorMath, GLVersionUnit;
+uses CastleUtils, VectorMath, GLVersionUnit, CastleTriangles;
 
 const
   {w tej chwili zawsze 256 ale byc moze kiedys cos tu zmienie}

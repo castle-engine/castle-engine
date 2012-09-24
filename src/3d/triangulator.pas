@@ -18,7 +18,7 @@ unit Triangulator;
 
 interface
 
-uses SysUtils, VectorMath, CastleUtils;
+uses SysUtils, VectorMath, CastleUtils, CastleTriangles;
 
 type
   TTriangulatorProc = procedure (const Tri: TVector3Longint) of object;

@@ -20,7 +20,7 @@ unit CastleSceneCore;
 interface
 
 uses
-  SysUtils, Classes, VectorMath, Boxes3D,
+  SysUtils, Classes, VectorMath, Boxes3D, CastleTriangles,
   X3DFields, X3DNodes, CastleClassUtils, CastleUtils,
   CastleShapes, TriangleOctree, ProgressUnit, CastleOctree, ShapeOctree,
   KeysMouse, X3DTime, Cameras, Triangle, Contnrs,
