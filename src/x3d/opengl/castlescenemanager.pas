@@ -1067,7 +1067,7 @@ var
 implementation
 
 uses SysUtils, RenderingCameraUnit, CastleGLUtils, ProgressUnit, RaysWindow, GLExt,
-  CastleLog, CastleStringUtils, GLRenderer, CastleSoundEngine, Math, Triangle,
+  CastleLog, CastleStringUtils, GLRenderer, CastleSoundEngine, Math, X3DTriangles,
   GLVersionUnit, CastleShapes;
 
 procedure Register;

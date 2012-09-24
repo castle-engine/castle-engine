@@ -15,7 +15,7 @@
 
 { Triangles in VRML/X3D models (TTriangle) and octrees
   that resolve collisions with such triangles (TBaseTrianglesOctree). }
-unit Triangle;
+unit X3DTriangles;
 
 {$I octreeconf.inc}
 

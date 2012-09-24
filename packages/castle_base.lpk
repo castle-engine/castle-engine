@@ -44,7 +44,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="169">
+    <Files Count="170">
       <Item1>
         <Filename Value="../src/3d/base3d.pas"/>
         <UnitName Value="Base3D"/>
@@ -668,8 +668,8 @@
         <UnitName Value="ShapeOctree"/>
       </Item157>
       <Item158>
-        <Filename Value="../src/x3d/triangle.pas"/>
-        <UnitName Value="Triangle"/>
+        <Filename Value="../src/x3d/x3dtriangles.pas"/>
+        <UnitName Value="X3DTriangles"/>
       </Item158>
       <Item159>
         <Filename Value="../src/x3d/triangleoctree.pas"/>
@@ -731,6 +731,10 @@
         <Filename Value="../src/x3d/x3dtime.pas"/>
         <UnitName Value="X3DTime"/>
       </Item90>
+      <Item170>
+        <Filename Value="../src/3d/castletriangles.pas"/>
+        <UnitName Value="CastleTriangles"/>
+      </Item170>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">

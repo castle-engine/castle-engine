@@ -19,7 +19,7 @@ unit CastleTextureProperties;
 
 interface
 
-uses CastleUtils, CastleClassUtils, Classes, Triangle, DOM, CastleSoundEngine, FGL;
+uses CastleUtils, CastleClassUtils, Classes, X3DTriangles, DOM, CastleSoundEngine, FGL;
 
 type
   { Texture properties store any information that is naturally

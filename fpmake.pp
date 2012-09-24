@@ -61,6 +61,7 @@ begin
     P.SourcePath.Add('src' + PathDelim + '3d');
     P.Targets.AddUnit('base3d.pas');
     P.Targets.AddUnit('boxes3d.pas');
+    P.Targets.AddUnit('castletriangles.pas');
     P.Targets.AddUnit('convexhullunit.pas');
     P.Targets.AddUnit('cubemap.pas');
     P.Targets.AddUnit('faceindex.pas');
@@ -97,7 +98,7 @@ begin
     P.Targets.AddUnit('shape.pas');
     P.Targets.AddUnit('shapeoctree.pas');
     P.Targets.AddUnit('x3dtime.pas');
-    P.Targets.AddUnit('triangle.pas');
+    P.Targets.AddUnit('x3dtriangles.pas');
     P.Targets.AddUnit('triangleoctree.pas');
     P.Targets.AddUnit('renderingcameraunit.pas');
 

@@ -25,7 +25,7 @@ unit CastleShapes;
 interface
 
 uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, X3DNodes, CastleClassUtils,
-  CastleUtils, TriangleOctree, Frustum, CastleOctree, Triangle,
+  CastleUtils, TriangleOctree, Frustum, CastleOctree, X3DTriangles,
   X3DFields, GeometryArrays, FaceIndex, FGL, CastleTriangles;
 
 const
