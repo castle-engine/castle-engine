@@ -20,7 +20,7 @@ interface
 
 uses Classes, Math, VectorMath, Frustum, Boxes3D, CastleClassUtils, KeysMouse,
   CastleUtils, FGL, GenericStructList, CastleTimeUtils,
-  CastleSoundEngine, SectorsWaypoints;
+  CastleSoundEngine, SectorsWaypoints, Cameras;
 
 const
   DefaultKnockBackSpeed = 1.0;
@@ -55,77 +55,6 @@ type
   TVisibleChanges = set of TVisibleChange;
 
   TVisibleChangeEvent = procedure (Sender: T3D; Changes: TVisibleChanges) of object;
-
-  { Triangle expressed in particular coordinate system, for T3DTriangle. }
-  T3DTriangleGeometry = record
-    Triangle: TTriangle3Single;
-
-    { Area of the triangle. In other words, just a precalculated for you
-      TriangleArea(Triangle). }
-    Area: Single;
-
-    case Integer of
-      0: ({ This is a calculated TriangleNormPlane(Triangle),
-            that is a 3D plane containing our Triangle, with normalized
-            direction vector. }
-          Plane: TVector4Single;);
-      1: (Normal: TVector3Single;);
-  end;
-
-  { 3D triangle.
-
-    This object should always be initialized by @link(Init),
-    and updated only by it's methods (never modify fields of
-    this object directly).
-
-    I use old-style Pascal "object" to define this,
-    since this makes it a little more efficient. This doesn't need
-    any virtual methods or such, so (at least for now) it's easier
-    and more memory-efficient to keep this as an old-style object.
-    And memory efficiency is somewhat important here, since large
-    scenes may easily have milions of triangles, and each triangle
-    results in one TTriangle (descendant of T3DTriangle) instance. }
-  T3DTriangle = object
-  public
-    { Initialize new triangle. Given ATriangle must satisfy IsValidTriangle. }
-    constructor Init(const ATriangle: TTriangle3Single);
-
-  public
-    { Geometry of this item.
-      We need two geometry descriptions:
-
-      @unorderedList(
-
-        @item(Local is based on initial Triangle, given when constructing
-          this T3DTriangle. It's constant for this T3DTriangle. It's used
-          by octree collision routines, that is things like
-          TBaseTrianglesOctree.SphereCollision, TBaseTrianglesOctree.RayCollision
-          and such expect parameters in the same coord space.
-
-          This may be local coord space of this shape (this is used
-          by TShape.OctreeTriangles) or world coord space
-          (this is used by TCastleSceneCore.OctreeTriangles).)
-
-        @item(World is the geometry of Local transformed to be in world
-          coordinates. Initially, World is just a copy of Local.
-
-          If Local already contains world-space geometry, then World
-          can just remain constant, and so is always Local copy.
-
-          If Local contains local shape-space geometry, then World
-          will have to be updated by TTriangle.UpdateWorld whenever some octree item's
-          geometry will be needed in world coords. This will have to be
-          done e.g. by TBaseTrianglesOctree.XxxCollision for each returned item.)
-      ) }
-    Local, World: T3DTriangleGeometry;
-  end;
-  P3DTriangle = ^T3DTriangle;
-
-  { Return for given Triangle do we want to ignore collisions with it.
-    For now, Sender is always TTriangleOctree. }
-  T3DTriangleIgnoreFunc = function (
-    const Sender: TObject;
-    const Triangle: P3DTriangle): boolean of object;
 
   { Various things that T3D.PrepareResources may prepare. }
   TPrepareResourcesOption = (prRender, prBackground, prBoundingBox,
@@ -1649,18 +1578,7 @@ var
 
 implementation
 
-uses SysUtils, Cameras;
-
-{ T3DTriangle  --------------------------------------------------------------- }
-
-constructor T3DTriangle.Init(const ATriangle: TTriangle3Single);
-begin
-  Local.Triangle := ATriangle;
-  Local.Plane := TriangleNormPlane(ATriangle);
-  Local.Area := TriangleArea(ATriangle);
-
-  World := Local;
-end;
+uses SysUtils;
 
 { TRayCollision --------------------------------------------------------------- }
 

@@ -32,7 +32,7 @@ type
   TMailboxTag = Int64;
 
   { Triangle in VRML/X3D model. This is the most basic item for our
-    VRML collision detection routines, returned by octrees descending from
+    VRML/X3D collision detection routines, returned by octrees descending from
     TBaseTrianglesOctree. }
   TTriangle = object(T3DTriangle)
   public

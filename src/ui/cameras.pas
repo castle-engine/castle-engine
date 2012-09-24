@@ -19,7 +19,7 @@ unit Cameras;
 interface
 
 uses SysUtils, VectorMath, CastleUtils, KeysMouse, Boxes3D, Quaternions, Frustum,
-  UIControls, Classes, RaysWindow, Base3D, CastleTimeUtils, CastleInputs;
+  UIControls, Classes, RaysWindow, CastleTimeUtils, CastleInputs;
 
 const
   DefaultFallingDownStartSpeed = 0.5;
@@ -68,9 +68,6 @@ const
   DefaultCameraInput = [ciNormal, ciMouseDragging, ci3dMouse];
 
 type
-  { }
-  TCamera = class;
-
   { Handle user navigation in 3D scene.
     You control camera parameters and provide user input
     to this class by various methods and properties.
