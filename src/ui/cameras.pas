@@ -361,7 +361,8 @@ type
       and orthogonal.
 
       Default value of InitialPosition is (0, 0, 0), InitialDirection is
-      (0, -1, 0), InitialUp is (0, 1, 0).
+      DefaultCameraDirection = (0, -1, 0), InitialUp is
+      DefaultCameraUp = (0, 1, 0).
 
       @groupBegin }
     property InitialPosition : TVector3Single read FInitialPosition;
@@ -1405,8 +1406,14 @@ type
     procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
     function GetGravityUp: TVector3Single; override;
+    procedure SetView(const ADir, AUp: TVector3Single);
     procedure SetView(const APos, ADir, AUp: TVector3Single); override;
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
+
+    { Change up vector, but (when it needs to be fixed to have direction and up
+      orthogonal) keep the direction unchanged.
+      @seealso T3DOrient.UpPrefer }
+    procedure UpPrefer(const AUp: TVector3Single);
 
     { Last known information about whether camera is over the ground.
       Updated by using @link(Height) call. For normal TCamera descendants,
@@ -4124,6 +4131,13 @@ begin
   ScheduleVisibleChange;
 end;
 
+procedure TWalkCamera.UpPrefer(const AUp: TVector3Single);
+begin
+  FUp := Normalized(AUp);
+  MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
+  ScheduleVisibleChange;
+end;
+
 procedure TWalkCamera.CorrectPreferredHeight;
 begin
   Cameras.CorrectPreferredHeight(
@@ -4281,6 +4295,15 @@ end;
 function TWalkCamera.GetGravityUp: TVector3Single;
 begin
   Result := GravityUp;
+end;
+
+procedure TWalkCamera.SetView(const ADir, AUp: TVector3Single);
+begin
+  FDirection := Normalized(ADir);
+  FUp := Normalized(AUp);
+  MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
+
+  ScheduleVisibleChange;
 end;
 
 procedure TWalkCamera.SetView(const APos, ADir, AUp: TVector3Single);

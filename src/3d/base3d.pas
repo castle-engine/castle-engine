@@ -1185,8 +1185,12 @@ type
     There is no scaling of 3D objects, ever. }
   T3DOrient = class(T3DCustomTransform)
   private
-    FPosition, FDirection, FUp: TVector3Single;
+    FCamera: TWalkCamera;
     FOrientation: TOrientationType;
+    function GetPosition: TVector3Single;
+    function GetDirection: TVector3Single;
+    function GetUp: TVector3Single;
+    procedure SetPosition(const Value: TVector3Single);
     procedure SetDirection(const Value: TVector3Single);
     procedure SetUp(const Value: TVector3Single);
   protected
@@ -1198,9 +1202,10 @@ type
     DefaultOrientation: TOrientationType; static;
 
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
     { Position (translation) of this 3D object. }
-    property Position: TVector3Single read FPosition write FPosition;
+    property Position: TVector3Single read GetPosition write SetPosition;
 
     { Direction the creature is facing, and up vector.
 
@@ -1218,8 +1223,8 @@ type
       up is +Y (DefaultCameraUp).
 
       @groupBegin }
-    property Direction: TVector3Single read FDirection write SetDirection;
-    property Up: TVector3Single read FUp write SetUp;
+    property Direction: TVector3Single read GetDirection write SetDirection;
+    property Up: TVector3Single read GetUp write SetUp;
     { @groupEnd }
 
     { Set at once vectors: position, direction, up.
@@ -1256,6 +1261,24 @@ type
     property Orientation: TOrientationType read FOrientation write FOrientation;
 
     function Middle: TVector3Single; override;
+
+    { Camera, with view vectors (position, direction and up)
+      always synchronized with this T3DOrient instance.
+      You can either set Camera vectors (by TWalkCamera.Position,
+      TWalkCamera.SetView and such) or this object's properties
+      (T3DOrient.Position, T3DOrient.SetView), it's all the same.
+
+      We don't deal with any other camera properties in T3DOrient.
+      If you want, you can ignore this camera (you will probably do this
+      if you use T3DOrient for creature like TCastleCreature;
+      although camera may still have a fun usage then, for observing world from
+      a creature view).
+      Or you can use this camera, taking care of all it's settings,
+      even asssigning this camera to TCastleSceneManager.Camera
+      to allow user to directly control it (you will probably
+      do this if you use T3DOrient for player like TPlayer;
+      in fact, TGameSceneManager.LoadLevel does this automatically for you). }
+    property Camera: TWalkCamera read FCamera;
   end;
 
   { Deprecated name for T3DCustomTransform. @deprecated @exclude }
@@ -3143,16 +3166,21 @@ end;
 constructor T3DOrient.Create(AOwner: TComponent);
 begin
   inherited;
-  FDirection := DefaultCameraDirection;
-  FUp := DefaultCameraUp;
+  FCamera := TWalkCamera.Create(nil);
   FOrientation := DefaultOrientation;
+end;
+
+destructor T3DOrient.Destroy;
+begin
+  FreeAndNil(FCamera);
+  inherited;
 end;
 
 procedure T3DOrient.TransformMatricesMult(var M, MInverse: TMatrix4Single);
 var
   NewM, NewMInverse: TMatrix4Single;
 var
-  Side: TVector3Single;
+  P, D, U, Side: TVector3Single;
 begin
   { Note that actually I could do here TransformToCoordsNoScaleMatrix,
     as obviously I don't want any scaling. But in this case I know
@@ -3161,24 +3189,26 @@ begin
     TransformToCoordsNoScaleMatrix here (and I can avoid wasting my time
     on Sqrts needed inside TransformToCoordsNoScaleMatrix). }
 
+  Camera.GetView(P, D, U);
+
   case Orientation of
     otUpYDirectionMinusZ:
       begin
-        Side := VectorProduct(Up, -Direction);
-        NewM := TransformToCoordsMatrix         (Position, Side, Up, -Direction);
-        NewMInverse := TransformFromCoordsMatrix(Position, Side, Up, -Direction);
+        Side := VectorProduct(U, -D);
+        NewM := TransformToCoordsMatrix         (P, Side, U, -D);
+        NewMInverse := TransformFromCoordsMatrix(P, Side, U, -D);
       end;
     otUpZDirectionMinusY:
       begin
-        Side := VectorProduct(-Direction, Up);
-        NewM := TransformToCoordsMatrix         (Position, Side, -Direction, Up);
-        NewMInverse := TransformFromCoordsMatrix(Position, Side, -Direction, Up);
+        Side := VectorProduct(-D, U);
+        NewM := TransformToCoordsMatrix         (P, Side, -D, U);
+        NewMInverse := TransformFromCoordsMatrix(P, Side, -D, U);
       end;
     otUpZDirectionX:
       begin
-        Side := VectorProduct(Up, Direction);
-        NewM := TransformToCoordsMatrix         (Position, Direction, Side, Up);
-        NewMInverse := TransformFromCoordsMatrix(Position, Direction, Side, Up);
+        Side := VectorProduct(U, D);
+        NewM := TransformToCoordsMatrix         (P, D, Side, U);
+        NewMInverse := TransformFromCoordsMatrix(P, D, Side, U);
       end;
     else raise EInternalError.Create('T3DOrient.TransformMatricesMult Orientation?');
   end;
@@ -3192,47 +3222,59 @@ begin
   Result := false;
 end;
 
+function T3DOrient.GetPosition: TVector3Single;
+begin
+  Result := Camera.Position;
+end;
+
+function T3DOrient.GetDirection: TVector3Single;
+begin
+  Result := Camera.Direction;
+end;
+
+function T3DOrient.GetUp: TVector3Single;
+begin
+  Result := Camera.Up;
+end;
+
+procedure T3DOrient.SetPosition(const Value: TVector3Single);
+begin
+  Camera.Position := Value;
+end;
+
 procedure T3DOrient.SetDirection(const Value: TVector3Single);
 begin
-  FDirection := Normalized(Value);
-  MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
+  Camera.Direction := Value;
 end;
 
 procedure T3DOrient.SetUp(const Value: TVector3Single);
 begin
-  FUp := Normalized(Value);
-  MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
+  Camera.Up := Value;
 end;
 
 procedure T3DOrient.UpPrefer(const AUp: TVector3Single);
 begin
-  FUp := Normalized(AUp);
-  MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
+  Camera.UpPrefer(AUp);
 end;
 
 procedure T3DOrient.SetView(const APos, ADir, AUp: TVector3Single);
 begin
-  FPosition := APos;
-  FDirection := Normalized(ADir);
-  FUp := Normalized(AUp);
-  MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
+  Camera.SetView(APos, ADir, AUp);
 end;
 
 procedure T3DOrient.SetView(const ADir, AUp: TVector3Single);
 begin
-  FDirection := Normalized(ADir);
-  FUp := Normalized(AUp);
-  MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
+  Camera.SetView(ADir, AUp);
 end;
 
 procedure T3DOrient.Translate(const T: TVector3Single);
 begin
-  Position := Position + T;
+  Camera.Position := Camera.Position + T;
 end;
 
 function T3DOrient.Middle: TVector3Single;
 begin
-  Result := Position;
+  Result := Camera.Position;
 end;
 
 { T3DMoving --------------------------------------------------------- }

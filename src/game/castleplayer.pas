@@ -60,10 +60,33 @@ type
       @item(No increasing Life (further decreasing Life is OK).
         This implies that once Player is Dead, (s)he cannot be alive again.)
       @item No changing EquippedWeapon, no calling Attack.
-    ) }
+    )
+
+    Note that every player, just like every T3DOrient actually,
+    has an associated and magically synchronized T3DOrient.Camera instance.
+    Ancestor T3DOrient only takes care about synchronizing the view vectors
+    (position, direciton, up) and doesn't care about camera otherwise.
+    We synchronize more in TPlayer class:
+
+    @unorderedList(
+      @item(FlyingMode is synchronized with TWalkCamera.Gravity.)
+      @item(Various camera inputs are automatically adjusted based on current
+        player state (@link(Dead), @link(Blocked)) and global PlayerInput_Xxx
+        values, like PlayerInput_Forward.)
+    )
+
+    The outside code may still directly access and change many camera
+    properties. Camera view vectors (position, direciton, up),
+    TWalkCamera.PreferredHeight,
+    TWalkCamera.RotationHorizontalSpeed
+    TWalkCamera.RotationVerticalSpeed. In fact, it's Ok to call
+    TWalkCamera.Init, and it's Ok to assign this Camera to TCastleSceneManager.Camera,
+    and TGameSceneManager.LoadLevel does this automatically.
+    So scene manager will update Camera.ProjectionMatrix,
+    call camera events like TCamera.Press, TCamera.Idle and such.)
+  }
   TPlayer = class(T3DAlive)
   private
-    FCamera: TWalkCamera;
     FInventory: TInventory;
     FEquippedWeapon: TItemWeapon;
     LifeTime: Single;
@@ -128,7 +151,7 @@ type
       or Swimming or Blocked change. }
     procedure UpdateCamera;
 
-    procedure FalledDown(Camera: TWalkCamera; const FallenHeight: Single);
+    procedure FalledDown(ACamera: TWalkCamera; const FallenHeight: Single);
 
     { This sets life, just like SetLife.
       But in case of life loss, the fadeout is done with specified
@@ -181,38 +204,6 @@ type
     procedure CancelFlying;
 
     property Inventory: TInventory read FInventory;
-
-    { Each player object always has related Camera object.
-
-      Some things are synchronized between player properties and this
-      Camera object --- e.g. player's FlyingMode is synchronized
-      with Gravity and some Input_Xxx properties of this camera.
-      In general, this player object "cooperates" in various ways
-      with it's Camera object, that's why it was most comfortable
-      to just put Camera inside TPlayer.
-
-      In general you @italic(must not) operate directly on this Camera
-      properties or call it's methods (TPlayer instance should do this for you),
-      with some exceptions.
-
-      You are allowed to read and write:
-      @unorderedList(
-        @item(Camera.Position, Direction, Up and InitialCameraXxx ---
-          these are exactly player's camera settings.
-          TODO: Although this may change when we implement 3rd-person cameras.)
-        @item(Camera.PreferredHeight. In fact, it's OK to just call
-          Camera.Init.)
-        @item(Camera.RotationHorizontal/VerticalSpeed
-          (you can read and write this --- although it should be
-          only for testing/debug purposes, in real game rotation speeds
-          should stay constant).)
-        @item(It's Ok to assign Camera to TCastleSceneManager.Camera,
-          in fact TGameSceneManager.LoadLevel does exactly this.
-          So scene manager will update Camera.ProjectionMatrix,
-          call camera events like TCamera.Press, TCamera.Idle and such.)
-      )
-    }
-    property Camera: TWalkCamera read FCamera;
 
     { Add Item to Inventory, with appropriate GameMessage.
       See also TInventory.Pick (this is a wrapper around it).
@@ -320,7 +311,6 @@ type
       read FSickProjectionSpeed write FSickProjectionSpeed;
 
     property CollidesWithMoving default true;
-    procedure Translate(const T: TVector3Single); override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
@@ -410,8 +400,6 @@ begin
   FInventory := TInventory.Create(Self);
   FInventoryCurrentItem := -1;
 
-  FCamera := TWalkCamera.Create(nil);
-
   { turn off keys that are totally unavailable for the player }
   Camera.Input_MoveSpeedInc.MakeClear;
   Camera.Input_MoveSpeedDec.MakeClear;
@@ -433,7 +421,6 @@ destructor TPlayer.Destroy;
 begin
   EquippedWeapon := nil; { unregister free notification }
 
-  FreeAndNil(FCamera);
   FreeAndNil(FInventory);
 
   if FootstepsSound <> nil then
@@ -1056,7 +1043,7 @@ begin
   BlackOut(Red3Single);
 end;
 
-procedure TPlayer.FalledDown(Camera: TWalkCamera;
+procedure TPlayer.FalledDown(ACamera: TWalkCamera;
   const FallenHeight: Single);
 begin
   if (Swimming = psNo) and (FallenHeight > 4.0) then
@@ -1221,12 +1208,6 @@ end;
 function TPlayer.Ground: PTriangle;
 begin
   Result := PTriangle(Camera.AboveGround);
-end;
-
-{TODO: this should disappear, we should depend on T3DOrient doing this}
-procedure TPlayer.Translate(const T: TVector3Single);
-begin
-  Camera.Position := Camera.Position + T;
 end;
 
 function TPlayer.SegmentCollision(const Pos1, Pos2: TVector3Single;

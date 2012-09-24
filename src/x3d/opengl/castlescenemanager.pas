@@ -940,10 +940,11 @@ type
           that in turn calls World.WorldMoveAllowed making sure
           that player is temporarily disabled (does not collide with itself).
 
-          TODO: Right now, synchronization is also done the other way:
-          when camera changes, the player vectors are adjusted to it.
-          That is because right now, 1st person view navigation is actually
-          implemented inside TWalkCamera.)
+          TGameSceneManager.LoadLevel will set Player.Camera to
+          TCastleSceneManager.Camera. This means that user can directly
+          control Player.Camera view (position, direction, up),
+          which in turn is always synchronized with Player view (that
+          is, TPlayer.Direction always equals TPlayer.Camera.Direction and so on).)
 
         @item(For simple AI in CastleCreatures, hostile creatures will attack
           this player. So this determines the target position that
@@ -954,7 +955,6 @@ type
 
         @item(For items on level in CastleItems, this player will pick up the items
           lying on the ground, and will be able to equip weapons.
-          Right now this requires that Player is an instance of CastlePlayer.TPlayer.
           This functionality may be generalized in the future, to allow
           anyone to pick up and carry and equip items.)
       )
@@ -2995,9 +2995,6 @@ begin
     VisibleChange;
 
   SoundEngine.UpdateListener(Pos, Dir, Up);
-
-  if Player <> nil then
-    Player.SetView(Pos, Dir, Up);
 
   if Assigned(OnCameraChanged) then
     OnCameraChanged(ACamera);
