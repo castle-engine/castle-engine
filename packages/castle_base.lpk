@@ -660,8 +660,8 @@
         <UnitName Value="RenderingCameraUnit"/>
       </Item155>
       <Item156>
-        <Filename Value="../src/x3d/shape.pas"/>
-        <UnitName Value="Shape"/>
+        <Filename Value="../src/x3d/castleshapes.pas"/>
+        <UnitName Value="CastleShapes"/>
       </Item156>
       <Item157>
         <Filename Value="../src/x3d/shapeoctree.pas"/>

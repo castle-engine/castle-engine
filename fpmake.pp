@@ -95,7 +95,7 @@ begin
     P.Targets.AddUnit('x3dnodesdetailoptions.pas');
     P.Targets.AddUnit('raytracer.pas');
     P.Targets.AddUnit('castlescenecore.pas');
-    P.Targets.AddUnit('shape.pas');
+    P.Targets.AddUnit('castleshapes.pas');
     P.Targets.AddUnit('shapeoctree.pas');
     P.Targets.AddUnit('x3dtime.pas');
     P.Targets.AddUnit('x3dtriangles.pas');
