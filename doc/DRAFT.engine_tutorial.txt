@@ -66,9 +66,28 @@ To develop such programs you use Lazarus, period.
 
 This tutorial doesn't suggest any particular method (TCastleWindow or TCastleControl). Both approaches make sense, really, and it's your choice. You should choose Lazarus method (TCastleControl) if you want to integrate game context with normal GUI (Lazarus forms, controls) or if you're just more comfortable with dropping components of a Lazarus form. If you want best OpenGL features, or if you're just more comfortable working outside of Lazarus (like with custom editor and only calling FPC through a script) then probably you want to choose TCastleWindow method. The difference is only how you start: create a TCastleWindow instance by code, or drop TCastleControl on a Lazarus form. Everything else goes *almost* the same, as the TCastleControl and TCastleWindow are designed specifically to resemble each other, so they both share similar methods and properties (like "Controls", where we add our engine 2D and 3D stuff).
 
-In case of using Lazarus forms, you will usually want to place the initialization code inside your form's methods. In the simplest case, just place it inside the form's OnCreate event.
+In case of using Lazarus forms, you will usually want to place the initialization code inside your form's methods. In the simplest case, just place it inside the TCastleControl.OnGLContextInit event (you could also move non-OpenGL parts into TForm.OnCrease, that happens earlier).
 
 -> Create new project using Lazarus "New Project" menu item. Choose "Application". Drop TCastleControl on your form and resize it to fit the window. Press "Run" and behold :)
+
+Note about key handling (applies only to TCastleControl): Like every proper Lazarus control, our TCastleControl receives the keys only when it has <i>focus</i>. The control <i>does not</i> capture all the keys pressed over the form (this would be bad, as other controls, maybe even other TCastleControl on the same form, may want to handle them). To make sure that controlling the camera by keys (arrow keys, and/or AWSD and other keys, more about keys later) works, make sure that your control has a focus.
+
+In the simplest case, just call
+
+[[
+Control.SetFocus;
+]]
+
+whenever you want.
+
+There's no visual indicator when TCastleControl has focus (as there's no standard way to show it, that would be pleasing for various game applications).
+
+How you deal with focus really depends on your application:
+- In the simplest cases, the problem simply doesn't exist, as TCastleControl is the only thing on your form able to receive focus --- so it always has focus. You may limit yourself to use only unfocusable things, like TSpeedButton, on the Lazarus form --- to keep it simple.
+- If you want to use other focusable controls, it's really up to you how to present it to user. In princible, you don't have to do anything, focus works, and it can be switched into/out of TCastleControl by the Tab key or clicking with mouse on other controls.
+  - You may want to create a special key shortcut to quickly shift focus to your control (calling Control.SetFocus).
+  - You may want to draw some visual indication, like a border around TCastleControl, when it's focused. Actually, our TCastleControl may contain inside our own controls (TUIControl class), so you may want the draw TUIControl that is focused (see examples/3d_rendering_processing/multiple_viewports.lpr for simple example that shows which viewport is active, having 4 viewports within a single OpenGL context).
+  - Finally, if you really want, you can also use standard Lazarus features like TForm.KeyPreview and TForm.OnKeyDown / OnKeyUp to capture some keys at form level and pass them directly to chosen control.
 
 ------------------------------------------------------------------------------
 3. Creating 3D world --- scene manager
@@ -406,7 +425,7 @@ var
 ]]
 
 ------------------------------------------------------------------------------
-8. Display player HUD, game menu and other 2D things
+8. Display custom 2D controls: your own player HUD
 
 You will often want to draw a 2D controls on your screen, for example to display player life or inventory (the engine does manage the player's inventory automatically for you, in TPlayer.Inventory; however, it's not displayed automatically). You can do it by defining a new TUIControl descendant, where you can draw anything you want in overridden Draw method. You can use the ready UIFont instance to draw a 2D font on the screen. A simple example:
 
@@ -485,6 +504,9 @@ See castle1 unit GamePlay for an example implementation that shows
 more impressive player's life indicator, inventory (with
 more information, like quantity and name) and other things on the screen.
 
+------------------------------------------------------------------------------
+(TODO: new chapter number) Game on-screen menu
+
 A similar approach works for displaying in-game menu too.
 We provide a flexible on-screen menu as TCastleOnScreeMenu component.
 Examples how to use it are in examples/lazarus/model_3d_with_2d_controls/
@@ -493,7 +515,8 @@ It descends from TUIControl, so it can be added and removed from the scene
 just like every other control (by adding or removing from Window.Controls,
 or by changing it's TUIControl.Exists property).
 
-In single player games, you usually want to pause the game when the on-screen
+If the game is already started, in single player games,
+you usually want to pause the game when the on-screen
 menu is displayed. You can do this easily by SceneManager.Paused property.
 Like this:
 
@@ -531,6 +554,13 @@ by changing SceneManager.Exists property to false &mdash;
 the SceneManager with Exists=false is not only paused, it's also not visible.
 You could use TCastleImageControl to show a special image underneath
 an on-screen menu.
+
+------------------------------------------------------------------------------
+(TODO: new chapter number) Notifications
+
+You can also show on-screen notifications by TCastleNotifications component. This is a TUIControl descendant, so you just create it and add to Window.Controls list, just like other TUIControl descendants mentioned in previous chapters.
+
+You can actually just use the global Notifications instance created for you in the CastleGameNotifications unit (just add it to Window.Controls list). Some engine game features already make notifications to it, and it is also automatically set up to cooperate with CastleScript writeln() function, so you can print to it from VRML/X3D scripts. But you're not forced to it, you may as well create your own TCastleNotifications and ignore our default notifications instance in CastleGameNotifications, if you don't like them (you can still cooperate with CastleScript writeln() by handling OnScriptMessage yourself, see CastleGameNotifications sources for example).
 
 ------------------------------------------------------------------------------
 9. Sound
@@ -741,6 +771,19 @@ Config.Load;
 { save config to file }
 Config.Save;
 ]]
+------------------------------------------------------------------------------
+(TODO: new chapter number) Key/mouse shortcuts
+
+We have global controls in global variables: InputPlayer_Xxx and Input_Interact and more. They are gather inside CastleInputs.InputsAll global map. Thanks to this global map, you can let user to configure game controls, you can detect key conflicts and handle them however you like, etc.
+
+There are also local inputs, like TWalkCamera/TExamineCamera.Input_Xxx properties. <b>Onlyi f you use TPlayer</b>: then TPlayer sets it's own TWalkCamera, and overrides (most of) camera inputs with global InputPlayer_Xxx, so (most of) the TWalkCamera.Input_Xxx controls should not be accessed directly, instead change only the global InputPlayer_Xxx matter. TPlayer controls set up typical AWSD keys scheme, and they are also state-sensitive: they change appropriately when player is dead or blocked (see TPlayer.Dead and TPlayer.Blocked),
+
+Every key/mouse shortcut is a TInputShortcut. They are configurable, you can change the shortcuts whenever you want (see TInputShortcut.Assign and other methods). You can also detect conflicts in the keymap and handle them however you like (see GameControlsMenu in castle1 for example).
+
+The state of keys on the global keymap (CastleInputs.InputsAll) is automatically saved/loaded to the config file, if you use Config.Save/Load mentioned in chapter "User preferences".
+
+You can also create new TInputShortcut descendants, global (added to InputsAll, saved to config file and such) or local. See CastleInputs unit API docs. You can easily handle them by overriding TUIControl.Press or TCastleControl.EventPress or TCastleWindow.EventPress methods, or assigning TCastleControl.OnPress or TCastleWindow.OnPress callbacks. You will find then useful methods TInputShortcut.IsEvent(TInputPressRelease) (to detect press/release of input) and TInputShortcut.IsPressed(IUIContainer) (to detect holding (keeping pressed) of input).
+
 ------------------------------------------------------------------------------
 Optimization and profiling
 
