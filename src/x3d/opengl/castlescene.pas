@@ -16,12 +16,6 @@
 { VRML/X3D complete scene handling and OpenGL rendering (TCastleScene). }
 unit CastleScene;
 
-{$ifndef PASDOC}
-  {$if defined(VER2_0) or defined(VER2_2) or defined(VER2_4)}
-    {$error You need FPC >= 2.6.0 to compile this engine version.}
-  {$endif}
-{$endif}
-
 {$modeswitch nestedprocvars}{$H+}
 
 interface
