@@ -433,8 +433,8 @@
         <UnitName Value="DDS"/>
       </Item98>
       <Item99>
-        <Filename Value="../src/images/images.pas"/>
-        <UnitName Value="Images"/>
+        <Filename Value="../src/images/castleimages.pas"/>
+        <UnitName Value="CastleImages"/>
       </Item99>
       <Item101>
         <Filename Value="../src/images/textureimages.pas"/>
