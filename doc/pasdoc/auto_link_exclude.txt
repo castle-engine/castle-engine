@@ -158,6 +158,7 @@ periodic
 pitch
 plane
 planes
+player
 point
 pointers
 pop
@@ -199,6 +200,8 @@ scene
 scenes
 screen
 seconds
+sector
+sectors
 seek
 selected
 send
@@ -242,6 +245,7 @@ videos
 visible
 walk
 waypoints
+water
 weights
 whitespaces
 width
