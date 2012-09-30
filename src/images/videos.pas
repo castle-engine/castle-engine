@@ -389,7 +389,7 @@ procedure TVideo.LoadFromFile(const FileName: string);
         { Remember that LoadImage may raise an exception
           for invalid / not existing / not readable image filenames.
           So don't increase FItems before NewItem is successfully loaded. }
-        NewItem := LoadImage(S, TextureImageClasses, []);
+        NewItem := LoadImage(S, TextureImageClasses);
         SetLength(FItems, Length(FItems) + 1);
         FItems[High(FItems)] := NewItem;
 
@@ -407,7 +407,7 @@ procedure TVideo.LoadFromFile(const FileName: string);
           [S]);
     end else
     begin
-      NewItem := LoadImage(FileName, TextureImageClasses, []);
+      NewItem := LoadImage(FileName, TextureImageClasses);
       SetLength(FItems, 1);
       FItems[0] := NewItem;
 

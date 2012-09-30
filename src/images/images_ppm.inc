@@ -16,8 +16,7 @@
 { PPM save/load support. }
 
 function LoadPPM(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
   function ReadPPMToken(Stream: TStream): string;
   {reads next token in ppm - skips any blanks that it stands on ,

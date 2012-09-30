@@ -32,7 +32,7 @@ begin
   for I := 1 to Parameters.High do
   begin
     try
-      Img := LoadImage(Parameters[I], [], []);
+      Img := LoadImage(Parameters[I], []);
     except
       on E: EImageLoadError do
       begin

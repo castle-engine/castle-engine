@@ -131,7 +131,7 @@ begin
     { init other Image* variables }
     NameImage := ExtractOnlyFileName(ImageFileName);
     NameImage[1] := UpCase(NameImage[1]);
-    Image := LoadImage(ImageFileName, [], []);
+    Image := LoadImage(ImageFileName, []);
     try
       if AlphaStrip and Image.HasAlpha then
       begin

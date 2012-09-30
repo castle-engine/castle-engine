@@ -40,7 +40,7 @@
   var
     Image: TCastleImage;
   begin
-    Image := LoadImage('image.png', [], []);
+    Image := LoadImage('image.png', []);
     { scale the image to be 2x smaller }
     Image.Resize(Image.Width div 2, Image.Height div 2);
     SaveImage(Image, 'newimage.png');
@@ -988,9 +988,9 @@ function VectorRGBETo3Single(const v: TVector4Byte): TVector3Single;
 
 { loading image (format-specific) ---------------------------------------
 
-  LoadXxx: load image from Stream.
+  Load image from Stream.
 
-  They must honour AllowedImageClasses and ForbiddenConvs, just like
+  They must honour AllowedImageClasses, just like
   LoadImage does. Except they don't have to care about returning all TCastleImage
   descendants: see @link(TImageFormatInfo.LoadedClasses). So higher-level
   LoadImage will use them and eventually convert their result.
@@ -1009,98 +1009,70 @@ type
   EInvalidIPL = class(EInvalidImageFormat);
   EInvalidRGBE = class(EInvalidImageFormat);
 
-  TImageLoadConversion = (
-    ilcAlphaDelete, ilcFloatPrecDelete, ilcRGBFlattenToGrayscale,
-    ilcAlphaAdd, ilcFloatPrecAdd, ilcGrayscaleExpandToRGB);
-  TImageLoadConversions = set of TImageLoadConversion;
-
   { }
   EUnableToLoadImage = class(EImageLoadError);
 
 function LoadPNG(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
 function LoadBMP(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
 function LoadGIF(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
 function LoadTGA(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
 function LoadSGI(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
 function LoadTIFF(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
 function LoadJP2(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
 function LoadEXR(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
 function LoadJPEG(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
 function LoadXPM(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
 function LoadPSD(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
-{ Load PCX image.
-
-  Only 256-color PCX can be handled.
-  This will not probably be ever improved (al least by me, Kambi),
-  since I don't use PCX images anymore.
-  Use PNG if you want lossless compression. }
 function LoadPCX(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
 { Load PPM image.
   Loads only the first image in .ppm file. }
 function LoadPPM(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
 { Load PNM image (PNM, PGM, PBM, PPM) through FpImage.
   Note that for PPM, for now it's more advised to use our LoadPPM. }
 function LoadPNM(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
 function LoadIPL(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
 { Load RGBE image.
   This low-level function can load to TRGBFloatImage (preserving image data)
   or to TRGBImage (loosing floating point precision of RGBE format). }
 function LoadRGBE(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
 { Load DDS image file into a single 2D image. This simply returns the first
   image found in DDS file, which should be the main image.
   If you want to investigate other images in DDS, you have to use TDDSImage
   class. }
 function LoadDDS(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
 { saving image (format-specific) --------------------------------------------
 
@@ -1207,14 +1179,13 @@ type
   TImageFormats = set of TImageFormat;
 
   TImageLoadFunc = function (Stream: TStream;
-    const AllowedImageClasses: array of TCastleImageClass;
-    const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+    const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
   TImageSaveFunc = procedure (Img: TCastleImage; Stream: TStream);
 
   { Possible TCastleImage classes that can be returned by Load method
     of this file format. It's assumed that appropriate Load can return
     only these classes, and any of these classes,
-    and can convert (as much as ForbiddenConvs will allow) between them.
+    and can convert between them.
 
     If the LoadImage will be called allowing some TCastleImage descendants
     that can be returned by Load of this format,
@@ -1461,10 +1432,6 @@ type
   { }
   EImageFormatNotSupported = class(Exception);
 
-const
-  AllImageLoadConversions: TImageLoadConversions =
-  [Low(TImageLoadConversion) .. High(TImageLoadConversion)];
-
 { TODO: zrobic LoadImageGuess ktore zgaduje format na podstawie
   zawartosci. }
 
@@ -1474,11 +1441,11 @@ const
 
 @longCode(#
   { When you don't care what TCastleImage descendant you get: }
-  Image := LoadImage('filename.png', [], []);
+  Image := LoadImage('filename.png', []);
 
   { When you insist on getting TRGBImage, that is 8-bit color image
     without an alpha channel. }
-  ImageRGB := LoadImage('filename.png', [TRGBImage], []) as TRGBImage;
+  ImageRGB := LoadImage('filename.png', [TRGBImage]) as TRGBImage;
 #)
 
   Image file format is guess from FileName (or filename extension
@@ -1500,21 +1467,11 @@ const
   If PNG file will not be grayscale and not have alpha channel,
   LoadImage will return TRGBImage descendant, as before.
   But if PNG fill *will* have alpha channel then
-
-  @orderedList(
-
-    @item(if ForbiddenConvs does not contain [ilcAlphaDelete],
-      LoadImage will simply ignore (strip) alpha channel and return you TRGBImage)
-
-    @item(if ForbiddenConvs does contain [ilcAlphaDelete],
-      LoadImage will exit with exception EUnableToLoadImage.
-      This is sometimes safer, since you can't accidentaly ignore alpha
-      channel that was present in file.)
-  )
+  LoadImage will simply ignore (strip) alpha channel and return you TRGBImage.
 
   Similar thing for grayscale: if image file was grayscale but you requested
   only TRGBImage, then grayscale may be "expanded" into full three-channel
-  RGB. Unless prevented by ilcGrayscaleExpandToRGB inside ForbiddenConvs.
+  RGB.
 
   There can also happen reverse situation: you e.g. insist that
   AllowedImageClasses = [TRGBAlphaImage] but given PNG image does not
@@ -1524,18 +1481,12 @@ const
   but you're loading from PNG image. In this case you want float precision,
   but image file cannot offer it. So LoadImage can simply convert
   discreet values to appropriating floating point values.
-  This is usually harmless, but sometimes it may be unwanted, since
-  you're getting something in different format than was in file.
-  So you can add to ForbiddenConvs ilcAlphaAdd and/or ilcFloatPrecAdd
-  to prevent that.
 
   If at any point LoadImage will find that it's unable to satisfy
-  AllowedImageClasses without doing any forbidden convertions
-  in ForbiddenConvs, it will raise @link(EUnableToLoadImage).
+  AllowedImageClasses, it will raise @link(EUnableToLoadImage).
 
   @raises(EUnableToLoadImage If Image cannot be loaded into
-    allowed AllowedImageClasses (at least, cannot be loaded
-    without using any ForbiddenConvs).)
+    allowed AllowedImageClasses.)
 
   @raises(EImageFormatNotSupported If image file format cannot be loaded at all.
     This can happen only if format is totally unknown (e.g. not recognized
@@ -1543,20 +1494,16 @@ const
 
   @groupBegin *)
 function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions)
+  const AllowedImageClasses: array of TCastleImageClass)
   :TCastleImage; overload;
 function LoadImage(Stream: TStream; const typeext: string;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions)
+  const AllowedImageClasses: array of TCastleImageClass)
+  :TCastleImage; overload;
+function LoadImage(const filename: string;
+  const AllowedImageClasses: array of TCastleImageClass)
   :TCastleImage; overload;
 function LoadImage(const filename: string;
   const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions)
-  :TCastleImage; overload;
-function LoadImage(const filename: string;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions;
   const ResizeToX, ResizeToY: Cardinal): TCastleImage; overload;
 { @groupEnd }
 
@@ -1647,27 +1594,6 @@ uses ProgressUnit, CastleStringUtils, CastleFilesUtils, CastleWarnings, DDS;
 
 { Helper methods for implemented LoadImage. }
 
-const
-  ConvToStr: array[TImageLoadConversion]of string = (
-  'delete alpha channel',
-  'lose float precision',
-  'flatten RGB colors to grayscale',
-  'add dummy constant alpha channel',
-  'add useless float precision',
-  'expand grayscale to RGB (three channels)'
-  );
-
-{ Check is Conv on the ForbiddenConvs list, if it is raise an exception.
-  @raises(EUnableToLoadImage If Conv is forbidden.) }
-procedure DoingConversion(
-  const Conv: TImageLoadConversion;
-  const ForbiddenConvs: TImageLoadConversions);
-begin
-  if Conv in ForbiddenConvs then
-    raise EUnableToLoadImage.Create('LoadImage: to load this image format '+
-      'conversion "'+ConvToStr[Conv]+'" must be done, but it is forbidden here');
-end;
-
 function ClassAllowed(ImageClass: TCastleImageClass;
   const AllowedImageClasses: array of TCastleImageClass): boolean;
 begin
@@ -1676,8 +1602,7 @@ begin
 end;
 
 function LoadImageParams(
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): string;
+  const AllowedImageClasses: array of TCastleImageClass): string;
 
   function ImageClassesToStr(const AllowedImageClasses: array of TCastleImageClass): string;
   var
@@ -1695,26 +1620,8 @@ function LoadImageParams(
     end;
   end;
 
-  function ForbiddenConvsToStr(const ForbiddenConvs: TImageLoadConversions): string;
-  var
-    LC: TImageLoadConversion;
-  begin
-    if ForbiddenConvs = [] then
-      Result := 'none' else
-    begin
-      Result := '';
-      for LC := Low(LC) to High(LC) do
-        if LC in ForbiddenConvs then
-        begin
-          if Result <> '' then Result += ', ';
-          Result += ConvToStr[LC];
-        end;
-    end;
-  end;
-
 begin
-  Result := 'required class [' + ImageClassesToStr(AllowedImageClasses) +
-    '] with forbidden conversions [' + ForbiddenConvsToStr(ForbiddenConvs) + ']';
+  Result := 'required class [' + ImageClassesToStr(AllowedImageClasses) + ']';
 end;
 
 { file format specific ------------------------------------------------------- }
@@ -3326,8 +3233,7 @@ end;
 { LoadImage --------------------------------------------------------------- }
 
 function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions)
+  const AllowedImageClasses: array of TCastleImageClass)
   :TCastleImage;
 
   { ClassAllowed is only a shortcut to global utility. }
@@ -3372,88 +3278,77 @@ begin
                ClassAllowed(TRGBAlphaImage) or
                ClassAllowed(TGrayscaleImage) or
                ClassAllowed(TGrayscaleAlphaImage) then
-              Result := Load(Stream, AllowedImageClasses, ForbiddenConvs) else
-            if ClassAllowed(TRGBFloatImage) and
-               (not (ilcFloatPrecAdd in ForbiddenConvs)) then
+              Result := Load(Stream, AllowedImageClasses) else
+            if ClassAllowed(TRGBFloatImage) then
             begin
-              Result := Load(Stream, [TRGBImage], ForbiddenConvs);
+              Result := Load(Stream, [TRGBImage]);
               ImageRGBToFloatTo1st(result);
             end else
-              raise EUnableToLoadImage.CreateFmt('LoadImage cannot load this image file format to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
+              raise EUnableToLoadImage.CreateFmt('LoadImage cannot load this image file format to %s', [LoadImageParams(AllowedImageClasses)]);
           end;
         lcRGB_RGBA:
           begin
             if ClassAllowed(TRGBImage) or
                ClassAllowed(TRGBAlphaImage) then
-              Result := Load(Stream, AllowedImageClasses, ForbiddenConvs) else
+              Result := Load(Stream, AllowedImageClasses) else
 {TODO:            if ClassAllowed(TGrayscaleImage) or
                ClassAllowed(TGrayscaleAlphaImage) }
-            if ClassAllowed(TRGBFloatImage) and
-               (not (ilcFloatPrecAdd in ForbiddenConvs)) then
+            if ClassAllowed(TRGBFloatImage) then
             begin
-              Result := Load(Stream, [TRGBImage], ForbiddenConvs);
+              Result := Load(Stream, [TRGBImage]);
               ImageRGBToFloatTo1st(result);
             end else
-              raise EUnableToLoadImage.CreateFmt('LoadImage cannot load this image file format to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
+              raise EUnableToLoadImage.CreateFmt('LoadImage cannot load this image file format to %s', [LoadImageParams(AllowedImageClasses)]);
           end;
         lcRGB:
           begin
-            Result := Load(Stream, [TRGBImage], ForbiddenConvs);
+            Result := Load(Stream, [TRGBImage]);
             Assert(Result is TRGBImage);
 
             if not (ClassAllowed(TRGBImage)) then
             begin
-              if ClassAllowed(TRGBAlphaImage) and
-                 (not (ilcAlphaAdd in ForbiddenConvs)) then
+              if ClassAllowed(TRGBAlphaImage) then
               begin
                 ImageAlphaConstTo1st(Result, DummyDefaultAlpha);
               end else
-              if ClassAllowed(TGrayscaleImage) and
-                 (not (ilcRGBFlattenToGrayscale in ForbiddenConvs)) then
+              if ClassAllowed(TGrayscaleImage) then
               begin
                 ImageGrayscaleTo1st(Result);
               end else
               { TODO:
-              if ClassAllowed(TGrayscaleAlphaImage) and
-                 (not (ilcAlphaAdd in ForbiddenConvs)) and
-                 (not (ilcRGBFlattenToGrayscale in ForbiddenConvs)) then
+              if ClassAllowed(TGrayscaleAlphaImage) then
               begin
                 ImageAlphaConstTo1st(Result, DummyDefaultAlpha);
                 ImageGrayscaleAlphaTo1st(Result);
               end else }
-              if ClassAllowed(TRGBFloatImage) and
-                 (not (ilcFloatPrecAdd in ForbiddenConvs)) then
+              if ClassAllowed(TRGBFloatImage) then
               begin
                 ImageRGBToFloatTo1st(result);
               end else
-                raise EUnableToLoadImage.CreateFmt('LoadImage cannot load this image file format to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
+                raise EUnableToLoadImage.CreateFmt('LoadImage cannot load this image file format to %s', [LoadImageParams(AllowedImageClasses)]);
             end;
           end;
         lcRGB_RGBFloat:
           begin
             if ClassAllowed(TRGBFloatImage) or
                ClassAllowed(TRGBImage) then
-              Result := LoadRGBE(Stream, AllowedImageClasses, ForbiddenConvs) else
+              Result := LoadRGBE(Stream, AllowedImageClasses) else
             begin
-              Result := LoadRGBE(Stream, [TRGBImage], ForbiddenConvs);
-              if ClassAllowed(TRGBAlphaImage) and
-                 (not (ilcAlphaAdd in ForbiddenConvs)) then
+              Result := LoadRGBE(Stream, [TRGBImage]);
+              if ClassAllowed(TRGBAlphaImage) then
               begin
                 ImageAlphaConstTo1st(result, DummyDefaultAlpha);
               end else
-              if ClassAllowed(TGrayscaleImage) and
-                 (not (ilcRGBFlattenToGrayscale in ForbiddenConvs)) then
+              if ClassAllowed(TGrayscaleImage) then
               begin
                 ImageGrayscaleTo1st(Result);
               end else
-              if ClassAllowed(TGrayscaleAlphaImage) and
-                 (not (ilcAlphaAdd in ForbiddenConvs)) and
-                 (not (ilcRGBFlattenToGrayscale in ForbiddenConvs)) then
+              if ClassAllowed(TGrayscaleAlphaImage) then
               begin
                 ImageGrayscaleTo1st(Result);
                 ImageAlphaConstTo1st(result, DummyDefaultAlpha);
               end else
-                raise EUnableToLoadImage.CreateFmt('LoadImage: RGBE format cannot be loaded to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
+                raise EUnableToLoadImage.CreateFmt('LoadImage: RGBE format cannot be loaded to %s', [LoadImageParams(AllowedImageClasses)]);
             end;
           end;
         else raise EInternalError.Create('LoadImage: LoadedClasses?');
@@ -3466,19 +3361,17 @@ begin
 end;
 
 function LoadImage(Stream: TStream; const typeext: string;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions)
+  const AllowedImageClasses: array of TCastleImageClass)
   :TCastleImage;
 var iff: TImageFormat;
 begin
  if FileExtToImageFormat(typeext, true, false, iff) then
-  result := LoadImage(Stream, iff, AllowedImageClasses, ForbiddenConvs) else
+  result := LoadImage(Stream, iff, AllowedImageClasses) else
   raise EImageFormatNotSupported.Create('Unrecognized image format : "'+typeext+'"');
 end;
 
 function LoadImage(const filename: string;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 var
   f: TStream;
 begin
@@ -3493,8 +3386,7 @@ begin
     end;
 
     try
-      result := LoadImage(f, ExtractFileExt(filename), AllowedImageClasses,
-        ForbiddenConvs);
+      result := LoadImage(f, ExtractFileExt(filename), AllowedImageClasses);
     finally f.Free end;
   except
     on E: EImageLoadError do begin
@@ -3512,10 +3404,9 @@ end;
 
 function LoadImage(const filename: string;
   const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions;
   const ResizeToX, ResizeToY: Cardinal): TCastleImage;
 begin
- result := LoadImage(filename, AllowedImageClasses, ForbiddenConvs);
+ result := LoadImage(filename, AllowedImageClasses);
  Result.Resize(ResizeToX, ResizeToY);
 end;
 

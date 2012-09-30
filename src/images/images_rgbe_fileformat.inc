@@ -35,8 +35,7 @@
 }
 
 function LoadRGBE(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 var LoadResult: TCastleImage absolute result;
 
   procedure ReadRGBERow(RGBERow: PArray_Vector4Byte);
@@ -131,13 +130,6 @@ var LoadResult: TCastleImage absolute result;
    end;
   end;
 
-  { DoingConversion and ClassAllowed are only shortcuts to
-    global utilities. }
-  procedure DoingConversion(const Conv: TImageLoadConversion);
-  begin
-    CastleImages.DoingConversion(Conv, ForbiddenConvs);
-  end;
-
   function ClassAllowed(ImageClass: TCastleImageClass): boolean;
   begin
     Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
@@ -185,7 +177,6 @@ begin
       end else
       if ClassAllowed(TRGBImage) then
       begin
-        DoingConversion(ilcFloatPrecDelete);
         Result := TRGBImage.Create(RGBEWidth, RGBEHeight);
         for y := result.Height-1 downto 0 do
         begin
@@ -195,7 +186,7 @@ begin
             ByteRow^[x] := Vector3Byte( VectorRGBETo3Single(RGBERow^[x]) );
         end;
       end else
-        raise EUnableToLoadImage.CreateFmt('Cannot load RGBE file to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
+        raise EUnableToLoadImage.CreateFmt('Cannot load RGBE file to %s', [LoadImageParams(AllowedImageClasses)]);
     finally FreeMemNiling(Pointer(RGBERow)) end;
   except Result.Free; raise end;
 end;

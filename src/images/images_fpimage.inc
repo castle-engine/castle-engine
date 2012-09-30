@@ -29,7 +29,6 @@
 
 function LoadFpImage(Stream: TStream;
   const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions;
   Reader: TFPCustomImageReader;
   const AllowPalette: boolean = false): TCastleImage;
 var
@@ -181,21 +180,19 @@ begin
 end;
 
 function LoadGIF(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 begin
   {$ifndef VER2_2}
-  Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderGIF.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderGIF.Create);
   {$else}
   raise EImageLoadError.Create('Cannot load GIF when compiled with old FPC <= 2.2.x');
   {$endif}
 end;
 
 function LoadTGA(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderTarga.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTarga.Create);
 end;
 
 {
@@ -204,50 +201,44 @@ with "missing RowsPerStrip.."
 AllowPalette = true or false, doesn't matter.
 
 function LoadTIFF(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderTIFF.Create, true);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTIFF.Create, true);
 end;
 }
 
 function LoadXPM(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderXPM.Create, true);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create, true);
 end;
 
 function LoadPSD(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 begin
   {$ifndef VER2_2}
-  Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderPSD.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPSD.Create);
   {$else}
   raise EImageLoadError.Create('Cannot load PSD when compiled with old FPC <= 2.2.x');
   {$endif}
 end;
 
 function LoadPCX(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderPCX.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPCX.Create);
 end;
 
 function LoadJPEG(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderJPEG.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderJPEG.Create);
 end;
 
 function LoadPNM(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderPNM.Create);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNM.Create);
 end;
 
 procedure SaveJPEG(Img: TCastleImage; Stream: TStream);

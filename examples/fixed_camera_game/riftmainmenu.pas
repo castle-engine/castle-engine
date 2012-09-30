@@ -343,7 +343,7 @@ begin
 
   GLMenuBg := TGLImage.Create(DataFileNameFromConfig(
     DataConfig.GetValue('main_menu/image', 'required_xml_value_missing')),
-    [], [], Window.Width, Window.Height);
+    [], Window.Width, Window.Height);
 end;
 
 procedure WindowClose(const Container: IUIContainer);

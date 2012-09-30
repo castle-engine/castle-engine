@@ -811,7 +811,7 @@ procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: boolean);
 
       try
         FTextureImage := LoadImage(Data.Stream, ImageFormat,
-          [TRGBImage, TRGBAlphaImage, TGrayscaleImage, TGrayscaleAlphaImage], []);
+          [TRGBImage, TRGBAlphaImage, TGrayscaleImage, TGrayscaleAlphaImage]);
         WasCacheUsed := false;
         FTextureUsedFullUrl := Data.URIPrefix;
         FAlphaChannelData := FTextureImage.AlphaChannel;

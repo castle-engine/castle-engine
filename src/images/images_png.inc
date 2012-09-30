@@ -600,15 +600,7 @@ end;
 { LoadPNG ------------------------------------------------------------------- }
 
 function LoadPNG(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
-
-  { DoingConversion and ClassAllowed are only shortcuts to
-    global utilities. }
-  procedure DoingConversion(const Conv: TImageLoadConversion);
-  begin
-    CastleImages.DoingConversion(Conv, ForbiddenConvs);
-  end;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
   function ClassAllowed(ImageClass: TCastleImageClass): boolean;
   begin
@@ -623,13 +615,10 @@ var
 
   { Allocates Result to given class and applies libpng transforms to
     make resulting data matching given Result class.
-    Does this (and returns @true) only if ImageClass and NeededConversions
-    are allowed. }
-  function TransformPng(ImageClass: TCastleImageClass;
-    const NeededConversions: TImageLoadConversions): boolean;
+    Does this (and returns @true) only if ImageClass is allowed. }
+  function TransformPng(ImageClass: TCastleImageClass): boolean;
   begin
-    Result := ClassAllowed(ImageClass) and
-      (ForbiddenConvs * NeededConversions = []);
+    Result := ClassAllowed(ImageClass);
 
     if Result then
     begin
@@ -690,35 +679,23 @@ begin
    begin
      if IsAlpha then
      begin
-       if not TransformPng(TGrayscaleAlphaImage, []) then
-       if not TransformPng(TRGBAlphaImage, [ilcGrayscaleExpandToRGB]) then
-       if not TransformPng(TGrayscaleImage, [ilcAlphaDelete]) then
-       if not TransformPng(TRGBImage, [ilcGrayscaleExpandToRGB, ilcAlphaDelete]) then
-         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
+       if not TransformPng(TGrayscaleAlphaImage) then
+         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadImageParams(AllowedImageClasses)]);
      end else
      begin
-       if not TransformPng(TGrayscaleImage, []) then
-       if not TransformPng(TGrayscaleAlphaImage, [ilcAlphaAdd]) then
-       if not TransformPng(TRGBImage, [ilcGrayscaleExpandToRGB]) then
-       if not TransformPng(TRGBAlphaImage, [ilcAlphaAdd, ilcGrayscaleExpandToRGB]) then
-         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
+       if not TransformPng(TGrayscaleImage) then
+         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadImageParams(AllowedImageClasses)]);
      end;
    end else
    begin
      if IsAlpha then
      begin
-       if not TransformPng(TRGBAlphaImage, []) then
-       if not TransformPng(TRGBImage, [ilcAlphaDelete]) then
-       if not TransformPng(TGrayscaleAlphaImage, [ilcRGBFlattenToGrayscale]) then
-       if not TransformPng(TGrayscaleImage, [ilcAlphaDelete, ilcRGBFlattenToGrayscale]) then
-         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to required %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
+       if not TransformPng(TRGBAlphaImage) then
+         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to required %s', [LoadImageParams(AllowedImageClasses)]);
      end else
      begin
-       if not TransformPng(TRGBImage, []) then
-       if not TransformPng(TRGBAlphaImage, [ilcAlphaAdd]) then
-       if not TransformPng(TGrayscaleImage, [ilcRGBFlattenToGrayscale]) then
-       if not TransformPng(TGrayscaleAlphaImage, [ilcAlphaAdd, ilcRGBFlattenToGrayscale]) then
-         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to required %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
+       if not TransformPng(TRGBImage) then
+         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to required %s', [LoadImageParams(AllowedImageClasses)]);
      end;
    end;
 

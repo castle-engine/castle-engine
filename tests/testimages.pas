@@ -23,7 +23,7 @@ uses
 type
   TTestImages = class(TTestCase)
   published
-    procedure TestLoadAnyImage;
+    procedure TestLoadImage;
     procedure TestImageClassBestForSavingToFormat;
     procedure TestClear;
     procedure TestVector3ToRGBE;
@@ -34,29 +34,26 @@ implementation
 
 uses SysUtils, VectorMath, CastleImages;
 
-procedure TTestImages.TestLoadAnyImage;
-{ testuje czy mechanizm argumentow dla LoadAnyImage (AllowedImageClasses,
-  ForbiddenConvs) dziala dobrze w kazdym przypadku. }
+procedure TTestImages.TestLoadImage;
 const ImagesPath = 'data' + PathDelim +  'images' + PathDelim;
 
   procedure DoTest(const fname: string;
     const AllowedImageClasses: array of TCastleImageClass;
-    const ForbiddenConvs: TImageLoadConversions; DestClass: TCastleImageClass);
+    DestClass: TCastleImageClass);
   var Img: TCastleImage;
   begin
-   Img := LoadImage(ImagesPath+ fname, AllowedImageClasses, ForbiddenConvs);
+   Img := LoadImage(ImagesPath+ fname, AllowedImageClasses);
    try
     Assert(Img is DestClass);
    finally FreeAndNil(Img) end;
   end;
 
   procedure DoFailTest(const fname: string;
-    const AllowedImageClasses: array of TCastleImageClass;
-    const ForbiddenConvs: TImageLoadConversions);
+    const AllowedImageClasses: array of TCastleImageClass);
   var Img: TCastleImage;
   begin
    try
-    Img := LoadImage(ImagesPath+ fname, AllowedImageClasses, ForbiddenConvs);
+    Img := LoadImage(ImagesPath+ fname, AllowedImageClasses);
    except on E: EUnableToLoadImage do Exit end;
    try
     raise Exception.Create('Fail test passed - Er, I mean, failed.');
@@ -67,17 +64,8 @@ const ImagesPath = 'data' + PathDelim +  'images' + PathDelim;
   begin
    { zaladuj obrazek w formacie rgb. Dopoki TRGBImage jest w AllowedImageClasses
      wszystko powinno zawsze isc OK i wynik powinien miec typ TRGBImage. }
-   DoTest('rgb.ppm', [TRGBImage], [], TRGBImage);
-   DoTest('rgb.ppm', [TRGBImage], [ilcAlphaAdd], TRGBImage);
-   DoTest('rgb.ppm', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], [], TRGBImage);
-   DoTest('rgb.ppm', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], [ilcAlphaAdd], TRGBImage);
-   DoTest('rgb.ppm', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], AllImageLoadConversions, TRGBImage);
-
-   DoFailTest('rgb.ppm', [TRGBAlphaImage, TRGBFloatImage], AllImageLoadConversions);
-   DoFailTest('rgb.ppm', [TRGBAlphaImage, TRGBFloatImage], [ilcAlphaAdd, ilcFloatPrecAdd]);
-   DoTest('rgb.ppm', [TRGBAlphaImage, TRGBFloatImage], [ilcAlphaAdd], TRGBFloatImage);
-   DoTest('rgb.ppm', [TRGBAlphaImage, TRGBFloatImage], [ilcFloatPrecAdd], TRGBAlphaImage);
-   DoTest('rgb.ppm', [TRGBAlphaImage, TRGBFloatImage], [], TRGBAlphaImage);
+   DoTest('rgb.ppm', [TRGBImage], TRGBImage);
+   DoTest('rgb.ppm', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], TRGBImage);
   end;
 
 begin
@@ -87,36 +75,21 @@ begin
  TestsImageInRGBFormat('no_alpha.png');
 
  { zaladuj obrazek z alpha }
- DoTest('alpha.png', [TRGBImage], [], TRGBImage);
- DoTest('alpha.png', [TRGBImage], [ilcAlphaAdd], TRGBImage);
- DoFailTest('alpha.png', [TRGBImage], [ilcAlphaDelete]);
- DoTest('alpha.png', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], [], TRGBAlphaImage);
- DoTest('alpha.png', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], [ilcAlphaAdd], TRGBAlphaImage);
- DoTest('alpha.png', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], AllImageLoadConversions, TRGBAlphaImage);
- DoTest('alpha.png', [TRGBFloatImage], [], TRGBFloatImage);
- DoTest('alpha.png', [TRGBFloatImage], [ilcAlphaAdd], TRGBFloatImage);
- DoFailTest('alpha.png', [TRGBFloatImage], [ilcFloatPrecAdd]);
- DoFailTest('alpha.png', [TRGBFloatImage], [ilcAlphaDelete]);
- DoFailTest('alpha.png', [TRGBFloatImage], AllImageLoadConversions);
+ DoTest('alpha.png', [TRGBImage], TRGBImage);
+ DoTest('alpha.png', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], TRGBAlphaImage);
+ DoTest('alpha.png', [TRGBFloatImage], TRGBFloatImage);
 
  { zaladuj obrazek z rgbe }
- DoTest('rgbe.rgbe', [TRGBImage], [], TRGBImage);
- DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage], [], TRGBImage);
- DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], [], TRGBFloatImage);
- DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], AllImageLoadConversions, TRGBFloatImage);
- DoFailTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage], [ilcFloatPrecDelete]);
- DoTest('rgbe.rgbe', [TRGBAlphaImage], [], TRGBAlphaImage);
- DoFailTest('rgbe.rgbe', [TRGBAlphaImage], [ilcFloatPrecDelete]);
- DoFailTest('rgbe.rgbe', [TRGBAlphaImage], [ilcAlphaAdd]);
+ DoTest('rgbe.rgbe', [TRGBImage], TRGBImage);
+ DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage], TRGBImage);
+ DoTest('rgbe.rgbe', [TRGBImage, TRGBAlphaImage, TRGBFloatImage], TRGBFloatImage);
+ DoTest('rgbe.rgbe', [TRGBAlphaImage], TRGBAlphaImage);
 
  { zaladuj obrazek z grayscale }
- DoTest('alpha_grayscale.png', [], [], TGrayscaleAlphaImage);
- DoTest('alpha_grayscale.png', [TGrayscaleImage], [], TGrayscaleImage);
- DoTest('alpha_grayscale.png', [TRGBImage], [], TRGBImage);
- DoTest('alpha_grayscale.png', [TRGBAlphaImage], [], TRGBAlphaImage);
- DoTest('alpha_grayscale.png', [], AllImageLoadConversions, TGrayscaleAlphaImage);
- DoFailTest('alpha_grayscale.png', [TGrayscaleImage], AllImageLoadConversions);
- DoFailTest('alpha_grayscale.png', [TRGBImage], [ilcAlphaDelete])
+ DoTest('alpha_grayscale.png', [], TGrayscaleAlphaImage);
+ DoTest('alpha_grayscale.png', [TGrayscaleImage], TGrayscaleImage);
+ DoTest('alpha_grayscale.png', [TRGBImage], TRGBImage);
+ DoTest('alpha_grayscale.png', [TRGBAlphaImage], TRGBAlphaImage);
 end;
 
 procedure TTestImages.TestImageClassBestForSavingToFormat;

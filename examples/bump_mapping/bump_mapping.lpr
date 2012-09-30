@@ -1043,10 +1043,10 @@ const
     Image := nil;
     try
       BaseImage := LoadImage('textures/' + BaseFileName,
-        [TRGBImage], []) as TRGBImage;
+        [TRGBImage]) as TRGBImage;
 
       BumpImage := LoadImage('textures/' + BumpFileName,
-        [TGrayscaleImage], []) as TGrayscaleImage;
+        [TGrayscaleImage]) as TGrayscaleImage;
       BumpImage.HalfColors;
       BumpImageWidth := BumpImage.Width;
       BumpImageHeight := BumpImage.Height;

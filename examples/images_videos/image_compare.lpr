@@ -31,8 +31,8 @@ begin
   Image1 := nil;
   Image2 := nil;
   try
-    Image1 := LoadImage(Parameters[1], [TRGBImage], []) as TRGBImage;
-    Image2 := LoadImage(Parameters[2], [TRGBImage], []) as TRGBImage;
+    Image1 := LoadImage(Parameters[1], [TRGBImage]) as TRGBImage;
+    Image2 := LoadImage(Parameters[2], [TRGBImage]) as TRGBImage;
 
     if (Image1.Width <> Image2.Width) or
        (Image1.Height <> Image2.Height) then

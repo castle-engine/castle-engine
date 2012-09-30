@@ -156,7 +156,7 @@ begin
   if FileExtToImageFormatDef(ExtractFileExt(FileName),
     false, false, ifBMP) <> ifDDS then
   begin
-    Result := LoadImage(FileName, TextureImageClasses, []);
+    Result := LoadImage(FileName, TextureImageClasses);
     DDS := nil;
   end else
   begin

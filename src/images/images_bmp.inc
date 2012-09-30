@@ -53,8 +53,7 @@ const
   BI_BITFIELDS = 3;
 
 function LoadBMP(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 var fhead: TBitmapFileHeader;
     ihead: TBitmapInfoHeader;
     paletteSize: integer;    { rozmiar palety (0 jesli brak) }
@@ -223,27 +222,25 @@ begin
      { We always allocate Result most matching to file format
        (biBitCount = 32 is RGBA, else RGB).
 
-       We also check AllowedImageClasses and ForbiddenConvs, to see if they can
+       We also check AllowedImageClasses, to see if they can
        be satisfied. There's no point in loading if we would later
        be unable to convert to requested class.
 
-       However, actual conversion to satisfy AllowedImageClasses, ForbiddenConvs
+       However, actual conversion to satisfy AllowedImageClasses
        (adding/stripping alpha channel) will be done (if needed) later,
        after reading BMP file. }
      if biBitCount = 32 then
      begin
        if ClassAllowed(TRGBAlphaImage) or
-          ( ClassAllowed(TRGBImage) and
-            (not (ilcAlphaDelete in ForbiddenConvs)) ) then
+          ClassAllowed(TRGBImage) then
          Result := TRGBAlphaImage.Create(biWidth, biHeight) else
-         raise EUnableToLoadImage.CreateFmt('Cannot load BMP file (with alpha channel) to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
+         raise EUnableToLoadImage.CreateFmt('Cannot load BMP file (with alpha channel) to %s', [LoadImageParams(AllowedImageClasses)]);
      end else
      begin
        if ClassAllowed(TRGBImage) or
-          ( ClassAllowed(TRGBAlphaImage) and
-            (not (ilcAlphaAdd in ForbiddenConvs)) ) then
+          ClassAllowed(TRGBAlphaImage) then
          Result := TRGBImage.Create(biWidth, biHeight) else
-         raise EUnableToLoadImage.CreateFmt('Cannot load BMP file (without alpha channel) to %s', [LoadImageParams(AllowedImageClasses, ForbiddenConvs)]);
+         raise EUnableToLoadImage.CreateFmt('Cannot load BMP file (without alpha channel) to %s', [LoadImageParams(AllowedImageClasses)]);
      end;
 
      for i := 0 to biHeight - 1 do
@@ -255,8 +252,7 @@ begin
       WriteRow(Result.RowPtr(rownum), rowData);
      end;
 
-     { Convert now to satisfy AllowedImageClasses.
-       (We already checked ForbiddenConvs, we know we can convert Ok). }
+     { Convert now to satisfy AllowedImageClasses }
      if (Result is TRGBAlphaImage) and
         (not ClassAllowed(TRGBAlphaImage)) then
      begin

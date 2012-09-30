@@ -87,7 +87,7 @@ end;
 
 procedure TBaseTile.LoadFromFile;
 begin
-  Image := LoadImage(FullFileName, PixelsImageClasses, [], BaseWidth, BaseHeight);
+  Image := LoadImage(FullFileName, PixelsImageClasses, BaseWidth, BaseHeight);
   if not (Image is TRGBAlphaImage) then
   begin
     ImageAlphaConstTo1st(Image, 255);
@@ -111,7 +111,7 @@ end;
 
 procedure TBonusTile.LoadFromFile;
 begin
-  Image := LoadImage(FullFileName, PixelsImageClasses, []);
+  Image := LoadImage(FullFileName, PixelsImageClasses);
   GLImage := TGLImage.Create(Image);
 end;
 

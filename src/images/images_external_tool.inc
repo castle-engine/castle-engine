@@ -5,7 +5,6 @@
 function LoadImageExternalTool(
   Stream: TStream;
   const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions;
   const ImageMagickName: string): TCastleImage;
 {$ifdef HAS_EXECUTE_PROCESS}
 
@@ -114,7 +113,7 @@ begin
 
     PngStream := CreateReadFileStream(PngFileName);
     try
-      Result := LoadPNG(PngStream, AllowedImageClasses, ForbiddenConvs);
+      Result := LoadPNG(PngStream, AllowedImageClasses);
     finally FreeAndNil(PngStream) end;
 
   finally
@@ -134,33 +133,25 @@ end;
 {$endif}
 
 function LoadSGI(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 begin
-  Result := LoadImageExternalTool(
-    Stream, AllowedImageClasses, ForbiddenConvs, 'sgi');
+  Result := LoadImageExternalTool(Stream, AllowedImageClasses, 'sgi');
 end;
 
 function LoadTIFF(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 begin
-  Result := LoadImageExternalTool(
-    Stream, AllowedImageClasses, ForbiddenConvs, 'tiff');
+  Result := LoadImageExternalTool(Stream, AllowedImageClasses, 'tiff');
 end;
 
 function LoadJP2(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 begin
-  Result := LoadImageExternalTool(
-    Stream, AllowedImageClasses, ForbiddenConvs, 'jp2');
+  Result := LoadImageExternalTool(Stream, AllowedImageClasses, 'jp2');
 end;
 
 function LoadEXR(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 begin
-  Result := LoadImageExternalTool(
-    Stream, AllowedImageClasses, ForbiddenConvs, 'exr');
+  Result := LoadImageExternalTool(Stream, AllowedImageClasses, 'exr');
 end;

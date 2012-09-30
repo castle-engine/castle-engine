@@ -195,10 +195,10 @@ procedure WindowOpen(const Container: IUIContainer);
         'require_image_name_missing');
       IntroParts[I].Image := TGLImage.Create(
         ProgramDataPath + 'data' + PathDelim + 'images' + PathDelim +
-        ImageName + '.png', [TRGBImage], [], Window.Width, Window.Height);
+        ImageName + '.png', [TRGBImage], Window.Width, Window.Height);
       IntroParts[I].ImageCorroded := TGLImage.Create(
         ProgramDataPath + 'data' + PathDelim + 'images' + PathDelim +
-        ImageName + '_corroded.png', [TRGBImage], [], Window.Width, Window.Height);
+        ImageName + '_corroded.png', [TRGBImage], Window.Width, Window.Height);
     end;
   end;
 

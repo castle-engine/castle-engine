@@ -1053,7 +1053,7 @@ begin
   if DOMGetAttribute(Element, 'loading_image', LoadingImageFileName) then
   begin
     LoadingImageFileName := CombinePaths(DocumentBasePath, LoadingImageFileName);
-    LoadingImage := LoadImage(LoadingImageFileName, [TRGBImage], []) as TRGBImage;
+    LoadingImage := LoadImage(LoadingImageFileName, [TRGBImage]) as TRGBImage;
   end;
 
   if not DOMGetSingleAttribute(Element, 'loading_image_bar_y_position',

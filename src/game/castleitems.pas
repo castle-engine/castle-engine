@@ -434,7 +434,7 @@ end;
 function TItemKind.Image: TCastleImage;
 begin
   if FImage = nil then
-    FImage := LoadImage(ImageFileName, [], []);
+    FImage := LoadImage(ImageFileName, []);
   Result := FImage;
 end;
 

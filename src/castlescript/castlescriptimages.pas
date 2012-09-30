@@ -204,7 +204,7 @@ begin
     FullUrl := CombineUrls(AFunction.Environment.BaseUrl, FullUrl);
 
   try
-    NewImage := LoadImage(FullUrl, [TRGBImage, TRGBAlphaImage], []);
+    NewImage := LoadImage(FullUrl, [TRGBImage, TRGBAlphaImage]);
   except
     on E: Exception do
       raise ECasScriptError.Create('Exception ' + E.ClassName +

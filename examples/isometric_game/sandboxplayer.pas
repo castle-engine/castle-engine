@@ -82,7 +82,7 @@ begin
       'tiles' + PathDelim + 'woldforge' + PathDelim +
       'sprites' + PathDelim + 'creatures' + PathDelim + 'observer' + PathDelim +
       'observer_float_' + MoveShortcutNames[Dir] + '_1_hh.png',
-      PixelsImageClasses, []);
+      PixelsImageClasses);
     GLImage[Dir] := TGLImage.Create(Image[Dir]);
   end;
 end;

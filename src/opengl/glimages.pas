@@ -121,7 +121,7 @@ type
         an alpha channel (it will be stripped from the image if necessary).)
 
       @param(Forbidden convertions to do when loading,
-        see CastleImages.LoadImage. Pass empty set [] to not forbid anything)
+        see CastleImages.LoadImage. Pass empty set [] to not forbid anything.)
 
       @param(ResizeToX After loading, resize to given width.
         Pass 0 to not resize width.)
@@ -134,7 +134,6 @@ type
     }
     constructor Create(const FileName: string;
       const LoadAsClass: array of TCastleImageClass;
-      const LoadForbiddenConvs: TImageLoadConversions;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0);
 
@@ -894,16 +893,13 @@ end;
 
 constructor TGLImage.Create(const FileName: string;
   const LoadAsClass: array of TCastleImageClass;
-  const LoadForbiddenConvs: TImageLoadConversions;
   const ResizeToX, ResizeToY: Cardinal);
 var
   Image: TCastleImage;
 begin
   if High(LoadAsClass) = -1 then
-    Image := LoadImage(FileName, PixelsImageClasses, LoadForbiddenConvs,
-      ResizeToX, ResizeToY) else
-    Image := LoadImage(FileName, LoadAsClass, LoadForbiddenConvs,
-      ResizeToX, ResizeToY);
+    Image := LoadImage(FileName, PixelsImageClasses, ResizeToX, ResizeToY) else
+    Image := LoadImage(FileName, LoadAsClass, ResizeToX, ResizeToY);
   try
     Create(Image);
   finally FreeAndNil(Image) end;

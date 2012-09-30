@@ -873,7 +873,7 @@ end;
 procedure TCastleImageControl.SetFileName(const Value: string);
 begin
   if Value <> '' then
-    Image := LoadImage(Value, [], [], 0, 0) else
+    Image := LoadImage(Value, []) else
     Image := nil;
 
   { only once new Image is successfully loaded, change property value.

@@ -321,7 +321,7 @@ procedure TElevationImage.LoadImage(const AImageFileName: string);
 var
   NewImage: TGrayscaleImage;
 begin
-  NewImage := CastleImages.LoadImage(AImageFileName, [TGrayscaleImage], []) as TGrayscaleImage;
+  NewImage := CastleImages.LoadImage(AImageFileName, [TGrayscaleImage]) as TGrayscaleImage;
 
   FreeAndNil(FImage);
   FImage := NewImage;

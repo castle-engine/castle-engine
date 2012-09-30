@@ -1,6 +1,5 @@
 function LoadDDS(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 var
   DDS: TDDSImage;
 begin
@@ -17,7 +16,7 @@ begin
         which would be a waste of time. }
       DDS.OwnsFirstImage := false;
 
-      { TODO: make sure to honor AllowedImageClasses and ForbiddenConvs.
+      { TODO: make sure to honor AllowedImageClasses.
         For now, I just return whatever DDS set... }
       Result := TCastleImage(DDS.Images[0]);
     end else
