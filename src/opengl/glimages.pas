@@ -85,7 +85,7 @@ type
     by OpenGL.)
 
   @groupBegin }
-function ImageGLFormat(const Img: TEncodedImage): TGLenum;
+function ImageGLFormat(const Img: TCastleImage): TGLenum;
 function ImageGLInternalFormat(const Img: TEncodedImage): TGLenum;
 function ImageGLType(const Img: TCastleImage): TGLenum;
 { @groupEnd }
@@ -833,7 +833,7 @@ implementation
 
 uses CastleUtils, CastleLog, GLVersionUnit, CastleWarnings, TextureImages;
 
-function ImageGLFormat(const Img: TEncodedImage): TGLenum;
+function ImageGLFormat(const Img: TCastleImage): TGLenum;
 begin
   if Img is TRGBImage then
     Result := GL_RGB else
@@ -1504,18 +1504,6 @@ var
   end;
 
 begin
-  if (Image is TGrayscaleImage) and GrayscaleIsAlpha then
-  begin
-    { To treat texture as pure alpha channel, both internalFormat and format
-      must be ALPHA }
-    ImageInternalFormat := GL_ALPHA;
-    ImageFormat := GL_ALPHA;
-  end else
-  begin
-    ImageInternalFormat := ImageGLInternalFormat(Image);
-    ImageFormat := ImageGLFormat(Image);
-  end;
-
   { bind the texture, set min, mag filters and wrap parameters }
   glBindTexture(GL_TEXTURE_2D, texnum);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
@@ -1526,6 +1514,18 @@ begin
   { give the texture data }
   if Image is TCastleImage then
   begin
+    if (Image is TGrayscaleImage) and GrayscaleIsAlpha then
+    begin
+      { To treat texture as pure alpha channel, both internalFormat and format
+        must be ALPHA }
+      ImageInternalFormat := GL_ALPHA;
+      ImageFormat := GL_ALPHA;
+    end else
+    begin
+      ImageInternalFormat := ImageGLInternalFormat(Image);
+      ImageFormat := ImageGLFormat(TCastleImage(Image));
+    end;
+
     { Load uncompressed }
     if TextureMinFilterNeedsMipmaps(MinFilter) then
       LoadMipmapped(TCastleImage(Image)) else
@@ -1631,6 +1631,36 @@ procedure glTextureCubeMapSide(
   Target: TGLenum; const Image: TEncodedImage; Level: TGLuint; Mipmaps: boolean);
 var
   ImageInternalFormat: TGLuint;
+
+  { Load Image through glCompressedTexImage2DARB.
+    This checks existence of OpenGL extensions for S3TC,
+    and checks Image sizes.
+    It also takes care of pixel packing, although actually nothing needs
+    be done about it when using compressed textures.
+
+    @raises(ECannotLoadS3TCTexture If texture size is bad or OpenGL S3TC
+      extensions are missing or mipmaps were required.) }
+  procedure LoadCompressed(const Image: TS3TCImage);
+  begin
+    if not (GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc) then
+      raise ECannotLoadS3TCTexture.Create('Cannot load S3TC compressed textures: OpenGL doesn''t support one (or both) of ARB_texture_compression and EXT_texture_compression_s3tc extensions');
+
+    if not IsCubeMapTextureSized(Image) then
+      raise ECannotLoadS3TCTexture.CreateFmt('Cannot load S3TC compressed textures: texture size is %d x %d, it''s not correct for OpenGL, and we cannot resize on CPU compressed textures',
+        [Image.Width, Image.Height]);
+
+    if Mipmaps then
+      raise ECannotLoadS3TCTexture.Create('Cannot create mipmaps on CPU for S3TC compressed images');
+
+    { Pixel packing parameters (stuff changed by Before/AfterUnpackImage)
+      doesn't affect loading compressed textures, as far as I understand.
+      So no need to call it. }
+    glCompressedTexImage2DARB(Target, Level, ImageInternalFormat,
+      Image.Width, Image.Height, 0, Image.Size,
+      Image.RawPixels);
+  end;
+
+var
   ImageFormat: TGLuint;
 
   { Calls glTexImage2D for given image.
@@ -1708,42 +1738,13 @@ var
     glTexImage2DImage(Image);
   end;
 
-  { Load Image through glCompressedTexImage2DARB.
-    This checks existence of OpenGL extensions for S3TC,
-    and checks Image sizes.
-    It also takes care of pixel packing, although actually nothing needs
-    be done about it when using compressed textures.
-
-    @raises(ECannotLoadS3TCTexture If texture size is bad or OpenGL S3TC
-      extensions are missing or mipmaps were required.) }
-  procedure LoadCompressed(const Image: TS3TCImage);
-  begin
-    if not (GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc) then
-      raise ECannotLoadS3TCTexture.Create('Cannot load S3TC compressed textures: OpenGL doesn''t support one (or both) of ARB_texture_compression and EXT_texture_compression_s3tc extensions');
-
-    if not IsCubeMapTextureSized(Image) then
-      raise ECannotLoadS3TCTexture.CreateFmt('Cannot load S3TC compressed textures: texture size is %d x %d, it''s not correct for OpenGL, and we cannot resize on CPU compressed textures',
-        [Image.Width, Image.Height]);
-
-    if Mipmaps then
-      raise ECannotLoadS3TCTexture.Create('Cannot create mipmaps on CPU for S3TC compressed images');
-
-    { Pixel packing parameters (stuff changed by Before/AfterUnpackImage)
-      doesn't affect loading compressed textures, as far as I understand.
-      So no need to call it. }
-    glCompressedTexImage2DARB(Target, Level, ImageInternalFormat,
-      Image.Width, Image.Height, 0, Image.Size,
-      Image.RawPixels);
-  end;
-
 begin
   ImageInternalFormat := ImageGLInternalFormat(Image);
-  ImageFormat := ImageGLFormat(Image);
-
   if Image is TS3TCImage then
     LoadCompressed(TS3TCImage(Image)) else
   if Image Is TCastleImage then
   begin
+    ImageFormat := ImageGLFormat(TCastleImage(Image));
     if Mipmaps then
       LoadMipmapped(TCastleImage(Image)) else
       LoadNormal(TCastleImage(Image));
@@ -1901,12 +1902,12 @@ var
   end;
 
 begin
-  ImageInternalFormat := ImageGLInternalFormat(Image);
-  ImageFormat := ImageGLFormat(Image);
-
   if not (Image is TCastleImage) then
     raise ETextureLoadError.CreateFmt('Image class %s cannot be loaded to OpenGL 3D texture. OpenGL doesn''t allow any 3D texture compression formats',
       [Image.ClassName]);
+
+  ImageInternalFormat := ImageGLInternalFormat(Image);
+  ImageFormat := ImageGLFormat(TCastleImage(Image));
 
   glTexImage3DImage(TCastleImage(Image), 0);
 
