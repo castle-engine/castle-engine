@@ -692,6 +692,7 @@ type
 
     FOnCameraChanged: TNotifyEvent;
     FOnBoundViewpointChanged, FOnBoundNavigationInfoChanged: TNotifyEvent;
+    FIgnoreMoveLimit: boolean;
     FMoveLimit: TBox3D;
     FShadowVolumeRenderer: TGLShadowVolumeRenderer;
 
@@ -789,25 +790,42 @@ type
 
     function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
 
-    { If non-empty, then camera position will be limited to this box.
-      (The meaning of this may be upgraded when we implment 3rd-person camera
-      players.)
-      It may also be used by creature AI (TODO).
+    { How the camera position is limited and where the gravity works.
+      Intuitively, this is the "sensible" part of 3D space where normal physics
+      should work.
 
-      When this property specifies an EmptyBox3D (the default value),
-      camera position is limited to not fall because of gravity
-      outside of Items.BoundingBox. That is, camera can freely move
-      around in 3D world, only the gravity cannot pull the user outside
-      of the box.
-      Which means user cannot fall into an infinite abyss of our 3D space,
-      and also gravity doesn't work outside of Items.BoundingBox.
-      This is usually most natural.
+      TODO: When you activate 3rd-person camera (not implemented yet),
+      this limit will apply to the Player.Position, not just Camera.Position.
+      TODO: It may also be used by creature AI.
 
-      Note that if you load level through TGameSceneManager.LoadLevel,
-      then this is @italic(never) empty. It's either determined by
-      CasMoveLimit placeholder in the level 3D model, or it's
-      automatically calculated to include level + some space for flying. }
+      @unorderedList(
+        @item(If IgnoreMoveLimit = @true, this is ignored, and camera can
+          move everywhere and gravity works everywhere.)
+
+        @item(Otherwise, when IgnoreMoveLimit = @false and MoveLimit
+          is an empty box (this the default situation)
+          then camera position is limited to not fall because of gravity
+          outside of Items.BoundingBox. Still, it can freely move anywhere
+          (only gravity effect is limited to the Items.BoundingBox).
+
+          This is the safest behavior for general 3D model browsers,
+          it prevents user from falling into an infinite abyss of our 3D space,
+          since gravity will always stop at the Items.BoundingBox border.)
+
+        @item(Otherwise, when IgnoreMoveLimit = @false and MoveLimit
+          is not an empty box, then camera cannot go outside of this box.
+
+          Note that the TGameSceneManager.LoadLevel always,
+          automatically, assigns this property to be non-empty.
+          It's either determined by CasMoveLimit placeholder
+          in the level 3D model, or it's automatically calculated
+          to include level bounding box + some space for flying.)
+      )
+
+      @groupBegin }
     property MoveLimit: TBox3D read FMoveLimit write FMoveLimit;
+    property IgnoreMoveLimit: boolean read FIgnoreMoveLimit write FIgnoreMoveLimit;
+    { @groupEnd }
 
     { Renderer of shadow volumes. You can use this to optimize rendering
       of your shadow quads in RenderShadowVolume, and you can control
@@ -2390,7 +2408,7 @@ begin
   Result := MoveCollision(OldPos, ProposedNewPos, NewPos, IsRadius, Radius,
     OldBox, NewBox, @CollisionIgnoreItem);
 
-  if Result then
+  if Result and not Owner.IgnoreMoveLimit then
   begin
     if Owner.MoveLimit.IsEmpty then
     begin
@@ -2412,7 +2430,7 @@ begin
   Result := MoveCollision(OldPos, NewPos, IsRadius, Radius,
     OldBox, NewBox, @CollisionIgnoreItem);
 
-  if Result then
+  if Result and not Owner.IgnoreMoveLimit then
   begin
     if Owner.MoveLimit.IsEmpty then
     begin
