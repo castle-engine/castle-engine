@@ -31,6 +31,7 @@ const
 
 type
   TCastleAbstractViewport = class;
+  TCastleSceneManager = class;
 
   TRender3DEvent = procedure (Viewport: TCastleAbstractViewport;
     const Params: TRenderParams) of object;
@@ -48,6 +49,12 @@ type
     destructor Destroy; override;
     function BaseLights(Scene: T3D): TAbstractLightInstancesList; override;
   end;
+
+  { Event for TCastleSceneManager.OnMoveAllowed. }
+  TWorldMoveAllowedEvent = procedure (Sender: TCastleSceneManager;
+    var Allowed: boolean;
+    const OldPosition, NewPosition: TVector3Single;
+    const BecauseOfGravity: boolean) of object;
 
   { Common abstract class for things that may act as a viewport:
     TCastleSceneManager and TCastleViewport. }
@@ -692,7 +699,6 @@ type
 
     FOnCameraChanged: TNotifyEvent;
     FOnBoundViewpointChanged, FOnBoundNavigationInfoChanged: TNotifyEvent;
-    FIgnoreMoveLimit: boolean;
     FMoveLimit: TBox3D;
     FShadowVolumeRenderer: TGLShadowVolumeRenderer;
 
@@ -705,6 +711,7 @@ type
     NeedsUpdateGeneratedTextures: boolean;
 
     FWater: TBox3D;
+    FOnMoveAllowed: TWorldMoveAllowedEvent;
 
     { Call at the beginning of Draw (from both scene manager and custom viewport),
       to make sure UpdateGeneratedTextures was done before actual drawing. }
@@ -758,6 +765,16 @@ type
       You can override this to make a message / sound signal to notify user
       that his Input_Interact click was not successful. }
     procedure PointingDeviceActivateFailed(const Active: boolean); virtual;
+
+    { Handle OnMoveAllowed and default MoveLimit algorithm.
+      See the description of OnMoveAllowed property for information.
+
+      When this is called, collision detection determined that this move
+      is allowed. The default implementation in TCastleSceneManager
+      calculates the result using the algorithm described at the MoveLimit
+      property, then calls OnMoveAllowed event. }
+    function MoveAllowed(const OldPosition, NewPosition: TVector3Single;
+      const BecauseOfGravity: boolean): boolean; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -790,42 +807,36 @@ type
 
     function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
 
-    { How the camera position is limited and where the gravity works.
+    { Where the 3D items (player, creatures, items) can move,
+      and where the gravity works. In case of 1st-person view
+      (always, for now) limiting the player position also implies limiting
+      the camera position.
       Intuitively, this is the "sensible" part of 3D space where normal physics
       should work.
 
       TODO: When you activate 3rd-person camera (not implemented yet),
-      this limit will apply to the Player.Position, not just Camera.Position.
-      TODO: It may also be used by creature AI.
+      this limit will apply to the Player.Position, not Camera.Position.
 
       @unorderedList(
-        @item(If IgnoreMoveLimit = @true, this is ignored, and camera can
-          move everywhere and gravity works everywhere.)
-
-        @item(Otherwise, when IgnoreMoveLimit = @false and MoveLimit
-          is an empty box (this the default situation)
-          then camera position is limited to not fall because of gravity
-          outside of Items.BoundingBox. Still, it can freely move anywhere
+        @item(When MoveLimit is an empty box (this is the default situation)
+          then movement is limited to not fall because of gravity
+          outside of Items.BoundingBox. Still, we can freely move anywhere
           (only gravity effect is limited to the Items.BoundingBox).
 
           This is the safest behavior for general 3D model browsers,
-          it prevents user from falling into an infinite abyss of our 3D space,
+          it prevents camera from falling into an infinite abyss of our 3D space,
           since gravity will always stop at the Items.BoundingBox border.)
 
-        @item(Otherwise, when IgnoreMoveLimit = @false and MoveLimit
-          is not an empty box, then camera cannot go outside of this box.
+        @item(When MoveLimit is not an empty box,
+          then position cannot go outside of this box.
 
           Note that the TGameSceneManager.LoadLevel always,
           automatically, assigns this property to be non-empty.
           It's either determined by CasMoveLimit placeholder
           in the level 3D model, or it's automatically calculated
           to include level bounding box + some space for flying.)
-      )
-
-      @groupBegin }
+      ) }
     property MoveLimit: TBox3D read FMoveLimit write FMoveLimit;
-    property IgnoreMoveLimit: boolean read FIgnoreMoveLimit write FIgnoreMoveLimit;
-    { @groupEnd }
 
     { Renderer of shadow volumes. You can use this to optimize rendering
       of your shadow quads in RenderShadowVolume, and you can control
@@ -978,6 +989,46 @@ type
       )
     }
     property Player: TPlayer read FPlayer write SetPlayer;
+
+    (*Enable or disable movement of the player, items and creatures.
+      This applies to all 3D objects using T3D.WorldMoveAllowed for movement.
+      In case of 1st-person view (always for now),
+      limiting the player position also implies limiting the camera position.
+
+      When this event is called at all, the basic collision detection
+      already decided that the move is allowed (so object does not collide with
+      other collidable 3D features).
+      You can now implement additional rules to say when the move is,
+      or is not, allowed.
+
+      @param(Allowed
+        Initially, the Allowed parameter is set following the algorithm
+        described at the MoveLimit property.
+        Your event can use this, and e.g. do something like
+
+        @longCode(#  Allowed := Allowed and (my custom move rule); #)
+
+        Or you can simply ignore the default Allowed value,
+        thus ignoring the algorithm described at the MoveLimit property,
+        and simply always set Allowed to your own decision.
+        For example, setting
+
+        @longCode(#  Allowed := true; #)
+
+        will make gravity and movement work everywhere.)
+
+      @param(BecauseOfGravity
+        @true if this move was caused by gravity, that is: given object
+        is falling down. You can use this to limit gravity to some box,
+        but keep other movement unlimited, like
+
+        @longCode(#
+  { Allow movement everywhere, but limit gravity to a box. }
+  Allowed := (not BecauseOfGravity) or MyGravityBox.PointInside(NewPos);
+#)
+      ) *)
+    property OnMoveAllowed: TWorldMoveAllowedEvent
+      read FOnMoveAllowed write FOnMoveAllowed;
   end;
 
   { Custom 2D viewport showing 3D world. This uses assigned SceneManager
@@ -2407,18 +2458,8 @@ function T3DWorldConcrete.WorldMoveAllowed(
 begin
   Result := MoveCollision(OldPos, ProposedNewPos, NewPos, IsRadius, Radius,
     OldBox, NewBox, @CollisionIgnoreItem);
-
-  if Result and not Owner.IgnoreMoveLimit then
-  begin
-    if Owner.MoveLimit.IsEmpty then
-    begin
-      { Don't objects to fall outside of the box because of gravity,
-        as then they would fall into infinity. }
-      if BecauseOfGravity then
-        Result := BoundingBox.PointInside(NewPos);
-    end else
-      Result := Owner.MoveLimit.PointInside(NewPos);
-  end;
+  if Result then
+    Result := Owner.MoveAllowed(OldPos, NewPos, BecauseOfGravity);
 end;
 
 function T3DWorldConcrete.WorldMoveAllowed(
@@ -2429,17 +2470,8 @@ function T3DWorldConcrete.WorldMoveAllowed(
 begin
   Result := MoveCollision(OldPos, NewPos, IsRadius, Radius,
     OldBox, NewBox, @CollisionIgnoreItem);
-
-  if Result and not Owner.IgnoreMoveLimit then
-  begin
-    if Owner.MoveLimit.IsEmpty then
-    begin
-      { Don't let user to fall outside of the box because of gravity. }
-      if BecauseOfGravity then
-        Result := BoundingBox.PointInside(NewPos);
-    end else
-      Result := Owner.MoveLimit.PointInside(NewPos);
-  end;
+  if Result then
+    Result := Owner.MoveAllowed(OldPos, NewPos, BecauseOfGravity);
 end;
 
 function T3DWorldConcrete.WorldHeight(const Position: TVector3Single;
@@ -3130,6 +3162,24 @@ begin
   if Camera <> nil then
     Result := Camera.GetGravityUp else
     Result := DefaultCameraUp;
+end;
+
+function TCastleSceneManager.MoveAllowed(const OldPosition, NewPosition: TVector3Single;
+  const BecauseOfGravity: boolean): boolean;
+begin
+  Result := true;
+
+  if MoveLimit.IsEmpty then
+  begin
+    { Don't let objects/camera fall outside of the box because of gravity,
+      as then they would fall into infinity. }
+    if BecauseOfGravity then
+      Result := Items.BoundingBox.PointInside(NewPosition);
+  end else
+    Result := MoveLimit.PointInside(NewPosition);
+
+  if Assigned(OnMoveAllowed) then
+    OnMoveAllowed(Self, Result, OldPosition, NewPosition, BecauseOfGravity);
 end;
 
 { TCastleViewport --------------------------------------------------------------- }
