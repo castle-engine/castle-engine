@@ -549,7 +549,9 @@ begin
    { Reported on Radeon 6600, 6850 - looks like wireframe
      Also on Intel cards - querying multisampled depth buffer returns bad data. }
   FBuggyFBOMultiSampling :=
-    {$ifdef WINDOWS} (VendorATI and IsPrefix('AMD Radeon HD 6', Renderer)) or VendorIntel
+    {$ifdef WINDOWS} (VendorATI and
+      (IsPrefix('AMD Radeon HD 6', Renderer) or IsPrefix('AMD Radeon HD6', Renderer)))
+    or VendorIntel
     {$else} false {$endif};
 end;
 
