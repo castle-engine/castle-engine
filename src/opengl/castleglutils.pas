@@ -769,16 +769,24 @@ procedure glProjectionPushPopPerspective(proc: TProcData; Data: Pointer;
 procedure glProjectionPushPop(proc: TProcData; Data: Pointer;
   const projMatrix: TMatrix4f);
 
-{ Draw rectangle that colors (using blending) everything underneath with
-  given BlackOutColor. BlackOutIntensity is the effect intensity:
-  1 is the total coverage by BlackOutColor, 0 (and below) means nothing.
+{ Draw a rectangle that modulates colors underneath,
+  suddenly changing it to BlackOutColor and then fading to blackness and
+  then fading back to normal, as BlackOutIntensity goes down from 1.0 to 0.0.
+  This is nice to use for a screen effect when player is hurt.
 
   The rectangle is affected by current modelview matrix.
-  Requires one attrib stack place.
+  Requires one attrib stack place. }
+procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
+  const BlackOutColor: TVector3Single;
+  const BlackOutIntensity: Single);
 
-  You can place this inside display list. }
-procedure DrawGLBlackOutRect(const BlackOutColor: TVector3f;
-  const BlackOutIntensity, x1, y1, x2, y2: TGLfloat);
+{ Draw a rectangle with blending.
+
+  The rectangle is affected by current modelview matrix.
+  Requires one attrib stack place. }
+procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
+  const SourceFactor, DestinationFactor: TGLenum;
+  const Color: TVector4Single);
 
 { Multiline string describing attributes of current OpenGL
   library. This simply queries OpenGL using glGet* functions
@@ -1759,67 +1767,63 @@ begin
   glProjectionPushPopOrtho2D(proc, data, 0, viewport[2], 0, viewport[3]);
 end;
 
-procedure DrawGLBlackOutRect(const BlackOutColor: TVector3f;
-  const BlackOutIntensity, x1, y1, x2, y2: TGLfloat);
-
-{ ta procedura zabarwia caly ekran gry kolorem Color.
-  Dokladny sposob zabarwiania (czyli blending) zostal wybrany tak aby dawac
-  najbardziej ciekawy wizualnie efekt. Oto on :
-
-  Ta procedura zmienia kazdy kolor na ekranie gry, powiedzmy K0=(R, G, B),
-  na (R* Rb*skala, G *Gb*skala, B *Bb*skala)
-  gdzie K=(Rb, Gb, Bb) to jakis kolor. Tym samym dopoki skala jest
-  z przedzialu 0..1 i wszystkie komponenty koloru K tez sa poprawnie
-  w 0..1 to wynikowy kolor jest zawsze ciemniejszy lub rowny K0.
-
-  To ktore komponenty tego K0 sa sciemniane szybciej zalezy od K.
-  (np. K = (1, 0, 0) oznacza ze komponent red jest zachowany (o ile
-  skala = 1) a komponenty green i blue sa kasowane (bez wzgledu na
-  skala)).
-  Gdy skala powoli spada do zera, kolor coraz bardziej dazy do (0, 0, 0).
-  Gdy skala = 0 caly ekran bedzie czarny, bez wzgledu na wartosc K.
-
-  Ta idea jest uzywana tak :
-  - BlackOutIntensity between 1 and FullWhiteEnd:
-    Scale is constant 1 and K is BlackOutColor.
-    So the world color is modulated to BlackOutColor.
-  - BlackOutIntensity between FullWhiteEnd and FullBlack:
-    Scale changes from 1 to MinScale, with K = BlackOutColor.
-    So the world color changes from modulated to BlackOutColor to absolute
-    black.
-  - BlackOutIntensity between FullBlack and 0:
-    Scale changes from MinScale to 1, with K = White.
-    So the world color changes from pure black screen to normal.
-
-  FullBlack to wlasnie ta pozycja na skali 1..0 ze w tym momencie gracz
-  widzi zupelna ciemnosc (kazdy kolor jest zamieniony na Black3d).
-  Im wieksze, tym krotsze jest przechodzenie
-  od BlackOutColor do Black3f w porownaniu z przechodzeniem
-  od Black3f do White3f (czyli normalnych kolorow wszystkiego).}
-
+procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
+  const BlackOutColor: TVector3Single; const BlackOutIntensity: Single);
 const
   FullWhiteEnd = 0.9;
   FullBlack = 0.3;
+  { We assume that MinScale is small enough that difference between
+    "BlackOutColor * MinScale * screen color" and
+    "MinScale * screen color" is not noticeable. }
   MinScale = 0.5;
+  { Constants below make resulting screen color = glColor * previous screen color.
+    Note that as long as all components of BlackOutColor are <= 1,
+    then all components of our glColor are also always <= 1,
+    and this means that we will always make the screen darker (or equal,
+    but never brighter). }
+  SourceFactor = GL_ZERO;
+  DestinationFactor = GL_SRC_COLOR;
+var
+  Color4: TVector4Single;
+  Color3: TVector3Single absolute Color4;
 begin
   if BlackOutIntensity > 0 then
   begin
-    glPushAttrib(GL_COLOR_BUFFER_BIT or GL_CURRENT_BIT);
-      glEnable(GL_BLEND);
-        glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+    { for BlackOutIntensity in 1...FullWhiteEnd (going down):
+      screen color := BlackOutColor * screen color }
+    if BlackOutIntensity > FullWhiteEnd then
+      Color3 := BlackOutColor else
+    { for BlackOutIntensity in FullWhiteEnd...FullBlack (going down):
+      screen color := BlackOutColor * screen color ...
+        BlackOutColor * MinScale * screen color }
+    if BlackOutIntensity > FullBlack then
+      Color3 := BlackOutColor * MapRange(BlackOutIntensity, FullWhiteEnd, FullBlack, 1, MinScale) else
+    { for BlackOutIntensity in FullBlack...0 (going down):
+      screen color := MinScale * screen color ...
+        unchanged screen color }
+      Color3 := White3Single * MapRange(BlackOutIntensity, FullBlack, 0, MinScale, 1);
 
-        if BlackOutIntensity > FullWhiteEnd then
-          glColorv(BlackOutColor) else
-        if BlackOutIntensity > FullBlack then
-          glColorv( VectorScale( BlackOutColor,
-            MapRange(BlackOutIntensity, FullWhiteEnd, FullBlack, 1, MinScale))) else
-          glColorv( VectorScale( White3Single,
-            MapRange(BlackOutIntensity, FullBlack, 0, MinScale, 1)));
-
-        glRectf(x1, y1, x2, y2);
-      glDisable(GL_BLEND);
-    glPopAttrib;
+    Color4[3] := 1.0; { alpha always 1.0 in this case }
+    GLBlendRectangle(X1, Y1, X2, Y2, SourceFactor, DestinationFactor, Color4);
   end;
+end;
+
+procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
+  const SourceFactor, DestinationFactor: TGLenum;
+  const Color: TVector4Single);
+begin
+  glPushAttrib(GL_COLOR_BUFFER_BIT or GL_CURRENT_BIT);
+    glEnable(GL_BLEND);
+      glBlendFunc(SourceFactor, DestinationFactor);
+      glColorv(Color);
+      glBegin(GL_QUADS);
+        glVertex2i(X1, Y1);
+        glVertex2i(X2, Y1);
+        glVertex2i(X2, Y2);
+        glVertex2i(X1, Y2);
+      glEnd();
+    glDisable(GL_BLEND);
+  glPopAttrib;
 end;
 
 function GLInformationString: string;
