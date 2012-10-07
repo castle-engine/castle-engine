@@ -656,9 +656,6 @@ type
       and Middle to be high. }
     function Sphere(out Radius: Single): boolean; override;
 
-    function PointingDeviceActivate(const Active: boolean;
-      const Distance: Single): boolean; override;
-
     property CollidesWithMoving default true;
   end;
 
@@ -1456,33 +1453,6 @@ function TCreature.Sphere(out Radius: Single): boolean;
 begin
   Result := GetExists and (not Dead);
   Radius := Kind.Radius;
-end;
-
-function TCreature.PointingDeviceActivate(const Active: boolean;
-  const Distance: Single): boolean;
-const
-  VisibleItemDistance = 60.0;
-var
-  S: string;
-begin
-  Result := Active;
-  if not Result then Exit;
-
-  if Distance <= VisibleItemDistance then
-  begin
-    S := Format('You see a creature "%s"', [Kind.Name]);
-
-    if Life >= MaxLife then
-      S += ' (not wounded)' else
-    if Life >= MaxLife / 3 then
-      S += ' (wounded)' else
-    if Life > 0 then
-      S += ' (very wounded)' else
-      S += ' (dead)';
-
-    Notifications.Show(S);
-  end else
-    Notifications.Show('You see some creature, but it''s too far to tell exactly what it is');
 end;
 
 { TWalkAttackCreature -------------------------------------------------------- }

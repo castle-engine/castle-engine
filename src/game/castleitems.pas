@@ -413,9 +413,6 @@ var
 
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
 
-    function PointingDeviceActivate(const Active: boolean;
-      const Distance: Single): boolean; override;
-
     property Collides default false;
     property CollidesWithMoving default true;
     function Middle: TVector3Single; override;
@@ -873,26 +870,6 @@ begin
   Result := Item;
   Result.FOwner3D := nil;
   FItem := nil;
-end;
-
-function TItemOnWorld.PointingDeviceActivate(const Active: boolean;
-  const Distance: Single): boolean;
-const
-  VisibleItemDistance = 60.0;
-var
-  S: string;
-begin
-  Result := Active;
-  if not Result then Exit;
-
-  if Distance <= VisibleItemDistance then
-  begin
-    S := Format('You see an item "%s"', [Item.Kind.Caption]);
-    if Item.Quantity <> 1 then
-      S += Format(' (quantity %d)', [Item.Quantity]);
-    Notifications.Show(S);
-  end else
-    Notifications.Show('You see some item, but it''s too far to tell exactly what it is');
 end;
 
 function TItemOnWorld.GetExists: boolean;

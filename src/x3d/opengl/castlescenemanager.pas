@@ -766,6 +766,13 @@ type
       that his Input_Interact click was not successful. }
     procedure PointingDeviceActivateFailed(const Active: boolean); virtual;
 
+    { Handle pointing device (mouse) activation/deactivation event over a given 3D
+      object. See T3D.PointingDeviceActivate method for description how it
+      should be handled. Default implementation in TCastleSceneManager
+      just calls T3D.PointingDeviceActivate. }
+    function PointingDeviceActivate3D(const Item: T3D; const Active: boolean;
+      const Distance: Single): boolean; virtual;
+
     { Handle OnMoveAllowed and default MoveLimit algorithm.
       See the description of OnMoveAllowed property for information.
 
@@ -2877,7 +2884,7 @@ function TCastleSceneManager.PointingDeviceActivate(const Active: boolean): bool
       begin
         if RayHit[I].Item = MainScene then
           PassToMainScene := false;
-        Result := RayHit[I].Item.PointingDeviceActivate(Active, RayHit.Distance);
+        Result := PointingDeviceActivate3D(RayHit[I].Item, Active, RayHit.Distance);
         if Result then
         begin
           PassToMainScene := false;
@@ -2886,7 +2893,7 @@ function TCastleSceneManager.PointingDeviceActivate(const Active: boolean): bool
       end;
 
     if PassToMainScene and (MainScene <> nil) then
-      Result := MainScene.PointingDeviceActivate(Active, MaxSingle);
+      Result := PointingDeviceActivate3D(MainScene, Active, MaxSingle);
   end;
 
 var
@@ -2960,6 +2967,12 @@ begin
 
   if not Result then
     PointingDeviceActivateFailed(Active);
+end;
+
+function TCastleSceneManager.PointingDeviceActivate3D(const Item: T3D;
+  const Active: boolean; const Distance: Single): boolean;
+begin
+  Result := Item.PointingDeviceActivate(Active, Distance);
 end;
 
 procedure TCastleSceneManager.PointingDeviceActivateFailed(const Active: boolean);
