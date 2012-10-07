@@ -20,7 +20,7 @@ interface
 
 uses Boxes3D, Cameras, CastleItems, VectorMath, GL, GLU, CastleInputs, KeysMouse,
   X3DTriangles, CastleTextureProperties, CastleSoundEngine, Classes, Base3D,
-  CastleGLUtils, CastleColors, Frustum, CastleTriangles;
+  CastleGLUtils, CastleColors, Frustum, CastleTriangles, CastleTimeUtils;
 
 const
   DefaultPlayerLife = 100;
@@ -69,7 +69,7 @@ type
     We synchronize more in TPlayer class:
 
     @unorderedList(
-      @item(FlyingMode is synchronized with TWalkCamera.Gravity.)
+      @item(@link(Flying) is synchronized with TWalkCamera.Gravity.)
       @item(Various camera inputs are automatically adjusted based on current
         player state (@link(Dead), @link(Blocked)) and global PlayerInput_Xxx
         values, like PlayerInput_Forward.)
@@ -143,12 +143,14 @@ type
     FBlocked: boolean;
     FRenderOnTop: boolean;
 
-    function GetFlyingMode: boolean;
+    FFlying: boolean;
+    FFlyingTimeOut: TFloatTime;
+
     procedure SetEquippedWeapon(Value: TItemWeapon);
 
     { Update Camera properties, including inputs.
-      Call this always when FlyingMode or Dead or some key values
-      or Swimming or Blocked change. }
+      Call this always when @link(Flying) or @link(Dead) or some key values
+      or @link(Swimming) or @link(Blocked) change. }
     procedure UpdateCamera;
 
     procedure FalledDown(ACamera: TWalkCamera; const FallenHeight: Single);
@@ -164,6 +166,8 @@ type
     procedure SetSwimming(const Value: TPlayerSwimming);
 
     procedure FootstepsSoundRelease(Sender: TSound);
+    procedure SetFlying(const AValue: boolean);
+    procedure SetFlyingTimeOut(const AValue: TFloatTime);
   protected
     procedure SetLife(const Value: Single); override;
     function GetChild: T3D; override;
@@ -172,9 +176,6 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
   public
-    { When this is > 0 means flying. In seconds. }
-    FlyingModeTimeOut: Single;
-
     { Blackout settings. }
     BlackOutIntensity: TGLfloat;
     BlackOutColor: TVector3f;
@@ -187,25 +188,31 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    property FlyingMode: boolean read GetFlyingMode;
+    { Flying.
+      How it interacts with FlyingTimeout: Setting this property
+      to any value removes any timeout set by FlyingTimeout.
+      That is, setting this to @true makes player fly indefinitely,
+      and setting this to @false makes player stop flying (regardless
+      if flying was initialized by @code(Flying := true) or @code(FlyingTimeout)). }
+    property Flying: boolean read FFlying write SetFlying;
 
-    { Start FlyingMode, for TimeOut time (TimeOut time is in seconds).
-      After TimeOut time, flying mode will stop.
-      Call this only with TimeOut > 0. }
-    procedure FlyingModeTimeoutBegin(const TimeOut: Single);
+    { Set this to something > 0 to start flying for a given number of seconds.
+      The @link(Flying) property will also change to @true for this time.
+      It will automatically change back to @false after given number of seconds
+      (you can also always just manually switch @link(Flying) back to @false).
 
-    { Cancel FlyingMode. Useful if you're in the FlyingMode that will
-      automatically wear off, but you don't want to wait and you
-      want to cancel flying *now*. Ignored if not in FlyingMode.
+      Set this only with value > 0.
 
-      Note that while you can call this when Dead or Blocked, this will
-      be always ignored (because when Dead or Blocked,
-      FlyingMode is always false). }
-    procedure CancelFlying;
+      When this is > 0 it means flying with a timeout
+      (always @link(Flying) = @true then),
+      otherwise it's = 0 (which means were not flying, or flying indefinitely
+      long, depending on @link(Flying)).}
+    property FlyingTimeOut: TFloatTime read FFlyingTimeOut write SetFlyingTimeOut;
 
     property Inventory: TInventory read FInventory;
 
-    { Add Item to Inventory, with appropriate GameMessage.
+    { Add Item to Inventory,
+      with appropriate notification using CastleGameNotifications.
       See also TInventory.Pick (this is a wrapper around it).
 
       This takes care of adjusting InventoryCurrentItem if needed
@@ -247,9 +254,6 @@ type
       GameMessage about using/not using a weapon. }
     property EquippedWeapon: TItemWeapon read FEquippedWeapon write SetEquippedWeapon;
 
-    { Adjust some things based on passing time.
-      For now, this is for things like FlyingModeTimeout to "wear out".
-      @noAutoLinkHere }
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
 
     { Make blackout with given Color (so it's not really a "black"out,
@@ -435,30 +439,20 @@ begin
   inherited;
 end;
 
-function TPlayer.GetFlyingMode: boolean;
+procedure TPlayer.SetFlying(const AValue: boolean);
 begin
-  Result := (FlyingModeTimeOut > 0) and (not Dead) and (not Blocked);
+  FFlyingTimeOut := 0;
+  FFlying := AValue;
 end;
 
-procedure TPlayer.FlyingModeTimeoutBegin(const TimeOut: Single);
+procedure TPlayer.SetFlyingTimeOut(const AValue: TFloatTime);
 begin
-  if FlyingModeTimeOut <= 0 then
-    Notifications.Show('You start flying');
-
-  { It's possible that FlyingModeTimeoutBegin is called when
-    FFlyingModeTimeOut is already > 0. In this case, we set
-    FFlyingModeTimeOut to maximum of current FFlyingModeTimeOut and TimeOut
-    --- i.e. the effect that will allow player to fly longer wins. }
-  FlyingModeTimeOut := Max(FlyingModeTimeOut, TimeOut);
-end;
-
-procedure TPlayer.CancelFlying;
-begin
-  if FlyingMode then
-  begin
-    FlyingModeTimeOut := 0;
-    Notifications.Show('You''re no longer flying');
-  end;
+  Assert(AValue > 0, 'Only call FlyingTimeOut with TimeOut > 0');
+  { It's possible that this is called when timeout is already > 0.
+    In this case, we set FFlyingTimeOut to maximum
+    --- the effect that will allow player to fly longer wins. }
+  FFlyingTimeOut := Max(FFlyingTimeOut, AValue);
+  FFlying := true;
 end;
 
 function TPlayer.PickItem(Item: TInventoryItem): Integer;
@@ -638,7 +632,7 @@ procedure TPlayer.UpdateCamera;
 const
   CastleCameraInput = [ciNormal, ci3dMouse]; { do not include ciMouseDragging }
 begin
-  Camera.Gravity := (not FlyingMode) and (not Blocked);
+  Camera.Gravity := (not Flying) and (not Dead) and (not Blocked);
   { Note that when not Camera.Gravity then FallingDownEffect will not
     work anyway. }
   Camera.FallingDownEffect := Swimming = psNo;
@@ -707,7 +701,7 @@ begin
     Camera.MoveVerticalSpeed := DefaultMoveVerticalSpeed;
   end else
   begin
-    if FlyingMode then
+    if Flying then
     begin
       Camera.PreferGravityUpForMoving := false;
       Camera.PreferGravityUpForRotations := true;
@@ -1004,12 +998,13 @@ begin
   if not GetExists then Exit;
   LifeTime += CompSpeed;
 
-  if FlyingMode then
+  if FFlyingTimeOut > 0 then
   begin
-    FlyingModeTimeOut := FlyingModeTimeOut - CompSpeed;
-    if not FlyingMode then
+    FFlyingTimeOut := FFlyingTimeOut - CompSpeed;
+    if FFlyingTimeOut <= 0 then
     begin
-      Notifications.Show('You''re no longer flying');
+      FFlyingTimeOut := 0;
+      FFlying := false;
     end;
   end;
 

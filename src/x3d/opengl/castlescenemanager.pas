@@ -1331,7 +1331,7 @@ begin
     if Input_Attack.IsEvent(Event) then
       begin Result := true; P.Attack; end;
     if Input_CancelFlying.IsEvent(Event) then
-      begin Result := true; P.CancelFlying; end;
+      begin Result := true; P.Flying := false; end;
     if Input_InventoryShow.IsEvent(Event) then
       begin Result := true; P.InventoryVisible := not P.InventoryVisible; end;
     if Input_InventoryPrevious.IsEvent(Event) then
