@@ -389,6 +389,11 @@ var
       Set to zero to disable rotation. }
     RotationSpeed: Single; static;
 
+    { Does the player automatically picks up items by walking over them.
+      Default is @true. If you set this to @false, you most probably want to
+      implement some other way of picking up items, use the ExtractItem method. }
+    AutoPick: boolean; static;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -414,6 +419,18 @@ var
     property Collides default false;
     property CollidesWithMoving default true;
     function Middle: TVector3Single; override;
+
+    { Extract the @link(Item), used when picking up the TInventoryItem
+      instance referenced by this TItemOnWorld instance. This returns our
+      @link(Item) property, and clears it (clearing also TInventoryItem.Owner3D).
+      At the next @link(Idle), this TItemOnWorld instance will be freed
+      and removed from 3D world.
+
+      It's up to you what to do with resulting TInventoryItem instance.
+      You can pick it up, by TPlayer.PickItem,
+      or add it back to 3D world by TInventoryItem.PutOnWorld,
+      or at least free it (or you'll get a memory leak). }
+    function ExtractItem: TInventoryItem;
   end;
 
 var
@@ -810,7 +827,6 @@ var
   AboveHeight: Single;
   ShiftedPosition, DirectionZero, U: TVector3Single;
   FallingDownLength: Single;
-  PickedItem: TInventoryItem;
 begin
   inherited;
   if not GetExists then Exit;
@@ -839,20 +855,24 @@ begin
     Move(U * (-FallingDownLength), true);
   end;
 
-  if (World.Player <> nil) and
+  if AutoPick and
+     (World.Player <> nil) and
      (World.Player is TPlayer) and
      (not World.Player.Dead) and
      BoundingBox.Collision(World.Player.BoundingBox) then
-  begin
-    { We no longer own this Item, so clear references. }
-    PickedItem := Item;
-    PickedItem.FOwner3D := nil;
-    FItem := nil;
-    TPlayer(World.Player).PickItem(PickedItem);
+    TPlayer(World.Player).PickItem(ExtractItem);
 
-    { Since we cannot live with Item = nil, we free ourselves }
+  { Since we cannot live with Item = nil, we free ourselves }
+  if Item = nil then
     RemoveMe := rtRemoveAndFree;
-  end;
+end;
+
+function TItemOnWorld.ExtractItem: TInventoryItem;
+begin
+  { We no longer own this Item, so clear references. }
+  Result := Item;
+  Result.FOwner3D := nil;
+  FItem := nil;
 end;
 
 function TItemOnWorld.PointingDeviceActivate(const Active: boolean;
@@ -888,4 +908,5 @@ end;
 
 initialization
   TItemOnWorld.RotationSpeed := DefaultItemRotationSpeed;
+  TItemOnWorld.AutoPick := true;
 end.
