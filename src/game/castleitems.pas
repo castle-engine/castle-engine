@@ -224,14 +224,32 @@ var
     FKind: TItemKind;
     FQuantity: Cardinal;
     FOwner3D: T3D;
+  protected
+    { Try to sum (stack) the given Item with current TInventoryItem.
+      The idea is that if player has 5 arrows, and picks an item representing
+      another 5 arrows, then we sum then into one TInventoryItem instance
+      representing 10 arrows.
 
-    { Stackable means that two items are equal and they can be summed
-      into one item by adding their Quantity values.
-      Practially this means that all properties
-      of both items are equal, with the exception of Quantity.
+      Various games, and various items,
+      may require various approaches: for example, maybe you don't want
+      some items to stack at all (e.g. you want to only allow stacking
+      for items naturally appearing in vast quantities, like arrows and bolts
+      and bullets (if you represent them as TInventoryItem at all)).
+      Maybe you want to allow stacking only to centain number, e.g. arrows
+      are summed into groups of maximum 20 items, anything above creates new stack?
+      Overriding this procedure allows you to do all this.
 
-      TODO: protected virtual in the future? }
-    function Stackable(Item: TInventoryItem): boolean;
+      You can here increase the Quantity of current item,
+      decrease the Quantity of parameter Item. In case the parameter Item
+      no longer exists (it's Quantity reaches 0) you have to free it
+      and set to @nil the Item parameter, in practice you usually want
+      to call then @code(FreeAndNil(Item)).
+
+      The default implementation of this in TInventoryItem class
+      allows stacking always, as long as the Kind matches.
+      This means that, by default, every TItemKind is exsisting at most once
+      in TPlayer.Inventory. }
+    procedure Stack(var Item: TInventoryItem); virtual;
   public
     property Kind: TItemKind read FKind;
 
@@ -318,11 +336,6 @@ var
   TInventory = class(specialize TFPGObjectList<TInventoryItem>)
   private
     FOwner3D: T3DAlive;
-
-    { Check is given Item "stackable" with any other item on this list.
-      Returns index of item on the list that is stackable with given Item,
-      or -1 if none. }
-    function Stackable(Item: TInventoryItem): Integer;
   public
     constructor Create(const AOwner3D: T3DAlive);
 
@@ -580,9 +593,14 @@ end;
 
 { TInventoryItem ------------------------------------------------------------ }
 
-function TInventoryItem.Stackable(Item: TInventoryItem): boolean;
+procedure TInventoryItem.Stack(var Item: TInventoryItem);
 begin
-  Result := Item.Kind = Kind;
+  if Item.Kind = Kind then
+  begin
+    { Stack Item with us }
+    Quantity := Quantity + Item.Quantity;
+    FreeAndNil(Item);
+  end;
 end;
 
 function TInventoryItem.Split(QuantitySplit: Cardinal): TInventoryItem;
@@ -641,14 +659,6 @@ begin
   FOwner3D := AOwner3D;
 end;
 
-function TInventory.Stackable(Item: TInventoryItem): Integer;
-begin
-  for Result := 0 to Count - 1 do
-    if Items[Result].Stackable(Item) then
-      Exit;
-  Result := -1;
-end;
-
 function TInventory.FindKind(Kind: TItemKind): Integer;
 begin
   for Result := 0 to Count - 1 do
@@ -659,18 +669,18 @@ end;
 
 function TInventory.Pick(var Item: TInventoryItem): Integer;
 begin
-  Result := Stackable(Item);
-  if Result <> -1 then
+  for Result := 0 to Count - 1 do
   begin
-    { Stack Item with existing item }
-    Items[Result].Quantity := Items[Result].Quantity + Item.Quantity;
-    FreeAndNil(Item);
-    Item := Items[Result];
-  end else
+    Items[Result].Stack(Item);
+    if Item = nil then Break;
+  end;
+
+  if Item <> nil then
   begin
     Add(Item);
     Result := Count - 1;
-  end;
+  end else
+    Item := Items[Result];
 
   Item.FOwner3D := Owner3D;
 end;
