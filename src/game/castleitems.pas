@@ -28,6 +28,7 @@ const
   DefaultWeaponDamageRandom = 5.0;
   DefaultWeaponActualAttackTime = 0.0;
   DefaultWeaponAttackKnockbackDistance = 1.0;
+  DefaultItemRotationSpeed = Pi;
 
 type
   TInventoryItem = class;
@@ -370,6 +371,11 @@ var
     function GetExists: boolean; override;
     function GetChild: T3D; override;
   public
+    { Speed of the rotation of 3D item on world.
+      In radians per second, default is DefaultItemRotationSpeed.
+      Set to zero to disable rotation. }
+    RotationSpeed: Single; static;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -799,7 +805,7 @@ begin
   inherited;
   if not GetExists then Exit;
 
-  Rotation += 2.61 * CompSpeed;
+  Rotation += RotationSpeed * CompSpeed;
   U := World.GravityUp; // copy to local variable for speed
   DirectionZero := Normalized(AnyOrthogonalVector(U));
   SetView(RotatePointAroundAxisRad(Rotation, DirectionZero, U), U);
@@ -870,4 +876,6 @@ begin
   Result := (inherited Middle) + World.GravityUp * ItemRadius;
 end;
 
+initialization
+  TItemOnWorld.RotationSpeed := DefaultItemRotationSpeed;
 end.
