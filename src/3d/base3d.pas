@@ -653,9 +653,15 @@ type
       use it). }
     function Dragging: boolean; virtual;
 
-    { What happens when other 3D objects try to push this object.
-      May only happen if CollidesWithMoving is @true.
-      By default, in T3D class, this does nothing. }
+    { Unconditionally move this 3D object by given vector.
+      You usually don't want to use this directly, instead use @link(Move)
+      method to move checking collisions (and with optional wall sliding).
+
+      By default, in T3D class, this does nothing, because the bare T3D
+      class doesn't know how to move itself.
+      But descendants like T3DTransform and T3DOrient (and their
+      descendants like TPlayer, TCreature, TItemOnWorld) override this
+      and can be moved using this. }
     procedure Translate(const T: TVector3Single); virtual;
 
     { Middle point, usually "eye point", of the 3D model.
