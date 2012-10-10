@@ -156,7 +156,7 @@ type
       or @link(Swimming) or @link(Blocked) change. }
     procedure UpdateCamera;
 
-    procedure Fall(ACamera: TWalkCamera; const FallenHeight: Single);
+    procedure CameraFall(ACamera: TWalkCamera; const FallHeight: Single);
 
     { This sets life, just like SetLife.
       But in case of life loss, the fadeout is done with specified
@@ -178,6 +178,7 @@ type
     function HeightCollision(const APosition, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
+    procedure Fall(const FallHeight: Single); override;
   public
     { Various navigation properties that may depend on loaded level. }
     DefaultMoveHorizontalSpeed: Single;
@@ -410,7 +411,7 @@ begin
   Camera.Input_DecreasePreferredHeight.MakeClear;
 
   Camera.CheckModsDown := false;
-  Camera.OnFall := @Fall;
+  Camera.OnFall := @CameraFall;
 
   LoadFromFile;
 
@@ -1032,14 +1033,20 @@ begin
   FFadeOutIntensity := 1;
 end;
 
-procedure TPlayer.Fall(ACamera: TWalkCamera;
-  const FallenHeight: Single);
+procedure TPlayer.CameraFall(ACamera: TWalkCamera; const FallHeight: Single);
 begin
-  if (Swimming = psNo) and (FallenHeight > 4.0) then
+  Fall(FallHeight);
+end;
+
+procedure TPlayer.Fall(const FallHeight: Single);
+begin
+  inherited;
+  { TODO: hardcoded }
+  if (Swimming = psNo) and (FallHeight > 4.0) then
   begin
     SoundEngine.Sound(stPlayerFall);
-    if FallenHeight > Camera.MaxJumpDistance * 1.5 then
-      Life := Life - Max(0, FallenHeight * MapRange(Random, 0.0, 1.0, 0.8, 1.2));
+    if FallHeight > Camera.MaxJumpDistance * 1.5 then
+      Life := Life - Max(0, FallHeight * MapRange(Random, 0.0, 1.0, 0.8, 1.2));
   end;
 end;
 

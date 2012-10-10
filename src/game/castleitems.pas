@@ -428,6 +428,8 @@ var
       or add it back to 3D world by TInventoryItem.PutOnWorld,
       or at least free it (or you'll get a memory leak). }
     function ExtractItem: TInventoryItem;
+
+    function PreferredHeight: Single; override;
   end;
 
 var
@@ -636,6 +638,9 @@ begin
   Result.FItem := Self;
   FOwner3D := Result;
   Result.SetView(APosition, AnyOrthogonalVector(AWorld.GravityUp), AWorld.GravityUp);
+  Result.Gravity := true;
+  Result.FallSpeed := Kind.FallSpeed;
+  Result.GrowSpeed := Kind.GrowSpeed;
   AWorld.Add(Result);
 end;
 
@@ -770,6 +775,7 @@ begin
   inherited Create(AOwner);
 
   CollidesWithMoving := true;
+  Gravity := true;
 
   { Items are not collidable, player can enter them to pick them up.
     For now, this also means that creatures can pass through them,
@@ -814,16 +820,9 @@ begin
   end;
 end;
 
-const
-  ItemRadius = 1.0;
-
 procedure TItemOnWorld.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
-const
-  FallingDownSpeed = 10.0;
 var
-  AboveHeight: Single;
-  ShiftedPosition, DirectionZero, U: TVector3Single;
-  FallingDownLength: Single;
+  DirectionZero, U: TVector3Single;
 begin
   inherited;
   if not GetExists then Exit;
@@ -832,25 +831,6 @@ begin
   U := World.GravityUp; // copy to local variable for speed
   DirectionZero := Normalized(AnyOrthogonalVector(U));
   SetView(RotatePointAroundAxisRad(Rotation, DirectionZero, U), U);
-
-  ShiftedPosition := Position + U * ItemRadius;
-
-  { Note that I'm using ShiftedPosition, not Position,
-    and later I'm comparing "AboveHeight > ItemRadius",
-    instead of "AboveHeight > 0".
-    Otherwise, I risk that when item will be placed perfectly on the ground,
-    it may "slip through" this ground down. }
-
-  Height(ShiftedPosition, AboveHeight);
-  if AboveHeight > ItemRadius then
-  begin
-    { Item falls down because of gravity. }
-
-    FallingDownLength := CompSpeed * FallingDownSpeed;
-    MinTo1st(FallingDownLength, AboveHeight - ItemRadius);
-
-    Move(U * (-FallingDownLength), true);
-  end;
 
   if AutoPick and
      (World.Player <> nil) and
@@ -878,9 +858,23 @@ begin
     ((not Assigned(OnItemOnWorldExists)) or OnItemOnWorldExists(Self));
 end;
 
+function TItemOnWorld.PreferredHeight: Single;
+var
+  B: TBox3D;
+  GC: Integer;
+begin
+  B := Item.Kind.BoundingBoxRotated;
+  if B.IsEmpty then
+    Result := 0 else
+  begin
+    GC := World.GravityCoordinate;
+    Result := (B.Data[1, GC] - B.Data[0, GC]) / 2;
+  end;
+end;
+
 function TItemOnWorld.Middle: TVector3Single;
 begin
-  Result := (inherited Middle) + World.GravityUp * ItemRadius;
+  Result := (inherited Middle) + World.GravityUp * PreferredHeight;
 end;
 
 initialization

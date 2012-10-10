@@ -61,7 +61,6 @@ const
 
   DefaultHitsPlayer = true;
   DefaultHitsCreatures = false;
-  DefaultFallingDownSpeed = 50.0;
 
   DefaultMiddleHeight = 1.0;
 
@@ -80,7 +79,6 @@ type
     FDefaultMaxLife: Single;
     FKnockedBackDistance: Single;
     FKnockBackSpeed: Single;
-    FFallingDownSpeed: Single;
 
     RadiusFromFile: Single;
 
@@ -234,25 +232,16 @@ type
       write FFallDownLifeLossScale
       default DefaultFallDownLifeLossScale;
 
-    { Determines how the creature's Middle will be calculated.
-      Actually, this determines how the HeightBetweenLegsAndMiddle
+    { Determines how the creature's TCreature.Middle will be calculated.
+      Actually, this determines how the TCreature.PreferredHeight
       will be calculated, and this is used to calculate Middle.
-      HeightBetweenLegsAndMiddle is just current scene box height
+      TCreature.PreferredHeight is just current scene box height
       multiplied by this, so 1.0 means that Middle is at the top
       of the box, 0.0 means at the bottom, 0.5 means at the middle etc. }
     property MiddleHeight: Single
       read FMiddleHeight
       write FMiddleHeight
       default DefaultMiddleHeight;
-
-    { How fast the creature falls down, in units per second.
-
-      May be zero if creature is invulnerable to gravity
-      (which is usually, but not always, sensible for flying creatures).
-      For now, FallingDownSpeed also turns off "growing up" effect
-      to make creature stand above the ground. }
-    property FallingDownSpeed: Single
-      read FFallingDownSpeed write FFallingDownSpeed default DefaultFallingDownSpeed;
   end;
 
   { Kind of creature with states: standing stil,
@@ -556,10 +545,6 @@ type
     FKind: TCreatureKind;
     FLifeTime: Single;
 
-    { For gravity work. }
-    FallingDownStartHeight: Single;
-    FIsFallingDown: boolean;
-
     UsedSounds: TSoundList;
     FSoundDyingEnabled: boolean;
 
@@ -568,6 +553,7 @@ type
     property LifeTime: Single read FLifeTime;
     procedure SetLife(const Value: Single); override;
     function GetExists: boolean; override;
+    procedure Fall(const FallHeight: Single); override;
 
     { Current scene to be rendered.
       Note that this may be called before we're added to World (at the end of our
@@ -585,9 +571,9 @@ type
       (but usually can be calculated more efficiently than calling Lerp).
 
       In this class they calculate Middle as Position
-      moved higher than HeightBetweenLegsAndMiddle.
+      moved higher than PreferredHeight.
       So if you want to change the meaning of these functions
-      you can simply override only HeightBetweenLegsAndMiddle
+      you can simply override only PreferredHeight
       (and everything else will work OK).
       *Or* you can change all Middle, PositionFromMiddle, LerpLegsMiddle
       functions to use any approach to convert between legs and eye position.
@@ -616,7 +602,7 @@ type
       Calculated in this class using GetChild.BoundingBox.Data[1, 2]
       and Kind.MiddleHeight.
       Note that while GetChild may change, this also may change. }
-    function HeightBetweenLegsAndMiddle: Single; virtual;
+    function PreferredHeight: Single; override;
 
     function Middle: TVector3Single; override;
 
@@ -812,7 +798,6 @@ begin
   FShortRangeAttackKnockbackDistance := DefaultShortRangeAttackKnockbackDistance;
   FFallDownLifeLossScale := DefaultFallDownLifeLossScale;
   FMiddleHeight := DefaultMiddleHeight;
-  FFallingDownSpeed := DefaultFallingDownSpeed;
 end;
 
 procedure TCreatureKind.LoadFromFile(KindsConfig: TCastleConfig);
@@ -840,8 +825,6 @@ begin
 
   FallDownLifeLossScale := KindsConfig.GetFloat('fall_down_life_loss_scale',
     DefaultFallDownLifeLossScale);
-  FFallingDownSpeed := KindsConfig.GetFloat('falling_down_speed',
-    DefaultFallingDownSpeed);
 
   MiddleHeight := KindsConfig.GetFloat('middle_position_height',
     DefaultMiddleHeight);
@@ -882,6 +865,9 @@ begin
   Result.SetView(APosition, ADirection, World.GravityUp);
   Result.Life := MaxLife;
   Result.KnockBackSpeed := KnockBackSpeed;
+  Result.Gravity := not Flying;
+  Result.FallSpeed := FallSpeed;
+  Result.GrowSpeed := GrowSpeed;
 
   World.Add(Result);
 end;
@@ -1187,7 +1173,7 @@ begin
   end;
 end;
 
-function TCreature.HeightBetweenLegsAndMiddle: Single;
+function TCreature.PreferredHeight: Single;
 begin
   Result := GetChild.BoundingBox.Data[1, World.GravityCoordinate] * Kind.MiddleHeight;
 end;
@@ -1196,19 +1182,19 @@ function TCreature.PositionFromMiddle(
   const AssumeMiddle: TVector3Single): TVector3Single;
 begin
   Result := AssumeMiddle;
-  Result[World.GravityCoordinate] -= HeightBetweenLegsAndMiddle;
+  Result[World.GravityCoordinate] -= PreferredHeight;
 end;
 
 function TCreature.LerpLegsMiddle(const A: Single): TVector3Single;
 begin
   Result := Position;
-  Result[World.GravityCoordinate] += HeightBetweenLegsAndMiddle * A;
+  Result[World.GravityCoordinate] += PreferredHeight * A;
 end;
 
 function TCreature.Middle: TVector3Single;
 begin
   Result := inherited Middle;
-  Result[World.GravityCoordinate] += HeightBetweenLegsAndMiddle;
+  Result[World.GravityCoordinate] += PreferredHeight;
 end;
 
 procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams);
@@ -1284,6 +1270,23 @@ begin
     [Kind.Name, FloatToNiceStr(Life), FloatToNiceStr(MaxLife)]);
 end;
 
+procedure TCreature.Fall(const FallHeight: Single);
+begin
+  inherited;
+  { TODO: hardcoded }
+  if FallHeight > 1.0 then
+  begin
+    Sound3d(stCreatureFall, 0.1, false);
+    if FallHeight > 4.0 then
+    begin
+      Hurt(Max(0,
+        Kind.FallDownLifeLossScale *
+        FallHeight * MapRange(Random, 0.0, 1.0, 0.8, 1.2)),
+        ZeroVector3Single, 0);
+    end;
+  end;
+end;
+
 procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 
   procedure UpdateUsedSounds;
@@ -1299,116 +1302,6 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
     end;
   end;
 
-  procedure DoGravity;
-
-    procedure Fall;
-    var
-      FallenHeight: Single;
-    begin
-      FallenHeight := FallingDownStartHeight - Position[World.GravityCoordinate];
-      if FallenHeight > 1.0 then
-      begin
-        Sound3d(stCreatureFall, 0.1, false);
-        if FallenHeight > 4.0 then
-        begin
-          Hurt(Max(0,
-            Kind.FallDownLifeLossScale *
-            FallenHeight * MapRange(Random, 0.0, 1.0, 0.8, 1.2)),
-            ZeroVector3Single, 0);
-        end;
-      end;
-    end;
-
-  const
-    { Beware: GrowingUpSpeed is not only a graphical effect. Too large
-      GrowingUpSpeed will allow creature to climb walls that are at high
-      (almost-vertical) angle. }
-    GrowingUpSpeed = 5.0;
-    { HeightMargin is used to safeguard against floating point inaccuracy.
-      Without this, creature would too often be considered "falling down"
-      or "growing up". }
-    HeightMargin = 1.01;
-  var
-    IsAbove: boolean;
-    AboveHeight, RadiusIgnored: Single;
-    OldIsFallingDown: boolean;
-    FallingDownDistance, MaximumFallingDownDistance: Single;
-  begin
-    { Gravity does it's work here.
-      This is extremely simplified version of Gravity work in TWalkCamera.
-      (simplified, because creature doesn't need all these effects). }
-
-    { Note that also here we do collision detection using Middle,
-      not Position. See Middle docs for reasoning. }
-
-    OldIsFallingDown := FIsFallingDown;
-
-    IsAbove := Height(Middle, AboveHeight);
-
-    if AboveHeight > HeightBetweenLegsAndMiddle * HeightMargin then
-    begin
-      { Fall down }
-      if not FIsFallingDown then
-        FallingDownStartHeight := Position[World.GravityCoordinate];
-
-      FIsFallingDown := true;
-
-      FallingDownDistance := Kind.FallingDownSpeed * CompSpeed;
-      if IsAbove then
-      begin
-        MaximumFallingDownDistance := AboveHeight - HeightBetweenLegsAndMiddle;
-
-        { If you will fall down by exactly
-          AboveHeight - HeightBetweenLegsAndMiddle,
-          then you will get exatly into collision with the ground.
-          So actually this is too large MaximumFallingDownDistance.
-
-          But actually it's OK when Sphere is used, because then wall-sliding
-          in MoveCollision can correct new position,
-          so actually it will be slightly above the ground. So falling
-          down will work.
-
-          But when Sphere is not used, the situation is worse,
-          because then MoveCollision doesn't do wall-sliding.
-          And it will always simply reject such move
-          with MaximumFallingDownDistance.
-          If FPS is low (so we would like to fall down at once
-          by large distance), this is noticeable: in such case, instead
-          of falling down, creature hangs over the ground,
-          because MoveCollision simply doesn't allow it fall
-          exactly by AboveHeight - HeightBetweenLegsAndMiddle.
-          So MaximumFallingDownDistance has to be a little smaller in this case.
-          In particular, this was noticeable for the initially dead alien
-          creature on "Doom" level, when shadows were on (when shadows were on,
-          FPS is low, that's why the bug was noticeable only with shadows = on).
-
-          TODO: the better version would be to improve
-          MoveCollision for Sphere=false case, instead of
-          workarounding it here with this epsilon.
-          See TBaseTrianglesOctree.MoveCollision. }
-        if not Sphere(RadiusIgnored) then
-          MaximumFallingDownDistance -= 0.01;
-        MinTo1st(FallingDownDistance, MaximumFallingDownDistance);
-      end;
-
-      if not Move(World.GravityUp * -FallingDownDistance, true) then
-        FIsFallingDown := false;
-    end else
-    begin
-      FIsFallingDown := false;
-
-      if AboveHeight < HeightBetweenLegsAndMiddle / HeightMargin then
-      begin
-        { Growing up }
-        Move(World.GravityUp * Min(GrowingUpSpeed * CompSpeed,
-          HeightBetweenLegsAndMiddle - AboveHeight), false);
-      end;
-    end;
-
-    if OldIsFallingDown and (not FIsFallingDown) then
-      Fall;
-  end;
-
 begin
   inherited;
   if (not GetExists) or DebugTimeStopForCreatures then Exit;
@@ -1416,9 +1309,6 @@ begin
   FLifeTime += CompSpeed;
 
   UpdateUsedSounds;
-
-  if Kind.FallingDownSpeed <> 0.0 then
-    DoGravity;
 end;
 
 procedure TCreature.SetLife(const Value: Single);
@@ -1771,8 +1661,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
         if not Kind.Flying then
         begin
           Height(NewMiddle, AboveHeight);
-          if AboveHeight > WAKind.MaxHeightAcceptableToFall +
-              HeightBetweenLegsAndMiddle then
+          if AboveHeight > WAKind.MaxHeightAcceptableToFall + PreferredHeight then
             Result := true;
         end;
       end;
@@ -2316,10 +2205,9 @@ begin
     ExplodeCore;
   end;
 
-  if MissileKind.FallingDownSpeed <> 0 then
+  if MissileKind.FallSpeed <> 0 then
   begin
-    NewDirection := Direction - World.GravityUp
-      * MissileKind.FallingDownSpeed * CompSpeed;
+    NewDirection := Direction - World.GravityUp * MissileKind.FallSpeed * CompSpeed;
     Direction := NewDirection;
   end;
 

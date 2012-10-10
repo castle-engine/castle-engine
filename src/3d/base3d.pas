@@ -1034,6 +1034,12 @@ type
     (at least some of them) have to be overridden for this class to make sense.
     Use T3DTransform to have simple T3DTransform.Translation and such properties. }
   T3DCustomTransform = class(T3DList)
+  private
+    FGravity: boolean;
+    FFallingStartMiddle: TVector3Single;
+    FFalling: boolean;
+    FFallSpeed: Single;
+    FGrowSpeed: Single;
   protected
     { The GetXxx methods below determine the transformation returned
       by default TransformMatricesMult implementation in this class.
@@ -1095,6 +1101,10 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(const RayOrigin, RayDirection: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
+
+    { Called when fall ended. You can use FallHeight to decrease creature
+      life or such. }
+    procedure Fall(const FallHeight: Single); virtual;
   public
     function BoundingBox: TBox3D; override;
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
@@ -1103,6 +1113,47 @@ type
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); override;
     function Middle: TVector3Single; override;
+    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+
+    { Gravity may make this object fall down (see FallSpeed)
+      or grow up (see GrowSpeed). See also PreferredHeight.
+
+      Special notes for TPlayer: player doesn't use this (TPlayer.Gravity
+      should remain @false), instead player relies on
+      TPlayer.Camera.Gravity = @true, that does a similar thing (with some
+      extras, to make camera effects). This will change in the future,
+      to merge these two gravity implementations.
+      Although the TPlayer.Fall method still works as expected
+      (it's linked to TWalkCamera.OnFall this case). }
+    property Gravity: boolean read FGravity write FGravity default false;
+
+    { Falling speed, in units per second, for @link(Gravity).
+      TODO: this will be replaced with more physically-based approach.
+
+      This is relevant only if @link(Gravity) and PreferredHeight <> 0.
+      0 means no falling. }
+    property FallSpeed: Single read FFallSpeed write FFallSpeed default 0;
+
+    { Growing (raising from crouching to normal standing position)
+      speed, in units per second.
+      This is used by non-flying creatures when climbing up stairs,
+      in which case GetTranslation ("legs positon") may be sometimes under
+      the ground while Middle ("eyes position") will be always above the ground
+      and will try to grow to be at PreferredHeight above the ground.
+
+      This is relevant only if @link(Gravity) and PreferredHeight <> 0.
+      0 means no growing. }
+    property GrowSpeed: Single read FGrowSpeed write FGrowSpeed default 0;
+
+    { The preferred height of the object @link(Middle) above the ground,
+      when the object is standing on the ground firmly.
+      This is used by objects affected by gravity (like non-flying creatures
+      and items) to know how far they should fall down or grow up.
+
+      The default implementation in this class returns 0.
+      Override this if you want gravity to really work.
+      It may be dynamic (change e.g. during creature animation). }
+    function PreferredHeight: Single; virtual;
   end;
 
   { Transform (move, rotate, scale) other T3D objects.
@@ -3087,6 +3138,129 @@ begin
   Result := GetTranslation;
 end;
 
+procedure T3DCustomTransform.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+
+  procedure DoGravity(const GravityUp: TVector3Single);
+
+    { TODO: this is a duplicate of similar TWalkCamera method }
+    procedure DoFall;
+    var
+      BeginPos, EndPos, FallVector: TVector3Single;
+    begin
+      { Project Middle and FFallingStartMiddle
+        onto GravityUp vector to calculate fall height. }
+      BeginPos := PointOnLineClosestToPoint(ZeroVector3Single, GravityUp, FFallingStartMiddle);
+      EndPos   := PointOnLineClosestToPoint(ZeroVector3Single, GravityUp, Middle);
+      FallVector := BeginPos - EndPos;
+
+      { Because of various growing and jumping effects (imagine you jump up
+        onto a taller pillar) it may turn out that we're higher at the end
+        at the end of fall. Do not report it to Fall event in this case. }
+      if VectorDotProduct(GravityUp, Normalized(FallVector)) <= 0 then
+        Exit;
+
+      Fall(VectorLen(FallVector));
+    end;
+
+  const
+    { HeightMargin is used to safeguard against floating point inaccuracy.
+      Without this, creature would too often be considered "falling down"
+      or "growing up". }
+    HeightMargin = 1.01;
+  var
+    IsAbove: boolean;
+    AboveHeight, RadiusIgnored: Single;
+    OldFalling: boolean;
+    FallingDistance, MaximumFallingDistance: Single;
+  begin
+    OldFalling := FFalling;
+
+    IsAbove := Height(Middle, AboveHeight);
+
+    if (FallSpeed <> 0) and
+       (AboveHeight > PreferredHeight * HeightMargin) then
+    begin
+      { Fall down }
+      if not FFalling then
+        FFallingStartMiddle := Middle;
+
+      FFalling := true;
+
+      FallingDistance := FallSpeed * CompSpeed;
+      if IsAbove then
+      begin
+        MaximumFallingDistance := AboveHeight - PreferredHeight;
+
+        { If you will fall down by exactly
+          AboveHeight - PreferredHeight,
+          then you will get exatly into collision with the ground.
+          So actually this is too large MaximumFallingDistance.
+
+          But actually it's OK when Sphere is used, because then wall-sliding
+          in MoveCollision can correct new position,
+          so actually it will be slightly above the ground. So falling
+          down will work.
+
+          But when Sphere is not used, the situation is worse,
+          because then MoveCollision doesn't do wall-sliding.
+          And it will always simply reject such move
+          with MaximumFallingDistance.
+          If FPS is low (so we would like to fall down at once
+          by large distance), this is noticeable: in such case, instead
+          of falling down, creature hangs over the ground,
+          because MoveCollision simply doesn't allow it fall
+          exactly by AboveHeight - PreferredHeight.
+          So MaximumFallingDistance has to be a little smaller in this case.
+          In particular, this was noticeable for the initially dead alien
+          creature on "Doom" level, when shadows were on (when shadows were on,
+          FPS is low, that's why the bug was noticeable only with shadows = on).
+
+          TODO: the better version would be to improve
+          MoveCollision for Sphere=false case, instead of
+          workarounding it here with this epsilon.
+          See TBaseTrianglesOctree.MoveCollision. }
+        if not Sphere(RadiusIgnored) then
+          MaximumFallingDistance -= 0.01;
+        MinTo1st(FallingDistance, MaximumFallingDistance);
+      end;
+
+      if not Move(World.GravityUp * -FallingDistance, true) then
+        FFalling := false;
+    end else
+    begin
+      FFalling := false;
+
+      if (GrowSpeed <> 0) and
+         (AboveHeight < PreferredHeight / HeightMargin) then
+      begin
+        { Growing up }
+        Move(World.GravityUp * Min(GrowSpeed * CompSpeed,
+          PreferredHeight - AboveHeight), false);
+      end;
+    end;
+
+    if OldFalling and (not FFalling) then
+      DoFall;
+  end;
+
+begin
+  inherited;
+  if Gravity and
+     (PreferredHeight <> 0) and
+     ((FallSpeed <> 0) or (GrowSpeed <> 0)) then
+    DoGravity(World.GravityUp);
+end;
+
+procedure T3DCustomTransform.Fall(const FallHeight: Single);
+begin
+  { Nothing to do in this class }
+end;
+
+function T3DCustomTransform.PreferredHeight: Single;
+begin
+  Result := 0;
+end;
+
 { T3DTransform -------------------------------------------------------------- }
 
 constructor T3DTransform.Create(AOwner: TComponent);
@@ -3632,6 +3806,7 @@ procedure T3DAlive.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 var
   CurrentKnockBackDistance: Single;
 begin
+  inherited;
   if FKnockbackDistance > 0 then
   begin
     { Calculate CurrentKnockBackDistance, update FKnockbackDistance }

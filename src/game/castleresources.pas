@@ -22,6 +22,10 @@ interface
 uses VectorMath, Classes, CastleXMLConfig, PrecalculatedAnimation,
   CastleScene, X3DNodes, Base3D, DOM, FGL;
 
+const
+  DefaultFallSpeed = 10.0;
+  DefaultGrowSpeed = 5.0;
+
 type
   { Resource used for rendering and processing of 3D objects.
     By itself this doesn't render or do anything.
@@ -49,6 +53,7 @@ type
     Allocated: T3DListCore;
     FUsageCount: Cardinal;
     ConfigAlwaysPrepared: boolean;
+    FFallSpeed, FGrowSpeed: Single;
   protected
     { Prepare 3D resource loading it from given filename.
       Loads the resource only if filename is not empty,
@@ -177,6 +182,18 @@ type
       Descendants may choose to override this, to override value from resource.xml
       file. }
     function AlwaysPrepared: boolean; virtual;
+
+    { Falling down speed. See T3D.FallSpeed, this works the same,
+      except the default value is non-zero, and by default T3D.Gravity
+      and T3D.PreferredHeight are already sensible for creatures/items. }
+    property FallSpeed: Single
+      read FFallSpeed write FFallSpeed default DefaultFallSpeed;
+
+    { See T3D.GrowSpeed, this works the same,
+      except the default value is non-zero, and by default T3D.Gravity
+      and T3D.PreferredHeight are already sensible for creatures/items. }
+    property GrowSpeed: Single
+      read FGrowSpeed write FGrowSpeed default DefaultGrowSpeed;
   end;
 
   T3DResourceClass = class of T3DResource;
@@ -247,6 +264,8 @@ begin
   inherited Create;
   FName := AName;
   Allocated := T3DListCore.Create(true, nil);
+  FFallSpeed := DefaultFallSpeed;
+  FGrowSpeed := DefaultGrowSpeed;
 end;
 
 destructor T3DResource.Destroy;
@@ -288,6 +307,8 @@ end;
 procedure T3DResource.LoadFromFile(KindsConfig: TCastleConfig);
 begin
   ConfigAlwaysPrepared := KindsConfig.GetValue('always_prepared', false);
+  FFallSpeed := KindsConfig.GetFloat('fall_speed', DefaultFallSpeed);
+  FGrowSpeed := KindsConfig.GetFloat('grow_speed', DefaultGrowSpeed);
 end;
 
 procedure T3DResource.RedoPrepare(const BaseLights: TAbstractLightInstancesList;
