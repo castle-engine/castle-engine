@@ -89,27 +89,20 @@ operator >< (const x,y:Tvector3_double_data) : Tvector3_double_data;
 operator >< (const x,y:Tvector3_extended_data) : Tvector3_extended_data;
 operator >< (const x,y:Tvector3Integer) : Tvector3Integer;
 
-{Vector/scalar operations.}
-operator + (const x:Tvector2_single_data;y:single) : Tvector2_single_data;
-operator + (const x:Tvector2_double_data;y:double) : Tvector2_double_data;
-operator + (const x:Tvector2_extended_data;y:extended) : Tvector2_extended_data;
-operator + (const x:Tvector3_single_data;y:single) : Tvector3_single_data;
-operator + (const x:Tvector3_double_data;y:double) : Tvector3_double_data;
-operator + (const x:Tvector3_extended_data;y:extended) : Tvector3_extended_data;
-operator + (const x:Tvector4_single_data;y:single) : Tvector4_single_data;
-operator + (const x:Tvector4_double_data;y:double) : Tvector4_double_data;
-operator + (const x:Tvector4_extended_data;y:extended) : Tvector4_extended_data;
+{Vector/scalar operations.
 
-operator - (const x:Tvector2_single_data;y:single) : Tvector2_single_data;
-operator - (const x:Tvector2_double_data;y:double) : Tvector2_double_data;
-operator - (const x:Tvector2_extended_data;y:extended) : Tvector2_extended_data;
-operator - (const x:Tvector3_single_data;y:single) : Tvector3_single_data;
-operator - (const x:Tvector3_double_data;y:double) : Tvector3_double_data;
-operator - (const x:Tvector3_extended_data;y:extended) : Tvector3_extended_data;
-operator - (const x:Tvector4_single_data;y:single) : Tvector4_single_data;
-operator - (const x:Tvector4_double_data;y:double) : Tvector4_double_data;
-operator - (const x:Tvector4_extended_data;y:extended) : Tvector4_extended_data;
-
+  Note: we don't define vector+scalar, vector-scalar overloads
+  (FPC's Matrix unit does define them) as
+  - They make type-checking less
+    strict and generally lead to trivial errors in my experience
+    (it's easy to accidentaly write code like "vector1 + scalar"
+    while you instead wanted to write "vector1 + scalar * vector2").
+  - They are also not really useful (they add/subtract the same scalar
+    from all components, we don't really see this as an often operation
+    in engine code).
+  So, they make more harm than gain.
+}
+{ }
 operator * (const x:Tvector2_single_data;y:single) : Tvector2_single_data;
 operator * (const x:Tvector2_double_data;y:double) : Tvector2_double_data;
 operator * (const x:Tvector2_extended_data;y:extended) : Tvector2_extended_data;
@@ -189,26 +182,6 @@ operator * (const m1,m2:Tmatrix4_double_data) : Tmatrix4_double_data;
 operator * (const m1,m2:Tmatrix4_extended_data) : Tmatrix4_extended_data;
 
 {Matrix/scalar operations}
-operator + (const m:Tmatrix2_single_data;const x:single) : Tmatrix2_single_data;
-operator + (const m:Tmatrix2_double_data;const x:double) : Tmatrix2_double_data;
-operator + (const m:Tmatrix2_extended_data;const x:extended) : Tmatrix2_extended_data;
-operator + (const m:Tmatrix3_single_data;const x:single) : Tmatrix3_single_data;
-operator + (const m:Tmatrix3_double_data;const x:double) : Tmatrix3_double_data;
-operator + (const m:Tmatrix3_extended_data;const x:extended) : Tmatrix3_extended_data;
-operator + (const m:Tmatrix4_single_data;const x:single) : Tmatrix4_single_data;
-operator + (const m:Tmatrix4_double_data;const x:double) : Tmatrix4_double_data;
-operator + (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended_data;
-
-operator - (const m:Tmatrix2_single_data;const x:single) : Tmatrix2_single_data;
-operator - (const m:Tmatrix2_double_data;const x:double) : Tmatrix2_double_data;
-operator - (const m:Tmatrix2_extended_data;const x:extended) : Tmatrix2_extended_data;
-operator - (const m:Tmatrix3_single_data;const x:single) : Tmatrix3_single_data;
-operator - (const m:Tmatrix3_double_data;const x:double) : Tmatrix3_double_data;
-operator - (const m:Tmatrix3_extended_data;const x:extended) : Tmatrix3_extended_data;
-operator - (const m:Tmatrix4_single_data;const x:single) : Tmatrix4_single_data;
-operator - (const m:Tmatrix4_double_data;const x:double) : Tmatrix4_double_data;
-operator - (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended_data;
-
 operator * (const m:Tmatrix2_single_data;const x:single) : Tmatrix2_single_data;
 operator * (const m:Tmatrix2_double_data;const x:double) : Tmatrix2_double_data;
 operator * (const m:Tmatrix2_extended_data;const x:extended) : Tmatrix2_extended_data;

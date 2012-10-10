@@ -113,36 +113,6 @@ end;
                             Vector/scalar operations
 *****************************************************************************}
 
-operator + (const x:objectname;y:datatype) : objectname;
-
-{Adds a scalar to all vector elements.}
-
-begin
-    result[0]:=x[0]+y;
-    result[1]:=x[1]+y;
-{$if vecsize>=3}
-    result[2]:=x[2]+y;
-{$endif}
-{$if vecsize>=4}
-    result[3]:=x[3]+y;
-{$endif}
-end;
-
-operator - (const x:objectname;y:datatype) : objectname;
-
-{Subtracts a scalar to all vector elements.}
-
-begin
-    result[0]:=x[0]-y;
-    result[1]:=x[1]-y;
-{$if vecsize>=3}
-    result[2]:=x[2]-y;
-{$endif}
-{$if vecsize>=4}
-    result[3]:=x[3]-y;
-{$endif}
-end;
-
 operator * (const x:objectname;y:datatype) : objectname;
 
 {Multiplies all vector elements by a scalar.}
