@@ -668,7 +668,7 @@ var
 
     WalkCamera.Init(InitialPosition, InitialDirection,
       InitialUp, GravityUp, PreferredHeight, CameraRadius);
-    WalkCamera.CancelFallingDown;
+    WalkCamera.CancelFalling;
   end;
 
 var

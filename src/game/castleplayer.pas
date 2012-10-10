@@ -633,9 +633,9 @@ const
   CastleCameraInput = [ciNormal, ci3dMouse]; { do not include ciMouseDragging }
 begin
   Camera.Gravity := (not Flying) and (not Dead) and (not Blocked);
-  { Note that when not Camera.Gravity then FallingDownEffect will not
+  { Note that when not Camera.Gravity then FallingEffect will not
     work anyway. }
-  Camera.FallingDownEffect := Swimming = psNo;
+  Camera.FallingEffect := Swimming = psNo;
 
   if Blocked then
   begin
@@ -667,8 +667,8 @@ begin
     { No need to do MakeClear now on any inputs, as we already set
       Input := []. }
 
-    Camera.FallingDownStartSpeed := DefaultFallingDownStartSpeed;
-    Camera.FallingDownSpeedIncrease := DefaultFallingDownSpeedIncrease;
+    Camera.FallSpeedStart := DefaultFallSpeedStart;
+    Camera.FallSpeedIncrease := DefaultFallSpeedIncrease;
     Camera.HeadBobbing := 0.0;
     Camera.PreferredHeight := Camera.Radius * 1.01;
 
@@ -692,8 +692,8 @@ begin
     Camera.Input_LeftStrafe.MakeClear;
     Camera.Input_RightStrafe.MakeClear;
 
-    Camera.FallingDownStartSpeed := DefaultFallingDownStartSpeed;
-    Camera.FallingDownSpeedIncrease := DefaultFallingDownSpeedIncrease;
+    Camera.FallSpeedStart := DefaultFallSpeedStart;
+    Camera.FallSpeedIncrease := DefaultFallSpeedIncrease;
     Camera.HeadBobbing := 0.0;
     Camera.PreferredHeight := Camera.Radius * 1.01;
 
@@ -713,8 +713,8 @@ begin
 
       { Camera.HeadBobbing and
         Camera.PreferredHeight and
-        Camera.FallingDownStartSpeed and
-        Camera.FallingDownSpeedIncrease
+        Camera.FallSpeedStart and
+        Camera.FallSpeedIncrease
         ... don't matter here, because Gravity is false. }
 
       Camera.MoveHorizontalSpeed := DefaultMoveHorizontalSpeed;
@@ -730,8 +730,8 @@ begin
       Camera.Input_UpMove.Assign(PlayerInput_UpMove, false);
       Camera.Input_DownMove.Assign(PlayerInput_DownMove, false);
 
-      Camera.FallingDownStartSpeed := DefaultFallingDownStartSpeed / 6;
-      Camera.FallingDownSpeedIncrease := 1.0;
+      Camera.FallSpeedStart := DefaultFallSpeedStart / 6;
+      Camera.FallSpeedIncrease := 1.0;
       Camera.HeadBobbing := 0.0;
       Camera.PreferredHeight := Camera.Radius * 1.01;
 
@@ -747,8 +747,8 @@ begin
       Camera.Input_UpMove.MakeClear;
       Camera.Input_DownMove.MakeClear;
 
-      Camera.FallingDownStartSpeed := DefaultFallingDownStartSpeed;
-      Camera.FallingDownSpeedIncrease := DefaultFallingDownSpeedIncrease;
+      Camera.FallSpeedStart := DefaultFallSpeedStart;
+      Camera.FallSpeedIncrease := DefaultFallSpeedIncrease;
       Camera.HeadBobbing := DefaultHeadBobbing;
       Camera.PreferredHeight := DefaultPreferredHeight;
 
@@ -1113,10 +1113,10 @@ begin
     if (FSwimming = psNo) and (Value <> psNo) then
     begin
       { Cancel falling down, otherwise he will fall down into the water
-        with the high speed (because in the air FallingDownStartSpeed
+        with the high speed (because in the air FallSpeedStart
         is high and it's increased, but in the water it's much lower
         and not increased at all right now). }
-      Camera.CancelFallingDown;
+      Camera.CancelFalling;
     end;
 
     FSwimming := Value;
@@ -1130,17 +1130,17 @@ begin
 
     { Although UpdateCamera will be called in nearest Player.Idle anyway,
       I want to call it *now*. That's because I want to set
-      Camera.FallingDownStartSpeed to low speed (suitable for moving
+      Camera.FallSpeedStart to low speed (suitable for moving
       under the water) before next falling down will happen.
-      Why ? See comments about Camera.CancelFallingDown above.
+      Why ? See comments about Camera.CancelFalling above.
 
       And next falling down will happen... actually SetSwimming
       is called from OnMatrixChanged that may be called
-      from TryFallingDown ! So next falling down definitely *can*
+      from TryFalling ! So next falling down definitely *can*
       happen before next Player.Idle. Actually we may be in the middle
       of falling down right now. Fortunately Camera.Idle
-      and Camera.CancelFallingDown are implemented (or rather fixed :)
-      to honour calling CancelFallingDown and setting FallingDownStartSpeed now.
+      and Camera.CancelFalling are implemented (or rather fixed :)
+      to honour calling CancelFalling and setting FallSpeedStart now.
 
       So the safeguard below is needed. }
     UpdateCamera;

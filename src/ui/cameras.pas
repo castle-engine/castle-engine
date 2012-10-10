@@ -22,15 +22,15 @@ uses SysUtils, VectorMath, CastleUtils, KeysMouse, Boxes3D, Quaternions, Frustum
   UIControls, Classes, RaysWindow, CastleTimeUtils, CastleInputs, CastleTriangles;
 
 const
-  DefaultFallingDownStartSpeed = 0.5;
-  DefaultGrowingSpeed = 1.0;
+  DefaultFallSpeedStart = 0.5;
+  DefaultCameraGrowSpeed = 1.0;
   DefaultHeadBobbing = 0.02;
   DefaultCrouchHeight = 0.5;
   DefaultMaxJumpHeight = 1.0;
   DefaultMinAngleRadFromGravityUp = { 10 degress } Pi / 18; { }
   DefaultRotationHorizontalSpeed = 150;
   DefaultRotationVerticalSpeed = 100;
-  DefaultFallingDownSpeedIncrease = 13/12;
+  DefaultFallSpeedIncrease = 13/12;
   DefaultMouseLookHorizontalSensitivity = 0.09;
   DefaultMouseLookVerticalSensitivity = 0.09;
   DefaultHeadBobbingTime = 0.4;
@@ -767,22 +767,22 @@ type
     { Private things related to gravity ---------------------------- }
 
     FPreferredHeight: Single;
-    FIsFallingDown: boolean;
+    FFalling: boolean;
     FFallingStartPosition: TVector3Single;
     FOnFall: TFallNotifyFunc;
-    FFallingDownStartSpeed: Single;
-    FFallingDownSpeed: Single;
-    FFallingDownSpeedIncrease: Single;
+    FFallSpeedStart: Single;
+    FFallSpeed: Single;
+    FFallSpeedIncrease: Single;
     FGravity: boolean;
     FOnHeight: THeightEvent;
-    FGrowingSpeed: Single;
-    { This is used by FallingDownEffect to temporary modify Matrix result
+    FGrowSpeed: Single;
+    { This is used by FallingEffect to temporary modify Matrix result
       by rotating Up around Direction. In degress. }
     Fde_UpRotate: Single;
-    { This is used by FallingDownEffect to consistently rotate us.
+    { This is used by FallingEffect to consistently rotate us.
       This is either -1, 0 or +1. }
     Fde_RotateHorizontal: Integer;
-    FFallingDownEffect: boolean;
+    FFallingEffect: boolean;
     FClimbHeight: Single;
 
     FMaxJumpHeight: Single;
@@ -1121,10 +1121,10 @@ type
         @item(It tries to keep @link(Position) above the ground on
           PreferredHeight height.)
         @item(When current height is too small --- @link(Position) is moved up.
-          See GrowingSpeed.)
+          See GrowSpeed.)
         @item(When current height is too large --- we're falling down.
-          See IsFallingDown, OnFall, FallingDownStartSpeed,
-          FallingDownSpeedIncrease, FallingDownEffect.)
+          See Falling, OnFall, FallSpeedStart,
+          FallSpeedIncrease, FallingEffect.)
         @item(It does head bobbing. See HeadBobbing, HeadBobbingTime.)
       )
 
@@ -1252,34 +1252,35 @@ type
       (this adds more realism to the gravity effect...).
       Note that this is always relative to @link(Direction) length.
       @link(Direction) determines moving speed --- and so it determines
-      also falling speed. The default DefaultFallingDownStartSpeed
+      also falling speed. The default DefaultFallSpeedStart
       is chosen to be something sensible, to usually get nice effect
       of falling.
 
       You can change it at any time, but note that if you change this
-      while IsFallingDown is @true, then you will not change the
+      while Falling is @true, then you will not change the
       "current falling down speed". You will change only the falling down
       speed used the next time. }
-    property FallingDownStartSpeed: Single
-      read FFallingDownStartSpeed write FFallingDownStartSpeed
-      default DefaultFallingDownStartSpeed;
+    property FallSpeedStart: Single
+      read FFallSpeedStart write FFallSpeedStart
+      default DefaultFallSpeedStart;
 
     { When falling down, the speed increases.
       Set this to 1.0 to fall down with constant speed
-      (taken from FallingDownStartSpeed). }
-    property FallingDownSpeedIncrease: Single
-      read FFallingDownSpeedIncrease write FFallingDownSpeedIncrease
-      default DefaultFallingDownSpeedIncrease;
+      (taken from FallSpeedStart). }
+    property FallSpeedIncrease: Single
+      read FFallSpeedIncrease write FFallSpeedIncrease
+      default DefaultFallSpeedIncrease;
 
-    property IsFallingDown: boolean read FIsFallingDown;
+    { Are we currently falling down because of gravity. }
+    property Falling: boolean read FFalling write FFalling;
 
-    { If IsFallingDown, then this will force IsFallingDown to false
+    { If Falling, then this will force Falling to false
       @bold(without calling OnFallenDown). It's much like forcing
       the opinion that "camera is not falling down right now".
 
       Of course, if in the nearest Idle we will find out (using
       OnHeight) that camera is too high above the ground,
-      then we will start falling down again, setting IsFallingDown
+      then we will start falling down again, setting Falling
       back to true. (but then we will start falling down from the beginning,
       starting at given @link(Position) and with initial falling down speed).
 
@@ -1288,20 +1289,19 @@ type
       In this case you just want to forget the fact that camera
       was falling down --- no consequences (like lowering player's
       health, fadeout etc.). }
-    procedure CancelFallingDown;
+    procedure CancelFalling;
 
-    { This triggers a nice effect when falling down from high.
-      Camera dir rotates slightly, and camera up temporary rotates
-      around camera up. This makes nice visual effect, so usually
-      you will want this.
+    { Make a nice dizzying camera effect when falling down.
+      This adds temporary camera rotations simulating that you
+      rotate randomly and helplessly when falling down.
 
       Of course this is meaningfull only when @link(Gravity) works.
 
       Note that changing it from @true to @false doesn't immediately
       "cancel out" this effect if it's currently in progress.
       It only prevents this effect from starting again. }
-    property FallingDownEffect: boolean
-      read FFallingDownEffect write FFallingDownEffect default true;
+    property FallingEffect: boolean
+      read FFallingEffect write FFallingEffect default true;
 
     { When @link(Gravity) works and camera height above the ground
       is less than PreferredHeight, then we try to "grow",
@@ -1310,9 +1310,9 @@ type
       PreferredHeight. This property (together with length of
       @link(Direction), that always determines every moving speed)
       determines the speed of this growth. }
-    property GrowingSpeed: Single
-      read FGrowingSpeed write FGrowingSpeed
-      default DefaultGrowingSpeed;
+    property GrowSpeed: Single
+      read FGrowSpeed write FGrowSpeed
+      default DefaultCameraGrowSpeed;
 
     { How high can you jump ?
       The max jump distance is calculated as
@@ -2723,13 +2723,13 @@ begin
   FMoveSpeed := 1;
   FRotationHorizontalSpeed := DefaultRotationHorizontalSpeed;
   FRotationVerticalSpeed := DefaultRotationVerticalSpeed;
-  FFallingDownStartSpeed := DefaultFallingDownStartSpeed;
-  FFallingDownSpeedIncrease := DefaultFallingDownSpeedIncrease;
+  FFallSpeedStart := DefaultFallSpeedStart;
+  FFallSpeedIncrease := DefaultFallSpeedIncrease;
   FPreferGravityUpForRotations := true;
   FPreferGravityUpForMoving := true;
   FGravity := false;
-  FGrowingSpeed := DefaultGrowingSpeed;
-  FFallingDownEffect := true;
+  FGrowSpeed := DefaultCameraGrowSpeed;
+  FFallingEffect := true;
   FIsJumping := false;
   FHeadBobbing := DefaultHeadBobbing;
   FCrouchHeight := DefaultCrouchHeight;
@@ -3221,7 +3221,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
       begin
         { calculate GrowingVectorLength }
         GrowingVectorLength := Min(
-          MoveSpeed * MoveVerticalSpeed * GrowingSpeed * CompSpeed,
+          MoveSpeed * MoveVerticalSpeed * GrowSpeed * CompSpeed,
           RealPreferredHeight - AboveHeight);
 
         Move(VectorScale(GravityUp, GrowingVectorLength), true, false);
@@ -3229,15 +3229,15 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
         { When growing, TryFde_Stabilize also must be done.
           Otherwise when player walks horizontally on the flat surface
           for some time then "Falling down effect" activates --- because
-          player is always in TryGrow or TryFallingDown. So one of them
-          (TryGrow or TryFallingDown) *must* allow "Falling down effect"
-          to stabilize itself. Obviously TryFallingDown can't (this would
+          player is always in TryGrow or TryFalling. So one of them
+          (TryGrow or TryFalling) *must* allow "Falling down effect"
+          to stabilize itself. Obviously TryFalling can't (this would
           be against the idea of this effect) so TryGrow does it... }
         TryFde_Stabilize;
       end;
     end;
 
-    function TryFallingDown: boolean;
+    function TryFalling: boolean;
 
       { Return +1 or -1, randomly. }
       function RandomPlusMinus: Integer;
@@ -3252,7 +3252,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
       Fde_HorizontalRotateDeviation = 15.0;
     var
       PositionBefore: TVector3Single;
-      FallingDownVectorLength: Single;
+      FallingVectorLength: Single;
     begin
       Result := false;
 
@@ -3271,44 +3271,44 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
         in next Idle it falls down again etc. In TryGrow we try
         to precisely set our Position, so that it hits exactly
         at RealPreferredHeight -- which means that after TryGrow,
-        in next Idle TryGrow should not cause growing and TryFallingDown
+        in next Idle TryGrow should not cause growing and TryFalling
         should not cause falling down. }
       if AboveHeight <=
            RealPreferredHeight + RealPreferredHeightMargin then
       begin
-        FIsFallingDown := false;
+        FFalling := false;
         Exit;
       end;
 
-      { Make sure that FallingDownSpeed is initialized.
-        When IsFallingDown, we know it's initialized (because setting
-        "FIsFallingDown := true;" is done only in the piece of code below...),
+      { Make sure that FallSpeed is initialized.
+        When Falling, we know it's initialized (because setting
+        "FFalling := true;" is done only in the piece of code below...),
         otherwise we make sure it's set to it's starting value. }
-      if not FIsFallingDown then
-        FFallingDownSpeed := FallingDownStartSpeed;
+      if not FFalling then
+        FFallSpeed := FallSpeedStart;
 
       { try to fall down }
       PositionBefore := Position;
 
-      { calculate FallingDownVectorLength.
+      { calculate FallingVectorLength.
 
-        Note that we make sure that FallingDownVectorLength is no longer
+        Note that we make sure that FallingVectorLength is no longer
         than AboveHeight --- this way we avoid the problem
-        that when FFallingDownSpeed would get very big,
+        that when FFallSpeed would get very big,
         we couldn't fall down any more (while in fact we should then fall down
         very quickly).
 
         Actually, we even do more. We make sure that
-        FallingDownVectorLength is no longer than
+        FallingVectorLength is no longer than
         (AboveHeight - RealPreferredHeight).
         Initially I wanted to do here
-          MinTo1st(FallingDownVectorLength, AboveHeight);
+          MinTo1st(FallingVectorLength, AboveHeight);
         i.e. to allow camera to fall below RealPreferredHeight.
 
         But this didn't work like it should. Why ?
         See above for the trick that I have to do with
         RealPreferredHeightMargin above (to not cause
-        "unpleasant bouncing" when swapping FallingDown and TryGrow).
+        "unpleasant bouncing" when swapping Falling and TryGrow).
         If I could fall down here below RealPreferredHeight then
 
         1. It *will not* cause the desired "nice" effect (of automatically
@@ -3316,44 +3316,44 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
            (the one with RealPreferredHeightMargin) above.
 
         2. It *will* cause the undesired unpleasant swapping between
-           FallingDown and TryGrow.
+           Falling and TryGrow.
 
         So it's totally bad thing to do.
 
         This means that I should limit myself to not fall down
         below RealPreferredHeight. And that's what I'm doing. }
-      FallingDownVectorLength :=
-        MoveSpeed * MoveVerticalSpeed * FFallingDownSpeed * CompSpeed;
-      MinTo1st(FallingDownVectorLength, AboveHeight - RealPreferredHeight);
+      FallingVectorLength :=
+        MoveSpeed * MoveVerticalSpeed * FFallSpeed * CompSpeed;
+      MinTo1st(FallingVectorLength, AboveHeight - RealPreferredHeight);
 
-      if Move(VectorScale(GravityUp, - FallingDownVectorLength), true, false) and
+      if Move(VectorScale(GravityUp, - FallingVectorLength), true, false) and
         (not VectorsPerfectlyEqual(Position, PositionBefore)) then
       begin
-        if not IsFallingDown then
+        if not Falling then
         begin
           FFallingStartPosition := PositionBefore;
 
-          { Why do I init here FFallingDownSpeed ? A few lines above I did
-              if not FIsFallingDown then
-                FFallingDownSpeed := FallingDownStartSpeed;
-            to init FFallingDownSpeed (I had to do it to calculate
-            FallingDownVectorLength). So why initing it again here ?
+          { Why do I init here FFallSpeed ? A few lines above I did
+              if not FFalling then
+                FFallSpeed := FallSpeedStart;
+            to init FFallSpeed (I had to do it to calculate
+            FallingVectorLength). So why initing it again here ?
 
             Answer: Because Move above called MoveTo, that set Position
             that actually called ScheduleVisibleChange that possibly
             called OnVisibleChange.
             And OnVisibleChange is used callback and user could do there
             things like
-            - Changing FallingDownStartSpeed (but still it's unspecified
+            - Changing FallSpeedStart (but still it's unspecified
               whether we have to apply this change, right ?)
-            - Calling CancelFallingDown and *then* changing FallingDownStartSpeed.
+            - Calling CancelFalling and *then* changing FallSpeedStart.
               And in this case, we *must* honour it, because here user
-              expects that we will use FallingDownStartSpeed if we want
+              expects that we will use FallSpeedStart if we want
               to fall down. (of course, one call to "Move" with old
-              "FallingDownStartSpeed" was already done, that's unavoidable...). }
-          FFallingDownSpeed := FallingDownStartSpeed;
+              "FallSpeedStart" was already done, that's unavoidable...). }
+          FFallSpeed := FallSpeedStart;
 
-          FIsFallingDown := true;
+          FFalling := true;
         end;
 
         Result := true;
@@ -3363,71 +3363,71 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
           { This check is needed, otherwise when you're walking down even from
             the most slight hill then you get
 
-            1. FallingDownEffect
+            1. FallingEffect
             2. OnFall is called seldom and with large heights.
 
             Why ? Because MoveHorizontal calls are done between GravityIdle
             calls, and the move can be quite fast. So even though the player is
             actually quite closely following the terrain, we would constantly
-            have IsFallingDown := true. Consider a large hill that is almost
-            flat --- when walking down the hill, we would get IsFallingDown
-            := true, FallingDownSpeed and FallingDownEffect would raise,
+            have Falling := true. Consider a large hill that is almost
+            flat --- when walking down the hill, we would get Falling
+            := true, FallSpeed and FallingEffect would raise,
             and at the end OnFall would be called with parameters
             like player fell down from the top of the hill to the ground
             (which can cause e.g. player losing life).
 
             The check for RealPreferredHeight * 1.1 above and
-            setting FIsFallingDown cure the situation. OnFall will
+            setting FFalling cure the situation. OnFall will
             be called more often indicating very small fallen down heights,
-            and FallingDownSpeed and FallingDownEffect will not be able
+            and FallSpeed and FallingEffect will not be able
             to raise high as long as player follows terrain closely.
 
-            Of course we're setting here FIsFallingDown := false even though
+            Of course we're setting here FFalling := false even though
             the player is not exactly on the terrain --- but he's very close.
             In the next GravityIdle call we will again bring him a little
-            down, set FIsFallingDown to @true, and then set it back to @false
+            down, set FFalling to @true, and then set it back to @false
             by line below. }
-          FIsFallingDown := false;
+          FFalling := false;
         end else
         begin
-          { This is where we do FallingDownEffect.
+          { This is where we do FallingEffect.
 
-            Note that I do FallingDownEffect *before* increasing
-            FFallingDownSpeed below.
+            Note that I do FallingEffect *before* increasing
+            FFallSpeed below.
 
             1. reason (ideological, not really that important...) is that
-               FallingDownEffect is a penalty equivalent to FFallingDownSpeed that
-               was already used --- not to the future FFallingDownSpeed.
+               FallingEffect is a penalty equivalent to FFallSpeed that
+               was already used --- not to the future FFallSpeed.
 
             2. reason (practical, and real :) is that when the program
                was in some non-3d drawing state (e.g. displaying menu, or
                displaying progress bar because the VRML model was just loaded)
                then CompSpeed indicates (truly) that a lot of time elapsed
                since last Idle. This means that it's common that at the same moment
-               when IsFallingDown changed suddenly to @true, CompSpeed may be large
+               when Falling changed suddenly to @true, CompSpeed may be large
                and we're better not using this too much... A practical bug demo:
                open in view3dscene (it does progress bar in OpenGL, so will cause
                large CompSpeed) any model with gravity on and camera slightly
-               higher then PreferredHeight (we want to trigger IsFallingDown
+               higher then PreferredHeight (we want to trigger Falling
                right when the model is loaded). E.g. run
                "view3dscene demo_models/navigation/speed_2.wrl".
-               If FallingDownSpeedIncrease will be done before FallingDownEffect,
-               then you'll see that at the very first frame FFallingDownSpeed
+               If FallSpeedIncrease will be done before FallingEffect,
+               then you'll see that at the very first frame FFallSpeed
                was increased so much (because CompSpeed was large) that it triggered
-               FallingDownEffect. Even though the falling down distance was really small...
+               FallingEffect. Even though the falling down distance was really small...
 
                Maybe in the future I'll workaround it differently.
-               One idea is that FFallingDownSpeed should be made smaller if the
+               One idea is that FFallSpeed should be made smaller if the
                falled down distance is small. Or just don't call GravityIdle after the first
                model load, to avoid using large CompSpeed ?
 
                LATER NOTE: note that the (2.) problem above may be non-existing
                now, since we use IdleSpeed and we have IgnoreNextIdleSpeed to
                set IdleSpeed to zero in such cases. }
-          if FallingDownEffect and
-             (FFallingDownSpeed > FallingDownStartSpeed * 3) then
+          if FallingEffect and
+             (FFallSpeed > FallSpeedStart * 3) then
           begin
-            if FFallingDownSpeed > FallingDownStartSpeed * 5 then
+            if FFallSpeed > FallSpeedStart * 5 then
             begin
               if Fde_RotateHorizontal = 0 then
                 Fde_RotateHorizontal := RandomPlusMinus;
@@ -3445,17 +3445,17 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
             ScheduleVisibleChange;
           end;
 
-          { Note that when changing FFallingDownSpeed below I'm using CompSpeed * 50.
-            And also above when using FFallingDownSpeed, I multipled
-            FFallingDownSpeed * CompSpeed * 50. This is correct:
-            - changing position based on FallingDownSpeed is a "velocity"
-            - changing FallingDownSpeed below is "acceleration"
+          { Note that when changing FFallSpeed below I'm using CompSpeed * 50.
+            And also above when using FFallSpeed, I multipled
+            FFallSpeed * CompSpeed * 50. This is correct:
+            - changing position based on FallSpeed is a "velocity"
+            - changing FallSpeed below is "acceleration"
             And both acceleration and velocity must be time-based. }
-          if FallingDownSpeedIncrease <> 1.0 then
-            FFallingDownSpeed *= Power(FallingDownSpeedIncrease, CompSpeed * 50);
+          if FallSpeedIncrease <> 1.0 then
+            FFallSpeed *= Power(FallSpeedIncrease, CompSpeed * 50);
         end;
       end else
-        FIsFallingDown := false;
+        FFalling := false;
     end;
 
     function TryFde_Stabilize: boolean;
@@ -3583,9 +3583,9 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
     end;
 
   var
-    OldIsFallingDown: boolean;
+    OldFalling: boolean;
   begin
-    OldIsFallingDown := IsFallingDown;
+    OldFalling := Falling;
 
     if Gravity then
     begin
@@ -3597,7 +3597,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
 
       if not TryJump then
         if not TryGrow then
-          if not TryFallingDown then
+          if not TryFalling then
             if not TryFde_Stabilize then
               { Note that we don't do FallingOnTheGround effect until all
                 other effects (jumping, growing, falling on the ground
@@ -3607,11 +3607,11 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
                 HeadBobbingGoesDown;
     end else
     begin
-      FIsFallingDown := false;
+      FFalling := false;
       TryFde_Stabilize;
     end;
 
-    if OldIsFallingDown and (not IsFallingDown) then
+    if OldFalling and (not Falling) then
       DoFall;
   end;
 
@@ -3940,13 +3940,13 @@ function TWalkCamera.Jump: boolean;
 begin
   Result := false;
 
-  if IsJumping or IsFallingDown or (not Gravity) then Exit;
+  if IsJumping or Falling or (not Gravity) then Exit;
 
-  { Merely checking for IsFallingDown is not enough, because IsFallingDown
+  { Merely checking for Falling is not enough, because Falling
     may be triggered with some latency. E.g. consider user that holds
     Input_Jump key down: whenever jump will end (in GravityIdle),
     Input_Jump.IsKey = true will cause another jump to be immediately
-    (before IsFallingDown will be set to true) initiated.
+    (before Falling will be set to true) initiated.
     This is of course bad, because user holding Input_Jump key down
     would be able to jump to any height. The only good thing to do
     is to check whether player really has some ground beneath his feet
@@ -4170,10 +4170,10 @@ begin
   FFallingOnTheGroundAngleIncrease := Random(2) = 0;
 end;
 
-procedure TWalkCamera.CancelFallingDown;
+procedure TWalkCamera.CancelFalling;
 begin
   { Fortunately implementation of this is brutally simple right now. }
-  FIsFallingDown := false;
+  FFalling := false;
 end;
 
 procedure TWalkCamera.SetMouseLook(const Value: boolean);
