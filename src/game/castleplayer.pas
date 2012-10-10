@@ -156,7 +156,7 @@ type
       or @link(Swimming) or @link(Blocked) change. }
     procedure UpdateCamera;
 
-    procedure FalledDown(ACamera: TWalkCamera; const FallenHeight: Single);
+    procedure Fall(ACamera: TWalkCamera; const FallenHeight: Single);
 
     { This sets life, just like SetLife.
       But in case of life loss, the fadeout is done with specified
@@ -410,7 +410,7 @@ begin
   Camera.Input_DecreasePreferredHeight.MakeClear;
 
   Camera.CheckModsDown := false;
-  Camera.OnFalledDown := @FalledDown;
+  Camera.OnFall := @Fall;
 
   LoadFromFile;
 
@@ -1032,12 +1032,12 @@ begin
   FFadeOutIntensity := 1;
 end;
 
-procedure TPlayer.FalledDown(ACamera: TWalkCamera;
+procedure TPlayer.Fall(ACamera: TWalkCamera;
   const FallenHeight: Single);
 begin
   if (Swimming = psNo) and (FallenHeight > 4.0) then
   begin
-    SoundEngine.Sound(stPlayerFalledDown);
+    SoundEngine.Sound(stPlayerFall);
     if FallenHeight > Camera.MaxJumpDistance * 1.5 then
       Life := Life - Max(0, FallenHeight * MapRange(Random, 0.0, 1.0, 0.8, 1.2));
   end;

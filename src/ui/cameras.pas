@@ -651,8 +651,8 @@ type
     out NewPos: TVector3Single;
     const BecauseOfGravity: boolean): boolean of object;
 
-  { See @link(TWalkCamera.OnFalledDown). }
-  TFalledDownNotifyFunc = procedure (Camera: TWalkCamera;
+  { See @link(TWalkCamera.OnFall). }
+  TFallNotifyFunc = procedure (Camera: TWalkCamera;
     const FallenHeight: Single) of object;
 
   THeightEvent = function (Camera: TWalkCamera;
@@ -769,7 +769,7 @@ type
     FPreferredHeight: Single;
     FIsFallingDown: boolean;
     FFallingDownStartPos: TVector3Single;
-    FOnFalledDown: TFalledDownNotifyFunc;
+    FOnFall: TFallNotifyFunc;
     FFallingDownStartSpeed: Single;
     FFallingDownSpeed: Single;
     FFallingDownSpeedIncrease: Single;
@@ -1123,7 +1123,7 @@ type
         @item(When current height is too small --- @link(Position) is moved up.
           See GrowingSpeed.)
         @item(When current height is too large --- we're falling down.
-          See IsFallingDown, OnFalledDown, FallingDownStartSpeed,
+          See IsFallingDown, OnFall, FallingDownStartSpeed,
           FallingDownSpeedIncrease, FallingDownEffect.)
         @item(It does head bobbing. See HeadBobbing, HeadBobbingTime.)
       )
@@ -1241,8 +1241,8 @@ type
       and/or make a sound effect ("Ouch!" or "Thud!" or such sounds).
       You can look at FallenHeight parameter, given to the callback,
       e.g. to gauge how much health decreases. }
-    property OnFalledDown: TFalledDownNotifyFunc
-      read FOnFalledDown write FOnFalledDown;
+    property OnFall: TFallNotifyFunc
+      read FOnFall write FOnFall;
 
     { Initial speed of falling down.
       Of course this is used only when @link(Gravity) is true.
@@ -3364,7 +3364,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
             the most slight hill then you get
 
             1. FallingDownEffect
-            2. OnFalledDown is called seldom and with large heights.
+            2. OnFall is called seldom and with large heights.
 
             Why ? Because MoveHorizontal calls are done between GravityIdle
             calls, and the move can be quite fast. So even though the player is
@@ -3372,12 +3372,12 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
             have IsFallingDown := true. Consider a large hill that is almost
             flat --- when walking down the hill, we would get IsFallingDown
             := true, FallingDownSpeed and FallingDownEffect would raise,
-            and at the end OnFalledDown would be called with parameters
+            and at the end OnFall would be called with parameters
             like player fell down from the top of the hill to the ground
             (which can cause e.g. player losing life).
 
             The check for RealPreferredHeight * 1.1 above and
-            setting FIsFallingDown cure the situation. OnFalledDown will
+            setting FIsFallingDown cure the situation. OnFall will
             be called more often indicating very small fallen down heights,
             and FallingDownSpeed and FallingDownEffect will not be able
             to raise high as long as player follows terrain closely.
@@ -3513,12 +3513,12 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
       Up := RotatePointAroundAxisRad(AngleRotate, Up, DirectionInGravityPlane);
     end;
 
-    procedure DoFalledDown;
+    procedure DoFall;
     var
       BeginPos, EndPos, EndToBegin: TVector3Single;
       Coord: Integer;
     begin
-      if Assigned(OnFalledDown) then
+      if Assigned(OnFall) then
       begin
         { Note that I project Position and FFallingDownStartPos
           onto GravityUp vector to calculate FalledHeight. }
@@ -3529,14 +3529,14 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
         { Now check that EndToBegin points in the same direction as GravityUp.
           If not, then EndPos is actually *higher* than BeginPos,
           so we were not really falling down. That can happen, various growing
-          and jumping things can cause such "false flying". For OnFalledDown
+          and jumping things can cause such "false flying". For OnFall
           only the real falling down (from somewhere higher to lower) should
           be reported. }
         Coord := MaxAbsVectorCoord(EndToBegin);
         if (EndToBegin[Coord] >= 0) <> (GravityUp[Coord] >= 0) then
           Exit;
 
-        OnFalledDown(Self, VectorLen(EndToBegin));
+        OnFall(Self, VectorLen(EndToBegin));
       end;
     end;
 
@@ -3617,7 +3617,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
     end;
 
     if OldIsFallingDown and (not IsFallingDown) then
-      DoFalledDown;
+      DoFall;
   end;
 
   procedure PreferGravityUpForRotationsIdle;

@@ -1301,14 +1301,14 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 
   procedure DoGravity;
 
-    procedure FalledDown;
+    procedure Fall;
     var
       FallenHeight: Single;
     begin
       FallenHeight := FallingDownStartHeight - Position[World.GravityCoordinate];
       if FallenHeight > 1.0 then
       begin
-        Sound3d(stCreatureFalledDown, 0.1, false);
+        Sound3d(stCreatureFall, 0.1, false);
         if FallenHeight > 4.0 then
         begin
           Hurt(Max(0,
@@ -1406,7 +1406,7 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
     end;
 
     if OldIsFallingDown and (not FIsFallingDown) then
-      FalledDown;
+      Fall;
   end;
 
 begin
