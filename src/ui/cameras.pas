@@ -653,7 +653,7 @@ type
 
   { See @link(TWalkCamera.OnFall). }
   TFallNotifyFunc = procedure (Camera: TWalkCamera;
-    const FallenHeight: Single) of object;
+    const FallHeight: Single) of object;
 
   THeightEvent = function (Camera: TWalkCamera;
     const Position: TVector3Single;
@@ -768,7 +768,7 @@ type
 
     FPreferredHeight: Single;
     FIsFallingDown: boolean;
-    FFallingDownStartPos: TVector3Single;
+    FFallingStartPosition: TVector3Single;
     FOnFall: TFallNotifyFunc;
     FFallingDownStartSpeed: Single;
     FFallingDownSpeed: Single;
@@ -1239,7 +1239,7 @@ type
       This event can be useful in games, for example to lower player's health,
       and/or make a visual effect (like a "red out" indicating pain)
       and/or make a sound effect ("Ouch!" or "Thud!" or such sounds).
-      You can look at FallenHeight parameter, given to the callback,
+      You can look at FallHeight parameter, given to the callback,
       e.g. to gauge how much health decreases. }
     property OnFall: TFallNotifyFunc
       read FOnFall write FOnFall;
@@ -3331,7 +3331,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
       begin
         if not IsFallingDown then
         begin
-          FFallingDownStartPos := PositionBefore;
+          FFallingStartPosition := PositionBefore;
 
           { Why do I init here FFallingDownSpeed ? A few lines above I did
               if not FIsFallingDown then
@@ -3515,28 +3515,23 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
 
     procedure DoFall;
     var
-      BeginPos, EndPos, EndToBegin: TVector3Single;
-      Coord: Integer;
+      BeginPos, EndPos, FallVector: TVector3Single;
     begin
       if Assigned(OnFall) then
       begin
-        { Note that I project Position and FFallingDownStartPos
-          onto GravityUp vector to calculate FalledHeight. }
-        BeginPos := PointOnLineClosestToPoint(ZeroVector3Single, GravityUp, FFallingDownStartPos);
+        { Project Position and FFallingStartPosition
+          onto GravityUp vector to calculate fall height. }
+        BeginPos := PointOnLineClosestToPoint(ZeroVector3Single, GravityUp, FFallingStartPosition);
         EndPos   := PointOnLineClosestToPoint(ZeroVector3Single, GravityUp, Position);
-        EndToBegin := VectorSubtract(BeginPos, EndPos);
+        FallVector := BeginPos - EndPos;
 
-        { Now check that EndToBegin points in the same direction as GravityUp.
-          If not, then EndPos is actually *higher* than BeginPos,
-          so we were not really falling down. That can happen, various growing
-          and jumping things can cause such "false flying". For OnFall
-          only the real falling down (from somewhere higher to lower) should
-          be reported. }
-        Coord := MaxAbsVectorCoord(EndToBegin);
-        if (EndToBegin[Coord] >= 0) <> (GravityUp[Coord] >= 0) then
+        { Because of various growing and jumping effects (imagine you jump up
+          onto a taller pillar) it may turn out that we're higher at the end
+          at the end of fall. Do not report it to OnFall event in this case. }
+        if VectorDotProduct(GravityUp, Normalized(FallVector)) <= 0 then
           Exit;
 
-        OnFall(Self, VectorLen(EndToBegin));
+        OnFall(Self, VectorLen(FallVector));
       end;
     end;
 
