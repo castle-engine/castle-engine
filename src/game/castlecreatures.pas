@@ -1391,7 +1391,7 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
         MinTo1st(FallingDownDistance, MaximumFallingDownDistance);
       end;
 
-      if not Move(Vector3Single(0, 0, -FallingDownDistance), true) then
+      if not Move(World.GravityUp * -FallingDownDistance, true) then
         FIsFallingDown := false;
     end else
     begin
@@ -1400,8 +1400,8 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
       if AboveHeight < HeightBetweenLegsAndMiddle / HeightMargin then
       begin
         { Growing up }
-        Move(Vector3Single(0, 0, Min(GrowingUpSpeed * CompSpeed,
-          HeightBetweenLegsAndMiddle - AboveHeight)), false);
+        Move(World.GravityUp * Min(GrowingUpSpeed * CompSpeed,
+          HeightBetweenLegsAndMiddle - AboveHeight), false);
       end;
     end;
 
