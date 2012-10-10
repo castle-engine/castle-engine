@@ -103,14 +103,10 @@ function Grayscale(const v: TVector4Single): Tvector4Single; overload;
 function Grayscale(const v: TVector3Byte): TVector3Byte; overload;
 
 type
-  { Function that processes RGB colors.
-    These are used in Images.ImageModulate. }
-  TColorModulatorSingleFunc = function (const Color: TVector3Single): TVector3Single;
+  { Function that processes RGB colors, used by TCastleImage.ModulateRGB. }
   TColorModulatorByteFunc = function (const Color: TVector3Byte): TVector3Byte;
 
-{ below are some functions that can be used as above
-  TColorModulatorSingleFunc or TColorModulatorByteFunc values. }
-{ }
+{ Some functions matching TColorModulatorByteFunc type. }
 
 { Convert color to grayscale.
   @groupBegin }
