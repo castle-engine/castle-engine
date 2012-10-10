@@ -1236,10 +1236,11 @@ type
       @link(Gravity) from @true to @false, so don't simply assert
       here that @link(Gravity) is @true).
 
-      It can be useful in games to do some things
-      (maybe based on FallenHeight parameter passed to this callback)
-      like lowering player's health and/or making some effects (displaying
-      "blackout" or playing sound like "Ouh!" etc.). }
+      This event can be useful in games, for example to lower player's health,
+      and/or make a visual effect (like a "red out" indicating pain)
+      and/or make a sound effect ("Ouch!" or "Thud!" or such sounds).
+      You can look at FallenHeight parameter, given to the callback,
+      e.g. to gauge how much health decreases. }
     property OnFalledDown: TFalledDownNotifyFunc
       read FOnFalledDown write FOnFalledDown;
 
