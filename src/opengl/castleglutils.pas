@@ -770,15 +770,15 @@ procedure glProjectionPushPop(proc: TProcData; Data: Pointer;
   const projMatrix: TMatrix4f);
 
 { Draw a rectangle that modulates colors underneath,
-  suddenly changing it to BlackOutColor and then fading to blackness and
-  then fading back to normal, as BlackOutIntensity goes down from 1.0 to 0.0.
+  suddenly changing it to FadeColor and then fading to blackness and
+  then fading back to normal, as FadeIntensity goes down from 1.0 to 0.0.
   This is nice to use for a screen effect when player is hurt.
 
   The rectangle is affected by current modelview matrix.
   Requires one attrib stack place. }
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
-  const BlackOutColor: TVector3Single;
-  const BlackOutIntensity: Single);
+  const FadeColor: TVector3Single;
+  const FadeIntensity: Single);
 
 { Draw a rectangle with blending.
 
@@ -1768,16 +1768,16 @@ begin
 end;
 
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
-  const BlackOutColor: TVector3Single; const BlackOutIntensity: Single);
+  const FadeColor: TVector3Single; const FadeIntensity: Single);
 const
   FullWhiteEnd = 0.9;
   FullBlack = 0.3;
   { We assume that MinScale is small enough that difference between
-    "BlackOutColor * MinScale * screen color" and
+    "FadeColor * MinScale * screen color" and
     "MinScale * screen color" is not noticeable. }
   MinScale = 0.5;
   { Constants below make resulting screen color = glColor * previous screen color.
-    Note that as long as all components of BlackOutColor are <= 1,
+    Note that as long as all components of FadeColor are <= 1,
     then all components of our glColor are also always <= 1,
     and this means that we will always make the screen darker (or equal,
     but never brighter). }
@@ -1787,21 +1787,21 @@ var
   Color4: TVector4Single;
   Color3: TVector3Single absolute Color4;
 begin
-  if BlackOutIntensity > 0 then
+  if FadeIntensity > 0 then
   begin
-    { for BlackOutIntensity in 1...FullWhiteEnd (going down):
-      screen color := BlackOutColor * screen color }
-    if BlackOutIntensity > FullWhiteEnd then
-      Color3 := BlackOutColor else
-    { for BlackOutIntensity in FullWhiteEnd...FullBlack (going down):
-      screen color := BlackOutColor * screen color ...
-        BlackOutColor * MinScale * screen color }
-    if BlackOutIntensity > FullBlack then
-      Color3 := BlackOutColor * MapRange(BlackOutIntensity, FullWhiteEnd, FullBlack, 1, MinScale) else
-    { for BlackOutIntensity in FullBlack...0 (going down):
+    { for FadeIntensity in 1...FullWhiteEnd (going down):
+      screen color := FadeColor * screen color }
+    if FadeIntensity > FullWhiteEnd then
+      Color3 := FadeColor else
+    { for FadeIntensity in FullWhiteEnd...FullBlack (going down):
+      screen color := FadeColor * screen color ...
+        FadeColor * MinScale * screen color }
+    if FadeIntensity > FullBlack then
+      Color3 := FadeColor * MapRange(FadeIntensity, FullWhiteEnd, FullBlack, 1, MinScale) else
+    { for FadeIntensity in FullBlack...0 (going down):
       screen color := MinScale * screen color ...
         unchanged screen color }
-      Color3 := White3Single * MapRange(BlackOutIntensity, FullBlack, 0, MinScale, 1);
+      Color3 := White3Single * MapRange(FadeIntensity, FullBlack, 0, MinScale, 1);
 
     Color4[3] := 1.0; { alpha always 1.0 in this case }
     GLBlendRectangle(X1, Y1, X2, Y2, SourceFactor, DestinationFactor, Color4);

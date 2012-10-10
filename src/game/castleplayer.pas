@@ -38,7 +38,7 @@ type
     psUnderWater);
 
   { Player, 3D object controlling the camera, main enemy of hostile creatures,
-    carries a backpack, may cause blackout effects on screen and such.
+    carries a backpack, may cause fadeout effects on screen and such.
 
     Note that you can operate on player even before level is loaded,
     before TCastleSceneManager and such are initialized.
@@ -145,6 +145,9 @@ type
 
     FFlying: boolean;
     FFlyingTimeOut: TFloatTime;
+    { FadeOut settings. }
+    FFadeOutIntensity: Single;
+    FFadeOutColor: TVector3Single;
 
     procedure SetEquippedWeapon(Value: TItemWeapon);
 
@@ -158,7 +161,7 @@ type
     { This sets life, just like SetLife.
       But in case of life loss, the fadeout is done with specified
       Color (while SetLife always uses red color). }
-    procedure SetLifeCustomBlackOut(const Value: Single;
+    procedure SetLifeCustomFadeOut(const Value: Single;
       const Color: TVector3Single);
 
     procedure SwimmingChangeSoundRelease(Sender: TSound);
@@ -176,10 +179,6 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
   public
-    { Blackout settings. }
-    BlackOutIntensity: TGLfloat;
-    BlackOutColor: TVector3f;
-
     { Various navigation properties that may depend on loaded level. }
     DefaultMoveHorizontalSpeed: Single;
     DefaultMoveVerticalSpeed: Single;
@@ -256,15 +255,15 @@ type
 
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
 
-    { Make blackout with given Color (so it's not really a "black"out,
-      it's fadeout + fadein with given Color; e.g. pass here red
-      to get "redout").
-      @noAutoLinkHere }
-    procedure BlackOut(const Color: TVector3f);
+    { Cause a fade-out effect on the screen, tinting the screen to the given Color.
+      The TPlayer class doesn't do the actual drawing of the fade-out effect
+      on the screen, we merely store and animate the FadeOutColor and FadeOutIntensity
+      properties. To draw the effect, use a procedure like GLFadeRectangle
+      inside your 2D controls drawing code, see engine tutorial for example. }
+    procedure FadeOut(const Color: TVector3Single);
 
-    { Shortcut for BlackOut with red color.
-      @noAutoLinkHere }
-    procedure RedOut;
+    property FadeOutColor: TVector3Single read FFadeOutColor;
+    property FadeOutIntensity: Single read FFadeOutIntensity;
 
     { @noAutoLinkHere }
     procedure Attack;
@@ -881,7 +880,7 @@ procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
         if not Dead then
         begin
           SoundEngine.Sound(stPlayerLavaPain);
-          SetLifeCustomBlackout(Life - (GroundProperties.LavaDamageConst +
+          SetLifeCustomFadeOut(Life - (GroundProperties.LavaDamageConst +
             Random * GroundProperties.LavaDamageRandom), Green3Single);
         end;
       end;
@@ -992,7 +991,7 @@ procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
   end;
 
 const
-  BlackOutSpeed = 2.0;
+  FadeOutSpeed = 2.0;
 begin
   inherited;
   if not GetExists then Exit;
@@ -1012,8 +1011,8 @@ begin
 
   UpdateSwimming;
 
-  if BlackOutIntensity > 0 then
-    BlackOutIntensity -= BlackOutSpeed * CompSpeed;
+  if FFadeOutIntensity > 0 then
+    FFadeOutIntensity -= FadeOutSpeed * CompSpeed;
 
   if Attacking and (not ActualAttackDone) and (LifeTime -
     AttackStartTime >= EquippedWeapon.Kind.ActualAttackTime) then
@@ -1027,15 +1026,10 @@ begin
   UpdateFootstepsSoundPlaying;
 end;
 
-procedure TPlayer.BlackOut(const Color: TVector3f);
+procedure TPlayer.FadeOut(const Color: TVector3Single);
 begin
-  BlackOutColor := Color;
-  BlackOutIntensity := 1;
-end;
-
-procedure TPlayer.RedOut;
-begin
-  BlackOut(Red3Single);
+  FFadeOutColor := Color;
+  FFadeOutIntensity := 1;
 end;
 
 procedure TPlayer.FalledDown(ACamera: TWalkCamera;
@@ -1049,7 +1043,7 @@ begin
   end;
 end;
 
-procedure TPlayer.SetLifeCustomBlackOut(const Value: Single;
+procedure TPlayer.SetLifeCustomFadeOut(const Value: Single;
   const Color: TVector3Single);
 begin
   if (Life > 0) and (Value <= 0) then
@@ -1060,7 +1054,7 @@ begin
   end else
   if (Life - Value) > 1 then
   begin
-    BlackOut(Color);
+    FadeOut(Color);
     SoundEngine.Sound(stPlayerSuddenPain);
   end;
   inherited SetLife(Value);
@@ -1068,7 +1062,7 @@ end;
 
 procedure TPlayer.SetLife(const Value: Single);
 begin
-  SetLifeCustomBlackOut(Value, Red3Single);
+  SetLifeCustomFadeOut(Value, Red3Single);
 end;
 
 procedure TPlayer.Attack;

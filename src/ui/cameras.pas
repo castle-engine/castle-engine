@@ -1287,7 +1287,7 @@ type
       e.g. the player teleported somewhere (or e.g. game levels changed).
       In this case you just want to forget the fact that camera
       was falling down --- no consequences (like lowering player's
-      health, redout etc.). }
+      health, fadeout etc.). }
     procedure CancelFallingDown;
 
     { This triggers a nice effect when falling down from high.

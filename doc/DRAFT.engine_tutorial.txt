@@ -478,7 +478,7 @@ begin
   { Simple color effects over the screen:
     when player is dead,
     when player is underwater,
-    when player has "blackout" from any other cause (e.g. player is hurt).
+    when player has fadeout from any other cause (e.g. player is hurt).
 
     GLBlendRectangle and GLFaceRectangle make simple color effects by blending.
     They are trivial to use (by all means, do experiment with parameters below,
@@ -496,10 +496,10 @@ begin
     if Player.Swimming = psUnderWater then
       GLBlendRectangle(0, 0, ContainerWidth, ContainerHeight,
         GL_ONE, GL_SRC_ALPHA, Vector4Single(0, 0, 0.1, 0.5));
-    { Possibly, Player.BlackOut* will be applied on top of water effect,
+    { Possibly, Player.FadeOut* will be applied on top of water effect,
       that's Ok --- they'll mix. }
     GLFadeRectangle(0, 0, ContainerWidth, ContainerHeight,
-      Player.BlackOutColor, Player.BlackOutIntensity);
+      Player.FadeOutColor, Player.FadeOutIntensity);
   end;
 end;
 
