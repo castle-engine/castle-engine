@@ -3251,7 +3251,8 @@ procedure T3DCustomTransform.Idle(const CompSpeed: Single; var RemoveMe: TRemove
 
 begin
   inherited;
-  if Gravity and
+  if GetExists and
+     Gravity and
      (PreferredHeight <> 0) and
      ((FallSpeed <> 0) or (GrowSpeed <> 0)) then
     DoGravity(World.GravityUp);
