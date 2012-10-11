@@ -18,8 +18,8 @@ unit CastleCreatures;
 
 interface
 
-uses Classes, VectorMath, PrecalculatedAnimation, Boxes3D, CastleClassUtils, CastleUtils,
-  CastleScene, SectorsWaypoints,
+uses Classes, VectorMath, PrecalculatedAnimation, Boxes3D, CastleClassUtils,
+  CastleUtils, CastleScene, SectorsWaypoints,
   CastleResources, CastleXMLConfig, Base3D,
   CastleSoundEngine, Frustum, X3DNodes, CastleColors, FGL;
 
@@ -61,8 +61,9 @@ const
 
   DefaultHitsPlayer = true;
   DefaultHitsCreatures = false;
+  DefaultDirectionFallSpeed = 0.0;
 
-  DefaultMiddleHeight = 1.0;
+  DefaultMiddleHeight = 0.75;
 
 type
   TCreature = class;
@@ -95,10 +96,17 @@ type
   public
     constructor Create(const AId: string); override;
 
-    { If @true, then the creature flies. Otherwise it always tries to move only
-      horizontally (which means that Direction is always orthogonal
-      to World.GravityUp), and it falls down when Position is above
-      the ground. }
+    { Flying creatures are not affected by gravity and
+      (in case of TWalkAttackCreatureKind) their move direction is free.
+
+      For all creatures, TCreature.Gravity (inherited from T3D.Gravity)
+      is set to @code("not Flying") (except TMissileCreatureKind,
+      that has special approach to gravity,
+      see TMissileCreatureKind.DirectionFallSpeed).
+
+      For TWalkAttackCreatureKind, additionally Flying allows to move
+      freely, while non-flying creatures are constrained to move
+      (and think about moving) only horizontally. }
     property Flying: boolean read FFlying write FFlying default DefaultFlying;
 
     { Camera radius when moving.
@@ -161,9 +169,9 @@ type
       @groupBegin }
     function CreateCreature(World: T3DWorld;
       const APosition, ADirection: TVector3Single;
-      const MaxLife: Single): TCreature;
+      const MaxLife: Single): TCreature; virtual; overload;
     function CreateCreature(World: T3DWorld;
-      const APosition, ADirection: TVector3Single): TCreature;
+      const APosition, ADirection: TVector3Single): TCreature; overload;
     { @groupEnd }
 
     { Instantiate creature placeholder, by calling CreateCreature. }
@@ -232,15 +240,29 @@ type
       write FFallDownLifeLossScale
       default DefaultFallDownLifeLossScale;
 
-    { Determines how the creature's TCreature.Middle will be calculated.
-      Actually, this determines how the TCreature.PreferredHeight
-      will be calculated, and this is used to calculate Middle.
-      TCreature.PreferredHeight is just current scene box height
-      multiplied by this, so 1.0 means that Middle is at the top
-      of the box, 0.0 means at the bottom, 0.5 means at the middle etc. }
-    property MiddleHeight: Single
-      read FMiddleHeight
-      write FMiddleHeight
+    { Determines the height of TCreature.Middle point,
+      which is usually an "eye point" and is used for many collision detection
+      routines.
+
+      More precisely, this determines how the TCreature.PreferredHeight
+      will be calculated, and this is used to calculate TCreature.Middle.
+      TCreature.PreferredHeight is taken as scene box height
+      above zero level multiplied by MiddleHeight,
+      and with scene box height below zero level added.
+
+      For example, if your creature is modeled to have (0,0,0) point
+      at legs (as usual for non-missile creatures),
+      then this just says how high the eyes are.
+      DefaultMiddleHeight is 3/4, which seems a good default for this case.
+
+      For other example, if your creature is modeled to have (0,0,0) point
+      in the middle (as usual for missile creatures) then you should set
+      this to zero.
+
+      Note that if resulting PreferredHeight is 0 then gravity will not work
+      for this creature (gravity requires that main collision Middle
+      is a little above the ground). }
+    property MiddleHeight: Single read FMiddleHeight write FMiddleHeight
       default DefaultMiddleHeight;
   end;
 
@@ -457,7 +479,8 @@ type
     On collision, it explodes, potentially hurting the alive 3D object
     that was colliding (player or other creatures).
 
-    Missiles are always Flying for now. }
+    Missiles ignore TCreatureKind.Flying, they use their own way to handle
+    gravity with DirectionFallSpeed. }
   TMissileCreatureKind = class(TCreatureKind)
   private
     FAnimation: TCastlePrecalculatedAnimation;
@@ -469,6 +492,7 @@ type
     FSoundIdle: TSoundType;
     FHitsPlayer: boolean;
     FHitsCreatures: boolean;
+    FDirectionFallSpeed: Single;
   protected
     procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
       const GravityUp: TVector3Single;
@@ -514,6 +538,24 @@ type
       read FHitsPlayer write FHitsPlayer default DefaultHitsPlayer;
     property HitsCreatures: boolean
       read FHitsCreatures write FHitsCreatures default DefaultHitsCreatures;
+
+    { Is the missile pulled down by gravity.
+      This causes missile direction to gradually point
+      downward, and this way missile flies downward eventually.
+
+      This is quite different (in different units and with slightly different
+      effect) than T3D.FallSpeed, hence a different name and property.
+      TMissileCreatureKind doesn't use T3D.Gravity and so ignores
+      FallSpeed, GrowSpeed and other properties.
+
+      0 means to not fall down (missile is not affected by gravity). }
+    property DirectionFallSpeed: Single
+      read FDirectionFallSpeed write FDirectionFallSpeed
+      default DefaultDirectionFallSpeed;
+
+    function CreateCreature(World: T3DWorld;
+      const APosition, ADirection: TVector3Single;
+      const MaxLife: Single): TCreature; override;
   end;
 
   { Creature that just stays still.
@@ -560,28 +602,9 @@ type
       construction), so make it work always reliably. }
     { function GetChild: T3D; override; }
 
-    { PositionFromMiddle calculates value of T3DOrient.Position,
-      assuming that T3DOrient.Middle is as given.
-      Since our Middle implementation is derived from Position,
-      PositionFromMiddle is the reverse.
-
-      LerpLegsMiddle interpolated between Position and Middle
-      (intuitively, legs and eye positions).
-      It must be equal to Lerp(A, Position, Middle)
-      (but usually can be calculated more efficiently than calling Lerp).
-
-      In this class they calculate Middle as Position
-      moved higher than PreferredHeight.
-      So if you want to change the meaning of these functions
-      you can simply override only PreferredHeight
-      (and everything else will work OK).
-      *Or* you can change all Middle, PositionFromMiddle, LerpLegsMiddle
-      functions to use any approach to convert between legs and eye position.
-
-      @groupBegin }
-    function PositionFromMiddle(const AssumeMiddle: TVector3Single): TVector3Single; virtual;
-    function LerpLegsMiddle(const A: Single): TVector3Single; virtual;
-    { @groupEnd }
+    { LerpLegsMiddle interpolates between Position and Middle
+      (intuitively, legs and eye positions). }
+    function LerpLegsMiddle(const A: Single): TVector3Single;
 
     procedure ShortRangeAttackHurt;
 
@@ -598,10 +621,8 @@ type
 
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
 
-    { The height of Middle above Position.
-      Calculated in this class using GetChild.BoundingBox.Data[1, 2]
-      and Kind.MiddleHeight.
-      Note that while GetChild may change, this also may change. }
+    { Creature preferred height of eyes (Middle) above ground.
+      See TCreatureKind.MiddleHeight for docs how this is calculated. }
     function PreferredHeight: Single; override;
 
     function Middle: TVector3Single; override;
@@ -826,8 +847,7 @@ begin
   FallDownLifeLossScale := KindsConfig.GetFloat('fall_down_life_loss_scale',
     DefaultFallDownLifeLossScale);
 
-  MiddleHeight := KindsConfig.GetFloat('middle_position_height',
-    DefaultMiddleHeight);
+  MiddleHeight := KindsConfig.GetFloat('middle_height', DefaultMiddleHeight);
 
   SoundSuddenPain := SoundEngine.SoundFromName(
     KindsConfig.GetValue('sound_sudden_pain', ''));
@@ -846,8 +866,7 @@ function TCreatureKind.CreateCreature(World: T3DWorld;
   const APosition, ADirection: TVector3Single;
   const MaxLife: Single): TCreature;
 begin
-  { This is only needed if you used --debug-no-creatures or forgot
-    to add creature to <resources>.
+  { This is only needed if you forgot to add creature to <resources>.
 
     Note: we experimented with moving this to TCreature.PrepareResource,
     call Kind.Prepare from there. But it just doesn't fully work:
@@ -887,8 +906,6 @@ var
 begin
   { calculate CreatureDirection }
   CreatureDirection := ADirection;
-  if not Flying then
-    MakeVectorsOrthoOnTheirPlane(CreatureDirection, World.GravityUp);
 
   { calculate MaxLife }
   if NumberPresent then
@@ -1001,12 +1018,12 @@ end;
 constructor TMissileCreatureKind.Create(const AId: string);
 begin
   inherited Create(AId);
-  Flying := true;
   FMoveSpeed := DefaultMissileMoveSpeed;
   FCloseDirectionToTargetSpeed := DefaultCloseDirectionToTargetSpeed;
   FPauseBetweenSoundIdle := DefaultPauseBetweenSoundIdle;
   FHitsPlayer := DefaultHitsPlayer;
   FHitsCreatures := DefaultHitsCreatures;
+  FDirectionFallSpeed := DefaultDirectionFallSpeed;
 end;
 
 procedure TMissileCreatureKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
@@ -1052,6 +1069,8 @@ begin
     DefaultHitsPlayer);
   HitsCreatures := KindsConfig.GetValue('hits_creatures',
     DefaultHitsCreatures);
+  DirectionFallSpeed := KindsConfig.GetFloat('direction_fall_speed',
+    DefaultDirectionFallSpeed);
 
   SoundExplosion := SoundEngine.SoundFromName(
     KindsConfig.GetValue('sound_explosion', ''));
@@ -1059,6 +1078,28 @@ begin
     KindsConfig.GetValue('sound_idle', ''));
 
   FAnimationFile := KindsConfig.GetFileName('fly_animation');
+end;
+
+function TMissileCreatureKind.CreateCreature(World: T3DWorld;
+  const APosition, ADirection: TVector3Single;
+  const MaxLife: Single): TCreature;
+begin
+  Result := inherited;
+
+  { Normal gravity is turned off for missiles.
+
+    We tried to enable it once, but:
+    1. Normal gravity doesn't change the direction, so arrows fall down
+       but they keep pointing upwards. This is noticeable to the player
+       that looks at the arrow.
+    2. It also conflicts with current hack with "MaximumFallingDistance -= 0.01"
+       inside Base3D gravity. It could probably be fixed better,
+       but since the 1st problem would remain anyway...
+    Also growing up doesn't make any sense for missile that explodes on contact
+    with ground. So Fall should be overriden to make ExplodeCore,
+    and GrowSpeed should be disabled below to be 0. (This is obviously doable.) }
+
+  Result.Gravity := false;
 end;
 
 { TStillCreatureKind ---------------------------------------------------- }
@@ -1176,13 +1217,6 @@ end;
 function TCreature.PreferredHeight: Single;
 begin
   Result := GetChild.BoundingBox.Data[1, World.GravityCoordinate] * Kind.MiddleHeight;
-end;
-
-function TCreature.PositionFromMiddle(
-  const AssumeMiddle: TVector3Single): TVector3Single;
-begin
-  Result := AssumeMiddle;
-  Result[World.GravityCoordinate] -= PreferredHeight;
 end;
 
 function TCreature.LerpLegsMiddle(const A: Single): TVector3Single;
@@ -1490,7 +1524,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
   var
     SqrDistanceToTarget: Single;
   begin
-    if WAKind.Flying then
+    if Kind.Flying then
       SqrDistanceToTarget := PointsDistanceSqr(Middle, Target) else
       SqrDistanceToTarget := PointsDistance2DSqr(Middle, Target, World.GravityCoordinate);
     Result :=
@@ -1592,7 +1626,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
       where creature can reliably move. Creature that cannot fly cannot
       move in gravity (UpIndex) direction. }
     for I := 0 to 2 do
-      if WAKind.Flying or (I <> World.GravityCoordinate) then
+      if Kind.Flying or (I <> World.GravityCoordinate) then
         AlternativeTarget[I] += Random * Distance * 2 - Distance;
 
     HasAlternativeTarget := true;
@@ -2154,15 +2188,11 @@ begin
 
   if (not GetExists) or DebugTimeStopForCreatures then Exit;
 
-  { Note that for now missiles are removed from level as soon as they are dead,
-    so I don't bother with checking here Dead. }
-
-  OldMiddle := Middle;
-  NewMiddle := OldMiddle + Direction * (MissileKind.MoveSpeed * CompSpeed);
-
-  { missile moves *always*, disregarding MissileMoveAllowed result.
+  { Missile moves *always*, regardless of MissileMoveAllowed result.
     Only after move, if the move made us colliding with something --- we explode. }
-  Position := PositionFromMiddle(NewMiddle);
+  OldMiddle := Middle;
+  Translate(Direction * (MissileKind.MoveSpeed * CompSpeed));
+  NewMiddle := Middle;
 
   if not MissileMoveAllowed(OldMiddle, NewMiddle) then
   begin
@@ -2205,9 +2235,10 @@ begin
     ExplodeCore;
   end;
 
-  if MissileKind.FallSpeed <> 0 then
+  if MissileKind.DirectionFallSpeed <> 0 then
   begin
-    NewDirection := Direction - World.GravityUp * MissileKind.FallSpeed * CompSpeed;
+    NewDirection := Direction -
+      World.GravityUp * MissileKind.DirectionFallSpeed * CompSpeed;
     Direction := NewDirection;
   end;
 
