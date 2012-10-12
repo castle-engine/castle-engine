@@ -89,8 +89,12 @@ type
 
     FMiddleHeight: Single;
   protected
-    { In descendants only Prepare can (and should!) set this. }
+    { Calculated @link(Radius). In descendants only @link(Prepare) can set this. }
     RadiusFromPrepare: Single;
+
+    function RadiusFromPrepareDefault(
+      const AnAnimation: TCastlePrecalculatedAnimation;
+      const GravityUp: TVector3Single): Single;
   public
     constructor Create(const AId: string); override;
 
@@ -126,10 +130,12 @@ type
       radius would only cause problems.
 
       This is always measured from Middle ("eye position") of the given creature.
-      Make sure radius is always <= than PreferredHeight of the creature,
-      see T3D.PreferredHeight. In short, if you use the default implementations,
+      If the creature may be affected by gravity then
+      make sure radius is < than PreferredHeight of the creature,
+      see T3D.PreferredHeight, otherwise creature may get stuck into ground.
+      In short, if you use the default implementations,
       PreferredHeight is by default @italic(MiddleHeight (default 0.5) *
-      bounding box height). Your radius must be smaller or equal,
+      bounding box height). Your radius must be smaller
       for all possible bounding box heights when the creature is not dead. }
     function Radius: Single;
 
@@ -836,6 +842,37 @@ begin
     Result := RadiusFromPrepare;
 end;
 
+function TCreatureKind.RadiusFromPrepareDefault(
+  const AnAnimation: TCastlePrecalculatedAnimation;
+  const GravityUp: TVector3Single): Single;
+var
+  GC: Integer;
+  Box: TBox3D;
+begin
+  { calculate default RadiusFromPrepare.
+    Descendants can override Prepare to provide better RadiusFromPrepare
+    (or define radius in resource.xml file), so it's Ok to make here
+    some assumptions that should suit usual cases, but not necessarily
+    all possible cases --- e.g. our MaxRadius calculation assumes you let default
+    T3D.PreferredHeight algorithm. }
+
+  GC := MaxAbsVectorCoord(GravityUp);
+  Box := AnAnimation.BoundingBox;
+
+  if Box.IsEmpty then
+    Result := 0 else
+  if Flying then
+    { For Flying creatures, larger Radius (that *really* surrounds whole
+      model from middle) is better. Also, MaxRadiusForGravity doesn't concern
+      us then. }
+    Result := Box.MaxSize / 2 else
+    Result := Min(Box.Radius2D(GC),
+      { Maximum radius value that allows gravity to work,
+        assuming default T3D.PreferredHeight implementation,
+        and assuming that Box is the smallest possible bounding box of our creature. }
+      0.9 * MiddleHeight * (Box.Data[1, GC] - Box.Data[0, GC]));
+end;
+
 function TCreatureKind.CreateCreature(World: T3DWorld;
   const APosition, ADirection: TVector3Single;
   const MaxLife: Single): TCreature;
@@ -912,8 +949,6 @@ end;
 procedure TWalkAttackCreatureKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
   const GravityUp: TVector3Single;
   const DoProgress: boolean);
-var
-  GravityCoordinate: Integer;
 begin
   inherited;
 
@@ -925,10 +960,7 @@ begin
   PreparePrecalculatedAnimation(FDyingBackAnimation  , FDyingBackAnimationFile  , BaseLights, DoProgress);
   PreparePrecalculatedAnimation(FHurtAnimation       , FHurtAnimationFile       , BaseLights, DoProgress);
 
-  GravityCoordinate := MaxAbsVectorCoord(GravityUp);
-  RadiusFromPrepare :=
-    Min(StandAnimation.Scenes[0].BoundingBox.Radius2D(GravityCoordinate),
-        StandAnimation.Scenes[0].BoundingBox.Data[1, GravityCoordinate] * 0.75);
+  RadiusFromPrepare := RadiusFromPrepareDefault(StandAnimation, GravityUp);
 end;
 
 function TWalkAttackCreatureKind.PrepareCoreSteps: Cardinal;
@@ -1005,13 +1037,18 @@ procedure TMissileCreatureKind.PrepareCore(const BaseLights: TAbstractLightInsta
   const GravityUp: TVector3Single;
   const DoProgress: boolean);
 var
-  GravityCoordinate: Integer;
+  Box: TBox3D;
 begin
   inherited;
   PreparePrecalculatedAnimation(FAnimation, FAnimationFile, BaseLights, DoProgress);
 
-  GravityCoordinate := MaxAbsVectorCoord(GravityUp);
-  RadiusFromPrepare := Animation.Scenes[0].BoundingBox.Radius2D(GravityCoordinate);
+  Box := Animation.Scenes[0].BoundingBox;
+  { Use MinSize for missile, since smaller radius for missiles
+    forces player to aim more precisely. Smaller radius may also allow some
+    partial collisions to go undetected, but that's not a problem as the
+    collisions imperfections are not noticeable for fast moving missiles. }
+  if not Box.IsEmpty then
+    RadiusFromPrepare := Box.MinSize / 2;
 end;
 
 function TMissileCreatureKind.PrepareCoreSteps: Cardinal;
@@ -1082,14 +1119,11 @@ end;
 procedure TStillCreatureKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
   const GravityUp: TVector3Single;
   const DoProgress: boolean);
-var
-  GravityCoordinate: Integer;
 begin
   inherited;
   PreparePrecalculatedAnimation(FAnimation, FAnimationFile, BaseLights, DoProgress);
 
-  GravityCoordinate := MaxAbsVectorCoord(GravityUp);
-  RadiusFromPrepare := Animation.Scenes[0].BoundingBox.Radius2D(GravityCoordinate);
+  RadiusFromPrepare := RadiusFromPrepareDefault(Animation, GravityUp);
 end;
 
 function TStillCreatureKind.PrepareCoreSteps: Cardinal;
