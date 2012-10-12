@@ -99,20 +99,23 @@ type
     { @groupEnd }
 
     { Average size of TBox3D, or EmptyBoxSize if box is empty.
-      If AllowZero is @false, then we also return EmptyBoxSize when all the box
-      sizes are zero. }
+      @param(AllowZero Decides what to do when box is not empty but the result
+        would be zero, which means that the box is infinitely thin in all axes.
+        If @true, then result is just 0, otherwise it's EmptyBoxSize.) }
     function AverageSize(const AllowZero: boolean;
       const EmptyBoxSize: Single): Single; overload;
 
     { Largest size of TBox3D, or EmptyBoxSize if box is empty.
-      If AllowZero is @false, then we also return EmptyBoxSize when all the box
-      sizes are zero. }
+      @param(AllowZero Decides what to do when box is not empty but the result
+        would be zero, which means that the box is infinitely thin in all axes.
+        If @true, then result is just 0, otherwise it's EmptyBoxSize.) }
     function MaxSize(const AllowZero: boolean;
       const EmptyBoxSize: Single): Single; overload;
 
     { Area of the six TBox3D sides, EmptyBoxArea if box is empty.
-      If AllowZero is @false, then we also return EmptyBoxArea when all the box
-      sizes are zero. }
+      @param(AllowZero Decides what to do when box is not empty but the result
+        would be zero, which means that the box is infinitely thin in all axes.
+        If @true, then result is just 0, otherwise it's EmptyBoxSize.) }
     function Area(const AllowZero: boolean;
       const EmptyBoxArea: Single): Single;
 
@@ -271,13 +274,15 @@ type
     function Collision(const Box2: TBox3D): boolean;
 
     { Radius of the minimal sphere that contains this box.
-      Sphere center is assumed to be in (0, 0, 0). }
+      Sphere center is assumed to be in (0, 0, 0).
+      0 if box is empty. }
     function Radius: Single;
 
     { Radius of the minimal circle that contains the 2D projection of this box.
       2D box projection is obtained by rejecting the IgnoreIndex coordinate
       (must be 0, 1 or 2).
-      Circle center is assumed to be in (0, 0). }
+      Circle center is assumed to be in (0, 0).
+      0 if box is empty. }
     function Radius2D(const IgnoreIndex: Integer): Single;
 
     { Check for collision between box and sphere, fast @italic(but not
@@ -1366,15 +1371,17 @@ end;
 
 function TBox3D.Radius: Single;
 begin
-  Result := Sqrt(Max(
-    Max(Max(VectorLenSqr(Vector3Single(Data[0, 0], Data[0, 1], Data[0, 2])),
-            VectorLenSqr(Vector3Single(Data[1, 0], Data[0, 1], Data[0, 2]))),
-        Max(VectorLenSqr(Vector3Single(Data[1, 0], Data[1, 1], Data[0, 2])),
-            VectorLenSqr(Vector3Single(Data[0, 0], Data[1, 1], Data[0, 2])))),
-    Max(Max(VectorLenSqr(Vector3Single(Data[0, 0], Data[0, 1], Data[1, 2])),
-            VectorLenSqr(Vector3Single(Data[1, 0], Data[0, 1], Data[1, 2]))),
-        Max(VectorLenSqr(Vector3Single(Data[1, 0], Data[1, 1], Data[1, 2])),
-            VectorLenSqr(Vector3Single(Data[0, 0], Data[1, 1], Data[1, 2]))))));
+  if IsEmpty then
+    Result := 0 else
+    Result := Sqrt(Max(
+      Max(Max(VectorLenSqr(Vector3Single(Data[0, 0], Data[0, 1], Data[0, 2])),
+              VectorLenSqr(Vector3Single(Data[1, 0], Data[0, 1], Data[0, 2]))),
+          Max(VectorLenSqr(Vector3Single(Data[1, 0], Data[1, 1], Data[0, 2])),
+              VectorLenSqr(Vector3Single(Data[0, 0], Data[1, 1], Data[0, 2])))),
+      Max(Max(VectorLenSqr(Vector3Single(Data[0, 0], Data[0, 1], Data[1, 2])),
+              VectorLenSqr(Vector3Single(Data[1, 0], Data[0, 1], Data[1, 2]))),
+          Max(VectorLenSqr(Vector3Single(Data[1, 0], Data[1, 1], Data[1, 2])),
+              VectorLenSqr(Vector3Single(Data[0, 0], Data[1, 1], Data[1, 2]))))));
 end;
 
 { Separated from Radius2D, to not slowdown it by implicit
@@ -1386,26 +1393,30 @@ end;
 
 function TBox3D.Radius2D(const IgnoreIndex: Integer): Single;
 begin
-  case IgnoreIndex of
-    0: Result := Max(
-         Max(VectorLenSqr(Vector2Single(Data[0, 1], Data[0, 2])),
-             VectorLenSqr(Vector2Single(Data[1, 1], Data[0, 2]))),
-         Max(VectorLenSqr(Vector2Single(Data[1, 1], Data[1, 2])),
-             VectorLenSqr(Vector2Single(Data[0, 1], Data[1, 2]))));
-    1: Result := Max(
-         Max(VectorLenSqr(Vector2Single(Data[0, 2], Data[0, 0])),
-             VectorLenSqr(Vector2Single(Data[1, 2], Data[0, 0]))),
-         Max(VectorLenSqr(Vector2Single(Data[1, 2], Data[1, 0])),
-             VectorLenSqr(Vector2Single(Data[0, 2], Data[1, 0]))));
-    2: Result := Max(
-         Max(VectorLenSqr(Vector2Single(Data[0, 0], Data[0, 1])),
-             VectorLenSqr(Vector2Single(Data[1, 0], Data[0, 1]))),
-         Max(VectorLenSqr(Vector2Single(Data[1, 0], Data[1, 1])),
-             VectorLenSqr(Vector2Single(Data[0, 0], Data[1, 1]))));
-    else Radius2D_InvalidIgnoreIndex;
-  end;
+  if IsEmpty then
+    Result := 0 else
+  begin
+    case IgnoreIndex of
+      0: Result := Max(
+           Max(VectorLenSqr(Vector2Single(Data[0, 1], Data[0, 2])),
+               VectorLenSqr(Vector2Single(Data[1, 1], Data[0, 2]))),
+           Max(VectorLenSqr(Vector2Single(Data[1, 1], Data[1, 2])),
+               VectorLenSqr(Vector2Single(Data[0, 1], Data[1, 2]))));
+      1: Result := Max(
+           Max(VectorLenSqr(Vector2Single(Data[0, 2], Data[0, 0])),
+               VectorLenSqr(Vector2Single(Data[1, 2], Data[0, 0]))),
+           Max(VectorLenSqr(Vector2Single(Data[1, 2], Data[1, 0])),
+               VectorLenSqr(Vector2Single(Data[0, 2], Data[1, 0]))));
+      2: Result := Max(
+           Max(VectorLenSqr(Vector2Single(Data[0, 0], Data[0, 1])),
+               VectorLenSqr(Vector2Single(Data[1, 0], Data[0, 1]))),
+           Max(VectorLenSqr(Vector2Single(Data[1, 0], Data[1, 1])),
+               VectorLenSqr(Vector2Single(Data[0, 0], Data[1, 1]))));
+      else Radius2D_InvalidIgnoreIndex;
+    end;
 
-  Result := Sqrt(Result);
+    Result := Sqrt(Result);
+  end;
 end;
 
 function TBox3D.SphereSimpleCollision(
