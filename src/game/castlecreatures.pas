@@ -1232,7 +1232,7 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
 
   procedure DebugBoundingVolumes;
   var
-    Q: PGLUQuadric;
+    R: Single;
   begin
     glPushAttrib(GL_ENABLE_BIT);
       glDisable(GL_LIGHTING);
@@ -1241,13 +1241,13 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
 
       glDrawBox3DWire(BoundingBox);
 
-      glPushMatrix;
-        glTranslatev(Middle);
-        Q := NewGLUQuadric(false, GLU_NONE, GLU_OUTSIDE, GLU_LINE);
-        try
-          gluSphere(Q, Kind.Radius, 10, 10);
-        finally gluDeleteQuadric(Q); end;
-      glPopMatrix;
+      if Sphere(R) then
+      begin
+        glPushMatrix;
+          glTranslatev(Middle);
+          CastleGluSphere(R, 10, 10, false, GLU_NONE, GLU_OUTSIDE, GLU_LINE);
+        glPopMatrix;
+      end;
 
       glColorv(Yellow3Single);
       glDrawAxisWire(Middle, BoundingBox.AverageSize(true, 0));
