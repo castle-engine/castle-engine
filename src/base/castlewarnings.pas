@@ -36,14 +36,15 @@ type
       as the file should really be corrected. }
     wtMajor);
 
-{ Assign this to OnWarning to report warnings using WarningWrite.
-  For Windows programs with no console available, this will make a message box,
-  in all other cases the warning just goes to ErrOutput. }
+{ Assign this to OnWarning to report warnings using WarningWrite, and log them too.
+  For Windows programs with no console available,
+  WarningWrite will make a message box,
+  in all other cases the warning just goes to ErrOutput.
+  The warning is also logged using CastleLog. }
 procedure OnWarningWrite(const AType: TWarningType; const Category, S: string);
 
-{ Assign this to OnWarning to ignore (do nothing) warnings.
-  Eventually, if @link(Log), then will be logged. }
-procedure OnWarningIgnore(const AType: TWarningType; const Category, S: string);
+{ Assign this to OnWarning to only log warnings using CastleLog. }
+procedure OnWarningLog(const AType: TWarningType; const Category, S: string);
 
 type
   TWarningProc = procedure (const AType: TWarningType; const Category, S: string);
@@ -58,8 +59,11 @@ var
     you can also raise an exception (or raise it only when type is wtMajor).
 
     The default behavior is to ignore possible warnings
-    (as there is no safe cross-platform default place where they can be reported). }
-  OnWarning: TWarningProc = @OnWarningIgnore;
+    (as there is no safe cross-platform default place where they can be reported).
+    Actually, you can initialize CastleLog to see warnings in the log.
+    You can also assign your own callback to OnWarning to record and show
+    warnings in any way. }
+  OnWarning: TWarningProc = @OnWarningLog;
 
 implementation
 
@@ -67,13 +71,15 @@ uses CastleUtils, CastleFilesUtils, CastleLog;
 
 procedure OnWarningWrite(const AType: TWarningType; const Category, S: string);
 begin
+  if Log then
+    WritelnLog('Warning: ' + Category, S);
   WarningWrite(ProgramName + ': ' + Category + ' warning: ' + S);
 end;
 
-procedure OnWarningIgnore(const AType: TWarningType; const Category, S: string);
+procedure OnWarningLog(const AType: TWarningType; const Category, S: string);
 begin
   if Log then
-    WritelnLog(Category, 'Warning: ' + S);
+    WritelnLog('Warning: ' + Category, S);
 end;
 
 end.

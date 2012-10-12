@@ -140,7 +140,7 @@ procedure TTestOpeningAndRendering3D.TestOpenAndRender(const ARecreateSceneEachT
   end;
 
 begin
-  OnWarning := @OnWarningIgnore;
+  OnWarning := @OnWarningLog;
 
   RecreateSceneEachTime := ARecreateSceneEachTime;
 
