@@ -24,6 +24,7 @@ uses Classes, Math, VectorMath, Frustum, Boxes3D, CastleClassUtils, KeysMouse,
 
 const
   DefaultKnockBackSpeed = 1.0;
+  DefaultMiddleHeight = 0.5;
 
 type
   T3D = class;
@@ -665,34 +666,40 @@ type
     procedure Translate(const T: TVector3Single); virtual;
 
     { Middle point, usually "eye point", of the 3D model.
-      This is used for sphere center (if overriden Sphere returns @true).
-      It is also used as the central point from which collisions of this object
+      This is used for sphere center (if overriden Sphere returns @true)
+      and is the central point from which collisions of this object
       are checked (Move, MoveAllowed, Height, LineOfSight).
       For 3D things like level scene this is mostly useless (as you will leave
       Sphere at default @false then, and the scene itself doesn't move),
       but it's crucial for dynamic 3D things like player and moving creatures.
 
-      It should not be derived from the BoundingBox.Middle,
-      or anything else that may dynamically change. Instead it should
-      be stable --- remain constant even when the shape of the object changes,
-      e.g. even when animation changes the shape of the creature.
+      In short, it's usually most comfortable to think about this as
+      a position of the eye, or the middle of the creature's head.
 
-      In this class this is simply zero. In transformed descendants,
-      this reflects T3DTransform.Translation or T3DOrient.Position.
-      In descendants where this may result in a position on the ground
-      ("legs position"), this method should be overriden to return
+      In an ideal situation, it should not be based on anything dynamic.
+      For example, when this is based on the current bounding box of the animation,
+      there is a risk that a large and sudden change in animation
+      box could make the Middle point to jump to the other side of
+      the wall (breaking collisions, as it changes Middle without a chance
+      to check for collisions by MoveAllowed).
+      Ideally, it should remain constant even when the shape of the object changes,
+      and be possible to change only when MoveAllowed is checked
+      (so only when T3DOrient.Position or T3DTransform.Translation can change).
+
+      In this class this is simply zero. In the descendant
+      T3DCustomTransform (ancestor of T3DTransform, T3DOrient
+      that in turn are ancestors of normal creatures, items etc.)
+      this is overriden to return something sensible above the bottom
+      of the box. See T3DCustomTransform.MiddleHeight.
+      In general, this method should be overriden to return
       legs position shifted by a constant amount up (at least by your
       @link(Sphere) radius, maybe more). Otherwise,
       small precision errors could make the creature "glued" to the ground
       on which it is standing.
 
-      In short, it's usually most comfortable to think about this as
-      a position of the eye, or the middle of the creature's head.
-
       For flying creatures, it's usually best to actually set this around
       the middle of the whole creature height. That's because flying creatures
-      do not need to climb the stairs, and their legs Position
-      doesn't usually stand on the ground, so there's no need to artificially
+      do not need to climb the stairs, so there's no need to artificially
       raise Middle. Setting Middle exactly in the middle of their Height
       allows to use most efficient (smallest, best fit) sphere radius. }
     function Middle: TVector3Single; virtual;
@@ -1034,11 +1041,14 @@ type
 
   { Transform (move, rotate, scale) other T3D objects.
     Descends from T3DList, transforming all it's children.
+    Also adds gravity and related features.
 
-    Actual transformation is defined by virtual methods like GetTranslation,
-    GetRotation and such. In this class they return zeros, and in practice
-    (at least some of them) have to be overridden for this class to make sense.
-    Use T3DTransform to have simple T3DTransform.Translation and such properties. }
+    T3DCustomTransform is an abstract class, that doesn't define
+    how the transformation is stored and accessed.
+    Descendants define it by overriding protected virtual
+    methods like GetTranslation and GetRotation (in this class they return zeros).
+    Use T3DTransform to have simple T3DTransform.Translation and such properties.
+    Use T3DOrient to have camera-like transformation vectors. }
   T3DCustomTransform = class(T3DList)
   private
     FGravity: boolean;
@@ -1046,17 +1056,27 @@ type
     FFalling: boolean;
     FFallSpeed: Single;
     FGrowSpeed: Single;
+    FMiddleHeight: Single;
   protected
     { The GetXxx methods below determine the transformation returned
       by default TransformMatricesMult implementation in this class.
-      Simply descendants need only to override these, and OnlyTranslation,
+      Simple descendants need only to override these, and OnlyTranslation,
       and the TransformMatricesMult will automatically work correctly already.
 
       More complicated descendants may override TransformMatricesMult,
-      and then GetTranslation / GetCenter etc. methods do not have to be used.
-      You still need to override OnlyTranslation (and if it may return @true,
-      you need to override GetTranslation), and make sure AverageScale is correct
-      (if you want it be <> 1, you need to override GetScale).
+      and then GetCenter, GetRotation etc. methods can be ignored
+      (if your TransformMatricesMult will not use it, then GetCenter, GetRotation
+      will not be used at all and there's no point in overriding them).
+      You still need to override
+
+      @unorderedList(
+        @item OnlyTranslation
+        @item(GetTranslation (it's used by default Middle implementation,
+          and it's also used in case OnlyTranslation returns @true),)
+        @item(And make sure AverageScale is correct
+          (if you want it to be <> 1, that is: if your transformation
+          may make some scale, then you need to override GetScale).)
+      )
 
       @groupBegin }
     function GetTranslation: TVector3Single; virtual;
@@ -1067,7 +1087,7 @@ type
     { @groupEnd }
 
     { Can we use simple GetTranslation instead of full TransformMatricesMult.
-      Returning @true allows optimization is some cases. }
+      Returning @true allows optimization in some cases. }
     function OnlyTranslation: boolean; virtual;
     function Transform: TMatrix4Single;
     function TransformInverse: TMatrix4Single;
@@ -1112,6 +1132,7 @@ type
       life or such. }
     procedure Fall(const FallHeight: Single); virtual;
   public
+    constructor Create(AOwner: TComponent); override;
     function BoundingBox: TBox3D; override;
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
     procedure RenderShadowVolume(
@@ -1156,10 +1177,34 @@ type
       This is used by objects affected by gravity (like non-flying creatures
       and items) to know how far they should fall down or grow up.
 
-      The default implementation in this class returns 0.
-      Override this if you want gravity to really work.
-      It may be dynamic (change e.g. during creature animation). }
+      The default implementation in this class follows MiddleHeight,
+      see the algorithm described there.
+      This may be dynamic (may change during creature lifetime,
+      so you can make the creature duck or grow if you want). }
     function PreferredHeight: Single; virtual;
+
+    { How high are creature eyes in the model.
+      Value 0 means that eyes are at the bottom of the model,
+      0.5 means the middle, 1 means top.
+
+      More precisely, this determines how the T3DCustomTransform
+      handles the @link(Middle) implementation
+      (this is the point used for various collision detection routines)
+      and @link(PreferredHeight) (this is the preferred height of @link(Middle)
+      above the ground). You can override these two methods to use a different
+      approach, and then ignore MiddleHeight completely.
+
+      Note that exact 0 means that gravity will not work,
+      as it means that the PreferredHeight above the ground
+      is to be stuck right at the ground level.
+      For gravity to work right, set it large enough that PreferredHeight
+      will be > @link(Sphere) radius.
+
+      This works regardless of where (0,0,0) is in your model
+      (regardless if (0,0,0) represents legs, or middle of your creature),
+      since we adjust to the BoundingBox position. }
+    property MiddleHeight: Single read FMiddleHeight write FMiddleHeight
+      default DefaultMiddleHeight;
   end;
 
   { Transform (move, rotate, scale) other T3D objects.
@@ -1253,6 +1298,9 @@ type
   protected
     procedure TransformMatricesMult(var M, MInverse: TMatrix4Single); override;
     function OnlyTranslation: boolean; override;
+    { T3DOrient overrides GetTranslation to return Position, this will be used
+      by T3DCustomTransform.Middle. }
+    function GetTranslation: TVector3Single; override;
   public
     { Default value of T3DOrient.Orientation, for new instances of T3DOrient
       (creatures, items, player etc.). }
@@ -1316,8 +1364,6 @@ type
       By default it's otUpYDirectionMinusZ (matching default cameras
       of OpenGL and VRML/X3D). }
     property Orientation: TOrientationType read FOrientation write FOrientation;
-
-    function Middle: TVector3Single; override;
 
     { Camera, with view vectors (position, direction and up)
       always synchronized with this T3DOrient instance.
@@ -1658,7 +1704,7 @@ var
 
 implementation
 
-uses SysUtils;
+uses SysUtils, CastleWarnings;
 
 { TRayCollision --------------------------------------------------------------- }
 
@@ -2786,6 +2832,12 @@ end;
 
 { T3DCustomTransform -------------------------------------------------------- }
 
+constructor T3DCustomTransform.Create(AOwner: TComponent);
+begin
+  inherited;
+  FMiddleHeight := DefaultMiddleHeight;
+end;
+
 function T3DCustomTransform.GetTranslation: TVector3Single;
 begin
   Result := ZeroVector3Single;
@@ -3140,8 +3192,44 @@ begin
 end;
 
 function T3DCustomTransform.Middle: TVector3Single;
+var
+  GC: Integer;
+  B: TBox3D;
 begin
+  GC := World.GravityCoordinate;
+  B := inherited BoundingBox;
+
+  { More correct version would be to take B bottom point, add PreferredHeight,
+    and transform this point just like T3DCustomTransform transforms everything
+    else. Optimized implementation below assumes that instead
+    of transforming we can add GetTranslation, so we assume that
+    transformations do not change this middle point
+    (which is Ok if you think e.g. about a non-flying creature that,
+    besides moving, only rotates around it's own up axis). }
+
   Result := GetTranslation;
+  Result[GC] += {B.Data[0, GC] TODO}0 + PreferredHeight;
+end;
+
+function T3DCustomTransform.PreferredHeight: Single;
+var
+  GC: Integer;
+  B: TBox3D;
+  { $define CHECK_HEIGHT_VS_RADIUS}
+  {$ifdef CHECK_HEIGHT_VS_RADIUS} R: Single; {$endif}
+begin
+  GC := World.GravityCoordinate;
+  B := inherited BoundingBox;
+  Result := MiddleHeight * (B.Data[1, GC] - {B.Data[0, GC] TODO}0);
+
+  {$ifdef CHECK_HEIGHT_VS_RADIUS}
+  if Sphere(R) and (R > Result) then
+  begin
+    OnWarning(wtMajor, '3D Radius',
+      Format('PreferredHeight %f is smaller than radius %f. Gravity may work weird for this 3D object.',
+      [Result, R]));
+  end;
+  {$endif}
 end;
 
 procedure T3DCustomTransform.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
@@ -3261,11 +3349,6 @@ end;
 procedure T3DCustomTransform.Fall(const FallHeight: Single);
 begin
   { Nothing to do in this class }
-end;
-
-function T3DCustomTransform.PreferredHeight: Single;
-begin
-  Result := 0;
 end;
 
 { T3DTransform -------------------------------------------------------------- }
@@ -3453,7 +3536,7 @@ begin
   Camera.Position := Camera.Position + T;
 end;
 
-function T3DOrient.Middle: TVector3Single;
+function T3DOrient.GetTranslation: TVector3Single;
 begin
   Result := Camera.Position;
 end;

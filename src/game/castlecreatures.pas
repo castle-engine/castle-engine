@@ -63,8 +63,6 @@ const
   DefaultHitsCreatures = false;
   DefaultDirectionFallSpeed = 0.0;
 
-  DefaultMiddleHeight = 0.75;
-
 type
   TCreature = class;
 
@@ -109,27 +107,30 @@ type
       (and think about moving) only horizontally. }
     property Flying: boolean read FFlying write FFlying default DefaultFlying;
 
-    { Camera radius when moving.
-      You should make sure that it's something <> 0 for collision detection.
+    { Sphere radius for collision detection.
+      Must be something <> 0 for collision detection.
 
-      This is always calculated like:
-      If RadiusFromFile <> 0, then take it.
-      Otherwise take RadiusFromPrepare.
-      So there are 2 ways to initialize this:
-      1. Set this in creatures/kinds.xml file.
-      2. Set RadiusFromPrepare properly.
+      You can define it in the creature resource.xml file,
+      by setting radius="xxx" attribute on the root <resource> element.
 
-      Setting this in creatures/kinds.xml file to non-zero will effectively
-      ignore any RadiusFromPrepare value.
+      If it's not defined (or zero) in resource.xml file,
+      then we take calculated radius from RadiusFromPrepare property.
+      RadiusFromPrepare is always calculated in @link(Prepare).
+      All creature classes in CastleCreatures do calculate it in
+      @link(Prepare) method, you can also override it in descendants
+      by overriding @link(Prepare) method.
 
-      And Prepare should always set RadiusFromPrepare
-      to something non-zero. So note that before Prepare was called,
-      Radius may remain zero. But you can depend on the fact that
-      it's non-zero after Prepare.
+      Radius is not used when creature is dead, as dead creatures usually have wildly
+      different boxes (tall humanoid creature probably has a flat bounding
+      box when it's dead lying on the ground), so trying to use (the same)
+      radius would only cause problems.
 
-      Note that this is always measured from Middle of given
-      creature. So take this into account when calcuating
-      RadiusFromPrepare or writing it in kinds.xml file. }
+      This is always measured from Middle ("eye position") of the given creature.
+      Make sure radius is always <= than PreferredHeight of the creature,
+      see T3D.PreferredHeight. In short, if you use the default implementations,
+      PreferredHeight is by default @italic(MiddleHeight (default 0.5) *
+      bounding box height). Your radius must be smaller or equal,
+      for all possible bounding box heights when the creature is not dead. }
     function Radius: Single;
 
     property SoundSuddenPain: TSoundType
@@ -240,28 +241,7 @@ type
       write FFallDownLifeLossScale
       default DefaultFallDownLifeLossScale;
 
-    { Determines the height of TCreature.Middle point,
-      which is usually an "eye point" and is used for many collision detection
-      routines.
-
-      More precisely, this determines how the TCreature.PreferredHeight
-      will be calculated, and this is used to calculate TCreature.Middle.
-      TCreature.PreferredHeight is taken as scene box height
-      above zero level multiplied by MiddleHeight,
-      and with scene box height below zero level added.
-
-      For example, if your creature is modeled to have (0,0,0) point
-      at legs (as usual for non-missile creatures),
-      then this just says how high the eyes are.
-      DefaultMiddleHeight is 3/4, which seems a good default for this case.
-
-      For other example, if your creature is modeled to have (0,0,0) point
-      in the middle (as usual for missile creatures) then you should set
-      this to zero.
-
-      Note that if resulting PreferredHeight is 0 then gravity will not work
-      for this creature (gravity requires that main collision Middle
-      is a little above the ground). }
+    { See T3DCustomTransform.MiddleHeight. }
     property MiddleHeight: Single read FMiddleHeight write FMiddleHeight
       default DefaultMiddleHeight;
   end;
@@ -621,12 +601,6 @@ type
 
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
 
-    { Creature preferred height of eyes (Middle) above ground.
-      See TCreatureKind.MiddleHeight for docs how this is calculated. }
-    function PreferredHeight: Single; override;
-
-    function Middle: TVector3Single; override;
-
     { You can set this to @false to force the creature to die without
       making any sound. This is really seldom needed, usefull only to avoid
       a loud shriek noise when you kill many creatures at once.
@@ -887,6 +861,7 @@ begin
   Result.Gravity := not Flying;
   Result.FallSpeed := FallSpeed;
   Result.GrowSpeed := GrowSpeed;
+  Result.MiddleHeight := MiddleHeight;
 
   World.Add(Result);
 end;
@@ -1214,21 +1189,9 @@ begin
   end;
 end;
 
-function TCreature.PreferredHeight: Single;
-begin
-  Result := GetChild.BoundingBox.Data[1, World.GravityCoordinate] * Kind.MiddleHeight;
-end;
-
 function TCreature.LerpLegsMiddle(const A: Single): TVector3Single;
 begin
-  Result := Position;
-  Result[World.GravityCoordinate] += PreferredHeight * A;
-end;
-
-function TCreature.Middle: TVector3Single;
-begin
-  Result := inherited Middle;
-  Result[World.GravityCoordinate] += PreferredHeight;
+  Result := Lerp(A, Position, Middle);
 end;
 
 procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams);

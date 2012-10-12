@@ -415,7 +415,6 @@ var
 
     property Collides default false;
     property CollidesWithMoving default true;
-    function Middle: TVector3Single; override;
 
     { Extract the @link(Item), used when picking up the TInventoryItem
       instance referenced by this TItemOnWorld instance. This returns our
@@ -428,8 +427,6 @@ var
       or add it back to 3D world by TInventoryItem.PutOnWorld,
       or at least free it (or you'll get a memory leak). }
     function ExtractItem: TInventoryItem;
-
-    function PreferredHeight: Single; override;
   end;
 
 var
@@ -856,25 +853,6 @@ function TItemOnWorld.GetExists: boolean;
 begin
   Result := (inherited GetExists) and
     ((not Assigned(OnItemOnWorldExists)) or OnItemOnWorldExists(Self));
-end;
-
-function TItemOnWorld.PreferredHeight: Single;
-var
-  B: TBox3D;
-  GC: Integer;
-begin
-  B := Item.Kind.BoundingBoxRotated;
-  if B.IsEmpty then
-    Result := 0 else
-  begin
-    GC := World.GravityCoordinate;
-    Result := (B.Data[1, GC] - B.Data[0, GC]) / 2;
-  end;
-end;
-
-function TItemOnWorld.Middle: TVector3Single;
-begin
-  Result := (inherited Middle) + World.GravityUp * PreferredHeight;
 end;
 
 initialization
