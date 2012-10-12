@@ -408,12 +408,10 @@ end;
   Similar comments as for TryReadColorInSubchunks. }
 function TryReadPercentageInSubchunks(var Value: Single;
   Stream: TStream; EndPos: Int64): boolean;
-type
-  T3dsDoubleByte = SmallInt;
 var
   h: TChunkHeader;
   hEnd: Int64;
-  DoubleByte: T3dsDoubleByte;
+  DoubleByte: Word;
 begin
   result := false;
   while Stream.Position < EndPos do
@@ -429,7 +427,7 @@ begin
       Stream.Position := hEnd;
   end;
   Stream.Position := EndPos;
-  if result then Value := DoubleByte/100;
+  if result then Value := Min(DoubleByte / 100, 1.0);
 end;
 
 { 3DS materials -------------------------------------------------------------- }
