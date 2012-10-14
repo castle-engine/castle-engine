@@ -169,6 +169,7 @@ type
   private
     FVertsCount, FFacesCount: Word;
     FHasTexCoords: boolean;
+    Matrix: TMatrix4Single;
   public
     { Vertexes and faces. Read-only from outside of this class.
       @groupBegin }
@@ -740,6 +741,24 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
     end;
   end;
 
+  procedure ReadMatrix(ChunkEnd: Int64);
+  var
+    I: Integer;
+  begin
+    for I := 0 to 3 do
+      Stream.ReadBuffer(Matrix[I], SizeOf(TVector3Single));
+    { The 4th row of our matrix will remain (0,0,0,1). }
+
+    if not MatricesPerfectlyEqual(Matrix, IdentityMatrix4Single) then
+      OnWarning(wtMajor, '3DS', 'Matrix is read but not handled (not converted to X3D) yet, and this 3DS file uses non-identity matrix. Please report a bug (with sample 3DS file) to https://sourceforge.net/p/castle-engine/tickets/ , so that we can implement it.');
+
+    if Stream.Position <> ChunkEnd then
+    begin
+      OnWarning(wtMajor, '3DS', 'CHUNK_TRMATRIX should contain only 4x3 floats');
+      Stream.Position := ChunkEnd;
+    end;
+  end;
+
 var
   h, htrimesh: TChunkHeader;
   trimeshEnd, hEnd: Int64;
@@ -748,6 +767,7 @@ begin
 
   { init properties }
   FHasTexCoords := false;
+  Matrix := IdentityMatrix4Single;
 
   { look for chunk TRIMESH }
   while Stream.Position < ObjectEndPos do
@@ -756,7 +776,7 @@ begin
     trimeshEnd := Stream.Position + htrimesh.len - SizeOf(TChunkHeader);
     if htrimesh.id = CHUNK_TRIMESH then
     begin
-      { look for chunks VERTLIST, FACELIST, TRMATRIX, MAPLIST }
+      { look for chunks inside TRIMESH }
       while Stream.Position < trimeshEnd do
       begin
         Stream.ReadBuffer(h, SizeOf(h));
@@ -765,6 +785,7 @@ begin
           CHUNK_VERTLIST: ReadVertlist;
           CHUNK_FACELIST: ReadFacelist(hEnd);
           CHUNK_MAPLIST: ReadMaplist(hEnd);
+          CHUNK_TRMATRIX: ReadMatrix(hEnd);
           else Stream.Position := hEnd;
         end;
       end;
