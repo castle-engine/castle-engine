@@ -745,6 +745,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
     end;
   end;
 
+  (*
   procedure ReadMatrix(ChunkEnd: Int64);
   var
     I: Integer;
@@ -770,6 +771,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
       Stream.Position := ChunkEnd;
     end;
   end;
+  *)
 
 var
   h: TChunkHeader;
@@ -789,7 +791,12 @@ begin
       CHUNK_VERTLIST: ReadVertlist;
       CHUNK_FACELIST: ReadFacelist(hEnd);
       CHUNK_MAPLIST: ReadMaplist(hEnd);
-      CHUNK_TRMATRIX: ReadMatrix(hEnd);
+      { The correct behavior to handle CHUNK_TRMATRIX is to ignore it, it seems.
+        Looking at what Blender 3DS importer does: it seems they use matrix
+        to transform object, but they also multiply mesh by the matrix inverse.
+        IOW, matrix stores the transformation, which is useful for 3D modelling,
+        but if you just want to display the model, then just ignore it.
+      CHUNK_TRMATRIX: ReadMatrix(hEnd); }
       else Stream.Position := hEnd;
     end;
   end;
