@@ -169,7 +169,7 @@ type
   private
     FVertsCount, FFacesCount: Word;
     FHasTexCoords: boolean;
-    Matrix: TMatrix4Single;
+    Group: TAbstractX3DGroupingNode;
   public
     { Vertexes and faces. Read-only from outside of this class.
       @groupBegin }
@@ -744,13 +744,21 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
   procedure ReadMatrix(ChunkEnd: Int64);
   var
     I: Integer;
+    Matrix: TMatrix4Single;
+    MatrixTransform: TMatrixTransformNode;
   begin
+    Matrix := IdentityMatrix4Single;
     for I := 0 to 3 do
       Stream.ReadBuffer(Matrix[I], SizeOf(TVector3Single));
     { The 4th row of our matrix will remain (0,0,0,1). }
 
     if not MatricesPerfectlyEqual(Matrix, IdentityMatrix4Single) then
-      OnWarning(wtMajor, '3DS', 'Matrix is read but not handled (not converted to X3D) yet, and this 3DS file uses non-identity matrix. Please report a bug (with sample 3DS file) to https://sourceforge.net/p/castle-engine/tickets/ , so that we can implement it.');
+    begin
+      FreeIfUnusedAndNil(Group);
+      MatrixTransform := TMatrixTransformNode.Create('', '');
+      MatrixTransform.FdMatrix.Value := Matrix;
+      Group := MatrixTransform;
+    end;
 
     if Stream.Position <> ChunkEnd then
     begin
@@ -767,7 +775,7 @@ begin
 
   { init properties }
   FHasTexCoords := false;
-  Matrix := IdentityMatrix4Single;
+  Group := TGroupNode.Create('', '');
 
   { look for chunk TRIMESH }
   while Stream.Position < ObjectEndPos do
@@ -802,6 +810,7 @@ destructor TTrimesh3ds.Destroy;
 begin
   FreeMemNiling(Verts);
   FreeMemNiling(Faces);
+  FreeIfUnusedAndNil(Group);
   inherited;
 end;
 
@@ -1137,6 +1146,8 @@ begin
       begin
         Trimesh3ds := O3ds.Trimeshes[I];
 
+        Result.FdChildren.Add(Trimesh3ds.Group);
+
         { Create Coordinate node }
         Coord := TCoordinateNode.Create('Coord_' + TrimeshVRMLName(Trimesh3ds.Name), BaseUrl);
         Coord.FdPoint.Count := Trimesh3ds.VertsCount;
@@ -1172,7 +1183,7 @@ begin
           if FaceMaterialNum <> -1 then
             Shape.Appearance := TAppearanceNode(Appearances[FaceMaterialNum]);
 
-          Result.FdChildren.Add(Shape);
+          Trimesh3ds.Group.FdChildren.Add(Shape);
 
           ThisMaterialFacesCount := SameMaterialFacesCount(Trimesh3ds.Faces,
             Trimesh3ds.FacesCount, J);
