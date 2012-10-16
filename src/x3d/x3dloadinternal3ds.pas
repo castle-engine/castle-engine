@@ -179,7 +179,6 @@ type
   private
     FVertsCount, FFacesCount: Word;
     FHasTexCoords: boolean;
-    Group: TAbstractX3DGroupingNode;
   public
     { Vertexes and faces. Read-only from outside of this class.
       @groupBegin }
@@ -780,7 +779,6 @@ begin
   inherited;
 
   FHasTexCoords := false;
-  Group := TGroupNode.Create('', '');
 
   { read subchunks inside CHUNK_TRIMESH }
   while Stream.Position < ChunkEndPos do
@@ -806,7 +804,6 @@ destructor TTrimesh3ds.Destroy;
 begin
   FreeMemNiling(Verts);
   FreeMemNiling(Faces);
-  FreeIfUnusedAndNil(Group);
   inherited;
 end;
 
@@ -1107,8 +1104,6 @@ begin
       begin
         Trimesh3ds := O3ds.Trimeshes[I];
 
-        Result.FdChildren.Add(Trimesh3ds.Group);
-
         { Create Coordinate node }
         Coord := TCoordinateNode.Create('Coord_' + TrimeshVRMLName(Trimesh3ds.Name), BaseUrl);
         Coord.FdPoint.Count := Trimesh3ds.VertsCount;
@@ -1144,7 +1139,7 @@ begin
           if FaceMaterialNum <> -1 then
             Shape.Appearance := TAppearanceNode(Appearances[FaceMaterialNum]);
 
-          Trimesh3ds.Group.FdChildren.Add(Shape);
+          Result.FdChildren.Add(Shape);
 
           ThisMaterialFacesCount := SameMaterialFacesCount(Trimesh3ds.Faces,
             Trimesh3ds.FacesCount, J);
