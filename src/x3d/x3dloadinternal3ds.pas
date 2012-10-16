@@ -135,8 +135,18 @@ type
     property Name: string read FName;
     { Scene containing this object. }
     property Scene: Tscene3DS read FScene;
+
+    { Constructor reading 3DS chunk of object part,
+      like CHUNK_TRIMESH or CHUNK_CAMERA or CHUNK_LIGHT.
+
+      Assumes that we just read from stream chunk header (with id =
+      one of the above and length indicating that Stream.Position >= ChunkEndPos
+      is after the object part), then we read AName (so now we can read subchunks).
+
+      You don't have to finish reading at ChunkEndPos, we'll rewind
+      the stream position afterwards if necessary. }
     constructor Create(const AName: string; AScene: TScene3DS;
-      Stream: TStream; ObjectEndPos: Int64); virtual;
+      Stream: TStream; const ChunkEndPos: Int64); virtual;
   end;
 
   TObject3DSClass = class of TObject3DS;
@@ -185,12 +195,8 @@ type
     property FacesCount: Word read FFacesCount;
     { @groupEnd }
 
-    { Constructor reading OBJBLOCK 3DS chunk into triangle mesh.
-      Assumes that we just read from stream chunk header (with id =
-      CHUNK_OBJBLOCK and length indicating thatStream.Position >= ObjectEndPos
-      is after the object), then we read AName (so now we can read subchunks). }
     constructor Create(const AName: string; AScene: TScene3DS;
-      Stream: TStream; ObjectEndPos: Int64); override;
+      Stream: TStream; const ChunkEndPos: Int64); override;
     destructor Destroy; override;
   end;
 
@@ -204,7 +210,7 @@ type
     property Bank: Single read FBank;
     property Lens: Single read FLens;
     constructor Create(const AName: string; AScene: TScene3DS;
-      Stream: TStream; ObjectEndPos: Int64); override;
+      Stream: TStream; const ChunkEndPos: Int64); override;
 
     { Camera direction. Calculated from Position and Target. }
     function Direction: TVector3Single;
@@ -218,7 +224,7 @@ type
     Col: TVector3Single;
     Enabled: boolean;
     constructor Create(const AName: string; AScene: TScene3DS;
-      Stream: TStream; ObjectEndPos: Int64); override;
+      Stream: TStream; const ChunkEndPos: Int64); override;
   end;
 
   TTrimesh3dsList = specialize TFPGObjectList<TTrimesh3ds>;
@@ -594,7 +600,7 @@ const
 { TObject3DS ----------------------------------------------------------------- }
 
 constructor TObject3DS.Create(const AName: string; AScene: TScene3DS;
-  Stream: TStream; ObjectEndPos: Int64);
+  Stream: TStream; const ChunkEndPos: Int64);
 { don't ever call directly this constructor - we can get here
   only by  "inherited" call from Descendant's constructor }
 begin
@@ -603,42 +609,40 @@ begin
   FScene := AScene;
 end;
 
-function CreateObject3DS(AScene: TScene3DS; Stream: TStream; ObjectEndPos: Int64): TObject3DS;
+function CreateObject3DS(AScene: TScene3DS; Stream: TStream; const ObjectEndPos: Int64): TObject3DS;
 var
-  ObjClass: TObject3DSClass;
   ObjName: string;
-  ObjBeginPos: Int64;
+  ChunkEndPos: Int64;
   h: TChunkHeader;
 begin
-  ObjClass := nil;
   ObjName := StreamReadZeroEndString(Stream);
-  ObjBeginPos := Stream.Position;
+  Result := nil;
 
-  {seek all chunks searching for chunk TRIMESH / CAMERA / LIGHT}
+  { searching for chunk TRIMESH / CAMERA / LIGHT }
   while Stream.Position < ObjectEndPos do
   begin
     Stream.ReadBuffer(h, SizeOf(h));
+    ChunkEndPos := Stream.Position + h.len - SizeOf(TChunkHeader);
     case h.id of
-      CHUNK_TRIMESH: ObjClass := TTrimesh3ds;
-      CHUNK_CAMERA: ObjClass := TCamera3ds;
-      CHUNK_LIGHT: ObjClass := TLight3ds;
+      CHUNK_TRIMESH: Result := TTrimesh3ds.Create(ObjName, AScene, Stream, ChunkEndPos);
+      CHUNK_CAMERA: Result := TCamera3ds.Create(ObjName, AScene, Stream, ChunkEndPos);
+      CHUNK_LIGHT: Result := TLight3ds.Create(ObjName, AScene, Stream, ChunkEndPos);
     end;
-    if ObjClass <> nil then break;
+    if Result <> nil then break;
     Stream.Position := Stream.Position + h.len - SizeOf(TChunkHeader);
   end;
 
   {if none of the TRIMESH / CAMERA / LIGHT chunks found raise error}
-  Check3dsFile( ObjClass <> nil, 'No object recorded under the name '+ObjName);
+  Check3dsFile( Result <> nil, 'No object recorded under the name '+ObjName);
 
-  {restore stream pos, create object using appropriate class}
-  Stream.Position := ObjBeginPos;
-  result := ObjClass.Create(ObjName, AScene, Stream, ObjectEndPos);
+  { set stream pos at the end of object }
+  Stream.Position := ObjectEndPos;
 end;
 
 { TTrimesh3ds --------------------------------------------------------------- }
 
 constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
-  Stream: TStream; ObjectEndPos: Int64);
+  Stream: TStream; const ChunkEndPos: Int64);
 
   { Read FVertsCount, initialize Verts.
     Unless Verts is already non-zero, then only check it's correct
@@ -768,42 +772,27 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
   end;
 
 var
-  h, htrimesh: TChunkHeader;
-  trimeshEnd, hEnd: Int64;
+  h: TChunkHeader;
+  hEnd: Int64;
 begin
   inherited;
 
-  { init properties }
   FHasTexCoords := false;
   Group := TGroupNode.Create('', '');
 
-  { look for chunk TRIMESH }
-  while Stream.Position < ObjectEndPos do
+  { read subchunks inside CHUNK_TRIMESH }
+  while Stream.Position < ChunkEndPos do
   begin
-    Stream.ReadBuffer(htrimesh, SizeOf(htrimesh));
-    trimeshEnd := Stream.Position + htrimesh.len - SizeOf(TChunkHeader);
-    if htrimesh.id = CHUNK_TRIMESH then
-    begin
-      { look for chunks inside TRIMESH }
-      while Stream.Position < trimeshEnd do
-      begin
-        Stream.ReadBuffer(h, SizeOf(h));
-        hend := Stream.Position + h.len - SizeOf(TChunkHeader);
-        case h.id of
-          CHUNK_VERTLIST: ReadVertlist;
-          CHUNK_FACELIST: ReadFacelist(hEnd);
-          CHUNK_MAPLIST: ReadMaplist(hEnd);
-          CHUNK_TRMATRIX: ReadMatrix(hEnd);
-          else Stream.Position := hEnd;
-        end;
-      end;
-
-      break; { tylko jeden TRIMESH moze byc w jednym OBJBLOCK }
-    end else
-      Stream.Position := trimeshEnd;
+    Stream.ReadBuffer(h, SizeOf(h));
+    hend := Stream.Position + h.len - SizeOf(TChunkHeader);
+    case h.id of
+      CHUNK_VERTLIST: ReadVertlist;
+      CHUNK_FACELIST: ReadFacelist(hEnd);
+      CHUNK_MAPLIST: ReadMaplist(hEnd);
+      CHUNK_TRMATRIX: ReadMatrix(hEnd);
+      else Stream.Position := hEnd;
+    end;
   end;
-
-  Stream.Position := ObjectEndPos;
 end;
 
 destructor TTrimesh3ds.Destroy;
@@ -817,33 +806,15 @@ end;
 { TCamera3ds --------------------------------------------------------------- }
 
 constructor TCamera3ds.Create(const AName: string; AScene: TScene3DS;
-  Stream: TStream; ObjectEndPos: Int64);
-var
-  h: TChunkHeader;
-  hEnd: Int64;
+  Stream: TStream; const ChunkEndPos: Int64);
 begin
   inherited;
 
-  { look for chunk CAMERA }
-  while Stream.Position < ObjectEndPos do
-  begin
-    Stream.ReadBuffer(h, SizeOf(h));
-    hEnd := Stream.Position + h.len - SizeOf(TChunkHeader);
-    if h.id = CHUNK_CAMERA then
-    begin
-      { read camera chunk }
-      Stream.ReadBuffer(FPosition, SizeOf(FPosition));
-      Stream.ReadBuffer(FTarget, SizeOf(FTarget));
-      Stream.ReadBuffer(FBank, SizeOf(FBank));
-      Stream.ReadBuffer(FLens, SizeOf(FLens));
-
-      Stream.Position := hEnd; { skip CHUNK_CAMERA subchunks }
-      break; { only one chunk CAMERA allowed in one OBJBLOCK }
-    end else
-      Stream.Position := hEnd;
-  end;
-
-  Stream.Position := ObjectEndPos;
+  { read CHUNK_CAMERA }
+  Stream.ReadBuffer(FPosition, SizeOf(FPosition));
+  Stream.ReadBuffer(FTarget, SizeOf(FTarget));
+  Stream.ReadBuffer(FBank, SizeOf(FBank));
+  Stream.ReadBuffer(FLens, SizeOf(FLens));
 end;
 
 function TCamera3ds.Direction: TVector3Single;
@@ -874,33 +845,16 @@ end;
 { TLights3ds --------------------------------------------------------------- }
 
 constructor TLight3ds.Create(const AName: string; AScene: TScene3DS;
-  Stream: TStream; ObjectEndPos: Int64);
-var
-  h: TChunkHeader;
-  hEnd: Int64;
+  Stream: TStream; const ChunkEndPos: Int64);
 begin
   inherited;
 
   { init defaults }
   Enabled := true; { TODO: we could read this from 3ds file }
 
-  { look for chunk LIGHT }
-  while Stream.Position < ObjectEndPos do
-  begin
-    Stream.ReadBuffer(h, SizeOf(h));
-    hEnd := Stream.Position + h.len - SizeOf(TChunkHeader);
-    if h.id = CHUNK_LIGHT then
-    begin
-      { read LIGHT chunk }
-      Stream.ReadBuffer(Pos, SizeOf(Pos));
-      TryReadColorInSubchunks(Col, Stream, ObjectEndPos);
-
-      break; { only one LIGHT allowed in one OBJBLOCK }
-    end else
-      Stream.Position := hEnd;
-  end;
-
-  Stream.Position := ObjectEndPos;
+  { read inside CHUNK_LIGHT }
+  Stream.ReadBuffer(Pos, SizeOf(Pos));
+  TryReadColorInSubchunks(Col, Stream, ChunkEndPos);
 end;
 
 { TScene3DS ----------------------------------------------------------------- }
