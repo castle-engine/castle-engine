@@ -877,8 +877,10 @@ type
       Using this method to free the node ensures this. }
     procedure NodeFreeRemovingFromAllParents(Node: TX3DNode);
 
-    { Remove the geometry of this shape from the scene. }
-    procedure RemoveShapeGeometry(Shape: TShape);
+    { Remove the shape node from the scene.
+      In case of VRML 1.0 / Inventor, when the Shape doesn't have a node,
+      we remove the geometry node. }
+    procedure RemoveShape(Shape: TShape);
 
     { Notify scene that potentially everything changed
       in the VRML graph. This includes adding/removal of some nodes within
@@ -2854,17 +2856,18 @@ begin
   ChangedAll;
 end;
 
-procedure TCastleSceneCore.RemoveShapeGeometry(Shape: TShape);
+procedure TCastleSceneCore.RemoveShape(Shape: TShape);
 begin
-  { Do not use Shape.Geometry here, as it may be a temporary result
-    of OriginalGeometry.Proxy.
+  if Shape.Node <> nil then
+    NodeFreeRemovingFromAllParents(Shape.Node) else
+    { Do not use Shape.Geometry here, as it may be a temporary result
+      of OriginalGeometry.Proxy.
 
-    When the shape is freed (which happens in BeforeNodesFree called
-    at the beginning of  NodeFreeRemovingFromAllParents),
-    the proxy result is freed too. So using here Shape.Geometry
-    would not only not free what you think, it would also cause segfault. }
-
-  NodeFreeRemovingFromAllParents(Shape.OriginalGeometry);
+      When the shape is freed (which happens in BeforeNodesFree called
+      at the beginning of NodeFreeRemovingFromAllParents),
+      the proxy result is freed too. So using here Shape.Geometry
+      would not only not free what you think, it would also cause segfault. }
+    NodeFreeRemovingFromAllParents(Shape.OriginalGeometry);
 end;
 
 procedure TCastleSceneCore.ChangedAllEnumerateCallback(Node: TX3DNode);
