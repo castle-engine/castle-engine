@@ -56,25 +56,17 @@ type
   may raise @link(EExeNameNotAvailable). }
 function ExeName: string;
 
-{ @italic(Something like) the basename of our executable file.
-  This does not contain path and extension of our executable.
+{ A name of our program.
 
-  Under UNIXes this may be only the name of user-defined bash
-  alias that was used to call our program, or user-defined symlink,
-  or just pretty much anything that was passed to our program as
-  argv[0].
+  Suitable to show to user. Should also indicate how to run the program,
+  that is: should be the basename of the executable (although we do depend on it
+  technically, but some log messages may suggest it).
+  Also suitable to derive config/data paths for this program.
 
-  Anyway, this is something that can be shown to user to
-  identify our program. E.g. useful when you're writing
-  error message on console, when UNIX standard is to always prefix
-  error message with ProgramBaseName + ': ', like
-  'cp: invalid file name'.
-
-  Note that for nicer program name see ProgramName. }
-function ProgramBaseName: string;
-
-{ A name of our program, something like a nicer version of ProgramBaseName.
-  Right now this is simply equivalent to FPC's ApplicationName. }
+  Right now this is simply equivalent to FPC's ApplicationName.
+  We had a complicated mechanisms for this in earlier versions,
+  but ultimately the FPC's ApplicationName approach, which is fully configurable
+  by callback OnGetApplicationName and has a nice default, is good. }
 function ProgramName: string;
 
 { Returns true if file exists and is a normal file.
@@ -88,7 +80,7 @@ function NormalFileExists(const fileName: string): boolean;
 { Directory suitable for creating temporary files/directories.
   Note that this directory is shared by other programs, so be careful
   when creating here anything --- to minimize name conflicts
-  usually all filenames created here should start with ProgramBaseName
+  usually all filenames created here should start with ApplicationName
   and then should follow things like process id (or sometimes
   user name, when you can guarantee that one user runs always only one
   instance of this program) or some random number.
@@ -136,7 +128,7 @@ function UserConfigFile(const Extension: string): string;
 { Path to access installed data files.
   Returns absolute path, containing trailing PathDelim.
 
-  Based on ProgramBaseName (and possibly ExeName under Windows).
+  Based on ApplicationName (and possibly ExeName under Windows).
   Here are details:
 
   (Note that in normal circumstances such details are treated as
@@ -150,7 +142,7 @@ function UserConfigFile(const Extension: string): string;
   Under UNIXes: tries these three locations, in order:
 
   @orderedList(
-    @item(@code(HomePath +'.' +ProgramBaseName+'.data/').
+    @item(@code(HomePath +'.' +ApplicationName+'.data/').
       If such directory exists, it is returned.
 
       This is checked first, to allow local user to always override system-wide
@@ -163,12 +155,12 @@ function UserConfigFile(const Extension: string): string;
       /usr/local/share/my_program/ is used only if ~/.my_program.data/
       does not exist.)
 
-    @item(@code('/usr/local/share/' +ProgramBaseName+ '/').
+    @item(@code('/usr/local/share/' +ApplicationName+ '/').
       If such directory exists, it is returned.
 
       This is suitable for system-wide installations without package manager.)
 
-    @item(@code('/usr/local/' +ProgramBaseName+ '/').
+    @item(@code('/usr/local/' +ApplicationName+ '/').
       If such directory exists, it is returned.
 
       This is suitable for system-wide installations with package manager.)
@@ -178,7 +170,7 @@ function UserConfigFile(const Extension: string): string;
       without making any symlinks.
 
       Although conceptually this should be checked first (even before
-      @code(HomePath +'.' +ProgramBaseName+'.data/')), as it's
+      @code(HomePath +'.' +ApplicationName+'.data/')), as it's
       @italic("most local"), but we can't: current directory always
       exists. To remedy this, we would need to know some filename inside
       this directory that is required to exist. Maybe for later.)
@@ -405,18 +397,6 @@ begin
  Result := FExeName;
 end;
 
-function ProgramBaseName_Other(const ParamStr0: string): string;
-begin
- Result :=
-   {$ifdef MSWINDOWS} ExtractOnlyFilename(ParamStr0) {$endif}
-   {$ifdef UNIX}  ExtractFilename(ParamStr0) {$endif} ;
-end;
-
-function ProgramBaseName: string;
-begin
-  Result := ProgramBaseName_Other(ParamStr(0));
-end;
-
 function ProgramName: string;
 begin
   Result := ApplicationName;
@@ -503,13 +483,13 @@ function ProgramDataPath: string;
   {$endif}
   {$ifdef UNIX}
   begin
-    Result := HomePath +'.' +ProgramBaseName +'.data/';
+    Result := HomePath +'.' +ApplicationName +'.data/';
     if DirectoryExists(Result) then Exit;
 
-    Result := '/usr/local/share/' +ProgramBaseName +'/';
+    Result := '/usr/local/share/' +ApplicationName +'/';
     if DirectoryExists(Result) then Exit;
 
-    Result := '/usr/share/' +ProgramBaseName +'/';
+    Result := '/usr/share/' +ApplicationName +'/';
     if DirectoryExists(Result) then Exit;
 
     Result := InclPathDelim(GetCurrentDir);

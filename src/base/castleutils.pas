@@ -70,7 +70,7 @@
       http://bugs.freepascal.org/view.php?id=19977).)
 
     @item(ParamStr(0), Application.ExeName => better use
-      ProgramName or ExeName from this unit. They are portable,
+      ProgramName or ExeName from CastleFilesUtils. They are portable,
       eliminate the problems under Unixes when ParamStr(0)
       is not necessarily an exe name, unlike Application.ExeName
       they don't need whole VCL / CLX stuff,
