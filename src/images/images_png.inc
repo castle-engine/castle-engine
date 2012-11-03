@@ -680,10 +680,16 @@ begin
      if IsAlpha then
      begin
        if not TransformPng(TGrayscaleAlphaImage) then
+       if not TransformPng(TRGBAlphaImage) then
+       if not TransformPng(TGrayscaleImage) then
+       if not TransformPng(TRGBImage) then
          raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadImageParams(AllowedImageClasses)]);
      end else
      begin
        if not TransformPng(TGrayscaleImage) then
+       if not TransformPng(TGrayscaleAlphaImage) then
+       if not TransformPng(TRGBImage) then
+       if not TransformPng(TRGBAlphaImage) then
          raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadImageParams(AllowedImageClasses)]);
      end;
    end else
@@ -691,11 +697,17 @@ begin
      if IsAlpha then
      begin
        if not TransformPng(TRGBAlphaImage) then
-         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to required %s', [LoadImageParams(AllowedImageClasses)]);
+       if not TransformPng(TRGBImage) then
+       if not TransformPng(TGrayscaleAlphaImage) then
+       if not TransformPng(TGrayscaleImage) then
+         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadImageParams(AllowedImageClasses)]);
      end else
      begin
        if not TransformPng(TRGBImage) then
-         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to required %s', [LoadImageParams(AllowedImageClasses)]);
+       if not TransformPng(TRGBAlphaImage) then
+       if not TransformPng(TGrayscaleImage) then
+       if not TransformPng(TGrayscaleAlphaImage) then
+         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadImageParams(AllowedImageClasses)]);
      end;
    end;
 
