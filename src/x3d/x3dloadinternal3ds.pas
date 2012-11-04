@@ -76,6 +76,7 @@ type
   end;
 
   TMaterial3ds = class
+  strict private
     FName: string;
     FInitialized: boolean;
   public
@@ -128,7 +129,7 @@ type
     Use CreateObject3DS method to read contents from stream,
     creating appropriate non-abstract TObject3DS descendant. }
   TObject3DS = class
-  private
+  strict private
     FName: string;
     FScene: TScene3DS;
   public
@@ -176,7 +177,7 @@ type
 
   { Triangle mesh. }
   TTrimesh3ds = class(TObject3DS)
-  private
+  strict private
     FVertsCount, FFacesCount: Word;
     FHasTexCoords: boolean;
   public
@@ -200,7 +201,7 @@ type
   end;
 
   TCamera3ds = class(TObject3DS)
-  private
+  strict private
     FPosition, FTarget: TVector3Single;
     FBank, FLens: Single;
   public
@@ -247,9 +248,6 @@ type
     constructor Create(Stream: TStream); overload;
     constructor Create(const filename: string); overload;
     destructor Destroy; override;
-
-    function SumTrimeshesVertsCount: Cardinal;
-    function SumTrimeshesFacesCount: Cardinal;
   end;
 
 { Chunks utilities ----------------------------------------------------------- }
@@ -930,22 +928,6 @@ begin
   FreeAndNil(Lights);
   FreeAndNil(Materials);
   inherited;
-end;
-
-function TScene3DS.SumTrimeshesVertsCount: Cardinal;
-var
-  i: integer;
-begin
-  result := 0;
-  for i := 0 to Trimeshes.Count-1 do result += Trimeshes[i].VertsCount;
-end;
-
-function TScene3DS.SumTrimeshesFacesCount: Cardinal;
-var
-  i: integer;
-begin
-  result := 0;
-  for i := 0 to Trimeshes.Count-1 do result += Trimeshes[i].FacesCount;
 end;
 
 { Load3DS -------------------------------------------------------------------- }
