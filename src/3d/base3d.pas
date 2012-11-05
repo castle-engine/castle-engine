@@ -1182,18 +1182,24 @@ type
 
       @unorderedList(
         @item(
-          When Gravity is @true, then the @italic(bottom) is considered to be at the zero
-          level (where the World.GravityCoordinate, like Z or Y, is zero).
-          This means that things placed below zero level (like a creature tentacle
+          When Gravity is @true, then the @italic(bottom) is considered to be
+          the plane where World.GravityCoordinate (like Z or Y axis) is zero.
+          The actual bottom (lowest point) of the bounding box doesn't matter.
+          This means that things placed below zero plane (like a creature tentacle
           or leg) will sink into the ground, instead of causing whole creature
-          to move up. This is usually comfortable, it allows to model the creature
-          with respect to the ground (zero level).
+          to move up. It also means that the creature can easily float above
+          the ground, just model it a little above the zero plane.
+
+          In other words, this allows you to model the creature
+          with respect to the ground (zero plane), which is comfortable.
 
           Note that setting MiddleHeight to exact 0 means that gravity will not work,
           as it means that the PreferredHeight above the ground
           is to be stuck right at the ground level.
-          For gravity to work right, set it large enough that PreferredHeight
-          will be > @link(Sphere) radius.
+
+          For gravity to work right, the MiddleHeight should be large enough
+          to cause PreferredHeight to be > @link(Sphere) radius,
+          for all possible animation states (for all possible bounding box values).
         )
 
         @item(
