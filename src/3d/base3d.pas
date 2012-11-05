@@ -3234,7 +3234,9 @@ end;
 
 procedure T3DCustomTransform.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 
-  procedure DoGravity(const GravityUp: TVector3Single);
+  procedure DoGravity(const PreferredHeight: Single);
+  var
+    GravityUp: TVector3Single;
 
     { TODO: this is a duplicate of similar TWalkCamera method }
     procedure DoFall;
@@ -3267,6 +3269,9 @@ procedure T3DCustomTransform.Idle(const CompSpeed: Single; var RemoveMe: TRemove
     OldFalling: boolean;
     FallingDistance, MaximumFallingDistance: Single;
   begin
+    { calculate and save GravityUp once, it's used quite often in this procedure }
+    GravityUp := World.GravityUp;
+
     OldFalling := FFalling;
 
     IsAbove := Height(Middle, AboveHeight);
@@ -3318,7 +3323,7 @@ procedure T3DCustomTransform.Idle(const CompSpeed: Single; var RemoveMe: TRemove
         MinTo1st(FallingDistance, MaximumFallingDistance);
       end;
 
-      if not Move(World.GravityUp * -FallingDistance, true) then
+      if not Move(GravityUp * -FallingDistance, true) then
         FFalling := false;
     end else
     begin
@@ -3328,7 +3333,7 @@ procedure T3DCustomTransform.Idle(const CompSpeed: Single; var RemoveMe: TRemove
          (AboveHeight < PreferredHeight / HeightMargin) then
       begin
         { Growing up }
-        Move(World.GravityUp * Min(GrowSpeed * CompSpeed,
+        Move(GravityUp * Min(GrowSpeed * CompSpeed,
           PreferredHeight - AboveHeight), false);
       end;
     end;
@@ -3337,13 +3342,20 @@ procedure T3DCustomTransform.Idle(const CompSpeed: Single; var RemoveMe: TRemove
       DoFall;
   end;
 
+var
+  PH: Single;
 begin
   inherited;
-  if GetExists and
-     Gravity and
-     (PreferredHeight <> 0) and
-     ((FallSpeed <> 0) or (GrowSpeed <> 0)) then
-    DoGravity(World.GravityUp);
+
+  if GetExists and Gravity then
+  begin
+    PH := PreferredHeight;
+    if (PH <> 0) and
+       ((FallSpeed <> 0) or (GrowSpeed <> 0)) then
+      { calculate and save PreferredHeight once,
+        as it's used quite often in the DoGravity procedure }
+      DoGravity(PH);
+  end;
 end;
 
 procedure T3DCustomTransform.Fall(const FallHeight: Single);
