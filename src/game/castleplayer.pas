@@ -1041,7 +1041,12 @@ end;
 procedure TPlayer.Fall(const FallHeight: Single);
 begin
   inherited;
-  { TODO: hardcoded }
+  { TODO: hardcoded.
+    FallMinHeightToSound
+    FallMinHeightToDamage (and make it absolute, not multiplied by MaxJumpDistance?)
+    FallDamageScaleMin
+    FallDamageScaleMax
+  }
   if (Swimming = psNo) and (FallHeight > 4.0) then
   begin
     SoundEngine.Sound(stPlayerFall);
