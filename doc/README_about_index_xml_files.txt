@@ -72,6 +72,60 @@ Specifically about resource.xml:
   They have lot's of properties, and almost all their properties
   can be set by appopriate XML attribute.
 
+- radius: (default 0.0) Radius used for collision detection with this creature.
+  If you don't set radius in resource.xml file (or set it to default value 0.0),
+  we will calculate a sensible default radius based on the bounding box
+  of the creature.
+
+- middle_height: (default 0.5) Position of eyes of the creature,
+  used for various collision detection routines.
+  See T3DCustomTransform.MiddleHeight documentation.
+
+  Game developers can use the Base3D.RenderDebug3D variable to easily
+  visualize the bounding sphere (and other things) around resources.
+  The bounding sphere is centered around the point derived from "middle_height"
+  setting and with given (or automatically calculated) "radius".
+
+- flying: False or True to indicate if creature / item is affected by gravity.
+
+  Missile creatures (resources with type="Missile",
+  indicating TMissileCreatureKind implementation,
+  or other type indicating your custom class descending from TMissileCreatureKind)
+  are an exception here: they ignore this setting.
+  Missiles have special approach to gravity (see direction_fall_speed)
+  and are not affected by normal gravity settings.
+
+- fall_speed: the speed (in units per second) of falling down because of gravity.
+  Default is 10 (see CastleResources.DefaultFallSpeed constant).
+
+  Note that the gravity direction is controlled by your level 3D model,
+  see "Which way is up" section in the engine tutorial.
+
+  Currently, falling down of creatures and items just uses this constant speed.
+  In the future, we plan to add properties to control mass and air friction
+  and perform more physically-correct simulation of falling down.
+
+  This has no effect for resources (creatures or items) with flying="True".
+  This also has no effect for missile creatures (their flying="Xxx" is ignored,
+  as documented above).
+
+- grow_speed: the speed (in units per second) of growing.
+  Default is 5 (see CastleResources.DefaultGrowSpeed constant).
+
+  The "growing" is used to allow non-flying creatures to climb stairs.
+  The creature can move whenever a sphere (see "middle_height" and "radius"
+  settings mentioned above) can move. This means that part of the bounding
+  box (part of the T3DCustomTransform.PreferredHeight) may temporarily
+  "sink" into the ground. The growing, controlled by this property,
+  allows the creature to go up.
+
+- direction_fall_speed: (default 0) The gravity of missiles.
+  This works by gradually changing the missile direction to point downward
+  (in the same direction where gravity pulls).
+
+  (Only for missiles, that is: resources with type="Missile",
+  indicating TMissileCreatureKind implementation,
+  or other type indicating your custom class descending from TMissileCreatureKind.)
 ------------------------------------------------------------------------------
 Specifically about level.xml:
 
