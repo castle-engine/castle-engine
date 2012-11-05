@@ -690,18 +690,7 @@ type
       T3DCustomTransform (ancestor of T3DTransform, T3DOrient
       that in turn are ancestors of normal creatures, items etc.)
       this is overriden to return something sensible above the bottom
-      of the box. See T3DCustomTransform.MiddleHeight.
-      In general, this method should be overriden to return
-      legs position shifted by a constant amount up (at least by your
-      @link(Sphere) radius, maybe more). Otherwise,
-      small precision errors could make the creature "glued" to the ground
-      on which it is standing.
-
-      For flying creatures, it's usually best to actually set this around
-      the middle of the whole creature height. That's because flying creatures
-      do not need to climb the stairs, so there's no need to artificially
-      raise Middle. Setting Middle exactly in the middle of their Height
-      allows to use most efficient (smallest, best fit) sphere radius. }
+      of the box. See T3DCustomTransform.MiddleHeight. }
     function Middle: TVector3Single; virtual;
 
     { Sector where the middle of this 3D object is.
@@ -1151,7 +1140,7 @@ type
       extras, to make camera effects). This will change in the future,
       to merge these two gravity implementations.
       Although the TPlayer.Fall method still works as expected
-      (it's linked to TWalkCamera.OnFall this case). }
+      (it's linked to TWalkCamera.OnFall in this case). }
     property Gravity: boolean read FGravity write FGravity default false;
 
     { Falling speed, in units per second, for @link(Gravity).
@@ -1177,7 +1166,7 @@ type
       This is used by objects affected by gravity (like non-flying creatures
       and items) to know how far they should fall down or grow up.
 
-      The default implementation in this class follows MiddleHeight,
+      The default implementation in this class looks at MiddleHeight property,
       see the algorithm described there.
       This may be dynamic (may change during creature lifetime,
       so you can make the creature duck or grow if you want). }
@@ -1187,22 +1176,42 @@ type
       Value 0 means that eyes are at the bottom of the model,
       0.5 means the middle, 1 means top.
 
-      More precisely, this determines how the T3DCustomTransform
+      The @italic(top) is always considered to be at the top of the bounding box.
+
+      Definition of @italic(bottom) depends on @link(Gravity):
+
+      @unorderedList(
+        @item(
+          When Gravity is @true, then the @italic(bottom) is considered to be at the zero
+          level (where the World.GravityCoordinate, like Z or Y, is zero).
+          This means that things placed below zero level (like a creature tentacle
+          or leg) will sink into the ground, instead of causing whole creature
+          to move up. This is usually comfortable, it allows to model the creature
+          with respect to the ground (zero level).
+
+          Note that setting MiddleHeight to exact 0 means that gravity will not work,
+          as it means that the PreferredHeight above the ground
+          is to be stuck right at the ground level.
+          For gravity to work right, set it large enough that PreferredHeight
+          will be > @link(Sphere) radius.
+        )
+
+        @item(
+          When Gravity is @false, then the @italic(bottom) is considered
+          at the bottom of the bounding box.
+
+          This way it works regardless of where (0,0,0) is in your model
+          (regardless if (0,0,0) represents legs, or middle of your creature),
+          since we adjust to the BoundingBox position.
+        )
+      )
+
+      This property determines how the T3DCustomTransform
       handles the @link(Middle) implementation
       (this is the point used for various collision detection routines)
       and @link(PreferredHeight) (this is the preferred height of @link(Middle)
       above the ground). You can override these two methods to use a different
-      approach, and then ignore MiddleHeight completely.
-
-      Note that exact 0 means that gravity will not work,
-      as it means that the PreferredHeight above the ground
-      is to be stuck right at the ground level.
-      For gravity to work right, set it large enough that PreferredHeight
-      will be > @link(Sphere) radius.
-
-      This works regardless of where (0,0,0) is in your model
-      (regardless if (0,0,0) represents legs, or middle of your creature),
-      since we adjust to the BoundingBox position. }
+      approach, and then ignore MiddleHeight completely. }
     property MiddleHeight: Single read FMiddleHeight write FMiddleHeight
       default DefaultMiddleHeight;
   end;
@@ -3191,6 +3200,14 @@ begin
   end;
 end;
 
+function Bottom(const Gravity: boolean; const GravityCoordinate: Integer;
+  const BoundingBox: TBox3D): Single;
+begin
+  if Gravity then
+    Result := 0 else
+    Result := BoundingBox.Data[0, GravityCoordinate];
+end;
+
 function T3DCustomTransform.Middle: TVector3Single;
 var
   GC: Integer;
@@ -3208,7 +3225,7 @@ begin
     besides moving, only rotates around it's own up axis). }
 
   Result := GetTranslation;
-  Result[GC] += {B.Data[0, GC] TODO}0 + PreferredHeight;
+  Result[GC] += Bottom(Gravity, GC, B) + PreferredHeight;
 end;
 
 function T3DCustomTransform.PreferredHeight: Single;
@@ -3220,7 +3237,7 @@ var
 begin
   GC := World.GravityCoordinate;
   B := inherited BoundingBox;
-  Result := MiddleHeight * (B.Data[1, GC] - {B.Data[0, GC] TODO}0);
+  Result := MiddleHeight * (B.Data[1, GC] - Bottom(Gravity, GC, B));
 
   {$ifdef CHECK_HEIGHT_VS_RADIUS}
   if Sphere(R) and (R > Result) then

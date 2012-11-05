@@ -848,13 +848,14 @@ function TCreatureKind.RadiusFromPrepareDefault(
 var
   GC: Integer;
   Box: TBox3D;
+  MaxRadiusForGravity: Single;
 begin
   { calculate default RadiusFromPrepare.
     Descendants can override Prepare to provide better RadiusFromPrepare
     (or define radius in resource.xml file), so it's Ok to make here
     some assumptions that should suit usual cases, but not necessarily
-    all possible cases --- e.g. our MaxRadius calculation assumes you let default
-    T3D.PreferredHeight algorithm. }
+    all possible cases --- e.g. our MaxRadiusForGravity calculation assumes you
+    let default T3DCustomTransform.PreferredHeight algorithm to work. }
 
   GC := MaxAbsVectorCoord(GravityUp);
   Box := AnAnimation.BoundingBox;
@@ -866,11 +867,13 @@ begin
       model from middle) is better. Also, MaxRadiusForGravity doesn't concern
       us then. }
     Result := Box.MaxSize / 2 else
-    Result := Min(Box.Radius2D(GC),
-      { Maximum radius value that allows gravity to work,
-        assuming default T3D.PreferredHeight implementation,
-        and assuming that Box is the smallest possible bounding box of our creature. }
-      0.9 * MiddleHeight * (Box.Data[1, GC] - Box.Data[0, GC]));
+  begin
+    { Maximum radius value that allows gravity to work,
+      assuming default T3D.PreferredHeight implementation,
+      and assuming that Box is the smallest possible bounding box of our creature. }
+    MaxRadiusForGravity := 0.9 * MiddleHeight * Box.Data[1, GC];
+    Result := Min(Box.Radius2D(GC), MaxRadiusForGravity);
+  end;
 end;
 
 function TCreatureKind.CreateCreature(World: T3DWorld;
@@ -1109,7 +1112,11 @@ begin
        but since the 1st problem would remain anyway...
     Also growing up doesn't make any sense for missile that explodes on contact
     with ground. So Fall should be overriden to make ExplodeCore,
-    and GrowSpeed should be disabled below to be 0. (This is obviously doable.) }
+    and GrowSpeed should be disabled below to be 0. (This is obviously doable.)
+
+    We also want to turn off Gravity to use Gravity=false case when using
+    MiddleHeight, so MiddleHeight is always between bounding box bottom and top
+    for missiles. See T3DCustomTransform.MiddleHeight. }
 
   Result.Gravity := false;
 end;
