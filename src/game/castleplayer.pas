@@ -1039,20 +1039,20 @@ begin
 end;
 
 procedure TPlayer.Fall(const FallHeight: Single);
+const
+  FallMinHeightToSound = 4.0;
+  FallMinHeightToDamage = 6.0;
+  FallDamageScaleMin = 0.8;
+  FallDamageScaleMax = 1.2;
 begin
   inherited;
-  { TODO: hardcoded.
-    FallMinHeightToSound
-    FallMinHeightToDamage (and make it absolute, not multiplied by MaxJumpDistance?)
-    FallDamageScaleMin
-    FallDamageScaleMax
-  }
-  if (Swimming = psNo) and (FallHeight > 4.0) then
-  begin
+
+  if (Swimming = psNo) and (FallHeight > FallMinHeightToSound) then
     SoundEngine.Sound(stPlayerFall);
-    if FallHeight > Camera.MaxJumpDistance * 1.5 then
-      Life := Life - Max(0, FallHeight * MapRange(Random, 0.0, 1.0, 0.8, 1.2));
-  end;
+
+  if (Swimming = psNo) and (FallHeight > FallMinHeightToDamage) then
+    Life := Life - Max(0, FallHeight *
+      MapRange(Random, 0.0, 1.0, FallDamageScaleMin, FallDamageScaleMax));
 end;
 
 procedure TPlayer.SetLifeCustomFadeOut(const Value: Single;

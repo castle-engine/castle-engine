@@ -1309,20 +1309,23 @@ begin
 end;
 
 procedure TCreature.Fall(const FallHeight: Single);
+const
+  FallMinHeightToSound = 1.0;
+  FallMinHeightToDamage = 4.0;
+  FallDamageScaleMin = 0.8;
+  FallDamageScaleMax = 1.2;
 begin
   inherited;
-  { TODO: hardcoded }
-  if FallHeight > 1.0 then
-  begin
+
+  if FallHeight > FallMinHeightToSound then
     Sound3d(stCreatureFall, 0.1, false);
-    if FallHeight > 4.0 then
-    begin
-      Hurt(Max(0,
-        Kind.FallDownLifeLossScale *
-        FallHeight * MapRange(Random, 0.0, 1.0, 0.8, 1.2)),
-        ZeroVector3Single, 0);
-    end;
-  end;
+
+  if FallHeight > FallMinHeightToDamage then
+    Hurt(Max(0,
+      FallHeight * MapRange(Random, 0.0, 1.0,
+        Kind.FallDownLifeLossScale * FallDamageScaleMin,
+        Kind.FallDownLifeLossScale * FallDamageScaleMax)),
+      ZeroVector3Single, 0);
 end;
 
 procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
