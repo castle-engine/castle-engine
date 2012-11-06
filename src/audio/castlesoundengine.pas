@@ -606,7 +606,7 @@ var
     Simply define them in your sounds XML file (see
     TRepoSoundEngine.SoundsXmlFileName)
     under a suitable name with underscores,
-    like 'creature_falled_down' for stCreatureFall. }
+    like 'player_dies' for stPlayerDies. }
 
   { Player sounds.
     @groupBegin }
@@ -620,12 +620,10 @@ var
   stPlayerSuddenPain,
   stPlayerDies,
   stPlayerSwimmingChange,
-  stPlayerFall,
   { @groupEnd }
 
   { Creatures sounds.
     @groupBegin }
-  stCreatureFall,
   { @groupEnd }
 
   { Levels sounds.
@@ -1657,11 +1655,9 @@ begin
   stPlayerSwimmingChange       := SoundFromName('player_swimming_change', false);
   stPlayerSwimming             := SoundFromName('player_swimming', false);
   stPlayerDrowning             := SoundFromName('player_drowning', false);
-  stPlayerFall                 := SoundFromName('player_fall', false);
   stPlayerFootstepsConcrete    := SoundFromName('player_footsteps_concrete', false);
   stPlayerLavaPain             := SoundFromName('player_lava_pain', false);
 
-  stCreatureFall           := SoundFromName('creature_fall'            , false);
   stThunder                := SoundFromName('thunder'                  , false);
   stMenuCurrentItemChanged := SoundFromName('menu_current_item_changed', false);
   stMenuClick              := SoundFromName('menu_click'               , false);

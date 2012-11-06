@@ -149,6 +149,12 @@ type
     FFadeOutIntensity: Single;
     FFadeOutColor: TVector3Single;
 
+    FFallMinHeightToSound: Single;
+    FFallMinHeightToDamage: Single;
+    FFallDamageScaleMin: Single;
+    FFallDamageScaleMax: Single;
+    FFallSound: TSoundType;
+
     procedure SetEquippedWeapon(Value: TItemWeapon);
 
     { Update Camera properties, including inputs.
@@ -330,6 +336,19 @@ type
     { Render 3D children (like EquippedWeapon) on top of everything else. }
     property RenderOnTop: boolean read FRenderOnTop write FRenderOnTop
       default DefaultRenderOnTop;
+
+    property FallMinHeightToSound: Single
+      read FFallMinHeightToSound write FFallMinHeightToSound default DefaultPlayerFallMinHeightToSound;
+    property FallMinHeightToDamage: Single
+      read FFallMinHeightToDamage write FFallMinHeightToDamage default DefaultFallMinHeightToDamage;
+    property FallDamageScaleMin: Single
+      read FFallDamageScaleMin write FFallDamageScaleMin default DefaultFallDamageScaleMin;
+    property FallDamageScaleMax: Single
+      read FFallDamageScaleMax write FFallDamageScaleMax default DefaultFallDamageScaleMax;
+    { Sound when falling.
+      The default is the sound named 'player_fall'. }
+    property FallSound: TSoundType
+      read FFallSound write FFallSound;
   end;
 
 const
@@ -398,6 +417,11 @@ begin
   DefaultMoveVerticalSpeed := 1.0;
   DefaultPreferredHeight := 0.0;
   RenderOnTop := DefaultRenderOnTop;
+  FFallMinHeightToSound := DefaultPlayerFallMinHeightToSound;
+  FFallMinHeightToDamage := DefaultFallMinHeightToDamage;
+  FFallDamageScaleMin := DefaultFallDamageScaleMin;
+  FFallDamageScaleMax := DefaultFallDamageScaleMax;
+  FFallSound := SoundEngine.SoundFromName(DefaultPlayerFallSoundName, false);
 
   Add(TPlayerBox.Create(Self));
 
@@ -1039,16 +1063,11 @@ begin
 end;
 
 procedure TPlayer.Fall(const FallHeight: Single);
-const
-  FallMinHeightToSound = 4.0;
-  FallMinHeightToDamage = 6.0;
-  FallDamageScaleMin = 0.8;
-  FallDamageScaleMax = 1.2;
 begin
   inherited;
 
   if (Swimming = psNo) and (FallHeight > FallMinHeightToSound) then
-    SoundEngine.Sound(stPlayerFall);
+    SoundEngine.Sound(FallSound);
 
   if (Swimming = psNo) and (FallHeight > FallMinHeightToDamage) then
     Life := Life - Max(0, FallHeight *
@@ -1177,6 +1196,12 @@ begin
       DefaultHeadBobbingTime);
     SickProjectionSpeed := PlayerConfig.GetFloat('player/sick_projection_speed',
       DefaultSickProjectionSpeed);
+    FallMinHeightToSound := PlayerConfig.GetFloat('fall/sound/min_height', DefaultPlayerFallMinHeightToSound);
+    FallMinHeightToDamage := PlayerConfig.GetFloat('fall/damage/min_height', DefaultFallMinHeightToDamage);
+    FallDamageScaleMin := PlayerConfig.GetFloat('fall/damage/scale_min', DefaultFallDamageScaleMin);
+    FallDamageScaleMax := PlayerConfig.GetFloat('fall/damage/scale_max', DefaultFallDamageScaleMax);
+    FallSound := SoundEngine.SoundFromName(
+      PlayerConfig.GetValue('fall/sound/name', DefaultPlayerFallSoundName), false);
   finally SysUtils.FreeAndNil(PlayerConfig); end;
 end;
 

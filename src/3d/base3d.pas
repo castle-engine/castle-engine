@@ -1690,6 +1690,22 @@ type
 const
   MaxSingle = Math.MaxSingle;
 
+  { Default values common to TPlayer and TCreature classes.
+
+    Note that FallMinHeightToSound is usually better to be larger for player,
+    to avoid making "fall" sound when player merely jumps or walks down a steep
+    hill. No such need for creature.
+
+    @groupBegin }
+  DefaultFallMinHeightToDamage = 5.0;
+  DefaultFallDamageScaleMin = 0.8;
+  DefaultFallDamageScaleMax = 1.2;
+  DefaultCreatureFallMinHeightToSound = 1.0;
+  DefaultPlayerFallMinHeightToSound = 4.0;
+  DefaultCreatureFallSoundName = 'creature_fall';
+  DefaultPlayerFallSoundName = 'player_fall';
+  { @groupEnd }
+
 { Apply transformation to a matrix.
   Calculates at the same time transformation matrix, and it's inverse,
   and multiplies given Transform, TransformInverse appropriately.

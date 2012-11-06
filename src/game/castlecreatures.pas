@@ -53,7 +53,6 @@ const
   DefaultShortRangeAttackKnockbackDistance = 0.1;
 
   DefaultMaxHeightAcceptableToFall = 2.0 * 0.7;
-  DefaultFallDownLifeLossScale = 1.0;
 
   DefaultCreatureRandomWalkDistance = 10.0;
 
@@ -85,7 +84,11 @@ type
     FShortRangeAttackDamageRandom: Single;
     FShortRangeAttackKnockbackDistance: Single;
 
-    FFallDownLifeLossScale: Single;
+    FFallMinHeightToSound: Single;
+    FFallMinHeightToDamage: Single;
+    FFallDamageScaleMin: Single;
+    FFallDamageScaleMax: Single;
+    FFallSound: TSoundType;
 
     FMiddleHeight: Single;
   protected
@@ -242,14 +245,22 @@ type
       default DefaultShortRangeAttackKnockbackDistance;
     { @groupEnd }
 
-    property FallDownLifeLossScale: Single
-      read FFallDownLifeLossScale
-      write FFallDownLifeLossScale
-      default DefaultFallDownLifeLossScale;
-
     { See T3DCustomTransform.MiddleHeight. }
     property MiddleHeight: Single read FMiddleHeight write FMiddleHeight
       default DefaultMiddleHeight;
+
+    property FallMinHeightToSound: Single
+      read FFallMinHeightToSound write FFallMinHeightToSound default DefaultCreatureFallMinHeightToSound;
+    property FallMinHeightToDamage: Single
+      read FFallMinHeightToDamage write FFallMinHeightToDamage default DefaultFallMinHeightToDamage;
+    property FallDamageScaleMin: Single
+      read FFallDamageScaleMin write FFallDamageScaleMin default DefaultFallDamageScaleMin;
+    property FallDamageScaleMax: Single
+      read FFallDamageScaleMax write FFallDamageScaleMax default DefaultFallDamageScaleMax;
+    { Sound when falling.
+      The default is the sound named 'creature_fall'. }
+    property FallSound: TSoundType
+      read FFallSound write FFallSound;
   end;
 
   { Kind of creature with states: standing stil,
@@ -797,8 +808,12 @@ begin
   FShortRangeAttackDamageConst := DefaultShortRangeAttackDamageConst;
   FShortRangeAttackDamageRandom := DefaultShortRangeAttackDamageRandom;
   FShortRangeAttackKnockbackDistance := DefaultShortRangeAttackKnockbackDistance;
-  FFallDownLifeLossScale := DefaultFallDownLifeLossScale;
   FMiddleHeight := DefaultMiddleHeight;
+  FFallMinHeightToSound := DefaultCreatureFallMinHeightToSound;
+  FFallMinHeightToDamage := DefaultFallMinHeightToDamage;
+  FFallDamageScaleMin := DefaultFallDamageScaleMin;
+  FFallDamageScaleMax := DefaultFallDamageScaleMax;
+  FFallSound := SoundEngine.SoundFromName(DefaultCreatureFallSoundName, false);
 end;
 
 procedure TCreatureKind.LoadFromFile(KindsConfig: TCastleConfig);
@@ -823,16 +838,18 @@ begin
     DefaultShortRangeAttackDamageRandom);
   ShortRangeAttackKnockbackDistance := KindsConfig.GetFloat('short_range_attack/knockback_distance',
     DefaultShortRangeAttackKnockbackDistance);
-
-  FallDownLifeLossScale := KindsConfig.GetFloat('fall_down_life_loss_scale',
-    DefaultFallDownLifeLossScale);
-
   MiddleHeight := KindsConfig.GetFloat('middle_height', DefaultMiddleHeight);
+  FallMinHeightToSound := KindsConfig.GetFloat('fall/sound/min_height', DefaultCreatureFallMinHeightToSound);
+  FallMinHeightToDamage := KindsConfig.GetFloat('fall/damage/min_height', DefaultFallMinHeightToDamage);
+  FallDamageScaleMin := KindsConfig.GetFloat('fall/damage/scale_min', DefaultFallDamageScaleMin);
+  FallDamageScaleMax := KindsConfig.GetFloat('fall/damage/scale_max', DefaultFallDamageScaleMax);
 
   SoundSuddenPain := SoundEngine.SoundFromName(
     KindsConfig.GetValue('sound_sudden_pain', ''));
   SoundDying := SoundEngine.SoundFromName(
     KindsConfig.GetValue('sound_dying', ''));
+  FallSound := SoundEngine.SoundFromName(
+    KindsConfig.GetValue('fall/sound/name', DefaultCreatureFallSoundName), false);
 end;
 
 function TCreatureKind.Radius: Single;
@@ -1309,22 +1326,17 @@ begin
 end;
 
 procedure TCreature.Fall(const FallHeight: Single);
-const
-  FallMinHeightToSound = 1.0;
-  FallMinHeightToDamage = 4.0;
-  FallDamageScaleMin = 0.8;
-  FallDamageScaleMax = 1.2;
 begin
   inherited;
 
-  if FallHeight > FallMinHeightToSound then
-    Sound3d(stCreatureFall, 0.1, false);
+  if FallHeight > Kind.FallMinHeightToSound then
+    Sound3d(Kind.FallSound, 0.1, false);
 
-  if FallHeight > FallMinHeightToDamage then
+  if FallHeight > Kind.FallMinHeightToDamage then
     Hurt(Max(0,
       FallHeight * MapRange(Random, 0.0, 1.0,
-        Kind.FallDownLifeLossScale * FallDamageScaleMin,
-        Kind.FallDownLifeLossScale * FallDamageScaleMax)),
+        Kind.FallDamageScaleMin,
+        Kind.FallDamageScaleMax)),
       ZeroVector3Single, 0);
 end;
 
