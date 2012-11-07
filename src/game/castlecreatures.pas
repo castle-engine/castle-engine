@@ -155,12 +155,18 @@ type
       read FSoundDyingTiedToCreature write FSoundDyingTiedToCreature
       default DefaultSoundDyingTiedToCreature;
 
-    { The default MaxLife for this Kind.
+    { The default MaxLife for creatures of this kind.
 
-      You cannot depend that every creature has this MaxLife ---
-      caller can pass any MaxLife value when creating creature by
-      CreateCreature.
-      This is only a "suggested" default for MaxLife of this creature. }
+      Note that you can always override it for a particular creature
+      instance. You can use a special creature placeholder with
+      a specific starting life value
+      (see TGameSceneManager.LoadLevel for placeholders docs,
+      and see http://castle-engine.sourceforge.net/castle-development.php
+      about the creature placeholders).
+      Or you can use CreateCreature overloaded version that takes extra MaxLife
+      parameter.
+
+      So this is only a "suggested" default for MaxLife of this creature. }
     property DefaultMaxLife: Single
       read FDefaultMaxLife write FDefaultMaxLife default DefaultDefaultMaxLife;
 
