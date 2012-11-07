@@ -33,8 +33,16 @@ type
   T3DResourceAnimation = class
   private
     FName: string;
+    FRequired: boolean;
   public
-    constructor Create(const AName: string);
+    { TODO: for now, the T3DResourceAnimation is just a wrapper around
+      TCastlePrecalculatedAnimation. }
+    Animation: TCastlePrecalculatedAnimation;
+    FileName: string;
+    property Name: string read FName;
+    property Required: boolean read FRequired;
+    constructor Create(const AOwner: T3DResource;
+      const AName: string; const ARequired: boolean = true);
   end;
 
   T3DResourceAnimationList = specialize TFPGObjectList<T3DResourceAnimation>;
@@ -62,12 +70,11 @@ type
 
     FName: string;
     FPrepared: boolean;
-    Allocated: T3DListCore;
     FUsageCount: Cardinal;
     ConfigAlwaysPrepared: boolean;
     FFallSpeed, FGrowSpeed: Single;
     FAnimations: T3DResourceAnimationList;
-  protected
+
     { Prepare 3D resource loading it from given filename.
       Loads the resource only if filename is not empty,
       and only if it's not already loaded (that is, when Anim = nil).
@@ -90,6 +97,18 @@ type
       const BaseLights: TAbstractLightInstancesList;
       const DoProgress: boolean);
     { @groupEnd }
+  protected
+    { Animations of this resource.
+
+      The first animation, if exists, right now determines the default radius
+      calculation. So the first animation should have the bounding box
+      representative for all animations.
+      Other than that, the order on this list doesn't matter.
+
+      The properties of these animations are automatically loaded from
+      resource.xml file in LoadFromFile. The animations are automatically
+      prepared / released by our @link(Prepare) / @link(Release) methods. }
+    property Animations: T3DResourceAnimationList read FAnimations;
 
     { Prepare or release everything needed to use this resource.
       PrepareCore and ReleaseCore should never be called directly,
@@ -266,10 +285,13 @@ var
 
 { T3DResourceAnimation ------------------------------------------------------- }
 
-constructor T3DResourceAnimation.Create(const AName: string);
+constructor T3DResourceAnimation.Create(const AOwner: T3DResource;
+  const AName: string; const ARequired: boolean);
 begin
   inherited Create;
   FName := AName;
+  FRequired := ARequired;
+  AOwner.Animations.Add(Self);
 end;
 
 { T3DResource ---------------------------------------------------------------- }
@@ -278,7 +300,6 @@ constructor T3DResource.Create(const AName: string);
 begin
   inherited Create;
   FName := AName;
-  Allocated := T3DListCore.Create(true, nil);
   FFallSpeed := DefaultFallSpeed;
   FGrowSpeed := DefaultGrowSpeed;
   FAnimations := T3DResourceAnimationList.Create;
@@ -288,7 +309,6 @@ destructor T3DResource.Destroy;
 begin
   FPrepared := false;
   ReleaseCore;
-  FreeAndNil(Allocated);
   FreeAndNil(FAnimations);
   inherited;
 end;
@@ -296,36 +316,48 @@ end;
 procedure T3DResource.PrepareCore(const BaseLights: TAbstractLightInstancesList;
   const GravityUp: TVector3Single;
   const DoProgress: boolean);
+var
+  I: Integer;
 begin
+  for I := 0 to Animations.Count - 1 do
+    PreparePrecalculatedAnimation(Animations[I].Animation, Animations[I].FileName,
+      BaseLights, DoProgress);
 end;
 
 function T3DResource.PrepareCoreSteps: Cardinal;
 begin
-  Result := 0;
+  Result := Animations.Count * 2;
 end;
 
 procedure T3DResource.ReleaseCore;
+var
+  I: Integer;
 begin
-  if Allocated <> nil then
-  begin
-    { since Allocated owns all it's items, this is enough to free them }
-    Allocated.Clear;
-  end;
+  if Animations <> nil then
+    for I := 0 to Animations.Count - 1 do
+      FreeAndNil(Animations[I].Animation);
 end;
 
 procedure T3DResource.GLContextClose;
 var
   I: Integer;
 begin
-  for I := 0 to Allocated.Count - 1 do
-    Allocated[I].GLContextClose;
+  for I := 0 to Animations.Count - 1 do
+    if Animations[I].Animation <> nil then
+      Animations[I].Animation.GLContextClose;
 end;
 
 procedure T3DResource.LoadFromFile(KindsConfig: TCastleConfig);
+var
+  I: Integer;
 begin
   ConfigAlwaysPrepared := KindsConfig.GetValue('always_prepared', false);
   FFallSpeed := KindsConfig.GetFloat('fall_speed', DefaultFallSpeed);
   FGrowSpeed := KindsConfig.GetFloat('grow_speed', DefaultGrowSpeed);
+
+  for I := 0 to Animations.Count - 1 do
+    Animations[I].FileName := KindsConfig.GetFileName(
+      Animations[I].Name + '_animation', not Animations[I].Required);
 end;
 
 procedure T3DResource.RedoPrepare(const BaseLights: TAbstractLightInstancesList;
@@ -362,7 +394,6 @@ begin
   if (AnimationFile <> '') and (Anim = nil) then
   begin
     Anim := TCastlePrecalculatedAnimation.Create(nil);
-    Allocated.Add(Anim);
     Anim.LoadFromFile(AnimationFile, { AllowStdIn } false, { LoadTime } true);
   end;
   if DoProgress then Progress.Step;

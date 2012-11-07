@@ -57,7 +57,6 @@ type
     RadiusFromPrepare: Single;
 
     function RadiusFromPrepareDefault(
-      const AnAnimation: TCastlePrecalculatedAnimation;
       const GravityUp: TVector3Single): Single;
   public
     const
@@ -250,21 +249,13 @@ type
     e.g. cowardly/brave, offensive/defensive, melee/ranged, etc. }
   TWalkAttackCreatureKind = class(TCreatureKind)
   private
-    FStandAnimation: TCastlePrecalculatedAnimation;
-    FStandToWalkAnimation: TCastlePrecalculatedAnimation;
-    FWalkAnimation: TCastlePrecalculatedAnimation;
-    FAttackAnimation: TCastlePrecalculatedAnimation;
-    FDyingAnimation: TCastlePrecalculatedAnimation;
-    FDyingBackAnimation: TCastlePrecalculatedAnimation;
-    FHurtAnimation: TCastlePrecalculatedAnimation;
-
-    FStandAnimationFile: string;
-    FStandToWalkAnimationFile: string;
-    FWalkAnimationFile: string;
-    FAttackAnimationFile: string;
-    FDyingAnimationFile: string;
-    FDyingBackAnimationFile: string;
-    FHurtAnimationFile: string;
+    FStandAnimation: T3DResourceAnimation;
+    FStandToWalkAnimation: T3DResourceAnimation;
+    FWalkAnimation: T3DResourceAnimation;
+    FAttackAnimation: T3DResourceAnimation;
+    FDyingAnimation: T3DResourceAnimation;
+    FDyingBackAnimation: T3DResourceAnimation;
+    FHurtAnimation: T3DResourceAnimation;
 
     FMoveSpeed: Single;
     FMinDelayBetweenAttacks: Single;
@@ -283,8 +274,6 @@ type
     procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
       const GravityUp: TVector3Single;
       const DoProgress: boolean); override;
-    function PrepareCoreSteps: Cardinal; override;
-    procedure ReleaseCore; override;
   public
     const
       DefaultMoveSpeed = 10.0;
@@ -305,18 +294,18 @@ type
     { An animation of standing still.
       Beginning must be on time 0.
       Beginning and end of it must glue together. }
-    property StandAnimation: TCastlePrecalculatedAnimation read FStandAnimation;
+    property StandAnimation: T3DResourceAnimation read FStandAnimation;
 
     { An animation when creature changes from standing still to walking.
       Beginning must be on time 0.
       It's beginnig must glue with beginning of StandAnimation,
       it's ending must glue with beginning of WalkAnimation. }
-    property StandToWalkAnimation: TCastlePrecalculatedAnimation read FStandToWalkAnimation;
+    property StandToWalkAnimation: T3DResourceAnimation read FStandToWalkAnimation;
 
     { An animation of walking.
       Beginning must be on time 0.
       Beginning and end of it must glue together. }
-    property WalkAnimation: TCastlePrecalculatedAnimation read FWalkAnimation;
+    property WalkAnimation: T3DResourceAnimation read FWalkAnimation;
 
     { An animation of attacking.
       Beginning must be on time 0.
@@ -332,14 +321,14 @@ type
       (when the distance was already close enough). And after performing
       the attack, the creature doesn't need to go back to state
       before the attack. }
-    property AttackAnimation: TCastlePrecalculatedAnimation read FAttackAnimation;
+    property AttackAnimation: T3DResourceAnimation read FAttackAnimation;
 
     { An animation of dying.
       Beginning must be on time 0.
       Beginning should *more-or-less* look like any point of the stand/attack/walk
       animations. Note that we can display this animation infinitely,
       so it must work good after Time > it's TimeEnd. }
-    property DyingAnimation: TCastlePrecalculatedAnimation read FDyingAnimation;
+    property DyingAnimation: T3DResourceAnimation read FDyingAnimation;
 
     { An optional dying animation. May be @nil, and corresponding
       DyingBackAnimationFile may be ''. If not @nil, this will be used
@@ -347,7 +336,7 @@ type
       DyingAnimation is used only when it's killed by hitting from the front).
 
       The direction of last hit is taken from LastHurtDirection. }
-    property DyingBackAnimation: TCastlePrecalculatedAnimation read FDyingBackAnimation;
+    property DyingBackAnimation: T3DResourceAnimation read FDyingBackAnimation;
 
     { Animation when the creature will be hurt.
       Beginning must be on time 0.
@@ -355,7 +344,7 @@ type
       any point of the stand/attack/walk animations.
       Note that this animation will not loop, it will be played
       for TimeDurationWithBack time. }
-    property HurtAnimation: TCastlePrecalculatedAnimation read FHurtAnimation;
+    property HurtAnimation: T3DResourceAnimation read FHurtAnimation;
 
     { The moving speed: how much Direction vector will be scaled
       when moving in wasWalk. }
@@ -467,8 +456,7 @@ type
     gravity with DirectionFallSpeed. }
   TMissileCreatureKind = class(TCreatureKind)
   private
-    FAnimation: TCastlePrecalculatedAnimation;
-    FAnimationFile: string;
+    FFlyAnimation: T3DResourceAnimation;
     FMoveSpeed: Single;
     FSoundExplosion: TSoundType;
     FCloseDirectionToTargetSpeed: Single;
@@ -481,8 +469,6 @@ type
     procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
       const GravityUp: TVector3Single;
       const DoProgress: boolean); override;
-    function PrepareCoreSteps: Cardinal; override;
-    procedure ReleaseCore; override;
   public
     const
       DefaultMoveSpeed = 35.0;
@@ -496,7 +482,7 @@ type
 
     { Missile uses the same animation all the time.
       In the simplest case, you can just place here a single scene. }
-    property Animation: TCastlePrecalculatedAnimation read FAnimation;
+    property FlyAnimation: T3DResourceAnimation read FFlyAnimation;
 
     { The moving speed: how much Direction vector will be scaled
       when moving. }
@@ -551,26 +537,18 @@ type
   end;
 
   { Creature that just stays still.
-    This is just a single TCastlePrecalculatedAnimation represented as
-    a creature. }
+    This is just a single 3D animation showing a creature. }
   TStillCreatureKind = class(TCreatureKind)
   private
-    FAnimation: TCastlePrecalculatedAnimation;
-    FAnimationFile: string;
+    FStandAnimation: T3DResourceAnimation;
   protected
     procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
       const GravityUp: TVector3Single;
       const DoProgress: boolean); override;
-    function PrepareCoreSteps: Cardinal; override;
-    procedure ReleaseCore; override;
   public
-    { Missile uses the same animation all the time.
-      In the simplest case, you can just place here a single scene. }
-    property Animation: TCastlePrecalculatedAnimation read FAnimation;
-
+    constructor Create(const AId: string); override;
+    property StandAnimation: T3DResourceAnimation read FStandAnimation;
     function CreatureClass: TCreatureClass; override;
-
-    procedure LoadFromFile(KindsConfig: TCastleConfig); override;
   end;
 
   { Base creature, using any TCreatureKind. }
@@ -855,7 +833,6 @@ begin
 end;
 
 function TCreatureKind.RadiusFromPrepareDefault(
-  const AnAnimation: TCastlePrecalculatedAnimation;
   const GravityUp: TVector3Single): Single;
 var
   GC: Integer;
@@ -869,8 +846,11 @@ begin
     all possible cases --- e.g. our MaxRadiusForGravity calculation assumes you
     let default T3DCustomTransform.PreferredHeight algorithm to work. }
 
+  if Animations.Count = 0 then
+    Box := EmptyBox3D else
+    Box := Animations[0].Animation.BoundingBox;
+
   GC := MaxAbsVectorCoord(GravityUp);
-  Box := AnAnimation.BoundingBox;
 
   if Box.IsEmpty then
     Result := 0 else
@@ -959,6 +939,14 @@ begin
   FChanceToHurt := DefaultChanceToHurt;
   FMaxHeightAcceptableToFall := DefaultMaxHeightAcceptableToFall;
   FRandomWalkDistance := DefaultRandomWalkDistance;
+
+  FStandAnimation := T3DResourceAnimation.Create(Self, 'stand');
+  FStandToWalkAnimation := T3DResourceAnimation.Create(Self, 'stand_to_walk');
+  FWalkAnimation := T3DResourceAnimation.Create(Self, 'walk');
+  FAttackAnimation := T3DResourceAnimation.Create(Self, 'attack');
+  FDyingAnimation := T3DResourceAnimation.Create(Self, 'dying');
+  FDyingBackAnimation := T3DResourceAnimation.Create(Self, 'dying_back', false);
+  FHurtAnimation := T3DResourceAnimation.Create(Self, 'hurt');
 end;
 
 procedure TWalkAttackCreatureKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
@@ -966,34 +954,7 @@ procedure TWalkAttackCreatureKind.PrepareCore(const BaseLights: TAbstractLightIn
   const DoProgress: boolean);
 begin
   inherited;
-
-  PreparePrecalculatedAnimation(FStandAnimation      , FStandAnimationFile      , BaseLights, DoProgress);
-  PreparePrecalculatedAnimation(FStandToWalkAnimation, FStandToWalkAnimationFile, BaseLights, DoProgress);
-  PreparePrecalculatedAnimation(FWalkAnimation       , FWalkAnimationFile       , BaseLights, DoProgress);
-  PreparePrecalculatedAnimation(FAttackAnimation     , FAttackAnimationFile     , BaseLights, DoProgress);
-  PreparePrecalculatedAnimation(FDyingAnimation      , FDyingAnimationFile      , BaseLights, DoProgress);
-  PreparePrecalculatedAnimation(FDyingBackAnimation  , FDyingBackAnimationFile  , BaseLights, DoProgress);
-  PreparePrecalculatedAnimation(FHurtAnimation       , FHurtAnimationFile       , BaseLights, DoProgress);
-
-  RadiusFromPrepare := RadiusFromPrepareDefault(StandAnimation, GravityUp);
-end;
-
-function TWalkAttackCreatureKind.PrepareCoreSteps: Cardinal;
-begin
-  Result := (inherited PrepareCoreSteps) + 12;
-end;
-
-procedure TWalkAttackCreatureKind.ReleaseCore;
-begin
-  FStandAnimation := nil;
-  FStandToWalkAnimation := nil;
-  FWalkAnimation := nil;
-  FAttackAnimation := nil;
-  FDyingAnimation := nil;
-  FDyingBackAnimation := nil;
-  FHurtAnimation := nil;
-
-  inherited;
+  RadiusFromPrepare := RadiusFromPrepareDefault(GravityUp);
 end;
 
 procedure TWalkAttackCreatureKind.LoadFromFile(KindsConfig: TCastleConfig);
@@ -1025,14 +986,6 @@ begin
 
   SoundAttackStart := SoundEngine.SoundFromName(
     KindsConfig.GetValue('sound_attack_start', ''));
-
-  FStandAnimationFile := KindsConfig.GetFileName('stand_animation');
-  FStandToWalkAnimationFile := KindsConfig.GetFileName('stand_to_walk_animation');
-  FWalkAnimationFile := KindsConfig.GetFileName('walk_animation');
-  FAttackAnimationFile := KindsConfig.GetFileName('attack_animation');
-  FDyingAnimationFile := KindsConfig.GetFileName('dying_animation');
-  FDyingBackAnimationFile := KindsConfig.GetFileName('dying_back_animation', true);
-  FHurtAnimationFile := KindsConfig.GetFileName('hurt_animation');
 end;
 
 { TMissileCreatureKind ---------------------------------------------------- }
@@ -1046,6 +999,7 @@ begin
   FHitsPlayer := DefaultHitsPlayer;
   FHitsCreatures := DefaultHitsCreatures;
   FDirectionFallSpeed := DefaultDirectionFallSpeed;
+  FFlyAnimation := T3DResourceAnimation.Create(Self, 'fly');
 end;
 
 procedure TMissileCreatureKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
@@ -1055,26 +1009,14 @@ var
   Box: TBox3D;
 begin
   inherited;
-  PreparePrecalculatedAnimation(FAnimation, FAnimationFile, BaseLights, DoProgress);
 
-  Box := Animation.Scenes[0].BoundingBox;
+  Box := FlyAnimation.Animation.Scenes[0].BoundingBox;
   { Use MinSize for missile, since smaller radius for missiles
     forces player to aim more precisely. Smaller radius may also allow some
     partial collisions to go undetected, but that's not a problem as the
     collisions imperfections are not noticeable for fast moving missiles. }
   if not Box.IsEmpty then
     RadiusFromPrepare := Box.MinSize / 2;
-end;
-
-function TMissileCreatureKind.PrepareCoreSteps: Cardinal;
-begin
-  Result := (inherited PrepareCoreSteps) + 2;
-end;
-
-procedure TMissileCreatureKind.ReleaseCore;
-begin
-  FAnimation := nil;
-  inherited;
 end;
 
 function TMissileCreatureKind.CreatureClass: TCreatureClass;
@@ -1103,8 +1045,6 @@ begin
     KindsConfig.GetValue('sound_explosion', ''));
   SoundIdle := SoundEngine.SoundFromName(
     KindsConfig.GetValue('sound_idle', ''));
-
-  FAnimationFile := KindsConfig.GetFileName('fly_animation');
 end;
 
 function TMissileCreatureKind.CreateCreature(World: T3DWorld;
@@ -1135,37 +1075,23 @@ end;
 
 { TStillCreatureKind ---------------------------------------------------- }
 
+constructor TStillCreatureKind.Create(const AId: string);
+begin
+  inherited Create(AId);
+  FStandAnimation := T3DResourceAnimation.Create(Self, 'stand');
+end;
+
 procedure TStillCreatureKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
   const GravityUp: TVector3Single;
   const DoProgress: boolean);
 begin
   inherited;
-  PreparePrecalculatedAnimation(FAnimation, FAnimationFile, BaseLights, DoProgress);
-
-  RadiusFromPrepare := RadiusFromPrepareDefault(Animation, GravityUp);
-end;
-
-function TStillCreatureKind.PrepareCoreSteps: Cardinal;
-begin
-  Result := (inherited PrepareCoreSteps) + 2;
-end;
-
-procedure TStillCreatureKind.ReleaseCore;
-begin
-  FAnimation := nil;
-  inherited;
+  RadiusFromPrepare := RadiusFromPrepareDefault(GravityUp);
 end;
 
 function TStillCreatureKind.CreatureClass: TCreatureClass;
 begin
   Result := TStillCreature;
-end;
-
-procedure TStillCreatureKind.LoadFromFile(KindsConfig: TCastleConfig);
-begin
-  inherited;
-
-  FAnimationFile := KindsConfig.GetFileName('stand_animation');
 end;
 
 { TCreatureSoundData --------------------------------------------------- }
@@ -1954,7 +1880,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
       ActualAttack;
     end;
 
-    if StateTime > WAKind.AttackAnimation.TimeEnd then
+    if StateTime > WAKind.AttackAnimation.Animation.TimeEnd then
       { wasStand will quickly change to wasWalk if it will want to walk. }
       SetState(wasStand);
   end;
@@ -1965,7 +1891,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
   begin
     StateTime := LifeTime - StateChangeTime;
 
-    if StateTime > WAKind.HurtAnimation.TimeDurationWithBack then
+    if StateTime > WAKind.HurtAnimation.Animation.TimeDurationWithBack then
     begin
       CancelKnockback;
       SetState(wasStand);
@@ -2045,20 +1971,20 @@ begin
 
   case FState of
     wasStand:
-      Result := WAKind.StandAnimation.SceneFromTime(StateTime);
+      Result := WAKind.StandAnimation.Animation.SceneFromTime(StateTime);
     wasWalk:
-      if StateTime < WAKind.StandToWalkAnimation.TimeEnd then
-        Result := WAKind.StandToWalkAnimation.SceneFromTime(StateTime) else
-        Result := WAKind.WalkAnimation.SceneFromTime(
-          StateTime - WAKind.StandToWalkAnimation.TimeEnd);
+      if StateTime < WAKind.StandToWalkAnimation.Animation.TimeEnd then
+        Result := WAKind.StandToWalkAnimation.Animation.SceneFromTime(StateTime) else
+        Result := WAKind.WalkAnimation.Animation.SceneFromTime(
+          StateTime - WAKind.StandToWalkAnimation.Animation.TimeEnd);
     wasAttack:
-      Result := WAKind.AttackAnimation.SceneFromTime(StateTime);
+      Result := WAKind.AttackAnimation.Animation.SceneFromTime(StateTime);
     wasDying:
-      Result := WAKind.DyingAnimation.SceneFromTime(StateTime);
+      Result := WAKind.DyingAnimation.Animation.SceneFromTime(StateTime);
     wasDyingBack:
-      Result := WAKind.DyingBackAnimation.SceneFromTime(StateTime);
+      Result := WAKind.DyingBackAnimation.Animation.SceneFromTime(StateTime);
     wasHurt:
-      Result := WAKind.HurtAnimation.SceneFromTime(StateTime);
+      Result := WAKind.HurtAnimation.Animation.SceneFromTime(StateTime);
     else raise EInternalError.Create('FState ?');
   end;
 end;
@@ -2278,7 +2204,7 @@ function TMissileCreature.GetChild: T3D;
 begin
   if not Kind.Prepared then Exit(nil);
 
-  Result := MissileKind.Animation.SceneFromTime(LifeTime);
+  Result := MissileKind.FlyAnimation.Animation.SceneFromTime(LifeTime);
 end;
 
 procedure TMissileCreature.ExplodeCore;
@@ -2314,7 +2240,7 @@ function TStillCreature.GetChild: T3D;
 begin
   if not Kind.Prepared then Exit(nil);
 
-  Result := StillKind.Animation.SceneFromTime(LifeTime);
+  Result := StillKind.StandAnimation.Animation.SceneFromTime(LifeTime);
 end;
 
 procedure TStillCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);

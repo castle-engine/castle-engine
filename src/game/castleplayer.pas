@@ -1263,7 +1263,7 @@ begin
   if (EquippedWeapon <> nil) and
     EquippedWeapon.Kind.Prepared then
   begin
-    AttackAnim := EquippedWeapon.Kind.AttackAnimation;
+    AttackAnim := EquippedWeapon.Kind.AttackAnimation.Animation;
     AttackTime := LifeTime - AttackStartTime;
     if Attacking and (AttackTime <= AttackAnim.TimeEnd) then
     begin
@@ -1275,7 +1275,7 @@ begin
       { although current weapons animations are just static,
         we use LifeTime to enable any weapon animation
         (like weapon swaying, or some fire over the sword or such) in the future. }
-      Result :=  EquippedWeapon.Kind.ReadyAnimation.SceneFromTime(LifeTime);
+      Result :=  EquippedWeapon.Kind.ReadyAnimation.Animation.SceneFromTime(LifeTime);
     end;
   end;
 end;

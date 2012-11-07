@@ -30,8 +30,7 @@ type
   { Kind of item. }
   TItemKind = class(T3DResource)
   private
-    FSceneFileName: string;
-    FScene: TCastlePrecalculatedAnimation;
+    FBaseAnimation: T3DResourceAnimation;
     FCaption: string;
     FImageFileName: string;
     FImage: TCastleImage;
@@ -41,23 +40,20 @@ type
     procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
       const GravityUp: TVector3Single;
       const DoProgress: boolean); override;
-    function PrepareCoreSteps: Cardinal; override;
     procedure ReleaseCore; override;
     { Which TInventoryItem descendant to create when constructing item
       of this kind by CreateItem. }
     function ItemClass: TInventoryItemClass; virtual;
   public
+    constructor Create(const AId: string); override;
     destructor Destroy; override;
 
     procedure LoadFromFile(KindsConfig: TCastleConfig); override;
 
-    property SceneFileName: string read FSceneFileName;
-
     { Nice caption to display. }
     property Caption: string read FCaption;
 
-    { Note that the Scene is nil if not Prepared. }
-    function Scene: TCastlePrecalculatedAnimation;
+    property BaseAnimation: T3DResourceAnimation read FBaseAnimation;
 
     { This is a 2d image, to be used for inventory slots etc.
       When you call this for the 1st time, the image will be loaded
@@ -73,11 +69,7 @@ type
 
     { The largest possible bounding box of the 3D item,
       taking into account that actual item 3D model will be rotated when
-      placed on world. You usually want to add current item position to this.
-
-      Note that this assumes that initial item Scene does not animate.
-      If it animates, possibly the actual bounding box will get larger,
-      we don't account for it here (now). }
+      placed on world. You usually want to add current item position to this. }
     property BoundingBoxRotated: TBox3D read FBoundingBoxRotated;
 
     { Create item. This is how you should create new TInventoryItem instances.
@@ -146,22 +138,17 @@ var
   TItemWeaponKind = class(TItemKind)
   private
     FEquippingSound: TSoundType;
-    FAttackAnimation: TCastlePrecalculatedAnimation;
-    FAttackAnimationFile: string;
-    FReadyAnimation: TCastlePrecalculatedAnimation;
-    FReadyAnimationFile: string;
+    FAttackAnimation: T3DResourceAnimation;
+    FReadyAnimation: T3DResourceAnimation;
     FActualAttackTime: Single;
     FSoundAttackStart: TSoundType;
   protected
-    procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
-      const GravityUp: TVector3Single;
-      const DoProgress: boolean); override;
-    function PrepareCoreSteps: Cardinal; override;
-    procedure ReleaseCore; override;
     function ItemClass: TInventoryItemClass; override;
   public
     const
       DefaultActualAttackTime = 0.0;
+
+    constructor Create(const AId: string); override;
 
     { Sound to make on equipping. Each weapon can have it's own
       equipping sound. }
@@ -169,12 +156,10 @@ var
       read FEquippingSound write FEquippingSound;
 
     { Animation of attack with this weapon. TimeBegin must be 0. }
-    property AttackAnimation: TCastlePrecalculatedAnimation
-      read FAttackAnimation;
+    property AttackAnimation: T3DResourceAnimation read FAttackAnimation;
 
     { Animation of keeping weapon ready. }
-    property ReadyAnimation: TCastlePrecalculatedAnimation
-      read FReadyAnimation;
+    property ReadyAnimation: T3DResourceAnimation read FReadyAnimation;
 
     { Time within AttackAnimation
       at which ActualAttack method will be called.
@@ -444,6 +429,12 @@ uses SysUtils, CastleFilesUtils, CastlePlayer, CastleGameNotifications,
 
 { TItemKind ------------------------------------------------------------ }
 
+constructor TItemKind.Create(const AId: string);
+begin
+  inherited;
+  FBaseAnimation := T3DResourceAnimation.Create(Self, 'base');
+end;
+
 destructor TItemKind.Destroy;
 begin
   FreeAndNil(FImage);
@@ -454,17 +445,11 @@ procedure TItemKind.LoadFromFile(KindsConfig: TCastleConfig);
 begin
   inherited;
 
-  FSceneFileName := KindsConfig.GetFileName('scene');
   FImageFileName := KindsConfig.GetFileName('image');
 
   FCaption := KindsConfig.GetValue('caption', '');
   if FCaption = '' then
     raise Exception.CreateFmt('Empty caption attribute for item "%s"', [Name]);
-end;
-
-function TItemKind.Scene: TCastlePrecalculatedAnimation;
-begin
-  Result := FScene;
 end;
 
 function TItemKind.Image: TCastleImage;
@@ -484,26 +469,22 @@ end;
 procedure TItemKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
   const GravityUp: TVector3Single;
   const DoProgress: boolean);
+var
+  B: TBox3D;
 begin
   inherited;
-  PreparePrecalculatedAnimation(FScene, SceneFileName, BaseLights, DoProgress);
+  B := FBaseAnimation.Animation.BoundingBox;
   FBoundingBoxRotated :=
-    Scene.BoundingBox.Transform(RotationMatrixDeg(45         , GravityUp)) +
-    Scene.BoundingBox.Transform(RotationMatrixDeg(45 + 90    , GravityUp)) +
-    Scene.BoundingBox.Transform(RotationMatrixDeg(45 + 90 * 2, GravityUp)) +
-    Scene.BoundingBox.Transform(RotationMatrixDeg(45 + 90 * 3, GravityUp));
+    B.Transform(RotationMatrixDeg(45         , GravityUp)) +
+    B.Transform(RotationMatrixDeg(45 + 90    , GravityUp)) +
+    B.Transform(RotationMatrixDeg(45 + 90 * 2, GravityUp)) +
+    B.Transform(RotationMatrixDeg(45 + 90 * 3, GravityUp));
   { prepare GLImage now }
   GLImage;
 end;
 
-function TItemKind.PrepareCoreSteps: Cardinal;
-begin
-  Result := (inherited PrepareCoreSteps) + 2;
-end;
-
 procedure TItemKind.ReleaseCore;
 begin
-  FScene := nil;
   FreeAndNil(FGLImage);
   inherited;
 end;
@@ -544,25 +525,11 @@ end;
 
 { TItemWeaponKind ------------------------------------------------------------ }
 
-procedure TItemWeaponKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
-  const GravityUp: TVector3Single;
-  const DoProgress: boolean);
+constructor TItemWeaponKind.Create(const AId: string);
 begin
   inherited;
-  PreparePrecalculatedAnimation(FAttackAnimation, FAttackAnimationFile, BaseLights, DoProgress);
-  PreparePrecalculatedAnimation(FReadyAnimation , FReadyAnimationFile , BaseLights, DoProgress);
-end;
-
-function TItemWeaponKind.PrepareCoreSteps: Cardinal;
-begin
-  Result := (inherited PrepareCoreSteps) + 2;
-end;
-
-procedure TItemWeaponKind.ReleaseCore;
-begin
-  FAttackAnimation := nil;
-  FReadyAnimation := nil;
-  inherited;
+  FAttackAnimation := T3DResourceAnimation.Create(Self, 'attack');
+  FReadyAnimation := T3DResourceAnimation.Create(Self, 'ready');
 end;
 
 procedure TItemWeaponKind.LoadFromFile(KindsConfig: TCastleConfig);
@@ -576,9 +543,6 @@ begin
     KindsConfig.GetValue('equipping_sound', ''));
   SoundAttackStart := SoundEngine.SoundFromName(
     KindsConfig.GetValue('sound_attack_start', ''));
-
-  FReadyAnimationFile:= KindsConfig.GetFileName('ready_animation');
-  FAttackAnimationFile := KindsConfig.GetFileName('attack_animation');
 end;
 
 function TItemWeaponKind.ItemClass: TInventoryItemClass;
@@ -793,7 +757,7 @@ end;
 function TItemOnWorld.GetChild: T3D;
 begin
   if (Item = nil) or not Item.Kind.Prepared then Exit(nil);
-  Result := Item.Kind.Scene;
+  Result := Item.Kind.BaseAnimation.Animation;
 end;
 
 procedure TItemOnWorld.Render(const Frustum: TFrustum;
