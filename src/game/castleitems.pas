@@ -45,7 +45,7 @@ type
       of this kind by CreateItem. }
     function ItemClass: TInventoryItemClass; virtual;
   public
-    constructor Create(const AId: string); override;
+    constructor Create(const AName: string); override;
     destructor Destroy; override;
 
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
@@ -148,7 +148,7 @@ var
     const
       DefaultActualAttackTime = 0.0;
 
-    constructor Create(const AId: string); override;
+    constructor Create(const AName: string); override;
 
     { Sound to make on equipping. Each weapon can have it's own
       equipping sound. }
@@ -429,7 +429,7 @@ uses SysUtils, CastleFilesUtils, CastlePlayer, CastleGameNotifications,
 
 { TItemKind ------------------------------------------------------------ }
 
-constructor TItemKind.Create(const AId: string);
+constructor TItemKind.Create(const AName: string);
 begin
   inherited;
   FBaseAnimation := T3DResourceAnimation.Create(Self, 'base');
@@ -525,7 +525,7 @@ end;
 
 { TItemWeaponKind ------------------------------------------------------------ }
 
-constructor TItemWeaponKind.Create(const AId: string);
+constructor TItemWeaponKind.Create(const AName: string);
 begin
   inherited;
   FAttackAnimation := T3DResourceAnimation.Create(Self, 'attack');

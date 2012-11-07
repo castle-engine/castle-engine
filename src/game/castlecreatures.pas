@@ -70,7 +70,7 @@ type
       DefaultAttackDamageRandom = 10.0;
       DefaultAttackKnockbackDistance = 0.1;
 
-    constructor Create(const AId: string); override;
+    constructor Create(const AName: string); override;
 
     { Flying creatures are not affected by gravity and
       (in case of TWalkAttackCreatureKind) their move direction is free.
@@ -289,7 +289,7 @@ type
       DefaultMaxHeightAcceptableToFall = 2.0 * 0.7;
       DefaultRandomWalkDistance = 10.0;
 
-    constructor Create(const AId: string); override;
+    constructor Create(const AName: string); override;
 
     { An animation of standing still.
       Beginning must be on time 0.
@@ -478,7 +478,7 @@ type
       DefaultHitsCreatures = false;
       DefaultDirectionFallSpeed = 0.0;
 
-    constructor Create(const AId: string); override;
+    constructor Create(const AName: string); override;
 
     { Missile uses the same animation all the time.
       In the simplest case, you can just place here a single scene. }
@@ -546,7 +546,7 @@ type
       const GravityUp: TVector3Single;
       const DoProgress: boolean); override;
   public
-    constructor Create(const AId: string); override;
+    constructor Create(const AName: string); override;
     property StandAnimation: T3DResourceAnimation read FStandAnimation;
     function CreatureClass: TCreatureClass; override;
   end;
@@ -770,9 +770,9 @@ var
 
 { TCreatureKind -------------------------------------------------------------- }
 
-constructor TCreatureKind.Create(const AId: string);
+constructor TCreatureKind.Create(const AName: string);
 begin
-  inherited Create(AId);
+  inherited;
   FFlying := DefaultFlying;
   FDefaultMaxLife := DefaultDefaultMaxLife;
   FKnockedBackDistance := DefaultKnockedBackDistance;
@@ -924,9 +924,9 @@ end;
 
 { TWalkAttackCreatureKind ---------------------------------------------------- }
 
-constructor TWalkAttackCreatureKind.Create(const AId: string);
+constructor TWalkAttackCreatureKind.Create(const AName: string);
 begin
-  inherited Create(AId);
+  inherited;
 
   MoveSpeed := DefaultMoveSpeed;
   FMinDelayBetweenAttacks := DefaultMinDelayBetweenAttacks;
@@ -990,9 +990,9 @@ end;
 
 { TMissileCreatureKind ---------------------------------------------------- }
 
-constructor TMissileCreatureKind.Create(const AId: string);
+constructor TMissileCreatureKind.Create(const AName: string);
 begin
-  inherited Create(AId);
+  inherited;
   FMoveSpeed := DefaultMoveSpeed;
   FCloseDirectionToTargetSpeed := DefaultCloseDirectionToTargetSpeed;
   FPauseBetweenSoundIdle := DefaultPauseBetweenSoundIdle;
@@ -1075,9 +1075,9 @@ end;
 
 { TStillCreatureKind ---------------------------------------------------- }
 
-constructor TStillCreatureKind.Create(const AId: string);
+constructor TStillCreatureKind.Create(const AName: string);
 begin
-  inherited Create(AId);
+  inherited;
   FStandAnimation := T3DResourceAnimation.Create(Self, 'stand');
 end;
 
