@@ -31,7 +31,7 @@ type
   TItemKind = class(T3DResource)
   private
     FSceneFileName: string;
-    FScene: TCastleScene;
+    FScene: TCastlePrecalculatedAnimation;
     FCaption: string;
     FImageFileName: string;
     FImage: TCastleImage;
@@ -57,7 +57,7 @@ type
     property Caption: string read FCaption;
 
     { Note that the Scene is nil if not Prepared. }
-    function Scene: TCastleScene;
+    function Scene: TCastlePrecalculatedAnimation;
 
     { This is a 2d image, to be used for inventory slots etc.
       When you call this for the 1st time, the image will be loaded
@@ -462,7 +462,7 @@ begin
     raise Exception.CreateFmt('Empty caption attribute for item "%s"', [Name]);
 end;
 
-function TItemKind.Scene: TCastleScene;
+function TItemKind.Scene: TCastlePrecalculatedAnimation;
 begin
   Result := FScene;
 end;
@@ -486,7 +486,7 @@ procedure TItemKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
   const DoProgress: boolean);
 begin
   inherited;
-  PrepareScene(FScene, SceneFileName, BaseLights, DoProgress);
+  PreparePrecalculatedAnimation(FScene, SceneFileName, BaseLights, DoProgress);
   FBoundingBoxRotated :=
     Scene.BoundingBox.Transform(RotationMatrixDeg(45         , GravityUp)) +
     Scene.BoundingBox.Transform(RotationMatrixDeg(45 + 90    , GravityUp)) +

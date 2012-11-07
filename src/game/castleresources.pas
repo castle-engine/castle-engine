@@ -27,6 +27,18 @@ const
   DefaultGrowSpeed = 5.0;
 
 type
+  T3DResource = class;
+
+  { Animation defined by T3DResource. }
+  T3DResourceAnimation = class
+  private
+    FName: string;
+  public
+    constructor Create(const AName: string);
+  end;
+
+  T3DResourceAnimationList = specialize TFPGObjectList<T3DResourceAnimation>;
+
   { Resource used for rendering and processing of 3D objects.
     By itself this doesn't render or do anything.
     But some 3D objects may need to have such resource prepared to work.
@@ -54,6 +66,7 @@ type
     FUsageCount: Cardinal;
     ConfigAlwaysPrepared: boolean;
     FFallSpeed, FGrowSpeed: Single;
+    FAnimations: T3DResourceAnimationList;
   protected
     { Prepare 3D resource loading it from given filename.
       Loads the resource only if filename is not empty,
@@ -65,8 +78,7 @@ type
 
       It calls Progress.Step 2 times, if DoProgress.
 
-      Animation or Scene is automatically added to our list of prepared
-      3D resources.
+      Animation is automatically added to our list of prepared 3D resources.
       So it's OpenGL resources will be automatically released in
       @link(GLContextClose), it will be fully released
       in @link(ReleaseCore) and destructor.
@@ -75,11 +87,6 @@ type
     procedure PreparePrecalculatedAnimation(
       var Anim: TCastlePrecalculatedAnimation;
       const AnimationFile: string;
-      const BaseLights: TAbstractLightInstancesList;
-      const DoProgress: boolean);
-    procedure PrepareScene(
-      var Scene: TCastleScene;
-      const SceneFileName: string;
       const BaseLights: TAbstractLightInstancesList;
       const DoProgress: boolean);
     { @groupEnd }
@@ -257,6 +264,14 @@ type
 var
   ResourceClasses: TResourceClasses;
 
+{ T3DResourceAnimation ------------------------------------------------------- }
+
+constructor T3DResourceAnimation.Create(const AName: string);
+begin
+  inherited Create;
+  FName := AName;
+end;
+
 { T3DResource ---------------------------------------------------------------- }
 
 constructor T3DResource.Create(const AName: string);
@@ -266,6 +281,7 @@ begin
   Allocated := T3DListCore.Create(true, nil);
   FFallSpeed := DefaultFallSpeed;
   FGrowSpeed := DefaultGrowSpeed;
+  FAnimations := T3DResourceAnimationList.Create;
 end;
 
 destructor T3DResource.Destroy;
@@ -273,6 +289,7 @@ begin
   FPrepared := false;
   ReleaseCore;
   FreeAndNil(Allocated);
+  FreeAndNil(FAnimations);
   inherited;
 end;
 
@@ -352,26 +369,6 @@ begin
 
   if Anim <> nil then
     Anim.PrepareResources([prRender, prBoundingBox] + prShadowVolume,
-      false, BaseLights);
-  if DoProgress then Progress.Step;
-end;
-
-procedure T3DResource.PrepareScene(
-  var Scene: TCastleScene;
-  const SceneFileName: string;
-  const BaseLights: TAbstractLightInstancesList;
-  const DoProgress: boolean);
-begin
-  if (SceneFileName <> '') and (Scene = nil) then
-  begin
-    Scene := TCastleScene.Create(nil);
-    Allocated.Add(Scene);
-    Scene.Load(SceneFileName);
-  end;
-  if DoProgress then Progress.Step;
-
-  if Scene <> nil then
-    Scene.PrepareResources([prRender, prBoundingBox] + prShadowVolume,
       false, BaseLights);
   if DoProgress then Progress.Step;
 end;
