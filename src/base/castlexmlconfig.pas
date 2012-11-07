@@ -31,9 +31,11 @@ unit CastleXMLConfig;
 interface
 
 uses CastleUtils, {$ifdef USE_OLD_XMLCFG} XMLCfg {$else} XMLConf {$endif}, DOM,
-  VectorMath, KeysMouse, GenericStructList, Classes;
+  VectorMath, KeysMouse, GenericStructList, SysUtils, Classes;
 
 type
+  EMissingAttribute = class(Exception);
+
   TCastleConfig = class;
 
   TCastleConfigEvent = procedure (const Config: TCastleConfig) of object;
@@ -141,11 +143,13 @@ type
       (when EmptyIfNoAttribute = @false, this is default),
       error will be raised.
 
-      @raises(Exception If EmptyIfNoAttribute = @false and no such attribute.) }
+      @raises(EMissingAttribute If EmptyIfNoAttribute = @false and no such attribute.) }
     function GetFileName(const APath: string;
       const EmptyIfNoAttribute: boolean = false): string;
 
-    { Get a value, as a string. Value must exist and cannot be empty in XML file. }
+    { Get a value, as a string. Value must exist and cannot be empty in XML file.
+
+      @raises(EMissingAttribute If value doesn't exist or is empty in XML file.) }
     function GetNonEmptyValue(const APath: string): string;
 
     procedure NotModified;
@@ -186,7 +190,7 @@ procedure Register;
 
 implementation
 
-uses SysUtils, CastleStringUtils, CastleFilesUtils, CastleLog;
+uses CastleStringUtils, CastleFilesUtils, CastleLog;
 
 procedure Register;
 begin
@@ -351,7 +355,7 @@ begin
   if Result = '' then
   begin
     if not EmptyIfNoAttribute then
-      raise Exception.CreateFmt('Missing attribute "%s" in XML file', [APath]);
+      raise EMissingAttribute.CreateFmt('Missing attribute "%s" in XML file', [APath]);
   end else
     Result := CombinePaths(ExtractFilePath(FileName), Result);
 end;
@@ -360,7 +364,7 @@ function TCastleConfig.GetNonEmptyValue(const APath: string): string;
 begin
   Result := GetValue(APath, '');
   if Result = '' then
-    raise Exception.CreateFmt('Missing attribute "%s" in XML file', [APath]);
+    raise EMissingAttribute.CreateFmt('Missing attribute "%s" in XML file', [APath]);
 end;
 
 procedure TCastleConfig.NotModified;

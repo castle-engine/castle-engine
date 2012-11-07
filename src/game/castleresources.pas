@@ -357,7 +357,7 @@ begin
 
   for I := 0 to Animations.Count - 1 do
     Animations[I].FileName := KindsConfig.GetFileName(
-      Animations[I].Name + '_animation', not Animations[I].Required);
+      'model/' + Animations[I].Name + '/file_name', not Animations[I].Required);
 end;
 
 procedure T3DResource.RedoPrepare(const BaseLights: TAbstractLightInstancesList;
@@ -444,38 +444,48 @@ var
 begin
   Xml := TCastleConfig.Create(nil);
   try
-    Xml.RootName := 'resource';
-    Xml.NotModified; { otherwise changing RootName makes it modified, and saved back at freeing }
-    Xml.FileName := FileName;
-    if Log then
-      WritelnLog('Resources', Format('Loading T3DResource from "%s"', [FileName]));
+    try
+      Xml.RootName := 'resource';
+      Xml.NotModified; { otherwise changing RootName makes it modified, and saved back at freeing }
+      Xml.FileName := FileName;
+      if Log then
+        WritelnLog('Resources', Format('Loading T3DResource from "%s"', [FileName]));
 
-    ResourceClassName := Xml.GetNonEmptyValue('type');
-    ResourceClassIndex := ResourceClasses.IndexOf(ResourceClassName);
-    if ResourceClassIndex <> -1 then
-      ResourceClass := ResourceClasses.Data[ResourceClassIndex] else
-      raise Exception.CreateFmt('Resource type "%s" not found, mentioned in file "%s"',
-        [ResourceClassName, FileName]);
+      ResourceClassName := Xml.GetNonEmptyValue('type');
+      ResourceClassIndex := ResourceClasses.IndexOf(ResourceClassName);
+      if ResourceClassIndex <> -1 then
+        ResourceClass := ResourceClasses.Data[ResourceClassIndex] else
+        raise Exception.CreateFmt('Resource type "%s" not found, mentioned in file "%s"',
+          [ResourceClassName, FileName]);
 
-    ResourceName := Xml.GetNonEmptyValue('name');
-    Resource := FindName(ResourceName, true);
-    if Resource <> nil then
-    begin
-      if ResourceXmlReload then
+      ResourceName := Xml.GetNonEmptyValue('name');
+      Resource := FindName(ResourceName, true);
+      if Resource <> nil then
       begin
-        if ResourceClass <> Resource.ClassType then
-          raise Exception.CreateFmt('Resource id "%s" already exists, but with different type. Old class is %s, new class is %s. Cannot reload resource.xml file in this situation',
-            [ResourceName, Resource.ClassType.ClassName, ResourceClass.ClassName]);
+        if ResourceXmlReload then
+        begin
+          if ResourceClass <> Resource.ClassType then
+            raise Exception.CreateFmt('Resource id "%s" already exists, but with different type. Old class is %s, new class is %s. Cannot reload resource.xml file in this situation',
+              [ResourceName, Resource.ClassType.ClassName, ResourceClass.ClassName]);
+        end else
+          raise Exception.CreateFmt('Resource id "%s" already exists. All resource ids inside resource.xml files must be unique',
+            [ResourceName]);
       end else
-        raise Exception.CreateFmt('Resource id "%s" already exists. All resource ids inside resource.xml files must be unique',
-          [ResourceName]);
-    end else
-    begin
-      Resource := ResourceClass.Create(ResourceName);
-      Add(Resource);
-    end;
+      begin
+        Resource := ResourceClass.Create(ResourceName);
+        Add(Resource);
+      end;
 
-    Resource.LoadFromFile(Xml);
+      Resource.LoadFromFile(Xml);
+    except
+      { enhance EMissingAttribute with information about the XML file where
+        it occured }
+      on E: EMissingAttribute do
+      begin
+        E.Message := E.Message + ' (When reading "' + FileName + '")';
+        raise;
+      end;
+    end;
   finally FreeAndNil(Xml) end;
 end;
 
