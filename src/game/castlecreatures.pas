@@ -168,7 +168,7 @@ type
 
     function CreatureClass: TCreatureClass; virtual; abstract;
 
-    procedure LoadFromFile(KindsConfig: TCastleConfig); override;
+    procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
 
     { Distance the creature is knocked back when hurt (should reflect
       the creature weight, how easy it is to push this creature).
@@ -398,7 +398,7 @@ type
     property LifeToRunAway: Single
       read FLifeToRunAway write FLifeToRunAway default DefaultLifeToRunAway;
 
-    procedure LoadFromFile(KindsConfig: TCastleConfig); override;
+    procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
 
     { Because most of the creatures will have their weapon
       on their front (teeth, shooting hands, claws, whatever),
@@ -494,7 +494,7 @@ type
 
     function CreatureClass: TCreatureClass; override;
 
-    procedure LoadFromFile(KindsConfig: TCastleConfig); override;
+    procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
 
     { For "homing" missiles, how fast direction to the target is corrected.
       Zero (default) means that the missile is not "homing". }
@@ -789,40 +789,40 @@ begin
   FFallSound := SoundEngine.SoundFromName(DefaultCreatureFallSoundName, false);
 end;
 
-procedure TCreatureKind.LoadFromFile(KindsConfig: TCastleConfig);
+procedure TCreatureKind.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
-  KnockBackSpeed := KindsConfig.GetFloat('knock_back_speed',
+  KnockBackSpeed := ResourceConfig.GetFloat('knock_back_speed',
     DefaultKnockBackSpeed);
-  KnockedBackDistance := KindsConfig.GetFloat('knocked_back_distance',
+  KnockedBackDistance := ResourceConfig.GetFloat('knocked_back_distance',
     DefaultKnockedBackDistance);
-  Flying := KindsConfig.GetValue('flying',
+  Flying := ResourceConfig.GetValue('flying',
     DefaultFlying);
-  SoundDyingTiedToCreature := KindsConfig.GetValue('sound_dying_tied_to_creature',
+  SoundDyingTiedToCreature := ResourceConfig.GetValue('sound_dying_tied_to_creature',
     DefaultSoundDyingTiedToCreature);
-  DefaultMaxLife := KindsConfig.GetFloat('default_max_life',
+  DefaultMaxLife := ResourceConfig.GetFloat('default_max_life',
     DefaultDefaultMaxLife);
-  RadiusFromFile := KindsConfig.GetFloat('radius',
+  RadiusFromFile := ResourceConfig.GetFloat('radius',
     0.0);
-  AttackDamageConst := KindsConfig.GetFloat('attack/damage/const',
+  AttackDamageConst := ResourceConfig.GetFloat('attack/damage/const',
     DefaultAttackDamageConst);
-  AttackDamageRandom := KindsConfig.GetFloat('attack/damage/random',
+  AttackDamageRandom := ResourceConfig.GetFloat('attack/damage/random',
     DefaultAttackDamageRandom);
-  AttackKnockbackDistance := KindsConfig.GetFloat('attack/knockback_distance',
+  AttackKnockbackDistance := ResourceConfig.GetFloat('attack/knockback_distance',
     DefaultAttackKnockbackDistance);
-  MiddleHeight := KindsConfig.GetFloat('middle_height', DefaultMiddleHeight);
-  FallMinHeightToSound := KindsConfig.GetFloat('fall/sound/min_height', DefaultCreatureFallMinHeightToSound);
-  FallMinHeightToDamage := KindsConfig.GetFloat('fall/damage/min_height', DefaultFallMinHeightToDamage);
-  FallDamageScaleMin := KindsConfig.GetFloat('fall/damage/scale_min', DefaultFallDamageScaleMin);
-  FallDamageScaleMax := KindsConfig.GetFloat('fall/damage/scale_max', DefaultFallDamageScaleMax);
+  MiddleHeight := ResourceConfig.GetFloat('middle_height', DefaultMiddleHeight);
+  FallMinHeightToSound := ResourceConfig.GetFloat('fall/sound/min_height', DefaultCreatureFallMinHeightToSound);
+  FallMinHeightToDamage := ResourceConfig.GetFloat('fall/damage/min_height', DefaultFallMinHeightToDamage);
+  FallDamageScaleMin := ResourceConfig.GetFloat('fall/damage/scale_min', DefaultFallDamageScaleMin);
+  FallDamageScaleMax := ResourceConfig.GetFloat('fall/damage/scale_max', DefaultFallDamageScaleMax);
 
   SoundSuddenPain := SoundEngine.SoundFromName(
-    KindsConfig.GetValue('sound_sudden_pain', ''));
+    ResourceConfig.GetValue('sound_sudden_pain', ''));
   SoundDying := SoundEngine.SoundFromName(
-    KindsConfig.GetValue('sound_dying', ''));
+    ResourceConfig.GetValue('sound_dying', ''));
   FallSound := SoundEngine.SoundFromName(
-    KindsConfig.GetValue('fall/sound/name', DefaultCreatureFallSoundName), false);
+    ResourceConfig.GetValue('fall/sound/name', DefaultCreatureFallSoundName), false);
 end;
 
 function TCreatureKind.Radius: Single;
@@ -957,35 +957,35 @@ begin
   RadiusFromPrepare := RadiusFromPrepareDefault(GravityUp);
 end;
 
-procedure TWalkAttackCreatureKind.LoadFromFile(KindsConfig: TCastleConfig);
+procedure TWalkAttackCreatureKind.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
-  ActualAttackTime := KindsConfig.GetFloat('actual_attack_time',
+  ActualAttackTime := ResourceConfig.GetFloat('actual_attack_time',
     DefaultActualAttackTime);
-  MoveSpeed := KindsConfig.GetFloat('move_speed',
+  MoveSpeed := ResourceConfig.GetFloat('move_speed',
     DefaultMoveSpeed);
-  MaxAttackDistance := KindsConfig.GetFloat('max_attack_distance',
+  MaxAttackDistance := ResourceConfig.GetFloat('max_attack_distance',
     DefaultMaxAttackDistance);
-  PreferredAttackDistance := KindsConfig.GetFloat('preferred_attack_distance',
+  PreferredAttackDistance := ResourceConfig.GetFloat('preferred_attack_distance',
     DefaultPreferredAttackDistance);
-  MinDelayBetweenAttacks := KindsConfig.GetFloat('min_delay_between_attacks',
+  MinDelayBetweenAttacks := ResourceConfig.GetFloat('min_delay_between_attacks',
     DefaultMinDelayBetweenAttacks);
-  LifeToRunAway := KindsConfig.GetFloat('life_to_run_away',
+  LifeToRunAway := ResourceConfig.GetFloat('life_to_run_away',
     DefaultLifeToRunAway);
-  MaxAngleToAttack := KindsConfig.GetFloat('max_angle_to_attack',
+  MaxAngleToAttack := ResourceConfig.GetFloat('max_angle_to_attack',
     DefaultMaxAngleToAttack);
-  MinLifeLossToHurt := KindsConfig.GetFloat('min_life_loss_to_hurt',
+  MinLifeLossToHurt := ResourceConfig.GetFloat('min_life_loss_to_hurt',
     DefaultMinLifeLossToHurt);
-  ChanceToHurt := KindsConfig.GetFloat('chance_to_hurt',
+  ChanceToHurt := ResourceConfig.GetFloat('chance_to_hurt',
     DefaultChanceToHurt);
-  MaxHeightAcceptableToFall := KindsConfig.GetFloat('max_height_acceptable_to_fall',
+  MaxHeightAcceptableToFall := ResourceConfig.GetFloat('max_height_acceptable_to_fall',
     DefaultMaxHeightAcceptableToFall);
-  RandomWalkDistance := KindsConfig.GetFloat('random_walk_distance',
+  RandomWalkDistance := ResourceConfig.GetFloat('random_walk_distance',
     DefaultRandomWalkDistance);
 
   SoundAttackStart := SoundEngine.SoundFromName(
-    KindsConfig.GetValue('sound_attack_start', ''));
+    ResourceConfig.GetValue('sound_attack_start', ''));
 end;
 
 { TMissileCreatureKind ---------------------------------------------------- }
@@ -1024,27 +1024,27 @@ begin
   Result := TMissileCreature;
 end;
 
-procedure TMissileCreatureKind.LoadFromFile(KindsConfig: TCastleConfig);
+procedure TMissileCreatureKind.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
-  MoveSpeed := KindsConfig.GetFloat('move_speed',
+  MoveSpeed := ResourceConfig.GetFloat('move_speed',
     DefaultMoveSpeed);
-  CloseDirectionToTargetSpeed := KindsConfig.GetFloat('close_direction_to_target_speed',
+  CloseDirectionToTargetSpeed := ResourceConfig.GetFloat('close_direction_to_target_speed',
     DefaultCloseDirectionToTargetSpeed);
-  PauseBetweenSoundIdle := KindsConfig.GetFloat('pause_between_sound_idle',
+  PauseBetweenSoundIdle := ResourceConfig.GetFloat('pause_between_sound_idle',
     DefaultPauseBetweenSoundIdle);
-  HitsPlayer := KindsConfig.GetValue('hits_player',
+  HitsPlayer := ResourceConfig.GetValue('hits_player',
     DefaultHitsPlayer);
-  HitsCreatures := KindsConfig.GetValue('hits_creatures',
+  HitsCreatures := ResourceConfig.GetValue('hits_creatures',
     DefaultHitsCreatures);
-  DirectionFallSpeed := KindsConfig.GetFloat('direction_fall_speed',
+  DirectionFallSpeed := ResourceConfig.GetFloat('direction_fall_speed',
     DefaultDirectionFallSpeed);
 
   SoundExplosion := SoundEngine.SoundFromName(
-    KindsConfig.GetValue('sound_explosion', ''));
+    ResourceConfig.GetValue('sound_explosion', ''));
   SoundIdle := SoundEngine.SoundFromName(
-    KindsConfig.GetValue('sound_idle', ''));
+    ResourceConfig.GetValue('sound_idle', ''));
 end;
 
 function TMissileCreatureKind.CreateCreature(World: T3DWorld;

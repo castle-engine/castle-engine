@@ -48,7 +48,7 @@ type
     constructor Create(const AId: string); override;
     destructor Destroy; override;
 
-    procedure LoadFromFile(KindsConfig: TCastleConfig); override;
+    procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
 
     { Nice caption to display. }
     property Caption: string read FCaption;
@@ -172,7 +172,7 @@ var
     property SoundAttackStart: TSoundType
       read FSoundAttackStart write FSoundAttackStart default stNone;
 
-    procedure LoadFromFile(KindsConfig: TCastleConfig); override;
+    procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
   end;
 
   TItemShortRangeWeaponKind = class(TItemWeaponKind)
@@ -196,7 +196,7 @@ var
       read FAttackKnockbackDistance write FAttackKnockbackDistance
       default DefaultAttackKnockbackDistance;
 
-    procedure LoadFromFile(KindsConfig: TCastleConfig); override;
+    procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
   end;
 
   TItemOnWorld = class;
@@ -441,13 +441,13 @@ begin
   inherited;
 end;
 
-procedure TItemKind.LoadFromFile(KindsConfig: TCastleConfig);
+procedure TItemKind.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
-  FImageFileName := KindsConfig.GetFileName('image');
+  FImageFileName := ResourceConfig.GetFileName('image');
 
-  FCaption := KindsConfig.GetValue('caption', '');
+  FCaption := ResourceConfig.GetValue('caption', '');
   if FCaption = '' then
     raise Exception.CreateFmt('Empty caption attribute for item "%s"', [Name]);
 end;
@@ -532,17 +532,17 @@ begin
   FReadyAnimation := T3DResourceAnimation.Create(Self, 'ready');
 end;
 
-procedure TItemWeaponKind.LoadFromFile(KindsConfig: TCastleConfig);
+procedure TItemWeaponKind.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
-  ActualAttackTime := KindsConfig.GetFloat('actual_attack_time',
+  ActualAttackTime := ResourceConfig.GetFloat('actual_attack_time',
     DefaultActualAttackTime);
 
   EquippingSound := SoundEngine.SoundFromName(
-    KindsConfig.GetValue('equipping_sound', ''));
+    ResourceConfig.GetValue('equipping_sound', ''));
   SoundAttackStart := SoundEngine.SoundFromName(
-    KindsConfig.GetValue('sound_attack_start', ''));
+    ResourceConfig.GetValue('sound_attack_start', ''));
 end;
 
 function TItemWeaponKind.ItemClass: TInventoryItemClass;
@@ -560,15 +560,15 @@ begin
   FAttackKnockbackDistance := DefaultAttackKnockbackDistance;
 end;
 
-procedure TItemShortRangeWeaponKind.LoadFromFile(KindsConfig: TCastleConfig);
+procedure TItemShortRangeWeaponKind.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
-  DamageConst := KindsConfig.GetFloat('damage/const',
+  DamageConst := ResourceConfig.GetFloat('damage/const',
     DefaultDamageConst);
-  DamageRandom := KindsConfig.GetFloat('damage/random',
+  DamageRandom := ResourceConfig.GetFloat('damage/random',
     DefaultDamageRandom);
-  AttackKnockbackDistance := KindsConfig.GetFloat('attack_knockback_distance',
+  AttackKnockbackDistance := ResourceConfig.GetFloat('attack_knockback_distance',
     DefaultAttackKnockbackDistance);
 end;
 

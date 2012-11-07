@@ -156,7 +156,7 @@ type
       for other info in VRML/X3D and XML node names.) }
     property Name: string read FName;
 
-    procedure LoadFromFile(KindsConfig: TCastleConfig); virtual;
+    procedure LoadFromFile(ResourceConfig: TCastleConfig); virtual;
 
     { Release and then immediately prepare again this resource.
       Call only when UsageCount <> 0, that is when resource is prepared.
@@ -347,16 +347,16 @@ begin
       Animations[I].Animation.GLContextClose;
 end;
 
-procedure T3DResource.LoadFromFile(KindsConfig: TCastleConfig);
+procedure T3DResource.LoadFromFile(ResourceConfig: TCastleConfig);
 var
   I: Integer;
 begin
-  ConfigAlwaysPrepared := KindsConfig.GetValue('always_prepared', false);
-  FFallSpeed := KindsConfig.GetFloat('fall_speed', DefaultFallSpeed);
-  FGrowSpeed := KindsConfig.GetFloat('grow_speed', DefaultGrowSpeed);
+  ConfigAlwaysPrepared := ResourceConfig.GetValue('always_prepared', false);
+  FFallSpeed := ResourceConfig.GetFloat('fall_speed', DefaultFallSpeed);
+  FGrowSpeed := ResourceConfig.GetFloat('grow_speed', DefaultGrowSpeed);
 
   for I := 0 to Animations.Count - 1 do
-    Animations[I].FileName := KindsConfig.GetFileName(
+    Animations[I].FileName := ResourceConfig.GetFileName(
       'model/' + Animations[I].Name + '/file_name', not Animations[I].Required);
 end;
 
