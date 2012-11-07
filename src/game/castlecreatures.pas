@@ -2061,11 +2061,6 @@ begin
       Result := WAKind.HurtAnimation.SceneFromTime(StateTime);
     else raise EInternalError.Create('FState ?');
   end;
-
-  { self-shadows on creatures look bad, esp. see werewolves at the end
-    of "castle hall" level. Changing XxxShadowVolumes here
-    is a little hacky (would be cleaner to do it at loading), but easy. }
-  TCastleScene(Result).ReceiveShadowVolumes := false;
 end;
 
 procedure TWalkAttackCreature.SetLife(const Value: Single);
@@ -2284,10 +2279,6 @@ begin
   if not Kind.Prepared then Exit(nil);
 
   Result := MissileKind.Animation.SceneFromTime(LifeTime);
-  { self-shadows on creatures look bad, esp. see werewolves at the end
-    of "castle hall" level. Changing XxxShadowVolumes here
-    is a little hacky (would be cleaner to do it at loading), but easy. }
-  TCastleScene(Result).ReceiveShadowVolumes := false;
 end;
 
 procedure TMissileCreature.ExplodeCore;
@@ -2324,10 +2315,6 @@ begin
   if not Kind.Prepared then Exit(nil);
 
   Result := StillKind.Animation.SceneFromTime(LifeTime);
-  { self-shadows on creatures look bad, esp. see werewolves at the end
-    of "castle hall" level. Changing XxxShadowVolumes here
-    is a little hacky (would be cleaner to do it at loading), but easy. }
-  TCastleScene(Result).ReceiveShadowVolumes := false;
 end;
 
 procedure TStillCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
