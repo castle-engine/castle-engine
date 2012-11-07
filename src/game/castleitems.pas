@@ -23,13 +23,6 @@ uses Boxes3D, X3DNodes, CastleScene, VectorMath, CastleUtils,
   PrecalculatedAnimation, CastleResources, GLImages,
   CastleXMLConfig, CastleSoundEngine, Frustum, Base3D, FGL, CastleColors;
 
-const
-  DefaultWeaponDamageConst = 5.0;
-  DefaultWeaponDamageRandom = 5.0;
-  DefaultWeaponActualAttackTime = 0.0;
-  DefaultWeaponAttackKnockbackDistance = 1.0;
-  DefaultItemRotationSpeed = Pi;
-
 type
   TInventoryItem = class;
   TInventoryItemClass = class of TInventoryItem;
@@ -167,6 +160,9 @@ var
     procedure ReleaseCore; override;
     function ItemClass: TInventoryItemClass; override;
   public
+    const
+      DefaultActualAttackTime = 0.0;
+
     { Sound to make on equipping. Each weapon can have it's own
       equipping sound. }
     property EquippingSound: TSoundType
@@ -186,7 +182,7 @@ var
       (hopefully it shouldn't be noticeable to the player). }
     property ActualAttackTime: Single
       read FActualAttackTime write FActualAttackTime
-      default DefaultWeaponActualAttackTime;
+      default DefaultActualAttackTime;
 
     property SoundAttackStart: TSoundType
       read FSoundAttackStart write FSoundAttackStart default stNone;
@@ -200,15 +196,20 @@ var
     FDamageRandom: Single;
     FAttackKnockbackDistance: Single;
   public
+    const
+      DefaultDamageConst = 5.0;
+      DefaultDamageRandom = 5.0;
+      DefaultAttackKnockbackDistance = 1.0;
+
     constructor Create(const AName: string); override;
 
     property DamageConst: Single read FDamageConst write FDamageConst
-      default DefaultWeaponDamageConst;
+      default DefaultDamageConst;
     property DamageRandom: Single read FDamageRandom write FDamageRandom
-      default DefaultWeaponDamageRandom;
+      default DefaultDamageRandom;
     property AttackKnockbackDistance: Single
       read FAttackKnockbackDistance write FAttackKnockbackDistance
-      default DefaultWeaponAttackKnockbackDistance;
+      default DefaultAttackKnockbackDistance;
 
     procedure LoadFromFile(KindsConfig: TCastleConfig); override;
   end;
@@ -385,7 +386,7 @@ var
     function GetChild: T3D; override;
   public
     { Speed of the rotation of 3D item on world.
-      In radians per second, default is DefaultItemRotationSpeed.
+      In radians per second, default is DefaultRotationSpeed.
       Set to zero to disable rotation. }
     RotationSpeed: Single; static;
 
@@ -393,6 +394,9 @@ var
       Default is @true. If you set this to @false, you most probably want to
       implement some other way of picking up items, use the ExtractItem method. }
     AutoPick: boolean; static;
+
+    const
+      DefaultRotationSpeed = Pi;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -566,7 +570,7 @@ begin
   inherited;
 
   ActualAttackTime := KindsConfig.GetFloat('actual_attack_time',
-    DefaultWeaponActualAttackTime);
+    DefaultActualAttackTime);
 
   EquippingSound := SoundEngine.SoundFromName(
     KindsConfig.GetValue('equipping_sound', ''));
@@ -587,9 +591,9 @@ end;
 constructor TItemShortRangeWeaponKind.Create(const AName: string);
 begin
   inherited;
-  FDamageConst := DefaultWeaponDamageConst;
-  FDamageRandom := DefaultWeaponDamageRandom;
-  FAttackKnockbackDistance := DefaultWeaponAttackKnockbackDistance;
+  FDamageConst := DefaultDamageConst;
+  FDamageRandom := DefaultDamageRandom;
+  FAttackKnockbackDistance := DefaultAttackKnockbackDistance;
 end;
 
 procedure TItemShortRangeWeaponKind.LoadFromFile(KindsConfig: TCastleConfig);
@@ -597,11 +601,11 @@ begin
   inherited;
 
   DamageConst := KindsConfig.GetFloat('damage/const',
-    DefaultWeaponDamageConst);
+    DefaultDamageConst);
   DamageRandom := KindsConfig.GetFloat('damage/random',
-    DefaultWeaponDamageRandom);
+    DefaultDamageRandom);
   AttackKnockbackDistance := KindsConfig.GetFloat('attack_knockback_distance',
-    DefaultWeaponAttackKnockbackDistance);
+    DefaultAttackKnockbackDistance);
 end;
 
 { TInventoryItem ------------------------------------------------------------ }
@@ -856,6 +860,6 @@ begin
 end;
 
 initialization
-  TItemOnWorld.RotationSpeed := DefaultItemRotationSpeed;
+  TItemOnWorld.RotationSpeed := TItemOnWorld.DefaultRotationSpeed;
   TItemOnWorld.AutoPick := true;
 end.

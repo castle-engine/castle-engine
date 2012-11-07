@@ -22,11 +22,6 @@ uses Boxes3D, Cameras, CastleItems, VectorMath, GL, GLU, CastleInputs, KeysMouse
   X3DTriangles, CastleTextureProperties, CastleSoundEngine, Classes, Base3D,
   CastleGLUtils, CastleColors, Frustum, CastleTriangles, CastleTimeUtils;
 
-const
-  DefaultPlayerLife = 100;
-  DefaultSickProjectionSpeed = 2.0;
-  DefaultRenderOnTop = true;
-
 type
   TPlayerSwimming = (psNo,
     { Player is floating on the water.
@@ -190,6 +185,11 @@ type
     DefaultMoveHorizontalSpeed: Single;
     DefaultMoveVerticalSpeed: Single;
     DefaultPreferredHeight: Single;
+
+    const
+      DefaultLife = 100;
+      DefaultSickProjectionSpeed = 2.0;
+      DefaultRenderOnTop = true;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -411,8 +411,8 @@ constructor TPlayer.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   CollidesWithMoving := true;
-  Life := DefaultPlayerLife;
-  MaxLife := DefaultPlayerLife;
+  Life := DefaultLife;
+  MaxLife := DefaultLife;
   DefaultMoveHorizontalSpeed := 1.0;
   DefaultMoveVerticalSpeed := 1.0;
   DefaultPreferredHeight := 0.0;

@@ -23,45 +23,6 @@ uses Classes, VectorMath, PrecalculatedAnimation, Boxes3D, CastleClassUtils,
   CastleResources, CastleXMLConfig, Base3D,
   CastleSoundEngine, Frustum, X3DNodes, CastleColors, FGL;
 
-const
-  { Default value for TCreatureKind.DefaultMaxLife.
-    Yes, it's not a typo, this identifier starts with "DefaultDefault". }
-  DefaultDefaultMaxLife = 100.0;
-
-  DefaultFlying = false;
-
-  DefaultMoveSpeed = 10.0;
-  DefaultMinDelayBetweenAttacks = 5.0;
-  DefaultMaxAttackDistance = 35.0;
-  DefaultPreferredAttackDistance = 30.0 * 0.7;
-  DefaultMissileMoveSpeed = 35.0;
-  DefaultKnockedBackDistance = 6.0 * 0.7;
-  DefaultLifeToRunAway = 0.3;
-  DefaultActualAttackTime = 0.0;
-  { Default TWalkAttackCreatureKind.MaxAngleToAttack. 30 degrees. }
-  DefaultMaxAngleToAttack = Pi / 6;
-
-  DefaultSoundDyingTiedToCreature = true;
-
-  DefaultMinLifeLossToHurt = 0.0;
-  DefaultChanceToHurt = 1.0;
-
-  DefaultCloseDirectionToTargetSpeed = 0.0;
-
-  DefaultShortRangeAttackDamageConst = 10.0;
-  DefaultShortRangeAttackDamageRandom = 10.0;
-  DefaultShortRangeAttackKnockbackDistance = 0.1;
-
-  DefaultMaxHeightAcceptableToFall = 2.0 * 0.7;
-
-  DefaultCreatureRandomWalkDistance = 10.0;
-
-  DefaultPauseBetweenSoundIdle = 2.5;
-
-  DefaultHitsPlayer = true;
-  DefaultHitsCreatures = false;
-  DefaultDirectionFallSpeed = 0.0;
-
 type
   TCreature = class;
 
@@ -99,6 +60,17 @@ type
       const AnAnimation: TCastlePrecalculatedAnimation;
       const GravityUp: TVector3Single): Single;
   public
+    const
+      { Default value for TCreatureKind.DefaultMaxLife.
+        Yes, it's not a typo, this identifier starts with "DefaultDefault". }
+      DefaultDefaultMaxLife = 100.0;
+      DefaultFlying = false;
+      DefaultKnockedBackDistance = 6.0 * 0.7;
+      DefaultSoundDyingTiedToCreature = true;
+      DefaultShortRangeAttackDamageConst = 10.0;
+      DefaultShortRangeAttackDamageRandom = 10.0;
+      DefaultShortRangeAttackKnockbackDistance = 0.1;
+
     constructor Create(const AId: string); override;
 
     { Flying creatures are not affected by gravity and
@@ -319,6 +291,20 @@ type
     function PrepareCoreSteps: Cardinal; override;
     procedure ReleaseCore; override;
   public
+    const
+      DefaultMoveSpeed = 10.0;
+      DefaultMinDelayBetweenAttacks = 5.0;
+      DefaultMaxAttackDistance = 35.0;
+      DefaultPreferredAttackDistance = 30.0 * 0.7;
+      DefaultLifeToRunAway = 0.3;
+      DefaultActualAttackTime = 0.0;
+      { Default TWalkAttackCreatureKind.MaxAngleToAttack. 30 degrees. }
+      DefaultMaxAngleToAttack = Pi / 6;
+      DefaultMinLifeLossToHurt = 0.0;
+      DefaultChanceToHurt = 1.0;
+      DefaultMaxHeightAcceptableToFall = 2.0 * 0.7;
+      DefaultRandomWalkDistance = 10.0;
+
     constructor Create(const AId: string); override;
 
     { An animation of standing still.
@@ -472,7 +458,7 @@ type
     property RandomWalkDistance: Single
       read FRandomWalkDistance
       write FRandomWalkDistance
-      default DefaultCreatureRandomWalkDistance;
+      default DefaultRandomWalkDistance;
   end;
 
   { Creature that blindly moves in a given direction.
@@ -503,6 +489,14 @@ type
     function PrepareCoreSteps: Cardinal; override;
     procedure ReleaseCore; override;
   public
+    const
+      DefaultMoveSpeed = 35.0;
+      DefaultCloseDirectionToTargetSpeed = 0.0;
+      DefaultPauseBetweenSoundIdle = 2.5;
+      DefaultHitsPlayer = true;
+      DefaultHitsCreatures = false;
+      DefaultDirectionFallSpeed = 0.0;
+
     constructor Create(const AId: string); override;
 
     { Missile uses the same animation all the time.
@@ -512,7 +506,7 @@ type
     { The moving speed: how much Direction vector will be scaled
       when moving. }
     property MoveSpeed: Single read FMoveSpeed write FMoveSpeed
-      default DefaultMissileMoveSpeed;
+      default DefaultMoveSpeed;
 
     property SoundExplosion: TSoundType
       read FSoundExplosion write FSoundExplosion default stNone;
@@ -969,7 +963,7 @@ begin
   FMinLifeLossToHurt := DefaultMinLifeLossToHurt;
   FChanceToHurt := DefaultChanceToHurt;
   FMaxHeightAcceptableToFall := DefaultMaxHeightAcceptableToFall;
-  FRandomWalkDistance := DefaultCreatureRandomWalkDistance;
+  FRandomWalkDistance := DefaultRandomWalkDistance;
 end;
 
 procedure TWalkAttackCreatureKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
@@ -1032,7 +1026,7 @@ begin
   MaxHeightAcceptableToFall := KindsConfig.GetFloat('max_height_acceptable_to_fall',
     DefaultMaxHeightAcceptableToFall);
   RandomWalkDistance := KindsConfig.GetFloat('random_walk_distance',
-    DefaultCreatureRandomWalkDistance);
+    DefaultRandomWalkDistance);
 
   SoundAttackStart := SoundEngine.SoundFromName(
     KindsConfig.GetValue('sound_attack_start', ''));
@@ -1051,7 +1045,7 @@ end;
 constructor TMissileCreatureKind.Create(const AId: string);
 begin
   inherited Create(AId);
-  FMoveSpeed := DefaultMissileMoveSpeed;
+  FMoveSpeed := DefaultMoveSpeed;
   FCloseDirectionToTargetSpeed := DefaultCloseDirectionToTargetSpeed;
   FPauseBetweenSoundIdle := DefaultPauseBetweenSoundIdle;
   FHitsPlayer := DefaultHitsPlayer;
@@ -1098,7 +1092,7 @@ begin
   inherited;
 
   MoveSpeed := KindsConfig.GetFloat('move_speed',
-    DefaultMissileMoveSpeed);
+    DefaultMoveSpeed);
   CloseDirectionToTargetSpeed := KindsConfig.GetFloat('close_direction_to_target_speed',
     DefaultCloseDirectionToTargetSpeed);
   PauseBetweenSoundIdle := KindsConfig.GetFloat('pause_between_sound_idle',
