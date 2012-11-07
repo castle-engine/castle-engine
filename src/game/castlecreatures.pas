@@ -805,11 +805,11 @@ begin
     DefaultDefaultMaxLife);
   RadiusFromFile := KindsConfig.GetFloat('radius',
     0.0);
-  AttackDamageConst := KindsConfig.GetFloat('short_range_attack/damage/const',
+  AttackDamageConst := KindsConfig.GetFloat('attack/damage/const',
     DefaultAttackDamageConst);
-  AttackDamageRandom := KindsConfig.GetFloat('short_range_attack/damage/random',
+  AttackDamageRandom := KindsConfig.GetFloat('attack/damage/random',
     DefaultAttackDamageRandom);
-  AttackKnockbackDistance := KindsConfig.GetFloat('short_range_attack/knockback_distance',
+  AttackKnockbackDistance := KindsConfig.GetFloat('attack/knockback_distance',
     DefaultAttackKnockbackDistance);
   MiddleHeight := KindsConfig.GetFloat('middle_height', DefaultMiddleHeight);
   FallMinHeightToSound := KindsConfig.GetFloat('fall/sound/min_height', DefaultCreatureFallMinHeightToSound);
