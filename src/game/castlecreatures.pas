@@ -30,7 +30,7 @@ type
 
   { Basic kind of creature that can walk or fly, has life and can be hurt. }
   TCreatureKind = class(T3DResource)
-  private
+  strict private
     FFlying: boolean;
     FSoundSuddenPain: TSoundType;
     FSoundDying: TSoundType;
@@ -39,7 +39,7 @@ type
     FKnockedBackDistance: Single;
     FKnockBackSpeed: Single;
 
-    RadiusFromFile: Single;
+    RadiusConfigured: Single;
 
     FAttackDamageConst: Single;
     FAttackDamageRandom: Single;
@@ -52,12 +52,15 @@ type
     FFallSound: TSoundType;
 
     FMiddleHeight: Single;
-  protected
-    { Calculated @link(Radius). In descendants only @link(Prepare) can set this. }
-    RadiusFromPrepare: Single;
 
-    function RadiusFromPrepareDefault(
-      const GravityUp: TVector3Single): Single;
+    { Calculated @link(Radius) suitable for this creature.
+      This is set by our @link(Prepare) using RadiusCalculate method. }
+    RadiusCalculated: Single;
+  protected
+    function RadiusCalculate(const GravityUp: TVector3Single): Single; virtual;
+    procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
+      const GravityUp: TVector3Single;
+      const DoProgress: boolean); override;
   public
     const
       { Default value for TCreatureKind.DefaultMaxLife.
@@ -85,25 +88,26 @@ type
       (and think about moving) only horizontally. }
     property Flying: boolean read FFlying write FFlying default DefaultFlying;
 
-    { Sphere radius for collision detection.
+    { Sphere radius for collision detection for alive creatures.
       Must be something <> 0 for collision detection.
 
       You can define it in the creature resource.xml file,
       by setting radius="xxx" attribute on the root <resource> element.
 
       If it's not defined (or zero) in resource.xml file,
-      then we take calculated radius from RadiusFromPrepare property.
-      RadiusFromPrepare is always calculated in @link(Prepare).
-      All creature classes in CastleCreatures do calculate it in
-      @link(Prepare) method, you can also override it in descendants
-      by overriding @link(Prepare) method.
+      then we use automatically calculated radius using RadiusCalculate,
+      that is adjusted to the bounding box of animation.
 
-      Radius is not used when creature is dead, as dead creatures usually have wildly
+      Note that this radius is not used at all when creature is dead,
+      as dead creatures usually have wildly
       different boxes (tall humanoid creature probably has a flat bounding
       box when it's dead lying on the ground), so trying to use (the same)
       radius would only cause problems.
+      Using sphere collision is also not necessary for dead creatures.
+      See T3D.Sphere for more discussion about when the sphere is a useful
+      bounding volume.
 
-      This is always measured from Middle ("eye position") of the given creature.
+      The sphere center is the Middle point ("eye position") of the given creature.
       If the creature may be affected by gravity then
       make sure radius is < than PreferredHeight of the creature,
       see T3D.PreferredHeight, otherwise creature may get stuck into ground.
@@ -270,10 +274,6 @@ type
     FChanceToHurt: Single;
     FMaxHeightAcceptableToFall: Single;
     FRandomWalkDistance: Single;
-  protected
-    procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
-      const GravityUp: TVector3Single;
-      const DoProgress: boolean); override;
   public
     const
       DefaultMoveSpeed = 10.0;
@@ -466,9 +466,7 @@ type
     FHitsCreatures: boolean;
     FDirectionFallSpeed: Single;
   protected
-    procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
-      const GravityUp: TVector3Single;
-      const DoProgress: boolean); override;
+    function RadiusCalculate(const GravityUp: TVector3Single): Single; override;
   public
     const
       DefaultMoveSpeed = 35.0;
@@ -541,10 +539,6 @@ type
   TStillCreatureKind = class(TCreatureKind)
   private
     FStandAnimation: T3DResourceAnimation;
-  protected
-    procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
-      const GravityUp: TVector3Single;
-      const DoProgress: boolean); override;
   public
     constructor Create(const AName: string); override;
     property StandAnimation: T3DResourceAnimation read FStandAnimation;
@@ -803,8 +797,7 @@ begin
     DefaultSoundDyingTiedToCreature);
   DefaultMaxLife := ResourceConfig.GetFloat('default_max_life',
     DefaultDefaultMaxLife);
-  RadiusFromFile := ResourceConfig.GetFloat('radius',
-    0.0);
+  RadiusConfigured := ResourceConfig.GetFloat('radius', 0.0);
   AttackDamageConst := ResourceConfig.GetFloat('attack/damage/const',
     DefaultAttackDamageConst);
   AttackDamageRandom := ResourceConfig.GetFloat('attack/damage/random',
@@ -827,20 +820,19 @@ end;
 
 function TCreatureKind.Radius: Single;
 begin
-  if RadiusFromFile <> 0 then
-    Result := RadiusFromFile else
-    Result := RadiusFromPrepare;
+  if RadiusConfigured <> 0 then
+    Result := RadiusConfigured else
+    Result := RadiusCalculated;
 end;
 
-function TCreatureKind.RadiusFromPrepareDefault(
-  const GravityUp: TVector3Single): Single;
+function TCreatureKind.RadiusCalculate(const GravityUp: TVector3Single): Single;
 var
   GC: Integer;
   Box: TBox3D;
   MaxRadiusForGravity: Single;
 begin
-  { calculate default RadiusFromPrepare.
-    Descendants can override Prepare to provide better RadiusFromPrepare
+  { calculate default RadiusCalculated.
+    Descendants can override this to provide better radius calculation
     (or define radius in resource.xml file), so it's Ok to make here
     some assumptions that should suit usual cases, but not necessarily
     all possible cases --- e.g. our MaxRadiusForGravity calculation assumes you
@@ -922,6 +914,14 @@ begin
   CreateCreature(World, APosition, CreatureDirection, MaxLife);
 end;
 
+procedure TCreatureKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
+  const GravityUp: TVector3Single;
+  const DoProgress: boolean);
+begin
+  inherited;
+  RadiusCalculated := RadiusCalculate(GravityUp);
+end;
+
 { TWalkAttackCreatureKind ---------------------------------------------------- }
 
 constructor TWalkAttackCreatureKind.Create(const AName: string);
@@ -947,14 +947,6 @@ begin
   FDyingAnimation := T3DResourceAnimation.Create(Self, 'dying');
   FDyingBackAnimation := T3DResourceAnimation.Create(Self, 'dying_back', false);
   FHurtAnimation := T3DResourceAnimation.Create(Self, 'hurt');
-end;
-
-procedure TWalkAttackCreatureKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
-  const GravityUp: TVector3Single;
-  const DoProgress: boolean);
-begin
-  inherited;
-  RadiusFromPrepare := RadiusFromPrepareDefault(GravityUp);
 end;
 
 procedure TWalkAttackCreatureKind.LoadFromFile(ResourceConfig: TCastleConfig);
@@ -1002,21 +994,19 @@ begin
   FFlyAnimation := T3DResourceAnimation.Create(Self, 'fly');
 end;
 
-procedure TMissileCreatureKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
-  const GravityUp: TVector3Single;
-  const DoProgress: boolean);
+function TMissileCreatureKind.RadiusCalculate(const GravityUp: TVector3Single): Single;
 var
   Box: TBox3D;
 begin
-  inherited;
+  Box := FlyAnimation.Animation.BoundingBox;
 
-  Box := FlyAnimation.Animation.Scenes[0].BoundingBox;
   { Use MinSize for missile, since smaller radius for missiles
     forces player to aim more precisely. Smaller radius may also allow some
     partial collisions to go undetected, but that's not a problem as the
     collisions imperfections are not noticeable for fast moving missiles. }
   if not Box.IsEmpty then
-    RadiusFromPrepare := Box.MinSize / 2;
+    Result := Box.MinSize / 2 else
+    Result := inherited;
 end;
 
 function TMissileCreatureKind.CreatureClass: TCreatureClass;
@@ -1079,14 +1069,6 @@ constructor TStillCreatureKind.Create(const AName: string);
 begin
   inherited;
   FStandAnimation := T3DResourceAnimation.Create(Self, 'stand');
-end;
-
-procedure TStillCreatureKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
-  const GravityUp: TVector3Single;
-  const DoProgress: boolean);
-begin
-  inherited;
-  RadiusFromPrepare := RadiusFromPrepareDefault(GravityUp);
 end;
 
 function TStillCreatureKind.CreatureClass: TCreatureClass;
