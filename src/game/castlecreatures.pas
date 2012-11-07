@@ -41,9 +41,9 @@ type
 
     RadiusFromFile: Single;
 
-    FShortRangeAttackDamageConst: Single;
-    FShortRangeAttackDamageRandom: Single;
-    FShortRangeAttackKnockbackDistance: Single;
+    FAttackDamageConst: Single;
+    FAttackDamageRandom: Single;
+    FAttackKnockbackDistance: Single;
 
     FFallMinHeightToSound: Single;
     FFallMinHeightToDamage: Single;
@@ -67,9 +67,9 @@ type
       DefaultFlying = false;
       DefaultKnockedBackDistance = 6.0 * 0.7;
       DefaultSoundDyingTiedToCreature = true;
-      DefaultShortRangeAttackDamageConst = 10.0;
-      DefaultShortRangeAttackDamageRandom = 10.0;
-      DefaultShortRangeAttackKnockbackDistance = 0.1;
+      DefaultAttackDamageConst = 10.0;
+      DefaultAttackDamageRandom = 10.0;
+      DefaultAttackKnockbackDistance = 0.1;
 
     constructor Create(const AId: string); override;
 
@@ -193,39 +193,34 @@ type
     property KnockBackSpeed: Single
       read FKnockBackSpeed write FKnockBackSpeed default DefaultKnockBackSpeed;
 
-    { Short range attack damage and knockback.
-      These will be used only by some creatures, the ones that do
-      ShortRangeAttackHurt in their ActualAttack implementation.
+    { Default attack damage and knockback.
+      Used only by the creatures that actually do some kind of direct attack.
+      For example it is used for short-range attack by TWalkAttackCreatureKind
+      and for explosion of TMissileCreatureKind.
+      For example it is @italic(not) used by creatures that merely fire missiles,
+      as in this case the missile is created as another creature
+      and it's the missile that causes damage on impact.
 
-      ShortRangeAttackDamageConst and ShortRangeAttackDamageRandom
-      and ShortRangeAttackKnockbackDistance must be >= 0.
+      TCreature descendants may call AttackHurt
+      in their ActualAttack implementation to easily apply this kind of damage
+      to Player.
 
-      ShortRangeAttackKnockbackDistance = 0 means no knockback.
+      All three AttackDamageXxx values must be >= 0.
 
-      Exploding missiles also use these properties.
-      When missile explodes on impact with other alive 3D object,
-      it's damage and knockback are taken from these properties.
+      AttackKnockbackDistance = 0 means no knockback.
 
       @groupBegin }
-    property ShortRangeAttackDamageConst: Single
-      read FShortRangeAttackDamageConst
-      write FShortRangeAttackDamageConst
-      default DefaultShortRangeAttackDamageConst;
-
-    property ShortRangeAttackDamageRandom: Single
-      read FShortRangeAttackDamageRandom
-      write FShortRangeAttackDamageRandom
-      default DefaultShortRangeAttackDamageRandom;
-
-    property ShortRangeAttackKnockbackDistance: Single
-      read FShortRangeAttackKnockbackDistance
-      write FShortRangeAttackKnockbackDistance
-      default DefaultShortRangeAttackKnockbackDistance;
+    property AttackDamageConst: Single
+      read FAttackDamageConst write FAttackDamageConst default DefaultAttackDamageConst;
+    property AttackDamageRandom: Single
+      read FAttackDamageRandom write FAttackDamageRandom default DefaultAttackDamageRandom;
+    property AttackKnockbackDistance: Single
+      read FAttackKnockbackDistance write FAttackKnockbackDistance default DefaultAttackKnockbackDistance;
     { @groupEnd }
 
     { See T3DCustomTransform.MiddleHeight. }
-    property MiddleHeight: Single read FMiddleHeight write FMiddleHeight
-      default DefaultMiddleHeight;
+    property MiddleHeight: Single
+      read FMiddleHeight write FMiddleHeight default DefaultMiddleHeight;
 
     property FallMinHeightToSound: Single
       read FFallMinHeightToSound write FFallMinHeightToSound default DefaultCreatureFallMinHeightToSound;
@@ -603,7 +598,7 @@ type
       (intuitively, legs and eye positions). }
     function LerpLegsMiddle(const A: Single): TVector3Single;
 
-    procedure ShortRangeAttackHurt;
+    procedure AttackHurt;
 
     function DebugCaption: string; virtual;
   public
@@ -805,9 +800,9 @@ begin
   FKnockedBackDistance := DefaultKnockedBackDistance;
   FKnockBackSpeed := DefaultKnockBackSpeed;
   FSoundDyingTiedToCreature := DefaultSoundDyingTiedToCreature;
-  FShortRangeAttackDamageConst := DefaultShortRangeAttackDamageConst;
-  FShortRangeAttackDamageRandom := DefaultShortRangeAttackDamageRandom;
-  FShortRangeAttackKnockbackDistance := DefaultShortRangeAttackKnockbackDistance;
+  FAttackDamageConst := DefaultAttackDamageConst;
+  FAttackDamageRandom := DefaultAttackDamageRandom;
+  FAttackKnockbackDistance := DefaultAttackKnockbackDistance;
   FMiddleHeight := DefaultMiddleHeight;
   FFallMinHeightToSound := DefaultCreatureFallMinHeightToSound;
   FFallMinHeightToDamage := DefaultFallMinHeightToDamage;
@@ -832,12 +827,12 @@ begin
     DefaultDefaultMaxLife);
   RadiusFromFile := KindsConfig.GetFloat('radius',
     0.0);
-  ShortRangeAttackDamageConst := KindsConfig.GetFloat('short_range_attack/damage/const',
-    DefaultShortRangeAttackDamageConst);
-  ShortRangeAttackDamageRandom := KindsConfig.GetFloat('short_range_attack/damage/random',
-    DefaultShortRangeAttackDamageRandom);
-  ShortRangeAttackKnockbackDistance := KindsConfig.GetFloat('short_range_attack/knockback_distance',
-    DefaultShortRangeAttackKnockbackDistance);
+  AttackDamageConst := KindsConfig.GetFloat('short_range_attack/damage/const',
+    DefaultAttackDamageConst);
+  AttackDamageRandom := KindsConfig.GetFloat('short_range_attack/damage/random',
+    DefaultAttackDamageRandom);
+  AttackKnockbackDistance := KindsConfig.GetFloat('short_range_attack/knockback_distance',
+    DefaultAttackKnockbackDistance);
   MiddleHeight := KindsConfig.GetFloat('middle_height', DefaultMiddleHeight);
   FallMinHeightToSound := KindsConfig.GetFloat('fall/sound/min_height', DefaultCreatureFallMinHeightToSound);
   FallMinHeightToDamage := KindsConfig.GetFloat('fall/damage/min_height', DefaultFallMinHeightToDamage);
@@ -1380,16 +1375,16 @@ begin
   inherited;
 end;
 
-procedure TCreature.ShortRangeAttackHurt;
+procedure TCreature.AttackHurt;
 var
   Player: T3DAlive;
 begin
   Player := World.Player as T3DAlive;
   if Player = nil then Exit; { no Player to hurt }
 
-  Player.Hurt(Kind.ShortRangeAttackDamageConst +
-    Random * Kind.ShortRangeAttackDamageRandom, Direction,
-    Kind.ShortRangeAttackKnockbackDistance);
+  Player.Hurt(Kind.AttackDamageConst +
+    Random * Kind.AttackDamageRandom, Direction,
+    Kind.AttackKnockbackDistance);
 end;
 
 function TCreature.Sphere(out Radius: Single): boolean;
@@ -2307,14 +2302,14 @@ end;
 
 procedure TMissileCreature.ExplodeWithPlayer;
 begin
-  ShortRangeAttackHurt;
+  AttackHurt;
 end;
 
 procedure TMissileCreature.ExplodeWithCreature(Creature: TCreature);
 begin
-  Creature.Hurt(Kind.ShortRangeAttackDamageConst +
-    Random * Kind.ShortRangeAttackDamageRandom, Direction,
-    Kind.ShortRangeAttackKnockbackDistance);
+  Creature.Hurt(Kind.AttackDamageConst +
+    Random * Kind.AttackDamageRandom, Direction,
+    Kind.AttackKnockbackDistance);
 end;
 
 { TStillCreature ----------------------------------------------------------- }
