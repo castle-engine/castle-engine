@@ -692,8 +692,7 @@ type
 
     destructor Destroy; override;
 
-    { Shortcut for TWalkAttackCreatureKind(Kind). }
-    function WAKind: TWalkAttackCreatureKind;
+    function Kind: TWalkAttackCreatureKind;
 
     property State: TWalkAttackCreatureState read FState
       default wasStand;
@@ -735,8 +734,7 @@ type
   public
     constructor Create(AOwner: TComponent; const AMaxLife: Single); override;
 
-    { Shortcut for TMissileCreatureKind(Kind). }
-    function MissileKind: TMissileCreatureKind;
+    function Kind: TMissileCreatureKind;
 
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
   end;
@@ -746,8 +744,7 @@ type
   protected
     function GetChild: T3D; override;
   public
-    { Shortcut for TStillCreatureKind(Kind). }
-    function StillKind: TStillCreatureKind;
+    function Kind: TStillCreatureKind;
 
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
   end;
@@ -1340,9 +1337,9 @@ begin
   inherited;
 end;
 
-function TWalkAttackCreature.WAKind: TWalkAttackCreatureKind;
+function TWalkAttackCreature.Kind: TWalkAttackCreatureKind;
 begin
-  Result := TWalkAttackCreatureKind(Kind);
+  Result := TWalkAttackCreatureKind(inherited Kind);
 end;
 
 procedure TWalkAttackCreature.SetState(Value: TWalkAttackCreatureState);
@@ -1355,7 +1352,7 @@ begin
     case FState of
       wasAttack:
         begin
-          Sound3d(WAKind.SoundAttackStart, 1.0);
+          Sound3d(Kind.SoundAttackStart, 1.0);
           LastAttackTime := StateChangeTime;
           ActualAttackDone := false;
         end;
@@ -1371,8 +1368,8 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
     AngleRadBetweenTheDirectionToPlayer: Single;
   begin
     Result := IdleSeesPlayer and
-      (LifeTime - LastAttackTime > WAKind.MinDelayBetweenAttacks) and
-      (IdleSqrDistanceToLastSeenPlayer <= Sqr(WAKind.MaxAttackDistance));
+      (LifeTime - LastAttackTime > Kind.MinDelayBetweenAttacks) and
+      (IdleSqrDistanceToLastSeenPlayer <= Sqr(Kind.MaxAttackDistance));
 
     if Result then
     begin
@@ -1380,7 +1377,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
       AngleRadBetweenTheDirectionToPlayer := AngleRadBetweenVectors(
         VectorSubtract(LastSeenPlayer, Middle),
         Direction);
-      Result := AngleRadBetweenTheDirectionToPlayer <= WAKind.MaxAngleToAttack;
+      Result := AngleRadBetweenTheDirectionToPlayer <= Kind.MaxAngleToAttack;
     end;
   end;
 
@@ -1521,7 +1518,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
         player to easier attack (shorter distance --- easier to reach with
         short-range weapon, or easier to aim with long-range weapon). }
       ( (not IdleSeesPlayer) or
-        (IdleSqrDistanceToLastSeenPlayer > Sqr(WAKind.PreferredAttackDistance))
+        (IdleSqrDistanceToLastSeenPlayer > Sqr(Kind.PreferredAttackDistance))
       );
   end;
 
@@ -1539,8 +1536,8 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
   function WantToRunAway: boolean;
   begin
     Result := IdleSeesPlayer and
-      (Life <= MaxLife * WAKind.LifeToRunAway) and
-      (IdleSqrDistanceToLastSeenPlayer < Sqr(WAKind.MaxAttackDistance / 4));
+      (Life <= MaxLife * Kind.LifeToRunAway) and
+      (IdleSqrDistanceToLastSeenPlayer < Sqr(Kind.MaxAttackDistance / 4));
   end;
 
   procedure InitAlternativeTarget;
@@ -1548,7 +1545,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
     Distance: Single;
     I: Integer;
   begin
-    Distance := WAKind.RandomWalkDistance;
+    Distance := Kind.RandomWalkDistance;
 
     AlternativeTarget := Middle;
     { Add random values to the AlternativeTarget, but only on the components
@@ -1624,7 +1621,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
         if not Kind.Flying then
         begin
           Height(NewMiddle, AboveHeight);
-          if AboveHeight > WAKind.MaxHeightAcceptableToFall + PreferredHeight then
+          if AboveHeight > Kind.MaxHeightAcceptableToFall + PreferredHeight then
             Result := true;
         end;
       end;
@@ -1636,7 +1633,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
           (that will be calculated later by Move)
           because they are too close to Middle to be good to test against.
           I'm calculating here where I would get after 0.2 second. }
-        (not TooHighAboveTheGround(Middle + Direction * (WAKind.MoveSpeed * 0.2))) and
+        (not TooHighAboveTheGround(Middle + Direction * (Kind.MoveSpeed * 0.2))) and
 
         { Use Move without wall-sliding here.
           Things using MoveAlongTheDirection depend on the fact that
@@ -1647,7 +1644,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
           Our trick with "AlternativeTarget" should handle
           eventual problems with the track of creature, so wall-sliding
           should not be needed. }
-        Move(Direction * (WAKind.MoveSpeed * CompSpeed), false, false);
+        Move(Direction * (Kind.MoveSpeed * CompSpeed), false, false);
     end;
 
     { Go the way to LastSeenPlayer, *not* by using waypoints.
@@ -1863,13 +1860,13 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
   begin
     StateTime := LifeTime - StateChangeTime;
 
-    if (not ActualAttackDone) and (StateTime >= WAKind.ActualAttackTime) then
+    if (not ActualAttackDone) and (StateTime >= Kind.ActualAttackTime) then
     begin
       ActualAttackDone := true;
       ActualAttack;
     end;
 
-    if StateTime > WAKind.AttackAnimation.Duration then
+    if StateTime > Kind.AttackAnimation.Duration then
       { wasStand will quickly change to wasWalk if it will want to walk. }
       SetState(wasStand);
   end;
@@ -1880,7 +1877,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
   begin
     StateTime := LifeTime - StateChangeTime;
 
-    if StateTime > WAKind.HurtAnimation.Duration then
+    if StateTime > Kind.HurtAnimation.Duration then
     begin
       CancelKnockback;
       SetState(wasStand);
@@ -1906,7 +1903,7 @@ begin
 
   if Dead and not (State in [wasDying, wasDyingBack]) then
   begin
-    if WAKind.DyingBackAnimation.Defined and WasLackAttackBack then
+    if Kind.DyingBackAnimation.Defined and WasLackAttackBack then
       SetState(wasDyingBack) else
       SetState(wasDying);
     Exit;
@@ -1959,20 +1956,20 @@ begin
 
   case FState of
     wasStand:
-      Result := WAKind.StandAnimation.Scene(StateTime, true);
+      Result := Kind.StandAnimation.Scene(StateTime, true);
     wasWalk:
-      if StateTime < WAKind.StandToWalkAnimation.Duration then
-        Result := WAKind.StandToWalkAnimation.Scene(StateTime, false) else
-        Result := WAKind.WalkAnimation.Scene(
-          StateTime - WAKind.StandToWalkAnimation.Duration, true);
+      if StateTime < Kind.StandToWalkAnimation.Duration then
+        Result := Kind.StandToWalkAnimation.Scene(StateTime, false) else
+        Result := Kind.WalkAnimation.Scene(
+          StateTime - Kind.StandToWalkAnimation.Duration, true);
     wasAttack:
-      Result := WAKind.AttackAnimation.Scene(StateTime, false);
+      Result := Kind.AttackAnimation.Scene(StateTime, false);
     wasDying:
-      Result := WAKind.DyingAnimation.Scene(StateTime, false);
+      Result := Kind.DyingAnimation.Scene(StateTime, false);
     wasDyingBack:
-      Result := WAKind.DyingBackAnimation.Scene(StateTime, false);
+      Result := Kind.DyingBackAnimation.Scene(StateTime, false);
     wasHurt:
-      Result := WAKind.HurtAnimation.Scene(StateTime, false);
+      Result := Kind.HurtAnimation.Scene(StateTime, false);
     else raise EInternalError.Create('FState ?');
   end;
 end;
@@ -1980,9 +1977,9 @@ end;
 procedure TWalkAttackCreature.SetLife(const Value: Single);
 begin
   if (not Dead) and
-    (Life - Value > WAKind.MinLifeLossToHurt * MaxLife) and
-    ( (WAKind.ChanceToHurt = 1.0) or
-      (Random < WAKind.ChanceToHurt) ) then
+    (Life - Value > Kind.MinLifeLossToHurt * MaxLife) and
+    ( (Kind.ChanceToHurt = 1.0) or
+      (Random < Kind.ChanceToHurt) ) then
     SetState(wasHurt);
   inherited;
 end;
@@ -2000,7 +1997,7 @@ begin
     by our Direction now, i.e.
       Boxes3DCollision(Box3DTranslate(B, VectorScale(Direction, ???)), PB)
     But how much should be scale Direction, i.e. what to put for "???" ?
-    It must be large enough to compensate even large WAKind.MaxAttackDistance,
+    It must be large enough to compensate even large Kind.MaxAttackDistance,
     it must be small enough so that player should not be able to avoid
     our attacks just by standing very close to the creature.
 
@@ -2012,16 +2009,16 @@ begin
   DistanceIncrease := B.MinSize / 2;
 
   DistanceLength := DistanceIncrease;
-  while DistanceLength < WAKind.MaxAttackDistance do
+  while DistanceLength < Kind.MaxAttackDistance do
   begin
     if B.Translate(VectorScale(Direction, DistanceLength)).Collision(PB) then
       Exit(true);
     DistanceLength += DistanceIncrease;
   end;
 
-  { Check one last time for WAKind.MaxAttackDistance }
+  { Check one last time for Kind.MaxAttackDistance }
   Result := B.Translate(
-    VectorScale(Direction, WAKind.MaxAttackDistance)).Collision(PB);
+    VectorScale(Direction, Kind.MaxAttackDistance)).Collision(PB);
 end;
 
 function TWalkAttackCreature.DebugCaption: string;
@@ -2037,7 +2034,7 @@ procedure TWalkAttackCreature.Hurt(const LifeLoss: Single;
   const AKnockbackDistance: Single);
 begin
   inherited Hurt(LifeLoss, HurtDirection,
-    AKnockbackDistance * WAKind.KnockedBackDistance);
+    AKnockbackDistance * Kind.KnockedBackDistance);
 end;
 
 procedure TWalkAttackCreature.Render(const Frustum: TFrustum; const Params: TRenderParams);
@@ -2074,9 +2071,9 @@ begin
   Collides := false;
 end;
 
-function TMissileCreature.MissileKind: TMissileCreatureKind;
+function TMissileCreature.Kind: TMissileCreatureKind;
 begin
-  Result := TMissileCreatureKind(Kind);
+  Result := TMissileCreatureKind(inherited Kind);
 end;
 
 procedure TMissileCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
@@ -2085,13 +2082,13 @@ var
 
   function MissileMoveAllowed(const OldPos, NewPos: TVector3Single): boolean;
   begin
-    if (not MissileKind.HitsPlayer) and (Player <> nil) then Player.Disable;
-    if not MissileKind.HitsCreatures then Inc(DisableCreatures);
+    if (not Kind.HitsPlayer) and (Player <> nil) then Player.Disable;
+    if not Kind.HitsCreatures then Inc(DisableCreatures);
     try
       Result := MoveAllowed(OldPos, NewPos, false);
     finally
-      if not MissileKind.HitsCreatures then Dec(DisableCreatures);
-      if (not MissileKind.HitsPlayer) and (Player <> nil) then Player.Enable;
+      if not Kind.HitsCreatures then Dec(DisableCreatures);
+      if (not Kind.HitsPlayer) and (Player <> nil) then Player.Enable;
     end;
   end;
 
@@ -2114,7 +2111,7 @@ begin
   { Missile moves *always*, regardless of MissileMoveAllowed result.
     Only after move, if the move made us colliding with something --- we explode. }
   OldMiddle := Middle;
-  Translate(Direction * (MissileKind.MoveSpeed * CompSpeed));
+  Translate(Direction * (Kind.MoveSpeed * CompSpeed));
   NewMiddle := Middle;
 
   if not MissileMoveAllowed(OldMiddle, NewMiddle) then
@@ -2122,12 +2119,12 @@ begin
     { Check collision missile <-> player.
       Maybe I'll switch to using bounding Sphere here one day?
       No reason for sphere or box, either way, for now. }
-    if MissileKind.HitsPlayer and
+    if Kind.HitsPlayer and
       (Player <> nil) and
       Player.BoundingBox.Collision(BoundingBox) then
       ExplodeWithPlayer;
 
-    if MissileKind.HitsCreatures then
+    if Kind.HitsCreatures then
     begin
       { TODO: this is unclean. We would prefer to use World.WorldSphereCollision,
         wrapped inside MySphereCollision to prevent self-collisions.
@@ -2158,18 +2155,18 @@ begin
     ExplodeCore;
   end;
 
-  if MissileKind.DirectionFallSpeed <> 0 then
+  if Kind.DirectionFallSpeed <> 0 then
   begin
     NewDirection := Direction -
-      World.GravityUp * MissileKind.DirectionFallSpeed * CompSpeed;
+      World.GravityUp * Kind.DirectionFallSpeed * CompSpeed;
     Direction := NewDirection;
   end;
 
-  if (MissileKind.CloseDirectionToTargetSpeed <> 0.0) and (Player <> nil) then
+  if (Kind.CloseDirectionToTargetSpeed <> 0.0) and (Player <> nil) then
   begin
     TargetDirection := Player.Position - Position;
     AngleBetween := AngleRadBetweenVectors(TargetDirection, Direction);
-    AngleChange := MissileKind.CloseDirectionToTargetSpeed * CompSpeed;
+    AngleChange := Kind.CloseDirectionToTargetSpeed * CompSpeed;
     if AngleBetween <= AngleChange then
       Direction := TargetDirection else
     begin
@@ -2181,10 +2178,10 @@ begin
   end;
 
   if (LastSoundIdleTime = 0) or
-     (LifeTime - LastSoundIdleTime > MissileKind.PauseBetweenSoundIdle) then
+     (LifeTime - LastSoundIdleTime > Kind.PauseBetweenSoundIdle) then
   begin
     LastSoundIdleTime := LifeTime;
-    Sound3d(MissileKind.SoundIdle, 0.0);
+    Sound3d(Kind.SoundIdle, 0.0);
   end;
 end;
 
@@ -2192,7 +2189,7 @@ function TMissileCreature.GetChild: T3D;
 begin
   if not Kind.Prepared then Exit(nil);
 
-  Result := MissileKind.FlyAnimation.Scene(LifeTime, true);
+  Result := Kind.FlyAnimation.Scene(LifeTime, true);
 end;
 
 procedure TMissileCreature.ExplodeCore;
@@ -2200,7 +2197,7 @@ begin
   { TODO: for some missiles, their explosion may hurt everyone around.
     So do here additional checks for collision and hurt player and creatures. }
 
-  Sound3d(MissileKind.SoundExplosion, 0, false);
+  Sound3d(Kind.SoundExplosion, 0, false);
 
   Hurt(1000 * 1000, ZeroVector3Single, 0);
 end;
@@ -2219,16 +2216,16 @@ end;
 
 { TStillCreature ----------------------------------------------------------- }
 
-function TStillCreature.StillKind: TStillCreatureKind;
+function TStillCreature.Kind: TStillCreatureKind;
 begin
-  Result := TStillCreatureKind(Kind);
+  Result := TStillCreatureKind(inherited Kind);
 end;
 
 function TStillCreature.GetChild: T3D;
 begin
   if not Kind.Prepared then Exit(nil);
 
-  Result := StillKind.StandAnimation.Scene(LifeTime, true);
+  Result := Kind.StandAnimation.Scene(LifeTime, true);
 end;
 
 procedure TStillCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
