@@ -55,7 +55,7 @@ type
     some ideas find use in both of them. For example the idea of
     LoadFromFile / checking Loaded / Close. For example the idea that
     the programmer interface is mainly through ImageFromTime
-    (like TCastlePrecalculatedAnimation.SceneFromTime). For example the way
+    (like TCastlePrecalculatedAnimation.Scene). For example the way
     TimeLoop and TimeBackwards properties work. }
   TVideo = class
   private

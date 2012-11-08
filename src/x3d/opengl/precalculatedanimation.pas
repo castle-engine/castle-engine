@@ -447,12 +447,12 @@ type
       of loop setting in kanim file.
 
       @groupBegin }
-    function SceneFromTime(const Time: Single): TCastleScene;
-    function SceneFromTime(const Time: Single; const Loop: boolean): TCastleScene;
+    function Scene(const Time: Single): TCastleScene;
+    function Scene(const Time: Single; const Loop: boolean): TCastleScene;
     { @groupEnd }
 
     { Appropriate scene from @link(Scenes) based on current @link(Time).
-      This is just a shortcut for SceneFromTime(@link(Time)),
+      This is just a shortcut for Scene(@link(Time)),
       useful if you track animation time in our @link(Time) property. }
     function CurrentScene: TCastleScene;
 
@@ -531,7 +531,7 @@ type
     property TimeAtLoad: TFloatTime read FTimeAtLoad;
 
     { Current time of the animation. Although you do not have to use it:
-      you can always acccess any point in time of the animtion by SceneFromTime.
+      you can always acccess any point in time of the animation by @link(Scene).
       But sometimes tracking the current time here is most natural
       and comfortable.
 
@@ -603,10 +603,10 @@ type
     property TimePlayingSpeed: Single read FTimePlayingSpeed write FTimePlayingSpeed default 1.0;
     { @groupEnd }
 
-    { See SceneFromTime for description what this property does. }
+    { See @link(Scene) for precise description what this property does. }
     property TimeLoop: boolean read FTimeLoop write FTimeLoop default true;
 
-    { See SceneFromTime for description what this property does. }
+    { See @link(Scene) for precise description what this property does. }
     property TimeBackwards: boolean
       read FTimeBackwards write FTimeBackwards default false;
 
@@ -1539,12 +1539,12 @@ begin
     Result *= 2;
 end;
 
-function TCastlePrecalculatedAnimation.SceneFromTime(const Time: Single): TCastleScene;
+function TCastlePrecalculatedAnimation.Scene(const Time: Single): TCastleScene;
 begin
-  Result := SceneFromTime(Time, TimeLoop);
+  Result := Scene(Time, TimeLoop);
 end;
 
-function TCastlePrecalculatedAnimation.SceneFromTime(const Time: Single;
+function TCastlePrecalculatedAnimation.Scene(const Time: Single;
   const Loop: boolean): TCastleScene;
 var
   SceneNumber: Integer;
@@ -1799,15 +1799,14 @@ begin
     { Call VisibleChangeHere only if the displayed animation frame actually changed.
       This way, we avoid wasting CPU cycles if the loaded scene is actually
       still, or if the animation stopped running. }
-    if (SceneFromTime(OldTime) <>
-        SceneFromTime(Time)) then
+    if (Scene(OldTime) <> Scene(Time)) then
       VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
 end;
 
 function TCastlePrecalculatedAnimation.CurrentScene: TCastleScene;
 begin
-  Result := SceneFromTime(Time);
+  Result := Scene(Time);
 end;
 
 procedure TCastlePrecalculatedAnimation.Render(const Frustum: TFrustum; const Params: TRenderParams);

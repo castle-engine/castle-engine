@@ -450,9 +450,9 @@ begin
   if ScheduledTransitionEnd then
     Result := Kind.Animations[
       ScheduledTransitionEndOldState].ChangesAnimation[FState].
-      SceneFromTime(WorldTime - CurrentStateStartTime) else
+      Scene(WorldTime - CurrentStateStartTime) else
     Result := Kind.Animations[FState].Animation.
-      SceneFromTime(WorldTime - CurrentStateStartTime);
+      Scene(WorldTime - CurrentStateStartTime);
 end;
 
 procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);

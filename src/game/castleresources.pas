@@ -307,7 +307,7 @@ end;
 function T3DResourceAnimation.Scene(const Time: Single;
   const Loop: boolean): TCastleScene;
 begin
-  Result := Animation.SceneFromTime(Time, Loop);
+  Result := Animation.Scene(Time, Loop);
 end;
 
 function T3DResourceAnimation.BoundingBox: TBox3D;
