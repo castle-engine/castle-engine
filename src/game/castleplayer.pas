@@ -375,7 +375,8 @@ implementation
 
 uses Math, SysUtils, CastleClassUtils, CastleUtils, X3DNodes, CastleControls,
   CastleImages, CastleFilesUtils, UIControls, PrecalculatedAnimation, CastleOpenAL,
-  CastleGameNotifications, CastleXMLConfig, GLImages, CastleConfig;
+  CastleGameNotifications, CastleXMLConfig, GLImages, CastleConfig,
+  CastleResources;
 
 { TPlayerBox ----------------------------------------------------------------- }
 
@@ -1257,17 +1258,17 @@ end;
 function TPlayer.GetChild: T3D;
 var
   AttackTime: Single;
-  AttackAnim: TCastlePrecalculatedAnimation;
+  AttackAnim: T3DResourceAnimation;
 begin
   Result := nil;
   if (EquippedWeapon <> nil) and
     EquippedWeapon.Kind.Prepared then
   begin
-    AttackAnim := EquippedWeapon.Kind.AttackAnimation.Animation;
+    AttackAnim := EquippedWeapon.Kind.AttackAnimation;
     AttackTime := LifeTime - AttackStartTime;
-    if Attacking and (AttackTime <= AttackAnim.TimeEnd) then
+    if Attacking and (AttackTime <= AttackAnim.Duration) then
     begin
-      Result := AttackAnim.SceneFromTime(AttackTime);
+      Result := AttackAnim.Scene(AttackTime, false);
     end else
     begin
       { turn off Attacking, if AttackTime passed }
@@ -1275,7 +1276,7 @@ begin
       { although current weapons animations are just static,
         we use LifeTime to enable any weapon animation
         (like weapon swaying, or some fire over the sword or such) in the future. }
-      Result :=  EquippedWeapon.Kind.ReadyAnimation.Animation.SceneFromTime(LifeTime);
+      Result :=  EquippedWeapon.Kind.ReadyAnimation.Scene(LifeTime, true);
     end;
   end;
 end;

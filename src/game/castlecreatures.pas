@@ -183,7 +183,7 @@ type
 
       Only for TWalkAttackCreature, the final distance the creature
       is knocked back is capped
-      by the time of the HurtAnimation (HurtAnimation.TimeDurationWithBack).
+      by the time of the HurtAnimation (HurtAnimation.Duration).
       When the hurt animation ends, the knockback effect always ends,
       even if the distance (creature * weapon) indicates it should be knocked
       further. Otherwise knockback would work on standing creature,
@@ -292,26 +292,27 @@ type
     constructor Create(const AName: string); override;
 
     { An animation of standing still.
-      Beginning must be on time 0.
-      Beginning and end of it must glue together. }
+      Will be played in a loop, so for best look make sure that
+      the beginning and end match. }
     property StandAnimation: T3DResourceAnimation read FStandAnimation;
 
     { An animation when creature changes from standing still to walking.
-      Beginning must be on time 0.
-      It's beginnig must glue with beginning of StandAnimation,
-      it's ending must glue with beginning of WalkAnimation. }
+
+      For best look: It's beginnig should glue with the end of StandAnimation,
+      it's ending should glue with beginning of WalkAnimation. }
     property StandToWalkAnimation: T3DResourceAnimation read FStandToWalkAnimation;
 
     { An animation of walking.
-      Beginning must be on time 0.
-      Beginning and end of it must glue together. }
+      Will be played in a loop, so for best look make sure that
+      the beginning and end match. }
     property WalkAnimation: T3DResourceAnimation read FWalkAnimation;
 
     { An animation of attacking.
-      Beginning must be on time 0.
-      Beginning and end of it should roughly glue with frames WalkAnimation
-      and StandAnimation.
 
+      For best look: Beginning and end of it should roughly glue with (any)
+      frame of WalkAnimation and StandAnimation.
+
+      @italic(Design notes:)
       I used to have here property like AttacksWhenWalking for the creature,
       to indicate whether creature changes state like
       "wasWalk -> wasAttack -> wasWalk" or
@@ -319,31 +320,37 @@ type
       Intelligent creature sometimes attacks when walking (e.g. if it just
       made the distance to the player closer) or when standing
       (when the distance was already close enough). And after performing
-      the attack, the creature doesn't need to go back to state
+      the attack, the creature doesn't need to go back to the original state
       before the attack. }
     property AttackAnimation: T3DResourceAnimation read FAttackAnimation;
 
     { An animation of dying.
-      Beginning must be on time 0.
-      Beginning should *more-or-less* look like any point of the stand/attack/walk
-      animations. Note that we can display this animation infinitely,
-      so it must work good after Time > it's TimeEnd. }
+
+      It is not displayed in a loop, after it runs
+      it's duration we constantly show the final frame.
+      Note that you can override TCreature.Idle and set RemoveMe to
+      rtRemoveAndFree to actually remove the dead creature from the level.
+      See castle/source/gamecreatures.pas source code for TGhostCreature.Idle
+      example.
+
+      For best look: Beginning should roughly glue with any point of
+      the stand/attack/walk animations. }
     property DyingAnimation: T3DResourceAnimation read FDyingAnimation;
 
-    { An optional dying animation. May be @nil, and corresponding
-      DyingBackAnimationFile may be ''. If not @nil, this will be used
-      if creature is killed by hitting it in the back (and normal
-      DyingAnimation is used only when it's killed by hitting from the front).
+    { An optional dying animation, used when the creature is killed
+      by hitting it in the back. This may be useful if you want your
+      creature to fall face-down when killed from the back or face-up
+      when killed from the front. If this is defined, then DyingAnimation
+      is only used when creature is killed by hitting it from the front.
+      The direction of last hit is taken from LastHurtDirection.
 
-      The direction of last hit is taken from LastHurtDirection. }
+      For best look: Just like DyingAnimation, beginning should roughly
+      glue with any point of the stand/attack/walk animations. }
     property DyingBackAnimation: T3DResourceAnimation read FDyingBackAnimation;
 
     { Animation when the creature will be hurt.
-      Beginning must be on time 0.
       Beginning and end should *more-or-less* look like
-      any point of the stand/attack/walk animations.
-      Note that this animation will not loop, it will be played
-      for TimeDurationWithBack time. }
+      any point of the stand/attack/walk animations. }
     property HurtAnimation: T3DResourceAnimation read FHurtAnimation;
 
     { The moving speed: how much Direction vector will be scaled
@@ -478,8 +485,7 @@ type
 
     constructor Create(const AName: string); override;
 
-    { Missile uses the same animation all the time.
-      In the simplest case, you can just place here a single scene. }
+    { The one and only animation of the missile. }
     property FlyAnimation: T3DResourceAnimation read FFlyAnimation;
 
     { The moving speed: how much Direction vector will be scaled
@@ -541,6 +547,7 @@ type
     FStandAnimation: T3DResourceAnimation;
   public
     constructor Create(const AName: string); override;
+    { The one and only animation of the still creature. }
     property StandAnimation: T3DResourceAnimation read FStandAnimation;
     function CreatureClass: TCreatureClass; override;
   end;
@@ -840,7 +847,7 @@ begin
 
   if Animations.Count = 0 then
     Box := EmptyBox3D else
-    Box := Animations[0].Animation.BoundingBox;
+    Box := Animations[0].BoundingBox;
 
   GC := MaxAbsVectorCoord(GravityUp);
 
@@ -998,7 +1005,7 @@ function TMissileCreatureKind.RadiusCalculate(const GravityUp: TVector3Single): 
 var
   Box: TBox3D;
 begin
-  Box := FlyAnimation.Animation.BoundingBox;
+  Box := FlyAnimation.BoundingBox;
 
   { Use MinSize for missile, since smaller radius for missiles
     forces player to aim more precisely. Smaller radius may also allow some
@@ -1862,7 +1869,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
       ActualAttack;
     end;
 
-    if StateTime > WAKind.AttackAnimation.Animation.TimeEnd then
+    if StateTime > WAKind.AttackAnimation.Duration then
       { wasStand will quickly change to wasWalk if it will want to walk. }
       SetState(wasStand);
   end;
@@ -1873,7 +1880,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
   begin
     StateTime := LifeTime - StateChangeTime;
 
-    if StateTime > WAKind.HurtAnimation.Animation.TimeDurationWithBack then
+    if StateTime > WAKind.HurtAnimation.Duration then
     begin
       CancelKnockback;
       SetState(wasStand);
@@ -1899,8 +1906,7 @@ begin
 
   if Dead and not (State in [wasDying, wasDyingBack]) then
   begin
-    if (WAKind.DyingBackAnimation <> nil) and
-       WasLackAttackBack then
+    if WAKind.DyingBackAnimation.Defined and WasLackAttackBack then
       SetState(wasDyingBack) else
       SetState(wasDying);
     Exit;
@@ -1953,20 +1959,20 @@ begin
 
   case FState of
     wasStand:
-      Result := WAKind.StandAnimation.Animation.SceneFromTime(StateTime);
+      Result := WAKind.StandAnimation.Scene(StateTime, true);
     wasWalk:
-      if StateTime < WAKind.StandToWalkAnimation.Animation.TimeEnd then
-        Result := WAKind.StandToWalkAnimation.Animation.SceneFromTime(StateTime) else
-        Result := WAKind.WalkAnimation.Animation.SceneFromTime(
-          StateTime - WAKind.StandToWalkAnimation.Animation.TimeEnd);
+      if StateTime < WAKind.StandToWalkAnimation.Duration then
+        Result := WAKind.StandToWalkAnimation.Scene(StateTime, false) else
+        Result := WAKind.WalkAnimation.Scene(
+          StateTime - WAKind.StandToWalkAnimation.Duration, true);
     wasAttack:
-      Result := WAKind.AttackAnimation.Animation.SceneFromTime(StateTime);
+      Result := WAKind.AttackAnimation.Scene(StateTime, false);
     wasDying:
-      Result := WAKind.DyingAnimation.Animation.SceneFromTime(StateTime);
+      Result := WAKind.DyingAnimation.Scene(StateTime, false);
     wasDyingBack:
-      Result := WAKind.DyingBackAnimation.Animation.SceneFromTime(StateTime);
+      Result := WAKind.DyingBackAnimation.Scene(StateTime, false);
     wasHurt:
-      Result := WAKind.HurtAnimation.Animation.SceneFromTime(StateTime);
+      Result := WAKind.HurtAnimation.Scene(StateTime, false);
     else raise EInternalError.Create('FState ?');
   end;
 end;
@@ -2186,7 +2192,7 @@ function TMissileCreature.GetChild: T3D;
 begin
   if not Kind.Prepared then Exit(nil);
 
-  Result := MissileKind.FlyAnimation.Animation.SceneFromTime(LifeTime);
+  Result := MissileKind.FlyAnimation.Scene(LifeTime, true);
 end;
 
 procedure TMissileCreature.ExplodeCore;
@@ -2222,7 +2228,7 @@ function TStillCreature.GetChild: T3D;
 begin
   if not Kind.Prepared then Exit(nil);
 
-  Result := StillKind.StandAnimation.Animation.SceneFromTime(LifeTime);
+  Result := StillKind.StandAnimation.Scene(LifeTime, true);
 end;
 
 procedure TStillCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);

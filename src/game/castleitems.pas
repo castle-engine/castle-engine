@@ -155,7 +155,7 @@ var
     property EquippingSound: TSoundType
       read FEquippingSound write FEquippingSound;
 
-    { Animation of attack with this weapon. TimeBegin must be 0. }
+    { Animation of attack with this weapon. }
     property AttackAnimation: T3DResourceAnimation read FAttackAnimation;
 
     { Animation of keeping weapon ready. }
@@ -365,7 +365,7 @@ var
   TItemOnWorld = class(T3DOrient)
   private
     FItem: TInventoryItem;
-    Rotation: Single;
+    Rotation, LifeTime: Single;
   protected
     function GetExists: boolean; override;
     function GetChild: T3D; override;
@@ -473,7 +473,7 @@ var
   B: TBox3D;
 begin
   inherited;
-  B := FBaseAnimation.Animation.BoundingBox;
+  B := FBaseAnimation.BoundingBox;
   FBoundingBoxRotated :=
     B.Transform(RotationMatrixDeg(45         , GravityUp)) +
     B.Transform(RotationMatrixDeg(45 + 90    , GravityUp)) +
@@ -757,7 +757,7 @@ end;
 function TItemOnWorld.GetChild: T3D;
 begin
   if (Item = nil) or not Item.Kind.Prepared then Exit(nil);
-  Result := Item.Kind.BaseAnimation.Animation;
+  Result := Item.Kind.BaseAnimation.Scene(LifeTime, true);
 end;
 
 procedure TItemOnWorld.Render(const Frustum: TFrustum;
@@ -791,6 +791,8 @@ var
 begin
   inherited;
   if not GetExists then Exit;
+
+  LifeTime += CompSpeed;
 
   Rotation += RotationSpeed * CompSpeed;
   U := World.GravityUp; // copy to local variable for speed

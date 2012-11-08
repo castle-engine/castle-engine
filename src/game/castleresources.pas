@@ -20,7 +20,7 @@ unit CastleResources;
 interface
 
 uses VectorMath, Classes, CastleXMLConfig, PrecalculatedAnimation,
-  CastleScene, X3DNodes, Base3D, DOM, FGL;
+  CastleScene, X3DNodes, Base3D, DOM, FGL, Boxes3D;
 
 const
   DefaultFallSpeed = 10.0;
@@ -34,11 +34,44 @@ type
   private
     FName: string;
     FRequired: boolean;
-  public
+    FileName: string;
     { TODO: for now, the T3DResourceAnimation is just a wrapper around
       TCastlePrecalculatedAnimation. }
     Animation: TCastlePrecalculatedAnimation;
-    FileName: string;
+    FDuration: Single;
+  public
+    { Duration of the animation. See engine tutorial about how resources animations
+      duration is calculated. }
+    property Duration: Single read FDuration;
+    function BoundingBox: TBox3D;
+
+    { Was the animation state defined in resource.xml file.
+      May be @false only if @link(Required) was @false, or before we actually
+      read animation info from resource.xml file. }
+    function Defined: boolean;
+
+    { Current Scene to render for given time.
+
+      Looping is automatically done here, if parameter Loop is @true.
+      When it is @false, there is no looping, which means that
+      when Time is < 0, we show the first frame,
+      and when Time is > @link(Duration), we show the last frame forever.
+
+      This looping (or not looping) is done regardless of whether the 3D model
+      wants (or not) looping. For example, in case of kanim files,
+      we ignore their loop boolean attribute.
+      In case of X3D TimeSensor node, we ignore TimeSensor.loop field.
+      In other words, any looping settings inside 3D model are ignored.
+      You control looping fully by the Loop parameter to this method.
+
+      If we use TCastlePrecalculatedAnimation underneath, then this returns
+      appropriate frame of this animation.
+
+      If we use TCastleScene with TimeSensor underneath, then this returns
+      the scene with state reflecting given time --- in other words, we'll
+      send proper events to TimeSensor to make this Time current. }
+    function Scene(const Time: Single; const Loop: boolean): TCastleScene;
+
     property Name: string read FName;
     property Required: boolean read FRequired;
     constructor Create(const AOwner: T3DResource;
@@ -74,29 +107,6 @@ type
     ConfigAlwaysPrepared: boolean;
     FFallSpeed, FGrowSpeed: Single;
     FAnimations: T3DResourceAnimationList;
-
-    { Prepare 3D resource loading it from given filename.
-      Loads the resource only if filename is not empty,
-      and only if it's not already loaded (that is, when Anim = nil).
-      Sets rendering attributes and prepares for fast rendering
-      and other processing by T3D.PrepareResources.
-
-      Call only in PrepareCore overrides.
-
-      It calls Progress.Step 2 times, if DoProgress.
-
-      Animation is automatically added to our list of prepared 3D resources.
-      So it's OpenGL resources will be automatically released in
-      @link(GLContextClose), it will be fully released
-      in @link(ReleaseCore) and destructor.
-
-      @groupBegin }
-    procedure PreparePrecalculatedAnimation(
-      var Anim: TCastlePrecalculatedAnimation;
-      const AnimationFile: string;
-      const BaseLights: TAbstractLightInstancesList;
-      const DoProgress: boolean);
-    { @groupEnd }
   protected
     { Animations of this resource.
 
@@ -275,7 +285,7 @@ procedure RegisterResourceClass(const AClass: T3DResourceClass; const TypeName: 
 
 implementation
 
-uses SysUtils, ProgressUnit, CastleXMLUtils, CastleTimeUtils,
+uses SysUtils, ProgressUnit, CastleXMLUtils, CastleTimeUtils, CastleUtils,
   CastleStringUtils, CastleLog, CastleFilesUtils, CastleConfig, UIControls;
 
 type
@@ -292,6 +302,22 @@ begin
   FName := AName;
   FRequired := ARequired;
   AOwner.Animations.Add(Self);
+end;
+
+function T3DResourceAnimation.Scene(const Time: Single;
+  const Loop: boolean): TCastleScene;
+begin
+  Result := Animation.SceneFromTime(Time, Loop);
+end;
+
+function T3DResourceAnimation.BoundingBox: TBox3D;
+begin
+  Result := Animation.BoundingBox;
+end;
+
+function T3DResourceAnimation.Defined: boolean;
+begin
+  Result := FileName <> '';
 end;
 
 { T3DResource ---------------------------------------------------------------- }
@@ -316,12 +342,42 @@ end;
 procedure T3DResource.PrepareCore(const BaseLights: TAbstractLightInstancesList;
   const GravityUp: TVector3Single;
   const DoProgress: boolean);
+
+  { Prepare 3D resource loading it from given filename.
+    Loads the resource only if filename is not empty,
+    and only if it's not already loaded (that is, when Anim = nil).
+    Prepares for fast rendering and other processing by T3D.PrepareResources.
+
+    Calls Progress.Step 2 times, if DoProgress. }
+  procedure PreparePrecalculatedAnimation(
+    var Animation: TCastlePrecalculatedAnimation; var Duration: Single;
+    const AnimationFile: string);
+  begin
+    if (AnimationFile <> '') and (Animation = nil) then
+    begin
+      Animation := TCastlePrecalculatedAnimation.Create(nil);
+      Animation.LoadFromFile(AnimationFile, { AllowStdIn } false, { LoadTime } true);
+    end;
+    if DoProgress then Progress.Step;
+
+    if Animation <> nil then
+    begin
+      Animation.PrepareResources([prRender, prBoundingBox] + prShadowVolume,
+        false, BaseLights);
+      { calculate Duration }
+      Duration := Animation.TimeEnd;
+      if Animation.TimeBackwards then
+        Duration += Animation.TimeEnd - Animation.TimeBegin;
+    end;
+    if DoProgress then Progress.Step;
+  end;
+
 var
   I: Integer;
 begin
   for I := 0 to Animations.Count - 1 do
-    PreparePrecalculatedAnimation(Animations[I].Animation, Animations[I].FileName,
-      BaseLights, DoProgress);
+    PreparePrecalculatedAnimation(Animations[I].Animation, Animations[I].FDuration,
+      Animations[I].FileName);
 end;
 
 function T3DResource.PrepareCoreSteps: Cardinal;
@@ -383,25 +439,6 @@ begin
   finally
     if DoProgress then Progress.Fini;
   end;
-end;
-
-procedure T3DResource.PreparePrecalculatedAnimation(
-  var Anim: TCastlePrecalculatedAnimation;
-  const AnimationFile: string;
-  const BaseLights: TAbstractLightInstancesList;
-  const DoProgress: boolean);
-begin
-  if (AnimationFile <> '') and (Anim = nil) then
-  begin
-    Anim := TCastlePrecalculatedAnimation.Create(nil);
-    Anim.LoadFromFile(AnimationFile, { AllowStdIn } false, { LoadTime } true);
-  end;
-  if DoProgress then Progress.Step;
-
-  if Anim <> nil then
-    Anim.PrepareResources([prRender, prBoundingBox] + prShadowVolume,
-      false, BaseLights);
-  if DoProgress then Progress.Step;
 end;
 
 procedure T3DResource.Prepare(const BaseLights: TAbstractLightInstancesList;

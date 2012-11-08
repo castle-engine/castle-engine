@@ -440,8 +440,16 @@ type
           and TimeEnd + TimeDuration * 2 will again go forward.
           And so on.)
       )
-    }
+
+      Overloaded version with explicit Loop parameter ignores the TimeLoop
+      property. This way you can force looping (or force not looping),
+      regardless of the TimeLoop property, so also regardless
+      of loop setting in kanim file.
+
+      @groupBegin }
     function SceneFromTime(const Time: Single): TCastleScene;
+    function SceneFromTime(const Time: Single; const Loop: boolean): TCastleScene;
+    { @groupEnd }
 
     { Appropriate scene from @link(Scenes) based on current @link(Time).
       This is just a shortcut for SceneFromTime(@link(Time)),
@@ -1532,6 +1540,12 @@ begin
 end;
 
 function TCastlePrecalculatedAnimation.SceneFromTime(const Time: Single): TCastleScene;
+begin
+  Result := SceneFromTime(Time, TimeLoop);
+end;
+
+function TCastlePrecalculatedAnimation.SceneFromTime(const Time: Single;
+  const Loop: boolean): TCastleScene;
 var
   SceneNumber: Integer;
   DivResult: SmallInt;
@@ -1565,7 +1579,7 @@ begin
 
     DivUnsignedMod(SceneNumber, FScenes.Count, DivResult, ModResult);
 
-    if TimeLoop then
+    if Loop then
     begin
       if TimeBackwards and Odd(DivResult) then
         SceneNumber := FScenes.Count - 1 - ModResult else
