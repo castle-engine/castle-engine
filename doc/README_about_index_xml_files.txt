@@ -126,6 +126,9 @@ Specifically about resource.xml:
   (Only for missiles, that is: resources with type="Missile",
   indicating TMissileCreatureKind implementation,
   or other type indicating your custom class descending from TMissileCreatureKind.)
+
+- <model> element describes 3D models and animations of the creature/items.
+  More information about it on DRAFT.modeling_tutorial.txt.
 ------------------------------------------------------------------------------
 Specifically about level.xml:
 
