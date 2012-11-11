@@ -199,7 +199,7 @@ type
     { Default attack damage and knockback.
       Used only by the creatures that actually do some kind of direct attack.
       For example it is used for short-range attack by TWalkAttackCreatureKind
-      and for explosion of TMissileCreatureKind.
+      and for hit of TMissileCreatureKind.
       For example it is @italic(not) used by creatures that merely fire missiles,
       as in this case the missile is created as another creature
       and it's the missile that causes damage on impact.
@@ -460,7 +460,7 @@ type
     It just moves into the given direction
     (with some possible twists, e.g. it can be a "homing"
     missile and/or be dragged down by gravity).
-    On collision, it explodes, potentially hurting the alive 3D object
+    On collision, it hits, potentially hurting the alive 3D object
     that was colliding (player or other creatures).
 
     Missiles ignore TCreatureKind.Flying, they use their own way to handle
@@ -469,7 +469,7 @@ type
   private
     FFlyAnimation: T3DResourceAnimation;
     FMoveSpeed: Single;
-    FSoundExplosion: TSoundType;
+    FSoundHit: TSoundType;
     FCloseDirectionToTargetSpeed: Single;
     FPauseBetweenSoundIdle: Single;
     FSoundIdle: TSoundType;
@@ -497,8 +497,8 @@ type
     property MoveSpeed: Single read FMoveSpeed write FMoveSpeed
       default DefaultMoveSpeed;
 
-    property SoundExplosion: TSoundType
-      read FSoundExplosion write FSoundExplosion default stNone;
+    property SoundHit: TSoundType
+      read FSoundHit write FSoundHit default stNone;
 
     function CreatureClass: TCreatureClass; override;
 
@@ -730,9 +730,9 @@ type
   TMissileCreature = class(TCreature)
   private
     LastSoundIdleTime: Single;
-    procedure ExplodeCore;
-    procedure ExplodeWithPlayer;
-    procedure ExplodeWithCreature(Creature: TCreature);
+    procedure HitCore;
+    procedure HitPlayer;
+    procedure HitCreature(Creature: TCreature);
   protected
     function GetChild: T3D; override;
   public
@@ -1041,8 +1041,8 @@ begin
   DirectionFallSpeed := ResourceConfig.GetFloat('direction_fall_speed',
     DefaultDirectionFallSpeed);
 
-  SoundExplosion := SoundEngine.SoundFromName(
-    ResourceConfig.GetValue('sound_explosion', ''));
+  SoundHit := SoundEngine.SoundFromName(
+    ResourceConfig.GetValue('sound_hit', ''));
   SoundIdle := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('sound_idle', ''));
 end;
@@ -1063,7 +1063,7 @@ begin
        inside Base3D gravity. It could probably be fixed better,
        but since the 1st problem would remain anyway...
     Also growing up doesn't make any sense for missile that explodes on contact
-    with ground. So Fall should be overriden to make ExplodeCore,
+    with ground. So Fall should be overriden to make HitCore,
     and GrowSpeed should be disabled below to be 0. (This is obviously doable.)
 
     We also want to turn off Gravity to use Gravity=false case when using
@@ -2136,7 +2136,7 @@ begin
     if Kind.HitsPlayer and
       (Player <> nil) and
       Player.BoundingBox.Collision(BoundingBox) then
-      ExplodeWithPlayer;
+      HitPlayer;
 
     if Kind.HitsCreatures then
     begin
@@ -2159,14 +2159,14 @@ begin
           if (C <> Self) and C.GetCollides and
             C.BoundingBox.SphereSimpleCollision(Middle, Kind.Radius) then
           begin
-            ExplodeWithCreature(C);
+            HitCreature(C);
             { TODO: projectiles shouldn't do here "break". }
             break;
           end;
         end;
     end;
 
-    ExplodeCore;
+    HitCore;
   end;
 
   if Kind.DirectionFallSpeed <> 0 then
@@ -2206,22 +2206,22 @@ begin
   Result := Kind.FlyAnimation.Scene(LifeTime, true);
 end;
 
-procedure TMissileCreature.ExplodeCore;
+procedure TMissileCreature.HitCore;
 begin
   { TODO: for some missiles, their explosion may hurt everyone around.
     So do here additional checks for collision and hurt player and creatures. }
 
-  Sound3d(Kind.SoundExplosion, 0, false);
+  Sound3d(Kind.SoundHit, 0, false);
 
   Hurt(1000 * 1000, ZeroVector3Single, 0);
 end;
 
-procedure TMissileCreature.ExplodeWithPlayer;
+procedure TMissileCreature.HitPlayer;
 begin
   AttackHurt;
 end;
 
-procedure TMissileCreature.ExplodeWithCreature(Creature: TCreature);
+procedure TMissileCreature.HitCreature(Creature: TCreature);
 begin
   Creature.Hurt(Kind.AttackDamageConst +
     Random * Kind.AttackDamageRandom, Direction,
@@ -2245,7 +2245,9 @@ end;
 procedure TStillCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
-  { TODO: do explosion anim for barrel. }
+  { TODO: do explosion anim for barrel.
+    We should probably have here DestroyAnimation, like DyingAnimation,
+    and property RemoveCorpse like TWalkAttackCreatureKind. }
   if Life <= 0.0 then
     RemoveMe := rtRemoveAndFree;
 end;
