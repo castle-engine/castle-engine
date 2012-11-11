@@ -259,17 +259,17 @@ type
     FHurtAnimation: T3DResourceAnimation;
 
     FMoveSpeed: Single;
-    FMinDelayBetweenAttacks: Single;
-    FMaxAttackDistance: Single;
-    FPreferredAttackDistance: Single;
-    FAttackTime: Single;
     FLifeToRunAway: Single;
-    FMaxAngleToAttack: Single;
     FMinLifeLossToHurt: Single;
     FChanceToHurt: Single;
     FMaxHeightAcceptableToFall: Single;
     FRandomWalkDistance: Single;
     FRemoveCorpse: boolean;
+    FAttackMinDelay: Single;
+    FAttackMaxDistance: Single;
+    FAttackPreferredDistance: Single;
+    FAttackMaxAngle: Single;
+    FAttackTime: Single;
     FAttackShortRange: boolean;
     FAttackSound: TSoundType;
     FAttackStartSound: TSoundType;
@@ -279,18 +279,18 @@ type
   public
     const
       DefaultMoveSpeed = 10.0;
-      DefaultMinDelayBetweenAttacks = 5.0;
-      DefaultMaxAttackDistance = 35.0;
-      DefaultPreferredAttackDistance = 30.0 * 0.7;
       DefaultLifeToRunAway = 0.3;
-      DefaultAttackTime = 0.0;
-      { Default TWalkAttackCreatureKind.MaxAngleToAttack. 30 degrees. }
-      DefaultMaxAngleToAttack = Pi / 6;
       DefaultMinLifeLossToHurt = 0.0;
       DefaultChanceToHurt = 1.0;
       DefaultMaxHeightAcceptableToFall = 2.0 * 0.7;
       DefaultRandomWalkDistance = 10.0;
       DefaultRemoveCorpse = false;
+      DefaultAttackMinDelay = 5.0;
+      DefaultAttackMaxDistance = 35.0;
+      DefaultAttackPreferredDistance = 30.0 * 0.7;
+      DefaultAttackTime = 0.0;
+      { Default TWalkAttackCreatureKind.AttackMaxAngle. 30 degrees. }
+      DefaultAttackMaxAngle = Pi / 6;
       DefaultFireMissileHeight = 0.5;
 
     constructor Create(const AName: string); override;
@@ -362,28 +362,29 @@ type
       default DefaultMoveSpeed;
 
     { Minimum delay between one attack and the other, in seconds.
-      Note that actually setting this to 0 doesn't do much ---
-      because minumum delay will still be bounded by the duration
-      of AttackAnimation. }
-    property MinDelayBetweenAttacks: Single
-      read FMinDelayBetweenAttacks write FMinDelayBetweenAttacks
-      default DefaultMinDelayBetweenAttacks;
+      Note that the duration of AttackAnimation also limits how often creature
+      can do an attack (so e.g. setting this to 0.0 doesn't mean that creature
+      can constantly attack, if AttackAnimation takes 1 second then at least
+      this 1 second will have to pass between actual attack hits). }
+    property AttackMinDelay: Single
+      read FAttackMinDelay write FAttackMinDelay
+      default DefaultAttackMinDelay;
 
-    { Maximum distance between player and creature to allow creature
-      to start attack. More precisely, this is measured between
+    { Maximum distance between enemy and creature to allow creature
+      to start attack. The distance is measured between
       Player.Position and creature's Middle. }
-    property MaxAttackDistance: Single
-      read FMaxAttackDistance write FMaxAttackDistance
-      default DefaultMaxAttackDistance;
+    property AttackMaxDistance: Single
+      read FAttackMaxDistance write FAttackMaxDistance
+      default DefaultAttackMaxDistance;
 
     { The preferred distance between player and the creature
-      to perform the attack. This must always be <= MaxAttackDistance.
-      The idea is that the creature can attack player from MaxAttackDistance,
+      to perform the attack. This must always be <= AttackMaxDistance.
+      The idea is that the creature can attack player from AttackMaxDistance,
       but still it will walk closer to the player --- until the distance
-      is PreferredAttackDistance. }
-    property PreferredAttackDistance: Single
-      read FPreferredAttackDistance write FPreferredAttackDistance
-      default DefaultPreferredAttackDistance;
+      is AttackPreferredDistance. }
+    property AttackPreferredDistance: Single
+      read FAttackPreferredDistance write FAttackPreferredDistance
+      default DefaultAttackPreferredDistance;
 
     { The time point within AttackAnimation at which the actual attack happens.
       What is an "actual attack" depends on the virtual
@@ -430,7 +431,7 @@ type
     { Portion of life when the creature decides it's best to run away
       from enemy (player).
       If @code(Life <= MaxLife * LifeToRunAway) and distance to the
-      player is too short (shorter than MaxAttackDistance / 4),
+      player is too short (shorter than AttackMaxDistance / 4),
       the creature runs away. }
     property LifeToRunAway: Single
       read FLifeToRunAway write FLifeToRunAway default DefaultLifeToRunAway;
@@ -445,12 +446,12 @@ type
       More precisely, the attack is allowed to start only when
       the angle between current Direction and the vector
       from creature's Middle to the player's Position
-      is <= MaxAngleToAttack.
+      is <= AttackMaxAngle.
 
       This is in radians. }
-    property MaxAngleToAttack: Single
-      read FMaxAngleToAttack write FMaxAngleToAttack
-      default DefaultMaxAngleToAttack;
+    property AttackMaxAngle: Single
+      read FAttackMaxAngle write FAttackMaxAngle
+      default DefaultAttackMaxAngle;
 
     { When creature is wounded for more than MaxLife * MinLifeLossToHurt
       points and moreover Random < ChanceToHurt then creature will
@@ -744,7 +745,7 @@ type
       If creature is doing some short-range attack
       you can also just lower here player's Life. Remember in this
       case to check that player is close enough; in general situation,
-      you can't depend that player is still within MaxAttackDistance
+      you can't depend that player is still within AttackMaxDistance
       --- if AttackTime is large, then player had some time
       to back off between AttackAnimation was started and this method
       is called. }
@@ -962,17 +963,17 @@ begin
   inherited;
 
   MoveSpeed := DefaultMoveSpeed;
-  FMinDelayBetweenAttacks := DefaultMinDelayBetweenAttacks;
-  FMaxAttackDistance := DefaultMaxAttackDistance;
-  FPreferredAttackDistance := DefaultPreferredAttackDistance;
   FLifeToRunAway := DefaultLifeToRunAway;
-  FAttackTime := DefaultAttackTime;
-  FMaxAngleToAttack := DefaultMaxAngleToAttack;
   FMinLifeLossToHurt := DefaultMinLifeLossToHurt;
   FChanceToHurt := DefaultChanceToHurt;
   FMaxHeightAcceptableToFall := DefaultMaxHeightAcceptableToFall;
   FRandomWalkDistance := DefaultRandomWalkDistance;
   FRemoveCorpse := DefaultRemoveCorpse;
+  FAttackTime := DefaultAttackTime;
+  FAttackMinDelay := DefaultAttackMinDelay;
+  FAttackMaxDistance := DefaultAttackMaxDistance;
+  FAttackPreferredDistance := DefaultAttackPreferredDistance;
+  FAttackMaxAngle := DefaultAttackMaxAngle;
   FFireMissileHeight := DefaultFireMissileHeight;
 
   FStandAnimation := T3DResourceAnimation.Create(Self, 'stand');
@@ -988,19 +989,10 @@ procedure TWalkAttackCreatureKind.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
-  AttackTime := ResourceConfig.GetFloat('attack/time', DefaultAttackTime);
   MoveSpeed := ResourceConfig.GetFloat('move_speed',
     DefaultMoveSpeed);
-  MaxAttackDistance := ResourceConfig.GetFloat('max_attack_distance',
-    DefaultMaxAttackDistance);
-  PreferredAttackDistance := ResourceConfig.GetFloat('preferred_attack_distance',
-    DefaultPreferredAttackDistance);
-  MinDelayBetweenAttacks := ResourceConfig.GetFloat('min_delay_between_attacks',
-    DefaultMinDelayBetweenAttacks);
   LifeToRunAway := ResourceConfig.GetFloat('life_to_run_away',
     DefaultLifeToRunAway);
-  MaxAngleToAttack := ResourceConfig.GetFloat('max_angle_to_attack',
-    DefaultMaxAngleToAttack);
   MinLifeLossToHurt := ResourceConfig.GetFloat('min_life_loss_to_hurt',
     DefaultMinLifeLossToHurt);
   ChanceToHurt := ResourceConfig.GetFloat('chance_to_hurt',
@@ -1010,14 +1002,21 @@ begin
   RandomWalkDistance := ResourceConfig.GetFloat('random_walk_distance',
     DefaultRandomWalkDistance);
   RemoveCorpse := ResourceConfig.GetValue('remove_corpse', DefaultRemoveCorpse);
+  AttackTime := ResourceConfig.GetFloat('attack/time', DefaultAttackTime);
+  AttackMaxDistance := ResourceConfig.GetFloat('attack/max_distance',
+    DefaultAttackMaxDistance);
+  AttackPreferredDistance := ResourceConfig.GetFloat('attack/preferred_distance',
+    DefaultAttackPreferredDistance);
+  AttackMaxAngle := ResourceConfig.GetFloat('attack/max_angle',
+    DefaultAttackMaxAngle);
+  AttackMinDelay := ResourceConfig.GetFloat('attack/min_delay', DefaultAttackMinDelay);
   AttackShortRange := ResourceConfig.GetValue('attack/short_range', false);
   AttackSound := SoundEngine.SoundFromName(ResourceConfig.GetValue('attack/sound', ''));
+  AttackStartSound := SoundEngine.SoundFromName(
+    ResourceConfig.GetValue('attack/start_sound', ''));
   FireMissileName := ResourceConfig.GetValue('fire_missile/name', '');
   FireMissileHeight := ResourceConfig.GetFloat('fire_missile/height', DefaultFireMissileHeight);
   FireMissileSound := SoundEngine.SoundFromName(ResourceConfig.GetValue('fire_missile/sound', ''));
-
-  AttackStartSound := SoundEngine.SoundFromName(
-    ResourceConfig.GetValue('attack/start_sound', ''));
 end;
 
 { TMissileCreatureKind ---------------------------------------------------- }
@@ -1404,8 +1403,8 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
     AngleRadBetweenTheDirectionToPlayer: Single;
   begin
     Result := IdleSeesPlayer and
-      (LifeTime - LastAttackTime > Kind.MinDelayBetweenAttacks) and
-      (IdleSqrDistanceToLastSeenPlayer <= Sqr(Kind.MaxAttackDistance));
+      (LifeTime - LastAttackTime > Kind.AttackMinDelay) and
+      (IdleSqrDistanceToLastSeenPlayer <= Sqr(Kind.AttackMaxDistance));
 
     if Result then
     begin
@@ -1413,7 +1412,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
       AngleRadBetweenTheDirectionToPlayer := AngleRadBetweenVectors(
         VectorSubtract(LastSeenPlayer, Middle),
         Direction);
-      Result := AngleRadBetweenTheDirectionToPlayer <= Kind.MaxAngleToAttack;
+      Result := AngleRadBetweenTheDirectionToPlayer <= Kind.AttackMaxAngle;
     end;
   end;
 
@@ -1554,7 +1553,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
         player to easier attack (shorter distance --- easier to reach with
         short-range weapon, or easier to aim with long-range weapon). }
       ( (not IdleSeesPlayer) or
-        (IdleSqrDistanceToLastSeenPlayer > Sqr(Kind.PreferredAttackDistance))
+        (IdleSqrDistanceToLastSeenPlayer > Sqr(Kind.AttackPreferredDistance))
       );
   end;
 
@@ -1573,7 +1572,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
   begin
     Result := IdleSeesPlayer and
       (Life <= MaxLife * Kind.LifeToRunAway) and
-      (IdleSqrDistanceToLastSeenPlayer < Sqr(Kind.MaxAttackDistance / 4));
+      (IdleSqrDistanceToLastSeenPlayer < Sqr(Kind.AttackMaxDistance / 4));
   end;
 
   procedure InitAlternativeTarget;
@@ -2043,7 +2042,7 @@ procedure TWalkAttackCreature.Attack;
       by our Direction now, i.e.
         Boxes3DCollision(Box3DTranslate(B, VectorScale(Direction, ???)), PB)
       But how much should be scale Direction, i.e. what to put for "???" ?
-      It must be large enough to compensate even large Kind.MaxAttackDistance,
+      It must be large enough to compensate even large Kind.AttackMaxDistance,
       it must be small enough so that player should not be able to avoid
       our attacks just by standing very close to the creature.
 
@@ -2055,16 +2054,16 @@ procedure TWalkAttackCreature.Attack;
     DistanceIncrease := B.MinSize / 2;
 
     DistanceLength := DistanceIncrease;
-    while DistanceLength < Kind.MaxAttackDistance do
+    while DistanceLength < Kind.AttackMaxDistance do
     begin
       if B.Translate(VectorScale(Direction, DistanceLength)).Collision(PB) then
         Exit(true);
       DistanceLength += DistanceIncrease;
     end;
 
-    { Check one last time for Kind.MaxAttackDistance }
+    { Check one last time for Kind.AttackMaxDistance }
     Result := B.Translate(
-      VectorScale(Direction, Kind.MaxAttackDistance)).Collision(PB);
+      VectorScale(Direction, Kind.AttackMaxDistance)).Collision(PB);
   end;
 
 var
