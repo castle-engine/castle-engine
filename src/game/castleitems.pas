@@ -828,4 +828,6 @@ end;
 initialization
   TItemOnWorld.RotationSpeed := TItemOnWorld.DefaultRotationSpeed;
   TItemOnWorld.AutoPick := true;
+
+  RegisterResourceClass(TItemKind, 'Item');
 end.
