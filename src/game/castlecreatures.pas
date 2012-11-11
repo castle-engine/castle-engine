@@ -199,11 +199,8 @@ type
     { Default attack damage and knockback.
       Used only by the creatures that actually do some kind of direct attack.
       For example it is used for short-range attack by TWalkAttackCreatureKind
-      (see TWalkAttackCreatureKind.AttackShortRange)
+      (if TWalkAttackCreatureKind.AttackAnimation defined)
       and for hit of TMissileCreatureKind.
-      For example it is @italic(not) used by creatures that merely fire missiles,
-      as in this case the missile is created as another creature
-      and it's the missile that causes damage on impact.
 
       All three AttackDamageXxx values must be >= 0.
 
@@ -254,6 +251,7 @@ type
     FStandToWalkAnimation: T3DResourceAnimation;
     FWalkAnimation: T3DResourceAnimation;
     FAttackAnimation: T3DResourceAnimation;
+    FFireMissileAnimation: T3DResourceAnimation;
     FDyingAnimation: T3DResourceAnimation;
     FDyingBackAnimation: T3DResourceAnimation;
     FHurtAnimation: T3DResourceAnimation;
@@ -264,16 +262,19 @@ type
     FMaxHeightAcceptableToFall: Single;
     FRandomWalkDistance: Single;
     FRemoveCorpse: boolean;
+    FPreferredDistance: Single;
     FRunAwayLife: Single;
     FRunAwayDistance: Single;
     FAttackMinDelay: Single;
     FAttackMaxDistance: Single;
-    FAttackPreferredDistance: Single;
     FAttackMaxAngle: Single;
     FAttackTime: Single;
-    FAttackShortRange: boolean;
     FAttackSound: TSoundType;
     FAttackStartSound: TSoundType;
+    FFireMissileTime: Single;
+    FFireMissileMinDelay: Single;
+    FFireMissileMaxDistance: Single;
+    FFireMissileMaxAngle: Single;
     FFireMissileName: string;
     FFireMissileHeight: Single;
     FFireMissileSound: TSoundType;
@@ -285,14 +286,20 @@ type
       DefaultMaxHeightAcceptableToFall = 2.0 * 0.7;
       DefaultRandomWalkDistance = 10.0;
       DefaultRemoveCorpse = false;
+      DefaultPreferredDistance = 30.0 * 0.7;
       DefaultRunAwayLife = 0.3;
       DefaultRunAwayDistance = 10.0;
+
+      DefaultAttackTime = 0.0;
       DefaultAttackMinDelay = 5.0;
       DefaultAttackMaxDistance = 35.0;
-      DefaultAttackPreferredDistance = 30.0 * 0.7;
-      DefaultAttackTime = 0.0;
       { Default TWalkAttackCreatureKind.AttackMaxAngle. 30 degrees. }
       DefaultAttackMaxAngle = Pi / 6;
+
+      DefaultFireMissileTime = 0.0;
+      DefaultFireMissileMinDelay = 0.0;
+      DefaultFireMissileMaxDistance = 0.0;
+      DefaultFireMissileMaxAngle = 0.0;
       DefaultFireMissileHeight = 0.5;
 
     constructor Create(const AName: string); override;
@@ -330,6 +337,18 @@ type
       before the attack. }
     property AttackAnimation: T3DResourceAnimation read FAttackAnimation;
 
+    { Firing missile animation. Similar rules like AttackAnimation,
+      but here the "highlight" is not directly hurting enemy,
+      but firing a new creature (missile).
+
+      You can always override TWalkAttackCreature.FireMissile to do pretty
+      much anything you want, and this way treat this as an "alternate attack",
+      not necessarily firing a missile.
+      It's not really required to actually fire a missile --- it's only what
+      happens at the default TWalkAttackCreature.FireMissile implementation,
+      and it happens only if FireMissileName is not empty. }
+    property FireMissileAnimation: T3DResourceAnimation read FFireMissileAnimation;
+
     { An animation of dying.
 
       Dying animation is not displayed in a loop, after it runs
@@ -363,6 +382,21 @@ type
     property MoveSpeed: Single read FMoveSpeed write FMoveSpeed
       default DefaultMoveSpeed;
 
+    { The preferred distance between enemy and the creature.
+      The creature will try to walk closer to the enemy if the distance is larger.
+      (If you want to make the creature to also walk father from the enemy
+      when necessary, then set RunAwayLife and RunAwayDistance.)
+
+      This should be <= AttackMaxDistance or FireMissileMaxDistance,
+      if you hope to actually perform a short-range or firing missile attack.
+      The creature can attack player from AttackMaxDistance
+      or fire missile from FireMissileMaxDistance,
+      but it will walk closer to the enemy if possible --- until the distance
+      is PreferredDistance. }
+    property PreferredDistance: Single
+      read FPreferredDistance write FPreferredDistance
+      default DefaultPreferredDistance;
+
     { Minimum delay between one attack and the other, in seconds.
       Note that the duration of AttackAnimation also limits how often creature
       can do an attack (so e.g. setting this to 0.0 doesn't mean that creature
@@ -379,15 +413,6 @@ type
       read FAttackMaxDistance write FAttackMaxDistance
       default DefaultAttackMaxDistance;
 
-    { The preferred distance between player and the creature
-      to perform the attack. This must always be <= AttackMaxDistance.
-      The idea is that the creature can attack player from AttackMaxDistance,
-      but still it will walk closer to the player --- until the distance
-      is AttackPreferredDistance. }
-    property AttackPreferredDistance: Single
-      read FAttackPreferredDistance write FAttackPreferredDistance
-      default DefaultAttackPreferredDistance;
-
     { The time point within AttackAnimation at which the actual attack happens.
       What is an "actual attack" depends on the virtual
       @link(TWalkAttackCreature.Attack) method implementation,
@@ -399,11 +424,20 @@ type
       read FAttackTime write FAttackTime
       default DefaultAttackTime;
 
-    { Should we perform short-range attack at AttackTime during AttackAnimation.
-      The damage and knockback are defined by TCreatureKind.AttackDamageConst,
-      TCreatureKind.AttackDamageRandom, TCreatureKind.AttackKnockbackDistance. }
-    property AttackShortRange: boolean
-      read FAttackShortRange write FAttackShortRange default false;
+    { Because most of the creatures will have their weapon
+      on their front (teeth, shooting hands, claws, whatever),
+      so they can attack player only when their Direction is somewhat
+      close to the direction to player.
+
+      More precisely, the attack is allowed to start only when
+      the angle between current Direction and the vector
+      from creature's Middle to the player's Position
+      is <= AttackMaxAngle.
+
+      This is in radians. }
+    property AttackMaxAngle: Single
+      read FAttackMaxAngle write FAttackMaxAngle
+      default DefaultAttackMaxAngle;
 
     { Sound played when short-range attack (see AttackShortRange) hits. }
     property AttackSound: TSoundType
@@ -415,6 +449,15 @@ type
       see AttackSound. }
     property AttackStartSound: TSoundType
       read FAttackStartSound write FAttackStartSound default stNone;
+
+    property FireMissileTime: Single
+      read FFireMissileTime write FFireMissileTime default DefaultFireMissileTime;
+    property FireMissileMinDelay: Single
+      read FFireMissileMinDelay write FFireMissileMinDelay default DefaultFireMissileMinDelay;
+    property FireMissileMaxDistance: Single
+      read FFireMissileMaxDistance write FFireMissileMaxDistance default DefaultFireMissileMaxDistance;
+    property FireMissileMaxAngle: Single
+      read FFireMissileMaxAngle write FFireMissileMaxAngle default DefaultFireMissileMaxAngle;
 
     { Name of the creature to fire as missile, at AttackTime during AttackAnimation.
       Leave empty to not fire any missile. }
@@ -434,6 +477,8 @@ type
       from the enemy (player). RunAwayLife is expressed as a fraction of MaxLife.
       We run if our @code(Life <= MaxLife * RunAwayLife) and the distance
       to the (last seen) enemy is < RunAwayDistance.
+      Set RunAwayLife = 1 to make the creature always try to keep a safe distance
+      from the enemy.
       @groupBegin }
     property RunAwayLife: Single
       read FRunAwayLife write FRunAwayLife default DefaultRunAwayLife;
@@ -442,21 +487,6 @@ type
     { @groupEnd }
 
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
-
-    { Because most of the creatures will have their weapon
-      on their front (teeth, shooting hands, claws, whatever),
-      so they can attack player only when their Direction is somewhat
-      close to the direction to player.
-
-      More precisely, the attack is allowed to start only when
-      the angle between current Direction and the vector
-      from creature's Middle to the player's Position
-      is <= AttackMaxAngle.
-
-      This is in radians. }
-    property AttackMaxAngle: Single
-      read FAttackMaxAngle write FAttackMaxAngle
-      default DefaultAttackMaxAngle;
 
     { When creature is wounded for more than MaxLife * MinLifeLossToHurt
       points and moreover Random < ChanceToHurt then creature will
@@ -673,8 +703,8 @@ type
   TCreatureList = class(specialize TFPGObjectList<TCreature>)
   end;
 
-  TWalkAttackCreatureState = (wasStand, wasWalk, wasAttack,
-    wasDying, wasDyingBack, wasHurt, wasSpecial1);
+  TWalkAttackCreatureState = (wasStand, wasWalk, wasAttack, wasFireMissile,
+    wasDying, wasDyingBack, wasHurt, wasCustom1);
 
   { Creature using TWalkAttackCreatureKind. }
   TWalkAttackCreature = class(TCreature)
@@ -683,11 +713,12 @@ type
 
     FStateChangeTime: Single;
 
-    { time of last FState change to wasAttack, taken from LifeTime. }
-    LastAttackTime: Single;
-    { Set to true each time you enter wasAttack, set back to false
-      if @link(Attack) was called. }
-    AttackDone: boolean;
+    { Time of last State change to wasAttack or wasFireMissile,
+      taken from LifeTime. }
+    LastAttackTime, LastFireMissileTime: Single;
+    { Whether Attack or FireMissile was already called within this
+      wasAttack or wasFireMissile state. }
+    AttackDone, FireMissileDone: boolean;
 
     HasAlternativeTarget: boolean;
     AlternativeTarget: TVector3Single;
@@ -723,6 +754,31 @@ type
     property StateChangeTime: Single read FStateChangeTime;
 
     function GetChild: T3D; override;
+
+    { Actually do the attack indicated by AttackAnimation
+      and AttackTime and other AttackXxx properties.
+      This happens in the middle of AttackAnimation, at the time see AttackTime.
+
+      This can happen only if you defined AttackAnimation for this creature.
+
+      The default implementation here performs a short range attack,
+      if enemy is still within reach (AttackMaxDistance; even if it was within
+      reach at the start of wasAttack state, the enemy could step back,
+      so we need to check AttackMaxDistance again).
+      The damage and knockback are defined by TCreatureKind.AttackDamageConst,
+      TCreatureKind.AttackDamageRandom, TCreatureKind.AttackKnockbackDistance. }
+    procedure Attack; virtual;
+
+    { Actually do the attack indicated by FireMissileAnimation
+      and FireMissileTime and other FireMissileXxx properties.
+      This happens in the middle of FireMissileAnimation, at the time see
+      FireMissileTime.
+
+      This can happen only if you defined FireMissileAnimation for this creature.
+
+      The default implementation here creates a new creature with kind
+      defined by FireMissileName, if FireMissileName is not empty. }
+    procedure FireMissile; virtual;
   public
     constructor Create(AOwner: TComponent; const AMaxLife: Single); override;
 
@@ -738,23 +794,6 @@ type
 
     procedure Hurt(const LifeLoss: Single; const HurtDirection: TVector3Single;
       const AKnockbackDistance: Single); override;
-
-    { Actually do your attack: fire a missile, lower player's life and such.
-
-      This happens in the middle of AttackAnimation,
-      see AttackTime. Of course you should use
-      current creature Position, Middle, Direction
-      etc. to determine things like missile starting position
-      and direction.
-
-      If creature is doing some short-range attack
-      you can also just lower here player's Life. Remember in this
-      case to check that player is close enough; in general situation,
-      you can't depend that player is still within AttackMaxDistance
-      --- if AttackTime is large, then player had some time
-      to back off between AttackAnimation was started and this method
-      is called. }
-    procedure Attack; virtual;
   end;
 
   { Creature using TMissileCreatureKind. }
@@ -973,19 +1012,24 @@ begin
   FMaxHeightAcceptableToFall := DefaultMaxHeightAcceptableToFall;
   FRandomWalkDistance := DefaultRandomWalkDistance;
   FRemoveCorpse := DefaultRemoveCorpse;
+  FPreferredDistance := DefaultPreferredDistance;
   FRunAwayLife := DefaultRunAwayLife;
   FRunAwayDistance := DefaultRunAwayDistance;
   FAttackTime := DefaultAttackTime;
   FAttackMinDelay := DefaultAttackMinDelay;
   FAttackMaxDistance := DefaultAttackMaxDistance;
-  FAttackPreferredDistance := DefaultAttackPreferredDistance;
   FAttackMaxAngle := DefaultAttackMaxAngle;
+  FFireMissileTime :=  DefaultFireMissileTime;
+  FFireMissileMaxDistance := DefaultFireMissileMaxDistance;
+  FFireMissileMaxAngle := DefaultFireMissileMaxAngle;
+  FFireMissileMinDelay := DefaultFireMissileMinDelay;
   FFireMissileHeight := DefaultFireMissileHeight;
 
   FStandAnimation := T3DResourceAnimation.Create(Self, 'stand');
   FStandToWalkAnimation := T3DResourceAnimation.Create(Self, 'stand_to_walk');
   FWalkAnimation := T3DResourceAnimation.Create(Self, 'walk');
-  FAttackAnimation := T3DResourceAnimation.Create(Self, 'attack');
+  FAttackAnimation := T3DResourceAnimation.Create(Self, 'attack', false);
+  FFireMissileAnimation := T3DResourceAnimation.Create(Self, 'fire_missile', false);
   FDyingAnimation := T3DResourceAnimation.Create(Self, 'dying');
   FDyingBackAnimation := T3DResourceAnimation.Create(Self, 'dying_back', false);
   FHurtAnimation := T3DResourceAnimation.Create(Self, 'hurt');
@@ -1008,21 +1052,23 @@ begin
   RemoveCorpse := ResourceConfig.GetValue('remove_corpse', DefaultRemoveCorpse);
   RunAwayLife := ResourceConfig.GetFloat('run_away/life', DefaultRunAwayLife);
   RunAwayDistance := ResourceConfig.GetFloat('run_away/distance', DefaultRunAwayDistance);
+
+  PreferredDistance := ResourceConfig.GetFloat('preferred_distance', DefaultPreferredDistance);
+
   AttackTime := ResourceConfig.GetFloat('attack/time', DefaultAttackTime);
-  AttackMaxDistance := ResourceConfig.GetFloat('attack/max_distance',
-    DefaultAttackMaxDistance);
-  AttackPreferredDistance := ResourceConfig.GetFloat('attack/preferred_distance',
-    DefaultAttackPreferredDistance);
-  AttackMaxAngle := ResourceConfig.GetFloat('attack/max_angle',
-    DefaultAttackMaxAngle);
+  AttackMaxDistance := ResourceConfig.GetFloat('attack/max_distance', DefaultAttackMaxDistance);
+  AttackMaxAngle := ResourceConfig.GetFloat('attack/max_angle', DefaultAttackMaxAngle);
   AttackMinDelay := ResourceConfig.GetFloat('attack/min_delay', DefaultAttackMinDelay);
-  AttackShortRange := ResourceConfig.GetValue('attack/short_range', false);
   AttackSound := SoundEngine.SoundFromName(ResourceConfig.GetValue('attack/sound', ''));
-  AttackStartSound := SoundEngine.SoundFromName(
-    ResourceConfig.GetValue('attack/start_sound', ''));
+  AttackStartSound := SoundEngine.SoundFromName(ResourceConfig.GetValue('attack/start_sound', ''));
+
+  FireMissileTime :=  ResourceConfig.GetFloat('fire_missile/time', DefaultFireMissileTime);
+  FireMissileMaxDistance := ResourceConfig.GetFloat('fire_missile/max_distance', DefaultFireMissileMaxDistance);
+  FireMissileMaxAngle := ResourceConfig.GetFloat('fire_missile/max_angle', DefaultFireMissileMaxAngle);
+  FireMissileMinDelay := ResourceConfig.GetFloat('fire_missile/min_delay', DefaultFireMissileMinDelay);
+  FireMissileSound := SoundEngine.SoundFromName(ResourceConfig.GetValue('fire_missile/sound', ''));
   FireMissileName := ResourceConfig.GetValue('fire_missile/name', '');
   FireMissileHeight := ResourceConfig.GetFloat('fire_missile/height', DefaultFireMissileHeight);
-  FireMissileSound := SoundEngine.SoundFromName(ResourceConfig.GetValue('fire_missile/sound', ''));
 end;
 
 { TMissileCreatureKind ---------------------------------------------------- }
@@ -1397,29 +1443,46 @@ begin
           LastAttackTime := StateChangeTime;
           AttackDone := false;
         end;
+      wasFireMissile:
+        begin
+          LastFireMissileTime := LifeTime;
+          FireMissileDone := false;
+        end;
     end;
   end;
 end;
 
 procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 
-  { Is attack allowed ? }
-  function AttackAllowed: boolean;
+  function ActionAllowed(const Animation: T3DResourceAnimation;
+    const LastTime, MinDelay, MaxDistance, MaxAngle: Single): boolean;
   var
     AngleRadBetweenTheDirectionToPlayer: Single;
   begin
     Result := IdleSeesPlayer and
-      (LifeTime - LastAttackTime > Kind.AttackMinDelay) and
-      (IdleSqrDistanceToLastSeenPlayer <= Sqr(Kind.AttackMaxDistance));
+      Animation.Defined and
+      (LifeTime - LastTime > MinDelay) and
+      (IdleSqrDistanceToLastSeenPlayer <= Sqr(MaxDistance));
 
     if Result then
     begin
       { Calculate and check AngleRadBetweenTheDirectionToPlayer. }
       AngleRadBetweenTheDirectionToPlayer := AngleRadBetweenVectors(
-        VectorSubtract(LastSeenPlayer, Middle),
-        Direction);
-      Result := AngleRadBetweenTheDirectionToPlayer <= Kind.AttackMaxAngle;
+        LastSeenPlayer - Middle, Direction);
+      Result := AngleRadBetweenTheDirectionToPlayer <= MaxAngle;
     end;
+  end;
+
+  function AttackAllowed: boolean;
+  begin
+    Result := ActionAllowed(Kind.AttackAnimation, LastAttackTime,
+      Kind.AttackMinDelay, Kind.AttackMaxDistance, Kind.AttackMaxAngle);
+  end;
+
+  function FireMissileAllowed: boolean;
+  begin
+    Result := ActionAllowed(Kind.FireMissileAnimation, LastFireMissileTime,
+      Kind.FireMissileMinDelay, Kind.FireMissileMaxDistance, Kind.FireMissileMaxAngle);
   end;
 
   procedure CalculateDirectionToTarget(
@@ -1559,7 +1622,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
         player to easier attack (shorter distance --- easier to reach with
         short-range weapon, or easier to aim with long-range weapon). }
       ( (not IdleSeesPlayer) or
-        (IdleSqrDistanceToLastSeenPlayer > Sqr(Kind.AttackPreferredDistance))
+        (IdleSqrDistanceToLastSeenPlayer > Sqr(Kind.PreferredDistance))
       );
   end;
 
@@ -1610,6 +1673,8 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
     begin
       CalculateDirectionToPlayer(DirectionToPlayer, AngleRadBetweenDirectionToPlayer);
 
+      if FireMissileAllowed then
+        SetState(wasFireMissile) else
       if AttackAllowed then
         SetState(wasAttack) else
       if WantToRunAway or
@@ -1891,6 +1956,8 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
         WalkNormal;
     end;
 
+    if FireMissileAllowed then
+      SetState(wasFireMissile) else
     if AttackAllowed then
       SetState(wasAttack);
   end;
@@ -1900,14 +1967,27 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
     StateTime: Single;
   begin
     StateTime := LifeTime - StateChangeTime;
-
     if (not AttackDone) and (StateTime >= Kind.AttackTime) then
     begin
       AttackDone := true;
       Attack;
     end;
-
     if StateTime > Kind.AttackAnimation.Duration then
+      { wasStand will quickly change to wasWalk if it will want to walk. }
+      SetState(wasStand);
+  end;
+
+  procedure DoFireMissile;
+  var
+    StateTime: Single;
+  begin
+    StateTime := LifeTime - StateChangeTime;
+    if (not FireMissileDone) and (StateTime >= Kind.FireMissileTime) then
+    begin
+      FireMissileDone := true;
+      FireMissile;
+    end;
+    if StateTime > Kind.FireMissileAnimation.Duration then
       { wasStand will quickly change to wasWalk if it will want to walk. }
       SetState(wasStand);
   end;
@@ -1976,10 +2056,11 @@ begin
     wasStand: DoStand;
     wasWalk: DoWalk;
     wasAttack: DoAttack;
+    wasFireMissile: DoFireMissile;
     wasDying: DoDying(Kind.DyingAnimation.Duration);
     wasDyingBack: DoDying(Kind.DyingBackAnimation.Duration);
     wasHurt: DoHurt;
-    wasSpecial1: { Should be handled in descendants. };
+    wasCustom1: { Should be handled in descendants. };
     else raise EInternalError.Create('FState ?');
   end;
 
@@ -2013,6 +2094,8 @@ begin
           StateTime - Kind.StandToWalkAnimation.Duration, true);
     wasAttack:
       Result := Kind.AttackAnimation.Scene(StateTime, false);
+    wasFireMissile:
+      Result := Kind.FireMissileAnimation.Scene(StateTime, false);
     wasDying:
       Result := Kind.DyingAnimation.Scene(StateTime, false);
     wasDyingBack:
@@ -2072,6 +2155,15 @@ procedure TWalkAttackCreature.Attack;
       VectorScale(Direction, Kind.AttackMaxDistance)).Collision(PB);
   end;
 
+begin
+  if ShortRangeAttackHits then
+  begin
+    Sound3d(Kind.AttackSound, 1.0);
+    AttackHurt;
+  end;
+end;
+
+procedure TWalkAttackCreature.FireMissile;
 var
   Missile: TCreature;
   MissilePosition, MissileDirection: TVector3Single;
@@ -2084,18 +2176,12 @@ begin
       CreateCreature(World, MissilePosition, MissileDirection);
     Missile.Sound3d(Kind.FireMissileSound, 0.0);
   end;
-
-  if Kind.AttackShortRange and ShortRangeAttackHits then
-  begin
-    Sound3d(Kind.AttackSound, 1.0);
-    AttackHurt;
-  end;
 end;
 
 function TWalkAttackCreature.DebugCaption: string;
 const
   StateName: array [TWalkAttackCreatureState] of string =
-  ( 'Stand', 'Walk', 'Attack', 'Dying', 'DyingBack', 'Hurt', 'Special1' );
+  ( 'Stand', 'Walk', 'Attack', 'FireMissile', 'Dying', 'DyingBack', 'Hurt', 'Custom1' );
 begin
   Result := (inherited DebugCaption) + ' ' + StateName[State];
 end;
