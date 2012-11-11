@@ -199,14 +199,11 @@ type
     { Default attack damage and knockback.
       Used only by the creatures that actually do some kind of direct attack.
       For example it is used for short-range attack by TWalkAttackCreatureKind
+      (see TWalkAttackCreatureKind.AttackShortRange)
       and for hit of TMissileCreatureKind.
       For example it is @italic(not) used by creatures that merely fire missiles,
       as in this case the missile is created as another creature
       and it's the missile that causes damage on impact.
-
-      TCreature descendants may call AttackHurt
-      in their ActualAttack implementation to easily apply this kind of damage
-      to Player.
 
       All three AttackDamageXxx values must be >= 0.
 
@@ -265,8 +262,7 @@ type
     FMinDelayBetweenAttacks: Single;
     FMaxAttackDistance: Single;
     FPreferredAttackDistance: Single;
-    FActualAttackTime: Single;
-
+    FAttackTime: Single;
     FSoundAttackStart: TSoundType;
     FLifeToRunAway: Single;
     FMaxAngleToAttack: Single;
@@ -275,6 +271,11 @@ type
     FMaxHeightAcceptableToFall: Single;
     FRandomWalkDistance: Single;
     FRemoveCorpse: boolean;
+    FAttackShortRange: boolean;
+    FAttackSound: TSoundType;
+    FFireMissileName: string;
+    FFireMissileHeight: Single;
+    FFireMissileSound: TSoundType;
   public
     const
       DefaultMoveSpeed = 10.0;
@@ -282,7 +283,7 @@ type
       DefaultMaxAttackDistance = 35.0;
       DefaultPreferredAttackDistance = 30.0 * 0.7;
       DefaultLifeToRunAway = 0.3;
-      DefaultActualAttackTime = 0.0;
+      DefaultAttackTime = 0.0;
       { Default TWalkAttackCreatureKind.MaxAngleToAttack. 30 degrees. }
       DefaultMaxAngleToAttack = Pi / 6;
       DefaultMinLifeLossToHurt = 0.0;
@@ -290,6 +291,7 @@ type
       DefaultMaxHeightAcceptableToFall = 2.0 * 0.7;
       DefaultRandomWalkDistance = 10.0;
       DefaultRemoveCorpse = false;
+      DefaultFireMissileHeight = 0.5;
 
     constructor Create(const AName: string); override;
 
@@ -383,20 +385,47 @@ type
       read FPreferredAttackDistance write FPreferredAttackDistance
       default DefaultPreferredAttackDistance;
 
-    { The time point within AttackAnimation
-      at which ActualAttack method will be called.
-      Note that actually ActualAttack may be called a *very little* later
-      (hopefully it shouldn't be noticeable to the player). }
-    property ActualAttackTime: Single
-      read FActualAttackTime write FActualAttackTime
-      default DefaultActualAttackTime;
+    { The time point within AttackAnimation at which the actual attack happens.
+      What is an "actual attack" depends on the virtual
+      @link(TWalkAttackCreature.Attack) method implementation,
+      in the base TWalkAttackCreature it can be a short-range
+      attack (if AttackShortRange is @true) and/or firing a missile
+      (if FireMissileName is not empty) and/or making a sound
+      (if AttackSound is set). }
+    property AttackTime: Single
+      read FAttackTime write FAttackTime
+      default DefaultAttackTime;
 
-    { Player when attacking, that is when entering wasAttack state.
-      Played at creature Middle.
-      Sometimes you may prefer to rather play a sound at ActualAttack
-      (at hit/miss) --- then just do it in overriden ActualAttack. }
+    { Played at the start of attack animation,
+      that is when entering wasAttack state.
+      To play a sound when the actual hit happens (at AttackTime)
+      see AttackSound. }
     property SoundAttackStart: TSoundType
       read FSoundAttackStart write FSoundAttackStart default stNone;
+
+    { Should we perform short-range attack at AttackTime during AttackAnimation.
+      The damage and knockback are defined by TCreatureKind.AttackDamageConst,
+      TCreatureKind.AttackDamageRandom, TCreatureKind.AttackKnockbackDistance. }
+    property AttackShortRange: boolean
+      read FAttackShortRange write FAttackShortRange default false;
+
+    { Sound played when short-range attack (see AttackShortRange) hits. }
+    property AttackSound: TSoundType
+      read FAttackSound write FAttackSound default stNone;
+
+    { Name of the creature to fire as missile, at AttackTime during AttackAnimation.
+      Leave empty to not fire any missile. }
+    property FireMissileName: string
+      read FFireMissileName write FFireMissileName;
+
+    { Height (between Position and Middle, usually: legs and eyes)
+      of the fired missile (see FireMissileName). }
+    property FireMissileHeight: Single
+      read FFireMissileHeight write FFireMissileHeight default DefaultFireMissileHeight;
+
+    { Sound played when missile is fired, see FireMissileName. }
+    property FireMissileSound: TSoundType
+      read FFireMissileSound write FFireMissileSound default stNone;
 
     { Portion of life when the creature decides it's best to run away
       from enemy (player).
@@ -428,7 +457,7 @@ type
       change to wasHurt state and be knocked back.
       Changing to wasHurt state means that any other state will be
       interrupted (e.g. player can interrupt
-      creature's attack this way if ActualAttackTime > 0).
+      creature's attack this way if AttackTime > 0).
 
       It's expected that "tougher" creatures will have MinLifeLossToHurt
       somewhat higher than DefaultMinLifeLossToHurt and ChanceToHurt
@@ -651,8 +680,8 @@ type
     { time of last FState change to wasAttack, taken from LifeTime. }
     LastAttackTime: Single;
     { Set to true each time you enter wasAttack, set back to false
-      if ActualAttack was called. }
-    ActualAttackDone: boolean;
+      if @link(Attack) was called. }
+    AttackDone: boolean;
 
     HasAlternativeTarget: boolean;
     AlternativeTarget: TVector3Single;
@@ -680,9 +709,6 @@ type
 
     procedure SetState(Value: TWalkAttackCreatureState); virtual;
 
-    { Use this in ActualAttack for short range creatures. }
-    function ShortRangeActualAttackHits: boolean;
-
     procedure SetLife(const Value: Single); override;
 
     function DebugCaption: string; override;
@@ -707,11 +733,10 @@ type
     procedure Hurt(const LifeLoss: Single; const HurtDirection: TVector3Single;
       const AKnockbackDistance: Single); override;
 
-    { The method where you must actually do your attack
-      --- fire a missile, lower player's life etc.
+    { Actually do your attack: fire a missile, lower player's life and such.
 
       This happens in the middle of AttackAnimation,
-      see also ActualAttackTime. Of course you should use
+      see AttackTime. Of course you should use
       current creature Position, Middle, Direction
       etc. to determine things like missile starting position
       and direction.
@@ -720,10 +745,10 @@ type
       you can also just lower here player's Life. Remember in this
       case to check that player is close enough; in general situation,
       you can't depend that player is still within MaxAttackDistance
-      --- if ActualAttackTime is large, then player had some time
-      to back off between AttackAnimation was started and ActualAttack
+      --- if AttackTime is large, then player had some time
+      to back off between AttackAnimation was started and this method
       is called. }
-    procedure ActualAttack; virtual; abstract;
+    procedure Attack; virtual;
   end;
 
   { Creature using TMissileCreatureKind. }
@@ -941,13 +966,14 @@ begin
   FMaxAttackDistance := DefaultMaxAttackDistance;
   FPreferredAttackDistance := DefaultPreferredAttackDistance;
   FLifeToRunAway := DefaultLifeToRunAway;
-  FActualAttackTime := DefaultActualAttackTime;
+  FAttackTime := DefaultAttackTime;
   FMaxAngleToAttack := DefaultMaxAngleToAttack;
   FMinLifeLossToHurt := DefaultMinLifeLossToHurt;
   FChanceToHurt := DefaultChanceToHurt;
   FMaxHeightAcceptableToFall := DefaultMaxHeightAcceptableToFall;
   FRandomWalkDistance := DefaultRandomWalkDistance;
   FRemoveCorpse := DefaultRemoveCorpse;
+  FFireMissileHeight := DefaultFireMissileHeight;
 
   FStandAnimation := T3DResourceAnimation.Create(Self, 'stand');
   FStandToWalkAnimation := T3DResourceAnimation.Create(Self, 'stand_to_walk');
@@ -962,8 +988,7 @@ procedure TWalkAttackCreatureKind.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
-  ActualAttackTime := ResourceConfig.GetFloat('actual_attack_time',
-    DefaultActualAttackTime);
+  AttackTime := ResourceConfig.GetFloat('attack/time', DefaultAttackTime);
   MoveSpeed := ResourceConfig.GetFloat('move_speed',
     DefaultMoveSpeed);
   MaxAttackDistance := ResourceConfig.GetFloat('max_attack_distance',
@@ -985,6 +1010,11 @@ begin
   RandomWalkDistance := ResourceConfig.GetFloat('random_walk_distance',
     DefaultRandomWalkDistance);
   RemoveCorpse := ResourceConfig.GetValue('remove_corpse', DefaultRemoveCorpse);
+  AttackShortRange := ResourceConfig.GetValue('attack/short_range', false);
+  AttackSound := SoundEngine.SoundFromName(ResourceConfig.GetValue('attack/sound', ''));
+  FireMissileName := ResourceConfig.GetValue('fire_missile/name', '');
+  FireMissileHeight := ResourceConfig.GetFloat('fire_missile/height', DefaultFireMissileHeight);
+  FireMissileSound := SoundEngine.SoundFromName(ResourceConfig.GetValue('fire_missile/sound', ''));
 
   SoundAttackStart := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('sound_attack_start', ''));
@@ -1360,7 +1390,7 @@ begin
         begin
           Sound3d(Kind.SoundAttackStart, 1.0);
           LastAttackTime := StateChangeTime;
-          ActualAttackDone := false;
+          AttackDone := false;
         end;
     end;
   end;
@@ -1866,10 +1896,10 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
   begin
     StateTime := LifeTime - StateChangeTime;
 
-    if (not ActualAttackDone) and (StateTime >= Kind.ActualAttackTime) then
+    if (not AttackDone) and (StateTime >= Kind.AttackTime) then
     begin
-      ActualAttackDone := true;
-      ActualAttack;
+      AttackDone := true;
+      Attack;
     end;
 
     if StateTime > Kind.AttackAnimation.Duration then
@@ -1998,41 +2028,63 @@ begin
   inherited;
 end;
 
-function TWalkAttackCreature.ShortRangeActualAttackHits: boolean;
-var
-  B, PB: TBox3D;
-  DistanceLength, DistanceIncrease: Single;
-begin
-  if World.Player = nil then Exit(false); { no Plaeyr to hurt }
-  B := BoundingBox;
-  PB := World.Player.BoundingBox;
+procedure TWalkAttackCreature.Attack;
 
-  { We would like to check collision between PB and our B translated
-    by our Direction now, i.e.
-      Boxes3DCollision(Box3DTranslate(B, VectorScale(Direction, ???)), PB)
-    But how much should be scale Direction, i.e. what to put for "???" ?
-    It must be large enough to compensate even large Kind.MaxAttackDistance,
-    it must be small enough so that player should not be able to avoid
-    our attacks just by standing very close to the creature.
-
-    So we have to check a couple of bounding boxes.
-    If we move our boxes by Box3DMinSize(B), we're sure that
-    each box will stick to the previous and next. But maybe
-    there will be some areas around the sticking points ?
-    So B.MinSize / 2 seems safe. }
-  DistanceIncrease := B.MinSize / 2;
-
-  DistanceLength := DistanceIncrease;
-  while DistanceLength < Kind.MaxAttackDistance do
+  function ShortRangeAttackHits: boolean;
+  var
+    B, PB: TBox3D;
+    DistanceLength, DistanceIncrease: Single;
   begin
-    if B.Translate(VectorScale(Direction, DistanceLength)).Collision(PB) then
-      Exit(true);
-    DistanceLength += DistanceIncrease;
+    if World.Player = nil then Exit(false); { no Plaeyr to hurt }
+    B := BoundingBox;
+    PB := World.Player.BoundingBox;
+
+    { We would like to check collision between PB and our B translated
+      by our Direction now, i.e.
+        Boxes3DCollision(Box3DTranslate(B, VectorScale(Direction, ???)), PB)
+      But how much should be scale Direction, i.e. what to put for "???" ?
+      It must be large enough to compensate even large Kind.MaxAttackDistance,
+      it must be small enough so that player should not be able to avoid
+      our attacks just by standing very close to the creature.
+
+      So we have to check a couple of bounding boxes.
+      If we move our boxes by Box3DMinSize(B), we're sure that
+      each box will stick to the previous and next. But maybe
+      there will be some areas around the sticking points ?
+      So B.MinSize / 2 seems safe. }
+    DistanceIncrease := B.MinSize / 2;
+
+    DistanceLength := DistanceIncrease;
+    while DistanceLength < Kind.MaxAttackDistance do
+    begin
+      if B.Translate(VectorScale(Direction, DistanceLength)).Collision(PB) then
+        Exit(true);
+      DistanceLength += DistanceIncrease;
+    end;
+
+    { Check one last time for Kind.MaxAttackDistance }
+    Result := B.Translate(
+      VectorScale(Direction, Kind.MaxAttackDistance)).Collision(PB);
   end;
 
-  { Check one last time for Kind.MaxAttackDistance }
-  Result := B.Translate(
-    VectorScale(Direction, Kind.MaxAttackDistance)).Collision(PB);
+var
+  Missile: TCreature;
+  MissilePosition, MissileDirection: TVector3Single;
+begin
+  if (Kind.FireMissileName <> '') and HasLastSeenPlayer then
+  begin
+    MissilePosition := LerpLegsMiddle(Kind.FireMissileHeight);
+    MissileDirection := VectorSubtract(LastSeenPlayer, MissilePosition);
+    Missile := (Resources.FindName(Kind.FireMissileName) as TCreatureKind).
+      CreateCreature(World, MissilePosition, MissileDirection);
+    Missile.Sound3d(Kind.FireMissileSound, 0.0);
+  end;
+
+  if Kind.AttackShortRange and ShortRangeAttackHits then
+  begin
+    Sound3d(Kind.AttackSound, 1.0);
+    AttackHurt;
+  end;
 end;
 
 function TWalkAttackCreature.DebugCaption: string;
