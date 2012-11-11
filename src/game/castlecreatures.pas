@@ -67,7 +67,7 @@ type
         Yes, it's not a typo, this identifier starts with "DefaultDefault". }
       DefaultDefaultMaxLife = 100.0;
       DefaultFlying = false;
-      DefaultKnockedBackDistance = 6.0 * 0.7;
+      DefaultKnockedBackDistance = 4.0;
       DefaultSoundDyingTiedToCreature = true;
       DefaultAttackDamageConst = 10.0;
       DefaultAttackDamageRandom = 10.0;
@@ -283,23 +283,22 @@ type
       DefaultMoveSpeed = 10.0;
       DefaultMinLifeLossToHurt = 0.0;
       DefaultChanceToHurt = 1.0;
-      DefaultMaxHeightAcceptableToFall = 2.0 * 0.7;
+      DefaultMaxHeightAcceptableToFall = 1.5;
       DefaultRandomWalkDistance = 10.0;
       DefaultRemoveCorpse = false;
-      DefaultPreferredDistance = 30.0 * 0.7;
+      DefaultPreferredDistance = 2.0;
       DefaultRunAwayLife = 0.3;
       DefaultRunAwayDistance = 10.0;
 
       DefaultAttackTime = 0.0;
-      DefaultAttackMinDelay = 5.0;
-      DefaultAttackMaxDistance = 35.0;
-      { Default TWalkAttackCreatureKind.AttackMaxAngle. 30 degrees. }
+      DefaultAttackMinDelay = 2.0;
+      DefaultAttackMaxDistance = DefaultPreferredDistance;
       DefaultAttackMaxAngle = Pi / 6;
 
       DefaultFireMissileTime = 0.0;
-      DefaultFireMissileMinDelay = 0.0;
-      DefaultFireMissileMaxDistance = 0.0;
-      DefaultFireMissileMaxAngle = 0.0;
+      DefaultFireMissileMinDelay = DefaultAttackMinDelay;
+      DefaultFireMissileMaxDistance = 30.0;
+      DefaultFireMissileMaxAngle = DefaultAttackMaxAngle;
       DefaultFireMissileHeight = 0.5;
 
     constructor Create(const AName: string); override;
@@ -546,9 +545,9 @@ type
     function RadiusCalculate(const GravityUp: TVector3Single): Single; override;
   public
     const
-      DefaultMoveSpeed = 35.0;
+      DefaultMoveSpeed = 10.0;
       DefaultCloseDirectionToTargetSpeed = 0.0;
-      DefaultPauseBetweenSoundIdle = 2.5;
+      DefaultPauseBetweenSoundIdle = 2.0;
       DefaultHitsPlayer = true;
       DefaultHitsCreatures = false;
       DefaultDirectionFallSpeed = 0.0;
