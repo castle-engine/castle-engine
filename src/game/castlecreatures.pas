@@ -263,7 +263,6 @@ type
     FMaxAttackDistance: Single;
     FPreferredAttackDistance: Single;
     FAttackTime: Single;
-    FSoundAttackStart: TSoundType;
     FLifeToRunAway: Single;
     FMaxAngleToAttack: Single;
     FMinLifeLossToHurt: Single;
@@ -273,6 +272,7 @@ type
     FRemoveCorpse: boolean;
     FAttackShortRange: boolean;
     FAttackSound: TSoundType;
+    FAttackStartSound: TSoundType;
     FFireMissileName: string;
     FFireMissileHeight: Single;
     FFireMissileSound: TSoundType;
@@ -396,13 +396,6 @@ type
       read FAttackTime write FAttackTime
       default DefaultAttackTime;
 
-    { Played at the start of attack animation,
-      that is when entering wasAttack state.
-      To play a sound when the actual hit happens (at AttackTime)
-      see AttackSound. }
-    property SoundAttackStart: TSoundType
-      read FSoundAttackStart write FSoundAttackStart default stNone;
-
     { Should we perform short-range attack at AttackTime during AttackAnimation.
       The damage and knockback are defined by TCreatureKind.AttackDamageConst,
       TCreatureKind.AttackDamageRandom, TCreatureKind.AttackKnockbackDistance. }
@@ -412,6 +405,13 @@ type
     { Sound played when short-range attack (see AttackShortRange) hits. }
     property AttackSound: TSoundType
       read FAttackSound write FAttackSound default stNone;
+
+    { Played at the start of attack animation,
+      that is when entering wasAttack state.
+      To play a sound when the actual hit happens (at AttackTime)
+      see AttackSound. }
+    property AttackStartSound: TSoundType
+      read FAttackStartSound write FAttackStartSound default stNone;
 
     { Name of the creature to fire as missile, at AttackTime during AttackAnimation.
       Leave empty to not fire any missile. }
@@ -1016,8 +1016,8 @@ begin
   FireMissileHeight := ResourceConfig.GetFloat('fire_missile/height', DefaultFireMissileHeight);
   FireMissileSound := SoundEngine.SoundFromName(ResourceConfig.GetValue('fire_missile/sound', ''));
 
-  SoundAttackStart := SoundEngine.SoundFromName(
-    ResourceConfig.GetValue('sound_attack_start', ''));
+  AttackStartSound := SoundEngine.SoundFromName(
+    ResourceConfig.GetValue('attack/start_sound', ''));
 end;
 
 { TMissileCreatureKind ---------------------------------------------------- }
@@ -1388,7 +1388,7 @@ begin
     case FState of
       wasAttack:
         begin
-          Sound3d(Kind.SoundAttackStart, 1.0);
+          Sound3d(Kind.AttackStartSound, 1.0);
           LastAttackTime := StateChangeTime;
           AttackDone := false;
         end;
