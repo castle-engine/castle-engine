@@ -274,6 +274,7 @@ type
     FChanceToHurt: Single;
     FMaxHeightAcceptableToFall: Single;
     FRandomWalkDistance: Single;
+    FRemoveCorpse: boolean;
   public
     const
       DefaultMoveSpeed = 10.0;
@@ -288,6 +289,7 @@ type
       DefaultChanceToHurt = 1.0;
       DefaultMaxHeightAcceptableToFall = 2.0 * 0.7;
       DefaultRandomWalkDistance = 10.0;
+      DefaultRemoveCorpse = false;
 
     constructor Create(const AName: string); override;
 
@@ -326,12 +328,11 @@ type
 
     { An animation of dying.
 
-      It is not displayed in a loop, after it runs
-      it's duration we constantly show the final frame.
-      Note that you can override TCreature.Idle and set RemoveMe to
-      rtRemoveAndFree to actually remove the dead creature from the level.
-      See castle/source/gamecreatures.pas source code for TGhostCreature.Idle
-      example.
+      Dying animation is not displayed in a loop, after it runs
+      it's duration we constantly show the final frame,
+      at the TCreature instance will keep existing on the level.
+      Unless you set RemoveCorpse to @true, then the dead creature
+      will be completely removed from the level.
 
       For best look: Beginning should roughly glue with any point of
       the stand/attack/walk animations. }
@@ -450,6 +451,9 @@ type
       read FRandomWalkDistance
       write FRandomWalkDistance
       default DefaultRandomWalkDistance;
+
+    property RemoveCorpse: boolean
+      read FRemoveCorpse write FRemoveCorpse default DefaultRemoveCorpse;
   end;
 
   { Creature that blindly moves in a given direction.
@@ -943,6 +947,7 @@ begin
   FChanceToHurt := DefaultChanceToHurt;
   FMaxHeightAcceptableToFall := DefaultMaxHeightAcceptableToFall;
   FRandomWalkDistance := DefaultRandomWalkDistance;
+  FRemoveCorpse := DefaultRemoveCorpse;
 
   FStandAnimation := T3DResourceAnimation.Create(Self, 'stand');
   FStandToWalkAnimation := T3DResourceAnimation.Create(Self, 'stand_to_walk');
@@ -979,6 +984,7 @@ begin
     DefaultMaxHeightAcceptableToFall);
   RandomWalkDistance := ResourceConfig.GetFloat('random_walk_distance',
     DefaultRandomWalkDistance);
+  RemoveCorpse := ResourceConfig.GetValue('remove_corpse', DefaultRemoveCorpse);
 
   SoundAttackStart := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('sound_attack_start', ''));
@@ -1895,6 +1901,13 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
     end;
   end;
 
+  procedure DoDying(const AnimationDuration: Single);
+  begin
+    if Kind.RemoveCorpse and
+      (LifeTime - StateChangeTime > AnimationDuration) then
+      RemoveMe := rtRemoveAndFree;
+  end;
+
 var
   Player: T3DOrient;
 begin
@@ -1928,7 +1941,8 @@ begin
     wasStand: DoStand;
     wasWalk: DoWalk;
     wasAttack: DoAttack;
-    wasDying, wasDyingBack: ;
+    wasDying: DoDying(Kind.DyingAnimation.Duration);
+    wasDyingBack: DoDying(Kind.DyingBackAnimation.Duration);
     wasHurt: DoHurt;
     wasSpecial1: { Should be handled in descendants. };
     else raise EInternalError.Create('FState ?');
