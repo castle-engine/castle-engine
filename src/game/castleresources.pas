@@ -52,7 +52,7 @@ type
       const AName: string; const ARequired: boolean = true);
 
     { Duration of the animation. See engine tutorial about how resources animations
-      duration is calculated. }
+      duration is calculated. Always 0 if not @link(Defined). }
     property Duration: Single read FDuration;
     function BoundingBox: TBox3D;
 
@@ -361,7 +361,8 @@ procedure T3DResourceAnimation.Prepare(const BaseLights: TAbstractLightInstances
       Duration := Animation.TimeEnd;
       if Animation.TimeBackwards then
         Duration += Animation.TimeEnd - Animation.TimeBegin;
-    end;
+    end else
+      Duration := 0;
     if DoProgress then Progress.Step;
   end;
 

@@ -309,6 +309,7 @@ type
     property StandAnimation: T3DResourceAnimation read FStandAnimation;
 
     { An animation when creature changes from standing still to walking.
+      Optional.
 
       For best look: It's beginnig should glue with the end of StandAnimation,
       it's ending should glue with beginning of WalkAnimation. }
@@ -319,7 +320,7 @@ type
       the beginning and end match. }
     property WalkAnimation: T3DResourceAnimation read FWalkAnimation;
 
-    { An animation of attacking.
+    { An animation of short-range attacking. Optional.
 
       For best look: Beginning and end of it should roughly glue with (any)
       frame of WalkAnimation and StandAnimation.
@@ -336,7 +337,7 @@ type
       before the attack. }
     property AttackAnimation: T3DResourceAnimation read FAttackAnimation;
 
-    { Firing missile animation. Similar rules like AttackAnimation,
+    { Firing missile animation. Optional. Similar rules like AttackAnimation,
       but here the "highlight" is not directly hurting enemy,
       but firing a new creature (missile).
 
@@ -1026,7 +1027,7 @@ begin
   FFireMissileHeight := DefaultFireMissileHeight;
 
   FStandAnimation := T3DResourceAnimation.Create(Self, 'stand');
-  FStandToWalkAnimation := T3DResourceAnimation.Create(Self, 'stand_to_walk');
+  FStandToWalkAnimation := T3DResourceAnimation.Create(Self, 'stand_to_walk', false);
   FWalkAnimation := T3DResourceAnimation.Create(Self, 'walk');
   FAttackAnimation := T3DResourceAnimation.Create(Self, 'attack', false);
   FFireMissileAnimation := T3DResourceAnimation.Create(Self, 'fire_missile', false);
@@ -2093,7 +2094,8 @@ begin
     wasStand:
       Result := Kind.StandAnimation.Scene(StateTime, true);
     wasWalk:
-      if StateTime < Kind.StandToWalkAnimation.Duration then
+      if Kind.StandToWalkAnimation.Defined and
+         (StateTime < Kind.StandToWalkAnimation.Duration) then
         Result := Kind.StandToWalkAnimation.Scene(StateTime, false) else
         Result := Kind.WalkAnimation.Scene(
           StateTime - Kind.StandToWalkAnimation.Duration, true);
