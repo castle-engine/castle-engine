@@ -259,12 +259,13 @@ type
     FHurtAnimation: T3DResourceAnimation;
 
     FMoveSpeed: Single;
-    FLifeToRunAway: Single;
     FMinLifeLossToHurt: Single;
     FChanceToHurt: Single;
     FMaxHeightAcceptableToFall: Single;
     FRandomWalkDistance: Single;
     FRemoveCorpse: boolean;
+    FRunAwayLife: Single;
+    FRunAwayDistance: Single;
     FAttackMinDelay: Single;
     FAttackMaxDistance: Single;
     FAttackPreferredDistance: Single;
@@ -279,12 +280,13 @@ type
   public
     const
       DefaultMoveSpeed = 10.0;
-      DefaultLifeToRunAway = 0.3;
       DefaultMinLifeLossToHurt = 0.0;
       DefaultChanceToHurt = 1.0;
       DefaultMaxHeightAcceptableToFall = 2.0 * 0.7;
       DefaultRandomWalkDistance = 10.0;
       DefaultRemoveCorpse = false;
+      DefaultRunAwayLife = 0.3;
+      DefaultRunAwayDistance = 10.0;
       DefaultAttackMinDelay = 5.0;
       DefaultAttackMaxDistance = 35.0;
       DefaultAttackPreferredDistance = 30.0 * 0.7;
@@ -428,13 +430,16 @@ type
     property FireMissileSound: TSoundType
       read FFireMissileSound write FFireMissileSound default stNone;
 
-    { Portion of life when the creature decides it's best to run away
-      from enemy (player).
-      If @code(Life <= MaxLife * LifeToRunAway) and distance to the
-      player is too short (shorter than AttackMaxDistance / 4),
-      the creature runs away. }
-    property LifeToRunAway: Single
-      read FLifeToRunAway write FLifeToRunAway default DefaultLifeToRunAway;
+    { Portion of life and distance when the creature decides it's best to run away
+      from the enemy (player). RunAwayLife is expressed as a fraction of MaxLife.
+      We run if our @code(Life <= MaxLife * RunAwayLife) and the distance
+      to the (last seen) enemy is < RunAwayDistance.
+      @groupBegin }
+    property RunAwayLife: Single
+      read FRunAwayLife write FRunAwayLife default DefaultRunAwayLife;
+    property RunAwayDistance: Single
+      read FRunAwayDistance write FRunAwayDistance default DefaultRunAwayDistance;
+    { @groupEnd }
 
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
 
@@ -963,12 +968,13 @@ begin
   inherited;
 
   MoveSpeed := DefaultMoveSpeed;
-  FLifeToRunAway := DefaultLifeToRunAway;
   FMinLifeLossToHurt := DefaultMinLifeLossToHurt;
   FChanceToHurt := DefaultChanceToHurt;
   FMaxHeightAcceptableToFall := DefaultMaxHeightAcceptableToFall;
   FRandomWalkDistance := DefaultRandomWalkDistance;
   FRemoveCorpse := DefaultRemoveCorpse;
+  FRunAwayLife := DefaultRunAwayLife;
+  FRunAwayDistance := DefaultRunAwayDistance;
   FAttackTime := DefaultAttackTime;
   FAttackMinDelay := DefaultAttackMinDelay;
   FAttackMaxDistance := DefaultAttackMaxDistance;
@@ -991,8 +997,6 @@ begin
 
   MoveSpeed := ResourceConfig.GetFloat('move_speed',
     DefaultMoveSpeed);
-  LifeToRunAway := ResourceConfig.GetFloat('life_to_run_away',
-    DefaultLifeToRunAway);
   MinLifeLossToHurt := ResourceConfig.GetFloat('min_life_loss_to_hurt',
     DefaultMinLifeLossToHurt);
   ChanceToHurt := ResourceConfig.GetFloat('chance_to_hurt',
@@ -1002,6 +1006,8 @@ begin
   RandomWalkDistance := ResourceConfig.GetFloat('random_walk_distance',
     DefaultRandomWalkDistance);
   RemoveCorpse := ResourceConfig.GetValue('remove_corpse', DefaultRemoveCorpse);
+  RunAwayLife := ResourceConfig.GetFloat('run_away/life', DefaultRunAwayLife);
+  RunAwayDistance := ResourceConfig.GetFloat('run_away/distance', DefaultRunAwayDistance);
   AttackTime := ResourceConfig.GetFloat('attack/time', DefaultAttackTime);
   AttackMaxDistance := ResourceConfig.GetFloat('attack/max_distance',
     DefaultAttackMaxDistance);
@@ -1571,8 +1577,8 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
   function WantToRunAway: boolean;
   begin
     Result := IdleSeesPlayer and
-      (Life <= MaxLife * Kind.LifeToRunAway) and
-      (IdleSqrDistanceToLastSeenPlayer < Sqr(Kind.AttackMaxDistance / 4));
+      (Life <= MaxLife * Kind.RunAwayLife) and
+      (IdleSqrDistanceToLastSeenPlayer < Sqr(Kind.RunAwayDistance));
   end;
 
   procedure InitAlternativeTarget;
