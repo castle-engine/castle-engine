@@ -487,6 +487,7 @@ type
     { @groupEnd }
 
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
+    function CreatureClass: TCreatureClass; override;
 
     { When creature is wounded for more than MaxLife * MinLifeLossToHurt
       points and moreover Random < ChanceToHurt then creature will
@@ -1069,6 +1070,11 @@ begin
   FireMissileSound := SoundEngine.SoundFromName(ResourceConfig.GetValue('fire_missile/sound', ''));
   FireMissileName := ResourceConfig.GetValue('fire_missile/name', '');
   FireMissileHeight := ResourceConfig.GetFloat('fire_missile/height', DefaultFireMissileHeight);
+end;
+
+function TWalkAttackCreatureKind.CreatureClass: TCreatureClass;
+begin
+  Result := TWalkAttackCreature;
 end;
 
 { TMissileCreatureKind ---------------------------------------------------- }
@@ -2421,4 +2427,8 @@ end;
 initialization
   OnGLContextOpen.Add(@WindowOpen);
   OnGLContextClose.Add(@WindowClose);
+
+  RegisterResourceClass(TWalkAttackCreatureKind, 'WalkAttack');
+  RegisterResourceClass(TMissileCreatureKind, 'Missile');
+  RegisterResourceClass(TStillCreatureKind, 'Still');
 end.
