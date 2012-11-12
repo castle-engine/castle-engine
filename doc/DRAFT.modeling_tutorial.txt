@@ -61,3 +61,58 @@ In some situations, we have to know the animation duration (for example, to know
 The looping is done automatically for animations that require it (like walk). So using loop attribute in kanim file, or loop field for TimeSensor is not necessary (it's ignored).
 
 Design notes about X3D TimeSensor usage: Note that all creatures of a given kind share the same resources, e.g. if you have a single creature "werewolf" (defined by a resource.xml file with name="Werewolf" inside) you can instantiate this creature many times, and they will all actually use the same resource underneath. That is why we use TimeSensors by directly sending their elapsedTime/fraction_changed, instead of just activating them by TimeSensor.startTime: in the latter case, all werewolves visible on the level would be forced to be in the same state(and moment) of the animation.
+------------------------------------------------------------------------------
+To make exporting easy and automated without accidents, Michalis found it's best to place a short Python snippet that calls the export operator inside .blend file. This can look like this:
+
+[[
+import bpy
+dirname = os.path.dirname(bpy.context.blend_data.filepath)
+filepath = os.path.join(dirname, "idle.x3d")
+bpy.ops.export_scene.x3d(filepath=filepath,
+    check_existing=False,
+    use_selection=False,
+    use_apply_modifiers=True,
+    use_triangulate=False,
+    use_normals=False,
+    use_compress=False,
+    use_hierarchy=True,
+    name_decorations=True,
+    use_h3d=False,
+    axis_forward='Z',
+    axis_up='Y',
+    path_mode='AUTO')
+]]
+
+This way if you need to export some model, e.g. with path_mode="RELATIVE" (necessary if your texture paths start like ../../) then you can just write it down inside .blend file. Blender "Operator Presets" are too error-prone for this in my experience, you often end up not choosing them, and it's hard to share them with others and keep in SVN repo. Moreover, a script can even select necessary objects (in case you need to use use_selection), skip to appropriate animation frame, export a couple of files (maybe some X3D, maybe some KAnim).... See castle/data/creatures/barrel/barrel.blend for an example using it, like this:
+
+[[
+import bpy
+import os
+
+dirname = os.path.dirname(bpy.context.blend_data.filepath)
+
+# make sure we're on the 1st frame
+bpy.context.scene.frame_set(1)
+
+# make sure that only Main is selected
+bpy.ops.object.select_all(action='DESELECT')
+main = bpy.data.objects['Main']
+main.select = True
+bpy.context.scene.objects.active = main
+
+# export idle
+filepath = os.path.join(dirname, "idle.x3d")
+bpy.ops.export_scene.x3d(filepath=filepath,
+	use_selection=True,
+	axis_forward='Y', axis_up='Z',
+	path_mode='RELATIVE'
+	)
+
+# export die
+filepath = os.path.join(dirname, "die.kanim")
+bpy.ops.export.kanim(filepath=filepath,
+	use_selection=True,
+	axis_forward='Y', axis_up='Z',
+	path_mode='RELATIVE'
+	)
+]]
