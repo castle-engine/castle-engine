@@ -113,6 +113,7 @@ type
     FFallSpeed, FGrowSpeed: Single;
     FAnimations: T3DResourceAnimationList;
     FReceiveShadowVolumes: boolean;
+    FCastShadowVolumes: boolean;
   protected
     { Animations of this resource.
 
@@ -153,6 +154,7 @@ type
       DefaultFallSpeed = 10.0;
       DefaultGrowSpeed = 5.0;
       DefaultReceiveShadowVolumes = true;
+      DefaultCastShadowVolumes = true;
 
     constructor Create(const AName: string); virtual;
     destructor Destroy; override;
@@ -245,6 +247,9 @@ type
     property ReceiveShadowVolumes: boolean
       read FReceiveShadowVolumes write FReceiveShadowVolumes
       default DefaultReceiveShadowVolumes;
+    property CastShadowVolumes: boolean
+      read FCastShadowVolumes write FCastShadowVolumes
+      default DefaultCastShadowVolumes;
   end;
 
   T3DResourceClass = class of T3DResource;
@@ -325,6 +330,7 @@ function T3DResourceAnimation.Scene(const Time: Single;
 begin
   Result := Animation.Scene(Time, Loop);
   Result.ReceiveShadowVolumes := Owner.ReceiveShadowVolumes;
+  Result.CastShadowVolumes := Owner.CastShadowVolumes;
   // TODO: fix for Animation = nil
 end;
 
@@ -438,6 +444,7 @@ begin
   FFallSpeed := DefaultFallSpeed;
   FGrowSpeed := DefaultGrowSpeed;
   FReceiveShadowVolumes := DefaultReceiveShadowVolumes;
+  FCastShadowVolumes := DefaultCastShadowVolumes;
   FAnimations := T3DResourceAnimationList.Create;
 end;
 
@@ -489,6 +496,8 @@ begin
   FGrowSpeed := ResourceConfig.GetFloat('grow_speed', DefaultGrowSpeed);
   FReceiveShadowVolumes := ResourceConfig.GetValue('receive_shadow_volumes',
     DefaultReceiveShadowVolumes);
+  FCastShadowVolumes := ResourceConfig.GetValue('cast_shadow_volumes',
+    DefaultCastShadowVolumes);
 
   for I := 0 to Animations.Count - 1 do
     Animations[I].LoadFromFile(ResourceConfig);
