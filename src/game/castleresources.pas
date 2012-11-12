@@ -22,10 +22,6 @@ interface
 uses VectorMath, Classes, CastleXMLConfig, PrecalculatedAnimation,
   CastleScene, X3DNodes, Base3D, DOM, FGL, Boxes3D;
 
-const
-  DefaultFallSpeed = 10.0;
-  DefaultGrowSpeed = 5.0;
-
 type
   T3DResource = class;
 
@@ -116,6 +112,7 @@ type
     ConfigAlwaysPrepared: boolean;
     FFallSpeed, FGrowSpeed: Single;
     FAnimations: T3DResourceAnimationList;
+    FReceiveShadowVolumes: boolean;
   protected
     { Animations of this resource.
 
@@ -152,6 +149,11 @@ type
     procedure ReleaseCore; virtual;
     { @groupEnd }
   public
+    const
+      DefaultFallSpeed = 10.0;
+      DefaultGrowSpeed = 5.0;
+      DefaultReceiveShadowVolumes = true;
+
     constructor Create(const AName: string); virtual;
     destructor Destroy; override;
 
@@ -239,6 +241,10 @@ type
       and T3D.PreferredHeight are already sensible for creatures/items. }
     property GrowSpeed: Single
       read FGrowSpeed write FGrowSpeed default DefaultGrowSpeed;
+
+    property ReceiveShadowVolumes: boolean
+      read FReceiveShadowVolumes write FReceiveShadowVolumes
+      default DefaultReceiveShadowVolumes;
   end;
 
   T3DResourceClass = class of T3DResource;
@@ -318,6 +324,7 @@ function T3DResourceAnimation.Scene(const Time: Single;
   const Loop: boolean): TCastleScene;
 begin
   Result := Animation.Scene(Time, Loop);
+  Result.ReceiveShadowVolumes := Owner.ReceiveShadowVolumes;
   // TODO: fix for Animation = nil
 end;
 
@@ -430,6 +437,7 @@ begin
   FName := AName;
   FFallSpeed := DefaultFallSpeed;
   FGrowSpeed := DefaultGrowSpeed;
+  FReceiveShadowVolumes := DefaultReceiveShadowVolumes;
   FAnimations := T3DResourceAnimationList.Create;
 end;
 
@@ -479,6 +487,8 @@ begin
   ConfigAlwaysPrepared := ResourceConfig.GetValue('always_prepared', false);
   FFallSpeed := ResourceConfig.GetFloat('fall_speed', DefaultFallSpeed);
   FGrowSpeed := ResourceConfig.GetFloat('grow_speed', DefaultGrowSpeed);
+  FReceiveShadowVolumes := ResourceConfig.GetValue('receive_shadow_volumes',
+    DefaultReceiveShadowVolumes);
 
   for I := 0 to Animations.Count - 1 do
     Animations[I].LoadFromFile(ResourceConfig);
