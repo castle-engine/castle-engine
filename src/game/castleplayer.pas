@@ -84,7 +84,6 @@ type
   private
     FInventory: TInventory;
     FEquippedWeapon: TItemWeapon;
-    LifeTime: Single;
 
     { If Swimming = psUnderWater, then this is the time (from LifeTime)
       of setting Swimming to psUnderWater. }
@@ -1007,7 +1006,6 @@ const
 begin
   inherited;
   if not GetExists then Exit;
-  LifeTime += CompSpeed;
 
   if FFlyingTimeOut > 0 then
   begin

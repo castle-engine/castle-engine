@@ -1628,6 +1628,8 @@ type
     for given 3D object, so it may be indestructible just like other 3D objects. }
   T3DAlive = class(T3DOrient)
   private
+    FLifeTime: Single;
+    FDieTime: Single;
     FLife: Single;
     FMaxLife: Single;
     { FKnockbackDistance <= 0 means "no knockback currently" }
@@ -1666,6 +1668,11 @@ type
       Zero if there was no specific direction of last attack,
       otherwise a normalized (length 1) vector. }
     property LastHurtDirection: TVector3Single read FLastHurtDirection;
+
+    property LifeTime: Single read FLifeTime;
+
+    { Time of death, only valid if @link(Dead), taken from LifeTime. }
+    property DieTime: Single read FDieTime;
   published
     { Current Life. We're dead when this is <= 0. }
     property Life: Single read FLife write SetLife;
@@ -3915,10 +3922,14 @@ constructor T3DAlive.Create(AOwner: TComponent);
 begin
   inherited;
   KnockBackSpeed := 1.0;
+  { at the beginning we are Dead (Life = 0) and DieTime = LifeTime,
+    so everything is already in the correct state. }
 end;
 
 procedure T3DAlive.SetLife(const Value: Single);
 begin
+  if (FLife > 0) and (Value <= 0) then
+    FDieTime := LifeTime;
   FLife := Value;
 end;
 
@@ -3948,6 +3959,10 @@ var
   CurrentKnockBackDistance: Single;
 begin
   inherited;
+  if not GetExists then Exit;
+
+  FLifeTime += CompSpeed;
+
   if FKnockbackDistance > 0 then
   begin
     { Calculate CurrentKnockBackDistance, update FKnockbackDistance }

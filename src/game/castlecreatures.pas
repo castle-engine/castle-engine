@@ -545,6 +545,7 @@ type
   TMissileCreatureKind = class(TCreatureKind)
   private
     FFlyAnimation: T3DResourceAnimation;
+    FDieAnimation: T3DResourceAnimation;
     FMoveSpeed: Single;
     FSoundHit: TSoundType;
     FCloseDirectionToTargetSpeed: Single;
@@ -553,6 +554,7 @@ type
     FHitsPlayer: boolean;
     FHitsCreatures: boolean;
     FDirectionFallSpeed: Single;
+    FRemoveDead: boolean;
   protected
     function RadiusCalculate(const GravityUp: TVector3Single): Single; override;
   public
@@ -563,11 +565,17 @@ type
       DefaultHitsPlayer = true;
       DefaultHitsCreatures = false;
       DefaultDirectionFallSpeed = 0.0;
+      DefaultRemoveDead = true;
 
     constructor Create(const AName: string); override;
+    function CreatureClass: TCreatureClass; override;
+    procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
+    function CreateCreature(World: T3DWorld;
+      const APosition, ADirection: TVector3Single;
+      const MaxLife: Single): TCreature; override;
 
-    { The one and only animation of the missile. }
     property FlyAnimation: T3DResourceAnimation read FFlyAnimation;
+    property DieAnimation: T3DResourceAnimation read FDieAnimation;
 
     { The moving speed: how much Direction vector will be scaled
       when moving. }
@@ -576,10 +584,6 @@ type
 
     property SoundHit: TSoundType
       read FSoundHit write FSoundHit default stNone;
-
-    function CreatureClass: TCreatureClass; override;
-
-    procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
 
     { For "homing" missiles, how fast direction to the target is corrected.
       Zero (default) means that the missile is not "homing". }
@@ -616,9 +620,11 @@ type
       read FDirectionFallSpeed write FDirectionFallSpeed
       default DefaultDirectionFallSpeed;
 
-    function CreateCreature(World: T3DWorld;
-      const APosition, ADirection: TVector3Single;
-      const MaxLife: Single): TCreature; override;
+    { Should the dead (destroyed) missiles be removed from level.
+      This is exactly like TWalkAttackCreatureKind.RemoveDead
+      and TStillCreatureKind.RemoveDead, except for missiles the default is @true. }
+    property RemoveDead: boolean
+      read FRemoveDead write FRemoveDead default DefaultRemoveDead;
   end;
 
   { Creature that just stays still.
@@ -626,25 +632,32 @@ type
   TStillCreatureKind = class(TCreatureKind)
   private
     FIdleAnimation: T3DResourceAnimation;
+    FDieAnimation: T3DResourceAnimation;
+    FRemoveDead: boolean;
   public
+    const
+      DefaultRemoveDead = false;
+
     constructor Create(const AName: string); override;
-    { The one and only animation of the still creature. }
-    property IdleAnimation: T3DResourceAnimation read FIdleAnimation;
     function CreatureClass: TCreatureClass; override;
+    procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
+
+    property IdleAnimation: T3DResourceAnimation read FIdleAnimation;
+    property DieAnimation: T3DResourceAnimation read FDieAnimation;
+    property RemoveDead: boolean
+      read FRemoveDead write FRemoveDead default DefaultRemoveDead;
   end;
 
   { Base creature, using any TCreatureKind. }
   TCreature = class(T3DAlive)
   private
     FKind: TCreatureKind;
-    FLifeTime: Single;
 
     UsedSounds: TSoundList;
     FSoundDieEnabled: boolean;
 
     procedure SoundRelease(Sender: TSound);
   protected
-    property LifeTime: Single read FLifeTime;
     procedure SetLife(const Value: Single); override;
     function GetExists: boolean; override;
     procedure Fall(const FallHeight: Single); override;
@@ -815,9 +828,7 @@ type
     function GetChild: T3D; override;
   public
     constructor Create(AOwner: TComponent; const AMaxLife: Single); override;
-
     function Kind: TMissileCreatureKind;
-
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
   end;
 
@@ -827,7 +838,6 @@ type
     function GetChild: T3D; override;
   public
     function Kind: TStillCreatureKind;
-
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
   end;
 
@@ -1096,6 +1106,8 @@ begin
   FHitsCreatures := DefaultHitsCreatures;
   FDirectionFallSpeed := DefaultDirectionFallSpeed;
   FFlyAnimation := T3DResourceAnimation.Create(Self, 'fly');
+  FDieAnimation := T3DResourceAnimation.Create(Self, 'die', false);
+  FRemoveDead := DefaultRemoveDead;
 end;
 
 function TMissileCreatureKind.RadiusCalculate(const GravityUp: TVector3Single): Single;
@@ -1134,6 +1146,7 @@ begin
     DefaultHitsCreatures);
   DirectionFallSpeed := ResourceConfig.GetFloat('direction_fall_speed',
     DefaultDirectionFallSpeed);
+  RemoveDead := ResourceConfig.GetValue('remove_dead', DefaultRemoveDead);
 
   SoundHit := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('sound_hit', ''));
@@ -1173,11 +1186,19 @@ constructor TStillCreatureKind.Create(const AName: string);
 begin
   inherited;
   FIdleAnimation := T3DResourceAnimation.Create(Self, 'idle');
+  FDieAnimation := T3DResourceAnimation.Create(Self, 'die', false);
+  FRemoveDead := DefaultRemoveDead;
 end;
 
 function TStillCreatureKind.CreatureClass: TCreatureClass;
 begin
   Result := TStillCreature;
+end;
+
+procedure TStillCreatureKind.LoadFromFile(ResourceConfig: TCastleConfig);
+begin
+  inherited;
+  RemoveDead := ResourceConfig.GetValue('remove_dead', DefaultRemoveDead);
 end;
 
 { TCreatureSoundData --------------------------------------------------- }
@@ -1365,8 +1386,6 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
   if (not GetExists) or DebugTimeStopForCreatures then Exit;
-
-  FLifeTime += CompSpeed;
 
   UpdateUsedSounds;
 end;
@@ -2278,13 +2297,16 @@ var
   C: TCreature;
 begin
   inherited;
-  Player := World.Player;
-
-  { TODO: do some missile explosion animation for some missiles. }
-  if Life <= 0.0 then
-    RemoveMe := rtRemoveAndFree;
-
   if (not GetExists) or DebugTimeStopForCreatures then Exit;
+
+  if Dead then
+  begin
+    if Kind.RemoveDead and (LifeTime - DieTime > Kind.DieAnimation.Duration) then
+      RemoveMe := rtRemoveAndFree;
+    Exit;
+  end;
+
+  Player := World.Player;
 
   { Missile moves *always*, regardless of MissileMoveAllowed result.
     Only after move, if the move made us colliding with something --- we explode. }
@@ -2367,7 +2389,9 @@ function TMissileCreature.GetChild: T3D;
 begin
   if not Kind.Prepared then Exit(nil);
 
-  Result := Kind.FlyAnimation.Scene(LifeTime, true);
+  if Dead and Kind.DieAnimation.Defined then
+    Result := Kind.DieAnimation.Scene(LifeTime - DieTime, false) else
+    Result := Kind.FlyAnimation.Scene(LifeTime, true);
 end;
 
 procedure TMissileCreature.HitCore;
@@ -2403,17 +2427,21 @@ function TStillCreature.GetChild: T3D;
 begin
   if not Kind.Prepared then Exit(nil);
 
-  Result := Kind.IdleAnimation.Scene(LifeTime, true);
+  if Dead and Kind.DieAnimation.Defined then
+    Result := Kind.DieAnimation.Scene(LifeTime - DieTime, false) else
+    Result := Kind.IdleAnimation.Scene(LifeTime, true);
 end;
 
 procedure TStillCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
-  { TODO: do explosion anim for barrel.
-    We should probably have here DestroyAnimation, like DieAnimation,
-    and property RemoveDead like TWalkAttackCreatureKind. }
-  if Life <= 0.0 then
-    RemoveMe := rtRemoveAndFree;
+  if (not GetExists) or DebugTimeStopForCreatures then Exit;
+
+  if Dead then
+  begin
+    if Kind.RemoveDead and (LifeTime - DieTime > Kind.DieAnimation.Duration) then
+      RemoveMe := rtRemoveAndFree;
+  end;
 end;
 
 { initialization / finalization ---------------------------------------------- }
