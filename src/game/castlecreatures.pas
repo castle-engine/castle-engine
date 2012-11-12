@@ -24,6 +24,20 @@ uses Classes, VectorMath, PrecalculatedAnimation, Boxes3D, CastleClassUtils,
   CastleSoundEngine, Frustum, X3DNodes, CastleColors, FGL;
 
 type
+  TCreatureState = type Integer;
+
+const
+  csIdle        = TCreatureState(0);
+  csWalk        = TCreatureState(1);
+  csAttack      = TCreatureState(2);
+  csFireMissile = TCreatureState(3);
+  csDie         = TCreatureState(4);
+  csDieBack     = TCreatureState(5);
+  csHurt        = TCreatureState(6);
+  { Maximum TCreatureState value reserved by CastleCreatures unit. }
+  csMax = csHurt;
+
+type
   TCreature = class;
 
   TCreatureClass = class of TCreature;
@@ -33,8 +47,8 @@ type
   strict private
     FFlying: boolean;
     FSoundSuddenPain: TSoundType;
-    FSoundDying: TSoundType;
-    FSoundDyingTiedToCreature: boolean;
+    FSoundDie: TSoundType;
+    FSoundDieTiedToCreature: boolean;
     FDefaultMaxLife: Single;
     FKnockedBackDistance: Single;
     FKnockBackSpeed: Single;
@@ -68,7 +82,7 @@ type
       DefaultDefaultMaxLife = 100.0;
       DefaultFlying = false;
       DefaultKnockedBackDistance = 4.0;
-      DefaultSoundDyingTiedToCreature = true;
+      DefaultSoundDieTiedToCreature = true;
       DefaultAttackDamageConst = 0.0;
       DefaultAttackDamageRandom = 0.0;
       DefaultAttackKnockbackDistance = 0.0;
@@ -120,15 +134,15 @@ type
     property SoundSuddenPain: TSoundType
       read FSoundSuddenPain write FSoundSuddenPain default stNone;
 
-    property SoundDying: TSoundType
-      read FSoundDying write FSoundDying default stNone;
+    property SoundDie: TSoundType
+      read FSoundDie write FSoundDie default stNone;
 
     { See TCreature.Sound3d TiedToCreature parameter docs.
-      You can set this to false if you want SoundDying to last even
+      You can set this to false if you want SoundDie to last even
       after the creature object was destroyed. }
-    property SoundDyingTiedToCreature: boolean
-      read FSoundDyingTiedToCreature write FSoundDyingTiedToCreature
-      default DefaultSoundDyingTiedToCreature;
+    property SoundDieTiedToCreature: boolean
+      read FSoundDieTiedToCreature write FSoundDieTiedToCreature
+      default DefaultSoundDieTiedToCreature;
 
     { The default MaxLife for creatures of this kind.
 
@@ -233,27 +247,27 @@ type
       read FFallSound write FFallSound;
   end;
 
-  { Kind of creature with states: standing stil,
-    walking (running), performing an attack and dying.
+  { Creature with smart walking and attacking intelligence.
+    May stand still (idle), walk, attack, fire missiles, and die.
 
     Tracks the player (remembers last seen player 3D position,
     walks/flies to it, possibly through sectors/waypoints ---
     so it can pass through narrow doors in a labyrinth or walk over a narrow bridge).
-    Attacks the player from the right distance (this can be either a melee attack,
-    or shooting a missile --- which adds a missile to the 3D world).
+    Attacks the player from the right distance (a short-range attack)
+    and/or shoots a missile (adds a missile to the 3D world).
     Runs away from the player (when he's too close and/or our health is low).
 
     There are a lot of settings to achieve particular behavior,
     e.g. cowardly/brave, offensive/defensive, melee/ranged, etc. }
   TWalkAttackCreatureKind = class(TCreatureKind)
   private
-    FStandAnimation: T3DResourceAnimation;
-    FStandToWalkAnimation: T3DResourceAnimation;
+    FIdleAnimation: T3DResourceAnimation;
+    FIdleToWalkAnimation: T3DResourceAnimation;
     FWalkAnimation: T3DResourceAnimation;
     FAttackAnimation: T3DResourceAnimation;
     FFireMissileAnimation: T3DResourceAnimation;
-    FDyingAnimation: T3DResourceAnimation;
-    FDyingBackAnimation: T3DResourceAnimation;
+    FDieAnimation: T3DResourceAnimation;
+    FDieBackAnimation: T3DResourceAnimation;
     FHurtAnimation: T3DResourceAnimation;
 
     FMoveSpeed: Single;
@@ -303,17 +317,17 @@ type
 
     constructor Create(const AName: string); override;
 
-    { An animation of standing still.
+    { An animation of standing still (being idle).
       Will be played in a loop, so for best look make sure that
       the beginning and end match. }
-    property StandAnimation: T3DResourceAnimation read FStandAnimation;
+    property IdleAnimation: T3DResourceAnimation read FIdleAnimation;
 
     { An animation when creature changes from standing still to walking.
       Optional.
 
-      For best look: It's beginnig should glue with the end of StandAnimation,
+      For best look: It's beginnig should glue with the end of IdleAnimation,
       it's ending should glue with beginning of WalkAnimation. }
-    property StandToWalkAnimation: T3DResourceAnimation read FStandToWalkAnimation;
+    property IdleToWalkAnimation: T3DResourceAnimation read FIdleToWalkAnimation;
 
     { An animation of walking.
       Will be played in a loop, so for best look make sure that
@@ -323,13 +337,13 @@ type
     { An animation of short-range attacking. Optional.
 
       For best look: Beginning and end of it should roughly glue with (any)
-      frame of WalkAnimation and StandAnimation.
+      frame of WalkAnimation and IdleAnimation.
 
       @italic(Design notes:)
       I used to have here property like AttacksWhenWalking for the creature,
       to indicate whether creature changes state like
-      "wasWalk -> wasAttack -> wasWalk" or
-      "wasStand -> wasAttack -> wasStand". But this wasn't good.
+      "csWalk -> csAttack -> csWalk" or
+      "csIdle -> csAttack -> csIdle". But this wasn't good.
       Intelligent creature sometimes attacks when walking (e.g. if it just
       made the distance to the player closer) or when standing
       (when the distance was already close enough). And after performing
@@ -358,27 +372,27 @@ type
       will be completely removed from the level.
 
       For best look: Beginning should roughly glue with any point of
-      the stand/attack/walk animations. }
-    property DyingAnimation: T3DResourceAnimation read FDyingAnimation;
+      the idle/attack/walk animations. }
+    property DieAnimation: T3DResourceAnimation read FDieAnimation;
 
     { An optional dying animation, used when the creature is killed
       by hitting it in the back. This may be useful if you want your
       creature to fall face-down when killed from the back or face-up
-      when killed from the front. If this is defined, then DyingAnimation
+      when killed from the front. If this is defined, then DieAnimation
       is only used when creature is killed by hitting it from the front.
       The direction of last hit is taken from LastHurtDirection.
 
-      For best look: Just like DyingAnimation, beginning should roughly
-      glue with any point of the stand/attack/walk animations. }
-    property DyingBackAnimation: T3DResourceAnimation read FDyingBackAnimation;
+      For best look: Just like DieAnimation, beginning should roughly
+      glue with any point of the idle/attack/walk animations. }
+    property DieBackAnimation: T3DResourceAnimation read FDieBackAnimation;
 
     { Animation when the creature will be hurt.
       Beginning and end should *more-or-less* look like
-      any point of the stand/attack/walk animations. }
+      any point of the idle/attack/walk animations. }
     property HurtAnimation: T3DResourceAnimation read FHurtAnimation;
 
     { The moving speed: how much Direction vector will be scaled
-      when moving in wasWalk. }
+      when moving in csWalk. }
     property MoveSpeed: Single read FMoveSpeed write FMoveSpeed
       default DefaultMoveSpeed;
 
@@ -441,7 +455,7 @@ type
       read FAttackSoundHit write FAttackSoundHit default stNone;
 
     { Played at the start of attack animation,
-      that is when entering wasAttack state.
+      that is when entering csAttack state.
       To play a sound when the actual hit happens (at AttackTime)
       see AttackSoundHit. }
     property AttackSoundStart: TSoundType
@@ -488,8 +502,8 @@ type
 
     { When creature is wounded for more than MaxLife * MinLifeLossToHurt
       points and moreover Random < ChanceToHurt then creature will
-      change to wasHurt state and be knocked back.
-      Changing to wasHurt state means that any other state will be
+      change to csHurt state and be knocked back.
+      Changing to csHurt state means that any other state will be
       interrupted (e.g. player can interrupt
       creature's attack this way if AttackTime > 0).
 
@@ -611,11 +625,11 @@ type
     This is just a single 3D animation showing a creature. }
   TStillCreatureKind = class(TCreatureKind)
   private
-    FStandAnimation: T3DResourceAnimation;
+    FIdleAnimation: T3DResourceAnimation;
   public
     constructor Create(const AName: string); override;
     { The one and only animation of the still creature. }
-    property StandAnimation: T3DResourceAnimation read FStandAnimation;
+    property IdleAnimation: T3DResourceAnimation read FIdleAnimation;
     function CreatureClass: TCreatureClass; override;
   end;
 
@@ -626,7 +640,7 @@ type
     FLifeTime: Single;
 
     UsedSounds: TSoundList;
-    FSoundDyingEnabled: boolean;
+    FSoundDieEnabled: boolean;
 
     procedure SoundRelease(Sender: TSound);
   protected
@@ -663,8 +677,8 @@ type
       making any sound. This is really seldom needed, usefull only to avoid
       a loud shriek noise when you kill many creatures at once.
       Primarily for use by debug menu "kill all creatures" and similar things. }
-    property SoundDyingEnabled: boolean read FSoundDyingEnabled
-      write FSoundDyingEnabled default true;
+    property SoundDieEnabled: boolean read FSoundDieEnabled
+      write FSoundDieEnabled default true;
 
     { Play SoundType where the creature's position is.
 
@@ -701,21 +715,18 @@ type
   TCreatureList = class(specialize TFPGObjectList<TCreature>)
   end;
 
-  TWalkAttackCreatureState = (wasStand, wasWalk, wasAttack, wasFireMissile,
-    wasDying, wasDyingBack, wasHurt, wasCustom1);
-
   { Creature using TWalkAttackCreatureKind. }
   TWalkAttackCreature = class(TCreature)
   private
-    FState: TWalkAttackCreatureState;
+    FState: TCreatureState;
 
     FStateChangeTime: Single;
 
-    { Time of last State change to wasAttack or wasFireMissile,
+    { Time of last State change to csAttack or csFireMissile,
       taken from LifeTime. }
     LastAttackTime, LastFireMissileTime: Single;
     { Whether Attack or FireMissile was already called within this
-      wasAttack or wasFireMissile state. }
+      csAttack or csFireMissile state. }
     AttackDone, FireMissileDone: boolean;
 
     HasAlternativeTarget: boolean;
@@ -742,7 +753,7 @@ type
     LastSeenPlayer: TVector3Single;
     LastSeenPlayerSector: TSector;
 
-    procedure SetState(Value: TWalkAttackCreatureState); virtual;
+    procedure SetState(Value: TCreatureState); virtual;
 
     procedure SetLife(const Value: Single); override;
 
@@ -761,7 +772,7 @@ type
 
       The default implementation here performs a short range attack,
       if enemy is still within reach (AttackMaxDistance; even if it was within
-      reach at the start of wasAttack state, the enemy could step back,
+      reach at the start of csAttack state, the enemy could step back,
       so we need to check AttackMaxDistance again).
       The damage and knockback are defined by TCreatureKind.AttackDamageConst,
       TCreatureKind.AttackDamageRandom, TCreatureKind.AttackKnockbackDistance. }
@@ -784,8 +795,7 @@ type
 
     function Kind: TWalkAttackCreatureKind;
 
-    property State: TWalkAttackCreatureState read FState
-      default wasStand;
+    property State: TCreatureState read FState default csIdle;
 
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
@@ -847,7 +857,7 @@ begin
   FDefaultMaxLife := DefaultDefaultMaxLife;
   FKnockedBackDistance := DefaultKnockedBackDistance;
   FKnockBackSpeed := DefaultKnockBackSpeed;
-  FSoundDyingTiedToCreature := DefaultSoundDyingTiedToCreature;
+  FSoundDieTiedToCreature := DefaultSoundDieTiedToCreature;
   FAttackDamageConst := DefaultAttackDamageConst;
   FAttackDamageRandom := DefaultAttackDamageRandom;
   FAttackKnockbackDistance := DefaultAttackKnockbackDistance;
@@ -869,8 +879,8 @@ begin
     DefaultKnockedBackDistance);
   Flying := ResourceConfig.GetValue('flying',
     DefaultFlying);
-  SoundDyingTiedToCreature := ResourceConfig.GetValue('sound_dying_tied_to_creature',
-    DefaultSoundDyingTiedToCreature);
+  SoundDieTiedToCreature := ResourceConfig.GetValue('sound_die_tied_to_creature',
+    DefaultSoundDieTiedToCreature);
   DefaultMaxLife := ResourceConfig.GetFloat('default_max_life',
     DefaultDefaultMaxLife);
   RadiusConfigured := ResourceConfig.GetFloat('radius', 0.0);
@@ -888,8 +898,8 @@ begin
 
   SoundSuddenPain := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('sound_sudden_pain', ''));
-  SoundDying := SoundEngine.SoundFromName(
-    ResourceConfig.GetValue('sound_dying', ''));
+  SoundDie := SoundEngine.SoundFromName(
+    ResourceConfig.GetValue('sound_die', ''));
   FallSound := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('fall/sound/name', DefaultCreatureFallSoundName), false);
 end;
@@ -1023,13 +1033,13 @@ begin
   FFireMissileMinDelay := DefaultFireMissileMinDelay;
   FFireMissileHeight := DefaultFireMissileHeight;
 
-  FStandAnimation := T3DResourceAnimation.Create(Self, 'stand');
-  FStandToWalkAnimation := T3DResourceAnimation.Create(Self, 'stand_to_walk', false);
+  FIdleAnimation := T3DResourceAnimation.Create(Self, 'idle');
+  FIdleToWalkAnimation := T3DResourceAnimation.Create(Self, 'idle_to_walk', false);
   FWalkAnimation := T3DResourceAnimation.Create(Self, 'walk');
   FAttackAnimation := T3DResourceAnimation.Create(Self, 'attack', false);
   FFireMissileAnimation := T3DResourceAnimation.Create(Self, 'fire_missile', false);
-  FDyingAnimation := T3DResourceAnimation.Create(Self, 'dying');
-  FDyingBackAnimation := T3DResourceAnimation.Create(Self, 'dying_back', false);
+  FDieAnimation := T3DResourceAnimation.Create(Self, 'die');
+  FDieBackAnimation := T3DResourceAnimation.Create(Self, 'die_back', false);
   FHurtAnimation := T3DResourceAnimation.Create(Self, 'hurt');
 end;
 
@@ -1162,7 +1172,7 @@ end;
 constructor TStillCreatureKind.Create(const AName: string);
 begin
   inherited;
-  FStandAnimation := T3DResourceAnimation.Create(Self, 'stand');
+  FIdleAnimation := T3DResourceAnimation.Create(Self, 'idle');
 end;
 
 function TStillCreatureKind.CreatureClass: TCreatureClass;
@@ -1185,7 +1195,7 @@ begin
   inherited Create(AOwner);
   CollidesWithMoving := true;
   MaxLife := AMaxLife;
-  FSoundDyingEnabled := true;
+  FSoundDieEnabled := true;
   UsedSounds := TSoundList.Create(false);
 end;
 
@@ -1365,9 +1375,9 @@ procedure TCreature.SetLife(const Value: Single);
 begin
   if (Life > 0) and (Value <= 0) then
   begin
-    { When dies, we don't play SoundSuddenPain sound. We will play SoundDying. }
-    if SoundDyingEnabled then
-      Sound3d(Kind.SoundDying, 1.0, Kind.SoundDyingTiedToCreature);
+    { When dies, we don't play SoundSuddenPain sound. We will play SoundDie. }
+    if SoundDieEnabled then
+      Sound3d(Kind.SoundDie, 1.0, Kind.SoundDieTiedToCreature);
   end else
   if (Life > 0) and (Life - Value > 5) then
   begin
@@ -1404,17 +1414,17 @@ begin
 
   if MaxLife > 0 then
   begin
-    FState := wasStand;
+    FState := csIdle;
     FStateChangeTime := 0;
   end else
   begin
     { This means that the creature is created already in dead state...
-      So we start with wasDying state and set FStateChangeTime to fake
+      So we start with csDie state and set FStateChangeTime to fake
       the fact that creature was killed long time ago.
 
       This way the creature is created as a dead corpse, without making
-      any kind of dying (or wounded) sound or animation. }
-    FState := wasDying;
+      any kind of Die (or wounded) sound or animation. }
+    FState := csDie;
     FStateChangeTime := -1000;
   end;
 
@@ -1432,7 +1442,7 @@ begin
   Result := TWalkAttackCreatureKind(inherited Kind);
 end;
 
-procedure TWalkAttackCreature.SetState(Value: TWalkAttackCreatureState);
+procedure TWalkAttackCreature.SetState(Value: TCreatureState);
 begin
   if FState <> Value then
   begin
@@ -1440,13 +1450,13 @@ begin
     FStateChangeTime := LifeTime;
     { Some states require special initialization here. }
     case FState of
-      wasAttack:
+      csAttack:
         begin
           Sound3d(Kind.AttackSoundStart, 1.0);
           LastAttackTime := StateChangeTime;
           AttackDone := false;
         end;
-      wasFireMissile:
+      csFireMissile:
         begin
           LastFireMissileTime := LifeTime;
           FireMissileDone := false;
@@ -1667,7 +1677,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
     AlternativeTargetTime := LifeTime;
   end;
 
-  procedure DoStand;
+  procedure DoIdle;
   var
     DirectionToPlayer: TVector3Single;
     AngleRadBetweenDirectionToPlayer: Single;
@@ -1677,12 +1687,12 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
       CalculateDirectionToPlayer(DirectionToPlayer, AngleRadBetweenDirectionToPlayer);
 
       if FireMissileAllowed then
-        SetState(wasFireMissile) else
+        SetState(csFireMissile) else
       if AttackAllowed then
-        SetState(wasAttack) else
+        SetState(csAttack) else
       if WantToRunAway or
          WantToWalkToPlayer(AngleRadBetweenDirectionToPlayer) then
-        SetState(wasWalk) else
+        SetState(csWalk) else
       if (not Kind.Flying) and
          (AngleRadBetweenDirectionToPlayer < 0.01) and
          BoundingBox.PointInside2D(LastSeenPlayer, World.GravityCoordinate) then
@@ -1695,11 +1705,11 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
             slash us with a sword without any risk. (This was almost
             a standard technique of killing Werewolf or SpiderQueen bosses).
           So we move a little --- just for the sake of moving. }
-        SetState(wasWalk);
+        SetState(csWalk);
         InitAlternativeTarget;
       end else
       begin
-        { Continue wasStand state }
+        { Continue csIdle state }
         RotateDirectionToFaceTarget(DirectionToPlayer,
           AngleRadBetweenDirectionToPlayer);
       end;
@@ -1778,7 +1788,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
       end else
       begin
         { I don't want to walk anymore. So just stand stil. }
-        SetState(wasStand);
+        SetState(csIdle);
         Exit;
       end;
 
@@ -1806,7 +1816,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
       end else
       begin
         { I don't want to walk anymore. So just stand stil. }
-        SetState(wasStand);
+        SetState(csIdle);
         Exit;
       end;
 
@@ -1849,7 +1859,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
 
           Note that for normal moving (i.e. toward LastSeenPlayer,
           not AlternativeTarget) we in this case just change state
-          to wasStand, and this allows creature to rotate in wasStand
+          to csIdle, and this allows creature to rotate in csIdle
           state. }
         if (not MoveAlongTheDirection) and
            (AngleRadBetweenDirectionToTarget <=
@@ -1873,7 +1883,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
           (because we already eliminated CloseEnoughToTarget case above).
           In each DoWalk call we will gradually fix this,
           by RotateDirectionToFaceTarget below.
-          So do nothing now. Just stay in wasWalk mode,
+          So do nothing now. Just stay in csWalk mode,
           and do RotateDirectionToFaceTarget below. }
       end;
 
@@ -1904,7 +1914,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
       if not HasLastSeenPlayer then
       begin
         { Nowhere to go; so just stay here. }
-        SetState(wasStand);
+        SetState(csIdle);
         Exit;
       end;
 
@@ -1960,9 +1970,9 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
     end;
 
     if FireMissileAllowed then
-      SetState(wasFireMissile) else
+      SetState(csFireMissile) else
     if AttackAllowed then
-      SetState(wasAttack);
+      SetState(csAttack);
   end;
 
   procedure DoAttack;
@@ -1976,8 +1986,8 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
       Attack;
     end;
     if StateTime > Kind.AttackAnimation.Duration then
-      { wasStand will quickly change to wasWalk if it will want to walk. }
-      SetState(wasStand);
+      { csIdle will quickly change to csWalk if it will want to walk. }
+      SetState(csIdle);
   end;
 
   procedure DoFireMissile;
@@ -1991,8 +2001,8 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
       FireMissile;
     end;
     if StateTime > Kind.FireMissileAnimation.Duration then
-      { wasStand will quickly change to wasWalk if it will want to walk. }
-      SetState(wasStand);
+      { csIdle will quickly change to csWalk if it will want to walk. }
+      SetState(csIdle);
   end;
 
   procedure DoHurt;
@@ -2004,7 +2014,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
     if StateTime > Kind.HurtAnimation.Duration then
     begin
       CancelKnockback;
-      SetState(wasStand);
+      SetState(csIdle);
     end;
   end;
 
@@ -2019,7 +2029,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
     end;
   end;
 
-  procedure DoDying(const AnimationDuration: Single);
+  procedure DoDie(const AnimationDuration: Single);
   begin
     if Kind.RemoveCorpse and
       (LifeTime - StateChangeTime > AnimationDuration) then
@@ -2032,11 +2042,11 @@ begin
   inherited;
   if (not GetExists) or DebugTimeStopForCreatures then Exit;
 
-  if Dead and not (State in [wasDying, wasDyingBack]) then
+  if Dead and not (State in [csDie, csDieBack]) then
   begin
-    if Kind.DyingBackAnimation.Defined and WasLackAttackBack then
-      SetState(wasDyingBack) else
-      SetState(wasDying);
+    if Kind.DieBackAnimation.Defined and WasLackAttackBack then
+      SetState(csDieBack) else
+      SetState(csDie);
     Exit;
   end;
 
@@ -2056,15 +2066,13 @@ begin
   end;
 
   case FState of
-    wasStand: DoStand;
-    wasWalk: DoWalk;
-    wasAttack: DoAttack;
-    wasFireMissile: DoFireMissile;
-    wasDying: DoDying(Kind.DyingAnimation.Duration);
-    wasDyingBack: DoDying(Kind.DyingBackAnimation.Duration);
-    wasHurt: DoHurt;
-    wasCustom1: { Should be handled in descendants. };
-    else raise EInternalError.Create('FState ?');
+    csIdle: DoIdle;
+    csWalk: DoWalk;
+    csAttack: DoAttack;
+    csFireMissile: DoFireMissile;
+    csDie    : DoDie(Kind.DieAnimation.Duration);
+    csDieBack: DoDie(Kind.DieBackAnimation.Duration);
+    csHurt: DoHurt;
   end;
 
   { Flying creatures may change their direction vector freely.
@@ -2088,23 +2096,23 @@ begin
   StateTime := LifeTime - StateChangeTime;
 
   case FState of
-    wasStand:
-      Result := Kind.StandAnimation.Scene(StateTime, true);
-    wasWalk:
-      if Kind.StandToWalkAnimation.Defined and
-         (StateTime < Kind.StandToWalkAnimation.Duration) then
-        Result := Kind.StandToWalkAnimation.Scene(StateTime, false) else
+    csIdle:
+      Result := Kind.IdleAnimation.Scene(StateTime, true);
+    csWalk:
+      if Kind.IdleToWalkAnimation.Defined and
+         (StateTime < Kind.IdleToWalkAnimation.Duration) then
+        Result := Kind.IdleToWalkAnimation.Scene(StateTime, false) else
         Result := Kind.WalkAnimation.Scene(
-          StateTime - Kind.StandToWalkAnimation.Duration, true);
-    wasAttack:
+          StateTime - Kind.IdleToWalkAnimation.Duration, true);
+    csAttack:
       Result := Kind.AttackAnimation.Scene(StateTime, false);
-    wasFireMissile:
+    csFireMissile:
       Result := Kind.FireMissileAnimation.Scene(StateTime, false);
-    wasDying:
-      Result := Kind.DyingAnimation.Scene(StateTime, false);
-    wasDyingBack:
-      Result := Kind.DyingBackAnimation.Scene(StateTime, false);
-    wasHurt:
+    csDie:
+      Result := Kind.DieAnimation.Scene(StateTime, false);
+    csDieBack:
+      Result := Kind.DieBackAnimation.Scene(StateTime, false);
+    csHurt:
       Result := Kind.HurtAnimation.Scene(StateTime, false);
     else raise EInternalError.Create('FState ?');
   end;
@@ -2116,7 +2124,7 @@ begin
     (Life - Value > Kind.MinLifeLossToHurt * MaxLife) and
     ( (Kind.ChanceToHurt = 1.0) or
       (Random < Kind.ChanceToHurt) ) then
-    SetState(wasHurt);
+    SetState(csHurt);
   inherited;
 end;
 
@@ -2183,11 +2191,20 @@ begin
 end;
 
 function TWalkAttackCreature.DebugCaption: string;
-const
-  StateName: array [TWalkAttackCreatureState] of string =
-  ( 'Stand', 'Walk', 'Attack', 'FireMissile', 'Dying', 'DyingBack', 'Hurt', 'Custom1' );
+var
+  StateName: string;
 begin
-  Result := (inherited DebugCaption) + ' ' + StateName[State];
+  case State of
+    csIdle       : StateName := 'Idle';
+    csWalk       : StateName := 'Walk';
+    csAttack     : StateName := 'Attack';
+    csFireMissile: StateName := 'FireMissile';
+    csDie        : StateName := 'Die';
+    csDieBack    : StateName := 'DieBack';
+    csHurt       : StateName := 'Hurt';
+    else StateName := Format('Custom State %d', [State]);
+  end;
+  Result := (inherited DebugCaption) + ' ' + StateName;
 end;
 
 procedure TWalkAttackCreature.Hurt(const LifeLoss: Single;
@@ -2386,14 +2403,14 @@ function TStillCreature.GetChild: T3D;
 begin
   if not Kind.Prepared then Exit(nil);
 
-  Result := Kind.StandAnimation.Scene(LifeTime, true);
+  Result := Kind.IdleAnimation.Scene(LifeTime, true);
 end;
 
 procedure TStillCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
   { TODO: do explosion anim for barrel.
-    We should probably have here DestroyAnimation, like DyingAnimation,
+    We should probably have here DestroyAnimation, like DieAnimation,
     and property RemoveCorpse like TWalkAttackCreatureKind. }
   if Life <= 0.0 then
     RemoveMe := rtRemoveAndFree;
