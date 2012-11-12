@@ -275,7 +275,7 @@ type
     FChanceToHurt: Single;
     FMaxHeightAcceptableToFall: Single;
     FRandomWalkDistance: Single;
-    FRemoveCorpse: boolean;
+    FRemoveDead: boolean;
     FPreferredDistance: Single;
     FRunAwayLife: Single;
     FRunAwayDistance: Single;
@@ -299,7 +299,7 @@ type
       DefaultChanceToHurt = 1.0;
       DefaultMaxHeightAcceptableToFall = 1.5;
       DefaultRandomWalkDistance = 10.0;
-      DefaultRemoveCorpse = false;
+      DefaultRemoveDead = false;
       DefaultPreferredDistance = 2.0;
       DefaultRunAwayLife = 0.3;
       DefaultRunAwayDistance = 10.0;
@@ -368,7 +368,7 @@ type
       Dying animation is not displayed in a loop, after it runs
       it's duration we constantly show the final frame,
       at the TCreature instance will keep existing on the level.
-      Unless you set RemoveCorpse to @true, then the dead creature
+      Unless you set RemoveDead to @true, then the dead creature
       will be completely removed from the level.
 
       For best look: Beginning should roughly glue with any point of
@@ -529,8 +529,8 @@ type
       write FRandomWalkDistance
       default DefaultRandomWalkDistance;
 
-    property RemoveCorpse: boolean
-      read FRemoveCorpse write FRemoveCorpse default DefaultRemoveCorpse;
+    property RemoveDead: boolean
+      read FRemoveDead write FRemoveDead default DefaultRemoveDead;
   end;
 
   { Creature that blindly moves in a given direction.
@@ -1019,7 +1019,7 @@ begin
   FChanceToHurt := DefaultChanceToHurt;
   FMaxHeightAcceptableToFall := DefaultMaxHeightAcceptableToFall;
   FRandomWalkDistance := DefaultRandomWalkDistance;
-  FRemoveCorpse := DefaultRemoveCorpse;
+  FRemoveDead := DefaultRemoveDead;
   FPreferredDistance := DefaultPreferredDistance;
   FRunAwayLife := DefaultRunAwayLife;
   FRunAwayDistance := DefaultRunAwayDistance;
@@ -1057,7 +1057,7 @@ begin
     DefaultMaxHeightAcceptableToFall);
   RandomWalkDistance := ResourceConfig.GetFloat('random_walk_distance',
     DefaultRandomWalkDistance);
-  RemoveCorpse := ResourceConfig.GetValue('remove_corpse', DefaultRemoveCorpse);
+  RemoveDead := ResourceConfig.GetValue('remove_dead', DefaultRemoveDead);
   RunAwayLife := ResourceConfig.GetFloat('run_away/life', DefaultRunAwayLife);
   RunAwayDistance := ResourceConfig.GetFloat('run_away/distance', DefaultRunAwayDistance);
 
@@ -2031,7 +2031,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
 
   procedure DoDie(const AnimationDuration: Single);
   begin
-    if Kind.RemoveCorpse and
+    if Kind.RemoveDead and
       (LifeTime - StateChangeTime > AnimationDuration) then
       RemoveMe := rtRemoveAndFree;
   end;
@@ -2411,7 +2411,7 @@ begin
   inherited;
   { TODO: do explosion anim for barrel.
     We should probably have here DestroyAnimation, like DieAnimation,
-    and property RemoveCorpse like TWalkAttackCreatureKind. }
+    and property RemoveDead like TWalkAttackCreatureKind. }
   if Life <= 0.0 then
     RemoveMe := rtRemoveAndFree;
 end;
