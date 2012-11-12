@@ -135,7 +135,8 @@ var
     function AlwaysPrepared: boolean; override;
   end;
 
-  { Weapon that can make a short-range attack or fire a missile. }
+  { Weapon that can make an immiediate attack (short-range/shoot)
+    or fire a missile. }
   TItemWeaponKind = class(TItemKind)
   private
     FEquippingSound: TSoundType;
@@ -147,6 +148,7 @@ var
     FAttackDamageConst: Single;
     FAttackDamageRandom: Single;
     FAttackKnockbackDistance: Single;
+    FAttackShoot: boolean;
     FFireMissileName: string;
     FFireMissileAmmo: string;
     FFireMissileSound: TSoundType;
@@ -158,6 +160,7 @@ var
       DefaultAttackDamageConst = 0.0;
       DefaultAttackDamageRandom = 0.0;
       DefaultAttackKnockbackDistance = 0.0;
+      DefaultAttackShoot = false;
 
     constructor Create(const AName: string); override;
 
@@ -172,8 +175,8 @@ var
     { Animation of keeping weapon ready. }
     property ReadyAnimation: T3DResourceAnimation read FReadyAnimation;
 
-    { Common properties for all types of attack (short-range,
-      fire missile and such) below. }
+    { Common properties for all types of attack (short-range/shoot,
+      fire missile) below. }
 
     { A time within AttackAnimationat which @link(Attack) method will be called. }
     property AttackTime: Single read FAttackTime write FAttackTime
@@ -182,9 +185,9 @@ var
     property AttackSoundStart: TSoundType
       read FAttackSoundStart write FAttackSoundStart default stNone;
 
-    { Short-range attack damage and knockback.
-      The short-range attack (along with it's sound etc.) is only
-      done if one of these is non-zero.
+    { Immediate attack (short-range/shoot) damage and knockback.
+      This type of attack (along with AttackSoundHit) is only
+      done if one of these properties is non-zero. They must be >= 0.
       @groupBegin }
     property AttackDamageConst: Single read FAttackDamageConst write FAttackDamageConst
       default DefaultAttackDamageConst;
@@ -195,7 +198,22 @@ var
       default DefaultAttackKnockbackDistance;
     { @groupEnd }
 
-    { Sound on successfull hit by a short-range attack. }
+    { Does the immediate attack is shooting.
+
+      @unorderedList(
+        @item(Shooting means that the hit enemy is determined by casting a ray from
+          owner (like a shooting player) and seeing what it hits. Even enemies
+          far away may be hit, but you have to aim precisely.)
+
+        @item(When this is @false, we make a short-range (melee) attack.
+          In this case the hit enemy is determined by looking at the weapon
+          bounding volume near owner. Only the enemies
+          very close to the owner get hit.)
+      ) }
+    property AttackShoot: boolean read FAttackShoot write FAttackShoot
+      default DefaultAttackShoot;
+
+    { Sound on successfull hit by an immediate attack (short-range/shoot). }
     property AttackSoundHit: TSoundType read FAttackSoundHit write FAttackSoundHit;
 
     { Fire missile attack properties.
@@ -333,10 +351,10 @@ var
     { If Attacking, then this says whether Attack was already called. }
     AttackDone: boolean;
   protected
-    { Make real attack, short-range or firing missile.
+    { Make real attack, immediate (short-range/shoot) or firing missile.
       Called during weapon TItemWeaponKind.AttackAnimation,
       at the time TItemWeaponKind.AttackTime.
-      The default implementation in @className does a short-range
+      The default implementation in @className does a short-range/shoot
       attack (if AttackDamageConst or AttackDamageRandom or AttackKnockbackDistance
       non-zero) and fires a missile (if FireMissileName not empty). }
     procedure Attack; virtual;
@@ -577,6 +595,7 @@ begin
   FAttackDamageConst := DefaultAttackDamageConst;
   FAttackDamageRandom := DefaultAttackDamageRandom;
   FAttackKnockbackDistance := DefaultAttackKnockbackDistance;
+  FAttackShoot := DefaultAttackShoot;
 end;
 
 procedure TItemWeaponKind.LoadFromFile(ResourceConfig: TCastleConfig);
@@ -597,6 +616,7 @@ begin
     DefaultAttackDamageRandom);
   AttackKnockbackDistance := ResourceConfig.GetFloat('attack/knockback_distance',
     DefaultAttackKnockbackDistance);
+  AttackShoot := ResourceConfig.GetValue('attack/shoot', DefaultAttackShoot);
   FireMissileName := ResourceConfig.GetValue('fire_missile/name', '');
   FireMissileAmmo := ResourceConfig.GetValue('fire_missile/ammo', '');
   FireMissileSound := SoundEngine.SoundFromName(
@@ -663,16 +683,45 @@ procedure TItemWeapon.Attack;
 var
   Own: T3DOrient;
   AttackDC, AttackDR, AttackKD: Single;
+  AttackSoundHitDone: boolean;
+
+  procedure ImmediateAttackHit(Enemy: T3DAlive);
+  begin
+    if not AttackSoundHitDone then
+    begin
+      SoundEngine.Sound(Kind.AttackSoundHit);
+      AttackSoundHitDone := true;
+    end;
+    Enemy.Hurt(AttackDC + Random * AttackDR, Own.Direction, AttackKD);
+  end;
+
+  procedure ShootAttack;
+  var
+    I: Integer;
+    Hit: TRayCollision;
+  begin
+    { TODO: allow some helpers for aiming,
+      similar to TCastleSceneManager.ApproximateActivation
+      or maybe just collide a tube (not infinitely thin ray) with world. }
+    Hit := Own.Ray(Own.Middle, Own.Direction);
+    if Hit <> nil then
+    begin
+      for I := 0 to Hit.Count - 1 do
+        if Hit[I].Item is T3DAlive then
+        begin
+          ImmediateAttackHit(T3DAlive(Hit[I].Item));
+          Break;
+        end;
+      FreeAndNil(Hit);
+    end;
+  end;
 
   procedure ShortRangeAttack;
   var
     I: Integer;
     Enemy: T3DAlive;
     WeaponBoundingBox: TBox3D;
-    SoundDone: boolean;
   begin
-    SoundDone := false;
-
     { Own.Direction may be multiplied by something here for long-range weapons }
     WeaponBoundingBox := Own.BoundingBox.Translate(Own.Direction);
     { Tests: Writeln('WeaponBoundingBox is ', WeaponBoundingBox.ToNiceStr); }
@@ -685,14 +734,7 @@ var
         { Tests: Writeln('Creature bbox is ', C.BoundingBox.ToNiceStr); }
         if (Enemy <> Own) and
           Enemy.BoundingBox.Collision(WeaponBoundingBox) then
-        begin
-          if not SoundDone then
-          begin
-            SoundEngine.Sound(Kind.AttackSoundHit);
-            SoundDone := true;
-          end;
-          Enemy.Hurt(AttackDC + Random * AttackDR, Own.Direction, AttackKD);
-        end;
+          ImmediateAttackHit(Enemy);
       end;
   end;
 
@@ -739,6 +781,8 @@ var
   end;
 
 begin
+  AttackSoundHitDone := false;
+
   { attacking only works when there's an owner (player, in the future creature
     should also be able to use it) of the weapon }
   if (Owner3D <> nil) and
@@ -753,7 +797,11 @@ begin
     if (AttackDC >= 0) or
        (AttackDR >= 0) or
        (AttackKD >= 0) then
-      ShortRangeAttack;
+    begin
+      if Kind.AttackShoot then
+        ShootAttack else
+        ShortRangeAttack;
+    end;
 
     if Kind.FireMissileName <> '' then
       FireMissileAttack;
