@@ -273,7 +273,7 @@ type
     property FadeOutIntensity: Single read FFadeOutIntensity;
 
     { @noAutoLinkHere }
-    procedure Attack;
+    procedure Attack; virtual;
 
     { You should set this property as appropriate.
       This object will just use this property (changing it's Camera
@@ -1041,10 +1041,10 @@ begin
     FFadeOutIntensity -= FadeOutSpeed * CompSpeed;
 
   if Attacking and (not ActualAttackDone) and (LifeTime -
-    AttackStartTime >= EquippedWeapon.Kind.ActualAttackTime) then
+    AttackStartTime >= EquippedWeapon.Kind.AttackTime) then
   begin
     ActualAttackDone := true;
-    EquippedWeapon.ActualAttack;
+    EquippedWeapon.Attack;
   end;
 
   UpdateIsOnTheGround;
@@ -1103,12 +1103,12 @@ begin
   begin
     if EquippedWeapon <> nil then
     begin
-      SoundEngine.Sound(EquippedWeapon.Kind.SoundAttackStart);
+      SoundEngine.Sound(EquippedWeapon.Kind.AttackStartSound);
       AttackStartTime := LifeTime;
       Attacking := true;
       ActualAttackDone := false;
     end else
-      { TODO: maybe I should allow him to do some "punch" / "kick" here ? }
+      { TODO: allow to do some "punch" / "kick" here easily }
       Notifications.Show('No weapon equipped');
   end;
 end;

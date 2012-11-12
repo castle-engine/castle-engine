@@ -140,13 +140,22 @@ var
     FEquippingSound: TSoundType;
     FAttackAnimation: T3DResourceAnimation;
     FReadyAnimation: T3DResourceAnimation;
-    FActualAttackTime: Single;
-    FSoundAttackStart: TSoundType;
+    FAttackTime: Single;
+    FAttackStartSound: TSoundType;
+    FAttackSound: TSoundType;
+    FAttackDamageConst: Single;
+    FAttackDamageRandom: Single;
+    FAttackKnockbackDistance: Single;
+    FFireMissileName: string;
+    FFireMissileAmmo: string;
   protected
     function ItemClass: TInventoryItemClass; override;
   public
     const
-      DefaultActualAttackTime = 0.0;
+      DefaultAttackTime = 0.0;
+      DefaultAttackDamageConst = 0.0;
+      DefaultAttackDamageRandom = 0.0;
+      DefaultAttackKnockbackDistance = 0.0;
 
     constructor Create(const AName: string); override;
 
@@ -161,40 +170,49 @@ var
     { Animation of keeping weapon ready. }
     property ReadyAnimation: T3DResourceAnimation read FReadyAnimation;
 
-    { Time within AttackAnimation
-      at which ActualAttack method will be called.
-      Note that actually ActualAttack may be called a *very little* later
-      (hopefully it shouldn't be noticeable to the player). }
-    property ActualAttackTime: Single
-      read FActualAttackTime write FActualAttackTime
-      default DefaultActualAttackTime;
+    { Common properties for all types of attack (short-range,
+      fire missile and such) below. }
 
-    property SoundAttackStart: TSoundType
-      read FSoundAttackStart write FSoundAttackStart default stNone;
+    { A time within AttackAnimationat which @link(Attack) method will be called. }
+    property AttackTime: Single read FAttackTime write FAttackTime
+      default DefaultAttackTime;
 
-    procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
-  end;
+    property AttackStartSound: TSoundType
+      read FAttackStartSound write FAttackStartSound default stNone;
 
-  TItemShortRangeWeaponKind = class(TItemWeaponKind)
-  private
-    FDamageConst: Single;
-    FDamageRandom: Single;
-    FAttackKnockbackDistance: Single;
-  public
-    const
-      DefaultDamageConst = 5.0;
-      DefaultDamageRandom = 5.0;
-      DefaultAttackKnockbackDistance = 1.0;
+    { Sound on successfull attack, when creature was hit by a short-range
+      attack or a missile was successfully fired (we had ammunition and such). }
+    property AttackSound: TSoundType read FAttackSound write FAttackSound;
 
-    constructor Create(const AName: string); override;
-
-    property DamageConst: Single read FDamageConst write FDamageConst
-      default DefaultDamageConst;
-    property DamageRandom: Single read FDamageRandom write FDamageRandom
-      default DefaultDamageRandom;
+    { Short-range attack damage and knockback.
+      The short-range attack (along with it's sound etc.) is only
+      done if one of these is non-zero.
+      @groupBegin }
+    property AttackDamageConst: Single read FAttackDamageConst write FAttackDamageConst
+      default DefaultAttackDamageConst;
+    property AttackDamageRandom: Single read FAttackDamageRandom write FAttackDamageRandom
+      default DefaultAttackDamageRandom;
     property AttackKnockbackDistance: Single
       read FAttackKnockbackDistance write FAttackKnockbackDistance
       default DefaultAttackKnockbackDistance;
+    { @groupEnd }
+
+    { Fire missile attack properties.
+
+      FireMissileName indicates creature kind name to be created (like 'Arrow'),
+      must be <> '' to actually fire a missile.
+
+      FireMissileAmmo indicates item kind name to use as ammunition (like 'Quiver').
+      It may be empty, in which case the ammunition is not necessary to fire
+      a missile.
+      If it's set, we will check whether owner of the weapon (like a player)
+      has at least one item of this kind, and we'll decrease it
+      when firing.
+
+      @groupBegin }
+    property FireMissileName: string read FFireMissileName write FFireMissileName;
+    property FireMissileAmmo: string read FFireMissileAmmo write FFireMissileAmmo;
+    { @groupEnd }
 
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
   end;
@@ -306,10 +324,13 @@ var
   public
     procedure Use; override;
 
-    { Perform real attack now.
-      This may mean hurting some creature within the range,
-      or shooting some missile. You can also play some sound here. }
-    procedure ActualAttack; virtual; abstract;
+    { Make real attack, short-range or firing missile.
+      Called during weapon TItemWeaponKind.AttackAnimation,
+      at the time TItemWeaponKind.AttackTime.
+      The default implementation in @className does a short-range
+      attack (if AttackDamageConst or AttackDamageRandom or AttackKnockbackDistance
+      non-zero) and fires a missile (if FireMissileName not empty). }
+    procedure Attack; virtual;
 
     function Kind: TItemWeaponKind;
   end;
@@ -425,7 +446,7 @@ var
 implementation
 
 uses SysUtils, CastleFilesUtils, CastlePlayer, CastleGameNotifications,
-  CastleConfig;
+  CastleConfig, CastleCreatures;
 
 { TItemKind ------------------------------------------------------------ }
 
@@ -530,46 +551,37 @@ begin
   inherited;
   FAttackAnimation := T3DResourceAnimation.Create(Self, 'attack');
   FReadyAnimation := T3DResourceAnimation.Create(Self, 'ready');
+  FAttackTime := DefaultAttackTime;
+  FAttackDamageConst := DefaultAttackDamageConst;
+  FAttackDamageRandom := DefaultAttackDamageRandom;
+  FAttackKnockbackDistance := DefaultAttackKnockbackDistance;
 end;
 
 procedure TItemWeaponKind.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
-  ActualAttackTime := ResourceConfig.GetFloat('actual_attack_time',
-    DefaultActualAttackTime);
-
   EquippingSound := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('equipping_sound', ''));
-  SoundAttackStart := SoundEngine.SoundFromName(
-    ResourceConfig.GetValue('sound_attack_start', ''));
+
+  AttackTime := ResourceConfig.GetFloat('attack/time', DefaultAttackTime);
+  AttackStartSound := SoundEngine.SoundFromName(
+    ResourceConfig.GetValue('attack/start_sound', ''));
+  AttackSound := SoundEngine.SoundFromName(
+    ResourceConfig.GetValue('attack/sound', ''));
+  AttackDamageConst := ResourceConfig.GetFloat('attack/damage/const',
+    DefaultAttackDamageConst);
+  AttackDamageRandom := ResourceConfig.GetFloat('attack/damage/random',
+    DefaultAttackDamageRandom);
+  AttackKnockbackDistance := ResourceConfig.GetFloat('attack/knockback_distance',
+    DefaultAttackKnockbackDistance);
+  FireMissileName := ResourceConfig.GetValue('fire_missile/name', '');
+  FireMissileAmmo := ResourceConfig.GetValue('fire_missile/ammo', '');
 end;
 
 function TItemWeaponKind.ItemClass: TInventoryItemClass;
 begin
   Result := TItemWeapon;
-end;
-
-{ TItemShortRangeWeaponKind -------------------------------------------------- }
-
-constructor TItemShortRangeWeaponKind.Create(const AName: string);
-begin
-  inherited;
-  FDamageConst := DefaultDamageConst;
-  FDamageRandom := DefaultDamageRandom;
-  FAttackKnockbackDistance := DefaultAttackKnockbackDistance;
-end;
-
-procedure TItemShortRangeWeaponKind.LoadFromFile(ResourceConfig: TCastleConfig);
-begin
-  inherited;
-
-  DamageConst := ResourceConfig.GetFloat('damage/const',
-    DefaultDamageConst);
-  DamageRandom := ResourceConfig.GetFloat('damage/random',
-    DefaultDamageRandom);
-  AttackKnockbackDistance := ResourceConfig.GetFloat('attack_knockback_distance',
-    DefaultAttackKnockbackDistance);
 end;
 
 { TInventoryItem ------------------------------------------------------------ }
@@ -622,6 +634,112 @@ begin
 end;
 
 { TItemWeapon ---------------------------------------------------------------- }
+
+procedure TItemWeapon.Attack;
+var
+  Own: T3DOrient;
+  AttackDC, AttackDR, AttackKD: Single;
+  SoundDone: boolean;
+
+  procedure MakeSound;
+  begin
+    if not SoundDone then
+    begin
+      SoundEngine.Sound(Kind.AttackSound);
+      SoundDone := true;
+    end;
+  end;
+
+  procedure ShortRangeAttack;
+  var
+    I: Integer;
+    Enemy: T3DAlive;
+    WeaponBoundingBox: TBox3D;
+  begin
+    { Own.Direction may be multiplied by something here for long-range weapons }
+    WeaponBoundingBox := Own.BoundingBox.Translate(Own.Direction);
+    { Tests: Writeln('WeaponBoundingBox is ', WeaponBoundingBox.ToNiceStr); }
+    { TODO: we would prefer to use World.BoxCollision for this,
+      but we need to know which creature was hit. }
+    for I := 0 to World.Count - 1 do
+      if World[I] is T3DAlive then
+      begin
+        Enemy := T3DAlive(World[I]);
+        { Tests: Writeln('Creature bbox is ', C.BoundingBox.ToNiceStr); }
+        if (Enemy <> Own) and
+          Enemy.BoundingBox.Collision(WeaponBoundingBox) then
+        begin
+          MakeSound;
+          Enemy.Hurt(AttackDC + Random * AttackDR, Own.Direction, AttackKD);
+        end;
+      end;
+  end;
+
+  procedure FireMissileAttack;
+
+    procedure FireMissile;
+    begin
+      (Resources.FindName(Kind.FireMissileName) as TCreatureKind).
+         CreateCreature(World, Own.Position, Own.Direction);
+      MakeSound;
+    end;
+
+  var
+    Inventory: TInventory;
+    AmmoIndex: Integer;
+    AmmoItem: TInventoryItem;
+    AmmoKind: TItemKind;
+  begin
+    { When FireMissileAmmo is set, check whether the owner has ammunition.
+      Currently, only Player may have Inventory with items. }
+    if Kind.FireMissileAmmo <> '' then
+    begin
+      if Own is TPlayer then
+      begin
+        Inventory := TPlayer(Own).Inventory;
+        AmmoKind := Resources.FindName(Kind.FireMissileAmmo) as TItemKind;
+        AmmoIndex := Inventory.FindKind(AmmoKind);
+        if AmmoIndex = -1 then
+        begin
+          Notifications.Show('You have no ammunition');
+          SoundEngine.Sound(stPlayerInteractFailed);
+        end else
+        begin
+          { delete arrow from player }
+          AmmoItem := Inventory[AmmoIndex];
+          AmmoItem.Quantity := AmmoItem.Quantity - 1;
+          Inventory.CheckDepleted(AmmoItem);
+          FireMissile;
+        end;
+      end;
+    end else
+      { When FireMissileAmmo is not set, just fire missile }
+      FireMissile;
+  end;
+
+begin
+  SoundDone := false;
+
+  { attacking only works when there's an owner (player, in the future creature
+    should also be able to use it) of the weapon }
+  if (Owner3D <> nil) and
+     (Owner3D is T3DOrient) then
+  begin
+    Own := T3DOrient(Owner3D);
+
+    AttackDC := Kind.AttackDamageConst;
+    AttackDR := Kind.AttackDamageRandom;
+    AttackKD := Kind.AttackKnockbackDistance;
+
+    if (AttackDC >= 0) or
+       (AttackDR >= 0) or
+       (AttackKD >= 0) then
+      ShortRangeAttack;
+
+    if Kind.FireMissileName <> '' then
+      FireMissileAttack;
+  end;
+end;
 
 procedure TItemWeapon.Use;
 begin
@@ -830,4 +948,5 @@ initialization
   TItemOnWorld.AutoPick := true;
 
   RegisterResourceClass(TItemKind, 'Item');
+  RegisterResourceClass(TItemWeaponKind, 'Weapon');
 end.
