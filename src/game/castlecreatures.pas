@@ -575,6 +575,12 @@ type
       const MaxLife: Single): TCreature; override;
 
     property FlyAnimation: T3DResourceAnimation read FFlyAnimation;
+
+    { Die (destroying) animation of a missile. Optional.
+      It can depict missile explosion.
+      After showing this animation (or immediately when missile hits something,
+      if this animation is not specified) the missile is removed from the level
+      (unless RemoveDead = @false). }
     property DieAnimation: T3DResourceAnimation read FDieAnimation;
 
     { The moving speed: how much Direction vector will be scaled
@@ -621,8 +627,15 @@ type
       default DefaultDirectionFallSpeed;
 
     { Should the dead (destroyed) missiles be removed from level.
-      This is exactly like TWalkAttackCreatureKind.RemoveDead
-      and TStillCreatureKind.RemoveDead, except for missiles the default is @true. }
+      Useful if you want to see arrows stuck into walls where they hit.
+
+      This is like TWalkAttackCreatureKind.RemoveDead
+      and TStillCreatureKind.RemoveDead, except for missiles the default is @true.
+      Also, even if you switch this to @false,
+      it's ignored (works like @true) if the missile hit a dynamic
+      object (like another creature or player).
+      It only works when a missile hit something else than a creature/player,
+      which means that it probably hit a static level wall. }
     property RemoveDead: boolean
       read FRemoveDead write FRemoveDead default DefaultRemoveDead;
   end;
@@ -821,6 +834,7 @@ type
   TMissileCreature = class(TCreature)
   private
     LastSoundIdleTime: Single;
+    ForceRemoveDead: boolean;
     procedure HitCore;
     procedure HitPlayer;
     procedure HitCreature(Creature: TCreature);
@@ -2301,7 +2315,8 @@ begin
 
   if Dead then
   begin
-    if Kind.RemoveDead and (LifeTime - DieTime > Kind.DieAnimation.Duration) then
+    if (Kind.RemoveDead or ForceRemoveDead) and
+       (LifeTime - DieTime > Kind.DieAnimation.Duration) then
       RemoveMe := rtRemoveAndFree;
     Exit;
   end;
@@ -2400,17 +2415,18 @@ begin
     So do here additional checks for collision and hurt player and creatures. }
 
   Sound3d(Kind.SoundHit, 0, false);
-
   Hurt(1000 * 1000, ZeroVector3Single, 0);
 end;
 
 procedure TMissileCreature.HitPlayer;
 begin
+  ForceRemoveDead := true;
   AttackHurt;
 end;
 
 procedure TMissileCreature.HitCreature(Creature: TCreature);
 begin
+  ForceRemoveDead := true;
   Creature.Hurt(Kind.AttackDamageConst +
     Random * Kind.AttackDamageRandom, Direction,
     Kind.AttackKnockbackDistance);
