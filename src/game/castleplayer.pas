@@ -1103,7 +1103,7 @@ begin
   begin
     if EquippedWeapon <> nil then
     begin
-      SoundEngine.Sound(EquippedWeapon.Kind.AttackStartSound);
+      SoundEngine.Sound(EquippedWeapon.Kind.AttackSoundStart);
       AttackStartTime := LifeTime;
       Attacking := true;
       AttackDone := false;

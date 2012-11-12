@@ -269,8 +269,8 @@ type
     FAttackMaxDistance: Single;
     FAttackMaxAngle: Single;
     FAttackTime: Single;
-    FAttackSound: TSoundType;
-    FAttackStartSound: TSoundType;
+    FAttackSoundHit: TSoundType;
+    FAttackSoundStart: TSoundType;
     FFireMissileTime: Single;
     FFireMissileMinDelay: Single;
     FFireMissileMaxDistance: Single;
@@ -437,15 +437,15 @@ type
       default DefaultAttackMaxAngle;
 
     { Sound played when short-range attack hits. }
-    property AttackSound: TSoundType
-      read FAttackSound write FAttackSound default stNone;
+    property AttackSoundHit: TSoundType
+      read FAttackSoundHit write FAttackSoundHit default stNone;
 
     { Played at the start of attack animation,
       that is when entering wasAttack state.
       To play a sound when the actual hit happens (at AttackTime)
-      see AttackSound. }
-    property AttackStartSound: TSoundType
-      read FAttackStartSound write FAttackStartSound default stNone;
+      see AttackSoundHit. }
+    property AttackSoundStart: TSoundType
+      read FAttackSoundStart write FAttackSoundStart default stNone;
 
     property FireMissileTime: Single
       read FFireMissileTime write FFireMissileTime default DefaultFireMissileTime;
@@ -1057,8 +1057,8 @@ begin
   AttackMaxDistance := ResourceConfig.GetFloat('attack/max_distance', DefaultAttackMaxDistance);
   AttackMaxAngle := ResourceConfig.GetFloat('attack/max_angle', DefaultAttackMaxAngle);
   AttackMinDelay := ResourceConfig.GetFloat('attack/min_delay', DefaultAttackMinDelay);
-  AttackSound := SoundEngine.SoundFromName(ResourceConfig.GetValue('attack/sound', ''));
-  AttackStartSound := SoundEngine.SoundFromName(ResourceConfig.GetValue('attack/start_sound', ''));
+  AttackSoundHit := SoundEngine.SoundFromName(ResourceConfig.GetValue('attack/sound_hit', ''));
+  AttackSoundStart := SoundEngine.SoundFromName(ResourceConfig.GetValue('attack/sound_start', ''));
 
   FireMissileTime :=  ResourceConfig.GetFloat('fire_missile/time', DefaultFireMissileTime);
   FireMissileMaxDistance := ResourceConfig.GetFloat('fire_missile/max_distance', DefaultFireMissileMaxDistance);
@@ -1442,7 +1442,7 @@ begin
     case FState of
       wasAttack:
         begin
-          Sound3d(Kind.AttackStartSound, 1.0);
+          Sound3d(Kind.AttackSoundStart, 1.0);
           LastAttackTime := StateChangeTime;
           AttackDone := false;
         end;
@@ -2162,7 +2162,7 @@ procedure TWalkAttackCreature.Attack;
 begin
   if ShortRangeAttackHits then
   begin
-    Sound3d(Kind.AttackSound, 1.0);
+    Sound3d(Kind.AttackSoundHit, 1.0);
     AttackHurt;
   end;
 end;

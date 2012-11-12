@@ -141,13 +141,14 @@ var
     FAttackAnimation: T3DResourceAnimation;
     FReadyAnimation: T3DResourceAnimation;
     FAttackTime: Single;
-    FAttackStartSound: TSoundType;
-    FAttackSound: TSoundType;
+    FAttackSoundStart: TSoundType;
+    FAttackSoundHit: TSoundType;
     FAttackDamageConst: Single;
     FAttackDamageRandom: Single;
     FAttackKnockbackDistance: Single;
     FFireMissileName: string;
     FFireMissileAmmo: string;
+    FFireMissileSound: TSoundType;
   protected
     function ItemClass: TInventoryItemClass; override;
   public
@@ -177,12 +178,8 @@ var
     property AttackTime: Single read FAttackTime write FAttackTime
       default DefaultAttackTime;
 
-    property AttackStartSound: TSoundType
-      read FAttackStartSound write FAttackStartSound default stNone;
-
-    { Sound on successfull attack, when creature was hit by a short-range
-      attack or a missile was successfully fired (we had ammunition and such). }
-    property AttackSound: TSoundType read FAttackSound write FAttackSound;
+    property AttackSoundStart: TSoundType
+      read FAttackSoundStart write FAttackSoundStart default stNone;
 
     { Short-range attack damage and knockback.
       The short-range attack (along with it's sound etc.) is only
@@ -196,6 +193,9 @@ var
       read FAttackKnockbackDistance write FAttackKnockbackDistance
       default DefaultAttackKnockbackDistance;
     { @groupEnd }
+
+    { Sound on successfull hit by a short-range attack. }
+    property AttackSoundHit: TSoundType read FAttackSoundHit write FAttackSoundHit;
 
     { Fire missile attack properties.
 
@@ -213,6 +213,9 @@ var
     property FireMissileName: string read FFireMissileName write FFireMissileName;
     property FireMissileAmmo: string read FFireMissileAmmo write FFireMissileAmmo;
     { @groupEnd }
+
+    { Sound on missile successfully fired (we had ammunition). }
+    property FireMissileSound: TSoundType read FFireMissileSound write FFireMissileSound default stNone;
 
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
   end;
@@ -565,10 +568,10 @@ begin
     ResourceConfig.GetValue('equipping_sound', ''));
 
   AttackTime := ResourceConfig.GetFloat('attack/time', DefaultAttackTime);
-  AttackStartSound := SoundEngine.SoundFromName(
-    ResourceConfig.GetValue('attack/start_sound', ''));
-  AttackSound := SoundEngine.SoundFromName(
-    ResourceConfig.GetValue('attack/sound', ''));
+  AttackSoundStart := SoundEngine.SoundFromName(
+    ResourceConfig.GetValue('attack/sound_start', ''));
+  AttackSoundHit := SoundEngine.SoundFromName(
+    ResourceConfig.GetValue('attack/sound_hit', ''));
   AttackDamageConst := ResourceConfig.GetFloat('attack/damage/const',
     DefaultAttackDamageConst);
   AttackDamageRandom := ResourceConfig.GetFloat('attack/damage/random',
@@ -577,6 +580,8 @@ begin
     DefaultAttackKnockbackDistance);
   FireMissileName := ResourceConfig.GetValue('fire_missile/name', '');
   FireMissileAmmo := ResourceConfig.GetValue('fire_missile/ammo', '');
+  FireMissileSound := SoundEngine.SoundFromName(
+    ResourceConfig.GetValue('fire_missile/sound', ''));
 end;
 
 function TItemWeaponKind.ItemClass: TInventoryItemClass;
@@ -639,23 +644,16 @@ procedure TItemWeapon.Attack;
 var
   Own: T3DOrient;
   AttackDC, AttackDR, AttackKD: Single;
-  SoundDone: boolean;
-
-  procedure MakeSound;
-  begin
-    if not SoundDone then
-    begin
-      SoundEngine.Sound(Kind.AttackSound);
-      SoundDone := true;
-    end;
-  end;
 
   procedure ShortRangeAttack;
   var
     I: Integer;
     Enemy: T3DAlive;
     WeaponBoundingBox: TBox3D;
+    SoundDone: boolean;
   begin
+    SoundDone := false;
+
     { Own.Direction may be multiplied by something here for long-range weapons }
     WeaponBoundingBox := Own.BoundingBox.Translate(Own.Direction);
     { Tests: Writeln('WeaponBoundingBox is ', WeaponBoundingBox.ToNiceStr); }
@@ -669,7 +667,11 @@ var
         if (Enemy <> Own) and
           Enemy.BoundingBox.Collision(WeaponBoundingBox) then
         begin
-          MakeSound;
+          if not SoundDone then
+          begin
+            SoundEngine.Sound(Kind.AttackSoundHit);
+            SoundDone := true;
+          end;
           Enemy.Hurt(AttackDC + Random * AttackDR, Own.Direction, AttackKD);
         end;
       end;
@@ -681,7 +683,7 @@ var
     begin
       (Resources.FindName(Kind.FireMissileName) as TCreatureKind).
          CreateCreature(World, Own.Position, Own.Direction);
-      MakeSound;
+      SoundEngine.Sound(Kind.FireMissileSound);
     end;
 
   var
@@ -718,8 +720,6 @@ var
   end;
 
 begin
-  SoundDone := false;
-
   { attacking only works when there's an owner (player, in the future creature
     should also be able to use it) of the weapon }
   if (Owner3D <> nil) and
