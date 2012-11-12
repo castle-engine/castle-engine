@@ -69,9 +69,9 @@ type
       DefaultFlying = false;
       DefaultKnockedBackDistance = 4.0;
       DefaultSoundDyingTiedToCreature = true;
-      DefaultAttackDamageConst = 10.0;
-      DefaultAttackDamageRandom = 10.0;
-      DefaultAttackKnockbackDistance = 0.1;
+      DefaultAttackDamageConst = 0.0;
+      DefaultAttackDamageRandom = 0.0;
+      DefaultAttackKnockbackDistance = 0.0;
 
     constructor Create(const AName: string); override;
 
@@ -179,7 +179,7 @@ type
 
       Will always be multiplied by the knocking distance of the weapon that
       caused the push (which should reflect the force of the weapon blow),
-      see TItemShortRangeWeaponKind.AttackKnockbackDistance.
+      see TItemWeaponKind.AttackKnockbackDistance.
 
       Only for TWalkAttackCreature, the final distance the creature
       is knocked back is capped
@@ -202,7 +202,7 @@ type
       (if TWalkAttackCreatureKind.AttackAnimation defined)
       and for hit of TMissileCreatureKind.
 
-      All three AttackDamageXxx values must be >= 0.
+      All these values must be >= 0.
 
       AttackKnockbackDistance = 0 means no knockback.
 

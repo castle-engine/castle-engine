@@ -135,6 +135,7 @@ var
     function AlwaysPrepared: boolean; override;
   end;
 
+  { Weapon that can make a short-range attack or fire a missile. }
   TItemWeaponKind = class(TItemKind)
   private
     FEquippingSound: TSoundType;
