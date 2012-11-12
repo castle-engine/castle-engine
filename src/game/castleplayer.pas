@@ -91,9 +91,9 @@ type
     Attacking: boolean;
     { If Attacking, then this is time of attack start, from LifeTime. }
     AttackStartTime: Single;
-    { If Attacking, then this says whether EquippedWeapon.Kind.ActualAttack
+    { If Attacking, then this says whether EquippedWeapon.Kind.Attack
       was already called. }
-    ActualAttackDone: boolean;
+    AttackDone: boolean;
 
     { If Swimming = psUnderWater, then this is the time (from LifeTime)
       of setting Swimming to psUnderWater. }
@@ -1040,10 +1040,10 @@ begin
   if FFadeOutIntensity > 0 then
     FFadeOutIntensity -= FadeOutSpeed * CompSpeed;
 
-  if Attacking and (not ActualAttackDone) and (LifeTime -
+  if Attacking and (not AttackDone) and (LifeTime -
     AttackStartTime >= EquippedWeapon.Kind.AttackTime) then
   begin
-    ActualAttackDone := true;
+    AttackDone := true;
     EquippedWeapon.Attack;
   end;
 
@@ -1106,7 +1106,7 @@ begin
       SoundEngine.Sound(EquippedWeapon.Kind.AttackStartSound);
       AttackStartTime := LifeTime;
       Attacking := true;
-      ActualAttackDone := false;
+      AttackDone := false;
     end else
       { TODO: allow to do some "punch" / "kick" here easily }
       Notifications.Show('No weapon equipped');
