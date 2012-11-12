@@ -86,15 +86,6 @@ type
     FEquippedWeapon: TItemWeapon;
     LifeTime: Single;
 
-    { This means that weapon AttackAnimation is being done.
-      This also means that EquippedWeapon <> nil. }
-    Attacking: boolean;
-    { If Attacking, then this is time of attack start, from LifeTime. }
-    AttackStartTime: Single;
-    { If Attacking, then this says whether EquippedWeapon.Kind.Attack
-      was already called. }
-    AttackDone: boolean;
-
     { If Swimming = psUnderWater, then this is the time (from LifeTime)
       of setting Swimming to psUnderWater. }
     SwimBeginTime: Single;
@@ -249,8 +240,6 @@ type
     procedure ChangeInventoryCurrentItem(Change: Integer);
 
     { Weapon the player is using right now, or nil if none.
-
-      EquippedWeapon.Kind must be TItemWeaponKind.
 
       You can set this property only to some item existing on Inventory.
       When you drop the current weapon,
@@ -643,13 +632,10 @@ begin
     begin
       Notifications.Show(Format('You''re using weapon "%s" now',
         [EquippedWeapon.Kind.Caption]));
-      SoundEngine.Sound(EquippedWeapon.Kind.EquippingSound);
+      FEquippedWeapon.Equip;
       FEquippedWeapon.FreeNotification(Self);
     end else
       Notifications.Show('You''re no longer using your weapon');
-
-    { Any attack done with previous weapon must be stopped now. }
-    Attacking := false;
   end;
 end;
 
@@ -1040,12 +1026,8 @@ begin
   if FFadeOutIntensity > 0 then
     FFadeOutIntensity -= FadeOutSpeed * CompSpeed;
 
-  if Attacking and (not AttackDone) and (LifeTime -
-    AttackStartTime >= EquippedWeapon.Kind.AttackTime) then
-  begin
-    AttackDone := true;
-    EquippedWeapon.Attack;
-  end;
+  if EquippedWeapon <> nil then
+    EquippedWeapon.EquippedIdle(LifeTime);
 
   UpdateIsOnTheGround;
   UpdateLava;
@@ -1099,18 +1081,10 @@ end;
 
 procedure TPlayer.Attack;
 begin
-  if not Attacking then
-  begin
-    if EquippedWeapon <> nil then
-    begin
-      SoundEngine.Sound(EquippedWeapon.Kind.AttackSoundStart);
-      AttackStartTime := LifeTime;
-      Attacking := true;
-      AttackDone := false;
-    end else
-      { TODO: allow to do some "punch" / "kick" here easily }
-      Notifications.Show('No weapon equipped');
-  end;
+  if EquippedWeapon <> nil then
+    EquippedWeapon.EquippedAttack(LifeTime) else
+    { TODO: allow to do some "punch" / "kick" here easily }
+    Notifications.Show('No weapon equipped');
 end;
 
 procedure TPlayer.SetSwimming(const Value: TPlayerSwimming);
@@ -1228,8 +1202,6 @@ begin
   GroundProperties := nil;
 
   IsLava := false;
-
-  Attacking := false;
 end;
 
 function TPlayer.Ground: PTriangle;
@@ -1256,29 +1228,10 @@ begin
 end;
 
 function TPlayer.GetChild: T3D;
-var
-  AttackTime: Single;
-  AttackAnim: T3DResourceAnimation;
 begin
-  Result := nil;
-  if (EquippedWeapon <> nil) and
-    EquippedWeapon.Kind.Prepared then
-  begin
-    AttackAnim := EquippedWeapon.Kind.AttackAnimation;
-    AttackTime := LifeTime - AttackStartTime;
-    if Attacking and (AttackTime <= AttackAnim.Duration) then
-    begin
-      Result := AttackAnim.Scene(AttackTime, false);
-    end else
-    begin
-      { turn off Attacking, if AttackTime passed }
-      Attacking := false;
-      { although current weapons animations are just static,
-        we use LifeTime to enable any weapon animation
-        (like weapon swaying, or some fire over the sword or such) in the future. }
-      Result :=  EquippedWeapon.Kind.ReadyAnimation.Scene(LifeTime, true);
-    end;
-  end;
+  if EquippedWeapon <> nil then
+    Result := EquippedWeapon.EquippedScene(LifeTime) else
+    Result := nil;
 end;
 
 procedure TPlayer.Notification(AComponent: TComponent; Operation: TOperation);

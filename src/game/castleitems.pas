@@ -325,9 +325,14 @@ var
   end;
 
   TItemWeapon = class(TInventoryItem)
-  public
-    procedure Use; override;
-
+  private
+    { Weapon AttackAnimation is in progress.}
+    Attacking: boolean;
+    { If Attacking, then this is time of attack start, from LifeTime. }
+    AttackStartTime: Single;
+    { If Attacking, then this says whether Attack was already called. }
+    AttackDone: boolean;
+  protected
     { Make real attack, short-range or firing missile.
       Called during weapon TItemWeaponKind.AttackAnimation,
       at the time TItemWeaponKind.AttackTime.
@@ -335,8 +340,21 @@ var
       attack (if AttackDamageConst or AttackDamageRandom or AttackKnockbackDistance
       non-zero) and fires a missile (if FireMissileName not empty). }
     procedure Attack; virtual;
-
+  public
     function Kind: TItemWeaponKind;
+    procedure Use; override;
+
+    { Owner equips this weapon. }
+    procedure Equip; virtual;
+
+    { Owner starts attack with this equipped weapon. }
+    procedure EquippedAttack(const LifeTime: Single); virtual;
+
+    { Time passses for equipped weapon. }
+    procedure EquippedIdle(const LifeTime: Single); virtual;
+
+    { Return the 3D model to render for this equipped weapon, or @nil if none. }
+    function EquippedScene(const LifeTime: Single): TCastleScene; virtual;
   end;
 
   { List of items, with a 3D object (like a player or creature) owning
@@ -752,6 +770,58 @@ end;
 function TItemWeapon.Kind: TItemWeaponKind;
 begin
   Result := (inherited Kind) as TItemWeaponKind;
+end;
+
+procedure TItemWeapon.Equip;
+begin
+  SoundEngine.Sound(Kind.EquippingSound);
+
+  { Just in case we had Attacking=true from previous weapon usage, clear it }
+  Attacking := false;
+end;
+
+procedure TItemWeapon.EquippedAttack(const LifeTime: Single);
+begin
+  if not Attacking then
+  begin
+    SoundEngine.Sound(Kind.AttackSoundStart);
+    AttackStartTime := LifeTime;
+    Attacking := true;
+    AttackDone := false;
+  end;
+end;
+
+procedure TItemWeapon.EquippedIdle(const LifeTime: Single);
+begin
+  if Attacking and (not AttackDone) and
+    (LifeTime - AttackStartTime >= Kind.AttackTime) then
+  begin
+    AttackDone := true;
+    Attack;
+  end;
+end;
+
+function TItemWeapon.EquippedScene(const LifeTime: Single): TCastleScene;
+var
+  AttackTime: Single;
+  AttackAnim: T3DResourceAnimation;
+begin
+  if not Kind.Prepared then Exit(nil);
+
+  AttackAnim := Kind.AttackAnimation;
+  AttackTime := LifeTime - AttackStartTime;
+  if Attacking and (AttackTime <= AttackAnim.Duration) then
+  begin
+    Result := AttackAnim.Scene(AttackTime, false);
+  end else
+  begin
+    { turn off Attacking, if AttackTime passed }
+    Attacking := false;
+    { although current weapons animations are just static,
+      we use LifeTime to enable any weapon animation
+      (like weapon swaying, or some fire over the sword or such) in the future. }
+    Result :=  Kind.ReadyAnimation.Scene(LifeTime, true);
+  end;
 end;
 
 { TInventory ------------------------------------------------------------ }
