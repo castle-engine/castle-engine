@@ -413,15 +413,12 @@ type
       read FAttackMaxDistance write FAttackMaxDistance
       default DefaultAttackMaxDistance;
 
-    { The time point within AttackAnimation at which the actual attack happens.
-      What is an "actual attack" depends on the virtual
+    { The time point within AttackAnimation at which the short-range attack
+      happens. When exactly happens depends on the virtual
       @link(TWalkAttackCreature.Attack) method implementation,
-      in the base TWalkAttackCreature it can be a short-range
-      attack (if AttackShortRange is @true) and/or firing a missile
-      (if FireMissileName is not empty) and/or making a sound
-      (if AttackSound is set). }
-    property AttackTime: Single
-      read FAttackTime write FAttackTime
+      in the base TWalkAttackCreature it is a short-range
+      attack. }
+    property AttackTime: Single read FAttackTime write FAttackTime
       default DefaultAttackTime;
 
     { Because most of the creatures will have their weapon
@@ -439,7 +436,7 @@ type
       read FAttackMaxAngle write FAttackMaxAngle
       default DefaultAttackMaxAngle;
 
-    { Sound played when short-range attack (see AttackShortRange) hits. }
+    { Sound played when short-range attack hits. }
     property AttackSound: TSoundType
       read FAttackSound write FAttackSound default stNone;
 
