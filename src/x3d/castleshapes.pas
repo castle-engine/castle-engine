@@ -2651,6 +2651,8 @@ begin
       The object names are available.
 
       For VRML 2.0 we have to remove ME_ and OB_ prefixes from node names.
+      Somewhere around/before 2.64a X3D exporter also added _ifs_TRANSFORM suffix,
+      remove it.
 
       Note that we assume X3D exporter from Blender >= 2.57.
       Earlier Blender X3D exporters were a little different (it seems,
@@ -2660,7 +2662,8 @@ begin
     // not needed:
     // BlenderMeshName := PrefixRemove('ME_', GeometryGrandParentNodeName, false);
 
-    Result := PrefixRemove('OB_', Shape.GeometryGrandGrandParentNodeName, false);
+    Result := SuffixRemove('_ifs_TRANSFORM', PrefixRemove('OB_',
+      Shape.GeometryGrandGrandParentNodeName, false), false);
   end;
 end;
 
