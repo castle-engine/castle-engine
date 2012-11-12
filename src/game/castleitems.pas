@@ -144,13 +144,13 @@ var
     FReadyAnimation: T3DResourceAnimation;
     FAttackTime: Single;
     FAttackSoundStart: TSoundType;
+    FAttackAmmo: string;
     FAttackSoundHit: TSoundType;
     FAttackDamageConst: Single;
     FAttackDamageRandom: Single;
     FAttackKnockbackDistance: Single;
     FAttackShoot: boolean;
     FFireMissileName: string;
-    FFireMissileAmmo: string;
     FFireMissileSound: TSoundType;
   protected
     function ItemClass: TInventoryItemClass; override;
@@ -182,8 +182,31 @@ var
     property AttackTime: Single read FAttackTime write FAttackTime
       default DefaultAttackTime;
 
+    { Sound when attack starts. This is played when attack animation starts,
+      and it means that we already checked that you have necessary ammunition
+      (see AttackAmmo). }
     property AttackSoundStart: TSoundType
       read FAttackSoundStart write FAttackSoundStart default stNone;
+
+    { Ammunition required to make an attack (applies to both immediate attack,
+      like short-range/shoot, and firing missiles).
+      Indicates item kind name to use as ammunition (like 'Quiver' or 'Bullets').
+      It may be empty, in which case the ammunition is not necessary to make
+      an attack.
+      If it's set, we will check whether owner of the weapon (like a player)
+      has at least one item of this kind, and we'll decrease it
+      when firing.
+
+      For example, if this weapon is a pistol, then you can set
+      AttackDamageConst and AttackDamageRandom to non-zero and AttackShoot
+      to @true to perform an immediatele shooting attack.
+      And set AttackAmmo to something like 'Bullets'.
+
+      For example, if this weapon is a bow, then you can set
+      FireMissileName to 'Arrow', to fire arrows as missiles (they will
+      fly and can be avoided by fast moving enemies).
+      And set AttackAmmo to something like 'Quiver'. }
+    property AttackAmmo: string read FAttackAmmo write FAttackAmmo;
 
     { Immediate attack (short-range/shoot) damage and knockback.
       This type of attack (along with AttackSoundHit) is only
@@ -216,24 +239,11 @@ var
     { Sound on successfull hit by an immediate attack (short-range/shoot). }
     property AttackSoundHit: TSoundType read FAttackSoundHit write FAttackSoundHit;
 
-    { Fire missile attack properties.
-
-      FireMissileName indicates creature kind name to be created (like 'Arrow'),
-      must be <> '' to actually fire a missile.
-
-      FireMissileAmmo indicates item kind name to use as ammunition (like 'Quiver').
-      It may be empty, in which case the ammunition is not necessary to fire
-      a missile.
-      If it's set, we will check whether owner of the weapon (like a player)
-      has at least one item of this kind, and we'll decrease it
-      when firing.
-
-      @groupBegin }
+    { Creature kind name to be created (like 'Arrow') when firing a missile.
+      Must be set to something not empty to actually fire a missile. }
     property FireMissileName: string read FFireMissileName write FFireMissileName;
-    property FireMissileAmmo: string read FFireMissileAmmo write FFireMissileAmmo;
-    { @groupEnd }
 
-    { Sound on missile successfully fired (we had ammunition). }
+    { Sound on missile fired. }
     property FireMissileSound: TSoundType read FFireMissileSound write FFireMissileSound default stNone;
 
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
@@ -608,6 +618,7 @@ begin
   AttackTime := ResourceConfig.GetFloat('attack/time', DefaultAttackTime);
   AttackSoundStart := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('attack/sound_start', ''));
+  AttackAmmo := ResourceConfig.GetValue('attack/ammo', '');
   AttackSoundHit := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('attack/sound_hit', ''));
   AttackDamageConst := ResourceConfig.GetFloat('attack/damage/const',
@@ -618,7 +629,6 @@ begin
     DefaultAttackKnockbackDistance);
   AttackShoot := ResourceConfig.GetValue('attack/shoot', DefaultAttackShoot);
   FireMissileName := ResourceConfig.GetValue('fire_missile/name', '');
-  FireMissileAmmo := ResourceConfig.GetValue('fire_missile/ammo', '');
   FireMissileSound := SoundEngine.SoundFromName(
     ResourceConfig.GetValue('fire_missile/sound', ''));
 end;
@@ -739,45 +749,10 @@ var
   end;
 
   procedure FireMissileAttack;
-
-    procedure FireMissile;
-    begin
-      (Resources.FindName(Kind.FireMissileName) as TCreatureKind).
-         CreateCreature(World, Own.Position, Own.Direction);
-      SoundEngine.Sound(Kind.FireMissileSound);
-    end;
-
-  var
-    Inventory: TInventory;
-    AmmoIndex: Integer;
-    AmmoItem: TInventoryItem;
-    AmmoKind: TItemKind;
   begin
-    { When FireMissileAmmo is set, check whether the owner has ammunition.
-      Currently, only Player may have Inventory with items. }
-    if Kind.FireMissileAmmo <> '' then
-    begin
-      if Own is TPlayer then
-      begin
-        Inventory := TPlayer(Own).Inventory;
-        AmmoKind := Resources.FindName(Kind.FireMissileAmmo) as TItemKind;
-        AmmoIndex := Inventory.FindKind(AmmoKind);
-        if AmmoIndex = -1 then
-        begin
-          Notifications.Show('You have no ammunition');
-          SoundEngine.Sound(stPlayerInteractFailed);
-        end else
-        begin
-          { delete arrow from player }
-          AmmoItem := Inventory[AmmoIndex];
-          AmmoItem.Quantity := AmmoItem.Quantity - 1;
-          Inventory.CheckDepleted(AmmoItem);
-          FireMissile;
-        end;
-      end;
-    end else
-      { When FireMissileAmmo is not set, just fire missile }
-      FireMissile;
+    (Resources.FindName(Kind.FireMissileName) as TCreatureKind).
+       CreateCreature(World, Own.Position, Own.Direction);
+    SoundEngine.Sound(Kind.FireMissileSound);
   end;
 
 begin
@@ -829,8 +804,45 @@ begin
 end;
 
 procedure TItemWeapon.EquippedAttack(const LifeTime: Single);
+
+  { Check do you have ammunition to perform attack, and decrease it if yes. }
+  function CheckAmmo: boolean;
+  var
+    Inventory: TInventory;
+    AmmoIndex: Integer;
+    AmmoItem: TInventoryItem;
+    AmmoKind: TItemKind;
+  begin
+    { When AttackAmmo is set, check whether the owner has ammunition.
+      Currently, only Player may have Inventory with items. }
+    if Kind.AttackAmmo <> '' then
+    begin
+      if (Owner3D <> nil) and
+         (Owner3D is TPlayer) then
+      begin
+        Inventory := TPlayer(Owner3D).Inventory;
+        AmmoKind := Resources.FindName(Kind.AttackAmmo) as TItemKind;
+        AmmoIndex := Inventory.FindKind(AmmoKind);
+        Result := AmmoIndex <> -1;
+        if Result then
+        begin
+          { delete ammunition from inventory }
+          AmmoItem := Inventory[AmmoIndex];
+          AmmoItem.Quantity := AmmoItem.Quantity - 1;
+          Inventory.CheckDepleted(AmmoItem);
+        end else
+        begin
+          Notifications.Show('You have no ammunition');
+          SoundEngine.Sound(stPlayerInteractFailed);
+        end;
+      end else
+        Result := false; // other creatures cannot have ammo for now
+    end else
+      Result := true; // no ammo required
+  end;
+
 begin
-  if not Attacking then
+  if (not Attacking) and CheckAmmo then
   begin
     SoundEngine.Sound(Kind.AttackSoundStart);
     AttackStartTime := LifeTime;
