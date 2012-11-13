@@ -16,6 +16,8 @@ It's usually comfortable to open the exported file first with view3dscene. Once 
 ------------------------------------------------------------------------------
 3D resources, like creatures and items, display various 3D animations. Depending on the creature state, like standing / attacking / dying, we may want to display different animation of the given creature instance. We define these animations using the <model> element of creature/item resource.xml file. (As a developer, you can also create T3DResourceAnimation class in T3DResource descendants, to load more animations in this manner, and use these animations however you like.)
 
+-> At this point, I highly advice you compile and run the resource_animations example program from the engine sources. It's inside castle_game_engine/examples/resource_animations/. The data/ subdirectory shows examples of how you can define <model>, discussed below. It is also a great program to test your own creatures/items animations (before using in the actual game), you can load their resource.xml using the "Add resource..." button and directly play loaded animations.
+
 There are three approaches, and which one to choose depends on what 3D modeler / exporter you use to design your models:
 
 1. The best way (best for memory and loading time, which is really important in these situations) is to use a single X3D model, with many X3D TimeSensors representing different animations. You declare it in resource.xml file like this:
@@ -61,8 +63,6 @@ In some situations, we have to know the animation duration (for example, to know
 The looping is done automatically for animations that require it (like walk). So using loop attribute in kanim file, or loop field for TimeSensor is not necessary (it's ignored).
 
 Design notes about X3D TimeSensor usage: Note that all creatures of a given kind share the same resources, e.g. if you have a single creature "werewolf" (defined by a resource.xml file with name="Werewolf" inside) you can instantiate this creature many times, and they will all actually use the same resource underneath. That is why we use TimeSensors by directly sending their elapsedTime/fraction_changed, instead of just activating them by TimeSensor.startTime: in the latter case, all werewolves visible on the level would be forced to be in the same state(and moment) of the animation.
-
-Note: you can test loading your resource.xml using the castle_game_engine/examples/resource_animations/ tool, use the "Add resource..." to select your creature/item. This is an easy way to see all resource animations before loading into the game.
 ------------------------------------------------------------------------------
 To make exporting easy and automated without accidents, Michalis found it's best to place a short Python snippet that calls the export operator inside .blend file. This can look like this:
 
