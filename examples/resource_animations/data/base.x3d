@@ -1,0 +1,637 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.0//EN" "http://www.web3d.org/specifications/x3d-3.0.dtd">
+<X3D version="3.0" profile="Immersive" xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance" xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-3.0.xsd">
+	<head>
+		<meta name="filename" content="base.x3d" />
+		<meta name="generator" content="Blender 2.64 (sub 0)" />
+	</head>
+	<Scene>
+		<NavigationInfo headlight="false"
+		                visibilityLimit="0.0"
+		                type='"EXAMINE", "ANY"'
+		                avatarSize="0.25, 1.75, 0.75"
+		                />
+		<Background DEF="WO_World"
+		            groundColor="0.051 0.051 0.051"
+		            skyColor="0.051 0.051 0.051"
+		            />
+		<Transform DEF="Camera_TRANSFORM"
+		           translation="-4.367036 2.995314 -1.439113"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="-0.164434 -0.956970 -0.239101 1.977443"
+		           >
+			<Viewpoint DEF="CA_Camera"
+			           centerOfRotation="0 0 0"
+			           position="0.00 -0.00 -0.00"
+			           orientation="0.87 0.46 0.14 0.00"
+			           fieldOfView="0.858"
+			           />
+		</Transform>
+		<Transform DEF="Cylinder_041_TRANSFORM"
+		           translation="0.000000 0.000000 0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_041_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group DEF="group_ME_Cylinder_004">
+					<Shape>
+						<Appearance>
+							<Material DEF="MA_Material_004"
+							          diffuseColor="0.000 1.000 0.000"
+							          specularColor="0.000 0.000 0.000"
+							          emissiveColor="0.000 0.000 0.000"
+							          ambientIntensity="0.333"
+							          shininess="0.098"
+							          transparency="0.6842105388641357"
+							          />
+						</Appearance>
+						<IndexedFaceSet solid="true"
+						                coordIndex="0 1 3 2 -1 2 3 5 4 -1 4 5 7 6 -1 1 0 6 7 -1 "
+						                >
+							<Coordinate DEF="coords_ME_Cylinder_004"
+							            point="0.000000 0.010000 -1.000000 0.000000 0.010000 1.000000 0.010000 -0.000000 -1.000000 0.010000 -0.000000 1.000000 -0.000000 -0.010000 -1.000000 -0.000000 -0.010000 1.000000 -0.010000 0.000000 -1.000000 -0.010000 0.000000 1.000000 "
+							            />
+						</IndexedFaceSet>
+					</Shape>
+				</Group>
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_040_TRANSFORM"
+		           translation="-0.100000 0.000000 -0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_040_ifs_TRANSFORM"
+			           translation="0.000000 -0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group DEF="group_ME_Cylinder_001">
+					<Shape>
+						<Appearance>
+							<Material DEF="MA_Material_001"
+							          diffuseColor="0.800 0.800 0.800"
+							          specularColor="0.000 0.000 0.000"
+							          emissiveColor="0.000 0.000 0.000"
+							          ambientIntensity="0.333"
+							          shininess="0.098"
+							          transparency="0.6842105388641357"
+							          />
+						</Appearance>
+						<IndexedFaceSet solid="true"
+						                coordIndex="0 1 3 2 -1 2 3 5 4 -1 4 5 7 6 -1 1 0 6 7 -1 "
+						                >
+							<Coordinate DEF="coords_ME_Cylinder_001"
+							            point="0.000000 0.005000 -1.000000 -0.000000 0.005000 1.000000 0.005000 -0.000000 -1.000000 0.005000 0.000000 1.000000 -0.000000 -0.005000 -1.000000 -0.000000 -0.005000 1.000000 -0.005000 -0.000000 -1.000000 -0.005000 0.000000 1.000000 "
+							            />
+						</IndexedFaceSet>
+					</Shape>
+				</Group>
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_039_TRANSFORM"
+		           translation="-0.300000 0.000000 -0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_039_ifs_TRANSFORM"
+			           translation="-0.000000 -0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_038_TRANSFORM"
+		           translation="-0.200000 0.000000 -0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_038_ifs_TRANSFORM"
+			           translation="0.000000 -0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_037_TRANSFORM"
+		           translation="-0.600000 0.000000 -0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_037_ifs_TRANSFORM"
+			           translation="-0.000000 -0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_036_TRANSFORM"
+		           translation="-0.700000 0.000000 -0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_036_ifs_TRANSFORM"
+			           translation="0.000000 -0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_035_TRANSFORM"
+		           translation="-0.500000 0.000000 -0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_035_ifs_TRANSFORM"
+			           translation="0.000000 -0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_034_TRANSFORM"
+		           translation="-0.400000 0.000000 -0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_034_ifs_TRANSFORM"
+			           translation="0.000000 -0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_033_TRANSFORM"
+		           translation="-0.900000 0.000000 -0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_033_ifs_TRANSFORM"
+			           translation="-0.000000 -0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_032_TRANSFORM"
+		           translation="-0.800000 0.000000 -0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_032_ifs_TRANSFORM"
+			           translation="0.000000 -0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_031_TRANSFORM"
+		           translation="-1.000000 0.000000 -0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_031_ifs_TRANSFORM"
+			           translation="0.000000 -0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_030_TRANSFORM"
+		           translation="0.100000 0.000000 0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_030_ifs_TRANSFORM"
+			           translation="-0.000000 0.000000 -0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_029_TRANSFORM"
+		           translation="0.300000 0.000000 0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_029_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 -0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_028_TRANSFORM"
+		           translation="0.200000 0.000000 0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_028_ifs_TRANSFORM"
+			           translation="-0.000000 0.000000 -0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_027_TRANSFORM"
+		           translation="0.700000 0.000000 0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_027_ifs_TRANSFORM"
+			           translation="-0.000000 0.000000 -0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_026_TRANSFORM"
+		           translation="0.600000 0.000000 0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_026_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 -0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_025_TRANSFORM"
+		           translation="0.400000 0.000000 0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_025_ifs_TRANSFORM"
+			           translation="-0.000000 0.000000 -0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_024_TRANSFORM"
+		           translation="0.500000 0.000000 0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_024_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_023_TRANSFORM"
+		           translation="0.900000 0.000000 0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_023_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 -0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_022_TRANSFORM"
+		           translation="0.800000 0.000000 0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_022_ifs_TRANSFORM"
+			           translation="-0.000000 0.000000 -0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_021_TRANSFORM"
+		           translation="1.000000 0.000000 0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 -0.000000 -1.000000 1.570796"
+		           >
+			<Transform DEF="Cylinder_021_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_020_TRANSFORM"
+		           translation="0.000000 0.000000 1.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_020_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_019_TRANSFORM"
+		           translation="0.000000 0.000000 0.800000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_019_ifs_TRANSFORM"
+			           translation="-0.000000 0.000000 -0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_018_TRANSFORM"
+		           translation="0.000000 0.000000 0.900000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_018_ifs_TRANSFORM"
+			           translation="-0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_017_TRANSFORM"
+		           translation="0.000000 0.000000 0.500000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_017_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_016_TRANSFORM"
+		           translation="0.000000 0.000000 0.400000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_016_ifs_TRANSFORM"
+			           translation="-0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_015_TRANSFORM"
+		           translation="0.000000 0.000000 0.600000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_015_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 -0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_014_TRANSFORM"
+		           translation="0.000000 0.000000 0.700000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_014_ifs_TRANSFORM"
+			           translation="-0.000000 0.000000 -0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_013_TRANSFORM"
+		           translation="0.000000 0.000000 0.200000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_013_ifs_TRANSFORM"
+			           translation="-0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_012_TRANSFORM"
+		           translation="0.000000 0.000000 0.300000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_012_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 -0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_011_TRANSFORM"
+		           translation="0.000000 0.000000 0.100000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_011_ifs_TRANSFORM"
+			           translation="-0.000000 0.000000 -0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_010_TRANSFORM"
+		           translation="0.000000 0.000000 -1.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_010_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_009_TRANSFORM"
+		           translation="0.000000 0.000000 -0.800000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_009_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_008_TRANSFORM"
+		           translation="0.000000 0.000000 -0.900000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_008_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 -0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_007_TRANSFORM"
+		           translation="0.000000 0.000000 -0.400000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_007_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_006_TRANSFORM"
+		           translation="0.000000 0.000000 -0.500000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_006_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_005_TRANSFORM"
+		           translation="0.000000 0.000000 -0.700000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_005_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_004_TRANSFORM"
+		           translation="0.000000 0.000000 -0.600000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_004_ifs_TRANSFORM"
+			           translation="-0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_003_TRANSFORM"
+		           translation="0.000000 0.000000 -0.200000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_003_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_002_TRANSFORM"
+		           translation="0.000000 0.000000 -0.300000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_002_ifs_TRANSFORM"
+			           translation="-0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_001_TRANSFORM"
+		           translation="0.000000 0.000000 -0.100000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_001_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group USE="group_ME_Cylinder_001" />
+			</Transform>
+		</Transform>
+		<Transform DEF="Cylinder_TRANSFORM"
+		           translation="0.000000 0.000000 0.000000"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.577350 -0.577350 -0.577350 2.094395"
+		           >
+			<Transform DEF="Cylinder_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="-0.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group DEF="group_ME_Cylinder_003">
+					<Shape>
+						<Appearance>
+							<Material DEF="MA_Material_003"
+							          diffuseColor="1.000 0.000 0.000"
+							          specularColor="0.000 0.000 0.000"
+							          emissiveColor="0.000 0.000 0.000"
+							          ambientIntensity="0.333"
+							          shininess="0.098"
+							          transparency="0.6842105388641357"
+							          />
+						</Appearance>
+						<IndexedFaceSet solid="true"
+						                coordIndex="0 1 3 2 -1 2 3 5 4 -1 4 5 7 6 -1 1 0 6 7 -1 "
+						                >
+							<Coordinate DEF="coords_ME_Cylinder_003"
+							            point="0.000000 0.010000 -1.000000 0.000000 0.010000 1.000000 0.010000 -0.000000 -1.000000 0.010000 -0.000000 1.000000 -0.000000 -0.010000 -1.000000 -0.000000 -0.010000 1.000000 -0.010000 0.000000 -1.000000 -0.010000 0.000000 1.000000 "
+							            />
+						</IndexedFaceSet>
+					</Shape>
+				</Group>
+			</Transform>
+		</Transform>
+	</Scene>
+</X3D>
