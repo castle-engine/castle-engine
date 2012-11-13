@@ -145,7 +145,7 @@ type
     { Can the button be permanently pressed. Good for making a button
       behave like a checkbox, that is indicate a boolean state.
       When @link(Toggle) is @true, you can set the @link(Pressed) property,
-      and the clicks are visualized a little different. }
+      and the clicks are visualized a little differently. }
     property Toggle: boolean read FToggle write FToggle default false;
 
     { Is the button pressed down. If @link(Toggle) is @true,
