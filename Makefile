@@ -109,7 +109,8 @@ EXAMPLES_BASE_NAMES := \
   examples/isometric_game/sandbox \
   examples/images_videos/gaussian_write \
   examples/3d_sound_game/lets_take_a_walk \
-  examples/3d_sound_game/data/levels/base/devel/process_base_b
+  examples/3d_sound_game/data/levels/base/devel/process_base_b \
+  examples/resource_animations/resource_animations
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \
