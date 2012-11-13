@@ -68,44 +68,62 @@ type
   TUpdateCurrentResource = (
     ucpActivateFirst,
     ucpActivateLast,
-    ucpKeep);
+    ucpUpdateOnlyAnimations);
 
 procedure Resize(Window: TCastleWindowBase); forward;
 procedure UpdateButtons(const UpdateCurrentResource: TUpdateCurrentResource); forward;
 
 type
-  TButtonSwitchResource = class(TCastleButton)
+  TResourceButton = class(TCastleButton)
   public
-    ResourceName: string;
+    ButtonResource: T3DResource;
     procedure DoClick; override;
   end;
 
-procedure TButtonSwitchResource.DoClick;
-begin
-  Resource := Resources.FindName(ResourceName);
-  UpdateButtons(ucpKeep);
-end;
-
-type
-  TButtonSwitchAnimation = class(TCastleButton)
+  TAnimationButton = class(TCastleButton)
   public
-    AnimationName: string;
+    ButtonAnimation: T3DResourceAnimation;
     procedure DoClick; override;
   end;
 
-procedure TButtonSwitchAnimation.DoClick;
-begin
-  Animation := Resource.Animations.FindName(AnimationName);
-  LoopAnimation.Time := 0;
-end;
-
-type
   TLoadResourceButton = class(TCastleButton)
   public
     { remember this only to make repeated usage of FileDialog more comfortable }
     LastChosenFileName: string;
     procedure DoClick; override;
   end;
+
+  TResourceButtonList = specialize TFPGObjectList<TResourceButton>;
+  TAnimationButtonList = specialize TFPGObjectList<TAnimationButton>;
+
+var
+  ResButtons: TResourceButtonList;
+  AnimButtons: TAnimationButtonList;
+  LoadResourceButton: TLoadResourceButton;
+
+procedure TResourceButton.DoClick;
+var
+  I: Integer;
+begin
+  Resource := ButtonResource;
+  { update Pressed of buttons }
+  for I := 0 to ResButtons.Count - 1 do
+    ResButtons[I].Pressed := ResButtons[I].ButtonResource = Resource;
+  { load buttons for animations of currently selected Resource }
+  UpdateButtons(ucpUpdateOnlyAnimations);
+end;
+
+procedure TAnimationButton.DoClick;
+var
+  I: Integer;
+begin
+  Animation := ButtonAnimation;
+  { update Pressed of buttons }
+  for I := 0 to AnimButtons.Count - 1 do
+    AnimButtons[I].Pressed := AnimButtons[I].ButtonAnimation = Animation;
+  { reset time }
+  LoopAnimation.Time := 0;
+end;
 
 procedure TLoadResourceButton.DoClick;
 begin
@@ -121,55 +139,62 @@ begin
   end;
 end;
 
-type
-  TCastleButtonList = specialize TFPGObjectList<TCastleButton>;
-
-var
-  ResButtons, AnimButtons: TCastleButtonList;
-  LoadResourceButton: TLoadResourceButton;
-
 procedure UpdateButtons(const UpdateCurrentResource: TUpdateCurrentResource);
 var
-  ResButton: TButtonSwitchResource;
-  AnimButton: TButtonSwitchAnimation;
-  DefaultAnim: T3DResourceAnimation;
+  ResButton: TResourceButton;
+  AnimButton: TAnimationButton;
   I: Integer;
 begin
-  { easily destroy all existing buttons using the XxxButtons list,
-    destroying them also automatically removed them from Window.Controls list }
-  ResButtons.Clear;
-  AnimButtons.Clear;
-
-  for I := 0 to Resources.Count - 1 do
+  if UpdateCurrentResource <> ucpUpdateOnlyAnimations then
   begin
-    ResButton := TButtonSwitchResource.Create(nil);
-    ResButton.Caption := Resources[I].Name;
-    ResButton.ResourceName := Resources[I].Name;
-    ResButtons.Add(ResButton);
-    Window.Controls.Add(ResButton);
-  end;
-  if Resources.Count = 0 then
-    raise Exception.CreateFmt('No resources found. Make sure we search in proper path (current data path is detected as "%s")', [ProgramDataPath]);
-  case UpdateCurrentResource of
-    ucpActivateFirst: Resource := Resources.First;
-    ucpActivateLast : Resource := Resources.Last;
+    { easily destroy all existing buttons using the XxxButtons list,
+      destroying them also automatically removed them from Window.Controls list }
+    ResButtons.Clear;
+
+    for I := 0 to Resources.Count - 1 do
+    begin
+      ResButton := TResourceButton.Create(nil);
+      ResButton.ButtonResource := Resources[I];
+      ResButton.Caption := ResButton.ButtonResource.Name;
+      ResButton.Toggle := true;
+      ResButtons.Add(ResButton);
+      Window.Controls.Add(ResButton);
+    end;
+    if Resources.Count = 0 then
+      raise Exception.CreateFmt('No resources found. Make sure we search in proper path (current data path is detected as "%s")', [ProgramDataPath]);
+    case UpdateCurrentResource of
+      ucpActivateFirst:
+        begin
+          Resource := Resources.First;
+          ResButtons.First.Pressed := true;
+        end;
+      ucpActivateLast :
+        begin
+          Resource := Resources.Last;
+          ResButtons.Last.Pressed := true;
+        end;
+    end;
   end;
 
-  DefaultAnim := nil;
+  AnimButtons.Clear;
+  Animation := nil;
   for I := 0 to Resource.Animations.Count - 1 do
     if Resource.Animations[I].Defined then
     begin
-      if DefaultAnim = nil then
-        DefaultAnim := Resource.Animations[I];
-      AnimButton := TButtonSwitchAnimation.Create(nil);
-      AnimButton.Caption := Resource.Animations[I].Name;
-      AnimButton.AnimationName := Resource.Animations[I].Name;
+      AnimButton := TAnimationButton.Create(nil);
+      AnimButton.ButtonAnimation := Resource.Animations[I];
+      AnimButton.Caption := AnimButton.ButtonAnimation.Name;
+      AnimButton.Toggle := true;
+      if Animation = nil then
+      begin
+        Animation := Resource.Animations[I];
+        AnimButton.Pressed := true;
+      end;
       AnimButtons.Add(AnimButton);
       Window.Controls.Add(AnimButton);
     end;
-  if DefaultAnim = nil then
+  if Animation = nil then
     raise Exception.CreateFmt('No (defined) animation found in resource "%s"', [Resource.Name]);
-  Animation := DefaultAnim;
 
   { update buttons sizes and positions using Resize }
   Resize(Window);
@@ -251,8 +276,8 @@ begin
   LoadResourceButton := TLoadResourceButton.Create(Application);
   LoadResourceButton.Caption := 'Add resource...';
   Window.Controls.Add(LoadResourceButton);
-  ResButtons := TCastleButtonList.Create(true);
-  AnimButtons := TCastleButtonList.Create(true);
+  ResButtons := TResourceButtonList.Create(true);
+  AnimButtons := TAnimationButtonList.Create(true);
   UpdateButtons(ucpActivateFirst);
 
   LoopAnimation := TLoopAnimation.Create(Application);
