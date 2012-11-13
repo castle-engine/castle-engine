@@ -94,7 +94,6 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/tools/gen_light_map \
   examples/3d_rendering_processing/tools/kanim_to_interpolators \
   examples/3d_rendering_processing/multiple_viewports \
-  examples/3d_rendering_processing/demo_animation \
   examples/3d_rendering_processing/fog_culling \
   examples/3d_rendering_processing/plane_mirror_and_shadow \
   examples/3d_rendering_processing/animate_3d_model_by_code \
