@@ -83,7 +83,11 @@ type
     property Required: boolean read FRequired;
   end;
 
-  T3DResourceAnimationList = specialize TFPGObjectList<T3DResourceAnimation>;
+  T3DResourceAnimationList = class(specialize TFPGObjectList<T3DResourceAnimation>)
+    { Find an animation by name.
+      @raises Exception if not found. }
+    function FindName(const AName: string): T3DResourceAnimation;
+  end;
 
   { Resource used for rendering and processing of 3D objects.
     By itself this doesn't render or do anything.
@@ -115,18 +119,6 @@ type
     FReceiveShadowVolumes: boolean;
     FCastShadowVolumes: boolean;
   protected
-    { Animations of this resource.
-
-      The first animation, if exists, right now determines the default radius
-      calculation. So the first animation should have the bounding box
-      representative for all animations.
-      Other than that, the order on this list doesn't matter.
-
-      The properties of these animations are automatically loaded from
-      resource.xml file in LoadFromFile. The animations are automatically
-      prepared / released by our @link(Prepare) / @link(Release) methods. }
-    property Animations: T3DResourceAnimationList read FAnimations;
-
     { Prepare or release everything needed to use this resource.
       PrepareCore and ReleaseCore should never be called directly,
       they are only to be overridden in descendants.
@@ -216,6 +208,18 @@ type
     procedure InstantiatePlaceholder(World: T3DWorld;
       const APosition, ADirection: TVector3Single;
       const NumberPresent: boolean; const Number: Int64); virtual; abstract;
+
+    { Animations of this resource.
+
+      The first animation, if exists, right now determines the default radius
+      calculation. So the first animation should have the bounding box
+      representative for all animations.
+      Other than that, the order on this list doesn't matter.
+
+      The properties of these animations are automatically loaded from
+      resource.xml file in LoadFromFile. The animations are automatically
+      prepared / released by our @link(Prepare) / @link(Release) methods. }
+    property Animations: T3DResourceAnimationList read FAnimations;
 
     { Mechanics of given game may suggest that some 3D resources should
       always be prepared. For example, in typical 3D game when player
@@ -433,6 +437,21 @@ procedure T3DResourceAnimation.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   FileName := ResourceConfig.GetFileName('model/' + Name + '/file_name', true);
   TimeSensor := ResourceConfig.GetValue('model/' + Name + '/time_sensor', '');
+end;
+
+{ T3DResourceAnimationList --------------------------------------------------- }
+
+function T3DResourceAnimationList.FindName(const AName: string): T3DResourceAnimation;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+  begin
+    Result := Items[I];
+    if Result.Name = AName then
+      Exit;
+  end;
+  raise Exception.CreateFmt('No resource animation named "%s"', [AName]);
 end;
 
 { T3DResource ---------------------------------------------------------------- }
