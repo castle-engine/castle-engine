@@ -672,6 +672,7 @@ begin
   Result.Gravity := true;
   Result.FallSpeed := Kind.FallSpeed;
   Result.GrowSpeed := Kind.GrowSpeed;
+  Result.CastShadowVolumes := Kind.CastShadowVolumes;
   AWorld.Add(Result);
 end;
 

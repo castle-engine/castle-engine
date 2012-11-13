@@ -995,6 +995,7 @@ begin
   Result.Gravity := not Flying;
   Result.FallSpeed := FallSpeed;
   Result.GrowSpeed := GrowSpeed;
+  Result.CastShadowVolumes := CastShadowVolumes;
   Result.MiddleHeight := MiddleHeight;
 
   World.Add(Result);

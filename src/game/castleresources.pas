@@ -343,8 +343,21 @@ function T3DResourceAnimation.Scene(const Time: Single;
   const Loop: boolean): TCastleScene;
 begin
   Result := Animation.Scene(Time, Loop);
+
+  { It's a little dirty to assign some TCastleScene property below.
+    It would be better if we could assign ReceiveShadowVolumes on the T3D level,
+    and then just assign it like CastShadowVolumes at TCreature / TItemOnWorld.
+    But we can't (easily): ReceiveShadowVolumes is not possible at something like
+    T3DList, as it's not a choice ("if you don't receive, you're not rendered"),
+    but a state ("if you receive, you're rendered here; if you don't, you're
+    rendered there"). To overcome this, we'd need some
+    T3DList.ReceiveShadowVolumes = (rsYes, rsNo, rsUndefined)
+    at T3DList (default rsUndefined),
+    and TRenderParams.ShadowVolumesReceiversCheck boolean.
+    So not something nice and consistent like CastShadowVolumes.
+    For now, this one-line hack seems simpler. }
   Result.ReceiveShadowVolumes := Owner.ReceiveShadowVolumes;
-  Result.CastShadowVolumes := Owner.CastShadowVolumes;
+
   // TODO: fix for Animation = nil
 end;
 
