@@ -618,10 +618,10 @@ begin
         if ResourceXmlReload then
         begin
           if ResourceClass <> Resource.ClassType then
-            raise Exception.CreateFmt('Resource id "%s" already exists, but with different type. Old class is %s, new class is %s. Cannot reload resource.xml file in this situation',
+            raise Exception.CreateFmt('Resource name "%s" already exists, but with different type. Old class is %s, new class is %s. Cannot reload resource.xml file in this situation',
               [ResourceName, Resource.ClassType.ClassName, ResourceClass.ClassName]);
         end else
-          raise Exception.CreateFmt('Resource id "%s" already exists. All resource ids inside resource.xml files must be unique',
+          raise Exception.CreateFmt('Resource name "%s" already exists. All resource names inside resource.xml files must be unique',
             [ResourceName]);
       end else
       begin
