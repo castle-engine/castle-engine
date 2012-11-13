@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<resource
+  name="KnightKAnim"
+  type="WalkAttack"
+>
+  <model>
+    <idle file_name="idle.kanim"/>
+    <walk file_name="walk.kanim"/>
+    <attack file_name="attack.kanim"/>
+    <die file_name="die.kanim"/>
+    <hurt file_name="hurt.kanim"/>
+  </model>
+</resource>

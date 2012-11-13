@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<animation>
+  <frame file_name="idle_0001.x3d.gz" time="0.000000" />
+  <frame file_name="idle_0006.x3d.gz" time="0.200000" />
+  <frame file_name="idle_0011.x3d.gz" time="0.400000" />
+  <frame file_name="idle_0016.x3d.gz" time="0.600000" />
+  <frame file_name="idle_0021.x3d.gz" time="0.800000" />
+</animation>
