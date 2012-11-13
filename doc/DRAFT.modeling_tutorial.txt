@@ -61,6 +61,8 @@ In some situations, we have to know the animation duration (for example, to know
 The looping is done automatically for animations that require it (like walk). So using loop attribute in kanim file, or loop field for TimeSensor is not necessary (it's ignored).
 
 Design notes about X3D TimeSensor usage: Note that all creatures of a given kind share the same resources, e.g. if you have a single creature "werewolf" (defined by a resource.xml file with name="Werewolf" inside) you can instantiate this creature many times, and they will all actually use the same resource underneath. That is why we use TimeSensors by directly sending their elapsedTime/fraction_changed, instead of just activating them by TimeSensor.startTime: in the latter case, all werewolves visible on the level would be forced to be in the same state(and moment) of the animation.
+
+Note: you can test loading your resource.xml using the castle_game_engine/examples/resource_animations/ tool, use the "Add resource..." to select your creature/item. This is an easy way to see all resource animations before loading into the game.
 ------------------------------------------------------------------------------
 To make exporting easy and automated without accidents, Michalis found it's best to place a short Python snippet that calls the export operator inside .blend file. This can look like this:
 
