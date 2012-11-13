@@ -271,17 +271,27 @@ type
       resource.xml files found in given Path.
       Overloaded version without Path just scans the whole ProgramDataPath.
 
-      If Reload, then we will not clear the initial list contents.
-      Instead, resource.xml files found that refer to the existing id
-      will cause T3DResource.LoadFromFile call on an existing resource.
-      Using Reload is a nice debug feature, if you want to reload configuration
-      from resource.xml files (and eventually add new resources in new resource.xml files),
-      but you don't want to recreate existing resource instances.
+      @param(Reload
+        If Reload, then we will not clear the initial list contents.
+        Instead, resource.xml files found that refer to the existing T3DResource.Name
+        will cause T3DResource.LoadFromFile call on an existing resource.
+        Using Reload is a nice debug feature, if you want to reload configuration
+        from resource.xml files (and eventually add new resources in new resource.xml files),
+        but you don't want to recreate existing resource instances.)
 
       @groupBegin }
     procedure LoadFromFiles(const Path: string; const Reload: boolean = false);
     procedure LoadFromFiles(const Reload: boolean = false);
     { @groupEnd }
+
+    { Load a single resource from resource.xml file.
+      You usually do not want to use this, it's easier to load all your
+      resources in one go by @link(LoadFromFiles) call.
+
+      @param(Reload If @true, and the loaded resource will have a name
+        matching existing T3DResource.Name, we will replace the current resource.
+        Otherwise, we'll make an exception.) }
+    procedure LoadResourceFile(const FileName: string; const Reload: boolean = false);
 
     { Reads <resources> XML element. <resources> element
       is an optional child of given ParentElement.
@@ -630,6 +640,12 @@ begin
       end;
     end;
   finally FreeAndNil(Xml) end;
+end;
+
+procedure T3DResourceList.LoadResourceFile(const FileName: string; const Reload: boolean);
+begin
+  ResourceXmlReload := Reload;
+  LoadResourceXml(FileName);
 end;
 
 procedure T3DResourceList.LoadFromFiles(const Path: string; const Reload: boolean);

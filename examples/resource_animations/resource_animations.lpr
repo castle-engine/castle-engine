@@ -16,7 +16,8 @@
 { Play the animations of resources (creatures/items). }
 
 uses SysUtils, FGL, CastleFilesUtils, CastleWindow, CastleResources, CastleScene,
-  CastleProgress, ProgressUnit, CastleControls, UIControls, CastleUtils, Base3D;
+  CastleProgress, ProgressUnit, CastleControls, UIControls, CastleUtils, Base3D,
+  CastleSoundEngine;
 
 var
   BaseScene: TCastleScene;
@@ -48,7 +49,7 @@ type
 
 function TLoopAnimation.GetChild: T3D;
 begin
-  if not (GetExists and Resource.Prepared and Animation.Defined) then Exit;
+  if not (GetExists and Resource.Prepared) then Exit;
   Result := Animation.Scene(Time, true);
 end;
 
@@ -64,6 +65,15 @@ var
 { 2D things (buttons) -------------------------------------------------------- }
 
 type
+  TUpdateCurrentResource = (
+    ucpActivateFirst,
+    ucpActivateLast,
+    ucpKeep);
+
+procedure Resize(Window: TCastleWindowBase); forward;
+procedure UpdateButtons(const UpdateCurrentResource: TUpdateCurrentResource); forward;
+
+type
   TButtonSwitchResource = class(TCastleButton)
   public
     ResourceName: string;
@@ -73,6 +83,7 @@ type
 procedure TButtonSwitchResource.DoClick;
 begin
   Resource := Resources.FindName(ResourceName);
+  UpdateButtons(ucpKeep);
 end;
 
 type
@@ -89,14 +100,35 @@ begin
 end;
 
 type
+  TLoadResourceButton = class(TCastleButton)
+  public
+    { remember this only to make repeated usage of FileDialog more comfortable }
+    LastChosenFileName: string;
+    procedure DoClick; override;
+  end;
+
+procedure TLoadResourceButton.DoClick;
+begin
+  if Window.FileDialog('Resource file to load', LastChosenFileName, true,
+    'All Files|*|*Resource files (resource.xml)|resource.xml|') then
+  begin
+    Resources.LoadResourceFile(LastChosenFileName);
+    { directly prepare new resource }
+    Resources.Prepare(
+      Window.SceneManager.Items.BaseLights,
+      Window.SceneManager.Items.GravityUp, 'resources');
+    UpdateButtons(ucpActivateLast);
+  end;
+end;
+
+type
   TCastleButtonList = specialize TFPGObjectList<TCastleButton>;
 
 var
   ResButtons, AnimButtons: TCastleButtonList;
+  LoadResourceButton: TLoadResourceButton;
 
-procedure Resize(Window: TCastleWindowBase); forward;
-
-procedure UpdateButtons;
+procedure UpdateButtons(const UpdateCurrentResource: TUpdateCurrentResource);
 var
   ResButton: TButtonSwitchResource;
   AnimButton: TButtonSwitchAnimation;
@@ -118,7 +150,10 @@ begin
   end;
   if Resources.Count = 0 then
     raise Exception.CreateFmt('No resources found. Make sure we search in proper path (current data path is detected as "%s")', [ProgramDataPath]);
-  Resource := Resources[0]; // TODO: keep prev resource
+  case UpdateCurrentResource of
+    ucpActivateFirst: Resource := Resources.First;
+    ucpActivateLast : Resource := Resources.Last;
+  end;
 
   DefaultAnim := nil;
   for I := 0 to Resource.Animations.Count - 1 do
@@ -161,6 +196,10 @@ begin
     ResButtons[I].Width := MaxWidth;
   end;
 
+  Bottom -= Margin * 2 + ResButtons[I].Height;
+  LoadResourceButton.Bottom := Bottom;
+  LoadResourceButton.Left := Margin;
+
   MaxWidth := 0;
   for I := 0 to AnimButtons.Count - 1 do
     MaxTo1st(MaxWidth, AnimButtons[I].Width);
@@ -182,6 +221,10 @@ begin
   Window := TCastleWindow.Create(Application);
   WindowProgressInterface.Window := Window;
   Progress.UserInterface := WindowProgressInterface;
+
+  { otherwise if you use "Add resource..." button and load a resource
+    using sounds, we may get errors about undefined sound names. }
+  IgnoreAllMissingSounds := true;
 
   Resources.LoadFromFiles;
 
@@ -205,9 +248,12 @@ begin
     Window.SceneManager.Items.BaseLights,
     Window.SceneManager.Items.GravityUp, 'resources');
 
+  LoadResourceButton := TLoadResourceButton.Create(Application);
+  LoadResourceButton.Caption := 'Add resource...';
+  Window.Controls.Add(LoadResourceButton);
   ResButtons := TCastleButtonList.Create(true);
   AnimButtons := TCastleButtonList.Create(true);
-  UpdateButtons;
+  UpdateButtons(ucpActivateFirst);
 
   LoopAnimation := TLoopAnimation.Create(Application);
   Window.SceneManager.Items.Add(LoopAnimation);

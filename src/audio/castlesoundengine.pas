@@ -643,6 +643,14 @@ var
   engine class. Created on first call to this function. }
 function SoundEngine: TRepoSoundEngine;
 
+var
+  { Should TRepoSoundEngine.SoundFromName ignore (return stNone)
+    all missing sounds. This works like RaiseError parameter for
+    TRepoSoundEngine.SoundFromName was @true.
+    It's a debug feature, useful if you load resources but don't really
+    plan to play their sounds, don't depend on it in your games. }
+  IgnoreAllMissingSounds: boolean;
+
 implementation
 
 uses CastleUtils, CastleStringUtils, ALUtils, CastleLog, ProgressUnit,
@@ -1686,7 +1694,7 @@ begin
     if Sounds[Result].Name = SoundName then
       Exit;
 
-  if RaiseError then
+  if RaiseError and not IgnoreAllMissingSounds then
     raise Exception.CreateFmt('Unknown sound name "%s"', [SoundName]) else
     Result := stNone;
 end;
