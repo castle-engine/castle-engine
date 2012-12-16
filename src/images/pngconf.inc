@@ -1,24 +1,12 @@
-{ include file made for KambiPng.pas unit by Kambi }
-
-{ After including this file use symbol LIBPNG_CDECL / LIBPNG_STDCALL to
+{ Include file for PNG library.
+  This defines symbol LIBPNG_CDECL or LIBPNG_STDCALL to
   determine calling convention of libpng funcs and callbacks.
-}
+
+  Right now, it's trivial, as all distributed versions (also under Windows)
+  use cdecl. }
 
 {$ifdef MSWINDOWS}
-
-  { Under Windows define some PNG_Xxx symbol to determine with which dll
-    you want to link. TODO: fix for win64. }
-  {$define PNG_GNUWIN32} { libpng distributed from gnuwin32.sourceforge.net }
-  { $define PNG_CYGWIN}  { libpng distributed with Cygwin }
-  { $define PNG_VB}      { libpng_vb.dll from http://net.thevbzone.com/d_DLL.htm }
-
-  {$ifdef PNG_GNUWIN32} {$define LIBPNG_CDECL}   {$endif}
-  {$ifdef PNG_CYGWIN}   {$define LIBPNG_CDECL}   {$endif}
-  {$ifdef PNG_VB}       {$define LIBPNG_STDCALL} {$endif}
-
-{$else}
-
-  { Under Unix - just use standard libpng, no problems }
   {$define LIBPNG_CDECL}
-
+{$else}
+  {$define LIBPNG_CDECL}
 {$endif}

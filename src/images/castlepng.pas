@@ -938,19 +938,16 @@ begin
 end;
 
 initialization
-  {$ifdef PNG_GNUWIN32} { libpng distributed by gnuwin32.sourceforge.net }
+  {$ifdef MSWINDOWS}
+  { libpng distributed by gnuwin32.sourceforge.net }
   PngLibrary := TDynLib.Load('libpng12.dll', false);
   { Newer version, libpng13.dll, is equally good and seems 100% compatible. }
   if PngLibrary = nil then
     PngLibrary := TDynLib.Load('libpng13.dll', false);
-  {$endif}
 
-  {$ifdef PNG_VB} { libpng_vb version }
-  PngLibrary := TDynLib.Load('libpng_vb.dll', false);
-  {$endif}
-
-  {$ifdef PNG_CYGWIN} { cygwin dll version }
-  PngLibrary := TDynLib.Load('cygpng2.dll', false);
+  { libpng for win64 distributed by http://www.gtk.org/download/win64.php }
+  if PngLibrary = nil then
+    PngLibrary := TDynLib.Load('libpng14-14.dll', false);
   {$endif}
 
   {$ifdef UNIX}
