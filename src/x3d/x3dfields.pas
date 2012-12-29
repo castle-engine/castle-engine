@@ -421,6 +421,10 @@ type
   { Base class for VRML/X3D field or event. }
   TX3DFieldOrEvent = class(TX3DFileItem)
   private
+    { To optimize memory usage (which may really be huge in case of VRML/X3D
+      with many nodes, esp. when VRML/X3D uses a lot of prototypes),
+      this is only created when needed (when it is not empty).
+      Otherwise it is @nil. }
     FIsClauseNames: TCastleStringList;
 
     FName: string;
@@ -434,6 +438,11 @@ type
 
     FParentNode: TX3DFileItem;
     FParentInterfaceDeclaration: TX3DFileItem;
+
+    function GetIsClauseNames(const Index: Integer): string;
+
+    { Return FIsClauseNames, initializing it if necessary to not be nil. }
+    function IsClauseNamesCreate: TCastleStringList;
   protected
     procedure FieldOrEventAssignCommon(Source: TX3DFieldOrEvent);
   public
@@ -475,8 +484,18 @@ type
       and thus such field has it's value (default value, if not specified
       in the file), event though it also has an "IS" clause.
       Although there is TX3DField.ValueFromIsClause, which indicates
-      whether current value was obtained from "IS" clause. }
-    property IsClauseNames: TCastleStringList read FIsClauseNames;
+      whether current value was obtained from "IS" clause.
+
+      To be able to significantly optimize memory, we do not expose IsClauseNames
+      as TCastleStringList. Instead operate on them only using below functions.
+      Note that IsClauseNamesAssign can also accept @nil as parameter.
+
+      @groupBegin }
+    property IsClauseNames[const Index: Integer]: string read GetIsClauseNames;
+    function IsClauseNamesCount: Integer;
+    procedure IsClauseNamesAssign(const SourceIsClauseNames: TCastleStringList);
+    procedure IsClauseNamesAdd(const S: string);
+    { @groupEnd }
 
     { Parse only "IS" clause, if it's not present --- don't do nothing.
       For example, for the TX3DField descendant, this does not try to parse
@@ -2822,7 +2841,6 @@ constructor TX3DFieldOrEvent.Create(AParentNode: TX3DFileItem;
   const AName: string);
 begin
   inherited Create;
-  FIsClauseNames := TCastleStringList.Create;
   FParentNode := AParentNode;
   FName := AName;
 end;
@@ -2833,12 +2851,48 @@ begin
   inherited;
 end;
 
+function TX3DFieldOrEvent.IsClauseNamesCreate: TCastleStringList;
+begin
+  if FIsClauseNames = nil then
+    FIsClauseNames := TCastleStringList.Create;
+  Result := FIsClauseNames;
+end;
+
+function TX3DFieldOrEvent.GetIsClauseNames(const Index: Integer): string;
+begin
+  if FIsClauseNames = nil then
+    raise Exception.CreateFmt('IsClauseNames item index %d does not exist, because IsClauseNames is empty',
+      [Index]);
+  Result := FIsClauseNames[Index];
+end;
+
+function TX3DFieldOrEvent.IsClauseNamesCount: Integer;
+begin
+  if FIsClauseNames = nil then
+    Result := 0 else
+    Result := FIsClauseNames.Count;
+end;
+
+procedure TX3DFieldOrEvent.IsClauseNamesAssign(
+  const SourceIsClauseNames: TCastleStringList);
+begin
+  if (SourceIsClauseNames <> nil) and
+     (SourceIsClauseNames.Count <> 0) then
+    IsClauseNamesCreate.Assign(SourceIsClauseNames) else
+    FreeAndNil(FIsClauseNames);
+end;
+
+procedure TX3DFieldOrEvent.IsClauseNamesAdd(const S: string);
+begin
+  IsClauseNamesCreate.Add(S);
+end;
+
 procedure TX3DFieldOrEvent.ParseIsClause(Lexer: TX3DLexer);
 begin
   if Lexer.TokenIsKeyword(vkIS) then
   begin
     Lexer.NextToken;
-    IsClauseNames.Add(Lexer.TokenName);
+    IsClauseNamesCreate.Add(Lexer.TokenName);
     Lexer.NextToken;
   end;
 end;
@@ -2886,11 +2940,8 @@ end;
 procedure TX3DFieldOrEvent.FieldOrEventAssignCommon(Source: TX3DFieldOrEvent);
 begin
   FName := Source.Name;
-
-  FIsClauseNames.Assign(Source.IsClauseNames);
-
+  IsClauseNamesAssign(Source.FIsClauseNames);
   FPositionInParent := Source.PositionInParent;
-
   FAlternativeNames := Source.FAlternativeNames;
 end;
 
@@ -2915,7 +2966,7 @@ begin
 
   { When N = '', we assume that field/event has only one "IS" clause.
     Otherwise results don't make any sense. }
-  for I := 0 to IsClauseNames.Count - 1 do
+  for I := 0 to IsClauseNamesCount - 1 do
   begin
     if N <> '' then
       Writer.WriteIndent(N + ' ');

@@ -3871,7 +3871,7 @@ begin
           Writer.WriteIndent(ATName(atInputOnly) + ' ') else
           Writer.WriteIndent(ATName(atOutputOnly) + ' ');
         Writer.Write(Event.FieldClass.TypeName + ' ');
-        if Event.IsClauseNames.Count <> 0 then
+        if Event.IsClauseNamesCount <> 0 then
         begin
           Writer.DiscardNextIndent;
           { Note that there may be many IS clauses. This will still work Ok:
@@ -3894,7 +3894,7 @@ begin
 
         if ( FieldValue and
              (not Field.ValueFromIsClause) and
-             (Field.IsClauseNames.Count = 0) ) then
+             (Field.IsClauseNamesCount = 0) ) then
         begin
           { Field.SaveToStream normally starts from new line with an indent...
             In this case, we want it to start on the same line, so indent must
@@ -3906,7 +3906,7 @@ begin
             this newline will be done). }
         end else
 
-        if Field.IsClauseNames.Count <> 0 then
+        if Field.IsClauseNamesCount <> 0 then
         begin
           Writer.DiscardNextIndent;
           { Note that there may be many IS clauses. This will still work Ok:
@@ -3941,7 +3941,7 @@ begin
 
         if ( FieldValue and
              (not Field.ValueFromIsClause) and
-             (Field.IsClauseNames.Count = 0) ) then
+             (Field.IsClauseNamesCount = 0) ) then
         begin
           if Field.SaveToXml in [sxAttribute, sxAttributeCustomQuotes] then
           begin
@@ -4103,10 +4103,11 @@ var
   DestinationField, SourceField: TX3DField;
   DestinationEvent, SourceEvent: TX3DEvent;
   Route: TX3DRoute;
+  I: Integer;
 const
   InEventName: array [boolean] of string = ( 'output', 'input' );
 begin
-  { When Source.IsClauseNames.Count <> 0, then we're expanded
+  { When Source.IsClauseNamesCount <> 0, then we're expanded
     within the definition of another prototype.
     So Destination.IsClauseNames referers to Source
     (from current Prototype), but Source.IsClauseNames refers to yet
@@ -4115,7 +4116,9 @@ begin
 
     See comments in the interface for more. }
 
-  NewIsClauseNames.AddStrings(Source.IsClauseNames);
+  { Intuitively: NewIsClauseNames.AddStrings(Source.IsClauseNames); }
+  for I := 0 to Source.IsClauseNamesCount - 1 do
+    NewIsClauseNames.Add(Source.IsClauseNames[I]);
 
   if Source is TX3DField then
   begin
@@ -4214,11 +4217,11 @@ procedure TX3DPrototypeNode.InstantiateIsClauses(
     IsClauseName: string;
     NewIsClauseNames: TCastleStringList;
   begin
-    if InstanceField.IsClauseNames.Count <> 0 then
+    if InstanceField.IsClauseNamesCount <> 0 then
     begin
       NewIsClauseNames := TCastleStringList.Create;
       try
-        for I := 0 to InstanceField.IsClauseNames.Count - 1 do
+        for I := 0 to InstanceField.IsClauseNamesCount - 1 do
         begin
           IsClauseName := InstanceField.IsClauseNames[I];
           OurFieldIndex := Fields.IndexOf(IsClauseName);
@@ -4284,7 +4287,7 @@ procedure TX3DPrototypeNode.InstantiateIsClauses(
               [Prototype.Name, InstanceField.Name, IsClauseName]));
         end;
 
-        InstanceField.IsClauseNames.Assign(NewIsClauseNames);
+        InstanceField.IsClauseNamesAssign(NewIsClauseNames);
       finally FreeAndNil(NewIsClauseNames) end;
     end;
 
@@ -4313,11 +4316,11 @@ procedure TX3DPrototypeNode.InstantiateIsClauses(
     IsClauseName: string;
     NewIsClauseNames: TCastleStringList;
   begin
-    if InstanceEvent.IsClauseNames.Count <> 0 then
+    if InstanceEvent.IsClauseNamesCount <> 0 then
     begin
       NewIsClauseNames := TCastleStringList.Create;
       try
-        for I := 0 to InstanceEvent.IsClauseNames.Count - 1 do
+        for I := 0 to InstanceEvent.IsClauseNamesCount - 1 do
         begin
           IsClauseName := InstanceEvent.IsClauseNames[I];
 
@@ -4335,14 +4338,13 @@ procedure TX3DPrototypeNode.InstantiateIsClauses(
           if OurEventIndex <> -1 then
           begin
             OurEvent := Events[OurEventIndex];
-            FieldOrEventHandleIsClause(InstanceEvent, OurEvent,
-              NewIsClauseNames);
+            FieldOrEventHandleIsClause(InstanceEvent, OurEvent, NewIsClauseNames);
           end else
             OnWarning(wtMajor, 'VRML/X3D', Format('Within prototype "%s", event "%s" references (by "IS" clause) non-existing event "%s"',
               [Prototype.Name, InstanceEvent.Name, IsClauseName]));
         end;
 
-        InstanceEvent.IsClauseNames.Assign(NewIsClauseNames);
+        InstanceEvent.IsClauseNamesAssign(NewIsClauseNames);
       finally FreeAndNil(NewIsClauseNames) end;
     end;
   end;

@@ -2421,7 +2421,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
     begin
       N := Item.NameForVersion(Writer.Version);
       if N = '' then Exit; { unnamed fields/events cannot be saved here }
-      for I := 0 to Item.IsClauseNames.Count - 1 do
+      for I := 0 to Item.IsClauseNamesCount - 1 do
       begin
         NodeFields.Add(N);
         ProtoFields.Add(Item.IsClauseNames[I]);
