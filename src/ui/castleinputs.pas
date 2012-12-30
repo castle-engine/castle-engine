@@ -234,9 +234,23 @@ type
       AMouseWheel: TMouseWheelDirection): boolean;
     function IsEvent(const Event: TInputPressRelease): boolean;
 
-    { Describe this input shortcut. If it's not active at all
-      (like after MakeClear), we will use NoneString. }
+    { Describe the current value (which key, mouse buttons and such) of this
+      shortcut. If there is no way to press this shortcut (all properties
+      like Key1 and such are empty, like after MakeClear), we will use NoneString.
+
+      The overloaded version without NoneString parameter will
+      assume that NoneString should describe the shortcut @link(Caption).
+      This way, if user cleared (deleted all key/mouse buttons assigned)
+      the shortcut in the game configuration, and we show him a message like:
+
+      @longCode(# 'Press ' + Input.Description + ' to do something' #)
+
+      then user will see it as @code('Press "use" key to do something')
+      and will know that (s)he should configure the "use" key.
+      @groupBegin }
     function Description(const NoneString: string): string;
+    function Description: string;
+    { @groupEnd }
 
     { Modifier keys that are relevant to recognize this shortcut. }
     function Modifiers: TModifierKeys;
@@ -260,9 +274,6 @@ type
 
     { Add to shortcut new key or mouse button or mouse wheel. }
     procedure Add(const NewEvent: TInputPressRelease);
-
-    { Nice text describing the shortcut value. }
-    function Description: string;
   published
     { Key/mouse properties on TInputShortcut are declared without
       "default" specifier, to always save them in Lazarus LFM file.
@@ -548,6 +559,11 @@ begin
     Result := NoneString;
 end;
 
+function TInputShortcut.Description: string;
+begin
+  Result := Description(Format('"%s" key', [Caption]));
+end;
+
 procedure TInputShortcut.Changed;
 begin
 end;
@@ -623,11 +639,6 @@ begin
       end;
     else raise EInternalError.Create('TInputShortcut.Add: NewEvent.EventType?');
   end;
-end;
-
-function TInputShortcut.Description: string;
-begin
-  Result := Description(Format('"%s" key', [Caption]));
 end;
 
 { TInputShortcutList ----------------------------------------------------- }
