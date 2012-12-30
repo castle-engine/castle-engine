@@ -1,3 +1,28 @@
+{ Define the CONSERVE_TRIANGLE_MEMORY symbol to conserve memory consumed
+  by triangles, by turning off some (seldom used / needed) per-triangle
+  information.
+
+  This disables:
+
+  - Mailboxes for triangles (see TRIANGLE_OCTREE_USE_MAILBOX below,
+    and see TTriangle.Mailbox* fields).
+
+    This may cause a little worse collision speed, but it should not be
+    noticeable at all in interactive simulations (like walking on the model),
+    it's only noticeable when you render with ray-tracing (and even then,
+    the slowdown is not much and depends on the scene anyway).
+
+  - Per-vertex 4D texture coordinates and 3D normal vectors at triangles,
+    see TTriangle.TexCoord and TTriangle.Normal.
+
+    This disables ProximitySensor.hitTexCoord_changed
+    and ProximitySensor.hitNormal_changed events (they will never be generated).
+
+  - Face indexes stored at triangles.
+    This disables the "Edit -> Remove face" feature of view3dscene.
+}
+{ $define CONSERVE_TRIANGLE_MEMORY}
+
 { Define TRIANGLE_OCTREE_USE_MAILBOX to use mailboxes for TVRMLTriangleOctree.
 
   This way we avoid checking multiple times collision of the same ray
@@ -9,7 +34,9 @@
   and generally in my tests is a noticeable but not terrible advantage.
   For average octree with max-depth = 10 and leaf-capacity = 20 the
   speedup is 1.09 (that is, old time / new time = 1.09). }
-{$define TRIANGLE_OCTREE_USE_MAILBOX}
+{$ifndef CONSERVE_TRIANGLE_MEMORY}
+  {$define TRIANGLE_OCTREE_USE_MAILBOX}
+{$endif}
 
 { Define SHAPE_OCTREE_USE_MAILBOX to use in TVRMLShapeOctree the
   mailbox method.

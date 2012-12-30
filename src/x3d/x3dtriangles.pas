@@ -47,9 +47,14 @@ type
   public
     { See TTriangleEvent for the meaning of these fields. }
     Shape: TObject;
+
+    {$ifndef CONSERVE_TRIANGLE_MEMORY}
     Normal: TTriangle3Single;
     TexCoord: TTriangle4Single;
     Face: TFaceIndex;
+    {$else}
+    function Face: TFaceIndex;
+    {$endif not CONSERVE_TRIANGLE_MEMORY}
 
     {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
     { Tag of an object (like a ray or a line segment)
@@ -132,6 +137,8 @@ type
       @seealso TBaseTrianglesOctree.IgnoreForShadowRays }
     function IgnoreForShadowRays: boolean;
 
+    {$ifndef CONSERVE_TRIANGLE_MEMORY}
+
     { For a given position (in world coordinates), return the texture
       coordinate at this point. It is an interpolated texture coordinate
       from our per-vertex texture coordinates in @link(TexCoord) field.
@@ -152,6 +159,7 @@ type
 
       This assumes that Position actally lies within the triangle. }
     function INormal(const Point: TVector3Single): TVector3Single;
+    {$endif}
   end;
   PTriangle = ^TTriangle;
 
@@ -621,9 +629,12 @@ begin
   inherited Init(APosition);
 
   Shape := AShape;
+
+  {$ifndef CONSERVE_TRIANGLE_MEMORY}
   Normal := ANormal;
   TexCoord := ATexCoord;
   Face := AFace;
+  {$endif not CONSERVE_TRIANGLE_MEMORY}
 
   {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
   MailboxSavedTag := -1;
@@ -776,6 +787,7 @@ begin
     NonShadowCaster(State);
 end;
 
+{$ifndef CONSERVE_TRIANGLE_MEMORY}
 function TTriangle.ITexCoord(const Point: TVector3Single): TVector4Single;
 var
   B: TVector3Single;
@@ -803,6 +815,13 @@ begin
             Normal[1] * B[1] +
             Normal[2] * B[2];
 end;
+
+{$else}
+function TTriangle.Face: TFaceIndex;
+begin
+  Result := UnknownFaceIndex;
+end;
+{$endif not CONSERVE_TRIANGLE_MEMORY}
 
 { TBaseTrianglesOctreeNode -----------------------------------------------
 

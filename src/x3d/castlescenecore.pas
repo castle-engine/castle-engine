@@ -17,6 +17,8 @@
 
 unit CastleSceneCore;
 
+{$I octreeconf.inc}
+
 interface
 
 uses
@@ -5316,6 +5318,7 @@ begin
                   we can get this by InverseTransform. }
                 MatrixMultPoint(OverItem^.State.InvertedTransform, Pick.Point), Time);
 
+              {$ifndef CONSERVE_TRIANGLE_MEMORY}
               if TouchSensor.EventHitNormal_Changed.SendNeeded then
                 TouchSensor.EventHitNormal_Changed.Send(
                   OverItem^.INormal(Pick.Point), Time);
@@ -5323,6 +5326,7 @@ begin
               if TouchSensor.EventHitTexCoord_Changed.SendNeeded then
                 TouchSensor.EventHitTexCoord_Changed.Send(
                   OverItem^.ITexCoord2D(Pick.Point), Time);
+              {$endif not CONSERVE_TRIANGLE_MEMORY}
             end;
           end;
       end;
