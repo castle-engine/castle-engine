@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<resource
+  name="KnightMultipleX3D"
+  type="WalkAttack"
+>
+  <model>
+    <idle   file_name="idle.x3d"   time_sensor="AnimTimeSensor"/>
+    <walk   file_name="walk.x3d"   time_sensor="AnimTimeSensor"/>
+    <attack file_name="attack.x3d" time_sensor="AnimTimeSensor"/>
+    <die    file_name="die.x3d"    time_sensor="AnimTimeSensor"/>
+    <hurt   file_name="hurt.x3d"   time_sensor="AnimTimeSensor"/>
+  </model>
+</resource>
