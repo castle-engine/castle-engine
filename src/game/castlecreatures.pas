@@ -250,12 +250,12 @@ type
   { Creature with smart walking and attacking intelligence.
     May stand still (idle), walk, attack, fire missiles, and die.
 
-    Tracks the player (remembers last seen player 3D position,
+    Tracks the enemy (remembers last seen enemy 3D position,
     walks/flies to it, possibly through sectors/waypoints ---
     so it can pass through narrow doors in a labyrinth or walk over a narrow bridge).
-    Attacks the player from the right distance (a short-range attack)
+    Attacks the enemy from the right distance (a short-range attack)
     and/or shoots a missile (adds a missile to the 3D world).
-    Runs away from the player (when he's too close and/or our health is low).
+    Runs away from the enemy (when he's too close and/or our health is low).
 
     There are a lot of settings to achieve particular behavior,
     e.g. cowardly/brave, offensive/defensive, melee/ranged, etc. }
@@ -345,7 +345,7 @@ type
       "csWalk -> csAttack -> csWalk" or
       "csIdle -> csAttack -> csIdle". But this wasn't good.
       Intelligent creature sometimes attacks when walking (e.g. if it just
-      made the distance to the player closer) or when standing
+      made the distance to the enemy closer) or when standing
       (when the distance was already close enough). And after performing
       the attack, the creature doesn't need to go back to the original state
       before the attack. }
@@ -403,7 +403,7 @@ type
 
       This should be <= AttackMaxDistance or FireMissileMaxDistance,
       if you hope to actually perform a short-range or firing missile attack.
-      The creature can attack player from AttackMaxDistance
+      The creature can attack enemy from AttackMaxDistance
       or fire missile from FireMissileMaxDistance,
       but it will walk closer to the enemy if possible --- until the distance
       is PreferredDistance. }
@@ -422,7 +422,8 @@ type
 
     { Maximum distance between enemy and creature to allow creature
       to start attack. The distance is measured between
-      Player.Position and creature's Middle. }
+      enemy (see TWalkAttackCreature.Enemy) and current creature
+      Middle (see T3D.Middle) points. }
     property AttackMaxDistance: Single
       read FAttackMaxDistance write FAttackMaxDistance
       default DefaultAttackMaxDistance;
@@ -435,14 +436,13 @@ type
     property AttackTime: Single read FAttackTime write FAttackTime
       default DefaultAttackTime;
 
-    { Because most of the creatures will have their weapon
+    { Since most of the creatures will have their weapon
       on their front (teeth, shooting hands, claws, whatever),
-      so they can attack player only when their Direction is somewhat
-      close to the direction to player.
+      they can attack enemy only when they are facing the enemy.
 
       More precisely, the attack is allowed to start only when
-      the angle between current Direction and the vector
-      from creature's Middle to the player's Position
+      the angle between current creature @link(T3DOrient.Direction Direction)
+      and the vector from creature's Middle to the enemy's Middle (see T3D.Middle)
       is <= AttackMaxAngle.
 
       This is in radians. }
@@ -485,7 +485,7 @@ type
       read FFireMissileSound write FFireMissileSound default stNone;
 
     { Portion of life and distance when the creature decides it's best to run away
-      from the enemy (player). RunAwayLife is expressed as a fraction of MaxLife.
+      from the enemy. RunAwayLife is expressed as a fraction of MaxLife.
       We run if our @code(Life <= MaxLife * RunAwayLife) and the distance
       to the (last seen) enemy is < RunAwayDistance.
       Set RunAwayLife = 1 to make the creature always try to keep a safe distance
@@ -504,7 +504,7 @@ type
       points and moreover Random < ChanceToHurt then creature will
       change to csHurt state and be knocked back.
       Changing to csHurt state means that any other state will be
-      interrupted (e.g. player can interrupt
+      interrupted (e.g. enemy can interrupt
       creature's attack this way if AttackTime > 0).
 
       It's expected that "tougher" creatures will have MinLifeLossToHurt
@@ -684,7 +684,8 @@ type
       (intuitively, legs and eye positions). }
     function LerpLegsMiddle(const A: Single): TVector3Single;
 
-    procedure AttackHurt;
+    { Hurt given enemy. HurtEnemy may be @nil, in this case we do nothing. }
+    procedure AttackHurt(const HurtEnemy: T3DAlive);
 
     function DebugCaption: string; virtual;
   public
@@ -770,20 +771,19 @@ type
     WaypointsSaved_End: TSector;
     WaypointsSaved: TWaypointList;
   protected
-    { Set by Idle in this class, may be used by descendants
-      in their Idle calls (to not calculate the same thing twice). }
-    IdleSeesPlayer: boolean;
-    IdleSqrDistanceToLastSeenPlayer: Single;
-
-    HasLastSeenPlayer: boolean;
-    LastSeenPlayer: TVector3Single;
-    LastSeenPlayerSector: TSector;
+    { Last known information about enemy. }
+    HasLastSeenEnemy: boolean;
+    LastSeenEnemy: TVector3Single;
+    LastSeenEnemySector: TSector;
 
     procedure SetState(Value: TCreatureState); virtual;
-
     procedure SetLife(const Value: Single); override;
-
     function DebugCaption: string; override;
+
+    { Enemy of this creature. In this class, this always returns global
+      World.Player (if it exists and is still alive).
+      Return @nil for no enemy. }
+    function Enemy: T3DAlive; virtual;
 
     { Last State change time, taken from LifeTime. }
     property StateChangeTime: Single read FStateChangeTime;
@@ -1421,16 +1421,12 @@ begin
   inherited;
 end;
 
-procedure TCreature.AttackHurt;
-var
-  Player: T3DAlive;
+procedure TCreature.AttackHurt(const HurtEnemy: T3DAlive);
 begin
-  Player := World.Player as T3DAlive;
-  if Player = nil then Exit; { no Player to hurt }
-
-  Player.Hurt(Kind.AttackDamageConst +
-    Random * Kind.AttackDamageRandom, Direction,
-    Kind.AttackKnockbackDistance);
+  if HurtEnemy <> nil then
+    HurtEnemy.Hurt(Kind.AttackDamageConst +
+      Random * Kind.AttackDamageRandom, Direction,
+      Kind.AttackKnockbackDistance);
 end;
 
 function TCreature.Sphere(out Radius: Single): boolean;
@@ -1476,6 +1472,13 @@ begin
   Result := TWalkAttackCreatureKind(inherited Kind);
 end;
 
+function TWalkAttackCreature.Enemy: T3DAlive;
+begin
+  Result := World.Player;
+  if (Result <> nil) and Result.Dead then
+    Result := nil; { do not attack dead player }
+end;
+
 procedure TWalkAttackCreature.SetState(Value: TCreatureState);
 begin
   if FState <> Value then
@@ -1500,23 +1503,26 @@ begin
 end;
 
 procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+var
+  IdleSeesEnemy: boolean;
+  IdleSqrDistanceToLastSeenEnemy: Single;
 
   function ActionAllowed(const Animation: T3DResourceAnimation;
     const LastTime, MinDelay, MaxDistance, MaxAngle: Single): boolean;
   var
-    AngleRadBetweenTheDirectionToPlayer: Single;
+    AngleRadBetweenTheDirectionToEnemy: Single;
   begin
-    Result := IdleSeesPlayer and
+    Result := IdleSeesEnemy and
       Animation.Defined and
       (LifeTime - LastTime > MinDelay) and
-      (IdleSqrDistanceToLastSeenPlayer <= Sqr(MaxDistance));
+      (IdleSqrDistanceToLastSeenEnemy <= Sqr(MaxDistance));
 
     if Result then
     begin
-      { Calculate and check AngleRadBetweenTheDirectionToPlayer. }
-      AngleRadBetweenTheDirectionToPlayer := AngleRadBetweenVectors(
-        LastSeenPlayer - Middle, Direction);
-      Result := AngleRadBetweenTheDirectionToPlayer <= MaxAngle;
+      { Calculate and check AngleRadBetweenTheDirectionToEnemy. }
+      AngleRadBetweenTheDirectionToEnemy := AngleRadBetweenVectors(
+        LastSeenEnemy - Middle, Direction);
+      Result := AngleRadBetweenTheDirectionToEnemy <= MaxAngle;
     end;
   end;
 
@@ -1547,23 +1553,23 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
       AngleRadBetweenVectors(DirectionToTarget, Direction);
   end;
 
-  { Call this only when HasLastSeenPlayer }
-  procedure CalculateDirectionToPlayer(out DirectionToPlayer: TVector3Single;
-    out AngleRadBetweenDirectionToPlayer: Single);
+  { Call this only when HasLastSeenEnemy }
+  procedure CalculateDirectionToEnemy(out DirectionToEnemy: TVector3Single;
+    out AngleRadBetweenDirectionToEnemy: Single);
   begin
-    CalculateDirectionToTarget(LastSeenPlayer,
-      DirectionToPlayer, AngleRadBetweenDirectionToPlayer);
+    CalculateDirectionToTarget(LastSeenEnemy,
+      DirectionToEnemy, AngleRadBetweenDirectionToEnemy);
   end;
 
-  procedure CalculateDirectionFromPlayer(
-    var DirectionFromPlayer: TVector3Single;
-    var AngleRadBetweenDirectionFromPlayer: Single);
+  procedure CalculateDirectionFromEnemy(
+    var DirectionFromEnemy: TVector3Single;
+    var AngleRadBetweenDirectionFromEnemy: Single);
   begin
-    CalculateDirectionToPlayer(
-      DirectionFromPlayer, AngleRadBetweenDirectionFromPlayer);
-    VectorNegateTo1st(DirectionFromPlayer);
-    AngleRadBetweenDirectionFromPlayer :=
-      Pi - AngleRadBetweenDirectionFromPlayer;
+    CalculateDirectionToEnemy(
+      DirectionFromEnemy, AngleRadBetweenDirectionFromEnemy);
+    VectorNegateTo1st(DirectionFromEnemy);
+    AngleRadBetweenDirectionFromEnemy :=
+      Pi - AngleRadBetweenDirectionFromEnemy;
   end;
 
   { This changes Direction to be closer to DirectionToTarget.
@@ -1652,43 +1658,43 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
   end;
 
   { This doesn't take into account current Direction,
-    it only looks at current Position and LastSeenPlayer position,
+    it only looks at our and enemy Middle positions,
     and asks "do I want to get closer" ?
-    Use only if HasLastSeenPlayer. }
-  function WantToShortenDistanceToPlayer: boolean;
+    Use only if HasLastSeenEnemy. }
+  function WantToShortenDistanceToEnemy: boolean;
   begin
     Result :=
-      { Is it wanted to get closer to the LastSeenPlayer ?
+      { Is it wanted to get closer to the LastSeenEnemy ?
 
         Yes --- only if it will help make AttackAllowed from false to true.
         See AttackAllowed implementation.
 
-        If IdleSeesPlayer and IdleSqrDistanceToLastSeenPlayer is small enough,
-        there's no point in getting closer to the player. In fact, it would
-        be bad to get closer to player in this case, as this would allow
-        player to easier attack (shorter distance --- easier to reach with
+        If IdleSeesEnemy and IdleSqrDistanceToLastSeenEnemy is small enough,
+        there's no point in getting closer to the enemy. In fact, it would
+        be bad to get closer to enemy in this case, as this would allow
+        enemy to easier attack (shorter distance --- easier to reach with
         short-range weapon, or easier to aim with long-range weapon). }
-      ( (not IdleSeesPlayer) or
-        (IdleSqrDistanceToLastSeenPlayer > Sqr(Kind.PreferredDistance))
+      ( (not IdleSeesEnemy) or
+        (IdleSqrDistanceToLastSeenEnemy > Sqr(Kind.PreferredDistance))
       );
   end;
 
-  { Is it wanted to get closer to the LastSeenPlayer ?
+  { Is it wanted to get closer to the LastSeenEnemy ?
     And (if it's wanted) is it sensible to do this by moving
     along current Direction ?
-    Call this only if HasLastSeenPlayer. }
-  function WantToWalkToPlayer(
-    const AngleRadBetweenDirectionToPlayer: Single): boolean;
+    Call this only if HasLastSeenEnemy. }
+  function WantToWalkToEnemy(
+    const AngleRadBetweenDirectionToEnemy: Single): boolean;
   begin
-    Result := WantToShortenDistanceToPlayer and
-      WantToWalkToTarget(LastSeenPlayer, AngleRadBetweenDirectionToPlayer);
+    Result := WantToShortenDistanceToEnemy and
+      WantToWalkToTarget(LastSeenEnemy, AngleRadBetweenDirectionToEnemy);
   end;
 
   function WantToRunAway: boolean;
   begin
-    Result := IdleSeesPlayer and
+    Result := IdleSeesEnemy and
       (Life <= MaxLife * Kind.RunAwayLife) and
-      (IdleSqrDistanceToLastSeenPlayer < Sqr(Kind.RunAwayDistance));
+      (IdleSqrDistanceToLastSeenEnemy < Sqr(Kind.RunAwayDistance));
   end;
 
   procedure InitAlternativeTarget;
@@ -1713,30 +1719,30 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
 
   procedure DoIdle;
   var
-    DirectionToPlayer: TVector3Single;
-    AngleRadBetweenDirectionToPlayer: Single;
+    DirectionToEnemy: TVector3Single;
+    AngleRadBetweenDirectionToEnemy: Single;
   begin
-    if HasLastSeenPlayer then
+    if HasLastSeenEnemy then
     begin
-      CalculateDirectionToPlayer(DirectionToPlayer, AngleRadBetweenDirectionToPlayer);
+      CalculateDirectionToEnemy(DirectionToEnemy, AngleRadBetweenDirectionToEnemy);
 
       if FireMissileAllowed then
         SetState(csFireMissile) else
       if AttackAllowed then
         SetState(csAttack) else
       if WantToRunAway or
-         WantToWalkToPlayer(AngleRadBetweenDirectionToPlayer) then
+         WantToWalkToEnemy(AngleRadBetweenDirectionToEnemy) then
         SetState(csWalk) else
       if (not Kind.Flying) and
-         (AngleRadBetweenDirectionToPlayer < 0.01) and
-         BoundingBox.PointInside2D(LastSeenPlayer, World.GravityCoordinate) then
+         (AngleRadBetweenDirectionToEnemy < 0.01) and
+         BoundingBox.PointInside2D(LastSeenEnemy, World.GravityCoordinate) then
       begin
-        { Then the player (or it's LastSeenPlayer) is right above or below us.
+        { Then the enemy (or it's last known position) is right above or below us.
           Since we can't fly, we can't get there. Standing in place
           is one possibility, but it's not really good
-          - We become easier target to shoot for player with the bow.
-          - Most importantly, this way player can stand on our head and
-            slash us with a sword without any risk. (This was almost
+          - We become easier target to shoot for enemy with the bow.
+          - Most importantly, this way enemy (like player) can stand on our head
+            and slash us with a sword without any risk. (This was almost
             a standard technique of killing Werewolf or SpiderQueen bosses).
           So we move a little --- just for the sake of moving. }
         SetState(csWalk);
@@ -1744,8 +1750,8 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
       end else
       begin
         { Continue csIdle state }
-        RotateDirectionToFaceTarget(DirectionToPlayer,
-          AngleRadBetweenDirectionToPlayer);
+        RotateDirectionToFaceTarget(DirectionToEnemy,
+          AngleRadBetweenDirectionToEnemy);
       end;
     end;
   end;
@@ -1759,7 +1765,8 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
       only if you know that the creature really wants to go in this Direction.
 
       This checks only the basic (i.e. always wanted) things:
-      - Collision detection (with level, player and other creatures)
+      - Collision detection (with level and other collidable stuff like
+        player and other creatures)
       - For not Flying creatures, also the check to not fall down from high
         is done. }
     function MoveAlongTheDirection: boolean;
@@ -1800,21 +1807,21 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
         Move(Direction * (Kind.MoveSpeed * CompSpeed), false, false);
     end;
 
-    { Go the way to LastSeenPlayer, *not* by using waypoints.
-      Assumes HasLastSeenPlayer. }
+    { Go the way to LastSeenEnemy, *not* by using waypoints.
+      Assumes HasLastSeenEnemy. }
     procedure WalkNormal;
     var
       DirectionToTarget: TVector3Single;
       AngleRadBetweenDirectionToTarget: Single;
     begin
-      CalculateDirectionToPlayer(DirectionToTarget,
+      CalculateDirectionToEnemy(DirectionToTarget,
         AngleRadBetweenDirectionToTarget);
 
-      if WantToWalkToPlayer(AngleRadBetweenDirectionToTarget) then
+      if WantToWalkToEnemy(AngleRadBetweenDirectionToTarget) then
       begin
         if not MoveAlongTheDirection then
         begin
-          { Not able to get to player this way ? Maybe there exists
+          { Not able to get to enemy this way ? Maybe there exists
             some alternative way, not straight. Lets try. }
           InitAlternativeTarget;
           Exit;
@@ -1838,7 +1845,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
       CalculateDirectionToTarget(Target, DirectionToTarget,
         AngleRadBetweenDirectionToTarget);
 
-      if WantToShortenDistanceToPlayer then
+      if WantToShortenDistanceToEnemy then
       begin
         if not MoveAlongTheDirection then
         begin
@@ -1891,7 +1898,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
           our Direction a little more. That's why I use
           AngleRadBetweenDirectionToTargetToResign.
 
-          Note that for normal moving (i.e. toward LastSeenPlayer,
+          Note that for normal moving (i.e. toward LastSeenEnemy,
           not AlternativeTarget) we in this case just change state
           to csIdle, and this allows creature to rotate in csIdle
           state. }
@@ -1926,7 +1933,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
     end else
     if WantToRunAway then
     begin
-      CalculateDirectionFromPlayer(DirectionToTarget,
+      CalculateDirectionFromEnemy(DirectionToTarget,
         AngleRadBetweenDirectionToTarget);
 
       if WantToWalkInDesiredDirection(AngleRadBetweenDirectionToTarget) then
@@ -1945,7 +1952,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
         AngleRadBetweenDirectionToTarget);
     end else
     begin
-      if not HasLastSeenPlayer then
+      if not HasLastSeenEnemy then
       begin
         { Nowhere to go; so just stay here. }
         SetState(csIdle);
@@ -1955,20 +1962,20 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
       UseWalkNormal := true;
 
       SectorNow := Sector;
-      if (SectorNow <> LastSeenPlayerSector) and
+      if (SectorNow <> LastSeenEnemySector) and
          (SectorNow <> nil) and
-         (LastSeenPlayerSector <> nil) then
+         (LastSeenEnemySector <> nil) then
       begin
-        { The way to LastSeenPlayer is using waypoints. }
+        { The way to LastSeenEnemy is using waypoints. }
 
         { Recalculate WaypointsSaved.
           Note that I recalculate only when SectorNow or
-          LastSeenPlayerSector changed. }
+          LastSeenEnemySector changed. }
         if (SectorNow <> WaypointsSaved_Begin) or
-           (LastSeenPlayerSector <> WaypointsSaved_End) then
+           (LastSeenEnemySector <> WaypointsSaved_End) then
         begin
           WaypointsSaved_Begin := SectorNow;
-          WaypointsSaved_End := LastSeenPlayerSector;
+          WaypointsSaved_End := LastSeenEnemySector;
           TSectorList.FindWay(WaypointsSaved_Begin, WaypointsSaved_End,
             WaypointsSaved);
         end;
@@ -2071,7 +2078,7 @@ procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemov
   end;
 
 var
-  Player: T3DOrient;
+  E: T3DOrient;
 begin
   inherited;
   if (not GetExists) or DebugTimeStopForCreatures then Exit;
@@ -2084,19 +2091,19 @@ begin
     Exit;
   end;
 
-  Player := World.Player;
-  IdleSeesPlayer := (Player <> nil) and LineOfSight(Middle, Player.Position);
-  if IdleSeesPlayer then
+  E := Enemy;
+  IdleSeesEnemy := (E <> nil) and LineOfSight(Middle, E.Middle);
+  if IdleSeesEnemy then
   begin
-    HasLastSeenPlayer := true;
-    LastSeenPlayer := Player.Position;
-    LastSeenPlayerSector := Player.Sector;
+    HasLastSeenEnemy := true;
+    LastSeenEnemy := E.Middle;
+    LastSeenEnemySector := E.Sector;
   end;
 
-  if HasLastSeenPlayer then
+  if HasLastSeenEnemy then
   begin
-    IdleSqrDistanceToLastSeenPlayer :=
-      PointsDistanceSqr(LastSeenPlayer, Middle);
+    IdleSqrDistanceToLastSeenEnemy :=
+      PointsDistanceSqr(LastSeenEnemy, Middle);
   end;
 
   case FState of
@@ -2163,22 +2170,24 @@ begin
 end;
 
 procedure TWalkAttackCreature.Attack;
+var
+  E: T3DAlive;
 
   function ShortRangeAttackHits: boolean;
   var
-    B, PB: TBox3D;
+    B, EB: TBox3D;
     DistanceLength, DistanceIncrease: Single;
   begin
-    if World.Player = nil then Exit(false); { no Plaeyr to hurt }
+    if E = nil then Exit(false); { no enemy to hurt }
     B := BoundingBox;
-    PB := World.Player.BoundingBox;
+    EB := E.BoundingBox;
 
-    { We would like to check collision between PB and our B translated
+    { We would like to check collision between EB and our B translated
       by our Direction now, i.e.
-        Boxes3DCollision(Box3DTranslate(B, VectorScale(Direction, ???)), PB)
+        Boxes3DCollision(Box3DTranslate(B, VectorScale(Direction, ???)), EB)
       But how much should be scale Direction, i.e. what to put for "???" ?
       It must be large enough to compensate even large Kind.AttackMaxDistance,
-      it must be small enough so that player should not be able to avoid
+      it must be small enough so that enemy should not be able to avoid
       our attacks just by standing very close to the creature.
 
       So we have to check a couple of bounding boxes.
@@ -2191,21 +2200,22 @@ procedure TWalkAttackCreature.Attack;
     DistanceLength := DistanceIncrease;
     while DistanceLength < Kind.AttackMaxDistance do
     begin
-      if B.Translate(VectorScale(Direction, DistanceLength)).Collision(PB) then
+      if B.Translate(VectorScale(Direction, DistanceLength)).Collision(EB) then
         Exit(true);
       DistanceLength += DistanceIncrease;
     end;
 
     { Check one last time for Kind.AttackMaxDistance }
     Result := B.Translate(
-      VectorScale(Direction, Kind.AttackMaxDistance)).Collision(PB);
+      VectorScale(Direction, Kind.AttackMaxDistance)).Collision(EB);
   end;
 
 begin
+  E := Enemy;
   if ShortRangeAttackHits then
   begin
     Sound3d(Kind.AttackSoundHit, 1.0);
-    AttackHurt;
+    AttackHurt(E);
   end;
 end;
 
@@ -2214,10 +2224,10 @@ var
   Missile: TCreature;
   MissilePosition, MissileDirection: TVector3Single;
 begin
-  if (Kind.FireMissileName <> '') and HasLastSeenPlayer then
+  if (Kind.FireMissileName <> '') and HasLastSeenEnemy then
   begin
     MissilePosition := LerpLegsMiddle(Kind.FireMissileHeight);
-    MissileDirection := VectorSubtract(LastSeenPlayer, MissilePosition);
+    MissileDirection := VectorSubtract(LastSeenEnemy, MissilePosition);
     Missile := (Resources.FindName(Kind.FireMissileName) as TCreatureKind).
       CreateCreature(World, MissilePosition, MissileDirection);
     Missile.Sound3d(Kind.FireMissileSound, 0.0);
@@ -2265,10 +2275,10 @@ begin
       glDrawAxisWire(AlternativeTarget, AxisSize);
     end;
 
-    if HasLastSeenPlayer then
+    if HasLastSeenEnemy then
     begin
       glColorv(Red3Single);
-      glDrawAxisWire(LastSeenPlayer, AxisSize);
+      glDrawAxisWire(LastSeenEnemy, AxisSize);
     end;
   end;
 end;
@@ -2422,15 +2432,13 @@ end;
 procedure TMissileCreature.HitPlayer;
 begin
   ForceRemoveDead := true;
-  AttackHurt;
+  AttackHurt(World.Player);
 end;
 
 procedure TMissileCreature.HitCreature(Creature: TCreature);
 begin
   ForceRemoveDead := true;
-  Creature.Hurt(Kind.AttackDamageConst +
-    Random * Kind.AttackDamageRandom, Direction,
-    Kind.AttackKnockbackDistance);
+  AttackHurt(Creature);
 end;
 
 { TStillCreature ----------------------------------------------------------- }
