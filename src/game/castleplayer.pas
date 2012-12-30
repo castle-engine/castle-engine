@@ -249,6 +249,7 @@ type
     property EquippedWeapon: TItemWeapon read FEquippedWeapon write SetEquippedWeapon;
 
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    function Middle: TVector3Single; override;
 
     { Cause a fade-out effect on the screen, tinting the screen to the given Color.
       The TPlayer class doesn't do the actual drawing of the fade-out effect
@@ -1283,6 +1284,19 @@ begin
   if RenderOnTop then glDepthRange(0, 0.1);
     inherited;
   if RenderOnTop then glDepthRange(0.1, 1);
+end;
+
+function TPlayer.Middle: TVector3Single;
+begin
+  { For player, our Position is already the suitable "eye position"
+    above the ground.
+
+    Note that Player.Gravity remains false for now (only Player.Camera.Gravity
+    is true), so the player is not affected by simple gravity implemented in
+    Base3D unit, so there's no point in overriding methods like PreferredHeight.
+    TWalkCamera.Gravity does all the work now. }
+
+  Result := Position;
 end;
 
 { initialization / finalization ---------------------------------------- }
