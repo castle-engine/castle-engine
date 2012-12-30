@@ -57,7 +57,7 @@ To describe above three cases in more precise manner:
 
 In some situations, we have to know the animation duration (for example, to know when <attack> animation ends and we should get back to <stand> or <walk> state).
 - For TCastlePrecalculatedAnimation, the animation always starts from the local time 0, goes to the last time (time of last <frame> in kanim file). Then it eventually goes backward, it backwards="true" in kanim file. So we know the duration by looking at frames time and backwards property: TimeEnd + (if Backwards then TimeEnd-TimeBegin else 0).
-  So using backwards="true" in kanim works, useful for some animations when you do sone gesture and then go back to original position by reversing this gesture --- e.g. dog-like creature biting.
+  So using backwards="true" in kanim works, useful for some animations when you do some gesture and then go back to original position by reversing this gesture --- e.g. dog-like creature biting.
 - For TCastleScene and TimeSensor: in this case, X3D TimeSensor.cycleInterval gives us animation duration.
 
 The looping is done automatically for animations that require it (like walk). So using loop attribute in kanim file, or loop field for TimeSensor is not necessary (it's ignored).
