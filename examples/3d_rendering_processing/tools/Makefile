@@ -11,7 +11,7 @@ all: $(ALL_OUTPUT);
 x3d_nodes_spec_to_pascal_preamble.inc: x3d_nodes_spec_to_pascal_preamble.txt
 	file_to_pascal_string $< $@
 
-kanim_to_interpolators_suffix.inc: kanim_to_interpolators_suffix.wrl
+kanim_to_interpolators_suffix.inc: kanim_to_interpolators_suffix.x3dv
 	file_to_pascal_string $< $@
 
 .PHONY: clean

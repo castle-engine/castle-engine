@@ -1,5 +1,0 @@
-# Make the animation
-
-DEF Timer TimeSensor { loop TRUE cycleInterval 5 }
-ROUTE Timer.fraction_changed TO Interp.set_fraction
-ROUTE Interp.value_changed TO $(CoordinateNodeName).point

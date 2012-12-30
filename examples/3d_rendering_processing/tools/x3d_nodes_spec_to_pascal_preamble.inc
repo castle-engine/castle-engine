@@ -1,7 +1,7 @@
 { -*- buffer-read-only: t -*- }
 { DON'T EDIT -- this file was automatically generated from "x3d_nodes_spec_to_pascal_preamble.txt" }
 '{' + LineEnding + 
-'  Copyright 2008-2010 Michalis Kamburelis.' + LineEnding + 
+'  Copyright 2008-2012 Michalis Kamburelis.' + LineEnding + 
 '' + LineEnding + 
 '  This file is part of "Castle Game Engine".' + LineEnding + 
 '' + LineEnding + 

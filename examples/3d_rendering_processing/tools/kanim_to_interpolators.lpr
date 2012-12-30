@@ -40,24 +40,28 @@ uses SysUtils, Classes, CastleUtils, CastleClassUtils, X3DNodes, PrecalculatedAn
 var
   CoordinateNodeName: string;
 
-procedure SaveFile(Node: TX3DNode; const Filename: string);
+procedure SaveFile(Node: TX3DNode; const Filename: string; const CycleInterval: Single);
 const
   SceneSuffix = {$I kanim_to_interpolators_suffix.inc};
 var
   Stream: TFileStream;
+  Suffix: string;
 begin
   Stream := TFileStream.Create(Filename, fmCreate);
   try
     Save3D(Node, Stream, 'kanim_to_interpolators', '', xeClassic);
-    WritelnStr(Stream, StringReplace(SceneSuffix, '$(CoordinateNodeName)',
-      CoordinateNodeName, [rfReplaceAll, rfIgnoreCase]));
+
+    Suffix := SceneSuffix;
+    StringReplaceAllTo1st(Suffix, '$(CoordinateNodeName)', CoordinateNodeName);
+    StringReplaceAllTo1st(Suffix, '$(CycleInterval)', FloatToStr(CycleInterval));
+    WritelnStr(Stream, Suffix);
   finally Stream.Free end;
 end;
 
 var
   InputFileName, OutputFileName: string;
   Anim: TCastlePrecalculatedAnimation;
-  Vrml: TX3DRootNode;
+  OutputX3d: TX3DRootNode;
   Interp: TCoordinateInterpolatorNode;
   Coord: TCoordinateNode;
   I: Integer;
@@ -73,7 +77,13 @@ begin
   try
     Writeln('Reading ', InputFileName, ' ...');
     Anim.LoadFromFile(InputFileName, false, false);
-    Vrml := Anim.Scenes[0].RootNode.DeepCopy as TX3DRootNode;
+
+    { check Anim.TimeBegin }
+    if Anim.TimeBegin <> 0 then
+      Writeln(ErrOutput, Format('Warning: Animation time starts from %f, not from zero. This time is determined by the initial <frame> in kanim attribute time="xxx". Non-zero start time will make VRML/X3D output somewhat incorrect (animation will be stretched), as when converting we have to assume that 1st frame starts at 0.',
+        [Anim.TimeBegin]));
+
+    OutputX3d := Anim.Scenes[0].RootNode.DeepCopy as TX3DRootNode;
     try
       { find Coordinate node for the 1st time, to calculate CoordCount }
       Coord := Anim.Scenes[0].RootNode.FindNodeByName(
@@ -81,8 +91,8 @@ begin
       CoordCount := Coord.FdPoint.Count;
       Writeln('Coordinate node ', CoordinateNodeName, ' found OK (', CoordCount, ' vertexes).');
 
-      Interp := TCoordinateInterpolatorNode.Create('Interp', '');
-      Vrml.FdChildren.Add(Interp);
+      Interp := TCoordinateInterpolatorNode.Create('AnimInterpolator', '');
+      OutputX3d.FdChildren.Add(Interp);
 
       Interp.FdKeyValue.Items.Count := 0;
       Interp.FdKeyValue.Items.Capacity := CoordCount * Anim.ScenesCount;
@@ -110,7 +120,7 @@ begin
       finally Progress.Fini end;
 
       Writeln('Writing ', OutputFileName, '...');
-      SaveFile(Vrml, OutputFileName);
-    finally FreeAndNil(Vrml) end;
+      SaveFile(OutputX3d, OutputFileName, Anim.TimeEnd);
+    finally FreeAndNil(OutputX3d) end;
   finally FreeAndNil(Anim) end;
 end.
