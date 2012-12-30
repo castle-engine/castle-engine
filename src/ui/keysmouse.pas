@@ -521,6 +521,9 @@ type
     function IsKey(const AKeyCharacter: char): boolean;
     { @groupEnd }
     function IsMouseButton(const AMouseButton: TMouseButton): boolean;
+
+    { Textual description of this event. }
+    function Description: string;
   end;
 
 { Construct TInputPressRelease corresponding to given event.
@@ -865,6 +868,18 @@ end;
 function TInputPressRelease.IsMouseButton(const AMouseButton: TMouseButton): boolean;
 begin
   Result := (EventType = itMouseButton) and (MouseButton = AMouseButton);
+end;
+
+function TInputPressRelease.Description: string;
+begin
+  case EventType of
+    itKey: Result := Format('key %s, character %s (code %d)',
+      [ KeyToStr(Key), CharToNiceStr(KeyCharacter), Ord(KeyCharacter)]);
+    itMouseButton: Result := 'mouse ' + MouseButtonStr[MouseButton];
+    itMouseWheel: Result := Format('mouse wheel %f, vertical: %s',
+      [ MouseWheelScroll, CastleStringUtils.BoolToStr[MouseWheelVertical]]);
+    else raise EInternalError.Create('TInputPressRelease.Description: EventType?');
+  end;
 end;
 
 function InputKey(const Key: TKey; const KeyCharacter: Char): TInputPressRelease;

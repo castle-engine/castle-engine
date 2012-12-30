@@ -100,21 +100,6 @@ begin
   Notifications.Show(Format('Timer message. Time now %s', [FormatDateTime('tt', Time)]));
 end;
 
-function EventToStr(const Event: TInputPressRelease): string;
-begin
-  case Event.EventType of
-    itKey: Result := Format('key %s, char %s (ord %d)',
-      [ KeyToStr(Event.Key),
-        CharToNiceStr(Event.KeyCharacter),
-        Ord(Event.KeyCharacter)]);
-    itMouseButton: Result := 'mouse ' + MouseButtonStr[Event.MouseButton];
-    itMouseWheel: Result := Format('mouse wheel %f, vertical: %s',
-      [ Event.MouseWheelScroll,
-        BoolToStr[Event.MouseWheelVertical]]);
-    else raise EInternalError.Create('EventToStr: Event.EventType?');
-  end;
-end;
-
 procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 begin
   { Tests:
@@ -129,12 +114,12 @@ begin
     '5': Window.SetMousePosition(Window.Width div 2, Window.Height div 2);
   end; }
 
-  Notifications.Show('Press message : ' + EventToStr(Event));
+  Notifications.Show('Press message : ' + Event.Description);
 end;
 
 procedure Release(Window: TCastleWindowBase; const Event: TInputPressRelease);
 begin
-  Notifications.Show('Release message : ' + EventToStr(Event));
+  Notifications.Show('Release message : ' + Event.Description);
 end;
 
 procedure MouseMove(Window: TCastleWindowBase; newX, newY: integer);
