@@ -643,7 +643,7 @@ procedure TPlayer.UpdateCamera;
 const
   CastleCameraInput = [ciNormal, ci3dMouse]; { do not include ciMouseDragging }
 begin
-  Camera.Gravity := (not Flying) and (not Dead) and (not Blocked);
+  Camera.Gravity := (not Blocked) and (not Flying);
   { Note that when not Camera.Gravity then FallingEffect will not
     work anyway. }
   Camera.FallingEffect := Swimming = psNo;
@@ -1076,6 +1076,9 @@ end;
 procedure TPlayer.SetLife(const Value: Single);
 begin
   SetLifeCustomFadeOut(Value, Red3Single);
+  { cancel flying when dead }
+  if Dead then
+    Flying := false;
 end;
 
 procedure TPlayer.Attack;
