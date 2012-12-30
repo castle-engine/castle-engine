@@ -851,8 +851,8 @@ end;
 function TInputPressRelease.MouseWheel: TMouseWheelDirection;
 begin
   if EventType = itMouseWheel then
-    Result := mwNone else
-    Result := MouseWheelDirection(MouseWheelScroll, MouseWheelVertical);
+    Result := MouseWheelDirection(MouseWheelScroll, MouseWheelVertical) else
+    Result := mwNone;
 end;
 
 function TInputPressRelease.IsKey(const AKey: TKey): boolean;
@@ -876,8 +876,10 @@ begin
     itKey: Result := Format('key %s, character %s (code %d)',
       [ KeyToStr(Key), CharToNiceStr(KeyCharacter), Ord(KeyCharacter)]);
     itMouseButton: Result := 'mouse ' + MouseButtonStr[MouseButton];
-    itMouseWheel: Result := Format('mouse wheel %f, vertical: %s',
-      [ MouseWheelScroll, CastleStringUtils.BoolToStr[MouseWheelVertical]]);
+    itMouseWheel: Result := Format('mouse wheel %s (amount %f, vertical: %s)',
+      [ MouseWheelDirectionStr[MouseWheel],
+        MouseWheelScroll,
+        CastleStringUtils.BoolToStr[MouseWheelVertical] ]);
     else raise EInternalError.Create('TInputPressRelease.Description: EventType?');
   end;
 end;
