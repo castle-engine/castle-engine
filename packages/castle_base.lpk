@@ -44,7 +44,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="170">
+    <Files Count="169">
       <Item1>
         <Filename Value="../src/3d/base3d.pas"/>
         <UnitName Value="Base3D"/>
@@ -65,10 +65,6 @@
         <Filename Value="../src/3d/cubemap.pas"/>
         <UnitName Value="CubeMap"/>
       </Item5>
-      <Item6>
-        <Filename Value="../src/3d/faceindex.pas"/>
-        <UnitName Value="FaceIndex"/>
-      </Item6>
       <Item7>
         <Filename Value="../src/3d/frustum.pas"/>
         <UnitName Value="Frustum"/>
@@ -731,10 +727,10 @@
         <Filename Value="../src/x3d/x3dtime.pas"/>
         <UnitName Value="X3DTime"/>
       </Item90>
-      <Item170>
+      <Item6>
         <Filename Value="../src/3d/castletriangles.pas"/>
         <UnitName Value="CastleTriangles"/>
-      </Item170>
+      </Item6>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">

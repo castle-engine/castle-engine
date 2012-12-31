@@ -18,7 +18,7 @@ unit GeometryArrays;
 
 interface
 
-uses CastleUtils, VectorMath, FGL, FaceIndex;
+uses CastleUtils, VectorMath, FGL, CastleTriangles;
 
 type
   { Primitive geometry types. Analogous to OpenGL primitives. }

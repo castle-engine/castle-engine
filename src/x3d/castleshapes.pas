@@ -26,7 +26,7 @@ interface
 
 uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, X3DNodes, CastleClassUtils,
   CastleUtils, TriangleOctree, Frustum, CastleOctree, X3DTriangles,
-  X3DFields, GeometryArrays, FaceIndex, FGL, CastleTriangles;
+  X3DFields, GeometryArrays, FGL, CastleTriangles;
 
 const
   { }
@@ -70,8 +70,6 @@ type
 
   TEnumerateShapeTexturesFunction = procedure (Shape: TShape;
     Texture: TAbstractTextureNode) of object;
-
-  TFaceIndex = FaceIndex.TFaceIndex;
 
   { Triangle information, called by TShape.LocalTriangulate and such.
 

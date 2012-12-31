@@ -64,7 +64,6 @@ begin
     P.Targets.AddUnit('castletriangles.pas');
     P.Targets.AddUnit('convexhullunit.pas');
     P.Targets.AddUnit('cubemap.pas');
-    P.Targets.AddUnit('faceindex.pas');
     P.Targets.AddUnit('frustum.pas');
     P.Targets.AddUnit('geometryarrays.pas');
     P.Targets.AddUnit('castleoctree.pas');

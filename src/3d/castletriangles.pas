@@ -45,7 +45,7 @@ unit CastleTriangles;
 
 interface
 
-uses CastleUtils, VectorMath;
+uses CastleUtils, VectorMath, GenericStructList;
 
 type
   TTriangle2Single = packed array[0..2]of TVector2Single;     PTriangle2Single = ^TTriangle2Single;
@@ -398,6 +398,26 @@ function TriangleToNiceStr(const t: TTriangle3Single): string; overload;
 function TriangleToNiceStr(const t: TTriangle3Double): string; overload;
 function TriangleToRawStr(const t: TTriangle3Single): string; overload;
 function TriangleToRawStr(const t: TTriangle3Double): string; overload;
+
+{ TFaceIndex ----------------------------------------------------------------- }
+
+type
+  { Describe a range of indexes where the face (polygon and such) is located.
+
+    When a triangle is part of a face defined by the coordIndex field
+    (like in IndexedFaceSet) then this describes where
+    in this coordIndex this face is located. This is useful for
+    editing / removing a face corresponding to a given triangle.
+
+    Otherwise, both IndexBegin and IndexEnd are -1. }
+  TFaceIndex = object
+    IndexBegin, IndexEnd: Integer;
+  end;
+
+  TFaceIndexesList = specialize TGenericStructList<TFaceIndex>;
+
+const
+  UnknownFaceIndex: TFaceIndex = (IndexBegin: -1; IndexEnd: -1);
 
 implementation
 
