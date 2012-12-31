@@ -139,6 +139,7 @@ type
     FFallDamageScaleMin: Single;
     FFallDamageScaleMax: Single;
     FFallSound: TSoundType;
+    FHeadBobbing: Single;
 
     procedure SetEquippedWeapon(Value: TItemWeapon);
 
@@ -356,6 +357,17 @@ type
       The default is the sound named 'player_fall'. }
     property FallSound: TSoundType
       read FFallSound write FFallSound;
+    { Controls head bobbing, but only when player is walking.
+      See TWalkCamera.HeadBobbing for exact meaning of this.
+      TPlayer.Camera.HeadBobbing is automatically updated as necessary.
+
+      Note that when using CastleLevels, then the headBobbing defined
+      inside VRML/X3D file (see
+      http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_head_bobbing )
+      is ignored. Instead, Player properties control TWalkCamera.HeadBobbing
+      and TWalkCamera.HeadBobbingTime. }
+    property HeadBobbing: Single
+      read FHeadBobbing write FHeadBobbing default DefaultHeadBobbing;
   published
     property KnockBackSpeed default DefaultPlayerKnockBackSpeed;
   end;
@@ -779,7 +791,7 @@ begin
 
       Camera.FallSpeedStart := DefaultFallSpeedStart;
       Camera.FallSpeedIncrease := DefaultFallSpeedIncrease;
-      Camera.HeadBobbing := DefaultHeadBobbing;
+      Camera.HeadBobbing := HeadBobbing;
       Camera.PreferredHeight := DefaultPreferredHeight;
 
       Camera.MoveHorizontalSpeed := DefaultMoveHorizontalSpeed;
@@ -1182,6 +1194,7 @@ begin
     Camera.JumpHorizontalSpeedMultiply := Config.GetFloat('jump/horizontal_speed_multiply', DefaultJumpHorizontalSpeedMultiply);
     Camera.JumpTime := Config.GetFloat('jump/time', DefaultJumpTime);
     Camera.HeadBobbingTime := Config.GetFloat('head_bobbing_time', DefaultHeadBobbingTime);
+    HeadBobbing := Config.GetFloat('head_bobbing', DefaultHeadBobbing);
     SickProjectionSpeed := Config.GetFloat('sick_projection_speed', DefaultSickProjectionSpeed);
     FallMinHeightToSound := Config.GetFloat('fall/sound/min_height', DefaultPlayerFallMinHeightToSound);
     FallMinHeightToDamage := Config.GetFloat('fall/damage/min_height', DefaultFallMinHeightToDamage);
