@@ -194,6 +194,28 @@
 
     private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
+
+    { Send TimeSensor output events, without actually activating the TimeSensor.
+
+      This is useful in situations when you want the X3D scene state to reflect
+      given time, but you do not want to activate sensor and generally you do
+      not want to initialize anything that would continue animating on it's own.
+
+      Using TimeSensor this way is contrary to the VRML/X3D specified behavior.
+      But it's useful when we have VRML/X3D scene inside T3DResource,
+      that is shared by many T3D instances (like creatures and items) that want to
+      simultaneusly display different time moments of the same scene within
+      a single frame. In other words, this is useful when a single scene is shared
+      (if you have a 100 creatures in your game using the same 3D model,
+      you don't want to create 100 copies of this 3D model in memory).
+
+      We ignore TimeSensor.loop (FdLoop) field,
+      instead we follow our own Loop parameter.
+      We take into account TimeSensor.cycleInterval (FdCycleInterval) and
+      TimeSensor.enabled (FdEnabled) fields, just like normal TimeSensor.
+      We send out fraction_changed (EventFraction_changed) and time (EventTime)
+      output events. }
+    procedure FakeTime(const Time: TFloatTime; const Loop: boolean);
   end;
 
 {$endif read_interface}
@@ -692,6 +714,31 @@ begin
     Eventfraction_changed.Send(Fraction, Time);
 
     EventTime.Send(Time.Seconds, Time);
+  end;
+end;
+
+var
+  FakeX3DTime: TX3DTime;
+
+procedure TTimeSensorNode.FakeTime(const Time: TFloatTime; const Loop: boolean);
+begin
+  if FdEnabled.Value then
+  begin
+    { This method may be called with any Time values sequence, e.g. decreasing.
+      So we have to avoid the normal VRML/X3D mechanism that prevents
+      passing ROUTEs with an older timestamp (see TX3DRoute.EventReceive).
+      We do this by simply using a fake timestamp that is always growing. }
+    if FakeX3DTime.PlusTicks <> High(FakeX3DTime.PlusTicks) then
+      Inc(FakeX3DTime.PlusTicks) else
+    begin
+      FakeX3DTime.Seconds += 1;
+      FakeX3DTime.PlusTicks := 0;
+    end;
+
+    if Loop then
+      EventFraction_changed.Send(Frac(Time / CycleInterval), FakeX3DTime) else
+      EventFraction_changed.Send(Clamped(Time / CycleInterval, 0, 1), FakeX3DTime);
+    EventTime.Send(Time, FakeX3DTime);
   end;
 end;
 

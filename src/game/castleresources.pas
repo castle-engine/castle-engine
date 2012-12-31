@@ -36,6 +36,7 @@ type
     { At most one of Animation or TimeSensorScene is defined }
     Animation: TCastlePrecalculatedAnimation;
     TimeSensorScene: TCastleScene;
+    TimeSensorNode: TTimeSensorNode;
     FDuration: Single;
     procedure Prepare(const BaseLights: TAbstractLightInstancesList;
       const DoProgress: boolean);
@@ -342,29 +343,41 @@ end;
 function T3DResourceAnimation.Scene(const Time: Single;
   const Loop: boolean): TCastleScene;
 begin
-  Result := Animation.Scene(Time, Loop);
+  if Animation <> nil then
+  begin
+    Result := Animation.Scene(Time, Loop);
 
-  { It's a little dirty to assign some TCastleScene property below.
-    It would be better if we could assign ReceiveShadowVolumes on the T3D level,
-    and then just assign it like CastShadowVolumes at TCreature / TItemOnWorld.
-    But we can't (easily): ReceiveShadowVolumes is not possible at something like
-    T3DList, as it's not a choice ("if you don't receive, you're not rendered"),
-    but a state ("if you receive, you're rendered here; if you don't, you're
-    rendered there"). To overcome this, we'd need some
-    T3DList.ReceiveShadowVolumes = (rsYes, rsNo, rsUndefined)
-    at T3DList (default rsUndefined),
-    and TRenderParams.ShadowVolumesReceiversCheck boolean.
-    So not something nice and consistent like CastShadowVolumes.
-    For now, this one-line hack seems simpler. }
-  Result.ReceiveShadowVolumes := Owner.ReceiveShadowVolumes;
-
-  // TODO: fix for Animation = nil
+    { It's a little dirty to assign some TCastleScene property below.
+      It would be better if we could assign ReceiveShadowVolumes on the T3D level,
+      and then just assign it like CastShadowVolumes at TCreature / TItemOnWorld.
+      But we can't (easily): ReceiveShadowVolumes is not possible at something like
+      T3DList, as it's not a choice ("if you don't receive, you're not rendered"),
+      but a state ("if you receive, you're rendered here; if you don't, you're
+      rendered there"). To overcome this, we'd need some
+      T3DList.ReceiveShadowVolumes = (rsYes, rsNo, rsUndefined)
+      at T3DList (default rsUndefined),
+      and TRenderParams.ShadowVolumesReceiversCheck boolean.
+      So not something nice and consistent like CastShadowVolumes.
+      For now, this one-line hack seems simpler. }
+    Result.ReceiveShadowVolumes := Owner.ReceiveShadowVolumes;
+  end else
+  if TimeSensorScene <> nil then
+  begin
+    Result := TimeSensorScene;
+    TimeSensorNode.FakeTime(Time, Loop);
+  end else
+    Result := nil;
 end;
 
 function T3DResourceAnimation.BoundingBox: TBox3D;
 begin
-  Result := Animation.BoundingBox;
-  // TODO: fix for Animation = nil
+  if Animation <> nil then
+    Result := Animation.BoundingBox else
+  { TODO: this may not be the full bounding box of every animation frame }
+  if TimeSensorScene <> nil then
+    Result := TimeSensorScene.BoundingBox else
+    { animation 3D model not loaded }
+    Result := EmptyBox3D;
 end;
 
 function T3DResourceAnimation.Defined: boolean;
@@ -412,6 +425,7 @@ procedure T3DResourceAnimation.Prepare(const BaseLights: TAbstractLightInstances
     begin
       Scene := TCastleScene.Create(nil);
       Scene.Load(FileName);
+      Scene.ReceiveShadowVolumes := Owner.ReceiveShadowVolumes;
     end;
     if DoProgress then Progress.Step;
 
@@ -425,8 +439,8 @@ begin
   if (TimeSensor <> '') and (FileName <> '') then
   begin
     PrepareScene(TimeSensorScene, FileName);
-    // TODO: Initialize TimeSensorNode and FDuration
-    // from TimeSensorScene get TimeSensor
+    TimeSensorNode := TimeSensorScene.RootNode.FindNode(TTimeSensorNode, false) as TTimeSensorNode;
+    FDuration := TimeSensorNode.TimeDependentNodeHandler.CycleInterval;
   end else
   if TimeSensor <> '' then
   begin
@@ -446,14 +460,15 @@ end;
 procedure T3DResourceAnimation.Release;
 begin
   FreeAndNil(Animation);
-  // TODO: fix for Animation = nil
+  FreeAndNil(TimeSensorScene);
 end;
 
 procedure T3DResourceAnimation.GLContextClose;
 begin
   if Animation <> nil then
     Animation.GLContextClose;
-  // TODO: fix for Animation = nil
+  if TimeSensorScene <> nil then
+    TimeSensorScene.GLContextClose;
 end;
 
 procedure T3DResourceAnimation.LoadFromFile(ResourceConfig: TCastleConfig);
