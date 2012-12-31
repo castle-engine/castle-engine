@@ -33,7 +33,7 @@ const
   DefaultFallSpeedIncrease = 13/12;
   DefaultMouseLookHorizontalSensitivity = 0.09;
   DefaultMouseLookVerticalSensitivity = 0.09;
-  DefaultHeadBobbingTime = 0.4;
+  DefaultHeadBobbingTime = 0.5;
   DefaultJumpSpeedMultiply = 2.0;
   DefaultJumpPower = 9.0;
   { Default value for TCamera.Radius.
@@ -1353,7 +1353,17 @@ type
       read FHeadBobbing write FHeadBobbing default DefaultHeadBobbing;
 
     { Controls head bobbing frequency. In the time of HeadBobbingTime seconds,
-      we do full head bobbing sequence (camera swing up, then down again). }
+      we do full head bobbing sequence (camera swing up, then down again).
+
+      Note that if you do a footsteps sound in your game (see
+      stPlayerFootstepsConcrete or TTextureProperties.FootstepsSound)
+      then you will want this property to match your footsteps sound length,
+      things feel and sound natural then.
+      Also, often it sounds better to record two footsteps inside
+      a single sound file, in which case the footstep sound length should be twice
+      as long as this property. For example, record 2 steps inside a 1-second long
+      footstep sound, and set this property to 0.5 a second (which is a default
+      in fact). }
     property HeadBobbingTime: Single
       read FHeadBobbingTime write FHeadBobbingTime
       default DefaultHeadBobbingTime;
