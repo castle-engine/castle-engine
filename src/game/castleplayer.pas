@@ -1162,12 +1162,12 @@ begin
     Camera.MaxJumpHeight :=
       PlayerConfig.GetFloat('player/jump/max_height',
       DefaultMaxJumpHeight);
-    Camera.JumpSpeedMultiply :=
-      PlayerConfig.GetFloat('player/jump/speed_multiply',
-      DefaultJumpSpeedMultiply);
-    Camera.JumpPower :=
-      PlayerConfig.GetFloat('player/jump/power',
-      DefaultJumpPower);
+    Camera.JumpHorizontalSpeedMultiply :=
+      PlayerConfig.GetFloat('player/jump/horizontal_speed_multiply',
+      DefaultJumpHorizontalSpeedMultiply);
+    Camera.JumpTime :=
+      PlayerConfig.GetFloat('player/jump/time',
+      DefaultJumpTime);
     Camera.HeadBobbingTime :=
       PlayerConfig.GetFloat('player/head_bobbing_time',
       DefaultHeadBobbingTime);

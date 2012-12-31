@@ -34,8 +34,8 @@ const
   DefaultMouseLookHorizontalSensitivity = 0.09;
   DefaultMouseLookVerticalSensitivity = 0.09;
   DefaultHeadBobbingTime = 0.5;
-  DefaultJumpSpeedMultiply = 2.0;
-  DefaultJumpPower = 9.0;
+  DefaultJumpHorizontalSpeedMultiply = 2.0;
+  DefaultJumpTime = 1.0 / 8.0;
   { Default value for TCamera.Radius.
     Matches the default VRML/X3D NavigationInfo.avatarSize[0]. }
   DefaultCameraRadius = 0.25;
@@ -788,8 +788,8 @@ type
     FMaxJumpHeight: Single;
     FIsJumping: boolean;
     FJumpHeight: Single;
-    FJumpPower: Single;
-    FJumpSpeedMultiply: Single;
+    FJumpTime: Single;
+    FJumpHorizontalSpeedMultiply: Single;
 
     FHeadBobbing: Single;
     HeadBobbingPosition: Single;
@@ -1116,7 +1116,7 @@ type
       @unorderedList(
         @item(It uses OnHeight to get camera height above the ground.)
         @item(It allows player to jump. See Input_Jump, IsJumping, MaxJumpHeight,
-          JumpSpeedMultiply.)
+          JumpHorizontalSpeedMultiply.)
         @item(It allows player to crouch. See Input_Crouch, CrouchHeight.)
         @item(It tries to keep @link(Position) above the ground on
           PreferredHeight height.)
@@ -1328,16 +1328,14 @@ type
     property IsJumping: boolean read FIsJumping;
 
     { Scales the speed of horizontal moving during jump. }
-    property JumpSpeedMultiply: Single
-      read FJumpSpeedMultiply write FJumpSpeedMultiply
-      default DefaultJumpSpeedMultiply;
+    property JumpHorizontalSpeedMultiply: Single
+      read FJumpHorizontalSpeedMultiply write FJumpHorizontalSpeedMultiply
+      default DefaultJumpHorizontalSpeedMultiply;
 
-    { How fast do you jump. More precisely, during one second, you reach
-      @code(MaxJumpDistance * JumpPower) distance. Note that this is
-      independent from @italic(how high can you jump) --- when you reach
-      MaxJumpDistance height, you stop jumping anyway. }
-    property JumpPower: Single read FJumpPower write FJumpPower
-      default DefaultJumpPower;
+    { How fast do you jump up. This is the time, in seconds, in takes
+      to reach MaxJumpDistance height when jumping. }
+    property JumpTime: Single read FJumpTime write FJumpTime
+      default DefaultJumpTime;
 
     { When you move horizontally, you get "head bobbing" effect
       --- camera position slightly changes it's vertical position,
@@ -2751,8 +2749,8 @@ begin
   FMouseLookHorizontalSensitivity := DefaultMouseLookHorizontalSensitivity;
   FMouseLookVerticalSensitivity := DefaultMouseLookVerticalSensitivity;
   FHeadBobbingTime := DefaultHeadBobbingTime;
-  FJumpSpeedMultiply := DefaultJumpSpeedMultiply;
-  FJumpPower := DefaultJumpPower;
+  FJumpHorizontalSpeedMultiply := DefaultJumpHorizontalSpeedMultiply;
+  FJumpTime := DefaultJumpTime;
   FInvertVerticalMouseLook := false;
 
   FInput_Forward                 := TInputShortcut.Create(Self);
@@ -3105,7 +3103,7 @@ var
 begin
   Multiplier := MoveSpeed * MoveHorizontalSpeed * CompSpeed * Multiply;
   if IsJumping then
-    Multiplier *= JumpSpeedMultiply;
+    Multiplier *= JumpHorizontalSpeedMultiply;
   if Input_Run.IsPressed(Container) then
     Multiplier *= 2;
 
@@ -3186,30 +3184,15 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
       if Result then
       begin
         { jump. This means:
-          1. update FJumpHeight and FJumpPower and move Position
+          1. update FJumpHeight and move Position
           2. or set FIsJumping to false when jump ends }
-
-        ThisJumpHeight := MaxJumpDistance * FJumpPower * CompSpeed;
+        ThisJumpHeight := MaxJumpDistance * CompSpeed / FJumpTime;
         FJumpHeight += ThisJumpHeight;
 
         if FJumpHeight > MaxJumpDistance then
           FIsJumping := false else
-        begin
           { do jumping }
-          Move(VectorScale(GravityUp, ThisJumpHeight), false, false);
-
-          { Initially it was my intention to decrease FJumpPower
-            at each point. But this doesn't make any nice visible effect,
-            moreover it can't guarentee that every jump will sooner or later
-            reach MaxJumpDistance. And we want for every jump to
-            sooner or later reach MaxJumpDistance.
-
-            FJumpPower *= Power(0.95, CompSpeed * 50);
-
-            So the line above is commented out, and jumping is done with
-            constant speed FJumpPower. So every jump sooner or later reaches
-            MaxJumpDistance. }
-        end;
+          Move(GravityUp * ThisJumpHeight, false, false);
       end;
     end;
 
