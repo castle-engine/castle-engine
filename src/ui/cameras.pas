@@ -21,27 +21,6 @@ interface
 uses SysUtils, VectorMath, CastleUtils, KeysMouse, Boxes3D, Quaternions, Frustum,
   UIControls, Classes, RaysWindow, CastleTimeUtils, CastleInputs, CastleTriangles;
 
-const
-  DefaultFallSpeedStart = 0.5;
-  DefaultCameraGrowSpeed = 1.0;
-  DefaultHeadBobbing = 0.02;
-  DefaultCrouchHeight = 0.5;
-  DefaultMaxJumpHeight = 1.0;
-  DefaultMinAngleRadFromGravityUp = { 10 degress } Pi / 18; { }
-  DefaultRotationHorizontalSpeed = 150;
-  DefaultRotationVerticalSpeed = 100;
-  DefaultFallSpeedIncrease = 13/12;
-  DefaultMouseLookHorizontalSensitivity = 0.09;
-  DefaultMouseLookVerticalSensitivity = 0.09;
-  DefaultHeadBobbingTime = 0.5;
-  DefaultJumpHorizontalSpeedMultiply = 2.0;
-  DefaultJumpTime = 1.0 / 8.0;
-  { Default value for TCamera.Radius.
-    Matches the default VRML/X3D NavigationInfo.avatarSize[0]. }
-  DefaultCameraRadius = 0.25;
-  DefaultExamineRotationAccelerationSpeed = 5.0;
-  DefaultExamineRotationSpeed = 2.0;
-
 type
   { Possible navigation input types in cameras, set in TCamera.Input. }
   TCameraInput = (
@@ -63,9 +42,6 @@ type
     { Navigation using 3D mouse devices, like the ones from 3dconnexion. }
     ci3dMouse);
   TCameraInputs = set of TCameraInput;
-
-const
-  DefaultCameraInput = [ciNormal, ciMouseDragging, ci3dMouse];
 
 type
   { Handle user navigation in 3D scene.
@@ -151,6 +127,12 @@ type
     procedure SetProjectionMatrix(const Value: TMatrix4Single); virtual;
     procedure SetRadius(const Value: Single); virtual;
   public
+    const
+      { Default value for TCamera.Radius.
+        Matches the default VRML/X3D NavigationInfo.avatarSize[0]. }
+      DefaultRadius = 0.25;
+      DefaultInput = [ciNormal, ciMouseDragging, ci3dMouse];
+
     constructor Create(AOwner: TComponent); override;
 
     { Called always when some visible part of this control
@@ -180,7 +162,7 @@ type
 
     { Deprecated, use more flexible @link(Input) instead.
       @code(IgnoreAllInputs := true) is equivalent to @code(Input := []),
-      @code(IgnoreAllInputs := false) is equivalent to @code(Input := DefaultCameraInput).
+      @code(IgnoreAllInputs := false) is equivalent to @code(Input := DefaultInput).
       @deprecated }
     property IgnoreAllInputs: boolean
       read GetIgnoreAllInputs write SetIgnoreAllInputs default false; deprecated;
@@ -226,7 +208,7 @@ type
           this @link(Radius), and the camera is a natural place to keep this
           information.)
       ) }
-    property Radius: Single read FRadius write SetRadius default DefaultCameraRadius;
+    property Radius: Single read FRadius write SetRadius default DefaultRadius;
 
     { Express current view as camera vectors: position, direction, up.
 
@@ -408,7 +390,7 @@ type
 
       To disable any user interaction with camera (for example,
       to implement X3D "NONE" navigation type) you can simply set this to empty. }
-    property Input: TCameraInputs read FInput write SetInput default DefaultCameraInput;
+    property Input: TCameraInputs read FInput write SetInput default DefaultInput;
   end;
 
   TCameraClass = class of TCamera;
@@ -476,6 +458,10 @@ type
     function GetMouseNavigation: boolean;
     procedure SetMouseNavigation(const Value: boolean);
   public
+    const
+      DefaultRotationAccelerationSpeed = 5.0;
+      DefaultRotationSpeed = 2.0;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -633,13 +619,13 @@ type
     property RotationAccelerationSpeed: Single
       read FRotationAccelerationSpeed
       write FRotationAccelerationSpeed
-      default DefaultExamineRotationAccelerationSpeed;
+      default DefaultRotationAccelerationSpeed;
 
     { Speed to change the rotation, used when RotationAccelerate = @false. }
     property RotationSpeed: Single
       read FRotationSpeed
       write FRotationSpeed
-      default DefaultExamineRotationSpeed;
+      default DefaultRotationSpeed;
   end;
 
   TWalkCamera = class;
@@ -817,6 +803,22 @@ type
       out AIsAbove: boolean;
       out AnAboveHeight: Single; out AnAboveGround: P3DTriangle); virtual;
   public
+    const
+      DefaultFallSpeedStart = 0.5;
+      DefaultGrowSpeed = 1.0;
+      DefaultHeadBobbing = 0.02;
+      DefaultCrouchHeight = 0.5;
+      DefaultMaxJumpHeight = 1.0;
+      DefaultMinAngleRadFromGravityUp = { 10 degress } Pi / 18; { }
+      DefaultRotationHorizontalSpeed = 150;
+      DefaultRotationVerticalSpeed = 100;
+      DefaultFallSpeedIncrease = 13/12;
+      DefaultMouseLookHorizontalSensitivity = 0.09;
+      DefaultMouseLookVerticalSensitivity = 0.09;
+      DefaultHeadBobbingTime = 0.5;
+      DefaultJumpHorizontalSpeedMultiply = 2.0;
+      DefaultJumpTime = 1.0 / 8.0;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -1312,7 +1314,7 @@ type
       determines the speed of this growth. }
     property GrowSpeed: Single
       read FGrowSpeed write FGrowSpeed
-      default DefaultCameraGrowSpeed;
+      default DefaultGrowSpeed;
 
     { How high can you jump ?
       The max jump distance is calculated as
@@ -1742,8 +1744,8 @@ begin
   FInitialPosition  := Vector3Single(0, 0, 0);
   FInitialDirection := DefaultCameraDirection;
   FInitialUp        := DefaultCameraUp;
-  FRadius := DefaultCameraRadius;
-  FInput  := DefaultCameraInput;
+  FRadius := DefaultRadius;
+  FInput  := DefaultInput;
 end;
 
 procedure TCamera.VisibleChange;
@@ -1963,7 +1965,7 @@ procedure TCamera.SetIgnoreAllInputs(const Value: boolean);
 begin
   if Value then
     Input := [] else
-    Input := DefaultCameraInput;
+    Input := DefaultInput;
 end;
 
 function TCamera.Press(const Event: TInputPressRelease): boolean;
@@ -2014,8 +2016,8 @@ begin
   FRotationsAnim := ZeroVector3Single;
   FScaleFactor := 1;
   FRotationAccelerate := true;
-  FRotationAccelerationSpeed := DefaultExamineRotationAccelerationSpeed;
-  FRotationSpeed := DefaultExamineRotationSpeed;
+  FRotationAccelerationSpeed := DefaultRotationAccelerationSpeed;
+  FRotationSpeed := DefaultRotationSpeed;
 
   for I := 0 to 2 do
     for B := false to true do
@@ -2737,7 +2739,7 @@ begin
   FPreferGravityUpForRotations := true;
   FPreferGravityUpForMoving := true;
   FGravity := false;
-  FGrowSpeed := DefaultCameraGrowSpeed;
+  FGrowSpeed := DefaultGrowSpeed;
   FFallingEffect := true;
   FIsJumping := false;
   FHeadBobbing := DefaultHeadBobbing;
@@ -4606,7 +4608,7 @@ begin
   Walk.PreferGravityUpForRotations := true;
   Walk.PreferGravityUpForMoving := true;
   Examine.ArchitectureMode := false;
-  Input := DefaultCameraInput;
+  Input := DefaultInput;
 
   { This follows the same logic as TCastleSceneCore.CameraFromNavigationInfo }
 

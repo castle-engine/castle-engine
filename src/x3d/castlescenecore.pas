@@ -5959,7 +5959,7 @@ begin
   if Walk <> nil then Walk.PreferGravityUpForMoving := true;
   if Walk <> nil then Walk.Gravity := false;
   if Examine <> nil then Examine.ArchitectureMode := false;
-  Camera.Input := DefaultCameraInput;
+  Camera.Input := TCamera.DefaultInput;
 
   if ForceNavigationType <> '' then
     InitializeNavigationType(ForceNavigationType);
@@ -6022,8 +6022,8 @@ begin
       Walk.HeadBobbingTime := TKambiNavigationInfoNode(NavigationNode).FdHeadBobbingTime.Value;
     end else
     begin
-      Walk.HeadBobbing := DefaultHeadBobbing;
-      Walk.HeadBobbingTime := DefaultHeadBobbingTime;
+      Walk.HeadBobbing := TWalkCamera.DefaultHeadBobbing;
+      Walk.HeadBobbingTime := TWalkCamera.DefaultHeadBobbingTime;
     end;
 
     { calculate Walk.MoveSpeed }

@@ -367,7 +367,7 @@ type
       is ignored. Instead, Player properties control TWalkCamera.HeadBobbing
       and TWalkCamera.HeadBobbingTime. }
     property HeadBobbing: Single
-      read FHeadBobbing write FHeadBobbing default DefaultHeadBobbing;
+      read FHeadBobbing write FHeadBobbing default TWalkCamera.DefaultHeadBobbing;
   published
     property KnockBackSpeed default DefaultPlayerKnockBackSpeed;
   end;
@@ -709,8 +709,8 @@ begin
     { No need to do MakeClear now on any inputs, as we already set
       Input := []. }
 
-    Camera.FallSpeedStart := DefaultFallSpeedStart;
-    Camera.FallSpeedIncrease := DefaultFallSpeedIncrease;
+    Camera.FallSpeedStart := TWalkCamera.DefaultFallSpeedStart;
+    Camera.FallSpeedIncrease := TWalkCamera.DefaultFallSpeedIncrease;
     Camera.HeadBobbing := 0.0;
     Camera.PreferredHeight := Camera.Radius * 1.01;
 
@@ -734,8 +734,8 @@ begin
     Camera.Input_LeftStrafe.MakeClear;
     Camera.Input_RightStrafe.MakeClear;
 
-    Camera.FallSpeedStart := DefaultFallSpeedStart;
-    Camera.FallSpeedIncrease := DefaultFallSpeedIncrease;
+    Camera.FallSpeedStart := TWalkCamera.DefaultFallSpeedStart;
+    Camera.FallSpeedIncrease := TWalkCamera.DefaultFallSpeedIncrease;
     Camera.HeadBobbing := 0.0;
     Camera.PreferredHeight := Camera.Radius * 1.01;
 
@@ -772,7 +772,7 @@ begin
       Camera.Input_UpMove.Assign(PlayerInput_UpMove, false);
       Camera.Input_DownMove.Assign(PlayerInput_DownMove, false);
 
-      Camera.FallSpeedStart := DefaultFallSpeedStart / 6;
+      Camera.FallSpeedStart := TWalkCamera.DefaultFallSpeedStart / 6;
       Camera.FallSpeedIncrease := 1.0;
       Camera.HeadBobbing := 0.0;
       Camera.PreferredHeight := Camera.Radius * 1.01;
@@ -789,8 +789,8 @@ begin
       Camera.Input_UpMove.MakeClear;
       Camera.Input_DownMove.MakeClear;
 
-      Camera.FallSpeedStart := DefaultFallSpeedStart;
-      Camera.FallSpeedIncrease := DefaultFallSpeedIncrease;
+      Camera.FallSpeedStart := TWalkCamera.DefaultFallSpeedStart;
+      Camera.FallSpeedIncrease := TWalkCamera.DefaultFallSpeedIncrease;
       Camera.HeadBobbing := HeadBobbing;
       Camera.PreferredHeight := DefaultPreferredHeight;
 
@@ -1190,11 +1190,11 @@ begin
     Config.FileName := FileName;
 
     KnockBackSpeed := Config.GetFloat('knock_back_speed', DefaultPlayerKnockBackSpeed);
-    Camera.MaxJumpHeight := Config.GetFloat('jump/max_height', DefaultMaxJumpHeight);
-    Camera.JumpHorizontalSpeedMultiply := Config.GetFloat('jump/horizontal_speed_multiply', DefaultJumpHorizontalSpeedMultiply);
-    Camera.JumpTime := Config.GetFloat('jump/time', DefaultJumpTime);
-    Camera.HeadBobbingTime := Config.GetFloat('head_bobbing_time', DefaultHeadBobbingTime);
-    HeadBobbing := Config.GetFloat('head_bobbing', DefaultHeadBobbing);
+    Camera.MaxJumpHeight := Config.GetFloat('jump/max_height', TWalkCamera.DefaultMaxJumpHeight);
+    Camera.JumpHorizontalSpeedMultiply := Config.GetFloat('jump/horizontal_speed_multiply', TWalkCamera.DefaultJumpHorizontalSpeedMultiply);
+    Camera.JumpTime := Config.GetFloat('jump/time', TWalkCamera.DefaultJumpTime);
+    Camera.HeadBobbingTime := Config.GetFloat('head_bobbing_time', TWalkCamera.DefaultHeadBobbingTime);
+    HeadBobbing := Config.GetFloat('head_bobbing', TWalkCamera.DefaultHeadBobbing);
     SickProjectionSpeed := Config.GetFloat('sick_projection_speed', DefaultSickProjectionSpeed);
     FallMinHeightToSound := Config.GetFloat('fall/sound/min_height', DefaultPlayerFallMinHeightToSound);
     FallMinHeightToDamage := Config.GetFloat('fall/damage/min_height', DefaultFallMinHeightToDamage);

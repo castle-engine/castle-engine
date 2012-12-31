@@ -636,7 +636,7 @@ var
       PreferredHeight := NavigationNode.FdAvatarSize.Items[1] else
       PreferredHeight := CameraRadius * 5;
     CorrectPreferredHeight(PreferredHeight, CameraRadius,
-      DefaultCrouchHeight, DefaultHeadBobbing);
+      TWalkCamera.DefaultCrouchHeight, TWalkCamera.DefaultHeadBobbing);
 
     if Player <> nil then
       WalkCamera := Player.Camera else

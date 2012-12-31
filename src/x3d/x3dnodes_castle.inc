@@ -685,11 +685,11 @@ begin
   FFdOctreeCollidableTriangles.Exposed := false;
   Fields.Add(FFdOctreeCollidableTriangles);
 
-  FFdHeadBobbing := TSFFloat.Create(Self, 'headBobbing', DefaultHeadBobbing, true);
+  FFdHeadBobbing := TSFFloat.Create(Self, 'headBobbing', TWalkCamera.DefaultHeadBobbing, true);
    FdHeadBobbing.ChangesAlways := [chNavigationInfo];
   Fields.Add(FFdHeadBobbing);
 
-  FFdHeadBobbingTime := TSFFloat.Create(Self, 'headBobbingTime', DefaultHeadBobbingTime, true);
+  FFdHeadBobbingTime := TSFFloat.Create(Self, 'headBobbingTime', TWalkCamera.DefaultHeadBobbingTime, true);
    FdHeadBobbingTime.ChangesAlways := [chNavigationInfo];
   Fields.Add(FdHeadBobbingTime);
 

@@ -88,7 +88,7 @@ procedure NavigatorChanged;
 begin
   if Navigator <> ntAll then
     SceneManager.Camera.Input := [] else
-    SceneManager.Camera.Input := DefaultCameraInput;
+    SceneManager.Camera.Input := TCamera.DefaultInput;
 
   if NavigatorRadio[Navigator] <> nil then
     NavigatorRadio[Navigator].Checked := true;
