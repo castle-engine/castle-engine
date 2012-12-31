@@ -269,10 +269,24 @@ type
       properties etc.). }
     property Swimming: TPlayerSwimming read FSwimming write SetSwimming;
 
-    { Loads player properties from player.xml file.
-      This is called from constructor, you can also call this
-      later (for debug purposes, if you changed something). }
+    { Load various player properties from an XML file.
+      This is handy to use in a game to allow to configure player behavior
+      by simply editing an XML file (instead of hacking code).
+      Overloaded parameterless version reads from file
+      @code(ProgramDataPath + 'data' + PathDelim + 'player.xml').
+
+      Note that the indicated file may not exist, and it will not cause errors.
+      Not existing file is equivalent to a file with everything set at default
+      values.
+
+      It is Ok to call this multiple times, at any moment.
+      This way you can make some debug command to reload player.xml file,
+      very useful to test various player properties without restarting the game.
+
+      @groupBegin }
     procedure LoadFromFile;
+    procedure LoadFromFile(const FileName: string);
+    { @groupEnd }
 
     function Ground: PTriangle;
 
@@ -426,8 +440,6 @@ begin
 
   Camera.CheckModsDown := false;
   Camera.OnFall := @CameraFall;
-
-  LoadFromFile;
 
   { Although it will be called in every OnIdle anyway,
     we also call it here to be sure that right after TPlayer constructor
@@ -1148,7 +1160,7 @@ begin
   end;
 end;
 
-procedure TPlayer.LoadFromFile;
+procedure TPlayer.LoadFromFile(const FileName: string);
 var
   Config: TCastleConfig;
 begin
@@ -1156,7 +1168,7 @@ begin
   try
     Config.RootName := 'player';
     Config.NotModified; { otherwise changing RootName makes it modified, and saved back at freeing }
-    Config.FileName := ProgramDataPath + 'data' + PathDelim + 'player.xml';
+    Config.FileName := FileName;
 
     KnockBackSpeed := Config.GetFloat('knock_back_speed', DefaultKnockBackSpeed);
     Camera.MaxJumpHeight := Config.GetFloat('jump/max_height', DefaultMaxJumpHeight);
@@ -1170,6 +1182,11 @@ begin
     FallDamageScaleMax := Config.GetFloat('fall/damage/scale_max', DefaultFallDamageScaleMax);
     FallSound := SoundEngine.SoundFromName(Config.GetValue('fall/sound/name', DefaultPlayerFallSoundName), false);
   finally FreeAndNil(Config); end;
+end;
+
+procedure TPlayer.LoadFromFile;
+begin
+  LoadFromFile(ProgramDataPath + 'data' + PathDelim + 'player.xml');
 end;
 
 procedure TPlayer.LevelChanged;
