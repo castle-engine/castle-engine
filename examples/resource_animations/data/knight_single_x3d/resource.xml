@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<resource
+  name="KnightSingleX3D"
+  type="WalkAttack"
+>
+  <model file_name="knight.x3dv">
+    <idle   time_sensor="IdleTimeSensor"/>
+    <walk   time_sensor="WalkTimeSensor"/>
+    <attack time_sensor="AttackTimeSensor"/>
+    <die    time_sensor="DieTimeSensor"/>
+    <hurt   time_sensor="HurtTimeSensor"/>
+  </model>
+</resource>

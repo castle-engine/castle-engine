@@ -119,6 +119,9 @@ type
     FAnimations: T3DResourceAnimationList;
     FReceiveShadowVolumes: boolean;
     FCastShadowVolumes: boolean;
+    FModelFileName: string;
+    { Model loaded from ModelFileName }
+    Model: TCastleScene;
   protected
     { Prepare or release everything needed to use this resource.
       PrepareCore and ReleaseCore should never be called directly,
@@ -255,6 +258,12 @@ type
     property CastShadowVolumes: boolean
       read FCastShadowVolumes write FCastShadowVolumes
       default DefaultCastShadowVolumes;
+
+    { Model filename, only when you define multiple animations inside
+      a single 3D file. See DRAFT.modeling_tutorial.txt for notes about
+      <model> element in resource.xml files. }
+    property ModelFileName: string
+      read FModelFileName write FModelFileName;
   end;
 
   T3DResourceClass = class of T3DResource;
@@ -366,6 +375,11 @@ begin
     Result := TimeSensorScene;
     TimeSensorNode.FakeTime(Time, Loop);
   end else
+  if Owner.Model <> nil then
+  begin
+    Result := Owner.Model;
+    TimeSensorNode.FakeTime(Time, Loop);
+  end else
     Result := nil;
 end;
 
@@ -376,6 +390,8 @@ begin
   { TODO: this may not be the full bounding box of every animation frame }
   if TimeSensorScene <> nil then
     Result := TimeSensorScene.BoundingBox else
+  if Owner.Model <> nil then
+    Result := Owner.Model.BoundingBox else
     { animation 3D model not loaded }
     Result := EmptyBox3D;
 end;
@@ -439,14 +455,19 @@ begin
   if (TimeSensor <> '') and (FileName <> '') then
   begin
     PrepareScene(TimeSensorScene, FileName);
-    TimeSensorNode := TimeSensorScene.RootNode.FindNode(TTimeSensorNode, false) as TTimeSensorNode;
-    FDuration := TimeSensorNode.TimeDependentNodeHandler.CycleInterval;
+    TimeSensorNode := TimeSensorScene.RootNode.FindNodeByName(
+      TTimeSensorNode, TimeSensor, false) as TTimeSensorNode;
+    FDuration := TimeSensorNode.FdCycleInterval.Value;
   end else
   if TimeSensor <> '' then
   begin
-    // TODO: Initialize TimeSensorNode and FDuration
-    // from Owner.Scene get TimeSensor
-    // (and maybe set TimeSensorScene := Owner.TimeSensorScene)
+    if Owner.ModelFileName = '' then
+      raise Exception.CreateFmt('Animation "%s" of resource "%s": time_sensor is defined, but 3D model file_name is not defined (neither specific to this animation nor containing multiple animations)',
+        [Name, Owner.Name]);
+    PrepareScene(Owner.Model, Owner.ModelFileName);
+    TimeSensorNode := Owner.Model.RootNode.FindNodeByName(
+      TTimeSensorNode, TimeSensor, false) as TTimeSensorNode;
+    FDuration := TimeSensorNode.FdCycleInterval.Value;
   end else
   if FileName <> '' then
   begin
@@ -531,6 +552,8 @@ procedure T3DResource.ReleaseCore;
 var
   I: Integer;
 begin
+  if Model <> nil then
+    FreeAndNil(Model);
   if Animations <> nil then
     for I := 0 to Animations.Count - 1 do
       Animations[I].Release;
@@ -540,6 +563,8 @@ procedure T3DResource.GLContextClose;
 var
   I: Integer;
 begin
+  if Model <> nil then
+    Model.GLContextClose;
   for I := 0 to Animations.Count - 1 do
     Animations[I].GLContextClose;
 end;
@@ -555,6 +580,7 @@ begin
     DefaultReceiveShadowVolumes);
   FCastShadowVolumes := ResourceConfig.GetValue('cast_shadow_volumes',
     DefaultCastShadowVolumes);
+  FModelFileName := ResourceConfig.GetFileName('model/file_name', true);
 
   for I := 0 to Animations.Count - 1 do
     Animations[I].LoadFromFile(ResourceConfig);
