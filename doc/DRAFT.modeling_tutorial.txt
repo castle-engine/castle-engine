@@ -68,6 +68,7 @@ To make exporting easy and automated without accidents, Michalis found it's best
 
 [[
 import bpy
+import os
 dirname = os.path.dirname(bpy.context.blend_data.filepath)
 filepath = os.path.join(dirname, "idle.x3d")
 bpy.ops.export_scene.x3d(filepath=filepath,
