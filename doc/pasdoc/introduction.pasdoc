@@ -191,9 +191,10 @@ units are allowed to be used by units in specific group.
         @orderedList(
           @itemSpacing Compact
           @item A window, by our TCastleWindow class (see @code(window) directory).
-          @item A Lazarus component, by our TCastleControl class (see @code(components) directory).
+          @item(A Lazarus component, by our TCastleControl class 
+	    (see @code(components) directory).
             This descends from the base TOpenGLControl provided by Lazarus,
-            inheriting it's functionality.
+            inheriting it's functionality.)
         )
 
         Container is tied to a particular windowing library, like GTK or WinAPI
