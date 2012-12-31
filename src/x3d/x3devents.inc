@@ -341,7 +341,11 @@ var
   Field: TX3DField;
 begin
   Field := CreateTemp;
-  (Field as TSFFloat).Value := Value;
+  if FieldClass = TSFTime then
+    (Field as TSFTime).Value := Value else // convert Single to SFTime (Double)
+  if FieldClass = TSFDouble then
+    (Field as TSFDouble).Value := Value else // convert Single to Double
+    (Field as TSFFloat).Value := Value;
   try
     Send(Field, Time);
   finally FreeTemp(Field) end;
@@ -352,7 +356,9 @@ var
   Field: TX3DField;
 begin
   Field := CreateTemp;
-  (Field as TSFDouble).Value := Value; // handles also SFTime
+  if FieldClass = TSFFloat then
+    (Field as TSFFloat).Value := Value else // convert Double to Single
+    (Field as TSFDouble).Value := Value; // handles also SFTime
   try
     Send(Field, Time);
   finally FreeTemp(Field) end;
