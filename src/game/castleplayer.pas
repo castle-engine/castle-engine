@@ -180,6 +180,7 @@ type
       DefaultLife = 100;
       DefaultSickProjectionSpeed = 2.0;
       DefaultRenderOnTop = true;
+      DefaultPlayerKnockBackSpeed = 20.0;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -270,8 +271,11 @@ type
     property Swimming: TPlayerSwimming read FSwimming write SetSwimming;
 
     { Load various player properties from an XML file.
+      Properties not specified in the indicated file will
+      be reset to their default values.
       This is handy to use in a game to allow to configure player behavior
       by simply editing an XML file (instead of hacking code).
+
       Overloaded parameterless version reads from file
       @code(ProgramDataPath + 'data' + PathDelim + 'player.xml').
 
@@ -352,6 +356,8 @@ type
       The default is the sound named 'player_fall'. }
     property FallSound: TSoundType
       read FFallSound write FFallSound;
+  published
+    property KnockBackSpeed default DefaultPlayerKnockBackSpeed;
   end;
 
 const
@@ -426,6 +432,7 @@ begin
   FFallDamageScaleMin := DefaultFallDamageScaleMin;
   FFallDamageScaleMax := DefaultFallDamageScaleMax;
   FFallSound := SoundEngine.SoundFromName(DefaultPlayerFallSoundName, false);
+  KnockBackSpeed := DefaultPlayerKnockBackSpeed;
 
   Add(TPlayerBox.Create(Self));
 
@@ -1170,7 +1177,7 @@ begin
     Config.NotModified; { otherwise changing RootName makes it modified, and saved back at freeing }
     Config.FileName := FileName;
 
-    KnockBackSpeed := Config.GetFloat('knock_back_speed', DefaultKnockBackSpeed);
+    KnockBackSpeed := Config.GetFloat('knock_back_speed', DefaultPlayerKnockBackSpeed);
     Camera.MaxJumpHeight := Config.GetFloat('jump/max_height', DefaultMaxJumpHeight);
     Camera.JumpHorizontalSpeedMultiply := Config.GetFloat('jump/horizontal_speed_multiply', DefaultJumpHorizontalSpeedMultiply);
     Camera.JumpTime := Config.GetFloat('jump/time', DefaultJumpTime);
