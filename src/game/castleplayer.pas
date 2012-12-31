@@ -1150,36 +1150,26 @@ end;
 
 procedure TPlayer.LoadFromFile;
 var
-  PlayerConfig: TCastleConfig;
+  Config: TCastleConfig;
 begin
-  PlayerConfig := TCastleConfig.Create(nil);
+  Config := TCastleConfig.Create(nil);
   try
-    PlayerConfig.FileName := ProgramDataPath + 'data' + PathDelim +
-      'player.xml';
+    Config.RootName := 'player';
+    Config.NotModified; { otherwise changing RootName makes it modified, and saved back at freeing }
+    Config.FileName := ProgramDataPath + 'data' + PathDelim + 'player.xml';
 
-    KnockBackSpeed :=
-      PlayerConfig.GetFloat('player/knock_back_speed', DefaultKnockBackSpeed);
-    Camera.MaxJumpHeight :=
-      PlayerConfig.GetFloat('player/jump/max_height',
-      DefaultMaxJumpHeight);
-    Camera.JumpHorizontalSpeedMultiply :=
-      PlayerConfig.GetFloat('player/jump/horizontal_speed_multiply',
-      DefaultJumpHorizontalSpeedMultiply);
-    Camera.JumpTime :=
-      PlayerConfig.GetFloat('player/jump/time',
-      DefaultJumpTime);
-    Camera.HeadBobbingTime :=
-      PlayerConfig.GetFloat('player/head_bobbing_time',
-      DefaultHeadBobbingTime);
-    SickProjectionSpeed := PlayerConfig.GetFloat('player/sick_projection_speed',
-      DefaultSickProjectionSpeed);
-    FallMinHeightToSound := PlayerConfig.GetFloat('fall/sound/min_height', DefaultPlayerFallMinHeightToSound);
-    FallMinHeightToDamage := PlayerConfig.GetFloat('fall/damage/min_height', DefaultFallMinHeightToDamage);
-    FallDamageScaleMin := PlayerConfig.GetFloat('fall/damage/scale_min', DefaultFallDamageScaleMin);
-    FallDamageScaleMax := PlayerConfig.GetFloat('fall/damage/scale_max', DefaultFallDamageScaleMax);
-    FallSound := SoundEngine.SoundFromName(
-      PlayerConfig.GetValue('fall/sound/name', DefaultPlayerFallSoundName), false);
-  finally SysUtils.FreeAndNil(PlayerConfig); end;
+    KnockBackSpeed := Config.GetFloat('knock_back_speed', DefaultKnockBackSpeed);
+    Camera.MaxJumpHeight := Config.GetFloat('jump/max_height', DefaultMaxJumpHeight);
+    Camera.JumpHorizontalSpeedMultiply := Config.GetFloat('jump/horizontal_speed_multiply', DefaultJumpHorizontalSpeedMultiply);
+    Camera.JumpTime := Config.GetFloat('jump/time', DefaultJumpTime);
+    Camera.HeadBobbingTime := Config.GetFloat('head_bobbing_time', DefaultHeadBobbingTime);
+    SickProjectionSpeed := Config.GetFloat('sick_projection_speed', DefaultSickProjectionSpeed);
+    FallMinHeightToSound := Config.GetFloat('fall/sound/min_height', DefaultPlayerFallMinHeightToSound);
+    FallMinHeightToDamage := Config.GetFloat('fall/damage/min_height', DefaultFallMinHeightToDamage);
+    FallDamageScaleMin := Config.GetFloat('fall/damage/scale_min', DefaultFallDamageScaleMin);
+    FallDamageScaleMax := Config.GetFloat('fall/damage/scale_max', DefaultFallDamageScaleMax);
+    FallSound := SoundEngine.SoundFromName(Config.GetValue('fall/sound/name', DefaultPlayerFallSoundName), false);
+  finally FreeAndNil(Config); end;
 end;
 
 procedure TPlayer.LevelChanged;
