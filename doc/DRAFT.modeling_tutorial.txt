@@ -27,7 +27,7 @@ There are three approaches, and which one to choose depends on what 3D modeler /
     <walk time_sensor="TimeSensorWalk"/>
   </model>
 
-This is nice if your 3D modeler / exporter can record multiple animations inside a single X3D file, and each animation is controlled by a different X3D TimeSensor node. This is the most natural way to record multiple animations in a single X3D file. We will detect animation length from the TimeSensor.cycleInterval, and we'll simulate sending appropriate elapsedTime and fraction_changed from this TimeSensor to activate the desired moment of the desired animation.
+This is nice if your 3D modeler / exporter can record multiple animations inside a single X3D file, and each animation is controlled by a different X3D TimeSensor node. This is the most natural way to record multiple animations in a single X3D file. We will detect animation length from the TimeSensor.cycleInterval, and we'll simulate sending appropriate time and fraction_changed from this TimeSensor to activate the desired moment of the desired animation.
 
 Unfortunately, I don't know of any open-source 3D modeler / exporter right now that can nicely produce such multiple animations in a single X3D file. I plan to extend Blender X3D exporter to allow this in the future.
 
@@ -62,7 +62,7 @@ In some situations, we have to know the animation duration (for example, to know
 
 The looping is done automatically for animations that require it (like walk). So using loop attribute in kanim file, or loop field for TimeSensor is not necessary (it's ignored).
 
-Design notes about X3D TimeSensor usage: Note that all creatures of a given kind share the same resources, e.g. if you have a single creature "werewolf" (defined by a resource.xml file with name="Werewolf" inside) you can instantiate this creature many times, and they will all actually use the same resource underneath. That is why we use TimeSensors by directly sending their elapsedTime/fraction_changed, instead of just activating them by TimeSensor.startTime: in the latter case, all werewolves visible on the level would be forced to be in the same state(and moment) of the animation.
+Design notes about X3D TimeSensor usage: All creatures of a given kind must share the same resources. E.g. imagine you have a creature type "werewolf" (defined by a resource.xml file with name="Werewolf" inside, resulting in TCastleResource instance with TCastleResource.Name="Werewolf"). You can instantiate this creature many times on the level, and all visible werewolves will actually use the same resource underneath. That is why we use TimeSensors by directly sending their time/fraction_changed, instead of just activating them by TimeSensor.startTime: in the latter case, all werewolves visible on the level would be forced to be in the same state (and moment) of the animation.
 ------------------------------------------------------------------------------
 To make exporting easy and automated without accidents, Michalis found it's best to place a short Python snippet that calls the export operator inside .blend file. This can look like this:
 

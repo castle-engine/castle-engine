@@ -167,7 +167,8 @@ type
     procedure GLContextClose; virtual;
 
     { Unique identifier of this resource.
-      Used to refer to this kind from VRML/X3D models, XML files and other data.
+      Used to refer to this resource from XML files, VRML/X3D files
+      (see TGameSceneManager.LoadLevel about placeholders) and other places.
 
       This must be composed of only letters, use CamelCase.
       (Reason: This must be a valid identifier in all possible languages.
@@ -598,7 +599,7 @@ begin
     { It's important to do ReleaseCore after Progress.Init.
       That is because Progress.Init may do TCastleWindowBase.SaveScreenToDisplayList,
       and this may call Window.OnDraw, and this may want to redraw
-      the object (e.g. if creature of given kind already exists
+      the object (e.g. if creature of given resource already exists
       on the screen) and this requires Prepare to be already done.
 
       So we should call Progress.Init before we make outselves unprepared. }

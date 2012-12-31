@@ -11,7 +11,7 @@ ways:
 
 We declare them in resource.xml files with different names
 ("KnightSingleX3D", "KnightMultipleX3D", "KnightKAnim")
-so the engine (ObjectPascal code) actually sees three different creature kinds.
+so the engine (ObjectPascal code) actually sees three different creature resources.
 In a real game, you should probably choose just one approach to exporting,
 and have a single creature named just "Knight".
 

@@ -504,7 +504,7 @@ function TPlayer.PickItem(Item: TInventoryItem): Integer;
 var
   S: string;
 begin
-  S := Format('You pick "%s"', [Item.Kind.Caption]);
+  S := Format('You pick "%s"', [Item.Resource.Caption]);
   if Item.Quantity <> 1 then
     S += Format(' (quantity %d)', [Item.Quantity]);
   Notifications.Show(S);
@@ -527,14 +527,14 @@ end;
 
 function TPlayer.DropItem(const Index: Integer): TItemOnWorld;
 
-  function GetItemDropPosition(DroppedItemKind: TItemKind;
+  function GetItemDropPosition(DroppedItemResource: TItemResource;
     out DropPosition: TVector3Single): boolean;
   var
     ItemBox: TBox3D;
     ItemBoxRadius: Single;
     ItemBoxMiddle: TVector3Single;
   begin
-    ItemBox := DroppedItemKind.BoundingBoxRotated;
+    ItemBox := DroppedItemResource.BoundingBoxRotated;
     ItemBoxMiddle := ItemBox.Middle;
     { Box3DRadius calculates radius around (0, 0, 0) and we want
       radius around ItemBoxMiddle }
@@ -584,14 +584,14 @@ begin
 
   if Between(Index, 0, Inventory.Count - 1) then
   begin
-    if GetItemDropPosition(Inventory[Index].Kind, DropPosition) then
+    if GetItemDropPosition(Inventory[Index].Resource, DropPosition) then
     begin
       DropppedItem := Inventory.Drop(Index);
 
       if DropppedItem = EquippedWeapon then
         EquippedWeapon := nil;
 
-      S := Format('You drop "%s"', [DropppedItem.Kind.Caption]);
+      S := Format('You drop "%s"', [DropppedItem.Resource.Caption]);
       if DropppedItem.Quantity <> 1 then
         S += Format(' (quantity %d)', [DropppedItem.Quantity]);
       Notifications.Show(S);
@@ -662,7 +662,7 @@ begin
     if FEquippedWeapon <> nil then
     begin
       Notifications.Show(Format('You''re using weapon "%s" now',
-        [EquippedWeapon.Kind.Caption]));
+        [EquippedWeapon.Resource.Caption]));
       FEquippedWeapon.Equip;
       FEquippedWeapon.FreeNotification(Self);
     end else

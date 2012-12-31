@@ -42,8 +42,23 @@ type
 
   TCreatureClass = class of TCreature;
 
-  { Basic kind of creature that can walk or fly, has life and can be hurt. }
-  TCreatureKind = class(T3DResource)
+  { Basic abstract resource used by all creatures.
+    Basic creature can walk or fly, has life and can be hurt,
+    can fall down because of gravity and such.
+
+    A "resource" is an information shared by all creatures of given type,
+    for example you can have two instances of TCreatureResource: Werewolf
+    and Knight. Actually, they would have to be instances of one of
+    the TCreatureResource descendants, like TWalkAttackCreatureResource,
+    as TCreatureResource is abstract. Using them you can create and place
+    on your your level milions of actual werewolves and knights
+    (for example instances of TWalkAttackCreature).
+    Every werewolf on the level will have potentially different life and
+    state (attacking, walking), but all werewolves will share the same
+    resource, so e.g. all werewolves will use the same dying animation
+    (TWalkAttackCreatureResource.DieAnimation) and dying sound
+    (TCreatureResource.SoundDie). }
+  TCreatureResource = class(T3DResource)
   strict private
     FFlying: boolean;
     FSoundSuddenPain: TSoundType;
@@ -77,7 +92,7 @@ type
       const DoProgress: boolean); override;
   public
     const
-      { Default value for TCreatureKind.DefaultMaxLife.
+      { Default value for TCreatureResource.DefaultMaxLife.
         Yes, it's not a typo, this identifier starts with "DefaultDefault". }
       DefaultDefaultMaxLife = 100.0;
       DefaultFlying = false;
@@ -90,14 +105,14 @@ type
     constructor Create(const AName: string); override;
 
     { Flying creatures are not affected by gravity and
-      (in case of TWalkAttackCreatureKind) their move direction is free.
+      (in case of TWalkAttackCreatureResource) their move direction is free.
 
       For all creatures, TCreature.Gravity (inherited from T3D.Gravity)
-      is set to @code("not Flying") (except TMissileCreatureKind,
+      is set to @code("not Flying") (except TMissileCreatureResource,
       that has special approach to gravity,
-      see TMissileCreatureKind.DirectionFallSpeed).
+      see TMissileCreatureResource.DirectionFallSpeed).
 
-      For TWalkAttackCreatureKind, additionally Flying allows to move
+      For TWalkAttackCreatureResource, additionally Flying allows to move
       freely, while non-flying creatures are constrained to move
       (and think about moving) only horizontally. }
     property Flying: boolean read FFlying write FFlying default DefaultFlying;
@@ -144,7 +159,7 @@ type
       read FSoundDieTiedToCreature write FSoundDieTiedToCreature
       default DefaultSoundDieTiedToCreature;
 
-    { The default MaxLife for creatures of this kind.
+    { The default MaxLife for creatures of this resource.
 
       Note that you can always override it for a particular creature
       instance. You can use a special creature placeholder with
@@ -159,9 +174,9 @@ type
     property DefaultMaxLife: Single
       read FDefaultMaxLife write FDefaultMaxLife default DefaultDefaultMaxLife;
 
-    { Create the TCreature instance of this kind.
-      Uses TCreature descendant that can best cooperate with this kind,
-      e.g. if this kind has settings for short-range fight,
+    { Create the TCreature instance using this resource.
+      Uses TCreature descendant that can best cooperate with this resource,
+      e.g. if this resource has settings for short-range fight,
       then the TCreature instance will be able to short-range fight.
 
       The creature is added to the World, and it's owned by World.
@@ -193,7 +208,7 @@ type
 
       Will always be multiplied by the knocking distance of the weapon that
       caused the push (which should reflect the force of the weapon blow),
-      see TItemWeaponKind.AttackKnockbackDistance.
+      see TItemWeaponResource.AttackKnockbackDistance.
 
       Only for TWalkAttackCreature, the final distance the creature
       is knocked back is capped
@@ -213,9 +228,9 @@ type
 
     { Default attack damage and knockback.
       Used only by the creatures that actually do some kind of direct attack.
-      For example it is used for short-range attack by TWalkAttackCreatureKind
-      (if TWalkAttackCreatureKind.AttackAnimation defined)
-      and for hit of TMissileCreatureKind.
+      For example it is used for short-range attack by TWalkAttackCreatureResource
+      (if TWalkAttackCreatureResource.AttackAnimation defined)
+      and for hit of TMissileCreatureResource.
 
       All these values must be >= 0.
 
@@ -261,7 +276,7 @@ type
 
     There are a lot of settings to achieve particular behavior,
     e.g. cowardly/brave, offensive/defensive, melee/ranged, etc. }
-  TWalkAttackCreatureKind = class(TCreatureKind)
+  TWalkAttackCreatureResource = class(TCreatureResource)
   private
     FIdleAnimation: T3DResourceAnimation;
     FIdleToWalkAnimation: T3DResourceAnimation;
@@ -542,9 +557,9 @@ type
     On collision, it hits, potentially hurting the alive 3D object
     that was colliding (player or other creatures).
 
-    Missiles ignore TCreatureKind.Flying, they use their own way to handle
+    Missiles ignore TCreatureResource.Flying, they use their own way to handle
     gravity with DirectionFallSpeed. }
-  TMissileCreatureKind = class(TCreatureKind)
+  TMissileCreatureResource = class(TCreatureResource)
   private
     FFlyAnimation: T3DResourceAnimation;
     FDieAnimation: T3DResourceAnimation;
@@ -620,7 +635,7 @@ type
 
       This is quite different (in different units and with slightly different
       effect) than T3D.FallSpeed, hence a different name and property.
-      TMissileCreatureKind doesn't use T3D.Gravity and so ignores
+      TMissileCreatureResource doesn't use T3D.Gravity and so ignores
       FallSpeed, GrowSpeed and other properties.
 
       0 means to not fall down (missile is not affected by gravity). }
@@ -631,8 +646,8 @@ type
     { Should the dead (destroyed) missiles be removed from level.
       Useful if you want to see arrows stuck into walls where they hit.
 
-      This is like TWalkAttackCreatureKind.RemoveDead
-      and TStillCreatureKind.RemoveDead, except for missiles the default is @true.
+      This is like TWalkAttackCreatureResource.RemoveDead
+      and TStillCreatureResource.RemoveDead, except for missiles the default is @true.
       Also, even if you switch this to @false,
       it's ignored (works like @true) if the missile hit a dynamic
       object (like another creature or player).
@@ -644,7 +659,7 @@ type
 
   { Creature that just stays still.
     This is just a single 3D animation showing a creature. }
-  TStillCreatureKind = class(TCreatureKind)
+  TStillCreatureResource = class(TCreatureResource)
   private
     FIdleAnimation: T3DResourceAnimation;
     FDieAnimation: T3DResourceAnimation;
@@ -663,10 +678,10 @@ type
       read FRemoveDead write FRemoveDead default DefaultRemoveDead;
   end;
 
-  { Base creature, using any TCreatureKind. }
+  { Base creature, using any TCreatureResource. }
   TCreature = class(T3DAlive)
   private
-    FKind: TCreatureKind;
+    FResource: TCreatureResource;
 
     UsedSounds: TSoundList;
     FSoundDieEnabled: boolean;
@@ -695,7 +710,7 @@ type
 
     destructor Destroy; override;
 
-    property Kind: TCreatureKind read FKind;
+    property Resource: TCreatureResource read FResource;
 
     procedure Render(const Frustum: TFrustum;
       const Params: TRenderParams); override;
@@ -728,7 +743,7 @@ type
     { Can the approximate sphere be used for some collision-detection
       tasks.
 
-      Set to @false in descendants if Kind.Radius
+      Set to @false in descendants if Resource.Radius
       is not appropriate for this creature state.
 
       In this class, this is implemented to return @code(not Dead).
@@ -744,7 +759,7 @@ type
   TCreatureList = class(specialize TFPGObjectList<TCreature>)
   end;
 
-  { Creature using TWalkAttackCreatureKind. }
+  { Creature using TWalkAttackCreatureResource. }
   TWalkAttackCreature = class(TCreature)
   private
     FState: TCreatureState;
@@ -802,8 +817,8 @@ type
       if enemy is still within reach (AttackMaxDistance; even if it was within
       reach at the start of csAttack state, the enemy could step back,
       so we need to check AttackMaxDistance again).
-      The damage and knockback are defined by TCreatureKind.AttackDamageConst,
-      TCreatureKind.AttackDamageRandom, TCreatureKind.AttackKnockbackDistance. }
+      The damage and knockback are defined by TCreatureResource.AttackDamageConst,
+      TCreatureResource.AttackDamageRandom, TCreatureResource.AttackKnockbackDistance. }
     procedure Attack; virtual;
 
     { Actually do the attack indicated by FireMissileAnimation
@@ -813,7 +828,7 @@ type
 
       This can happen only if you defined FireMissileAnimation for this creature.
 
-      The default implementation here creates a new creature with kind
+      The default implementation here creates a new creature with resource
       defined by FireMissileName, if FireMissileName is not empty. }
     procedure FireMissile; virtual;
   public
@@ -821,7 +836,7 @@ type
 
     destructor Destroy; override;
 
-    function Kind: TWalkAttackCreatureKind;
+    function Resource: TWalkAttackCreatureResource;
 
     property State: TCreatureState read FState default csIdle;
 
@@ -832,7 +847,7 @@ type
       const AKnockbackDistance: Single); override;
   end;
 
-  { Creature using TMissileCreatureKind. }
+  { Creature using TMissileCreatureResource. }
   TMissileCreature = class(TCreature)
   private
     LastSoundIdleTime: Single;
@@ -844,16 +859,16 @@ type
     function GetChild: T3D; override;
   public
     constructor Create(AOwner: TComponent; const AMaxLife: Single); override;
-    function Kind: TMissileCreatureKind;
+    function Resource: TMissileCreatureResource;
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
   end;
 
-  { Creature using TStillCreatureKind. }
+  { Creature using TStillCreatureResource. }
   TStillCreature = class(TCreature)
   protected
     function GetChild: T3D; override;
   public
-    function Kind: TStillCreatureKind;
+    function Resource: TStillCreatureResource;
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
   end;
 
@@ -874,9 +889,9 @@ var
   { OpenGL outline (3D) font for DebugCaption. }
   Font3d: TGLOutlineFont;
 
-{ TCreatureKind -------------------------------------------------------------- }
+{ TCreatureResource -------------------------------------------------------------- }
 
-constructor TCreatureKind.Create(const AName: string);
+constructor TCreatureResource.Create(const AName: string);
 begin
   inherited;
   FFlying := DefaultFlying;
@@ -895,7 +910,7 @@ begin
   FFallSound := SoundEngine.SoundFromName(DefaultCreatureFallSoundName, false);
 end;
 
-procedure TCreatureKind.LoadFromFile(ResourceConfig: TCastleConfig);
+procedure TCreatureResource.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
@@ -930,14 +945,14 @@ begin
     ResourceConfig.GetValue('fall/sound/name', DefaultCreatureFallSoundName), false);
 end;
 
-function TCreatureKind.Radius: Single;
+function TCreatureResource.Radius: Single;
 begin
   if RadiusConfigured <> 0 then
     Result := RadiusConfigured else
     Result := RadiusCalculated;
 end;
 
-function TCreatureKind.RadiusCalculate(const GravityUp: TVector3Single): Single;
+function TCreatureResource.RadiusCalculate(const GravityUp: TVector3Single): Single;
 var
   GC: Integer;
   Box: TBox3D;
@@ -972,25 +987,25 @@ begin
   end;
 end;
 
-function TCreatureKind.CreateCreature(World: T3DWorld;
+function TCreatureResource.CreateCreature(World: T3DWorld;
   const APosition, ADirection: TVector3Single;
   const MaxLife: Single): TCreature;
 begin
   { This is only needed if you forgot to add creature to <resources>.
 
     Note: we experimented with moving this to TCreature.PrepareResource,
-    call Kind.Prepare from there. But it just doesn't fully work:
-    some creatures really want kind to be prepared
+    call Resource.Prepare from there. But it just doesn't fully work:
+    some creatures really want Resource to be prepared
     before PrepareResource (from scene manager BeforeDraw) had a chance to work.
     For example, on missiles like thrown web we do Sound3d that uses LerpLegsMiddle.
-    Also TCreature.Idle (which definitely needs kind) may get called before
+    Also TCreature.Idle (which definitely needs Resource) may get called before
     PrepareResource. IOW, PrepareResource is just too late. }
   Prepare(World.BaseLights, World.GravityUp);
 
   Result := CreatureClass.Create(World { owner }, MaxLife);
   { set properties that in practice must have other-than-default values
     to sensibly use the creature }
-  Result.FKind := Self;
+  Result.FResource := Self;
   Result.SetView(APosition, ADirection, World.GravityUp);
   Result.Life := MaxLife;
   Result.KnockBackSpeed := KnockBackSpeed;
@@ -1003,13 +1018,13 @@ begin
   World.Add(Result);
 end;
 
-function TCreatureKind.CreateCreature(World: T3DWorld;
+function TCreatureResource.CreateCreature(World: T3DWorld;
   const APosition, ADirection: TVector3Single): TCreature;
 begin
   Result := CreateCreature(World, APosition, ADirection, DefaultMaxLife);
 end;
 
-procedure TCreatureKind.InstantiatePlaceholder(World: T3DWorld;
+procedure TCreatureResource.InstantiatePlaceholder(World: T3DWorld;
   const APosition, ADirection: TVector3Single;
   const NumberPresent: boolean; const Number: Int64);
 var
@@ -1027,7 +1042,7 @@ begin
   CreateCreature(World, APosition, CreatureDirection, MaxLife);
 end;
 
-procedure TCreatureKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
+procedure TCreatureResource.PrepareCore(const BaseLights: TAbstractLightInstancesList;
   const GravityUp: TVector3Single;
   const DoProgress: boolean);
 begin
@@ -1035,9 +1050,9 @@ begin
   RadiusCalculated := RadiusCalculate(GravityUp);
 end;
 
-{ TWalkAttackCreatureKind ---------------------------------------------------- }
+{ TWalkAttackCreatureResource ---------------------------------------------------- }
 
-constructor TWalkAttackCreatureKind.Create(const AName: string);
+constructor TWalkAttackCreatureResource.Create(const AName: string);
 begin
   inherited;
 
@@ -1070,7 +1085,7 @@ begin
   FHurtAnimation := T3DResourceAnimation.Create(Self, 'hurt');
 end;
 
-procedure TWalkAttackCreatureKind.LoadFromFile(ResourceConfig: TCastleConfig);
+procedure TWalkAttackCreatureResource.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
@@ -1106,14 +1121,14 @@ begin
   FireMissileHeight := ResourceConfig.GetFloat('fire_missile/height', DefaultFireMissileHeight);
 end;
 
-function TWalkAttackCreatureKind.CreatureClass: TCreatureClass;
+function TWalkAttackCreatureResource.CreatureClass: TCreatureClass;
 begin
   Result := TWalkAttackCreature;
 end;
 
-{ TMissileCreatureKind ---------------------------------------------------- }
+{ TMissileCreatureResource ---------------------------------------------------- }
 
-constructor TMissileCreatureKind.Create(const AName: string);
+constructor TMissileCreatureResource.Create(const AName: string);
 begin
   inherited;
   FMoveSpeed := DefaultMoveSpeed;
@@ -1127,7 +1142,7 @@ begin
   FRemoveDead := DefaultRemoveDead;
 end;
 
-function TMissileCreatureKind.RadiusCalculate(const GravityUp: TVector3Single): Single;
+function TMissileCreatureResource.RadiusCalculate(const GravityUp: TVector3Single): Single;
 var
   Box: TBox3D;
 begin
@@ -1142,12 +1157,12 @@ begin
     Result := inherited;
 end;
 
-function TMissileCreatureKind.CreatureClass: TCreatureClass;
+function TMissileCreatureResource.CreatureClass: TCreatureClass;
 begin
   Result := TMissileCreature;
 end;
 
-procedure TMissileCreatureKind.LoadFromFile(ResourceConfig: TCastleConfig);
+procedure TMissileCreatureResource.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
@@ -1171,7 +1186,7 @@ begin
     ResourceConfig.GetValue('sound_idle', ''));
 end;
 
-function TMissileCreatureKind.CreateCreature(World: T3DWorld;
+function TMissileCreatureResource.CreateCreature(World: T3DWorld;
   const APosition, ADirection: TVector3Single;
   const MaxLife: Single): TCreature;
 begin
@@ -1197,9 +1212,9 @@ begin
   Result.Gravity := false;
 end;
 
-{ TStillCreatureKind ---------------------------------------------------- }
+{ TStillCreatureResource ---------------------------------------------------- }
 
-constructor TStillCreatureKind.Create(const AName: string);
+constructor TStillCreatureResource.Create(const AName: string);
 begin
   inherited;
   FIdleAnimation := T3DResourceAnimation.Create(Self, 'idle');
@@ -1207,12 +1222,12 @@ begin
   FRemoveDead := DefaultRemoveDead;
 end;
 
-function TStillCreatureKind.CreatureClass: TCreatureClass;
+function TStillCreatureResource.CreatureClass: TCreatureClass;
 begin
   Result := TStillCreature;
 end;
 
-procedure TStillCreatureKind.LoadFromFile(ResourceConfig: TCastleConfig);
+procedure TStillCreatureResource.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
   RemoveDead := ResourceConfig.GetValue('remove_dead', DefaultRemoveDead);
@@ -1263,8 +1278,8 @@ begin
     FreeAndNil(UsedSounds);
   end;
 
-  if Kind <> nil then
-    Kind.Release;
+  if Resource <> nil then
+    Resource.Release;
 
   inherited;
 end;
@@ -1367,21 +1382,21 @@ end;
 function TCreature.DebugCaption: string;
 begin
   Result := Format('%s [%s / %s]',
-    [Kind.Name, FloatToNiceStr(Life), FloatToNiceStr(MaxLife)]);
+    [Resource.Name, FloatToNiceStr(Life), FloatToNiceStr(MaxLife)]);
 end;
 
 procedure TCreature.Fall(const FallHeight: Single);
 begin
   inherited;
 
-  if FallHeight > Kind.FallMinHeightToSound then
-    Sound3d(Kind.FallSound, 0.1, false);
+  if FallHeight > Resource.FallMinHeightToSound then
+    Sound3d(Resource.FallSound, 0.1, false);
 
-  if FallHeight > Kind.FallMinHeightToDamage then
+  if FallHeight > Resource.FallMinHeightToDamage then
     Hurt(Max(0,
       FallHeight * MapRange(Random, 0.0, 1.0,
-        Kind.FallDamageScaleMin,
-        Kind.FallDamageScaleMax)),
+        Resource.FallDamageScaleMin,
+        Resource.FallDamageScaleMax)),
       ZeroVector3Single, 0);
 end;
 
@@ -1413,11 +1428,11 @@ begin
   begin
     { When dies, we don't play SoundSuddenPain sound. We will play SoundDie. }
     if SoundDieEnabled then
-      Sound3d(Kind.SoundDie, 1.0, Kind.SoundDieTiedToCreature);
+      Sound3d(Resource.SoundDie, 1.0, Resource.SoundDieTiedToCreature);
   end else
   if (Life > 0) and (Life - Value > 5) then
   begin
-    Sound3d(Kind.SoundSuddenPain, 1.0);
+    Sound3d(Resource.SoundSuddenPain, 1.0);
   end;
 
   inherited;
@@ -1426,15 +1441,15 @@ end;
 procedure TCreature.AttackHurt(const HurtEnemy: T3DAlive);
 begin
   if HurtEnemy <> nil then
-    HurtEnemy.Hurt(Kind.AttackDamageConst +
-      Random * Kind.AttackDamageRandom, Direction,
-      Kind.AttackKnockbackDistance);
+    HurtEnemy.Hurt(Resource.AttackDamageConst +
+      Random * Resource.AttackDamageRandom, Direction,
+      Resource.AttackKnockbackDistance);
 end;
 
 function TCreature.Sphere(out Radius: Single): boolean;
 begin
   Result := GetExists and (not Dead);
-  Radius := Kind.Radius;
+  Radius := Resource.Radius;
 end;
 
 { TWalkAttackCreature -------------------------------------------------------- }
@@ -1455,7 +1470,7 @@ begin
       the fact that creature was killed long time ago.
 
       This way the creature is created as a dead corpse, without making
-      any kind of Die (or wounded) sound or animation. }
+      any kind of dying (or wounded) sound or animation. }
     FState := csDie;
     FStateChangeTime := -1000;
   end;
@@ -1469,9 +1484,9 @@ begin
   inherited;
 end;
 
-function TWalkAttackCreature.Kind: TWalkAttackCreatureKind;
+function TWalkAttackCreature.Resource: TWalkAttackCreatureResource;
 begin
-  Result := TWalkAttackCreatureKind(inherited Kind);
+  Result := TWalkAttackCreatureResource(inherited Resource);
 end;
 
 function TWalkAttackCreature.Enemy: T3DAlive;
@@ -1491,7 +1506,7 @@ begin
     case FState of
       csAttack:
         begin
-          Sound3d(Kind.AttackSoundStart, 1.0);
+          Sound3d(Resource.AttackSoundStart, 1.0);
           LastAttackTime := StateChangeTime;
           AttackDone := false;
         end;
@@ -1530,14 +1545,14 @@ var
 
   function AttackAllowed: boolean;
   begin
-    Result := ActionAllowed(Kind.AttackAnimation, LastAttackTime,
-      Kind.AttackMinDelay, Kind.AttackMaxDistance, Kind.AttackMaxAngle);
+    Result := ActionAllowed(Resource.AttackAnimation, LastAttackTime,
+      Resource.AttackMinDelay, Resource.AttackMaxDistance, Resource.AttackMaxAngle);
   end;
 
   function FireMissileAllowed: boolean;
   begin
-    Result := ActionAllowed(Kind.FireMissileAnimation, LastFireMissileTime,
-      Kind.FireMissileMinDelay, Kind.FireMissileMaxDistance, Kind.FireMissileMaxAngle);
+    Result := ActionAllowed(Resource.FireMissileAnimation, LastFireMissileTime,
+      Resource.FireMissileMinDelay, Resource.FireMissileMaxDistance, Resource.FireMissileMaxAngle);
   end;
 
   procedure CalculateDirectionToTarget(
@@ -1547,7 +1562,7 @@ var
   begin
     { calculate DirectionToTarget }
     DirectionToTarget := VectorSubtract(Target, Middle);
-    if not Kind.Flying then
+    if not Resource.Flying then
       MakeVectorsOrthoOnTheirPlane(DirectionToTarget, World.GravityUp);
 
     { calculate AngleRadBetweenDirectionToTarget }
@@ -1597,7 +1612,7 @@ var
         VectorProduct(Direction, DirectionToTarget));
 
       { Make sure direction for non-flying creatures is orthogonal to GravityUp. }
-      if not Kind.Flying then
+      if not Resource.Flying then
         MakeVectorsOrthoOnTheirPlane(NewDirection, World.GravityUp);
       Direction := NewDirection;
     end;
@@ -1609,7 +1624,7 @@ var
   var
     SqrDistanceToTarget: Single;
   begin
-    if Kind.Flying then
+    if Resource.Flying then
       SqrDistanceToTarget := PointsDistanceSqr(Middle, Target) else
       SqrDistanceToTarget := PointsDistance2DSqr(Middle, Target, World.GravityCoordinate);
     Result :=
@@ -1677,7 +1692,7 @@ var
         enemy to easier attack (shorter distance --- easier to reach with
         short-range weapon, or easier to aim with long-range weapon). }
       ( (not IdleSeesEnemy) or
-        (IdleSqrDistanceToLastSeenEnemy > Sqr(Kind.PreferredDistance))
+        (IdleSqrDistanceToLastSeenEnemy > Sqr(Resource.PreferredDistance))
       );
   end;
 
@@ -1695,8 +1710,8 @@ var
   function WantToRunAway: boolean;
   begin
     Result := IdleSeesEnemy and
-      (Life <= MaxLife * Kind.RunAwayLife) and
-      (IdleSqrDistanceToLastSeenEnemy < Sqr(Kind.RunAwayDistance));
+      (Life <= MaxLife * Resource.RunAwayLife) and
+      (IdleSqrDistanceToLastSeenEnemy < Sqr(Resource.RunAwayDistance));
   end;
 
   procedure InitAlternativeTarget;
@@ -1704,14 +1719,14 @@ var
     Distance: Single;
     I: Integer;
   begin
-    Distance := Kind.RandomWalkDistance;
+    Distance := Resource.RandomWalkDistance;
 
     AlternativeTarget := Middle;
     { Add random values to the AlternativeTarget, but only on the components
       where creature can reliably move. Creature that cannot fly cannot
       move in gravity (UpIndex) direction. }
     for I := 0 to 2 do
-      if Kind.Flying or (I <> World.GravityCoordinate) then
+      if Resource.Flying or (I <> World.GravityCoordinate) then
         AlternativeTarget[I] += Random * Distance * 2 - Distance;
 
     HasAlternativeTarget := true;
@@ -1735,7 +1750,7 @@ var
       if WantToRunAway or
          WantToWalkToEnemy(AngleRadBetweenDirectionToEnemy) then
         SetState(csWalk) else
-      if (not Kind.Flying) and
+      if (not Resource.Flying) and
          (AngleRadBetweenDirectionToEnemy < 0.01) and
          BoundingBox.PointInside2D(LastSeenEnemy, World.GravityCoordinate) then
       begin
@@ -1780,10 +1795,10 @@ var
         AboveHeight: Single;
       begin
         Result := false;
-        if not Kind.Flying then
+        if not Resource.Flying then
         begin
           Height(NewMiddle, AboveHeight);
-          if AboveHeight > Kind.MaxHeightAcceptableToFall + PreferredHeight then
+          if AboveHeight > Resource.MaxHeightAcceptableToFall + PreferredHeight then
             Result := true;
         end;
       end;
@@ -1795,7 +1810,7 @@ var
           (that will be calculated later by Move)
           because they are too close to Middle to be good to test against.
           I'm calculating here where I would get after 0.2 second. }
-        (not TooHighAboveTheGround(Middle + Direction * (Kind.MoveSpeed * 0.2))) and
+        (not TooHighAboveTheGround(Middle + Direction * (Resource.MoveSpeed * 0.2))) and
 
         { Use Move without wall-sliding here.
           Things using MoveAlongTheDirection depend on the fact that
@@ -1806,7 +1821,7 @@ var
           Our trick with "AlternativeTarget" should handle
           eventual problems with the track of creature, so wall-sliding
           should not be needed. }
-        Move(Direction * (Kind.MoveSpeed * CompSpeed), false, false);
+        Move(Direction * (Resource.MoveSpeed * CompSpeed), false, false);
     end;
 
     { Go the way to LastSeenEnemy, *not* by using waypoints.
@@ -2023,12 +2038,12 @@ var
     StateTime: Single;
   begin
     StateTime := LifeTime - StateChangeTime;
-    if (not AttackDone) and (StateTime >= Kind.AttackTime) then
+    if (not AttackDone) and (StateTime >= Resource.AttackTime) then
     begin
       AttackDone := true;
       Attack;
     end;
-    if StateTime > Kind.AttackAnimation.Duration then
+    if StateTime > Resource.AttackAnimation.Duration then
       { csIdle will quickly change to csWalk if it will want to walk. }
       SetState(csIdle);
   end;
@@ -2038,12 +2053,12 @@ var
     StateTime: Single;
   begin
     StateTime := LifeTime - StateChangeTime;
-    if (not FireMissileDone) and (StateTime >= Kind.FireMissileTime) then
+    if (not FireMissileDone) and (StateTime >= Resource.FireMissileTime) then
     begin
       FireMissileDone := true;
       FireMissile;
     end;
-    if StateTime > Kind.FireMissileAnimation.Duration then
+    if StateTime > Resource.FireMissileAnimation.Duration then
       { csIdle will quickly change to csWalk if it will want to walk. }
       SetState(csIdle);
   end;
@@ -2054,7 +2069,7 @@ var
   begin
     StateTime := LifeTime - StateChangeTime;
 
-    if StateTime > Kind.HurtAnimation.Duration then
+    if StateTime > Resource.HurtAnimation.Duration then
     begin
       CancelKnockback;
       SetState(csIdle);
@@ -2074,7 +2089,7 @@ var
 
   procedure DoDie(const AnimationDuration: Single);
   begin
-    if Kind.RemoveDead and
+    if Resource.RemoveDead and
       (LifeTime - StateChangeTime > AnimationDuration) then
       RemoveMe := rtRemoveAndFree;
   end;
@@ -2087,7 +2102,7 @@ begin
 
   if Dead and not (State in [csDie, csDieBack]) then
   begin
-    if Kind.DieBackAnimation.Defined and WasLackAttackBack then
+    if Resource.DieBackAnimation.Defined and WasLackAttackBack then
       SetState(csDieBack) else
       SetState(csDie);
     Exit;
@@ -2113,8 +2128,8 @@ begin
     csWalk: DoWalk;
     csAttack: DoAttack;
     csFireMissile: DoFireMissile;
-    csDie    : DoDie(Kind.DieAnimation.Duration);
-    csDieBack: DoDie(Kind.DieBackAnimation.Duration);
+    csDie    : DoDie(Resource.DieAnimation.Duration);
+    csDieBack: DoDie(Resource.DieBackAnimation.Duration);
     csHurt: DoHurt;
   end;
 
@@ -2125,7 +2140,7 @@ begin
 
     For non-flying, this is not needed, as then Up should always remain equal
     to initial value, which is GravityUp. }
-  if Kind.Flying then
+  if Resource.Flying then
     UpPrefer(World.GravityUp);
 end;
 
@@ -2133,30 +2148,30 @@ function TWalkAttackCreature.GetChild: T3D;
 var
   StateTime: Single;
 begin
-  if not Kind.Prepared then Exit(nil);
+  if not Resource.Prepared then Exit(nil);
 
   { Time from the change to this state. }
   StateTime := LifeTime - StateChangeTime;
 
   case FState of
     csIdle:
-      Result := Kind.IdleAnimation.Scene(StateTime, true);
+      Result := Resource.IdleAnimation.Scene(StateTime, true);
     csWalk:
-      if Kind.IdleToWalkAnimation.Defined and
-         (StateTime < Kind.IdleToWalkAnimation.Duration) then
-        Result := Kind.IdleToWalkAnimation.Scene(StateTime, false) else
-        Result := Kind.WalkAnimation.Scene(
-          StateTime - Kind.IdleToWalkAnimation.Duration, true);
+      if Resource.IdleToWalkAnimation.Defined and
+         (StateTime < Resource.IdleToWalkAnimation.Duration) then
+        Result := Resource.IdleToWalkAnimation.Scene(StateTime, false) else
+        Result := Resource.WalkAnimation.Scene(
+          StateTime - Resource.IdleToWalkAnimation.Duration, true);
     csAttack:
-      Result := Kind.AttackAnimation.Scene(StateTime, false);
+      Result := Resource.AttackAnimation.Scene(StateTime, false);
     csFireMissile:
-      Result := Kind.FireMissileAnimation.Scene(StateTime, false);
+      Result := Resource.FireMissileAnimation.Scene(StateTime, false);
     csDie:
-      Result := Kind.DieAnimation.Scene(StateTime, false);
+      Result := Resource.DieAnimation.Scene(StateTime, false);
     csDieBack:
-      Result := Kind.DieBackAnimation.Scene(StateTime, false);
+      Result := Resource.DieBackAnimation.Scene(StateTime, false);
     csHurt:
-      Result := Kind.HurtAnimation.Scene(StateTime, false);
+      Result := Resource.HurtAnimation.Scene(StateTime, false);
     else raise EInternalError.Create('FState ?');
   end;
 end;
@@ -2164,9 +2179,9 @@ end;
 procedure TWalkAttackCreature.SetLife(const Value: Single);
 begin
   if (not Dead) and
-    (Life - Value > Kind.MinLifeLossToHurt * MaxLife) and
-    ( (Kind.ChanceToHurt = 1.0) or
-      (Random < Kind.ChanceToHurt) ) then
+    (Life - Value > Resource.MinLifeLossToHurt * MaxLife) and
+    ( (Resource.ChanceToHurt = 1.0) or
+      (Random < Resource.ChanceToHurt) ) then
     SetState(csHurt);
   inherited;
 end;
@@ -2188,7 +2203,7 @@ var
       by our Direction now, i.e.
         Boxes3DCollision(Box3DTranslate(B, VectorScale(Direction, ???)), EB)
       But how much should be scale Direction, i.e. what to put for "???" ?
-      It must be large enough to compensate even large Kind.AttackMaxDistance,
+      It must be large enough to compensate even large Resource.AttackMaxDistance,
       it must be small enough so that enemy should not be able to avoid
       our attacks just by standing very close to the creature.
 
@@ -2200,23 +2215,23 @@ var
     DistanceIncrease := B.MinSize / 2;
 
     DistanceLength := DistanceIncrease;
-    while DistanceLength < Kind.AttackMaxDistance do
+    while DistanceLength < Resource.AttackMaxDistance do
     begin
       if B.Translate(VectorScale(Direction, DistanceLength)).Collision(EB) then
         Exit(true);
       DistanceLength += DistanceIncrease;
     end;
 
-    { Check one last time for Kind.AttackMaxDistance }
+    { Check one last time for Resource.AttackMaxDistance }
     Result := B.Translate(
-      VectorScale(Direction, Kind.AttackMaxDistance)).Collision(EB);
+      VectorScale(Direction, Resource.AttackMaxDistance)).Collision(EB);
   end;
 
 begin
   E := Enemy;
   if ShortRangeAttackHits then
   begin
-    Sound3d(Kind.AttackSoundHit, 1.0);
+    Sound3d(Resource.AttackSoundHit, 1.0);
     AttackHurt(E);
   end;
 end;
@@ -2226,13 +2241,13 @@ var
   Missile: TCreature;
   MissilePosition, MissileDirection: TVector3Single;
 begin
-  if (Kind.FireMissileName <> '') and HasLastSeenEnemy then
+  if (Resource.FireMissileName <> '') and HasLastSeenEnemy then
   begin
-    MissilePosition := LerpLegsMiddle(Kind.FireMissileHeight);
+    MissilePosition := LerpLegsMiddle(Resource.FireMissileHeight);
     MissileDirection := VectorSubtract(LastSeenEnemy, MissilePosition);
-    Missile := (Resources.FindName(Kind.FireMissileName) as TCreatureKind).
+    Missile := (Resources.FindName(Resource.FireMissileName) as TCreatureResource).
       CreateCreature(World, MissilePosition, MissileDirection);
-    Missile.Sound3d(Kind.FireMissileSound, 0.0);
+    Missile.Sound3d(Resource.FireMissileSound, 0.0);
   end;
 end;
 
@@ -2258,7 +2273,7 @@ procedure TWalkAttackCreature.Hurt(const LifeLoss: Single;
   const AKnockbackDistance: Single);
 begin
   inherited Hurt(LifeLoss, HurtDirection,
-    AKnockbackDistance * Kind.KnockedBackDistance);
+    AKnockbackDistance * Resource.KnockedBackDistance);
 end;
 
 procedure TWalkAttackCreature.Render(const Frustum: TFrustum; const Params: TRenderParams);
@@ -2295,9 +2310,9 @@ begin
   Collides := false;
 end;
 
-function TMissileCreature.Kind: TMissileCreatureKind;
+function TMissileCreature.Resource: TMissileCreatureResource;
 begin
-  Result := TMissileCreatureKind(inherited Kind);
+  Result := TMissileCreatureResource(inherited Resource);
 end;
 
 procedure TMissileCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
@@ -2306,13 +2321,13 @@ var
 
   function MissileMoveAllowed(const OldPos, NewPos: TVector3Single): boolean;
   begin
-    if (not Kind.HitsPlayer) and (Player <> nil) then Player.Disable;
-    if not Kind.HitsCreatures then Inc(DisableCreatures);
+    if (not Resource.HitsPlayer) and (Player <> nil) then Player.Disable;
+    if not Resource.HitsCreatures then Inc(DisableCreatures);
     try
       Result := MoveAllowed(OldPos, NewPos, false);
     finally
-      if not Kind.HitsCreatures then Dec(DisableCreatures);
-      if (not Kind.HitsPlayer) and (Player <> nil) then Player.Enable;
+      if not Resource.HitsCreatures then Dec(DisableCreatures);
+      if (not Resource.HitsPlayer) and (Player <> nil) then Player.Enable;
     end;
   end;
 
@@ -2328,8 +2343,8 @@ begin
 
   if Dead then
   begin
-    if (Kind.RemoveDead or ForceRemoveDead) and
-       (LifeTime - DieTime > Kind.DieAnimation.Duration) then
+    if (Resource.RemoveDead or ForceRemoveDead) and
+       (LifeTime - DieTime > Resource.DieAnimation.Duration) then
       RemoveMe := rtRemoveAndFree;
     Exit;
   end;
@@ -2339,7 +2354,7 @@ begin
   { Missile moves *always*, regardless of MissileMoveAllowed result.
     Only after move, if the move made us colliding with something --- we explode. }
   OldMiddle := Middle;
-  Translate(Direction * (Kind.MoveSpeed * CompSpeed));
+  Translate(Direction * (Resource.MoveSpeed * CompSpeed));
   NewMiddle := Middle;
 
   if not MissileMoveAllowed(OldMiddle, NewMiddle) then
@@ -2347,12 +2362,12 @@ begin
     { Check collision missile <-> player.
       Maybe I'll switch to using bounding Sphere here one day?
       No reason for sphere or box, either way, for now. }
-    if Kind.HitsPlayer and
+    if Resource.HitsPlayer and
       (Player <> nil) and
       Player.BoundingBox.Collision(BoundingBox) then
       HitPlayer;
 
-    if Kind.HitsCreatures then
+    if Resource.HitsCreatures then
     begin
       { TODO: this is unclean. We would prefer to use World.WorldSphereCollision,
         wrapped inside MySphereCollision to prevent self-collisions.
@@ -2365,13 +2380,13 @@ begin
       { Check bounding Sphere of the missile <-> creature's BoundingBox.
         Bounding Sphere is better for arrow, that has very large geometry
         but small enough bounding Sphere (because bounding Sphere radius
-        is adjusted by creatures/kinds.xml). }
+        may be adjusted by resource.xml). }
       for I := 0 to World.Count - 1 do
         if World[I] is TCreature then
         begin
           C := TCreature(World[I]);
           if (C <> Self) and C.GetCollides and
-            C.BoundingBox.SphereSimpleCollision(Middle, Kind.Radius) then
+            C.BoundingBox.SphereSimpleCollision(Middle, Resource.Radius) then
           begin
             HitCreature(C);
             { TODO: projectiles shouldn't do here "break". }
@@ -2383,18 +2398,18 @@ begin
     HitCore;
   end;
 
-  if Kind.DirectionFallSpeed <> 0 then
+  if Resource.DirectionFallSpeed <> 0 then
   begin
     NewDirection := Direction -
-      World.GravityUp * Kind.DirectionFallSpeed * CompSpeed;
+      World.GravityUp * Resource.DirectionFallSpeed * CompSpeed;
     Direction := NewDirection;
   end;
 
-  if (Kind.CloseDirectionToTargetSpeed <> 0.0) and (Player <> nil) then
+  if (Resource.CloseDirectionToTargetSpeed <> 0.0) and (Player <> nil) then
   begin
     TargetDirection := Player.Position - Position;
     AngleBetween := AngleRadBetweenVectors(TargetDirection, Direction);
-    AngleChange := Kind.CloseDirectionToTargetSpeed * CompSpeed;
+    AngleChange := Resource.CloseDirectionToTargetSpeed * CompSpeed;
     if AngleBetween <= AngleChange then
       Direction := TargetDirection else
     begin
@@ -2406,20 +2421,20 @@ begin
   end;
 
   if (LastSoundIdleTime = 0) or
-     (LifeTime - LastSoundIdleTime > Kind.PauseBetweenSoundIdle) then
+     (LifeTime - LastSoundIdleTime > Resource.PauseBetweenSoundIdle) then
   begin
     LastSoundIdleTime := LifeTime;
-    Sound3d(Kind.SoundIdle, 0.0);
+    Sound3d(Resource.SoundIdle, 0.0);
   end;
 end;
 
 function TMissileCreature.GetChild: T3D;
 begin
-  if not Kind.Prepared then Exit(nil);
+  if not Resource.Prepared then Exit(nil);
 
-  if Dead and Kind.DieAnimation.Defined then
-    Result := Kind.DieAnimation.Scene(LifeTime - DieTime, false) else
-    Result := Kind.FlyAnimation.Scene(LifeTime, true);
+  if Dead and Resource.DieAnimation.Defined then
+    Result := Resource.DieAnimation.Scene(LifeTime - DieTime, false) else
+    Result := Resource.FlyAnimation.Scene(LifeTime, true);
 end;
 
 procedure TMissileCreature.HitCore;
@@ -2427,7 +2442,7 @@ begin
   { TODO: for some missiles, their explosion may hurt everyone around.
     So do here additional checks for collision and hurt player and creatures. }
 
-  Sound3d(Kind.SoundHit, 0, false);
+  Sound3d(Resource.SoundHit, 0, false);
   Hurt(1000 * 1000, ZeroVector3Single, 0);
 end;
 
@@ -2445,18 +2460,18 @@ end;
 
 { TStillCreature ----------------------------------------------------------- }
 
-function TStillCreature.Kind: TStillCreatureKind;
+function TStillCreature.Resource: TStillCreatureResource;
 begin
-  Result := TStillCreatureKind(inherited Kind);
+  Result := TStillCreatureResource(inherited Resource);
 end;
 
 function TStillCreature.GetChild: T3D;
 begin
-  if not Kind.Prepared then Exit(nil);
+  if not Resource.Prepared then Exit(nil);
 
-  if Dead and Kind.DieAnimation.Defined then
-    Result := Kind.DieAnimation.Scene(LifeTime - DieTime, false) else
-    Result := Kind.IdleAnimation.Scene(LifeTime, true);
+  if Dead and Resource.DieAnimation.Defined then
+    Result := Resource.DieAnimation.Scene(LifeTime - DieTime, false) else
+    Result := Resource.IdleAnimation.Scene(LifeTime, true);
 end;
 
 procedure TStillCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
@@ -2466,7 +2481,7 @@ begin
 
   if Dead then
   begin
-    if Kind.RemoveDead and (LifeTime - DieTime > Kind.DieAnimation.Duration) then
+    if Resource.RemoveDead and (LifeTime - DieTime > Resource.DieAnimation.Duration) then
       RemoveMe := rtRemoveAndFree;
   end;
 end;
@@ -2498,7 +2513,7 @@ initialization
   OnGLContextOpen.Add(@WindowOpen);
   OnGLContextClose.Add(@WindowClose);
 
-  RegisterResourceClass(TWalkAttackCreatureKind, 'WalkAttack');
-  RegisterResourceClass(TMissileCreatureKind, 'Missile');
-  RegisterResourceClass(TStillCreatureKind, 'Still');
+  RegisterResourceClass(TWalkAttackCreatureResource, 'WalkAttack');
+  RegisterResourceClass(TMissileCreatureResource, 'Missile');
+  RegisterResourceClass(TStillCreatureResource, 'Still');
 end.

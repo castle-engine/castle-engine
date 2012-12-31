@@ -27,8 +27,21 @@ type
   TInventoryItem = class;
   TInventoryItemClass = class of TInventoryItem;
 
-  { Kind of item. }
-  TItemKind = class(T3DResource)
+  { Basic resource of an item that can be picked up, used and such.
+
+    A "resource" is an information shared by all items of given type,
+    for example you can have two instances of class TItemResource:
+    Sword and LifePotion. (Actually, TItemWeaponResource, which is a descendant
+    of TItemResource, sounds like a better candidate for the Sword.)
+    Using them, you can create milions of actual swords and life potions,
+    and place them of your level (as well as in inventories of creatures
+    able to carry items). Every life potion (TInventoryItem instance)
+    may keep some individual information (for example, how much of the potion
+    is already used/drunk), but all life potions will share the same
+    TItemResource instance, so e.g. they all will be displayed using the same model
+    on 3D level (TItemResource.BaseAnimation) and the same image in 2D inventory
+    (TItemResource.Image). }
+  TItemResource = class(T3DResource)
   private
     FBaseAnimation: T3DResourceAnimation;
     FCaption: string;
@@ -42,7 +55,7 @@ type
       const DoProgress: boolean); override;
     procedure ReleaseCore; override;
     { Which TInventoryItem descendant to create when constructing item
-      of this kind by CreateItem. }
+      of this resource by CreateItem. }
     function ItemClass: TInventoryItemClass; virtual;
   public
     constructor Create(const AName: string); override;
@@ -73,7 +86,7 @@ type
     property BoundingBoxRotated: TBox3D read FBoundingBoxRotated;
 
     { Create item. This is how you should create new TInventoryItem instances.
-      It is analogous to TCreatureKind.CreateCreature, but now for items.
+      It is analogous to TCreatureResource.CreateCreature, but now for items.
 
       Note that the item itself doesn't exist on a 3D world --- you have to
       put it there if you want by TInventoryItem.PutOnWorld. That is because items
@@ -82,20 +95,20 @@ type
 
       @bold(Examples:)
 
-      You usually define your own item kinds by adding a subdirectory with
+      You usually define your own item resources by adding a subdirectory with
       resource.xml file to your game data. See README_about_index_xml_files.txt
       and engine tutorial for examples how to do this. Then you load the item
-      kinds with
+      resources with
 
 @longCode(#
 var
-  Sword: TItemKind;
+  Sword: TItemResource;
 ...
   Resources.LoadFromFiles;
-  Sword := Resources.FindName('Sword') as TItemKind;
+  Sword := Resources.FindName('Sword') as TItemResource;
 #)
 
-      where 'Sword' is just our example item kind, assuming that one of your
+      where 'Sword' is just our example item resource, assuming that one of your
       resource.xml files has resource with name="Sword".
 
       Now if you want to add the sword to your 3D world by code:
@@ -108,7 +121,7 @@ var
   Sword.CreateItem(1).PutOnWorld(SceneManager.World, Vector3Single(2, 3, 4));
 #)
 
-      This adds 1 item of the MyItemKind to the 3D world,
+      This adds 1 item of the MyItemResource to the 3D world,
       on position (2, 3, 4). In simple cases you can get SceneManager
       instance from TCastleWindow.SceneManager or TCastleControl.SceneManager.
 
@@ -137,7 +150,7 @@ var
 
   { Weapon that can make an immiediate attack (short-range/shoot)
     or fire a missile. }
-  TItemWeaponKind = class(TItemKind)
+  TItemWeaponResource = class(TItemResource)
   private
     FEquippingSound: TSoundType;
     FAttackAnimation: T3DResourceAnimation;
@@ -190,11 +203,11 @@ var
 
     { Ammunition required to make an attack (applies to both immediate attack,
       like short-range/shoot, and firing missiles).
-      Indicates item kind name to use as ammunition (like 'Quiver' or 'Bullets').
+      Indicates item resource name to use as ammunition (like 'Quiver' or 'Bullets').
       It may be empty, in which case the ammunition is not necessary to make
       an attack.
       If it's set, we will check whether owner of the weapon (like a player)
-      has at least one item of this kind, and we'll decrease it
+      has at least one item of this resource, and we'll decrease it
       when firing.
 
       For example, if this weapon is a pistol, then you can set
@@ -239,7 +252,7 @@ var
     { Sound on successfull hit by an immediate attack (short-range/shoot). }
     property AttackSoundHit: TSoundType read FAttackSoundHit write FAttackSoundHit;
 
-    { Creature kind name to be created (like 'Arrow') when firing a missile.
+    { Creature resource name to be created (like 'Arrow') when firing a missile.
       Must be set to something not empty to actually fire a missile. }
     property FireMissileName: string read FFireMissileName write FFireMissileName;
 
@@ -257,7 +270,7 @@ var
     many "stacked" items, all having the same properties. }
   TInventoryItem = class(TComponent)
   private
-    FKind: TItemKind;
+    FResource: TItemResource;
     FQuantity: Cardinal;
     FOwner3D: T3D;
   protected
@@ -282,12 +295,12 @@ var
       to call then @code(FreeAndNil(Item)).
 
       The default implementation of this in TInventoryItem class
-      allows stacking always, as long as the Kind matches.
-      This means that, by default, every TItemKind is exsisting at most once
+      allows stacking always, as long as the Resource matches.
+      This means that, by default, every TItemResource is existing at most once
       in TPlayer.Inventory. }
     procedure Stack(var Item: TInventoryItem); virtual;
   public
-    property Kind: TItemKind read FKind;
+    property Resource: TItemResource read FResource;
 
     { Quantity of this item.
       This must always be >= 1. }
@@ -307,7 +320,7 @@ var
       but this method may be used for items that don't have an owner yet,
       so we take AWorld parameter explicitly.
       This is how you should create new TItemOnWorld instances.
-      It is analogous to TCreatureKind.CreateCreature, but now for items. }
+      It is analogous to TCreatureResource.CreateCreature, but now for items. }
     function PutOnWorld(const AWorld: T3DWorld;
       const APosition: TVector3Single): TItemOnWorld;
 
@@ -362,14 +375,14 @@ var
     AttackDone: boolean;
   protected
     { Make real attack, immediate (short-range/shoot) or firing missile.
-      Called during weapon TItemWeaponKind.AttackAnimation,
-      at the time TItemWeaponKind.AttackTime.
+      Called during weapon TItemWeaponResource.AttackAnimation,
+      at the time TItemWeaponResource.AttackTime.
       The default implementation in @className does a short-range/shoot
       attack (if AttackDamageConst or AttackDamageRandom or AttackKnockbackDistance
       non-zero) and fires a missile (if FireMissileName not empty). }
     procedure Attack; virtual;
   public
-    function Kind: TItemWeaponKind;
+    function Resource: TItemWeaponResource;
     procedure Use; override;
 
     { Owner equips this weapon. }
@@ -402,9 +415,9 @@ var
       as the inventory they are in. }
     property Owner3D: T3DAlive read FOwner3D;
 
-    { Searches for item of given Kind. Returns index of first found,
+    { Searches for item of given Resource. Returns index of first found,
       or -1 if not found. }
-    function FindKind(Kind: TItemKind): Integer;
+    function FindResource(Resource: TItemResource): Integer;
 
     { Add Item to Items. Because an item may be stacked with others,
       the actual Item instance may be freed and replaced with other by
@@ -498,21 +511,21 @@ implementation
 uses SysUtils, CastleFilesUtils, CastlePlayer, CastleGameNotifications,
   CastleConfig, CastleCreatures;
 
-{ TItemKind ------------------------------------------------------------ }
+{ TItemResource ------------------------------------------------------------ }
 
-constructor TItemKind.Create(const AName: string);
+constructor TItemResource.Create(const AName: string);
 begin
   inherited;
   FBaseAnimation := T3DResourceAnimation.Create(Self, 'base');
 end;
 
-destructor TItemKind.Destroy;
+destructor TItemResource.Destroy;
 begin
   FreeAndNil(FImage);
   inherited;
 end;
 
-procedure TItemKind.LoadFromFile(ResourceConfig: TCastleConfig);
+procedure TItemResource.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
@@ -523,21 +536,21 @@ begin
     raise Exception.CreateFmt('Empty caption attribute for item "%s"', [Name]);
 end;
 
-function TItemKind.Image: TCastleImage;
+function TItemResource.Image: TCastleImage;
 begin
   if FImage = nil then
     FImage := LoadImage(ImageFileName, []);
   Result := FImage;
 end;
 
-function TItemKind.GLImage: TGLImage;
+function TItemResource.GLImage: TGLImage;
 begin
   if FGLImage = nil then
     FGLImage := TGLImage.Create(Image);
   Result := FGLImage;
 end;
 
-procedure TItemKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
+procedure TItemResource.PrepareCore(const BaseLights: TAbstractLightInstancesList;
   const GravityUp: TVector3Single;
   const DoProgress: boolean);
 var
@@ -554,28 +567,28 @@ begin
   GLImage;
 end;
 
-procedure TItemKind.ReleaseCore;
+procedure TItemResource.ReleaseCore;
 begin
   FreeAndNil(FGLImage);
   inherited;
 end;
 
-function TItemKind.CreateItem(const AQuantity: Cardinal): TInventoryItem;
+function TItemResource.CreateItem(const AQuantity: Cardinal): TInventoryItem;
 begin
   Result := ItemClass.Create(nil { for now, TInventoryItem.Owner is always nil });
   { set properties that in practice must have other-than-default values
     to sensibly use the item }
-  Result.FKind := Self;
+  Result.FResource := Self;
   Result.FQuantity := AQuantity;
   Assert(Result.Quantity >= 1, 'Item''s Quantity must be >= 1');
 end;
 
-function TItemKind.ItemClass: TInventoryItemClass;
+function TItemResource.ItemClass: TInventoryItemClass;
 begin
   Result := TInventoryItem;
 end;
 
-procedure TItemKind.InstantiatePlaceholder(World: T3DWorld;
+procedure TItemResource.InstantiatePlaceholder(World: T3DWorld;
   const APosition, ADirection: TVector3Single;
   const NumberPresent: boolean; const Number: Int64);
 var
@@ -589,14 +602,14 @@ begin
   CreateItem(ItemQuantity).PutOnWorld(World, APosition);
 end;
 
-function TItemKind.AlwaysPrepared: boolean;
+function TItemResource.AlwaysPrepared: boolean;
 begin
   Result := true;
 end;
 
-{ TItemWeaponKind ------------------------------------------------------------ }
+{ TItemWeaponResource ------------------------------------------------------------ }
 
-constructor TItemWeaponKind.Create(const AName: string);
+constructor TItemWeaponResource.Create(const AName: string);
 begin
   inherited;
   FAttackAnimation := T3DResourceAnimation.Create(Self, 'attack');
@@ -608,7 +621,7 @@ begin
   FAttackShoot := DefaultAttackShoot;
 end;
 
-procedure TItemWeaponKind.LoadFromFile(ResourceConfig: TCastleConfig);
+procedure TItemWeaponResource.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
@@ -633,7 +646,7 @@ begin
     ResourceConfig.GetValue('fire_missile/sound', ''));
 end;
 
-function TItemWeaponKind.ItemClass: TInventoryItemClass;
+function TItemWeaponResource.ItemClass: TInventoryItemClass;
 begin
   Result := TItemWeapon;
 end;
@@ -642,7 +655,7 @@ end;
 
 procedure TInventoryItem.Stack(var Item: TInventoryItem);
 begin
-  if Item.Kind = Kind then
+  if Item.Resource = Resource then
   begin
     { Stack Item with us }
     Quantity := Quantity + Item.Quantity;
@@ -655,7 +668,7 @@ begin
   Check(Between(Integer(QuantitySplit), 1, Quantity - 1),
     'You must split >= 1 and less than current Quantity');
 
-  Result := Kind.CreateItem(QuantitySplit);
+  Result := Resource.CreateItem(QuantitySplit);
 
   FQuantity -= QuantitySplit;
 end;
@@ -670,9 +683,9 @@ begin
   FOwner3D := Result;
   Result.SetView(APosition, AnyOrthogonalVector(AWorld.GravityUp), AWorld.GravityUp);
   Result.Gravity := true;
-  Result.FallSpeed := Kind.FallSpeed;
-  Result.GrowSpeed := Kind.GrowSpeed;
-  Result.CastShadowVolumes := Kind.CastShadowVolumes;
+  Result.FallSpeed := Resource.FallSpeed;
+  Result.GrowSpeed := Resource.GrowSpeed;
+  Result.CastShadowVolumes := Resource.CastShadowVolumes;
   AWorld.Add(Result);
 end;
 
@@ -700,7 +713,7 @@ var
   begin
     if not AttackSoundHitDone then
     begin
-      SoundEngine.Sound(Kind.AttackSoundHit);
+      SoundEngine.Sound(Resource.AttackSoundHit);
       AttackSoundHitDone := true;
     end;
     Enemy.Hurt(AttackDC + Random * AttackDR, Own.Direction, AttackKD);
@@ -751,9 +764,9 @@ var
 
   procedure FireMissileAttack;
   begin
-    (Resources.FindName(Kind.FireMissileName) as TCreatureKind).
+    (Resources.FindName(Resource.FireMissileName) as TCreatureResource).
        CreateCreature(World, Own.Position, Own.Direction);
-    SoundEngine.Sound(Kind.FireMissileSound);
+    SoundEngine.Sound(Resource.FireMissileSound);
   end;
 
 begin
@@ -766,20 +779,20 @@ begin
   begin
     Own := T3DOrient(Owner3D);
 
-    AttackDC := Kind.AttackDamageConst;
-    AttackDR := Kind.AttackDamageRandom;
-    AttackKD := Kind.AttackKnockbackDistance;
+    AttackDC := Resource.AttackDamageConst;
+    AttackDR := Resource.AttackDamageRandom;
+    AttackKD := Resource.AttackKnockbackDistance;
 
     if (AttackDC >= 0) or
        (AttackDR >= 0) or
        (AttackKD >= 0) then
     begin
-      if Kind.AttackShoot then
+      if Resource.AttackShoot then
         ShootAttack else
         ShortRangeAttack;
     end;
 
-    if Kind.FireMissileName <> '' then
+    if Resource.FireMissileName <> '' then
       FireMissileAttack;
   end;
 end;
@@ -791,14 +804,14 @@ begin
     TPlayer(Owner3D).EquippedWeapon := Self;
 end;
 
-function TItemWeapon.Kind: TItemWeaponKind;
+function TItemWeapon.Resource: TItemWeaponResource;
 begin
-  Result := (inherited Kind) as TItemWeaponKind;
+  Result := (inherited Resource) as TItemWeaponResource;
 end;
 
 procedure TItemWeapon.Equip;
 begin
-  SoundEngine.Sound(Kind.EquippingSound);
+  SoundEngine.Sound(Resource.EquippingSound);
 
   { Just in case we had Attacking=true from previous weapon usage, clear it }
   Attacking := false;
@@ -812,18 +825,18 @@ procedure TItemWeapon.EquippedAttack(const LifeTime: Single);
     Inventory: TInventory;
     AmmoIndex: Integer;
     AmmoItem: TInventoryItem;
-    AmmoKind: TItemKind;
+    AmmoResource: TItemResource;
   begin
     { When AttackAmmo is set, check whether the owner has ammunition.
       Currently, only Player may have Inventory with items. }
-    if Kind.AttackAmmo <> '' then
+    if Resource.AttackAmmo <> '' then
     begin
       if (Owner3D <> nil) and
          (Owner3D is TPlayer) then
       begin
         Inventory := TPlayer(Owner3D).Inventory;
-        AmmoKind := Resources.FindName(Kind.AttackAmmo) as TItemKind;
-        AmmoIndex := Inventory.FindKind(AmmoKind);
+        AmmoResource := Resources.FindName(Resource.AttackAmmo) as TItemResource;
+        AmmoIndex := Inventory.FindResource(AmmoResource);
         Result := AmmoIndex <> -1;
         if Result then
         begin
@@ -845,7 +858,7 @@ procedure TItemWeapon.EquippedAttack(const LifeTime: Single);
 begin
   if (not Attacking) and CheckAmmo then
   begin
-    SoundEngine.Sound(Kind.AttackSoundStart);
+    SoundEngine.Sound(Resource.AttackSoundStart);
     AttackStartTime := LifeTime;
     Attacking := true;
     AttackDone := false;
@@ -855,7 +868,7 @@ end;
 procedure TItemWeapon.EquippedIdle(const LifeTime: Single);
 begin
   if Attacking and (not AttackDone) and
-    (LifeTime - AttackStartTime >= Kind.AttackTime) then
+    (LifeTime - AttackStartTime >= Resource.AttackTime) then
   begin
     AttackDone := true;
     Attack;
@@ -867,9 +880,9 @@ var
   AttackTime: Single;
   AttackAnim: T3DResourceAnimation;
 begin
-  if not Kind.Prepared then Exit(nil);
+  if not Resource.Prepared then Exit(nil);
 
-  AttackAnim := Kind.AttackAnimation;
+  AttackAnim := Resource.AttackAnimation;
   AttackTime := LifeTime - AttackStartTime;
   if Attacking and (AttackTime <= AttackAnim.Duration) then
   begin
@@ -881,7 +894,7 @@ begin
     { although current weapons animations are just static,
       we use LifeTime to enable any weapon animation
       (like weapon swaying, or some fire over the sword or such) in the future. }
-    Result :=  Kind.ReadyAnimation.Scene(LifeTime, true);
+    Result :=  Resource.ReadyAnimation.Scene(LifeTime, true);
   end;
 end;
 
@@ -893,10 +906,10 @@ begin
   FOwner3D := AOwner3D;
 end;
 
-function TInventory.FindKind(Kind: TItemKind): Integer;
+function TInventory.FindResource(Resource: TItemResource): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if Items[Result].Kind = Kind then
+    if Items[Result].Resource = Resource then
       Exit;
   Result := -1;
 end;
@@ -936,7 +949,7 @@ begin
 
     if not MessageInputQueryCardinal(Window,
       Format('You have %d items "%s". How many of them do you want to drop ?',
-        [SelectedItem.Quantity, SelectedItem.Kind.Caption]),
+        [SelectedItem.Quantity, SelectedItem.Resource.Caption]),
       DropQuantity, taLeft) then
       Exit(nil);
 
@@ -1006,8 +1019,8 @@ end;
 
 function TItemOnWorld.GetChild: T3D;
 begin
-  if (Item = nil) or not Item.Kind.Prepared then Exit(nil);
-  Result := Item.Kind.BaseAnimation.Scene(LifeTime, true);
+  if (Item = nil) or not Item.Resource.Prepared then Exit(nil);
+  Result := Item.Resource.BaseAnimation.Scene(LifeTime, true);
 end;
 
 procedure TItemOnWorld.Render(const Frustum: TFrustum;
@@ -1019,7 +1032,7 @@ begin
   if RenderDebug3D and GetExists and
     (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
-    BoxRotated := Item.Kind.BoundingBoxRotated.Translate(Position);
+    BoxRotated := Item.Resource.BoundingBoxRotated.Translate(Position);
     if Frustum.Box3DCollisionPossibleSimple(BoxRotated) then
     begin
       glPushAttrib(GL_ENABLE_BIT);
@@ -1079,6 +1092,6 @@ initialization
   TItemOnWorld.RotationSpeed := TItemOnWorld.DefaultRotationSpeed;
   TItemOnWorld.AutoPick := true;
 
-  RegisterResourceClass(TItemKind, 'Item');
-  RegisterResourceClass(TItemWeaponKind, 'Weapon');
+  RegisterResourceClass(TItemResource, 'Item');
+  RegisterResourceClass(TItemWeaponResource, 'Weapon');
 end.

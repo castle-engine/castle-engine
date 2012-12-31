@@ -258,26 +258,26 @@ CastleCreatures unit (see inside src/game/ in sources) allows you to easily crea
 
 6.1. For starters, you can just use the existing creature classes on CastleCreatures unit.
 
-  To get walk-attack-state intelligence, use the TWalkAttackCreatureKind class. Such creature tracks the player (remembers last seen player 3D position, walks/flies to it, possibly through sectors/waypoints — so it can pass through narrow doors in a labyrinth or walk over a narrow bridge), attacks the player from the right distance (this can be either a melee attack, or shooting a missile — which adds a missile to the 3D world), eventually runs from the player (when he's too close and/or our health is low). For now, the player is always the main enemy, and there's no "creature vs creature" fighting, although it can be added easily in the future.
+  To get walk-attack-state intelligence, use the TWalkAttackCreatureResource class. Such creature tracks the player (remembers last seen player 3D position, walks/flies to it, possibly through sectors/waypoints — so it can pass through narrow doors in a labyrinth or walk over a narrow bridge), attacks the player from the right distance (this can be either a melee attack, or shooting a missile — which adds a missile to the 3D world), eventually runs from the player (when he's too close and/or our health is low). For now, the player is always the main enemy, and there's no "creature vs creature" fighting, although it can be added easily in the future.
 
   For basic usage, there's no need to even derive new classes. All you need to do is to create a directory holding creature 3D data and resource.xml describing it (for example, see various subdirectories of castle/data/creatures/ in SVN).
 
   There are a lot of settings to achieve particular behavior, e.g. cowardly/brave, offensive/defensive, melee/ranged, etc.
 
-  There is also a "missile" intelligence (TMissileCreatureKind), that causes the creature to blindly go in given direction (possibly with gravity and/or homing (close-on-target) features). On impact, missile may explode, hurting player and/or other creatures. Any kind of missile, like arrow or lighting bolt, is represented as such "missile creature", that flies independently of the shooter.
+  There is also a "missile" intelligence (TMissileCreatureResource), that causes the creature to blindly go in given direction (possibly with gravity and/or homing (close-on-target) features). On impact, missile may explode, hurting player and/or other creatures. Any kind of missile, like arrow or lighting bolt, is represented as such "missile creature", that flies independently of the shooter.
 
-  And there is a TStillCreatureKind that just stands still (it can still show some looping animation, but there is no fancy logic behind it).
+  And there is a TStillCreatureResource that just stands still (it can still show some looping animation, but there is no fancy logic behind it).
 
 6.2. You can also derive simple descendants of CastleCreatures classes, to customize their behavior. For example, "The Castle" customizes walk-attack creature to give both ranged and melee attacks to the Spider Queen, to make werewolves howl from time to time, and such. See castle1 GameCreatures.pas unit sources. We plan to add a simple FPS game to the engine examples, to illustrate this nicer.
 
-  You can start your customizations from full-features classes, like TWalkAttackCreatureKind and TWalkAttackCreature. Or you can take the basic TCreatureKind and TCreature, and extend them to your liking.
+  You can start your customizations from full-features classes, like TWalkAttackCreatureResource and TWalkAttackCreature. Or you can take the basic TCreatureResource and TCreature, and extend them to your liking.
 
   This is a good moment to browse the API reference of mentioned CastleCreatures classes, if you haven't already. See
-  * [TWalkAttackCreatureKind], [TWalkAttackCreature]
-  * [TMissileCreatureKind], [TMissileCreature]
-  * [TStillCreatureKind], [TStillCreature]
-  * [TCreatureKind], [TCreature]
-  * And see the class hierarchy descending from TCreatureKind and TCreature in [class hierarchy diagram]
+  * [TWalkAttackCreatureResource], [TWalkAttackCreature]
+  * [TMissileCreatureResource], [TMissileCreature]
+  * [TStillCreatureResource], [TStillCreature]
+  * [TCreatureResource], [TCreature]
+  * And see the class hierarchy descending from TCreatureResource and TCreature in [class hierarchy diagram]
 
   Everything is designed to give you a lot of properties to set (most of them are also settable by resource.xml files mentioned above) and a lot of methods to override. See not only the TCreature* classes, but also see above T3D classes in Base3D unit, for various things that you can override and use.
 
@@ -465,14 +465,14 @@ begin
     The image representing each item (exactly for purposes like inventory
     display) is specified in the resource.xml file of each item,
     as image="xxx" attribute of the root <resource> element.
-    Based on this, the engine initializes TItemKind.Image and TItemKind.GLImage,
+    Based on this, the engine initializes TItemResource.Image and TItemResource.GLImage,
     that you can easily use for any purpose.
     We assume below that all item images have size 100 x 100,
     and we assume that all items will always fit within one row. }
   for I := 0 to Player.Inventory.Count - 1 do
   begin
     SetWindowPos(I * 100, 0);
-    Player.Inventory[I].Kind.GLImage.Draw;
+    Player.Inventory[I].Resource.GLImage.Draw;
   end;
 
   { Simple color effects over the screen:

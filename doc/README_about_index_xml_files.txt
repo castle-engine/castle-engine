@@ -39,7 +39,7 @@ About level.xml and resource.xml files:
 ------------------------------------------------------------------------------
 Specifically about resource.xml:
 
-- Defines a creature or an item kind. The system is extensible,
+- Defines a creature or an item resource. The system is extensible,
   so it can actually define other 3D resources that are part of the world
   in your games.
 
@@ -48,27 +48,27 @@ Specifically about resource.xml:
 - name: the unique object name to indicate initial position of this creature in
   the level 3D file. IOW, this determines Blender object name
   to choose this creature type. It must be unique among all resources
-  (creature and items kinds). For all (current and future) uses it should
+  (creature and items resources). For all (current and future) uses it should
   be a valid VRML/X3D and ObjectPascal identifier, and also we reserve
   underscores and digits for some tricks.
   So stick to only (English) letters.
 
 - type: determines the exact class (ObjectPascal implementation)
-  used to instantiate this creature kind.
+  used to instantiate this creature resource.
   It doesn't have to be unique. E.g. creature type "Missile"
   or generic item type "Item" are used by many resources.
 
   The type determines the behavior that is coded in ObjectPascal
   --- like creature artificial intelligence and whether item can be equipped.
 
-- The type also determines other available attributes of this kind.
+- The type also determines other available attributes of this resource.
   For example, only creature type "WalkAttack" (or it's descendants,
   like "Alien") have the "attack_animation" attribute.
 
   For the documentation and default values of properties that you can
   set on a creature or item, see T3DResource descendants in the engine:
-  TCreatureKind (and descendants) for creatures,
-  TItemKind (and descendants) for items.
+  TCreatureResource (and descendants) for creatures,
+  TItemResource (and descendants) for items.
   They have lot's of properties, and almost all their properties
   can be set by appopriate XML attribute.
 
@@ -89,8 +89,8 @@ Specifically about resource.xml:
 - flying: False or True to indicate if creature / item is affected by gravity.
 
   Missile creatures (resources with type="Missile",
-  indicating TMissileCreatureKind implementation,
-  or other type indicating your custom class descending from TMissileCreatureKind)
+  indicating TMissileCreatureResource implementation,
+  or other type indicating your custom class descending from TMissileCreatureResource)
   are an exception here: they ignore this setting.
   Missiles have special approach to gravity (see direction_fall_speed)
   and are not affected by normal gravity settings.
@@ -124,8 +124,8 @@ Specifically about resource.xml:
   (in the same direction where gravity pulls).
 
   (Only for missiles, that is: resources with type="Missile",
-  indicating TMissileCreatureKind implementation,
-  or other type indicating your custom class descending from TMissileCreatureKind.)
+  indicating TMissileCreatureResource implementation,
+  or other type indicating your custom class descending from TMissileCreatureResource.)
 
 - <model> element describes 3D models and animations of the creature/items.
   More information about it on DRAFT.modeling_tutorial.txt.

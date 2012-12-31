@@ -191,6 +191,7 @@ render
 renderer
 reset
 resize
+resource
 resources
 reverse
 root

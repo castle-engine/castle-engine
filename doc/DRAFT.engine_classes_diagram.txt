@@ -128,12 +128,12 @@ Global Resources list, that contains instances of
 | T3DResource
 \---
 Possible descendants:
-|- TCreatureKind
-   |- TWalkAttackCreatureKind
-   |- TMissileCreatureKind
-   |- TStillCreatureKind
-|- TItemKind
-   |- TItemWeaponKind
+|- TCreatureResource
+   |- TWalkAttackCreatureResource
+   |- TMissileCreatureResource
+   |- TStillCreatureResource
+|- TItemResource
+   |- TItemWeaponResource
 (How to use: Put index.xml files with <resource> root in your game's
  data/creatures/ and data/items directories. Call Resources.LoadFromFiles
  at the beginning of your game to create T3DResource instances
@@ -143,17 +143,17 @@ Possible descendants:
  available in ObjectPascal code, you can get them like
  [[
  var
-   Sword: TItemWeaponKind;
+   Sword: TItemWeaponResource;
  ...
-   Sword := Resources.FindName('Sword') as TItemWeaponKind;
+   Sword := Resources.FindName('Sword') as TItemWeaponResource;
  ]]
- You refer to each creature/item kind by it's unique name, so in this example
+ You refer to each creature/item resource by it's unique name, so in this example
  you expect that some index.xml will have name="Sword" inside.
 
  Optionally: you can define your own descendants of T3DResource classes.
  To make them recognized, call
  [[
-   RegisterResourceClass(TItemMeleeWeaponKind, 'MeleeWeapon');
+   RegisterResourceClass(TItemMeleeWeaponResource, 'MeleeWeapon');
  ]]
  before doing Resources.LoadFromFiles. This allows you to use
  type="MeleeWeapon" in index.xml files for items.
@@ -175,26 +175,26 @@ Special descendants of T3D:
    (Note that every T3D object knows World, so it knows how to move and collide
     within the 3D world. That's how AI is implemented.
     See T3D.Move, T3D.MoveAllowed, T3D.Height, T3D.LineOfSight methods.)
-   -> has Kind property that refers to TCreatureKind
+   -> has Resource property that refers to TCreatureResource
    Possible descendants:
-   |- TWalkAttackCreature (has Kind property that refers to TWalkAttackCreatureKind)
-   |- TMissileCreature (has Kind property that refers to TMissileCreatureKind)
-   |- TStillCreature (has Kind property that refers to TStillCreatureKind)
+   |- TWalkAttackCreature (has Resource property that refers to TWalkAttackCreatureResource)
+   |- TMissileCreature (has Resource property that refers to TMissileCreatureResource)
+   |- TStillCreature (has Resource property that refers to TStillCreatureResource)
    (How to use: When you load level using TGameSceneManager.LoadLevel,
-    instances of creatures are automatically created for you,
-    replacing the placeholder items in 3D file. Just add in Blender 3D object
+    instances of initial creatures/items existing on level are automatically
+    created for you,
+    replacing the placeholder objects in 3D file. Just add in Blender 3D object
     (with any mesh, geometry doesn't matter, I usually use wireframe cubes)
-    and name it 'Crea' + kind name, like 'CreaAlien'.
-    TODO: it will probably become 'ResAlien', as creatures/items are now uniform
-    and do not need separate prefixes 'Crea' / 'Item'.
+    and name it 'CasRes' + resource name, like 'CasResAlien'.
+    'CasRes' is short for "Castle Game Engine Resource".
 
     From code, you can also create creatures dynamically, by calling
-    Kind.CreateCreature. For example
+    Resource.CreateCreature. For example
     [[
     var
-      Alien: TItemWeaponKind;
+      Alien: TCreatureResource;
     ...
-      Alien := Resources.FindName('Alien') as TCreatureKind;
+      Alien := Resources.FindName('Alien') as TCreatureResource;
     ...
       Alien.CreateCreature(...);
     ]]
@@ -215,17 +215,17 @@ Special descendants of T3D:
       /---
       | TInventoryItem
       \---
-      -> has Kind property that refers to TItemKind
+      -> has Resource property that refers to TItemResource
       Possible descendants:
-      |- TItemWeapon (has Kind property that refers to TItemWeaponKind)
+      |- TItemWeapon (has Resource property that refers to TItemWeaponResource)
    (How to use: similar to creatures, see notes above. Items are very similar,
     except TInventoryItem is *not* a 3D object (it cannot be directly added to the
     level), only TItemOnWorld is a 3D object.
     - TGameSceneManager.LoadLevel automatically creates instances of TItemOnWorld,
-      along with instances of Item, referring to item kinds on Resources.
+      along with instances of Item, referring to item resources on Resources.
       This looks at placeholders: just create in Blender object named
-      'Item' + item kind name. TODO: probably 'Res' + item kind name in the future.
-    - You can create TInventoryItem instance by code by Kind.CreateItem
+      'CasRes' + item resource name.
+    - You can create TInventoryItem instance by code by Resource.CreateItem
     - You can create TItemOnWorld instance by code by Item.PutOnWorld
 
    /---
