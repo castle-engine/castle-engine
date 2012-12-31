@@ -23,12 +23,6 @@ interface
 
 uses SysUtils, CastleUtils, CastleTimeUtils, CastleImages;
 
-const
-  { }
-  DefaultUpdatePart = {$ifdef TESTING_PROGRESS_DELAY} 100000000 {$else} 100 {$endif};
-  DefaultUpdateTicks = {$ifdef TESTING_PROGRESS_DELAY} 0 {$else} 250 {$endif};
-  DefaultImageBarYPosition = 0.5;
-
 type
   TProgress = class;
 
@@ -39,6 +33,9 @@ type
     FImage: TRGBImage;
     FImageBarYPosition: Single;
   public
+    const
+      DefaultImageBarYPosition = 0.5;
+
     constructor Create;
 
     { Image displayed as a background of the progress bar.
@@ -143,6 +140,11 @@ finally Progress.Fini; end;
     FTitle: string;
     FActive: boolean;
   public
+    const
+      { }
+      DefaultUpdatePart = {$ifdef TESTING_PROGRESS_DELAY} 100000000 {$else} 100 {$endif};
+      DefaultUpdateTicks = {$ifdef TESTING_PROGRESS_DELAY} 0 {$else} 250 {$endif};
+
     property UserInterface: TProgressUserInterface
       read FUserInterface write FUserInterface;
 

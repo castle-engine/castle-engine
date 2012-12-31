@@ -26,15 +26,6 @@ type
   THorizontalPosition = (hpLeft, hpMiddle, hpRight);
   TVerticalPosition = (vpDown, vpMiddle, vpUp);
 
-const
-  DefaultMaxMessages = 4;
-  DefaultMessagesTimeout = 5000;
-  DefaultHorizontalPosition = hpMiddle;
-  DefaultVerticalPosition = vpDown;
-  DefaultHorizontalMargin = 10;
-  DefaultVerticalMargin = 1;
-
-type
   { Internal type. @exclude }
   TNotification = class
     Text: string;
@@ -72,6 +63,14 @@ type
     FHistory: TCastleStringList;
     FCollectHistory: boolean;
   public
+    const
+      DefaultMaxMessages = 4;
+      DefaultMessagesTimeout = 5000;
+      DefaultHorizontalPosition = hpMiddle;
+      DefaultVerticalPosition = vpDown;
+      DefaultHorizontalMargin = 10;
+      DefaultVerticalMargin = 1;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 

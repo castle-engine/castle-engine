@@ -31,13 +31,6 @@ type
     dmLinearDistance  , dmLinearDistanceClamped,
     dmExponentDistance, dmExponentDistanceClamped);
 
-const
-  DefaultVolume = 1.0;
-  DefaultDefaultRolloffFactor = 1.0;
-  DefaultDefaultReferenceDistance = 1.0;
-  DefaultDefaultMaxDistance = MaxSingle;
-  DefaultDistanceModel = dmLinearDistanceClamped;
-
 type
   ESoundBufferNotLoaded = class(Exception);
 
@@ -111,6 +104,13 @@ type
     procedure LoadFromConfig(const Config: TCastleConfig); override;
     procedure SaveToConfig(const Config: TCastleConfig); override;
   public
+    const
+      DefaultVolume = 1.0;
+      DefaultDefaultRolloffFactor = 1.0;
+      DefaultDefaultReferenceDistance = 1.0;
+      DefaultDefaultMaxDistance = MaxSingle;
+      DefaultDistanceModel = dmLinearDistanceClamped;
+
     constructor Create;
     destructor Destroy; override;
 
@@ -350,8 +350,6 @@ const
     will do nothing when called with this sound type. }
   stNone = 0;
 
-  DefaultMusicVolume = 1.0;
-
   MaxSoundImportance = MaxInt;
   LevelEventSoundImportance      = 100000;
   PlayerSoundImportance          = 10000;
@@ -575,6 +573,8 @@ type
     function GetMusicVolume: Single;
     procedure SetMusicVolume(const Value: Single);
   public
+    const
+      DefaultMusicVolume = 1.0;
     constructor Create(AnEngine: TRepoSoundEngine);
     destructor Destroy; override;
 
@@ -1710,7 +1710,7 @@ begin
   inherited;
   Volume := Config.GetFloat('sound/volume', DefaultVolume);
   MusicPlayer.MusicVolume := Config.GetFloat('sound/music/volume',
-    DefaultMusicVolume);
+    TMusicPlayer.DefaultMusicVolume);
 end;
 
 procedure TRepoSoundEngine.SaveToConfig(const Config: TCastleConfig);
@@ -1721,7 +1721,7 @@ begin
     that MusicPlayer is not nil. }
   if MusicPlayer <> nil then
     Config.SetDeleteFloat('sound/music/volume',
-      MusicPlayer.MusicVolume, DefaultMusicVolume);
+      MusicPlayer.MusicVolume, TMusicPlayer.DefaultMusicVolume);
 end;
 
 { TMusicPlayer --------------------------------------------------------------- }

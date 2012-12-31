@@ -648,7 +648,7 @@ type
     property ShadowMaps: boolean read FShadowMaps write SetShadowMaps default true;
     property ShadowMapsDefaultSize: Cardinal
       read FShadowMapsDefaultSize write SetShadowMapsDefaultSize
-      default DefaultShadowMapsDefaultSize;
+      default TCastleSceneCore.DefaultShadowMapsDefaultSize;
     { @groupEnd }
 
     property InitialViewpointIndex: Cardinal
@@ -786,7 +786,7 @@ begin
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
   FShadowMaps := true;
-  FShadowMapsDefaultSize := DefaultShadowMapsDefaultSize;
+  FShadowMapsDefaultSize := TCastleSceneCore.DefaultShadowMapsDefaultSize;
 end;
 
 constructor TCastlePrecalculatedAnimation.CreateCustomCache(AOwner: TComponent;

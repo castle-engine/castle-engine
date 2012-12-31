@@ -28,18 +28,6 @@ uses
   pk3DConnexion;
 
 const
-  { Default value for TCastleControlBase.AggressiveUpdateDelay.
-    "1000 div 60" means that we strike for 60 frames per second,
-    although this is gross approximation (no guarantees, of course;
-    especially if your Idle / Draw take a long time). }
-  DefaultAggressiveUpdateDelay = 1000 div 60;
-
-  { Default value for TCastleControlBase.AggressiveUpdate }
-  DefaultAggressiveUpdate = false;
-
-  DefaultTooltipDelay = 1000;
-  DefaultTooltipDistance = 10;
-
   DefaultLimitFPS = 100.0;
 
 type
@@ -154,6 +142,16 @@ type
     procedure DoBeforeDraw; virtual;
     procedure DoDraw; virtual;
   public
+    const
+      { Default value for TCastleControlBase.AggressiveUpdateDelay.
+        "1000 div 60" means that we strike for 60 frames per second,
+        although this is gross approximation (no guarantees, of course;
+        especially if your Idle / Draw take a long time). }
+      DefaultAggressiveUpdateDelay = 1000 div 60;
+
+      { Default value for TCastleControlBase.AggressiveUpdate }
+      DefaultAggressiveUpdate = false;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -308,6 +306,10 @@ type
     property UseControls: boolean
       read FUseControls write SetUseControls default true;
   public
+    const
+      DefaultTooltipDelay = 1000;
+      DefaultTooltipDistance = 10;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 

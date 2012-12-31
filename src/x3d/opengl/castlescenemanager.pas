@@ -24,11 +24,6 @@ uses Classes, VectorMath, X3DNodes, CastleScene, CastleSceneCore, Cameras,
   GLShaders, GLImages, CastleTimeUtils, FGL, SectorsWaypoints,
   CastleInputs, CastlePlayer;
 
-const
-  { }
-  DefaultScreenSpaceAmbientOcclusion = false;
-  DefaultUseGlobalLights = true;
-
 type
   TCastleAbstractViewport = class;
   TCastleSceneManager = class;
@@ -259,6 +254,10 @@ type
 
     function GetScreenEffects(const Index: Integer): TGLSLProgram; virtual;
   public
+    const
+      DefaultScreenSpaceAmbientOcclusion = false;
+      DefaultUseGlobalLights = true;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 

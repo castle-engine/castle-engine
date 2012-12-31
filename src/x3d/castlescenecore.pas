@@ -28,9 +28,6 @@ uses
   KeysMouse, X3DTime, Cameras, X3DTriangles, Contnrs,
   RenderingCameraUnit, Base3D, X3DShadowMaps, FGL, GenericStructList;
 
-const
-  DefaultShadowMapsDefaultSize = 256;
-
 type
   TTriangle3SingleList = specialize TGenericStructList<TTriangle3Single>;
 
@@ -787,6 +784,9 @@ type
     function RayCollision(const RayOrigin, RayDirection: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
   public
+    const
+      DefaultShadowMapsDefaultSize = 256;
+
     constructor Create(AOwner: TComponent); override;
 
     { Load new 3D model (from VRML node tree).

@@ -28,39 +28,6 @@ uses
 
 {$define read_interface}
 
-const
-  { }
-  DefaultBlendingSourceFactor = GL_SRC_ALPHA;
-
-  { Default value of Attributes.BlendingDestinationFactor.
-    See TSceneRenderingAttributes.BlendingDestinationFactor.
-
-    Using ONE_MINUS_SRC_ALPHA is the standard value for 3D graphic stuff,
-    often producing best results. However, it causes troubles when
-    multiple transparent shapes are visible on the same screen pixel.
-    For closed convex 3D objects, using backface culling
-    (solid = TRUE for geometry) helps. For multiple transparent shapes,
-    sorting the transparent shapes helps,
-    see TSceneRenderingAttributes.BlendingSort.
-    Sometimes, no solution works for all camera angles.
-
-    Another disadvantage of ONE_MINUS_SRC_ALPHA may be that
-    the color of opaque shapes disappears too quickly from
-    resulting image (since GL_ONE_MINUS_SRC_ALPHA scales it down).
-    So the image may be darker than you like.
-
-    You can instead consider using GL_ONE, that doesn't require sorting
-    and never has problems with multiple transparent shapes.
-    On the other hand, it only adds to the color,
-    often making too bright results. }
-  DefaultBlendingDestinationFactor = GL_ONE_MINUS_SRC_ALPHA;
-
-  { }
-  DefaultBlendingSort = false;
-
-const
-  DefaultWireframeColor: TVector3Single = (0, 0, 0);
-
 type
   TGLShape = class;
   TSceneRenderingAttributes = class;
@@ -174,8 +141,41 @@ type
 
     procedure SetShaders(const Value: TShadersRendering); override;
   public
-    { Adjust attributes of all loaded resources. }
-    OnCreate: TRenderingAttributesEvent; static;
+    const
+      { }
+      DefaultBlendingSourceFactor = GL_SRC_ALPHA;
+
+      { Default value of Attributes.BlendingDestinationFactor.
+        See TSceneRenderingAttributes.BlendingDestinationFactor.
+
+        Using ONE_MINUS_SRC_ALPHA is the standard value for 3D graphic stuff,
+        often producing best results. However, it causes troubles when
+        multiple transparent shapes are visible on the same screen pixel.
+        For closed convex 3D objects, using backface culling
+        (solid = TRUE for geometry) helps. For multiple transparent shapes,
+        sorting the transparent shapes helps,
+        see TSceneRenderingAttributes.BlendingSort.
+        Sometimes, no solution works for all camera angles.
+
+        Another disadvantage of ONE_MINUS_SRC_ALPHA may be that
+        the color of opaque shapes disappears too quickly from
+        resulting image (since GL_ONE_MINUS_SRC_ALPHA scales it down).
+        So the image may be darker than you like.
+
+        You can instead consider using GL_ONE, that doesn't require sorting
+        and never has problems with multiple transparent shapes.
+        On the other hand, it only adds to the color,
+        often making too bright results. }
+      DefaultBlendingDestinationFactor = GL_ONE_MINUS_SRC_ALPHA;
+
+      { }
+      DefaultBlendingSort = false;
+
+      DefaultWireframeColor: TVector3Single = (0, 0, 0);
+
+    var
+      { Adjust attributes of all loaded resources. }
+      OnCreate: TRenderingAttributesEvent; static;
 
     constructor Create; override;
     destructor Destroy; override;

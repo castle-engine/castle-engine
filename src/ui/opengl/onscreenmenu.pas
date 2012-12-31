@@ -21,22 +21,6 @@ interface
 uses Classes, VectorMath, Rectangles, OpenGLFonts, CastleControls,
   GL, CastleGLUtils, UIControls, KeysMouse, CastleColors;
 
-const
-  DefaultMenuKeyNextItem = K_Down;
-  DefaultMenuKeyPreviousItem = K_Up;
-  DefaultMenuKeySelectItem = K_Enter;
-  DefaultMenuKeySliderIncrease = K_Right;
-  DefaultMenuKeySliderDecrease = K_Left;
-
-  DefaultCurrentItemBorderColor1: TVector3Single = (   1,    1,    1) { White3Single  }; { }
-  DefaultCurrentItemBorderColor2: TVector3Single = ( 0.5,  0.5,  0.5) { Gray3Single   }; { }
-  DefaultCurrentItemColor       : TVector3Single = (   1,    1,  0.3) { Yellow3Single }; { }
-  DefaultNonCurrentItemColor    : TVector3Single = (   1,    1,    1) { White3Single  }; { }
-
-  DefaultRegularSpaceBetweenItems = 10;
-  DefaultBackgroundOpacityNotFocused = 0.4;
-  DefaultBackgroundOpacityFocused = 0.7;
-
 type
   TCastleOnScreenMenu = class;
 
@@ -350,20 +334,37 @@ type
     procedure SetItems(const Value: TStringList);
     procedure SetDesignerMode(const Value: boolean);
   public
-    { Position of the menu. Expressed as position of some corner of the menu
-      (see PositionRelativeMenuX/Y), relative to some corner of the
-      screen (see PositionRelativeScreenX/Y).
+    const
+      DefaultMenuKeyNextItem = K_Down;
+      DefaultMenuKeyPreviousItem = K_Up;
+      DefaultMenuKeySelectItem = K_Enter;
+      DefaultMenuKeySliderIncrease = K_Right;
+      DefaultMenuKeySliderDecrease = K_Left;
 
-      See TPositionRelative documentation for more information.
+      DefaultCurrentItemBorderColor1: TVector3Single = (   1,    1,    1) { White3Single  }; { }
+      DefaultCurrentItemBorderColor2: TVector3Single = ( 0.5,  0.5,  0.5) { Gray3Single   }; { }
+      DefaultCurrentItemColor       : TVector3Single = (   1,    1,  0.3) { Yellow3Single }; { }
+      DefaultNonCurrentItemColor    : TVector3Single = (   1,    1,    1) { White3Single  }; { }
 
-      You may be interested in DesignerMode for a possibility to set
-      this property at run-time.
+      DefaultRegularSpaceBetweenItems = 10;
+      DefaultBackgroundOpacityNotFocused = 0.4;
+      DefaultBackgroundOpacityFocused = 0.7;
 
-      Expressed as a public field (instead of a read-write property)
-      because assigning a field of record property is a risk in ObjectPascal
-      (you may be modifying only a temporary copy of the record returned
-      by property getter). }
-    Position: TVector2Integer;
+    var
+      { Position of the menu. Expressed as position of some corner of the menu
+        (see PositionRelativeMenuX/Y), relative to some corner of the
+        screen (see PositionRelativeScreenX/Y).
+
+        See TPositionRelative documentation for more information.
+
+        You may be interested in DesignerMode for a possibility to set
+        this property at run-time.
+
+        Expressed as a public field (instead of a read-write property)
+        because assigning a field of record property is a risk in ObjectPascal
+        (you may be modifying only a temporary copy of the record returned
+        by property getter). }
+      Position: TVector2Integer;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;

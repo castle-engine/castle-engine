@@ -236,12 +236,6 @@ type
   TCullFace = (cfNone, cfCW, cfCCW);
   TBumpMapping = GLRendererShader.TBumpMapping;
 
-const
-  DefaultPointSize = 3.0;
-  DefaultLineWidth = 2.0;
-  DefaultShaders = srWhenRequired;
-  DefaultBumpMapping = bmBasic;
-
 type
   { TRenderingAttributes.Mode possible values. }
   TRenderingMode = (
@@ -349,6 +343,12 @@ type
       ) }
     procedure ReleaseCachedResources; virtual;
   public
+    const
+      DefaultPointSize = 3.0;
+      DefaultLineWidth = 2.0;
+      DefaultShaders = srWhenRequired;
+      DefaultBumpMapping = bmBasic;
+
     constructor Create; virtual;
 
     procedure Assign(Source: TPersistent); override;

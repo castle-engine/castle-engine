@@ -1058,7 +1058,7 @@ begin
 
   if not DOMGetSingleAttribute(Element, 'loading_image_bar_y_position',
     LoadingImageBarYPosition) then
-    LoadingImageBarYPosition := DefaultImageBarYPosition;
+    LoadingImageBarYPosition := TProgressUserInterface.DefaultImageBarYPosition;
 
   PlaceholderDefaultDirectionSpecified := DOMGetAttribute(Element,
     'placeholder_default_direction', PlaceholderDefaultDirectionString);

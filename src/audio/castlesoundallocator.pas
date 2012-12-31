@@ -21,10 +21,6 @@ interface
 uses SysUtils, CastleOpenAL, CastleClassUtils, Classes, CastleUtils, VectorMath,
   CastleXMLConfig, FGL;
 
-const
-  DefaultMinAllocatedSources = 4;
-  DefaultMaxAllocatedSources = 16;
-
 type
   TSound = class;
 
@@ -220,6 +216,10 @@ type
     procedure SaveToConfig(const Config: TCastleConfig); virtual;
     { @groupEnd }
   public
+    const
+      DefaultMinAllocatedSources = 4;
+      DefaultMaxAllocatedSources = 16;
+
     constructor Create;
     procedure ALContextOpen; virtual;
     procedure ALContextClose; virtual;

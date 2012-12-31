@@ -20,9 +20,6 @@ interface
 
 uses Classes, CastleXMLConfig;
 
-const
-  DefaultMaxCount = 5;
-
 type
   TOnOpenRecent = procedure (const FileName: string) of object;
 
@@ -48,6 +45,9 @@ type
     procedure MenuDestroy; virtual;
     { @groupEnd }
   public
+    const
+      DefaultMaxCount = 5;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 

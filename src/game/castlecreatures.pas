@@ -208,7 +208,8 @@ type
 
     { See T3DAlive.KnockBackSpeed. }
     property KnockBackSpeed: Single
-      read FKnockBackSpeed write FKnockBackSpeed default DefaultKnockBackSpeed;
+      read FKnockBackSpeed write FKnockBackSpeed
+      default T3DAlive.DefaultKnockBackSpeed;
 
     { Default attack damage and knockback.
       Used only by the creatures that actually do some kind of direct attack.
@@ -231,7 +232,8 @@ type
 
     { See T3DCustomTransform.MiddleHeight. }
     property MiddleHeight: Single
-      read FMiddleHeight write FMiddleHeight default DefaultMiddleHeight;
+      read FMiddleHeight write FMiddleHeight
+      default T3DCustomTransform.DefaultMiddleHeight;
 
     property FallMinHeightToSound: Single
       read FFallMinHeightToSound write FFallMinHeightToSound default DefaultCreatureFallMinHeightToSound;
@@ -880,12 +882,12 @@ begin
   FFlying := DefaultFlying;
   FDefaultMaxLife := DefaultDefaultMaxLife;
   FKnockedBackDistance := DefaultKnockedBackDistance;
-  FKnockBackSpeed := DefaultKnockBackSpeed;
+  FKnockBackSpeed := T3DAlive.DefaultKnockBackSpeed;
   FSoundDieTiedToCreature := DefaultSoundDieTiedToCreature;
   FAttackDamageConst := DefaultAttackDamageConst;
   FAttackDamageRandom := DefaultAttackDamageRandom;
   FAttackKnockbackDistance := DefaultAttackKnockbackDistance;
-  FMiddleHeight := DefaultMiddleHeight;
+  FMiddleHeight := T3DCustomTransform.DefaultMiddleHeight;
   FFallMinHeightToSound := DefaultCreatureFallMinHeightToSound;
   FFallMinHeightToDamage := DefaultFallMinHeightToDamage;
   FFallDamageScaleMin := DefaultFallDamageScaleMin;
@@ -898,7 +900,7 @@ begin
   inherited;
 
   KnockBackSpeed := ResourceConfig.GetFloat('knock_back_speed',
-    DefaultKnockBackSpeed);
+    T3DAlive.DefaultKnockBackSpeed);
   KnockedBackDistance := ResourceConfig.GetFloat('knocked_back_distance',
     DefaultKnockedBackDistance);
   Flying := ResourceConfig.GetValue('flying',
@@ -914,7 +916,7 @@ begin
     DefaultAttackDamageRandom);
   AttackKnockbackDistance := ResourceConfig.GetFloat('attack/knockback_distance',
     DefaultAttackKnockbackDistance);
-  MiddleHeight := ResourceConfig.GetFloat('middle_height', DefaultMiddleHeight);
+  MiddleHeight := ResourceConfig.GetFloat('middle_height', T3DCustomTransform.DefaultMiddleHeight);
   FallMinHeightToSound := ResourceConfig.GetFloat('fall/sound/min_height', DefaultCreatureFallMinHeightToSound);
   FallMinHeightToDamage := ResourceConfig.GetFloat('fall/damage/min_height', DefaultFallMinHeightToDamage);
   FallDamageScaleMin := ResourceConfig.GetFloat('fall/damage/scale_min', DefaultFallDamageScaleMin);

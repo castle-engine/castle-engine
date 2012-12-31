@@ -22,10 +22,6 @@ uses Classes, Math, VectorMath, Frustum, Boxes3D, CastleClassUtils, KeysMouse,
   CastleUtils, FGL, GenericStructList, CastleTimeUtils,
   CastleSoundEngine, SectorsWaypoints, Cameras, CastleTriangles;
 
-const
-  DefaultKnockBackSpeed = 1.0;
-  DefaultMiddleHeight = 0.5;
-
 type
   T3D = class;
   T3DList = class;
@@ -1121,6 +1117,9 @@ type
       life or such. }
     procedure Fall(const FallHeight: Single); virtual;
   public
+    const
+      DefaultMiddleHeight = 0.5;
+
     constructor Create(AOwner: TComponent); override;
     function BoundingBox: TBox3D; override;
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
@@ -1640,6 +1639,9 @@ type
     procedure SetLife(const Value: Single); virtual;
     procedure CancelKnockback;
   public
+    const
+      DefaultKnockBackSpeed = 1.0;
+
     constructor Create(AOwner: TComponent); override;
 
     { Shortcut for checking Life <= 0. }

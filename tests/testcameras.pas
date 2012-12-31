@@ -181,7 +181,7 @@ var
 begin
   E := TExamineCamera.Create(nil);
   try
-    AssertCamera(E, DefaultCameraInput, false, true);
+    AssertCamera(E, TCamera.DefaultInput, false, true);
     E.Input := [];
     AssertCamera(E, [], true, false);
     E.MouseNavigation := true;
@@ -194,7 +194,7 @@ begin
 
   U := TUniversalCamera.Create(nil);
   try
-    AssertCamera(U, DefaultCameraInput, false, true);
+    AssertCamera(U, TCamera.DefaultInput, false, true);
     U.Input := [];
     AssertCamera(U, [], true, false);
     U.Input := U.Input + [ciMouseDragging];
@@ -207,7 +207,7 @@ begin
 
   W := TWalkCamera.Create(nil);
   try
-    AssertCamera(W, DefaultCameraInput, false, true);
+    AssertCamera(W, TCamera.DefaultInput, false, true);
     W.Input := [];
     AssertCamera(W, [], true, false);
     W.Input := W.Input + [ciMouseDragging];
