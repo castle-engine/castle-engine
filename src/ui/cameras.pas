@@ -1327,6 +1327,7 @@ type
     { Camera is in the middle of a "jump" move right now. }
     property IsJumping: boolean read FIsJumping;
 
+    { Scales the speed of horizontal moving during jump. }
     property JumpSpeedMultiply: Single
       read FJumpSpeedMultiply write FJumpSpeedMultiply
       default DefaultJumpSpeedMultiply;
