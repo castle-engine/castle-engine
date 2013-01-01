@@ -18,18 +18,41 @@ program fps_game;
 
 uses SysUtils, CastleWindow, CastleWarnings, CastleConfig, CastleLevels,
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
-  CastleResources;
+  CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils;
 
 var
   Window: TCastleWindow;
   SceneManager: TGameSceneManager; //< same thing as Window.SceneManager
   Player: TPlayer; //< same thing as Window.SceneManager.Player
+  ToggleMouseLookButton: TCastleButton;
+
+type
+  { Class to handle "of object" callbacks.
+    You could as well derive descendant of TCastleWindow to keep your
+    callbacks, or place these callbacks as methods of Lazarus form. }
+  TEventsHandler = class
+    class procedure ToggleMouseLookButtonClick(Sender: TObject);
+  end;
+
+class procedure TEventsHandler.ToggleMouseLookButtonClick(Sender: TObject);
+begin
+  ToggleMouseLookButton.Pressed := not ToggleMouseLookButton.Pressed;
+  Player.Camera.MouseLook := ToggleMouseLookButton.Pressed;
+end;
+
+procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
+begin
+  if Event.IsKey(CtrlM) then
+    TEventsHandler.ToggleMouseLookButtonClick(ToggleMouseLookButton);
+end;
 
 function MyGetApplicationName: string;
 begin
   Result := 'fps_game';
 end;
 
+const
+  ButtonsMargin = 8;
 begin
   { We use standard FPC ApplicationName function for some names (e.g. Config
     file name), so make sure it's Ok. }
@@ -93,6 +116,26 @@ begin
     on levels, waypoints/sectors and other information from so-called
     "placeholders" on the level, see TGameSceneManager.LoadLevel documentation. }
   SceneManager.LoadLevel('example_level');
+
+  { Add some buttons.
+    We use TCastleButton from CastleControls unit for buttons,
+    which are drawn using OpenGL.
+    If you use Lazarus and TCastleControl (instead of TCastleWindow)
+    you can also consider using Lazarus standard buttons and other components
+    on your form.
+    The advantage of our TCastleButton is that you can fully configure it,
+    regardless of your OS/window manager theme, and in the future it should
+    be trivial to style the TCastleButton to match the theme of your game
+    (like medieval fantasy of futuristic sci-fi). }
+  ToggleMouseLookButton := TCastleButton.Create(Application);
+  ToggleMouseLookButton.Caption := 'Mouse Look (Ctrl + M)';
+  ToggleMouseLookButton.Toggle := true;
+  ToggleMouseLookButton.OnClick := @TEventsHandler(nil).ToggleMouseLookButtonClick;
+  ToggleMouseLookButton.Left := ButtonsMargin;
+  ToggleMouseLookButton.Bottom := ButtonsMargin;
+  Window.Controls.Add(ToggleMouseLookButton);
+
+  Window.OnPress := @Press;
 
   { Run the game loop.
     In more advanced cases, you can also execute each step of the loop
