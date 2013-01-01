@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<!--
+  Define the "Knight" creature properties. See README_about_index_xml_files.txt
+  for extensive documentation of available properties, in short:
+
+  - name: used to refer to this creature from ObjectPascal code,
+    e.g. in Resources.FindName('Knight').
+    Also to create placeholders to place initial creatures of this kind on level:
+   (place on the level, in Blender, object named 'CasResKnight'.
+
+  - type: indicates ObjectPascal class used to handle this creature,
+    in this case TWalkAttackCreatureResource (and the
+    TWalkAttackCreatureResource, in turn, indicates that particular creature
+    on level will use TWalkAttackCreature class).
+    This is an intelligent walking-attacking creature.
+
+  - model: animations 3D models. There are many ways to define them,
+    see DRAFT.modeling_tutorial.txt. In this case we use KAnim to
+    export animations from Blender to KAnim using our exporter on
+    http://castle-engine.sourceforge.net/blender.php .
+-->
+
+<resource
+  name="Knight"
+  type="WalkAttack"
+>
+  <model>
+    <idle   file_name="idle.kanim"  />
+    <walk   file_name="walk.kanim"  />
+    <attack file_name="attack.kanim"/>
+    <die    file_name="die.kanim"   />
+    <hurt   file_name="hurt.kanim"  />
+  </model>
+</resource>
