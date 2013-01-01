@@ -696,6 +696,7 @@ begin
     if not Toggle then
       raise Exception.Create('You cannot modify TCastleButton.Pressed value when Toggle is false');
     FPressed := Value;
+    VisibleChange;
   end;
 end;
 
