@@ -30,7 +30,7 @@
 						<Appearance>
 							<Material DEF="MA_Material_001"
 							          diffuseColor="0.800 0.800 0.800"
-							          specularColor="0.401 0.401 0.401"
+							          specularColor="0.009 0.009 0.009"
 							          emissiveColor="0.000 0.000 0.000"
 							          ambientIntensity="0.333"
 							          shininess="0.098"
@@ -57,7 +57,7 @@
 			            ambientIntensity="0.0000"
 			            color="1.0000 1.0000 1.0000"
 			            intensity="0.5714"
-			            radius="30.0000" 
+			            radius="200.0000" 
 			            location="-0.0000 -0.0000 0.0000"
 			            />
 		</Transform>
