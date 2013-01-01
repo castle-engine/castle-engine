@@ -57,7 +57,12 @@ type
     state (attacking, walking), but all werewolves will share the same
     resource, so e.g. all werewolves will use the same dying animation
     (TWalkAttackCreatureResource.DieAnimation) and dying sound
-    (TCreatureResource.SoundDie). }
+    (TCreatureResource.SoundDie).
+
+    Note that some of the information stored in resource
+    is only used to initialize new creatures and can be changed later
+    during creature life, for example TCreatureResource.DefaultMaxLife
+    and TCreatureResource.Flying. }
   TCreatureResource = class(T3DResource)
   strict private
     FFlying: boolean;
@@ -108,13 +113,20 @@ type
       (in case of TWalkAttackCreatureResource) their move direction is free.
 
       For all creatures, TCreature.Gravity (inherited from T3D.Gravity)
-      is set to @code("not Flying") (except TMissileCreatureResource,
+      is set to @code("not Flying") at creation. (Except TMissileCreatureResource,
       that has special approach to gravity,
-      see TMissileCreatureResource.DirectionFallSpeed).
+      see TMissileCreatureResource.DirectionFallSpeed.)
 
       For TWalkAttackCreatureResource, additionally Flying allows to move
       freely, while non-flying creatures are constrained to move
-      (and think about moving) only horizontally. }
+      (and think about moving) only horizontally.
+
+      You can always change the Gravity property of a particular creature
+      during it's lifetime, so a creature may start/stop flying during game.
+      For example, this is how you can let your creatures to use jetpack and such.
+      Be careful about creature @link(Radius) and @link(MiddleHeight) properties
+      in this case, make sure that the values (explicitly set or automatically
+      calculated) are suitable for both flying and non-flying states. }
     property Flying: boolean read FFlying write FFlying default DefaultFlying;
 
     { Sphere radius for collision detection for alive creatures.
@@ -1562,7 +1574,7 @@ var
   begin
     { calculate DirectionToTarget }
     DirectionToTarget := VectorSubtract(Target, Middle);
-    if not Resource.Flying then
+    if Gravity then
       MakeVectorsOrthoOnTheirPlane(DirectionToTarget, World.GravityUp);
 
     { calculate AngleRadBetweenDirectionToTarget }
@@ -1612,7 +1624,7 @@ var
         VectorProduct(Direction, DirectionToTarget));
 
       { Make sure direction for non-flying creatures is orthogonal to GravityUp. }
-      if not Resource.Flying then
+      if Gravity then
         MakeVectorsOrthoOnTheirPlane(NewDirection, World.GravityUp);
       Direction := NewDirection;
     end;
@@ -1624,7 +1636,7 @@ var
   var
     SqrDistanceToTarget: Single;
   begin
-    if Resource.Flying then
+    if not Gravity then
       SqrDistanceToTarget := PointsDistanceSqr(Middle, Target) else
       SqrDistanceToTarget := PointsDistance2DSqr(Middle, Target, World.GravityCoordinate);
     Result :=
@@ -1726,7 +1738,7 @@ var
       where creature can reliably move. Creature that cannot fly cannot
       move in gravity (UpIndex) direction. }
     for I := 0 to 2 do
-      if Resource.Flying or (I <> World.GravityCoordinate) then
+      if (not Gravity) or (I <> World.GravityCoordinate) then
         AlternativeTarget[I] += Random * Distance * 2 - Distance;
 
     HasAlternativeTarget := true;
@@ -1750,7 +1762,7 @@ var
       if WantToRunAway or
          WantToWalkToEnemy(AngleRadBetweenDirectionToEnemy) then
         SetState(csWalk) else
-      if (not Resource.Flying) and
+      if Gravity and
          (AngleRadBetweenDirectionToEnemy < 0.01) and
          BoundingBox.PointInside2D(LastSeenEnemy, World.GravityCoordinate) then
       begin
@@ -1795,7 +1807,7 @@ var
         AboveHeight: Single;
       begin
         Result := false;
-        if not Resource.Flying then
+        if Gravity then
         begin
           Height(NewMiddle, AboveHeight);
           if AboveHeight > Resource.MaxHeightAcceptableToFall + PreferredHeight then
@@ -2140,7 +2152,7 @@ begin
 
     For non-flying, this is not needed, as then Up should always remain equal
     to initial value, which is GravityUp. }
-  if Resource.Flying then
+  if not Gravity then
     UpPrefer(World.GravityUp);
 end;
 
