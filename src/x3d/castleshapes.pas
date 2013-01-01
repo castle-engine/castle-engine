@@ -881,7 +881,7 @@ var
 
 implementation
 
-uses ProgressUnit, CastleSceneCore, NormalsCalculator, CastleLog, CastleWarnings,
+uses CastleProgress, CastleSceneCore, NormalsCalculator, CastleLog, CastleWarnings,
   CastleStringUtils, ArraysGenerator, CastleImages;
 
 const

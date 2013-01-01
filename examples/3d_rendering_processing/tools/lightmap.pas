@@ -74,7 +74,7 @@ procedure TriangleLightMapTo1st(const Image: TCastleImage;
   Quad[0] point corresponds to the lower-left image corner,
   Quad[1] corresponds to the lower-right, and so on CCW.
 
-  We show progress of operation using ProgressUnit, if ProgresTitle <> ''.
+  We show progress of operation using CastleProgress, if ProgresTitle <> ''.
 
   @seealso TriangleLightMapTo1st }
 procedure QuadLightMapTo1st(const Image: TCastleImage;
@@ -85,7 +85,7 @@ procedure QuadLightMapTo1st(const Image: TCastleImage;
 
 implementation
 
-uses CastleUtils, ProgressUnit;
+uses CastleUtils, CastleProgress;
 
 function PointLightMap(const Point, PointPlaneNormal: TVector3Single;
   Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;

@@ -673,7 +673,7 @@ procedure Register;
 
 implementation
 
-uses Math, X3DFields, ProgressUnit, X3DLoad, CastleLog, DateUtils,
+uses Math, X3DFields, CastleProgress, X3DLoad, CastleLog, DateUtils,
   CastleShapes, CastleConfig;
 
 procedure Register;

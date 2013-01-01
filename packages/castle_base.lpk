@@ -239,8 +239,8 @@
         <UnitName Value="ProgressConsole"/>
       </Item49>
       <Item50>
-        <Filename Value="../src/base/progressunit.pas"/>
-        <UnitName Value="ProgressUnit"/>
+        <Filename Value="../src/base/castleprogress.pas"/>
+        <UnitName Value="CastleProgress"/>
       </Item50>
       <Item51>
         <Filename Value="../src/base/recentfiles.pas"/>

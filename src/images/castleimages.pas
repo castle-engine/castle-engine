@@ -355,7 +355,7 @@ type
       may be invalid after calling Resize.
 
       If ProgressTitle <> '' this will call Progress.Init/Step/Fini
-      from ProgressUnit to indicate progress of operation. }
+      from CastleProgress to indicate progress of operation. }
     procedure Resize(ResizeToX, ResizeToY: Cardinal;
       const ProgressTitle: string = '');
 
@@ -368,7 +368,7 @@ type
 
       As with @link(Resize),
       if ProgressTitle <> '' this will call Progress.Init/Step/Fini
-      from ProgressUnit to indicate progress of operation. }
+      from CastleProgress to indicate progress of operation. }
     function MakeResized(ResizeToX, ResizeToY: Cardinal;
       const ProgressTitle: string = ''): TCastleImage;
 
@@ -1588,7 +1588,7 @@ procedure AlphaMaxTo1st(var A: TAlphaChannel; const B: TAlphaChannel);
 
 implementation
 
-uses ProgressUnit, CastleStringUtils, CastleFilesUtils, CastleWarnings, DDS;
+uses CastleProgress, CastleStringUtils, CastleFilesUtils, CastleWarnings, DDS;
 
 { image loading utilities --------------------------------------------------- }
 

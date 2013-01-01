@@ -163,7 +163,7 @@ var
 
 implementation
 
-uses CastleLog, ProgressUnit, Math, GL, GLU, CastleGLUtils, CastleWindow,
+uses CastleLog, CastleProgress, Math, GL, GLU, CastleGLUtils, CastleWindow,
   UIControls, RiftData, RiftVideoOptions;
 
 { TCreatureKind -------------------------------------------------------------- }

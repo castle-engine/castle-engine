@@ -215,7 +215,7 @@ type
       TimeBackwards := true, but it still doesn't really look good.)
 
       If ProgressTitle <> '' this will call Progress.Init/Step/Fini
-      from ProgressUnit to indicate progress of operation. }
+      from CastleProgress to indicate progress of operation. }
     procedure MixWithSelfBackwards(const ProgressTitle: string);
 
     { Edit the video beginning to fade with the video ending,
@@ -230,7 +230,7 @@ type
       Video must be loaded when using this.
 
       If ProgressTitle <> '' this will call Progress.Init/Step/Fini
-      from ProgressUnit to indicate progress of operation.
+      from CastleProgress to indicate progress of operation.
 
       @raises(EInvalidFadeFrames When FadeFrames is wrong.) }
     procedure FadeWithSelf(FadeFrames: Cardinal;
@@ -275,7 +275,7 @@ function FfmpegVideoFileExtension(const Ext: string;
 implementation
 
 uses CastleUtils, Math, CastleStringUtils, CastleWarnings, CastleFilesUtils,
-  ProgressUnit, TextureImages;
+  CastleProgress, TextureImages;
 
 { TVideo --------------------------------------------------------------------- }
 

@@ -26,7 +26,8 @@ program simple_video_editor;
 uses CastleUtils, SysUtils, CastleWindow, GL, GLU, GLImages,
   Videos, CastleStringUtils, CastleMessages, CastleColors,
   BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts, CastleParameters,
-  CastleGLUtils, VectorMath, Classes, ProgressUnit, CastleProgress, CastleTimeUtils;
+  CastleGLUtils, VectorMath, Classes, CastleProgress, CastleWindowProgress,
+  CastleTimeUtils;
 
 var
   Window: TCastleWindowDemo;

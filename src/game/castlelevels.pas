@@ -22,7 +22,7 @@ interface
 uses VectorMath, CastleSceneCore, CastleScene, Boxes3D,
   X3DNodes, X3DFields, Cameras, SectorsWaypoints,
   CastleUtils, CastleClassUtils, CastlePlayer, CastleResources,
-  ProgressUnit, PrecalculatedAnimation,
+  CastleProgress, PrecalculatedAnimation,
   DOM, CastleSoundEngine, Base3D, CastleShapes, GL, CastleConfig, CastleImages,
   Classes, CastleTimeUtils, CastleSceneManager, GLRendererShader, FGL;
 

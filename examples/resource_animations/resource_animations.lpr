@@ -16,8 +16,8 @@
 { Play the animations of resources (creatures/items). }
 
 uses SysUtils, FGL, CastleFilesUtils, CastleWindow, CastleResources, CastleScene,
-  CastleProgress, ProgressUnit, CastleControls, UIControls, CastleUtils, Base3D,
-  CastleSoundEngine;
+  CastleProgress, CastleWindowProgress, CastleControls, UIControls, CastleUtils,
+  Base3D, CastleSoundEngine;
 
 var
   BaseScene: TCastleScene;

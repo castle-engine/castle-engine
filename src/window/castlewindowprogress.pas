@@ -33,13 +33,13 @@
 @longCode(#  Progress.Init; try.....finally Progress.Fini; end; #) }
 
 
-unit CastleProgress;
+unit CastleWindowProgress;
 
 {$I castleconf.inc}
 
 interface
 
-uses GL, CastleWindow, ProgressUnit, WindowModes, CastleGLUtils, CastleImages, GLImages;
+uses GL, CastleWindow, CastleProgress, WindowModes, CastleGLUtils, CastleImages, GLImages;
 
 type
   TWindowProgressInterface = class(TProgressUserInterface)

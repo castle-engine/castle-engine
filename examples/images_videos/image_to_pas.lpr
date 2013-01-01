@@ -44,7 +44,7 @@
 
 program image_to_pas;
 
-uses SysUtils, CastleImages, CastleUtils, CastleFilesUtils, ProgressUnit,
+uses SysUtils, CastleImages, CastleUtils, CastleFilesUtils, CastleProgress,
   ProgressConsole, CastleParameters;
 
 var

@@ -130,7 +130,7 @@
   to some other set of callbacks. This allows you to implement modal behaviors,
   where a function suspends normal callbacks to display some dialog.
   See @link(WindowModes) unit and, build on top of it,
-  dialog boxes in @link(CastleMessages) and progress bar in @link(CastleProgress).
+  dialog boxes in @link(CastleMessages) and progress bar in @link(CastleWindowProgress).
   These units give you some typical GUI capabilities, and they are in pure OpenGL.
 
   Using OOP approach (overriding EventXxx methods instead of registering OnXxx

@@ -330,7 +330,7 @@ procedure RegisterResourceClass(const AClass: T3DResourceClass; const TypeName: 
 
 implementation
 
-uses SysUtils, ProgressUnit, CastleXMLUtils, CastleTimeUtils, CastleUtils,
+uses SysUtils, CastleProgress, CastleXMLUtils, CastleTimeUtils, CastleUtils,
   CastleStringUtils, CastleLog, CastleFilesUtils, CastleConfig, UIControls;
 
 type

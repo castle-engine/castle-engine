@@ -1141,9 +1141,9 @@ var
 
 implementation
 
-uses SysUtils, RenderingCameraUnit, CastleGLUtils, ProgressUnit, RaysWindow, GLExt,
-  CastleLog, CastleStringUtils, GLRenderer, CastleSoundEngine, Math, X3DTriangles,
-  GLVersionUnit, CastleShapes;
+uses SysUtils, RenderingCameraUnit, CastleGLUtils, CastleProgress, RaysWindow,
+  GLExt, CastleLog, CastleStringUtils, GLRenderer, CastleSoundEngine, Math,
+  X3DTriangles, GLVersionUnit, CastleShapes;
 
 procedure Register;
 begin

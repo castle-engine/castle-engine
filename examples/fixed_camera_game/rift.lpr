@@ -26,7 +26,7 @@ program rift;
 {$apptype GUI}
 
 uses SysUtils, CastleParameters, CastleUtils, CastleWindow,
-  CastleClassUtils, CastleStringUtils, CastleProgress, ProgressUnit,
+  CastleClassUtils, CastleStringUtils, CastleProgress, CastleWindowProgress,
   CastleGLUtils, CastleLog, CastleGameNotifications,
   RiftWindow, RiftVideoOptions, RiftIntro, RiftMainMenu,
   RiftSound, RiftCreatures, CastleConfig, CastleSoundEngine, VectorMath;

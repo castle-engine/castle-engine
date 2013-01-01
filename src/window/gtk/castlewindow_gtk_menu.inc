@@ -68,7 +68,7 @@ end;
   message will cause e.g. TWindowState.SetStandardState. For example,
   this happens in view3dscene when KeyUp may produce message to KeySensor about
   key release, and this may produce ChangedAll on TCastleScene, which produces
-  CastleProgress run...
+  CastleWindowProgress run...
 
   MenuRecreateForbidden is not an ideal solution, menu should be eventually
   recreated at some later point, TODO... For now this works Ok,

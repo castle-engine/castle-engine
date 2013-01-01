@@ -142,7 +142,7 @@ begin
     P.Targets.AddUnit('castlezstream.pas');
     P.Targets.AddUnit('castleparameters.pas');
     P.Targets.AddUnit('progressconsole.pas');
-    P.Targets.AddUnit('progressunit.pas');
+    P.Targets.AddUnit('castleprogress.pas');
     P.Targets.AddUnit('recentfiles.pas');
     P.Targets.AddUnit('vectormath.pas');
 
@@ -179,7 +179,7 @@ begin
     p.targets.addunit('castlerecentfiles.pas');
     P.Targets.AddUnit('castlemessages.pas');
     p.targets.addunit('windowmodes.pas');
-    P.Targets.AddUnit('castleprogress.pas');
+    P.Targets.AddUnit('castlewindowprogress.pas');
     if Defaults.OS in AllUnixOSes then
     begin
       P.SourcePath.Add('src' + PathDelim + 'window' + PathDelim + 'unix');

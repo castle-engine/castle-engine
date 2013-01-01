@@ -45,7 +45,7 @@ unit ProgressConsole;
 
 interface
 
-uses ProgressUnit;
+uses CastleProgress;
 
 type
   { }

@@ -653,7 +653,7 @@ var
 
 implementation
 
-uses CastleUtils, CastleStringUtils, ALUtils, CastleLog, ProgressUnit,
+uses CastleUtils, CastleStringUtils, ALUtils, CastleLog, CastleProgress,
   SoundFile, VorbisFile, EFX, CastleParameters, StrUtils, CastleWarnings,
   DOM, XMLRead, CastleXMLUtils, CastleFilesUtils, CastleConfig;
 

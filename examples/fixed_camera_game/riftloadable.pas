@@ -68,7 +68,7 @@ type
 
 implementation
 
-uses ProgressUnit;
+uses CastleProgress;
 
 destructor TLoadable.Destroy;
 begin

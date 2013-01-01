@@ -893,7 +893,7 @@ var
 implementation
 
 uses SysUtils, DOM, GL, GLU, CastleFilesUtils, CastleGLUtils,
-  ProgressUnit, CastleGameNotifications, OpenGLTTFonts, UIControls;
+  CastleProgress, CastleGameNotifications, OpenGLTTFonts, UIControls;
 
 var
   DisableCreatures: Cardinal;

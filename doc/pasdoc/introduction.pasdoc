@@ -250,7 +250,7 @@ units are allowed to be used by units in specific group.
 
     This directory also contains various user-interface stuff usable only
     together with CastleWindow, like progress bar display in OpenGL window
-    (CastleProgress), messages (CastleMessages, CastleNotifications, CastleInputs).
+    (CastleWindowProgress), messages (CastleMessages, CastleNotifications, CastleInputs).
 
     @italic(Uses:) potentially everything. For comfort, TCastleWindow
       has a ready link to SceneManager, so it depends on TCastleSceneManager

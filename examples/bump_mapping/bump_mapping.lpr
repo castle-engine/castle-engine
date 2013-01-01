@@ -57,7 +57,7 @@ uses CastleWindow, GL, GLU, GLExt, CastleGLUtils,
   CastleMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, CastleImages, KeysMouse,
   NormalizationCubeMap, GLImages, GLVersionUnit, X3DNodes,
   CastleParameters, CastleLog, RaysWindow, UIControls, Classes, CastleWarnings,
-  CastleSceneCore, CastleScene, X3DLoad, ProgressUnit, Background, CastleColors,
+  CastleSceneCore, CastleScene, X3DLoad, CastleProgress, Background, CastleColors,
   GLRenderer, CastleSceneManager, RenderingCameraUnit, CastleControls;
 
 const

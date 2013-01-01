@@ -20,7 +20,7 @@ program view_3d_model_advanced;
 
 {$apptype CONSOLE}
 
-uses SysUtils, CastleUtils, CastleWindow, ProgressUnit, CastleProgress,
+uses SysUtils, CastleUtils, CastleWindow, CastleProgress, CastleWindowProgress,
   CastleSceneCore, CastleWarnings, CastleParameters, CastleScene, X3DLoad,
   CastleControls;
 
