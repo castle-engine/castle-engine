@@ -236,7 +236,7 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'ui');
     P.Targets.AddUnit('castleinputs.pas');
     P.Targets.AddUnit('rectangles.pas');
-    P.Targets.AddUnit('keysmouse.pas');
+    P.Targets.AddUnit('castlekeysmouse.pas');
     P.Targets.AddUnit('uicontrols.pas');
     P.Targets.AddUnit('cameras.pas');
     P.Targets.AddUnit('pk3dconnexion.pas');

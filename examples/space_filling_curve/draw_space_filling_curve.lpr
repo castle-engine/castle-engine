@@ -37,7 +37,8 @@ program draw_space_filling_curve;
 {$apptype GUI}
 
 uses SysUtils, GL, GLU, CastleWindow, CastleUtils, CastleGLUtils, CastleParameters,
-  CastleImages, VectorMath, Math, SpaceFillingCurves, CastleStringUtils, GLImages;
+  CastleImages, VectorMath, Math, SpaceFillingCurves, CastleStringUtils, GLImages,
+  CastleKeysMouse;
 
 var
   Window: TCastleWindowDemo;

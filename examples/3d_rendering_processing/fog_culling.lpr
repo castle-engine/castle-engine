@@ -34,7 +34,7 @@ uses SysUtils, VectorMath, GL, GLU, CastleWindow, CastleStringUtils,
   CastleClassUtils, CastleUtils, Classes, CastleWarnings,
   CastleGLUtils, X3DNodes, CastleSceneCore, CastleScene,
   CastleProgress, ProgressConsole, CastleFilesUtils, Base3D,
-  CastleSceneManager, CastleParameters, RenderingCameraUnit, KeysMouse;
+  CastleSceneManager, CastleParameters, RenderingCameraUnit, CastleKeysMouse;
 
 var
   Window: TCastleWindowCustom;

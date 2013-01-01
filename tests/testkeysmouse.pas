@@ -29,7 +29,7 @@ type
 
 implementation
 
-uses KeysMouse, CastleStringUtils;
+uses CastleKeysMouse, CastleStringUtils;
 
 procedure TTestKeysMouse.TestKey;
 begin

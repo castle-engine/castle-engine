@@ -39,7 +39,7 @@ uses SysUtils, GL, CastleWindow, CastleFilesUtils,
   VectorMath, CastleSoundMenu, Classes, CastleStringUtils, CastleControls,
   GLImages, UIControls, CastleColors, CastleSoundEngine,
   RiftData, RiftSound, RiftVideoOptions, RiftInspectCreatures, RiftPlay,
-  RiftLocations, RiftGame, KeysMouse;
+  RiftLocations, RiftGame, CastleKeysMouse;
 
 { menu classes and variables  ------------------------------------------------ }
 

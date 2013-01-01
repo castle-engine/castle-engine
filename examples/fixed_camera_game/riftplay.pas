@@ -34,7 +34,7 @@ uses GL, CastleGLUtils, CastleWindow, CastleStringUtils, VectorMath, CastleFiles
   RaysWindow, Math, UIControls, GLRenderer,
   RiftVideoOptions, RiftLocations, RiftCreatures, RiftWindow, RiftGame,
   CastleGameNotifications, RenderingCameraUnit, Base3D,
-  RiftSceneManager, KeysMouse;
+  RiftSceneManager, CastleKeysMouse;
 
 var
   Player: TPlayer;

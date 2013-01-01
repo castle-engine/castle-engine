@@ -27,7 +27,7 @@ uses CastleUtils, SysUtils, CastleWindow, GL, GLU, GLImages,
   Videos, CastleStringUtils, CastleMessages, CastleColors,
   BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts, CastleParameters,
   CastleGLUtils, VectorMath, Classes, CastleProgress, CastleWindowProgress,
-  CastleTimeUtils;
+  CastleTimeUtils, CastleKeysMouse;
 
 var
   Window: TCastleWindowDemo;

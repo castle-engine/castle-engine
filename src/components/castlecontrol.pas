@@ -23,7 +23,7 @@ interface
 
 uses
   Classes, SysUtils, OpenGLContext, Controls, Forms,
-  VectorMath, KeysMouse, CastleUtils, CastleTimeUtils, StdCtrls, UIControls,
+  VectorMath, CastleKeysMouse, CastleUtils, CastleTimeUtils, StdCtrls, UIControls,
   Cameras, X3DNodes, CastleScene, CastleLevels, CastleImages,
   pk3DConnexion;
 
@@ -55,7 +55,7 @@ type
     FOnDraw: TNotifyEvent;
     FGLInitialized: boolean;
     FPressed: TKeysPressed;
-    FMousePressed: KeysMouse.TMouseButtons;
+    FMousePressed: CastleKeysMouse.TMouseButtons;
 
     FAggressiveUpdate: boolean;
     FAggressiveUpdateDelay: TMilisecTime;
@@ -162,7 +162,7 @@ type
     procedure Idle; virtual;
 
     property Pressed: TKeysPressed read FPressed;
-    property MousePressed: KeysMouse.TMouseButtons read FMousePressed;
+    property MousePressed: CastleKeysMouse.TMouseButtons read FMousePressed;
     procedure ReleaseAllKeysAndMouse;
 
     property MouseX: Integer read FMouseX;
@@ -419,14 +419,14 @@ type
 procedure LKeyToMyKey(const Key: Word; Shift: TShiftState;
   out MyKey: TKey; out MyCharKey: char);
 
-{ Convert Lazarus Controls.TMouseButton value to my KeysMouse.TMouseButton.
+{ Convert Lazarus Controls.TMouseButton value to my CastleKeysMouse.TMouseButton.
 
   (By coincidence, my type name and values are the same as used by LCL;
   but beware --- the order of values in my type is different (mbMiddle
   is in the middle in my type)). }
 function LMouseButtonToMyMouseButton(
   const MouseButton: Controls.TMouseButton;
-  out MyMouseButton: KeysMouse.TMouseButton): boolean;
+  out MyMouseButton: CastleKeysMouse.TMouseButton): boolean;
 
 procedure Register;
 
@@ -809,7 +809,7 @@ end;
 procedure TCastleControlBase.MouseDown(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: KeysMouse.TMouseButton;
+  MyButton: CastleKeysMouse.TMouseButton;
 begin
   FMouseX := X;
   FMouseY := Y;
@@ -829,7 +829,7 @@ end;
 procedure TCastleControlBase.MouseUp(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: KeysMouse.TMouseButton;
+  MyButton: CastleKeysMouse.TMouseButton;
 begin
   FMouseX := X;
   FMouseY := Y;
@@ -1319,7 +1319,7 @@ end;
 procedure TCastleControlCustom.MouseDownEvent(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: KeysMouse.TMouseButton;
+  MyButton: CastleKeysMouse.TMouseButton;
   C: TUIControl;
   I: Integer;
 begin
@@ -1340,7 +1340,7 @@ end;
 procedure TCastleControlCustom.MouseUpEvent(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
-  MyButton: KeysMouse.TMouseButton;
+  MyButton: CastleKeysMouse.TMouseButton;
   C: TUIControl;
   I: Integer;
 begin
@@ -1753,13 +1753,13 @@ end;
 
 function LMouseButtonToMyMouseButton(
   const MouseButton: Controls.TMouseButton;
-  out MyMouseButton: KeysMouse.TMouseButton): boolean;
+  out MyMouseButton: CastleKeysMouse.TMouseButton): boolean;
 begin
   Result := true;
   case MouseButton of
-    Controls.mbLeft  : MyMouseButton := KeysMouse.mbLeft;
-    Controls.mbRight : MyMouseButton := KeysMouse.mbRight;
-    Controls.mbMiddle: MyMouseButton := KeysMouse.mbMiddle;
+    Controls.mbLeft  : MyMouseButton := CastleKeysMouse.mbLeft;
+    Controls.mbRight : MyMouseButton := CastleKeysMouse.mbRight;
+    Controls.mbMiddle: MyMouseButton := CastleKeysMouse.mbMiddle;
     else Result := false;
   end;
 end;

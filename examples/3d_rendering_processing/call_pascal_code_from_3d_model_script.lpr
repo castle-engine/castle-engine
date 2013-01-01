@@ -37,7 +37,7 @@ program call_pascal_code_from_3d_model_script;
 
 uses CastleUtils, CastleProgress, ProgressConsole, CastleWarnings,
   CastleSceneCore, X3DFields, X3DTime, SysUtils, CastleParameters, CastleStringUtils,
-  CastleWindow;
+  CastleWindow, CastleKeysMouse;
 
 var
   Window: TCastleWindow;

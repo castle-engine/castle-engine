@@ -33,7 +33,7 @@ uses WindowModes, Cameras, CastleGLUtils, CastleWindow, GL, VectorMath, SysUtils
   BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts,
   Classes, CastleStringUtils, CastleMessages, CastleFilesUtils,
   RiftVideoOptions, RiftGame, RiftWindow, RiftCreatures,
-  UIControls, RiftSceneManager, CastleColors, KeysMouse;
+  UIControls, RiftSceneManager, CastleColors, CastleKeysMouse;
 
 var
   Creature: TCreature;

@@ -45,7 +45,7 @@ uses GL, CastleWindow, CastleScene, X3DNodes, SysUtils,
   CastleParameters, CastleImages, CastleMessages, CastleFilesUtils, GLImages,
   Base3D, CastleSoundEngine,
   RenderingCameraUnit, Classes, CastleControls, CastleLevels, CastleConfig,
-  CastleInputs, KeysMouse, CastlePlayer;
+  CastleInputs, CastleKeysMouse, CastlePlayer;
 
 { global variables ----------------------------------------------------------- }
 

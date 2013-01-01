@@ -20,7 +20,7 @@ interface
 
 uses Classes, VectorMath, X3DNodes, CastleScene, CastleSceneCore, Cameras,
   GLShadowVolumeRenderer, GL, UIControls, Base3D, CastleTriangles,
-  KeysMouse, Boxes3D, Background, CastleUtils, CastleClassUtils,
+  CastleKeysMouse, Boxes3D, Background, CastleUtils, CastleClassUtils,
   GLShaders, GLImages, CastleTimeUtils, FGL, SectorsWaypoints,
   CastleInputs, CastlePlayer;
 

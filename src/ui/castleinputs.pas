@@ -89,7 +89,7 @@ unit CastleInputs;
 
 interface
 
-uses KeysMouse, CastleUtils, CastleClassUtils, Classes,
+uses CastleKeysMouse, CastleUtils, CastleClassUtils, Classes,
   FGL, CastleConfig, CastleScript, UIControls;
 
 type

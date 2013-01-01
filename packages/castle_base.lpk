@@ -515,8 +515,8 @@
         <UnitName Value="Cameras"/>
       </Item121>
       <Item122>
-        <Filename Value="../src/ui/keysmouse.pas"/>
-        <UnitName Value="KeysMouse"/>
+        <Filename Value="../src/ui/castlekeysmouse.pas"/>
+        <UnitName Value="CastleKeysMouse"/>
       </Item122>
       <Item123>
         <Filename Value="../src/ui/opengl/castlecontrols.pas"/>

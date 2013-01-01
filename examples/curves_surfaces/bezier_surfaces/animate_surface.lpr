@@ -18,7 +18,7 @@
 program animate_surface;
 
 uses Cameras, Surfaces, CastleWindow, GL, GLU, VectorMath,
-  CastleGLUtils, BezierCurve, Boxes3D, SysUtils, CastleUtils, KeysMouse,
+  CastleGLUtils, BezierCurve, Boxes3D, SysUtils, CastleUtils, CastleKeysMouse,
   CastleStringUtils, CastleMessages, CastleFilesUtils, CastleParameters,
   CastleColors, Base3D, Frustum;
 

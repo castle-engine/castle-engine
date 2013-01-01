@@ -34,7 +34,7 @@ implementation
 uses SysUtils, GL, CastleWindow, CastleFilesUtils,
   CastleGLUtils, RiftData, WindowModes, DOM, CastleImages, CastleSoundEngine,
   GLImages, UIControls, CastleStringUtils, RiftSound, RiftVideoOptions,
-  KeysMouse;
+  CastleKeysMouse;
 
 { $define DEBUG_INTRO_FAST}
 

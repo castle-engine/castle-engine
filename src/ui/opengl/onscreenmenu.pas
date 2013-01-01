@@ -19,7 +19,7 @@ unit OnScreenMenu;
 interface
 
 uses Classes, VectorMath, Rectangles, OpenGLFonts, CastleControls,
-  GL, CastleGLUtils, UIControls, KeysMouse, CastleColors;
+  GL, CastleGLUtils, UIControls, CastleKeysMouse, CastleColors;
 
 type
   TCastleOnScreenMenu = class;

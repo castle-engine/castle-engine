@@ -41,7 +41,7 @@ program animate_3d_model_by_code;
 
 uses VectorMath, X3DNodes, GL, GLU, CastleWindow, CastleWarnings,
   CastleUtils, SysUtils, CastleGLUtils, CastleScene, Cameras,
-  CastleFilesUtils, CastleParameters, CastleStringUtils;
+  CastleFilesUtils, CastleParameters, CastleStringUtils, CastleKeysMouse;
 
 var
   Window: TCastleWindow;

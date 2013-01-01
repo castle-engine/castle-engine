@@ -18,7 +18,7 @@ unit Cameras;
 
 interface
 
-uses SysUtils, VectorMath, CastleUtils, KeysMouse, Boxes3D, Quaternions, Frustum,
+uses SysUtils, VectorMath, CastleUtils, CastleKeysMouse, Boxes3D, Quaternions, Frustum,
   UIControls, Classes, RaysWindow, CastleTimeUtils, CastleInputs, CastleTriangles;
 
 type

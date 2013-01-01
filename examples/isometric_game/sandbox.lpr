@@ -4,7 +4,7 @@ program SandBox;
 
 uses SysUtils, GL, GLU, GLExt, CastleWindow, SandBoxMap, CastleFilesUtils,
   WindowModes, SandBoxPlayer, CastleStringUtils, Math, CastleUtils,
-  CastleGLUtils, SandBoxGame, KeysMouse, CastleMessages, GLImages;
+  CastleGLUtils, SandBoxGame, CastleKeysMouse, CastleMessages, GLImages;
 
 var
   Window: TCastleWindowDemo;

@@ -23,7 +23,7 @@ program window_events;
 {$apptype GUI}
 
 uses SysUtils, CastleUtils, CastleGLUtils, GL, GLU, CastleNotifications, CastleWindow,
-  KeysMouse, CastleStringUtils,
+  CastleKeysMouse, CastleStringUtils,
   OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_Bold_m15_Unit,
   Classes, CastleMessages;
 

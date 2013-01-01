@@ -30,7 +30,7 @@ program window_menu;
 
 {$apptype CONSOLE}
 
-uses SysUtils, VectorMath, GL, GLU, GLExt,
+uses SysUtils, VectorMath, GL, GLU, GLExt, CastleKeysMouse,
   CastleWindow, CastleGLUtils, CastleMessages, CastleStringUtils;
 
 var

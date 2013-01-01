@@ -171,7 +171,7 @@ uses VectorMath, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, Boxes3D, CastleImages, TTFontsTypes,
   Videos, X3DTime, Base3D,
   CastleScript, X3DCastleScript, CastleOctree, DDS, TextureImages,
-  XMLRead, DOM, KeysMouse, CastleSoundEngine, CastleStringUtils,
+  XMLRead, DOM, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
   FGL, GenericStructList, Shaders;
 
 {$define read_interface}

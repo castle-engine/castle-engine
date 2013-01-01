@@ -26,7 +26,7 @@ uses VectorMath, Boxes3D, GL, CastleWindow, Base3D, UIControls,
   CastleClassUtils, CastleUtils, SysUtils, CastleFilesUtils,
   CastleGLUtils, Cameras, Math, SphereSampling, SphericalHarmonics,
   BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, CastleSceneManager,
-  CastleStringUtils;
+  CastleStringUtils, CastleKeysMouse;
 
 var
   Window: TCastleWindowCustom;

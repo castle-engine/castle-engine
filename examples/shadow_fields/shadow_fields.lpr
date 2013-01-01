@@ -45,7 +45,7 @@ uses SysUtils, GL, CastleGLUtils, VectorMath, Boxes3D, CastleColors,
   CastleWindow, CastleScene, Cameras, CastleWarnings, CastleParameters,
   ShadowFields, CastleUtils, CubeMap, X3DNodes, CastleSceneManager, Base3D,
   SphericalHarmonics, GLCubeMap, CastleMessages, CastleShapes, CastleStringUtils,
-  RenderingCameraUnit;
+  RenderingCameraUnit, CastleKeysMouse;
 
 var
   Window: TCastleWindowCustom;

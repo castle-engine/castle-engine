@@ -29,7 +29,7 @@ program custom_3d_object;
 
 uses VectorMath, Boxes3D, GL, GLU, CastleWindow, Frustum,
   CastleClassUtils, CastleUtils, SysUtils, Classes, Base3D,
-  CastleGLUtils, CastleFilesUtils, CastleStringUtils;
+  CastleGLUtils, CastleFilesUtils, CastleStringUtils, CastleKeysMouse;
 
 type
   TCube = class(T3D)

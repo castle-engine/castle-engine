@@ -67,7 +67,7 @@ var
 
 implementation
 
-uses SysUtils, CastleUtils, KeysMouse, CastleControls;
+uses SysUtils, CastleUtils, CastleKeysMouse, CastleControls;
 
 { display -------------------------------------------------------------------- }
 

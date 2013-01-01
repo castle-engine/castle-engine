@@ -24,7 +24,7 @@
 program doppler_demo;
 
 uses SysUtils, VectorMath, CastleWindow, GL, GLU, CastleGLUtils,
-  ALUtils, CastleSoundEngine, CastleStringUtils;
+  ALUtils, CastleSoundEngine, CastleStringUtils, CastleKeysMouse;
 
 const
   ALDistanceScaling = 0.02;

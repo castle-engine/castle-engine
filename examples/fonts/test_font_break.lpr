@@ -25,7 +25,7 @@ program test_font_break;
 
 uses CastleWindow, GL, GLU, CastleGLUtils, OpenGLFonts, SysUtils, Classes,
   CastleUtils, OpenGLBmpFonts, VectorMath, CastleStringUtils, CastleColors,
-  CastleControls
+  CastleControls, CastleKeysMouse
   {$ifdef TEST_FONT_REPLACE} , BFNT_BitstreamVeraSansMono_Bold_M15_Unit {$endif};
 
 var

@@ -13,49 +13,10 @@
   ----------------------------------------------------------------------------
 }
 
-{ Key and mouse types and constants.
-
-  Some properties of K_Xxx constants that are guaranteed:
-
-  K_None is a very special key value, see it's description for more.
-  It's guaranteed that K_None constant is always equal to zero.
-
-  Constants K_A .. K_Z are guaranteed to be always equal to
-  TKey('A') .. TKey('Z') and constants K_0 .. K_9 are
-  guaranteed to be always equal to TKey('0') .. TKey('9').
-  Also K_F1 .. K_F12 (function keys) are guaranteed to be always nicely ordered
-  (i.e. K_F2 = K_F1 + 1, K_F3 = K_F2 + 1 and so on).
-  Also K_Escape, K_BackSpace, K_Tab, K_Enter are guaranteed to be always equal
-  to CharEscape, CharBackSpace, CharTab, CharEnter (well, typecasted to
-  TKey type).
-
-  No other thing is guaranteed, so you shouldn't assume too much about
-  constants K_Xxx when writing your code.
-  Also, you should try to not assume that TKey size is 1 byte.
-  Also, try to be prepared that maybe one day TKey type
-  will be changed to be an enumerated type (not a simple Byte).
-}
-
-unit KeysMouse;
-
-{ This was started as a spin-off from CastleWindow unit.
-  Was extracted from CastleWindow unit to a separate unit,
-  that @italic(doesn't depend on CastleWindow unit).
-
-  Advantage: we can keep this unit independent from OpenGL.
-  This means that also Cameras unit (that must use unit KeysMouse)
-  can stay independent from OpenGL. Which is good, makes
-  Cameras unit more generally-usable.
-
-  Disadvantage: because this unit doesn't depend on CastleWindow unit,
-  it doesn't know what implementation of CastleWindow unit
-  (Xlib, glut, gtk, WinAPI -- see CASTLE_WINDOW_xxx defines in CastleWindow unit) is used.
-  It also can't use platform-specific units like Xlib, or WinAPI.
-  On one hand, this is good (because this unit is simple and portable),
-  on the other hand, we can't implement in this unit any conversion
-  from WinAPI / XLib / Gtk key codes -> to K_Xxx constants.
-  Such conversion has to be done in CastleWindow unit implementation.
-}
+{ Types and constants to handle keys and mouse.
+  They are used throughout our engine, both by CastleControl (Lazarus component)
+  and by non-Lazarus CastleWindow. }
+unit CastleKeysMouse;
 
 interface
 
@@ -64,10 +25,27 @@ uses CastleUtils, CastleStringUtils;
 type
   { Keys on keyboard.
     Do not ever use values K_Reserved_Xxx (they are declared here only to avoid
-    using assignments, which would prevent FPC from allowing TKey to index arrays). }
+    using assignments, which would prevent FPC from allowing TKey to index arrays).
+
+    Some properties of K_Xxx constants that are guaranteed:
+
+    @unorderedList(
+      @item(K_None means "no key". It's guaranteed that it's always equal to zero.)
+
+      @item(Letters (constants K_A .. K_Z) are guaranteed to be always equal to
+        TKey('A') .. TKey('Z') and digits (constants K_0 .. K_9) are
+        guaranteed to be always equal to TKey('0') .. TKey('9').
+        That is, their ordinal values are equal to their ASCII codes,
+        and they are always ordered.
+
+        Also K_F1 .. K_F12 (function keys) are guaranteed to be always nicely ordered
+        (i.e. K_F2 = K_F1 + 1, K_F3 = K_F2 + 1 and so on).
+
+        Also K_Escape, K_BackSpace, K_Tab, K_Enter are guaranteed to be always equal
+        to CharEscape, CharBackSpace, CharTab, CharEnter (well, typecasted to
+        TKey type).)
+    ) }
   TKey = (
-    { K_None is a special value, meaning "no key".
-      It's guaranteed that it's always equal to zero. }
     K_None,
     K_PrintScreen,
     K_CapsLock,

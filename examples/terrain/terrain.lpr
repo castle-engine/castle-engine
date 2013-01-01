@@ -52,7 +52,7 @@
 }
 program terrain;
 
-uses SysUtils, Classes, Boxes3D,
+uses SysUtils, Classes, Boxes3D, CastleKeysMouse,
   CastleUtils, CastleWindow, GL, GLExt, CastleGLUtils, CastleParameters,
   Cameras, VectorMath, CastleFilesUtils, Elevations, CastleMessages,
   CastleStringUtils, OnScreenMenu, UIControls, CastleImages, RenderElevations,

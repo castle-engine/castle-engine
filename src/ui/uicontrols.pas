@@ -18,7 +18,8 @@ unit UIControls;
 
 interface
 
-uses SysUtils, Classes, KeysMouse, CastleUtils, CastleClassUtils, GenericStructList;
+uses SysUtils, Classes, CastleKeysMouse, CastleUtils, CastleClassUtils,
+  GenericStructList;
 
 type
   { Basic user interface container. This may be a window

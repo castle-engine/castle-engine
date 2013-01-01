@@ -26,7 +26,7 @@
 uses SysUtils, GL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleSceneManager,
   UIControls, Cameras, Quaternions, VectorMath, CastleControls, CastleWarnings,
   CastleUtils, CastleGLUtils, X3DLoad, GLShaders, CastleParameters,
-  CastleStringUtils;
+  CastleStringUtils, CastleKeysMouse;
 
 { TBackground ---------------------------------------------------------------- }
 

@@ -528,90 +528,13 @@ uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
   {$ifdef CASTLE_WINDOW_USE_XF86VMODE} CastleXF86VMode, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} Gdk2X, X, Xlib, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, CastleDynLib, {$endif}
-  CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, GLImages, KeysMouse,
+  CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, GLImages, CastleKeysMouse,
   CastleStringUtils, CastleFilesUtils, CastleTimeUtils, FileFilters, UIControls,
   FGL, pk3DConnexion,
   { VRML/X3D stuff }
   X3DNodes, CastleScene, CastleLevels;
 
 {$define read_interface}
-
-{ ---------------------------------------------------------------------
-
-  I'm aliasing here TKey type and key constants from KeysMouse unit,
-  this way code that uses CastleWindow unit has automcatically
-  available TKey type and key constants (because a lot of code
-  using CastleWindow unit uses also these type/constant, so I want
-  to avoid adding "KeysMouse" unit to uses clauses).
-
-  Once the "reuse" keyword will be implemented in FPC, this can be done simpler.
-}
-
-type
-  { }
-  TKey = KeysMouse.TKey;
-const
-  K_None = KeysMouse.K_None;
-
-  K_BackSpace = KeysMouse.K_BackSpace;
-  K_Tab = KeysMouse.K_Tab;
-  K_Enter = KeysMouse.K_Enter;
-
-  K_Minus = KeysMouse.K_Minus;
-  K_Shift = KeysMouse.K_Shift;
-  K_Ctrl = KeysMouse.K_Ctrl;
-  K_Alt = KeysMouse.K_Alt;
-  K_Plus = KeysMouse.K_Plus;
-
-  K_Escape = KeysMouse.K_Escape;
-  K_Space = KeysMouse.K_Space;
-  K_PageUp = KeysMouse.K_PageUp;
-  K_PageDown = KeysMouse.K_PageDown;
-  K_End = KeysMouse.K_End;
-  K_Home = KeysMouse.K_Home;
-  K_Left = KeysMouse.K_Left;
-  K_Up = KeysMouse.K_Up;
-  K_Right = KeysMouse.K_Right;
-  K_Down = KeysMouse.K_Down;
-  K_Insert = KeysMouse.K_Insert;
-  K_Delete = KeysMouse.K_Delete;
-
-  K_Numpad_Plus = KeysMouse.K_Numpad_Plus;
-  K_Numpad_Minus = KeysMouse.K_Numpad_Minus;
-
-  K_0 = KeysMouse.K_0;  K_1 = KeysMouse.K_1;  K_2 = KeysMouse.K_2;  K_3 = KeysMouse.K_3;
-  K_4 = KeysMouse.K_4;  K_5 = KeysMouse.K_5;  K_6 = KeysMouse.K_6;  K_7 = KeysMouse.K_7;
-  K_8 = KeysMouse.K_8;  K_9 = KeysMouse.K_9;
-
-  K_A = KeysMouse.K_A;  K_B = KeysMouse.K_B;  K_C = KeysMouse.K_C;  K_D = KeysMouse.K_D;
-  K_E = KeysMouse.K_E;  K_F = KeysMouse.K_F;  K_G = KeysMouse.K_G;  K_H = KeysMouse.K_H;
-  K_I = KeysMouse.K_I;  K_J = KeysMouse.K_J;  K_K = KeysMouse.K_K;  K_L = KeysMouse.K_L;
-  K_M = KeysMouse.K_M;  K_N = KeysMouse.K_N;  K_O = KeysMouse.K_O;  K_P = KeysMouse.K_P;
-  K_Q = KeysMouse.K_Q;  K_R = KeysMouse.K_R;  K_S = KeysMouse.K_S;  K_T = KeysMouse.K_T;
-  K_U = KeysMouse.K_U;  K_V = KeysMouse.K_V;  K_W = KeysMouse.K_W;  K_X = KeysMouse.K_X;
-  K_Y = KeysMouse.K_Y;  K_Z = KeysMouse.K_Z;
-
-  K_F1 = KeysMouse.K_F1;  K_F2 = KeysMouse.K_F2;  K_F3 = KeysMouse.K_F3;  K_F4 = KeysMouse.K_F4;
-  K_F5 = KeysMouse.K_F5;  K_F6 = KeysMouse.K_F6;  K_F7 = KeysMouse.K_F7;  K_F8 = KeysMouse.K_F8;
-  K_F9 = KeysMouse.K_F9;  K_F10 = KeysMouse.K_F10;  K_F11 = KeysMouse.K_F11;  K_F12 = KeysMouse.K_F12;
-
-  K_Comma = KeysMouse.K_Comma;
-  K_Period = KeysMouse.K_Period;
-
-
-{ Also export types and consts related to mouse from KeysMouse unit. }
-
-type
-  { }
-  TMouseButton = KeysMouse.TMouseButton;
-  TMouseButtons = KeysMouse.TMouseButtons;
-
-const
-  mbLeft = KeysMouse.mbLeft;
-  mbMiddle = KeysMouse.mbMiddle;
-  mbRight = KeysMouse.mbRight;
-
-{ --------------------------------------------------------------------- }
 
 const
   { }

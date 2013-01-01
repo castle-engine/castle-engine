@@ -19,7 +19,7 @@ unit CastleControls;
 interface
 
 uses Classes, GL, VectorMath, UIControls, OpenGLFonts,
-  KeysMouse, CastleImages, CastleUtils, GLImages;
+  CastleKeysMouse, CastleImages, CastleUtils, GLImages;
 
 type
   { Base class for all controls inside an OpenGL context using a font. }

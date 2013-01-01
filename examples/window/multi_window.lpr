@@ -34,7 +34,7 @@ program multi_window;
 
 uses
   GL, GLU, CastleWindow, SysUtils, CastleUtils, OpenGLFonts, OpenGLTTFonts,
-  TTF_BitstreamVeraSans_Unit, CastleGLUtils, KeysMouse, VectorMath,
+  TTF_BitstreamVeraSans_Unit, CastleGLUtils, CastleKeysMouse, VectorMath,
   CastleStringUtils;
 
 type

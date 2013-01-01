@@ -19,7 +19,7 @@ unit PrecalculatedAnimation;
 interface
 
 uses SysUtils, Classes, X3DNodes, GLRenderer, CastleSceneCore, CastleScene,
-  CastleUtils, Boxes3D, CastleClassUtils, PrecalculatedAnimationCore, KeysMouse,
+  CastleUtils, Boxes3D, CastleClassUtils, PrecalculatedAnimationCore, CastleKeysMouse,
   CastleTimeUtils, Frustum, VectorMath, Base3D, X3DTriangles, FGL, CastleTriangles;
 
 type
