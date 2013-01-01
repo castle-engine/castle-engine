@@ -18,7 +18,8 @@ program fps_game;
 
 uses SysUtils, CastleWindow, CastleWarnings, CastleConfig, CastleLevels,
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
-  CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils;
+  CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
+  GLRenderer;
 
 var
   Window: TCastleWindow;
@@ -116,6 +117,10 @@ begin
     on levels, waypoints/sectors and other information from so-called
     "placeholders" on the level, see TGameSceneManager.LoadLevel documentation. }
   SceneManager.LoadLevel('example_level');
+
+  { Maybe adjust some rendering properties?
+    (SceneManager.MainScene was initialized by SceneManager.LoadLevel) }
+  // SceneManager.MainScene.Attributes.Shaders := srAlways; // per-pixel lighting, everything done by shaders
 
   { Add some buttons.
     We use TCastleButton from CastleControls unit for buttons,
