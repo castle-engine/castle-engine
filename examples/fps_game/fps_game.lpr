@@ -25,7 +25,9 @@ var
   Window: TCastleWindow;
   SceneManager: TGameSceneManager; //< same thing as Window.SceneManager
   Player: TPlayer; //< same thing as Window.SceneManager.Player
+
   ToggleMouseLookButton: TCastleButton;
+  ExitButton: TCastleButton;
 
 type
   { Class to handle "of object" callbacks.
@@ -33,6 +35,7 @@ type
     callbacks, or place these callbacks as methods of Lazarus form. }
   TEventsHandler = class
     class procedure ToggleMouseLookButtonClick(Sender: TObject);
+    class procedure ExitButtonClick(Sender: TObject);
   end;
 
 class procedure TEventsHandler.ToggleMouseLookButtonClick(Sender: TObject);
@@ -41,10 +44,17 @@ begin
   Player.Camera.MouseLook := ToggleMouseLookButton.Pressed;
 end;
 
+class procedure TEventsHandler.ExitButtonClick(Sender: TObject);
+begin
+  Application.Quit;
+end;
+
 procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 begin
   if Event.IsKey(CtrlM) then
-    TEventsHandler.ToggleMouseLookButtonClick(ToggleMouseLookButton);
+    TEventsHandler.ToggleMouseLookButtonClick(ToggleMouseLookButton) else
+  if Event.IsKey(CharEscape) then
+    TEventsHandler.ExitButtonClick(ExitButton);
 end;
 
 function MyGetApplicationName: string;
@@ -54,6 +64,8 @@ end;
 
 const
   ButtonsMargin = 8;
+var
+  NextButtonBottom: Integer;
 begin
   { We use standard FPC ApplicationName function for some names (e.g. Config
     file name), so make sure it's Ok. }
@@ -132,13 +144,24 @@ begin
     regardless of your OS/window manager theme, and in the future it should
     be trivial to style the TCastleButton to match the theme of your game
     (like medieval fantasy of futuristic sci-fi). }
+  NextButtonBottom := ButtonsMargin;
+
   ToggleMouseLookButton := TCastleButton.Create(Application);
   ToggleMouseLookButton.Caption := 'Mouse Look (Ctrl + M)';
   ToggleMouseLookButton.Toggle := true;
   ToggleMouseLookButton.OnClick := @TEventsHandler(nil).ToggleMouseLookButtonClick;
   ToggleMouseLookButton.Left := ButtonsMargin;
-  ToggleMouseLookButton.Bottom := ButtonsMargin;
+  ToggleMouseLookButton.Bottom := NextButtonBottom;
   Window.Controls.Add(ToggleMouseLookButton);
+  NextButtonBottom += ToggleMouseLookButton.Height + ButtonsMargin;
+
+  ExitButton := TCastleButton.Create(Application);
+  ExitButton.Caption := 'Exit (Escape)';
+  ExitButton.OnClick := @TEventsHandler(nil).ExitButtonClick;
+  ExitButton.Left := ButtonsMargin;
+  ExitButton.Bottom := NextButtonBottom;
+  Window.Controls.Add(ExitButton);
+  NextButtonBottom += ExitButton.Height + ButtonsMargin;
 
   Window.OnPress := @Press;
 
