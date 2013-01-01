@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<!--
+  Define the level properties. See README_about_index_xml_files.txt
+  for extensive documentation of available properties, in short:
+  - name: used to refer to this level from ObjectPascal code,
+    e.g. in SceneManager.Load(...)
+  - type: indicates ObjectPascal class used to handle this level logic,
+    usually just 'Level' to use standard TLevelLogic class.
+  - scene: 3D model filename.
+-->
+
+<level
+  name="example_level"
+  type="Level"
+  scene="example_level_final.x3dv"
+  title="Example Level"
+  placeholders="blender"
+/>
