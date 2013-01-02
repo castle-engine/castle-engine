@@ -19,7 +19,7 @@ unit CastleCreatures;
 interface
 
 uses Classes, VectorMath, PrecalculatedAnimation, Boxes3D, CastleClassUtils,
-  CastleUtils, CastleScene, SectorsWaypoints,
+  CastleUtils, CastleScene, SectorsWaypoints, CastleStringUtils,
   CastleResources, CastleXMLConfig, Base3D,
   CastleSoundEngine, Frustum, X3DNodes, CastleColors, FGL;
 
@@ -716,7 +716,7 @@ type
     { Hurt given enemy. HurtEnemy may be @nil, in this case we do nothing. }
     procedure AttackHurt(const HurtEnemy: T3DAlive);
 
-    function DebugCaption: string; virtual;
+    function DebugCaption: TCastleStringList; virtual;
   public
     constructor Create(AOwner: TComponent; const AMaxLife: Single); virtual; reintroduce;
 
@@ -807,7 +807,7 @@ type
 
     procedure SetState(Value: TCreatureState); virtual;
     procedure SetLife(const Value: Single); override;
-    function DebugCaption: string; override;
+    function DebugCaption: TCastleStringList; override;
 
     { Enemy of this creature. In this class, this always returns global
       World.Player (if it exists and is still alive).
@@ -1355,6 +1355,8 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
   procedure DebugCaptions;
   var
     H, FontSize: Single;
+    S: TCastleStringList;
+    I: Integer;
   begin
     glPushMatrix;
       glMultMatrix(Transform);
@@ -1369,11 +1371,18 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
         UpFromOrientation[Orientation],
         DirectionFromOrientation[Orientation]));
 
-      FontSize := H / 6;
+      FontSize := H / 8;
       glScalef(FontSize / Font3d.RowHeight, FontSize / Font3d.RowHeight, 1);
 
       glColorv(White3Single);
-      Font3d.PrintAndMove(DebugCaption);
+      S := DebugCaption;
+      try
+        for I := S.Count - 1 downto 0 do
+        begin
+          Font3d.Print(S[I]);
+          glTranslatef(0, Font3d.RowHeight, 0);
+        end;
+      finally FreeAndNil(S) end;
     glPopMatrix;
   end;
 
@@ -1395,10 +1404,11 @@ begin
   end;
 end;
 
-function TCreature.DebugCaption: string;
+function TCreature.DebugCaption: TCastleStringList;
 begin
-  Result := Format('%s [%s / %s]',
-    [Resource.Name, FloatToNiceStr(Life), FloatToNiceStr(MaxLife)]);
+  Result := TCastleStringList.Create;
+  Result.Add(Format('%s [%s / %s]',
+    [Resource.Name, FloatToNiceStr(Life), FloatToNiceStr(MaxLife)]));
 end;
 
 procedure TCreature.Fall(const FallHeight: Single);
@@ -2273,7 +2283,7 @@ begin
   end;
 end;
 
-function TWalkAttackCreature.DebugCaption: string;
+function TWalkAttackCreature.DebugCaption: TCastleStringList;
 var
   StateName: string;
 begin
@@ -2289,11 +2299,11 @@ begin
     csHurt       : StateName := 'Hurt';
     else StateName := Format('Custom State %d', [State]);
   end;
-  Result += ' ' + StateName;
+  Result.Add(StateName);
 
   if HasLastSeenEnemy then
-    Result += Format(' Enemy seen distance: %f',
-      [PointsDistance(LastSeenEnemy, Middle)]);
+    Result.Add(Format('Enemy seen distance: %f',
+      [PointsDistance(LastSeenEnemy, Middle)]));
 end;
 
 procedure TWalkAttackCreature.Hurt(const LifeLoss: Single;
