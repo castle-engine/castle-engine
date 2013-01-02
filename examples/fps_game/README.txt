@@ -1,4 +1,6 @@
-Example of a 3D FPS game using "Castle Game Engine".
+Example of a fully-working 3D FPS game using "Castle Game Engine".
+We have a level, creatures, items, inventory, player can die,
+we also show some extra stuff (buttons, custom viewport and such).
 
 You can compile this example (and any other example here, for that matter)
 using Lazarus (http://www.lazarus.freepascal.org/):

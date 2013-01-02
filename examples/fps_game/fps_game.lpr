@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Example of a 3D FPS game. }
+{ Example of a fully-working 3D FPS game. }
 program fps_game;
 
 uses SysUtils, CastleWindow, CastleWarnings, CastleConfig, CastleLevels,
