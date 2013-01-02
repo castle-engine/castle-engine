@@ -19,7 +19,7 @@ program fps_game;
 uses SysUtils, Classes, CastleWindow, CastleWarnings, CastleConfig, CastleLevels,
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
-  GLRenderer, Base3D;
+  GLRenderer, Base3D, CastleFilesUtils, CastleGameNotifications;
 
 var
   Window: TCastleWindow;
@@ -35,11 +35,13 @@ type
     ExitButton: TCastleButton;
     RenderDebug3DButton: TCastleButton;
     RenderDebugCaptionsButton: TCastleButton;
+    ScrenshotButton: TCastleButton;
     constructor Create(AOwner: TComponent); override;
     procedure ToggleMouseLookButtonClick(Sender: TObject);
     procedure ExitButtonClick(Sender: TObject);
     procedure RenderDebug3DButtonClick(Sender: TObject);
     procedure RenderDebugCaptionsButtonClick(Sender: TObject);
+    procedure ScreenshotButtonClick(Sender: TObject);
   end;
 
 constructor TButtons.Create(AOwner: TComponent);
@@ -86,6 +88,14 @@ begin
   RenderDebugCaptionsButton.Bottom := NextButtonBottom;
   Window.Controls.Add(RenderDebugCaptionsButton);
   NextButtonBottom += RenderDebugCaptionsButton.Height + ButtonsMargin;
+
+  ScrenshotButton := TCastleButton.Create(Application);
+  ScrenshotButton.Caption := 'Screenshot (F5)';
+  ScrenshotButton.OnClick := @ScreenshotButtonClick;
+  ScrenshotButton.Left := ButtonsMargin;
+  ScrenshotButton.Bottom := NextButtonBottom;
+  Window.Controls.Add(ScrenshotButton);
+  NextButtonBottom += ScrenshotButton.Height + ButtonsMargin;
 end;
 
 procedure TButtons.ToggleMouseLookButtonClick(Sender: TObject);
@@ -111,6 +121,22 @@ begin
   RenderDebugCaptions := RenderDebugCaptionsButton.Pressed;
 end;
 
+procedure TButtons.ScreenshotButtonClick(Sender: TObject);
+var
+  FileName: string;
+begin
+  { Capture a screenshot straight to a file.
+    There are more interesting things that you can do with a screenshot
+    (overloaded Window.SaveScreen returns you a TRGBImage and we have
+    a whole image library in CastleImages unit to process such image).
+    You could also ask for a filename (e.g. by Window.FileDialog).
+    But this is just a simple example, and this way we also have
+    an opportunity to show how to use Notifications. }
+  FileName := FileNameAutoInc(ApplicationName + '_screen_%d.png');
+  Window.SaveScreen(FileName);
+  Notifications.Show('Saved screen to ' + FileName);
+end;
+
 var
   Buttons: TButtons;
 
@@ -123,7 +149,9 @@ begin
   if Event.IsKey(CtrlM) then
     Buttons.ToggleMouseLookButtonClick(nil) else
   if Event.IsKey(CharEscape) then
-    Buttons.ExitButtonClick(nil);
+    Buttons.ExitButtonClick(nil) else
+  if Event.IsKey(K_F5) then
+    Buttons.ScreenshotButtonClick(nil);
 end;
 
 function MyGetApplicationName: string;
@@ -210,6 +238,13 @@ begin
     be trivial to style the TCastleButton to match the theme of your game
     (like medieval fantasy of futuristic sci-fi). }
   Buttons := TButtons.Create(Application);
+
+  { Add the Notifications to our window.
+    We add a global Notifications object from CastleGameNotifications.
+    Of course this is completely optional, you could instead create your own
+    TCastleNotifications instance (to not see the default notifications
+    made by some engine units) or just don't use notifications at all. }
+  Window.Controls.Add(Notifications);
 
   Window.OnPress := @Press;
 
