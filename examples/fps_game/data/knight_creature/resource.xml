@@ -19,11 +19,22 @@
     see DRAFT.modeling_tutorial.txt. In this case we use KAnim to
     export animations from Blender to KAnim using our exporter on
     http://castle-engine.sourceforge.net/blender.php .
+
+  - radius and preferred_height: important for collision detection.
+    These are best visualized with "Render debug 3D" in fps_game.
+    See T3D.Sphere and T3D.Middle and T3D.PreferredHeight documentation for
+    a precise meaning of these values. Engine *does* calculate good values
+    for them automatically, but they can be "tuned" manually to work even better
+    (that is because the engine does not know that these are humanoids,
+    and so their head is quite high in all animation states (aside from "die")).
 -->
 
 <resource
   name="Knight"
   type="WalkAttack"
+  middle_height="0.75"
+  radius="0.5"
+  preferred_distance="3.5"
 >
   <model>
     <idle   file_name="idle.kanim"  />
@@ -32,4 +43,5 @@
     <die    file_name="die.kanim"   />
     <hurt   file_name="hurt.kanim"  />
   </model>
+  <attack max_distance="4.0"/>
 </resource>
