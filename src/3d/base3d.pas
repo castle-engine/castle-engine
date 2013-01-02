@@ -32,7 +32,7 @@ type
   TRenderFromViewFunction = procedure of object;
 
   { Describe what visible thing changed
-    for T3D.VisibleChange. }
+    for T3D.VisibleChangeHere. }
   TVisibleChange = (
     { Something visible in the geometry changed.
       "Geometry" means that this is applicable only to actual 3D shape
@@ -1237,6 +1237,7 @@ type
     procedure SetRotation(const Value: TVector4Single);
     procedure SetScale(const Value: TVector3Single);
     procedure SetScaleOrientation(const Value: TVector4Single);
+    procedure SetTranslation(const Value: TVector3Single);
 
     function OnlyTranslation: boolean; override;
 
@@ -1266,7 +1267,7 @@ type
     property Rotation: TVector4Single read FRotation write SetRotation;
     property Scale: TVector3Single read FScale write SetScale;
     property ScaleOrientation: TVector4Single read FScaleOrientation write SetScaleOrientation;
-    property Translation: TVector3Single read FTranslation write FTranslation;
+    property Translation: TVector3Single read FTranslation write SetTranslation;
     { @groupEnd }
 
     procedure Translate(const T: TVector3Single); override;
@@ -1381,9 +1382,10 @@ type
 
     { Camera, with view vectors (position, direction and up)
       always synchronized with this T3DOrient instance.
-      You can either set Camera vectors (by TWalkCamera.Position,
-      TWalkCamera.SetView and such) or this object's properties
-      (T3DOrient.Position, T3DOrient.SetView), it's all the same.
+      You should not set Camera vectors (by TWalkCamera.Position,
+      TWalkCamera.SetView and such) directly, instead use this
+      object's properties (T3DOrient.Position, T3DOrient.SetView),
+      as we will call proper VisibleChangeHere method.
 
       We don't deal with any other camera properties in T3DOrient.
       If you want, you can ignore this camera (you will probably do this
@@ -3454,12 +3456,14 @@ begin
   FCenter := Value;
   FOnlyTranslation := FOnlyTranslation and
     (Value[0] = 0) and (Value[1] = 0) and (Value[2] = 0);
+  VisibleChangeHere([vcVisibleGeometry]);
 end;
 
 procedure T3DTransform.SetRotation(const Value: TVector4Single);
 begin
   FRotation := Value;
   FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
+  VisibleChangeHere([vcVisibleGeometry]);
 end;
 
 procedure T3DTransform.SetScale(const Value: TVector3Single);
@@ -3467,12 +3471,20 @@ begin
   FScale := Value;
   FOnlyTranslation := FOnlyTranslation and
     (Value[0] = 1) and (Value[1] = 1) and (Value[2] = 1);
+  VisibleChangeHere([vcVisibleGeometry]);
 end;
 
 procedure T3DTransform.SetScaleOrientation(const Value: TVector4Single);
 begin
   FScaleOrientation := Value;
   FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
+  VisibleChangeHere([vcVisibleGeometry]);
+end;
+
+procedure T3DTransform.SetTranslation(const Value: TVector3Single);
+begin
+  FTranslation := Value;
+  VisibleChangeHere([vcVisibleGeometry]);
 end;
 
 function T3DTransform.OnlyTranslation: boolean;
@@ -3564,36 +3576,43 @@ end;
 procedure T3DOrient.SetPosition(const Value: TVector3Single);
 begin
   Camera.Position := Value;
+  VisibleChangeHere([vcVisibleGeometry]);
 end;
 
 procedure T3DOrient.SetDirection(const Value: TVector3Single);
 begin
   Camera.Direction := Value;
+  VisibleChangeHere([vcVisibleGeometry]);
 end;
 
 procedure T3DOrient.SetUp(const Value: TVector3Single);
 begin
   Camera.Up := Value;
+  VisibleChangeHere([vcVisibleGeometry]);
 end;
 
 procedure T3DOrient.UpPrefer(const AUp: TVector3Single);
 begin
   Camera.UpPrefer(AUp);
+  VisibleChangeHere([vcVisibleGeometry]);
 end;
 
 procedure T3DOrient.SetView(const APos, ADir, AUp: TVector3Single);
 begin
   Camera.SetView(APos, ADir, AUp);
+  VisibleChangeHere([vcVisibleGeometry]);
 end;
 
 procedure T3DOrient.SetView(const ADir, AUp: TVector3Single);
 begin
   Camera.SetView(ADir, AUp);
+  VisibleChangeHere([vcVisibleGeometry]);
 end;
 
 procedure T3DOrient.Translate(const T: TVector3Single);
 begin
   Camera.Position := Camera.Position + T;
+  VisibleChangeHere([vcVisibleGeometry]);
 end;
 
 function T3DOrient.GetTranslation: TVector3Single;
