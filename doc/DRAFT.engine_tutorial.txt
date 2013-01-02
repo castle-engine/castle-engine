@@ -287,27 +287,155 @@ CastleCreatures unit (see inside src/game/ in sources) allows you to easily crea
 
     You usually override two classes to define a new creature/item:
 
-    - The resource class (descendant of T3DResource).
-      An instance of a resource class defines the behavior
-      and properties of a given kind of creature/item, like a "Werewolf"
-      or "LifePotion". Every resource.xml file inside data/ refers
-      (by the type=xxx attribute) to an existing resource class,
-      and in turn every resource.xml results in an instance of this
-      resource class (with properties set based on attributes inside
-      given resource.xml).
+    1.The resource class (descendant of T3DResource, like TCreatureResource
+      or TItemResource). The resource class defines the behavior of the creature,
+      what properties does it have. For example, you can image a
+      TWerewolfResource that is derived from TWalkAttackCreatureResource
+      and adds the ability to make a howling sound from time to time.
+      TWerewolfResource would introduce a property like HowlingSoundName
+      to be able to define sound for it.
+      Or imagine a TPotionResource that is derived from TItemResource
+      and add a properties saying which player attribute (health, mana, stamina)
+      is regenerated and how much.
 
-      In effect, an instance of a resource class keeps shared data for all
-      werewolves / life potions, like their 3D models, initial Life points
-      of werewolf and such.
+      The resource class can be registered, like
 
-    - The non-resource class. It is indicated by the resource class,
-      using method TCreatureResource.CreatureClass or
-      TItemResource.ItemClass.
+        RegisterResourceClass(TWerewolfResource, 'Werewolf');
+        RegisterResourceClass(TPotionResource, 'Potion');
 
-      An instance of this represents a single occurence
-      of this creature/item in the 3D world. It keeps data specific
-      to this instance, like current Life points of a werewolf.
-      It also keeps a reference to the resource class.
+      which allows this class to be referenced inside resource.xml files
+      using the type attribute, like type="Werewolf".
+      Many resource.xml files may use the same type="xxx",
+      they only must have a different name="xxx".
+      Every resource.xml file that uses type="Werewolf" will make
+      a new instance of the TWerewolfResource
+      class to be created at the Resources.LoadFromFiles call.
+
+      This way you can imagine creating a couple of resource.xml files
+      that define a couple of resource instances:
+
+      [[
+      <resource
+        name="WerewolfRookie"
+        type="Werewolf"
+        default_max_life="10.0"
+        sound_howling="werewolf_rookie_howling">
+        <model>...</model>
+      </resource>
+      ]]
+
+      [[
+      <resource
+        name="WerewolfBoss"
+        type="Werewolf"
+        default_max_life="1000000.0"
+        sound_howling="werewolf_boss_howling">
+        <model>...</model>
+      </resource>
+      ]]
+
+      [[
+      <resource
+        name="SmallLifePotion"
+        type="Potion"
+        regenerate_stat="Life"
+        regenerate_amount="10.0">
+        <model>...</model>
+      </resource>
+      ]]
+
+      [[
+      <resource
+        name="LargeLifePotion"
+        type="Potion"
+        regenerate_stat="Life"
+        regenerate_amount="50.0">
+        <model>...</model>
+      </resource>
+      ]]
+
+      [[
+      <resource
+        name="ManaPotion"
+        type="Potion"
+        regenerate_stat="Mana"
+        regenerate_amount="10.0">
+        <model>...</model>
+      </resource>
+      ]]
+
+      As you can see in the above examples, you can use the same
+      resource class in many ways. Pratically speaking, you only need to create
+      a new resource class (like TWerewolfResource) when you really need
+      to introduce a new behavior that needs to be implemented using ObjectPascal.
+      Otherwise, if what you want can be achieved by tweaking the value
+      of a property of an existing class, then you don't need new class,
+      you only need to create new resource.xml file that refers to the same
+      class but sets different value for given property.
+
+      After calling Resources.LoadFromFiles, the Resources list will be filled
+      with instances of appropriate classes. You can find them by name,
+      e.g.
+
+      [[
+      var
+        WerewolfRookie: TWerewolfResource;
+      ...
+        WerewolfRookie := Resources.FindName('WerewolfRookie') as TWerewolfResource
+      ]]
+
+      Defining new property in a resource class usually means
+      defining a normal ObjectPascal property and overriding T3DResource.LoadFromFile
+      to load the value of this property. See existing units
+      like CastleCreatures and CastleItems for a lot of examples.
+
+      An instance of a resource class will be shared by all
+      occurences of this creature/item in the 3D world.
+
+    2.The second class will be used to represent a single occurence
+      of this creature/item in the 3D world. This has a reference
+      to the appropriate resource (for shared information)
+      and can have it's own properties, specific to this current instance.
+      For example, creatures have their current Life.
+
+      You can imagine that a potion instance could have a property saying
+      e.g. how much of it was drunk (if you want to allow player to drink
+      only parts of the potions).
+
+      The resource class indicates the related non-resource class by the
+      TCreatureResource.CreatureClass or
+      TItemResource.ItemClass method (although it's not necessary,
+      but usually you want to define non-resource class together with
+      resource class to implement the behavior you need).
+      These are used by
+      TCreatureResource.CreateCreature and TItemResource.CreateItem methods,
+      which you can use to create creature/item occurence by code:
+
+      [[
+      type
+        TWerewolfResource = class(TWalkAttackCreatureResource)
+        public
+          function CreatureClass: TCreatureClass; override;
+          ...
+        end;
+
+        TWerewolf = class(TWalkAttackCreature)
+          ...
+        end;
+
+      function TWerewolfResource.CreatureClass: TCreatureClass;
+      begin
+        Result := TWerewolf;
+      end;
+
+      ...
+      { and if you want to create werewolves programmatically
+        (not just by placing "placeholders" on level 3D model) then do this: }
+      for I := 1 to 100 do
+        WerewolfRookie.CreateCreature(SceneManager.Items,
+          Vector3Single(1, 2, 3) { position }
+          Vector3Single(1, 0, 0) { direction });
+    ]]
 
     There are many possible classes to override. Overriding
     the more specialized (finished) classes, like TWalkAttackCreature*,
@@ -316,6 +444,12 @@ CastleCreatures unit (see inside src/game/ in sources) allows you to easily crea
     prepared to implement something (like creature AI) completely from scratch
     on your own.
 
+    Overriding the really basic classes from Base3D unit (and optionally
+    also CastleResources, if you want your 3D object to be associated with
+    a resource) is for advanced usage, when you want to define a 3D
+    object within your game that doesn't really fit our creatures/items
+    definitions. Base3D contains a lot of classes to make it easy
+    to create your own, dynamic 3D objects.
 
   (TODO: Pasdoc: frame-less layout, to make direct links sensible.
    TODO: Pasdoc: separate pascal_code_formatter, with @longCode formatter extracted, to convert pascal code to HTML-ified or LaTeX-ified output. HTML can of course be adjusted with CSS. I want to have many code snippets in this tutorial (see e.g. Symfony2 docs for inspiration.)
