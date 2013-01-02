@@ -1533,18 +1533,18 @@ end;
 
 procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 var
-  IdleSeesEnemy: boolean;
-  IdleSqrDistanceToLastSeenEnemy: Single;
+  EnemyVisibleNow: boolean;
+  SqrDistanceToLastSeenEnemy: Single;
 
   function ActionAllowed(const Animation: T3DResourceAnimation;
     const LastTime, MinDelay, MaxDistance, MaxAngle: Single): boolean;
   var
     AngleRadBetweenTheDirectionToEnemy: Single;
   begin
-    Result := IdleSeesEnemy and
+    Result := EnemyVisibleNow and
       Animation.Defined and
       (LifeTime - LastTime > MinDelay) and
-      (IdleSqrDistanceToLastSeenEnemy <= Sqr(MaxDistance));
+      (SqrDistanceToLastSeenEnemy <= Sqr(MaxDistance));
 
     if Result then
     begin
@@ -1698,13 +1698,13 @@ var
         Yes --- only if it will help make AttackAllowed from false to true.
         See AttackAllowed implementation.
 
-        If IdleSeesEnemy and IdleSqrDistanceToLastSeenEnemy is small enough,
+        If EnemyVisibleNow and SqrDistanceToLastSeenEnemy is small enough,
         there's no point in getting closer to the enemy. In fact, it would
         be bad to get closer to enemy in this case, as this would allow
         enemy to easier attack (shorter distance --- easier to reach with
         short-range weapon, or easier to aim with long-range weapon). }
-      ( (not IdleSeesEnemy) or
-        (IdleSqrDistanceToLastSeenEnemy > Sqr(Resource.PreferredDistance))
+      ( (not EnemyVisibleNow) or
+        (SqrDistanceToLastSeenEnemy > Sqr(Resource.PreferredDistance))
       );
   end;
 
@@ -1721,9 +1721,9 @@ var
 
   function WantToRunAway: boolean;
   begin
-    Result := IdleSeesEnemy and
+    Result := EnemyVisibleNow and
       (Life <= MaxLife * Resource.RunAwayLife) and
-      (IdleSqrDistanceToLastSeenEnemy < Sqr(Resource.RunAwayDistance));
+      (SqrDistanceToLastSeenEnemy < Sqr(Resource.RunAwayDistance));
   end;
 
   procedure InitAlternativeTarget;
@@ -2121,8 +2121,8 @@ begin
   end;
 
   E := Enemy;
-  IdleSeesEnemy := (E <> nil) and LineOfSight(Middle, E.Middle);
-  if IdleSeesEnemy then
+  EnemyVisibleNow := (E <> nil) and LineOfSight(Middle, E.Middle);
+  if EnemyVisibleNow then
   begin
     HasLastSeenEnemy := true;
     LastSeenEnemy := E.Middle;
@@ -2131,7 +2131,7 @@ begin
 
   if HasLastSeenEnemy then
   begin
-    IdleSqrDistanceToLastSeenEnemy :=
+    SqrDistanceToLastSeenEnemy :=
       PointsDistanceSqr(LastSeenEnemy, Middle);
   end;
 
