@@ -1717,6 +1717,15 @@ const
   DefaultPlayerFallSoundName = 'player_fall';
   { @groupEnd }
 
+  DirectionFromOrientation: array [TOrientationType] of TVector3Single =
+  ( (0, 0, -1),
+    (0, -1, 0),
+    (1, 0, 0) );
+  UpFromOrientation: array [TOrientationType] of TVector3Single =
+  ( (0, 1, 0),
+    (0, 0, 1),
+    (0, 0, 1) );
+
 { Apply transformation to a matrix.
   Calculates at the same time transformation matrix, and it's inverse,
   and multiplies given Transform, TransformInverse appropriately.

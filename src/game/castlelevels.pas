@@ -431,12 +431,6 @@ end;
 
 { TGameSceneManager ---------------------------------------------------------- }
 
-const
-  DirectionFromOrientation: array [TOrientationType] of TVector3Single =
-  ( (0, 0, -1),
-    (0, -1, 0),
-    (1, 0, 0) );
-
 function TGameSceneManager.Placeholder(Shape: TShape;
   PlaceholderName: string): boolean;
 const

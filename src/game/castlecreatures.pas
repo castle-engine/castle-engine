@@ -1062,7 +1062,7 @@ begin
   RadiusCalculated := RadiusCalculate(GravityUp);
 end;
 
-{ TWalkAttackCreatureResource ---------------------------------------------------- }
+{ TWalkAttackCreatureResource ------------------------------------------------ }
 
 constructor TWalkAttackCreatureResource.Create(const AName: string);
 begin
@@ -1357,11 +1357,12 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
     glPushMatrix;
       H := GetChild.BoundingBox.Data[1, World.GravityCoordinate];
       glTranslatev(World.GravityUp * H);
-      { TODO: probably these rotations need adjustment based on Orientation,
-        they assume otUpZDirectionX now. }
-      glRotatef(90, 0, 0, 1);
-      glRotatef(90, 1, 0, 0);
-      FontSize := H / 4;
+      glMultMatrix(TransformToCoordsMatrix(
+        ZeroVector3Single,
+        VectorProduct(UpFromOrientation[Orientation], DirectionFromOrientation[Orientation]),
+        UpFromOrientation[Orientation],
+        DirectionFromOrientation[Orientation]));
+      FontSize := H / 6;
       glScalef(FontSize / Font3d.RowHeight, FontSize / Font3d.RowHeight, 1);
 
       glPushAttrib(GL_ENABLE_BIT);
@@ -2138,8 +2139,7 @@ begin
 
   if HasLastSeenEnemy then
   begin
-    SqrDistanceToLastSeenEnemy :=
-      PointsDistanceSqr(LastSeenEnemy, Middle);
+    SqrDistanceToLastSeenEnemy := PointsDistanceSqr(LastSeenEnemy, Middle);
   end;
 
   case FState of
@@ -2274,6 +2274,8 @@ function TWalkAttackCreature.DebugCaption: string;
 var
   StateName: string;
 begin
+  Result := inherited DebugCaption;
+
   case State of
     csIdle       : StateName := 'Idle';
     csWalk       : StateName := 'Walk';
@@ -2284,7 +2286,11 @@ begin
     csHurt       : StateName := 'Hurt';
     else StateName := Format('Custom State %d', [State]);
   end;
-  Result := (inherited DebugCaption) + ' ' + StateName;
+  Result += ' ' + StateName;
+
+  if HasLastSeenEnemy then
+    Result += Format(' Enemy seen distance: %f',
+      [PointsDistance(LastSeenEnemy, Middle)]);
 end;
 
 procedure TWalkAttackCreature.Hurt(const LifeLoss: Single;
