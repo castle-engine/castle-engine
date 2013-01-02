@@ -281,6 +281,42 @@ CastleCreatures unit (see inside src/game/ in sources) allows you to easily crea
 
   Everything is designed to give you a lot of properties to set (most of them are also settable by resource.xml files mentioned above) and a lot of methods to override. See not only the TCreature* classes, but also see above T3D classes in Base3D unit, for various things that you can override and use.
 
+    You can code new creatures/items behaviors by deriving new classes
+    from our existing classes in CastleCreatures / CastleItems / Base3D units.
+    This is the most flexible way to customize everything about a creature/item.
+
+    You usually override two classes to define a new creature/item:
+
+    - The resource class (descendant of T3DResource).
+      An instance of a resource class defines the behavior
+      and properties of a given kind of creature/item, like a "Werewolf"
+      or "LifePotion". Every resource.xml file inside data/ refers
+      (by the type=xxx attribute) to an existing resource class,
+      and in turn every resource.xml results in an instance of this
+      resource class (with properties set based on attributes inside
+      given resource.xml).
+
+      In effect, an instance of a resource class keeps shared data for all
+      werewolves / life potions, like their 3D models, initial Life points
+      of werewolf and such.
+
+    - The non-resource class. It is indicated by the resource class,
+      using method TCreatureResource.CreatureClass or
+      TItemResource.ItemClass.
+
+      An instance of this represents a single occurence
+      of this creature/item in the 3D world. It keeps data specific
+      to this instance, like current Life points of a werewolf.
+      It also keeps a reference to the resource class.
+
+    There are many possible classes to override. Overriding
+    the more specialized (finished) classes, like TWalkAttackCreature*,
+    is nice to merely tweak some detail.
+    Overriding the more basic classes, like TCreature*, is good if you're
+    prepared to implement something (like creature AI) completely from scratch
+    on your own.
+
+
   (TODO: Pasdoc: frame-less layout, to make direct links sensible.
    TODO: Pasdoc: separate pascal_code_formatter, with @longCode formatter extracted, to convert pascal code to HTML-ified or LaTeX-ified output. HTML can of course be adjusted with CSS. I want to have many code snippets in this tutorial (see e.g. Symfony2 docs for inspiration.)
 
