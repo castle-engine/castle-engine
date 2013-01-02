@@ -3,11 +3,33 @@
 <!--
   Define the level properties. See README_about_index_xml_files.txt
   for extensive documentation of available properties, in short:
+
   - name: used to refer to this level from ObjectPascal code,
     e.g. in SceneManager.Load(...)
+
   - type: indicates ObjectPascal class used to handle this level logic,
     usually just 'Level' to use standard TLevelLogic class.
   - scene: 3D model filename.
+
+  - <prepare_resources> should list resources used by this level.
+    These resources will be prepared during SceneManaged.LoadLevel call.
+    "Resources" refers to creatures and items (and potentially other types
+    of resources you define in your game), although in this special case
+    you do not have to list items: all items are (by default)
+    always prepared before loading a level (because player can potentially
+    carry an item from one level and drop it on another level).
+
+    So, practically: list here just creatures that are potentially used
+    on the level. This includes creatures initially present on the level
+    (placed there by placeholders), or added later on the level by any means
+    (e.g. by creating the creature and adding it to level by ObjectPascal code,
+    see TCreatureResource.CreateCreature method).
+
+    It is not strictly necessary to list here all used creatures:
+    not listed creatures will be prepared "on demand" (when they appear
+    on level). But this "on demand" loading is somewhat bad for player,
+    as (s)he sees a progress bar in the middle of the game.
+    Keeping all possible creatures already prepared avoids this.
 -->
 
 <level
@@ -16,4 +38,8 @@
   scene="example_level_final.x3dv"
   title="Example Level"
   placeholders="blender"
-/>
+>
+  <prepare_resources>
+    <resource name="Knight"/>
+  </prepare_resources>
+</level>
