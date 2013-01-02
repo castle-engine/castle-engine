@@ -1330,24 +1330,26 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
   var
     R: Single;
   begin
-    glPushAttrib(GL_ENABLE_BIT);
-      glDisable(GL_LIGHTING);
-      glEnable(GL_DEPTH_TEST);
-      glColorv(Gray3Single);
+    glColorv(Gray3Single);
+    glDrawBox3DWire(BoundingBox);
 
-      glDrawBox3DWire(BoundingBox);
+    if Sphere(R) then
+    begin
+      glPushMatrix;
+        glMultMatrix(TransformToCoordsMatrix(
+          { move the sphere center to be at Middle }
+          Middle,
+          { By default, CastleGluSphere renders sphere pole in Z.
+            Adjust it to our Orientation. }
+          VectorProduct(DirectionFromOrientation[Orientation], UpFromOrientation[Orientation]),
+          DirectionFromOrientation[Orientation],
+          UpFromOrientation[Orientation]));
+        CastleGluSphere(R, 10, 10, false, GLU_NONE, GLU_OUTSIDE, GLU_LINE);
+      glPopMatrix;
+    end;
 
-      if Sphere(R) then
-      begin
-        glPushMatrix;
-          glTranslatev(Middle);
-          CastleGluSphere(R, 10, 10, false, GLU_NONE, GLU_OUTSIDE, GLU_LINE);
-        glPopMatrix;
-      end;
-
-      glColorv(Yellow3Single);
-      glDrawAxisWire(Middle, BoundingBox.AverageSize(true, 0));
-    glPopAttrib;
+    glColorv(Yellow3Single);
+    glDrawAxisWire(Middle, BoundingBox.AverageSize(true, 0));
   end;
 
   procedure DebugCaptions;
@@ -1355,40 +1357,41 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
     H, FontSize: Single;
   begin
     glPushMatrix;
+      glMultMatrix(Transform);
+
       H := GetChild.BoundingBox.Data[1, World.GravityCoordinate];
-      glTranslatev(World.GravityUp * H);
       glMultMatrix(TransformToCoordsMatrix(
-        ZeroVector3Single,
+        { move the caption to be at the top }
+        World.GravityUp * H,
+        { By default, Font3d renders text in XY plane.
+          Adjust it to our Orientation. }
         VectorProduct(UpFromOrientation[Orientation], DirectionFromOrientation[Orientation]),
         UpFromOrientation[Orientation],
         DirectionFromOrientation[Orientation]));
+
       FontSize := H / 6;
       glScalef(FontSize / Font3d.RowHeight, FontSize / Font3d.RowHeight, 1);
 
-      glPushAttrib(GL_ENABLE_BIT);
-        glDisable(GL_LIGHTING);
-        glEnable(GL_DEPTH_TEST);
-        glColorv(White3Single);
-        Font3d.PrintAndMove(DebugCaption);
-      glPopAttrib;
+      glColorv(White3Single);
+      Font3d.PrintAndMove(DebugCaption);
     glPopMatrix;
   end;
 
 begin
   inherited;
 
-  if GetExists and Frustum.Box3DCollisionPossibleSimple(BoundingBox) then
+  if (RenderDebugCaptions or RenderDebug3D) and
+     GetExists and Frustum.Box3DCollisionPossibleSimple(BoundingBox) and
+     (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
-    glPushMatrix;
-      glMultMatrix(Transform);
-      if RenderDebugCaptions and
-         (not Params.Transparent) and Params.ShadowVolumesReceivers then
+    glPushAttrib(GL_ENABLE_BIT);
+      glDisable(GL_LIGHTING);
+      glEnable(GL_DEPTH_TEST);
+      if RenderDebugCaptions then
         DebugCaptions;
-    glPopMatrix;
-
-    if RenderDebug3D and
-       (not Params.Transparent) and Params.ShadowVolumesReceivers then
-      DebugBoundingVolumes;
+      if RenderDebug3D then
+        DebugBoundingVolumes;
+    glPopAttrib;
   end;
 end;
 
