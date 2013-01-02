@@ -55,7 +55,7 @@ begin
   NextButtonBottom := ButtonsMargin;
 
   ToggleMouseLookButton := TCastleButton.Create(Application);
-  ToggleMouseLookButton.Caption := 'Mouse Look (Ctrl + M)';
+  ToggleMouseLookButton.Caption := 'Mouse Look (F4)';
   ToggleMouseLookButton.Toggle := true;
   ToggleMouseLookButton.OnClick := @ToggleMouseLookButtonClick;
   ToggleMouseLookButton.Left := ButtonsMargin;
@@ -146,7 +146,7 @@ begin
     mechanism to assign key shortcut to a TCastleButton right now.
     Note that we pass Sender = nil to the callbacks, because we know that
     our TButtons callbacks ignore Sender parameter. }
-  if Event.IsKey(CtrlM) then
+  if Event.IsKey(K_F4) then
     Buttons.ToggleMouseLookButtonClick(nil) else
   if Event.IsKey(CharEscape) then
     Buttons.ExitButtonClick(nil) else
