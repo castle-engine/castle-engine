@@ -32,3 +32,19 @@ If you have any questions, see our website on
 http://castle-engine.sourceforge.net/
 and in particular our forum
 https://sourceforge.net/p/castle-engine/discussion/ .
+
+------------------------------------------------------------------------------
+Movement keys: move using AWSD or arrow keys, and you can activate "Mouse Look"
+by a suitable button on the screen.
+
+Actually, a lot more keys and mouse shortcuts are instantly working
+(and are configurable, too). All input shortcuts are TInputShortcut instances.
+Currently the following units of our engine define some shortcuts:
+
+- CastleSceneManager (Input_Xxx global properties)
+- Cameras unit (Input_Xxx properties specific to each camera class)
+- CastlePlayer unit (PlayerInput_Xxx global properties, these override
+  some camera shortcuts when Player is used)
+
+The CastleInputs unit has a list of all global shortcuts (useful to allow
+users to configure game keymap) in InputsAll variable.
