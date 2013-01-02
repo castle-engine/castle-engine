@@ -16,7 +16,7 @@
 { Example of a fully-working 3D FPS game. }
 program fps_game;
 
-uses SysUtils, CastleWindow, CastleWarnings, CastleConfig, CastleLevels,
+uses SysUtils, Classes, CastleWindow, CastleWarnings, CastleConfig, CastleLevels,
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   GLRenderer, Base3D;
@@ -26,51 +26,104 @@ var
   SceneManager: TGameSceneManager; //< same thing as Window.SceneManager
   Player: TPlayer; //< same thing as Window.SceneManager.Player
 
-  ToggleMouseLookButton,
-  ExitButton,
-  RenderDebug3DButton,
-  RenderDebugCaptionsButton: TCastleButton;
-
 type
-  { Class to handle "of object" callbacks.
+  { Container for buttons and their callbacks.
     You could as well derive descendant of TCastleWindow to keep your
     callbacks, or place these callbacks as methods of Lazarus form. }
-  TEventsHandler = class
-    class procedure ToggleMouseLookButtonClick(Sender: TObject);
-    class procedure ExitButtonClick(Sender: TObject);
-    class procedure RenderDebug3DButtonClick(Sender: TObject);
-    class procedure RenderDebugCaptionsButtonClick(Sender: TObject);
+  TButtons = class(TComponent)
+    ToggleMouseLookButton: TCastleButton;
+    ExitButton: TCastleButton;
+    RenderDebug3DButton: TCastleButton;
+    RenderDebugCaptionsButton: TCastleButton;
+    constructor Create(AOwner: TComponent); override;
+    procedure ToggleMouseLookButtonClick(Sender: TObject);
+    procedure ExitButtonClick(Sender: TObject);
+    procedure RenderDebug3DButtonClick(Sender: TObject);
+    procedure RenderDebugCaptionsButtonClick(Sender: TObject);
   end;
 
-class procedure TEventsHandler.ToggleMouseLookButtonClick(Sender: TObject);
+constructor TButtons.Create(AOwner: TComponent);
+const
+  ButtonsMargin = 8;
+var
+  NextButtonBottom: Integer;
+begin
+  inherited;
+
+  NextButtonBottom := ButtonsMargin;
+
+  ToggleMouseLookButton := TCastleButton.Create(Application);
+  ToggleMouseLookButton.Caption := 'Mouse Look (Ctrl + M)';
+  ToggleMouseLookButton.Toggle := true;
+  ToggleMouseLookButton.OnClick := @ToggleMouseLookButtonClick;
+  ToggleMouseLookButton.Left := ButtonsMargin;
+  ToggleMouseLookButton.Bottom := NextButtonBottom;
+  Window.Controls.Add(ToggleMouseLookButton);
+  NextButtonBottom += ToggleMouseLookButton.Height + ButtonsMargin;
+
+  ExitButton := TCastleButton.Create(Application);
+  ExitButton.Caption := 'Exit (Escape)';
+  ExitButton.OnClick := @ExitButtonClick;
+  ExitButton.Left := ButtonsMargin;
+  ExitButton.Bottom := NextButtonBottom;
+  Window.Controls.Add(ExitButton);
+  NextButtonBottom += ExitButton.Height + ButtonsMargin;
+
+  RenderDebug3DButton := TCastleButton.Create(Application);
+  RenderDebug3DButton.Caption := 'Render debug 3D objects';
+  RenderDebug3DButton.Toggle := true;
+  RenderDebug3DButton.OnClick := @RenderDebug3DButtonClick;
+  RenderDebug3DButton.Left := ButtonsMargin;
+  RenderDebug3DButton.Bottom := NextButtonBottom;
+  Window.Controls.Add(RenderDebug3DButton);
+  NextButtonBottom += RenderDebug3DButton.Height + ButtonsMargin;
+
+  RenderDebugCaptionsButton := TCastleButton.Create(Application);
+  RenderDebugCaptionsButton.Caption := 'Render debug captions';
+  RenderDebugCaptionsButton.Toggle := true;
+  RenderDebugCaptionsButton.OnClick := @RenderDebugCaptionsButtonClick;
+  RenderDebugCaptionsButton.Left := ButtonsMargin;
+  RenderDebugCaptionsButton.Bottom := NextButtonBottom;
+  Window.Controls.Add(RenderDebugCaptionsButton);
+  NextButtonBottom += RenderDebugCaptionsButton.Height + ButtonsMargin;
+end;
+
+procedure TButtons.ToggleMouseLookButtonClick(Sender: TObject);
 begin
   ToggleMouseLookButton.Pressed := not ToggleMouseLookButton.Pressed;
   Player.Camera.MouseLook := ToggleMouseLookButton.Pressed;
 end;
 
-class procedure TEventsHandler.ExitButtonClick(Sender: TObject);
+procedure TButtons.ExitButtonClick(Sender: TObject);
 begin
   Application.Quit;
 end;
 
-class procedure TEventsHandler.RenderDebug3DButtonClick(Sender: TObject);
+procedure TButtons.RenderDebug3DButtonClick(Sender: TObject);
 begin
   RenderDebug3DButton.Pressed := not RenderDebug3DButton.Pressed;
   RenderDebug3D := RenderDebug3DButton.Pressed;
 end;
 
-class procedure TEventsHandler.RenderDebugCaptionsButtonClick(Sender: TObject);
+procedure TButtons.RenderDebugCaptionsButtonClick(Sender: TObject);
 begin
   RenderDebugCaptionsButton.Pressed := not RenderDebugCaptionsButton.Pressed;
   RenderDebugCaptions := RenderDebugCaptionsButton.Pressed;
 end;
 
+var
+  Buttons: TButtons;
+
 procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 begin
+  { We simulate button presses on some key presses. There is no automatic
+    mechanism to assign key shortcut to a TCastleButton right now.
+    Note that we pass Sender = nil to the callbacks, because we know that
+    our TButtons callbacks ignore Sender parameter. }
   if Event.IsKey(CtrlM) then
-    TEventsHandler.ToggleMouseLookButtonClick(ToggleMouseLookButton) else
+    Buttons.ToggleMouseLookButtonClick(nil) else
   if Event.IsKey(CharEscape) then
-    TEventsHandler.ExitButtonClick(ExitButton);
+    Buttons.ExitButtonClick(nil);
 end;
 
 function MyGetApplicationName: string;
@@ -78,10 +131,6 @@ begin
   Result := 'fps_game';
 end;
 
-const
-  ButtonsMargin = 8;
-var
-  NextButtonBottom: Integer;
 begin
   { We use standard FPC ApplicationName function for some names (e.g. Config
     file name), so make sure it's Ok. }
@@ -160,42 +209,7 @@ begin
     regardless of your OS/window manager theme, and in the future it should
     be trivial to style the TCastleButton to match the theme of your game
     (like medieval fantasy of futuristic sci-fi). }
-  NextButtonBottom := ButtonsMargin;
-
-  ToggleMouseLookButton := TCastleButton.Create(Application);
-  ToggleMouseLookButton.Caption := 'Mouse Look (Ctrl + M)';
-  ToggleMouseLookButton.Toggle := true;
-  ToggleMouseLookButton.OnClick := @TEventsHandler(nil).ToggleMouseLookButtonClick;
-  ToggleMouseLookButton.Left := ButtonsMargin;
-  ToggleMouseLookButton.Bottom := NextButtonBottom;
-  Window.Controls.Add(ToggleMouseLookButton);
-  NextButtonBottom += ToggleMouseLookButton.Height + ButtonsMargin;
-
-  ExitButton := TCastleButton.Create(Application);
-  ExitButton.Caption := 'Exit (Escape)';
-  ExitButton.OnClick := @TEventsHandler(nil).ExitButtonClick;
-  ExitButton.Left := ButtonsMargin;
-  ExitButton.Bottom := NextButtonBottom;
-  Window.Controls.Add(ExitButton);
-  NextButtonBottom += ExitButton.Height + ButtonsMargin;
-
-  RenderDebug3DButton := TCastleButton.Create(Application);
-  RenderDebug3DButton.Caption := 'Render debug 3D objects';
-  RenderDebug3DButton.Toggle := true;
-  RenderDebug3DButton.OnClick := @TEventsHandler(nil).RenderDebug3DButtonClick;
-  RenderDebug3DButton.Left := ButtonsMargin;
-  RenderDebug3DButton.Bottom := NextButtonBottom;
-  Window.Controls.Add(RenderDebug3DButton);
-  NextButtonBottom += RenderDebug3DButton.Height + ButtonsMargin;
-
-  RenderDebugCaptionsButton := TCastleButton.Create(Application);
-  RenderDebugCaptionsButton.Caption := 'Render debug captions';
-  RenderDebugCaptionsButton.Toggle := true;
-  RenderDebugCaptionsButton.OnClick := @TEventsHandler(nil).RenderDebugCaptionsButtonClick;
-  RenderDebugCaptionsButton.Left := ButtonsMargin;
-  RenderDebugCaptionsButton.Bottom := NextButtonBottom;
-  Window.Controls.Add(RenderDebugCaptionsButton);
-  NextButtonBottom += RenderDebugCaptionsButton.Height + ButtonsMargin;
+  Buttons := TButtons.Create(Application);
 
   Window.OnPress := @Press;
 
