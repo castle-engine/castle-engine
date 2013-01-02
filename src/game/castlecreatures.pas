@@ -1429,7 +1429,14 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 
 begin
   inherited;
-  if (not GetExists) or DebugTimeStopForCreatures then Exit;
+  if not GetExists then Exit;
+
+  { In this case (when GetExists, regardless of DebugTimeStopForCreatures),
+    T3DAlive.Idle changed LifeTime.
+    And LifeTime is used to choose animation frame in GetChild.
+    So the creature constantly changes, even when it's
+    transformation (things taken into account in T3DOrient) stay equal. }
+  VisibleChangeHere([vcVisibleGeometry]);
 
   UpdateUsedSounds;
 end;

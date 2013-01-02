@@ -1057,6 +1057,11 @@ begin
 
   LifeTime += CompSpeed;
 
+  { LifeTime is used to choose animation frame in GetChild.
+    So the item constantly changes, even when it's
+    transformation (things taken into account in T3DOrient) stay equal. }
+  VisibleChangeHere([vcVisibleGeometry]);
+
   Rotation += RotationSpeed * CompSpeed;
   U := World.GravityUp; // copy to local variable for speed
   DirectionZero := Normalized(AnyOrthogonalVector(U));
