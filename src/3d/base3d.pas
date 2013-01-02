@@ -1043,6 +1043,22 @@ type
     FGrowSpeed: Single;
     FMiddleHeight: Single;
   protected
+    { Workaround for descendants where BoundingBox may suddenly change
+      but their logic depends on stable (not suddenly changing) Middle.
+      If MiddleForceBox then we will use given MiddleForceBoxValue
+      instead of LocalBoundingBox for Middle and PreferredHeight
+      calculation. Descendants that deal with this should usually have
+      some timeout when they restore MiddleForceBox to false.
+
+      This is quite internal hack and you should not use this in your own programs.
+      This is used only by TWalkAttackCreature.
+      @exclude
+      @groupBegin }
+    MiddleForceBox: boolean;
+    { @exclude }
+    MiddleForceBoxValue: TBox3D;
+    { @groupEnd }
+
     { The GetXxx methods below determine the transformation returned
       by default TransformMatricesMult implementation in this class.
       Simple descendants need only to override these, and OnlyTranslation,
@@ -1116,6 +1132,9 @@ type
     { Called when fall ended. You can use FallHeight to decrease creature
       life or such. }
     procedure Fall(const FallHeight: Single); virtual;
+
+    { Untransformed bounding box value. }
+    function LocalBoundingBox: TBox3D;
   public
     const
       DefaultMiddleHeight = 0.5;
@@ -2972,8 +2991,8 @@ end;
 function T3DCustomTransform.BoundingBox: TBox3D;
 begin
   if OnlyTranslation then
-    Result := (inherited BoundingBox).Translate(GetTranslation) else
-    Result := (inherited BoundingBox).Transform(Transform);
+    Result := LocalBoundingBox.Translate(GetTranslation) else
+    Result := LocalBoundingBox.Transform(Transform);
 end;
 
 procedure T3DCustomTransform.Render(const Frustum: TFrustum; const Params: TRenderParams);
@@ -3256,7 +3275,9 @@ var
   B: TBox3D;
 begin
   GC := World.GravityCoordinate;
-  B := inherited BoundingBox;
+  if MiddleForceBox then
+    B := MiddleForceBoxValue else
+    B := LocalBoundingBox;
 
   { More correct version would be to take B bottom point, add PreferredHeight,
     and transform this point just like T3DCustomTransform transforms everything
@@ -3278,7 +3299,9 @@ var
   {$ifdef CHECK_HEIGHT_VS_RADIUS} R: Single; {$endif}
 begin
   GC := World.GravityCoordinate;
-  B := inherited BoundingBox;
+  if MiddleForceBox then
+    B := MiddleForceBoxValue else
+    B := LocalBoundingBox;
   Result := MiddleHeight * (B.Data[1, GC] - Bottom(Gravity, GC, B));
 
   {$ifdef CHECK_HEIGHT_VS_RADIUS}
@@ -3420,6 +3443,11 @@ end;
 procedure T3DCustomTransform.Fall(const FallHeight: Single);
 begin
   { Nothing to do in this class }
+end;
+
+function T3DCustomTransform.LocalBoundingBox: TBox3D;
+begin
+  Result := inherited BoundingBox;
 end;
 
 { T3DTransform -------------------------------------------------------------- }

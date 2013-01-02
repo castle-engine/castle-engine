@@ -799,6 +799,7 @@ type
     WaypointsSaved_Begin: TSector;
     WaypointsSaved_End: TSector;
     WaypointsSaved: TWaypointList;
+    MiddleForceBoxTime: Single;
   protected
     { Last known information about enemy. }
     HasLastSeenEnemy: boolean;
@@ -1533,6 +1534,46 @@ procedure TWalkAttackCreature.SetState(Value: TCreatureState);
 begin
   if FState <> Value then
   begin
+    { Force old box value for Middle and PreferredHeight calculation,
+      for a fraction of a second.
+
+      This is crucial for TWalkAttackCreature.Idle logic
+      that could otherwise sometimes get stuck and continously switching
+      between walk/idle states, because in idle state Middle indicates
+      that we should walk (e.g. distance or angle to enemy is not good enough),
+      but right after switching to walk the LocalBoundingBox changes
+      (because 1st walk animation frame is suddenly different)
+      and the distance/angle seems Ok and we switch back to idle and so on,
+      in a loop. Once this unfortunate situation is reached, the creature
+      is stuck, blinking between two animation frames and two states,
+      and never moving (until something else, like enemy (player)
+      position changes).
+
+      Safeguards:
+
+      - Don't set to "forced" when it's already forced, as then it could
+        cause MiddleForceBoxValue change after each SetState to the box
+        from previous state, and we'll be in a similar trouble
+        (but with box values always from previous state).
+        Trouble (without this safeguard) is reproducible on fps_game
+        with knight flying.
+
+      - Don't set to "forced" when switching between other states than idle/walk,
+        as the other states logic doesn't allow for such switching
+        (states like attack, fireMissile, hurt, die generally continue until
+        their time finished; there are no decisions).
+        (I didn't actually observed a need for this safeguard so far,
+        but it seems reasonable to limit this hack only to idle/walk situation.)
+    }
+    if (not MiddleForceBox) and
+       ( ((FState = csIdle) and (Value = csWalk)) or
+         ((FState = csWalk) and (Value = csIdle)) ) then
+    begin
+      MiddleForceBox := true;
+      MiddleForceBoxValue := LocalBoundingBox;
+      MiddleForceBoxTime := LifeTime + 0.1;
+    end;
+
     FState := Value;
     FStateChangeTime := LifeTime;
     { Some states require special initialization here. }
@@ -2132,6 +2173,9 @@ var
 begin
   inherited;
   if (not GetExists) or DebugTimeStopForCreatures then Exit;
+
+  { eventually turn off MiddleForceBox }
+  MiddleForceBox := MiddleForceBox and (LifeTime <= MiddleForceBoxTime);
 
   if Dead and not (State in [csDie, csDieBack]) then
   begin
