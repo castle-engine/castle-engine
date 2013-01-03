@@ -48,3 +48,8 @@ Currently the following units of our engine define some shortcuts:
 
 The CastleInputs unit has a list of all global shortcuts (useful to allow
 users to configure game keymap) in InputsAll variable.
+
+Oh, and the ExtraViewport in right-bottom part of the screen uses Examine camera,
+so the view there is fully editable. Try dragging with mouse,
+"Home" key restores comfortable initial view,
+and see e.g. view3dscene docs for full key/mouse controls list.

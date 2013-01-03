@@ -20,7 +20,7 @@ uses SysUtils, Classes, CastleWindow, CastleWarnings, CastleConfig, CastleLevels
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   GLRenderer, Base3D, CastleFilesUtils, CastleGameNotifications,
-  CastleSceneManager;
+  CastleSceneManager, VectorMath;
 
 var
   Window: TCastleWindow;
@@ -159,7 +159,7 @@ end;
 
 procedure Resize(Window: TCastleWindowBase);
 begin
-  ExtraViewport.Height := Window.Height div 5;
+  ExtraViewport.Height := Window.Height div 3;
   ExtraViewport.Width := ExtraViewport.Height;
   ExtraViewport.Left := Window.Width - ExtraViewport.Width - ControlsMargin;
   ExtraViewport.Bottom := ControlsMargin;
@@ -277,6 +277,24 @@ begin
     on levels, waypoints/sectors and other information from so-called
     "placeholders" on the level, see TGameSceneManager.LoadLevel documentation. }
   SceneManager.LoadLevel('example_level');
+
+  { Initialize ExtraViewport to a camera that nicely views the scene from above.
+
+    Note that usually there's no need to initialize TCastleViewport
+    or TCastleSceneManager.Camera: they are initialized automatically
+    at first ApplyProjection (before rendering) or LoadLevel,
+    using camera properties from level 3D file (TCastleSceneManager.MainScene). }
+  if ExtraViewport.Camera = nil then
+    ExtraViewport.Camera := SceneManager.CreateDefaultCamera(ExtraViewport);
+  ExtraViewport.Camera.SetInitialView(
+    { position } Vector3Single(0, 50, 0),
+    { direction } Vector3Single(0, -1, 0),
+    { up } Vector3Single(0, 0, -1), false
+  );
+  ExtraViewport.Camera.GoToInitial;
+  { Note we allow user to actually edit this view, e.g. by mouse dragging.
+    But you could always do this to make camera non-editable: }
+  // ExtraViewport.Camera.Input := [];
 
   { Maybe adjust some rendering properties?
     (SceneManager.MainScene was initialized by SceneManager.LoadLevel) }
