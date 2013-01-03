@@ -248,7 +248,7 @@ begin
 
   { scene manager needs assigned camera to make a headlight.
 
-    Right now, one camera cannot be simultaneously on scnee manager
+    Right now, one camera cannot be simultaneously on scene manager
     and viewports. So assign here new camera.
     See TODO at TCastleAbstractViewport.Camera. }
   Window.SceneManager.Camera.Free;
