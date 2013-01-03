@@ -536,9 +536,6 @@ type
       and then calling @link(Home). }
     procedure Init(const AModelBox: TBox3D; const ARadius: Single);
 
-    { Go to a nice view over the entire scene. }
-    procedure Home;
-
     { Methods performing navigation.
       Usually you want to just leave this for user to control. --------------- }
 
@@ -1055,9 +1052,6 @@ type
       Sets GravityUp to the same thing as InitialUp.
       Sets also PreferredHeight to make it behave "sensibly". }
     procedure Init(const box: TBox3D; const ARadius: Single); overload;
-
-    { Deprecated name in TWalkCamera for GoToInitial. @deprecated }
-    procedure Home; deprecated;
 
     { This sets the minimal angle (in radians) between GravityUp
       and @link(Direction), and also between -GravityUp and @link(Direction).
@@ -2303,10 +2297,16 @@ begin
 end;
 
 procedure TExamineCamera.Init(const AModelBox: TBox3D; const ARadius: Single);
+var
+  Pos, Dir, Up, GravityUp: TVector3Single;
 begin
- ModelBox := AModelBox;
- Radius := ARadius;
- Home;
+  ModelBox := AModelBox;
+  Radius := ARadius;
+
+  CameraViewpointForWholeScene(ModelBox, 2, 1, false, true,
+    Pos, Dir, Up, GravityUp);
+  SetInitialView(Pos, Dir, Up, false);
+  GoToInitial;
 end;
 
 { TExamineCamera.Set* properties }
@@ -2325,26 +2325,6 @@ begin FMoveAmount := Value; VisibleChange; end;
 
 procedure TExamineCamera.SetCenterOfRotation(const Value: TVector3Single);
 begin FCenterOfRotation := Value; VisibleChange; end;
-
-procedure TExamineCamera.Home;
-var
-  Direction, Up, GravityUp: TVector3Single;
-begin
-  { Make the same view as
-    CameraViewpointForWholeScene call in TCastleSceneCore.CameraFromViewpoint,
-    to make "Home" behavior same as going to the default viewpoint.
-    Nice for user. }
-  CameraViewpointForWholeScene(ModelBox, 2, 1, false, true,
-    FMoveAmount, Direction, Up, GravityUp);
-  FMoveAmount := - FMoveAmount;
-
-  { Just reset the rest of stuff }
-  FRotations := QuatIdentityRot;
-  FRotationsAnim := ZeroVector3Single;
-  FScaleFactor := 1.0;
-
-  VisibleChange;
-end;
 
 procedure TExamineCamera.SetModelBox(const Value: TBox3D);
 begin
@@ -2375,7 +2355,7 @@ begin
     end else
     if Input_Home.IsEvent(Event) then
     begin
-      Home;
+      GoToInitial;
       Result := ExclusiveEvents;
     end else
       Result := false;
@@ -4096,11 +4076,6 @@ begin
     UnitVector3Single[2] { GravityUp is the same as InitialUp },
     AvgSize * 5, ARadius);
  end;
-end;
-
-procedure TWalkCamera.Home;
-begin
-  GoToInitial;
 end;
 
 procedure TWalkCamera.SetPosition(const Value: TVector3Single);
