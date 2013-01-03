@@ -30,7 +30,6 @@ type
     procedure TestDeFormat;
     procedure TestSReplacePercent;
     procedure TestIntToStr2;
-    procedure TestIntToStrThousandSep;
     procedure TestCompressWhiteSpace;
     procedure TestFormatIndexedName;
     procedure TestIntToStr64;
@@ -148,24 +147,6 @@ begin
   MinLength := Random(5);
   Assert(IntToStrBase(Value, 2, MinLength) = IntToStr2(Value, MinLength));
  end;
-end;
-
-procedure TTestCastleStringUtils.TestIntToStrThousandSep;
-
-  procedure Test(const Value: Int64; const GoodResult: string);
-  var Res: string;
-  begin
-   Res := IntToStrThousandSep(Value);
-   {Writeln('"', SReadableForm(Res), '" (should be "' +SReadableForm(GoodResult)+ '")');}
-   Assert(Res = GoodResult);
-  end;
-
-begin
- Test(123, '123');
- Test(1234, '1' +ThousandSeparator+ '234');
- Test(12345, '12' +ThousandSeparator+ '345');
- Test(123456, '123' +ThousandSeparator+ '456');
- Test(7123456, '7' +ThousandSeparator+ '123' +ThousandSeparator+ '456');
 end;
 
 procedure TTestCastleStringUtils.TestCompressWhiteSpace;

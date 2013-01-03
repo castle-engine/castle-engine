@@ -798,10 +798,6 @@ function VarRecToStr(const v: TVarRec): string;
   to "get" 0x notation. }
 function PointerToStr(Ptr: Pointer): string;
 
-{ This returns IntToStr(Value) with ThousandSeparator inserted to
-  separate thousands (only if ThousandSeparator <> #0). }
-function IntToStrThousandSep(const Value: Int64): string;
-
 { Convert string representing binary number to an integer.
   String must contain only '0', '1' (digits) and start with an optional sign
   (+ or -).
@@ -2131,58 +2127,6 @@ begin result := IntToStrBase(n, 16, minLength) end;
 
 function IntToStr16(const n: QWord; const minLength: Cardinal): string;
 begin result := IntToStrBase(n, 16, minLength) end;
-
-function IntToStrThousandSep(const Value: Int64): string;
-
-  { Inserts ThousandSeparator to Result, where Result must be a sequence
-    of digits (no '-' sign allowed !) }
-  procedure InsertThousandSep;
-  var i, SeparatorsCount, ResultPos, SeparatorPos: Integer;
-      NewResult: string;
-  begin
-   if DefaultFormatSettings.ThousandSeparator <> #0 then
-   begin
-    SeparatorsCount := (Length(Result)-1) div 3;
-
-    { We already know the length of NewResult, so we set it now,
-      this may we avoid many ReallocMems if length of NewResult would
-      be changing. }
-    SetLength(NewResult, Length(Result) + SeparatorsCount);
-
-    { calculate initial SeparatorPos }
-    SeparatorPos := Length(Result) mod 3;
-    if SeparatorPos = 0 then SeparatorPos := 3;
-    Inc(SeparatorPos);
-
-    { calculate initial ResultPos }
-    ResultPos := SeparatorPos;
-
-    Move(Result[1], NewResult[1], SeparatorPos-1);
-
-    for i := 1 to SeparatorsCount do
-    begin
-     NewResult[SeparatorPos] := DefaultFormatSettings.ThousandSeparator;
-     Move(Result[ResultPos], NewResult[SeparatorPos+1], 3);
-     SeparatorPos := SeparatorPos + 4;
-     ResultPos := ResultPos + 3;
-    end;
-
-    Result := NewResult;
-   end;
-  end;
-
-begin
- if Value < 0 then
- begin
-  Result := IntToStr(-Value);
-  InsertThousandSep;
-  Result := '-' + Result;
- end else
- begin
-  Result := IntToStr(Value);
-  InsertThousandSep;
- end;
-end;
 
 function Str2ToInt(const s: string): integer;
   function BinInt(c: char): integer;
