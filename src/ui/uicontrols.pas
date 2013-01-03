@@ -322,9 +322,14 @@ type
           TCastleScene.GLProjection.
 
           Then all the controls with DrawStyle = ds2D are drawn.
-          For them, OpenGL projection is guaranteed to be set to standard 2D
-          projection, like by @code(gluOrtho2D(0, Container.Width, 0, Container.Height)).
-          And OpenGL viewport is guaranteed to contain whole container.)
+          For them, OpenGL viewport and projection are guaranteed to be set
+          to standard 2D that fills the whole screen, like by
+
+@longCode(#
+  glViewport(0, Container.Width, 0, Container.Height);
+  OrthoProjection(0, Container.Width, 0, Container.Height);
+#)
+        )
 
         @item(The only OpenGL state you can change carelessly is:
           @unorderedList(
