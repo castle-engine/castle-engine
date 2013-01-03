@@ -272,6 +272,9 @@ type
     LightFrameColor: TVector3Byte;
     TextColor      : TVector3Byte;
 
+    BarEmptyColor : TVector3Byte;
+    BarFilledColor: TVector3Byte;
+
     constructor Create;
   end;
 
@@ -308,17 +311,6 @@ uses SysUtils,
 procedure Register;
 begin
   RegisterComponents('Castle', [TCastleButton, TCastleImageControl]);
-end;
-
-{ Call glColor, taking Opacity as separate Single argument }
-procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single);
-begin
-  glColor4f(Color[0], Color[1], Color[2], Opacity);
-end;
-
-procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single);
-begin
-  glColor4f(Color[0] / 255, Color[1] / 255, Color[2] / 255, Opacity);
 end;
 
 { Specify vertex at given pixel.
@@ -987,6 +979,16 @@ begin
   DarkFrameColor  := Vector3Byte( 99,  99,  99);
   LightFrameColor := Vector3Byte(221, 221, 221);
   TextColor       := Vector3Byte(  0,   0,   0);
+  BarEmptyColor  := Vector3Byte(192, 192, 192);
+  BarFilledColor := Vector3Byte(Round(0.2 * 255), Round(0.5 * 255), 0);
+end;
+
+var
+  FTheme: TCastleTheme;
+
+function Theme: TCastleTheme;
+begin
+  Result := FTheme;
 end;
 
 { UIFont --------------------------------------------------------------------- }
@@ -1031,14 +1033,6 @@ procedure WindowClose(const Container: IUIContainer);
 begin
   FreeAndNil(FUIFont);
   FreeAndNil(FUIFontSmall);
-end;
-
-var
-  FTheme: TCastleTheme;
-
-function Theme: TCastleTheme;
-begin
-  Result := FTheme;
 end;
 
 initialization

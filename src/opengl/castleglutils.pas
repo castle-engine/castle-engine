@@ -897,6 +897,12 @@ procedure SetWindowPosZero;
   so don't expect everything to work smootly with such ancient OpenGL anyway! }
 function CastleGL_CLAMP_TO_EDGE: TGLenum;
 
+{ Call glColor, taking Opacity as separate Single argument.
+  @groupBegin }
+procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single);
+procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single);
+{ @groupEnd }
+
 {$undef read_interface}
 
 implementation
@@ -2181,6 +2187,16 @@ begin
   if GL_version_1_2 then
     Result := GL_CLAMP_TO_EDGE else
     Result := GL_CLAMP;
+end;
+
+procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single);
+begin
+  glColor4f(Color[0], Color[1], Color[2], Opacity);
+end;
+
+procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single);
+begin
+  glColor4f(Color[0] / 255, Color[1] / 255, Color[2] / 255, Opacity);
 end;
 
 initialization

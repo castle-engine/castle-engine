@@ -39,7 +39,8 @@ unit CastleWindowProgress;
 
 interface
 
-uses GL, CastleWindow, CastleProgress, WindowModes, CastleGLUtils, CastleImages, GLImages;
+uses GL, CastleWindow, CastleProgress, WindowModes, CastleGLUtils, CastleImages,
+  GLImages;
 
 type
   TWindowProgressInterface = class(TProgressUserInterface)
@@ -49,12 +50,18 @@ type
     BarYPosition: Single;
     FWindow: TCastleWindowBase;
     SavedMode: TGLMode;
+    FOpacity: Single;
   public
+    { Opacity (1 - transparency) with which control is drawn.
+      When this is < 1, we draw control with nice blending. }
+    property Opacity: Single read FOpacity write FOpacity default 1.0;
+
     { Window used to render the progress bar.
       Assign this before doing Init. Don't change this when we are
       between Init and Fini. }
     property Window: TCastleWindowBase read FWindow write FWindow;
 
+    constructor Create;
     procedure Init(Progress: TProgress); override;
     procedure Update(Progress: TProgress); override;
     procedure Fini(Progress: TProgress); override;
@@ -67,7 +74,7 @@ var
 
 implementation
 
-uses SysUtils, CastleUtils, CastleKeysMouse, CastleControls;
+uses SysUtils, CastleUtils, CastleKeysMouse, CastleControls, OpenGLFonts;
 
 { display -------------------------------------------------------------------- }
 
@@ -77,6 +84,8 @@ var
   BarHeight, y1, y2, YMiddle: TGLfloat;
   Progress: TProgress;
   ProgressInterface: TWindowProgressInterface;
+  PositionFill: Single;
+  Font: TGLBitmapFont_Abstract;
 begin
   Progress := TProgress(Window.UserData);
   ProgressInterface := Progress.UserInterface as TWindowProgressInterface;
@@ -91,18 +100,30 @@ begin
   y1 := YMiddle + BarHeight/2;
   y2 := YMiddle - BarHeight/2;
 
-  glColor3ub(192, 192, 192);
-  glRectf(Margin, y1, Window.width-Margin, y2);
-  glColor3f(0.2, 0.5, 0);
-  glRectf(Margin, y1,
-    Margin + (Cardinal(Window.width)-2*Margin) * Progress.Position/Progress.Max, y2);
+  PositionFill := Margin + (Cardinal(Window.Width) - 2 * Margin) *
+    Progress.Position / Progress.Max;
 
-  glColor3f(0, 0,0);
-  glRasterPos2f(Margin + 20, YMiddle - UIFont.TextHeight('M') div 2);
-  UIFont.Print(Progress.Title + ' ...');
+  glColorOpacity(Theme.BarEmptyColor, ProgressInterface.Opacity);
+  glRectf(PositionFill, y1, Window.Width - Margin, y2);
+
+  glColorOpacity(Theme.BarFilledColor, ProgressInterface.Opacity);
+  glRectf(Margin, y1, PositionFill, y2);
+
+  glColorOpacity(Theme.TextColor, ProgressInterface.Opacity);
+  if UIFont.RowHeight < BarHeight then
+    Font := UIFont else
+    Font := UIFontSmall;
+  glRasterPos2f(Margin + 20, YMiddle - Font.RowHeight div 2);
+  Font.Print(Progress.Title + ' ...');
 end;
 
 { TWindowProgressInterface  ------------------------------------------------ }
+
+constructor TWindowProgressInterface.Create;
+begin
+  inherited;
+  FOpacity := 1;
+end;
 
 procedure TWindowProgressInterface.Init(Progress: TProgress);
 var
@@ -131,8 +152,8 @@ begin
   end;
 
   SavedMode := TGLMode.CreateReset(Window,
-    GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT, false,
-    @DisplayProgress, nil, @NoClose);
+    GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT or GL_COLOR_BUFFER_BIT,
+    false, @DisplayProgress, nil, @NoClose);
 
   { init our window state }
   Window.UserData := Progress;
@@ -143,6 +164,12 @@ begin
   glDisable(GL_TEXTURE_2D);
   glDisable(GL_LIGHTING);
   glDisable(GL_DEPTH_TEST);
+
+  if Opacity < 1 then
+  begin
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
+    glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
+  end;
 
   OrthoProjection(0, Window.Width, 0, Window.Height);
 
