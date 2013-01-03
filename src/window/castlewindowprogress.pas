@@ -152,7 +152,8 @@ begin
   end;
 
   SavedMode := TGLMode.CreateReset(Window,
-    GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT or GL_COLOR_BUFFER_BIT,
+    GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT or GL_COLOR_BUFFER_BIT
+    or GL_VIEWPORT_BIT,
     false, @DisplayProgress, nil, @NoClose);
 
   { init our window state }
@@ -164,6 +165,7 @@ begin
   glDisable(GL_TEXTURE_2D);
   glDisable(GL_LIGHTING);
   glDisable(GL_DEPTH_TEST);
+  glDisable(GL_SCISSOR_TEST);
 
   if Opacity < 1 then
   begin
@@ -171,6 +173,10 @@ begin
     glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
   end;
 
+  { Set normal 2D projection.
+    This is done by container for TUIControl with DrawStyle = ds2D, we have
+    to repeat it here too. }
+  glViewport(0, 0, Window.Width, Window.Height); // saved by GL_VIEWPORT_BIT
   OrthoProjection(0, Window.Width, 0, Window.Height);
 
   { To actually draw progress start. }
