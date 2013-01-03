@@ -258,6 +258,23 @@ type
     property Blending: boolean read FBlending write FBlending default false;
   end;
 
+  { Theme for controls derived from TUIControl.
+    For now it's only useful through the single global instance @link(Theme). }
+  TCastleTheme = class
+  public
+    TooltipInsideColor: TVector3Byte;
+    TooltipBorderColor: TVector3Byte;
+    TooltipTextColor  : TVector3Byte;
+
+    InsideUpColor  : array [boolean] of TVector3Byte;
+    InsideDownColor: array [boolean] of TVector3Byte;
+    DarkFrameColor : TVector3Byte;
+    LightFrameColor: TVector3Byte;
+    TextColor      : TVector3Byte;
+
+    constructor Create;
+  end;
+
 { The bitmap fonts used throughout UI interface.
 
   They work fast. Actually, only the first "create" call does actual work.
@@ -278,10 +295,7 @@ property UIFont: TGLBitmapFont_Abstract read GetUIFont write SetUIFont;
 property UIFontSmall: TGLBitmapFont_Abstract read GetUIFontSmall write SetUIFontSmall;
 { @groupEnd }
 
-const
-  TooltipInsideColor: TVector3Byte = (255, 234, 169);
-  TooltipBorderColor: TVector3Byte = (157, 133, 105);
-  TooltipTextColor  : TVector3Byte = (  0,   0,   0);
+function Theme: TCastleTheme;
 
 procedure Register;
 
@@ -295,15 +309,6 @@ procedure Register;
 begin
   RegisterComponents('Castle', [TCastleButton, TCastleImageControl]);
 end;
-
-const
-  { Our controls theme.
-    These colors match somewhat our TCastleOnScreenMenu slider images. }
-  ColInsideUp  : array[boolean] of TVector3Byte = ( (165, 245, 210), (169, 251, 216) );
-  ColInsideDown: array[boolean] of TVector3Byte = ( (126, 188, 161), (139, 207, 177) );
-  ColDarkFrame : TVector3Byte = ( 99,  99,  99);
-  ColLightFrame: TVector3Byte = (221, 221, 221);
-  ColText      : TVector3Byte = (  0,   0,   0);
 
 { Call glColor, taking Opacity as separate Single argument }
 procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single);
@@ -353,9 +358,9 @@ begin
 
   glTranslatef(X, Y, 0);
   Font.PrintStringsBox([Tooltip], false, 0,
-    Vector4Single(TooltipInsideColor, 255),
-    Vector4Single(TooltipBorderColor, 255),
-    Vector4Single(TooltipTextColor, 255), 5);
+    Vector4Single(Theme.TooltipInsideColor, 255),
+    Vector4Single(Theme.TooltipBorderColor, 255),
+    Vector4Single(Theme.TooltipTextColor, 255), 5);
 end;
 
 procedure TUIControlFont.GLContextOpen;
@@ -399,15 +404,15 @@ procedure TCastleButton.Draw;
   procedure DrawFrame(const Level: Cardinal; const Inset: boolean);
   begin
     if Inset then
-      glColorOpacity(ColLightFrame, Opacity) else
-      glColorOpacity(ColDarkFrame, Opacity);
+      glColorOpacity(Theme.LightFrameColor, Opacity) else
+      glColorOpacity(Theme.DarkFrameColor, Opacity);
     glVertexPixel( Level + Left            ,  Level + Bottom);
     glVertexPixel(-Level + Left + Width - 1,  Level + Bottom);
     glVertexPixel(-Level + Left + Width - 1,  Level + Bottom);
     glVertexPixel(-Level + Left + Width - 1, -Level + Bottom + Height - 1);
     if Inset then
-      glColorOpacity(ColDarkFrame, Opacity) else
-      glColorOpacity(ColLightFrame, Opacity);
+      glColorOpacity(Theme.DarkFrameColor, Opacity) else
+      glColorOpacity(Theme.LightFrameColor, Opacity);
     glVertexPixel( Level + Left            ,  Level + Bottom + 1);
     glVertexPixel( Level + Left            , -Level + Bottom + Height - 1);
     glVertexPixel( Level + Left            , -Level + Bottom + Height - 1);
@@ -429,10 +434,10 @@ begin
   glPushAttrib(GL_LIGHTING_BIT);
     glShadeModel(GL_SMOOTH); // saved by GL_LIGHTING_BIT
     glBegin(GL_QUADS);
-      glColorOpacity(ColInsideDown[Focused and not Pressed], Opacity);
+      glColorOpacity(Theme.InsideDownColor[Focused and not Pressed], Opacity);
       glVertexPixel(Left        , Bottom);
       glVertexPixel(Left + Width, Bottom);
-      glColorOpacity(ColInsideUp[Focused and not Pressed], Opacity);
+      glColorOpacity(Theme.InsideUpColor[Focused and not Pressed], Opacity);
       glVertexPixel(Left + Width, Bottom + Height);
       glVertexPixel(Left        , Bottom + Height);
     glEnd;
@@ -443,7 +448,7 @@ begin
       DrawFrame(1, Pressed);
     glEnd;
 
-    glColorOpacity(ColText, Opacity);
+    glColorOpacity(Theme.TextColor, Opacity);
 
     TextLeft := Left + (Width - TextWidth) div 2;
     if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilLeft) then
@@ -788,10 +793,10 @@ begin
   glPushAttrib(GL_LIGHTING_BIT);
     glShadeModel(GL_SMOOTH); // saved by GL_LIGHTING_BIT
     glBegin(GL_QUADS);
-      glColorOpacity(PanelCol(ColInsideDown[false]), Opacity);
+      glColorOpacity(PanelCol(Theme.InsideDownColor[false]), Opacity);
       glVertexPixel(Left        , Bottom);
       glVertexPixel(Left + Width, Bottom);
-      glColorOpacity(PanelCol(ColInsideUp[false]), Opacity);
+      glColorOpacity(PanelCol(Theme.InsideUpColor[false]), Opacity);
       glVertexPixel(Left + Width, Bottom + Height);
       glVertexPixel(Left        , Bottom + Height);
     glEnd;
@@ -801,13 +806,13 @@ begin
   begin
     glLineWidth(1.0);
     glBegin(GL_LINES);
-      glColorOpacity(ColDarkFrame, Opacity);
+      glColorOpacity(Theme.DarkFrameColor, Opacity);
       for I := 0 to VerticalSeparators.Count - 1 do
       begin
         glVertexPixel(Left + VerticalSeparators[I], Bottom + SeparatorMargin);
         glVertexPixel(Left + VerticalSeparators[I], Bottom + Height - SeparatorMargin);
       end;
-      glColorOpacity(ColLightFrame, Opacity);
+      glColorOpacity(Theme.LightFrameColor, Opacity);
       for I := 0 to VerticalSeparators.Count - 1 do
       begin
         glVertexPixel(Left + VerticalSeparators[I] + 1, Bottom + SeparatorMargin);
@@ -967,6 +972,23 @@ begin
     Result := 0;
 end;
 
+{ TCastleTheme --------------------------------------------------------------- }
+
+constructor TCastleTheme.Create;
+begin
+  inherited;
+  TooltipInsideColor := Vector3Byte(255, 234, 169);
+  TooltipBorderColor := Vector3Byte(157, 133, 105);
+  TooltipTextColor   := Vector3Byte(  0,   0,   0);
+  InsideUpColor[false] := Vector3Byte(165, 245, 210);
+  InsideUpColor[true ] := Vector3Byte(169, 251, 216);
+  InsideDownColor[false] := Vector3Byte(126, 188, 161);
+  InsideDownColor[true ] := Vector3Byte(139, 207, 177);
+  DarkFrameColor  := Vector3Byte( 99,  99,  99);
+  LightFrameColor := Vector3Byte(221, 221, 221);
+  TextColor       := Vector3Byte(  0,   0,   0);
+end;
+
 { UIFont --------------------------------------------------------------------- }
 
 var
@@ -1011,6 +1033,17 @@ begin
   FreeAndNil(FUIFontSmall);
 end;
 
+var
+  FTheme: TCastleTheme;
+
+function Theme: TCastleTheme;
+begin
+  Result := FTheme;
+end;
+
 initialization
   OnGLContextClose.Add(@WindowClose);
+  FTheme := TCastleTheme.Create;
+finalization
+  FreeAndNil(FTheme);
 end.
