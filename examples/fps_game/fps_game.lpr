@@ -19,12 +19,14 @@ program fps_game;
 uses SysUtils, Classes, CastleWindow, CastleWarnings, CastleConfig, CastleLevels,
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
-  GLRenderer, Base3D, CastleFilesUtils, CastleGameNotifications;
+  GLRenderer, Base3D, CastleFilesUtils, CastleGameNotifications,
+  CastleSceneManager;
 
 var
   Window: TCastleWindow;
   SceneManager: TGameSceneManager; //< same thing as Window.SceneManager
   Player: TPlayer; //< same thing as Window.SceneManager.Player
+  ExtraViewport: TCastleViewport;
 
 type
   { Container for buttons and their callbacks.
@@ -44,58 +46,59 @@ type
     procedure ScreenshotButtonClick(Sender: TObject);
   end;
 
-constructor TButtons.Create(AOwner: TComponent);
 const
-  ButtonsMargin = 8;
+  ControlsMargin = 8;
+
+constructor TButtons.Create(AOwner: TComponent);
 var
   NextButtonBottom: Integer;
 begin
   inherited;
 
-  NextButtonBottom := ButtonsMargin;
+  NextButtonBottom := ControlsMargin;
 
   ToggleMouseLookButton := TCastleButton.Create(Application);
   ToggleMouseLookButton.Caption := 'Mouse Look (F4)';
   ToggleMouseLookButton.Toggle := true;
   ToggleMouseLookButton.OnClick := @ToggleMouseLookButtonClick;
-  ToggleMouseLookButton.Left := ButtonsMargin;
+  ToggleMouseLookButton.Left := ControlsMargin;
   ToggleMouseLookButton.Bottom := NextButtonBottom;
   Window.Controls.Add(ToggleMouseLookButton);
-  NextButtonBottom += ToggleMouseLookButton.Height + ButtonsMargin;
+  NextButtonBottom += ToggleMouseLookButton.Height + ControlsMargin;
 
   ExitButton := TCastleButton.Create(Application);
   ExitButton.Caption := 'Exit (Escape)';
   ExitButton.OnClick := @ExitButtonClick;
-  ExitButton.Left := ButtonsMargin;
+  ExitButton.Left := ControlsMargin;
   ExitButton.Bottom := NextButtonBottom;
   Window.Controls.Add(ExitButton);
-  NextButtonBottom += ExitButton.Height + ButtonsMargin;
+  NextButtonBottom += ExitButton.Height + ControlsMargin;
 
   RenderDebug3DButton := TCastleButton.Create(Application);
   RenderDebug3DButton.Caption := 'Render debug 3D objects';
   RenderDebug3DButton.Toggle := true;
   RenderDebug3DButton.OnClick := @RenderDebug3DButtonClick;
-  RenderDebug3DButton.Left := ButtonsMargin;
+  RenderDebug3DButton.Left := ControlsMargin;
   RenderDebug3DButton.Bottom := NextButtonBottom;
   Window.Controls.Add(RenderDebug3DButton);
-  NextButtonBottom += RenderDebug3DButton.Height + ButtonsMargin;
+  NextButtonBottom += RenderDebug3DButton.Height + ControlsMargin;
 
   RenderDebugCaptionsButton := TCastleButton.Create(Application);
   RenderDebugCaptionsButton.Caption := 'Render debug captions';
   RenderDebugCaptionsButton.Toggle := true;
   RenderDebugCaptionsButton.OnClick := @RenderDebugCaptionsButtonClick;
-  RenderDebugCaptionsButton.Left := ButtonsMargin;
+  RenderDebugCaptionsButton.Left := ControlsMargin;
   RenderDebugCaptionsButton.Bottom := NextButtonBottom;
   Window.Controls.Add(RenderDebugCaptionsButton);
-  NextButtonBottom += RenderDebugCaptionsButton.Height + ButtonsMargin;
+  NextButtonBottom += RenderDebugCaptionsButton.Height + ControlsMargin;
 
   ScrenshotButton := TCastleButton.Create(Application);
   ScrenshotButton.Caption := 'Screenshot (F5)';
   ScrenshotButton.OnClick := @ScreenshotButtonClick;
-  ScrenshotButton.Left := ButtonsMargin;
+  ScrenshotButton.Left := ControlsMargin;
   ScrenshotButton.Bottom := NextButtonBottom;
   Window.Controls.Add(ScrenshotButton);
-  NextButtonBottom += ScrenshotButton.Height + ButtonsMargin;
+  NextButtonBottom += ScrenshotButton.Height + ControlsMargin;
 end;
 
 procedure TButtons.ToggleMouseLookButtonClick(Sender: TObject);
@@ -154,6 +157,14 @@ begin
     Buttons.ScreenshotButtonClick(nil);
 end;
 
+procedure Resize(Window: TCastleWindowBase);
+begin
+  ExtraViewport.Height := Window.Height div 5;
+  ExtraViewport.Width := ExtraViewport.Height;
+  ExtraViewport.Left := Window.Width - ExtraViewport.Width - ControlsMargin;
+  ExtraViewport.Bottom := ControlsMargin;
+end;
+
 function MyGetApplicationName: string;
 begin
   Result := 'fps_game';
@@ -168,6 +179,13 @@ begin
     By default, warnings are only written to log, and log by default goes nowhere. }
   OnWarning := @OnWarningWrite;
 
+  { Create a window.
+    Standard TCastleWindow (just like analogous Lazarus component TCastleControl)
+    gives you a ready instance of SceneManager. SceneManager is a very
+    important object in our engine: it contains the whole knowledge about
+    your 3D world. In fact, we will use it so often that it's comfortable
+    to assign it to a handy variable SceneManager,
+    instead of always writing "Window.SceneManager". }
   Window := TCastleWindow.Create(Application);
   SceneManager := Window.SceneManager;
 
@@ -189,6 +207,43 @@ begin
     as Config is just standard FPC TXMLConfig class (with some extensions,
     see CastleXMLConfig unit). }
   Config.Load;
+
+  { Create extra viewport to observe the 3D world.
+
+    Note that (by default) SceneManager has two functions:
+    1.The primary function of SceneManager is to keep track of everything inside
+      your 3D world.
+    2.In addition, by default it acts as a full-screen viewport
+      that allows you to actually see and interact with the 3D world.
+
+    But the 2nd feature (SceneManager as viewport) is completely optional
+    and configurable. You can turn it off by SceneManager.DefaultVieport := false.
+    Or you can configure size of the viewport by
+    by SceneManager.FullSize and SceneManager.Left/Bottom/Width/Height.
+
+    Regardless of this, you can also always add additional viewports by
+    TCastleViewport. TCastleViewport refers to the existing SceneManager
+    for 3D world information, like below.
+    Each viewport has it's own camera, so you can even interact with it
+    (the viewport created below uses Examine camera).
+    See examples/3d_rendering_processing/multiple_viewports for more examples
+    of custom viewports. }
+  ExtraViewport := TCastleViewport.Create(Application);
+  ExtraViewport.SceneManager := SceneManager;
+  ExtraViewport.FullSize := false;
+  { Usually when you change FullSize := false you also want to adjust
+    Left/Bottom/Width/Height properties. But in this case we know that
+    the initial Resize event will do it. }
+  { We insert ExtraViewport to Controls before SceneManager, to be on top. }
+  Window.Controls.Insert(0, ExtraViewport);
+
+  { Assign callbacks to some window events.
+    Note about initial events: Window.Open calls OnOpen and first OnResize events,
+    so if you want to receive them --- be sure to register them before calling
+    Window.Open. That is why we assign them here, and that is why we created
+    ExtraViewport (that is resized in Resize callback) earlier. }
+  Window.OnPress := @Press;
+  Window.OnResize := @Resize;
 
   { Open window (with OpenGL context). }
   Window.Open;
@@ -245,8 +300,6 @@ begin
     TCastleNotifications instance (to not see the default notifications
     made by some engine units) or just don't use notifications at all. }
   Window.Controls.Add(Notifications);
-
-  Window.OnPress := @Press;
 
   { Run the game loop.
     In more advanced cases, you can also execute each step of the loop
