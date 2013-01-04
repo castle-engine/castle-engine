@@ -75,7 +75,7 @@
 
       Examples of defining your own VRML/X3D node types (without modifying
       sources of this unit, or any other unit) are for example in the
-      VRMLBezierCurve unit in @code(bezier_curves) demo,
+      X3DBezierCurve unit in @code(bezier_curves) demo,
       and LevelUnit in malfunction.)
   )
 

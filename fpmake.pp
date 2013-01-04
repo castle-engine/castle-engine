@@ -174,7 +174,6 @@ begin
     P.Targets.AddUnit('datauri.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'opengl');
-    P.Targets.AddUnit('beziercurve.pas');
     P.Targets.AddUnit('castleglbitmapfonts.pas');
     P.Targets.AddUnit('castlegloutlinefonts.pas');
     P.Targets.AddUnit('castleglutils.pas');
