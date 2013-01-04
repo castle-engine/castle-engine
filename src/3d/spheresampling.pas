@@ -13,29 +13,24 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Random sampling of points (directions) on sphere and hemisphere.)
+{ Random sampling of points (directions) on a sphere and hemisphere.
+  Useful e.g. for ray-tracers.
 
   Most of the implementation based on "Global Illumination Compendium" IV.B
   [http://www.cs.kuleuven.ac.be/~phil/GI/].
-  (I will not mark it again at each function, "Global Illum..." was just
-  used so often for this unit). Images in the "Global Illum..."
-  may help to illustrate (better than any words) what's the meaning
-  functions within this unit.
+  See also images there, they help to illustrate the meaning of some
+  functions here.
 
   We use two ways to represent points on hemisphere:
+
   @orderedList(
     @item(Functions @italic(without "XYZ" suffix) return vector
       of 2 floats = two angles, called phi and theta (in this order).
       Phi (in [0, 2*Pi]) is an angle from some chosen meridian.
       Theta (in [0, Pi/2] for hemisphere and [0, Pi] for sphere)
       is an angle from chosen vector pointing outward from the (hemi)sphere.
-      Really, see images in "Global Illumination Compendium",
-      they are probably much easier to understand than words :@)
-
-      Sure, thinking about Phi and Theta as some angles related
-      to some sphere is just a comfortable way to think about them.
-      After all, they are just two numbers from some range and we
-      sample them with some density, nothing more.)
+      See images in "Global Illumination Compendium",
+      they are probably much easier to understand than this definition.)
 
     @item(Functions @italic(with "XYZ" suffix) return
       3D point x, y, z.
@@ -48,7 +43,7 @@
       )
 
       This is matching conventions in "Global Illumination Compendium",
-      see there point (21).)
+      see there (point 21).)
   )
 
   Functions with Density <> Const return PdfValue for returned point,
@@ -120,20 +115,21 @@ function RandomHemispherePointCosThetaExpXYZ(const n: Single;
 
 implementation
 
-{ Notki o implementacji: pamietajmy ze typem podstawowywm dla modulu Math
-  jest Float. Starajmy sie zminimalizowac konwersje Single <-> Float. }
+{ Note: Math unit operates of Float type. We try to minimize in some routines
+  below convertions Single <-> Float. }
 
 uses Math;
 
 function PhiThetaToXYZ(const PhiTheta: TVector2Single; const SphereRadius: Single): TVector3Single;
-var SinPhi, CosPhi, SinTheta, CosTheta: Float;
+var
+  SinPhi, CosPhi, SinTheta, CosTheta: Float;
 begin
- SinCos(PhiTheta[0], SinPhi, CosPhi);
- SinCos(PhiTheta[1], SinTheta, CosTheta);
+  SinCos(PhiTheta[0], SinPhi, CosPhi);
+  SinCos(PhiTheta[1], SinTheta, CosTheta);
 
- result[0] := SphereRadius * CosPhi * SinTheta;
- result[1] := SphereRadius * SinPhi * SinTheta;
- result[2] := SphereRadius * CosTheta;
+  result[0] := SphereRadius * CosPhi * SinTheta;
+  result[1] := SphereRadius * SinPhi * SinTheta;
+  result[2] := SphereRadius * CosTheta;
 end;
 
 function XYZToPhiTheta(const XYZ: TVector3Single): TVector2Single;
@@ -143,118 +139,122 @@ begin
 end;
 
 function PhiThetaToXYZ(const PhiTheta: TVector2Single; const SphereTheta0: TVector3Single): TVector3Single;
-var NewX, NewY: TVector3Single;
-    SphereRadius, NewXLen, NewYLen: Single;
+var
+  NewX, NewY: TVector3Single;
+  SphereRadius, NewXLen, NewYLen: Single;
 begin
- result := PhiThetaToXYZ(PhiTheta, 1);
+  result := PhiThetaToXYZ(PhiTheta, 1);
 
- { chce zeby NewX bylo dowolnym wektorem prostopadlym do SphereTheta0.
-   (i zeby nie bylo wektorem zerowym). }
- if Zero(SphereTheta0[0]) and Zero(SphereTheta0[1]) then
- begin
-  { to na pewno SphereTheta0[2] <> 0 wiec ponizszy NewX na pewno bedzie niezerowy : }
-  NewX[0] := 0;
-  NewX[1] := -SphereTheta0[2];
-  NewX[2] := SphereTheta0[1];
- end else
- begin
-  NewX[0] := -SphereTheta0[1];
-  NewX[1] := SphereTheta0[0];
-  NewX[2] := 0;
- end;
- { teraz licz NewY = wektor prostopadly do NewX i NewY }
- NewY := VectorProduct(SphereTheta0, NewX);
- { ustaw prawidlowe dlugosci NewX i NewY. Robimy mala zabawe zeby NewYLen mozna
-   bylo policzyc uzywajac mnozenia, zamiast VectorLen (ktore wymaga
-   pierwiastkowania). Korzystamy przy tym ze NewY to wynik odpowiedniego
-   VectorProduct i ze kat miedzy NewX a SphereTheta0 = 90 stopni. }
- SphereRadius := VectorLen(SphereTheta0);
- NewXLen := VectorLen(NewX);
- NewYLen := NewXLen * SphereRadius;
+  { make NewX anything orthogonal (but not zero) to SphereTheta0. }
+  if Zero(SphereTheta0[0]) and Zero(SphereTheta0[1]) then
+  begin
+    { then we're sure that SphereTheta0[2] <> 0, so NewX will not be zero }
+    NewX[0] := 0;
+    NewX[1] := -SphereTheta0[2];
+    NewX[2] := SphereTheta0[1];
+  end else
+  begin
+    NewX[0] := -SphereTheta0[1];
+    NewX[1] := SphereTheta0[0];
+    NewX[2] := 0;
+  end;
+  NewY := VectorProduct(SphereTheta0, NewX);
+  { set correct lengths for NewX and NewY. We calculate NewYLen fast, without
+    any Sqrt (which would happen inside VectorLen), because we know that
+    NewY was calculated by VectorProduct above and that NewX and SphereTheta0
+    are orthogonal. }
+  SphereRadius := VectorLen(SphereTheta0);
+  NewXLen := VectorLen(NewX);
+  NewYLen := NewXLen * SphereRadius;
 
- VectorScaleTo1st(NewX, SphereRadius/NewXLen);
- VectorScaleTo1st(NewY, SphereRadius/NewYLen);
+  VectorScaleTo1st(NewX, SphereRadius/NewXLen);
+  VectorScaleTo1st(NewY, SphereRadius/NewYLen);
 
- { TODO: zrob MatrixMultPointTo1st, bedzie szybciej }
- result := MatrixMultPoint(TransformToCoordsMatrix(ZeroVector3Single,
-   NewX,
-   NewY,
-   SphereTheta0), result);
+  { TODO: create MatrixMultPointTo1st to speed this a little bit? }
+  result := MatrixMultPoint(TransformToCoordsMatrix(ZeroVector3Single,
+    NewX,
+    NewY,
+    SphereTheta0), result);
 end;
 
 function RandomHemispherePointConst: TVector2Single;
 begin
- result[0] := 2*Pi*Random;
- result[1] := ArcCos(Random);
+  result[0] := 2*Pi*Random;
+  result[1] := ArcCos(Random);
 end;
 
 function RandomHemispherePointConstXYZ: TVector3Single;
-var r1, r2, sqroot: Single;
-    cosinus, sinus: Float;
+var
+  r1, r2, sqroot: Single;
+  cosinus, sinus: Float;
 begin
- r1 := Random;
- r2 := Random;
- SinCos(2*Pi*r1, sinus, cosinus);
- sqroot := Sqrt(1-Sqr(r2));
+  r1 := Random;
+  r2 := Random;
+  SinCos(2*Pi*r1, sinus, cosinus);
+  sqroot := Sqrt(1-Sqr(r2));
 
- result[0] := cosinus * sqroot;
- result[1] := sinus * sqroot;
- result[2] := r2;
+  result[0] := cosinus * sqroot;
+  result[1] := sinus * sqroot;
+  result[2] := r2;
 end;
 
 function RandomHemispherePointCosTheta(
   out PdfValue: Single): TVector2Single;
-var SqrtR2: Float;
+var
+  SqrtR2: Float;
 begin
- SqrtR2 := Sqrt(Random);
+  SqrtR2 := Sqrt(Random);
 
- result[0] := 2*Pi*Random;
- result[1] := ArcCos(SqrtR2);
- PdfValue := SqrtR2 / Pi;
+  result[0] := 2*Pi*Random;
+  result[1] := ArcCos(SqrtR2);
+  PdfValue := SqrtR2 / Pi;
 end;
 
 function RandomHemispherePointCosThetaXYZ(
   out PdfValue: Single): TVector3Single;
-var SqRoot, r1, r2: Single;
-    SinR1, CosR1: Float;
+var
+  SqRoot, r1, r2: Single;
+  SinR1, CosR1: Float;
 begin
- r1 := Random;
- r2 := Random;
- SinCos(2*Pi*r1, SinR1, CosR1);
- SqRoot := Sqrt(1-r2);
+  r1 := Random;
+  r2 := Random;
+  SinCos(2*Pi*r1, SinR1, CosR1);
+  SqRoot := Sqrt(1-r2);
 
- result[0] := CosR1 * SqRoot;
- result[1] := SinR1 * SqRoot;
- result[2] := Sqrt(r2);
- PdfValue := result[2];
+  result[0] := CosR1 * SqRoot;
+  result[1] := SinR1 * SqRoot;
+  result[2] := Sqrt(r2);
+  PdfValue := result[2];
 end;
 
 function RandomHemispherePointCosThetaExp(const n: Single;
   out PdfValue: Single): TVector2Single;
-var r2: Float;
+var
+  r2: Float;
 begin
- r2 := Random;
+  r2 := Random;
 
- result[0] := 2*Pi*Random;
- result[1] := ArcCos(Power(r2, 1/(n+1)));
- PdfValue := (n+1) * Power(r2, n/(n+1)) / 2*Pi;
+  result[0] := 2*Pi*Random;
+  result[1] := ArcCos(Power(r2, 1/(n+1)));
+  PdfValue := (n+1) * Power(r2, n/(n+1)) / 2*Pi;
 end;
 
 function RandomHemispherePointCosThetaExpXYZ(const n: Single;
   out PdfValue: Single): TVector3Single;
-var r1, r2, r2Power, r2Root: Single;
-    SinR1, CosR1: Float;
+var
+  r1, r2, r2Power, r2Root: Single;
+  SinR1, CosR1: Float;
 begin
- r1 := Random;
- r2 := Random;
- SinCos(2*Pi*r1, SinR1, CosR1);
- r2Power := Power(r2, 1/(n+1));
- r2Root := Sqrt(1-Sqr(r2Power));
+  r1 := Random;
+  r2 := Random;
+  SinCos(2*Pi*r1, SinR1, CosR1);
+  r2Power := Power(r2, 1/(n+1));
+  r2Root := Sqrt(1-Sqr(r2Power));
 
- result[0] := CosR1 * r2Root;
- result[1] := SinR1 * r2Root;
- result[2] := r2Power;
- PdfValue := (n+1) * Power(r2, n/(n+1)) / 2*Pi;
+  result[0] := CosR1 * r2Root;
+  result[1] := SinR1 * r2Root;
+  result[2] := r2Power;
+  PdfValue := (n+1) * Power(r2, n/(n+1)) / 2*Pi;
 end;
 
 end.
