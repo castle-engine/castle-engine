@@ -44,7 +44,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="167">
+    <Files Count="166">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -480,10 +480,6 @@
         <Filename Value="../src/opengl/glversionunit.pas"/>
         <UnitName Value="GLVersionUnit"/>
       </Item114>
-      <Item115>
-        <Filename Value="../src/opengl/normalizationcubemap.pas"/>
-        <UnitName Value="NormalizationCubeMap"/>
-      </Item115>
       <Item116>
         <Filename Value="../src/opengl/castleglbitmapfonts.pas"/>
         <UnitName Value="CastleGLBitmapFonts"/>
@@ -691,10 +687,10 @@
         <Filename Value="../src/x3d/x3dloadinternalgeo.pas"/>
         <UnitName Value="X3DLoadInternalGEO"/>
       </Item166>
-      <Item167>
+      <Item115>
         <Filename Value="../src/x3d/x3dloadinternalmd3.pas"/>
         <UnitName Value="X3DLoadInternalMD3"/>
-      </Item167>
+      </Item115>
       <Item103>
         <Filename Value="../src/x3d/x3dloadinternalobj.pas"/>
         <UnitName Value="X3DLoadInternalOBJ"/>

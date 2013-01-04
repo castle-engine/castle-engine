@@ -184,7 +184,6 @@ begin
     P.Targets.AddUnit('glshaders.pas');
     P.Targets.AddUnit('glshadowvolumerenderer.pas');
     P.Targets.AddUnit('glversionunit.pas');
-    P.Targets.AddUnit('normalizationcubemap.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
       P.SourcePath.Add('src' + PathDelim + 'opengl' + PathDelim + 'windows');
