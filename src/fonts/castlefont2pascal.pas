@@ -64,7 +64,10 @@ begin
     nl+
     'implementation' +nl+
     nl+
-    'uses SysUtils;' + nl);
+    'uses SysUtils;' + nl+
+    nl+
+    'const' +nl
+    );
 end;
 
 procedure WriteUnitCharHeader(Stream: TStream; c: char);
@@ -90,7 +93,7 @@ procedure WriteUnitEnd(Stream: TStream; const FontFunctionName, FontTypeName: st
 var
   i: Integer;
 begin
-  WriteStr(Stream, '  Data : ' + FontTypeName + ' = (' +nl+
+  WriteStr(Stream, '  Data : ' + FontTypeName + 'Array = (' +nl+
     '    ');
   for i := 0 to 255 do
   begin

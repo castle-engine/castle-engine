@@ -57,16 +57,11 @@ function Font2BitmapChar_HDc(dc: HDc; c: char): PBitmapChar;
 function Font2OutlineChar_HDc(dc: HDc; c: char): POutlineChar;
 { @groupEnd }
 
-{ Both functions grab currently selected Windows font on device context dc.
-  They do it simply by calling Font[c] := Font2XxxChar_HDc(dc, c) for each c.
-
-  Remeber to free all resulting chars by calling FreeMem on them, i.e.
-    for c := Low(char) to High(char) do FreeMemNiling(Font[c]);
-  Or use functions FreeMemNilingAllChars to do just that.
-
+{ Grab currently selected Windows font on device context dc.
+  Remeber to free resulting font later by FreeAndNilFont.
   @groupBegin }
-procedure Font2BitmapFont_HDc(dc: HDc; var Font: TBitmapFont);
-procedure Font2OutlineFont_HDc(dc: HDc; var Font: TOutlineFont);
+function Font2BitmapFont_HDc(dc: HDc): TBitmapFont;
+function Font2OutlineFont_HDc(dc: HDc): TOutlineFont;
 { @groupEnd }
 
 { Usually much more comfortable versions of Font2XxxFont_HDc
@@ -78,12 +73,16 @@ procedure Font2OutlineFont_HDc(dc: HDc; var Font: TOutlineFont);
   @groupBegin }
 function Font2BitmapChar(WinFont: HFont; c: char): PBitmapChar;
 function Font2OutlineChar(WinFont: HFont; c: char): POutlineChar;
-procedure Font2BitmapFont(WinFont: HFont; var Font: TBitmapFont);
-procedure Font2OutlineFont(WinFont: HFont; var Font: TOutlineFont);
+function Font2BitmapFont(WinFont: HFont): TBitmapFont;
+function Font2OutlineFont(WinFont: HFont): TOutlineFont;
 { @groupEnd }
 
-procedure FreeMemNilingAllChars(var Font: TBitmapFont); overload;
-procedure FreeMemNilingAllChars(var Font: TOutlineFont); overload;
+{ Free and nil Font instance, freeing also all characters by FreeMem.
+  Use this only on fonts with characters created by GetMem.
+  @groupBegin }
+procedure FreeAndNilFont(var Font: TBitmapFont); overload;
+procedure FreeAndNilFont(var Font: TOutlineFont); overload;
+{ @groupEnd }
 
 implementation
 
@@ -325,18 +324,24 @@ end;
 
 { Font2XxxFont_HDc ----------------------------------------------- }
 
-procedure Font2BitmapFont_HDc(dc: HDC; var Font: TBitmapFont);
+function Font2BitmapFont_HDc(dc: HDC): TBitmapFont;
 var c: char;
 begin
- for c := Low(char) to High(char) do
-  Font[c] := Font2BitmapChar_HDc(dc, c);
+  Result := TBitmapFont.Create;
+  try
+    for c := Low(char) to High(char) do
+      Result.Data[c] := Font2BitmapChar_HDc(dc, c);
+  except FreeAndNilFont(Result); raise end;
 end;
 
-procedure Font2OutlineFont_HDc(dc: HDC; var Font: TOutlineFont);
+function Font2OutlineFont_HDc(dc: HDC): TOutlineFont;
 var c: char;
 begin
- for c := Low(char) to High(char) do
-  Font[c] := Font2OutlineChar_HDc(dc, c);
+  Result := TOutlineFont.Create;
+  try
+    for c := Low(char) to High(char) do
+      Result.Data[c] := Font2OutlineChar_HDc(dc, c);
+  except FreeAndNilFont(Result); raise end;
 end;
 
 { versions without _HDc ------------------------------------------- }
@@ -357,34 +362,38 @@ begin
  {$I winfontconvert_dc_from_winfont_end.inc}
 end;
 
-procedure Font2BitmapFont(WinFont: HFont; var Font: TBitmapFont);
+function Font2BitmapFont(WinFont: HFont): TBitmapFont;
 {$I winfontconvert_dc_from_winfont_declare.inc}
 begin
- {$I winfontconvert_dc_from_winfont_begin.inc}
- Font2BitmapFont_HDc(dc, Font);
- {$I winfontconvert_dc_from_winfont_end.inc}
+  {$I winfontconvert_dc_from_winfont_begin.inc}
+  Result := Font2BitmapFont_HDc(dc);
+  {$I winfontconvert_dc_from_winfont_end.inc}
 end;
 
-procedure Font2OutlineFont(WinFont: HFont; var Font: TOutlineFont);
+function Font2OutlineFont(WinFont: HFont): TOutlineFont;
 {$I winfontconvert_dc_from_winfont_declare.inc}
 begin
- {$I winfontconvert_dc_from_winfont_begin.inc}
- Font2OutlineFont_HDc(dc, Font);
- {$I winfontconvert_dc_from_winfont_end.inc}
+  {$I winfontconvert_dc_from_winfont_begin.inc}
+  Result := Font2OutlineFont_HDc(dc);
+  {$I winfontconvert_dc_from_winfont_end.inc}
 end;
 
-{ FreeMemNilingAllChars ------------------------------------------------ }
+{ FreeAndNilFont ------------------------------------------------------------- }
 
-procedure FreeMemNilingAllChars(var Font: TBitmapFont);
-var c: char;
+procedure FreeAndNilFont(var Font: TBitmapFont);
+var
+  c: char;
 begin
- for c := Low(char) to High(char) do FreeMemNiling(Pointer(Font[c]));
+  for c := Low(char) to High(char) do FreeMem(Pointer(Font.Data[c]));
+  FreeAndNil(Font);
 end;
 
-procedure FreeMemNilingAllChars(var Font: TOutlineFont);
-var c: char;
+procedure FreeAndNilFont(var Font: TOutlineFont);
+var
+  c: char;
 begin
- for c := Low(char) to High(char) do FreeMemNiling(Pointer(Font[c]));
+  for c := Low(char) to High(char) do FreeMem(Pointer(Font.Data[c]));
+  FreeAndNil(Font);
 end;
 
 end.

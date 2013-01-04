@@ -17,11 +17,13 @@
 
   TODO: This program is Windows-only for now, as it uses WinFontConvert
   to read font information, which in turn uses GetGlpyhOutline WinAPI.
+  (Fortunately, at least it works fine through wine.)
+
   Michalis plans (since a long time...) to switch to using freetype
   (as I don't even use Windows since a long time), but so far there was no time
   to do it. The plan is to implement unit like CastleFonts that reads a font file
   (like ttf) and for a given character returns PBitmapChar structure (for bitmap
-  font) and POutlineChar (for geometric font, composed on lines and curves).
+  font) and POutlineChar (for geometric font, composed from lines and curves).
   It's possible to also change the definition of our PBitmapChar/POutlineChar types
   at that point, maybe integrate them more with freetype structures,
   basically: do anything to make the job easier.
@@ -174,16 +176,16 @@ begin
       try
         if AsOutline then
         begin
-          Font2OutlineFont(WinFontHandle, OutlineFont);
+          OutlineFont := Font2OutlineFont(WinFontHandle);
           try
             Font2Pascal(OutlineFont, UnitName, PrecedingComment, FontConstantName, Stream);
-          finally FreeMemNilingAllChars(OutlineFont) end;
+          finally FreeAndNilFont(OutlineFont) end;
         end else
         begin
-          Font2BitmapFont(WinFontHandle, BitmapFont);
+          BitmapFont := Font2BitmapFont(WinFontHandle);
           try
             Font2Pascal(BitmapFont, UnitName, PrecedingComment, FontConstantName, Stream);
-          finally FreeMemNilingAllChars(BitmapFont) end;
+          finally FreeAndNilFont(BitmapFont) end;
         end;
 
         if WasParam_Dir then
