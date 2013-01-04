@@ -21,9 +21,9 @@ program design_surface;
 {$apptype GUI}
 
 uses Cameras, Surfaces, CastleWindow, GL, GLU, CastleVectors,
-  CastleGLUtils, Curve, BezierCurve, Boxes3D, SysUtils, CastleUtils, CastleKeysMouse,
+  CastleGLUtils, Curve, BezierCurve, CastleBoxes, SysUtils, CastleUtils, CastleKeysMouse,
   CastleStringUtils, CastleMessages, CastleFilesUtils, UIControls,
-  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, CastleColors, Base3D, Frustum;
+  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, CastleColors, Castle3D, CastleFrustum;
 
 type
   TShow = (shNone, shWire, shFill);

@@ -21,7 +21,7 @@ unit GLRendererShader;
 interface
 
 uses CastleVectors, GLShaders, FGL,
-  X3DShadowMaps, X3DTime, X3DFields, X3DNodes, CastleUtils, Boxes3D,
+  X3DShadowMaps, X3DTime, X3DFields, X3DNodes, CastleUtils, CastleBoxes,
   GLRendererTextureEnv, CastleStringUtils, Shaders;
 
 type
@@ -388,7 +388,7 @@ operator = (const A, B: TShaderCodeHash): boolean;
 implementation
 
 uses SysUtils, GL, GLExt, CastleGLUtils, CastleWarnings,
-  CastleLog, StrUtils, Base3D, GLVersionUnit;
+  CastleLog, StrUtils, Castle3D, GLVersionUnit;
 
 { TODO: a way to turn off using fixed-function pipeline completely
   will be needed some day. Currently, some functions here call

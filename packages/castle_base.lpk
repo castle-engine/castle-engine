@@ -46,12 +46,12 @@
     <Version Major="1"/>
     <Files Count="169">
       <Item1>
-        <Filename Value="../src/3d/base3d.pas"/>
-        <UnitName Value="Base3D"/>
+        <Filename Value="../src/3d/castle3d.pas"/>
+        <UnitName Value="Castle3D"/>
       </Item1>
       <Item2>
-        <Filename Value="../src/3d/boxes3d.pas"/>
-        <UnitName Value="Boxes3D"/>
+        <Filename Value="../src/3d/castleboxes.pas"/>
+        <UnitName Value="CastleBoxes"/>
       </Item2>
       <Item3>
         <Filename Value="../src/3d/castleoctree.pas"/>
@@ -66,8 +66,8 @@
         <UnitName Value="CubeMap"/>
       </Item5>
       <Item7>
-        <Filename Value="../src/3d/frustum.pas"/>
-        <UnitName Value="Frustum"/>
+        <Filename Value="../src/3d/castlefrustum.pas"/>
+        <UnitName Value="CastleFrustum"/>
       </Item7>
       <Item8>
         <Filename Value="../src/3d/geometryarrays.pas"/>

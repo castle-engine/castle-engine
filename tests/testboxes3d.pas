@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestBoxes3D;
+unit TestCastleBoxes;
 
 interface
 
@@ -21,7 +21,7 @@ uses
   Classes, SysUtils, fpcunit, testutils, testregistry;
 
 type
-  TTestBoxes3D = class(TTestCase)
+  TTestCastleBoxes = class(TTestCase)
   published
     procedure TestIsCenteredBox3DPlaneCollision;
     procedure TestBox3DPlaneCollision;
@@ -36,10 +36,10 @@ type
 
 implementation
 
-uses CastleVectors, CastleUtils, Boxes3D, CastleStringUtils, CastleTimeUtils,
+uses CastleVectors, CastleUtils, CastleBoxes, CastleStringUtils, CastleTimeUtils,
   TestCastleVectors, CastleTriangles;
 
-procedure TTestBoxes3D.TestIsCenteredBox3DPlaneCollision;
+procedure TTestCastleBoxes.TestIsCenteredBox3DPlaneCollision;
 begin
   { box 10, 1, 1 with a plane that crosses 0,0,0 point always collides }
   Assert(IsCenteredBox3DPlaneCollision(
@@ -59,7 +59,7 @@ begin
     Vector3Single(10, 1, 1), Vector4Single(-1, 0, 0, 5)));
 end;
 
-procedure TTestBoxes3D.TestBox3DPlaneCollision;
+procedure TTestCastleBoxes.TestBox3DPlaneCollision;
 
   procedure AssertBox3DPlaneCollision(const Box: TBox3D;
     const Plane: TVector4Single; CollisionResult: TPlaneCollision);
@@ -130,7 +130,7 @@ begin
   AssertBox3DPlaneCollision(Box, Plane, pcIntersecting);
 end;
 
-procedure TTestBoxes3D.TestIsBox3DTriangleCollision;
+procedure TTestCastleBoxes.TestIsBox3DTriangleCollision;
 
   procedure RandomTrianglesTest(
     const XRandomness, YRandomness, ZRandomness: Integer);
@@ -223,7 +223,7 @@ begin
   RandomTrianglesTest(1, 1, 0);
 end;
 
-procedure TTestBoxes3D.TestIsBox3DTriangleCollisionEpsilons;
+procedure TTestCastleBoxes.TestIsBox3DTriangleCollisionEpsilons;
 var
   EqualityEpsilon: Single;
 
@@ -601,7 +601,7 @@ begin
       }); *)
 end;
 
-procedure TTestBoxes3D.TestBox3DTransform;
+procedure TTestCastleBoxes.TestBox3DTransform;
 { Test Box3DTransform for correctness and speed.
   Compare with Slower implementation, that should be slower
   (on non-projection matrices) but give the same results. }
@@ -718,7 +718,7 @@ begin
   {$endif BOX3D_TRANSFORM_SPEED_TEST}
 end;
 
-procedure TTestBoxes3D.TestBox3DMaximumPlane;
+procedure TTestCastleBoxes.TestBox3DMaximumPlane;
 begin
   try
     EmptyBox3D.MaximumPlane(Vector3Single(1, 1, 1));
@@ -745,7 +745,7 @@ begin
     )));
 end;
 
-procedure TTestBoxes3D.TestBox3DMinimumPlane;
+procedure TTestCastleBoxes.TestBox3DMinimumPlane;
 begin
   try
     EmptyBox3D.MinimumPlane(Vector3Single(1, 1, 1));
@@ -772,7 +772,7 @@ begin
     )));
 end;
 
-procedure TTestBoxes3D.TestBox3DPointDistance;
+procedure TTestCastleBoxes.TestBox3DPointDistance;
 const
   Box: TBox3D = (Data: ((1, 2, 3), (4, 5, 6)) );
   Epsilon = 0.0001;
@@ -795,7 +795,7 @@ begin
     Sqrt( Sqr(0-2)  + Sqr(0-3)  + Sqr(0-1)  ), Epsilon));
 end;
 
-procedure TTestBoxes3D.Test2D;
+procedure TTestCastleBoxes.Test2D;
 const
   Box: TBox3D = (Data: ((1, 2, 3), (4, 5, 6)) );
   Box2: TBox3D = (Data: ((1, 2, 3), (2, 5, 13)) );
@@ -823,5 +823,5 @@ begin
 end;
 
 initialization
-  RegisterTest(TTestBoxes3D);
+  RegisterTest(TTestCastleBoxes);
 end.

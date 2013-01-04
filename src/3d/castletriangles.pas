@@ -673,8 +673,8 @@ end;
 function Barycentric(const Triangle: TTriangle3Single;
   const Point: TVector3Single): TVector3Single;
 
-  { TODO: a tiny bit of Boxes3D unit used here, to prevent any dependency
-    from CastleVectors to Boxes3D. }
+  { TODO: a tiny bit of CastleBoxes unit used here, to prevent any dependency
+    from CastleVectors to CastleBoxes. }
   type
     TBox3D     = array [0..1] of TVector3Single;
 

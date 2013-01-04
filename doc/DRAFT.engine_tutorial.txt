@@ -279,10 +279,10 @@ CastleCreatures unit (see inside src/game/ in sources) allows you to easily crea
   * [TCreatureResource], [TCreature]
   * And see the class hierarchy descending from TCreatureResource and TCreature in [class hierarchy diagram]
 
-  Everything is designed to give you a lot of properties to set (most of them are also settable by resource.xml files mentioned above) and a lot of methods to override. See not only the TCreature* classes, but also see above T3D classes in Base3D unit, for various things that you can override and use.
+  Everything is designed to give you a lot of properties to set (most of them are also settable by resource.xml files mentioned above) and a lot of methods to override. See not only the TCreature* classes, but also see above T3D classes in Castle3D unit, for various things that you can override and use.
 
     You can code new creatures/items behaviors by deriving new classes
-    from our existing classes in CastleCreatures / CastleItems / Base3D units.
+    from our existing classes in CastleCreatures / CastleItems / Castle3D units.
     This is the most flexible way to customize everything about a creature/item.
 
     You usually override two classes to define a new creature/item:
@@ -444,11 +444,11 @@ CastleCreatures unit (see inside src/game/ in sources) allows you to easily crea
     prepared to implement something (like creature AI) completely from scratch
     on your own.
 
-    Overriding the really basic classes from Base3D unit (and optionally
+    Overriding the really basic classes from Castle3D unit (and optionally
     also CastleResources, if you want your 3D object to be associated with
     a resource) is for advanced usage, when you want to define a 3D
     object within your game that doesn't really fit our creatures/items
-    definitions. Base3D contains a lot of classes to make it easy
+    definitions. Castle3D contains a lot of classes to make it easy
     to create your own, dynamic 3D objects.
 
   (TODO: Pasdoc: frame-less layout, to make direct links sensible.
@@ -456,7 +456,7 @@ CastleCreatures unit (see inside src/game/ in sources) allows you to easily crea
 
 6.3. (After creatures and items section, section "More stuff in your 3D world?")
 
-  Our creature and items classes in CastleCreatures and CastleItems units are not magic, they do not get any special treatment from the scene manager. Instead, they just extend the base 3D classes in Base3D unit. There are ready classes to represent 3D things, that can move, can collide with other 3D stuff and such. If you find that our creatures/items design is not enough for you, or maybe you want to have in your 3D world something that doesn't really fit the creature/item definition, you can always derive new classes from the Base3D classes. Like T3DAlive, T3DOrient, T3DTransform. Methods Move, MoveAllowed, Height, LineOfSight allow you to add any kind of movement/intelligence to any 3D object.
+  Our creature and items classes in CastleCreatures and CastleItems units are not magic, they do not get any special treatment from the scene manager. Instead, they just extend the base 3D classes in Castle3D unit. There are ready classes to represent 3D things, that can move, can collide with other 3D stuff and such. If you find that our creatures/items design is not enough for you, or maybe you want to have in your 3D world something that doesn't really fit the creature/item definition, you can always derive new classes from the Castle3D classes. Like T3DAlive, T3DOrient, T3DTransform. Methods Move, MoveAllowed, Height, LineOfSight allow you to add any kind of movement/intelligence to any 3D object.
 
 ---
 Sidenote: Which way is up?

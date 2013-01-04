@@ -23,7 +23,7 @@ program gl_primitive_performance;
 uses CastleVectors, X3DNodes, GL, GLExt, CastleWindow,
   CastleUtils, SysUtils, Classes, CastleWarnings, CastleKeysMouse,
   CastleGLUtils, CastleFilesUtils, CastleSceneCore, CastleParameters,
-  CastleProgress, CastleShapes, CastleSceneManager, Base3D, CastleStringUtils;
+  CastleProgress, CastleShapes, CastleSceneManager, Castle3D, CastleStringUtils;
 
 type
   TRenderMode = (

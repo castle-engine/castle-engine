@@ -22,11 +22,11 @@ unit CastleSceneCore;
 interface
 
 uses
-  SysUtils, Classes, CastleVectors, Boxes3D, CastleTriangles,
+  SysUtils, Classes, CastleVectors, CastleBoxes, CastleTriangles,
   X3DFields, X3DNodes, CastleClassUtils, CastleUtils,
   CastleShapes, TriangleOctree, CastleProgress, CastleOctree, ShapeOctree,
   CastleKeysMouse, X3DTime, Cameras, X3DTriangles, Contnrs,
-  CastleRenderingCamera, Base3D, X3DShadowMaps, FGL, GenericStructList;
+  CastleRenderingCamera, Castle3D, X3DShadowMaps, FGL, GenericStructList;
 
 type
   TTriangle3SingleList = specialize TGenericStructList<TTriangle3Single>;

@@ -19,8 +19,8 @@ unit Curve;
 
 interface
 
-uses CastleVectors, Boxes3D, CastleUtils, CastleScript,
-  CastleClassUtils, Classes, Base3D, Frustum, FGL;
+uses CastleVectors, CastleBoxes, CastleUtils, CastleScript,
+  CastleClassUtils, Classes, Castle3D, CastleFrustum, FGL;
 
 type
   { 3D curve, a set of points defined by a continous function @link(Point)

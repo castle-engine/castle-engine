@@ -64,7 +64,7 @@ unit CastleOctree;
 
 interface
 
-uses SysUtils, CastleVectors, Boxes3D, CastleUtils, Frustum, Contnrs;
+uses SysUtils, CastleVectors, CastleBoxes, CastleUtils, CastleFrustum, Contnrs;
 
 type
   { }

@@ -222,7 +222,7 @@ uses
   X3DFields, X3DNodes, X3DLexer, OpenGLTTFonts, CastleImages,
   CastleGLUtils, GLRendererLights, TTFontsTypes,
   GLShaders, GLImages, Videos, X3DTime, CastleShapes,
-  GLCubeMap, CastleClassUtils, DDS, Base3D, FGL,
+  GLCubeMap, CastleClassUtils, DDS, Castle3D, FGL,
   GeometryArrays, ArraysGenerator, GLRendererShader, X3DShadowMaps,
   GLRendererTextureEnv;
 

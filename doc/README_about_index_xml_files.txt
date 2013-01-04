@@ -81,7 +81,7 @@ Specifically about resource.xml:
   used for various collision detection routines.
   See T3DCustomTransform.MiddleHeight documentation.
 
-  Game developers can use the Base3D.RenderDebug3D variable to easily
+  Game developers can use the Castle3D.RenderDebug3D variable to easily
   visualize the bounding sphere (and other things) around resources.
   The bounding sphere is centered around the point derived from "middle_height"
   setting and with given (or automatically calculated) "radius".

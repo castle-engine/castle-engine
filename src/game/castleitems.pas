@@ -18,10 +18,10 @@ unit CastleItems;
 
 interface
 
-uses Boxes3D, X3DNodes, CastleScene, CastleVectors, CastleUtils,
+uses CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleUtils,
   CastleClassUtils, Classes, CastleImages, GL, GLU, CastleGLUtils,
   PrecalculatedAnimation, CastleResources, GLImages,
-  CastleXMLConfig, CastleSoundEngine, Frustum, Base3D, FGL, CastleColors;
+  CastleXMLConfig, CastleSoundEngine, CastleFrustum, Castle3D, FGL, CastleColors;
 
 type
   TInventoryItem = class;

@@ -19,11 +19,11 @@ unit CastleLevels;
 
 interface
 
-uses CastleVectors, CastleSceneCore, CastleScene, Boxes3D,
+uses CastleVectors, CastleSceneCore, CastleScene, CastleBoxes,
   X3DNodes, X3DFields, Cameras, SectorsWaypoints,
   CastleUtils, CastleClassUtils, CastlePlayer, CastleResources,
   CastleProgress, PrecalculatedAnimation,
-  DOM, CastleSoundEngine, Base3D, CastleShapes, GL, CastleConfig, CastleImages,
+  DOM, CastleSoundEngine, Castle3D, CastleShapes, GL, CastleConfig, CastleImages,
   Classes, CastleTimeUtils, CastleSceneManager, GLRendererShader, FGL;
 
 type

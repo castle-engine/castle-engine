@@ -13,16 +13,16 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestFrustum;
+unit TestCastleFrustum;
 
 interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry,
-  CastleVectors, Boxes3D, Frustum;
+  CastleVectors, CastleBoxes, CastleFrustum;
 
 type
-  TTestFrustum = class(TTestCase)
+  TTestCastleFrustum = class(TTestCase)
   private
     procedure AssertFrustumSphereCollisionPossible(const Frustum: TFrustum;
       const SphereCenter: TVector3Single; const SphereRadiusSqt: Single;
@@ -85,7 +85,7 @@ begin
   OrderUp(Result.Data[0][2], Result.Data[1][2]);
 end;
 
-procedure TTestFrustum.AssertFrustumSphereCollisionPossible(const Frustum: TFrustum;
+procedure TTestCastleFrustum.AssertFrustumSphereCollisionPossible(const Frustum: TFrustum;
   const SphereCenter: TVector3Single; const SphereRadiusSqt: Single;
   const GoodResult: TFrustumCollisionPossible);
 begin
@@ -96,7 +96,7 @@ begin
      SphereRadiusSqt) = (GoodResult <> fcNoCollision) );
 end;
 
-procedure TTestFrustum.AssertFrustumBox3DCollisionPossible(const Frustum: TFrustum;
+procedure TTestCastleFrustum.AssertFrustumBox3DCollisionPossible(const Frustum: TFrustum;
   const Box3D: TBox3D; const GoodResult: TFrustumCollisionPossible);
 begin
  Assert( Frustum.Box3DCollisionPossible(Box3D) = GoodResult);
@@ -105,7 +105,7 @@ begin
    (GoodResult <> fcNoCollision) );
 end;
 
-procedure TTestFrustum.TestFrustum;
+procedure TTestCastleFrustum.TestFrustum;
 var
   Frustum: TFrustum;
 begin
@@ -144,7 +144,7 @@ begin
    fcSomeCollisionPossible);
 end;
 
-procedure TTestFrustum.TestInfiniteFrustum;
+procedure TTestCastleFrustum.TestInfiniteFrustum;
 var
   Frustum: TFrustum;
 begin
@@ -168,7 +168,7 @@ begin
     fcSomeCollisionPossible);
 end;
 
-procedure TTestFrustum.TestCompareWithUnoptimizedPlaneCollision;
+procedure TTestCastleFrustum.TestCompareWithUnoptimizedPlaneCollision;
 { Compare current Box3DCollisionPossible implementation with older
   implementation that didn't use smart Box3DPlaneCollision,
   instead was testing all 8 corners of bounding box.
@@ -420,5 +420,5 @@ begin
 end;
 
 initialization
- RegisterTest(TTestFrustum);
+ RegisterTest(TTestCastleFrustum);
 end.

@@ -19,8 +19,8 @@ unit PrecalculatedAnimation;
 interface
 
 uses SysUtils, Classes, X3DNodes, GLRenderer, CastleSceneCore, CastleScene,
-  CastleUtils, Boxes3D, CastleClassUtils, PrecalculatedAnimationCore, CastleKeysMouse,
-  CastleTimeUtils, Frustum, CastleVectors, Base3D, X3DTriangles, FGL, CastleTriangles;
+  CastleUtils, CastleBoxes, CastleClassUtils, PrecalculatedAnimationCore, CastleKeysMouse,
+  CastleTimeUtils, CastleFrustum, CastleVectors, Castle3D, X3DTriangles, FGL, CastleTriangles;
 
 type
   TGetRootNodeWithTime = procedure (const Index: Cardinal;

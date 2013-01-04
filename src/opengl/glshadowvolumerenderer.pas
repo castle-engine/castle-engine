@@ -18,7 +18,7 @@ unit GLShadowVolumeRenderer;
 
 interface
 
-uses CastleVectors, Boxes3D, GL, GLExt, CastleGLUtils, Frustum, Base3D;
+uses CastleVectors, CastleBoxes, GL, GLExt, CastleGLUtils, CastleFrustum, Castle3D;
 
 type
   TStencilSetupKind = (ssFrontAndBack, ssFront, ssBack);

@@ -29,8 +29,8 @@ unit TriangleOctree;
 
 interface
 
-uses CastleVectors, SysUtils, CastleUtils, X3DNodes, Boxes3D,
-  CastleOctree, X3DTriangles, Base3D, CastleTriangles;
+uses CastleVectors, SysUtils, CastleUtils, X3DNodes, CastleBoxes,
+  CastleOctree, X3DTriangles, Castle3D, CastleTriangles;
 
 {$define read_interface}
 

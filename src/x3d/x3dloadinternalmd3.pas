@@ -36,7 +36,7 @@ procedure LoadMD3Sequence(
 
 implementation
 
-uses CastleFilesUtils, CastleStringUtils, Boxes3D, X3DLoadInternalUtils,
+uses CastleFilesUtils, CastleStringUtils, CastleBoxes, X3DLoadInternalUtils,
   X3DCameraUtils;
 
 type

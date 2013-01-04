@@ -18,9 +18,9 @@ unit CastlePlayer;
 
 interface
 
-uses Boxes3D, Cameras, CastleItems, CastleVectors, GL, GLU, CastleInputs, CastleKeysMouse,
-  X3DTriangles, CastleTextureProperties, CastleSoundEngine, Classes, Base3D,
-  CastleGLUtils, CastleColors, Frustum, CastleTriangles, CastleTimeUtils;
+uses CastleBoxes, Cameras, CastleItems, CastleVectors, GL, GLU, CastleInputs, CastleKeysMouse,
+  X3DTriangles, CastleTextureProperties, CastleSoundEngine, Classes, Castle3D,
+  CastleGLUtils, CastleColors, CastleFrustum, CastleTriangles, CastleTimeUtils;
 
 type
   TPlayerSwimming = (psNo,
@@ -1323,7 +1323,7 @@ begin
 
     Note that Player.Gravity remains false for now (only Player.Camera.Gravity
     is true), so the player is not affected by simple gravity implemented in
-    Base3D unit, so there's no point in overriding methods like PreferredHeight.
+    Castle3D unit, so there's no point in overriding methods like PreferredHeight.
     TWalkCamera.Gravity does all the work now. }
 
   Result := Position;

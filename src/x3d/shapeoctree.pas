@@ -37,7 +37,7 @@ unit ShapeOctree;
 
 interface
 
-uses SysUtils, Base3D, Boxes3D, CastleOctree, CastleShapes, CastleVectors,
+uses SysUtils, Castle3D, CastleBoxes, CastleOctree, CastleShapes, CastleVectors,
   CastleUtils, X3DTriangles, CastleTriangles;
 
 const

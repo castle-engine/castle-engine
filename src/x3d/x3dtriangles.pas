@@ -21,7 +21,7 @@ unit X3DTriangles;
 
 interface
 
-uses CastleVectors, SysUtils, CastleUtils, X3DNodes, Base3D, Boxes3D,
+uses CastleVectors, SysUtils, CastleUtils, X3DNodes, Castle3D, CastleBoxes,
   CastleOctree, GenericStructList, CastleTriangles;
 
 { TTriangle  ------------------------------------------------------------ }
@@ -536,7 +536,7 @@ type
       above the ground. This is comfortable for cooperation with
       TWalkCamera.OnHeight.
 
-      See TBase3D.Height for specification.
+      See T3D.Height for specification.
 
       TriangleToIgnore and TrianglesToIgnoreFunc meaning
       is just like for RayCollision. }

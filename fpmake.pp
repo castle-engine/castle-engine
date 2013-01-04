@@ -59,15 +59,15 @@ begin
     P.Version := '3.0.0';
 
     P.SourcePath.Add('src' + PathDelim + '3d');
-    P.Targets.AddUnit('base3d.pas');
-    P.Targets.AddUnit('boxes3d.pas');
+    P.Targets.AddUnit('castle3d.pas');
+    P.Targets.AddUnit('castleboxes.pas');
     P.Targets.AddUnit('castletriangles.pas');
-    P.Targets.AddUnit('convexhullunit.pas');
-    P.Targets.AddUnit('cubemap.pas');
-    P.Targets.AddUnit('frustum.pas');
+    P.Targets.AddUnit('castleconvexhull.pas');
+    P.Targets.AddUnit('castlecubemap.pas');
+    P.Targets.AddUnit('castlefrustum.pas');
     P.Targets.AddUnit('geometryarrays.pas');
     P.Targets.AddUnit('castleoctree.pas');
-    P.Targets.AddUnit('nurbs.pas');
+    P.Targets.AddUnit('castlenurbs.pas');
     P.Targets.AddUnit('quaternions.pas');
     P.Targets.AddUnit('rayswindow.pas');
     P.Targets.AddUnit('sectorswaypoints.pas');

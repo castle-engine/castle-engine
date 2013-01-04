@@ -32,7 +32,7 @@ uses GL, CastleWindow, CastleGLUtils, SysUtils, CastleVectors,
   Curve, CastleScript, CastleMessages, UIControls, CastleKeysMouse,
   CastleUtils, CastleScriptParser, CastleScriptCoreFunctions,
   BFNT_BitstreamVeraSansMono_M18_Unit, CastleSceneManager,
-  OpenGLBmpFonts, Classes, CastleStringUtils, Base3D, CastleColors;
+  OpenGLBmpFonts, Classes, CastleStringUtils, Castle3D, CastleColors;
 
 { global vars ------------------------------------------------------------ }
 

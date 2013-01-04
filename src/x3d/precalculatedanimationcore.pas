@@ -20,7 +20,7 @@ unit PrecalculatedAnimationCore;
 
 interface
 
-uses CastleUtils, DOM, Base3D, Classes;
+uses CastleUtils, DOM, Castle3D, Classes;
 
 type
   { An abstract (cannot be rendered) precalculated animation.

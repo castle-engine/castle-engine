@@ -18,7 +18,7 @@ unit CastleRenderingCamera;
 
 interface
 
-uses CastleUtils, CastleVectors, Frustum, Cameras, GenericStructList, X3DNodes;
+uses CastleUtils, CastleVectors, CastleFrustum, Cameras, GenericStructList, X3DNodes;
 
 type
   TRenderingCamera = class;

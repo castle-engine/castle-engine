@@ -18,8 +18,8 @@ unit Cameras;
 
 interface
 
-uses SysUtils, CastleVectors, CastleUtils, CastleKeysMouse, Boxes3D, Quaternions,
-  Frustum, UIControls, Classes, RaysWindow, CastleTimeUtils, CastleInputs,
+uses SysUtils, CastleVectors, CastleUtils, CastleKeysMouse, CastleBoxes, Quaternions,
+  CastleFrustum, UIControls, Classes, RaysWindow, CastleTimeUtils, CastleInputs,
   CastleTriangles;
 
 type
@@ -1217,7 +1217,7 @@ type
       to say what is the current height of camera above the ground.
       This should be calculated like collision of ray from @link(Position)
       in direction -GravityUp with the scene.
-      See TBase3D.Height for specification what returned parameters
+      See T3D.Height for specification what returned parameters
       mean.
 
       Implementation of @link(Height) in this class

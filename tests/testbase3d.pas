@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestBase3D;
+unit TestCastle3D;
 
 interface
 
@@ -21,7 +21,7 @@ uses
   Classes, SysUtils, fpcunit, testutils, testregistry;
 
 type
-  TTestBase3D = class(TTestCase)
+  TTestCastle3D = class(TTestCase)
   published
     procedure TestMy3D;
     procedure TestMy3DNotExists;
@@ -37,7 +37,7 @@ type
 
 implementation
 
-uses CastleVectors, Boxes3D, Base3D, CastleSceneManager, Contnrs, CastleClassUtils,
+uses CastleVectors, CastleBoxes, Castle3D, CastleSceneManager, Contnrs, CastleClassUtils,
   CastleTriangles;
 
 { TMy3D ---------------------------------------------------------------------- }
@@ -81,9 +81,9 @@ const
   Box0: TBox3D = (Data: ((-1, -1, -1), (1, 1, 1)));
   Box20: TBox3D = (Data: ((19, -1, -1), (21, 1, 1)));
 
-{ TTestBase3D ---------------------------------------------------------------- }
+{ TTestCastle3D ---------------------------------------------------------------- }
 
-procedure TTestBase3D.TestMy3D;
+procedure TTestCastle3D.TestMy3D;
 var
   M: TMy3D;
   IsAbove: boolean;
@@ -153,7 +153,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestBase3D.TestMy3DNotExists;
+procedure TTestCastle3D.TestMy3DNotExists;
 var
   M: TMy3D;
   IsAbove: boolean;
@@ -221,7 +221,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestBase3D.TestMy3DNotCollides;
+procedure TTestCastle3D.TestMy3DNotCollides;
 var
   M: TMy3D;
   IsAbove: boolean;
@@ -298,7 +298,7 @@ type
   TMy3DTransform = class(T3DTransform)
   end;
 
-procedure TTestBase3D.Test3DTransform;
+procedure TTestCastle3D.Test3DTransform;
 var
   M: TMy3DTransform;
   IsAbove: boolean;
@@ -371,7 +371,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestBase3D.Test3DTransformNotExists;
+procedure TTestCastle3D.Test3DTransformNotExists;
 var
   M: TMy3DTransform;
   IsAbove: boolean;
@@ -441,7 +441,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestBase3D.Test3DTransformNotCollides;
+procedure TTestCastle3D.Test3DTransformNotCollides;
 var
   M: TMy3DTransform;
   IsAbove: boolean;
@@ -514,7 +514,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestBase3D.Test3DTransformReal;
+procedure TTestCastle3D.Test3DTransformReal;
 
   { Perform test on M, assuming that it results in box Box20. }
   procedure DoTests(M: TMy3DTransform);
@@ -646,7 +646,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestBase3D.TestNotifications;
+procedure TTestCastle3D.TestNotifications;
 var
   ListParent, List: T3DList;
   ItemOnList: T3DTransform;
@@ -682,7 +682,7 @@ begin
   finally FreeAndNil(ListParent) end;
 end;
 
-procedure TTestBase3D.TestNotificationsSceneManager;
+procedure TTestCastle3D.TestNotificationsSceneManager;
 var
   SceneManager: TCastleSceneManager;
   List: T3DList;
@@ -704,7 +704,7 @@ begin
   finally FreeAndNil(SceneManager) end;
 end;
 
-procedure TTestBase3D.TestList;
+procedure TTestCastle3D.TestList;
 var
   My, My2: T3D;
   List: T3DList;
@@ -738,5 +738,5 @@ begin
 end;
 
 initialization
-  RegisterTest(TTestBase3D);
+  RegisterTest(TTestCastle3D);
 end.

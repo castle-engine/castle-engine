@@ -17,7 +17,7 @@
 
 uses SysUtils, FGL, CastleFilesUtils, CastleWindow, CastleResources, CastleScene,
   CastleProgress, CastleWindowProgress, CastleControls, UIControls, CastleUtils,
-  Base3D, CastleSoundEngine;
+  Castle3D, CastleSoundEngine;
 
 var
   BaseScene: TCastleScene;

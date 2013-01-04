@@ -36,7 +36,7 @@ type
 
 implementation
 
-uses Boxes3D, CastleShapes;
+uses CastleBoxes, CastleShapes;
 
 { TNastyProxy ---------------------------------------------------------------- }
 

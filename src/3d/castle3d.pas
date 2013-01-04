@@ -14,11 +14,11 @@
 }
 
 { Base 3D objects (T3D, T3DList, T3DTransform, T3DOrient, T3DMoving). }
-unit Base3D;
+unit Castle3D;
 
 interface
 
-uses Classes, Math, CastleVectors, Frustum, Boxes3D, CastleClassUtils, CastleKeysMouse,
+uses Classes, Math, CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
   CastleUtils, FGL, GenericStructList, CastleTimeUtils,
   CastleSoundEngine, SectorsWaypoints, Cameras, CastleTriangles;
 
@@ -2523,7 +2523,7 @@ begin
     ourselves, just like our children; so check "AComponent is T3D" doesn't
     protect us.)
     Practical situation when it happens is in testcases
-    TTestBase3D.TestNotifications and TTestBase3D.TestNotificationsSceneManager. }
+    TTestCastle3D.TestNotifications and TTestCastle3D.TestNotificationsSceneManager. }
 
   if (Operation = opRemove) and (AComponent is T3D) and (List <> nil) then
     List.DeleteAll(AComponent);
@@ -2958,7 +2958,7 @@ end;
 procedure T3DCustomTransform.TransformMatricesMult(
   var M, MInverse: TMatrix4Single);
 begin
-  Base3D.TransformMatricesMult(M, MInverse,
+  Castle3D.TransformMatricesMult(M, MInverse,
     GetCenter, GetRotation, GetScale, GetScaleOrientation, GetTranslation);
 end;
 

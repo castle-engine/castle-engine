@@ -14,11 +14,11 @@
 }
 
 { Frustum object (TFrustum) and helpers. }
-unit Frustum;
+unit CastleFrustum;
 
 interface
 
-uses CastleVectors, Boxes3D;
+uses CastleVectors, CastleBoxes;
 
 type
   { Order of planes of TFrustum.

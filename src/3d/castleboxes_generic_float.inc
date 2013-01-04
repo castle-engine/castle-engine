@@ -1,4 +1,4 @@
-{ This is part of Boxes3D unit implementation that uses TGenericFloat,
+{ This is part of CastleBoxes unit implementation that uses TGenericFloat,
   TVector3GenericFloat etc. types, instead of normal Single/Double,
   TVector3Single/TVector3Double. }
 
@@ -21,7 +21,7 @@ function IsCenteredBox3DPlaneCollision(
 
 { **************** About precision: *********************
 
-  Tests (see ../tests/testboxes3d.pas, TTestBoxes3D.TestIsBox3DTriangleCollisionEpsilonsSingle)
+  Tests (see TTestCastleBoxes.TestIsBox3DTriangleCollisionEpsilonsSingle)
   show that this calculation should really be done on at least Double precision.
   The values for these tests were taken from debugging behavior on
   castle.wrl test VRML model, so yes, these errors produce real errors

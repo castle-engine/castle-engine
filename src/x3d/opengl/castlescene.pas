@@ -20,10 +20,10 @@ unit CastleScene;
 
 interface
 
-uses SysUtils, Classes, CastleVectors, Boxes3D, X3DNodes, CastleClassUtils, 
+uses SysUtils, Classes, CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils, 
   CastleUtils, CastleSceneCore, GLRenderer, GL, GLU, GLExt, Background, CastleGLUtils,
   ShapeOctree, GLShadowVolumeRenderer, X3DFields, CastleTriangles,
-  GLRendererLights, CastleShapes, Frustum, Base3D, GLShaders, FGL, GenericStructList;
+  GLRendererLights, CastleShapes, CastleFrustum, Castle3D, GLShaders, FGL, GenericStructList;
 
 {$define read_interface}
 
@@ -337,15 +337,15 @@ type
   end;
 
 type
-  TPrepareResourcesOption = Base3D.TPrepareResourcesOption;
-  TPrepareResourcesOptions = Base3D.TPrepareResourcesOptions;
+  TPrepareResourcesOption = Castle3D.TPrepareResourcesOption;
+  TPrepareResourcesOptions = Castle3D.TPrepareResourcesOptions;
 
 const
-  prRender = Base3D.prRender;
-  prBackground = Base3D.prBackground;
-  prBoundingBox = Base3D.prBoundingBox;
-  prTrianglesListShadowCasters = Base3D.prTrianglesListShadowCasters;
-  prManifoldAndBorderEdges = Base3D.prManifoldAndBorderEdges;
+  prRender = Castle3D.prRender;
+  prBackground = Castle3D.prBackground;
+  prBoundingBox = Castle3D.prBoundingBox;
+  prTrianglesListShadowCasters = Castle3D.prTrianglesListShadowCasters;
+  prManifoldAndBorderEdges = Castle3D.prManifoldAndBorderEdges;
 
 type
   { Possible checks done while frustum culling.

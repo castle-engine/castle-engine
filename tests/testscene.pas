@@ -29,7 +29,7 @@ type
 
 implementation
 
-uses X3DNodes, CastleSceneCore, CastleScene, Boxes3D, CastleVectors;
+uses X3DNodes, CastleSceneCore, CastleScene, CastleBoxes, CastleVectors;
 
 procedure TTestScene.TestScene;
 

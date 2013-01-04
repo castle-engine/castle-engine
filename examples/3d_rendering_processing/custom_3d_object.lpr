@@ -27,8 +27,8 @@ program custom_3d_object;
 
 {$apptype GUI}
 
-uses CastleVectors, Boxes3D, GL, GLU, CastleWindow, Frustum,
-  CastleClassUtils, CastleUtils, SysUtils, Classes, Base3D,
+uses CastleVectors, CastleBoxes, GL, GLU, CastleWindow, CastleFrustum,
+  CastleClassUtils, CastleUtils, SysUtils, Classes, Castle3D,
   CastleGLUtils, CastleFilesUtils, CastleStringUtils, CastleKeysMouse;
 
 type

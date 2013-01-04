@@ -20,7 +20,7 @@ unit CastleResources;
 interface
 
 uses CastleVectors, Classes, CastleXMLConfig, PrecalculatedAnimation,
-  CastleScene, X3DNodes, Base3D, DOM, FGL, Boxes3D;
+  CastleScene, X3DNodes, Castle3D, DOM, FGL, CastleBoxes;
 
 type
   T3DResource = class;

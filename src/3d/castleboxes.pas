@@ -14,7 +14,7 @@
 }
 
 { Axis-aligned 3D boxes (TBox3D). }
-unit Boxes3D;
+unit CastleBoxes;
 
 interface
 
@@ -829,7 +829,7 @@ function TBox3D.Transform(
 
     This is 2-3 times faster than Slower (compiled with -dRELEASE, like
     0.44 to 0.13 =~ 3.3 times faster). See
-    ../tests/testboxes3d.pas for speed (and correctness) test. }
+    testcastleboxes.pas for speed (and correctness) test. }
   var
     I, J: Integer;
     A, B: Single;
@@ -1073,7 +1073,7 @@ end;
 function TBox3D.PlaneCollision(
   const Plane: TVector4Single): TPlaneCollision;
 { This generalizes the idea from IsCenteredBox3DPlaneCollision
-  in boxes3d_generic_float.inc.
+  in castleboxes_generic_float.inc.
   It's also explained in
   Akenine-Moller, Haines "Real-Time Rendering" (2nd ed), 13.9 (page 586)
 }
@@ -1685,12 +1685,12 @@ end;
 {$define TGenericFloat := Single}
 {$define TVector3GenericFloat := TVector3Single}
 {$define TVector4GenericFloat := TVector4Single}
-{$I boxes3d_generic_float.inc}
+{$I castleboxes_generic_float.inc}
 
 {$define TGenericFloat := Double}
 {$define TVector3GenericFloat := TVector3Double}
 {$define TVector4GenericFloat := TVector4Double}
-{$I boxes3d_generic_float.inc}
+{$I castleboxes_generic_float.inc}
 
 function Box3D(const p0, p1: TVector3Single): TBox3D;
 begin

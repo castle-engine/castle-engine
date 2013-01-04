@@ -18,10 +18,10 @@ unit CastleCreatures;
 
 interface
 
-uses Classes, CastleVectors, PrecalculatedAnimation, Boxes3D, CastleClassUtils,
+uses Classes, CastleVectors, PrecalculatedAnimation, CastleBoxes, CastleClassUtils,
   CastleUtils, CastleScene, SectorsWaypoints, CastleStringUtils,
-  CastleResources, CastleXMLConfig, Base3D,
-  CastleSoundEngine, Frustum, X3DNodes, CastleColors, FGL;
+  CastleResources, CastleXMLConfig, Castle3D,
+  CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors, FGL;
 
 type
   TCreatureState = type Integer;
@@ -1212,7 +1212,7 @@ begin
        but they keep pointing upwards. This is noticeable to the player
        that looks at the arrow.
     2. It also conflicts with current hack with "MaximumFallingDistance -= 0.01"
-       inside Base3D gravity. It could probably be fixed better,
+       inside Castle3D gravity. It could probably be fixed better,
        but since the 1st problem would remain anyway...
     Also growing up doesn't make any sense for missile that explodes on contact
     with ground. So Fall should be overriden to make HitCore,
@@ -2277,7 +2277,7 @@ var
 
     { We would like to check collision between EB and our B translated
       by our Direction now, i.e.
-        Boxes3DCollision(Box3DTranslate(B, VectorScale(Direction, ???)), EB)
+        B.Translate(VectorScale(Direction, ???)).Collision(EB)
       But how much should be scale Direction, i.e. what to put for "???" ?
       It must be large enough to compensate even large Resource.AttackMaxDistance,
       it must be small enough so that enemy should not be able to avoid

@@ -52,7 +52,7 @@
 program bump_mapping;
 
 uses CastleWindow, GL, GLU, GLExt, CastleGLUtils,
-  Cameras, Boxes3D, SysUtils, CastleUtils, CastleVectors,
+  Cameras, CastleBoxes, SysUtils, CastleUtils, CastleVectors,
   CastleClassUtils, CastleFilesUtils, CastleStringUtils,
   CastleMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, CastleImages, CastleKeysMouse,
   NormalizationCubeMap, GLImages, GLVersionUnit, X3DNodes,

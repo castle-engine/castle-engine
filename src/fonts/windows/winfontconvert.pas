@@ -16,8 +16,6 @@
 { @abstract(Unit converting Windows truetype fonts to
   @link(BmpFontsTypes.TBmpFont) or @link(TTFontsTypes.TTrueTypeFont).)
 
-  This unit is for both Delphi and FPC.
-
   This unit heavily depends on GetGlpyhOutline WinAPI function.
   This function is our "core" of converting Windows fonts to
   TBmpFont or TTrueTypeFont. Unfortunately, this makes this unit

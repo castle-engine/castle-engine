@@ -19,8 +19,8 @@ unit CastleSceneManager;
 interface
 
 uses Classes, CastleVectors, X3DNodes, CastleScene, CastleSceneCore, Cameras,
-  GLShadowVolumeRenderer, GL, UIControls, Base3D, CastleTriangles,
-  CastleKeysMouse, Boxes3D, Background, CastleUtils, CastleClassUtils,
+  GLShadowVolumeRenderer, GL, UIControls, Castle3D, CastleTriangles,
+  CastleKeysMouse, CastleBoxes, Background, CastleUtils, CastleClassUtils,
   GLShaders, GLImages, CastleTimeUtils, FGL, SectorsWaypoints,
   CastleInputs, CastlePlayer;
 
