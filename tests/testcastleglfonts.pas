@@ -14,14 +14,14 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestOpenGLFonts;
+unit TestCastleGLFonts;
 
 interface
 
 uses fpcunit, testutils, testregistry;
 
 type
-  TTestOpenGLFonts = class(TTestCase)
+  TTestCastleGLFonts = class(TTestCase)
   published
     procedure TestMaxTextWidthTags;
   end;
@@ -29,9 +29,9 @@ type
 implementation
 
 uses SysUtils, Classes, CastleWindow,
-  OpenGLFonts, CastleGLBitmapFonts, CastleBitmapFont_BVSansMono_Bold_m15;
+  CastleGLBitmapFonts, CastleBitmapFont_BVSansMono_Bold_m15;
 
-procedure TTestOpenGLFonts.TestMaxTextWidthTags;
+procedure TTestCastleGLFonts.TestMaxTextWidthTags;
 var
   Window: TCastleWindow;
   F: TGLBitmapFontAbstract;
@@ -61,5 +61,5 @@ begin
 end;
 
 initialization
-  RegisterTest(TTestOpenGLFonts);
+  RegisterTest(TTestCastleGLFonts);
 end.

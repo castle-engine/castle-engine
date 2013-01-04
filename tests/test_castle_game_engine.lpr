@@ -60,7 +60,7 @@ uses
        e.g. do not do them when running inside non-X ssh session or cron) }
   TestCastleWindow,
   TestOpeningAndRendering3D,
-  TestOpenGLFonts
+  TestCastleGLFonts
   {$endif} {$endif}
   { Stuff requiring Lazarus LCL. }
   {$ifndef TEXT_RUNNER},
