@@ -22,6 +22,16 @@ interface
 uses Windows, SysUtils, CastleUtils;
 
 type
+  { Windows font charset values. For each value csXxx below,
+    WinAPI defines constant XXX_CHARSET.
+    Useful for enumerating available charsets, displaying charset name etc. }
+  TWinCharSet = (
+    wcsANSI, wcsDEFAULT, wcsSYMBOL, wcsSHIFTJIS,
+    wcsHANGEUL, wcsGB2312, wcsCHINESEBIG5, wcsOEM,
+    wcsHEBREW, wcsARABIC, wcsGREEK,
+    wcsTURKISH, wcsTHAI, wcsEASTEUROPE,
+    wcsRUSSIAN, wcsBALTIC);
+
   { A wrapper for CreateFont WinAPI function.
     Create an instance of this class, setup some attributes, and call GetHandle.
     In the future this class may be extended to something less trivial.
@@ -36,7 +46,7 @@ type
     FItalic: boolean;
     FUnderline: boolean;
     FStrikeOut: boolean;
-    FCharSet: DWord;
+    FCharSet: TWinCharSet;
     FOutputPrecision: DWord;
     FClipPrecision: DWord;
     FQuality: DWord;
@@ -55,7 +65,7 @@ type
     property Italic: boolean read FItalic write FItalic default false;
     property Underline: boolean read FUnderline write FUnderline default false;
     property StrikeOut: boolean read FStrikeOut write FStrikeOut default false;
-    property CharSet: DWord read FCharSet write FCharSet default DEFAULT_CHARSET;
+    property CharSet: TWinCharSet read FCharSet write FCharSet default wcsDEFAULT;
 
     property OutputPrecision: DWord read FOutputPrecision write FOutputPrecision
       default OUT_DEFAULT_PRECIS;
@@ -99,16 +109,7 @@ type
   end;
 
 const
-  { All available Windows font charset values. Copied from Windows unit sources.
-    Useful for enumerating available charsets, displaying charset name etc. }
-  CharSetsValues: array[0..15]of integer=(
-    ANSI_CHARSET,  DEFAULT_CHARSET,  SYMBOL_CHARSET,  SHIFTJIS_CHARSET,
-    HANGEUL_CHARSET,  GB2312_CHARSET,  CHINESEBIG5_CHARSET,  OEM_CHARSET,
-    HEBREW_CHARSET,  ARABIC_CHARSET,  GREEK_CHARSET,
-    TURKISH_CHARSET,  THAI_CHARSET,  EASTEUROPE_CHARSET,
-    RUSSIAN_CHARSET,  BALTIC_CHARSET);
-
-  CharSetsNames: array[0..15]of string=(
+  CharSetsNames: array [TWinCharSet] of string=(
     'ANSI_CHARSET',  'DEFAULT_CHARSET',  'SYMBOL_CHARSET',  'SHIFTJIS_CHARSET',
     'HANGEUL_CHARSET',  'GB2312_CHARSET',  'CHINESEBIG5_CHARSET',  'OEM_CHARSET',
     'HEBREW_CHARSET',  'ARABIC_CHARSET',  'GREEK_CHARSET',
@@ -133,37 +134,48 @@ procedure EnumFontCharsetsObj(const FontName: string; EnumProc : TEnumFontCharse
 procedure EnumFontCharsets(const FontName: string; EnumProc : TEnumFontCharsetsProc);
 { @groupEnd }
 
+function WinCharSetFromName(const Name: string): TWinCharSet;
+
 implementation
 
 uses CastleStringUtils;
+
+const
+  CharSetsValues: array [TWinCharSet] of DWord = (
+    ANSI_CHARSET,  DEFAULT_CHARSET,  SYMBOL_CHARSET,  SHIFTJIS_CHARSET,
+    HANGEUL_CHARSET,  GB2312_CHARSET,  CHINESEBIG5_CHARSET,  OEM_CHARSET,
+    HEBREW_CHARSET,  ARABIC_CHARSET,  GREEK_CHARSET,
+    TURKISH_CHARSET, THAI_CHARSET,  EASTEUROPE_CHARSET,
+    RUSSIAN_CHARSET,  BALTIC_CHARSET);
 
 { TWindowsFont ------------------------------------------------------------ }
 
 constructor TWindowsFont.Create(AHeight: Integer);
 begin
- FHeight := AHeight;
- FAngle := 0;
- FWeight := FW_REGULAR;
- FItalic := false;
- FUnderline := false;
- FStrikeOut := false;
- FCharSet := DEFAULT_CHARSET;
- FOutputPrecision := OUT_DEFAULT_PRECIS;
- FClipPrecision := CLIP_DEFAULT_PRECIS;
- FQuality := DEFAULT_QUALITY;
- FPitch := DEFAULT_PITCH;
- FFamily := FF_DONTCARE;
- FFaceName := '';
+  FHeight := AHeight;
+  FAngle := 0;
+  FWeight := FW_REGULAR;
+  FItalic := false;
+  FUnderline := false;
+  FStrikeOut := false;
+  FCharSet := wcsDEFAULT;
+  FOutputPrecision := OUT_DEFAULT_PRECIS;
+  FClipPrecision := CLIP_DEFAULT_PRECIS;
+  FQuality := DEFAULT_QUALITY;
+  FPitch := DEFAULT_PITCH;
+  FFamily := FF_DONTCARE;
+  FFaceName := '';
 end;
 
 function TWindowsFont.GetHandle: HFont;
-const BoolTo01: array[boolean]of Cardinal = (0, 1);
+const
+  BoolTo01: array[boolean]of Cardinal = (0, 1);
 begin
- Result := CreateFont(FHeight, 0, FAngle, FAngle,
-   FWeight, BoolTo01[FItalic], BoolTo01[FUnderline], BoolTo01[FStrikeOut],
-   FCharSet, FOutputPrecision, FClipPrecision, FQuality, FPitch or FFamily,
-   PCharOrNil(FaceName));
- OSCheck( Result <> 0, 'CreateFont');
+  Result := CreateFont(FHeight, 0, FAngle, FAngle,
+    FWeight, BoolTo01[FItalic], BoolTo01[FUnderline], BoolTo01[FStrikeOut],
+    CharSetsValues[FCharSet], FOutputPrecision, FClipPrecision, FQuality,
+    FPitch or FFamily, PCharOrNil(FaceName));
+  OSCheck( Result <> 0, 'CreateFont');
 end;
 
 { Windows font query ------------------------------------------------------- }
@@ -191,29 +203,30 @@ begin
 
   if (FontType and TRUETYPE_FONTTYPE) <> 0 then
     PBoolean(FuncResultPtr)^ := true;
-  result := 1;
+  Result := 1;
 end;
 
 function IsFontTrueType( Font: HFONT ): boolean;
 { See EnumFontFamProc_IsTrueType implementation comments for more information. }
-var LogFont: TLogFont;
-    wynik: integer;
-    dc: HDC;
-    savedObj: HGDIOBJ;
+var
+  LogFont: TLogFont;
+  wynik: integer;
+  dc: HDC;
+  savedObj: HGDIOBJ;
 begin
- wynik := GetObject(Font, SizeOf(TLogFont), @LogFont);
- if wynik = 0 then RaiseLastOSError else
-  if wynik <> SizeOf(TLogFont) then
-   raise Exception.Create('IsFontTrueType function : parameter is not a font !');
- Result := false;
- dc := GetDC(0);
- SavedObj := SelectObject(dc, Font);
- try
-  EnumFontFamilies(dc, @LogFont.lfFaceName, @EnumFontFamProc_IsTrueType, PtrUInt(@Result));
- finally
-  ReleaseDC(0, dc);
-  SelectObject(dc, SavedObj);
- end;
+  wynik := GetObject(Font, SizeOf(TLogFont), @LogFont);
+  if wynik = 0 then RaiseLastOSError else
+    if wynik <> SizeOf(TLogFont) then
+      raise Exception.Create('IsFontTrueType function : parameter is not a font !');
+  Result := false;
+  dc := GetDC(0);
+  SavedObj := SelectObject(dc, Font);
+  try
+    EnumFontFamilies(dc, @LogFont.lfFaceName, @EnumFontFamProc_IsTrueType, PtrUInt(@Result));
+  finally
+    ReleaseDC(0, dc);
+    SelectObject(dc, SavedObj);
+  end;
 end;
 
 { EnumFontCharsets ----------------------------------------------------------------------}
@@ -235,21 +248,21 @@ begin
 end;
 
 procedure EnumFontCharsetsObj(const FontName: string; EnumProc : TEnumFontCharsetsProc_ByObject);
-var InternalInfo: TEnumCharsetsInternalInfo_ByObject;
-    DC: HDC;
-    LogFont: TLogFont;
+var
+  InternalInfo: TEnumCharsetsInternalInfo_ByObject;
+  DC: HDC;
+  LogFont: TLogFont;
 begin
- DC := GetDC(0); { device context desktopu }
- try
-  FillChar(LogFont, SizeOf(LogFont), 0);
-  LogFont.lfCharSet := DEFAULT_CHARSET;
-  StrCopy(@LogFont.lfFaceName, PChar(FontName));
-  InternalInfo.UserEnumProc := EnumProc;
-  EnumFontFamiliesEx(Dc, {$ifdef FPC}@{$endif}LogFont,
-    { TODO: temporary, I just make this unchecked } @
-    EnumFontFamExProc_ByObject,
-    Integer(@InternalInfo), 0);
- finally ReleaseDC(0, DC) end;
+  DC := GetDC(0); { device context desktopu }
+  try
+    FillChar(LogFont, SizeOf(LogFont), 0);
+    LogFont.lfCharSet := DEFAULT_CHARSET;
+    StrCopy(@LogFont.lfFaceName, PChar(FontName));
+    InternalInfo.UserEnumProc := EnumProc;
+    EnumFontFamiliesEx(Dc, {$ifdef FPC} @ {$endif} LogFont,
+      { TODO: temporary, I just make this unchecked } @EnumFontFamExProc_ByObject,
+      Integer(@InternalInfo), 0);
+  finally ReleaseDC(0, DC) end;
 end;
 
 type
@@ -263,15 +276,22 @@ type
   end;
 
 procedure EnumFontCharsets(const FontName: string; EnumProc : TEnumFontCharsetsProc);
-var EnumObj: TEnumCharsetsDisp;
+var
+  EnumObj: TEnumCharsetsDisp;
 begin
- EnumObj := TEnumCharsetsDisp.Create;
- EnumObj.NonObjectEnumProc := EnumProc;
- try
-  EnumFontCharsetsObj(FontName, @EnumObj.ObjectEnumProc );
- finally
-  EnumObj.Free
- end;
+  EnumObj := TEnumCharsetsDisp.Create;
+  EnumObj.NonObjectEnumProc := EnumProc;
+  try
+    EnumFontCharsetsObj(FontName, @EnumObj.ObjectEnumProc );
+  finally EnumObj.Free end;
+end;
+
+function WinCharSetFromName(const Name: string): TWinCharSet;
+begin
+  for Result := Low(Result) to High(Result) do
+    if Name = CharSetsNames[Result] then
+      Exit;
+  raise Exception.CreateFmt('Invalid charset name "%s"', [Name]);
 end;
 
 end.
