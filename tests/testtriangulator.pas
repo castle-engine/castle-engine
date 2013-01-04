@@ -14,7 +14,7 @@
 }
 
 { }
-unit TestTriangulator;
+unit TestCastleTriangulate;
 
 { Besides doing some tests, we can also make a visualization of triangulation.
   This results in a series of images showing how triangulation progresses,
@@ -24,7 +24,7 @@ unit TestTriangulator;
   in console), then shows created triangles (with the important edge vectors
   E1,E2,E3).
   For full debug info, add -dVISUALIZE_TRIANGULATION to ~/.fpc.cfg
-  and recompile both this unit and 3d/triangulator.pas unit.
+  and recompile both this unit and CastleTriangulate unit.
 
   Define the symbol below, and run the tests to get the images.
   Console will contain messages about where the images are written,
@@ -39,11 +39,11 @@ unit TestTriangulator;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors, Triangulator,
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors, CastleTriangulate,
   FpImage, FpCanvas, FpImgCanv, FpWritePNG, CastleTriangles;
 
 type
-  TTestTriangulator = class(TTestCase)
+  TTestCastleTriangulate = class(TTestCase)
   private
     { private vars for Face callback }
     Vertexes: PVector3Single;
@@ -71,10 +71,10 @@ uses CastleStringUtils, CastleUtils, CastleGraphUtil, CastleWarnings;
 
 procedure OnWarningRaiseException(const AType: TWarningType; const Category, S: string);
 begin
-  raise Exception.CreateFmt('Triangulator made warning: %s: %s', [Category, S]);
+  raise Exception.CreateFmt('CastleTriangulate made warning: %s: %s', [Category, S]);
 end;
 
-procedure TTestTriangulator.TestIndexedConcavePolygonNormal;
+procedure TTestCastleTriangulate.TestIndexedConcavePolygonNormal;
 const
   Verts: array [0..3] of TVector3Single =
   ( (-1, 0, 0),
@@ -102,7 +102,7 @@ begin
 end;
 
 {$ifdef VISUALIZE_TRIANGULATION}
-function TTestTriangulator.VisualizePoint(const P: TVector3Single): TPoint;
+function TTestCastleTriangulate.VisualizePoint(const P: TVector3Single): TPoint;
 begin
   Result := Point(
     Round(MapRange(P[VisualizeX], MinV[VisualizeX], MaxV[VisualizeX], 0, Image.Width)),
@@ -110,7 +110,7 @@ begin
   );
 end;
 
-function TTestTriangulator.VisualizePointRect(const P: TVector3Single): TRect;
+function TTestCastleTriangulate.VisualizePointRect(const P: TVector3Single): TRect;
 var
   Pt: TPoint;
 begin
@@ -118,7 +118,7 @@ begin
   Result := Rect(Pt.X - 10, Pt.Y - 10, Pt.X + 10, Pt.Y + 10);
 end;
 
-procedure TTestTriangulator.SaveImage(const FileName, Message: string);
+procedure TTestCastleTriangulate.SaveImage(const FileName, Message: string);
 var
   Writer: TFPWriterPNG;
 begin
@@ -143,7 +143,7 @@ begin
           (Result.Blue / High(Word)) ) / 3.0 > 0.2;
 end;
 
-procedure TTestTriangulator.Face(const Tri: TVector3Longint);
+procedure TTestCastleTriangulate.Face(const Tri: TVector3Longint);
 var
   V0, V1, V2, EarNormal: TVector3Single;
   {$ifdef VISUALIZE_TRIANGULATION}
@@ -196,7 +196,7 @@ begin
   {$endif VISUALIZE_TRIANGULATION}
 end;
 
-procedure TTestTriangulator.TestTriangulateFace;
+procedure TTestCastleTriangulate.TestTriangulateFace;
 
   procedure DoPolygon(AVertexes: array of TVector3Single;
     const Name: string;
@@ -619,7 +619,7 @@ var
   PreviousOnWarning: TWarningProc;
   Polygon_Circle: TVector3SingleArray;
 begin
-  { Warnings from triangulator mean that polygon cannot be triangulated.
+  { Warnings from CastleTriangulate mean that polygon cannot be triangulated.
     They mean errors for tests below, that *must* pass. }
   PreviousOnWarning := OnWarning;
   OnWarning := @OnWarningRaiseException;
@@ -641,5 +641,5 @@ begin
 end;
 
 initialization
-  RegisterTest(TTestTriangulator);
+  RegisterTest(TTestCastleTriangulate);
 end.

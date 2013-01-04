@@ -51,7 +51,7 @@ uses
   TestGLVersion,
   TestURLUtils,
   TestDDS,
-  TestTriangulator
+  TestCastleTriangulate
   {$ifdef TEXT_RUNNER} {$ifndef NO_WINDOW_SYSTEM},
   { These require CastleWindow initializing it's own window. So they
     1. conflict with LCL windows (so only when TEXT_RUNNER)
@@ -68,14 +68,14 @@ uses
   {$endif};
 
 {var
-  T: TTestTriangulator;}
+  T: TTestCastleTriangulate;}
 begin
   OnWarning := @OnWarningWrite;
 
 { Sometimes it's comfortable to just run the test directly, to get
   full backtrace from FPC.
 
-  T := TTestTriangulator.Create;
+  T := TTestCastleTriangulate.Create;
   T.TestTriangulateFace;
   T.Free;
   Exit;}

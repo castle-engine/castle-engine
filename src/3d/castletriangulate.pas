@@ -14,7 +14,7 @@
 }
 
 { @abstract(Triangulating a polygon.) }
-unit Triangulator;
+unit CastleTriangulate;
 
 interface
 

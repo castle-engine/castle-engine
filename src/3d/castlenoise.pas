@@ -14,7 +14,7 @@
 }
 
 { Generating noise. }
-unit Noise;
+unit CastleNoise;
 
 interface
 
@@ -241,15 +241,15 @@ begin
 end;
 
 function InterpolatedNoise2D_Linear(const X, Y: Single; const Seed: Cardinal): Single;
-{$I noise_interpolatednoise2d_linear_cosine.inc}
+{$I castlenoise_interpolatednoise2d_linear_cosine.inc}
 
 function InterpolatedNoise2D_Cosine(const X, Y: Single; const Seed: Cardinal): Single;
 {$define InterpolatedNoise2D_Cosine}
-{$I noise_interpolatednoise2d_linear_cosine.inc}
+{$I castlenoise_interpolatednoise2d_linear_cosine.inc}
 {$undef InterpolatedNoise2D_Cosine}
 
 function InterpolatedNoise2D_Spline(const X, Y: Single; const Seed: Cardinal): Single;
-{$I noise_interpolatednoise2d_spline.inc}
+{$I castlenoise_interpolatednoise2d_spline.inc}
 
 { BlurredInterpolatedNoise* -------------------------------------------------- }
 
@@ -275,15 +275,15 @@ end;
 {$define IntegerNoise := BlurredIntegerNoise}
 
 function BlurredInterpolatedNoise2D_Linear(const X, Y: Single; const Seed: Cardinal): Single;
-{$I noise_interpolatednoise2d_linear_cosine.inc}
+{$I castlenoise_interpolatednoise2d_linear_cosine.inc}
 
 function BlurredInterpolatedNoise2D_Cosine(const X, Y: Single; const Seed: Cardinal): Single;
 {$define InterpolatedNoise2D_Cosine}
-{$I noise_interpolatednoise2d_linear_cosine.inc}
+{$I castlenoise_interpolatednoise2d_linear_cosine.inc}
 {$undef InterpolatedNoise2D_Cosine}
 
 function BlurredInterpolatedNoise2D_Spline(const X, Y: Single; const Seed: Cardinal): Single;
-{$I noise_interpolatednoise2d_spline.inc}
+{$I castlenoise_interpolatednoise2d_spline.inc}
 
 {$undef IntegerNoise}
 

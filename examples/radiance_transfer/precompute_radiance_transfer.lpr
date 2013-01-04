@@ -239,8 +239,8 @@ begin
         if RadianceTransfer <> nil then
         begin
           { For PRT, we need a normal per-vertex, so always calculate
-            smooth normals. Simple, and thanks to NormalsCalculator
-            this works for all VRML coord-based nodes (and only for
+            smooth normals. Simple, and thanks to CastleNormals
+            this works for all VRML/X3D coord-based nodes (and only for
             those RadianceTransfer is defined). }
           Normals := SI.Current.NormalsSmooth(true);
           ComputeTransfer(RadianceTransfer, Geometry.Coordinates(State).Items,

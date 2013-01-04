@@ -63,21 +63,21 @@ begin
     P.Targets.AddUnit('castleboxes.pas');
     P.Targets.AddUnit('castletriangles.pas');
     P.Targets.AddUnit('castleconvexhull.pas');
-    P.Targets.AddUnit('castlecubemap.pas');
     P.Targets.AddUnit('castlefrustum.pas');
-    P.Targets.AddUnit('geometryarrays.pas');
     P.Targets.AddUnit('castleoctree.pas');
-    P.Targets.AddUnit('castlenurbs.pas');
+    P.Targets.AddUnit('castletriangulate.pas');
+    P.Targets.AddUnit('cubemap.pas');
+    P.Targets.AddUnit('geometryarrays.pas');
+    P.Targets.AddUnit('nurbs.pas');
     P.Targets.AddUnit('quaternions.pas');
     P.Targets.AddUnit('rayswindow.pas');
     P.Targets.AddUnit('sectorswaypoints.pas');
     P.Targets.AddUnit('spacefillingcurves.pas');
     P.Targets.AddUnit('spheresampling.pas');
     P.Targets.AddUnit('sphericalharmonics.pas');
-    P.Targets.AddUnit('triangulator.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'x3d');
-    P.Targets.AddUnit('normalscalculator.pas');
+    P.Targets.AddUnit('castlenormals.pas');
     P.Targets.AddUnit('x3dload.pas');
     P.Targets.AddUnit('x3dloadinternalcollada.pas');
     P.Targets.AddUnit('x3dloadinternalgeo.pas');

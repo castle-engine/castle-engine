@@ -273,7 +273,7 @@
       In this class this does nothing. Some, but not all, coordinate-based
       nodes (the ones when @link(Coord) returns @true) override this.
       So currently, whether this is implemented is coordinated with
-      NormalsCalculator and such internal needs. }
+      CastleNormals and such internal needs. }
     procedure CoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); virtual;
@@ -386,7 +386,7 @@
     function Lit(State: TX3DGraphTraverseState): boolean; virtual;
 
     { Are faces convex. This knowledge is used when calculating normal vectors,
-      and has to be defined only for nodes used with NormalsCalculator.
+      and has to be defined only for nodes used with CastleNormals.
       Default implementation is this class answers @true. }
     function Convex: boolean; virtual;
   end;

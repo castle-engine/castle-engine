@@ -74,8 +74,8 @@
         <UnitName Value="GeometryArrays"/>
       </Item8>
       <Item9>
-        <Filename Value="../src/3d/noise.pas"/>
-        <UnitName Value="Noise"/>
+        <Filename Value="../src/3d/castlenoise.pas"/>
+        <UnitName Value="CastleNoise"/>
       </Item9>
       <Item10>
         <Filename Value="../src/3d/nurbs.pas"/>
@@ -110,8 +110,8 @@
         <UnitName Value="SphericalHarmonics"/>
       </Item17>
       <Item18>
-        <Filename Value="../src/3d/triangulator.pas"/>
-        <UnitName Value="Triangulator"/>
+        <Filename Value="../src/3d/castletriangulate.pas"/>
+        <UnitName Value="CastleTriangulate"/>
       </Item18>
       <Item19>
         <Filename Value="../src/audio/castlesoundallocator.pas"/>
@@ -565,8 +565,8 @@
         <UnitName Value="CastleSceneCore"/>
       </Item133>
       <Item134>
-        <Filename Value="../src/x3d/normalscalculator.pas"/>
-        <UnitName Value="NormalsCalculator"/>
+        <Filename Value="../src/x3d/castlenormals.pas"/>
+        <UnitName Value="CastleNormals"/>
       </Item134>
       <Item135>
         <Filename Value="../src/x3d/opengl/background.pas"/>

@@ -156,7 +156,7 @@ procedure CalculateElements;
       SetLength(Shapes[ShapeIndex].CoordToElement, Coord.Count);
 
       { This does a modified and tweaked version of normal calculation
-        from CreateSmoothNormalsCoordinateNode from NormalsCalculator.
+        from CreateSmoothNormalsCoordinateNode from CastleNormals.
         We want to additionally store Position and calculate Area for
         each element (= just vertex). }
 
