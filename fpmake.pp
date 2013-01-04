@@ -168,7 +168,6 @@ begin
     P.Targets.AddUnit('dds.pas');
     P.Targets.AddUnit('textureimages.pas');
     P.Targets.AddUnit('videos.pas');
-    P.Targets.AddUnit('videoscache.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'net');
     P.Targets.AddUnit('castleurlutils.pas');

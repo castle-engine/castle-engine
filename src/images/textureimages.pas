@@ -32,7 +32,7 @@ unit TextureImages;
 
 interface
 
-uses CastleImages, DDS, CastleUtils, VideosCache, FGL;
+uses CastleImages, DDS, CastleUtils, FGL, Videos;
 
 const
   { Image classes that are handled by absolutely all OpenGL versions. }
@@ -75,16 +75,6 @@ function LoadTextureImage(const FileName: string): TEncodedImage; overload;
 { @groupEnd }
 
 type
-  { Internal for TTexturesVideosCache. @exclude }
-  TCachedTexture = class
-    References: Cardinal;
-    FileName: string;
-    Image: TEncodedImage;
-    DDS: TDDSImage;
-    AlphaChannel: TAlphaChannel;
-  end;
-  TCachedTextureList = specialize TFPGObjectList<TCachedTexture>;
-
   { A cache of loaded images for textures.
 
     Load by TextureImage_IncReference, free by TextureImage_DecReference.
@@ -133,7 +123,18 @@ type
     this class does the job of memory-leak detector. }
   TTexturesVideosCache = class(TVideosCache)
   private
-    CachedTextures: TCachedTextureList;
+    type
+      { Internal for TTexturesVideosCache. @exclude }
+      TCachedTexture = class
+        References: Cardinal;
+        FileName: string;
+        Image: TEncodedImage;
+        DDS: TDDSImage;
+        AlphaChannel: TAlphaChannel;
+      end;
+      TCachedTextureList = specialize TFPGObjectList<TCachedTexture>;
+    var
+      CachedTextures: TCachedTextureList;
   public
     constructor Create;
     destructor Destroy; override;

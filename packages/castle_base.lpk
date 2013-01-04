@@ -44,7 +44,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="168">
+    <Files Count="167">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -440,10 +440,6 @@
         <Filename Value="../src/images/videos.pas"/>
         <UnitName Value="Videos"/>
       </Item102>
-      <Item103>
-        <Filename Value="../src/images/videoscache.pas"/>
-        <UnitName Value="VideosCache"/>
-      </Item103>
       <Item104>
         <Filename Value="../src/net/castleurlutils.pas"/>
         <UnitName Value="CastleURLUtils"/>
@@ -699,10 +695,10 @@
         <Filename Value="../src/x3d/x3dloadinternalmd3.pas"/>
         <UnitName Value="X3DLoadInternalMD3"/>
       </Item167>
-      <Item168>
+      <Item103>
         <Filename Value="../src/x3d/x3dloadinternalobj.pas"/>
         <UnitName Value="X3DLoadInternalOBJ"/>
-      </Item168>
+      </Item103>
       <Item117>
         <Filename Value="../src/x3d/x3dloadinternalutils.pas"/>
         <UnitName Value="X3DLoadInternalUtils"/>
