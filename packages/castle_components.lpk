@@ -47,9 +47,9 @@
         <UnitName Value="CastlePropEdits"/>
       </Item3>
       <Item5>
-        <Filename Value="../src/components/lclrecentfiles.pas"/>
+        <Filename Value="../src/components/castlelclrecentfiles.pas"/>
         <HasRegisterProc Value="True"/>
-        <UnitName Value="LCLRecentFiles"/>
+        <UnitName Value="CastleLCLRecentFiles"/>
       </Item5>
       <Item4>
         <Filename Value="../src/components/icons/castleicons.lrs"/>

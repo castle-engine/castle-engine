@@ -243,8 +243,8 @@
         <UnitName Value="CastleProgress"/>
       </Item50>
       <Item51>
-        <Filename Value="../src/base/recentfiles.pas"/>
-        <UnitName Value="RecentFiles"/>
+        <Filename Value="../src/base/castlerecentfiles.pas"/>
+        <UnitName Value="CastleRecentFiles"/>
       </Item51>
       <Item52>
         <Filename Value="../src/base/unix/castleutils_os_specific_unix.inc"/>

@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Manage a list of recently open files (TBaseRecentFiles). }
-unit RecentFiles;
+{ Manage a list of recently open files (TRecentFiles). }
+unit CastleRecentFiles;
 
 interface
 
@@ -29,7 +29,7 @@ type
     as a parent for classes that show this list inside a menu.
     For Lazarus menu version, see TLazRecentFiles.
     For TCastleWindowBase menu version, see TCastleRecentFiles. }
-  TBaseRecentFiles = class(TComponent)
+  TRecentFiles = class(TComponent)
   private
     FFileNames: TStringList;
     FMaxCount: Cardinal;
@@ -75,19 +75,19 @@ implementation
 
 uses SysUtils, CastleClassUtils, CastleConfig;
 
-constructor TBaseRecentFiles.Create(AOwner: TComponent);
+constructor TRecentFiles.Create(AOwner: TComponent);
 begin
   inherited;
   FFileNames := TStringList.Create;
   FMaxCount := DefaultMaxCount;
 
-  { one day, make this optional, to also enable many TBaseRecentFiles instances
+  { one day, make this optional, to also enable many TRecentFiles instances
     in a program not overwriting each others' state. }
   Config.OnLoad.Add(@LoadFromConfig);
   Config.OnSave.Add(@SaveToConfig);
 end;
 
-destructor TBaseRecentFiles.Destroy;
+destructor TRecentFiles.Destroy;
 begin
   if Config <> nil then
   begin
@@ -99,15 +99,15 @@ begin
   inherited;
 end;
 
-procedure TBaseRecentFiles.MenuCreate;
+procedure TRecentFiles.MenuCreate;
 begin
 end;
 
-procedure TBaseRecentFiles.MenuDestroy;
+procedure TRecentFiles.MenuDestroy;
 begin
 end;
 
-procedure TBaseRecentFiles.Add(const FileName: string; const MaybeStdIn: boolean);
+procedure TRecentFiles.Add(const FileName: string; const MaybeStdIn: boolean);
 var
   F: string;
   Index: Integer;
@@ -139,7 +139,7 @@ const
   { Should not contain final "/" --- it will be added automatically. }
   Path = 'recent_files';
 
-procedure TBaseRecentFiles.LoadFromConfig(const Config: TCastleConfig);
+procedure TRecentFiles.LoadFromConfig(const Config: TCastleConfig);
 var
   I, C: Integer;
   S: string;
@@ -157,7 +157,7 @@ begin
   MenuCreate;
 end;
 
-procedure TBaseRecentFiles.SaveToConfig(const Config: TCastleConfig);
+procedure TRecentFiles.SaveToConfig(const Config: TCastleConfig);
 var
   I: Integer;
 begin

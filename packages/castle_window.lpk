@@ -60,8 +60,8 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <UnitName Value="CastleWindow"/>
       </Item3>
       <Item4>
-        <Filename Value="../src/window/castlerecentfiles.pas"/>
-        <UnitName Value="CastleRecentFiles"/>
+        <Filename Value="../src/window/castlewindowrecentfiles.pas"/>
+        <UnitName Value="CastleWindowRecentFiles"/>
       </Item4>
       <Item6>
         <Filename Value="../src/window/castlemessages.pas"/>

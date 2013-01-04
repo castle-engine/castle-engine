@@ -15,15 +15,15 @@
 
 { Manage a list of recently opened files, and show a menu in Lazarus menu.
   See TRecentFiles class. }
-unit LCLRecentFiles;
+unit CastleLCLRecentFiles;
 
 interface
 
-uses Menus, RecentFiles;
+uses Menus, CastleRecentFiles;
 
 type
   { Manage a list of recently opened files, and show a menu in Lazarus. }
-  TLazRecentFiles = class(TBaseRecentFiles)
+  TCastleRecentFiles = class(TRecentFiles)
   private
     FNextMenuItem: TMenuItem;
     FirstSeparator: TMenuItem;
@@ -63,7 +63,7 @@ uses SysUtils, Classes, CastleLCLUtils;
 
 procedure Register;
 begin
-  RegisterComponents('Castle', [TLazRecentFiles]);
+  RegisterComponents('Castle', [TCastleRecentFiles]);
 end;
 
 { TMenuRecentItem ------------------------------------------------------------ }
@@ -108,9 +108,9 @@ begin
     OnOpenRecent(FileName);
 end;
 
-{ TLazRecentFiles -------------------------------------------------------------- }
+{ TCastleRecentFiles -------------------------------------------------------------- }
 
-procedure TLazRecentFiles.MenuCreate;
+procedure TCastleRecentFiles.MenuCreate;
 var
   I: Integer;
   ParentMenu: TMenuItem;
@@ -139,7 +139,7 @@ begin
   end;
 end;
 
-procedure TLazRecentFiles.MenuDestroy;
+procedure TCastleRecentFiles.MenuDestroy;
 var
   ParentMenu: TMenuItem;
   Position: Cardinal;
@@ -168,7 +168,7 @@ begin
   inherited;
 end;
 
-procedure TLazRecentFiles.SetNextMenuItem(Value: TMenuItem);
+procedure TCastleRecentFiles.SetNextMenuItem(Value: TMenuItem);
 begin
   if Value <> FNextMenuItem then
   begin

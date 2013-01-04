@@ -23,7 +23,7 @@ interface
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
   OpenGLContext, Menus, CastleScene, Cameras, CastleControl, CastleWarnings,
-  LCLRecentFiles, CastleConfig, Buttons, ExtCtrls, StdCtrls, RecentFiles,
+  CastleLCLRecentFiles, CastleConfig, Buttons, ExtCtrls, StdCtrls, RecentFiles,
   CastleSceneManager;
 
 type
@@ -70,7 +70,7 @@ type
     Timer1: TTimer;
     MenuItem2: TMenuItem;
     MenuMouseLookToggle: TMenuItem;
-    RecentFiles: TLazRecentFiles;
+    RecentFiles: TCastleRecentFiles;
     MenuAggressiveUpdateToggle: TMenuItem;
     procedure ApplicationProperties1Idle(Sender: TObject; var Done: Boolean);
     procedure ButtonNavigationTypeClick(Sender: TObject);

@@ -14,16 +14,16 @@
 }
 
 { Manage a list of recently opened files, and show a menu in TCastleWindowBase.
-  See TCastleRecentFiles class. }
-unit CastleRecentFiles;
+  See TRecentFiles class. }
+unit CastleWindowRecentFiles;
 
 interface
 
-uses Classes, CastleWindow, RecentFiles;
+uses Classes, CastleWindow, CastleRecentFiles;
 
 type
   { Manage a list of recently opened files, and show a menu in TCastleWindowBase. }
-  TCastleRecentFiles = class(TBaseRecentFiles)
+  TWindowRecentFiles = class(TRecentFiles)
   private
     FNextMenuItem: TMenuEntry;
     FirstSeparator: TMenuEntry;
@@ -99,9 +99,9 @@ begin
   Result := true;
 end;
 
-{ TCastleRecentFiles -------------------------------------------------------------- }
+{ TWindowRecentFiles -------------------------------------------------------------- }
 
-procedure TCastleRecentFiles.MenuCreate;
+procedure TWindowRecentFiles.MenuCreate;
 var
   I: Integer;
   ParentMenu: TMenu;
@@ -129,7 +129,7 @@ begin
   end;
 end;
 
-procedure TCastleRecentFiles.MenuDestroy;
+procedure TWindowRecentFiles.MenuDestroy;
 var
   ParentMenu: TMenu;
   Position: Cardinal;
@@ -158,7 +158,7 @@ begin
   inherited;
 end;
 
-procedure TCastleRecentFiles.SetNextMenuItem(Value: TMenuEntry);
+procedure TWindowRecentFiles.SetNextMenuItem(Value: TMenuEntry);
 begin
   if Value <> FNextMenuItem then
   begin

@@ -1005,7 +1005,7 @@ object Main: TMain
     left = 83
     top = 73
   end
-  object RecentFiles: TLazRecentFiles
+  object RecentFiles: TCastleRecentFiles
     OnOpenRecent = RecentFilesOpenRecent
     left = 274
     top = 175

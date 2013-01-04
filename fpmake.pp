@@ -114,7 +114,7 @@ begin
     P.Targets.AddUnit('filefilters.pas');
     P.Targets.AddUnit('genericstructlist.pas');
     P.Targets.AddUnit('progressconsole.pas');
-    P.Targets.AddUnit('recentfiles.pas');
+    P.Targets.AddUnit('castlerecentfiles.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'castlescript');
     P.Targets.AddUnit('castlescript.pas');
@@ -209,7 +209,7 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'window');
     P.Targets.AddUnit('castlemessages.pas');
-    p.targets.addunit('castlerecentfiles.pas');
+    p.targets.addunit('castlewindowrecentfiles.pas');
     P.Targets.AddUnit('castlesoundmenu.pas');
     p.targets.addunit('castlewindow.pas');
     P.Targets.AddUnit('castlewindowprogress.pas');
