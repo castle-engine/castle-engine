@@ -61,10 +61,11 @@ begin
     P.SourcePath.Add('src' + PathDelim + '3d');
     P.Targets.AddUnit('castle3d.pas');
     P.Targets.AddUnit('castleboxes.pas');
-    P.Targets.AddUnit('castletriangles.pas');
     P.Targets.AddUnit('castleconvexhull.pas');
     P.Targets.AddUnit('castlefrustum.pas');
+    P.Targets.AddUnit('castlenoise.pas');
     P.Targets.AddUnit('castleoctree.pas');
+    P.Targets.AddUnit('castletriangles.pas');
     P.Targets.AddUnit('castletriangulate.pas');
     P.Targets.AddUnit('cubemap.pas');
     P.Targets.AddUnit('geometryarrays.pas');
@@ -72,79 +73,58 @@ begin
     P.Targets.AddUnit('quaternions.pas');
     P.Targets.AddUnit('rayswindow.pas');
     P.Targets.AddUnit('sectorswaypoints.pas');
+    P.Targets.AddUnit('shaders.pas');
     P.Targets.AddUnit('spacefillingcurves.pas');
     P.Targets.AddUnit('spheresampling.pas');
     P.Targets.AddUnit('sphericalharmonics.pas');
 
-    P.SourcePath.Add('src' + PathDelim + 'x3d');
-    P.Targets.AddUnit('castlenormals.pas');
-    P.Targets.AddUnit('x3dload.pas');
-    P.Targets.AddUnit('x3dloadinternalcollada.pas');
-    P.Targets.AddUnit('x3dloadinternalgeo.pas');
-    P.Targets.AddUnit('x3dloadinternalmd3.pas');
-    P.Targets.AddUnit('x3dloadinternalobj.pas');
-    P.Targets.AddUnit('x3dloadinternal3ds.pas');
-    P.Targets.AddUnit('x3dloadinternalutils.pas');
-    P.Targets.AddUnit('precalculatedanimationcore.pas');
-    P.Targets.AddUnit('x3dcamerautils.pas');
-    P.Targets.AddUnit('x3dfields.pas');
-    P.Targets.AddUnit('arraysgenerator.pas');
-    P.Targets.AddUnit('x3dlexer.pas');
-    P.Targets.AddUnit('x3dnodes.pas');
-    P.Targets.AddUnit('x3dnodesdetailoptions.pas');
-    P.Targets.AddUnit('raytracer.pas');
-    P.Targets.AddUnit('castlescenecore.pas');
-    P.Targets.AddUnit('castleshapes.pas');
-    P.Targets.AddUnit('shapeoctree.pas');
-    P.Targets.AddUnit('x3dtime.pas');
-    P.Targets.AddUnit('x3dtriangles.pas');
-    P.Targets.AddUnit('triangleoctree.pas');
-    P.Targets.AddUnit('castlerenderingcamera.pas');
-
-    P.SourcePath.Add('src' + PathDelim + 'x3d' + PathDelim + 'opengl');
-    P.Targets.AddUnit('castlescenemanager.pas');
-    P.Targets.AddUnit('precalculatedanimation.pas');
-    P.Targets.AddUnit('background.pas');
-    P.Targets.AddUnit('castlescene.pas');
-    P.Targets.AddUnit('glrenderershader.pas');
-    P.Targets.AddUnit('glrendererlights.pas');
-    P.Targets.AddUnit('glrenderertextureenv.pas');
-    P.Targets.AddUnit('glrenderer.pas');
-
     P.SourcePath.Add('src' + PathDelim + 'audio');
-    P.Targets.AddUnit('castlesoundallocator.pas');
-    P.Targets.AddUnit('castlesoundengine.pas');
     P.Targets.AddUnit('alutils.pas');
     P.Targets.AddUnit('castleogg.pas');
     P.Targets.AddUnit('castleopenal.pas');
+    P.Targets.AddUnit('castlesoundallocator.pas');
+    P.Targets.AddUnit('castlesoundengine.pas');
+    P.Targets.AddUnit('efx.pas');
     P.Targets.AddUnit('soundfile.pas');
     P.Targets.AddUnit('vorbiscodec.pas');
     P.Targets.AddUnit('vorbisdecoder.pas');
     P.Targets.AddUnit('vorbisfile.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'base');
-    P.Targets.AddUnit('castleconfig.pas');
-    P.Targets.AddUnit('enumeratefiles.pas');
-    P.Targets.AddUnit('filefilters.pas');
     P.Targets.AddUnit('castleclassutils.pas');
     P.Targets.AddUnit('castlecolors.pas');
+    P.Targets.AddUnit('castleconfig.pas');
     P.Targets.AddUnit('castledynlib.pas');
     P.Targets.AddUnit('castlefilesutils.pas');
     P.Targets.AddUnit('castleinterfaces.pas');
     P.Targets.AddUnit('castlelog.pas');
+    P.Targets.AddUnit('castleopendocument.pas');
+    P.Targets.AddUnit('castleparameters.pas');
+    P.Targets.AddUnit('castleprogress.pas');
     P.Targets.AddUnit('castlestringutils.pas');
     P.Targets.AddUnit('castletimeutils.pas');
     P.Targets.AddUnit('castleutils.pas');
+    P.Targets.AddUnit('castlevectors.pas');
     P.Targets.AddUnit('castlewarnings.pas');
     P.Targets.AddUnit('castlexmlconfig.pas');
     P.Targets.AddUnit('castlexmlutils.pas');
     P.Targets.AddUnit('castlezlib.pas');
     P.Targets.AddUnit('castlezstream.pas');
-    P.Targets.AddUnit('castleparameters.pas');
+    P.Targets.AddUnit('enumeratefiles.pas');
+    P.Targets.AddUnit('filefilters.pas');
+    P.Targets.AddUnit('genericstructlist.pas');
     P.Targets.AddUnit('progressconsole.pas');
-    P.Targets.AddUnit('castleprogress.pas');
     P.Targets.AddUnit('recentfiles.pas');
-    P.Targets.AddUnit('castlevectors.pas');
+
+    P.SourcePath.Add('src' + PathDelim + 'castlescript');
+    P.Targets.AddUnit('castlescript.pas');
+    P.Targets.AddUnit('castlescriptarrays.pas');
+    P.Targets.AddUnit('castlescriptcorefunctions.pas');
+    P.Targets.AddUnit('castlescriptimages.pas');
+    P.Targets.AddUnit('castlescriptlexer.pas');
+    P.Targets.AddUnit('castlescriptparser.pas');
+    P.Targets.AddUnit('castlescriptvectors.pas');
+    P.Targets.AddUnit('x3dcastlescript.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'fonts');
     P.Targets.AddUnit('bfnt_bitstreamverasans_m10_unit.pas');
@@ -173,25 +153,14 @@ begin
       P.Targets.AddUnit('winfontconvert.pas');
     end;
 
-    P.SourcePath.Add('src' + PathDelim + 'window');
-    P.Targets.AddUnit('castlesoundmenu.pas');
-    p.targets.addunit('castlewindow.pas');
-    p.targets.addunit('castlerecentfiles.pas');
-    P.Targets.AddUnit('castlemessages.pas');
-    p.targets.addunit('windowmodes.pas');
-    P.Targets.AddUnit('castlewindowprogress.pas');
-    if Defaults.OS in AllUnixOSes then
-    begin
-      P.SourcePath.Add('src' + PathDelim + 'window' + PathDelim + 'unix');
-      P.Targets.AddUnit('castleglx.pas');
-      P.Targets.AddUnit('castlexf86vmode.pas');
-      P.Targets.AddUnit('xlibutils.pas');
-    end;
-    if Defaults.OS in AllWindowsOSes then
-    begin
-      P.SourcePath.Add('src' + PathDelim + 'window' + PathDelim + 'windows');
-      P.Targets.AddUnit('openglwindowsfonts.pas');
-    end;
+    P.SourcePath.Add('src' + PathDelim + 'game');
+    P.Targets.AddUnit('castlecreatures.pas');
+    P.Targets.AddUnit('castlegamenotifications.pas');
+    P.Targets.AddUnit('castleitems.pas');
+    P.Targets.AddUnit('castlelevels.pas');
+    P.Targets.AddUnit('castleplayer.pas');
+    P.Targets.AddUnit('castleresources.pas');
+    P.Targets.AddUnit('castletextureproperties.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'images');
     P.Targets.AddUnit('castleimages.pas');
@@ -201,32 +170,23 @@ begin
     P.Targets.AddUnit('videos.pas');
     P.Targets.AddUnit('videoscache.pas');
 
-    P.SourcePath.Add('src' + PathDelim + 'castlescript');
-    P.Targets.AddUnit('castlescript.pas');
-    P.Targets.AddUnit('castlescriptarrays.pas');
-    P.Targets.AddUnit('castlescriptcorefunctions.pas');
-    P.Targets.AddUnit('castlescriptimages.pas');
-    P.Targets.AddUnit('castlescriptlexer.pas');
-    P.Targets.AddUnit('castlescriptparser.pas');
-    P.Targets.AddUnit('castlescriptvectors.pas');
-    P.Targets.AddUnit('x3dcastlescript.pas');
-
     P.SourcePath.Add('src' + PathDelim + 'net');
     P.Targets.AddUnit('castleurlutils.pas');
+    P.Targets.AddUnit('datauri.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'opengl');
     P.Targets.AddUnit('beziercurve.pas');
+    P.Targets.AddUnit('castleglutils.pas');
     P.Targets.AddUnit('curve.pas');
     P.Targets.AddUnit('glcubemap.pas');
     P.Targets.AddUnit('glimages.pas');
     P.Targets.AddUnit('glshaders.pas');
+    P.Targets.AddUnit('glshadowvolumerenderer.pas');
     P.Targets.AddUnit('glversionunit.pas');
-    P.Targets.AddUnit('castleglutils.pas');
     P.Targets.AddUnit('normalizationcubemap.pas');
     P.Targets.AddUnit('openglbmpfonts.pas');
     P.Targets.AddUnit('openglfonts.pas');
     P.Targets.AddUnit('openglttfonts.pas');
-    P.Targets.AddUnit('glshadowvolumerenderer.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
       P.SourcePath.Add('src' + PathDelim + 'opengl' + PathDelim + 'windows');
@@ -234,12 +194,12 @@ begin
     end;
 
     P.SourcePath.Add('src' + PathDelim + 'ui');
-    P.Targets.AddUnit('castleinputs.pas');
-    P.Targets.AddUnit('rectangles.pas');
-    P.Targets.AddUnit('castlekeysmouse.pas');
-    P.Targets.AddUnit('uicontrols.pas');
     P.Targets.AddUnit('cameras.pas');
+    P.Targets.AddUnit('castleinputs.pas');
+    P.Targets.AddUnit('castlekeysmouse.pas');
     P.Targets.AddUnit('pk3dconnexion.pas');
+    P.Targets.AddUnit('rectangles.pas');
+    P.Targets.AddUnit('uicontrols.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
       P.SourcePath.Add('src' + PathDelim + 'ui' + PathDelim + 'windows');
@@ -248,18 +208,60 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'ui' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlecontrols.pas');
+    P.Targets.AddUnit('castlenotifications.pas');
     P.Targets.AddUnit('onscreenmenu.pas');
     P.Targets.AddUnit('onscreenmenuimages.pas');
-    P.Targets.AddUnit('castlenotifications.pas');
 
-    P.SourcePath.Add('src' + PathDelim + 'game');
-    P.Targets.AddUnit('castlecreatures.pas');
-    P.Targets.AddUnit('castlegamenotifications.pas');
-    P.Targets.AddUnit('castleitems.pas');
-    P.Targets.AddUnit('castlelevels.pas');
-    P.Targets.AddUnit('castleplayer.pas');
-    P.Targets.AddUnit('castleresources.pas');
-    P.Targets.AddUnit('castletextureproperties.pas');
+    P.SourcePath.Add('src' + PathDelim + 'window');
+    P.Targets.AddUnit('castlemessages.pas');
+    p.targets.addunit('castlerecentfiles.pas');
+    P.Targets.AddUnit('castlesoundmenu.pas');
+    p.targets.addunit('castlewindow.pas');
+    P.Targets.AddUnit('castlewindowprogress.pas');
+    p.targets.addunit('windowmodes.pas');
+    if Defaults.OS in AllUnixOSes then
+    begin
+      P.SourcePath.Add('src' + PathDelim + 'window' + PathDelim + 'unix');
+      P.Targets.AddUnit('castleglx.pas');
+      P.Targets.AddUnit('castlexf86vmode.pas');
+      P.Targets.AddUnit('xlibutils.pas');
+    end;
+
+    P.SourcePath.Add('src' + PathDelim + 'x3d');
+    P.Targets.AddUnit('arraysgenerator.pas');
+    P.Targets.AddUnit('castlenormals.pas');
+    P.Targets.AddUnit('castlerenderingcamera.pas');
+    P.Targets.AddUnit('castlescenecore.pas');
+    P.Targets.AddUnit('castleshapes.pas');
+    P.Targets.AddUnit('precalculatedanimationcore.pas');
+    P.Targets.AddUnit('raytracer.pas');
+    P.Targets.AddUnit('shapeoctree.pas');
+    P.Targets.AddUnit('triangleoctree.pas');
+    P.Targets.AddUnit('x3dcamerautils.pas');
+    P.Targets.AddUnit('x3dfields.pas');
+    P.Targets.AddUnit('x3dlexer.pas');
+    P.Targets.AddUnit('x3dload.pas');
+    P.Targets.AddUnit('x3dloadinternalcollada.pas');
+    P.Targets.AddUnit('x3dloadinternalgeo.pas');
+    P.Targets.AddUnit('x3dloadinternalmd3.pas');
+    P.Targets.AddUnit('x3dloadinternalobj.pas');
+    P.Targets.AddUnit('x3dloadinternal3ds.pas');
+    P.Targets.AddUnit('x3dloadinternalutils.pas');
+    P.Targets.AddUnit('x3dnodes.pas');
+    P.Targets.AddUnit('x3dnodesdetailoptions.pas');
+    P.Targets.AddUnit('x3dshadowmaps.pas');
+    P.Targets.AddUnit('x3dtime.pas');
+    P.Targets.AddUnit('x3dtriangles.pas');
+
+    P.SourcePath.Add('src' + PathDelim + 'x3d' + PathDelim + 'opengl');
+    P.Targets.AddUnit('background.pas');
+    P.Targets.AddUnit('castlescene.pas');
+    P.Targets.AddUnit('castlescenemanager.pas');
+    P.Targets.AddUnit('glrenderershader.pas');
+    P.Targets.AddUnit('glrendererlights.pas');
+    P.Targets.AddUnit('glrenderertextureenv.pas');
+    P.Targets.AddUnit('glrenderer.pas');
+    P.Targets.AddUnit('precalculatedanimation.pas');
 
     Run;
   end;
