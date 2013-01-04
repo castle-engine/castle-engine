@@ -297,7 +297,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleScriptParser, Noise, Math;
+uses CastleUtils, CastleScriptParser, CastleNoise, Math;
 
 { TElevationImage ------------------------------------------------------------ }
 
