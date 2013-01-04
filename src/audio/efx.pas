@@ -21,7 +21,7 @@ unit EFX;
 
 interface
 
-uses VectorMath, CastleOpenAL, Math;
+uses CastleVectors, CastleOpenAL, Math;
 
 { Macro below must be named "extdecl", to workaround Lazarus code tools
   known bug http://bugs.freepascal.org/view.php?id=7431 }

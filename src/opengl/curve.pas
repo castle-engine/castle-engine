@@ -19,7 +19,7 @@ unit Curve;
 
 interface
 
-uses VectorMath, Boxes3D, CastleUtils, CastleScript,
+uses CastleVectors, Boxes3D, CastleUtils, CastleScript,
   CastleClassUtils, Classes, Base3D, Frustum, FGL;
 
 type
@@ -301,7 +301,7 @@ type
 
 implementation
 
-uses SysUtils, GL, GLU, ConvexHullUnit, CastleGLUtils;
+uses SysUtils, GL, GLU, CastleConvexHull, CastleGLUtils;
 
 { TCurve ------------------------------------------------------------ }
 

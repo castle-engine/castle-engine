@@ -19,7 +19,7 @@ unit SpaceFillingCurves;
 
 interface
 
-uses SysUtils, VectorMath;
+uses SysUtils, CastleVectors;
 
 type
   { Angle for space-filling curves.

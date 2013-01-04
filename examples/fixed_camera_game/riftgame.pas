@@ -25,7 +25,7 @@ unit RiftGame;
 
 interface
 
-uses VectorMath, RiftLocations, CastleTimeUtils;
+uses CastleVectors, RiftLocations, CastleTimeUtils;
 
 var
   WorldTime: TFloatTime;

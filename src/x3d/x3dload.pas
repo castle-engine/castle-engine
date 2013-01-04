@@ -61,7 +61,7 @@ unit X3DLoad;
 
 interface
 
-uses VectorMath, SysUtils, X3DNodes, X3DLoadInternalMD3,
+uses CastleVectors, SysUtils, X3DNodes, X3DLoadInternalMD3,
   CastleUtils, Classes;
 
 { Load 3D model. Guesses model format basing on ExtractFileExt(filename).

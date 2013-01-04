@@ -18,7 +18,7 @@ unit X3DLoadInternalUtils;
 
 interface
 
-uses VectorMath, X3DNodes;
+uses CastleVectors, X3DNodes;
 
 const
   NiceCreaseAngle = DefaultVRML1CreaseAngle;

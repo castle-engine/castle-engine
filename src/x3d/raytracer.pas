@@ -22,7 +22,7 @@ unit RayTracer;
   - for classic raytracer do shadow cache
   - for classic raytracer use various space filling curves
   - now that FPC inline is stable and cross-unit, use it to inline
-    various things from VectorMath. Check speed.
+    various things from CastleVectors. Check speed.
 }
 
 { Define PATHTR_USES_SHADOW_CACHE to make path tracing use shadow cache.
@@ -34,7 +34,7 @@ unit RayTracer;
 
 interface
 
-uses VectorMath, CastleImages, RaysWindow, CastleUtils, Classes,
+uses CastleVectors, CastleImages, RaysWindow, CastleUtils, Classes,
   X3DTriangles, TriangleOctree, X3DNodes, SpaceFillingCurves, CastleTriangles;
 
 type

@@ -23,9 +23,8 @@ interface
 
 uses
   Classes, SysUtils, OpenGLContext, Controls, Forms,
-  VectorMath, CastleKeysMouse, CastleUtils, CastleTimeUtils, StdCtrls, UIControls,
-  Cameras, X3DNodes, CastleScene, CastleLevels, CastleImages,
-  pk3DConnexion;
+  CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils, StdCtrls, UIControls,
+  Cameras, X3DNodes, CastleScene, CastleLevels, CastleImages, pk3DConnexion;
 
 const
   DefaultLimitFPS = 100.0;

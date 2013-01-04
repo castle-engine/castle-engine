@@ -18,7 +18,7 @@ unit CastleSceneManager;
 
 interface
 
-uses Classes, VectorMath, X3DNodes, CastleScene, CastleSceneCore, Cameras,
+uses Classes, CastleVectors, X3DNodes, CastleScene, CastleSceneCore, Cameras,
   GLShadowVolumeRenderer, GL, UIControls, Base3D, CastleTriangles,
   CastleKeysMouse, Boxes3D, Background, CastleUtils, CastleClassUtils,
   GLShaders, GLImages, CastleTimeUtils, FGL, SectorsWaypoints,
@@ -1141,7 +1141,7 @@ var
 
 implementation
 
-uses SysUtils, RenderingCameraUnit, CastleGLUtils, CastleProgress, RaysWindow,
+uses SysUtils, CastleRenderingCamera, CastleGLUtils, CastleProgress, RaysWindow,
   GLExt, CastleLog, CastleStringUtils, GLRenderer, CastleSoundEngine, Math,
   X3DTriangles, GLVersionUnit, CastleShapes;
 

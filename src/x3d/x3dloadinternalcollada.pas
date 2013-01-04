@@ -38,7 +38,7 @@ function LoadCollada(const FileName: string;
 
 implementation
 
-uses SysUtils, CastleUtils, CastleStringUtils, VectorMath, CastleColors,
+uses SysUtils, CastleUtils, CastleStringUtils, CastleVectors, CastleColors,
   DOM, XMLRead, CastleXMLUtils, CastleWarnings, Classes, CastleClassUtils,
   FGL, Math, X3DLoadInternalUtils;
 

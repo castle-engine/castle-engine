@@ -21,7 +21,7 @@ unit SectorsWaypoints;
 
 interface
 
-uses SysUtils, CastleUtils, CastleClassUtils, Classes, VectorMath, Boxes3D, FGL;
+uses SysUtils, CastleUtils, CastleClassUtils, Classes, CastleVectors, Boxes3D, FGL;
 
 type
   TSectorList = class;

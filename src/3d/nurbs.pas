@@ -33,7 +33,7 @@ unit NURBS;
 
 interface
 
-uses SysUtils, CastleUtils, VectorMath, Boxes3D;
+uses SysUtils, CastleUtils, CastleVectors, Boxes3D;
 
 { Calculate the tessellation (number of NURBS points generated).
   This follows X3D spec for "an implementation subdividing

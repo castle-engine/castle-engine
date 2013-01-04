@@ -193,7 +193,7 @@ procedure alFreeBuffer(var Buffer: TALuint);
 
 implementation
 
-uses VectorMath, CastleStringUtils, CastleLog;
+uses CastleVectors, CastleStringUtils, CastleLog;
 
 {$define read_implementation}
 

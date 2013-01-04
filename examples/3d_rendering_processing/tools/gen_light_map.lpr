@@ -24,7 +24,7 @@
 
 program gen_light_map;
 
-uses SysUtils, CastleUtils, VectorMath, X3DNodes, CastleSceneCore,
+uses SysUtils, CastleUtils, CastleVectors, X3DNodes, CastleSceneCore,
   LightMap, CastleImages, CastleProgress, ProgressConsole, CastleTimeUtils,
   CastleParameters;
 

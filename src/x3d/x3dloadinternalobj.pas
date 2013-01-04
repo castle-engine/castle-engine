@@ -28,7 +28,7 @@ function LoadWavefrontOBJ(const filename: string): TX3DRootNode;
 implementation
 
 uses CastleStringUtils, CastleFilesUtils, CastleWarnings,
-  VectorMath, CastleUtils, Classes, CastleClassUtils, SysUtils,
+  CastleVectors, CastleUtils, Classes, CastleClassUtils, SysUtils,
   FGL, X3DLoadInternalUtils, GenericStructList;
 
 type

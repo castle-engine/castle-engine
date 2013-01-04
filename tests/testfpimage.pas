@@ -28,7 +28,7 @@ type
 
 implementation
 
-uses Classes, FPImage, FPReadJPEG, SysUtils, VectorMath, CastleImages;
+uses Classes, FPImage, FPReadJPEG, SysUtils, CastleVectors, CastleImages;
 
 procedure TTestFPImage.TestJPEG;
 

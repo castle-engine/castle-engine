@@ -14,11 +14,11 @@
 }
 
 { @abstract(Current rendering camera (TRenderingCamera).) }
-unit RenderingCameraUnit;
+unit CastleRenderingCamera;
 
 interface
 
-uses CastleUtils, VectorMath, Frustum, Cameras, GenericStructList, X3DNodes;
+uses CastleUtils, CastleVectors, Frustum, Cameras, GenericStructList, X3DNodes;
 
 type
   TRenderingCamera = class;

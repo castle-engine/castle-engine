@@ -45,7 +45,7 @@ unit CastleTriangles;
 
 interface
 
-uses CastleUtils, VectorMath, GenericStructList;
+uses CastleUtils, CastleVectors, GenericStructList;
 
 type
   TTriangle2Single = packed array[0..2]of TVector2Single;     PTriangle2Single = ^TTriangle2Single;
@@ -674,7 +674,7 @@ function Barycentric(const Triangle: TTriangle3Single;
   const Point: TVector3Single): TVector3Single;
 
   { TODO: a tiny bit of Boxes3D unit used here, to prevent any dependency
-    from VectorMath to Boxes3D. }
+    from CastleVectors to Boxes3D. }
   type
     TBox3D     = array [0..1] of TVector3Single;
 

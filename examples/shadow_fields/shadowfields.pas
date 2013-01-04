@@ -18,7 +18,7 @@ unit ShadowFields;
 
 interface
 
-uses CubeMap, VectorMath, Math, SphericalHarmonics;
+uses CubeMap, CastleVectors, Math, SphericalHarmonics;
 
 const
   SFSpheresCount = 16;

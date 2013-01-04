@@ -99,7 +99,7 @@ begin
     P.Targets.AddUnit('x3dtime.pas');
     P.Targets.AddUnit('x3dtriangles.pas');
     P.Targets.AddUnit('triangleoctree.pas');
-    P.Targets.AddUnit('renderingcameraunit.pas');
+    P.Targets.AddUnit('castlerenderingcamera.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'x3d' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlescenemanager.pas');
@@ -144,7 +144,7 @@ begin
     P.Targets.AddUnit('progressconsole.pas');
     P.Targets.AddUnit('castleprogress.pas');
     P.Targets.AddUnit('recentfiles.pas');
-    P.Targets.AddUnit('vectormath.pas');
+    P.Targets.AddUnit('castlevectors.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'fonts');
     P.Targets.AddUnit('bfnt_bitstreamverasans_m10_unit.pas');
@@ -152,7 +152,7 @@ begin
     P.Targets.AddUnit('bfnt_bitstreamverasansmono_bold_m15_unit.pas');
     P.Targets.AddUnit('bfnt_bitstreamverasansmono_m18_unit.pas');
     P.Targets.AddUnit('bmpfontstypes.pas');
-    P.Targets.AddUnit('font2pascalunit.pas');
+    P.Targets.AddUnit('castlefont2pascal.pas');
     P.Targets.AddUnit('ttf_bitstreamverasans_bold_italic_unit.pas');
     P.Targets.AddUnit('ttf_bitstreamverasans_bold_unit.pas');
     P.Targets.AddUnit('ttf_bitstreamverasans_italic_unit.pas');

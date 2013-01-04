@@ -30,11 +30,11 @@
 
 program fog_culling;
 
-uses SysUtils, VectorMath, GL, GLU, CastleWindow, CastleStringUtils,
+uses SysUtils, CastleVectors, GL, GLU, CastleWindow, CastleStringUtils,
   CastleClassUtils, CastleUtils, Classes, CastleWarnings,
   CastleGLUtils, X3DNodes, CastleSceneCore, CastleScene,
   CastleProgress, ProgressConsole, CastleFilesUtils, Base3D,
-  CastleSceneManager, CastleParameters, RenderingCameraUnit, CastleKeysMouse;
+  CastleSceneManager, CastleParameters, CastleRenderingCamera, CastleKeysMouse;
 
 var
   Window: TCastleWindowCustom;

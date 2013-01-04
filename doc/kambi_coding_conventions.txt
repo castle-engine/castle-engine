@@ -56,7 +56,7 @@ of documentation, see
     but the 2nd version may be faster (especially if type <type> is large,
     or requires time-consuming initialization).
 
-    See e.g. VectorMath and Images units.
+    See e.g. CastleVectors and CastleImages units.
 
     Although I must admit that often I don't keep this convention,
     especially when <type> is some object class.

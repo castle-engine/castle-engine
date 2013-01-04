@@ -15,11 +15,11 @@
 
 { @abstract(Calculating convex hull.) }
 
-unit ConvexHullUnit;
+unit CastleConvexHull;
 
 interface
 
-uses VectorMath, CastleUtils, Math;
+uses CastleVectors, CastleUtils, Math;
 
 { Calculates ConvexHull ignoring Z coordinates of pixels.
   That is, all Points[*][2] are ignored.

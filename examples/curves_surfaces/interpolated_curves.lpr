@@ -28,7 +28,7 @@
 
 program interpolated_curves;
 
-uses GL, CastleWindow, CastleGLUtils, SysUtils, VectorMath,
+uses GL, CastleWindow, CastleGLUtils, SysUtils, CastleVectors,
   Curve, CastleScript, CastleMessages, UIControls, CastleKeysMouse,
   CastleUtils, CastleScriptParser, CastleScriptCoreFunctions,
   BFNT_BitstreamVeraSansMono_M18_Unit, CastleSceneManager,

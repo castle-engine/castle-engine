@@ -22,7 +22,7 @@
   http://castle-engine.sourceforge.net/x3d_implementation_status.php
   for a complete list of supported VRML/X3D nodes. }
 
-uses SysUtils, VectorMath, X3DNodes;
+uses SysUtils, CastleVectors, X3DNodes;
 
 var
   Root: TX3DRootNode;

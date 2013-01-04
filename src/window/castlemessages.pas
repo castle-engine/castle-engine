@@ -118,7 +118,7 @@ unit CastleMessages;
 interface
 
 uses Classes, CastleWindow, CastleGLUtils, GL, GLU, GLExt, CastleUtils, OpenGLFonts,
-  CastleStringUtils, VectorMath, CastleKeysMouse;
+  CastleStringUtils, CastleVectors, CastleKeysMouse;
 
 type
   { Specifies text alignment for MessageXxx functions in

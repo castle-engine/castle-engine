@@ -18,7 +18,7 @@ unit CastleColors;
 
 interface
 
-uses Math, VectorMath;
+uses Math, CastleVectors;
 
 const
   { Some colors.

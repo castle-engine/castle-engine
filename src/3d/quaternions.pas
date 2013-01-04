@@ -19,7 +19,7 @@ unit Quaternions;
 
 interface
 
-uses VectorMath;
+uses CastleVectors;
 
 type
   TQuaternion = object

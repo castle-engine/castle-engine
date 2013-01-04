@@ -179,7 +179,7 @@
   Vector_Get_Normalized that allow you to comfortably
   perform operations on Matrix unit object types.
   Most important is also the overload of ":=" operator that allows
-  you to switch between VectorMath arrays and Matrix objects without
+  you to switch between CastleVectors arrays and Matrix objects without
   any syntax obfuscation. Although note that this overload is a little
   dangerous, since now code like
   @preformatted(  V3 := VectorProduct(V1, V2);)
@@ -191,7 +191,7 @@
   memory copying around).
 }
 
-unit VectorMath;
+unit CastleVectors;
 
 {$I castleconf.inc}
 
@@ -445,7 +445,7 @@ type
     procedure AddArray(const A: array of TMatrix4Double);
   end;
 
-  EVectorMathInvalidOp = class(Exception);
+  EVectorInvalidOp = class(Exception);
 
   TGetVertexFromIndexFunc = function (Index: integer): TVector3Single of object;
 
@@ -911,7 +911,7 @@ procedure VectorPowerComponentsTo1st(var v: TVector3Double; const Exp: Double); 
   normalized (length 1) vectors. This avoids expensive Sqrt
   inside CosAngleBetweenVectors.
 
-  @raises EVectorMathInvalidOp If V1 or V2 is zero.
+  @raises EVectorInvalidOp If V1 or V2 is zero.
   @groupBegin }
 function CosAngleBetweenVectors(const V1, V2: TVector3Single): Single; overload;
 function CosAngleBetweenVectors(const V1, V2: TVector3Double): Double; overload;
@@ -927,7 +927,7 @@ function CosAngleBetweenNormals(const V1, V2: TVector3Double): Double; overload;
   See also CosAngleBetweenVectors and CosAngleBetweenNormals
   to avoid expensive ArcCos.
 
-  @raises EVectorMathInvalidOp If V1 or V2 is zero.
+  @raises EVectorInvalidOp If V1 or V2 is zero.
   @groupBegin }
 function AngleRadBetweenVectors(const V1, V2: TVector3Single): Single; overload;
 function AngleRadBetweenVectors(const V1, V2: TVector3Double): Double; overload;
@@ -946,7 +946,7 @@ function AngleRadBetweenNormals(const V1, V2: TVector3Double): Double; overload;
   given Cross vector, which @italic(must) be a cross product or it's negation
   (in other words, it must be orthogonal to both vectors).
 
-  @raises EVectorMathInvalidOp If V1 or V2 is zero.
+  @raises EVectorInvalidOp If V1 or V2 is zero.
   @groupBegin }
 function RotationAngleRadBetweenVectors(const V1, V2: TVector3Single): Single; overload;
 function RotationAngleRadBetweenVectors(const V1, V2: TVector3Double): Double; overload;
@@ -1544,7 +1544,7 @@ function MatrixMultScalar(const m: TMatrix3Double; const s: Double): TMatrix3Dou
 function MatrixMultScalar(const m: TMatrix4Double; const s: Double): TMatrix4Double; overload;
 
 type
-  ETransformedResultInvalid = class(EVectorMathInvalidOp);
+  ETransformedResultInvalid = class(EVectorInvalidOp);
 
 { Transform a 3D point with 4x4 matrix.
 
@@ -1882,7 +1882,7 @@ function InverseFastLookDirMatrix(const Direction, Up: TVector3Single): TMatrix4
 function InverseFastLookDirMatrix(const Direction, Up: TVector3Double): TMatrix4Single;
 { @groupEnd }
 
-{$I vectormath_operators.inc}
+{$I castlevectors_operators.inc}
 
 {$undef read_interface}
 
@@ -1892,7 +1892,7 @@ uses Math, CastleStringUtils, CastleColors;
 
 {$define read_implementation}
 
-{$I vectormath_operators.inc}
+{$I castlevectors_operators.inc}
 
 { Separated from PointsDistance2DSqr, to not slowdown it by implicit
   try/finally section because we use string. }
@@ -1901,7 +1901,7 @@ begin
   raise EInternalError.Create('Invalid IgnoreIndex for PointsDistance2DSqr');
 end;
 
-{ include vectormath_dualimplementation.inc ---------------------------------- }
+{ include castlevectors_dualimplementation.inc ---------------------------------- }
 
 {$define TScalar := Single}
 {$define TVector2 := TVector2Single}
@@ -1923,7 +1923,7 @@ end;
 {$define TVector2_ := TVector2_Single}
 {$define TVector3_ := TVector3_Single}
 {$define TVector4_ := TVector4_Single}
-{$I vectormath_dualimplementation.inc}
+{$I castlevectors_dualimplementation.inc}
 
 {$define TScalar := Double}
 {$define TVector2 := TVector2Double}
@@ -1945,7 +1945,7 @@ end;
 {$define TVector2_ := TVector2_Double}
 {$define TVector3_ := TVector3_Double}
 {$define TVector4_ := TVector4_Double}
-{$I vectormath_dualimplementation.inc}
+{$I castlevectors_dualimplementation.inc}
 
 { TVector3SingleList ----------------------------------------------------- }
 
@@ -2725,9 +2725,9 @@ begin
   NormalizeTo1st3Singlev(@result);
 end;
 
-function Vector3SingleFromStr(const s: string): TVector3Single; {$I VectorMath_Vector3FromStr.inc}
-function Vector3DoubleFromStr(const s: string): TVector3Double; {$I VectorMath_Vector3FromStr.inc}
-function Vector3ExtendedFromStr(const s: string): TVector3Extended; {$I VectorMath_Vector3FromStr.inc}
+function Vector3SingleFromStr(const s: string): TVector3Single; {$I castlevectors_vector3fromstr.inc}
+function Vector3DoubleFromStr(const s: string): TVector3Double; {$I castlevectors_vector3fromstr.inc}
+function Vector3ExtendedFromStr(const s: string): TVector3Extended; {$I castlevectors_vector3fromstr.inc}
 
 function Vector4SingleFromStr(const S: string): TVector4Single;
 var

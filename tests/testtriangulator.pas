@@ -39,7 +39,7 @@ unit TestTriangulator;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, VectorMath, Triangulator,
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors, Triangulator,
   FpImage, FpCanvas, FpImgCanv, FpWritePNG, CastleTriangles;
 
 type

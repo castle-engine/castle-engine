@@ -52,13 +52,13 @@
 program bump_mapping;
 
 uses CastleWindow, GL, GLU, GLExt, CastleGLUtils,
-  Cameras, Boxes3D, SysUtils, CastleUtils, VectorMath,
+  Cameras, Boxes3D, SysUtils, CastleUtils, CastleVectors,
   CastleClassUtils, CastleFilesUtils, CastleStringUtils,
   CastleMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, CastleImages, CastleKeysMouse,
   NormalizationCubeMap, GLImages, GLVersionUnit, X3DNodes,
   CastleParameters, CastleLog, RaysWindow, UIControls, Classes, CastleWarnings,
   CastleSceneCore, CastleScene, X3DLoad, CastleProgress, Background, CastleColors,
-  GLRenderer, CastleSceneManager, RenderingCameraUnit, CastleControls;
+  GLRenderer, CastleSceneManager, CastleRenderingCamera, CastleControls;
 
 const
   SceneBoundingBox: TBox3D = ( Data: (

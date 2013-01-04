@@ -14,7 +14,7 @@
 }
 
 { Converting fonts (TTrueTypeFont or TBmpFont) to Pascal source code. }
-unit Font2PascalUnit;
+unit CastleFont2Pascal;
 
 interface
 

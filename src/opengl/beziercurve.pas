@@ -23,7 +23,7 @@ unit BezierCurve;
 
 interface
 
-uses SysUtils, CastleUtils, CastleClassUtils, Classes, Math, VectorMath, Curve,
+uses SysUtils, CastleUtils, CastleClassUtils, Classes, Math, CastleVectors, Curve,
   FGL;
 
 type

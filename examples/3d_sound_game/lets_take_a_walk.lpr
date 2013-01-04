@@ -40,11 +40,11 @@
 program lets_take_a_walk;
 
 uses GL, CastleWindow, CastleScene, X3DNodes, SysUtils,
-  CastleUtils, CastleGLUtils, Boxes3D, VectorMath,
+  CastleUtils, CastleGLUtils, Boxes3D, CastleVectors,
   CastleProgress, CastleWindowProgress, CastleStringUtils,
   CastleParameters, CastleImages, CastleMessages, CastleFilesUtils, GLImages,
   Base3D, CastleSoundEngine,
-  RenderingCameraUnit, Classes, CastleControls, CastleLevels, CastleConfig,
+  CastleRenderingCamera, Classes, CastleControls, CastleLevels, CastleConfig,
   CastleInputs, CastleKeysMouse, CastlePlayer;
 
 { global variables ----------------------------------------------------------- }

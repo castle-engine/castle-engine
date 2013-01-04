@@ -18,7 +18,7 @@ unit CastleSoundAllocator;
 
 interface
 
-uses SysUtils, CastleOpenAL, CastleClassUtils, Classes, CastleUtils, VectorMath,
+uses SysUtils, CastleOpenAL, CastleClassUtils, Classes, CastleUtils, CastleVectors,
   CastleXMLConfig, FGL;
 
 type

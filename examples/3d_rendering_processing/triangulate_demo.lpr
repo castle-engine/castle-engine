@@ -1,7 +1,7 @@
 { Simple demo how to get direct list of 3D scene triangles. }
 program triangulate_demo;
 
-uses SysUtils, VectorMath, CastleSceneCore, CastleShapes, CastleTriangles;
+uses SysUtils, CastleVectors, CastleSceneCore, CastleShapes, CastleTriangles;
 
 type
   TTriangleHandler = class

@@ -20,9 +20,8 @@ unit CastleScene;
 
 interface
 
-uses
-  SysUtils, Classes, VectorMath, Boxes3D, X3DNodes, CastleClassUtils, CastleUtils,
-  CastleSceneCore, GLRenderer, GL, GLU, GLExt, Background, CastleGLUtils,
+uses SysUtils, Classes, CastleVectors, Boxes3D, X3DNodes, CastleClassUtils, 
+  CastleUtils, CastleSceneCore, GLRenderer, GL, GLU, GLExt, Background, CastleGLUtils,
   ShapeOctree, GLShadowVolumeRenderer, X3DFields, CastleTriangles,
   GLRendererLights, CastleShapes, Frustum, Base3D, GLShaders, FGL, GenericStructList;
 
@@ -903,7 +902,7 @@ var
 implementation
 
 uses GLVersionUnit, CastleImages, CastleLog, CastleWarnings,
-  CastleStringUtils, RenderingCameraUnit;
+  CastleStringUtils, CastleRenderingCamera;
 
 var
   TemporaryAttributeChange: Cardinal = 0;

@@ -18,7 +18,7 @@ unit CastleCreatures;
 
 interface
 
-uses Classes, VectorMath, PrecalculatedAnimation, Boxes3D, CastleClassUtils,
+uses Classes, CastleVectors, PrecalculatedAnimation, Boxes3D, CastleClassUtils,
   CastleUtils, CastleScene, SectorsWaypoints, CastleStringUtils,
   CastleResources, CastleXMLConfig, Base3D,
   CastleSoundEngine, Frustum, X3DNodes, CastleColors, FGL;
@@ -2157,7 +2157,7 @@ var
     try
       Result := AngleRadBetweenVectors(LastHurtDirection, Direction) < Pi/2;
     except
-      on EVectorMathInvalidOp do Result := false;
+      on EVectorInvalidOp do Result := false;
     end;
   end;
 

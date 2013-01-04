@@ -13,17 +13,17 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestVectorMath;
+unit TestCastleVectors;
 
 { $define VECTOR_MATH_SPEED_TESTS}
 
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, VectorMath;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors;
 
 type
-  TTestVectorMath = class(TTestCase)
+  TTestCastleVectors = class(TTestCase)
   published
     procedure TestPlaneOdcCollision;
     procedure TestCollisions;
@@ -69,9 +69,8 @@ const
   SPEED_TEST_3_CYCLES = 1000;
   {$endif}
 
-procedure TTestVectorMath.TestPlaneOdcCollision;
-{ test below caught once fpc 1.0.10 bugs in inlines - so VectorMathInlines.inc
-  was disabled }
+procedure TTestCastleVectors.TestPlaneOdcCollision;
+{ test below caught once fpc 1.0.10 bugs in inlines }
 var Intersection: TVector3Single;
     T: Single;
 begin
@@ -101,7 +100,7 @@ begin
  {$endif}
 end;
 
-procedure TTestVectorMath.TestCollisions;
+procedure TTestCastleVectors.TestCollisions;
 const TriConst: TTriangle3Single = ((2, 2, -1), (3, 3, -1), (3, 2, -1));
       TriPlaneConst: TVector4Single = (0, 0, 1, 1);
       Pos1Const: TVector3Single = (2, 2, -3);
@@ -118,7 +117,7 @@ begin
    Pos1Const, Pos2Const) and VectorsEqual(Intersection2, Coll));
 end;
 
-procedure TTestVectorMath.TestArea;
+procedure TTestCastleVectors.TestArea;
 const
   Tri: TTriangle3Single = ((0, 0, 0), (10, 0, 0), (0, 25, 0));
   CCWPoly: array[0..4]of TVector2Single = ((5, 4), (2, 3), (4, 3), (2, 1), (6, 2));
@@ -132,7 +131,7 @@ begin
  Assert(IsPolygon2dCCW(CWPoly) < 0);
 end;
 
-procedure TTestVectorMath.TestPerpParallel;
+procedure TTestCastleVectors.TestPerpParallel;
 var v: TVector3Single;
     i: integer;
 begin
@@ -165,7 +164,7 @@ begin
  Assert( VectorsParallel(UnitVector3Single[0], UnitVector3Single[0]) );
 end;
 
-procedure TTestVectorMath.TestPlanesIntersection;
+procedure TTestCastleVectors.TestPlanesIntersection;
 const
   P1: TVector4Single = (-1.9935636520385742, -0.00000009909226151, 0.25691652297973633, -30.014257431030273);
   P2: TVector4Single = (-1.2131816148757935, 1.90326225890658E-008, -1.5900282859802246, 1.5900282859802246);
@@ -175,7 +174,7 @@ begin
  { Writeln(VectorToRawStr(Line0), ' ', VectorToRawStr(LineVector)); }
 end;
 
-procedure TTestVectorMath.TestOther;
+procedure TTestCastleVectors.TestOther;
 var I1, I2, RayOrigin, RayDirection: TVector3Double;
     Plane: TVector4Double;
 //    PlaneDir: TVector3Double absolute Plane;
@@ -313,7 +312,7 @@ begin
  {$endif}
 end;
 
-procedure TTestVectorMath.TestVectorStr;
+procedure TTestCastleVectors.TestVectorStr;
 
   procedure OneTestVectorFromStr;
   var v, v2: TVector3Single;
@@ -360,7 +359,7 @@ begin
  {$endif}
 end;
 
-procedure TTestVectorMath.TestMatrixInverse;
+procedure TTestCastleVectors.TestMatrixInverse;
 var
   M: TMatrix4Single;
 begin
@@ -382,7 +381,7 @@ begin
     TranslationMatrix(Vector3Single(-2, -2, -2)), 0.01));
 end;
 
-procedure TTestVectorMath.TestMultMatrixTranslation;
+procedure TTestCastleVectors.TestMultMatrixTranslation;
 var
   M, NewM: TMatrix4Single;
   I: Integer;
@@ -398,7 +397,7 @@ begin
   end;
 end;
 
-procedure TTestVectorMath.TestMultMatricesTranslation;
+procedure TTestCastleVectors.TestMultMatricesTranslation;
 var
   M, NewM, MInverse, NewMInverse: TMatrix4Single;
   I: Integer;
@@ -419,7 +418,7 @@ begin
   end;
 end;
 
-procedure TTestVectorMath.TestIndexedPolygonNormalArea;
+procedure TTestCastleVectors.TestIndexedPolygonNormalArea;
 const
   Poly: array [0..4] of TVector3Single = ((5, 4, 0), (4, 4, 0), (2, 3, 0), (2, 1, 0), (6, 2, 0));
   CCWPolyIndex: array [0..6] of LongInt = (0, 1, 5, 2, 3, 4, 999);
@@ -444,7 +443,7 @@ begin
       @Poly, High(Poly) + 1), 8));
 end;
 
-procedure TTestVectorMath.TestSphereRayIntersection;
+procedure TTestCastleVectors.TestSphereRayIntersection;
 var
   Res: boolean;
   I: TVector3Single;
@@ -501,7 +500,7 @@ begin
   Result[3][3] := 1;
 end;
 
-procedure TTestVectorMath.TestMatrixMultiplication;
+procedure TTestCastleVectors.TestMatrixMultiplication;
 var
   M1, M2, M3, Result1, Result2: TMatrix4Single;
 begin
@@ -534,7 +533,7 @@ begin
   Assert(MatricesEqual(Result1, Result2, 0.1));
 end;
 
-procedure TTestVectorMath.TestMatrixTranspose;
+procedure TTestCastleVectors.TestMatrixTranspose;
 var
   M1, M2: TMatrix3Single;
 begin
@@ -550,7 +549,7 @@ begin
   Assert(MatricesPerfectlyEqual(M1, M2));
 end;
 
-procedure TTestVectorMath.TestVector3FromStr;
+procedure TTestCastleVectors.TestVector3FromStr;
 var
   V: TVector3Single;
 begin
@@ -580,7 +579,7 @@ begin
   Assert(FloatsEqual(V[2], 33));
 end;
 
-procedure TTestVectorMath.TestVector4FromStr;
+procedure TTestCastleVectors.TestVector4FromStr;
 var
   V: TVector4Single;
 begin
@@ -611,7 +610,7 @@ begin
   Assert(FloatsEqual(V[3], 44));
 end;
 
-procedure TTestVectorMath.TestPlaneTransform;
+procedure TTestCastleVectors.TestPlaneTransform;
 
   function PointLiesOnPlane(const Point: TVector3Single; const Plane: TVector4Single): boolean;
   var
@@ -697,7 +696,7 @@ begin
       Vector3Single(0, 0, 1) ]);
 end;
 
-procedure TTestVectorMath.TestTransformToFromCoordsMatrix;
+procedure TTestCastleVectors.TestTransformToFromCoordsMatrix;
 var
   M, MInverse: TMatrix4Single;
   NewOrigin, NewX, NewY, NewZ: TVector3Single;
@@ -720,7 +719,7 @@ begin
   end;
 end;
 
-procedure TTestVectorMath.Test2D;
+procedure TTestCastleVectors.Test2D;
 const
   P1: TVector3Single = (1, 2, 3);
   P2: TVector3Single = (2, 5, 13);
@@ -736,5 +735,5 @@ begin
 end;
 
 initialization
- RegisterTest(TTestVectorMath);
+ RegisterTest(TTestCastleVectors);
 end.

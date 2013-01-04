@@ -19,7 +19,7 @@ unit X3DLoadInternalMD3;
 
 interface
 
-uses SysUtils, Classes, CastleUtils, CastleClassUtils, VectorMath, X3DNodes,
+uses SysUtils, Classes, CastleUtils, CastleClassUtils, CastleVectors, X3DNodes,
   FGL, GenericStructList;
 
 { Load MD3 animation into a single animated X3D model. }

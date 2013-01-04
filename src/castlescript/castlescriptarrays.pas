@@ -18,7 +18,7 @@ unit CastleScriptArrays;
 
 interface
 
-uses VectorMath, CastleScript, CastleScriptVectors, CastleUtils, CastleStringUtils;
+uses CastleVectors, CastleScript, CastleScriptVectors, CastleUtils, CastleStringUtils;
 
 type
   TCasScriptArray = class(TCasScriptValue)

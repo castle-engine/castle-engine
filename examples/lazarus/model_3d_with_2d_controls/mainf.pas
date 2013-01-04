@@ -37,7 +37,7 @@ var
 
 implementation
 
-uses CastleSceneCore, CastleUtils, CastleImages, VectorMath;
+uses CastleSceneCore, CastleUtils, CastleImages, CastleVectors;
 
 { TForm1 --------------------------------------------------------------------- }
 

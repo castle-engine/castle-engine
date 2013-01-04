@@ -26,7 +26,7 @@ unit RiftCreatures;
 interface
 
 uses PrecalculatedAnimation, CastleUtils, CastleClassUtils, Classes, CastleScene,
-  SysUtils, VectorMath, Base3D, Frustum,
+  SysUtils, CastleVectors, Base3D, Frustum,
   RiftWindow, RiftGame, RiftLoadable, CastleTimeUtils, X3DNodes,
   FGL, CastleColors;
 

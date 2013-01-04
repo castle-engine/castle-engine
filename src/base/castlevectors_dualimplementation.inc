@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Implementation of VectorMath for both floating-point types
-  (Single and Double). This is included two times within vectormath.pas
+{ Implementation of CastleVectors for both floating-point types
+  (Single and Double). This is included two times within castlevectors.pas
   implementation, with macros like TVector3 and TScalar
   defined for appropriate floating-point types. }
 
@@ -392,7 +392,7 @@ begin
 
   LensSquared := VectorLenSqr(v1) * VectorLenSqr(v2);
   if LensSquared < ScalarEqualityEpsilon then
-    raise EVectorMathInvalidOp.Create(
+    raise EVectorInvalidOp.Create(
       'Cannot calculate angle between vectors, at least one of the vectors is zero');
 
   (* musimy robic tu Clamp do (-1, 1) bo praktyka pokazala ze czasami na skutek
@@ -1291,7 +1291,7 @@ begin
   end;
 end;
 
-(*$I VectorMath_TrySimplePlaneXxxIntersection.inc*)
+(*$I castlevectors_trysimpleplanexxxintersection.inc*)
 
 function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3): boolean;
 var

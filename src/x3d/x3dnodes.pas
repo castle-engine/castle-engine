@@ -167,7 +167,7 @@ unit X3DNodes;
 
 interface
 
-uses VectorMath, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
+uses CastleVectors, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, Boxes3D, CastleImages, TTFontsTypes,
   Videos, X3DTime, Base3D,
   CastleScript, X3DCastleScript, CastleOctree, DDS, TextureImages,

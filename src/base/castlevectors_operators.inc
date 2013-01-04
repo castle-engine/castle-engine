@@ -207,10 +207,10 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$ifdef read_implementation}
 
 { To implement, use macros and
-  vectormath_operators_vector_implementation.inc,
-  vectormath_operators_matrix_implementation.inc
+  castlevectors_operators_vector_implementation.inc,
+  castlevectors_operators_matrix_implementation.inc
   includes. Copied and adjusted from FPC's Matrix implementation.
-  I added VECTORMATH_OPERATOR_ON_INTEGERS option, to overload also
+  I added CASTLEVECTOR_OPERATOR_ON_INTEGERS option, to overload also
   for integer vectors. }
 
 {******************************************************************************
@@ -222,8 +222,8 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE datatype:=SINGLE}
 {$DEFINE objectname:=Tvector2_single_data}
 {$DEFINE vecsize:=2}
-{.$INFO Compile vectormath_operators_vector_implementation.inc for Tvector2_single_data}
-{$i vectormath_operators_vector_implementation.inc}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector2_single_data}
+{$i castlevectors_operators_vector_implementation.inc}
 
 {******************************************************************************
                                 Tvector2_double_data
@@ -232,8 +232,8 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE datatype:=DOUBLE}
 {$DEFINE objectname:=Tvector2_double_data}
 {$DEFINE vecsize:=2}
-{.$INFO Compile vectormath_operators_vector_implementation.inc for Tvector2_double_data}
-{$i vectormath_operators_vector_implementation.inc}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector2_double_data}
+{$i castlevectors_operators_vector_implementation.inc}
 
 {******************************************************************************
                                Tvector2_extended_data
@@ -242,8 +242,8 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE datatype:=EXTENDED}
 {$DEFINE objectname:=Tvector2_extended_data}
 {$DEFINE vecsize:=2}
-{.$INFO Compile vectormath_operators_vector_implementation.inc for Tvector2_extended_data}
-{$i vectormath_operators_vector_implementation.inc}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector2_extended_data}
+{$i castlevectors_operators_vector_implementation.inc}
 
 {******************************************************************************
                                 Tvector2Integer
@@ -252,10 +252,10 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE datatype:=Integer}
 {$DEFINE objectname:=Tvector2Integer}
 {$DEFINE vecsize:=2}
-{.$INFO Compile vectormath_operators_vector_implementation.inc for Tvector2Integer}
-{$define VECTORMATH_OPERATOR_ON_INTEGERS}
-{$i vectormath_operators_vector_implementation.inc}
-{$undef VECTORMATH_OPERATOR_ON_INTEGERS}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector2Integer}
+{$define CASTLEVECTOR_OPERATOR_ON_INTEGERS}
+{$i castlevectors_operators_vector_implementation.inc}
+{$undef CASTLEVECTOR_OPERATOR_ON_INTEGERS}
 
 
 {******************************************************************************
@@ -267,8 +267,8 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE datatype:=SINGLE}
 {$DEFINE objectname:=Tvector3_single_data}
 {$DEFINE vecsize:=3}
-{.$INFO Compile vectormath_operators_vector_implementation.inc for Tvector3_single_data}
-{$i vectormath_operators_vector_implementation.inc}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector3_single_data}
+{$i castlevectors_operators_vector_implementation.inc}
 
 {******************************************************************************
                                 Tvector3_double_data
@@ -277,8 +277,8 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE datatype:=DOUBLE}
 {$DEFINE objectname:=Tvector3_double_data}
 {$DEFINE vecsize:=3}
-{.$INFO Compile vectormath_operators_vector_implementation.inc for Tvector3_double_data}
-{$i vectormath_operators_vector_implementation.inc}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector3_double_data}
+{$i castlevectors_operators_vector_implementation.inc}
 
 {******************************************************************************
                                Tvector3_extended_data
@@ -287,8 +287,8 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE datatype:=EXTENDED}
 {$DEFINE objectname:=Tvector3_extended_data}
 {$DEFINE vecsize:=3}
-{.$INFO Compile vectormath_operators_vector_implementation.inc for Tvector3_extended_data}
-{$i vectormath_operators_vector_implementation.inc}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector3_extended_data}
+{$i castlevectors_operators_vector_implementation.inc}
 
 {******************************************************************************
                                 Tvector3Integer
@@ -297,10 +297,10 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE datatype:=Integer}
 {$DEFINE objectname:=Tvector3Integer}
 {$DEFINE vecsize:=3}
-{.$INFO Compile vectormath_operators_vector_implementation.inc for Tvector3Integer}
-{$define VECTORMATH_OPERATOR_ON_INTEGERS}
-{$i vectormath_operators_vector_implementation.inc}
-{$undef VECTORMATH_OPERATOR_ON_INTEGERS}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector3Integer}
+{$define CASTLEVECTOR_OPERATOR_ON_INTEGERS}
+{$i castlevectors_operators_vector_implementation.inc}
+{$undef CASTLEVECTOR_OPERATOR_ON_INTEGERS}
 
 
 {******************************************************************************
@@ -312,8 +312,8 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE datatype:=SINGLE}
 {$DEFINE objectname:=Tvector4_single_data}
 {$DEFINE vecsize:=4}
-{.$INFO Compile vectormath_operators_vector_implementation.inc for Tvector4_single_data}
-{$i vectormath_operators_vector_implementation.inc}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector4_single_data}
+{$i castlevectors_operators_vector_implementation.inc}
 
 {******************************************************************************
                                 Tvector4_double_data
@@ -322,8 +322,8 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE datatype:=DOUBLE}
 {$DEFINE objectname:=Tvector4_double_data}
 {$DEFINE vecsize:=4}
-{.$INFO Compile vectormath_operators_vector_implementation.inc for Tvector4_double_data}
-{$i vectormath_operators_vector_implementation.inc}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector4_double_data}
+{$i castlevectors_operators_vector_implementation.inc}
 
 {******************************************************************************
                                Tvector4_extended_data
@@ -332,8 +332,8 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE datatype:=EXTENDED}
 {$DEFINE objectname:=Tvector4_extended_data}
 {$DEFINE vecsize:=4}
-{.$INFO Compile vectormath_operators_vector_implementation.inc for Tvector4_extended_data}
-{$i vectormath_operators_vector_implementation.inc}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector4_extended_data}
+{$i castlevectors_operators_vector_implementation.inc}
 
 {******************************************************************************
                                 Tvector4Integer
@@ -342,10 +342,10 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE datatype:=Integer}
 {$DEFINE objectname:=Tvector4Integer}
 {$DEFINE vecsize:=4}
-{.$INFO Compile vectormath_operators_vector_implementation.inc for Tvector4Integer}
-{$define VECTORMATH_OPERATOR_ON_INTEGERS}
-{$i vectormath_operators_vector_implementation.inc}
-{$undef VECTORMATH_OPERATOR_ON_INTEGERS}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector4Integer}
+{$define CASTLEVECTOR_OPERATOR_ON_INTEGERS}
+{$i castlevectors_operators_vector_implementation.inc}
+{$undef CASTLEVECTOR_OPERATOR_ON_INTEGERS}
 
 
 {******************************************************************************
@@ -356,8 +356,8 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE objectname:=Tmatrix2_single_data}
 {$DEFINE vectorcompanion:=Tvector2_single_data}
 {$DEFINE matsize:=2}
-{.$INFO Compile vectormath_operators_matrix_implementation.inc for Tmatrix2_single_data}
-{$i vectormath_operators_matrix_implementation.inc}
+{.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix2_single_data}
+{$i castlevectors_operators_matrix_implementation.inc}
 
 {******************************************************************************
                                 Tmatrix2_double_data
@@ -367,8 +367,8 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE objectname:=Tmatrix2_double_data}
 {$DEFINE vectorcompanion:=Tvector2_double_data}
 {$DEFINE matsize:=2}
-{.$INFO Compile vectormath_operators_matrix_implementation.inc for Tmatrix2_double_data}
-{$i vectormath_operators_matrix_implementation.inc}
+{.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix2_double_data}
+{$i castlevectors_operators_matrix_implementation.inc}
 
 {******************************************************************************
                                Tmatrix2_extended_data
@@ -378,8 +378,8 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE objectname:=Tmatrix2_extended_data}
 {$DEFINE vectorcompanion:=Tvector2_extended_data}
 {$DEFINE matsize:=2}
-{.$INFO Compile vectormath_operators_matrix_implementation.inc for Tmatrix2_extended_data}
-{$i vectormath_operators_matrix_implementation.inc}
+{.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix2_extended_data}
+{$i castlevectors_operators_matrix_implementation.inc}
 
 {******************************************************************************
                                 Tmatrix3_single_data
@@ -389,8 +389,8 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE objectname:=Tmatrix3_single_data}
 {$DEFINE vectorcompanion:=Tvector3_single_data}
 {$DEFINE matsize:=3}
-{.$INFO Compile vectormath_operators_matrix_implementation.inc for Tmatrix3_single_data}
-{$i vectormath_operators_matrix_implementation.inc}
+{.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix3_single_data}
+{$i castlevectors_operators_matrix_implementation.inc}
 
 {******************************************************************************
                                 Tmatrix3_double_data
@@ -400,8 +400,8 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE objectname:=Tmatrix3_double_data}
 {$DEFINE vectorcompanion:=Tvector3_double_data}
 {$DEFINE matsize:=3}
-{.$INFO Compile vectormath_operators_matrix_implementation.inc for Tmatrix3_double_data}
-{$i vectormath_operators_matrix_implementation.inc}
+{.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix3_double_data}
+{$i castlevectors_operators_matrix_implementation.inc}
 
 {******************************************************************************
                                 Tmatrix3_extended_data
@@ -411,8 +411,8 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE objectname:=Tmatrix3_extended_data}
 {$DEFINE vectorcompanion:=Tvector3_extended_data}
 {$DEFINE matsize:=3}
-{.$INFO Compile vectormath_operators_matrix_implementation.inc for Tmatrix3_extended_data}
-{$i vectormath_operators_matrix_implementation.inc}
+{.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix3_extended_data}
+{$i castlevectors_operators_matrix_implementation.inc}
 
 {******************************************************************************
                                 Tmatrix4_single_data
@@ -422,8 +422,8 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE objectname:=Tmatrix4_single_data}
 {$DEFINE vectorcompanion:=Tvector4_single_data}
 {$DEFINE matsize:=4}
-{.$INFO Compile vectormath_operators_matrix_implementation.inc for Tmatrix4_single_data}
-{$i vectormath_operators_matrix_implementation.inc}
+{.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix4_single_data}
+{$i castlevectors_operators_matrix_implementation.inc}
 
 {******************************************************************************
                                 Tmatrix4_double_data
@@ -433,8 +433,8 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE objectname:=Tmatrix4_double_data}
 {$DEFINE vectorcompanion:=Tvector4_double_data}
 {$DEFINE matsize:=4}
-{.$INFO Compile vectormath_operators_matrix_implementation.inc for Tmatrix4_double_data}
-{$i vectormath_operators_matrix_implementation.inc}
+{.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix4_double_data}
+{$i castlevectors_operators_matrix_implementation.inc}
 
 {******************************************************************************
                                Tmatrix4_extended_data
@@ -444,7 +444,7 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE objectname:=Tmatrix4_extended_data}
 {$DEFINE vectorcompanion:=Tvector4_extended_data}
 {$DEFINE matsize:=4}
-{.$INFO Compile vectormath_operators_matrix_implementation.inc for Tmatrix4_extended_data}
-{$i vectormath_operators_matrix_implementation.inc}
+{.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix4_extended_data}
+{$i castlevectors_operators_matrix_implementation.inc}
 
 {$endif read_implementation}

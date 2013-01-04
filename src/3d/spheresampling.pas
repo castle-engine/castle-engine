@@ -62,7 +62,7 @@ unit SphereSampling;
 
 interface
 
-uses VectorMath, CastleUtils;
+uses CastleVectors, CastleUtils;
 
 { Convert from PhiTheta representation of (hemi)sphere direction to
   XYZ representation.

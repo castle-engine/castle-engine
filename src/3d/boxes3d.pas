@@ -18,7 +18,7 @@ unit Boxes3D;
 
 interface
 
-uses VectorMath, SysUtils, CastleUtils, GenericStructList, CastleTriangles;
+uses CastleVectors, SysUtils, CastleUtils, GenericStructList, CastleTriangles;
 
 type
   EBox3DEmpty = class(Exception);
@@ -466,7 +466,7 @@ var
     For implementation reasons, they always
     use Double precision (even when called with arguments with Single precision),
     and still have to use epsilon slightly larger than usual
-    VectorMath.DoubleEqualityEpsilon. }
+    CastleVectors.DoubleEqualityEpsilon. }
   Box3DPlaneCollisionEqualityEpsilon: Double = 1e-5;
 
 { Tests for collision between box3d centered around (0, 0, 0)

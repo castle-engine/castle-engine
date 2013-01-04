@@ -18,7 +18,7 @@ unit GLRendererLights;
 
 interface
 
-uses VectorMath, GL, GLU, CastleGLUtils, X3DNodes, GLRendererShader;
+uses CastleVectors, GL, GLU, CastleGLUtils, X3DNodes, GLRendererShader;
 
 type
   { Modify light's properties of the light right before it's rendered.
@@ -78,7 +78,7 @@ type
 
 implementation
 
-uses SysUtils, CastleUtils, Math, RenderingCameraUnit;
+uses SysUtils, CastleUtils, Math, CastleRenderingCamera;
 
 { Set and enable OpenGL light properties based on VRML/X3D light.
 

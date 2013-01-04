@@ -18,7 +18,7 @@ unit CastleControls;
 
 interface
 
-uses Classes, GL, VectorMath, UIControls, OpenGLFonts,
+uses Classes, GL, CastleVectors, UIControls, OpenGLFonts,
   CastleKeysMouse, CastleImages, CastleUtils, GLImages;
 
 type

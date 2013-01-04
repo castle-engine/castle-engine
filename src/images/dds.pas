@@ -191,7 +191,7 @@ const
 implementation
 
 uses SysUtils, CastleUtils, CastleClassUtils, CastleWarnings, CastleStringUtils,
-  VectorMath;
+  CastleVectors;
 
 { ----------------------------------------------------------------------------
   Constants and types for DDS file handling.

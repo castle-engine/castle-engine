@@ -18,7 +18,7 @@ unit SphericalHarmonics;
 
 interface
 
-uses VectorMath, CastleUtils, Math, CubeMap;
+uses CastleVectors, CastleUtils, Math, CubeMap;
 
 const
   { How many basis can SHBasis calculate. LM for SHBasis must be within

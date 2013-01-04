@@ -19,7 +19,7 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry,
-  VectorMath, Boxes3D, Frustum;
+  CastleVectors, Boxes3D, Frustum;
 
 type
   TTestFrustum = class(TTestCase)

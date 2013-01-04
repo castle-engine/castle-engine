@@ -19,7 +19,7 @@ unit CastleResources;
 
 interface
 
-uses VectorMath, Classes, CastleXMLConfig, PrecalculatedAnimation,
+uses CastleVectors, Classes, CastleXMLConfig, PrecalculatedAnimation,
   CastleScene, X3DNodes, Base3D, DOM, FGL, Boxes3D;
 
 type

@@ -84,7 +84,7 @@ type
 
 implementation
 
-uses CastleClassUtils, GL, GLU, CastleGLUtils, VectorMath, SysUtils,
+uses CastleClassUtils, GL, GLU, CastleGLUtils, CastleVectors, SysUtils,
   BezierCurve, CastleUtils;
 
 constructor TSurface.Create(const AXBegin, AXEnd, AYBegin, AYEnd: Float);

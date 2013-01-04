@@ -350,12 +350,12 @@ function IsTriangleSphereCollision(const Tri: TTriangle3;
   const TriPlane: TVector4;
   const SphereCenter: TVector3; SphereRadius: TScalar): boolean;
 (*$define HAS_PRECALC_PLANE*)
-(*$I vectormath_istrianglespherecollision.inc*)
+(*$I castletriangles_istrianglespherecollision.inc*)
 (*$undef HAS_PRECALC_PLANE*)
 
 function IsTriangleSphereCollision(const Tri: TTriangle3;
   const SphereCenter: TVector3; SphereRadius: TScalar): boolean;
-(*$I vectormath_istrianglespherecollision.inc*)
+(*$I castletriangles_istrianglespherecollision.inc*)
 
 function TryTriangleRayCollision(var Intersection: TVector3; var T: TScalar;
   const Tri: TTriangle3; const TriPlane: TVector4;

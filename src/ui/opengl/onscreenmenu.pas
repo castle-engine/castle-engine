@@ -18,7 +18,7 @@ unit OnScreenMenu;
 
 interface
 
-uses Classes, VectorMath, Rectangles, OpenGLFonts, CastleControls,
+uses Classes, CastleVectors, Rectangles, OpenGLFonts, CastleControls,
   GL, CastleGLUtils, UIControls, CastleKeysMouse, CastleColors;
 
 type

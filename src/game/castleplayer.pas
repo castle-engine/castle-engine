@@ -18,7 +18,7 @@ unit CastlePlayer;
 
 interface
 
-uses Boxes3D, Cameras, CastleItems, VectorMath, GL, GLU, CastleInputs, CastleKeysMouse,
+uses Boxes3D, Cameras, CastleItems, CastleVectors, GL, GLU, CastleInputs, CastleKeysMouse,
   X3DTriangles, CastleTextureProperties, CastleSoundEngine, Classes, Base3D,
   CastleGLUtils, CastleColors, Frustum, CastleTriangles, CastleTimeUtils;
 

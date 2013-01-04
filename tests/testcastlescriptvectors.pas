@@ -32,7 +32,7 @@ type
 
 implementation
 
-uses VectorMath, CastleScript, CastleScriptLexer, CastleScriptParser,
+uses CastleVectors, CastleScript, CastleScriptLexer, CastleScriptParser,
   CastleStringUtils, CastleScriptVectors, CastleClassUtils, Math;
 
 procedure TTestCastleScriptVectors.TestVecSingle;

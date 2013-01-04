@@ -101,7 +101,7 @@ operator* (const Z: Complex_Single; const X: Single): Complex_Single;
 
 implementation
 
-uses VectorMath, CastleUtils, FftwUtils;
+uses CastleVectors, CastleUtils, FftwUtils;
 
 constructor TImageFftw.Create(AImage: TRGBImage);
 var

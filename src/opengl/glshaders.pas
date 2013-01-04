@@ -40,7 +40,7 @@ unit GLShaders;
 
 interface
 
-uses SysUtils, Classes, GL, GLU, GLExt, CastleGLUtils, CastleUtils, VectorMath,
+uses SysUtils, Classes, GL, GLU, GLExt, CastleGLUtils, CastleUtils, CastleVectors,
   FGL, Shaders;
 
 type

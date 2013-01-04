@@ -96,7 +96,7 @@ procedure X3DCasScriptAfterExecute(Value: TCasScriptValue;
 implementation
 
 uses SysUtils, X3DNodes, CastleLog, CastleScriptVectors, CastleWarnings,
-  VectorMath, CastleScriptImages, CastleScriptArrays;
+  CastleVectors, CastleScriptImages, CastleScriptArrays;
 
 {$define read_implementation}
 

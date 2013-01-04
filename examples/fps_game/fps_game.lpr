@@ -20,7 +20,7 @@ uses SysUtils, Classes, CastleWindow, CastleWarnings, CastleConfig, CastleLevels
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   GLRenderer, Base3D, CastleFilesUtils, CastleGameNotifications,
-  CastleSceneManager, VectorMath;
+  CastleSceneManager, CastleVectors;
 
 var
   Window: TCastleWindow;

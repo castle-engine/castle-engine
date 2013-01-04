@@ -18,8 +18,8 @@ unit GLCubeMap;
 
 interface
 
-uses VectorMath, CubeMap, CastleImages, DDS, GL, GLU, CastleGLUtils,
-  RenderingCameraUnit, GLImages, Base3D;
+uses CastleVectors, CubeMap, CastleImages, DDS, GL, GLU, CastleGLUtils,
+  CastleRenderingCamera, GLImages, Base3D;
 
 type
   TCubeMapRenderSimpleFunction = procedure (ForCubeMap: boolean);

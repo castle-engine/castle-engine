@@ -18,7 +18,7 @@ unit Frustum;
 
 interface
 
-uses VectorMath, Boxes3D;
+uses CastleVectors, Boxes3D;
 
 type
   { Order of planes of TFrustum.

@@ -32,7 +32,7 @@ type
 
 implementation
 
-uses SysUtils, VectorMath, CastleImages;
+uses SysUtils, CastleVectors, CastleImages;
 
 procedure TTestImages.TestLoadImage;
 const ImagesPath = 'data' + PathDelim +  'images' + PathDelim;

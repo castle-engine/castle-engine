@@ -18,8 +18,9 @@ unit Cameras;
 
 interface
 
-uses SysUtils, VectorMath, CastleUtils, CastleKeysMouse, Boxes3D, Quaternions, Frustum,
-  UIControls, Classes, RaysWindow, CastleTimeUtils, CastleInputs, CastleTriangles;
+uses SysUtils, CastleVectors, CastleUtils, CastleKeysMouse, Boxes3D, Quaternions,
+  Frustum, UIControls, Classes, RaysWindow, CastleTimeUtils, CastleInputs,
+  CastleTriangles;
 
 type
   { Possible navigation input types in cameras, set in TCamera.Input. }

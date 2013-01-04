@@ -25,7 +25,7 @@
   be loaded as OpenAL sound, and some additional tests will be performed. }
 program algets;
 
-uses CastleOpenAL, ALUtils, SysUtils, CastleUtils, VectorMath,
+uses CastleOpenAL, ALUtils, SysUtils, CastleUtils, CastleVectors,
   CastleStringUtils, EFX, CastleSoundEngine, CastleTimeUtils, CastleParameters;
 
 { force compatibility : use alCreateSources/Buffers instead of alGen*.

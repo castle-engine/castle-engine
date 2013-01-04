@@ -19,7 +19,7 @@ unit CastleLevels;
 
 interface
 
-uses VectorMath, CastleSceneCore, CastleScene, Boxes3D,
+uses CastleVectors, CastleSceneCore, CastleScene, Boxes3D,
   X3DNodes, X3DFields, Cameras, SectorsWaypoints,
   CastleUtils, CastleClassUtils, CastlePlayer, CastleResources,
   CastleProgress, PrecalculatedAnimation,
@@ -401,7 +401,7 @@ implementation
 
 uses SysUtils, CastleGLUtils, CastleFilesUtils, CastleStringUtils, 
   GLImages, UIControls, XMLRead, CastleInputs, CastleXMLUtils,
-  GLRenderer, RenderingCameraUnit, Math, CastleWarnings;
+  GLRenderer, CastleRenderingCamera, Math, CastleWarnings;
 
 { globals -------------------------------------------------------------------- }
 

@@ -27,7 +27,7 @@ type
 
 implementation
 
-uses VectorMath, IntRects;
+uses CastleVectors, IntRects;
 
 procedure TTestIntRects.TestIntRects;
 const 

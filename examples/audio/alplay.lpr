@@ -17,7 +17,7 @@
 program alplay;
 
 uses SysUtils, CastleUtils, CastleOpenAL,
-  CastleWarnings, CastleSoundEngine, CastleParameters, CastleTimeUtils, VectorMath;
+  CastleWarnings, CastleSoundEngine, CastleParameters, CastleTimeUtils, CastleVectors;
 
 var
   Buffer: TSoundBuffer;

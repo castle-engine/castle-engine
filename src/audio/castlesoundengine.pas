@@ -18,7 +18,7 @@ unit CastleSoundEngine;
 
 interface
 
-uses SysUtils, Classes, CastleOpenAL, CastleSoundAllocator, VectorMath,
+uses SysUtils, Classes, CastleOpenAL, CastleSoundAllocator, CastleVectors,
   CastleTimeUtils, CastleXMLConfig, Math, FGL, CastleClassUtils;
 
 type

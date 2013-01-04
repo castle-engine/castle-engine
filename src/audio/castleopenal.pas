@@ -59,7 +59,7 @@ unit CastleOpenAL;
 
 interface
 
-uses SysUtils, VectorMath;
+uses SysUtils, CastleVectors;
 
 {$ifdef FREEBSD}
   {$linklib pthread}
@@ -76,7 +76,7 @@ uses SysUtils, VectorMath;
 
 { ---------------------------------------------------------------------------- }
 
-{ @section(Make this unit cooperate nicely with VectorMath.)
+{ @section(Make this unit cooperate nicely with CastleVectors.)
 
   Definitions of types below are connected with definitions in OpenAL_altypes.inc
   --- if you change some type in OpenAL_altypes.inc you have to adjust definitions

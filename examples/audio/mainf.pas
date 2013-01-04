@@ -50,7 +50,7 @@ var
 
 implementation
 
-uses VectorMath, CastleOpenAL, CastleUtils, CastleStringUtils;
+uses CastleVectors, CastleOpenAL, CastleUtils, CastleStringUtils;
 
 { TMain }
 

@@ -218,7 +218,7 @@ unit GLRenderer;
 interface
 
 uses
-  Classes, SysUtils, CastleUtils, VectorMath, GL, GLExt,
+  Classes, SysUtils, CastleUtils, CastleVectors, GL, GLExt,
   X3DFields, X3DNodes, X3DLexer, OpenGLTTFonts, CastleImages,
   CastleGLUtils, GLRendererLights, TTFontsTypes,
   GLShaders, GLImages, Videos, X3DTime, CastleShapes,
@@ -1198,7 +1198,7 @@ function ScreenEffectLibrary(const Depth: boolean): string;
 implementation
 
 uses Math, CastleStringUtils, GLVersionUnit, CastleLog, CastleWarnings,
-  RenderingCameraUnit, X3DCameraUtils, RaysWindow, CastleColors;
+  CastleRenderingCamera, X3DCameraUtils, RaysWindow, CastleColors;
 
 {$define read_implementation}
 

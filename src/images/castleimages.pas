@@ -64,7 +64,7 @@ unit CastleImages;
 
 interface
 
-uses SysUtils, Classes, Math, CastleUtils, VectorMath,
+uses SysUtils, Classes, Math, CastleUtils, CastleVectors,
   CastlePng, FileFilters, CastleClassUtils, CastleColors,
   FGL, FPImage, FPReadPCX, FPReadGIF, FPReadPSD, FPReadTGA, FPReadTiff, FPReadXPM,
   FPReadJPEG, FPWriteJPEG, FPReadPNM;
@@ -496,14 +496,14 @@ type
 
     {$ifdef FPC}
 
-    { Convert every image color using Color*Convert function from VectorMath.
+    { Convert every image color using Color*Convert function from CastleVectors.
       "Channel" parameter determines which Color*Convert function to use
       (Red, Green or Blue), must be 0, 1 or 2.
 
       Implemented if and only if ModulateRGB is implemented. }
     procedure ConvertToChannelRGB(Channel: Integer);
 
-    { Converts every image color using Color*Strip function from VectorMath.
+    { Converts every image color using Color*Strip function from CastleVectors.
       "Channel" parameter determines which Color*Strip function to use
       (Red, Green or Blue), must be 0, 1 or 2.
 

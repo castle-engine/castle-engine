@@ -37,8 +37,8 @@ unit ShapeOctree;
 
 interface
 
-uses SysUtils, Base3D, Boxes3D, CastleOctree, CastleShapes, VectorMath, CastleUtils,
-  X3DTriangles, CastleTriangles;
+uses SysUtils, Base3D, Boxes3D, CastleOctree, CastleShapes, CastleVectors,
+  CastleUtils, X3DTriangles, CastleTriangles;
 
 const
   { Kambi private notes: values below found experimetally, many tests on

@@ -22,11 +22,11 @@ unit CastleSceneCore;
 interface
 
 uses
-  SysUtils, Classes, VectorMath, Boxes3D, CastleTriangles,
+  SysUtils, Classes, CastleVectors, Boxes3D, CastleTriangles,
   X3DFields, X3DNodes, CastleClassUtils, CastleUtils,
   CastleShapes, TriangleOctree, CastleProgress, CastleOctree, ShapeOctree,
   CastleKeysMouse, X3DTime, Cameras, X3DTriangles, Contnrs,
-  RenderingCameraUnit, Base3D, X3DShadowMaps, FGL, GenericStructList;
+  CastleRenderingCamera, Base3D, X3DShadowMaps, FGL, GenericStructList;
 
 type
   TTriangle3SingleList = specialize TGenericStructList<TTriangle3Single>;
@@ -5080,7 +5080,7 @@ begin
       FProcessEvents := Value;
 
       { ProcessEvents := false may get called from destructor,
-        after RenderingCameraUnit finalization }
+        after CastleRenderingCamera finalization }
       if RenderingCamera <> nil then
         RenderingCamera.OnChanged.Remove(@RenderingCameraChanged);
     end;

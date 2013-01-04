@@ -20,7 +20,7 @@
   on load under the hood). }
 program gl_primitive_performance;
 
-uses VectorMath, X3DNodes, GL, GLExt, CastleWindow,
+uses CastleVectors, X3DNodes, GL, GLExt, CastleWindow,
   CastleUtils, SysUtils, Classes, CastleWarnings, CastleKeysMouse,
   CastleGLUtils, CastleFilesUtils, CastleSceneCore, CastleParameters,
   CastleProgress, CastleShapes, CastleSceneManager, Base3D, CastleStringUtils;

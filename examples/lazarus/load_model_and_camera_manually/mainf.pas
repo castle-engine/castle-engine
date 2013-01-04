@@ -27,7 +27,7 @@ implementation
 
 {$R *.lfm}
 
-uses VectorMath, CastleSceneCore;
+uses CastleVectors, CastleSceneCore;
 
 { Demo how to load 3D scene, and camera, manually, adjusting all
   relevant properties. Some of the properties below could be also 

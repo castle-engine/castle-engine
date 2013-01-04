@@ -31,7 +31,7 @@ type
 
 implementation
 
-uses VectorMath, CubeMap, Math;
+uses CastleVectors, CubeMap, Math;
 
 procedure TTestCubeMap.TestReverse;
 var

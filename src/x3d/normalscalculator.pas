@@ -23,7 +23,7 @@ unit NormalsCalculator;
 
 interface
 
-uses SysUtils, CastleUtils, VectorMath, X3DNodes;
+uses SysUtils, CastleUtils, CastleVectors, X3DNodes;
 
 { Calculate normal vectors for indexed faces, smoothing them according
   to CreaseAngleRad.

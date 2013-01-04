@@ -20,7 +20,7 @@ unit TestCastleColors;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, VectorMath, CastleColors;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors, CastleColors;
 
 type
   TTestCastleColors = class(TTestCase)

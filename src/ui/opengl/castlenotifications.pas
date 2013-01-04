@@ -19,7 +19,7 @@ unit CastleNotifications;
 interface
 
 uses GL, GLU, UIControls, Classes, SysUtils, CastleUtils, CastleGLUtils,
-  OpenGLBmpFonts, OpenGLFonts, CastleTimeUtils, VectorMath, CastleStringUtils,
+  OpenGLBmpFonts, OpenGLFonts, CastleTimeUtils, CastleVectors, CastleStringUtils,
   FGL, CastleColors;
 
 type

@@ -29,11 +29,11 @@ procedure Play;
 
 implementation
 
-uses GL, CastleGLUtils, CastleWindow, CastleStringUtils, VectorMath, CastleFilesUtils,
+uses GL, CastleGLUtils, CastleWindow, CastleStringUtils, CastleVectors, CastleFilesUtils,
   WindowModes, Cameras, SysUtils, GLExt, X3DNodes,
   RaysWindow, Math, UIControls, GLRenderer,
   RiftVideoOptions, RiftLocations, RiftCreatures, RiftWindow, RiftGame,
-  CastleGameNotifications, RenderingCameraUnit, Base3D,
+  CastleGameNotifications, CastleRenderingCamera, Base3D,
   RiftSceneManager, CastleKeysMouse;
 
 var

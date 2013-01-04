@@ -68,7 +68,7 @@ procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
 implementation
 
 uses SysUtils, CastleUtils, CastleStringUtils, CastleWarnings,
-  Boxes3D, CastleLog, VectorMath, GenericStructList;
+  Boxes3D, CastleLog, CastleVectors, GenericStructList;
 
 const
   { Suffix of VRML node names created by ProcessShadowMapsReceivers

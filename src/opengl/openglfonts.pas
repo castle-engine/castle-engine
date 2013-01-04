@@ -268,7 +268,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleClassUtils, CastleStringUtils, VectorMath;
+uses CastleUtils, CastleClassUtils, CastleStringUtils, CastleVectors;
 
 function HandleTags(const S: string;
   out ColorChange: boolean; out Color: TVector3Single): string;

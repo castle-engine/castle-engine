@@ -18,7 +18,7 @@ unit CubeMap;
 
 interface
 
-uses VectorMath, Math;
+uses CastleVectors, Math;
 
 type
   { Cube map faces.

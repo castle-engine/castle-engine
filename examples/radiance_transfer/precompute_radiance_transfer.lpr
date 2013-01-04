@@ -57,7 +57,7 @@
 
 program precompute_radiance_transfer;
 
-uses SysUtils, CastleUtils, VectorMath, CastleSceneCore, X3DNodes,
+uses SysUtils, CastleUtils, CastleVectors, CastleSceneCore, X3DNodes,
   SphereSampling, CastleProgress, ProgressConsole,
   SphericalHarmonics, CastleParameters, CastleTimeUtils, CastleShapes;
 

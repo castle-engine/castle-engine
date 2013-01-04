@@ -21,7 +21,7 @@ unit TestX3DNodes;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, VectorMath, X3DNodes;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors, X3DNodes;
 
 type
   TTestX3DNodes = class(TTestCase)

@@ -26,12 +26,12 @@
 }
 program dynamic_ambient_occlusion;
 
-uses VectorMath, GL, GLU, GLExt, CastleWindow, CastleTriangles,
+uses CastleVectors, GL, GLU, GLExt, CastleWindow, CastleTriangles,
   CastleClassUtils, CastleUtils, SysUtils, Classes, CastleKeysMouse,
   CastleGLUtils, CastleSceneCore, CastleScene, Base3D, CastleParameters,
   CastleFilesUtils, CastleStringUtils, GLShaders, CastleShapes,
   X3DFields, CastleImages, GLImages, CastleMessages, CastleWarnings,
-  GLVersionUnit, Math, CastleSceneManager, RenderingCameraUnit, GenericStructList;
+  GLVersionUnit, Math, CastleSceneManager, CastleRenderingCamera, GenericStructList;
 
 type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);

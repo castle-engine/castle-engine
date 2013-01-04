@@ -18,7 +18,7 @@ unit Base3D;
 
 interface
 
-uses Classes, Math, VectorMath, Frustum, Boxes3D, CastleClassUtils, CastleKeysMouse,
+uses Classes, Math, CastleVectors, Frustum, Boxes3D, CastleClassUtils, CastleKeysMouse,
   CastleUtils, FGL, GenericStructList, CastleTimeUtils,
   CastleSoundEngine, SectorsWaypoints, Cameras, CastleTriangles;
 

@@ -36,8 +36,8 @@ type
 
 implementation
 
-uses VectorMath, CastleUtils, Boxes3D, CastleStringUtils, CastleTimeUtils,
-  TestVectorMath, CastleTriangles;
+uses CastleVectors, CastleUtils, Boxes3D, CastleStringUtils, CastleTimeUtils,
+  TestCastleVectors, CastleTriangles;
 
 procedure TTestBoxes3D.TestIsCenteredBox3DPlaneCollision;
 begin

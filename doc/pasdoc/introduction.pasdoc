@@ -227,7 +227,7 @@ units are allowed to be used by units in specific group.
   @item(
     3D graphics stuff, not X3D-specific.
 
-    Note: VectorMath unit is considered by me as something more general and
+    Note: CastleVectors unit is considered by me as something more general and
     useful --- so it's in @code(base) group, not here.
 
     @italic(Uses:) @code(base), @code(images).

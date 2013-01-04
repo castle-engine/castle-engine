@@ -24,7 +24,7 @@ type
   TTestBasicLists = class(TTestCase)
     procedure TestSetCountItems;
     procedure TestPrimitiveLists;
-    procedure TestVectorMathLists;
+    procedure TestCastleVectorsLists;
     procedure TestListsAssign;
     procedure TestListsAssignLerp;
     procedure TestZero;
@@ -32,7 +32,7 @@ type
 
 implementation
 
-uses CastleUtils, VectorMath;
+uses CastleUtils, CastleVectors;
 
 function IsSmallerString(const a, b: string): Integer;
 begin
@@ -242,7 +242,7 @@ end;
  end;
 end;
 
-procedure TTestBasicLists.TestVectorMathLists;
+procedure TTestBasicLists.TestCastleVectorsLists;
 var
   vecs: TVector3SingleList;
 begin

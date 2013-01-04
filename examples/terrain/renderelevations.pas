@@ -18,7 +18,7 @@ unit RenderElevations;
 
 interface
 
-uses VectorMath, Elevations;
+uses CastleVectors, Elevations;
 
 { Drawing of TElevation (relies only on TElevation.Height method).
 

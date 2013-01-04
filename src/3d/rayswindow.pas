@@ -21,7 +21,7 @@ unit RaysWindow;
 
 interface
 
-uses VectorMath;
+uses CastleVectors;
 
 { Calculate second viewing angle for perspective projection.
   Given one viewing angle of the camera (FirstViewAngleDeg) and

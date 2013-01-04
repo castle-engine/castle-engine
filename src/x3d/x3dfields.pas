@@ -18,7 +18,7 @@ unit X3DFields;
 
 interface
 
-uses VectorMath, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
+uses CastleVectors, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
   CastleImages, CastleStringUtils, CastleInterfaces, X3DTime, DOM,
   FGL, GenericStructList;
 
@@ -895,7 +895,7 @@ type
 
     { Assigns value to this node calculated from linear interpolation
       between two given nodes Value1, Value2. Just like other lerp
-      functions in our units (like @link(VectorMath.Lerp)).
+      functions in our units (like @link(CastleVectors.Lerp)).
 
       Like AssignValue, this copies only the current value.
       All other properties (like Name, IsClauseNames, ValueFromIsClause,

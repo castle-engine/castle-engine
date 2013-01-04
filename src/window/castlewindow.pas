@@ -518,7 +518,7 @@ unit CastleWindow;
 
 interface
 
-uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
+uses SysUtils, Classes, CastleVectors, GL, GLU, GLExt,
   {$ifdef CASTLE_WINDOW_GLUT} FreeGlut, Glut, {$endif}
   {$ifdef CASTLE_WINDOW_WINAPI} Windows,
     { In FPC < 2.2.2, CommDlg stuff was inside Windows unit. }

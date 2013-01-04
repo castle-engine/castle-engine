@@ -20,7 +20,7 @@ unit X3DCameraUtils;
 
 interface
 
-uses CastleUtils, VectorMath, Boxes3D, X3DNodes;
+uses CastleUtils, CastleVectors, Boxes3D, X3DNodes;
 
 type
   { Version of VRML/X3D camera definition. }

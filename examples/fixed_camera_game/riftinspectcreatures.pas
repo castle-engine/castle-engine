@@ -29,7 +29,7 @@ procedure InspectCreatures;
 
 implementation
 
-uses WindowModes, Cameras, CastleGLUtils, CastleWindow, GL, VectorMath, SysUtils,
+uses WindowModes, Cameras, CastleGLUtils, CastleWindow, GL, CastleVectors, SysUtils,
   BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts,
   Classes, CastleStringUtils, CastleMessages, CastleFilesUtils,
   RiftVideoOptions, RiftGame, RiftWindow, RiftCreatures,

@@ -18,7 +18,7 @@ unit CastleScriptVectors;
 
 interface
 
-uses VectorMath, CastleScript;
+uses CastleVectors, CastleScript;
 
 type
   TCasScriptVec2f = class(TCasScriptValue)

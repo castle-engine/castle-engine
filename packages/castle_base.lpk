@@ -58,8 +58,8 @@
         <UnitName Value="CastleOctree"/>
       </Item3>
       <Item4>
-        <Filename Value="../src/3d/convexhullunit.pas"/>
-        <UnitName Value="ConvexHullUnit"/>
+        <Filename Value="../src/3d/castleconvexhull.pas"/>
+        <UnitName Value="CastleConvexHull"/>
       </Item4>
       <Item5>
         <Filename Value="../src/3d/cubemap.pas"/>
@@ -251,8 +251,8 @@
         <Type Value="Include"/>
       </Item52>
       <Item53>
-        <Filename Value="../src/base/vectormath.pas"/>
-        <UnitName Value="VectorMath"/>
+        <Filename Value="../src/base/castlevectors.pas"/>
+        <UnitName Value="CastleVectors"/>
       </Item53>
       <Item54>
         <Filename Value="../src/base/windows/castleutils_os_specific_windows.inc"/>
@@ -311,8 +311,8 @@
         <UnitName Value="BmpFontsTypes"/>
       </Item67>
       <Item68>
-        <Filename Value="../src/fonts/font2pascalunit.pas"/>
-        <UnitName Value="Font2PascalUnit"/>
+        <Filename Value="../src/fonts/castlefont2pascal.pas"/>
+        <UnitName Value="CastleFont2Pascal"/>
       </Item68>
       <Item69>
         <Filename Value="../src/fonts/ttf_bitstreamverasans_bold_italic_unit.pas"/>
@@ -652,8 +652,8 @@
         <UnitName Value="RayTracer"/>
       </Item154>
       <Item155>
-        <Filename Value="../src/x3d/renderingcameraunit.pas"/>
-        <UnitName Value="RenderingCameraUnit"/>
+        <Filename Value="../src/x3d/castlerenderingcamera.pas"/>
+        <UnitName Value="CastleRenderingCamera"/>
       </Item155>
       <Item156>
         <Filename Value="../src/x3d/castleshapes.pas"/>

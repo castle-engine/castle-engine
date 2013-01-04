@@ -22,7 +22,7 @@ uses
   TestOSSpecific,
   TestBasicLists,
   TestCastleClassUtils,
-  TestVectorMath,
+  TestCastleVectors,
   TestCastleColors,
   TestKeysMouse,
   TestFPImage,
