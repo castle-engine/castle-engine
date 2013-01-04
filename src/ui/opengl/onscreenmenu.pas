@@ -18,14 +18,42 @@ unit OnScreenMenu;
 
 interface
 
-uses Classes, CastleVectors, Rectangles, CastleGLBitmapFonts, CastleControls,
-  GL, CastleGLUtils, UIControls, CastleKeysMouse, CastleColors;
+uses Classes, CastleVectors, CastleGLBitmapFonts, CastleControls,
+  GL, CastleGLUtils, UIControls, CastleKeysMouse, CastleColors,
+  GenericStructList;
 
 type
   TCastleOnScreenMenu = class;
 
-  { This is something that can be attached to some menu items of TCastleOnScreenMenu.
-    For example, a slider --- see TMenuSlider. }
+  { 2D rectangle. Useful to detect in which rectangle a point
+    (like a mouse position) is.
+
+    We don't use standard Types.TRect for this, as TRect behavior is sometimes
+    (see PtInRect) suited for rectangles anchored in top-left corner
+    (while we are anchored in bottom-left corner). }
+  TRectangle = object
+    X0, Y0, Width, Height: Integer;
+    function PointInside(const X, Y: Integer): boolean;
+    procedure DrawBorder;
+  end;
+  PRectangle = ^TRectangle;
+
+  TRectangleList = class(specialize TGenericStructList<TRectangle>)
+  public
+    { FindRectangle returns index of the rectangle that contains point (X, Y).
+
+      @italic(It returns the index of the @bold(last) rectangle, that is:
+      it searches from the end of the list.) This way the rectangles added
+      later by Add method are treated as being on top of previous
+      rectangles, which is more intuitive.
+
+      Returns -1 if not found. }
+    function FindRectangle(const X, Y: Integer): integer;
+  end;
+
+  { Attachment to a specific menu item of TCastleOnScreenMenu,
+    for example may store a value associated with given menu option,
+    and allow to change it by a slider. }
   TMenuAccessory = class
   private
     FOwnedByParent: boolean;
@@ -658,6 +686,8 @@ property MenuFont: TGLBitmapFontAbstract read GetUIFont write SetUIFont;
 property SliderFont: TGLBitmapFontAbstract read GetUIFontSmall write SetUIFontSmall;
 { @groupEnd }
 
+function Rectangle(const X0, Y0, Width, Height: Integer): TRectangle;
+
 implementation
 
 uses SysUtils, CastleUtils, CastleImages, CastleFilesUtils, CastleClassUtils,
@@ -739,6 +769,37 @@ begin
     are possible. But for now, this is just always equal to Slider_Position,
     so no point in complicating this. }
   ImageSliderPosition := nil;
+end;
+
+{ TRectangleList -------------------------------------------------------------- }
+
+function TRectangleList.FindRectangle(const X, Y: Integer): integer;
+begin
+  for Result := Count - 1 downto 0 do
+    if L[Result].PointInside(X, Y) then
+      Exit;
+  Result := -1;
+end;
+
+{ TRectangle ----------------------------------------------------------------- }
+
+function Rectangle(const X0, Y0, Width, Height: Integer): TRectangle;
+begin
+  Result.X0 := X0;
+  Result.Y0 := Y0;
+  Result.Width := Width;
+  Result.Height := Height;
+end;
+
+function TRectangle.PointInside(const X, Y: Integer): boolean;
+begin
+  Result := (X >= X0) and (X <= X0 + Width) and
+            (Y >= Y0) and (Y <= Y0 + Height);
+end;
+
+procedure TRectangle.DrawBorder;
+begin
+  DrawGLRectBorder(X0, Y0, X0 + Width, Y0 + Height);
 end;
 
 { TMenuAccessory ------------------------------------------------------ }
@@ -1361,7 +1422,7 @@ begin
   begin
     glColorv(CurrentItemBorderColor);
     glLineWidth(1.0);
-    DrawGLRectBorder(FAllItemsRectangle);
+    FAllItemsRectangle.DrawBorder;
   end;
 
   for I := 0 to Items.Count - 1 do
@@ -1521,7 +1582,7 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
 
     if (CurrentItem <> -1) and
        (Items.Objects[CurrentItem] <> nil) and
-       (PointInRectangle(MX, MY, FAccessoryRectangles.L[CurrentItem])) and
+       FAccessoryRectangles.L[CurrentItem].PointInside(MX, MY) and
        (Container.MousePressed - [Button] = []) then
     begin
       ItemAccessoryGrabbed := CurrentItem;
@@ -1588,7 +1649,7 @@ begin
       then user just moves mouse within current item.
       So maybe we should call TMenuAccessory.MouseMove. }
     if (Items.Objects[CurrentItem] <> nil) and
-       (PointInRectangle(MX, MY, FAccessoryRectangles.L[CurrentItem])) and
+       FAccessoryRectangles.L[CurrentItem].PointInside(MX, MY) and
        (ItemAccessoryGrabbed = CurrentItem) then
       TMenuAccessory(Items.Objects[CurrentItem]).MouseMove(
         MX, MY, Container.MousePressed,
@@ -1675,7 +1736,7 @@ end;
 function TCastleOnScreenMenu.PositionInside(const X, Y: Integer): boolean;
 begin
   Result := FullSize or
-    PointInRectangle(X, ContainerHeight - Y, FAllItemsRectangle);
+    FAllItemsRectangle.PointInside(X, ContainerHeight - Y);
 end;
 
 procedure TCastleOnScreenMenu.SetItems(const Value: TStringList);

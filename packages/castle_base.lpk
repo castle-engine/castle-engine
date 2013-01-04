@@ -44,7 +44,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="166">
+    <Files Count="165">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -528,10 +528,6 @@
         <Filename Value="../src/ui/pk3dconnexion.pas"/>
         <UnitName Value="pk3DConnexion"/>
       </Item127>
-      <Item128>
-        <Filename Value="../src/ui/rectangles.pas"/>
-        <UnitName Value="Rectangles"/>
-      </Item128>
       <Item129>
         <Filename Value="../src/ui/uicontrols.pas"/>
         <UnitName Value="UIControls"/>
@@ -683,10 +679,10 @@
         <Filename Value="../src/x3d/x3dloadinternalcollada.pas"/>
         <UnitName Value="X3DLoadInternalCollada"/>
       </Item165>
-      <Item166>
+      <Item128>
         <Filename Value="../src/x3d/x3dloadinternalgeo.pas"/>
         <UnitName Value="X3DLoadInternalGEO"/>
-      </Item166>
+      </Item128>
       <Item115>
         <Filename Value="../src/x3d/x3dloadinternalmd3.pas"/>
         <UnitName Value="X3DLoadInternalMD3"/>

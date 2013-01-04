@@ -32,7 +32,7 @@ unit CastleGLUtils;
 interface
 
 uses Math, GL, GLU, GLExt, SysUtils, CastleUtils, CastleVectors, CastleBoxes,
-  CastleImages, Matrix, Rectangles;
+  CastleImages, Matrix;
 
 {$define read_interface}
 
@@ -690,7 +690,6 @@ procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
   Uses current OpenGL color.
   @groupBegin }
 procedure DrawGLRectBorder(const x1, y1, x2, y2: TGLfloat); overload;
-procedure DrawGLRectBorder(const Rectangle: TRectangle); overload;
 { @groupEnd }
 
 function UnProjectGL(winx, winy, winz: TGLdouble): TVector3d;
@@ -1549,11 +1548,6 @@ begin
   glBegin(GL_LINE_LOOP);
     glVertex2f(x1, y1); glVertex2f(x2, y1); glVertex2f(x2, y2); glVertex2f(x1, y2);
   glEnd;
-end;
-
-procedure DrawGLRectBorder(const Rectangle: TRectangle);
-begin
-  DrawGLRectBorder(Rectangle.X0, Rectangle.Y0, Rectangle.X0 + Rectangle.Width, Rectangle.Y0 + Rectangle.Height);
 end;
 
 function UnProjectGL(winx, winy, winz :TGLdouble): TVector3d;

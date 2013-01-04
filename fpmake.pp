@@ -195,7 +195,6 @@ begin
     P.Targets.AddUnit('castleinputs.pas');
     P.Targets.AddUnit('castlekeysmouse.pas');
     P.Targets.AddUnit('pk3dconnexion.pas');
-    P.Targets.AddUnit('rectangles.pas');
     P.Targets.AddUnit('uicontrols.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
