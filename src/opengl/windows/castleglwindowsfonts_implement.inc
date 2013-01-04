@@ -18,8 +18,8 @@ begin
   try
    PreviousObject := SelectObject(dc, WinFontHandle);
    try
-    Font2TrueTypeFont(dc, CreatedTTF);
-    inherited Create(@CreatedTTF, Depth, OnlyLines);
+    Font2OutlineFont(dc, CreatedOutline);
+    inherited Create(@CreatedOutline, Depth, OnlyLines);
    finally SelectObject(dc, PreviousObject) end;
   finally DeleteObject(WinFontHandle) end;
  finally WinFont.Free end;
@@ -29,6 +29,6 @@ destructor TWindowsOutlineFont.Destroy;
 begin
  inherited;
  { yes, FreeMem AFTER inherited because TGLOutlineFont
-   requires that @TTFont is valid for it's lifetime }
- FreeMemNilingAllChars(CreatedTTF);
+   requires that CreatedOutline is valid for it's lifetime }
+ FreeMemNilingAllChars(CreatedOutline);
 end;

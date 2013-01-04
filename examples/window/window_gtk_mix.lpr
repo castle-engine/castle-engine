@@ -23,13 +23,13 @@
   When user changes text of this entry, OpenGL area displays it.
 
   This demo also demonstrates some simple use of TGLOutlineFont
-  class from OpenGLTTFonts.
+  class from CastleGLOutlineFonts.
 }
 
 program window_gtk_mix;
 
-uses CastleWindow, GL, GLU, GLExt, CastleGLUtils, OpenGLFonts, SysUtils,
-  CastleVectors, CastleUtils, OpenGLTTFonts, TTF_BitstreamVeraSans_Unit,
+uses CastleWindow, GL, GLU, GLExt, CastleGLUtils, SysUtils,
+  CastleVectors, CastleUtils, CastleGLOutlineFonts, CastleOutlineFont_BVSans,
   Gtk2, Glib2, CastleStringUtils, CastleKeysMouse;
 
 type
@@ -40,7 +40,7 @@ type
 
 var
   Window: TMyWindow;
-  Font: TGLOutlineFont_Abstract;
+  Font: TGLOutlineFontAbstract;
   Entry: PGtkWidget;
 
 procedure EntryTextChanged(editable: PGtkEditable; user_data: GPointer); cdecl;
@@ -78,7 +78,7 @@ end;
 
 procedure Open(Window: TCastleWindowBase);
 begin
- Font := TGLOutlineFont.Create(@TTF_BitstreamVeraSans, 10);
+ Font := TGLOutlineFont.Create(OutlineFont_BVSans, 10);
  glEnable(GL_DEPTH_TEST);
  glEnable(GL_LIGHT0);
  glEnable(GL_LIGHTING);

@@ -23,7 +23,7 @@ program design_surface;
 uses Cameras, Surfaces, CastleWindow, GL, GLU, CastleVectors,
   CastleGLUtils, Curve, BezierCurve, CastleBoxes, SysUtils, CastleUtils, CastleKeysMouse,
   CastleStringUtils, CastleMessages, CastleFilesUtils, UIControls,
-  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, CastleColors, Castle3D, CastleFrustum;
+  CastleBitmapFont_BVSans, CastleGLBitmapFonts, CastleColors, Castle3D, CastleFrustum;
 
 type
   TShow = (shNone, shWire, shFill);
@@ -273,7 +273,7 @@ begin
   glEnable(GL_COLOR_MATERIAL);
   glPointSize(10);
   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-  StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
+  StatusFont := TGLBitmapFont.Create(BitmapFont_BVSans);
 end;
 
 procedure Close(Window: TCastleWindowBase);

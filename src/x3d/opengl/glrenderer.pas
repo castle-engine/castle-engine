@@ -219,8 +219,8 @@ interface
 
 uses
   Classes, SysUtils, CastleUtils, CastleVectors, GL, GLExt,
-  X3DFields, X3DNodes, X3DLexer, OpenGLTTFonts, CastleImages,
-  CastleGLUtils, GLRendererLights, TTFontsTypes,
+  X3DFields, X3DNodes, X3DLexer, CastleOutlineFonts, CastleImages,
+  CastleGLUtils, GLRendererLights, CastleGLOutlineFonts,
   GLShaders, GLImages, Videos, X3DTime, CastleShapes,
   GLCubeMap, CastleClassUtils, DDS, Castle3D, FGL,
   GeometryArrays, ArraysGenerator, GLRendererShader, X3DShadowMaps,
@@ -830,7 +830,7 @@ type
 
     function Fonts_IncReference(
       fsfam: TX3DFontFamily; fsbold: boolean; fsitalic: boolean;
-      TTF_Font: PTrueTypeFont): TGLOutlineFont;
+      Font: TOutlineFont): TGLOutlineFont;
 
     procedure Fonts_DecReference(
       fsfam: TX3DFontFamily; fsbold: boolean; fsitalic: boolean);
@@ -1305,11 +1305,11 @@ end;
 
 function TGLRendererContextCache.Fonts_IncReference(
   fsfam: TX3DFontFamily; fsbold: boolean; fsitalic: boolean;
-  TTF_Font: PTrueTypeFont): TGLOutlineFont;
+  Font: TOutlineFont): TGLOutlineFont;
 begin
   Inc(Fonts[fsfam, fsbold, fsitalic].References);
   if Fonts[fsfam, fsbold, fsitalic].Instance = nil then
-    Fonts[fsfam, fsbold, fsitalic].Instance := TGLOutlineFont.Create(TTF_Font);
+    Fonts[fsfam, fsbold, fsitalic].Instance := TGLOutlineFont.Create(Font);
   Result := Fonts[fsfam, fsbold, fsitalic].Instance;
   if LogRendererCache and Log then
     WritelnLog('++', 'Font: %d', [Fonts[fsfam, fsbold, fsitalic].References]);
@@ -2392,11 +2392,11 @@ procedure TGLRenderer.Prepare(State: TX3DGraphTraverseState);
   procedure PrepareFont(
     fsfam: TX3DFontFamily;
     fsbold, fsitalic: boolean;
-    TTF_Font: PTrueTypeFont);
+    Font: TOutlineFont);
   begin
     if not FontsReferences[fsfam, fsbold, fsitalic] then
     begin
-      Cache.Fonts_IncReference(fsfam, fsbold, fsitalic, TTF_Font);
+      Cache.Fonts_IncReference(fsfam, fsbold, fsitalic, Font);
       FontsReferences[fsfam, fsbold, fsitalic] := true;
     end;
   end;
@@ -2413,7 +2413,7 @@ begin
       State.LastNodes.FontStyle.Family,
       State.LastNodes.FontStyle.Bold,
       State.LastNodes.FontStyle.Italic,
-      State.LastNodes.FontStyle.TTF_Font) else
+      State.LastNodes.FontStyle.Font) else
   if (State.ShapeNode.FdGeometry.Value <> nil) and
      (State.ShapeNode.FdGeometry.Value is TTextNode) then
   begin
@@ -2428,12 +2428,12 @@ begin
         TFontStyleNode.DefaultFamily,
         TFontStyleNode.DefaultBold,
         TFontStyleNode.DefaultItalic,
-        TFontStyleNode.DefaultTTF_Font) else
+        TFontStyleNode.DefaultFont) else
       PrepareFont(
         FontStyle.Family,
         FontStyle.Bold,
         FontStyle.Italic,
-        FontStyle.TTF_Font);
+        FontStyle.Font);
   end else
   if (State.ShapeNode.FdGeometry.Value <> nil) and
      (State.ShapeNode.FdGeometry.Value is TText3DNode) then
@@ -2449,12 +2449,12 @@ begin
         TFontStyleNode.DefaultFamily,
         TFontStyleNode.DefaultBold,
         TFontStyleNode.DefaultItalic,
-        TFontStyleNode.DefaultTTF_Font) else
+        TFontStyleNode.DefaultFont) else
       PrepareFont(
         FontStyle.Family,
         FontStyle.Bold,
         FontStyle.Italic,
-        FontStyle.TTF_Font);
+        FontStyle.Font);
   end;
 
   GLTextureNodes.Prepare(State, State.Texture, Self);

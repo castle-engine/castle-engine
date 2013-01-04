@@ -79,7 +79,7 @@ rm -f "$TMP_PAS_LIST"
 
 if (( $# == 0 )); then
   # We don't generate docs for a lot of automatically generated units
-  # TTF_Xxx and BFNT_Xxx, docs for these units would be useless.
+  # CastleOutlineFont_Xxx and CastleBitmapFont_Xxx, docs for these units would be useless.
   # (all these units have the same structure, after all).
   #
   # Don't generate docs for automatically generated AllKambi*Units units,
@@ -104,8 +104,8 @@ if (( $# == 0 )); then
               '(' -iwholename '*/opengl/x86_64/glext.pas' ')' -or \
               '(' -iwholename '*ui/pk3dconnexion.pas' ')' -or \
               '(' -iwholename '*ui/windows/tdxinput_tlb.pas' ')' -or \
-              '(' -iwholename '*fonts/TTF_*.pas' ')' -or \
-              '(' -iwholename '*fonts/BFNT_*.pas' ')' \
+              '(' -iwholename '*fonts/castleoutlinefont_*.pas' ')' -or \
+              '(' -iwholename '*fonts/castlebitmapfont_*.pas' ')' \
             ')' \
             -print ')' >> "$TMP_PAS_LIST"
 else

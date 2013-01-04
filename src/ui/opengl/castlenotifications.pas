@@ -19,7 +19,7 @@ unit CastleNotifications;
 interface
 
 uses GL, GLU, UIControls, Classes, SysUtils, CastleUtils, CastleGLUtils,
-  OpenGLBmpFonts, OpenGLFonts, CastleTimeUtils, CastleVectors, CastleStringUtils,
+  CastleGLBitmapFonts, CastleTimeUtils, CastleVectors, CastleStringUtils,
   FGL, CastleColors;
 
 type
@@ -55,7 +55,7 @@ type
     Messages: TNotificationList;
     FHorizontalPosition: THorizontalPosition;
     FVerticalPosition: TVerticalPosition;
-    FFont: TGLBitmapFont_Abstract;
+    FFont: TGLBitmapFontAbstract;
     FColor: TVector3Single;
     FMaxMessages: integer;
     FTimeout: TMilisecTime;
@@ -101,7 +101,7 @@ type
 
     { Font used to draw messages. Read-only for now, in the future
       you should be allowed to change it. }
-    property Font: TGLBitmapFont_Abstract read FFont;
+    property Font: TGLBitmapFontAbstract read FFont;
 
     { All the messages passed to @link(Show), collected only if CollectHistory.
       May be @nil when not CollectHistory. }
@@ -147,7 +147,7 @@ procedure Register;
 
 implementation
 
-uses BFNT_BitstreamVeraSans_Unit, CastleLog;
+uses CastleBitmapFont_BVSans, CastleLog;
 
 procedure Register;
 begin
@@ -192,7 +192,7 @@ procedure TCastleNotifications.GLContextOpen;
 begin
   inherited;
   if FFont = nil then
-    FFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
+    FFont := TGLBitmapFont.Create(BitmapFont_BVSans);
 end;
 
 procedure TCastleNotifications.GLContextClose;

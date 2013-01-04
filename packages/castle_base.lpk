@@ -44,7 +44,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="169">
+    <Files Count="168">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -291,80 +291,80 @@
         <UnitName Value="X3DCastleScript"/>
       </Item62>
       <Item63>
-        <Filename Value="../src/fonts/bfnt_bitstreamverasans_m10_unit.pas"/>
-        <UnitName Value="BFNT_BitstreamVeraSans_m10_Unit"/>
+        <Filename Value="../src/fonts/castlebitmapfont_bitstreamverasans_m10.pas"/>
+        <UnitName Value="CastleBitmapFont_BitstreamVeraSans_m10"/>
       </Item63>
       <Item64>
-        <Filename Value="../src/fonts/bfnt_bitstreamverasans_unit.pas"/>
-        <UnitName Value="BFNT_BitstreamVeraSans_Unit"/>
+        <Filename Value="../src/fonts/castlebitmapfont_bitstreamverasans.pas"/>
+        <UnitName Value="CastleBitmapFont_BitstreamVeraSans"/>
       </Item64>
       <Item65>
-        <Filename Value="../src/fonts/bfnt_bitstreamverasansmono_bold_m15_unit.pas"/>
-        <UnitName Value="BFNT_BitstreamVeraSansMono_Bold_m15_Unit"/>
+        <Filename Value="../src/fonts/castlebitmapfont_bitstreamverasansmono_bold_m15.pas"/>
+        <UnitName Value="CastleBitmapFont_BitstreamVeraSansMono_Bold_m15"/>
       </Item65>
       <Item66>
-        <Filename Value="../src/fonts/bfnt_bitstreamverasansmono_m18_unit.pas"/>
-        <UnitName Value="BFNT_BitstreamVeraSansMono_m18_Unit"/>
+        <Filename Value="../src/fonts/castlebitmapfont_bitstreamverasansmono_m18.pas"/>
+        <UnitName Value="CastleBitmapFont_BitstreamVeraSansMono_m18"/>
       </Item66>
       <Item67>
-        <Filename Value="../src/fonts/bmpfontstypes.pas"/>
-        <UnitName Value="BmpFontsTypes"/>
+        <Filename Value="../src/fonts/castlebitmapfonts.pas"/>
+        <UnitName Value="CastleBitmapFonts"/>
       </Item67>
       <Item68>
         <Filename Value="../src/fonts/castlefont2pascal.pas"/>
         <UnitName Value="CastleFont2Pascal"/>
       </Item68>
       <Item69>
-        <Filename Value="../src/fonts/ttf_bitstreamverasans_bold_italic_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSans_Bold_Italic_Unit"/>
+        <Filename Value="../src/fonts/castleoutlinefont_bitstreamverasans_bold_italic.pas"/>
+        <UnitName Value="OutlineFont_BitstreamVeraSans_Bold_Italic"/>
       </Item69>
       <Item70>
-        <Filename Value="../src/fonts/ttf_bitstreamverasans_bold_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSans_Bold_Unit"/>
+        <Filename Value="../src/fonts/castleoutlinefont_bitstreamverasans_bold.pas"/>
+        <UnitName Value="OutlineFont_BitstreamVeraSans_Bold"/>
       </Item70>
       <Item71>
-        <Filename Value="../src/fonts/ttf_bitstreamverasans_italic_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSans_Italic_Unit"/>
+        <Filename Value="../src/fonts/castleoutlinefont_bitstreamverasans_italic.pas"/>
+        <UnitName Value="OutlineFont_BitstreamVeraSans_Italic"/>
       </Item71>
       <Item72>
-        <Filename Value="../src/fonts/ttf_bitstreamverasans_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSans_Unit"/>
+        <Filename Value="../src/fonts/castleoutlinefont_bitstreamverasans.pas"/>
+        <UnitName Value="OutlineFont_BitstreamVeraSans"/>
       </Item72>
       <Item73>
-        <Filename Value="../src/fonts/ttf_bitstreamverasansmono_bold_italic_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSansMono_Bold_Italic_Unit"/>
+        <Filename Value="../src/fonts/castleoutlinefont_bitstreamverasansmono_bold_italic.pas"/>
+        <UnitName Value="OutlineFont_BitstreamVeraSansMono_Bold_Italic"/>
       </Item73>
       <Item74>
-        <Filename Value="../src/fonts/ttf_bitstreamverasansmono_bold_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSansMono_Bold_Unit"/>
+        <Filename Value="../src/fonts/castleoutlinefont_bitstreamverasansmono_bold.pas"/>
+        <UnitName Value="OutlineFont_BitstreamVeraSansMono_Bold"/>
       </Item74>
       <Item75>
-        <Filename Value="../src/fonts/ttf_bitstreamverasansmono_italic_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSansMono_Italic_Unit"/>
+        <Filename Value="../src/fonts/castleoutlinefont_bitstreamverasansmono_italic.pas"/>
+        <UnitName Value="OutlineFont_BitstreamVeraSansMono_Italic"/>
       </Item75>
       <Item76>
-        <Filename Value="../src/fonts/ttf_bitstreamverasansmono_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSansMono_Unit"/>
+        <Filename Value="../src/fonts/castleoutlinefont_bitstreamverasansmono.pas"/>
+        <UnitName Value="OutlineFont_BitstreamVeraSansMono"/>
       </Item76>
       <Item77>
-        <Filename Value="../src/fonts/ttf_bitstreamveraserif_bold_italic_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSerif_Bold_Italic_Unit"/>
+        <Filename Value="../src/fonts/castleoutlinefont_bitstreamveraserif_bold_italic.pas"/>
+        <UnitName Value="OutlineFont_BitstreamVeraSerif_Bold_Italic"/>
       </Item77>
       <Item78>
-        <Filename Value="../src/fonts/ttf_bitstreamveraserif_bold_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSerif_Bold_Unit"/>
+        <Filename Value="../src/fonts/castleoutlinefont_bitstreamveraserif_bold.pas"/>
+        <UnitName Value="OutlineFont_BitstreamVeraSerif_Bold"/>
       </Item78>
       <Item79>
-        <Filename Value="../src/fonts/ttf_bitstreamveraserif_italic_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSerif_Italic_Unit"/>
+        <Filename Value="../src/fonts/castleoutlinefont_bitstreamveraserif_italic.pas"/>
+        <UnitName Value="OutlineFont_BitstreamVeraSerif_Italic"/>
       </Item79>
       <Item80>
-        <Filename Value="../src/fonts/ttf_bitstreamveraserif_unit.pas"/>
-        <UnitName Value="TTF_BitstreamVeraSerif_Unit"/>
+        <Filename Value="../src/fonts/castleoutlinefont_bitstreamveraserif.pas"/>
+        <UnitName Value="OutlineFont_BitstreamVeraSerif"/>
       </Item80>
       <Item81>
-        <Filename Value="../src/fonts/ttfontstypes.pas"/>
-        <UnitName Value="TTFontsTypes"/>
+        <Filename Value="../src/fonts/castleoutlinefonts.pas"/>
+        <UnitName Value="CastleOutlineFonts"/>
       </Item81>
       <Item82>
         <Filename Value="../src/fonts/windows/windowsfonts.pas"/>
@@ -489,21 +489,17 @@
         <UnitName Value="NormalizationCubeMap"/>
       </Item115>
       <Item116>
-        <Filename Value="../src/opengl/openglbmpfonts.pas"/>
-        <UnitName Value="OpenGLBmpFonts"/>
+        <Filename Value="../src/opengl/castleglbitmapfonts.pas"/>
+        <UnitName Value="CastleGLBitmapFonts"/>
       </Item116>
-      <Item117>
-        <Filename Value="../src/opengl/openglfonts.pas"/>
-        <UnitName Value="OpenGLFonts"/>
-      </Item117>
       <Item118>
-        <Filename Value="../src/opengl/openglttfonts.pas"/>
-        <UnitName Value="OpenGLTTFonts"/>
+        <Filename Value="../src/opengl/castlegloutlinefonts.pas"/>
+        <UnitName Value="CastleGLOutlineFonts"/>
       </Item118>
       <Item119>
-        <Filename Value="../src/opengl/windows/openglwindowsfonts.pas"/>
+        <Filename Value="../src/opengl/windows/castleglwindowsfonts.pas"/>
         <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="OpenGLWindowsFonts"/>
+        <UnitName Value="CastleGLWindowsFonts"/>
       </Item119>
       <Item120>
         <Filename Value="../src/opengl/windows/openglwindowsfonts_implement.inc"/>
@@ -707,10 +703,10 @@
         <Filename Value="../src/x3d/x3dloadinternalobj.pas"/>
         <UnitName Value="X3DLoadInternalOBJ"/>
       </Item168>
-      <Item169>
+      <Item117>
         <Filename Value="../src/x3d/x3dloadinternalutils.pas"/>
         <UnitName Value="X3DLoadInternalUtils"/>
-      </Item169>
+      </Item117>
       <Item100>
         <Filename Value="../src/x3d/x3dnodes.pas"/>
         <UnitName Value="X3DNodes"/>

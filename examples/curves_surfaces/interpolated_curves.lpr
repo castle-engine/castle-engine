@@ -31,8 +31,8 @@ program interpolated_curves;
 uses GL, CastleWindow, CastleGLUtils, SysUtils, CastleVectors,
   Curve, CastleScript, CastleMessages, UIControls, CastleKeysMouse,
   CastleUtils, CastleScriptParser, CastleScriptCoreFunctions,
-  BFNT_BitstreamVeraSansMono_M18_Unit, CastleSceneManager,
-  OpenGLBmpFonts, Classes, CastleStringUtils, Castle3D, CastleColors;
+  CastleBitmapFont_BVSansMono_M18, CastleSceneManager,
+  CastleGLBitmapFonts, Classes, CastleStringUtils, Castle3D, CastleColors;
 
 { global vars ------------------------------------------------------------ }
 
@@ -194,7 +194,7 @@ end;
 procedure Open(Window: TCastleWindowBase);
 begin
   glPointSize(10);
-  StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_m18);
+  StatusFont := TGLBitmapFont.Create(BitmapFont_BVSansMono_m18);
 end;
 
 procedure Close(Window: TCastleWindowBase);

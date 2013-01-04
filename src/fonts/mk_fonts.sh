@@ -20,13 +20,13 @@ mk_4_versions --font-name 'Bitstream Vera Sans Mono'
 mk_4_versions --font-name 'Bitstream Vera Serif'
 
 # Used by CastleNotifications and GLProgress
-do_font2pascal --font-name 'Bitstream Vera Sans' --grab-to bfnt
+do_font2pascal --font-name 'Bitstream Vera Sans' --grab-to bitmap
 
 # Used by GLWinMessages
-do_font2pascal --font-name 'Bitstream Vera Sans Mono' --font-height -18 --grab-to bfnt
+do_font2pascal --font-name 'Bitstream Vera Sans Mono' --font-height -18 --grab-to bitmap
 
 # Used by view3dscene
-do_font2pascal --font-name 'Bitstream Vera Sans Mono' --font-height -15 --grab-to bfnt -b 1
+do_font2pascal --font-name 'Bitstream Vera Sans Mono' --font-height -15 --grab-to bitmap -b 1
 
 # Used by GLMenu
-do_font2pascal --font-name 'Bitstream Vera Sans' --grab-to bfnt --font-height -10
+do_font2pascal --font-name 'Bitstream Vera Sans' --grab-to bitmap --font-height -10

@@ -17,7 +17,7 @@
   - using multiple windows with CastleWindow unit
   - instead of registering OnXxx callbacks overriding EventXxx methods
     (more OOP approach)
-  - TGLOutlineTTFont rendered with depth (3d letters)
+  - TGLOutlineFont rendered with depth (3d letters)
   - press c to change cursor in the window that has focus, this is to demo
     that TCastleWindowBase.Cursor indeed works as appropriate, i.e. changes the cursor
     only for the given window.
@@ -33,14 +33,14 @@ program multi_window;
 {$apptype GUI}
 
 uses
-  GL, GLU, CastleWindow, SysUtils, CastleUtils, OpenGLFonts, OpenGLTTFonts,
-  TTF_BitstreamVeraSans_Unit, CastleGLUtils, CastleKeysMouse, CastleVectors,
+  GL, GLU, CastleWindow, SysUtils, CastleUtils, CastleGLOutlineFonts,
+  CastleOutlineFont_BVSans, CastleGLUtils, CastleKeysMouse, CastleVectors,
   CastleStringUtils;
 
 type
   TMyWindow = class(TCastleWindowDemo)
   public
-    FontGL, FontGLLines: TGLOutlineFont_Abstract;
+    FontGL, FontGLLines: TGLOutlineFontAbstract;
     RotX, RotY, RotZ, MoveX, MoveY, MoveZ :TGLfloat;
     OnlyLines: boolean;
     Text: string;
@@ -132,8 +132,8 @@ begin
 
  glEnable(GL_DEPTH_TEST);
  //fontgl := TGLOutlineFont.Create(0, 255, 0, 2, WGL_FONT_POLYGONS, 'Comic Sans MS');
- FontGL := TGLOutlineFont.Create(@TTF_BitstreamVeraSans, 40);
- FontGLLines := TGLOutlineFont.Create(@TTF_BitstreamVeraSans, 40, true);
+ FontGL := TGLOutlineFont.Create(OutlineFont_BVSans, 40);
+ FontGLLines := TGLOutlineFont.Create(OutlineFont_BVSans, 40, true);
 end;
 
 procedure TMyWindow.EventClose;

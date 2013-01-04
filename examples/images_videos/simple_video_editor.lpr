@@ -25,7 +25,7 @@ program simple_video_editor;
 
 uses CastleUtils, SysUtils, CastleWindow, GL, GLU, GLImages,
   Videos, CastleStringUtils, CastleMessages, CastleColors,
-  BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts, CastleParameters,
+  CastleBitmapFont_BVSansMono_Bold_m15, CastleGLBitmapFonts, CastleParameters,
   CastleGLUtils, CastleVectors, Classes, CastleProgress, CastleWindowProgress,
   CastleTimeUtils, CastleKeysMouse;
 
@@ -137,7 +137,7 @@ end;
 
 procedure Open(Window: TCastleWindowBase);
 begin
-  StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_Bold_m15);
+  StatusFont := TGLBitmapFont.Create(BitmapFont_BVSansMono_Bold_m15);
 
   WindowProgressInterface.Window := Window;
   Progress.UserInterface := WindowProgressInterface;

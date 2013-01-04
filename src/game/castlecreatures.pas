@@ -894,7 +894,7 @@ var
 implementation
 
 uses SysUtils, DOM, GL, GLU, CastleFilesUtils, CastleGLUtils,
-  CastleProgress, CastleGameNotifications, OpenGLTTFonts, UIControls;
+  CastleProgress, CastleGameNotifications, CastleGLOutlineFonts, UIControls;
 
 var
   DisableCreatures: Cardinal;
@@ -2579,7 +2579,7 @@ procedure WindowOpen(const Container: IUIContainer);
 begin
   Font3d := GLContextCache.Fonts_IncReference(
     Font3dFamily, Font3dBold, Font3dItalic,
-    TFontStyleNode.ClassTTF_Font(Font3dFamily, Font3dBold, Font3dItalic));
+    TFontStyleNode.ClassFont(Font3dFamily, Font3dBold, Font3dItalic));
 end;
 
 procedure WindowClose(const Container: IUIContainer);

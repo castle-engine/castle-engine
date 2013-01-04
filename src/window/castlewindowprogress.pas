@@ -74,7 +74,7 @@ var
 
 implementation
 
-uses SysUtils, CastleUtils, CastleKeysMouse, CastleControls, OpenGLFonts;
+uses SysUtils, CastleUtils, CastleKeysMouse, CastleControls, CastleGLBitmapFonts;
 
 { display -------------------------------------------------------------------- }
 
@@ -85,7 +85,7 @@ var
   Progress: TProgress;
   ProgressInterface: TWindowProgressInterface;
   PositionFill: Single;
-  Font: TGLBitmapFont_Abstract;
+  Font: TGLBitmapFontAbstract;
 begin
   Progress := TProgress(Window.UserData);
   ProgressInterface := Progress.UserInterface as TWindowProgressInterface;

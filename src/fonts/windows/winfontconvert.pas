@@ -13,12 +13,11 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Unit converting Windows truetype fonts to
-  @link(BmpFontsTypes.TBmpFont) or @link(TTFontsTypes.TTrueTypeFont).)
+{ Convert fonts available on Windows to TBitmapFont and TOutlineFont.
 
   This unit heavily depends on GetGlpyhOutline WinAPI function.
   This function is our "core" of converting Windows fonts to
-  TBmpFont or TTrueTypeFont. Unfortunately, this makes this unit
+  TBitmapFont or TOutlineFont. Unfortunately, this makes this unit
   Windows-only forever.
   In the future I plan to write some similiar unit, but portable.
   Probably using FreeType2 library.
@@ -28,7 +27,7 @@ unit WinFontConvert;
 
 interface
 
-uses Windows, BmpFontsTypes, TTFontsTypes;
+uses Windows, CastleBitmapFonts, CastleOutlineFonts;
 
 { Both functions grab character c from Windows font currently selected
   on device context dc. Remeber to free resulting pointer by FreeMem.
@@ -40,7 +39,7 @@ uses Windows, BmpFontsTypes, TTFontsTypes;
   On the other hand, "bold" (actually "weight") and "italic" matter,
   i.e. fonts created by this functions reflect the weight and italic state
   of the font.
-  This is true both for Font2BFNTChar and Font2TTFChar.
+  This is true both for Font2BitmapChar and Font2OutlineChar.
   This is an effect of how Windows.GetGlyphOutline works.
   However I didn't find any place documenting these details about
   GetGlyphOutline.
@@ -54,8 +53,8 @@ uses Windows, BmpFontsTypes, TTFontsTypes;
   ignored.
 
   @groupBegin }
-function Font2BFNTChar_HDc(dc: HDc; c: char): PBFNTChar;
-function Font2TTFChar_HDc(dc: HDc; c: char): PTTFChar;
+function Font2BitmapChar_HDc(dc: HDc; c: char): PBitmapChar;
+function Font2OutlineChar_HDc(dc: HDc; c: char): POutlineChar;
 { @groupEnd }
 
 { Both functions grab currently selected Windows font on device context dc.
@@ -66,8 +65,8 @@ function Font2TTFChar_HDc(dc: HDc; c: char): PTTFChar;
   Or use functions FreeMemNilingAllChars to do just that.
 
   @groupBegin }
-procedure Font2BitmapFont_HDc(dc: HDc; var Font: TBmpFont);
-procedure Font2TrueTypeFont_HDc(dc: HDc; var Font: TTrueTypeFont);
+procedure Font2BitmapFont_HDc(dc: HDc; var Font: TBitmapFont);
+procedure Font2OutlineFont_HDc(dc: HDc; var Font: TOutlineFont);
 { @groupEnd }
 
 { Usually much more comfortable versions of Font2XxxFont_HDc
@@ -77,14 +76,14 @@ procedure Font2TrueTypeFont_HDc(dc: HDc; var Font: TTrueTypeFont);
   selected font, not HFont)
 
   @groupBegin }
-function Font2BFNTChar(WinFont: HFont; c: char): PBFNTChar;
-function Font2TTFChar(WinFont: HFont; c: char): PTTFChar;
-procedure Font2BitmapFont(WinFont: HFont; var Font: TBmpFont);
-procedure Font2TrueTypeFont(WinFont: HFont; var Font: TTrueTypeFont);
+function Font2BitmapChar(WinFont: HFont; c: char): PBitmapChar;
+function Font2OutlineChar(WinFont: HFont; c: char): POutlineChar;
+procedure Font2BitmapFont(WinFont: HFont; var Font: TBitmapFont);
+procedure Font2OutlineFont(WinFont: HFont; var Font: TOutlineFont);
 { @groupEnd }
 
-procedure FreeMemNilingAllChars(var Font: TBmpFont); overload;
-procedure FreeMemNilingAllChars(var Font: TTrueTypeFont); overload;
+procedure FreeMemNilingAllChars(var Font: TBitmapFont); overload;
+procedure FreeMemNilingAllChars(var Font: TOutlineFont); overload;
 
 implementation
 
@@ -95,7 +94,7 @@ const
     (eM11:(fract:0; value:1); eM12:(fract:0; value:0);    { 1.0  0.0 }
      eM21:(fract:0; value:0); eM22:(fract:0; value:1));   { 0.0  1.0 }
 
-function Font2BFNTChar_HDc(dc: HDC; c: char): PBFNTChar;
+function Font2BitmapChar_HDc(dc: HDC; c: char): PBitmapChar;
 var GlyphData: PByteArray;
     GlyphMetrics: TGlyphMetrics;
     GlyphDataSize: Dword;
@@ -115,7 +114,7 @@ begin
      Assert((gmBlackBoxX = 0) and (gmBlackBoxY = 0)) works under Win98.
      So I just ignore values of gmBlackBoxX and gmBlackBoxY -- it seems
      that they have no guaranteed value when GlyphDataSize = 0. }
-   Result := GetMem(SizeOf(TBFNTCharInfo));
+   Result := GetMem(SizeOf(TBitmapCharInfo));
 
    Result^.Info.Alignment := 4;
    Result^.Info.XOrig := -GlyphMetrics.gmptGlyphOrigin.x;
@@ -131,7 +130,7 @@ begin
      GlyphData, IdentityMat2) <> GDI_ERROR, 'GetGlyphOutline failed');
 
     { alignment w zwroconej data jest zawsze 4 }
-    RowByteLength := BFNTCharRowByteLength(GlyphMetrics.gmBlackBoxX, 4);
+    RowByteLength := BitmapCharRowByteLength(GlyphMetrics.gmBlackBoxX, 4);
 
     { Under Win98 this assertion was always true.
         Assert(GlyphDataSize = linelen * gmBlackBoxY);
@@ -147,7 +146,7 @@ begin
    Assert(GlyphDataSize >= RowByteLength * GlyphMetrics.gmBlackBoxY);
    GlyphDataSize := RowByteLength * GlyphMetrics.gmBlackBoxY;
 
-   Result := GetMem(SizeOf(TBFNTCharInfo) + GlyphDataSize*SizeOf(Byte));
+   Result := GetMem(SizeOf(TBitmapCharInfo) + GlyphDataSize*SizeOf(Byte));
 
    Result^.Info.Alignment := 4;
    Result^.Info.XOrig := -GlyphMetrics.gmptGlyphOrigin.x;
@@ -158,7 +157,7 @@ begin
    Result^.Info.Height := GlyphMetrics.gmBlackBoxY;
 
    { copy GlyphData do Result^.Data line by line.
-     We must replace line order - TBmpFont wants lines bottom -> top,
+     We must replace line order - TBitmapFont wants lines bottom -> top,
      while GlyphData has lines top -> bottom. }
    for j := 0 to GlyphMetrics.gmBlackBoxY-1 do
     Move(GlyphData[(Result^.Info.Height - j - 1) * RowByteLength],
@@ -171,9 +170,9 @@ begin
 end;
 
 type
-  TTTFCharItemList = specialize TGenericStructList<TTTFCharItem>;
+  TOutlineCharItemList = specialize TGenericStructList<TOutlineCharItem>;
 
-function Font2TTFChar_HDc(dc: HDC; c: char): PTTFChar;
+function Font2OutlineChar_HDc(dc: HDC; c: char): POutlineChar;
 var GlyphMetrics: TGlyphMetrics;
     GlyphDataSize: Dword;
     Buffer : Pointer;
@@ -184,15 +183,15 @@ var GlyphMetrics: TGlyphMetrics;
 type TArray_PointFX = packed array[0..High(Word)] of TPointFX;
      PArray_PointFX = ^TArray_PointFX;
 var PointsFX: PArray_PointFX;
-    ResultItems: TTTFCharItemList;
-    ResultInfo: TTTFCharInfo;
+    ResultItems: TOutlineCharItemList;
+    ResultInfo: TOutlineCharInfo;
     lastPunkt: record x, y: Single end;
     Dlug: Cardinal;
 
   procedure ResultItemsAdd(Kind: TPolygonKind; Count: Cardinal{ = 0}); overload;
   { use only with Kind <> pkPoint }
   var
-    Item: PTTFCharItem;
+    Item: POutlineCharItem;
   begin
     Item := ResultItems.Add;
     Assert(Kind <> pkPoint);
@@ -207,7 +206,7 @@ var PointsFX: PArray_PointFX;
 
   procedure ResultItemsAdd(x, y: Single); overload;
   var
-    Item: PTTFCharItem;
+    Item: POutlineCharItem;
   begin
     Item := ResultItems.Add;
     Item^.Kind := pkPoint;
@@ -223,7 +222,7 @@ var PointsFX: PArray_PointFX;
 begin
  Result := nil; { <- only to avoid Delphi warning }
 
- ResultItems := TTTFCharItemList.Create;
+ ResultItems := TOutlineCharItemList.Create;
  try
   Buffer := nil;
   try
@@ -313,12 +312,12 @@ begin
    if ResultItems.L[i].Kind = pkNewPolygon then Inc(ResultInfo.PolygonsCount);
 
   { get mem for Result and fill Result^ with calculated data }
-  Result := GetMem(SizeOf(TTTFCharInfo) +
-    ResultInfo.ItemsCount*SizeOf(TTTFCharItem));
+  Result := GetMem(SizeOf(TOutlineCharInfo) +
+    ResultInfo.ItemsCount*SizeOf(TOutlineCharItem));
   try
    Result^.Info := ResultInfo;
    Move(ResultItems.L[0], Result^.Items,
-     ResultInfo.ItemsCount*SizeOf(TTTFCharItem));
+     ResultInfo.ItemsCount*SizeOf(TOutlineCharItem));
   except FreeMem(Result); raise end;
 
  finally ResultItems.Free end;
@@ -326,39 +325,39 @@ end;
 
 { Font2XxxFont_HDc ----------------------------------------------- }
 
-procedure Font2BitmapFont_HDc(dc: HDC; var Font: TBmpFont);
+procedure Font2BitmapFont_HDc(dc: HDC; var Font: TBitmapFont);
 var c: char;
 begin
  for c := Low(char) to High(char) do
-  Font[c] := Font2BFNTChar_HDc(dc, c);
+  Font[c] := Font2BitmapChar_HDc(dc, c);
 end;
 
-procedure Font2TrueTypeFont_HDc(dc: HDC; var Font: TTrueTypeFont);
+procedure Font2OutlineFont_HDc(dc: HDC; var Font: TOutlineFont);
 var c: char;
 begin
  for c := Low(char) to High(char) do
-  Font[c] := Font2TTFChar_HDc(dc, c);
+  Font[c] := Font2OutlineChar_HDc(dc, c);
 end;
 
 { versions without _HDc ------------------------------------------- }
 
-function Font2BFNTChar(WinFont: HFont; c: char): PBFNTChar;
+function Font2BitmapChar(WinFont: HFont; c: char): PBitmapChar;
 {$I winfontconvert_dc_from_winfont_declare.inc}
 begin
  {$I winfontconvert_dc_from_winfont_begin.inc}
- Result := Font2BFNTChar_HDc(dc, c);
+ Result := Font2BitmapChar_HDc(dc, c);
  {$I winfontconvert_dc_from_winfont_end.inc}
 end;
 
-function Font2TTFChar(WinFont: HFont; c: char): PTTFChar;
+function Font2OutlineChar(WinFont: HFont; c: char): POutlineChar;
 {$I winfontconvert_dc_from_winfont_declare.inc}
 begin
  {$I winfontconvert_dc_from_winfont_begin.inc}
- Result := Font2TTFChar_HDc(dc, c);
+ Result := Font2OutlineChar_HDc(dc, c);
  {$I winfontconvert_dc_from_winfont_end.inc}
 end;
 
-procedure Font2BitmapFont(WinFont: HFont; var Font: TBmpFont);
+procedure Font2BitmapFont(WinFont: HFont; var Font: TBitmapFont);
 {$I winfontconvert_dc_from_winfont_declare.inc}
 begin
  {$I winfontconvert_dc_from_winfont_begin.inc}
@@ -366,23 +365,23 @@ begin
  {$I winfontconvert_dc_from_winfont_end.inc}
 end;
 
-procedure Font2TrueTypeFont(WinFont: HFont; var Font: TTrueTypeFont);
+procedure Font2OutlineFont(WinFont: HFont; var Font: TOutlineFont);
 {$I winfontconvert_dc_from_winfont_declare.inc}
 begin
  {$I winfontconvert_dc_from_winfont_begin.inc}
- Font2TrueTypeFont_HDc(dc, Font);
+ Font2OutlineFont_HDc(dc, Font);
  {$I winfontconvert_dc_from_winfont_end.inc}
 end;
 
 { FreeMemNilingAllChars ------------------------------------------------ }
 
-procedure FreeMemNilingAllChars(var Font: TBmpFont);
+procedure FreeMemNilingAllChars(var Font: TBitmapFont);
 var c: char;
 begin
  for c := Low(char) to High(char) do FreeMemNiling(Pointer(Font[c]));
 end;
 
-procedure FreeMemNilingAllChars(var Font: TTrueTypeFont);
+procedure FreeMemNilingAllChars(var Font: TOutlineFont);
 var c: char;
 begin
  for c := Low(char) to High(char) do FreeMemNiling(Pointer(Font[c]));

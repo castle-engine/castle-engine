@@ -16,12 +16,12 @@
 { OpenGL fonts from TrueType fonts installed in Windows.
 
   We create Windows font using unit WindowsFonts,
-  then convert it to TTrueTypeFont/TBmpFont using unit WinFontConvert,
-  then utilize it in OpenGL using unit OpenGLTTFonts/OpenGLBmpFonts.
+  then convert it to TOutlineFont/TBitmapFont using unit WinFontConvert,
+  then utilize it in OpenGL using unit CastleGLBitmapFonts / CastleGLOutlineFonts.
   So this unit is just a simple wrapper for some other units.
 }
 
-unit OpenGLWindowsFonts;
+unit CastleGLWindowsFonts;
 
 { TODO: I implemented an alternative approach, using Windows fonts +
   wglUseFontXxx, and it will be combined as an option into this unit
@@ -31,20 +31,20 @@ unit OpenGLWindowsFonts;
 interface
 
 uses WindowsFonts, GL, GLU, GLExt, Windows
-  {$ifndef USE_WGL}, BmpFontsTypes, TTFontsTypes, WinFontConvert,
-  OpenGLTTFonts, OpenGLBmpFonts {$endif};
+  {$ifndef USE_WGL}, CastleBitmapFonts, CastleOutlineFonts, WinFontConvert,
+  CastleGLBitmapFonts, CastleGLOutlineFonts {$endif};
 
 type
   { }
   TWindowsOutlineFont = class(TGLOutlineFont)
   private
-    CreatedTTF: TTrueTypeFont;
+    CreatedOutline: TOutlineFont;
   public
     { For a description of AFaceName, AHeight, AWeight, AItalic, ACharSet:
       see documentation for Windows.CreateFont function.
 
       For a description of Depth and OnlyLines params:
-      see docs for OpenGLTTFonts.TGLOutlineTTFont.Create }
+      see docs for CastleGLOutlineFonts.TGLOutlineFont.Create. }
     constructor Create(const AFaceName: string; AHeight: Integer; AWeight: DWord;
       AItalic: boolean; ACharSet: DWord; Depth: TGLfloat; OnlyLines: boolean);
     destructor Destroy; override;
@@ -52,7 +52,7 @@ type
 
   TWindowsBitmapFont = class(TGLBitmapFont)
   private
-    CreatedBFNT: TBmpFont;
+    CreatedBitmap: TBitmapFont;
   public
     { For a description of AFaceName, AHeight, AWeight, AItalic, ACharSet:
       see documentation for Windows.CreateFont function. }
@@ -82,8 +82,8 @@ begin
 
   WinFontHandle := WinFont.GetHandle;
   try
-   Font2TrueTypeFont(WinFontHandle, CreatedTTF);
-   inherited Create(@CreatedTTF, Depth, OnlyLines);
+   Font2OutlineFont(WinFontHandle, CreatedOutline);
+   inherited Create(@CreatedOutline, Depth, OnlyLines);
   finally DeleteObject(WinFontHandle) end;
  finally WinFont.Free end;
 end;
@@ -92,8 +92,8 @@ destructor TWindowsOutlineFont.Destroy;
 begin
  inherited;
  { yes, FreeMem AFTER inherited because TGLOutlineFont
-   requires that @TTFont is valid for it's lifetime }
- FreeMemNilingAllChars(CreatedTTF);
+   requires that CreatedOutline is valid for it's lifetime }
+ FreeMemNilingAllChars(CreatedOutline);
 end;
 
 { TWindowsBitmapFont ---------------------------------------- }
@@ -120,8 +120,8 @@ begin
 
   WinFontHandle := WinFont.GetHandle;
   try
-   Font2BitmapFont(WinFontHandle, CreatedBFNT);
-   inherited Create(@CreatedBFNT);
+   Font2BitmapFont(WinFontHandle, CreatedBitmap);
+   inherited Create(@CreatedBitmap);
   finally DeleteObject(WinFontHandle) end;
  finally WinFont.Free end;
 end;
@@ -130,8 +130,8 @@ destructor TWindowsBitmapFont.Destroy;
 begin
  inherited;
  { yes, FreeMem AFTER inherited because TGLBitmapFont
-   requires that @BmpFont is valid for it's lifetime }
- FreeMemNilingAllChars(CreatedBFNT);
+   requires that BitmapFont is valid for it's lifetime }
+ FreeMemNilingAllChars(CreatedBitmap);
 end;
 
 end.

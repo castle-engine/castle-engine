@@ -54,7 +54,8 @@ program bump_mapping;
 uses CastleWindow, GL, GLU, GLExt, CastleGLUtils,
   Cameras, CastleBoxes, SysUtils, CastleUtils, CastleVectors,
   CastleClassUtils, CastleFilesUtils, CastleStringUtils,
-  CastleMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, CastleImages, CastleKeysMouse,
+  CastleMessages, CastleBitmapFont_BVSans, CastleGLBitmapFonts, 
+  CastleImages, CastleKeysMouse,
   NormalizationCubeMap, GLImages, GLVersionUnit, X3DNodes,
   CastleParameters, CastleLog, RaysWindow, UIControls, Classes, CastleWarnings,
   CastleSceneCore, CastleScene, X3DLoad, CastleProgress, Background, CastleColors,
@@ -1098,7 +1099,7 @@ begin
 
   NormalizationCubeTex := MakeNormalizationCubeMap;
 
-  Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
+  Font := TGLBitmapFont.Create(BitmapFont_BVSans);
 end;
 
 procedure Close(glwin: TCastleWindowBase);

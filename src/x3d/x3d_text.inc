@@ -73,7 +73,7 @@
     function Bold: boolean;
     function Italic: boolean;
     function Justify: TX3DFontJustify;
-    function TTF_Font: PTrueTypeFont;
+    function Font: TOutlineFont;
 
     class function DefaultSize: Single;
     class function DefaultSpacing: Single;
@@ -81,10 +81,10 @@
     class function DefaultBold: boolean;
     class function DefaultItalic: boolean;
     class function DefaultJustify: TX3DFontJustify;
-    class function DefaultTTF_Font: PTrueTypeFont;
+    class function DefaultFont: TOutlineFont;
 
-    class function ClassTTF_Font(AFamily: TX3DFontFamily;
-      const ABold, AItalic: boolean): PTrueTypeFont;
+    class function ClassFont(AFamily: TX3DFontFamily;
+      const ABold, AItalic: boolean): TOutlineFont;
   end;
   TFontStyleNode_2 = TFontStyleNode;
 
@@ -142,14 +142,6 @@ begin
 
   DefaultContainerField := 'fontStyle';
 end;
-
-const
-  TTF_Font_Results: array[TX3DFontFamily, boolean, boolean]of PTrueTypeFont =
-  (              {   [],                          [italic],                            [bold],                      [italic, bold] }
-    {serif}      ( ((@TTF_BitstreamVeraSerif),   (@TTF_BitstreamVeraSerif_Italic)),    ((@TTF_BitstreamVeraSerif_Bold),    (@TTF_BitstreamVeraSerif_Bold_Italic)) ),
-    {sans}       ( ((@TTF_BitstreamVeraSans),    (@TTF_BitstreamVeraSans_Italic)),     ((@TTF_BitstreamVeraSans_Bold),     (@TTF_BitstreamVeraSans_Bold_Italic)) ),
-    {typewriter} ( ((@TTF_BitstreamVeraSansMono),(@TTF_BitstreamVeraSansMono_Italic)), ((@TTF_BitstreamVeraSansMono_Bold), (@TTF_BitstreamVeraSansMono_Bold_Italic)) )
-  );
 
 procedure TFontStyleNode.CreateNode;
 begin
@@ -222,15 +214,46 @@ begin
   Result := Version.Major >= 2;
 end;
 
-function TFontStyleNode.TTF_Font: PTrueTypeFont;
+function TFontStyleNode.Font: TOutlineFont;
 begin
-  Result := TTF_Font_Results[Family, Bold, Italic];
+  Result := ClassFont(Family, Bold, Italic);
 end;
 
-class function TFontStyleNode.ClassTTF_Font(
-  AFamily: TX3DFontFamily; const ABold, AItalic: boolean): PTrueTypeFont;
+class function TFontStyleNode.ClassFont(
+  AFamily: TX3DFontFamily; const ABold, AItalic: boolean): TOutlineFont;
 begin
-  Result := TTF_Font_Results[AFamily, ABold, AItalic];
+  case AFamily of
+    ffSerif     : case ABold of
+                    false: case AItalic of
+                             false: Result := OutlineFont_BVSerif;
+                             true : Result := OutlineFont_BVSerif_Italic;
+                           end;
+                    true : case AItalic of
+                             false: Result := OutlineFont_BVSerif_Bold;
+                             true : Result := OutlineFont_BVSerif_Bold_Italic;
+                           end;
+                  end;
+    ffSans      : case ABold of
+                    false: case AItalic of
+                             false: Result := OutlineFont_BVSans;
+                             true : Result := OutlineFont_BVSans_Italic;
+                           end;
+                    true : case AItalic of
+                             false: Result := OutlineFont_BVSans_Bold;
+                             true : Result := OutlineFont_BVSans_Bold_Italic;
+                           end;
+                  end;
+    ffTypeWriter: case ABold of
+                    false: case AItalic of
+                             false: Result := OutlineFont_BVSansMono;
+                             true : Result := OutlineFont_BVSansMono_Italic;
+                           end;
+                    true : case AItalic of
+                             false: Result := OutlineFont_BVSansMono_Bold;
+                             true : Result := OutlineFont_BVSansMono_Bold_Italic;
+                           end;
+                  end;
+  end;
 end;
 
 function TFontStyleNode.Family: TX3DFontFamily;
@@ -393,9 +416,9 @@ begin
   Result := fjBegin;
 end;
 
-class function TFontStyleNode.DefaultTTF_Font: PTrueTypeFont;
+class function TFontStyleNode.DefaultFont: TOutlineFont;
 begin
-  Result := TTF_Font_Results[DefaultFamily, DefaultBold, DefaultItalic];
+  Result := ClassFont(DefaultFamily, DefaultBold, DefaultItalic);
 end;
 
 procedure TTextNode.CreateNode;

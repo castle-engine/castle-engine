@@ -168,7 +168,7 @@ unit X3DNodes;
 interface
 
 uses CastleVectors, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
-  X3DFields, CastleBoxes, CastleImages, TTFontsTypes,
+  X3DFields, CastleBoxes, CastleImages, CastleOutlineFonts,
   Videos, X3DTime, Castle3D,
   CastleScript, X3DCastleScript, CastleOctree, DDS, TextureImages,
   XMLRead, DOM, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
@@ -2131,20 +2131,20 @@ implementation
 uses
   { Fonts for Text, FontStyle, AsciiText nodes }
   { Bitstream Vera Sans }
-  TTF_BitstreamVeraSans_Unit,
-  TTF_BitstreamVeraSans_Bold_Unit,
-  TTF_BitstreamVeraSans_Italic_Unit,
-  TTF_BitstreamVeraSans_Bold_Italic_Unit,
+  CastleOutlineFont_BVSans,
+  CastleOutlineFont_BVSans_Bold,
+  CastleOutlineFont_BVSans_Italic,
+  CastleOutlineFont_BVSans_Bold_Italic,
   { Bitstream Vera Sans Mono }
-  TTF_BitstreamVeraSansMono_Unit,
-  TTF_BitstreamVeraSansMono_Bold_Unit,
-  TTF_BitstreamVeraSansMono_Italic_Unit,
-  TTF_BitstreamVeraSansMono_Bold_Italic_Unit,
+  CastleOutlineFont_BVSansMono,
+  CastleOutlineFont_BVSansMono_Bold,
+  CastleOutlineFont_BVSansMono_Italic,
+  CastleOutlineFont_BVSansMono_Bold_Italic,
   { Bitstream Vera Serif }
-  TTF_BitstreamVeraSerif_Unit,
-  TTF_BitstreamVeraSerif_Bold_Unit,
-  TTF_BitstreamVeraSerif_Italic_Unit,
-  TTF_BitstreamVeraSerif_Bold_Italic_Unit,
+  CastleOutlineFont_BVSerif,
+  CastleOutlineFont_BVSerif_Bold,
+  CastleOutlineFont_BVSerif_Italic,
+  CastleOutlineFont_BVSerif_Bold_Italic,
 
   Math, X3DLoad, CastleZStream, X3DCameraUtils, CastleWarnings, CastleColors,
   CastleFilesUtils, RaysWindow, StrUtils, CastleURLUtils,

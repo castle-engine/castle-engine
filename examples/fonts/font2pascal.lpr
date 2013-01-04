@@ -20,9 +20,9 @@
   Michalis plans (since a long time...) to switch to using freetype
   (as I don't even use Windows since a long time), but so far there was no time
   to do it. The plan is to implement unit like CastleFonts that reads a font file
-  (like ttf) and for a given character returns PBFNTChar structure (for bitmap
-  font) and PTTFChar (for geometric font, composed on lines and curves).
-  It's possible to also change the definition of our PBFNTChar/PTTFChar types
+  (like ttf) and for a given character returns PBitmapChar structure (for bitmap
+  font) and POutlineChar (for geometric font, composed on lines and curves).
+  It's possible to also change the definition of our PBitmapChar/POutlineChar types
   at that point, maybe integrate them more with freetype structures,
   basically: do anything to make the job easier.
   Contributions are most welcome, if you're familiar with freetype
@@ -32,7 +32,7 @@
 {$apptype CONSOLE}
 
 uses Windows, SysUtils, WindowsFonts, CastleFont2Pascal, CastleUtils,
-  CastleClassUtils, CastleParameters, TTFontsTypes, BmpFontsTypes, WinFontConvert,
+  CastleClassUtils, CastleParameters, CastleOutlineFonts, CastleBitmapFonts, WinFontConvert,
   Classes, CastleStringUtils, CastleTimeUtils;
 
 const
@@ -40,7 +40,7 @@ const
 
 var
   WinFont: TWindowsFont;
-  AsTtf: boolean = true;
+  AsOutline: boolean = true;
   WasParam_Dir: boolean = false;
   Dir: string;
 
@@ -65,21 +65,20 @@ begin
     0: begin
          Writeln(
            'font2pascal: converts fonts installed' +nl+
-           'on your system (only TrueType, *. ttf) to Pascal source' +nl+
-           'files, based on types in Castle Game Engine TTFontsTypes or BmpFontsTypes' +nl+
-           'units.' +nl+
+           'on your system to Pascal source files, based on types' +nl+
+           'in Castle Game Engine CastleOutlineFonts or CastleBitmapFonts units.' +nl+
            nl+
            'Available options:' +nl+
            '  -h / --help           Print this help message and exit' +nl+
-           '  --grab-to ttf|bfnt    Set whether to generate font as trutype' +nl+
-           '                        (TTFontsTypes) or bitmap font (BmpFontsTypes)' +nl+
-           '                        Default is "as truetype".' +nl+
+           '  --grab-to outline|bitmap' +nl+
+           '                        Set whether to generate font as outline' +nl+
+           '                        (CastleOutlineFonts) or bitmap font (CastleBitmapFonts)' +nl+
+           '                        Default is "as outline".' +nl+
            '  --dir DIR             This tells font2pascal to write output to file' +nl+
            '                        in directory DIR with a filename deduced from' +nl+
-           '                        generated unit name (e.g. unit TTF_CourierNew_Unit' +nl+
-           '                        will be output to ttf_couriernew_unit.pas).' +nl+
-           '                        Some one-line comment (like' +nl+
-           '                        "font2pascal: ttf_couriernew_unit.pas generated")' +nl+
+           '                        generated unit name (e.g. unit CastleOutlineFont_CourierNew' +nl+
+           '                        will be output to castleoutlinefont_couriernew.pas).' +nl+
+           '                        Some one-line comment' +nl+
            '                        will be then printed on StdOut.' +nl+
            '                        Default is to write output to StdOut.' +nl+
            nl+
@@ -114,9 +113,9 @@ begin
          WinFont.Weight := FW_REGULAR;
     3: WinFont.Weight := StrToInt(Argument);
     4: WinFont.Italic := StrToBool(Argument);
-    5: if Argument = 'ttf'  then AsTtf := true else
-       if Argument = 'bfnt' then AsTtf := false else
-         raise EInvalidParams.CreateFmt('Wrong argument, should be "ttf" or "bfnt" '+
+    5: if Argument = 'outline' then AsOutline := true  else
+       if Argument = 'bitmap'  then AsOutline := false else
+         raise EInvalidParams.CreateFmt('Wrong argument, should be "outline" or "bitmap" '+
            'but is "%s"', [Argument]);
     6: WinFont.CharSet := WinCharSetFromName(Argument);
     7: WinFont.Height := StrToInt(Argument);
@@ -130,8 +129,8 @@ end;
 
 var
   WinFontHandle: HFont;
-  TTFont: TTrueTypeFont;
-  BmpFont: TBmpFont;
+  OutlineFont: TOutlineFont;
+  BitmapFont: TBitmapFont;
   S, PrecedingComment, UnitName, FontConstantName, OutFileName: string;
   Stream: TStream;
 begin
@@ -142,7 +141,7 @@ begin
 
     WinFontHandle := WinFont.GetHandle;
     try
-      if AsTtf then s := 'TTF_' else s := 'BFNT_';
+      if AsOutline then s := 'OutlineFont_' else s := 'BitmapFont_';
       s := s + SDeleteChars(WinFont.FaceName, AllChars - ['a'..'z', 'A'..'Z', '0'..'9']);
       if WinFont.Weight >= FW_BOLD then s := s + '_Bold';
       if WinFont.Italic then s := s + '_Italic';
@@ -150,7 +149,7 @@ begin
         s := s + '_' + StringReplace(IntToStr(WinFont.Height), '-', 'm', [rfReplaceAll]);
 
       FontConstantName := s;
-      UnitName := s + '_Unit';
+      UnitName := 'Castle' + s;
       PrecedingComment := Format(
         '  Generated by font2pascal on %s' +nl+
         '  Source font:' +nl+
@@ -173,18 +172,18 @@ begin
         Stream := StdOutStream;
 
       try
-        if AsTtf then
+        if AsOutline then
         begin
-          Font2TrueTypeFont(WinFontHandle, TTFont);
+          Font2OutlineFont(WinFontHandle, OutlineFont);
           try
-            Font2Pascal(TTFont, UnitName, PrecedingComment, FontConstantName, Stream);
-          finally FreeMemNilingAllChars(TTFont) end;
+            Font2Pascal(OutlineFont, UnitName, PrecedingComment, FontConstantName, Stream);
+          finally FreeMemNilingAllChars(OutlineFont) end;
         end else
         begin
-          Font2BitmapFont(WinFontHandle, BmpFont);
+          Font2BitmapFont(WinFontHandle, BitmapFont);
           try
-            Font2Pascal(BmpFont, UnitName, PrecedingComment, FontConstantName, Stream);
-          finally FreeMemNilingAllChars(BmpFont) end;
+            Font2Pascal(BitmapFont, UnitName, PrecedingComment, FontConstantName, Stream);
+          finally FreeMemNilingAllChars(BitmapFont) end;
         end;
 
         if WasParam_Dir then

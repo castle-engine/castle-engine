@@ -117,7 +117,7 @@ unit CastleMessages;
 
 interface
 
-uses Classes, CastleWindow, CastleGLUtils, GL, GLU, GLExt, CastleUtils, OpenGLFonts,
+uses Classes, CastleWindow, CastleGLUtils, GL, GLU, GLExt, CastleUtils, CastleGLBitmapFonts,
   CastleStringUtils, CastleVectors, CastleKeysMouse;
 
 type
@@ -325,7 +325,7 @@ type
     { Font used by procedures in this unit.
       Nil means "use default font".
       This font doesn't have to be mono-spaced.  }
-    Font: TGLBitmapFont_Abstract;
+    Font: TGLBitmapFontAbstract;
   end;
 
 const
@@ -365,7 +365,7 @@ var
 
 implementation
 
-uses OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_m18_Unit, CastleImages,
+uses CastleBitmapFont_BVSansMono_m18, CastleImages,
   CastleClassUtils, SysUtils, WindowModes, CastleLog, GLImages;
 
 { TIntRect ------------------------------------------------------------------- }
@@ -522,7 +522,7 @@ type
     { przekazana jako parametr lista stringow; tylko do odczytu,
       nie modyfikuj tego zawartosci ! }
     MessgText: TStringList;
-    Font: TGLBitmapFont_Abstract;   { font ktorego uzyc }
+    Font: TGLBitmapFontAbstract;   { font ktorego uzyc }
     DrawBG: TGLImage;            { zapamietane tlo okienka }
     align: TTextAlign;
     DrawAdditional: boolean; { czy wypisywac SAdditional }
@@ -1102,7 +1102,7 @@ begin
     DrawBG := SaveScreenToGL_noflush(0, 0, Window.Width, Window.Height, GL_FRONT);
    answered := false;
    if MessagesTheme.Font = nil then
-    font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_m18) else
+    font := TGLBitmapFont.Create(BitmapFont_BVSansMono_m18) else
     font := MessagesTheme.Font;
    MessgText := textlist;
    { contents of Broken_xxx will be initialized in resizeMessg(),

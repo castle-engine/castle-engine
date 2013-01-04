@@ -13,28 +13,29 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Types for TrueType fonts.)
+{ Outline fonts types.
 
-  Concrete font types may be automatically loaded to such types,
-  or even converted to Pascal units (so your fonts will be embedded
-  directly into the program binary).
+  Outline fonts are composed from lines and curves.
+  They may be represented using types in this unit.
+  We also have CastleFont2Pascal unit that can even convert such fonts
+  to Pascal units, to embed fonts inside Pascal code.
 
   Basic concepts:
 
   @unorderedList(
-    @item(Font (TTrueTypeFont) is an array of characters.)
+    @item(Font (TOutlineFont) is an array of characters.)
 
-    @item(Character (TTTFChar) contains a basic character information
+    @item(Character (TOutlineChar) contains a basic character information
       (size and such) and a sequence of polygons to render this character.)
 
     @item(A polygon is a closed sequence of lines. It's defined inside
-      TTTFCharItem array, with @code(Kind = pkNewPolygon) indicating
+      TOutlineCharItem array, with @code(Kind = pkNewPolygon) indicating
       start of a new polygon.)
 
     @item(A line is a sequence of points.
       These points should be rendered as either a sequence of straight
       line segments, or a Bezier (cubic) curve. Line is defined inside
-      TTTFCharItem array, with @code(Kind = pkLines or pkBezier)
+      TOutlineCharItem array, with @code(Kind = pkLines or pkBezier)
       indicating start of a new line.
 
       Note: unless you're going to see the font from a really close distance,
@@ -56,62 +57,77 @@
   pass all the polygons.
 }
 
-unit TTFontsTypes;
+unit CastleOutlineFonts;
 
 interface
 
 type
   TPolygonKind = (pkNewPolygon, pkLines, pkBezier, pkPoint);
 
-  TTTFCharItem = packed record
+  TOutlineCharItem = packed record
     case Kind: TPolygonKind of
       pkNewPolygon, pkLines, pkBezier : (Count: Cardinal);
       pkPoint : (x, y: Single);
   end;
-  PTTFCharItem = ^TTTFCharItem;
+  POutlineCharItem = ^TOutlineCharItem;
 
-  TTTFCharInfo = record
+  TOutlineCharInfo = record
     MoveX, MoveY, Height: Single;
 
-    { How many polygons are defined inside TTTFChar.Items.
+    { How many polygons are defined inside TOutlineChar.Items.
       That is, how many items with Kind = pkNewPolygon are there.
       Note: it can be equal to 0 (for characters such as space). }
     PolygonsCount: Cardinal;
 
-    { Number of Items inside a TTTFChar.Items. }
+    { Number of Items inside a TOutlineChar.Items. }
     ItemsCount: Cardinal;
   end;
 
   { Character information.
-    It's packed because of the same reason as TBFNTChar. }
-  TTTFChar = packed record
-    Info: TTTFCharInfo;
+    It's packed because of the same reason as TBitmapChar. }
+  TOutlineChar = packed record
+    Info: TOutlineCharInfo;
 
     { Actual polygons, lines and points defining font outline.
 
-      Although we define TTTFChar.Items as having
+      Although we define TOutlineChar.Items as having
       a (practically) infinite number of items, we actually never declare
-      variables of TTTFChar type, only of PTTFChar character.
-      You have to always look at TTTFCharInfo.ItemsCount (Info.ItemsCount)
+      variables of TOutlineChar type, only of POutlineChar character.
+      You have to always look at TOutlineCharInfo.ItemsCount (Info.ItemsCount)
       to know actual number of items.
 
       You can also determine the end of items array
-      by iterating over TTTFChar.Items, and knowing the Info.PolygonsCount.
+      by iterating over TOutlineChar.Items, and knowing the Info.PolygonsCount.
       Although the ItemsCount gives this directly. }
-    Items: packed array[0..MaxInt div SizeOf(TTTFCharItem) - 10] of TTTFCharItem;
+    Items: packed array[0..MaxInt div SizeOf(TOutlineCharItem) - 10] of TOutlineCharItem;
   end;
-  PTTFChar = ^TTTFChar;
+  POutlineChar = ^TOutlineChar;
 
-  TTrueTypeFont = array[char] of PTTFChar;
-  PTrueTypeFont = ^TTrueTypeFont;
+  TOutlineFontArray = array [char] of POutlineChar;
+  TOutlineFont = class
+  public
+    Data: TOutlineFontArray;
+
+    { Calculate the height below the font baseline.
+      This calculates the descend really simply ,as the height
+      of letter "y" minus height of the letter "a". This will work Ok
+      (and fast) for normal fonts.}
+    function Descend: Single;
+
+    { Calculate row height. Simply, as the height of 'Mg' string. }
+    function RowHeight: Single;
+
+    function TextWidth(const s: string): Single;
+    function TextHeight(const s: string): Single;
+  end;
 
 (*
   Example:
 
   const
     CharX : record
-      Info: TTTFCharInfo;
-      Items: array[0..17] of TTTFCharItem;
+      Info: TOutlineCharInfo;
+      Items: array[0..17] of TOutlineCharItem;
     end =
     ( Info : (  MoveX:123; MoveY:456; Height:30;
                 PolygonsCount:2;
@@ -128,7 +144,7 @@ type
 
   Value of Kind field determine whether you should look at Count field
   or at X, Y fields.
-  - Point is represented by TTTFCharItem with Kind = pkPoint and
+  - Point is represented by TOutlineCharItem with Kind = pkPoint and
     x, y set appropriately
   - Set of connected lines (polish: linia lamana) and Bezier curves are
     represented as
@@ -136,7 +152,7 @@ type
       (Kind: pkPoint; x:...; y:...), { 1st point }
       ...
       (Kind: pkPoint; x:...; y:...), { <n>th point }
-    (<n>+1 TTTFCharItem values)
+    (<n>+1 TOutlineCharItem values)
     Each set of connected lines or Bezier curve must have <n> >= 2.
     I.e. if Kind in [pkLines, pkBezier], Count must be >= 2.
   - Polygon is
@@ -159,44 +175,33 @@ type
   Pierwszy punkt kazdej linii na pewno jest ostatnim punktem poprzedniej linii.
 *)
 
-{ Calculate the height below the font baseline.
-  This calculates the descend really simply ,as the height
-  of letter "y" minus height of the letter "a". This will work Ok
-  (and fast) for normal fonts.}
-function TTFontSimpleDescend(font: PTrueTypeFont): Single;
-
-{ Calculate row height. Simply, as the height of 'Mg' string. }
-function TTFontSimpleRowHeight(font: PTrueTypeFont): Single;
-
-function TTFontTextWidth(font: PTrueTypeFont; const s: string): Single;
-function TTFontTextHeight(font: PTrueTypeFont; const s: string): Single;
-
 implementation
 
-function TTFontSimpleDescend(font: PTrueTypeFont): Single;
+function TOutlineFont.Descend: Single;
 begin
- result := font^['y']^.info.Height - font^['a']^.info.height;
+  result := Data['y']^.info.Height - Data['a']^.info.height;
 end;
 
-function TTFontSimpleRowHeight(font: PTrueTypeFont): Single;
+function TOutlineFont.RowHeight: Single;
 begin
- result := TTFontTextHeight(font, 'Mg');
+  result := TextHeight('Mg');
 end;
 
-function TTFontTextWidth(font: PTrueTypeFont; const s: string): Single;
+function TOutlineFont.TextWidth(const s: string): Single;
+var
+  i: integer;
+begin
+  result := 0;
+  for i := 1 to length(s) do result := result + Data[s[i]]^.info.moveX;
+end;
+
+function TOutlineFont.TextHeight(const s: string): Single;
 var i: integer;
 begin
- result := 0;
- for i := 1 to length(s) do result := result + font^[s[i]]^.info.moveX;
-end;
-
-function TTFontTextHeight(font: PTrueTypeFont; const s: string): Single;
-var i: integer;
-begin
- result := 0.0;
- for i := 1 to length(s) do
-   if font^[s[i]]^.info.Height > result then
-     result := font^[s[i]]^.info.Height;
+  result := 0.0;
+  for i := 1 to length(s) do
+    if Data[s[i]]^.info.Height > result then
+      result := Data[s[i]]^.info.Height;
 end;
 
 end.

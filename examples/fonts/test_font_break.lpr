@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo of TGLBitmapFont_Abstract.BreakLines method.
+{ Demo of TGLBitmapFontAbstract.BreakLines method.
   Resize the window and watch how the text lines are automatically broken.
 }
 
@@ -23,10 +23,10 @@
 
 program test_font_break;
 
-uses CastleWindow, GL, GLU, CastleGLUtils, OpenGLFonts, SysUtils, Classes,
-  CastleUtils, OpenGLBmpFonts, CastleVectors, CastleStringUtils, CastleColors,
+uses CastleWindow, GL, GLU, CastleGLUtils, SysUtils, Classes,
+  CastleUtils, CastleGLBitmapFonts, CastleVectors, CastleStringUtils, CastleColors,
   CastleControls, CastleKeysMouse
-  {$ifdef TEST_FONT_REPLACE} , BFNT_BitstreamVeraSansMono_Bold_M15_Unit {$endif};
+  {$ifdef TEST_FONT_REPLACE} , CastleBitmapFont_BVSansMono_Bold_M15 {$endif};
 
 var
   Window: TCastleWindowCustom;
@@ -67,7 +67,7 @@ end;
 procedure Open(Window: TCastleWindowBase);
 begin
 {$ifdef TEST_FONT_REPLACE}
-  UIFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_Bold_M15);
+  UIFont := TGLBitmapFont.Create(BitmapFont_BVSansMono_Bold_M15);
 {$endif}
 end;
 

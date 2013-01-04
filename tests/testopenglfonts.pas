@@ -29,12 +29,12 @@ type
 implementation
 
 uses SysUtils, Classes, CastleWindow,
-  OpenGLFonts, OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_Bold_m15_Unit;
+  OpenGLFonts, CastleGLBitmapFonts, CastleBitmapFont_BVSansMono_Bold_m15;
 
 procedure TTestOpenGLFonts.TestMaxTextWidthTags;
 var
   Window: TCastleWindow;
-  F: TGLBitmapFont_Abstract;
+  F: TGLBitmapFontAbstract;
   SList: TStringList;
   W1, W2: Single;
 begin
@@ -42,7 +42,7 @@ begin
   try
     Window.Visible := false;
     Window.Open;
-    F := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_Bold_m15);
+    F := TGLBitmapFont.Create(BitmapFont_BVSansMono_Bold_m15);
 
     SList := TStringList.Create;
 

@@ -30,7 +30,7 @@ procedure InspectCreatures;
 implementation
 
 uses WindowModes, Cameras, CastleGLUtils, CastleWindow, GL, CastleVectors, SysUtils,
-  BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts,
+  CastleBitmapFont_BVSansMono_Bold_m15, CastleGLBitmapFonts,
   Classes, CastleStringUtils, CastleMessages, CastleFilesUtils,
   RiftVideoOptions, RiftGame, RiftWindow, RiftCreatures,
   UIControls, RiftSceneManager, CastleColors, CastleKeysMouse;
@@ -150,7 +150,7 @@ end;
 
 procedure WindowOpen(const Container: IUIContainer);
 begin
-  StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_Bold_m15);
+  StatusFont := TGLBitmapFont.Create(BitmapFont_BVSansMono_Bold_m15);
 end;
 
 procedure WindowClose(const Container: IUIContainer);

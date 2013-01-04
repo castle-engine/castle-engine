@@ -25,7 +25,7 @@ program show_sh;
 uses CastleVectors, CastleBoxes, GL, CastleWindow, Castle3D, UIControls,
   CastleClassUtils, CastleUtils, SysUtils, CastleFilesUtils,
   CastleGLUtils, Cameras, Math, SphereSampling, SphericalHarmonics,
-  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, CastleSceneManager,
+  CastleBitmapFont_BVSans, CastleGLBitmapFonts, CastleSceneManager,
   CastleStringUtils, CastleKeysMouse;
 
 var
@@ -194,7 +194,7 @@ end;
 procedure Open(Glwin: TCastleWindowBase);
 begin
   glEnable(GL_DEPTH_TEST);
-  Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
+  Font := TGLBitmapFont.Create(BitmapFont_BVSans);
 end;
 
 procedure Close(Glwin: TCastleWindowBase);

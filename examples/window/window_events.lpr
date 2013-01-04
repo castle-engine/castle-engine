@@ -24,7 +24,7 @@ program window_events;
 
 uses SysUtils, CastleUtils, CastleGLUtils, GL, GLU, CastleNotifications, CastleWindow,
   CastleKeysMouse, CastleStringUtils,
-  OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_Bold_m15_Unit,
+  CastleGLBitmapFonts, CastleBitmapFont_BVSansMono_Bold_m15,
   Classes, CastleMessages;
 
 var
@@ -36,7 +36,7 @@ procedure Open(Window: TCastleWindowBase);
 begin
   Notifications.Show('Open message');
 
-  Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_Bold_m15);
+  Font := TGLBitmapFont.Create(BitmapFont_BVSansMono_Bold_m15);
 end;
 
 procedure Close(Window: TCastleWindowBase);

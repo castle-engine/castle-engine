@@ -162,7 +162,7 @@ units are allowed to be used by units in specific group.
 
   @itemLabel @code(fonts)
   @item(
-    Font support, including some embedded fonts in TTF_* and BFNT_* units.
+    Font support, including some embedded fonts in CastleOutlineFont_* and CastleBitmapFont_* units.
     Not OpenGL-specific.
 
     @italic(Uses:) @code(base).)

@@ -127,25 +127,25 @@ begin
     P.Targets.AddUnit('x3dcastlescript.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'fonts');
-    P.Targets.AddUnit('bfnt_bitstreamverasans_m10_unit.pas');
-    P.Targets.AddUnit('bfnt_bitstreamverasans_unit.pas');
-    P.Targets.AddUnit('bfnt_bitstreamverasansmono_bold_m15_unit.pas');
-    P.Targets.AddUnit('bfnt_bitstreamverasansmono_m18_unit.pas');
-    P.Targets.AddUnit('bmpfontstypes.pas');
+    P.Targets.AddUnit('castlebitmapfont_bvsans_m10.pas');
+    P.Targets.AddUnit('castlebitmapfont_bvsans.pas');
+    P.Targets.AddUnit('castlebitmapfont_bvsansmono_bold_m15.pas');
+    P.Targets.AddUnit('castlebitmapfont_bvsansmono_m18.pas');
+    P.Targets.AddUnit('castlebitmapfonts.pas');
     P.Targets.AddUnit('castlefont2pascal.pas');
-    P.Targets.AddUnit('ttf_bitstreamverasans_bold_italic_unit.pas');
-    P.Targets.AddUnit('ttf_bitstreamverasans_bold_unit.pas');
-    P.Targets.AddUnit('ttf_bitstreamverasans_italic_unit.pas');
-    P.Targets.AddUnit('ttf_bitstreamverasans_unit.pas');
-    P.Targets.AddUnit('ttf_bitstreamverasansmono_bold_italic_unit.pas');
-    P.Targets.AddUnit('ttf_bitstreamverasansmono_bold_unit.pas');
-    P.Targets.AddUnit('ttf_bitstreamverasansmono_italic_unit.pas');
-    P.Targets.AddUnit('ttf_bitstreamverasansmono_unit.pas');
-    P.Targets.AddUnit('ttf_bitstreamveraserif_bold_italic_unit.pas');
-    P.Targets.AddUnit('ttf_bitstreamveraserif_bold_unit.pas');
-    P.Targets.AddUnit('ttf_bitstreamveraserif_italic_unit.pas');
-    P.Targets.AddUnit('ttf_bitstreamveraserif_unit.pas');
-    P.Targets.AddUnit('ttfontstypes.pas');
+    P.Targets.AddUnit('castleoutlinefonts.pas');
+    P.Targets.AddUnit('castleoutlinefont_bvsans_bold_italic.pas');
+    P.Targets.AddUnit('castleoutlinefont_bvsans_bold.pas');
+    P.Targets.AddUnit('castleoutlinefont_bvsans_italic.pas');
+    P.Targets.AddUnit('castleoutlinefont_bvsans.pas');
+    P.Targets.AddUnit('castleoutlinefont_bvsansmono_bold_italic.pas');
+    P.Targets.AddUnit('castleoutlinefont_bvsansmono_bold.pas');
+    P.Targets.AddUnit('castleoutlinefont_bvsansmono_italic.pas');
+    P.Targets.AddUnit('castleoutlinefont_bvsansmono.pas');
+    P.Targets.AddUnit('castleoutlinefont_bvserif_bold_italic.pas');
+    P.Targets.AddUnit('castleoutlinefont_bvserif_bold.pas');
+    P.Targets.AddUnit('castleoutlinefont_bvserif_italic.pas');
+    P.Targets.AddUnit('castleoutlinefont_bvserif.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
       P.SourcePath.Add('src' + PathDelim + 'fonts' + PathDelim + 'windows');
@@ -176,6 +176,8 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'opengl');
     P.Targets.AddUnit('beziercurve.pas');
+    P.Targets.AddUnit('castleglbitmapfonts.pas');
+    P.Targets.AddUnit('castlegloutlinefonts.pas');
     P.Targets.AddUnit('castleglutils.pas');
     P.Targets.AddUnit('curve.pas');
     P.Targets.AddUnit('glcubemap.pas');
@@ -184,9 +186,6 @@ begin
     P.Targets.AddUnit('glshadowvolumerenderer.pas');
     P.Targets.AddUnit('glversionunit.pas');
     P.Targets.AddUnit('normalizationcubemap.pas');
-    P.Targets.AddUnit('openglbmpfonts.pas');
-    P.Targets.AddUnit('openglfonts.pas');
-    P.Targets.AddUnit('openglttfonts.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
       P.SourcePath.Add('src' + PathDelim + 'opengl' + PathDelim + 'windows');

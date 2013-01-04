@@ -18,17 +18,17 @@ unit CastleControls;
 
 interface
 
-uses Classes, GL, CastleVectors, UIControls, OpenGLFonts,
+uses Classes, GL, CastleVectors, UIControls, CastleGLBitmapFonts,
   CastleKeysMouse, CastleImages, CastleUtils, GLImages;
 
 type
   { Base class for all controls inside an OpenGL context using a font. }
   TUIControlFont = class(TUIControlPos)
   private
-    FFont: TGLBitmapFont_Abstract;
+    FFont: TGLBitmapFontAbstract;
     FTooltip: string;
   protected
-    property Font: TGLBitmapFont_Abstract read FFont;
+    property Font: TGLBitmapFontAbstract read FFont;
   public
     function TooltipStyle: TUIControlDrawStyle; override;
     procedure DrawTooltip; override;
@@ -288,14 +288,14 @@ type
   all your controls.)
 
   @groupBegin }
-function GetUIFont: TGLBitmapFont_Abstract;
-procedure SetUIFont(const Value: TGLBitmapFont_Abstract);
+function GetUIFont: TGLBitmapFontAbstract;
+procedure SetUIFont(const Value: TGLBitmapFontAbstract);
 
-function GetUIFontSmall: TGLBitmapFont_Abstract;
-procedure SetUIFontSmall(const Value: TGLBitmapFont_Abstract);
+function GetUIFontSmall: TGLBitmapFontAbstract;
+procedure SetUIFontSmall(const Value: TGLBitmapFontAbstract);
 
-property UIFont: TGLBitmapFont_Abstract read GetUIFont write SetUIFont;
-property UIFontSmall: TGLBitmapFont_Abstract read GetUIFontSmall write SetUIFontSmall;
+property UIFont: TGLBitmapFontAbstract read GetUIFont write SetUIFont;
+property UIFontSmall: TGLBitmapFontAbstract read GetUIFontSmall write SetUIFontSmall;
 { @groupEnd }
 
 function Theme: TCastleTheme;
@@ -304,9 +304,8 @@ procedure Register;
 
 implementation
 
-uses SysUtils,
-  BFNT_BitstreamVeraSans_m10_Unit, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts,
-  CastleGLUtils, Math;
+uses SysUtils, CastleBitmapFont_BVSans_m10,
+  CastleBitmapFont_BVSans, CastleGLUtils, Math;
 
 procedure Register;
 begin
@@ -994,17 +993,17 @@ end;
 { UIFont --------------------------------------------------------------------- }
 
 var
-  FUIFont: TGLBitmapFont_Abstract;
-  FUIFontSmall: TGLBitmapFont_Abstract;
+  FUIFont: TGLBitmapFontAbstract;
+  FUIFontSmall: TGLBitmapFontAbstract;
 
-function GetUIFont: TGLBitmapFont_Abstract;
+function GetUIFont: TGLBitmapFontAbstract;
 begin
   if FUIFont = nil then
-    FUIFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
+    FUIFont := TGLBitmapFont.Create(BitmapFont_BVSans);
   Result := FUIFont;
 end;
 
-procedure SetUIFont(const Value: TGLBitmapFont_Abstract);
+procedure SetUIFont(const Value: TGLBitmapFontAbstract);
 begin
   if FUIFont <> Value then
   begin
@@ -1013,14 +1012,14 @@ begin
   end;
 end;
 
-function GetUIFontSmall: TGLBitmapFont_Abstract;
+function GetUIFontSmall: TGLBitmapFontAbstract;
 begin
   if FUIFontSmall = nil then
-    FUIFontSmall := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans_m10);
+    FUIFontSmall := TGLBitmapFont.Create(BitmapFont_BVSans_m10);
   Result := FUIFontSmall;
 end;
 
-procedure SetUIFontSmall(const Value: TGLBitmapFont_Abstract);
+procedure SetUIFontSmall(const Value: TGLBitmapFontAbstract);
 begin
   if FUIFontSmall <> Value then
   begin

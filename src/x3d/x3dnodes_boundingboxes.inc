@@ -192,23 +192,23 @@ end;
 function Text_LocalBoundingBox(State: TX3DGraphTraverseState;
   const Size, Spacing: Single;
   const Justify: TX3DFontJustify;
-  const TTFont: PTrueTypeFont;
+  const Font: TOutlineFont;
   const Strings: TCastleStringList;
   const Depth: Single): TBox3D;
 var
   DescendScaled, yscale, XScale, maxRowWidth, minx, miny, maxx, maxy: Single;
   I: integer;
 begin
-  YScale := Size / TTFontSimpleRowHeight(TTFont);
+  YScale := Size / Font.RowHeight;
   { TODO: Use maxEntent, length for VRML 2.0.
     Use width for VRML 1.0. }
   XScale := YScale;
-  DescendScaled := TTFontSimpleDescend(TTFont) * YScale;
+  DescendScaled := Font.Descend * YScale;
 
   MaxRowWidth := 0;
   for I := 0 to Strings.Count - 1 do
     MaxTo1st(MaxRowWidth,
-      TTFontTextWidth(TTFont, Strings[i]) * XScale);
+      Font.TextWidth(Strings[i]) * XScale);
 
   maxy := Size - DescendScaled;
   miny := -(Strings.Count - 1) * Size * Spacing - DescendScaled;
@@ -234,7 +234,7 @@ begin
     State.LastNodes.FontStyle.FdSize.Value,
     FdSpacing.Value,
     Justify,
-    State.LastNodes.FontStyle.TTF_Font,
+    State.LastNodes.FontStyle.Font,
     FdString.Items,
     0);
 end;
@@ -244,24 +244,24 @@ function TTextNode.LocalBoundingBox(State: TX3DGraphTraverseState;
 var
   Size, Spacing: Single;
   Justify: TX3DFontJustify;
-  TTFont: PTrueTypeFont;
+  Font: TOutlineFont;
 begin
   if FontStyle = nil then
   begin
     Size := TFontStyleNode.DefaultSize;
     Spacing := TFontStyleNode.DefaultSpacing;
     Justify := TFontStyleNode.DefaultJustify;
-    TTFont := TFontStyleNode.DefaultTTF_Font;
+    Font := TFontStyleNode.DefaultFont;
   end else
   begin
     Size := FontStyle.FdSize.Value;
     Spacing := FontStyle.FdSpacing.Value;
     Justify := FontStyle.Justify;
-    TTFont := FontStyle.TTF_Font;
+    Font := FontStyle.Font;
   end;
 
   Result := Text_LocalBoundingBox(State,
-    Size, Spacing, Justify, TTFont, FdString.Items, 0);
+    Size, Spacing, Justify, Font, FdString.Items, 0);
 end;
 
 function TText3DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -269,24 +269,24 @@ function TText3DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
 var
   Size, Spacing: Single;
   Justify: TX3DFontJustify;
-  TTFont: PTrueTypeFont;
+  Font: TOutlineFont;
 begin
   if FontStyle = nil then
   begin
     Size := TFontStyleNode.DefaultSize;
     Spacing := TFontStyleNode.DefaultSpacing;
     Justify := TFontStyleNode.DefaultJustify;
-    TTFont := TFontStyleNode.DefaultTTF_Font;
+    Font := TFontStyleNode.DefaultFont;
   end else
   begin
     Size := FontStyle.FdSize.Value;
     Spacing := FontStyle.FdSpacing.Value;
     Justify := FontStyle.Justify;
-    TTFont := FontStyle.TTF_Font;
+    Font := FontStyle.Font;
   end;
 
   Result := Text_LocalBoundingBox(State,
-    Size, Spacing, Justify, TTFont, FdString.Items, FdDepth.Value);
+    Size, Spacing, Justify, Font, FdString.Items, FdDepth.Value);
 end;
 
 function Cone_BoundingBox(State: TX3DGraphTraverseState;
