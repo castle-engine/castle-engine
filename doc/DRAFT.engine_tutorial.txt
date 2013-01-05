@@ -597,7 +597,7 @@ var
 ------------------------------------------------------------------------------
 8. Display custom 2D controls: your own player HUD
 
-You will often want to draw a 2D controls on your screen, for example to display player life or inventory (the engine does manage the player's inventory automatically for you, in TPlayer.Inventory; however, it's not displayed automatically). You can do it by defining a new TUIControl descendant, where you can draw anything you want in overridden Draw method. You can use the ready UIFont instance to draw a 2D font on the screen. A simple example:
+You will often want to draw a 2D controls on your screen, for example to display player life or inventory (the engine does manage the player's inventory automatically for you, in TPlayer.Inventory; however, it's not displayed automatically, since various games have wildly different needs). You can do it by defining a new TUIControl descendant, where you can draw anything you want in overridden Draw method. You can use the ready UIFont instance to draw a 2D font on the screen. A simple example:
 
 [[
 type
@@ -615,62 +615,9 @@ end;
 procedure TGame2DControls.Draw;
 var
   Player: TPlayer;
-  I: Integer;
 begin
   Player := Window.SceneManager.Player;
-
-  { A simple display of current/maximum player life. }
-  { Set text color to yellow }
-  glColorv(Vector3Single(1, 1, 0));
-  { Write text in the upper-left corner of the screen.
-    For controls with DrawStyle = ds2D,
-    the (0,0) is always bottom-left corner, (ContainerWidth,ContainerHeight)
-    is top-right corner. As you can see, you can take font measurements
-    by UIFont.RowHeight or UIFont.TextWidth to adjust initial position
-    as needed. }
-  SetWindowPos(0, Window.Height - UIFont.RowHeight - 5);
-  UIFont.Print(Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
-
-  { A simple way to draw player inventory.
-    The image representing each item (exactly for purposes like inventory
-    display) is specified in the resource.xml file of each item,
-    as image="xxx" attribute of the root <resource> element.
-    Based on this, the engine initializes TItemResource.Image and TItemResource.GLImage,
-    that you can easily use for any purpose.
-    We assume below that all item images have size 100 x 100,
-    and we assume that all items will always fit within one row. }
-  for I := 0 to Player.Inventory.Count - 1 do
-  begin
-    SetWindowPos(I * 100, 0);
-    Player.Inventory[I].Resource.GLImage.Draw;
-  end;
-
-  { Simple color effects over the screen:
-    when player is dead,
-    when player is underwater,
-    when player has fadeout from any other cause (e.g. player is hurt).
-
-    GLBlendRectangle and GLFaceRectangle make simple color effects by blending.
-    They are trivial to use (by all means, do experiment with parameters below,
-    see GLBlendRectangle and GLFaceRectangle documentation and also OpenGL
-    glBlendFunc parameters), and they will work even on ancient GPUs.
-
-    To create more fancy effects, you can use our GLSL screen effects API.
-    See http://castle-engine.sourceforge.net/x3d_extensions_screen_effects.php .
-    They can be even set up completely in VRML/X3D file (no need for ObjectPascal
-    code). Engine example examples/3d_rendering_processing/multiple_viewports.lpr
-    shows how to set them up in code. }
-  if Player.Dead then
-    GLFadeRectangle(0, 0, ContainerWidth, ContainerHeight, Red3Single, 1.0) else
-  begin
-    if Player.Swimming = psUnderWater then
-      GLBlendRectangle(0, 0, ContainerWidth, ContainerHeight,
-        GL_ONE, GL_SRC_ALPHA, Vector4Single(0, 0, 0.1, 0.5));
-    { Possibly, Player.FadeOut* will be applied on top of water effect,
-      that's Ok --- they'll mix. }
-    GLFadeRectangle(0, 0, ContainerWidth, ContainerHeight,
-      Player.FadeOutColor, Player.FadeOutIntensity);
-  end;
+  { ... }
 end;
 
 { When starting your game, create TGame2DControls instance
@@ -678,24 +625,73 @@ end;
 var
   Controls2D: TGame2DControls;
 ...
-  Controls2D := TGame2DControls.Create(nil);
+  Controls2D := TGame2DControls.Create(Application);
   Window.Controls.Add(Controls2D);
-...
-  { When the same ends, you can free Controls2D.
-    They will be automatically removed from Window.Controls upon destruction
-    (thanks to TComponent notification mechanism). }
-  FreeAndNil(Controls2D);
 ]]
 
-You can use any 2D engine controls in such way. See CastleControls unit
-for some standard buttons and panels. Although for a specific game you
-will probably want a specialized UI, done like the example above.
-In TGame2DControls.Draw you simply use OpenGL to draw your stuff,
-although we give you a lot of helpers to deal with drawing images, text
-and so on.
-See castle1 unit GamePlay for an example implementation that shows
-more impressive player's life indicator, inventory (with
-more information, like quantity and name) and other things on the screen.
+Inside TGame2DControls.Draw you have the full knowledge about the world,
+about the Player and Player's inventory.
+And you can draw them however you like. Basically, you can use
+direct OpenGL commands (with some care taken, see TUIControl.Draw docs
+about what you can change carelessly; the rest will have to be secured
+using glPushAttrib / glPopAttrib). But we also give you a lot of helpers:
+
+- SetWindowPos (CastleGLUtils unit) sets the raster position in screen coordinates.
+
+- You have ready UIFont and UIFontSmall instances of TGLBitmapFont that
+  you can use to draw text. Of course you can also create your own instances
+  of TGLBitmapFont to have more fonts. See CastleGLBitmapsFonts unit.
+  For example, you can show player's health like this:
+
+[[
+SetWindowPos(10, 10);
+UIFont.Print(Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
+]]
+
+- Every inventory item has already loaded image (defined in resource.xml),
+  as TCastleImage (image stored in normal memory, see CastleImages unit) and
+  TGLImage (image stored in GPU memory, easy to render, see CastleGLImages).
+  For example, you can iterate over inventory
+  list and show them like this:
+
+[[
+for I := 0 to Player.Inventory.Count - 1 do
+begin
+  SetWindowPos(I * 100, 0);
+  Player.Inventory[I].Resource.GLImage.Draw;
+end;
+]]
+
+- CastleGLUtils contains ready procedures to draw
+  a rectangle represending fade out (when player is in pain).
+  And Player instance already has properties Player.FadeOutColor, Player.FadeOutIntensity
+  representing when player is in pain (and the pain color).
+  Player.Dead says when Player is Dead.
+
+  So you could visualize pain and dead states like this:
+
+[[
+if Player.Dead then
+  GLFadeRectangle(0, 0, ContainerWidth, ContainerHeight, Red3Single, 1.0) else
+  GLFadeRectangle(0, 0, ContainerWidth, ContainerHeight,
+    Player.FadeOutColor, Player.FadeOutIntensity);
+]]
+
+  Note that Player.FadeOutIntensity will be 0 when there is no pain, which cooperates
+  nicely with GLFadeRectangle definition that will do nothing when 4th parameter is 0.
+  That is why we carelessly always call GLFadeRectangle --- when player is not dead,
+  and is not in pain (Player.FadeOutIntensity = 0) then nothing will actually happen.
+
+- CastleGLUtils, and many other modules, provide many other helpers.
+
+See fps_game for a working and fully-documented demo of such TGame2DControls
+implementation, with some extra information.
+See castle1 sources (unit GamePlay) for an example implementation that shows
+more impressive player's life indicator and inventory and other things on the screen.
+
+You can use any 2D engine controls like this, just add them to Window.Controls.
+See CastleControls unit for some standard buttons and panels and images.
+But for a specific game you will probably want a specialized UI, done like the example above.
 
 ------------------------------------------------------------------------------
 (TODO: new chapter number) Game on-screen menu

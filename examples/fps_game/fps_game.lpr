@@ -20,13 +20,16 @@ uses SysUtils, Classes, CastleWindow, CastleWarnings, CastleConfig, CastleLevels
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   CastleRenderer, Castle3D, CastleFilesUtils, CastleGameNotifications,
-  CastleSceneManager, CastleVectors;
+  CastleSceneManager, CastleVectors, CastleUIControls, GL, CastleGLUtils,
+  CastleColors;
 
 var
   Window: TCastleWindow;
   SceneManager: TGameSceneManager; //< same thing as Window.SceneManager
   Player: TPlayer; //< same thing as Window.SceneManager.Player
   ExtraViewport: TCastleViewport;
+
+{ Buttons -------------------------------------------------------------------- }
 
 type
   { Container for buttons and their callbacks.
@@ -142,6 +145,90 @@ end;
 
 var
   Buttons: TButtons;
+
+{ 2D controls ---------------------------------------------------------------- }
+
+type
+  TGame2DControls = class(TUIControl)
+  public
+    procedure Draw; override;
+    function DrawStyle: TUIControlDrawStyle; override;
+  end;
+
+function TGame2DControls.DrawStyle: TUIControlDrawStyle;
+begin
+  Result := ds2D;
+end;
+
+procedure TGame2DControls.Draw;
+const
+  InventoryImageSize = 128;
+var
+  Player: TPlayer;
+  I, X, Y: Integer;
+begin
+  Player := SceneManager.Player;
+
+  Y := ContainerHeight;
+
+  { A simple display of current/maximum player life. }
+  { Set text color to yellow }
+  glColorv(Vector3Single(1, 1, 0));
+  { Write text in the upper-left corner of the screen.
+    For controls with DrawStyle = ds2D,
+    the (0, 0) position is always bottom-left corner,
+    (ContainerWidth, ContainerHeight) position is top-right corner.
+    You can take font measurements by UIFont.RowHeight or UIFont.TextWidth
+    to adjust initial position as needed. }
+  Y -= UIFont.RowHeight + ControlsMargin;
+  SetWindowPos(0, Y);
+  UIFont.Print(Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
+
+  { A simple way to draw player inventory.
+    The image representing each item (exactly for purposes like inventory
+    display) is specified in the resource.xml file of each item,
+    as image="xxx" attribute of the root <resource> element.
+    Based on this, the engine initializes TItemResource.Image and TItemResource.GLImage,
+    that you can easily use for any purpose.
+    We assume below that all item images have square size
+    InventoryImageSize x InventoryImageSize,
+    and we assume that all items will always fit within one row. }
+  Y -= UIFont.RowHeight + InventoryImageSize;
+  for I := 0 to Player.Inventory.Count - 1 do
+  begin
+    X := I * (InventoryImageSize + ControlsMargin);
+    SetWindowPos(X, Y);
+    Player.Inventory[I].Resource.GLImage.Draw;
+    SetWindowPos(X, Y - UIFontSmall.RowHeight);
+    UIFontSmall.Print(Format('%s (%d)', [Player.Inventory[I].Resource.Caption,
+      Player.Inventory[I].Quantity]));
+  end;
+
+  { Simple color effects over the screen:
+    when player is dead,
+    when player is underwater,
+    when player has fadeout from any other cause (e.g. player is hurt).
+
+    GLBlendRectangle and GLFaceRectangle make simple color effects by blending.
+    They are trivial to use (by all means, do experiment with parameters below,
+    see GLBlendRectangle and GLFaceRectangle documentation and also OpenGL
+    glBlendFunc parameters), and they will work even on ancient GPUs.
+
+    To create more fancy effects, you can use our GLSL screen effects API.
+    See http://castle-engine.sourceforge.net/x3d_extensions_screen_effects.php .
+    They can be even set up completely in VRML/X3D file (no need for ObjectPascal
+    code). Engine example examples/3d_rendering_processing/multiple_viewports.lpr
+    shows how to set them up in code. }
+  if Player.Dead then
+    GLFadeRectangle(0, 0, ContainerWidth, ContainerHeight, Red3Single, 1.0) else
+    GLFadeRectangle(0, 0, ContainerWidth, ContainerHeight,
+      Player.FadeOutColor, Player.FadeOutIntensity);
+end;
+
+var
+  Game2DControls: TGame2DControls;
+
+{ Window callbacks ----------------------------------------------------------- }
 
 procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 begin
@@ -318,6 +405,10 @@ begin
     TCastleNotifications instance (to not see the default notifications
     made by some engine units) or just don't use notifications at all. }
   Window.Controls.Add(Notifications);
+
+  { Create and add Game2DControls to visualize player life, inventory and pain. }
+  Game2DControls := TGame2DControls.Create(Application);
+  Window.Controls.Add(Game2DControls);
 
   { Run the game loop.
     In more advanced cases, you can also execute each step of the loop
