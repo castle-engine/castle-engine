@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+
+<resource
+  name="MedKit"
+  type="Item"
+  caption="Medical Kit"
+  image="inventory_image.png"
+>
+  <model>
+    <base file_name="medkit.x3d"/>
+  </model>
+</resource>

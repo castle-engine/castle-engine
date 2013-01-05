@@ -15,6 +15,256 @@
 		            groundColor="0.051 0.051 0.051"
 		            skyColor="0.051 0.051 0.051"
 		            />
+		<Transform DEF="CasResMedKit_007_TRANSFORM"
+		           translation="-0.506006 1.000002 -17.457270"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 0.707107 0.707107 3.141593"
+		           >
+			<Transform DEF="CasResMedKit_007_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group DEF="group_ME_Cube_011">
+					<Shape>
+						<Appearance>
+						</Appearance>
+						<IndexedFaceSet solid="false"
+						                coordIndex="1 0 4 5 -1 5 6 2 1 -1 6 7 3 2 -1 0 3 7 4 -1 0 1 2 3 -1 7 6 5 4 -1 "
+						                >
+							<Coordinate DEF="coords_ME_Cube_011"
+							            point="-1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 -1.000000 1.000000 -1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 -1.000000 1.000000 "
+							            />
+						</IndexedFaceSet>
+					</Shape>
+				</Group>
+			</Transform>
+		</Transform>
+		<Transform DEF="CasResMedKit_006_TRANSFORM"
+		           translation="4.385401 0.999998 17.794611"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 0.707107 0.707107 3.141593"
+		           >
+			<Transform DEF="CasResMedKit_006_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group DEF="group_ME_Cube_010">
+					<Shape>
+						<Appearance>
+						</Appearance>
+						<IndexedFaceSet solid="false"
+						                coordIndex="1 0 4 5 -1 5 6 2 1 -1 6 7 3 2 -1 0 3 7 4 -1 0 1 2 3 -1 7 6 5 4 -1 "
+						                >
+							<Coordinate DEF="coords_ME_Cube_010"
+							            point="-1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 -1.000000 1.000000 -1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 -1.000000 1.000000 "
+							            />
+						</IndexedFaceSet>
+					</Shape>
+				</Group>
+			</Transform>
+		</Transform>
+		<Transform DEF="CasResMedKit_005_TRANSFORM"
+		           translation="-16.529589 0.999999 -3.373387"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 0.707107 0.707107 3.141593"
+		           >
+			<Transform DEF="CasResMedKit_005_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group DEF="group_ME_Cube_009">
+					<Shape>
+						<Appearance>
+						</Appearance>
+						<IndexedFaceSet solid="false"
+						                coordIndex="1 0 4 5 -1 5 6 2 1 -1 6 7 3 2 -1 0 3 7 4 -1 0 1 2 3 -1 7 6 5 4 -1 "
+						                >
+							<Coordinate DEF="coords_ME_Cube_009"
+							            point="-1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 -1.000000 1.000000 -1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 -1.000000 1.000000 "
+							            />
+						</IndexedFaceSet>
+					</Shape>
+				</Group>
+			</Transform>
+		</Transform>
+		<Transform DEF="CasResMedKit_004_TRANSFORM"
+		           translation="-16.698257 0.999998 1.518022"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 0.707107 0.707107 3.141593"
+		           >
+			<Transform DEF="CasResMedKit_004_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group DEF="group_ME_Cube_008">
+					<Shape>
+						<Appearance>
+						</Appearance>
+						<IndexedFaceSet solid="false"
+						                coordIndex="1 0 4 5 -1 5 6 2 1 -1 6 7 3 2 -1 0 3 7 4 -1 0 1 2 3 -1 7 6 5 4 -1 "
+						                >
+							<Coordinate DEF="coords_ME_Cube_008"
+							            point="-1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 -1.000000 1.000000 -1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 -1.000000 1.000000 "
+							            />
+						</IndexedFaceSet>
+					</Shape>
+				</Group>
+			</Transform>
+		</Transform>
+		<Transform DEF="CasResMedKit_003_TRANSFORM"
+		           translation="-16.782593 0.999998 5.060077"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 0.707107 0.707107 3.141593"
+		           >
+			<Transform DEF="CasResMedKit_003_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group DEF="group_ME_Cube_007">
+					<Shape>
+						<Appearance>
+						</Appearance>
+						<IndexedFaceSet solid="false"
+						                coordIndex="1 0 4 5 -1 5 6 2 1 -1 6 7 3 2 -1 0 3 7 4 -1 0 1 2 3 -1 7 6 5 4 -1 "
+						                >
+							<Coordinate DEF="coords_ME_Cube_007"
+							            point="-1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 -1.000000 1.000000 -1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 -1.000000 1.000000 "
+							            />
+						</IndexedFaceSet>
+					</Shape>
+				</Group>
+			</Transform>
+		</Transform>
+		<Transform DEF="CasResMedKit_002_TRANSFORM"
+		           translation="17.035599 1.000000 8.180462"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 0.707107 0.707107 3.141593"
+		           >
+			<Transform DEF="CasResMedKit_002_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group DEF="group_ME_Cube_006">
+					<Shape>
+						<Appearance>
+						</Appearance>
+						<IndexedFaceSet solid="false"
+						                coordIndex="1 0 4 5 -1 5 6 2 1 -1 6 7 3 2 -1 0 3 7 4 -1 0 1 2 3 -1 7 6 5 4 -1 "
+						                >
+							<Coordinate DEF="coords_ME_Cube_006"
+							            point="-1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 -1.000000 1.000000 -1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 -1.000000 1.000000 "
+							            />
+						</IndexedFaceSet>
+					</Shape>
+				</Group>
+			</Transform>
+		</Transform>
+		<Transform DEF="CasResMedKit_001_TRANSFORM"
+		           translation="16.866930 1.000001 4.301068"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 0.707107 0.707107 3.141593"
+		           >
+			<Transform DEF="CasResMedKit_001_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group DEF="group_ME_Cube_005">
+					<Shape>
+						<Appearance>
+						</Appearance>
+						<IndexedFaceSet solid="false"
+						                coordIndex="1 0 4 5 -1 5 6 2 1 -1 6 7 3 2 -1 0 3 7 4 -1 0 1 2 3 -1 7 6 5 4 -1 "
+						                >
+							<Coordinate DEF="coords_ME_Cube_005"
+							            point="-1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 -1.000000 1.000000 -1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 -1.000000 1.000000 "
+							            />
+						</IndexedFaceSet>
+					</Shape>
+				</Group>
+			</Transform>
+		</Transform>
+		<Transform DEF="CasResMedKit_TRANSFORM"
+		           translation="16.782595 1.000001 0.927683"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 0.707107 0.707107 3.141593"
+		           >
+			<Transform DEF="CasResMedKit_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group DEF="group_ME_Cube_004">
+					<Shape>
+						<Appearance>
+						</Appearance>
+						<IndexedFaceSet solid="false"
+						                coordIndex="1 0 4 5 -1 5 6 2 1 -1 6 7 3 2 -1 0 3 7 4 -1 0 1 2 3 -1 7 6 5 4 -1 "
+						                >
+							<Coordinate DEF="coords_ME_Cube_004"
+							            point="-1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 -1.000000 1.000000 -1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 -1.000000 1.000000 "
+							            />
+						</IndexedFaceSet>
+					</Shape>
+				</Group>
+			</Transform>
+		</Transform>
+		<Transform DEF="CasResKnight_003_TRANSFORM"
+		           translation="10.275013 0.999998 12.185572"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="-0.486385 -0.617831 -0.617831 2.236200"
+		           >
+			<Transform DEF="CasResKnight_003_ifs_TRANSFORM"
+			           translation="0.000000 -0.000001 -0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group DEF="group_ME_Cube_003">
+					<Shape>
+						<Appearance>
+						</Appearance>
+						<IndexedFaceSet solid="false"
+						                coordIndex="1 0 4 5 -1 5 6 2 1 -1 6 7 3 2 -1 0 3 7 4 -1 0 1 2 3 -1 7 6 5 4 -1 "
+						                >
+							<Coordinate DEF="coords_ME_Cube_003"
+							            point="-1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 -1.000000 1.000000 -1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 -1.000000 1.000000 "
+							            />
+						</IndexedFaceSet>
+					</Shape>
+				</Group>
+			</Transform>
+		</Transform>
+		<Transform DEF="CasResKnight_002_TRANSFORM"
+		           translation="-5.889610 1.000002 -8.896521"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="-0.486385 -0.617831 -0.617831 2.236200"
+		           >
+			<Transform DEF="CasResKnight_002_ifs_TRANSFORM"
+			           translation="0.000000 -0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group DEF="group_ME_Cube_002">
+					<Shape>
+						<Appearance>
+						</Appearance>
+						<IndexedFaceSet solid="false"
+						                coordIndex="1 0 4 5 -1 5 6 2 1 -1 6 7 3 2 -1 0 3 7 4 -1 0 1 2 3 -1 7 6 5 4 -1 "
+						                >
+							<Coordinate DEF="coords_ME_Cube_002"
+							            point="-1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 -1.000000 1.000000 -1.000000 -1.000000 -1.000000 -1.000000 1.000000 -1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 1.000000 -1.000000 1.000000 "
+							            />
+						</IndexedFaceSet>
+					</Shape>
+				</Group>
+			</Transform>
+		</Transform>
 		<Transform DEF="CasResKnight_001_TRANSFORM"
 		           translation="10.541832 1.000002 -8.686467"
 		           scale="1.000000 1.000000 1.000000"
