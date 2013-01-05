@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  CastleControl, GL, CastleControls, OnScreenMenu;
+  CastleControl, GL, CastleControls, CastleOnScreenMenu;
 
 type
 

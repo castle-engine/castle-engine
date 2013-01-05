@@ -912,10 +912,10 @@ LazarusResources.Add('TMain','FORMDATA',[
   +'OnClick'#7#16'MenuWebsiteClick'#0#0#0#0#11'TOpenDialog'#11'OpenDialog1'#5'T'
   +'itle'#6#18'Open 3d model file'#11'FilterIndex'#2#0#4'left'#2'P'#3'top'#3#184
   +#0#0#0#6'TTimer'#6'Timer1'#7'OnTimer'#7#11'Timer1Timer'#4'left'#2'S'#3'top'#2
-  +'I'#0#0#15'TLazRecentFiles'#11'RecentFiles'#12'OnOpenRecent'#7#21'RecentFile'
-  +'sOpenRecent'#4'left'#3#18#1#3'top'#3#175#0#0#0#22'TApplicationProperties'#22
-  +'ApplicationProperties1'#6'OnIdle'#7#26'ApplicationProperties1Idle'#4'left'#3
-  +#12#1#3'top'#2','#0#0#11'TSaveDialog'#20'SaveScreenshotDialog'#5'Title'#6#18
-  +'Save Screenshot As'#7'Options'#11#17'ofOverwritePrompt'#14'ofEnableSizing'
-  +#12'ofViewDetail'#0#4'left'#3#3#1#3'top'#3#15#1#0#0#0
+  +'I'#0#0#18'TCastleRecentFiles'#11'RecentFiles'#12'OnOpenRecent'#7#21'RecentF'
+  +'ilesOpenRecent'#4'left'#3#18#1#3'top'#3#175#0#0#0#22'TApplicationProperties'
+  +#22'ApplicationProperties1'#6'OnIdle'#7#26'ApplicationProperties1Idle'#4'lef'
+  +'t'#3#12#1#3'top'#2','#0#0#11'TSaveDialog'#20'SaveScreenshotDialog'#5'Title'
+  +#6#18'Save Screenshot As'#7'Options'#11#17'ofOverwritePrompt'#14'ofEnableSiz'
+  +'ing'#12'ofViewDetail'#0#4'left'#3#3#1#3'top'#3#15#1#0#0#0
 ]);

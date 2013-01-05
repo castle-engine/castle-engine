@@ -68,8 +68,8 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <UnitName Value="CastleMessages"/>
       </Item6>
       <Item7>
-        <Filename Value="../src/window/windowmodes.pas"/>
-        <UnitName Value="WindowModes"/>
+        <Filename Value="../src/window/castlewindowmodes.pas"/>
+        <UnitName Value="CastleWindowModes"/>
       </Item7>
       <Item8>
         <Filename Value="../src/window/castlewindowprogress.pas"/>
@@ -98,9 +98,9 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <UnitName Value="CastleXF86VMode"/>
       </Item11>
       <Item1>
-        <Filename Value="../src/window/unix/xlibutils.pas"/>
+        <Filename Value="../src/window/unix/castlexlib.pas"/>
         <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="xlibutils"/>
+        <UnitName Value="CastleXlib"/>
       </Item1>
       <Item9>
         <Filename Value="../src/base/castleconf.inc"/>
