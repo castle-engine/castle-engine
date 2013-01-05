@@ -33,7 +33,7 @@ program fog_culling;
 uses SysUtils, CastleVectors, GL, GLU, CastleWindow, CastleStringUtils,
   CastleClassUtils, CastleUtils, Classes, CastleWarnings,
   CastleGLUtils, X3DNodes, CastleSceneCore, CastleScene,
-  CastleProgress, ProgressConsole, CastleFilesUtils, Castle3D,
+  CastleProgress, CastleProgressConsole, CastleFilesUtils, Castle3D,
   CastleSceneManager, CastleParameters, CastleRenderingCamera, CastleKeysMouse;
 
 var

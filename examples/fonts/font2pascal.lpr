@@ -15,7 +15,7 @@
 
 { Convert fonts to Pascal units, to embed fonts inside source code.
 
-  TODO: This program is Windows-only for now, as it uses WinFontConvert
+  TODO: This program is Windows-only for now, as it uses CastleWinFontConvert
   to read font information, which in turn uses GetGlpyhOutline WinAPI.
   (Fortunately, at least it works fine through wine.)
 
@@ -33,8 +33,8 @@
 
 {$apptype CONSOLE}
 
-uses Windows, SysUtils, WindowsFonts, CastleFont2Pascal, CastleUtils,
-  CastleClassUtils, CastleParameters, CastleOutlineFonts, CastleBitmapFonts, WinFontConvert,
+uses Windows, SysUtils, CastleWindowsFonts, CastleFont2Pascal, CastleUtils,
+  CastleClassUtils, CastleParameters, CastleOutlineFonts, CastleBitmapFonts, CastleWinFontConvert,
   Classes, CastleStringUtils, CastleTimeUtils;
 
 const

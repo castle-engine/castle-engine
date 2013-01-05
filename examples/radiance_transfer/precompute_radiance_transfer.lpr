@@ -58,8 +58,8 @@
 program precompute_radiance_transfer;
 
 uses SysUtils, CastleUtils, CastleVectors, CastleSceneCore, X3DNodes,
-  SphereSampling, CastleProgress, ProgressConsole,
-  SphericalHarmonics, CastleParameters, CastleTimeUtils, CastleShapes;
+  CastleSphereSampling, CastleProgress, CastleProgressConsole,
+  CastleSphericalHarmonics, CastleParameters, CastleTimeUtils, CastleShapes;
 
 var
   Scene: TCastleSceneCore;

@@ -16,9 +16,9 @@
 { Bump mapping demo. Methods:
   1. Emboss.
   2. Dot3 using multitexturing (with or without normalization).
-  3. VRML auto-detected. This is not really a single method, VRML engine
-     inside auto-detects and uses one of the following methods
-     - dot3 using multitexturing (with or without normalization).
+  3. Auto-detected by CastleRenderer. This is not really a single method, our engine
+     auto-detects and uses one of the following methods
+     - dot3 using multitexturing,
      - GLSL (various versions, with parallax mapping,
        and steep parallax mapping (with self-shadowing))
   GLSL method is by far the best, fastest and best looking approach, although
@@ -52,14 +52,14 @@
 program bump_mapping;
 
 uses CastleWindow, GL, GLU, GLExt, CastleGLUtils,
-  Cameras, CastleBoxes, SysUtils, CastleUtils, CastleVectors,
+  CastleCameras, CastleBoxes, SysUtils, CastleUtils, CastleVectors,
   CastleClassUtils, CastleFilesUtils, CastleStringUtils,
   CastleMessages, CastleBitmapFont_BVSans, CastleGLBitmapFonts, 
   CastleImages, CastleKeysMouse,
-  NormalizationCubeMap, GLImages, GLVersionUnit, X3DNodes,
-  CastleParameters, CastleLog, RaysWindow, UIControls, Classes, CastleWarnings,
-  CastleSceneCore, CastleScene, X3DLoad, CastleProgress, Background, CastleColors,
-  GLRenderer, CastleSceneManager, CastleRenderingCamera, CastleControls;
+  NormalizationCubeMap, CastleGLImages, CastleGLVersion, X3DNodes,
+  CastleParameters, CastleLog, CastleRays, CastleUIControls, Classes, CastleWarnings,
+  CastleSceneCore, CastleScene, X3DLoad, CastleProgress, CastleBackground, CastleColors,
+  CastleRenderer, CastleSceneManager, CastleRenderingCamera, CastleControls;
 
 const
   SceneBoundingBox: TBox3D = ( Data: (

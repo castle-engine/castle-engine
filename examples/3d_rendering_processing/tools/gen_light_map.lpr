@@ -25,7 +25,7 @@
 program gen_light_map;
 
 uses SysUtils, CastleUtils, CastleVectors, X3DNodes, CastleSceneCore,
-  LightMap, CastleImages, CastleProgress, ProgressConsole, CastleTimeUtils,
+  LightMap, CastleImages, CastleProgress, CastleProgressConsole, CastleTimeUtils,
   CastleParameters;
 
 function ReadParametersVectorTo1st(i: Integer): TVector3Single;

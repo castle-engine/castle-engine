@@ -2,7 +2,7 @@ unit SandBoxMap;
 
 interface
 
-uses Classes, CastleVectors, CastleImages, CastleGLUtils, GLImages;
+uses Classes, CastleVectors, CastleImages, CastleGLUtils, CastleGLImages;
 
 type
   TTile = class

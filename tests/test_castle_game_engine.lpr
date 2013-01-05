@@ -18,7 +18,7 @@ uses
 
   { Test units (their order determines default tests order) }
   TestCastleUtils,
-  TestGenericStructList,
+  TestGenericLists,
   TestOSSpecific,
   TestBasicLists,
   TestCastleClassUtils,
@@ -46,7 +46,7 @@ uses
   TestCastleStringUtils,
   TestCastleScript,
   TestCastleScriptVectors,
-  TestCubeMap,
+  TestCubeMaps,
   TestShadowFields,
   TestGLVersion,
   TestURLUtils,

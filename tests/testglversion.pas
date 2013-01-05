@@ -28,7 +28,7 @@ type
 
 implementation
 
-uses SysUtils, GLVersionUnit;
+uses SysUtils, CastleGLVersion;
 
 procedure TTestGLVersion.Test1;
 var

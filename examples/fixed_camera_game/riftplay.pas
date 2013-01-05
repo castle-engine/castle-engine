@@ -30,8 +30,8 @@ procedure Play;
 implementation
 
 uses GL, CastleGLUtils, CastleWindow, CastleStringUtils, CastleVectors, CastleFilesUtils,
-  WindowModes, Cameras, SysUtils, GLExt, X3DNodes,
-  RaysWindow, Math, UIControls, GLRenderer,
+  CastleWindowModes, CastleCameras, SysUtils, GLExt, X3DNodes,
+  CastleRays, Math, CastleUIControls, CastleRenderer,
   RiftVideoOptions, RiftLocations, RiftCreatures, RiftWindow, RiftGame,
   CastleGameNotifications, CastleRenderingCamera, Castle3D,
   RiftSceneManager, CastleKeysMouse;

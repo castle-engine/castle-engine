@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestCubeMap;
+unit TestCubeMaps;
 
 {$mode objfpc}{$H+}
 
@@ -31,7 +31,7 @@ type
 
 implementation
 
-uses CastleVectors, CubeMap, Math;
+uses CastleVectors, CastleCubeMaps, Math;
 
 procedure TTestCubeMap.TestReverse;
 var

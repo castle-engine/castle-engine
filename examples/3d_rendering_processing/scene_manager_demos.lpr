@@ -27,8 +27,7 @@ program scene_manager_demos;
 {$apptype CONSOLE}
 
 uses CastleUtils, CastleWindow, CastleVectors, CastleWarnings, Castle3D,
-  CastleSceneCore, CastleScene, PrecalculatedAnimation,
-  X3DFields, X3DNodes;
+  CastleSceneCore, CastleScene, CastlePrecalculatedAnimation, X3DFields, X3DNodes;
 
 var
   Window: TCastleWindow;

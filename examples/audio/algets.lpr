@@ -21,12 +21,12 @@
   You can run this with an optional command-line option:
   a filename of any sound file we can load
   (right now, the allowed formats are wav and OggVorbis;
-  see SoundFile unit for up-to-date list). Then the sound file will
+  see CastleSoundFile unit for up-to-date list). Then the sound file will
   be loaded as OpenAL sound, and some additional tests will be performed. }
 program algets;
 
-uses CastleOpenAL, ALUtils, SysUtils, CastleUtils, CastleVectors,
-  CastleStringUtils, EFX, CastleSoundEngine, CastleTimeUtils, CastleParameters;
+uses CastleOpenAL, CastleALUtils, SysUtils, CastleUtils, CastleVectors,
+  CastleStringUtils, CastleEFX, CastleSoundEngine, CastleTimeUtils, CastleParameters;
 
 { force compatibility : use alCreateSources/Buffers instead of alGen*.
 

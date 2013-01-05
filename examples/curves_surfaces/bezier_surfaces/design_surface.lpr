@@ -20,9 +20,9 @@ program design_surface;
 
 {$apptype GUI}
 
-uses Cameras, Surfaces, CastleWindow, GL, GLU, CastleVectors,
-  CastleGLUtils, Curve, CastleBoxes, SysUtils, CastleUtils, CastleKeysMouse,
-  CastleStringUtils, CastleMessages, CastleFilesUtils, UIControls,
+uses CastleCameras, Surfaces, CastleWindow, GL, GLU, CastleVectors,
+  CastleGLUtils, CastleCurves, CastleBoxes, SysUtils, CastleUtils, CastleKeysMouse,
+  CastleStringUtils, CastleMessages, CastleFilesUtils, CastleUIControls,
   CastleBitmapFont_BVSans, CastleGLBitmapFonts, CastleColors, Castle3D, CastleFrustum;
 
 type

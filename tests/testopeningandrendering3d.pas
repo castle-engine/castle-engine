@@ -20,7 +20,7 @@ unit TestOpeningAndRendering3D;
 
 interface
 
-uses fpcunit, testutils, testregistry, CastleFilesUtils, EnumerateFiles,
+uses fpcunit, testutils, testregistry, CastleFilesUtils, CastleEnumerateFiles,
   CastleWindow, CastleSceneCore, CastleScene, CastleSceneManager;
 
 type
@@ -52,7 +52,7 @@ type
 
 implementation
 
-uses SysUtils, CastleUtils, CastleGLUtils, GLVersionUnit, CastleWarnings;
+uses SysUtils, CastleUtils, CastleGLUtils, CastleGLVersion, CastleWarnings;
 
 procedure TTestOpeningAndRendering3D.TestScene(const FileName: string);
 begin

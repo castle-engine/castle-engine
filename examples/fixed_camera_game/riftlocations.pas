@@ -26,7 +26,7 @@ unit RiftLocations;
 interface
 
 uses CastleUtils, CastleClassUtils, Classes, CastleScene, GL, CastleVectors,
-  RiftLoadable, X3DNodes, FGL, GLImages;
+  RiftLoadable, X3DNodes, FGL, CastleGLImages;
 
 type
   TLocation = class(TLoadable)
@@ -79,7 +79,7 @@ var
 
 implementation
 
-uses SysUtils, DOM, CastleProgress, CastleImages, GLRenderer, UIControls,
+uses SysUtils, DOM, CastleProgress, CastleImages, CastleRenderer, CastleUIControls,
   CastleGLUtils, CastleWindow, CastleXMLUtils, CastleSceneCore, RiftWindow, RiftData;
 
 { TLocation ------------------------------------------------------------------ }

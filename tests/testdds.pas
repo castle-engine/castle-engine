@@ -29,7 +29,7 @@ type
 
 implementation
 
-uses SysUtils, CastleVectors, CastleImages, DDS, Classes;
+uses SysUtils, CastleVectors, CastleImages, CastleDDS, Classes;
 
 procedure TTestDDS.TestLoadSaveDDS;
 

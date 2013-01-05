@@ -179,7 +179,7 @@ units are allowed to be used by units in specific group.
   @item(
     2D user interface of the engine.
 
-    First of all, unit UIControls with basic control class
+    First of all, unit CastleUIControls with basic control class
     TUIControl and basic container interface IUIContainer.
 
     Concepts:
@@ -218,7 +218,7 @@ units are allowed to be used by units in specific group.
 
     We have many OpenGL controls (like TCastleOnScreenMenu and things
     like buttons inside CastleControls) in @code(ui/opengl/) subdirectory.
-    We also have camera classes (Cameras unit with TCamera descendants),
+    We also have camera classes (CastleCameras unit with TCamera descendants),
     they are used by scene manager.
 
     @italic(Uses:) @code(base), @code(images), @code(3d).)
@@ -267,14 +267,14 @@ units are allowed to be used by units in specific group.
     classes to handle and render 3D stuff are here.
 
     X3D file reading, writing and processing (X3DLexer, X3DFields,
-    X3DNodes), building and using octree based on X3D model (ShapeOctree, TriangleOctree),
-    ray-tracer based on X3D model (RayTracer),
-    loading animations (PrecalculatedAnimationCore),
+    X3DNodes), building and using octree based on X3D model (CastleShapeOctree, CastleTriangleOctree),
+    ray-tracer based on X3D model (CastleRayTracer),
+    loading animations (CastlePrecalculatedAnimationCore),
     load 3D model formats as X3D (X3DLoad).
 
     CastleScene unit provides the complete class
     for dealing with 3D models and displaying them in OpenGL.
-    PrecalculatedAnimation also provides a special way
+    CastlePrecalculatedAnimation also provides a special way
     of animating models by interpolating between a set of 3D files.
 
     @italic(Uses:) @code(base), @code(images), @code(3d), @code(fonts).

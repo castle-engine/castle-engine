@@ -23,13 +23,13 @@
 { A demo of interpolated curves (polynomial curves that try to approximate
   any shape). See e.g. [http://www.ibiblio.org/e-notes/Splines/Lagrange.htm].
 
-  Also, a practical demo of some CastleWindow and Curve unit possibilities
+  Also, a practical demo of some CastleWindow and CastleCurves unit possibilities
   of Castle Game Engine. }
 
 program interpolated_curves;
 
 uses GL, CastleWindow, CastleGLUtils, SysUtils, CastleVectors,
-  Curve, CastleScript, CastleMessages, UIControls, CastleKeysMouse,
+  CastleCurves, CastleScript, CastleMessages, CastleUIControls, CastleKeysMouse,
   CastleUtils, CastleScriptParser, CastleScriptCoreFunctions,
   CastleBitmapFont_BVSansMono_M18, CastleSceneManager,
   CastleGLBitmapFonts, Classes, CastleStringUtils, Castle3D, CastleColors;

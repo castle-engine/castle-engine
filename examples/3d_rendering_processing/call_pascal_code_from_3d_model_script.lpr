@@ -35,7 +35,7 @@ program call_pascal_code_from_3d_model_script;
 
 {$apptype CONSOLE}
 
-uses CastleUtils, CastleProgress, ProgressConsole, CastleWarnings,
+uses CastleUtils, CastleProgress, CastleProgressConsole, CastleWarnings,
   CastleSceneCore, X3DFields, X3DTime, SysUtils, CastleParameters, CastleStringUtils,
   CastleWindow, CastleKeysMouse;
 

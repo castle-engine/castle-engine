@@ -22,7 +22,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
-  OpenGLContext, Menus, CastleScene, Cameras, CastleControl, CastleWarnings,
+  OpenGLContext, Menus, CastleScene, CastleCameras, CastleControl, CastleWarnings,
   CastleLCLRecentFiles, CastleConfig, Buttons, ExtCtrls, StdCtrls, RecentFiles,
   CastleSceneManager;
 
@@ -106,7 +106,7 @@ var
 
 implementation
 
-uses LCLType, LCLIntf, CastleVectors, CastleBoxes, X3DNodes, GLRenderer,
+uses LCLType, LCLIntf, CastleVectors, CastleBoxes, X3DNodes, CastleRenderer,
   GL, GLU, GLExt, CastleClassUtils, CastleUtils, X3DLoad,
   CastleGLUtils, CastleSceneCore, CastleFilesUtils, CastleParameters,
   OpenGLInformation, CastleLCLUtils, ConsoleF, CastleImages;

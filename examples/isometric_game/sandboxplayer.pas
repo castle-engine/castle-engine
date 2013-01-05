@@ -2,7 +2,7 @@ unit SandBoxPlayer;
 
 interface
 
-uses SysUtils, CastleImages, CastleGLUtils, GLImages;
+uses SysUtils, CastleImages, CastleGLUtils, CastleGLImages;
 
 type
   TDirection = (

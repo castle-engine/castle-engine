@@ -50,9 +50,9 @@
 }
 program plane_mirror_and_shadow;
 
-uses CastleVectors, CastleBoxes, X3DNodes, GL, GLU, GLExt, CastleWindow, GLRenderer,
+uses CastleVectors, CastleBoxes, X3DNodes, GL, GLU, GLExt, CastleWindow, CastleRenderer,
   CastleClassUtils, CastleUtils, SysUtils, Classes, X3DLoad, CastleWarnings,
-  CastleGLUtils, CastleScene, Cameras, CastleRenderingCamera, CastleParameters,
+  CastleGLUtils, CastleScene, CastleCameras, CastleRenderingCamera, CastleParameters,
   CastleFilesUtils, CastleStringUtils, CastleKeysMouse, CastleSceneManager,
   CastleColors;
 

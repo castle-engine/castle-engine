@@ -45,7 +45,7 @@
 program image_to_pas;
 
 uses SysUtils, CastleImages, CastleUtils, CastleFilesUtils, CastleProgress,
-  ProgressConsole, CastleParameters;
+  CastleProgressConsole, CastleParameters;
 
 var
   ShowProgress: boolean = true;

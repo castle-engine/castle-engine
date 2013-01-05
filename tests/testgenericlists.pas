@@ -14,26 +14,26 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestGenericStructList;
+unit TestGenericLists;
 
 interface
 
 uses fpcunit, testutils, testregistry;
 
 type
-  TTestGenericStructList = class(TTestCase)
+  TTestGenericLists = class(TTestCase)
   published
     procedure TestMap;
   end;
 
 implementation
 
-uses SysUtils, Classes, GenericStructList;
+uses SysUtils, Classes, CastleGenericLists;
 
 type
   TObjectToStringMap = specialize TGenericStructMap<TObject, string>;
 
-procedure TTestGenericStructList.TestMap;
+procedure TTestGenericLists.TestMap;
 var
   Map: TObjectToStringMap;
   O1, O2: TObject;
@@ -68,5 +68,5 @@ begin
 end;
 
 initialization
-  RegisterTest(TTestGenericStructList);
+  RegisterTest(TTestGenericLists);
 end.

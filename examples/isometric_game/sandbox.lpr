@@ -3,8 +3,8 @@ program SandBox;
 {$apptype GUI}
 
 uses SysUtils, GL, GLU, GLExt, CastleWindow, SandBoxMap, CastleFilesUtils,
-  WindowModes, SandBoxPlayer, CastleStringUtils, Math, CastleUtils,
-  CastleGLUtils, SandBoxGame, CastleKeysMouse, CastleMessages, GLImages;
+  CastleWindowModes, SandBoxPlayer, CastleStringUtils, Math, CastleUtils,
+  CastleGLUtils, SandBoxGame, CastleKeysMouse, CastleMessages, CastleGLImages;
 
 var
   Window: TCastleWindowDemo;

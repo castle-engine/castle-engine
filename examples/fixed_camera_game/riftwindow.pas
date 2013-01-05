@@ -25,7 +25,7 @@ unit RiftWindow;
 
 interface
 
-uses SysUtils, CastleWindow, GLRenderer, UIControls;
+uses SysUtils, CastleWindow, CastleRenderer, CastleUIControls;
 
 var
   { Window used for this game. @noAutoLinkHere }

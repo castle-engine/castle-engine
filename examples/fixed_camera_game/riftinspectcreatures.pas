@@ -29,11 +29,11 @@ procedure InspectCreatures;
 
 implementation
 
-uses WindowModes, Cameras, CastleGLUtils, CastleWindow, GL, CastleVectors, SysUtils,
+uses CastleWindowModes, CastleCameras, CastleGLUtils, CastleWindow, GL, CastleVectors, SysUtils,
   CastleBitmapFont_BVSansMono_Bold_m15, CastleGLBitmapFonts,
   Classes, CastleStringUtils, CastleMessages, CastleFilesUtils,
   RiftVideoOptions, RiftGame, RiftWindow, RiftCreatures,
-  UIControls, RiftSceneManager, CastleColors, CastleKeysMouse;
+  CastleUIControls, RiftSceneManager, CastleColors, CastleKeysMouse;
 
 var
   Creature: TCreature;

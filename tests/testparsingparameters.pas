@@ -27,7 +27,7 @@ type
 
 implementation
 
-uses CastleParameters, CastleUtils, CastleStringUtils, GenericStructList;
+uses CastleParameters, CastleUtils, CastleStringUtils, CastleGenericLists;
 
 type
   TParsedOption = record

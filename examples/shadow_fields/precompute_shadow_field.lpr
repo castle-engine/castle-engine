@@ -36,9 +36,9 @@
 }
 program precompute_shadow_field;
 
-uses SysUtils, CastleProgress, ProgressConsole, CastleUtils,
+uses SysUtils, CastleProgress, CastleProgressConsole, CastleUtils,
   CastleSceneCore, ShadowFields, CastleTimeUtils, CastleVectors,
-  CubeMap, SphericalHarmonics, CastleParameters;
+  CastleCubeMaps, CastleSphericalHarmonics, CastleParameters;
 
 var
   Scene: TCastleSceneCore;

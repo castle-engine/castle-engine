@@ -28,8 +28,8 @@ program radiance_transfer;
 uses CastleVectors, X3DNodes, GL, GLU, CastleWindow,
   CastleClassUtils, CastleUtils, SysUtils, Classes, CastleRenderingCamera,
   CastleGLUtils, CastleScene, CastleKeysMouse, CastleSceneManager,
-  CastleFilesUtils, CastleWarnings, SphericalHarmonics, Math, CastleImages, GLCubeMap,
-  CastleStringUtils, CastleParameters;
+  CastleFilesUtils, CastleWarnings, CastleSphericalHarmonics, Math, CastleImages,
+  CastleGLCubeMaps, CastleStringUtils, CastleParameters;
 
 type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);

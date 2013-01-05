@@ -43,7 +43,7 @@ type
 
 implementation
 
-uses CastleUtils, EnumerateFiles, CastleFilesUtils, CastleTimeUtils {$ifdef UNIX}, BaseUnix {$endif};
+uses CastleUtils, CastleEnumerateFiles, CastleFilesUtils, CastleTimeUtils {$ifdef UNIX}, BaseUnix {$endif};
 
 procedure TTestOSSpecific.TestChangeDir;
 var

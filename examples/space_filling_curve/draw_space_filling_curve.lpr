@@ -14,7 +14,7 @@
 }
 
 { This is a simple demo of the recursive space filling curves implemented in the
-  SpaceFillingCurves unit.
+  CastleSpaceFillingCurves unit.
 
   Always run with at least 2 command-line params:
     curve-type (may be "peano" or "hilbert" for now)
@@ -37,7 +37,7 @@ program draw_space_filling_curve;
 {$apptype GUI}
 
 uses SysUtils, GL, GLU, CastleWindow, CastleUtils, CastleGLUtils, CastleParameters,
-  CastleImages, CastleVectors, Math, SpaceFillingCurves, CastleStringUtils, GLImages,
+  CastleImages, CastleVectors, Math, CastleSpaceFillingCurves, CastleStringUtils, CastleGLImages,
   CastleKeysMouse;
 
 var

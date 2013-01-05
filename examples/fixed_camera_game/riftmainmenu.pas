@@ -35,9 +35,9 @@ procedure DoMainMenu;
 implementation
 
 uses SysUtils, GL, CastleWindow, CastleFilesUtils,
-  CastleGLUtils, CastleMessages, OnScreenMenu, WindowModes, CastleUtils,
+  CastleGLUtils, CastleMessages, CastleOnScreenMenu, CastleWindowModes, CastleUtils,
   CastleVectors, CastleSoundMenu, Classes, CastleStringUtils, CastleControls,
-  GLImages, UIControls, CastleColors, CastleSoundEngine,
+  CastleGLImages, CastleUIControls, CastleColors, CastleSoundEngine,
   RiftData, RiftSound, RiftVideoOptions, RiftInspectCreatures, RiftPlay,
   RiftLocations, RiftGame, CastleKeysMouse;
 

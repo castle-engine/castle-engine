@@ -32,8 +32,8 @@ procedure DoIntro;
 implementation
 
 uses SysUtils, GL, CastleWindow, CastleFilesUtils,
-  CastleGLUtils, RiftData, WindowModes, DOM, CastleImages, CastleSoundEngine,
-  GLImages, UIControls, CastleStringUtils, RiftSound, RiftVideoOptions,
+  CastleGLUtils, RiftData, CastleWindowModes, DOM, CastleImages, CastleSoundEngine,
+  CastleGLImages, CastleUIControls, CastleStringUtils, RiftSound, RiftVideoOptions,
   CastleKeysMouse;
 
 { $define DEBUG_INTRO_FAST}

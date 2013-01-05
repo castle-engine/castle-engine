@@ -33,7 +33,7 @@
     DefaultDirsToCleanInit to know default masks for removed files.
 
 }
-uses SysUtils, CastleUtils, CastleParameters, EnumerateFiles,
+uses SysUtils, CastleUtils, CastleParameters, CastleEnumerateFiles,
   CastleFilesUtils, CastleStringUtils;
 
 { RemoveNonEmptyDir utility -------------------------------------------------- }

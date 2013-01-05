@@ -23,8 +23,8 @@ program simple_video_editor;
   info on stdout anyway. }
 {$apptype CONSOLE}
 
-uses CastleUtils, SysUtils, CastleWindow, GL, GLU, GLImages,
-  Videos, CastleStringUtils, CastleMessages, CastleColors,
+uses CastleUtils, SysUtils, CastleWindow, GL, GLU, CastleGLImages,
+  CastleVideos, CastleStringUtils, CastleMessages, CastleColors,
   CastleBitmapFont_BVSansMono_Bold_m15, CastleGLBitmapFonts, CastleParameters,
   CastleGLUtils, CastleVectors, Classes, CastleProgress, CastleWindowProgress,
   CastleTimeUtils, CastleKeysMouse;
