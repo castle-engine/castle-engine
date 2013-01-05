@@ -1,29 +1,29 @@
 ------------------------------------------------------------------------------
-Naming convention:
-
-See also naming_engine_3.0.txt, we follow it, except we surrender
-in the case of Castle prefix for unit names.
-
-Generally, we name all units CastleXxx. (Avoiding this prefix in unit name
-didn't really work Ok in engine 3.0.0, we had too many generically-named units
-that had to be renamed. And having half of the units with Castle prefix, half without
-is not consistent. So rename all.)
-
-Classes only use TCastle prefix if they are registered on Lazarus component palette,
-or if they really sound overly generic (like TItem, that is now TInventoryItem)
-or conflict with widely used (in common RTL, FCL, LCL) identifiers (like TImage,
-that is now TCastleImage). Generally we avoid adding prefixes to classes
-(or other identifiers), they looked too ugly in engine. Pascal allows to coexist
-two equal identifiers in different units without problems, so let's depend on it.
-
-------------------------------------------------------------------------------
 Unit renames from engine 3.0.0 -> 4.0.0:
 
-(Note: while this seems a lot, many of these units are a little miscellaneous
-and you probably use only a little fraction of them (like VectorMath -> CastleVectors,
-Boxes3D -> CastleBoxes). Besides, it's probably easier to just recompile your program
-instead of looking at this list. Compiler will tell you which units are gone :)
+(Note: This is a complete list of renames, including many internal units
+that aren't really useful for normal engine usage.
+Your program probably uses only a little fraction of units mentioned below.
+In other words, don't be scared by the length of list below :)
+Just try to recompile your program and you will see which units you need to rename.
+)
 
+ProgressUnit               CastleProgress
+CastleProgress             CastleWindowProgress
+KeysMouse                  CastleKeysMouse
+ConvexHullUnit             CastleConvexHull
+RenderingCameraUnit        CastleRenderingCamera
+VectorMath                 CastleVectors
+Font2PascalUnit            CastleFont2Pascal
+Base3D                     Castle3D.pas
+Boxes3D                    CastleBoxes
+Frustums                   CastleFrustum
+Noise                      CastleNoise
+Triangulator               CastleTriangulate
+NormalsCalculator          CastleNormals
+CastleRecentFiles          CastleWindowRecentFiles
+RecentFiles                CastleRecentFiles
+LCLRecentFiles             CastleLCLRecentFiles
 Shaders                    CastleShaders
 ALUtils                    CastleALUtils
 ArraysGenerator            CastleArraysGenerator
@@ -73,20 +73,27 @@ GLRendererTextureEnv       CastleRendererTextureEnv
 GLShaders                  CastleGLShaders
 GLShadowVolumeRenderer     CastleGLShadowVolumes
 GLVersionUnit              CastleGLVersion
-
-TODO: add here earlier renames from news_xxx
+Shape                      CastleShapes
+Images                     CastleImages
+Triangle                   X3DTriangles
+  (note: there is also new CastleTriangles unit containing part of previous
+  VectorMath.)
 
 ------------------------------------------------------------------------------
-Units not renamed:
+Explanation of naming convention:
 
-- All units already following CastleXxx (most of them)
+See also naming_engine_3.0.txt, we follow it, except we surrender
+in the case of Castle prefix for unit names.
 
-- Units from other sources:
-  tdxinput_tlb
-  pk3dconnexion
-  I haven't really decided whether to rename them. Anyway, they are internal
-  (normal usage of the engine should not require you to use them),
-  so we can later rename them if I hear arguments that it's good thing to do.
+Generally, we name all units CastleXxx. (Avoiding this prefix in unit name
+didn't really work Ok in engine 3.0.0, we had too many generically-named units
+that had to be renamed. And having half of the units with Castle prefix, half without
+is not consistent. So rename all.)
 
-- Units named X3D*. There are a lot of them, and I didn't want to make two prefixes
-  CastleX3Dxxx.
+Classes only use TCastle prefix if they are registered on Lazarus component palette,
+or if they really sound overly generic (like TItem, that is now TInventoryItem)
+or conflict with widely used (in common RTL, FCL, LCL) identifiers (like TImage,
+that is now TCastleImage). Generally we avoid adding prefixes to classes
+(or other identifiers), they looked too ugly in engine in 2.x versions.
+Pascal allows to coexist two equal identifiers in different units without problems,
+so let's depend on it.
