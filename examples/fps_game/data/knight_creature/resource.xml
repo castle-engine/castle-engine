@@ -35,6 +35,7 @@
   middle_height="0.75"
   radius="0.5"
   preferred_distance="3.5"
+  move_speed="1.75"
 >
   <model>
     <idle   file_name="idle.kanim"  />
@@ -43,5 +44,15 @@
     <die    file_name="die.kanim"   />
     <hurt   file_name="hurt.kanim"  />
   </model>
-  <attack max_distance="4.0"/>
+
+  <!-- Note that time="xxx" attribute should be synchronized with attack.kanim
+       animation specified above to look good. This is the time during animation
+       when the actual "hit" (life loss, pain, knockback, and so on) occurs.
+       So this should be synchronized to occur when visually the sword falls
+       down on the player. -->
+  <attack max_distance="4.0" knockback_distance="4.0" time="0.5">
+    <!-- Note that by default damage is 0, so player doesn't lose Life,
+         so we will not even show the "pain" FadeOut. -->
+    <damage const="1" random="1" />
+  </attack>
 </resource>
