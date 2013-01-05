@@ -224,7 +224,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleVectors, GLVersionUnit, CastleTriangles;
+uses CastleUtils, CastleVectors, CastleGLVersion, CastleTriangles;
 
 { TGLOutlineFontAbstract ------------------------------------------------------}
 

@@ -197,7 +197,7 @@ unit CastleVectors;
 
 interface
 
-uses SysUtils, CastleUtils, Matrix, GenericStructList;
+uses SysUtils, CastleUtils, Matrix, CastleGenericLists;
 
 {$define read_interface}
 

@@ -297,7 +297,7 @@ type
 
 implementation
 
-uses ALUtils;
+uses CastleALUtils;
 
 { TSound ---------------------------------------------------------- }
 

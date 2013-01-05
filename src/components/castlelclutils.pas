@@ -18,7 +18,7 @@ unit CastleLCLUtils;
 
 interface
 
-uses FileFilters, Dialogs;
+uses CastleFileFilters, Dialogs;
 
 { Convert file filters into LCL Dialog.Filter, Dialog.FilterIndex.
   Suitable for both open and save dialogs (TOpenDialog, TSaveDialog

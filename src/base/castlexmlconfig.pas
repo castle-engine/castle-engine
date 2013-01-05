@@ -31,7 +31,7 @@ unit CastleXMLConfig;
 interface
 
 uses CastleUtils, {$ifdef USE_OLD_XMLCFG} XMLCfg {$else} XMLConf {$endif}, DOM,
-  CastleVectors, CastleKeysMouse, GenericStructList, SysUtils, Classes;
+  CastleVectors, CastleKeysMouse, CastleGenericLists, SysUtils, Classes;
 
 type
   EMissingAttribute = class(Exception);

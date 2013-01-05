@@ -169,10 +169,10 @@ interface
 
 uses CastleVectors, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleOutlineFonts,
-  Videos, X3DTime, Castle3D,
-  CastleScript, X3DCastleScript, CastleOctree, DDS, TextureImages,
+  CastleVideos, X3DTime, Castle3D,
+  CastleScript, X3DCastleScript, CastleOctree, CastleDDS, CastleTextureImages,
   XMLRead, DOM, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
-  FGL, GenericStructList, Shaders;
+  FGL, CastleGenericLists, CastleShaders;
 
 {$define read_interface}
 
@@ -2147,9 +2147,9 @@ uses
   CastleOutlineFont_BVSerif_Bold_Italic,
 
   Math, X3DLoad, CastleZStream, X3DCameraUtils, CastleWarnings, CastleColors,
-  CastleFilesUtils, RaysWindow, StrUtils, CastleURLUtils,
-  CastleLog, CastleScriptParser, DataURI, URIParser,
-  NURBS, Quaternions, Cameras, CastleXMLUtils, CastleOpenDocument;
+  CastleFilesUtils, CastleRays, StrUtils, CastleURLUtils,
+  CastleLog, CastleScriptParser, CastleDataURI, URIParser,
+  CastleNURBS, CastleQuaternions, CastleCameras, CastleXMLUtils, CastleOpenDocument;
 
 {$define read_implementation}
 

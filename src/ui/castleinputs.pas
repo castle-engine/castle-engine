@@ -90,7 +90,7 @@ unit CastleInputs;
 interface
 
 uses CastleKeysMouse, CastleUtils, CastleClassUtils, Classes,
-  FGL, CastleConfig, CastleScript, UIControls;
+  FGL, CastleConfig, CastleScript, CastleUIControls;
 
 type
   TInputGroup = (igLocal, igBasic, igItems, igOther);

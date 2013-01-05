@@ -20,11 +20,11 @@ unit CastleLevels;
 interface
 
 uses CastleVectors, CastleSceneCore, CastleScene, CastleBoxes,
-  X3DNodes, X3DFields, Cameras, SectorsWaypoints,
+  X3DNodes, X3DFields, CastleCameras, CastleSectors,
   CastleUtils, CastleClassUtils, CastlePlayer, CastleResources,
-  CastleProgress, PrecalculatedAnimation,
+  CastleProgress, CastlePrecalculatedAnimation,
   DOM, CastleSoundEngine, Castle3D, CastleShapes, GL, CastleConfig, CastleImages,
-  Classes, CastleTimeUtils, CastleSceneManager, GLRendererShader, FGL;
+  Classes, CastleTimeUtils, CastleSceneManager, CastleRendererShader, FGL;
 
 type
   TLevelLogic = class;
@@ -400,8 +400,8 @@ function Levels: TLevelInfoList;
 implementation
 
 uses SysUtils, CastleGLUtils, CastleFilesUtils, CastleStringUtils, 
-  GLImages, UIControls, XMLRead, CastleInputs, CastleXMLUtils,
-  GLRenderer, CastleRenderingCamera, Math, CastleWarnings;
+  CastleGLImages, CastleUIControls, XMLRead, CastleInputs, CastleXMLUtils,
+  CastleRenderer, CastleRenderingCamera, Math, CastleWarnings;
 
 { globals -------------------------------------------------------------------- }
 

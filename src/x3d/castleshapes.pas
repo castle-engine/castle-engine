@@ -25,8 +25,8 @@ unit CastleShapes;
 interface
 
 uses SysUtils, Classes, CastleVectors, Castle3D, CastleBoxes, X3DNodes, CastleClassUtils,
-  CastleUtils, TriangleOctree, CastleFrustum, CastleOctree, X3DTriangles,
-  X3DFields, GeometryArrays, FGL, CastleTriangles;
+  CastleUtils, CastleTriangleOctree, CastleFrustum, CastleOctree, X3DTriangles,
+  X3DFields, CastleGeometryArrays, FGL, CastleTriangles;
 
 const
   { }
@@ -882,7 +882,7 @@ var
 implementation
 
 uses CastleProgress, CastleSceneCore, CastleNormals, CastleLog, CastleWarnings,
-  CastleStringUtils, ArraysGenerator, CastleImages;
+  CastleStringUtils, CastleArraysGenerator, CastleImages;
 
 const
   UnknownTexCoord: TTriangle4Single = (

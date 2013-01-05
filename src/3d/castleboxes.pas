@@ -18,7 +18,7 @@ unit CastleBoxes;
 
 interface
 
-uses CastleVectors, SysUtils, CastleUtils, GenericStructList, CastleTriangles;
+uses CastleVectors, SysUtils, CastleUtils, CastleGenericLists, CastleTriangles;
 
 type
   EBox3DEmpty = class(Exception);

@@ -20,10 +20,11 @@ unit CastleScene;
 
 interface
 
-uses SysUtils, Classes, CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils, 
-  CastleUtils, CastleSceneCore, GLRenderer, GL, GLU, GLExt, Background, CastleGLUtils,
-  ShapeOctree, GLShadowVolumeRenderer, X3DFields, CastleTriangles,
-  GLRendererLights, CastleShapes, CastleFrustum, Castle3D, GLShaders, FGL, GenericStructList;
+uses SysUtils, Classes, CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils,
+  CastleUtils, CastleSceneCore, CastleRenderer, GL, GLU, GLExt, CastleBackground,
+  CastleGLUtils, CastleShapeOctree, CastleGLShadowVolumes, X3DFields, CastleTriangles,
+  CastleRendererLights, CastleShapes, CastleFrustum, Castle3D, CastleGLShaders, FGL,
+  CastleGenericLists;
 
 {$define read_interface}
 
@@ -901,7 +902,7 @@ var
 
 implementation
 
-uses GLVersionUnit, CastleImages, CastleLog, CastleWarnings,
+uses CastleGLVersion, CastleImages, CastleLog, CastleWarnings,
   CastleStringUtils, CastleRenderingCamera;
 
 var

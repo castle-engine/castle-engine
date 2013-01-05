@@ -15,8 +15,8 @@
 
 { OpenGL fonts from TrueType fonts installed in Windows.
 
-  We create Windows font using unit WindowsFonts,
-  then convert it to TOutlineFont/TBitmapFont using unit WinFontConvert,
+  We create Windows font using unit CastleWindowsFonts,
+  then convert it to TOutlineFont/TBitmapFont using unit CastleWinFontConvert,
   then utilize it in OpenGL using unit CastleGLBitmapFonts / CastleGLOutlineFonts.
   So this unit is just a simple wrapper for some other units.
 }
@@ -30,8 +30,8 @@ unit CastleGLWindowsFonts;
 
 interface
 
-uses WindowsFonts, GL, GLU, GLExt, Windows
-  {$ifndef USE_WGL}, CastleBitmapFonts, CastleOutlineFonts, WinFontConvert,
+uses CastleWindowsFonts, GL, GLU, GLExt, Windows
+  {$ifndef USE_WGL}, CastleBitmapFonts, CastleOutlineFonts, CastleWinFontConvert,
   CastleGLBitmapFonts, CastleGLOutlineFonts {$endif};
 
 type

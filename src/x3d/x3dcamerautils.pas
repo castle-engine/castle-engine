@@ -57,7 +57,7 @@ function CameraNodeForWholeScene(const Version: TX3DCameraVersion;
 
 implementation
 
-uses SysUtils, Cameras;
+uses SysUtils, CastleCameras;
 
 function MakeCameraStr(const Version: TX3DCameraVersion;
   const Xml: boolean;

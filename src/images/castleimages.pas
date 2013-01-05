@@ -48,7 +48,7 @@
 #)
 
   This unit is of course not dependent on OpenGL or any other rendering
-  library. See GLImages for OpenGL image operations (for textures and others).
+  library. See CastleGLImages for OpenGL image operations (for textures and others).
 *)
 
 unit CastleImages;
@@ -65,7 +65,7 @@ unit CastleImages;
 interface
 
 uses SysUtils, Classes, Math, CastleUtils, CastleVectors,
-  CastlePng, FileFilters, CastleClassUtils, CastleColors,
+  CastlePng, CastleFileFilters, CastleClassUtils, CastleColors,
   FGL, FPImage, FPReadPCX, FPReadGIF, FPReadPSD, FPReadTGA, FPReadTiff, FPReadXPM,
   FPReadJPEG, FPWriteJPEG, FPReadPNM;
 
@@ -197,7 +197,7 @@ type
 
     When Depth > 1, the image is actually a 3D (not just 2D!) image.
     We call the particular 2D layers then "slices".
-    Although some TCastleImage methods (and functions in other units, like GLImages)
+    Although some TCastleImage methods (and functions in other units, like CastleGLImages)
     still operate only on the 1st "slice", that is the 2D image on Depth = 0
     --- be careful. But many methods correctly take the depth into consideration.
 
@@ -1588,7 +1588,7 @@ procedure AlphaMaxTo1st(var A: TAlphaChannel; const B: TAlphaChannel);
 
 implementation
 
-uses CastleProgress, CastleStringUtils, CastleFilesUtils, CastleWarnings, DDS;
+uses CastleProgress, CastleStringUtils, CastleFilesUtils, CastleWarnings, CastleDDS;
 
 { image loading utilities --------------------------------------------------- }
 

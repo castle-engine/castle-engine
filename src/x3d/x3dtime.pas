@@ -18,7 +18,7 @@ unit X3DTime;
 
 interface
 
-uses CastleUtils, CastleTimeUtils, GenericStructList;
+uses CastleUtils, CastleTimeUtils, CastleGenericLists;
 
 type
   { Complete timestamp for X3D events.

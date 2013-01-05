@@ -20,7 +20,7 @@ unit X3DLoadInternalMD3;
 interface
 
 uses SysUtils, Classes, CastleUtils, CastleClassUtils, CastleVectors, X3DNodes,
-  FGL, GenericStructList;
+  FGL, CastleGenericLists;
 
 { Load MD3 animation into a single animated X3D model. }
 function LoadMD3(const FileName: string): TX3DRootNode;

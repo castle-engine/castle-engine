@@ -23,8 +23,8 @@ interface
 
 uses
   Classes, SysUtils, OpenGLContext, Controls, Forms,
-  CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils, StdCtrls, UIControls,
-  Cameras, X3DNodes, CastleScene, CastleLevels, CastleImages, pk3DConnexion;
+  CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils, StdCtrls, CastleUIControls,
+  CastleCameras, X3DNodes, CastleScene, CastleLevels, CastleImages, pk3DConnexion;
 
 const
   DefaultLimitFPS = 100.0;
@@ -449,7 +449,7 @@ var
 implementation
 
 uses LCLType, GL, GLU, GLExt, CastleGLUtils, CastleStringUtils, X3DLoad,
-  GLImages, CastleLog, Contnrs;
+  CastleGLImages, CastleLog, Contnrs;
 
 procedure Register;
 begin
@@ -1536,7 +1536,7 @@ var
 begin
   inherited;
 
-  { Call MakeCurrent here, to make sure UIControls always get
+  { Call MakeCurrent here, to make sure CastleUIControls always get
     ContainerResize with good GL context. }
   if GLInitialized and UseControls and MakeCurrent then
   begin
@@ -1550,7 +1550,7 @@ var
   I: Integer;
 begin
   inherited;
-  UIControls.OnGLContextOpen.ExecuteAll(Self);
+  CastleUIControls.OnGLContextOpen.ExecuteAll(Self);
 
   { call GLContextOpen on controls after inherited (OnGLContextOpen). }
   if UseControls then
@@ -1574,7 +1574,7 @@ begin
       Controls[I].GLContextClose;
   end;
 
-  UIControls.OnGLContextClose.ExecuteAll(Self);
+  CastleUIControls.OnGLContextClose.ExecuteAll(Self);
   inherited;
 end;
 

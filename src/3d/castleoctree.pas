@@ -14,7 +14,7 @@
 }
 
 (*Base octree classes (TOctreeNode and TOctree) and utilities.
-  Used by actual octrees in units like VRMLTriangleOctree and VRMLShapeOctree.
+  Used by actual octrees in units like CastleTriangleOctree and CastleShapeOctree.
 
   Typical way to derive actual (non-abstract) octrees goes like this;
   @longcode(#

@@ -19,8 +19,8 @@ unit Castle3D;
 interface
 
 uses Classes, Math, CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
-  CastleUtils, FGL, GenericStructList, CastleTimeUtils,
-  CastleSoundEngine, SectorsWaypoints, Cameras, CastleTriangles;
+  CastleUtils, FGL, CastleGenericLists, CastleTimeUtils,
+  CastleSoundEngine, CastleSectors, CastleCameras, CastleTriangles;
 
 type
   T3D = class;

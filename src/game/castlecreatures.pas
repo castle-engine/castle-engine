@@ -18,8 +18,8 @@ unit CastleCreatures;
 
 interface
 
-uses Classes, CastleVectors, PrecalculatedAnimation, CastleBoxes, CastleClassUtils,
-  CastleUtils, CastleScene, SectorsWaypoints, CastleStringUtils,
+uses Classes, CastleVectors, CastlePrecalculatedAnimation, CastleBoxes, CastleClassUtils,
+  CastleUtils, CastleScene, CastleSectors, CastleStringUtils,
   CastleResources, CastleXMLConfig, Castle3D,
   CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors, FGL;
 
@@ -894,7 +894,7 @@ var
 implementation
 
 uses SysUtils, DOM, GL, GLU, CastleFilesUtils, CastleGLUtils,
-  CastleProgress, CastleGameNotifications, CastleGLOutlineFonts, UIControls;
+  CastleProgress, CastleGameNotifications, CastleGLOutlineFonts, CastleUIControls;
 
 var
   DisableCreatures: Cardinal;

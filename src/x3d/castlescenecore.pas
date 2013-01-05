@@ -24,9 +24,9 @@ interface
 uses
   SysUtils, Classes, CastleVectors, CastleBoxes, CastleTriangles,
   X3DFields, X3DNodes, CastleClassUtils, CastleUtils,
-  CastleShapes, TriangleOctree, CastleProgress, CastleOctree, ShapeOctree,
-  CastleKeysMouse, X3DTime, Cameras, X3DTriangles, Contnrs,
-  CastleRenderingCamera, Castle3D, X3DShadowMaps, FGL, GenericStructList;
+  CastleShapes, CastleTriangleOctree, CastleProgress, CastleOctree, CastleShapeOctree,
+  CastleKeysMouse, X3DTime, CastleCameras, X3DTriangles, Contnrs,
+  CastleRenderingCamera, Castle3D, X3DShadowMaps, FGL, CastleGenericLists;
 
 type
   TTriangle3SingleList = specialize TGenericStructList<TTriangle3Single>;
@@ -150,7 +150,7 @@ type
       slowdown if you inappropriately use this feature. }
     frTextureDataInNodes,
 
-    { Unloads the background images allocated in VRML Background nodes.
+    { Unloads the background images allocated in VRML/X3D Background nodes.
       The same comments as for frTextureDataInNodes apply. }
     frBackgroundImageInNodes,
 

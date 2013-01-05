@@ -80,7 +80,7 @@
 
     @item(FreeMem => it's often better to use FreeMemNiling)
 
-    @item(FindFirst/FindNext => it's often better to use EnumerateFiles unit)
+    @item(FindFirst/FindNext => it's often better to use CastleEnumerateFiles unit)
   )
 }
 

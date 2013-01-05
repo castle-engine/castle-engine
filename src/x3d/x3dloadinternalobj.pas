@@ -29,7 +29,7 @@ implementation
 
 uses CastleStringUtils, CastleFilesUtils, CastleWarnings,
   CastleVectors, CastleUtils, Classes, CastleClassUtils, SysUtils,
-  FGL, X3DLoadInternalUtils, GenericStructList;
+  FGL, X3DLoadInternalUtils, CastleGenericLists;
 
 type
   TWavefrontMaterial = class

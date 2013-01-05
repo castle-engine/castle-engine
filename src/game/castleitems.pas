@@ -20,7 +20,7 @@ interface
 
 uses CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleUtils,
   CastleClassUtils, Classes, CastleImages, GL, GLU, CastleGLUtils,
-  PrecalculatedAnimation, CastleResources, GLImages,
+  CastlePrecalculatedAnimation, CastleResources, CastleGLImages,
   CastleXMLConfig, CastleSoundEngine, CastleFrustum, Castle3D, FGL, CastleColors;
 
 type

@@ -20,7 +20,7 @@ interface
 
 uses CastleVectors, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
   CastleImages, CastleStringUtils, CastleInterfaces, X3DTime, DOM,
-  FGL, GenericStructList;
+  FGL, CastleGenericLists;
 
 {$define read_interface}
 

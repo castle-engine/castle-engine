@@ -80,10 +80,10 @@ type
 
     @unorderedList(
       @itemSpacing Compact
-      @item(GLProgress --- show progress bar in OpenGL window)
-      @item(ProgressConsole --- show progress bar on StdErr)
-      @item(ProgressVideo --- show progress bar on console using Video unit)
-      @item(ProgressF --- show progress using Lazarus/Delphi form)
+      @item(CastleWindowProgress --- show progress bar in OpenGL window)
+      @item(CastleProgressConsole --- show progress bar on StdErr)
+      @item(And you can also implement progress handling yourself,
+        e.g. using Lazarus form or using Lazarus progress bar on existing form.)
     )
 
     This way any unit that implements some lengthy operation can call

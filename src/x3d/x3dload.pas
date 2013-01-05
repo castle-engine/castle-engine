@@ -151,7 +151,7 @@ const
 
 implementation
 
-uses PrecalculatedAnimationCore, CastleClassUtils,
+uses CastlePrecalculatedAnimationCore, CastleClassUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
   X3DLoadInternalCollada;
 

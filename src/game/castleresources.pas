@@ -19,7 +19,7 @@ unit CastleResources;
 
 interface
 
-uses CastleVectors, Classes, CastleXMLConfig, PrecalculatedAnimation,
+uses CastleVectors, Classes, CastleXMLConfig, CastlePrecalculatedAnimation,
   CastleScene, X3DNodes, Castle3D, DOM, FGL, CastleBoxes;
 
 type
@@ -331,7 +331,7 @@ procedure RegisterResourceClass(const AClass: T3DResourceClass; const TypeName: 
 implementation
 
 uses SysUtils, CastleProgress, CastleXMLUtils, CastleTimeUtils, CastleUtils,
-  CastleStringUtils, CastleLog, CastleFilesUtils, CastleConfig, UIControls;
+  CastleStringUtils, CastleLog, CastleFilesUtils, CastleConfig, CastleUIControls;
 
 type
   TResourceClasses = specialize TFPGMap<string, T3DResourceClass>;

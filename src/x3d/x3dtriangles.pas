@@ -22,7 +22,7 @@ unit X3DTriangles;
 interface
 
 uses CastleVectors, SysUtils, CastleUtils, X3DNodes, Castle3D, CastleBoxes,
-  CastleOctree, GenericStructList, CastleTriangles;
+  CastleOctree, CastleGenericLists, CastleTriangles;
 
 { TTriangle  ------------------------------------------------------------ }
 

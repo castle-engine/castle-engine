@@ -129,7 +129,7 @@
   The non-OOP approach has one advantage: you can easily switch all callbacks
   to some other set of callbacks. This allows you to implement modal behaviors,
   where a function suspends normal callbacks to display some dialog.
-  See @link(WindowModes) unit and, build on top of it,
+  See @link(CastleWindowModes) unit and, build on top of it,
   dialog boxes in @link(CastleMessages) and progress bar in @link(CastleWindowProgress).
   These units give you some typical GUI capabilities, and they are in pure OpenGL.
 
@@ -137,9 +137,9 @@
   callbacks) you can not do such things so easily -- in general, you have
   to define something to turn off special EventXxx functionality
   (like SetDemoOptions in TCastleWindowDemo and UseControls in TCastleWindowCustom)
-  and you have to turn them off/on when using WindowModes
+  and you have to turn them off/on when using CastleWindowModes
   (mentioned TCastleWindowDemo and TCastleWindowCustom are already handled in
-  WindowModes). TODO: I shall do some virtual methods in TCastleWindowBase
+  CastleWindowModes). TODO: I shall do some virtual methods in TCastleWindowBase
   to make this easy.
 
   Random features list:
@@ -524,12 +524,12 @@ uses SysUtils, Classes, CastleVectors, GL, GLU, GLExt,
     { In FPC < 2.2.2, CommDlg stuff was inside Windows unit. }
     {$ifndef VER2_2_0} {$ifndef VER2_0_0} CommDlg, {$endif} {$endif}
   {$endif}
-  {$ifdef CASTLE_WINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, CursorFont, CastleGlx, {$endif}
+  {$ifdef CASTLE_WINDOW_XLIB} Xlib, CastleXlib, XUtil, X, KeySym, CursorFont, CastleGlx, {$endif}
   {$ifdef CASTLE_WINDOW_USE_XF86VMODE} CastleXF86VMode, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} Gdk2X, X, Xlib, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, CastleDynLib, {$endif}
-  CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, GLImages, CastleKeysMouse,
-  CastleStringUtils, CastleFilesUtils, CastleTimeUtils, FileFilters, UIControls,
+  CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages, CastleKeysMouse,
+  CastleStringUtils, CastleFilesUtils, CastleTimeUtils, CastleFileFilters, CastleUIControls,
   FGL, pk3DConnexion,
   { VRML/X3D stuff }
   X3DNodes, CastleScene, CastleLevels;
@@ -988,8 +988,8 @@ type
     { Handle appropriate event.
 
       In the TCastleWindowBase class, these methods simply call appropriate OnXxx
-      callbacks (if assigned). Also UIControls.OnGLContextOpen,
-      UIControls.OnGLContextClose lists are called here too.
+      callbacks (if assigned). Also CastleUIControls.OnGLContextOpen,
+      CastleUIControls.OnGLContextClose lists are called here too.
 
       You can override them to do anything you want.
 
@@ -1417,7 +1417,7 @@ type
       on modern GPUs, and capture it's contents. An example code snippet:
 
 @longCode(#
-{ add GLImages, CastleImages to your uses clause }
+{ add CastleGLImages, CastleImages to your uses clause }
 
 var
   ScreenshotRender: TGLRenderToTexture;
@@ -1650,7 +1650,7 @@ end;
       but instead normal EventPress (OnPress) will be called.
 
       When it is useful to set this to false?
-      For example hen using WindowModes. When you're changing modes (e.g. at the
+      For example hen using CastleWindowModes. When you're changing modes (e.g. at the
       beginning of CastleMessages.MessageOk) you're temporary setting
       OnMenuCommand to nil, but this doesn't block TMenuItem.DoCommand
       functions. The only way to block menu from triggering ANY event is to
@@ -2581,7 +2581,7 @@ end;
 #)
 
       Often this is used together with TGLMode, TGLModeFrozenScreen
-      and similar utilities from WindowModes unit.
+      and similar utilities from CastleWindowModes unit.
       They allow you to temporarily replace window callbacks with new ones,
       and later restore the original ones.
       This is useful for behavior similar to modal dialog boxes.
@@ -2716,11 +2716,11 @@ procedure Resize2D(Window: TCastleWindowBase);
 
 implementation
 
-uses CastleParameters, CastleLog, GLVersionUnit, X3DLoad
-  { using here WindowModes/CastleMessages makes recursive CastleWindow usage,
+uses CastleParameters, CastleLog, CastleGLVersion, X3DLoad
+  { using here CastleWindowModes/CastleMessages makes recursive CastleWindow usage,
     but it's needed for FileDialog }
-  {$ifdef CASTLE_WINDOW_GTK_ANY}, WindowModes {$endif}
-  {$ifdef CASTLE_WINDOW_WINAPI}, WindowModes {$endif}
+  {$ifdef CASTLE_WINDOW_GTK_ANY}, CastleWindowModes {$endif}
+  {$ifdef CASTLE_WINDOW_WINAPI}, CastleWindowModes {$endif}
   {$ifdef CASTLE_WINDOW_XLIB}, CastleMessages {$endif}
   {$ifdef CASTLE_WINDOW_GLUT}, CastleMessages {$endif};
 

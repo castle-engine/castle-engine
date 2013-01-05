@@ -45,7 +45,7 @@ unit CastleTriangles;
 
 interface
 
-uses CastleUtils, CastleVectors, GenericStructList;
+uses CastleUtils, CastleVectors, CastleGenericLists;
 
 type
   TTriangle2Single = packed array[0..2]of TVector2Single;     PTriangle2Single = ^TTriangle2Single;

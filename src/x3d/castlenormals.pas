@@ -95,7 +95,7 @@ function CreateSmoothNormalsCoordinateNode(
 
 implementation
 
-uses X3DFields, CastleTriangulate, GenericStructList;
+uses X3DFields, CastleTriangulate, CastleGenericLists;
 
 type
   TFace = record

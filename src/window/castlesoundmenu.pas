@@ -18,11 +18,11 @@ unit CastleSoundMenu;
 
 interface
 
-uses CastleWindow, OnScreenMenu, CastleSoundEngine;
+uses CastleWindow, CastleOnScreenMenu, CastleSoundEngine;
 
 type
   { An abstract class for CastleSoundMenu items.
-    In the future maybe such idea will be incorporated into OnScreenMenu unit. }
+    In the future maybe such idea will be incorporated into CastleOnScreenMenu unit. }
   TOnScreenMenuItem = class
   private
     FWindow: TCastleWindowBase;
