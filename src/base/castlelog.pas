@@ -15,21 +15,31 @@
 
 { Logging. Log has to be activated in your program (nothing in the
   castle_game_engine units activates it automatically !) by InitializeLog.
-  Various units of my engine print some logging info when @link(Log) is true.
-
-  Prints log messages to StdOut, not to some external file.
-  This is most useful and common behavior on Unixes.
-  It also removed any problems with users asking "where can I find
-  the log file?". The downside is that Windows users
-  have to explicitly redirect StdOut of the GUI program to get the log. }
+  Various units of my engine print some logging info when @link(Log) is true. }
 unit CastleLog;
 
 interface
 
-{ Is logging active ? Initially no. Activate by InitializeLog. }
+uses Classes;
+
+{ Is logging active. Initially no. Activate by InitializeLog. }
 function Log: boolean;
 
-procedure InitializeLog(const ProgramVersion: string);
+{ Initialize logging.
+
+  If you leave ALogStream as @nil (default),
+  then we will prints log messages to StdOut, not to some external file.
+  This is most useful and common behavior on Unixes, where most programs
+  log to StdOut, and StdOut is always available.
+  It also removes any problems with users asking "where can I find
+  the log file?".
+  The downside is that Windows users
+  have to explicitly redirect StdOut of the GUI program to get the log,
+  i.e. run your program from command-line like "program.exe > log.txt".
+  Otherwise, GUI programs (with apptype GUI) do not have StdOut available
+  under Windows. }
+procedure InitializeLog(const ProgramVersion: string;
+  const ALogStream: TStream = nil);
 
 { Write to log file. Call this only if @link(Log) = @true.
 
@@ -62,23 +72,26 @@ procedure WritelnLogMultiline(const Title: string; const LogMessage: string);
 
 implementation
 
-uses Classes, CastleUtils, CastleClassUtils, CastleTimeUtils,
+uses CastleUtils, CastleClassUtils, CastleTimeUtils,
   SysUtils, CastleFilesUtils;
 
 var
   FLog: boolean = false;
+  LogStream: TStream;
 
 function Log: boolean;
 begin
   Result := FLog;
 end;
 
-procedure InitializeLog(const ProgramVersion: string);
+procedure InitializeLog(const ProgramVersion: string;
+  const ALogStream: TStream = nil);
 
   procedure RaiseStdOutNotAvail;
   begin
     raise EWithHiddenClassName.Create(
-      'You used --debug-log option but it seems that stdout (standard output) ' +
+      'Cannot write to log output stream. ' +
+      'This usually means that you initialized log for a Windows GUI program, but stdout (standard output) ' +
       'is not available. Under Windows you should explicitly ' +
       'redirect program''s stdout to make it available, e.g. ' +
       'run "' + ApplicationName + ' --debug-log > ' + ApplicationName + '.log".');
@@ -87,17 +100,22 @@ procedure InitializeLog(const ProgramVersion: string);
 begin
   if Log then Exit; { ignore 2nd call to InitializeLog }
 
-  { Ideally, check for "StdOutStream = nil" should be all that is needed,
-    and wrapping WritelnStr inside try...except should not be needed.
-    But... see StdOutStream comments: you cannot
-    depend on the fact that "StdOutStream <> nil means that stdout
-    is actually available (because user redirected stdout etc.). }
-
-  if StdOutStream = nil then
-    RaiseStdOutNotAvail;
+  if ALogStream = nil then
+  begin
+    { Under Windows GUI program, StdOutStream may be nil.
+      Ideally, check for "StdOutStream = nil" should be all that is needed.
+      But... see StdOutStream comments: you cannot
+      depend on the fact that "StdOutStream <> nil means that stdout
+      is actually available (because user redirected stdout etc.).
+      That is why the 1st WritelnStr below is wrapped inside try...except. }
+    if StdOutStream = nil then
+      RaiseStdOutNotAvail;
+    LogStream := StdOutStream;
+  end else
+    LogStream := ALogStream;
 
   try
-    WritelnStr('Log for "' + ProgramName +
+    WritelnStr(LogStream, 'Log for "' + ProgramName +
       '", version ' + ProgramVersion +
       '. Started on ' + DateTimeToAtStr(Now) + '.');
   except
@@ -117,7 +135,7 @@ end;
 
 procedure WriteLog(const Title: string; const LogMessage: string);
 begin
-  WriteStr(Title + ': ' + LogMessage);
+  WriteStr(LogStream, Title + ': ' + LogMessage);
 end;
 
 procedure WritelnLog(const Title: string; const LogMessage: string);
@@ -133,7 +151,7 @@ end;
 
 procedure WriteLogMultiline(const Title: string; const LogMessage: string);
 begin
-  WritelnStr(
+  WritelnStr(LogStream,
     '-------------------- ' + Title + ' begin' + NL +
     LogMessage +
     '-------------------- ' + Title + ' end');
