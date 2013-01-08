@@ -156,7 +156,7 @@ type
       UI controls, that actually take screen space implied by PositionInside,
       want to block controls underneath from handling keys/mouse.
       For example, when pressing key "left" over TCastleOnScreenMenu, you do not
-      want to let the Camera to also capture this left key down.
+      want to let the scene manager to also capture this left key down.
 
       @italic(More reasoning behind HandleMouseAndKeys:)
 
@@ -258,7 +258,7 @@ type
 
       This means that events will not be simultaneously handled by both this
       control and some other (or camera or normal window callbacks),
-      which is usually more sensible, but sometimes less functional. }
+      which is usually more sensible, but sometimes somewhat limiting. }
     property ExclusiveEvents: boolean
       read FExclusiveEvents write FExclusiveEvents default true;
   end;

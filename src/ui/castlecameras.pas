@@ -556,10 +556,6 @@ type
     property Inputs_Rotate: T3BoolInputs read FInputs_Rotate;
     { @groupEnd }
 
-    { For Examine camera, ExclusiveEvents by default are @false,
-      so enable activating and using pointing device sensors in Examine mode. }
-    property ExclusiveEvents default false;
-
     procedure GetView(out APos, ADir, AUp: TVector3Single); override;
     procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
@@ -2002,8 +1998,6 @@ var
   B: boolean;
 begin
   inherited;
-
-  ExclusiveEvents := false;
 
   FModelBox := EmptyBox3D;
   FMoveAmount := ZeroVector3Single;
@@ -4366,11 +4360,6 @@ begin
   inherited;
   FExamine := TExamineCameraInUniversal.Create(Self);
   TExamineCameraInUniversal(FExamine).Universal := Self;
-  { Useful and works sensibly with our view3dscene events that pass
-    mouse / keys to VRML/X3D scene. This way in Examine mode you can
-    activate pointing device sensors.
-    Note: This is the default now. }
-  Examine.ExclusiveEvents := false;
   Examine.Name := 'Examine';
   Examine.SetSubComponent(true);
 

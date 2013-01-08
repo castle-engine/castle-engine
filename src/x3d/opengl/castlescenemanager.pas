@@ -1316,12 +1316,6 @@ begin
   Result := inherited;
   if Result or Paused or (not GetExists) then Exit;
 
-  if Camera <> nil then
-  begin
-    Result := Camera.Press(Event);
-    if Result then Exit;
-  end;
-
   Result := GetItems.Press(Event);
   if Result then Exit;
 
@@ -1349,6 +1343,15 @@ begin
     if Input_UseItem.IsEvent(Event) then
       begin Result := true; P.UseCurrentItem; end;
   end;
+
+  { Let Camera only work after PointingDeviceActivate, to let pointing
+    device sensors under camera work, even when camera allows to navigate
+    by dragging. }
+  if Camera <> nil then
+  begin
+    Result := Camera.Press(Event);
+    if Result then Exit;
+  end;
 end;
 
 function TCastleAbstractViewport.Release(const Event: TInputPressRelease): boolean;
@@ -1356,18 +1359,21 @@ begin
   Result := inherited;
   if Result or Paused or (not GetExists) then Exit;
 
-  if Camera <> nil then
-  begin
-    Result := Camera.Release(Event);
-    if Result then Exit;
-  end;
-
   Result := GetItems.Release(Event);
   if Result then Exit;
 
   if PlayerNotBlocked and Input_Interact.IsEvent(Event) then
   begin
     Result := PointingDeviceActivate(false);
+    if Result then Exit;
+  end;
+
+  { Let Camera only work after PointingDeviceActivate, to let pointing
+    device sensors under camera work, even when camera allows to navigate
+    by dragging. }
+  if Camera <> nil then
+  begin
+    Result := Camera.Release(Event);
     if Result then Exit;
   end;
 end;
@@ -1450,17 +1456,22 @@ begin
     Exit;
   end;
 
-  { As for LetOthersHandleMouseAndKeys: let Camera decide it.
-    By default, camera has ExclusiveEvents = false and will let
-    LetOthersHandleMouseAndKeys remain = true, that's Ok.
+  { As for LetOthersHandleMouseAndKeys: let Camera decide.
+    By default, camera (like all TUIControl) has ExclusiveEvents = true
+    and will cause LetOthersHandleMouseAndKeys := false, so things under this
+    viewport do not get keys/mouse events. This is good when you have
+    one viewport covering another, like in fps_game. This means pressing
+    e.g. the "up arrow key" only moves camera in one viewport.
 
-    Our Items do not have HandleMouseAndKeys or LetOthersHandleMouseAndKeys
-    stuff, as it would not be controllable for them: 3D objects do not
+    Note about Items.Idle (called in TCastleSceneManager.Idle):
+    Our Items.Idle do not have HandleMouseAndKeys or LetOthersHandleMouseAndKeys
+    parameters, as it would not be controllable for them: 3D objects do not
     have strict front-to-back order, so we would not know in what order
     call their Idle methods, so we have to let many Items handle keys anyway.
     So, it's consistent to just treat 3D objects as "cannot definitely
     mark keys/mouse as handled". Besides, currently 3D objects do not
-    get Pressed information at all. }
+    get Pressed information (which keys/mouse buttons are pressed) at all,
+    so they could not process keys/mouse anyway. }
 
   if Camera <> nil then
   begin

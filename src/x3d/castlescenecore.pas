@@ -5123,9 +5123,12 @@ begin
           KeyDown(Event.Key, Event.KeyCharacter, FTime);
     finally EndChangesSchedule; end;
 
-    { Do not treat it as handled (returning ExclusiveEvents),
+    { Never treat the event as handled here,
       even if some X3DKeyDeviceSensorNode was found and did something.
-      This would disable too much (like Camera usually under Scene on Controls).
+      That is because we don't get enough information
+      from VRML/X3D events (which may come down to calling some scripts in VRML/X3D)
+      to be sure that the event is handled (and should not be passed to others,
+      like Camera processed by TCastleSceneManager after Items.Press).
     Result := false; }
   end;
 end;
@@ -5147,9 +5150,12 @@ begin
           KeyUp(Event.Key, Event.KeyCharacter, FTime);
     finally EndChangesSchedule; end;
 
-    { Do not treat it as handled (returning ExclusiveEvents),
+    { Never treat the event as handled here,
       even if some X3DKeyDeviceSensorNode was found and did something.
-      This would disable too much (like Camera usually under Scene on Controls).
+      That is because we don't get enough information
+      from VRML/X3D events (which may come down to calling some scripts in VRML/X3D)
+      to be sure that the event is handled (and should not be passed to others,
+      like Camera processed by TCastleSceneManager after Items.Release).
     Result := false; }
   end;
 end;
@@ -5172,8 +5178,9 @@ begin
 
   OverItem := PTriangle(Pick.Triangle);
 
-  { Never treat it as handled here (returning ExclusiveEvents),
-    this would disable too much (like Camera usually under Scene on Controls).
+  { Never treat the event as handled here, as we don't get enough information
+    from VRML/X3D events (which may come down to calling some scripts in VRML/X3D)
+    to be sure that the event is handled (and should not be passed to others).
   Result := false; }
 
   if ProcessEvents then
