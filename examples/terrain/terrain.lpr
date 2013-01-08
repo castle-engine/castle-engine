@@ -434,7 +434,7 @@ begin
   RenderElevationsOpenGL;
 
   { sliders used by both Controls* }
-  SubdivisionSlider := TMenuIntegerSlider.Create(1, 10, Subdivision);
+  SubdivisionSlider := TMenuIntegerSlider.Create(2, 10, Subdivision);
   SubdivisionSlider.OwnedByParent := false;
   LayersCountSlider := TMenuIntegerSlider.Create(1, 10, LayersCount);
   LayersCountSlider.OwnedByParent := false;
