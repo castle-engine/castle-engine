@@ -3100,6 +3100,9 @@ begin
     EventDraw;
     if Closed then Exit; { check, in case window got closed in the event }
 
+    if GLVersion.BuggySwapNonStandardViewport then
+      glViewport(0, 0, Width, Height);
+
     if DoubleBuffer then SwapBuffers else glFlush;
     if AutoRedisplay then PostRedisplay;
   finally Fps._RenderEnd end;

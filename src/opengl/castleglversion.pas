@@ -80,6 +80,7 @@ type
     FBuggyShaderShadowMap: boolean;
     FBuggyGLSLConstStruct: boolean;
     FBuggyFBOMultiSampling: boolean;
+    FBuggySwapNonStandardViewport: boolean;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
 
@@ -222,6 +223,11 @@ type
       the multi-sampling texture (ATI(Windows) and Intel(Windows) bug).
       This makes our screen effects broken on multi-sampled contexts. }
     property BuggyFBOMultiSampling: boolean read FBuggyFBOMultiSampling;
+
+    { Buggy swap buffers when glViewport does not contain
+      whole window (ATI(Linux) bug). }
+    property BuggySwapNonStandardViewport: boolean
+      read FBuggySwapNonStandardViewport;
   end;
 
 var
@@ -553,6 +559,22 @@ begin
       (IsPrefix('AMD Radeon HD 6', Renderer) or IsPrefix('AMD Radeon HD6', Renderer)))
     or VendorIntel
     {$else} false {$endif};
+
+  { Observed on fglrx (ATI proprietary OpenGL driver under Linux,
+    aka the worst OpenGL driver in the world), at least on this version:
+
+    Version string: 3.3.11627 Compatibility Profile Context
+    Vendor: ATI Technologies Inc.
+    Renderer: ATI Mobility Radeon HD 4300 Series
+
+    This corresponds to Ubuntu 12.04.1 package fglrx 2:8.960-0ubuntu1.1.
+    The bug is *not* present on Windows installed on the same hardware
+    (or any other GPU, Linux or Windows).
+    Easily reproducible by fps_game: the ExtraViewport by default leaves
+    glViewport at non-full-screen state at the end of EventDraw,
+    causing following SwapBuffers in DoDraw to fail, leaving part
+    of the screen not updated (black) without this workaround. }
+  FBuggySwapNonStandardViewport := Fglrx;
 end;
 
 finalization

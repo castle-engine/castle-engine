@@ -907,6 +907,8 @@ begin
     Fps._RenderBegin;
     try
       DoDraw;
+      if GLVersion.BuggySwapNonStandardViewport then
+        glViewport(0, 0, Width, Height);
       SwapBuffers;
     finally Fps._RenderEnd end;
     Invalidated := false; { used only when AggressiveUpdate }

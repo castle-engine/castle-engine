@@ -1874,7 +1874,8 @@ const
         '  Buggy shader shadow map: %s' +nl+
         '  Buggy GLSL "const in gl_XxxParameters" declaration: %s' +nl+
         '  Buggy FBO rendering to multi-sampling texture: %s' +nl+
-        '  Buggy FBO rendering to cube map texture: %s',
+        '  Buggy FBO rendering to cube map texture: %s' +nl+
+        '  Buggy swap buffers with non-standard glViewport: %s',
         [ BoolToStr[Version.VendorNVidia],
           BoolToStr[Version.VendorATI],
           BoolToStr[Version.Fglrx],
@@ -1890,7 +1891,8 @@ const
           BoolToStr[Version.BuggyShaderShadowMap],
           BoolToStr[Version.BuggyGLSLConstStruct],
           BoolToStr[Version.BuggyFBOMultiSampling],
-          BoolToStr[Version.BuggyFBOCubeMap]
+          BoolToStr[Version.BuggyFBOCubeMap],
+          BoolToStr[Version.BuggySwapNonStandardViewport]
         ]);
   end;
 
