@@ -309,10 +309,10 @@ type
       var LetOthersHandleMouseAndKeys: boolean); override;
 
     { Actual position and size of the viewport. Calculated looking
-      at @link(FullSize) value, at the current container sizes
-      (when @link(FullSize) is @false), and at the properties
+      at @link(FullSize) value, and the current container sizes
+      (when @link(FullSize) is @true), and at the properties
       @link(Left), @link(Bottom), @link(Width), @link(Height)
-      (when @link(FullSize) is true).
+      (when @link(FullSize) is @false).
 
       @groupBegin }
     function CorrectLeft: Integer;
@@ -2039,8 +2039,6 @@ begin
     RenderOneEffect(ScreenEffects[CurrentScreenEffectsCount - 1]);
   end;
 end;
-
-
 
 procedure TCastleAbstractViewport.RenderOnScreen(ACamera: TCamera);
 
