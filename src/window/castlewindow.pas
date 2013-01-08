@@ -1746,12 +1746,14 @@ end;
         properties too high?
 
         It's guaranteed that when EGLContextNotPossible
-        is raised, the window remains in correct (closed) state, so you
-        can try to lower some properties and try to open once again.
-        In fact, there's an overloaded version of @link(Open) that takes
-        a Retry callback and allows to implement it easily.
+        is raised, the window remains in correct (closed) state.
+        This means that you can catch EGLContextNotPossible
+        and lower some OpenGL buffer requirements and try to open once again.
+        Although it's usually more comfortable to use the overloaded
+        version of @link(Open) with Retry callback for this purpose.
 
-        We automatically turn off multi-sampling (AntiAliasing and MultiSampling
+        This parameterless version of Open automatically
+        turns off multi-sampling (AntiAliasing and MultiSampling
         properties), and then we turn off
         stencil buffer (StencilBits), if OpenGL context cannot be initialized.
         But if it still cannot be initialized, we raise EGLContextNotPossible.
@@ -1764,15 +1766,24 @@ end;
     { Open the window with OpenGL context, allowing you to lower
       the OpenGL context requirements and retry.
 
-      This calls parameterless version of @link(Open),
-      and if it raises EGLContextNotPossible then @link(Retry) callback
-      is called. Inside this callback, you should either
+      If the OpenGL context cannot be initialized,
+      then @link(Retry) callback is called. Inside this callback you should
+      either:
 
       @unorderedList(
         @item(lower some context requirements (like set MultiSampling to 1
           if it was > 1) if possible, and return @true to retry, or)
         @item(do not change context requirements and return @false to give up.)
       )
+
+      Note that the parameterless version of @link(Open) method
+      actually calls this version, with a default retry callback
+      that turns off AntiAliasing and MultiSampling, and then StencilBits
+      (since all our engine code should be ready that multi-sampling
+      or stencil buffers may not be available).
+      Using your own Retry callback, with this version,
+      allows you to decide which context parameters may be lowered
+      to allow creating a window.
 
       @raises(EGLContextNotPossible If it's not possible to obtain
         requested OpenGL context, and the @link(Retry) callback
@@ -2890,7 +2901,7 @@ end;
 
 { Try to lower anti-aliasing (multi-sampling) and shadows (stencil buffer)
   requirements and initialize worse GL context. }
-function RetryOpen(Window: TCastleWindowBase): boolean;
+function DefaultRetryOpen(Window: TCastleWindowBase): boolean;
 begin
   if Window.AntiAliasing <> aaNone then
   begin
@@ -2909,7 +2920,7 @@ end;
 
 procedure TCastleWindowBase.Open;
 begin
-  Open(@RetryOpen);
+  Open(@DefaultRetryOpen);
 end;
 
 procedure TCastleWindowBase.CloseError(const error: string);
