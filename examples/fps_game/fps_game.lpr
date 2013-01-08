@@ -393,10 +393,13 @@ begin
     If you use Lazarus and TCastleControl (instead of TCastleWindow)
     you can also consider using Lazarus standard buttons and other components
     on your form.
-    The advantage of our TCastleButton is that you can fully configure it,
-    regardless of your OS/window manager theme, and in the future it should
-    be trivial to style the TCastleButton to match the theme of your game
-    (like medieval fantasy of futuristic sci-fi). }
+
+    The advantage of our TCastleButton is that it is drawn completely by our
+    engine, which means that you can style the TCastleButton to match the theme
+    of your game (like medieval fantasy of futuristic sci-fi).
+    For now, you can change the colors (see global Theme (instance
+    of TCastleTheme class) properties), and also TCastleButton.Opacity.
+    Easy way to apply textures on TCastleButton is planned in the future. }
   Buttons := TButtons.Create(Application);
 
   { Add the Notifications to our window.
