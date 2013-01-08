@@ -81,6 +81,7 @@ type
     FBuggyGLSLConstStruct: boolean;
     FBuggyFBOMultiSampling: boolean;
     FBuggySwapNonStandardViewport: boolean;
+    FBuggyDepth32: boolean;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
 
@@ -228,6 +229,10 @@ type
       whole window (ATI(Linux) bug). }
     property BuggySwapNonStandardViewport: boolean
       read FBuggySwapNonStandardViewport;
+
+    { Buggy 32-bit depth buffer, 24-bit depth buffer works Ok
+      (Mesa on ATI (Linux) bug). }
+    property BuggyDepth32: boolean read FBuggyDepth32;
   end;
 
 var
@@ -575,6 +580,16 @@ begin
     causing following SwapBuffers in DoDraw to fail, leaving part
     of the screen not updated (black) without this workaround. }
   FBuggySwapNonStandardViewport := Fglrx;
+
+  { Observed on Mac Book Pro GPU under Linux, with Debian testing on 2013-01-08:
+
+      Version string: 2.1 Mesa 8.0.5
+      Version parsed: major: 2, minor: 1, release exists: FALSE, release: 0, vendor-specific version: "Mesa 8.0.5"
+      Vendor: VMware, Inc.
+      Renderer: Gallium 0.4 on llvmpipe (LLVM 0x209)
+  }
+  FBuggyDepth32 := Mesa and (MesaMajor = 8) and (MesaMinor = 0) and
+    (Vendor = 'VMware, Inc.') and IsPrefix('Gallium 0.4 on llvmpipe', Renderer);
 end;
 
 finalization

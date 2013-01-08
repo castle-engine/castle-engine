@@ -2830,7 +2830,7 @@ begin
   EventOpenCalled := false;
 
   { Set Closed to false.
-    W tym miejscu, przed OpenBackend i wywolaniem  OnOpen + OnResize, bo
+    W tym miejscu, przed OpenBackend i wywolaniem OnOpen + OnResize, bo
    - te rzeczy moga rzucic wyjatki a w reakcji na wyjatek
      chcemy wywolac Close ktore do dzialania wymaga aby bylo not FClosed. }
   FClosed := false;
@@ -2847,6 +2847,23 @@ begin
 
   if Log then
     WritelnLogMultiline('OpenGL context initialization', GLInformationString);
+
+  if GLVersion.BuggyDepth32 and
+    (glGetInteger(GL_DEPTH_BITS) >= 32) and
+    (StencilBits = 0) then
+  begin
+    if Log then
+      WritelnLog('OpenGL context initialization',
+        'Got >= 32-bit depth buffer, unfortunately it is known to be buggy on this OpenGL implementation. We will try to force 24-bit depth buffer by forcing stencil buffer.');
+    { Close the window, increase StencilBits to try to force 24-bit
+      depth buffer, and call ourselves again.
+      Checking "StencilBits = 0" above prevents from getting into
+      an infinite loop here. }
+    Close({ QuitWhenLastWindowClosed } false);
+    StencilBits := 8;
+    OpenCore;
+    Exit;
+  end;
 
   { zsynchronizuj glViewport z naszymi Width/Height (bo one moga sie roznic od
     rzeczywistych rozmiarow okienka) }

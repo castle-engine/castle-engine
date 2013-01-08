@@ -1863,8 +1863,8 @@ const
       Format(
         '  Vendor NVidia: %s' +nl+
         '  Vendor ATI: %s (fglrx: %s)' +nl+
-        '  Vendor Mesa: %s (Mesa parsed version major: %d, minor: %d, release: %d)' +nl+
         '  Vendor Intel: %s' +nl+
+        '  Mesa: %s (Mesa parsed version major: %d, minor: %d, release: %d)' +nl+
         nl+
         '  Buggy glPushAttrib(GL_POINT_SET): %s' +nl+
         '  Buggy glDrawPixels for odd widths: %s' +nl+
@@ -1875,13 +1875,14 @@ const
         '  Buggy GLSL "const in gl_XxxParameters" declaration: %s' +nl+
         '  Buggy FBO rendering to multi-sampling texture: %s' +nl+
         '  Buggy FBO rendering to cube map texture: %s' +nl+
-        '  Buggy swap buffers with non-standard glViewport: %s',
+        '  Buggy swap buffers with non-standard glViewport: %s' +nl+
+        '  Buggy 32-bit depth buffer: %s',
         [ BoolToStr[Version.VendorNVidia],
           BoolToStr[Version.VendorATI],
           BoolToStr[Version.Fglrx],
+          BoolToStr[Version.VendorIntel],
           BoolToStr[Version.Mesa],
           Version.MesaMajor, Version.MesaMinor, Version.MesaRelease,
-          BoolToStr[Version.VendorIntel],
 
           BoolToStr[Version.BuggyPointSetAttrib],
           BoolToStr[Version.BuggyDrawOddWidth],
@@ -1892,7 +1893,8 @@ const
           BoolToStr[Version.BuggyGLSLConstStruct],
           BoolToStr[Version.BuggyFBOMultiSampling],
           BoolToStr[Version.BuggyFBOCubeMap],
-          BoolToStr[Version.BuggySwapNonStandardViewport]
+          BoolToStr[Version.BuggySwapNonStandardViewport],
+          BoolToStr[Version.BuggyDepth32]
         ]);
   end;
 
