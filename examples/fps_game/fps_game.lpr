@@ -304,7 +304,7 @@ begin
       that allows you to actually see and interact with the 3D world.
 
     But the 2nd feature (SceneManager as viewport) is completely optional
-    and configurable. You can turn it off by SceneManager.DefaultVieport := false.
+    and configurable. You can turn it off by SceneManager.DefaultViewport := false.
     Or you can configure size of the viewport by
     by SceneManager.FullSize and SceneManager.Left/Bottom/Width/Height.
 
