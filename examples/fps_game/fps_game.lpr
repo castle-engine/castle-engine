@@ -184,6 +184,9 @@ begin
   SetWindowPos(0, Y);
   UIFont.Print(Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
 
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_BLEND);
+
   { A simple way to draw player inventory.
     The image representing each item (exactly for purposes like inventory
     display) is specified in the resource.xml file of each item,
@@ -203,6 +206,8 @@ begin
     UIFontSmall.Print(Format('%s (%d)', [Player.Inventory[I].Resource.Caption,
       Player.Inventory[I].Quantity]));
   end;
+
+  glDisable(GL_BLEND);
 
   { Simple color effects over the screen:
     when player is dead,
