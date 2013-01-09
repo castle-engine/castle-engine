@@ -1025,7 +1025,7 @@ end;
 { glw callbacks -------------------------------------------------------------- }
 
 var
-  VrmlFileName: string = 'data/levels/fountain/fountain_final.wrl';
+  VrmlFileName: string = '../../../demo_models/bump_mapping/fountain_level/levels/fountain/fountain_final.wrl';
 
 procedure Open(glwin: TCastleWindowBase);
 const
