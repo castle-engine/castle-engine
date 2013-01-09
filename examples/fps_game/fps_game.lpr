@@ -199,7 +199,7 @@ begin
   Y -= UIFont.RowHeight + InventoryImageSize;
   for I := 0 to Player.Inventory.Count - 1 do
   begin
-    X := I * (InventoryImageSize + ControlsMargin);
+    X := ControlsMargin + I * (InventoryImageSize + ControlsMargin);
     SetWindowPos(X, Y);
     Player.Inventory[I].Resource.GLImage.Draw;
     SetWindowPos(X, Y - UIFontSmall.RowHeight);
@@ -215,7 +215,7 @@ begin
     wheel). }
   if Between(Player.InventoryCurrentItem, 0, Player.Inventory.Count - 1) then
   begin
-    X := Player.InventoryCurrentItem * (InventoryImageSize + ControlsMargin);
+    X := ControlsMargin + Player.InventoryCurrentItem * (InventoryImageSize + ControlsMargin);
     GLRectangleBorder(X, Y, X + InventoryImageSize, Y + InventoryImageSize,
       Yellow4Single);
   end;
