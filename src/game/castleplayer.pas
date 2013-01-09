@@ -80,9 +80,8 @@ type
     So scene manager will update Camera.ProjectionMatrix,
     call camera events like TCamera.Press, TCamera.Idle and such.)
   }
-  TPlayer = class(T3DAlive)
+  TPlayer = class(T3DAliveWithInventory)
   private
-    FInventory: TInventory;
     FEquippedWeapon: TItemWeapon;
 
     { If Swimming = psUnderWater, then this is the time (from LifeTime)
@@ -207,22 +206,14 @@ type
       long, depending on @link(Flying)).}
     property FlyingTimeOut: TFloatTime read FFlyingTimeOut write SetFlyingTimeOut;
 
-    property Inventory: TInventory read FInventory;
+    { Add Item to inventory, updating player InventoryCurrentItem,
+      making suitable notification and sound. }
+    function PickItemUpdate(var Item: TInventoryItem): Integer; override;
 
-    { Add Item to Inventory,
-      with appropriate notification using CastleGameNotifications.
-      See also TInventory.Pick (this is a wrapper around it).
-
-      This takes care of adjusting InventoryCurrentItem if needed
-      (if no item was selected, then newly picked item becomes selected). }
-    function PickItem(Item: TInventoryItem): Integer;
-
-    { Drop item from inventory.
-      Like with UseItem, it is Ok to pass here Index out of range.
-      @returns(Droppped item, or @nil if the operation was not completed due
-        to any reason (e.g. no space on 3D world to fit this item).)
+    { Drop item from inventory, updating player InventoryCurrentItem,
+      making suitable notification and sound.
       @groupBegin }
-    function DropItem(const Index: Integer): TItemOnWorld;
+    function DropItem(const Index: Integer): TItemOnWorld; override;
     function DropCurrentItem: TItemOnWorld;
     { @groupEnd }
 
@@ -231,7 +222,7 @@ type
       when InventoryCurrentItem = -1), it will then show
       a notification (by CastleGameNotifications unit) that nothing is selected.
       @groupBegin }
-    procedure UseItem(const Index: Integer);
+    procedure UseItem(const Index: Integer); override;
     procedure UseCurrentItem;
     { @groupEnd }
 
@@ -470,7 +461,6 @@ begin
 
   Add(TPlayerBox.Create(Self));
 
-  FInventory := TInventory.Create(Self);
   FInventoryCurrentItem := -1;
 
   { turn off keys that are totally unavailable for the player }
@@ -491,8 +481,6 @@ end;
 destructor TPlayer.Destroy;
 begin
   EquippedWeapon := nil; { unregister free notification }
-
-  FreeAndNil(FInventory);
 
   if FootstepsSound <> nil then
     FootstepsSound.Release;
@@ -522,7 +510,7 @@ begin
   FFlying := true;
 end;
 
-function TPlayer.PickItem(Item: TInventoryItem): Integer;
+function TPlayer.PickItemUpdate(var Item: TInventoryItem): Integer;
 var
   S: string;
 begin
@@ -533,7 +521,7 @@ begin
 
   SoundEngine.Sound(stPlayerPickItem);
 
-  Result := Inventory.Pick(Item);
+  Result := inherited PickItemUpdate(Item);
 
   { Automatically equip the weapon. }
   if (Item is TItemWeapon) and (EquippedWeapon = nil) then
@@ -548,89 +536,35 @@ begin
 end;
 
 function TPlayer.DropItem(const Index: Integer): TItemOnWorld;
-
-  function GetItemDropPosition(DroppedItemResource: TItemResource;
-    out DropPosition: TVector3Single): boolean;
-  var
-    ItemBox: TBox3D;
-    ItemBoxRadius: Single;
-    ItemBoxMiddle: TVector3Single;
-  begin
-    ItemBox := DroppedItemResource.BoundingBoxRotated;
-    ItemBoxMiddle := ItemBox.Middle;
-    { Box3DRadius calculates radius around (0, 0, 0) and we want
-      radius around ItemBoxMiddle }
-    ItemBoxRadius := ItemBox.Translate(VectorNegate(ItemBoxMiddle)).Radius;
-
-    { Calculate DropPosition.
-
-      We must move the item a little before us to
-      1. show visually player that the item was dropped
-      2. to avoid automatically picking it again
-
-      Note that I take direction from DirectionInGravityPlane,
-      not from Direction, otherwise when player is looking
-      down he could be able to put item "inside the ground".
-      Collision detection with the level below would actually
-      prevent putting item "inside the ground", but the item
-      would be too close to the player --- he could pick it up
-      immediately. }
-    DropPosition := Camera.Position +
-      Camera.DirectionInGravityPlane *
-        (0.6 * (Camera.RealPreferredHeight * Sqrt3 + ItemBox.Diagonal));
-
-    { Now check is DropPosition actually possible
-      (i.e. check collisions item<->everything).
-      The assumption is that item starts from
-      Camera.Position and is moved to DropPosition.
-
-      But actually we must shift both these positions,
-      so that we check positions that are ideally in the middle
-      of item's BoundingBoxRotated. Otherwise the item
-      could get *partially* stuck within the wall, which wouldn't
-      look good. }
-
-    Result := World.WorldMoveAllowed(
-      ItemBoxMiddle + Camera.Position,
-      ItemBoxMiddle + DropPosition, true, ItemBoxRadius,
-      ItemBox + Camera.Position,
-      ItemBox + DropPosition, false);
-  end;
-
 var
   S: string;
-  DropPosition: TVector3Single;
-  DropppedItem: TInventoryItem;
 begin
-  Result := nil;
+  Result := inherited DropItem(Index);
 
-  if Between(Index, 0, Inventory.Count - 1) then
+  if Result <> nil then
   begin
-    if GetItemDropPosition(Inventory[Index].Resource, DropPosition) then
-    begin
-      DropppedItem := Inventory.Drop(Index);
+    if Result.Item = EquippedWeapon then
+      EquippedWeapon := nil;
 
-      if DropppedItem = EquippedWeapon then
-        EquippedWeapon := nil;
+    S := Format('You drop "%s"', [Result.Item.Resource.Caption]);
+    if Result.Item.Quantity <> 1 then
+      S += Format(' (quantity %d)', [Result.Item.Quantity]);
+    Notifications.Show(S);
 
-      S := Format('You drop "%s"', [DropppedItem.Resource.Caption]);
-      if DropppedItem.Quantity <> 1 then
-        S += Format(' (quantity %d)', [DropppedItem.Quantity]);
-      Notifications.Show(S);
+    SoundEngine.Sound(stPlayerDropItem);
 
-      SoundEngine.Sound(stPlayerDropItem);
-
-      { update InventoryCurrentItem.
-        Note that if Inventory.Count = 0 now, then this will
-        correctly set InventoryCurrentItem to -1. }
-      if InventoryCurrentItem >= Inventory.Count then
-        InventoryCurrentItem := Inventory.Count - 1;
-
-      Result := DropppedItem.PutOnWorld(World, DropPosition);
-    end else
-      Notifications.Show('Not enough room here to drop this item');
+    { update InventoryCurrentItem.
+      Note that if Inventory.Count = 0 now, then this will
+      correctly set InventoryCurrentItem to -1. }
+    if InventoryCurrentItem >= Inventory.Count then
+      InventoryCurrentItem := Inventory.Count - 1;
   end else
-    Notifications.Show('Nothing to drop - select some item first');
+  begin
+    { Dropping item failed. }
+    if Between(Index, 0, Inventory.Count - 1) then
+      Notifications.Show('Not enough room here to drop this item') else
+      Notifications.Show('Nothing to drop - select some item first');
+  end;
 end;
 
 function TPlayer.DropCurrentItem: TItemOnWorld;
@@ -642,7 +576,7 @@ procedure TPlayer.UseItem(const Index: Integer);
 begin
   if Between(Index, 0, Inventory.Count - 1) then
   begin
-    Inventory.Use(Index);
+    inherited UseItem(Index);
     { update InventoryCurrentItem, because item potentially disappeared.
       Note that if Inventory.Count = 0 now, then this will
       correctly set InventoryCurrentItem to -1. }

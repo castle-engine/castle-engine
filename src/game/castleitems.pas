@@ -263,6 +263,7 @@ var
   end;
 
   TItemOnWorld = class;
+  T3DAliveWithInventory = class;
 
   { An item that can be used, kept in the inventory, or (using PutOnWorld
     that wraps it in TItemOnWorld) dropped on 3D world.
@@ -297,8 +298,18 @@ var
       The default implementation of this in TInventoryItem class
       allows stacking always, as long as the Resource matches.
       This means that, by default, every TItemResource is existing at most once
-      in TPlayer.Inventory. }
+      in T3DAliveWithInventory.Inventory. }
     procedure Stack(var Item: TInventoryItem); virtual;
+
+    { Item is picked by an alive player/creature.
+      The default implementation in this class adds the item to the Inventory
+      by calling T3DAliveWithInventory.PickItem.
+
+      You can override this to cause different behavior (for example,
+      to consume some items right at pickup).
+      Remember that this method must take care of memory management
+      of this item. }
+    procedure PickedBy(const NewOwner: T3DAliveWithInventory); virtual;
   public
     property Resource: TItemResource read FResource;
 
@@ -405,33 +416,17 @@ var
     is good). }
   TInventory = class(specialize TFPGObjectList<TInventoryItem>)
   private
-    FOwner3D: T3DAlive;
-  public
-    constructor Create(const AOwner3D: T3DAlive);
-
-    { Owner of the inventory (like a player or creature).
-      Never @nil, always valid for given inventory.
-      All items on this list always have the same TInventoryItem.Owner3D value
-      as the inventory they are in. }
-    property Owner3D: T3DAlive read FOwner3D;
-
-    { Searches for item of given Resource. Returns index of first found,
-      or -1 if not found. }
-    function FindResource(Resource: TItemResource): Integer;
-
-    { Add Item to Items. Because an item may be stacked with others,
-      the actual Item instance may be freed and replaced with other by
-      this method.
-      Returns index to the added item.
-
-      Using this method means that the memory management of the item
-      becomes the responsibility of this list. }
+    FOwner3D: T3DAliveWithInventory;
+  protected
+    { Add Item to inventory. See T3DAliveWithInventory.PickItemUpdate description,
+      this method actually implements it. }
     function Pick(var Item: TInventoryItem): Integer;
 
     { Drop item with given index.
       ItemIndex must be valid (between 0 and Items.Count - 1).
       You @italic(must) take care yourself of returned TInventoryItem memory
-      management. }
+      management.
+      This is the low-level basis for T3DAliveWithInventory.DropItem. }
     function Drop(const ItemIndex: Integer): TInventoryItem;
 
     { Pass here items owned by this list, immediately after decreasing
@@ -439,9 +434,21 @@ var
       if it's quantity reached zero. }
     procedure CheckDepleted(const Item: TInventoryItem);
 
-    { Use the item of given index. Calls TInventoryItem.Use, and then checks whether
-      the item was depleted (and eventually removes it) by CheckDepleted. }
+    { Use the item of given index.
+      This is the low-level basis for T3DAliveWithInventory.UseItem. }
     procedure Use(const Index: Integer);
+  public
+    constructor Create(const AOwner3D: T3DAliveWithInventory);
+
+    { Owner of the inventory (like a player or creature).
+      Never @nil, always valid for given inventory.
+      All items on this list always have the same TInventoryItem.Owner3D value
+      as the inventory they are in. }
+    property Owner3D: T3DAliveWithInventory read FOwner3D;
+
+    { Searches for item of given Resource. Returns index of first found,
+      or -1 if not found. }
+    function FindResource(Resource: TItemResource): Integer;
   end;
 
   { Item that is placed on a 3D world, ready to be picked up.
@@ -461,7 +468,15 @@ var
 
     { Does the player automatically picks up items by walking over them.
       Default is @true. If you set this to @false, you most probably want to
-      implement some other way of picking up items, use the ExtractItem method. }
+      implement some other way of picking up items, use the ExtractItem method.
+
+      More precisely, this variable controls when TInventoryItem.PickedBy
+      is called. When @true, it is called for player when player steps over
+      an item (otherwise it's never called).
+      You can always override TInventoryItem.PickedBy for particular items
+      to customize what happens at "pick" --- the default implementation
+      picks an item by adding it to inventory, but you could override it
+      e.g. to consume some potions immediately on pickup. }
     AutoPick: boolean; static;
 
     const
@@ -496,10 +511,56 @@ var
       and removed from 3D world.
 
       It's up to you what to do with resulting TInventoryItem instance.
-      You can pick it up, by TPlayer.PickItem,
+      You can pick it up, by T3DAliveWithInventory.PickItem
+      (for example player is an instance of T3DAliveWithInventory),
       or add it back to 3D world by TInventoryItem.PutOnWorld,
       or at least free it (or you'll get a memory leak). }
     function ExtractItem: TInventoryItem;
+  end;
+
+  { Alive 3D thing that has inventory (can keep items). }
+  T3DAliveWithInventory = class(T3DAlive)
+  private
+    FInventory: TInventory;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    { Owned items. Never change the contents of this list directly,
+      always use T3DAliveWithInventory methods like PickItem
+      or DropItem for this. }
+    property Inventory: TInventory read FInventory;
+
+    { Add given Item to @link(Inventory).
+      Because an item may be stacked with others,
+      the actual Item instance may be freed and replaced with other by
+      this method, that is why Item parameter is "var".
+      Use PickItem method if you don't care about your Item instance.
+
+      Returns index to the added item.
+
+      Using this method means that the memory management of the item
+      becomes the responsibility of this list. }
+    function PickItemUpdate(var Item: TInventoryItem): Integer; virtual;
+
+    { Add given Item to @link(Inventory). See PickItemUpdate for details.
+
+      This is a shortcut to call PickItemUpdate and then ignore changes
+      to Item instance. Calling this method may be comfortable,
+      but remember that the Item instance possibly doesn't exist after we finish. }
+    function PickItem(Item: TInventoryItem): Integer;
+
+    { Drop item from @link(Inventory).
+      It is Ok to pass here Index out of range, it will be ignored.
+      @returns(Droppped item, or @nil if the operation was not completed due
+        to any reason (e.g. no space on 3D world to fit this item).) }
+    function DropItem(const Index: Integer): TItemOnWorld; virtual;
+
+    { Use an item from @link(Inventory).
+      Calls TInventoryItem.Use, and then checks whether
+      the item was depleted (and eventually removes it from repository).
+      It is Ok to pass here Index out of range, it will be ignored. }
+    procedure UseItem(const Index: Integer); virtual;
   end;
 
 var
@@ -701,6 +762,11 @@ begin
     Result := nil;
 end;
 
+procedure TInventoryItem.PickedBy(const NewOwner: T3DAliveWithInventory);
+begin
+  NewOwner.PickItem(Self);
+end;
+
 { TItemWeapon ---------------------------------------------------------------- }
 
 procedure TItemWeapon.Attack;
@@ -832,9 +898,9 @@ procedure TItemWeapon.EquippedAttack(const LifeTime: Single);
     if Resource.AttackAmmo <> '' then
     begin
       if (Owner3D <> nil) and
-         (Owner3D is TPlayer) then
+         (Owner3D is T3DAliveWithInventory) then
       begin
-        Inventory := TPlayer(Owner3D).Inventory;
+        Inventory := T3DAliveWithInventory(Owner3D).Inventory;
         AmmoResource := Resources.FindName(Resource.AttackAmmo) as TItemResource;
         AmmoIndex := Inventory.FindResource(AmmoResource);
         Result := AmmoIndex <> -1;
@@ -900,7 +966,7 @@ end;
 
 { TInventory ------------------------------------------------------------ }
 
-constructor TInventory.Create(const AOwner3D: T3DAlive);
+constructor TInventory.Create(const AOwner3D: T3DAliveWithInventory);
 begin
   inherited Create(true);
   FOwner3D := AOwner3D;
@@ -1069,10 +1135,10 @@ begin
 
   if AutoPick and
      (World.Player <> nil) and
-     (World.Player is TPlayer) and
+     (World.Player is T3DAliveWithInventory) and
      (not World.Player.Dead) and
      BoundingBox.Collision(World.Player.BoundingBox) then
-    TPlayer(World.Player).PickItem(ExtractItem);
+    ExtractItem.PickedBy(T3DAliveWithInventory(World.Player));
 
   { Since we cannot live with Item = nil, we free ourselves }
   if Item = nil then
@@ -1091,6 +1157,102 @@ function TItemOnWorld.GetExists: boolean;
 begin
   Result := (inherited GetExists) and
     ((not Assigned(OnItemOnWorldExists)) or OnItemOnWorldExists(Self));
+end;
+
+{ T3DAliveWithInventory ------------------------------------------------------ }
+
+constructor T3DAliveWithInventory.Create(AOwner: TComponent);
+begin
+  inherited;
+  FInventory := TInventory.Create(Self);
+end;
+
+destructor T3DAliveWithInventory.Destroy;
+begin
+  FreeAndNil(FInventory);
+  inherited;
+end;
+
+function T3DAliveWithInventory.PickItemUpdate(var Item: TInventoryItem): Integer;
+begin
+  Result := Inventory.Pick(Item);
+end;
+
+function T3DAliveWithInventory.PickItem(Item: TInventoryItem): Integer;
+begin
+  Result := PickItemUpdate(Item);
+end;
+
+function T3DAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
+
+  function GetItemDropPosition(DroppedItemResource: TItemResource;
+    out DropPosition: TVector3Single): boolean;
+  var
+    ItemBox: TBox3D;
+    ItemBoxRadius: Single;
+    ItemBoxMiddle: TVector3Single;
+  begin
+    ItemBox := DroppedItemResource.BoundingBoxRotated;
+    ItemBoxMiddle := ItemBox.Middle;
+    { Box3DRadius calculates radius around (0, 0, 0) and we want
+      radius around ItemBoxMiddle }
+    ItemBoxRadius := ItemBox.Translate(VectorNegate(ItemBoxMiddle)).Radius;
+
+    { Calculate DropPosition.
+
+      We must move the item a little before us to
+      1. show visually player that the item was dropped
+      2. to avoid automatically picking it again
+
+      Note that I take direction from DirectionInGravityPlane,
+      not from Direction, otherwise when player is looking
+      down he could be able to put item "inside the ground".
+      Collision detection with the level below would actually
+      prevent putting item "inside the ground", but the item
+      would be too close to the player --- he could pick it up
+      immediately. }
+    DropPosition := Camera.Position +
+      Camera.DirectionInGravityPlane *
+        (0.6 * (Camera.RealPreferredHeight * Sqrt3 + ItemBox.Diagonal));
+
+    { Now check is DropPosition actually possible
+      (i.e. check collisions item<->everything).
+      The assumption is that item starts from
+      Camera.Position and is moved to DropPosition.
+
+      But actually we must shift both these positions,
+      so that we check positions that are ideally in the middle
+      of item's BoundingBoxRotated. Otherwise the item
+      could get *partially* stuck within the wall, which wouldn't
+      look good. }
+
+    Result := World.WorldMoveAllowed(
+      ItemBoxMiddle + Camera.Position,
+      ItemBoxMiddle + DropPosition, true, ItemBoxRadius,
+      ItemBox + Camera.Position,
+      ItemBox + DropPosition, false);
+  end;
+
+var
+  DropPosition: TVector3Single;
+  DropppedItem: TInventoryItem;
+begin
+  Result := nil;
+
+  if Between(Index, 0, Inventory.Count - 1) then
+  begin
+    if GetItemDropPosition(Inventory[Index].Resource, DropPosition) then
+    begin
+      DropppedItem := Inventory.Drop(Index);
+      Result := DropppedItem.PutOnWorld(World, DropPosition);
+    end;
+  end;
+end;
+
+procedure T3DAliveWithInventory.UseItem(const Index: Integer);
+begin
+  if Between(Index, 0, Inventory.Count - 1) then
+    Inventory.Use(Index);
 end;
 
 initialization
