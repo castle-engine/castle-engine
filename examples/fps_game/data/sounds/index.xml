@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<!-- Configuration of game sounds. -->
+<sounds>
+  <sound name="medkit_use" default_importance="player"/>
+</sounds>

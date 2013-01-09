@@ -331,7 +331,8 @@ begin
   Player.Life := Player.Life + 20;
   Quantity := Quantity - 1;
   Notifications.Show(Format('You use "%s"', [Resource.Caption]));
-  // SoundEngine.Sound(stPlayerPotionDrink);
+  { A simplest demo how to play sound defined in sounds/index.xml }
+  SoundEngine.Sound(SoundEngine.SoundFromName('medkit_use'));
 end;
 
 { If you want to do something immediately at pickup, you can override
@@ -381,6 +382,10 @@ begin
   Window.FullScreen := true; { by default we open in fullscreen }
   Window.ParseParameters(StandardParseOptions);
   SoundEngine.ParseParameters;
+
+  { Load named sounds defined in sounds/index.xml }
+  SoundEngine.SoundsXmlFileName := ProgramDataPath + 'data' +
+    PathDelim + 'sounds' + PathDelim + 'index.xml';
 
   { Load configuration file. This loads configuration for various parts of the
     engine that add their callbacks to Config.OnLoad, Config.OnSave.

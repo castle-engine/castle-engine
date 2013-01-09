@@ -1,0 +1,11 @@
+medkit_use.wav:
+  from http://opengameart.org/content/spell-sounds-starter-pack
+  (based on heal.ogg)
+  by p0ss
+  licensed on
+    CC-BY-SA 3.0
+    GPL 3.0
+    GPL 2.0
+  or above versions of these.
+
+  Somewhat retouched by Michalis Kamburelis, using Audacity.
