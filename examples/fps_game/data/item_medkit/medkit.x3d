@@ -16,12 +16,12 @@
 		            skyColor="0.051 0.051 0.051"
 		            />
 		<Transform DEF="Plane_TRANSFORM"
-		           translation="0.000000 0.293178 0.000000"
-		           scale="0.147968 0.147968 0.147968"
+		           translation="0.000000 0.625639 0.000000"
+		           scale="0.295937 0.295937 0.295937"
 		           rotation="0.577350 0.577350 0.577350 2.094395"
 		           >
 			<Transform DEF="Plane_ifs_TRANSFORM"
-			           translation="-0.000000 -0.000000 0.000000"
+			           translation="0.000000 -0.000000 -0.000000"
 			           scale="1.000000 1.000000 1.000000"
 			           rotation="-0.000000 0.000000 -0.000000 0.000000"
 			           >
@@ -50,8 +50,8 @@
 			</Transform>
 		</Transform>
 		<Transform DEF="Cube_TRANSFORM"
-		           translation="0.000000 0.148256 0.000000"
-		           scale="0.068318 0.276714 0.142237"
+		           translation="0.000000 0.335796 0.000000"
+		           scale="0.136636 0.553429 0.284473"
 		           rotation="0.000000 0.707107 0.707107 3.141593"
 		           >
 			<Transform DEF="Cube_ifs_TRANSFORM"
