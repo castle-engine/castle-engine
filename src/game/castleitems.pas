@@ -310,6 +310,24 @@ var
       Remember that this method must take care of memory management
       of this item. }
     procedure PickedBy(const NewOwner: T3DAliveWithInventory); virtual;
+
+    { Use this item.
+
+      In this class, this just prints a message "this item cannot be used".
+
+      Implementation of this method can assume for now that this is one of
+      player's owned Items. Implementation of this method can change
+      our properties, including Quantity.
+      As a very special exception, implementation of this method
+      is allowed to set Quantity of Item to 0.
+
+      Never call this method when Player.Dead. Implementation of this
+      method may assume that Player is not Dead.
+
+      Caller of this method should always be prepared to immediately
+      handle the "Quantity = 0" situation by freeing given item,
+      removing it from any list etc. }
+    procedure Use; virtual;
   public
     property Resource: TItemResource read FResource;
 
@@ -334,24 +352,6 @@ var
       It is analogous to TCreatureResource.CreateCreature, but now for items. }
     function PutOnWorld(const AWorld: T3DWorld;
       const APosition: TVector3Single): TItemOnWorld;
-
-    { Use this item.
-
-      In this class, this just prints a message "this item cannot be used".
-
-      Implementation of this method can assume for now that this is one of
-      player's owned Items. Implementation of this method can change
-      our properties, including Quantity.
-      As a very special exception, implementation of this method
-      is allowed to set Quantity of Item to 0.
-
-      Never call this method when Player.Dead. Implementation of this
-      method may assume that Player is not Dead.
-
-      Caller of this method should always be prepared to immediately
-      handle the "Quantity = 0" situation by freeing given item,
-      removing it from any list etc. }
-    procedure Use; virtual;
 
     { 3D owner of the item,
       like a player or creature (if the item is in the backpack)
@@ -392,9 +392,9 @@ var
       attack (if AttackDamageConst or AttackDamageRandom or AttackKnockbackDistance
       non-zero) and fires a missile (if FireMissileName not empty). }
     procedure Attack; virtual;
+    procedure Use; override;
   public
     function Resource: TItemWeaponResource;
-    procedure Use; override;
 
     { Owner equips this weapon. }
     procedure Equip; virtual;
