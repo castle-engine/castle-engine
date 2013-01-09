@@ -186,6 +186,8 @@ type
       TAlphaChannel; virtual;
   end;
 
+  TResizeInterpolation = (riNearest, riBilinear);
+
   { An abstract class representing image as a simple array of pixels.
     RawPixels is a pointer to Width * Height * Depth of pixels.
 
@@ -357,6 +359,7 @@ type
       If ProgressTitle <> '' this will call Progress.Init/Step/Fini
       from CastleProgress to indicate progress of operation. }
     procedure Resize(ResizeToX, ResizeToY: Cardinal;
+      const Interpolation: TResizeInterpolation = riNearest;
       const ProgressTitle: string = '');
 
     { Create a new TCastleImage instance with size ResizeToX, ResizeToY
@@ -370,6 +373,7 @@ type
       if ProgressTitle <> '' this will call Progress.Init/Step/Fini
       from CastleProgress to indicate progress of operation. }
     function MakeResized(ResizeToX, ResizeToY: Cardinal;
+      const Interpolation: TResizeInterpolation = riNearest;
       const ProgressTitle: string = ''): TCastleImage;
 
     { Mirror image horizotally (i.e. right edge is swapped with left edge) }
@@ -575,6 +579,15 @@ type
       @raises(EImageLerpInvalidClasses When Lerp between this TCastleImage
         descendant class and SecondImage class is not implemented.) }
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); virtual;
+
+    { Mix 4 colors, with 4 weights, into a resulting color.
+      All 4 Colors and OutputColor must be pointers to a pixel of current
+      image class, that is they must point to PixelSize bytes of memory.
+
+      @raises(EImageLerpInvalidClasses When mixing is not implemented
+        for this image class.) }
+    class procedure MixColors(const OutputColor: Pointer;
+       const Weights: TVector4Single; const Colors: TVector4Pointer); virtual;
   end;
 
   TCastleImageList = specialize TFPGObjectList<TCastleImage>;
@@ -816,6 +829,8 @@ type
       var ReplaceWhiteImage, ReplaceBlackImage: TRGBImage);
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
+    class procedure MixColors(const OutputColor: Pointer;
+       const Weights: TVector4Single; const Colors: TVector4Pointer); override;
   end;
 
   TRGBAlphaImage = class(TCastleImage)
@@ -864,6 +879,8 @@ type
       const WrongPixelsTolerance: Single): TAlphaChannel; override;
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
+    class procedure MixColors(const OutputColor: Pointer;
+       const Weights: TVector4Single; const Colors: TVector4Pointer); override;
 
     { Remove alpha channel, creating new TRGBImage. }
     function ToRGBImage: TRGBImage;
@@ -905,6 +922,8 @@ type
     procedure ExpColors(const Exp: Single);
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
+    class procedure MixColors(const OutputColor: Pointer;
+       const Weights: TVector4Single; const Colors: TVector4Pointer); override;
   end;
 
   { Grayscale image. Color is a simple Byte value. }
@@ -934,6 +953,8 @@ type
     function ToGrayscaleAlphaImage_AlphaConst(Alpha: byte): TGrayscaleAlphaImage;
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
+    class procedure MixColors(const OutputColor: Pointer;
+       const Weights: TVector4Single; const Colors: TVector4Pointer); override;
   end;
 
   { Grayscale image with an alpha channel.
@@ -961,6 +982,8 @@ type
       const WrongPixelsTolerance: Single): TAlphaChannel; override;
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
+    class procedure MixColors(const OutputColor: Pointer;
+       const Weights: TVector4Single; const Colors: TVector4Pointer); override;
   end;
 
   { @deprecated Deprecated name for TCastleImage. }
@@ -1730,13 +1753,19 @@ begin
   Move(RawPixels^, Result.RawPixels^, Depth * Width * Height * PixelSize);
 end;
 
+type
+  TMixColorsFunction = procedure (const OutputColor: Pointer;
+    const Weights: TVector4Single; const Colors: TVector4Pointer) of object;
+
 { This does the real resizing work.
   It assumes that SourceData and DestinData pointers are already allocated.
   DestinWidth, DestinHeight must not be 0. }
 procedure InternalResize(PixelSize: Cardinal;
   SourceData: Pointer; SourceWidth, SourceHeight: Cardinal;
   DestinData: Pointer; DestinWidth, DestinHeight: Cardinal;
-  ProgressTitle: string);
+  const Interpolation: TResizeInterpolation;
+  const MixColors: TMixColorsFunction;
+  const ProgressTitle: string);
 var
   DestinY: Cardinal;
 
@@ -1777,6 +1806,7 @@ begin
 end;
 
 procedure TCastleImage.Resize(ResizeToX, ResizeToY: Cardinal;
+  const Interpolation: TResizeInterpolation;
   const ProgressTitle: string);
 var
   NewPixels: Pointer;
@@ -1790,7 +1820,7 @@ begin
 
     NewPixels := GetMem(ResizeToX * ResizeToY * PixelSize);
     InternalResize(PixelSize, RawPixels, Width, Height,
-      NewPixels, ResizeToX, ResizeToY, ProgressTitle);
+      NewPixels, ResizeToX, ResizeToY, Interpolation, @MixColors, ProgressTitle);
     FreeMemNiling(FRawPixels);
 
     FRawPixels := NewPixels;
@@ -1800,6 +1830,7 @@ begin
 end;
 
 function TCastleImage.MakeResized(ResizeToX, ResizeToY: Cardinal;
+  const Interpolation: TResizeInterpolation;
   const ProgressTitle: string): TCastleImage;
 begin
   { Make both ResizeTo* non-zero. }
@@ -1812,7 +1843,7 @@ begin
       InternalResize(PixelSize,
                RawPixels,        Width,        Height,
         Result.RawPixels, Result.Width, Result.Height,
-        ProgressTitle);
+        Interpolation, @MixColors, ProgressTitle);
   except Result.Free; raise end;
 end;
 
@@ -2106,6 +2137,12 @@ end;
 procedure TCastleImage.LerpWith(const Value: Single; SecondImage: TCastleImage);
 begin
   raise EImageLerpInvalidClasses.Create('Linear interpolation (TCastleImage.LerpWith) not possible with the base TCastleImage class');
+end;
+
+class procedure TCastleImage.MixColors(const OutputColor: Pointer;
+  const Weights: TVector4Single; const Colors: TVector4Pointer);
+begin
+  raise EImageLerpInvalidClasses.Create('Mixing colors (TCastleImage.MixColors) not possible with the base TCastleImage class');
 end;
 
 { TS3TCImage ----------------------------------------------------------------- }
@@ -2472,6 +2509,17 @@ begin
   end;
 end;
 
+class procedure TRGBImage.MixColors(const OutputColor: Pointer;
+  const Weights: TVector4Single; const Colors: TVector4Pointer);
+var
+  OutputCol: PVector3Byte absolute OutputColor;
+  Cols: array [0..3] of PVector3Byte absolute Colors;
+begin
+  OutputCol^[0] := Clamped(Round(Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0]), 0, High(Byte));
+  OutputCol^[1] := Clamped(Round(Weights[0] * Cols[0]^[1] + Weights[1] * Cols[1]^[1] + Weights[2] * Cols[2]^[1] + Weights[3] * Cols[3]^[1]), 0, High(Byte));
+  OutputCol^[2] := Clamped(Round(Weights[0] * Cols[0]^[2] + Weights[1] * Cols[1]^[2] + Weights[2] * Cols[2]^[2] + Weights[3] * Cols[3]^[2]), 0, High(Byte));
+end;
+
 { TRGBAlphaImage ------------------------------------------------------------ }
 
 function TRGBAlphaImage.GetAlphaPixels: PVector4Byte;
@@ -2668,6 +2716,18 @@ begin
   end;
 end;
 
+class procedure TRGBAlphaImage.MixColors(const OutputColor: Pointer;
+  const Weights: TVector4Single; const Colors: TVector4Pointer);
+var
+  OutputCol: PVector4Byte absolute OutputColor;
+  Cols: array [0..3] of PVector4Byte absolute Colors;
+begin
+  OutputCol^[0] := Clamped(Round(Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0]), 0, High(Byte));
+  OutputCol^[1] := Clamped(Round(Weights[0] * Cols[0]^[1] + Weights[1] * Cols[1]^[1] + Weights[2] * Cols[2]^[1] + Weights[3] * Cols[3]^[1]), 0, High(Byte));
+  OutputCol^[2] := Clamped(Round(Weights[0] * Cols[0]^[2] + Weights[1] * Cols[1]^[2] + Weights[2] * Cols[2]^[2] + Weights[3] * Cols[3]^[2]), 0, High(Byte));
+  OutputCol^[3] := Clamped(Round(Weights[0] * Cols[0]^[3] + Weights[1] * Cols[1]^[3] + Weights[2] * Cols[2]^[3] + Weights[3] * Cols[3]^[3]), 0, High(Byte));
+end;
+
 function TRGBAlphaImage.ToRGBImage: TRGBImage;
 var
   SelfPtr: PVector4Byte;
@@ -2811,6 +2871,17 @@ begin
   end;
 end;
 
+class procedure TRGBFloatImage.MixColors(const OutputColor: Pointer;
+  const Weights: TVector4Single; const Colors: TVector4Pointer);
+var
+  OutputCol: PVector3Single absolute OutputColor;
+  Cols: array [0..3] of PVector3Single absolute Colors;
+begin
+  OutputCol^[0] := Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0];
+  OutputCol^[1] := Weights[0] * Cols[0]^[1] + Weights[1] * Cols[1]^[1] + Weights[2] * Cols[2]^[1] + Weights[3] * Cols[3]^[1];
+  OutputCol^[2] := Weights[0] * Cols[0]^[2] + Weights[1] * Cols[1]^[2] + Weights[2] * Cols[2]^[2] + Weights[3] * Cols[3]^[2];
+end;
+
 { TGrayscaleImage ------------------------------------------------------------ }
 
 function TGrayscaleImage.GetGrayscalePixels: PByte;
@@ -2877,6 +2948,15 @@ begin
     Inc(SelfPtr);
     Inc(SecondPtr);
   end;
+end;
+
+class procedure TGrayscaleImage.MixColors(const OutputColor: Pointer;
+  const Weights: TVector4Single; const Colors: TVector4Pointer);
+var
+  OutputCol: PByte absolute OutputColor;
+  Cols: array [0..3] of PByte absolute Colors;
+begin
+  OutputCol^ := Clamped(Round(Weights[0] * Cols[0]^ + Weights[1] * Cols[1]^ + Weights[2] * Cols[2]^ + Weights[3] * Cols[3]^), 0, High(Byte));
 end;
 
 function TGrayscaleImage.ToGrayscaleAlphaImage_AlphaConst(Alpha: byte): TGrayscaleAlphaImage;
@@ -3027,6 +3107,16 @@ begin
     Inc(SelfPtr);
     Inc(SecondPtr);
   end;
+end;
+
+class procedure TGrayscaleAlphaImage.MixColors(const OutputColor: Pointer;
+  const Weights: TVector4Single; const Colors: TVector4Pointer);
+var
+  OutputCol: PVector2Byte absolute OutputColor;
+  Cols: array [0..3] of PVector2Byte absolute Colors;
+begin
+  OutputCol^[0] := Clamped(Round(Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0]), 0, High(Byte));
+  OutputCol^[1] := Clamped(Round(Weights[0] * Cols[0]^[1] + Weights[1] * Cols[1]^[1] + Weights[2] * Cols[2]^[1] + Weights[3] * Cols[3]^[1]), 0, High(Byte));
 end;
 
 { RGBE <-> 3 Single color convertion --------------------------------- }
