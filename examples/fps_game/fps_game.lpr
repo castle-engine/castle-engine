@@ -21,7 +21,7 @@ uses SysUtils, Classes, CastleWindow, CastleWarnings, CastleConfig, CastleLevels
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   CastleRenderer, Castle3D, CastleFilesUtils, CastleGameNotifications,
   CastleSceneManager, CastleVectors, CastleUIControls, GL, CastleGLUtils,
-  CastleColors;
+  CastleColors, CastleItems;
 
 var
   Window: TCastleWindow;
@@ -203,8 +203,9 @@ begin
     SetWindowPos(X, Y);
     Player.Inventory[I].Resource.GLImage.Draw;
     SetWindowPos(X, Y - UIFontSmall.RowHeight);
-    UIFontSmall.Print(Format('%s (%d)', [Player.Inventory[I].Resource.Caption,
-      Player.Inventory[I].Quantity]));
+    UIFontSmall.PrintAndMove(Player.Inventory[I].Resource.Caption);
+    if Player.Inventory[I].Quantity <> 1 then
+      UIFontSmall.PrintAndMove(Format(' (%d)', [Player.Inventory[I].Quantity]));
   end;
 
   glDisable(GL_BLEND);
@@ -256,6 +257,53 @@ begin
   ExtraViewport.Left := Window.Width - ExtraViewport.Width - ControlsMargin;
   ExtraViewport.Bottom := ControlsMargin;
 end;
+
+{ Customized item ------------------------------------------------------------ }
+
+type
+  { An example how to create new item behavior.
+
+    We override both the resource class (shared information for a given kind
+    of item; instances of it will be automatically
+    created and placed on the global Resources list, based on resource.xml files
+    referring to this class by type="xxx") and non-resource class
+    (information about a particular occurence of this item).
+    See engine tutorial for more extensive explanation.
+    Creating new creatures looks the same.
+
+    In this simplest case, the only purpose of the TMedKitResource class is to
+    indicate the non-resource class TMedKit.
+
+    For actual item TMedKit we override the Use method
+    to increase health on use (press Enter to use item in inventory).
+
+    We also override the Stack property to avoid stacking items.
+    We do this here just to see that TGame2DControls works for many items.
+    (Otherwise, all instances of MedKit would be "stacked" together,
+    which means you will have a single item on Player.Inventory,
+    but with Quantity possibly > 1. For real games, stacking is usually a good
+    idea.) }
+  TMedKitResource = class(TItemResource)
+  protected
+    function ItemClass: TInventoryItemClass; override;
+  end;
+
+  TMedKit = class(TInventoryItem)
+  protected
+    procedure Stack(var Item: TInventoryItem); override;
+  end;
+
+function TMedKitResource.ItemClass: TInventoryItemClass;
+begin
+  Result := TMedKit;
+end;
+
+procedure TMedKit.Stack(var Item: TInventoryItem);
+begin
+  { Simply do nothing to prevent stacking medkit items. }
+end;
+
+{ Main program --------------------------------------------------------------- }
 
 function MyGetApplicationName: string;
 begin
@@ -343,6 +391,10 @@ begin
   { Show progress bars on our Window. }
   Progress.UserInterface := WindowProgressInterface;
   WindowProgressInterface.Window := Window;
+
+  { Allow using type="MedKit" inside resource.xml files,
+    to define our MedKit item. }
+  RegisterResourceClass(TMedKitResource, 'MedKit');
 
   { Load all resources (creatures and items kinds) information from
     resource.xml files found inside ProgramDataPath.

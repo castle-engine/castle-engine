@@ -2,7 +2,7 @@
 
 <resource
   name="MedKit"
-  type="Item"
+  type="MedKit"
   caption="Medical Kit"
   image="inventory_image.png"
 >
