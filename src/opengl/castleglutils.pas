@@ -618,38 +618,33 @@ function OrthoProjection(const left, right, bottom, top: Single;
 procedure GLSetEnabled(value: TGLenum; isEnabled: boolean);
 
 { Draw vertical line using OpenGL.
-  This is just a shortcut for
-  @longCode(#
-    glBegin(GL_LINES); glVertex2f(x, y1); glVertex2f(x, y2); glEnd;
-  #) }
+  Uses current OpenGL color. }
 procedure GLVerticalLine(x, y1, y2: TGLfloat);
 
 { Draw horizontal line using OpenGL.
-  @seealso GLVerticalLine }
+  Uses current OpenGL color. }
 procedure GLHorizontalLine(x1, x2, y: TGLfloat);
 
 { Draw rectangle, filled with one color and framed with other color.
-  The vertex order is the same as for glRectf.
-  Requires one attrib stack place, because it makes sure
-  that polygon mode FRONT_AND_BACK is GL_FILL.
 
+  The vertex order is the same as for glRectf, so it's CCW from standard view.
+  We assume that OpenGL polygon fill mode is "fill".
   Changes OpenGL current color. }
 procedure GLRectangleWithBorder(const x1, y1, x2, y2: TGLfloat;
   const InsideCol, BorderCol: TVector4f);
 
 { Draw rectangle border.
-  The vertex order is the same as for glRectf.
 
-  Uses current OpenGL color.
-  @groupBegin }
+  The vertex order is the same as for glRectf, so it's CCW from standard view.
+  Uses current OpenGL color. }
 procedure GLRectangleBorder(const x1, y1, x2, y2: TGLfloat); overload;
-{ @groupEnd }
 
 { Draw arrow shape. Arrow is placed on Z = 0 plane, points to the up,
   has height = 2 (from y = 0 to y = 2) and width 1 (from x = -0.5 to 0.5).
-  Everything is drawn CCW when seen from standard view
-  (x grows right, y up). }
-procedure DrawArrow(HeadThickness: TGLfloat = 0.4;
+
+  Everything is drawn CCW when seen from standard view (x grows right, y up).
+  Uses current OpenGL color. }
+procedure GLDrawArrow(HeadThickness: TGLfloat = 0.4;
   HeadLength: TGLfloat = 0.5);
 
 { Comfortable wrapper for gluNewQuadric. Sets all quadric parameters.
@@ -1433,13 +1428,10 @@ end;
 procedure GLRectangleWithBorder(const x1, y1, x2, y2: TGLfloat;
   const InsideCol, BorderCol: TVector4f);
 begin
-  glPushAttrib(GL_POLYGON_BIT);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // saved by GL_POLYGON_BIT attrib
-    glColorv(InsideCol);
-    glRectf(x1, y1, x2, y2);
-    glColorv(BorderCol);
-    GLRectangleBorder(x1, y1, x2, y2);
-  glPopAttrib;
+  glColorv(InsideCol);
+  glRectf(x1, y1, x2, y2);
+  glColorv(BorderCol);
+  GLRectangleBorder(x1, y1, x2, y2);
 end;
 
 procedure GLRectangleBorder(const x1, y1, x2, y2: TGLfloat);
@@ -1452,7 +1444,7 @@ begin
   glEnd;
 end;
 
-procedure DrawArrow(HeadThickness, HeadLength: TGLfloat);
+procedure GLDrawArrow(HeadThickness, HeadLength: TGLfloat);
 begin
   HeadLength := 2*HeadLength; { mapuj HeadLength na zakres 0..2 }
 
