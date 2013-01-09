@@ -717,19 +717,6 @@ type
       Viewpoint: TAbstractViewpointNode);
     procedure SetHeadlightOn(const Value: boolean);
   protected
-    { Nonzero value prevents rendering of this scene,
-      and generally means that our state isn't complete.
-      This is useful if we're in the middle of some operation
-      (like ChangedAll call or octree creation).
-
-      Some callbacks *may* be called during such time: namely,
-      the progress call (e.g. done during constructing octrees).
-      As these callbacks may try to e.g. render our scene (which should
-      not be done on the dirty state), we have to protect ourselves
-      using this variable (e.g. Render routines will exit immediately
-      when Dirty <> 0). }
-    Dirty: Cardinal;
-
     { List of TScreenEffectNode nodes, collected by ChangedAll. }
     ScreenEffectNodes: TX3DNodeList;
 
@@ -786,6 +773,19 @@ type
     function RayCollision(const RayOrigin, RayDirection: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
   public
+    { Nonzero value prevents rendering of this scene,
+      and generally means that our state isn't complete.
+      This is useful if we're in the middle of some operation
+      (like ChangedAll call or octree creation).
+
+      Some callbacks *may* be called during such time: namely,
+      the progress call (e.g. done during constructing octrees).
+      As these callbacks may try to e.g. render our scene (which should
+      not be done on the dirty state), we have to protect ourselves
+      using this variable (e.g. Render routines will exit immediately
+      when Dirty <> 0). }
+    Dirty: Cardinal;
+
     const
       DefaultShadowMapsDefaultSize = 256;
 

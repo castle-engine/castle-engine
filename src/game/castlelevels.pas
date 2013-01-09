@@ -399,7 +399,7 @@ function Levels: TLevelInfoList;
 
 implementation
 
-uses SysUtils, CastleGLUtils, CastleFilesUtils, CastleStringUtils, 
+uses SysUtils, CastleGLUtils, CastleFilesUtils, CastleStringUtils,
   CastleGLImages, CastleUIControls, XMLRead, CastleInputs, CastleXMLUtils,
   CastleRenderer, CastleRenderingCamera, Math, CastleWarnings;
 
@@ -709,6 +709,7 @@ begin
     Camera := nil;
 
     MainScene := TCastleScene.Create(Self);
+    Inc(MainScene.Dirty);
     MainScene.Load(Info.SceneFileName);
 
     { Scene must be the first one on Items, this way Items.MoveCollision will
@@ -723,7 +724,7 @@ begin
   end;
 
   { load new resources (and release old unused). This must be done after
-    InitializeCamera (because it uses GravityUp), which is turn must
+    InitializeCamera (because it uses GravityUp), which in turn must
     be after loading MainScene (because initial camera looks at MainScene
     contents).
     It will show it's own progress bar. }
@@ -785,6 +786,8 @@ begin
   { Notifications.Show('Loaded level "' + Info.Title + '"');}
 
   MainScene.ProcessEvents := true;
+
+  Dec(MainScene.Dirty);
 end;
 
 procedure TGameSceneManager.LoadLevel(const AInfo: TLevelInfo);
