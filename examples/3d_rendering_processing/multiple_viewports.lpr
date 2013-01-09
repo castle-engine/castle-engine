@@ -72,9 +72,9 @@ begin
 
   if Viewport.Focused then
   begin
-    glColor3f(1, 1, 1);
-    glLineWidth(3.0); { saved by GL_LINE_BIT }
-    GLRectangleBorder(0, 0, Viewport.Width, Viewport.Height);
+    GLRectangleBorder(0, 0, Viewport.Width, Viewport.Height, White4Single, 3);
+    { line width saved by GL_LINE_BIT, although we can generally change
+      it carelessly (without saving) when drawing in our engine }
   end;
 
   if Viewport.Caption <> '' then

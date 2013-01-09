@@ -34,7 +34,7 @@ type
   TRectangle = object
     X0, Y0, Width, Height: Integer;
     function PointInside(const X, Y: Integer): boolean;
-    procedure DrawBorder;
+    procedure DrawBorder(const Color: TVector4f; const BorderWidth: Single = 1.0);
   end;
   PRectangle = ^TRectangle;
 
@@ -796,9 +796,9 @@ begin
             (Y >= Y0) and (Y <= Y0 + Height);
 end;
 
-procedure TRectangle.DrawBorder;
+procedure TRectangle.DrawBorder(const Color: TVector4f; const BorderWidth: Single);
 begin
-  GLRectangleBorder(X0, Y0, X0 + Width, Y0 + Height);
+  GLRectangleBorder(X0, Y0, X0 + Width, Y0 + Height, Color, BorderWidth);
 end;
 
 { TMenuAccessory ------------------------------------------------------ }
@@ -1419,22 +1419,19 @@ begin
 
   if Focused and DrawFocusedBorder then
   begin
-    glColorv(CurrentItemBorderColor);
-    glLineWidth(1.0);
-    FAllItemsRectangle.DrawBorder;
+    FAllItemsRectangle.DrawBorder(Vector4Single(CurrentItemBorderColor));
   end;
 
   for I := 0 to Items.Count - 1 do
   begin
     if I = CurrentItem then
     begin
-      glColorv(CurrentItemBorderColor);
-      glLineWidth(1.0);
       GLRectangleBorder(
         Rectangles.L[I].X0 - CurrentItemBorderMargin,
         Rectangles.L[I].Y0,
         Rectangles.L[I].X0 + Rectangles.L[I].Width + CurrentItemBorderMargin,
-        Rectangles.L[I].Y0 + Rectangles.L[I].Height);
+        Rectangles.L[I].Y0 + Rectangles.L[I].Height,
+        Vector4Single(CurrentItemBorderColor));
 
       glColorv(CurrentItemColor);
     end else

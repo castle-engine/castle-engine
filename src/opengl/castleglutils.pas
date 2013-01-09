@@ -629,15 +629,17 @@ procedure GLHorizontalLine(x1, x2, y: TGLfloat);
 
   The vertex order is the same as for glRectf, so it's CCW from standard view.
   We assume that OpenGL polygon fill mode is "fill".
-  Changes OpenGL current color. }
+  Changes OpenGL current color and line width. }
 procedure GLRectangleWithBorder(const x1, y1, x2, y2: TGLfloat;
-  const InsideCol, BorderCol: TVector4f);
+  const InsideColor, BorderColor: TVector4f;
+  const BorderWidth: Single = 1.0);
 
 { Draw rectangle border.
 
   The vertex order is the same as for glRectf, so it's CCW from standard view.
-  Uses current OpenGL color. }
-procedure GLRectangleBorder(const x1, y1, x2, y2: TGLfloat); overload;
+  Changes OpenGL current color and line width. }
+procedure GLRectangleBorder(const x1, y1, x2, y2: TGLfloat;
+  const Color: TVector4f; const BorderWidth: Single = 1.0); overload;
 
 { Draw arrow shape. Arrow is placed on Z = 0 plane, points to the up,
   has height = 2 (from y = 0 to y = 2) and width 1 (from x = -0.5 to 0.5).
@@ -1426,16 +1428,19 @@ begin
 end;
 
 procedure GLRectangleWithBorder(const x1, y1, x2, y2: TGLfloat;
-  const InsideCol, BorderCol: TVector4f);
+  const InsideColor, BorderColor: TVector4f;
+  const BorderWidth: Single);
 begin
-  glColorv(InsideCol);
+  glColorv(InsideColor);
   glRectf(x1, y1, x2, y2);
-  glColorv(BorderCol);
-  GLRectangleBorder(x1, y1, x2, y2);
+  GLRectangleBorder(x1, y1, x2, y2, BorderColor, BorderWidth);
 end;
 
-procedure GLRectangleBorder(const x1, y1, x2, y2: TGLfloat);
+procedure GLRectangleBorder(const x1, y1, x2, y2: TGLfloat;
+  const Color: TVector4f; const BorderWidth: Single);
 begin
+  glLineWidth(BorderWidth);
+  glColorv(Color);
   glBegin(GL_LINE_LOOP);
     glVertex2f(x1, y1);
     glVertex2f(x2, y1);
