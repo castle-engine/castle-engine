@@ -61,6 +61,7 @@ unit CastleImages;
 
 {$include castleconf.inc}
 {$include pngconf.inc}
+{$modeswitch nestedprocvars}{$H+}
 
 interface
 
@@ -1769,7 +1770,7 @@ procedure InternalResize(PixelSize: Cardinal;
 var
   DestinY: Cardinal;
 
-  procedure MakeLineDestinY;
+  procedure MakeLineNearest;
   { write row DestinY of DestinData }
   var
     DestinX, SourceX, SourceY: Cardinal;
@@ -1788,17 +1789,67 @@ var
     end;
   end;
 
+  procedure MakeLineBilinear;
+  var
+    { For every destination pixel, we consider 4 neighbor source pixels.
+      - SourceX1 / SourceX2 are smaller / larger X coordinates in source.
+      - SourceY1 / SourceY2 are smaller / larger Y coordinates in source.
+      - SourceXFrac / SourceYFrac are fractional parts (in [0..1])
+        that say how close our perfect point (from which we should take
+        destination color) is to 4 neighbor pixels. }
+    DestinX, SourceX1, SourceX2, SourceY1, SourceY2: Cardinal;
+    Source1Row, Source2Row, DestinRow: PtrUInt;
+    SourceXFrac, SourceYFrac: Single;
+    Weights: TVector4Single;
+    Colors: TVector4Pointer;
+  begin
+    SourceYFrac := DestinY * SourceHeight / DestinHeight;
+    SourceY1 := Max(Trunc(SourceYFrac), 0);
+    SourceY2 := Min(SourceY1 + 1, SourceWidth - 1);
+    SourceYFrac := Frac(SourceYFrac);
+    Source1Row := PtrUInt(SourceData) + SourceWidth * SourceY1 * PixelSize;
+    Source2Row := PtrUInt(SourceData) + SourceWidth * SourceY2 * PixelSize;
+    DestinRow := PtrUInt(DestinData) + DestinWidth * DestinY * PixelSize;
+
+    for DestinX := 0 to DestinWidth - 1 do
+    begin
+      SourceXFrac := DestinX * SourceWidth / DestinWidth;
+      SourceX1 := Max(Trunc(SourceXFrac), 0);
+      SourceX2 := SourceX1 + 1;
+      SourceXFrac := Frac(SourceXFrac);
+      Weights[0] := SourceXFrac * SourceYFrac;
+      Colors[0] := Pointer(Source2Row + SourceX2 * PixelSize);
+      Weights[1] := (1 - SourceXFrac) * SourceYFrac;
+      Colors[1] := Pointer(Source2Row + SourceX1 * PixelSize);
+      Weights[2] := (1 - SourceXFrac) * (1 - SourceYFrac);
+      Colors[2] := Pointer(Source1Row + SourceX1 * PixelSize);
+      Weights[3] :=  SourceXFrac * (1 - SourceYFrac);
+      Colors[3] := Pointer(Source1Row + SourceX2 * PixelSize);
+      MixColors(Pointer(DestinRow + DestinX * PixelSize), Weights, Colors);
+    end;
+  end;
+
+type
+  TMakeLineFunction = procedure is nested;
+var
+  MakeLine: TMakeLineFunction;
 begin
+  case Interpolation of
+    riNearest : MakeLine := @MakeLineNearest;
+    riBilinear: MakeLine := @MakeLineBilinear;
+    else raise EInternalError.Create('Unknown Interpolation for InternalResize');
+  end;
+
   if ProgressTitle = '' then
   begin
-    for DestinY := 0 to DestinHeight - 1 do MakeLineDestinY;
+    for DestinY := 0 to DestinHeight - 1 do MakeLine;
   end else
   begin
     Progress.Init(DestinHeight, ProgressTitle);
     try
       for DestinY := 0 to DestinHeight - 1 do
       begin
-        MakeLineDestinY;
+        MakeLine;
         Progress.Step;
       end;
     finally Progress.Fini end;

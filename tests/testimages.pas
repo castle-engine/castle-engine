@@ -28,6 +28,7 @@ type
     procedure TestClear;
     procedure TestVector3ToRGBE;
     procedure TestRGBEToRGBTranslating;
+    procedure TestResize;
   end;
 
 implementation
@@ -166,6 +167,58 @@ begin
  CheckRGBEToRGBTranslating(1.0);
  CheckRGBEToRGBTranslating(10.0);
  CheckRGBEToRGBTranslating(10000.0);
+end;
+
+procedure TTestImages.TestResize;
+var
+  Orig, OrigResized, OrigResized2: TCastleImage;
+
+  procedure SimpleTest(const Interpolation: TResizeInterpolation);
+  begin
+    { check that both MakeResized and Resize with unchanged size make
+      no modifications }
+
+    OrigResized := Orig.MakeResized(Orig.Width, Orig.Height, Interpolation);
+    Assert(Orig.IsEqual(OrigResized));
+
+    OrigResized2 := Orig.MakeCopy;
+    OrigResized2.Resize(Orig.Width, Orig.Height, Interpolation);
+    Assert(Orig.IsEqual(OrigResized2));
+
+    FreeAndNil(OrigResized);
+    FreeAndNil(OrigResized2);
+
+    { check that MakeResized and Resize have the same algorithm }
+
+    OrigResized := Orig.MakeResized(1000, 100, Interpolation);
+    Assert(not Orig.IsEqual(OrigResized));
+
+    OrigResized2 := Orig.MakeCopy;
+    OrigResized2.Resize(1000, 100, Interpolation);
+    Assert(not Orig.IsEqual(OrigResized2));
+
+    Assert(OrigResized.IsEqual(OrigResized2));
+
+    FreeAndNil(OrigResized);
+    FreeAndNil(OrigResized2);
+  end;
+
+begin
+  Orig := LoadImage('data' + PathDelim + 'images' + PathDelim + 'no_alpha.png', []);
+
+  SimpleTest(riNearest);
+  SimpleTest(riBilinear);
+
+  { check that (on non-trivial data) the two interpolations actually give
+    different results }
+
+  OrigResized  := Orig.MakeResized(1000, 100, riNearest);
+  OrigResized2 := Orig.MakeResized(1000, 100, riBilinear);
+  Assert(not OrigResized.IsEqual(OrigResized2));
+
+  FreeAndNil(OrigResized);
+  FreeAndNil(OrigResized2);
+  FreeAndNil(Orig);
 end;
 
 initialization

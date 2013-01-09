@@ -138,7 +138,7 @@ begin
     if (Image.Width <> Window.Width) or
        (Image.Height <> Window.Height) then
     begin
-      GoodSizeImage := Image.MakeResized(Window.Width, Window.Height);
+      GoodSizeImage := Image.MakeResized(Window.Width, Window.Height, riBilinear);
       try
         GLImage := TGLImage.Create(GoodSizeImage);
       finally FreeAndNil(GoodSizeImage) end;
