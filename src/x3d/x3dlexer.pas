@@ -16,16 +16,12 @@
 { VRML/X3D classic lexer (TX3DLexer). }
 unit X3DLexer;
 
-{ Every newly read token will be reported with LogWrite.
-  Useful only for debugging this unit. }
-{ $define LOG_VRML_TOKENS}
-
 {$I castleconf.inc}
 
 interface
 
 uses SysUtils, Classes, CastleUtils, CastleStringUtils, CastleClassUtils,
-  Math {$ifdef LOG_VRML_TOKENS} ,LogFile {$endif};
+  Math;
 
 type
   { Valid keywords for all VRML / X3D versions. }
@@ -397,6 +393,8 @@ function StringToX3DXmlMulti(const s: string): string;
 
 implementation
 
+uses CastleLog;
+
 const
   X3DFirstLineTerm = [#10, #13];
 
@@ -407,6 +405,10 @@ const
     'keyword', 'name',
     '"{"', '"}"', '"["', '"]"', '"("', '")"', '"|"', '","', '"."', '":"',
     'float', 'integer', 'string', 'end of stream');
+
+var
+  { Log all read tokens. Useful for debugging lexer. }
+  LogTokens: boolean = false;
 
 function ArrayPosX3DKeywords(const s: string; var Index: TX3DKeyword): boolean;
 var
@@ -993,7 +995,7 @@ begin
     end;
   end;
 
-  {$ifdef LOG_VRML_TOKENS} LogWrite('VRML token: ' +DescribeToken); {$endif}
+  if LogTokens then WriteLog('X3D lexer', DescribeToken);
 
   result := Token;
 end;
@@ -1015,7 +1017,7 @@ begin
   fToken := vtName;
  end;
 
- {$ifdef LOG_VRML_TOKENS} LogWrite('VRML token: ' +DescribeToken); {$endif}
+  if LogTokens then WriteLog('X3D lexer', DescribeToken);
 
  CheckTokenIs(vtName);
 end;
@@ -1034,7 +1036,7 @@ begin
   fToken := vtString;
  end;
 
- {$ifdef LOG_VRML_TOKENS} LogWrite('VRML token: ' +DescribeToken); {$endif}
+ if LogTokens then WriteLog('X3D lexer', DescribeToken);
 
  CheckTokenIs(vtString);
 end;
