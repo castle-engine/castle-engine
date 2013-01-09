@@ -309,7 +309,7 @@ var
       to consume some items right at pickup).
       Remember that this method must take care of memory management
       of this item. }
-    procedure PickedBy(const NewOwner: T3DAliveWithInventory); virtual;
+    procedure Picked(const NewOwner: T3DAliveWithInventory); virtual;
 
     { Use this item.
 
@@ -470,10 +470,10 @@ var
       Default is @true. If you set this to @false, you most probably want to
       implement some other way of picking up items, use the ExtractItem method.
 
-      More precisely, this variable controls when TInventoryItem.PickedBy
+      More precisely, this variable controls when TInventoryItem.Picked
       is called. When @true, it is called for player when player steps over
       an item (otherwise it's never called).
-      You can always override TInventoryItem.PickedBy for particular items
+      You can always override TInventoryItem.Picked for particular items
       to customize what happens at "pick" --- the default implementation
       picks an item by adding it to inventory, but you could override it
       e.g. to consume some potions immediately on pickup. }
@@ -762,7 +762,7 @@ begin
     Result := nil;
 end;
 
-procedure TInventoryItem.PickedBy(const NewOwner: T3DAliveWithInventory);
+procedure TInventoryItem.Picked(const NewOwner: T3DAliveWithInventory);
 begin
   NewOwner.PickItem(Self);
 end;
@@ -1138,7 +1138,7 @@ begin
      (World.Player is T3DAliveWithInventory) and
      (not World.Player.Dead) and
      BoundingBox.Collision(World.Player.BoundingBox) then
-    ExtractItem.PickedBy(T3DAliveWithInventory(World.Player));
+    ExtractItem.Picked(T3DAliveWithInventory(World.Player));
 
   { Since we cannot live with Item = nil, we free ourselves }
   if Item = nil then

@@ -302,6 +302,7 @@ type
   protected
     procedure Stack(var Item: TInventoryItem); override;
     procedure Use; override;
+    // procedure Picked(const NewOwner: T3DAliveWithInventory); override;
   end;
 
 function TMedKitResource.ItemClass: TInventoryItemClass;
@@ -332,6 +333,16 @@ begin
   Notifications.Show(Format('You use "%s"', [Resource.Caption]));
   // SoundEngine.Sound(stPlayerPotionDrink);
 end;
+
+{ If you want to do something immediately at pickup, you can override
+  Picked method. By default, it causes item to be added to inventory,
+  but you could as well e.g. immediately increase player life and destroy item.
+  Uncomment this method (and it's declaration in TMedKit class) to test it. }
+// procedure TMedKit.Picked(const NewOwner: T3DAliveWithInventory);
+// begin
+//   Use;
+//   Free;
+// end;
 
 { Main program --------------------------------------------------------------- }
 
