@@ -130,13 +130,19 @@ type
       @param(ResizeToY After loading, resize to given height.
         Pass 0 to not resize height.)
 
+      @param(Interpolation If any resizing will be needed (if
+        ResizeToX / ResizeToY parameters request some specific size,
+        and it is different than loaded image size) then the resize
+        operation will use given interpolation.)
+
       @raises(EImageClassNotSupportedForOpenGL When image class is not supported
         by OpenGL.)
     }
     constructor Create(const FileName: string;
       const LoadAsClass: array of TCastleImageClass;
       const ResizeToX: Cardinal = 0;
-      const ResizeToY: Cardinal = 0);
+      const ResizeToY: Cardinal = 0;
+      const Interpolation: TResizeInterpolation = riNearest);
 
     { Prepare part of the image for drawing.
 
@@ -894,13 +900,14 @@ end;
 
 constructor TGLImage.Create(const FileName: string;
   const LoadAsClass: array of TCastleImageClass;
-  const ResizeToX, ResizeToY: Cardinal);
+  const ResizeToX, ResizeToY: Cardinal;
+  const Interpolation: TResizeInterpolation);
 var
   Image: TCastleImage;
 begin
   if High(LoadAsClass) = -1 then
-    Image := LoadImage(FileName, PixelsImageClasses, ResizeToX, ResizeToY) else
-    Image := LoadImage(FileName, LoadAsClass, ResizeToX, ResizeToY);
+    Image := LoadImage(FileName, PixelsImageClasses, ResizeToX, ResizeToY, Interpolation) else
+    Image := LoadImage(FileName, LoadAsClass, ResizeToX, ResizeToY, Interpolation);
   try
     Create(Image);
   finally FreeAndNil(Image) end;

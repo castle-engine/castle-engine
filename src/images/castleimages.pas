@@ -1522,7 +1522,8 @@ function LoadImage(const filename: string;
   :TCastleImage; overload;
 function LoadImage(const filename: string;
   const AllowedImageClasses: array of TCastleImageClass;
-  const ResizeToX, ResizeToY: Cardinal): TCastleImage; overload;
+  const ResizeToX, ResizeToY: Cardinal;
+  const Interpolation: TResizeInterpolation = riNearest): TCastleImage; overload;
 { @groupEnd }
 
 { saving image --------------------------------------------------------------- }
@@ -1805,7 +1806,7 @@ var
   begin
     SourceYFrac := DestinY * SourceHeight / DestinHeight;
     SourceY1 := Max(Trunc(SourceYFrac), 0);
-    SourceY2 := Min(SourceY1 + 1, SourceWidth - 1);
+    SourceY2 := Min(SourceY1 + 1, SourceHeight - 1);
     SourceYFrac := Frac(SourceYFrac);
     Source1Row := PtrUInt(SourceData) + SourceWidth * SourceY1 * PixelSize;
     Source2Row := PtrUInt(SourceData) + SourceWidth * SourceY2 * PixelSize;
@@ -1815,7 +1816,7 @@ var
     begin
       SourceXFrac := DestinX * SourceWidth / DestinWidth;
       SourceX1 := Max(Trunc(SourceXFrac), 0);
-      SourceX2 := SourceX1 + 1;
+      SourceX2 := Min(SourceX1 + 1, SourceWidth - 1);
       SourceXFrac := Frac(SourceXFrac);
       Weights[0] := SourceXFrac * SourceYFrac;
       Colors[0] := Pointer(Source2Row + SourceX2 * PixelSize);
@@ -3556,10 +3557,11 @@ end;
 
 function LoadImage(const filename: string;
   const AllowedImageClasses: array of TCastleImageClass;
-  const ResizeToX, ResizeToY: Cardinal): TCastleImage;
+  const ResizeToX, ResizeToY: Cardinal;
+  const Interpolation: TResizeInterpolation): TCastleImage;
 begin
   result := LoadImage(filename, AllowedImageClasses);
-  Result.Resize(ResizeToX, ResizeToY);
+  Result.Resize(ResizeToX, ResizeToY, Interpolation);
 end;
 
 { SaveImage na TCastleImage ---------------------------------------------------- }
