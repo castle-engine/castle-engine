@@ -34,11 +34,15 @@ and in particular our forum
 https://sourceforge.net/p/castle-engine/discussion/ .
 
 ------------------------------------------------------------------------------
-Movement keys: move using AWSD or arrow keys, and you can activate "Mouse Look"
+Keys: move using AWSD or arrow keys, and you can activate "Mouse Look"
 by a suitable button on the screen.
 
-Actually, a lot more keys and mouse shortcuts are instantly working
-(and are configurable, too). All input shortcuts are TInputShortcut instances.
+Inventory: use current item by Enter, change current item by [ ] or mouse wheel,
+drop by R.
+
+A lot more keys and mouse shortcuts are instantly working
+(and they all are configurable, too).
+All input shortcuts are TInputShortcut instances.
 Currently the following units of our engine define some shortcuts:
 
 - CastleSceneManager (Input_Xxx global properties)
@@ -48,6 +52,8 @@ Currently the following units of our engine define some shortcuts:
 
 The CastleInputs unit has a list of all global shortcuts (useful to allow
 users to configure game keymap) in InputsAll variable.
+Of course you can use it to present to user some "Configure controls" menu,
+see castle1 game for example.
 
 Oh, and the ExtraViewport in right-bottom part of the screen uses Examine camera,
 so the view there is fully editable. Try dragging with mouse,

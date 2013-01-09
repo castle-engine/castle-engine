@@ -21,7 +21,7 @@ uses SysUtils, Classes, CastleWindow, CastleWarnings, CastleConfig, CastleLevels
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   CastleRenderer, Castle3D, CastleFilesUtils, CastleGameNotifications,
   CastleSceneManager, CastleVectors, CastleUIControls, GL, CastleGLUtils,
-  CastleColors, CastleItems;
+  CastleColors, CastleItems, CastleUtils;
 
 var
   Window: TCastleWindow;
@@ -209,6 +209,16 @@ begin
   end;
 
   glDisable(GL_BLEND);
+
+  { Mark currently chosen item. You can change currently selected item by
+    Input_InventoryPrevious, Input_InventoryNext (by default: [ ] keys or mouse
+    wheel). }
+  if Between(Player.InventoryCurrentItem, 0, Player.Inventory.Count - 1) then
+  begin
+    X := Player.InventoryCurrentItem * (InventoryImageSize + ControlsMargin);
+    GLRectangleBorder(X, Y, X + InventoryImageSize, Y + InventoryImageSize,
+      Yellow4Single);
+  end;
 
   { Simple color effects over the screen:
     when player is dead,
@@ -411,6 +421,11 @@ begin
   { Show progress bars on our Window. }
   Progress.UserInterface := WindowProgressInterface;
   WindowProgressInterface.Window := Window;
+
+  { Allow player to drop items by "R" key. This shortcut is by default inactive
+    (no key/mouse button correspond to it), because not all games may want
+    to allow player to do this. }
+  Input_DropItem.Assign(K_R);
 
   { Allow using type="MedKit" inside resource.xml files,
     to define our MedKit item. }
