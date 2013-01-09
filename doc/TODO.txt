@@ -1162,11 +1162,6 @@ Lights rendering:
   ./castle_game_engine/examples/vrml/plane_mirror_and_shadow.lpr:325:    fixed-function pipeline rendering (by glLight, used by DrawFloor). }
   ./castle_game_engine/examples/vrml/plane_mirror_and_shadow.lpr:329:  glLightv(GL_LIGHT0, GL_POSITION, LightPosition);
 
-  ./castle_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:148:    glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1))
-  ./castle_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:788:    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.2, 0.2, 0.2, 1.0));
-  ./castle_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:797:    glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1));
-  ./castle_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:799:    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.5, 0.5, 0.5, 1.0));
-
 - Make lifetime of lights renderer longer. At least, for whole rendering
   from a scene manager (so 1 lights renderer for 1 TCastleSceneManager.Draw call).
 

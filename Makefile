@@ -80,7 +80,6 @@ EXAMPLES_BASE_NAMES := \
   examples/curves_surfaces/bezier_surfaces/design_surface \
   examples/curves_surfaces/interpolated_curves \
   examples/space_filling_curve/draw_space_filling_curve \
-  examples/bump_mapping/bump_mapping \
   examples/radiance_transfer/radiance_transfer \
   examples/radiance_transfer/precompute_radiance_transfer \
   examples/radiance_transfer/show_sh \
