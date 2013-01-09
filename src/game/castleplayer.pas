@@ -407,6 +407,7 @@ type
   TPlayerBox = class(T3D)
   public
     function BoundingBox: TBox3D; override;
+    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
   end;
 
 function TPlayerBox.BoundingBox: TBox3D;
@@ -418,13 +419,34 @@ begin
     Camera := TPlayer(Owner).Camera;
     Result.Data[0, 0] := -Camera.Radius;
     Result.Data[0, 1] := -Camera.Radius;
-    Result.Data[0, 2] := -Camera.RealPreferredHeight;
+    Result.Data[0, 2] := -Camera.Radius;
+    Result.Data[0, World.GravityCoordinate] := -Camera.RealPreferredHeight;
 
     Result.Data[1, 0] := Camera.Radius;
     Result.Data[1, 1] := Camera.Radius;
     Result.Data[1, 2] := Camera.Radius;
   end else
     Result := EmptyBox3D;
+end;
+
+procedure TPlayerBox.Render(const Frustum: TFrustum; const Params: TRenderParams);
+begin
+  inherited;
+
+  if RenderDebug3D and GetExists and
+    Frustum.Box3DCollisionPossibleSimple(BoundingBox) and
+    (not Params.Transparent) and Params.ShadowVolumesReceivers then
+  begin
+    glPushAttrib(GL_ENABLE_BIT);
+      glDisable(GL_LIGHTING);
+      glEnable(GL_DEPTH_TEST);
+      glPushMatrix;
+        glMultMatrix(Params.RenderTransform);
+        glColorv(Gray3Single);
+        glDrawBox3DWire(BoundingBox);
+      glPopMatrix;
+    glPopAttrib;
+  end;
 end;
 
 { TPlayer -------------------------------------------------------------------- }
