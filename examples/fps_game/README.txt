@@ -1,5 +1,6 @@
 Example of a fully-working 3D FPS game using "Castle Game Engine".
-We have a level, creatures, items, inventory, player can be hurt and die,
+We have a level, creatures, items (medkit and weapon), inventory,
+player can be hurt and die, player can shoot and kill the creatures,
 there are buttons, notifications, custom viewport, sounds and more.
 
 You can compile this example (and any other example here, for that matter)

@@ -1,6 +1,6 @@
-medkit_use.wav:
+medkit_use.wav (original name heal.ogg) and
+eye_shoot.wav (original name shot2.ogg):
   from http://opengameart.org/content/spell-sounds-starter-pack
-  (based on heal.ogg)
   by p0ss
   licensed on
     CC-BY-SA 3.0
