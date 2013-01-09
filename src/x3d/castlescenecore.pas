@@ -717,8 +717,10 @@ type
       Viewpoint: TAbstractViewpointNode);
     procedure SetHeadlightOn(const Value: boolean);
   protected
-    { Value <> 0 means that our state isn't complete (for example,
-      we're in the middle of ChangedAll call or octree creation).
+    { Nonzero value prevents rendering of this scene,
+      and generally means that our state isn't complete.
+      This is useful if we're in the middle of some operation
+      (like ChangedAll call or octree creation).
 
       Some callbacks *may* be called during such time: namely,
       the progress call (e.g. done during constructing octrees).
