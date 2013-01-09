@@ -11,6 +11,12 @@
     usually just 'Level' to use standard TLevelLogic class.
   - scene: 3D model filename.
 
+  - loading_image: Image to show under a progress bar when loading level.
+    You can show here anything you like (e.g. many games show a screenshot
+    from the level, sometimes blurred). You don't have to specify this image,
+    then progress background will simply show whatever was displayed
+    in the viewport when level loading started.
+
   - <prepare_resources> should list resources used by this level.
     These resources will be prepared during SceneManaged.LoadLevel call.
     "Resources" refers to creatures and items (and potentially other types
@@ -38,6 +44,7 @@
   scene="example_level_final.x3dv"
   title="Example Level"
   placeholders="blender"
+  loading_image="loading_image.png"
 >
   <prepare_resources>
     <resource name="Knight"/>
