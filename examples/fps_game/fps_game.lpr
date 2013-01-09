@@ -291,6 +291,7 @@ type
   TMedKit = class(TInventoryItem)
   protected
     procedure Stack(var Item: TInventoryItem); override;
+    procedure Use; override;
   end;
 
 function TMedKitResource.ItemClass: TInventoryItemClass;
@@ -301,6 +302,25 @@ end;
 procedure TMedKit.Stack(var Item: TInventoryItem);
 begin
   { Simply do nothing to prevent stacking medkit items. }
+end;
+
+procedure TMedKit.Use;
+begin
+  { Increase the life of item's owner.
+
+    We could of course do something more intelligent here, e.g. do not allow
+    increasing Life above MaxLife (by default, there is *no* such limit,
+    you can increase Life above MaxLife, because many games allow
+    increasing Life by some magical powerups above normal "maximum" value).
+
+    You could also allow partially using an item, by keeping a property
+    like Used inside TMedKit class. You would decrease this TMedKit.Used
+    property instead of Quantity (and only decrease Quantity when TMedKit.Used
+    reaches 0, which means that item was used up completely). }
+  Player.Life := Player.Life + 20;
+  Quantity := Quantity - 1;
+  Notifications.Show(Format('You use "%s"', [Resource.Caption]));
+  // SoundEngine.Sound(stPlayerPotionDrink);
 end;
 
 { Main program --------------------------------------------------------------- }
