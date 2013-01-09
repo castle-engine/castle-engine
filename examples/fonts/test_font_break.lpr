@@ -40,8 +40,8 @@ begin
  x1 := (Window.Width - BoxWidth) div 2;
  x2 := x1 + BoxWidth;
  glColorv(Yellow3Single);
- VerticalGLLine(x1, 0, Window.Height);
- VerticalGLLine(x2, 0, Window.Height);
+ GLVerticalLine(x1, 0, Window.Height);
+ GLVerticalLine(x2, 0, Window.Height);
  glColorv(White3Single);
  UIFont.PrintBrokenString(
    'blah blah blah, I''m a long long long text and'

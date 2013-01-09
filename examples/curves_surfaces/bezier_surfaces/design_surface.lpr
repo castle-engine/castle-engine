@@ -401,10 +401,9 @@ begin
     glGetIntegerv(GL_VIEWPORT, @Viewport);
 
     { My first try was to just take
-        UnProjectGL(NewX        , Window.Height - NewY        , 0),
-        UnProjectGL(Window.MouseX, Window.Height - Window.MouseY, 0)
-      I.e. we can just set WinZ parameter of UnProjectGL to anything,
-      it's only important to make it the same.
+        UnProject(NewX         , Window.Height - NewY         , 0),
+        UnProject(Window.MouseX, Window.Height - Window.MouseY, 0)
+      That is, to set WinZ parameter of UnProject to an arbitrary value.
 
       This was correct assumption
       --- but only for orthographic projection. You can see that it works
@@ -425,7 +424,7 @@ begin
     WinZ := ProjectToZ(ControlPoints(CurrentCurve).L[CurrentPoint]);
 
     Move := Vector3Single(VectorSubtract(
-      UnProject(NewX        , Window.Height - NewY        , WinZ),
+      UnProject(NewX         , Window.Height - NewY         , WinZ),
       UnProject(Window.MouseX, Window.Height - Window.MouseY, WinZ)));
     VectorAddTo1st(ControlPoints(CurrentCurve).L[CurrentPoint], Move);
     (Surface.Curves[CurrentCurve] as TControlPointsCurve).UpdateControlPoints;

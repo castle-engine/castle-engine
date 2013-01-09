@@ -798,7 +798,7 @@ end;
 
 procedure TRectangle.DrawBorder;
 begin
-  DrawGLRectBorder(X0, Y0, X0 + Width, Y0 + Height);
+  GLRectangleBorder(X0, Y0, X0 + Width, Y0 + Height);
 end;
 
 { TMenuAccessory ------------------------------------------------------ }
@@ -1430,7 +1430,7 @@ begin
     begin
       glColorv(CurrentItemBorderColor);
       glLineWidth(1.0);
-      DrawGLRectBorder(
+      GLRectangleBorder(
         Rectangles.L[I].X0 - CurrentItemBorderMargin,
         Rectangles.L[I].Y0,
         Rectangles.L[I].X0 + Rectangles.L[I].Width + CurrentItemBorderMargin,

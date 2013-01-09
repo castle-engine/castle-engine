@@ -256,24 +256,16 @@ type
     During this lifetime, we set special TCastleWindowBase.OnDraw and TCastleWindowBase.OnResize
     to draw the saved image in a simplest 2D OpenGL projection.
 
-    If you pass PolygonStipple <> nil to constructor,
-    window will be additionally covered by this stipple (remember we only
-    copy PolygonStipple pointer, so don't free it).
-
     Between creation/destroy, TCastleWindowBase.UserData is used by this function
     for internal purposes. So don't use it yourself.
-    We'll restore initial TCastleWindowBase.UserData at destruction.
-
-     }
+    We'll restore initial TCastleWindowBase.UserData at destruction. }
   TGLModeFrozenScreen = class(TGLMode)
   private
     ScreenImage: TGLImage;
     SavedScreenWidth, SavedScreenHeight: Cardinal;
-    FPolygonStipple: PPolygonStipple;
   public
     constructor Create(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
-      APushPopMessagesTheme: boolean;
-      APolygonStipple: PPolygonStipple);
+      APushPopMessagesTheme: boolean);
 
     destructor Destroy; override;
   end;
@@ -580,8 +572,6 @@ begin
   glClear(GL_COLOR_BUFFER_BIT);
 
  Attribs := GL_CURRENT_BIT or GL_ENABLE_BIT;
- if Mode.FPolygonStipple <> nil then
-  Attribs := Attribs or GL_POLYGON_BIT or GL_POLYGON_STIPPLE_BIT;
 
  glPushAttrib(Attribs);
  try
@@ -591,26 +581,14 @@ begin
 
    SetWindowPosZero;
    Mode.ScreenImage.Draw;
-
-   if Mode.FPolygonStipple <> nil then
-   begin
-    glEnable(GL_POLYGON_STIPPLE);
-    CastleGLPolygonStipple(Mode.FPolygonStipple);
-    glColor3ub(0, 0, 0);
-    glLoadIdentity;
-    glRectf(0, 0, Window.Width, Window.Height);
-   end;
   finally glPopMatrix end;
  finally glPopAttrib end;
 end;
 
 constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindowBase;
-  AttribsToPush: TGLbitfield; APushPopMessagesTheme: boolean;
-  APolygonStipple: PPolygonStipple);
+  AttribsToPush: TGLbitfield; APushPopMessagesTheme: boolean);
 begin
  inherited Create(AWindow, AttribsToPush, APushPopMessagesTheme);
-
- FPolygonStipple := APolygonStipple;
 
  { save screen, before changing state (before changing OnDraw callback
    in SetStandardState, before changing projection in Window.EventResize etc.) }

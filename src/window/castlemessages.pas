@@ -50,8 +50,8 @@
       width.)
 
     @item(You can configure dialog boxes look using CastleMessagesTheme variable.
-      For example, you can make the dialog box background partially transparent
-      (by real transparency or by OpenGL stipple pattern).))
+      For example, you can make the dialog box background partially transparent.)
+  )
 
   Call MessageXxx functions only when Window.Closed = false.
   Note that MessageXxx will do Window.MakeCurrent (probably more than once).
@@ -306,8 +306,7 @@ function MessageInputQueryVector4Single(
 
 type
   TMessagesTheme = record
-    { Color of the inside area in the message rectangle
-      (or of the stipple, if it's <> @nil).
+    { Color of the inside area in the message rectangle.
       If RectColor[3] <> 1.0, then it will be nicely blended on the screen. }
     RectColor: TVector4f;
 
@@ -317,10 +316,6 @@ type
     ClosingInfoCol: TVector3f;
     AdditionalStrCol: TVector3f;
     TextCol: TVector3f;
-
-    { Stipple (see OpenGL docs to know what it is).
-      Nil means "no stipple". }
-    RectStipple: PPolygonStipple;
 
     { Font used by procedures in this unit.
       Nil means "use default font".
@@ -336,7 +331,6 @@ const
     ClosingInfoCol: (1, 1, 0.33);      { = Yellow3Single }
     AdditionalStrCol: (0.33, 1, 1);    { = LightCyan3Single }
     TextCol: (1, 1, 1);                { = White3Single }
-    RectStipple: nil;
     Font: nil;
   );
 
@@ -348,7 +342,6 @@ const
     ClosingInfoCol: (0.4, 0, 1);
     AdditionalStrCol: (0, 0.4, 0);
     TextCol: (0, 0, 0);
-    RectStipple: nil;
     Font: nil;
   );
 
@@ -422,10 +415,10 @@ begin
             (r[0, 1] <= y) and (y < r[1, 1]);
 end;
 
-procedure DrawGLBorderedRectangle(const R: TIntRect;
+procedure GLRectangleWithBorder(const R: TIntRect;
   const InsideCol, BorderCol: TVector4f);
 begin
-  CastleGLUtils.DrawGLBorderedRectangle(R[0, 0], R[0, 1], R[1, 0], R[1, 1],
+  CastleGLUtils.GLRectangleWithBorder(R[0, 0], R[0, 1], R[1, 0], R[1, 1],
     InsideCol, BorderCol);
 end;
 
@@ -889,23 +882,16 @@ begin
  MessageRect := MD.WholeMessageRect;
 
  { draw MessageRect (using
-   MessagesTheme.RectStipple,
    MessagesTheme.RectColor,
    MessagesTheme.RectBorderCol) }
- if MessagesTheme.RectStipple <> nil then
- begin
-   CastleGLPolygonStipple(MessagesTheme.RectStipple);
-   glEnable(GL_POLYGON_STIPPLE);
- end;
  if MessagesTheme.RectColor[3] <> 1.0 then
  begin
    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
    glEnable(GL_BLEND);
  end;
- DrawGLBorderedRectangle(MessageRect,
+ GLRectangleWithBorder(MessageRect,
    MessagesTheme.RectColor, Vector4Single(MessagesTheme.RectBorderCol));
  glDisable(GL_BLEND);
- glDisable(GL_POLYGON_STIPPLE);
 
  { Now draw MD.Broken_ClosingInfo. After this, make MessageRect
    smaller as appropriate. }
@@ -922,7 +908,7 @@ begin
 
    glLoadIdentity;
    glColorv(MessagesTheme.RectBorderCol);
-   HorizontalGLLine(MessageRect[0, 0], MessageRect[1, 0], MessageRect[0, 1]);
+   GLHorizontalLine(MessageRect[0, 0], MessageRect[1, 0], MessageRect[0, 1]);
 
    MessageRect[0, 1] +=  1 { width of horizontal line };
  end;
@@ -948,12 +934,12 @@ begin
 
   glLoadIdentity;
   glColorv(MessagesTheme.RectBorderCol);
-  VerticalGLLine(md.ScrollBarRect[0, 0],
+  GLVerticalLine(md.ScrollBarRect[0, 0],
     md.ScrollBarRect[0, 1], md.ScrollBarRect[1, 1]);
 
   glLineWidth(ScrollBarInternalWidth);
   glColorv(MessagesTheme.ScrollBarCol);
-  VerticalGLLine((md.ScrollBarRect[0, 0] + md.ScrollBarRect[1, 0]) / 2,
+  GLVerticalLine((md.ScrollBarRect[0, 0] + md.ScrollBarRect[1, 0]) / 2,
     md.przewVisY1, md.przewVisY2);
   glLineWidth(1);
  end else
@@ -1044,8 +1030,7 @@ begin
    Kiedy juz skonczymy bedziemy chcieli je odtworzyc. }
  SavedMode := TGLMode.CreateReset(Window,
    GL_PIXEL_MODE_BIT or GL_SCISSOR_BIT or GL_ENABLE_BIT or
-   GL_LINE_BIT or GL_POLYGON_STIPPLE_BIT or GL_TRANSFORM_BIT or
-   GL_COLOR_BUFFER_BIT, false,
+   GL_LINE_BIT or GL_TRANSFORM_BIT or GL_COLOR_BUFFER_BIT, false,
 
  {3 faza zarazem:
    Ustawiamy wlasne wlasciwosci okienka, w szczegolnosci - wlasne callbacki. }
@@ -1070,7 +1055,6 @@ begin
  glDisable(GL_TEXTURE_1D);
  glDisable(GL_TEXTURE_2D);
  glDisable(GL_SCISSOR_TEST);
- glDisable(GL_POLYGON_STIPPLE);
  glDisable(GL_DEPTH_TEST);
  glLineWidth(1);
  glPixelStorei(GL_UNPACK_SWAP_BYTES, GL_FALSE);

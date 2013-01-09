@@ -370,7 +370,7 @@ begin
   if not (GLVersion.Mesa or GLVersion.Fglrx) then
     gluTessCallback(tobj, GLU_TESS_EDGE_FLAG, TCallBack(glEdgeFlag));
 
-  gluTessCallback(tobj, GLU_TESS_ERROR, TCallBack(@ReportGLError));
+  gluTessCallback(tobj, GLU_TESS_ERROR, TCallBack(@GLErrorRaise));
   gluTessCallback(tobj, GLU_TESS_COMBINE_DATA, TCallBack(@TessCombineCallback));
 
   if onlyLines then gluTessProperty(tobj, GLU_TESS_BOUNDARY_ONLY, GL_TRUE);

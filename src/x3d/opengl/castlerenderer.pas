@@ -208,7 +208,7 @@ unit CastleRenderer;
 
 {$ifdef USE_VRML_TRIANGULATION}
   {$ifdef RELEASE}
-    {$fatal Undefine USE_VRML_TRIANGULATION for GLRenderer,
+    {$fatal Undefine USE_VRML_TRIANGULATION for CastleRenderer,
       you don't want to use this in RELEASE version. }
   {$endif}
 {$endif}
@@ -2661,7 +2661,7 @@ begin
   FCullFace := cfNone;
   glDisable(GL_CULL_FACE);
 
-  SetGLEnabled(GL_DEPTH_TEST, Beginning);
+  GLSetEnabled(GL_DEPTH_TEST, Beginning);
 
   if Attributes.Mode in [rmDepth, rmFull] then
   begin
@@ -2696,7 +2696,7 @@ begin
       - for invalid VRML/X3D files that have unnomalized normals.
       - in case caller loaded a scaling matrix
         (for example, Examine camera may allow user to scale the object). }
-    SetGLEnabled(GL_NORMALIZE, Beginning);
+    GLSetEnabled(GL_NORMALIZE, Beginning);
 
     if not GLVersion.BuggyLightModelTwoSide then
       glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE) else
@@ -2711,7 +2711,7 @@ begin
     begin
       { Initialize FFixedFunctionLighting, make sure OpenGL state is appropriate }
       FFixedFunctionLighting := Attributes.Lighting;
-      SetGLEnabled(GL_LIGHTING, FFixedFunctionLighting);
+      GLSetEnabled(GL_LIGHTING, FFixedFunctionLighting);
     end else
       glDisable(GL_LIGHTING);
 
@@ -3764,7 +3764,7 @@ begin
   if FFixedFunctionLighting <> Value then
   begin
     FFixedFunctionLighting := Value;
-    SetGLEnabled(GL_LIGHTING, FixedFunctionLighting);
+    GLSetEnabled(GL_LIGHTING, FixedFunctionLighting);
   end;
 end;
 
@@ -3773,7 +3773,7 @@ begin
   if FFixedFunctionAlphaTest <> Value then
   begin
     FFixedFunctionAlphaTest := Value;
-    SetGLEnabled(GL_ALPHA_TEST, FixedFunctionAlphaTest);
+    GLSetEnabled(GL_ALPHA_TEST, FixedFunctionAlphaTest);
   end;
 end;
 

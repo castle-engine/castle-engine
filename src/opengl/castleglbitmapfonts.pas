@@ -614,7 +614,7 @@ procedure TGLBitmapFontAbstract.PrintStringsBox(
   const InsideCol, BorderCol, TextCol: TVector4f;
   BoxPixelMargin: integer);
 begin
-  DrawGLBorderedRectangle(0, 0, MaxTextWidth(Strs, Tags) + 2 * BoxPixelMargin,
+  GLRectangleWithBorder(0, 0, MaxTextWidth(Strs, Tags) + 2 * BoxPixelMargin,
     (RowHeight + BonusVerticalSpace) * Strs.Count + 2 * BoxPixelMargin + Descend,
     InsideCol, BorderCol);
   glColorv(TextCol);

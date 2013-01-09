@@ -399,9 +399,6 @@ type
   TMatrix4f = TMatrix4Single;  PMatrix4f = PMatrix4Single;
   TMatrix4d = TMatrix4Double;  PMatrix4d = PMatrix4Double;
 
-  TPolygonStipple = packed array[0..(32*32 div 8)-1]of TGLubyte;
-  PPolygonStipple = ^TPolygonStipple;
-
 { OpenGL error checking ------------------------------------------------------ }
 
 type
@@ -425,9 +422,9 @@ type
 procedure CheckGLErrors(const AdditionalComment: string = '');
 
 { Raise EOpenGLError for given OpenGL error code.
-  Suitable for registering as GLU_TESS_ERROR for gluTessCallback,
-  or GLU_ERROR for gluQuadricCallback. }
-procedure ReportGLError(ErrorCode: TGLenum);
+  This has calling convention suitable for registering this procedure
+  as GLU_TESS_ERROR for gluTessCallback, or GLU_ERROR for gluQuadricCallback. }
+procedure GLErrorRaise(ErrorCode: TGLenum);
   {$ifdef OPENGL_CALLBACK_CDECL} cdecl; {$endif}
   {$ifdef OPENGL_CALLBACK_STDCALL} stdcall; {$endif}
 
@@ -615,65 +612,21 @@ function OrthoProjection(const left, right, bottom, top: Single;
   const zNear: Single = -1; const zFar: Single = 1): TMatrix4Single;
 { @groupEnd }
 
-{ ------------------------------------------------------------ }
-{ @section(Helpers for polygon stipple) }
-
-const
-  { }
-  HalftoneStipple: TPolygonStipple=
-  ( $AA, $AA, $AA, $AA,  $55, $55, $55, $55,  $AA, $AA, $AA, $AA,  $55, $55, $55, $55,
-    $AA, $AA, $AA, $AA,  $55, $55, $55, $55,  $AA, $AA, $AA, $AA,  $55, $55, $55, $55,
-    $AA, $AA, $AA, $AA,  $55, $55, $55, $55,  $AA, $AA, $AA, $AA,  $55, $55, $55, $55,
-    $AA, $AA, $AA, $AA,  $55, $55, $55, $55,  $AA, $AA, $AA, $AA,  $55, $55, $55, $55,
-    $AA, $AA, $AA, $AA,  $55, $55, $55, $55,  $AA, $AA, $AA, $AA,  $55, $55, $55, $55,
-    $AA, $AA, $AA, $AA,  $55, $55, $55, $55,  $AA, $AA, $AA, $AA,  $55, $55, $55, $55,
-    $AA, $AA, $AA, $AA,  $55, $55, $55, $55,  $AA, $AA, $AA, $AA,  $55, $55, $55, $55,
-    $AA, $AA, $AA, $AA,  $55, $55, $55, $55,  $AA, $AA, $AA, $AA,  $55, $55, $55, $55
-  );
-
-  ThreeQuartersStipple: TPolygonStipple=
-  ( $DD, $DD, $DD, $DD,  $77, $77, $77, $77,  $EE, $EE, $EE, $EE,  $BB, $BB, $BB, $BB,
-    $DD, $DD, $DD, $DD,  $77, $77, $77, $77,  $EE, $EE, $EE, $EE,  $BB, $BB, $BB, $BB,
-    $DD, $DD, $DD, $DD,  $77, $77, $77, $77,  $EE, $EE, $EE, $EE,  $BB, $BB, $BB, $BB,
-    $DD, $DD, $DD, $DD,  $77, $77, $77, $77,  $EE, $EE, $EE, $EE,  $BB, $BB, $BB, $BB,
-    $DD, $DD, $DD, $DD,  $77, $77, $77, $77,  $EE, $EE, $EE, $EE,  $BB, $BB, $BB, $BB,
-    $DD, $DD, $DD, $DD,  $77, $77, $77, $77,  $EE, $EE, $EE, $EE,  $BB, $BB, $BB, $BB,
-    $DD, $DD, $DD, $DD,  $77, $77, $77, $77,  $EE, $EE, $EE, $EE,  $BB, $BB, $BB, $BB,
-    $DD, $DD, $DD, $DD,  $77, $77, $77, $77,  $EE, $EE, $EE, $EE,  $BB, $BB, $BB, $BB
-  );
-
-{ Generate random stipple, with a given probability of bit being 1. }
-function RandomPolyStipple(const BlackChance: Extended): TPolygonStipple;
-
-{ Generate random stipple with each quarter (16x16 pixels) equal.
-  This makes more regular stipple than RandomPolyStipple. }
-function RandomPolyStippleBy16(const BlackChance: Extended): TPolygonStipple;
-
-{ Generate random stipple with each  8x8 part equal.
-  This makes even more regular stipple than RandomPolyStippleBy16. }
-function RandomPolyStippleBy8(const BlackChance: Extended): TPolygonStipple;
-
-var
-  { Equivalent to glPolygonStipple, but takes PPolygonStipple as a parameter. }
-  CastleGLPolygonStipple: procedure(mask: PPolygonStipple);
-    {$ifdef OPENGL_CDECL} cdecl; {$endif}
-    {$ifdef OPENGL_STDCALL} stdcall; {$endif}
-
 { ---------------------------------------------------------------------------- }
 
 { }
-procedure SetGLEnabled(value: TGLenum; isEnabled: boolean);
+procedure GLSetEnabled(value: TGLenum; isEnabled: boolean);
 
 { Draw vertical line using OpenGL.
   This is just a shortcut for
   @longCode(#
     glBegin(GL_LINES); glVertex2f(x, y1); glVertex2f(x, y2); glEnd;
   #) }
-procedure VerticalGLLine(x, y1, y2: TGLfloat);
+procedure GLVerticalLine(x, y1, y2: TGLfloat);
 
 { Draw horizontal line using OpenGL.
-  @seealso VerticalGLLine }
-procedure HorizontalGLLine(x1, x2, y: TGLfloat);
+  @seealso GLVerticalLine }
+procedure GLHorizontalLine(x1, x2, y: TGLfloat);
 
 { Draw rectangle, filled with one color and framed with other color.
   The vertex order is the same as for glRectf.
@@ -681,7 +634,7 @@ procedure HorizontalGLLine(x1, x2, y: TGLfloat);
   that polygon mode FRONT_AND_BACK is GL_FILL.
 
   Changes OpenGL current color. }
-procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
+procedure GLRectangleWithBorder(const x1, y1, x2, y2: TGLfloat;
   const InsideCol, BorderCol: TVector4f);
 
 { Draw rectangle border.
@@ -689,10 +642,8 @@ procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
 
   Uses current OpenGL color.
   @groupBegin }
-procedure DrawGLRectBorder(const x1, y1, x2, y2: TGLfloat); overload;
+procedure GLRectangleBorder(const x1, y1, x2, y2: TGLfloat); overload;
 { @groupEnd }
-
-function UnProjectGL(winx, winy, winz: TGLdouble): TVector3d;
 
 { Draw arrow shape. Arrow is placed on Z = 0 plane, points to the up,
   has height = 2 (from y = 0 to y = 2) and width 1 (from x = -0.5 to 0.5).
@@ -1215,7 +1166,7 @@ begin
     {$endif}
 end;
 
-procedure ReportGLError(ErrorCode: TGLenum);
+procedure GLErrorRaise(ErrorCode: TGLenum);
   {$ifdef OPENGL_CALLBACK_CDECL} cdecl; {$endif}
   {$ifdef OPENGL_CALLBACK_STDCALL} stdcall; {$endif}
 begin
@@ -1462,76 +1413,24 @@ begin
   glMatrixMode(GL_MODELVIEW);
 end;
 
-{ poly stipple ------------------------------------------------------------ }
-
-function RandomBitsByte(OneChance:Extended):byte;
-var
-  i:integer;
-begin
-  { notka - Wynik Random jest zawsze w przedziale [0,1). To wazne zeby tu bylo
-    porownanie ostre "<". Wtedy dla szansy = dokladnie 0 nigdy nie bedzie Random<0.
-    (dla szansy = 1 warunek zarowno z "<=" jak i z "<" gwarantowalby ze
-    zawsze taka szansa zachodzi - bo zawsze zachodzilaby ostra nierownosc wiec
-    i nieostra takze.) }
-  result:=0;
-  for i:=0 to 7 do if Random<OneChance then result := result + (1 shl i);
-end;
-
-function RandomPolyStipple(const BlackChance: Extended): TPolygonStipple;
-var i: integer;
-begin
-  for i := 0 to High(result) do result[i] := RandomBitsByte(BlackChance);
-end;
-
-function RandomPolyStippleBy16(const BlackChance: Extended): TPolygonStipple;
-var
-  b: byte;
-  x, y: integer;
-begin
-  for x := 0 to 1 do
-    for y := 0 to 15 do
-    begin
-      b := RandomBitsByte(BlackChance);
-      result[y*4 + x] := b;
-      result[y*4 + x+2] := b;
-      result[(y+16)*4 + x] := b;
-      result[(y+16)*4 + x+2] := b;
-    end;
-end;
-
-function RandomPolyStippleBy8(const BlackChance: Extended): TPolygonStipple;
-var
-  b: byte;
-  y, i, j: integer;
-begin
-  for y := 0 to 7 do
-  begin
-    b := RandomBitsByte(BlackChance);
-
-    for i := 0 to 3 do
-      for j := 0 to 3 do
-        result[(y+8*j)*4 + i] := b;
-  end;
-end;
-
 { Various helpers ------------------------------------------------------------ }
 
-procedure SetGLenabled(value: TGLenum; isEnabled: boolean);
+procedure GLSetEnabled(value: TGLenum; isEnabled: boolean);
 begin
   if isEnabled then glEnable(value) else glDisable(value);
 end;
 
-procedure VerticalGLLine(x, y1, y2: TGLfloat);
+procedure GLVerticalLine(x, y1, y2: TGLfloat);
 begin
   glBegin(GL_LINES); glVertex2f(x, y1); glVertex2f(x, y2); glEnd;
 end;
 
-procedure HorizontalGLLine(x1, x2, y: TGLfloat);
+procedure GLHorizontalLine(x1, x2, y: TGLfloat);
 begin
   glBegin(GL_LINES); glVertex2f(x1, y); glVertex2f(x2, y); glEnd;
 end;
 
-procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
+procedure GLRectangleWithBorder(const x1, y1, x2, y2: TGLfloat;
   const InsideCol, BorderCol: TVector4f);
 begin
   glPushAttrib(GL_POLYGON_BIT);
@@ -1539,27 +1438,18 @@ begin
     glColorv(InsideCol);
     glRectf(x1, y1, x2, y2);
     glColorv(BorderCol);
-    DrawGLRectBorder(x1, y1, x2, y2);
+    GLRectangleBorder(x1, y1, x2, y2);
   glPopAttrib;
 end;
 
-procedure DrawGLRectBorder(const x1, y1, x2, y2: TGLfloat);
+procedure GLRectangleBorder(const x1, y1, x2, y2: TGLfloat);
 begin
   glBegin(GL_LINE_LOOP);
-    glVertex2f(x1, y1); glVertex2f(x2, y1); glVertex2f(x2, y2); glVertex2f(x1, y2);
+    glVertex2f(x1, y1);
+    glVertex2f(x2, y1);
+    glVertex2f(x2, y2);
+    glVertex2f(x1, y2);
   glEnd;
-end;
-
-function UnProjectGL(winx, winy, winz :TGLdouble): TVector3d;
-var
-  modelMatrix, projMatrix: T16dArray;
-  viewport: TViewPortArray;
-begin
-  glGetDoublev(GL_MODELVIEW_MATRIX, @modelMatrix);
-  glGetDoublev(GL_PROJECTION_MATRIX, @projMatrix);
-  glGetIntegerv(GL_VIEWPORT, @viewport);
-  Check( gluUnProject(winx, winy, winz, modelMatrix, projMatrix, viewport,
-    @result[0], @result[1], @result[2]) = GL_TRUE, 'gluUnProject');
 end;
 
 procedure DrawArrow(HeadThickness, HeadLength: TGLfloat);
@@ -1596,7 +1486,7 @@ begin
   result := gluNewQuadric();
   if result = nil then
     raise Exception.Create('gluNewQuadric cannot be created');
-  gluQuadricCallback(result, GLU_ERROR, TCallBack(@ReportGLError));
+  gluQuadricCallback(result, GLU_ERROR, TCallBack(@GLErrorRaise));
   gluQuadricTexture(result, Ord(texture));
   gluQuadricNormals(result, normals);
   gluQuadricOrientation(result, orientation);
@@ -2245,5 +2135,4 @@ initialization
   Set8087CW($133F);
 
   Pointer(glListIBase) := glListBase;
-  Pointer(CastleGLPolygonStipple) := glPolygonStipple;
 end.

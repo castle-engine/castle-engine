@@ -1185,11 +1185,7 @@ begin
   Data.Answered := false;
 
   { enter glwin mode }
-  { Once I used here @HalfToneStipple to show user that glwin window is
-    temporary disabled. But then I added lines with "gtk_window_set_modal"
-    and "gtk_window_set_transient_for" above and it's no longer necessary.
-    So I don't use it. }
-  Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
+  Mode := TGLModeFrozenScreen.Create(Self, 0, false);
   try
     gtk_widget_show(GTK_WIDGET(ADialog));
     while not Data.Answered do Application.ProcessMessage(true, true);
@@ -1220,7 +1216,7 @@ begin
 
   Data.Answered := false;
 
-  Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
+  Mode := TGLModeFrozenScreen.Create(Self, 0, false);
   try
     gtk_widget_show(GTK_WIDGET(ADialog));
     while not Data.Answered do Application.ProcessMessage(true, true);

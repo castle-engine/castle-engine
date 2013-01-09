@@ -74,7 +74,7 @@ begin
   begin
     glColor3f(1, 1, 1);
     glLineWidth(3.0); { saved by GL_LINE_BIT }
-    DrawGLRectBorder(0, 0, Viewport.Width, Viewport.Height);
+    GLRectangleBorder(0, 0, Viewport.Width, Viewport.Height);
   end;
 
   if Viewport.Caption <> '' then
