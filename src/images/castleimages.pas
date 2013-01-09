@@ -494,8 +494,6 @@ type
       TGrayscaleImage instance. }
     procedure Grayscale;
 
-    {$ifdef FPC}
-
     { Convert every image color using Color*Convert function from CastleVectors.
       "Channel" parameter determines which Color*Convert function to use
       (Red, Green or Blue), must be 0, 1 or 2.
@@ -509,8 +507,6 @@ type
 
       Implemented if and only if ModulateRGB is implemented. }
     procedure StripToChannelRGB(Channel: Integer);
-
-    {$endif FPC}
 
     { Check if given Image has the same class, the same sizes
       (Width, Height) and contains exactly the same pixel values. }
@@ -899,7 +895,6 @@ type
       to 0..1. }
     function ToRGBImage: TRGBImage;
 
-    {$ifdef FPC}
     { Every component (red, green, blue) of every pixel
       is multiplied by Scale. }
     procedure ScaleColors(const Scale: Single);
@@ -908,7 +903,6 @@ type
       is changed to Power(Value, Exp).
       So e.g. Exp = 1/2.2 gives commonly used gamma correction. }
     procedure ExpColors(const Exp: Single);
-    {$endif}
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
   end;
@@ -1673,67 +1667,67 @@ end;
 
 constructor TCastleImage.Create;
 begin
- inherited;
- { Everything is already inited to nil and 0. }
+  inherited;
+  { Everything is already inited to nil and 0. }
 end;
 
 constructor TCastleImage.Create(
   const AWidth, AHeight: Cardinal;
   const ADepth: Cardinal = 1);
 begin
- Create;
- SetSize(AWidth, AHeight, ADepth);
+  Create;
+  SetSize(AWidth, AHeight, ADepth);
 end;
 
 procedure TCastleImage.Null;
 begin
- FreeMemNiling(FRawPixels);
- FWidth := 0;
- FHeight := 0;
- FDepth := 0;
+  FreeMemNiling(FRawPixels);
+  FWidth := 0;
+  FHeight := 0;
+  FDepth := 0;
 end;
 
 procedure TCastleImage.SetSize(const AWidth, AHeight: Cardinal;
   const ADepth: Cardinal = 1);
 begin
- FreeMemNiling(FRawPixels);
- FWidth := AWidth;
- FHeight := AHeight;
- FDepth := ADepth;
- if (AWidth <> 0) and (AHeight <> 0) and (ADepth <> 0) then
-  FRawPixels := GetMem(PixelSize * AWidth * AHeight * ADepth);
+  FreeMemNiling(FRawPixels);
+  FWidth := AWidth;
+  FHeight := AHeight;
+  FDepth := ADepth;
+  if (AWidth <> 0) and (AHeight <> 0) and (ADepth <> 0) then
+    FRawPixels := GetMem(PixelSize * AWidth * AHeight * ADepth);
 end;
 
 function TCastleImage.PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): Pointer;
 begin
- Result := PointerAdd(RawPixels, PixelSize * (Width * (Height * Z + Y) + X));
+  Result := PointerAdd(RawPixels, PixelSize * (Width * (Height * Z + Y) + X));
 end;
 
 function TCastleImage.RowPtr(const Y: Cardinal; const Z: Cardinal = 0): Pointer;
 begin
- Result := PointerAdd(RawPixels, PixelSize * (Width * (Height * Z + Y)));
+  Result := PointerAdd(RawPixels, PixelSize * (Width * (Height * Z + Y)));
 end;
 
 procedure TCastleImage.NotImplemented(const AMethodName: string);
 begin
- raise EInternalError.Create(AMethodName +
-   ' method not implemented for this TCastleImage descendant');
+  raise EInternalError.Create(AMethodName +
+    ' method not implemented for this TCastleImage descendant');
 end;
 
 procedure TCastleImage.InvertRGBColors;
 begin
- NotImplemented('InvertRGBColors');
+  NotImplemented('InvertRGBColors');
 end;
 
 procedure TCastleImage.SetColorRGB(const x, y: Integer; const v: TVector3Single);
 begin
- NotImplemented('SetColorRGB');
+  NotImplemented('SetColorRGB');
 end;
 
 function TCastleImage.MakeCopy: TCastleImage;
 begin
- Result := TCastleImageClass(Self.ClassType).Create(Width, Height);
- Move(RawPixels^, Result.RawPixels^, Depth * Width * Height * PixelSize);
+  Result := TCastleImageClass(Self.ClassType).Create(Width, Height);
+  Move(RawPixels^, Result.RawPixels^, Depth * Width * Height * PixelSize);
 end;
 
 { This does the real resizing work.
@@ -1743,80 +1737,83 @@ procedure InternalResize(PixelSize: Cardinal;
   SourceData: Pointer; SourceWidth, SourceHeight: Cardinal;
   DestinData: Pointer; DestinWidth, DestinHeight: Cardinal;
   ProgressTitle: string);
-
-var DestinY: Cardinal;
+var
+  DestinY: Cardinal;
 
   procedure MakeLineDestinY;
   { write row DestinY of DestinData }
-  var DestinX, SourceX, SourceY: Cardinal;
-      SourceRow, DestinRow: PtrUInt;
+  var
+    DestinX, SourceX, SourceY: Cardinal;
+    SourceRow, DestinRow: PtrUInt;
   begin
-   SourceY := DestinY * SourceHeight div DestinHeight;
-   SourceRow := PtrUInt(SourceData) + SourceWidth * SourceY * PixelSize;
-   DestinRow := PtrUInt(DestinData) + DestinWidth * DestinY * PixelSize;
+    SourceY := DestinY * SourceHeight div DestinHeight;
+    SourceRow := PtrUInt(SourceData) + SourceWidth * SourceY * PixelSize;
+    DestinRow := PtrUInt(DestinData) + DestinWidth * DestinY * PixelSize;
 
-   for DestinX := 0 to DestinWidth - 1 do
-   begin
-    SourceX := DestinX * SourceWidth div DestinWidth;
-    Move(Pointer(SourceRow + SourceX * PixelSize)^,
-         Pointer(DestinRow + DestinX * PixelSize)^,
-         PixelSize);
-   end;
+    for DestinX := 0 to DestinWidth - 1 do
+    begin
+      SourceX := DestinX * SourceWidth div DestinWidth;
+      Move(Pointer(SourceRow + SourceX * PixelSize)^,
+           Pointer(DestinRow + DestinX * PixelSize)^,
+           PixelSize);
+    end;
   end;
 
 begin
- if ProgressTitle = '' then
- begin
-  for DestinY := 0 to DestinHeight - 1 do MakeLineDestinY;
- end else
- begin
-  Progress.Init(DestinHeight, ProgressTitle);
-  try
-   for DestinY := 0 to DestinHeight - 1 do
-    begin MakeLineDestinY; Progress.Step end;
-  finally
-   Progress.Fini;
+  if ProgressTitle = '' then
+  begin
+    for DestinY := 0 to DestinHeight - 1 do MakeLineDestinY;
+  end else
+  begin
+    Progress.Init(DestinHeight, ProgressTitle);
+    try
+      for DestinY := 0 to DestinHeight - 1 do
+      begin
+        MakeLineDestinY;
+        Progress.Step;
+      end;
+    finally Progress.Fini end;
   end;
- end;
 end;
 
 procedure TCastleImage.Resize(ResizeToX, ResizeToY: Cardinal;
   const ProgressTitle: string);
-var NewPixels: Pointer;
+var
+  NewPixels: Pointer;
 begin
- if ((ResizeToX <> 0) and (ResizeToX <> Width)) or
-    ((ResizeToY <> 0) and (ResizeToY <> Height)) then
- begin
-  { Make both ResizeTo* non-zero. }
-  if ResizeToX = 0 then ResizeToX := Width;
-  if ResizeToY = 0 then ResizeToY := Height;
+  if ((ResizeToX <> 0) and (ResizeToX <> Width)) or
+     ((ResizeToY <> 0) and (ResizeToY <> Height)) then
+  begin
+    { Make both ResizeTo* non-zero. }
+    if ResizeToX = 0 then ResizeToX := Width;
+    if ResizeToY = 0 then ResizeToY := Height;
 
-  NewPixels := GetMem(ResizeToX * ResizeToY * PixelSize);
-  InternalResize(PixelSize, RawPixels, Width, Height,
-    NewPixels, ResizeToX, ResizeToY, ProgressTitle);
-  FreeMemNiling(FRawPixels);
+    NewPixels := GetMem(ResizeToX * ResizeToY * PixelSize);
+    InternalResize(PixelSize, RawPixels, Width, Height,
+      NewPixels, ResizeToX, ResizeToY, ProgressTitle);
+    FreeMemNiling(FRawPixels);
 
-  FRawPixels := NewPixels;
-  FWidth := ResizeToX;
-  FHeight := ResizeToY;
- end;
+    FRawPixels := NewPixels;
+    FWidth := ResizeToX;
+    FHeight := ResizeToY;
+  end;
 end;
 
 function TCastleImage.MakeResized(ResizeToX, ResizeToY: Cardinal;
   const ProgressTitle: string): TCastleImage;
 begin
- { Make both ResizeTo* non-zero. }
- if ResizeToX = 0 then ResizeToX := Width;
- if ResizeToY = 0 then ResizeToY := Height;
+  { Make both ResizeTo* non-zero. }
+  if ResizeToX = 0 then ResizeToX := Width;
+  if ResizeToY = 0 then ResizeToY := Height;
 
- Result := TCastleImageClass(ClassType).Create(ResizeToX, ResizeToY);
- try
-  if not IsNull then
-   InternalResize(PixelSize,
-            RawPixels,        Width,        Height,
-     Result.RawPixels, Result.Width, Result.Height,
-     ProgressTitle);
- except Result.Free; raise end;
+  Result := TCastleImageClass(ClassType).Create(ResizeToX, ResizeToY);
+  try
+    if not IsNull then
+      InternalResize(PixelSize,
+               RawPixels,        Width,        Height,
+        Result.RawPixels, Result.Width, Result.Height,
+        ProgressTitle);
+  except Result.Free; raise end;
 end;
 
 function TCastleImage.MakeRotated(Angle: Integer): TCastleImage;
@@ -1876,126 +1873,124 @@ begin
 end;
 
 procedure TCastleImage.FlipHorizontal;
-var ImageRow, TmpPixel, Pix1, Pix2: Pointer;
-    x, y: Integer;
+var
+  ImageRow, TmpPixel, Pix1, Pix2: Pointer;
+  x, y: Integer;
 begin
- TmpPixel := GetMem(PixelSize);
- try
-  for y := 0 to Height-1 do
-  begin
-   ImageRow := RowPtr(y);
-   for x := 0 to (Width-1) div 2 do
-   begin
-    Pix1 := PointerAdd(ImageRow, Cardinal(x) * PixelSize);
-    Pix2 := PointerAdd(ImageRow, (Width-1-Cardinal(x)) * PixelSize);
-    Move(Pix1^, TmpPixel^, PixelSize);
-    Move(Pix2^, Pix1^, PixelSize);
-    Move(TmpPixel^, Pix2^, PixelSize);
-   end;
-  end;
- finally FreeMem(TmpPixel) end;
+  TmpPixel := GetMem(PixelSize);
+  try
+    for y := 0 to Height-1 do
+    begin
+      ImageRow := RowPtr(y);
+      for x := 0 to (Width-1) div 2 do
+      begin
+        Pix1 := PointerAdd(ImageRow, Cardinal(x) * PixelSize);
+        Pix2 := PointerAdd(ImageRow, (Width-1-Cardinal(x)) * PixelSize);
+        Move(Pix1^, TmpPixel^, PixelSize);
+        Move(Pix2^, Pix1^, PixelSize);
+        Move(TmpPixel^, Pix2^, PixelSize);
+      end;
+    end;
+  finally FreeMem(TmpPixel) end;
 end;
 
 function TCastleImage.MakeTiled(TileX, TileY: Cardinal): TCastleImage;
-var i, j: Cardinal;
+var
+  i, j: Cardinal;
 begin
- Result := TCastleImageClass(ClassType).Create(TileX * Width, TileY * Height);
- try
-  { Correct but naive version:
+  Result := TCastleImageClass(ClassType).Create(TileX * Width, TileY * Height);
+  try
+    { Correct but naive version:
 
-  for i := 0 to result.Width-1 do
-   for j := 0 to result.Height-1 do
-    move(Image.PixelPtr(i mod Image.Width, j mod Image.Height)^,
-         Result.PixelPtr( i, j)^,
-         Result.PixelSize );
+    for i := 0 to result.Width-1 do
+     for j := 0 to result.Height-1 do
+      move(Image.PixelPtr(i mod Image.Width, j mod Image.Height)^,
+           Result.PixelPtr( i, j)^,
+           Result.PixelSize );
 
-  This can be speeded up copying whole rows at once: }
+    This can be speeded up copying whole rows at once: }
 
-  for i := 0 to TileX - 1 do
-   for j := 0 to Result.Height - 1 do
-    Move(PixelPtr(0, j mod Height)^,
-         Result.PixelPtr(i * Width, j)^,
-         PixelSize * Width );
- except Result.Free; raise end;
+    for i := 0 to TileX - 1 do
+      for j := 0 to Result.Height - 1 do
+        Move(PixelPtr(0, j mod Height)^,
+             Result.PixelPtr(i * Width, j)^,
+             PixelSize * Width );
+  except Result.Free; raise end;
 end;
 
 function TCastleImage.MakeExtracted(X0, Y0, ExtractWidth, ExtractHeight: Cardinal): TCastleImage;
-var y: Cardinal;
+var
+  y: Cardinal;
 begin
- if x0 + ExtractWidth > Width then
-  raise EImagePosOutOfRange.Create('x0 in MakeExtracted out of range');
- if y0 + ExtractHeight > Height then
-  raise EImagePosOutOfRange.Create('y0 in MakeExtracted out of range');
+  if x0 + ExtractWidth > Width then
+    raise EImagePosOutOfRange.Create('x0 in MakeExtracted out of range');
+  if y0 + ExtractHeight > Height then
+    raise EImagePosOutOfRange.Create('y0 in MakeExtracted out of range');
 
- Result := TCastleImageClass(ClassType).Create(ExtractWidth, ExtractHeight);
- try
-  for y := 0 to ExtractHeight - 1 do
-   Move(PixelPtr(x0, y + y0)^, Result.RowPtr(y)^, PixelSize * ExtractWidth);
- except Result.Free; raise end;
+  Result := TCastleImageClass(ClassType).Create(ExtractWidth, ExtractHeight);
+  try
+    for y := 0 to ExtractHeight - 1 do
+      Move(PixelPtr(x0, y + y0)^, Result.RowPtr(y)^, PixelSize * ExtractWidth);
+  except Result.Free; raise end;
 end;
 
 procedure TCastleImage.Clear(const Pixel: TVector4Byte);
 begin
- NotImplemented('Clear');
+  NotImplemented('Clear');
 end;
 
 function TCastleImage.IsClear(const Pixel: TVector4Byte): boolean;
 begin
- NotImplemented('IsClear');
- { code will never get here (NotImplemented always raises an exception),
-   and code "Result := false;" below is only to avoid compiler warning
-   that function result is undefined. }
- Result := false;
+  NotImplemented('IsClear');
+  { code will never get here (NotImplemented always raises an exception),
+    and code "Result := false;" below is only to avoid compiler warning
+    that function result is undefined. }
+  Result := false;
 end;
 
 procedure TCastleImage.TransformRGB(const Matrix: TMatrix3Single);
 begin
- NotImplemented('TransformRGB');
+  NotImplemented('TransformRGB');
 end;
 
 procedure TCastleImage.ModulateRGB(const ColorModulator: TColorModulatorByteFunc);
 begin
- NotImplemented('ModulateRGB');
+  NotImplemented('ModulateRGB');
 end;
-
 
 function TCastleImage.MakeModulatedRGB(
   const ColorModulator: TColorModulatorByteFunc): TCastleImage;
 begin
- Result := MakeCopy;
- Result.ModulateRGB(ColorModulator);
+  Result := MakeCopy;
+  Result.ModulateRGB(ColorModulator);
 end;
 
 procedure TCastleImage.Grayscale;
 begin
- ModulateRGB(@ColorGrayscaleByte);
+  ModulateRGB(@ColorGrayscaleByte);
 end;
-
-{$ifdef FPC}
 
 procedure TCastleImage.ConvertToChannelRGB(Channel: Integer);
 begin
- case Channel of
-  0: ModulateRGB(@ColorRedConvertByte);
-  1: ModulateRGB(@ColorGreenConvertByte);
-  2: ModulateRGB(@ColorBlueConvertByte);
-  else raise EInternalError.Create(
-    'ConvertToChannelRGB: Channel must be 0, 1 or 2');
- end;
+  case Channel of
+    0: ModulateRGB(@ColorRedConvertByte);
+    1: ModulateRGB(@ColorGreenConvertByte);
+    2: ModulateRGB(@ColorBlueConvertByte);
+    else raise EInternalError.Create(
+      'ConvertToChannelRGB: Channel must be 0, 1 or 2');
+  end;
 end;
 
 procedure TCastleImage.StripToChannelRGB(Channel: Integer);
 begin
- case Channel of
-  0: ModulateRGB(@ColorRedStripByte);
-  1: ModulateRGB(@ColorGreenStripByte);
-  2: ModulateRGB(@ColorBlueStripByte);
-  else raise EInternalError.Create(
-    'StripToChannelRGB: Channel must be 0, 1 or 2');
- end;
+  case Channel of
+    0: ModulateRGB(@ColorRedStripByte);
+    1: ModulateRGB(@ColorGreenStripByte);
+    2: ModulateRGB(@ColorBlueStripByte);
+    else raise EInternalError.Create(
+      'StripToChannelRGB: Channel must be 0, 1 or 2');
+  end;
 end;
-
-{$endif FPC}
 
 function TCastleImage.IsEqual(Image: TCastleImage): boolean;
 begin
@@ -2186,124 +2181,129 @@ end;
 
 function InImageClasses(ImageClass: TCastleImageClass;
   const ImageClasses: array of TCastleImageClass): boolean;
-var i: Integer;
+var
+  i: Integer;
 begin
- for i := 0 to High(ImageClasses) do
-  if ImageClass.InheritsFrom(ImageClasses[i]) then
-  begin
-   Result := true;
-   Exit;
-  end;
- Result := false;
+  for i := 0 to High(ImageClasses) do
+    if ImageClass.InheritsFrom(ImageClasses[i]) then
+    begin
+      Result := true;
+      Exit;
+    end;
+  Result := false;
 end;
 
 function InImageClasses(Image: TCastleImage;
   const ImageClasses: array of TCastleImageClass): boolean;
 begin
- Result := InImageClasses(TCastleImageClass(Image.ClassType), ImageClasses);
+  Result := InImageClasses(TCastleImageClass(Image.ClassType), ImageClasses);
 end;
 
 function ImageClassesEqual(const Ar1, Ar2: array of TCastleImageClass): boolean;
-var i: Integer;
+var
+  i: Integer;
 begin
- if High(Ar1) <> High(Ar2) then
- begin
-  Result := false;
-  Exit;
- end;
-
- for i := 0 to High(Ar1) do
-  if Ar1[I] <> Ar2[I] then
+  if High(Ar1) <> High(Ar2) then
   begin
-   Result := false;
-   Exit;
+    Result := false;
+    Exit;
   end;
 
- Result := true;
+  for i := 0 to High(Ar1) do
+    if Ar1[I] <> Ar2[I] then
+    begin
+      Result := false;
+      Exit;
+    end;
+
+  Result := true;
 end;
 
 procedure ImageClassesAssign(var Variable: TDynArrayImageClasses;
   const NewValue: array of TCastleImageClass);
-var i: Integer;
+var
+  i: Integer;
 begin
- SetLength(Variable, High(NewValue) + 1);
- for i := 0 to High(NewValue) do
-  Variable[i] := NewValue[i];
+  SetLength(Variable, High(NewValue) + 1);
+  for i := 0 to High(NewValue) do
+    Variable[i] := NewValue[i];
 end;
 
 { TRGBImage ------------------------------------------------------------ }
 
 constructor TRGBImage.CreateCombined(const MapImage: TRGBImage;
   var ReplaceWhiteImage, ReplaceBlackImage: TRGBImage);
-var Map, White, Black, Res: PVector3Byte;
-    s: single;
-    i: integer;
+var
+  Map, White, Black, Res: PVector3Byte;
+  s: single;
+  i: integer;
 begin
- Create(MapImage.Width, MapImage.Height);
+  Create(MapImage.Width, MapImage.Height);
 
- ReplaceWhiteImage.Resize(MapImage.Width, MapImage.Height);
- ReplaceBlackImage.Resize(MapImage.Width, MapImage.Height);
+  ReplaceWhiteImage.Resize(MapImage.Width, MapImage.Height);
+  ReplaceBlackImage.Resize(MapImage.Width, MapImage.Height);
 
- Map := MapImage.RGBPixels;
- White := ReplaceWhiteImage.RGBPixels;
- Black := ReplaceBlackImage.RGBPixels;
- Res := RGBPixels;
+  Map := MapImage.RGBPixels;
+  White := ReplaceWhiteImage.RGBPixels;
+  Black := ReplaceBlackImage.RGBPixels;
+  Res := RGBPixels;
 
- for i := 1 to Width * Height do
- begin
-  s := (Map^[0] + Map^[1] + Map^[2]) / 255 / 3;
-  Res^[0] := Round(s * White^[0] + (1-s) * Black^[0]);
-  Res^[1] := Round(s * White^[1] + (1-s) * Black^[1]);
-  Res^[2] := Round(s * White^[2] + (1-s) * Black^[2]);
-  Inc(Map);
-  Inc(White);
-  Inc(Black);
-  Inc(Res);
- end;
+  for i := 1 to Width * Height do
+  begin
+    s := (Map^[0] + Map^[1] + Map^[2]) / 255 / 3;
+    Res^[0] := Round(s * White^[0] + (1-s) * Black^[0]);
+    Res^[1] := Round(s * White^[1] + (1-s) * Black^[1]);
+    Res^[2] := Round(s * White^[2] + (1-s) * Black^[2]);
+    Inc(Map);
+    Inc(White);
+    Inc(Black);
+    Inc(Res);
+  end;
 end;
 
 function TRGBImage.GetRGBPixels: PVector3Byte;
 begin
- Result := PVector3Byte(RawPixels);
+  Result := PVector3Byte(RawPixels);
 end;
 
 class function TRGBImage.PixelSize: Cardinal;
 begin
- Result := 3;
+  Result := 3;
 end;
 
 class function TRGBImage.ColorComponentsCount: Cardinal;
 begin
- Result := 3;
+  Result := 3;
 end;
 
 function TRGBImage.PixelPtr(const X, Y, Z: Cardinal): PVector3Byte;
 begin
- Result := PVector3Byte(inherited PixelPtr(X, Y, Z));
+  Result := PVector3Byte(inherited PixelPtr(X, Y, Z));
 end;
 
 function TRGBImage.RowPtr(const Y, Z: Cardinal): PArray_Vector3Byte;
 begin
- Result := PArray_Vector3Byte(inherited RowPtr(Y, Z));
+  Result := PArray_Vector3Byte(inherited RowPtr(Y, Z));
 end;
 
 procedure TRGBImage.InvertRGBColors;
-var i: Cardinal;
-    prgb: PVector3byte;
+var
+  i: Cardinal;
+  prgb: PVector3byte;
 begin
- prgb := RGBPixels;
- for i := 1 to Width * Height do
- begin
-  prgb^[0] := High(byte)-prgb^[0];
-  prgb^[1] := High(byte)-prgb^[1];
-  prgb^[2] := High(byte)-prgb^[2];
-  Inc(prgb);
- end;
+  prgb := RGBPixels;
+  for i := 1 to Width * Height do
+  begin
+    prgb^[0] := High(byte)-prgb^[0];
+    prgb^[1] := High(byte)-prgb^[1];
+    prgb^[2] := High(byte)-prgb^[2];
+    Inc(prgb);
+  end;
 end;
 
 procedure TRGBImage.SetColorRGB(const x, y: Integer; const v: TVector3Single);
 begin
- PVector3Byte(PixelPtr(x, y))^ := Vector3Byte(v);
+  PVector3Byte(PixelPtr(x, y))^ := Vector3Byte(v);
 end;
 
 procedure TRGBImage.Clear(const Pixel: TVector4Byte);
@@ -2346,20 +2346,21 @@ type PPixel = PVector3Byte;
 {$I images_modulatergb_implement.inc}
 
 function TRGBImage.ToRGBAlphaImage_AlphaDontCare: TRGBAlphaImage;
-var pi: PVector3Byte;
-    pa: PVector4Byte;
-    i: Cardinal;
+var
+  pi: PVector3Byte;
+  pa: PVector4Byte;
+  i: Cardinal;
 begin
- Result := TRGBAlphaImage.Create(Width, Height);
- pi := RGBPixels;
- pa := Result.AlphaPixels;
- for i := 1 to Width * Height do
- begin
-  Move(pi^, pa^, SizeOf(TVector3Byte));
-  {pa^[3] := <dont_care_about_this_value>}
-  Inc(pi);
-  Inc(pa);
- end;
+  Result := TRGBAlphaImage.Create(Width, Height);
+  pi := RGBPixels;
+  pa := Result.AlphaPixels;
+  for i := 1 to Width * Height do
+  begin
+    Move(pi^, pa^, SizeOf(TVector3Byte));
+    {pa^[3] := <dont_care_about_this_value>}
+    Inc(pi);
+    Inc(pa);
+  end;
 end;
 
 function TRGBImage.ToRGBAlphaImage_AlphaConst(Alpha: byte): TRGBAlphaImage;
@@ -2367,28 +2368,29 @@ function TRGBImage.ToRGBAlphaImage_AlphaConst(Alpha: byte): TRGBAlphaImage;
 { Note: implementation of this *could* use ToRGBAlphaImage_AlphaDontCare,
   but doesn't, to be faster. }
 
-var pi: PVector3Byte;
-    pa: PVector4Byte;
-    i: Cardinal;
+var
+  pi: PVector3Byte;
+  pa: PVector4Byte;
+  i: Cardinal;
 begin
- Result := TRGBAlphaImage.Create(Width, Height);
- pi := RGBPixels;
- pa := Result.AlphaPixels;
- for i := 1 to Width * Height do
- begin
-  Move(pi^, pa^, SizeOf(TVector3Byte));
-  pa^[3] := Alpha;
-  Inc(pi);
-  Inc(pa);
- end;
+  Result := TRGBAlphaImage.Create(Width, Height);
+  pi := RGBPixels;
+  pa := Result.AlphaPixels;
+  for i := 1 to Width * Height do
+  begin
+    Move(pi^, pa^, SizeOf(TVector3Byte));
+    pa^[3] := Alpha;
+    Inc(pi);
+    Inc(pa);
+  end;
 end;
 
 function TRGBImage.ToRGBAlphaImage_AlphaDecide(
   const AlphaColor: TVector3Byte;
   Tolerance: byte; AlphaOnColor: byte; AlphaOnNoColor: byte): TRGBAlphaImage;
 begin
- Result := ToRGBAlphaImage_AlphaDontCare;
- Result.AlphaDecide(AlphaColor, Tolerance, AlphaOnColor, AlphaOnNoColor);
+  Result := ToRGBAlphaImage_AlphaDontCare;
+  Result.AlphaDecide(AlphaColor, Tolerance, AlphaOnColor, AlphaOnNoColor);
 end;
 
 function TRGBImage.ToRGBFloat: TRGBFloatImage;
@@ -2431,11 +2433,12 @@ end;
 
 procedure TRGBImage.HorizontalLine(const x1, x2, y: Integer;
   const Color: TVector3Byte);
-var P: PVector3Byte;
-    i: Integer;
+var
+  P: PVector3Byte;
+  i: Integer;
 begin
- P := PixelPtr(x1, y);
- for i := 0 to x2 - x1 do begin P^ := Color; Inc(P) end;
+  P := PixelPtr(x1, y);
+  for i := 0 to x2 - x1 do begin P^ := Color; Inc(P) end;
 end;
 
 procedure TRGBImage.VerticalLine(const x, y1, y2: Integer;
@@ -2473,51 +2476,52 @@ end;
 
 function TRGBAlphaImage.GetAlphaPixels: PVector4Byte;
 begin
- Result := PVector4Byte(RawPixels);
+  Result := PVector4Byte(RawPixels);
 end;
 
 class function TRGBAlphaImage.PixelSize: Cardinal;
 begin
- Result := 4;
+  Result := 4;
 end;
 
 class function TRGBAlphaImage.ColorComponentsCount: Cardinal;
 begin
- Result := 4;
+  Result := 4;
 end;
 
 function TRGBAlphaImage.PixelPtr(const X, Y, Z: Cardinal): PVector4Byte;
 begin
- Result := PVector4Byte(inherited PixelPtr(X, Y, Z));
+  Result := PVector4Byte(inherited PixelPtr(X, Y, Z));
 end;
 
 function TRGBAlphaImage.RowPtr(const Y, Z: Cardinal): PArray_Vector4Byte;
 begin
- Result := PArray_Vector4Byte(inherited RowPtr(Y, Z));
+  Result := PArray_Vector4Byte(inherited RowPtr(Y, Z));
 end;
 
 procedure TRGBAlphaImage.InvertRGBColors;
-var i: Cardinal;
-    palpha: PVector4byte;
+var
+  i: Cardinal;
+  palpha: PVector4byte;
 begin
- palpha := AlphaPixels;
- for i := 1 to Width * Height do
- begin
-  palpha^[0] := High(byte)-palpha^[0];
-  palpha^[1] := High(byte)-palpha^[1];
-  palpha^[2] := High(byte)-palpha^[2];
-  Inc(palpha);
- end;
+  palpha := AlphaPixels;
+  for i := 1 to Width * Height do
+  begin
+    palpha^[0] := High(byte)-palpha^[0];
+    palpha^[1] := High(byte)-palpha^[1];
+    palpha^[2] := High(byte)-palpha^[2];
+    Inc(palpha);
+  end;
 end;
 
 procedure TRGBAlphaImage.SetColorRGB(const x, y: Integer; const v: TVector3Single);
 begin
- PVector3Byte(PixelPtr(x, y))^ := Vector3Byte(v);
+  PVector3Byte(PixelPtr(x, y))^ := Vector3Byte(v);
 end;
 
 procedure TRGBAlphaImage.Clear(const Pixel: TVector4Byte);
 begin
- FillDWord(RawPixels^, Width*Height, LongWord(Pixel));
+  FillDWord(RawPixels^, Width*Height, LongWord(Pixel));
 end;
 
 procedure TRGBAlphaImage.ClearAlpha(const Alpha: Byte);
@@ -2535,7 +2539,7 @@ end;
 
 function TRGBAlphaImage.IsClear(const Pixel: TVector4Byte): boolean;
 begin
- Result := IsMemDWordFilled(RawPixels^, Width*Height, LongWord(Pixel));
+  Result := IsMemDWordFilled(RawPixels^, Width*Height, LongWord(Pixel));
 end;
 
 procedure TRGBAlphaImage.TransformRGB(const Matrix: TMatrix3Single);
@@ -2548,17 +2552,18 @@ type PPixel = PVector4Byte;
 
 procedure TRGBAlphaImage.AlphaDecide(const AlphaColor: TVector3Byte;
   Tolerance: Byte; AlphaOnColor: Byte; AlphaOnNoColor: Byte);
-var pa: PVector4Byte;
-    i: Cardinal;
+var
+  pa: PVector4Byte;
+  i: Cardinal;
 begin
- pa := AlphaPixels;
- for i := 1 to Width * Height do
- begin
-  if EqualRGB(AlphaColor, PVector3Byte(pa)^, Tolerance) then
-   pa^[3] := AlphaOnColor else
-   pa^[3] := AlphaOnNoColor;
-  Inc(pa);
- end;
+  pa := AlphaPixels;
+  for i := 1 to Width * Height do
+  begin
+    if EqualRGB(AlphaColor, PVector3Byte(pa)^, Tolerance) then
+      pa^[3] := AlphaOnColor else
+      pa^[3] := AlphaOnNoColor;
+    Inc(pa);
+  end;
 end;
 
 procedure TRGBAlphaImage.Compose(RGB: TRGBImage; AGrayscale: TGrayscaleImage);
@@ -2762,7 +2767,6 @@ begin
   except Result.Free; raise end;
 end;
 
-{$ifdef FPC}
 procedure TRGBFloatImage.ScaleColors(const Scale: Single);
 var
   pFloat: PVector3Single;
@@ -2788,7 +2792,6 @@ begin
     Inc(PFloat);
   end;
 end;
-{$endif}
 
 procedure TRGBFloatImage.LerpWith(const Value: Single; SecondImage: TCastleImage);
 var
@@ -3051,7 +3054,7 @@ function Vector3ToRGBE(const v: TVector3Single): TVector4Byte;
 { implementacja : jak Graphic Gems II.5 ale z poprawkami -
   - nazwy MaxVal i V sa osobne (dla czytelnosci),
   - checki czy Exponent jest w granicach RGBEMin/MaxExponent }
-{ uwagi : moznaby sadzic ze Mnoznik powinien byc liczony jako
+{ uwagi : moznaby sadzic ze Multiplier powinien byc liczony jako
     Mantissa * 255 / MaxVal (255 = High(Byte) zamiast 256),
     zeby poprawnie mapowac zakres 0..1 na zakres bajta.
     Ale,
@@ -3069,165 +3072,172 @@ function Vector3ToRGBE(const v: TVector3Single): TVector4Byte;
       a mantysa zawsze musi byc ostro mniejsza od 1, z definicji.
       I to jest chyba koronny argument za mnozeniem tutaj przez 256.
 }
-var MaxVal, Mnoznik: Single;
-    Mantissa: Extended;
-    Exponent: Integer;
+var
+  MaxVal, Multiplier: Single;
+  Mantissa: Extended;
+  Exponent: Integer;
 begin
- MaxVal := CastleUtils.max(v[0], CastleUtils.max(v[1], v[2]));
+  MaxVal := CastleUtils.max(v[0], CastleUtils.max(v[1], v[2]));
 
- { rozpatrujemy tu nie tylko przypadek gdy liczba jest = 0 ale takze
-   gdy jest bliska zeru. To jest standardowe zachowanie, ale uwaga -
-   - w tym przypadku mogloby sie (blednie) wydawac ze mozemy tutaj zrobic
-   wyjatek i sprawdzac ponizej tylko MaxVal = 0.0 (dokladna rownosc)
-   a sprawdzanie bliskosci do zera zrzucic na test Exponent < RGBEMinExponent
-   ponizej. ALE to nie jest prawda - test Exponent < RGBEMinExponent przejdzie
-   dopiero dla niesamowicie mikroskopijnych liczb (< 1 / 2^127) podczas gdy liczby
-   pomiedzy tymi "mikroskopijnie malymi" a SINGLE_EQUALITY_EPSILON ciagle
-   beda powodowac problemy (bo przy liczeniu Mnoznik dzielimy przez MaxVal
-   wiec male MaxVal -> Float overflow). }
- if MaxVal < SingleEqualityEpsilon then begin result := RGBEZero; Exit end;
+  { rozpatrujemy tu nie tylko przypadek gdy liczba jest = 0 ale takze
+    gdy jest bliska zeru. To jest standardowe zachowanie, ale uwaga -
+    - w tym przypadku mogloby sie (blednie) wydawac ze mozemy tutaj zrobic
+    wyjatek i sprawdzac ponizej tylko MaxVal = 0.0 (dokladna rownosc)
+    a sprawdzanie bliskosci do zera zrzucic na test Exponent < RGBEMinExponent
+    ponizej. ALE to nie jest prawda - test Exponent < RGBEMinExponent przejdzie
+    dopiero dla niesamowicie mikroskopijnych liczb (< 1 / 2^127) podczas gdy liczby
+    pomiedzy tymi "mikroskopijnie malymi" a SINGLE_EQUALITY_EPSILON ciagle
+    beda powodowac problemy (bo przy liczeniu Multiplier dzielimy przez MaxVal
+    wiec male MaxVal -> Float overflow). }
+  if MaxVal < SingleEqualityEpsilon then begin result := RGBEZero; Exit end;
 
- Frexp(MaxVal, Mantissa, Exponent);
+  Frexp(MaxVal, Mantissa, Exponent);
 
- if Exponent < RGBEMinExponent then begin result := RGBELow; Exit end;
- if Exponent > RGBEMaxExponent then begin result := RGBEHigh; Exit end;
+  if Exponent < RGBEMinExponent then begin result := RGBELow; Exit end;
+  if Exponent > RGBEMaxExponent then begin result := RGBEHigh; Exit end;
 
- Mnoznik := Mantissa * 256 / MaxVal;
+  Multiplier := Mantissa * 256 / MaxVal;
 
- { MaxVal * Mnoznik daje Mantissa * High(byte) a wiec cos w zakresie
-   0 .. High(Byte) bo Mantissa <= 1 (de facto, Mantissa >= 0.5 wiec
-   mozna podac dokladniejsze ograniczenie na Mantissa * High(byte)).
-   Wszystkie pozostale v[] sa mniejsze od MaxVal wiec one tez dadza cos
-   w zakresie bajta. }
- result[0] := Clamped(Round(v[0]*Mnoznik), 0, High(Byte));
- result[1] := Clamped(Round(v[1]*Mnoznik), 0, High(Byte));
- result[2] := Clamped(Round(v[2]*Mnoznik), 0, High(Byte));
+  { MaxVal * Multiplier daje Mantissa * High(byte) a wiec cos w zakresie
+    0 .. High(Byte) bo Mantissa <= 1 (de facto, Mantissa >= 0.5 wiec
+    mozna podac dokladniejsze ograniczenie na Mantissa * High(byte)).
+    Wszystkie pozostale v[] sa mniejsze od MaxVal wiec one tez dadza cos
+    w zakresie bajta. }
+  result[0] := Clamped(Round(v[0]*Multiplier), 0, High(Byte));
+  result[1] := Clamped(Round(v[1]*Multiplier), 0, High(Byte));
+  result[2] := Clamped(Round(v[2]*Multiplier), 0, High(Byte));
 
- { sprawdzajac czy Exponent in RGBEMin/MaxExponent wczesniej juz zapewnilem
-   sobie ze ponizsze przypisanie jest Ok, wynik zmiesci sie w zakresie bajta. }
- result[3] := Exponent + RGBEExponentOffset;
+  { sprawdzajac czy Exponent in RGBEMin/MaxExponent wczesniej juz zapewnilem
+    sobie ze ponizsze przypisanie jest Ok, wynik zmiesci sie w zakresie bajta. }
+  result[3] := Exponent + RGBEExponentOffset;
 end;
 
 function VectorRGBETo3Single(const v: TVector4Byte): TVector3Single;
 { implementacja : jak Graphic Gems II.5.
 
-  Mnoznik wychodzi od 1/256 (a nie 1/255), nalezaloby tu wiec poczynic
+  Multiplier wychodzi od 1/256 (a nie 1/255), nalezaloby tu wiec poczynic
   podobne uwagi co przy konwersji w druga strone, Vector3ToRGBE.
   Patrz tamtejszy komentarz. }
-var Mnoznik: Single;
+var
+  Multiplier: Single;
 begin
- if v[3] = 0 then begin result := ZeroVector3Single; Exit end;
+  if v[3] = 0 then begin result := ZeroVector3Single; Exit end;
 
- Mnoznik := Ldexp(1/256, Integer(v[3])-RGBEExponentOffset);
- result[0] := v[0]*Mnoznik;
- result[1] := v[1]*Mnoznik;
- result[2] := v[2]*Mnoznik;
+  Multiplier := Ldexp(1/256, Integer(v[3])-RGBEExponentOffset);
+  result[0] := v[0]*Multiplier;
+  result[1] := v[1]*Multiplier;
+  result[2] := v[2]*Multiplier;
 end;
 
 { file formats managing ---------------------------------------------------------------- }
 
 function FileExtToImageFormat(FileExt: string;
   OnlyLoadable, OnlySaveable: boolean; out ImgFormat: TImageFormat): boolean;
-var iff: TImageFormat;
-    i: integer;
+var
+  iff: TImageFormat;
+  i: integer;
 begin
- if SCharIs(FileExt, 1, '.') then Delete(FileExt, 1, 1);
- FileExt := AnsiLowerCase(FileExt);
- for iff := Low(iff) to High(iff) do
- begin
-  if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
-     ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].Save)) then
-  for i := 1 to ImageFormatInfos[iff].extsCount do
-   if FileExt = ImageFormatInfos[iff].exts[i] then
-   begin
-    ImgFormat := iff;
-    result := true;
-    exit;
-   end;
- end;
- result := false;
+  if SCharIs(FileExt, 1, '.') then Delete(FileExt, 1, 1);
+  FileExt := AnsiLowerCase(FileExt);
+  for iff := Low(iff) to High(iff) do
+  begin
+    if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
+       ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].Save)) then
+    for i := 1 to ImageFormatInfos[iff].extsCount do
+      if FileExt = ImageFormatInfos[iff].exts[i] then
+      begin
+        ImgFormat := iff;
+        result := true;
+        exit;
+      end;
+  end;
+  result := false;
 end;
 
 function FileExtToImageFormatDef(const FileExt: string;
   OnlyLoadable, OnlySaveable: boolean; DefFormat: TImageFormat): TImageFormat;
 begin
- if not FileExtToImageFormat(FileExt, OnlyLoadable, OnlySaveable, result) then
-  result := DefFormat;
+  if not FileExtToImageFormat(FileExt, OnlyLoadable, OnlySaveable, result) then
+    result := DefFormat;
 end;
 
 function IsFileExtToImageFormat(const FileExt: string; OnlyLoadable, OnlySaveable: boolean): boolean;
-var dummy: TImageFormat;
+var
+  dummy: TImageFormat;
 begin
- result := FileExtToImageFormat(FileExt, OnlyLoadable, OnlySaveable, dummy);
+  result := FileExtToImageFormat(FileExt, OnlyLoadable, OnlySaveable, dummy);
 end;
 
 function IsFileExtLoadableImage(const FileExt: string): boolean;
 begin
- result := IsFileExtToImageFormat(FileExt, true, false);
+  result := IsFileExtToImageFormat(FileExt, true, false);
 end;
 
 function TryFindExistingImageExt(const fname: string; OnlyLoadable: boolean): string;
-var iff: TImageFormat;
-    i: integer;
+var
+  iff: TImageFormat;
+  i: integer;
 begin
- for iff := Low(iff) to High(iff) do
-  if (not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load) then
-  begin
-   for i := 1 to ImageFormatInfos[iff].extsCount do
-   begin
-    result := fname +'.' +ImageFormatInfos[iff].exts[i];
-    if NormalFileExists(result) then exit;
-   end;
-  end;
- result := '';
+  for iff := Low(iff) to High(iff) do
+    if (not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load) then
+    begin
+      for i := 1 to ImageFormatInfos[iff].extsCount do
+      begin
+        result := fname +'.' +ImageFormatInfos[iff].exts[i];
+        if NormalFileExists(result) then exit;
+      end;
+    end;
+  result := '';
 end;
 
 function FindExistingImageExt(const fname: string; OnlyLoadable: boolean): string;
 begin
- result := TryFindExistingImageExt(fname, OnlyLoadable);
- if result = '' then
-  raise ENoExistingImageExt.Create('No existing image extension found for image name '+fname);
+  result := TryFindExistingImageExt(fname, OnlyLoadable);
+  if result = '' then
+    raise ENoExistingImageExt.Create('No existing image extension found for image name '+fname);
 end;
 
 function ListImageExtsLong(OnlyLoadable, OnlySaveable: boolean; const LinePrefix: string): string;
-var iff: TImageFormat;
-    i: integer;
+var
+  iff: TImageFormat;
+  i: integer;
 begin
- result := '';
+  result := '';
 
- for iff := Low(iff) to High(iff) do
-  if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
-     ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].Save)) then
-  begin
-   { zwrocmy uwage ze nie chcemy doklejac nl na koncu (bo zalatwieniu
-     sprawy z formatem iff) bo tam nie byloby zbyt wygodnie rozpoznawac
-     czy jestesmy ostatnia linia czy nie (na skutek OnlySaveable/OnlyLoadable
-     nie mozna tego rozpoznac prostym sprawdzeniem iff < High(iff) }
-   if result <> '' then result := result + nl;
+  for iff := Low(iff) to High(iff) do
+    if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
+       ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].Save)) then
+    begin
+      { zwrocmy uwage ze nie chcemy doklejac nl na koncu (bo zalatwieniu
+        sprawy z formatem iff) bo tam nie byloby zbyt wygodnie rozpoznawac
+        czy jestesmy ostatnia linia czy nie (na skutek OnlySaveable/OnlyLoadable
+        nie mozna tego rozpoznac prostym sprawdzeniem iff < High(iff) }
+      if result <> '' then result := result + nl;
 
-   result := result +LinePrefix +ImageFormatInfos[iff].exts[1];
-   for i := 2 to ImageFormatInfos[iff].extsCount do
-    result := result + ', ' +ImageFormatInfos[iff].exts[i];
-   result := result + ' - '+ImageFormatInfos[iff].formatName;
-  end;
+      result := result +LinePrefix +ImageFormatInfos[iff].exts[1];
+      for i := 2 to ImageFormatInfos[iff].extsCount do
+        result := result + ', ' +ImageFormatInfos[iff].exts[i];
+      result := result + ' - '+ImageFormatInfos[iff].formatName;
+    end;
 end;
 
 function ListImageExtsShort(OnlyLoadable, OnlySaveable: boolean): string;
-var iff: TImageFormat;
-    i: integer;
+var
+  iff: TImageFormat;
+  i: integer;
 begin
- result := '';
+  result := '';
 
- for iff := Low(iff) to High(iff) do
-  if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
-     ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].Save)) then
-  begin
-   for i := 1 to ImageFormatInfos[iff].extsCount do
-   begin
-    if result <> '' then result := result + ', ';
-    result := result + ImageFormatInfos[iff].exts[i];
-   end;
-  end;
+  for iff := Low(iff) to High(iff) do
+    if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
+       ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].Save)) then
+    begin
+      for i := 1 to ImageFormatInfos[iff].extsCount do
+      begin
+        if result <> '' then result := result + ', ';
+        result := result + ImageFormatInfos[iff].exts[i];
+      end;
+    end;
 end;
 
 { LoadImage --------------------------------------------------------------- }
@@ -3363,11 +3373,12 @@ end;
 function LoadImage(Stream: TStream; const typeext: string;
   const AllowedImageClasses: array of TCastleImageClass)
   :TCastleImage;
-var iff: TImageFormat;
+var
+  iff: TImageFormat;
 begin
- if FileExtToImageFormat(typeext, true, false, iff) then
-  result := LoadImage(Stream, iff, AllowedImageClasses) else
-  raise EImageFormatNotSupported.Create('Unrecognized image format : "'+typeext+'"');
+  if FileExtToImageFormat(typeext, true, false, iff) then
+    result := LoadImage(Stream, iff, AllowedImageClasses) else
+    raise EImageFormatNotSupported.Create('Unrecognized image format : "'+typeext+'"');
 end;
 
 function LoadImage(const filename: string;
@@ -3406,8 +3417,8 @@ function LoadImage(const filename: string;
   const AllowedImageClasses: array of TCastleImageClass;
   const ResizeToX, ResizeToY: Cardinal): TCastleImage;
 begin
- result := LoadImage(filename, AllowedImageClasses);
- Result.Resize(ResizeToX, ResizeToY);
+  result := LoadImage(filename, AllowedImageClasses);
+  Result.Resize(ResizeToX, ResizeToY);
 end;
 
 { SaveImage na TCastleImage ---------------------------------------------------- }
@@ -3465,17 +3476,18 @@ end;
 
 procedure SaveImage(const img: TCastleImage; const typeext: string; Stream: TStream);
 begin
- SaveImage(Img, FileExtToImageFormatDef(
-   typeext, false, true, DefaultSaveImageFormat), Stream);
+  SaveImage(Img, FileExtToImageFormatDef(
+    typeext, false, true, DefaultSaveImageFormat), Stream);
 end;
 
 procedure SaveImage(const Img: TCastleImage; const fname: string);
-var f: TFileStream;
+var
+  f: TFileStream;
 begin
- f := TFileStream.Create(fname, fmCreate);
- try
-  SaveImage(img, ExtractFileExt(fname), f);
- finally f.Free end;
+  f := TFileStream.Create(fname, fmCreate);
+  try
+    SaveImage(img, ExtractFileExt(fname), f);
+  finally f.Free end;
 end;
 
 { other image processing ------------------------------------------- }
