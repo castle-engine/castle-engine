@@ -14,8 +14,8 @@
 }
 
 { Logging. Log has to be activated in your program (nothing in the
-  castle_game_engine units activates it automatically !) by InitializeLog.
-  Various units of my engine print some logging info when @link(Log) is true. }
+  Castle Game Engine activates it automatically) by InitializeLog.
+  Various units of the engine print some logging info when @link(Log) is true. }
 unit CastleLog;
 
 interface
@@ -41,33 +41,31 @@ function Log: boolean;
 procedure InitializeLog(const ProgramVersion: string;
   const ALogStream: TStream = nil);
 
-{ Write to log file. Call this only if @link(Log) = @true.
+{ Log message. Ignored when log is not initialized (@link(Log) is @false).
 
-  It was consciously decided that this will @italic(not be ignored) when
-  @link(Log) = false, instead the programmer will have to always explicitly
-  check @link(Log) value before calling this.
-  That's because you shouldn't even waste time on constructing LogMessage
-  for it when @link(Log) = false. }
+  Although we check @link(Log) here, you can also check it yourself
+  before even calling this procedure. This way you can avoid spending time
+  on constructing LogMessage. }
 procedure WritelnLog(const Title: string; const LogMessage: string);
 
-{ Write to log file. Call this only if @link(Log) = @true.
+{ Format and log message.
+  Ignored when log is not initialized (@link(Log) is @false).
 
   This is a shortcut for @code(WritelnLog(Title, Format(LogMessageBase, Args))). }
 procedure WritelnLog(const Title: string; const LogMessageBase: string;
   const Args: array of const);
 
-{ Just like WritelnLog, but assumes that LogMessage already contains
-  final newline --- so it doesn't add additional newline. }
+{ Log message, without appending newline at the end (given LogMessage
+  should already contain a final newline). }
 procedure WriteLog(const Title: string; const LogMessage: string);
 
-{ Just like WritelnLog, but wraps inside Title markers, so that
-  it's nicely formatted even when LogMessage is multiline.
-  LogMessage may be multiline and terminated by final newline. }
+{ Log multiline message.
+  LogMessage may be multiline and must be terminated by final newline. }
 procedure WriteLogMultiline(const Title: string; const LogMessage: string);
 
-{ Just like WritelnLog, but wraps inside Title markers, so that
-  it's nicely formatted even when LogMessage is multiline.
-  LogMessage may be multiline but not terminated by final newline. }
+{ Log multiline message.
+  LogMessage may be multiline and must @italic(not) be terminated by
+  a final newline, because we will add final newline ourselves. }
 procedure WritelnLogMultiline(const Title: string; const LogMessage: string);
 
 implementation
@@ -135,7 +133,8 @@ end;
 
 procedure WriteLog(const Title: string; const LogMessage: string);
 begin
-  WriteStr(LogStream, Title + ': ' + LogMessage);
+  if Log then
+    WriteStr(LogStream, Title + ': ' + LogMessage);
 end;
 
 procedure WritelnLog(const Title: string; const LogMessage: string);
@@ -151,10 +150,11 @@ end;
 
 procedure WriteLogMultiline(const Title: string; const LogMessage: string);
 begin
-  WritelnStr(LogStream,
-    '-------------------- ' + Title + ' begin' + NL +
-    LogMessage +
-    '-------------------- ' + Title + ' end');
+  if Log then
+    WritelnStr(LogStream,
+      '-------------------- ' + Title + ' begin' + NL +
+      LogMessage +
+      '-------------------- ' + Title + ' end');
 end;
 
 procedure WritelnLogMultiline(const Title: string; const LogMessage: string);
