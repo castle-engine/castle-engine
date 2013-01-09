@@ -218,6 +218,7 @@ type
         SegmentCollision, SphereCollision, BoxCollision and RayCollision
         and HeightCollision check for collisions with our BoundingBox,
         using TBox3D methods:
+        @link(TBox3D.TryRayClosestIntersection),
         @link(TBox3D.TryRayEntrance),
         @link(TBox3D.SegmentCollision),
         @link(TBox3D.SphereCollision) and
@@ -1899,7 +1900,14 @@ begin
   AboveGround := nil;
 
   Result := GetCollides and
-    BoundingBox.TryRayEntrance(Intersection, IntersectionDistance, Position, -GravityUp);
+    { Using TryRayEntrance here would also be sensible, but sometimes too eager:
+      In case creature walks over an item, it would cause the item to go upward
+      (because the creature is collidable (item is not), so item's gravity
+      would cause it to grow). Sometimes also the creatures would too easily
+      climb on top of each other.
+      It may be changed in the future back into TryRayEntrance? Item problems
+      could be solved by using GrowSpeed = 0 for items. }
+    BoundingBox.TryRayClosestIntersection(Intersection, IntersectionDistance, Position, -GravityUp);
   if Result then
     AboveHeight := IntersectionDistance;
 end;
