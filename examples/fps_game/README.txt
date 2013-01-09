@@ -38,8 +38,11 @@ https://sourceforge.net/p/castle-engine/discussion/ .
 Keys: move using AWSD or arrow keys, and you can activate "Mouse Look"
 by a suitable button on the screen.
 
-Inventory: use current item by Enter, change current item by [ ] or mouse wheel,
-drop by R.
+Inventory:
+use current item by Enter,
+change current item by [ ] or mouse wheel,
+drop item by R,
+attack (with currently equipped weapon) by Ctrl key.
 
 A lot more keys and mouse shortcuts are instantly working
 (and they all are configurable, too).
