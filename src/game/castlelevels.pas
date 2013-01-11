@@ -627,7 +627,7 @@ var
       GravityUp := DefaultX3DGravityUp;
     end;
 
-    NavigationNode := MainScene.NavigationInfoStack.Top as TNavigationInfoNode;
+    NavigationNode := MainScene.NavigationInfoStack.Top;
 
     if (NavigationNode <> nil) and (NavigationNode.FdAvatarSize.Count >= 1) then
       CameraRadius := NavigationNode.FdAvatarSize.Items[0] else

@@ -266,11 +266,16 @@ type
       read FOnBoundChanged write FOnBoundChanged;
   end;
 
-  TViewpointStack = class(TX3DBindableStack)
-  protected
-    procedure DoBoundChanged; override;
+  TBackgroundStack = class(TX3DBindableStack)
   public
-    function Top: TAbstractViewpointNode;
+    function Top: TAbstractBackgroundNode;
+    procedure PushIfEmpty(Node: TAbstractBackgroundNode; SendEvents: boolean);
+  end;
+
+  TFogStack = class(TX3DBindableStack)
+  public
+    function Top: TFogNode;
+    procedure PushIfEmpty(Node: TFogNode; SendEvents: boolean);
   end;
 
   TNavigationInfoStack = class(TX3DBindableStack)
@@ -278,6 +283,15 @@ type
     procedure DoBoundChanged; override;
   public
     function Top: TNavigationInfoNode;
+    procedure PushIfEmpty(Node: TNavigationInfoNode; SendEvents: boolean);
+  end;
+
+  TViewpointStack = class(TX3DBindableStack)
+  protected
+    procedure DoBoundChanged; override;
+  public
+    function Top: TAbstractViewpointNode;
+    procedure PushIfEmpty(Node: TAbstractViewpointNode; SendEvents: boolean);
   end;
 
   { @exclude }
@@ -580,8 +594,8 @@ type
     procedure ResetLastEventTime(Node: TX3DNode);
   private
     { Bindable nodes helpers }
-    FBackgroundStack: TX3DBindableStack;
-    FFogStack: TX3DBindableStack;
+    FBackgroundStack: TBackgroundStack;
+    FFogStack: TFogStack;
     FNavigationInfoStack: TNavigationInfoStack;
     FViewpointStack: TViewpointStack;
 
@@ -1233,11 +1247,6 @@ type
       TAbstractViewpointNode;
     { @groupEnd }
 
-    { Currently bound fog for this scene.
-      A trivial shortcut for FogStack.Top.
-      It returns currently bound Fog node, or @nil if none. }
-    function FogNode: TFogNode;
-
     { Returns an array of triangles that should be shadow casters
       for this scene.
 
@@ -1485,28 +1494,27 @@ type
       [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_time_origin_at_load]. }
     procedure ResetTimeAtLoad;
 
-    { Binding stack of X3DBackgroundNode nodes.
-      All descend from TAbstractBackgroundNode class. }
-    property BackgroundStack: TX3DBindableStack read FBackgroundStack;
+    { Stack of background nodes. The node at the top is the current background.
+      All nodes on this stack must descend from TAbstractBackgroundNode class. }
+    property BackgroundStack: TBackgroundStack read FBackgroundStack;
 
-    { Binding stack of Fog nodes.
-      All descend from TFogNode class. }
-    property FogStack: TX3DBindableStack read FFogStack;
+    { Stack of fog nodes. The node at the top is the current fog.
+      All nodes on this stack must descend from TFogNode class. }
+    property FogStack: TFogStack read FFogStack;
 
-    { Binding stack of NavigatinInfo nodes.
-      All descend from TNavigationInfoNode class. }
+    { Stack of NavigatinInfo nodes. The node at the top is the current NavigatinInfo.
+      All nodes on this stack must descend from TNavigationInfoNode class. }
     property NavigationInfoStack: TNavigationInfoStack read FNavigationInfoStack;
 
-    { Binding stack of Viewpoint nodes.
-      All descend from TAbstractViewpointNode (not necessarily from
-      TAbstractX3DViewpointNode, so VRML 1.0 camera nodes are also included in
-      this stack.) }
+    { Stack of viewpoint nodes. The node at the top is the current Viewpoint.
+      All nodes on this stack must descend from TAbstractViewpointNode.
+      Note that this includes also VRML 1.0/Inventor nodes. }
     property ViewpointStack: TViewpointStack read FViewpointStack;
 
-    function GetViewpointStack: TX3DBindableStackBasic; override;
-    function GetNavigationInfoStack: TX3DBindableStackBasic; override;
     function GetBackgroundStack: TX3DBindableStackBasic; override;
     function GetFogStack: TX3DBindableStackBasic; override;
+    function GetNavigationInfoStack: TX3DBindableStackBasic; override;
+    function GetViewpointStack: TX3DBindableStackBasic; override;
 
     { Camera position/direction/up known for this scene.
 
@@ -2064,28 +2072,31 @@ begin
   end;
 end;
 
-{ TViewpointStack -------------------------------------------------------- }
+{ TBackgroundStack ----------------------------------------------------------- }
 
-procedure TViewpointStack.DoBoundChanged;
+function TBackgroundStack.Top: TAbstractBackgroundNode;
 begin
-  { The new viewpoint may be in some totally different place of the scene,
-    so call ViewChangedSuddenly.
-
-    This takes care of all viewpoints switching, like
-    - switching to other viewpoint through view3dscene "viewpoints" menu,
-    - just getting an event set_bind = true through vrml route. }
-
-  ParentScene.ViewChangedSuddenly;
-
-  inherited;
+  Result := (inherited Top) as TAbstractBackgroundNode;
 end;
 
-function TViewpointStack.Top: TAbstractViewpointNode;
+procedure TBackgroundStack.PushIfEmpty(Node: TAbstractBackgroundNode; SendEvents: boolean);
 begin
-  Result := (inherited Top) as TAbstractViewpointNode;
+  inherited PushIfEmpty(Node, SendEvents);
 end;
 
-{ TViewpointStack -------------------------------------------------------- }
+{ TFogStack ------------------------------------------------------------------ }
+
+function TFogStack.Top: TFogNode;
+begin
+  Result := (inherited Top) as TFogNode;
+end;
+
+procedure TFogStack.PushIfEmpty(Node: TFogNode; SendEvents: boolean);
+begin
+  inherited PushIfEmpty(Node, SendEvents);
+end;
+
+{ TNavigationInfoStack ------------------------------------------------------- }
 
 procedure TNavigationInfoStack.DoBoundChanged;
 begin
@@ -2096,6 +2107,35 @@ end;
 function TNavigationInfoStack.Top: TNavigationInfoNode;
 begin
   Result := (inherited Top) as TNavigationInfoNode;
+end;
+
+procedure TNavigationInfoStack.PushIfEmpty(Node: TNavigationInfoNode; SendEvents: boolean);
+begin
+  inherited PushIfEmpty(Node, SendEvents);
+end;
+
+{ TViewpointStack ------------------------------------------------------------ }
+
+procedure TViewpointStack.DoBoundChanged;
+begin
+  { The new viewpoint may be in some totally different place of the scene,
+    so call ViewChangedSuddenly.
+
+    This takes care of all viewpoints switching, like
+    - switching to other viewpoint through view3dscene "viewpoints" menu,
+    - just getting an event set_bind = true through vrml route. }
+  ParentScene.ViewChangedSuddenly;
+  inherited;
+end;
+
+function TViewpointStack.Top: TAbstractViewpointNode;
+begin
+  Result := (inherited Top) as TAbstractViewpointNode;
+end;
+
+procedure TViewpointStack.PushIfEmpty(Node: TAbstractViewpointNode; SendEvents: boolean);
+begin
+  inherited PushIfEmpty(Node, SendEvents);
 end;
 
 { TGeneratedTextureList -------------------------------------------------- }
@@ -2256,8 +2296,8 @@ begin
   ShapeLODs := TObjectList.Create(false);
   FGlobalLights := TLightInstancesList.Create;
 
-  FBackgroundStack := TX3DBindableStack.Create(Self);
-  FFogStack := TX3DBindableStack.Create(Self);
+  FBackgroundStack := TBackgroundStack.Create(Self);
+  FFogStack := TFogStack.Create(Self);
   FNavigationInfoStack := TNavigationInfoStack.Create(Self);
   FViewpointStack := TViewpointStack.Create(Self);
 
@@ -4633,13 +4673,6 @@ begin
   Assert(ProjectionType = ptPerspective);
 end;
 
-{ fog ---------------------------------------------------------------------- }
-
-function TCastleSceneCore.FogNode: TFogNode;
-begin
-  Result := FogStack.Top as TFogNode;
-end;
-
 { triangles list ------------------------------------------------------------- }
 
 type
@@ -6064,10 +6097,7 @@ var
   WalkCamera: TWalkCamera;
 begin
   if ViewpointStack.Top <> nil then
-  begin
-    (ViewpointStack.Top as TAbstractViewpointNode).GetView(
-      Position, Direction, Up, GravityUp);
-  end else
+    ViewpointStack.Top.GetView(Position, Direction, Up, GravityUp) else
   begin
     { Suitable viewpoint,
       with dir -Z and up +Y (like standard VRML/X3D viewpoint) }

@@ -420,9 +420,7 @@ type
     See @link(Render) method for some details.
 
     This class also provides comfortable management for
-    @link(TBackground) instance associated with this VRML model,
-    that may be used to render currenly bound VRML background.
-    See @link(Background) function.
+    @link(Background) instance to render the VRML/X3D background of this scene.
 
     Calling methods PrepareResources, Render or Background connects this
     class with current OpenGL context. Which means that all the following
@@ -768,42 +766,28 @@ type
       FBackgroundValid to false. }
     FBackgroundValid: boolean;
     procedure SetBackgroundSkySphereRadius(const Value: Single);
+    procedure PrepareBackground;
   public
     property BackgroundSkySphereRadius: Single
       read FBackgroundSkySphereRadius write SetBackgroundSkySphereRadius
       default 1;
 
-    procedure PrepareBackground;
+    { TBackground instance to render current background. Current background
+      is the top node on the BackgroundStack of this scene, following VRML/X3D
+      specifications, and can be dynamic.
+      The scene manager should use this to render background.
 
-    { Returns TBackground instance for this scene. Background's properties
-      are based on the attributes of currently bound X3DBackgroundNode
-      VRML node in the RootNode scene (and on his place in scene transformations).
-      When events are not concerned, this is simply the first X3DBackgroundNode
-      found in the scene (when events work, this may change through set_bind
-      events).
-      They are also based on current value of BackgroundSkySphereRadius.
+      We use the current value of BackgroundSkySphereRadius.
 
-      If there is no currently bound background node in VRML scene this
-      function returns nil.
-      TODO: Also, if currently bound background cannot be rendered,
-      we return @nil. For now this happens for TextureBakckground,
-      that temporarily cannot be rendered.
+      Returns @nil if there is no currently bound background node
+      in this scene, or if the bound background is not supported for now
+      (the latter case right now happens with TextureBakckground).
 
-      Note: this Background object is managed (automatically created/freed
-      etc.) by this TCastleScene object but it is NOT used anywhere
-      in this class, e.g. Render does not call Background.Render. If you want to
-      use this Background somehow, you have to do this yourself.
-
-      The results of this function are internally cached. Cache is invalidated
-      on such situations as change in RootNode scene, changes to
-      BackgroundSkySphereRadius, GLContextClose.
-
-      PrepareBackground (and PrepareResources with prBackground)
-      automatically validate this cache.
-
-      Remember that this cache is connected with the current OpenGL context.
-      So you HAVE to call GLContextClose to disconnent this object from
-      current OpenGL context after you used this function. }
+      This instance is managed (automatically created/freed
+      and so on) by this TCastleScene instance. It is cached
+      (so that it's recreated only when relevant things change,
+      like VRML/X3D nodes affecting this background,
+      or changes to BackgroundSkySphereRadius, or OpenGL context is closed). }
     function Background: TBackground;
 
     { Rendering attributes.
@@ -1261,7 +1245,7 @@ function TCastleScene.ShapeFog(Shape: TShape): IAbstractFogObject;
 begin
   Result := Shape.State.LocalFog;
   if Result = nil then
-    Result := FogNode;
+    Result := FogStack.Top;
 end;
 
 { Given blending name (as defined by VRML BlendMode node spec,
@@ -3396,7 +3380,7 @@ begin
   PrepareBackground;
   Result := FBackground;
 
-  BackgroundNode := BackgroundStack.Top as TAbstractBackgroundNode;
+  BackgroundNode := BackgroundStack.Top;
   if (BackgroundNode <> nil) and
      { We have to still check Result, since not every TAbstractBackgroundNode
        is supported now, so for some background nodes we still have

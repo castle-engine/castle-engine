@@ -1741,7 +1741,7 @@ procedure TCastlePrecalculatedAnimation.ResetTimeAtLoad(const ForceTimeOrigin: b
 
     if Loaded then
     begin
-      N := Scenes[0].NavigationInfoStack.Top as TNavigationInfoNode;
+      N := Scenes[0].NavigationInfoStack.Top;
       if (N <> nil) and
          (N is TKambiNavigationInfoNode) then
         Result := TKambiNavigationInfoNode(N).FdTimeOriginAtLoad.Value;

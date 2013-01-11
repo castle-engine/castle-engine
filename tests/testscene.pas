@@ -49,7 +49,7 @@ procedure TTestScene.TestScene;
 
    Assert(EmptyScene.GetViewpoint(CamProjection, CamPos, CamDir, CamUp, GravityUp) = nil);
 
-   Assert(EmptyScene.FogNode = nil);
+   Assert(EmptyScene.FogStack.Top = nil);
 
    Assert(EmptyScene.Background = nil);
   end;

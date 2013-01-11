@@ -33,10 +33,10 @@
     procedure ExecuteCompiledScript(const HandlerName: string;  ReceivedValue: TX3DField); virtual; abstract;
   public
     function GetTime: TX3DTime; virtual; abstract;
-    function GetViewpointStack: TX3DBindableStackBasic; virtual; abstract;
-    function GetNavigationInfoStack: TX3DBindableStackBasic; virtual; abstract;
     function GetBackgroundStack: TX3DBindableStackBasic; virtual; abstract;
     function GetFogStack: TX3DBindableStackBasic; virtual; abstract;
+    function GetNavigationInfoStack: TX3DBindableStackBasic; virtual; abstract;
+    function GetViewpointStack: TX3DBindableStackBasic; virtual; abstract;
 
     procedure ChangedAll; virtual; abstract;
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); virtual; abstract;

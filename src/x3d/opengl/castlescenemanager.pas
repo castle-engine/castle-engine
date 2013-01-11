@@ -1626,7 +1626,7 @@ begin
 
   { calculate ViewpointNode }
   if GetMainScene <> nil then
-    ViewpointNode := GetMainScene.ViewpointStack.Top as TAbstractViewpointNode else
+    ViewpointNode := GetMainScene.ViewpointStack.Top else
     ViewpointNode := nil;
 
   if (ViewpointNode <> nil) and
@@ -1653,8 +1653,7 @@ begin
   FProjectionFar := 0;
   if (GetMainScene <> nil) and
      (GetMainScene.NavigationInfoStack.Top <> nil) then
-    FProjectionFar := (GetMainScene.NavigationInfoStack.Top as TNavigationInfoNode).
-      FdVisibilityLimit.Value;
+    FProjectionFar := GetMainScene.NavigationInfoStack.Top.FdVisibilityLimit.Value;
   if FProjectionFar <= 0 then
     FProjectionFar := DefaultVisibilityLimit;
   if FProjectionFar <= 0 then

@@ -60,7 +60,8 @@ begin
       with the radius taken from fog scaled visibilityRadius.
     If there is no collision than we don't have to render given Shape. }
   Result := PointsDistanceSqr(Shape.BoundingSphereCenter, Camera.GetPosition) <=
-      Sqr(Scene.FogNode.FdVisibilityRange.Value * Scene.FogNode.TransformScale +
+      Sqr(Scene.FogStack.Top.FdVisibilityRange.Value * 
+          Scene.FogStack.Top.TransformScale +
         Sqrt(Shape.BoundingSphereRadiusSqr));
 end;
 
