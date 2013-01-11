@@ -302,8 +302,8 @@ type
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
-    function Mouse3dRotation(X, Y, Z, Angle: Double; CompSpeed: Single): boolean; override;
-    function Mouse3dTranslation(X, Y, Z, Length: Double; CompSpeed: Single): boolean; override;
+    function Mouse3dRotation(const X, Y, Z, Angle: Double; const CompSpeed: Single): boolean; override;
+    function Mouse3dTranslation(const X, Y, Z, Length: Double; const CompSpeed: Single): boolean; override;
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
@@ -2347,24 +2347,14 @@ begin
   Result := FRenderParams.Statistics;
 end;
 
-function TCastleAbstractViewport.Mouse3dRotation(X, Y, Z, Angle: Double; CompSpeed: Single): boolean;
+function TCastleAbstractViewport.Mouse3dRotation(const X, Y, Z, Angle: Double; const CompSpeed: Single): boolean;
 begin
-  if Camera <> nil then
-  begin
-    Camera.Mouse3dRotationEvent(X, Y, Z, Angle, CompSpeed);
-    Result := true;
-  end else
-    Result := false;
+  Result := (Camera <> nil) and Camera.Mouse3dRotation(X, Y, Z, Angle, CompSpeed);
 end;
 
-function TCastleAbstractViewport.Mouse3dTranslation(X, Y, Z, Length: Double; CompSpeed: Single): boolean;
+function TCastleAbstractViewport.Mouse3dTranslation(const X, Y, Z, Length: Double; const CompSpeed: Single): boolean;
 begin
-  if Camera <> nil then
-  begin
-    Camera.Mouse3dTranslationEvent(X, Y, Z, Length, CompSpeed);
-    Result := true;
-  end else
-    Result := false;
+  Result := (Camera <> nil) and Camera.Mouse3dTranslation(X, Y, Z, Length, CompSpeed);
 end;
 
 { TCastleAbstractViewportList -------------------------------------------------- }

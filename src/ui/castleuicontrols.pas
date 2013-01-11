@@ -128,11 +128,19 @@ type
 
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; virtual;
 
-    { Handle 3D mouse events.
-      @groupBegin }
-    function Mouse3dRotation(X, Y, Z, Angle: Double; CompSpeed: Single): boolean; virtual;
-    function Mouse3dTranslation(X, Y, Z, Length: Double; CompSpeed: Single): boolean; virtual;
-    { @groupEnd }
+    { Rotation of 3Dconnexion devices.
+      @param X   X axis (tilt forward/backwards)
+      @param Y   Y axis (rotate)
+      @param Z   Z axis (tilt sidewards)
+      @param Angle   Angle of rotation.}
+    function Mouse3dRotation(const X, Y, Z, Angle: Double; const CompSpeed: Single): boolean; virtual;
+
+    { Translation of 3Dconnexion devices.
+      @param X   X axis (move left/right)
+      @param Y   Y axis (move up/down)
+      @param Z   Z axis (move forward/backwards)
+      @param Length   Length of the vector consisting of the above. }
+    function Mouse3dTranslation(const X, Y, Z, Length: Double; const CompSpeed: Single): boolean; virtual;
 
     { Control may do here anything that must be continously repeated.
       This is called often by the container.
@@ -530,12 +538,12 @@ begin
   Result := false;
 end;
 
-function TInputListener.Mouse3dRotation(X, Y, Z, Angle: Double; CompSpeed: Single): boolean;
+function TInputListener.Mouse3dRotation(const X, Y, Z, Angle: Double; const CompSpeed: Single): boolean;
 begin
   Result := false;
 end;
 
-function TInputListener.Mouse3dTranslation(X, Y, Z, Length: Double; CompSpeed: Single): boolean;
+function TInputListener.Mouse3dTranslation(const X, Y, Z, Length: Double; const CompSpeed: Single): boolean;
 begin
   Result := false;
 end;

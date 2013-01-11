@@ -332,20 +332,6 @@ type
 
     function Animation: boolean; virtual;
 
-    { Translation of 3Dconnexion devices.
-      @param X   X axis (move left/right)
-      @param Y   Y axis (move up/down)
-      @param Z   Z axis (move forward/backwards)
-      @param Length   Length of the vector consisting of the above. }
-    procedure Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single); virtual; abstract;
-
-    { Rotation of 3Dconnexion devices.
-      @param X   X axis (tilt forward/backwards)
-      @param Y   Y axis (rotate)
-      @param Z   Z axis (tilt sidewards)
-      @param Angle   Angle of rotation.}
-    procedure Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single); virtual; abstract;
-
     { Initial camera values.
 
       InitialDirection and InitialUp must be always normalized,
@@ -486,8 +472,8 @@ type
     function Press(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
 
-    procedure Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single); override;
-    procedure Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single); override;
+    function Mouse3dTranslation(const X, Y, Z, Length: Double; const CompSpeed: Single): boolean; override;
+    function Mouse3dRotation(const X, Y, Z, Angle: Double; const CompSpeed: Single): boolean; override;
 
     { Current camera properties ---------------------------------------------- }
 
@@ -833,8 +819,8 @@ type
       var LetOthersHandleMouseAndKeys: boolean); override;
     function AllowSuspendForInput: boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
-    procedure Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single); override;
-    procedure Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single); override;
+    function Mouse3dTranslation(const X, Y, Z, Length: Double; const CompSpeed: Single): boolean; override;
+    function Mouse3dRotation(const X, Y, Z, Angle: Double; const CompSpeed: Single): boolean; override;
 
     { This is used by @link(DoMoveAllowed), see there for description. }
     property OnMoveAllowed: TMoveAllowedFunc read FOnMoveAllowed write FOnMoveAllowed;
@@ -1608,8 +1594,8 @@ type
     function Release(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
 
-    procedure Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single); override;
-    procedure Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single); override;
+    function Mouse3dTranslation(const X, Y, Z, Length: Double; const CompSpeed: Single): boolean; override;
+    function Mouse3dRotation(const X, Y, Z, Angle: Double; const CompSpeed: Single): boolean; override;
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
 
@@ -2235,7 +2221,8 @@ begin FScaleFactor *= ScaleBy; VisibleChange; end;
 procedure TExamineCamera.Move(coord: integer; const MoveDistance: Single);
 begin FMoveAmount[coord] += MoveDistance; VisibleChange; end;
 
-procedure TExamineCamera.Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single);
+function TExamineCamera.Mouse3dTranslation(const X, Y, Z, Length: Double;
+  const CompSpeed: Single): boolean;
 var
   Size: Single;
   Moved: boolean;
@@ -2243,6 +2230,7 @@ var
 begin
   if not (ci3dMouse in Input) then Exit;
   if FModelBox.IsEmptyOrZero then Exit;
+  Result := true;
 
   Moved := false;
   Size := FModelBox.AverageSize;
@@ -2267,13 +2255,15 @@ begin
     Zoom(Z * MoveSize / 2);
 end;
 
-procedure TExamineCamera.Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single);
+function TExamineCamera.Mouse3dRotation(const X, Y, Z, Angle: Double;
+  const CompSpeed: Single): boolean;
 var
   NewRotation: TQuaternion;
   Moved: boolean;
   RotationSize: Double;
 begin
   if not (ci3dMouse in Input) then Exit;
+  Result := true;
 
   Moved := false;
   RotationSize := CompSpeed * Angle / 50;
@@ -4015,11 +4005,13 @@ begin
     Result := false;
 end;
 
-procedure TWalkCamera.Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single);
+function TWalkCamera.Mouse3dTranslation(const X, Y, Z, Length: Double;
+  const CompSpeed: Single): boolean;
 var
   MoveSize: Double;
 begin
   if not (ci3dMouse in Input) then Exit;
+  Result := true;
 
   MoveSize := Length * CompSpeed / 5000;
 
@@ -4047,9 +4039,11 @@ begin
     MoveVertical(-Y * MoveSize, -1);  { down }
 end;
 
-procedure TWalkCamera.Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single);
+function TWalkCamera.Mouse3dRotation(const X, Y, Z, Angle: Double;
+  const CompSpeed: Single): boolean;
 begin
   if not (ci3dMouse in Input) then Exit;
+  Result := true;
 
   if Abs(X) > 0.4 then      { tilt forward / backward }
     RotateVertical(X * Angle * 2 * CompSpeed);
@@ -4488,14 +4482,16 @@ begin
   Current.Idle(CompSpeed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
 end;
 
-procedure TUniversalCamera.Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single);
+function TUniversalCamera.Mouse3dTranslation(const X, Y, Z, Length: Double;
+  const CompSpeed: Single): boolean;
 begin
-  Current.Mouse3dTranslationEvent(X, Y, Z, Length, CompSpeed);
+  Result := Current.Mouse3dTranslation(X, Y, Z, Length, CompSpeed);
 end;
 
-procedure TUniversalCamera.Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single);
+function TUniversalCamera.Mouse3dRotation(const X, Y, Z, Angle: Double;
+  const CompSpeed: Single): boolean;
 begin
-  Current.Mouse3dRotationEvent(X, Y, Z, Angle, CompSpeed);
+  Result := Current.Mouse3dRotation(X, Y, Z, Angle, CompSpeed);
 end;
 
 function TUniversalCamera.AllowSuspendForInput: boolean;
