@@ -3,4 +3,5 @@
 <sounds>
   <sound name="medkit_use" default_importance="player"/>
   <sound name="eye_shoot" default_importance="player"/>
+  <sound name="footsteps_grass" default_importance="player"/>
 </sounds>

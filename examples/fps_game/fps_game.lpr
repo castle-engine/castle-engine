@@ -21,7 +21,7 @@ uses SysUtils, Classes, CastleWindow, CastleWarnings, CastleConfig, CastleLevels
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   CastleRenderer, Castle3D, CastleFilesUtils, CastleGameNotifications,
   CastleSceneManager, CastleVectors, CastleUIControls, GL, CastleGLUtils,
-  CastleColors, CastleItems, CastleUtils, CastleCameras;
+  CastleColors, CastleItems, CastleUtils, CastleCameras, CastleTextureProperties;
 
 var
   Window: TCastleWindow;
@@ -384,8 +384,13 @@ begin
   SoundEngine.ParseParameters;
 
   { Load named sounds defined in sounds/index.xml }
-  SoundEngine.SoundsXmlFileName := ProgramDataPath + 'data' +
-    PathDelim + 'sounds' + PathDelim + 'index.xml';
+  SoundEngine.SoundsXmlFileName := ProgramDataPath + 'data' + PathDelim +
+    'sounds' + PathDelim + 'index.xml';
+
+  { Load texture properties, used to assign footsteps sounds based
+    on ground texture }
+  TexturesProperties.XmlFileName := ProgramDataPath + 'data' + PathDelim +
+    'texture_properties.xml';
 
   { Load configuration file. This loads configuration for various parts of the
     engine that add their callbacks to Config.OnLoad, Config.OnSave.
