@@ -224,6 +224,7 @@ type
 
       Direction, Up and GravityUp do not have to be normalized,
       we will normalize them internally if necessary.
+      But make sure they are non-zero.
 
       We will automatically fix Direction and Up to be orthogonal, if necessary:
       when AdjustUp = @true (the default) we will adjust the up vector
@@ -4566,7 +4567,27 @@ begin
   begin
     Current.GetView(Position, Direction, Up);
     FNavigationClass := Value;
-    Current.SetView(Position, Direction, Up);
+
+    { SetNavigationClass may be called when Direction and Up
+      are both perfectly zero, from TCastleSceneCore.CreateCamera
+      that creates a camera and first calls CameraFromNavigationInfo
+      (that sets NavigationClass) before calling CameraFromViewpoint
+      (that sets sensible view vectors). We protect from it, to not call
+      SetView with Direction and Up zero.
+
+      Although for now this isn't really needed, as all SetView implementations
+      behave Ok, because
+      1. MakeVectorsOrthoOnTheirPlane with both dir/up = zero is Ok
+         (it leaves the 1st argument as zero (because
+         AnyOrthogonalVector(zero) = zero)),
+      2. CamDirUp2OrientQuat also gracefully accepts dir/up = zero
+         (but it doesn't have to, it's documentation requires only non-zero
+         vectors).
+      But, for the future, protect from it, since the doc for SetView guarantees
+      correct behavior only for dir/up non-zero. }
+
+    if not (PerfectlyZeroVector(Direction) and PerfectlyZeroVector(Up)) then
+      Current.SetView(Position, Direction, Up);
     { our Cursor should always reflect Current.Cursor }
     Cursor := Current.Cursor;
   end;
