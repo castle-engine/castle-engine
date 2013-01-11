@@ -75,3 +75,13 @@ Collision {
   enabled FALSE
   children Inline { url "water.x3d" }
 }
+
+# Textured background.
+Background {
+  backUrl "sky/sky_back.png"
+  bottomUrl "sky/sky_bottom.png"
+  frontUrl "sky/sky_front.png"
+  leftUrl "sky/sky_left.png"
+  rightUrl "sky/sky_right.png"
+  topUrl "sky/sky_top.png"
+}
