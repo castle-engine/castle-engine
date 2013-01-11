@@ -1376,13 +1376,17 @@ type
     procedure SetView(const APos, ADir, AUp: TVector3Single);
     procedure SetView(const ADir, AUp: TVector3Single);
 
-    { Change up vector, but (when it needs to be fixed to have direction and up
-      orthogonal) keep the direction unchanged.
+    { Change up vector, keeping the direction unchanged.
+      If necessary, the up vector provided here will be fixed to be orthogonal
+      to direction.
 
-      This is contrary to assigning @link(Up) vector using the property setter.
-      In that case, the @link(Direction) is changed (to be orthogonal to up).
-      In the case of this method, the up vector is change (to be orthogonal to
-      direction).
+      This is similar to assigning @link(Up) vector using it's property setter,
+      but different behavior happens when we need to fix vectors to have
+      direction orthogonal to up (which must be always true).
+      In case of assigning @link(Up) by property setter,
+      the @link(Direction) vector is changed (if necessary, to be orthogonal to up).
+      In case of this method, the up vector is changed (if necessary,
+      to be orthogonal to direction).
 
       It's good to use this if you have a preferred up vector for creatures,
       but still preserving the direction vector has the highest priority. }

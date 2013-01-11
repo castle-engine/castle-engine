@@ -2497,7 +2497,7 @@ begin
     begin
       NewDirection := Direction;
       MakeVectorsAngleRadOnTheirPlane(NewDirection, TargetDirection,
-        AngleBetween - AngleChange);
+        AngleBetween - AngleChange, NewDirection);
       Direction := NewDirection;
     end;
   end;

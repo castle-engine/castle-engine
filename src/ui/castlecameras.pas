@@ -1413,9 +1413,10 @@ type
     procedure SetView(const APos, ADir, AUp: TVector3Single); override;
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
 
-    { Change up vector, but (when it needs to be fixed to have direction and up
-      orthogonal) keep the direction unchanged.
-      @seealso T3DOrient.UpPrefer }
+    { Change up vector, keeping the direction unchanged.
+      If necessary, the up vector provided here will be fixed to be orthogonal
+      to direction.
+      See T3DOrient.UpPrefer for detailed documentation what this does. }
     procedure UpPrefer(const AUp: TVector3Single);
 
     { Last known information about whether camera is over the ground.
@@ -3653,7 +3654,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
         begin
           NewUp := FUp;
           MakeVectorsAngleRadOnTheirPlane(NewUp, TargetUp,
-            AngleRadBetweenTarget - AngleRadBetweenTargetChange);
+            AngleRadBetweenTarget - AngleRadBetweenTargetChange, NewUp);
           Up := NewUp;
         end else
           Up := TargetUp;

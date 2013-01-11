@@ -955,6 +955,7 @@ function RotationAngleRadBetweenVectors(const V1, V2, Cross: TVector3Double): Do
 { @groupEnd }
 
 { Rotate point Point around the Axis by given Angle.
+  Axis cannot be zero.
 
   Note that this is equivalent to constructing a rotation matrix
   and then using it, like
@@ -1175,29 +1176,27 @@ function VectorsParallel(const V1, V2: TVector3Double): boolean; overload;
   Vector V1 will be adjusted, such that it has the same length
   and the 3D plane defined by V1, V2 and (0, 0, 0) is the same.
 
-  Given V1 and V2 cannot be parallel.
+  When vectors are parallel (this includes the case when one of them is zero),
+  we set V1 to ResultWhenParallel.
 
   We make it such that V1 rotated around axis VectorProduct(V1, V2) by given
   angle will result in V2. Note that this means that
-  @code(MakeVectorsAngleDegOnTheirPlane(V1, V2, Angle))
+  @code(MakeVectorsAngleRadOnTheirPlane(V1, V2, Angle, ...))
   results in the same (not reversed) relation between vectors as
-  @code(MakeVectorsAngleDegOnTheirPlane(V2, V1, Angle)).
+  @code(MakeVectorsAngleRadOnTheirPlane(V2, V1, Angle, ...)).
   That's because you change the arguments order, but also VectorProduct
   sign changes.
   @groupBegin }
-procedure MakeVectorsAngleDegOnTheirPlane(var v1: TVector3Single;
-  const v2: TVector3Single; AngleDeg: Single); overload;
-procedure MakeVectorsAngleDegOnTheirPlane(var v1: TVector3Double;
-  const v2: TVector3Double; AngleDeg: Double); overload;
 procedure MakeVectorsAngleRadOnTheirPlane(var v1: TVector3Single;
-  const v2: TVector3Single; AngleRad: Single); overload;
+  const v2: TVector3Single; const AngleRad: Single;
+  const ResultWhenParallel: TVector3Single); overload;
 procedure MakeVectorsAngleRadOnTheirPlane(var v1: TVector3Double;
-  const v2: TVector3Double; AngleRad: Double); overload;
+  const v2: TVector3Double; const AngleRad: Double;
+  const ResultWhenParallel: TVector3Double); overload;
 { @groupEnd }
 
 { Adjust the V1 vector to force V1 and V2 to be orthogonal.
-  This is a shortcut (and may be calculated faster)
-  for @code(MakeVectorsAngleDegOnTheirPlane(V1, V2, 90)). }
+  When vectors are parallel, we set V1 to be AnyOrthogonalVector(V2). }
 procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3Single;
   const v2: TVector3Single); overload;
 procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3Double;

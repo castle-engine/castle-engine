@@ -33,6 +33,8 @@ type
     procedure TestNotifications;
     procedure TestNotificationsSceneManager;
     procedure TestList;
+    procedure TestViewVectorsOrthogonal1;
+    procedure TestViewVectorsOrthogonal2;
   end;
 
 implementation
@@ -735,6 +737,91 @@ begin
     FreeAndNil(My);
     FreeAndNil(My2);
   end;
+end;
+
+procedure AssertVectorsEqual(const V1, V2: TVector3Single);
+begin
+  Assert(VectorsEqual(V1, V2, 0.1),
+    'Vectors different: ' + VectorToNiceStr(V1) + ' ' + VectorToNiceStr(V2));
+end;
+
+procedure TTestCastle3D.TestViewVectorsOrthogonal1;
+{ Test forcing Direction/Up orthogonal by various T3DOrient routines
+  (that actually implement it by TWalkCamera routines).
+  This tests doesn't pass dir/up parallel. }
+var
+  O: T3DOrient;
+begin
+  O := T3DOrient.Create(nil);
+
+  { no need to change direction/up angle, only normalize them }
+  O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
+  AssertVectorsEqual(O.Direction, Vector3Single(1, 0, 0));
+  AssertVectorsEqual(O.Up, Vector3Single(0, 0, 1));
+
+  O.SetView(Vector3Single(0, 0, 0), Vector3Single(10, 0, 0), Vector3Single(0, 0, 10));
+  AssertVectorsEqual(O.Direction, Vector3Single(1, 0, 0));
+  AssertVectorsEqual(O.Up, Vector3Single(0, 0, 1));
+
+  { SetView corrects up vector angle }
+  O.SetView(Vector3Single(0, 0, 0), Vector3Single(10, 0, 0), Vector3Single(10, 0, 10));
+  AssertVectorsEqual(O.Direction, Vector3Single(1, 0, 0));
+  AssertVectorsEqual(O.Up, Vector3Single(0, 0, 1));
+
+  { Setting direction corrects up vector }
+  O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
+  O.Direction := Vector3Single(10, 0, 10);
+  AssertVectorsEqual(O.Direction, Normalized(Vector3Single(Sqrt(2), 0, Sqrt(2))));
+  AssertVectorsEqual(O.Up, Normalized(Vector3Single(-Sqrt(2), 0, Sqrt(2))));
+
+  { Setting up corrects direction vector }
+  O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
+  O.Up := Vector3Single(10, 0, 10);
+  AssertVectorsEqual(O.Direction, Normalized(Vector3Single(Sqrt(2), 0, -Sqrt(2))));
+  AssertVectorsEqual(O.Up, Normalized(Vector3Single(Sqrt(2), 0, Sqrt(2))));
+
+  { UpPrefer corrects up vector }
+  O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
+  O.UpPrefer(Vector3Single(10, 0, 10));
+  AssertVectorsEqual(O.Direction, Vector3Single(1, 0, 0));
+  AssertVectorsEqual(O.Up, Vector3Single(0, 0, 1));
+
+  FreeAndNil(O);
+end;
+
+procedure TTestCastle3D.TestViewVectorsOrthogonal2;
+{ Test forcing Direction/Up orthogonal by various T3DOrient routines
+  (that actually implement it by TWalkCamera routines).
+  This tests does pass dir/up parallel. }
+var
+  O: T3DOrient;
+begin
+  O := T3DOrient.Create(nil);
+
+  { SetView corrects up vector angle }
+  O.SetView(Vector3Single(0, 0, 0), Vector3Single(10, 0, 0), Vector3Single(10, 0, 0));
+  AssertVectorsEqual(O.Direction, Vector3Single(1, 0, 0));
+  AssertVectorsEqual(O.Up, AnyOrthogonalVector(Vector3Single(1, 0, 0)));
+
+  { Setting direction corrects up vector }
+  O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
+  O.Direction := Vector3Single(0, 0, 10);
+  AssertVectorsEqual(O.Direction, Vector3Single(0, 0, 1));
+  AssertVectorsEqual(O.Up, AnyOrthogonalVector(Vector3Single(0, 0, 1)));
+
+  { Setting up corrects direction vector }
+  O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
+  O.Up := Vector3Single(10, 0, 0);
+  AssertVectorsEqual(O.Direction, AnyOrthogonalVector(Vector3Single(1, 0, 0)));
+  AssertVectorsEqual(O.Up, Vector3Single(1, 0, 0));
+
+  { UpPrefer corrects up vector }
+  O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
+  O.UpPrefer(Vector3Single(10, 0, 0));
+  AssertVectorsEqual(O.Direction, Vector3Single(1, 0, 0));
+  AssertVectorsEqual(O.Up, AnyOrthogonalVector(Vector3Single(1, 0, 0)));
+
+  FreeAndNil(O);
 end;
 
 initialization

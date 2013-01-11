@@ -1029,43 +1029,25 @@ begin
             FloatsEqual(V1[c2] * Scale, V2[c2]);
 end;
 
-procedure MakeVectorsAngleDegOnTheirPlane(var v1: TVector3;
-  const v2: TVector3; AngleDeg: TScalar);
-var
-  rotAxis: TVector3;
-  v1len: TScalar;
-begin
-  (* dostosuj v1 tak zeby pomiedzy nim o wektorem v2 =
-     byl kat AngleDeg. Robimy to tak : v1 i v2 wyznaczaja plaszczyzne,
-     czyli jej wektor normalny rotAxis. Potem obroc wektor v2 o -Angle wokol
-     rotAxis - otrzymasz szukany wektor lezacy na tej samej plaszczyznie
-     co v2. Muisz obrocic o -Angle bo w interfejsie piszemy ze chcemy
-     miec sytuacje gdzie z obrot v1 wokol VectorProduct(V1, V2) da v2
-     a my tutaj obracamy przeciez v2. *)
-  v1len := VectorLen(v1);
-  rotAxis := VectorProduct(V1, V2);
-  v1 := VectorAdjustToLength(
-    RotatePointAroundAxisDeg(-AngleDeg, v2, rotAxis), v1len);
-end;
-
 procedure MakeVectorsAngleRadOnTheirPlane(var v1: TVector3;
-  const v2: TVector3; AngleRad: TScalar);
+  const v2: TVector3; const AngleRad: TScalar; const ResultWhenParallel: TVector3);
 var
   rotAxis: TVector3;
   v1len: TScalar;
 begin
   v1len := VectorLen(v1);
   rotAxis := VectorProduct(V1, V2);
-  v1 := VectorAdjustToLength(
-    RotatePointAroundAxisRad(-AngleRad, v2, rotAxis), v1len);
+  if ZeroVector(rotAxis) then
+    V1 := ResultWhenParallel else
+    V1 := VectorAdjustToLength(
+      RotatePointAroundAxisRad(-AngleRad, v2, rotAxis), v1len);
 end;
 
-procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3;
-  const v2: TVector3);
+procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3; const v2: TVector3);
 begin
   { TODO: can we speed this up ?
-    For Pi/2, we can do just v1 := VectorProduct of sthg and adjust v1 length. }
-  MakeVectorsAngleRadOnTheirPlane(V1, V2, Pi/2);
+    For Pi/2, the RotatePointAroundAxisRad can probably be speed up. }
+  MakeVectorsAngleRadOnTheirPlane(V1, V2, Pi / 2, AnyOrthogonalVector(V2));
 end;
 
 function AnyOrthogonalVector(const v: TVector3): TVector3;
