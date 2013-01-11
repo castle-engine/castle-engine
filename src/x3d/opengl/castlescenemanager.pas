@@ -711,6 +711,7 @@ type
 
     FWater: TBox3D;
     FOnMoveAllowed: TWorldMoveAllowedEvent;
+    LastSoundRefresh: TMilisecTime;
 
     { Call at the beginning of Draw (from both scene manager and custom viewport),
       to make sure UpdateGeneratedTextures was done before actual drawing. }
@@ -3028,8 +3029,12 @@ end;
 procedure TCastleSceneManager.Idle(const CompSpeed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
+const
+  { Delay between calling SoundEngine.Refresh, in miliseconds. }
+  SoundRefreshDelay = 100;
 var
   RemoveItem: TRemoveType;
+  TimeNow: TMilisecTime;
 begin
   inherited;
 
@@ -3038,6 +3043,22 @@ begin
     RemoveItem := rtNone;
     Items.Idle(CompSpeed, RemoveItem);
     { we ignore RemoveItem --- main Items list cannot be removed }
+
+    { Calling SoundEngine.Refresh relatively often is important,
+      to call OnRelease for sound sources that finished playing.
+      Some of the engine features depend that sounds OnRelease is called
+      in a timely fashion. Notably: footsteps sound (done in TPlayer.Idle)
+      relies on the fact that OnRelease of it's source will be reported
+      quickly after sound stopped. }
+    if SoundEngine.ALActive then
+    begin
+      TimeNow := GetTickCount;
+      if TimeTickSecondLater(LastSoundRefresh, TimeNow, SoundRefreshDelay) then
+      begin
+        LastSoundRefresh := TimeNow;
+        SoundEngine.Refresh;
+      end;
+    end;
   end;
 end;
 

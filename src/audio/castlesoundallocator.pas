@@ -104,7 +104,7 @@ type
       However, if this is a problem for you (because e.g. you do
       some expensive operations to update all used sources every time)
       and you really desire OnRelease to be called quickly after
-      sound stoppped playing, you may call TSoundAllocator.RefreshUsedSources
+      sound stoppped playing, you may call TSoundAllocator.Refresh
       from time to time.
 
       In this event you should make sure to delete all references
@@ -230,7 +230,7 @@ type
 
       Note that if you don't call alSourcePlay, the source may be detected
       as unused (and recycled for another sound) at the next AllocateSound,
-      PlaySound, RefreshUsedSources and such calls.
+      PlaySound, @link(Refresh) and such calls.
 
       If we can't allocate new OpenAL sound, we return nil.
       This may happen your OpenAL context is not initialized.
@@ -253,16 +253,18 @@ type
       was not yet called. }
     property AllocatedSources: TSoundList read FAllocatedSources;
 
-    { Detect unused sounds. If you rely on your sources receiving
+    { Detect unused sound sources. If you rely on your sources receiving
       TSound.OnRelease in a timely manner, be sure to call
       this method often. Otherwise, it's not needed to call this at all
       (unused sounds will be detected automatically on-demand anyway).
+
+      This is automatically called by TCastleSceneManager.
 
       For every source that is marked as Used, this checks
       whether this source is actually in playing/paused state
       right now. If not, it calls @link(Release) (thus setting
       Used to @false and triggering OnRelease) for this source. }
-    procedure RefreshUsedSources;
+    procedure Refresh;
 
     { Stop all the sources currently playing. Especially useful since
       you have to stop a source before releasing it's associated buffer. }
@@ -616,9 +618,9 @@ begin
     if (FAllocatedSources <> nil) and
        (Cardinal(FAllocatedSources.Count) > MaxAllocatedSources) then
     begin
-      { RefreshUsedSources is useful here, so that we really cut off
+      { Refresh is useful here, so that we really cut off
         the *currently* unused sources. }
-      RefreshUsedSources;
+      Refresh;
       FAllocatedSources.SortByImportance;
 
       for I := MaxAllocatedSources to FAllocatedSources.Count - 1 do
@@ -632,11 +634,11 @@ begin
   end;
 end;
 
-procedure TSoundAllocator.RefreshUsedSources;
+procedure TSoundAllocator.Refresh;
 var
   I: Integer;
 begin
-  CheckAL('before RefreshUsedSources');
+  CheckAL('before Refresh');
 
   if FAllocatedSources <> nil then
     for I := 0 to FAllocatedSources.Count - 1 do
