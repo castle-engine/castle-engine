@@ -401,7 +401,7 @@ implementation
 
 uses SysUtils, CastleGLUtils, CastleFilesUtils, CastleStringUtils,
   CastleGLImages, CastleUIControls, XMLRead, CastleInputs, CastleXMLUtils,
-  CastleRenderer, CastleRenderingCamera, Math, CastleWarnings;
+  CastleRenderer, CastleRenderingCamera, Math, CastleWarnings, X3DCameraUtils;
 
 { globals -------------------------------------------------------------------- }
 
@@ -617,8 +617,15 @@ var
     NavigationNode: TNavigationInfoNode;
     WalkCamera: TWalkCamera;
   begin
-    MainScene.GetPerspectiveViewpoint(InitialPosition,
-      InitialDirection, InitialUp, GravityUp);
+    if MainScene.ViewpointStack.Top <> nil then
+      MainScene.ViewpointStack.Top.GetView(InitialPosition,
+        InitialDirection, InitialUp, GravityUp) else
+    begin
+      InitialPosition := DefaultX3DCameraPosition[cvVrml2_X3d];
+      InitialDirection := DefaultX3DCameraDirection;
+      InitialUp := DefaultX3DCameraUp;
+      GravityUp := DefaultX3DGravityUp;
+    end;
 
     NavigationNode := MainScene.NavigationInfoStack.Top as TNavigationInfoNode;
 
