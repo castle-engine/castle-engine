@@ -21,7 +21,8 @@ uses SysUtils, Classes, CastleWindow, CastleWarnings, CastleConfig, CastleLevels
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   CastleRenderer, Castle3D, CastleFilesUtils, CastleGameNotifications,
   CastleSceneManager, CastleVectors, CastleUIControls, GL, CastleGLUtils,
-  CastleColors, CastleItems, CastleUtils, CastleCameras, CastleTextureProperties;
+  CastleColors, CastleItems, CastleUtils, CastleCameras, CastleTextureProperties,
+  CastleCreatures;
 
 var
   Window: TCastleWindow;
@@ -41,12 +42,16 @@ type
     RenderDebug3DButton: TCastleButton;
     RenderDebugCaptionsButton: TCastleButton;
     ScrenshotButton: TCastleButton;
+    AddCreatureButton: TCastleButton;
+    AddItemButton: TCastleButton;
     constructor Create(AOwner: TComponent); override;
     procedure ToggleMouseLookButtonClick(Sender: TObject);
     procedure ExitButtonClick(Sender: TObject);
     procedure RenderDebug3DButtonClick(Sender: TObject);
     procedure RenderDebugCaptionsButtonClick(Sender: TObject);
     procedure ScreenshotButtonClick(Sender: TObject);
+    procedure AddCreatureButtonClick(Sender: TObject);
+    procedure AddItemButtonClick(Sender: TObject);
   end;
 
 const
@@ -102,6 +107,22 @@ begin
   ScrenshotButton.Bottom := NextButtonBottom;
   Window.Controls.Add(ScrenshotButton);
   NextButtonBottom += ScrenshotButton.Height + ControlsMargin;
+
+  AddCreatureButton := TCastleButton.Create(Application);
+  AddCreatureButton.Caption := 'Add creature (F9)';
+  AddCreatureButton.OnClick := @AddCreatureButtonClick;
+  AddCreatureButton.Left := ControlsMargin;
+  AddCreatureButton.Bottom := NextButtonBottom;
+  Window.Controls.Add(AddCreatureButton);
+  NextButtonBottom += AddCreatureButton.Height + ControlsMargin;
+
+  AddItemButton := TCastleButton.Create(Application);
+  AddItemButton.Caption := 'Add item (F10)';
+  AddItemButton.OnClick := @AddItemButtonClick;
+  AddItemButton.Left := ControlsMargin;
+  AddItemButton.Bottom := NextButtonBottom;
+  Window.Controls.Add(AddItemButton);
+  NextButtonBottom += AddItemButton.Height + ControlsMargin;
 end;
 
 procedure TButtons.ToggleMouseLookButtonClick(Sender: TObject);
@@ -141,6 +162,39 @@ begin
   FileName := FileNameAutoInc(ApplicationName + '_screen_%d.png');
   Window.SaveScreen(FileName);
   Notifications.Show('Saved screen to ' + FileName);
+end;
+
+procedure TButtons.AddCreatureButtonClick(Sender: TObject);
+var
+  Position: TVector3Single;
+  Direction: TVector3Single;
+  CreatureResource: TCreatureResource;
+begin
+  Position := Player.Position + Player.Direction * 10;
+  { increase default height, as dropping from above looks better }
+  Position[1] += 5;
+  Direction := Player.Direction; { by default creature is facing back to player }
+  CreatureResource := Resources.FindName('Knight') as TCreatureResource;
+  { CreateCreature creates TCreature instance and adds it to SceneManager.Items }
+  CreatureResource.CreateCreature(SceneManager.Items, Position, Direction);
+end;
+
+procedure TButtons.AddItemButtonClick(Sender: TObject);
+var
+  Position: TVector3Single;
+  ItemResource: TItemResource;
+begin
+  Position := Player.Position + Player.Direction * 10;
+  { increase default height, as dropping from above looks better }
+  Position[1] += 5;
+  ItemResource := Resources.FindName('MedKit') as TItemResource;
+  { ItemResource.CreateItem(<quantity>) creates new TInventoryItem instance.
+    PutOnWorld method creates TItemOnWorld (that "wraps" the TInventoryItem
+    instance) and adds it to SceneManager.Items. }
+  ItemResource.CreateItem(1).PutOnWorld(SceneManager.Items, Position);
+
+  { You could instead add the item directly to someone's inventory, like this: }
+  // Player.PickItem(ItemResource.CreateItem(1));
 end;
 
 var
@@ -260,7 +314,11 @@ begin
   if Event.IsKey(CharEscape) then
     Buttons.ExitButtonClick(nil) else
   if Event.IsKey(K_F5) then
-    Buttons.ScreenshotButtonClick(nil);
+    Buttons.ScreenshotButtonClick(nil) else
+  if Event.IsKey(K_F9) then
+    Buttons.AddCreatureButtonClick(nil) else
+  if Event.IsKey(K_F10) then
+    Buttons.AddItemButtonClick(nil);
 end;
 
 procedure Resize(Window: TCastleWindowBase);
