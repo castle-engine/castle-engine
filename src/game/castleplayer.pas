@@ -976,10 +976,10 @@ procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
         The decision to not use looping sound means that
         end of footsteps sound should be detected
         almost immediately (otherwise player will hear a little pause
-        in footsteps, due to the time of OnTimer that calls RefreshUsed
-        of source allocator --- it's very short pause, but it's noticeable,
-        since footsteps should be rhytmic). I prefer to not rely on RefreshUsed
-        for this and instead just check this here. }
+        in footsteps, due to the delay between SoundEngine.Refresh calls,
+        it's very short pause, but it's noticeable,
+        since footsteps should be rhytmic). I prefer to not rely
+        on SoundEngine.Refresh for this and instead just check this here. }
       if not FootstepsSound.PlayingOrPaused then
         alSourcePlay(FootstepsSound.ALSource);
     end;
