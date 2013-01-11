@@ -1329,19 +1329,20 @@ begin
   if (P <> nil) and not (P.Blocked or P.Dead) then
   begin
     if Input_Attack.IsEvent(Event) then
-      begin Result := true; P.Attack; end;
+      begin Result := ExclusiveEvents; P.Attack; end;
     if Input_CancelFlying.IsEvent(Event) then
-      begin Result := true; P.Flying := false; end;
+      begin Result := ExclusiveEvents; P.Flying := false; end;
     if Input_InventoryShow.IsEvent(Event) then
-      begin Result := true; P.InventoryVisible := not P.InventoryVisible; end;
+      begin Result := ExclusiveEvents; P.InventoryVisible := not P.InventoryVisible; end;
     if Input_InventoryPrevious.IsEvent(Event) then
-      begin Result := true; P.ChangeInventoryCurrentItem(-1); end;
+      begin Result := ExclusiveEvents; P.ChangeInventoryCurrentItem(-1); end;
     if Input_InventoryNext.IsEvent(Event) then
-      begin Result := true; P.ChangeInventoryCurrentItem(+1); end;
+      begin Result := ExclusiveEvents; P.ChangeInventoryCurrentItem(+1); end;
     if Input_DropItem.IsEvent(Event) then
-      begin Result := true; P.DropCurrentItem; end;
+      begin Result := ExclusiveEvents; P.DropCurrentItem; end;
     if Input_UseItem.IsEvent(Event) then
-      begin Result := true; P.UseCurrentItem; end;
+      begin Result := ExclusiveEvents; P.UseCurrentItem; end;
+    if Result then Exit;
   end;
 
   { Let Camera only work after PointingDeviceActivate, to let pointing
