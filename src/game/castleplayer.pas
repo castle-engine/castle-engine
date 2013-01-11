@@ -139,6 +139,11 @@ type
     FFallDamageScaleMax: Single;
     FFallSound: TSoundType;
     FHeadBobbing: Single;
+    FSwimBreath: Single;
+    FDrownPause: Single;
+    FDrownDamageConst: Single;
+    FDrownDamageRandom: Single;
+    FSwimSoundPause: Single;
 
     procedure SetEquippedWeapon(Value: TItemWeapon);
 
@@ -181,6 +186,11 @@ type
       DefaultSickProjectionSpeed = 2.0;
       DefaultRenderOnTop = true;
       DefaultPlayerKnockBackSpeed = 20.0;
+      DefaultSwimBreath = 30.0;
+      DefaultDrownPause = 5.0;
+      DefaultDrownDamageConst = 5.0;
+      DefaultDrownDamageRandom = 10.0;
+      DefaultSwimSoundPause = 3.11111111;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -359,6 +369,21 @@ type
       and TWalkCamera.HeadBobbingTime. }
     property HeadBobbing: Single
       read FHeadBobbing write FHeadBobbing default TWalkCamera.DefaultHeadBobbing;
+
+    { How many seconds you can swin before you start to drown. }
+    property SwimBreath: Single read FSwimBreath write FSwimBreath default DefaultSwimBreath;
+
+    { How many seconds between each drown event.
+      Drown event makes stPlayerDrowning sound and causes damage
+      DrownDamageConst + Random * DrownDamageRandom. }
+    property DrownPause: Single read FDrownPause write FDrownPause default DefaultDrownPause;
+    property DrownDamageConst: Single read FDrownDamageConst write FDrownDamageConst default DefaultDrownDamageConst;
+    property DrownDamageRandom: Single read FDrownDamageRandom write FDrownDamageRandom default DefaultDrownDamageRandom;
+
+    { Pause, in seconds, between playing stPlayerSwimming sound.
+      This should be something that is not easily synchronized
+      with SwimDrownPause. }
+    property SwimSoundPause: Single read FSwimSoundPause write FSwimSoundPause default DefaultSwimSoundPause;
   published
     property KnockBackSpeed default DefaultPlayerKnockBackSpeed;
   end;
@@ -459,6 +484,11 @@ begin
   FFallSound := SoundEngine.SoundFromName(DefaultPlayerFallSoundName, false);
   KnockBackSpeed := DefaultPlayerKnockBackSpeed;
   FSickProjectionSpeed := DefaultSickProjectionSpeed;
+  FSwimBreath := DefaultSwimBreath;
+  FDrownPause := DefaultDrownPause;
+  FDrownDamageConst := DefaultDrownDamageConst;
+  FDrownDamageRandom := DefaultDrownDamageRandom;
+  FSwimSoundPause := DefaultSwimSoundPause;
 
   Add(TPlayerBox.Create(Self));
 
@@ -785,15 +815,6 @@ procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 
   { Perform various things related to player swimming. }
   procedure UpdateSwimming;
-  const
-    { How many seconds you can swin before you start to drown ? }
-    SwimBreathSeconds = 30.0;
-    { How many seconds between each drown ? }
-    SwimDrownPauseSeconds = 5.0;
-    { Pause between playing stPlayerSwimming sound.
-      Remember to set this so that it will *not* easily synchronize
-      with stPlayerDrowning. }
-    SwimSoundPauseSeconds = 3.11111111;
   var
     NewSwimming: TPlayerSwimming;
   begin
@@ -813,15 +834,15 @@ procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
       { Take care of drowning. }
       if not Dead then
       begin
-        if LifeTime - SwimBeginTime > SwimBreathSeconds then
+        if LifeTime - SwimBeginTime > SwimBreath then
         begin
           if (SwimLastDrownTime = 0.0) or
-             (LifeTime - SwimLastDrownTime > SwimDrownPauseSeconds) then
+             (LifeTime - SwimLastDrownTime > DrownPause) then
           begin
             if SwimLastDrownTime = 0.0 then
               Notifications.Show('You''re drowning');
             SwimLastDrownTime := LifeTime;
-            Life := Life - (5 + Random(10));
+            Life := Life - (DrownDamageConst + Random * DrownDamageRandom);
             SoundEngine.Sound(stPlayerDrowning);
           end;
         end;
@@ -833,7 +854,7 @@ procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
         only when SwimmingSound = nil. }
       if (SwimmingSound = nil) and
          ( (SwimLastSoundTime = 0.0) or
-           (LifeTime - SwimLastSoundTime > SwimSoundPauseSeconds) ) then
+           (LifeTime - SwimLastSoundTime > SwimSoundPause) ) then
       begin
         SwimLastSoundTime := LifeTime;
         SwimmingSound := SoundEngine.Sound(stPlayerSwimming);
@@ -1158,6 +1179,11 @@ begin
     FallDamageScaleMin := Config.GetFloat('fall/damage/scale_min', DefaultFallDamageScaleMin);
     FallDamageScaleMax := Config.GetFloat('fall/damage/scale_max', DefaultFallDamageScaleMax);
     FallSound := SoundEngine.SoundFromName(Config.GetValue('fall/sound/name', DefaultPlayerFallSoundName), false);
+    FSwimBreath := Config.GetFloat('swim/breath', DefaultSwimBreath);
+    FSwimSoundPause := Config.GetFloat('swim/sound_pause', DefaultSwimSoundPause);
+    FDrownPause := Config.GetFloat('drown/pause', DefaultDrownPause);
+    FDrownDamageConst := Config.GetFloat('drown/damage/const', DefaultDrownDamageConst);
+    FDrownDamageRandom := Config.GetFloat('drown/damage/random', DefaultDrownDamageRandom);
   finally FreeAndNil(Config); end;
 end;
 
