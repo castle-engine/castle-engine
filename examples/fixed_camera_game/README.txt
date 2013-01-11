@@ -1,7 +1,7 @@
 "The Rift"
 
 ------------------------------------------------------------------------------
-What it is?
+What is it?
 
 "The Rift" is a demo how to make a game with fixed camera/background
 mixed with animated 3D, using the Castle Game Engine.
