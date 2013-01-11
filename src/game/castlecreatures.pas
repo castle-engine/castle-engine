@@ -1019,7 +1019,14 @@ begin
   { set properties that in practice must have other-than-default values
     to sensibly use the creature }
   Result.FResource := Self;
-  Result.SetView(APosition, ADirection, World.GravityUp);
+  Result.SetView(APosition, ADirection, World.GravityUp,
+    { When Flying = false, SetView will adjust direction vector,
+      and leave up vector = GravityUp. This is important as current
+      TWalkAttackCreature AI assumes that the non-flying creature
+      is always standing up, it cannot really fix cases when up is different
+      (e.g. orthogonal to World.GravityUp, which means that creature is lying on
+      the floor --- such creature would remain lying on the floor forever). }
+    Flying);
   Result.Life := MaxLife;
   Result.KnockBackSpeed := KnockBackSpeed;
   Result.Gravity := not Flying;
