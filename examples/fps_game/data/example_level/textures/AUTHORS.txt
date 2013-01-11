@@ -7,3 +7,9 @@ brushwalker437.png:
   from http://opengameart.org/node/10593
   by http://opengameart.org/users/qubodup
   license: public domain
+
+large-stone-wall.png and stone_wall_4.png:
+  from http://opengameart.org/content/wall-grass-rock-stone-wood-and-dirt-480
+  by West
+    submitted by http://opengameart.org/users/qubodup
+  license: public domain
