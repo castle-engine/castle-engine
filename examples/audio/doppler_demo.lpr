@@ -68,7 +68,7 @@ begin
 end;
 
 var
-   Buffer: TSoundBuffer;
+  Buffer: TSoundBuffer;
 begin
   Window := TCastleWindowDemo.Create(Application);
 
