@@ -458,6 +458,7 @@ begin
   FFallDamageScaleMax := DefaultFallDamageScaleMax;
   FFallSound := SoundEngine.SoundFromName(DefaultPlayerFallSoundName, false);
   KnockBackSpeed := DefaultPlayerKnockBackSpeed;
+  FSickProjectionSpeed := DefaultSickProjectionSpeed;
 
   Add(TPlayerBox.Create(Self));
 
