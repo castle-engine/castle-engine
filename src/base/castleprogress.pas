@@ -187,9 +187,9 @@ finally Progress.Fini; end;
       The advantage of DelayUserInterface is that if
       an operation will take a very short time, we will not waste
       time on possibly lengthy initialization of the progress bar
-      interface. For example, GLProgress has to capture OpenGL screen
+      interface. For example, CastleWindowProgress may have to capture OpenGL screen
       at the initialization, which takes a noticeable fraction of second
-      by itself. So it's not sensible to init GLProgress if an entire
+      by itself. So it's not sensible to init CastleWindowProgress if an entire
       operation between Progress.Init and Fini will take only 0.001 of second..
 
       The only downside of DelayUserInterface is that it's not applicable
@@ -263,115 +263,115 @@ end;
 procedure TProgress.Init(AMax: Cardinal; const ATitle: string;
   const DelayUserInterface: boolean);
 begin
- Check(not Active, 'TProgress.Init error: progress is already active');
- FActive := true;
+  Check(not Active, 'TProgress.Init error: progress is already active');
+  FActive := true;
 
- Check(UserInterface <> nil,
-   'TProgress.Init error: UserInterface not initialized');
+  Check(UserInterface <> nil,
+    'TProgress.Init error: UserInterface not initialized');
 
- FPosition := 0;
+  FPosition := 0;
 
- { Max(AMax, 1) secures us against AMax <= 0 values.
+  { Max(AMax, 1) secures us against AMax <= 0 values.
 
-   (Otherwise, it would have to be secured at many places when calling
-   Progress.Init, as sometimes AMax <= 0 values values can naturally
-   occur. Consider e.g. building octree, when the VRML scene turns out
-   to be empty.)
+    (Otherwise, it would have to be secured at many places when calling
+    Progress.Init, as sometimes AMax <= 0 values values can naturally
+    occur. Consider e.g. building octree, when the VRML scene turns out
+    to be empty.)
 
-   The idea is that AMax <= 0 means that actually operation is already
-   finished. So we'll set Max to 1 (to allow UserInterface to display it,
-   since user interface can display only Max >= 1 values)
-   and we'll do Step(1) immediately at the end of TProgress.Init,
-   to show to user that operation is already done. }
- FMax := CastleUtils.Max(AMax, 1);
+    The idea is that AMax <= 0 means that actually operation is already
+    finished. So we'll set Max to 1 (to allow UserInterface to display it,
+    since user interface can display only Max >= 1 values)
+    and we'll do Step(1) immediately at the end of TProgress.Init,
+    to show to user that operation is already done. }
+  FMax := CastleUtils.Max(AMax, 1);
 
- FTitle := ATitle;
+  FTitle := ATitle;
 
- { Calling UserInterface.Init updates LastUpdatePos and LastUpdateTick,
-   just like calling UserInterface.Update. }
- LastUpdatePos := FPosition;
- LastUpdateTick := GetTickCount;
+  { Calling UserInterface.Init updates LastUpdatePos and LastUpdateTick,
+    just like calling UserInterface.Update. }
+  LastUpdatePos := FPosition;
+  LastUpdateTick := GetTickCount;
 
- UserInterfaceDelayed := DelayUserInterface;
+  UserInterfaceDelayed := DelayUserInterface;
 
- if not UserInterfaceDelayed then
- try
-   UserInterface.Init(Self);
- except
-   { In case of problems within UserInterface.Init, call Fini
-     to change our state to not Active. }
-   Fini;
-   raise;
- end;
+  if not UserInterfaceDelayed then
+  try
+    UserInterface.Init(Self);
+  except
+    { In case of problems within UserInterface.Init, call Fini
+      to change our state to not Active. }
+    Fini;
+    raise;
+  end;
 
- { This means that AMax < Max(AMax, 1), in other words: AMax <= 0.
-   Then show to user that this operation actually finished. }
- try
-   if AMax < Max then Step;
- except
-   { In case of problems within UserInterface.Init, call Fini
-     to change our state to not Active. }
-   Fini;
-   raise;
- end;
+  { This means that AMax < Max(AMax, 1), in other words: AMax <= 0.
+    Then show to user that this operation actually finished. }
+  try
+    if AMax < Max then Step;
+  except
+    { In case of problems within UserInterface.Init, call Fini
+      to change our state to not Active. }
+    Fini;
+    raise;
+  end;
 end;
 
 procedure TProgress.Step(StepSize: Cardinal);
 begin
- Assert(Active, 'TProgress.Step error: progress is not active');
+  Assert(Active, 'TProgress.Step error: progress is not active');
 
- FPosition := FPosition + StepSize;
- if Position > Max then FPosition := Max;
+  FPosition := FPosition + StepSize;
+  if Position > Max then FPosition := Max;
 
- if UserInterfaceDelayed then
- begin
-   { Either actually init user interface, or resign from calling
-     UserInterface.Update. }
-   if TimeTickDiff(LastUpdateTick, GetTickCount) > UpdateTicks then
-   begin
-     UserInterface.Init(Self);
-     UserInterfaceDelayed := false;
-   end else
-     Exit;
- end;
+  if UserInterfaceDelayed then
+  begin
+    { Either actually init user interface, or resign from calling
+      UserInterface.Update. }
+    if TimeTickDiff(LastUpdateTick, GetTickCount) > UpdateTicks then
+    begin
+      UserInterface.Init(Self);
+      UserInterfaceDelayed := false;
+    end else
+      Exit;
+  end;
 
- if ((Position - LastUpdatePos) / Max > 1 / UpdatePart) and
-    (TimeTickDiff(LastUpdateTick, GetTickCount) > UpdateTicks) then
- begin
-  LastUpdatePos := FPosition;
-  LastUpdateTick := GetTickCount;
-  UserInterface.Update(Self);
+  if ((Position - LastUpdatePos) / Max > 1 / UpdatePart) and
+     (TimeTickDiff(LastUpdateTick, GetTickCount) > UpdateTicks) then
+  begin
+    LastUpdatePos := FPosition;
+    LastUpdateTick := GetTickCount;
+    UserInterface.Update(Self);
 
-  {$ifdef TESTING_PROGRESS_DELAY}
-  Sleep(10);
-  {$endif}
- end;
+    {$ifdef TESTING_PROGRESS_DELAY}
+    Sleep(10);
+    {$endif}
+  end;
 end;
 
 procedure TProgress.Fini;
 begin
- Check(Active, 'TProgress.Fini error: progress is not active');
- FActive := false;
+  Check(Active, 'TProgress.Fini error: progress is not active');
+  FActive := false;
 
- if not UserInterfaceDelayed then
- begin
-   { update to reflect the current state of Position, if needed.
-     Note that this does NOT mean that at the end Position is = Max.
-     Noone ever guarantees that -- you can call Fini before Position
-     reaches Max. }
-   if LastUpdatePos < Position then
-     UserInterface.Update(Self);
+  if not UserInterfaceDelayed then
+  begin
+    { update to reflect the current state of Position, if needed.
+      Note that this does NOT mean that at the end Position is = Max.
+      Noone ever guarantees that -- you can call Fini before Position
+      reaches Max. }
+    if LastUpdatePos < Position then
+      UserInterface.Update(Self);
 
-   UserInterface.Fini(Self);
- end;
+    UserInterface.Fini(Self);
+  end;
 end;
 
 constructor TProgress.Create;
 begin
- inherited;
- UpdatePart := DefaultUpdatePart;
- UpdateTicks := DefaultUpdateTicks;
- FActive := false;
+  inherited;
+  UpdatePart := DefaultUpdatePart;
+  UpdateTicks := DefaultUpdateTicks;
+  FActive := false;
 end;
 
 { TProgressNullInterface ----------------------------------------------------- }
@@ -391,12 +391,12 @@ end;
 { initialization / finalization ---------------------------------------------- }
 
 initialization
- Progress := TProgress.Create;
- ProgressNullInterface := TProgressNullInterface.Create;
- { initialize Progress.UserInterface to null interface,
-   this way Progress.Init etc. may be always safely called }
- Progress.UserInterface := ProgressNullInterface;
+  Progress := TProgress.Create;
+  ProgressNullInterface := TProgressNullInterface.Create;
+  { initialize Progress.UserInterface to null interface,
+    this way Progress.Init etc. may be always safely called }
+  Progress.UserInterface := ProgressNullInterface;
 finalization
- FreeAndNil(Progress);
- FreeAndNil(ProgressNullInterface);
+  FreeAndNil(Progress);
+  FreeAndNil(ProgressNullInterface);
 end.
