@@ -1,0 +1,9 @@
+tilable-img_0044.png:
+  from http://opengameart.org/node/9703
+  by http://opengameart.org/users/p0ss
+  license: GPL 2.0 or above
+
+brushwalker437.png:
+  from http://opengameart.org/node/10593
+  by http://opengameart.org/users/qubodup
+  license: public domain
