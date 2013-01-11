@@ -21,7 +21,7 @@ uses SysUtils, Classes, CastleWindow, CastleWarnings, CastleConfig, CastleLevels
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   CastleRenderer, Castle3D, CastleFilesUtils, CastleGameNotifications,
   CastleSceneManager, CastleVectors, CastleUIControls, GL, CastleGLUtils,
-  CastleColors, CastleItems, CastleUtils;
+  CastleColors, CastleItems, CastleUtils, CastleCameras;
 
 var
   Window: TCastleWindow;
@@ -481,6 +481,9 @@ begin
     using camera properties from level 3D file (TCastleSceneManager.MainScene). }
   if ExtraViewport.Camera = nil then
     ExtraViewport.Camera := SceneManager.CreateDefaultCamera(ExtraViewport);
+  { The default CreateDefaultCamera implementation always creates
+    TUniversalCamera, so we can safely cast below. }
+  (ExtraViewport.Camera as TUniversalCamera).NavigationType := ntExamine;
   ExtraViewport.Camera.SetInitialView(
     { position } Vector3Single(0, 50, 0),
     { direction } Vector3Single(0, -1, 0),
