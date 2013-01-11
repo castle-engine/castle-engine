@@ -11,6 +11,10 @@ eye_shoot.wav (original name shot2.ogg):
   Somewhat retouched by Michalis Kamburelis, using Audacity.
 
 footsteps_grass:
+player_drowning:
+player_swimming_change:
+player_swimming:
   from http://www.flashkit.com/soundfx/
   (unfortunately do not remember exact URL, I used this sound in castle1 game)
   public domain
+

@@ -3,5 +3,15 @@
 <sounds>
   <sound name="medkit_use" default_importance="player"/>
   <sound name="eye_shoot" default_importance="player"/>
+
+  <!-- Footsteps sounds are assigned to a ground texture
+       in ../texture_properties.xml file -->
   <sound name="footsteps_grass" default_importance="player"/>
+
+  <!-- Sound names below are defined by the engine, see CastleSoundEngine unit.
+       They are automatically used by the engine (if defined) when certain
+       situations occur. -->
+  <sound name="player_drowning" default_importance="player"/>
+  <sound name="player_swimming_change" default_importance="player"/>
+  <sound name="player_swimming" default_importance="player"/>
 </sounds>

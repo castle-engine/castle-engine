@@ -235,6 +235,9 @@ begin
     They can be even set up completely in VRML/X3D file (no need for ObjectPascal
     code). Engine example examples/3d_rendering_processing/multiple_viewports.lpr
     shows how to set them up in code. }
+  if Player.Swimming = psUnderWater then
+    GLBlendRectangle(0, 0, ContainerWidth, ContainerHeight,
+      GL_ONE, GL_SRC_ALPHA, Vector4Single(0, 0, 0.1, 0.5));
   if Player.Dead then
     GLFadeRectangle(0, 0, ContainerWidth, ContainerHeight, Red3Single, 1.0) else
     GLFadeRectangle(0, 0, ContainerWidth, ContainerHeight,
