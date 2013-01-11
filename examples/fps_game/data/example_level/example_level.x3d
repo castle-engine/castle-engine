@@ -332,12 +332,12 @@
 		<Transform DEF="CasResKnight_002_TRANSFORM"
 		           translation="15.558959 1.157280 -16.282112"
 		           scale="1.000000 1.000000 1.000000"
-		           rotation="-0.553325 -0.588995 -0.588995 2.130807"
+		           rotation="-0.862575 0.357747 0.357747 1.718094"
 		           >
 			<Transform DEF="CasResKnight_002_ifs_TRANSFORM"
-			           translation="0.000001 -0.000000 0.000000"
+			           translation="0.000002 0.000001 0.000000"
 			           scale="1.000000 1.000000 1.000000"
-			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           rotation="0.000000 0.000000 0.000000 0.000000"
 			           >
 				<Group DEF="group_ME_Cube_002">
 					<Shape>

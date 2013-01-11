@@ -771,7 +771,7 @@ end;
 
 procedure TItemWeapon.Attack;
 var
-  Own: T3DOrient;
+  Attacker: T3DAlive;
   AttackDC, AttackDR, AttackKD: Single;
   AttackSoundHitDone: boolean;
 
@@ -782,7 +782,7 @@ var
       SoundEngine.Sound(Resource.AttackSoundHit);
       AttackSoundHitDone := true;
     end;
-    Enemy.Hurt(AttackDC + Random * AttackDR, Own.Direction, AttackKD);
+    Enemy.Hurt(AttackDC + Random * AttackDR, Attacker.Direction, AttackKD, Attacker);
   end;
 
   procedure ShootAttack;
@@ -793,7 +793,7 @@ var
     { TODO: allow some helpers for aiming,
       similar to TCastleSceneManager.ApproximateActivation
       or maybe just collide a tube (not infinitely thin ray) with world. }
-    Hit := Own.Ray(Own.Middle, Own.Direction);
+    Hit := Attacker.Ray(Attacker.Middle, Attacker.Direction);
     if Hit <> nil then
     begin
       for I := 0 to Hit.Count - 1 do
@@ -812,8 +812,8 @@ var
     Enemy: T3DAlive;
     WeaponBoundingBox: TBox3D;
   begin
-    { Own.Direction may be multiplied by something here for long-range weapons }
-    WeaponBoundingBox := Own.BoundingBox.Translate(Own.Direction);
+    { Attacker.Direction may be multiplied by something here for long-range weapons }
+    WeaponBoundingBox := Attacker.BoundingBox.Translate(Attacker.Direction);
     { Tests: Writeln('WeaponBoundingBox is ', WeaponBoundingBox.ToNiceStr); }
     { TODO: we would prefer to use World.BoxCollision for this,
       but we need to know which creature was hit. }
@@ -822,7 +822,7 @@ var
       begin
         Enemy := T3DAlive(World[I]);
         { Tests: Writeln('Creature bbox is ', C.BoundingBox.ToNiceStr); }
-        if (Enemy <> Own) and
+        if (Enemy <> Attacker) and
           Enemy.BoundingBox.Collision(WeaponBoundingBox) then
           ImmediateAttackHit(Enemy);
       end;
@@ -831,7 +831,7 @@ var
   procedure FireMissileAttack;
   begin
     (Resources.FindName(Resource.FireMissileName) as TCreatureResource).
-       CreateCreature(World, Own.Position, Own.Direction);
+       CreateCreature(World, Attacker.Position, Attacker.Direction);
     SoundEngine.Sound(Resource.FireMissileSound);
   end;
 
@@ -841,9 +841,9 @@ begin
   { attacking only works when there's an owner (player, in the future creature
     should also be able to use it) of the weapon }
   if (Owner3D <> nil) and
-     (Owner3D is T3DOrient) then
+     (Owner3D is T3DAlive) then
   begin
-    Own := T3DOrient(Owner3D);
+    Attacker := T3DAlive(Owner3D);
 
     AttackDC := Resource.AttackDamageConst;
     AttackDR := Resource.AttackDamageRandom;

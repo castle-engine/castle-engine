@@ -308,6 +308,7 @@ type
     FPreferredDistance: Single;
     FRunAwayLife: Single;
     FRunAwayDistance: Single;
+    FVisibilityAngle: Single;
     FAttackMinDelay: Single;
     FAttackMaxDistance: Single;
     FAttackMaxAngle: Single;
@@ -332,6 +333,7 @@ type
       DefaultPreferredDistance = 2.0;
       DefaultRunAwayLife = 0.3;
       DefaultRunAwayDistance = 10.0;
+      DefaultVisibilityAngle = Pi * 2 / 3; //< 120 degrees.
 
       DefaultAttackTime = 0.0;
       DefaultAttackMinDelay = 2.0;
@@ -345,6 +347,8 @@ type
       DefaultFireMissileHeight = 0.5;
 
     constructor Create(const AName: string); override;
+    procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
+    function CreatureClass: TCreatureClass; override;
 
     { An animation of standing still (being idle).
       Will be played in a loop, so for best look make sure that
@@ -526,8 +530,17 @@ type
       read FRunAwayDistance write FRunAwayDistance default DefaultRunAwayDistance;
     { @groupEnd }
 
-    procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
-    function CreatureClass: TCreatureClass; override;
+    { Creature will only see other things (like enemies) within a cone
+      of this angle. This way, the creature only looks forward, and you can
+      sneak upon a creature from the back. Simply set this to >= 2 * Pi
+      to remove this limit.
+
+      Note that the creature also becomes aware of the enemy when it is
+      hurt by a direct attack, regardless of VisibilityAngle. This way
+      if you sneak and attack a creature from the back, it will turn around
+      and fight you. }
+    property VisibilityAngle: Single read FVisibilityAngle write FVisibilityAngle
+      default DefaultVisibilityAngle;
 
     { When creature is wounded for more than MaxLife * MinLifeLossToHurt
       points and moreover Random < ChanceToHurt then creature will
@@ -857,7 +870,7 @@ type
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
 
     procedure Hurt(const LifeLoss: Single; const HurtDirection: TVector3Single;
-      const AKnockbackDistance: Single); override;
+      const AKnockbackDistance: Single; const Attacker: T3DAlive); override;
   end;
 
   { Creature using TMissileCreatureResource. }
@@ -1085,6 +1098,7 @@ begin
   FPreferredDistance := DefaultPreferredDistance;
   FRunAwayLife := DefaultRunAwayLife;
   FRunAwayDistance := DefaultRunAwayDistance;
+  FVisibilityAngle := DefaultVisibilityAngle;
   FAttackTime := DefaultAttackTime;
   FAttackMinDelay := DefaultAttackMinDelay;
   FAttackMaxDistance := DefaultAttackMaxDistance;
@@ -1122,7 +1136,7 @@ begin
   RemoveDead := ResourceConfig.GetValue('remove_dead', DefaultRemoveDead);
   RunAwayLife := ResourceConfig.GetFloat('run_away/life', DefaultRunAwayLife);
   RunAwayDistance := ResourceConfig.GetFloat('run_away/distance', DefaultRunAwayDistance);
-
+  VisibilityAngle := ResourceConfig.GetFloat('visibility/angle', DefaultVisibilityAngle);
   PreferredDistance := ResourceConfig.GetFloat('preferred_distance', DefaultPreferredDistance);
 
   AttackTime := ResourceConfig.GetFloat('attack/time', DefaultAttackTime);
@@ -1431,7 +1445,7 @@ begin
       FallHeight * MapRange(Random, 0.0, 1.0,
         Resource.FallDamageScaleMin,
         Resource.FallDamageScaleMax)),
-      ZeroVector3Single, 0);
+      ZeroVector3Single, 0, nil);
 end;
 
 procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
@@ -1484,7 +1498,7 @@ begin
   if HurtEnemy <> nil then
     HurtEnemy.Hurt(Resource.AttackDamageConst +
       Random * Resource.AttackDamageRandom, Direction,
-      Resource.AttackKnockbackDistance);
+      Resource.AttackKnockbackDistance, Self);
 end;
 
 function TCreature.Sphere(out Radius: Single): boolean;
@@ -2193,7 +2207,10 @@ begin
   end;
 
   E := Enemy;
-  EnemyVisibleNow := (E <> nil) and LineOfSight(Middle, E.Middle);
+  EnemyVisibleNow := (E <> nil) and
+    (AngleRadBetweenNormals(E.Middle - Middle, Direction) <=
+     Resource.VisibilityAngle / 2) and
+    LineOfSight(Middle, E.Middle);
   if EnemyVisibleNow then
   begin
     HasLastSeenEnemy := true;
@@ -2359,10 +2376,20 @@ end;
 
 procedure TWalkAttackCreature.Hurt(const LifeLoss: Single;
   const HurtDirection: TVector3Single;
-  const AKnockbackDistance: Single);
+  const AKnockbackDistance: Single; const Attacker: T3DAlive);
 begin
   inherited Hurt(LifeLoss, HurtDirection,
-    AKnockbackDistance * Resource.KnockedBackDistance);
+    AKnockbackDistance * Resource.KnockedBackDistance, Attacker);
+
+  { If attacked by Enemy, update LastSeenEnemy fields.
+    This way when you attack a creature from the back, it will turn around
+    and fight you. }
+  if (Attacker <> nil) and (Attacker = Enemy) then
+  begin
+    HasLastSeenEnemy := true;
+    LastSeenEnemy := Attacker.Middle;
+    LastSeenEnemySector := Attacker.Sector;
+  end;
 end;
 
 procedure TWalkAttackCreature.Render(const Frustum: TFrustum; const Params: TRenderParams);
@@ -2532,7 +2559,7 @@ begin
     So do here additional checks for collision and hurt player and creatures. }
 
   Sound3d(Resource.SoundHit, 0, false);
-  Hurt(1000 * 1000, ZeroVector3Single, 0);
+  Hurt(1000 * 1000, ZeroVector3Single, 0, Self);
 end;
 
 procedure TMissileCreature.HitPlayer;

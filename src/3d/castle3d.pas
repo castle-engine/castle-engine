@@ -1689,10 +1689,15 @@ type
 
       AKnockbackDistance, if non-zero, indicates to push creature by given
       length in the direction given by HurtDirection.
-      Ignored if HurtDirection is zero. }
+      Ignored if HurtDirection is zero.
+
+      Attacker is the other alive creature that caused this damage. It may be @nil
+      if no other T3DAlive is directly responsible for this damage. This may
+      be useful for various purposes, for example the victim may become aware
+      of attacker presence when it's attacked. }
     procedure Hurt(const LifeLoss: Single;
       const HurtDirection: TVector3Single;
-      const AKnockbackDistance: Single); virtual;
+      const AKnockbackDistance: Single; const Attacker: T3DAlive); virtual;
 
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
 
@@ -4016,7 +4021,7 @@ end;
 
 procedure T3DAlive.Hurt(const LifeLoss: Single;
   const HurtDirection: TVector3Single;
-  const AKnockbackDistance: Single);
+  const AKnockbackDistance: Single; const Attacker: T3DAlive);
 begin
   Life := Life - LifeLoss;
   FKnockbackDistance := AKnockbackDistance;
