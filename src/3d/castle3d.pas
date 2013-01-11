@@ -1371,10 +1371,14 @@ type
 
       ADir and AUp given here do not have to be normalized
       (they will be normalized if needed).
-      They cannot be parallel (will be fixed internally to be exactly orthogonal,
-      by changing up vector). }
-    procedure SetView(const APos, ADir, AUp: TVector3Single);
-    procedure SetView(const ADir, AUp: TVector3Single);
+      They will be automatically fixed to be orthogonal, if necessary:
+      when AdjustUp = @true (the default) we will adjust the up vector
+      (preserving the given direction value),
+      otherwise we will adjust the direction (preserving the given up value). }
+    procedure SetView(const APos, ADir, AUp: TVector3Single;
+      const AdjustUp: boolean = true);
+    procedure SetView(const ADir, AUp: TVector3Single;
+      const AdjustUp: boolean = true);
 
     { Change up vector, keeping the direction unchanged.
       If necessary, the up vector provided here will be fixed to be orthogonal
@@ -3646,15 +3650,17 @@ begin
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
-procedure T3DOrient.SetView(const APos, ADir, AUp: TVector3Single);
+procedure T3DOrient.SetView(const APos, ADir, AUp: TVector3Single;
+  const AdjustUp: boolean);
 begin
-  Camera.SetView(APos, ADir, AUp);
+  Camera.SetView(APos, ADir, AUp, AdjustUp);
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
-procedure T3DOrient.SetView(const ADir, AUp: TVector3Single);
+procedure T3DOrient.SetView(const ADir, AUp: TVector3Single;
+  const AdjustUp: boolean);
 begin
-  Camera.SetView(ADir, AUp);
+  Camera.SetView(ADir, AUp, AdjustUp);
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 

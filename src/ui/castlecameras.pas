@@ -222,10 +222,17 @@ type
 
     { Set camera view from vectors: position, direction, up.
 
-      Direction, Up and GravityUp do not have to be normalized.
-      They cannot be parallel (will be fixed internally to be exactly orthogonal). }
-    procedure SetView(const APos, ADir, AUp: TVector3Single); virtual; abstract;
-    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); virtual; abstract;
+      Direction, Up and GravityUp do not have to be normalized,
+      we will normalize them internally if necessary.
+
+      We will automatically fix Direction and Up to be orthogonal, if necessary:
+      when AdjustUp = @true (the default) we will adjust the up vector
+      (preserving the given direction value),
+      otherwise we will adjust the direction (preserving the given up value). }
+    procedure SetView(const APos, ADir, AUp: TVector3Single;
+      const AdjustUp: boolean = true); virtual; abstract;
+    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single;
+      const AdjustUp: boolean = true); virtual; abstract;
 
     { Calculate a 3D ray picked by the WindowX, WindowY position on the window.
       Uses current Container, which means that you have to add this camera
@@ -560,8 +567,10 @@ type
     procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
     function GetGravityUp: TVector3Single; override;
-    procedure SetView(const APos, ADir, AUp: TVector3Single); override;
-    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
+    procedure SetView(const APos, ADir, AUp: TVector3Single;
+      const AdjustUp: boolean = true); override;
+    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single;
+      const AdjustUp: boolean = true); override;
 
     procedure VisibleChange; override;
 
@@ -1409,9 +1418,12 @@ type
     procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
     function GetGravityUp: TVector3Single; override;
-    procedure SetView(const ADir, AUp: TVector3Single);
-    procedure SetView(const APos, ADir, AUp: TVector3Single); override;
-    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
+    procedure SetView(const ADir, AUp: TVector3Single;
+      const AdjustUp: boolean = true);
+    procedure SetView(const APos, ADir, AUp: TVector3Single;
+      const AdjustUp: boolean = true); override;
+    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single;
+      const AdjustUp: boolean = true); override;
 
     { Change up vector, keeping the direction unchanged.
       If necessary, the up vector provided here will be fixed to be orthogonal
@@ -1582,8 +1594,10 @@ type
     procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
     function GetGravityUp: TVector3Single; override;
-    procedure SetView(const APos, ADir, AUp: TVector3Single); override;
-    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
+    procedure SetView(const APos, ADir, AUp: TVector3Single;
+      const AdjustUp: boolean = true); override;
+    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single;
+      const AdjustUp: boolean = true); override;
 
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
@@ -2611,25 +2625,29 @@ begin
   Result := DefaultCameraUp; { nothing more sensible for Examine camera }
 end;
 
-procedure TExamineCamera.SetView(const APos, ADir, AUp: TVector3Single);
+procedure TExamineCamera.SetView(const APos, ADir, AUp: TVector3Single;
+  const AdjustUp: boolean);
 var
-  Up: TVector3Single;
+  Dir, Up: TVector3Single;
 begin
   FMoveAmount := -APos;
 
-  { Make good (orthogonal to ADir) up vector, CamDirUp2OrientQuat requires this }
+  { Make vectors orthogonal, CamDirUp2OrientQuat requires this }
+  Dir := ADir;
   Up := AUp;
-  MakeVectorsOrthoOnTheirPlane(Up, ADir);
+  if AdjustUp then
+    MakeVectorsOrthoOnTheirPlane(Up, Dir) else
+    MakeVectorsOrthoOnTheirPlane(Dir, Up);
 
-  FRotations := CamDirUp2OrientQuat(ADir, Up).Conjugate;
+  FRotations := CamDirUp2OrientQuat(Dir, Up).Conjugate;
 
 { Testing of "hard case" in CamDirUp2OrientQuat.
   This should always succeed now, many cases tested automatically
   by TTestCastleCameras.TestOrientationFromBasicAxes.
 
-  if not VectorsEqual(QuatRotate(FRotations, Normalized(ADir)), DefaultCameraDirection, 0.01) then
+  if not VectorsEqual(QuatRotate(FRotations, Normalized(Dir)), DefaultCameraDirection, 0.01) then
   begin
-    Writeln('oh yes, dir wrong: ', VectorToNiceStr(QuatRotate(FRotations, Normalized(ADir))));
+    Writeln('oh yes, dir wrong: ', VectorToNiceStr(QuatRotate(FRotations, Normalized(Dir))));
     Writeln('  q: ', VectorToNiceStr(FRotations.Vector4));
   end;
 
@@ -2664,9 +2682,10 @@ begin
   ScheduleVisibleChange;
 end;
 
-procedure TExamineCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3Single);
+procedure TExamineCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3Single;
+  const AdjustUp: boolean);
 begin
-  SetView(APos, ADir, AUp);
+  SetView(APos, ADir, AUp, AdjustUp);
   { Ignore AGravityUp }
 end;
 
@@ -4260,29 +4279,36 @@ begin
   Result := GravityUp;
 end;
 
-procedure TWalkCamera.SetView(const ADir, AUp: TVector3Single);
+procedure TWalkCamera.SetView(const ADir, AUp: TVector3Single;
+  const AdjustUp: boolean);
 begin
   FDirection := Normalized(ADir);
   FUp := Normalized(AUp);
-  MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
+  if AdjustUp then
+    MakeVectorsOrthoOnTheirPlane(FUp, FDirection) else
+    MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
 
   ScheduleVisibleChange;
 end;
 
-procedure TWalkCamera.SetView(const APos, ADir, AUp: TVector3Single);
+procedure TWalkCamera.SetView(const APos, ADir, AUp: TVector3Single;
+  const AdjustUp: boolean);
 begin
   FPosition := APos;
   FDirection := Normalized(ADir);
   FUp := Normalized(AUp);
-  MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
+  if AdjustUp then
+    MakeVectorsOrthoOnTheirPlane(FUp, FDirection) else
+    MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
 
   ScheduleVisibleChange;
 end;
 
-procedure TWalkCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3Single);
+procedure TWalkCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3Single;
+  const AdjustUp: boolean);
 begin
   GravityUp := AGravityUp;
-  SetView(APos, ADir, AUp);
+  SetView(APos, ADir, AUp, AdjustUp);
 end;
 
 procedure TWalkCamera.SetGravityUp(const Value: TVector3Single);
@@ -4407,16 +4433,18 @@ begin
   Result := Current.GetGravityUp;
 end;
 
-procedure TUniversalCamera.SetView(const APos, ADir, AUp: TVector3Single);
+procedure TUniversalCamera.SetView(const APos, ADir, AUp: TVector3Single;
+  const AdjustUp: boolean);
 begin
-  FExamine.SetView(APos, ADir, AUp);
-  FWalk.SetView(APos, ADir, AUp);
+  FExamine.SetView(APos, ADir, AUp, AdjustUp);
+  FWalk.SetView(APos, ADir, AUp, AdjustUp);
 end;
 
-procedure TUniversalCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3Single);
+procedure TUniversalCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3Single;
+  const AdjustUp: boolean);
 begin
-  FExamine.SetView(APos, ADir, AUp, AGravityUp);
-  FWalk.SetView(APos, ADir, AUp, AGravityUp);
+  FExamine.SetView(APos, ADir, AUp, AGravityUp, AdjustUp);
+  FWalk.SetView(APos, ADir, AUp, AGravityUp, AdjustUp);
 end;
 
 procedure TUniversalCamera.SetRadius(const Value: Single);

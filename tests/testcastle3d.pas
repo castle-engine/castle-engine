@@ -768,6 +768,11 @@ begin
   AssertVectorsEqual(O.Direction, Vector3Single(1, 0, 0));
   AssertVectorsEqual(O.Up, Vector3Single(0, 0, 1));
 
+  { SetView with AdjustUp = false corrects direction vector angle }
+  O.SetView(Vector3Single(0, 0, 0), Vector3Single(10, 0, 0), Vector3Single(10, 0, 10), false);
+  AssertVectorsEqual(O.Direction, Normalized(Vector3Single(Sqrt(2), 0, -Sqrt(2))));
+  AssertVectorsEqual(O.Up, Normalized(Vector3Single(Sqrt(2), 0, Sqrt(2))));
+
   { Setting direction corrects up vector }
   O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
   O.Direction := Vector3Single(10, 0, 10);
@@ -802,6 +807,11 @@ begin
   O.SetView(Vector3Single(0, 0, 0), Vector3Single(10, 0, 0), Vector3Single(10, 0, 0));
   AssertVectorsEqual(O.Direction, Vector3Single(1, 0, 0));
   AssertVectorsEqual(O.Up, AnyOrthogonalVector(Vector3Single(1, 0, 0)));
+
+  { SetView with AdjustUp = false corrects direction vector angle }
+  O.SetView(Vector3Single(0, 0, 0), Vector3Single(10, 0, 0), Vector3Single(10, 0, 0), false);
+  AssertVectorsEqual(O.Direction, AnyOrthogonalVector(Vector3Single(1, 0, 0)));
+  AssertVectorsEqual(O.Up, Vector3Single(1, 0, 0));
 
   { Setting direction corrects up vector }
   O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
