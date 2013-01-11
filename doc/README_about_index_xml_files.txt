@@ -201,29 +201,33 @@ Specifically about level.xml:
     (and you're welcome to contribute them to include them in engine code,
     of course!).
 
-- placeholder_default_direction: Some placeholders (currently, only creatures)
-  define not only the position, but also the direction, like the direction
-  the creature is facing. This direction is taken as the transformation
+- placeholder_reference_direction (optional, default "1 0 0"):
+  Some placeholders (currently, only creatures) may be used to determine
+  initial direction of the resource. For example, the direction
+  the creature is initially facing.
+  This direction is calculated as the transformation
   of given placeholder applied to this 3D vector.
 
-  By default, we take it as direction implied by the current
-  T3DOrient.DefaultOrientation value. So it is
-  negative Z (that is, (0, 0, -1)) for default otUpYDirectionMinusZ,
-  or negative Y (0, -1, 0) for otUpZDirectionMinusY, and so on.
-  However, using T3DOrient.DefaultOrientation value here is only a wild guess:
-  the main purpose of T3DOrient.DefaultOrientation is to define a vector
-  used inside creature 3D models (see DRAFT.engine_tutorial.txt section
-  "Which way is up?" for details). It really does not need to have any
-  relation at all to the preferred direction the creature is facing
-  on the level 3D model.
+  The correct value may depend on the exporter you used to create 3D models,
+  and on the exporter settings (how and if it rotates the model when exporting,
+  and is this rotation recorded in placeholder transformation
+  or applied directly to mesh coordinates). It may also depend on personal
+  preference, as it determines how you set resources in your 3D modelling tool
+  (like Blender).
 
-  The good value of this property is "whatever looks natural for 3D
-  level author". As the exact mesh you use for placeholders is ignored
-  (only it's transformation and bounding volume matter),
-  you usually create a simple mesh that looks like an arrow for
-  placeholders. The placeholder_default_direction should be the direction
-  of this arrow. When the 3D placeholder shape will not be rotated, it will
-  have exactly this direction.
+  Fortunately, the default value (+X vector) is suitable for at least
+  2 common situations:
+
+  - If your exporter rotates the world to turn +Z up into +Y up.
+    (This is the case of default Blender X3D exporter with default settings.)
+  - If your exporter doesn't rotate the world.
+    (You can configure Blender exporter to behave like this.
+    You may also then configure engine to use +Z as up vector for everything,
+    see "Which way is up?" notes in DRAFT.engine_tutorial.txt.)
+
+  In Blender it's useful to enable the "Display -> Wire" option for placeholder
+  objects, then Blender will show arrows inside the placeholder.
+  +X of the arrow determines the default direction understood by our engine.
 
 - See TLevelInfo properties documentation if in doubt.
 

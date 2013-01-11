@@ -149,8 +149,7 @@ type
       TGameSceneManager.LoadLevel for a description when we use placeholders. }
     PlaceholderName: TPlaceholderName;
 
-    PlaceholderDefaultDirectionSpecified: boolean;
-    PlaceholderDefaultDirection: TVector3Single;
+    PlaceholderReferenceDirection: TVector3Single;
 
     { Music played when entering the level. }
     property MusicSound: TSoundType read FMusicSound write FMusicSound
@@ -481,9 +480,7 @@ const
     Position := Box.Middle;
     Position[Items.GravityCoordinate] := Box.Data[0, Items.GravityCoordinate];
 
-    if Info.PlaceholderDefaultDirectionSpecified then
-      Direction := Info.PlaceholderDefaultDirection else
-      Direction := DirectionFromOrientation[T3DOrient.DefaultOrientation];
+    Direction := Info.PlaceholderReferenceDirection;
     Direction := MatrixMultDirection(Shape.State.Transform, Direction);
 
     Resource.InstantiatePlaceholder(Items, Position, Direction,
@@ -1007,11 +1004,13 @@ procedure TLevelInfo.LoadFromDocument;
       LevelResources.Add(Resources[I]);
   end;
 
+const
+  DefaultPlaceholderReferenceDirection: TVector3Single = (1, 0, 0);
 var
   LoadingImageFileName: string;
   SoundName: string;
   PlaceholdersKey: string;
-  PlaceholderDefaultDirectionString: string;
+  S: string;
 begin
   Element := Document.DocumentElement;
 
@@ -1064,10 +1063,9 @@ begin
     LoadingImageBarYPosition) then
     LoadingImageBarYPosition := TProgressUserInterface.DefaultImageBarYPosition;
 
-  PlaceholderDefaultDirectionSpecified := DOMGetAttribute(Element,
-    'placeholder_default_direction', PlaceholderDefaultDirectionString);
-  if PlaceholderDefaultDirectionSpecified then
-    PlaceholderDefaultDirection := Vector3SingleFromStr(PlaceholderDefaultDirectionString);
+  if DOMGetAttribute(Element, 'placeholder_reference_direction', S) then
+    PlaceholderReferenceDirection := Vector3SingleFromStr(S) else
+    PlaceholderReferenceDirection := DefaultPlaceholderReferenceDirection;
 
   LevelResources.LoadResources(Element);
   AddAlwaysPreparedResources;
