@@ -3435,10 +3435,9 @@ begin
     if TextureNode is TGeneratedShadowMapNode then
       AvoidNonShadowCasterRendering := true;
 
-    Renderer.UpdateGeneratedTextures(Shape,
-      TextureNode,
+    Renderer.UpdateGeneratedTextures(Shape, TextureNode,
       RenderFunc, ProjectionNear, ProjectionFar, NeedsRestoreViewport,
-      ViewpointStack.Top as TAbstractViewpointNode,
+      ViewpointStack.Top,
       CameraViewKnown, CameraPosition, CameraDirection, CameraUp);
 
     AvoidShapeRendering := nil;
