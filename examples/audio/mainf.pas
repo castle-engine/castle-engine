@@ -63,7 +63,7 @@ type
 
 procedure TMain.ButtonRefreshUsedClick(Sender: TObject);
 begin
-  SoundEngine.RefreshUsedSources;
+  SoundEngine.Refresh;
 end;
 
 procedure TMain.FormCreate(Sender: TObject);
