@@ -1298,14 +1298,27 @@ type
       That is when gravity pulls in -Y and GravityUp vector is +Y.
       Transformation makes -Z and +Y match (respectively) Direction and Up.
 
-      This matches default direction/up of OpenGL and VRML/X3D cameras. }
+      This matches default direction/up of OpenGL and VRML/X3D cameras.
+
+      For example, using this value for T3DOrient.Orientation (or even
+      T3DOrient.DefaultOrientation) is sensible if you use default
+      Blender X3D exporter, and you let the exporter to make
+      a transformation (to make +Z up into +Y up). This is the default setting.
+      Then you can follow the standard Blender view names
+      ("front", "top" and such) when modelling, and Blender tools like
+      "X-axis mirror" will work best. }
     otUpYDirectionMinusZ,
 
     { Sensible for worlds oriented around Z axis.
       Transformation makes -Y and +Z match (respectively) Direction and Up.
 
-      This matches suggested (by view names, default gravity, and some tools
-      like "X-axis mirror") direction/up when modeling in Blender. }
+      Using this value for T3DOrient.Orientation (or even
+      T3DOrient.DefaultOrientation) is sensible if you export your models
+      from Blender @italic(without transforming them during export).
+      Note that @italic(this is not the default Blender X3D exporter behavior).
+      But you can configure the exporter to work like this (not transform),
+      and then you can follow the standard Blender view names
+      ("front", "top" and such) when modelling. }
     otUpZDirectionMinusY,
 
     { @deprecated Up in +Z (like otUpZDirectionMinusY) and direction
