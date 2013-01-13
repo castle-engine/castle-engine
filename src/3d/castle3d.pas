@@ -1418,7 +1418,12 @@ type
       DefaultOrientation, this is usually comfortable (because almost
       always you use the same Orientation throughout your game).
       By default it's otUpYDirectionMinusZ (matching default cameras
-      of OpenGL and VRML/X3D). }
+      of OpenGL and VRML/X3D).
+
+      This value determines how you should model your 3D models,
+      like the creatures, the items, and the player weapons.
+      Generally, it applies to every 3D model that is used as
+      a child of this T3DOrient instance. }
     property Orientation: TOrientationType read FOrientation write FOrientation;
 
     { Camera, with view vectors (position, direction and up)
