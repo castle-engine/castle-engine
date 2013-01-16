@@ -1804,7 +1804,17 @@ var
 
   function WantToRunAway: boolean;
   begin
-    Result := EnemyVisibleNow and
+    { We want to run away whenever HasLastSeenEnemy, not just when EnemyVisibleNow.
+      Otherwise creature that tries to run away could easily get into a loop
+      (flickering state), caused by small VisibilityAngle:
+      in DoWalk creature would rotate to face away from enemy,
+      but after such rotation enemy becomes invisible,
+      so WantToRunAway would become false, and we would switch to idle,
+      and in DoIdle creature would rotate back toward the enemy.
+
+      So we run away even when we do not see enemy *now*, it's only enough
+      to know last enemy position. This actually makes sense in Real World too. }
+    Result := HasLastSeenEnemy and
       (Life <= MaxLife * Resource.RunAwayLife) and
       (SqrDistanceToLastSeenEnemy < Sqr(Resource.RunAwayDistance));
   end;
