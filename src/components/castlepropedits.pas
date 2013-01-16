@@ -50,7 +50,7 @@ var
   FilterIndex: Integer;
 begin
   { TODO: use Load3D_FileFilters without "All Files" part. }
-  FileFiltersToOpenDialog(Load3D_FileFilters, LCLFilter, FilterIndex);
+  FileFiltersToDialog(Load3D_FileFilters, LCLFilter, FilterIndex);
   Result := LCLFilter + (inherited GetFilter);
 end;
 
@@ -60,7 +60,7 @@ var
   FilterIndex: Integer;
 begin
   { TODO: use LoadImage_FileFilters without "All Files" part. }
-  FileFiltersToOpenDialog(LoadImage_FileFilters, LCLFilter, FilterIndex);
+  FileFiltersToDialog(LoadImage_FileFilters, LCLFilter, FilterIndex);
   Result := LCLFilter + (inherited GetFilter);
 end;
 
