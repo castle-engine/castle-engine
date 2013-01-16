@@ -38,23 +38,23 @@
         <UnitName Value="CastleControl"/>
       </Item1>
       <Item2>
-        <Filename Value="../src/components/castlelclutils.pas"/>
-        <UnitName Value="CastleLCLUtils"/>
-      </Item2>
-      <Item3>
-        <Filename Value="../src/components/castlepropedits.pas"/>
-        <HasRegisterProc Value="True"/>
-        <UnitName Value="CastlePropEdits"/>
-      </Item3>
-      <Item5>
         <Filename Value="../src/components/castlelclrecentfiles.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastleLCLRecentFiles"/>
-      </Item5>
+      </Item2>
+      <Item3>
+        <Filename Value="../src/components/castlelclutils.pas"/>
+        <UnitName Value="CastleLCLUtils"/>
+      </Item3>
       <Item4>
+        <Filename Value="../src/components/castlepropedits.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="CastlePropEdits"/>
+      </Item4>
+      <Item5>
         <Filename Value="../src/components/icons/castleicons.lrs"/>
         <Type Value="LRS"/>
-      </Item4>
+      </Item5>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="4">

@@ -40,8 +40,7 @@
           <ShowHints Value="False"/>
         </Verbosity>
         <CustomOptions Value="-Sh
--dCASTLE_ENGINE_LAZARUS_PACKAGE
-"/>
+-dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
@@ -51,61 +50,61 @@ This package cannot be installed under Lazarus, it's only for being used in othe
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
     <Files Count="13">
+      <Item1>
+        <Filename Value="../src/base/castleconf.inc"/>
+        <Type Value="Include"/>
+      </Item1>
       <Item2>
-        <Filename Value="../src/window/castlesoundmenu.pas"/>
-        <UnitName Value="CastleSoundMenu"/>
-      </Item2>
-      <Item3>
-        <Filename Value="../src/window/castlewindow.pas"/>
-        <UnitName Value="CastleWindow"/>
-      </Item3>
-      <Item4>
-        <Filename Value="../src/window/castlewindowrecentfiles.pas"/>
-        <UnitName Value="CastleWindowRecentFiles"/>
-      </Item4>
-      <Item6>
         <Filename Value="../src/window/castlemessages.pas"/>
         <UnitName Value="CastleMessages"/>
-      </Item6>
-      <Item7>
+      </Item2>
+      <Item3>
+        <Filename Value="../src/window/castlesoundmenu.pas"/>
+        <UnitName Value="CastleSoundMenu"/>
+      </Item3>
+      <Item4>
+        <Filename Value="../src/window/castlewindow.pas"/>
+        <UnitName Value="CastleWindow"/>
+      </Item4>
+      <Item5>
         <Filename Value="../src/window/castlewindowmodes.pas"/>
         <UnitName Value="CastleWindowModes"/>
-      </Item7>
-      <Item8>
+      </Item5>
+      <Item6>
         <Filename Value="../src/window/castlewindowprogress.pas"/>
         <UnitName Value="CastleWindowProgress"/>
-      </Item8>
-      <Item10>
-        <Filename Value="../src/window/windows/castlewindow_winapi.inc"/>
-        <Type Value="Include"/>
-      </Item10>
-      <Item12>
-        <Filename Value="../src/window/unix/castlewindow_xf86vmode.inc"/>
-        <Type Value="Include"/>
-      </Item12>
-      <Item13>
-        <Filename Value="../src/window/unix/castlewindow_xlib.inc"/>
-        <Type Value="Include"/>
-      </Item13>
-      <Item5>
+      </Item6>
+      <Item7>
+        <Filename Value="../src/window/castlewindowrecentfiles.pas"/>
+        <UnitName Value="CastleWindowRecentFiles"/>
+      </Item7>
+      <Item8>
         <Filename Value="../src/window/unix/castleglx.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleGlx"/>
-      </Item5>
+      </Item8>
+      <Item9>
+        <Filename Value="../src/window/unix/castlewindow_xf86vmode.inc"/>
+        <Type Value="Include"/>
+      </Item9>
+      <Item10>
+        <Filename Value="../src/window/unix/castlewindow_xlib.inc"/>
+        <Type Value="Include"/>
+      </Item10>
       <Item11>
         <Filename Value="../src/window/unix/castlexf86vmode.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleXF86VMode"/>
       </Item11>
-      <Item1>
+      <Item12>
         <Filename Value="../src/window/unix/castlexlib.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleXlib"/>
-      </Item1>
-      <Item9>
-        <Filename Value="../src/base/castleconf.inc"/>
+      </Item12>
+      <Item13>
+        <Filename Value="../src/window/windows/castlewindow_winapi.inc"/>
         <Type Value="Include"/>
-      </Item9>
+      </Item13>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>
