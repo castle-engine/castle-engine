@@ -1775,18 +1775,28 @@ var
     Use only if HasLastSeenEnemy. }
   function WantToShortenDistanceToEnemy: boolean;
   begin
+    { Is it wanted to get closer to the LastSeenEnemy?
+      Yes, if it will help make AttackAllowed from false to true.
+      See AttackAllowed implementation for conditions. }
     Result :=
-      { Is it wanted to get closer to the LastSeenEnemy ?
+      { There is no point in trying to get closer,
+        if we would activate WantToRunAway *before* we reach a point from which
+        we can attack. }
+      (not
+        ( (Life <= MaxLife * Resource.RunAwayLife) and
+          ( (not Resource.FireMissileAnimation.Defined) or (Resource.FireMissileMaxDistance < Resource.RunAwayDistance) ) and
+          ( (not Resource.     AttackAnimation.Defined) or (Resource.     AttackMaxDistance < Resource.RunAwayDistance) )
+        )
+      ) and
+      (
+        { Try to see enemy by walking to last known enemy position. }
+        (not EnemyVisibleNow) or
 
-        Yes --- only if it will help make AttackAllowed from false to true.
-        See AttackAllowed implementation.
-
-        If EnemyVisibleNow and SqrDistanceToLastSeenEnemy is small enough,
-        there's no point in getting closer to the enemy. In fact, it would
-        be bad to get closer to enemy in this case, as this would allow
-        enemy to easier attack (shorter distance --- easier to reach with
-        short-range weapon, or easier to aim with long-range weapon). }
-      ( (not EnemyVisibleNow) or
+        { If EnemyVisibleNow and SqrDistanceToLastSeenEnemy is small enough,
+          there's no point in getting closer to the enemy. In fact, it would
+          be bad to get closer to enemy in this case, as this would allow
+          enemy to easier attack (shorter distance --- easier to reach with
+          short-range weapon, or easier to aim with long-range weapon). }
         (SqrDistanceToLastSeenEnemy > Sqr(Resource.PreferredDistance))
       );
   end;
