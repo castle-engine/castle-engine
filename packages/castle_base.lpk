@@ -490,7 +490,7 @@
         <UnitName Value="CastleGLWindowsFonts"/>
       </Item110>
       <Item111>
-        <Filename Value="../src/opengl/windows/openglwindowsfonts_implement.inc"/>
+        <Filename Value="../src/opengl/windows/castleglwindowsfonts_implement.inc"/>
         <Type Value="Include"/>
       </Item111>
       <Item112>
