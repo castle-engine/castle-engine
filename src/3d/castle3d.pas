@@ -1682,6 +1682,11 @@ type
     { FKnockbackDistance <= 0 means "no knockback currently" }
     FKnockbackDistance: Single;
     FLastHurtDirection: TVector3Single;
+    { Same as LastHurtDirection but (for things with Gravity) flattened
+      to be orthogonal to World.Gravity. This prevents from "pushing" creatures
+      into the floor by hitting them in downward direction, which is often
+      too easy for non-flying creatures that have Sphere with Middle point high. }
+    FLastHurtDirectionGround: TVector3Single;
     FKnockBackSpeed: Single;
   protected
     procedure SetLife(const Value: Single); virtual;
@@ -4044,6 +4049,11 @@ begin
   Life := Life - LifeLoss;
   FKnockbackDistance := AKnockbackDistance;
   FLastHurtDirection := HurtDirection;
+
+  { calculate FLastHurtDirectionGround }
+  FLastHurtDirectionGround := FLastHurtDirection;
+  if Gravity then
+    MakeVectorsOrthoOnTheirPlane(FLastHurtDirectionGround, World.GravityUp);
 end;
 
 procedure T3DAlive.CancelKnockback;
@@ -4073,7 +4083,7 @@ begin
     end else
       FKnockbackDistance -= CurrentKnockBackDistance;
 
-    Move(FLastHurtDirection * CurrentKnockBackDistance, false);
+    Move(FLastHurtDirectionGround * CurrentKnockBackDistance, false);
   end;
 end;
 
