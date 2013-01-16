@@ -95,6 +95,18 @@ type
     procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
       const GravityUp: TVector3Single;
       const DoProgress: boolean); override;
+
+    { Can the "up" vector be skewed, that is: not equal to gravity up vector.
+      This is used when creating creature in CreateCreature.
+      The default implementation here returns @true,
+      which allows creature model to point slightly upward/downward.
+
+      Override this to return @false if given creature kind for some reason cannot
+      have up vector different. For example, TWalkAttackCreature AI
+      assumes that the non-flying creature is always standing up.
+      For now, non-flying TWalkAttackCreature cannot "stand up" before walking,
+      in case it's up vector gets skewed. }
+    function FlexibleUp: boolean; virtual;
   public
     const
       { Default value for TCreatureResource.DefaultMaxLife.
@@ -322,6 +334,8 @@ type
     FFireMissileName: string;
     FFireMissileHeight: Single;
     FFireMissileSound: TSoundType;
+  protected
+    function FlexibleUp: boolean; override;
   public
     const
       DefaultMoveSpeed = 10.0;
@@ -971,6 +985,11 @@ begin
     ResourceConfig.GetValue('fall/sound/name', DefaultCreatureFallSoundName), false);
 end;
 
+function TCreatureResource.FlexibleUp: boolean;
+begin
+  Result := true;
+end;
+
 function TCreatureResource.Radius: Single;
 begin
   if RadiusConfigured <> 0 then
@@ -1032,14 +1051,7 @@ begin
   { set properties that in practice must have other-than-default values
     to sensibly use the creature }
   Result.FResource := Self;
-  Result.SetView(APosition, ADirection, World.GravityUp,
-    { When Flying = false, SetView will adjust direction vector,
-      and leave up vector = GravityUp. This is important as current
-      TWalkAttackCreature AI assumes that the non-flying creature
-      is always standing up, it cannot really fix cases when up is different
-      (e.g. orthogonal to World.GravityUp, which means that creature is lying on
-      the floor --- such creature would remain lying on the floor forever). }
-    Flying);
+  Result.SetView(APosition, ADirection, World.GravityUp, FlexibleUp);
   Result.Life := MaxLife;
   Result.KnockBackSpeed := KnockBackSpeed;
   Result.Gravity := not Flying;
@@ -1158,6 +1170,12 @@ end;
 function TWalkAttackCreatureResource.CreatureClass: TCreatureClass;
 begin
   Result := TWalkAttackCreature;
+end;
+
+function TWalkAttackCreatureResource.FlexibleUp: boolean;
+begin
+  { For non-flying creatures, "up" vector must be always equal to GravityUp. }
+  Result := Flying;
 end;
 
 { TMissileCreatureResource ---------------------------------------------------- }
