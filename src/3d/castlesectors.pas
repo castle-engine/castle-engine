@@ -61,13 +61,10 @@ type
 
     property Boxes: TBox3DList read FBoxes;
 
-    { Returns whether Point is inside the sector.
-      Implementation in TSector just returns if Point is inside
-      one of the Boxes. You can override this to define
-      the sector geometry in a more flexible way. }
+    { Is Point inside the sector. }
     function PointInside(const Point: TVector3Single): boolean;
 
-    { Does the box collides (at least partially) with sector. }
+    { Does the box collide (at least partially) with sector. }
     function Collision(const Box: TBox3D): boolean;
 
     { What sectors are visible from this sector.
