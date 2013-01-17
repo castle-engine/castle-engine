@@ -46,20 +46,28 @@ type
     @link(TMaterialProperties.FileName MaterialProperties.FileName) property. }
   TMaterialProperty = class
   private
-    FBaseName: string;
+    FTextureBaseName: string;
     FFootstepsSound: TSoundType;
     FToxic: boolean;
     FToxicDamageConst, FToxicDamageRandom, FToxicDamageTime: Single;
     procedure LoadFromDOMElement(Element: TDOMElement);
   public
+    { Texture basename to associate this property will all appearances
+      using given texture. For now, this is the only way to associate
+      property, but more are possible in the future (like MaterialNodeName). }
+    property TextureBaseName: string read FTextureBaseName;
+
     { Footsteps sound to make when player is walking on this material.
       stNone is no information is available. }
     property FootstepsSound: TSoundType read FFootstepsSound;
 
+    { Is the floor toxic when walking on it.
+      @groupBegin }
     property Toxic: boolean read FToxic;
     property ToxicDamageConst: Single read FToxicDamageConst;
     property ToxicDamageRandom: Single read FToxicDamageRandom;
     property ToxicDamageTime: Single read FToxicDamageTime;
+    { @groupEnd }
   end;
 
   { Material properties collection, see TMaterialProperty. }
@@ -96,7 +104,7 @@ var
   ToxicDamage: TDOMElement;
   I: TXMLElementIterator;
 begin
-  if not DOMGetAttribute(Element, 'texture_base_name', FBaseName) then
+  if not DOMGetAttribute(Element, 'texture_base_name', FTextureBaseName) then
     raise Exception.Create('<properties> element must have "texture_base_name" attribute');
 
   FootstepsSoundName := '';
@@ -173,7 +181,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    if SameText(Items[I].FBaseName, TextureBaseName) then
+    if SameText(Items[I].TextureBaseName, TextureBaseName) then
       Exit(Items[I]);
   Result := nil;
 end;
