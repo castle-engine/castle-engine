@@ -417,8 +417,8 @@
         <UnitName Value="CastleResources"/>
       </Item92>
       <Item93>
-        <Filename Value="../src/game/castletextureproperties.pas"/>
-        <UnitName Value="CastleTextureProperties"/>
+        <Filename Value="../src/game/castlematerialproperties.pas"/>
+        <UnitName Value="CastleMaterialProperties"/>
       </Item93>
       <Item94>
         <Filename Value="../src/images/castledds.pas"/>

@@ -616,7 +616,7 @@ var
   stPlayerSwimming,
   stPlayerDrowning,
   stPlayerFootstepsConcrete,
-  stPlayerLavaPain,
+  stPlayerToxicPain,
   stPlayerSuddenPain,
   stPlayerDies,
   stPlayerSwimmingChange,
@@ -1664,7 +1664,7 @@ begin
   stPlayerSwimming             := SoundFromName('player_swimming', false);
   stPlayerDrowning             := SoundFromName('player_drowning', false);
   stPlayerFootstepsConcrete    := SoundFromName('player_footsteps_concrete', false);
-  stPlayerLavaPain             := SoundFromName('player_lava_pain', false);
+  stPlayerToxicPain            := SoundFromName('player_toxic_pain', false);
 
   stThunder                := SoundFromName('thunder'                  , false);
   stMenuCurrentItemChanged := SoundFromName('menu_current_item_changed', false);

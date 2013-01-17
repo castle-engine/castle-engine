@@ -19,7 +19,7 @@ unit CastlePlayer;
 interface
 
 uses CastleBoxes, CastleCameras, CastleItems, CastleVectors, GL, GLU, CastleInputs, CastleKeysMouse,
-  X3DTriangles, CastleTextureProperties, CastleSoundEngine, Classes, Castle3D,
+  X3DTriangles, CastleMaterialProperties, CastleSoundEngine, Classes, Castle3D,
   CastleGLUtils, CastleColors, CastleFrustum, CastleTriangles, CastleTimeUtils;
 
 type
@@ -96,21 +96,21 @@ type
     SwimLastSoundTime: Single;
     FSwimming: TPlayerSwimming;
 
-    { Did last Idle detected that we're on lava ? }
-    IsLava: boolean;
-    { Relevant if IsLava, this is LifeTime when
-      last time lava damage was done. When player steps on lava for the
-      first time, he immediately gets damage, so LavaLastDamageTime is
-      always valid when IsLava. }
-    LavaLastDamageTime: Single;
+    { Did last Idle detected that we're on toxic ground? }
+    IsToxic: boolean;
+    { Relevant if IsToxic, this is LifeTime when
+      last time toxic damage was done. When player steps on toxic for the
+      first time, he immediately gets damage, so ToxicLastDamageTime is
+      always valid when IsToxic. }
+    ToxicLastDamageTime: Single;
 
     SwimmingChangeSound: TSound;
     SwimmingSound: TSound;
 
     { Did last Idle detected that we are on the ground. }
     IsOnTheGround: boolean;
-    { <> @nil if IsOnTheGround and last ground had some TTextureProperties. }
-    GroundProperties: TTextureProperties;
+    { <> @nil if IsOnTheGround and last ground had some TMaterialProperty. }
+    GroundProperty: TMaterialProperty;
     ReallyIsOnTheGroundTime: Single;
 
     { There always must be satisfied:
@@ -876,41 +876,41 @@ procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
     begin
       ReallyIsOnTheGroundTime := LifeTime;
       IsOnTheGround := true;
-      GroundProperties := TexturesProperties.Find(Ground);
+      GroundProperty := MaterialProperties.Find(Ground);
     end else
     if LifeTime - ReallyIsOnTheGroundTime > TimeToChangeIsOnTheGround then
     begin
-      GroundProperties := nil;
+      GroundProperty := nil;
       IsOnTheGround := false;
-    end; { else leave GroundProperties and IsOnTheGround unchanged. }
+    end; { else leave GroundProperty and IsOnTheGround unchanged. }
   end;
 
-  { Update IsLava and related variables, hurt player if on lava.
-    Must be called after UpdateIsOnTheGround (depends on GroundProperties). }
-  procedure UpdateLava;
+  { Update IsToxic and related variables, hurt player if on toxic.
+    Must be called after UpdateIsOnTheGround (depends on GroundProperty). }
+  procedure UpdateToxic;
   var
-    NewIsLava: boolean;
+    NewIsToxic: boolean;
   begin
-    NewIsLava := (GroundProperties <> nil) and GroundProperties.Lava;
-    if NewIsLava then
+    NewIsToxic := (GroundProperty <> nil) and GroundProperty.Toxic;
+    if NewIsToxic then
     begin
-      if (not IsLava) or
-         (LifeTime - LavaLastDamageTime > GroundProperties.LavaDamageTime) then
+      if (not IsToxic) or
+         (LifeTime - ToxicLastDamageTime > GroundProperty.ToxicDamageTime) then
       begin
-        LavaLastDamageTime := LifeTime;
+        ToxicLastDamageTime := LifeTime;
         if not Dead then
         begin
-          SoundEngine.Sound(stPlayerLavaPain);
-          SetLifeCustomFadeOut(Life - (GroundProperties.LavaDamageConst +
-            Random * GroundProperties.LavaDamageRandom), Green3Single);
+          SoundEngine.Sound(stPlayerToxicPain);
+          SetLifeCustomFadeOut(Life - (GroundProperty.ToxicDamageConst +
+            Random * GroundProperty.ToxicDamageRandom), Green3Single);
         end;
       end;
     end;
-    IsLava := NewIsLava;
+    IsToxic := NewIsToxic;
   end;
 
   { Update FootstepsSoundPlaying and related variables.
-    Must be called after UpdateIsOnTheGround (depends on GroundProperties). }
+    Must be called after UpdateIsOnTheGround (depends on GroundProperty). }
   procedure UpdateFootstepsSoundPlaying;
   const
     TimeToChangeFootstepsSoundPlaying = 0.5;
@@ -942,10 +942,10 @@ procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
       ReallyWalkingOnTheGroundTime := LifeTime;
       { Since Camera.IsWalkingOnTheGroundm then for sure
         Camera.IsOnTheGround, so UpdateIsOnTheGround updated
-        GroundProperties field. }
-      if (GroundProperties <> nil) and
-         (GroundProperties.FootstepsSound <> stNone) then
-        NewFootstepsSoundPlaying := GroundProperties.FootstepsSound else
+        GroundProperty field. }
+      if (GroundProperty <> nil) and
+         (GroundProperty.FootstepsSound <> stNone) then
+        NewFootstepsSoundPlaying := GroundProperty.FootstepsSound else
         NewFootstepsSoundPlaying := stPlayerFootstepsConcrete { default footsteps sound };
     end else
     if LifeTime - ReallyWalkingOnTheGroundTime >
@@ -1038,7 +1038,7 @@ begin
     EquippedWeapon.EquippedIdle(LifeTime);
 
   UpdateIsOnTheGround;
-  UpdateLava;
+  UpdateToxic;
   UpdateFootstepsSoundPlaying;
 end;
 
@@ -1211,9 +1211,9 @@ begin
 
   ReallyIsOnTheGroundTime := -1000;
   IsOnTheGround := false;
-  GroundProperties := nil;
+  GroundProperty := nil;
 
-  IsLava := false;
+  IsToxic := false;
 end;
 
 function TPlayer.Ground: PTriangle;

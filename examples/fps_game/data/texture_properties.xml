@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<!--
-  Texture properties. This allows to configure behavior when player
-  walks over given ground, in particular to assign footsteps sound.
-  See CastleTextureProperties unit of Castle Game Engine.
--->
-<textures>
-  <texture base_name="tilable-img_0044" footsteps_sound="footsteps_grass" />
-</textures>

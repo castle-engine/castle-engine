@@ -160,7 +160,7 @@ begin
     P.Targets.AddUnit('castlelevels.pas');
     P.Targets.AddUnit('castleplayer.pas');
     P.Targets.AddUnit('castleresources.pas');
-    P.Targets.AddUnit('castletextureproperties.pas');
+    P.Targets.AddUnit('castlematerialproperties.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'images');
     P.Targets.AddUnit('castleimages.pas');
