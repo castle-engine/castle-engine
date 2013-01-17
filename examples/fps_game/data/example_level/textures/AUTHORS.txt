@@ -13,3 +13,8 @@ large-stone-wall.png and stone_wall_4.png:
   by West
     submitted by http://opengameart.org/users/qubodup
   license: public domain
+
+concrete:
+  from http://opengameart.org/content/p0sss-texture-pack-1
+  by http://opengameart.org/users/p0ss
+  license: CC-BY 3.0, GPL 3.0 or above
