@@ -69,7 +69,7 @@ type
 
       This event, if assigned, must be deterministic,
       based purely on light properties. For example, it's Ok to
-      make LightRenderEvent that turns off lights that have kambiShadows = TRUE.
+      make LightRenderEvent that turns off lights that have shadowVolumes = TRUE.
       It is @italic(not Ok) to make LightRenderEvent that sets LightOn to
       a random boolean value. That because caching here assumes that
       for the same Light values, LightRenderEvent will set LightOn the same. }

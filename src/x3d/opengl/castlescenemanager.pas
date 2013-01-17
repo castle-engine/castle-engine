@@ -512,7 +512,7 @@ type
       The shadow volumes algorithm is used only if shadow caster
       is 2-manifold, that is has a correctly closed volume.
       Also you need a light sourcet
-      marked as the main shadow volumes light (kambiShadows = kambiShadowsMain = TRUE).
+      marked as the main shadow volumes light (shadowVolumes = shadowVolumesMain = TRUE).
       See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows]
       for details. }
     property ShadowVolumes: boolean read FShadowVolumes write FShadowVolumes default false;

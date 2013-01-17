@@ -175,7 +175,7 @@ type
       shadowing technique (like shadow volumes),
       and currently doing the "shadowed" pass.
 
-      Which means that most lights (ones with kambiShadows = TRUE)
+      Which means that most lights (ones with shadowVolumes = TRUE)
       should be turned off, see [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows].) }
     InShadow: boolean;
 

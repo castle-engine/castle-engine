@@ -1661,11 +1661,11 @@ type
       This is useful when you want to make shadows on the scene
       from only a single light, but your scene has many lights.
 
-      The main light is simply one with both @code(kambiShadows) and
-      @code(kambiShadowsMain) fields set to @true. See
+      The main light is simply one with both @code(shadowVolumes) and
+      @code(shadowVolumesMain) fields set to @true. See
       [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows]
       for more info.
-      If no light with kambiShadows = kambiShadowsMain = TRUE
+      If no light with shadowVolumes = shadowVolumesMain = TRUE
       is present then this function returns @false,
       since AMainLightPosition cannot be calculated.
 
@@ -3704,7 +3704,7 @@ var
 
   procedure HandleChangeLightForShadowVolumes;
   begin
-    { When some kambiShadows or kambiShadowsMain field changes,
+    { When some shadowVolumes or shadowVolumesMain field changes,
       then MainLightForShadows must be recalculated. }
     Exclude(Validities, fvMainLightForShadows);
     VisibleChangeHere([vcVisibleNonGeometry]);
@@ -6245,8 +6245,8 @@ procedure TCastleSceneCore.SearchMainLightForShadows(
 var
   L: TAbstractLightNode absolute Node;
 begin
-  if L.FdKambiShadows.Value and
-     L.FdKambiShadowsMain.Value then
+  if L.FdShadowVolumes.Value and
+     L.FdShadowVolumesMain.Value then
   begin
     FMainLightForShadowsNode := L;
     FMainLightForShadowsTransform := StateStack.Top.Transform;

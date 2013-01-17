@@ -508,7 +508,7 @@ type
 
     { Turn off lights that are not supposed to light in the shadow.
       This simply turns LightOn to @false if the light has
-      kambiShadows = TRUE (see
+      shadowVolumes = TRUE (see
       [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows]).
 
       It's useful to pass this as LightRenderEvent to @link(Render)
@@ -2262,7 +2262,7 @@ end;
 class procedure TCastleScene.LightRenderInShadow(const Light: TLightInstance;
   var LightOn: boolean);
 begin
-  if Light.Node.FdKambiShadows.Value then
+  if Light.Node.FdShadowVolumes.Value then
     LightOn := false;
 end;
 

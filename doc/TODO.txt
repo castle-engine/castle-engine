@@ -821,9 +821,6 @@ things that can be deferred to much later:
   TKambiOctreePropertiesNode 	X3DNodes
   TKambiTriangulationNode 	X3DNodes
 
-  Also rename our VRML/X3D extensions fields, like kambiShadows, kambiShadowsMain.
-  (Hm, but these are already deprecated anyway... Too much useless work to rename them?)
-
 ------------------------------------------------------------------------------
 Various:
 - Make cameraXxx output events available from something like CameraSensor?

@@ -64,11 +64,11 @@
     private FFdGlobal: TSFBool;
     public property FdGlobal: TSFBool read FFdGlobal;
 
-    private FFdKambiShadows: TSFBool;
-    public property FdKambiShadows: TSFBool read FFdKambiShadows;
+    private FFdShadowVolumes: TSFBool;
+    public property FdShadowVolumes: TSFBool read FFdShadowVolumes;
 
-    private FFdKambiShadowsMain: TSFBool;
-    public property FdKambiShadowsMain: TSFBool read FFdKambiShadowsMain;
+    private FFdShadowVolumesMain: TSFBool;
+    public property FdShadowVolumesMain: TSFBool read FFdShadowVolumesMain;
 
     private FFdShowProxyGeometry: TSFBool;
     { showProxyGeometry field is an Avalon extension, see
@@ -347,13 +347,15 @@ begin
    FdAmbientIntensity.ChangesAlways := [chVisibleNonGeometry];
   Fields.Add(FFdAmbientIntensity);
 
-  FFdKambiShadows := TSFBool.Create(Self, 'kambiShadows', false);
-   FdKambiShadows.ChangesAlways := [chLightForShadowVolumes];
-  Fields.Add(FFdKambiShadows);
+  FFdShadowVolumes := TSFBool.Create(Self, 'shadowVolumes', false);
+   FdShadowVolumes.AddAlternativeName('kambiShadows', 0);
+   FdShadowVolumes.ChangesAlways := [chLightForShadowVolumes];
+  Fields.Add(FFdShadowVolumes);
 
-  FFdKambiShadowsMain := TSFBool.Create(Self, 'kambiShadowsMain', false);
-   FdKambiShadowsMain.ChangesAlways := [chLightForShadowVolumes];
-  Fields.Add(FFdKambiShadowsMain);
+  FFdShadowVolumesMain := TSFBool.Create(Self, 'shadowVolumesMain', false);
+   FdShadowVolumesMain.AddAlternativeName('kambiShadowsMain', 0);
+   FdShadowVolumesMain.ChangesAlways := [chLightForShadowVolumes];
+  Fields.Add(FFdShadowVolumesMain);
 
   FFdShowProxyGeometry := TSFBool.Create(Self, 'showProxyGeometry', false);
   Fields.Add(FFdShowProxyGeometry);
