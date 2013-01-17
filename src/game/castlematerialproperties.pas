@@ -19,7 +19,7 @@ unit CastleMaterialProperties;
 
 interface
 
-uses CastleUtils, CastleClassUtils, Classes, X3DTriangles, DOM, CastleSoundEngine, FGL;
+uses CastleUtils, CastleClassUtils, Classes, DOM, CastleSoundEngine, FGL;
 
 type
   { Store information that is naturally associated with a given material
@@ -65,9 +65,6 @@ type
   { Material properties collection, see TMaterialProperty. }
   TMaterialProperties = class(specialize TFPGObjectList<TMaterialProperty>)
   private
-    Triangle_Cache: boolean;
-    Triangle_Last: PTriangle;
-    Triangle_LastResult: TMaterialProperty;
     FFileName: string;
     procedure SetFileName(const Value: string);
   public
@@ -76,16 +73,10 @@ type
       in @code(material_properties.xml). }
     property FileName: string read FFileName write SetFileName;
 
-    { Find material properties for given Triangle of 3D world.
-      Returns @nil if no material properties are specified for
-      this triangle, which in particular will happen if you didn't
-      set FileName yet.
-
-      As a convenience, Triangle may be @nil, and in this case result
-      will always be @nil too. This is comfortable, as your Triangle
-      will usually come from collision routines or TWalkCamera.AboveGround,
-      which may return @nil. }
-    function Find(Triangle: PTriangle): TMaterialProperty;
+    { Find material properties for given texture basename.
+      Returns @nil if no material properties are found
+      (in particular, if @link(FileName) was not set yet). }
+    function FindTextureBaseName(const TextureBaseName: string): TMaterialProperty;
   end;
 
 { Known material properties.
@@ -177,61 +168,14 @@ begin
   end;
 end;
 
-function TMaterialProperties.Find(Triangle: PTriangle): TMaterialProperty;
+function TMaterialProperties.FindTextureBaseName(const TextureBaseName: string): TMaterialProperty;
 var
-  HasTextureUrl: boolean;
-  TextureUrl: string;
   I: Integer;
 begin
-  { Results of this are cached, since this is very often
-    asked with the same Triangle pointer when player walks. }
-  if Triangle_Cache and (Triangle_Last = Triangle) then
-  begin
-    Result := Triangle_LastResult;
-    Exit;
-  end;
-
+  for I := 0 to Count - 1 do
+    if SameText(Items[I].FBaseName, TextureBaseName) then
+      Exit(Items[I]);
   Result := nil;
-
-  HasTextureUrl := false;
-
-  if Triangle <> nil then
-  begin
-    if Triangle^.State.ShapeNode <> nil then
-    begin
-      { VRML 2.0 path }
-      if (Triangle^.State.ShapeNode.Texture <> nil) and
-         (Triangle^.State.ShapeNode.Texture is TImageTextureNode) then
-      begin
-        TextureUrl := TImageTextureNode(
-          Triangle^.State.ShapeNode.Texture).FdUrl.Items[0];
-        HasTextureUrl := true;
-      end;
-    end else
-    begin
-      { VRML 1.0 path }
-      TextureUrl := Triangle^.State.LastNodes.Texture2.FdFileName.Value;
-      HasTextureUrl := true;
-    end;
-  end;
-
-  if HasTextureUrl then
-  begin
-    TextureUrl := DeleteFileExt(ExtractFileName(TextureUrl));
-
-    for I := 0 to Count - 1 do
-    begin
-      if SameText(Items[I].FBaseName, TextureUrl) then
-      begin
-        Result := Items[I];
-        break;
-      end;
-    end;
-  end;
-
-  Triangle_Cache := true;
-  Triangle_Last := Triangle;
-  Triangle_LastResult := Result;
 end;
 
 var

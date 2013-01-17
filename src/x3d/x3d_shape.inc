@@ -128,6 +128,9 @@
   end;
 
   TAppearanceNode = class(TAbstractAppearanceNode)
+  private
+    function GetTexture: TAbstractTextureNode;
+    procedure SetTexture(const Value: TAbstractTextureNode);
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -180,6 +183,13 @@
       It allows you to use BlendMode nodes, which I consider very useful. }
     private FFdBlendMode: TSFNode;
     public property FdBlendMode: TSFNode read FFdBlendMode;
+
+    { The texture of this appearance.
+      This is a shortcut for accessing "texture" field,
+      checking whether nodes are set to appropriate types. }
+    property Texture: TAbstractTextureNode read GetTexture write SetTexture;
+
+    function MaterialProperty: TMaterialProperty;
   end;
 
   TFillPropertiesNode = class(TAbstractAppearanceChildNode)
@@ -731,6 +741,36 @@ begin
   FFdShaders.EnumerateValid(Func);
   FFdTexture.EnumerateValid(Func);
   FFdTextureTransform.EnumerateValid(Func);
+end;
+
+function TAppearanceNode.GetTexture: TAbstractTextureNode;
+begin
+  if (FdTexture.Value <> nil) and
+     (FdTexture.Value is TAbstractTextureNode) then
+    Result := TAbstractTextureNode(FdTexture.Value) else
+    Result := nil;
+end;
+
+procedure TAppearanceNode.SetTexture(const Value: TAbstractTextureNode);
+begin
+  FdTexture.Value := Value;
+end;
+
+function TAppearanceNode.MaterialProperty: TMaterialProperty;
+var
+  TextureUrl: string;
+begin
+  Result := nil;
+
+  if (Texture <> nil) and
+     (Texture is TImageTextureNode) and
+     (TImageTextureNode(Texture).FdUrl.Count <> 0) then
+  begin
+    TextureUrl := TImageTextureNode(Texture).FdUrl.Items[0];
+    if TextureUrl <> '' then
+      Result := MaterialProperties.FindTextureBaseName(
+        DeleteFileExt(ExtractFileName(TextureUrl)));
+  end;
 end;
 
 procedure TFillPropertiesNode.CreateNode;

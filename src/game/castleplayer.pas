@@ -413,7 +413,7 @@ implementation
 uses Math, SysUtils, CastleClassUtils, CastleUtils, X3DNodes, CastleControls,
   CastleImages, CastleFilesUtils, CastleUIControls, CastlePrecalculatedAnimation, CastleOpenAL,
   CastleGameNotifications, CastleXMLConfig, CastleGLImages, CastleConfig,
-  CastleResources;
+  CastleResources, CastleShapes;
 
 { TPlayerBox ----------------------------------------------------------------- }
 
@@ -876,7 +876,9 @@ procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
     begin
       ReallyIsOnTheGroundTime := LifeTime;
       IsOnTheGround := true;
-      GroundProperty := MaterialProperties.Find(Ground);
+      if Ground <> nil then
+        GroundProperty := (Ground^.Shape as TShape).MaterialProperty else
+        GroundProperty := nil;
     end else
     if LifeTime - ReallyIsOnTheGroundTime > TimeToChangeIsOnTheGround then
     begin

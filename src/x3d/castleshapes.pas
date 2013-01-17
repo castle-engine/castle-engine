@@ -26,7 +26,7 @@ interface
 
 uses SysUtils, Classes, CastleVectors, Castle3D, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleTriangleOctree, CastleFrustum, CastleOctree, X3DTriangles,
-  X3DFields, CastleGeometryArrays, FGL, CastleTriangles;
+  X3DFields, CastleGeometryArrays, FGL, CastleTriangles, CastleMaterialProperties;
 
 const
   { }
@@ -194,6 +194,9 @@ type
     FGeometryGrandGrandParentNodeName: string;
 
     FDynamicGeometry: boolean;
+
+    IsCachedMaterialProperty: boolean;
+    CachedMaterialProperty: TMaterialProperty;
 
     { Just like Geometry() and State(), except return @nil if no proxy available
       (when Geometry would return the same thing as OriginalGeometry).
@@ -577,6 +580,9 @@ type
     property GeometryGrandParentNodeName: string read FGeometryGrandParentNodeName;
     property GeometryGrandGrandParentNodeName: string read FGeometryGrandGrandParentNodeName;
     { @groupEnd }
+
+    { Material property associated with this shape's material/texture. }
+    function MaterialProperty: TMaterialProperty;
   end;
 
   TShapeTreeList = specialize TFPGObjectList<TShapeTree>;
@@ -2061,6 +2067,38 @@ function TShape.Node: TAbstractShapeNode;
 begin
   Result := State.ShapeNode;
 end;
+
+function TShape.MaterialProperty: TMaterialProperty;
+var
+  TextureUrl: string;
+begin
+  if IsCachedMaterialProperty then
+    Exit(CachedMaterialProperty);
+
+  Result := nil;
+
+  if Node <> nil then
+  begin
+    { VRML 2.0/X3D version: refer to TAppearanceNode }
+    if Node.Appearance <> nil then
+      Result := Node.Appearance.MaterialProperty;
+  end else
+  begin
+    { VRML 1.0 version: do it directly here }
+    TextureUrl := State.LastNodes.Texture2.FdFileName.Value;
+    if TextureUrl <> '' then
+      Result := MaterialProperties.FindTextureBaseName(
+        DeleteFileExt(ExtractFileName(TextureUrl)));
+  end;
+
+  IsCachedMaterialProperty := true;
+  CachedMaterialProperty := Result;
+end;
+
+{ TODO:
+class procedure TShape.MaterialPropertyCacheClear;
+begin
+end; }
 
 { TShapeTreeGroup -------------------------------------------------------- }
 

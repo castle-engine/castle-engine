@@ -169,7 +169,7 @@ interface
 
 uses CastleVectors, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleOutlineFonts,
-  CastleVideos, X3DTime, Castle3D,
+  CastleVideos, X3DTime, Castle3D, CastleMaterialProperties,
   CastleScript, X3DCastleScript, CastleOctree, CastleDDS, CastleTextureImages,
   XMLRead, DOM, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
   FGL, CastleGenericLists, CastleShaders;
