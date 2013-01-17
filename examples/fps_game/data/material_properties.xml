@@ -9,4 +9,6 @@
 <properties>
   <property texture_base_name="tilable-img_0044"
     footsteps_sound="footsteps_grass" />
+  <property texture_base_name="concrete"
+    normal_map="example_level/textures/concrete-normalmap.png" />
 </properties>
