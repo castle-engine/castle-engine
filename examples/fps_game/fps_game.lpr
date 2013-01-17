@@ -323,8 +323,8 @@ end;
 
 procedure Resize(Window: TCastleWindowBase);
 begin
-  ExtraViewport.Height := Window.Height div 3;
-  ExtraViewport.Width := ExtraViewport.Height;
+  ExtraViewport.Width := Window.Height div 5;
+  ExtraViewport.Height := 3 * ExtraViewport.Width;
   ExtraViewport.Left := Window.Width - ExtraViewport.Width - ControlsMargin;
   ExtraViewport.Bottom := ControlsMargin;
 end;
@@ -551,7 +551,7 @@ begin
     TUniversalCamera, so we can safely cast below. }
   (ExtraViewport.Camera as TUniversalCamera).NavigationType := ntExamine;
   ExtraViewport.Camera.SetInitialView(
-    { position } Vector3Single(0, 50, 0),
+    { position } Vector3Single(0, 55, 44),
     { direction } Vector3Single(0, -1, 0),
     { up } Vector3Single(0, 0, -1), false
   );
