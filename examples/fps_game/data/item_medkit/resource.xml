@@ -3,7 +3,7 @@
 <resource
   name="MedKit"
   type="MedKit"
-  caption="Medical Kit"
+  caption="Medic Kit"
   image="inventory_image.png"
 >
   <model>
