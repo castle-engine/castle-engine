@@ -15,6 +15,31 @@
 		            groundColor="0.051 0.051 0.051"
 		            skyColor="0.051 0.051 0.051"
 		            />
+		<Transform DEF="CasMoveLimit_TRANSFORM"
+		           translation="-0.566883 -21.961342 46.409763"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="0.000000 0.707107 0.707107 3.141593"
+		           >
+			<Transform DEF="CasMoveLimit_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group DEF="group_ME_Plane_001">
+					<Shape>
+						<Appearance>
+						</Appearance>
+						<IndexedFaceSet solid="false"
+						                coordIndex="2 0 1 3 -1 6 7 5 4 -1 0 2 6 4 -1 3 1 5 7 -1 1 0 4 5 -1 2 3 7 6 -1 "
+						                >
+							<Coordinate DEF="coords_ME_Plane_001"
+							            point="18.439774 -65.556976 -0.000000 -19.313540 -65.556976 0.000000 18.439774 61.112457 -0.000000 -19.313540 61.112457 0.000000 18.439774 -65.556976 60.104668 -19.313540 -65.556976 60.104668 18.439774 61.112457 60.104668 -19.313540 61.112457 60.104668 "
+							            />
+						</IndexedFaceSet>
+					</Shape>
+				</Group>
+			</Transform>
+		</Transform>
 		<Transform DEF="Grid_001_TRANSFORM"
 		           translation="0.000000 0.000000 0.000000"
 		           scale="1.000000 1.000000 1.000000"
