@@ -532,7 +532,7 @@ uses SysUtils, Classes, CastleVectors, GL, GLU, GLExt,
   CastleStringUtils, CastleFilesUtils, CastleTimeUtils, CastleFileFilters, CastleUIControls,
   FGL, pk3DConnexion,
   { VRML/X3D stuff }
-  X3DNodes, CastleScene, CastleLevels;
+  X3DNodes, CastleScene, CastleSceneManager, CastleLevels;
 
 {$define read_interface}
 
@@ -2373,11 +2373,12 @@ end;
     function MainScene: TCastleScene;
     property SceneManager: TGameSceneManager read FSceneManager;
 
-    { See TCastleSceneManager.ShadowVolumes. }
+    { See TCastleAbstractViewport.ShadowVolumes. }
     property ShadowVolumes: boolean
-      read GetShadowVolumes write SetShadowVolumes default false;
+      read GetShadowVolumes write SetShadowVolumes
+      default TCastleAbstractViewport.DefaultShadowVolumes;
 
-    { See TCastleSceneManager.ShadowVolumesDraw. }
+    { See TCastleAbstractViewport.ShadowVolumesDraw. }
     property ShadowVolumesDraw: boolean
       read GetShadowVolumesDraw write SetShadowVolumesDraw default false;
   end;

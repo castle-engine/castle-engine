@@ -400,11 +400,12 @@ type
     property OnCameraChanged: TNotifyEvent
       read GetOnCameraChanged write SetOnCameraChanged;
 
-    { See TGameSceneManager.ShadowVolumes. }
+    { See TCastleAbstractViewport.ShadowVolumes. }
     property ShadowVolumes: boolean
-      read GetShadowVolumes write SetShadowVolumes default false;
+      read GetShadowVolumes write SetShadowVolumes
+      default TCastleAbstractViewport.DefaultShadowVolumes;
 
-    { See TGameSceneManager.ShadowVolumesDraw. }
+    { See TCastleAbstractViewport.ShadowVolumesDraw. }
     property ShadowVolumesDraw: boolean
       read GetShadowVolumesDraw write SetShadowVolumesDraw default false;
   end;

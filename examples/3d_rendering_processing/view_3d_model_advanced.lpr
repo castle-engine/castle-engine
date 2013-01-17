@@ -77,7 +77,7 @@ begin
     Note that for (really really old) GPUs that don't support stencil buffer,
     our Window.Open call will automatically turn StencilBits to 0 and fallback
     to OpenGL context without shadow volumes. }
-  Window.ShadowVolumes := true;
+  // Window.ShadowVolumes := true; // not necessary, this is true by default
   Window.StencilBits := 8;
   Window.Open;
 

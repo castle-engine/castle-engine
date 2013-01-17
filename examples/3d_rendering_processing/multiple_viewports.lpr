@@ -340,13 +340,13 @@ begin
       Viewports[I] := TMyViewport.Create(Application);
     Viewports[I].SceneManager := Window.SceneManager;
     Viewports[I].FullSize := false;
+    Viewports[I].ShadowVolumes := I = 1;
     { The initial Resize event will position viewports correctly }
     Window.Controls.Add(Viewports[I]);
   end;
   Assert(Window.SceneManager.Viewports.Count = High(Viewports) + 1);
 
   { shadow on one viewport }
-  Viewports[1].ShadowVolumes := true;
   Viewports[1].Caption := 'Shadow volumes On';
 
   CameraReinitialize;

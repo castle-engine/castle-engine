@@ -255,7 +255,7 @@ begin
     Note that TOpenGLControl.StencilBits is only available in new Lazarus,
     http://bugs.freepascal.org/view.php?id=22170 .
   Browser.StencilBits := 8;
-  Browser.ShadowVolumes := true;
+  // Browser.ShadowVolumes := true; // not necessary, this is true by default
   }
 
   MenuFocusGLControl.ShortCut := ShortCut(VK_Escape, []);

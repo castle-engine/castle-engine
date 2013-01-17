@@ -257,6 +257,7 @@ type
     const
       DefaultScreenSpaceAmbientOcclusion = false;
       DefaultUseGlobalLights = true;
+      DefaultShadowVolumes = true;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -511,11 +512,12 @@ type
 
       The shadow volumes algorithm is used only if shadow caster
       is 2-manifold, that is has a correctly closed volume.
-      Also you need a light sourcet
+      Also you need a light source
       marked as the main shadow volumes light (shadowVolumes = shadowVolumesMain = TRUE).
       See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows]
       for details. }
-    property ShadowVolumes: boolean read FShadowVolumes write FShadowVolumes default false;
+    property ShadowVolumes: boolean
+      read FShadowVolumes write FShadowVolumes default DefaultShadowVolumes;
 
     { Actually draw the shadow volumes to the color buffer, for debugging.
       If shadows are rendered (see GLShadowVolumesPossible and ShadowVolumes),
@@ -1184,6 +1186,7 @@ begin
   FUseGlobalLights := DefaultUseGlobalLights;
   FFullSize := true;
   FRenderParams := TManagerRenderParams.Create;
+  FShadowVolumes := DefaultShadowVolumes;
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
 end;
