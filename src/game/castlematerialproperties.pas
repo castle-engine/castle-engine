@@ -50,7 +50,8 @@ type
     FFootstepsSound: TSoundType;
     FToxic: boolean;
     FToxicDamageConst, FToxicDamageRandom, FToxicDamageTime: Single;
-    procedure LoadFromDOMElement(Element: TDOMElement);
+    FNormalMap: string;
+    procedure LoadFromDOMElement(Element: TDOMElement; const BaseUrl: string);
   public
     { Texture basename to associate this property will all appearances
       using given texture. For now, this is the only way to associate
@@ -68,6 +69,14 @@ type
     property ToxicDamageRandom: Single read FToxicDamageRandom;
     property ToxicDamageTime: Single read FToxicDamageTime;
     { @groupEnd }
+
+    { Normal map texture URL. This is a simple method to activate bump mapping,
+      equivalent to using normalMap field in an Appearance node of VRML/X3D, see
+      http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_bump_mapping .
+
+      In case both VRML/X3D Appearance specifies normalMap and we have
+      NormalMap defined here, the VRML/X3D Appearance is used. }
+    property NormalMap: string read FNormalMap;
   end;
 
   { Material properties collection, see TMaterialProperty. }
@@ -98,7 +107,7 @@ uses SysUtils, XMLRead, CastleXMLUtils, CastleFilesUtils, X3DNodes;
 
 { TMaterialProperty --------------------------------------------------------- }
 
-procedure TMaterialProperty.LoadFromDOMElement(Element: TDOMElement);
+procedure TMaterialProperty.LoadFromDOMElement(Element: TDOMElement; const BaseUrl: string);
 var
   FootstepsSoundName: string;
   ToxicDamage: TDOMElement;
@@ -112,6 +121,10 @@ begin
      (FootstepsSoundName <> '') then
     FFootstepsSound := SoundEngine.SoundFromName(FootstepsSoundName) else
     FFootstepsSound := stNone;
+
+  if DOMGetAttribute(Element, 'normal_map', FNormalMap) and (FNormalMap <> '') then
+    FNormalMap := CombinePaths(BaseUrl, FNormalMap) else
+    FNormalMap := '';
 
   I := TXMLElementIterator.Create(Element);
   try
@@ -168,7 +181,7 @@ begin
           MaterialProperty := TMaterialProperty.Create;
           Add(MaterialProperty);
 
-          MaterialProperty.LoadFromDOMElement(Element);
+          MaterialProperty.LoadFromDOMElement(Element, ExtractFilePath(FileName));
         end;
     finally FreeChildNodes(Elements); end;
   finally

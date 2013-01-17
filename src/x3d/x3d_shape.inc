@@ -134,6 +134,7 @@
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
+    procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -770,6 +771,23 @@ begin
     if TextureUrl <> '' then
       Result := MaterialProperties.FindTextureBaseName(
         DeleteFileExt(ExtractFileName(TextureUrl)));
+  end;
+end;
+
+procedure TAppearanceNode.ParseAfter(Reader: TX3DReaderNames);
+var
+  MP: TMaterialProperty;
+  NormalMapNode: TImageTextureNode;
+begin
+  inherited;
+
+  { use normalMap from MaterialProperty, if our normalMap field is empty now }
+  MP := MaterialProperty;
+  if (MP <> nil) and (MP.NormalMap <> '') and (FdNormalMap.Value = nil) then
+  begin
+    NormalMapNode := TImageTextureNode.Create('', BaseUrl);
+    NormalMapNode.FdUrl.Items.Add(MP.NormalMap);
+    FdNormalMap.Value := NormalMapNode;
   end;
 end;
 
