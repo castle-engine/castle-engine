@@ -130,9 +130,12 @@ type
       Waypoints: TWaypointList): boolean;
   end;
 
+var
+  LogSectors: boolean = false;
+
 implementation
 
-uses CastleStringUtils;
+uses CastleStringUtils, CastleLog;
 
 { TWaypoint ------------------------------------------------------------- }
 
@@ -212,8 +215,23 @@ begin
       begin
         S.Waypoints.Add(W);
         W.Sectors.Add(S);
+        if Log and LogSectors then
+          WritelnLog('Sectors', Format('Waypoint %d links to sector %d',
+            [WaypointIndex, SectorIndex]));
       end;
     end;
+  end;
+
+  if Log and LogSectors then
+  begin
+    for WaypointIndex := 0 to Waypoints.Count - 1 do
+      if Waypoints[WaypointIndex].Sectors.Count <= 1 then
+        WritelnLog('Sectors', Format('Warning: Waypoint %d only links to %d sectors. Waypoints that link to 1 or 0 sectors are useless.',
+          [WaypointIndex, Waypoints[WaypointIndex].Sectors.Count]));
+    for SectorIndex := 0 to Count - 1 do
+      if Items[SectorIndex].Waypoints.Count = 0 then
+        WritelnLog('Sectors', Format('Warning: Sector %d is not connected to any waypoint. Such sectors are useless.',
+          [SectorIndex]));
   end;
 end;
 
