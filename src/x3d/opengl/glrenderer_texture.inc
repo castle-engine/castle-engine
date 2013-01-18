@@ -1962,6 +1962,7 @@ procedure TGLGeneratedShadowMap.Update(
   Light: TAbstractLightNode);
 var
   ProjectionMatrix: TMatrix4Single;
+  SavedDepthRange: TDepthRange;
 begin
   if GLName = 0 then Exit;
 
@@ -1986,6 +1987,10 @@ begin
       glLoadMatrix(ProjectionMatrix);
       glMatrixMode(GL_MODELVIEW);
 
+      { fix glDepthRange in case was changed by TPlayer.RenderOnTop }
+      SavedDepthRange := DepthRange;
+      DepthRange := drFull;
+
       glPushAttrib(GL_POLYGON_BIT);
         { enable polygon offset for everything (whole scene).
 
@@ -2001,6 +2006,8 @@ begin
         Render;
 
       glPopAttrib;
+
+      DepthRange := SavedDepthRange;
 
       glMatrixMode(GL_PROJECTION);
     glPopMatrix;

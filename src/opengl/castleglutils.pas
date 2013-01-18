@@ -850,6 +850,16 @@ procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single);
 procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single);
 { @groupEnd }
 
+type
+  TDepthRange = (drFull, drNear, drFar);
+
+function GetDepthRange: TDepthRange;
+procedure SetDepthRange(const Value: TDepthRange);
+
+{ Use this to operate on OpenGL glDepthRange. For now, our engine has
+  very simple use for this, for TPlayer.RenderOnTop. }
+property DepthRange: TDepthRange read GetDepthRange write SetDepthRange;
+
 {$undef read_interface}
 
 implementation
@@ -2082,6 +2092,27 @@ end;
 procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single);
 begin
   glColor4f(Color[0] / 255, Color[1] / 255, Color[2] / 255, Opacity);
+end;
+
+var
+  FDepthRange: TDepthRange = drFull;
+
+function GetDepthRange: TDepthRange;
+begin
+  Result := FDepthRange;
+end;
+
+procedure SetDepthRange(const Value: TDepthRange);
+begin
+  if FDepthRange <> Value then
+  begin
+    FDepthRange := Value;
+    case Value of
+      drFull: glDepthRange(0  , 1);
+      drNear: glDepthRange(0  , 0.1);
+      drFar : glDepthRange(0.1, 1);
+    end;
+  end;
 end;
 
 initialization

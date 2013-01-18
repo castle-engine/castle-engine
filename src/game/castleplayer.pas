@@ -413,7 +413,7 @@ implementation
 uses Math, SysUtils, CastleClassUtils, CastleUtils, X3DNodes, CastleControls,
   CastleImages, CastleFilesUtils, CastleUIControls, CastlePrecalculatedAnimation, CastleOpenAL,
   CastleGameNotifications, CastleXMLConfig, CastleGLImages, CastleConfig,
-  CastleResources, CastleShapes;
+  CastleResources, CastleShapes, CastleRenderingCamera;
 
 { TPlayerBox ----------------------------------------------------------------- }
 
@@ -1278,7 +1278,7 @@ procedure TPlayer.Render(const Frustum: TFrustum; const Params: TRenderParams);
 begin
   { TODO: This implementation is a quick hack, that depends on the fact
     that TPlayer.Render is the *only* thing in the whole engine currently
-    calling glDepthRange.
+    calling glDepthRange (except shadow maps that require normal glDepthRange).
 
     - The first frame with TPlayer could be incorrect, as 3D objects drawn before
       will have 0..1 glDepthRange that may overlap with our weapon.
@@ -1296,9 +1296,13 @@ begin
     But it has to be implemented in more extensible manner in the future.
     It should also enable X3D layers. }
 
-  if RenderOnTop then glDepthRange(0, 0.1);
-    inherited;
-  if RenderOnTop then glDepthRange(0.1, 1);
+  if RenderOnTop and (RenderingCamera.Target <> rtShadowMap) then
+    DepthRange := drNear;
+
+  inherited;
+
+  if RenderOnTop and (RenderingCamera.Target <> rtShadowMap) then
+    DepthRange := drFar;
 end;
 
 function TPlayer.Middle: TVector3Single;
