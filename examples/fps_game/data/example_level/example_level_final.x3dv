@@ -85,3 +85,33 @@ Background {
   rightUrl "sky/sky_right.png"
   topUrl "sky/sky_top.png"
 }
+
+# Examples how to add a light source that casts shadows.
+# SpotLight {
+#   location 0 55 44
+#   direction 0 -1 0
+#   cutOffAngle 1
+#
+#   # Uncomment lines below to get shadow by shadow maps.
+#   # See http://castle-engine.sourceforge.net/x3d_extensions_shadow_maps.php
+#   # for a full documentation.
+#   # In a very trivial cases, it's enough to just say "shadows TRUE",
+#   # although you may want to adjust other settings.
+#
+#   # projectionNear 40
+#   # projectionFar 60
+#   # shadows TRUE
+#   # defaultShadowMap GeneratedShadowMap { size 4096 update "ALWAYS" }
+#
+#   # Uncomment lines below to get shadow by shadow volumes.
+#   # See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows .
+#   # There are advantages and disadvantages to both shadow approaches.
+#   # Also our shadow volumes implementation is a little limited now: only 1 light.
+#   # Only 2-manifold objects cast shadows by shadow volumes, which include
+#   # only medkit and shooting_eye items right now.
+#   # Remember to add "Window.StencilBits := 8;" before "Window.Open;"
+#   # if you want to use shadow volumes.
+#
+#   # shadowVolumesMain TRUE
+#   # shadowVolumes TRUE
+# }
