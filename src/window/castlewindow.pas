@@ -356,17 +356,19 @@ unit CastleWindow;
  {$ifndef CASTLE_WINDOW_XLIB}
   {$ifndef CASTLE_WINDOW_GLUT}
    {$ifndef CASTLE_WINDOW_GTK_2}
-    {$ifdef MSWINDOWS}
-      {$define CASTLE_WINDOW_WINAPI}
-      { $define CASTLE_WINDOW_GTK_2}
-      { $define CASTLE_WINDOW_GLUT}
-      { $define CASTLE_WINDOW_TEMPLATE}
-    {$endif}
-    {$ifdef UNIX}
-      {$define CASTLE_WINDOW_GTK_2}
-      { $define CASTLE_WINDOW_XLIB}
-      { $define CASTLE_WINDOW_GLUT}
-      { $define CASTLE_WINDOW_TEMPLATE}
+    {$ifndef CASTLE_WINDOW_TEMPLATE}
+     {$ifdef MSWINDOWS}
+       {$define CASTLE_WINDOW_WINAPI}
+       { $define CASTLE_WINDOW_GTK_2}
+       { $define CASTLE_WINDOW_GLUT}
+       { $define CASTLE_WINDOW_TEMPLATE}
+     {$endif}
+     {$ifdef UNIX}
+       {$define CASTLE_WINDOW_GTK_2}
+       { $define CASTLE_WINDOW_XLIB}
+       { $define CASTLE_WINDOW_GLUT}
+       { $define CASTLE_WINDOW_TEMPLATE}
+     {$endif}
     {$endif}
    {$endif}
   {$endif}
