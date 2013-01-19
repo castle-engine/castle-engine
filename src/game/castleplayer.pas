@@ -1169,7 +1169,7 @@ begin
     Config.NotModified; { otherwise changing RootName makes it modified, and saved back at freeing }
     Config.FileName := FileName;
 
-    KnockBackSpeed := Config.GetFloat('knock_back_speed', DefaultPlayerKnockBackSpeed);
+    KnockBackSpeed := Config.GetFloat('knockback_speed', DefaultPlayerKnockBackSpeed);
     Camera.MaxJumpHeight := Config.GetFloat('jump/max_height', TWalkCamera.DefaultMaxJumpHeight);
     Camera.JumpHorizontalSpeedMultiply := Config.GetFloat('jump/horizontal_speed_multiply', TWalkCamera.DefaultJumpHorizontalSpeedMultiply);
     Camera.JumpTime := Config.GetFloat('jump/time', TWalkCamera.DefaultJumpTime);

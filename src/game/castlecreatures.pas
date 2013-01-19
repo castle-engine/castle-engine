@@ -70,7 +70,7 @@ type
     FSoundDie: TSoundType;
     FSoundDieTiedToCreature: boolean;
     FDefaultMaxLife: Single;
-    FKnockedBackDistance: Single;
+    FKnockBackDistance: Single;
     FKnockBackSpeed: Single;
 
     RadiusConfigured: Single;
@@ -113,7 +113,7 @@ type
         Yes, it's not a typo, this identifier starts with "DefaultDefault". }
       DefaultDefaultMaxLife = 100.0;
       DefaultFlying = false;
-      DefaultKnockedBackDistance = 4.0;
+      DefaultKnockBackDistance = 4.0;
       DefaultSoundDieTiedToCreature = true;
       DefaultAttackDamageConst = 0.0;
       DefaultAttackDamageRandom = 0.0;
@@ -227,7 +227,7 @@ type
 
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
 
-    { Distance the creature is knocked back when hurt (should reflect
+    { Distance this creature is knocked back when hurt (should reflect
       the creature weight, how easy it is to push this creature).
 
       Will always be multiplied by the knocking distance of the weapon that
@@ -241,9 +241,9 @@ type
       even if the distance (creature * weapon) indicates it should be knocked
       further. Otherwise knockback would work on standing creature,
       which could look bad. This may be changed some day. }
-    property KnockedBackDistance: Single
-      read FKnockedBackDistance write FKnockedBackDistance
-      default DefaultKnockedBackDistance;
+    property KnockBackDistance: Single
+      read FKnockBackDistance write FKnockBackDistance
+      default DefaultKnockBackDistance;
 
     { See T3DAlive.KnockBackSpeed. }
     property KnockBackSpeed: Single
@@ -936,7 +936,7 @@ begin
   inherited;
   FFlying := DefaultFlying;
   FDefaultMaxLife := DefaultDefaultMaxLife;
-  FKnockedBackDistance := DefaultKnockedBackDistance;
+  FKnockBackDistance := DefaultKnockBackDistance;
   FKnockBackSpeed := T3DAlive.DefaultKnockBackSpeed;
   FSoundDieTiedToCreature := DefaultSoundDieTiedToCreature;
   FAttackDamageConst := DefaultAttackDamageConst;
@@ -954,10 +954,10 @@ procedure TCreatureResource.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
-  KnockBackSpeed := ResourceConfig.GetFloat('knock_back_speed',
+  KnockBackSpeed := ResourceConfig.GetFloat('knockback_speed',
     T3DAlive.DefaultKnockBackSpeed);
-  KnockedBackDistance := ResourceConfig.GetFloat('knocked_back_distance',
-    DefaultKnockedBackDistance);
+  KnockBackDistance := ResourceConfig.GetFloat('knockback_distance',
+    DefaultKnockBackDistance);
   Flying := ResourceConfig.GetValue('flying',
     DefaultFlying);
   SoundDieTiedToCreature := ResourceConfig.GetValue('sound_die_tied_to_creature',
@@ -2417,7 +2417,7 @@ procedure TWalkAttackCreature.Hurt(const LifeLoss: Single;
   const AKnockbackDistance: Single; const Attacker: T3DAlive);
 begin
   inherited Hurt(LifeLoss, HurtDirection,
-    AKnockbackDistance * Resource.KnockedBackDistance, Attacker);
+    AKnockbackDistance * Resource.KnockBackDistance, Attacker);
 
   { If attacked by Enemy, update LastSeenEnemy fields.
     This way when you attack a creature from the back, it will turn around
