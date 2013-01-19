@@ -25,7 +25,7 @@ uses
   Classes, SysUtils, OpenGLContext, Controls, Forms,
   CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils, StdCtrls,
   CastleUIControls, CastleCameras, X3DNodes, CastleScene, CastleLevels,
-  CastleImages, CastleGLVersion, pk3DConnexion;
+  CastleImages, CastleGLVersion, pk3DConnexion, CastleSceneManager;
 
 const
   DefaultLimitFPS = 100.0;
