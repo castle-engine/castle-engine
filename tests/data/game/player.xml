@@ -24,7 +24,7 @@
 
   <swim
     breath="5.6"
-    sound_pause="test_sound_2" />
+    sound_pause="6.7" />
 
   <drown
     pause="7.8">

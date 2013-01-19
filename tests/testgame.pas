@@ -28,7 +28,7 @@ type
 implementation
 
 uses CastleVectors, CastleLevels, CastleResources, CastleSoundEngine, CastlePlayer,
-  CastleMaterialProperties, CastleCreatures, CastleShapes;
+  CastleMaterialProperties, CastleCreatures, CastleShapes, Castle3D;
 
 procedure TTestGame.TestGameData;
 
@@ -56,6 +56,7 @@ procedure TTestGame.TestGameData;
 
 var
   Player: TPlayer;
+  RemovePlayer: TRemoveType;
   SoundType: TSoundType;
   C: TWalkAttackCreatureResource;
 begin
@@ -175,6 +176,32 @@ begin
   Player := TPlayer.Create(nil);
   try
     Player.LoadFromFile('data/game/player.xml');
+
+    AssertFloat(Player.KnockBackSpeed, 1.2);
+    AssertFloat(Player.Camera.HeadBobbingTime, 9.1);
+    AssertFloat(Player.HeadBobbing, 2.3);
+    AssertFloat(Player.SickProjectionSpeed, 4.5);
+    AssertFloat(Player.Camera.JumpMaxHeight, 3.4);
+    AssertFloat(Player.Camera.JumpHorizontalSpeedMultiply, 5.6);
+    AssertFloat(Player.Camera.JumpTime, 7.8);
+    AssertFloat(Player.FallMinHeightToSound, 6.7);
+    AssertSound(Player.FallSound, 'test_sound_1');
+    AssertFloat(Player.FallMinHeightToDamage, 8.9);
+    AssertFloat(Player.FallDamageScaleMin, 1.2);
+    AssertFloat(Player.FallDamageScaleMax, 3.4);
+    AssertFloat(Player.SwimBreath, 5.6);
+    AssertFloat(Player.SwimSoundPause, 6.7);
+    AssertFloat(Player.DrownPause, 7.8);
+    AssertFloat(Player.DrownDamageConst, 9.1);
+    AssertFloat(Player.DrownDamageRandom, 2.3);
+
+    RemovePlayer := rtNone;
+    Player.Idle(0, RemovePlayer);
+    // ignore resulting RemovePlayer
+
+    { some properties are applied to Camera with delay }
+    AssertFloat(Player.Camera.HeadBobbing, 2.3);
+
   finally FreeAndNil(Player) end;
 end;
 
