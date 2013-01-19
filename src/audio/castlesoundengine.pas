@@ -372,6 +372,14 @@ type
     and later can be changed by calling ReadSounds once again during the
     game (debug menu may have command like "Reload sounds/index.xml"). }
   TSoundInfo = class
+  private
+    FBuffer: TSoundBuffer;
+
+    { OpenAL buffer of this sound. Zero if buffer is not yet loaded,
+      which may happen only if TRepoSoundEngine.ALContextOpen was not yet
+      called or when sound has FileName = ''. }
+    property Buffer: TSoundBuffer read FBuffer;
+  public
     { Unique sound name. Empty for the special sound stNone. }
     Name: string;
 
@@ -429,11 +437,6 @@ type
 
       Ignored when this sound is used for MusicPlayer.Sound. }
     DefaultImportance: Cardinal;
-
-    { OpenAL buffer of this sound. Zero if buffer is not yet loaded,
-      which may happen only if TRepoSoundEngine.ALContextOpen was not yet
-      called or when sound has FileName = ''. }
-    Buffer: TSoundBuffer;
   end;
 
   TSoundInfoList = specialize TFPGObjectList<TSoundInfo>;
@@ -1529,11 +1532,11 @@ begin
       begin
         if Sounds[ST].FileName <> '' then
         try
-          Sounds[ST].Buffer := LoadBuffer(Sounds[ST].FileName);
+          Sounds[ST].FBuffer := LoadBuffer(Sounds[ST].FileName);
         except
           on E: Exception do
           begin
-            Sounds[ST].Buffer := 0;
+            Sounds[ST].FBuffer := 0;
             OnWarning(wtMinor, 'Sound', Format('Sound file "%s" cannot be loaded: %s',
               [Sounds[ST].FileName, E.Message]));
           end;
@@ -1557,7 +1560,7 @@ begin
       Sounds for nil }
     if Sounds <> nil then
       for ST := 0 to Sounds.Count - 1 do
-        FreeBuffer(Sounds[ST].Buffer);
+        FreeBuffer(Sounds[ST].FBuffer);
   end;
   inherited;
 end;
@@ -1638,7 +1641,7 @@ begin
         S.MinGain := 0;
         S.MaxGain := 1;
         S.DefaultImportance := MaxSoundImportance;
-        S.Buffer := 0; {< initially, will be loaded later }
+        S.FBuffer := 0; {< initially, will be loaded later }
 
         Sounds.Add(S);
 
