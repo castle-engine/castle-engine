@@ -154,6 +154,24 @@ begin
 
   MaterialProperties.FileName := 'data/game/material_properties.xml';
 
+  Assert(MaterialProperties.Count = 2);
+
+  Assert(MaterialProperties[0].TextureBaseName = 'test_texture');
+  AssertSound(MaterialProperties[0].FootstepsSound, 'test_sound_4');
+  Assert(MaterialProperties[0].Toxic = true);
+  AssertFloat(MaterialProperties[0].ToxicDamageConst, 1.2);
+  AssertFloat(MaterialProperties[0].ToxicDamageRandom, 3.4);
+  AssertFloat(MaterialProperties[0].ToxicDamageTime, 5.6);
+  AssertFileName(MaterialProperties[0].NormalMap, '');
+
+  Assert(MaterialProperties[1].TextureBaseName = 'test_texture_2');
+  Assert(MaterialProperties[1].FootstepsSound = stNone);
+  Assert(MaterialProperties[1].Toxic = false);
+  AssertFloat(MaterialProperties[1].ToxicDamageConst, 0.0);
+  AssertFloat(MaterialProperties[1].ToxicDamageRandom, 0.0);
+  AssertFloat(MaterialProperties[1].ToxicDamageTime, 0.0);
+  AssertFileName(MaterialProperties[1].NormalMap, 'test_normal_map.png');
+
   Player := TPlayer.Create(nil);
   try
     Player.LoadFromFile('data/game/player.xml');
