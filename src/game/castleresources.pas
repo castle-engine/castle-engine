@@ -304,8 +304,8 @@ type
         Otherwise, we'll make an exception.) }
     procedure LoadResourceFile(const FileName: string; const Reload: boolean = false);
 
-    { Reads <resources> XML element. <resources> element
-      is an optional child of given ParentElement.
+    { Reads <prepare_resources> XML element.
+      <prepare_resources> element is an optional child of given ParentElement.
       Sets current list value with all mentioned required
       resources (subset of @link(Resources)). }
     procedure LoadResources(ParentElement: TDOMElement);
