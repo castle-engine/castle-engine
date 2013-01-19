@@ -1170,7 +1170,7 @@ begin
     Config.FileName := FileName;
 
     KnockBackSpeed := Config.GetFloat('knockback_speed', DefaultPlayerKnockBackSpeed);
-    Camera.MaxJumpHeight := Config.GetFloat('jump/max_height', TWalkCamera.DefaultMaxJumpHeight);
+    Camera.JumpMaxHeight := Config.GetFloat('jump/max_height', TWalkCamera.DefaultJumpMaxHeight);
     Camera.JumpHorizontalSpeedMultiply := Config.GetFloat('jump/horizontal_speed_multiply', TWalkCamera.DefaultJumpHorizontalSpeedMultiply);
     Camera.JumpTime := Config.GetFloat('jump/time', TWalkCamera.DefaultJumpTime);
     Camera.HeadBobbingTime := Config.GetFloat('head_bobbing_time', TWalkCamera.DefaultHeadBobbingTime);

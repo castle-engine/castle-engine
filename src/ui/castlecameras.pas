@@ -761,7 +761,7 @@ type
     FFallingEffect: boolean;
     FClimbHeight: Single;
 
-    FMaxJumpHeight: Single;
+    FJumpMaxHeight: Single;
     FIsJumping: boolean;
     FJumpHeight: Single;
     FJumpTime: Single;
@@ -798,7 +798,7 @@ type
       DefaultGrowSpeed = 1.0;
       DefaultHeadBobbing = 0.02;
       DefaultCrouchHeight = 0.5;
-      DefaultMaxJumpHeight = 1.0;
+      DefaultJumpMaxHeight = 1.0;
       DefaultMinAngleRadFromGravityUp = { 10 degress } Pi / 18; { }
       DefaultRotationHorizontalSpeed = 150;
       DefaultRotationVerticalSpeed = 100;
@@ -1104,7 +1104,7 @@ type
       Summary of things done by gravity:
       @unorderedList(
         @item(It uses OnHeight to get camera height above the ground.)
-        @item(It allows player to jump. See Input_Jump, IsJumping, MaxJumpHeight,
+        @item(It allows player to jump. See Input_Jump, IsJumping, JumpMaxHeight,
           JumpHorizontalSpeedMultiply.)
         @item(It allows player to crouch. See Input_Crouch, CrouchHeight.)
         @item(It tries to keep @link(Position) above the ground on
@@ -1197,7 +1197,7 @@ type
       when vertical walls are really vertical (not just steep-almost-vertical).
 
       Remember that user can still try jumping to climb on high obstactes.
-      See MaxJumpHeight for a way to control jumping.
+      See JumpMaxHeight for a way to control jumping.
 
       For a 100% reliable way to prevent user from reaching some point,
       that does not rely on specific camera/gravity settings,
@@ -1305,12 +1305,12 @@ type
 
     { How high can you jump ?
       The max jump distance is calculated as
-      MaxJumpHeight * PreferredHeight, see MaxJumpDistance. }
-    property MaxJumpHeight: Single
-      read FMaxJumpHeight write FMaxJumpHeight default DefaultMaxJumpHeight;
+      JumpMaxHeight * PreferredHeight, see MaxJumpDistance. }
+    property JumpMaxHeight: Single
+      read FJumpMaxHeight write FJumpMaxHeight default DefaultJumpMaxHeight;
 
-    { Returns just MaxJumpHeight * PreferredHeight,
-      see MaxJumpHeight for explanation. }
+    { Returns just JumpMaxHeight * PreferredHeight,
+      see JumpMaxHeight for explanation. }
     function MaxJumpDistance: Single;
 
     { Camera is in the middle of a "jump" move right now. }
@@ -2730,7 +2730,7 @@ begin
   FIsJumping := false;
   FHeadBobbing := DefaultHeadBobbing;
   FCrouchHeight := DefaultCrouchHeight;
-  FMaxJumpHeight := DefaultMaxJumpHeight;
+  FJumpMaxHeight := DefaultJumpMaxHeight;
   FMinAngleRadFromGravityUp := DefaultMinAngleRadFromGravityUp;
   FAllowSlowerRotations := true;
   FCheckModsDown := true;
@@ -4123,7 +4123,7 @@ end;
 
 function TWalkCamera.MaxJumpDistance: Single;
 begin
-  Result := MaxJumpHeight * PreferredHeight;
+  Result := JumpMaxHeight * PreferredHeight;
 end;
 
 function TWalkCamera.DirectionInGravityPlane: TVector3Single;
