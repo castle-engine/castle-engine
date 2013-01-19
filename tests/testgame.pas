@@ -1,0 +1,143 @@
+{
+  Copyright 2004-2012 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+unit TestGame;
+
+interface
+
+uses
+  Classes, SysUtils, fpcunit, testutils, testregistry;
+
+type
+  TTestGame = class(TTestCase)
+    procedure TestGameData;
+  end;
+
+implementation
+
+uses CastleVectors, CastleLevels, CastleResources, CastleSoundEngine, CastlePlayer,
+  CastleMaterialProperties, CastleCreatures;
+
+procedure TTestGame.TestGameData;
+
+  procedure AssertFloat(const A, B: Single);
+  begin
+    Assert(FloatsEqual(A, B, 0.01));
+  end;
+
+  procedure AssertFileName(const A, B: string);
+  begin
+    { When reading XML files, we make filenames absolute. For comparison,
+      strip directory part. }
+    Assert(ExtractFileName(A) = B);
+  end;
+
+  procedure AssertSound(const A: TSoundType; const B: string);
+  begin
+    Assert(A = SoundEngine.SoundFromName(B));
+  end;
+
+var
+  Player: TPlayer;
+  SoundType: TSoundType;
+  C: TWalkAttackCreatureResource;
+begin
+  SoundEngine.SoundsFileName := 'data/game/sounds.xml';
+
+  Assert(SoundEngine.Sounds[stNone].Name = '');
+  Assert(SoundEngine.Sounds[stNone].FileName = '');
+  SoundType := SoundEngine.SoundFromName('player_sudden_pain');
+  Assert(SoundEngine.Sounds[SoundType].Name = 'player_sudden_pain');
+  AssertFileName(SoundEngine.Sounds[SoundType].FileName, 'test_name.wav');
+  Assert(SoundEngine.Sounds[SoundType].DefaultImportance = PlayerSoundImportance);
+  AssertFloat(SoundEngine.Sounds[SoundType].Gain, 1);
+  AssertFloat(SoundEngine.Sounds[SoundType].MinGain, 0.8);
+  AssertFloat(SoundEngine.Sounds[SoundType].MaxGain, 1);
+
+  Resources.LoadFromFiles('data/game/');
+
+  Assert(Resources.Count = 1);
+  Assert(Resources[0].Name = 'TestCreature');
+  Assert(Resources[0].ClassType = TWalkAttackCreatureResource);
+  C := Resources[0] as TWalkAttackCreatureResource;
+  AssertFloat(C.KnockBackSpeed, 1.2);
+  AssertFloat(C.KnockBackDistance, 3.4);
+  Assert(C.Flying = true);
+  Assert(C.SoundDieTiedToCreature = true);
+  AssertFloat(C.DefaultMaxLife, 5.6);
+  AssertFloat(C.Radius, 7.8);
+  AssertFloat(C.MiddleHeight, 6.7);
+  AssertSound(C.SoundSuddenPain, 'test_sound_6');
+  AssertSound(C.SoundDie, 'test_sound_7');
+  AssertFloat(C.MoveSpeed, 1.2);
+  AssertFloat(C.MinLifeLossToHurt, 3.4);
+  AssertFloat(C.ChanceToHurt, 0.56);
+  AssertFloat(C.MaxHeightAcceptableToFall, 5.6);
+  AssertFloat(C.RandomWalkDistance, 7.8);
+  Assert(C.RemoveDead = true);
+  AssertFloat(C.PreferredDistance, 9.1);
+  Assert(C.AlwaysPrepared = true);
+  AssertFloat(C.FallSpeed, 1.2);
+  AssertFloat(C.GrowSpeed, 3.4);
+  Assert(C.ReceiveShadowVolumes = false);
+  Assert(C.CastShadowVolumes = false);
+  AssertFileName(C.ModelFileName, 'main.x3d');
+  Assert(C.IdleAnimation.Defined);
+//  AssertFileName(C.IdleAnimation.FileName, 'idle.x3d')); // private
+//  Assert(C.IdleAnimation.TimeSensor = 'TimeSensorIdle'); // private
+  Assert(C.IdleToWalkAnimation.Defined);
+  Assert(C.WalkAnimation.Defined);
+  Assert(C.FireMissileAnimation.Defined);
+  Assert(C.AttackAnimation.Defined);
+  Assert(C.DieAnimation.Defined);
+  Assert(C.DieBackAnimation.Defined);
+  Assert(C.HurtAnimation.Defined);
+  AssertFloat(C.AttackKnockbackDistance, 4.5);
+  AssertFloat(C.AttackTime, 7.8);
+  AssertFloat(C.AttackMaxDistance, 9.1);
+  AssertFloat(C.AttackMaxAngle, 2.3);
+  AssertFloat(C.AttackMinDelay, 4.5);
+  AssertSound(C.AttackSoundHit, 'test_sound_6');
+  AssertSound(C.AttackSoundStart, 'test_sound_7');
+  AssertFloat(C.AttackDamageConst, 9.1);
+  AssertFloat(C.AttackDamageRandom, 2.3);
+  AssertFloat(C.FireMissileTime, 1.2);
+  AssertFloat(C.FireMissileMaxDistance, 3.4);
+  AssertFloat(C.FireMissileMaxAngle, 5.6);
+  AssertFloat(C.FireMissileMinDelay, 7.8);
+  AssertSound(C.FireMissileSound, 'test_sound_8');
+  Assert(C.FireMissileName = 'TestMissileCreature');
+  AssertFloat(C.FireMissileHeight, 0.12);
+  AssertFloat(C.FallMinHeightToSound, 7.8);
+  AssertSound(C.FallSound, 'test_sound_5');
+  AssertFloat(C.FallMinHeightToDamage, 1.2);
+  AssertFloat(C.FallDamageScaleMin, 3.4);
+  AssertFloat(C.FallDamageScaleMax, 5.6);
+  AssertFloat(C.RunAwayLife, 1.2);
+  AssertFloat(C.RunAwayDistance, 3.4);
+  AssertFloat(C.VisibilityAngle, 5.6);
+
+  Levels.LoadFromFiles('data/game/');
+  MaterialProperties.FileName := 'data/game/material_properties.xml';
+
+  Player := TPlayer.Create(nil);
+  try
+    Player.LoadFromFile('data/game/player.xml');
+  finally FreeAndNil(Player) end;
+end;
+
+initialization
+  RegisterTest(TTestGame);
+end.

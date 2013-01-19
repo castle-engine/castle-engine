@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+
+<properties>
+  <property
+    texture_base_name="test_texture"
+    footsteps_sound="test_sound_4">
+    <toxic>
+      <damage
+        const="1.2"
+	random="3.4"
+	time="5.6" />
+    </toxic>
+  </property>
+
+  <property
+    texture_base_name="test_texture_2"
+    normal_map="test_normal_map.png" />
+</properties>
