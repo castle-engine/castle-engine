@@ -802,7 +802,7 @@ Larger games may find it comfortable to define a repository of sounds in an XML 
 Then you can initialize it inside your game code like this:
 
 [[
-SoundEngine.SoundsXmlFileName := ProgramDataPath + 'data' +
+SoundEngine.SoundsFileName := ProgramDataPath + 'data' +
   PathDelim + 'sounds' + PathDelim + 'index.xml';
 ]]
 

@@ -445,7 +445,7 @@ begin
   SoundEngine.ParseParameters;
 
   { Load named sounds defined in sounds/index.xml }
-  SoundEngine.SoundsXmlFileName := ProgramDataPath + 'data' + PathDelim +
+  SoundEngine.SoundsFileName := ProgramDataPath + 'data' + PathDelim +
     'sounds' + PathDelim + 'index.xml';
 
   { Load texture properties, used to assign footsteps sounds based

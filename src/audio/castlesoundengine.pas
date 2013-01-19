@@ -346,7 +346,7 @@ type
 
 const
   { Special sound type that indicates that there is actually no sound.
-    @link(TRepoSoundEngine.Sound) and @link(TRepoSoundEngine.Sound3d)
+    @link(TRepoSoundEngine.Sound) and @link(TRepoSoundEngine.Sound3D)
     will do nothing when called with this sound type. }
   stNone = 0;
 
@@ -407,7 +407,7 @@ type
   TMusicPlayer = class;
 
   { Sound engine that keeps a repository of sounds, defined in a nice XML file.
-    This allows to have simple @link(Sound) and @link(Sound3d) methods,
+    This allows to have simple @link(Sound) and @link(Sound3D) methods,
     that take a sound identifier (managing sound buffers will just happen
     automatically under the hood).
 
@@ -416,18 +416,18 @@ type
     and all other methods. This only adds easy preloaded sounds,
     but you're not limited to them.
 
-    You have to set the SoundsXmlFileName property, to gain anything
+    You have to set the SoundsFileName property, to gain anything
     from TRepoSoundEngine. Otherwise, it just acts exactly like TSoundEngine.
-    See SoundsXmlFileName docs for details. }
+    See SoundsFileName docs for details. }
   TRepoSoundEngine = class(TSoundEngine)
   private
     FSoundImportanceNames: TStringList;
     FSounds: TSoundInfoList;
-    FSoundsXmlFileName: string;
+    FSoundsFileName: string;
     { This is the only allowed instance of TMusicPlayer class,
       created and destroyed in this class create/destroy. }
     FMusicPlayer: TMusicPlayer;
-    procedure SetSoundsXmlFileName(const Value: string);
+    procedure SetSoundsFileName(const Value: string);
     { Load buffers for all Sounds. Should be called as soon as Sounds changes
       and we may have OpenAL context (but it checks ALActive and Sounds.Count,
       and does something only if we have OpenAL context and some sounds,
@@ -448,12 +448,12 @@ type
       See engine examples, @code(examples/audio/sample_sounds.xml) file,
       for a heavily commented example.
 
-      When you set SoundsXmlFileName property, we read sound information from
-      given XML file. You usually set SoundsXmlFileName at the very beginning,
+      When you set SoundsFileName property, we read sound information from
+      given XML file. You usually set SoundsFileName at the very beginning,
       before OpenAL context is initialized (although it's also Ok to do this after).
-      Right after setting SoundsXmlFileName you usually call SoundFromName
+      Right after setting SoundsFileName you usually call SoundFromName
       a couple of times to convert some names into TSoundType values,
-      to later use these TSoundType values with @link(Sound) and @link(Sound3d)
+      to later use these TSoundType values with @link(Sound) and @link(Sound3D)
       methods.
 
       When OpenAL is initialized, sound buffers will actually be loaded.
@@ -463,25 +463,24 @@ type
       TSoundEngine.
 
       If you want to actually use TRepoSoundEngine features
-      (like the @link(Sound) and @link(Sound3d) methods) you have to set this
+      (like the @link(Sound) and @link(Sound3D) methods) you have to set this
       property. For example like this:
 
 @longCode(#
-  SoundEngine.SoundsXmlFileName := ProgramDataPath + 'sounds.xml';
+  SoundEngine.SoundsFileName := ProgramDataPath + 'sounds.xml';
   stMySound1 := SoundEngine.SoundFromName('my_sound_1');
   stMySound2 := SoundEngine.SoundFromName('my_sound_2');
   // ... and later in your game you can do stuff like this:
-  Sound(stMySound1);
-  Sound3d(stMySound1, Vector3Single(0, 0, 10));
+  SoundEngine.Sound(stMySound1);
+  SoundEngine.Sound3D(stMySound1, Vector3Single(0, 0, 10));
 #)
 
-      (You will find handy ProgramDataPath function, with docs what it returns,
-      in CastleFilesUtils unit.)
+      See CastleFilesUtils unit for docs of a useful ProgramDataPath function.
     }
-    property SoundsXmlFileName: string
-      read FSoundsXmlFileName write SetSoundsXmlFileName;
+    property SoundsFileName: string
+      read FSoundsFileName write SetSoundsFileName;
 
-    { Reload the SoundsXmlFileName and all referenced buffers.
+    { Reload the SoundsFileName and all referenced buffers.
       Useful as a tool for 3D data designers, to reload the sounds XML file
       without restarting the game/sound engine etc. }
     procedure ReloadSounds;
@@ -498,7 +497,7 @@ type
 
     { Return sound with given name.
       Available names are given in SoundNames, defined in XML file pointed
-      by SoundsXmlFileName.
+      by SoundsFileName.
       Always for SoundName = '' it will return stNone.
 
       @raises Exception On invalid SoundName when RaiseError = @true. }
@@ -518,7 +517,7 @@ type
       You don't have to do anything with this returned TSound.
 
       @noAutoLinkHere }
-    function Sound3d(SoundType: TSoundType;
+    function Sound3D(SoundType: TSoundType;
       const Position: TVector3Single;
       const Looping: boolean = false): TSound; overload;
 
@@ -596,15 +595,15 @@ var
   { Common sounds.
 
     The sounds types listed below are automatically
-    initialized when you set TRepoSoundEngine.SoundsXmlFileName.
+    initialized when you set TRepoSoundEngine.SoundsFileName.
     All engine units can use them if you define them in your sounds XML file.
     If they are not defined in your XML file (or if you don't even have
-    an XML file, that is you leave TRepoSoundEngine.SoundsXmlFileName empty)
+    an XML file, that is you leave TRepoSoundEngine.SoundsFileName empty)
     then they remain stNone (and nothing will happen if anything will try
-    to play them by TRepoSoundEngine.Sound or TRepoSoundEngine.Sound3d).
+    to play them by TRepoSoundEngine.Sound or TRepoSoundEngine.Sound3D).
 
     Simply define them in your sounds XML file (see
-    TRepoSoundEngine.SoundsXmlFileName)
+    TRepoSoundEngine.SoundsFileName)
     under a suitable name with underscores,
     like 'player_dies' for stPlayerDies. }
 
@@ -1543,7 +1542,7 @@ begin
     ZeroVector3Single);
 end;
 
-function TRepoSoundEngine.Sound3d(SoundType: TSoundType;
+function TRepoSoundEngine.Sound3D(SoundType: TSoundType;
   const Position: TVector3Single;
   const Looping: boolean): TSound;
 begin
@@ -1558,7 +1557,7 @@ begin
     Position);
 end;
 
-procedure TRepoSoundEngine.SetSoundsXmlFileName(const Value: string);
+procedure TRepoSoundEngine.SetSoundsFileName(const Value: string);
 var
   SoundConfig: TXMLDocument;
   ImportanceStr: string;
@@ -1567,24 +1566,24 @@ var
   SoundsXmlPath: string;
   S: TSoundInfo;
 begin
-  if FSoundsXmlFileName = Value then Exit;
-  FSoundsXmlFileName := Value;
+  if FSoundsFileName = Value then Exit;
+  FSoundsFileName := Value;
 
   Sounds.Clear;
   { add stNone sound }
   Sounds.Add(TSoundInfo.Create);
 
   { if no sounds XML file, then that's it --- no more sounds }
-  if SoundsXmlFileName = '' then Exit;
+  if SoundsFileName = '' then Exit;
 
   { This must be an absolute path, since Sounds[].FileName should be
     absolute (to not depend on the current dir when loading sound files. }
-  SoundsXmlPath := ExtractFilePath(ExpandFileName(SoundsXmlFileName));
+  SoundsXmlPath := ExtractFilePath(ExpandFileName(SoundsFileName));
 
   try
     { ReadXMLFile always sets TXMLDocument param (possibly to nil),
       even in case of exception. So place it inside try..finally. }
-    ReadXMLFile(SoundConfig, SoundsXmlFileName);
+    ReadXMLFile(SoundConfig, SoundsFileName);
 
     Check(SoundConfig.DocumentElement.TagName = 'sounds',
       'Root node of sounds/index.xml must be <sounds>');
@@ -1660,20 +1659,20 @@ begin
   stMenuCurrentItemChanged := SoundFromName('menu_current_item_changed', false);
   stMenuClick              := SoundFromName('menu_click'               , false);
 
-  { in case you set SoundsXmlFileName when OpenAL context is already
+  { in case you set SoundsFileName when OpenAL context is already
     initialized, load buffers now }
   LoadSoundsBuffers;
 end;
 
 procedure TRepoSoundEngine.ReloadSounds;
 var
-  OldSoundsXmlFileName: string;
+  OldSoundsFileName: string;
 begin
-  if SoundsXmlFileName <> '' then
+  if SoundsFileName <> '' then
   begin
-    OldSoundsXmlFileName := SoundsXmlFileName;
-    SoundsXmlFileName := '';
-    SoundsXmlFileName := OldSoundsXmlFileName;
+    OldSoundsFileName := SoundsFileName;
+    SoundsFileName := '';
+    SoundsFileName := OldSoundsFileName;
   end;
 end;
 

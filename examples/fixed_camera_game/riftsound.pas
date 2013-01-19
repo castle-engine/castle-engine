@@ -37,7 +37,7 @@ implementation
 uses SysUtils, CastleFilesUtils;
 
 initialization
-  SoundEngine.SoundsXmlFileName := ProgramDataPath + 'data' +
+  SoundEngine.SoundsFileName := ProgramDataPath + 'data' +
     PathDelim + 'sounds' + PathDelim + 'index.xml';
 
   stIntroMusic    := SoundEngine.SoundFromName('intro_music');

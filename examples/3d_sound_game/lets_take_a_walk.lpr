@@ -359,7 +359,7 @@ begin
   while TntsCount < MaxTntsCount do NewTnt(0.0);
 
   { init 3D sounds }
-  SoundEngine.SoundsXmlFileName := ProgramDataPath + 'data' +
+  SoundEngine.SoundsFileName := ProgramDataPath + 'data' +
     PathDelim + 'sounds' + PathDelim + 'index.xml';
   SoundEngine.DistanceModel := dmInverseDistanceClamped; //< OpenAL default
   stRatSound  := SoundEngine.SoundFromName('rat_sound');
