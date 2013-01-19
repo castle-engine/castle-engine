@@ -372,28 +372,62 @@ type
     and later can be changed by calling ReadSounds once again during the
     game (debug menu may have command like "Reload sounds/index.xml"). }
   TSoundInfo = class
-    { Unique sound name. Empty only for stNone. }
+    { Unique sound name. Empty for the special sound stNone. }
     Name: string;
 
-    { '' means that this sound is not implemented and will never
-      have any OpenAL buffer associated with it. }
+    { File name from which to load sound data.
+
+      Empty means that the sound data is not defined,
+      so the @link(Buffer) will always remain zero and trying to play
+      this sound (with methods like TSoundEngine.Sound or TSoundEngine.Sound3D)
+      will do nothing. This is useful if you want to use a sound name
+      in code, but you do not have the actual sound file for this yet. }
     FileName: string;
 
-    { XxxGain are mapped directly on respective OpenAL source properties.
-      Note that Gain > 1 is allowed (because OpenAL allows it),
-      although OpenAL may clip them for the resulting sound (after all
-      calculations taking into account 3d position will be done).
-      MaxGain is not allowed to be > 1 (under Windows impl, Linux impl
-      allows it, but that's about it).
+    { Gain (how loud the sound is).
+      They are mapped directly to respective OpenAL source properties,
+      so see OpenAL specification for exact details what they mean.
+      In short:
 
-      When sound is used for MusicPlayer.Sound:
-      1. MinGain, MaxGain are ignored
-      2. Gain is always multiplied by MusicVolume when setting AL_GAIN
-         of the music source. }
+      @unorderedList(
+        @item(Gain scales the sound loudness. Use this to indicate that
+          e.g. a plane engine is louder than a mouse squeak (when heard
+          from the same distance).
+
+          Do @italic(not) make the actual sound data (in wav, ogg and such files)
+          louder/more silent for this purpose.
+          This is usually bad for sound quality. Instead, keep your sound data
+          at max loudness (normalized), and use this @link(Gain) property
+          to scale sound.
+
+          It can be antything from 0 to +infinity. The default is 1.)
+
+        @item(MinGain and MaxGain force a minimum/maximum sound loudness.
+          These can be used to "cheat" around default distance attenuation
+          calculation.
+
+          These must be in [0, 1] range. By default MinGain is 0 and MaxGain is 1.)
+      )
+
+      Note that Gain value > 1 is allowed.
+      Although OpenAL may clip the resulting sound (after all
+      calculations taking into account 3D position will be done).
+      The resulting sound is also clamped by MaxGain
+      (that generally must be in [0, 1], although some OpenAL implementations
+      allow values > 1).
+
+      When this sound is used for MusicPlayer.Sound:
+      @orderedList(
+        @item(MinGain, MaxGain are ignored.)
+        @item(Effective Gain (passed to OpenAL sound source) is the
+          TMusicPlayer.MusicVolume multiplied by our @link(Gain).)
+      ) }
     Gain, MinGain, MaxGain: Single;
 
-    { Importance, as passed to TSoundAllocator.
-      This is ignored when sound is used for MusicPlayer.Sound. }
+    { How important the sound is. Influences what happens when we have a lot
+      of sounds playing at once. See TSound.Importance.
+
+      Ignored when this sound is used for MusicPlayer.Sound. }
     DefaultImportance: Cardinal;
 
     { OpenAL buffer of this sound. Zero if buffer is not yet loaded,
