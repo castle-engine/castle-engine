@@ -69,7 +69,7 @@
     { FTextureImage is <> nil if texture is currently loaded (IsTextureLoaded)
       and it was loaded to an image (not video).
 
-      Note that this may still have zero size (IsNull = @true),
+      Note that this may still have zero size (IsEmpty = @true),
       IsTextureImage checks this also. }
     FTextureImage: TEncodedImage;
 
@@ -625,7 +625,7 @@ end;
 
 function TAbstractTexture2DNode.IsTextureImage: boolean;
 begin
-  Result := (TextureImage <> nil) and (not TextureImage.IsNull);
+  Result := (TextureImage <> nil) and (not TextureImage.IsEmpty);
 end;
 
 function TAbstractTexture2DNode.TextureDDS: TDDSImage;
@@ -1132,13 +1132,13 @@ procedure TPixelTextureNode.LoadTextureData(out WasCacheUsed: boolean);
 begin
   WasCacheUsed := false;
 
-  if not FdImage.Value.IsNull then
+  if not FdImage.Value.IsEmpty then
     FTextureImage := FdImage.Value.MakeCopy;
 end;
 
 function TPixelTextureNode.TextureDescription: string;
 begin
-  if not FdImage.Value.IsNull then
+  if not FdImage.Value.IsEmpty then
     result := Format('inlined image (width = %d; height = %d; with alpha = %s)',
       [ FdImage.Value.Width, FdImage.Value.Height,
         BoolToStr[FdImage.Value.HasAlpha] ]) else

@@ -348,7 +348,7 @@ begin
   for bs := Low(bs) to High(bs) do
   begin
     nieboTex[bs] := 0;
-    if (Imgs.Images[bs] <> nil) and (not Imgs.Images[bs].IsNull) then
+    if (Imgs.Images[bs] <> nil) and (not Imgs.Images[bs].IsEmpty) then
     begin
       try
         nieboTex[bs] := LoadGLTexture(Imgs.Images[bs], GL_LINEAR, GL_LINEAR,

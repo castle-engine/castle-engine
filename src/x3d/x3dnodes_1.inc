@@ -1635,7 +1635,7 @@ begin
 
   { Still not loaded (so FdFilename.Value is '' or LoadImage raised exception) ?
     So try to use inlined texture. }
-  if not FdImage.Value.IsNull then
+  if not FdImage.Value.IsEmpty then
     FTextureImage := FdImage.Value.MakeCopy;
 end;
 
@@ -1652,9 +1652,9 @@ begin
   if FdFilename.Value <> '' then
   begin
     result := 'file "' +PathFromBaseUrl(FdFilename.Value) +'"';
-    if not FdImage.Value.IsNull then result += ' (and '+InlinedDescr+')';
+    if not FdImage.Value.IsEmpty then result += ' (and '+InlinedDescr+')';
   end else
-  if not FdImage.Value.IsNull then
+  if not FdImage.Value.IsEmpty then
     result := InlinedDescr else
     result := 'none';
 end;

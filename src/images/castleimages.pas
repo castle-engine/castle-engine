@@ -127,7 +127,7 @@ type
       @false means that RawPixels <> nil and Width * Height * Depth <> 0
       (so all Width > 0 and Height > 0 and Depth > 0, since they are
       Cardinal (unsigned) always). }
-    function IsNull: boolean;
+    function IsEmpty: boolean;
 
     { Does an image have an alpha channel.
 
@@ -260,7 +260,7 @@ type
     procedure LerpSimpleCheckConditions(SecondImage: TCastleImage);
   public
     { Constructor without parameters creates image with Width = Height = Depth = 0
-      and RawPixels = nil, so IsNull will return @true.
+      and RawPixels = nil, so IsEmpty will return @true.
 
       Both constructors must be virtual, this allows to implement things
       like TCastleImage.MakeCopy. }
@@ -271,7 +271,7 @@ type
 
     { This is equivalent to SetSize(0, 0, 0).
       It sets Width = Height = 0 and RawPixels = nil. }
-    procedure Null;
+    procedure Empty;
 
     { Change Width and Height to given AWidth, AHeight.
       RawPixels is changed to point to the new memory.
@@ -1671,7 +1671,7 @@ begin
   inherited;
 end;
 
-function TEncodedImage.IsNull: boolean;
+function TEncodedImage.IsEmpty: boolean;
 begin
  Result := RawPixels = nil;
 end;
@@ -1704,7 +1704,7 @@ begin
   SetSize(AWidth, AHeight, ADepth);
 end;
 
-procedure TCastleImage.Null;
+procedure TCastleImage.Empty;
 begin
   FreeMemNiling(FRawPixels);
   FWidth := 0;
@@ -1891,7 +1891,7 @@ begin
 
   Result := TCastleImageClass(ClassType).Create(ResizeToX, ResizeToY);
   try
-    if not IsNull then
+    if not IsEmpty then
       InternalResize(PixelSize,
                RawPixels,        Width,        Height,
         Result.RawPixels, Result.Width, Result.Height,

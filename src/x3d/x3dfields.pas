@@ -1386,7 +1386,7 @@ type
 
     { Value is owned by this object - i.e. in destructor we do Value.Free.
 
-      Value may be IsNull, and then we know that there is no image
+      Value may be IsEmpty, and then we know that there is no image
       recorded in this field. Value may never be nil.
       Remember --- Value is freed by this object, but if you're altering it in any
       other way, you're responsible for good memory managing. }
@@ -4119,7 +4119,7 @@ begin
   { Note that we should never let Value to be nil too long,
     because even if this method exits with exception, Value should
     always remain non-nil.
-    That's why I'm doing below Value.Null instead of FreeAndNil(Value)
+    That's why I'm doing below Value.Empty instead of FreeAndNil(Value)
     and I'm using ReplaceValue to set new Value.
     This way if e.g. TRGBImage.Create with out of mem exception,
     Value will still remain non-nil.
@@ -4130,14 +4130,14 @@ begin
     allowing Value to be nil at any time.
     }
 
-  Value.Null;
+  Value.Empty;
 
   w := ParseLongWord(Lexer);
   h := ParseLongWord(Lexer);
   comp := ParseLongWord(Lexer);
 
   { If w or h =0 then w*h = 0 so we don't have to read anything more.
-    We leave Value.IsNull in this case. }
+    We leave Value.IsEmpty in this case. }
   if (w <> 0) and (h <> 0) then
   begin
     case comp of
@@ -4179,7 +4179,7 @@ var
   i: Cardinal;
   pixel: LongWord;
 begin
-  if Value.IsNull then
+  if Value.IsEmpty then
     Writer.Write('0 0 1') else
   begin
     Writer.Writeln(Format('%d %d %d', [Value.Width, Value.Height,
