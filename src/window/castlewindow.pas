@@ -530,9 +530,9 @@ uses SysUtils, Classes, CastleVectors, GL, GLU, GLExt,
   {$ifdef CASTLE_WINDOW_USE_XF86VMODE} CastleXF86VMode, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} Gdk2X, X, Xlib, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, CastleDynLib, {$endif}
-  CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages, CastleKeysMouse,
-  CastleStringUtils, CastleFilesUtils, CastleTimeUtils, CastleFileFilters, CastleUIControls,
-  FGL, pk3DConnexion,
+  CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
+  CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
+  CastleFileFilters, CastleUIControls, FGL, pk3DConnexion,
   { VRML/X3D stuff }
   X3DNodes, CastleScene, CastleSceneManager, CastleLevels;
 
@@ -4854,22 +4854,22 @@ end;
 { init/fini --------------------------------------------------------------- }
 
 initialization
- CastleWindowMenu_Init;
- Application := TGLApplication.Create(nil);
+  CastleWindowMenu_Init;
+  Application := TGLApplication.Create(nil);
 finalization
- { Instead of using FreeAndNil, just call Free.
-   In our constructor we take care of setting Application variable to @nil,
-   when it becomes really useless.
+  { Instead of using FreeAndNil, just call Free.
+    In our destructor we take care of setting Application variable to @nil,
+    when it becomes really useless.
 
-   Otherwise FreeAndNil first nils, then frees Application, and we really
-   want to keep Application during first stage of TGLApplication destruction:
-   when calling Quit, which may close windows, which may use Application
-   variable in their Close or CloseBackend implementations. }
- Application.Free;
- Assert(Application = nil);
+    Otherwise FreeAndNil first nils, then frees Application, and we really
+    want to keep Application during first stage of TGLApplication destruction:
+    when calling Quit, which may close windows, which may use Application
+    variable in their Close or CloseBackend implementations. }
+  Application.Free;
+  Assert(Application = nil);
 
- { Order is important: Castlewindowmenu_Fini frees MenuItems, which is needed
-   by TMenu destructor. And some TCastleWindowBase instances may be freed
-   only by Application destructor (when they are owned by Application). }
- CastleWindowMenu_Fini;
+  { Order is important: Castlewindowmenu_Fini frees MenuItems, which is needed
+    by TMenu destructor. And some TCastleWindowBase instances may be freed
+    only by Application destructor (when they are owned by Application). }
+  CastleWindowMenu_Fini;
 end.
