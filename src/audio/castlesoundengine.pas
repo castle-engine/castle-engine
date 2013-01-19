@@ -622,15 +622,6 @@ var
   stPlayerSwimmingChange,
   { @groupEnd }
 
-  { Creatures sounds.
-    @groupBegin }
-  { @groupEnd }
-
-  { Levels sounds.
-    @groupBegin }
-  stThunder,
-  { @groupEnd }
-
   { Sounds used by TCastleOnScreenMenu.
     @groupBegin }
   stMenuCurrentItemChanged,
@@ -1666,7 +1657,6 @@ begin
   stPlayerFootstepsConcrete    := SoundFromName('player_footsteps_concrete', false);
   stPlayerToxicPain            := SoundFromName('player_toxic_pain', false);
 
-  stThunder                := SoundFromName('thunder'                  , false);
   stMenuCurrentItemChanged := SoundFromName('menu_current_item_changed', false);
   stMenuClick              := SoundFromName('menu_click'               , false);
 
