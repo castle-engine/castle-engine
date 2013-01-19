@@ -28,7 +28,7 @@ type
 implementation
 
 uses CastleVectors, CastleLevels, CastleResources, CastleSoundEngine, CastlePlayer,
-  CastleMaterialProperties, CastleCreatures;
+  CastleMaterialProperties, CastleCreatures, CastleShapes;
 
 procedure TTestGame.TestGameData;
 
@@ -47,6 +47,11 @@ procedure TTestGame.TestGameData;
   procedure AssertSound(const A: TSoundType; const B: string);
   begin
     Assert(A = SoundEngine.SoundFromName(B));
+  end;
+
+  procedure AssertVector(const A: TVector3Single; const BX, BY, BZ: Single);
+  begin
+    Assert(VectorsEqual(A, Vector3Single(BX, BY, BZ), 0.01));
   end;
 
 var
@@ -130,6 +135,23 @@ begin
   AssertFloat(C.VisibilityAngle, 5.6);
 
   Levels.LoadFromFiles('data/game/');
+
+  Assert(Levels[0].Name = 'my_level');
+  Assert(Levels[0].LogicClass = TLevelLogic);
+  AssertFileName(Levels[0].SceneFileName, 'scene.x3d');
+  Assert(Levels[0].Title = 'My Level');
+  Assert(Levels[0].Number = 123);
+  Assert(Levels[0].Demo = true);
+  Assert(Levels[0].TitleHint = 'Title Hint');
+  Assert(Levels[0].DefaultPlayed = true);
+  Assert(Levels[0].PlaceholderName = PlaceholderNames['blender']);
+  Assert(not Levels[0].LoadingImage.IsEmpty);
+  Assert(Levels[0].LoadingImage.Width = 16);
+  Assert(Levels[0].LoadingImage.Height = 16);
+  AssertFloat(Levels[0].LoadingImageBarYPosition, 1.2);
+  AssertVector(Levels[0].PlaceholderReferenceDirection, 1, 2, 3);
+  AssertSound(Levels[0].MusicSound, 'test_sound_2');
+
   MaterialProperties.FileName := 'data/game/material_properties.xml';
 
   Player := TPlayer.Create(nil);
