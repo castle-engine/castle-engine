@@ -103,7 +103,7 @@ As I said, you actually already have SceneManager property of your window/contro
 ------------------------------------------------------------------------------
 4. Load a 3D model (simple approach to loading a game level or such)
 
-We will now load a 3D model from file. This is basic way to load a game level, although you will learn a more advanced way later.
+We will now load a 3D model from file. This is also a one approach to load a simple game level, although you will learn a more advanced way later.
 
 If you use a VRML/X3D file, this game level doesn't have to be static --- it can already include animated stuff, 3D sounds, scripts, and such.
 
@@ -188,9 +188,9 @@ You can now start a game by scanning all levels information from level.xml files
 
 [[
   Levels.LoadFromFiles;
-  SceneManager.LoadLevel('base');
+  SceneManager.LoadLevel('pits'); // refer to name="pits" in level.xml
   // the 2nd line is a shortcut for
-  / SceneManager.LoadLevel(Levels.FindName('base'));
+  // SceneManager.LoadLevel(Levels.FindName('pits'));
 ]]
 
 The LoadLevel will clear all SceneManager.Items (except Player, more about this in a second). Then it will load new 3D model with a level (adding it to SceneManager.Items and setting as SceneManager.MainScene, just as we did manually in previous chapter), and do some more interesting stuff that we'll learn later.
@@ -204,7 +204,7 @@ For a good measture, it will also be handy later to have a central Player object
 - It will make camera automatically tied to the Player, making it a first-person perspective game. (More camera approach, like third-person view, will be available later.)
 - It's also a central enemy of all hostile creatures created using CastleCreatures unit. This will be more configurable in the future.
 
-To load a Player do this (before or after loading a level --- doesn't matter; conceptually, it's cleaner to do this before loading new level, but things will work either way).
+To load a Player do this:
 
 [[
 var
@@ -214,6 +214,8 @@ var
   SceneManager.Items.Add(Player);
   SceneManager.Player := Player;
 ]]
+
+It's best to do this (assign SceneManager.Player) before SceneManager.LoadLevel, this way Player.Camera is automatically configured as SceneManager.Camera and it follows level's properties like PreferredHeight (from level's NavigationInfo.avatarSize).
 
 Player is a descendant of T3DList, which means that you can add additional 3D objects as it's children, like Player.Add(Some3DObject). These 3D objects will always be rendered relative the the player, so they will move along with the player. This is an easy way to add 3D weapon models and similar things to your display. In fact, we do it automatically for TCastlePlayer.EquippedWeapon 3D model. But you can also add/remove additional 3D objects this way.
 
@@ -916,7 +918,7 @@ end;
 
 IOW, you manually force the current time of the scene/camera to increase as much as you want before each screenshot. This makes it work 100% reliably, without any worries how fast you can process captured images.
 
-The time of the scene and of the camera is actually independent. You can remove the "MainScene.IncreaseTime" call, if you know that your scene stays static (and want to force it to look like static), and want to animate only camera. Or the other way around, if your camera is static (or you want to force it to be static) but you have an animation in VRML/X3D, you can remove the "Camera.Idle" line.
+The time of the scene and of the camera is actually independent. You can remove the "MainScene.IncreaseTime" call, if you know that your scene stays static (or you want to force it to look like static), and want to animate only camera. Or the other way around, if your camera is static (or you want to force it to be static) but you have an animation in VRML/X3D, you can remove the "Camera.Idle" line.
 
 FrameTime is in seconds, as both TCastleSceneCore.IncreseTime and TCamera.Idle take it's time argument in seconds. But don't worry, this is a float, so actually it honors fractions of seconds as well. So something like 1/25 to get 25 frames per second is Ok.
 
