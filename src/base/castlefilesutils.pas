@@ -160,7 +160,7 @@ function UserConfigFile(const Extension: string): string;
 
       This is suitable for system-wide installations without package manager.)
 
-    @item(@code('/usr/local/' +ApplicationName+ '/').
+    @item(@code('/usr/share/' +ApplicationName+ '/').
       If such directory exists, it is returned.
 
       This is suitable for system-wide installations with package manager.)
