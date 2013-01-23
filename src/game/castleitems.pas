@@ -191,7 +191,8 @@ var
     { Common properties for all types of attack (short-range/shoot,
       fire missile) below. }
 
-    { A time within AttackAnimationat which @link(Attack) method will be called. }
+    { A time within AttackAnimationat at which TItemWeapon.Attack
+      method will be called, which actually hits the enemy. }
     property AttackTime: Single read FAttackTime write FAttackTime
       default DefaultAttackTime;
 

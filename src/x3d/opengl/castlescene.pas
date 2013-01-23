@@ -630,7 +630,7 @@ type
       by @link(Attributes), see TSceneRenderingAttributes and
       TRenderingAttributes.
 
-      For more details about rendering, see @link(GLRenderer) unit comments.
+      For more details about rendering, see @link(CastleRenderer) unit comments.
       This method internally uses TGLRenderer instance, additionally
       handling the blending:
 

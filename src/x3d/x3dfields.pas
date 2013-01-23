@@ -998,7 +998,7 @@ type
     function GetByName(const AName: string): TX3DField;
   public
     { Access field by name.
-      @raises EX3DNotFound If the given Name doesn't exist. }
+      Raises EX3DNotFound if the given Name doesn't exist. }
     property ByName[const AName: string]:TX3DField read GetByName;
 
     { Searches for a field with given Name, returns it's index or -1 if not found. }

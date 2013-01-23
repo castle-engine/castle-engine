@@ -183,7 +183,7 @@
     function GetByName(const AName: string): TX3DEvent;
   public
     { Access event by name.
-      @raises EX3DNotFound If the given Name doesn't exist. }
+      Raises EX3DNotFound if the given Name doesn't exist. }
     property ByName[const AName: string]: TX3DEvent read GetByName;
 
     { Find event index on the list. -1 if not found. }

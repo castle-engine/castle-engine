@@ -14,7 +14,7 @@
 }
 
 { Utilities specifically for VRML/X3D cameras.
-  @seealso(Cameras @link(Cameras) unit has our general classes and utilities
+  @seealso(CastleCameras For our general classes and utilities
     for camera handling.) }
 unit X3DCameraUtils;
 

@@ -1010,31 +1010,37 @@ type
       You can now implement additional rules to say when the move is,
       or is not, allowed.
 
-      @param(Allowed
-        Initially, the Allowed parameter is set following the algorithm
-        described at the MoveLimit property.
-        Your event can use this, and e.g. do something like
+      Callback parameters:
 
-        @longCode(#  Allowed := Allowed and (my custom move rule); #)
+      @unorderedList(
+        @item(@bold(Allowed):
 
-        Or you can simply ignore the default Allowed value,
-        thus ignoring the algorithm described at the MoveLimit property,
-        and simply always set Allowed to your own decision.
-        For example, setting
+          Initially, the Allowed parameter is set following the algorithm
+          described at the MoveLimit property.
+          Your event can use this, and e.g. do something like
 
-        @longCode(#  Allowed := true; #)
+          @longCode(#  Allowed := Allowed and (my custom move rule); #)
 
-        will make gravity and movement work everywhere.)
+          Or you can simply ignore the default Allowed value,
+          thus ignoring the algorithm described at the MoveLimit property,
+          and simply always set Allowed to your own decision.
+          For example, setting
 
-      @param(BecauseOfGravity
-        @true if this move was caused by gravity, that is: given object
-        is falling down. You can use this to limit gravity to some box,
-        but keep other movement unlimited, like
+          @longCode(#  Allowed := true; #)
 
-        @longCode(#
+          will make gravity and movement work everywhere.)
+
+        @item(@bold(BecauseOfGravity):
+
+          @true if this move was caused by gravity, that is: given object
+          is falling down. You can use this to limit gravity to some box,
+          but keep other movement unlimited, like
+
+          @longCode(#
   { Allow movement everywhere, but limit gravity to a box. }
   Allowed := (not BecauseOfGravity) or MyGravityBox.PointInside(NewPos);
 #)
+        )
       ) *)
     property OnMoveAllowed: TWorldMoveAllowedEvent
       read FOnMoveAllowed write FOnMoveAllowed;
