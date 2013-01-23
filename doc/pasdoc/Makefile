@@ -4,7 +4,8 @@
 
 # html and pdf are two most useful versions of documentation,
 # shown on [http://castle-engine.sourceforge.net/reference.php]
-default: html pdf
+# Later: pdf now removed, useless and ugly
+default: html
 
 html:
 	./mk_docs.sh html
