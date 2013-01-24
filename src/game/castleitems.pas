@@ -68,11 +68,20 @@ type
 
     property BaseAnimation: T3DResourceAnimation read FBaseAnimation;
 
-    { This is a 2d image, to be used for inventory slots etc.
-      When you call this for the 1st time, the image will be loaded
-      from ImageFileName.
+    { 2D image representing an item, to be used when showing inventory and such.
+      The core engine itself doesn't use it, and doesn't force anything
+      about such image (whether it should have some specific size,
+      whether it should have alpha channel and such).
+      It is up to the final game to make use of these images.
 
-      @noAutoLinkHere }
+      If you're wondering how to generate such image:
+      one option is to open the item 3D model in
+      [http://castle-engine.sourceforge.net/view3dscene.php]
+      and use "Display -> Screenshot ..." menu option (maybe the one
+      that makes transparent background).
+      It is usually a good idea to also remember the camera used for such
+      screenshot with "Console -> Print Current Camera (Viewpoint)..."
+      menu option. }
     function Image: TCastleImage;
 
     property ImageFileName: string read FImageFileName;
