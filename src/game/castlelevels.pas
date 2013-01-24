@@ -784,6 +784,9 @@ var
   PreviousResources: T3DResourceList;
   I: Integer;
 begin
+  if not GLInitialized then
+    raise Exception.Create('OpenGL context is not initialized yet. You have to initialize OpenGL (for example by calling TCastleWindow.Open, or by waiting for TCastleControl.OnGLContextOpen) before using TGameSceneManager.LoadLevel.');
+
   { release stuff from previous level. Our items must be clean.
     This releases previous Level (logic), MainScene,
     and our creatures and items --- the ones added in TraverseForResources,
