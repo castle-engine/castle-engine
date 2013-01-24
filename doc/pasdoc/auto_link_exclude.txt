@@ -50,6 +50,7 @@ curve
 customcursor
 data
 dds
+dead
 delay
 delete
 depth
@@ -112,6 +113,7 @@ input
 insert
 internal
 invalidate
+inventory
 items
 key
 keys
@@ -167,6 +169,7 @@ pointers
 pop
 position
 prepare
+prepared
 press
 pressed
 print
