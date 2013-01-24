@@ -892,8 +892,8 @@ type
       class to detect swimming (and make appropriate sounds, special rendering,
       drowning and such).
 
-      For now, this is just a simple T3DBox. When need arises, it may
-      be extended to represent a set of flexible 3D volumes.
+      For now, this is just a simple TBox3D. It will
+      be extended to represent a set of flexible 3D volumes in the future.
 
       Empty initially. Initialize it however you want. }
     property Water: TBox3D read FWater write FWater;
