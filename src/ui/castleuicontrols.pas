@@ -363,8 +363,8 @@ type
       and return dsNone in DrawStyle.
 
       @groupBegin }
-    function DrawStyle: TUIControlDrawStyle; virtual;
     procedure Draw; virtual;
+    function DrawStyle: TUIControlDrawStyle; virtual;
     { @groupEnd }
 
     { Draw a tooltip of this control. If you want to have tooltip for
