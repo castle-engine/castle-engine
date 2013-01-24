@@ -1344,7 +1344,7 @@ type
       we do full head bobbing sequence (camera swing up, then down again).
 
       Note that if you do a footsteps sound in your game (see
-      stPlayerFootstepsConcrete or TMaterialProperty.FootstepsSound)
+      stPlayerFootstepsDefault or TMaterialProperty.FootstepsSound)
       then you will want this property to match your footsteps sound length,
       things feel and sound natural then.
       Also, often it sounds better to record two footsteps inside

@@ -651,7 +651,7 @@ var
   stPlayerDropItem,
   stPlayerSwimming,
   stPlayerDrowning,
-  stPlayerFootstepsConcrete,
+  stPlayerFootstepsDefault,
   stPlayerToxicPain,
   stPlayerSuddenPain,
   stPlayerDies,
@@ -1690,7 +1690,7 @@ begin
   stPlayerSwimmingChange       := SoundFromName('player_swimming_change', false);
   stPlayerSwimming             := SoundFromName('player_swimming', false);
   stPlayerDrowning             := SoundFromName('player_drowning', false);
-  stPlayerFootstepsConcrete    := SoundFromName('player_footsteps_concrete', false);
+  stPlayerFootstepsDefault     := SoundFromName('player_footsteps_default', false);
   stPlayerToxicPain            := SoundFromName('player_toxic_pain', false);
 
   stMenuCurrentItemChanged := SoundFromName('menu_current_item_changed', false);

@@ -949,7 +949,7 @@ procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
       if (GroundProperty <> nil) and
          (GroundProperty.FootstepsSound <> stNone) then
         NewFootstepsSoundPlaying := GroundProperty.FootstepsSound else
-        NewFootstepsSoundPlaying := stPlayerFootstepsConcrete { default footsteps sound };
+        NewFootstepsSoundPlaying := stPlayerFootstepsDefault;
     end else
     if LifeTime - ReallyWalkingOnTheGroundTime >
       TimeToChangeFootstepsSoundPlaying then
