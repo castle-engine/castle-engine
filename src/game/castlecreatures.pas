@@ -149,7 +149,7 @@ type
 
       If it's not defined (or zero) in resource.xml file,
       then we use automatically calculated radius using RadiusCalculate,
-      that is adjusted to the bounding box of animation.
+      that is adjusted to the bounding box of the animation.
 
       Note that this radius is not used at all when creature is dead,
       as dead creatures usually have wildly
@@ -269,7 +269,14 @@ type
       read FAttackKnockbackDistance write FAttackKnockbackDistance default DefaultAttackKnockbackDistance;
     { @groupEnd }
 
-    { See T3DCustomTransform.MiddleHeight. }
+    { Height of the eyes of the creature,
+      used for various collision detection routines.
+      See T3DCustomTransform.MiddleHeight for a precise documentation.
+
+      Game developers can use the RenderDebug3D variable to easily
+      visualize the bounding sphere (and other things) around resources.
+      The bounding sphere is centered around the point derived from MiddleHeight
+      setting and with given (or automatically calculated) @link(Radius). }
     property MiddleHeight: Single
       read FMiddleHeight write FMiddleHeight
       default T3DCustomTransform.DefaultMiddleHeight;
@@ -668,14 +675,14 @@ type
     property HitsCreatures: boolean
       read FHitsCreatures write FHitsCreatures default DefaultHitsCreatures;
 
-    { Is the missile pulled down by gravity.
-      This causes missile direction to gradually point
-      downward, and this way missile flies downward eventually.
+    { How fast is the missile pulled down by gravity.
+      Non-zero value causes missile direction to gradually point
+      downward, this way missile flies downward eventually.
 
       This is quite different (in different units and with slightly different
       effect) than T3D.FallSpeed, hence a different name and property.
       TMissileCreatureResource doesn't use T3D.Gravity and so ignores
-      FallSpeed, GrowSpeed and other properties.
+      T3DResource.FallSpeed, T3DResource.GrowSpeed and other properties.
 
       0 means to not fall down (missile is not affected by gravity). }
     property DirectionFallSpeed: Single

@@ -244,13 +244,36 @@ type
       file. }
     function AlwaysPrepared: boolean; virtual;
 
-    { Falling down speed. See T3D.FallSpeed, this works the same,
-      except the default value is non-zero, and by default T3D.Gravity
+    { The speed (in units per second) of falling down because of gravity.
+      Note that the gravity direction is controlled by your level 3D model,
+      see "Which way is up" section in the engine tutorial
+      [http://castle-engine.sourceforge.net/tutorial_up.php].
+
+      Currently, falling down of creatures and items just uses this constant speed.
+      In the future, we plan to add properties to control mass and air friction
+      and perform more physically-correct simulation of falling down.
+
+      This has no effect for creatures with TCreatureResource.Flying = @true.
+      This also has no effect for missile creatures (their
+      TCreatureResource.Flying is ignored, they have special approach
+      to gravity).
+
+      See T3D.FallSpeed for precise definition, this works the same,
+      except our default value is non-zero, and by default T3D.Gravity
       and T3D.PreferredHeight are already sensible for creatures/items. }
     property FallSpeed: Single
       read FFallSpeed write FFallSpeed default DefaultFallSpeed;
 
-    { See T3D.GrowSpeed, this works the same,
+    { The speed (in units per second) of growing.
+
+      "Growing" is used to allow non-flying creatures to climb stairs.
+      The creature can move whenever a sphere (see TCreatureResource.MiddleHeight
+      and TCreatureResource.Radius) can move. This means that part of the bounding
+      box (part of the T3DCustomTransform.PreferredHeight) may temporarily
+      "sink" into the ground. Then growing, controlled by this property,
+      pushes the creature up.
+
+      See T3D.GrowSpeed, this works the same,
       except the default value is non-zero, and by default T3D.Gravity
       and T3D.PreferredHeight are already sensible for creatures/items. }
     property GrowSpeed: Single
