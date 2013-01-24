@@ -327,7 +327,8 @@ type
       read FInventoryVisible write FInventoryVisible default false;
 
     property SickProjectionSpeed: Single
-      read FSickProjectionSpeed write FSickProjectionSpeed;
+      read FSickProjectionSpeed write FSickProjectionSpeed
+      default DefaultSickProjectionSpeed;
 
     property CollidesWithMoving default true;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
