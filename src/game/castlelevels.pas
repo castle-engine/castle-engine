@@ -35,55 +35,97 @@ type
 
   TLevelInfo = class
   private
+    FLogicClass: TLevelLogicClass;
+    FName: string;
+    FSceneFileName: string;
+    FTitle: string;
+    FTitleHint: string;
+    FNumber: Integer;
+    FDemo: boolean;
+    FPlayed: boolean;
+    FDefaultPlayed: boolean;
+    FLoadingImage: TRGBImage;
+    FLoadingImageBarYPosition: Single;
+    FPlaceholderName: TPlaceholderName;
+    FPlaceholderReferenceDirection: TVector3Single;
+    FMusicSound: TSoundType;
     { We keep XML Document reference through the lifetime of this object,
       to allow the particular level logic (TLevelLogic descendant)
       to read some level-logic-specific variables from it. }
     Document: TXMLDocument;
     DocumentBasePath: string;
-    FMusicSound: TSoundType;
     LevelResources: T3DResourceList;
     procedure LoadFromDocument;
+  protected
+    Element: TDOMElement;
   public
     constructor Create;
     destructor Destroy; override;
-  public
-    { Level logic class. }
-    LogicClass: TLevelLogicClass;
 
-    { Unique identifier for this level.
-      Should be a suitable identifier in Pascal.
-      @noAutoLinkHere }
-    Name: string;
+    (*Level logic class. This is indicated by the "type" attribute in level.xml
+      file. By default level logic uses a base TLevelLogic class,
+      which corresponds to using @code(type="Level") in level.xml file.
 
-    { Main level 3D model. This is used for TCastleSceneManager.MainScene,
+      Changing this allows to use a different ObjectPascal class to implement
+      the level behavior.
+      You can create your own TLevelLogic descendants and register them
+      like
+
+@longCode(#
+type
+  TMyLevelLogic = class(TLevelLogic)
+    { ... override whatever you want ... }
+  end;
+
+...
+LevelLogicClasses['MyLevel'] := TMyLevelLogic;
+#)
+
+      And then you can use @code(type="MyLevel") inside level.xml
+      to use your class.
+      Many advanced tricks are possible by implementing your own TLevelLogic
+      descendant. See Castle1 GameLevelSpecific.pas unit for some examples.
+    *)
+    property LogicClass: TLevelLogicClass read FLogicClass write FLogicClass;
+
+    { Unique identifier of this level. This name may be useful in scripts,
+      as TGameSceneManager.LoadLevel parameter and such.
+
+      For all (current and future) uses it should be a valid VRML/X3D
+      and ObjectPascal identifier, so use only (English) letters,
+      underscores and digits (and don't start with a digit). }
+    property Name: string read FName write FName;
+
+    { Main level 3D model. When the level is loaded, this scene will be set
+      as TCastleSceneManager.MainScene,
       so it determines the default viewpoint, background and such.
 
-      Usually it also contains the most (if not all) of 3D level geometry,
+      Usually it also contains the most (if not all) of 3D level visible geometry,
       scripts and such. Although level logic (TLevelLogic descendant determined
       by LevelClass) may also add any number of additional 3D objects
       (T3D instances) to the 3D world. }
-    SceneFileName: string;
+    property SceneFileName: string read FSceneFileName write FSceneFileName;
 
-    { Nice name of the level for user.
+    { Nice name of the level for user. This should be user-friendly,
+      so it can use spaces, non-English letters and such.
 
-      The CastleLevels unit uses this title only for things like log messages.
+      The core engine (like this CastleLevels unit) doesn't use this title
+      much, it's only for progress bars and log messages.
 
-      How the level title is presented to the user (if it's presented at all)
-      is not handled in the CastleLevels unit. The engine doesn't dictate
-      how to show the levels to the player. You implement game menus,
-      like "New Game" or similar screens, yourself --- to fit the mood
-      and user interface of your game. Of course the engine gives you
-      2D controls to do this easily, like TCastleOnScreenMenu --- a typical
-      on-screen menu as seen in many games.
-      See also "The Castle" sources for examples how to use this. }
-    Title: string;
+      It is up to the final game code to use this title in more interesting
+      ways. For example to show a choice of starting level to the user.
+      The core engine doesn't make such "New Game" menus automatically
+      (because various games may have widly different ideas how to make it
+      and how to show it). But we give the developer tools to make such
+      menus easily, for example you can use TCastleOnScreenMenu for this. }
+    property Title: string read FTitle write FTitle;
 
     { Additional text that may be displayed near level title.
 
       The engine doesn't use this property at all, it's only loaded from level.xml
       file. It is available for your "New Game" (or similar screen) implementation
       (see @link(Title) for more comments about this). }
-    TitleHint: string;
+    property TitleHint: string read FTitleHint write FTitleHint;
 
     { Level number.
 
@@ -94,19 +136,19 @@ type
       For example level number may be used to order levels in the menu.
       This @italic(does not) determine the order in which levels are played,
       as levels do not have to be played in a linear order. }
-    Number: Integer;
+    property Number: Integer read FNumber write FNumber default 0;
 
     { Is it a demo level.
 
       The engine doesn't use this property at all, it's only loaded from level.xml
       file. It is available for your "New Game" (or similar screen) implementation
       (see @link(Title) for more comments about this). }
-    Demo: boolean;
+    property Demo: boolean read FDemo write FDemo default false;
 
     { Was the level played.
 
       This is automatically managed. Basically, we set it to @true
-      when the level is played, and we save it to disk.
+      when the level is played, and we save it to user preferences.
 
       Details:
       @unorderedList(
@@ -125,31 +167,80 @@ type
       )
 
       The engine doesn't look at this property for anything,
-      whether the level is Played or not has no influence over how it works.
+      whether the level is played or not has no influence over how we work.
       It is just available for your game, for example to use in your
       "New Game" (or similar screen) implementation
       (see @link(Title) for more comments about this). }
-    Played: boolean;
+    property Played: boolean read FPlayed write FPlayed;
 
-    { Whether to consider the level @link(Played) by default. }
-    DefaultPlayed: boolean;
+    { Should the level be initially considered "played".
+      This determines the initial value of @link(Played) property
+      (if nothing was stored in user preferences about this level,
+      see TLevelInfoList.LoadFromConfig; or if TLevelInfoList.LoadFromConfig
+      is not called by the game).
 
-    { Background image shown when loading level, @nil if none. }
-    LoadingImage: TRGBImage;
+      How is this information useful, depends on a particular game.
+      For example, some games may decide to show in the "New Game"
+      menu levels only with Played=true. Some games may simply ignore it. }
+    property DefaultPlayed: boolean read FDefaultPlayed write FDefaultPlayed;
 
-    { Position of the progress bar when loading level, suitable for
-      TProgressUserInterface.BarYPosition.
-      Used only if LoadingImage <> @nil (as the only purpose of this property
-      is to match LoadingImage look). }
-    LoadingImageBarYPosition: Single;
+    { Background image shown when loading the level, @nil if none.
+      This is loaded from filename indicated by attribute loading_image
+      in level.xml. }
+    property LoadingImage: TRGBImage read FLoadingImage write FLoadingImage;
 
-    Element: TDOMElement;
+    { Vertical position of progress bar when loading the level.
+      Used only if LoadingImage is defined (as the only purpose of this property
+      is to match LoadingImage look).
+      Between 0 and 1, default value 0.5 means "middle of the screen".
+      Should be synchronized with how LoadingImage looks,
+      to make the progress when loading level look nice.
+
+      Technically, this is used for TProgressUserInterface.BarYPosition.
+      Used only if LoadingImage <> @nil. }
+    property LoadingImageBarYPosition: Single
+      read FLoadingImageBarYPosition write FLoadingImageBarYPosition
+      default TProgressUserInterface.DefaultImageBarYPosition;
 
     { Placeholder detection method. See TPlaceholderName, and see
-      TGameSceneManager.LoadLevel for a description when we use placeholders. }
-    PlaceholderName: TPlaceholderName;
+      TGameSceneManager.LoadLevel for a description when we use placeholders.
+      Default value is @code(PlaceholderNames['x3dshape']). }
+    property PlaceholderName: TPlaceholderName
+      read FPlaceholderName write FPlaceholderName;
 
-    PlaceholderReferenceDirection: TVector3Single;
+    { How to interpret the placeholders direction (like the initial
+      creature direction on the level).
+      Some placeholders (currently, only creatures) may be used to determine
+      initial direction of the resource. For example, the direction
+      the creature is initially facing.
+      This direction is calculated as the transformation
+      of given placeholder applied to this 3D vector.
+
+      The correct value may depend on the exporter you used to create 3D models,
+      and on the exporter settings (how and if it rotates the model when exporting,
+      and is this rotation recorded in placeholder transformation
+      or applied directly to mesh coordinates). It may also depend on personal
+      preference, as it determines how you set resources in your 3D modelling tool
+      (like Blender).
+
+      Fortunately, the default value (+X vector) is suitable for at least
+      2 common situations:
+
+      @orderedList(
+        @item(If your exporter rotates the world to turn +Z up into +Y up.
+          (This is the case of default Blender X3D exporter with default settings.))
+
+        @item(If your exporter doesn't rotate the world.
+          (You can configure Blender exporter to behave like this.
+          You may also then configure engine to use +Z as up vector for everything,
+          see "Which way is up?" on [http://castle-engine.sourceforge.net/tutorial_up.php].))
+      )
+
+      In Blender it's useful to enable the "Display -> Wire" option for placeholder
+      objects, then Blender will show arrows inside the placeholder.
+      +X of the arrow determines the default direction understood by our engine. }
+    property PlaceholderReferenceDirection: TVector3Single
+      read FPlaceholderReferenceDirection write FPlaceholderReferenceDirection;
 
     { Music played when entering the level. }
     property MusicSound: TSoundType read FMusicSound write FMusicSound
@@ -359,10 +450,28 @@ type
       after creatures and items are added).
       You can modify MainScene contents here.
 
-      We provide AWorld instance at construction,
-      and the created TLevelLogic instance will be added to this AWorld,
-      and you cannot change it later. This is necessary, as TLevelLogic descendants
-      at construction may actually modify your world, and depend on it later. }
+      @param(AWorld
+
+        3D world items. We provide AWorld instance at construction,
+        and the created TLevelLogic instance will be added to this AWorld,
+        and you cannot change it later. This is necessary,
+        as TLevelLogic descendants at construction may actually modify your world,
+        and depend on it later.)
+
+      @param(DOMElement
+
+        An XML tree of level.xml file. You can read it
+        however you want, to handle additional attributes in level.xml.
+        You can use standard FPC DOM unit and classes,
+        and add a handful of simple comfortable routines in CastleXMLUtils unit,
+        for example you can use this to read a boolean attribute "my_attribute":
+
+@longCode(#
+  if not DOMGetBooleanAttribute(DOMElement, 'my_attribute', MyAttribute) then
+    MyAttribute := false; // default value, if not specified in level.xml
+#)
+      )
+    }
     constructor Create(AOwner: TComponent; AWorld: T3DWorld;
       MainScene: TCastleScene; DOMElement: TDOMElement); reintroduce; virtual;
     function BoundingBox: TBox3D; override;
@@ -972,7 +1081,7 @@ destructor TLevelInfo.Destroy;
 begin
   FreeAndNil(Document);
   FreeAndNil(LevelResources);
-  FreeAndNil(LoadingImage);
+  FreeAndNil(FLoadingImage);
   inherited;
 end;
 
@@ -1025,39 +1134,39 @@ begin
 
   { Required atttributes }
 
-  if not DOMGetAttribute(Element, 'name', Name) then
+  if not DOMGetAttribute(Element, 'name', FName) then
     MissingRequiredAttribute('name');
 
-  if not DOMGetAttribute(Element, 'scene', SceneFileName) then
+  if not DOMGetAttribute(Element, 'scene', FSceneFileName) then
     MissingRequiredAttribute('scene');
   SceneFileName := CombinePaths(DocumentBasePath, SceneFileName);
 
-  if not DOMGetAttribute(Element, 'title', Title) then
+  if not DOMGetAttribute(Element, 'title', FTitle) then
     MissingRequiredAttribute('title');
 
   { Optional attributes }
 
-  if not DOMGetIntegerAttribute(Element, 'number', Number) then
+  if not DOMGetIntegerAttribute(Element, 'number', FNumber) then
     Number := 0;
 
-  if not DOMGetBooleanAttribute(Element, 'demo', Demo) then
+  if not DOMGetBooleanAttribute(Element, 'demo', FDemo) then
     Demo := false;
 
-  if not DOMGetAttribute(Element, 'title_hint', TitleHint) then
+  if not DOMGetAttribute(Element, 'title_hint', FTitleHint) then
     TitleHint := '';
 
   if not DOMGetBooleanAttribute(Element, 'default_played',
-    DefaultPlayed) then
+    FDefaultPlayed) then
     DefaultPlayed := false;
 
-  if not DOMGetLevelLogicClassAttribute(Element, 'type', LogicClass) then
+  if not DOMGetLevelLogicClassAttribute(Element, 'type', FLogicClass) then
     LogicClass := TLevelLogic;
 
   PlaceholderName := PlaceholderNames['x3dshape'];
   if DOMGetAttribute(Element, 'placeholders', PlaceholdersKey) then
     PlaceholderName := PlaceholderNames[PlaceholdersKey];
 
-  FreeAndNil(LoadingImage); { make sure LoadingImage is clear first }
+  FreeAndNil(FLoadingImage); { make sure LoadingImage is clear first }
   if DOMGetAttribute(Element, 'loading_image', LoadingImageFileName) then
   begin
     LoadingImageFileName := CombinePaths(DocumentBasePath, LoadingImageFileName);
@@ -1065,7 +1174,7 @@ begin
   end;
 
   if not DOMGetSingleAttribute(Element, 'loading_image_bar_y_position',
-    LoadingImageBarYPosition) then
+    FLoadingImageBarYPosition) then
     LoadingImageBarYPosition := TProgressUserInterface.DefaultImageBarYPosition;
 
   if DOMGetAttribute(Element, 'placeholder_reference_direction', S) then
