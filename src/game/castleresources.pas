@@ -167,13 +167,16 @@ type
     procedure GLContextClose; virtual;
 
     { Unique identifier of this resource.
-      Used to refer to this resource from XML files, VRML/X3D files
-      (see TGameSceneManager.LoadLevel about placeholders) and other places.
+      Used to refer to this resource from level placeholders
+      (see TGameSceneManager.LoadLevel about placeholders),
+      from other XML files (for example one creature may shoot another
+      creature as a missile using @link(TWalkAttackCreatureResource.FireMissileName)),
+      and in other places.
 
-      This must be composed of only letters, use CamelCase.
-      (Reason: This must be a valid identifier in all possible languages.
-      Also digits and underscore are reserved, as we may use them internally
-      for other info in VRML/X3D and XML node names.) }
+      This can use only letters, use CamelCase.
+      Reason: This must be a valid identifier in both VRML/X3D and ObjectPascal.
+      Also digits and underscores are reserved, as we may use them to get other
+      information from placeholder names. }
     property Name: string read FName;
 
     procedure LoadFromFile(ResourceConfig: TCastleConfig); virtual;
@@ -667,6 +670,9 @@ begin
           [ResourceClassName, FileName]);
 
       ResourceName := Xml.GetNonEmptyValue('name');
+      if CharsPos(AllChars - ['a'..'z', 'A'..'Z'], ResourceName) <> 0 then
+        raise Exception.CreateFmt('Resource name "%s" is invalid. Resource names may only use English letters (not even digits or underscores are allowed).',
+          [ResourceName]);
       Resource := FindName(ResourceName, true);
       if Resource <> nil then
       begin
