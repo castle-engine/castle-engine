@@ -262,7 +262,7 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
     { Add all available levels found by scanning for level.xml inside data directory.
       Overloaded version without parameter just looks inside ProgramDataPath.
       For the specification of level.xml format see
-      http://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine/doc/README_about_index_xml_files.txt .
+      [http://castle-engine.sourceforge.net/creating_data_levels.php] .
 
       This should be called after resources (creatures and items) are known,
       as they may be referenced by level.xml files.

@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
-  Define the level properties. See README_about_index_xml_files.txt
+  Define the level properties. See
+  http://castle-engine.sourceforge.net/creating_data_levels.php
   for extensive documentation of available properties, in short:
 
   - name: used to refer to this level from ObjectPascal code,

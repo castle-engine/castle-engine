@@ -287,8 +287,9 @@ type
       default DefaultCastShadowVolumes;
 
     { Model filename, only when you define multiple animations inside
-      a single 3D file. See DRAFT.modeling_tutorial.txt for notes about
-      <model> element in resource.xml files. }
+      a single 3D file. See
+      [http://castle-engine.sourceforge.net/creating_data_resources.php]
+      for notes about <model> element in resource.xml files. }
     property ModelFileName: string
       read FModelFileName write FModelFileName;
   end;

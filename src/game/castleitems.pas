@@ -105,7 +105,8 @@ type
       @bold(Examples:)
 
       You usually define your own item resources by adding a subdirectory with
-      resource.xml file to your game data. See README_about_index_xml_files.txt
+      resource.xml file to your game data. See
+      [http://castle-engine.sourceforge.net/creating_data_resources.php]
       and engine tutorial for examples how to do this. Then you load the item
       resources with
 

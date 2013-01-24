@@ -26,7 +26,7 @@ using Lazarus (http://www.lazarus.freepascal.org/):
 The example code, as well as the data files in data/ subdirectory,
 are full of (hopefully) helpful comments :)
 You will probably want to read engine tutorial, see
-  DRAFT.engine_tutorial.txt
+  http://castle-engine.sourceforge.net/tutorial_intro.php
 along with browsing this code. And the engine reference
   http://castle-engine.sourceforge.net/apidoc/html/index.html
 should be helpful too.
