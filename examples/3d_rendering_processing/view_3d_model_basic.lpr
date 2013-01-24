@@ -43,5 +43,6 @@ begin
   Window.SceneManager.Items.Add(Scene);
   Window.SceneManager.MainScene := Scene;
 
-  Window.OpenAndRun;
+  Window.Open;
+  Application.Run;
 end.
