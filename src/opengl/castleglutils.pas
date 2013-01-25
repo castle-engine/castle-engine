@@ -808,12 +808,12 @@ var
   #) }
 procedure glSetDepthAndColorWriteable(Writeable: TGLboolean);
 
-{ Sets raster position in window coordinates, also the raster position
+{ Set raster position in window coordinates, and the raster position
   is never clipped.
 
   This is similar to glWindowPos and actually will simply call
-  glWindowPos if available (if GL version >= 1.4 or ARB_window_pos or
-  MESA_window_pos).
+  glWindowPos if available (if OpenGL version >= 1.4 or ARB_window_pos or
+  MESA_window_pos are available).
 
   If not available, it will fall back on a simple
   implementation that sets identity to projection and modelview and
@@ -822,16 +822,17 @@ procedure glSetDepthAndColorWriteable(Writeable: TGLboolean);
   don't have to pass here parameters like window width/height --- viewport
   will appropriately map to your window coordinates).
 
-  What happens to depth value is not specified (although OpenGL
+  What with the depth value of raster is undefined (although OpenGL
   ARB_window_pos specifies it, we don't want to specify it,
   to be able to pull our simple implementation when ARB_window_pos
   is not available).
 
-  SetWindowPosZero is just a slightly optimized shortcut for SetWindowPos(0, 0).
+  SetWindowPosZero is equivalent to SetWindowPos(0, 0),
+  but may be slightly optimized.
 
   @groupBegin }
-procedure SetWindowPos(const X, Y: TGLfloat); overload;
 procedure SetWindowPos(const X, Y: TGLint); overload;
+procedure SetWindowPosF(const X, Y: TGLfloat); overload;
 procedure SetWindowPosZero;
 { @groupEnd }
 
@@ -2014,7 +2015,7 @@ begin
   glPopAttrib;
 end;
 
-procedure SetWindowPos(const X, Y: TGLfloat);
+procedure SetWindowPosF(const X, Y: TGLfloat);
 begin
   if GL_version_1_4 then
   begin

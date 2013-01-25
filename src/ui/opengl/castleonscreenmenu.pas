@@ -894,7 +894,8 @@ procedure TMenuSlider.Draw(const Rectangle: TRectangle);
 begin
   ImageSliderInit;
 
-  SetWindowPos(Rectangle.X0, Rectangle.Y0 + (Rectangle.Height - ImageSlider.Height) / 2);
+  SetWindowPos(Rectangle.X0, Rectangle.Y0 +
+    (Rectangle.Height - ImageSlider.Height) div 2);
   GLImageSlider.Draw;
 end;
 
@@ -907,10 +908,10 @@ begin
   ImageSliderInit;
 
   SetWindowPos(Rectangle.X0 + ImageSliderPositionMargin +
-    MapRange(Clamped(Position, 0, 1), 0, 1, 0,
+    Round(MapRange(Clamped(Position, 0, 1), 0, 1, 0,
       ImageSlider.Width - 2 * ImageSliderPositionMargin -
-      ImageSliderPosition.Width),
-    Rectangle.Y0 + (Rectangle.Height - ImageSliderPosition.Height) / 2);
+      ImageSliderPosition.Width)),
+    Rectangle.Y0 + (Rectangle.Height - ImageSliderPosition.Height) div 2);
   GLImageSliderPosition.Draw;
 end;
 
@@ -933,8 +934,8 @@ procedure TMenuSlider.DrawSliderText(
 begin
   glColorv(Black3Single);
   SetWindowPos(
-    Rectangle.X0 + (Rectangle.Width - UIFontSmall.TextWidth(Text)) / 2,
-    Rectangle.Y0 + (Rectangle.Height - UIFontSmall.RowHeight) / 2);
+    Rectangle.X0 + (Rectangle.Width - UIFontSmall.TextWidth(Text)) div 2,
+    Rectangle.Y0 + (Rectangle.Height - UIFontSmall.RowHeight) div 2);
   UIFontSmall.Print(Text);
 end;
 
