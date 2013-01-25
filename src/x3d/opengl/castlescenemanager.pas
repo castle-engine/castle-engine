@@ -389,8 +389,9 @@ type
       Returns @true only if @link(Headlight) method returned @true
       and a suitable camera was present.
 
-      HeadlightInstance remains unchanged when we return @false. }
-    function HeadlightInstance(var Instance: TLightInstance): boolean;
+      Instance should be considered undefined ("out" parameter)
+      when we return @false. }
+    function HeadlightInstance(out Instance: TLightInstance): boolean;
 
     { Base lights used for rendering. Uses InitializeLights,
       and returns instance owned and managed by this scene manager.
@@ -1738,7 +1739,7 @@ begin
     CustomHeadlight := nil;
 end;
 
-function TCastleAbstractViewport.HeadlightInstance(var Instance: TLightInstance): boolean;
+function TCastleAbstractViewport.HeadlightInstance(out Instance: TLightInstance): boolean;
 var
   CustomHeadlight: TAbstractLightNode;
   HC: TCamera;
