@@ -43,7 +43,7 @@ program shadow_fields;
 
 uses SysUtils, GL, CastleGLUtils, CastleVectors, CastleBoxes, CastleColors,
   CastleWindow, CastleScene, CastleCameras, CastleWarnings, CastleParameters,
-  ShadowFields, CastleUtils, CastleCubeMaps, X3DNodes, CastleSceneManager, Castle3D,
+  ShadowFields, CastleUtils, CastleCubeMaps, X3DNodes, CastleSceneManager,
   CastleSphericalHarmonics, CastleGLCubeMaps, CastleMessages, CastleShapes, CastleStringUtils,
   CastleRenderingCamera, CastleKeysMouse;
 
@@ -141,8 +141,9 @@ procedure TMySceneManager.RenderFromViewEverything;
       begin
         for Side := Low(Side) to High(Side) do
         begin
-          SetWindowPos(CubeMapInfo[Side].ScreenX * CubeMapSize * Scale + ShiftX,
-                       CubeMapInfo[Side].ScreenY * CubeMapSize * Scale + ShiftY);
+          SetWindowPos(
+            Integer(CubeMapInfo[Side].ScreenX * CubeMapSize * Scale + ShiftX),
+            Integer(CubeMapInfo[Side].ScreenY * CubeMapSize * Scale + ShiftY));
           { Since ordering of bytes in our env maps is matching OpenGL
             pixel ordering, I can just draw these like TGrayscaleImage
             by glDrawPixels. }
@@ -593,10 +594,9 @@ begin
     Window.Controls.Add(SceneManager);
 
     { initialize navigators }
-
-    SceneManager.Camera := SceneReceiver.CreateCamera(Window);
-
     BoxSum := SceneCaster.BoundingBox + SceneReceiver.BoundingBox;
+    SceneManager.Camera := SceneReceiver.CreateCamera(Window, BoxSum);
+
     SceneManager.DefaultVisibilityLimit := 100;
 
     { calculate starting local light position }
