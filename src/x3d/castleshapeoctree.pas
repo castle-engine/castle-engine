@@ -37,12 +37,10 @@ unit CastleShapeOctree;
 
 interface
 
-uses SysUtils, Castle3D, CastleBoxes, CastleOctree, CastleShapes, CastleVectors,
+uses SysUtils, CastleBoxes, CastleOctree, CastleShapes, CastleVectors,
   CastleUtils, X3DTriangles, CastleTriangles;
 
 const
-  { Kambi private notes: values below found experimetally, many tests on
-    /win/3dmodels/3ds/ParkKambi.wrl and /win/3dmodels/lars/scene.wrl }
   { }
   DefShapeOctreeMaxDepth = 5;
   DefShapeOctreeLeafCapacity = 10;

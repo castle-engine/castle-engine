@@ -39,7 +39,6 @@ function LoadX3DXml(Stream: TStream; const BaseUrl: string;
 type
   EX3DXmlError = class(EX3DError);
   EX3DXmlNotAllowedError = class(EX3DXmlError);
-  EX3DXmlUnknownNodeNotAllowed = class(EX3DXmlError);
 
 const
   SAttrContainerField = 'containerField';

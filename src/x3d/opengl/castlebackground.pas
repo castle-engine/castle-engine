@@ -224,7 +224,7 @@ var
 
   { For given Angle (meaning: 0 = zenith, Pi = nadir), calculate the height
     and radius of given circle of sky sphere. }
-  procedure StackCircleCalc(const Angle: Single; var Y, Radius: Single);
+  procedure StackCircleCalc(const Angle: Single; out Y, Radius: Single);
   begin
     Radius := sin(Angle) * SkySphereRadius;
     Y := cos(Angle) * SkySphereRadius;

@@ -149,8 +149,6 @@ type
       Stream: TStream; const ChunkEndPos: Int64); virtual;
   end;
 
-  TObject3DSClass = class of TObject3DS;
-
   TFace3ds = record
     VertsIndices: TVector3Cardinal;
     EdgeFlags: packed array[0..2]of boolean;

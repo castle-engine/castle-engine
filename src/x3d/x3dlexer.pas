@@ -396,8 +396,6 @@ implementation
 uses CastleLog;
 
 const
-  X3DFirstLineTerm = [#10, #13];
-
   { utf8 specific constants below }
   X3DLineTerm = [#10, #13];
 
@@ -410,7 +408,7 @@ var
   { Log all read tokens. Useful for debugging lexer. }
   LogTokens: boolean = false;
 
-function ArrayPosX3DKeywords(const s: string; var Index: TX3DKeyword): boolean;
+function ArrayPosX3DKeywords(const s: string; out Index: TX3DKeyword): boolean;
 var
   I: TX3DKeyword;
 begin

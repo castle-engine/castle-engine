@@ -43,8 +43,6 @@ type
   TMd3Triangle = record
     Indexes: array [0..2] of LongWord;
   end;
-  PMd3Triangle = ^TMd3Triangle;
-
   TMd3TriangleList = specialize TGenericStructList<TMd3Triangle>;
 
   TMd3Vertex = record
@@ -52,7 +50,6 @@ type
     Normal: SmallInt;
   end;
   PMd3Vertex = ^TMd3Vertex;
-
   TMd3VertexList = specialize TGenericStructList<TMd3Vertex>;
 
   TMd3TexCoord = TVector2Single;
@@ -556,7 +553,7 @@ begin
   { MD3 files have no camera. I add camera here, just to force GravityUp
     to be in +Z, since this is the convention used in all MD3 files that
     I saw (so I guess that Quake3 engine generally uses this convention). }
-  Result.FdChildren.Add(CameraNodeForWholeScene(cvVrml2_X3d, 
+  Result.FdChildren.Add(CameraNodeForWholeScene(cvVrml2_X3d,
     BaseUrl, SceneBox, 0, 2, false, true));
 
   if Texture <> nil then

@@ -126,7 +126,6 @@ function NonAssignmentExpression(
 
 const
   SErrWrongFactor = 'wrong factor (expected identifier, constant, "-", "(" or function name)';
-  SErrOperRelacExpected = 'comparison operator (>, <, >=, <=, = or <>) expected';
 
   FactorOperator = [tokMultiply, tokDivide, tokPower, tokModulo];
   TermOperator = [tokPlus, tokMinus];

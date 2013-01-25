@@ -1720,20 +1720,6 @@ begin
   Result.Data[1][2] := Pt[2] + Size[2];
 end;
 
-{ MinSingleTo1st i MaxSingleTo1st will be useful for CalculateBoundingBox }
-type
-  TChooseOneTo1st_Single = procedure (var A: Single; const B: Single);
-
-procedure MaxSingleTo1st(var A: Single; const B: Single);
-begin
-  if A < B then A := B;
-end;
-
-procedure MinSingleTo1st(var A: Single; const B: Single);
-begin
-  if A > B then A := B;
-end;
-
 function CalculateBoundingBox(
   GetVertex: TGetVertexFromIndexFunc;
   VertsCount: integer): TBox3D;
