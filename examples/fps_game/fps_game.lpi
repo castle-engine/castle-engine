@@ -24,5 +24,10 @@
         <UseAnsiStrings Value="True"/>
       </SyntaxOptions>
     </Parsing>
+    <Linking>
+      <Debugging>
+	<GenerateDebugInfo Value="True"/>
+      </Debugging>
+    </Linking>
   </CompilerOptions>
 </CONFIG>

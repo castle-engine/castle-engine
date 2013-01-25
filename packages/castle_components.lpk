@@ -25,6 +25,11 @@
 -dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
         <CompilerPath Value="$(CompPath)"/>
       </Other>
+      <Linking>
+	<Debugging>
+	  <GenerateDebugInfo Value="True"/>
+	</Debugging>
+      </Linking>
     </CompilerOptions>
     <Description Value="Castle Game Engine - Lazarus components.
 "/>

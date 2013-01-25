@@ -134,6 +134,9 @@
           <GraphicApplication Value="True"/>
         </Win32>
       </Options>
+      <Debugging>
+	<GenerateDebugInfo Value="True"/>
+      </Debugging>
     </Linking>
     <Other>
       <CompilerMessages>

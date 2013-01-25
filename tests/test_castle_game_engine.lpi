@@ -89,6 +89,11 @@
       <CustomOptions Value="-Sh"/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
+    <Linking>
+      <Debugging>
+	<GenerateDebugInfo Value="True"/>
+      </Debugging>
+    </Linking>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="21">
