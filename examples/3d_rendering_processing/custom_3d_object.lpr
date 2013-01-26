@@ -49,9 +49,7 @@ begin
     end;
 
     glPushAttrib(GL_ENABLE_BIT);
-      glEnable(GL_LIGHTING);
-      glEnable(GL_LIGHT0);
-      glEnable(GL_DEPTH_TEST);
+      glDisable(GL_LIGHTING);
       glDrawBox3DWire(Box3D(
         Vector3Single(-1, -1, -1),
         Vector3Single( 1,  1,  1)));
