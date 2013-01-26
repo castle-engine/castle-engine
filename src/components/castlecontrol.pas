@@ -117,8 +117,8 @@ type
       KeyDownEvent, or using OnKeyDown event should be a last resort.
 
       @groupBegin }
-    procedure KeyDownEvent(var Key: Word; Shift: TShiftState); virtual;
-    procedure KeyUpEvent(var Key: Word; Shift: TShiftState); virtual;
+    function KeyDownEvent(const MyKey: TKey; const Ch: char): boolean; virtual;
+    function KeyUpEvent(const MyKey: TKey; const Ch: char): boolean; virtual;
     procedure MouseDownEvent(Button: Controls.TMouseButton;
       Shift:TShiftState; X,Y:Integer); virtual;
     procedure MouseUpEvent(Button: Controls.TMouseButton;
@@ -276,8 +276,8 @@ type
     function GetTooltipX: Integer;
     function GetTooltipY: Integer;
   protected
-    procedure KeyDownEvent(var Key: Word; Shift: TShiftState); override;
-    procedure KeyUpEvent(var Key: Word; Shift: TShiftState); override;
+    function KeyDownEvent(const MyKey: TKey; const Ch: char): boolean; override;
+    function KeyUpEvent(const MyKey: TKey; const Ch: char): boolean; override;
     procedure MouseDownEvent(Button: Controls.TMouseButton;
       Shift:TShiftState; X,Y:Integer); override;
     procedure MouseUpEvent(Button: Controls.TMouseButton;
@@ -735,12 +735,14 @@ begin
   Pressed.Keys[K_Ctrl ] := ssCtrl  in Shift;
 end;
 
-procedure TCastleControlBase.KeyDownEvent(var Key: Word; Shift: TShiftState);
+function TCastleControlBase.KeyDownEvent(const MyKey: TKey; const Ch: char): boolean;
 begin
+  Result := false;
 end;
 
-procedure TCastleControlBase.KeyUpEvent(var Key: Word; Shift: TShiftState);
+function TCastleControlBase.KeyUpEvent(const MyKey: TKey; const Ch: char): boolean;
 begin
+  Result := false;
 end;
 
 procedure TCastleControlBase.MouseDownEvent(Button: Controls.TMouseButton;
@@ -770,7 +772,12 @@ begin
 
   AggressiveUpdateTick;
 
-  { do not change focus by arrow keys, this breaks our handling of them }
+  { Do not change focus by arrow keys, this would breaks our handling of arrows
+    over TCastleControl. We can prevent Lazarus from interpreting these
+    keys as focus-changing (actually, Lazarus tells widget managet that these
+    are already handled) by setting them to zero.
+    Note: our MyKey/Ch (passed to KeyDownEvent) are calculated earlier,
+    so they will correctly capture arrow keys. }
   if (Key = VK_Down) or
      (Key = VK_Up) or
      (Key = VK_Right) or
@@ -779,7 +786,9 @@ begin
 
   inherited KeyDown(Key, Shift);  { OnKeyDown before KeyDownEvent }
 
-  KeyDownEvent(Key, Shift);
+  if (MyKey <> K_None) or (Ch <> #0) then
+    if KeyDownEvent(MyKey, Ch) then
+      Key := 0; // handled
 end;
 
 procedure TCastleControlBase.KeyUp(var Key: Word; Shift: TShiftState);
@@ -795,7 +804,8 @@ begin
 
   AggressiveUpdateTick;
 
-  { do not change focus by arrow keys, this breaks our handling of them }
+  { Do not change focus by arrow keys, this breaks our handling of them.
+    See KeyDown for more comments. }
   if (Key = VK_Down) or
      (Key = VK_Up) or
      (Key = VK_Right) or
@@ -804,7 +814,9 @@ begin
 
   inherited KeyUp(Key, Shift); { OnKeyUp before KeyUpEvent }
 
-  KeyUpEvent(Key, Shift);
+  if (MyKey <> K_None) or (Ch <> #0) then
+    if KeyUpEvent(MyKey, Ch) then
+      Key := 0; // handled
 end;
 
 procedure TCastleControlBase.MouseDown(Button: Controls.TMouseButton;
@@ -1267,56 +1279,44 @@ begin
   inherited;
 end;
 
-procedure TCastleControlCustom.KeyDownEvent(var Key: Word; Shift: TShiftState);
+function TCastleControlCustom.KeyDownEvent(const MyKey: TKey; const Ch: char): boolean;
 var
-  MyKey: TKey;
-  Ch: char;
   C: TUIControl;
   I: Integer;
 begin
-  LKeyToMyKey(Key, Shift, MyKey, Ch);
+  Result := inherited;
+  if Result then Exit;
 
-  if ((MyKey <> K_None) or (Ch <> #0)) and UseControls then
+  if UseControls then
   begin
     for I := 0 to Controls.Count - 1 do
     begin
       C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
         if C.Press(InputKey(MyKey, Ch)) then
-        begin
-          Key := 0;
-          Exit;
-        end;
+          Exit(true);
     end;
   end;
-
-  inherited;
 end;
 
-procedure TCastleControlCustom.KeyUpEvent(var Key: Word; Shift: TShiftState);
+function TCastleControlCustom.KeyUpEvent(const MyKey: TKey; const Ch: char): boolean;
 var
-  MyKey: TKey;
-  Ch: char;
   C: TUIControl;
   I: Integer;
 begin
-  LKeyToMyKey(Key, Shift, MyKey, Ch);
+  Result := inherited;
+  if Result then Exit;
 
-  if ((MyKey <> K_None) or (Ch <> #0)) and UseControls then
+  if UseControls then
   begin
     for I := 0 to Controls.Count - 1 do
     begin
       C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
         if C.Release(InputKey(MyKey, Ch)) then
-        begin
-          Key := 0;
-          Exit;
-        end;
+          Exit(true);
     end;
   end;
-
-  inherited;
 end;
 
 procedure TCastleControlCustom.MouseDownEvent(Button: Controls.TMouseButton;
