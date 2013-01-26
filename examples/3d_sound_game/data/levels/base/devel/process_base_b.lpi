@@ -54,7 +54,7 @@
     <JumpHistory Count="0" HistoryIndex="-1"/>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="9"/>
+    <Version Value="11"/>
     <Target>
       <Filename Value="process_base_b"/>
     </Target>
@@ -64,11 +64,6 @@
     <Other>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
-    <Linking>
-      <Debugging>
-	<GenerateDebugInfo Value="True"/>
-      </Debugging>
-    </Linking>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

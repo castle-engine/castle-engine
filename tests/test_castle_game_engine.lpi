@@ -59,7 +59,7 @@
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="8"/>
+    <Version Value="11"/>
     <SearchPaths>
       <IncludeFiles Value="../../castle_game_engine/src/base"/>
       <OtherUnitFiles Value="../examples/shadow_fields/"/>
@@ -89,11 +89,6 @@
       <CustomOptions Value="-Sh"/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
-    <Linking>
-      <Debugging>
-	<GenerateDebugInfo Value="True"/>
-      </Debugging>
-    </Linking>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="21">

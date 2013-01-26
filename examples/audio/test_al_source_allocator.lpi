@@ -138,7 +138,7 @@
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="8"/>
+    <Version Value="11"/>
     <SearchPaths>
       <SrcPath Value="$(LazarusDir)/lcl/;$(LazarusDir)/lcl/interfaces/$(LCLWidgetType)/"/>
     </SearchPaths>
@@ -159,10 +159,6 @@
       </Checks>
     </CodeGeneration>
     <Linking>
-      <Debugging>
-        <GenerateDebugInfo Value="True"/>
-        <UseHeaptrc Value="True"/>
-      </Debugging>
       <Options>
         <Win32>
           <GraphicApplication Value="True"/>

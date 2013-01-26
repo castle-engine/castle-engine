@@ -77,7 +77,7 @@
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="8"/>
+    <Version Value="11"/>
     <Parsing>
       <SyntaxOptions>
         <UseAnsiStrings Value="True"/>
@@ -86,11 +86,6 @@
     <Other>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
-    <Linking>
-      <Debugging>
-	<GenerateDebugInfo Value="True"/>
-      </Debugging>
-    </Linking>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="4">

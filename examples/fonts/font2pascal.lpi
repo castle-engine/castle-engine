@@ -15,16 +15,11 @@
     </Units>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="8"/>
+    <Version Value="11"/>
     <Parsing>
       <SyntaxOptions>
         <UseAnsiStrings Value="True"/>
       </SyntaxOptions>
     </Parsing>
-    <Linking>
-      <Debugging>
-	<GenerateDebugInfo Value="True"/>
-      </Debugging>
-    </Linking>
   </CompilerOptions>
 </CONFIG>
