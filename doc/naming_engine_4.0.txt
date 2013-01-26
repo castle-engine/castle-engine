@@ -102,4 +102,4 @@ Classes:
   that is now TCastleImage). Generally we avoid adding prefixes to classes
   (or other identifiers), they looked too ugly in engine in 2.x versions.
   Pascal allows to coexist two equal identifiers in different units without problems,
-  so let's depend on it.
+  so let's make use of on it.
