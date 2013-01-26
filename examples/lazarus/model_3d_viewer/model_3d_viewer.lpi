@@ -55,6 +55,7 @@
         <Filename Value="mainf.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Main"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="mainf"/>
       </Unit1>
@@ -80,9 +81,6 @@
       </Checks>
     </CodeGeneration>
     <Linking>
-      <Debugging>
-        <DebugInfoType Value="dsStabs"/>
-      </Debugging>
       <Options>
         <Win32>
           <GraphicApplication Value="True"/>
@@ -92,13 +90,12 @@
     <Other>
       <Verbosity>
         <ShowHints Value="False"/>
-        <ShowGenInfo Value="False"/>
       </Verbosity>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="6">
+    <Exceptions Count="7">
       <Item1>
         <Name Value="ECodetoolError"/>
       </Item1>
@@ -117,6 +114,9 @@
       <Item6>
         <Name Value="BreakMainLightForShadows"/>
       </Item6>
+      <Item7>
+        <Name Value="BreakUsesTexture"/>
+      </Item7>
     </Exceptions>
   </Debugging>
 </CONFIG>

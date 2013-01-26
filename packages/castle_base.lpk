@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <CONFIG>
-  <Package Version="3">
+  <Package Version="4">
     <Name Value="castle_base"/>
+    <AddToProjectUsesSection Value="True"/>
     <Author Value="Michalis Kamburelis"/>
     <CompilerOptions>
-      <Version Value="9"/>
+      <Version Value="11"/>
       <SearchPaths>
         <IncludeFiles Value="../src/base;../src/base/unix;../src/base/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/castlescript;../src/3d;../src/x3d/opengl/glsl"/>
         <OtherUnitFiles Value="../src/base;../src/3d;../src/3d/opengl;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/net;../src/castlescript;../src/ui;../src/ui/windows;../src/ui/opengl;../src/game"/>
@@ -24,15 +25,8 @@
           <OptimizationLevel Value="2"/>
         </Optimizations>
       </CodeGeneration>
-      <Linking>
-        <Debugging>
-          <GenerateDebugInfo Value="True"/>
-          <UseHeaptrc Value="True"/>
-        </Debugging>
-      </Linking>
       <Other>
         <Verbosity>
-          <ShowNotes Value="False"/>
           <ShowHints Value="False"/>
         </Verbosity>
         <CustomOptions Value="-Sh

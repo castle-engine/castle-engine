@@ -56,19 +56,20 @@
         <Filename Value="mainf.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form1"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainF"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="87"/>
-        <CursorPos X="88" Y="94"/>
+        <TopLine Value="42"/>
+        <CursorPos X="47" Y="74"/>
         <UsageCount Value="35"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit1>
     </Units>
-    <JumpHistory Count="12" HistoryIndex="11">
+    <JumpHistory Count="14" HistoryIndex="13">
       <Position1>
         <Filename Value="mainf.pas"/>
         <Caret Line="36" Column="18" TopLine="16"/>
@@ -117,10 +118,18 @@
         <Filename Value="mainf.pas"/>
         <Caret Line="95" Column="1" TopLine="80"/>
       </Position12>
+      <Position13>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="93" Column="1" TopLine="79"/>
+      </Position13>
+      <Position14>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="62" Column="30" TopLine="32"/>
+      </Position14>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="9"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <Parsing>
       <SyntaxOptions>
@@ -134,11 +143,11 @@
           <GraphicApplication Value="True"/>
         </Win32>
       </Options>
-      <Debugging>
-	<GenerateDebugInfo Value="True"/>
-      </Debugging>
     </Linking>
     <Other>
+      <Verbosity>
+        <ShowHints Value="False"/>
+      </Verbosity>
       <CompilerMessages>
         <UseMsgFile Value="True"/>
       </CompilerMessages>
@@ -161,4 +170,5 @@
       </Item4>
     </Exceptions>
   </Debugging>
+  <EditorMacros Count="0"/>
 </CONFIG>

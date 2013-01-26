@@ -53,13 +53,14 @@
         <Filename Value="mainf.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form1"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="mainf"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
         <TopLine Value="16"/>
-        <CursorPos X="32" Y="42"/>
+        <CursorPos X="50" Y="32"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -85,7 +86,7 @@
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="9"/>
+    <Version Value="11"/>
     <Target>
       <Filename Value="load_model_and_camera_manually"/>
     </Target>
@@ -99,11 +100,11 @@
           <GraphicApplication Value="True"/>
         </Win32>
       </Options>
-      <Debugging>
-	<GenerateDebugInfo Value="True"/>
-      </Debugging>
     </Linking>
     <Other>
+      <Verbosity>
+        <ShowHints Value="False"/>
+      </Verbosity>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
@@ -120,4 +121,5 @@
       </Item3>
     </Exceptions>
   </Debugging>
+  <EditorMacros Count="0"/>
 </CONFIG>

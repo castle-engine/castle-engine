@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <CONFIG>
-  <Package Version="3">
+  <Package Version="4">
     <Name Value="castle_window"/>
+    <AddToProjectUsesSection Value="True"/>
     <Author Value="Michalis Kamburelis"/>
     <CompilerOptions>
-      <Version Value="8"/>
+      <Version Value="11"/>
       <SearchPaths>
         <IncludeFiles Value="../src/window/unix;../src/window/windows;../src/window/gtk;../src/base"/>
         <OtherUnitFiles Value="../src/window;../src/window/windows"/>
@@ -14,7 +15,6 @@
         <SyntaxOptions>
           <IncludeAssertionCode Value="True"/>
           <CStyleMacros Value="True"/>
-          <UseAnsiStrings Value="True"/>
         </SyntaxOptions>
       </Parsing>
       <CodeGeneration>
@@ -28,12 +28,6 @@
           <OptimizationLevel Value="0"/>
         </Optimizations>
       </CodeGeneration>
-      <Linking>
-        <Debugging>
-          <GenerateDebugInfo Value="True"/>
-          <UseHeaptrc Value="True"/>
-        </Debugging>
-      </Linking>
       <Other>
         <Verbosity>
           <ShowNotes Value="False"/>
@@ -116,7 +110,7 @@ This package cannot be installed under Lazarus, it's only for being used in othe
       </Item2>
     </RequiredPkgs>
     <UsageOptions>
-      <UnitPath Value="$(PkgOutDir)/"/>
+      <UnitPath Value="$(PkgOutDir)"/>
     </UsageOptions>
     <PublishOptions>
       <Version Value="2"/>
