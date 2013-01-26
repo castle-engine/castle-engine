@@ -1,16 +1,17 @@
 <?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="7"/>
+    <Version Value="9"/>
     <General>
       <Flags>
-        <AlwaysBuild Value="False"/>
         <LRSInOutputDirectory Value="False"/>
       </Flags>
       <MainUnit Value="0"/>
-      <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="0"/>
+      <ActiveWindowIndexAtStart Value="0"/>
     </General>
+    <BuildModes Count="1">
+      <Item1 Name="default" Default="True"/>
+    </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
       <IgnoreBinaries Value="False"/>
@@ -36,22 +37,26 @@
         <Filename Value="test_al_source_allocator.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="test_al_source_allocator"/>
-        <CursorPos X="1" Y="10"/>
         <TopLine Value="1"/>
+        <CursorPos X="1" Y="10"/>
         <UsageCount Value="26"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Main"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="1" Y="1"/>
-        <TopLine Value="1"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="1"/>
+        <CursorPos X="80" Y="16"/>
         <UsageCount Value="26"/>
         <Loaded Value="True"/>
-        <SyntaxHighlighter Value="Delphi"/>
+        <LoadedDesigner Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit1>
     </Units>
     <JumpHistory Count="20" HistoryIndex="19">
@@ -140,14 +145,13 @@
   <CompilerOptions>
     <Version Value="11"/>
     <SearchPaths>
-      <SrcPath Value="$(LazarusDir)/lcl/;$(LazarusDir)/lcl/interfaces/$(LCLWidgetType)/"/>
+      <SrcPath Value="$(LazarusDir)/lcl;$(LazarusDir)/lcl/interfaces/$(LCLWidgetType)"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
         <SyntaxMode Value="Delphi"/>
         <IncludeAssertionCode Value="True"/>
         <CStyleMacros Value="True"/>
-        <UseAnsiStrings Value="True"/>
       </SyntaxOptions>
     </Parsing>
     <CodeGeneration>
@@ -166,6 +170,10 @@
       </Options>
     </Linking>
     <Other>
+      <Verbosity>
+        <ShowNotes Value="False"/>
+        <ShowHints Value="False"/>
+      </Verbosity>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
@@ -182,4 +190,5 @@
       </Item3>
     </Exceptions>
   </Debugging>
+  <EditorMacros Count="0"/>
 </CONFIG>
