@@ -72,7 +72,6 @@ type
     MenuMouseLookToggle: TMenuItem;
     RecentFiles: TCastleRecentFiles;
     MenuAggressiveUpdateToggle: TMenuItem;
-    procedure ApplicationProperties1Idle(Sender: TObject; var Done: Boolean);
     procedure ButtonNavigationTypeClick(Sender: TObject);
     procedure ButtonScreenshotClick(Sender: TObject);
     procedure BrowserCameraChanged(Camera: TCamera);
@@ -189,8 +188,34 @@ begin
 end;
 
 procedure TMain.Timer1Timer(Sender: TObject);
+var
+  Pos, Dir, Up: TVector3Single;
 begin
   UpdateCaption; { to update FPS }
+
+  { Update edit boxes about camera only from time to time.
+    Otherwise, updating edit controls
+    on every move would cause refresh rate of OpenGL context to suffer
+    (e.g. when rotating object in Examine mode) }
+  if CameraChanged then
+  begin
+    CameraChanged := false;
+
+    Browser.Camera.GetView(Pos, Dir, Up);
+    { Note that Dir, Up returned here are always normalized }
+
+    EditPositionX.Text := FloatToNiceStr(Pos[0]);
+    EditPositionY.Text := FloatToNiceStr(Pos[1]);
+    EditPositionZ.Text := FloatToNiceStr(Pos[2]);
+
+    EditDirectionX.Text := FloatToNiceStr(Dir[0]);
+    EditDirectionY.Text := FloatToNiceStr(Dir[1]);
+    EditDirectionZ.Text := FloatToNiceStr(Dir[2]);
+
+    EditUpX.Text := FloatToNiceStr(Up[0]);
+    EditUpY.Text := FloatToNiceStr(Up[1]);
+    EditUpZ.Text := FloatToNiceStr(Up[2]);
+  end;
 end;
 
 procedure TMain.MenuMouseLookToggleClick(Sender: TObject);
@@ -313,34 +338,6 @@ end;
 procedure TMain.BrowserCameraChanged(Camera: TCamera);
 begin
   CameraChanged := true;
-end;
-
-procedure TMain.ApplicationProperties1Idle(Sender: TObject; var Done: Boolean);
-var
-  Pos, Dir, Up: TVector3Single;
-begin
-  { update camera only when idle. Otherwise, updating edit controls
-    on every move would cause refresh rate of OpenGL context to suffer
-    (e.g. when rotating object in Examine mode) }
-  if CameraChanged then
-  begin
-    CameraChanged := false;
-
-    Browser.Camera.GetView(Pos, Dir, Up);
-    { Note that Dir, Up returned here are always normalized }
-
-    EditPositionX.Text := FloatToNiceStr(Pos[0]);
-    EditPositionY.Text := FloatToNiceStr(Pos[1]);
-    EditPositionZ.Text := FloatToNiceStr(Pos[2]);
-
-    EditDirectionX.Text := FloatToNiceStr(Dir[0]);
-    EditDirectionY.Text := FloatToNiceStr(Dir[1]);
-    EditDirectionZ.Text := FloatToNiceStr(Dir[2]);
-
-    EditUpX.Text := FloatToNiceStr(Up[0]);
-    EditUpY.Text := FloatToNiceStr(Up[1]);
-    EditUpZ.Text := FloatToNiceStr(Up[2]);
-  end;
 end;
 
 procedure TMain.SceneManagerBoundNavigationInfoChanged(Sender: TObject);

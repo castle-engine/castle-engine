@@ -5,35 +5,35 @@ object Main: TMain
   Width = 718
   ActiveControl = Browser
   Caption = 'Main'
-  ClientHeight = 572
+  ClientHeight = 571
   ClientWidth = 718
   Menu = MainMenu1
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnDestroy = FormDestroy
   Position = poDefaultPosOnly
-  LCLVersion = '0.9.31'
+  LCLVersion = '1.1'
   object PanelBottom: TPanel
     Left = 0
-    Height = 251
-    Top = 321
+    Height = 253
+    Top = 318
     Width = 718
     Align = alBottom
     AutoSize = True
-    ClientHeight = 251
+    ClientHeight = 253
     ClientWidth = 718
     TabOrder = 1
     object GroupBoxCamera: TGroupBox
       Left = 9
-      Height = 153
+      Height = 154
       Top = 9
-      Width = 457
+      Width = 462
       AutoSize = True
       BorderSpacing.Around = 8
       BorderSpacing.InnerBorder = 8
       Caption = 'Camera vectors'
       ClientHeight = 126
-      ClientWidth = 453
+      ClientWidth = 458
       TabOrder = 0
       object LabelPosition: TLabel
         Left = 3
@@ -47,7 +47,7 @@ object Main: TMain
         Left = 0
         Height = 26
         Top = 39
-        Width = 78
+        Width = 80
         Caption = 'Direction:'
         ParentColor = False
       end
@@ -64,9 +64,9 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelPosition
         AnchorSideTop.Side = asrCenter
-        Left = 88
-        Height = 35
-        Top = -4
+        Left = 90
+        Height = 36
+        Top = -5
         Width = 80
         BorderSpacing.Left = 10
         TabOrder = 0
@@ -77,9 +77,9 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelPosition
         AnchorSideTop.Side = asrCenter
-        Left = 178
-        Height = 35
-        Top = -4
+        Left = 180
+        Height = 36
+        Top = -5
         Width = 80
         BorderSpacing.Left = 10
         TabOrder = 1
@@ -90,9 +90,9 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelPosition
         AnchorSideTop.Side = asrCenter
-        Left = 268
-        Height = 35
-        Top = -4
+        Left = 270
+        Height = 36
+        Top = -5
         Width = 80
         BorderSpacing.Left = 10
         TabOrder = 2
@@ -102,9 +102,9 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelDirection
         AnchorSideTop.Side = asrCenter
-        Left = 88
-        Height = 35
-        Top = 35
+        Left = 90
+        Height = 36
+        Top = 34
         Width = 80
         BorderSpacing.Left = 10
         TabOrder = 3
@@ -115,9 +115,9 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelDirection
         AnchorSideTop.Side = asrCenter
-        Left = 178
-        Height = 35
-        Top = 35
+        Left = 180
+        Height = 36
+        Top = 34
         Width = 80
         BorderSpacing.Left = 10
         TabOrder = 4
@@ -128,9 +128,9 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelDirection
         AnchorSideTop.Side = asrCenter
-        Left = 268
-        Height = 35
-        Top = 35
+        Left = 270
+        Height = 36
+        Top = 34
         Width = 80
         BorderSpacing.Left = 10
         TabOrder = 5
@@ -140,9 +140,9 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelUp
         AnchorSideTop.Side = asrCenter
-        Left = 88
-        Height = 35
-        Top = 75
+        Left = 90
+        Height = 36
+        Top = 74
         Width = 80
         BorderSpacing.Left = 10
         TabOrder = 6
@@ -153,9 +153,9 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelUp
         AnchorSideTop.Side = asrCenter
-        Left = 178
-        Height = 35
-        Top = 75
+        Left = 180
+        Height = 36
+        Top = 74
         Width = 80
         BorderSpacing.Left = 10
         TabOrder = 7
@@ -166,9 +166,9 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelUp
         AnchorSideTop.Side = asrCenter
-        Left = 268
-        Height = 35
-        Top = 75
+        Left = 270
+        Height = 36
+        Top = 74
         Width = 80
         BorderSpacing.Left = 10
         TabOrder = 8
@@ -178,10 +178,10 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideBottom.Control = EditUpZ
         AnchorSideBottom.Side = asrBottom
-        Left = 358
-        Height = 45
-        Top = 65
-        Width = 79
+        Left = 360
+        Height = 46
+        Top = 64
+        Width = 82
         Anchors = [akLeft, akBottom]
         AutoSize = True
         BorderSpacing.Left = 10
@@ -193,10 +193,10 @@ object Main: TMain
     end
     object ButtonScreenshot: TBitBtn
       AnchorSideTop.Control = ImagePoweredBy
-      Left = 580
-      Height = 37
-      Top = 13
-      Width = 129
+      Left = 576
+      Height = 38
+      Top = 12
+      Width = 133
       Anchors = [akRight]
       AutoSize = True
       BorderSpacing.Top = 8
@@ -290,8 +290,8 @@ object Main: TMain
       AnchorSideTop.Control = GroupBoxCamera
       AnchorSideTop.Side = asrBottom
       Left = 11
-      Height = 72
-      Top = 170
+      Height = 73
+      Top = 171
       Width = 623
       AutoSize = True
       BorderSpacing.Around = 8
@@ -385,7 +385,6 @@ object Main: TMain
         }
         GroupIndex = 1
         Margin = 8
-        NumGlyphs = 0
         OnClick = ButtonNavigationTypeClick
       end
       object ButtonWalk: TSpeedButton
@@ -448,7 +447,6 @@ object Main: TMain
         }
         GroupIndex = 1
         Margin = 8
-        NumGlyphs = 0
         OnClick = ButtonNavigationTypeClick
       end
       object ButtonFly: TSpeedButton
@@ -520,7 +518,6 @@ object Main: TMain
         }
         GroupIndex = 1
         Margin = 8
-        NumGlyphs = 0
         OnClick = ButtonNavigationTypeClick
       end
       object ButtonNone: TSpeedButton
@@ -535,7 +532,6 @@ object Main: TMain
         Caption = 'None'
         GroupIndex = 1
         Margin = 8
-        NumGlyphs = 0
         OnClick = ButtonNavigationTypeClick
       end
     end
@@ -920,7 +916,7 @@ object Main: TMain
   object Browser: TCastleControl
     AnchorSideBottom.Control = PanelBottom
     Left = 0
-    Height = 321
+    Height = 318
     Top = 0
     Width = 718
     Align = alClient
@@ -1011,7 +1007,6 @@ object Main: TMain
     top = 175
   end
   object ApplicationProperties1: TApplicationProperties
-    OnIdle = ApplicationProperties1Idle
     left = 268
     top = 44
   end
