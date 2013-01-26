@@ -509,7 +509,8 @@ implementation
 
 uses SysUtils, CastleGLUtils, CastleFilesUtils, CastleStringUtils,
   CastleGLImages, CastleUIControls, XMLRead, CastleInputs, CastleXMLUtils,
-  CastleRenderer, CastleRenderingCamera, Math, CastleWarnings, X3DCameraUtils;
+  CastleRenderer, CastleRenderingCamera, Math, CastleWarnings, X3DCameraUtils,
+  CastleGLVersion;
 
 { globals -------------------------------------------------------------------- }
 
@@ -784,7 +785,13 @@ var
   PreviousResources: T3DResourceList;
   I: Integer;
 begin
-  if not GLInitialized then
+  { We want OpenGL context, but we don't want to require that this scene manager
+    is actually added to Window.Controls yet. This would prevent taking a screenshot
+    from previous 3D contents as a background when loading level, which is actually
+    used by castle1.
+    So we do not check field "not GLInitialized", instead we look at global
+    GLVersion. }
+  if GLVersion = nil then
     raise Exception.Create('OpenGL context is not initialized yet. You have to initialize OpenGL (for example by calling TCastleWindow.Open, or by waiting for TCastleControl.OnGLContextOpen) before using TGameSceneManager.LoadLevel.');
 
   { release stuff from previous level. Our items must be clean.
