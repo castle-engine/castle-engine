@@ -131,6 +131,12 @@ begin
 end;
 
 procedure TTestCastleScript.TestVariousTypesPrograms;
+
+  procedure AssertFloat(const A, B: Single);
+  begin
+    Assert(FloatsEqual(A, B, 0.01));
+  end;
+
 var
   Prog: TCasScriptProgram;
 
@@ -234,42 +240,42 @@ begin
     Prog := ParseProgram('function main() my_float := float(3.14)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[1] as TCasScriptFloat).Value = 3.14);
+    AssertFloat((Vars[1] as TCasScriptFloat).Value, 3.14);
 
     Prog := ParseProgram('function main() my_float := float(-3.14)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[1] as TCasScriptFloat).Value = -3.14);
+    AssertFloat((Vars[1] as TCasScriptFloat).Value, -3.14);
 
     Prog := ParseProgram('function main() my_float := float(666)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[1] as TCasScriptFloat).Value = 666);
+    AssertFloat((Vars[1] as TCasScriptFloat).Value, 666);
 
     Prog := ParseProgram('function main() my_float := 123', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[1] as TCasScriptFloat).Value = 123);
+    AssertFloat((Vars[1] as TCasScriptFloat).Value, 123);
 
     Prog := ParseProgram('function main() my_float := float(''44.456'')', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[1] as TCasScriptFloat).Value = 44.456);
+    AssertFloat((Vars[1] as TCasScriptFloat).Value, 44.456);
 
     Prog := ParseProgram('function main() my_float := float(false)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[1] as TCasScriptFloat).Value = 0);
+    AssertFloat((Vars[1] as TCasScriptFloat).Value, 0);
 
     Prog := ParseProgram('function main() my_float := float(true)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[1] as TCasScriptFloat).Value = 1);
+    AssertFloat((Vars[1] as TCasScriptFloat).Value, 1);
 
     Prog := ParseProgram('function main() my_float := float(0 <> 0)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[1] as TCasScriptFloat).Value = 0);
+    AssertFloat((Vars[1] as TCasScriptFloat).Value, 0);
 
     { test bool() }
 
