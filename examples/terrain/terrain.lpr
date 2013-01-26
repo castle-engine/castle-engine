@@ -55,8 +55,9 @@ program terrain;
 uses SysUtils, Classes, CastleBoxes, CastleKeysMouse,
   CastleUtils, CastleWindow, GL, GLExt, CastleGLUtils, CastleParameters,
   CastleCameras, CastleVectors, CastleFilesUtils, Elevations, CastleMessages,
-  CastleStringUtils, CastleOnScreenMenu, CastleUIControls, CastleImages, RenderElevations,
-  CastleGLShaders, CastleGLImages, X3DFields, X3DNodes, Castle3D, CastleFrustum, CastleSceneManager;
+  CastleStringUtils, CastleOnScreenMenu, CastleUIControls, CastleImages,
+  RenderElevations, CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,
+  Castle3D, CastleFrustum, CastleSceneManager;
 
 type
   TTerrainType = (ttNoise, ttCasScript, ttImage, ttGrid);

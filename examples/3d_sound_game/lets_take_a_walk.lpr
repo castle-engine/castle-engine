@@ -316,7 +316,7 @@ begin
   MuteImage.Blending := true;
   MuteImage.FileName := ProgramDataPath + 'data' + PathDelim + 'textures' + PathDelim +'mute_sign.png';
   MuteImage.Exists := false; // don't show it on initial progress
-  Window.Controls.Insert(0, MuteImage);
+  Window.Controls.InsertFront(MuteImage);
 
   { open window, to have OpenGL context }
   Window.Open;

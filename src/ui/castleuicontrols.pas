@@ -483,6 +483,18 @@ type
     procedure Add(Item: TUIControl);
     procedure Insert(Index: Integer; Item: TUIControl);
 
+    { Add at the beginning of the list.
+      This is just a shortcut for @code(Insert(0, NewItem)),
+      but makes it easy to remember that controls at the beginning of the list
+      are in front (that get key/mouse events first). }
+    procedure InsertFront(const NewItem: TUIControl);
+
+    { Add at the end of the list.
+      This is just another name for @code(Add(NewItem)), but makes it easy
+      to remember that controls at the end of the list are at the back
+      (they get key/mouse events last). }
+    procedure InsertBack(const NewItem: TUIControl);
+
     { BeginDisableContextOpenClose disables sending
       TUIControl.GLContextOpen and TUIControl.GLContextClose to all the controls
       on the list. EndDisableContextOpenClose ends this.
@@ -789,6 +801,16 @@ begin
  for I := 0 to Count - 1 do
    with Items[I] do
      DisableContextOpenClose := DisableContextOpenClose - 1;
+end;
+
+procedure TUIControlList.InsertFront(const NewItem: TUIControl);
+begin
+  Insert(0, NewItem);
+end;
+
+procedure TUIControlList.InsertBack(const NewItem: TUIControl);
+begin
+  Add(NewItem);
 end;
 
 { TGLContextEventList -------------------------------------------------------- }

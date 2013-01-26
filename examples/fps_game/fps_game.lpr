@@ -71,7 +71,7 @@ begin
   ToggleMouseLookButton.OnClick := @ToggleMouseLookButtonClick;
   ToggleMouseLookButton.Left := ControlsMargin;
   ToggleMouseLookButton.Bottom := NextButtonBottom;
-  Window.Controls.Add(ToggleMouseLookButton);
+  Window.Controls.InsertFront(ToggleMouseLookButton);
   NextButtonBottom += ToggleMouseLookButton.Height + ControlsMargin;
 
   ExitButton := TCastleButton.Create(Application);
@@ -79,7 +79,7 @@ begin
   ExitButton.OnClick := @ExitButtonClick;
   ExitButton.Left := ControlsMargin;
   ExitButton.Bottom := NextButtonBottom;
-  Window.Controls.Add(ExitButton);
+  Window.Controls.InsertFront(ExitButton);
   NextButtonBottom += ExitButton.Height + ControlsMargin;
 
   RenderDebug3DButton := TCastleButton.Create(Application);
@@ -88,7 +88,7 @@ begin
   RenderDebug3DButton.OnClick := @RenderDebug3DButtonClick;
   RenderDebug3DButton.Left := ControlsMargin;
   RenderDebug3DButton.Bottom := NextButtonBottom;
-  Window.Controls.Add(RenderDebug3DButton);
+  Window.Controls.InsertFront(RenderDebug3DButton);
   NextButtonBottom += RenderDebug3DButton.Height + ControlsMargin;
 
   RenderDebugCaptionsButton := TCastleButton.Create(Application);
@@ -97,7 +97,7 @@ begin
   RenderDebugCaptionsButton.OnClick := @RenderDebugCaptionsButtonClick;
   RenderDebugCaptionsButton.Left := ControlsMargin;
   RenderDebugCaptionsButton.Bottom := NextButtonBottom;
-  Window.Controls.Add(RenderDebugCaptionsButton);
+  Window.Controls.InsertFront(RenderDebugCaptionsButton);
   NextButtonBottom += RenderDebugCaptionsButton.Height + ControlsMargin;
 
   ScrenshotButton := TCastleButton.Create(Application);
@@ -105,7 +105,7 @@ begin
   ScrenshotButton.OnClick := @ScreenshotButtonClick;
   ScrenshotButton.Left := ControlsMargin;
   ScrenshotButton.Bottom := NextButtonBottom;
-  Window.Controls.Add(ScrenshotButton);
+  Window.Controls.InsertFront(ScrenshotButton);
   NextButtonBottom += ScrenshotButton.Height + ControlsMargin;
 
   AddCreatureButton := TCastleButton.Create(Application);
@@ -113,7 +113,7 @@ begin
   AddCreatureButton.OnClick := @AddCreatureButtonClick;
   AddCreatureButton.Left := ControlsMargin;
   AddCreatureButton.Bottom := NextButtonBottom;
-  Window.Controls.Add(AddCreatureButton);
+  Window.Controls.InsertFront(AddCreatureButton);
   NextButtonBottom += AddCreatureButton.Height + ControlsMargin;
 
   AddItemButton := TCastleButton.Create(Application);
@@ -121,7 +121,7 @@ begin
   AddItemButton.OnClick := @AddItemButtonClick;
   AddItemButton.Left := ControlsMargin;
   AddItemButton.Bottom := NextButtonBottom;
-  Window.Controls.Add(AddItemButton);
+  Window.Controls.InsertFront(AddItemButton);
   NextButtonBottom += AddItemButton.Height + ControlsMargin;
 end;
 
@@ -487,7 +487,7 @@ begin
     Left/Bottom/Width/Height properties. But in this case we know that
     the initial Resize event will do it. }
   { We insert ExtraViewport to Controls before SceneManager, to be on top. }
-  Window.Controls.Insert(0, ExtraViewport);
+  Window.Controls.InsertFront(ExtraViewport);
 
   { Assign callbacks to some window events.
     Note about initial events: Window.Open calls OnOpen and first OnResize events,
@@ -584,11 +584,11 @@ begin
     Of course this is completely optional, you could instead create your own
     TCastleNotifications instance (to not see the default notifications
     made by some engine units) or just don't use notifications at all. }
-  Window.Controls.Add(Notifications);
+  Window.Controls.InsertFront(Notifications);
 
   { Create and add Game2DControls to visualize player life, inventory and pain. }
   Game2DControls := TGame2DControls.Create(Application);
-  Window.Controls.Add(Game2DControls);
+  Window.Controls.InsertFront(Game2DControls);
 
   { Run the game loop.
     In more advanced cases, you can also execute each step of the loop

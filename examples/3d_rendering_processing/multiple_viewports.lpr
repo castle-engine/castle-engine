@@ -354,16 +354,16 @@ begin
   OpenButton := TCastleButton.Create(Application);
   OpenButton.Caption := 'Open 3D file';
   OpenButton.OnClick := @TDummy(nil).OpenButtonClick;
-  Window.Controls.Add(OpenButton);
+  Window.Controls.InsertFront(OpenButton);
 
   QuitButton := TCastleButton.Create(Application);
   QuitButton.Caption := 'Quit';
   QuitButton.OnClick := @TDummy(nil).QuitButtonClick;
-  Window.Controls.Add(QuitButton);
+  Window.Controls.InsertFront(QuitButton);
 
   { add a background, since our viewpoints (deliberately, for demo)
     do not cover whole window. }
-  Window.Controls.Add(TBackground.Create(Application));
+  Window.Controls.InsertBack(TBackground.Create(Application));
 
   Window.StencilBits := 8;
   Window.OnResize := @Resize;

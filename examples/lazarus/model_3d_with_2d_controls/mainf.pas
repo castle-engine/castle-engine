@@ -60,18 +60,18 @@ begin
     they do not handle any keys or mouse by default, they let themn through
     to 3d scene. This could be changed by overriding their MouseDown etc.) }
 
-  Browser.Controls.Insert(0, SampleButton);
-  Browser.Controls.Insert(0, SampleImage);
-  Browser.Controls.Insert(0, SampleImageAlpha);
-  Browser.Controls.Insert(0, ButtonImageFixSize1);
-  Browser.Controls.Insert(0, ButtonImageFixSize2);
-  Browser.Controls.Insert(0, ButtonImageFixSize3);
-  Browser.Controls.Insert(0, ButtonImageFixSize4);
-  Browser.Controls.Insert(0, ButtonImage1);
-  Browser.Controls.Insert(0, ButtonImage2);
-  Browser.Controls.Insert(0, ButtonImage3);
-  Browser.Controls.Insert(0, ButtonImage4);
-  Browser.Controls.Insert(0, OnScreenMenu1);
+  Browser.Controls.InsertFront(SampleButton);
+  Browser.Controls.InsertFront(SampleImage);
+  Browser.Controls.InsertFront(SampleImageAlpha);
+  Browser.Controls.InsertFront(ButtonImageFixSize1);
+  Browser.Controls.InsertFront(ButtonImageFixSize2);
+  Browser.Controls.InsertFront(ButtonImageFixSize3);
+  Browser.Controls.InsertFront(ButtonImageFixSize4);
+  Browser.Controls.InsertFront(ButtonImage1);
+  Browser.Controls.InsertFront(ButtonImage2);
+  Browser.Controls.InsertFront(ButtonImage3);
+  Browser.Controls.InsertFront(ButtonImage4);
+  Browser.Controls.InsertFront(OnScreenMenu1);
 
   { load button's images. Actually, load it only once, and use the same
     reference (leaving OwnsImage = false) on other buttons. }

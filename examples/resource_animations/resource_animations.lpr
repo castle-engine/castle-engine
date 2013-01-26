@@ -158,7 +158,7 @@ begin
       ResButton.Caption := ResButton.ButtonResource.Name;
       ResButton.Toggle := true;
       ResButtons.Add(ResButton);
-      Window.Controls.Add(ResButton);
+      Window.Controls.InsertFront(ResButton);
     end;
     if Resources.Count = 0 then
       raise Exception.CreateFmt('No resources found. Make sure we search in proper path (current data path is detected as "%s")', [ProgramDataPath]);
@@ -191,7 +191,7 @@ begin
         AnimButton.Pressed := true;
       end;
       AnimButtons.Add(AnimButton);
-      Window.Controls.Add(AnimButton);
+      Window.Controls.InsertFront(AnimButton);
     end;
   if Animation = nil then
     raise Exception.CreateFmt('No (defined) animation found in resource "%s"', [Resource.Name]);
@@ -275,7 +275,7 @@ begin
 
   LoadResourceButton := TLoadResourceButton.Create(Application);
   LoadResourceButton.Caption := 'Add resource...';
-  Window.Controls.Add(LoadResourceButton);
+  Window.Controls.InsertFront(LoadResourceButton);
   ResButtons := TResourceButtonList.Create(true);
   AnimButtons := TAnimationButtonList.Create(true);
   UpdateButtons(ucpActivateFirst);
