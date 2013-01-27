@@ -50,7 +50,7 @@ begin
   { Wait enough time to finish playing. (because PlaySound above doesn't block).
     In this simple program, we just sleep enough time
     to finish playing sound, with some margin. Alternative, more precise way
-    to do this would be query is sound playing (call SoundEngine.RefreshUsedSources
+    to do this would be query is sound playing (call SoundEngine.Refresh
     from time to time, and watch out for TSound.OnRelease event;
     PlaySound returns TSound instance for such purposes). }
   Sleep(Round(Duration * 1000)+ 100);
