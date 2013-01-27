@@ -856,9 +856,7 @@ type
     function Ray(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
   end;
 
-  { List of base 3D objects (T3D instances).
-    This allows you to group many 3D objects, and treat them as one T3D
-    descendant.
+  { List of 3D objects (T3D instances).
 
     This inherits from TCastleObjectList, getting many
     features like TList notification mechanism (useful in some situations).
@@ -883,10 +881,13 @@ type
     property Owner: T3DList read FOwner;
   end;
 
-  { List of base 3D objects (T3D instances).
+  { List of 3D objects (T3D instances), that can be treated like another,
+    larger 3D object.
 
-    This inherits from T3D class, so this list is itself a 3D object:
-    it's a sum of all it's children 3D objects. }
+    It inherits from T3D class, so this list is itself
+    a 3D object, representing a sum of all it's children 3D objects.
+    This allows you to group many 3D objects, and treat them as one T3D
+    descendant. }
   T3DList = class(T3D)
   private
     FList: T3DListCore;
