@@ -53,5 +53,5 @@ begin
     to do this would be query is sound playing (call SoundEngine.Refresh
     from time to time, and watch out for TSound.OnRelease event;
     PlaySound returns TSound instance for such purposes). }
-  Sleep(Round(Duration * 1000)+ 100);
+  Sleep(Round(Duration * 1000) + 500);
 end.
