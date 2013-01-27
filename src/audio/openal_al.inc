@@ -38,11 +38,6 @@ var
 
   alIsEnabled : function( capability:TALenum ):TALboolean; extdecl;
 
-  {$ifndef OLD_OPENAL}
-  { Application preferences for driver performance choices. }
-  alHint : procedure( target:TALenum ; mode:TALenum ); extdecl;
-  {$endif}
-
   { State retrieval. }
   alGetBooleanv : procedure( param:TALenum; data:PALboolean ); extdecl;
 
@@ -127,9 +122,9 @@ var
   alGetListeneri : procedure( pname:TALenum; value:PALint ); extdecl;
   alGetListenerf : procedure( pname:TALenum; value:PALfloat ); extdecl;
 
-  {$ifndef OLD_OPENAL}
+  {$ifdef OPENAL_DEPRECATED}
   alGetListeneriv : procedure( pname:TALenum; value:PALint ); extdecl;
-  {$endif}
+  {$endif OPENAL_DEPRECATED}
   alGetListenerfv : procedure( pname:TALenum; values:PALfloat ); extdecl;
 
   alGetListener3f : procedure( pname:TALenum; f1, f2, f3:PALfloat ); extdecl;
@@ -162,9 +157,9 @@ var
 
   { Get an integer parameter for a Source object. }
   alGetSourcei : procedure( sid:TALuint;  pname:TALenum; value:PALint  ); extdecl;
-  {$ifndef OLD_OPENAL}
+  {$ifdef OPENAL_DEPRECATED}
   alGetSourceiv : procedure( sid:TALuint;  pname:TALenum; values:PALint  ); extdecl;
-  {$endif}
+  {$endif OPENAL_DEPRECATED}
   alGetSourcef : procedure( sid:TALuint; pname:TALenum; value:PALfloat ); extdecl;
   alGetSourcefv : procedure( sid:TALuint; pname:TALenum; values:PALfloat ); extdecl;
 
@@ -224,10 +219,10 @@ var
 
   alGetBufferi : procedure( buffer:TALuint; param:TALenum; value:PALint    ); extdecl;
   alGetBufferf : procedure( buffer:TALuint; param:TALenum; value:PALfloat ); extdecl;
-  {$ifndef OLD_OPENAL}
+  {$ifdef OPENAL_DEPRECATED}
   alGetBufferiv : procedure( buffer:TALuint; param:TALenum;  v:PALint); extdecl;
   alGetBufferfv : procedure( buffer:TALuint; param:TALenum;  v:PALfloat); extdecl;
-  {$endif}
+  {$endif OPENAL_DEPRECATED}
 
   {*
    * Frequency Domain Filters are band filters.
@@ -267,9 +262,6 @@ var
    } { }
   alSourceQueueBuffers : procedure( sid:TALuint; numEntries:TALsizei; bids:PALuint ); extdecl;
   alSourceUnqueueBuffers : procedure( sid:TALuint; numEntries:TALsizei; bids:PALuint ); extdecl;
-  {$ifndef OLD_OPENAL}
-  alQueuei : procedure( sid:TALuint; param:TALenum; value:TALint ); extdecl;
-  {$endif}
 
   {*
    * Knobs and dials

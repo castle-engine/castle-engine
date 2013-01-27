@@ -51,11 +51,10 @@ unit CastleOpenAL;
   )
 }
 
-{ If OLD_OPENAL, then we don't look for functions
-  alHint, alGetListeneriv, alGetSourceiv, alGetBufferiv, alGetBufferfv i alQueuei.
-  For now defined always (needed for Windows version from Creative SDK,
-  and for Debian testing OpenAL since 2005-11-12). }
-{$define OLD_OPENAL}
+{ If OPENAL_DEPRECATED, we will define and load some functions
+  considered deprecated.
+  See http://opensource.creative.com/pipermail/openal-devel/2005-April/002985.html . }
+{ $define OPENAL_DEPRECATED}
 
 interface
 
@@ -277,14 +276,12 @@ begin
   Pointer({$ifndef FPC_OBJFPC} @ {$endif} alDopplerVelocity) := ALLibrary.Symbol('alDopplerVelocity');
   Pointer({$ifndef FPC_OBJFPC} @ {$endif} alDistanceModel) := ALLibrary.Symbol('alDistanceModel');
 
-  {$ifndef OLD_OPENAL}
-  Pointer({$ifndef FPC_OBJFPC} @ {$endif} alQueuei) := ALLibrary.Symbol('alQueuei');
+  {$ifdef OPENAL_DEPRECATED}
   Pointer({$ifndef FPC_OBJFPC} @ {$endif} alGetBufferiv) := ALLibrary.Symbol('alGetBufferiv');
   Pointer({$ifndef FPC_OBJFPC} @ {$endif} alGetBufferfv) := ALLibrary.Symbol('alGetBufferfv');
   Pointer({$ifndef FPC_OBJFPC} @ {$endif} alGetSourceiv) := ALLibrary.Symbol('alGetSourceiv');
   Pointer({$ifndef FPC_OBJFPC} @ {$endif} alGetListeneriv) := ALLibrary.Symbol('alGetListeneriv');
-  Pointer({$ifndef FPC_OBJFPC} @ {$endif} alHint) := ALLibrary.Symbol('alHint');
-  {$endif not OLD_OPENAL}
+  {$endif OPENAL_DEPRECATED}
 
   { alcXxx functions ---------------------------------------- }
   Pointer({$ifndef FPC_OBJFPC} @ {$endif} alcCreateContext) := ALLibrary.Symbol('alcCreateContext');
