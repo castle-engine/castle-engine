@@ -32,6 +32,9 @@ const
 var
   Window: TCastleWindowDemo;
   PreviousSoundPosition, SoundPosition, ListenerPosition: TVector3Single;
+  { Playing sound. It may be @nil if we couldn't allocate it,
+    which practically will happen only when OpenAL is not installed
+    or --no-sound command-line option is used. }
   Sound: TSound;
 
 procedure Draw(Window: TCastleWindowBase);
@@ -53,7 +56,8 @@ end;
 
 procedure Timer(Window: TCastleWindowBase);
 begin
-  Sound.Velocity := (SoundPosition - PreviousSoundPosition) * ALDistanceScaling;
+  if Sound <> nil then
+    Sound.Velocity := (SoundPosition - PreviousSoundPosition) * ALDistanceScaling;
   PreviousSoundPosition := SoundPosition;
 end;
 
@@ -62,7 +66,8 @@ begin
   if mbLeft in Window.MousePressed then
   begin
     SoundPosition := Vector3Single(NewX, Window.Height - NewY);
-    Sound.Position := SoundPosition * ALDistanceScaling;
+    if Sound <> nil then
+      Sound.Position := SoundPosition * ALDistanceScaling;
     Window.PostRedisplay;
   end;
 end;
