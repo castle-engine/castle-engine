@@ -2,44 +2,44 @@
 
 type
 
-  {* OpenAL bool type. }
+  {* OpenAL 8bit bool type. }
   TALboolean = ByteBool;
   PALboolean = ^TALboolean;
 
   {* OpenAL 8bit signed byte. }
-  TALbyte = ShortInt;
+  TALbyte = CChar;
   PALbyte = ^TALbyte;
 
   {* OpenAL 8bit unsigned byte. }
-  TALubyte = Byte;
+  TALubyte = CUChar;
   PALubyte = ^TALubyte;
 
   {* OpenAL 16bit signed short integer type. }
-  TALshort = SmallInt;
+  TALshort = CShort;
   PALshort = ^TALshort;
 
   {* OpenAL 16bit unsigned short integer type. }
-  TALushort = Word;
+  TALushort = CUShort;
   PALushort = ^TALushort;
 
   {* OpenAL 32bit unsigned integer type. }
-  TALuint = LongWord;
+  TALuint = CUInt;
   PALuint = ^TALuint;
 
   {* OpenAL 32bit signed integer type. }
-  TALint = LongInt;
+  TALint = CInt;
   PALint = ^TALint;
 
   {* OpenAL 32bit floating point type. }
-  TALfloat = Single;
+  TALfloat = CFloat;
   PALfloat = ^TALfloat;
 
   {* OpenAL 64bit double point type. }
-  TALdouble = Double;
+  TALdouble = CDouble;
   PALdouble = ^TALdouble;
 
   {* OpenAL 32bit type. }
-  TALsizei = LongInt;
+  TALsizei = CInt;
   PALsizei = ^TALsizei;
 
   {* OpenAL void type (for params, not returns). }
@@ -48,11 +48,11 @@ type
   PALvoid = Pointer;
 
   {* OpenAL enumerations. }
-  TALenum = LongInt;
+  TALenum = CInt;
   PALenum = ^TALenum;
 
   {* OpenAL bitfields. }
-  TALbitfield = LongWord;
+  TALbitfield = CUInt;
   PALbitfield = ^TALbitfield;
 
   {* OpenAL clamped float. }

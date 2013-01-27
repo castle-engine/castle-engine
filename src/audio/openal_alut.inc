@@ -1,7 +1,7 @@
 { translation of AL/alut.h }
 
 var 
-  alutInit : procedure(var argc:LongInt; argv:PPChar); extdecl;
+  alutInit : procedure(var argc: CInt; argv: PPChar); extdecl;
   alutExit : procedure(); extdecl;
   
   alutLoadWAV : function( fname:PChar; var wave:PALvoid; 

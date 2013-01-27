@@ -7,7 +7,7 @@ type
   PALCcontext = ^TALCcontext;
 
 type
-  TALCenum = LongInt;
+  TALCenum = CInt;
 
 { Enumerant values begin at column 50. No tabs. }
 
