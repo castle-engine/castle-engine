@@ -1,6 +1,6 @@
 { -*- compile-command: "./compile_console.sh" -*- }
 {
-  Copyright 2010-2012 Michalis Kamburelis.
+  Copyright 2010-2013 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
