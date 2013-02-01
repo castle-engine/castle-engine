@@ -23,16 +23,11 @@
 
 unit CastleGLWindowsFonts;
 
-{ TODO: I implemented an alternative approach, using Windows fonts +
-  wglUseFontXxx, and it will be combined as an option into this unit
-  in the future. }
-{ $define USE_WGL}
-
 interface
 
-uses CastleWindowsFonts, GL, GLU, GLExt, Windows
-  {$ifndef USE_WGL}, CastleBitmapFonts, CastleOutlineFonts, CastleWinFontConvert,
-  CastleGLBitmapFonts, CastleGLOutlineFonts {$endif};
+uses CastleWindowsFonts, GL, GLU, GLExt, Windows,
+  CastleBitmapFonts, CastleOutlineFonts, CastleWinFontConvert,
+  CastleGLBitmapFonts, CastleGLOutlineFonts;
 
 type
   { }
@@ -40,13 +35,15 @@ type
   private
     CreatedOutline: TOutlineFont;
   public
-    { For a description of AFaceName, AHeight, AWeight, AItalic, ACharSet:
+    { Create outline font from an installed Windows font.
+
+      For a description of AFaceName, AHeight, AWeight, AItalic, ACharSet:
       see documentation for Windows.CreateFont function.
 
       For a description of Depth and OnlyLines params:
       see docs for CastleGLOutlineFonts.TGLOutlineFont.Create. }
     constructor Create(const AFaceName: string; AHeight: Integer; AWeight: DWord;
-      AItalic: boolean; ACharSet: DWord; Depth: TGLfloat; OnlyLines: boolean);
+      AItalic: boolean; ACharSet: TWinCharSet; Depth: TGLfloat; OnlyLines: boolean);
     destructor Destroy; override;
   end;
 
@@ -54,10 +51,11 @@ type
   private
     CreatedBitmap: TBitmapFont;
   public
-    { For a description of AFaceName, AHeight, AWeight, AItalic, ACharSet:
+    { Create bitmap font from an installed Windows font.
+      For a description of AFaceName, AHeight, AWeight, AItalic, ACharSet:
       see documentation for Windows.CreateFont function. }
     constructor Create(const AFaceName: string; AHeight: Integer; AWeight: DWord;
-      AItalic: boolean; ACharSet: DWord);
+      AItalic: boolean; ACharSet: TWinCharSet);
     destructor Destroy; override;
   end;
 
@@ -66,7 +64,7 @@ implementation
 uses CastleUtils;
 
 constructor TWindowsOutlineFont.Create(const AFaceName: string;
-  AHeight: Integer; AWeight: DWord; AItalic: boolean; ACharSet: DWord;
+  AHeight: Integer; AWeight: DWord; AItalic: boolean; ACharSet: TWinCharSet;
   Depth: TGLfloat; OnlyLines: boolean);
 var WinFont: TWindowsFont;
     WinFontHandle: HFont;
@@ -82,8 +80,8 @@ begin
 
   WinFontHandle := WinFont.GetHandle;
   try
-   Font2OutlineFont(WinFontHandle, CreatedOutline);
-   inherited Create(@CreatedOutline, Depth, OnlyLines);
+   CreatedOutline := Font2OutlineFont(WinFontHandle);
+   inherited Create(CreatedOutline, Depth, OnlyLines);
   finally DeleteObject(WinFontHandle) end;
  finally WinFont.Free end;
 end;
@@ -93,19 +91,13 @@ begin
  inherited;
  { yes, FreeMem AFTER inherited because TGLOutlineFont
    requires that CreatedOutline is valid for it's lifetime }
- FreeMemNilingAllChars(CreatedOutline);
+ FreeAndNilFont(CreatedOutline);
 end;
 
 { TWindowsBitmapFont ---------------------------------------- }
 
-{ This is almost identical to implementation of TWindowsOutlineFont.
-  It's bad that I created this by some copy&pasting, I should merge
-  implementation of TWindowsOutlineFont and TWindowsBitmapFont.
-  However, when I tried to do that using macros, it turned out to be
-  too much work. }
-
 constructor TWindowsBitmapFont.Create(const AFaceName: string;
-  AHeight: Integer; AWeight: DWord; AItalic: boolean; ACharSet: DWord);
+  AHeight: Integer; AWeight: DWord; AItalic: boolean; ACharSet: TWinCharSet);
 var WinFont: TWindowsFont;
     WinFontHandle: HFont;
 begin
@@ -120,8 +112,8 @@ begin
 
   WinFontHandle := WinFont.GetHandle;
   try
-   Font2BitmapFont(WinFontHandle, CreatedBitmap);
-   inherited Create(@CreatedBitmap);
+   CreatedBitmap := Font2BitmapFont(WinFontHandle);
+   inherited Create(CreatedBitmap);
   finally DeleteObject(WinFontHandle) end;
  finally WinFont.Free end;
 end;
@@ -131,7 +123,7 @@ begin
  inherited;
  { yes, FreeMem AFTER inherited because TGLBitmapFont
    requires that BitmapFont is valid for it's lifetime }
- FreeMemNilingAllChars(CreatedBitmap);
+ FreeAndNilFont(CreatedBitmap);
 end;
 
 end.
