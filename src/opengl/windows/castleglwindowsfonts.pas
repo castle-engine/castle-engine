@@ -62,7 +62,7 @@ type
 
 implementation
 
-uses CastleUtils;
+uses SysUtils, CastleUtils;
 
 constructor TWindowsOutlineFont.Create(const AFaceName: string;
   AHeight: Integer; AWeight: DWord; AItalic: boolean; ACharSet: TWinCharSet;
