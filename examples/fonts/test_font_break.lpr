@@ -23,7 +23,7 @@
 { $define TEST_CUSTOM_FONT}
 
 { Replace UIFont with another font (initialized using Windows API). }
-{$define TEST_CUSTOM_WINDOWS_FONT}
+{ $define TEST_CUSTOM_WINDOWS_FONT}
 
 program test_font_break;
 
@@ -38,35 +38,36 @@ var
   BoxWidth: Integer;
 
 procedure Draw(Window: TCastleWindowBase);
-var x1, x2: Integer;
+var
+  X1, X2: Integer;
 begin
- glClear(GL_COLOR_BUFFER_BIT);
- glLoadIdentity;
- x1 := (Window.Width - BoxWidth) div 2;
- x2 := x1 + BoxWidth;
- glColorv(Yellow3Single);
- GLVerticalLine(x1, 0, Window.Height);
- GLVerticalLine(x2, 0, Window.Height);
- glColorv(White3Single);
- UIFont.PrintBrokenString(
-   'blah blah blah, I''m a long long long text and'
-   +' I''m very curious how I will be broken to fit nicely between those'
-   +' two yellow lines on the screen.' +nl+
-   'BTW: Note that line breaks will be correctly preserved in the broken'
-   +' text.' +nl+
-   nl+
-   'You can resize this window and watch how this text breaks at'
-   +' various line widths.', BoxWidth, x1,
-   { Using Font.Descend instead of 0, so that lower parts of the lowest line
-     are visible } UIFont.Descend,
-   false, 0);
+  glClear(GL_COLOR_BUFFER_BIT);
+  glLoadIdentity;
+  x1 := (Window.Width - BoxWidth) div 2;
+  x2 := x1 + BoxWidth;
+  glColorv(Yellow3Single);
+  GLVerticalLine(x1, 0, Window.Height);
+  GLVerticalLine(x2, 0, Window.Height);
+  glColorv(White3Single);
+  UIFont.PrintBrokenString(
+    'blah blah blah, I''m a long long long text and'
+    +' I''m very curious how I will be broken to fit nicely between those'
+    +' two yellow lines on the screen.' +nl+
+    'BTW: Note that line breaks will be correctly preserved in the broken'
+    +' text.' +nl+
+    nl+
+    'You can resize this window and watch how this text breaks at'
+    +' various line widths.', BoxWidth, x1,
+    { Using Font.Descend instead of 0, so that lower parts of the lowest line
+      are visible } UIFont.Descend,
+    false, 0);
 end;
 
 procedure Resize(Window: TCastleWindowBase);
 begin
- glViewport(0, 0, Window.Width, Window.Height);
- OrthoProjection(0, Window.Width, 0, Window.Height);
- BoxWidth := Window.Width * 2 div 3;
+  glViewport(0, 0, Window.Width, Window.Height);
+  OrthoProjection(0, Window.Width, 0, Window.Height);
+  BoxWidth := Window.Width * 2 div 3;
 end;
 
 procedure Open(Window: TCastleWindowBase);
@@ -81,11 +82,11 @@ begin
 end;
 
 begin
- Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
- Window.OnOpen := @Open;
- Window.OnResize := @Resize;
- Window.DepthBits := 0;
- Window.SetDemoOptions(K_F11, CharEscape, true);
- Window.OpenAndRun('Font.BreakLines demo', @Draw);
+  Window.OnOpen := @Open;
+  Window.OnResize := @Resize;
+  Window.DepthBits := 0;
+  Window.SetDemoOptions(K_F11, CharEscape, true);
+  Window.OpenAndRun('Font.BreakLines demo', @Draw);
 end.
