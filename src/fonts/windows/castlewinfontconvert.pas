@@ -138,7 +138,7 @@ begin
         We must replace line order - TBitmapFont wants lines bottom -> top,
         while GlyphData has lines top -> bottom. }
       for j := 0 to GlyphMetrics.gmBlackBoxY-1 do
-        Move(GlyphData[(Result^.Info.Height - j - 1) * RowByteLength],
+        Move(GlyphData^[(Result^.Info.Height - j - 1) * RowByteLength],
              Result^.Data[j * RowByteLength],
              RowByteLength);
     end;
