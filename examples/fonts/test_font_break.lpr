@@ -19,14 +19,19 @@
 
 {$apptype GUI}
 
-{$define TEST_FONT_REPLACE}
+{ Replace UIFont with another font (compiled into Pascal unit). }
+{ $define TEST_CUSTOM_FONT}
+
+{ Replace UIFont with another font (initialized using Windows API). }
+{$define TEST_CUSTOM_WINDOWS_FONT}
 
 program test_font_break;
 
 uses CastleWindow, GL, GLU, CastleGLUtils, SysUtils, Classes,
   CastleUtils, CastleGLBitmapFonts, CastleVectors, CastleStringUtils, CastleColors,
   CastleControls, CastleKeysMouse
-  {$ifdef TEST_FONT_REPLACE} , CastleBitmapFont_BVSansMono_Bold_M15 {$endif};
+  {$ifdef TEST_CUSTOM_FONT} , CastleBitmapFont_BVSansMono_Bold_M15 {$endif}
+  {$ifdef TEST_CUSTOM_WINDOWS_FONT}, Windows, CastleWindowsFonts, CastleGLWindowsFonts {$endif};
 
 var
   Window: TCastleWindowCustom;
@@ -66,8 +71,12 @@ end;
 
 procedure Open(Window: TCastleWindowBase);
 begin
-{$ifdef TEST_FONT_REPLACE}
+{$ifdef TEST_CUSTOM_FONT}
   UIFont := TGLBitmapFont.Create(BitmapFont_BVSansMono_Bold_M15);
+{$else}
+  {$ifdef TEST_CUSTOM_WINDOWS_FONT}
+  UIFont := TWindowsBitmapFont.Create('Arial', -18, FW_REGULAR, false, wcsDEFAULT);
+  {$endif}
 {$endif}
 end;
 
