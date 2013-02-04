@@ -29,56 +29,16 @@ interface
 
 uses Windows, CastleBitmapFonts, CastleOutlineFonts;
 
-{ Both functions grab character c from Windows font currently selected
-  on device context dc. Remeber to free resulting pointer by FreeMem.
-
-  "Underline" and "strikeout" : I observed that it does not matter whether
-  font is underline or strikeout (e.g. what values for fdwUnderline/StrikeOut
-  you gave when calling CreateFont). Fonts converted by this function are
-  always NOT underlined and not strikeout.
-  On the other hand, "bold" (actually "weight") and "italic" matter,
-  i.e. fonts created by this functions reflect the weight and italic state
-  of the font.
-  This is true both for Font2BitmapChar and Font2OutlineChar.
-  This is an effect of how Windows.GetGlyphOutline works.
-  However I didn't find any place documenting these details about
-  GetGlyphOutline.
-  This is not a result of the fact that TTF fonts are usually distributed
-  with separate bold, italic, and bold+italic versions, because I checked
-  this with fonts that are distributed without bold, italic, bold+italic
-  versions (i.e. bold, italic, bold+italic versions must be automatically
-  synthesized by Windows) and for such fonts it works the same :
-  bold, italic, b+i versions can be constructed by Font2XxxChar versions
-  below, and underline and strikeout properties of Windows font are
-  ignored.
-
-  @groupBegin }
-function Font2BitmapChar_HDc(dc: HDc; c: char): PBitmapChar;
-function Font2OutlineChar_HDc(dc: HDc; c: char): POutlineChar;
-{ @groupEnd }
-
-{ Grab currently selected Windows font on device context dc.
+{ Create our font from a Windows font handle.
   Remeber to free resulting font later by FreeAndNilFont.
   @groupBegin }
-function Font2BitmapFont_HDc(dc: HDc): TBitmapFont;
-function Font2OutlineFont_HDc(dc: HDc): TOutlineFont;
-{ @groupEnd }
-
-{ Usually much more comfortable versions of Font2XxxFont_HDc
-  and Font2XxxChar_HDc.
-  They take HFont, not HDc. This way they avoid some strangeness
-  of GetGlyphOutline function (that requires as an argument HDc with
-  selected font, not HFont)
-
-  @groupBegin }
-function Font2BitmapChar(WinFont: HFont; c: char): PBitmapChar;
-function Font2OutlineChar(WinFont: HFont; c: char): POutlineChar;
 function Font2BitmapFont(WinFont: HFont): TBitmapFont;
 function Font2OutlineFont(WinFont: HFont): TOutlineFont;
 { @groupEnd }
 
 { Free and nil Font instance, freeing also all characters by FreeMem.
-  Use this only on fonts with characters created by GetMem.
+  Use this only on fonts with characters created by Font2BitmapFont /
+  Font2OutlineFont.
   @groupBegin }
 procedure FreeAndNilFont(var Font: TBitmapFont); overload;
 procedure FreeAndNilFont(var Font: TOutlineFont); overload;
@@ -88,11 +48,29 @@ implementation
 
 uses SysUtils, CastleUtils, CastleGenericLists;
 
+{ Note about "underline" and "strikeout": it does not matter whether
+  Window font was created as underline or strikeout (e.g. what values for
+  fdwUnderline/StrikeOut were set when calling CreateFont).
+  Fonts converted by these functions are NEVER underlined or strikeout.
+
+  On the other hand, "bold" (actually "weight") and "italic" matter.
+  That is, fonts created by this functions reflect the weight and italic settings
+  of the font. This works regardless if there are separate TTF files for
+  bold/italic or versions not (in the latter case,
+  I assume that Windows automatically synthesizes bold/italic versions).
+
+  This is true both for Font2BitmapChar and Font2OutlineChar.
+  This is an effect of how Windows.GetGlyphOutline works,
+  although it doesn't seem documented anywhere.
+}
+
 const
   IdentityMat2:Mat2= { identity matrix }
     (eM11:(fract:0; value:1); eM12:(fract:0; value:0);    { 1.0  0.0 }
      eM21:(fract:0; value:0); eM22:(fract:0; value:1));   { 0.0  1.0 }
 
+{ Create a bitmap font character
+  from a currently selected Windows font on device context DC. }
 function Font2BitmapChar_HDc(dc: HDC; c: char): PBitmapChar;
 var
   GlyphData: PByteArray;
@@ -172,6 +150,8 @@ end;
 type
   TOutlineCharItemList = specialize TGenericStructList<TOutlineCharItem>;
 
+{ Create an outline font character
+  from a currently selected Windows font on device context DC. }
 function Font2OutlineChar_HDc(dc: HDC; c: char): POutlineChar;
 var
   GlyphMetrics: TGlyphMetrics;
@@ -352,36 +332,34 @@ end;
 
 { versions without _HDc ------------------------------------------- }
 
-function Font2BitmapChar(WinFont: HFont; c: char): PBitmapChar;
-{$I winfontconvert_dc_from_winfont_declare.inc}
-begin
-  {$I winfontconvert_dc_from_winfont_begin.inc}
-  Result := Font2BitmapChar_HDc(dc, c);
-  {$I winfontconvert_dc_from_winfont_end.inc}
-end;
-
-function Font2OutlineChar(WinFont: HFont; c: char): POutlineChar;
-{$I winfontconvert_dc_from_winfont_declare.inc}
-begin
-  {$I winfontconvert_dc_from_winfont_begin.inc}
-  Result := Font2OutlineChar_HDc(dc, c);
-  {$I winfontconvert_dc_from_winfont_end.inc}
-end;
-
 function Font2BitmapFont(WinFont: HFont): TBitmapFont;
-{$I winfontconvert_dc_from_winfont_declare.inc}
+var
+  dc: HDc;
+  PreviousObject: HGdiObj;
 begin
-  {$I winfontconvert_dc_from_winfont_begin.inc}
-  Result := Font2BitmapFont_HDc(dc);
-  {$I winfontconvert_dc_from_winfont_end.inc}
+  dc := GetDC(0);
+  Check(dc <> 0, 'GetDC(0) failed');
+  try
+    PreviousObject := SelectObject(dc, WinFont);
+    try
+      Result := Font2BitmapFont_HDc(dc);
+    finally SelectObject(dc, PreviousObject) end;
+  finally ReleaseDC(0, dc) end;
 end;
 
 function Font2OutlineFont(WinFont: HFont): TOutlineFont;
-{$I winfontconvert_dc_from_winfont_declare.inc}
+var
+  dc: HDc;
+  PreviousObject: HGdiObj;
 begin
-  {$I winfontconvert_dc_from_winfont_begin.inc}
-  Result := Font2OutlineFont_HDc(dc);
-  {$I winfontconvert_dc_from_winfont_end.inc}
+  dc := GetDC(0);
+  Check(dc <> 0, 'GetDC(0) failed');
+  try
+    PreviousObject := SelectObject(dc, WinFont);
+    try
+      Result := Font2OutlineFont_HDc(dc);
+    finally SelectObject(dc, PreviousObject) end;
+  finally ReleaseDC(0, dc) end;
 end;
 
 { FreeAndNilFont ------------------------------------------------------------- }
