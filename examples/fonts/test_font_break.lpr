@@ -15,23 +15,22 @@
 
 { Demo of TGLBitmapFontAbstract.BreakLines method.
   Resize the window and watch how the text lines are automatically broken.
+
+  By default we use standard UIFont.
+  Call with command-line option -c (or --custom-font) to replace UIFont with
+  another font.
+  Call with command-line option -w (or --windows-font) to replace UIFont with
+  a font installed on Windows (works only when compiled under Windows).
 }
 
 {$apptype GUI}
 
-{ Replace UIFont with another font (compiled into Pascal unit). }
-{ $define TEST_CUSTOM_FONT}
-
-{ Replace UIFont with another font (initialized using Windows API). }
-{ $define TEST_CUSTOM_WINDOWS_FONT}
-
 program test_font_break;
 
-uses CastleWindow, GL, GLU, CastleGLUtils, SysUtils, Classes,
+uses CastleWindow, GL, GLU, CastleGLUtils, SysUtils, Classes, CastleParameters,
   CastleUtils, CastleGLBitmapFonts, CastleVectors, CastleStringUtils, CastleColors,
-  CastleControls, CastleKeysMouse
-  {$ifdef TEST_CUSTOM_FONT} , CastleBitmapFont_BVSansMono_Bold_M15 {$endif}
-  {$ifdef TEST_CUSTOM_WINDOWS_FONT}, Windows, CastleWindowsFonts, CastleGLWindowsFonts {$endif};
+  CastleControls, CastleKeysMouse, CastleBitmapFont_BVSansMono_Bold_M15
+  {$ifdef MSWINDOWS}, Windows, CastleWindowsFonts, CastleGLWindowsFonts {$endif};
 
 var
   Window: TCastleWindowCustom;
@@ -70,19 +69,40 @@ begin
   BoxWidth := Window.Width * 2 div 3;
 end;
 
+var
+  WindowsFont: boolean;
+  CustomFont: boolean;
+
 procedure Open(Window: TCastleWindowBase);
 begin
-{$ifdef TEST_CUSTOM_FONT}
-  UIFont := TGLBitmapFont.Create(BitmapFont_BVSansMono_Bold_M15);
-{$else}
-  {$ifdef TEST_CUSTOM_WINDOWS_FONT}
-  UIFont := TWindowsBitmapFont.Create('Arial', -18, FW_REGULAR, false, wcsDEFAULT);
+  {$ifdef MSWINDOWS}
+  if WindowsFont then
+    UIFont := TWindowsBitmapFont.Create('Arial', -18, FW_REGULAR, false, wcsDEFAULT);
   {$endif}
-{$endif}
+  if CustomFont then
+    UIFont := TGLBitmapFont.Create(BitmapFont_BVSansMono_Bold_M15);
+end;
+
+const
+  Options: array[0..1]of TOption =
+  ((Short:'w'; Long: 'windows-font'; Argument: oaNone),
+   (Short:'c'; Long: 'custom-font'; Argument: oaNone)
+  );
+
+procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+begin
+  case OptionNum of
+    0: WindowsFont := true;
+    1: CustomFont := true;
+  end;
 end;
 
 begin
   Window := TCastleWindowCustom.Create(Application);
+
+  Window.ParseParameters(StandardParseOptions);
+  Parameters.Parse(Options, @OptionProc, nil);
 
   Window.OnOpen := @Open;
   Window.OnResize := @Resize;
