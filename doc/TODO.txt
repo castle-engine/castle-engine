@@ -258,6 +258,13 @@ Shadow maps todos:
 Various ideas:
 
 - A precise control over how steep hill you can climb.
+  This is actually already done for player, Camera.ClimbHeight settable
+  by X3D avatarSize.
+
+  Do it also for creatures. Right now creatures can climb high
+  (almost-vertical) walls.
+  This is not so very noticeable now, because there are no high walls
+  now, and creatures' AI doesn't let them fall into deep pits now.
 
 - screenshot (per year contest?): http://vcg.isti.cnr.it/cgf/index.php
 
@@ -339,6 +346,19 @@ Various ideas:
     CoordinateDouble
     NurbsTextureCoordinate
     NurbsSet
+
+- Improve collisions player<->creatures and player<->items to
+  check not only final collisions, but also segment collisions when moving ?
+  Otherwise when moving fast (or low FPS count, so FpsCompSpeed large),
+  this collision check can fail to work.
+
+  This doesn't seem to be a problem in practice, in practice moving speed is
+  not so large (unless running on some ancient GPU with 1 frame per second,
+  but there the game is not playable anyway...).
+
+- do weather (I have snow and rain from my szklane_lasy, but they look poor...)
+
+- weapon-less attack (does knockback + small damage)
 
 ------------------------------------------------------------------------------
 Handle Cg?
@@ -503,7 +523,10 @@ Shadow volumes finish:
     Do this by using receiveShadows, X3DLightNode.shadows fields
     --- common with SMs.
 
-  - patch for laz to get StencilBits there. (notice de-panther)
+  - shadowVolumes and shadowVolumesMain: test headlight (or close to it)
+    casting them, like a torch.
+    Should actually work already, just
+    add a light source to something 3d relative to player, like a torch?
 
   - ForceZFarInfinity - implement it also for ortho there.
 
@@ -1119,6 +1142,63 @@ Various:
   and lacking basic features for animations in other places)
   x3d exporter in Python. Eventually, we can always make our own.
 
+- Input_PointingDeviceActivate polish for castle1 (if needed for castle2):
+  - Input_PointingDeviceActivate in interacts (badly?) with key repeat.
+    Keeping "e" pressed with activate/deactivate TouchSensor repeatedly.
+
+    Can we avoid it? CastleScene already does check
+    "FPointingDeviceActive <> Active". So we already check it, to avoid
+    reacting to repeated PointingDeviceActivate(true,...).
+    The problem is, GTK and Xlib send us keyup + keydown automatically?
+    So no way to avoid it (unless some hacks with timeouts to counteract
+    key repeat)? Or use some special flag in GTK and Xlib to detect when
+    KeyUp is "bogus", and should be ignored (right inside CastleWindow
+    implementation; outside code can then handle/or not repeated KetDown).
+
+    Do it, if will be problematic for castle 2.
+
+  - Make sure interact key input (PointingDeviceActivate)
+    is always blocked for MenuBackground?
+    Or maybe allow input for MenuBackground, maybe this will be actually useful?
+
+- make gamma correction.
+    Windows: http://www.delphi3d.net/articles/viewarticle.php?article=gamma.htm
+
+- Messages: mouse over yes/no message boxes should work (reported by many
+  usability tests on castle1 --- rudy, Kasia, Eric, Circular (laz forum)).
+
+- (kasia usability test on castle1) items should automatically hide if they were uncovered by automatic show ?
+  Users usually don't know immediately how to close them, and play
+  with items list visible for a long the time, cluttering the screen.
+  Maybe automatically hide items after some time without using
+  (no [, ], pickup or Enter used). This way "i" (when items are visible)
+  becomes a shortcut to hide items quick, but eventually they'll hide
+  anyway.
+
+- mouse look:
+  - (Eric, castle1) I just saw one problem: when you switch (alt+tab)
+    to other window, but the game window remains visible on the desktop,
+    then the mouse is hidden when you mouse over the game window
+    (even though the other window has focus).
+
+  - (kasia usability test on castle1) when fps is low, and no fullscreen, the mouse sometimes gets
+    outside of the window.
+    This causes additional problems, since then it's easy to
+    accidentaly switch to other program while playing the game.
+
+- (Eric castle1) Display frequency can be changed, but is 60Hz by default,
+  has to be changed by hand and is not hardware's optimal value
+
+- "Color depth" and "Display Frequency" are ignored on non-Windows targets.
+  (Seems that judges and most people test on Windows, so no time (it's already 4th May)
+  to do this for Unix (xvf86mode) now.
+
+  "Display Frequency" should be definitely possible using xvf86mode,
+
+  "Color depth" --- I'm not sure.
+  Looking at xvidtune and gnome-display-properties : no such possibility.
+  Possibly color depth is not switchable without restarting XWindows ?
+
 ------------------------------------------------------------------------------
 Shaders:
 
@@ -1228,3 +1308,43 @@ will turn out to need them.)
   and SegmentCollsion with LineOfSight=true.
   Currently we call in such cases just GetExists,
   which is a weaker check than GetCollides.
+
+- <prepare_resources> simplify:
+  - Some creatures are dependencies of others,
+    like ThrownWeb from SpiderQueen or BallMissile from Alien.
+    There should be no need to specify it every time when you use this creature
+    on level.
+    This dependency is already recorded (as FireMissileName) inside resource.xml,
+    so it's just a matter of making a method like T3DResource.AddOtherResources
+    (returns boolean if anything new added)?
+  - There should be no need to specify creature that is initially placed
+    on the level already.
+
+- Automatically smooth between various creature states.
+  I.e. expand the idea of StandToWalkAnimation, for every combination
+  and make it automatic.
+
+  "The Rift" actually already implements it.
+  Use it (and also, then, use our creature system in "The Rift"?)
+
+  Problem: long load times ("Loading creatures...") and memory consumption.
+
+- creatures:
+  -  footsteps sound
+  - "first time sees player" sound (or maybe "sees player after long time
+    of not seeing", with configurable delay)
+  - creature avoiding falling down sometimes doesn't work like it should
+    on castle1.
+    I think that I know why: I check where the creature will be after
+    2 secs, but what if there is a pit between 2 secs and current pos ?
+    Fix by checking everything *along the 2 secs way*.
+
+------------------------------------------------------------------------------
+Load / save game ability:
+- Place load in the start menu.
+  Place save in the game menu.
+  In the game menu, when asking before "End Game", do question
+  like "Do you want to save the game before ending ?"
+  with answers "Save and end the game", "Don't save and end the game", "Cancel".
+
+  When loading game, load saved Notifications for this game.
