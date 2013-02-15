@@ -18,20 +18,22 @@ unit CastleDownloader;
 
 interface
 
-uses Classes, PkgDownload, PkgWget;
+uses Classes, PkgDownload;
 
 const
-  DefaultDownloader = 'wget';
-  (*
-  {$if defined(unix) or defined(windows)}
-    DefaultDownloader = 'lnet';
-  {$else}
-    DefaultDownloader = 'base';
-  {$endif}
-  *)
-  { TODO: as the downloading is blocking, we will probably want to set
-    default downloader = 'base', to fail for network streams.
-    And leave including specific network unit to a particular application. }
+  { Default downloader to use.
+
+    As all the downloading is blocking for now, the default downloader
+    is the one that doesn't actually handle any network protocols,
+    only local filenames.
+
+    If you want to actually use the network, then include
+    any unit like PkgWget, PkgLNet, PkgLibCurl or such,
+    and change the @link(Downloader) value. }
+  DefaultDownloader = 'base';
+
+var
+  Downloader: string = DefaultDownloader;
 
 { Return a stream to read given URL.
   Returned stream is suitable only for reading, and the initial position
@@ -61,15 +63,13 @@ const
   A local file URL (or the URL without any protocol) is always supported,
   without using any networking library.
 }
-function DownloadURL(const URL: string;
-  const Downloader: string = DefaultDownloader): TStream;
+function DownloadURL(const URL: string): TStream;
 
 implementation
 
 uses SysUtils, URIParser, PkgGlobals, PkgMessages;
 
-function DownloadURL(const URL: string;
-  const Downloader: string = DefaultDownloader): TStream;
+function DownloadURL(const URL: string): TStream;
 var
   URI: TURI;
   P, FileName: string;

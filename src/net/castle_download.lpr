@@ -16,10 +16,13 @@
 { Download an URL, write result on standard output.
   Simple test of CastleDownloader unit.
   TODO: move to examples dir. }
-uses SysUtils, Classes, CastleDownloader, CastleParameters, CastleClassUtils;
+uses SysUtils, Classes, CastleDownloader, CastleParameters, CastleClassUtils,
+  PkgWget;
 var
   Stream: TStream;
 begin
+  Downloader := 'wget';
+
   Parameters.CheckHigh(1);
   Stream := DownloadURL(Parameters[1]);
   try
