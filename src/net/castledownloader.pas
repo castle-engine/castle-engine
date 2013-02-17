@@ -67,7 +67,7 @@ function DownloadURL(const URL: string): TStream;
 
 implementation
 
-uses SysUtils, URIParser, PkgGlobals, PkgMessages;
+uses SysUtils, URIParser, PkgGlobals, PkgMessages, CastleLog;
 
 function DownloadURL(const URL: string): TStream;
 var
@@ -121,12 +121,39 @@ begin
     Error(SErrUnknownProtocol,[P]);
 end;
 
+{ Handler for PkgDownload log messages. Converts them to our CastleLog.
+  This is actually unused now, as the parts of PkgDownload that we call
+  do not make log messages in current PkgDownload implementation
+  (but this may change in the future). }
+procedure LogCmd(Level:TLogLevel; Const Msg: String);
+var
+  Prefix : string;
+begin
+  { Note: we ignore if (Level in LogLevels) for now, just show all log messages. }
+  if Log then
+  begin
+    Prefix:='';
+    case Level of
+      vlWarning :
+        Prefix:=SWarning;
+      vlError :
+        Prefix:=SError;
+  {    vlInfo :
+        Prefix:='I: ';
+      vlCommands :
+        Prefix:='C: ';
+      vlDebug :
+        Prefix:='D: '; }
+    end;
+    WritelnLog('Download', Prefix + Msg);
+  end;
+end;
+
 initialization
   { PkgGlobals registers it's own handlers for OnGetVendorName
     and OnGetApplicationName. Workaround this by resetting them. }
   OnGetVendorName := nil;
   OnGetApplicationName := nil;
 
-  { TODO: change LogHandler to CastleLog }
-  // LogHandler := @LogCmd;
+  LogHandler := @LogCmd;
 end.
