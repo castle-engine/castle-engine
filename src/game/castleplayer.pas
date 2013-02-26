@@ -654,6 +654,9 @@ begin
       FEquippedWeapon.Equip;
       FEquippedWeapon.FreeNotification(Self);
     end else
+    { This may be causes by EquippedWeapon := nil in destructor,
+      do not make any notification in this case. }
+    if not (csDestroying in ComponentState) then
       Notifications.Show('You''re no longer using your weapon');
   end;
 end;
