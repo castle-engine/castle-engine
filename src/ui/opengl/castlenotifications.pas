@@ -55,7 +55,6 @@ type
     Messages: TNotificationList;
     FHorizontalPosition: THorizontalPosition;
     FVerticalPosition: TVerticalPosition;
-    FFont: TGLBitmapFontAbstract;
     FColor: TVector3Single;
     FMaxMessages: integer;
     FTimeout: TMilisecTime;
@@ -73,9 +72,6 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
-    procedure GLContextOpen; override;
-    procedure GLContextClose; override;
 
     { Show new message. An overloaded version that takes a single string will
       detect newlines in the string automatically so a message may be multi-line.
@@ -98,10 +94,6 @@ type
 
     { Color used to draw messages. Default value is yellow. }
     property Color: TVector3Single read FColor write FColor;
-
-    { Font used to draw messages. Read-only for now, in the future
-      you should be allowed to change it. }
-    property Font: TGLBitmapFontAbstract read FFont;
 
     { All the messages passed to @link(Show), collected only if CollectHistory.
       May be @nil when not CollectHistory. }
@@ -147,7 +139,7 @@ procedure Register;
 
 implementation
 
-uses CastleBitmapFont_BVSans, CastleLog;
+uses CastleLog, CastleControls;
 
 procedure Register;
 begin
@@ -188,19 +180,6 @@ begin
   inherited;
 end;
 
-procedure TCastleNotifications.GLContextOpen;
-begin
-  inherited;
-  if FFont = nil then
-    FFont := TGLBitmapFont.Create(BitmapFont_BVSans);
-end;
-
-procedure TCastleNotifications.GLContextClose;
-begin
-  FreeAndNil(FFont);
-  inherited;
-end;
-
 procedure TCastleNotifications.Show(S: TStringList);
 
   procedure AddStrings(S: TStrings);
@@ -225,15 +204,16 @@ var
 begin
   if Log then
     WriteLog('Time message', S.Text);
-
-  { TODO: It's a bummer that we need Font created to make BreakLines,
+    
+  { TODO: It's a bummer that we need UIFont created (which means:
+    OpenGL context must be initialized) to make BreakLines,
     while BreakLines only really uses font metrics (doesn't need OpenGL
     font resources). }
-  if ContainerSizeKnown and (Font <> nil) then
+  if ContainerSizeKnown and GLInitialized then
   begin
     Broken := TStringList.Create;
     try
-      Font.BreakLines(s, Broken, ContainerWidth - HorizontalMargin * 2);
+      UIFont.BreakLines(s, Broken, ContainerWidth - HorizontalMargin * 2);
       AddStrings(Broken);
     finally Broken.Free end;
   end else
@@ -278,20 +258,20 @@ begin
     { calculate x relative to 0..ContainerWidth, then convert to 0..GLMaxX }
     case HorizontalPosition of
       hpLeft  : x := HorizontalMargin;
-      hpRight : x :=  ContainerWidth-Font.TextWidth(messages[i].Text) - HorizontalMargin;
-      hpMiddle: x := (ContainerWidth-Font.TextWidth(messages[i].Text)) div 2;
+      hpRight : x :=  ContainerWidth-UIFont.TextWidth(messages[i].Text) - HorizontalMargin;
+      hpMiddle: x := (ContainerWidth-UIFont.TextWidth(messages[i].Text)) div 2;
     end;
 
     { calculate y relative to 0..ContainerHeight, then convert to 0..GLMaxY }
     case VerticalPosition of
-      vpDown  : y := (Messages.Count-i-1) * Font.RowHeight + Font.Descend + VerticalMargin;
-      vpMiddle: y := (ContainerHeight - Messages.Count * Font.RowHeight) div 2 + i*Font.RowHeight;
-      vpUp   :  y :=  ContainerHeight-(i+1)*Font.RowHeight - VerticalMargin;
+      vpDown  : y := (Messages.Count-i-1) * UIFont.RowHeight + UIFont.Descend + VerticalMargin;
+      vpMiddle: y := (ContainerHeight - Messages.Count * UIFont.RowHeight) div 2 + i*UIFont.RowHeight;
+      vpUp   :  y :=  ContainerHeight-(i+1)*UIFont.RowHeight - VerticalMargin;
     end;
 
     { draw Text at position x, y }
     glRasterPos2i(x, y);
-    Font.Print(Messages[i].Text);
+    UIFont.Print(Messages[i].Text);
   end;
 end;
 
