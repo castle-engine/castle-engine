@@ -381,7 +381,9 @@ type
       something <> dsNone.
 
       The values of ds2D and ds3D are interpreted in the same way
-      as DrawStyle. And DrawTooltip is called in the same way as @link(Draw).
+      as DrawStyle. And DrawTooltip is called in the same way as @link(Draw),
+      so e.g. you can safely assume that modelview matrix is identity
+      and (for 2D) raster is zero.
       DrawTooltip is always called as a last (front-most) 2D or 3D control.
 
       @groupBegin }
