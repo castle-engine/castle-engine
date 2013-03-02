@@ -236,7 +236,7 @@ begin
     to adjust initial position as needed. }
   Y -= UIFont.RowHeight + ControlsMargin;
   SetWindowPos(0, Y);
-  UIFont.Print(Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
+  UIFont.PrintAndMove(Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
 
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_BLEND);

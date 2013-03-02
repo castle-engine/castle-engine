@@ -817,7 +817,7 @@ var md: TMessageData;
         glRasterPos2f(X, 0);
       end;
    end;
-   md.font.print(text);
+   md.font.PrintAndMove(text);
    glTranslatef(0, md.font.RowHeight, 0);
   end;
 

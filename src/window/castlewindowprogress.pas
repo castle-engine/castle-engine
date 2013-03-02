@@ -114,7 +114,7 @@ begin
     Font := UIFont else
     Font := UIFontSmall;
   glRasterPos2f(Margin + 20, YMiddle - Font.RowHeight div 2);
-  Font.Print(Progress.Title + ' ...');
+  Font.PrintAndMove(Progress.Title + ' ...');
 end;
 
 { TWindowProgressInterface  ------------------------------------------------ }

@@ -454,7 +454,7 @@ begin
       TextBottom -= (FImage.Height + ButtonCaptionImageMargin) div 2;
 
     glRasterPos2i(TextLeft, TextBottom);
-    Font.Print(Caption);
+    Font.PrintAndMove(Caption);
   glPopAttrib;
 
   if Opacity < 1 then

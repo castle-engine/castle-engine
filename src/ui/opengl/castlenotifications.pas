@@ -271,7 +271,7 @@ begin
 
     { draw Text at position x, y }
     glRasterPos2i(x, y);
-    UIFont.Print(Messages[i].Text);
+    UIFont.PrintAndMove(Messages[i].Text);
   end;
 end;
 

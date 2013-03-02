@@ -853,7 +853,7 @@ procedure TMenuArgument.Draw(const Rectangle: TRectangle);
 begin
   glColorv(LightGreen3Single);
   SetWindowPos(Rectangle.X0, Rectangle.Y0 + UIFont.Descend);
-  UIFont.Print(Value);
+  UIFont.PrintAndMove(Value);
 end;
 
 { TMenuBooleanArgument ----------------------------------------------------- }
@@ -936,7 +936,7 @@ begin
   SetWindowPos(
     Rectangle.X0 + (Rectangle.Width - UIFontSmall.TextWidth(Text)) div 2,
     Rectangle.Y0 + (Rectangle.Height - UIFontSmall.RowHeight) div 2);
-  UIFontSmall.Print(Text);
+  UIFontSmall.PrintAndMove(Text);
 end;
 
 { TMenuFloatSlider --------------------------------------------------------- }
@@ -1439,7 +1439,7 @@ begin
       glColorv(NonCurrentItemColor);
 
     SetWindowPos(Rectangles.L[I].X0, Rectangles.L[I].Y0 + UIFont.Descend);
-    UIFont.Print(Items[I]);
+    UIFont.PrintAndMove(Items[I]);
 
     if Items.Objects[I] <> nil then
       TMenuAccessory(Items.Objects[I]).Draw(FAccessoryRectangles.L[I]);
