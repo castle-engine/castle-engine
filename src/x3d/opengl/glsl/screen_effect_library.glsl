@@ -36,6 +36,35 @@ int screen_y()
 
 vec4 screen_get_color(ivec2 position)
 {
+/* TODO: it would be nice to autogenerate this code */
+#ifdef MULTI_SAMPLING_16
+  return ( texelFetch(screen, position, 0) +
+           texelFetch(screen, position, 1) +
+           texelFetch(screen, position, 2) +
+           texelFetch(screen, position, 3) +
+           texelFetch(screen, position, 4) +
+           texelFetch(screen, position, 5) +
+           texelFetch(screen, position, 6) +
+           texelFetch(screen, position, 7) +
+           texelFetch(screen, position, 8) +
+           texelFetch(screen, position, 9) +
+           texelFetch(screen, position, 10) +
+           texelFetch(screen, position, 11) +
+           texelFetch(screen, position, 12) +
+           texelFetch(screen, position, 13) +
+           texelFetch(screen, position, 14) +
+           texelFetch(screen, position, 15) ) / 16.0;
+#else
+#ifdef MULTI_SAMPLING_8
+  return ( texelFetch(screen, position, 0) +
+           texelFetch(screen, position, 1) +
+           texelFetch(screen, position, 2) +
+           texelFetch(screen, position, 3) +
+           texelFetch(screen, position, 4) +
+           texelFetch(screen, position, 5) +
+           texelFetch(screen, position, 6) +
+           texelFetch(screen, position, 7) ) / 8.0;
+#else
 #ifdef MULTI_SAMPLING_4
   return ( texelFetch(screen, position, 0) +
            texelFetch(screen, position, 1) +
@@ -49,11 +78,42 @@ vec4 screen_get_color(ivec2 position)
   return texture2DRect(screen, vec2(position)+vec2(0.5));
 #endif
 #endif
+#endif
+#endif
 }
 
 #ifdef DEPTH
 float screen_get_depth(ivec2 position)
 {
+/* TODO: it would be nice to autogenerate this code */
+#ifdef MULTI_SAMPLING_16
+  return ( texelFetch(screen_depth, position, 0).r +
+           texelFetch(screen_depth, position, 1).r +
+           texelFetch(screen_depth, position, 2).r +
+           texelFetch(screen_depth, position, 3).r +
+           texelFetch(screen_depth, position, 4).r +
+           texelFetch(screen_depth, position, 5).r +
+           texelFetch(screen_depth, position, 6).r +
+           texelFetch(screen_depth, position, 7).r +
+           texelFetch(screen_depth, position, 8).r +
+           texelFetch(screen_depth, position, 9).r +
+           texelFetch(screen_depth, position, 10).r +
+           texelFetch(screen_depth, position, 11).r +
+           texelFetch(screen_depth, position, 12).r +
+           texelFetch(screen_depth, position, 13).r +
+           texelFetch(screen_depth, position, 14).r +
+           texelFetch(screen_depth, position, 15).r ) / 16.0;
+#else
+#ifdef MULTI_SAMPLING_8
+  return ( texelFetch(screen_depth, position, 0).r +
+           texelFetch(screen_depth, position, 1).r +
+           texelFetch(screen_depth, position, 2).r +
+           texelFetch(screen_depth, position, 3).r +
+           texelFetch(screen_depth, position, 4).r +
+           texelFetch(screen_depth, position, 5).r +
+           texelFetch(screen_depth, position, 6).r +
+           texelFetch(screen_depth, position, 7).r ) / 8.0;
+#else
 #ifdef MULTI_SAMPLING_4
   return ( texelFetch(screen_depth, position, 0).r +
            texelFetch(screen_depth, position, 1).r +
@@ -65,6 +125,8 @@ float screen_get_depth(ivec2 position)
            texelFetch(screen_depth, position, 1).r ) / 2.0;
 #else
   return texture2DRect(screen_depth, vec2(position)+vec2(0.5)).r;
+#endif
+#endif
 #endif
 #endif
 }

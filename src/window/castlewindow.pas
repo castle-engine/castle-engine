@@ -580,7 +580,11 @@ type
     aa2SamplesFaster, //< 2 samples, "don't care" hint.
     aa2SamplesNicer,  //< 2 samples, "nicest" hint (quincunx (5 taps) for NVidia).
     aa4SamplesFaster, //< 4 samples, "don't care" hint.
-    aa4SamplesNicer   //< 4 samples, "nicest" hint (9 taps for NVidia).
+    aa4SamplesNicer,  //< 4 samples, "nicest" hint (9 taps for NVidia).
+    aa8SamplesFaster, //< 8 samples, "don't care" hint.
+    aa8SamplesNicer,  //< 8 samples, "nicest" hint.
+    aa16SamplesFaster, //< 16 samples, "don't care" hint.
+    aa16SamplesNicer   //< 16 samples, "nicest" hint.
   );
 
 const
@@ -591,7 +595,11 @@ const
     '2 samples (faster)',
     '2 samples (nicer)',
     '4 samples (faster)',
-    '4 samples (nicer)'
+    '4 samples (nicer)',
+    '8 samples (faster) (only latest GPUs)',
+    '8 samples (nicer) (only latest GPUs)',
+    '16 samples (faster) (only latest GPUs)',
+    '16 samples (nicer) (only latest GPUs)'
   );
 
 type
@@ -3047,14 +3055,23 @@ begin
 end;
 
 procedure TCastleWindowBase.SetAntiAliasing(const Value: TAntiAliasing);
+const
+  AntiAliasingToMultiSampling: array [TAntiAliasing] of Cardinal =
+  ( 1,
+    2, 2,
+    4, 4,
+    8, 8,
+    16, 16 );
+  { Note: when new GPUs appear that support more samples,
+    - extend the TAntiAliasing type and related arrays (just recompile to see
+      where you need to change),
+    - extend the src/x3d/opengl/glsl/screen_effect_library.glsl
+    - extend the check for samples in ScreenEffectLibrary in CastleRenderer
+      (this must be synchronized with screen_effect_library.glsl implementation).
+  }
 begin
   FAntiAliasing := Value;
-  case Value of
-    aaNone: MultiSampling := 1;
-    aa2SamplesFaster..aa2SamplesNicer: MultiSampling := 2;
-    aa4SamplesFaster..aa4SamplesNicer: MultiSampling := 4;
-    else raise EInternalError.Create('AntiAliasing?');
-  end;
+  MultiSampling := AntiAliasingToMultiSampling[Value];
 end;
 
 { wszystkie zdarzenia TCastleWindowBase - opakowujace je procedury DoXxx ktore
