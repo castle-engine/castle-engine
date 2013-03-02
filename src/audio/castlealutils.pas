@@ -267,7 +267,7 @@ end;
 
 { query al state -------------------------------------------------------------- }
 
-{ glGetSource }
+{ alGetSource* }
 
 function alGetSource1i(SourceName: TALuint; Attribute: TALenum): TALint;
 begin
@@ -300,7 +300,7 @@ begin
  alGetSourcefv(SourceName, Attribute, @result);
 end;
 
-{ glGetBuffer }
+{ alGetBuffer* }
 
 function alGetBuffer1sizei(BufferName: TALuint; Attribute: TALenum): TALsizei;
 begin
