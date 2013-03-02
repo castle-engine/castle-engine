@@ -240,13 +240,9 @@ begin
   inherited;
 
   glColorv(SubMenuTextColor);
-
-  glPushMatrix;
-    glTranslatef(PositionAbsolute[0],
-      PositionAbsolute[1] + AllItemsRectangle.Height - 20, 0);
-    glRasterPos2i(0, 0);
-    UIFont.Print(SubMenuTitle + ' :');
-  glPopMatrix;
+  SetWindowPos(PositionAbsolute[0],
+    PositionAbsolute[1] + AllItemsRectangle.Height - 20);
+  UIFont.Print(SubMenuTitle + ' :');
 end;
 
 { TRiftSoundMenu ------------------------------------------------------------- }
