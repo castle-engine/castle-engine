@@ -187,12 +187,11 @@ end;
 
 procedure Draw(Window: TCastleWindowBase);
 begin
-  glLoadIdentity;
   glColorv(Yellow3Single);
   StatusFont.PrintStrings(
     [ Format('Surface X segments: %d', [SurfaceXSegments]),
       Format('Surface Y segments: %d', [SurfaceYSegments]) ],
-    false, 5, 10, 10);
+    false, 5, 10, 10, false);
 end;
 
 type

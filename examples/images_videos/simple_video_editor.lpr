@@ -54,7 +54,6 @@ const
     S: string;
     Strs: TStringList;
   begin
-    glTranslatef(5, 5, 0);
     Strs := TStringList.Create;
     try
       S := Format('Video time: %f', [Time]);
@@ -72,8 +71,8 @@ const
         Strs.Append('Video not loaded');
 
       glColorv(Yellow3Single);
-      StatusFont.PrintStrings(Strs, false, 0, 10,
-        Window.Height - StatusFont.RowHeight * Strs.Count - TimeBarHeight - 4);
+      StatusFont.PrintStrings(Strs, false, 0, 15,
+        Window.Height - StatusFont.RowHeight * Strs.Count - TimeBarHeight);
     finally FreeAndNil(Strs) end;
   end;
 

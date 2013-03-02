@@ -171,9 +171,6 @@ var
 begin
   if StatusVisible then
   begin
-    glLoadIdentity;
-    glTranslatef(5, 5, 0);
-
     S := TStringList.Create;
     try
       { TODO: ToString not implemented yet.
@@ -185,8 +182,8 @@ begin
       S.Append(Format('  Class = %s', [ApproxCurveClass.NiceClassName]));
       S.Append(Format('  Control points count = %d', [ApproxCurveControlPointsCount]));
       S.Append(Format('Rendering segments = %d', [CurvesRenderSegments]));
-      StatusFont.PrintStringsBox(S, false, 0, Vector4Single(0.1, 0.1, 0.1, 1),
-        Black4Single, Yellow4Single, 5);
+      StatusFont.PrintStringsBox(S, false, 5, 5, 0,
+        Vector4Single(0.1, 0.1, 0.1, 1), Black4Single, Yellow4Single, 5);
     finally S.Free end;
   end;
 end;

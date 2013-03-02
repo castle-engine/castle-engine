@@ -45,10 +45,6 @@ procedure Draw2D(Window: TCastleWindowBase);
 var
   S: TStringList;
 begin
-  glLoadIdentity;
-
-  glTranslatef(5, 5, 0);
-
   S := TStringList.Create;
   try
     S.Append(Format('Camera: pos %s, dir %s, up %s, Move speed (per sec): %f',
@@ -61,7 +57,7 @@ begin
 
     S.Append(Format('Creature state : %s', [CreatureStateName[Creature.State]]));
 
-    StatusFont.PrintStringsBox(S, false, 0,
+    StatusFont.PrintStringsBox(S, false, 5, 5, 0,
       Black4Single, Green4Single, Yellow4Single, 5);
   finally S.Free end;
 end;
