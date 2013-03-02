@@ -443,6 +443,13 @@ procedure TGLBitmapFontAbstract.Print(const s: string);
 var
   rasterPos4f: TVector4f;
 begin
+  { TODO: it is very ugly to do glGetFloatv here, may be slow for OpenGL
+    if you call this often. We should rather calculate the shift
+    do by PrintAndMove, and move back by glBitmap with x/yoffset params.
+
+    This problem will become moot when new bitmap font rendering,
+    using textures instead of rasters and textures, will be implemented. }
+
   glGetFloatv(GL_CURRENT_RASTER_POSITION, @rasterPos4f);
   PrintAndMove(s);
   glRasterPos4fv(@rasterPos4f);
