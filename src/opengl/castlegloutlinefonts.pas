@@ -34,6 +34,14 @@ type
   protected
     FRowHeight: single;
   public
+    { Draw text at position determined by the current OpenGL modelview matrix.
+      In contrast to PrintAndMove, modelview matrix value is not changed.
+
+      May require 1 free slot on the attributes stack and on the modelview stack.
+      May only be called when current matrix is modelview.
+      Doesn't modify any OpenGL state or matrix. }
+    procedure Print(const s: string); virtual; abstract;
+
     { Draw text at position determined by the current OpenGL modelview matrix,
       and change modelview matrix to contain a transformation of the text end.
       This way you can immediately
@@ -42,14 +50,6 @@ type
       May require 1 free slot on the attributes stack and on the modelview stack.
       May only be called when current matrix is modelview.
       Doesn't modify any OpenGL state or matrix, except it changes modelview matrix. }
-    procedure Print(const s: string); virtual; abstract;
-
-    { Draw text at position determined by the current OpenGL modelview matrix.
-      In contrast to PrintAndMove, modelview matrix value is not changed.
-
-      May require 1 free slot on the attributes stack and on the modelview stack.
-      May only be called when current matrix is modelview.
-      Doesn't modify any OpenGL state or matrix. }
     procedure PrintAndMove(const s: string); virtual; abstract;
 
     function TextWidth(const s: string): single; virtual; abstract;
