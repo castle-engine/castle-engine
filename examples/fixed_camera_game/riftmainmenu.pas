@@ -117,7 +117,7 @@ end;
 procedure Draw(Window: TCastleWindowBase);
 begin
   glLoadIdentity;
-  glRasterPos2i(0, 0);
+  SetWindowPosZero;
   GLMenuBg.Draw;
 end;
 

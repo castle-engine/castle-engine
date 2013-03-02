@@ -80,8 +80,7 @@ uses SysUtils, CastleUtils, CastleKeysMouse, CastleControls, CastleGLBitmapFonts
 
 procedure DisplayProgress(Window: TCastleWindowBase);
 var
-  Margin: integer;
-  BarHeight, y1, y2, YMiddle: TGLfloat;
+  Margin, BarHeight, y1, y2, YMiddle: Integer;
   Progress: TProgress;
   ProgressInterface: TWindowProgressInterface;
   PositionFill: Single;
@@ -91,14 +90,14 @@ begin
   ProgressInterface := Progress.UserInterface as TWindowProgressInterface;
 
   glLoadIdentity;
-  glRasterPos2i(0, 0);
+  SetWindowPosZero;
   ProgressInterface.GLImage.Draw;
 
   Margin := 100 * Window.width div 800;
   BarHeight := 50 * Window.height div 600;
-  YMiddle := Window.Height * ProgressInterface.BarYPosition;
-  y1 := YMiddle + BarHeight/2;
-  y2 := YMiddle - BarHeight/2;
+  YMiddle := Round(Window.Height * ProgressInterface.BarYPosition);
+  y1 := YMiddle + BarHeight div 2;
+  y2 := YMiddle - BarHeight div 2;
 
   PositionFill := Margin + (Cardinal(Window.Width) - 2 * Margin) *
     Progress.Position / Progress.Max;
@@ -113,7 +112,7 @@ begin
   if UIFont.RowHeight < BarHeight then
     Font := UIFont else
     Font := UIFontSmall;
-  glRasterPos2f(Margin + 20, YMiddle - Font.RowHeight div 2);
+  SetWindowPos(Margin + 20, YMiddle - Font.RowHeight div 2);
   Font.PrintAndMove(Progress.Title + ' ...');
 end;
 

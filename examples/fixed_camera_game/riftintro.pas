@@ -83,7 +83,7 @@ begin
   if IntroPart > High(IntroParts) then Exit;
 
   glLoadIdentity();
-  glRasterPos2i(0, 0);
+  SetWindowPosZero;
 
   if IntroPartTime >= IntroParts[IntroPart].CorrodeDuration then
   begin

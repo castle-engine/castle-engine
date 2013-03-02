@@ -81,7 +81,7 @@ begin
   glClear(GL_COLOR_BUFFER_BIT);
 
   glLoadIdentity();
-  glRasterPos2i(0, 0);
+  SetWindowPosZero;
   if Video.Loaded then
   begin
     ImageDraw(Video.ImageFromTime(Time));
