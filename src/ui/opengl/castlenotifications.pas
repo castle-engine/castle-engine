@@ -269,8 +269,7 @@ begin
       vpUp   :  y :=  ContainerHeight-(i+1)*UIFont.RowHeight - VerticalMargin;
     end;
 
-    { draw Text at position x, y }
-    glRasterPos2i(x, y);
+    SetWindowPos(x, y);
     UIFont.PrintAndMove(Messages[i].Text);
   end;
 end;

@@ -453,7 +453,7 @@ begin
     if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilTop) then
       TextBottom -= (FImage.Height + ButtonCaptionImageMargin) div 2;
 
-    glRasterPos2i(TextLeft, TextBottom);
+    SetWindowPos(TextLeft, TextBottom);
     Font.PrintAndMove(Caption);
   glPopAttrib;
 
@@ -486,7 +486,7 @@ begin
       ilTop          : ImgBottom := TextBottom + TextHeight + ButtonCaptionImageMargin;
       ilLeft, ilRight: ImgBottom := Bottom + (Height - FImage.Height) div 2;
     end;
-    glRasterPos2i(ImgLeft, ImgBottom);
+    SetWindowPos(ImgLeft, ImgBottom);
     FGLImage.Draw;
     if FImage.HasAlpha then
       glPopAttrib;
@@ -909,7 +909,7 @@ begin
     glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
   end;
 
-  glRasterPos2i(Left, Bottom);
+  SetWindowPos(Left, Bottom);
   FGLImage.Draw;
 
   if Blending then

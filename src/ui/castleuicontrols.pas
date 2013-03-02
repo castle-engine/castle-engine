@@ -353,7 +353,8 @@ type
           @unorderedList(
             @itemSpacing Compact
             @item The current matrix is modelview, and it's value is identity.
-            @item Only for DrawStyle = ds2D: the raster position is at (0, 0).
+            @item(Only for DrawStyle = ds2D: the raster position is at (0, 0).
+              This is (0, 0) in window coordinates, see SetWindowPos.)
             @item Only for DrawStyle = ds2D: Texturing, depth test, lighting are turned off.
           )
           If you require anything else, set this yourself.)

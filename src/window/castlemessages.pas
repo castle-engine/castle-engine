@@ -799,32 +799,29 @@ end;
 procedure DrawMessg(Window: TCastleWindowBase);
 var md: TMessageData;
 
-  procedure DrawString(const text: string; textalign: TTextAlign);
-  var
-    X: Integer;
+  { Render a Text line, and move Y up to the line above. }
+  procedure DrawString(const text: string; textalign: TTextAlign;
+    X: Integer; var Y: Integer);
   begin
-   case textalign of
-    taLeft:   glRasterPos2i(0, 0);
-    taMiddle: glRasterPos2f((md.MaxLineWidth - md.font.TextWidth(text))/2, 0);
-    taRight:
-      begin
-        { You can't simply pass this result to glRasterPos2f, this causes
-          errors on x86_64. So first calculate to variable X.
-          Probably fixed in FPC by fixing
-          [http://www.freepascal.org/mantis/view.php?id=9893],
-          TODO: check is it fixed in trunk. }
-        X := md.MaxLineWidth - md.font.TextWidth(text);
-        glRasterPos2f(X, 0);
-      end;
-   end;
-   md.font.PrintAndMove(text);
-   glTranslatef(0, md.font.RowHeight, 0);
+    { change X only locally, to take TextAlign into account }
+    case textalign of
+      taMiddle: X += (md.MaxLineWidth - md.font.TextWidth(text)) div 2;
+      taRight: X += md.MaxLineWidth - md.font.TextWidth(text);
+    end;
+    SetWindowPos(X, Y);
+    md.font.PrintAndMove(text);
+    { change Y for caller, to print next line higher }
+    Y += md.font.RowHeight;
   end;
 
-  procedure DrawStrings(const s: TStrings; textalign: TTextAlign);
+  { Render all lines in S, and move Y up to the line above. }
+  procedure DrawStrings(const s: TStrings; textalign: TTextAlign;
+    const X: Integer; var Y: Integer);
   var i: integer;
   begin
-   for i := s.count-1 downto 0 do drawString(s[i], textalign);
+    for i := s.count-1 downto 0 do
+      { each DrawString call will move Y up }
+      DrawString(s[i], textalign, X, Y);
   end;
 
 var
@@ -837,6 +834,7 @@ var
   ScrollBarVisibleBegin: TGLfloat;
   { if md.ScrollBarVisible, ScrollBarWholeWidth. Else 0. }
   RealScrollBarWholeWidth: Integer;
+  TextX, TextY: Integer;
 const
   { a shorter name; box margin - margines
     pomiedzy napisami a obwodka Prostokata z Obwodka. }
@@ -863,14 +861,12 @@ begin
 
  RealScrollBarWholeWidth := Iff(md.ScrollBarVisible, ScrollBarWholeWidth, 0);
 
- { Wspolrzedne InnerRect i MD.WholeMessageRect i MessageRect musza byc
-   liczone absolutnie (tzn. nie mozna juz teraz zrobic
-   glTranslate costam i wzgledem tego przesuniecia podac InnerRect[...])
-   bo te wspolrzedne beda nam potem potrzebne do podania glScissor ktore pracuje
-   we wspolrzednych pixeli i w zwiazku z tym byloby nieczule na
-   jakies glTranslate.
+ { InnerRect and MD.WholeMessageRect and MessageRect coords are absolute,
+   that is: we cannot shift now everything by glTranslate
+   and calculate the rest relative to new position.
+   That is because we will use them with glScissor and SetWindowPos
+   that work in window coordinates. }
 
-   Also WholeMessageRect is used by other things not in this procedure. }
  MD.WholeMessageRect := CenteredRect(
    IntRect(0, 0, Window.Width, Window.Height),
    Min(md.MaxLineWidth + BoxMargin*2 + RealScrollBarWholeWidth,
@@ -897,16 +893,15 @@ begin
    smaller as appropriate. }
  if MD.ClosingInfo <> '' then
  begin
-   glLoadIdentity;
-   glTranslatef(MessageRect[0, 0] + BoxMargin, MessageRect[0, 1] + BoxMargin, 0);
    glColorv(MessagesTheme.ClosingInfoCol);
-   DrawStrings(MD.Broken_ClosingInfo, taRight);
+   TextX := MessageRect[0, 0] + BoxMargin;
+   TextY := MessageRect[0, 1] + BoxMargin;
+   DrawStrings(MD.Broken_ClosingInfo, taRight, TextX, TextY);
 
    MessageRect[0, 1] += BoxMargin +
      MD.Font.RowHeight * MD.Broken_ClosingInfo.Count +
      BoxMargin;
 
-   glLoadIdentity;
    glColorv(MessagesTheme.RectBorderCol);
    GLHorizontalLine(MessageRect[0, 0], MessageRect[1, 0], MessageRect[0, 1]);
 
@@ -932,7 +927,6 @@ begin
       (md.VisibleScrolledLinesCount / md.AllScrolledLinesCount)*ScrollBarLength);
   md.przewVisY2 := MessageRect[0, 1] + ScrollBarMargin + ScrollBarVisibleBegin;
 
-  glLoadIdentity;
   glColorv(MessagesTheme.RectBorderCol);
   GLVerticalLine(md.ScrollBarRect[0, 0],
     md.ScrollBarRect[0, 1], md.ScrollBarRect[1, 1]);
@@ -944,31 +938,30 @@ begin
   glLineWidth(1);
  end else
    MD.ScrollBarRect := IntRectEmpty;
-
- { teraz zaaplikuj shiftY. Jednoczesnie zmusza nas to do zrobienia scissora
-   aby napisy jakie wyleza za okienko byly odpowiednio sciete.
-   Scissor jest obnizony na dole o font.Descend aby descend ostatniego
-   wyswietlanego stringa (ktory jest przeciez na shiftY ujemnym !) mogl
-   byc kiedykolwiek widoczny. }
+  
+ { Make scissor to cut off text that is too far up/down.
+   We subtract md.font.Descend from Y0, to see the descend of
+   the bottom line (which is below InnerRect[0, 1], and would not be
+   ever visible otherwise). }
  glScissor(InnerRect[0, 0], InnerRect[0, 1]-md.font.Descend,
            RectWidth(InnerRect),
            RectHeight(InnerRect));
  glEnable(GL_SCISSOR_TEST);
- glLoadIdentity;
- glTranslatef(0, md.shiftY, 0);
+
+ TextX := InnerRect[0, 0];
+ TextY := InnerRect[0, 1] + md.shiftY;
 
  { rysuj md.broken_SAdditional i Broken_MessgText.
    Kolejnosc ma znaczenie, kolejne linie sa rysowane od dolu w gore. }
- glTranslatef(InnerRect[0, 0], InnerRect[0, 1], 0);
 
  if md.drawAdditional then
  begin
-  glColorv(MessagesTheme.AdditionalStrCol);
-  DrawStrings(md.Broken_SAdditional, md.align);
+   glColorv(MessagesTheme.AdditionalStrCol);
+   DrawStrings(md.Broken_SAdditional, md.align, TextX, TextY);
  end;
 
  glColorv(MessagesTheme.TextCol);
- DrawStrings(md.Broken_MessgText, md.align);
+ DrawStrings(md.Broken_MessgText, md.align, TextX, TextY);
 
  glDisable(GL_SCISSOR_TEST);
 end;
