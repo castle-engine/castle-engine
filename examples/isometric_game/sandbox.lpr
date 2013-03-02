@@ -36,20 +36,7 @@ var
     PosX += RealViewMoveX + SpecialMoveX;
     PosY := Y * (BaseHeight div 2);
     PosY += RealViewMoveY + SpecialMoveY;
-
-    if (PosX >= 0) and (PosY >= 0) then
-    begin
-      glRasterPos2i(PosX, PosY);
-    end else
-    begin
-      { Instead of glRasterPos2i(PosX, PosY) we use following trick from
-        [http://www.opengl.org/resources/features/KilgardTechniques/oglpitfall/].
-        We don't use this trick always --- possibly normal glRasterPos2i may
-        be a little faster when it's enough. }
-      glRasterPos2i(0, 0);
-      glBitmap(0, 0, 0, 0, PosX, PosY, nil);
-    end;
-
+    SetWindowPos(PosX, PosY);
     GLImage.Draw;
   end;
 
