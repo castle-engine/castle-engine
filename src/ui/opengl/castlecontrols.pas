@@ -347,11 +347,10 @@ begin
   MaxTo1st(X, 0);
   MaxTo1st(Y, 0);
 
-  glTranslatef(X, Y, 0);
-  Font.PrintStringsBox([Tooltip], false, 0,
-    Vector4Single(Theme.TooltipInsideColor, 255),
-    Vector4Single(Theme.TooltipBorderColor, 255),
-    Vector4Single(Theme.TooltipTextColor, 255), 5);
+  Font.PrintStringsBox([Tooltip], false, X, Y, 0,
+    Vector4Single(Theme.TooltipInsideColor, 1),
+    Vector4Single(Theme.TooltipBorderColor, 1),
+    Vector4Single(Theme.TooltipTextColor, 1), 5);
 end;
 
 procedure TUIControlFont.GLContextOpen;

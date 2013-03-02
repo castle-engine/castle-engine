@@ -117,8 +117,16 @@ type
     function MaxTextWidth(SList: TStringList; const Tags: boolean = false): integer;
 
     { Print all strings from the list.
-      glRasterPos2i(RasterX0, RasterY0) is the position of the last string,
-      each previous string will be RowHeight + BonusVerticalSpace higher.
+
+      X0, Y0 is the bottom-left position of the whole text block
+      (that is, it is the bottom-left position of the last string).
+      Distance between each line is (RowHeight + BonusVerticalSpace) pixels.
+
+      If PositionAsRaster is @true (this is default, for backwards compatibility)
+      then the (X0, Y0) position is interpreted as OpenGL raster 2D position
+      (so it is transformed by modelview matrix and such).
+      For new code, we advice using PositionAsRaster = @false,
+      as this will ease future transitions to OpenGL versions >= 3.
 
       Note that BonusVerticalSpace can be < 0 (as well as > 0),
       this may be sometimes useful if you really want to squeeze
@@ -149,13 +157,15 @@ type
       @groupBegin }
     procedure PrintStrings(strs: TStrings;
       const Tags: boolean; BonusVerticalSpace: TGLint;
-      const RasterX0: Integer = 0;
-      const RasterY0: Integer = 0); overload;
-    procedure PrintStrings(const strs: array of string;
+      const X0: Integer = 0;
+      const Y0: Integer = 0;
+      const PositionAsRaster: boolean = true); overload;
+    procedure PrintStrings(const Strs: array of string;
       const Tags: boolean;
       BonusVerticalSpace: TGLint;
-      const RasterX0: Integer = 0;
-      const RasterY0: Integer = 0); overload;
+      const X0: Integer = 0;
+      const Y0: Integer = 0;
+      const PositionAsRaster: boolean = true); overload;
     { @groupEnd }
 
     { Print the string, broken such that it fits within MaxLineWidth.
@@ -166,7 +176,7 @@ type
       The strings are printed on the screen, just like by PrintStrings
       (with Tags = always false for now, since our string breaking cannot
       omit tags).
-      If RasterPositionsFirst then the RasterX0, RasterY0 determine
+      If PositionsFirst then the X0, Y0 determine
       the position of the first (top) line, otherwise they determine
       the position of the last (bottom) line.
 
@@ -183,18 +193,24 @@ type
       May only be called when current matrix is modelview.
       Doesn't modify any OpenGL state or matrix. }
     function PrintBrokenString(const s: string;
-      MaxLineWidth, RasterX0, RasterY0: Integer;
-      RasterPositionsFirst: boolean; BonusVerticalSpace: Integer): Integer;
+      MaxLineWidth, X0, Y0: Integer;
+      PositionsFirst: boolean; BonusVerticalSpace: Integer;
+      const PositionAsRaster: boolean = true): Integer;
 
     { Print all strings from the list, and draw a box with frames
       around it.
 
       The text is printed like by PrintStrings.
 
-      The position of the text and box is determined by the current
+      For the deprecated overloaded versions without X0, Y0:
+      the position of the text and box is determined by the current
       modelview matrix. The left-bottom box corner is at raster position 0, 0.
       The current raster position when this method is called doesn't matter.
       So your only way to move this box is to modify modelview matrix.
+
+      For the new overloaded versions with X0, Y0:
+      the X0, Y0 give explicitly the left-bottom box corner (in window
+      coordinates, i.e. applied with SetWindowPos).
 
       BonusVerticalSpace has the same interpretation as for PrintStrings:
       additional space between lines (if positive) or forces
@@ -216,12 +232,23 @@ type
       Doesn't modify any OpenGL state or matrix, except it modifies the raster position.
 
       @groupBegin }
-    procedure PrintStringsBox(const strs: array of string;
+    procedure PrintStringsBox(const Strs: array of string;
       const Tags: boolean; BonusVerticalSpace: TGLint;
       const InsideCol, BorderCol, TextCol: TVector4f;
-      BoxPixelMargin: integer); overload;
-    procedure PrintStringsBox(strs: TStringList;
+      BoxPixelMargin: integer) overload; deprecated;
+
+    procedure PrintStringsBox(Strs: TStringList;
       const Tags: boolean; BonusVerticalSpace: TGLint;
+      const InsideCol, BorderCol, TextCol: TVector4f;
+      BoxPixelMargin: integer) overload; deprecated;
+
+    procedure PrintStringsBox(const Strs: array of string;
+      const Tags: boolean; const X0, Y0: Integer; BonusVerticalSpace: TGLint;
+      const InsideCol, BorderCol, TextCol: TVector4f;
+      BoxPixelMargin: integer); overload;
+
+    procedure PrintStringsBox(Strs: TStringList;
+      const Tags: boolean; const X0, Y0: Integer; BonusVerticalSpace: TGLint;
       const InsideCol, BorderCol, TextCol: TVector4f;
       BoxPixelMargin: integer); overload;
     { @groupEnd }
@@ -535,27 +562,33 @@ end;
 
 procedure TGLBitmapFontAbstract.PrintStrings(const Strs: array of string;
   const Tags: boolean; BonusVerticalSpace: TGLint;
-  const RasterX0: Integer = 0; const RasterY0: Integer = 0);
+  const X0, Y0: Integer;
+  const PositionAsRaster: boolean);
 var
   SList: TStringList;
 begin
   SList := TStringList.Create;
   try
     AddStrArrayToStrings(Strs, SList);
-    PrintStrings(SList, Tags, BonusVerticalSpace, RasterX0, RasterY0);
+    PrintStrings(SList, Tags, BonusVerticalSpace, X0, Y0, PositionAsRaster);
   finally SList.Free end;
 end;
 
 procedure TGLBitmapFontAbstract.PrintStrings(strs: TStrings;
   const Tags: boolean; BonusVerticalSpace: TGLint;
-  const RasterX0: Integer = 0; const RasterY0: Integer = 0);
+  const X0, Y0: Integer;
+  const PositionAsRaster: boolean);
 var
   Line: Integer;
 
-  procedure SetRaster;
+  procedure SetPos;
+  var
+    Y: Integer;
   begin
-    glRasterPos2i(RasterX0,
-      (Strs.Count - 1 - Line) * (RowHeight + BonusVerticalSpace) + RasterY0);
+    Y := (Strs.Count - 1 - Line) * (RowHeight + BonusVerticalSpace) + Y0;
+    if PositionAsRaster then
+      glRasterPos2i(X0, Y) else
+      SetWindowPos(X0, Y);
   end;
 
 var
@@ -572,45 +605,46 @@ begin
       if ColorChange then
       begin
         glPushAttrib(GL_CURRENT_BIT);
-          { glColor must be before glRasterPos to have proper effect.
+          { glColor must be before setting raster to have proper effect.
             It will be correctly saved/restored by glPush/PopAttrib,
             as docs say that GL_CURRENT_BIT saves
             "RGBA color associated with current raster position". }
           glColorv(Color);
-          SetRaster;
+          SetPos;
           PrintAndMove(S);
         glPopAttrib;
       end else
       begin
-        SetRaster;
+        SetPos;
         PrintAndMove(S);
       end;
     end else
     begin
-      SetRaster;
+      SetPos;
       PrintAndMove(S);
     end;
   end;
 end;
 
 function TGLBitmapFontAbstract.PrintBrokenString(const s: string;
-  MaxLineWidth, RasterX0, RasterY0: integer;
-  RasterPositionsFirst: boolean; BonusVerticalSpace: Integer): Integer;
+  MaxLineWidth, X0, Y0: integer;
+  PositionsFirst: boolean; BonusVerticalSpace: Integer;
+  const PositionAsRaster: boolean): Integer;
 var
   broken: TStringList;
 begin
   broken := TStringList.Create;
   try
     BreakLines(s, broken, MaxLineWidth);
-    if RasterPositionsFirst then
-      RasterY0 -= (broken.Count-1)*(RowHeight + BonusVerticalSpace);
-    PrintStrings(broken, false, BonusVerticalSpace, RasterX0, RasterY0);
+    if PositionsFirst then
+      Y0 -= (broken.Count-1)*(RowHeight + BonusVerticalSpace);
+    PrintStrings(broken, false, BonusVerticalSpace, X0, Y0, PositionAsRaster);
     result := broken.Count;
   finally broken.Free end;
 end;
 
 procedure TGLBitmapFontAbstract.PrintStringsBox(
-  strs: TStringList; const Tags: boolean; BonusVerticalSpace: TGLint;
+  Strs: TStringList; const Tags: boolean; BonusVerticalSpace: TGLint;
   const InsideCol, BorderCol, TextCol: TVector4f;
   BoxPixelMargin: integer);
 begin
@@ -618,11 +652,12 @@ begin
     (RowHeight + BonusVerticalSpace) * Strs.Count + 2 * BoxPixelMargin + Descend,
     InsideCol, BorderCol);
   glColorv(TextCol);
-  PrintStrings(strs, Tags, BonusVerticalSpace, BoxPixelMargin, BoxPixelMargin + Descend);
+  PrintStrings(strs, Tags, BonusVerticalSpace, BoxPixelMargin,
+    BoxPixelMargin + Descend);
 end;
 
 procedure TGLBitmapFontAbstract.PrintStringsBox(
-  const strs: array of string; const Tags: boolean; BonusVerticalSpace: TGLint;
+  const Strs: array of string; const Tags: boolean; BonusVerticalSpace: TGLint;
   const InsideCol, BorderCol, TextCol: TVector4f;
   BoxPixelMargin: integer);
 var
@@ -631,7 +666,42 @@ begin
   slist := TStringList.Create;
   try
     AddStrArrayToStrings(strs, slist);
+    {$warnings off}
+    { Do not warn that PrintStringsBox call below is deprecated.
+      *This* method is deprecated too. }
     PrintStringsBox(slist, Tags, BonusVerticalSpace,
+      InsideCol, BorderCol, TextCol, BoxPixelMargin);
+    {$warnings on}
+  finally slist.Free end;
+end;
+
+procedure TGLBitmapFontAbstract.PrintStringsBox(
+  Strs: TStringList; const Tags: boolean;
+  const X0, Y0: Integer; BonusVerticalSpace: TGLint;
+  const InsideCol, BorderCol, TextCol: TVector4f;
+  BoxPixelMargin: integer);
+begin
+  GLRectangleWithBorder(X0, Y0,
+    X0 + MaxTextWidth(Strs, Tags) + 2 * BoxPixelMargin,
+    Y0 + (RowHeight + BonusVerticalSpace) * Strs.Count + 2 * BoxPixelMargin + Descend,
+    InsideCol, BorderCol);
+  glColorv(TextCol);
+  PrintStrings(strs, Tags, BonusVerticalSpace, X0 + BoxPixelMargin,
+    Y0 + BoxPixelMargin + Descend, false);
+end;
+
+procedure TGLBitmapFontAbstract.PrintStringsBox(
+  const Strs: array of string; const Tags: boolean;
+  const X0, Y0: Integer; BonusVerticalSpace: TGLint;
+  const InsideCol, BorderCol, TextCol: TVector4f;
+  BoxPixelMargin: integer);
+var
+  slist: TStringList;
+begin
+  slist := TStringList.Create;
+  try
+    AddStrArrayToStrings(strs, slist);
+    PrintStringsBox(slist, Tags, X0, Y0, BonusVerticalSpace,
       InsideCol, BorderCol, TextCol, BoxPixelMargin);
   finally slist.Free end;
 end;
