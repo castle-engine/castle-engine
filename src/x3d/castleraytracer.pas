@@ -44,6 +44,8 @@ type
   TRayTracerKind = (rtkClassic, rtkPathTracer);
 
   TRayTracer = class
+  protected
+    procedure AppendStats(const Stats: TStrings; const RenderingTime: Single); virtual;
   public
     { Scene to render.
       Must be set before calling @link(Execute). }
@@ -116,6 +118,11 @@ type
 
     { Do ray-tracing, writing a ray-traced image into the @link(Image). }
     procedure Execute; virtual; abstract;
+
+    { Do ray-tracing, like @link(Execute),
+      additionally gathering some statistics.
+      The statistics will be added to the given string list. }
+    procedure ExecuteStats(const Stats: TStrings);
   end;
 
   { Classic Whitted-style ray-tracer.
@@ -126,6 +133,8 @@ type
     plan to render VRML 2.0 nodes. TCastleSceneCore and descendants do
     this for you automatically. }
   TClassicRayTracer = class(TRayTracer)
+  protected
+    procedure AppendStats(const Stats: TStrings; const RenderingTime: Single); override;
   public
     { Limit for recursion depth. 0 means that only primary rays will be cast,
       1 means that primary rays and 1 ray into mirror / transmitted / shadow,
@@ -150,10 +159,11 @@ type
   private
     CollectedLightItems: TFPList;
     procedure CollectLightItems(const Triangle: PTriangle);
+  protected
+    procedure AppendStats(const Stats: TStrings; const RenderingTime: Single); override;
   public
     constructor Create;
     procedure Execute; override;
-
   public
     { MinDepth and RRoulContinue together determine the path length.
       The path has at least MinDepth length, and then Russian roulette
@@ -222,7 +232,7 @@ type
 
 implementation
 
-uses SysUtils, CastleSphereSampling;
+uses SysUtils, CastleSphereSampling, CastleTimeUtils;
 
 { RayDirection calculations ----------------------------------------------------- }
 
@@ -281,6 +291,33 @@ begin
     Calculation is just like in Foley (page 601, section (14.16)). }
   Result := (Normal * 2 * (Normal ** NormNegatedRayDirection))
     - NormNegatedRayDirection;
+end;
+
+{ TRayTracer ----------------------------------------------------------------- }
+
+procedure TRayTracer.AppendStats(const Stats: TStrings; const RenderingTime: Single);
+begin
+  Stats.Append(Format('Rendering done in %f seconds.', [RenderingTime]));
+  if Octree is TTriangleOctree then
+    Stats.Append(Format('%d simple collision tests done (one ray tested with one triangle).',
+      [TTriangleOctree(Octree).DirectCollisionTestsCounter]));
+end;
+
+procedure TRayTracer.ExecuteStats(const Stats: TStrings);
+var
+  TimerBegin: TProcessTimerResult;
+  RenderingTime: Single;
+begin
+  TimerBegin := ProcessTimerNow;
+  if Octree is TTriangleOctree then
+    { make sure to start from 0 }
+    TTriangleOctree(Octree).DirectCollisionTestsCounter := 0;
+
+  Execute;
+
+  RenderingTime := ProcessTimerDiff(ProcessTimerNow, TimerBegin) /
+    ProcessTimersPerSec;
+  AppendStats(Stats, RenderingTime);
 end;
 
 { TClassicRayTracer ---------------------------------------------------------- }
@@ -495,7 +532,7 @@ begin
   RaysWindow := nil;
   SFCurve := nil;
   try
-    RaysWindow := TRaysWindow.CreateDescendant(CamPosition, 
+    RaysWindow := TRaysWindow.CreateDescendant(CamPosition,
       Normalized(CamDirection), Normalized(CamUp),
       PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions);
 
@@ -531,6 +568,21 @@ begin
     RaysWindow.Free;
     SFCurve.Free;
   end;
+end;
+
+procedure TClassicRayTracer.AppendStats(const Stats: TStrings; const RenderingTime: Single);
+var
+  PrimaryRaysCount: Cardinal;
+begin
+  inherited;
+  PrimaryRaysCount := Image.Width * Image.Height - FirstPixel;
+  Stats.Append(Format('Image size is %d x %d pixels (first %d pixels skipped) which gives %d primary rays.',
+    [Image.Width, Image.Height, FirstPixel, PrimaryRaysCount]));
+  Stats.Append(Format('%f primary rays done per second.',
+    [PrimaryRaysCount / RenderingTime]));
+  if Octree is TTriangleOctree then
+    Stats.Append(Format('%f simple collision tests done per one primary ray.',
+      [TTriangleOctree(Octree).DirectCollisionTestsCounter /  PrimaryRaysCount ]));
 end;
 
 { TPathTracer -------------------------------------------------------------- }
@@ -1112,7 +1164,7 @@ begin
     {$endif}
 
     { calculate RaysWindow }
-    RaysWindow := TRaysWindow.CreateDescendant(CamPosition, 
+    RaysWindow := TRaysWindow.CreateDescendant(CamPosition,
       Normalized(CamDirection), Normalized(CamUp),
       PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions);
 
@@ -1144,6 +1196,23 @@ begin
     {$ifdef PATHTR_USES_SHADOW_CACHE} ShadowCache.Free; {$endif}
     LightItems.Free;
   end;
+end;
+
+procedure TPathTracer.AppendStats(const Stats: TStrings; const RenderingTime: Single);
+var
+  PathsCount: Cardinal;
+begin
+  inherited;
+  PathsCount := (Image.Width * Image.Height - FirstPixel) *
+    PrimarySamplesCount * NonPrimarySamplesCount;
+  Stats.Append(Format('Image size is %d x %d pixels (first %d pixels skipped) and we use %d (primary) x %d (non-primary) samples per pixel which gives %d paths.',
+    [Image.Width, Image.Height, FirstPixel,
+     PrimarySamplesCount, NonPrimarySamplesCount, PathsCount]));
+  Stats.Append(Format('%f paths done per second.',
+    [PathsCount / RenderingTime]));
+  if Octree is TTriangleOctree then
+    Stats.Append(Format('%f simple collision tests done per one path.',
+      [TTriangleOctree(Octree).DirectCollisionTestsCounter /  PathsCount ]));
 end;
 
 end.
