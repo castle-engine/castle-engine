@@ -74,14 +74,10 @@ var
     Result:=
       {$ifdef SEGMENT_COLLISION}
       Item.SegmentDirCollision(Intersection, IntersectionDistance,
-        Pos1, RayDirection,
-        Tag,
-        ParentTree.DirectCollisionTestsCounter)
+        Pos1, RayDirection, Tag)
       {$else}
       Item.RayCollision(Intersection, IntersectionDistance,
-        RayOrigin, RayDirection,
-        Tag,
-        ParentTree.DirectCollisionTestsCounter)
+        RayOrigin, RayDirection, Tag)
       {$endif}
   end;
 

@@ -298,9 +298,8 @@ end;
 procedure TRayTracer.AppendStats(const Stats: TStrings; const RenderingTime: Single);
 begin
   Stats.Append(Format('Rendering done in %f seconds.', [RenderingTime]));
-  if Octree is TTriangleOctree then
-    Stats.Append(Format('%d simple collision tests done (one ray tested with one triangle).',
-      [TTriangleOctree(Octree).DirectCollisionTestsCounter]));
+  Stats.Append(Format('%d simple collision tests done (one ray tested with one triangle).',
+    [TriangleCollisionTestsCounter]));
 end;
 
 procedure TRayTracer.ExecuteStats(const Stats: TStrings);
@@ -309,9 +308,7 @@ var
   RenderingTime: Single;
 begin
   TimerBegin := ProcessTimerNow;
-  if Octree is TTriangleOctree then
-    { make sure to start from 0 }
-    TTriangleOctree(Octree).DirectCollisionTestsCounter := 0;
+  TriangleCollisionTestsCounter := 0;
 
   Execute;
 
@@ -580,9 +577,8 @@ begin
     [Image.Width, Image.Height, FirstPixel, PrimaryRaysCount]));
   Stats.Append(Format('%f primary rays done per second.',
     [PrimaryRaysCount / RenderingTime]));
-  if Octree is TTriangleOctree then
-    Stats.Append(Format('%f simple collision tests done per one primary ray.',
-      [TTriangleOctree(Octree).DirectCollisionTestsCounter /  PrimaryRaysCount ]));
+  Stats.Append(Format('%f simple collision tests done per one primary ray.',
+    [TriangleCollisionTestsCounter /  PrimaryRaysCount ]));
 end;
 
 { TPathTracer -------------------------------------------------------------- }
@@ -732,8 +728,7 @@ const
     if (CachedShadower <> nil) and
        (CachedShadower <> Item) then
     begin
-      if Octree is TTriangleOctree then
-        Inc(TTriangleOctree(Octree).DirectCollisionTestsCounter);
+      Inc(TriangleCollisionTestsCounter);
       if IsTriangleSegmentCollision(CachedShadower^.World.Triangle,
         CachedShadower^.World.Plane, ItemPoint, LightSourcePoint) then
         Exit(true);
@@ -1210,9 +1205,8 @@ begin
      PrimarySamplesCount, NonPrimarySamplesCount, PathsCount]));
   Stats.Append(Format('%f paths done per second.',
     [PathsCount / RenderingTime]));
-  if Octree is TTriangleOctree then
-    Stats.Append(Format('%f simple collision tests done per one path.',
-      [TTriangleOctree(Octree).DirectCollisionTestsCounter /  PathsCount ]));
+  Stats.Append(Format('%f simple collision tests done per one path.',
+    [TriangleCollisionTestsCounter /  PathsCount ]));
 end;
 
 end.

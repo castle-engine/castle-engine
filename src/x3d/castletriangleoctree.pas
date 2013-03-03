@@ -165,16 +165,6 @@ type
       leaves). }
     Triangles: TTriangleList;
 
-    { Direct collisions counter, to test octree efficiency.
-
-      It is incremented each time XxxCollision make a direct
-      collision test, that is when some single triangle is tested for collision
-      with a sphere, line segment and such. The very idea of octree is to
-      minimize this number.
-
-      0 by default. }
-    DirectCollisionTestsCounter: TCollisionCount;
-
     function TreeRoot: TTriangleOctreeNode;
 
     { Add a single triangle. Automatically checks whether IsValidTriangle.
@@ -311,7 +301,7 @@ var
 begin
   for i := 0 to ItemsIndices.Count - 1 do
   begin
-    Inc(ParentTree.DirectCollisionTestsCounter);
+    Inc(TriangleCollisionTestsCounter);
     Result := Items[i];
     if IsTriangleSphereCollision(Result^.Local.Triangle,
       Result^.Local.Plane, pos, Radius) and
@@ -347,7 +337,7 @@ var
 begin
   for i := 0 to ItemsIndices.Count - 1 do
   begin
-    Inc(ParentTree.DirectCollisionTestsCounter);
+    Inc(TriangleCollisionTestsCounter);
     Result := Items[i];
     if ABox.IsTriangleCollision(Result^.Local.Triangle) and
       (TriangleToIgnore <> Result) and

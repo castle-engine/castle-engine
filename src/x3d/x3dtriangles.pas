@@ -93,7 +93,7 @@ type
       to use mailboxes if possible. Mailboxes are used only if this was
       compiled with TRIANGLE_OCTREE_USE_MAILBOX defined.
 
-      Increments DirectCollisionTestsCounter if actual test was done
+      Increments TriangleCollisionTestsCounter if actual test was done
       (that is, if we couldn't use mailbox to get the result quickier).
 
       @groupBegin }
@@ -101,15 +101,13 @@ type
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const Odc0, OdcVector: TVector3Single;
-      const SegmentTag: TMailboxTag;
-      var DirectCollisionTestsCounter: TCollisionCount): boolean;
+      const SegmentTag: TMailboxTag): boolean;
 
     function RayCollision(
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
       const RayOrigin, RayDirection: TVector3Single;
-      const RayTag: TMailboxTag;
-      var DirectCollisionTestsCounter: TCollisionCount): boolean;
+      const RayTag: TMailboxTag): boolean;
     { @groupEnd }
 
     { Create material information instance for material of this triangle.
@@ -615,6 +613,25 @@ type
     constructor Create(AOneItem: PTriangle);
   end;
 
+var
+  { Counter of collision tests done by TTriangle when the actual collision
+    calculation had to be done.
+    This counts all calls to TTriangle.SegmentDirCollision and
+    TTriangle.RayCollision when the result had to be actually geometrically
+    calculated (result was not in the cache aka "mailbox").
+
+    It is especially useful to look at this after using some spatial
+    data structure, like an octree. The goal of tree structures is to
+    minimize this number.
+
+    It is a global variable, because that's the most comfortable way to use
+    it. Triangles are usually wrapped in an octree (like TTriangleOctree),
+    or even in an octree of octrees (like TShapeOctree).
+    Tracking collisions using the global variable is most comfortable,
+    instead of spending time on propagating this (purely debugging) information
+    through the octree structures. }
+  TriangleCollisionTestsCounter: Cardinal;
+
 implementation
 
 uses CastleStringUtils, CastleShapes;
@@ -657,8 +674,7 @@ function TTriangle.SegmentDirCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Odc0, OdcVector: TVector3Single;
-  const SegmentTag: TMailboxTag;
-  var DirectCollisionTestsCounter: TCollisionCount): boolean;
+  const SegmentTag: TMailboxTag): boolean;
 begin
   {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
   if MailboxSavedTag = SegmentTag then
@@ -677,7 +693,7 @@ begin
       Intersection, IntersectionDistance,
       Local.Triangle, Local.Plane,
       Odc0, OdcVector);
-    Inc(DirectCollisionTestsCounter);
+    Inc(TriangleCollisionTestsCounter);
 
   {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
     { save result to mailbox }
@@ -696,8 +712,7 @@ function TTriangle.RayCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const RayOrigin, RayDirection: TVector3Single;
-  const RayTag: TMailboxTag;
-  var DirectCollisionTestsCounter: TCollisionCount): boolean;
+  const RayTag: TMailboxTag): boolean;
 begin
   { uwzgledniam tu fakt ze czesto bedzie wypuszczanych wiele promieni
     z jednego RayOrigin ale z roznym RayDirection (np. w raytracerze). Wiec lepiej
@@ -720,7 +735,7 @@ begin
       Intersection, IntersectionDistance,
       Local.Triangle, Local.Plane,
       RayOrigin, RayDirection);
-    Inc(DirectCollisionTestsCounter);
+    Inc(TriangleCollisionTestsCounter);
 
   {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
     { zapisz wyniki do mailboxa }
