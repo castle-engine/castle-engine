@@ -392,7 +392,7 @@ begin
   Flush;
 
   if Log and (FileName <> '') then
-    WritelnLog('Config', 'Savig configuration to "%s"', [FileName]);
+    WritelnLog('Config', 'Saving configuration to "%s"', [FileName]);
 end;
 
 end.
