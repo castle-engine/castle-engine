@@ -3811,9 +3811,10 @@ begin
     Result += '#define DEPTH' +NL;
   if GLFBOMultiSampling then
   begin
-    Result +=
-      '#define MULTI_SAMPLING' +NL +
-      '#define MULTI_SAMPLING_' + IntToStr(GLCurrentMultiSampling) +NL;
+    if GLCurrentMultiSampling > 1 then
+      Result +=
+        '#define MULTI_SAMPLING' +NL +
+        '#define MULTI_SAMPLING_' + IntToStr(GLCurrentMultiSampling) +NL;
     if not (GLCurrentMultiSampling in [1, 2, 4, 8, 16]) then
       OnWarning(wtMajor, 'Screen Effects', Format('Our GLSL library for screen effects is not prepared for your number of samples (anti-aliasing): %d. This may indicate that your GPU is very new or very weird. Please submit this as a bug (see http://castle-engine.sourceforge.net/forum.php for links to forum, bug tracker and more), citing this message. For now, screen effects will not work.',
         [GLCurrentMultiSampling]));
