@@ -562,7 +562,7 @@ uses SysUtils, Classes, CastleVectors, GL, GLU, GLExt,
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} Gdk2X, X, Xlib, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, CastleDynLib, {$endif}
   {$ifdef CASTLE_WINDOW_LCL} Interfaces, Forms, Dialogs, OpenGLContext, Menus,
-    Controls, CastleControl, CastleLCLUtils, {$endif}
+    Controls, FileUtil, Graphics, CastleControl, CastleLCLUtils, {$endif}
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
   CastleFileFilters, CastleUIControls, FGL, pk3DConnexion,
@@ -958,7 +958,7 @@ type
          MakeCurrent,
          EventKeyDown/Up.
     }
-    procedure DoKeyDown(key: TKey; CharKey: char);
+    procedure DoKeyDown(Key: TKey; CharKey: char);
     procedure DoKeyUp(key: TKey);
     { Do MakeCurrent,
          EventMouseMove,

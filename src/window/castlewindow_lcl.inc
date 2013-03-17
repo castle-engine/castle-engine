@@ -18,6 +18,7 @@ private
   Form: TForm;
   OpenGLControl: TOpenGLControl;
   procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+  procedure FormDeactivate(Sender: TObject);
   procedure OpenGLControlPaint(Sender: TObject);
   procedure OpenGLControlResize(Sender: TObject);
   procedure OpenGLControlKeyDown(Sender: TObject; var Key: Word;
@@ -96,10 +97,15 @@ begin
   Form.Height := Height;
   Form.Top := Top;
   Form.Left := Left;
-  Form.OnCloseQuery := @FormCloseQuery;
-  // TODO: FullScreen property apply in some way?
+  Form.Caption := Caption; // SetCaption may also change it later
+  Form.Cursor := CursorCastleToLCL[Cursor]; // SetCursor may also change it later
 
-  // TODO: Cursor, CustomCursor, ResizeAllowed, MainMenu
+  Form.OnCloseQuery := @FormCloseQuery;
+  Form.OnDeactivate := @FormDeactivate;
+
+  // TODO: FullScreen
+  // TODO: ResizeAllowed
+  // TODO: MainMenu
 
   OpenGLControl := TOpenGLControl.Create(Form);
   OpenGLControl.Parent := Form;
@@ -110,7 +116,7 @@ begin
   OpenGLControl.DepthBits := DepthBits;
   OpenGLControl.AlphaBits := AlphaBits;
   OpenGLControl.MultiSampling := MultiSampling;
-  // TODO: if not ZeroVector(AccumBits) then
+  // TODO: AccumBits: not possible to express in TOpenGLControl now
 
   Form.Visible := Visible;
 
@@ -164,7 +170,7 @@ begin
   begin
     FCursor := Value;
     if not Closed then
-      { TODO UpdateCursor };
+      Form.Cursor := CursorCastleToLCL[Value];
   end;
 end;
 
@@ -182,7 +188,7 @@ end;
 procedure TCastleWindowBase.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
   if not Closed then
-    { TODO };
+    Mouse.CursorPos := OpenGLControl.ControlToScreen(Point(NewMouseX, NewMouseY))
 end;
 
 procedure TCastleWindowBase.FormCloseQuery(Sender: TObject;
@@ -190,6 +196,11 @@ procedure TCastleWindowBase.FormCloseQuery(Sender: TObject;
 begin
   DoCloseQuery;
   CanClose := false; // DoCloseQuery will call Close when needed
+end;
+
+procedure TCastleWindowBase.FormDeactivate(Sender: TObject);
+begin
+  ReleaseAllKeysAndMouse;
 end;
 
 procedure TCastleWindowBase.OpenGLControlPaint(Sender: TObject);
@@ -208,7 +219,7 @@ var
   MyKey: TKey;
   MyCharKey: char;
 begin
-  LKeyToMyKey(Key, Shift, MyKey, MyCharKey);
+  KeyLCLToCastle(Key, Shift, MyKey, MyCharKey);
   if (MyKey <> K_None) or (MyCharKey <> #0) then
     DoKeyDown(MyKey, MyCharKey);
 end;
@@ -219,7 +230,7 @@ var
   MyKey: TKey;
   MyCharKey: char;
 begin
-  LKeyToMyKey(Key, Shift, MyKey, MyCharKey);
+  KeyLCLToCastle(Key, Shift, MyKey, MyCharKey);
   if MyKey <> K_None then
     DoKeyUp(MyKey);
 end;
@@ -229,7 +240,7 @@ procedure TCastleWindowBase.OpenGLControlMouseDown(Sender: TObject;
 var
   MyButton: CastleKeysMouse.TMouseButton;
 begin
-  if LMouseButtonToMyMouseButton(Button, MyButton) then
+  if MouseButtonLCLToCastle(Button, MyButton) then
     DoMouseDown(X, Y, MyButton);
 end;
 
@@ -238,7 +249,7 @@ procedure TCastleWindowBase.OpenGLControlMouseUp(Sender: TObject;
 var
   MyButton: CastleKeysMouse.TMouseButton;
 begin
-  if LMouseButtonToMyMouseButton(Button, MyButton) then
+  if MouseButtonLCLToCastle(Button, MyButton) then
     DoMouseUp(X, Y, MyButton);
 end;
 
@@ -267,34 +278,61 @@ function TCastleWindowBase.FileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 var
   Dialog: TFileDialog;
+  ExpandedFileName: string;
 begin
   if OpenDialog then
     Dialog := TOpenDialog.Create(nil) else
     Dialog := TSaveDialog.Create(nil);
   try
-    Dialog.Title :=  Title;
-    Dialog.FileName := FileName;
+    Dialog.Title := Title;
+    if FileName = '' then
+      Dialog.InitialDir := SysToUTF8(GetCurrentDir) else
+    begin
+      ExpandedFileName := ExpandFileName(FileName);
+      Dialog.InitialDir := SysToUTF8(ExtractFilePath(ExpandedFileName));
+      Dialog.FileName := SysToUTF8(ExtractFileName(ExpandedFileName));
+    end;
     FileFiltersToDialog(FileFilters, Dialog);
+    FormDeactivate(Form); // do it manually
     Result := Dialog.Execute;
     if Result then
-      FileName := Dialog.FileName;
+      FileName := UTF8ToSys(Dialog.FileName);
   finally FreeAndNil(Dialog) end;
 end;
 
 function TCastleWindowBase.ColorDialog(var Color: TVector3Single): boolean;
+var
+  Dialog: TColorDialog;
+  ColorByte: TVector3Byte;
 begin
-  { TODO }
+  Dialog := TColorDialog.Create(nil);
+  try
+    ColorByte := Vector3Byte(Color);
+    Dialog.Color := RGBToColor(ColorByte[0], ColorByte[1], ColorByte[2]);
+    FormDeactivate(Form); // do it manually
+    Result := Dialog.Execute;
+    if Result then
+    begin
+      RedGreenBlue(Dialog.Color, ColorByte[0], ColorByte[1], ColorByte[2]);
+      Color := Vector3Single(ColorByte);
+    end;
+  finally FreeAndNil(Dialog) end;
 end;
 
 procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
+const
+  MessageTypeCastleToLCL: array [TWindowMessageType] of TMsgDlgType =
+  (Dialogs.mtInformation, Dialogs.mtWarning, Dialogs.mtConfirmation, Dialogs.mtError, Dialogs.mtCustom);
 begin
-  { TODO }
+  FormDeactivate(Form); // do it manually
+  MessageDlg(S, MessageTypeCastleToLCL[MessageType], [mbOK], 0);
 end;
 
 function TCastleWindowBase.MessageYesNo(const S: string;
   const MessageType: TWindowMessageType): boolean;
 begin
-  { TODO }
+  FormDeactivate(Form); // do it manually
+  Result := MessageDlg(S, mtConfirmation, mbYesNo, 0) = mrYes;
 end;
 
 { TGLApplication ---------------------------------------------------------- }
@@ -323,7 +361,7 @@ begin
 
     Timer events are handled by MaybeDoTimer, that in turn will call
     (when needed) DoSelfTimer and OpenWindows.DoTimer. }
-  if Result then  
+  if Result then
   begin
     DoSelfIdle;
     FOpenWindows.DoIdle;

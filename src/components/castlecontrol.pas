@@ -417,7 +417,7 @@ type
   but that's the way of VCL and LCL: KeyPress and KeyDown
   are separate events. While I want to have them in one event,
   and passed as one event to TUIControl.KeyDown. }
-procedure LKeyToMyKey(const Key: Word; Shift: TShiftState;
+procedure KeyLCLToCastle(const Key: Word; Shift: TShiftState;
   out MyKey: TKey; out MyCharKey: char);
 
 { Convert Lazarus Controls.TMouseButton value to my CastleKeysMouse.TMouseButton.
@@ -425,9 +425,14 @@ procedure LKeyToMyKey(const Key: Word; Shift: TShiftState;
   (By coincidence, my type name and values are the same as used by LCL;
   but beware --- the order of values in my type is different (mbMiddle
   is in the middle in my type)). }
-function LMouseButtonToMyMouseButton(
+function MouseButtonLCLToCastle(
   const MouseButton: Controls.TMouseButton;
   out MyMouseButton: CastleKeysMouse.TMouseButton): boolean;
+
+const
+  CursorCastleToLCL: array [TMouseCursor] of TCursor =
+  ( crDefault, crNone, crDefault { mcCustom treat like mcDefault },
+    crArrow, crHourGlass, crIBeam, crHandPoint );
 
 procedure Register;
 
@@ -764,7 +769,7 @@ var
   MyKey: TKey;
   Ch: char;
 begin
-  LKeyToMyKey(Key, Shift, MyKey, Ch);
+  KeyLCLToCastle(Key, Shift, MyKey, Ch);
   if (MyKey <> K_None) or (Ch <> #0) then
     Pressed.KeyDown(MyKey, Ch);
 
@@ -796,7 +801,7 @@ var
   MyKey: TKey;
   Ch: char;
 begin
-  LKeyToMyKey(Key, Shift, MyKey, Ch);
+  KeyLCLToCastle(Key, Shift, MyKey, Ch);
   if MyKey <> K_None then
     Pressed.KeyUp(MyKey, Ch);
 
@@ -827,7 +832,7 @@ begin
   FMouseX := X;
   FMouseY := Y;
 
-  if LMouseButtonToMyMouseButton(Button, MyButton) then
+  if MouseButtonLCLToCastle(Button, MyButton) then
     Include(FMousePressed, MyButton);
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
@@ -847,7 +852,7 @@ begin
   FMouseX := X;
   FMouseY := Y;
 
-  if LMouseButtonToMyMouseButton(Button, MyButton) then
+  if MouseButtonLCLToCastle(Button, MyButton) then
     Exclude(FMousePressed, MyButton);
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
@@ -1127,11 +1132,6 @@ procedure TCastleControlCustom.UpdateFocusAndMouseCursor;
       Result := mcDefault;
   end;
 
-const
-  MyCursorToLazCursor: array [TMouseCursor] of TCursor =
-  ( crDefault, crNone, crDefault { mcCustom treat like mcDefault },
-    crArrow, crHourGlass, crIBeam, crHandPoint );
-
 var
   NewFocus: TUIControl;
   NewCursor: TCursor;
@@ -1147,7 +1147,7 @@ begin
     if (Focus <> nil) then Focus.Focused := true;
   end;
 
-  NewCursor := MyCursorToLazCursor[CalculateMouseCursor];
+  NewCursor := CursorCastleToLCL[CalculateMouseCursor];
   { check explicitly "Cursor <> NewCursor" --- we will call UpdateFocusAndMouseCursor
     very often (in each mouse move), and we don't want to depend on Lazarus
     optimizing "Cursor := Cursor" to avoid some potentially expensive window
@@ -1326,7 +1326,7 @@ var
   C: TUIControl;
   I: Integer;
 begin
-  if LMouseButtonToMyMouseButton(Button, MyButton) and UseControls then
+  if MouseButtonLCLToCastle(Button, MyButton) and UseControls then
   begin
     for I := 0 to Controls.Count - 1 do
     begin
@@ -1347,7 +1347,7 @@ var
   C: TUIControl;
   I: Integer;
 begin
-  if LMouseButtonToMyMouseButton(Button, MyButton) and UseControls then
+  if MouseButtonLCLToCastle(Button, MyButton) and UseControls then
   begin
     for I := 0 to Controls.Count - 1 do
     begin
@@ -1686,7 +1686,7 @@ end;
 
 { global routines ------------------------------------------------------------ }
 
-procedure LKeyToMyKey(const Key: Word; Shift: TShiftState;
+procedure KeyLCLToCastle(const Key: Word; Shift: TShiftState;
   out MyKey: TKey; out MyCharKey: char);
 begin
   MyKey := K_None;
@@ -1754,7 +1754,7 @@ begin
   end;
 end;
 
-function LMouseButtonToMyMouseButton(
+function MouseButtonLCLToCastle(
   const MouseButton: Controls.TMouseButton;
   out MyMouseButton: CastleKeysMouse.TMouseButton): boolean;
 begin
