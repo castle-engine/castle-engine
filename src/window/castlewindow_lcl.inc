@@ -17,6 +17,8 @@
 private
   Form: TForm;
   OpenGLControl: TOpenGLControl;
+  Menu: TMainMenu;
+  procedure MenuItemClick(Sender: TObject);
   procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   procedure FormDeactivate(Sender: TObject);
   procedure OpenGLControlPaint(Sender: TObject);
@@ -50,34 +52,85 @@ begin
 end;
 
 procedure TCastleWindowBase.BackendMenuInitialize;
+
+  // TODO: checked and radio menu items
+
+  procedure MenuCastleToLCL(MyMenu: TMenu; Menu: Menus.TMenuItem);
+  var
+    MenuItem: Menus.TMenuItem;
+    MyEntry: TMenuEntry;
+    I: Integer;
+  begin
+    for I := 0 to MyMenu.EntriesCount - 1 do
+    begin
+      MyEntry := MyMenu.Entries[I];
+      MenuItem := Menus.TMenuItem.Create(Form);
+      MenuItem.OnClick := @MenuItemClick;
+      { store connection both ways between LCL menu item <-> our menu entry }
+      MenuItem.Tag := PtrInt(MyEntry);
+      MyEntry.Handle := MenuItem;
+      if MyEntry is TMenuEntryWithCaption then
+      begin
+        { set MenuItem.Caption and Enabled }
+        MenuUpdateCaption(TMenuEntryWithCaption(MyEntry));
+        MenuUpdateEnabled(TMenuEntryWithCaption(MyEntry));
+      end else
+      if MyEntry is TMenuSeparator then
+        { set MenuItem.Caption - special for separator }
+        MenuItem.Caption := '-';
+      { if we have submenu, do this recursively }
+      if MyEntry is TMenu then
+        MenuCastleToLCL(TMenu(MyEntry), MenuItem);
+      Menu.Add(MenuItem);
+    end;
+  end;
+
 begin
-  { TODO (may do nothing if you do not care about displaying menu) }
+  Menu := TMainMenu.Create(Form);
+  MenuCastleToLCL(MainMenu, Menu.Items);
 end;
 
 procedure TCastleWindowBase.BackendMenuFinalize;
 begin
-  { TODO (may do nothing if you do not care about displaying menu) }
+  FreeAndNil(Menu);
+end;
+
+function CheckMenu(Entry: TMenuEntryWithCaption; out EntryLCL: Menus.TMenuItem): boolean;
+begin
+  EntryLCL := Menus.TMenuItem(Entry.Handle);
+  Result := EntryLCL <> nil;
+  if (not Result) and Log then
+    WritelnLog('Menu', 'Warning: menu entry "' + Entry.Caption + '" has Handle = nil (this means that corresponding LCL menu item object was not created, but it should)');
 end;
 
 procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+
+  function MenuCaptionCastleToLCL(const S: string): string;
+  begin
+    // TODO: this is bad. Should be: __ goes to _, _x goes to &x
+    Result := SReplaceChars(S, '_', '&');
+  end;
+
+var
+  EntryLCL: Menus.TMenuItem;
 begin
-  { TODO (may do nothing if you do not care about displaying menu;
-    may do MenuFinalize + MenuInitialize if you display menu,
-    but don't care about updating it fast) }
+  if not CheckMenu(Entry, EntryLCL) then Exit;
+  EntryLCL.Caption := MenuCaptionCastleToLCL(Entry.Caption);
 end;
 
 procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+var
+  EntryLCL: Menus.TMenuItem;
 begin
-  { TODO (may do nothing if you do not care about displaying menu;
-    may do MenuFinalize + MenuInitialize if you display menu,
-    but don't care about updating it fast) }
+  if not CheckMenu(Entry, EntryLCL) then Exit;
+  EntryLCL.Enabled := Entry.Enabled;
 end;
 
 procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
-  { TODO (may do nothing if you do not care about displaying menu;
-    may do MenuFinalize + MenuInitialize if you display menu,
-    but don't care about updating it fast) }
+  // TODO: slow
+  MenuFinalize;
+  MenuInitialize;
 end;
 
 function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
@@ -105,7 +158,6 @@ begin
 
   // TODO: FullScreen
   // TODO: ResizeAllowed
-  // TODO: MainMenu
 
   OpenGLControl := TOpenGLControl.Create(Form);
   OpenGLControl.Parent := Form;
@@ -117,6 +169,9 @@ begin
   OpenGLControl.AlphaBits := AlphaBits;
   OpenGLControl.MultiSampling := MultiSampling;
   // TODO: AccumBits: not possible to express in TOpenGLControl now
+
+  // TODO: initial resize because OpenGL control is smaller because menu takes space?
+  if MainMenu <> nil then MenuInitialize;
 
   Form.Visible := Visible;
 
@@ -139,7 +194,9 @@ end;
 procedure TCastleWindowBase.CloseBackend;
 begin
   FreeAndNil(Form);
-  OpenGLControl := nil; { freeing the Form will free OpenGLControl too }
+  { freeing the Form will automatically free other owned components }
+  OpenGLControl := nil;
+  Menu := nil;
 end;
 
 procedure TCastleWindowBase.PostRedisplay;
@@ -189,6 +246,18 @@ procedure TCastleWindowBase.SetMousePosition(const NewMouseX, NewMouseY: Integer
 begin
   if not Closed then
     Mouse.CursorPos := OpenGLControl.ControlToScreen(Point(NewMouseX, NewMouseY))
+end;
+
+procedure TCastleWindowBase.MenuItemClick(Sender: TObject);
+var
+  SenderTag: TObject;
+begin
+  if Sender is Menus.TMenuItem then
+  begin
+    SenderTag := TObject(Pointer(Menus.TMenuItem(Sender).Tag));
+    if SenderTag is TMenuItem then
+      DoMenuCommand(TMenuItem(SenderTag));
+  end;
 end;
 
 procedure TCastleWindowBase.FormCloseQuery(Sender: TObject;
