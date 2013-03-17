@@ -322,6 +322,25 @@ unit CastleWindow;
       They are simply removed when Caption is displayed.
     - CustomCursor is not implemented. Cursor = gcCursor is treated like mcDefault.
 
+  CASTLE_WINDOW_LCL
+    Use Lazarus TForm (with menu, dialogs and so on) and TOpenGLControl.
+    This wraps Lazarus form and TOpenGLControl inside a TCastleWindowBase
+    instance.
+    It's cross-platform, it has a native look --- all thanks to Lazarus LCL.
+    It misses some things that Lazarus misses ---- like screen resizing,
+    and event loop may have problems in case of mouse look.
+
+    To use this:
+    - You have to add LazOpenGLContext and castle_components packages
+      to the requirements of the castle_window.lpk Lazarus package.
+      They are not present there by default, since they are not needed
+      for other CASTLE_WINDOW_xxx backends.
+      Note that castle_components package is only used for some LCL helpers
+      (like converting mouse/keys between LCL and CastleKeysMouse),
+      we do *not* use TCastleControl component (we only use TOpenGLControl).
+    - And usually you should compile programs only using Lazarus
+      (IDE or lazbuild), to automatically have correct LCL paths used.
+
   CASTLE_WINDOW_TEMPLATE
     This is a special dummy backend, useful only as an example
     for programmers that want to implement another CastleWindow backend
@@ -357,17 +376,29 @@ unit CastleWindow;
   {$ifndef CASTLE_WINDOW_GLUT}
    {$ifndef CASTLE_WINDOW_GTK_2}
     {$ifndef CASTLE_WINDOW_TEMPLATE}
-     {$ifdef MSWINDOWS}
-       {$define CASTLE_WINDOW_WINAPI}
-       { $define CASTLE_WINDOW_GTK_2}
-       { $define CASTLE_WINDOW_GLUT}
-       { $define CASTLE_WINDOW_TEMPLATE}
-     {$endif}
-     {$ifdef UNIX}
-       {$define CASTLE_WINDOW_GTK_2}
-       { $define CASTLE_WINDOW_XLIB}
-       { $define CASTLE_WINDOW_GLUT}
-       { $define CASTLE_WINDOW_TEMPLATE}
+     {$ifndef CASTLE_WINDOW_LCL}
+      {$ifdef MSWINDOWS}
+        {$define CASTLE_WINDOW_WINAPI} // best (looks native and most functional) on Windows
+        { $define CASTLE_WINDOW_GTK_2}
+        { $define CASTLE_WINDOW_LCL}
+        { $define CASTLE_WINDOW_GLUT}
+        { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
+      {$endif}
+      {$ifdef UNIX}
+        {$ifdef DARWIN}
+          {$define CASTLE_WINDOW_LCL} // best (looks native and most functional) on Mac OS X
+          { $define CASTLE_WINDOW_GTK_2}
+          { $define CASTLE_WINDOW_XLIB}
+          { $define CASTLE_WINDOW_GLUT}
+          { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
+        {$else}
+          {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional) on Unix (except Mac OS X)
+          { $define CASTLE_WINDOW_XLIB}
+          { $define CASTLE_WINDOW_LCL}
+          { $define CASTLE_WINDOW_GLUT}
+          { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
+        {$endif}
+      {$endif}
      {$endif}
     {$endif}
    {$endif}
@@ -530,6 +561,8 @@ uses SysUtils, Classes, CastleVectors, GL, GLU, GLExt,
   {$ifdef CASTLE_WINDOW_USE_XF86VMODE} CastleXF86VMode, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} Gdk2X, X, Xlib, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, CastleDynLib, {$endif}
+  {$ifdef CASTLE_WINDOW_LCL} Interfaces, Forms, Dialogs, OpenGLContext, Menus,
+    Controls, CastleControl, CastleLCLUtils, {$endif}
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
   CastleFileFilters, CastleUIControls, FGL, pk3DConnexion,

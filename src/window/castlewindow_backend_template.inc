@@ -13,13 +13,13 @@
   ----------------------------------------------------------------------------
 }
 
-{$ifdef read_window_private}
+{$ifdef read_window_interface}
 
-{$endif read_window_private}
+{$endif read_window_interface}
 
-{$ifdef read_application_private}
+{$ifdef read_application_interface}
 
-{$endif read_application_private}
+{$endif read_application_interface}
 
 {$ifdef read_implementation}
 
@@ -74,6 +74,7 @@ end;
 procedure TCastleWindowBase.OpenBackend;
 begin
   { TODO (create OpenGL context, show window with this context) }
+  Application.OpenWindowsAdd(Self);
 end;
 
 procedure TCastleWindowBase.CloseBackend;

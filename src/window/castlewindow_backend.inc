@@ -30,6 +30,10 @@
   {$I castlewindow_private_modifiers_down.inc}
 {$endif}
 
+{$ifdef CASTLE_WINDOW_LCL}
+  {$I castlewindow_lcl.inc}
+{$endif}
+
 {$ifdef CASTLE_WINDOW_TEMPLATE}
   {$I castlewindow_backend_template.inc}
 {$endif}
