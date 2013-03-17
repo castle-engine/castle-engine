@@ -43,7 +43,7 @@ This package cannot be installed under Lazarus, it's only for being used in othe
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="4" Release="1"/>
-    <Files Count="13">
+    <Files Count="14">
       <Item1>
         <Filename Value="../src/base/castleconf.inc"/>
         <Type Value="Include"/>
@@ -99,6 +99,10 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <Filename Value="../src/window/windows/castlewindow_winapi.inc"/>
         <Type Value="Include"/>
       </Item13>
+      <Item14>
+        <Filename Value="../src/window/windows/castlewindow_lcl.inc"/>
+        <Type Value="Include"/>
+      </Item14>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>
