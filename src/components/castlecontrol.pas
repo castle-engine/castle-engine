@@ -1693,14 +1693,14 @@ begin
   MyCharKey := #0;
 
   case Key of
-    VK_BACK: MyKey := K_BackSpace;
-    VK_TAB: MyKey := K_Tab;
-    VK_RETURN: MyKey := K_Enter;
+    VK_BACK:   begin MyKey := K_BackSpace; MyCharKey := CharBackSpace; end;
+    VK_TAB:    begin MyKey := K_Tab;       MyCharKey := CharTab; end;
+    VK_RETURN: begin MyKey := K_Enter;     MyCharKey := CharEnter; end;
     VK_SHIFT: MyKey := K_Shift;
     VK_CONTROL: MyKey := K_Ctrl;
     VK_MENU: MyKey := K_Alt;
-    VK_ESCAPE: MyKey := K_Escape;
-    VK_SPACE: MyKey := K_Space;
+    VK_ESCAPE: begin MyKey := K_Escape; MyCharKey := CharEscape; end;
+    VK_SPACE:  begin MyKey := K_Space;  MyCharKey := ' '; end;
     VK_PRIOR: MyKey := K_PageUp;
     VK_NEXT: MyKey := K_PageDown;
     VK_END: MyKey := K_End;
@@ -1710,31 +1710,31 @@ begin
     VK_RIGHT: MyKey := K_Right;
     VK_DOWN: MyKey := K_Down;
     VK_INSERT: MyKey := K_Insert;
-    VK_DELETE: MyKey := K_Delete;
-    VK_ADD: MyKey := K_Numpad_Plus;
-    VK_SUBTRACT: MyKey := K_Numpad_Minus;
+    VK_DELETE:    begin MyKey := K_Delete;       MyCharKey := CharDelete; end;
+    VK_ADD:       begin MyKey := K_Numpad_Plus;  MyCharKey := '+'; end;
+    VK_SUBTRACT:  begin MyKey := K_Numpad_Minus; MyCharKey := '-'; end;
     VK_SNAPSHOT: MyKey := K_PrintScreen;
     VK_NUMLOCK: MyKey := K_NumLock;
     VK_SCROLL: MyKey := K_ScrollLock;
     VK_CAPITAL: MyKey := K_CapsLock;
     VK_PAUSE: MyKey := K_Pause;
-    VK_OEM_COMMA: MyKey := K_Comma;
-    VK_OEM_PERIOD: MyKey := K_Period;
-    VK_NUMPAD0: MyKey := K_Numpad_0;
-    VK_NUMPAD1: MyKey := K_Numpad_1;
-    VK_NUMPAD2: MyKey := K_Numpad_2;
-    VK_NUMPAD3: MyKey := K_Numpad_3;
-    VK_NUMPAD4: MyKey := K_Numpad_4;
-    VK_NUMPAD5: MyKey := K_Numpad_5;
-    VK_NUMPAD6: MyKey := K_Numpad_6;
-    VK_NUMPAD7: MyKey := K_Numpad_7;
-    VK_NUMPAD8: MyKey := K_Numpad_8;
-    VK_NUMPAD9: MyKey := K_Numpad_9;
-    VK_CLEAR: MyKey := K_Numpad_Begin;
-    VK_MULTIPLY: MyKey := K_Numpad_Multiply;
-    VK_DIVIDE: MyKey := K_Numpad_Divide;
-    VK_OEM_MINUS: MyKey := K_Minus;
-    VK_OEM_PLUS: MyKey := K_Equal;
+    VK_OEM_COMMA:  begin MyKey := K_Comma;    MyCharKey := ','; end;
+    VK_OEM_PERIOD: begin MyKey := K_Period;   MyCharKey := '.'; end;
+    VK_NUMPAD0:    begin MyKey := K_Numpad_0; MyCharKey := '0'; end;
+    VK_NUMPAD1:    begin MyKey := K_Numpad_1; MyCharKey := '1'; end;
+    VK_NUMPAD2:    begin MyKey := K_Numpad_2; MyCharKey := '2'; end;
+    VK_NUMPAD3:    begin MyKey := K_Numpad_3; MyCharKey := '3'; end;
+    VK_NUMPAD4:    begin MyKey := K_Numpad_4; MyCharKey := '4'; end;
+    VK_NUMPAD5:    begin MyKey := K_Numpad_5; MyCharKey := '5'; end;
+    VK_NUMPAD6:    begin MyKey := K_Numpad_6; MyCharKey := '6'; end;
+    VK_NUMPAD7:    begin MyKey := K_Numpad_7; MyCharKey := '7'; end;
+    VK_NUMPAD8:    begin MyKey := K_Numpad_8; MyCharKey := '8'; end;
+    VK_NUMPAD9:    begin MyKey := K_Numpad_9; MyCharKey := '9'; end;
+    VK_CLEAR:      MyKey := K_Numpad_Begin;
+    VK_MULTIPLY:   begin MyKey := K_Numpad_Multiply; MyCharKey := '*'; end;
+    VK_DIVIDE:     begin MyKey := K_Numpad_Divide;   MyCharKey := '/'; end;
+    VK_OEM_MINUS:  begin MyKey := K_Minus;           MyCharKey := '-'; end;
+    VK_OEM_PLUS:   begin MyKey := K_Equal;           MyCharKey := '='; end;
 
     Ord('0') .. Ord('9'):
       begin
