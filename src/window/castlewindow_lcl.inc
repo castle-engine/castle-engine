@@ -53,7 +53,12 @@ end;
 
 procedure TCastleWindowBase.BackendMenuInitialize;
 
-  // TODO: checked and radio menu items
+  // TODO: switching fullscreen checkbox from view3dscene makes window without menu?
+  // TODO: all radios are switched on? why?
+  // TODO: menu item shortcuts (display and handling)
+  // TODO: change Ctrl into Command automatically on Mac Os X? how lazarus handles it?
+
+  // TODO: MouseLook stutters. Something similar to aggressive update needed?
 
   procedure MenuCastleToLCL(MyMenu: TMenu; Menu: Menus.TMenuItem);
   var
@@ -74,6 +79,12 @@ procedure TCastleWindowBase.BackendMenuInitialize;
         { set MenuItem.Caption and Enabled }
         MenuUpdateCaption(TMenuEntryWithCaption(MyEntry));
         MenuUpdateEnabled(TMenuEntryWithCaption(MyEntry));
+        if MyEntry is TMenuItemChecked then
+        begin
+          MenuItem.ShowAlwaysCheckable := true;
+          MenuItem.RadioItem := MyEntry is TMenuItemRadio;
+          MenuUpdateChecked(TMenuItemChecked(MyEntry));
+        end;
       end else
       if MyEntry is TMenuSeparator then
         { set MenuItem.Caption - special for separator }
@@ -107,8 +118,12 @@ procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 
   function MenuCaptionCastleToLCL(const S: string): string;
   begin
-    // TODO: this is bad. Should be: __ goes to _, _x goes to &x
-    Result := SReplaceChars(S, '_', '&');
+    { We use _ for the same purpose as LCL uses &, to mark mnemonics.
+      But we cannot just replace _ with &:
+      Double underscore should be converted to single underscore.
+      Only unpaired single underscore should be converted to &.
+      Our SReplacePatterns guarantees correct behavior. }
+    Result := SReplacePatterns(S, ['__', '_'], ['_', '&'], [soMatchCase]);
   end;
 
 var
@@ -127,10 +142,11 @@ begin
 end;
 
 procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
+var
+  EntryLCL: Menus.TMenuItem;
 begin
-  // TODO: slow
-  MenuFinalize;
-  MenuInitialize;
+  if not CheckMenu(Entry, EntryLCL) then Exit;
+  EntryLCL.Checked := Entry.Checked;
 end;
 
 function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
@@ -256,7 +272,14 @@ begin
   begin
     SenderTag := TObject(Pointer(Menus.TMenuItem(Sender).Tag));
     if SenderTag is TMenuItem then
+    begin
+      { It seems that checked menu item is always automatically swapped,
+        at least with LCL-GTK2. So manually revert it to original setting,
+        as we don't want this (DoMenuCommand will change Checked as necessary). }
+      if SenderTag is TMenuItemChecked then
+        MenuUpdateChecked(TMenuItemChecked(SenderTag));
       DoMenuCommand(TMenuItem(SenderTag));
+    end;
   end;
 end;
 
