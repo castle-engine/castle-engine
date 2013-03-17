@@ -100,7 +100,7 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <Type Value="Include"/>
       </Item13>
       <Item14>
-        <Filename Value="../src/window/windows/castlewindow_lcl.inc"/>
+        <Filename Value="../src/window/castlewindow_lcl.inc"/>
         <Type Value="Include"/>
       </Item14>
     </Files>
