@@ -577,7 +577,7 @@ const
   WindowDefaultSize = -1000000;
 
 type
-  TWindowParseOption = (poGeometry, poScreenGeometry, poDisplay);
+  TWindowParseOption = (poGeometry, poScreenGeometry, poDisplay, poMacOsXProcessSerialNumber);
   TWindowParseOptions = set of TWindowParseOption;
   PWindowParseOptions = ^TWindowParseOptions;
 
@@ -592,7 +592,7 @@ const
     Or they can simply call overloaded version of TCastleWindowBase.ParseParameters
     that doesn't take any parameters, it is always equivalent to
     calling TCastleWindowBase.ParseParameters(StandardParseOptions). }
-  StandardParseOptions = [poGeometry, poScreenGeometry, poDisplay];
+  StandardParseOptions = [poGeometry, poScreenGeometry, poDisplay, poMacOsXProcessSerialNumber];
 
   DefaultDepthBits = 16;
 
@@ -1999,6 +1999,14 @@ end;
 
         @itemLabel poDisplay
         @item(Handle @--display: sets Application.XDisplayName under Unix.)
+
+        @itemLabel poMacOsXProcessSerialNumber
+        @item(
+          (Only relevant on Mac OS X) A special parameter -psvn_x_xxx will be found
+          and removed from the @link(Parameters) list. See
+          http://forums.macrumors.com/showthread.php?t=207344 and
+          http://stackoverflow.com/questions/10242115/os-x-strange-psn-command-line-parameter-when-launched-from-finder .
+        )
       )
 
       Multiple options of the same kind are allowed, for example two options
@@ -3731,20 +3739,47 @@ const
       OptionProc: {$ifdef FPC_OBJFPC} @ {$endif} ScreenGeometryOptionProc),
     ( pOptions: @DisplayOptions;
       Count: High(DisplayOptions) + 1;
-      OptionProc: {$ifdef FPC_OBJFPC} @ {$endif} DisplayOptionProc)
+      OptionProc: {$ifdef FPC_OBJFPC} @ {$endif} DisplayOptionProc),
+    ( pOptions: nil;
+      Count: 0;
+      OptionProc: nil)
   );
 
-var Data: TOptionProcData;
-    ParamKind: TWindowParseOption;
+var
+  Data: TOptionProcData;
+
+  procedure HandleMacOsXProcessSerialNumber;
+  {$ifdef DARWIN}
+  var
+    I: Integer;
+  begin
+    for I := 1 to Parameters.Count - 1 do
+      if IsPrefix('-psn_', Parameters[I], false) then
+      begin
+        Parameters.Delete(I);
+        Include(Data.SpecifiedOptions, poMacOsXProcessSerialNumber);
+        Exit;
+      end;
+  {$else}
+  begin
+  {$endif}
+  end;
+
+var
+  ParamKind: TWindowParseOption;
 begin
  Data.SpecifiedOptions := [];
  Data.Window := Self;
 
  for ParamKind := Low(ParamKind) to High(ParamKind) do
-  if ParamKind in AllowedOptions then
-   Parameters.Parse(OptionsForParam[ParamKind].pOptions,
-     OptionsForParam[ParamKind].Count,
-     OptionsForParam[ParamKind].OptionProc, @Data, true);
+   if ParamKind in AllowedOptions then
+   begin
+     if ParamKind = poMacOsXProcessSerialNumber then
+       HandleMacOsXProcessSerialNumber else
+       Parameters.Parse(OptionsForParam[ParamKind].pOptions,
+         OptionsForParam[ParamKind].Count,
+         OptionsForParam[ParamKind].OptionProc, @Data, true);
+   end;
 
  SpecifiedOptions := Data.SpecifiedOptions;
 end;
@@ -3768,20 +3803,23 @@ const
    '                        Try to resize the screen to WIDTHxHEIGHT and' +nl+
    '                        then set initial window size to cover whole screen',
    '  --display DISPLAY-NAME' +nl+
-   '                        Use given XWindows display name.'
+   '                        Use given XWindows display name.',
+   ''
    );
-var ParamKind: TWindowParseOption;
+var
+  ParamKind: TWindowParseOption;
 begin
- if AddHeader then
-  result := 'Window options (backend ' + Application.BackendName + '):' else
-  result := '';
+  if AddHeader then
+    result := 'Window options (backend ' + Application.BackendName + '):' else
+    result := '';
 
- for ParamKind := Low(ParamKind) to High(ParamKind) do
-  if ParamKind in AllowedOptions then
-  begin
-   if result <> '' then result += nl;
-   result += HelpForParam[ParamKind];
-  end;
+  for ParamKind := Low(ParamKind) to High(ParamKind) do
+    if (ParamKind in AllowedOptions) and
+       (ParamKind <> poMacOsXProcessSerialNumber) then
+    begin
+      if result <> '' then result += nl;
+      result += HelpForParam[ParamKind];
+    end;
 end;
 
 { Fps ------------------------------------------------------------------------ }
