@@ -51,8 +51,10 @@ private
   - All radio menu items are always on. Why?
 
   Bugs on Carbon and GTK2:
-  - Switching fullscreen checkbox from view3dscene makes window without menu.
   - MouseLook stutters. Something similar to aggressive update needed?
+  - (untested on GTK2, confirmed on Carbon)
+    MainMenu.Enabled doesn't work,
+    e.g. when you do command+r menu is not disabled in view3dscene.
 
   Bugs on Carbon, not on GTK2:
   - When TCastleWindowBase.MenuUpdateCheckedFast is false,
@@ -63,6 +65,8 @@ private
   - When opening many times new files using view3dscene open, also Carbon segfaults.
     Again the above bug?
   - Choosing quit from view3dscene global menu doesn't work.
+  - Using command+o to open file in view3dscene shows open dialog twice.
+    Same when using command+r, which shows our own MessageXxx.
 
   Missing:
   - TCastleWindowBase.AccumBits: not possible to express in TOpenGLControl now
@@ -262,6 +266,10 @@ begin
   { freeing the Form will automatically free other owned components }
   OpenGLControl := nil;
   Menu := nil;
+
+  { although Menu was already freed, but make sure we also change state,
+    like TCastleWindowBase.MenuInitialized and clear TMenuItem.Handle. }
+  MenuFinalize;
 end;
 
 procedure TCastleWindowBase.PostRedisplay;
