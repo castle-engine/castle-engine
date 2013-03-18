@@ -40,15 +40,12 @@ private
 {$ifdef read_application_interface}
 private
   LastDoTimerTime: TMilisecTime;
+  procedure ApplicationIdle(Sender: TObject; var Done: Boolean);
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
 
 { TODO:
-
-  Bugs on GTK2, not checked on Carbon:
-  - MouseLook stutters. Something similar to aggressive update needed?
-    (Not possible to check on Carbon now, since idle/timer is broken...)
 
   Bugs on GTK2, not on Carbon:
   - All radio menu items are always on. Why?
@@ -58,8 +55,9 @@ private
 
   Bugs on Carbon and GTK2:
   - Switching fullscreen checkbox from view3dscene makes window without menu.
+  - MouseLook stutters. Something similar to aggressive update needed?
 
-  Bugs on Carbon, not checked elsewhere:
+  Bugs on Carbon, not on GTK2:
   - When TCastleWindowBase.MenuUpdateCheckedFast is false,
     changing some radio menus (like view3dscene display->4 viewports)
     make segfaults in Carbon widgetset, like our menu items were invalid.
@@ -463,10 +461,31 @@ end;
 procedure TGLApplication.CreateBackend;
 begin
   Forms.Application.Initialize;
+  Forms.Application.AddOnIdleHandler(@ApplicationIdle);
 end;
 
 procedure TGLApplication.DestroyBackend;
 begin
+  Forms.Application.RemoveOnIdleHandler(@ApplicationIdle);
+end;
+
+procedure TGLApplication.ApplicationIdle(Sender: TObject; var Done: Boolean);
+begin
+  { Call idle and timer events of Application and all windows.
+    Idle events are handled by DoSelfIdle and OpenWindows.DoIdle.
+    Timer events are handled by MaybeDoTimer, that in turn will call
+    (when needed) DoSelfTimer and OpenWindows.DoTimer. }
+  DoSelfIdle;
+  FOpenWindows.DoIdle;
+  MaybeDoTimer(LastDoTimerTime);
+
+  { We need Done := false, otherwise the widgetset will hang waiting
+    for next message. See ../components/castlecontrol.pas comments.
+
+    Done := false also prevents other application idle handlers,
+    but fortunately in this case we're the only thing interfacing with LCL,
+    so that's not a problem. }
+  Done := false;
 end;
 
 function TGLApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
@@ -476,19 +495,6 @@ begin
   { TODO: take WaitForMessage, WaitToLimitFPS into account }
   Forms.Application.ProcessMessages;
   Result := not Forms.Application.Terminated;
-
-  { Call idle and timer events of Application and all windows.
-
-    Idle events are handled by DoSelfIdle and OpenWindows.DoIdle.
-
-    Timer events are handled by MaybeDoTimer, that in turn will call
-    (when needed) DoSelfTimer and OpenWindows.DoTimer. }
-  if Result then
-  begin
-    DoSelfIdle;
-    FOpenWindows.DoIdle;
-    MaybeDoTimer(LastDoTimerTime);
-  end;
 end;
 
 function TGLApplication.ProcessAllMessages: boolean;
