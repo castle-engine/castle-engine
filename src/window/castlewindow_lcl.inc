@@ -45,6 +45,26 @@ private
 
 {$ifdef read_implementation}
 
+{ TODO:
+
+  Bugs on GTK2, not checked on Carbon:
+  - Switching fullscreen checkbox from view3dscene makes window without menu.
+  - MouseLook stutters. Something similar to aggressive update needed?
+
+  Bugs on GTK2, not on Carbon:
+  - All radio menu items are always on. Why?
+  - (Probably occurs on all widgetsets where menu is not global):
+    The OpenGL control is not immediately resized to be smaller to accomodate
+    menu space.
+
+  Missing:
+  - Menu item shortcuts (display and handling)
+  - Change Ctrl into Command automatically on Mac Os X? how lazarus handles it?
+  - TCastleWindowBase.FullScreen apply at OpenBackend
+  - TCastleWindowBase.ResizeAllowed apply at OpenBackend
+  - TCastleWindowBase.AccumBits: not possible to express in TOpenGLControl now
+}
+
 { TCastleWindowBase ------------------------------------------------------------------ }
 
 procedure TCastleWindowBase.CreateBackend;
@@ -52,13 +72,6 @@ begin
 end;
 
 procedure TCastleWindowBase.BackendMenuInitialize;
-
-  // TODO: switching fullscreen checkbox from view3dscene makes window without menu?
-  // TODO: all radios are switched on? why?
-  // TODO: menu item shortcuts (display and handling)
-  // TODO: change Ctrl into Command automatically on Mac Os X? how lazarus handles it?
-
-  // TODO: MouseLook stutters. Something similar to aggressive update needed?
 
   procedure MenuCastleToLCL(MyMenu: TMenu; Menu: Menus.TMenuItem);
   var
@@ -98,6 +111,8 @@ procedure TCastleWindowBase.BackendMenuInitialize;
 
 begin
   Menu := TMainMenu.Create(Form);
+  Menu.Parent := Form;
+  Form.Menu := Menu;
   MenuCastleToLCL(MainMenu, Menu.Items);
 end;
 
@@ -162,31 +177,30 @@ end;
 procedure TCastleWindowBase.OpenBackend;
 begin
   Form := TForm.CreateNew(nil);
-  Form.Width := Width;
-  Form.Height := Height;
   Form.Top := Top;
   Form.Left := Left;
+  { We would prefer to leave Form.AutoSize := true and allow form to adjust
+    to OpenGLControl.Width/Height. But it doesn't work. }
+  Form.Width := Width;
+  Form.Height := Height;
   Form.Caption := Caption; // SetCaption may also change it later
   Form.Cursor := CursorCastleToLCL[Cursor]; // SetCursor may also change it later
 
   Form.OnCloseQuery := @FormCloseQuery;
   Form.OnDeactivate := @FormDeactivate;
 
-  // TODO: FullScreen
-  // TODO: ResizeAllowed
-
   OpenGLControl := TOpenGLControl.Create(Form);
   OpenGLControl.Parent := Form;
   OpenGLControl.Align := alClient;
+  OpenGLControl.Width := Width;
+  OpenGLControl.Height := Height;
 
   OpenGLControl.DoubleBuffered := DoubleBuffer;
   OpenGLControl.StencilBits := StencilBits;
   OpenGLControl.DepthBits := DepthBits;
   OpenGLControl.AlphaBits := AlphaBits;
   OpenGLControl.MultiSampling := MultiSampling;
-  // TODO: AccumBits: not possible to express in TOpenGLControl now
 
-  // TODO: initial resize because OpenGL control is smaller because menu takes space?
   if MainMenu <> nil then MenuInitialize;
 
   Form.Visible := Visible;
@@ -476,7 +490,22 @@ begin
     is a valid and good implementation. Make sure your ProcessMessage
     honours WaitForMessage and WaitToLimitFPS = true,
     to avoid wasting CPU on "busy waiting". }
-  while ProcessMessage(true, true) do ;
+  // while ProcessMessage(true, true) do ;
+
+  { We have to call here Forms.Application.Run, not just call our
+    ProcessMessage (which makes Forms.Application.ProcessMessage) in a loop.
+    That is because on some LCL widgetsets, you really need to run
+    Forms.Application.Run, see e.g. Carbon that does special stuff inside
+    TCarbonWidgetSet.AppRun inside lcl/interfaces/carbon/carbonobject.inc.
+
+    TODO: that's unfortunate, as our TCastleWindowBase interface
+    promises that it's not necessary to call Run, it should be always
+    equivalent to call just ProcessMessage in a loop.
+
+    TODO: this makes idle/timer broken, they need our
+    TGLApplication.ProcessMessage to work. }
+
+  Forms.Application.Run;
 end;
 
 procedure TGLApplication.QuitWhenNoOpenWindows;
