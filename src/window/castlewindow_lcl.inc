@@ -65,8 +65,6 @@ private
   - Choosing quit from view3dscene global menu doesn't work.
 
   Missing:
-  - TCastleWindowBase.FullScreen apply at OpenBackend
-  - TCastleWindowBase.ResizeAllowed apply at OpenBackend
   - TCastleWindowBase.AccumBits: not possible to express in TOpenGLControl now
 }
 
@@ -203,6 +201,10 @@ begin
   Form.Height := Height;
   Form.Caption := Caption; // SetCaption may also change it later
   Form.Cursor := CursorCastleToLCL[Cursor]; // SetCursor may also change it later
+  if FullScreen then
+    Form.BorderStyle := bsNone else
+  if ResizeAllowed <> raAllowed then
+    Form.BorderStyle := bsSingle;
 
   Form.OnCloseQuery := @FormCloseQuery;
   { Note: I tried also using OpenGLControl.OnExit for this, seems to be quivalent
@@ -217,6 +219,10 @@ begin
   OpenGLControl.Align := alClient;
   OpenGLControl.Width := Width;
   OpenGLControl.Height := Height;
+  OpenGLControl.Constraints.MinWidth := MinWidth;
+  OpenGLControl.Constraints.MinHeight := MinHeight;
+  OpenGLControl.Constraints.MaxWidth := MaxWidth;
+  OpenGLControl.Constraints.MaxHeight := MaxHeight;
 
   OpenGLControl.DoubleBuffered := DoubleBuffer;
   OpenGLControl.StencilBits := StencilBits;
