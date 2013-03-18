@@ -68,7 +68,6 @@ private
   - Choosing quit from view3dscene global menu doesn't work.
 
   Missing:
-  - Change Ctrl into Command automatically on Mac Os X? how lazarus handles it?
   - TCastleWindowBase.FullScreen apply at OpenBackend
   - TCastleWindowBase.ResizeAllowed apply at OpenBackend
   - TCastleWindowBase.AccumBits: not possible to express in TOpenGLControl now

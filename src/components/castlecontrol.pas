@@ -423,7 +423,11 @@ procedure KeyLCLToCastle(const Key: Word; const Shift: TShiftState;
 { Convert TKey and/or character code into Lazarus key code (VK_xxx)
   and shift state.
   Sets LazKey to VK_UNKNOWN (zero) when convertion not possible
-  (or when Key is K_None and CharKey = #0). }
+  (or when Key is K_None and CharKey = #0).
+
+  Note that this is not perfectly a reverse of KeyLCLToCastle function.
+  On Mac OS X (Darwin), the shortcuts which use Ctrl key are converted
+  to use Command (ssMeta in LCL) modifier. }
 procedure KeyCastleToLCL(const Key: TKey; const CharKey: char;
   out LazKey: Word; out Shift: TShiftState);
 
@@ -1817,9 +1821,11 @@ begin
 
     else
       case CharKey of
-        CharBackSpace:              LazKey := VK_BACK;
-        CharTab:                    LazKey := VK_TAB;
-        CharEnter:                  LazKey := VK_RETURN;
+        { follow TMenuItem.Key docs: when Key is K_None, only CharKey indicates
+          CharBackSpace / CharTab / CharEnter, convert them to Ctrl+xxx shortcuts }
+        //CharBackSpace:              LazKey := VK_BACK;
+        //CharTab:                    LazKey := VK_TAB;
+        //CharEnter:                  LazKey := VK_RETURN;
         CharEscape:                 LazKey := VK_ESCAPE;
         ' ':                        LazKey := VK_SPACE;
         CharDelete:                 LazKey := VK_DELETE;
@@ -1836,13 +1842,10 @@ begin
         { for latter: uppercase letters are VK_xxx codes }
         'A' .. 'Z' : begin LazKey := Ord(CharKey); Shift := [ssShift]; end;
         'a' .. 'z' : begin LazKey := Ord(UpCase(CharKey)); end;
-        else
-          { parts of the range below contains also CharEnter etc. --- they were
-            already handled by "case" above. }
-          if CharKey in [CtrlA .. CtrlZ] then
+        CtrlA .. CtrlZ:
           begin
             LazKey := Ord('A') + Ord(CharKey) - Ord(CtrlA);
-            Shift := [ssCtrl];
+            Shift := [{$ifdef DARWIN} ssMeta {$else} ssCtrl {$endif}];
           end;
       end;
   end;
@@ -1866,4 +1869,3 @@ initialization
 finalization
   FreeAndNil(CastleControls);
 end.
-
