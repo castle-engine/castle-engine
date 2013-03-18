@@ -92,7 +92,9 @@ end;
 
 procedure Idle(Window: TCastleWindowBase);
 begin
-  if Window.Pressed[K_F12] then MessageOk(Window, 'F12 key pressed. This is just a test that MessageOk works even from callbacks like OnIdle.', taLeft);
+  if Window.Pressed[K_F12] then
+    // MessageOk(Window, 'F12 key pressed. This is just a test that MessageOk works even from callbacks like OnIdle.', taLeft);
+    Window.MessageOk('F12 key pressed. This is just a test that MessageOk works even from callbacks like OnIdle.', mtInfo);
 end;
 
 procedure Timer(Window: TCastleWindowBase);
