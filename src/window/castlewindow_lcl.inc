@@ -47,8 +47,8 @@ private
 { TODO:
 
   Bugs on GTK2, not checked on Carbon:
-  - Switching fullscreen checkbox from view3dscene makes window without menu.
   - MouseLook stutters. Something similar to aggressive update needed?
+    (Not possible to check on Carbon now, since idle/timer is broken...)
 
   Bugs on GTK2, not on Carbon:
   - All radio menu items are always on. Why?
@@ -56,12 +56,18 @@ private
     The OpenGL control is not immediately resized to be smaller to accomodate
     menu space.
 
+  Bugs on Carbon and GTK2:
+  - Switching fullscreen checkbox from view3dscene makes window without menu.
+
   Bugs on Carbon, not checked elsewhere:
   - When TCastleWindowBase.MenuUpdateCheckedFast is false,
     changing some radio menus (like view3dscene display->4 viewports)
     make segfaults in Carbon widgetset, like our menu items were invalid.
     Now MenuUpdateCheckedFast is true, but maybe we have some related errors elsewhere
     when rebuilding menu?
+  - When opening many times new files using view3dscene open, also Carbon segfaults.
+    Again the above bug?
+  - Choosing quit from view3dscene global menu doesn't work.
 
   Missing:
   - Menu item shortcuts (display and handling)
