@@ -143,8 +143,6 @@
       many TMenuItemRadio items that create a new radio group
       (TMenuItemRadioGroup).
 
-      Otherwise, it creates new
-
       For each item of Items list, we'll add a new TMenuItemRadio instance.
 
       @unorderedList(
