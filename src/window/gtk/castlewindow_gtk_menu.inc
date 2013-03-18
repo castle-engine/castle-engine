@@ -352,22 +352,6 @@ begin
 end;
 
 procedure TCastleWindowBase.BackendMenuFinalize;
-
-  { Set Handle := nil for all menu entries }
-  procedure ClearMenuHandles(MenuEntry: TMenuEntry);
-  var
-    I: Integer;
-    Menu: TMenu;
-  begin
-    MenuEntry.Handle := nil;
-    if MenuEntry is TMenu then
-    begin
-      Menu := TMenu(MenuEntry);
-      for I := 0 to Menu.EntriesCount - 1 do
-        ClearMenuHandles(Menu[I]);
-    end;
-  end;
-
 begin
   if MenuRecreateForbidden <> 0 then Exit;
 
@@ -377,8 +361,7 @@ begin
     This will take care of removing MainMenu.Handle appropriately. }
   gtk_widget_destroy(GTK_WIDGET(MainMenu.Handle));
 
-  { Set Handle := nil everywhere }
-  ClearMenuHandles(MainMenu);
+  MainMenu.ClearHandles;
 end;
 
 { GTK >= 2.16 already includes "gtk_menu_item_set_label":

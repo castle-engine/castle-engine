@@ -39,7 +39,6 @@ private
 
 {$ifdef read_application_interface}
 private
-  QuitPosted: boolean;
   LastDoTimerTime: TMilisecTime;
 {$endif read_application_interface}
 
@@ -56,6 +55,13 @@ private
   - (Probably occurs on all widgetsets where menu is not global):
     The OpenGL control is not immediately resized to be smaller to accomodate
     menu space.
+
+  Bugs on Carbon, not checked elsewhere:
+  - When TCastleWindowBase.MenuUpdateCheckedFast is false,
+    changing some radio menus (like view3dscene display->4 viewports)
+    make segfaults in Carbon widgetset, like our menu items were invalid.
+    Now MenuUpdateCheckedFast is true, but maybe we have some related errors elsewhere
+    when rebuilding menu?
 
   Missing:
   - Menu item shortcuts (display and handling)
@@ -119,6 +125,7 @@ end;
 procedure TCastleWindowBase.BackendMenuFinalize;
 begin
   FreeAndNil(Menu);
+  MainMenu.ClearHandles;
 end;
 
 function CheckMenu(Entry: TMenuEntryWithCaption; out EntryLCL: Menus.TMenuItem): boolean;
@@ -166,7 +173,7 @@ end;
 
 function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
 begin
-  Result := false;
+  Result := true;
 end;
 
 procedure TCastleWindowBase.SwapBuffers;
@@ -446,7 +453,6 @@ end;
 procedure TGLApplication.CreateBackend;
 begin
   Forms.Application.Initialize;
-  QuitPosted := false;
 end;
 
 procedure TGLApplication.DestroyBackend;
@@ -455,11 +461,11 @@ end;
 
 function TGLApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 begin
-  if QuitPosted then Exit(false);
+  if Forms.Application.Terminated then Exit(false);
 
   { TODO: take WaitForMessage, WaitToLimitFPS into account }
   Forms.Application.ProcessMessages;
-  Result := not QuitPosted;
+  Result := not Forms.Application.Terminated;
 
   { Call idle and timer events of Application and all windows.
 
@@ -477,7 +483,7 @@ end;
 
 function TGLApplication.ProcessAllMessages: boolean;
 begin
-//  Result := not QuitPosted;
+//  Result := not Forms.Application.Terminated;
 //  while Result do
     Result := ProcessMessage(true, true);
 end;
@@ -511,7 +517,7 @@ end;
 
 procedure TGLApplication.QuitWhenNoOpenWindows;
 begin
-  QuitPosted := true;
+  Forms.Application.Terminate; // break also Forms.Application.Run
 end;
 
 function TGLApplication.ScreenWidth: integer;

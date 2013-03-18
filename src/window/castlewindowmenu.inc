@@ -41,7 +41,7 @@
 
     { Internal handle of this menu item within CastleWindow backend.
       This is used by CastleWindow backend implementation, to store the
-      intgernal resource corresponding to this menu entry.
+      internal resource corresponding to this menu entry.
       The exact interpretation depends on CastleWindow backend,
       and should not be messed with. }
     Handle: Pointer;
@@ -50,6 +50,9 @@
     FParentMenuPosition: Cardinal;
 
     function CorrectParentWindow: TCastleWindowBase;
+  protected
+    { Recursively clear TMenuEntry.Handle values. }
+    procedure ClearHandles; virtual;
   public
     { For optimization purposes, you may surround many menu changes
       inside MenuUpdateBegin + MenuUpdateEnd calls.
@@ -120,6 +123,8 @@
   private
     FEntries: TMenuEntryList;
     function GetEntries(Index: Integer): TMenuEntry;
+  protected
+    procedure ClearHandles; override;
   public
     { Items (entries) on the menu. Items are owned by this menu instance
       (are automatically freed at destruction, at EntryDelete and such). }
@@ -512,6 +517,11 @@ begin
   if P <> nil then P.MenuUpdateEnd;
 end;
 
+procedure TMenuEntry.ClearHandles;
+begin
+  Handle := nil;
+end;
+
 { TMenuEntryWithCaption ---------------------------------------- }
 
 constructor TMenuEntryWithCaption.Create(const ACaption: String);
@@ -635,6 +645,15 @@ begin
       Radio.Group := Result;
     Append(Radio);
   end;
+end;
+
+procedure TMenu.ClearHandles;
+var
+  I: Integer;
+begin
+  inherited;
+  for I := 0 to EntriesCount - 1 do
+    Entries[I].ClearHandles;
 end;
 
 { TMenuItem ------------------------------------------------------------ }
