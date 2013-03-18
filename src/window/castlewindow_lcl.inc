@@ -68,10 +68,6 @@ private
   - Choosing quit from view3dscene global menu doesn't work.
 
   Missing:
-  - Maybe OpenGLControl.OnExit will work better than Form.OnDeactivate?
-    Check then are manual ReleaseAllxxx inside dialog boxes functions
-    still needed, on Mac Os X and GTK2.
-    Check with window_events, once idle will again work.
   - Menu item shortcuts (display and handling)
   - Change Ctrl into Command automatically on Mac Os X? how lazarus handles it?
   - TCastleWindowBase.FullScreen apply at OpenBackend
@@ -202,6 +198,11 @@ begin
   Form.Cursor := CursorCastleToLCL[Cursor]; // SetCursor may also change it later
 
   Form.OnCloseQuery := @FormCloseQuery;
+  { Note: I tried also using OpenGLControl.OnExit for this, seems to be quivalent
+    in our case. And, similarly, both methods still need manual workaround
+    to call ReleaseAllKeysAndMouse manually in MessageOK and similar methods
+    (otherwise: check e.g. window_events with Window.MessageOk from Idle:
+    entering MessageOK *must* make ReleaseAllKeysAndMouse, otherwise it hangs.) }
   Form.OnDeactivate := @FormDeactivate;
 
   OpenGLControl := TOpenGLControl.Create(Form);
