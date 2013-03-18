@@ -49,9 +49,6 @@ private
 
   Bugs on GTK2, not on Carbon:
   - All radio menu items are always on. Why?
-  - (Probably occurs on all widgetsets where menu is not global):
-    The OpenGL control is not immediately resized to be smaller to accomodate
-    menu space.
 
   Bugs on Carbon and GTK2:
   - Switching fullscreen checkbox from view3dscene makes window without menu.
@@ -230,6 +227,12 @@ begin
   if MainMenu <> nil then MenuInitialize;
 
   Form.Visible := Visible;
+
+  { pass the actual OpenGLControl sizes (e.g. after accounting for MainMenu size
+    under GTK2 widgetset, actually under all widgetsets that do not have global
+    menu (like Mac OS X). DoResize is already implemented to handle such
+    call (from OpenBackend, before EventOpen was called) correctly. }
+  DoResize(OpenGLControl.Width, OpenGLControl.Height, false);
 
   { Assign OpenGLControl.OnPaint *after* making Form visible.
     If we would assign OpenGLControl.OnPaint earlier, then
