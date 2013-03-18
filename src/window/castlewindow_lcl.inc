@@ -497,6 +497,7 @@ begin
     That is because on some LCL widgetsets, you really need to run
     Forms.Application.Run, see e.g. Carbon that does special stuff inside
     TCarbonWidgetSet.AppRun inside lcl/interfaces/carbon/carbonobject.inc.
+    Without this, global menu on Carbon is always blocked.
 
     TODO: that's unfortunate, as our TCastleWindowBase interface
     promises that it's not necessary to call Run, it should be always
