@@ -70,6 +70,10 @@ private
   - Choosing quit from view3dscene global menu doesn't work.
 
   Missing:
+  - Maybe OpenGLControl.OnExit will work better than Form.OnDeactivate?
+    Check then are manual ReleaseAllxxx inside dialog boxes functions
+    still needed, on Mac Os X and GTK2.
+    Check with window_events, once idle will again work.
   - Menu item shortcuts (display and handling)
   - Change Ctrl into Command automatically on Mac Os X? how lazarus handles it?
   - TCastleWindowBase.FullScreen apply at OpenBackend
