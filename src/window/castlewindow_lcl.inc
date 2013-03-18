@@ -68,7 +68,6 @@ private
   - Choosing quit from view3dscene global menu doesn't work.
 
   Missing:
-  - Menu item shortcuts (display and handling)
   - Change Ctrl into Command automatically on Mac Os X? how lazarus handles it?
   - TCastleWindowBase.FullScreen apply at OpenBackend
   - TCastleWindowBase.ResizeAllowed apply at OpenBackend
@@ -82,6 +81,15 @@ begin
 end;
 
 procedure TCastleWindowBase.BackendMenuInitialize;
+
+  function MenuShortcutCastleToLCL(const Key: TKey; const CharKey: char): TShortCut;
+  var
+    LazKey: Word;
+    Shift: TShiftState;
+  begin
+    KeyCastleToLCL(Key, CharKey, LazKey, Shift);
+    Result := KeyToShortCut(LazKey, Shift);
+  end;
 
   procedure MenuCastleToLCL(MyMenu: TMenu; Menu: Menus.TMenuItem);
   var
@@ -97,6 +105,9 @@ procedure TCastleWindowBase.BackendMenuInitialize;
       { store connection both ways between LCL menu item <-> our menu entry }
       MenuItem.Tag := PtrInt(MyEntry);
       MyEntry.Handle := MenuItem;
+      if MyEntry is TMenuItem then
+        MenuItem.ShortCut := MenuShortcutCastleToLCL(
+          TMenuItem(MyEntry).Key, TMenuItem(MyEntry).CharKey);
       if MyEntry is TMenuEntryWithCaption then
       begin
         { set MenuItem.Caption and Enabled }
@@ -285,7 +296,7 @@ end;
 
 function TCastleWindowBase.RedirectKeyDownToMenuCommand: boolean;
 begin
-  Result := { TODO } true;
+  Result := false;
 end;
 
 procedure TCastleWindowBase.SetMousePosition(const NewMouseX, NewMouseY: Integer);
