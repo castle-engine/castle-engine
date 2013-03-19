@@ -227,12 +227,15 @@ begin
   OpenGLControl.Constraints.MinHeight := MinHeight;
   OpenGLControl.Constraints.MaxWidth := MaxWidth;
   OpenGLControl.Constraints.MaxHeight := MaxHeight;
+  OpenGLControl.TabStop := true;
 
   OpenGLControl.DoubleBuffered := DoubleBuffer;
   OpenGLControl.StencilBits := StencilBits;
   OpenGLControl.DepthBits := DepthBits;
   OpenGLControl.AlphaBits := AlphaBits;
   OpenGLControl.MultiSampling := MultiSampling;
+
+  Form.ActiveControl := OpenGLControl;
 
   if MainMenu <> nil then MenuInitialize;
 
