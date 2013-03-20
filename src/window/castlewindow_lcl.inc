@@ -53,6 +53,50 @@ private
 
   Bugs on Carbon and GTK2:
   - MouseLook stutters. Something similar to aggressive update needed?
+    Also, during dragging with mouse, e.g. rotating a model with Examine mode,
+    the Idle isn't called.
+    This is all just like with TCastleControl. Official comments:
+
+    The behavior of Lazarus application Idle events is such that they are executed
+    only when there are no events left to process. This makes sense, and actually
+    follows the docs and the name "idle".
+
+    However, our Idle events (which would be more appropriately named something
+    like Update events) expect to be run continously, that is: about the same number
+    of times per second as the screen Redraw (and if the screen doesn't need to be redrawn,
+    our Idle should still run a sensible number of times per second ---
+    around the same value as FPSLimit, or (when FPSLimit is set to 0, meaning "unused")
+    as many times as possible). For our Idle, it should not matter whether your event
+    loop has something left to process.
+
+    The problem is most obvious when moving the mouse, for example when using
+    the mouse look to walk and look around in Walk mode, or when dragging with mouse
+    in Examine mode. The event loop is then typically busy processing mouse move
+    events all the time, so it's never/seldom empty (note: it doesn't mean that
+    event loop is clogged, as mouse move events can be potentially accumulated
+    at various levels --- LCL, underlying widgetset like GTK, underlying system
+    like XWindows etc. I think in practice XWindows does it, but I'm not sure).
+    Our program should however still be responsive. Not only the screen should
+    be redrawn, regardless if our event loop is empty or not, but also
+    our Idle event should be continously called. But if we just use Lazarus Idle/Redraw
+    behavior (that descends from other widgetsets) then you may find that:
+    - during mouse look things "stutter" --- no Idle, not even Redraw, happens regularly.
+    - during mouse drag Redraw may be regular, but still Idle are not called
+      (so e.g. animations do not move, instead they suddenly jump a couple of seconds
+      forward when you stop dragging after a couple of seconds).
+
+    TODO:
+    - cleanup implementation of "aggresive update" in CastleControl
+      (it's a little hacky in CastleControl, it could be more integrated to use FPSLimit
+      and just cleaner)
+    - make it enabled by default
+    - possibly move it to CastleTimeUtils
+    - reuse it here
+    
+    TODO: also, rename our Idle to Update? This would make the distinction clear,
+    our "Idle" name is really a leftover from ancient times (where it was common
+    to use glut idle callback for similar purposes).
+
   - (untested on GTK2, confirmed on Carbon)
     MainMenu.Enabled doesn't work,
     e.g. when you do command+r menu is not disabled in view3dscene.
