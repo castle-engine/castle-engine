@@ -56,6 +56,8 @@ private
   - (untested on GTK2, confirmed on Carbon)
     MainMenu.Enabled doesn't work,
     e.g. when you do command+r menu is not disabled in view3dscene.
+  - (untested on GTK2, confirmed on Carbon)
+    Hiding cursor doesn't work (e.g. in MouseLook)
 
   Bugs on Carbon, not on GTK2:
   - When TCastleWindowBase.MenuUpdateCheckedFast is false,
@@ -65,7 +67,6 @@ private
     when rebuilding menu?
   - When opening many times new files using view3dscene open, also Carbon segfaults.
     Again the above bug?
-  - Choosing quit from view3dscene global menu doesn't work.
   - Using command+o to open file in view3dscene shows open dialog twice.
     Same when using command+r, which shows our own MessageXxx.
 
@@ -197,7 +198,30 @@ end;
 
 procedure TCastleWindowBase.OpenBackend;
 begin
-  Form := TForm.CreateNew(nil);
+  { A hacky way to create and set our Form as Forms.Application.MainForm.
+
+    We really want our Form to be set as Forms.Application.MainForm,
+    as that's the only way to capture (in form close event)
+    the Mac OS X "ProjectName -> Quit" automatic menu item (see
+    http://bugs.freepascal.org/view.php?id=10983).
+    But there is no way to nicely set MainForm, instead we have to use
+    mechanism that "the first form created by Application.CreateForm
+    is set as main", see http://www.lazarus.freepascal.org/index.php?topic=14438.0
+    and LCL sources of TApplication.UpdateMainForm.
+    So we have to use Application.CreateForm for this, which in turn means
+    we have to use ugly "RequireDerivedFormResource := false" (because our
+    form does not have a resource, but Application.CreateForm always looks
+    for resource).
+
+    What we would like to do is
+      Form := TForm.CreateNew(nil);
+      Forms.Application.MainForm := Form;
+    but MainForm is not settable. Or have another way to capture Mac OS X
+    "ProjectName -> Quit" automatic menu item. }
+
+  RequireDerivedFormResource := false;
+  Forms.Application.CreateForm(TForm, Form);
+
   Form.Top := Top;
   Form.Left := Left;
   { We would prefer to leave Form.AutoSize := true and allow form to adjust
