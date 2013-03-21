@@ -92,7 +92,7 @@ private
     - make it enabled by default
     - possibly move it to CastleTimeUtils
     - reuse it here
-    
+
     TODO: also, rename our Idle to Update? This would make the distinction clear,
     our "Idle" name is really a leftover from ancient times (where it was common
     to use glut idle callback for similar purposes).
@@ -122,9 +122,9 @@ private
 
 type
   { Descendant of LCL TMenuItem that captures IntfDoSelect, which is fired on GTK2
-    event 'select' on menu item, which we have to capture to call 
+    event 'select' on menu item, which we have to capture to call
     ReleaseAllKeysAndMouse.
-    
+
     Just like in our gtk/castlewindow_gtk_menu.inc: capturing 'select' GTK
     event is the only way to capture when user opened menu bar.
     And we need to capture it, to work with GTK2 and menu bar,
@@ -268,28 +268,27 @@ end;
 
 procedure TCastleWindowBase.OpenBackend;
 begin
-  { A hacky way to create and set our Form as Forms.Application.MainForm.
+  { We use Forms.Application.CreateForm, not just "Form := TForm.CreateNew(nil)",
+    because we want our Form to be set as Forms.Application.MainForm.
 
-    We really want our Form to be set as Forms.Application.MainForm,
-    as that's the only way to capture (in form close event)
-    the Mac OS X "ProjectName -> Quit" automatic menu item (see
-    http://bugs.freepascal.org/view.php?id=10983).
-    But there is no way to nicely set MainForm, instead we have to use
-    mechanism that "the first form created by Application.CreateForm
+    And there is no other way to set Forms.Application.MainForm,
+    we have to use mechanism that "the first form created by Application.CreateForm
     is set as main", see http://www.lazarus.freepascal.org/index.php?topic=14438.0
     and LCL sources of TApplication.UpdateMainForm.
-    So we have to use Application.CreateForm for this, which in turn means
-    we have to use ugly "RequireDerivedFormResource := false" (because our
-    form does not have a resource, but Application.CreateForm always looks
-    for resource).
+    The "Forms.Application.MainForm" property is not directly settable.
 
-    What we would like to do is
-      Form := TForm.CreateNew(nil);
-      Forms.Application.MainForm := Form;
-    but MainForm is not settable. Or have another way to capture Mac OS X
-    "ProjectName -> Quit" automatic menu item. }
+    And we need to have a main form, as that's the only way to capture (in form
+    close event) the Mac OS X "ProjectName -> Quit" automatic menu item (see
+    http://bugs.freepascal.org/view.php?id=10983).
 
-  RequireDerivedFormResource := false;
+    Note: This would be a problem if we used TForm descendant,
+    as then Forms.Application.CreateForm would search for a related resource.
+    Unless we set RequireDerivedFormResource to false (which actually
+    is the default RequireDerivedFormResource value for now, but the adviced
+    value is true).
+    Fortunately, the whole resource-searching is not used when we just
+    have a TForm class (see TCustomForm.Create in LCL), so that's not a problem. }
+
   Forms.Application.CreateForm(TForm, Form);
 
   Form.Top := Top;
