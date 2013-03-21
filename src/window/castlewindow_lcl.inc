@@ -121,19 +121,24 @@ private
 { TGoodMenuItem ---------------------------------------------------------------- }
 
 type
-  { Descendant of LCL TMenuItem that captures IntfDoSelect, which is fired on GTK2
-    event 'select' on menu item, which we have to capture to call
-    ReleaseAllKeysAndMouse.
-
-    Just like in our gtk/castlewindow_gtk_menu.inc: capturing 'select' GTK
-    event is the only way to capture when user opened menu bar.
-    And we need to capture it, to work with GTK2 and menu bar,
-    e.g. when you use Alt+F to reach "File" menu, do not keep "Alt" key in
-    the pressed state indefinitely (e.g. it would make camera keys non-working
-    after opening a file using Alt+F and recent files in view3dscene). }
+  { Descendant of LCL TMenuItem used for our menu. }
   TGoodMenuItem = class(Menus.TMenuItem)
   protected
     Window: TCastleWindowBase;
+    Entry: TMenuEntry;
+
+    { Capture IntfDoSelect, which is fired on GTK2
+      event 'select' on menu item, which we have to capture to call
+      ReleaseAllKeysAndMouse.
+
+      Just like in our gtk/castlewindow_gtk_menu.inc: capturing 'select' GTK2
+      event is the only way to capture when user opened menu bar.
+      And we need to capture it, to work with GTK2 and menu bar,
+      e.g. when you use Alt+F to reach "File" menu, do not keep "Alt" key in
+      the pressed state indefinitely (e.g. it would make camera keys non-working
+      after opening a file using Alt+F and recent files in view3dscene).
+
+      This should be also harmless on other non-GTK2 widgetsets. }
     procedure IntfDoSelect; override;
   end;
 
@@ -173,7 +178,7 @@ procedure TCastleWindowBase.BackendMenuInitialize;
       MenuItem.Window := Self;
       MenuItem.OnClick := @MenuItemClick;
       { store connection both ways between LCL menu item <-> our menu entry }
-      MenuItem.Tag := PtrInt(MyEntry);
+      MenuItem.Entry := MyEntry;
       MyEntry.Handle := MenuItem;
       if MyEntry is TMenuItem then
         MenuItem.ShortCut := MenuShortcutCastleToLCL(
@@ -420,20 +425,17 @@ end;
 
 procedure TCastleWindowBase.MenuItemClick(Sender: TObject);
 var
-  SenderTag: TObject;
+  Entry: TMenuEntry;
 begin
-  if Sender is Menus.TMenuItem then
+  Entry := (Sender as TGoodMenuItem).Entry;
+  if Entry is TMenuItem then
   begin
-    SenderTag := TObject(Pointer(Menus.TMenuItem(Sender).Tag));
-    if SenderTag is TMenuItem then
-    begin
-      { It seems that checked menu item is always automatically swapped,
-        at least with LCL-GTK2. So manually revert it to original setting,
-        as we don't want this (DoMenuCommand will change Checked as necessary). }
-      if SenderTag is TMenuItemChecked then
-        MenuUpdateChecked(TMenuItemChecked(SenderTag));
-      DoMenuCommand(TMenuItem(SenderTag));
-    end;
+    { It seems that checked menu item is always automatically swapped,
+      at least with LCL-GTK2. So manually revert it to original setting,
+      as we don't want this (DoMenuCommand will change Checked as necessary). }
+    if Entry is TMenuItemChecked then
+      MenuUpdateChecked(TMenuItemChecked(Entry));
+    DoMenuCommand(TMenuItem(Entry));
   end;
 end;
 
