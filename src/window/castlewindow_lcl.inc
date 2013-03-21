@@ -118,6 +118,31 @@ private
   - TCastleWindowBase.AccumBits: not possible to express in TOpenGLControl now
 }
 
+{ TGoodMenuItem ---------------------------------------------------------------- }
+
+type
+  { Descendant of LCL TMenuItem that captures IntfDoSelect, which is fired on GTK2
+    event 'select' on menu item, which we have to capture to call 
+    ReleaseAllKeysAndMouse.
+    
+    Just like in our gtk/castlewindow_gtk_menu.inc: capturing 'select' GTK
+    event is the only way to capture when user opened menu bar.
+    And we need to capture it, to work with GTK2 and menu bar,
+    e.g. when you use Alt+F to reach "File" menu, do not keep "Alt" key in
+    the pressed state indefinitely (e.g. it would make camera keys non-working
+    after opening a file using Alt+F and recent files in view3dscene). }
+  TGoodMenuItem = class(Menus.TMenuItem)
+  protected
+    Window: TCastleWindowBase;
+    procedure IntfDoSelect; override;
+  end;
+
+procedure TGoodMenuItem.IntfDoSelect;
+begin
+  inherited;
+  Window.ReleaseAllKeysAndMouse;
+end;
+
 { TCastleWindowBase ------------------------------------------------------------------ }
 
 procedure TCastleWindowBase.CreateBackend;
@@ -137,14 +162,15 @@ procedure TCastleWindowBase.BackendMenuInitialize;
 
   procedure MenuCastleToLCL(MyMenu: TMenu; Menu: Menus.TMenuItem);
   var
-    MenuItem: Menus.TMenuItem;
+    MenuItem: TGoodMenuItem;
     MyEntry: TMenuEntry;
     I: Integer;
   begin
     for I := 0 to MyMenu.EntriesCount - 1 do
     begin
       MyEntry := MyMenu.Entries[I];
-      MenuItem := Menus.TMenuItem.Create(Form);
+      MenuItem := TGoodMenuItem.Create(Form);
+      MenuItem.Window := Self;
       MenuItem.OnClick := @MenuItemClick;
       { store connection both ways between LCL menu item <-> our menu entry }
       MenuItem.Tag := PtrInt(MyEntry);
@@ -514,7 +540,7 @@ begin
       Dialog.FileName := SysToUTF8(ExtractFileName(ExpandedFileName));
     end;
     FileFiltersToDialog(FileFilters, Dialog);
-    FormDeactivate(Form); // do it manually
+    ReleaseAllKeysAndMouse; // do it manually
     Result := Dialog.Execute;
     if Result then
       FileName := UTF8ToSys(Dialog.FileName);
@@ -530,7 +556,7 @@ begin
   try
     ColorByte := Vector3Byte(Color);
     Dialog.Color := RGBToColor(ColorByte[0], ColorByte[1], ColorByte[2]);
-    FormDeactivate(Form); // do it manually
+    ReleaseAllKeysAndMouse; // do it manually
     Result := Dialog.Execute;
     if Result then
     begin
@@ -545,14 +571,14 @@ const
   MessageTypeCastleToLCL: array [TWindowMessageType] of TMsgDlgType =
   (Dialogs.mtInformation, Dialogs.mtWarning, Dialogs.mtConfirmation, Dialogs.mtError, Dialogs.mtCustom);
 begin
-  FormDeactivate(Form); // do it manually
+  ReleaseAllKeysAndMouse; // do it manually
   MessageDlg(S, MessageTypeCastleToLCL[MessageType], [mbOK], 0);
 end;
 
 function TCastleWindowBase.MessageYesNo(const S: string;
   const MessageType: TWindowMessageType): boolean;
 begin
-  FormDeactivate(Form); // do it manually
+  ReleaseAllKeysAndMouse; // do it manually
   Result := MessageDlg(S, mtConfirmation, mbYesNo, 0) = mrYes;
 end;
 
