@@ -135,7 +135,7 @@ end;
 
 { Methods below should make native-looking dialog boxes.
   Alternatively, you can include castlewindow_dialogs_by_messages.inc,
-  to have simple dialog boxes drawn on OpenGL context using our GLWinMessages
+  to have simple dialog boxes drawn on OpenGL context using our CastleMessages
   unit. }
 { $I castlewindow_dialogs_by_messages.inc}
 
