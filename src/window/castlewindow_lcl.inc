@@ -116,7 +116,7 @@ private
 type
   { Descendant of LCL TMenuItem used for our menu. }
   TGoodMenuItem = class(Menus.TMenuItem)
-  protected
+  public
     Window: TCastleWindowBase;
     Entry: TMenuEntry;
 
