@@ -17,7 +17,7 @@
   Simple test of CastleDownloader unit.
   TODO: move to examples dir. }
 
-uses SysUtils, Classes, CastleDownloader, CastleParameters, CastleClassUtils,
+uses SysUtils, Classes, CastleDownload, CastleParameters, CastleClassUtils,
   CastleLog;
 var
   Stream: TStream;
@@ -25,7 +25,7 @@ begin
   EnableNetwork := true;
   InitializeLog('1.0.0');
   Parameters.CheckHigh(1);
-  Stream := DownloadURL(Parameters[1]);
+  Stream := Download(Parameters[1]);
   try
     ReadGrowingStream(Stream, StdOutStream, false);
   finally FreeAndNil(Stream) end;

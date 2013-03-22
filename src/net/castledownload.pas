@@ -14,7 +14,7 @@
 }
 
 { Download URLs. }
-unit CastleDownloader;
+unit CastleDownload;
 
 { TODO:
   Problems of FpHttpClient:
@@ -29,7 +29,7 @@ interface
 uses SysUtils, Classes, FpHttpClient;
 
 var
-  { Can DownloadURL actually use the network.
+  { Can @link(Download) actually use the network.
     As all the downloading is blocking for now, this is initially @false.
     If you want to really use the network, change it to @true. }
   EnableNetwork: boolean = false;
@@ -47,17 +47,17 @@ type
   without using any networking library. Set EnableNetwork to @true
   to have also support for network protocols (right now only http,
   handled by FpHttpClient). }
-function DownloadURL(const URL: string): TStream;
+function Download(const URL: string): TStream;
 
 implementation
 
 uses URIParser, CastleUtils, CastleLog;
 
-{ Just like DownloadURL, but
+{ Just like Download, but
   - Assumes that the URL is from the network (this prevents network URLs
     redirecting to local URLs),
   - Limits the number of redirects to given value. }
-function NetworkDownloadURL(const URL: string; const MaxRedirects: Cardinal): TStream;
+function NetworkDownload(const URL: string; const MaxRedirects: Cardinal): TStream;
 var
   Client: TFPHTTPClient;
   RedirectLocation: string;
@@ -81,13 +81,13 @@ begin
         raise EDownloadError.Create('Cannot download resource, maximum number of redirects reached. Possible redirect loop');
       WritelnLog('Network', 'Following HTTP redirect (code %d) to "%s"',
         [Client.ResponseStatusCode, RedirectLocation]);
-      Exit(NetworkDownloadURL(RedirectLocation, MaxRedirects - 1));
+      Exit(NetworkDownload(RedirectLocation, MaxRedirects - 1));
     end;
   finally FreeAndNil(Client) end;
   Result.Position := 0; { rewind for easy reading }
 end;
 
-function DownloadURL(const URL: string): TStream;
+function Download(const URL: string): TStream;
 var
   URI: TURI;
   P, FileName: string;
@@ -101,7 +101,7 @@ begin
   if EnableNetwork and (CompareText(P, 'http') = 0) then
   begin
     WritelnLog('Network', 'Downloading "%s"', [URL]);
-    Result := NetworkDownloadURL(URL, MaxRedirects);
+    Result := NetworkDownload(URL, MaxRedirects);
   end else
 
   { local filenames are directly handled, without the need for any downloader }
