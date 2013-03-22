@@ -96,10 +96,6 @@ private
     our "Idle" name is really a leftover from ancient times (where it was common
     to use glut idle callback for similar purposes).
 
-  - (untested on GTK2, confirmed on Carbon)
-    MainMenu.Enabled doesn't work,
-    e.g. when you do command+r menu is not disabled in view3dscene.
-
   Bugs on Carbon, not on GTK2:
   - When TCastleWindowBase.MenuUpdateCheckedFast is false,
     changing some radio menus (like view3dscene display->4 viewports)
@@ -204,19 +200,9 @@ procedure TCastleWindowBase.BackendMenuInitialize;
 
 begin
   Menu := TMainMenu.Create(Form);
-
   { connet Menu with Form }
   Menu.Parent := Form;
   Form.Menu := Menu;
-
-  { connect our MainMenu with LCL Menu.Items.
-    Note that connection the other way (from Menu.Items to MainMenu)
-    is not needed, as we don't handle Menu.Items.OnClick (it would also
-    be impossible now, as Menu.Items is not of TGoodMenuItem class). }
-  MainMenu.Handle := Menu.Items;
-  { TODO: under GTK2 Menu.Items.Enabled is ignored? }
-  MenuUpdateEnabled(MainMenu); // apply initial MainMenu.Enabled value
-
   MenuCastleToLCL(MainMenu, Menu.Items);
 end;
 
@@ -257,8 +243,24 @@ procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 var
   EntryLCL: Menus.TMenuItem;
 begin
+  { To apply MainMenu.Enabled: we would prefer to map MainMenu.Enabled
+    on LCL Menu.Items.Enabled, and just handle MainMenu.Enabled like
+    every other menu item. But LCL (at least GTK2 and Carbon) seems to
+    completely ignore Menu.Items.Enabled.
+
+    So to do make it work, we
+    - always combine MainMenu.Enabled with particular item's Enabled value
+      (in particular, this way BackendMenuInitialize applies it to every item).
+    - at MenuUpdateEnabled for MainMenu, just rebuild whole menu in this case. }
+  if Entry = MainMenu then
+  begin
+    MenuFinalize;
+    MenuInitialize;
+    Exit;
+  end;
+
   if not CheckMenu(Entry, EntryLCL) then Exit;
-  EntryLCL.Enabled := Entry.Enabled;
+  EntryLCL.Enabled := Entry.Enabled and  MainMenu.Enabled;
 end;
 
 procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
