@@ -1,5 +1,5 @@
 {
-  Copyright 2013 Michalis Kamburelis and FPC team.
+  Copyright 2013 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,24 +16,26 @@
 { Download URLs. }
 unit CastleDownloader;
 
+{ TODO:
+  Problems of FpHttpClient:
+  - Get crashes on URLs with only host name without trailing slash,
+    like http://google.pl . I'm not sure are these valid URLs --- anyway,
+    people use them.
+  - Get leaks memory on larger files? Like http://maps.com.pl/ .
+}
+
 interface
 
-uses Classes, PkgDownload;
-
-const
-  { Default downloader to use.
-
-    As all the downloading is blocking for now, the default downloader
-    is the one that doesn't actually handle any network protocols,
-    only local filenames.
-
-    If you want to actually use the network, then include
-    any unit like PkgWget, PkgLNet, PkgLibCurl or such,
-    and change the @link(Downloader) value. }
-  DefaultDownloader = 'base';
+uses SysUtils, Classes, FpHttpClient;
 
 var
-  Downloader: string = DefaultDownloader;
+  { Can DownloadURL actually use the network.
+    As all the downloading is blocking for now, this is initially @false.
+    If you want to really use the network, change it to @true. }
+  EnableNetwork: boolean = false;
+
+type
+  EDownloadError = class(Exception);
 
 { Return a stream to read given URL.
   Returned stream is suitable only for reading, and the initial position
@@ -41,66 +43,72 @@ var
 
   All errors are reported by raising exceptions.
 
-  Uses PkgDownload (the same downloader as used by fppkg)
-  which makes the downloading library pluggable.
-  Various options are already provided in FPC sources:
-
-  @unorderedList(
-    @item(lnet (PkgLNet in ~/sources/fpc/trunk/utils/fppkg/ ,
-      depends on LNet Pascal library that is already available
-      inside ~/sources/fpc/trunk/utils/fppkg/lnet),)
-
-    @item(synapse (PkgSynapse in ~/sources/fpc/trunk/utils/fppkg/examples/pkgsynapse.pp ,
-      depeneds on Synapse Pascal library that you have to download yourself),)
-
-    @item(libcurl (PkgLibCurl in ~/sources/fpc/trunk/utils/fppkg/examples/pkglibcurl.pp ,
-      depends that libcurl dynamic library is installed on user system),)
-
-    @item(wget (PkgWget ~/sources/fpc/trunk/packages/fppkg/src/pkgwget.pp ,
-      depends that wget command-line utility is installed  on user system).)
-  )
-
   A local file URL (or the URL without any protocol) is always supported,
-  without using any networking library.
-}
+  without using any networking library. Set EnableNetwork to @true
+  to have also support for network protocols (right now only http,
+  handled by FpHttpClient). }
 function DownloadURL(const URL: string): TStream;
 
 implementation
 
-uses SysUtils, URIParser, PkgGlobals, PkgMessages, CastleLog;
+uses URIParser, CastleUtils, CastleLog;
+
+{ Just like DownloadURL, but
+  - Assumes that the URL is from the network (this prevents network URLs
+    redirecting to local URLs),
+  - Limits the number of redirects to given value. }
+function NetworkDownloadURL(const URL: string; const MaxRedirects: Cardinal): TStream;
+var
+  Client: TFPHTTPClient;
+  RedirectLocation: string;
+begin
+  Result := TMemoryStream.Create;
+  Client := TFPHTTPClient.Create(nil);
+  try
+    { do not simply use Client.Get(URL, Result), as it cannot handle redirects }
+    Client.HTTPMethod('GET', URL, Result, [200,
+      { redirect status codes, see http://en.wikipedia.org/wiki/HTTP_302 }
+      301, 302, 303, 307]);
+    if Client.ResponseStatusCode <> 200 then
+    begin
+      FreeAndNil(Result);
+      // Writeln(Client.ResponseHeaders.Text);
+      Client.ResponseHeaders.NameValueSeparator := ':';
+      RedirectLocation := Trim(Client.ResponseHeaders.Values['Location']);
+      if RedirectLocation = '' then
+        raise EDownloadError.Create('HTTP redirect location is not set');
+      if MaxRedirects = 0 then
+        raise EDownloadError.Create('Cannot download resource, maximum number of redirects reached. Possible redirect loop');
+      WritelnLog('Network', 'Following HTTP redirect (code %d) to "%s"',
+        [Client.ResponseStatusCode, RedirectLocation]);
+      Exit(NetworkDownloadURL(RedirectLocation, MaxRedirects - 1));
+    end;
+  finally FreeAndNil(Client) end;
+  Result.Position := 0; { rewind for easy reading }
+end;
 
 function DownloadURL(const URL: string): TStream;
 var
   URI: TURI;
   P, FileName: string;
-  DownloaderClass: TBaseDownloaderClass;
-  D: TBaseDownloader;
+const
+  MaxRedirects = 32;
 begin
   URI := ParseURI(URL);
   P := URI.Protocol;
 
-  { network protocols create TBaseDownloaderClass that gets data into
-    a new TMemoryStream }
-  if (CompareText(P, 'ftp') = 0) or
-     (CompareText(P, 'http') = 0) then
+  { network protocols: get data into a new TMemoryStream using FpHttpClient }
+  if EnableNetwork and (CompareText(P, 'http') = 0) then
   begin
-    Result := TMemoryStream.Create;
-    DownloaderClass := GetDownloader(Downloader);
-    D := DownloaderClass.Create(nil);
-    try
-      { We would like to call D.FTPDownload or D.HTTPDownload directly,
-        to avoid duplicating URI-parsing inside D.Download,
-        but we can't: FTPDownload and HTTPDownload are protected. }
-      D.Download(URL, Result);
-    finally FreeAndNil(D) end;
-    Result.Position := 0; { rewind for easy reading }
+    WritelnLog('Network', 'Downloading "%s"', [URL]);
+    Result := NetworkDownloadURL(URL, MaxRedirects);
   end else
 
   { local filenames are directly handled, without the need for any downloader }
   if (P = '') or (CompareText(P, 'file') = 0) then
   begin
     if not URIToFilename(URL, FileName) then
-      Error('Cannot convert URL "%s" to filename', [URL]);
+      raise EDownloadError.CreateFmt('Cannot convert URL "%s" to filename', [URL]);
 
     { TODO: TFileStream is not buffered (on some platforms).
       Make an option to just load this to TMemoryStream
@@ -118,42 +126,7 @@ begin
     Result := TFileStream.Create(FileName, fmOpenRead);
   end else
 
-    Error(SErrUnknownProtocol,[P]);
+    raise EDownloadError.CreateFmt('Downloading from protocol "%s" is not supported', [P]);
 end;
 
-{ Handler for PkgDownload log messages. Converts them to our CastleLog.
-  This is actually unused now, as the parts of PkgDownload that we call
-  do not make log messages in current PkgDownload implementation
-  (but this may change in the future). }
-procedure LogCmd(Level:TLogLevel; Const Msg: String);
-var
-  Prefix : string;
-begin
-  { Note: we ignore if (Level in LogLevels) for now, just show all log messages. }
-  if Log then
-  begin
-    Prefix:='';
-    case Level of
-      vlWarning :
-        Prefix:=SWarning;
-      vlError :
-        Prefix:=SError;
-  {    vlInfo :
-        Prefix:='I: ';
-      vlCommands :
-        Prefix:='C: ';
-      vlDebug :
-        Prefix:='D: '; }
-    end;
-    WritelnLog('Download', Prefix + Msg);
-  end;
-end;
-
-initialization
-  { PkgGlobals registers it's own handlers for OnGetVendorName
-    and OnGetApplicationName. Workaround this by resetting them. }
-  OnGetVendorName := nil;
-  OnGetApplicationName := nil;
-
-  LogHandler := @LogCmd;
 end.
