@@ -163,7 +163,7 @@
       Then you have to assign such menu structure
       to TCastleWindowBase.MainMenu property. When CastleWindow is implemented on top
       of GTK_2 or WINAPI or GLUT we will show this menu and call
-      TCastleWindowBase.EventMenuCommand (TCastleWindowBase.OnMenuCommand) when user clicks some menu item.
+      TCastleWindowBase.EventMenuClick (TCastleWindowBase.OnMenuClick) when user clicks some menu item.
       Other backends (XLIB for now) ignore MainMenu.
 
       See @code(castle_game_engine/examples/window/window_menu.lpr)
@@ -648,7 +648,7 @@ type
   TDrawFunc = TWindowFunc;
   TMouseMoveFunc = procedure (Window: TCastleWindowBase; NewX, NewY: Integer);
   TInputPressReleaseFunc = procedure (Window: TCastleWindowBase; const Event: TInputPressRelease);
-  TMenuCommandFunc = procedure (Window: TCastleWindowBase; Item: TMenuItem);
+  TMenuClickFunc = procedure (Window: TCastleWindowBase; Item: TMenuItem);
   TGLContextRetryOpenFunc = function (Window: TCastleWindowBase): boolean;
 
   { }
@@ -740,7 +740,7 @@ type
         ResizeAllowed (DoResize already implements appropriate
           checks, but implementation should provide user with visual clues that
           the window may / may not be resized)
-        MainMenu (display MainMenu and provide way to call DoMenuCommand)
+        MainMenu (display MainMenu and provide way to call DoMenuClick)
 
       OpenGL context must be initialized honouring these properties:
         DoubleBuffer, StencilBits, DepthBits, AlphaBits,
@@ -852,20 +852,20 @@ type
       przy pomocy myszy i klawiatury. }
     procedure ReleaseAllKeysAndMouse;
 
-    { Should DoKeyDown be able to call DoMenuCommand, that is should
+    { Should DoKeyDown be able to call DoMenuClick, that is should
       we handle menu key shortcuts ourselves.
 
       This is implemented in backend-specific CastleWindow parts.
       When in DoKeyDown we get some key event that specifies that
-      some menu item should be called -- if RedirectKeyDownToMenuCommand,
-      DoKeyDown will do DoMenuCommand. Else DoKeyDown will do nothing.
+      some menu item should be called -- if RedirectKeyDownToMenuClick,
+      DoKeyDown will do DoMenuClick. Else DoKeyDown will do nothing.
 
       This should be implemened as "Result := true" if we have to process
       keypresses in CastleWindow to pass them as menu commands, e.g. when CastleWindow
       works on top of glut or Xlib.
       When CastleWindow works on top of GTK or WinAPI that allow us to do a "real"
       menu, this should be implemented as "Result := false". }
-    function RedirectKeyDownToMenuCommand: boolean;
+    function RedirectKeyDownToMenuClick: boolean;
 
     { DoXxx methods ------------------------------------------------------------
 
@@ -953,7 +953,7 @@ type
 
       This will
          update Pressed (Pressed.Keys, Pressed.Characters, etc.) accordingly,
-         DoKeyDown: may here call DoMenuCommand
+         DoKeyDown: may here call DoMenuClick
            (and then it will NOT call MakeCurrent and EventKeyDown)
          MakeCurrent,
          EventKeyDown/Up.
@@ -978,9 +978,9 @@ type
     { Just call it when user presses some MenuItem.
       This takes care of MainMenu.Enabled,
         MakeCurent,
-        Item.DoCommand,
-        optional EventMenuCommand or EventKeyDown }
-    procedure DoMenuCommand(Item: TMenuItem);
+        Item.DoClick,
+        optional EventMenuClick or EventKeyDown }
+    procedure DoMenuClick(Item: TMenuItem);
 
     procedure OpenCore;
     { Current OpenGL buffers configuration required.
@@ -1060,7 +1060,7 @@ type
     procedure EventMouseMove(newX, newY: integer); virtual;
     procedure EventIdle; virtual;
     procedure EventTimer; virtual;
-    procedure EventMenuCommand(Item: TMenuItem); virtual;
+    procedure EventMenuClick(Item: TMenuItem); virtual;
     { @groupEnd }
 
     { Is it allowed to suspend (for an indefinite amount of time) waiting
@@ -1658,7 +1658,7 @@ end;
   private
     FMainMenu: TMenu;
     FOwnsMainMenu: boolean;
-    FOnMenuCommand: TMenuCommandFunc;
+    FOnMenuClick: TMenuClickFunc;
     FUserData: Pointer;
     procedure SetMainMenu(Value: TMenu);
   public
@@ -1686,16 +1686,16 @@ end;
       for all menu items inside, of course).
       You can use this to disallow user from clicking on the whole
       menu. When MainMenu.Enabled = @false then
-      no MenuItem.DoCommand, no EventMenuCommand
+      no MenuItem.DoClick, no EventMenuClick
       will be called when user presses some menu item.
       When user presses some keyboard shortcut for some menu item,
-      no MenuItem.DoCommand and no EventMenuCommand will be called,
+      no MenuItem.DoClick and no EventMenuClick will be called,
       but instead normal EventPress (OnPress) will be called.
 
       When it is useful to set this to false?
       For example hen using CastleWindowModes. When you're changing modes (e.g. at the
       beginning of CastleMessages.MessageOk) you're temporary setting
-      OnMenuCommand to nil, but this doesn't block TMenuItem.DoCommand
+      OnMenuClick to nil, but this doesn't block TMenuItem.DoClick
       functions. The only way to block menu from triggering ANY event is to
       set this to MainMenu.Enabled to @false. }
     property MainMenu: TMenu read FMainMenu write SetMainMenu;
@@ -1705,10 +1705,13 @@ end;
     property OwnsMainMenu: boolean read FOwnsMainMenu write FOwnsMainMenu default true;
 
     { Called each time user chooses some menu item and it's not handled
-      in TMenuItem.DoCommand. By default, menu item handling is passed
-      to TMenuItem.DoCommand. Only when it return @false (not handled) then
+      in TMenuItem.DoClick. By default, menu item handling is passed
+      to TMenuItem.DoClick. Only when it return @false (not handled) then
       we call this window's event. }
-    property OnMenuCommand: TMenuCommandFunc read FOnMenuCommand write FOnMenuCommand;
+    property OnMenuClick: TMenuClickFunc read FOnMenuClick write FOnMenuClick;
+
+    { Deprecated name for OnMenuClick. }
+    property OnMenuCommand: TMenuClickFunc read FOnMenuClick write FOnMenuClick; deprecated;
 
     { @section(Mouse state) -------------------------------------------------- }
 
@@ -2037,7 +2040,7 @@ end;
       the trailing newline (newline char after the last line).
 
       Returned help text conforms to rules in
-      @code(castle_game_engine/doc/various/kambi_command_line_params.txt).
+      @code(castle_game_engine/doc/kambi_command_line_params.txt).
 
       If AddHeader then it adds line saying @code('Window options:')
       (and showing backend name, for debug purposes)
@@ -3235,8 +3238,8 @@ begin
     MainMenu.Enabled and
     (MatchingMI <> nil) then
  begin
-  if RedirectKeyDownToMenuCommand then
-   DoMenuCommand(MatchingMI);
+  if RedirectKeyDownToMenuClick then
+   DoMenuClick(MatchingMI);
  end else
  begin
   MakeCurrent;
@@ -3299,17 +3302,17 @@ end;
 
 procedure TCastleWindowBase.DoTimer; begin  MakeCurrent; EventTimer end;
 
-procedure TCastleWindowBase.DoMenuCommand(Item: TMenuItem);
+procedure TCastleWindowBase.DoMenuClick(Item: TMenuItem);
 begin
  if (MainMenu <> nil) and (not MainMenu.Enabled) then Exit;
 
  MakeCurrent;
- if Item.DoCommand then Exit;
+ if Item.DoClick then Exit;
 
- { Maybe Item.DoCommand changed current OpenGL context and returned false?
+ { Maybe Item.DoClick changed current OpenGL context and returned false?
    We want to be safe, so we do here MakeCurrent again. }
  MakeCurrent;
- EventMenuCommand(Item);
+ EventMenuClick(Item);
 end;
 
 { funkcje EventXxx ktore sa wirtualne i sa GWARANTOWANE ze w klasie bazowej
@@ -3333,7 +3336,7 @@ procedure TCastleWindowBase.EventResize;                            const EventN
 {$undef BONUS_LOG_STRING}
 procedure TCastleWindowBase.EventPress(const Event: TInputPressRelease);       const EventName = 'Press';    begin {$I castlewindow_eventbegin.inc} if Assigned(OnPress)   then begin OnPress  (Self, Event); end; {$I castlewindow_eventend.inc} end;
 procedure TCastleWindowBase.EventRelease(const Event: TInputPressRelease);     const EventName = 'Release';  begin {$I castlewindow_eventbegin.inc} if Assigned(OnRelease) then begin OnRelease(Self, Event); end; {$I castlewindow_eventend.inc} end;
-procedure TCastleWindowBase.EventMenuCommand(Item: TMenuItem);      const EventName = 'MenuCommand';begin {$I castlewindow_eventbegin.inc} if Assigned(OnMenuCommand) then begin OnMenuCommand(Self, Item); end;   {$I castlewindow_eventend.inc} end;
+procedure TCastleWindowBase.EventMenuClick(Item: TMenuItem);                   const EventName = 'MenuClick';begin {$I castlewindow_eventbegin.inc} if Assigned(OnMenuClick) then begin OnMenuClick(Self, Item); end;   {$I castlewindow_eventend.inc} end;
 
 { Events below happen so often, that they are logged only when
   CASTLE_WINDOW_EVENTS_LOG_ALL is defined.

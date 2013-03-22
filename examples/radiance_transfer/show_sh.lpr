@@ -202,7 +202,7 @@ begin
   FreeAndNil(Font);
 end;
 
-procedure MenuCommand(Glwin: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Glwin: TCastleWindowBase; Item: TMenuItem);
 begin
   case Item.IntData of
     10: LM := ChangeIntCycle(LM, -1, MaxSHBasis - 1);
@@ -234,7 +234,7 @@ begin
 
   Window.OnOpen := @Open;
   Window.OnClose := @Close;
-  Window.OnMenuCommand := @MenuCommand;
+  Window.OnMenuClick := @MenuClick;
   Window.OnDrawStyle := ds2D;
   Window.SetDemoOptions(K_F11, CharEscape, true);
   Window.OpenAndRun(ProgramName, @Draw2D);

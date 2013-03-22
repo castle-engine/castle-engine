@@ -164,7 +164,7 @@ var
     end;
   end;
 
-procedure MenuCommand(Window: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Window: TCastleWindowBase; Item: TMenuItem);
 const
   VARModes = [
     rmVARTrianglesByVertex, rmVARLockedTrianglesByVertex,
@@ -416,7 +416,7 @@ begin
     Window.AutoRedisplay := true;
 
     Window.MainMenu := CreateMainMenu;
-    Window.OnMenuCommand := @MenuCommand;
+    Window.OnMenuClick := @MenuClick;
 
     Window.OnOpen := @Open;
     Window.SetDemoOptions(K_F11, CharEscape, true);

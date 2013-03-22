@@ -150,7 +150,7 @@ begin
   FreeAndNil(StatusFont);
 end;
 
-procedure MenuCommand(Window: TCastleWindowBase; MenuItem: TMenuItem);
+procedure MenuClick(Window: TCastleWindowBase; MenuItem: TMenuItem);
 var
   S: string;
   I: Integer;
@@ -309,7 +309,7 @@ begin
     Window.SetDemoOptions(K_F11, #0, true);
     Window.AutoRedisplay := true;
     Window.MainMenu := CreateMainMenu;
-    Window.OnMenuCommand := @MenuCommand;
+    Window.OnMenuClick := @MenuClick;
     Window.OnOpen := @Open;
     Window.OnClose := @Close;
     Window.OnDraw := @Draw;

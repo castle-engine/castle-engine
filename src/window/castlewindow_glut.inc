@@ -180,13 +180,13 @@ GLUTBEGIN
     { Since glut doesn't allow me to show and respect Enabled
       property in the UI, I just check it here. }
     if MenuItem.Enabled then
-      DoMenuCommand(MenuItem);
+      DoMenuClick(MenuItem);
   end;
 GLUTEND;
 
 { menu things ------------------------------------------------------------ }
 
-function TCastleWindowBase.RedirectKeyDownToMenuCommand: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
 begin
  Result := true;
 end;

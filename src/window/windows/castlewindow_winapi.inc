@@ -538,10 +538,10 @@ begin
     WM_MBUTTONUP  : begin DoMouseUp( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint, mbMiddle); MaybeRelease; Exit end;
     WM_RBUTTONUP  : begin DoMouseUp( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint, mbRight);  MaybeRelease; Exit end;
     WM_COMMAND    :
-      { If this comes from a menu item, call DoMenuCommand }
+      { If this comes from a menu item, call DoMenuClick }
       if HiWord(wParm) = 0 then
       begin
-        DoMenuCommand(MenuItemFromSmallId(LoWord(wParm)));
+        DoMenuClick(MenuItemFromSmallId(LoWord(wParm)));
         Exit;
       end;
 
@@ -590,7 +590,7 @@ begin
   Result := DefWindowProc(h_Wnd, uMsg, wParm, lParm);
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuCommand: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
 begin
   Result := true;
 end;

@@ -500,7 +500,7 @@ begin
     Result.Append(M);
 end;
 
-procedure MenuCommand(Window: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Window: TCastleWindowBase; Item: TMenuItem);
 var
   NewSHCount: Cardinal;
 begin
@@ -632,7 +632,7 @@ begin
 
     Window.Caption := 'shadow_fields';
     Window.MainMenu := CreateMainMenu;
-    Window.OnMenuCommand := @MenuCommand;
+    Window.OnMenuClick := @MenuClick;
     Window.OnOpen := @Open;
     Window.OnClose := @Close;
     Window.OnMouseMove := @MouseMove;

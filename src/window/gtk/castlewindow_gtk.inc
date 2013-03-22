@@ -621,7 +621,7 @@ begin
     procedure would be called once again (if we were using 1.,
     this would already be a bug, because this would lead to recursive
     call. If we were using 2., the bug will be
-    because we would call Window.DoMenuCommand(MenuItem) TWICE.
+    because we would call Window.DoMenuClick(MenuItem) TWICE.
 
     So I must temporary block this signal before doing
     gtk_check_menu_item_set_active. }
@@ -634,7 +634,7 @@ begin
   end;
  end;
 
- Window.DoMenuCommand(MenuItem);
+ Window.DoMenuClick(MenuItem);
 end;
 
 function signal_window_focus_out_event(AWindowGtk: PGtkWindow;

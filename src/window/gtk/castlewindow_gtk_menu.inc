@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-function TCastleWindowBase.RedirectKeyDownToMenuCommand: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
 begin
  Result := false;
 end;

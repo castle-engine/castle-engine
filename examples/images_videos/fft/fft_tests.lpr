@@ -194,7 +194,7 @@ begin
   if not Output.Closed then Output.UpdateGLImage;
 end;
 
-procedure MenuCommand(glwin: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(glwin: TCastleWindowBase; Item: TMenuItem);
 begin
   case Item.IntData of
     10: Application.Quit;
@@ -295,7 +295,7 @@ begin
     Output.Top := Source.Top + Source.Height + 10;
 
     Output.MainMenu := CreateMainMenu;
-    Output.OnMenuCommand := @MenuCommand;
+    Output.OnMenuClick := @MenuClick;
 
     ProcessTimerBegin;
     Fft := TImageFftw.Create(Source.Image);

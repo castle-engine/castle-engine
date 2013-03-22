@@ -453,7 +453,7 @@ end;
 
 { menu ------------------------------------------------------------ }
 
-procedure MenuCommand(Window: TCastleWindowBase; MenuItem: TMenuItem);
+procedure MenuClick(Window: TCastleWindowBase; MenuItem: TMenuItem);
 
   procedure New;
   var
@@ -604,7 +604,7 @@ end;
 begin
   Window := TCastleWindow.Create(Application);
 
-  Window.OnMenuCommand := @MenuCommand;
+  Window.OnMenuClick := @MenuClick;
   Window.MainMenu := CreateMainMenu;
 
   Camera := TExamineCamera.Create(Window);

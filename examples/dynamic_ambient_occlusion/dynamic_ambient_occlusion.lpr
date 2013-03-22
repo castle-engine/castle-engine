@@ -859,7 +859,7 @@ begin
   end;
 end;
 
-procedure MenuCommand(Glwin: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Glwin: TCastleWindowBase; Item: TMenuItem);
 begin
   case Item.IntData of
     100: begin DrawType := dtNormalGL; UpdateSceneAttribs; end;
@@ -904,7 +904,7 @@ begin
     SceneManager.Items.Add(Scene);
 
     Window.MainMenu := CreateMainMenu;
-    Window.OnMenuCommand := @MenuCommand;
+    Window.OnMenuClick := @MenuClick;
 
     Window.OnOpen := @Open;
     Window.OnClose := @Close;

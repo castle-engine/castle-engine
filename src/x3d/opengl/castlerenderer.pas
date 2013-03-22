@@ -92,7 +92,7 @@
   See TRenderingAttributes.PreserveOpenGLState.
 
   There's also some OpenGL state that we let affect our rendering.
-  This allows you to customize VRML rendering by using normal OpenGL commands.
+  This allows you to customize rendering by using normal OpenGL commands.
 
   @unorderedList(
     @item(First of all, current matrix values (MODELVIEW,

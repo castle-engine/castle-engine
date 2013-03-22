@@ -547,7 +547,7 @@ end;
 
 { menu ----------------------------------------------------------------------- }
 
-procedure MenuCommand(Window: TCastleWindowBase; MenuItem: TMenuItem);
+procedure MenuClick(Window: TCastleWindowBase; MenuItem: TMenuItem);
 var
   S: string;
 begin
@@ -678,7 +678,7 @@ begin
     (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.02);
 
     Window.MainMenu := CreateMainMenu;
-    Window.OnMenuCommand := @MenuCommand;
+    Window.OnMenuClick := @MenuClick;
 
     Window.AutoRedisplay := true;
 

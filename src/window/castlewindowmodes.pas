@@ -44,7 +44,7 @@ type
     OldPress, OldRelease: TInputPressReleaseFunc;
     OldBeforeDraw, OldDraw, OldCloseQuery, OldIdle, OldTimer: TWindowFunc;
     OldResize: TWindowFunc;
-    OldMenuCommand: TMenuCommandFunc;
+    OldMenuClick: TMenuClickFunc;
     OldCaption: string;
     OldUserdata: Pointer;
     OldAutoRedisplay: boolean;
@@ -304,7 +304,7 @@ begin
   OldResize := Window.OnResize;
   OldIdle := Window.OnIdle;
   OldTimer := Window.OnTimer;
-  OldMenuCommand := Window.OnMenuCommand;
+  OldMenuClick := Window.OnMenuClick;
   oldCaption := Window.Caption;
   oldUserdata := Window.Userdata;
   oldAutoRedisplay := Window.AutoRedisplay;
@@ -340,7 +340,7 @@ begin
   Window.OnResize := OldResize;
   Window.OnIdle := OldIdle;
   Window.OnTimer := OldTimer;
-  Window.OnMenuCommand := OldMenuCommand;
+  Window.OnMenuClick := OldMenuClick;
   Window.Caption := oldCaption;
   Window.Userdata := oldUserdata;
   Window.AutoRedisplay := oldAutoRedisplay;
@@ -377,7 +377,7 @@ begin
   Window.OnIdle := nil;
   Window.OnTimer := nil;
   Window.OnResize := nil;
-  Window.OnMenuCommand := nil;
+  Window.OnMenuClick := nil;
   Window.OnDraw := NewDraw;
   Window.OnResize := NewResize;
   Window.OnCloseQuery := NewCloseQuery;

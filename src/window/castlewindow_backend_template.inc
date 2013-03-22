@@ -120,7 +120,7 @@ begin
   FCustomCursor := Value;
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuCommand: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
 begin
   Result := { TODO } true;
 end;

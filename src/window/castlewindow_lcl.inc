@@ -424,7 +424,7 @@ begin
   FCustomCursor := Value;
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuCommand: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
 begin
   Result := false;
 end;
@@ -444,10 +444,10 @@ begin
   begin
     { It seems that checked menu item is always automatically swapped,
       at least with LCL-GTK2. So manually revert it to original setting,
-      as we don't want this (DoMenuCommand will change Checked as necessary). }
+      as we don't want this (DoMenuClick will change Checked as necessary). }
     if Entry is TMenuItemChecked then
       MenuUpdateChecked(TMenuItemChecked(Entry));
-    DoMenuCommand(TMenuItem(Entry));
+    DoMenuClick(TMenuItem(Entry));
   end;
 end;
 

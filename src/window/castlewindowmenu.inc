@@ -215,22 +215,22 @@
     { This will be called when this MenuItem will be choosen by a user
       (or user will press key matching with our Key/CharKey).
 
-      You can override this and return true if you handled the command.
-      If this will return false, CastleWindow will call EventMenuCommand
-      (OnMenuCommand).
+      You can override this and return true if you handled the event.
+      If this will return false, CastleWindow will call EventMenuClick
+      (OnMenuClick).
 
       When entering this method, current OpenGL context is set to
       the context of the window that the clicked menu belongs to.
 
       Default implementation of this method in this class always returns false. }
-    function DoCommand: boolean; virtual;
+    function DoClick: boolean; virtual;
 
     { Key shortcuts for this menu item.
 
       If Key <> K_None and user will press this Key
-      then this object's DoCommand will be called
-      (and TCastleWindowBase.EventMenuCommnd, and TCastleWindowBase.OnMenuCommand,
-      if DoCommand returns false).
+      then this object's DoClick will be called
+      (and TCastleWindowBase.EventMenuClick, and TCastleWindowBase.OnMenuClick,
+      if DoClick returns false).
       Similiar, is CharKey <> #0 and user will press a key with CharKey
       then it will be treated as this menu item click.
 
@@ -238,7 +238,7 @@
       (possibly it's even internally handled in some library on top
       of which CastleWindow is implemented, e.g. WinAPI and GTK menus
       can be explicitly connected with some key press
-      (i.e. without doing any special redirection keypress -> DoCommand
+      (i.e. without doing any special redirection keypress -> DoClick
       in CastleWindow).
       So you will not get EventPress (OnPress) messages for such
       keypresses (that translate to menu click). Although
@@ -336,7 +336,7 @@
     { Called when Checked property is assigned. }
     procedure SetChecked(Value: boolean); virtual;
 
-    { This is called from DoCommand when AutoCheckedToggle is @true.
+    { This is called from DoClick when AutoCheckedToggle is @true.
       It's supposed to actually implement the AutoCheckedToggle behavior.
 
       Note that this is overriden ina a "dirty" way
@@ -352,7 +352,7 @@
 
     { This always returns false.
       It is overriden here only to handle AutoCheckedToggle }
-    function DoCommand: boolean; override;
+    function DoClick: boolean; override;
 
     constructor Create(const ACaption: String; AIntData: Integer;
       AChecked, AAutoCheckedToggle: boolean); overload;
@@ -667,7 +667,7 @@ var
     this for them. }
   MenuItems: TMenuEntryList;
 
-function TMenuItem.DoCommand: boolean;
+function TMenuItem.DoClick: boolean;
 begin
  Result := false;
 end;
@@ -768,9 +768,9 @@ begin
   Checked := not Checked;
 end;
 
-function TMenuItemChecked.DoCommand: boolean;
+function TMenuItemChecked.DoClick: boolean;
 begin
- if inherited DoCommand then Exit(true);
+ if inherited DoClick then Exit(true);
 
  if AutoCheckedToggle then
    DoAutoCheckedToggle;

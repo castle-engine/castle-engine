@@ -164,7 +164,7 @@ begin
     Scene.Attributes.OnRadianceTransfer := @THelper(nil).DoRadianceTransfer;
 end;
 
-procedure MenuCommand(Glwin: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Glwin: TCastleWindowBase; Item: TMenuItem);
 begin
   case Item.IntData of
     10: ViewMode := vmNormal;
@@ -290,7 +290,7 @@ begin
   SceneManager.MainScene := Scene;
 
   Window.MainMenu := CreateMainMenu;
-  Window.OnMenuCommand := @MenuCommand;
+  Window.OnMenuClick := @MenuClick;
 
   Window.Controls.Add(SceneManager);
 

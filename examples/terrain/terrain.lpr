@@ -480,7 +480,7 @@ begin
   RenderElevationsCloseGL;
 end;
 
-procedure MenuCommand(Glwin: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Glwin: TCastleWindowBase; Item: TMenuItem);
 
   procedure ExportToX3D(const FileName: string;
     const AddShadersTextures: boolean);
@@ -795,7 +795,7 @@ begin
     SceneManager.Camera := ExamineCamera;
 
     Glw.MainMenu := CreateMainMenu;
-    Glw.OnMenuCommand := @MenuCommand;
+    Glw.OnMenuClick := @MenuClick;
 
     Glw.OnOpen := @Open;
     Glw.OnClose := @Close;

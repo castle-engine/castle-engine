@@ -212,10 +212,10 @@ type
       TBeginString, TEndString: string;
 
     { All strings must be parseable with ParseMathExpr.
-      This class defines DoCommand that will call SetNewPreciseCurve. }
+      This class defines DoClick that will call SetNewPreciseCurve. }
     constructor Create(const AXFunctionString, AYFunctionString, AZFunctionString,
       ATBeginString, ATEndString: string);
-    function DoCommand: boolean; override;
+    function DoClick: boolean; override;
   end;
 
   constructor TMenuItemPredefinedPreciseCurve.Create(
@@ -234,7 +234,7 @@ type
     Inc(PredefinedPreciseCurve);
   end;
 
-  function TMenuItemPredefinedPreciseCurve.DoCommand: boolean;
+  function TMenuItemPredefinedPreciseCurve.DoClick: boolean;
   begin
     inherited;
     SetPreciseCurve(
@@ -252,7 +252,7 @@ type
     FNewApproxClass: TControlPointsCurveClass;
   public
     constructor Create(ANewApproxClass: TControlPointsCurveClass);
-    function DoCommand: boolean; override;
+    function DoClick: boolean; override;
   end;
 
   constructor TMenuItemApproxClass.Create(ANewApproxClass: TControlPointsCurveClass);
@@ -261,7 +261,7 @@ type
     FNewApproxClass := ANewApproxClass;
   end;
 
-  function TMenuItemApproxClass.DoCommand: boolean;
+  function TMenuItemApproxClass.DoClick: boolean;
   begin
     inherited;
     ApproxCurveClass := FNewApproxClass;
@@ -269,7 +269,7 @@ type
     Result := true;
   end;
 
-procedure MenuCommand(Window: TCastleWindowBase; MenuItem: TMenuItem);
+procedure MenuClick(Window: TCastleWindowBase; MenuItem: TMenuItem);
 
   { Inputs a string from user. User can accept the string or cancel
     operation. If user will cancel operation -- we will return false.
@@ -417,7 +417,7 @@ begin
     TVariable.OwnedByParentExpression := false;
 
     { init menu }
-    Window.OnMenuCommand := @MenuCommand;
+    Window.OnMenuClick := @MenuClick;
     Window.MainMenu := CreateMainMenu;
 
     SceneManager := TMySceneManager.Create(Application);

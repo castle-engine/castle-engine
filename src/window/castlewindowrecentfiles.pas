@@ -72,7 +72,7 @@ type
   public
     OnOpenRecent: TOnOpenRecent;
     property FileName: string read FFileName;
-    function DoCommand: boolean; override;
+    function DoClick: boolean; override;
   end;
 
 constructor TMenuRecentItem.Create(
@@ -92,7 +92,7 @@ begin
   inherited Create(S, AIntData);
 end;
 
-function TMenuRecentItem.DoCommand: boolean;
+function TMenuRecentItem.DoClick: boolean;
 begin
   if Assigned(OnOpenRecent) then
     OnOpenRecent(FileName);

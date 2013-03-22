@@ -89,7 +89,7 @@ end;
 var
   ChangeableMenu: TMenu;
 
-procedure MenuCommand(Window: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Window: TCastleWindowBase; Item: TMenuItem);
 
   procedure ChangeChecked(Item: TMenuItemRadio);
   begin
@@ -212,7 +212,7 @@ begin
  { this allows to free MainMenu and AlternativeMainMenu easier at the end }
  Window.OwnsMainMenu := false;
 
- Window.OnMenuCommand := @MenuCommand;
+ Window.OnMenuClick := @MenuClick;
  Window.OnResize := @Resize;
  Window.ParseParameters;
  Window.Width := 300;
