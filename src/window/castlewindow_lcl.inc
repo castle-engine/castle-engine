@@ -260,7 +260,7 @@ begin
   end;
 
   if not CheckMenu(Entry, EntryLCL) then Exit;
-  EntryLCL.Enabled := Entry.Enabled and  MainMenu.Enabled;
+  EntryLCL.Enabled := Entry.Enabled and MainMenu.Enabled;
 end;
 
 procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
