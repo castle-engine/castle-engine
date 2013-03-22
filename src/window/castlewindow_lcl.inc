@@ -49,7 +49,6 @@ private
 
   Bugs on GTK2, not on Carbon:
   - All radio menu items are always on. Why?
-  - Keys do not work, like arrows or Home. They do work on Carbon, why fail on GTK2?
 
   Bugs on Carbon and GTK2:
   - MouseLook stutters. Something similar to aggressive update needed?
