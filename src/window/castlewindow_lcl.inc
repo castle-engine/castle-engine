@@ -162,7 +162,7 @@ procedure TCastleWindowBase.BackendMenuInitialize;
     Result := KeyToShortCut(LazKey, Shift);
   end;
 
-  procedure MenuCastleToLCL(MyMenu: TMenu; Menu: Menus.TMenuItem);
+  procedure MenuCastleToLCL(const MyMenu: TMenu; const Menu: Menus.TMenuItem);
   var
     MenuItem: TGoodMenuItem;
     MyEntry: TMenuEntry;
@@ -204,8 +204,19 @@ procedure TCastleWindowBase.BackendMenuInitialize;
 
 begin
   Menu := TMainMenu.Create(Form);
+
+  { connet Menu with Form }
   Menu.Parent := Form;
   Form.Menu := Menu;
+
+  { connect our MainMenu with LCL Menu.Items.
+    Note that connection the other way (from Menu.Items to MainMenu)
+    is not needed, as we don't handle Menu.Items.OnClick (it would also
+    be impossible now, as Menu.Items is not of TGoodMenuItem class). }
+  MainMenu.Handle := Menu.Items;
+  { TODO: under GTK2 Menu.Items.Enabled is ignored? }
+  MenuUpdateEnabled(MainMenu); // apply initial MainMenu.Enabled value
+
   MenuCastleToLCL(MainMenu, Menu.Items);
 end;
 
