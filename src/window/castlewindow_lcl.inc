@@ -100,8 +100,6 @@ private
   - (untested on GTK2, confirmed on Carbon)
     MainMenu.Enabled doesn't work,
     e.g. when you do command+r menu is not disabled in view3dscene.
-  - (untested on GTK2, confirmed on Carbon)
-    Hiding cursor doesn't work (e.g. in MouseLook)
 
   Bugs on Carbon, not on GTK2:
   - When TCastleWindowBase.MenuUpdateCheckedFast is false,
@@ -402,7 +400,9 @@ begin
   begin
     FCursor := Value;
     if not Closed then
-      Form.Cursor := CursorCastleToLCL[Value];
+      { Do not use Form.Cursor for this, e.g. hiding the cursor would not work
+        then on Carbon. }
+      OpenGLControl.Cursor := CursorCastleToLCL[Value];
   end;
 end;
 
@@ -515,12 +515,6 @@ begin
 end;
 
 { TCastleWindowBase dialogs ---------------------------------------------------------- }
-
-{ Methods below should make native-looking dialog boxes.
-  Alternatively, you can include castlewindow_dialogs_by_messages.inc,
-  to have simple dialog boxes drawn on OpenGL context using our GLWinMessages
-  unit. }
-{ $I castlewindow_dialogs_by_messages.inc}
 
 function TCastleWindowBase.FileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
