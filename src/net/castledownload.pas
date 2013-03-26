@@ -72,28 +72,32 @@ var
   RedirectLocation: string;
 begin
   Result := TMemoryStream.Create;
-  Client := TFPHTTPClient.Create(nil);
   try
-    { do not simply use Client.Get(URL, Result), as it cannot handle redirects }
-    Client.HTTPMethod('GET', URL, Result, [200,
-      { redirect status codes, see http://en.wikipedia.org/wiki/HTTP_302 }
-      301, 302, 303, 307]);
-    if Client.ResponseStatusCode <> 200 then
-    begin
-      FreeAndNil(Result);
-      // Writeln(Client.ResponseHeaders.Text);
-      Client.ResponseHeaders.NameValueSeparator := ':';
-      RedirectLocation := Trim(Client.ResponseHeaders.Values['Location']);
-      if RedirectLocation = '' then
-        raise EDownloadError.Create('HTTP redirect location is not set');
-      if MaxRedirects = 0 then
-        raise EDownloadError.Create('Cannot download resource, maximum number of redirects reached. Possible redirect loop');
-      WritelnLog('Network', 'Following HTTP redirect (code %d) to "%s"',
-        [Client.ResponseStatusCode, RedirectLocation]);
-      Exit(NetworkDownload(RedirectLocation, MaxRedirects - 1));
-    end;
-  finally FreeAndNil(Client) end;
-  Result.Position := 0; { rewind for easy reading }
+    Client := TFPHTTPClient.Create(nil);
+    try
+      { do not simply use Client.Get(URL, Result), as it cannot handle redirects }
+      Client.HTTPMethod('GET', URL, Result, [200,
+        { redirect status codes, see http://en.wikipedia.org/wiki/HTTP_302 }
+        301, 302, 303, 307]);
+      if Client.ResponseStatusCode <> 200 then
+      begin
+        FreeAndNil(Result);
+        // Writeln(Client.ResponseHeaders.Text);
+        Client.ResponseHeaders.NameValueSeparator := ':';
+        RedirectLocation := Trim(Client.ResponseHeaders.Values['Location']);
+        if RedirectLocation = '' then
+          raise EDownloadError.Create('HTTP redirect location is not set');
+        if MaxRedirects = 0 then
+          raise EDownloadError.Create('Cannot download resource, maximum number of redirects reached. Possible redirect loop');
+        WritelnLog('Network', 'Following HTTP redirect (code %d) to "%s"',
+          [Client.ResponseStatusCode, RedirectLocation]);
+        Exit(NetworkDownload(RedirectLocation, MaxRedirects - 1));
+      end;
+    finally FreeAndNil(Client) end;
+    Result.Position := 0; { rewind for easy reading }
+  except
+    FreeAndNil(Result); raise;
+  end;
 end;
 
 function Download(const URL: string; const LocalFileInMemory: boolean): TStream;
@@ -119,8 +123,12 @@ begin
     if LocalFileInMemory then
     begin
       Result := TMemoryStream.Create;
-      TMemoryStream(Result).LoadFromFile(FileName);
-      Result.Position := 0;
+      try
+        TMemoryStream(Result).LoadFromFile(FileName);
+        Result.Position := 0;
+      except
+        FreeAndNil(Result); raise;
+      end;
     end else
       Result := TFileStream.Create(FileName, fmOpenRead);
   end else
