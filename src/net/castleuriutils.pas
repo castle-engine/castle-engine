@@ -78,7 +78,7 @@ function URIDeleteProtocol(const S: string): string;
   Result is just equal to Relative). }
 function CombineURI(const Base, Relative: string): string;
 
-{ Make sure that the URI is absolute.
+{ Make sure that the URI is absolute (always has a protocol).
   This function always treats a relative URI as a filename relative
   to the current directory. See CombineURI for more elaborate expansion
   of relative URIs. }
@@ -252,24 +252,20 @@ end;
 
 function CombineURI(const Base, Relative: string): string;
 begin
-  if not ResolveRelativeURI(Base, Relative, Result) then
+  if not ResolveRelativeURI(AbsoluteURI(Base), Relative, Result) then
   begin
     { The only case when ResolveRelativeURI may fail is when neither argument
-      contains a protocol. In this case we know that they are both filenames.
-      It's enough to add protocol to Base (protocol for Relative is not
-      needed, ResolveRelativeURI will behave Ok, even when Relative is
-      an absolute filename). }
-    Assert(URIProtocol(Base) = '', 'ResolveRelativeURI should only fail when Base protocol is not found');
-    if not ResolveRelativeURI('file://' + Base, Relative, Result) then
-      raise EInternalError.CreateFmt('Failed to resolve relative URI "%s" with base "%s"',
-        [Relative, Base]);
+      contains a protocol. But we just used AbsoluteURI, which makes sure
+      that AbsoluteURI(Base) has some protocol. }
+    raise EInternalError.CreateFmt('Failed to resolve relative URI "%s" with base "%s"',
+      [Relative, Base]);
   end;
 end;
 
 function AbsoluteURI(const URI: string): string;
 begin
   if URIProtocol(URI) = '' then
-    Result := 'file://' + ExpandFileName(URI) else
+    Result := FilenameToURI(ExpandFileName(URI)) else
     Result := URI;
 end;
 
