@@ -35,7 +35,7 @@ type
   ESoundBufferNotLoaded = class(Exception);
 
   TSoundBuffersCache = class
-    FileName: string; //< Absolute (expanded) file name.
+    URL: string; //< Absolute URL.
     Buffer: TSoundBuffer;
     Duration: TFloatTime;
     References: Cardinal;
@@ -165,14 +165,14 @@ type
       the buffer anyway at closing, although some OpenAL versions
       could write a warning about this.)
 
-      We have a cache of sound files here. An absolute (expanded) filename
+      We have a cache of sound files here. An absolute URL
       will be recorded as being loaded to given buffer. Loading the same
-      filename second time returns the same OpenAL buffer. The buffer
+      URL second time returns the same OpenAL buffer. The buffer
       is released only once you call FreeBuffer as many times as you called
       LoadBuffer for it.
       @groupBegin }
-    function LoadBuffer(const FileName: string; out Duration: TFloatTime): TSoundBuffer;
-    function LoadBuffer(const FileName: string): TSoundBuffer;
+    function LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
+    function LoadBuffer(const URL: string): TSoundBuffer;
     { @groupEnd }
 
     { Free a sound file buffer. Ignored when buffer is zero.
@@ -377,20 +377,20 @@ type
 
     { OpenAL buffer of this sound. Zero if buffer is not yet loaded,
       which may happen only if TRepoSoundEngine.ALContextOpen was not yet
-      called or when sound has FileName = ''. }
+      called or when sound has URL = ''. }
     property Buffer: TSoundBuffer read FBuffer;
   public
     { Unique sound name. Empty for the special sound stNone. }
     Name: string;
 
-    { File name from which to load sound data.
+    { URL from which to load sound data.
 
       Empty means that the sound data is not defined,
       so the @link(Buffer) will always remain zero and trying to play
       this sound (with methods like TSoundEngine.Sound or TSoundEngine.Sound3D)
       will do nothing. This is useful if you want to use a sound name
       in code, but you do not have the actual sound file for this yet. }
-    FileName: string;
+    URL: string;
 
     { Gain (how loud the sound is).
       They are mapped directly to respective OpenAL source properties,
@@ -596,7 +596,7 @@ type
   private
     { This is nil if we don't play music right now
       (because OpenAL is not initialized, or Sound = stNone,
-      or PlayerSound.FileName = '' (sound not existing)). }
+      or PlayerSound.URL = '' (sound not existing)). }
     FAllocatedSource: TSound;
 
     procedure AllocatedSourceRelease(Sender: TSound);
@@ -682,7 +682,7 @@ implementation
 
 uses CastleUtils, CastleStringUtils, CastleALUtils, CastleLog, CastleProgress,
   CastleSoundFile, CastleVorbisFile, CastleEFX, CastleParameters, StrUtils, CastleWarnings,
-  DOM, XMLRead, CastleXMLUtils, CastleFilesUtils, CastleConfig;
+  DOM, XMLRead, CastleXMLUtils, CastleFilesUtils, CastleConfig, CastleURIUtils;
 
 type
   { For alcGetError errors (ALC_xxx constants). }
@@ -1224,26 +1224,26 @@ begin
     DefaultReferenceDistance, DefaultMaxDistance);
 end;
 
-function TSoundEngine.LoadBuffer(const FileName: string;
+function TSoundEngine.LoadBuffer(const URL: string;
   out Duration: TFloatTime): TSoundBuffer;
 var
   I: Integer;
   Cache: TSoundBuffersCache;
-  FullFileName: string;
+  FullURL: string;
 begin
   if not ALInitialized then ALContextOpen;
   if not ALActive then Exit(0);
 
-  FullFileName := ExpandFileName(FileName);
+  FullURL := AbsoluteURI(URL);
 
   { try to load from cache (Result and Duration) }
   for I := 0 to BuffersCache.Count - 1 do
-    if BuffersCache[I].FileName = FullFileName then
+    if BuffersCache[I].URL = FullURL then
     begin
       Inc(BuffersCache[I].References);
       if Log then
         WritelnLog('Sound', Format('Loaded "%s" from cache, now has %d references',
-          [FullFileName, BuffersCache[I].References]));
+          [FullURL, BuffersCache[I].References]));
       Duration := BuffersCache[I].Duration;
       Exit(BuffersCache[I].Buffer);
     end;
@@ -1251,22 +1251,22 @@ begin
   { actually load, and add to cache }
   alCreateBuffers(1, @Result);
   try
-    TALSoundFile.alBufferDataFromFile(Result, FileName, Duration);
+    TALSoundFile.alBufferDataFromFile(Result, URL, Duration);
   except alDeleteBuffers(1, @Result); raise end;
 
   Cache := TSoundBuffersCache.Create;
-  Cache.FileName := FullFileName;
+  Cache.URL := FullURL;
   Cache.Buffer := Result;
   Cache.Duration := Duration;
   Cache.References := 1;
   BuffersCache.Add(Cache);
 end;
 
-function TSoundEngine.LoadBuffer(const FileName: string): TSoundBuffer;
+function TSoundEngine.LoadBuffer(const URL: string): TSoundBuffer;
 var
   Dummy: TFloatTime;
 begin
-  Result := LoadBuffer(FileName, Dummy);
+  Result := LoadBuffer(URL, Dummy);
 end;
 
 procedure TSoundEngine.FreeBuffer(var Buffer: TSoundBuffer);
@@ -1527,18 +1527,18 @@ begin
     try
       { We do progress to "Sounds.Count - 1" because we start
         iterating from ST = 1 because ST = 0 = stNone never exists. }
-      Assert(Sounds[stNone].FileName = '');
+      Assert(Sounds[stNone].URL = '');
       for ST := 1 to Sounds.Count - 1 do
       begin
-        if Sounds[ST].FileName <> '' then
+        if Sounds[ST].URL <> '' then
         try
-          Sounds[ST].FBuffer := LoadBuffer(Sounds[ST].FileName);
+          Sounds[ST].FBuffer := LoadBuffer(Sounds[ST].URL);
         except
           on E: Exception do
           begin
             Sounds[ST].FBuffer := 0;
             OnWarning(wtMinor, 'Sound', Format('Sound file "%s" cannot be loaded: %s',
-              [Sounds[ST].FileName, E.Message]));
+              [Sounds[ST].URL, E.Message]));
           end;
         end;
         Progress.Step;
@@ -1600,7 +1600,7 @@ var
   ImportanceStr: string;
   SoundImportanceIndex: Integer;
   I: TXMLElementIterator;
-  SoundsXmlPath: string;
+  SoundsBaseUrl: string;
   S: TSoundInfo;
 begin
   if FSoundsFileName = Value then Exit;
@@ -1613,9 +1613,9 @@ begin
   { if no sounds XML file, then that's it --- no more sounds }
   if SoundsFileName = '' then Exit;
 
-  { This must be an absolute path, since Sounds[].FileName should be
+  { This must be an absolute path, since Sounds[].URL should be
     absolute (to not depend on the current dir when loading sound files. }
-  SoundsXmlPath := ExtractFilePath(ExpandFileName(SoundsFileName));
+  SoundsBaseUrl := AbsoluteURI(SoundsFileName);
 
   try
     { ReadXMLFile always sets TXMLDocument param (possibly to nil),
@@ -1636,7 +1636,7 @@ begin
         S.Name := I.Current.GetAttribute('name');
 
         { init to default values }
-        S.FileName := CombinePaths(SoundsXmlPath, S.Name + '.wav');
+        S.URL := CombinePaths(SoundsBaseUrl, S.Name + '.wav');
         S.Gain := 1;
         S.MinGain := 0;
         S.MaxGain := 1;
@@ -1645,17 +1645,17 @@ begin
 
         Sounds.Add(S);
 
-        { retrieve FileNameNode using DOMGetAttribute
+        { retrieve URL using DOMGetAttribute
           (that internally uses I.Current.Attributes.GetNamedItem),
           because we have to distinguish between the case when file_name
-          attribute is not present (in this case FileName is left as it was)
+          attribute is not present (in this case URL is left as it was)
           and when it's present as set to empty string.
           Standard I.Current.GetAttribute wouldn't allow me this. }
-        if DOMGetAttribute(I.Current, 'file_name', S.FileName) and
-          (S.FileName <> '') then
-          { Make FileName absolute, using SoundsXmlPath, if non-empty FileName
+        if DOMGetAttribute(I.Current, 'file_name', S.URL) and
+          (S.URL <> '') then
+          { Make URL absolute, using SoundsBaseUrl, if non-empty URL
             was specified in XML file. }
-          S.FileName := CombinePaths(SoundsXmlPath, S.FileName);
+          S.URL := CombinePaths(SoundsBaseUrl, S.URL);
 
         DOMGetSingleAttribute(I.Current, 'gain', S.Gain);
         DOMGetSingleAttribute(I.Current, 'min_gain', S.MinGain);

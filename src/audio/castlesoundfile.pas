@@ -35,11 +35,11 @@ type
     { This will load a sound from a stream. }
     constructor CreateFromStream(Stream: TStream); virtual; abstract;
 
-    { This will load a file, given a filename. This just opens the file as
-      TFileStream and then calls CreateFromStream of appropriate class,
+    { Load a sound data, given an URL. This just opens the file as
+      stream and then calls CreateFromStream of appropriate class,
       so see CreateFromStream for more info. For now, file format
-      (which TSoundFile to use) is decided by the FileName extension. }
-    class function CreateFromFile(const FileName: string): TSoundFile;
+      (which TSoundFile to use) is decided by the URL extension. }
+    class function CreateFromFile(const URL: string): TSoundFile;
 
     { Call this on this sound always after OpenAL is initialized
       and before passing this sound data to OpenAL.
@@ -171,25 +171,26 @@ function ALDataFormatToStr(DataFormat: TALuint): string;
 
 implementation
 
-uses CastleStringUtils, CastleVorbisDecoder, CastleVorbisFile, CastleWarnings;
+uses CastleStringUtils, CastleVorbisDecoder, CastleVorbisFile, CastleWarnings,
+  CastleDownload;
 
 { TSoundFile ----------------------------------------------------------------- }
 
-class function TSoundFile.CreateFromFile(const FileName: string): TSoundFile;
+class function TSoundFile.CreateFromFile(const URL: string): TSoundFile;
 
   procedure DoIt(C: TSoundFileClass);
   var
-    S: TFileStream;
+    S: TStream;
   begin
-    S := TFileStream.Create(FileName, fmOpenRead);
+    S := Download(URL);
     try
       try
         Result := C.CreateFromStream(S);
       except
         on E: EReadError do
         begin
-          { Add FileName to exception message }
-          E.Message := 'Error while reading file "' + FileName + '": ' + E.Message;
+          { Add URL to exception message }
+          E.Message := 'Error while reading URL "' + URL + '": ' + E.Message;
           raise;
         end;
       end;
@@ -199,7 +200,8 @@ class function TSoundFile.CreateFromFile(const FileName: string): TSoundFile;
 var
   Ext: string;
 begin
-  Ext := ExtractFileExt(FileName);
+  { TODO-net: using filename function on URL }
+  Ext := ExtractFileExt(URL);
   if SameText(Ext, '.mp3') then
     DoIt(TSoundMP3) else
   if SameText(Ext, '.ogg') then

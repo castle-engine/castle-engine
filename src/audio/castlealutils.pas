@@ -78,7 +78,7 @@ type
       "..." is taken from SoundFile's properties. }
     procedure alBufferData(buffer: TALuint);
 
-    class procedure alBufferDataFromFile(buffer: TALuint; const FileName: string;
+    class procedure alBufferDataFromFile(buffer: TALuint; const URL: string;
       out Duration: TFloatTime);
   end;
 
@@ -242,12 +242,12 @@ begin
 end;
 
 class procedure TALSoundFile.alBufferDataFromFile(buffer: TALuint;
-  const FileName: string; out Duration: TFloatTime);
+  const URL: string; out Duration: TFloatTime);
 var
   F: TSoundFile;
   FAL: TALSoundFile;
 begin
-  F := TSoundFile.CreateFromFile(FileName);
+  F := TSoundFile.CreateFromFile(URL);
   try
     FAL := TALSoundFile.Create(F, false);
     try
@@ -257,7 +257,7 @@ begin
         there (and this way we get to know it's duration). }
       if Log then
         WritelnLog('Sound', Format('Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f',
-          [ FileName, F.ClassName, ALDataFormatToStr(F.DataFormat),
+          [ URL, F.ClassName, ALDataFormatToStr(F.DataFormat),
             F.DataSize, F.Frequency, F.Duration ]));
 
       Duration := F.Duration;
