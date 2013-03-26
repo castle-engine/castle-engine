@@ -232,6 +232,8 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
   end;
 
   function LoadUrl(Url: string; var FailedUrlsLog: string): boolean;
+  const
+    MaxUrlLength = 100;
   var
     Protocol, PotentialFullUrl, ScriptContents: string;
   begin
@@ -267,8 +269,8 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
       end;
     end else
 
-    if (Protocol = '') and
-       (SameText(ExtractFileExt(Url), '.castlescript') or
+    { TODO: treating URL with filename function }
+    if (SameText(ExtractFileExt(Url), '.castlescript') or
         SameText(ExtractFileExt(Url), '.kscript') ) then
     begin
       PotentialFullUrl := PathFromBaseUrl(Url);
@@ -294,23 +296,18 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
     begin
       if FailedUrlsLog <> '' then
         FailedUrlsLog += ', ';
-      if Protocol <> '' then
-        FailedUrlsLog += Format('protocol "%s" not handled', [Protocol]) else
+      { URLs here may be very long, since users may inline code here.
+        So we use MaxUrlLength to keep reasonably short error messages. }
+      if Length(Url) > MaxUrlLength then
+        FailedUrlsLog += Format('URL "%s..." not handled', [Copy(Url, 1, MaxUrlLength)]) else
         FailedUrlsLog += Format('URL "%s" not handled', [Url]);
     end;
-
-    { TODO: checks for Protocol <> '', above and below, are done
-      to avoid showing full Script content in case of inline scripts.
-      We currently assume that Protocol <> '' then we have inline script
-      content --- but this is bad in the long run, as URLs to files
-      may also have protocol (http, file etc.). We just don't handle
-      URLs to files right now. }
 
     if Result and Log then
     begin
       if Protocol <> '' then
-        WritelnLog('VRML Script', Format('Loaded from protocol "%s"', [Protocol])) else
-        WritelnLog('VRML Script', Format('Loaded from URL "%s"', [Url]));
+        WritelnLog('Script', Format('Loaded from protocol "%s"', [Protocol])) else
+        WritelnLog('Script', Format('Loaded from URL "%s"', [Url]));
     end;
   end;
 

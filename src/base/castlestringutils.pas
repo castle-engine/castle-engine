@@ -336,13 +336,13 @@ function SAppendPart(const s, PartSeparator, NextPart: string): string;
 
 { Read whole file contents to string.
 
-  If AllowStdIn, then FileName = '-' (one dash) is treated specially:
+  If AllowStdIn, then URL = '-' (one dash) is treated specially:
   we will read stdin whole (Pascal Input) stream. Note that the current
   implementation of this always changes newline into NL (current OS newline),
   and may add additional newline at the end of the file (this may be fixed,
   to return more accurately stdin contents; for usual text file reading,
   this doesn't matter). }
-function FileToString(const FileName: string;
+function FileToString(const URL: string;
   const AllowStdIn: boolean = false): string;
 
 procedure StringToFile(const FileName, contents: string);
@@ -822,7 +822,7 @@ function SCompressWhiteSpace(const S: string): string;
 
 implementation
 
-uses CastleFilesUtils, CastleClassUtils;
+uses CastleFilesUtils, CastleClassUtils, CastleDownload;
 
 { TCastleStringList ------------------------------------------------------------- }
 
@@ -1278,18 +1278,24 @@ begin
   result := s+PartSeparator+NextPart;
 end;
 
-function FileToString(const FileName: string; const AllowStdIn: boolean): string;
+function FileToString(const URL: string; const AllowStdIn: boolean): string;
 var
-  F: TFileStream;
+  F: TStream;
 begin
-  if AllowStdIn and (FileName = '-') then
+  if AllowStdIn and (URL = '-') then
     Result := ReadGrowingStreamToString(StdInStream) else
   begin
-    F := TFileStream.Create(FileName, fmOpenRead);
+    F := Download(URL);
     try
-      SetLength(Result, F.Size);
-      if F.Size <> 0 then
-        F.ReadBuffer(Result[1], Length(Result));
+      { Some streams can be optimized, just load file straight to string memory }
+      if (F is TFileStream) or
+         (F is TMemoryStream) then
+      begin
+        SetLength(Result, F.Size);
+        if F.Size <> 0 then
+          F.ReadBuffer(Result[1], Length(Result));
+      end else
+        Result := ReadGrowingStreamToString(F);
     finally FreeAndNil(F) end;
   end;
 end;
