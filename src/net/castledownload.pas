@@ -121,6 +121,14 @@ begin
   { local filenames are directly handled, without the need for any downloader }
   if (P = '') or (CompareText(P, 'file') = 0) then
   begin
+    { when there is no protocol, do not call URIToFilename.
+      This fixes the case when URL = absolute Windows filename.
+      Our URIProtocol detects an empty protocol, but ParseURI and URIToFilename
+      will detect a single-letter protocol and URIToFilename will fail.
+      So it's just not possible to pass safely a Windows filename to URIToFilename
+      and expect it to do nothing. }
+    if P = '' then
+      FileName := URL else
     if not URIToFilename(URL, FileName) then
       raise EDownloadError.CreateFmt('Cannot convert URL "%s" to filename', [URL]);
     if LocalFileInMemory then
