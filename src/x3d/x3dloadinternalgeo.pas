@@ -27,7 +27,7 @@ function LoadGEO(const URL: string): TX3DRootNode;
 implementation
 
 uses CastleVectors, CastleUtils, Classes, SysUtils, CastleWarnings,
-  CastleClassUtils, CastleDownload,
+  CastleClassUtils, CastleDownload, CastleURLUtils,
   CastleFilesUtils, CastleStringUtils, X3DLoadInternalUtils;
 
 { TObject3DGEO ---------------------------------------------------------------- }
@@ -195,8 +195,7 @@ var
   i: integer;
   BaseUrl: string;
 begin
-  { TODO-net: file operations on URLs }
-  BaseUrl := ExtractFilePath(ExpandFilename(URL));
+  BaseUrl := AbsoluteURI(URL);
   geo := TObject3DGEO.Create(URL);
   try
     result := TX3DRootNode.Create('', BaseUrl);

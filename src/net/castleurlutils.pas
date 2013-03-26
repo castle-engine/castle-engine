@@ -65,14 +65,18 @@ function UrlProtocolIs(const S: string; const Protocol: string; out Colon: Integ
 
 function UrlDeleteProtocol(const S: string): string;
 
-{ Combine base URL with relative, just like CombinePaths does for file paths.
+{ Return absolute URL, given base and relative URL.
+  Base URL must be always absolute, at least an absolute filename (file://
+  prefix is not necessary) or an absolute URL (protocol and absolute filename).
+  Relative URL may be relative, may also be absolute (in the latter case,
+  Result is just equal to Relative). }
+function CombineUrls(const Base, Relative: string): string;
 
-  TODO: this is a dummy implementation for now, that basically calls
-  CombinePaths, however it allows the Base or Relative to start with 'file://'
-  prefix (but result will not contain this prefix).
-  This allows most places in our engine (that in the future should deal with
-  URLs) for now just work with local file paths. }
-function CombineUrls(Base, Relative: string): string;
+{ Make sure that the URI is absolute.
+  This function always treats a relative URI as a filename relative
+  to the current directory. See CombineUrls for more elaborate expansion
+  of relative URIs. }
+function AbsoluteURI(const URI: string): string;
 
 implementation
 
@@ -235,11 +239,27 @@ begin
     Result := S;
 end;
 
-function CombineUrls(Base, Relative: string): string;
+function CombineUrls(const Base, Relative: string): string;
 begin
-  Result := CombinePaths(
-    PrefixRemove('file://', Base, false),
-    PrefixRemove('file://', Relative, false));
+  if not ResolveRelativeURI(Base, Relative, Result) then
+  begin
+    { The only case when ResolveRelativeURI may fail is when neither argument
+      contains a protocol. In this case we know that they are both filenames.
+      It's enough to add protocol to Base (protocol for Relative is not
+      needed, ResolveRelativeURI will behave Ok, even when Relative is
+      an absolute filename). }
+    Assert(UrlProtocol(Base) = '', 'ResolveRelativeURI should only fail when Base protocol is not found');
+    if not ResolveRelativeURI('file://' + Base, Relative, Result) then
+      raise EInternalError.CreateFmt('Failed to resolve relative URI "%s" with base "%s"',
+        [Relative, Base]);
+  end;
+end;
+
+function AbsoluteURI(const URI: string): string;
+begin
+  if UrlProtocol(URI) = '' then
+    Result := 'file://' + ExpandFileName(URI) else
+    Result := URI;
 end;
 
 end.

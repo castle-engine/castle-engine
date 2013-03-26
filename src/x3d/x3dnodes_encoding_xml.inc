@@ -28,8 +28,7 @@ const
   stream (as read) is no longer compressed.
   @groupBegin }
 function LoadX3DXml(const URL: string; Gzipped: boolean): TX3DRootNode;
-function LoadX3DXml(Stream: TStream; const BaseUrl: string;
-  const BaseName: string = ''): TX3DRootNode;
+function LoadX3DXml(Stream: TStream; const BaseUrl: string): TX3DRootNode;
 { @groupEnd }
 
 {$endif read_interface}
@@ -514,38 +513,32 @@ begin
   *)
   Stream := Download(URL);
   try
-    Result := LoadX3DXml(Stream,
-      { TODO-net: file operations on URLs }
-      ExtractFilePath(ExpandFileName(URL)),
-      ExtractFileName(URL));
+    Result := LoadX3DXml(Stream, AbsoluteURI(URL));
   finally
     FreeAndNil(Stream);
   end;
 end;
 
-function LoadX3DXml(Stream: TStream; const BaseUrl: string;
-  const BaseName: string): TX3DRootNode;
+function LoadX3DXml(Stream: TStream; const BaseUrl: string): TX3DRootNode;
 var
   Doc: TXMLDocument;
   SceneElement: TDOMElement;
-  VersionStr: string;
+  VersionStr, NiceBaseURI: string;
   Version: TX3DVersion;
   { TODO: each USE must occur after it's DEF,
     does X3D XML encoding guarantee this? }
   Reader: TX3DReaderNames;
-  FileName: string;
 begin
   Doc := nil;
   try
-    { calculate FileName. Used for ReadXMLFile, used there e.g. for error messages }
-    if BaseName <> '' then
-      FileName := CombineUrls(BaseUrl, BaseName) else
-      FileName := BaseUrl;
+    { calculate NiceBaseURI, used for ReadXMLFile e.g. for error messages }
+    NiceBaseURI := BaseUrl;
+    if UrlProtocol(NiceBaseURI) = '' then
+      NiceBaseURI := FilenameToURI(NiceBaseURI);
 
     { ReadXMLFile always sets TXMLDocument param (possibly to nil),
       even in case of exception. So place it inside try..finally. }
-
-    ReadXMLFile(Doc, Stream, FilenameToURI(FileName));
+    ReadXMLFile(Doc, Stream, NiceBaseURI);
 
     Check(Doc.DocumentElement.TagName = 'X3D',
       'Root element of X3D file must be <X3D>');

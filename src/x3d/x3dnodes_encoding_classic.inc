@@ -574,8 +574,7 @@ begin
   if AllowStdIn and (URL = '-') then
     Result := DoIt(StdInStream, false, GetCurrentDir) else
   begin
-    //TODO-net: Using ExtractFilePath on URL
-    BaseUrl := ExtractFilePath(ExpandFilename(URL));
+    BaseUrl := AbsoluteURI(URL);
 
 (*  TODO-net: TGZFileStream is only for local files.
     We need a different solution if we hope to work with URLs.

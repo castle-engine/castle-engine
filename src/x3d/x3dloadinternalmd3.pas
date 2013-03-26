@@ -37,7 +37,7 @@ procedure LoadMD3Sequence(
 implementation
 
 uses CastleFilesUtils, CastleStringUtils, CastleBoxes, X3DLoadInternalUtils,
-  X3DCameraUtils, CastleDownload;
+  X3DCameraUtils, CastleDownload, CastleURLUtils;
 
 type
   TMd3Triangle = record
@@ -575,8 +575,7 @@ var
   Md3: TObject3DMD3;
   BaseUrl: string;
 begin
-  { TODO-net: file operations on URLs }
-  BaseUrl := ExtractFilePath(ExpandFilename(URL));
+  BaseUrl := AbsoluteURI(URL);
   Md3 := TObject3DMD3.Create(URL);
   try
     Result := LoadMD3Frame(Md3, 0, BaseUrl);
@@ -595,8 +594,7 @@ var
   BaseUrl: string;
   I: Integer;
 begin
-  { TODO-net: file operations on URLs }
-  BaseUrl := ExtractFilePath(ExpandFilename(URL));
+  BaseUrl := AbsoluteURI(URL);
   Md3 := TObject3DMD3.Create(URL);
   try
     { handle each MD3 frame }

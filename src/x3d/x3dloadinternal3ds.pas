@@ -26,7 +26,7 @@ function Load3DS(const URL: string): TX3DRootNode;
 implementation
 
 uses CastleUtils, Classes, CastleClassUtils, SysUtils, CastleVectors, X3DCameraUtils,
-  FGL, X3DLoadInternalUtils, CastleWarnings, CastleDownload;
+  FGL, X3DLoadInternalUtils, CastleWarnings, CastleDownload, CastleURLUtils;
 
 { 3DS reading mostly based on spec from
   [http://www.martinreddy.net/gfx/3d/3DS.spec].
@@ -1058,8 +1058,7 @@ var
   Shape: TShapeNode;
   I, J, FaceMaterialNum, ThisMaterialFacesCount, FaceNum: Integer;
 begin
-  { TODO-net: file operations on URLs }
-  BaseUrl := ExtractFilePath(ExpandFilename(URL));
+  BaseUrl := AbsoluteURI(URL);
   Appearances := nil;
   O3ds := TScene3DS.Create(URL);
   try

@@ -513,8 +513,7 @@ var
   Appearances: TX3DNodeList;
   Shape: TShapeNode;
 begin
-  { TODO-net: file operations on URLs }
-  BaseUrl := ExtractFilePath(ExpandFilename(URL));
+  BaseUrl := AbsoluteURI(URL);
   Appearances := nil;
   Obj := TObject3DOBJ.Create(URL);
   try
