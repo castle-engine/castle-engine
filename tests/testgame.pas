@@ -63,10 +63,10 @@ begin
   SoundEngine.SoundsFileName := 'data/game/sounds.xml';
 
   Assert(SoundEngine.Sounds[stNone].Name = '');
-  Assert(SoundEngine.Sounds[stNone].FileName = '');
+  Assert(SoundEngine.Sounds[stNone].URL = '');
   SoundType := SoundEngine.SoundFromName('player_sudden_pain');
   Assert(SoundEngine.Sounds[SoundType].Name = 'player_sudden_pain');
-  AssertFileName(SoundEngine.Sounds[SoundType].FileName, 'test_name.wav');
+  AssertFileName(SoundEngine.Sounds[SoundType].URL, 'test_name.wav');
   Assert(SoundEngine.Sounds[SoundType].DefaultImportance = PlayerSoundImportance);
   AssertFloat(SoundEngine.Sounds[SoundType].Gain, 1);
   AssertFloat(SoundEngine.Sounds[SoundType].MinGain, 0.8);
