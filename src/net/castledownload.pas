@@ -43,15 +43,24 @@ type
 
   All errors are reported by raising exceptions.
 
-  A local file URL (or the URL without any protocol) is always supported,
-  without using any networking library. Set EnableNetwork to @true
+  A local file URL is always supported,
+  without using any networking library. URL without any protocol is always
+  treated like a local filename (absolute or relative to current dir),
+  so this function can be a drop-in replacement for normal file reading.
+  Set EnableNetwork to @true
   to have also support for network protocols (right now only http,
-  handled by FpHttpClient). }
-function Download(const URL: string): TStream;
+  handled by FpHttpClient).
+
+  LocalFileInMemory determines whether to open local files as TFileStream
+  (when it is false, default) or load them to TMemoryStream.
+  Using TMemoryStream means that reading is very fast (TFileStream may have
+  poor buffering, depending on OS), but eats memory. }
+function Download(const URL: string;
+  const LocalFileInMemory: boolean = false): TStream;
 
 implementation
 
-uses URIParser, CastleUtils, CastleLog;
+uses URIParser, CastleURLUtils, CastleUtils, CastleLog;
 
 { Just like Download, but
   - Assumes that the URL is from the network (this prevents network URLs
@@ -87,15 +96,13 @@ begin
   Result.Position := 0; { rewind for easy reading }
 end;
 
-function Download(const URL: string): TStream;
+function Download(const URL: string; const LocalFileInMemory: boolean): TStream;
 var
-  URI: TURI;
   P, FileName: string;
 const
   MaxRedirects = 32;
 begin
-  URI := ParseURI(URL);
-  P := URI.Protocol;
+  P := UrlProtocol(URL);
 
   { network protocols: get data into a new TMemoryStream using FpHttpClient }
   if EnableNetwork and (CompareText(P, 'http') = 0) then
@@ -109,21 +116,13 @@ begin
   begin
     if not URIToFilename(URL, FileName) then
       raise EDownloadError.CreateFmt('Cannot convert URL "%s" to filename', [URL]);
-
-    { TODO: TFileStream is not buffered (on some platforms).
-      Make an option to just load this to TMemoryStream
-      (like our CreateReadFileStream).
-      Make an option to wrap in a buffered stream,
-      like our VRML/X3D reader does.
-
-      And make a version that always returns buffered stream,
-      to avoid wrapping buffered stream in a buffered stream for VRML/X3D
-      reader.
-
-      The point is that for local filenames, no additional overhead
-      (no additional streams in-between) should be created. }
-
-    Result := TFileStream.Create(FileName, fmOpenRead);
+    if LocalFileInMemory then
+    begin
+      Result := TMemoryStream.Create;
+      TMemoryStream(Result).LoadFromFile(FileName);
+      Result.Position := 0;
+    end else
+      Result := TFileStream.Create(FileName, fmOpenRead);
   end else
 
     raise EDownloadError.CreateFmt('Downloading from protocol "%s" is not supported', [P]);

@@ -64,13 +64,18 @@ interface
 uses CastleVectors, SysUtils, X3DNodes, X3DLoadInternalMD3,
   CastleUtils, Classes;
 
-{ Load 3D model. Guesses model format basing on ExtractFileExt(filename).
+{ Load 3D model. Guess model format based on URL extension.
   VRML/X3D formats are loaded directly,
   other model formats are converted under the hood to VRML/X3D.
 
-  @param(AllowStdIn If AllowStdIn and FileName = '-' then it will load
+  URL is downloaded using CastleDownload unit.
+  If you all you care about is loading normal files, then just pass
+  a normal filename (absolute or relative to the current directory)
+  as the URL parameter.
+
+  @param(AllowStdIn If AllowStdIn and URL = '-' then it will load
     a VRML/X3D file from StdInStream (using GetCurrentDir as BaseUrl).) }
-function Load3D(const filename: string;
+function Load3D(const URL: string;
   AllowStdIn: boolean = false;
   NilOnUnrecognizedFormat: boolean = false): TX3DRootNode;
 
@@ -120,7 +125,7 @@ const
     Pass here some created and empty instance of TSingleList.)
 }
 procedure Load3DSequence(
-  const FileName: string;
+  const URL: string;
   AllowStdIn: boolean;
   RootNodes: TX3DNodeList;
   Times: TSingleList;
@@ -155,7 +160,7 @@ uses CastlePrecalculatedAnimationCore, CastleClassUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
   X3DLoadInternalCollada;
 
-function Load3D(const filename: string;
+function Load3D(const URL: string;
   AllowStdIn, NilOnUnrecognizedFormat: boolean): TX3DRootNode;
 const
   GzExt = '.gz';
@@ -169,27 +174,28 @@ const
 var
   Ext: string;
 begin
-  if AllowStdIn and (FileName = '-') then
-    result := LoadX3DClassic('-', true) else
+  if AllowStdIn and (URL = '-') then
+    result := LoadX3DClassic(URL, true) else
   begin
-    Ext := ExtractFileExt(filename);
+    { TODO-net: file operations on URLs }
+    Ext := ExtractFileExt(URL);
     if Ext = '.gz' then
-      Ext := ExtractFileExt(DeleteFileExt(FileName)) + Ext;
+      Ext := ExtractFileExt(DeleteFileExt(URL)) + Ext;
     case ArrayPosText(Ext, Extensions) of
-      0: result := LoadGEO(filename);
-      1: result := Load3DS(filename);
-      2: result := LoadWavefrontOBJ(filename);
-      3..9: result := LoadX3DClassic(filename, false);
-      10: Result := LoadMD3(FileName);
-      11: Result := LoadCollada(FileName);
-      12: Result := LoadX3DXml(FileName, false);
-      13, 14: Result := LoadX3DXml(FileName, true);
+      0: result := LoadGEO(URL);
+      1: result := Load3DS(URL);
+      2: result := LoadWavefrontOBJ(URL);
+      3..9: result := LoadX3DClassic(URL, false);
+      10: Result := LoadMD3(URL);
+      11: Result := LoadCollada(URL);
+      12: Result := LoadX3DXml(URL, false);
+      13, 14: Result := LoadX3DXml(URL, true);
       else
         if NilOnUnrecognizedFormat then
           Result := nil else
           raise Exception.CreateFmt(
             'Unrecognized file extension "%s" for 3D model file "%s"',
-            [Ext, FileName]);
+            [Ext, URL]);
     end;
   end;
 end;
@@ -200,7 +206,7 @@ begin
   Result := Load3D(FileName, AllowStdIn);
 end;
 
-procedure Load3DSequence(const FileName: string;
+procedure Load3DSequence(const URL: string;
   AllowStdIn: boolean;
   RootNodes: TX3DNodeList;
   Times: TSingleList;
@@ -210,28 +216,28 @@ procedure Load3DSequence(const FileName: string;
 
   procedure LoadKanim;
   var
-    ModelFileNames: TStringList;
+    ModelURLs: TStringList;
     I, J: Integer;
   begin
-    ModelFileNames := TStringList.Create;
+    ModelURLs := TStringList.Create;
     try
-      TCastlePrecalculatedAnimationCore.LoadFromFileToVars(FileName, ModelFileNames, Times,
+      TCastlePrecalculatedAnimationCore.LoadFromFileToVars(URL, ModelURLs, Times,
         ScenesPerTime, EqualityEpsilon, TimeLoop, TimeBackwards);
 
-      Assert(ModelFileNames.Count = Times.Count);
-      Assert(ModelFileNames.Count >= 1);
+      Assert(ModelURLs.Count = Times.Count);
+      Assert(ModelURLs.Count >= 1);
 
-      { Now use ModelFileNames to load RootNodes }
-      RootNodes.Count := ModelFileNames.Count;
-      for I := 0 to ModelFileNames.Count - 1 do
+      { Now use ModelURLs to load RootNodes }
+      RootNodes.Count := ModelURLs.Count;
+      for I := 0 to ModelURLs.Count - 1 do
       try
-        RootNodes[I] := Load3D(ModelFileNames[I]);
+        RootNodes[I] := Load3D(ModelURLs[I]);
       except
         for J := 0 to I - 1 do
           FPGObjectList_FreeAndNilItem(RootNodes, J);
         raise;
       end;
-    finally FreeAndNil(ModelFileNames) end;
+    finally FreeAndNil(ModelURLs) end;
   end;
 
   procedure LoadSingle(Node: TX3DNode);
@@ -250,13 +256,14 @@ begin
   Assert(Times.Count = 0);
   Assert(RootNodes.Count = 0);
 
-  Ext := ExtractFileExt(FileName);
+  { TODO-net: file operations on URLs }
+  Ext := ExtractFileExt(URL);
   if SameText(Ext, '.kanim') then
     LoadKanim else
   if SameText(Ext, '.md3') then
-    LoadMD3Sequence(FileName, RootNodes, Times, ScenesPerTime,
+    LoadMD3Sequence(URL, RootNodes, Times, ScenesPerTime,
       EqualityEpsilon, TimeLoop, TimeBackwards) else
-    LoadSingle(Load3D(FileName, AllowStdIn));
+    LoadSingle(Load3D(URL, AllowStdIn));
 end;
 
 end.

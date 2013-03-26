@@ -38,12 +38,16 @@ function AmbientIntensity(const AmbientColor, DiffuseColor: TVector4Single): Sin
 
   We prefer to return just Base, if it exists, or when no alternative exists.
   When Base doesn't exist but some likely alternative exists (e.g. with
-  different case), we return it. }
+  different case), we return it.
+
+  TODO-net: if directory contains any protocol (even file), we always return
+  just Base, without any smart searching. }
 function SearchTextureFileName(const Path, Base: string): string;
 
 implementation
 
-uses SysUtils, CastleStringUtils, CastleEnumerateFiles, CastleWarnings;
+uses SysUtils, CastleStringUtils, CastleEnumerateFiles, CastleWarnings,
+  URIParser, CastleURLUtils;
 
 function ToX3DName(const s: string): string;
 const
@@ -78,6 +82,9 @@ var
   SomePathDelim: Integer;
   BaseShort: string;
 begin
+  { TODO-net: We cannot work with Base being URL, so just exit in this case }
+  if UrlProtocol(Base) <> '' then Exit(Base);
+
   try
     if SearchFileHard(Path, Base, Result) then
       Exit;

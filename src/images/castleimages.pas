@@ -1453,7 +1453,12 @@ type
 { TODO: zrobic LoadImageGuess ktore zgaduje format na podstawie
   zawartosci. }
 
-(*The ultimate procedure to load an image from a file.
+(*The ultimate procedure to load an image from a file or URL.
+
+  URL is downloaded using CastleDownload unit.
+  As always, if you all you care about is loading normal files, then just pass
+  a normal filename (absolute or relative to the current directory)
+  as the URL parameter.
 
   Simple examples:
 
@@ -1466,9 +1471,12 @@ type
   ImageRGB := LoadImage('filename.png', [TRGBImage]) as TRGBImage;
 #)
 
-  Image file format is guess from FileName (or filename extension
-  in TypeExt (may but doesn't have to contain leading dot),
-  or can be just given explicitly by Format).
+  Image file format may be given explicitly (overloaded version with
+  Format parameter), or guessed based on URL extension
+  (which can be given explicitly by TypeExt,
+  or automatically calculated from full URL).
+  For now, we cannot guess the file format based on file contents
+  or MIME type (the latter case would be sensible for http URLs).
 
   AllowedImageClasses says what image classes are allowed.
   As a special case, AllowedImageClasses = [] is equivalent to
@@ -1508,7 +1516,7 @@ type
 
   @raises(EImageFormatNotSupported If image file format cannot be loaded at all.
     This can happen only if format is totally unknown (e.g. not recognized
-    FileName extension) or if image format has no Load method at all.)
+    URL extension) or if image format has no Load method at all.)
 
   @groupBegin *)
 function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
@@ -1517,10 +1525,10 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
 function LoadImage(Stream: TStream; const typeext: string;
   const AllowedImageClasses: array of TCastleImageClass)
   :TCastleImage; overload;
-function LoadImage(const filename: string;
+function LoadImage(const URL: string;
   const AllowedImageClasses: array of TCastleImageClass)
   :TCastleImage; overload;
-function LoadImage(const filename: string;
+function LoadImage(const URL: string;
   const AllowedImageClasses: array of TCastleImageClass;
   const ResizeToX, ResizeToY: Cardinal;
   const Interpolation: TResizeInterpolation = riNearest): TCastleImage; overload;
@@ -1607,7 +1615,8 @@ procedure AlphaMaxTo1st(var A: TAlphaChannel; const B: TAlphaChannel);
 
 implementation
 
-uses CastleProgress, CastleStringUtils, CastleFilesUtils, CastleWarnings, CastleDDS;
+uses CastleProgress, CastleStringUtils, CastleFilesUtils, CastleWarnings,
+  CastleDDS, CastleDownload;
 
 { image loading utilities --------------------------------------------------- }
 
@@ -3523,44 +3532,43 @@ begin
     raise EImageFormatNotSupported.Create('Unrecognized image format : "'+typeext+'"');
 end;
 
-function LoadImage(const filename: string;
+function LoadImage(const URL: string;
   const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 var
   f: TStream;
 begin
   try
-    { Even CreateReadFileStream may already raise an exception if FileName
-      points to a directory. }
     try
-      f := CreateReadFileStream(filename);
+      f := Download(URL, true);
     except
       on E: EReadError do
-        raise EImageLoadError.Create('Cannot read file: ' + E.Message);
+        raise EImageLoadError.Create('Cannot read URL: ' + E.Message);
     end;
 
     try
-      result := LoadImage(f, ExtractFileExt(filename), AllowedImageClasses);
+      { TODO-net: file operations on URLs }
+      result := LoadImage(f, ExtractFileExt(URL), AllowedImageClasses);
     finally f.Free end;
   except
     on E: EImageLoadError do begin
-      E.Message := 'Error when loading image from file "'+filename+'" : '+E.Message;
+      E.Message := 'Error when loading image from URL "'+URL+'" : '+E.Message;
       raise;
     end;
     on E: EImageFormatNotSupported do begin
-      { przechwyc EImageFormatNotSupported i w tresci wyjatku wklej pelne filename }
-      E.Message := 'Unrecognized image format : file "'+filename+'"';
+      { przechwyc EImageFormatNotSupported i w tresci wyjatku wklej pelne URL }
+      E.Message := 'Unrecognized image format : URL "'+URL+'"';
       raise;
     end;
     else raise;
   end;
 end;
 
-function LoadImage(const filename: string;
+function LoadImage(const URL: string;
   const AllowedImageClasses: array of TCastleImageClass;
   const ResizeToX, ResizeToY: Cardinal;
   const Interpolation: TResizeInterpolation): TCastleImage;
 begin
-  result := LoadImage(filename, AllowedImageClasses);
+  result := LoadImage(URL, AllowedImageClasses);
   Result.Resize(ResizeToX, ResizeToY, Interpolation);
 end;
 

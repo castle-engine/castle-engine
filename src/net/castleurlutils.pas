@@ -49,7 +49,13 @@ procedure URLExtractAnchor(var URL: string; out Anchor: string);
 }
 function RawUrlDecode(const S: string): string;
 
-function UrlProtocol(const S: string): string;
+{ Get protocol from given URL.
+
+  The understanding what is a protocol is 100% compatible with
+  URIParser.ParseURI function (protocol is just a prefix before ':').
+  This means that you can use this as a faster equivalent to
+  @code(ParseURI(URI).Protocol). }
+function UrlProtocol(const URI: string): string;
 
 { Check does URL contain given Protocol.
   This is equivalent to checking UrlProtocol(S) = Protocol, ignoring case,
@@ -70,7 +76,8 @@ function CombineUrls(Base, Relative: string): string;
 
 implementation
 
-uses SysUtils, CastleStringUtils, CastleWarnings, CastleFilesUtils;
+uses SysUtils, CastleStringUtils, CastleWarnings, CastleFilesUtils,
+  URIParser, CastleUtils;
 
 procedure URLExtractAnchor(var URL: string; out Anchor: string);
 var
@@ -194,12 +201,12 @@ begin
   end;
 end;
 
-function UrlProtocol(const S: string): string;
+function UrlProtocol(const URI: string): string;
 var
   FirstCharacter, Colon: Integer;
 begin
-  if UrlProtocolIndex(S, FirstCharacter, Colon) then
-    Result := CopyPos(S, FirstCharacter, Colon - 1) else
+  if UrlProtocolIndex(URI, FirstCharacter, Colon) then
+    Result := CopyPos(URI, FirstCharacter, Colon - 1) else
     Result := '';
 end;
 

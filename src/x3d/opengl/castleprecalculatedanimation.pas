@@ -292,7 +292,7 @@ type
 
       @link(Loaded) property changes to @true after calling this.
 
-      @param(AllowStdIn If @true, then FileName = '-' is understood
+      @param(AllowStdIn If @true, then URL = '-' is understood
         as "standard input".)
 
       @param(LoadTime If @true then loading changes
@@ -311,10 +311,10 @@ type
         (which is by default 1, but may be globally changed).)
 
       @groupBegin }
-    procedure LoadFromFile(const FileName: string;
+    procedure LoadFromFile(const URL: string;
       const AllowStdIn: boolean; const LoadTime: boolean;
       const Smoothness: Float);
-    procedure LoadFromFile(const FileName: string;
+    procedure LoadFromFile(const URL: string;
       const AllowStdIn: boolean; const LoadTime: boolean);
     { @groupEnd }
 
@@ -1381,7 +1381,7 @@ begin
   finally FreeAndNil(RootNodes) end;
 end;
 
-procedure TCastlePrecalculatedAnimation.LoadFromFile(const FileName: string;
+procedure TCastlePrecalculatedAnimation.LoadFromFile(const URL: string;
   const AllowStdIn, LoadTime: boolean; const Smoothness: Float);
 var
   Times: TSingleList;
@@ -1393,7 +1393,7 @@ begin
   Times := TSingleList.Create;
   RootNodes := TX3DNodeList.Create(false);
   try
-    Load3DSequence(FileName, AllowStdIn,
+    Load3DSequence(URL, AllowStdIn,
       RootNodes, Times, ScenesPerTime, EqualityEpsilon,
       NewTimeLoop, NewTimeBackwards);
 
@@ -1412,10 +1412,10 @@ begin
   end;
 end;
 
-procedure TCastlePrecalculatedAnimation.LoadFromFile(const FileName: string;
+procedure TCastlePrecalculatedAnimation.LoadFromFile(const URL: string;
   const AllowStdIn: boolean; const LoadTime: boolean);
 begin
-  LoadFromFile(FileName, AllowStdIn, LoadTime, AnimationSmoothness);
+  LoadFromFile(URL, AllowStdIn, LoadTime, AnimationSmoothness);
 end;
 
 procedure TCastlePrecalculatedAnimation.Close;

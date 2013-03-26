@@ -21,12 +21,12 @@ interface
 
 uses X3DNodes;
 
-function Load3DS(const filename: string): TX3DRootNode;
+function Load3DS(const URL: string): TX3DRootNode;
 
 implementation
 
 uses CastleUtils, Classes, CastleClassUtils, SysUtils, CastleVectors, X3DCameraUtils,
-  FGL, X3DLoadInternalUtils, CastleWarnings;
+  FGL, X3DLoadInternalUtils, CastleWarnings, CastleDownload;
 
 { 3DS reading mostly based on spec from
   [http://www.martinreddy.net/gfx/3d/3DS.spec].
@@ -70,7 +70,7 @@ type
 
   TMaterialMap3ds = record
     Exists: boolean;
-    MapFilename: string;
+    MapURL: string;
     Scale, Offset: TVector2Single;
   end;
 
@@ -243,7 +243,7 @@ type
     { Autodesk version used to create this 3DS. }
     Version: LongWord;
     constructor Create(Stream: TStream); overload;
-    constructor Create(const filename: string); overload;
+    constructor Create(const URL: string); overload;
     destructor Destroy; override;
   end;
 
@@ -460,7 +460,7 @@ procedure TMaterial3ds.ReadFromStream(Stream: TStream; EndPos: Int64);
   function ReadMaterialMap(EndPos: Int64): TMaterialMap3ds;
   const
     InitialExistingMatMap: TMaterialMap3ds =
-    (Exists: true; MapFileName: ''; Scale: (1, 1); Offset: (0, 0));
+    (Exists: true; MapURL: ''; Scale: (1, 1); Offset: (0, 0));
   var
     h: TChunkHeader;
     hEnd: Int64;
@@ -473,7 +473,7 @@ procedure TMaterial3ds.ReadFromStream(Stream: TStream; EndPos: Int64);
       Stream.ReadBuffer(h, SizeOf(h));
       hEnd := Stream.Position -SizeOf(TChunkHeader) +h.len;
       case h.id of
-        CHUNK_MAP_FILE: Result.MapFilename := StreamReadZeroEndString(Stream);
+        CHUNK_MAP_FILE: Result.MapURL := StreamReadZeroEndString(Stream);
         CHUNK_MAP_USCALE: Stream.ReadBuffer(Result.Scale[0], SizeOf(Single));
         CHUNK_MAP_VSCALE: Stream.ReadBuffer(Result.Scale[1], SizeOf(Single));
         CHUNK_MAP_UOFFSET: Stream.ReadBuffer(Result.Offset[0], SizeOf(Single));
@@ -909,11 +909,11 @@ begin
   Materials.CheckAllInitialized;
 end;
 
-constructor TScene3DS.Create(const filename: string);
+constructor TScene3DS.Create(const URL: string);
 var
   S: TStream;
 begin
-  S := CreateReadFileStream(filename);
+  S := Download(URL, true);
   try Create(S);
   finally S.Free end;
 end;
@@ -929,7 +929,7 @@ end;
 
 { Load3DS -------------------------------------------------------------------- }
 
-function Load3DS(const filename: string): TX3DRootNode;
+function Load3DS(const URL: string): TX3DRootNode;
 var
   BaseUrl: string;
   O3ds: TScene3DS;
@@ -1011,7 +1011,7 @@ var
     begin
       Tex := TImageTextureNode.Create('', BaseUrl);
       Tex.FdUrl.Items.Add(SearchTextureFileName(BaseUrl,
-        Material.TextureMap1.MapFilename));
+        Material.TextureMap1.MapURL));
       Result.FdTexture.Value := Tex;
 
       TexTransform := TTextureTransformNode.Create('', BaseUrl);
@@ -1022,7 +1022,7 @@ var
       begin
         Tex := TImageTextureNode.Create('', BaseUrl);
         Tex.FdUrl.Items.Add(SearchTextureFileName(BaseUrl,
-          Material.TextureMapBump.MapFilename));
+          Material.TextureMapBump.MapURL));
         Result.FdNormalMap.Value := Tex;
 
         { We don't have separate TextureTransform for bump map.
@@ -1058,9 +1058,10 @@ var
   Shape: TShapeNode;
   I, J, FaceMaterialNum, ThisMaterialFacesCount, FaceNum: Integer;
 begin
-  BaseUrl := ExtractFilePath(ExpandFilename(filename));
+  { TODO-net: file operations on URLs }
+  BaseUrl := ExtractFilePath(ExpandFilename(URL));
   Appearances := nil;
-  O3ds := TScene3DS.Create(filename);
+  O3ds := TScene3DS.Create(URL);
   try
     Result := TX3DRootNode.Create('', BaseUrl);
     try

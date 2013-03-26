@@ -27,7 +27,7 @@ const
   Overloaded version that takes Stream as a parameter expects that
   stream (as read) is no longer compressed.
   @groupBegin }
-function LoadX3DXml(const FileName: string; Gzipped: boolean): TX3DRootNode;
+function LoadX3DXml(const URL: string; Gzipped: boolean): TX3DRootNode;
 function LoadX3DXml(Stream: TStream; const BaseUrl: string;
   const BaseName: string = ''): TX3DRootNode;
 { @groupEnd }
@@ -501,18 +501,23 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function LoadX3DXml(const FileName: string; Gzipped: boolean): TX3DRootNode;
+function LoadX3DXml(const URL: string; Gzipped: boolean): TX3DRootNode;
 var
   Stream: TStream;
 begin
+  (* TODO-net: TGZFileStream doesn't work for network streams.
   if Gzipped then
     Stream := TGZFileStream.Create(FileName, gzOpenRead) else
     { Create the same stream class as ReadXMLFile does
       when called with FileName:string }
     Stream := TFileStream.Create(FileName, fmOpenRead + fmShareDenyWrite);
+  *)
+  Stream := Download(URL);
   try
-    Result := LoadX3DXml(Stream, ExtractFilePath(ExpandFileName(FileName)),
-      ExtractFileName(FileName));
+    Result := LoadX3DXml(Stream,
+      { TODO-net: file operations on URLs }
+      ExtractFilePath(ExpandFileName(URL)),
+      ExtractFileName(URL));
   finally
     FreeAndNil(Stream);
   end;

@@ -22,11 +22,12 @@ interface
 
 uses X3DNodes;
 
-function LoadGEO(const filename: string): TX3DRootNode;
+function LoadGEO(const URL: string): TX3DRootNode;
 
 implementation
 
-uses CastleVectors, CastleUtils, Classes, SysUtils,
+uses CastleVectors, CastleUtils, Classes, SysUtils, CastleWarnings,
+  CastleClassUtils, CastleDownload,
   CastleFilesUtils, CastleStringUtils, X3DLoadInternalUtils;
 
 { TObject3DGEO ---------------------------------------------------------------- }
@@ -38,61 +39,81 @@ type
   public
     Verts: TVector3SingleList;
     Faces: TVector3CardinalList;
-    constructor Create(const fname: string);
+    constructor Create(const URL: string);
     destructor Destroy; override;
   end;
 
-constructor TObject3DGEO.Create(const fname: string);
+constructor TObject3DGEO.Create(const URL: string);
 type
   TGEOFormatFlavor = (gfOld, gfMeshColorFaces, gfMeshColorVerts);
 var
   Flavor: TGEOFormatFlavor;
 
-  function ReadVertexIndex(var F: TextFile): Cardinal;
+  function ReadVertexIndex(const S: string): Cardinal;
   begin
-    Read(F, Result);
+    Result := StrToInt(S);
     { In older format, vertex index is 1-based. }
     if Flavor = gfOld then Dec(Result);
   end;
 
   { Read exactly one line of GEO file, reading new face information.
     Updates Faces. }
-  procedure ReadGEOFace(var F: TextFile);
+  procedure ReadGEOFace(const Line: string);
   var
     J, ThisPolyCount: Integer;
     FirstVert, LastVert: Cardinal;
     CurrentFace: PVector3Cardinal;
+    LineTokens: TCastleStringList;
   begin
-    Read(F, ThisPolyCount);
+    LineTokens := CreateTokens(Line);
+    try
+      if LineTokens.Count = 0 then
+      begin
+        OnWarning(wtMajor, 'GEO', 'Empty line');
+        Exit;
+      end;
 
-    CurrentFace := Faces.Add;
+      ThisPolyCount := StrToInt(LineTokens[0]);
+      if ThisPolyCount < 3 then
+      begin
+        OnWarning(wtMajor, 'GEO', 'Polygon with less than 3 vertexes');
+        Exit;
+      end;
 
-    { odczytaj "na pewniaka" pierwszy trojkat }
-    for j := 0 to 2 do
-      CurrentFace^[j] := ReadVertexIndex(F);
+      if LineTokens.Count < ThisPolyCount + 1 then
+      begin
+        OnWarning(wtMajor, 'GEO', 'Not enough vertex indexes on line');
+        Exit;
+      end;
 
-    FirstVert := CurrentFace^[0];
-    LastVert := CurrentFace^[2];
-
-    { dla kazdego nastepnego vertexa polygonu tworz nowy trojkat jako
-      sklejenie FirstVert, LastVert i nowego vertexa. Pilnuj kolejnosci
-      aby wszystkie trojkaty z tego polygonu byly tak zorientowane jak ten
-      polygon.}
-    for j := 3 to ThisPolyCount - 1 do
-    begin
       CurrentFace := Faces.Add;
 
-      CurrentFace^[0] := FirstVert;
-      CurrentFace^[1] := LastVert;
-      CurrentFace^[2] := ReadVertexIndex(F);
+      { odczytaj "na pewniaka" pierwszy trojkat }
+      for j := 0 to 2 do
+        CurrentFace^[j] := ReadVertexIndex(LineTokens[J + 1]);
 
+      FirstVert := CurrentFace^[0];
       LastVert := CurrentFace^[2];
-    end;
-    Readln(f);
+
+      { dla kazdego nastepnego vertexa polygonu tworz nowy trojkat jako
+        sklejenie FirstVert, LastVert i nowego vertexa. Pilnuj kolejnosci
+        aby wszystkie trojkaty z tego polygonu byly tak zorientowane jak ten
+        polygon.}
+      for j := 3 to ThisPolyCount - 1 do
+      begin
+        CurrentFace := Faces.Add;
+
+        CurrentFace^[0] := FirstVert;
+        CurrentFace^[1] := LastVert;
+        CurrentFace^[2] := ReadVertexIndex(LineTokens[J + 1]);
+
+        LastVert := CurrentFace^[2];
+      end;
+    finally FreeAndNil(LineTokens) end;
   end;
 
 var
-  f: TextFile;
+  Reader: TTextReader;
   i: Integer;
   Line: string;
   VertsCount, PolysCount, VertsInPolysCount: Integer;
@@ -101,10 +122,10 @@ begin
  Verts := TVector3SingleList.Create;
  Faces := TVector3CardinalList.Create;
 
- SafeReset(f, fname, true);
+ Reader := TTextReader.Create(Download(URL), true);
  try
   { Read first line: magic number (or not existent in older GEO format) }
-  Readln(F, Line);
+  Line := Reader.Readln;
   Line := Trim(Line);
   if SameText(Line, '3DG1') then
     Flavor := gfMeshColorFaces else
@@ -135,25 +156,25 @@ begin
   end else
   begin
     { In newer formats, 2nd line contains just VertsCount. }
-    Readln(F, VertsCount);
+    VertsCount := StrToInt(Reader.Readln);
     PolysCount := -1;
   end;
 
   Verts.Count := VertsCount;
   for i := 0 to Verts.Count-1 do
-    Readln(f, Verts.L[i][0], Verts.L[i][1], Verts.L[i][2]);
+    Verts.L[I] := Vector3SingleFromStr(Reader.Readln);
 
   if PolysCount <> -1 then
   begin
     for i := 0 to PolysCount - 1 do
-      ReadGEOFace(F);
+      ReadGEOFace(Reader.Readln);
   end else
   begin
-    { PolysCount not known. So we just read the file as fas as we can. }
-    while not SeekEof(F) do
-      ReadGEOFace(F);
+    { PolysCount not known. So we just read the file as fast as we can. }
+    while not Reader.Eof do
+      ReadGEOFace(Reader.Readln);
   end;
- finally CloseFile(f) end;
+ finally FreeAndNil(Reader) end;
 end;
 
 destructor TObject3DGEO.Destroy;
@@ -165,7 +186,7 @@ end;
 
 { LoadGEO -------------------------------------------------------------------- }
 
-function LoadGEO(const filename: string): TX3DRootNode;
+function LoadGEO(const URL: string): TX3DRootNode;
 var
   geo: TObject3DGEO;
   verts: TCoordinateNode;
@@ -174,8 +195,9 @@ var
   i: integer;
   BaseUrl: string;
 begin
-  BaseUrl := ExtractFilePath(ExpandFilename(filename));
-  geo := TObject3DGEO.Create(filename);
+  { TODO-net: file operations on URLs }
+  BaseUrl := ExtractFilePath(ExpandFilename(URL));
+  geo := TObject3DGEO.Create(URL);
   try
     result := TX3DRootNode.Create('', BaseUrl);
     try

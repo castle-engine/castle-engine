@@ -23,11 +23,11 @@ uses SysUtils, Classes, CastleUtils, CastleClassUtils, CastleVectors, X3DNodes,
   FGL, CastleGenericLists;
 
 { Load MD3 animation into a single animated X3D model. }
-function LoadMD3(const FileName: string): TX3DRootNode;
+function LoadMD3(const URL: string): TX3DRootNode;
 
 { Load MD3 animation as a sequence of static X3D models. }
 procedure LoadMD3Sequence(
-  const FileName: string;
+  const URL: string;
   RootNodes: TX3DNodeList;
   Times: TSingleList;
   out ScenesPerTime: Cardinal;
@@ -37,7 +37,7 @@ procedure LoadMD3Sequence(
 implementation
 
 uses CastleFilesUtils, CastleStringUtils, CastleBoxes, X3DLoadInternalUtils,
-  X3DCameraUtils;
+  X3DCameraUtils, CastleDownload;
 
 type
   TMd3Triangle = record
@@ -91,12 +91,12 @@ type
     { Reads MD3 from a file.
 
       Associated skin file is also read,
-      to get texture filename: for xxx.md3, we will try to read
-      xxx_default.skin file, looking there for a texture filename.
-      Texture filename found there will be trimmed to a name
+      to get texture URL: for xxx.md3, we will try to read
+      xxx_default.skin file, looking there for a texture URL.
+      Texture URL found there will be trimmed to a name
       (i.e. without directory part, as it usually specifies directory
       within quake/tremulous/etc. data dir, not relative to md3 model dir). }
-    constructor Create(const FileName: string);
+    constructor Create(const URL: string);
 
     { Reads MD3 from a stream. The stream must be freely seekable
       (i.e. setting Position to any value must be supported) ---
@@ -106,7 +106,7 @@ type
       that if you created it, you should also free it, this class will not
       do it for you. You can free Stream right after constructor finished
       it's work. }
-    constructor Create(Stream: TStream; const ATextureFileName: string);
+    constructor Create(Stream: TStream; const ATextureURL: string);
 
     destructor Destroy; override;
 
@@ -117,17 +117,17 @@ type
 
     FramesCount: Cardinal;
 
-    { Texture filename to use for this object. This is not read from md3
+    { Texture URL to use for this object. This is not read from md3
       file (it's not recorded there), it's read (if available)
       from accompanying xxx_default.skin file. It's empty '' if
-      no skin file was found, or it didn't specify any texture filename. }
-    TextureFileName: string;
+      no skin file was found, or it didn't specify any texture URL. }
+    TextureURL: string;
 
-    { Searches for a skin file accompanying given MD3 model filename,
-      and reads it. Returns @true and sets TextureFileName if skin file
-      found and some texture filename was recorded there. }
-    class function ReadSkinFile(const Md3FileName: string;
-      out ATextureFileName: string): boolean;
+    { Searches for a skin file accompanying given MD3 model URL,
+      and reads it. Returns @true and sets TextureURL if skin file
+      found and some texture URL was recorded there. }
+    class function ReadSkinFile(const Md3URL: string;
+      out ATextureURL: string): boolean;
   end;
 
 { Load a specific animation frame from a given MD3 model.
@@ -282,21 +282,21 @@ end;
 
 { TObject3DMD3 --------------------------------------------------------------- }
 
-constructor TObject3DMD3.Create(const FileName: string);
+constructor TObject3DMD3.Create(const URL: string);
 var
   Stream: TStream;
-  ATextureFileName: string;
+  ATextureURL: string;
 begin
-  if not ReadSkinFile(FileName, ATextureFileName) then
-    ATextureFileName := '';
+  if not ReadSkinFile(URL, ATextureURL) then
+    ATextureURL := '';
 
-  Stream := TFileStream.Create(FileName, fmOpenRead);
+  Stream := Download(URL);
   try
-    Create(Stream, ATextureFileName);
+    Create(Stream, ATextureURL);
   finally Stream.Free end;
 end;
 
-constructor TObject3DMD3.Create(Stream: TStream; const ATextureFileName: string);
+constructor TObject3DMD3.Create(Stream: TStream; const ATextureURL: string);
 var
   Header: TMd3Header;
   Frame: TMd3Frame;
@@ -306,7 +306,7 @@ var
 begin
   inherited Create;
 
-  TextureFileName := ATextureFileName;
+  TextureURL := ATextureURL;
 
   Stream.ReadBuffer(Header, SizeOf(TMd3Header));
 
@@ -363,67 +363,73 @@ begin
   inherited;
 end;
 
-class function TObject3DMD3.ReadSkinFile(const Md3FileName: string;
-  out ATextureFileName: string): boolean;
+class function TObject3DMD3.ReadSkinFile(const Md3URL: string;
+  out ATextureURL: string): boolean;
 var
-  SkinFile: TextFile;
+  SkinFile: TTextReader;
   S: string;
-  SkinFileName: string;
+  SkinURL: string;
   CommaPos: Integer;
   Md3Path, NoExt: string;
 begin
   Result := false;
-  NoExt := DeleteFileExt(Md3FileName);
-  SkinFileName := NoExt + '_default.skin';
-  Md3Path := ExtractFilePath(Md3FileName);
-  if FileExists(SkinFileName) then
+  { TODO-net: file operations on URLs }
+  NoExt := DeleteFileExt(Md3URL);
+  SkinURL := NoExt + '_default.skin';
+  { TODO-net: file operations on URLs }
+  Md3Path := ExtractFilePath(Md3URL);
+  { TODO-net: FileExists is wrong for URLs }
+  if FileExists(SkinURL) then
   begin
-    SafeReset(SkinFile, SkinFileName, true);
+    SkinFile := TTextReader.Create(Download(SkinURL), true);
     try
-      while not Eof(SkinFile) do
+      while not SkinFile.Eof do
       begin
-        Readln(SkinFile, S);
+        S := SkinFile.Readln;
         CommaPos := Pos(',', S);
         if CommaPos <> 0 then
         begin
-          ATextureFileName := Trim(SEnding(S, CommaPos + 1));
-          if ATextureFileName <> '' then
+          ATextureURL := Trim(SEnding(S, CommaPos + 1));
+          if ATextureURL <> '' then
           begin
-            { Directory recorded in ATextureFileName is useless for us,
+            { Directory recorded in ATextureURL is useless for us,
               it's usually a relative directory inside quake/tremulous/etc.
               data. We just assume that this is inside the same dir as
               md3 model file, so we strip the directory part. }
-            ATextureFileName := ExtractFileName(ATextureFileName);
+            { TODO-net: file operations on URLs }
+            ATextureURL := ExtractFileName(ATextureURL);
 
-            if not FileExists(Md3Path + ATextureFileName) then
+            { TODO-net: file operations on URLs  - lots below }
+
+            if not FileExists(Md3Path + ATextureURL) then
             begin
               { Now, I know this is stupid, but we simply cannot trust
-                the extension of texture given in ATextureFileName in skin file.
-                It's common in Quake3 data files that texture filename is given
+                the extension of texture given in ATextureURL in skin file.
+                It's common in Quake3 data files that texture URL is given
                 as xxx.tga, while in fact only xxx.jpg exists and should be used. }
-              if FileExists(Md3Path + ChangeFileExt(ATextureFileName, '.jpg')) then
-                ATextureFileName := ChangeFileExt(ATextureFileName, '.jpg') else
+              if FileExists(Md3Path + ChangeFileExt(ATextureURL, '.jpg')) then
+                ATextureURL := ChangeFileExt(ATextureURL, '.jpg') else
 
               { Also, some files have texture names with missing extension...
                 So we have to check also for tga here.
                 E.g. tremulous-unpacked-data/models/players/human_base/head }
-              if FileExists(Md3Path + ChangeFileExt(ATextureFileName, '.tga')) then
-                ATextureFileName := ChangeFileExt(ATextureFileName, '.tga') else
+              if FileExists(Md3Path + ChangeFileExt(ATextureURL, '.tga')) then
+                ATextureURL := ChangeFileExt(ATextureURL, '.tga') else
 
               { Now this is also stupid... But some tremulous data
                 has texture recorded as "null". We should ignore this
                 texture, and look at the next line. (We do it only
-                if above checks proved that texture filename doesn't
-                exist, and texture filename with .jpg also doesn't exist) }
+                if above checks proved that texture URL doesn't
+                exist, and texture URL with .jpg also doesn't exist) }
               { TODO: actually,
                 ~/3dmodels/tremulous-unpacked-data/models/players/human_base/upper_default.skin
                 shows that MD3 models may have various parts textured with
                 different textures or even not textured.
-                We should read each pair as PartName, PartTextureFileName,
+                We should read each pair as PartName, PartTextureURL,
                 where null means "no texture". Then we should apply each
                 part separately. PairName is somewhere recorded in MD3
                 file, right ? }
-              if ATextureFileName = 'null' then
+              if ATextureURL = 'null' then
                 Continue;
             end;
 
@@ -432,14 +438,15 @@ begin
           end;
         end;
       end;
-    finally CloseFile(SkinFile) end;
+    finally FreeAndNil(SkinFile) end;
   end else
   begin
     { I see this convention used in a couple of tremulous data places:
       object may be without skin file, but just texture with
       basename same as model exists. }
-    ATextureFileName := NoExt + '.jpg';
-    if FileExists(ATextureFileName) then
+    ATextureURL := NoExt + '.jpg';
+    { TODO-net: file operations on URLs }
+    if FileExists(ATextureURL) then
       Result := true;
   end;
 end;
@@ -540,10 +547,10 @@ begin
 
   SceneBox := EmptyBox3D;
 
-  if Md3.TextureFileName <> '' then
+  if Md3.TextureURL <> '' then
   begin
     Texture := TImageTextureNode.Create('', BaseUrl);
-    Texture.FdUrl.Items.Add(Md3.TextureFileName);
+    Texture.FdUrl.Items.Add(Md3.TextureURL);
   end else
     Texture := nil;
 
@@ -563,20 +570,21 @@ begin
   end;
 end;
 
-function LoadMD3(const FileName: string): TX3DRootNode;
+function LoadMD3(const URL: string): TX3DRootNode;
 var
   Md3: TObject3DMD3;
   BaseUrl: string;
 begin
-  BaseUrl := ExtractFilePath(ExpandFilename(FileName));
-  Md3 := TObject3DMD3.Create(FileName);
+  { TODO-net: file operations on URLs }
+  BaseUrl := ExtractFilePath(ExpandFilename(URL));
+  Md3 := TObject3DMD3.Create(URL);
   try
     Result := LoadMD3Frame(Md3, 0, BaseUrl);
   finally FreeAndNil(Md3) end;
 end;
 
 procedure LoadMD3Sequence(
-  const FileName: string;
+  const URL: string;
   RootNodes: TX3DNodeList;
   Times: TSingleList;
   out ScenesPerTime: Cardinal;
@@ -587,8 +595,9 @@ var
   BaseUrl: string;
   I: Integer;
 begin
-  BaseUrl := ExtractFilePath(ExpandFilename(FileName));
-  Md3 := TObject3DMD3.Create(FileName);
+  { TODO-net: file operations on URLs }
+  BaseUrl := ExtractFilePath(ExpandFilename(URL));
+  Md3 := TObject3DMD3.Create(URL);
   try
     { handle each MD3 frame }
     for I := 0 to Md3.FramesCount - 1 do

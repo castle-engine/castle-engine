@@ -33,14 +33,14 @@ uses X3DNodes;
   @param(AllowKambiExtensions If @true we may use some of our engine specific
     extensions. For example, Material.mirror may be <> 0,
     see [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_material_mirror].) }
-function LoadCollada(const FileName: string;
+function LoadCollada(const URL: string;
   const AllowKambiExtensions: boolean = false): TX3DRootNode;
 
 implementation
 
 uses SysUtils, CastleUtils, CastleStringUtils, CastleVectors, CastleColors,
   DOM, XMLRead, CastleXMLUtils, CastleWarnings, Classes, CastleClassUtils,
-  FGL, Math, X3DLoadInternalUtils;
+  FGL, Math, X3DLoadInternalUtils, CastleDownload;
 
 { Large missing stuff:
 
@@ -592,7 +592,7 @@ end;
 
 { LoadCollada ---------------------------------------------------------------- }
 
-function LoadCollada(const FileName: string;
+function LoadCollada(const URL: string;
   const AllowKambiExtensions: boolean): TX3DRootNode;
 var
   BaseUrl: string;
@@ -2523,6 +2523,7 @@ var
   Version: string;
   I: TXMLElementIterator;
   LibraryE: TDOMElement;
+  Stream: TStream;
 begin
   Effects := nil;
   Materials := nil;
@@ -2538,7 +2539,10 @@ begin
     try
       { ReadXMLFile always sets TXMLDocument param (possibly to nil),
         even in case of exception. So place it inside try..finally. }
-      ReadXMLFile(Doc, FileName);
+      Stream := Download(URL);
+      try
+        ReadXMLFile(Doc, Stream);
+      finally FreeAndNil(Stream) end;
 
       Check(Doc.DocumentElement.TagName = 'COLLADA',
         'Root node of Collada file must be <COLLADA>');
@@ -2555,13 +2559,14 @@ begin
         Version14 := IsPrefix('1.4.', Version) or IsPrefix('1.5.', Version);
       end;
 
+      { TODO-net fix for real URLs }
       if DOMGetAttribute(Doc.DocumentElement, 'base', BaseUrl) then
       begin
         { COLLADA.base is exactly for the same purpose as BaseUrl.
           Use it (making sure it's absolute path). }
         BaseUrl := ExpandFileName(BaseUrl);
       end else
-        BaseUrl := ExtractFilePath(ExpandFilename(FileName));
+        BaseUrl := ExtractFilePath(ExpandFilename(URL));
 
       Effects := TColladaEffectList.Create;
       Materials := TColladaMaterialsMap.Create;
@@ -2618,7 +2623,8 @@ begin
             ReadSceneElement(I.Current);
       finally FreeAndNil(I); end;
 
-      Result.Meta.PutPreserve('source', ExtractFileName(FileName));
+      { TODO-net: file operations on URLs }
+      Result.Meta.PutPreserve('source', ExtractFileName(URL));
       Result.Meta['source-collada-version'] := Version;
     finally
       FreeAndNil(Doc);

@@ -23,13 +23,14 @@ interface
 
 uses X3DNodes;
 
-function LoadWavefrontOBJ(const filename: string): TX3DRootNode;
+function LoadWavefrontOBJ(const URL: string): TX3DRootNode;
 
 implementation
 
 uses CastleStringUtils, CastleFilesUtils, CastleWarnings,
   CastleVectors, CastleUtils, Classes, CastleClassUtils, SysUtils,
-  FGL, X3DLoadInternalUtils, CastleGenericLists;
+  FGL, X3DLoadInternalUtils, CastleGenericLists, CastleURLUtils,
+  CastleDownload;
 
 type
   TWavefrontMaterial = class
@@ -39,8 +40,8 @@ type
     Opacity: Single;
     SpecularExponent: Single;
     Sharpness, IndexOfRefraction: Single;
-    DiffuseTextureFileName: string;
-    BumpTextureFileName: string;
+    DiffuseTextureURL: string;
+    BumpTextureURL: string;
 
     { Initializes material with default values.
       Since Wavefront specification doesn't say what the default values are,
@@ -74,7 +75,7 @@ type
     FFaces: TWavefrontFaceList;
     FMaterials: TWavefrontMaterialList;
   public
-    constructor Create(const fname: string);
+    constructor Create(const URL: string);
     destructor Destroy; override;
 
     { @groupBegin
@@ -118,8 +119,8 @@ begin
   Sharpness := 60;
   IndexOfRefraction := 1;
 
-  DiffuseTextureFileName := '';
-  BumpTextureFileName := '';
+  DiffuseTextureURL := '';
+  BumpTextureURL := '';
 end;
 
 { TWavefrontMaterialList ---------------------------------------------------- }
@@ -139,7 +140,7 @@ end;
 
 { TObject3DOBJ --------------------------------------------------------------- }
 
-constructor TObject3DOBJ.Create(const fname: string);
+constructor TObject3DOBJ.Create(const URL: string);
 var
   BasePath: string;
 
@@ -271,22 +272,20 @@ var
     This takes care of stripping comments.
     If current line is empty or only comment, LineTok = ''.
     Otherwise, LineTok <> '' and LineAfterMarker contains the rest of the line. }
-  procedure ReadLine(var F: TextFile; out LineTok, LineAfterMarker: string);
+  procedure ReadLine(Line: string; out LineTok, LineAfterMarker: string);
   var
-    S: string;
     SeekPosAfterMarker: Integer;
   begin
-    Readln(F, S);
-    S := STruncateHash(S);
+    Line := STruncateHash(Line);
 
     { calculate first line token }
     SeekPosAfterMarker := 1;
-    LineTok := NextToken(S, SeekPosAfterMarker);
+    LineTok := NextToken(Line, SeekPosAfterMarker);
     if LineTok <> '' then
-      LineAfterMarker := Trim(SEnding(S, SeekPosAfterMarker));
+      LineAfterMarker := Trim(SEnding(Line, SeekPosAfterMarker));
   end;
 
-  procedure ReadMaterials(const FileName: string);
+  procedure ReadMaterials(const URL: string);
   var
     IsMaterial: boolean;
 
@@ -309,7 +308,7 @@ var
     end;
 
   var
-    F: TextFile;
+    F: TTextReader;
     LineTok, LineAfterMarker: string;
   begin
     { Specification doesn't say what to do when multiple matlib directives
@@ -321,18 +320,18 @@ var
     IsMaterial := false;
 
     try
-      SafeReset(F, CombinePaths(BasePath, FileName), true);
+      F := TTextReader.Create(Download(CombineUrls(BasePath, URL)), true);
     except
-      on E: EFileOpenError do
+      on E: Exception do
       begin
-        OnWarning(wtMinor, 'Wavefront OBJ', E.Message);
+        OnWarning(wtMinor, 'Wavefront OBJ Material', E.Message);
         Exit;
       end;
     end;
     try
-      while not Eof(F) do
+      while not F.Eof do
       begin
-        ReadLine(F, LineTok, LineAfterMarker);
+        ReadLine(F.Readln, LineTok, LineAfterMarker);
         if LineTok = '' then Continue;
 
         case ArrayPosText(LineTok, ['newmtl', 'Ka', 'Kd', 'Ks', 'Tf', 'illum',
@@ -379,28 +378,29 @@ var
              end;
           10:begin
                CheckIsMaterial('diffuse map (map_Kd)');
-               Materials.Last.DiffuseTextureFileName := LineAfterMarker;
+               Materials.Last.DiffuseTextureURL := LineAfterMarker;
              end;
           11, 12:
              begin
                CheckIsMaterial('bump map (map_bump,bump)');
-               Materials.Last.BumpTextureFileName := LineAfterMarker;
+               Materials.Last.BumpTextureURL := LineAfterMarker;
              end;
           else { we ignore other linetoks };
         end;
       end;
-    finally CloseFile(F) end;
+    finally FreeAndNil(F) end;
   end;
 
 var
-  F: TextFile;
+  F: TTextReader;
   LineTok, LineAfterMarker: string;
   //GroupName: string;
   UsedMaterial: TWavefrontMaterial;
 begin
   inherited Create;
 
-  BasePath := ExtractFilePath(ExpandFileName(FName));
+  { TODO-net: file operations on URLs }
+  BasePath := ExtractFilePath(ExpandFileName(URL));
 
   FVerts := TVector3SingleList.Create;
   FTexCoords := TVector2SingleList.Create;
@@ -410,11 +410,11 @@ begin
 
   UsedMaterial := nil;
 
-  SafeReset(f, fname, true);
+  F := TTextReader.Create(Download(URL), true);
   try
-    while not Eof(f) do
+    while not F.Eof do
     begin
-      ReadLine(F, LineTok, LineAfterMarker);
+      ReadLine(F.Readln, LineTok, LineAfterMarker);
 
       { LineTok = '' means "this line is a comment" }
       if LineTok = '' then Continue;
@@ -440,7 +440,7 @@ begin
         else { we ignore other linetoks };
       end;
     end;
-  finally CloseFile(f) end;
+  finally FreeAndNil(F) end;
 end;
 
 destructor TObject3DOBJ.Destroy;
@@ -455,7 +455,7 @@ end;
 
 { LoadWavefrontOBJ ----------------------------------------------------------- }
 
-function LoadWavefrontOBJ(const filename: string): TX3DRootNode;
+function LoadWavefrontOBJ(const URL: string): TX3DRootNode;
 const
   { When constructing large index arrays, we use larger Capacity
     to make them faster.
@@ -486,17 +486,17 @@ var
     Mat.FdTransparency.Value := 1 - Material.Opacity;
     Mat.FdShininess.Value := Material.SpecularExponent / 128.0;
 
-    if Material.DiffuseTextureFileName <> '' then
+    if Material.DiffuseTextureURL <> '' then
     begin
       Texture := TImageTextureNode.Create('', BaseUrl);
       Result.FdTexture.Value := Texture;
-      Texture.FdUrl.Items.Add(SearchTextureFileName(BaseUrl, Material.DiffuseTextureFileName));
+      Texture.FdUrl.Items.Add(SearchTextureFileName(BaseUrl, Material.DiffuseTextureURL));
 
-      if Material.BumpTextureFileName <> '' then
+      if Material.BumpTextureURL <> '' then
       begin
         Texture := TImageTextureNode.Create('', BaseUrl);
         Result.FdNormalMap.Value := Texture;
-        Texture.FdUrl.Items.Add(SearchTextureFileName(BaseUrl, Material.BumpTextureFileName));
+        Texture.FdUrl.Items.Add(SearchTextureFileName(BaseUrl, Material.BumpTextureURL));
       end;
     end;
   end;
@@ -513,9 +513,10 @@ var
   Appearances: TX3DNodeList;
   Shape: TShapeNode;
 begin
-  BaseUrl := ExtractFilePath(ExpandFilename(filename));
+  { TODO-net: file operations on URLs }
+  BaseUrl := ExtractFilePath(ExpandFilename(URL));
   Appearances := nil;
-  Obj := TObject3DOBJ.Create(filename);
+  Obj := TObject3DOBJ.Create(URL);
   try
     result := TX3DRootNode.Create('', BaseUrl);
     try

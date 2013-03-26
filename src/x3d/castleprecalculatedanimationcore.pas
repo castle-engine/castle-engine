@@ -28,7 +28,7 @@ type
     in OpenGL, see TCastlePrecalculatedAnimation. }
   TCastlePrecalculatedAnimationCore = class(T3D)
   public
-    { Load animation data from a given FileName to a set of variables.
+    { Load animation data from a given URL to a set of variables.
 
       See [http://castle-engine.sourceforge.net/kanim_format.php]
       for specification of the file format.
@@ -39,8 +39,8 @@ type
       of RootNodes and Times, you should pass here references to
       @italic(already created and currently empty) lists.
 
-      ModelFileNames returned will always contain only absolute paths.
-      We will expand every path (like FileName parameter) if necessary for this.
+      ModelURLs returned will always contain only absolute paths.
+      We will expand every path (like URL parameter) if necessary for this.
 
       If you seek for most comfortable way to load TCastlePrecalculatedAnimation from a file,
       you probably want to use TCastlePrecalculatedAnimation.LoadFromFile.
@@ -49,8 +49,8 @@ type
       instance, and it's usefull to implement a class like
       TCastlePrecalculatedAnimationInfo that also wants to read animation data,
       but doesn't have an TCastlePrecalculatedAnimation instance available. }
-    class procedure LoadFromFileToVars(const FileName: string;
-      ModelFileNames: TStringList;
+    class procedure LoadFromFileToVars(const URL: string;
+      ModelURLs: TStringList;
       Times: TSingleList;
       out ScenesPerTime: Cardinal;
       out EqualityEpsilon: Single;
@@ -63,12 +63,12 @@ type
       that is a part of some larger XML file.
 
       @param(BasePath The path from which relative
-        filenames inside Element will be resolved. It doesn't
+        URLs inside Element will be resolved. It doesn't
         have to be an absolute path, we will expand it to make it absolute
         if necessary.) }
     class procedure LoadFromDOMElementToVars(Element: TDOMElement;
       const BasePath: string;
-      ModelFileNames: TStringList;
+      ModelURLs: TStringList;
       Times: TSingleList;
       out ScenesPerTime: Cardinal;
       out EqualityEpsilon: Single;
@@ -77,25 +77,31 @@ type
 
 implementation
 
-uses SysUtils, XMLRead, CastleXMLUtils, CastleFilesUtils;
+uses SysUtils, XMLRead, CastleXMLUtils, CastleFilesUtils, CastleDownload,
+  CastleURLUtils;
 
-class procedure TCastlePrecalculatedAnimationCore.LoadFromFileToVars(const FileName: string;
-  ModelFileNames: TStringList;
+class procedure TCastlePrecalculatedAnimationCore.LoadFromFileToVars(const URL: string;
+  ModelURLs: TStringList;
   Times: TSingleList;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
   out ATimeLoop, ATimeBackwards: boolean);
 var
   Document: TXMLDocument;
+  Stream: TStream;
 begin
   try
     { ReadXMLFile always sets TXMLDocument param (possibly to nil),
       even in case of exception. So place it inside try..finally. }
-    ReadXMLFile(Document, FileName);
+    Stream := Download(URL);
+    try
+      ReadXMLFile(Document, Stream);
+    finally FreeAndNil(Stream) end;
 
     LoadFromDOMElementToVars(Document.DocumentElement,
-      ExtractFilePath(FileName),
-      ModelFileNames, Times, ScenesPerTime,
+      { TODO-net: file operations on URLs }
+      ExtractFilePath(URL),
+      ModelURLs, Times, ScenesPerTime,
       EqualityEpsilon, ATimeLoop, ATimeBackwards);
   finally FreeAndNil(Document); end;
 end;
@@ -109,7 +115,7 @@ const
 class procedure TCastlePrecalculatedAnimationCore.LoadFromDOMElementToVars(
   Element: TDOMElement;
   const BasePath: string;
-  ModelFileNames: TStringList;
+  ModelURLs: TStringList;
   Times: TSingleList;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
@@ -120,12 +126,13 @@ var
   Children: TDOMNodeList;
   I: Integer;
   FrameTime: Single;
-  FrameFileName: string;
+  FrameURL: string;
   Attr: TDOMAttr;
 begin
   Assert(Times.Count = 0);
-  Assert(ModelFileNames.Count = 0);
+  Assert(ModelURLs.Count = 0);
 
+  { TODO-net: file operations on URLs }
   AbsoluteBasePath := ExpandFileName(BasePath);
 
   Check(Element.TagName = 'animation',
@@ -166,23 +173,23 @@ begin
         if not DOMGetSingleAttribute(FrameElement, 'time', FrameTime) then
           raise Exception.Create('<frame> element must have a "time" attribute');
 
-        if not DOMGetAttribute(FrameElement, 'file_name', FrameFileName) then
+        if not DOMGetAttribute(FrameElement, 'file_name', FrameURL) then
           raise Exception.Create('<frame> element must have a "file_name" attribute');
 
-        { Make FrameFileName absolute, treating it as relative vs
+        { Make FrameURL absolute, treating it as relative vs
           AbsoluteBasePath }
-        FrameFileName := CombinePaths(AbsoluteBasePath, FrameFileName);
+        FrameURL := CombineUrls(AbsoluteBasePath, FrameURL);
 
         if (Times.Count > 0) and (FrameTime <= Times.Last) then
           raise Exception.Create(
             'Frames within <animation> element must be specified in ' +
             'increasing time order');
 
-        ModelFileNames.Add(FrameFileName);
+        ModelURLs.Add(FrameURL);
         Times.Add(FrameTime);
       end;
 
-    if ModelFileNames.Count = 0 then
+    if ModelURLs.Count = 0 then
       raise Exception.Create(
         'At least one <frame> is required within <animation> element');
   finally FreeChildNodes(Children) end;
