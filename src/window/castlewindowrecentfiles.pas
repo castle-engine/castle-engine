@@ -33,7 +33,7 @@ type
 
     { Destroy the menu. Internal (do not call this directly, it's only called
       by parent class).
-      Note that it doesn't read FileNames list at all, it only
+      Note that it doesn't read URLs list at all, it only
       depends on FirstSeparator value. }
     procedure MenuDestroy; override;
   public
@@ -64,30 +64,31 @@ uses SysUtils, CastleClassUtils;
 type
   TMenuRecentItem = class(TMenuItem)
   private
-    FFileName: string;
+    FURL: string;
   public
     { Constructor. Number is 1-based number of this recent file entry. }
-    constructor Create(const Number: Integer; const AFileName: string;
+    constructor Create(const Number: Integer; const AURL: string;
       AIntData: Integer);
   public
     OnOpenRecent: TOnOpenRecent;
-    property FileName: string read FFileName;
+    property URL: string read FURL;
     function DoClick: boolean; override;
   end;
 
 constructor TMenuRecentItem.Create(
-  const Number: Integer; const AFileName: string; AIntData: Integer);
+  const Number: Integer; const AURL: string; AIntData: Integer);
 var
   S: string;
 begin
-  FFileName := AFilename;
+  FURL := AURL;
 
   if Number <= 9 then
     S := '_' + IntToStr(Number) else
   if Number = 10 then
     S := '1_0' else
     S := IntToStr(Number);
-  S += '. ' + SQuoteMenuEntryCaption(ExtractFileName(FileName));
+  { TODO-net: url as a filename treated }
+  S += '. ' + SQuoteMenuEntryCaption(ExtractFileName(URL));
 
   inherited Create(S, AIntData);
 end;
@@ -95,7 +96,7 @@ end;
 function TMenuRecentItem.DoClick: boolean;
 begin
   if Assigned(OnOpenRecent) then
-    OnOpenRecent(FileName);
+    OnOpenRecent(URL);
   Result := true;
 end;
 
@@ -112,17 +113,17 @@ begin
 
   { Add recent files menu }
   if (NextMenuItem <> nil) and (NextMenuItem.ParentMenu <> nil) and
-    { When FileNames.Count = 0 then we don't want to add anything,
+    { When URLs.Count = 0 then we don't want to add anything,
       even FirstSeparator. }
-    (FileNames.Count > 0) then
+    (URLs.Count > 0) then
   begin
     ParentMenu := NextMenuItem.ParentMenu;
     Position := NextMenuItem.ParentMenuPosition;
     FirstSeparator := TMenuSeparator.Create;
     ParentMenu.Insert(Position, FirstSeparator);
-    for I := 0 to FileNames.Count - 1 do
+    for I := 0 to URLs.Count - 1 do
     begin
-      MenuRecentOpen := TMenuRecentItem.Create(I+1, FileNames[I], 0);
+      MenuRecentOpen := TMenuRecentItem.Create(I+1, URLs[I], 0);
       MenuRecentOpen.OnOpenRecent := OnOpenRecent;
       ParentMenu.Insert(Position + Cardinal(I) + 1, MenuRecentOpen);
     end;
@@ -139,7 +140,7 @@ begin
     { Checks for below are to safeguard against cases
       when you could assign NextMenuItem before it had
       any ParentMenu, or if you somehow rearranged your menu,
-      or if FileNames list was empty when you assigned NextMenuItem
+      or if URLs list was empty when you assigned NextMenuItem
       (in this case FirstSeparator is left nil, but later it should
       be created after the 1st add). }
     (NextMenuItem.ParentMenu <> nil) and
