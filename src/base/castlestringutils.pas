@@ -906,7 +906,7 @@ function SCompressWhiteSpace(const S: string): string;
 
 implementation
 
-uses CastleFilesUtils;
+uses CastleFilesUtils, CastleClassUtils;
 
 { TCastleStringList ------------------------------------------------------------- }
 
@@ -1459,36 +1459,29 @@ end;
 
 function FileToString(const FileName: string; const AllowStdIn: boolean): string;
 var
-  F: file;
-  S: string;
+  F: TFileStream;
 begin
   if AllowStdIn and (FileName = '-') then
+    Result := ReadGrowingStreamToString(StdInStream) else
   begin
-    Result := '';
-    while not Eof(Input) do
-    begin
-      Readln(S);
-      Result += S + NL;
-    end;
-  end else
-  begin
-    SafeReset(f, FileName, true);
+    F := TFileStream.Create(FileName, fmOpenRead);
     try
-      SetLength(Result, FileSize(f));
-      BlockRead(f, PChar(Result)^, Length(Result));
-    finally CloseFile(F) end;
+      SetLength(Result, F.Size);
+      if F.Size <> 0 then
+        F.ReadBuffer(Result[1], Length(Result));
+    finally FreeAndNil(F) end;
   end;
 end;
 
-procedure StringToFile(const FileName, contents: string);
-var F: File;
+procedure StringToFile(const FileName, Contents: string);
+var
+  F: TFileStream;
 begin
- SafeRewrite(F, FileName);
- try
-   BlockWrite(F, PChar(contents)^, Length(contents));
- finally
-   CloseFile(F);
- end;
+  F := TFileStream.Create(FileName, fmCreate);
+  try
+    if Length(Contents) <> 0 then
+      F.WriteBuffer(Contents[1], Length(Contents));
+  finally FreeAndNil(F) end;
 end;
 
 procedure DeFormat(Data: string; const Format: string;
