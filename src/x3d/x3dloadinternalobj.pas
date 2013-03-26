@@ -399,8 +399,7 @@ var
 begin
   inherited Create;
 
-  { TODO-net: file operations on URLs }
-  BasePath := ExtractFilePath(ExpandFileName(URL));
+  BasePath := AbsoluteURI(URL);
 
   FVerts := TVector3SingleList.Create;
   FTexCoords := TVector2SingleList.Create;
