@@ -14,8 +14,7 @@
 }
 
 { Download an URL, write result on standard output.
-  Simple test of CastleDownloader unit.
-  TODO: move to examples dir. }
+  Simple test of CastleDownload unit. }
 
 uses SysUtils, Classes, CastleDownload, CastleParameters, CastleClassUtils,
   CastleLog;
