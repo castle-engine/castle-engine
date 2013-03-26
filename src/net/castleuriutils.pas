@@ -50,10 +50,17 @@ function RawURIDecode(const S: string): string;
 
 { Get protocol from given URI.
 
-  The understanding what is a protocol is 100% compatible with
+  The understanding what is a protocol is almost 100% compatible with
   URIParser.ParseURI function (protocol is just a prefix before ':').
-  This means that you can use this as a faster equivalent to
-  @code(ParseURI(URI).Protocol). }
+
+  However, we have additional safeguards to *not* detect single-letter protocols,
+  which could be mistakenly found in Windows absolute filenames like
+  @code(c:\blah.txt). Our URIProtocol will answer that protocol is empty,
+  which means no protocol, so our engine will treat it as a filename.
+  (In contrast with FPC URIParser that would detect protocol called "c".)
+  This allows us to relatively safely pass absolute filenames under Windows
+  to routines that request URL, like the @link(Download) function
+  and everything that calls it. }
 function URIProtocol(const URI: string): string;
 
 { Check does URI contain given Protocol.
@@ -202,6 +209,11 @@ begin
 
     Result := FirstCharacter < Colon;
   end;
+
+  { Do not drive names in Windows filenames as protocol.
+    To allow stable testing, do this on all platforms, even non-Windows.
+    We do not use any single-letter protocol, so no harm. }
+  Result := Result and not ((FirstCharacter = 1) and (Colon = 2));
 end;
 
 function URIProtocol(const URI: string): string;
