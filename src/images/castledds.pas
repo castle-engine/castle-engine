@@ -125,7 +125,7 @@ type
       @raises(EInvalidDDS In case of any error in the file data.) }
     procedure LoadFromStream(Stream: TStream);
 
-    procedure LoadFromFile(const FileName: string);
+    procedure LoadFromFile(const URL: string);
 
     procedure SaveToStream(Stream: TStream);
     procedure SaveToFile(const FileName: string);
@@ -191,7 +191,7 @@ const
 implementation
 
 uses SysUtils, CastleUtils, CastleClassUtils, CastleWarnings, CastleStringUtils,
-  CastleVectors;
+  CastleVectors, CastleDownload;
 
 { ----------------------------------------------------------------------------
   Constants and types for DDS file handling.
@@ -1177,11 +1177,11 @@ begin
   end;
 end;
 
-procedure TDDSImage.LoadFromFile(const FileName: string);
+procedure TDDSImage.LoadFromFile(const URL: string);
 var
   S: TStream;
 begin
-  S := CreateReadFileStream(FileName);
+  S := Download(URL, true);
   try
     LoadFromStream(S);
   finally FreeAndNil(S) end;

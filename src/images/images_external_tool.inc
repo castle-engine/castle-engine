@@ -19,7 +19,7 @@ function LoadImageExternalTool(
 var
   ImageFileName: string;
   PngFileName: string;
-  PngStream: TStream;
+  PngStream: TMemoryStream;
   ConvertExecutable: string;
 begin
   ImageFileName := GetTempFileNameCheck;
@@ -111,8 +111,10 @@ begin
       [ ImageMagickName + ':' + ImageFileName,
         'png:' + PngFileName ]);
 
-    PngStream := CreateReadFileStream(PngFileName);
+    PngStream := TMemoryStream.Create;
     try
+      PngStream.LoadFromFile(PngFileName);
+      PngStream.Position := 0;
       Result := LoadPNG(PngStream, AllowedImageClasses);
     finally FreeAndNil(PngStream) end;
 

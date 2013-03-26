@@ -231,8 +231,11 @@ function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): st
   works fast), on Windows the slowdown is noticeable.
   This function will always create
   proper stream descendant, eventually wrapping some standard stream
-  in a buffered stream with full seeking capability. }
-function CreateReadFileStream(const filename: string): TStream;
+  in a buffered stream with full seeking capability.
+
+  @deprecated Instead of this, use CastleDownload.Download with
+  LocalFileInMemory. }
+function CreateReadFileStream(const filename: string): TStream; deprecated;
 
 { Read a growing stream, and append it to another destination stream.
   A "growing stream" is a stream that we can only read
