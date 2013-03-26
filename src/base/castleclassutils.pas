@@ -93,31 +93,6 @@ procedure StringsAdd(Strs: TStrings; Count: integer; itemVal: string='dummy'); o
 { Add all strings from string array to TStrings instance. }
 procedure AddStrArrayToStrings(const StrArr: array of string; strlist: TStrings);
 
-{ Append to TStrings some directiories.
-
-  @unorderedList(
-    @item(AddPathsFromFileLines reads directiories list from given file.
-      If the file doesn't exist or is not readable, will append nothing,
-      without raising any error. Empty lines (only whitespace)
-      in file are ignored.)
-
-    @item(AddPathsFromPathList reads directiories from a list
-      separated by PathSeparator.)
-
-    @item(AddPathsFromEnvironmentVar reads directiories from a list
-      in the environment variable, also separated by PathSeparator.
-      This is suitable for parsing environment variables like
-      $PATH or $LD_LIBRARY_PATH.)
-  )
-
-  All appended directories are guaranteed to end with PathDelim.
-
-  @groupBegin }
-procedure AddPathsFromFileLines(slist: TStrings; const fname: string);
-procedure AddPathsFromEnvironmentVar(slist: TStrings; const varname: string);
-procedure AddPathsFromPathList(slist: TStrings; const pathlist: string);
-{ @groupEnd }
-
 type
   { TStringList that is case sensitive. }
   TStringListCaseSens = class(TStringList)
@@ -748,43 +723,6 @@ var
   i: integer;
 begin
   for i := 0 to High(StrArr) do strlist.Append(StrArr[i]);
-end;
-
-procedure AddPathsFromPathList(slist: TStrings; const pathlist: string);
-var
-  spoz: integer;
-  path: string;
-begin
-  spoz := 1;
-  repeat
-    path := NextToken(pathlist, spoz, [PathSep]);
-    if path = '' then
-      break else
-      slist.Append(InclPathDelim(path));
-  until false;
-end;
-
-procedure AddPathsFromEnvironmentVar(slist: TStrings; const varname: string);
-begin
-  AddPathsFromPathList(slist, SysUtils.GetEnvironmentVariable(varname));
-end;
-
-procedure AddPathsFromFileLines(slist: TStrings; const fname: string);
-var
-  f: TextFile;
-  path: string;
-begin
-  try
-    SafeReset(f, fname, true);
-  except
-    {if file can't be opened - exit, without error}
-    on EFileOpenError do exit;
-  end;
-  while not Eof(f) do
-  begin
-    Readln(f, path);
-    if Trim(path) <> '' then slist.Append(InclPathDelim(path));
-  end;
 end;
 
 constructor TStringListCaseSens.Create;
