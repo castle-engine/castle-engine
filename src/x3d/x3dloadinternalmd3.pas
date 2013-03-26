@@ -37,7 +37,7 @@ procedure LoadMD3Sequence(
 implementation
 
 uses CastleFilesUtils, CastleStringUtils, CastleBoxes, X3DLoadInternalUtils,
-  X3DCameraUtils, CastleDownload, CastleURLUtils;
+  X3DCameraUtils, CastleDownload, CastleURIUtils;
 
 type
   TMd3Triangle = record

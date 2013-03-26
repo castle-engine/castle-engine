@@ -443,8 +443,8 @@
         <UnitName Value="CastleDataURI"/>
       </Item100>
       <Item101>
-        <Filename Value="../src/net/castleurlutils.pas"/>
-        <UnitName Value="CastleURLUtils"/>
+        <Filename Value="../src/net/castleuriutils.pas"/>
+        <UnitName Value="CastleURIUtils"/>
       </Item101>
       <Item102>
         <Filename Value="../src/opengl/castlecurves.pas"/>

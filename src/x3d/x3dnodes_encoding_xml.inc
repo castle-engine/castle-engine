@@ -533,7 +533,7 @@ begin
   try
     { calculate NiceBaseURI, used for ReadXMLFile e.g. for error messages }
     NiceBaseURI := BaseUrl;
-    if UrlProtocol(NiceBaseURI) = '' then
+    if URIProtocol(NiceBaseURI) = '' then
       NiceBaseURI := FilenameToURI(NiceBaseURI);
 
     { ReadXMLFile always sets TXMLDocument param (possibly to nil),

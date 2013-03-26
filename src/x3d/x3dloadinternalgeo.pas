@@ -27,7 +27,7 @@ function LoadGEO(const URL: string): TX3DRootNode;
 implementation
 
 uses CastleVectors, CastleUtils, Classes, SysUtils, CastleWarnings,
-  CastleClassUtils, CastleDownload, CastleURLUtils,
+  CastleClassUtils, CastleDownload, CastleURIUtils,
   CastleFilesUtils, CastleStringUtils, X3DLoadInternalUtils;
 
 { TObject3DGEO ---------------------------------------------------------------- }

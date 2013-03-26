@@ -2152,7 +2152,7 @@ uses
   CastleOutlineFont_BVSerif_Bold_Italic,
 
   Math, X3DLoad, CastleZStream, X3DCameraUtils, CastleWarnings, CastleColors,
-  CastleFilesUtils, CastleRays, StrUtils, CastleURLUtils,
+  CastleFilesUtils, CastleRays, StrUtils, CastleURIUtils,
   CastleLog, CastleScriptParser, CastleDataURI, URIParser, CastleDownload,
   CastleNURBS, CastleQuaternions, CastleCameras, CastleXMLUtils, CastleOpenDocument;
 
@@ -4920,8 +4920,8 @@ procedure TX3DExternalPrototype.LoadReferenced;
   begin
     Result := false;
 
-    URL := CombineUrls(BaseUrl, RelativeURL);
-    URLExtractAnchor(URL, Anchor);
+    URL := CombineURI(BaseUrl, RelativeURL);
+    URIExtractAnchor(URL, Anchor);
     try
       ReferencedPrototypeNode := X3DCache.Load3D(URL);
       PrototypeNames := ReferencedPrototypeNode.PrototypeNames;

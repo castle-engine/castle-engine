@@ -78,7 +78,7 @@ type
 
 implementation
 
-uses CastleURLUtils, CastleWarnings, CastleStringUtils, Base64;
+uses CastleURIUtils, CastleWarnings, CastleStringUtils, Base64;
 
 { TODO: We treat non-base64 data verbatim, not interpreting %xx hex encoding
   inside. }
@@ -97,14 +97,14 @@ end;
 
 class function TDataURI.IsDataURI(const URI: string; out Colon: Integer): boolean;
 begin
-  Result := UrlProtocolIs(URI, 'data', Colon);
+  Result := URIProtocolIs(URI, 'data', Colon);
 end;
 
 class function TDataURI.IsDataURI(const URI: string): boolean;
 var
   Colon: Integer; { ignored }
 begin
-  Result := UrlProtocolIs(URI, 'data', Colon);
+  Result := URIProtocolIs(URI, 'data', Colon);
 end;
 
 procedure TDataURI.SetURI(const Value: string);
@@ -135,7 +135,7 @@ begin
   ValidCharset := FCharset;
   ValidBase64 := FBase64;
 
-  { First Colon characters were already parsed by UrlProtocolIs as "data:".
+  { First Colon characters were already parsed by URIProtocolIs as "data:".
     Read mime-type now. }
 
   PosBegin := Colon + 1;

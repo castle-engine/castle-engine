@@ -29,7 +29,7 @@ implementation
 
 uses CastleStringUtils, CastleFilesUtils, CastleWarnings,
   CastleVectors, CastleUtils, Classes, CastleClassUtils, SysUtils,
-  FGL, X3DLoadInternalUtils, CastleGenericLists, CastleURLUtils,
+  FGL, X3DLoadInternalUtils, CastleGenericLists, CastleURIUtils,
   CastleDownload;
 
 type
@@ -320,7 +320,7 @@ var
     IsMaterial := false;
 
     try
-      F := TTextReader.Create(Download(CombineUrls(BasePath, URL)), true);
+      F := TTextReader.Create(Download(CombineURI(BasePath, URL)), true);
     except
       on E: Exception do
       begin

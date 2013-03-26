@@ -236,13 +236,13 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
     Protocol, PotentialFullUrl, ScriptContents: string;
   begin
     Result := false;
-    Protocol := UrlProtocol(Url);
+    Protocol := URIProtocol(Url);
 
     if Protocol = 'compiled' then
     begin
       FreeAndNil(CompiledScriptContents);
       CompiledScriptContents := TStringList.Create;
-      CompiledScriptContents.Text := UrlDeleteProtocol(Url);
+      CompiledScriptContents.Text := URIDeleteProtocol(Url);
 
       Result := true;
       FInitializedScriptType := stCompiled;
@@ -253,7 +253,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
        (Protocol = 'kambiscript') then
     begin
       try
-        CastleScriptInitialize(UrlDeleteProtocol(Url));
+        CastleScriptInitialize(URIDeleteProtocol(Url));
 
         Result := true;
         FInitializedScriptType := stCastleScript;

@@ -18,37 +18,37 @@ unit TestURLUtils;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleURLUtils;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleURIUtils;
 
 type
   TTestURLUtils = class(TTestCase)
   published
-    procedure TestUrlProtocol;
+    procedure TestURIProtocol;
   end;
 
 implementation
 
 uses CastleUtils;
 
-procedure TTestURLUtils.TestUrlProtocol;
+procedure TTestURLUtils.TestURIProtocol;
 var
   Colon: Integer;
 begin
-  Assert(UrlProtocol('data:blah:foo') = 'data');
-  Assert(UrlProtocolIs('data:blah:foo', 'data', Colon));
-  Assert(not UrlProtocolIs('data:blah:foo', 'data1', Colon));
-  Assert(not UrlProtocolIs('data:blah:foo', 'dat', Colon));
-  Assert(not UrlProtocolIs('data', 'data', Colon));
-  Assert(not UrlProtocolIs('', 'data', Colon));
+  Assert(URIProtocol('data:blah:foo') = 'data');
+  Assert(URIProtocolIs('data:blah:foo', 'data', Colon));
+  Assert(not URIProtocolIs('data:blah:foo', 'data1', Colon));
+  Assert(not URIProtocolIs('data:blah:foo', 'dat', Colon));
+  Assert(not URIProtocolIs('data', 'data', Colon));
+  Assert(not URIProtocolIs('', 'data', Colon));
 
-  Assert(UrlProtocol('ecmascript:xyz') = 'ecmascript');
-  Assert(UrlDeleteProtocol('ecmascript:xyz') = 'xyz');
+  Assert(URIProtocol('ecmascript:xyz') = 'ecmascript');
+  Assert(URIDeleteProtocol('ecmascript:xyz') = 'xyz');
 
-  Assert(UrlProtocol('     ' + NL + '    ecmascript:xyz') = 'ecmascript');
-  Assert(UrlDeleteProtocol('     ' + NL + '    ecmascript:xyz') = 'xyz');
+  Assert(URIProtocol('     ' + NL + '    ecmascript:xyz') = 'ecmascript');
+  Assert(URIDeleteProtocol('     ' + NL + '    ecmascript:xyz') = 'xyz');
 
-  Assert(UrlProtocol('void main()' + NL + 'ecmascript:xyz') = '');
-  Assert(UrlDeleteProtocol('void main()' + NL + 'ecmascript:xyz') = 'void main()' + NL + 'ecmascript:xyz');
+  Assert(URIProtocol('void main()' + NL + 'ecmascript:xyz') = '');
+  Assert(URIDeleteProtocol('void main()' + NL + 'ecmascript:xyz') = 'void main()' + NL + 'ecmascript:xyz');
 end;
 
 initialization

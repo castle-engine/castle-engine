@@ -47,7 +47,7 @@ function SearchTextureFileName(const Path, Base: string): string;
 implementation
 
 uses SysUtils, CastleStringUtils, CastleEnumerateFiles, CastleWarnings,
-  URIParser, CastleURLUtils;
+  URIParser, CastleURIUtils;
 
 function ToX3DName(const s: string): string;
 const
@@ -83,7 +83,7 @@ var
   BaseShort: string;
 begin
   { TODO-net: We cannot work with Base being URL, so just exit in this case }
-  if UrlProtocol(Base) <> '' then Exit(Base);
+  if URIProtocol(Base) <> '' then Exit(Base);
 
   try
     if SearchFileHard(Path, Base, Result) then

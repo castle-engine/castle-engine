@@ -26,7 +26,7 @@ function Load3DS(const URL: string): TX3DRootNode;
 implementation
 
 uses CastleUtils, Classes, CastleClassUtils, SysUtils, CastleVectors, X3DCameraUtils,
-  FGL, X3DLoadInternalUtils, CastleWarnings, CastleDownload, CastleURLUtils;
+  FGL, X3DLoadInternalUtils, CastleWarnings, CastleDownload, CastleURIUtils;
 
 { 3DS reading mostly based on spec from
   [http://www.martinreddy.net/gfx/3d/3DS.spec].

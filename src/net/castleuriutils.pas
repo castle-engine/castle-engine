@@ -13,26 +13,25 @@
   ----------------------------------------------------------------------------
 }
 
-{ URL utilities. Not much for now, will be much more when handling URLs
-  in VRML engine will be really implemented. }
-unit CastleURLUtils;
+{ URI utilities. These extend standard FPC URIParser unit. }
+unit CastleURIUtils;
 
 interface
 
-{ Extracts #anchor from URL. On input, URL contains full URL.
-  On output, Anchor is removed from URL and saved in Anchor.
+{ Extracts #anchor from URI. On input, URI contains full URI.
+  On output, Anchor is removed from URI and saved in Anchor.
   If no #anchor existed, Anchor is set to ''. }
-procedure URLExtractAnchor(var URL: string; out Anchor: string);
+procedure URIExtractAnchor(var URI: string; out Anchor: string);
 
 { Replace all sequences like %xx with their actual 8-bit characters.
 
   The intention is that this is similar to PHP function with the same name.
 
-  To account for badly encoded strings, invalid encoded URLs do not
+  To account for badly encoded strings, invalid encoded URIs do not
   raise an error --- they are only reported to OnWarning.
   So you can simply ignore them, or write a warning about them for user.
   This is done because often you will use this with
-  URLs provided by the user, read from some file etc., so you can't be sure
+  URIs provided by the user, read from some file etc., so you can't be sure
   whether they are correctly encoded, and raising error unconditionally
   is not OK. (Considering the number of bad HTML pages on WWW.)
 
@@ -47,34 +46,34 @@ procedure URLExtractAnchor(var URL: string; out Anchor: string);
       In this case we also simply keep "%xx" in resulting string.)
   )
 }
-function RawUrlDecode(const S: string): string;
+function RawURIDecode(const S: string): string;
 
-{ Get protocol from given URL.
+{ Get protocol from given URI.
 
   The understanding what is a protocol is 100% compatible with
   URIParser.ParseURI function (protocol is just a prefix before ':').
   This means that you can use this as a faster equivalent to
   @code(ParseURI(URI).Protocol). }
-function UrlProtocol(const URI: string): string;
+function URIProtocol(const URI: string): string;
 
-{ Check does URL contain given Protocol.
-  This is equivalent to checking UrlProtocol(S) = Protocol, ignoring case,
+{ Check does URI contain given Protocol.
+  This is equivalent to checking URIProtocol(S) = Protocol, ignoring case,
   although may be a little faster. Given Protocol string cannot contain
   ":" character. }
-function UrlProtocolIs(const S: string; const Protocol: string; out Colon: Integer): boolean;
+function URIProtocolIs(const S: string; const Protocol: string; out Colon: Integer): boolean;
 
-function UrlDeleteProtocol(const S: string): string;
+function URIDeleteProtocol(const S: string): string;
 
-{ Return absolute URL, given base and relative URL.
-  Base URL must be always absolute, at least an absolute filename (file://
-  prefix is not necessary) or an absolute URL (protocol and absolute filename).
-  Relative URL may be relative, may also be absolute (in the latter case,
+{ Return absolute URI, given base and relative URI.
+  Base URI must be always absolute, at least an absolute filename (file://
+  prefix is not necessary) or an absolute URI (protocol and absolute filename).
+  Relative URI may be relative, may also be absolute (in the latter case,
   Result is just equal to Relative). }
-function CombineUrls(const Base, Relative: string): string;
+function CombineURI(const Base, Relative: string): string;
 
 { Make sure that the URI is absolute.
   This function always treats a relative URI as a filename relative
-  to the current directory. See CombineUrls for more elaborate expansion
+  to the current directory. See CombineURI for more elaborate expansion
   of relative URIs. }
 function AbsoluteURI(const URI: string): string;
 
@@ -83,19 +82,19 @@ implementation
 uses SysUtils, CastleStringUtils, CastleWarnings, CastleFilesUtils,
   URIParser, CastleUtils;
 
-procedure URLExtractAnchor(var URL: string; out Anchor: string);
+procedure URIExtractAnchor(var URI: string; out Anchor: string);
 var
   HashPos: Integer;
 begin
-  HashPos := BackPos('#', URL);
+  HashPos := BackPos('#', URI);
   if HashPos <> 0 then
   begin
-    Anchor := SEnding(URL, HashPos + 1);
-    SetLength(URL, HashPos - 1);
+    Anchor := SEnding(URI, HashPos + 1);
+    SetLength(URI, HashPos - 1);
   end;
 end;
 
-function RawUrlDecode(const S: string): string;
+function RawURIDecode(const S: string): string;
 
   { Assume Position <= Length(S).
     Check is S[Positon] is a start of %xx sequence:
@@ -124,16 +123,16 @@ function RawUrlDecode(const S: string): string;
     begin
       if Position + 2 > Length(S) then
       begin
-        OnWarning(wtMajor, 'URL', Format(
-          'URL "%s" incorrectly encoded, %%xx sequence ends unexpectedly', [S]));
+        OnWarning(wtMajor, 'URI', Format(
+          'URI "%s" incorrectly encoded, %%xx sequence ends unexpectedly', [S]));
         Exit(false);
       end;
 
       if (not (S[Position + 1] in ValidHexaChars)) or
          (not (S[Position + 2] in ValidHexaChars)) then
       begin
-        OnWarning(wtMajor, 'URL', Format(
-          'URL "%s" incorrectly encoded, %s if not a valid hexadecimal number',
+        OnWarning(wtMajor, 'URI', Format(
+          'URI "%s" incorrectly encoded, %s if not a valid hexadecimal number',
           [S, S[Position + 1] + S[Position + 2]]));
         Exit(false);
       end;
@@ -178,7 +177,7 @@ end;
   - FirstCharacter < Colon
   - FirstCharacter >= 1
   - Colon > 1 }
-function UrlProtocolIndex(const S: string; out FirstCharacter, Colon: Integer): boolean;
+function URIProtocolIndex(const S: string; out FirstCharacter, Colon: Integer): boolean;
 var
   I: Integer;
 begin
@@ -205,21 +204,21 @@ begin
   end;
 end;
 
-function UrlProtocol(const URI: string): string;
+function URIProtocol(const URI: string): string;
 var
   FirstCharacter, Colon: Integer;
 begin
-  if UrlProtocolIndex(URI, FirstCharacter, Colon) then
+  if URIProtocolIndex(URI, FirstCharacter, Colon) then
     Result := CopyPos(URI, FirstCharacter, Colon - 1) else
     Result := '';
 end;
 
-function UrlProtocolIs(const S: string; const Protocol: string; out Colon: Integer): boolean;
+function URIProtocolIs(const S: string; const Protocol: string; out Colon: Integer): boolean;
 var
   FirstCharacter, I: Integer;
 begin
   Result := false;
-  if UrlProtocolIndex(S, FirstCharacter, Colon) and
+  if URIProtocolIndex(S, FirstCharacter, Colon) and
      (Colon - FirstCharacter = Length(Protocol)) then
   begin
     for I := 1 to Length(Protocol) do
@@ -229,17 +228,17 @@ begin
   end;
 end;
 
-function UrlDeleteProtocol(const S: string): string;
+function URIDeleteProtocol(const S: string): string;
 var
   FirstCharacter, Colon: Integer;
 begin
-  if UrlProtocolIndex(S, FirstCharacter, Colon) then
+  if URIProtocolIndex(S, FirstCharacter, Colon) then
     { Cut off also whitespace before FirstCharacter }
     Result := SEnding(S, Colon + 1) else
     Result := S;
 end;
 
-function CombineUrls(const Base, Relative: string): string;
+function CombineURI(const Base, Relative: string): string;
 begin
   if not ResolveRelativeURI(Base, Relative, Result) then
   begin
@@ -248,7 +247,7 @@ begin
       It's enough to add protocol to Base (protocol for Relative is not
       needed, ResolveRelativeURI will behave Ok, even when Relative is
       an absolute filename). }
-    Assert(UrlProtocol(Base) = '', 'ResolveRelativeURI should only fail when Base protocol is not found');
+    Assert(URIProtocol(Base) = '', 'ResolveRelativeURI should only fail when Base protocol is not found');
     if not ResolveRelativeURI('file://' + Base, Relative, Result) then
       raise EInternalError.CreateFmt('Failed to resolve relative URI "%s" with base "%s"',
         [Relative, Base]);
@@ -257,7 +256,7 @@ end;
 
 function AbsoluteURI(const URI: string): string;
 begin
-  if UrlProtocol(URI) = '' then
+  if URIProtocol(URI) = '' then
     Result := 'file://' + ExpandFileName(URI) else
     Result := URI;
 end;

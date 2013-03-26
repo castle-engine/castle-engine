@@ -171,7 +171,7 @@ begin
     P.Targets.AddUnit('castlevideos.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'net');
-    P.Targets.AddUnit('castleurlutils.pas');
+    P.Targets.AddUnit('castleuriutils.pas');
     P.Targets.AddUnit('castledatauri.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'opengl');

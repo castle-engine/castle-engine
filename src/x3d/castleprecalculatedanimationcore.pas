@@ -78,7 +78,7 @@ type
 implementation
 
 uses SysUtils, XMLRead, CastleXMLUtils, CastleFilesUtils, CastleDownload,
-  CastleURLUtils;
+  CastleURIUtils;
 
 class procedure TCastlePrecalculatedAnimationCore.LoadFromFileToVars(const URL: string;
   ModelURLs: TStringList;
@@ -178,7 +178,7 @@ begin
 
         { Make FrameURL absolute, treating it as relative vs
           AbsoluteBasePath }
-        FrameURL := CombineUrls(AbsoluteBasePath, FrameURL);
+        FrameURL := CombineURI(AbsoluteBasePath, FrameURL);
 
         if (Times.Count > 0) and (FrameTime <= Times.Last) then
           raise Exception.Create(

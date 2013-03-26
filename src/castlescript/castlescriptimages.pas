@@ -115,7 +115,7 @@ type
 
 implementation
 
-uses SysUtils, CastleUtils, CastleWarnings, CastleScriptVectors, CastleURLUtils;
+uses SysUtils, CastleUtils, CastleWarnings, CastleScriptVectors, CastleURIUtils;
 
 { TCasScriptImage ------------------------------------------------------------ }
 
@@ -201,7 +201,7 @@ begin
 
   FullUrl := TCasScriptString(Arguments[0]).Value;
   if AFunction.Environment <> nil then
-    FullUrl := CombineUrls(AFunction.Environment.BaseUrl, FullUrl);
+    FullUrl := CombineURI(AFunction.Environment.BaseUrl, FullUrl);
 
   try
     NewImage := LoadImage(FullUrl, [TRGBImage, TRGBAlphaImage]);
@@ -209,7 +209,7 @@ begin
     on E: Exception do
       raise ECasScriptError.Create('Exception ' + E.ClassName +
         ' occurred when trying to load ' +
-        'image from url "' + FullUrl + '" : ' + E.Message);
+        'image from URL "' + FullUrl + '" : ' + E.Message);
   end;
 
   FreeAndNil(TCasScriptImage(AResult).FValue);

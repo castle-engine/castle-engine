@@ -303,12 +303,12 @@ begin
   begin
     Url := FdUrl.Items[I];
 
-    { We have to call URLExtractAnchor before PathFromBaseUrl.
+    { We have to call URIExtractAnchor before PathFromBaseUrl.
       Otherwise, in case of Urls like '' or '#viewpoint_in_this_world'
       PathFromBaseUrl would prefix it with our path,
       making it invalid. }
     UrlWithoutViewpoint := Url;
-    URLExtractAnchor(UrlWithoutViewpoint, NewViewpointName);
+    URIExtractAnchor(UrlWithoutViewpoint, NewViewpointName);
 
     if UrlWithoutViewpoint = '' then
     begin

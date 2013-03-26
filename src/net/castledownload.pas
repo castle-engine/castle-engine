@@ -63,7 +63,7 @@ function Download(const URL: string;
 
 implementation
 
-uses URIParser, CastleURLUtils, CastleUtils, CastleLog;
+uses URIParser, CastleURIUtils, CastleUtils, CastleLog;
 
 { Just like Download, but
   - Assumes that the URL is from the network (this prevents network URLs
@@ -109,7 +109,7 @@ var
 const
   MaxRedirects = 32;
 begin
-  P := UrlProtocol(URL);
+  P := URIProtocol(URL);
 
   { network protocols: get data into a new TMemoryStream using FpHttpClient }
   if EnableNetwork and (CompareText(P, 'http') = 0) then

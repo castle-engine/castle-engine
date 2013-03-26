@@ -431,7 +431,7 @@ function ShaderLoadContents(var UsedFullUrl: string;
     has some newlines (needed to recognize relative URLs without
     protocol correctly). }
   begin
-    Result := (CharsPos([#10, #13], S) > 0) and (UrlProtocol(S) = '');
+    Result := (CharsPos([#10, #13], S) > 0) and (URIProtocol(S) = '');
   end;
 
   { Load shader source from data URI.If success,

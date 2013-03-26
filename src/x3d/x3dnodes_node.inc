@@ -1511,8 +1511,8 @@ begin
     (that's a general convention used internally by Blender, AFAIK).
     Here I simply remove this "//". }
   if IsPrefix('//', RelativePath) then
-    Result := CombineUrls(BaseUrl, SEnding(RelativePath, 3)) else
-    Result := CombineUrls(BaseUrl, RelativePath);
+    Result := CombineURI(BaseUrl, SEnding(RelativePath, 3)) else
+    Result := CombineURI(BaseUrl, RelativePath);
 end;
 
 procedure TX3DNode.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
