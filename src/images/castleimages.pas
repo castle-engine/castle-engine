@@ -1403,27 +1403,6 @@ function IsFileExtToImageFormat(const FileExt: string;
   Like IsFileExtToImageFormat, with OnlyLoadable = @true, OnlySaveable = @false. }
 function IsFileExtLoadableImage(const FileExt: string): boolean;
 
-type
-  ENoExistingImageExt = class(Exception);
-
-{ Find an existing filename by appending known image files extensions.
-  Treat a given string S like a filename with a trailing dot and an extension.
-  For each known image file extension, try to append it (with leading dot)
-  and check does the file exists (as a regular file, that is by
-  NormalFileExists).
-
-  If found --- return complete file name. If not found,
-  FindExistingImageExt raises ENoExistingImageExt,
-  while TryFindExistingImageExt returns ''.
-
-  @raises(ENoExistingImageExt FindExistingImageExt raises this if no existing
-    image file can be found.)
-
-  @param(OnlyLoadable If @true, will try to append only image file extensions
-    that we can load.) }
-function FindExistingImageExt(const fname: string; OnlyLoadable: boolean): string;
-function TryFindExistingImageExt(const fname: string; OnlyLoadable: boolean): string;
-
 { List available image file formats.
 
   This is basically for debug/info purposes, you can show this to user
@@ -3322,30 +3301,6 @@ end;
 function IsFileExtLoadableImage(const FileExt: string): boolean;
 begin
   result := IsFileExtToImageFormat(FileExt, true, false);
-end;
-
-function TryFindExistingImageExt(const fname: string; OnlyLoadable: boolean): string;
-var
-  iff: TImageFormat;
-  i: integer;
-begin
-  for iff := Low(iff) to High(iff) do
-    if (not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load) then
-    begin
-      for i := 1 to ImageFormatInfos[iff].extsCount do
-      begin
-        result := fname +'.' +ImageFormatInfos[iff].exts[i];
-        if NormalFileExists(result) then exit;
-      end;
-    end;
-  result := '';
-end;
-
-function FindExistingImageExt(const fname: string; OnlyLoadable: boolean): string;
-begin
-  result := TryFindExistingImageExt(fname, OnlyLoadable);
-  if result = '' then
-    raise ENoExistingImageExt.Create('No existing image extension found for image name '+fname);
 end;
 
 function ListImageExtsLong(OnlyLoadable, OnlySaveable: boolean; const LinePrefix: string): string;
