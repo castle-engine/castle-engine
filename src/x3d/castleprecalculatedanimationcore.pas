@@ -62,12 +62,12 @@ type
       an Element. This way you can use it to load <animation> element
       that is a part of some larger XML file.
 
-      @param(BasePath The path from which relative
+      @param(BaseUrl The URL from which relative
         URLs inside Element will be resolved. It doesn't
-        have to be an absolute path, we will expand it to make it absolute
+        have to be absolute, we will expand it to make it absolute
         if necessary.) }
     class procedure LoadFromDOMElementToVars(Element: TDOMElement;
-      const BasePath: string;
+      const BaseUrl: string;
       ModelURLs: TStringList;
       Times: TSingleList;
       out ScenesPerTime: Cardinal;
@@ -98,9 +98,7 @@ begin
       ReadXMLFile(Document, Stream);
     finally FreeAndNil(Stream) end;
 
-    LoadFromDOMElementToVars(Document.DocumentElement,
-      { TODO-net: file operations on URLs }
-      ExtractFilePath(URL),
+    LoadFromDOMElementToVars(Document.DocumentElement, URL,
       ModelURLs, Times, ScenesPerTime,
       EqualityEpsilon, ATimeLoop, ATimeBackwards);
   finally FreeAndNil(Document); end;
@@ -114,14 +112,14 @@ const
 
 class procedure TCastlePrecalculatedAnimationCore.LoadFromDOMElementToVars(
   Element: TDOMElement;
-  const BasePath: string;
+  const BaseUrl: string;
   ModelURLs: TStringList;
   Times: TSingleList;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
   out ATimeLoop, ATimeBackwards: boolean);
 var
-  AbsoluteBasePath: string;
+  AbsoluteBaseUrl: string;
   FrameElement: TDOMElement;
   Children: TDOMNodeList;
   I: Integer;
@@ -132,8 +130,7 @@ begin
   Assert(Times.Count = 0);
   Assert(ModelURLs.Count = 0);
 
-  { TODO-net: file operations on URLs }
-  AbsoluteBasePath := ExpandFileName(BasePath);
+  AbsoluteBaseUrl := AbsoluteURI(BaseUrl);
 
   Check(Element.TagName = 'animation',
     'Root node of an animation XML file must be <animation>');
@@ -177,8 +174,8 @@ begin
           raise Exception.Create('<frame> element must have a "file_name" attribute');
 
         { Make FrameURL absolute, treating it as relative vs
-          AbsoluteBasePath }
-        FrameURL := CombineURI(AbsoluteBasePath, FrameURL);
+          AbsoluteBaseUrl }
+        FrameURL := CombineURI(AbsoluteBaseUrl, FrameURL);
 
         if (Times.Count > 0) and (FrameTime <= Times.Last) then
           raise Exception.Create(
