@@ -28,11 +28,14 @@ interface
 
 uses SysUtils, Classes, FpHttpClient;
 
+const
+  DefaultEnableNetwork = false;
+
 var
   { Can @link(Download) actually use the network.
     As all the downloading is blocking for now, this is initially @false.
     If you want to really use the network, change it to @true. }
-  EnableNetwork: boolean = false;
+  EnableNetwork: boolean = DefaultEnableNetwork;
 
 type
   EDownloadError = class(Exception);
