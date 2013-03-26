@@ -72,16 +72,20 @@ function URIProtocolIs(const S: string; const Protocol: string; out Colon: Integ
 function URIDeleteProtocol(const S: string): string;
 
 { Return absolute URI, given base and relative URI.
-  Base URI must be always absolute, at least an absolute filename (file://
-  prefix is not necessary) or an absolute URI (protocol and absolute filename).
-  Relative URI may be relative, may also be absolute (in the latter case,
-  Result is just equal to Relative). }
+
+  Base URI must be either an absolute (with protocol) URI, or only
+  an absolute filename (in which case we'll convert it to file:// URI under
+  the hood, if necessary). This is usually the URI of the containing file,
+  for example an HTML file referencing the image, processed by AbsoluteURI.
+
+  Relative URI may be a relative URI or an absolute URI.
+  In the former case it is merged with Base.
+  In the latter case it is simply returned. }
 function CombineURI(const Base, Relative: string): string;
 
 { Make sure that the URI is absolute (always has a protocol).
-  This function always treats a relative URI as a filename relative
-  to the current directory. See CombineURI for more elaborate expansion
-  of relative URIs. }
+  This function treats an URI without a protocol as a simple filename
+  (absolute or relative to the current directory). }
 function AbsoluteURI(const URI: string): string;
 
 implementation
