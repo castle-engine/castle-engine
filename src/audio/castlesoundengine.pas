@@ -1636,7 +1636,7 @@ begin
         S.Name := I.Current.GetAttribute('name');
 
         { init to default values }
-        S.URL := CombinePaths(SoundsBaseUrl, S.Name + '.wav');
+        S.URL := CombineURI(SoundsBaseUrl, S.Name + '.wav');
         S.Gain := 1;
         S.MinGain := 0;
         S.MaxGain := 1;
@@ -1655,7 +1655,7 @@ begin
           (S.URL <> '') then
           { Make URL absolute, using SoundsBaseUrl, if non-empty URL
             was specified in XML file. }
-          S.URL := CombinePaths(SoundsBaseUrl, S.URL);
+          S.URL := CombineURI(SoundsBaseUrl, S.URL);
 
         DOMGetSingleAttribute(I.Current, 'gain', S.Gain);
         DOMGetSingleAttribute(I.Current, 'min_gain', S.MinGain);
