@@ -38,7 +38,7 @@ type
     procedure TestTimer;
     procedure TestProgramPaths;
     {$ifdef UNIX} procedure TestHomePath; {$endif}
-    procedure TestGetTempPath;
+    procedure TestGetTempDir;
   end;
 
 implementation
@@ -87,7 +87,7 @@ end;
 procedure TTestOSSpecific.TestIsSymLink;
 begin
   SymlinkName :=  'castle_game_engine_test_symlink_' + IntToStr(Random(100000));
-  SymlinkFullName := GetTempPath + SymlinkName;
+  SymlinkFullName := InclPathDelim(GetTempDir) + SymlinkName;
   // Writeln('Using ', SymlinkFullName);
   SymlinkTarget := InclPathDelim(GetCurrentDir) + 'data/symlink_target.txt';
 
@@ -179,10 +179,10 @@ begin
 end;
 {$endif}
 
-procedure TTestOSSpecific.TestGetTempPath;
+procedure TTestOSSpecific.TestGetTempDir;
 begin
-//  Writeln('TempPath: ', GetTempPath);
-  GetTempPath; // ignore result, just make sure it doesn't raise errors
+//  Writeln('TempDir: ', GetTempDir);
+  GetTempDir; // ignore result, just make sure it doesn't raise errors
 end;
 
 initialization

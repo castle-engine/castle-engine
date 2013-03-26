@@ -259,7 +259,7 @@ procedure TTestX3DNodes.TestParseSaveToFile;
       First.ReadFromFile(FileName);
 
       Node := LoadX3DClassic(FileName, false);
-      NewFile := GetTempPath + 'test_castle_game_engine.wrl';
+      NewFile := InclPathDelim(GetTempDir) + 'test_castle_game_engine.wrl';
       Save3D(Node, NewFile, ProgramName, '', xeClassic, false);
 
       Second := TX3DTokenInfoList.Create;

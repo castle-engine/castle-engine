@@ -20,7 +20,6 @@
   @unorderedList(
     @itemSpacing Compact
     @item(UserConfigFile and UserConfigPath -- user config files)
-    @item(GetTempPath -- temporary files)
     @item(ProgramDataPath -- installed program's data files)
   )
 }
@@ -76,24 +75,6 @@ function ProgramName: string;
   For all other files (and other OSes) this function returns the same
   as FileExists. }
 function NormalFileExists(const fileName: string): boolean;
-
-{ Directory suitable for creating temporary files/directories.
-  Note that this directory is shared by other programs, so be careful
-  when creating here anything --- to minimize name conflicts
-  usually all filenames created here should start with ApplicationName
-  and then should follow things like process id (or sometimes
-  user name, when you can guarantee that one user runs always only one
-  instance of this program) or some random number.
-
-  Also remember that good program should avoid creating temporary
-  files --- you should keep your content in memory, and store in it
-  filesystem only when user really wants to. One exception to this
-  rule is when program must cooperate with other program, sometimes
-  the only possible (or stable, or fast) way to do this
-  is by use of temporary files.
-
-  Always ends with trailing PathDelim. }
-function GetTempPath: string;
 
 { Path to store user configuration files.
   This is some directory that is probably writeable
@@ -224,38 +205,6 @@ procedure CheckDeleteFile(const FileName: string);
 { Call RemoveDir and check result.
   @raises Exception If delete failed. }
 procedure CheckRemoveDir(const DirFileName: string);
-
-type EFileExists=class(Exception);
-
-{ Copy file. If CanOverwrite than the destination wil be overwritten if exists.
-
-  Cannot copy a directory for now.
-
-  @raises EFileExists If file exists and CanOverwrite = @false.
-  @raises Exception In case of various errors. }
-procedure FileCopy(const SourceFileName, DestFileName: string; CanOverwrite: boolean);
-
-{ Copy file. Like FileCopy, but returns @false when failed (no exception). }
-function TryFileCopy(const SourceFileName, DestFileName: string; CanOverwrite: boolean): boolean;
-
-{ Move or rename the file. Allows to move files and directories,
-  also across disks (partitions). If possible, will do a fast move
-  ("rename" under Unix, MoveFile under Windows), but if not possible
-  it will make copy and then delete.
-
-  DestFileName will be overwritten if exists and CanOverwrite.
-  If exists and CanOverwrite = @false then EFileExists is raised.
-
-  @raises EFileExists If file exists and CanOverwrite = @false.
-  @raises Exception In case of various errors.
-
-  Notes: if SourceFileName and DestFileName are two names of the same
-  file, the situation may be undefined. So says docs for Libc,
-  I don't know what really happens with FPC's Unix/BaseUnix stuff.
-
-  TODO: moving dirs is actually not implemented
-  (well, sometimes may work but not generally). Use only for files now. }
-procedure FileMove(const SourceFileName, DestFileName: string; CanOverwrite: boolean = false); overload;
 
 { Change directory, raising exception if not possible.
   NewDir may (but doesn't have to) include trailing PathDelim.
@@ -417,44 +366,6 @@ begin
 {$endif}
 end;
 
-function GetTempPath: string;
-{$ifdef MSWINDOWS}
-var reqlen: Dword;
-begin
- reqlen := Windows.GetTempPath(0,nil);
- OSCheck(reqlen>0);
- SetLength(result, reqlen-1);
- OSCheck( Windows.GetTempPath(reqlen,PChar(result)) = reqlen-1 );
- Result := InclPathDelim(result);
-{$endif MSWINDOWS}
-{$ifdef UNIX}
-
-  function UsableDir(var DirName: string): boolean;
-  begin
-   Result :=
-     (dirname<>'') and
-     DirectoryExists(dirname)
-     { TODO: with Libc, we added here
-         and (euidaccess(PChar(dirname), W_OK or X_OK)=0)
-       How to do it with FPC BaseUnix/Unix? };
-   if Result then
-    DirName := InclPathDelim(DirName);
-  end;
-
-const
-  { Constant in Libc at least for Linux }
-  P_tmpdir = '/tmp/';
-begin
- result := GetEnvironmentVariable('TMPDIR');
- if UsableDir(result) then Exit;
-
- result := P_tmpdir;
- if UsableDir(result) then Exit;
-
- result := HomePath;
-{$endif UNIX}
-end;
-
 function UserConfigPath: string;
 begin
   Result := GetAppConfigDir(false);
@@ -597,95 +508,6 @@ procedure CheckRemoveDir(const DirFileName:  string);
 begin
  if not RemoveDir(DirFileName) then
   raise Exception.Create('Cannot remove directory "' +DirFileName+ '"');
-end;
-
-procedure FileCopy(const SourceFileName, DestFileName: string; CanOverwrite: boolean);
-{kopiuj plik, w razie bledu - exception}
-{ pod windowsem kopiowanie moznaby tu zrobic
-  OSCheck( CopyFile(PChar(filename),PChar(backFileName),not CanOverwrite) );
-  Ale : po pierwsze, SafeReset/Rewrite zwracaja mi lepsze opisy bledow w E.Message
-        po drugie, szybkosc tego kopiowania jest doskonala :
-           testy - plik 370 MegaB,
-               kopiowanie przez WinCommandera - 1min 35sek
-               kopiowanie przez Explorera - 1min 30sek
-               kopiowanie tutejsze - 1min 25sek !
-               (oczywiscie moja metoda nie wymagala uczestictwa interfejsu;
-               ale mimo to wniosek brzmi - moja metoda jest co najmniej dobra)
-           ...wiec nie mam po co z niego rezygnowac
-}
-const
-  BUF_SIZE = 100000;
-var SourceF, DestF: file;
-    ReadCount: integer;
-    buf: PByte;
-begin
- if (not CanOverwrite) and FileExists(DestFileName) then
-  raise EFileExists.Create('File '+DestFileName+' already exists.');
- SafeReset(SourceF, SourceFileName, true);
- try
-  SafeRewrite(DestF,DestFileName);
-  try
-   buf := GetMem(BUF_SIZE);
-   try
-    while not Eof(SourceF) do
-    begin
-     BlockRead(SourceF, buf^, BUF_SIZE, ReadCount);
-     BlockWrite(DestF, buf^, ReadCount);
-    end;
-   finally FreeMem(buf) end;
-  finally CloseFile(DestF) end;
- finally CloseFile(SourceF) end;
-end;
-
-function TryFileCopy(const SourceFileName, DestFileName: string; CanOverwrite: boolean): boolean;
-begin
- try
-  FileCopy(SourceFileName, DestFileName, CanOverwrite);
-  result := true;
- except
-  result := false
- end;
-end;
-
-procedure FileMove(const SourceFileName, DestFileName: string; CanOverwrite: boolean);
-begin
- if (not CanOverwrite) and FileExists(DestFileName) then
-  raise EFileExists.Create('File '+DestFileName+' already exists.');
-{$ifdef MSWINDOWS}
- { kiedys zapisalem to jako
-   var dwFlags: Dword;
-     dwFlags := MOVEFILE_COPY_ALLOWED;
-     if CanOverwrite then dwFlags := dwFlags or MOVEFILE_REPLACE_EXISTING;
-     OSCheck( MoveFileEx(PChar(SourceFileName),PChar(DestFileName),dwFlags) , 'MoveFileEx');
-   i dzialalo. A potem przestalo dzialac - MoveFileEx zawsze wywala blad ze jest
-   zaimplementowane tylko pod WinNT. ????
-   W kazdym razie ponizsza wersja z MoveFile (bez "Ex") dziala zawsze.
-   MoveFile zawsze dziala jakby MoveFileEx z flaga MOVEFILE_COPY_ALLOWED,
-   BEZ flagi MOVEFILE_REPLACE_EXISTING (wiec DestFileName nie moze istniec).
- }
-
- if CanOverwrite then
- begin
-  DeleteFile(DestFileName); {don't check DeleteFile result, it may fail}
-
-  { Tests:
-  if not DeleteFile(DestFileName) then
-   RaiseLastOSError;}
- end;
-
- OSCheck( MoveFile(PChar(SourceFileName), PChar(DestFileName)), 'MoveFile');
-
- { TODO: zrob jeszcze obsluge kopiowania katalogow jesli sa na innych dyskach }
-{$else}
- { TODO: zrobic zeby mozna bylo move directory z override'm }
- if FpRename(PChar(SourceFileName), PChar(DestFileName)) = -1 then
-  if Errno = ESysEXDEV then
-  begin
-   { gdy sa na innym systemie plikow rob Copy + Delete }
-   FileCopy(SourceFileName, DestFileName, CanOverwrite);
-   CheckDeleteFile(SourceFileName);
-  end else RaiseLastOSError;
-{$endif}
 end;
 
 { dir handling -------------------------------------------------------- }
