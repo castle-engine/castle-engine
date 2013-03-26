@@ -40,7 +40,7 @@ implementation
 
 uses SysUtils, CastleUtils, CastleStringUtils, CastleVectors, CastleColors,
   DOM, XMLRead, CastleXMLUtils, CastleWarnings, Classes, CastleClassUtils,
-  FGL, Math, X3DLoadInternalUtils, CastleDownload, CastleURIUtils;
+  FGL, Math, X3DLoadInternalUtils, CastleDownload, CastleURIUtils, URIParser;
 
 { Large missing stuff:
 
@@ -2559,13 +2559,10 @@ begin
         Version14 := IsPrefix('1.4.', Version) or IsPrefix('1.5.', Version);
       end;
 
-      if DOMGetAttribute(Doc.DocumentElement, 'base', BaseUrl) then
-      begin
-        { COLLADA.base is exactly for the same purpose as BaseUrl.
-          Use it (making sure it's absolute path). }
-        { TODO-net: ExpandFileName doesn't make sense for URLs }
-        BaseUrl := ExpandFileName(BaseUrl);
-      end else
+      { honour COLLADA.base (exactly for the same purpose as our BaseUrl),
+        but only if it's absolute }
+      if not (DOMGetAttribute(Doc.DocumentElement, 'base', BaseUrl) and
+              IsAbsoluteURI(BaseUrl)) then
         BaseUrl := AbsoluteURI(URL);
 
       Effects := TColladaEffectList.Create;
