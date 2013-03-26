@@ -41,8 +41,7 @@ unit CastleStringUtils;
 
 interface
 
-uses
-  {$ifdef MSWINDOWS} Windows, {$endif} Variants, SysUtils, CastleUtils, Classes;
+uses SysUtils, CastleUtils, Classes;
 
 type
   { List of strings. This is a slightly extended version of standard TStringList.
@@ -294,38 +293,6 @@ function NextTokenOnce(const s: string; SeekPos: integer = 1;
 function CreateTokens(const s: string;
   const TokenDelims: TSetOfChars = WhiteSpaces): TCastleStringList;
 
-{ Advanced version of NextToken, that avoids splitting string inside
-  pairs of "restricted" characters, like quotes.
-
-  Basically, just like NextToken, this finds the next part
-  in the string S separated by delimiters TokenDelims.
-  Looks for the first character not in TokenDelims
-  (starting from position SeekPos), and then reads the string up to
-  the character in TokenDelims.
-  @italic(But the characters surrounded by a pair of same characters
-  from RestrAreas are never treated like TokenDelims.)
-
-  This way you can e.g. split a string by whitespaces,
-  but still request that whitespaces inside ' and ' or between " and "
-  be ignored (not split on them).
-
-  For example, with default values for TokenDelims and RestrAreas,
-  you can reliably split XML attributes like
-
-@preformatted(
-  <foo val1='value in single quotes'
-       val2="value in double quotes"
-       val3='value in single quotes, double quote inside (") ignored'
-       val4=value_without_the_quotes
-  />
-)
-
-  Parsing such string with NextTokenRestr will result in six tokens returned:
-  '<foo', then one token for each valX=..., then '/>'. }
-function NextTokenRestr(const s: string; var SeekPos: integer;
-  const TokenDelims: TSetOfChars = WhiteSpaces;
-  const RestrAreas: TSetOfChars = ['''','"']): string; overload;
-
 { Find substring SubText within Text. Returns 0 if not found.
   Similar to a standard Pos function, with some improvements.
 
@@ -359,47 +326,6 @@ function NextTokenRestr(const s: string; var SeekPos: integer;
 function FindPos(const SubText, Text: string; StartPosition, Count: integer;
   Options: TSearchOptions;
   const WordBorders: TSetOfChars = DefaultWordBorders): integer; overload;
-
-{ Check is given match (MatchStart, MatchLength) good result of
-  FindPos call for the same arguments.
-
-  In other words, this checks something more than just the equality of
-  Copy(Text, MatchStart, MatchLength) with SubText.
-  This precisely checks if FindPos(SubText, Text, Options, WordBorders)
-  would return given MatchStart (and MatchLength is equal to length
-  of SubText).
-  For example if soMatchCase in Options, then SubText is compared
-  case-sensitive. If soWholeWords in Options, then given match
-  must be surrounded by WordBorders in Text. And so on.
-
-  The typical usage for this is when you make an interactive text editor
-  application, and you have some text seleected, and you have to check
-  could this selection be done by previous FindPos successful search.
-
-  @groupBegin }
-function MatchingFind(const SubText, Text: string;
-  MatchStart, MatchLength: integer; Options: TSearchOptions;
-  const WordBorders: TSetOfChars): boolean; overload;
-function MatchingFind(const SubText, Text: string;
-  MatchStart, MatchLength: integer; matchCase, wholeWord: boolean;
-  const WordBorders: TSetOfChars): boolean; overload;
-{ @groupEnd }
-
-{ Find substring SubText within Text, requiring SubText to be surrounded
-  by WordBorders. Always case-sensitive. Returns 0 if not found.
-
-  This is equivalent to FindPos(SubText, Text, 1, Length(Text),
-  [soWholeWord, soMatchCase], WordBorders). The only difference
-  between standard Pos function is that this looks only for "words"
-  --- that is, occurrences surrounded by WordBorders. }
-function FindWordPos(const SubText, Text: string;
-  const WordBorders: TSetOfChars = DefaultWordBorders): integer; overload;
-
-{ Return word surrounding Position inside Text.
-  A "word" is determined by looking around Text[Position], as far as you
-  can, until the beginning/end of Text is found or character in WordBorders. }
-function GetWordAtPos(const Text: string; Position: integer;
-  const WordBorders: TSetOfChars = DefaultWordBorders): string; overload;
 
 { Return rightmost RPart characters from S.
   If RPart > Length(S) then returns S. }
@@ -713,13 +639,6 @@ function FormatIndexedName(const NamePattern: string;
   const Index: Integer): string; overload;
 { @groupEnd }
 
-function AnsiUpperCaseChar(C: char): char;
-function AnsiLowerCaseChar(C: char): char;
-
-{ Returns S with S[1] character replaced with AnsiUpperCaseChar(S[1])
-  (unless S does not have 1st char, i.e. S = '') }
-function SAnsiUpperFirstChar(const S: string): string;
-
 { convertions ------------------------------------------------------------ }
 
 const
@@ -789,9 +708,6 @@ function IntToStr2(n: Int64;
 function IntToStr16(const n: Int64; const minLength: Cardinal = 1): string; overload;
 function IntToStr16(const n: QWord; const minLength: Cardinal = 1): string; overload;
 { @groupEnd }
-
-function ToStr(const args: array of const): string;
-function VarRecToStr(const v: TVarRec): string;
 
 { Returns Ptr as 0xXXX... hexadecimal value. "0x" is not a Pascal standard
   for coding hex values, but it's so popular that users are more likely
@@ -1304,40 +1220,6 @@ begin
  except Result.Free; raise end;
 end;
 
-{$WARNINGS OFF}
-function NextTokenRestr(const s: string; var SeekPos: integer;
-  const TokenDelims: TSetOfChars; const RestrAreas: TSetOfChars): string;
-var TokStart: integer;
-    InRestr: boolean;     { czy jestesmy w restricted area }
-    RestrBeginChar: char; { znak ktory rozpoczal restricted area w ktorym jestesmy }
-begin
- repeat
-  if SeekPos > Length(s) then begin result := ''; exit end;
-  if S[SeekPos] in TokenDelims then Inc(SeekPos) else break;
- until false;
- TokStart := SeekPos; {TokStart := pierwszy znak not in TokenDelims}
-
- InRestr := false;
- while (SeekPos <= Length(s)) and ( not(S[SeekPos] in TokenDelims) or InRestr) do
- begin
-  if InRestr then
-  begin
-   if S[SeekPos] = RestrBeginChar then InRestr := false;
-  end else
-  begin
-   if S[SeekPos] in RestrAreas then begin InRestr := true; RestrBeginChar := S[SeekPos] end;
-  end;
-
-  Inc(SeekPos);
- end;
-
- result := Copy(s, TokStart, SeekPos-TokStart); {result := s[TokStart, ... , SeekPos-1] }
- Inc(SeekPos); { moglibysmy nie robic tu Inc(seekPos) ale wiadomo ze szukania nastepnego
-                 tokenu nie warto zaczynac od SeekPos bo przeciez wiemy ze s[SeekPos] to
-                 TokenDelim ! }
-end;
-{$WARNINGS ON}
-
 function FindPos(const SubText, Text: string; StartPosition, Count: integer; Options: TSearchOptions; const WordBorders: TSetOfChars): integer;
 var S, SubS: string;
 
@@ -1380,67 +1262,6 @@ begin
    if MatchingPos(i) then begin result := i; break end;
  end;
  if result > 0 then result := result+StartPosition-1;
-end;
-
-function MatchingFind(const SubText, Text: string; MatchStart, MatchLength: integer; matchCase, wholeWord: boolean; const WordBorders: TSetOfChars): boolean;
-var Match: string;
-    start, stop: integer;
-begin
- result := false;
-
- { ponizsze sprawdzenie nie jest konieczne ale czesto pozwoli bardzo szybko
-   odrzucic nieprawidlowe matching }
- if Length(SubText) <> MatchLength then exit;
-
- Match := Copy(Text, MatchStart, MatchLength);
- if MatchCase then
- begin
-  if not AnsiSameStr(SubText, Match) then exit;
- end else
- begin
-  if not AnsiSameText(SubText, Match) then exit;
- end;
-
- if WholeWord then
- begin
-  start := MatchStart-1;
-  if (start > 0) and not (Text[start] in WordBorders) then exit;
-  stop := MatchStart+MatchLength;
-  if (stop <= Length(Text)) and not (Text[stop] in WordBorders) then exit;
- end;
-
- result := true;
-end;
-
-function MatchingFind(const SubText, Text: string; MatchStart, MatchLength: integer;
-  Options: TSearchOptions; const WordBorders: TSetOfChars): boolean;
-begin
- result := MatchingFind(SubText, Text, MatchStart, MatchLength,
-   soMatchCase in Options, soWholeWord in Options, WordBorders);
-end;
-
-function FindWordPos(const SubText, Text: string; const WordBorders: TSetOfChars {DefaultWordBorders}): integer;
-var i: integer;
-begin
- for i := 1 to Length(Text) - Length(SubText) +1 do
-  if (Copy(Text, i, Length(SubText)) = SubText) and
-     ( (i = 1) or (Text[i-1] in WordBorders) ) and
-     ( (i+Length(SubText)-1 = Length(Text)) or (Text[i+Length(SubText)] in WordBorders) )
-    then begin result := i; exit end;
- result := 0;
-end;
-
-function GetWordAtPos(const Text: string; Position: integer; const WordBorders: TSetOfChars): string;
-var pozStart, dlug, TextLen: integer;
-begin
- pozStart := Position;
- dlug := 0;
- TextLen := length(Text);
- while (pozStart > 1) and (not (Text[pozStart-1] in wordBorders)) do
-  begin Dec(pozStart); Inc(dlug); end;
- while (Position < TextLen) and (not (Text[Position] in wordBorders)) do
-  begin Inc(Position); Inc(dlug); end;
- result := copy(Text, pozStart, dlug);
 end;
 
 function SRight(const s: string; const rpart: integer): string;
@@ -2000,31 +1821,6 @@ begin
   { simple ignore ReplacementsDone value }
 end;
 
-function AnsiUpperCaseChar(C: char): char;
-begin
- Result :=
-   {$ifdef MSWINDOWS} Chr( PtrUInt( Windows.CharUpper(
-     Windows.LPSTR(PtrUInt(Ord(C))) ) ) )
-   {$else} AnsiUpperCase(C)[1]
-   {$endif};
-end;
-
-function AnsiLowerCaseChar(C: char): char;
-begin
- Result :=
-   {$ifdef MSWINDOWS} Chr( PtrUInt( Windows.CharLower(
-     Windows.LPSTR(PtrUInt(Ord(C))) ) ) )
-   {$else} AnsiLowerCase(C)[1]
-   {$endif};
-end;
-
-function SAnsiUpperFirstChar(const S: string): string;
-begin
- Result := S;
- if Result <> '' then
-  Result[1] := AnsiUpperCaseChar(Result[1]);
-end;
-
 { convertions ------------------------------------------------------------ }
 
 function DigitAsChar(b: byte): char;
@@ -2186,36 +1982,6 @@ begin
  begin
   if SCharIs(s, 1, '+') then ScanStart := 2 else ScanStart := 1;
   Scan;
- end;
-end;
-
-function ToStr(const Args: array of const): string;
-var i: Integer;
-begin
- Result := '';
- for i := 0 to High(Args) do
-  Result := Result + VarRecToStr(Args[i]);
-end;
-
-function VarRecToStr(const v: TVarRec): string;
-begin
- with v do
- case VType of
-   vtInteger:    Result := IntToStr(VInteger);
-   vtBoolean:    Result := BoolToStr[VBoolean];
-   vtChar:       Result := VChar;
-   vtExtended:   Result := FloatToStr(VExtended^);
-   vtString:     Result := VString^;
-   vtPChar:      Result := VPChar;
-   vtWideChar:   Result := WideCharToString(@vWideChar);
-   vtPWideChar:  Result := WideCharToString(vPWideChar);
-   vtAnsiString: Result := AnsiString(vAnsiString);
-   vtCurrency:   Result := CurrToStr(VCurrency^);
-   vtVariant:    Result := VarToStr(VVariant^);
-   vtPointer:    Result := 'Pointer('+IntToStr(PtrUInt(vPointer))+')';
-   vtObject:     Result := 'Object('+VObject.ClassName+')';
-   vtClass:      Result := 'ClassRef('+VClass.ClassName+')';
-   else raise Exception.CreateFmt('Wrong argument for VarRecToStr (v.vType = %d)', [vType]);
  end;
 end;
 
