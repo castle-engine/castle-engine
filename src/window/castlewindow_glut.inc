@@ -570,4 +570,17 @@ begin
  Result := 'GLUT';
 end;
 
+{ TCastleClipboard ----------------------------------------------------------- }
+
+function TCastleClipboard.GetAsText: string;
+begin
+  { TODO }
+  Result := '';
+end;
+
+procedure TCastleClipboard.SetAsText(const Value: string);
+begin
+  { TODO }
+end;
+
 {$endif read_implementation}
