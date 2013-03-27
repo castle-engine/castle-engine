@@ -444,6 +444,9 @@ begin
   FLoaded := false;
 end;
 
+{ TODO-net: should be upgraded to handle URLs.
+  Actually, ffmpeg already handles URLs, so URLs to movies actually work already. }
+
 procedure TVideo.LoadFromFile(const FileName: string);
 
   procedure LoadFromImages(const FileName: string;
@@ -468,10 +471,7 @@ procedure TVideo.LoadFromFile(const FileName: string);
         FItems[High(FItems)] := NewItem;
 
         if RemoveLoadedTempImages then
-        begin
-          if not DeleteFile(S) then
-            OnWarning(wtMinor, 'Video', Format('Cannot delete temporary file "%s"', [S]));
-        end;
+          CheckDeleteFile(S, true);
 
         Inc(Index);
         S := FormatIndexedName(FileName, Index);
@@ -486,10 +486,7 @@ procedure TVideo.LoadFromFile(const FileName: string);
       FItems[0] := NewItem;
 
       if RemoveLoadedTempImages then
-      begin
-        if not DeleteFile(FileName) then
-          OnWarning(wtMinor, 'Video', Format('Cannot delete temporary file "%s"', [FileName]));
-      end;
+        CheckDeleteFile(FileName, true);
     end;
   end;
 
