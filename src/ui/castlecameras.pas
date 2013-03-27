@@ -1184,17 +1184,17 @@ type
       This is checked in each single horizontal move when @link(Gravity) works.
       Must be >= 0. Value 0 means there is no limit (and makes a small speedup).
 
+      This is reliable to prevent user from climbing stairs and such,
+      when vertical walls are really vertical (not just steep-almost-vertical).
+
       It's not 100% reliable to prevent player from climbing steep hills.
       That's because, depending on how often an event processing occurs,
       you actually climb using less or more steps.
       So even a very steep hill can be always
       climbed on a computer with very fast speed, because with large FPS you
       effectively climb it using a lot of very small steps (assuming that
-      FPS limit is not enabled, that is CastleWindow.TGLApplication.LimitFPS
+      FPS limit is not enabled, that is CastleWindow.TCastleApplication.LimitFPS
       or CastleControl.LimitFPS is zero).
-
-      This is reliable to prevent user from climbing stairs and such,
-      when vertical walls are really vertical (not just steep-almost-vertical).
 
       Remember that user can still try jumping to climb on high obstactes.
       See JumpMaxHeight for a way to control jumping.

@@ -103,9 +103,9 @@ begin
   FlushRedisplay2;
 end;
 
-{ TGLApplication ---------------------------------------------------------- }
+{ TCastleApplication ---------------------------------------------------------- }
 
-function TGLApplication.ProcessAllMessages: boolean;
+function TCastleApplication.ProcessAllMessages: boolean;
 var
   WasAnyMessage: boolean;
 begin
@@ -115,14 +115,14 @@ begin
   until false;
 end;
 
-function TGLApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 var
   Dummy: boolean;
 begin
   Result := ProcessMessage2(WaitForMessage, WaitToLimitFPS, Dummy);
 end;
 
-function TGLApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: boolean;
+function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: boolean;
   var WasAnyMessage: boolean): boolean;
 
   { CheckMessage sprawdza czy jest jakis message w naszej queue,
@@ -325,7 +325,7 @@ begin
   end;
 end;
 
-procedure TGLApplication.Run;
+procedure TCastleApplication.Run;
 begin
   if OpenWindowsCount = 0 then Exit;
 
@@ -333,7 +333,7 @@ begin
   while ProcessMessage(true, true) do ;
 end;
 
-procedure TGLApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.QuitWhenNoOpenWindows;
 begin
   QuitPosted := true;
 end;

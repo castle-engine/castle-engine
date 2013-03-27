@@ -418,7 +418,7 @@ var
     Set to zero to not limit.
 
     See TCastleWindow.ProcessMessage documentation about WaitToLimitFPS
-    parameter, and see TGLApplication.LimitFPS documentation.
+    parameter, and see TCastleApplication.LimitFPS documentation.
 
     The mechanism does mean sleeping in your process, so it's a global
     thing, not just a property of TCastleControl.

@@ -19,7 +19,7 @@
   More advanced TCastleWindow extends it to comfortably
   render 2D controls and 3D objects defined by our engine.
 
-  @link(Application) object (instance of class @link(TGLApplication))
+  @link(Application) object (instance of class @link(TCastleApplication))
   is a central manager of all open @link(TCastleWindowBase) windows.
 
   Using this unit:
@@ -43,12 +43,12 @@
       and @link(TCastleWindowBase.EventResize EventResize)
       (@link(TCastleWindowBase.OnResize OnResize) callback).)
 
-    @item(Call @link(TGLApplication.Run Application.Run).
+    @item(Call @link(TCastleApplication.Run Application.Run).
       This will enter message loop that will call
       appropriate windows' callbacks at appropriate times
       (OnDraw, OnPress, OnRelease, OnResize, OnIdle and many more).
       There are also some Application callbacks, like
-      @link(TGLApplication.OnIdle Application.OnIdle).
+      @link(TCastleApplication.OnIdle Application.OnIdle).
 
       For more advanced needs you can use something like
         @longCode(#  while Application.ProcessMessage do <something>;#)
@@ -57,7 +57,7 @@
       You can also call @link(TCastleWindowBase.OpenAndRun Window.OpenAndRun),
       this is just a shortcut for Window.Open + Application.Run.)
 
-    @item(Application.Run ends when you call @link(TGLApplication.Quit Application.Quit)
+    @item(Application.Run ends when you call @link(TCastleApplication.Quit Application.Quit)
       or when you close last visible window using @link(TCastleWindowBase.Close Close(true)).
 
       User is also allowed to close a window using WindowManager facilities
@@ -146,7 +146,7 @@
 
   @unorderedList(
 
-    @item(TGLApplication.ProcessMessage method.
+    @item(TCastleApplication.ProcessMessage method.
       This allows you to reimplement
       event loop handling, which is crucial for implementing things
       like @link(MessageInputQuery) function that does modal GUI dialog box.)
@@ -170,7 +170,7 @@
       for an example how to use the menu.)
 
     @item(Changing screen resolution and bit depth,
-      see TGLApplication.VideoChange.)
+      see TCastleApplication.VideoChange.)
 
     @item(You can request OpenGL context properties: color buffer with alpha
       channel (@link(TCastleWindowBase.AlphaBits AlphaBits)),
@@ -424,9 +424,9 @@ unit CastleWindow;
     You can call all DoIdle and DoTimer for all Application.OpenWindows
     using Application.FOpenWindows.DoIdle/Timer (this will give usually
     inefficient but working backend)
-  - Call TGLApplication.DoSelfIdle and DoSelfTimer when appropriate.
+  - Call TCastleApplication.DoSelfIdle and DoSelfTimer when appropriate.
     Remember that you can always assume that the ONLY existing instance of
-    TGLApplication is Application.
+    TCastleApplication is Application.
   Some important things that can be easily forgotten:
   - Remember that probably you will have to call ReleaseAllKeysAndMouse
     when user switches to another window or activates MainMenu.
@@ -1148,7 +1148,7 @@ type
 
       Note that it's also possible to change color resolution by
       changing the whole screen settings.
-      See TGLApplication.VideoColorBits and TGLApplication.VideoChange for this.
+      See TCastleApplication.VideoColorBits and TCastleApplication.VideoChange for this.
       These properties only request the color
       resolution for this window, which is less intrusive (you don't change
       the whole screen) but also may have a smaller chance of success.
@@ -1623,10 +1623,10 @@ end;
       in idle events.
 
       Called at the same time when
-      @link(TGLApplication.OnIdle Application.OnIdle) is called.
+      @link(TCastleApplication.OnIdle Application.OnIdle) is called.
 
       You should add code to this window's OnIdle event
-      (not to TGLApplication.OnIdle) when you do something related
+      (not to TCastleApplication.OnIdle) when you do something related
       to this window. For example when you check this window's
       @link(Pressed) keys state, or animate something displayed on this window.
       This allows various "modal boxes" and such (see CastleMessages)
@@ -1635,11 +1635,11 @@ end;
     property OnIdle: TWindowFunc read FOnIdle write FOnIdle;
 
     { Timer event is called approximately after each
-      @link(TGLApplication.TimerMilisec Application.TimerMilisec)
+      @link(TCastleApplication.TimerMilisec Application.TimerMilisec)
       miliseconds passed.
 
       Called at the same time when
-      @link(TGLApplication.OnTimer Application.OnTimer) is called. }
+      @link(TCastleApplication.OnTimer Application.OnTimer) is called. }
     property OnTimer: TWindowFunc read FOnTimer write FOnTimer;
 
     { Should we automatically redraw the window all the time,
@@ -2458,12 +2458,12 @@ end;
     bit depth etc.)
 
     The only instance of this class should be in @link(Application) variable.
-    Don't create any other instances of class TGLApplication, there's no
+    Don't create any other instances of class TCastleApplication, there's no
     point in doing that. }
-  TGLApplication = class(TComponent)
+  TCastleApplication = class(TComponent)
 
   { Include CastleWindow-backend-specific parts of
-    TGLApplication class. Rules and comments that apply here are
+    TCastleApplication class. Rules and comments that apply here are
     the same as in analogous place at TCastleWindowBase class,
     when read_window_interface is defined. }
 
@@ -2535,7 +2535,7 @@ end;
     { Something useful for some CastleWindow backends. This will implement
       (in a simple way) calling of DoSelfOpen and OpenWindows.DoTimer.
 
-      Declare in TGLApplication some variable like
+      Declare in TCastleApplication some variable like
         LastDoTimerTime: TMilisecTime
       initialized to 0. Then just call very often (probably at the same time
       you're calling DoSelfIdle)
@@ -2746,22 +2746,20 @@ end;
     { Limit the number of (real) frames per second, to not hog the CPU.
       Set to zero to not limit.
 
-      To be more precise, this limits the number of TGLApplication.ProcessMessage
+      To be more precise, this limits the number of TCastleApplication.ProcessMessage
       calls per second, in situations when we do not have to process any user input.
       So we limit not only rendering (TCastleWindowBase.OnDraw)
       but also other animation processing (TCastleWindowBase.OnIdle) calls per second.
-      See TGLApplication.ProcessMessage. }
+      See TCastleApplication.ProcessMessage. }
     property LimitFPS: Single read FLimitFPS write FLimitFPS default DefaultLimitFPS;
   end;
 
-var
-  { One global instance of TGLApplication.
+  { @deprecated Deprecated name for TCastleApplication. }
+  TGLApplication = TCastleApplication deprecated;
 
-    Don't change value of this variable, don't Free this object.
-    This will be handled in initialization / finalization of this module.
-    Many things in this unit, also in TCastleWindowBase class implementation,
-    depend on having this variable present all the time. }
-  Application: TGLApplication;
+{ Single global instance of TCastleApplication.
+  Automatically created / destroyed by CastleWindow unit. }
+function Application: TCastleApplication;
 
 { A simple TCastleWindowBase.OnResize callback implementation, that sets 2D projection.
   You can use it like @code(Window.OnResize := Resize2D;) or just by calling
@@ -4728,10 +4726,13 @@ begin
 end;
 
 { --------------------------------------------------------------------------
-  Generic part of implementation of TGLApplication,
+  Generic part of implementation of TCastleApplication,
   that does not depend what CASTLE_WINDOW_xxx backend you want. }
 
-constructor TGLApplication.Create(AOwner: TComponent);
+var
+  FApplication: TCastleApplication;
+
+constructor TCastleApplication.Create(AOwner: TComponent);
 begin
   inherited;
   FOpenWindows := TWindowList.Create(false);
@@ -4740,7 +4741,7 @@ begin
   CreateBackend;
 end;
 
-destructor TGLApplication.Destroy;
+destructor TCastleApplication.Destroy;
 begin
   { Close any windows possibly open now.
     This is necessary --- after destroying Application there would be really
@@ -4751,7 +4752,7 @@ begin
 
   { nil now the Application variable. For reasoning, see this units
     finalization. }
-  Application := nil;
+  FApplication := nil;
 
   VideoReset;
   DestroyBackend;
@@ -4759,36 +4760,36 @@ begin
   inherited;
 end;
 
-function TGLApplication.GetOpenWindows(Index: integer): TCastleWindowBase;
+function TCastleApplication.GetOpenWindows(Index: integer): TCastleWindowBase;
 begin
   result := FOpenWindows[Index];
 end;
 
-function TGLApplication.OpenWindowsCount: integer;
+function TCastleApplication.OpenWindowsCount: integer;
 begin
   result := FOpenWindows.Count;
 end;
 
-procedure TGLApplication.OpenWindowsAdd(Window: TCastleWindowBase);
+procedure TCastleApplication.OpenWindowsAdd(Window: TCastleWindowBase);
 begin
   FOpenWindows.Add(Window);
 end;
 
-procedure TGLApplication.OpenWindowsRemove(Window: TCastleWindowBase;
+procedure TCastleApplication.OpenWindowsRemove(Window: TCastleWindowBase;
   QuitWhenLastWindowClosed: boolean);
 begin
   if (FOpenWindows.Remove(Window) <> -1) and
      (OpenWindowsCount = 0) and QuitWhenLastWindowClosed then Quit;
 end;
 
-function TGLApplication.FindWindow(Window: TCastleWindowBase): integer;
+function TCastleApplication.FindWindow(Window: TCastleWindowBase): integer;
 begin
   for result := 0 to OpenWindowsCount-1 do
     if OpenWindows[result] = Window then exit;
   result := -1;
 end;
 
-procedure TGLApplication.Quit;
+procedure TCastleApplication.Quit;
 var
   OldOpenWindowsCount: Integer;
 begin
@@ -4813,17 +4814,17 @@ begin
   QuitWhenNoOpenWindows;
 end;
 
-procedure TGLApplication.DoSelfIdle;
+procedure TCastleApplication.DoSelfIdle;
 begin
   if Assigned(FOnIdle) then FOnIdle;
 end;
 
-procedure TGLApplication.DoSelfTimer;
+procedure TCastleApplication.DoSelfTimer;
 begin
   if Assigned(FOnTimer) then FOnTimer;
 end;
 
-procedure TGLApplication.MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
+procedure TCastleApplication.MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
 var
   Now: TMilisecTime;
 begin
@@ -4837,7 +4838,7 @@ begin
   end;
 end;
 
-function TGLApplication.AllowSuspendForInput: boolean;
+function TCastleApplication.AllowSuspendForInput: boolean;
 var
   I: Integer;
 begin
@@ -4851,20 +4852,20 @@ begin
   end;
 end;
 
-{ TGLApplication.Video* things ---------------------------------------- }
+{ TCastleApplication.Video* things ---------------------------------------- }
 
 {$ifndef CASTLE_WINDOW_HAS_VIDEO_CHANGE}
-function TGLApplication.TryVideoChange: boolean;
+function TCastleApplication.TryVideoChange: boolean;
 begin
  Result := false;
 end;
 
-procedure TGLApplication.VideoReset;
+procedure TCastleApplication.VideoReset;
 begin
 end;
 {$endif not CASTLE_WINDOW_HAS_VIDEO_CHANGE}
 
-function TGLApplication.VideoSettingsDescribe: string;
+function TCastleApplication.VideoSettingsDescribe: string;
 begin
   Result := '';
   if VideoResize then
@@ -4878,7 +4879,7 @@ begin
     Result := '  No display settings change' + nl;
 end;
 
-procedure TGLApplication.VideoChange(OnErrorWarnUserAndContinue: boolean);
+procedure TCastleApplication.VideoChange(OnErrorWarnUserAndContinue: boolean);
 var s: string;
 begin
  if not TryVideoChange then
@@ -4896,7 +4897,7 @@ begin
  end;
 end;
 
-procedure TGLApplication.DoLimitFPS;
+procedure TCastleApplication.DoLimitFPS;
 var
   NowTime: TTimerResult;
   TimeRemainingFloat: Single;
@@ -4934,7 +4935,7 @@ begin
   end;
 end;
 
-{ Resize2D ------------------------------------------------------------ }
+{ global --------------------------------------------------------------------- }
 
 procedure Resize2D(Window: TCastleWindowBase);
 begin
@@ -4942,18 +4943,23 @@ begin
   OrthoProjection(0, Window.Width, 0, Window.Height);
 end;
 
+function Application: TCastleApplication;
+begin
+  Result := FApplication;
+end;
+
 { init/fini --------------------------------------------------------------- }
 
 initialization
   CastleWindowMenu_Init;
-  Application := TGLApplication.Create(nil);
+  FApplication := TCastleApplication.Create(nil);
 finalization
   { Instead of using FreeAndNil, just call Free.
     In our destructor we take care of setting Application variable to @nil,
     when it becomes really useless.
 
     Otherwise FreeAndNil first nils, then frees Application, and we really
-    want to keep Application during first stage of TGLApplication destruction:
+    want to keep Application during first stage of TCastleApplication destruction:
     when calling Quit, which may close windows, which may use Application
     variable in their Close or CloseBackend implementations. }
   Application.Free;

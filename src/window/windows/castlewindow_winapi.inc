@@ -1416,9 +1416,9 @@ begin
     MB_APPLMODAL) = IDYES;
 end;
 
-{ TGLApplication ----------------------------------------------- }
+{ TCastleApplication ----------------------------------------------- }
 
-procedure TGLApplication.CreateBackend;
+procedure TCastleApplication.CreateBackend;
 var
   WindowClass: TWndClass;
   C: TMouseCursor;
@@ -1467,18 +1467,18 @@ begin
   OSCheck( RegisterClass(WindowClass) <> 0, 'RegisterClass');
 end;
 
-procedure TGLApplication.DestroyBackend;
+procedure TCastleApplication.DestroyBackend;
 begin
   OSCheck( UnregisterClass(PChar(wndClassName), hInstance), 'UnregisterClass');
 end;
 
-procedure TGLApplication.VideoReset;
+procedure TCastleApplication.VideoReset;
 begin
   { switch back to the desktop mode }
   if DisplaySettingsChanged then ChangeDisplaySettings(nil, 0);
 end;
 
-function TGLApplication.TryVideoChange: boolean;
+function TCastleApplication.TryVideoChange: boolean;
 
 {$ifdef VER1_9_6}
 { This is to workaround a bug in FPC 1.9.6.
@@ -1579,7 +1579,7 @@ begin
   end;
 end;
 
-procedure TGLApplication.SetAppActive(value: boolean);
+procedure TCastleApplication.SetAppActive(value: boolean);
 begin
   { ponizej : gdy fappActive zmienia sie z true na false musimy
     wykonac ChangeDisplaySettings(nil, 0) bez wzgledu na to czy
@@ -1597,21 +1597,21 @@ begin
   fappActive := value;
 end;
 
-function TGLApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: integer;
 begin
   if DisplaySettingsChanged and VideoResize then
     result := VideoResizeWidth else
     result := GetSystemMetrics(SM_CXSCREEN);
 end;
 
-function TGLApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: integer;
 begin
   if DisplaySettingsChanged and VideoResize then
     result := VideoResizeHeight else
     result := GetSystemMetrics(SM_CYSCREEN);
 end;
 
-function TGLApplication.BackendName: string;
+function TCastleApplication.BackendName: string;
 begin
   Result := 'WinAPI';
 end;

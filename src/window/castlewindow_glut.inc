@@ -483,7 +483,7 @@ begin
  DoDraw;
 end;
 
-{ TGLApplication na GLUTcie ------------------------------------------- }
+{ TCastleApplication ------------------------------------------- }
 
 procedure idleByGlut; cdecl;
 var k: TKey;
@@ -511,14 +511,14 @@ begin
  end;
 end;
 
-procedure TGLApplication.Run;
+procedure TCastleApplication.Run;
 begin
   if OpenWindowsCount = 0 then Exit;
 
   glutMainLoop;
 end;
 
-function TGLApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 begin
   Result := true;
   if Assigned(glutMainLoopEvent) then
@@ -526,7 +526,7 @@ begin
     raise Exception.Create('glutMainLoopEvent not found (probably this is not freeglut, see freeglut.sourceforge.net). This implies that ProcessMessage (and friends, like modal boxes) cannot be implemented');
 end;
 
-function TGLApplication.ProcessAllMessages: boolean;
+function TCastleApplication.ProcessAllMessages: boolean;
 begin
   Result := true;
   if Assigned(glutMainLoopEvent) then
@@ -534,12 +534,12 @@ begin
     raise Exception.Create('glutMainLoopEvent not found (probably this is not freeglut, see freeglut.sourceforge.net). This implies that ProcessMessage (and friends, like modal boxes) cannot be implemented');
 end;
 
-procedure TGLApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.QuitWhenNoOpenWindows;
 begin
   Halt;
 end;
 
-function TGLApplication.FindGlutWindow(seekGlutHwnd: integer): TCastleWindowBase;
+function TCastleApplication.FindGlutWindow(seekGlutHwnd: integer): TCastleWindowBase;
 var
   i: integer;
 begin
@@ -549,23 +549,23 @@ begin
   result := nil;
 end;
 
-procedure TGLApplication.CreateBackend;
+procedure TCastleApplication.CreateBackend;
 begin
  glutInit(@Argc, Argv);
  glutIdleFunc(@idleByGlut);
 end;
 
-procedure TGLApplication.DestroyBackend;
+procedure TCastleApplication.DestroyBackend;
 begin
 end;
 
-function TGLApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: integer;
 begin result := glutGet(GLUT_SCREEN_WIDTH) end;
 
-function TGLApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: integer;
 begin result := glutGet(GLUT_SCREEN_HEIGHT) end;
 
-function TGLApplication.BackendName: string;
+function TCastleApplication.BackendName: string;
 begin
  Result := 'GLUT';
 end;

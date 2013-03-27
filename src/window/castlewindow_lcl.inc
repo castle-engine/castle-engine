@@ -589,20 +589,20 @@ begin
   Result := MessageDlg(S, mtConfirmation, mbYesNo, 0) = mrYes;
 end;
 
-{ TGLApplication ---------------------------------------------------------- }
+{ TCastleApplication ---------------------------------------------------------- }
 
-procedure TGLApplication.CreateBackend;
+procedure TCastleApplication.CreateBackend;
 begin
   Forms.Application.Initialize;
   Forms.Application.AddOnIdleHandler(@ApplicationIdle);
 end;
 
-procedure TGLApplication.DestroyBackend;
+procedure TCastleApplication.DestroyBackend;
 begin
   Forms.Application.RemoveOnIdleHandler(@ApplicationIdle);
 end;
 
-procedure TGLApplication.ApplicationIdle(Sender: TObject; var Done: Boolean);
+procedure TCastleApplication.ApplicationIdle(Sender: TObject; var Done: Boolean);
 begin
   { Call idle and timer events of Application and all windows.
     Idle events are handled by DoSelfIdle and OpenWindows.DoIdle.
@@ -621,7 +621,7 @@ begin
   Done := false;
 end;
 
-function TGLApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 begin
   if Forms.Application.Terminated then Exit(false);
 
@@ -630,14 +630,14 @@ begin
   Result := not Forms.Application.Terminated;
 end;
 
-function TGLApplication.ProcessAllMessages: boolean;
+function TCastleApplication.ProcessAllMessages: boolean;
 begin
 //  Result := not Forms.Application.Terminated;
 //  while Result do
     Result := ProcessMessage(true, true);
 end;
 
-procedure TGLApplication.Run;
+procedure TCastleApplication.Run;
 begin
   if OpenWindowsCount = 0 then Exit;
 
@@ -659,27 +659,27 @@ begin
     equivalent to call just ProcessMessage in a loop.
 
     TODO: this makes idle/timer broken, they need our
-    TGLApplication.ProcessMessage to work. }
+    TCastleApplication.ProcessMessage to work. }
 
   Forms.Application.Run;
 end;
 
-procedure TGLApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.QuitWhenNoOpenWindows;
 begin
   Forms.Application.Terminate; // break also Forms.Application.Run
 end;
 
-function TGLApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: integer;
 begin
   Result := Screen.Width;
 end;
 
-function TGLApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: integer;
 begin
   Result := Screen.Height;
 end;
 
-function TGLApplication.BackendName: string;
+function TCastleApplication.BackendName: string;
 begin
   Result := 'LCL';
 end;

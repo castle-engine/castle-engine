@@ -631,9 +631,9 @@ begin
   ReleaseAllKeysAndMouse;
 end;
 
-{ TGLApplication ------------------------------------------------------- }
+{ TCastleApplication ------------------------------------------------------- }
 
-function TGLApplication.FindWindowXID(seekWindowXID: TWindow): TCastleWindowBase;
+function TCastleApplication.FindWindowXID(seekWindowXID: TWindow): TCastleWindowBase;
 var
   i: integer;
 begin
@@ -643,7 +643,7 @@ begin
   result := nil;
 end;
 
-procedure TGLApplication.SetXDisplayName(const Value: string);
+procedure TCastleApplication.SetXDisplayName(const Value: string);
 begin
   if XDisplay <> nil then XCloseDisplay(XDisplay);
 
@@ -664,7 +664,7 @@ begin
     So the check for XDisplay = nil will be done at window initialization. }
 end;
 
-function TGLApplication.KeySymToKey(KSym: TKeySym): TKey;
+function TCastleApplication.KeySymToKey(KSym: TKeySym): TKey;
 begin
   result := K_None;
   if ksym <> NoSymbol then
@@ -675,7 +675,7 @@ begin
    end;
 end;
 
-procedure TGLApplication.InitializeXDisplay;
+procedure TCastleApplication.InitializeXDisplay;
 {$ifdef DARWIN}
 const
   AltXDisplayName = ':0';
@@ -725,7 +725,7 @@ begin
   end;
 end;
 
-procedure TGLApplication.CreateBackend;
+procedure TCastleApplication.CreateBackend;
 const
   { Under Kylix, capital letters are XK_?  and lower are XK_l?.
     Under FPC,           ...     are XKc_?    ...    are XK_?. }
@@ -811,7 +811,7 @@ begin
   KeySym0ToKey[XK_backslash] := K_BackSlash;
 end;
 
-procedure TGLApplication.DestroyBackend;
+procedure TCastleApplication.DestroyBackend;
 var
   C: TMouseCursor;
 begin
@@ -828,7 +828,7 @@ begin
   end;
 end;
 
-function TGLApplication.BackendName: string;
+function TCastleApplication.BackendName: string;
 begin
   Result := 'Xlib';
 end;

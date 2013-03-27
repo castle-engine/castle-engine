@@ -161,30 +161,30 @@ begin
   { TODO }
 end;
 
-{ TGLApplication ---------------------------------------------------------- }
+{ TCastleApplication ---------------------------------------------------------- }
 
-procedure TGLApplication.CreateBackend;
+procedure TCastleApplication.CreateBackend;
 begin
   { TODO (initialize backend-specific stuff for the whole application;
     may do nothing if you don't need anything) }
 end;
 
-procedure TGLApplication.DestroyBackend;
+procedure TCastleApplication.DestroyBackend;
 begin
   { TODO }
 end;
 
-function TGLApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 begin
   { TODO }
 end;
 
-function TGLApplication.ProcessAllMessages: boolean;
+function TCastleApplication.ProcessAllMessages: boolean;
 begin
   { TODO }
 end;
 
-procedure TGLApplication.Run;
+procedure TCastleApplication.Run;
 begin
   if OpenWindowsCount = 0 then Exit;
 
@@ -195,22 +195,22 @@ begin
   while ProcessMessage(true, true) do ;
 end;
 
-procedure TGLApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.QuitWhenNoOpenWindows;
 begin
   { TODO }
 end;
 
-function TGLApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: integer;
 begin
   { TODO }
 end;
 
-function TGLApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: integer;
 begin
   { TODO }
 end;
 
-function TGLApplication.BackendName: string;
+function TCastleApplication.BackendName: string;
 begin
   { TODO }
   Result := 'My CastleWindow Backend';

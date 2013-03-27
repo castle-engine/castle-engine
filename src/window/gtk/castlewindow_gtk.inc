@@ -1468,9 +1468,9 @@ begin
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 end;
 
-{ TGLApplication ------------------------------------------------------------- }
+{ TCastleApplication ------------------------------------------------------------- }
 
-procedure TGLApplication.ProcessUpdates;
+procedure TCastleApplication.ProcessUpdates;
 
   { If some window has RedisplayPosted = @true, redraw it.
 
@@ -1515,7 +1515,7 @@ begin
   WindowsIdleAndTimer;
 end;
 
-function TGLApplication.TryFindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowBase;
+function TCastleApplication.TryFindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowBase;
 var
   i: Integer;
 begin
@@ -1525,7 +1525,7 @@ begin
   Result := nil;
 end;
 
-function TGLApplication.TryFindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowBase;
+function TCastleApplication.TryFindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowBase;
 var
   i: Integer;
 begin
@@ -1535,21 +1535,21 @@ begin
   Result := nil;
 end;
 
-function TGLApplication.FindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowBase;
+function TCastleApplication.FindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowBase;
 begin
  Result := TryFindWindowGtk(seekWindowGtk);
  if Result = nil then raise EInternalError.Create(
    'No open window with such WindowGtk found');
 end;
 
-function TGLApplication.FindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowBase;
+function TCastleApplication.FindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowBase;
 begin
  Result := TryFindGLAreaGtk(seekGLAreaGtk);
  if Result = nil then raise EInternalError.Create(
    'No open window with such GLAreaGtk found');
 end;
 
-procedure TGLApplication.Run;
+procedure TCastleApplication.Run;
 begin
   if OpenWindowsCount = 0 then Exit;
 
@@ -1559,7 +1559,7 @@ begin
     We need to use our ProcessMessage to call our ProcessUpdates. }
 end;
 
-function TGLApplication.ProcessAllMessages: boolean;
+function TCastleApplication.ProcessAllMessages: boolean;
 begin
   { Basically, call gtk_main_iteration (equivalent to
     gtk_main_iteration_do with parameter blocking = always true),
@@ -1587,7 +1587,7 @@ begin
   end;
 end;
 
-function TGLApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 
   function SomeRedisplayPosted: boolean;
   var
@@ -1663,7 +1663,7 @@ begin
     DoLimitFPS;
 end;
 
-procedure TGLApplication.QuitWhenNoOpenWindows;
+procedure TCastleApplication.QuitWhenNoOpenWindows;
 begin
  if gtk_main_level() > 0 then gtk_main_quit();
 
@@ -1679,7 +1679,7 @@ begin
  QuitPosted := true;
 end;
 
-procedure TGLApplication.CreateBackend;
+procedure TCastleApplication.CreateBackend;
 {$ifdef DARWIN}
 const
   AltXDisplayName = ':0';
@@ -1733,7 +1733,7 @@ begin
   end;
 end;
 
-procedure TGLApplication.DestroyBackend;
+procedure TCastleApplication.DestroyBackend;
 var
   C: TMouseCursor;
 begin
@@ -1755,39 +1755,39 @@ end;
 { When CASTLE_WINDOW_USE_XF86VMODE, then castlewindow_xf86vmode.inc
   will provide implementation for ScreenWidth and ScreenHeight. }
 {$ifndef CASTLE_WINDOW_USE_XF86VMODE}
-function TGLApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: integer;
 begin
   InitializeXDisplay;
   Result := gdk_screen_get_width(XScreenGdk);
 end;
 
-function TGLApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: integer;
 begin
   InitializeXDisplay;
   Result := gdk_screen_get_height(XScreenGdk);
 end;
 {$endif CASTLE_WINDOW_USE_XF86VMODE}
 
-function TGLApplication.BackendName: string;
+function TCastleApplication.BackendName: string;
 begin
   Result := 'GTK+';
 end;
 
 {$ifdef CASTLE_WINDOW_USE_XF86VMODE}
-function TGLApplication.XDisplay: Xlib.PDisplay;
+function TCastleApplication.XDisplay: Xlib.PDisplay;
 begin
   InitializeXDisplay;
   Result := gdk_x11_display_get_xdisplay(XDisplayGdk);
 end;
 
-function TGLApplication.XScreen: Integer;
+function TCastleApplication.XScreen: Integer;
 begin
   InitializeXDisplay;
   Result := gdk_x11_screen_get_screen_number(XScreenGdk);
 end;
 {$endif}
 
-procedure TGLApplication.InitializeXDisplay;
+procedure TCastleApplication.InitializeXDisplay;
 begin
   if not InitializeXDisplayDone then
   begin

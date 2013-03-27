@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ This implements TGLApplication video resizing with XF86VMode }
+{ This implements TCastleApplication video resizing with XF86VMode }
 
 {$ifdef read_application_interface}
 private
@@ -57,7 +57,7 @@ begin
    with c_private fields ? Manual is unclear to me... }
 end;
 
-function TGLApplication.TryVideoChange: boolean;
+function TCastleApplication.TryVideoChange: boolean;
 var
   {vidModeMajorVersion, vidModeMinorVersion: integer;}
   i, bestmode: integer;
@@ -127,7 +127,7 @@ begin
  finally XFree(modes) end;
 end;
 
-procedure TGLApplication.VideoReset;
+procedure TCastleApplication.VideoReset;
 begin
  if VideoModeChanged then
  begin
@@ -137,7 +137,7 @@ begin
  end;
 end;
 
-function TGLApplication.ScreenWidth: integer;
+function TCastleApplication.ScreenWidth: integer;
 begin
  InitializeXDisplay;
 
@@ -152,7 +152,7 @@ begin
   result := XDisplayWidth(XDisplay, XScreen);
 end;
 
-function TGLApplication.ScreenHeight: integer;
+function TCastleApplication.ScreenHeight: integer;
 begin
  InitializeXDisplay;
 
