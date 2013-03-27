@@ -1,0 +1,103 @@
+Castle Game Engine allows you to use filenames everywhere where URLs are
+expected.
+
+Gains:
+- This is for backward compatibility with engine < 4.1.0.
+
+- This is also for comfort, both for users and for developers.
+
+  For developers, e.g. you can use TOpenDialog.FileName value
+  with Load3D, or TCastleScene.FileName (which is really just an alias
+  for TCastleScene.URL).
+
+  For users, e.g. you can pass both filenames and URLs
+  as command-line parameters to view3dscene. No need to explicitly
+  mark what is a filename and what is an URL.
+
+---------------
+Q: Should I upgrade my code to just use URLs everywhere, that is:
+   to always pass an absolute URL to the engine routines that take URL parameter?
+   Even though the above statement says that I don't have to
+   (since we allow filenames instead of URLs everywhere)?
+
+A: The short answer is "yes".
+
+   If you have a filename, you can reliably convert it to an URI
+   using FilenameToURI(ExpandFileName(FileName)).
+   FilenameToURI and URIToFilename are inside URIParser unit, part of FPC.
+
+   Besides obvious benetifs of using URLs (you will be able
+   to pull stuff from network using http protocol), there are some smaller
+   advantages:
+
+   - In case of relative filenames, there are obscure cases
+     (weird relative filenames with colon inside the name)
+     that may be mistaken for URIs.
+
+   - For the future: because an URL could have some characters encoded.
+     Think about spaces, colons, or localized characters.
+     Although right now URIToFilename and FilenameToURI in URIParser
+     don't encode/decode any special characters in filename.
+
+   - For the future: right now, absolute filenames are never mistaken
+     for an URL (see description below how we do it).
+     But this depends on special properties of Windows and Unix
+     filenames, and depends on the fact that no protocol name is a single
+     letter. What if we are ported some day to a weird OS that has different
+     filename conventions? What if we use some single-letter protocol
+     name in the future?
+
+---------------
+Q: How does it work?
+
+A: URIProtocol is the judge.
+
+   - When URIProtocol is not empty, we know that we have an absolute URI.
+     Absolute URI is just an URI that has a protocol.
+
+     This works 100% reliably for absolute filenames.
+     For Unix, this works since absolute
+     filename on Unix starts with "/" which cannot be a part of protocol name.
+     For Windows, it works thanks to the mechanism mentioned above that
+     ignores single-letter protocols.
+     So absolute filename will never be mistaken for an URI.
+
+     In case you used a relative filename, there is unfortunately
+     a small possibility of mistakenly treating it as URL with protocol.
+     That is because some filesystems allow to use colon inside a filename,
+     so you could make a weird filename that even starts with "http:".
+
+   - When URIProtocol is empty, it means that we have an absolute filename
+     or a relative filename or URI.
+
+     Relative filename or relative URI can always be differentiated
+     by context.
+
+     (Athough the distinction doesn't really matter, since right now
+     nothing encodes/decodes any special chars inside URIs.
+     Except possibly CombineURI (that uses ParseURI that calls EncodeURI
+     that calls Escape) but CombineURI returns always an absolute URI
+     (with protocol).)
+
+     - AbsoluteURI function treats them as relative filenames,
+       relative to the current directory. Almost all URL function parameters
+       in code are passed to the AbsoluteURI (with the exception of parameters
+       to special CombineURI).
+
+       This means that passing any filenames (absolute or relative) or
+       absolute URIs to AbsoluteURI is a good way to convert them to URI.
+       Although when you *know* that you have a filename (not URI),
+       it's better to use FilenameToURI(ExpandFileName(FileName))
+       (this avoids the ambigous relative filenames with colons problems).
+
+     - CombineURI treats the 2nd parameter (Relative) as relative URIs,
+       relative to the given base URI. All URLs present inside documents
+       (for example inside VRML/X3D "url" fields) are passed to CombineURI,
+       as they are always relative to the base document URL.
+
+       Passing a filename as the 2nd parameter to CombineURI is *not* allowed.
+       Although a relative filename using slashes is in practice just like
+       a relative URI, so not a problem.
+       But absolute filename (Unix or Windows) or using backslashes
+       *may* fail. CombineURI depends on ResolveRelativeURI which simply
+       assumes that we really have an URI, not a filename.

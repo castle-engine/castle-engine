@@ -50,17 +50,31 @@ function RawURIDecode(const S: string): string;
 
 { Get protocol from given URI.
 
-  The understanding what is a protocol is almost 100% compatible with
-  URIParser.ParseURI function (protocol is just a prefix before ':').
+  This is very similar to how URIParser.ParseURI function detects the protocol,
+  although not 100% compatible:
 
-  However, we have additional safeguards to *not* detect single-letter protocols,
-  which could be mistakenly found in Windows absolute filenames like
-  @code(c:\blah.txt). Our URIProtocol will answer that protocol is empty,
-  which means no protocol, so our engine will treat it as a filename.
-  (In contrast with FPC URIParser that would detect protocol called "c".)
-  This allows us to relatively safely pass absolute filenames under Windows
-  to routines that request URL, like the @link(Download) function
-  and everything that calls it. }
+  @unorderedList(
+    @item(We allow whitespace (including newline) before protocol name.
+
+      This is useful, because some VRML/X3D files have the ECMAScript code
+      inlined and there is sometimes whitespace before "ecmascript:" protocol.)
+
+    @item(We never detect a single-letter protocol name.
+
+      This is useful, because we do not use any single-letter protocol name,
+      and it allows to detect Windows absolute filenames like
+      @code(c:\blah.txt) as filenames. Otherwise, Windows absolute filenames
+      could not be accepted by any of our routines that work with URLs
+      (like the @link(Download) function),
+      since they would be detected as URLs with unknown protocol "c".
+
+      Our URIProtocol will answer that protocol is empty for @code(c:\blah.txt).
+      Which means no protocol, so our engine will treat it as a filename.
+      (In contrast with URIParser.ParseURI that would detect protocol called "c".)
+      See doc/uri_filename.txt in sources for more comments about differentiating
+      URI and filenames in our engine.)
+  )
+}
 function URIProtocol(const URI: string): string;
 
 { Check does URI contain given Protocol.
@@ -189,6 +203,12 @@ end;
   - FirstCharacter >= 1
   - Colon > 1 }
 function URIProtocolIndex(const S: string; out FirstCharacter, Colon: Integer): boolean;
+const
+  { These constants match URIParser algorithm, which in turn follows RFC. }
+  ALPHA = ['A'..'Z', 'a'..'z'];
+  DIGIT = ['0'..'9'];
+  ProtoFirstChar = ALPHA;
+  ProtoChar = ALPHA + DIGIT + ['+', '-', '.'];
 var
   I: Integer;
 begin
@@ -197,27 +217,28 @@ begin
   if Colon <> 0 then
   begin
     (* Skip beginning whitespace from protocol.
-       This allows us to detect properly "ecmascript:" protocol in
-
+       This allows us to detect properly "ecmascript:" protocol in VRML/X3D:
       Script { url "
         ecmascript:..." }
     *)
     FirstCharacter := 1;
     while (FirstCharacter < Colon) and (S[FirstCharacter] in WhiteSpaces) do
       Inc(FirstCharacter);
+    if FirstCharacter >= Colon then
+      Exit;
 
-    { Protocol cannot contain newline characters.
-      This hardens our check for inline shader source code in url. }
-    for I := FirstCharacter to Colon - 1 do
-      if S[I] in [#10, #13] then Exit;
+    { Protocol name can only contain specific characters. }
+    if not (S[FirstCharacter] in ProtoFirstChar) then
+      Exit;
+    for I := FirstCharacter + 1 to Colon - 1 do
+      if not (S[I] in ProtoChar) then
+        Exit;
 
-    Result := FirstCharacter < Colon;
+    { Do not treat drive names in Windows filenames as protocol.
+      To allow stable testing, do this on all platforms, even non-Windows.
+      We do not use any single-letter protocol, so no harm. }
+    Result := not ((FirstCharacter = 1) and (Colon = 2));
   end;
-
-  { Do not drive names in Windows filenames as protocol.
-    To allow stable testing, do this on all platforms, even non-Windows.
-    We do not use any single-letter protocol, so no harm. }
-  Result := Result and not ((FirstCharacter = 1) and (Colon = 2));
 end;
 
 function URIProtocol(const URI: string): string;
