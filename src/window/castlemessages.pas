@@ -938,7 +938,7 @@ begin
   glLineWidth(1);
  end else
    MD.ScrollBarRect := IntRectEmpty;
-  
+
  { Make scissor to cut off text that is too far up/down.
    We subtract md.font.Descend from Y0, to see the descend of
    the bottom line (which is below InnerRect[0, 1], and would not be
@@ -1231,6 +1231,13 @@ begin
       md.answered := true;
     end;
   end else
+  if Event.IsKey(CtrlC) then
+  begin
+    if MD.SAdditional <> '' then
+      Clipboard.AsText := MD.SAdditional;
+  end else
+  if Event.IsKey(CtrlV) then
+    MD.SetSAdditional(Window, Clipboard.AsText) else
   if (Event.EventType = itKey) and
      (Event.KeyCharacter <> #0) and
      (Event.KeyCharacter in id^.answerAllowedChars) and

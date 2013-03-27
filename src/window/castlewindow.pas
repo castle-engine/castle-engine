@@ -562,7 +562,7 @@ uses SysUtils, Classes, CastleVectors, GL, GLU, GLExt,
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} Gdk2X, X, Xlib, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, CastleDynLib, {$endif}
   {$ifdef CASTLE_WINDOW_LCL} Interfaces, Forms, Dialogs, OpenGLContext, Menus,
-    Controls, FileUtil, Graphics, LCLType, CastleLCLUtils, {$endif}
+    Controls, FileUtil, Graphics, LCLType, CastleLCLUtils, Clipbrd, {$endif}
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
   CastleFileFilters, CastleUIControls, FGL, pk3DConnexion,
@@ -2757,9 +2757,24 @@ end;
   { @deprecated Deprecated name for TCastleApplication. }
   TGLApplication = TCastleApplication deprecated;
 
+  { Clipboard for cut / copy / paste of text.
+    You usually use this by the single global instance @link(Clipboard).
+    Interface is mostly compatible with LCL clipboard. }
+  TCastleClipboard = class
+  private
+    function GetAsText: string;
+    procedure SetAsText(const Value: string);
+  public
+    property AsText: string read GetAsText write SetAsText;
+  end;
+
 { Single global instance of TCastleApplication.
   Automatically created / destroyed by CastleWindow unit. }
 function Application: TCastleApplication;
+
+{ Single global instance of TCastleClipboard.
+  Automatically created / destroyed by CastleWindow unit. }
+function Clipboard: TCastleClipboard;
 
 { A simple TCastleWindowBase.OnResize callback implementation, that sets 2D projection.
   You can use it like @code(Window.OnResize := Resize2D;) or just by calling
@@ -4948,11 +4963,20 @@ begin
   Result := FApplication;
 end;
 
+var
+  FClipboard: TCastleClipboard;
+
+function Clipboard: TCastleClipboard;
+begin
+  Result := FClipboard;
+end;
+
 { init/fini --------------------------------------------------------------- }
 
 initialization
   CastleWindowMenu_Init;
   FApplication := TCastleApplication.Create(nil);
+  FClipboard := TCastleClipboard.Create;
 finalization
   { Instead of using FreeAndNil, just call Free.
     In our destructor we take care of setting Application variable to @nil,
@@ -4964,6 +4988,8 @@ finalization
     variable in their Close or CloseBackend implementations. }
   Application.Free;
   Assert(Application = nil);
+
+  FreeAndNil(FClipboard);
 
   { Order is important: Castlewindowmenu_Fini frees MenuItems, which is needed
     by TMenu destructor. And some TCastleWindowBase instances may be freed

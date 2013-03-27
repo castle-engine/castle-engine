@@ -684,4 +684,16 @@ begin
   Result := 'LCL';
 end;
 
+{ TCastleClipboard ----------------------------------------------------------- }
+
+function TCastleClipboard.GetAsText: string;
+begin
+  Result := UTF8ToSys(Clipbrd.Clipboard.AsText);
+end;
+
+procedure TCastleClipboard.SetAsText(const Value: string);
+begin
+  Clipbrd.Clipboard.AsText := SysToUTF8(Value);
+end;
+
 {$endif read_implementation}
