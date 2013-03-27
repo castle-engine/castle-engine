@@ -1618,6 +1618,9 @@ end;
 
 { TCastleClipboard ----------------------------------------------------------- }
 
+// http://msdn.microsoft.com/en-us/library/windows/desktop/ms649016%28v=vs.85%29.aspx
+// LCL: ClipboardGetData in lcl/interfaces/win32/win32winapi.inc
+
 function TCastleClipboard.GetAsText: string;
 begin
   { TODO }
