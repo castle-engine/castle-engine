@@ -38,7 +38,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="4" Release="1"/>
-    <Files Count="165">
+    <Files Count="166">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -709,6 +709,10 @@
         <Filename Value="../src/x3d/x3dtriangles.pas"/>
         <UnitName Value="X3DTriangles"/>
       </Item165>
+      <Item166>
+        <Filename Value="../src/net/castledownload.pas"/>
+        <UnitName Value="CastleDownload"/>
+      </Item166>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">

@@ -173,6 +173,7 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'net');
     P.Targets.AddUnit('castleuriutils.pas');
     P.Targets.AddUnit('castledatauri.pas');
+    P.Targets.AddUnit('castledownload.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'opengl');
     P.Targets.AddUnit('castleglbitmapfonts.pas');
