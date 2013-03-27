@@ -47,9 +47,8 @@ function LoadX3DClassicFromString(const VRMLContents: string;
 
 { Load VRML/X3D file in classic encoding, return it's root node.
 
-  This handles also VRML/X3D files compressed with gzip
-  (it just internally filters file contents with TGZFileStream,
-  uncompressing it on the fly).
+  Automatically handles VRML/X3D files compressed with gzip,
+  uncompressing them on the fly.
 
   URL without any protocol is treated as a filename (absolute or relative
   to current dir). We can also load network URLs using CastleDownload.
@@ -557,7 +556,7 @@ end;
 function LoadX3DClassic(const URL: string;
   AllowStdIn: boolean): TX3DRootNode;
 
-  function DoIt(BaseStream: TStream; FreeBaseStream: boolean;
+  function DoIt(BaseStream: TStream; const FreeBaseStream: boolean;
     const BaseUrl: string): TX3DRootNode;
   var
     Stream: TPeekCharStream;
@@ -565,7 +564,7 @@ function LoadX3DClassic(const URL: string;
     Stream := TBufferedReadStream.Create(BaseStream, FreeBaseStream);
     try
       Result := LoadX3DClassic(Stream, BaseUrl);
-    finally Stream.Free end;
+    finally FreeAndNil(Stream) end;
   end;
 
 var
@@ -576,36 +575,32 @@ begin
   begin
     BaseUrl := AbsoluteURI(URL);
 
-(*  TODO-net: TGZFileStream is only for local files.
-    We need a different solution if we hope to work with URLs.
-
-    if SameText(ExtractFileExt(FileName), '.gz') or
-       SameText(ExtractFileExt(FileName), '.wrz') then
-      Result := DoIt(TGZFileStream.Create(FileName, gzOpenRead), true,
-        BaseUrl) else
+    { TODO: filename operations on URLs }
+    if SameText(ExtractFileExt(URL), '.gz') or
+       SameText(ExtractFileExt(URL), '.wrz') then
+      Result := DoIt(Download(URL, false, true), true, BaseUrl) else
     begin
       try
-        Result := DoIt(TFileStream.Create(FileName, fmOpenRead), true, BaseUrl);
+        Result := DoIt(Download(URL, false, false), true, BaseUrl);
       except
         { It's somewhat hacky solution to reopen the file, creating new stream.
           But in practice, this works OK, and it allows us to read files
           compressed by gzip but without indicating this by file extension.
-          The other idea would be to pipe the TFileStream through something
-          like TDecompressionStream, but
+          The other idea would be to pipe the output always by gzip
+          decompression, but:
 
           1. I simply prefer to not filter through yet another stream
              class (we already wrap TFileStream in TBufferedReadStream)
              when I don't have to.
 
           2. TDecompressionStream doesn't handle gzip compressed data for now
-             (it handles zlib-compressed streams, which is not the same thing). }
+             (it handles zlib-compressed streams, which is not the same thing).
+             For now, our Download function uses temporary files to overcome
+             this for network data, so it creates even more overhead. }
         on EX3DGzipCompressed do
-          Result := DoIt(TGZFileStream.Create(FileName, gzOpenRead), true, BaseUrl);
+          Result := DoIt(Download(URL, false, true), true, BaseUrl);
       end;
     end;
-*)
-
-    Result := DoIt(Download(URL), true, BaseUrl);
   end;
 end;
 

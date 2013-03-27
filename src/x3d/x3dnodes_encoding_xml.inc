@@ -508,14 +508,7 @@ function LoadX3DXml(const URL: string; Gzipped: boolean): TX3DRootNode;
 var
   Stream: TStream;
 begin
-  (* TODO-net: TGZFileStream doesn't work for network streams.
-  if Gzipped then
-    Stream := TGZFileStream.Create(FileName, gzOpenRead) else
-    { Create the same stream class as ReadXMLFile does
-      when called with FileName:string }
-    Stream := TFileStream.Create(FileName, fmOpenRead + fmShareDenyWrite);
-  *)
-  Stream := Download(URL);
+  Stream := Download(URL, false, Gzipped);
   try
     Result := LoadX3DXml(Stream, AbsoluteURI(URL));
   finally

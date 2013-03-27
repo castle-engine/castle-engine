@@ -54,22 +54,38 @@ type
   to have also support for network protocols (right now only http,
   handled by FpHttpClient).
 
-  LocalFileInMemory determines whether to open local files as TFileStream
-  (when it is false, default) or load them to TMemoryStream.
-  Using TMemoryStream means that reading is very fast (TFileStream may have
-  poor buffering, depending on OS), but eats memory. }
+  @param(ForceMemoryStream If @true, we will always return a TMemoryStream,
+    with contents fully loaded to the memory,
+    and freely seekable (you can move back and forth within).
+    If @false, we may return other streams, like TFileStream
+    (that may not have good buffering, depending on OS).
+
+    Using TMemoryStream means that reading is fast and comfortable,
+    but eats memory and doesn't allow to simultaneously read and process
+    the contents (the file must be fully loaded, e.g. downloaded from
+    the Internet, and ungzipped, before this function returns).
+    So use ForceMemoryStream = @true only for files that aren't too big.
+
+    For larger files, you usually want to use ForceMemoryStream = @false
+    and wrap them in TBufferedReadStream.)
+
+  @param(Gzipped Should we filter the contents through gzip decompression.) }
 function Download(const URL: string;
-  const LocalFileInMemory: boolean = false): TStream;
+  const ForceMemoryStream: boolean = false;
+  const Gzipped: boolean = false): TStream;
 
 implementation
 
-uses URIParser, CastleURIUtils, CastleUtils, CastleLog;
+uses URIParser, CastleURIUtils, CastleUtils, CastleLog, CastleZStream,
+  CastleClassUtils, CastleFilesUtils;
 
 { Just like Download, but
   - Assumes that the URL is from the network (this prevents network URLs
     redirecting to local URLs),
-  - Limits the number of redirects to given value. }
-function NetworkDownload(const URL: string; const MaxRedirects: Cardinal): TStream;
+  - Limits the number of redirects to given value.
+  - Guarantees that result is TMemoryStream. Never handles gzip decompression. }
+function NetworkDownload(const URL: string;
+  const MaxRedirects: Cardinal): TMemoryStream;
 var
   Client: TFPHTTPClient;
   RedirectLocation: string;
@@ -103,9 +119,45 @@ begin
   end;
 end;
 
-function Download(const URL: string; const LocalFileInMemory: boolean): TStream;
+{ Load FileName to TMemoryStream. }
+function CreateMemoryStream(const FileName: string): TMemoryStream;
+begin
+  Result := TMemoryStream.Create;
+  try
+    Result.LoadFromFile(FileName);
+    Result.Position := 0; { rewind for easy reading }
+  except
+    FreeAndNil(Result); raise;
+  end;
+end;
+
+{ Decompress gzipped FileName.
+  When ForceMemoryStream, always returns TMemoryStream. }
+function ReadGzipped(const FileName: string; const ForceMemoryStream: boolean): TStream;
 var
-  P, FileName: string;
+  NewResult: TMemoryStream;
+begin
+  Result := TGZFileStream.Create(FileName, gzOpenRead);
+  try
+    if ForceMemoryStream then
+    begin
+      { TODO: our engine never uses both Gzipped = true and
+        ForceMemoryStream = true for now, so below code path is untested. }
+      NewResult := TMemoryStream.Create;
+      ReadGrowingStream(Result, NewResult, true);
+      FreeAndNil(Result);
+      Result := NewResult;
+    end;
+  except
+    FreeAndNil(Result); raise;
+  end;
+end;
+
+function Download(const URL: string; const ForceMemoryStream: boolean;
+  const Gzipped: boolean): TStream;
+var
+  P, FileName, TempFileName: string;
+  NetworkResult: TMemoryStream;
 const
   MaxRedirects = 32;
 begin
@@ -115,7 +167,24 @@ begin
   if EnableNetwork and (CompareText(P, 'http') = 0) then
   begin
     WritelnLog('Network', 'Downloading "%s"', [URL]);
-    Result := NetworkDownload(URL, MaxRedirects);
+    NetworkResult := NetworkDownload(URL, MaxRedirects);
+    try
+      if Gzipped then
+      begin
+        { for now, reading Gzipped file from a TMemoryStream means using
+          a temporary file }
+        TempFileName := GetTempFileNameCheck;
+        if Log then
+          WritelnLog('Network', Format('Decompressing gzip from the network by temporary file "%s"', [TempFileName]));
+        NetworkResult.SaveToFile(TempFileName);
+        FreeAndNil(NetworkResult);
+        Result := ReadGzipped(TempFileName, ForceMemoryStream);
+        CheckDeleteFile(TempFileName, true);
+      end else
+        Result := NetworkResult;
+    except
+      FreeAndNil(NetworkResult); raise;
+    end;
   end else
 
   { local filenames are directly handled, without the need for any downloader }
@@ -131,16 +200,11 @@ begin
       FileName := URL else
     if not URIToFilename(URL, FileName) then
       raise EDownloadError.CreateFmt('Cannot convert URL "%s" to filename', [URL]);
-    if LocalFileInMemory then
-    begin
-      Result := TMemoryStream.Create;
-      try
-        TMemoryStream(Result).LoadFromFile(FileName);
-        Result.Position := 0;
-      except
-        FreeAndNil(Result); raise;
-      end;
-    end else
+
+    if Gzipped then
+      Result := ReadGzipped(FileName, ForceMemoryStream) else
+    if ForceMemoryStream then
+      Result := CreateMemoryStream(FileName) else
       Result := TFileStream.Create(FileName, fmOpenRead);
   end else
 
