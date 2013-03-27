@@ -482,7 +482,7 @@ type
     FOnPointingDeviceSensorsChange: TNotifyEvent;
     FTimePlaying: boolean;
     FTimePlayingSpeed: Single;
-    FFileName: string;
+    FURL: string;
     FStatic: boolean;
     FShadowMaps: boolean;
     FShadowMapsDefaultSize: Cardinal;
@@ -509,7 +509,7 @@ type
       Also sends level_changed when needed. }
     procedure UpdateLODLevel(LODTree: TShapeTreeLOD);
 
-    procedure SetFileName(const AValue: string);
+    procedure SetURL(const AValue: string);
     procedure SetStatic(const Value: boolean);
     procedure SetShadowMaps(const Value: boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
@@ -814,17 +814,22 @@ type
     procedure Load(ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
       const AResetTime: boolean = true);
 
-    { Load the 3D model from given AFileName.
+    { Load the 3D model from given URL.
 
       Model is loaded by Load3D, so this supports all
       3D model formats that Load3D handles
       (VRML, X3D, Wavefront OBJ, 3DS, Collada and more).
 
-      @param(AllowStdIn If AllowStdIn and AFileName = '-' then we will load
+      URL is downloaded using CastleDownload unit.
+      If you all you care about is loading normal files, then just pass
+      a normal filename (absolute or relative to the current directory)
+      as the URL parameter.
+
+      @param(AllowStdIn If AllowStdIn and AURL = '-' then we will load
         a file from standard input (StdInStream), using GetCurrentDir
         as BaseUrl (to resolve relative URLs from the file).
         Currently, this limits the file to be VRML/X3D.) }
-    procedure Load(const AFileName: string; AllowStdIn: boolean = false;
+    procedure Load(const AURL: string; AllowStdIn: boolean = false;
       const AResetTime: boolean = true);
 
     destructor Destroy; override;
@@ -1747,8 +1752,7 @@ type
 
     { Nice scene caption. Uses the "title" of WorldInfo
       node inside the VRML/X3D scene. If there is no WorldInfo node
-      (or it has empty title) then returns last loaded FileName
-      (without directory). }
+      (or it has empty title) then result is based on loaded URL. }
     function Caption: string;
 
     { Global lights of this scene. Read-only. May be useful to render
@@ -1825,15 +1829,18 @@ type
       (VRML, X3D, Collada, 3ds, Wavefront, etc.).
 
       Works just like the @link(Load) method (the overloaded version
-      that takes @code(AFileName: string) parameter). And, in fact, using
-      directly the @link(Load) method will also change this FileName property.
+      that takes @code(AURL: string) parameter). And, in fact, using
+      directly the @link(Load) method will also change this URL property.
 
-      The only difference of @code(Scene.FileName := 'blah.x3d') vs
+      The only difference of @code(Scene.URL := 'blah.x3d') vs
       @code(Scene.Load('blah.x3d')) is that setting the filename will
       @italic(not) reload the scene if you set it to the same value.
-      That is, @code(Scene.FileName := Scene.FileName;) will not reload
+      That is, @code(Scene.URL := Scene.URL;) will not reload
       the scene (you have to use explicit @link(Load) for this.). }
-    property FileName: string read FFileName write SetFileName;
+    property URL: string read FURL write SetURL;
+
+    { @deprecated Deprecated name for @link(URL). }
+    property FileName: string read FURL write SetURL; deprecated;
 
     { At loading, process the scene to support shadow maps.
       This happens at the @link(Load) method call,
@@ -2422,20 +2429,20 @@ begin
   ProcessEvents := RestoreProcessEvents;
 end;
 
-procedure TCastleSceneCore.Load(const AFileName: string; AllowStdIn: boolean;
+procedure TCastleSceneCore.Load(const AURL: string; AllowStdIn: boolean;
   const AResetTime: boolean);
 begin
   { Note that if Load3D fails, we will not change the RootNode,
     so currently loaded scene will remain valid. }
 
-  Load(Load3D(AFileName, AllowStdIn), true, AResetTime);
+  Load(Load3D(AURL, AllowStdIn), true, AResetTime);
 
-  FFileName := AFileName;
+  FURL := AURL;
 end;
 
-procedure TCastleSceneCore.SetFileName(const AValue: string);
+procedure TCastleSceneCore.SetURL(const AValue: string);
 begin
-  if AValue <> FFileName then
+  if AValue <> FURL then
     Load(AValue);
 end;
 
@@ -6558,7 +6565,8 @@ begin
   if (WorldInfoNode <> nil) and
      (WorldInfoNode.FdTitle.Value <> '') then
     Result := WorldInfoNode.FdTitle.Value else
-    Result := ExtractFileName(FileName);
+    { TODO-net using file operations on URL }
+    Result := ExtractFileName(URL);
 end;
 
 function TCastleSceneCore.Node(const NodeName: string): TX3DNode;
