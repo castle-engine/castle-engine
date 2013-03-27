@@ -25,10 +25,14 @@ const
 { Read X3D encoded in XML, and convert it to VRML/X3D nodes graph.
 
   Overloaded version that takes Stream as a parameter expects that
-  stream (as read) is no longer compressed.
+  reading the stream returns the uncompressed content (no longer gzip
+  compressed). This version also takes URL as a parameter,
+  but it is not used to load contents (these are inside Stream),
+  it it only used to resolve relative URLs inside content and for error messages.
+
   @groupBegin }
 function LoadX3DXml(const URL: string; Gzipped: boolean): TX3DRootNode;
-function LoadX3DXml(Stream: TStream; const BaseUrl: string): TX3DRootNode;
+function LoadX3DXml(Stream: TStream; const URL: string): TX3DRootNode;
 { @groupEnd }
 
 {$endif read_interface}
@@ -519,11 +523,11 @@ begin
   end;
 end;
 
-function LoadX3DXml(Stream: TStream; const BaseUrl: string): TX3DRootNode;
+function LoadX3DXml(Stream: TStream; const URL: string): TX3DRootNode;
 var
   Doc: TXMLDocument;
   SceneElement: TDOMElement;
-  VersionStr, NiceBaseURI: string;
+  VersionStr: string;
   Version: TX3DVersion;
   { TODO: each USE must occur after it's DEF,
     does X3D XML encoding guarantee this? }
@@ -531,14 +535,10 @@ var
 begin
   Doc := nil;
   try
-    { calculate NiceBaseURI, used for ReadXMLFile e.g. for error messages }
-    NiceBaseURI := BaseUrl;
-    if URIProtocol(NiceBaseURI) = '' then
-      NiceBaseURI := FilenameToURI(NiceBaseURI);
-
+    { We only use URL for ReadXMLFile e.g. for error messages. }
     { ReadXMLFile always sets TXMLDocument param (possibly to nil),
       even in case of exception. So place it inside try..finally. }
-    ReadXMLFile(Doc, Stream, NiceBaseURI);
+    ReadXMLFile(Doc, Stream, AbsoluteURI(URL));
 
     Check(Doc.DocumentElement.TagName = 'X3D',
       'Root element of X3D file must be <X3D>');
@@ -561,7 +561,7 @@ begin
     SceneElement := DOMGetChildElement(Doc.DocumentElement, 'Scene', true);
 
     { X3D XML requires AutoRemove = true below }
-    Reader := TX3DReaderNames.Create(true, BaseUrl, Version);
+    Reader := TX3DReaderNames.Create(true, URL, Version);
     try
       Result := ParseStatements(SceneElement, true, Doc.DocumentElement, Reader);
       Reader.ExtractNames(Result.FPrototypeNames, Result.FExportedNames);
