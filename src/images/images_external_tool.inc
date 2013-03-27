@@ -7,15 +7,6 @@ function LoadImageExternalTool(
   const AllowedImageClasses: array of TCastleImageClass;
   const ImageMagickName: string): TCastleImage;
 {$ifdef HAS_EXECUTE_PROCESS}
-
-  function GetTempFileNameCheck: string;
-  begin
-    Result := GetTempFileName('', ProgramName);
-    { Be paranoid and check whether file does not exist. }
-    if FileExists(Result) then
-      raise Exception.CreateFmt('Temporary file "%s" already exists', [Result]);
-  end;
-
 var
   ImageFileName: string;
   PngFileName: string;

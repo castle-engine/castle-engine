@@ -199,8 +199,10 @@ function IsSymLink(const FileName: string): boolean; overload;
 function ExpandHomePath(const FileName: string): string;
 
 { Call SysUtils.DeleteFile and check result.
-  @raises Exception If delete failed. }
-procedure CheckDeleteFile(const FileName: string);
+  When Warn = @false (default) raises an exception on failure,
+  otherwise (when Warn = @true) makes only OnWarning on failure.
+  @raises Exception If delete failed, and Warn = @false. }
+procedure CheckDeleteFile(const FileName: string; const Warn: boolean = false);
 
 { Call RemoveDir and check result.
   @raises Exception If delete failed. }
@@ -322,9 +324,14 @@ type
 procedure ScanForFiles(Path: string; const Name: string;
   const HandleFile: THandleFileMethod);
 
+{ Get temporary filename, suitable for ApplicationName, checking that
+  it doesn't exist. }
+function GetTempFileNameCheck: string;
+
 implementation
 
-uses CastleStringUtils, {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog;
+uses CastleStringUtils, {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog,
+  CastleWarnings;
 
 var
   { inicjowane w initialization i pozniej stale.
@@ -498,16 +505,20 @@ end;
 
 { file handling ---------------------------------------------------------- }
 
-procedure CheckDeleteFile(const FileName: string);
+procedure CheckDeleteFile(const FileName: string; const Warn: boolean);
 begin
- if not SysUtils.DeleteFile(FileName) then
-  raise Exception.Create('Cannot delete file "' +FileName+ '"');
+  if not SysUtils.DeleteFile(FileName) then
+  begin
+    if Warn then
+      OnWarning(wtMinor, 'File', Format('Cannot delete file "%s"', [FileName])) else
+      raise Exception.Create(Format('Cannot delete file "%s"', [FileName]));
+  end;
 end;
 
 procedure CheckRemoveDir(const DirFileName:  string);
 begin
- if not RemoveDir(DirFileName) then
-  raise Exception.Create('Cannot remove directory "' +DirFileName+ '"');
+  if not RemoveDir(DirFileName) then
+    raise Exception.Create('Cannot remove directory "' +DirFileName+ '"');
 end;
 
 { dir handling -------------------------------------------------------- }
@@ -736,6 +747,14 @@ begin
       ScanForFiles(Path + F.Name + PathDelim, Name, HandleFile);
   until FindNext(F) <> 0;
   FindClose(F);
+end;
+
+function GetTempFileNameCheck: string;
+begin
+  Result := GetTempFileName('', ProgramName);
+  { Be paranoid and check whether file does not exist. }
+  if FileExists(Result) then
+    raise Exception.CreateFmt('Temporary file "%s" already exists', [Result]);
 end;
 
 initialization
