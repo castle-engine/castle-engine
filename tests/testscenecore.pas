@@ -165,7 +165,7 @@ begin
       Assert(false, 'Should fail with EX3DNotFound');
     except on EX3DNotFound do ; end;
 
-    Scene.FileName := 'data' + PathDelim + 'switches_and_transforms_2.x3dv';
+    Scene.URL := 'data/switches_and_transforms_2.x3dv';
     Scene.Node('Left');
     Scene.Field('Left', 'translation');
     Scene.Event('Left', 'addChildren');
