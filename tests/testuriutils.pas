@@ -33,9 +33,15 @@ uses CastleURIUtils, URIParser, CastleUtils;
 procedure TTestURIUtils.TestAbsoluteURI;
 begin
   {$ifdef MSWINDOWS}
-  AssertEquals('file:///c:/foo.txt', AbsoluteURI('c:\foo.txt'));
+  AssertEquals('file:///C:/foo.txt', AbsoluteURI('c:\foo.txt'));
+  { ExpandFileName will change /foo.txt on Windows to add drive letter }
+  AssertEquals('file:///C:/foo.txt', AbsoluteURI('/foo.txt'));
   {$endif}
+  {$ifdef UNIX}
+  { ExpandFileName will change below on Unix, treating "c:\" like a normal filename. }
+  AssertEquals(FilenameToURI(InclPathDelim(GetCurrentDir) + 'c:\foo.txt', AbsoluteURI('c:\foo.txt'));
   AssertEquals('file:///foo.txt', AbsoluteURI('/foo.txt'));
+  {$endif}
   AssertEquals(FilenameToURI(InclPathDelim(GetCurrentDir) + 'foo.txt'), AbsoluteURI('foo.txt'));
   AssertEquals('http://foo', AbsoluteURI('http://foo'));
   AssertEquals(FilenameToURI(InclPathDelim(GetCurrentDir)), AbsoluteURI(''));
