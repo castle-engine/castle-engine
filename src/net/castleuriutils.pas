@@ -99,8 +99,17 @@ function CombineURI(const Base, Relative: string): string;
 
 { Make sure that the URI is absolute (always has a protocol).
   This function treats an URI without a protocol as a simple filename
-  (absolute or relative to the current directory). }
+  (absolute or relative to the current directory).
+  This includes treating empty string as equivalent to current directory. }
 function AbsoluteURI(const URI: string): string;
+
+{ Convert URI (or filename) to a filename.
+  This is an improved URIToFilename from URIParser.
+  When URI is already a filename, this does a better job than URIToFilename,
+  as is handles also Windows absolute filenames (see URIProtocol).
+  Returns empty string in case of problems, for example when this is not
+  a file URI. }
+function URIToFilenameSafe(const URI: string): string;
 
 implementation
 
@@ -292,6 +301,23 @@ begin
   if URIProtocol(URI) = '' then
     Result := FilenameToURI(ExpandFileName(URI)) else
     Result := URI;
+end;
+
+function URIToFilenameSafe(const URI: string): string;
+var
+  P: string;
+begin
+  { Use our URIProtocol instead of depending that URIToFilename will detect
+    empty protocol case correctly. This allows to handle Windows absolute
+    filenames like "c:\foo" as filenames. }
+  P := URIProtocol(URI);
+  if P = '' then
+    Result := URI else
+  if P = 'file' then
+  begin
+    if not URIToFilename(URI, Result) then Result := '';
+  end else
+    Result := '';
 end;
 
 end.
