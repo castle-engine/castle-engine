@@ -865,9 +865,14 @@ procedure TCastlePrecalculatedAnimation.LoadCore(
         'Different names of nodes: "%s" and "%s"',
         [Model1.NodeName, Model2.NodeName]);
 
-    if Model1.BaseUrl <> Model2.BaseUrl then
+    { We are interested whether Model1.BaseUrl and Model2.BaseUrl will
+      give different results when using them to resolve relative URLs.
+      Simply comparing them is not good --- they may contain filenames
+      at the end. Stripping these filenames with ExtractFilePath
+      is dirty. So we just test CombineURI with a test name. }
+    if Model1.PathFromBaseUrl('test') <> Model2.PathFromBaseUrl('test') then
       raise EModelsStructureDifferent.CreateFmt(
-        'Different BaseUrl of nodes: "%s" and "%s"',
+        'BaseUrl of nodes different (will resolve relative URLs to different things): "%s" and "%s"',
         [Model1.BaseUrl, Model2.BaseUrl]);
 
     if Model1.VRML1ChildrenCount <> Model2.VRML1ChildrenCount then
