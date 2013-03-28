@@ -82,6 +82,7 @@ dirty
 disable
 display
 distance
+download
 drag
 dragging
 draw
