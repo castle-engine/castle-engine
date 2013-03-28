@@ -2114,6 +2114,14 @@ end;
     function FileDialog(const Title: string; var FileName: string;
       OpenDialog: boolean; const FileFilters: string): boolean; overload;
 
+    { Just like FileDialog, but accepts and returns argument as an URL.
+      Passing a FileName as an URL is also allowed (as everywhere),
+      it may be changed into an URL on return. }
+    function URLDialog(const Title: string; var URL: string;
+      OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean; overload;
+    function URLDialog(const Title: string; var URL: string;
+      OpenDialog: boolean; const FileFilters: string): boolean; overload;
+
     { Shows a dialog window allowing user to choose an RGB color.
       Initial value of Color specifies initial RGB values proposed to the user.
       If user accepts, returns true and sets Color accordingly, else
@@ -2795,7 +2803,8 @@ procedure Resize2D(Window: TCastleWindowBase);
 
 implementation
 
-uses CastleParameters, CastleLog, CastleGLVersion, X3DLoad
+uses CastleParameters, CastleLog, CastleGLVersion, X3DLoad, CastleURIUtils,
+  URIParser
   { using here CastleWindowModes/CastleMessages makes recursive CastleWindow usage,
     but it's needed for FileDialog }
   {$ifdef CASTLE_WINDOW_GTK_ANY}, CastleWindowModes {$endif}
@@ -3523,6 +3532,30 @@ begin
   try
     FFList.AddFiltersFromString(FileFilters);
     Result := FileDialog(Title, FileName, OpenDialog, FFList);
+  finally FreeAndNil(FFList) end;
+end;
+
+function TCastleWindowBase.URLDialog(const Title: string; var URL: string;
+  OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean;
+var
+  FileName: string;
+begin
+  { calculate FileName from URL }
+  FileName := URIToFilenameSafe(URL);
+  Result := FileDialog(Title, FileName, OpenDialog, FileFilters);
+  if Result then
+    URL := FilenameToURI(ExpandFileName(FileName));
+end;
+
+function TCastleWindowBase.URLDialog(const Title: string; var URL: string;
+  OpenDialog: boolean; const FileFilters: string): boolean;
+var
+  FFList: TFileFilterList;
+begin
+  FFList := TFileFilterList.Create(true);
+  try
+    FFList.AddFiltersFromString(FileFilters);
+    Result := URLDialog(Title, URL, OpenDialog, FFList);
   finally FreeAndNil(FFList) end;
 end;
 
