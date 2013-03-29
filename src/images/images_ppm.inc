@@ -15,40 +15,54 @@
 
 { PPM save/load support. }
 
+{ TODO: When ReadPPMToken is a nested procedure inside LoadPPM (as it should be),
+  then loading ppms causes segfaults, only under Windows (not on Linux),
+  only with FPC 2.6.2 (not with 2.6.0 or earlier). Probably some FPC 2.6.2 bug.
+  Investigate, check if it's still there with FPC trunk, and eventually report.
+
+  The segfault occurs in weird places, and seems to have something to do
+  with how ReadPPMToken(Stream) returns a string.
+
+  Occurs with both debug and release build.
+  To reproduce, just try to open
+  castle_game_engine/tests/data/images/rgb.ppm
+  with glViewImage. Or just castle_game_engine/tests/
+  (the CastleImage tests there also open rgb.ppm).
+}
+
+{ Reads next token in ppm - skips any blanks that it stands on ,
+  and reads everything up to the ending whitespace (or to the end of stream).
+  Returns token without those surrounding whitespaces.
+  Returns '' if we're standing at the end of file.
+  Ignores PPM comments (# ... to the nearest #10 or #13) before token. }
+function ReadPPMToken(Stream: TStream): string;
+var c: char;
+begin
+ try
+  result:='';
+
+  {read whitespaces and comments}
+  repeat
+   c := StreamReadChar(Stream);
+   if c = '#' then { omit comment }
+    repeat c := StreamReadChar(Stream) until c in [#10, #13];
+  until not (c in WhiteSpaces);
+
+  {read token, until whitespace}
+  result := c;
+  repeat
+   c := StreamReadChar(Stream);
+   if c in WhiteSpaces then
+    break else
+    result := result+c;
+  until false;
+ except
+  on EReadError do {silent exception, just exit from this function};
+ end;
+end;
+
 function LoadPPM(Stream: TStream;
   const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
-
-  function ReadPPMToken(Stream: TStream): string;
-  {reads next token in ppm - skips any blanks that it stands on ,
-   and reads everything up to the ending whitespace (or to the end of stream).
-   Returns token without those surrounding whitespaces.
-   Returns '' if we're standing at the end of file.
-   Ignores PPM comments (# ... to the nearest #10 or #13) before token. }
-  var c: char;
-  begin
-   try
-    result:='';
-
-    {read whitespaces and comments}
-    repeat
-     c := StreamReadChar(Stream);
-     if c = '#' then { omit comment }
-      repeat c := StreamReadChar(Stream) until c in [#10, #13];
-    until not (c in WhiteSpaces);
-
-    {read token, until whitespace}
-    result := c;
-    repeat
-     c := StreamReadChar(Stream);
-     if c in WhiteSpaces then
-      break else
-      result := result+c;
-    until false;
-   except
-    on EReadError do {silent exception, just exit from this function};
-   end;
-  end;
-
 var magic: array[0..1]of char;
     IsBinary: boolean;
     MaxColVal: integer;
