@@ -162,7 +162,7 @@
       various descendants of TMenuEntry class.
       Then you have to assign such menu structure
       to TCastleWindowBase.MainMenu property. When CastleWindow is implemented on top
-      of GTK_2 or WINAPI or GLUT we will show this menu and call
+      of GTK_2 or WINAPI or LCL we will show this menu and call
       TCastleWindowBase.EventMenuClick (TCastleWindowBase.OnMenuClick) when user clicks some menu item.
       Other backends (XLIB for now) ignore MainMenu.
 
@@ -202,16 +202,11 @@ unit CastleWindow;
 
 { Choose CastleWindow backend ------------------------------------------ }
 
-{ You must define one of the symbols CASTLE_WINDOW_GTK_2,
-  CASTLE_WINDOW_WINAPI (only under Windows),  CASTLE_WINDOW_XLIB (only where X11
-  and Xlib are available, which usually means "only under UNIX"),
-  CASTLE_WINDOW_GLUT.
+{ You can define one of the symbols CASTLE_WINDOW_xxx mentioned below to include
+  a specific CastleWindow backend. If you don't, there is a code lower that
+  chooses the best backend for given OS.
 
-  Of course the list of available backends may be extended
-  with time (although I do not plan it for now, since I'm happy with
-  available backends).
-
-  Here are short descriptions for each backend:
+  Available backends:
 
   CASTLE_WINDOW_GTK_2
     Based on GTK 2.x, using GtkGLExt extension. Made 2005-02.
@@ -243,7 +238,7 @@ unit CastleWindow;
     Removed 2011-12 (commit r10674), ancient and obsoleted by GTK 2.
 
   CASTLE_WINDOW_WINAPI
-    Based on Windows API.
+    Based on Windows API. Of course only for Windows.
 
     MainMenu is implemented as WinAPI menu bar. So it looks nice.
     Dialog windows are implemented as common Windows dialog boxes.
@@ -251,6 +246,8 @@ unit CastleWindow;
 
   CASTLE_WINDOW_XLIB
     Based on XLib units. No X toolkit is used.
+
+    Only for OSes where X is used, which in practice means Unix.
 
     MainMenu is not implemented (it's ignored).
     That's not easy to implement when you don't want to use any X toolkit.
@@ -280,47 +277,6 @@ unit CastleWindow;
       starting the game, which may be useful. And has one dependency less
       (GTK is commonly installed, but gtkglext is not, and CASTLE_WINDOW_GTK_2
       requires gtkglext).
-
-  CASTLE_WINDOW_GLUT
-    Based on glut library. There's little use of implementing
-    CastleWindow on top of glut library since the initial idea of CastleWindow
-    was to overcome many glut shortcomings. The only advantage of this is that
-    such version of CastleWindow may be used for various testing purposes.
-
-    MainMenu is implemented as glut pop-up menu. Activated by right mouse button.
-    Looks ugly and has a lot of usability problems, but works.
-
-    TryVideoChange is simply not implemented, always returns false.
-
-    Known problems:
-    (they are specific to CASTLE_WINDOW_GLUT and will not be fixed.
-    Just use other CASTLE_WINDOW_xxx backend if you don't want these problems):
-    - When original glut (the one by Mark Kilgard,
-      as opposed to newer freeglut from http://freeglut.sourceforge.net/)
-      is used, Application.ProcessMesssages cannot be implemented.
-    - Application.Run does never return (because it must be implemented as a
-      single call to glutMainLoop)
-    - Key up / down (with K_xxx constants) are rather poorly simulated.
-    - FlushRedisplay always redraws the window
-      (it can't know whether window really needs redraw or not,
-      so it redraws it always).
-    - Even when ResizeAllowed <> raNotAllowed user will be able
-      to change size of our window (using window manager-specific
-      things, like dragging our window's border)
-      but we will simply "pretend" that nothing happened
-      (TCastleWindowBase instance will not change it's Width/Height,
-      will not do OnResize event etc.).
-      Similar with (Min|Max)(Width|Height) constraints:
-      they can't be forced using glut, we will simply ignore
-      the fact if they will be broken by user.
-    - I can't pass to glut value of StencilBits so
-      I'm simply saying to glut that I want stencil buffer
-      when StencilBits > 0, and then I'm checking
-      using glutGet(GLUT_WINDOW_STENCIL_SIZE) how many stencil bits I have.
-      Analogous for DepthBits, AlphaBits, AccumBits.
-    - Menu mnemonics are not implemented.
-      They are simply removed when Caption is displayed.
-    - CustomCursor is not implemented. Cursor = gcCursor is treated like mcDefault.
 
   CASTLE_WINDOW_LCL
     Use Lazarus TForm (with menu, dialogs and so on) and TOpenGLControl.
@@ -373,32 +329,27 @@ unit CastleWindow;
   with some CASTLE_WINDOW_xxx symbol already defined. }
 {$ifndef CASTLE_WINDOW_WINAPI}
  {$ifndef CASTLE_WINDOW_XLIB}
-  {$ifndef CASTLE_WINDOW_GLUT}
-   {$ifndef CASTLE_WINDOW_GTK_2}
-    {$ifndef CASTLE_WINDOW_TEMPLATE}
-     {$ifndef CASTLE_WINDOW_LCL}
-      {$ifdef MSWINDOWS}
-        {$define CASTLE_WINDOW_WINAPI} // best (looks native and most functional) on Windows
-        { $define CASTLE_WINDOW_GTK_2}
-        { $define CASTLE_WINDOW_LCL}
-        { $define CASTLE_WINDOW_GLUT}
-        { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
-      {$endif}
-      {$ifdef UNIX}
-        {$ifdef DARWIN}
-          {$define CASTLE_WINDOW_LCL} // best (looks native and most functional) on Mac OS X
-          { $define CASTLE_WINDOW_GTK_2}
-          { $define CASTLE_WINDOW_XLIB}
-          { $define CASTLE_WINDOW_GLUT}
-          { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
-        {$else}
-          {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional) on Unix (except Mac OS X)
-          { $define CASTLE_WINDOW_XLIB}
-          { $define CASTLE_WINDOW_LCL}
-          { $define CASTLE_WINDOW_GLUT}
-          { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
-        {$endif}
-      {$endif}
+  {$ifndef CASTLE_WINDOW_GTK_2}
+   {$ifndef CASTLE_WINDOW_TEMPLATE}
+    {$ifndef CASTLE_WINDOW_LCL}
+     {$ifdef MSWINDOWS}
+       {$define CASTLE_WINDOW_WINAPI} // best (looks native and most functional) on Windows
+       { $define CASTLE_WINDOW_GTK_2}
+       { $define CASTLE_WINDOW_LCL}
+       { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
+     {$endif}
+     {$ifdef UNIX}
+       {$ifdef DARWIN}
+         {$define CASTLE_WINDOW_LCL} // best (looks native and most functional) on Mac OS X
+         { $define CASTLE_WINDOW_GTK_2}
+         { $define CASTLE_WINDOW_XLIB}
+         { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
+       {$else}
+         {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional) on Unix (except Mac OS X)
+         { $define CASTLE_WINDOW_XLIB}
+         { $define CASTLE_WINDOW_LCL}
+         { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
+       {$endif}
      {$endif}
     {$endif}
    {$endif}
@@ -513,11 +464,7 @@ unit CastleWindow;
     We would have to catch sys_keydown message but then we also
     block using standard Alt+F4 or Alt+Space? Another trouble:
     if you enter system menu by Alt+Down, we will not get Alt+Up?
-
-  Only glut:
-  - Is is possible to cleanly capture close event (possibly under freeglut).
-  - ReleaseAllKeysAndMouse: call this when user switches to another window
-    or activates a menu.
+  - Implement MainMenu.Enabled
 
   Only CASTLE_WINDOW_GTK_2:
   - in OpenBackend implement MaxWidth/Height
@@ -544,15 +491,11 @@ unit CastleWindow;
   - OnTimer interface sucks -- it doesn't allow you to register many timeout
     functions for different timeouts.
   - Add to multi_window testing call to FileDialog and ColorDialog.
-
-  Menu things:
-  - For WinAPI, glut: impl Enabled
 }
 
 interface
 
 uses SysUtils, Classes, CastleVectors, GL, GLU, GLExt,
-  {$ifdef CASTLE_WINDOW_GLUT} FreeGlut, Glut, {$endif}
   {$ifdef CASTLE_WINDOW_WINAPI} Windows,
     { In FPC < 2.2.2, CommDlg stuff was inside Windows unit. }
     {$ifndef VER2_2_0} {$ifndef VER2_0_0} CommDlg, {$endif} {$endif}
@@ -862,7 +805,7 @@ type
 
       This should be implemened as "Result := true" if we have to process
       keypresses in CastleWindow to pass them as menu commands, e.g. when CastleWindow
-      works on top of glut or Xlib.
+      works on top of Xlib.
       When CastleWindow works on top of GTK or WinAPI that allow us to do a "real"
       menu, this should be implemented as "Result := false". }
     function RedirectKeyDownToMenuClick: boolean;
@@ -913,11 +856,11 @@ type
       =raNotAllowed and FirstTime = false then it's useless to call here
       EventResize).
 
-      Remember : this function does not automatically call PostRedisplay.
+      Remember: this function does not automatically call PostRedisplay.
       You must make sure that soon after changing size of the window
       you will call DoDraw (e.g. you can call PostRedisplay after
-      calling DoResize; but usually (under WinAPI, Xlib, glut, gtk)
-      it's not needed, i.e. WinAPI, Xlib, glut and gtk all take care of this
+      calling DoResize; but usually (under WinAPI, Xlib, GTK)
+      it's not needed, i.e. WinAPI, Xlib, and GTK all take care of this
       automatically). }
     procedure DoResize(AWidth, AHeight: integer; FromIndependentOpen: boolean);
     { Wywoluj kiedy user kliknie na przycisku "Zamknij" itp.
@@ -1118,12 +1061,8 @@ type
       to WindowPositionCenter at the initialization (Open) time,
       then it will be set to position the window at the screen center.
       @groupBegin }
-    property Left: integer
-      read {$ifdef CASTLE_WINDOW_GLUT}GetLeft{$else}FLeft{$endif}
-      write FLeft default WindowPositionCenter;
-    property Top :integer
-      read {$ifdef CASTLE_WINDOW_GLUT}GetTop{$else}FTop{$endif}
-      write FTop default WindowPositionCenter;
+    property Left: integer read FLeft write FLeft default WindowPositionCenter;
+    property Top :integer read FTop write FTop default WindowPositionCenter;
     { @groupEnd }
 
     property FullScreen: boolean read FFullScreen write FFullScreen default false;
@@ -2065,8 +2004,7 @@ end;
           TGLMode.Free
       - How does these dialogs look like?
         Under GTK and WinAPI backends we use native dialogs of these.
-        Under Xlib and freeglut backend we simply fallback on
-        CastleMessages.Message*.
+        Under Xlib backend we simply fallback on CastleMessages.Message*.
     }
 
     { Select a file to open or save.
@@ -2809,8 +2747,7 @@ uses CastleParameters, CastleLog, CastleGLVersion, X3DLoad, CastleURIUtils,
     but it's needed for FileDialog }
   {$ifdef CASTLE_WINDOW_GTK_ANY}, CastleWindowModes {$endif}
   {$ifdef CASTLE_WINDOW_WINAPI}, CastleWindowModes {$endif}
-  {$ifdef CASTLE_WINDOW_XLIB}, CastleMessages {$endif}
-  {$ifdef CASTLE_WINDOW_GLUT}, CastleMessages {$endif};
+  {$ifdef CASTLE_WINDOW_XLIB}, CastleMessages {$endif};
 
 {$define read_implementation}
 
@@ -3150,7 +3087,7 @@ end;
 procedure TCastleWindowBase.DoResize(AWidth, AHeight: integer; FromIndependentOpen: boolean);
 begin
  { zabezpiecz sie przed
-   1) glutem, ktoremu nie mamy jak powiedziec ze ResizeAllowed <> raNotAllowed
+   1) backends where we can't express ResizeAllowed <> raAllowed
    2) Windowsem, ktory moze zresizowac nasze okno np. gdy sie nie miescimy na ekranie
    3) XWindow-Managerem ktory zawsze moze nas zresizowac, mimo ze prosimy go
       zeby tego nie robil.

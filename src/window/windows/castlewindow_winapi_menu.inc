@@ -63,8 +63,8 @@
       create textual key descriptions in TMenuItem.KeyString
       and I already created mechanism to translate key downs to
       appropriately translate key presses to menu items.
-      I had to do this because my CastleWindow unit must at least basically
-      work when implemented on top of glut or Xlib, where I don't have
+      I had to do this because my CastleWindow unit must
+      work when implemented on top of Xlib, where I don't have
       a concept of a "menu item with key shortcut" available.
 
       So what I'm doing?

@@ -203,7 +203,7 @@
       can count on the fact that "every SmallId is >= 0 and < 60 000".
 
       And this makes SmallId very useful when you're constructing a menu
-      using some API (like glut, Motif, WinAPI) -- you usually want to identify
+      using some API --- you usually want to identify
       your menu item by some unique id and you want this id to be small
       (e.g. under WinAPI menu item's id must fit in 16 bit integer).
       That's where PtrInt(Self) is not useful and that's where
@@ -465,13 +465,13 @@ function SQuoteMenuEntryCaption(const S: string): string;
 {$ifdef read_implementation}
 
 { Implementation of these classes is NOT dependent on CastleWindow
-  implementation (i.e. it's not GTK or XLib or WinAPI or Glut specific).
+  implementation (i.e. it's not GTK or WinAPI specific).
   That was the original idea of this unit. Once these classes
   were even declared in a separate unit (that was not dependent on CastleWindow
   unit).
 
   Such separation makes implementation of these things simple --
-  it's not cluttered with GTK/Xlib/WinAPI/Glut specific details.
+  it's not cluttered with GTK/WinAPI specific details.
 }
 
 { TMenuEntry ------------------------------------------------------------ }

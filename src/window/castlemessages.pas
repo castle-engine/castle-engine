@@ -72,13 +72,7 @@
 
       This way you can call MessageXxx procedures in virtually any place of your
       program, and things will magically work --- inside MessageXxx we wait until
-      user answers the dialog box.
-
-      This also means that this units is only able to work when CastleWindow unit
-      implements Application.ProcessMessage routine. For now this means
-      that CastleWindow unit must not work on top of glut (CASTLE_WINDOW_GLUT
-      must not be defined while compiling CastleWindow), other CastleWindow implementations
-      are OK.)
+      user answers the dialog box.)
 
     @item(
       Be careful if you use Application callbacks, OnIdle / OnTimer.
