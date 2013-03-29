@@ -45,6 +45,8 @@ begin
   { TODO (may do nothing if you do not care about displaying menu;
     may do MenuFinalize + MenuInitialize if you display menu,
     but don't care about updating it fast) }
+  MenuFinalize;
+  MenuInitialize;
 end;
 
 procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
@@ -52,6 +54,8 @@ begin
   { TODO (may do nothing if you do not care about displaying menu;
     may do MenuFinalize + MenuInitialize if you display menu,
     but don't care about updating it fast) }
+  MenuFinalize;
+  MenuInitialize;
 end;
 
 procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
@@ -59,11 +63,33 @@ begin
   { TODO (may do nothing if you do not care about displaying menu;
     may do MenuFinalize + MenuInitialize if you display menu,
     but don't care about updating it fast) }
+  MenuFinalize;
+  MenuInitialize;
 end;
 
 function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
 begin
   Result := false;
+end;
+
+procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
+  const ParentPosition: Integer; const Entry: TMenuEntry);
+begin
+  { TODO (may do nothing if you do not care about displaying menu;
+    may do MenuFinalize + MenuInitialize if you display menu,
+    but don't care about updating it fast) }
+  MenuFinalize;
+  MenuInitialize;
+end;
+
+procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
+  const ParentPosition: Integer; const Entry: TMenuEntry);
+begin
+  { TODO (may do nothing if you do not care about displaying menu;
+    may do MenuFinalize + MenuInitialize if you display menu,
+    but don't care about updating it fast) }
+  MenuFinalize;
+  MenuInitialize;
 end;
 
 procedure TCastleWindowBase.SwapBuffers;

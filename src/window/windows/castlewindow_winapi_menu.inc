@@ -191,7 +191,7 @@ begin
     OSCheck( Result <> 0, 'CreatePopupMenu');
   end;
 
-  for i := 0 to Menu.EntriesCount-1 do
+  for i := 0 to Menu.Count - 1 do
   begin
     M := Menu[i];
     if M is TMenuItem then

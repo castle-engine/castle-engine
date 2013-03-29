@@ -127,16 +127,23 @@
     procedure ClearHandles; override;
   public
     { Items (entries) on the menu. Items are owned by this menu instance
-      (are automatically freed at destruction, at EntryDelete and such). }
-    property Entries[Index: Integer]:TMenuEntry read GetEntries; default;
-    function EntriesCount: Integer;
+      (are automatically freed at destruction, at @link(Delete) and such). }
+    property Entries [Index: Integer]: TMenuEntry read GetEntries; default;
+    function Count: Integer;
     procedure Insert(Index: Integer; Value: TMenuEntry);
-    { Add at the end. Same as Insert(EntriesCount, Value). }
+    { Add at the end. Same as Insert(@link(Count), Value). }
     procedure Append(Value: TMenuEntry);
-    procedure EntryDelete(Index: Integer);
-    procedure EntriesDeleteAll;
+    procedure Delete(Index: Integer);
+    procedure DeleteAll;
     constructor Create(const ACaption: String);
     destructor Destroy; override;
+
+    { @deprecated Deprecated name for @link(Count). }
+    function EntriesCount: Integer; deprecated;
+    { @deprecated Deprecated name for @link(Delete). }
+    procedure EntryDelete(Index: Integer); deprecated;
+    { @deprecated Deprecated name for DeleteAll. }
+    procedure EntriesDeleteAll; deprecated;
 
     { Append a number of radio menu items.
       This is a comfortable shortcut for an often task of adding
@@ -573,15 +580,19 @@ end;
 
 function TMenu.EntriesCount: Integer;
 begin
+  Result := Count;
+end;
+
+function TMenu.Count: Integer;
+begin
   Result := FEntries.Count;
 end;
 
 procedure TMenu.Insert(Index: Integer; Value: TMenuEntry);
 var
   I: Integer;
+  P: TCastleWindowBase;
 begin
-  MenuFinalize;
-
   FEntries.Insert(Index, Value);
 
   { update Value.FParentMenu }
@@ -589,10 +600,11 @@ begin
 
   { update changed FParentMenuPosition values (this includes
     Value.FParentMenuPosition) }
-  for I := Index to EntriesCount - 1 do
+  for I := Index to Count - 1 do
     FEntries[I].FParentMenuPosition := I;
 
-  MenuInitialize;
+  P := CorrectParentWindow;
+  if (P <> nil) and (not P.Closed) then P.MenuInsert(Self, Index, Value);
 end;
 
 procedure TMenu.Append(Value: TMenuEntry);
@@ -601,25 +613,45 @@ begin
 end;
 
 procedure TMenu.EntryDelete(Index: Integer);
+begin
+  Delete(Index);
+end;
+
+procedure TMenu.Delete(Index: Integer);
 var
   I: Integer;
+  Entry: TMenuEntry;
+  P: TCastleWindowBase;
 begin
-  MenuFinalize;
-
+  { extract Entry from Entries list }
+  Entry := FEntries[Index];
+  FEntries.FreeObjects := false; // temporarily disable FreeObjects
   FEntries.Delete(Index);
+  FEntries.FreeObjects := true;
 
   { update changed FParentMenuPosition values }
-  for I := Index to EntriesCount - 1 do
+  for I := Index to Count - 1 do
     FEntries[I].FParentMenuPosition := I;
 
-  MenuInitialize;
+  P := CorrectParentWindow;
+  if (P <> nil) and (not P.Closed) then P.MenuDelete(Self, Index, Entry);
+
+  FreeAndNil(Entry);
 end;
 
 procedure TMenu.EntriesDeleteAll;
 begin
-  MenuFinalize;
-  FEntries.Clear;
-  MenuInitialize;
+  DeleteAll;
+end;
+
+procedure TMenu.DeleteAll;
+var
+  I: Integer;
+begin
+  MenuUpdateBegin;
+  for I := Count - 1 downto 0 do
+    Delete(I);
+  MenuUpdateEnd;
 end;
 
 function TMenu.AppendRadioGroup(const Items: array of string;
@@ -650,7 +682,7 @@ var
   I: Integer;
 begin
   inherited;
-  for I := 0 to EntriesCount - 1 do
+  for I := 0 to Count - 1 do
     Entries[I].ClearHandles;
 end;
 

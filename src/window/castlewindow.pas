@@ -757,13 +757,15 @@ type
     procedure MenuUpdateEnd;
     { @groupEnd }
 
-    { Notification that menu Entry properties changed.
+    { Notification called immediately after menu entry properties changed.
       This is called only when MainMenu <> nil and Entry is contained
       inside our MainMenu. Also, this is called only when not Closed.
 
-      Only appropriate local Entry properties changed, no other menu entry
-      (even child menu entry for submenus) was changed. The idea is that sloppy
-      backend may simply do here MenuFinalize + MenuInitialize,
+      In case of MenuUpdateXxx calls: You can be sure that
+      only appropriate local Entry properties changed, no other menu entry
+      (even child menu entry for submenus) was changed.
+
+      Sloppy backend may simply do here MenuFinalize + MenuInitialize,
       but a better backend may do something more efficient,
       like updating only this specific Entry resources.
 
@@ -771,6 +773,8 @@ type
     procedure MenuUpdateCaption(Entry: TMenuEntryWithCaption);
     procedure MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
     procedure MenuUpdateChecked(Entry: TMenuItemChecked);
+    procedure MenuInsert(const Parent: TMenu; const ParentPosition: Integer; const Entry: TMenuEntry);
+    procedure MenuDelete(const Parent: TMenu; const ParentPosition: Integer; const Entry: TMenuEntry);
     function MenuUpdateCheckedFast: boolean;
     { @groupEnd }
 
@@ -3171,7 +3175,7 @@ procedure TCastleWindowBase.DoKeyDown(Key: TKey; CharKey: char);
      Result := nil;
      if Entry is TMenu then
      begin
-      for i := 0 to TMenu(Entry).EntriesCount-1 do
+      for i := 0 to TMenu(Entry).Count - 1 do
       begin
        Result := SeekMe(TMenu(Entry).Entries[i]);
        if Result <> nil then Break;

@@ -152,7 +152,7 @@ begin
     Assert(ParentMenu.Entries[Position] = FirstSeparator);
     FirstSeparator := nil;
     repeat
-      ParentMenu.EntryDelete(Position);
+      ParentMenu.Delete(Position);
     until (ParentMenu.Entries[Position] = NextMenuItem);
   end;
 

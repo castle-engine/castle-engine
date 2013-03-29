@@ -632,6 +632,22 @@ begin
   Result := false;
 end;
 
+procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
+  const ParentPosition: Integer; const Entry: TMenuEntry);
+begin
+  { TODO: unoptimal }
+  MenuFinalize;
+  MenuInitialize;
+end;
+
+procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
+  const ParentPosition: Integer; const Entry: TMenuEntry);
+begin
+  { TODO: unoptimal }
+  MenuFinalize;
+  MenuInitialize;
+end;
+
 procedure TCastleWindowBase.OpenWinSystemDepend;
 
   { Both SetPixelFormat* set pixel format (required context capabilities)

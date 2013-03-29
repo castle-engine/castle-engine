@@ -494,7 +494,19 @@ end;
 
 function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
 begin
-  Result := false;
+  Result := true; // MenuUpdateChecked does nothing, so yes, it's fast :)
+end;
+
+procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
+  const ParentPosition: Integer; const Entry: TMenuEntry);
+begin
+  { does nothing }
+end;
+
+procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
+  const ParentPosition: Integer; const Entry: TMenuEntry);
+begin
+  { does nothing }
 end;
 
 procedure TCastleWindowBase.SwapBuffers;

@@ -300,7 +300,7 @@ procedure TCastleWindowBase.BackendMenuInitialize;
 
       SubMenu := NewGtkMenu();
 
-      for i := 0 to TMenu(Entry).EntriesCount - 1 do
+      for i := 0 to TMenu(Entry).Count - 1 do
        gtk_menu_append(GTK_WIDGET(SubMenu),
          GTK_WIDGET( MenuEntryToGtkMenuItem(TMenu(Entry).Entries[i]) ));
 
@@ -326,7 +326,7 @@ procedure TCastleWindowBase.BackendMenuInitialize;
    MenuUpdateEnabled(MainMenu);
 
    gtk_widget_show(GTK_WIDGET(MainMenu.Handle));
-   for i := 0 to MainMenu.EntriesCount - 1 do
+   for i := 0 to MainMenu.Count - 1 do
     { Don't put TMenuSeparator in menu bar because that would look ugly. }
     if not (MainMenu.Entries[i] is TMenuSeparator) then
      gtk_menu_bar_append(GTK_WIDGET(MainMenu.Handle),
@@ -435,4 +435,20 @@ end;
 function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
 begin
   Result := true;
+end;
+
+procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
+  const ParentPosition: Integer; const Entry: TMenuEntry);
+begin
+  { TODO: unoptimal }
+  MenuFinalize;
+  MenuInitialize;
+end;
+
+procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
+  const ParentPosition: Integer; const Entry: TMenuEntry);
+begin
+  { TODO: unoptimal }
+  MenuFinalize;
+  MenuInitialize;
 end;

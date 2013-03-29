@@ -128,7 +128,7 @@ private
     although it may be a little painful:
     - Optionally:
       - ParentMenuPosition should be probably removed
-      - EntryDelete should be deprecated, just Free the menu entry
+      - Delete should just Free the menu entry
         Entries should be a components list that watches for frees of children
         (so TMenuEntry should be component)
     - TMenuEntry destroy should translate to MenuEntryDestroy,
@@ -196,7 +196,7 @@ procedure TCastleWindowBase.BackendMenuInitialize;
     MyEntry: TMenuEntry;
     I: Integer;
   begin
-    for I := 0 to MyMenu.EntriesCount - 1 do
+    for I := 0 to MyMenu.Count - 1 do
     begin
       MyEntry := MyMenu.Entries[I];
       MenuItem := TGoodMenuItem.Create(Form);
@@ -306,6 +306,22 @@ end;
 function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
 begin
   Result := true;
+end;
+
+procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
+  const ParentPosition: Integer; const Entry: TMenuEntry);
+begin
+  { TODO: unoptimal }
+  MenuFinalize;
+  MenuInitialize;
+end;
+
+procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
+  const ParentPosition: Integer; const Entry: TMenuEntry);
+begin
+  { TODO: unoptimal }
+  MenuFinalize;
+  MenuInitialize;
 end;
 
 procedure TCastleWindowBase.SwapBuffers;
