@@ -13,39 +13,12 @@
   ----------------------------------------------------------------------------
 }
 
-{$ifdef read_window_interface}
-private
-  Form: TForm;
-  OpenGLControl: TOpenGLControl;
-  Menu: TMainMenu;
-  procedure MenuItemClick(Sender: TObject);
-  procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-  procedure FormDeactivate(Sender: TObject);
-  procedure OpenGLControlPaint(Sender: TObject);
-  procedure OpenGLControlResize(Sender: TObject);
-  procedure OpenGLControlKeyDown(Sender: TObject; var Key: Word;
-    Shift: TShiftState);
-  procedure OpenGLControlKeyUp(Sender: TObject; var Key: Word;
-    Shift: TShiftState);
-  procedure OpenGLControlMouseDown(Sender: TObject; Button: Controls.TMouseButton;
-    Shift: TShiftState; X, Y: Integer);
-  procedure OpenGLControlMouseUp(Sender: TObject; Button: Controls.TMouseButton;
-    Shift: TShiftState; X, Y: Integer);
-  procedure OpenGLControlMouseMove(Sender: TObject; Shift: TShiftState; X,
-    Y: Integer);
-  procedure OpenGLControlMouseWheel(Sender: TObject; Shift: TShiftState;
-    WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
-{$endif read_window_interface}
+{ CastleWindow backend using Lazarus LCL underneath.
+  Should work with all LCL widgetsets, but was especially done and tested
+  to use LCL Carbon widgetset under Mac OS X (since for other OSes
+  we already have more native CastleWindow backends).
 
-{$ifdef read_application_interface}
-private
-  LastDoTimerTime: TMilisecTime;
-  procedure ApplicationIdle(Sender: TObject; var Done: Boolean);
-{$endif read_application_interface}
-
-{$ifdef read_implementation}
-
-{ TODO:
+  TODO:
 
   Bugs on GTK2, not on Carbon:
   - All radio menu items are always on. Why?
@@ -142,6 +115,38 @@ private
   - TCastleWindowBase.AccumBits: not possible to express in TOpenGLControl now.
     We should just deprecate AccumBits? This is deprecated in OpenGL after all.
 }
+
+{$ifdef read_window_interface}
+private
+  Form: TForm;
+  OpenGLControl: TOpenGLControl;
+  Menu: TMainMenu;
+  procedure MenuItemClick(Sender: TObject);
+  procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+  procedure FormDeactivate(Sender: TObject);
+  procedure OpenGLControlPaint(Sender: TObject);
+  procedure OpenGLControlResize(Sender: TObject);
+  procedure OpenGLControlKeyDown(Sender: TObject; var Key: Word;
+    Shift: TShiftState);
+  procedure OpenGLControlKeyUp(Sender: TObject; var Key: Word;
+    Shift: TShiftState);
+  procedure OpenGLControlMouseDown(Sender: TObject; Button: Controls.TMouseButton;
+    Shift: TShiftState; X, Y: Integer);
+  procedure OpenGLControlMouseUp(Sender: TObject; Button: Controls.TMouseButton;
+    Shift: TShiftState; X, Y: Integer);
+  procedure OpenGLControlMouseMove(Sender: TObject; Shift: TShiftState; X,
+    Y: Integer);
+  procedure OpenGLControlMouseWheel(Sender: TObject; Shift: TShiftState;
+    WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+{$endif read_window_interface}
+
+{$ifdef read_application_interface}
+private
+  LastDoTimerTime: TMilisecTime;
+  procedure ApplicationIdle(Sender: TObject; var Done: Boolean);
+{$endif read_application_interface}
+
+{$ifdef read_implementation}
 
 { TGoodMenuItem ---------------------------------------------------------------- }
 

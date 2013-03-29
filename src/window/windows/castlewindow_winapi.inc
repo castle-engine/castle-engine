@@ -13,6 +13,17 @@
   ----------------------------------------------------------------------------
 }
 
+{ CastleWindow backend using WinAPI, Windows-only.
+
+  TODO:
+  - Alt key presses are not perfectly detected.
+    Is it even possible to cleanly catch K_Alt key press in WinAPI?
+    We would have to catch sys_keydown message but then we also
+    block using standard Alt+F4 or Alt+Space? Another trouble:
+    if you enter system menu by Alt+Down, we will not get Alt+Up?
+  - Implement MainMenu.Enabled.
+}
+
 {$ifdef read_window_interface}
 private
   h_GLRc: HGLRC;

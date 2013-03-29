@@ -13,7 +13,21 @@
   ----------------------------------------------------------------------------
 }
 
-{ CastleWindow backend based on GTK 2 and GtkGLExt. }
+{ CastleWindow backend based on GTK 2 and GtkGLExt.
+
+  TODO:
+  - In OpenBackend implement MaxWidth/Height
+    (Or maybe these properties should be removed?
+    They are made for symmetry with MinWidth/Height. Are they really useful?)
+  - Implement better fullscreen toggle now (that doesn't need
+    recreating window).
+    Update docs about capabilities of GTK_2 backend.
+  - Value of propery FullScreen should change at runtime,
+    and parts of things that I'm doing now in OpenBackend
+    should be done on such changes.
+    This way I should be able to react to fullscreen changes
+    forced by user (using window manager, not F11) really cleanly.
+}
 
 {$ifdef read_interface_types}
   { @exclude }

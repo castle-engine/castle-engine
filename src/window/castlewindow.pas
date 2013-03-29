@@ -461,51 +461,25 @@ unit CastleWindow;
 {$ifdef CASTLE_WINDOW_GTK_ANY} {$define CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN} {$endif}
 {$ifdef CASTLE_WINDOW_XLIB}    {$define CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN} {$endif}
 
-{ TODO list ------------------------------------------------------------------
-
-  (? means "I'm not sure whether to implement it")
-
-  Only winapi:
-  - Is it even possible to cleanly catch K_Alt key press in WinAPI?
-    We would have to catch sys_keydown message but then we also
-    block using standard Alt+F4 or Alt+Space? Another trouble:
-    if you enter system menu by Alt+Down, we will not get Alt+Up?
-  - Implement MainMenu.Enabled
-
-  Only CASTLE_WINDOW_GTK_2:
-  - in OpenBackend implement MaxWidth/Height
-    (Or maybe these properties should be removed?
-    They are made for symmetry with MinWidth/Height. Are they really useful?)
-  - Implement better fullscreen toggle now (that doesn't need
-    recreating window).
-    Update docs about capabilities of GTK_2 backend.
-  - Value of propery FullScreen should change at runtime,
-    and parts of things that I'm doing now in OpenBackend
-    should be done on such changes.
-    This way I should be able to react to fullscreen changes
-    forced by user (using window manager, not F11) really cleanly.
+{ TODO:
 
   General:
-  - Allow changing Width, Height, Left, Top from code after the window
-    is created.
-  - SDL backend is possible, although doesn't seem really needed now?
-  - use EnumDisplaySettings instead of such variables as
+  - TCastleWindowBase.Width, Height, Left, Top: allow to change them
+    after the window is opened.
+  - Use EnumDisplaySettings instead of such variables as
     VideoColorBits / VideoScreenWidth / VideoFrequency,
-    do some proc DisplayExists and EnumDisplays
+    do some proc DisplayExists and EnumDisplays.
   - Allow passing VideoColorBits, VideoFrequency for --fullscreen-custom
     param.
-  - OnTimer interface sucks -- it doesn't allow you to register many timeout
-    functions for different timeouts.
   - Add to multi_window testing call to FileDialog and ColorDialog.
+
+  See also backend-specific TODOs in castlewindow_xxx.inc files.
 }
 
 interface
 
 uses SysUtils, Classes, CastleVectors, GL, GLU, GLExt,
-  {$ifdef CASTLE_WINDOW_WINAPI} Windows,
-    { In FPC < 2.2.2, CommDlg stuff was inside Windows unit. }
-    {$ifndef VER2_2_0} {$ifndef VER2_0_0} CommDlg, {$endif} {$endif}
-  {$endif}
+  {$ifdef CASTLE_WINDOW_WINAPI} Windows, CommDlg, {$endif}
   {$ifdef CASTLE_WINDOW_XLIB} Xlib, CastleXlib, XUtil, X, KeySym, CursorFont, CastleGlx, {$endif}
   {$ifdef CASTLE_WINDOW_USE_XF86VMODE} CastleXF86VMode, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} Gdk2X, X, Xlib, {$endif}
@@ -1585,10 +1559,20 @@ end;
 
     { Timer event is called approximately after each
       @link(TCastleApplication.TimerMilisec Application.TimerMilisec)
-      miliseconds passed.
+      miliseconds passed. See also
+      @link(TCastleApplication.OnTimer Application.OnTimer).
 
-      Called at the same time when
-      @link(TCastleApplication.OnTimer Application.OnTimer) is called. }
+      This is a very simple timer mechanism, as all timers (timers for all windows
+      and the global @link(Application) timer) use the same delay:
+      @link(TCastleApplication.TimerMilisec Application.TimerMilisec).
+      We consciously decided to not implement anything more involved here.
+      If you need really flexible timer mechanism, do not use this.
+      Instead use @link(OnIdle)
+      (or TUIControl.Idle, or T3D.Idle) and look at it's @code(CompSpeed)
+      value to perform actions (one time or repeated) with a specified delay.
+      The engine source is full of examples of this.
+
+      Under Lazarus, you can of course also use LCL timers. }
     property OnTimer: TWindowFunc read FOnTimer write FOnTimer;
 
     { Should we automatically redraw the window all the time,
@@ -1598,7 +1582,8 @@ end;
       This may be a waste of OS resources, so don't use it, unless
       you know that you really have some animation displayed
       all the time. }
-    property AutoRedisplay: boolean read fAutoRedisplay write SetAutoRedisplay; { = false }
+    property AutoRedisplay: boolean read fAutoRedisplay write SetAutoRedisplay
+      default false;
 
     { -------------------------------------------------------------------------
       Menu things (menu may be modified at runtime, everything will be
