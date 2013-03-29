@@ -70,19 +70,16 @@
     to use glut idle callback for similar purposes).
 
   Bugs on Carbon, not on GTK2:
-  - When TCastleWindowBase.MenuUpdateCheckedFast is false,
-    changing some radio menus (like view3dscene display->4 viewports)
-    make segfaults in Carbon widgetset, like our menu items were invalid.
-    Now MenuUpdateCheckedFast is true, but maybe we have some related errors elsewhere
-    when rebuilding menu?
-    Hm, happens more seldom, and maybe only when debugging?
+  - Sometimes after menu changes we have a segfault in Carbon widgetset,
+    like our menu item reference was invalid.
+    Happens after various menu changes: rebuilding the menu, also fast changes
+    like new MenuInsert (like when changing recent files submenu in view3dscene)
+    and MenuUpdateChecked (like when switching view3dscene display->4 viewports radio).
 
-  - When opening many times new files using view3dscene open, also Carbon segfaults.
-    Again the above bug?
-    Hm, happens more seldom, and maybe only when debugging?
+    Happens only when debugging from Lazarus. Never when simply running.
 
-  - Using command+o to open file in view3dscene shows open dialog twice.
-    Same when using command+r, which shows our own MessageXxx.
+  - Using command+r shows message twice. That is because rebuilding the menu.
+    Fix to not do rebuilding on MainMenu.Enabled changes.
 
     Investigation: That's because after a successfull file open,
     view3dscene rebuilds the menu (because we move entries in recent files section).
@@ -94,22 +91,6 @@
     This is triggered by having a menu item key shortcut,
     and when this menu item is executed --- we destroy and create new menu
     that also reacts to this shortcut. In this case, Carbon executes the menu item again.
-
-    Solution not known yet... Maybe we can make more functions to avoid rebuilding
-    the menu, instead work on existing menu items.
-    It can be done for enabled. It should be doable for adding/removing menu items,
-    although it may be a little painful:
-    - Optionally:
-      - ParentMenuPosition should be probably removed
-      - Delete should just Free the menu entry
-        Entries should be a components list that watches for frees of children
-        (so TMenuEntry should be component)
-    - TMenuEntry destroy should translate to MenuEntryDestroy,
-      that can be overridden by backends.
-      Be careful then to clear TMenuEntry.Handle before destroying them
-      when destroying whole menu.
-    - TMenu.Insert should translate to MenuInsert,
-      that can be overridden by backends
 
   Missing:
   - TCastleWindowBase.AccumBits: not possible to express in TOpenGLControl now.
