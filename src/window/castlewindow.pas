@@ -287,13 +287,19 @@ unit CastleWindow;
     and event loop may have problems in case of mouse look.
 
     To use this:
-    - You have to add LazOpenGLContext and castle_components packages
-      to the requirements of the castle_window.lpk Lazarus package.
-      They are not present there by default, since they are not needed
-      for other CASTLE_WINDOW_xxx backends.
-      Note that castle_components package is only used for some LCL helpers
+    - You have to add castle_components package
+      to the requirements of the castle_window Lazarus package.
+
+      It will also automatically add LazOpenGLContext package as dependency
+      of castle_window, which is good.
+      We need castle_components package for LCL helpers
       (like converting mouse/keys between LCL and CastleKeysMouse),
-      we do *not* use TCastleControl component (we only use TOpenGLControl).
+      and we need LazOpenGLContext package for TOpenGLControl.
+      Note that we do *not* use TCastleControl component in this case.
+
+      This is a necessary manual step, as Lazarus packages do not have (yet)
+      any mechanism to express a package dependency that is OS-specific.
+
     - And usually you should compile programs only using Lazarus
       (IDE or lazbuild), to automatically have correct LCL paths used.
 
