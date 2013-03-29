@@ -260,9 +260,13 @@ begin
     Ord('A') .. Ord('Z'):
       begin
         MyKey := TKey(Ord(K_A)  + Ord(Key) - Ord('A'));
-        MyCharKey := Chr(Key);
-        if not (ssShift in Shift) then
-          MyCharKey := LoCase(MyCharKey);
+        if ssCtrl in Shift then
+          MyCharKey := Chr(Ord(CtrlA) + Ord(Key) - Ord('A')) else
+        begin
+          MyCharKey := Chr(Key);
+          if not (ssShift in Shift) then
+            MyCharKey := LoCase(MyCharKey);
+        end;
       end;
 
     VK_F1 .. VK_F12  : MyKey := TKey(Ord(K_F1) + Ord(Key) - VK_F1);
