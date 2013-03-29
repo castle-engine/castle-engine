@@ -118,12 +118,41 @@
 
 {$ifdef read_window_interface}
 private
-  Form: TForm;
-  OpenGLControl: TOpenGLControl;
-  Menu: TMainMenu;
+  type
+    { Descendant of LCL TMenuItem used for our menu. }
+    TGoodMenuItem = class(Menus.TMenuItem)
+    public
+      Window: TCastleWindowBase;
+      Entry: TMenuEntry;
+
+      { Capture IntfDoSelect, which is fired on GTK2
+        event 'select' on menu item, which we have to capture to call
+        ReleaseAllKeysAndMouse.
+
+        Just like in our gtk/castlewindow_gtk_menu.inc: capturing 'select' GTK2
+        event is the only way to capture when user opened menu bar.
+        And we need to capture it, to work with GTK2 and menu bar,
+        e.g. when you use Alt+F to reach "File" menu, do not keep "Alt" key in
+        the pressed state indefinitely (e.g. it would make camera keys non-working
+        after opening a file using Alt+F and recent files in view3dscene).
+
+        This should be also harmless on other non-GTK2 widgetsets. }
+      procedure IntfDoSelect; override;
+    end;
+
+  var
+    Form: TForm;
+    OpenGLControl: TOpenGLControl;
+    Menu: TMainMenu;
+
+  procedure MenuCastleToLCL(const MyMenu: TMenu; const AMenu: Menus.TMenuItem);
+  function MenuEntryCastleToLCL(const MyEntry: TMenuEntry): TGoodMenuItem;
+
   procedure MenuItemClick(Sender: TObject);
+
   procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   procedure FormDeactivate(Sender: TObject);
+
   procedure OpenGLControlPaint(Sender: TObject);
   procedure OpenGLControlResize(Sender: TObject);
   procedure OpenGLControlKeyDown(Sender: TObject; var Key: Word;
@@ -150,29 +179,7 @@ private
 
 { TGoodMenuItem ---------------------------------------------------------------- }
 
-type
-  { Descendant of LCL TMenuItem used for our menu. }
-  TGoodMenuItem = class(Menus.TMenuItem)
-  public
-    Window: TCastleWindowBase;
-    Entry: TMenuEntry;
-
-    { Capture IntfDoSelect, which is fired on GTK2
-      event 'select' on menu item, which we have to capture to call
-      ReleaseAllKeysAndMouse.
-
-      Just like in our gtk/castlewindow_gtk_menu.inc: capturing 'select' GTK2
-      event is the only way to capture when user opened menu bar.
-      And we need to capture it, to work with GTK2 and menu bar,
-      e.g. when you use Alt+F to reach "File" menu, do not keep "Alt" key in
-      the pressed state indefinitely (e.g. it would make camera keys non-working
-      after opening a file using Alt+F and recent files in view3dscene).
-
-      This should be also harmless on other non-GTK2 widgetsets. }
-    procedure IntfDoSelect; override;
-  end;
-
-procedure TGoodMenuItem.IntfDoSelect;
+procedure TCastleWindowBase.TGoodMenuItem.IntfDoSelect;
 begin
   inherited;
   Window.ReleaseAllKeysAndMouse;
@@ -184,7 +191,7 @@ procedure TCastleWindowBase.CreateBackend;
 begin
 end;
 
-procedure TCastleWindowBase.BackendMenuInitialize;
+function TCastleWindowBase.MenuEntryCastleToLCL(const MyEntry: TMenuEntry): TGoodMenuItem;
 
   function MenuShortcutCastleToLCL(const Key: TKey; const CharKey: char): TShortCut;
   var
@@ -195,46 +202,46 @@ procedure TCastleWindowBase.BackendMenuInitialize;
     Result := KeyToShortCut(LazKey, Shift);
   end;
 
-  procedure MenuCastleToLCL(const MyMenu: TMenu; const Menu: Menus.TMenuItem);
-  var
-    MenuItem: TGoodMenuItem;
-    MyEntry: TMenuEntry;
-    I: Integer;
+begin
+  Result := TGoodMenuItem.Create(Form);
+  Result.Window := Self;
+  Result.OnClick := @MenuItemClick;
+  { store connection both ways between LCL menu item <-> our menu entry }
+  Result.Entry := MyEntry;
+  MyEntry.Handle := Result;
+  if MyEntry is TMenuItem then
+    Result.ShortCut := MenuShortcutCastleToLCL(
+      TMenuItem(MyEntry).Key, TMenuItem(MyEntry).CharKey);
+  if MyEntry is TMenuEntryWithCaption then
   begin
-    for I := 0 to MyMenu.Count - 1 do
+    { set MenuItem.Caption and Enabled }
+    MenuUpdateCaption(TMenuEntryWithCaption(MyEntry));
+    MenuUpdateEnabled(TMenuEntryWithCaption(MyEntry));
+    if MyEntry is TMenuItemChecked then
     begin
-      MyEntry := MyMenu.Entries[I];
-      MenuItem := TGoodMenuItem.Create(Form);
-      MenuItem.Window := Self;
-      MenuItem.OnClick := @MenuItemClick;
-      { store connection both ways between LCL menu item <-> our menu entry }
-      MenuItem.Entry := MyEntry;
-      MyEntry.Handle := MenuItem;
-      if MyEntry is TMenuItem then
-        MenuItem.ShortCut := MenuShortcutCastleToLCL(
-          TMenuItem(MyEntry).Key, TMenuItem(MyEntry).CharKey);
-      if MyEntry is TMenuEntryWithCaption then
-      begin
-        { set MenuItem.Caption and Enabled }
-        MenuUpdateCaption(TMenuEntryWithCaption(MyEntry));
-        MenuUpdateEnabled(TMenuEntryWithCaption(MyEntry));
-        if MyEntry is TMenuItemChecked then
-        begin
-          MenuItem.ShowAlwaysCheckable := true;
-          MenuItem.RadioItem := MyEntry is TMenuItemRadio;
-          MenuUpdateChecked(TMenuItemChecked(MyEntry));
-        end;
-      end else
-      if MyEntry is TMenuSeparator then
-        { set MenuItem.Caption - special for separator }
-        MenuItem.Caption := '-';
-      { if we have submenu, do this recursively }
-      if MyEntry is TMenu then
-        MenuCastleToLCL(TMenu(MyEntry), MenuItem);
-      Menu.Add(MenuItem);
+      Result.ShowAlwaysCheckable := true;
+      Result.RadioItem := MyEntry is TMenuItemRadio;
+      MenuUpdateChecked(TMenuItemChecked(MyEntry));
     end;
-  end;
+  end else
+  if MyEntry is TMenuSeparator then
+    { set Result.Caption - special for separator }
+    Result.Caption := '-';
+  { if we have submenu, do this recursively }
+  if MyEntry is TMenu then
+    MenuCastleToLCL(TMenu(MyEntry), Result);
+end;
 
+procedure TCastleWindowBase.MenuCastleToLCL(const MyMenu: TMenu;
+  const AMenu: Menus.TMenuItem);
+var
+  I: Integer;
+begin
+  for I := 0 to MyMenu.Count - 1 do
+    AMenu.Add(MenuEntryCastleToLCL(MyMenu[I]));
+end;
+
+procedure TCastleWindowBase.BackendMenuInitialize;
 begin
   Menu := TMainMenu.Create(Form);
   { connet Menu with Form }
@@ -249,12 +256,12 @@ begin
   MainMenu.ClearHandles;
 end;
 
-function CheckMenu(Entry: TMenuEntryWithCaption; out EntryLCL: Menus.TMenuItem): boolean;
+function CheckMenu(const Entry: TMenuEntry; out EntryLCL: Menus.TMenuItem): boolean;
 begin
   EntryLCL := Menus.TMenuItem(Entry.Handle);
   Result := EntryLCL <> nil;
   if (not Result) and Log then
-    WritelnLog('Menu', 'Warning: menu entry "' + Entry.Caption + '" has Handle = nil (this means that corresponding LCL menu item object was not created, but it should)');
+    WritelnLog('Menu', 'Warning: menu entry has Handle = nil (this means that corresponding LCL menu item object was not created, but it should)');
 end;
 
 procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
@@ -315,18 +322,21 @@ end;
 
 procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
+var
+  ParentLCL: Menus.TMenuItem;
 begin
-  { TODO: unoptimal }
-  MenuFinalize;
-  MenuInitialize;
+  if not CheckMenu(Parent, ParentLCL) then Exit;
+  ParentLCL.Insert(ParentPosition, MenuEntryCastleToLCL(Entry));
 end;
 
 procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
+var
+  EntryLCL: Menus.TMenuItem;
 begin
-  { TODO: unoptimal }
-  MenuFinalize;
-  MenuInitialize;
+  if not CheckMenu(Entry, EntryLCL) then Exit;
+  Entry.ClearHandles;
+  FreeAndNil(EntryLCL);
 end;
 
 procedure TCastleWindowBase.SwapBuffers;
