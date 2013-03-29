@@ -125,7 +125,18 @@ private
     Solution not known yet... Maybe we can make more functions to avoid rebuilding
     the menu, instead work on existing menu items.
     It can be done for enabled. It should be doable for adding/removing menu items,
-    although it may be a little painful.
+    although it may be a little painful:
+    - Optionally:
+      - ParentMenuPosition should be probably removed
+      - EntryDelete should be deprecated, just Free the menu entry
+        Entries should be a components list that watches for frees of children
+        (so TMenuEntry should be component)
+    - TMenuEntry destroy should translate to MenuEntryDestroy,
+      that can be overridden by backends.
+      Be careful then to clear TMenuEntry.Handle before destroying them
+      when destroying whole menu.
+    - TMenu.Insert should translate to MenuInsert,
+      that can be overridden by backends
 
   Missing:
   - TCastleWindowBase.AccumBits: not possible to express in TOpenGLControl now.
