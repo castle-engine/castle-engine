@@ -749,6 +749,24 @@ type
       but a better backend may do something more efficient,
       like updating only this specific Entry resources.
 
+      In case of MenuInsert: remember that this is called
+      after Entry was added to Parent. So if your MenuInsert simply
+      calls MenuFinalize + MenuInitialize, make sure your MenuFinalize
+      handles the case that some TMenuEntry may have uninitialized (zero)
+      TMenuEntry.Handle.
+
+      In case of MenuDelete: remember that this is called
+      after Entry was removed from Parent. So if your MenuDelete simply
+      calls MenuFinalize + MenuInitialize, make sure your MenuFinalize
+      finalizes (releases backend-specific resources) also for Entry
+      that isn't in the MainMenu hierarchy anymore.
+
+      Both MenuInsert and MenuDelete problems disappear if your
+      MenuFinalize doesn't look at MainMenu.Entries hierarchy, and releases
+      in one go whole backend-specific hierarchy under MainMenu.Handle.
+      Or if you implement MenuInsert and MenuDelete in a more optimal way,
+      without MenuFinalize + MenuInitialize.
+
       @groupBegin }
     procedure MenuUpdateCaption(Entry: TMenuEntryWithCaption);
     procedure MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
@@ -769,7 +787,7 @@ type
 
       Useful when user somehow switches to another window / control
       (e.g. when he opens our MainMenu), such that we are then unable to catch
-      following KeyUps and MouseUps. So user simply STOPS controlling outr
+      following KeyUps and MouseUps. So user simply STOPS controlling our
       program with mouse and keyboard, so we have to assume that he releases
       all keys and mouse buttons.
 
