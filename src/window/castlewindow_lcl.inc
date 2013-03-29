@@ -102,13 +102,16 @@ private
     make segfaults in Carbon widgetset, like our menu items were invalid.
     Now MenuUpdateCheckedFast is true, but maybe we have some related errors elsewhere
     when rebuilding menu?
+    Hm, happens more seldom, and maybe only when debugging?
   - When opening many times new files using view3dscene open, also Carbon segfaults.
     Again the above bug?
+    Hm, happens more seldom, and maybe only when debugging?
   - Using command+o to open file in view3dscene shows open dialog twice.
     Same when using command+r, which shows our own MessageXxx.
 
   Missing:
-  - TCastleWindowBase.AccumBits: not possible to express in TOpenGLControl now
+  - TCastleWindowBase.AccumBits: not possible to express in TOpenGLControl now.
+    We should just deprecate AccumBits? This is deprecated in OpenGL after all.
 }
 
 { TGoodMenuItem ---------------------------------------------------------------- }
