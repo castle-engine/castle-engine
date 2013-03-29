@@ -49,6 +49,7 @@ const ImagesPath = 'data' + PathDelim +  'images' + PathDelim;
    finally FreeAndNil(Img) end;
   end;
 
+{ Unused:
   procedure DoFailTest(const fname: string;
     const AllowedImageClasses: array of TCastleImageClass);
   var Img: TCastleImage;
@@ -60,6 +61,7 @@ const ImagesPath = 'data' + PathDelim +  'images' + PathDelim;
     raise Exception.Create('Fail test passed - Er, I mean, failed.');
    finally FreeAndNil(Img) end;
   end;
+}
 
   procedure TestsImageInRGBFormat(const fname: string);
   begin
