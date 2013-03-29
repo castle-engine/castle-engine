@@ -612,12 +612,14 @@ var
 begin
   Old_H_Menu := GetMenu(H_Wnd);
   OSCheck( DestroyMenu(Old_H_Menu), 'DestroyMenu(Old_H_Menu)');
+  { for now, Handle of our menu items are always zero.
+    But do this for the future. }
+  MainMenu.ClearHandles;
 end;
 
 procedure TCastleWindowBase.BackendMenuInitialize;
 begin
-  OSCheck( SetMenu(H_Wnd, MakeWinapiMenu(MainMenu, true)),
-    'SetMenu');
+  OSCheck( SetMenu(H_Wnd, MakeWinapiMenu(MainMenu, true)), 'SetMenu');
 end;
 
 procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
