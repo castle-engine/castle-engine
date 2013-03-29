@@ -177,27 +177,6 @@ private
   function XDisplay: Xlib.PDisplay;
   function XScreen: Integer;
   {$endif}
-private
-  { These functions are only in GTK >= 2.8. For example fink (stable) has only
-    GTK 2.6 for now, so we have to be careful and use them only if they can be
-    loaded from GTK lib.
-
-    Normal definitions submitted as http://bugs.freepascal.org/view.php?id=11246 }
-
-  gtk_file_chooser_get_do_overwrite_confirmation: function (
-    chooser: PGtkFileChooser): gboolean; cdecl;
-  gtk_file_chooser_set_do_overwrite_confirmation: procedure (
-    chooser: PGtkFileChooser; do_overwrite_confirmation: gboolean); cdecl;
-
-  { Since GTK 2.6.
-    (Although I officially require GTK 2.6, this function is really
-    not critical, so I load it dynamically.) }
-  gtk_window_set_icon_name: procedure (
-    window: PGtkWindow; const name: PGChar); cdecl;
-  gtk_window_set_default_icon_name: procedure (
-    const name: PGChar); cdecl;
-
-  LibGtk: TDynLib;
 public
   { Set XDisplay name, this will be used for all TCastleWindowBase
     that will be subsequently initialized by TCastleWindowBase.Open.
@@ -851,8 +830,11 @@ begin
  WindowGtk := PGtkWindow(gtk_window_new(GTK_WINDOW_TOPLEVEL));
 
  if (GtkIconName <> '') and
-    Assigned(Application.gtk_window_set_icon_name) then
-   Application.gtk_window_set_icon_name(WindowGtk, PCharOrNil(GtkIconName));
+    { gtk_window_set_icon_name exists since GTK 2.6.
+      (Although I officially require GTK 2.6, this function is really
+      not critical, so we check it dynamically.) }
+    Assigned(@gtk_window_set_icon_name) then
+   gtk_window_set_icon_name(WindowGtk, PCharOrNil(GtkIconName));
 
  gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(Caption));
  gtk_container_set_border_width(GTK_CONTAINER(WindowGtk), BorderWidth);
@@ -1315,8 +1297,11 @@ begin
 
   if not OpenDialog then
   begin
-    if Assigned(Application.gtk_file_chooser_set_do_overwrite_confirmation) then
-      Application.gtk_file_chooser_set_do_overwrite_confirmation(Dialog, g_true);
+    { The overwrite_confirmation stuff is only in GTK >= 2.8.
+      For example fink (stable) has only GTK 2.6 for now,
+      so we use them only if they can be loaded from GTK lib. }
+    if Assigned(@gtk_file_chooser_set_do_overwrite_confirmation) then
+      gtk_file_chooser_set_do_overwrite_confirmation(Dialog, g_true);
   end;
 
   { We don't want to simply call gtk_file_chooser_set_filename,
@@ -1713,24 +1698,6 @@ begin
   gtk_gl_init(@argc, @argv);
 
   QuitPosted := false;
-
-  { These are available only in GTK 2.8.
-    We want to cooperate even with GTK 2.6 (in Mac OS X fink stable),
-    so we have to load them dynamically. }
-  gtk_file_chooser_get_do_overwrite_confirmation := nil;
-  gtk_file_chooser_set_do_overwrite_confirmation := nil;
-  gtk_window_set_icon_name := nil;
-  gtk_window_set_default_icon_name := nil;
-
-  LibGtk := TDynLib.Load(gtklib, false);
-  if LibGtk <> nil then
-  begin
-    LibGtk.SymbolErrorBehaviour := seReturnNil;
-    Pointer(gtk_file_chooser_get_do_overwrite_confirmation) := LibGtk.Symbol('gtk_file_chooser_get_do_overwrite_confirmation');
-    Pointer(gtk_file_chooser_set_do_overwrite_confirmation) := LibGtk.Symbol('gtk_file_chooser_set_do_overwrite_confirmation');
-    Pointer(gtk_window_set_icon_name) := LibGtk.Symbol('gtk_window_set_icon_name');
-    Pointer(gtk_window_set_default_icon_name) := LibGtk.Symbol('gtk_window_set_default_icon_name');
-  end;
 end;
 
 procedure TCastleApplication.DestroyBackend;
@@ -1744,12 +1711,6 @@ begin
       gdk_cursor_unref(Cursors[C]);
       Cursors[C] := nil;
     end;
-
-  FreeAndNil(LibGtk);
-  gtk_file_chooser_get_do_overwrite_confirmation := nil;
-  gtk_file_chooser_set_do_overwrite_confirmation := nil;
-  gtk_window_set_icon_name := nil;
-  gtk_window_set_default_icon_name := nil;
 end;
 
 { When CASTLE_WINDOW_USE_XF86VMODE, then castlewindow_xf86vmode.inc
