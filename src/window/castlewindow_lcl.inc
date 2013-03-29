@@ -103,11 +103,29 @@ private
     Now MenuUpdateCheckedFast is true, but maybe we have some related errors elsewhere
     when rebuilding menu?
     Hm, happens more seldom, and maybe only when debugging?
+
   - When opening many times new files using view3dscene open, also Carbon segfaults.
     Again the above bug?
     Hm, happens more seldom, and maybe only when debugging?
+
   - Using command+o to open file in view3dscene shows open dialog twice.
     Same when using command+r, which shows our own MessageXxx.
+
+    Investigation: That's because after a successfull file open,
+    view3dscene rebuilds the menu (because we move entries in recent files section).
+    On command+r, we also rebuild the menu (even when you exit MessageOk by escape),
+    because changing MainMenu.Enabled forced rebuild of the menu.
+    Reproduced by project_2 in temp dir.
+
+    This has nothing to do with dialog boxes (FileDialog or own MessageOk).
+    This is triggered by having a menu item key shortcut,
+    and when this menu item is executed --- we destroy and create new menu
+    that also reacts to this shortcut. In this case, Carbon executes the menu item again.
+
+    Solution not known yet... Maybe we can make more functions to avoid rebuilding
+    the menu, instead work on existing menu items.
+    It can be done for enabled. It should be doable for adding/removing menu items,
+    although it may be a little painful.
 
   Missing:
   - TCastleWindowBase.AccumBits: not possible to express in TOpenGLControl now.
