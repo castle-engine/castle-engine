@@ -1236,6 +1236,14 @@ begin
     if MD.SAdditional <> '' then
       Clipboard.AsText := MD.SAdditional;
   end else
+  if Event.IsKey(CtrlX) then
+  begin
+    if MD.SAdditional <> '' then
+    begin
+      Clipboard.AsText := MD.SAdditional;
+      MD.SetSAdditional(Window, '');
+    end;
+  end else
   if Event.IsKey(CtrlV) then
     MD.SetSAdditional(Window, Clipboard.AsText) else
   if (Event.EventType = itKey) and
