@@ -334,9 +334,12 @@ function SRight(const s: string; const rpart: integer): string;
 { If S = '' then returns NextPart, else returns S + PartSeparator + NextPart. }
 function SAppendPart(const s, PartSeparator, NextPart: string): string;
 
-{ Read whole file contents to a string.
+{ Read file or URL contents to a string.
+  MimeType is returned, calculated just like the @link(Download) function.
   If AllowStdIn, then URL = '-' (one dash) is treated specially:
   it means to read contents from standard input (stdin, Input in Pascal). }
+function FileToString(const URL: string;
+  const AllowStdIn: boolean; out MimeType: string): string;
 function FileToString(const URL: string;
   const AllowStdIn: boolean = false): string;
 
@@ -1273,14 +1276,18 @@ begin
   result := s+PartSeparator+NextPart;
 end;
 
-function FileToString(const URL: string; const AllowStdIn: boolean): string;
+function FileToString(const URL: string;
+  const AllowStdIn: boolean; out MimeType: string): string;
 var
   F: TStream;
 begin
   if AllowStdIn and (URL = '-') then
-    Result := ReadGrowingStreamToString(StdInStream) else
   begin
-    F := Download(URL);
+    Result := ReadGrowingStreamToString(StdInStream);
+    MimeType := '';
+  end else
+  begin
+    F := Download(URL, [], MimeType);
     try
       { Some streams can be optimized, just load file straight to string memory }
       if (F is TFileStream) or
@@ -1293,6 +1300,13 @@ begin
         Result := ReadGrowingStreamToString(F);
     finally FreeAndNil(F) end;
   end;
+end;
+
+function FileToString(const URL: string; const AllowStdIn: boolean): string;
+var
+  MimeType: string;
+begin
+  Result := FileToString(URL, AllowStdIn, MimeType { ignored });
 end;
 
 procedure StringToFile(const FileName, Contents: string);

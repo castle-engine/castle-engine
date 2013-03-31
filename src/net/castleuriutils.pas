@@ -128,6 +128,11 @@ function URIToFilenameSafe(const URI: string): string;
   Returns empty string if MIME type is unknown. }
 function URIMimeType(const URI: string): string;
 
+{ Nice URI form to display.
+  For now, this simply removes the long contents for data: URI,
+  otherwise just returns the URI. }
+function URIDisplayLong(const URI: string): string;
+
 implementation
 
 uses SysUtils, CastleStringUtils, CastleWarnings, CastleFilesUtils,
@@ -456,6 +461,22 @@ begin
       for URIs. }
     Result := ExtToMimeType(ExtractFileExt(URI));
 
+end;
+
+function URIDisplayLong(const URI: string): string;
+var
+  DataURI: TDataURI;
+begin
+  Result := URI;
+
+  if TDataURI.IsDataURI(URI) then
+  begin
+    DataURI := TDataURI.Create;
+    try
+      DataURI.URI := URI;
+      if DataURI.Valid then Result := DataURI.URIPrefix;
+    finally FreeAndNil(DataURI) end;
+  end;
 end;
 
 end.

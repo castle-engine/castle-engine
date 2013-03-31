@@ -405,46 +405,9 @@ function ShaderLoadContents(const Node: TX3DNode; const FdUrl: TMFString): strin
     Result := (CharsPos([#10, #13], S) > 0) and (URIProtocol(S) = '');
   end;
 
-  { Load shader source from data URI.If success,
-    - sets ShaderSource
-    - returns true
-    otherwise
-    - makes OnWarning
-    - returns false }
-  function LoadFromDataProtocol(const URL: string; out ShaderSource: string): boolean;
-  var
-    Data: TDataURI;
-  begin
-    Data := TDataURI.Create;
-    try
-      Data.URI := URL;
-
-      if not Data.Valid then Exit(false);
-
-      if Data.MimeType <> 'text/plain' then
-      begin
-        OnWarning(wtMajor, 'VRML/X3D', Format('Data mime-type "%s" not recognized as shader source, not loading. If this is a valid shader source mime type that should be supported, please report.', [Data.MimeType]));
-        Exit(false);
-      end;
-
-      try
-        ShaderSource := ReadGrowingStreamToString(Data.Stream);
-        Result := true;
-      except
-        on E: Exception do
-        begin
-          { Remember that OnWarning *may* raise an exception. }
-          OnWarning(wtMinor, 'VRML/X3D', Format(SDataURILoadError,
-            [E.ClassName, 'shader source', Data.URIPrefix, E.Message]));
-          Result := false;
-        end;
-      end;
-    finally FreeAndNil(Data) end;
-  end;
-
 var
   I: Integer;
-  FullUrl: string;
+  FullUrl, MimeType: string;
 begin
   Result := '';
 
@@ -455,20 +418,19 @@ begin
       Result := FdUrl.Items[I];
       Exit;
     end else
-    if TDataURI.IsDataURI(FdUrl.Items[I]) then
-    begin
-      if LoadFromDataProtocol(FdUrl.Items[I], Result) then Break;
-    end else
     begin
       FullUrl := Node.PathFromBaseUrl(FdUrl.Items[I]);
       try
-        Result := FileToString(FullUrl);
+        Result := FileToString(FullUrl, false, MimeType);
+        if (MimeType <> '') and
+           (MimeType <> 'text/plain') then
+          OnWarning(wtMajor, 'VRML/X3D', Format('MIME type "%s" not recognized as shader source. Using anyway. If this is a valid shader source mime type that should be recognized, please submit a feature request.', [MimeType]));
         Exit;
       except
         on E: Exception do
           { Remember that OnWarning *may* raise an exception. }
           OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
-            [E.ClassName, 'shader file', FullUrl, E.Message]));
+            [E.ClassName, 'shader source', URIDisplayLong(FullUrl), E.Message]));
       end;
     end;
   end;
