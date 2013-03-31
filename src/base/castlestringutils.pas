@@ -334,14 +334,9 @@ function SRight(const s: string; const rpart: integer): string;
 { If S = '' then returns NextPart, else returns S + PartSeparator + NextPart. }
 function SAppendPart(const s, PartSeparator, NextPart: string): string;
 
-{ Read whole file contents to string.
-
+{ Read whole file contents to a string.
   If AllowStdIn, then URL = '-' (one dash) is treated specially:
-  we will read stdin whole (Pascal Input) stream. Note that the current
-  implementation of this always changes newline into NL (current OS newline),
-  and may add additional newline at the end of the file (this may be fixed,
-  to return more accurately stdin contents; for usual text file reading,
-  this doesn't matter). }
+  it means to read contents from standard input (stdin, Input in Pascal). }
 function FileToString(const URL: string;
   const AllowStdIn: boolean = false): string;
 
