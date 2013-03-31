@@ -31,7 +31,6 @@ type
   TDataURI = class
   private
     StreamBegin: Cardinal;
-    SStream: TStringStream;
     FStream: TStream;
     FURI: string;
     FMime: string;
@@ -87,7 +86,6 @@ uses CastleURIUtils, CastleWarnings, CastleStringUtils, Base64;
 procedure TDataURI.FreeStream;
 begin
   FreeAndNil(FStream);
-  FreeAndNil(SStream);
 end;
 
 destructor TDataURI.Destroy;
@@ -200,6 +198,8 @@ begin
 end;
 
 function TDataURI.Stream: TStream;
+var
+  SStream: TStringStream;
 begin
   if Valid then
   begin
@@ -209,6 +209,8 @@ begin
       begin
         SStream := TStringStream.Create(SEnding(URI, StreamBegin));
         FStream := TBase64DecodingStream.Create(SStream, bdmMIME);
+        { let FStream to free SStream }
+        TBase64DecodingStream(FStream).SourceOwner := true;
       end else
         FStream := TStringStream.Create(SEnding(URI, StreamBegin));
     end;
