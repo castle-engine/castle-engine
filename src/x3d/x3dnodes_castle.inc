@@ -348,8 +348,6 @@
   end;
 
   TEffectPartNode = class(TAbstractNode, IAbstractUrlObject)
-  private
-    FUsedFullUrl: string;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -363,13 +361,8 @@
 
     { Load shader code from node's URLs.
       Will return '' if no valid URLs are present.
-      Note that in XML encoding, URLs also contain XML CDATA.
-      Sets UsedFullUrl. }
+      Note that in XML encoding, URLs also contain XML CDATA. }
     function LoadContents: string;
-
-    { Once the LoadContents is called, this is set to the URL that was
-      used to load the shader contents. See also TShaderPartNode.UsedFullUrl. }
-    property UsedFullUrl: string read FUsedFullUrl;
   end;
 
   TShaderTextureNode = class(TAbstractTextureNode)
