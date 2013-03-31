@@ -33,7 +33,7 @@ type
     StreamBegin: Cardinal;
     FStream: TStream;
     FURI: string;
-    FMime: string;
+    FMimeType: string;
     FBase64: boolean;
     FCharset: string;
     FValid: boolean;
@@ -49,15 +49,15 @@ type
 
       When you set this, we read the beginning of URI.
       If this is a valid data URI, then we set @link(Valid) to @true,
-      update Mime, Base64, Charset, URIPrefix accordingly, and you can call
+      update MimeType, Base64, Charset, URIPrefix accordingly, and you can call
       @link(Stream) if you want to read actual contents.
 
       If this is not a valid data URI, then we set @link(Valid) to @false,
       make appropriate warning through OnWarning,
-      and reset Mime, Base64, Charset, URIPrefix to some default values. }
+      and reset MimeType, Base64, Charset, URIPrefix to some default values. }
     property URI: string read FURI write SetURI;
     property Valid: boolean read FValid;
-    property Mime: string read FMime;
+    property MimeType: string read FMimeType;
     property Base64: boolean read FBase64;
     property Charset: string read FCharset;
     { URI without the data, nice to show to user. }
@@ -68,9 +68,9 @@ type
 
       The important property of this reader is that no expensive
       encoding is done until you call this method. In particular,
-      you can set URI, check Mime, and if you see that Mime
+      you can set URI, check MimeType, and if you see that MimeType
       is something not interesting for you (for example, maybe you require
-      some image mime-type) just don't call this method. Then nothing
+      some image type) just don't call this method. Then nothing
       expensive will happen, e.g. data will not be base64-decoded without
       a need. }
     function Stream: TStream;
@@ -118,7 +118,7 @@ end;
 
 procedure TDataURI.SetURI(const Value: string);
 var
-  ValidMime, ValidCharset: string;
+  ValidMimeType, ValidCharset: string;
   ValidBase64: boolean;
   PosBegin, PosNow, Colon: Integer;
   Part: string;
@@ -129,7 +129,7 @@ begin
 
   { default values }
   FValid := false;
-  FMime := 'text/plain'; { default mime-type when not specified }
+  FMimeType := 'text/plain'; { default mime-type when not specified }
   FBase64 := false; { default encoding is not base64 }
   FCharset := 'US-ASCII'; { default charset }
   FURIPrefix := '';
@@ -140,7 +140,7 @@ begin
     Exit;
   end;
 
-  ValidMime := FMime;
+  ValidMimeType := FMimeType;
   ValidCharset := FCharset;
   ValidBase64 := FBase64;
 
@@ -156,7 +156,7 @@ begin
     Inc(PosNow);
 
   if PosBegin < PosNow then
-    ValidMime := CopyPos(Value, PosBegin, PosNow - 1);
+    ValidMimeType := CopyPos(Value, PosBegin, PosNow - 1);
 
   repeat
     { Now, we either stand on ";" (then read charset or base64 tag)
@@ -200,7 +200,7 @@ begin
   FURIPrefix := Copy(Value, 1, PosNow - 1);
 
   FValid := true;
-  FMime := ValidMime;
+  FMimeType := ValidMimeType;
   FBase64 := ValidBase64;
   FCharset := ValidCharset;
 

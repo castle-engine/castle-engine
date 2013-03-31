@@ -793,19 +793,19 @@ procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: boolean);
       if Log then
         WritelnLog('Texture loading',
           Format('Loading from data URI with mime "%s", charset "%s", base64 "%s"',
-          [Data.Mime, Data.Charset, BoolToStr[Data.Base64]]));
+          [Data.MimeType, Data.Charset, BoolToStr[Data.Base64]]));
 
-      if Data.Mime = 'image/bmp' then
+      if Data.MimeType = 'image/bmp' then
         ImageFormat := ifBMP else
-      if Data.Mime = 'image/png' then
+      if Data.MimeType = 'image/png' then
         ImageFormat := ifPNG else
-      if (Data.Mime = 'image/jpeg') or
-         (Data.Mime = 'image/jpg') then
+      if (Data.MimeType = 'image/jpeg') or
+         (Data.MimeType = 'image/jpg') then
         ImageFormat := ifJPEG else
-      if Data.Mime = 'image/gif' then
+      if Data.MimeType = 'image/gif' then
         ImageFormat := ifGIF else
       begin
-        OnWarning(wtMajor, 'VRML/X3D', Format('Data mime-type "%s" not recognized, not loading. If this is a valid image mime type that should be supported, please report.', [Data.Mime]));
+        OnWarning(wtMajor, 'VRML/X3D', Format('Data mime-type "%s" not recognized, not loading. If this is a valid image mime type that should be supported, please report.', [Data.MimeType]));
         Exit(false);
       end;
 

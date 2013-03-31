@@ -450,9 +450,9 @@ function ShaderLoadContents(var UsedFullUrl: string;
 
       if not Data.Valid then Exit(false);
 
-      if Data.Mime <> 'text/plain' then
+      if Data.MimeType <> 'text/plain' then
       begin
-        OnWarning(wtMajor, 'VRML/X3D', Format('Data mime-type "%s" not recognized as shader source, not loading. If this is a valid shader source mime type that should be supported, please report.', [Data.Mime]));
+        OnWarning(wtMajor, 'VRML/X3D', Format('Data mime-type "%s" not recognized as shader source, not loading. If this is a valid shader source mime type that should be supported, please report.', [Data.MimeType]));
         Exit(false);
       end;
 
