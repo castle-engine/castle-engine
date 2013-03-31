@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ NurbsCurve2D and Contour2D are shared with VRML 97 NURBS definition.
+{ NurbsCurve2D is shared with VRML 97 NURBS definition.
   The rest is, for now, completely separate from VRML 97 NURBS definition
   in x3dnodes_97_nurbs.inc. }
 
@@ -90,14 +90,12 @@
     public property FdVOrder: TSFInt32 read FFdVOrder;
   end;
 
-  { Contour2D node.
+  { Contour2D node for X3D.
 
-    For VRML 2.0, this is TAbstractX3DGeometryNode, since VRML 2.0 specification
-    explicitly says it's valid geometry node. For X3D specification, this was only
-    TAbstractNode. When actually implementing this, I will have to either handle
-    both VRML 2.0 and X3D cases at once, or just split this class into
-    two separate TContour2DNode_2 and TContour2DNode. }
-  TContour2DNode = class(TAbstractX3DGeometryNode)
+    X3D cannot share implementation with VRML 2.0 version (TContour2DNode_2),
+    since for VRML 2.0 this is a valid geometry node (TAbstractX3DGeometryNode
+    descendant). }
+  TContour2DNode = class(TAbstractNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -105,6 +103,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
 
     { Event: MFNode, in } { }
     private FEventAddChildren: TX3DEvent;
@@ -116,14 +115,6 @@
 
     private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
-
-    { Geometry node not implemented } { }
-    function LocalBoundingBox(State: TX3DGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
 
   TContourPolyline2DNode = class(TAbstractNurbsControlCurveNode)
@@ -607,8 +598,12 @@ end;
 class function TContour2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+class function TContour2DNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
+begin
+  Result := Version.Major >= 3;
 end;
 
 procedure TContour2DNode.DirectEnumerateActive(
@@ -616,9 +611,6 @@ procedure TContour2DNode.DirectEnumerateActive(
 begin
   Fdchildren.EnumerateValid(Func);
 end;
-
-{$define TGeometryNotImplemented := TContour2DNode}
-GeometryNotImplemented
 
 procedure TContourPolyline2DNode.CreateNode;
 begin

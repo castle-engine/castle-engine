@@ -286,6 +286,36 @@
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
+
+  TContour2DNode_2 = class(TAbstractX3DGeometryNode)
+  protected
+    procedure DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction); override;
+  public
+    procedure CreateNode; override;
+    class function ClassNodeTypeName: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
+
+    { Event: MFNode, in } { }
+    private FEventAddChildren: TX3DEvent;
+    public property EventAddChildren: TX3DEvent read FEventAddChildren;
+
+    { Event: MFNode, in } { }
+    private FEventRemoveChildren: TX3DEvent;
+    public property EventRemoveChildren: TX3DEvent read FEventRemoveChildren;
+
+    private FFdChildren: TMFNode;
+    public property FdChildren: TMFNode read FFdChildren;
+
+    { Geometry node not implemented } { }
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+  end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -777,7 +807,7 @@ begin
   FEventremoveTrimmingContour := TX3DEvent.Create(Self, 'removeTrimmingContour', TMFNode, true);
   Events.Add(FEventremoveTrimmingContour);
 
-  FFdtrimmingContour := TMFNode.Create(Self, 'trimmingContour', [TContour2DNode]);
+  FFdtrimmingContour := TMFNode.Create(Self, 'trimmingContour', [TContour2DNode_2]);
    FdtrimmingContour.ChangesAlways := [chGeometry];
   Fields.Add(FFdtrimmingContour);
 
@@ -800,6 +830,50 @@ end;
 {$define TGeometryNotImplemented := TTrimmedSurfaceNode}
 GeometryNotImplemented
 
+procedure TContour2DNode_2.CreateNode;
+begin
+  inherited;
+
+  FEventAddChildren := TX3DEvent.Create(Self, 'addChildren', TMFNode, true);
+  Events.Add(FEventAddChildren);
+
+  FEventRemoveChildren := TX3DEvent.Create(Self, 'removeChildren', TMFNode, true);
+  Events.Add(FEventRemoveChildren);
+
+  FFdChildren := TMFNode.Create(Self, 'children', [TNurbsCurve2DNode, TContourPolyline2DNode,
+    { In VRML 97 these are allowed children too: }
+    TPolyline2DNode, TContour2DNode_2 ]);
+   FdChildren.ChangesAlways := [chGeometry];
+  Fields.Add(FFdChildren);
+
+  DefaultContainerField := 'trimmingContour';
+end;
+
+class function TContour2DNode_2.ClassNodeTypeName: string;
+begin
+  Result := 'Contour2D';
+end;
+
+class function TContour2DNode_2.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNVRML97Nodes + ClassNodeTypeName);
+end;
+
+class function TContour2DNode_2.ForVRMLVersion(const Version: TX3DVersion): boolean;
+begin
+  Result := Version.Major = 2;
+end;
+
+procedure TContour2DNode_2.DirectEnumerateActive(
+  Func: TEnumerateChildrenFunction);
+begin
+  Fdchildren.EnumerateValid(Func);
+end;
+
+{$define TGeometryNotImplemented := TContour2DNode_2}
+GeometryNotImplemented
+
 procedure RegisterVRML97NodesNurbs;
 begin
   NodesManager.RegisterNodeClasses([
@@ -809,7 +883,8 @@ begin
     TNurbsPositionInterpolatorNode_2,
     TNurbsSurfaceNode,
     TNurbsTextureSurfaceNode,
-    TTrimmedSurfaceNode
+    TTrimmedSurfaceNode,
+    TContour2DNode_2
   ]);
 end;
 {$endif read_implementation}
