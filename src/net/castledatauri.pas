@@ -74,6 +74,16 @@ type
       expensive will happen, e.g. data will not be base64-decoded without
       a need. }
     function Stream: TStream;
+
+    { Get @link(Stream) and clear it.
+      Makes the stream no longer owner by this TDataURI instance.
+
+      Do not call @link(Stream) after calling @link(ExtractStream).
+      Results are undefined.
+      (Right now, another decoding stream will then be created,
+      that will return the same thing as previous stream.
+      But do not depend on it.) }
+    function ExtractStream: TStream;
   end;
 
 implementation
@@ -217,6 +227,12 @@ begin
     Result := FStream;
   end else
     Result := nil;
+end;
+
+function TDataURI.ExtractStream: TStream;
+begin
+  Result := Stream;
+  FStream := nil;
 end;
 
 end.

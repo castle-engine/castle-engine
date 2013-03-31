@@ -50,6 +50,10 @@ type
   without using any networking library. URL without any protocol is always
   treated like a local filename (absolute or relative to current dir),
   so this function can be a drop-in replacement for normal file reading.
+
+  A data URI scheme (http://en.wikipedia.org/wiki/Data_URI_scheme)
+  is also always supported, using our CastleDataURI underneath.
+
   Set EnableNetwork to @true
   to have also support for network protocols (right now only http,
   handled by FpHttpClient).
@@ -77,7 +81,7 @@ function Download(const URL: string;
 implementation
 
 uses URIParser, CastleURIUtils, CastleUtils, CastleLog, CastleZStream,
-  CastleClassUtils, CastleFilesUtils;
+  CastleClassUtils, CastleFilesUtils, CastleDataURI;
 
 { Just like Download, but
   - Assumes that the URL is from the network (this prevents network URLs
@@ -158,6 +162,7 @@ function Download(const URL: string; const ForceMemoryStream: boolean;
 var
   P, FileName, TempFileName: string;
   NetworkResult: TMemoryStream;
+  DataURI: TDataURI;
 const
   MaxRedirects = 32;
 begin
@@ -206,6 +211,19 @@ begin
     if ForceMemoryStream then
       Result := CreateMemoryStream(FileName) else
       Result := TFileStream.Create(FileName, fmOpenRead);
+  end else
+
+  { data: URI scheme }
+  if CompareText(P, 'data') = 0 then
+  begin
+    DataURI := TDataURI.Create;
+    try
+      DataURI.URI := URL;
+      if not DataURI.Valid then
+        raise EDownloadError.Create('Invalid data: URI scheme');
+      Result := DataURI.ExtractStream;
+      Assert(Result <> nil, 'DataURI.ExtractStream must be non-nil when DataURI.Valid is true');
+    finally FreeAndNil(DataURI) end;
   end else
 
     raise EDownloadError.CreateFmt('Downloading from protocol "%s" is not supported', [P]);
