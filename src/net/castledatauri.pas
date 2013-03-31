@@ -61,12 +61,13 @@ type
     property Mime: string read FMime;
     property Base64: boolean read FBase64;
     property Charset: string read FCharset;
+    { URI without the data, nice to show to user. }
     property URIPrefix: string read FURIPrefix;
 
     { Read the actual data contents. If the @link(URI) is not valid
       (includes the initial state when it's not set) then returns @nil.
 
-      The important property of this reader is that the no expensive
+      The important property of this reader is that no expensive
       encoding is done until you call this method. In particular,
       you can set URI, check Mime, and if you see that Mime
       is something not interesting for you (for example, maybe you require
@@ -188,7 +189,6 @@ begin
     end;
   until false;
 
-  { Value without data part --- good to show user }
   FURIPrefix := Copy(Value, 1, PosNow - 1);
 
   FValid := true;
