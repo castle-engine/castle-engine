@@ -37,6 +37,16 @@
   public
     procedure CreateNode; override;
 
+    function Proxy(var State: TX3DGraphTraverseState;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: boolean; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function BoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
     private FFdControlPoint: TSFNode;
     public property FdControlPoint: TSFNode read FFdControlPoint;
 
@@ -236,16 +246,6 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
-
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-    function ProxyUsesOverTriangulate: boolean; override;
-    function LocalBoundingBox(State: TX3DGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function BoundingBox(State: TX3DGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
 
   TNurbsPositionInterpolatorNode = class(TAbstractChildNode)
@@ -476,13 +476,8 @@
     private FFdTrimmingContour: TMFNode;
     public property FdTrimmingContour: TMFNode read FFdTrimmingContour;
 
-    { Geometry node not implemented } { }
-    function LocalBoundingBox(State: TX3DGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+    function Proxy(var State: TX3DGraphTraverseState;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
   end;
 
 {$endif read_interface}
@@ -1215,7 +1210,7 @@ begin
   FreeAndNil(VKnot);
 end;
 
-function TNurbsPatchSurfaceNode.Proxy(var State: TX3DGraphTraverseState;
+function TAbstractNurbsSurfaceGeometryNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 var
   ControlPoint: TVector3SingleList;
@@ -1250,14 +1245,14 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNurbsPatchSurfaceNode.ProxyUsesOverTriangulate: boolean;
+function TAbstractNurbsSurfaceGeometryNode.ProxyUsesOverTriangulate: boolean;
 begin
   Result := false;
 end;
 
 { We cannot simply override Coord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
-function TNurbsPatchSurfaceNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+function TAbstractNurbsSurfaceGeometryNode.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   if (FdControlPoint.Value <> nil) and
@@ -1268,7 +1263,7 @@ end;
 
 { We cannot simply override Coord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
-function TNurbsPatchSurfaceNode.BoundingBox(State: TX3DGraphTraverseState;
+function TAbstractNurbsSurfaceGeometryNode.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   if (FdControlPoint.Value <> nil) and
@@ -1277,7 +1272,7 @@ begin
     Result := EmptyBox3D;
 end;
 
-function TNurbsPatchSurfaceNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+function TAbstractNurbsSurfaceGeometryNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 var
   UTess, VTess: Cardinal;
@@ -1749,8 +1744,13 @@ begin
   FdtrimmingContour.EnumerateValid(Func);
 end;
 
-{$define TGeometryNotImplemented := TNurbsTrimmedSurfaceNode}
-GeometryNotImplemented
+function TNurbsTrimmedSurfaceNode.Proxy(var State: TX3DGraphTraverseState;
+  const OverTriangulate: boolean): TAbstractGeometryNode;
+begin
+  Result := inherited;
+  if FdTrimmingContour.Count <> 0 then
+    OnWarning(wtMajor, 'VRML/X3D', 'NurbsTrimmedSurface.trimmingContour is not implemented yet (that is, NurbsTrimmedSurface is rendered just like NurbsPatchSurface)');
+end;
 
 procedure RegisterNURBSNodes;
 begin
