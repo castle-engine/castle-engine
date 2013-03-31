@@ -55,12 +55,6 @@
 
     private FFdParts: TMFNode;
     public property FdParts: TMFNode read FFdParts;
-
-    { Returns string describing all used URLs in our ShaderPart nodes.
-      More precisely, all UsedFullUrl in ShaderPart nodes inside out parts field.
-      This provides some description of this node's contents after ShaderPart nodes
-      are loaded, so is useful for debug purposes. }
-    function DescribeUsedUrls: string;
   end;
 
   TFloatVertexAttributeNode = class(TAbstractVertexAttributeNode)
@@ -126,8 +120,6 @@
   end;
 
   TShaderPartNode = class(TAbstractNode, IAbstractUrlObject)
-  private
-    FUsedFullUrl: string;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -143,17 +135,8 @@
       Will return '' if no valid URLs present.
       (Assuming that OnWarning will not raise
       an exception. If OnWarning will raise exception,
-      then this will propagate this exception).
-
-      Sets UsedFullUrl. }
+      then this will propagate this exception) }
     function LoadContents: string;
-
-    { Once the LoadContents is called, this is set to the URL that was used to load
-      the shader contents, or '' if no URL was used, or something
-      special if shader contents came inlined inside URL.
-
-      This is always a full, expanded (i.e. not relative) URL. }
-    property UsedFullUrl: string read FUsedFullUrl;
   end;
 
   TShaderProgramNode = class(TAbstractNode, IAbstractUrlObject, IAbstractProgrammableShaderObject)
@@ -229,17 +212,6 @@ end;
 class function TComposedShaderNode.ClassNodeTypeName: string;
 begin
   Result := 'ComposedShader';
-end;
-
-function TComposedShaderNode.DescribeUsedUrls: string;
-var
-  I: Integer;
-begin
-  Result := '(urls:';
-  for I := 0 to FdParts.Count - 1 do
-    if FdParts[I] is TShaderPartNode then
-      Result += ' ' + TShaderPartNode(FdParts[I]).UsedFullUrl;
-  Result += ')';
 end;
 
 class function TComposedShaderNode.URNMatching(const URN: string): boolean;
@@ -422,8 +394,7 @@ begin
   Result := 'ShaderPart';
 end;
 
-function ShaderLoadContents(var UsedFullUrl: string;
-  const Node: TX3DNode; const FdUrl: TMFString): string;
+function ShaderLoadContents(const Node: TX3DNode; const FdUrl: TMFString): string;
 
   function IsDirectShaderSource(const S: string): boolean;
   { URL is recognized as direct shader source if it
@@ -435,7 +406,7 @@ function ShaderLoadContents(var UsedFullUrl: string;
   end;
 
   { Load shader source from data URI.If success,
-    - sets FUsedFullUrl, ShaderSource
+    - sets ShaderSource
     - returns true
     otherwise
     - makes OnWarning
@@ -458,7 +429,6 @@ function ShaderLoadContents(var UsedFullUrl: string;
 
       try
         ShaderSource := ReadGrowingStreamToString(Data.Stream);
-        UsedFullUrl := Data.URIPrefix;
         Result := true;
       except
         on E: Exception do
@@ -476,7 +446,6 @@ var
   I: Integer;
   FullUrl: string;
 begin
-  UsedFullUrl := '';
   Result := '';
 
   for I := 0 to FdUrl.Items.Count - 1 do
@@ -484,7 +453,6 @@ begin
     if IsDirectShaderSource(FdUrl.Items[I]) then
     begin
       Result := FdUrl.Items[I];
-      UsedFullUrl := 'SHADER-SOURCE-INLINED';
       Exit;
     end else
     if TDataURI.IsDataURI(FdUrl.Items[I]) then
@@ -495,7 +463,6 @@ begin
       FullUrl := Node.PathFromBaseUrl(FdUrl.Items[I]);
       try
         Result := FileToString(FullUrl);
-        UsedFullUrl := FullUrl;
         Exit;
       except
         on E: Exception do
@@ -509,7 +476,7 @@ end;
 
 function TShaderPartNode.LoadContents: string;
 begin
-  Result := ShaderLoadContents(FUsedFullUrl, Self, FdUrl);
+  Result := ShaderLoadContents(Self, FdUrl);
 end;
 
 class function TShaderPartNode.URNMatching(const URN: string): boolean;

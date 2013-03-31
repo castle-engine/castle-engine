@@ -971,7 +971,7 @@ end;
 
 function TEffectPartNode.LoadContents: string;
 begin
-  Result := ShaderLoadContents(FUsedFullUrl, Self, FdUrl);
+  Result := ShaderLoadContents(Self, FdUrl);
 end;
 
 procedure TShaderTextureNode.CreateNode;
