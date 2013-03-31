@@ -67,6 +67,7 @@ type
 { Return a stream to read given URL.
   Returned stream is suitable only for reading, and the initial position
   is always at the beginning.
+  Overloaded version also returns a MIME type (or '' if unknown).
 
   All errors are reported by raising exceptions.
 
@@ -74,14 +75,18 @@ type
   without using any networking library. URL without any protocol is always
   treated like a local filename (absolute or relative to current dir),
   so this function can be a drop-in replacement for normal file reading.
+  The MIME type for local files is guessed based on their extension.
 
   A data URI scheme (http://en.wikipedia.org/wiki/Data_URI_scheme)
-  is also always supported, using our CastleDataURI underneath.
+  is also always supported.
+  The MIME type for such content is specified explicitly in URI.
 
-  Set EnableNetwork to @true
-  to have also support for network protocols (right now only http,
-  handled by FpHttpClient). }
+  Set EnableNetwork to @trueto have also support for network protocols.
+  Right now this means only http, handled by FpHttpClient.
+  The MIME type for such content is reported by http server. }
 function Download(const URL: string; const Options: TDownloadOptions = []): TStream;
+function Download(const URL: string; const Options: TDownloadOptions;
+  out MimeType: string): TStream;
 
 implementation
 
@@ -94,7 +99,18 @@ uses URIParser, CastleURIUtils, CastleUtils, CastleLog, CastleZStream,
   - Limits the number of redirects to given value.
   - Guarantees that result is TMemoryStream. Never handles gzip decompression. }
 function NetworkDownload(const URL: string;
-  const MaxRedirects: Cardinal): TMemoryStream;
+  const MaxRedirects: Cardinal; out MimeType: string): TMemoryStream;
+
+  function ContentTypeToMimeType(const ContentType: string): string;
+  var
+    P: Integer;
+  begin
+    P := Pos(';', ContentType);
+    if P <> 0 then
+      Result := Trim(Copy(ContentType, 1, P - 1)) else
+      Result := Trim(ContentType);
+  end;
+
 var
   Client: TFPHTTPClient;
   RedirectLocation: string;
@@ -107,11 +123,11 @@ begin
       Client.HTTPMethod('GET', URL, Result, [200,
         { redirect status codes, see http://en.wikipedia.org/wiki/HTTP_302 }
         301, 302, 303, 307]);
+      // Writeln(Client.ResponseHeaders.Text);
+      Client.ResponseHeaders.NameValueSeparator := ':';
       if Client.ResponseStatusCode <> 200 then
       begin
         FreeAndNil(Result);
-        // Writeln(Client.ResponseHeaders.Text);
-        Client.ResponseHeaders.NameValueSeparator := ':';
         RedirectLocation := Trim(Client.ResponseHeaders.Values['Location']);
         if RedirectLocation = '' then
           raise EDownloadError.Create('HTTP redirect location is not set');
@@ -119,8 +135,10 @@ begin
           raise EDownloadError.Create('Cannot download resource, maximum number of redirects reached. Possible redirect loop');
         WritelnLog('Network', 'Following HTTP redirect (code %d) to "%s"',
           [Client.ResponseStatusCode, RedirectLocation]);
-        Exit(NetworkDownload(RedirectLocation, MaxRedirects - 1));
+        Exit(NetworkDownload(RedirectLocation, MaxRedirects - 1, MimeType));
       end;
+      MimeType := ContentTypeToMimeType(Client.ResponseHeaders.Values['Content-Type']);
+      WritelnLog('Network', 'Successfully downloaded "%s", MIME type "%s"', [URL, MimeType]);
     finally FreeAndNil(Client) end;
     Result.Position := 0; { rewind for easy reading }
   except
@@ -162,7 +180,8 @@ begin
   end;
 end;
 
-function Download(const URL: string; const Options: TDownloadOptions): TStream;
+function Download(const URL: string; const Options: TDownloadOptions;
+  out MimeType: string): TStream;
 var
   P, FileName, TempFileName: string;
   NetworkResult: TMemoryStream;
@@ -170,13 +189,13 @@ var
 const
   MaxRedirects = 32;
 begin
-  P := URIProtocol(URL);
+  P := LowerCase(URIProtocol(URL));
 
   { network protocols: get data into a new TMemoryStream using FpHttpClient }
-  if EnableNetwork and (CompareText(P, 'http') = 0) then
+  if EnableNetwork and (P = 'http') then
   begin
     WritelnLog('Network', 'Downloading "%s"', [URL]);
-    NetworkResult := NetworkDownload(URL, MaxRedirects);
+    NetworkResult := NetworkDownload(URL, MaxRedirects, MimeType);
     try
       if doGunzip in Options then
       begin
@@ -197,7 +216,7 @@ begin
   end else
 
   { local filenames are directly handled, without the need for any downloader }
-  if (P = '') or (CompareText(P, 'file') = 0) then
+  if (P = '') or (P = 'file') then
   begin
     { when there is no protocol, do not call URIToFilename.
       This fixes the case when URL = absolute Windows filename.
@@ -215,10 +234,11 @@ begin
     if doForceMemoryStream in Options then
       Result := CreateMemoryStream(FileName) else
       Result := TFileStream.Create(FileName, fmOpenRead);
+    MimeType := URIMimeType(URL);
   end else
 
   { data: URI scheme }
-  if CompareText(P, 'data') = 0 then
+  if P = 'data' then
   begin
     DataURI := TDataURI.Create;
     try
@@ -226,11 +246,19 @@ begin
       if not DataURI.Valid then
         raise EDownloadError.Create('Invalid data: URI scheme');
       Result := DataURI.ExtractStream;
+      MimeType := DataURI.MimeType;
       Assert(Result <> nil, 'DataURI.ExtractStream must be non-nil when DataURI.Valid is true');
     finally FreeAndNil(DataURI) end;
   end else
 
     raise EDownloadError.CreateFmt('Downloading from protocol "%s" is not supported', [P]);
+end;
+
+function Download(const URL: string; const Options: TDownloadOptions): TStream;
+var
+  MimeType: string;
+begin
+  Result := Download(URL, Options, MimeType { ignored });
 end;
 
 end.

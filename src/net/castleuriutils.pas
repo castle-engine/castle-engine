@@ -111,10 +111,27 @@ function AbsoluteURI(const URI: string): string;
   a file URI. }
 function URIToFilenameSafe(const URI: string): string;
 
+{ Get MIME type for content of the URI @italic(without downloading the file).
+  For local and remote files (file, http, and similar protocols)
+  it guesses MIME type based on file extension.
+  (Although we may add here detection of local file types by opening them
+  and reading a header, in the future.)
+  Only for data: URI scheme it actually reads the MIME type.
+
+  Using this function is not adviced if you want to properly support
+  MIME types returned by http server for network resources.
+  For this, you have to download the file,
+  as look at what MIME type the http server reports.
+  The @link(Download) function returns such proper MimeType.
+  This function only guesses without downloading.
+
+  Returns empty string if MIME type is unknown. }
+function URIMimeType(const URI: string): string;
+
 implementation
 
 uses SysUtils, CastleStringUtils, CastleWarnings, CastleFilesUtils,
-  URIParser, CastleUtils;
+  URIParser, CastleUtils, CastleDataURI;
 
 procedure URIExtractAnchor(var URI: string; out Anchor: string);
 var
@@ -318,6 +335,127 @@ begin
     if not URIToFilename(URI, Result) then Result := '';
   end else
     Result := '';
+end;
+
+function URIMimeType(const URI: string): string;
+
+  function ExtToMimeType(Ext: string): string;
+  begin
+    Ext := LowerCase(Ext);
+
+    { This list is based on
+      http://svn.freepascal.org/cgi-bin/viewvc.cgi/trunk/lcl/interfaces/customdrawn/customdrawnobject_android.inc?root=lazarus&view=co&content-type=text%2Fplain
+      (license is LGPL with static linking exception, just like our engine).
+      See also various resources linked from
+      "Function to get the mimetype from a file extension" thread on Lazarus
+      mailing list:
+      http://comments.gmane.org/gmane.comp.ide.lazarus.general/62738
+
+      We somewhat cleaned it up (e.g. "postscript" and "mpeg" lowercase),
+      fixed categorization, and fixed/added many types looking at /etc/mime.types
+      on Debian.
+
+      For description of MIME content types see also
+      https://en.wikipedia.org/wiki/Internet_media_type
+      http://en.wikipedia.org/wiki/MIME
+      http://tools.ietf.org/html/rfc4288 }
+
+    // Images
+    if Ext = '.png' then Result := 'image/png' else
+    if Ext = '.jpg' then Result := 'image/jpeg' else
+    if Ext = '.jpeg' then Result := 'image/jpeg' else
+    if Ext = '.svg' then Result := 'image/svg+xml' else
+    if Ext = '.xpm' then Result := 'image/x-xpixmap' else
+    if Ext = '.gif' then Result := 'image/gif' else
+    if Ext = '.tiff' then Result := 'image/tiff' else
+    if Ext = '.tif' then Result := 'image/tiff' else
+    if Ext = '.ico' then Result := 'image/x-icon' else
+    if Ext = '.icns' then Result := 'image/icns' else
+    if Ext = '.ppm' then Result := 'image/x-portable-pixmap' else
+    if Ext = '.bmp' then Result := 'image/bmp' else
+    // HTML
+    if Ext = '.htm' then Result := 'text/html' else
+    if Ext = '.html' then Result := 'text/html' else
+    if Ext = '.shtml' then Result := 'text/html' else
+    // Plain text
+    if Ext = '.txt' then Result := 'text/plain' else
+    if Ext = '.pas' then Result := 'text/plain' else
+    if Ext = '.pp' then Result := 'text/plain' else
+    if Ext = '.inc' then Result := 'text/plain' else
+    if Ext = '.c' then Result := 'text/plain' else
+    if Ext = '.cpp' then Result := 'text/plain' else
+    if Ext = '.java' then Result := 'text/plain' else
+    if Ext = '.log' then Result := 'text/plain'  else
+    // Videos
+    if Ext = '.mp4' then Result := 'video/mp4' else
+    if Ext = '.avi' then Result := 'video/x-msvideo' else
+    if Ext = '.mpeg' then Result := 'video/mpeg' else
+    if Ext = '.mpg' then Result := 'video/mpeg' else
+    if Ext = '.mov' then Result := 'video/quicktime' else
+    // Sounds
+    if Ext = '.mp3' then Result := 'audio/mpeg' else
+    if Ext = '.ogg' then Result := 'audio/ogg' else
+    if Ext = '.wav' then Result := 'audio/x-wav' else
+    if Ext = '.mid' then Result := 'audio/midi' else
+    if Ext = '.midi' then Result := 'audio/midi' else
+    if Ext = '.au' then Result := 'audio/basic' else
+    if Ext = '.snd' then Result := 'audio/basic' else
+    // Documents
+    if Ext = '.rtf' then Result := 'text/rtf' else
+    if Ext = '.eps' then Result := 'application/postscript' else
+    if Ext = '.ps' then Result := 'application/postscript' else
+    if Ext = '.pdf' then Result := 'application/pdf' else
+    // Documents - old MS Office
+    if Ext = '.xls' then Result := 'application/vnd.ms-excel' else
+    if Ext = '.doc' then Result := 'application/msword' else
+    if Ext = '.ppt' then Result := 'application/vnd.ms-powerpoint' else
+    // Documents - open standards
+    if Ext = '.odt' then Result := 'application/vnd.oasis.opendocument.text' else
+    if Ext = '.ods' then Result := 'application/vnd.oasis.opendocument.spreadsheet' else
+    if Ext = '.odp' then Result := 'application/vnd.oasis.opendocument.presentation' else
+    if Ext = '.odg' then Result := 'application/vnd.oasis.opendocument.graphics' else
+    if Ext = '.odc' then Result := 'application/vnd.oasis.opendocument.chart' else
+    if Ext = '.odf' then Result := 'application/vnd.oasis.opendocument.formula' else
+    if Ext = '.odi' then Result := 'application/vnd.oasis.opendocument.image' else
+    // Documents - new MS Office
+    if Ext = '.xlsx' then Result := 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' else
+    if Ext = '.pptx' then Result := 'application/vnd.openxmlformats-officedocument.presentationml.presentation' else
+    if Ext = '.docx' then Result := 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' else
+    // Compressed archives
+    if Ext = '.zip' then Result := 'application/zip' else
+    if Ext = '.tar' then Result := 'application/x-tar' else
+    // Various
+    if Ext = '.xml' then Result := 'application/xml' else
+    if Ext = '.swf' then Result := 'application/x-shockwave-flash' else
+      ;
+  end;
+
+var
+  P: string;
+  DataURI: TDataURI;
+begin
+  Result := '';
+
+  P := LowerCase(URIProtocol(URI));
+
+  if P = 'data' then
+  begin
+    DataURI := TDataURI.Create;
+    try
+      DataURI.URI := URI;
+      if DataURI.Valid then Result := DataURI.MimeType;
+    finally FreeAndNil(DataURI) end;
+  end else
+
+  if (P = '') or
+     (P = 'file') or
+     (P = 'http') or
+     (P = 'ftp') or
+     (P = 'https') then
+    { Consciously using here ExtractFileExt, that should be for filenames,
+      for URIs. }
+    Result := ExtToMimeType(ExtractFileExt(URI));
+
 end;
 
 end.
