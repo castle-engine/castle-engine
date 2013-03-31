@@ -507,8 +507,12 @@ end;
 function LoadX3DXml(const URL: string; Gzipped: boolean): TX3DRootNode;
 var
   Stream: TStream;
+  DownloadOptions: TDownloadOptions;
 begin
-  Stream := Download(URL, false, Gzipped);
+  DownloadOptions := [];
+  if Gzipped then
+    Include(DownloadOptions, doGunzip);
+  Stream := Download(URL, DownloadOptions);
   try
     Result := LoadX3DXml(Stream, AbsoluteURI(URL));
   finally

@@ -3494,7 +3494,7 @@ var
 begin
   try
     try
-      f := Download(URL, true);
+      f := Download(URL, [doForceMemoryStream]);
     except
       on E: EReadError do
         raise EImageLoadError.Create('Cannot read URL: ' + E.Message);

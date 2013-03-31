@@ -40,6 +40,30 @@ var
 type
   EDownloadError = class(Exception);
 
+  { Options for the @link(Download) function. }
+  TDownloadOption = (
+    { Force result to be a TMemoryStream,
+      with contents fully loaded to the memory,
+      and freely seekable (you can move back and forth within).
+      Without this option, @link(Download)may return other streams,
+      like TFileStream
+      (that may not have good buffering, depending on OS).
+
+      Using TMemoryStream means that reading is fast and comfortable,
+      but eats memory and doesn't allow to simultaneously read and process
+      the contents (the file must be fully loaded, e.g. downloaded from
+      the Internet, and ungzipped, before this function returns).
+      So use this option only for files that aren't too big.
+
+      For larger files, you usually don't want to use this option,
+      instead wrap result in TBufferedReadStream. }
+    doForceMemoryStream,
+
+    { Filter the contents through gzip decompression. }
+    doGunzip
+  );
+  TDownloadOptions = set of TDownloadOption;
+
 { Return a stream to read given URL.
   Returned stream is suitable only for reading, and the initial position
   is always at the beginning.
@@ -56,27 +80,8 @@ type
 
   Set EnableNetwork to @true
   to have also support for network protocols (right now only http,
-  handled by FpHttpClient).
-
-  @param(ForceMemoryStream If @true, we will always return a TMemoryStream,
-    with contents fully loaded to the memory,
-    and freely seekable (you can move back and forth within).
-    If @false, we may return other streams, like TFileStream
-    (that may not have good buffering, depending on OS).
-
-    Using TMemoryStream means that reading is fast and comfortable,
-    but eats memory and doesn't allow to simultaneously read and process
-    the contents (the file must be fully loaded, e.g. downloaded from
-    the Internet, and ungzipped, before this function returns).
-    So use ForceMemoryStream = @true only for files that aren't too big.
-
-    For larger files, you usually want to use ForceMemoryStream = @false
-    and wrap them in TBufferedReadStream.)
-
-  @param(Gzipped Should we filter the contents through gzip decompression.) }
-function Download(const URL: string;
-  const ForceMemoryStream: boolean = false;
-  const Gzipped: boolean = false): TStream;
+  handled by FpHttpClient). }
+function Download(const URL: string; const Options: TDownloadOptions = []): TStream;
 
 implementation
 
@@ -145,8 +150,8 @@ begin
   try
     if ForceMemoryStream then
     begin
-      { TODO: our engine never uses both Gzipped = true and
-        ForceMemoryStream = true for now, so below code path is untested. }
+      { TODO: our engine never uses both doGunzip and doForceMemoryStream
+        for now, so below code path is untested. }
       NewResult := TMemoryStream.Create;
       ReadGrowingStream(Result, NewResult, true);
       FreeAndNil(Result);
@@ -157,8 +162,7 @@ begin
   end;
 end;
 
-function Download(const URL: string; const ForceMemoryStream: boolean;
-  const Gzipped: boolean): TStream;
+function Download(const URL: string; const Options: TDownloadOptions): TStream;
 var
   P, FileName, TempFileName: string;
   NetworkResult: TMemoryStream;
@@ -174,16 +178,16 @@ begin
     WritelnLog('Network', 'Downloading "%s"', [URL]);
     NetworkResult := NetworkDownload(URL, MaxRedirects);
     try
-      if Gzipped then
+      if doGunzip in Options then
       begin
-        { for now, reading Gzipped file from a TMemoryStream means using
+        { for now, reading gzipped file from a TMemoryStream means using
           a temporary file }
         TempFileName := GetTempFileNameCheck;
         if Log then
           WritelnLog('Network', Format('Decompressing gzip from the network by temporary file "%s"', [TempFileName]));
         NetworkResult.SaveToFile(TempFileName);
         FreeAndNil(NetworkResult);
-        Result := ReadGzipped(TempFileName, ForceMemoryStream);
+        Result := ReadGzipped(TempFileName, doForceMemoryStream in Options);
         CheckDeleteFile(TempFileName, true);
       end else
         Result := NetworkResult;
@@ -206,9 +210,9 @@ begin
     if not URIToFilename(URL, FileName) then
       raise EDownloadError.CreateFmt('Cannot convert URL "%s" to filename', [URL]);
 
-    if Gzipped then
-      Result := ReadGzipped(FileName, ForceMemoryStream) else
-    if ForceMemoryStream then
+    if doGunzip in Options then
+      Result := ReadGzipped(FileName, doForceMemoryStream in Options) else
+    if doForceMemoryStream in Options then
       Result := CreateMemoryStream(FileName) else
       Result := TFileStream.Create(FileName, fmOpenRead);
   end else

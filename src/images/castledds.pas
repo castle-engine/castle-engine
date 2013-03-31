@@ -1181,7 +1181,7 @@ procedure TDDSImage.LoadFromFile(const URL: string);
 var
   S: TStream;
 begin
-  S := Download(URL, true);
+  S := Download(URL, [doForceMemoryStream]);
   try
     LoadFromStream(S);
   finally FreeAndNil(S) end;

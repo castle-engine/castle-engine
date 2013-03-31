@@ -913,7 +913,7 @@ constructor TScene3DS.Create(const URL: string);
 var
   S: TStream;
 begin
-  S := Download(URL, true);
+  S := Download(URL, [doForceMemoryStream]);
   try Create(S);
   finally S.Free end;
 end;

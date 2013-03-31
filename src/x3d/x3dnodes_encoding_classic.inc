@@ -578,10 +578,10 @@ begin
     { TODO: filename operations on URLs }
     if SameText(ExtractFileExt(URL), '.gz') or
        SameText(ExtractFileExt(URL), '.wrz') then
-      Result := DoIt(Download(URL, false, true), true, BaseUrl) else
+      Result := DoIt(Download(URL, [doGunzip]), true, BaseUrl) else
     begin
       try
-        Result := DoIt(Download(URL, false, false), true, BaseUrl);
+        Result := DoIt(Download(URL, []), true, BaseUrl);
       except
         { It's somewhat hacky solution to reopen the file, creating new stream.
           But in practice, this works OK, and it allows us to read files
@@ -598,7 +598,7 @@ begin
              For now, our Download function uses temporary files to overcome
              this for network data, so it creates even more overhead. }
         on EX3DGzipCompressed do
-          Result := DoIt(Download(URL, false, true), true, BaseUrl);
+          Result := DoIt(Download(URL, [doGunzip]), true, BaseUrl);
       end;
     end;
   end;
