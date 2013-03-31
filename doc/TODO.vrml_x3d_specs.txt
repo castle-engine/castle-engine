@@ -12,15 +12,6 @@ Some VRML/X3D TODO items, with respect to VRML/X3D specs:
 
 - KambiTriangulation should be fixed, to go to Appearance.triangulation?
 
-----------------------------------------
-- Resolving url fields (MFString, see 4.5.2, 4.5.3).
-  Use Synapse or curl (probably both, by compile-time define;
-  make the URL system "pluggable", by default "null" system is plugged
-  so neither Synapse nor curl is used.).
-  Or lnet.
-  Yes, this definitely must be "pluggable" to allow various
-  network libraries to plug there ..
-
 ------------------------------------------------------------------------------
 For scripting we will also have to implement a tricky feature, that is currently completely ignored because you cannot access it without scripts:
 
