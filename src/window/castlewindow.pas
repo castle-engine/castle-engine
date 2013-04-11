@@ -175,8 +175,7 @@
     @item(You can request OpenGL context properties: color buffer with alpha
       channel (@link(TCastleWindowBase.AlphaBits AlphaBits)),
       stencil buffer (@link(TCastleWindowBase.StencilBits StencilBits)),
-      double buffer (@link(TCastleWindowBase.DoubleBuffer DoubleBuffer)), accumulation buffer
-      (@link(TCastleWindowBase.AccumBits AccumBits)).
+      double buffer (@link(TCastleWindowBase.DoubleBuffer DoubleBuffer))).
       And multisampling (full-screen antialiasing) buffers (by
       @link(TCastleWindowBase.MultiSampling MultiSampling) or higher-level
       @link(TCastleWindowBase.AntiAliasing AntiAliasing).)
@@ -632,6 +631,7 @@ type
 
     FDepthBits: Cardinal;
     FStencilBits: Cardinal;
+    FAccumBits: TVector4Cardinal;
     FAlphaBits: Cardinal;
     FMultiSampling: Cardinal;
     FAntiAliasing: TAntiAliasing;
@@ -1351,7 +1351,7 @@ type
       will be possible in TCastleWindowBase. }
     property AlphaBits: Cardinal
       read FAlphaBits write FAlphaBits default 0;
-  public
+
     { Required number of bits in color channels of accumulation buffer.
       Color channel is 0..3: red, green, blue, alpha.
       Zero means that given channel of accumulation buffer is not needed,
@@ -1361,13 +1361,13 @@ type
       Just like with other XxxBits property, we may get more
       bits than we requested. But we will never get less --- if window system
       will not be able to provide GL context with requested number of bits,
-      @link(Open) will raise an error. }
-    AccumBits: TVector4Cardinal;
+      @link(Open) will raise an error.
 
-    (* TODO: zrobic od razu
-         IndexBits: Cardinal; = ????
-         IndexedColorBuffer: boolean; { = false }
-    *)
+      @deprecated
+      This property is deprecated, since modern OpenGL deprecated accumulation
+      buffer. It may not be supported by some backends (e.g. now LCL backend,
+      the default backend on Mac OS X, doesn't support it). }
+    property AccumBits: TVector4Cardinal read FAccumBits write FAccumBits; deprecated;
 
     { Name of the icon for this window used by GTK 2 backend.
 
@@ -3844,9 +3844,9 @@ begin
    Result += Format(', with %d-bits sized stencil buffer', [StencilBits]);
  if AlphaBits > 0 then
    Result += Format(', with %d-bits sized alpha channel', [AlphaBits]);
- if not ZeroVector(AccumBits) then
+ if not ZeroVector(FAccumBits) then
    Result += Format(', with (%d,%d,%d,%d)-bits sized accumulation buffer',
-    [AccumBits[0], AccumBits[1], AccumBits[2], AccumBits[3]]);
+    [FAccumBits[0], FAccumBits[1], FAccumBits[2], FAccumBits[3]]);
  if MultiSampling > 1 then
    Result += Format(', with multisampling (%d samples)', [MultiSampling]);
 end;
@@ -3869,10 +3869,10 @@ begin
  CheckRequestedBits('stencil buffer', StencilBits, ProvidedStencilBits);
  CheckRequestedBits('depth buffer', DepthBits, ProvidedDepthBits);
  CheckRequestedBits('alpha channel', AlphaBits, ProvidedAlphaBits);
- CheckRequestedBits('accumulation buffer''s red channel'  , AccumBits[0], ProvidedAccumRedBits);
- CheckRequestedBits('accumulation buffer''s green channel', AccumBits[1], ProvidedAccumGreenBits);
- CheckRequestedBits('accumulation buffer''s blue channel' , AccumBits[2], ProvidedAccumBlueBits);
- CheckRequestedBits('accumulation buffer''s alpha channel', AccumBits[3], ProvidedAccumAlphaBits);
+ CheckRequestedBits('accumulation buffer''s red channel'  , FAccumBits[0], ProvidedAccumRedBits);
+ CheckRequestedBits('accumulation buffer''s green channel', FAccumBits[1], ProvidedAccumGreenBits);
+ CheckRequestedBits('accumulation buffer''s blue channel' , FAccumBits[2], ProvidedAccumBlueBits);
+ CheckRequestedBits('accumulation buffer''s alpha channel', FAccumBits[3], ProvidedAccumAlphaBits);
 
  { If MultiSampling <= 1, this means that multisampling not required,
    so don't check it. Even if MultiSampling = 1 and ProvidedMultiSampling = 0

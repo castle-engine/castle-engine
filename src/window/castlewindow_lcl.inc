@@ -91,10 +91,6 @@
     This is triggered by having a menu item key shortcut,
     and when this menu item is executed --- we destroy and create new menu
     that also reacts to this shortcut. In this case, Carbon executes the menu item again.
-
-  Missing:
-  - TCastleWindowBase.AccumBits: not possible to express in TOpenGLControl now.
-    We should just deprecate AccumBits? This is deprecated in OpenGL after all.
 }
 
 {$ifdef read_window_interface}

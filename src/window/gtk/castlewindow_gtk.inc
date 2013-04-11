@@ -885,10 +885,10 @@ begin
     GDK_GL_BUFFER_SIZE, 1,
     GDK_GL_STENCIL_SIZE, StencilBits,
     GDK_GL_ALPHA_SIZE, AlphaBits,
-    GDK_GL_ACCUM_RED_SIZE, AccumBits[0],
-    GDK_GL_ACCUM_GREEN_SIZE, AccumBits[1],
-    GDK_GL_ACCUM_BLUE_SIZE, AccumBits[2],
-    GDK_GL_ACCUM_ALPHA_SIZE, AccumBits[3] ]);
+    GDK_GL_ACCUM_RED_SIZE, FAccumBits[0],
+    GDK_GL_ACCUM_GREEN_SIZE, FAccumBits[1],
+    GDK_GL_ACCUM_BLUE_SIZE, FAccumBits[2],
+    GDK_GL_ACCUM_ALPHA_SIZE, FAccumBits[3] ]);
 
   if MultiSampling > 1 then
     { I guess that gtkglext should internally check for
