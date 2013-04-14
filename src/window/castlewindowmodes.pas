@@ -42,7 +42,7 @@ type
     { TCastleWindowBase attributes }
     OldMouseMove: TMouseMoveFunc;
     OldPress, OldRelease: TInputPressReleaseFunc;
-    OldBeforeDraw, OldDraw, OldCloseQuery, OldIdle, OldTimer: TWindowFunc;
+    OldBeforeDraw, OldDraw, OldCloseQuery, OldUpdate, OldTimer: TWindowFunc;
     OldResize: TWindowFunc;
     OldMenuClick: TMenuClickFunc;
     OldCaption: string;
@@ -215,8 +215,8 @@ type
           know about size changes, and can set OpenGL projection etc.)
 
         @item(
-          We call IgnoreNextIdleSpeed at the end, when closing our mode,
-          see TCastleWindowBase.IgnoreNextIdleSpeed for comments why this is needed.)
+          We call ZeroNextSecondsPassed at the end, when closing our mode,
+          see TFramesPerSecond.ZeroNextSecondsPassed for comments why this is needed.)
 
         @item(This also performs important optimization to avoid closing /
           reinitializing window TCastleWindowCustom.Controls OpenGL resources,
@@ -302,7 +302,7 @@ begin
   OldDraw := Window.OnDraw;
   OldCloseQuery := Window.OnCloseQuery;
   OldResize := Window.OnResize;
-  OldIdle := Window.OnIdle;
+  OldUpdate := Window.OnUpdate;
   OldTimer := Window.OnTimer;
   OldMenuClick := Window.OnMenuClick;
   oldCaption := Window.Caption;
@@ -338,7 +338,7 @@ begin
   Window.OnDraw := OldDraw;
   Window.OnCloseQuery := OldCloseQuery;
   Window.OnResize := OldResize;
-  Window.OnIdle := OldIdle;
+  Window.OnUpdate := OldUpdate;
   Window.OnTimer := OldTimer;
   Window.OnMenuClick := OldMenuClick;
   Window.Caption := oldCaption;
@@ -374,7 +374,7 @@ begin
   Window.OnBeforeDraw := nil;
   Window.OnDraw := nil;
   Window.OnCloseQuery := nil;
-  Window.OnIdle := nil;
+  Window.OnUpdate := nil;
   Window.OnTimer := nil;
   Window.OnResize := nil;
   Window.OnMenuClick := nil;
@@ -550,7 +550,7 @@ begin
 
    Window.PostRedisplay;
 
-   Window.Fps.IgnoreNextIdleSpeed;
+   Window.Fps.ZeroNextSecondsPassed;
  end;
 
  inherited;

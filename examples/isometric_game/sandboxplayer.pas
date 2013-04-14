@@ -53,7 +53,7 @@ type
     Moving: boolean;
     MovingSmallMoveX, MovingSmallMoveY: Single;
 
-    procedure Idle;
+    procedure Update;
   end;
 
 implementation
@@ -150,7 +150,7 @@ begin
   end;
 end;
 
-procedure TPlayer.Idle;
+procedure TPlayer.Update;
 var
   Distance: Single;
 const

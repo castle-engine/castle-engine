@@ -147,11 +147,11 @@ begin
   glShadeModel(GL_FLAT);
 end;
 
-procedure Idle(Window: TCastleWindowBase);
+procedure Update(Window: TCastleWindowBase);
 begin
   if FUp then
   begin
-    F += 0.01 * Window.Fps.IdleSpeed * 50;
+    F += 0.01 * Window.Fps.UpdateSecondsPassed * 50;
     if F >= 1.0 then
     begin
       F := 1.0;
@@ -159,7 +159,7 @@ begin
     end;
   end else
   begin
-    F -= 0.01 * Window.Fps.IdleSpeed * 50;
+    F -= 0.01 * Window.Fps.UpdateSecondsPassed * 50;
     if F <= 0.0 then
     begin
       F := 0.0;
@@ -209,7 +209,7 @@ begin
   SurfacesLoad(FileName);
   try
     Window.OnOpen := @Open;
-    Window.OnIdle := @Idle;
+    Window.OnUpdate := @Update;
     Window.OnPress := @Press;
     Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.AutoRedisplay := true;

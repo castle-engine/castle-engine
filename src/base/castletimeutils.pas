@@ -236,9 +236,9 @@ type
   private
     FFrameTime: Double;
     FRealTime: Double;
-    FIdleSpeed: Single;
-    DoIgnoreNextIdleSpeed: boolean;
-    FIdleStartTime: TTimerResult;
+    FUpdateSecondsPassed: Single;
+    DoZeroNextSecondsPassed: boolean;
+    FUpdateStartTime: TTimerResult;
     LastRecalculateTime: TMilisecTime;
     RenderStartTime: TTimerResult;
     { 0 means "no frame was rendered yet" }
@@ -250,12 +250,12 @@ type
 
     procedure _RenderBegin;
     procedure _RenderEnd;
-    procedure _IdleBegin;
+    procedure _UpdateBegin;
 
     { Rendering speed in frames per second. This tells FPS,
       if we would only call Draw (EventDraw, OnDraw) all the time.
       That is, this doesn't take into account time spent on other activities,
-      like OnIdle, and it doesn't take into account that frames are possibly
+      like OnUpdate, and it doesn't take into account that frames are possibly
       not rendered continously (when AutoRedisplay = @false, we may render
       frames seldom, because there's no need to do it more often).
 
@@ -265,50 +265,50 @@ type
     { How many frames per second were rendered. This is a real number
       of EventDraw (OnDraw) calls per second. This means that it's actual
       speed of your program. Anything can slow this down, not only long
-      EventDraw (OnDraw), but also slow processing of other events (like OnIdle).
+      EventDraw (OnDraw), but also slow processing of other events (like OnUpdate).
       Also, when AutoRedisplay = @false, this may be very low, since you
       just don't need to render frames continously.
 
       @seealso FrameTime }
     property RealTime: Double read FRealTime;
 
-    { @abstract(How much time passed since last EventIdle (OnIdle) call?)
+    { Track how much time passed since last Update call, using _UpdateBegin.
 
       The time is in seconds, 1.0 = 1 second.
-      For two times faster computer IdleSpeed = 0.5,
-      for two times slower IdleSpeed = 2.0. This is useful for doing
+      For two times faster computer UpdateSecondsPassed = 0.5,
+      for two times slower UpdateSecondsPassed = 2.0. This is useful for doing
       time-based rendering, when you want to scale some changes
       by computer speed, to get perceived animation speed the same on every
       computer, regardless of computer's speed.
 
       This is calculated as a time between
-      start of previous Idle event and start of current Idle event.
+      start of previous Update event and start of current Update event.
       So this really measures your whole loop time (unlike previous DrawSpeed
       that measured only EventDraw (OnDraw) speed).
 
-      You can sanely use this only within EventIdle (OnIdle). }
-    property IdleSpeed: Single read FIdleSpeed;
+      You can sanely use this only within EventUpdate (OnUpdate). }
+    property UpdateSecondsPassed: Single read FUpdateSecondsPassed;
 
-    { Forces IdleSpeed within the next EventIdle (onIdle) call to be
-      equal to 0.0.
+    { Forces UpdateSecondsPassed for the next Update call (using _UpdateBegin)
+      to be zero.
 
       This is useful if you just came back from some lenghty
       state, like a GUI dialog box (like TCastleWindowBase.FileDialog or modal boxes
       in CastleMessages --- but actually all our stuff already calls this
-      as needed, TGLMode takes care of this). IdleSpeed would be ridicoulously
+      as needed, TGLMode takes care of this). UpdateSecondsPassed would be ridicoulously
       long in such case (if our loop is totally stopped) or not relevant
       (if we do our loop, but with totally different callbacks, like
       CastleMessages). Instead, it's most sensible in such case to fake
-      that IdleSpeed is 0.0, so things such as TCastleSceneCore.Time
+      that UpdateSecondsPassed is 0.0, so things such as TCastleSceneCore.Time
       should not advance wildly just because we did GUI box.
 
-      This forces the IdleSpeed to zero only once, that is only on the
-      next EventIdle (OnIdle). Following EventIdle (OnIdle) will have
-      IdleSpeed as usual (unless you call IgnoreNextIdleSpeed again, of course). }
-    procedure IgnoreNextIdleSpeed;
+      This forces the UpdateSecondsPassed to zero only once, that is only on the
+      next update event (_UpdateBegin). Following update event (_UpdateBegin) will have
+      UpdateSecondsPassed as usual (unless you call ZeroNextSecondsPassed again, of course). }
+    procedure ZeroNextSecondsPassed;
 
-    { Time of last idle call. }
-    property IdleStartTime: TTimerResult read FIdleStartTime;
+    { Time of last Update call. }
+    property UpdateStartTime: TTimerResult read FUpdateStartTime;
   end;
 
 implementation
@@ -492,15 +492,15 @@ begin
 
   { Just init times to some sensible default.
 
-    For IdleSpeed this is actually not essential, since we call
-    IgnoreNextCompSpeed anyway. But in case programmer will (incorrectly!)
-    try to use IdleSpeed before EventIdle (OnIdle) call, it's useful to have
+    For UpdateSecondsPassed this is actually not essential, since we call
+    ZeroNextSecondsPassed anyway. But in case programmer will (incorrectly!)
+    try to use UpdateSecondsPassed before _UpdateBegin call, it's useful to have
     here some predictable value. }
-  FIdleSpeed := 1 / DefaultFps;
+  FUpdateSecondsPassed := 1 / DefaultFps;
   FFrameTime := DefaultFps;
   FRealTime := DefaultFps;
 
-  IgnoreNextIdleSpeed;
+  ZeroNextSecondsPassed;
 end;
 
 procedure TFramesPerSecond._RenderBegin;
@@ -541,26 +541,26 @@ begin
   end;
 end;
 
-procedure TFramesPerSecond._IdleBegin;
+procedure TFramesPerSecond._UpdateBegin;
 var
-  NewIdleStartTime: TTimerResult;
+  NewUpdateStartTime: TTimerResult;
 begin
-  { update FIdleSpeed, DoIgnoreNextIdleSpeed, FIdleStartTime }
-  NewIdleStartTime := Timer;
+  { update FUpdateSecondsPassed, DoZeroNextSecondsPassed, FUpdateStartTime }
+  NewUpdateStartTime := Timer;
 
-  if DoIgnoreNextIdleSpeed then
+  if DoZeroNextSecondsPassed then
   begin
-    FIdleSpeed := 0.0;
-    DoIgnoreNextIdleSpeed := false;
+    FUpdateSecondsPassed := 0.0;
+    DoZeroNextSecondsPassed := false;
   end else
-    FIdleSpeed := ((NewIdleStartTime - FIdleStartTime) / TimerFrequency);
+    FUpdateSecondsPassed := ((NewUpdateStartTime - FUpdateStartTime) / TimerFrequency);
 
-  FIdleStartTime := NewIdleStartTime;
+  FUpdateStartTime := NewUpdateStartTime;
 end;
 
-procedure TFramesPerSecond.IgnoreNextIdleSpeed;
+procedure TFramesPerSecond.ZeroNextSecondsPassed;
 begin
-  DoIgnoreNextIdleSpeed := true;
+  DoZeroNextSecondsPassed := true;
 end;
 
 end.

@@ -48,7 +48,7 @@ type
     Rotating: boolean;
 
     procedure EventDraw; override;
-    procedure EventIdle; override;
+    procedure EventUpdate; override;
     procedure EventResize; override;
     procedure EventOpen; override;
     procedure EventClose; override;
@@ -86,7 +86,7 @@ begin
  end;
 end;
 
-procedure TMyWindow.EventIdle;
+procedure TMyWindow.EventUpdate;
 
   function B(val: boolean): integer;
   begin if val then result := 1 else result := -1 end;

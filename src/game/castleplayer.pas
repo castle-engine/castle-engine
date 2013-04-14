@@ -78,7 +78,7 @@ type
     TWalkCamera.Init, and it's Ok to assign this Camera to TCastleSceneManager.Camera,
     and TGameSceneManager.LoadLevel does this automatically.
     So scene manager will update Camera.ProjectionMatrix,
-    call camera events like TCamera.Press, TCamera.Idle and such.)
+    call camera events like TCamera.Press, TCamera.Update and such.)
   }
   TPlayer = class(T3DAliveWithInventory)
   private
@@ -96,7 +96,7 @@ type
     SwimLastSoundTime: Single;
     FSwimming: TPlayerSwimming;
 
-    { Did last Idle detected that we're on toxic ground? }
+    { Did last @link(Update) detected that we're on toxic ground? }
     IsToxic: boolean;
     { Relevant if IsToxic, this is LifeTime when
       last time toxic damage was done. When player steps on toxic for the
@@ -107,7 +107,7 @@ type
     SwimmingChangeSound: TSound;
     SwimmingSound: TSound;
 
-    { Did last Idle detected that we are on the ground. }
+    { Did last @link(Update) detected that we are on the ground. }
     IsOnTheGround: boolean;
     { <> @nil if IsOnTheGround and last ground had some TMaterialProperty. }
     GroundProperty: TMaterialProperty;
@@ -251,7 +251,7 @@ type
       GameMessage about using/not using a weapon. }
     property EquippedWeapon: TItemWeapon read FEquippedWeapon write SetEquippedWeapon;
 
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     function Middle: TVector3Single; override;
 
     { Cause a fade-out effect on the screen, tinting the screen to the given Color.
@@ -504,7 +504,7 @@ begin
   Camera.CheckModsDown := false;
   Camera.OnFall := @CameraFall;
 
-  { Although it will be called in every OnIdle anyway,
+  { Although it will be called in every OnUpdate anyway,
     we also call it here to be sure that right after TPlayer constructor
     finished, Camera has already good values. }
   UpdateCamera;
@@ -815,7 +815,7 @@ begin
   SwimmingSound := nil;
 end;
 
-procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 
   { Perform various things related to player swimming. }
   procedure UpdateSwimming;
@@ -1025,7 +1025,7 @@ begin
 
   if FFlyingTimeOut > 0 then
   begin
-    FFlyingTimeOut := FFlyingTimeOut - CompSpeed;
+    FFlyingTimeOut := FFlyingTimeOut - SecondsPassed;
     if FFlyingTimeOut <= 0 then
     begin
       FFlyingTimeOut := 0;
@@ -1038,10 +1038,10 @@ begin
   UpdateSwimming;
 
   if FFadeOutIntensity > 0 then
-    FFadeOutIntensity -= FadeOutSpeed * CompSpeed;
+    FFadeOutIntensity -= FadeOutSpeed * SecondsPassed;
 
   if EquippedWeapon <> nil then
-    EquippedWeapon.EquippedIdle(LifeTime);
+    EquippedWeapon.EquippedUpdate(LifeTime);
 
   UpdateIsOnTheGround;
   UpdateToxic;
@@ -1144,7 +1144,7 @@ begin
       SwimLastSoundTime := 0.0;
     end;
 
-    { Although UpdateCamera will be called in nearest Player.Idle anyway,
+    { Although UpdateCamera will be called in nearest Player.Update anyway,
       I want to call it *now*. That's because I want to set
       Camera.FallSpeedStart to low speed (suitable for moving
       under the water) before next falling down will happen.
@@ -1153,8 +1153,8 @@ begin
       And next falling down will happen... actually SetSwimming
       is called from OnMatrixChanged that may be called
       from TryFalling ! So next falling down definitely *can*
-      happen before next Player.Idle. Actually we may be in the middle
-      of falling down right now. Fortunately Camera.Idle
+      happen before next Player.Update. Actually we may be in the middle
+      of falling down right now. Fortunately Camera.Update
       and Camera.CancelFalling are implemented (or rather fixed :)
       to honour calling CancelFalling and setting FallSpeedStart now.
 

@@ -46,9 +46,9 @@
     @item(Call @link(TCastleApplication.Run Application.Run).
       This will enter message loop that will call
       appropriate windows' callbacks at appropriate times
-      (OnDraw, OnPress, OnRelease, OnResize, OnIdle and many more).
+      (OnDraw, OnPress, OnRelease, OnResize, OnUpdate and many more).
       There are also some Application callbacks, like
-      @link(TCastleApplication.OnIdle Application.OnIdle).
+      @link(TCastleApplication.OnUpdate Application.OnUpdate).
 
       For more advanced needs you can use something like
         @longCode(#  while Application.ProcessMessage do <something>;#)
@@ -377,10 +377,10 @@ unit CastleWindow;
     module.
   - Call all TCastleWindowBase.DoXxx functions at appropriate places from your
     backend.
-    You can call all DoIdle and DoTimer for all Application.OpenWindows
-    using Application.FOpenWindows.DoIdle/Timer (this will give usually
+    You can call all DoUpdate and DoTimer for all Application.OpenWindows
+    using Application.FOpenWindows.DoUpdate/Timer (this will give usually
     inefficient but working backend)
-  - Call TCastleApplication.DoSelfIdle and DoSelfTimer when appropriate.
+  - Call TCastleApplication.DoSelfUpdate and DoSelfTimer when appropriate.
     Remember that you can always assume that the ONLY existing instance of
     TCastleApplication is Application.
   Some important things that can be easily forgotten:
@@ -397,7 +397,7 @@ unit CastleWindow;
   very quickly.
 
   Actually, CASTLE_WINDOW_LOG_EVENTS by itself turns logging for @italic(almost)
-  all events. For the really really often events (draw, idle, timer,
+  all events. For the really really often events (draw, update, timer,
   mouse move for now), you'll need to define also CASTLE_WINDOW_LOG_EVENTS_ALL
   (relevant only if CASTLE_WINDOW_EVENTS_LOG).
 }
@@ -565,7 +565,7 @@ type
   { Type of message box, for TCastleWindowBase.MessageOK and TCastleWindowBase.MessageYesNo. }
   TWindowMessageType = (mtInfo, mtWarning, mtQuestion, mtError, mtOther);
 
-  TIdleFunc = procedure;
+  TUpdateFunc = procedure;
   TWindowFunc = procedure (Window: TCastleWindowBase);
   TDrawFunc = TWindowFunc;
   TMouseMoveFunc = procedure (Window: TCastleWindowBase; NewX, NewY: Integer);
@@ -605,7 +605,7 @@ type
     FOnCloseQuery: TWindowFunc;
     FOnPress, FOnRelease: TInputPressReleaseFunc;
     FMouseMove: TMouseMoveFunc;
-    FOnIdle, FOnTimer: TWindowFunc;
+    FOnUpdate, FOnTimer: TWindowFunc;
     FFullScreen, FDoubleBuffer: boolean;
     FResizeAllowed: TResizeAllowed;
     FMousePressed: TMouseButtons;
@@ -918,7 +918,7 @@ type
     procedure DoMouseDown(x, y: integer; btn: TMouseButton);
     procedure DoMouseUp(x, y: integer; btn: TMouseButton);
     procedure DoMouseWheel(const Scroll: Single; const Vertical: boolean);
-    procedure DoIdle;
+    procedure DoUpdate;
     procedure DoTimer;
     { Just call it when user presses some MenuItem.
       This takes care of MainMenu.Enabled,
@@ -987,9 +987,9 @@ type
       When EventXxx are called internally from this unit, they are always
       preceded by MakeCurrent call.
 
-      Notes for overriding OnIdle and OnTimer: you will usually also
+      Notes for overriding OnUpdate and OnTimer: you will usually also
       want to override then AllowSuspendForInput, to disallow suspending
-      when you want to keep receiving idle/timer calls.
+      when you want to keep receiving update/timer calls.
 
       Notes for overriding OnCloseQuery: you have to return @true
       to allow closing of the window.
@@ -1003,7 +1003,7 @@ type
     procedure EventPress(const Event: TInputPressRelease); virtual;
     procedure EventRelease(const Event: TInputPressRelease); virtual;
     procedure EventMouseMove(newX, newY: integer); virtual;
-    procedure EventIdle; virtual;
+    procedure EventUpdate; virtual;
     procedure EventTimer; virtual;
     procedure EventMenuClick(Item: TMenuItem); virtual;
     { @groupEnd }
@@ -1016,10 +1016,10 @@ type
       On the other hand, you cannot allow this if you want to do some
       things continously, regardless of user input.
 
-      In this class, this simply checks if OnIdle or OnTimer events
+      In this class, this simply checks if OnUpdate or OnTimer events
       are assigned. If one of them is, we do not allow to suspend.
       In descendants, you typically want to override this if there's
-      a chance you may do something in overridden EventIdle or EventTimer. }
+      a chance you may do something in overridden EventUpdate or EventTimer. }
     function AllowSuspendForInput: boolean; virtual;
 
     { ------------------------------------------------------------------------
@@ -1554,26 +1554,25 @@ end;
       the @italic(new) mouse position. }
     property OnMouseMove :TMouseMoveFunc read FMouseMove write FMouseMove;
 
-    { Idle event is called for all open windows, all the time.
-      It's called when we have no more events to process,
-      and have nothing to do @italic(with the exception of redraw).
-      Our idle events are called at least as regularly as redraw.
-      This last condition is important --- otherwise your game
-      could get overwhelmed my messages (like mouse moves) and time-consuming
-      redraw, and you would not have time to actually update animations
-      in idle events.
+    { Continously occuring event, called for all open windows.
+      This event is called at least as regularly as redraw,
+      so it is continously called even when your game
+      is overwhelmed by messages (like mouse moves) and redraws.
 
       Called at the same time when
-      @link(TCastleApplication.OnIdle Application.OnIdle) is called.
+      @link(TCastleApplication.OnUpdate Application.OnUpdate) is called.
 
-      You should add code to this window's OnIdle event
-      (not to TCastleApplication.OnIdle) when you do something related
+      You should add code to this window's OnUpdate event
+      (not to TCastleApplication.OnUpdate) when you do something related
       to this window. For example when you check this window's
       @link(Pressed) keys state, or animate something displayed on this window.
       This allows various "modal boxes" and such (see CastleMessages)
       to nicely "pause" such processing by temporarily replacing
-      OnIdle and other events of a window that displays a modal box. }
-    property OnIdle: TWindowFunc read FOnIdle write FOnIdle;
+      OnUpdate and other events of a window that displays a modal box. }
+    property OnUpdate: TWindowFunc read FOnUpdate write FOnUpdate;
+
+    { @deprecated Deprecated name for OnUpdate. }
+    property OnIdle: TWindowFunc read FOnUpdate write FOnUpdate; deprecated;
 
     { Timer event is called approximately after each
       @link(TCastleApplication.TimerMilisec Application.TimerMilisec)
@@ -1585,8 +1584,8 @@ end;
       @link(TCastleApplication.TimerMilisec Application.TimerMilisec).
       We consciously decided to not implement anything more involved here.
       If you need really flexible timer mechanism, do not use this.
-      Instead use @link(OnIdle)
-      (or TUIControl.Idle, or T3D.Idle) and look at it's @code(CompSpeed)
+      Instead use @link(OnUpdate)
+      (or TUIControl.Update, or T3D.Update) and look at it's @code(SecondsPassed)
       value to perform actions (one time or repeated) with a specified delay.
       The engine source is full of examples of this.
 
@@ -2175,7 +2174,7 @@ end;
 
     procedure EventOpen; override;
     procedure EventPress(const Event: TInputPressRelease); override;
-    procedure EventIdle; override;
+    procedure EventUpdate; override;
     function AllowSuspendForInput: boolean; override;
 
     procedure SetDemoOptions(ASwapFullScreen_Key: TKey;
@@ -2197,7 +2196,7 @@ end;
     EventXxx method, which calls normal window callbacks like OnPress.
 
     We also call other methods on every control,
-    like TUIControl.Idle, TUIControl.Draw2D, TUIControl.WindowResize.
+    like TUIControl.Update, TUIControl.Draw2D, TUIControl.WindowResize.
 
     We use OnVisibleChange event of our controls to make
     PostRedisplay when something visible changed. If you want to use
@@ -2341,7 +2340,7 @@ end;
     procedure EventClose; override;
     procedure EventPress(const Event: TInputPressRelease); override;
     procedure EventRelease(const Event: TInputPressRelease); override;
-    procedure EventIdle; override;
+    procedure EventUpdate; override;
     procedure EventMouseMove(NewX, NewY: Integer); override;
     function AllowSuspendForInput: boolean; override;
     procedure EventBeforeDraw; override;
@@ -2398,11 +2397,11 @@ end;
 
   TWindowList = class(specialize TFPGObjectList<TCastleWindowBase>)
   private
-    { Call wszystkie OnIdle / OnTimer for all windows on this list.
-      Using Application.OpenWindows.DoIdle / DoTimer  is a simplest
+    { Call wszystkie OnUpdate / OnTimer for all windows on this list.
+      Using Application.OpenWindows.DoUpdate / DoTimer  is a simplest
       way for CastleWindow backend to handle these events.
       @groupBegin }
-    procedure DoIdle;
+    procedure DoUpdate;
     procedure DoTimer;
     { @groupEnd }
   public
@@ -2431,7 +2430,7 @@ end;
   {$undef read_application_interface}
 
   private
-    FOnIdle :TIdleFunc;
+    FOnUpdate :TUpdateFunc;
     FOnTimer :TProcedure;
     FTimerMilisec :Cardinal;
     FVideoColorBits: integer;
@@ -2484,11 +2483,11 @@ end;
         then once. }
     procedure QuitWhenNoOpenWindows;
 
-    { This simply checks Assigned(FOnIdle) and only then calls FOnIdle.
-      ALWAYS use this method instead of directly calling FOnIdle. }
-    procedure DoSelfIdle;
+    { This simply checks Assigned(FOnUpdate) and only then calls FOnUpdate.
+      ALWAYS use this method instead of directly calling FOnUpdate. }
+    procedure DoSelfUpdate;
 
-    { Same as DoSelfIdle, but here with FOnTimer. }
+    { Same as DoSelfUpdate, but here with FOnTimer. }
     procedure DoSelfTimer;
 
     { Something useful for some CastleWindow backends. This will implement
@@ -2497,7 +2496,7 @@ end;
       Declare in TCastleApplication some variable like
         LastDoTimerTime: TMilisecTime
       initialized to 0. Then just call very often (probably at the same time
-      you're calling DoSelfIdle)
+      you're calling DoSelfUpdate)
         MaybeDoTimer(LastDoTimerTime);
       This will take care of calling DoSelfTimer and OpenWindows.DoTimer
       at the appropriate times. It will use and update LastDoTimerTime,
@@ -2506,7 +2505,7 @@ end;
 
     { Just like TCastleWindowBase.AllowSuspendForInput, except this is for
       the whole Application. Returns @true only if all open
-      windows allow it, and we do not have OnIdle and OnTimer. }
+      windows allow it, and we do not have OnUpdate and OnTimer. }
     function AllowSuspendForInput: boolean;
 
     procedure DoLimitFPS;
@@ -2571,9 +2570,12 @@ end;
     property OpenWindows[Index: integer]: TCastleWindowBase read GetOpenWindows;
     { @groupEnd }
 
-    { Called all the time.
-      At least as regularly as OnDraw, see TCastleWindowBase.OnIdle. }
-    property OnIdle: TIdleFunc read FOnIdle write FOnIdle;
+    { Continously occuring event.
+      @seealso TCastleWindowBase.OnUpdate. }
+    property OnUpdate: TUpdateFunc read FOnUpdate write FOnUpdate;
+
+    { @deprecated Deprecated name for OnUpdate. }
+    property OnIdle: TUpdateFunc read FOnUpdate write FOnUpdate; deprecated;
 
     { Event called approximately after each TimerMilisec miliseconds.
       The actual delay may be larger than TimerMilisec miliseconds,
@@ -2591,7 +2593,7 @@ end;
       mouse events, redraws and everything else.
       Messages are processed and appropriate window callbacks are called,
       like TCastleWindowBase.OnDraw,
-      TCastleWindowBase.OnIdle,
+      TCastleWindowBase.OnUpdate,
       TCastleWindowBase.OnKeyPress and many others.
 
       For simple programs calling the @link(Run) method is usually
@@ -2626,10 +2628,10 @@ end;
       Do not assume too much about message processing internals.
       For example, not all ProcessMessage calls cause redraw, even if redraw
       is requested by PostRedisplay. When we have messages to process,
-      we generally don't call redraw or even OnIdle.
+      we generally don't call redraw or even OnUpdate.
 
       @param(WaitForMessage If @true (and some other conditions are met,
-        for example we do not have to call OnIdle continuosly)
+        for example we do not have to call OnUpdate continuosly)
         then we can block, waiting for an event to process.
 
         Set this to @true whenever you can, that is whenever your program
@@ -2708,7 +2710,7 @@ end;
       To be more precise, this limits the number of TCastleApplication.ProcessMessage
       calls per second, in situations when we do not have to process any user input.
       So we limit not only rendering (TCastleWindowBase.OnDraw)
-      but also other animation processing (TCastleWindowBase.OnIdle) calls per second.
+      but also other animation processing (TCastleWindowBase.OnUpdate) calls per second.
       See TCastleApplication.ProcessMessage. }
     property LimitFPS: Single read FLimitFPS write FLimitFPS default DefaultLimitFPS;
   end;
@@ -3265,11 +3267,11 @@ begin
   EventPress(InputMouseWheel(Scroll, Vertical));
 end;
 
-procedure TCastleWindowBase.DoIdle;
+procedure TCastleWindowBase.DoUpdate;
 begin
-  Fps._IdleBegin;
+  Fps._UpdateBegin;
   MakeCurrent;
-  EventIdle;
+  EventUpdate;
 end;
 
 procedure TCastleWindowBase.DoTimer; begin  MakeCurrent; EventTimer end;
@@ -3329,7 +3331,7 @@ procedure TCastleWindowBase.EventMenuClick(Item: TMenuItem);                   c
 
   procedure TCastleWindowBase.EventBeforeDraw;                    const EventName = 'BeforeDraw';begin {$I castlewindow_eventbegin.inc} if Assigned(OnBeforeDraw)then begin OnBeforeDraw(Self);            end;   {$I castlewindow_eventend.inc} end;
   procedure TCastleWindowBase.EventDraw;                          const EventName = 'Draw';      begin {$I castlewindow_eventbegin.inc} if Assigned(OnDraw)      then begin OnDraw(Self);                  end;   {$I castlewindow_eventend.inc} end;
-  procedure TCastleWindowBase.EventIdle;                          const EventName = 'Idle';      begin {$I castlewindow_eventbegin.inc} if Assigned(OnIdle)      then begin OnIdle(Self);                  end;   {$I castlewindow_eventend.inc} end;
+  procedure TCastleWindowBase.EventUpdate;                        const EventName = 'Update';    begin {$I castlewindow_eventbegin.inc} if Assigned(OnUpdate)    then begin OnUpdate(Self);                end;   {$I castlewindow_eventend.inc} end;
   procedure TCastleWindowBase.EventTimer;                         const EventName = 'Timer';     begin {$I castlewindow_eventbegin.inc} if Assigned(OnTimer)     then begin OnTimer(Self);                 end;   {$I castlewindow_eventend.inc} end;
 
 {$ifndef CASTLE_WINDOW_EVENTS_LOG_ALL}
@@ -3340,7 +3342,7 @@ procedure TCastleWindowBase.EventMenuClick(Item: TMenuItem);                   c
 
 function TCastleWindowBase.AllowSuspendForInput: boolean;
 begin
- result := not (Assigned(OnIdle) or Assigned(OnTimer));
+ result := not (Assigned(OnUpdate) or Assigned(OnTimer));
 end;
 
 { Menu things ------------------------------------------------------------ }
@@ -3991,7 +3993,7 @@ begin
   finally DuringSwapFullScreen := false end;
 end;
 
-procedure TCastleWindowDemo.EventIdle;
+procedure TCastleWindowDemo.EventUpdate;
 begin
   inherited;
   { show FPS on caption once FpsCaptionUpdateInterval passed }
@@ -4235,7 +4237,7 @@ begin
   Cursor := CalculateMouseCursor;
 end;
 
-procedure TCastleWindowCustom.EventIdle;
+procedure TCastleWindowCustom.EventUpdate;
 
   procedure UpdateTooltip;
   var
@@ -4245,7 +4247,7 @@ procedure TCastleWindowCustom.EventIdle;
     { Update TooltipVisible and LastPositionForTooltip*.
       Idea is that user must move the mouse very slowly to activate tooltip. }
 
-    T := Fps.IdleStartTime;
+    T := Fps.UpdateStartTime;
     if (not LastPositionForTooltip) or
        (Sqr(LastPositionForTooltipX - MouseX) +
         Sqr(LastPositionForTooltipY - MouseY) > Sqr(TooltipDistance)) then
@@ -4305,7 +4307,7 @@ begin
     { 3D Mouse }
     if Assigned(Mouse3D) and Mouse3D.Loaded then
     begin
-      Mouse3dPollTimer -= Fps.IdleSpeed;
+      Mouse3dPollTimer -= Fps.UpdateSecondsPassed;
       if Mouse3dPollTimer < 0 then
       begin
         { get values from sensor }
@@ -4334,9 +4336,9 @@ begin
       end;
     end;
 
-    { Although we call Idle for all the controls, we look
+    { Although we call Update for all the controls, we look
       at PositionInside and track HandleMouseAndKeys values.
-      See TUIControl.Idle for explanation. }
+      See TUIControl.Update for explanation. }
 
     HandleMouseAndKeys := true;
 
@@ -4346,11 +4348,11 @@ begin
       if HandleMouseAndKeys and C.PositionInside(MouseX, MouseY) then
       begin
         HandleMouseAndKeys := not C.ExclusiveEvents;
-        C.Idle(Fps.IdleSpeed, true, HandleMouseAndKeys);
+        C.Update(Fps.UpdateSecondsPassed, true, HandleMouseAndKeys);
       end else
       begin
         Dummy := not C.ExclusiveEvents;
-        C.Idle(Fps.IdleSpeed, false, Dummy);
+        C.Update(Fps.UpdateSecondsPassed, false, Dummy);
       end;
     end;
   end;
@@ -4436,7 +4438,7 @@ begin
   if UseControls then
   begin
     { Do not suspend when you're over a control that may have a tooltip,
-      as EventIdle must track and eventually show tooltip. }
+      as EventUpdate must track and eventually show tooltip. }
     if (Focus <> nil) and (Focus.TooltipStyle <> dsNone) then
       Exit(false);
 
@@ -4709,11 +4711,11 @@ begin
   for i := 0 to Count - 1 do Items[i].PostRedisplay;
 end;
 
-procedure TWindowList.DoIdle;
+procedure TWindowList.DoUpdate;
 var
   i: integer;
 begin
-  for i := 0 to Count - 1 do Items[i].DoIdle;
+  for i := 0 to Count - 1 do Items[i].DoUpdate;
 end;
 
 procedure TWindowList.DoTimer;
@@ -4812,9 +4814,9 @@ begin
   QuitWhenNoOpenWindows;
 end;
 
-procedure TCastleApplication.DoSelfIdle;
+procedure TCastleApplication.DoSelfUpdate;
 begin
-  if Assigned(FOnIdle) then FOnIdle;
+  if Assigned(FOnUpdate) then FOnUpdate;
 end;
 
 procedure TCastleApplication.DoSelfTimer;
@@ -4840,7 +4842,7 @@ function TCastleApplication.AllowSuspendForInput: boolean;
 var
   I: Integer;
 begin
-  Result := not (Assigned(OnIdle) or Assigned(OnTimer));
+  Result := not (Assigned(OnUpdate) or Assigned(OnTimer));
   if not Result then Exit;
 
   for I := 0 to OpenWindowsCount - 1 do

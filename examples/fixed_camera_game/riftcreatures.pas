@@ -111,7 +111,7 @@ type
     ScheduledTransitionEndTime: TFloatTime;
 
     { Time from last change of state.
-      Note that for each SetState, it usually changes two times in Idle:
+      Note that for each SetState, it usually changes two times in Update:
       1. First, when ScheduledTransitionBegin "kicks in":
          ScheduledTransitionEnd becomes true, and CurrentStateStartTime is set
          to current WorldTime.
@@ -129,11 +129,11 @@ type
     property Kind: TCreatureKind read FKind;
     property State: TCreatureState read FState write SetState;
 
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
-    { This is called from @link(Idle) when no state change is scheduled.
-      Usually, you want to implement AI here, not directly in Idle. }
-    procedure IdleNoStateChangeScheduled(const CompSpeed: Single); virtual;
+    { This is called from @link(Update) when no state change is scheduled.
+      Usually, you want to implement AI here, not directly in Update. }
+    procedure UpdateNoStateChangeScheduled(const SecondsPassed: Single); virtual;
 
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
   end;
@@ -148,7 +148,7 @@ type
     constructor Create(AKind: TCreatureKind);
     destructor Destroy; override;
 
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
     procedure GLContextClose; override;
 
@@ -455,7 +455,7 @@ begin
       Scene(WorldTime - CurrentStateStartTime);
 end;
 
-procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
   if ScheduledTransitionEnd then
   begin
@@ -486,10 +486,10 @@ begin
       CurrentStateStartTime := WorldTime;
     end;
   end else
-    IdleNoStateChangeScheduled(CompSpeed);
+    UpdateNoStateChangeScheduled(SecondsPassed);
 end;
 
-procedure TCreature.IdleNoStateChangeScheduled(const CompSpeed: Single);
+procedure TCreature.UpdateNoStateChangeScheduled(const SecondsPassed: Single);
 begin
   if State = csBored then
     State := csStand else
@@ -569,7 +569,7 @@ begin
     FreeAndNil(TargetVisualize);
 end;
 
-procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
   RotationAxis: TVector3Single;
   AngleToTarget: Single;
@@ -579,7 +579,7 @@ var
     AngleRotate: Single;
   begin
     { first adjust direction }
-    AngleRotate := CompSpeed;
+    AngleRotate := SecondsPassed;
     if AngleToTarget < 0 then
       AngleRotate := Max(-AngleRotate, AngleToTarget) else
       AngleRotate := Min( AngleRotate, AngleToTarget);
@@ -596,7 +596,7 @@ var
     { since Position <> WantsToWalkPos, we know that
       MoveDirectionMax is non-zero }
     MoveDirectionMax := VectorSubtract(WantsToWalkPos, Position);
-    MoveDirectionCurrentScale := MoveSpeed * CompSpeed / VectorLen(MoveDirectionMax);
+    MoveDirectionCurrentScale := MoveSpeed * SecondsPassed / VectorLen(MoveDirectionMax);
     if MoveDirectionCurrentScale >= 1.0 then
     begin
       { This means that

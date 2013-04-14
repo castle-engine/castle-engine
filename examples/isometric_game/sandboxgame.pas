@@ -9,7 +9,7 @@ const
   BaseHeight = 36;
 
 var
-  { Game time, in seconds. Updated in Idle. }
+  { Game time, in seconds. Updated in Update. }
   GameTime: Single;
 
   ScreenWidth: Cardinal;

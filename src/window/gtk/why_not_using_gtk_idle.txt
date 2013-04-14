@@ -1,6 +1,6 @@
 This documents some history about GTK CastleWindow backend.
 My initial approach was to use GTK/glib's mechanism for stuff like
-PostRedisplay and Idle, more precisely:
+PostRedisplay and Update, more precisely:
 
 - PostRedisplay was doing
   if not Closed then gtk_widget_queue_draw(GTK_WIDGET(GLAreaGtk));

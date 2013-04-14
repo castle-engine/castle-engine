@@ -37,7 +37,7 @@ const
 var
   Transform: array [0 .. XCount - 1, 0 .. YCount - 1] of TTransformNode;
 
-procedure Idle(Window: TCastleWindowBase);
+procedure Update(Window: TCastleWindowBase);
 var
   I, J: Integer;
 begin
@@ -111,7 +111,7 @@ begin
     (Window.SceneManager.Camera as TExamineCamera).Rotations := QuatFromAxisAngle(
       Normalized(Vector3Single(1, 1, 0)), Pi/4);
 
-    Window.OnIdle := @Idle;
+    Window.OnUpdate := @Update;
     Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.OpenAndRun;
   finally Scene.Free end;

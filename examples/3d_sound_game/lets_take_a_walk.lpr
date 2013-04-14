@@ -74,7 +74,7 @@ type
   public
     function PointingDeviceActivate(const Active: boolean;
       const Distance: Single): boolean; override;
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
 const
@@ -103,7 +103,7 @@ begin
   Dec(TntsCount);
 end;
 
-procedure TTnt.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure TTnt.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
   T: TVector3Single;
 begin
@@ -113,7 +113,7 @@ begin
   T := Translation;
   if T[2] > 0 then
   begin
-    T[2] -= 5 * CompSpeed;
+    T[2] -= 5 * SecondsPassed;
     MaxTo1st(T[2], 0);
     Translation := T;
   end;
@@ -220,10 +220,10 @@ begin
   TntScene.GLContextClose;
 end;
 
-procedure Idle(Window: TCastleWindowBase);
+procedure Update(Window: TCastleWindowBase);
 begin
   { update rat }
-  RatAngle += 0.5 * Window.Fps.IdleSpeed;
+  RatAngle += 0.5 * Window.Fps.UpdateSecondsPassed;
   UpdateRatPosition;
   if RatSound <> nil then
     RatSound.Position := Rat.Translation;
@@ -296,7 +296,7 @@ begin
   Window := TCastleWindow.Create(Application);
   Window.OnClose := @close;
   Window.OnResize := @resize;
-  Window.OnIdle := @Idle;
+  Window.OnUpdate := @Update;
   Window.OnTimer := @Timer;
   Window.OnPress := @Press;
   Window.AutoRedisplay := true;

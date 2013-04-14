@@ -89,9 +89,9 @@ begin
     end;
 end;
 
-procedure Idle(Window: TCastleWindowBase);
+procedure Update(Window: TCastleWindowBase);
 begin
-  WorldTime += Window.Fps.IdleSpeed;
+  WorldTime += Window.Fps.UpdateSecondsPassed;
 end;
 
 procedure InspectCreatures;
@@ -127,7 +127,7 @@ begin
 
       Window.OnDraw := @Draw2D;
       Window.OnPress := @Press;
-      Window.OnIdle := @Idle;
+      Window.OnUpdate := @Update;
       Window.OnDrawStyle := ds2D;
 
       Window.EventResize;

@@ -248,36 +248,36 @@ begin
   try
     if (OpenWindowsCount <> 0) and (not CheckMessage) then
     begin
-      { no messages to us - call DoSelfIdle now.
-        Wywolujemy OnIdle teraz bo :
-         - gbybysmy wywolywali OnIdle w kazdym wywolaniu ProcessMessage
+      { no messages to us - call DoSelfUpdate now.
+        Wywolujemy OnUpdate teraz bo :
+         - gbybysmy wywolywali OnUpdate w kazdym wywolaniu ProcessMessage
            to doprowadzalisbysmy do tego ze np. ruch mysza powoduje
            pozorne przyspieszenie rysowania - bo gdy user rusza mysza
            nasza petla jest zajeta przetwarzaniem messagy i w zwiazku z tym
            nie wykonuje zadnych OnDraw ktore sa przeciez najbardziej
            opozniajaca czescia programu. W rezultacie wykonywanych jest
-           mnostwo razy OnIdle ktore, mimo ze zmieniaja jakas zmienna
+           mnostwo razy OnUpdate ktore, mimo ze zmieniaja jakas zmienna
            i wywoluja PostRedisplay to jednak czekaja sporo na
            spowodowane przez siebie redisplay (bo ciagle zamiast redisplay'a
-           przetwarzamy ruchy myszka). Wiec aby OnIdle byly wywolywane
+           przetwarzamy ruchy myszka). Wiec aby OnUpdate byly wywolywane
            mniej wiecej z taka sama czestotliwoscia co OnDraw'y
-           musimy umiescic wywolanie OnIdle tutaj - tuz przed wywolywaniem
+           musimy umiescic wywolanie OnUpdate tutaj - tuz przed wywolywaniem
            samych OnDraw'ow.
-         - gdybysmy wywolywali OnIdle dopiero do ponizszych drawach
+         - gdybysmy wywolywali OnUpdate dopiero do ponizszych drawach
            jezeli not WasAnyDrawing to z kolei zdarzenia OnDraw
            (ktore np. same sobie juz wywoluja PostRedisplay) moglyby
-           hamowac wywolywanie zdarzen OnIdle.
+           hamowac wywolywanie zdarzen OnUpdate.
            A tego nie chcemy - patrz komentarze w interfejsie,
-           nadrzednym celem jest by OnIdle bylo wykonywane mniej
+           nadrzednym celem jest by OnUpdate bylo wykonywane mniej
            wiecej tak czesto co OnDraw.  }
-      DoSelfIdle;
+      DoSelfUpdate;
 
       { redraw some windows; we do it only if our event queue is empty.
-        Przy okazji robimy DoIdle okien, majac nadzieje ze gromadzac
+        Przy okazji robimy DoUpdate okien, majac nadzieje ze gromadzac
           blisko siebie callbacki tych samych okien zminimalizujemy koszty
           ciaglego zmieniania aktywnego kontekstu OpenGL'a.
         Ponizszy kod wydaje sie miec paranoje na punkcie zamykania okna - pamietajmy
-          ze Closed moze zostac wywolane na oknie w kazdym callbacku, takze w OnIdle
+          ze Closed moze zostac wywolane na oknie w kazdym callbacku, takze w OnUpdate
           i OnDraw. A Close usuwa to okno z listy OpenWindows, dlatego kopiujemy sobie
           na poczatku OpenWindows[i] do Window. }
       WasAnyDrawing := false;
@@ -285,7 +285,7 @@ begin
       while I < OpenWindowsCount do
       begin
         Window := OpenWindows[I];
-        Window.DoIdle;
+        Window.DoUpdate;
         if Window.Closed then Continue {don't Inc(I)};
         { Kolejnosc w OR ponizej MA ZNACZENIE : zawsze chemy wywolac
           FlushRedisplay2, nawet jesli WasAnyDrawing juz jest = true }
@@ -294,7 +294,7 @@ begin
         Inc(I);
       end;
 
-      { If we do not do anything in any idle/timer
+      { If we do not do anything in any Update/timer
         (this is checked by AllowSuspendForInput),
         and there's no reason to redisplay,
         and we're not during quit process (started by Application.Quit),

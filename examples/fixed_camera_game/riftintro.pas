@@ -66,9 +66,9 @@ begin
    UserQuit := true;
 end;
 
-procedure Idle(Window: TCastleWindowBase);
+procedure Update(Window: TCastleWindowBase);
 begin
-  IntroPartTime := IntroPartTime + Window.Fps.IdleSpeed;
+  IntroPartTime := IntroPartTime + Window.Fps.UpdateSecondsPassed;
   if IntroPartTime >
       IntroParts[IntroPart].CorrodeDuration +
       IntroParts[IntroPart].IdleDuration then
@@ -147,7 +147,7 @@ begin
     Window.FpsShowOnCaption := DebugMenuFps;
     Window.AutoRedisplay := true;
     Window.OnPress := @Press;
-    Window.OnIdle := @Idle;
+    Window.OnUpdate := @Update;
     { actually we draw in 2D, but it's the current projection anyway }
     Window.OnDrawStyle := ds3D;
 

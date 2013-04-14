@@ -451,7 +451,7 @@ type
         @item MouseDown
         @item MouseUp
         @item KeyDown
-        @item Idle
+        @item Update
       )
       You can call this only while OpenGL context is initialized.
 
@@ -496,7 +496,7 @@ type
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
-    procedure Idle(const CompSpeed: Single;
+    procedure Update(const SecondsPassed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
     function PositionInside(const X, Y: Integer): boolean; override;
@@ -1674,13 +1674,13 @@ begin
   Result := ExclusiveEvents;
 end;
 
-procedure TCastleOnScreenMenu.Idle(const CompSpeed: Single;
+procedure TCastleOnScreenMenu.Update(const SecondsPassed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 begin
   inherited;
 
-  MenuAnimation += 0.5 * CompSpeed;
+  MenuAnimation += 0.5 * SecondsPassed;
   MenuAnimation := Frac(MenuAnimation);
   VisibleChange;
 end;

@@ -133,22 +133,22 @@ type
       @param Y   Y axis (rotate)
       @param Z   Z axis (tilt sidewards)
       @param Angle   Angle of rotation.}
-    function Mouse3dRotation(const X, Y, Z, Angle: Double; const CompSpeed: Single): boolean; virtual;
+    function Mouse3dRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; virtual;
 
     { Translation of 3Dconnexion devices.
       @param X   X axis (move left/right)
       @param Y   Y axis (move up/down)
       @param Z   Z axis (move forward/backwards)
       @param Length   Length of the vector consisting of the above. }
-    function Mouse3dTranslation(const X, Y, Z, Length: Double; const CompSpeed: Single): boolean; virtual;
+    function Mouse3dTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; virtual;
 
     { Control may do here anything that must be continously repeated.
       This is called often by the container.
       E.g. camera handles here falling down due to gravity
       in Walker mode, rotating model in Examine mode, and many more.
 
-      @param(CompSpeed Should be calculated like TFramesPerSecond.IdleSpeed,
-        and usually it's in fact just taken from TCastleWindowBase.Fps.IdleSpeed.)
+      @param(SecondsPassed Should be calculated like TFramesPerSecond.UpdateSecondsPassed,
+        and usually it's in fact just taken from TCastleWindowBase.Fps.UpdateSecondsPassed.)
 
       HandleMouseAndKeys says if this control can
       handle currently pressed keys and mouse buttons.
@@ -168,8 +168,8 @@ type
 
       @italic(More reasoning behind HandleMouseAndKeys:)
 
-      Note that the "Idle" events are called
-      differently that other mouse and key events.
+      Note that the "Update" events are called
+      differently than other mouse and key events.
 
       Mouse and key events
       return whether the event was somehow "handled", and the container
@@ -178,11 +178,11 @@ type
       the event, other controls (even if under the mouse) will not
       receive the event.
 
-      This approach is not suitable for idle events. Some controls
-      need to do the idle job all the time,
+      This approach is not suitable for Update events. Some controls
+      need to do the Update job all the time,
       regardless of whether the control is under the mouse and regardless
       of what other controls already did. So all controls receive
-      Idle calls.
+      Update calls.
 
       So the "handled" status is passed through HandleMouseAndKeys
       and controlled by LetOthersHandleMouseAndKeys.
@@ -191,7 +191,7 @@ type
       If a control is under the mouse, it will receive HandleMouseAndKeys
       = @true and has the power to disallow mouse/key handling for all other
       controls by LetOthersHandleMouseAndKeys. }
-    procedure Idle(const CompSpeed: Single;
+    procedure Update(const SecondsPassed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); virtual;
 
@@ -215,7 +215,7 @@ type
 
     { Allow window containing this control to suspend waiting for user input.
       Typically you want to override this to return @false when you do
-      something in the overridden @link(Idle) method.
+      something in the overridden @link(Update) method.
 
       In this class, this simply returns always @true.
 
@@ -553,17 +553,17 @@ begin
   Result := false;
 end;
 
-function TInputListener.Mouse3dRotation(const X, Y, Z, Angle: Double; const CompSpeed: Single): boolean;
+function TInputListener.Mouse3dRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
 begin
   Result := false;
 end;
 
-function TInputListener.Mouse3dTranslation(const X, Y, Z, Length: Double; const CompSpeed: Single): boolean;
+function TInputListener.Mouse3dTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
 begin
   Result := false;
 end;
 
-procedure TInputListener.Idle(const CompSpeed: Single;
+procedure TInputListener.Update(const SecondsPassed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 begin

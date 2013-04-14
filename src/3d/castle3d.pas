@@ -578,12 +578,12 @@ type
       const Distance: Single): boolean; virtual;
     { @groupEnd }
 
-    { Idle event, for various continously repeated tasks.
+    { Continously occuring event, for various tasks.
       @param(RemoveMe Set this to rtRemove or rtRemoveAndFree to remove
-        this item from 3D world (parent list) after Idle finished.
+        this item from 3D world (parent list) after Update finished.
         rtRemoveAndFree additionally will free this item.
         Initially it's rtNone when this method is called.) }
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); virtual;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); virtual;
 
     { Something visible changed inside @italic(this) 3D object.
       This is usually called by implementation of this 3D object,
@@ -902,7 +902,7 @@ type
       than adding item to Items.
 
       This item cannot be removed by methods like @link(T3DList,Delete)
-      or by setting RemoveMe in it's @link(T3D.Idle) implementation.
+      or by setting RemoveMe in it's @link(T3D.Update) implementation.
       Presence of this item is completely determined by GetChild implementation. }
     function GetChild: T3D; virtual;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -956,7 +956,7 @@ type
     function PrepareResourcesSteps: Cardinal; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     procedure GLContextClose; override;
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
@@ -1149,7 +1149,7 @@ type
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); override;
     function Middle: TVector3Single; override;
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { Gravity may make this object fall down (see FallSpeed)
       or grow up (see GrowSpeed). See also PreferredHeight.
@@ -1487,7 +1487,7 @@ type
       TVector3Single; virtual; abstract;
 
     { Do something right before animation progresses.
-      Called at the beginning of our @link(Idle),
+      Called at the beginning of our @link(Update),
       @italic(right before) AnimationTime changes to NewAnimationTime.
 
       Useful for taking care of collision detection issues,
@@ -1499,7 +1499,7 @@ type
     procedure BeforeTimeIncrease(const NewAnimationTime: TFloatTime); virtual;
   public
     constructor Create(AOwner: TComponent); override;
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   published
     { Are other 3D objects pushed when this object moves.
       Only the 3D objects with @link(T3D.CollidesWithMoving) are ever pushed by this object
@@ -1661,7 +1661,7 @@ type
     function GetTranslationFromTime(const AnAnimationTime: TFloatTime):
       TVector3Single; override;
 
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
   { Alive, oriented 3D object. Basis for players, creatures and everything
@@ -1723,7 +1723,7 @@ type
       const HurtDirection: TVector3Single;
       const AKnockbackDistance: Single; const Attacker: T3DAlive); virtual;
 
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { Direction from where the attack came.
       Zero if there was no specific direction of last attack,
@@ -1892,7 +1892,7 @@ begin
   Result := false;
 end;
 
-procedure T3D.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure T3D.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
 end;
 
@@ -2484,7 +2484,7 @@ begin
     if List[I].Release(Event) then Exit(true);
 end;
 
-procedure T3DList.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure T3DList.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
   I: Integer;
   Item: T3D;
@@ -2496,7 +2496,7 @@ begin
     if GetChild <> nil then
     begin
       RemoveItem := rtNone;
-      GetChild.Idle(CompSpeed, RemoveItem);
+      GetChild.Update(SecondsPassed, RemoveItem);
       { resulting RemoveItem is ignored, GetChild cannot be removed }
     end;
 
@@ -2505,7 +2505,7 @@ begin
     begin
       Item := List[I];
       RemoveItem := rtNone;
-      Item.Idle(CompSpeed, RemoveItem);
+      Item.Update(SecondsPassed, RemoveItem);
       if RemoveItem in [rtRemove, rtRemoveAndFree] then
       begin
         List.Delete(I);
@@ -3359,7 +3359,7 @@ begin
   {$endif}
 end;
 
-procedure T3DCustomTransform.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure T3DCustomTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 
   procedure DoGravity(const PreferredHeight: Single);
   var
@@ -3412,7 +3412,7 @@ procedure T3DCustomTransform.Idle(const CompSpeed: Single; var RemoveMe: TRemove
 
       FFalling := true;
 
-      FallingDistance := FallSpeed * CompSpeed;
+      FallingDistance := FallSpeed * SecondsPassed;
       if IsAbove then
       begin
         MaximumFallingDistance := AboveHeight - PreferredHeight;
@@ -3460,7 +3460,7 @@ procedure T3DCustomTransform.Idle(const CompSpeed: Single; var RemoveMe: TRemove
          (AboveHeight < PreferredHeight / HeightMargin) then
       begin
         { Growing up }
-        Move(GravityUp * Min(GrowSpeed * CompSpeed,
+        Move(GravityUp * Min(GrowSpeed * SecondsPassed,
           PreferredHeight - AboveHeight), false);
       end;
     end;
@@ -3860,13 +3860,13 @@ begin
   end;
 end;
 
-procedure T3DMoving.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure T3DMoving.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
   NewAnimationTime: TFloatTime;
 begin
   inherited;
 
-  NewAnimationTime := AnimationTime + CompSpeed;
+  NewAnimationTime := AnimationTime + SecondsPassed;
   BeforeTimeIncrease(NewAnimationTime);
   FAnimationTime := NewAnimationTime;
 end;
@@ -4005,7 +4005,7 @@ begin
     (AnimationTime - EndPositionStateChangeTime > MoveTime);
 end;
 
-procedure T3DLinearMoving.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure T3DLinearMoving.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
 
@@ -4062,7 +4062,7 @@ begin
   FKnockbackDistance := 0;
 end;
 
-procedure T3DAlive.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure T3DAlive.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 { Do the knockback effect, if it's currently active, by pushing
   creature along last attack direction. }
 var
@@ -4071,12 +4071,12 @@ begin
   inherited;
   if not GetExists then Exit;
 
-  FLifeTime += CompSpeed;
+  FLifeTime += SecondsPassed;
 
   if FKnockbackDistance > 0 then
   begin
     { Calculate CurrentKnockBackDistance, update FKnockbackDistance }
-    CurrentKnockBackDistance := KnockBackSpeed * CompSpeed;
+    CurrentKnockBackDistance := KnockBackSpeed * SecondsPassed;
     if FKnockbackDistance < CurrentKnockBackDistance then
     begin
       CurrentKnockBackDistance := FKnockbackDistance;

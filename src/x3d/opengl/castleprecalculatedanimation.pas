@@ -515,7 +515,7 @@ type
     function Release(const Event: TInputPressRelease): boolean; override;
     { @groupEnd }
 
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { Initial world time, set by the ResetTimeAtLoad call.
       This can be useful for showing user
@@ -537,7 +537,7 @@ type
       and comfortable.
 
       When we have exactly one scene in Scenes, our methods (ResetTime,
-      ResetTimeAtLoad and Idle) will synchronize Scenes[0].Time
+      ResetTimeAtLoad and Update) will synchronize Scenes[0].Time
       always to the same value as our own @link(Time).
       This makes time-dependent nodes (like TimeSensor,
       MovieTexture etc.) inside this scene work Ok. }
@@ -589,8 +589,8 @@ type
 
       For exact meaning of our TimePlaying, TimePlayingSpeed, see
       TCastleSceneCore.TimePlaying, TCastleSceneCore.TimePlayingSpeed.
-      Like in TCastleSceneCore, these are realized by our @link(Idle) method,
-      so Time is automatically increased in @link(Idle) which is called
+      Like in TCastleSceneCore, these are realized by our @link(Update) method,
+      so Time is automatically increased in @link(Update) which is called
       automatically if you added this to some TCastleWindowCustom.Controls or
       TCastleControlCustom.Controls.
 
@@ -1775,28 +1775,28 @@ begin
     Scenes[0].ResetTime(NewValue);
 end;
 
-procedure TCastlePrecalculatedAnimation.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure TCastlePrecalculatedAnimation.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
   OldTime: TFloatTime;
 begin
   inherited;
 
-  { Ignore Idle calls when CompSpeed is precisely zero
-    (this may happen, and is good, see TCastleWindowBase.IgnoreNextIdleSpeed).
+  { Ignore Update calls when SecondsPassed is precisely zero
+    (this may happen, and is good, see TFramesPerSecond.ZeroNextSecondsPassed).
     In this case, time increase will be zero so the whole code
     will not do anything anyway. }
 
-  if Loaded and TimePlaying and (CompSpeed <> 0) then
+  if Loaded and TimePlaying and (SecondsPassed <> 0) then
   begin
     OldTime := FTime;
-    FTime += TimePlayingSpeed * CompSpeed;
+    FTime += TimePlayingSpeed * SecondsPassed;
 
     { When ScenesCount = 1, it's sensible for single scene to receive
       events, to increase it's time. Note that TCastleSceneCore.SetTime
       will signal when redisplay will be needed (something visible changed),
       we don't have to worry about it.
 
-      We call Scenes[0].SetTime direcly, instead of calling Scenes[0].Idle.
+      We call Scenes[0].SetTime direcly, instead of calling Scenes[0].Update.
       This way we do not have to worry to set scene's initial time, TimePlaying,
       TimePlayingSpeed to our values. }
     if ScenesCount = 1 then

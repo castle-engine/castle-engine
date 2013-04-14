@@ -515,11 +515,11 @@ begin
   SceneForShadow.GLContextClose;
 end;
 
-procedure Idle(Window: TCastleWindowBase);
+procedure Update(Window: TCastleWindowBase);
 
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin
-    LightPosition[Coord] += Change * Window.Fps.IdleSpeed * 5;
+    LightPosition[Coord] += Change * Window.Fps.UpdateSecondsPassed * 5;
   end;
 
 begin
@@ -538,11 +538,11 @@ begin
   if Window.Pressed[K_P] then
   begin
     if mkShift in Window.Pressed.Modifiers then
-      PlaneDistance -= Window.Fps.IdleSpeed * 5 else
-      PlaneDistance += Window.Fps.IdleSpeed * 5;
+      PlaneDistance -= Window.Fps.UpdateSecondsPassed * 5 else
+      PlaneDistance += Window.Fps.UpdateSecondsPassed * 5;
   end;
 
-  RotationAngle += Window.Fps.IdleSpeed * 5;
+  RotationAngle += Window.Fps.UpdateSecondsPassed * 5;
 end;
 
 { menu ----------------------------------------------------------------------- }
@@ -686,7 +686,7 @@ begin
 
     Window.OnOpen := @Open;
     Window.OnClose := @Close;
-    Window.OnIdle := @Idle;
+    Window.OnUpdate := @Update;
     Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.OpenAndRun;
   finally

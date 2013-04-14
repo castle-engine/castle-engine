@@ -93,7 +93,7 @@ type
     procedure GLContextClose; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
-    procedure Idle(const CompSpeed: Single;
+    procedure Update(const SecondsPassed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
 
@@ -192,7 +192,7 @@ type
     function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw; override;
     function PositionInside(const X, Y: Integer): boolean; override;
-    procedure Idle(const CompSpeed: Single;
+    procedure Update(const SecondsPassed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
 
@@ -234,7 +234,7 @@ type
     function PositionInside(const X, Y: Integer): boolean; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
-    procedure Idle(const CompSpeed: Single;
+    procedure Update(const SecondsPassed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
     function Width: Cardinal;
@@ -695,7 +695,7 @@ begin
   end;
 end;
 
-procedure TCastleButton.Idle(const CompSpeed: Single;
+procedure TCastleButton.Update(const SecondsPassed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 begin
@@ -824,7 +824,7 @@ begin
     (ContainerHeight - Y  < Bottom + Height);
 end;
 
-procedure TCastlePanel.Idle(const CompSpeed: Single;
+procedure TCastlePanel.Update(const SecondsPassed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 begin
@@ -938,7 +938,7 @@ begin
   inherited;
 end;
 
-procedure TCastleImageControl.Idle(const CompSpeed: Single;
+procedure TCastleImageControl.Update(const SecondsPassed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 begin

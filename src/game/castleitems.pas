@@ -414,7 +414,7 @@ var
     procedure EquippedAttack(const LifeTime: Single); virtual;
 
     { Time passses for equipped weapon. }
-    procedure EquippedIdle(const LifeTime: Single); virtual;
+    procedure EquippedUpdate(const LifeTime: Single); virtual;
 
     { Return the 3D model to render for this equipped weapon, or @nil if none. }
     function EquippedScene(const LifeTime: Single): TCastleScene; virtual;
@@ -510,7 +510,7 @@ var
     procedure Render(const Frustum: TFrustum;
       const Params: TRenderParams); override;
 
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     property Collides default false;
     property CollidesWithMoving default true;
@@ -518,7 +518,7 @@ var
     { Extract the @link(Item), used when picking up the TInventoryItem
       instance referenced by this TItemOnWorld instance. This returns our
       @link(Item) property, and clears it (clearing also TInventoryItem.Owner3D).
-      At the next @link(Idle), this TItemOnWorld instance will be freed
+      At the next @link(Update), this TItemOnWorld instance will be freed
       and removed from 3D world.
 
       It's up to you what to do with resulting TInventoryItem instance.
@@ -942,7 +942,7 @@ begin
   end;
 end;
 
-procedure TItemWeapon.EquippedIdle(const LifeTime: Single);
+procedure TItemWeapon.EquippedUpdate(const LifeTime: Single);
 begin
   if Attacking and (not AttackDone) and
     (LifeTime - AttackStartTime >= Resource.AttackTime) then
@@ -1125,21 +1125,21 @@ begin
   end;
 end;
 
-procedure TItemOnWorld.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure TItemOnWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
   DirectionZero, U: TVector3Single;
 begin
   inherited;
   if not GetExists then Exit;
 
-  LifeTime += CompSpeed;
+  LifeTime += SecondsPassed;
 
   { LifeTime is used to choose animation frame in GetChild.
     So the item constantly changes, even when it's
     transformation (things taken into account in T3DOrient) stay equal. }
   VisibleChangeHere([vcVisibleGeometry]);
 
-  Rotation += RotationSpeed * CompSpeed;
+  Rotation += RotationSpeed * SecondsPassed;
   U := World.GravityUp; // copy to local variable for speed
   DirectionZero := Normalized(AnyOrthogonalVector(U));
   SetView(RotatePointAroundAxisRad(Rotation, DirectionZero, U), U);

@@ -789,16 +789,16 @@ begin
   FreeAndNil(GLSLProgram[1]);
 end;
 
-procedure Idle(Glwin: TCastleWindowBase);
+procedure Update(Glwin: TCastleWindowBase);
 begin
   if Glwin.Pressed.Characters['s'] then
   begin
-    ShadowScale *= Power(1.1, Glwin.Fps.IdleSpeed * 20);
+    ShadowScale *= Power(1.1, Glwin.Fps.UpdateSecondsPassed * 20);
     Glwin.PostRedisplay;
   end;
   if Glwin.Pressed.Characters['S'] then
   begin
-    ShadowScale *= Power(1/1.1, Glwin.Fps.IdleSpeed * 20);
+    ShadowScale *= Power(1/1.1, Glwin.Fps.UpdateSecondsPassed * 20);
     Glwin.PostRedisplay;
   end;
 end;
@@ -908,7 +908,7 @@ begin
 
     Window.OnOpen := @Open;
     Window.OnClose := @Close;
-    Window.OnIdle := @Idle;
+    Window.OnUpdate := @Update;
     Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.OpenAndRun;
   finally

@@ -280,12 +280,12 @@ begin
   FreeAndNil(StatusFont);
 end;
 
-procedure Idle(Window: TCastleWindowBase);
+procedure Update(Window: TCastleWindowBase);
 
   procedure Move(Coord, MoveDir: Integer);
   begin
     ControlPoints(CurrentCurve).L[CurrentPoint][Coord] +=
-      MoveDir * Window.Fps.IdleSpeed * 50 * 0.01;
+      MoveDir * Window.Fps.UpdateSecondsPassed * 50 * 0.01;
     (Surface.Curves[CurrentCurve] as TControlPointsCurve).UpdateControlPoints;
     Window.PostRedisplay;
   end;
@@ -620,7 +620,7 @@ begin
 
   Window.OnOpen := @Open;
   Window.OnClose := @Close;
-  Window.OnIdle := @Idle;
+  Window.OnUpdate := @Update;
   Window.OnPress := @Press;
   Window.OnRelease := @Release;
   Window.OnMouseMove := @MouseMove;

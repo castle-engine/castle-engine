@@ -199,16 +199,16 @@ begin
   end;
 end;
 
-procedure Idle(Window: TCastleWindowBase);
+procedure Update(Window: TCastleWindowBase);
 var
   Remove: TRemoveType;
 begin
-  WorldTime += Window.Fps.IdleSpeed;
+  WorldTime += Window.Fps.UpdateSecondsPassed;
 
   if not DebugNoCreatures then
   begin
     Remove := rtNone;
-    Player.Idle(Window.Fps.IdleSpeed, Remove);
+    Player.Update(Window.Fps.UpdateSecondsPassed, Remove);
     { for now resulting Remove ignored }
   end;
 end;
@@ -293,7 +293,7 @@ begin
       InitLocation;
 
       Window.OnPress := @Press;
-      Window.OnIdle := @Idle;
+      Window.OnUpdate := @Update;
       Window.OnDrawStyle := ds3D;
 
       Window.EventResize;

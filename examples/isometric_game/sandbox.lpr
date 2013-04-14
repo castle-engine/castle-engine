@@ -221,16 +221,16 @@ begin
   end;
 end;
 
-procedure Idle(Window: TCastleWindowBase);
+procedure Update(Window: TCastleWindowBase);
 const
   ViewMoveChangeSpeed = 10.0 * 50.0;
 begin
   if not ViewFollowsPlayer then
   begin
-    if Window.Pressed[K_Up]    then ViewMoveY -= ViewMoveChangeSpeed * Window.Fps.IdleSpeed;
-    if Window.Pressed[K_Down]  then ViewMoveY += ViewMoveChangeSpeed * Window.Fps.IdleSpeed;
-    if Window.Pressed[K_Right] then ViewMoveX -= ViewMoveChangeSpeed * Window.Fps.IdleSpeed;
-    if Window.Pressed[K_Left]  then ViewMoveX += ViewMoveChangeSpeed * Window.Fps.IdleSpeed;
+    if Window.Pressed[K_Up]    then ViewMoveY -= ViewMoveChangeSpeed * Window.Fps.UpdateSecondsPassed;
+    if Window.Pressed[K_Down]  then ViewMoveY += ViewMoveChangeSpeed * Window.Fps.UpdateSecondsPassed;
+    if Window.Pressed[K_Right] then ViewMoveX -= ViewMoveChangeSpeed * Window.Fps.UpdateSecondsPassed;
+    if Window.Pressed[K_Left]  then ViewMoveX += ViewMoveChangeSpeed * Window.Fps.UpdateSecondsPassed;
   end else
   begin
     { At first I placed the commands below in KeyDown, as they work
@@ -253,9 +253,9 @@ begin
     if Window.Pressed[K_Numpad_8] then Player.Move(dirNorth);
   end;
 
-  GameTime += Window.Fps.IdleSpeed;
+  GameTime += Window.Fps.UpdateSecondsPassed;
 
-  Player.Idle;
+  Player.Update;
 end;
 
 procedure Game;
@@ -266,7 +266,7 @@ begin
   try
     Window.AutoRedisplay := true;
     Window.OnPress := @Press;
-    Window.OnIdle := @Idle;
+    Window.OnUpdate := @Update;
 
     Quit := false;
     repeat

@@ -761,7 +761,7 @@ type
     procedure Render(const Frustum: TFrustum;
       const Params: TRenderParams); override;
 
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { You can set this to @false to force the creature to die without
       making any sound. This is really seldom needed, usefull only to avoid
@@ -887,7 +887,7 @@ type
 
     property State: TCreatureState read FState default csIdle;
 
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
 
     procedure Hurt(const LifeLoss: Single; const HurtDirection: TVector3Single;
@@ -907,7 +907,7 @@ type
   public
     constructor Create(AOwner: TComponent; const AMaxLife: Single); override;
     function Resource: TMissileCreatureResource;
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
   { Creature using TStillCreatureResource. }
@@ -916,7 +916,7 @@ type
     function GetChild: T3D; override;
   public
     function Resource: TStillCreatureResource;
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
 var
@@ -1473,7 +1473,7 @@ begin
       ZeroVector3Single, 0, nil);
 end;
 
-procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 
   procedure UpdateUsedSounds;
   var
@@ -1493,7 +1493,7 @@ begin
   if not GetExists then Exit;
 
   { In this case (when GetExists, regardless of DebugTimeStopForCreatures),
-    T3DAlive.Idle changed LifeTime.
+    T3DAlive.Update changed LifeTime.
     And LifeTime is used to choose animation frame in GetChild.
     So the creature constantly changes, even when it's
     transformation (things taken into account in T3DOrient) stay equal. }
@@ -1583,7 +1583,7 @@ begin
     { Force old box value for Middle and PreferredHeight calculation,
       for a fraction of a second.
 
-      This is crucial for TWalkAttackCreature.Idle logic
+      This is crucial for TWalkAttackCreature.Update logic
       that could otherwise sometimes get stuck and continously switching
       between walk/idle states, because in idle state Middle indicates
       that we should walk (e.g. distance or angle to enemy is not good enough),
@@ -1639,7 +1639,7 @@ begin
   end;
 end;
 
-procedure TWalkAttackCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure TWalkAttackCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
   EnemyVisibleNow: boolean;
   SqrDistanceToLastSeenEnemy: Single;
@@ -1725,7 +1725,7 @@ var
       { Rotate Direction, to be closer to DirectionToTarget }
 
       { calculate AngleRadChange }
-      AngleRadChange := AngleRadChangeSpeed * CompSpeed;
+      AngleRadChange := AngleRadChangeSpeed * SecondsPassed;
       MinTo1st(AngleRadChange, AngleRadBetweenDirectionToTarget);
 
       NewDirection := RotatePointAroundAxisRad(AngleRadChange, Direction,
@@ -1961,7 +1961,7 @@ var
           Our trick with "AlternativeTarget" should handle
           eventual problems with the track of creature, so wall-sliding
           should not be needed. }
-        Move(Direction * (Resource.MoveSpeed * CompSpeed), false, false);
+        Move(Direction * (Resource.MoveSpeed * SecondsPassed), false, false);
     end;
 
     { Go the way to LastSeenEnemy, *not* by using waypoints.
@@ -2476,7 +2476,7 @@ begin
   Result := TMissileCreatureResource(inherited Resource);
 end;
 
-procedure TMissileCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure TMissileCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
   Player: T3DOrient;
 
@@ -2515,7 +2515,7 @@ begin
   { Missile moves *always*, regardless of MissileMoveAllowed result.
     Only after move, if the move made us colliding with something --- we explode. }
   OldMiddle := Middle;
-  Translate(Direction * (Resource.MoveSpeed * CompSpeed));
+  Translate(Direction * (Resource.MoveSpeed * SecondsPassed));
   NewMiddle := Middle;
 
   if not MissileMoveAllowed(OldMiddle, NewMiddle) then
@@ -2562,7 +2562,7 @@ begin
   if Resource.DirectionFallSpeed <> 0 then
   begin
     NewDirection := Direction -
-      World.GravityUp * Resource.DirectionFallSpeed * CompSpeed;
+      World.GravityUp * Resource.DirectionFallSpeed * SecondsPassed;
     Direction := NewDirection;
   end;
 
@@ -2570,7 +2570,7 @@ begin
   begin
     TargetDirection := Player.Position - Position;
     AngleBetween := AngleRadBetweenVectors(TargetDirection, Direction);
-    AngleChange := Resource.CloseDirectionToTargetSpeed * CompSpeed;
+    AngleChange := Resource.CloseDirectionToTargetSpeed * SecondsPassed;
     if AngleBetween <= AngleChange then
       Direction := TargetDirection else
     begin
@@ -2635,7 +2635,7 @@ begin
     Result := Resource.IdleAnimation.Scene(LifeTime, true);
 end;
 
-procedure TStillCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure TStillCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
   if (not GetExists) or DebugTimeStopForCreatures then Exit;

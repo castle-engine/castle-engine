@@ -26,19 +26,19 @@
   Bugs on Carbon and GTK2:
   - MouseLook stutters. Something similar to aggressive update needed?
     Also, during dragging with mouse, e.g. rotating a model with Examine mode,
-    the Idle isn't called.
+    the Update isn't called.
     This is all just like with TCastleControl. Official comments:
 
     The behavior of Lazarus application Idle events is such that they are executed
     only when there are no events left to process. This makes sense, and actually
     follows the docs and the name "idle".
 
-    However, our Idle events (which would be more appropriately named something
-    like Update events) expect to be run continously, that is: about the same number
+    In contrast, our Update events expect to be run continously, that is:
+    about the same number
     of times per second as the screen Redraw (and if the screen doesn't need to be redrawn,
-    our Idle should still run a sensible number of times per second ---
+    our Update should still run a sensible number of times per second ---
     around the same value as FPSLimit, or (when FPSLimit is set to 0, meaning "unused")
-    as many times as possible). For our Idle, it should not matter whether your event
+    as many times as possible). For our Update, it should not matter whether your event
     loop has something left to process.
 
     The problem is most obvious when moving the mouse, for example when using
@@ -50,7 +50,7 @@
     like XWindows etc. I think in practice XWindows does it, but I'm not sure).
     Our program should however still be responsive. Not only the screen should
     be redrawn, regardless if our event loop is empty or not, but also
-    our Idle event should be continously called. But if we just use Lazarus Idle/Redraw
+    our Update event should be continously called. But if we just use LCL Idle/Redraw
     behavior (that descends from other widgetsets) then you may find that:
     - during mouse look things "stutter" --- no Idle, not even Redraw, happens regularly.
     - during mouse drag Redraw may be regular, but still Idle are not called
@@ -64,10 +64,6 @@
     - make it enabled by default
     - possibly move it to CastleTimeUtils
     - reuse it here
-
-    TODO: also, rename our Idle to Update? This would make the distinction clear,
-    our "Idle" name is really a leftover from ancient times (where it was common
-    to use glut idle callback for similar purposes).
 
   Bugs on Carbon, not on GTK2:
   - Sometimes after menu changes we have a segfault in Carbon widgetset,
@@ -363,7 +359,7 @@ begin
   { Note: I tried also using OpenGLControl.OnExit for this, seems to be quivalent
     in our case. And, similarly, both methods still need manual workaround
     to call ReleaseAllKeysAndMouse manually in MessageOK and similar methods
-    (otherwise: check e.g. window_events with Window.MessageOk from Idle:
+    (otherwise: check e.g. window_events with Window.MessageOk from Update:
     entering MessageOK *must* make ReleaseAllKeysAndMouse, otherwise it hangs.) }
   Form.OnDeactivate := @FormDeactivate;
 
@@ -644,12 +640,12 @@ end;
 
 procedure TCastleApplication.ApplicationIdle(Sender: TObject; var Done: Boolean);
 begin
-  { Call idle and timer events of Application and all windows.
-    Idle events are handled by DoSelfIdle and OpenWindows.DoIdle.
+  { Call Update and timer events of Application and all windows.
+    Update events are handled by DoSelfUpdate and OpenWindows.DoUpdate.
     Timer events are handled by MaybeDoTimer, that in turn will call
     (when needed) DoSelfTimer and OpenWindows.DoTimer. }
-  DoSelfIdle;
-  FOpenWindows.DoIdle;
+  DoSelfUpdate;
+  FOpenWindows.DoUpdate;
   MaybeDoTimer(LastDoTimerTime);
 
   { We need Done := false, otherwise the widgetset will hang waiting
@@ -698,7 +694,7 @@ begin
     promises that it's not necessary to call Run, it should be always
     equivalent to call just ProcessMessage in a loop.
 
-    TODO: this makes idle/timer broken, they need our
+    TODO: this makes Update/timer broken, they need our
     TCastleApplication.ProcessMessage to work. }
 
   Forms.Application.Run;

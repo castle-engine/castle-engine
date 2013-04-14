@@ -1427,7 +1427,7 @@ type
       read FOnPointingDeviceSensorsChange
       write FOnPointingDeviceSensorsChange;
 
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { Change current scene time, setting @link(Time).
       It is crucial that you call this continously to have some VRML/X3D
@@ -1436,7 +1436,7 @@ type
 
       This is automatically taken care of if you added this scene
       to TCastleWindowCustom.Controls or TCastleControlCustom.Controls.
-      Then our @link(Idle) takes care of doing the job,
+      Then our @link(Update) takes care of doing the job,
       according to TimePlaying and TimePlayingSpeed.
 
       This causes time to be passed to appropriate time-dependent nodes,
@@ -1775,8 +1775,8 @@ type
     { @groupEnd }
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
-      More precisely, our @link(Idle) will take care of increasing @link(Time).
-      Our @link(Idle) is usually automatically called (if you added this
+      More precisely, our @link(Update) will take care of increasing @link(Time).
+      Our @link(Update) is usually automatically called (if you added this
       scene to TCastleWindowCustom.Controls or TCastleControlCustom.Controls)
       so you don't have to do anything to make this work. }
     property TimePlaying: boolean read FTimePlaying write FTimePlaying default true;
@@ -5713,17 +5713,17 @@ begin
   Inc(FTime.PlusTicks);
 end;
 
-procedure TCastleSceneCore.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure TCastleSceneCore.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
   if not GetExists then Exit;
 
-  { Ignore Idle calls when CompSpeed is precisely zero
-    (this may happen, and is correct, see TCastleWindowBase.IgnoreNextIdleSpeed).
+  { Ignore Update calls when SecondsPassed is precisely zero
+    (this may happen, and is correct, see TFramesPerSecond.ZeroNextSecondsPassed).
     In this case, time increase will be zero so the whole code
     will not do anything anyway. }
-  if TimePlaying and (CompSpeed <> 0) then
-    IncreaseTime(TimePlayingSpeed * CompSpeed);
+  if TimePlaying and (SecondsPassed <> 0) then
+    IncreaseTime(TimePlayingSpeed * SecondsPassed);
 end;
 
 { changes schedule ----------------------------------------------------------- }

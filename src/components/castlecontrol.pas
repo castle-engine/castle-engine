@@ -38,10 +38,10 @@ type
 
     Provides OnGLContextOpen and OnGLContextClose events.
 
-    Provides comfortable Idle method. And a special AggressiveUpdate hack
-    to be able to continously update (call Idle and Draw) even when the window
-    system clogs us with events (this typically happens when user moves the mouse
-    and we use TWalkCamera.MouseLook).
+    Provides comfortable @link(Update) method. And a special AggressiveUpdate hack
+    to be able to continously update (call @link(Update) and Draw) even when
+    the window system clogs us with events (this typically happens when user
+    moves the mouse and we use TWalkCamera.MouseLook).
 
     Also, this automatically calls LoadAllExtensions
     when GL context is initialized. This will initialize all extensions
@@ -146,7 +146,7 @@ type
       { Default value for TCastleControlBase.AggressiveUpdateDelay.
         "1000 div 60" means that we strike for 60 frames per second,
         although this is gross approximation (no guarantees, of course;
-        especially if your Idle / Draw take a long time). }
+        especially if your Update / Draw take a long time). }
       DefaultAggressiveUpdateDelay = 1000 div 60;
 
       { Default value for TCastleControlBase.AggressiveUpdate }
@@ -159,7 +159,7 @@ type
     procedure Invalidate; override;
     procedure Paint; override;
 
-    procedure Idle; virtual;
+    procedure Update; virtual;
 
     property Pressed: TKeysPressed read FPressed;
     property MousePressed: CastleKeysMouse.TMouseButtons read FMousePressed;
@@ -203,16 +203,16 @@ type
     property OnBeforeDraw: TNotifyEvent read FOnBeforeDraw write FOnBeforeDraw;
     property OnDraw: TNotifyEvent read FOnDraw write FOnDraw;
 
-    { Force Idle and Paint (if invalidated) events to happen continously.
+    { Force Update and Paint (if invalidated) events to happen continously.
 
       You almost always want this to happen. Without this, when user "clogs"
       the GTK / WinAPI / Qt etc. event queue, Lazarus (LCL) doesn't continously
-      fire the "Idle" events (used to update various state of our 3D world)
+      fire the "Update" events (used to update various state of our 3D world)
       and repaint events. This is somewhat tolerable for normal UI programs,
       that really "do" something only in response to user actions.
       But typical games / 3D simulations must try to update animations and
-      repaint at a constant rate. Which means that we want "Idle" to be fired
-      continously (not really only when application stays "idle"),
+      repaint at a constant rate. Which means that we want "Update" to be fired
+      continously (not really only when application stays "Update"),
       and we want redraw to happen when needed (you signal the need to redraw
       by Invalidate call).
 
@@ -229,9 +229,9 @@ type
       (for example, may be ~ 100 GTK messages, see
       TGtkWidgetSet.AppProcessMessages in lazarus/trunk/lcl/interfaces/gtk/gtkwidgetset.inc).
       So instead we hack from the inside: from time to time
-      (more precisely, after AggressiveUpdateDelay miliseconds since last Idle + Paint end),
+      (more precisely, after AggressiveUpdateDelay miliseconds since last Update + Paint end),
       when receving key or mouse events (KeyDown, MouseDown, MouseMove etc.),
-      we'll call the Idle, and (if pending Invalidate call) Paint methods.
+      we'll call the Update, and (if pending Invalidate call) Paint methods.
 
       Do not set too small, like 0, or you'll overload the system
       (you will see smooth animation and rendering, but there will be latency
@@ -313,7 +313,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure Idle; override;
+    procedure Update; override;
 
     { Returns the control that should receive input events first,
       or @nil if none. More precisely, this is the first on Controls
@@ -514,12 +514,12 @@ var
 begin
   AllowLimitFPS := true;
 
-  { Call Idle for all TCastleControl instances.
+  { Call Update for all TCastleControl instances.
     Also, calculate AllowLimitFPS. }
   for I := 0 to CastleControls.Count - 1 do
   begin
     C := CastleControls[I] as TCastleControlBase;
-    C.Idle;
+    C.Update;
     AllowLimitFPS := AllowLimitFPS and
       (not C.AggressiveUpdate) and not (csDesigning in C.ComponentState);
   end;
@@ -533,7 +533,7 @@ begin
     demo_models/sensors_pointing_device/touch_sensor_tests.x3dv .
     That's because Done := true allows for WidgetSet.AppWaitMessage
     inside lcl/include/application.inc .
-    We don't want that, we want continous idle events.
+    We don't want that, we want continous Update events.
 
     So we have to use Done := false.
 
@@ -686,17 +686,17 @@ begin
   begin
     if TimeTickSecondLater(LastAggressiveUpdateTime, GetTickCount, AggressiveUpdateDelay) then
     begin
-      Idle;
+      Update;
       if Invalidated then Paint;
 
       { We have to resist the temptation of optimizing below by reusing previous
         GetTickCount result here for speed. This could make our aggressive
         update overloading the event loop with repaints.
-        Imagine that Idle + Paint would take > AggressiveUpdateDelay
+        Imagine that Update + Paint would take > AggressiveUpdateDelay
         (quite possible, if your scene is complex and you're constantly
         repainting, e.g. observed with mouse look walking + rotating on
         cubemap_with_dynamic_world.x3d). Then we would effectively repeat
-        Idle + Paint in every event (like, on every MouseMove), making
+        Update + Paint in every event (like, on every MouseMove), making
         "lag" between painting and actualy processed events.
 
         True, this "overloading" is always possible with AggressiveUpdate
@@ -870,9 +870,9 @@ begin
   Result := false;
 end;
 
-procedure TCastleControlBase.Idle;
+procedure TCastleControlBase.Update;
 begin
-  Fps._IdleBegin;
+  Fps._UpdateBegin;
 end;
 
 procedure TCastleControlBase.DoExit;
@@ -1132,7 +1132,7 @@ begin
     Cursor := NewCursor;
 end;
 
-procedure TCastleControlCustom.Idle;
+procedure TCastleControlCustom.Update;
 
   procedure UpdateTooltip;
   var
@@ -1142,7 +1142,7 @@ procedure TCastleControlCustom.Idle;
     { Update TooltipVisible and LastPositionForTooltip*.
       Idea is that user must move the mouse very slowly to activate tooltip. }
 
-    T := Fps.IdleStartTime;
+    T := Fps.UpdateStartTime;
     if (not LastPositionForTooltip) or
        (Sqr(LastPositionForTooltipX - MouseX) +
         Sqr(LastPositionForTooltipY - MouseY) > Sqr(TooltipDistance)) then
@@ -1202,7 +1202,7 @@ begin
     { 3D Mouse }
     if Assigned(Mouse3D) and Mouse3D.Loaded then
     begin
-      Mouse3dPollTimer -= Fps.IdleSpeed;
+      Mouse3dPollTimer -= Fps.UpdateSecondsPassed;
       if Mouse3dPollTimer < 0 then
       begin
         { get values from sensor }
@@ -1231,9 +1231,9 @@ begin
       end;
     end;
 
-    { Although we call Idle for all the controls, we look
+    { Although we call Update for all the controls, we look
       at PositionInside and track HandleMouseAndKeys values.
-      See TUIControl.Idle for explanation. }
+      See TUIControl.Update for explanation. }
 
     HandleMouseAndKeys := true;
 
@@ -1243,11 +1243,11 @@ begin
       if HandleMouseAndKeys and C.PositionInside(MouseX, MouseY) then
       begin
         HandleMouseAndKeys := not C.ExclusiveEvents;
-        C.Idle(Fps.IdleSpeed, true, HandleMouseAndKeys);
+        C.Update(Fps.UpdateSecondsPassed, true, HandleMouseAndKeys);
       end else
       begin
         Dummy := not C.ExclusiveEvents;
-        C.Idle(Fps.IdleSpeed, false, Dummy);
+        C.Update(Fps.UpdateSecondsPassed, false, Dummy);
       end;
     end;
   end;

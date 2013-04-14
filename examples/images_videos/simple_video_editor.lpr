@@ -100,10 +100,10 @@ begin
   DrawStatus(nil);
 end;
 
-procedure Idle(Window: TCastleWindowBase);
+procedure Update(Window: TCastleWindowBase);
 begin
   if TimePlaying then
-    Time += Window.Fps.IdleSpeed;
+    Time += Window.Fps.UpdateSecondsPassed;
 end;
 
 procedure LoadVideo(const NewVideoFileName: string);
@@ -313,7 +313,7 @@ begin
     Window.OnOpen := @Open;
     Window.OnClose := @Close;
     Window.OnDraw := @Draw;
-    Window.OnIdle := @Idle;
+    Window.OnUpdate := @Update;
     Window.OnResize := @Resize2D;
 
     Window.OpenAndRun;

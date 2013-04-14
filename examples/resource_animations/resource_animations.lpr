@@ -44,7 +44,7 @@ type
   public
     Time: Single;
     function GetChild: T3D; override;
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
 function TLoopAnimation.GetChild: T3D;
@@ -53,9 +53,9 @@ begin
   Result := Animation.Scene(Time, true);
 end;
 
-procedure TLoopAnimation.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure TLoopAnimation.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
-  Time += CompSpeed;
+  Time += SecondsPassed;
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 

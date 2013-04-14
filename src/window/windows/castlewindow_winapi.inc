@@ -517,16 +517,16 @@ begin
 
         { Windows blocks our program when user enters a menu bar.
           Essentially, this means that window will not receive normal events,
-          will not process OnIdle and such during the time menu bar is open.
+          will not process OnUpdate and such during the time menu bar is open.
           So menu bar is like a modal dialog box.
-          So IdleSpeed at next idle is irrelevant, just like at the end of TGLMode.
+          So Fps.SecondsPassed at next Update is irrelevant, just like at the end of TGLMode.
           Fixes e.g. CameraTransitions when choosing viewpoint from view3dscene menu.
 
           We would like to call this always when user leaves the menu, but it seems
           there's no WinAPI event for this. But we can as well call this when user enters
           the menu, because of blocking above --- it will have the same effect, since
-          DoIdle is not called inside the menu. }
-        Fps.IgnoreNextIdleSpeed;
+          DoUpdate is not called inside the menu. }
+        Fps.ZeroNextSecondsPassed;
 
         Exit;
       end;

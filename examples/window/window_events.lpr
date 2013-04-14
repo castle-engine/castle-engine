@@ -90,11 +90,11 @@ begin
   Font.PrintBrokenString(S, Window.Width - Margin * 2, Margin, 200, false, 0);
 end;
 
-procedure Idle(Window: TCastleWindowBase);
+procedure Update(Window: TCastleWindowBase);
 begin
   if Window.Pressed[K_F12] then
-    // MessageOk(Window, 'F12 key pressed. This is just a test that MessageOk works even from callbacks like OnIdle.', taLeft);
-    Window.MessageOk('F12 key pressed. This is just a test that MessageOk works even from callbacks like OnIdle.', mtInfo);
+    // MessageOk(Window, 'F12 key pressed. This is just a test that MessageOk works even from callbacks like OnUpdate.', taLeft);
+    Window.MessageOk('F12 key pressed. This is just a test that MessageOk works even from callbacks like OnUpdate.', mtInfo);
 end;
 
 procedure Timer(Window: TCastleWindowBase);
@@ -145,7 +145,7 @@ begin
   Window.OnMouseMove := @MouseMove;
   Window.SetDemoOptions(K_F11, CharEscape, true);
 
-  Window.OnIdle := @Idle;
+  Window.OnUpdate := @Update;
   Application.TimerMilisec := 5000;
   Window.OnTimer := @Timer;
 

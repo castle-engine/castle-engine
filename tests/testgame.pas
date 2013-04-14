@@ -196,7 +196,7 @@ begin
     AssertFloat(Player.DrownDamageRandom, 2.3);
 
     RemovePlayer := rtNone;
-    Player.Idle(0, RemovePlayer);
+    Player.Update(0, RemovePlayer);
     // ignore resulting RemovePlayer
 
     { some properties are applied to Camera with delay }

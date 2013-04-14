@@ -52,7 +52,7 @@ var
   TransformBox3: TTransformNode;
   TransformBox4: TTransformNode;
 
-procedure Idle(Window: TCastleWindowBase);
+procedure Update(Window: TCastleWindowBase);
 begin
   { We want to keep track of current time here (for calculating rotations
     below). It's most natural to just use Scene.Time property for this.
@@ -92,7 +92,7 @@ begin
     Window.SceneManager.Camera := TExamineCamera.Create(Window);
     (Window.SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
 
-    Window.OnIdle := @Idle;
+    Window.OnUpdate := @Update;
     Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.OpenAndRun;
   finally Scene.Free end;

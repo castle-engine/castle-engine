@@ -63,7 +63,7 @@
     @item(
       It's implemented using CastleWindowModes approach. Which means that when you call
       some MessageXxx procedure, it temporarily switches all TCastleWindowBase callbacks
-      (OnDraw, OnPress, OnRelease, OnIdle etc.) for it's own.
+      (OnDraw, OnPress, OnRelease, OnUpdate etc.) for it's own.
       So you can be sure that e.g. no TCastleWindow callbacks that you registered in your
       own programs/units will be called while MessageXxx works.
       When message box ends (e.g. for simple MessageOk, this happens when user
@@ -75,7 +75,7 @@
       user answers the dialog box.)
 
     @item(
-      Be careful if you use Application callbacks, OnIdle / OnTimer.
+      Be careful if you use Application callbacks, OnUpdate / OnTimer.
       They are tied to GL window manager, Glwn, not to any particular window,
       and so they continue to work even while we're inside MessageXxx procedure.
 
@@ -346,7 +346,7 @@ var
     Note that all procedures in this unit are re-entrant (safe for recursive
     calls, and in threads), unless you modify this variable. When you modify
     this from one thread, be sure that you don't currently use it in some
-    MessageXxx (in other thread, or maybe you're in Application.OnIdle or such that
+    MessageXxx (in other thread, or maybe you're in Application.OnUpdate or such that
     is called while other window is in MessageXxx). }
   MessagesTheme: TMessagesTheme;
 
@@ -453,7 +453,7 @@ type
     VisibleScrolledLinesCount: integer;
 
     { shiftY = o ile pixeli w gore przesunac caly napis. Przechowywane w
-      formacie float zeby umozliwic time-based zmiane w idleMessg.
+      formacie float zeby umozliwic time-based zmiane w UpdateMessg.
       Uwaga - SetFloatShiftY jest tak napisane ze SetFloatShitY(..,FloatShiftY)
       spowoduje ew. clamp wartosci shiftY, tzn. mozesz tego uzywac np.
       gdy zmienisz min/maxShiftY }
@@ -773,11 +773,11 @@ begin
  md.setFloatShiftY(Window, md.shiftY + moveY);
 end;
 
-procedure IdleMessg(Window: TCastleWindowBase);
+procedure UpdateMessg(Window: TCastleWindowBase);
 
   function Faktor: Single;
   begin
-   result := 200.0 * Window.Fps.IdleSpeed;
+   result := 200.0 * Window.Fps.UpdateSecondsPassed;
    if mkCtrl in Window.Pressed.Modifiers then result *= 6;
   end;
 
@@ -1034,7 +1034,7 @@ begin
   OnMouseMove := @mouseMoveMessg;
   OnPress := @PressMessg;
   OnRelease := @ReleaseMessg;
-  OnIdle := @idleMessg;
+  OnUpdate := @UpdateMessg;
   PostRedisplay;
  end;
  glDisable(GL_FOG);

@@ -490,10 +490,10 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
     procedure PrepareNewPlayer(NewPlayer: TPlayer); virtual;
 
     { Time of the level, in seconds. Time 0 when level is created.
-      This is updated in our Idle. }
+      This is updated in our @link(Update). }
     property Time: TFloatTime read FTime;
 
-    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
   TLevelLogicClasses = specialize TFPGMap<string, TLevelLogicClass>;
@@ -1062,10 +1062,10 @@ begin
     TCastlePrecalculatedAnimation);
 end;
 
-procedure TLevelLogic.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+procedure TLevelLogic.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
-  FTime += CompSpeed;
+  FTime += SecondsPassed;
 end;
 
 function TLevelLogic.Placeholder(const Shape: TShape;

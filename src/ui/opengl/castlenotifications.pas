@@ -85,7 +85,7 @@ type
     { Clear all messages. }
     procedure Clear;
 
-    procedure Idle(const CompSpeed: Single;
+    procedure Update(const SecondsPassed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
 
@@ -281,7 +281,7 @@ begin
     Result := dsNone;
 end;
 
-procedure TCastleNotifications.Idle(const CompSpeed: Single;
+procedure TCastleNotifications.Update(const SecondsPassed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 { Check which messages should time out. }

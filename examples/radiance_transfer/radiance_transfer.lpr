@@ -179,11 +179,11 @@ begin
   Window.PostRedisplay;
 end;
 
-procedure Idle(Glwin: TCastleWindowBase);
+procedure Update(Glwin: TCastleWindowBase);
 
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin
-    LightPos[Coord] += Change * Glwin.Fps.IdleSpeed *
+    LightPos[Coord] += Change * Glwin.Fps.UpdateSecondsPassed *
       { scale by Box3DAvgSize, to get similar move on all models }
       Scene.BoundingBox.AverageSize;
     Glwin.PostRedisplay;
@@ -191,13 +191,13 @@ procedure Idle(Glwin: TCastleWindowBase);
 
   procedure ChangeLightRadius(Change: Float);
   begin
-    LightRadius *= Power(Change, Glwin.Fps.IdleSpeed);
+    LightRadius *= Power(Change, Glwin.Fps.UpdateSecondsPassed);
     Glwin.PostRedisplay;
   end;
 
   procedure ChangeLightIntensityScale(Change: Float);
   begin
-    LightIntensityScale *= Power(Change, Glwin.Fps.IdleSpeed);
+    LightIntensityScale *= Power(Change, Glwin.Fps.UpdateSecondsPassed);
     Glwin.PostRedisplay;
   end;
 
@@ -295,7 +295,7 @@ begin
   Window.Controls.Add(SceneManager);
 
   Window.OnOpen := @Open;
-  Window.OnIdle := @Idle;
+  Window.OnUpdate := @Update;
   Window.SetDemoOptions(K_F11, CharEscape, true);
 
   InitializeSHBasisMap;

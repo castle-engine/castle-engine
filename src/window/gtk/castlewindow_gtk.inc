@@ -74,7 +74,7 @@ private
     Never use GTK's gtk_dialog_run! (Reason: We have to run event loop by our
     Application.ProcessMessage, not by GTK's g_main_loop_run,
     to properly run Application.ProcessUpdates, to properly redraw /
-    receive idle etc.)
+    call Update etc.)
 
     @groupBegin }
   function GtkDialogRun(ADialog: PGtkWindow;
@@ -160,7 +160,7 @@ private
 
   { This must be constantly called.
     We use it for two tasks currently:
-    1. calling idle and times events of Application and all our windows
+    1. calling Update and times events of Application and all our windows
     2. taking care of redraw }
   procedure ProcessUpdates;
 private
@@ -1493,16 +1493,16 @@ procedure TCastleApplication.ProcessUpdates;
     end;
   end;
 
-  { Call idle and timer events of Application and all windows.
+  { Call Update and timer events of Application and all windows.
 
-    Idle events are handled by DoSelfIdle and OpenWindows.DoIdle.
+    Update events are handled by DoSelfUpdate and OpenWindows.DoUpdate.
 
     Timer events are handled by MaybeDoTimer, that in turn will call
     (when needed) DoSelfTimer and OpenWindows.DoTimer. }
-  procedure WindowsIdleAndTimer;
+  procedure WindowsUpdateAndTimer;
   begin
-    DoSelfIdle;
-    FOpenWindows.DoIdle;
+    DoSelfUpdate;
+    FOpenWindows.DoUpdate;
 
     { For simplicity, we're implementing here our own timer mechanism,
       without using gtk timers. }
@@ -1511,7 +1511,7 @@ procedure TCastleApplication.ProcessUpdates;
 
 begin
   WindowsFlushRedisplay;
-  WindowsIdleAndTimer;
+  WindowsUpdateAndTimer;
 end;
 
 function TCastleApplication.TryFindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowBase;
@@ -1633,7 +1633,7 @@ begin
     This is done regardless of WaitForMessage mechanism.
 
     This follows castlewindow_winsystem.inc approach, and works very good
-    to prevent doing Idle / Draw when we're clogged with events
+    to prevent doing Update / Draw when we're clogged with events
     (typically happens when walking with mouse look, then we're clogged
     with mouse move events). }
   if gtk_events_pending() = 0 then

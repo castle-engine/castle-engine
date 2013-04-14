@@ -303,9 +303,9 @@ type
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
-    function Mouse3dRotation(const X, Y, Z, Angle: Double; const CompSpeed: Single): boolean; override;
-    function Mouse3dTranslation(const X, Y, Z, Length: Double; const CompSpeed: Single): boolean; override;
-    procedure Idle(const CompSpeed: Single;
+    function Mouse3dRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
+    function Mouse3dTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
+    procedure Update(const SecondsPassed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
 
@@ -466,7 +466,7 @@ type
 
       @italic(For scene manager:)
 
-      "Paused" means that no events (key, mouse, idle) are passed to any
+      "Paused" means that no events (key, mouse, @link(Update)) are passed to any
       @link(TCastleSceneManager.Items) or the @link(Camera).
       This is suitable if you really want to totally, unconditionally,
       make your 3D world view temporary still (for example,
@@ -483,7 +483,8 @@ type
 
       @unorderedList(
         @item(You can set TCastleScene.TimePlaying or TCastlePrecalculatedAnimation.TimePlaying
-          to @false. This is roughly equivalent to not running their Idle methods.
+          to @false. This is roughly equivalent to not running their
+          @link(Update) methods.
           This means that time will "stand still" for them,
           so their animations will not play. Although they may
           still react and change in response to mouse clicks / key presses,
@@ -691,7 +692,7 @@ type
     Note that even when you set DefaultViewport = @false
     (and use custom viewports, by TCastleViewport class, to render your 3D world),
     you still should add scene manager to the controls list
-    (this allows e.g. 3D items to receive Idle events). }
+    (this allows e.g. 3D items to receive @link(Update) events). }
   TCastleSceneManager = class(TCastleAbstractViewport)
   private
     FMainScene: TCastleScene;
@@ -811,7 +812,7 @@ type
       Implementation in this class is correlated with RenderHeadlight. }
     function CameraToChanges: TVisibleChanges; virtual;
 
-    procedure Idle(const CompSpeed: Single;
+    procedure Update(const SecondsPassed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
 
@@ -1453,7 +1454,7 @@ begin
     Cursor := mcDefault;
 end;
 
-procedure TCastleAbstractViewport.Idle(const CompSpeed: Single;
+procedure TCastleAbstractViewport.Update(const SecondsPassed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 var
@@ -1475,11 +1476,11 @@ begin
     one viewport covering another, like in fps_game. This means pressing
     e.g. the "up arrow key" only moves camera in one viewport.
 
-    Note about Items.Idle (called in TCastleSceneManager.Idle):
-    Our Items.Idle do not have HandleMouseAndKeys or LetOthersHandleMouseAndKeys
+    Note about Items.Update (called in TCastleSceneManager.Update):
+    Our Items.Update do not have HandleMouseAndKeys or LetOthersHandleMouseAndKeys
     parameters, as it would not be controllable for them: 3D objects do not
     have strict front-to-back order, so we would not know in what order
-    call their Idle methods, so we have to let many Items handle keys anyway.
+    call their Update methods, so we have to let many Items handle keys anyway.
     So, it's consistent to just treat 3D objects as "cannot definitely
     mark keys/mouse as handled". Besides, currently 3D objects do not
     get Pressed information (which keys/mouse buttons are pressed) at all,
@@ -1488,7 +1489,7 @@ begin
   if Camera <> nil then
   begin
     LetOthersHandleMouseAndKeys := not Camera.ExclusiveEvents;
-    Camera.Idle(CompSpeed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
+    Camera.Update(SecondsPassed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
   end else
     LetOthersHandleMouseAndKeys := true;
 
@@ -1497,7 +1498,7 @@ begin
   P := GetPlayer;
   if (P <> nil) and (P.Swimming = psUnderWater) then
   begin
-    SickProjectionTime += CompSpeed;
+    SickProjectionTime += SecondsPassed;
     SinCos(SickProjectionTime * P.SickProjectionSpeed, S, C);
     DistortFieldOfViewY += C * 0.03;
     DistortViewAspect += S * 0.03;
@@ -2358,14 +2359,14 @@ begin
   Result := FRenderParams.Statistics;
 end;
 
-function TCastleAbstractViewport.Mouse3dRotation(const X, Y, Z, Angle: Double; const CompSpeed: Single): boolean;
+function TCastleAbstractViewport.Mouse3dRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
 begin
-  Result := (Camera <> nil) and Camera.Mouse3dRotation(X, Y, Z, Angle, CompSpeed);
+  Result := (Camera <> nil) and Camera.Mouse3dRotation(X, Y, Z, Angle, SecondsPassed);
 end;
 
-function TCastleAbstractViewport.Mouse3dTranslation(const X, Y, Z, Length: Double; const CompSpeed: Single): boolean;
+function TCastleAbstractViewport.Mouse3dTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
 begin
-  Result := (Camera <> nil) and Camera.Mouse3dTranslation(X, Y, Z, Length, CompSpeed);
+  Result := (Camera <> nil) and Camera.Mouse3dTranslation(X, Y, Z, Length, SecondsPassed);
 end;
 
 { TCastleAbstractViewportList -------------------------------------------------- }
@@ -3036,7 +3037,7 @@ begin
   end;
 end;
 
-procedure TCastleSceneManager.Idle(const CompSpeed: Single;
+procedure TCastleSceneManager.Update(const SecondsPassed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 const
@@ -3051,13 +3052,13 @@ begin
   if (not Paused) and GetExists then
   begin
     RemoveItem := rtNone;
-    Items.Idle(CompSpeed, RemoveItem);
+    Items.Update(SecondsPassed, RemoveItem);
     { we ignore RemoveItem --- main Items list cannot be removed }
 
     { Calling SoundEngine.Refresh relatively often is important,
       to call OnRelease for sound sources that finished playing.
       Some of the engine features depend that sounds OnRelease is called
-      in a timely fashion. Notably: footsteps sound (done in TPlayer.Idle)
+      in a timely fashion. Notably: footsteps sound (done in TPlayer.Update)
       relies on the fact that OnRelease of it's source will be reported
       quickly after sound stopped. }
     if SoundEngine.ALActive then

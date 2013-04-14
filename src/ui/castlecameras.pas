@@ -289,7 +289,7 @@ type
       const OrthoViewDimensions: TVector4Single;
       out RayOrigin, RayDirection: TVector3Single);
 
-    procedure Idle(const CompSpeed: Single;
+    procedure Update(const SecondsPassed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
     function Press(const Event: TInputPressRelease): boolean; override;
@@ -303,14 +303,14 @@ type
       Current OtherCamera settings will be internally copied during this call.
       So you can even free OtherCamera instance immediately after calling this.
 
-      When we're during camera animation, @link(Idle) doesn't do other stuff
+      When we're during camera animation, @link(Update) doesn't do other stuff
       (e.g. gravity for TWalkCamera doesn't work, rotating for TExamineCamera
       doesn't work). This also means that the key/mouse controls of the camera
       do not work. Instead, we remember the source and target position
       (at the time AnimateTo was called) of the camera,
       and smoothly interpolate camera parameters to match the target.
 
-      Once the animation stops, @link(Idle) goes back to normal: gravity
+      Once the animation stops, @link(Update) goes back to normal: gravity
       in TWalkCamera works again, rotating in TExamineCamera works again etc.
 
       Calling AnimateTo while the previous animation didn't finish yet
@@ -319,11 +319,11 @@ type
 
       @italic(Descendants implementors notes:) In this class,
       almost everything is handled (through GetView / SetView).
-      In descendants you have to only ignore key/mouse/idle events
+      In descendants you have to only ignore key/mouse/Update events
       when IsAnimation is @true.
-      (Although each Idle would override the view anyway, but for
+      (Although each Update would override the view anyway, but for
       stability it's best to explicitly ignore them --- you never know
-      how often Idle will be called.)
+      how often Update will be called.)
 
       @groupBegin }
     procedure AnimateTo(OtherCamera: TCamera; const Time: TFloatTime);
@@ -405,9 +405,9 @@ type
 
       This could be implemented as a quaternion,
       it even was implemented like this (and working!) for a couple
-      of minutes. But this caused one problem: in Idle, I want to
-      apply FRotationsAnim to Rotations *scaled by CompSpeed*.
-      There's no efficient way with quaternions to say "take only CompSpeed
+      of minutes. But this caused one problem: in Update, I want to
+      apply FRotationsAnim to Rotations *scaled by SecondsPassed*.
+      There's no efficient way with quaternions to say "take only SecondsPassed
       fraction of angle encoded in FRotationsAnim", AFAIK.
       The only way would be to convert FRotationsAnim back to AxisAngle,
       then scale angle, then convert back to quaternion... which makes
@@ -465,15 +465,15 @@ type
     function MatrixInverse: TMatrix4Single;
 
     function RotationMatrix: TMatrix4Single; override;
-    procedure Idle(const CompSpeed: Single;
+    procedure Update(const SecondsPassed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
     function AllowSuspendForInput: boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
 
-    function Mouse3dTranslation(const X, Y, Z, Length: Double; const CompSpeed: Single): boolean; override;
-    function Mouse3dRotation(const X, Y, Z, Angle: Double; const CompSpeed: Single): boolean; override;
+    function Mouse3dTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
+    function Mouse3dRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
 
     { Current camera properties ---------------------------------------------- }
 
@@ -481,7 +481,7 @@ type
       Rotation is done around ModelBox middle (with MoveAmount added). }
     property Rotations: TQuaternion read FRotations write SetRotations;
 
-    { Continous rotation animation, applied each Idle to Rotations. }
+    { Continous rotation animation, applied each Update to Rotations. }
     property RotationsAnim: TVector3Single read FRotationsAnim write SetRotationsAnim;
 
     { MoveAmount says how to translate the model.
@@ -516,7 +516,7 @@ type
       The idea is that usually this is the only property that you have to set.
       ScaleFactor, MoveAmount, RotationsAnim will be almost directly
       controlled by user (through @link(Press) and other events).
-      @link(Rotations) will be automatically modified by @link(Idle).
+      @link(Rotations) will be automatically modified by @link(Update).
 
       So often you only need to set ModelBox, once,
       and everything else will work smoothly.
@@ -685,13 +685,13 @@ type
     FMouseLookVerticalSensitivity: Single;
 
     { This is initally false. It's used by MoveHorizontal while head bobbing,
-      to avoid updating HeadBobbingPosition more than once in the same Idle call.
+      to avoid updating HeadBobbingPosition more than once in the same Update call.
 
       Updating it more than once is bad --- try e.g. holding Input_Forward
       with one of the strafe keys: you move and it's very noticeable
       that HeadBobbing seems faster. That's because
       when holding both Input_Forward and Input_StrafeRight, you shouldn't
-      do HeadBobbing twice in one Idle --- you should do it only Sqrt(2).
+      do HeadBobbing twice in one Update --- you should do it only Sqrt(2).
       When you will also hold Input_RotateRight at the same time --- situation
       gets a little complicated...
 
@@ -723,8 +723,8 @@ type
     function Move(const MoveVector: TVector3Single;
       const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
     { Forward or backward move. Multiply must be +1 or -1. }
-    procedure MoveHorizontal(const CompSpeed: Single; const Multiply: Integer = 1);
-    procedure MoveVertical(const CompSpeed: Single; const Multiply: Integer);
+    procedure MoveHorizontal(const SecondsPassed: Single; const Multiply: Integer = 1);
+    procedure MoveVertical(const SecondsPassed: Single; const Multiply: Integer);
     { Like RotateHorizontal, but it uses
       PreferGravityUpForMoving to decide which rotation to use.
       This way when PreferGravityUpForMoving, then we rotate versus GravityUp,
@@ -814,13 +814,13 @@ type
 
     function Matrix: TMatrix4Single; override;
     function RotationMatrix: TMatrix4Single; override;
-    procedure Idle(const CompSpeed: Single;
+    procedure Update(const SecondsPassed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
     function AllowSuspendForInput: boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
-    function Mouse3dTranslation(const X, Y, Z, Length: Double; const CompSpeed: Single): boolean; override;
-    function Mouse3dRotation(const X, Y, Z, Angle: Double; const CompSpeed: Single): boolean; override;
+    function Mouse3dTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
+    function Mouse3dRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
 
     { This is used by @link(DoMoveAllowed), see there for description. }
     property OnMoveAllowed: TMoveAllowedFunc read FOnMoveAllowed write FOnMoveAllowed;
@@ -928,7 +928,7 @@ type
 
       Note that you can change it freely at runtime,
       and when you set PreferGravityUpForRotations from @false to @true
-      then in nearest Idle
+      then in nearest Update
       calls @link(Up) will be gradually fixed, so that @link(Direction) and @link(Up)
       and GravityUp are on the same plane. Also @link(Direction) may be adjusted
       to honour MinAngleRadFromGravityUp.
@@ -1267,7 +1267,7 @@ type
       @bold(without calling OnFallenDown). It's much like forcing
       the opinion that "camera is not falling down right now".
 
-      Of course, if in the nearest Idle we will find out (using
+      Of course, if in the nearest Update we will find out (using
       OnHeight) that camera is too high above the ground,
       then we will start falling down again, setting Falling
       back to true. (but then we will start falling down from the beginning,
@@ -1383,7 +1383,7 @@ type
     property FallingOnTheGround: boolean read FFallingOnTheGround;
 
     { This is @true when gravity works (that is @link(Gravity) is @true),
-      and player is standing stable on the ground. This is set in every Idle.
+      and player is standing stable on the ground. This is set in every Update.
 
       You can use this e.g. to make some effects when player is on some
       special ground (standing or walking), e.g. hurt player when he's
@@ -1395,7 +1395,7 @@ type
     { This is @true when gravity works (that is @link(Gravity) is @true),
       and player is standing stable on the ground, and player is moving
       horizontally. In other words, this is like "IsOnTheGround and (s)he's
-      walking". This is set in every Idle.
+      walking". This is set in every Update.
 
       The intention is that you can use this to make
       some "footsteps" sound for the player. }
@@ -1505,7 +1505,7 @@ type
 
       We move by distance @code(MoveSpeed * MoveHorizontalSpeed (or MoveVerticalSpeed))
       during one second. Assuming "normal circumstances",
-      namely that CompSpeed provided to @link(Idle) method
+      namely that SecondsPassed provided to @link(Update) method
       is expressed in seconds (which is the case, when you use
       camera with TCastleWindowBase.Controls or TCastleSceneManager.Camera).
       So if you leave MoveHorizontalSpeed = MoveVerticalSpeed = 1 (as default),
@@ -1541,7 +1541,7 @@ type
     You can switch between navigation types, while preserving the camera view.
 
     This simply keeps an TExamineCamera and TWalkCamera instances inside,
-    and passes events (key, mouse presses, idle) to the current one.
+    and passes events (key, mouse presses, Update) to the current one.
     Properties (like camera position, direction, up vectors) are simply
     set on both instances simultaneously.
 
@@ -1586,7 +1586,7 @@ type
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single;
       const AdjustUp: boolean = true); override;
 
-    procedure Idle(const CompSpeed: Single;
+    procedure Update(const SecondsPassed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
     function AllowSuspendForInput: boolean; override;
@@ -1594,8 +1594,8 @@ type
     function Release(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
 
-    function Mouse3dTranslation(const X, Y, Z, Length: Double; const CompSpeed: Single): boolean; override;
-    function Mouse3dRotation(const X, Y, Z, Angle: Double; const CompSpeed: Single): boolean; override;
+    function Mouse3dTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
+    function Mouse3dRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
 
@@ -1843,14 +1843,14 @@ begin
     RayOrigin, RayDirection);
 end;
 
-procedure TCamera.Idle(const CompSpeed: Single;
+procedure TCamera.Update(const SecondsPassed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 begin
   inherited;
   if FAnimation then
   begin
-    AnimationCurrentTime += CompSpeed;
+    AnimationCurrentTime += SecondsPassed;
     if AnimationCurrentTime > AnimationEndTime then
     begin
       FAnimation := false;
@@ -2088,7 +2088,7 @@ begin
   Result := Rotations.ToRotationMatrix;
 end;
 
-procedure TExamineCamera.Idle(const CompSpeed: Single;
+procedure TExamineCamera.Update(const SecondsPassed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 
@@ -2101,10 +2101,10 @@ procedure TExamineCamera.Idle(const CompSpeed: Single;
     if RotationAccelerate then
       FRotationsAnim[coord] :=
         Clamped(FRotationsAnim[coord] +
-          RotationAccelerationSpeed * CompSpeed * Direction,
+          RotationAccelerationSpeed * SecondsPassed * Direction,
           -MaxRotationSpeed, MaxRotationSpeed) else
       FRotations := QuatFromAxisAngle(UnitVector3Single[Coord],
-        RotationSpeed * CompSpeed * Direction) * FRotations;
+        RotationSpeed * SecondsPassed * Direction) * FRotations;
     VisibleChange;
   end;
 
@@ -2131,7 +2131,7 @@ begin
 
   if not PerfectlyZeroVector(FRotationsAnim) then
   begin
-    RotChange := CompSpeed;
+    RotChange := SecondsPassed;
 
     if FRotationsAnim[0] <> 0 then
       FRotations := QuatFromAxisAngle(UnitVector3Single[0],
@@ -2159,10 +2159,10 @@ begin
   if HandleMouseAndKeys and (ciNormal in Input) then
   begin
     if ModelBox.IsEmptyOrZero then
-      MoveChange := CompSpeed else
-      MoveChange := ModelBox.AverageSize * CompSpeed;
+      MoveChange := SecondsPassed else
+      MoveChange := ModelBox.AverageSize * SecondsPassed;
 
-    { we will apply CompSpeed to ScaleChange later }
+    { we will apply SecondsPassed to ScaleChange later }
     ScaleChange := 1.5;
 
     ModsDown := ModifiersDown(Container.Pressed);
@@ -2189,9 +2189,9 @@ begin
     end;
 
     if Input_ScaleLarger.IsPressed(Container) then
-      Scale(Power(ScaleChange, CompSpeed));
+      Scale(Power(ScaleChange, SecondsPassed));
     if Input_ScaleSmaller.IsPressed(Container) then
-      Scale(Power(1 / ScaleChange, CompSpeed));
+      Scale(Power(1 / ScaleChange, SecondsPassed));
   end;
 end;
 
@@ -2222,7 +2222,7 @@ procedure TExamineCamera.Move(coord: integer; const MoveDistance: Single);
 begin FMoveAmount[coord] += MoveDistance; VisibleChange; end;
 
 function TExamineCamera.Mouse3dTranslation(const X, Y, Z, Length: Double;
-  const CompSpeed: Single): boolean;
+  const SecondsPassed: Single): boolean;
 var
   Size: Single;
   Moved: boolean;
@@ -2234,7 +2234,7 @@ begin
 
   Moved := false;
   Size := FModelBox.AverageSize;
-  MoveSize := Length * CompSpeed / 5000;
+  MoveSize := Length * SecondsPassed / 5000;
 
   if Abs(X)>5 then   { left / right }
   begin
@@ -2256,7 +2256,7 @@ begin
 end;
 
 function TExamineCamera.Mouse3dRotation(const X, Y, Z, Angle: Double;
-  const CompSpeed: Single): boolean;
+  const SecondsPassed: Single): boolean;
 var
   NewRotation: TQuaternion;
   Moved: boolean;
@@ -2266,7 +2266,7 @@ begin
   Result := true;
 
   Moved := false;
-  RotationSize := CompSpeed * Angle / 50;
+  RotationSize := SecondsPassed * Angle / 50;
   NewRotation := FRotations;
 
   if Abs(X) > 0.4 then      { tilt forward / backward}
@@ -2828,7 +2828,7 @@ end;
 function TWalkCamera.Matrix: TMatrix4Single;
 begin
   { Yes, below we compare Fde_UpRotate with 0.0 using normal
-    (precise) <> operator. Don't worry --- Fde_Stabilize in Idle
+    (precise) <> operator. Don't worry --- Fde_Stabilize in Update
     will take care of eventually setting Fde_UpRotate to
     a precise 0.0. }
   if Fde_UpRotate <> 0.0 then
@@ -3084,12 +3084,12 @@ begin
   Result := MoveTo(VectorAdd(Position, MoveVector), BecauseOfGravity, CheckClimbHeight);
 end;
 
-procedure TWalkCamera.MoveHorizontal(const CompSpeed: Single; const Multiply: Integer = 1);
+procedure TWalkCamera.MoveHorizontal(const SecondsPassed: Single; const Multiply: Integer = 1);
 var
   Dir: TVector3Single;
   Multiplier: Single;
 begin
-  Multiplier := MoveSpeed * MoveHorizontalSpeed * CompSpeed * Multiply;
+  Multiplier := MoveSpeed * MoveHorizontalSpeed * SecondsPassed * Multiply;
   if IsJumping then
     Multiplier *= JumpHorizontalSpeedMultiply;
   if Input_Run.IsPressed(Container) then
@@ -3098,7 +3098,7 @@ begin
   { Update HeadBobbingPosition }
   if (not IsJumping) and UseHeadBobbing and (not HeadBobbingAlreadyDone) then
   begin
-    HeadBobbingPosition += CompSpeed / HeadBobbingTime;
+    HeadBobbingPosition += SecondsPassed / HeadBobbingTime;
     HeadBobbingAlreadyDone := true;
   end;
 
@@ -3111,14 +3111,14 @@ begin
   Move(Dir * Multiplier, false, true);
 end;
 
-procedure TWalkCamera.MoveVertical(const CompSpeed: Single; const Multiply: Integer);
+procedure TWalkCamera.MoveVertical(const SecondsPassed: Single; const Multiply: Integer);
 
   { Provided PreferredUpVector must be already normalized. }
   procedure MoveVerticalCore(const PreferredUpVector: TVector3Single);
   var
     Multiplier: Single;
   begin
-    Multiplier := MoveSpeed * MoveVerticalSpeed * CompSpeed * Multiply;
+    Multiplier := MoveSpeed * MoveVerticalSpeed * SecondsPassed * Multiply;
     if Input_Run.IsPressed(Container) then
       Multiplier *= 2;
     Move(PreferredUpVector * Multiplier, false, false);
@@ -3137,7 +3137,7 @@ begin
     RotateAroundUp(AngleDeg);
 end;
 
-procedure TWalkCamera.Idle(const CompSpeed: Single;
+procedure TWalkCamera.Update(const SecondsPassed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 
@@ -3148,20 +3148,20 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
   begin
     {$ifndef SINGLE_STEP_ROTATION}
     if Input_RightRot.IsPressed(Container) then
-      RotateHorizontal(-RotationHorizontalSpeed * CompSpeed * SpeedScale);
+      RotateHorizontal(-RotationHorizontalSpeed * SecondsPassed * SpeedScale);
     if Input_LeftRot.IsPressed(Container) then
-      RotateHorizontal(+RotationHorizontalSpeed * CompSpeed * SpeedScale);
+      RotateHorizontal(+RotationHorizontalSpeed * SecondsPassed * SpeedScale);
     {$endif not SINGLE_STEP_ROTATION}
 
     if Input_UpRotate.IsPressed(Container) then
-      RotateVertical(+RotationVerticalSpeed * CompSpeed * SpeedScale);
+      RotateVertical(+RotationVerticalSpeed * SecondsPassed * SpeedScale);
     if Input_DownRotate.IsPressed(Container) then
-      RotateVertical(-RotationVerticalSpeed * CompSpeed * SpeedScale);
+      RotateVertical(-RotationVerticalSpeed * SecondsPassed * SpeedScale);
   end;
 
   { Things related to gravity --- jumping, taking into account
     falling down and keeping RealPreferredHeight above the ground. }
-  procedure GravityIdle;
+  procedure GravityUpdate;
 
     function TryJump: boolean;
     var
@@ -3174,7 +3174,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
         { jump. This means:
           1. update FJumpHeight and move Position
           2. or set FIsJumping to false when jump ends }
-        ThisJumpHeight := MaxJumpDistance * CompSpeed / FJumpTime;
+        ThisJumpHeight := MaxJumpDistance * SecondsPassed / FJumpTime;
         FJumpHeight += ThisJumpHeight;
 
         if FJumpHeight > MaxJumpDistance then
@@ -3203,7 +3203,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
       begin
         { calculate GrowingVectorLength }
         GrowingVectorLength := Min(
-          MoveSpeed * MoveVerticalSpeed * GrowSpeed * CompSpeed,
+          MoveSpeed * MoveVerticalSpeed * GrowSpeed * SecondsPassed,
           RealPreferredHeight - AboveHeight);
 
         Move(VectorScale(GravityUp, GrowingVectorLength), true, false);
@@ -3248,12 +3248,12 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
             RealPreferredHeight + RealPreferredHeightMargin
 
         This is important, because this way we avoid the unpleasant
-        "bouncing" effect when in one Idle we decide that camera
-        is falling down, in next Idle we decide that it's growing,
-        in next Idle it falls down again etc. In TryGrow we try
+        "bouncing" effect when in one Update we decide that camera
+        is falling down, in next Update we decide that it's growing,
+        in next Update it falls down again etc. In TryGrow we try
         to precisely set our Position, so that it hits exactly
         at RealPreferredHeight -- which means that after TryGrow,
-        in next Idle TryGrow should not cause growing and TryFalling
+        in next Update TryGrow should not cause growing and TryFalling
         should not cause falling down. }
       if AboveHeight <=
            RealPreferredHeight + RealPreferredHeightMargin then
@@ -3305,7 +3305,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
         This means that I should limit myself to not fall down
         below RealPreferredHeight. And that's what I'm doing. }
       FallingVectorLength :=
-        MoveSpeed * MoveVerticalSpeed * FFallSpeed * CompSpeed;
+        MoveSpeed * MoveVerticalSpeed * FFallSpeed * SecondsPassed;
       MinTo1st(FallingVectorLength, AboveHeight - RealPreferredHeight);
 
       if Move(VectorScale(GravityUp, - FallingVectorLength), true, false) and
@@ -3348,7 +3348,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
             1. FallingEffect
             2. OnFall is called seldom and with large heights.
 
-            Why ? Because MoveHorizontal calls are done between GravityIdle
+            Why ? Because MoveHorizontal calls are done between GravityUpdate
             calls, and the move can be quite fast. So even though the player is
             actually quite closely following the terrain, we would constantly
             have Falling := true. Consider a large hill that is almost
@@ -3366,7 +3366,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
 
             Of course we're setting here FFalling := false even though
             the player is not exactly on the terrain --- but he's very close.
-            In the next GravityIdle call we will again bring him a little
+            In the next GravityUpdate call we will again bring him a little
             down, set FFalling to @true, and then set it back to @false
             by line below. }
           FFalling := false;
@@ -3384,28 +3384,28 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
             2. reason (practical, and real :) is that when the program
                was in some non-3d drawing state (e.g. displaying menu, or
                displaying progress bar because the VRML model was just loaded)
-               then CompSpeed indicates (truly) that a lot of time elapsed
-               since last Idle. This means that it's common that at the same moment
-               when Falling changed suddenly to @true, CompSpeed may be large
+               then SecondsPassed indicates (truly) that a lot of time elapsed
+               since last Update. This means that it's common that at the same moment
+               when Falling changed suddenly to @true, SecondsPassed may be large
                and we're better not using this too much... A practical bug demo:
                open in view3dscene (it does progress bar in OpenGL, so will cause
-               large CompSpeed) any model with gravity on and camera slightly
+               large SecondsPassed) any model with gravity on and camera slightly
                higher then PreferredHeight (we want to trigger Falling
                right when the model is loaded). E.g. run
                "view3dscene demo_models/navigation/speed_2.wrl".
                If FallSpeedIncrease will be done before FallingEffect,
                then you'll see that at the very first frame FFallSpeed
-               was increased so much (because CompSpeed was large) that it triggered
+               was increased so much (because SecondsPassed was large) that it triggered
                FallingEffect. Even though the falling down distance was really small...
 
                Maybe in the future I'll workaround it differently.
                One idea is that FFallSpeed should be made smaller if the
-               falled down distance is small. Or just don't call GravityIdle after the first
-               model load, to avoid using large CompSpeed ?
+               falled down distance is small. Or just don't call GravityUpdate after the first
+               model load, to avoid using large SecondsPassed ?
 
                LATER NOTE: note that the (2.) problem above may be non-existing
-               now, since we use IdleSpeed and we have IgnoreNextIdleSpeed to
-               set IdleSpeed to zero in such cases. }
+               now, since we use SecondsPassed and we have ZeroNextSecondsPassed to
+               set SecondsPassed to zero in such cases. }
           if FallingEffect and
              (FFallSpeed > FallSpeedStart * 3) then
           begin
@@ -3414,27 +3414,27 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
               if Fde_RotateHorizontal = 0 then
                 Fde_RotateHorizontal := RandomPlusMinus;
               RotateAroundGravityUp(Fde_RotateHorizontal *
-                Fde_HorizontalRotateDeviation * CompSpeed);
+                Fde_HorizontalRotateDeviation * SecondsPassed);
             end;
 
             if Fde_UpRotate < 0 then
-              Fde_UpRotate -= Fde_VerticalRotateDeviation * CompSpeed else
+              Fde_UpRotate -= Fde_VerticalRotateDeviation * SecondsPassed else
             if Fde_UpRotate > 0 then
-              Fde_UpRotate += Fde_VerticalRotateDeviation * CompSpeed else
+              Fde_UpRotate += Fde_VerticalRotateDeviation * SecondsPassed else
               Fde_UpRotate := RandomPlusMinus *
-                              Fde_VerticalRotateDeviation * CompSpeed;
+                              Fde_VerticalRotateDeviation * SecondsPassed;
 
             ScheduleVisibleChange;
           end;
 
-          { Note that when changing FFallSpeed below I'm using CompSpeed * 50.
+          { Note that when changing FFallSpeed below I'm using SecondsPassed * 50.
             And also above when using FFallSpeed, I multipled
-            FFallSpeed * CompSpeed * 50. This is correct:
+            FFallSpeed * SecondsPassed * 50. This is correct:
             - changing position based on FallSpeed is a "velocity"
             - changing FallSpeed below is "acceleration"
             And both acceleration and velocity must be time-based. }
           if FallSpeedIncrease <> 1.0 then
-            FFallSpeed *= Power(FallSpeedIncrease, CompSpeed * 50);
+            FFallSpeed *= Power(FallSpeedIncrease, SecondsPassed * 50);
         end;
       end else
         FFalling := false;
@@ -3460,7 +3460,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
           any interesting visual effect (and the only reason for
           UpRotate is a visual effect)... }
         Change := Trunc(Abs(Fde_UpRotate) / 360.0) * 360.0 +
-          Fde_VerticalRotateNormalization * CompSpeed;
+          Fde_VerticalRotateNormalization * SecondsPassed;
 
         if Fde_UpRotate < 0 then
           Fde_UpRotate := Min(Fde_UpRotate + Change, 0.0) else
@@ -3487,7 +3487,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
         Exit;
       end;
 
-      AngleRotate := CompSpeed * 5;
+      AngleRotate := SecondsPassed * 5;
       MinTo1st(AngleRotate, Abs(Angle - HalfPi));
       if not FFallingOnTheGroundAngleIncrease then
         AngleRotate := -AngleRotate;
@@ -3526,7 +3526,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
       if UseHeadBobbing and (not HeadBobbingAlreadyDone) then
       begin
         { If head bobbing is active, but player did not move during
-          this Idle call, and no gravity effect is in work
+          this Update call, and no gravity effect is in work
           then player is standing still on the ground.
 
           This means that his head bobbing should go down as far as
@@ -3541,12 +3541,12 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
         if FracHeadBobbingPosition > 0.5 then
         begin
           if 1 - FracHeadBobbingPosition > SingleEqualityEpsilon then
-            HeadBobbingPosition += Min(HeadBobbingGoingDownSpeed * CompSpeed,
+            HeadBobbingPosition += Min(HeadBobbingGoingDownSpeed * SecondsPassed,
               1 - FracHeadBobbingPosition);
         end else
         begin
           if FracHeadBobbingPosition > SingleEqualityEpsilon then
-            HeadBobbingPosition -= Min(HeadBobbingGoingDownSpeed * CompSpeed,
+            HeadBobbingPosition -= Min(HeadBobbingGoingDownSpeed * SecondsPassed,
               FracHeadBobbingPosition);
         end;
       end;
@@ -3597,7 +3597,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
       DoFall;
   end;
 
-  procedure PreferGravityUpForRotationsIdle;
+  procedure PreferGravityUpForRotationsUpdate;
   (* This is a good piece of work and seemed to work OK,
      but it's too much untested right now to let it work.
 
@@ -3659,7 +3659,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
           VectorNegateTo1st(TargetUp);
 
         AngleRadBetweenTarget := AngleRadBetweenVectors(TargetUp, FUp);
-        AngleRadBetweenTargetChange := 0.5 * CompSpeed;
+        AngleRadBetweenTargetChange := 0.5 * SecondsPassed;
         if AngleRadBetweenTarget > AngleRadBetweenTargetChange then
         begin
           NewUp := FUp;
@@ -3680,7 +3680,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
       { It's best to scale PreferredHeight changes by MoveSpeed,
         to make it faster/slower depending on scene size
         (which usually corresponds to move speed). }
-      Increase * MoveSpeed * CompSpeed * 0.2;
+      Increase * MoveSpeed * SecondsPassed * 0.2;
 
     CorrectPreferredHeight;
 
@@ -3724,12 +3724,12 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
            to move mouse first over the window, before mouse look catches up.
 
       So we have to reposition the mouse, but not too eagerly.
-      Idle seems a good moment. }
+      Update seems a good moment. }
     if MouseLook and
        ContainerSizeKnown and
        (Container <> nil) and
        { Paranoidally check is position different, to avoid calling
-         SetMousePosition in every Idle. SetMousePosition should be optimized
+         SetMousePosition in every Update. SetMousePosition should be optimized
          for this case (when position is already set), but let's check anyway. }
        (Container.MouseX <> ContainerWidth div 2) and
        (Container.MouseY <> ContainerHeight div 2) then
@@ -3762,32 +3762,32 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
     if mbLeft in Container.MousePressed then
     begin
       if deltaY < -Tolerance then
-        MoveHorizontal(MoveSizeY * CompSpeed, 1); { forward }
+        MoveHorizontal(MoveSizeY * SecondsPassed, 1); { forward }
       if deltaY > Tolerance then
-        MoveHorizontal(MoveSizeY * CompSpeed, -1); { backward }
+        MoveHorizontal(MoveSizeY * SecondsPassed, -1); { backward }
 
       if Abs(deltaX) > Tolerance then
-        RotateHorizontal(-deltaX / 4 * CompSpeed); { rotate }
+        RotateHorizontal(-deltaX / 4 * SecondsPassed); { rotate }
     end
     else if mbRight in Container.MousePressed then
     begin
       if deltaX < -Tolerance then
       begin
         RotateHorizontalForStrafeMove(90);
-        MoveHorizontal(MoveSizeX * CompSpeed, 1);  { strife left }
+        MoveHorizontal(MoveSizeX * SecondsPassed, 1);  { strife left }
         RotateHorizontalForStrafeMove(-90);
       end;
       if deltaX > Tolerance then
       begin
         RotateHorizontalForStrafeMove(-90);
-        MoveHorizontal(MoveSizeX * CompSpeed, 1);  { strife right }
+        MoveHorizontal(MoveSizeX * SecondsPassed, 1);  { strife right }
         RotateHorizontalForStrafeMove(90);
       end;
 
       if (deltaY < -5) and (not Gravity) then
-        MoveVertical(MoveSizeY * CompSpeed, 1);    { fly up }
+        MoveVertical(MoveSizeY * SecondsPassed, 1);    { fly up }
       if (deltaY > 5) and (not Gravity) then
-        MoveVertical(MoveSizeY * CompSpeed, -1);   { fly down }
+        MoveVertical(MoveSizeY * SecondsPassed, -1);   { fly down }
     end;
   end;
 
@@ -3818,60 +3818,60 @@ begin
         CheckRotates(1.0);
 
         if Input_Forward.IsPressed(Container) then
-          MoveHorizontal(CompSpeed, 1);
+          MoveHorizontal(SecondsPassed, 1);
         if Input_Backward.IsPressed(Container) then
-          MoveHorizontal(CompSpeed, -1);
+          MoveHorizontal(SecondsPassed, -1);
 
         if Input_RightStrafe.IsPressed(Container) then
         begin
           RotateHorizontalForStrafeMove(-90);
-          MoveHorizontal(CompSpeed, 1);
+          MoveHorizontal(SecondsPassed, 1);
           RotateHorizontalForStrafeMove(90);
         end;
 
         if Input_LeftStrafe.IsPressed(Container) then
         begin
           RotateHorizontalForStrafeMove(90);
-          MoveHorizontal(CompSpeed, 1);
+          MoveHorizontal(SecondsPassed, 1);
           RotateHorizontalForStrafeMove(-90);
         end;
 
         { A simple implementation of Input_UpMove was
-            RotateVertical(90); Move(MoveVerticalSpeed * MoveSpeed * CompSpeed); RotateVertical(-90)
+            RotateVertical(90); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(-90)
           Similarly, simple implementation of Input_DownMove was
-            RotateVertical(-90); Move(MoveVerticalSpeed * MoveSpeed * CompSpeed); RotateVertical(90)
+            RotateVertical(-90); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(90)
           But this is not good, because when PreferGravityUp, we want to move
           along the GravityUp. (Also later note: RotateVertical is now bounded by
           MinAngleRadFromGravityUp). }
 
         if Input_UpMove.IsPressed(Container) then
-          MoveVertical(CompSpeed, 1);
+          MoveVertical(SecondsPassed, 1);
         if Input_DownMove.IsPressed(Container) then
-          MoveVertical(CompSpeed, -1);
+          MoveVertical(SecondsPassed, -1);
 
         { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
           ScheduleVisibleChange - zmienilismy swoje wlasciwosci, moze sa one np. gdzies
           wypisywane w oknie na statusie i okno potrzebuje miec PostRedisplay po zmianie
           Move*Speed ?.
 
-          How to apply CompSpeed here ?
-          I can't just ignore CompSpeed, but I can't also write
-            FMoveSpeed *= 10 * CompSpeed;
+          How to apply SecondsPassed here ?
+          I can't just ignore SecondsPassed, but I can't also write
+            FMoveSpeed *= 10 * SecondsPassed;
           What I want is such continous function that e.g.
             F(FMoveSpeed, 10) = F(F(FMoveSpeed, 1), 1)
-          I.e. CompSpeed = 10 should work just like doing the same change twice.
-          So F is FMoveSpeed * Power(10, CompSpeed)
+          I.e. SecondsPassed = 10 should work just like doing the same change twice.
+          So F is FMoveSpeed * Power(10, SecondsPassed)
           Easy!
         }
         if Input_MoveSpeedInc.IsPressed(Container) then
         begin
-          MoveSpeed := MoveSpeed * Power(10, CompSpeed);
+          MoveSpeed := MoveSpeed * Power(10, SecondsPassed);
           ScheduleVisibleChange;
         end;
 
         if Input_MoveSpeedDec.IsPressed(Container) then
         begin
-          MoveSpeed := MoveSpeed / Power(10, CompSpeed);
+          MoveSpeed := MoveSpeed / Power(10, SecondsPassed);
           ScheduleVisibleChange;
         end;
       end else
@@ -3906,13 +3906,13 @@ begin
       MoveViaMouseDragging(Container.MouseX - MouseDraggingStart[0],
                            Container.MouseY - MouseDraggingStart[1]);
 
-    PreferGravityUpForRotationsIdle;
+    PreferGravityUpForRotationsUpdate;
 
-    { These may be set to @true only inside GravityIdle }
+    { These may be set to @true only inside GravityUpdate }
     FIsWalkingOnTheGround := false;
     FIsOnTheGround := false;
 
-    GravityIdle;
+    GravityUpdate;
   finally
     EndVisibleChangeSchedule;
   end;
@@ -3926,7 +3926,7 @@ begin
 
   { Merely checking for Falling is not enough, because Falling
     may be triggered with some latency. E.g. consider user that holds
-    Input_Jump key down: whenever jump will end (in GravityIdle),
+    Input_Jump key down: whenever jump will end (in GravityUpdate),
     Input_Jump.IsKey = true will cause another jump to be immediately
     (before Falling will be set to true) initiated.
     This is of course bad, because user holding Input_Jump key down
@@ -4006,14 +4006,14 @@ begin
 end;
 
 function TWalkCamera.Mouse3dTranslation(const X, Y, Z, Length: Double;
-  const CompSpeed: Single): boolean;
+  const SecondsPassed: Single): boolean;
 var
   MoveSize: Double;
 begin
   if not (ci3dMouse in Input) then Exit;
   Result := true;
 
-  MoveSize := Length * CompSpeed / 5000;
+  MoveSize := Length * SecondsPassed / 5000;
 
   if Z > 5 then
     MoveHorizontal(Z * MoveSize, -1); { backward }
@@ -4040,15 +4040,15 @@ begin
 end;
 
 function TWalkCamera.Mouse3dRotation(const X, Y, Z, Angle: Double;
-  const CompSpeed: Single): boolean;
+  const SecondsPassed: Single): boolean;
 begin
   if not (ci3dMouse in Input) then Exit;
   Result := true;
 
   if Abs(X) > 0.4 then      { tilt forward / backward }
-    RotateVertical(X * Angle * 2 * CompSpeed);
+    RotateVertical(X * Angle * 2 * SecondsPassed);
   if Abs(Y) > 0.4 then      { rotate }
-    RotateHorizontal(Y * Angle * 2 * CompSpeed);
+    RotateHorizontal(Y * Angle * 2 * SecondsPassed);
   {if Abs(Z) > 0.4 then ?} { tilt sidewards }
 end;
 
@@ -4472,26 +4472,26 @@ begin
   FWalk.ProjectionMatrix := Value;
 end;
 
-procedure TUniversalCamera.Idle(const CompSpeed: Single;
+procedure TUniversalCamera.Update(const SecondsPassed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 begin
   inherited;
 
   LetOthersHandleMouseAndKeys := not Current.ExclusiveEvents;
-  Current.Idle(CompSpeed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
+  Current.Update(SecondsPassed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
 end;
 
 function TUniversalCamera.Mouse3dTranslation(const X, Y, Z, Length: Double;
-  const CompSpeed: Single): boolean;
+  const SecondsPassed: Single): boolean;
 begin
-  Result := Current.Mouse3dTranslation(X, Y, Z, Length, CompSpeed);
+  Result := Current.Mouse3dTranslation(X, Y, Z, Length, SecondsPassed);
 end;
 
 function TUniversalCamera.Mouse3dRotation(const X, Y, Z, Angle: Double;
-  const CompSpeed: Single): boolean;
+  const SecondsPassed: Single): boolean;
 begin
-  Result := Current.Mouse3dRotation(X, Y, Z, Angle, CompSpeed);
+  Result := Current.Mouse3dRotation(X, Y, Z, Angle, SecondsPassed);
 end;
 
 function TUniversalCamera.AllowSuspendForInput: boolean;
