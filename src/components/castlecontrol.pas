@@ -59,8 +59,6 @@ type
     FMousePressed: CastleKeysMouse.TMouseButtons;
 
     FAggressiveUpdate: boolean;
-    FAggressiveUpdateDelay: TMilisecTime;
-    LastAggressiveUpdateTime: TMilisecTime; { tracked only when AggressiveUpdate }
     Invalidated: boolean; { tracked only when AggressiveUpdate }
 
     FOnGLContextOpen: TNotifyEvent;
@@ -146,12 +144,6 @@ type
     procedure DoDraw; virtual;
   public
     const
-      { Default value for TCastleControlBase.AggressiveUpdateDelay.
-        "1000 div 60" means that we strike for 60 frames per second,
-        although this is gross approximation (no guarantees, of course;
-        especially if your UpdateEvent / Draw take a long time). }
-      DefaultAggressiveUpdateDelay = 1000 div 60;
-
       { Default value for TCastleControlBase.AggressiveUpdate }
       DefaultAggressiveUpdate = false;
 
@@ -230,7 +222,7 @@ type
       (for example, may be ~ 100 GTK messages, see
       TGtkWidgetSet.AppProcessMessages in lazarus/trunk/lcl/interfaces/gtk/gtkwidgetset.inc).
       So instead we hack from the inside: from time to time
-      (more precisely, after AggressiveUpdateDelay miliseconds since last UpdateEvent + Paint end),
+      (more precisely, LimitFPS times per second),
       when receving key or mouse events (KeyDown, MouseDown, MouseMove etc.),
       we'll call the UpdateEvent, and (if pending Invalidate call) Paint methods.
 
@@ -242,8 +234,6 @@ type
       @groupBegin }
     property AggressiveUpdate: boolean
       read FAggressiveUpdate write FAggressiveUpdate default DefaultAggressiveUpdate;
-    property AggressiveUpdateDelay: TMilisecTime
-      read FAggressiveUpdateDelay write FAggressiveUpdateDelay default DefaultAggressiveUpdateDelay;
     { @groupEnd }
 
     property TabOrder;
@@ -425,8 +415,12 @@ var
     However, the mechanism is activated only when some TCastleControl
     component is used, and only when LCL idle is fired (so we have no pending
     events, as LCL idle is "lazy" and fires only when process is really idle),
-    and not at Lazarus design time, and not when TCastleControl.AggressiveUpdate
-    is used. }
+    and not at Lazarus design time.
+
+    When TCastleControl.AggressiveUpdate is active, this has additional meaning:
+    it is then used to force TCastleControl.UpdateEvent and (if needed) repaint
+    at least this often. So in this case (TCastleControl.AggressiveUpdate)
+    this is not just a limit, it's more like "the desired number of FPS". }
   LimitFPS: Single = DefaultLimitFPS;
 
 implementation
@@ -520,8 +514,7 @@ begin
   begin
     C := CastleControls[I] as TCastleControlBase;
     C.UpdateEvent;
-    AllowLimitFPS := AllowLimitFPS and
-      (not C.AggressiveUpdate) and not (csDesigning in C.ComponentState);
+    AllowLimitFPS := AllowLimitFPS and not (csDesigning in C.ComponentState);
   end;
 
   if AllowLimitFPS then
@@ -565,8 +558,6 @@ begin
   CastleControls.Add(Self);
 
   FAggressiveUpdate := DefaultAggressiveUpdate;
-  FAggressiveUpdateDelay := DefaultAggressiveUpdateDelay;
-  LastAggressiveUpdateTime := 0;
   Invalidated := false;
 
   if not ApplicationIdleSet then
@@ -684,27 +675,11 @@ procedure TCastleControlBase.AggressiveUpdateTick;
 begin
   if AggressiveUpdate then
   begin
-    if TimeTickSecondLater(LastAggressiveUpdateTime, GetTickCount, AggressiveUpdateDelay) then
+    if (LimitFPS = 0) or
+       (Timer - Fps.UpdateStartTime > TimerFrequency / LimitFPS) then
     begin
       UpdateEvent;
       if Invalidated then Paint;
-
-      { We have to resist the temptation of optimizing below by reusing previous
-        GetTickCount result here for speed. This could make our aggressive
-        update overloading the event loop with repaints.
-        Imagine that UpdateEvent + Paint would take > AggressiveUpdateDelay
-        (quite possible, if your scene is complex and you're constantly
-        repainting, e.g. observed with mouse look walking + rotating on
-        cubemap_with_dynamic_world.x3d). Then we would effectively repeat
-        UpdateEvent + Paint in every event (like, on every MouseMove), making
-        "lag" between painting and actualy processed events.
-
-        True, this "overloading" is always possible with AggressiveUpdate
-        anyway (by definition AggressiveUpdate does something non-optimal
-        with events). But at least this way, AggressiveUpdateDelay provides
-        some working security against this overloading. }
-
-      LastAggressiveUpdateTime := GetTickCount;
     end;
   end;
 end;
