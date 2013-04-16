@@ -23,12 +23,6 @@
   Bugs on GTK2, not on Carbon:
   - All radio menu items are always on. Why?
 
-  Bugs on Carbon and GTK2:
-  - MouseLook stutters.
-    Also, during dragging with mouse, e.g. rotating a model with Examine mode,
-    the Update isn't called.
-    This is all just like with TCastleControl, fix like AggressiveUpdate
-
   Bugs on Carbon, not on GTK2:
   - Sometimes after menu changes we have a segfault in Carbon widgetset,
     like our menu item reference was invalid.
@@ -540,8 +534,42 @@ end;
 
 procedure TCastleWindowBase.OpenGLControlMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Integer);
+
+  { Since LCL event loop may become clogged when dragging with mouse
+    (like when using mouse look), force doing update and (if needed) redraw
+    from time to time.
+    See TCastleControl implementation for analogous AggressiveUpdate
+    procedure with detailed discussion about why this is needed. }
+  procedure AggressiveUpdate;
+  const
+    MaxDesiredFPS = DefaultLimitFPS;
+  var
+    DesiredFPS: Single;
+  begin
+    if Application.LimitFPS <= 0 then
+      DesiredFPS := MaxDesiredFPS else
+      DesiredFPS := Min(MaxDesiredFPS, Application.LimitFPS);
+    if Timer - Fps.UpdateStartTime > TimerFrequency / DesiredFPS then
+    begin
+      DoUpdate;
+
+      { TODO:
+        - TCastleApplication.OnIdle is not taken care of here.
+          This takes care of calling OnUpdate for this window.
+          Other windows (in case you have multiple TCastleWindow instances)
+          will take care of themselves too, they all have separate Fps counter.
+          But TCastleApplication.OnIdle is left not called.
+        - OnTimer (both from Application and TCastleWindow)
+          is not taken care of here.
+      }
+
+      FlushRedisplay;
+    end;
+  end;
+
 begin
   DoMouseMove(X, Y);
+  AggressiveUpdate;
 end;
 
 procedure TCastleWindowBase.OpenGLControlMouseWheel(Sender: TObject;

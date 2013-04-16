@@ -2711,7 +2711,16 @@ end;
       calls per second, in situations when we do not have to process any user input.
       So we limit not only rendering (TCastleWindowBase.OnDraw)
       but also other animation processing (TCastleWindowBase.OnUpdate) calls per second.
-      See TCastleApplication.ProcessMessage. }
+      See TCastleApplication.ProcessMessage.
+
+      In case of CastleWindow backends when we have to fight with event clogging
+      (right now only LCL backend, used by default only on Mac OS X)
+      this is also the "desired number of FPS": we make sure that even
+      when application is clogged with events (like when dragging with mouse),
+      we call update (TCastleWindowBase.OnUpdate) and (if necessary)
+      draw (TCastleWindowBase.OnDraw and related) at least as often.
+      When LimitFPS is used for this purpose ("desired number of FPS"),
+      it is also capped (by MaxDesiredFPS = 100.0). }
     property LimitFPS: Single read FLimitFPS write FLimitFPS default DefaultLimitFPS;
   end;
 
