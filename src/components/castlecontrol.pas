@@ -32,22 +32,31 @@ const
 
 type
   { OpenGL control, with a couple of extensions for "Castle Game Engine".
-    You will usually prefer to use TCastleControlCustom instead of directly this
-    class, TCastleControlCustom adds some very useful features like
-    @link(TCastleControlCustom.Controls).
+    You should usually use descendants TCastleControl or
+    (less likely) TCastleControlCustom instead of using directly this class,
+    as the descendants add important features like
+    @link(TCastleControlCustom.Controls) or @link(TCastleControl.SceneManager).
 
-    Provides OnGLContextOpen and OnGLContextClose events.
+    Extends TOpenGLControl with various utilities:
 
-    Provides continously called @link(UpdateEvent) method, that allows to handle
-    TUIControl.Update. And a special AggressiveUpdate hack
-    to be able to continously update even when
-    the window system clogs us with events (this typically happens when user
-    moves the mouse and we use TWalkCamera.MouseLook).
+    @unorderedList(
+      @item(OnGLContextOpen and OnGLContextClose events and GLInitialized property.)
 
-    Also, this automatically calls LoadAllExtensions
-    when GL context is initialized. This will initialize all extensions
-    and set GLVersion variables, describing OpenGL version
-    and available extensions. }
+      @item(Continously called @link(UpdateEvent) method, that allows to handle
+        TUIControl.Update. This is something different than LCL "idle" event,
+        as it's guaranteed to be run continously, even when your application
+        is clogged with events (like when using TWalkCamera.MouseLook).)
+
+      @item(Automatically calls LoadAllExtensions
+        when OpenGL context is initialized. This will initialize all extensions
+        and set GLVersion variables, describing OpenGL version
+        and available extensions.)
+
+      @item(FPS (frames per second) counter inside @link(Fps).)
+
+      @item(Tracks pressed keys @link(Pressed) and mouse buttons @link(MousePressed)
+        and mouse position (@link(MouseX), @link(MouseY)).)
+    ) }
   TCastleControlBase = class(TOpenGLControl)
   private
     FMouseX: Integer;
@@ -58,15 +67,13 @@ type
     FPressed: TKeysPressed;
     FMousePressed: CastleKeysMouse.TMouseButtons;
 
-    FAggressiveUpdate: boolean;
-    Invalidated: boolean; { tracked only when AggressiveUpdate }
+    { manually track when we need to be repainted, useful for AggressiveUpdate }
+    Invalidated: boolean;
 
     FOnGLContextOpen: TNotifyEvent;
     FOnGLContextClose: TNotifyEvent;
 
     FFps: TFramesPerSecond;
-
-    procedure AggressiveUpdateTick;
 
     { Sometimes, releasing shift / alt / ctrl keys will not be reported
       properly to KeyDown / KeyUp. Example: opening a menu
@@ -143,10 +150,6 @@ type
     procedure DoBeforeDraw; virtual;
     procedure DoDraw; virtual;
   public
-    const
-      { Default value for TCastleControlBase.AggressiveUpdate }
-      DefaultAggressiveUpdate = false;
-
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -183,58 +186,16 @@ type
       and capturing the screen contents correctly. }
     function SaveScreen: TRGBImage;
   published
-    { This will be called right after GL context
-      will be initialized. }
+    { Called right after OpenGL context is created. }
     property OnGLContextOpen: TNotifyEvent
       read FOnGLContextOpen write FOnGLContextOpen;
 
-    { This will be called right before GL context
-      will be destroyed. }
+    { Called right before OpenGL context is destroyed. }
     property OnGLContextClose: TNotifyEvent
       read FOnGLContextClose write FOnGLContextClose;
 
     property OnBeforeDraw: TNotifyEvent read FOnBeforeDraw write FOnBeforeDraw;
     property OnDraw: TNotifyEvent read FOnDraw write FOnDraw;
-
-    { Force UpdateEvent and Paint (if invalidated) events to happen continously.
-
-      You almost always want this to happen. Without this, when user "clogs"
-      the GTK / WinAPI / Qt etc. event queue, Lazarus (LCL) doesn't continously
-      fire the "Update" events (used to update various state of our 3D world)
-      and repaint events. This is somewhat tolerable for normal UI programs,
-      that really "do" something only in response to user actions.
-      But typical games / 3D simulations must try to update animations and
-      repaint at a constant rate. Which means that we want "UpdateEvent" to be fired
-      continously (not really only when application stays "idle"),
-      and we want redraw to happen when needed (you signal the need to redraw
-      by Invalidate call).
-
-      The most visible usage of this is when using TWalkCamera.MouseLook.
-      Walking with mouse look typically produces a continous stream
-      of mouse move events, usually interspersed with key down events
-      (since you usually press forward / back / strafe keys at the same
-      time when looking around with mouse). Without AggressiveUpdate,
-      this really works badly.
-
-      So what does it do? We do not have the tools to hack Lazarus
-      event control from the outside --- existing Application methods
-      allow us to process a single "batch" of events, but this is too much
-      (for example, may be ~ 100 GTK messages, see
-      TGtkWidgetSet.AppProcessMessages in lazarus/trunk/lcl/interfaces/gtk/gtkwidgetset.inc).
-      So instead we hack from the inside: from time to time
-      (more precisely, LimitFPS times per second),
-      when receving key or mouse events (KeyDown, MouseDown, MouseMove etc.),
-      we'll call the UpdateEvent, and (if pending Invalidate call) Paint methods.
-
-      Do not set too small, like 0, or you'll overload the system
-      (you will see smooth animation and rendering, but there will be latency
-      with respect to handling input, e.g. mouse move will be processed with
-      a small delay).
-
-      @groupBegin }
-    property AggressiveUpdate: boolean
-      read FAggressiveUpdate write FAggressiveUpdate default DefaultAggressiveUpdate;
-    { @groupEnd }
 
     property TabOrder;
     property TabStop default true;
@@ -417,10 +378,13 @@ var
     events, as LCL idle is "lazy" and fires only when process is really idle),
     and not at Lazarus design time.
 
-    When TCastleControl.AggressiveUpdate is active, this has additional meaning:
+    When we may be clogged with events (like when using mouse look)
+    this has an additional meaning:
     it is then used to force TCastleControl.UpdateEvent and (if needed) repaint
-    at least this often. So in this case (TCastleControl.AggressiveUpdate)
-    this is not just a limit, it's more like "the desired number of FPS". }
+    at least this often. So it is not only a limit,
+    it's more like "the desired number of FPS".
+    Although it's capped by MaxDesiredFPS (100), which is applied when
+    LimitFPS > MaxDesiredFPS or when LimitFPS = 0 (which means "infinity"). }
   LimitFPS: Single = DefaultLimitFPS;
 
 implementation
@@ -557,7 +521,6 @@ begin
     SharedControl := CastleControls[0] as TCastleControl;
   CastleControls.Add(Self);
 
-  FAggressiveUpdate := DefaultAggressiveUpdate;
   Invalidated := false;
 
   if not ApplicationIdleSet then
@@ -637,7 +600,7 @@ end;
 
 procedure TCastleControlBase.Invalidate;
 begin
-  Invalidated := true; { will be actually used only when AggressiveUpdate }
+  Invalidated := true;
   inherited;
 end;
 
@@ -669,19 +632,6 @@ procedure TCastleControlBase.ReleaseAllKeysAndMouse;
 begin
   Pressed.Clear;
   FMousePressed := [];
-end;
-
-procedure TCastleControlBase.AggressiveUpdateTick;
-begin
-  if AggressiveUpdate then
-  begin
-    if (LimitFPS = 0) or
-       (Timer - Fps.UpdateStartTime > TimerFrequency / LimitFPS) then
-    begin
-      UpdateEvent;
-      if Invalidated then Paint;
-    end;
-  end;
 end;
 
 procedure TCastleControlBase.UpdateShiftState(const Shift: TShiftState);
@@ -726,8 +676,6 @@ begin
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
-  AggressiveUpdateTick;
-
   { Do not change focus by arrow keys, this would breaks our handling of arrows
     over TCastleControl. We can prevent Lazarus from interpreting these
     keys as focus-changing (actually, Lazarus tells widget managet that these
@@ -758,8 +706,6 @@ begin
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
-  AggressiveUpdateTick;
-
   { Do not change focus by arrow keys, this breaks our handling of them.
     See KeyDown for more comments. }
   if (Key = VK_Down) or
@@ -788,8 +734,6 @@ begin
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
-  AggressiveUpdateTick;
-
   inherited MouseDown(Button, Shift, X, Y); { OnMouseDown before MouseDownEvent }
 
   MouseDownEvent(Button, Shift, X, Y);
@@ -808,14 +752,98 @@ begin
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
-  AggressiveUpdateTick;
-
   inherited MouseUp(Button, Shift, X, Y); { OnMouseUp before MouseUpEvent }
 
   MouseUpEvent(Button, Shift, X, Y);
 end;
 
 procedure TCastleControlBase.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
+
+  { Force UpdateEvent and Paint (if invalidated) events to happen,
+    if sufficient time (based on LimitFPS, that in this case acts like
+    "desired FPS") passed.
+    This is needed when user "clogs" the GTK / WinAPI / Qt etc. event queue.
+    In this case Lazarus (LCL) doesn't automatically fire the idle and repaint
+    events.
+
+    The behavior of Lazarus application Idle events is such that they
+    are executed only when there are no events left to process.
+    This makes sense, and actually follows the docs and the name "idle".
+
+    In contrast, our UpdateEvent expects to be run continously, that is:
+    about the same number
+    of times per second as the screen Redraw (and if the screen doesn't need to
+    be redrawn, our UpdateEvent should still run a sensible number of times
+    per second --- around the same value as LimitFPS, or (when LimitFPS
+    is set to 0, meaning "unused") as many times as possible).
+    For our UpdateEvent, it should not matter whether your event
+    loop has something left to process. We need this,
+    since typical games / 3D simulations must try to update animations and
+    repaint at a constant rate, even when user is moving around.
+
+    The problem is most obvious when moving the mouse, for example when using
+    the mouse look to walk and look around in Walk mode (TWalkCamera.MouseLook),
+    or when dragging with mouse
+    in Examine mode. The event loop is then typically busy processing mouse move
+    events all the time, so it's never/seldom empty (note: it doesn't mean that
+    event loop is clogged, as mouse move events can be potentially accumulated
+    at various levels --- LCL, underlying widgetset like GTK, underlying system
+    like XWindows etc. I think in practice XWindows does it, but I'm not sure).
+    Our program should however still be responsive. Not only the screen should
+    be redrawn, regardless if our event loop is empty or not, but also
+    our Update event should be continously called. But if we just use LCL Idle/Redraw
+    behavior (that descends from other widgetsets) then you may find that:
+    - during mouse look things "stutter" --- no Idle, not even Redraw,
+      happens regularly.
+    - during mouse drag Redraw may be regular, but still Idle are not called
+      (so e.g. animations do not move, instead they suddenly jump a couple
+      of seconds
+      forward when you stop dragging after a couple of seconds).
+
+    Note that TCastleWindow (with backends other than LCL) do not have this
+    problem. Maybe we process events faster, so that we don't get clogged
+    during MouseLook?
+
+    We can't fix it by hacking Application methods,
+    especially as LCL Application.ProcessMessage may handle a "batch"
+    of events (for example, may be ~ 100 GTK messages, see
+    TGtkWidgetSet.AppProcessMessages in lazarus/trunk/lcl/interfaces/gtk/gtkwidgetset.inc).
+    So instead we hack it from the inside: from time to time
+    (more precisely, LimitFPS times per second),
+    when receving an often occuring event (right now: just MouseMove),
+    we'll call the UpdateEvent, and (if pending Invalidate call) Paint methods.
+
+    In theory, we could call this on every event (key down, mouse down etc.).
+    But in practice:
+    - Doing this from KeyDown would make redraw when moving by only holding
+      down some keys stutter a little (screen seems like not refreshed fast
+      enough). Reason for this stutter is not known,
+      it also stutters in case of mouse move, but we have no choice in this case:
+      either update with stuttering, or not update (continously) at all.
+      TCastleWindow doesn't have this problem, mouse look is smooth there.
+    - It's also not needed from events other than mouse move.
+
+    In theory, for LimitFPS = 0, we should just do this every time.
+    But this would overload the system
+    (you would see smooth animation and rendering, but there will be latency
+    with respect to handling input, e.g. mouse move will be processed with
+    a small delay). So we use MaxDesiredFPS to cap it. }
+  procedure AggressiveUpdate;
+  const
+    MaxDesiredFPS = DefaultLimitFPS;
+  var
+    DesiredFPS: Single;
+  begin
+    if LimitFPS <= 0 then
+      DesiredFPS := MaxDesiredFPS else
+      DesiredFPS := Min(MaxDesiredFPS, LimitFPS);
+    if Timer - Fps.UpdateStartTime > TimerFrequency / DesiredFPS then
+    begin
+      UpdateEvent;
+      if Invalidated then Paint;
+    end;
+  end;
+
 begin
   MouseMoveEvent(Shift, NewX, NewY);
 
@@ -826,7 +854,7 @@ begin
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
-  AggressiveUpdateTick;
+  AggressiveUpdate;
 
   inherited MouseMove(Shift, NewX, NewY);
 end;
@@ -881,7 +909,7 @@ begin
         glViewport(0, 0, Width, Height);
       SwapBuffers;
     finally Fps._RenderEnd end;
-    Invalidated := false; { used only when AggressiveUpdate }
+    Invalidated := false;
   end;
 end;
 

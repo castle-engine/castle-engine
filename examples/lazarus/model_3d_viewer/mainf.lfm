@@ -5,7 +5,7 @@ object Main: TMain
   Width = 718
   ActiveControl = Browser
   Caption = 'Main'
-  ClientHeight = 571
+  ClientHeight = 572
   ClientWidth = 718
   Menu = MainMenu1
   OnCreate = FormCreate
@@ -15,47 +15,47 @@ object Main: TMain
   LCLVersion = '1.1'
   object PanelBottom: TPanel
     Left = 0
-    Height = 253
-    Top = 318
+    Height = 250
+    Top = 322
     Width = 718
     Align = alBottom
     AutoSize = True
-    ClientHeight = 253
+    ClientHeight = 250
     ClientWidth = 718
     TabOrder = 1
     object GroupBoxCamera: TGroupBox
       Left = 9
-      Height = 154
+      Height = 152
       Top = 9
-      Width = 462
+      Width = 454
       AutoSize = True
       BorderSpacing.Around = 8
       BorderSpacing.InnerBorder = 8
       Caption = 'Camera vectors'
-      ClientHeight = 126
-      ClientWidth = 458
+      ClientHeight = 125
+      ClientWidth = 450
       TabOrder = 0
       object LabelPosition: TLabel
         Left = 3
-        Height = 26
+        Height = 25
         Top = 0
-        Width = 71
+        Width = 69
         Caption = 'Position:'
         ParentColor = False
       end
       object LabelDirection: TLabel
         Left = 0
-        Height = 26
+        Height = 25
         Top = 39
-        Width = 80
+        Width = 76
         Caption = 'Direction:'
         ParentColor = False
       end
       object LabelUp: TLabel
         Left = 3
-        Height = 26
+        Height = 25
         Top = 79
-        Width = 28
+        Width = 27
         Caption = 'Up:'
         ParentColor = False
       end
@@ -64,8 +64,8 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelPosition
         AnchorSideTop.Side = asrCenter
-        Left = 90
-        Height = 36
+        Left = 86
+        Height = 35
         Top = -5
         Width = 80
         BorderSpacing.Left = 10
@@ -77,8 +77,8 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelPosition
         AnchorSideTop.Side = asrCenter
-        Left = 180
-        Height = 36
+        Left = 176
+        Height = 35
         Top = -5
         Width = 80
         BorderSpacing.Left = 10
@@ -90,8 +90,8 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelPosition
         AnchorSideTop.Side = asrCenter
-        Left = 270
-        Height = 36
+        Left = 266
+        Height = 35
         Top = -5
         Width = 80
         BorderSpacing.Left = 10
@@ -102,8 +102,8 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelDirection
         AnchorSideTop.Side = asrCenter
-        Left = 90
-        Height = 36
+        Left = 86
+        Height = 35
         Top = 34
         Width = 80
         BorderSpacing.Left = 10
@@ -115,8 +115,8 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelDirection
         AnchorSideTop.Side = asrCenter
-        Left = 180
-        Height = 36
+        Left = 176
+        Height = 35
         Top = 34
         Width = 80
         BorderSpacing.Left = 10
@@ -128,8 +128,8 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelDirection
         AnchorSideTop.Side = asrCenter
-        Left = 270
-        Height = 36
+        Left = 266
+        Height = 35
         Top = 34
         Width = 80
         BorderSpacing.Left = 10
@@ -140,8 +140,8 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelUp
         AnchorSideTop.Side = asrCenter
-        Left = 90
-        Height = 36
+        Left = 86
+        Height = 35
         Top = 74
         Width = 80
         BorderSpacing.Left = 10
@@ -153,8 +153,8 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelUp
         AnchorSideTop.Side = asrCenter
-        Left = 180
-        Height = 36
+        Left = 176
+        Height = 35
         Top = 74
         Width = 80
         BorderSpacing.Left = 10
@@ -166,8 +166,8 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = LabelUp
         AnchorSideTop.Side = asrCenter
-        Left = 270
-        Height = 36
+        Left = 266
+        Height = 35
         Top = 74
         Width = 80
         BorderSpacing.Left = 10
@@ -178,10 +178,10 @@ object Main: TMain
         AnchorSideLeft.Side = asrBottom
         AnchorSideBottom.Control = EditUpZ
         AnchorSideBottom.Side = asrBottom
-        Left = 360
-        Height = 46
+        Left = 356
+        Height = 45
         Top = 64
-        Width = 82
+        Width = 78
         Anchors = [akLeft, akBottom]
         AutoSize = True
         BorderSpacing.Left = 10
@@ -193,10 +193,10 @@ object Main: TMain
     end
     object ButtonScreenshot: TBitBtn
       AnchorSideTop.Control = ImagePoweredBy
-      Left = 576
-      Height = 38
-      Top = 12
-      Width = 133
+      Left = 581
+      Height = 37
+      Top = 13
+      Width = 128
       Anchors = [akRight]
       AutoSize = True
       BorderSpacing.Top = 8
@@ -290,8 +290,8 @@ object Main: TMain
       AnchorSideTop.Control = GroupBoxCamera
       AnchorSideTop.Side = asrBottom
       Left = 11
-      Height = 73
-      Top = 171
+      Height = 72
+      Top = 169
       Width = 623
       AutoSize = True
       BorderSpacing.Around = 8
@@ -916,7 +916,7 @@ object Main: TMain
   object Browser: TCastleControl
     AnchorSideBottom.Control = PanelBottom
     Left = 0
-    Height = 318
+    Height = 322
     Top = 0
     Width = 718
     Align = alClient
@@ -952,21 +952,9 @@ object Main: TMain
         ShowAlwaysCheckable = True
         OnClick = MenuMouseLookToggleClick
       end
-      object MenuAggressiveUpdateToggle: TMenuItem
-        AutoCheck = True
-        Caption = '&Aggressive Update (use when Mouse Look seems to stutter)'
-        ShowAlwaysCheckable = True
-        OnClick = MenuAggressiveUpdateToggleClick
-      end
-      object MenuItem2: TMenuItem
-        Caption = '-'
-      end
       object MenuFocusGLControl: TMenuItem
         Caption = 'Switch &focus to 3D area'
         OnClick = MenuFocusGLControlClick
-      end
-      object MenuItem1: TMenuItem
-        Caption = '-'
       end
       object MenuShowConsole: TMenuItem
         AutoCheck = True

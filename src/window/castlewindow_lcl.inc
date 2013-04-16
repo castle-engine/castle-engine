@@ -24,46 +24,10 @@
   - All radio menu items are always on. Why?
 
   Bugs on Carbon and GTK2:
-  - MouseLook stutters. Something similar to aggressive update needed?
+  - MouseLook stutters.
     Also, during dragging with mouse, e.g. rotating a model with Examine mode,
     the Update isn't called.
-    This is all just like with TCastleControl. Official comments:
-
-    The behavior of Lazarus application Idle events is such that they are executed
-    only when there are no events left to process. This makes sense, and actually
-    follows the docs and the name "idle".
-
-    In contrast, our Update events expect to be run continously, that is:
-    about the same number
-    of times per second as the screen Redraw (and if the screen doesn't need to be redrawn,
-    our Update should still run a sensible number of times per second ---
-    around the same value as FPSLimit, or (when FPSLimit is set to 0, meaning "unused")
-    as many times as possible). For our Update, it should not matter whether your event
-    loop has something left to process.
-
-    The problem is most obvious when moving the mouse, for example when using
-    the mouse look to walk and look around in Walk mode, or when dragging with mouse
-    in Examine mode. The event loop is then typically busy processing mouse move
-    events all the time, so it's never/seldom empty (note: it doesn't mean that
-    event loop is clogged, as mouse move events can be potentially accumulated
-    at various levels --- LCL, underlying widgetset like GTK, underlying system
-    like XWindows etc. I think in practice XWindows does it, but I'm not sure).
-    Our program should however still be responsive. Not only the screen should
-    be redrawn, regardless if our event loop is empty or not, but also
-    our Update event should be continously called. But if we just use LCL Idle/Redraw
-    behavior (that descends from other widgetsets) then you may find that:
-    - during mouse look things "stutter" --- no Idle, not even Redraw, happens regularly.
-    - during mouse drag Redraw may be regular, but still Idle are not called
-      (so e.g. animations do not move, instead they suddenly jump a couple of seconds
-      forward when you stop dragging after a couple of seconds).
-
-    TODO:
-    - CastleControl "aggresive update" fix to remove any stuttering
-      (turning in on right now makes MouseLook better, but key navigation
-      is a little less smooth)
-    - make it enabled by default?
-    - possibly move it to CastleTimeUtils?
-    - reuse it here
+    This is all just like with TCastleControl, fix like AggressiveUpdate
 
   Bugs on Carbon, not on GTK2:
   - Sometimes after menu changes we have a segfault in Carbon widgetset,

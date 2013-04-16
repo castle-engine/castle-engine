@@ -56,7 +56,6 @@ type
     MenuFocusGLControl: TMenuItem;
     MenuHelp: TMenuItem;
     MenuAboutOpenGL: TMenuItem;
-    MenuItem1: TMenuItem;
     MenuWebsite: TMenuItem;
     MenuSep2: TMenuItem;
     MenuShowConsole: TMenuItem;
@@ -68,10 +67,8 @@ type
     PanelBottom: TPanel;
     SaveScreenshotDialog: TSaveDialog;
     Timer1: TTimer;
-    MenuItem2: TMenuItem;
     MenuMouseLookToggle: TMenuItem;
     RecentFiles: TCastleRecentFiles;
-    MenuAggressiveUpdateToggle: TMenuItem;
     procedure ButtonNavigationTypeClick(Sender: TObject);
     procedure ButtonScreenshotClick(Sender: TObject);
     procedure BrowserCameraChanged(Camera: TCamera);
@@ -89,7 +86,6 @@ type
     procedure MenuMouseLookToggleClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure RecentFilesOpenRecent(const FileName: string);
-    procedure MenuAggressiveUpdateToggleClick(Sender: TObject);
   private
     SceneFileName: string;
     CameraChanged: boolean;
@@ -306,11 +302,6 @@ end;
 procedure TMain.RecentFilesOpenRecent(const FileName: string);
 begin
   OpenScene(FileName);
-end;
-
-procedure TMain.MenuAggressiveUpdateToggleClick(Sender: TObject);
-begin
-  Browser.AggressiveUpdate := (Sender as TMenuItem).Checked;
 end;
 
 procedure TMain.FormDeactivate(Sender: TObject);
