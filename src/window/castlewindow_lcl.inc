@@ -58,11 +58,11 @@
       forward when you stop dragging after a couple of seconds).
 
     TODO:
-    - cleanup implementation of "aggresive update" in CastleControl
-      (it's a little hacky in CastleControl, it could be more integrated to use FPSLimit
-      and just cleaner)
-    - make it enabled by default
-    - possibly move it to CastleTimeUtils
+    - CastleControl "aggresive update" fix to remove any stuttering
+      (turning in on right now makes MouseLook better, but key navigation
+      is a little less smooth)
+    - make it enabled by default?
+    - possibly move it to CastleTimeUtils?
     - reuse it here
 
   Bugs on Carbon, not on GTK2:
