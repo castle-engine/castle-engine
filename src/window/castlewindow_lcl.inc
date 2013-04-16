@@ -77,9 +77,17 @@ private
       procedure IntfDoSelect; override;
     end;
 
+    { Like TOpenGLControl but tracks Invalidated state. }
+    TGoodOpenGLControl = class(TOpenGLControl)
+    public
+      Invalidated: boolean;
+      procedure Invalidate; override;
+      procedure Paint; override;
+    end;
+
   var
     Form: TForm;
-    OpenGLControl: TOpenGLControl;
+    OpenGLControl: TGoodOpenGLControl;
     Menu: TMainMenu;
 
   procedure MenuCastleToLCL(const MyMenu: TMenu; const AMenu: Menus.TMenuItem);
@@ -120,6 +128,24 @@ procedure TCastleWindowBase.TGoodMenuItem.IntfDoSelect;
 begin
   inherited;
   Window.ReleaseAllKeysAndMouse;
+end;
+
+{ TGoodOpenGLControl --------------------------------------------------------- }
+
+procedure TCastleWindowBase.TGoodOpenGLControl.Invalidate;
+begin
+  Invalidated := true;
+  inherited;
+end;
+
+procedure TCastleWindowBase.TGoodOpenGLControl.Paint;
+begin
+  { We need to set Invalidated := false before OnPaint
+    (that calls TCastleWindow.OnDraw), because TCastleWindow guarantees
+    that calling TCastleWindow.PostRedisplay within OnDraw will cause following
+    redraw. }
+  Invalidated := false;
+  inherited;
 end;
 
 { TCastleWindowBase ------------------------------------------------------------------ }
@@ -327,7 +353,7 @@ begin
     entering MessageOK *must* make ReleaseAllKeysAndMouse, otherwise it hangs.) }
   Form.OnDeactivate := @FormDeactivate;
 
-  OpenGLControl := TOpenGLControl.Create(Form);
+  OpenGLControl := TGoodOpenGLControl.Create(Form);
   OpenGLControl.Parent := Form;
   OpenGLControl.Align := alClient;
   OpenGLControl.Width := Width;
@@ -402,8 +428,7 @@ end;
 
 procedure TCastleWindowBase.FlushRedisplay;
 begin
-  { TODO (redraw *now*, if PostRedisplay pending;
-    it's valid (although non-optimal) to just always call DoDraw here) }
+  if OpenGLControl.Invalidated then DoDraw;
 end;
 
 procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
