@@ -38,8 +38,9 @@ type
 
     Provides OnGLContextOpen and OnGLContextClose events.
 
-    Provides comfortable @link(Update) method. And a special AggressiveUpdate hack
-    to be able to continously update (call @link(Update) and Draw) even when
+    Provides continously called @link(UpdateEvent) method, that allows to handle
+    TUIControl.Update. And a special AggressiveUpdate hack
+    to be able to continously update even when
     the window system clogs us with events (this typically happens when user
     moves the mouse and we use TWalkCamera.MouseLook).
 
@@ -126,6 +127,8 @@ type
     procedure MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer); virtual;
     { @groupEnd }
 
+    procedure UpdateEvent; virtual;
+
     { In this class this just calls OnGLContextOpen.
 
       Note that always after initializing OpenGL context, we also call
@@ -146,7 +149,7 @@ type
       { Default value for TCastleControlBase.AggressiveUpdateDelay.
         "1000 div 60" means that we strike for 60 frames per second,
         although this is gross approximation (no guarantees, of course;
-        especially if your Update / Draw take a long time). }
+        especially if your UpdateEvent / Draw take a long time). }
       DefaultAggressiveUpdateDelay = 1000 div 60;
 
       { Default value for TCastleControlBase.AggressiveUpdate }
@@ -158,8 +161,6 @@ type
     function MakeCurrent(SaveOldToStack: boolean = false): boolean; override;
     procedure Invalidate; override;
     procedure Paint; override;
-
-    procedure Update; virtual;
 
     property Pressed: TKeysPressed read FPressed;
     property MousePressed: CastleKeysMouse.TMouseButtons read FMousePressed;
@@ -203,7 +204,7 @@ type
     property OnBeforeDraw: TNotifyEvent read FOnBeforeDraw write FOnBeforeDraw;
     property OnDraw: TNotifyEvent read FOnDraw write FOnDraw;
 
-    { Force Update and Paint (if invalidated) events to happen continously.
+    { Force UpdateEvent and Paint (if invalidated) events to happen continously.
 
       You almost always want this to happen. Without this, when user "clogs"
       the GTK / WinAPI / Qt etc. event queue, Lazarus (LCL) doesn't continously
@@ -211,8 +212,8 @@ type
       and repaint events. This is somewhat tolerable for normal UI programs,
       that really "do" something only in response to user actions.
       But typical games / 3D simulations must try to update animations and
-      repaint at a constant rate. Which means that we want "Update" to be fired
-      continously (not really only when application stays "Update"),
+      repaint at a constant rate. Which means that we want "UpdateEvent" to be fired
+      continously (not really only when application stays "idle"),
       and we want redraw to happen when needed (you signal the need to redraw
       by Invalidate call).
 
@@ -229,9 +230,9 @@ type
       (for example, may be ~ 100 GTK messages, see
       TGtkWidgetSet.AppProcessMessages in lazarus/trunk/lcl/interfaces/gtk/gtkwidgetset.inc).
       So instead we hack from the inside: from time to time
-      (more precisely, after AggressiveUpdateDelay miliseconds since last Update + Paint end),
+      (more precisely, after AggressiveUpdateDelay miliseconds since last UpdateEvent + Paint end),
       when receving key or mouse events (KeyDown, MouseDown, MouseMove etc.),
-      we'll call the Update, and (if pending Invalidate call) Paint methods.
+      we'll call the UpdateEvent, and (if pending Invalidate call) Paint methods.
 
       Do not set too small, like 0, or you'll overload the system
       (you will see smooth animation and rendering, but there will be latency
@@ -284,6 +285,7 @@ type
       Shift:TShiftState; X,Y:Integer); override;
     procedure MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer); override;
     function MouseWheelEvent(const Scroll: Single; const Vertical: boolean): boolean; override;
+    procedure UpdateEvent; override;
     procedure DoBeforeDraw; override;
     procedure DoDraw; override;
     procedure Resize; override;
@@ -312,8 +314,6 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
-    procedure Update; override;
 
     { Returns the control that should receive input events first,
       or @nil if none. More precisely, this is the first on Controls
@@ -514,12 +514,12 @@ var
 begin
   AllowLimitFPS := true;
 
-  { Call Update for all TCastleControl instances.
+  { Call UpdateEvent for all TCastleControl instances.
     Also, calculate AllowLimitFPS. }
   for I := 0 to CastleControls.Count - 1 do
   begin
     C := CastleControls[I] as TCastleControlBase;
-    C.Update;
+    C.UpdateEvent;
     AllowLimitFPS := AllowLimitFPS and
       (not C.AggressiveUpdate) and not (csDesigning in C.ComponentState);
   end;
@@ -533,7 +533,7 @@ begin
     demo_models/sensors_pointing_device/touch_sensor_tests.x3dv .
     That's because Done := true allows for WidgetSet.AppWaitMessage
     inside lcl/include/application.inc .
-    We don't want that, we want continous Update events.
+    We don't want that, we want continous UpdateEvent events.
 
     So we have to use Done := false.
 
@@ -686,17 +686,17 @@ begin
   begin
     if TimeTickSecondLater(LastAggressiveUpdateTime, GetTickCount, AggressiveUpdateDelay) then
     begin
-      Update;
+      UpdateEvent;
       if Invalidated then Paint;
 
       { We have to resist the temptation of optimizing below by reusing previous
         GetTickCount result here for speed. This could make our aggressive
         update overloading the event loop with repaints.
-        Imagine that Update + Paint would take > AggressiveUpdateDelay
+        Imagine that UpdateEvent + Paint would take > AggressiveUpdateDelay
         (quite possible, if your scene is complex and you're constantly
         repainting, e.g. observed with mouse look walking + rotating on
         cubemap_with_dynamic_world.x3d). Then we would effectively repeat
-        Update + Paint in every event (like, on every MouseMove), making
+        UpdateEvent + Paint in every event (like, on every MouseMove), making
         "lag" between painting and actualy processed events.
 
         True, this "overloading" is always possible with AggressiveUpdate
@@ -870,7 +870,7 @@ begin
   Result := false;
 end;
 
-procedure TCastleControlBase.Update;
+procedure TCastleControlBase.UpdateEvent;
 begin
   Fps._UpdateBegin;
 end;
@@ -1132,7 +1132,7 @@ begin
     Cursor := NewCursor;
 end;
 
-procedure TCastleControlCustom.Update;
+procedure TCastleControlCustom.UpdateEvent;
 
   procedure UpdateTooltip;
   var
