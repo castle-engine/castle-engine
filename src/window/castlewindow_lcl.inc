@@ -37,28 +37,6 @@
   - All radio menu items are always on. Why?
 
   Bugs on Carbon, not on GTK2:
-  - Sometimes after menu changes we have a segfault in Carbon widgetset,
-    like our menu item reference was invalid.
-    Happens after various menu changes: rebuilding the menu, also fast changes
-    like new MenuInsert (like when changing recent files submenu in view3dscene)
-    and MenuUpdateChecked (like when switching view3dscene display->4 viewports radio).
-
-    Happens both when debugging and not debugging.
-    Using the file menu to choose a recent file to load is the most common case.
-
-    In debuggger:
-      Project view3dscene.app raised exception class 'External: EXC_BAD_ACCESS'.
-      In file './carbon/carbonlclintf.inc' at line 342:
-      end; {TCarbonWidgetSet.PromptUser}
-
-    When running from console:
-      TApplication.HandleException Access violation
-        Stack trace:
-        $0039566B  CARBONAPP_COMMANDPROCESS,  line 2872 of /Users/michalis/sources/lazarus/trunk/lcl/interfaces/./carbon/carbonint.pas
-
-    Most probably related to http://bugs.freepascal.org/view.php?id=20688 .
-    Less likely, to http://bugs.freepascal.org/view.php?id=18908 ?
-
   - Using command+r shows message twice. That is because rebuilding the menu.
     Fix to not do rebuilding on MainMenu.Enabled changes.
 
@@ -320,7 +298,43 @@ var
 begin
   if not CheckMenu(Entry, EntryLCL) then Exit;
   Entry.ClearHandles;
-  FreeAndNil(EntryLCL);
+
+  {$ifdef DARWIN}
+    (*Workaround LCL on Carbon bug http://bugs.freepascal.org/view.php?id=20688 .
+
+      Symptoms:
+      Sometimes after menu changes we have a segfault in Carbon widgetset,
+      like our menu item reference was invalid.
+      Happens after various menu changes: rebuilding the menu, also fast changes
+      like MenuDelete (like when changing recent files submenu in view3dscene).
+      It seems that Carbon doesn't like deleting a menu currently used.
+
+      Happens both when debugging and not debugging.
+      Using the file menu to choose a recent file to load from view3dscene
+      is the most common case.
+
+      In Lazarus debuggger:
+        Project view3dscene.app raised exception class 'External: EXC_BAD_ACCESS'.
+        In file './carbon/carbonlclintf.inc' at line 342:
+        end; {TCarbonWidgetSet.PromptUser}
+
+      When running from console:
+        TApplication.HandleException Access violation
+          Stack trace:
+          $0039566B  CARBONAPP_COMMANDPROCESS,  line 2872 of /Users/michalis/sources/lazarus/trunk/lcl/interfaces/./carbon/carbonint.pas
+
+      Most probably this is the same thing as reported on
+      http://bugs.freepascal.org/view.php?id=20688  .
+      Less likely, to http://bugs.freepascal.org/view.php?id=18908 ?
+
+      Workaround for now is just to not remove LCL menu items, only hide them.
+      This at least fixes the issue when we delete menu by MenuDelete
+      (as opposed to menu rebuild).
+    *)
+    EntryLCL.Visible := false;
+  {$else}
+    FreeAndNil(EntryLCL);
+  {$endif}
 end;
 
 procedure TCastleWindowBase.SwapBuffers;
