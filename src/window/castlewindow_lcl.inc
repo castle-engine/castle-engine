@@ -13,15 +13,26 @@
   ----------------------------------------------------------------------------
 }
 
-{ CastleWindow backend using Lazarus LCL underneath.
+(*CastleWindow backend using Lazarus LCL underneath.
   Should work with all LCL widgetsets, but was especially done and tested
   to use LCL Carbon widgetset under Mac OS X (since for other OSes
   we already have more native CastleWindow backends).
 
   TODO:
-  
-  - Is progress working? Or Carbon, on GTK?
-  
+
+  Bugs on Carbon, not tested on GTK:
+  - Progress is a little weird. It goes forward (can be seen on fps_game
+    and view3dscene compiled with -dTESTING_PROGRESS_DELAY),
+    but it's not smoothly updated.
+    It seems that it's only redrawn when mouse move (not even key down helps)?
+    Actually, it only moves forward when mouse move (not even key down helps)?
+
+    This may all be caused by current TCastleApplication.ProcessMessage
+    calling Forms.Application.ProcessMessages, maybe it hangs and waits for
+    messages on Carbon?
+    Or maybe the Carbon doesn't redraw us often enough, and AggressiveUpdate
+    inside MouseMove helps to force redraw?
+
   Bugs on GTK2, not on Carbon:
   - All radio menu items are always on. Why?
 
@@ -35,14 +46,18 @@
     Happens both when debugging and not debugging.
     Using the file menu to choose a recent file to load is the most common case.
 
-    Related to http://bugs.freepascal.org/view.php?id=20688 ?
-    Eventually, to http://bugs.freepascal.org/view.php?id=18908 ?
-    
+    In debuggger:
       Project view3dscene.app raised exception class 'External: EXC_BAD_ACCESS'.
       In file './carbon/carbonlclintf.inc' at line 342:
       end; {TCarbonWidgetSet.PromptUser}
-    
-    
+
+    When running from console:
+      TApplication.HandleException Access violation
+        Stack trace:
+        $0039566B  CARBONAPP_COMMANDPROCESS,  line 2872 of /Users/michalis/sources/lazarus/trunk/lcl/interfaces/./carbon/carbonint.pas
+
+    Most probably related to http://bugs.freepascal.org/view.php?id=20688 .
+    Less likely, to http://bugs.freepascal.org/view.php?id=18908 ?
 
   - Using command+r shows message twice. That is because rebuilding the menu.
     Fix to not do rebuilding on MainMenu.Enabled changes.
@@ -57,7 +72,7 @@
     This is triggered by having a menu item key shortcut,
     and when this menu item is executed --- we destroy and create new menu
     that also reacts to this shortcut. In this case, Carbon executes the menu item again.
-}
+*)
 
 {$ifdef read_window_interface}
 private
