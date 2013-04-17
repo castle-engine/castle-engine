@@ -20,6 +20,10 @@
 
   TODO:
 
+  - Mouse look still stutters awfully on Carbon, AggressiveUpdate helps
+    (without it, mouse look would not work at all) but doesn't
+    completely fix the problem.
+
   Bugs on Carbon, not tested on GTK:
   - Progress is a little weird. It goes forward (can be seen on fps_game
     and view3dscene compiled with -dTESTING_PROGRESS_DELAY),
