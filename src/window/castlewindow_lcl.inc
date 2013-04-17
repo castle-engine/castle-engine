@@ -19,7 +19,9 @@
   we already have more native CastleWindow backends).
 
   TODO:
-
+  
+  - Is progress working? Or Carbon, on GTK?
+  
   Bugs on GTK2, not on Carbon:
   - All radio menu items are always on. Why?
 
@@ -30,7 +32,17 @@
     like new MenuInsert (like when changing recent files submenu in view3dscene)
     and MenuUpdateChecked (like when switching view3dscene display->4 viewports radio).
 
-    Happens only when debugging from Lazarus. Never when simply running.
+    Happens both when debugging and not debugging.
+    Using the file menu to choose a recent file to load is the most common case.
+
+    Related to http://bugs.freepascal.org/view.php?id=20688 ?
+    Eventually, to http://bugs.freepascal.org/view.php?id=18908 ?
+    
+      Project view3dscene.app raised exception class 'External: EXC_BAD_ACCESS'.
+      In file './carbon/carbonlclintf.inc' at line 342:
+      end; {TCarbonWidgetSet.PromptUser}
+    
+    
 
   - Using command+r shows message twice. That is because rebuilding the menu.
     Fix to not do rebuilding on MainMenu.Enabled changes.
