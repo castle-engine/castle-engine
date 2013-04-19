@@ -30,6 +30,8 @@
   end;
 
   TCADAssemblyNode = class(TAbstractX3DGroupingNode, IAbstractX3DProductStructureChildNode)
+  protected
+    procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -40,6 +42,8 @@
   end;
 
   TCADFaceNode = class(TAbstractProductStructureChildNode, IAbstractBoundedObject)
+  protected
+    procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -56,6 +60,8 @@
   end;
 
   TCADLayerNode = class(TAbstractX3DGroupingNode)
+  protected
+    procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -68,11 +74,15 @@
     public property FdVisible: TMFBool read FFdVisible;
   end;
 
-  TCADPartNode = class(TAbstractX3DGroupingNode, IAbstractX3DProductStructureChildNode)
+  TCADPartNode = class(TAbstractX3DGroupingNode, IAbstractX3DProductStructureChildNode, ITransformNode)
+  protected
+    procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
+    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
+    function TransformationChange: TNodeTransformationChange; override;
 
     private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
@@ -164,6 +174,11 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+procedure TCADAssemblyNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+begin
+  FdChildren.EnumerateValid(Func);
+end;
+
 procedure TCADFaceNode.CreateNode;
 begin
   inherited;
@@ -195,6 +210,11 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+procedure TCADFaceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+begin
+  FdShape.EnumerateValid(Func);
+end;
+
 procedure TCADLayerNode.CreateNode;
 begin
   inherited;
@@ -219,11 +239,22 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+procedure TCADLayerNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+var
+  I: Integer;
+begin
+  inherited;
+  for I := 0 to FdChildren.Count - 1 do
+    if (I >= FdVisible.Count) or FdVisible.Items[I] then
+      Func(Self, FdChildren[I]);
+end;
+
 procedure TCADPartNode.CreateNode;
 begin
   inherited;
 
   FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
+   FdCenter.ChangesAlways := [chTransform];
   Fields.Add(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -231,18 +262,22 @@ begin
   Fields.Add(FFdName);
 
   FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+   FdRotation.ChangesAlways := [chTransform];
   Fields.Add(FFdRotation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
   FFdScale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
+   FdScale.ChangesAlways := [chTransform];
   Fields.Add(FFdScale);
   { X3D specification comment: (0,Inf) }
 
   FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
+   FdScaleOrientation.ChangesAlways := [chTransform];
   Fields.Add(FFdScaleOrientation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
   FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+   FdTranslation.ChangesAlways := [chTransform];
   Fields.Add(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -258,6 +293,23 @@ class function TCADPartNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+procedure TCADPartNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+begin
+  FdChildren.EnumerateValid(Func);
+end;
+
+function TCADPartNode.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcTransform;
+end;
+
+procedure TCADPartNode.ApplyTransform(State: TX3DGraphTraverseState);
+begin
+  inherited;
+  TransformState(State, Fdcenter.Value, Fdrotation.Value,
+    Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
 end;
 
 procedure TIndexedQuadSetNode.CreateNode;
