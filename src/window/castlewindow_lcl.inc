@@ -19,10 +19,10 @@
   we already have more native CastleWindow backends).
 
   TODO:
-
-  - Mouse look still stutters awfully on Carbon, AggressiveUpdate helps
-    (without it, mouse look would not work at all) but doesn't
-    completely fix the problem.
+  - Mouse look still stutters awfully on both Carbon and GTK2.
+    AggressiveUpdate helps (without it, mouse look would not work at all)
+    but doesn't completely fix the problem. Other CastleWindow backends
+    have smooth mouse look.
 
   Bugs on Carbon, not tested on GTK:
   - Progress is a little weird. It goes forward (can be seen on fps_game
