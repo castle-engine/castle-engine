@@ -1767,8 +1767,13 @@ begin
   Dec(VisibleChangeSchedule);
   if (VisibleChangeSchedule = 0) and IsVisibleChangeScheduled then
   begin
-    VisibleChange;
+    { Set IsVisibleChangeScheduled first.
+      That is because VisibleChange may be overriden and/or may call
+      various callbacks, and these callbacks in turn may again call
+      BeginVisibleChangeSchedule. And BeginVisibleChangeSchedule must start
+      with good state, see assertion there. }
     IsVisibleChangeScheduled := false;
+    VisibleChange;
   end;
 end;
 
@@ -2105,7 +2110,7 @@ procedure TExamineCamera.Update(const SecondsPassed: Single;
           -MaxRotationSpeed, MaxRotationSpeed) else
       FRotations := QuatFromAxisAngle(UnitVector3Single[Coord],
         RotationSpeed * SecondsPassed * Direction) * FRotations;
-    VisibleChange;
+    ScheduleVisibleChange;
   end;
 
 var
@@ -2153,7 +2158,7 @@ begin
 
     FRotations.LazyNormalize;
 
-    VisibleChange;
+    ScheduleVisibleChange;
   end;
 
   if HandleMouseAndKeys and (ciNormal in Input) then
@@ -2212,14 +2217,14 @@ end;
 procedure TExamineCamera.StopRotating;
 begin
   FRotationsAnim := ZeroVector3Single;
-  VisibleChange;
+  ScheduleVisibleChange;
 end;
 
 procedure TExamineCamera.Scale(const ScaleBy: Single);
-begin FScaleFactor *= ScaleBy; VisibleChange; end;
+begin FScaleFactor *= ScaleBy; ScheduleVisibleChange; end;
 
 procedure TExamineCamera.Move(coord: integer; const MoveDistance: Single);
-begin FMoveAmount[coord] += MoveDistance; VisibleChange; end;
+begin FMoveAmount[coord] += MoveDistance; ScheduleVisibleChange; end;
 
 function TExamineCamera.Mouse3dTranslation(const X, Y, Z, Length: Double;
   const SecondsPassed: Single): boolean;
@@ -2249,7 +2254,7 @@ begin
   end;
 
   if Moved then
-    VisibleChange;
+    ScheduleVisibleChange;
 
   if Abs(Z)>5 then   { backward / forward }
     Zoom(Z * MoveSize / 2);
@@ -2293,7 +2298,7 @@ begin
   if Moved then
   begin
     FRotations := NewRotation;
-    VisibleChange;
+    ScheduleVisibleChange;
   end;
 end;
 
@@ -2313,19 +2318,19 @@ end;
 { TExamineCamera.Set* properties }
 
 procedure TExamineCamera.SetRotationsAnim(const Value: TVector3Single);
-begin FRotationsAnim := Value; VisibleChange; end;
+begin FRotationsAnim := Value; ScheduleVisibleChange; end;
 
 procedure TExamineCamera.SetRotations(const Value: TQuaternion);
-begin FRotations := Value; VisibleChange; end;
+begin FRotations := Value; ScheduleVisibleChange; end;
 
 procedure TExamineCamera.SetScaleFactor(const Value: Single);
-begin FScaleFactor := Value; VisibleChange; end;
+begin FScaleFactor := Value; ScheduleVisibleChange; end;
 
 procedure TExamineCamera.SetMoveAmount(const Value: TVector3Single);
-begin FMoveAmount := Value; VisibleChange; end;
+begin FMoveAmount := Value; ScheduleVisibleChange; end;
 
 procedure TExamineCamera.SetCenterOfRotation(const Value: TVector3Single);
-begin FCenterOfRotation := Value; VisibleChange; end;
+begin FCenterOfRotation := Value; ScheduleVisibleChange; end;
 
 procedure TExamineCamera.SetModelBox(const Value: TBox3D);
 begin
@@ -2333,7 +2338,7 @@ begin
   if FModelBox.IsEmpty then
     FCenterOfRotation := Vector3Single(0, 0, 0) { any dummy value } else
     FCenterOfRotation := FModelBox.Middle;
-  VisibleChange;
+  ScheduleVisibleChange;
 end;
 
 function TExamineCamera.Press(const Event: TInputPressRelease): boolean;
@@ -2530,7 +2535,7 @@ begin
       FRotations := DragRotation {old FRotations already included in XYRotation}
     else
       FRotations := DragRotation * FRotations;
-    VisibleChange;
+    ScheduleVisibleChange;
     Result := ExclusiveEvents;
   end;
 
@@ -2566,7 +2571,7 @@ begin
     Size := FModelBox.AverageSize;
     FMoveAmount[0] -= Size * (OldX - NewX) / 200;
     FMoveAmount[1] -= Size * (NewY - OldY) / 200;
-    VisibleChange;
+    ScheduleVisibleChange;
     Result := ExclusiveEvents;
   end;
 end;
@@ -4333,8 +4338,8 @@ end;
 procedure TExamineCameraInUniversal.VisibleChange;
 begin
   inherited;
-  { Call parent VisibleChange when children change. }
-  Universal.VisibleChange;
+  { Call parent ScheduleVisibleChange when children change. }
+  Universal.ScheduleVisibleChange;
 end;
 
 procedure TExamineCameraInUniversal.DoCursorChange;
@@ -4365,8 +4370,8 @@ end;
 procedure TWalkCameraInUniversal.VisibleChange;
 begin
   inherited;
-  { Call parent VisibleChange when children change. }
-  Universal.VisibleChange;
+  { Call parent ScheduleVisibleChange when children change. }
+  Universal.ScheduleVisibleChange;
 end;
 
 procedure TWalkCameraInUniversal.DoCursorChange;
@@ -4431,15 +4436,50 @@ end;
 procedure TUniversalCamera.SetView(const APos, ADir, AUp: TVector3Single;
   const AdjustUp: boolean);
 begin
-  FExamine.SetView(APos, ADir, AUp, AdjustUp);
-  FWalk.SetView(APos, ADir, AUp, AdjustUp);
+  { Note that both Xxx.SetView calls below do Xxx.VisibleChange at the end,
+    which in turn call our own ScheduleVisibleChange.
+
+    Using Begin/EndVisibleChangeSchedule is more than just an optimization
+    (to avoid calling our own VisibleChange at least twice) here.
+    It is actually required for correctness.
+    That is becasue VisibleChange method may be overriden and/or call various
+    callbacks that may in turn change the camera again.
+
+    - So these VisibleChange callbacks should be called only once our state
+      is consistent, not in the middle (like at the end of FExamine.SetView,
+      when FExamine state is not consistent with FWalk state yet).
+
+    - Also, there are cases when variable aliasing would cause our const
+      parameters to change. Consider view3dscene with
+      demo_models/navigation/transition_multiple_viewpoints.x3dv ,
+      when transition 1 ends: our TCamera.Update will then
+      call TUniversalCamera.SetView with AnimationEndXxx parameters.
+      Without Begin/EndVisibleChangeSchedule, the VisibleChange calls
+      inside will cause TCastleSceneCore.CameraChanged
+      that causes NavigationInfo.transitionComplete event,
+      which in turn (if X3D file sends Viewpoint.set_bind to immediately
+      start another transition) may cause TUniversalCamera.AnimateTo call,
+      that changes AnimationEndXxx parameters... Accidentally also changing
+      our current "const" Pos, Dir, Up parameters. This would cause us to blink
+      the final MyViewpoint3 position at the beginning of transition from
+      MyViewpoint2 to MyViewpoint3.
+  }
+
+  BeginVisibleChangeSchedule;
+  try
+    FExamine.SetView(APos, ADir, AUp, AdjustUp);
+    FWalk.SetView(APos, ADir, AUp, AdjustUp);
+  finally EndVisibleChangeSchedule end;
 end;
 
 procedure TUniversalCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3Single;
   const AdjustUp: boolean);
 begin
-  FExamine.SetView(APos, ADir, AUp, AGravityUp, AdjustUp);
-  FWalk.SetView(APos, ADir, AUp, AGravityUp, AdjustUp);
+  BeginVisibleChangeSchedule;
+  try
+    FExamine.SetView(APos, ADir, AUp, AGravityUp, AdjustUp);
+    FWalk.SetView(APos, ADir, AUp, AGravityUp, AdjustUp);
+  finally EndVisibleChangeSchedule end;
 end;
 
 procedure TUniversalCamera.SetRadius(const Value: Single);
@@ -4542,17 +4582,20 @@ procedure TUniversalCamera.SetInitialView(
   AInitialDirection, AInitialUp: TVector3Single;
   const TransformCurrentCamera: boolean);
 begin
-  { Pass TransformCurrentCamera = false to inherited.
-    This way inherited updates our Initial* properties, but does not
-    call Get/SetView (these would set our children cameras,
-    which isn't needed as we do it manually below). }
-  inherited SetInitialView(
-    AInitialPosition, AInitialDirection, AInitialUp, false);
+  BeginVisibleChangeSchedule;
+  try
+    { Pass TransformCurrentCamera = false to inherited.
+      This way inherited updates our Initial* properties, but does not
+      call Get/SetView (these would set our children cameras,
+      which isn't needed as we do it manually below). }
+    inherited SetInitialView(
+      AInitialPosition, AInitialDirection, AInitialUp, false);
 
-  FExamine.SetInitialView(
-    AInitialPosition, AInitialDirection, AInitialUp, TransformCurrentCamera);
-  FWalk.SetInitialView(
-    AInitialPosition, AInitialDirection, AInitialUp, TransformCurrentCamera);
+    FExamine.SetInitialView(
+      AInitialPosition, AInitialDirection, AInitialUp, TransformCurrentCamera);
+    FWalk.SetInitialView(
+      AInitialPosition, AInitialDirection, AInitialUp, TransformCurrentCamera);
+  finally EndVisibleChangeSchedule end;
 end;
 
 procedure TUniversalCamera.SetNavigationClass(const Value: TCameraNavigationClass);
