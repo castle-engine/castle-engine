@@ -581,10 +581,8 @@ begin
   FEventRemoveChildren := TX3DEvent.Create(Self, 'removeChildren', TMFNode, true);
   Events.Add(FEventRemoveChildren);
 
-  FFdChildren := TMFNode.Create(Self, 'children', [TNurbsCurve2DNode, TContourPolyline2DNode,
-    { In VRML 97 these are allowed children too: }
-    TPolyline2DNode, TContour2DNode ]);
-   FdChildren.ChangesAlways := [chGeometry];
+  FFdChildren := TMFNode.Create(Self, 'children', [TNurbsCurve2DNode, TContourPolyline2DNode]);
+   FdChildren.ChangesAlways := [chEverything];
   Fields.Add(FFdChildren);
 
   DefaultContainerField := 'trimmingContour';

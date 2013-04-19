@@ -540,7 +540,7 @@ begin
   AllowedGeometryNodes.AssignArray([
     TBoxNode,
     TConeNode,
-    TContour2DNode,
+    TContour2DNode_2,
     TCylinderNode,
     TElevationGridNode,
     TExtrusionNode,
@@ -872,16 +872,17 @@ begin
     N := NodesManager.Registered[I].Create('', '');
     try
       if (N is TAbstractGeometryNode) and
-         { TContour2DNode is an exception, see TContour2DNode comments.
-           It should be treated as non-geometry node for X3D.
-           Fortunately, containerField is used only for X3D. }
-         (not (N is TContour2DNode)) then
+         { TContour2DNode_2 is an exception, it has containerField=trimmingContour.
+           This isn't really mandated by any specification,
+           as VRML 97 spec doesn't use XML encoding,
+           so it doesn't specify containerField. }
+         (not (N is TContour2DNode_2)) then
       try
         Assert(N.DefaultContainerField = 'geometry');
       except
         on E: Exception do
         begin
-          Writeln('Failed on ', N.ClassName, ' has containerField=geometry');
+          Writeln('Failed on ', N.ClassName, ': it should have containerField=geometry');
           raise;
         end;
       end;
