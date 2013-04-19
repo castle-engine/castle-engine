@@ -496,6 +496,8 @@ type
       ChangedAll sets this back to false at the end. }
     ForceTeleportTransitions: boolean;
 
+    WatchForTransitionComplete: boolean;
+
     { Humanoids on which we should call AnimateSkin.
       We don't do AnimateSkin immediately, as it would force slowdown
       when many joints are changed at once (e.g. many joints, and each one
@@ -1656,6 +1658,8 @@ type
       by simple @code(Camera.SetView(Position, Direction, Up)).
       Otherwise makes a smooth animation into new values by
       @code(Camera.AnimateTo(Position, Direction, TransitionTime)).
+
+      Will generate NavigationInfo.transitionComplete when transition ends.
 
       @groupBegin }
     procedure CameraTransition(Camera: TCamera; const Position, Direction, Up: TVector3Single);
@@ -5879,6 +5883,13 @@ begin
           BillboardInstancesList[I].ShapeTrees as TShapeTreeList,
           [chTransform]);
       end;
+
+      if WatchForTransitionComplete and not ACamera.Animation then
+      begin
+        WatchForTransitionComplete := false;
+        Inc(FTime.PlusTicks);
+        NavigationInfoStack.Top.EventTransitionComplete.Send(true, Time);
+      end;
     end;
   finally EndChangesSchedule end;
 
@@ -6188,8 +6199,14 @@ begin
     TransitionAnimate := false;
 
   if TransitionAnimate then
-    Camera.AnimateTo(Position, Direction, Up, TransitionTime) else
+  begin
+    Camera.AnimateTo(Position, Direction, Up, TransitionTime);
+    WatchForTransitionComplete := true;
+  end else
+  begin
     Camera.SetView(Position, Direction, Up);
+    NavigationInfoStack.Top.EventTransitionComplete.Send(true, Time);
+  end;
 end;
 
 procedure TCastleSceneCore.CameraTransition(Camera: TCamera;
