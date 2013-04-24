@@ -750,6 +750,7 @@ type
   TX3DNodesCache = class(TTexturesVideosCache)
   private
     CachedNodes: TCachedNodeList;
+    InsideFree3DNodeDelete: boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -2721,6 +2722,7 @@ destructor TX3DNodesCache.Destroy;
 begin
   if CachedNodes <> nil then
   begin
+    CachedNodes.Pack; { remove nil items, see InsideFree3DNodeDelete mechanism }
     Assert(CachedNodes.Count = 0, ' Some references to 3D models still exist when freeing TX3DNodesCache');
     FreeAndNil(CachedNodes);
   end;
@@ -2735,7 +2737,7 @@ begin
   for I := 0 to CachedNodes.Count - 1 do
   begin
     C := CachedNodes[I];
-    if C.URL = URL then
+    if (C <> nil) and (C.URL = URL) then
     begin
       Inc(C.References);
 
@@ -2775,7 +2777,7 @@ begin
   for I := 0 to CachedNodes.Count - 1 do
   begin
     C := CachedNodes[I];
-    if C.Node = Node then
+    if (C <> nil) and (C.Node = Node) then
     begin
       {$ifdef DEBUG_CACHE}
       Writeln('-- : 3D model ', C.URL, ' : ', C.References - 1);
@@ -2785,8 +2787,22 @@ begin
 
       if C.References = 1 then
       begin
-        FreeAndNil(C.Node);
-        CachedNodes.Delete(I);
+        if InsideFree3DNodeDelete then
+        begin
+          { Deleting a node may cause recursive Free3D call that may also remove
+            something, and shift our indexes.
+            So only nil the item.
+            Testcase when it's needed:
+            http://www.web3d.org/x3d/content/examples/Basic/CAD/_pages/page02.html }
+          FreeAndNil(C.Node);
+          CachedNodes[I] := nil;
+        end else
+        begin
+          InsideFree3DNodeDelete := true;
+          FreeAndNil(C.Node);
+          CachedNodes.Delete(I);
+          InsideFree3DNodeDelete := false;
+        end;
         CheckEmpty;
       end else
         Dec(C.References);
@@ -2801,6 +2817,7 @@ end;
 
 function TX3DNodesCache.Empty: boolean;
 begin
+  CachedNodes.Pack; { remove nil items, see InsideFree3DNodeDelete mechanism }
   Result := (inherited Empty) and (CachedNodes.Count = 0);
 end;
 
