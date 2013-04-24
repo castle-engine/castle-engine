@@ -5888,7 +5888,8 @@ begin
       begin
         WatchForTransitionComplete := false;
         Inc(FTime.PlusTicks);
-        NavigationInfoStack.Top.EventTransitionComplete.Send(true, Time);
+        if NavigationInfoStack.Top <> nil then
+          NavigationInfoStack.Top.EventTransitionComplete.Send(true, Time);
       end;
     end;
   finally EndChangesSchedule end;
@@ -6205,7 +6206,8 @@ begin
   end else
   begin
     Camera.SetView(Position, Direction, Up);
-    NavigationInfoStack.Top.EventTransitionComplete.Send(true, Time);
+    if NavigationInfoStack.Top <> nil then
+      NavigationInfoStack.Top.EventTransitionComplete.Send(true, Time);
   end;
 end;
 
