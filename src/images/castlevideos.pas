@@ -108,13 +108,18 @@ type
       can judge the quality of the video. }
     property FramesPerSecond: Single read FFramesPerSecond;
 
-    { Loads video from file.
+    { Loads video from file or URL.
+
+      URL is downloaded using CastleDownload unit.
+      As always, if you all you care about is loading normal files, then just pass
+      a normal filename (absolute or relative to the current directory)
+      as the URL parameter.
 
       Supported video formats:
 
       @unorderedList(
 
-        @item(We recognize video filenames by extension, and then try
+        @item(We recognize video URLs by extension, and then try
           to load them through ffmpeg. So ffmpeg must be available
           on $PATH for this. See view3dscene docs for some links.
 
@@ -130,11 +135,11 @@ type
           or dense fog animations) to use as billboards in games.
           For such short movies, loading time and memory use are acceptable.)
 
-        @item(We can also load a sequence of images with a filename
+        @item(We can also load a sequence of images with a URL
           like image%d.png.
 
           More precisely: we use FormatIndexedName to
-          recognize filename with %d pattern. If it contains %d pattern,
+          recognize URL with %d pattern. If it contains %d pattern,
           then we try to load image sequence starting from counter 1.
           If not, we just load a single image (and treat it as a movie with only
           one frame).
@@ -149,7 +154,7 @@ type
           alpha channel, so using image sequence may be actually your
           only choice for videos with alpha channel.)
       ) }
-    procedure LoadFromFile(const FileName: string);
+    procedure LoadFromFile(const URL: string);
 
     { Save video to file (or image sequence).
 
@@ -268,7 +273,7 @@ type
     Later, instead of freeing this video, call
     @code(Video_DecReference(Video)). From your point of view, things
     will work the same. But if you expect to load many videos from the
-    same FileName, then you will get a great speed and memory saving,
+    same URL, then you will get a great speed and memory saving,
     because video will only be actually loaded once. This may happen
     e.g. if you have a VRML / X3D file with lots of MovieTexture nodes
     with the same urls.
@@ -276,9 +281,7 @@ type
     Notes:
 
     @unorderedList(
-      @item(All passed here FileNames must be absolute, already expanded paths.
-        In the future it's expected that this (just like TVideo.LoadFromFile,
-        actually) will be extended to load videos from URLs.)
+      @item(All passed here URLs must be absolute.)
 
       @item(Note that in case of problems with loading,
         Video_IncReference may raise an exception, just like normal
@@ -307,7 +310,7 @@ type
     type
       TCachedVideo = class
         References: Cardinal;
-        FileName: string;
+        URL: string;
         Video: TVideo;
         AlphaChannel: TAlphaChannel;
       end;
@@ -324,7 +327,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function Video_IncReference(const FileName: string; out AlphaChannel: TAlphaChannel): TVideo;
+    function Video_IncReference(const URL: string; out AlphaChannel: TAlphaChannel): TVideo;
     procedure Video_DecReference(var Video: TVideo);
 
     function Empty: boolean; virtual;
@@ -334,7 +337,7 @@ type
     property OnEmpty: TProcedure read FOnEmpty write FOnEmpty;
   end;
 
-{ Does filename extension Ext looks like a video file extension
+{ Does URL extension Ext looks like a video file extension
   that can be handled (encoded or decoded) by ffmpeg?
 
   Ext is an extension with leading dot, just like returned
@@ -444,53 +447,63 @@ begin
   FLoaded := false;
 end;
 
-{ TODO-net: should be upgraded to handle URLs.
-  Actually, ffmpeg already handles URLs, so URLs to movies actually work already. }
+procedure TVideo.LoadFromFile(const URL: string);
 
-procedure TVideo.LoadFromFile(const FileName: string);
-
-  procedure LoadFromImages(const FileName: string;
+  { Load from an image sequence (possibly just a single image).
+    When RemoveLoadedTempImages, we will remove the loaded image files,
+    in this case the URL @italic(must) be a filename. }
+  procedure LoadFromImages(const URL: string;
     RemoveLoadedTempImages: boolean);
   var
     Index, ReplacementsDone: Cardinal;
-    S: string;
+    URLComplete: string;
     NewItem: TCastleImage;
   begin
-    FormatIndexedName(FileName, 0, ReplacementsDone);
+    FormatIndexedName(URL, 0, ReplacementsDone);
     if ReplacementsDone > 0 then
     begin
       Index := 1;
-      S := FormatIndexedName(FileName, Index);
-      while FileExists(S) do
+      URLComplete := FormatIndexedName(URL, Index);
+      while true do
       begin
-        { Remember that LoadImage may raise an exception
-          for invalid / not existing / not readable image filenames.
-          So don't increase FItems before NewItem is successfully loaded. }
-        NewItem := LoadImage(S, TextureImageClasses);
+        try
+          { LoadImage will raise an exception
+            for invalid / not existing / not readable image file / url.
+            Don't increase FItems before NewItem is successfully loaded. }
+          NewItem := LoadImage(URLComplete, TextureImageClasses);
+        except
+          Break;
+        end;
+
         SetLength(FItems, Length(FItems) + 1);
         FItems[High(FItems)] := NewItem;
 
         if RemoveLoadedTempImages then
-          CheckDeleteFile(S, true);
+          CheckDeleteFile(URLComplete, true);
 
         Inc(Index);
-        S := FormatIndexedName(FileName, Index);
+        URLComplete := FormatIndexedName(URL, Index);
       end;
       if Length(FItems) = 0 then
         raise Exception.CreateFmt('First video image "%s" not found, cannot load the video',
-          [S]);
+          [URLComplete]);
     end else
     begin
-      NewItem := LoadImage(FileName, TextureImageClasses);
+      NewItem := LoadImage(URL, TextureImageClasses);
       SetLength(FItems, 1);
       FItems[0] := NewItem;
 
+      { when RemoveLoadedTempImages, we know URL is a filename and can be safely
+        passed to CheckDeleteFile }
       if RemoveLoadedTempImages then
-        CheckDeleteFile(FileName, true);
+        CheckDeleteFile(URL, true);
     end;
   end;
 
-  procedure LoadFromFfmpeg(const FileName: string);
+  { Load a single video file from an URL.
+    We let ffmpeg handle the download from an URL, as ffmpeg already
+    handles http:// and other protocols. }
+  procedure LoadFromFfmpeg(const URL: string);
   var
     TemporaryImagesPrefix, TemporaryImagesPattern: string;
     FileRec: TSearchRec;
@@ -533,11 +546,11 @@ procedure TVideo.LoadFromFile(const FileName: string);
         by ffmpeg anyway... }
 
       Writeln(Output, 'FFMpeg found, executing...');
-      Writeln(Output, Executable + ' -i "' + FileName +
+      Writeln(Output, Executable + ' -i "' + URL +
         '" -y -sameq -f image2 "' + TemporaryImagesPattern + '"');
 
       ExecuteProcess(Executable,
-        [ '-i', FileName, '-y', '-sameq', '-f', 'image2', TemporaryImagesPattern ]);
+        [ '-i', URL, '-y', '-sameq', '-f', 'image2', TemporaryImagesPattern ]);
 
       LoadFromImages(TemporaryImagesPattern, true);
     end;
@@ -546,9 +559,10 @@ procedure TVideo.LoadFromFile(const FileName: string);
 begin
   Close;
 
-  if FfmpegVideoFileExtension(ExtractFileExt(FileName), true) then
-    LoadFromFfmpeg(FileName) else
-    LoadFromImages(FileName, false);
+  { TODO-net: file operations on URL }
+  if FfmpegVideoFileExtension(ExtractFileExt(URL), true) then
+    LoadFromFfmpeg(URL) else
+    LoadFromImages(URL, false);
 
   FLoaded := true;
 end;
@@ -772,7 +786,7 @@ begin
   inherited;
 end;
 
-function TVideosCache.Video_IncReference(const FileName: string;
+function TVideosCache.Video_IncReference(const URL: string;
   out AlphaChannel: TAlphaChannel): TVideo;
 var
   I: Integer;
@@ -781,13 +795,13 @@ begin
   for I := 0 to CachedVideos.Count - 1 do
   begin
     C := CachedVideos[I];
-    if C.FileName = FileName then
+    if C.URL = URL then
     begin
       Inc(C.References);
       AlphaChannel := C.AlphaChannel;
 
       {$ifdef DEBUG_CACHE}
-      Writeln('++ : video ', FileName, ' : ', C.References);
+      Writeln('++ : video ', URL, ' : ', C.References);
       {$endif}
 
       Exit(C.Video);
@@ -801,7 +815,7 @@ begin
 
   Result := TVideo.Create;
   try
-    Result.LoadFromFile(FileName);
+    Result.LoadFromFile(URL);
   except
     FreeAndNil(Result);
     raise;
@@ -810,16 +824,16 @@ begin
   C := TCachedVideo.Create;
   CachedVideos.Add(C);
   C.References := 1;
-  C.FileName := FileName;
+  C.URL := URL;
   C.Video := Result;
   C.AlphaChannel := Result.AlphaChannel;
   AlphaChannel := C.AlphaChannel;
 
   {$ifdef DEBUG_CACHE}
-  Writeln('++ : video ', FileName, ' : ', 1);
+  Writeln('++ : video ', URL, ' : ', 1);
   {$endif}
   if Log and (AlphaChannel <> acNone) then
-    WritelnLog('Alpha Detection', 'Video ' + FileName +
+    WritelnLog('Alpha Detection', 'Video ' + URL +
       ' detected as simple yes/no alpha channel: ' + BoolToStr[AlphaChannel = acSimpleYesNo]);
 end;
 
@@ -834,7 +848,7 @@ begin
     if C.Video = Video then
     begin
       {$ifdef DEBUG_CACHE}
-      Writeln('-- : video ', C.FileName, ' : ', C.References - 1);
+      Writeln('-- : video ', C.URL, ' : ', C.References - 1);
       {$endif}
 
       Video := nil;
