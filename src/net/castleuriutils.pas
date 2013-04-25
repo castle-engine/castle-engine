@@ -355,7 +355,9 @@ end;
 function FilenameToURISafe(const FileName: string): string;
 
 { Code adjusted from FPC FilenameToURI (same license as our engine,
-  so it's Ok to share code). Adjusted to call Escape on FileName. }
+  so it's Ok to share code). Adjusted to call Escape on FileName.
+  See http://bugs.freepascal.org/view.php?id=24324 : FPC FilenameToURI
+  should be fixed in the future to follow this. }
 
 const
   SubDelims = ['!', '$', '&', '''', '(', ')', '*', '+', ',', ';', '='];
