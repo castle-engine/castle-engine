@@ -419,7 +419,7 @@ begin
     I := Pos(PathDelim, FilenamePart);
     while I <> 0 do
     begin
-      Result[I] := '/';
+      FilenamePart[I] := '/';
       I := Pos(PathDelim, FilenamePart);
     end;
   end;

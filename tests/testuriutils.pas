@@ -37,7 +37,7 @@ begin
   {$ifdef MSWINDOWS}
   AssertEquals('file:///C:/foo.txt', AbsoluteURI('c:\foo.txt'));
   { Below ExpandFileName will change /foo.txt on Windows to add drive letter }
-  AssertEquals('file:///C:/foo.txt', AbsoluteURI('/foo.txt'));
+  AssertEquals('file:///c:/foo.txt', AbsoluteURI('/foo.txt'));
   {$endif}
 
   {$ifdef UNIX}
@@ -73,9 +73,9 @@ begin
   { FilenameToURISafe must percent-encode,
     URIToFilenameSafe must decode it back. }
   {$ifdef MSWINDOWS}
-  AssertEquals('file:///C:/foo%254d.txt', FilenameToURISafe('c:\foo%4d.txt'));
-  AssertEquals('c:\fooM.txt', URIToFilenameSafe('file:///C:/foo%4d.txt'));
-  AssertEquals('c:\foo%.txt', URIToFilenameSafe('file:///C:/foo%25.txt'));
+  AssertEquals('file:///c:/foo%254d.txt', FilenameToURISafe('c:\foo%4d.txt'));
+  AssertEquals('C:\fooM.txt', URIToFilenameSafe('file:///C:/foo%4d.txt'));
+  AssertEquals('C:\foo%.txt', URIToFilenameSafe('file:///C:/foo%25.txt'));
   {$endif}
   {$ifdef UNIX}
   AssertEquals('file:///foo%254d.txt', FilenameToURISafe('/foo%4d.txt'));
