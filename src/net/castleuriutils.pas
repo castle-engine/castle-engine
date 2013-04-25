@@ -432,7 +432,7 @@ function URIMimeType(const URI: string): string;
     // Various
     if Ext = '.xml' then Result := 'application/xml' else
     if Ext = '.swf' then Result := 'application/x-shockwave-flash' else
-      ;
+      Result := '';
   end;
 
 var
