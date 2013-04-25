@@ -610,8 +610,7 @@ function SPercentReplace(const InitialFormat: string;
 
 { Replace %d in the NamePattern with Index.
 
-  This is something like a more specialized Format (sprintf for you, C folks),
-  working similar to SPercentReplace.
+  This is like a specialized Format or our SPercentReplace.
 
   @unorderedList(
     @item(%d is replaced with Index.
@@ -625,9 +624,8 @@ function SPercentReplace(const InitialFormat: string;
 
     @item(Everything else is just copied to resulting string.
       Not recognized %-patterns are also just copied.
-      Much like SPercentReplace with ErrorOnUnknownPercentFormat = false
-      (since FormatIndexedName main use is to replace end-user
-      supplied filenames on command-line, it tries to be tolerant to errors).)
+      The main purpose of this is to specify filenames or URLs with optional
+      placeholders, so unrecognized stuff should be gracefully ignored.)
   )
 
   @groupBegin }
