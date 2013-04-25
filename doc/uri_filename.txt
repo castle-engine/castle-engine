@@ -23,8 +23,10 @@ Q: Should I upgrade my code to just use URLs everywhere, that is:
 A: The short answer is "yes".
 
    If you have a filename, you can reliably convert it to an URI
-   using FilenameToURI(ExpandFileName(FileName)).
-   FilenameToURI and URIToFilename are inside URIParser unit, part of FPC.
+   using FilenameToURISafe(ExpandFileName(FileName)).
+
+   FilenameToURI and URIToFilename are inside URIParser unit, part of FPC,
+   but better use FilenameToURISafe and URIToFilenameSafe inside CastleURIUtils.
 
    Besides obvious benetifs of using URLs (you will be able
    to pull stuff from network using http protocol), there are some smaller
@@ -34,10 +36,10 @@ A: The short answer is "yes".
      (weird relative filenames with colon inside the name)
      that may be mistaken for URIs.
 
-   - For the future: because an URL could have some characters encoded.
-     Think about spaces, colons, or localized characters.
-     Although right now URIToFilename and FilenameToURI in URIParser
-     don't encode/decode any special characters in filename.
+   - Because an URL could have some characters encoded.
+     Inside an URI, "%25" means a "%" and "%4d" means "M".
+     URIToFilenameSafe and FilenameToURISafe handle
+     the percent-encoding/decoding consistently.
 
    - For the future: right now, absolute filenames are never mistaken
      for an URL (see description below how we do it).
@@ -87,7 +89,7 @@ A: URIProtocol is the judge.
        This means that passing any filenames (absolute or relative) or
        absolute URIs to AbsoluteURI is a good way to convert them to URI.
        Although when you *know* that you have a filename (not URI),
-       it's better to use FilenameToURI(ExpandFileName(FileName))
+       it's better to use FilenameToURISafe(ExpandFileName(FileName))
        (this avoids the ambigous relative filenames with colons problems).
 
      - CombineURI treats the 2nd parameter (Relative) as relative URIs,

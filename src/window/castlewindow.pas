@@ -2765,8 +2765,7 @@ procedure Resize2D(Window: TCastleWindowBase);
 
 implementation
 
-uses CastleParameters, CastleLog, CastleGLVersion, X3DLoad, CastleURIUtils,
-  URIParser
+uses CastleParameters, CastleLog, CastleGLVersion, X3DLoad, CastleURIUtils
   { using here CastleWindowModes/CastleMessages makes recursive CastleWindow usage,
     but it's needed for FileDialog }
   {$ifdef CASTLE_WINDOW_GTK_ANY}, CastleWindowModes {$endif}
@@ -3505,7 +3504,7 @@ begin
   FileName := URIToFilenameSafe(URL);
   Result := FileDialog(Title, FileName, OpenDialog, FileFilters);
   if Result then
-    URL := FilenameToURI(ExpandFileName(FileName));
+    URL := FilenameToURISafe(ExpandFileName(FileName));
 end;
 
 function TCastleWindowBase.URLDialog(const Title: string; var URL: string;

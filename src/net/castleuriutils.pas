@@ -106,10 +106,20 @@ function AbsoluteURI(const URI: string): string;
 { Convert URI (or filename) to a filename.
   This is an improved URIToFilename from URIParser.
   When URI is already a filename, this does a better job than URIToFilename,
-  as is handles also Windows absolute filenames (see URIProtocol).
+  as it handles also Windows absolute filenames (see URIProtocol).
   Returns empty string in case of problems, for example when this is not
-  a file URI. }
+  a file URI.
+
+  Just like URIParser.URIToFilename, this percent-decodes the parameter.
+  For example, @code(%4d) in URI will turn into letter @code(M) in result. }
 function URIToFilenameSafe(const URI: string): string;
+
+{ Convert filename to URI.
+
+  This is a fixed version of URIParser.FilenameToURI, that correctly
+  percent-encodes the parameter, making it truly a reverse of
+  URIToFilenameSafe. }
+function FilenameToURISafe(const FileName: string): string;
 
 { Get MIME type for content of the URI @italic(without downloading the file).
   For local and remote files (file, http, and similar protocols)
@@ -321,7 +331,7 @@ end;
 function AbsoluteURI(const URI: string): string;
 begin
   if URIProtocol(URI) = '' then
-    Result := FilenameToURI(ExpandFileName(URI)) else
+    Result := FilenameToURISafe(ExpandFileName(URI)) else
     Result := URI;
 end;
 
@@ -340,6 +350,83 @@ begin
     if not URIToFilename(URI, Result) then Result := '';
   end else
     Result := '';
+end;
+
+function FilenameToURISafe(const FileName: string): string;
+
+{ Code adjusted from FPC FilenameToURI (same license as our engine,
+  so it's Ok to share code). Adjusted to call Escape on FileName. }
+
+const
+  SubDelims = ['!', '$', '&', '''', '(', ')', '*', '+', ',', ';', '='];
+  ALPHA = ['A'..'Z', 'a'..'z'];
+  DIGIT = ['0'..'9'];
+  Unreserved = ALPHA + DIGIT + ['-', '.', '_', '~'];
+  ValidPathChars = Unreserved + SubDelims + ['@', ':', '/'];
+
+  function Escape(const s: String; const Allowed: TSysCharSet): String;
+  var
+    i, L: Integer;
+    P: PChar;
+  begin
+    L := Length(s);
+    for i := 1 to Length(s) do
+      if not (s[i] in Allowed) then Inc(L,2);
+    if L = Length(s) then
+    begin
+      Result := s;
+      Exit;
+    end;
+
+    SetLength(Result, L);
+    P := @Result[1];
+    for i := 1 to Length(s) do
+    begin
+      if not (s[i] in Allowed) then
+      begin
+        P^ := '%'; Inc(P);
+        StrFmt(P, '%.2x', [ord(s[i])]); Inc(P);
+      end
+      else
+        P^ := s[i];
+      Inc(P);
+    end;
+  end;
+
+
+var
+  I: Integer;
+  IsAbsFilename: Boolean;
+  FilenamePart: string;
+begin
+  IsAbsFilename := ((Filename <> '') and (Filename[1] = PathDelim)) or
+    ((Length(Filename) > 2) and (Filename[1] in ['A'..'Z', 'a'..'z']) and (Filename[2] = ':'));
+
+  Result := 'file:';
+  if IsAbsFilename then
+  begin
+    if Filename[1] <> PathDelim then
+      Result := Result + '///'
+    else
+      Result := Result + '//';
+  end;
+
+  FilenamePart := Filename;
+  { unreachable code warning is ok here }
+  {$warnings off}
+  if PathDelim <> '/' then
+  begin
+    I := Pos(PathDelim, FilenamePart);
+    while I <> 0 do
+    begin
+      Result[I] := '/';
+      I := Pos(PathDelim, FilenamePart);
+    end;
+  end;
+  {$warnings on}
+  FilenamePart := Escape(FilenamePart, ValidPathChars);
+
+  Result := Result + FilenamePart;
 end;
 
 function URIMimeType(const URI: string): string;
