@@ -608,9 +608,14 @@ function SPercentReplace(const InitialFormat: string;
   IgnoreCase: boolean = false): string; overload;
 { @groupEnd }
 
-{ Replace %d in the NamePattern with Index.
+{ Replace sequences @code(@@counter(<padding>)) in the NamePattern with Index.
+  Any sequence @code(@@counter(<padding>)) is detected (where <padding> is any
+  integer >= 0) and replaced with Index padded with zeros (to given <padding>
+  length).
 
-  This is like a specialized Format or our SPercentReplace.
+  If AllowOldPercentSyntax is @true then we also allow older deprecated
+  syntax: replace %d in the NamePattern with Index.
+  This is used only if @code(@@counter(<padding>)) was not found in NamePattern.
 
   @unorderedList(
     @item(%d is replaced with Index.
@@ -624,15 +629,27 @@ function SPercentReplace(const InitialFormat: string;
 
     @item(Everything else is just copied to resulting string.
       Not recognized %-patterns are also just copied.
-      The main purpose of this is to specify filenames or URLs with optional
+      The main purpose of this is to specify filenames with optional
       placeholders, so unrecognized stuff should be gracefully ignored.)
   )
 
+  The percent syntax was deprecated as it cannot be used with URLs.
+  Inside URLs, percent character must always be encodede as @code(%25).
+  Sequence like @code(%4d) must mean letter "M" (ASCII 77, which is 4d in
+  hexadecimal) inside URL. We could potentially allow syntax like @code(%25d)
+  or @code(%254d) (4-digit counter), but that's just ugly, and compatibility
+  had to be broken anyway (after Castle Game Engine 4.0.1, you have to fix
+  URLs to image sequences anyway, as @code(%4d) must mean letter "M").
+
+  See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_movie_from_image_sequence
+  for an example when this is useful.
+
   @groupBegin }
-function FormatIndexedName(const NamePattern: string;
-  const Index: Integer; out ReplacementsDone: Cardinal): string; overload;
-function FormatIndexedName(const NamePattern: string;
-  const Index: Integer): string; overload;
+function FormatNameCounter(const NamePattern: string;
+  const Index: Integer; const AllowOldPercentSyntax: boolean;
+  out ReplacementsDone: Cardinal): string;
+function FormatNameCounter(const NamePattern: string;
+  const Index: Integer; const AllowOldPercentSyntax: boolean): string;
 { @groupEnd }
 
 { convertions ------------------------------------------------------------ }
@@ -818,7 +835,7 @@ function SCompressWhiteSpace(const S: string): string;
 
 implementation
 
-uses CastleFilesUtils, CastleClassUtils, CastleDownload;
+uses CastleFilesUtils, CastleClassUtils, CastleDownload, Regexpr;
 
 { TCastleStringList ------------------------------------------------------------- }
 
@@ -1825,13 +1842,49 @@ begin
   end;
 end;
 
-function FormatIndexedName(const NamePattern: string;
-  const Index: Integer): string;
+type
+  TRegExprCounter = class
+  private
+    Index: Integer;
+    ReplacementsDone: Cardinal;
+    function ReplaceCallback(ARegExpr : TRegExpr): string;
+  end;
+
+function TRegExprCounter.ReplaceCallback(ARegExpr : TRegExpr): string;
+begin
+  Result := IntToStrZPad(Index, StrToInt(ARegExpr.Match[1]));
+  Inc(ReplacementsDone);
+end;
+
+function FormatNameCounter(const NamePattern: string;
+  const Index: Integer; const AllowOldPercentSyntax: boolean;
+  out ReplacementsDone: Cardinal): string;
+var
+  R: TRegExpr;
+  C: TRegExprCounter;
+begin
+  R := TRegExpr.Create;
+  try
+    R.Expression := '@counter\(([\d]+)\)';
+    C := TRegExprCounter.Create;
+    try
+      C.Index := Index;
+      Result := R.Replace(NamePattern, @C.ReplaceCallback);
+      ReplacementsDone := C.ReplacementsDone;
+    finally FreeAndNil(C) end;
+  finally FreeAndNil(R) end;
+
+  if (ReplacementsDone = 0) and AllowOldPercentSyntax then
+    Result := FormatIndexedName(NamePattern, Index, ReplacementsDone);
+end;
+
+function FormatNameCounter(const NamePattern: string;
+  const Index: Integer; const AllowOldPercentSyntax: boolean): string;
 var
   ReplacementsDone: Cardinal;
 begin
-  Result := FormatIndexedName(NamePattern, Index, ReplacementsDone);
-  { simple ignore ReplacementsDone value }
+  Result := FormatNameCounter(NamePattern, Index, AllowOldPercentSyntax,
+    ReplacementsDone);
 end;
 
 { convertions ------------------------------------------------------------ }

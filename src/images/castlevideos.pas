@@ -136,10 +136,10 @@ type
           For such short movies, loading time and memory use are acceptable.)
 
         @item(We can also load a sequence of images with a URL
-          like image%d.png.
+          like image@@counter(1).png.
 
-          More precisely: we use FormatIndexedName to
-          recognize URL with %d pattern. If it contains %d pattern,
+          We use FormatNameCounter to recognize URLs with
+          @code(@@counter(*)) macro. If it contains @code(@@counter(*)) macro,
           then we try to load image sequence starting from counter 1.
           If not, we just load a single image (and treat it as a movie with only
           one frame).
@@ -459,11 +459,11 @@ procedure TVideo.LoadFromFile(const URL: string);
     URLComplete: string;
     NewItem: TCastleImage;
   begin
-    FormatIndexedName(URL, 0, ReplacementsDone);
+    FormatNameCounter(URL, 0, false, ReplacementsDone);
     if ReplacementsDone > 0 then
     begin
       Index := 1;
-      URLComplete := FormatIndexedName(URL, Index);
+      URLComplete := FormatNameCounter(URL, Index, false);
       while true do
       begin
         try
@@ -482,7 +482,7 @@ procedure TVideo.LoadFromFile(const URL: string);
           CheckDeleteFile(URLComplete, true);
 
         Inc(Index);
-        URLComplete := FormatIndexedName(URL, Index);
+        URLComplete := FormatNameCounter(URL, Index, false);
       end;
       if Length(FItems) = 0 then
         raise Exception.CreateFmt('First video image "%s" not found, cannot load the video',
@@ -505,7 +505,7 @@ procedure TVideo.LoadFromFile(const URL: string);
     handles http:// and other protocols. }
   procedure LoadFromFfmpeg(const URL: string);
   var
-    TemporaryImagesPrefix, TemporaryImagesPattern: string;
+    TemporaryImagesPrefix, FfmpegTemporaryImagesPattern, OurTemporaryImagesPattern: string;
     FileRec: TSearchRec;
     SearchError: Integer;
     Executable: string;
@@ -525,7 +525,7 @@ procedure TVideo.LoadFromFile(const URL: string);
 
       TemporaryImagesPrefix := GetTempFileName('', ProgramName) + '_' +
         { Although GetTempFileName should add some randomization here,
-          there's no guarentee. And we really need randomization ---
+          there's no guarantee. And we really need randomization ---
           we load ffmpeg output using image %d pattern, so we don't want to
           accidentaly pick up other images in the temporary directory. }
         IntToStr(Random(MaxInt)) + '_';
@@ -539,7 +539,8 @@ procedure TVideo.LoadFromFile(const URL: string);
             [TemporaryImagesPrefix, FileRec.Name]);
       finally FindClose(FileRec) end;
 
-      TemporaryImagesPattern := TemporaryImagesPrefix + '%d.png';
+      FfmpegTemporaryImagesPattern := TemporaryImagesPrefix + '%d.png';
+      OurTemporaryImagesPattern := TemporaryImagesPrefix + '@counter(1).png';
 
       { ffmpeg call will output some things on stdout anyway.
         So it's Ok that we also output something, stdout is required
@@ -547,12 +548,12 @@ procedure TVideo.LoadFromFile(const URL: string);
 
       Writeln(Output, 'FFMpeg found, executing...');
       Writeln(Output, Executable + ' -i "' + URL +
-        '" -y -sameq -f image2 "' + TemporaryImagesPattern + '"');
+        '" -y -sameq -f image2 "' + FfmpegTemporaryImagesPattern + '"');
 
       ExecuteProcess(Executable,
-        [ '-i', URL, '-y', '-sameq', '-f', 'image2', TemporaryImagesPattern ]);
+        [ '-i', URL, '-y', '-sameq', '-f', 'image2', FfmpegTemporaryImagesPattern ]);
 
-      LoadFromImages(TemporaryImagesPattern, true);
+      LoadFromImages(OurTemporaryImagesPattern, true);
     end;
   end;
 
@@ -574,14 +575,14 @@ procedure TVideo.SaveToFile(const FileName: string);
     Index, ReplacementsDone: Cardinal;
     S: string;
   begin
-    FormatIndexedName(FileName, 0, ReplacementsDone);
+    FormatNameCounter(FileName, 0, true, ReplacementsDone);
     if ReplacementsDone > 0 then
     begin
-      { Note that Index is 1-based, that's how %d works for LoadFromFile
-        and ffmpeg, so also here. }
+      { Note that Index is 1-based, that's how FormatNameCounter
+        works for LoadFromFile and ffmpeg, so also here. }
       for Index := 1 to Count do
       begin
-        S := FormatIndexedName(FileName, Index);
+        S := FormatNameCounter(FileName, Index, true);
         SaveImage(FItems[Index - 1], S);
       end;
     end else
@@ -601,12 +602,12 @@ procedure TVideo.SaveToFile(const FileName: string);
     S: string;
   begin
     Write(Output, 'Removing temporary image files "', FileName, '" ...');
-    FormatIndexedName(FileName, 0, ReplacementsDone);
+    FormatNameCounter(FileName, 0, true, ReplacementsDone);
     if ReplacementsDone > 0 then
     begin
       for Index := 1 to Count do
       begin
-        S := FormatIndexedName(FileName, Index);
+        S := FormatNameCounter(FileName, Index, true);
         if not DeleteFile(S) then
           OnWarning(wtMinor, 'Video', Format('Cannot delete temporary file "%s"', [S]));
       end;

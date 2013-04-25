@@ -31,7 +31,7 @@ type
     procedure TestSReplacePercent;
     procedure TestIntToStr2;
     procedure TestCompressWhiteSpace;
-    procedure TestFormatIndexedName;
+    procedure TestFormatNameCounter;
     procedure TestIntToStr64;
     procedure TestCastleStringList;
     procedure TestCastleStringListNewlinesInside;
@@ -159,18 +159,38 @@ begin
   Assert(SCompressWhiteSpace('   blah  ' + CharTab + 'blah ' + NL) = ' blah blah ');
 end;
 
-procedure TTestCastleStringUtils.TestFormatIndexedName;
+procedure TTestCastleStringUtils.TestFormatNameCounter;
 var
   ReplacementsDone: Cardinal;
+  AllowOldPercentSyntax: boolean;
 begin
-  Assert(FormatIndexedName('', 0, ReplacementsDone) = '');
-  Assert(FormatIndexedName('a', 0, ReplacementsDone) = 'a');
-  Assert(FormatIndexedName('a%', 0, ReplacementsDone) = 'a%');
-  Assert(FormatIndexedName('%a%', 66, ReplacementsDone) = '%a%');
-  Assert(FormatIndexedName('%d%', 66, ReplacementsDone) = '66%');
-  Assert(FormatIndexedName('%%%', 66, ReplacementsDone) = '%%');
-  Assert(FormatIndexedName('%%number%d%d.again%d', 66, ReplacementsDone) = '%number6666.again66');
-  Assert(FormatIndexedName('%%number%0d%2d.again%4d', 66, ReplacementsDone) = '%number6666.again0066');
+  Assert(FormatNameCounter('', 0, true, ReplacementsDone) = '');
+  Assert(FormatNameCounter('a', 0, true, ReplacementsDone) = 'a');
+  Assert(FormatNameCounter('a%', 0, true, ReplacementsDone) = 'a%');
+  Assert(FormatNameCounter('%a%', 66, true, ReplacementsDone) = '%a%');
+  Assert(FormatNameCounter('%d%', 66, true, ReplacementsDone) = '66%');
+  Assert(FormatNameCounter('%%%', 66, true, ReplacementsDone) = '%%');
+  Assert(FormatNameCounter('%%number%d%d.again%d', 66, true, ReplacementsDone) = '%number6666.again66');
+  Assert(FormatNameCounter('%%number%0d%2d.again%4d', 66, true, ReplacementsDone) = '%number6666.again0066');
+
+  Assert(FormatNameCounter('', 0, false, ReplacementsDone) = '');
+  Assert(FormatNameCounter('a', 0, false, ReplacementsDone) = 'a');
+  Assert(FormatNameCounter('a%', 0, false, ReplacementsDone) = 'a%');
+  Assert(FormatNameCounter('%a%', 66, false, ReplacementsDone) = '%a%');
+  Assert(FormatNameCounter('%d%', 66, false, ReplacementsDone) = '%d%');
+  Assert(FormatNameCounter('%%%', 66, false, ReplacementsDone) = '%%%');
+  Assert(FormatNameCounter('%%number%d%d.again%d', 66, false, ReplacementsDone) = '%%number%d%d.again%d');
+  Assert(FormatNameCounter('%%number%0d%2d.again%4d', 66, false, ReplacementsDone) = '%%number%0d%2d.again%4d');
+
+  { assertions below should work for both AllowOldPercentSyntax values }
+  for AllowOldPercentSyntax := false to true do
+  begin
+    Assert(FormatNameCounter('', 0, AllowOldPercentSyntax, ReplacementsDone) = '');
+    Assert(FormatNameCounter('a', 0, AllowOldPercentSyntax, ReplacementsDone) = 'a');
+    Assert(FormatNameCounter('%again@counter(1)', 66, AllowOldPercentSyntax, ReplacementsDone) = '%again66');
+    Assert(FormatNameCounter('%%again@counter(1)', 66, AllowOldPercentSyntax, ReplacementsDone) = '%%again66');
+    Assert(FormatNameCounter('%%again@counter(4)', 66, AllowOldPercentSyntax, ReplacementsDone) = '%%again0066');
+  end;
 end;
 
 procedure TTestCastleStringUtils.TestIntToStr64;
