@@ -118,7 +118,9 @@ function URIToFilenameSafe(const URI: string): string;
 
   This is a fixed version of URIParser.FilenameToURI, that correctly
   percent-encodes the parameter, making it truly a reverse of
-  URIToFilenameSafe. }
+  URIToFilenameSafe. In FPC > 2.6.2 URIParser.FilenameToURI will also
+  do this (after Michalis' patch, see
+  http://svn.freepascal.org/cgi-bin/viewvc.cgi?view=revision&revision=24321 ). }
 function FilenameToURISafe(const FileName: string): string;
 
 { Get MIME type for content of the URI @italic(without downloading the file).
