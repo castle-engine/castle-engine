@@ -139,6 +139,7 @@ finally Progress.Fini; end;
 
     FTitle: string;
     FActive: boolean;
+    procedure SetPosition(const Value: Cardinal);
   public
     const
       { }
@@ -161,7 +162,17 @@ finally Progress.Fini; end;
       default DefaultUpdateTicks;
     { @groupEnd }
 
-    property Position: Cardinal read FPosition;
+    { Current Position of the progress bar.
+      Always >= 0 and <= @link(Max).
+
+      You can set this property only when @link(Active).
+      Setting it to something > @link(Max) will be silently clamped to @link(Max).
+      You can only increase it (trying to decrease it will be silently
+      ignored, which is useful if your position information is only an
+      approximation).
+      In other words, setthing this property is equivalent
+      to appropriate @link(Step) call. }
+    property Position: Cardinal read FPosition write SetPosition;
     property Max: Cardinal read FMax;
     property Title: string read FTitle;
 
@@ -172,7 +183,8 @@ finally Progress.Fini; end;
     { Start the progress bar.
       You can call Init only when Active = false (that is, you
       cannot Init while another progress is working).
-      Initializes Max, Title, sets Position to 0 and changes Active to true.
+      Initializes @link(Max), @link(Title), sets @link(Position) to 0 and
+      changes @link(Active) to true.
 
       UserInterface must be initialized (non-nil) when calling
       Init, and you cannot change UserInterface when progress is Active
@@ -199,14 +211,16 @@ finally Progress.Fini; end;
     procedure Init(AMax: Cardinal; const ATitle: string;
       const DelayUserInterface: boolean = false);
 
-    { Increments progress bar Position by StepSize.
-      Use only when Active, that is between Init .. Fini calls.
+    { Increments progress bar @link(Position) by @link(StepSize).
+      Use only when @link(Active), that is between @link(Init) and @link(Fini)
+      calls.
 
-      Position always stays <= Max (so you can depend on this
-      when implementaing TProgressUserInterface).
-      But it is completely legal to try to raise Position above
-      Max by calling Step, we will internally clamp Position to Max.
-      This is usefull when given Max was only an approximation of needed
+      @link(Position) always stays <= @link(Max) (you can depend on this
+      when implementaing TProgressUserInterface descendants).
+      But it is legal to try to raise @link(Position) above
+      @link(Max) by using this method, we will silently clamp @link(Position)
+      to @link(Max).
+      This is usefull when given @link(Max) was only an approximation of needed
       steps. }
     procedure Step(StepSize: Cardinal = 1);
 
@@ -346,6 +360,12 @@ begin
     Sleep(10);
     {$endif}
   end;
+end;
+
+procedure TProgress.SetPosition(const Value: Cardinal);
+begin
+  if Value > Position then
+    Step(Value - Position);
 end;
 
 procedure TProgress.Fini;

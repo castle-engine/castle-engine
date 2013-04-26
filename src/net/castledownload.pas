@@ -91,7 +91,113 @@ function Download(const URL: string; const Options: TDownloadOptions;
 implementation
 
 uses URIParser, CastleURIUtils, CastleUtils, CastleLog, CastleZStream,
-  CastleClassUtils, CastleFilesUtils, CastleDataURI;
+  CastleClassUtils, CastleFilesUtils, CastleDataURI, CastleProgress;
+
+{ TProgressMemoryStream ------------------------------------------------------ }
+
+type
+  { TMemoryStream descendant that shows a progress bar when writing to it. }
+  TProgressMemoryStream = class(TMemoryStream)
+  private
+    UseProgress: boolean;
+  public
+    function Write(const Buffer; Count: Longint): Longint; override;
+  end;
+
+function TProgressMemoryStream.Write(const Buffer; Count: Longint): Longint;
+begin
+  Result := inherited;
+  if UseProgress then Progress.Position := Max(Size, 0);
+end;
+
+{ TCastleHTTPClient ---------------------------------------------------------- }
+
+type
+  { HTTP client. In addition to TFPHTTPClient, it handles a progress bar
+    initialization and finalization. }
+  TCastleHTTPClient = class(TFPHTTPClient)
+  private
+    UseProgress: boolean;
+    ProgressStream: TProgressMemoryStream;
+    ProgressTitle: string;
+    procedure FinishProgress;
+  protected
+    function ReadResponseHeaders: Integer; override;
+    procedure DisconnectFromServer; override;
+  public
+    destructor Destroy; override;
+  end;
+
+function TCastleHTTPClient.ReadResponseHeaders: Integer;
+
+  { Read Content-Length from ResponseHeaders.
+    Returns -1 if unknown or invalid. }
+  function CheckContentLength: Integer;
+  { Code copied from TFPHTTPClient.CheckContentLength (it is private there).
+    The license is the same as our engine, so copying is Ok. }
+  Const CL ='content-length:';
+  Var
+    S : String;
+    I : integer;
+  begin
+    Result:=-1;
+    I:=0;
+    While (Result=-1) and (I<ResponseHeaders.Count) do
+      begin
+      S:=Trim(LowerCase(ResponseHeaders[i]));
+      If (Copy(S,1,Length(Cl))=Cl) then
+        begin
+        Delete(S,1,Length(CL));
+        Result:=StrToIntDef(Trim(S),-1);
+        end;
+      Inc(I);
+      end;
+  end;
+
+begin
+  Result := inherited;
+
+  UseProgress := false; // not Progress.Active; // TODO: for now, this progress causes problems when rendering
+  ProgressStream.UseProgress := UseProgress;
+
+  { Initialize progress.
+    We always add 1 step done right after downloading, this way
+    we at least show *something* even when Content-Length is unknown. }
+  if UseProgress then
+    Progress.Init(Max(CheckContentLength, 0) + 2, ProgressTitle, true);
+end;
+
+procedure TCastleHTTPClient.FinishProgress;
+begin
+  if UseProgress then
+  begin
+    UseProgress := false;
+    { Make sure that after TCastleHTTPClient is destroyed,
+      ProgressStream behaves like a regular TMemoryStream.
+      That is because ProgressStream may be returned to the called
+      of Download function, that can do potentially anything with it. }
+    if ProgressStream <> nil then
+      ProgressStream.UseProgress := false;
+    Progress.Fini;
+  end;
+end;
+
+procedure TCastleHTTPClient.DisconnectFromServer;
+begin
+  if UseProgress then Progress.Step;
+  inherited;
+  FinishProgress;
+end;
+
+destructor TCastleHTTPClient.Destroy;
+begin
+  { Usually DisconnectFromServer should cause FinishProgress.
+    But in case of some exception, make sure to finalize progress here. }
+  FinishProgress;
+  inherited;
+end;
+
+{ Global functions ----------------------------------------------------------- }
 
 { Just like Download, but
   - Assumes that the URL is from the network (this prevents network URLs
@@ -99,7 +205,7 @@ uses URIParser, CastleURIUtils, CastleUtils, CastleLog, CastleZStream,
   - Limits the number of redirects to given value.
   - Guarantees that result is TMemoryStream. Never handles gzip decompression. }
 function NetworkDownload(const URL: string;
-  const MaxRedirects: Cardinal; out MimeType: string): TMemoryStream;
+  const MaxRedirects: Cardinal; out MimeType: string): TProgressMemoryStream;
 
   function ContentTypeToMimeType(const ContentType: string): string;
   var
@@ -112,13 +218,15 @@ function NetworkDownload(const URL: string;
   end;
 
 var
-  Client: TFPHTTPClient;
+  Client: TCastleHTTPClient;
   RedirectLocation: string;
 begin
-  Result := TMemoryStream.Create;
+  Result := TProgressMemoryStream.Create;
   try
-    Client := TFPHTTPClient.Create(nil);
+    Client := TCastleHTTPClient.Create(nil);
     try
+      Client.ProgressTitle := 'Downloading ' + URL;
+      Client.ProgressStream := Result;
       { do not simply use Client.Get(URL, Result), as it cannot handle redirects }
       Client.HTTPMethod('GET', URL, Result, [200,
         { redirect status codes, see http://en.wikipedia.org/wiki/HTTP_302 }
