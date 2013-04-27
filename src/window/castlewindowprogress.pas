@@ -76,15 +76,100 @@ implementation
 
 uses SysUtils, CastleUtils, CastleKeysMouse, CastleControls, CastleGLBitmapFonts;
 
+{ Make Text shorter to fit the text width (as rendered using Font)
+  inside MaxWidth (in pixels). }
+procedure MakeTextFit(var Text: string; const Font: TGLBitmapFontAbstract;
+  const MaxWidth: Integer);
+const
+  Dots = '...';
+var
+  DotsWidth: Integer;
+
+  { Make Text shorter by preserving first and last words, inserting
+    dots inside, and preserving as much as possible text between first and last
+    words. }
+  function TrimIntelligent: boolean;
+  begin
+    Result := false;
+
+    { Not implemented for now, not needed. The idea of algorithm below.
+      Separator characters are whitespace or / or \. They include slash
+      and backslash, to work nicely with URLs and filenames, to show
+      the last (usually most relevant) part of URL / filename.
+
+      Find first separator in Text
+      if not found, exit false
+
+      Find last separator in Text
+      if not found (should not happen) or <= first separator, exit false
+
+      Prefix := Text up to and including first separator
+      Suffix := Text suffix, including last separator
+
+      NewWidth := Font.TextWidth(Prefix) + Font.TextWidth(Suffix) + DotsWidth;
+      if NewWidth > MaxWidth then exit false
+
+      // We know that we're OK now, using Prefix + ... + Suffix is good.
+      // See how many additional characters we can add and still fit in MaxWidth.
+      Result := true;
+      NextIndex := Length(Prefix) + 1;
+      while NextIndex < LastSeparator then
+        PotentialPrefix := Prefix + Text[NextIndex]
+        PotentialNewWidth := NewWidth + Font.TextWidth(Text[NextIndex])
+        if PotentialNewWidth > MaxWidth then Break;
+        NewWidth := PotentialNewWidth;
+        Prefix := PotentialPrefix;
+      end;
+      Text := Prefix + Dots + Suffix;
+    }
+  end;
+
+  { Make Text shorter by taking as long prefix as possible to fit
+    the prefix + Dots. }
+  procedure TrimSimple;
+  var
+    NewTextDotsWidth, PotentialNewTextDotsWidth: Integer;
+    NewText, PotentialNewText: string;
+    C: char;
+  begin
+    NewText := '';
+    NewTextDotsWidth := DotsWidth;
+    while Length(NewText) < Length(Text) do
+    begin
+      C := Text[Length(NewText) + 1];
+      PotentialNewText := NewText + C;
+      PotentialNewTextDotsWidth := NewTextDotsWidth + Font.TextWidth(C);
+      if PotentialNewTextDotsWidth > MaxWidth then Break;
+      NewText := PotentialNewText;
+      NewTextDotsWidth := PotentialNewTextDotsWidth;
+    end;
+    Text := NewText + Dots;
+  end;
+
+var
+  TextWidth: Integer;
+begin
+  TextWidth := Font.TextWidth(Text);
+  if TextWidth <= MaxWidth then Exit; { nothing needs to be done }
+
+  DotsWidth := Font.TextWidth(Dots);
+
+  if not TrimIntelligent then
+    TrimSimple;
+end;
+
 { display -------------------------------------------------------------------- }
 
 procedure DisplayProgress(Window: TCastleWindowBase);
+const
+  InsideMargin = 20;
 var
-  Margin, BarHeight, y1, y2, YMiddle: Integer;
+  Margin, MaxTextWidth, BarHeight, y1, y2, YMiddle: Integer;
   Progress: TProgress;
   ProgressInterface: TWindowProgressInterface;
   PositionFill: Single;
   Font: TGLBitmapFontAbstract;
+  Caption: string;
 begin
   Progress := TProgress(Window.UserData);
   ProgressInterface := Progress.UserInterface as TWindowProgressInterface;
@@ -108,12 +193,19 @@ begin
   glColorOpacity(Theme.BarFilledColor, ProgressInterface.Opacity);
   glRectf(Margin, y1, PositionFill, y2);
 
+  MaxTextWidth := Window.Width - Margin * 2 - InsideMargin;
+
   glColorOpacity(Theme.TextColor, ProgressInterface.Opacity);
-  if UIFont.RowHeight < BarHeight then
+  Caption := Progress.Title;
+  if (UIFont.RowHeight < BarHeight) and
+     (UIFont.TextWidth(Caption) < MaxTextWidth) then
     Font := UIFont else
+  begin
     Font := UIFontSmall;
-  SetWindowPos(Margin + 20, YMiddle - Font.RowHeight div 2);
-  Font.PrintAndMove(Progress.Title + ' ...');
+    MakeTextFit(Caption, Font, MaxTextWidth);
+  end;
+  SetWindowPos(Margin + InsideMargin, YMiddle - Font.RowHeight div 2);
+  Font.PrintAndMove(Caption);
 end;
 
 { TWindowProgressInterface  ------------------------------------------------ }
