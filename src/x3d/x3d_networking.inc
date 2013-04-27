@@ -347,14 +347,14 @@ begin
         if NewRootNode = nil then
         begin
           { we have a document URL }
-          if OpenURL(UrlWithoutViewpoint) then
+          if OpenURL(PathFromBaseUrl(Url)) then
           begin
             NewViewpoint := nil;
             Exit(true);
           end else
           begin
             OnWarning(wtMinor, 'VRML/X3D', Format('Cannot open browser to handle document on this URL: %s',
-              [UrlWithoutViewpoint]));
+              [PathFromBaseUrl(Url)]));
             Continue;
           end;
         end;
