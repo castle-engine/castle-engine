@@ -157,7 +157,7 @@ function TCastleHTTPClient.ReadResponseHeaders: Integer;
 begin
   Result := inherited;
 
-  UseProgress := false; // not Progress.Active; // TODO: for now, this progress causes problems when rendering
+  UseProgress := not Progress.Active;
   ProgressStream.UseProgress := UseProgress;
 
   { Initialize progress.

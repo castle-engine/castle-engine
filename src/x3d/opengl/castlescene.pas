@@ -2075,37 +2075,59 @@ begin
 
   if Dirty <> 0 then Exit;
 
-  if not PreparedShapesResouces then
-  begin
-    { Use PreparedShapesResouces to avoid expensive (for large scenes)
-      iteration over all shapes in every TCastleScene.PrepareResources call. }
-    PreparedShapesResouces := true;
-    PrepareShapesResouces;
-  end;
+  { When preparing resources, files (like textures) may get loaded,
+    causing progress bar (for example from CastleDownload).
+    Right now we're not ready to display the (partially loaded) scene
+    during this time, so we use Dirty to prevent it.
 
-  if (prRender in Options) and not PreparedRender then
-  begin
-    { We use PreparedRender to avoid potentially expensive iteration
-      over shapes and expensive Renderer.RenderBegin/End. }
-    PreparedRender := true;
+    Test http://svn.code.sf.net/p/castle-engine/code/trunk/demo_models/navigation/transition_multiple_viewpoints.x3dv
+    Most probably problems are caused because shapes are initially
+    without a texture, so their arrays (including VBOs) are generated
+    without texture coordinates, and we do not mark them to be prepared
+    correctly later. Correct fix is unsure:
+    - Marking relevant shapes to be prepared again seems easiest,
+      but this means that potentially everything is prepared 2 times
+      --- once before resources (like textures) are ready, 2nd time with.
+    - It would be best to pas texture coordinates even when no texture is loaded?
+      Ideally, the renderer operations should be the same regardless if texture
+      is loaded or not.
+      It remains to carefully see whether it's possible in all cases.
+  }
 
-    { Do not prepare when OnVertexColor or OnRadianceTransfer used,
-      as we can only call these callbacks during render (otherwise they
-      may be unprepared, like no texture for dynamic_ambient_occlusion.lpr). }
-    if not
-      (Assigned(Attributes.OnVertexColor) or
-       Assigned(Attributes.OnRadianceTransfer)) then
-      PrepareRenderShapes;
-  end;
+  Inc(Dirty);
+  try
+    if not PreparedShapesResouces then
+    begin
+      { Use PreparedShapesResouces to avoid expensive (for large scenes)
+        iteration over all shapes in every TCastleScene.PrepareResources call. }
+      PreparedShapesResouces := true;
+      PrepareShapesResouces;
+    end;
 
-  if prBackground in Options then
-    PrepareBackground;
+    if (prRender in Options) and not PreparedRender then
+    begin
+      { We use PreparedRender to avoid potentially expensive iteration
+        over shapes and expensive Renderer.RenderBegin/End. }
+      PreparedRender := true;
 
-  if prScreenEffects in Options then
-  begin
-    for I := 0 to ScreenEffectNodes.Count - 1 do
-      Renderer.PrepareScreenEffect(ScreenEffectNodes[I] as TScreenEffectNode);
-  end;
+      { Do not prepare when OnVertexColor or OnRadianceTransfer used,
+        as we can only call these callbacks during render (otherwise they
+        may be unprepared, like no texture for dynamic_ambient_occlusion.lpr). }
+      if not
+        (Assigned(Attributes.OnVertexColor) or
+         Assigned(Attributes.OnRadianceTransfer)) then
+        PrepareRenderShapes;
+    end;
+
+    if prBackground in Options then
+      PrepareBackground;
+
+    if prScreenEffects in Options then
+    begin
+      for I := 0 to ScreenEffectNodes.Count - 1 do
+        Renderer.PrepareScreenEffect(ScreenEffectNodes[I] as TScreenEffectNode);
+    end;
+  finally Dec(Dirty) end;
 end;
 
 procedure TCastleScene.Render(
