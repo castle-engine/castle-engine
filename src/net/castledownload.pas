@@ -16,14 +16,6 @@
 { Download URLs. }
 unit CastleDownload;
 
-{ TODO:
-  Problems of FpHttpClient:
-  - Get crashes on URLs with only host name without trailing slash,
-    like http://google.pl . I'm not sure are these valid URLs --- anyway,
-    people use them.
-  - Get leaks memory on larger files? Like http://maps.com.pl/ .
-}
-
 interface
 
 uses SysUtils, Classes, FpHttpClient;
@@ -217,6 +209,23 @@ function NetworkDownload(const URL: string;
       Result := Trim(ContentType);
   end;
 
+  { Workaround http://bugs.freepascal.org/view.php?id=24332 for FPC <= 2.6.2:
+    sometimes we need to add final slash to URL, otherwise FpHttpClient
+    will cause Access Violation. }
+  function FixURL(const URL: string): string;
+  var
+    URI: TURI;
+  begin
+    URI := ParseUri(URL);
+    { TFPCustomHTTPClient.GetServerURL crashes when URI.Path is empty }
+    if URI.Path = '' then
+    begin
+      URI.Path := '/';
+      Result := EncodeUri(URI);
+    end else
+      Result := URL;
+  end;
+
 var
   Client: TCastleHTTPClient;
   RedirectLocation: string;
@@ -228,7 +237,7 @@ begin
       Client.ProgressTitle := 'Downloading ' + URL;
       Client.ProgressStream := Result;
       { do not simply use Client.Get(URL, Result), as it cannot handle redirects }
-      Client.HTTPMethod('GET', URL, Result, [200,
+      Client.HTTPMethod('GET', FixURL(URL), Result, [200,
         { redirect status codes, see http://en.wikipedia.org/wiki/HTTP_302 }
         301, 302, 303, 307]);
       // Writeln(Client.ResponseHeaders.Text);
