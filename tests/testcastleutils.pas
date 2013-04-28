@@ -40,6 +40,7 @@ type
     procedure TestMinMax;
     //procedure TestStableSort;
     procedure TestSort;
+    procedure TestFileExt;
   end;
 
 implementation
@@ -431,6 +432,16 @@ begin
   Assert(Recs[5].SortKey = 10);
 end;
 }
+
+procedure TTestCastleUtils.TestFileExt;
+begin
+  AssertEquals('.wrl', ExtractFileExt('blah.blah.blah' + PathDelim + 'foo.wrl'));
+  AssertEquals('.wrl', ExtractFileExt('blah.blah.blah' + PathDelim + 'foo.bar.wrl'));
+  AssertEquals('.wrl', ExtractFileDoubleExt('blah.blah.blah' + PathDelim + 'foo.wrl'));
+  AssertEquals('.bar.wrl', ExtractFileDoubleExt('blah.blah.blah' + PathDelim + 'foo.bar.wrl'));
+  AssertEquals('blah.blah.blah' + PathDelim + 'foo', DeleteFileExt('blah.blah.blah' + PathDelim + 'foo.wrl'));
+  AssertEquals('blah.blah.blah' + PathDelim + 'foo.bar', DeleteFileExt('blah.blah.blah' + PathDelim + 'foo.bar.wrl'));
+end;
 
 initialization
  RegisterTest(TTestCastleUtils);

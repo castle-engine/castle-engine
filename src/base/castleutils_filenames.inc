@@ -30,6 +30,16 @@ const
   Will remove nothing if filename has no extension. }
 function DeleteFileExt(const FileName: string): string;
 
+{ Extracts @italic(two) last extensions from the filename, if it has two extensions.
+  If the filename has only one extension, returns that one extension,
+  if the filename has no extension --- returns empty string,
+  similar to ExtractFileExt.
+
+  This is useful to detect file types from filenames like @code(model.x3d.gz),
+  where ExtractFileExt returns only @code(.gz).
+  This function will return @code(.x3d.gz). }
+function ExtractFileDoubleExt(const FileName: string): string;
+
 { Extracts from FileName the name of file, without directory,
   without last extension and without any Windows drive letter. }
 function ExtractOnlyFilename(const FileName: string): string;
@@ -153,21 +163,15 @@ function ExpandFilePath(const FilePath: string): string;
 {$ifdef read_implementation}
 
 function DeleteFileExt(const FileName: string): string;
-var
-  I: Integer;
 begin
-  for I := Length(FileName) downto 1 do
-  begin
-    if FileName[I] = '.' then
-    begin
-      Result := Copy(FileName, 1, I - 1);
-      Exit;
-    end else
-    if FileName[I] = PathDelim then
-      Break;
-  end;
+  Result := ChangeFileExt(FileName, '');
+end;
 
-  Result := FileName;
+function ExtractFileDoubleExt(const FileName: string): string;
+begin
+  Result := ExtractFileExt(FileName);
+  if Result <> '' then
+    Result := ExtractFileExt(ChangeFileExt(FileName, '')) + Result;
 end;
 
 function ExtractOnlyFileName(const FileName: string): string;
