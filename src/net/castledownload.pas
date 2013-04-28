@@ -75,7 +75,9 @@ type
 
   Set EnableNetwork to @true to have also support for network protocols.
   Right now this means only http, handled by FpHttpClient.
-  The MIME type for such content is reported by http server. }
+  The MIME type for such content is usually reported by the http server
+  (but if the server doesn't report MIME type, we still try to guess it,
+  looking at URL using URIMimeType). }
 function Download(const URL: string; const Options: TDownloadOptions = []): TStream;
 function Download(const URL: string; const Options: TDownloadOptions;
   out MimeType: string): TStream;
