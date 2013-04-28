@@ -435,9 +435,10 @@ end;
 
 function URIMimeType(const URI: string): string;
 
-  function ExtToMimeType(Ext: string): string;
+  function ExtToMimeType(Ext, ExtExt: string): string;
   begin
     Ext := LowerCase(Ext);
+    ExtExt := LowerCase(ExtExt);
 
     { This list is based on
       http://svn.freepascal.org/cgi-bin/viewvc.cgi/trunk/lcl/interfaces/customdrawn/customdrawnobject_android.inc?root=lazarus&view=co&content-type=text%2Fplain
@@ -448,14 +449,39 @@ function URIMimeType(const URI: string): string;
       http://comments.gmane.org/gmane.comp.ide.lazarus.general/62738
 
       We somewhat cleaned it up (e.g. "postscript" and "mpeg" lowercase),
-      fixed categorization, and fixed/added many types looking at /etc/mime.types
-      on Debian.
+      fixed categorization, and fixed/added many types looking at
+      /etc/mime.types and
+      /usr/share/mime/packages/freedesktop.org.xml on Debian.
 
       For description of MIME content types see also
       https://en.wikipedia.org/wiki/Internet_media_type
       http://en.wikipedia.org/wiki/MIME
       http://tools.ietf.org/html/rfc4288 }
 
+    // 3D models (see also view3dscene MIME specification in view3dscene/desktop/view3dscene.xml)
+    if Ext    = '.wrl'    then Result := 'model/vrml' else
+    if Ext    = '.wrz'    then Result := 'model/vrml' else
+    if ExtExt = '.wrl.gz' then Result := 'model/vrml' else
+    if Ext    = '.x3dv'    then Result := 'model/x3d+vrml' else
+    if Ext    = '.x3dvz'   then Result := 'model/x3d+vrml' else
+    if ExtExt = '.x3dv.gz' then Result := 'model/x3d+vrml' else
+    if Ext    = '.x3d'    then Result := 'model/x3d+xml' else
+    if Ext    = '.x3dz'   then Result := 'model/x3d+xml' else
+    if ExtExt = '.x3d.gz' then Result := 'model/x3d+xml' else
+    if Ext    = '.x3db'    then Result := 'model/x3d+binary' else
+    if ExtExt = '.x3db.gz' then Result := 'model/x3d+binary' else
+    if Ext = '.dae' then Result := 'model/vnd.collada+xml' else
+    { See http://en.wikipedia.org/wiki/.3ds about 3ds mime type.
+      application/x-3ds is better (3DS is hardly an "image"),
+      but Debian /usr/share/mime/packages/freedesktop.org.xml also uses
+      image/x-3ds, so I guess image/x-3ds is more popular. }
+    if Ext = '.3ds' then Result := 'image/x-3ds' else
+    if Ext = '.max' then Result := 'image/x-3ds' else
+    if Ext = '.iv' then Result := 'object/x-inventor' else
+    if Ext = '.md3' then Result := 'application/x-md3' else
+    if Ext = '.obj' then Result := 'application/x-wavefront-obj' else
+    if Ext = '.geo' then Result := 'application/x-geo' else
+    if Ext = '.kanim' then Result := 'application/x-kanim' else
     // Images
     if Ext = '.png' then Result := 'image/png' else
     if Ext = '.jpg' then Result := 'image/jpeg' else
@@ -548,9 +574,9 @@ begin
      (P = 'http') or
      (P = 'ftp') or
      (P = 'https') then
-    { Consciously using here ExtractFileExt, that should be for filenames,
-      for URIs. }
-    Result := ExtToMimeType(ExtractFileExt(URI));
+    { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,
+      although they should be used for filenames. }
+    Result := ExtToMimeType(ExtractFileExt(URI), ExtractFileDoubleExt(URI));
 
 end;
 
