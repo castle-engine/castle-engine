@@ -13,16 +13,25 @@
   ----------------------------------------------------------------------------
 }
 
-{ Download an URL, write result on standard output.
-  Simple test of CastleDownload unit. }
+{ Download an URL, write result on standard output (stdout).
+  Writes diagnostic output, and progress, on standard error (stderr).
+  This is a simple test of CastleDownload unit that allows you to simply grab
+  any URL to a Stream.
+
+  Try from command-line like
+    castle_download http://castle-engine.sf.net/ > output.html
+  or
+    castle_download http://downloads.sourceforge.net/castle-engine/view3dscene-3.12.0-linux-i386.tar.gz > output.tar.gz
+}
 
 uses SysUtils, Classes, CastleDownload, CastleParameters, CastleClassUtils,
-  CastleLog;
+  CastleLog, CastleProgress, CastleProgressConsole;
 var
   Stream: TStream;
 begin
   EnableNetwork := true;
-  InitializeLog('1.0.0');
+  InitializeLog('1.0.0', StdErrStream);
+  Progress.UserInterface := ProgressConsoleInterface;
   Parameters.CheckHigh(1);
   Stream := Download(Parameters[1]);
   try
