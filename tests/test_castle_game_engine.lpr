@@ -69,6 +69,12 @@ uses
   TestCastleLCLUtils
   {$endif};
 
+
+{$ifdef TEXT_RUNNER}
+var
+  Application: TTestRunner;
+{$endif}
+
 {var
   T: TTestCastleTriangulate;}
 begin
@@ -82,9 +88,16 @@ begin
   T.Free;
   Exit;}
 
+  {$ifdef TEXT_RUNNER}
+  Application := TTestRunner.Create(nil);
+  DefaultFormat := fPlain;
+  {$endif}
   Application.Initialize;
   {$ifndef TEXT_RUNNER}
   Application.CreateForm(TGuiTestRunner, TestRunner);
   {$endif}
   Application.Run;
+  {$ifdef TEXT_RUNNER}
+  Application.Free;
+  {$endif}
 end.
