@@ -9,7 +9,7 @@ program test_castle_game_engine;
 
 uses
   {$ifdef TEXT_RUNNER}
-  ConsoleTestRunner,
+  CastleConsoleTestRunner, ConsoleTestRunner,
   {$else}
   Interfaces, Forms, GuiTestRunner, castle_base,
   {$endif}
@@ -72,7 +72,7 @@ uses
 
 {$ifdef TEXT_RUNNER}
 var
-  Application: TTestRunner;
+  Application: TCastleConsoleTestRunner;
 {$endif}
 
 {var
@@ -89,7 +89,7 @@ begin
   Exit;}
 
   {$ifdef TEXT_RUNNER}
-  Application := TTestRunner.Create(nil);
+  Application := TCastleConsoleTestRunner.Create(nil);
   DefaultFormat := fPlain;
   DefaultRunAllTests := true;
   {$endif}
