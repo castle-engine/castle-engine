@@ -73,7 +73,7 @@ type
   is also always supported.
   The MIME type for such content is specified explicitly in URI.
 
-  Set EnableNetwork to @trueto have also support for network protocols.
+  Set EnableNetwork to @true to have also support for network protocols.
   Right now this means only http, handled by FpHttpClient.
   The MIME type for such content is reported by http server. }
 function Download(const URL: string; const Options: TDownloadOptions = []): TStream;
