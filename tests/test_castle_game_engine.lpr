@@ -91,6 +91,7 @@ begin
   {$ifdef TEXT_RUNNER}
   Application := TTestRunner.Create(nil);
   DefaultFormat := fPlain;
+  DefaultRunAllTests := true;
   {$endif}
   Application.Initialize;
   {$ifndef TEXT_RUNNER}
