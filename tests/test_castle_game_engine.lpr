@@ -69,7 +69,6 @@ uses
   TestCastleLCLUtils
   {$endif};
 
-
 {$ifdef TEXT_RUNNER}
 var
   Application: TCastleConsoleTestRunner;
@@ -90,8 +89,8 @@ begin
 
   {$ifdef TEXT_RUNNER}
   Application := TCastleConsoleTestRunner.Create(nil);
+  Application.Title := 'Castle Game Engine test runner (using fpcunit)';
   DefaultFormat := fPlain;
-  DefaultRunAllTests := true;
   {$endif}
   Application.Initialize;
   {$ifndef TEXT_RUNNER}
