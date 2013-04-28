@@ -199,6 +199,8 @@ end;
 function NetworkDownload(const URL: string;
   const MaxRedirects: Cardinal; out MimeType: string): TProgressMemoryStream;
 
+  { Extract MimeType from HTTP Content-Type.
+    Returns empty string if Content-Type is empty (undefined). }
   function ContentTypeToMimeType(const ContentType: string): string;
   var
     P: Integer;
@@ -229,6 +231,7 @@ function NetworkDownload(const URL: string;
 var
   Client: TCastleHTTPClient;
   RedirectLocation: string;
+  MimeTypeFromContentHeader: boolean;
 begin
   Result := TProgressMemoryStream.Create;
   try
@@ -255,7 +258,11 @@ begin
         Exit(NetworkDownload(RedirectLocation, MaxRedirects - 1, MimeType));
       end;
       MimeType := ContentTypeToMimeType(Client.ResponseHeaders.Values['Content-Type']);
-      WritelnLog('Network', 'Successfully downloaded "%s", MIME type "%s"', [URL, MimeType]);
+      MimeTypeFromContentHeader := MimeType <> '';
+      if not MimeTypeFromContentHeader then
+        MimeType := URIMimeType(URL);
+      WritelnLog('Network', 'Successfully downloaded "%s", MIME type "%s", MIME type was specified by server: %s',
+        [URL, MimeType, BoolToStr(MimeTypeFromContentHeader, true)]);
     finally FreeAndNil(Client) end;
     Result.Position := 0; { rewind for easy reading }
   except
