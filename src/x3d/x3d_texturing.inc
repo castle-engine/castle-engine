@@ -770,66 +770,6 @@ begin
 end;
 
 procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: boolean);
-
-  { Load image from URL containing "data:" protocol
-    (http://en.wikipedia.org/wiki/Data_URI_scheme).
-    If success,
-    - sets FTextureImage, FTextureDDS, WasCacheUsed, FTextureUsedFullUrl
-    - returns true
-    otherwise
-    - makes OnWarning
-    - returns false }
-  function LoadImageFromDataProtocol(const URL: string): boolean;
-  var
-    Data: TDataURI;
-    ImageFormat: TImageFormat;
-  begin
-    Data := TDataURI.Create;
-    try
-      Data.URI := URL;
-      { For example GIF reader requires seeking capabilities. }
-      Data.ForceMemoryStream := true;
-
-      if not Data.Valid then Exit(false);
-
-      if Log then
-        WritelnLog('Texture loading',
-          Format('Loading from data URI with mime "%s", charset "%s", base64 "%s"',
-          [Data.MimeType, Data.Charset, BoolToStr[Data.Base64]]));
-
-      if Data.MimeType = 'image/bmp' then
-        ImageFormat := ifBMP else
-      if Data.MimeType = 'image/png' then
-        ImageFormat := ifPNG else
-      if (Data.MimeType = 'image/jpeg') or
-         (Data.MimeType = 'image/jpg') then
-        ImageFormat := ifJPEG else
-      if Data.MimeType = 'image/gif' then
-        ImageFormat := ifGIF else
-      begin
-        OnWarning(wtMajor, 'VRML/X3D', Format('Data mime-type "%s" not recognized, not loading. If this is a valid image mime type that should be supported, please report.', [Data.MimeType]));
-        Exit(false);
-      end;
-
-      try
-        FTextureImage := LoadImage(Data.Stream, ImageFormat,
-          [TRGBImage, TRGBAlphaImage, TGrayscaleImage, TGrayscaleAlphaImage]);
-        WasCacheUsed := false;
-        FTextureUsedFullUrl := Data.URIPrefix;
-        FAlphaChannelData := FTextureImage.AlphaChannel;
-        Result := true;
-      except
-        on E: Exception do
-        begin
-          { Remember that OnWarning *may* raise an exception. }
-          OnWarning(wtMinor, 'Texture', Format(SLoadError,
-            [E.ClassName, 'texture', URIDisplayLong(URL), E.Message]));
-          Result := false;
-        end;
-      end;
-    finally FreeAndNil(Data) end;
-  end;
-
 var
   I: Integer;
   FullUrl: string;
@@ -844,17 +784,13 @@ begin
         and produce unclear error message. }
       OnWarning(wtMinor, 'VRML/X3D', Format('Empty URL for %s ignored', [NodeTypeName]));
     end else
-    if TDataURI.IsDataURI(FdUrl.Items[I]) then
-    begin
-      if LoadImageFromDataProtocol(FdUrl.Items[I]) then Break;
-    end else
     begin
       FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
       try
         FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureDDS,
           FAlphaChannelData);
         WasCacheUsed := true;
-        FTextureUsedFullUrl := FullUrl;
+        FTextureUsedFullUrl := URIDisplayLong(FullUrl);
         Break;
       except
         on E: Exception do

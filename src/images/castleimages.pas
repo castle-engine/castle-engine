@@ -1237,6 +1237,14 @@ type
     scRGB_RGBFloat
   );
 
+  { Index of TImageFormatInfo.MimeTypes array and
+    type for TImageFormatInfo.MimeTypesCount.
+    Implies that TImageFormatInfo.MimeTypes is indexed from 1,
+    TImageFormatInfo.MimeTypesCount must be >= 1,
+    so each file format must have at least one
+    (treated as "default" in some cases) MIME type. }
+  TImageFormatInfoMimeTypesCount = 1..6;
+
   { A type to index TImageFormatInfo.Exts array and also for TImageFormatInfo.ExtsCount.
     So TImageFormatInfo.Exts array is indexed from 1,
     and TImageFormatInfo.ExtsCount must be >= 1, so each file format must have at least one
@@ -1263,13 +1271,29 @@ type
       In practice, I now copy descriptions from English GIMP open dialog. }
     FormatName: string;
 
-    ExtsCount: TImageFormatInfoExtsCount;
-    { File extensions recognized as this image file format.
+    MimeTypesCount: TImageFormatInfoMimeTypesCount;
 
-      These file extensions must be lowercase, without leading dot '.'.
-      First extension is the default extension of this file format
+    { MIME types recognized as this image file format.
+      First MIME type is the default for this file format
       (some procedures make use of it). }
-    Exts: array[TImageFormatInfoExtsCount] of string;
+    MimeTypes: array [TImageFormatInfoMimeTypesCount] of string;
+
+    ExtsCount: TImageFormatInfoExtsCount;
+
+    { File extensions for this image type.
+      First file extension is default, which is used for some routines.
+      Must be lowercase.
+
+      This is used e.g. to construct file filters in open/save dialogs.
+      Together with MimeTypes it is also used by URIMimeType to map
+      file extension into a MIME type. An extension matching one of Exts
+      values implicates the default MIME type for this format (MimeTypes[1]).
+
+      Note that to cooperate nicely with network URLs
+      (when server may report MIME type) and data URIs, most of the code
+      should operate using MIME types instead of file extensions.
+      So usually you are more interested in MimeTypes than Exts. }
+    Exts: array [TImageFormatInfoExtsCount] of string;
 
     { Load method for this file format.
       @nil if cannot be loaded. }
@@ -1289,58 +1313,80 @@ type
 
 const
   { Information about supported image formats. }
-  ImageFormatInfos :array[TImageFormat]of TImageFormatInfo =
+  ImageFormatInfos: array [TImageFormat] of TImageFormatInfo =
   ( { The order on this list matters --- it determines the order of filters
       for open/save dialogs.
       First list most adviced and well-known formats, starting from lossless. }
 
     { Portable Network Graphic } { }
     ( FormatName: 'PNG image';
+      MimeTypesCount: 1;
+      MimeTypes: ('image/png', '', '', '', '', '');
       ExtsCount: 1; Exts: ('png', '', '');
       Load: @LoadPNG; LoadedClasses: lcG_GA_RGB_RGBA;
       Save: @SavePNG; SavedClasses: scG_GA_RGB_RGBA; ),
     ( FormatName: 'Windows BMP image';
+      MimeTypesCount: 1;
+      MimeTypes: ('image/bmp', '', '', '', '', '');
       ExtsCount: 1; Exts: ('bmp', '', '');
       Load: @LoadBMP; LoadedClasses: lcRGB_RGBA;
       Save: @SaveBMP; SavedClasses: scRGB),
     { Portable Pixel Map } { }
     ( FormatName: 'PPM image';
+      MimeTypesCount: 1;
+      MimeTypes: ('image/x-portable-pixmap', '', '', '', '', '');
       ExtsCount: 1; Exts: ('ppm', '', '');
       Load: @LoadPPM; LoadedClasses: lcRGB;
       Save: @SavePPM; SavedClasses: scRGB; ),
     { JFIF, JPEG File Interchange Format } { }
     ( FormatName: 'JPEG image';
+      MimeTypesCount: 2;
+      MimeTypes: ('image/jpeg', 'image/jpg', '', '', '', '');
       ExtsCount: 3; Exts: ('jpg', 'jpeg', 'jpe');
       Load: @LoadJPEG; LoadedClasses: lcRGB_RGBA;
       Save: @SaveJPEG; SavedClasses: scRGB { actually scRGB_RGBA }),
     { Graphics Interchange Format } { }
     ( FormatName: 'GIF image';
+      MimeTypesCount: 1;
+      MimeTypes: ('image/gif', '', '', '', '', '');
       ExtsCount: 1; Exts: ('gif', '', '');
       Load: @LoadGIF; LoadedClasses: lcRGB_RGBA;
       Save: nil; SavedClasses: scRGB; ),
     ( FormatName: 'TarGA image';
-      ExtsCount: 1; Exts: ('tga', '', '');
+      MimeTypesCount: 2;
+      MimeTypes: ('image/x-targa', 'image/x-tga', '', '', '', '');
+      ExtsCount: 2; Exts: ('tga', 'tpic', '');
       Load: @LoadTGA; LoadedClasses: lcRGB_RGBA;
       Save: nil; SavedClasses: scRGB; ),
     ( FormatName: 'XPM image';
+      MimeTypesCount: 1;
+      MimeTypes: ('image/x-xpixmap', '', '', '', '', '');
       ExtsCount: 1; Exts: ('xpm', '', '');
       Load: @LoadXPM; LoadedClasses: lcRGB_RGBA;
       Save: nil; SavedClasses: scRGB; ),
     ( FormatName: 'PSD image';
+      MimeTypesCount: 4;
+      MimeTypes: ('image/photoshop', 'image/x-photoshop', 'image/psd', 'application/photoshop', '', '');
       ExtsCount: 1; Exts: ('psd', '', '');
       Load: @LoadPSD; LoadedClasses: lcRGB_RGBA;
       Save: nil; SavedClasses: scRGB; ),
     ( FormatName: 'ZSoft PCX image';
+      MimeTypesCount: 5;
+      MimeTypes: ('image/pcx', 'application/pcx', 'application/x-pcx', 'image/x-pc-paintbrush', 'image/x-pcx', '');
       ExtsCount: 1; Exts: ('pcx', '', '');
       Load: @LoadPCX; LoadedClasses: lcRGB_RGBA;
       Save: nil; SavedClasses: scRGB; ),
     ( FormatName: 'PNM image';
+      MimeTypesCount: 6;
+      MimeTypes: ('image/x-portable-anymap', 'image/x-portable-graymap', 'image/x-pgm', 'image/x-portable-bitmap', 'image/pbm', 'image/x-pbm');
       ExtsCount: 3; Exts: ('pnm', 'pgm', 'pbm');
       Load: @LoadPNM; LoadedClasses: lcRGB_RGBA;
       Save: nil; SavedClasses: scRGB; ),
 
     { Direct Draw Surface } { }
     ( FormatName: 'DDS image';
+      MimeTypesCount: 1;
+      MimeTypes: ('image/x-dds', '', '', '', '', '');
       ExtsCount: 1; Exts: ('dds', '', '');
       Load: @LoadDDS; LoadedClasses: lcG_GA_RGB_RGBA;
       Save: @SaveDDS; SavedClasses: scG_GA_RGB_RGBA; ),
@@ -1348,10 +1394,15 @@ const
     { Image formats not well known. }
 
     ( FormatName: 'RGBE (RGB+Exponent) image';
-      ExtsCount: 2; Exts: ('rgbe', 'pic', '');
+      MimeTypesCount: 1;
+      MimeTypes: ('image/vnd.radiance', '', '', '', '', '');
+      ExtsCount: 3; Exts: ('rgbe', 'pic', 'hdr');
       Load: @LoadRGBE; LoadedClasses: lcRGB_RGBFloat;
       Save: @SaveRGBE; SavedClasses: scRGB_RGBFloat; ),
     ( FormatName: 'IPLab image';
+      MimeTypesCount: 1;
+      { ipl MIME type invented by Kambi, to make it unique to communicate image format for LoadImage } { }
+      MimeTypes: ('image/x-ipl', '', '', '', '', '');
       ExtsCount: 1; Exts: ('ipl', '', '');
       Load: @LoadIPL; LoadedClasses: lcRGB;
       Save: nil; SavedClasses: scRGB; ),
@@ -1362,18 +1413,26 @@ const
       if user didn't install ImageMagick. } { }
 
     ( FormatName: 'TIFF image';
-      ExtsCount: 1; Exts: ('tif', '', '');
+      MimeTypesCount: 1;
+      MimeTypes: ('image/tiff', '', '', '', '', '');
+      ExtsCount: 2; Exts: ('tiff', 'tif', '');
       Load: @LoadTIFF; LoadedClasses: lcRGB_RGBA;
       Save: nil; SavedClasses: scRGB; ),
     ( FormatName: 'SGI image';
+      MimeTypesCount: 3;
+      MimeTypes: ('image/sgi', 'image/x-sgi', 'image/x-sgi-rgba', '', '', '');
       ExtsCount: 1; Exts: ('sgi', '', '');
       Load: @LoadSGI; LoadedClasses: lcG_GA_RGB_RGBA;
       Save: nil; SavedClasses: scRGB; ),
-    ( FormatName: 'JP2 image';
+    ( FormatName: 'JPEG 2000 image';
+      MimeTypesCount: 4;
+      MimeTypes: ('image/jp2', 'image/jpeg2000', 'image/jpeg2000-image', 'image/x-jpeg2000-image', '', '');
       ExtsCount: 1; Exts: ('jp2', '', '');
       Load: @LoadJP2; LoadedClasses: lcG_GA_RGB_RGBA;
       Save: nil; SavedClasses: scRGB; ),
     ( FormatName: 'EXR image';
+      MimeTypesCount: 1;
+      MimeTypes: ('image/x-exr', '', '', '', '', '');
       ExtsCount: 1; Exts: ('exr', '', '');
       Load: @LoadEXR; LoadedClasses: lcG_GA_RGB_RGBA;
       Save: nil; SavedClasses: scRGB; )
@@ -1385,19 +1444,24 @@ const
   FileExt may, but doesn't have to, contain the leading dot.
   Returns @false if no format matching given extension. }
 function FileExtToImageFormat(FileExt: string;
-  OnlyLoadable, OnlySaveable: boolean; out ImgFormat: TImageFormat): boolean;
+  const OnlyLoadable, OnlySaveable: boolean; out ImgFormat: TImageFormat): boolean;
+
+{ Find image file format with given MIME type.
+  Returns @false if no format matching given MIME type. }
+function MimeTypeToImageFormat(const MimeType: string;
+  const OnlyLoadable, OnlySaveable: boolean; out ImgFormat: TImageFormat): boolean;
 
 { Find image file format with given file extension, return default
   format if not found.
   Like FileExtToImageFormat, but returns DefFormat if no matching format found. }
 function FileExtToImageFormatDef(const FileExt: string;
-  OnlyLoadable, OnlySaveable: boolean; DefFormat: TImageFormat): TImageFormat;
+  const OnlyLoadable, OnlySaveable: boolean; DefFormat: TImageFormat): TImageFormat;
 
 { Check do we handle image file format with given file extension.
   Like FileExtToImageFormat, except here we just check if the file extension
   is a handled format --- we are not interested in actual TImageFormat value. }
 function IsFileExtToImageFormat(const FileExt: string;
-  OnlyLoadable, OnlySaveable: boolean): boolean;
+  const OnlyLoadable, OnlySaveable: boolean): boolean;
 
 { Check do we handle loading image file format with given file extension.
   Like IsFileExtToImageFormat, with OnlyLoadable = @true, OnlySaveable = @false. }
@@ -1494,14 +1558,15 @@ type
     allowed AllowedImageClasses.)
 
   @raises(EImageFormatNotSupported If image file format cannot be loaded at all.
-    This can happen only if format is totally unknown (e.g. not recognized
-    URL extension) or if image format has no Load method at all.)
+    This can happen if format is totally unknown (not recognized
+    MIME type, derived from file extension in case of local files)
+    or if this image format cannot be loaded at all.)
 
   @groupBegin *)
 function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
   const AllowedImageClasses: array of TCastleImageClass)
   :TCastleImage; overload;
-function LoadImage(Stream: TStream; const typeext: string;
+function LoadImage(Stream: TStream; const MimeType: string;
   const AllowedImageClasses: array of TCastleImageClass)
   :TCastleImage; overload;
 function LoadImage(const URL: string;
@@ -1595,7 +1660,7 @@ procedure AlphaMaxTo1st(var A: TAlphaChannel; const B: TAlphaChannel);
 implementation
 
 uses CastleProgress, CastleStringUtils, CastleFilesUtils, CastleWarnings,
-  CastleDDS, CastleDownload;
+  CastleDDS, CastleDownload, CastleURIUtils;
 
 { image loading utilities --------------------------------------------------- }
 
@@ -3262,7 +3327,7 @@ end;
 { file formats managing ---------------------------------------------------------------- }
 
 function FileExtToImageFormat(FileExt: string;
-  OnlyLoadable, OnlySaveable: boolean; out ImgFormat: TImageFormat): boolean;
+  const OnlyLoadable, OnlySaveable: boolean; out ImgFormat: TImageFormat): boolean;
 var
   iff: TImageFormat;
   i: integer;
@@ -3284,14 +3349,35 @@ begin
   result := false;
 end;
 
+function MimeTypeToImageFormat(const MimeType: string;
+  const OnlyLoadable, OnlySaveable: boolean; out ImgFormat: TImageFormat): boolean;
+var
+  I: TImageFormat;
+  M: TImageFormatInfoMimeTypesCount;
+begin
+  for I := Low(I) to High(I) do
+  begin
+    if ((not OnlyLoadable) or Assigned(ImageFormatInfos[I].Load)) and
+       ((not OnlySaveable) or Assigned(ImageFormatInfos[I].Save)) then
+    for M := 1 to ImageFormatInfos[I].MimeTypesCount do
+      if MimeType = ImageFormatInfos[I].MimeTypes[M] then
+      begin
+        ImgFormat := I;
+        Exit(true);
+      end;
+  end;
+  Result := false;
+end;
+
 function FileExtToImageFormatDef(const FileExt: string;
-  OnlyLoadable, OnlySaveable: boolean; DefFormat: TImageFormat): TImageFormat;
+  const OnlyLoadable, OnlySaveable: boolean; DefFormat: TImageFormat): TImageFormat;
 begin
   if not FileExtToImageFormat(FileExt, OnlyLoadable, OnlySaveable, result) then
     result := DefFormat;
 end;
 
-function IsFileExtToImageFormat(const FileExt: string; OnlyLoadable, OnlySaveable: boolean): boolean;
+function IsFileExtToImageFormat(const FileExt: string;
+  const OnlyLoadable, OnlySaveable: boolean): boolean;
 var
   dummy: TImageFormat;
 begin
@@ -3476,45 +3562,47 @@ begin
   except Result.Free; raise end;
 end;
 
-function LoadImage(Stream: TStream; const typeext: string;
+function LoadImage(Stream: TStream; const MimeType: string;
   const AllowedImageClasses: array of TCastleImageClass)
   :TCastleImage;
 var
   iff: TImageFormat;
 begin
-  if FileExtToImageFormat(typeext, true, false, iff) then
+  if MimeTypeToImageFormat(MimeType, true, false, iff) then
     result := LoadImage(Stream, iff, AllowedImageClasses) else
-    raise EImageFormatNotSupported.Create('Unrecognized image format : "'+typeext+'"');
+    raise EImageFormatNotSupported.Create('Unrecognized image MIME type: "'+MimeType+'"');
 end;
 
 function LoadImage(const URL: string;
   const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+const
+  SLoadError = 'Error loading image from URL "%s": %s';
 var
   f: TStream;
+  MimeType: string;
 begin
   try
     try
-      f := Download(URL, [doForceMemoryStream]);
+      f := Download(URL, [doForceMemoryStream], MimeType);
     except
-      on E: EReadError do
-        raise EImageLoadError.Create('Cannot read URL: ' + E.Message);
+      on E: EReadError do raise EImageLoadError.Create(E.Message);
     end;
 
     try
-      { TODO-net: file operations on URLs }
-      result := LoadImage(f, ExtractFileExt(URL), AllowedImageClasses);
+      result := LoadImage(f, MimeType, AllowedImageClasses);
     finally f.Free end;
   except
-    on E: EImageLoadError do begin
-      E.Message := 'Error when loading image from URL "'+URL+'" : '+E.Message;
+    { capture some exceptions to add URL to exception message }
+    on E: EImageLoadError do
+    begin
+      E.Message := Format(SLoadError, [URIDisplayLong(URL), E.Message]);
       raise;
     end;
-    on E: EImageFormatNotSupported do begin
-      { przechwyc EImageFormatNotSupported i w tresci wyjatku wklej pelne URL }
-      E.Message := 'Unrecognized image format : URL "'+URL+'"';
+    on E: EImageFormatNotSupported do
+    begin
+      E.Message := Format(SLoadError, [URIDisplayLong(URL), E.Message]);
       raise;
     end;
-    else raise;
   end;
 end;
 

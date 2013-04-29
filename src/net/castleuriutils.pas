@@ -148,7 +148,7 @@ function URIDisplayLong(const URI: string): string;
 implementation
 
 uses SysUtils, CastleStringUtils, CastleWarnings, CastleFilesUtils,
-  URIParser, CastleUtils, CastleDataURI;
+  URIParser, CastleUtils, CastleDataURI, CastleImages;
 
 procedure URIExtractAnchor(var URI: string; out Anchor: string);
 var
@@ -436,6 +436,19 @@ end;
 function URIMimeType(const URI: string): string;
 
   function ExtToMimeType(Ext, ExtExt: string): string;
+
+    function ImageExtToMimeType(const Ext: string): string;
+    var
+      I: TImageFormat;
+      E: TImageFormatInfoExtsCount;
+    begin
+      for I := Low(I) to High(I) do
+        for E := Low(E) to ImageFormatInfos[I].ExtsCount do
+          if Ext = '.' + ImageFormatInfos[I].Exts[E] then
+            Exit(ImageFormatInfos[I].MimeTypes[1]);
+      Result := '';
+    end;
+
   begin
     Ext := LowerCase(Ext);
     ExtExt := LowerCase(ExtExt);
@@ -482,19 +495,13 @@ function URIMimeType(const URI: string): string;
     if Ext = '.obj' then Result := 'application/x-wavefront-obj' else
     if Ext = '.geo' then Result := 'application/x-geo' else
     if Ext = '.kanim' then Result := 'application/x-kanim' else
-    // Images
-    if Ext = '.png' then Result := 'image/png' else
-    if Ext = '.jpg' then Result := 'image/jpeg' else
-    if Ext = '.jpeg' then Result := 'image/jpeg' else
+    // Images.
+    { Only images that we cannot handle in CastleImages unit are listed below.
+      For handled images, their extensions are mime types are recorded
+      in ImageFormatInfos inside CastleImages unit. }
     if Ext = '.svg' then Result := 'image/svg+xml' else
-    if Ext = '.xpm' then Result := 'image/x-xpixmap' else
-    if Ext = '.gif' then Result := 'image/gif' else
-    if Ext = '.tiff' then Result := 'image/tiff' else
-    if Ext = '.tif' then Result := 'image/tiff' else
     if Ext = '.ico' then Result := 'image/x-icon' else
     if Ext = '.icns' then Result := 'image/icns' else
-    if Ext = '.ppm' then Result := 'image/x-portable-pixmap' else
-    if Ext = '.bmp' then Result := 'image/bmp' else
     // HTML
     if Ext = '.htm' then Result := 'text/html' else
     if Ext = '.html' then Result := 'text/html' else
@@ -549,7 +556,8 @@ function URIMimeType(const URI: string): string;
     // Various
     if Ext = '.xml' then Result := 'application/xml' else
     if Ext = '.swf' then Result := 'application/x-shockwave-flash' else
-      Result := '';
+      { as a last resort, check ImageFormatInfos extensions }
+      Result := ImageExtToMimeType(Ext);
   end;
 
 var

@@ -70,8 +70,8 @@ const
   it just doesn't return DDS object instance).
 
   @groupBegin }
-function LoadTextureImage(const FileName: string; out DDS: TDDSImage): TEncodedImage; overload;
-function LoadTextureImage(const FileName: string): TEncodedImage; overload;
+function LoadTextureImage(const URL: string; out DDS: TDDSImage): TEncodedImage; overload;
+function LoadTextureImage(const URL: string): TEncodedImage; overload;
 { @groupEnd }
 
 type
@@ -90,15 +90,10 @@ type
     Later, instead of freeing this image, call
     @code(TextureImage_DecReference(Image)). From your point of view, things
     will work the same. But if you expect to load many textures from the
-    same FileName, then you will get a great speed and memory saving,
+    same URL, then you will get a great speed and memory saving,
     because image will only be actually loaded once. Notes:
 
     @unorderedList(
-      @item(All passed here FileNames must be absolute, already expanded paths.
-        In the future it's expected that this (just like LoadImage
-        and LoadTextureImage, actually)
-        will be extended to load images from URLs.)
-
       @item(Note that in case of problems with loading,
         TextureImage_IncReference may raise an exception, just like normal
         LoadTextureImage. In this case it's guaranteed that no reference will
@@ -108,7 +103,7 @@ type
 
       @item(LoadTextureImage_DecReference alwas sets Image to @nil, like FreeAndNil.)
 
-      @item( Since detecting image alpha channel type may be a little time-consuming
+      @item(Since detecting image alpha channel type may be a little time-consuming
         (iteration over all pixels is needed), we also do it here
         and save in cache.)
     )
@@ -127,7 +122,7 @@ type
       { Internal for TTexturesVideosCache. @exclude }
       TCachedTexture = class
         References: Cardinal;
-        FileName: string;
+        URL: string;
         Image: TEncodedImage;
         DDS: TDDSImage;
         AlphaChannel: TAlphaChannel;
@@ -139,8 +134,10 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function TextureImage_IncReference(const FileName: string; out DDS: TDDSImage; out AlphaChannel: TAlphaChannel): TEncodedImage;
-    function TextureImage_IncReference(const FileName: string; out AlphaChannel: TAlphaChannel): TEncodedImage;
+    function TextureImage_IncReference(const URL: string; out DDS: TDDSImage;
+      out AlphaChannel: TAlphaChannel): TEncodedImage;
+    function TextureImage_IncReference(const URL: string;
+      out AlphaChannel: TAlphaChannel): TEncodedImage;
 
     procedure TextureImage_DecReference(var Image: TEncodedImage; var DDS: TDDSImage);
     procedure TextureImage_DecReference(var Image: TEncodedImage);
@@ -152,18 +149,19 @@ implementation
 
 uses SysUtils, CastleStringUtils, CastleLog;
 
-function LoadTextureImage(const FileName: string; out DDS: TDDSImage): TEncodedImage;
+function LoadTextureImage(const URL: string; out DDS: TDDSImage): TEncodedImage;
 begin
-  if FileExtToImageFormatDef(ExtractFileExt(FileName),
+  { TODO-net: using ExtractFileExt on URL }
+  if FileExtToImageFormatDef(ExtractFileExt(URL),
     false, false, ifBMP) <> ifDDS then
   begin
-    Result := LoadImage(FileName, TextureImageClasses);
+    Result := LoadImage(URL, TextureImageClasses);
     DDS := nil;
   end else
   begin
     DDS := TDDSImage.Create;
     try
-      DDS.LoadFromFile(FileName);
+      DDS.LoadFromFile(URL);
       DDS.OwnsFirstImage := false;
       Result := DDS.Images[0];
     except
@@ -173,11 +171,11 @@ begin
   end;
 end;
 
-function LoadTextureImage(const FileName: string): TEncodedImage;
+function LoadTextureImage(const URL: string): TEncodedImage;
 var
   DDS: TDDSImage;
 begin
-  Result := LoadTextureImage(FileName, DDS);
+  Result := LoadTextureImage(URL, DDS);
   DDS.Free;
 end;
 
@@ -203,7 +201,7 @@ begin
 end;
 
 function TTexturesVideosCache.TextureImage_IncReference(
-  const FileName: string; out DDS: TDDSImage; out AlphaChannel: TAlphaChannel): TEncodedImage;
+  const URL: string; out DDS: TDDSImage; out AlphaChannel: TAlphaChannel): TEncodedImage;
 var
   I: Integer;
   C: TCachedTexture;
@@ -211,12 +209,12 @@ begin
   for I := 0 to CachedTextures.Count - 1 do
   begin
     C := CachedTextures[I];
-    if C.FileName = FileName then
+    if C.URL = URL then
     begin
       Inc(C.References);
 
       {$ifdef DEBUG_CACHE}
-      Writeln('++ : texture image ', FileName, ' : ', C.References);
+      Writeln('++ : texture image ', URL, ' : ', C.References);
       {$endif}
 
       DDS := C.DDS;
@@ -230,22 +228,22 @@ begin
     we don't want to add image to cache (because caller would have
     no way to call TextureImage_DecReference later). }
 
-  Result := LoadTextureImage(FileName, DDS);
+  Result := LoadTextureImage(URL, DDS);
+  AlphaChannel := Result.AlphaChannel;
 
   C := TCachedTexture.Create;
   CachedTextures.Add(C);
   C.References := 1;
-  C.FileName := FileName;
+  C.URL := URL;
   C.Image := Result;
   C.DDS := DDS;
-  C.AlphaChannel := Result.AlphaChannel;
-  AlphaChannel := C.AlphaChannel;
+  C.AlphaChannel := AlphaChannel;
 
   {$ifdef DEBUG_CACHE}
-  Writeln('++ : texture image ', FileName, ' : ', 1);
+  Writeln('++ : texture image ', URL, ' : ', 1);
   {$endif}
   if Log and (AlphaChannel <> acNone) then
-    WritelnLog('Alpha Detection', 'Texture image ' + FileName +
+    WritelnLog('Alpha Detection', 'Texture image ' + URL +
       ' detected as simple yes/no alpha channel: ' + BoolToStr[AlphaChannel = acSimpleYesNo]);
 end;
 
@@ -261,7 +259,7 @@ begin
     if C.Image = Image then
     begin
       {$ifdef DEBUG_CACHE}
-      Writeln('-- : texture image ', C.FileName, ' : ', C.References - 1);
+      Writeln('-- : texture image ', C.URL, ' : ', C.References - 1);
       {$endif}
 
       { We cannot simply assert
@@ -306,11 +304,11 @@ begin
 end;
 
 function TTexturesVideosCache.TextureImage_IncReference(
-  const FileName: string; out AlphaChannel: TAlphaChannel): TEncodedImage;
+  const URL: string; out AlphaChannel: TAlphaChannel): TEncodedImage;
 var
   Dummy: TDDSImage;
 begin
-  Result := TextureImage_IncReference(FileName, Dummy, AlphaChannel);
+  Result := TextureImage_IncReference(URL, Dummy, AlphaChannel);
 end;
 
 procedure TTexturesVideosCache.TextureImage_DecReference(
