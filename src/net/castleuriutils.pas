@@ -577,7 +577,6 @@ begin
     { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,
       although they should be used for filenames. }
     Result := ExtToMimeType(ExtractFileExt(URI), ExtractFileDoubleExt(URI));
-
 end;
 
 function URIDisplayLong(const URI: string): string;
