@@ -29,6 +29,7 @@ type
     procedure TestVector3ToRGBE;
     procedure TestRGBEToRGBTranslating;
     procedure TestResize;
+    procedure TestMimeTypesAndExtsCount;
   end;
 
 implementation
@@ -221,6 +222,37 @@ begin
   FreeAndNil(OrigResized);
   FreeAndNil(OrigResized2);
   FreeAndNil(Orig);
+end;
+
+procedure TTestImages.TestMimeTypesAndExtsCount;
+var
+  I: TImageFormat;
+  M: TImageFormatInfoMimeTypesCount;
+  E: TImageFormatInfoExtsCount;
+begin
+  for I := Low(I) to High(I) do
+  begin
+    for M := Low(M) to ImageFormatInfos[I].MimeTypesCount do
+    begin
+      Assert('' <> ImageFormatInfos[I].MimeTypes[M]);
+      { This doesn't have to be true in the long run?
+        I'm not sure whether mime types have to be lowercase,
+        right now our engine treats them as case sensitive. }
+      AssertEquals(LowerCase(ImageFormatInfos[I].MimeTypes[M]), ImageFormatInfos[I].MimeTypes[M]);
+    end;
+    if ImageFormatInfos[I].MimeTypesCount < High(M) then
+      for M := ImageFormatInfos[I].MimeTypesCount + 1 to High(M) do
+        AssertEquals('', ImageFormatInfos[I].MimeTypes[M]);
+
+    for E := Low(E) to ImageFormatInfos[I].ExtsCount do
+    begin
+      Assert('' <> ImageFormatInfos[I].Exts[E]);
+      AssertEquals(LowerCase(ImageFormatInfos[I].Exts[E]), ImageFormatInfos[I].Exts[E]);
+    end;
+    if ImageFormatInfos[I].ExtsCount < High(E) then
+      for E := ImageFormatInfos[I].ExtsCount + 1 to High(E) do
+        AssertEquals('', ImageFormatInfos[I].Exts[E]);
+  end;
 end;
 
 initialization
