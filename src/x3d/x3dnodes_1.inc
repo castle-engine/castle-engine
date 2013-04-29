@@ -1630,7 +1630,7 @@ begin
     on E: Exception do
       { Remember that OnWarning *may* raise an exception. }
       OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
-        [E.ClassName, 'texture', FullUrl, E.Message]));
+        [E.ClassName, 'texture', URIDisplayLong(FullUrl), E.Message]));
   end;
 
   { Still not loaded (so FdFilename.Value is '' or LoadImage raised exception) ?

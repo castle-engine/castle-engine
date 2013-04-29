@@ -511,7 +511,7 @@ begin
         on E: Exception do
           { Careful here, as OnWarning may also raise exception. }
           OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
-            [E.ClassName, 'inline file', FullUrl, E.Message]));
+            [E.ClassName, 'inline file', URIDisplayLong(FullUrl), E.Message]));
       end;
     end;
 

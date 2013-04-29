@@ -858,7 +858,7 @@ begin
         on E: Exception do
           { Remember that OnWarning *may* raise an exception. }
           OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
-            [E.ClassName, 'texture', FullUrl, E.Message]));
+            [E.ClassName, 'texture', URIDisplayLong(FullUrl), E.Message]));
       end;
     end;
 end;
@@ -984,7 +984,7 @@ begin
       on E: Exception do
         { Remember that OnWarning *may* raise an exception. }
         OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
-          [E.ClassName, 'video', FullUrl, E.Message]));
+          [E.ClassName, 'video', URIDisplayLong(FullUrl), E.Message]));
     end;
   end;
 end;

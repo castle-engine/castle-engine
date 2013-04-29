@@ -468,7 +468,7 @@ procedure TBackgroundNode.SetBgImagesLoaded(const Value: boolean);
         on E: Exception do
         begin
           OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
-            [E.ClassName, 'background image', URL, E.Message]));
+            [E.ClassName, 'background image', URIDisplayLong(URL), E.Message]));
           { and silence exception }
         end;
       end;
