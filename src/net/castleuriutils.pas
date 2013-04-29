@@ -591,7 +591,7 @@ begin
     DataURI := TDataURI.Create;
     try
       DataURI.URI := URI;
-      if DataURI.Valid then Result := DataURI.URIPrefix;
+      if DataURI.Valid then Result := DataURI.URIPrefix + ',...';
     finally FreeAndNil(DataURI) end;
   end;
 end;
