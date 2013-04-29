@@ -1629,7 +1629,7 @@ begin
   except
     on E: Exception do
       { Remember that OnWarning *may* raise an exception. }
-      OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
+      OnWarning(wtMinor, 'Texture', Format(SLoadError,
         [E.ClassName, 'texture', URIDisplayLong(FullUrl), E.Message]));
   end;
 

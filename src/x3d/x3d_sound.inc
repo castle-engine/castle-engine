@@ -343,7 +343,7 @@ begin
         except
           on E: Exception do
             { Remember that OnWarning *may* raise an exception. }
-            OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
+            OnWarning(wtMinor, 'Audio', Format(SLoadError,
               [E.ClassName, 'sound file', URIDisplayLong(FullUrl), E.Message]));
         end;
       end;

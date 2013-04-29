@@ -820,8 +820,8 @@ procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: boolean);
         on E: Exception do
         begin
           { Remember that OnWarning *may* raise an exception. }
-          OnWarning(wtMinor, 'VRML/X3D', Format(SDataURILoadError,
-            [E.ClassName, 'texture', Data.URIPrefix, E.Message]));
+          OnWarning(wtMinor, 'Texture', Format(SLoadError,
+            [E.ClassName, 'texture', URIDisplayLong(URL), E.Message]));
           Result := false;
         end;
       end;
@@ -857,7 +857,7 @@ begin
       except
         on E: Exception do
           { Remember that OnWarning *may* raise an exception. }
-          OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
+          OnWarning(wtMinor, 'Texture', Format(SLoadError,
             [E.ClassName, 'texture', URIDisplayLong(FullUrl), E.Message]));
       end;
     end;
@@ -983,7 +983,7 @@ begin
     except
       on E: Exception do
         { Remember that OnWarning *may* raise an exception. }
-        OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
+        OnWarning(wtMinor, 'Video', Format(SLoadError,
           [E.ClassName, 'video', URIDisplayLong(FullUrl), E.Message]));
     end;
   end;

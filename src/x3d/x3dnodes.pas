@@ -2166,8 +2166,7 @@ resourcestring
     'inputOutput keyword) but found %s';
   SExpectedFieldType =
     'Expected field type name (like SFVec2f etc.) but found %s';
-  SLoadError        = 'Exception %s occurred when trying to load %s from URL "%s": %s';
-  SDataURILoadError = 'Exception %s occurred when trying to load %s from data URI starting with "%s": %s';
+  SLoadError        = 'Error %s when loading %s from URL "%s": %s';
 
 {$define GeometryNotImplemented :=
   function TGeometryNotImplemented.LocalBoundingBox(State: TX3DGraphTraverseState;
