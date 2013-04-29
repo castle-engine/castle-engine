@@ -196,7 +196,7 @@ begin
 
       Result := C.CreateFromStream(S);
     except
-      on E: EReadError do
+      on E: EStreamError do
       begin
         { Add URL to exception message }
         E.Message := 'Error while reading URL "' + URIDisplayLong(URL) + '": ' + E.Message;
