@@ -182,7 +182,8 @@ var
   S: TStream;
   MimeType: string;
 begin
-  S := Download(URL, [], MimeType);
+  { doForceMemoryStream as current TSoundWAV and TSoundOggVorbis need seeking }
+  S := Download(URL, [doForceMemoryStream], MimeType);
   try
     try
       { calculate class to read based on MimeType }

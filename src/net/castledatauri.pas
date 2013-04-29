@@ -38,12 +38,19 @@ type
     FCharset: string;
     FValid: boolean;
     FURIPrefix: string;
+    FForceMemoryStream: boolean;
     procedure FreeStream;
     procedure SetURI(const Value: string);
   public
     destructor Destroy; override;
     class function IsDataURI(const URI: string; out Colon: Integer): boolean;
     class function IsDataURI(const URI: string): boolean;
+
+    { Force @link(Stream) and @link(ExtractStream) to return a TMemoryStream,
+      that is always seekable and fully buffered in memory.
+      Without this, they may return TBase64DecodingStream that may not be seekable. }
+    property ForceMemoryStream: boolean
+      read FForceMemoryStream write FForceMemoryStream;
 
     { The data URI that this class reads.
 
@@ -88,7 +95,7 @@ type
 
 implementation
 
-uses CastleURIUtils, CastleWarnings, CastleStringUtils, Base64;
+uses CastleURIUtils, CastleWarnings, CastleStringUtils, Base64, CastleClassUtils;
 
 { TODO: We treat non-base64 data verbatim, not interpreting %xx hex encoding
   inside. }
@@ -209,20 +216,40 @@ end;
 
 function TDataURI.Stream: TStream;
 var
-  SStream: TStringStream;
+  MemStream: TMemoryStream;
+  Contents: string;
+  DecodingStream: TBase64DecodingStream;
 begin
   if Valid then
   begin
     if FStream = nil then
     begin
+      Contents := SEnding(URI, StreamBegin);
+
+      { create TMemoryStream filled with Contents }
+      MemStream := TMemoryStream.Create;
+      try
+        MemStream.Size := Length(Contents);
+        if Contents <> '' then
+        begin
+          MemStream.WriteBuffer(Contents[1], Length(Contents));
+          MemStream.Position := 0;
+        end;
+      except FreeAndNil(MemStream); raise end;
+
       if Base64 then
       begin
-        SStream := TStringStream.Create(SEnding(URI, StreamBegin));
-        FStream := TBase64DecodingStream.Create(SStream, bdmMIME);
-        { let FStream to free SStream }
-        TBase64DecodingStream(FStream).SourceOwner := true;
+        DecodingStream := TBase64DecodingStream.Create(MemStream, bdmMIME);
+        DecodingStream.SourceOwner := true;
+        if ForceMemoryStream then
+        begin
+          FStream := TMemoryStream.Create;
+          ReadGrowingStream(DecodingStream, FStream, true);
+          FreeAndNil(DecodingStream);
+        end else
+          FStream := DecodingStream;
       end else
-        FStream := TStringStream.Create(SEnding(URI, StreamBegin));
+        FStream := MemStream;
     end;
     Result := FStream;
   end else

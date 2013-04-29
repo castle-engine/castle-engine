@@ -37,9 +37,9 @@ type
     { Force result to be a TMemoryStream,
       with contents fully loaded to the memory,
       and freely seekable (you can move back and forth within).
-      Without this option, @link(Download)may return other streams,
-      like TFileStream
-      (that may not have good buffering, depending on OS).
+      Without this option, @link(Download) may return other streams,
+      for example TFileStream (that may not have good buffering, depending on OS)
+      or TBase64DecodingStream (that may not allow seeking).
 
       Using TMemoryStream means that reading is fast and comfortable,
       but eats memory and doesn't allow to simultaneously read and process
@@ -369,6 +369,7 @@ begin
     DataURI := TDataURI.Create;
     try
       DataURI.URI := URL;
+      DataURI.ForceMemoryStream := doForceMemoryStream in Options;
       if not DataURI.Valid then
         raise EDownloadError.Create('Invalid data: URI scheme');
       Result := DataURI.ExtractStream;
