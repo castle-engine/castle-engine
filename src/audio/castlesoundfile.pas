@@ -172,41 +172,38 @@ function ALDataFormatToStr(DataFormat: TALuint): string;
 implementation
 
 uses CastleStringUtils, CastleVorbisDecoder, CastleVorbisFile, CastleWarnings,
-  CastleDownload;
+  CastleDownload, CastleURIUtils;
 
 { TSoundFile ----------------------------------------------------------------- }
 
 class function TSoundFile.CreateFromFile(const URL: string): TSoundFile;
-
-  procedure DoIt(C: TSoundFileClass);
-  var
-    S: TStream;
-  begin
-    S := Download(URL);
-    try
-      try
-        Result := C.CreateFromStream(S);
-      except
-        on E: EReadError do
-        begin
-          { Add URL to exception message }
-          E.Message := 'Error while reading URL "' + URL + '": ' + E.Message;
-          raise;
-        end;
-      end;
-    finally S.Free end;
-  end;
-
 var
-  Ext: string;
+  C: TSoundFileClass;
+  S: TStream;
+  MimeType: string;
 begin
-  { TODO-net: using filename function on URL }
-  Ext := ExtractFileExt(URL);
-  if SameText(Ext, '.mp3') then
-    DoIt(TSoundMP3) else
-  if SameText(Ext, '.ogg') then
-    DoIt(TSoundOggVorbis) else
-    DoIt(TSoundWAV);
+  S := Download(URL, [], MimeType);
+  try
+    try
+      { calculate class to read based on MimeType }
+      if MimeType = 'audio/x-wav' then C := TSoundWAV else
+      if MimeType = 'audio/ogg'   then C := TSoundOggVorbis else
+      if MimeType = 'audio/mpeg'  then C := TSoundMP3 else
+      begin
+        OnWarning(wtMinor, 'Audio', Format('Not recognized MIME type for sound file "%s", trying to load it as wav', [MimeType]));
+        C := TSoundWAV;
+      end;
+
+      Result := C.CreateFromStream(S);
+    except
+      on E: EReadError do
+      begin
+        { Add URL to exception message }
+        E.Message := 'Error while reading URL "' + URIDisplayLong(URL) + '": ' + E.Message;
+        raise;
+      end;
+    end;
+  finally S.Free end;
 end;
 
 procedure TSoundFile.CheckALExtension(const S: string);
