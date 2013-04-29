@@ -787,6 +787,8 @@ procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: boolean);
     Data := TDataURI.Create;
     try
       Data.URI := URL;
+      { For example GIF reader requires seeking capabilities. }
+      Data.ForceMemoryStream := true;
 
       if not Data.Valid then Exit(false);
 
