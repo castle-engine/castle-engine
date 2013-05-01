@@ -738,7 +738,9 @@ begin
   if not Reload then
     Clear;
   ResourceXmlReload := Reload;
-  ScanForFiles(Path, 'resource.xml', @LoadResourceXml);
+  { For now, LoadResourceXml uses TCastleConfig, which doesn't handle URLs,
+    only filenames. So we pass URLs = false to ScanForFiles. }
+  ScanForFiles(Path, 'resource.xml', @LoadResourceXml, false);
 end;
 
 procedure T3DResourceList.LoadFromFiles(const Reload: boolean);

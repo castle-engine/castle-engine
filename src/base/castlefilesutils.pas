@@ -319,10 +319,12 @@ type
   THandleFileMethod = procedure (const FileName: string) of object;
 
 { Scan recursively subdirectories of given path for files named Name.
-  For each file, the HandleFile method is called, with filename
-  (given filename is relative or absolute, just like given Path parameter). }
+  For each file, the HandleFile method is called.
+  If URLs is @false, we pass to HandleFile method a filename
+  (relative or absolute, just like given Path parameter).
+  If URLs is @true then we pass an absolute URL to HandleFile method. }
 procedure ScanForFiles(Path: string; const Name: string;
-  const HandleFile: THandleFileMethod);
+  const HandleFile: THandleFileMethod; const URLs: boolean);
 
 { Get temporary filename, suitable for ApplicationName, checking that
   it doesn't exist. }
@@ -331,7 +333,7 @@ function GetTempFileNameCheck: string;
 implementation
 
 uses CastleStringUtils, {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog,
-  CastleWarnings;
+  CastleWarnings, CastleURIUtils;
 
 var
   { inicjowane w initialization i pozniej stale.
@@ -729,7 +731,7 @@ begin
 end;
 
 procedure ScanForFiles(Path: string; const Name: string;
-  const HandleFile: THandleFileMethod);
+  const HandleFile: THandleFileMethod; const URLs: boolean);
 var
   F: TSearchRec;
   FileName: string;
@@ -738,13 +740,15 @@ begin
 
   FileName := Path + Name;
   if FileExists(FileName) then
-    HandleFile(FileName);
+    if URLs then
+      HandleFile(FilenameToURISafe(ExpandFileName(FileName))) else
+      HandleFile(FileName);
 
   if FindFirst(Path + '*', faDirectory, F) = 0 then
   repeat
     if (F.Attr and faDirectory = faDirectory) and
       not SpecialDirName(F.Name) then
-      ScanForFiles(Path + F.Name + PathDelim, Name, HandleFile);
+      ScanForFiles(Path + F.Name + PathDelim, Name, HandleFile, URLs);
   until FindNext(F) <> 0;
   FindClose(F);
 end;

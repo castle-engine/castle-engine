@@ -37,7 +37,7 @@ type
   private
     FLogicClass: TLevelLogicClass;
     FName: string;
-    FSceneFileName: string;
+    FSceneURL: string;
     FTitle: string;
     FTitleHint: string;
     FNumber: Integer;
@@ -53,7 +53,7 @@ type
       to allow the particular level logic (TLevelLogic descendant)
       to read some level-logic-specific variables from it. }
     Document: TXMLDocument;
-    DocumentBasePath: string;
+    DocumentBaseURL: string;
     LevelResources: T3DResourceList;
     procedure LoadFromDocument;
   protected
@@ -104,7 +104,10 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
       scripts and such. Although level logic (TLevelLogic descendant determined
       by LevelClass) may also add any number of additional 3D objects
       (T3D instances) to the 3D world. }
-    property SceneFileName: string read FSceneFileName write FSceneFileName;
+    property SceneURL: string read FSceneURL write FSceneURL;
+
+    { @deprecated Deprecated name for SceneURL. }
+    property SceneFileName: string read FSceneURL write FSceneURL;
 
     { Nice name of the level for user. This should be user-friendly,
       so it can use spaces, non-English letters and such.
@@ -185,7 +188,7 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
     property DefaultPlayed: boolean read FDefaultPlayed write FDefaultPlayed;
 
     { Background image shown when loading the level, @nil if none.
-      This is loaded from filename indicated by attribute loading_image
+      This is loaded from URL indicated by attribute loading_image
       in level.xml. }
     property LoadingImage: TRGBImage read FLoadingImage write FLoadingImage;
 
@@ -252,7 +255,8 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
     { How many TGameSceneManager have references to our children by
       TGameSceneManager.Info? }
     References: Cardinal;
-    procedure LoadLevelXml(const FileName: string);
+    { Load level.xml file. URL must be an absolute URL. }
+    procedure LoadLevelXml(const URL: string);
     { Save Played properties of every level. }
     procedure SaveToConfig(const Config: TCastleConfig);
   public
@@ -411,10 +415,10 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
         @item TimePlaying is by default @false, so the animation is not playing.
       )
       @groupBegin }
-    function LoadLevelAnimation(const FileName: string;
+    function LoadLevelAnimation(const URL: string;
       const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean;
       const AnimationClass: TCastlePrecalculatedAnimationClass): TCastlePrecalculatedAnimation;
-    function LoadLevelAnimation(const FileName: string;
+    function LoadLevelAnimation(const URL: string;
       const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean): TCastlePrecalculatedAnimation;
     { @groupEnd }
 
@@ -426,10 +430,10 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
         @item Free texture data, since they will not be needed anymore
       )
       @groupBegin }
-    function LoadLevelScene(const FileName: string;
+    function LoadLevelScene(const URL: string;
       const CreateOctreeCollisions: boolean;
       const SceneClass: TCastleSceneClass): TCastleScene;
-    function LoadLevelScene(const FileName: string;
+    function LoadLevelScene(const URL: string;
       const CreateOctreeCollisions: boolean): TCastleScene;
     { @groupEnd }
 
@@ -510,7 +514,7 @@ implementation
 uses SysUtils, CastleGLUtils, CastleFilesUtils, CastleStringUtils,
   CastleGLImages, CastleUIControls, XMLRead, CastleInputs, CastleXMLUtils,
   CastleRenderer, CastleRenderingCamera, Math, CastleWarnings, X3DCameraUtils,
-  CastleGLVersion;
+  CastleGLVersion, CastleURIUtils, CastleDownload;
 
 { globals -------------------------------------------------------------------- }
 
@@ -833,7 +837,7 @@ begin
 
     MainScene := TCastleScene.Create(Self);
     Inc(MainScene.Dirty);
-    MainScene.Load(Info.SceneFileName);
+    MainScene.Load(Info.SceneURL);
 
     { Scene must be the first one on Items, this way Items.MoveCollision will
       use Scene for wall-sliding (see T3DList.MoveCollision implementation). }
@@ -994,14 +998,14 @@ begin
 end;
 
 function TLevelLogic.LoadLevelScene(
-  const FileName: string;
+  const URL: string;
   const CreateOctreeCollisions: boolean;
   const SceneClass: TCastleSceneClass): TCastleScene;
 var
   Options: TPrepareResourcesOptions;
 begin
   Result := SceneClass.Create(Self);
-  Result.Load(FileName);
+  Result.Load(URL);
 
   { calculate Options for PrepareResources }
   Options := [prRender, prBoundingBox { always needed }];
@@ -1019,21 +1023,21 @@ begin
 end;
 
 function TLevelLogic.LoadLevelScene(
-  const FileName: string;
+  const URL: string;
   const CreateOctreeCollisions: boolean): TCastleScene;
 begin
-  Result := LoadLevelScene(FileName, CreateOctreeCollisions, TCastleScene);
+  Result := LoadLevelScene(URL, CreateOctreeCollisions, TCastleScene);
 end;
 
 function TLevelLogic.LoadLevelAnimation(
-  const FileName: string;
+  const URL: string;
   const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean;
   const AnimationClass: TCastlePrecalculatedAnimationClass): TCastlePrecalculatedAnimation;
 var
   Options: TPrepareResourcesOptions;
 begin
   Result := AnimationClass.Create(Self);
-  Result.LoadFromFile(FileName, false, true, 1);
+  Result.LoadFromFile(URL, false, true, 1);
 
   { calculate Options for PrepareResources }
   Options := [prRender, prBoundingBox { always needed }];
@@ -1054,10 +1058,10 @@ begin
 end;
 
 function TLevelLogic.LoadLevelAnimation(
-  const FileName: string;
+  const URL: string;
   const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean): TCastlePrecalculatedAnimation;
 begin
-  Result := LoadLevelAnimation(FileName,
+  Result := LoadLevelAnimation(URL,
     CreateFirstOctreeCollisions, CreateLastOctreeCollisions,
     TCastlePrecalculatedAnimation);
 end;
@@ -1131,7 +1135,7 @@ procedure TLevelInfo.LoadFromDocument;
 const
   DefaultPlaceholderReferenceDirection: TVector3Single = (1, 0, 0);
 var
-  LoadingImageFileName: string;
+  LoadingImageURL: string;
   SoundName: string;
   PlaceholdersKey: string;
   S: string;
@@ -1140,16 +1144,16 @@ begin
 
   if Element.TagName <> 'level' then
     raise Exception.CreateFmt('Root node of level.xml file must be <level>, but is "%s", in "%s"',
-      [Element.TagName, DocumentBasePath]);
+      [Element.TagName, DocumentBaseURL]);
 
   { Required atttributes }
 
   if not DOMGetAttribute(Element, 'name', FName) then
     MissingRequiredAttribute('name');
 
-  if not DOMGetAttribute(Element, 'scene', FSceneFileName) then
+  if not DOMGetAttribute(Element, 'scene', FSceneURL) then
     MissingRequiredAttribute('scene');
-  SceneFileName := CombinePaths(DocumentBasePath, SceneFileName);
+  SceneURL := CombineURI(DocumentBaseURL, SceneURL);
 
   if not DOMGetAttribute(Element, 'title', FTitle) then
     MissingRequiredAttribute('title');
@@ -1177,10 +1181,10 @@ begin
     PlaceholderName := PlaceholderNames[PlaceholdersKey];
 
   FreeAndNil(FLoadingImage); { make sure LoadingImage is clear first }
-  if DOMGetAttribute(Element, 'loading_image', LoadingImageFileName) then
+  if DOMGetAttribute(Element, 'loading_image', LoadingImageURL) then
   begin
-    LoadingImageFileName := CombinePaths(DocumentBasePath, LoadingImageFileName);
-    LoadingImage := LoadImage(LoadingImageFileName, [TRGBImage]) as TRGBImage;
+    LoadingImageURL := CombineURI(DocumentBaseURL, LoadingImageURL);
+    LoadingImage := LoadImage(LoadingImageURL, [TRGBImage]) as TRGBImage;
   end;
 
   if not DOMGetSingleAttribute(Element, 'loading_image_bar_y_position',
@@ -1242,22 +1246,26 @@ begin
       Items[I].DefaultPlayed);
 end;
 
-procedure TLevelInfoList.LoadLevelXml(const FileName: string);
+procedure TLevelInfoList.LoadLevelXml(const URL: string);
 var
   NewLevelInfo: TLevelInfo;
+  Stream: TStream;
 begin
   NewLevelInfo := TLevelInfo.Create;
   Add(NewLevelInfo);
   NewLevelInfo.Played := false;
 
-  ReadXMLFile(NewLevelInfo.Document, FileName);
-  NewLevelInfo.DocumentBasePath := ExtractFilePath(FileName);
+  Stream := Download(URL);
+  try
+    ReadXMLFile(NewLevelInfo.Document, Stream, URL);
+  finally FreeAndNil(Stream) end;
+  NewLevelInfo.DocumentBaseURL := URL;
   NewLevelInfo.LoadFromDocument;
 end;
 
 procedure TLevelInfoList.LoadFromFiles(const LevelsPath: string);
 begin
-  ScanForFiles(LevelsPath, 'level.xml', @LoadLevelXml);
+  ScanForFiles(LevelsPath, 'level.xml', @LoadLevelXml, true);
 end;
 
 procedure TLevelInfoList.LoadFromFiles;
