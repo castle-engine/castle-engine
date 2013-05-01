@@ -309,7 +309,7 @@ end;
 function Download(const URL: string; const Options: TDownloadOptions;
   out MimeType: string): TStream;
 var
-  P, FileName, TempFileName: string;
+  P, FileName, TempFileName, S: string;
   NetworkResult: TMemoryStream;
   DataURI: TDataURI;
 const
@@ -378,7 +378,12 @@ begin
     finally FreeAndNil(DataURI) end;
   end else
 
-    raise EDownloadError.CreateFmt('Downloading from protocol "%s" is not supported', [P]);
+  begin
+    if P = 'http' then
+      S := 'Downloading from "http" is not enabled' else
+      S := Format('Downloading from protocol "%s" is not supported', [P]);
+    raise EDownloadError.Create(S);
+  end;
 end;
 
 function Download(const URL: string; const Options: TDownloadOptions): TStream;
