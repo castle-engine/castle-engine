@@ -301,7 +301,7 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
   private
     FLogic: TLevelLogic;
     FInfo: TLevelInfo;
-
+    LevelResourcesPrepared: boolean;
     { Like LoadLevel, but doesn't care about AInfo.LoadingImage. }
     procedure LoadLevelCore(const AInfo: TLevelInfo);
     function Placeholder(Shape: TShape; PlaceholderName: string): boolean;
@@ -826,6 +826,7 @@ begin
   FInfo := AInfo;
   Inc(Levels.References);
   Info.Played := true;
+  LevelResourcesPrepared := false;
 
   Progress.Init(1, 'Loading level "' + Info.Title + '"');
   try
@@ -856,6 +857,7 @@ begin
     contents).
     It will show it's own progress bar. }
   Info.LevelResources.Prepare(BaseLights, GravityUp);
+  LevelResourcesPrepared := true;
   PreviousResources.Release;
   FreeAndNil(PreviousResources);
 
@@ -952,7 +954,11 @@ destructor TGameSceneManager.Destroy;
 begin
   if Info <> nil then
   begin
-    if Info.LevelResources <> nil then
+    { we check LevelResourcesPrepared, to avoid calling
+      Info.LevelResources.Release when Info.LevelResources.Prepare
+      was not called (which may happen if there was an exception if LoadLevelCore
+      at MainScene.Load(SceneURL). }
+    if (Info.LevelResources <> nil) and LevelResourcesPrepared then
       Info.LevelResources.Release;
 
     Dec(FLevels.References);
