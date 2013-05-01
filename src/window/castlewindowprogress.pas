@@ -76,12 +76,13 @@ implementation
 
 uses SysUtils, CastleUtils, CastleKeysMouse, CastleControls, CastleGLBitmapFonts;
 
+const
+  Dots = '...';
+
 { Make Text shorter to fit the text width (as rendered using Font)
   inside MaxWidth (in pixels). }
 procedure MakeTextFit(var Text: string; const Font: TGLBitmapFontAbstract;
   const MaxWidth: Integer);
-const
-  Dots = '...';
 var
   DotsWidth: Integer;
 
@@ -150,7 +151,13 @@ var
   TextWidth: Integer;
 begin
   TextWidth := Font.TextWidth(Text);
-  if TextWidth <= MaxWidth then Exit; { nothing needs to be done }
+  if TextWidth <= MaxWidth then
+  begin
+    { No trimming needs to be done. Add dots at the end, if we have space. }
+    if Font.TextWidth(Text + Dots) < MaxWidth then
+      Text += Dots;
+    Exit;
+  end;
 
   DotsWidth := Font.TextWidth(Dots);
 
@@ -199,7 +206,11 @@ begin
   Caption := Progress.Title;
   if (UIFont.RowHeight < BarHeight) and
      (UIFont.TextWidth(Caption) < MaxTextWidth) then
-    Font := UIFont else
+  begin
+    Font := UIFont;
+    if UIFont.TextWidth(Caption + Dots) < MaxTextWidth then
+      Caption += Dots;
+  end else
   begin
     Font := UIFontSmall;
     MakeTextFit(Caption, Font, MaxTextWidth);
