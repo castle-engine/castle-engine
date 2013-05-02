@@ -72,6 +72,8 @@ type
   A data URI scheme (http://en.wikipedia.org/wiki/Data_URI_scheme)
   is also always supported.
   The MIME type for such content is specified explicitly in URI.
+  TODO: right now, doGunzip is ignored for data URIs, we never filter them
+  through gunzip.
 
   Set EnableNetwork to @true to have also support for network protocols.
   Right now this means only http, handled by FpHttpClient.
