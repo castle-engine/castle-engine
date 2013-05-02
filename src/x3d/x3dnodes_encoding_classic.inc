@@ -571,7 +571,10 @@ var
   BaseUrl: string;
 begin
   if AllowStdIn and (URL = '-') then
-    Result := DoIt(StdInStream, false, GetCurrentDir) else
+  begin
+    BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
+    Result := DoIt(StdInStream, false, BaseUrl);
+  end else
   begin
     BaseUrl := AbsoluteURI(URL);
 
