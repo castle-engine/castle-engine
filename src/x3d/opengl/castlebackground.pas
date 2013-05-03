@@ -94,12 +94,12 @@ type
       see [http://web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/Part01/components/enveffects.html#Background].
       For example SkyColorCount > 0 and GroundColorCount > GroundAngleCount.
 
-      Any of the TBackgroundImages passed here may be @nil,
+      Any of the TBackgroundTextures passed here may be @nil,
       or of a class that can be rendered as OpenGL textures (TextureImageClasses). }
     constructor Create(
       GroundAngle: PArray_Single; GroundAngleCount: Integer;
       GroundColor: PArray_Vector3Single; GroundColorCount: Integer;
-      const Imgs: TBackgroundImages;
+      const Imgs: TBackgroundTextures;
       SkyAngle: PArray_Single; SkyAngleCount: Integer;
       SkyColor: PArray_Vector3Single; SkyColorCount: Integer;
       SkySphereRadius: Single);
@@ -172,7 +172,7 @@ end;
 constructor TBackground.Create(
   GroundAngle: PArray_Single; GroundAngleCount: Integer;
   GroundColor: PArray_Vector3Single; GroundColorCount: Integer;
-  const Imgs: TBackgroundImages;
+  const Imgs: TBackgroundTextures;
   SkyAngle: PArray_Single; SkyAngleCount: Integer;
   SkyColor: PArray_Vector3Single; SkyColorCount: Integer;
   SkySphereRadius: Single);

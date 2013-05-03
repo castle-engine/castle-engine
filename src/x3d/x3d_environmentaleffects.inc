@@ -69,8 +69,8 @@
   TBackgroundSide = (bsBack, bsBottom, bsFront, bsLeft, bsRight, bsTop);
   TBackgroundSides = set of TBackgroundSide;
 
-  { Six background images. }
-  TBackgroundImages = object
+  { Background textures. }
+  TBackgroundTextures = object
   public
     Images: array [TBackgroundSide] of TEncodedImage;
 
@@ -84,16 +84,11 @@
 
   TBackgroundNode = class(TAbstractBackgroundNode)
   private
-    FBgImagesLoaded: boolean; { = false }
-
-    { if not FBgImagesLoaded it should be always equal to BackgroundImagesNone
-      (this is not important for interface of this class but we will use
-      this in our implementation) }
-    FBgImages: TBackgroundImages;
-
-    procedure SetBgImagesLoaded(const Value: boolean);
-
-    function GetBgImages: TBackgroundImages;
+    FTexturesLoaded: boolean; { = false }
+    { If not FTexturesLoaded all images are @nil. }
+    FTextures: TBackgroundTextures;
+    procedure SetTexturesLoaded(const Value: boolean);
+    function GetTextures: TBackgroundTextures;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -121,33 +116,28 @@
 
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames); override;
 
-    { Pierwsze uzycie BgImages (albo pierwsze uzycie BgImages po Parse)
-      automatycznie zaladuje obrazki z URLi
-      BackUrl/BottomUrl itd. Obrazki dla ktorych zaden osiagalny URL nie byl
-      podany zostana ustawione na ImageNone.
+    { Background images, automatically loaded when necessary.
+      Each particular image on @link(TBackgroundTextures.Images) list
+      is @nil if the URL for a particular side was not loaded.
+      The loaded images are cached, so next time you use this property
+      it will return instantly (unless something happened in
+      the meantime that invalidated cache, e.g. some URL changed).
 
-      Images may have classes allowed by LoadTextureImage.
+      Images are loaded to the classes suitable for textures,
+      see CastleTextureImages. }
+    property Textures: TBackgroundTextures read GetTextures;
 
-      Obrazki beda zawsze odpowiadaly URLom w polach Fd*Url - dlatego po
-      zrobieniu Parse na tym obiekcie nastepne wywolanie BgImages bedzie
-      ladowalo je od nowa. }
-    property BgImages: TBackgroundImages read GetBgImages;
+    { @deprecated Deprecated name for @link(Textures). }
+    property BgImages: TBackgroundTextures read GetTextures;
 
-    { Czy obrazki juz sa zaladowane ? W zasadzie ta funkcja nigdy nie powinna
-      ci byc potrzebna skoro cale ladowanie / zwalnianie obrazkow jest
-      robione automatycznie. Ale moze ci przydac : ona mowi czy najblizsze
-      wywolanie BgImages wywola ReloadBgImages czy nie.
+    { Are the @link(Textures) currently loaded.
+      You don't usually need to use this function, usually you can just
+      use @link(Textures) and let them be loaded automatically
+      at the first use, and released when no longer needed.
 
       You can set this to @true to force loading of images now, and you
-      can set to this to @false to force release of background images now.
-      In normal circumstances, you don't need it --- BgImages are automatically
-      loaded on first use, and are automatically freed when necessary.
-
-      If you're sure you want to reload the background images (e.g. when
-      you suspect that images on the disk changed), you may force reload
-      by setting this to @false and then to @true again. }
-    property BgImagesLoaded: boolean read FBgImagesLoaded
-      write SetBgImagesLoaded;
+      can set to this to @false to force release of background images now. }
+    property TexturesLoaded: boolean read FTexturesLoaded write SetTexturesLoaded;
   end;
 
   TFogNode = class(TAbstractBindableNode, IAbstractFogObject)
@@ -364,7 +354,7 @@ begin
   Result[3][2] := 0;
 end;
 
-constructor TBackgroundImages.InitClear;
+constructor TBackgroundTextures.InitClear;
 begin
   Images[bsBack  ] := nil;
   Images[bsBottom] := nil;
@@ -374,7 +364,7 @@ begin
   Images[bsTop   ] := nil;
 end;
 
-procedure TBackgroundImages.FreeAll(Cache: TTexturesVideosCache);
+procedure TBackgroundTextures.FreeAll(Cache: TTexturesVideosCache);
 var
   bs: TBackgroundSide;
 begin
@@ -394,6 +384,11 @@ end;
 procedure TBackgroundNode.CreateNode;
 begin
   inherited;
+
+  { TODO: changing XxxUrl should only cause reloading of the Textures
+    (even better: only of the appropriate background side),
+    and then chBackground (to create need display list for rendering background).
+    Current chEverything is very unoptimal. }
 
   FFdBackUrl := TMFString.Create(Self, 'backUrl', []);
    FdBackUrl.ChangesAlways := [chEverything];
@@ -427,13 +422,13 @@ begin
 
   DefaultContainerField := 'children';
 
-  FBgImagesLoaded := false;
-  FBgImages.InitClear;
+  FTexturesLoaded := false;
+  FTextures.InitClear;
 end;
 
 destructor TBackgroundNode.Destroy;
 begin
-  BgImagesLoaded := false;
+  TexturesLoaded := false;
   inherited;
 end;
 
@@ -449,7 +444,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TBackgroundNode.SetBgImagesLoaded(const Value: boolean);
+procedure TBackgroundNode.SetTexturesLoaded(const Value: boolean);
 
   procedure LoadImg(bs: TBackgroundSide; Urls: TMFString);
   var
@@ -457,12 +452,12 @@ procedure TBackgroundNode.SetBgImagesLoaded(const Value: boolean);
     URL: string;
     IgnoreAlpha: TAlphaChannel;
   begin
-    FBgImages.Images[bs] := nil;
+    FTextures.Images[bs] := nil;
     for i := 0 to Urls.Count-1 do
     begin
       try
         URL := PathFromBaseUrl(Urls.Items[i]);
-        FBgImages.Images[bs] := X3DCache.TextureImage_IncReference(URL, IgnoreAlpha);
+        FTextures.Images[bs] := X3DCache.TextureImage_IncReference(URL, IgnoreAlpha);
         Break;
       except
         on E: Exception do
@@ -476,7 +471,7 @@ procedure TBackgroundNode.SetBgImagesLoaded(const Value: boolean);
   end;
 
 begin
-  if Value <> BgImagesLoaded then
+  if Value <> TexturesLoaded then
   begin
     if Value then
     begin
@@ -491,34 +486,38 @@ begin
         { In case of trouble, free the images that were loaded.
           This may happen if OnWarning raises exception and some
           image cannot be loaded. }
-        FbgImages.FreeAll(X3DCache);
+        FTextures.FreeAll(X3DCache);
         raise;
       end;
     end else
     begin
-      FbgImages.FreeAll(X3DCache);
+      FTextures.FreeAll(X3DCache);
     end;
 
-    FBgImagesLoaded := Value;
+    FTexturesLoaded := Value;
   end;
 end;
 
 procedure TBackgroundNode.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 begin
   inherited;
-  { Force reload on next BgImages use, since our fields are different now }
-  BgImagesLoaded := false;
+  { Force reload on next Textures use, since our fields are different now }
+  TexturesLoaded := false;
 end;
 
-function TBackgroundNode.GetBgImages: TBackgroundImages;
+function TBackgroundNode.GetTextures: TBackgroundTextures;
 begin
-  BgImagesLoaded := true;
-  Result := FBgImages;
+  TexturesLoaded := true;
+  Result := FTextures;
 end;
 
 procedure TFogNode.CreateNode;
 begin
   inherited;
+
+  { TODO: this is very unoptimal.
+    With new renderer, we possible don't have to do *anything*
+    when fog property changes, they will be automatically used? }
 
   FFdColor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
    FdColor.ChangesAlways := [chEverything];

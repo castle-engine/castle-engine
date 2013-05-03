@@ -5020,7 +5020,7 @@ end;
 
 procedure TCastleSceneCore.FreeResources_UnloadBackgroundImage(Node: TX3DNode);
 begin
-  (Node as TBackgroundNode).BgImagesLoaded := false;
+  (Node as TBackgroundNode).TexturesLoaded := false;
 end;
 
 procedure TCastleSceneCore.FreeResources(Resources: TSceneFreeResources);

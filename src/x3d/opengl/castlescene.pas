@@ -3383,7 +3383,7 @@ begin
       FBackground := TBackground.Create(
         PArray_Single(BgNode.FdGroundAngle.Items.List), GroundAngleCount,
         PArray_Vector3Single(BgNode.FdGroundColor.Items.List), GroundColorCount,
-        BgNode.BgImages,
+        BgNode.Textures,
         PArray_Single(BgNode.FdSkyAngle.Items.List), SkyAngleCount,
         PArray_Vector3Single(BgNode.FdSkyColor.Items.List), SkyColorCount,
         BackgroundSkySphereRadius);
