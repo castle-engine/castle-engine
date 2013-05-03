@@ -4111,7 +4111,7 @@ begin
        by Proxy methods (geometry and new state nodes).
   }
 
-  Changes := Field.Changes;
+  Changes := Field.ExecuteChanges;
 
   if Log and LogChanges then
     DoLogChanges;

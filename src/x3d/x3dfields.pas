@@ -104,7 +104,7 @@ type
   TSaveToXmlMethod = (sxNone, sxAttribute, sxAttributeCustomQuotes, sxChildElement);
 
   { Possible things that happen when given field is changed.
-    Used by TX3DField.Changes. }
+    Used by TX3DField.ExecuteChanges. }
   TX3DChange = (
     { Something visible in the geometry changed.
       See vcVisibleGeometry.
@@ -641,7 +641,7 @@ type
       you can assign) if your TX3DField descendant
       doesn't change how the @code(Assign) method works.
       E.g. TSFStringUpdate class, that is defined only to override
-      @link(Changes) method and wants to be fully compatible with normal
+      @link(ExecuteChanges) method and wants to be fully compatible with normal
       TSFString. }
     function ExposedEventsFieldClass: TX3DFieldClass; virtual;
 
@@ -934,8 +934,8 @@ type
 
     { What always happens when the value of this field changes.
 
-      This is included in the @link(Changes) method result. So instead of
-      using this property, you could always override @link(Changes)
+      This is included in the @link(ExecuteChanges) method result. So instead of
+      using this property, you could always override @link(ExecuteChanges)
       method. But often it's easier to use the property.
 
       By default this is an empty set. This is suitable for
@@ -948,9 +948,27 @@ type
     property ChangesAlways: TX3DChanges read FChangesAlways write FChangesAlways;
 
     { What happens when the value of this field changes.
-      This will be used by TCastleSceneCore.ChangedField to determine what
-      must be done when we know that value of this field changed. }
-    function Changes: TX3DChanges; virtual;
+      This is called, exactly once, by TCastleSceneCore.ChangedField
+      to determine what must be done when we know that value of this field changed.
+
+      In overridden descendants, this can also do something immediately.
+      Overriding this is similar to registering your callback in OnReceive
+      list, with two benefits:
+
+      @orderedList(
+        @item(This method may be not called (although no guarantees)
+          when the actual field value did not change.
+          In contrast, the OnReceive event is always fired,
+          even when you send the same value to an exposed field,
+          because VRML/X3D events and routes must be fired anyway.)
+
+        @item(This is useful also for fields that are not exposed,
+          and can be changed only by ObjectPascal code.)
+      )
+
+      So overridding this is closer to "do something when field value changes"
+      than registering callback in OnReceive list. }
+    function ExecuteChanges: TX3DChanges; virtual;
 
     { Set the value of the field, notifying the scenes and events engine.
       This sets the value of this field in the nicest possible way for
@@ -3060,7 +3078,7 @@ begin
   end;
 end;
 
-function TX3DField.Changes: TX3DChanges;
+function TX3DField.ExecuteChanges: TX3DChanges;
 begin
   Result := ChangesAlways;
 end;

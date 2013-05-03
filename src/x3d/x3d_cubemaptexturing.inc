@@ -267,7 +267,7 @@ type
   protected
     function ExposedEventsFieldClass: TX3DFieldClass; override;
   public
-    function Changes: TX3DChanges; override;
+    function ExecuteChanges: TX3DChanges; override;
   end;
 
 function TSFStringUpdate.ExposedEventsFieldClass: TX3DFieldClass;
@@ -275,7 +275,7 @@ begin
   Result := TSFString;
 end;
 
-function TSFStringUpdate.Changes: TX3DChanges;
+function TSFStringUpdate.ExecuteChanges: TX3DChanges;
 begin
   if Value <> 'NONE' then
     Result := [chRedisplay] else
