@@ -120,6 +120,11 @@
   end;
 
   TShaderPartNode = class(TAbstractNode, IAbstractUrlObject)
+  private
+    ContentsCached: boolean;
+    ContentsCache: string;
+    procedure EventUrlReceive(
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -132,11 +137,10 @@
     public property FdType: TSFStringShaderType read FFdType;
 
     { Load shader code from node's URLs.
-      Will return '' if no valid URLs present.
-      (Assuming that OnWarning will not raise
-      an exception. If OnWarning will raise exception,
-      then this will propagate this exception) }
-    function LoadContents: string;
+      In X3D XML encoding, also loads node's XML CDATA as a last resort.
+      Will return '' if no valid URLs are present,
+      loading errors are reported to OnWarning. }
+    function Contents: string;
   end;
 
   TShaderProgramNode = class(TAbstractNode, IAbstractUrlObject, IAbstractProgrammableShaderObject)
@@ -436,9 +440,20 @@ begin
   end;
 end;
 
-function TShaderPartNode.LoadContents: string;
+function TShaderPartNode.Contents: string;
 begin
-  Result := ShaderLoadContents(Self, FdUrl);
+  if not ContentsCached then
+  begin
+    ContentsCache := ShaderLoadContents(Self, FdUrl);
+    ContentsCached := true;
+  end;
+  Result := ContentsCache;
+end;
+
+procedure TShaderPartNode.EventUrlReceive(
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+begin
+  ContentsCached := false;
 end;
 
 class function TShaderPartNode.URNMatching(const URN: string): boolean;

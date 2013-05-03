@@ -1512,7 +1512,7 @@ procedure TShader.EnableEffects(Effects: TX3DNodeList;
       Contents: string;
       PartType: TShaderType;
     begin
-      Contents := Part.LoadContents;
+      Contents := Part.Contents;
       if (Contents <> '') and Part.FdType.GetValue(PartType) then
       begin
         Plug(PartType, Contents, Code, ForwardDeclareInFinalShader);
@@ -2383,7 +2383,7 @@ begin
         if Node.FdParts[J] is TShaderPartNode then
         begin
           Part := TShaderPartNode(Node.FdParts[J]);
-          PartSource := Part.LoadContents;
+          PartSource := Part.Contents;
           if (PartSource <> '') and Part.FdType.GetValue(PartType) then
           begin
             Source[PartType].Add(PartSource);

@@ -348,6 +348,11 @@
   end;
 
   TEffectPartNode = class(TAbstractNode, IAbstractUrlObject)
+  private
+    ContentsCached: boolean;
+    ContentsCache: string;
+    procedure EventUrlReceive(
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -360,9 +365,10 @@
     public property FdUrl: TMFString read FFdUrl;
 
     { Load shader code from node's URLs.
-      Will return '' if no valid URLs are present.
-      Note that in XML encoding, URLs also contain XML CDATA. }
-    function LoadContents: string;
+      In X3D XML encoding, also loads node's XML CDATA as a last resort.
+      Will return '' if no valid URLs are present,
+      loading errors are reported to OnWarning. }
+    function Contents: string;
   end;
 
   TShaderTextureNode = class(TAbstractTextureNode)
@@ -946,6 +952,7 @@ begin
   FFdUrl := TMFString.Create(Self, 'url', []);
    FdUrl.Exposed := false;
    FdUrl.ChangesAlways := [chEverything];
+   FdUrl.OnReceive.Add(@EventUrlReceive);
   Fields.Add(FFdUrl);
 
   DefaultContainerField := 'parts';
@@ -962,9 +969,20 @@ begin
     (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
-function TEffectPartNode.LoadContents: string;
+function TEffectPartNode.Contents: string;
 begin
-  Result := ShaderLoadContents(Self, FdUrl);
+  if not ContentsCached then
+  begin
+    ContentsCache := ShaderLoadContents(Self, FdUrl);
+    ContentsCached := true;
+  end;
+  Result := ContentsCache;
+end;
+
+procedure TEffectPartNode.EventUrlReceive(
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+begin
+  ContentsCached := false;
 end;
 
 procedure TShaderTextureNode.CreateNode;
