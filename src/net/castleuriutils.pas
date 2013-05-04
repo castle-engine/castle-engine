@@ -137,10 +137,19 @@ function FilenameToURISafe(const FileName: string): string;
   The @link(Download) function returns such proper MimeType.
   This function only guesses without downloading.
 
-  Returns empty string if MIME type is unknown. }
+  Returns empty string if MIME type is unknown.
+
+  Overloaded version returns also Gzipped to detect whether file contents
+  are gzipped.
+
+  @groupBegin }
 function URIMimeType(const URI: string): string;
+function URIMimeType(const URI: string; out Gzipped: boolean): string;
+{ @groupEnd }
 
 { Nice URI form to display.
+  It is safe to use this also on relative URLs. It does not resolve them
+  to be absolute.
   For now, this simply removes the long contents for data: URI,
   otherwise just returns the URI. }
 function URIDisplayLong(const URI: string): string;
@@ -154,6 +163,17 @@ procedure URIExtractAnchor(var URI: string; out Anchor: string);
 var
   HashPos: Integer;
 begin
+  Anchor := '';
+
+  { Avoid extracting anchor from data URI, to avoid touching things like
+      data:model/x3d+vrml,#X3D V3.2 utf8
+      ...
+    which are used to embed classic VRML/X3D content.
+    The hash in data URI is *not* an anchor. }
+
+  if TDataURI.IsDataURI(URI) then
+    Exit;
+
   HashPos := BackPos('#', URI);
   if HashPos <> 0 then
   begin
@@ -433,7 +453,7 @@ begin
   Result := Result + FilenamePart;
 end;
 
-function URIMimeType(const URI: string): string;
+function URIMimeType(const URI: string; out Gzipped: boolean): string;
 
   function ExtToMimeType(Ext, ExtExt: string): string;
 
@@ -473,16 +493,16 @@ function URIMimeType(const URI: string): string;
 
     // 3D models (see also view3dscene MIME specification in view3dscene/desktop/view3dscene.xml)
     if Ext    = '.wrl'    then Result := 'model/vrml' else
-    if Ext    = '.wrz'    then Result := 'model/vrml' else
-    if ExtExt = '.wrl.gz' then Result := 'model/vrml' else
+    if Ext    = '.wrz'    then begin Result := 'model/vrml'; Gzipped := true; end else
+    if ExtExt = '.wrl.gz' then begin Result := 'model/vrml'; Gzipped := true; end else
     if Ext    = '.x3dv'    then Result := 'model/x3d+vrml' else
-    if Ext    = '.x3dvz'   then Result := 'model/x3d+vrml' else
-    if ExtExt = '.x3dv.gz' then Result := 'model/x3d+vrml' else
+    if Ext    = '.x3dvz'   then begin Result := 'model/x3d+vrml'; Gzipped := true; end else
+    if ExtExt = '.x3dv.gz' then begin Result := 'model/x3d+vrml'; Gzipped := true; end else
     if Ext    = '.x3d'    then Result := 'model/x3d+xml' else
-    if Ext    = '.x3dz'   then Result := 'model/x3d+xml' else
-    if ExtExt = '.x3d.gz' then Result := 'model/x3d+xml' else
+    if Ext    = '.x3dz'   then begin Result := 'model/x3d+xml'; Gzipped := true; end else
+    if ExtExt = '.x3d.gz' then begin Result := 'model/x3d+xml'; Gzipped := true; end else
     if Ext    = '.x3db'    then Result := 'model/x3d+binary' else
-    if ExtExt = '.x3db.gz' then Result := 'model/x3d+binary' else
+    if ExtExt = '.x3db.gz' then begin Result := 'model/x3d+binary'; Gzipped := true; end else
     if Ext = '.dae' then Result := 'model/vnd.collada+xml' else
     { See http://en.wikipedia.org/wiki/.3ds about 3ds mime type.
       application/x-3ds is better (3DS is hardly an "image"),
@@ -565,6 +585,7 @@ var
   DataURI: TDataURI;
 begin
   Result := '';
+  Gzipped := false;
 
   P := LowerCase(URIProtocol(URI));
 
@@ -585,6 +606,13 @@ begin
     { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,
       although they should be used for filenames. }
     Result := ExtToMimeType(ExtractFileExt(URI), ExtractFileDoubleExt(URI));
+end;
+
+function URIMimeType(const URI: string): string;
+var
+  Gzipped: boolean;
+begin
+  Result := URIMimeType(URI, Gzipped);
 end;
 
 function URIDisplayLong(const URI: string): string;
