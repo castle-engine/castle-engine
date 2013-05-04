@@ -54,9 +54,13 @@ function LoadX3DClassicFromString(const VRMLContents: string;
   to current dir). We can also load network URLs using CastleDownload.
 
   If AllowStdIn then URL = '-' is understood as "standard input"
-  (StdInStream). Base path for resolving URLs in this case is GetCurrentDir. }
+  (StdInStream). Base path for resolving URLs in this case is GetCurrentDir.
+
+  If Gzipped then we can be relatively sure that stream is gzipped.
+  Otherwise, it can still be gzipped (.wrl files are sometimes gzipped
+  without extension indicating it). }
 function LoadX3DClassic(const URL: string;
-  AllowStdIn: boolean): TX3DRootNode; overload;
+  const AllowStdIn, Gzipped: boolean): TX3DRootNode; overload;
 
 {$endif read_interface}
 
@@ -554,7 +558,7 @@ begin
 end;
 
 function LoadX3DClassic(const URL: string;
-  AllowStdIn: boolean): TX3DRootNode;
+  const AllowStdIn, Gzipped: boolean): TX3DRootNode;
 
   function DoIt(BaseStream: TStream; const FreeBaseStream: boolean;
     const BaseUrl: string): TX3DRootNode;
@@ -578,9 +582,7 @@ begin
   begin
     BaseUrl := AbsoluteURI(URL);
 
-    { TODO: filename operations on URLs }
-    if SameText(ExtractFileExt(URL), '.gz') or
-       SameText(ExtractFileExt(URL), '.wrz') then
+    if Gzipped then
       Result := DoIt(Download(URL, [doGunzip]), true, BaseUrl) else
     begin
       try

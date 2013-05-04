@@ -156,54 +156,50 @@ const
 
 implementation
 
-uses CastlePrecalculatedAnimationCore, CastleClassUtils,
+uses CastlePrecalculatedAnimationCore, CastleClassUtils, CastleURIUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
   X3DLoadInternalCollada;
 
 function Load3D(const URL: string;
   AllowStdIn, NilOnUnrecognizedFormat: boolean): TX3DRootNode;
-const
-  GzExt = '.gz';
-  Extensions: array [0..14] of string =
-  ('.geo', '.3ds', '.obj',
-   '.iv',
-   '.wrl', '.wrl' + GzExt, '.wrz',
-   '.x3dv', '.x3dv' + GzExt, '.x3dvz',
-   '.md3', '.dae',
-   '.x3d', '.x3dz', '.x3d' + GzExt);
 var
-  Ext: string;
+  MimeType: string;
+  Gzipped: boolean;
 begin
   if AllowStdIn and (URL = '-') then
-    result := LoadX3DClassic(URL, true) else
+    result := LoadX3DClassic(URL, true, false) else
   begin
-    { TODO-net: file operations on URLs }
-    Ext := ExtractFileExt(URL);
-    if Ext = '.gz' then
-      Ext := ExtractFileExt(DeleteFileExt(URL)) + Ext;
-    case ArrayPosText(Ext, Extensions) of
-      0: result := LoadGEO(URL);
-      1: result := Load3DS(URL);
-      2: result := LoadWavefrontOBJ(URL);
-      3..9: result := LoadX3DClassic(URL, false);
-      10: Result := LoadMD3(URL);
-      11: Result := LoadCollada(URL);
-      12: Result := LoadX3DXml(URL, false);
-      13, 14: Result := LoadX3DXml(URL, true);
-      else
-        if NilOnUnrecognizedFormat then
-          Result := nil else
-          raise Exception.CreateFmt(
-            'Unrecognized file extension "%s" for 3D model file "%s"',
-            [Ext, URL]);
-    end;
-  end;
-end;
+    MimeType := URIMimeType(URL, Gzipped);
 
-function LoadAsVRML(const filename: string;
-  AllowStdIn: boolean): TX3DRootNode;
-begin
-  Result := Load3D(FileName, AllowStdIn);
+    if (MimeType = 'object/x-inventor') or
+       (MimeType = 'model/vrml') or
+       (MimeType = 'model/x3d+vrml') then
+      Result := LoadX3DClassic(URL, false, Gzipped) else
+
+    if MimeType = 'model/x3d+xml' then
+      Result := LoadX3DXml(URL, Gzipped) else
+
+    if MimeType = 'application/x-geo' then
+      Result := LoadGEO(URL) else
+
+    if MimeType = 'image/x-3ds' then
+      Result := Load3DS(URL) else
+
+    if MimeType = 'application/x-wavefront-obj' then
+      Result := LoadWavefrontOBJ(URL) else
+
+    if MimeType = 'application/x-md3' then
+      Result := LoadMD3(URL) else
+
+    if MimeType = 'model/vnd.collada+xml' then
+      Result := LoadCollada(URL) else
+
+    if NilOnUnrecognizedFormat then
+      Result := nil else
+      raise Exception.CreateFmt(
+        'Unrecognized file type "%s" for 3D model file "%s"',
+        [MimeType, URIDisplayLong(URL)]);
+  end;
 end;
 
 procedure Load3DSequence(const URL: string;
@@ -251,18 +247,20 @@ procedure Load3DSequence(const URL: string;
   end;
 
 var
-  Ext: string;
+  MimeType: string;
 begin
   Assert(Times.Count = 0);
   Assert(RootNodes.Count = 0);
 
-  { TODO-net: file operations on URLs }
-  Ext := ExtractFileExt(URL);
-  if SameText(Ext, '.kanim') then
+  MimeType := URIMimeType(URL);
+
+  if MimeType = 'application/x-kanim' then
     LoadKanim else
-  if SameText(Ext, '.md3') then
+
+  if MimeType = 'application/x-md3' then
     LoadMD3Sequence(URL, RootNodes, Times, ScenesPerTime,
       EqualityEpsilon, TimeLoop, TimeBackwards) else
+
     LoadSingle(Load3D(URL, AllowStdIn));
 end;
 
