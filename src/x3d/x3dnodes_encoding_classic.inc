@@ -60,7 +60,7 @@ function LoadX3DClassicFromString(const VRMLContents: string;
   Otherwise, it can still be gzipped (.wrl files are sometimes gzipped
   without extension indicating it). }
 function LoadX3DClassic(const URL: string;
-  const AllowStdIn, Gzipped: boolean): TX3DRootNode; overload;
+  const AllowStdIn: boolean; const Gzipped: boolean = false): TX3DRootNode; overload;
 
 {$endif read_interface}
 
