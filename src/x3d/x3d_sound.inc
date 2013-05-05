@@ -344,7 +344,7 @@ begin
           on E: Exception do
             { Remember that OnWarning *may* raise an exception. }
             OnWarning(wtMinor, 'Audio', Format(SLoadError,
-              [E.ClassName, 'sound file', URIDisplayLong(FullUrl), E.Message]));
+              [E.ClassName, 'sound file', URIDisplay(FullUrl), E.Message]));
         end;
       end;
     end else

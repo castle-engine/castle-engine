@@ -147,12 +147,14 @@ function URIMimeType(const URI: string): string;
 function URIMimeType(const URI: string; out Gzipped: boolean): string;
 { @groupEnd }
 
-{ Nice URI form to display.
-  It is safe to use this also on relative URLs. It does not resolve them
-  to be absolute.
-  For now, this simply removes the long contents for data: URI,
-  otherwise just returns the URI. }
-function URIDisplayLong(const URI: string): string;
+{ Convert URI to a nice form for display (to show in messages and such).
+  It makes sure to nicely trim URLs that would be too long/unreadable otherwise
+  (like "data:" URI, or multi-line URLs with inlined ECMAScript/CastleScript/shader
+  code). For most normal (short) URLs, just returns them untouched.
+
+  It is safe to use this on both absolute and relative URLs.
+  It does not resolve relative URLs in any way. }
+function URIDisplay(const URI: string): string;
 
 implementation
 
@@ -615,11 +617,12 @@ begin
   Result := URIMimeType(URI, Gzipped);
 end;
 
-function URIDisplayLong(const URI: string): string;
+function URIDisplay(const URI: string): string;
 var
   DataURI: TDataURI;
+  NewLinePos: Integer;
 begin
-  Result := URI;
+  Result := Trim(URI);
 
   if TDataURI.IsDataURI(URI) then
   begin
@@ -628,6 +631,16 @@ begin
       DataURI.URI := URI;
       if DataURI.Valid then Result := DataURI.URIPrefix + ',...';
     finally FreeAndNil(DataURI) end;
+  end else
+
+  begin
+    NewLinePos := CharsPos([#10, #13], Result);
+    if NewLinePos <> 0 then
+    begin
+      { we have done Trim(URI) to prevent starting from newline }
+      Assert(NewLinePos <> 1);
+      Result := Copy(Result, 1, NewLinePos - 1) + '...';
+    end;
   end;
 end;
 

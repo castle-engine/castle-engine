@@ -3595,12 +3595,12 @@ begin
     { capture some exceptions to add URL to exception message }
     on E: EImageLoadError do
     begin
-      E.Message := Format(SLoadError, [URIDisplayLong(URL), E.Message]);
+      E.Message := Format(SLoadError, [URIDisplay(URL), E.Message]);
       raise;
     end;
     on E: EImageFormatNotSupported do
     begin
-      E.Message := Format(SLoadError, [URIDisplayLong(URL), E.Message]);
+      E.Message := Format(SLoadError, [URIDisplay(URL), E.Message]);
       raise;
     end;
   end;

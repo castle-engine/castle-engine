@@ -198,7 +198,7 @@ begin
       Result := nil else
       raise Exception.CreateFmt(
         'Unrecognized file type "%s" for 3D model file "%s"',
-        [MimeType, URIDisplayLong(URL)]);
+        [MimeType, URIDisplay(URL)]);
   end;
 end;
 

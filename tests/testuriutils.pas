@@ -26,6 +26,7 @@ type
     procedure TestURIToFilenameSafe;
     procedure PercentEncoding;
     procedure CombineURIEncoding;
+    procedure TestURIDisplay;
   end;
 
 implementation
@@ -116,6 +117,42 @@ begin
   AssertEquals('http:///gameM/player_sudden_pain.wav', CombineURI('http:///game%4d/sounds.xml', 'player_sudden_pain.wav'));
   AssertEquals('http:///game/playerM_sudden_pain.wav', CombineURI('http:///game/sounds.xml', 'player%4d_sudden_pain.wav'));
   AssertEquals('http:///gameM/playerM_sudden_pain.wav', CombineURI('http:///game%4d/sounds.xml', 'player%4d_sudden_pain.wav'));
+end;
+
+procedure TTestURIUtils.TestURIDisplay;
+const
+  DataUriX3D =
+    'data:model/x3d+xml,<?xml version="1.0" encoding="UTF-8"?>' + LineEnding +
+    '<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.0//EN" "http://www.web3d.org/specifications/x3d-3.0.dtd">' + LineEnding +
+    '<X3D version="3.0" profile="Immersive" xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance" xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-3.0.xsd">' + LineEnding +
+    '<head>' + LineEnding +
+    '</head>' + LineEnding +
+    '<Scene>' + LineEnding +
+    '  <Transform translation="0 -8 0">' + LineEnding +
+    '    <Shape>' + LineEnding +
+    '      <Text string=''"X3D (XML) model inlined using data URI"'' />' + LineEnding +
+    '    </Shape>' + LineEnding +
+    '  </Transform>' + LineEnding +
+    '</Scene>' + LineEnding +
+    '</X3D>' + LineEnding +
+    '';
+  ScriptUri =
+    '' + LineEnding +
+    'ecmascript:' + LineEnding +
+    'blah blah' + LineEnding +
+    '';
+  ScriptUri2 =
+    '' + LineEnding +
+    'ecmascript:' + LineEnding +
+    '';
+
+begin
+  AssertEquals('http:///blah/player_sudden_pain.wav#blabla', URIDisplay('http:///blah/player_sudden_pain.wav#blabla'));
+  AssertEquals('file:///blah/player_sudden_pain.wav#blabla', URIDisplay('file:///blah/player_sudden_pain.wav#blabla'));
+  AssertEquals('blah/player_sudden_pain.wav#blabla', URIDisplay('blah/player_sudden_pain.wav#blabla'));
+  AssertEquals('data:model/x3d+xml,...', URIDisplay(DataUriX3D));
+  AssertEquals('ecmascript:...', URIDisplay(ScriptUri));
+  AssertEquals('ecmascript:', URIDisplay(ScriptUri2));
 end;
 
 initialization

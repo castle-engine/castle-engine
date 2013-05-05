@@ -435,7 +435,7 @@ begin
         on E: Exception do
           { Remember that OnWarning *may* raise an exception. }
           OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
-            [E.ClassName, 'shader source', URIDisplayLong(FullUrl), E.Message]));
+            [E.ClassName, 'shader source', URIDisplay(FullUrl), E.Message]));
       end;
     end;
   end;

@@ -200,7 +200,7 @@ begin
       on E: EStreamError do
       begin
         { Add URL to exception message }
-        E.Message := 'Error while reading URL "' + URIDisplayLong(URL) + '": ' + E.Message;
+        E.Message := 'Error while reading URL "' + URIDisplay(URL) + '": ' + E.Message;
         raise;
       end;
     end;

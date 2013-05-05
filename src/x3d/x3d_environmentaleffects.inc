@@ -463,7 +463,7 @@ procedure TBackgroundNode.SetTexturesLoaded(const Value: boolean);
         on E: Exception do
         begin
           OnWarning(wtMinor, 'Background', Format(SLoadError,
-            [E.ClassName, 'background image', URIDisplayLong(URL), E.Message]));
+            [E.ClassName, 'background image', URIDisplay(URL), E.Message]));
           { and silence exception }
         end;
       end;

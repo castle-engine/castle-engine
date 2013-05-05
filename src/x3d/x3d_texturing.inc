@@ -790,13 +790,13 @@ begin
         FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureDDS,
           FAlphaChannelData);
         WasCacheUsed := true;
-        FTextureUsedFullUrl := URIDisplayLong(FullUrl);
+        FTextureUsedFullUrl := URIDisplay(FullUrl);
         Break;
       except
         on E: Exception do
           { Remember that OnWarning *may* raise an exception. }
           OnWarning(wtMinor, 'Texture', Format(SLoadError,
-            [E.ClassName, 'texture', URIDisplayLong(FullUrl), E.Message]));
+            [E.ClassName, 'texture', URIDisplay(FullUrl), E.Message]));
       end;
     end;
 end;
@@ -922,7 +922,7 @@ begin
       on E: Exception do
         { Remember that OnWarning *may* raise an exception. }
         OnWarning(wtMinor, 'Video', Format(SLoadError,
-          [E.ClassName, 'video', URIDisplayLong(FullUrl), E.Message]));
+          [E.ClassName, 'video', URIDisplay(FullUrl), E.Message]));
     end;
   end;
 end;

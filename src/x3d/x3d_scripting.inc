@@ -232,8 +232,6 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
   end;
 
   function LoadUrl(Url: string; var FailedUrlsLog: string): boolean;
-  const
-    MaxUrlLength = 100;
   var
     Protocol, PotentialFullUrl, ScriptContents: string;
   begin
@@ -289,18 +287,14 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
         on E: Exception do
           OnWarning(wtMinor, 'VRML/X3D', Format(
             'Exception %s when loading Script from URL "%s": %s',
-              [E.ClassName, PotentialFullUrl, E.Message ]));
+              [E.ClassName, URIDisplay(PotentialFullUrl), E.Message ]));
       end;
     end else
 
     begin
       if FailedUrlsLog <> '' then
         FailedUrlsLog += ', ';
-      { URLs here may be very long, since users may inline code here.
-        So we use MaxUrlLength to keep reasonably short error messages. }
-      if Length(Url) > MaxUrlLength then
-        FailedUrlsLog += Format('URL "%s..." not handled', [Copy(Url, 1, MaxUrlLength)]) else
-        FailedUrlsLog += Format('URL "%s" not handled', [Url]);
+      FailedUrlsLog += Format('URL "%s" not handled', [URIDisplay(Url)]);
     end;
 
     if Result and Log then
