@@ -380,6 +380,7 @@ begin
 
   FFdUrl := TMFString.Create(Self, 'url', []);
    FdUrl.ChangesAlways := [chEverything]; { TODO - something more optimized }
+   FdUrl.OnReceive.Add(@EventUrlReceive);
   Fields.Add(FFdUrl);
   { X3D specification comment: [URI] }
 
