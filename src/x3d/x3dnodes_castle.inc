@@ -950,7 +950,6 @@ begin
   Fields.Add(FFdType);
 
   FFdUrl := TMFString.Create(Self, 'url', []);
-   FdUrl.Exposed := false;
    FdUrl.ChangesAlways := [chEverything];
    FdUrl.OnReceive.Add(@EventUrlReceive);
   Fields.Add(FFdUrl);
