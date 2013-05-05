@@ -101,6 +101,7 @@ type
 
     procedure ItemsAndCameraCursorChange(Sender: TObject);
     function PlayerNotBlocked: boolean;
+    procedure SetScreenSpaceAmbientOcclusion(const Value: boolean);
   protected
     { These variables are writeable from overridden ApplyProjection. }
     FPerspectiveView: boolean;
@@ -640,7 +641,7 @@ type
 
     { Enable built-in SSAO screen effect in the world. }
     property ScreenSpaceAmbientOcclusion: boolean
-      read FScreenSpaceAmbientOcclusion write FScreenSpaceAmbientOcclusion
+      read FScreenSpaceAmbientOcclusion write SetScreenSpaceAmbientOcclusion
       default DefaultScreenSpaceAmbientOcclusion;
   end;
 
@@ -2333,6 +2334,15 @@ end;
 function TCastleAbstractViewport.ScreenSpaceAmbientOcclusionAvailable: boolean;
 begin
   Result := (SSAOShader<>nil);
+end;
+
+procedure TCastleAbstractViewport.SetScreenSpaceAmbientOcclusion(const Value: boolean);
+begin
+  if FScreenSpaceAmbientOcclusion <> Value then
+  begin
+    FScreenSpaceAmbientOcclusion := Value;
+    VisibleChange;
+  end;
 end;
 
 procedure TCastleAbstractViewport.CameraAnimateToDefault(const Time: TFloatTime);
