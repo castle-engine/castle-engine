@@ -179,7 +179,6 @@
       And multisampling (full-screen antialiasing) buffers (by
       @link(TCastleWindowBase.MultiSampling MultiSampling) or higher-level
       @link(TCastleWindowBase.AntiAliasing AntiAliasing).)
-    )
 
     @item(You can use native modal dialogs for things such as file selection.
       GTK backend will use GTK dialogs, WinAPI backend
@@ -1764,7 +1763,7 @@ end;
       the OpenGL context requirements and retry.
 
       If the OpenGL context cannot be initialized,
-      then @link(Retry) callback is called. Inside this callback you should
+      then @code(Retry) callback is called. Inside this callback you should
       either:
 
       @unorderedList(

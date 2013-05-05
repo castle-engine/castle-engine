@@ -211,7 +211,7 @@ finally Progress.Fini; end;
     procedure Init(AMax: Cardinal; const ATitle: string;
       const DelayUserInterface: boolean = false);
 
-    { Increments progress bar @link(Position) by @link(StepSize).
+    { Increments progress bar @link(Position) by @code(StepSize).
       Use only when @link(Active), that is between @link(Init) and @link(Fini)
       calls.
 

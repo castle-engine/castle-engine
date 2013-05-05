@@ -386,7 +386,7 @@ type
     { URL from which to load sound data.
 
       Empty means that the sound data is not defined,
-      so the @link(Buffer) will always remain zero and trying to play
+      so the OpenAL buffer will not be initialized and trying to play
       this sound (with methods like TSoundEngine.Sound or TSoundEngine.Sound3D)
       will do nothing. This is useful if you want to use a sound name
       in code, but you do not have the actual sound file for this yet. }

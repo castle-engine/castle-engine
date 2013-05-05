@@ -262,7 +262,7 @@ type
 
       For every source that is marked as Used, this checks
       whether this source is actually in playing/paused state
-      right now. If not, it calls @link(Release) (thus setting
+      right now. If not, it calls @link(TSound.Release) (thus setting
       Used to @false and triggering OnRelease) for this source. }
     procedure Refresh;
 

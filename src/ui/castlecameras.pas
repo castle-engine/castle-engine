@@ -527,8 +527,9 @@ type
     { Initialize most important properties of this class:
       sets ModelBox and goes to a nice view over the entire scene.
 
-      In other words, this is just a shortcut to setting ModelBox
-      and then calling @link(Home). }
+      In other words, this is just a shortcut to setting ModelBox,
+      setting suitable initial view by SetInitialView,
+      and then going to initial view by GoToInitial. }
     procedure Init(const AModelBox: TBox3D; const ARadius: Single);
 
     { Methods performing navigation.

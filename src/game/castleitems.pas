@@ -422,9 +422,11 @@ var
 
   { List of items, with a 3D object (like a player or creature) owning
     these items. Do not directly change this list, always use
-    @link(Pick) or @link(Drop) methods (they make sure that
-    items are correctly stacked, that TInventoryItem.Owner3D and memory management
-    is good). }
+    the owner (T3DAliveWithInventory) methods like
+    @link(T3DAliveWithInventory.PickItem) or
+    @link(T3DAliveWithInventory.DropItem).
+    They make sure that items are correctly stacked, and that
+    TInventoryItem.Owner3D and memory management is good. }
   TInventory = class(specialize TFPGObjectList<TInventoryItem>)
   private
     FOwner3D: T3DAliveWithInventory;
