@@ -258,7 +258,7 @@ procedure TTestX3DNodes.TestParseSaveToFile;
       First := TX3DTokenInfoList.Create;
       First.ReadFromFile(FileName);
 
-      Node := LoadX3DClassic(FileName, false);
+      Node := LoadX3DClassic(FileName, false, false);
       NewFile := InclPathDelim(GetTempDir) + 'test_castle_game_engine.wrl';
       Save3D(Node, NewFile, ProgramName, '', xeClassic, false);
 
@@ -985,7 +985,7 @@ begin
         for J := 0 to N.Fields.Count - 1 do
           if N.Fields[J].Name <> 'metadata' then
           try
-            Assert(N.Fields[J].Changes = [chGeometry]);
+            Assert(N.Fields[J].ExecuteChanges = [chGeometry]);
           except
             Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
             raise;
@@ -994,7 +994,7 @@ begin
       begin
         for J := 0 to N.Fields.Count - 1 do
         try
-          Assert(not (chGeometry in N.Fields[J].Changes));
+          Assert(not (chGeometry in N.Fields[J].ExecuteChanges));
         except
           Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
           raise;
@@ -1022,8 +1022,8 @@ begin
           if (N.Fields[J].Name <> 'metadata') and
              (N.Fields[J].Name <> 'effects') then
           try
-            Assert((chVisibleVRML1State in N.Fields[J].Changes) or
-                   (chGeometryVRML1State in N.Fields[J].Changes));
+            Assert((chVisibleVRML1State in N.Fields[J].ExecuteChanges) or
+                   (chGeometryVRML1State in N.Fields[J].ExecuteChanges));
           except
             Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
             raise;
@@ -1034,8 +1034,8 @@ begin
           { alphaChannel field is allowed exception }
           if N.Fields[J].Name <> 'alphaChannel' then
           try
-            Assert(not (chVisibleVRML1State in N.Fields[J].Changes));
-            Assert(not (chGeometryVRML1State in N.Fields[J].Changes));
+            Assert(not (chVisibleVRML1State in N.Fields[J].ExecuteChanges));
+            Assert(not (chGeometryVRML1State in N.Fields[J].ExecuteChanges));
           except
             Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
             raise;
@@ -1060,7 +1060,7 @@ begin
         for J := 0 to N.Fields.Count - 1 do
           if N.Fields[J].Name <> 'metadata' then
           try
-            Assert(N.Fields[J].Changes = [chColorNode]);
+            Assert(N.Fields[J].ExecuteChanges = [chColorNode]);
           except
             Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
             raise;
@@ -1069,7 +1069,7 @@ begin
       begin
         for J := 0 to N.Fields.Count - 1 do
         try
-          Assert(not (chColorNode in N.Fields[J].Changes));
+          Assert(not (chColorNode in N.Fields[J].ExecuteChanges));
         except
           Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
           raise;
@@ -1094,7 +1094,7 @@ begin
         for J := 0 to N.Fields.Count - 1 do
           if N.Fields[J].Name <> 'metadata' then
           try
-            Assert(N.Fields[J].Changes = [chTextureCoordinate]);
+            Assert(N.Fields[J].ExecuteChanges = [chTextureCoordinate]);
           except
             Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
             raise;
@@ -1103,7 +1103,7 @@ begin
       begin
         for J := 0 to N.Fields.Count - 1 do
         try
-          Assert(not (chTextureCoordinate in N.Fields[J].Changes));
+          Assert(not (chTextureCoordinate in N.Fields[J].ExecuteChanges));
         except
           Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
           raise;
@@ -1290,7 +1290,7 @@ begin
     try
       for J := 0 to N.Fields.Count - 1 do
       try
-        Changes := N.Fields[J].Changes;
+        Changes := N.Fields[J].ExecuteChanges;
         Assert((Changes <> []) or ConfirmedEmptyChanges(N.Fields[J]));
       except
         Writeln('Empty TX3DField.Changes unconfirmed on ', N.ClassName, '.', N.Fields[J].Name);
@@ -1346,7 +1346,7 @@ procedure TTestX3DNodes.TestITransformNode;
     I: Integer;
   begin
     for I := 0 to N.Fields.Count - 1 do
-      if chTransform in N.Fields[I].Changes then
+      if chTransform in N.Fields[I].ExecuteChanges then
         Exit(true);
     Result := false;
   end;
