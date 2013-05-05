@@ -162,7 +162,10 @@ procedure TTestCameras.TestInput;
     const IgnoreAllInputs, MouseNavigation: boolean);
   begin
     Assert(C.Input = Input);
+    {$warnings off}
+    { Consciously using here deprecated IgnoreAllInputs (to test it's still Ok) }
     Assert(C.IgnoreAllInputs = IgnoreAllInputs);
+    {$warnings on}
     if C is TExamineCamera then
       Assert(TExamineCamera(C).MouseNavigation = MouseNavigation);
     { for TUniversalCamera, child examine/walk must always have synchronized
@@ -186,7 +189,10 @@ begin
     AssertCamera(E, [], true, false);
     E.MouseNavigation := true;
     AssertCamera(E, [ciMouseDragging], false, true);
+    {$warnings off}
+    { Consciously using here deprecated IgnoreAllInputs (to test it's still Ok) }
     E.IgnoreAllInputs := true;
+    {$warnings on}
     AssertCamera(E, [], true, false);
     E.Input := [ciNormal];
     AssertCamera(E, [ciNormal], false, false);
@@ -199,7 +205,10 @@ begin
     AssertCamera(U, [], true, false);
     U.Input := U.Input + [ciMouseDragging];
     AssertCamera(U, [ciMouseDragging], false, true);
+    {$warnings off}
+    { Consciously using here deprecated IgnoreAllInputs (to test it's still Ok) }
     U.IgnoreAllInputs := true;
+    {$warnings on}
     AssertCamera(U, [], true, false);
     U.Input := [ciNormal];
     AssertCamera(U, [ciNormal], false, false);
@@ -212,7 +221,10 @@ begin
     AssertCamera(W, [], true, false);
     W.Input := W.Input + [ciMouseDragging];
     AssertCamera(W, [ciMouseDragging], false, true);
+    {$warnings off}
+    { Consciously using here deprecated IgnoreAllInputs (to test it's still Ok) }
     W.IgnoreAllInputs := true;
+    {$warnings on}
     AssertCamera(W, [], true, false);
     W.Input := [ciNormal];
     AssertCamera(W, [ciNormal], false, false);
