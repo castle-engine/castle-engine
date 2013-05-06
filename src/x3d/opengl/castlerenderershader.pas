@@ -194,7 +194,8 @@ type
 
     { Mix texture colors into fragment color, based on TTextureEnv specification. }
     class function TextureEnvMix(const AEnv: TTextureEnv;
-      const FragmentColor, CurrentTexture: string): string;
+      const FragmentColor, CurrentTexture: string;
+      const ATextureUnit: Cardinal): string;
   public
     { Update Hash for this light shader. }
     procedure Prepare(var Hash: TShaderCodeHash);
@@ -1031,30 +1032,65 @@ begin
 end;
 
 class function TTextureShader.TextureEnvMix(const AEnv: TTextureEnv;
-  const FragmentColor, CurrentTexture: string): string;
+  const FragmentColor, CurrentTexture: string;
+  const ATextureUnit: Cardinal): string;
+var
+  { GLSL code to get Arg2 (what is coming from MultiTexture.source) }
+  Arg2: string;
 begin
   if AEnv.Disabled then Exit('');
 
+  case AEnv.Source[cRGB] of
+    { TODO: it would be better to pass MultiTexture.color/factor as special
+      uniform, instead of using (per-unit) gl_TextureEnvColor.
+      For now, we don't do this (otherwise, we'd have to account
+      MultiTexture.color/factor inside TTextureEnv.Hash. }
+    csConstant: Arg2 := Format('gl_TextureEnvColor[%d]', [ATextureUnit]);
+    else
+      { assume csPreviousTexture }
+      Arg2 := FragmentColor;
+  end;
+
   case AEnv.Combine[cRGB] of
-    GL_REPLACE : Result := FragmentColor + ' = '  + CurrentTexture + ';';
-    GL_ADD     : Result := FragmentColor + ' += ' + CurrentTexture + ';';
-    GL_SUBTRACT: Result := FragmentColor + ' = '  + CurrentTexture + ' - ' + FragmentColor + ';';
-    else { assume GL_MODULATE }
-                 Result := FragmentColor + ' *= ' + CurrentTexture + ';';
+    GL_REPLACE:
+      begin
+        if AEnv.SourceArgument[cRGB] = ta0 then
+          { mode is SELECTARG2 }
+          Result := FragmentColor + ' = ' + Arg2 + ';' else
+          { assume CurrentTextureArgument = ta0, mode = REPLACE or SELECTARG1 }
+          Result := FragmentColor + ' = ' + CurrentTexture + ';';
+      end;
+    GL_ADD:
+      begin
+        if FragmentColor = Arg2 then
+          Result := FragmentColor + ' += ' + CurrentTexture + ';' else
+          Result := FragmentColor + ' = ' + CurrentTexture + ' + ' + Arg2 + ';';
+      end;
+    GL_SUBTRACT:
+      Result := FragmentColor + ' = ' + CurrentTexture + ' - ' + Arg2 + ';';
+    else
+      begin
+        { assume GL_MODULATE }
+        if FragmentColor = Arg2 then
+          Result := FragmentColor + ' *= ' + CurrentTexture + ';' else
+          Result := FragmentColor + ' = ' + CurrentTexture + ' * ' + Arg2 + ';';
+      end;
+  end;
+
+  case AEnv.TextureFunction of
+    tfComplement    : Result += FragmentColor + '.rgb = vec3(1.0) - ' + FragmentColor + '.rgb;';
+    tfAlphaReplicate: Result += FragmentColor + '.rgb = vec3(' + FragmentColor + '.a);';
   end;
 
   { TODO: this handles only a subset of possible values:
     - different combine values on RGB/alpha not handled yet.
       We just check Env.Combine[cRGB], and assume it's equal Env.Combine[cAlpha].
+      Same for Env.Source: we assume Env.Source[cRGB] equal to Env.Source[cAlpha].
     - Scale is ignored (assumed 1)
-    - CurrentTextureArgument, SourceArgument ignored (assumed ta0, ta1)
-    - Source ignored (assumed csPreviousTexture, which is in FragmentColor)
+    - CurrentTextureArgument, SourceArgument ignored (assumed ta0, ta1),
+      except for GL_REPLACE case
     - many Combine values ignored (treated like modulate),
       and so also NeedsConstantColor and InterpolateAlphaSource are ignored.
-    - moreover, shader pipeline has a chance to implement more parameters
-      of multi-texturing. In fact, complete support for X3D MultiTexture
-      should be doable, including stuff too difficult / not possible
-      in fixed-function, like MultiTexture.function.
   }
 end;
 
@@ -1189,7 +1225,7 @@ begin
         Shader.Source.Append(Code);
       finally FreeAndNil(Code) end;
 
-      TextureApply += TextureEnvMix(Env, 'fragment_color', 'texture_color') + NL;
+      TextureApply += TextureEnvMix(Env, 'fragment_color', 'texture_color', TextureUnit) + NL;
 
       if TextureType <> ttShader then
         TextureUniformsDeclare += Format('uniform %s %s;' + NL,
@@ -2163,7 +2199,9 @@ begin
   TextureShaders.Add(TextureShader);
 
   if (TextureType in [ttShader, tt2DShadow]) or
-     (Node.FdEffects.Count <> 0) then
+     (Node.FdEffects.Count <> 0) or
+     { MultiTexture.function requires shaders }
+     (Env.TextureFunction <> tfNone) then
     ShapeRequiresShaders := true;
 
   TextureShader.Prepare(FCodeHash);

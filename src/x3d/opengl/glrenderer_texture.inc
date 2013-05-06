@@ -862,7 +862,7 @@ var
   I: Integer;
   Success: boolean;
   Env: TTextureEnv;
-  ModeStr, SourceStr: string;
+  ModeStr, SourceStr, FunctionStr: string;
 begin
   { calculate TexCoordsNeeded }
   TexCoordsNeeded := Min(TextureUnitsCount, TextureNode.FdTexture.Count);
@@ -883,7 +883,10 @@ begin
       if I < TextureNode.FdSource.Count then
         SourceStr := TextureNode.FdSource.Items[I] else
         SourceStr := '';
-      Env.Init(ModeStr, SourceStr);
+      if I < TextureNode.FdFunction.Count then
+        FunctionStr := TextureNode.FdFunction.Items[I] else
+        FunctionStr := '';
+      Env.Init(ModeStr, SourceStr, FunctionStr);
 
       if ChildTex is TMultiTextureNode then
         OnWarning(wtMajor, 'VRML/X3D', 'Child of MultiTexture node cannot be another MultiTexture node') else

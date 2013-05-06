@@ -40,6 +40,9 @@ type
   { OpenGL texture environment argument: none, GL_SOURCE0 or GL_SOURCE1. }
   TTextureEnvArgument = (taNone, ta0, ta1);
 
+  { Function for texture mixing, corresponds to X3D MultiTexture.function field. }
+  TTextureFunction = (tfNone, tfComplement, tfAlphaReplicate);
+
   TChannel = (cRGB, cAlpha);
   TCombinePerChannel = array [TChannel] of TGLint;
   TArgPerChannel = array [TChannel] of TTextureEnvArgument;
@@ -77,15 +80,18 @@ type
       then SourceArgument should be loaded with this color. }
     Source: TSourcePerChannel;
 
+    TextureFunction: TTextureFunction;
+
     { If, and only if, one of Combine is GL_INTERPOLATE_EXT,
       then this specifies what is the OpenGL GL_SOURCE2.
       It should be filled (both RGB and alpha) with alpha from this source. }
     InterpolateAlphaSource: TColorSource;
 
-    { Calculate values based on MultiTexture.mode, source values.
+    { Initialize based on MultiTexture.mode, MultiTexture.source,
+      MultiTexture.function values.
       This does not setup any OpenGL state, it only calculates fields
       of this object. }
-    constructor Init(const Mode, SourceStr: string);
+    constructor Init(const Mode, SourceStr, FunctionStr: string);
 
     { Calculate values based on simple OpenGL mode value. }
     constructor Init(const Mode: TGLint);
@@ -400,13 +406,32 @@ begin
   end;
 end;
 
-constructor TTextureEnv.Init(const Mode, SourceStr: string);
+{ Convert MultiTexture.function string to TTextureFunction. }
+function FunctionFromString(const S: string): TTextureFunction;
+var
+  LS: string;
+begin
+  LS := LowerCase(S);
+  if LS = '' then
+    Result := tfNone else
+  if LS = 'complement' then
+    Result := tfComplement else
+  if LS = 'alphareplicate' then
+    Result := tfAlphaReplicate else
+  begin
+    Result := tfNone;
+    OnWarning(wtMajor, 'VRML/X3D', Format('Invalid multi-texturing function "%s"', [S]));
+  end;
+end;
+
+constructor TTextureEnv.Init(const Mode, SourceStr, FunctionStr: string);
 begin
   ModeFromString(Mode, Combine, CurrentTextureArgument, SourceArgument, Scale, Disabled,
     NeedsConstantColor, InterpolateAlphaSource);
   if (SourceArgument[cRGB] <> taNone) or
      (SourceArgument[cAlpha] <> taNone) then
     SourceFromString(SourceStr, Source, NeedsConstantColor);
+  TextureFunction := FunctionFromString(FunctionStr);
 end;
 
 constructor TTextureEnv.Init(const Mode: TGLint);
@@ -423,6 +448,7 @@ begin
   InterpolateAlphaSource := csMaterial;
   Source[cRGB  ] := csMaterial;
   Source[cAlpha] := csMaterial;
+  TextureFunction := tfNone;
 end;
 
 function TTextureEnv.Hash: LongWord;
@@ -441,7 +467,8 @@ begin
     1753 * (1 + Ord(NeedsConstantColor            )) +
     1759 * (1 + Ord(Source[cRGB]                  )) +
     1777 * (1 + Ord(Source[cAlpha]                )) +
-    1783 * (1 + Ord(InterpolateAlphaSource        ));
+    1783 * (1 + Ord(InterpolateAlphaSource        )) +
+    1787 * (1 + Ord(TextureFunction               ));
 end;
 {$include norqcheckend.inc}
 
