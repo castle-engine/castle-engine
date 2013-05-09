@@ -3811,7 +3811,7 @@ const
    '                        Try to resize the screen to WIDTHxHEIGHT and' +nl+
    '                        then set initial window size to cover whole screen',
    '  --display DISPLAY-NAME' +nl+
-   '                        Use given XWindows display name.',
+   '                        Use given X display name.',
    ''
    );
 var
