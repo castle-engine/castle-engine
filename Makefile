@@ -22,14 +22,15 @@
 #     Delete FPC 1.0.x Windows trash (*.ppw, *.ow), FPC trash, Delphi trash,
 #     Lazarus trash (*.compiled),
 #     binaries of example programs,
-#     also FPC compiled trash in packages/*/lib/,
-#     and finally pasdoc generated documentation in doc/pasdoc/
+#     also FPC compiled trash in packages/*/lib/.
 #
 # Not-so-commonly-useful targets:
 #
 #   cleanmore --
-#     Same as clean + delete Emacs backup files (*~) and Delphi backup files
-#     (*.~??? (using *.~* would be too unsafe ?))
+#     Same as clean, and also delete:
+#     - Emacs backup files (*~) and
+#     - Delphi backup files (*.~???)
+#     - pasdoc generated documentation in doc/pasdoc/
 #
 #   cleanall --
 #     Same as cleanmore for now.
@@ -171,7 +172,6 @@ clean: cleanexamples
 	  tests/test_castle_game_engine tests/test_castle_game_engine.exe
 # fpmake binary, and units/ produced by fpmake compilation
 	rm -Rf fpmake fpmake.exe units/
-	$(MAKE) -C doc/pasdoc/ clean
 # lazarus produces lib/ subdirectories during compilation
 	find examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
 
@@ -181,6 +181,7 @@ cleanmore: clean
 	                   -iname '*.~???' -or \
 			   -iname '*.blend1' \
 			')' -exec rm -f '{}' ';'
+	$(MAKE) -C doc/pasdoc/ clean
 
 cleanall: cleanmore
 
