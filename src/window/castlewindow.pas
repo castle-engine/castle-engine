@@ -344,9 +344,9 @@ unit CastleWindow;
      {$endif}
      {$ifdef UNIX}
        {$ifdef DARWIN}
-         {$define CASTLE_WINDOW_LCL} // best (looks native and most functional) on Mac OS X
+         {$define CASTLE_WINDOW_XLIB} // easiest to compile
+         { $define CASTLE_WINDOW_LCL} // best (looks native and most functional) on Mac OS X, but requires LCL
          { $define CASTLE_WINDOW_GTK_2}
-         { $define CASTLE_WINDOW_XLIB}
          { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
        {$else}
          {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional) on Unix (except Mac OS X)

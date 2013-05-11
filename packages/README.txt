@@ -75,6 +75,21 @@ Mini-FAQ about these packages:
   castle_components requires (that is, automatically installs) also castle_base
   package --- that's OK.
 
+- What is alternative_castle_window_based_on_lcl?
+
+  This is an alternative version of castle_window.lpk package that
+  provides CastleWindow unit using Lazarus LCL as a backend.
+  It's useful for platforms where we don't have a better CastleWindow backend.
+
+  In practice, use this only for Mac OS X, see
+
+    http://castle-engine.sourceforge.net/macosx_requirements.php
+
+  In principle you can use this for other systems as well (Linux, Windows and such),
+  but the standard castle_window.lpk package will usually give you a better
+  CastleWindow (that uses native backend, like WinAPI or GTK directly).
+
+------------------------------------------------------------------------------
 See ../examples/lazarus/ for demo Lazarus programs using these packages.
 
 ------------------------------------------------------------------------------

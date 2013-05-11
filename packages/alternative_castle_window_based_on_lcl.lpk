@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <Package Version="4">
+    <Name Value="alternative_castle_window_based_on_lcl"/>
+    <AddToProjectUsesSection Value="True"/>
+    <Author Value="Michalis Kamburelis"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <SearchPaths>
+        <IncludeFiles Value="../src/window/unix;../src/window/windows;../src/window/gtk;../src/base;../src/window"/>
+        <OtherUnitFiles Value="../src/window;../src/window/windows;../src/window/unix"/>
+        <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+      <Parsing>
+        <SyntaxOptions>
+          <IncludeAssertionCode Value="True"/>
+          <CStyleMacros Value="True"/>
+        </SyntaxOptions>
+      </Parsing>
+      <CodeGeneration>
+        <Checks>
+          <IOChecks Value="True"/>
+          <RangeChecks Value="True"/>
+          <OverflowChecks Value="True"/>
+          <StackChecks Value="True"/>
+        </Checks>
+        <Optimizations>
+          <OptimizationLevel Value="0"/>
+        </Optimizations>
+      </CodeGeneration>
+      <Other>
+        <Verbosity>
+          <ShowNotes Value="False"/>
+          <ShowHints Value="False"/>
+        </Verbosity>
+        <CustomOptions Value="-Sh
+-dCASTLE_ENGINE_LAZARUS_PACKAGE
+-dCASTLE_WINDOW_LCL"/>
+        <CompilerPath Value="$(CompPath)"/>
+      </Other>
+    </CompilerOptions>
+    <Description Value="Castle Game Engine - CastleWindow and units using it.
+This package cannot be installed under Lazarus, it's only for being used in other programs. CastleWindow unit initializes some things inside XWindows / WinAPI that may conflict with Lazarus reserving the same resources."/>
+    <License Value="GNU GPL >= 2
+(or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
+    <Version Major="4" Release="1"/>
+    <Files Count="14">
+      <Item1>
+        <Filename Value="../src/base/castleconf.inc"/>
+        <Type Value="Include"/>
+      </Item1>
+      <Item2>
+        <Filename Value="../src/window/castlemessages.pas"/>
+        <UnitName Value="CastleMessages"/>
+      </Item2>
+      <Item3>
+        <Filename Value="../src/window/castlesoundmenu.pas"/>
+        <UnitName Value="CastleSoundMenu"/>
+      </Item3>
+      <Item4>
+        <Filename Value="../src/window/castlewindow.pas"/>
+        <UnitName Value="CastleWindow"/>
+      </Item4>
+      <Item5>
+        <Filename Value="../src/window/castlewindowmodes.pas"/>
+        <UnitName Value="CastleWindowModes"/>
+      </Item5>
+      <Item6>
+        <Filename Value="../src/window/castlewindowprogress.pas"/>
+        <UnitName Value="CastleWindowProgress"/>
+      </Item6>
+      <Item7>
+        <Filename Value="../src/window/castlewindowrecentfiles.pas"/>
+        <UnitName Value="CastleWindowRecentFiles"/>
+      </Item7>
+      <Item8>
+        <Filename Value="../src/window/unix/castleglx.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="CastleGlx"/>
+      </Item8>
+      <Item9>
+        <Filename Value="../src/window/unix/castlewindow_xf86vmode.inc"/>
+        <Type Value="Include"/>
+      </Item9>
+      <Item10>
+        <Filename Value="../src/window/unix/castlewindow_xlib.inc"/>
+        <Type Value="Include"/>
+      </Item10>
+      <Item11>
+        <Filename Value="../src/window/unix/castlexf86vmode.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="CastleXF86VMode"/>
+      </Item11>
+      <Item12>
+        <Filename Value="../src/window/unix/castlexlib.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="CastleXlib"/>
+      </Item12>
+      <Item13>
+        <Filename Value="../src/window/windows/castlewindow_winapi.inc"/>
+        <Type Value="Include"/>
+      </Item13>
+      <Item14>
+        <Filename Value="../src/window/castlewindow_lcl.inc"/>
+        <Type Value="Include"/>
+      </Item14>
+    </Files>
+    <RequiredPkgs Count="3">
+      <Item1>
+        <PackageName Value="castle_components"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="castle_base"/>
+      </Item2>
+      <Item3>
+        <PackageName Value="FCL"/>
+        <MinVersion Major="1" Valid="True"/>
+      </Item3>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+    </PublishOptions>
+    <Provides Count="1">
+      <Item1 Value="castle_window"/>
+    </Provides>
+  </Package>
+</CONFIG>
