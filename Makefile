@@ -130,6 +130,9 @@ EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES)) \
   $(addsuffix .exe,$(EXAMPLES_LAZARUS_BASE_NAMES)) \
   examples/fonts/font2pascal.exe
 
+EXAMPLES_MACOSX_APPS := $(addsuffix .app,$(EXAMPLES_BASE_NAMES)) \
+  $(addsuffix .app,$(EXAMPLES_LAZARUS_BASE_NAMES))
+
 EXAMPLES_RES_FILES := $(addsuffix .res,$(EXAMPLES_BASE_NAMES)) \
   $(addsuffix .res,$(EXAMPLES_LAZARUS_BASE_NAMES))
 
@@ -144,6 +147,7 @@ examples-ignore-errors:
 .PHONY: cleanexamples
 cleanexamples:
 	rm -f $(EXAMPLES_UNIX_EXECUTABLES) $(EXAMPLES_WINDOWS_EXECUTABLES) $(EXAMPLES_RES_FILES)
+	rm -Rf $(EXAMPLES_MACOSX_APPS)
 
 .PHONY: examples-laz
 examples-laz:
