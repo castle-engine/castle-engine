@@ -337,22 +337,20 @@ type
     property OnEmpty: TProcedure read FOnEmpty write FOnEmpty;
   end;
 
-{ Does URL extension Ext looks like a video file extension
-  that can be handled (encoded or decoded) by ffmpeg?
-
-  Ext is an extension with leading dot, just like returned
-  by ExtractFileExt.
+{ Does given MIME type looks like a video file extension
+  that can be handled (encoded or decoded) by ffmpeg.
 
   FfmpegOutput = @true means that you want to encode this video
   (use this as output of ffmpeg). FfmpegOutput = @false means you
   want to decode the video, that is use this as an input to ffmpeg. }
-function FfmpegVideoFileExtension(const Ext: string;
-  FfmpegOutput: boolean): boolean;
+function FfmpegVideoMimeType(const MimeType: string;
+  const FfmpegOutput: boolean): boolean;
 
 implementation
 
-uses CastleUtils, Math, CastleStringUtils, CastleWarnings, CastleFilesUtils,
-  CastleProgress, CastleTextureImages, CastleLog;
+uses Classes, CastleClassUtils,
+  CastleUtils, Math, CastleStringUtils, CastleWarnings, CastleFilesUtils,
+  CastleProgress, CastleTextureImages, CastleLog, CastleDownload, CastleURIUtils;
 
 { TVideo --------------------------------------------------------------------- }
 
@@ -500,15 +498,16 @@ procedure TVideo.LoadFromFile(const URL: string);
     end;
   end;
 
-  { Load a single video file from an URL.
-    We let ffmpeg handle the download from an URL, as ffmpeg already
-    handles http:// and other protocols. }
+  { Load a single video file from an URL. }
   procedure LoadFromFfmpeg(const URL: string);
   var
+    MovieFileName: string;
+    MovieFileNameTemporary: boolean;
     TemporaryImagesPrefix, FfmpegTemporaryImagesPattern, OurTemporaryImagesPattern: string;
     FileRec: TSearchRec;
     SearchError: Integer;
     Executable: string;
+    S: TStream;
   begin
     Executable := PathFileSearch(
       {$ifdef MSWINDOWS} 'ffmpeg.exe' {$endif}
@@ -542,16 +541,40 @@ procedure TVideo.LoadFromFile(const URL: string);
       FfmpegTemporaryImagesPattern := TemporaryImagesPrefix + '%d.png';
       OurTemporaryImagesPattern := TemporaryImagesPrefix + '@counter(1).png';
 
-      { ffmpeg call will output some things on stdout anyway.
-        So it's Ok that we also output something, stdout is required
-        by ffmpeg anyway... }
+      MovieFileName := URIToFilenameSafe(URL);
+      MovieFileNameTemporary := false;
 
-      Writeln(Output, 'FFMpeg found, executing...');
-      Writeln(Output, Executable + ' -i "' + URL +
-        '" -y -sameq -f image2 "' + FfmpegTemporaryImagesPattern + '"');
+      { If URL isn't a local file (maybe it's http, maybe data URI) then
+        download it ourselves to a temporary file.
 
-      ExecuteProcess(Executable,
-        [ '-i', URL, '-y', '-sameq', '-f', 'image2', FfmpegTemporaryImagesPattern ]);
+        We don't let ffmpeg to download video. Although ffmpeg can handle
+        http URLs, but then progress of download is not visible using
+        our progress (OTOH, it is streamed and converted during downloading).
+        Most important: ffmpeg can't handle data URI (we could not even
+        pass such long strings on the command-line). }
+      if MovieFileName = '' then
+      begin
+        MovieFileName := GetTempFileNameCheck;
+        MovieFileNameTemporary := true;
+        S := Download(URL);
+        try
+          StreamSaveToFile(S, MovieFileName);
+        finally FreeAndNil(S) end;
+      end;
+
+      try
+        { ffmpeg call will output some things on stdout anyway.
+          So it's Ok that we also output something, stdout is required
+          by ffmpeg anyway... }
+        Writeln(Output, 'FFMpeg found, executing...');
+        Writeln(Output, Executable + ' -i "' + MovieFileName +
+          '" -y -sameq -f image2 "' + FfmpegTemporaryImagesPattern + '"');
+        ExecuteProcess(Executable,
+          [ '-i', MovieFileName, '-y', '-sameq', '-f', 'image2', FfmpegTemporaryImagesPattern ]);
+      finally
+        if MovieFileNameTemporary then
+          CheckDeleteFile(MovieFileName, true);
+      end;
 
       LoadFromImages(OurTemporaryImagesPattern, true);
     end;
@@ -560,8 +583,7 @@ procedure TVideo.LoadFromFile(const URL: string);
 begin
   Close;
 
-  { TODO-net: file operations on URL }
-  if FfmpegVideoFileExtension(ExtractFileExt(URL), true) then
+  if FfmpegVideoMimeType(URIMimeType(URL), true) then
     LoadFromFfmpeg(URL) else
     LoadFromImages(URL, false);
 
@@ -677,7 +699,7 @@ procedure TVideo.SaveToFile(const FileName: string);
 begin
   Assert(Loaded);
 
-  if FfmpegVideoFileExtension(ExtractFileExt(FileName), false) then
+  if FfmpegVideoMimeType(URIMimeType(FilenameToURISafe(FileName)), false) then
     SaveToFfmpeg(FileName) else
     SaveToImages(FileName);
 end;
@@ -885,21 +907,22 @@ end;
 
 { non-object routines -------------------------------------------------------- }
 
-function FfmpegVideoFileExtension(const Ext: string;
-  FfmpegOutput: boolean): boolean;
+function FfmpegVideoMimeType(const MimeType: string;
+  const FfmpegOutput: boolean): boolean;
 begin
   { For now we ignore FfmpegOutput, all formats below are good
-    for both input and output. (Actually, file extension specifies only
-    "container" data type, not actual encoding, so there's no guarentee,
-    but potentially it's all possible.) See "ffmpeg -formats". }
+    for both input and output. (Actually, MIME (always from file extension now)
+    specifies only  "container" data type, not actual encoding,
+    so there's no guarentee, but potentially it's all possible.)
+    See "ffmpeg -formats". }
   Result :=
-    SameText(Ext, '.avi') or
-    SameText(Ext, '.mpg') or
-    SameText(Ext, '.dvd') or
-    SameText(Ext, '.ogg') or
-    SameText(Ext, '.mov') or
-    SameText(Ext, '.flv') or
-    SameText(Ext, '.swf');
+    (MimeType = 'video/x-msvideo') or
+    (MimeType = 'video/mpeg') or
+    (MimeType = 'video/ogg') or
+    (MimeType = 'video/quicktime') or
+    (MimeType = 'video/x-flv') or
+    (MimeType = 'application/x-shockwave-flash') or
+    (MimeType = 'video/mp4');
 end;
 
 end.
