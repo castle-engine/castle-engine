@@ -245,6 +245,14 @@ function StreamToString(Stream: TStream): string;
 
 procedure StreamSaveToFile(Stream: TStream; const FileName: string);
 
+{ Set contents of TMemoryStream to given string.
+  If Rewind then the position is reset to the beginning,
+  otherwise it stays at the end. }
+procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
+  const S: string; const Rewind: boolean = true);
+function MemoryStreamLoadFromString(
+  const S: string; const Rewind: boolean = true): TMemoryStream;
+
 type
   { Simple file mapped into the memory. This is a TMemoryStream descendant
     that at construction loads it's contents from file,
@@ -1008,6 +1016,25 @@ begin
       S.free;
     end;
   finally FreeMem(Buffer) end;
+end;
+
+procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
+  const S: string; const Rewind: boolean);
+begin
+  Stream.Size := Length(S);
+  if S <> '' then
+  begin
+    Stream.WriteBuffer(S[1], Length(S));
+    if Rewind then Stream.Position := 0;
+  end;
+end;
+
+function MemoryStreamLoadFromString(const S: string; const Rewind: boolean): TMemoryStream;
+begin
+  Result := TMemoryStream.Create;
+  try
+    MemoryStreamLoadFromString(Result, S, Rewind);
+  except FreeAndNil(Result); raise end;
 end;
 
 { TMemoryFileStream ------------------------------------------------------- }

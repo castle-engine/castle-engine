@@ -226,16 +226,7 @@ begin
     begin
       Contents := SEnding(URI, StreamBegin);
 
-      { create TMemoryStream filled with Contents }
-      MemStream := TMemoryStream.Create;
-      try
-        MemStream.Size := Length(Contents);
-        if Contents <> '' then
-        begin
-          MemStream.WriteBuffer(Contents[1], Length(Contents));
-          MemStream.Position := 0;
-        end;
-      except FreeAndNil(MemStream); raise end;
+      MemStream := MemoryStreamLoadFromString(Contents);
 
       if Base64 then
       begin

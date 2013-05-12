@@ -22,7 +22,6 @@
     FInitialized: boolean;
     procedure SetInitialized(const Value: boolean);
   private
-    FInitializedFullUrl: string;
     FInitializedScriptType: TScriptType;
 
     CompiledScriptContents: TStringList;
@@ -233,76 +232,66 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
 
   function LoadUrl(Url: string; var FailedUrlsLog: string): boolean;
   var
-    Protocol, PotentialFullUrl, ScriptContents: string;
+    ScriptContents, MimeType: string;
+    ScriptContentsStream: TStream;
   begin
     Result := false;
-    Protocol := URIProtocol(Url);
-
-    if Protocol = 'compiled' then
-    begin
-      FreeAndNil(CompiledScriptContents);
-      CompiledScriptContents := TStringList.Create;
-      CompiledScriptContents.Text := URIDeleteProtocol(Url);
-
-      Result := true;
-      FInitializedScriptType := stCompiled;
-      FInitializedFullUrl := Url;
-    end else
-
-    if (Protocol = 'castlescript') or
-       (Protocol = 'kambiscript') then
-    begin
+    try
+      ScriptContentsStream := Download(URL, [], MimeType);
       try
-        CastleScriptInitialize(URIDeleteProtocol(Url));
 
-        Result := true;
-        FInitializedScriptType := stCastleScript;
-        FInitializedFullUrl := Url;
-      except
-        { This catches exceptions from CastleScriptInitialize }
-        on E: ECasScriptSyntaxError do
-          OnWarning(wtMajor, 'VRML/X3D', Format(
-            'Exception %s when parsing CastleScript: %s',
-              [E.ClassName, E.Message ]));
-      end;
-    end else
-
-    { TODO: treating URL with filename function }
-    if (SameText(ExtractFileExt(Url), '.castlescript') or
-        SameText(ExtractFileExt(Url), '.kscript') ) then
-    begin
-      PotentialFullUrl := PathFromBaseUrl(Url);
-      try
-        ScriptContents := FileToString(PotentialFullUrl);
-
-        CastleScriptInitialize(ScriptContents);
-
-        Result := true;
-        FInitializedScriptType := stCastleScript;
-        FInitializedFullUrl := PotentialFullUrl;
-      except
-        { This catches exceptions from FileToString,
-          and exceptions from CastleScriptInitialize
-          (ECasScriptSyntaxError only). }
-        on E: Exception do
+        if (MimeType = 'application/javascript') or // MIME official in RFC
+           (MimeType = 'text/javascript') or // MIME common in HTML
+           (MimeType = 'application/x-javascript') or // MIME  commonly returned by http servers
+           (MimeType = 'text/ecmascript') or // MIME suggested by SVG
+           (MimeType = 'text/plain') then // MIME accepted just in case, discouraged
+           { see about MIMEs:
+             http://stackoverflow.com/questions/189850/what-is-the-javascript-mime-type-what-belongs-in-the-type-attribute-of-a-script
+             http://annevankesteren.nl/2005/02/javascript-mime-type }
+        begin
           OnWarning(wtMinor, 'VRML/X3D', Format(
-            'Exception %s when loading Script from URL "%s": %s',
-              [E.ClassName, URIDisplay(PotentialFullUrl), E.Message ]));
-      end;
-    end else
+            'ECMAScript is not yet implemented, ignoring URL "%s"',
+            [URIDisplay(URL)]));
+        end else
 
-    begin
-      if FailedUrlsLog <> '' then
-        FailedUrlsLog += ', ';
-      FailedUrlsLog += Format('URL "%s" not handled', [URIDisplay(Url)]);
+        if MimeType = 'text/x-castlescript' then
+        begin
+          ScriptContents := ReadGrowingStreamToString(ScriptContentsStream);
+          CastleScriptInitialize(ScriptContents);
+
+          Result := true;
+          FInitializedScriptType := stCastleScript;
+        end else
+
+        if MimeType = 'text/x-castle-compiled' then
+        begin
+          ScriptContents := ReadGrowingStreamToString(ScriptContentsStream);
+
+          FreeAndNil(CompiledScriptContents);
+          CompiledScriptContents := TStringList.Create;
+          CompiledScriptContents.Text := URIDeleteProtocol(Url);
+
+          Result := true;
+          FInitializedScriptType := stCompiled;
+        end else
+
+        begin
+          OnWarning(wtMinor, 'VRML/X3D', Format(
+            'Script MIME type not recognized in URL "%s": %s',
+            [URIDisplay(URL), MimeType]));
+        end;
+
+      finally FreeAndNil(ScriptContentsStream) end;
+    except
+      { Catch exceptions from Download and CastleScriptInitialize }
+      on E: Exception do
+        OnWarning(wtMinor, 'VRML/X3D', Format(
+          'Exception %s when loading Script from URL "%s": %s',
+            [E.ClassName, URIDisplay(URL), E.Message ]));
     end;
 
     if Result and Log then
-    begin
-      if Protocol <> '' then
-        WritelnLog('Script', Format('Loaded from protocol "%s"', [Protocol])) else
-        WritelnLog('Script', Format('Loaded from URL "%s"', [Url]));
-    end;
+      WritelnLog('Script', Format('Loaded from URL "%s"', [URIDisplay(URL)]));
   end;
 
 var
@@ -319,7 +308,7 @@ begin
 
       for I := 0 to FdUrl.Items.Count - 1 do
       begin
-        if LoadUrl(FdUrl.Items[I], FailedUrlsLog) then
+        if LoadUrl(PathFromBaseUrl(FdUrl.Items[I]), FailedUrlsLog) then
         begin
           ValidUrlFound := true;
           Break;

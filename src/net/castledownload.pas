@@ -75,6 +75,14 @@ type
   TODO: right now, doGunzip is ignored for data URIs, we never filter them
   through gunzip.
 
+  It also automatically supports protocols to embed script contents:
+  ecmascript, javascript (see VRML and X3D specifications),
+  castlescript, kambiscript (see http://castle-engine.sourceforge.net/castle_script.php),
+  compiled (http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_script_compiled).
+  The MIME type for these is implied by the protocol (like "application/javascript"
+  for ecmascript/javascript), and the returned stream simply contains
+  script code.
+
   Set EnableNetwork to @true to have also support for network protocols.
   Right now this means only http, handled by FpHttpClient.
   The MIME type for such content is usually reported by the http server
@@ -378,6 +386,29 @@ begin
       MimeType := DataURI.MimeType;
       Assert(Result <> nil, 'DataURI.ExtractStream must be non-nil when DataURI.Valid is true');
     finally FreeAndNil(DataURI) end;
+  end else
+
+  if (P = 'ecmascript') or
+     (P = 'javascript') then
+  begin
+    { This ignores doGunzip in Options, as it's not used by anything. }
+    MimeType := 'application/javascript';
+    Result := MemoryStreamLoadFromString(URIDeleteProtocol(URL));
+  end else
+
+  if (P = 'castlescript') or
+     (P = 'kambiscript') then
+  begin
+    { This ignores doGunzip in Options, as it's not used by anything. }
+    MimeType := 'text/x-castlescript';
+    Result := MemoryStreamLoadFromString(URIDeleteProtocol(URL));
+  end else
+
+  if P = 'compiled' then
+  begin
+    { This ignores doGunzip in Options, as it's not used by anything. }
+    MimeType := 'text/x-castle-compiled';
+    Result := MemoryStreamLoadFromString(URIDeleteProtocol(URL));
   end else
 
   begin

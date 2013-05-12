@@ -585,7 +585,9 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.tar' then Result := 'application/x-tar' else
     // Various
     if Ext = '.xml' then Result := 'application/xml' else
-    if Ext = '.swf' then Result := 'application/x-shockwave-flash' else
+    if Ext = '.castlescript' then Result := 'text/x-castlescript' else
+    if Ext = '.kscript'      then Result := 'text/x-castlescript' else
+    if Ext = '.js' then Result := 'application/javascript' else
       { as a last resort, check ImageFormatInfos extensions }
       Result := ImageExtToMimeType(Ext);
   end;
@@ -599,6 +601,15 @@ begin
 
   P := LowerCase(URIProtocol(URI));
 
+  if (P = '') or
+     (P = 'file') or
+     (P = 'http') or
+     (P = 'ftp') or
+     (P = 'https') then
+    { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,
+      although they should be used for filenames. }
+    Result := ExtToMimeType(ExtractFileExt(URI), ExtractFileDoubleExt(URI)) else
+
   if P = 'data' then
   begin
     DataURI := TDataURI.Create;
@@ -608,14 +619,15 @@ begin
     finally FreeAndNil(DataURI) end;
   end else
 
-  if (P = '') or
-     (P = 'file') or
-     (P = 'http') or
-     (P = 'ftp') or
-     (P = 'https') then
-    { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,
-      although they should be used for filenames. }
-    Result := ExtToMimeType(ExtractFileExt(URI), ExtractFileDoubleExt(URI));
+  { Special script protocols always imply a specific MIME type. }
+  if (P = 'ecmascript') or
+     (P = 'javascript') then
+    Result := 'application/javascript' else
+  if (P = 'castlescript') or
+     (P = 'kambiscript') then
+    Result := 'text/x-castlescript' else
+  if P = 'compiled' then
+    Result := 'text/x-castle-compiled';
 end;
 
 function URIMimeType(const URI: string): string;
