@@ -83,13 +83,15 @@ begin
  Result:=
    '  --detail-quadric-slices VALUE ,' +nl+
    '  --detail-quadric-stacks VALUE' +nl+
-   '                        Adjust triangulation quality. Slices and stacks' +nl+
+   '                        Adjust triangulation quality of quadrics.' +NL+
+   '                        Slices and stacks' +nl+
    '                        adjust the triangulation of Spheres, Cones and' +nl+
    '                        Cylinders (like slices of a pizza and stacks of' +nl+
-   '                        a tower).' +nl+
+   '                        a tower). Deprecated, consider' +nl+
+   '                        using KambiTriangulation node in your scene instead.' +nl+
    '  --detail-rect-divisions VALUE' +nl+
-   '                        Adjust triangulation quality. Rectangle divisions' +nl+
-   '                        adjust the triangulation of Cubes.';
+   '                        Adjust triangulation quality of boxes. Deprecated, consider' +nl+
+   '                        using KambiTriangulation node in your scene instead.';
 end;
 
 end.

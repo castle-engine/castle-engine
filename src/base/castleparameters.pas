@@ -318,9 +318,9 @@ const
   );
 
   HelpOptionHelp =
-    '  -h / --help           Print this help message and exit';
+    '  -h / --help           Print this help message and exit.';
   VersionOptionHelp =
-    '  -v / --version        Print the version number and exit';
+    '  -v / --version        Print the version number and exit.';
 
 var
   { Command-line parameters. Initialized from standard
