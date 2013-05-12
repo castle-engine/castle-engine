@@ -741,7 +741,7 @@ begin
   FileName := Path + Name;
   if FileExists(FileName) then
     if URLs then
-      HandleFile(FilenameToURISafe(ExpandFileName(FileName))) else
+      HandleFile(FilenameToURISafe(FileName)) else
       HandleFile(FileName);
 
   if FindFirst(Path + '*', faDirectory, F) = 0 then

@@ -3503,7 +3503,7 @@ begin
   FileName := URIToFilenameSafe(URL);
   Result := FileDialog(Title, FileName, OpenDialog, FileFilters);
   if Result then
-    URL := FilenameToURISafe(ExpandFileName(FileName));
+    URL := FilenameToURISafe(FileName);
 end;
 
 function TCastleWindowBase.URLDialog(const Title: string; var URL: string;

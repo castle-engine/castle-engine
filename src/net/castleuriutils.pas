@@ -120,8 +120,12 @@ function URIToFilenameSafe(const URI: string): string;
   percent-encodes the parameter, making it truly a reverse of
   URIToFilenameSafe. In FPC > 2.6.2 URIParser.FilenameToURI will also
   do this (after Michalis' patch, see
-  http://svn.freepascal.org/cgi-bin/viewvc.cgi?view=revision&revision=24321 ). }
-function FilenameToURISafe(const FileName: string): string;
+  http://svn.freepascal.org/cgi-bin/viewvc.cgi?view=revision&revision=24321 ).
+
+  It also makes sure the filename is absolute (it uses ExpandFileName,
+  so if the FileName is relative --- it will be expanded, treating it
+  as relative to the current directory). }
+function FilenameToURISafe(FileName: string): string;
 
 { Get MIME type for content of the URI @italic(without downloading the file).
   For local and remote files (file, http, and similar protocols)
@@ -355,7 +359,7 @@ end;
 function AbsoluteURI(const URI: string): string;
 begin
   if URIProtocol(URI) = '' then
-    Result := FilenameToURISafe(ExpandFileName(URI)) else
+    Result := FilenameToURISafe(URI) else
     Result := URI;
 end;
 
@@ -376,12 +380,15 @@ begin
     Result := '';
 end;
 
-function FilenameToURISafe(const FileName: string): string;
+function FilenameToURISafe(FileName: string): string;
 
 { Code adjusted from FPC FilenameToURI (same license as our engine,
   so it's Ok to share code). Adjusted to call Escape on FileName.
   See http://bugs.freepascal.org/view.php?id=24324 : FPC FilenameToURI
-  should be fixed in the future to follow this. }
+  should be fixed in the future to follow this.
+
+  We also make sure to call ExpandFileName,
+  and so we don't need checks for IsAbsFilename. }
 
 const
   SubDelims = ['!', '$', '&', '''', '(', ')', '*', '+', ',', ';', '='];
@@ -422,20 +429,16 @@ const
 
 var
   I: Integer;
-  IsAbsFilename: Boolean;
   FilenamePart: string;
 begin
-  IsAbsFilename := ((Filename <> '') and (Filename[1] = PathDelim)) or
-    ((Length(Filename) > 2) and (Filename[1] in ['A'..'Z', 'a'..'z']) and (Filename[2] = ':'));
+  FileName := ExpandFileName(FileName);
 
   Result := 'file:';
-  if IsAbsFilename then
-  begin
-    if Filename[1] <> PathDelim then
-      Result := Result + '///'
-    else
-      Result := Result + '//';
-  end;
+
+  if Filename[1] <> PathDelim then
+    Result := Result + '///'
+  else
+    Result := Result + '//';
 
   FilenamePart := Filename;
   { unreachable code warning is ok here }
@@ -541,8 +544,13 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.mp4' then Result := 'video/mp4' else
     if Ext = '.avi' then Result := 'video/x-msvideo' else
     if Ext = '.mpeg' then Result := 'video/mpeg' else
-    if Ext = '.mpg' then Result := 'video/mpeg' else
+    if Ext = '.mpg'  then Result := 'video/mpeg' else
+    if Ext = '.mpe'  then Result := 'video/mpeg' else
+    if Ext = '.ogv'  then Result := 'video/ogg' else
     if Ext = '.mov' then Result := 'video/quicktime' else
+    if Ext = '.flv' then Result := 'video/x-flv' else
+    if Ext = '.swf'  then Result := 'application/x-shockwave-flash' else
+    if Ext = '.swfl' then Result := 'application/x-shockwave-flash' else
     // Sounds
     if Ext = '.mp3' then Result := 'audio/mpeg' else
     if Ext = '.ogg' then Result := 'audio/ogg' else
