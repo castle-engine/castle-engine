@@ -2711,6 +2711,9 @@ end;
 
 { $define DEBUG_CACHE}
 
+var
+  CurrentlyLoading: TCastleStringList;
+
 constructor TX3DNodesCache.Create;
 begin
   inherited;
@@ -2730,7 +2733,7 @@ end;
 
 function TX3DNodesCache.Load3D(const URL: string): TX3DRootNode;
 var
-  I: Integer;
+  I, Index: Integer;
   C: TCachedNode;
 begin
   for I := 0 to CachedNodes.Count - 1 do
@@ -2748,12 +2751,26 @@ begin
     end;
   end;
 
+  { Add URL to CurrentlyLoading, detecting an infinite loop,
+    see https://sourceforge.net/p/castle-engine/tickets/11/ }
+  if CurrentlyLoading.IndexOf(URL) <> -1 then
+  begin
+    raise EX3DError.CreateFmt('3D model references itself (through EXTERNPROTO or Inline), cannot load: %s',
+      [URL]);
+  end;
+  CurrentlyLoading.Add(URL);
+
   { Initialize Result first, before calling CachedNodes.Add.
     That's because in case Load3D raises exception,
     we don't want to add image to cache (because caller would have
     no way to call Free3D later). }
 
   Result := X3DLoad.Load3D(URL, false);
+
+  { Remove URL from CurrentlyLoading }
+  Index := CurrentlyLoading.IndexOf(URL);
+  Assert(Index <> -1);
+  CurrentlyLoading.Delete(Index);
 
   C := TCachedNode.Create;
   CachedNodes.Add(C);
@@ -5880,6 +5897,8 @@ begin
 
   FreeAndNil(NodesManager);
   FreeAndNil(AnyNodeDestructionNotifications);
+
+  FreeAndNil(CurrentlyLoading);
 end;
 
 initialization
@@ -5937,6 +5956,8 @@ initialization
   X3DCache := TX3DNodesCache.Create;
   TraverseState_CreateNodes(StateDefaultNodes);
   TraverseSingleStack := TX3DGraphTraverseStateStack.Create;
+
+  CurrentlyLoading := TCastleStringList.Create;
 finalization
   { Because of various finalization order (some stuff may be owned
     e.g. by CastleWindow.Application, and freed at CastleWindow finalization,
