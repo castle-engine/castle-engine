@@ -2,7 +2,7 @@
   This can be used to compile (and install if you want)
   all engine units. Simple instructions:
 
-  export FPCDIR=..../lib/fpc/2.6.0/  # not needed if FPC installed in stands location
+  export FPCDIR=..../lib/fpc/2.6.2/  # not needed if FPC installed in standard location
   fpc fpmake.pp
   ./fpmake compile  # use -v to get more info
   ./fpmake install  # use -v to get more info
