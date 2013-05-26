@@ -71,7 +71,7 @@ procedure Save3D(Node: TX3DNode;
   Version: TX3DVersion; const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload;
 procedure Save3D(Node: TX3DNode;
-  const Filename, Generator, Source: string;
+  const URL, Generator, Source: string;
   const Version: TX3DVersion; const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload;
 procedure Save3D(Node: TX3DNode;
@@ -79,7 +79,7 @@ procedure Save3D(Node: TX3DNode;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload;
 procedure Save3D(Node: TX3DNode;
-  const Filename, Generator, Source: string;
+  const URL, Generator, Source: string;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload;
 { @groupEnd }
@@ -444,13 +444,13 @@ begin
 end;
 
 procedure Save3D(Node: TX3DNode;
-  const Filename, Generator, Source: string; const Version: TX3DVersion;
+  const URL, Generator, Source: string; const Version: TX3DVersion;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean);
 var
-  Stream: TFileStream;
+  Stream: TStream;
 begin
-  Stream := TFileStream.Create(Filename, fmCreate);
+  Stream := URISaveStream(URL);
   try
     Save3D(Node, Stream, Generator, Source, Version,
       Encoding, ForceConvertingToX3D);
@@ -467,11 +467,11 @@ begin
 end;
 
 procedure Save3D(Node: TX3DNode;
-  const FileName, Generator, Source: string;
+  const URL, Generator, Source: string;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean);
 begin
-  Save3D(Node, FileName, Generator, Source, Save3DVersion(Node),
+  Save3D(Node, URL, Generator, Source, Save3DVersion(Node),
     Encoding, ForceConvertingToX3D);
 end;
 

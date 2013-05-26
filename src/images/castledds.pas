@@ -128,7 +128,7 @@ type
     procedure LoadFromFile(const URL: string);
 
     procedure SaveToStream(Stream: TStream);
-    procedure SaveToFile(const FileName: string);
+    procedure SaveToFile(const URL: string);
 
     { Close all loaded image data. Effectively, this releases all data
       loaded by LoadFromStream, reverting the object to the state right
@@ -180,6 +180,10 @@ type
       @raises(ECannotDecompressS3TC If some S3TC image cannot be decompressed
         for whatever reason.) }
     procedure DecompressS3TC;
+
+    { Does this URL look like it contains DDS contents. Guesses looking
+      at filename extension. }
+    class function MatchesURL(const URL: string): boolean;
   end;
 
 const
@@ -191,7 +195,7 @@ const
 implementation
 
 uses SysUtils, CastleUtils, CastleClassUtils, CastleWarnings, CastleStringUtils,
-  CastleVectors, CastleDownload;
+  CastleVectors, CastleDownload, CastleURIUtils;
 
 { ----------------------------------------------------------------------------
   Constants and types for DDS file handling.
@@ -1351,14 +1355,24 @@ begin
   WriteImages;
 end;
 
-procedure TDDSImage.SaveToFile(const FileName: string);
+procedure TDDSImage.SaveToFile(const URL: string);
 var
   S: TStream;
 begin
-  S := TFileStream.Create(FileName, fmCreate);
+  S := URISaveStream(URL);
   try
     SaveToStream(S);
   finally FreeAndNil(S) end;
+end;
+
+class function TDDSImage.MatchesURL(const URL: string): boolean;
+var
+  ImageFormat: TImageFormat;
+  MimeType: string;
+begin
+  MimeType := URIMimeType(URL);
+  Result := MimeTypeToImageFormat(MimeType, false, false, ImageFormat) and
+    (ImageFormat = ifDDS);
 end;
 
 procedure TDDSImage.Flatten3d;

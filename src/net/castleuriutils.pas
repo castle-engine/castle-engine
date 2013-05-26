@@ -18,6 +18,8 @@ unit CastleURIUtils;
 
 interface
 
+uses Classes;
+
 { Extracts #anchor from URI. On input, URI contains full URI.
   On output, Anchor is removed from URI and saved in Anchor.
   If no #anchor existed, Anchor is set to ''. }
@@ -159,6 +161,21 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
   It is safe to use this on both absolute and relative URLs.
   It does not resolve relative URLs in any way. }
 function URIDisplay(const URI: string): string;
+
+{ Create a stream to save a given URI, for example create a TFileStream
+  to save a file for a @code(file) URI.
+  Right now, this only works for @code(file) URIs, and the only advantage
+  it has over manually creating TFileStream is that this accepts URIs. }
+function URISaveStream(const URI: string): TStream;
+
+{ Change extension of the URL. }
+function ChangeURIExt(const URL, Extension: string): string;
+
+{ Extract filename (last part after slash) from URL. }
+function ExtractURIName(const URL: string): string;
+
+{ Extract path (everything before last part), including final slash, from URL. }
+function ExtractURIPath(const URL: string): string;
 
 implementation
 
@@ -662,6 +679,38 @@ begin
       Result := Copy(Result, 1, NewLinePos - 1) + '...';
     end;
   end;
+end;
+
+function URISaveStream(const URI: string): TStream;
+var
+  P, FileName: string;
+begin
+  P := URIProtocol(URI);
+  if P = '' then
+    FileName := URI else
+  if P = 'file' then
+  begin
+    FileName := URIToFilenameSafe(URI);
+    if FileName = '' then
+      raise Exception.CreateFmt('Cannot convert URI to a filename: "%s"', [URI]);
+  end else
+    raise Exception.CreateFmt('Saving of URI with protocol "%s" not possible', [P]);
+  Result := TFileStream.Create(Filename, fmCreate);
+end;
+
+function ChangeURIExt(const URL, Extension: string): string;
+begin
+  Result := ChangeFileExt(URL, Extension);
+end;
+
+function ExtractURIName(const URL: string): string;
+begin
+  Result := ExtractFileName(URL);
+end;
+
+function ExtractURIPath(const URL: string): string;
+begin
+  Result := ExtractFilePath(URL);
 end;
 
 end.

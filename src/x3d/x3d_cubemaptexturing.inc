@@ -362,8 +362,7 @@ begin
     begin
       FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
 
-      if FileExtToImageFormatDef(ExtractFileExt(FullUrl),
-        false, false, ifBMP) <> ifDDS then
+      if not TDDSImage.MatchesURL(FullUrl) then
       begin
         OnWarning(wtMinor, 'VRML/X3D', Format('Only DDS format is supported for ImageCubeMapTexture node, but URL is "%s"', [FullUrl]));
         Continue;

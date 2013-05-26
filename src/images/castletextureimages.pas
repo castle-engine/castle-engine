@@ -147,13 +147,11 @@ type
 
 implementation
 
-uses SysUtils, CastleStringUtils, CastleLog;
+uses SysUtils, CastleStringUtils, CastleLog, CastleURIUtils;
 
 function LoadTextureImage(const URL: string; out DDS: TDDSImage): TEncodedImage;
 begin
-  { TODO-net: using ExtractFileExt on URL }
-  if FileExtToImageFormatDef(ExtractFileExt(URL),
-    false, false, ifBMP) <> ifDDS then
+  if not TDDSImage.MatchesURL(URL) then
   begin
     Result := LoadImage(URL, TextureImageClasses);
     DDS := nil;

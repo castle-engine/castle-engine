@@ -1438,34 +1438,10 @@ const
       Save: nil; SavedClasses: scRGB; )
   );
 
-  DefaultSaveImageFormat: TImageFormat = ifBMP;
-
-{ Find image file format with given file extension.
-  FileExt may, but doesn't have to, contain the leading dot.
-  Returns @false if no format matching given extension. }
-function FileExtToImageFormat(FileExt: string;
-  const OnlyLoadable, OnlySaveable: boolean; out ImgFormat: TImageFormat): boolean;
-
 { Find image file format with given MIME type.
   Returns @false if no format matching given MIME type. }
 function MimeTypeToImageFormat(const MimeType: string;
   const OnlyLoadable, OnlySaveable: boolean; out ImgFormat: TImageFormat): boolean;
-
-{ Find image file format with given file extension, return default
-  format if not found.
-  Like FileExtToImageFormat, but returns DefFormat if no matching format found. }
-function FileExtToImageFormatDef(const FileExt: string;
-  const OnlyLoadable, OnlySaveable: boolean; DefFormat: TImageFormat): TImageFormat;
-
-{ Check do we handle image file format with given file extension.
-  Like FileExtToImageFormat, except here we just check if the file extension
-  is a handled format --- we are not interested in actual TImageFormat value. }
-function IsFileExtToImageFormat(const FileExt: string;
-  const OnlyLoadable, OnlySaveable: boolean): boolean;
-
-{ Check do we handle loading image file format with given file extension.
-  Like IsFileExtToImageFormat, with OnlyLoadable = @true, OnlySaveable = @false. }
-function IsFileExtLoadableImage(const FileExt: string): boolean;
 
 { List available image file formats.
 
@@ -1584,9 +1560,11 @@ type
   { }
   EImageSaveError = class(Exception);
 
-{ Save image to a file.
+{ Save image to a file. Takes URL as parameter, you can give @code(file) URL
+  or just a normal filename.
 
-  File format is determined by given FileName, filename extension (TypeExt)
+  File format is determined by looking at URL (guessing MIME type using
+  URIMimeType), or given explicitly as MimeType,
   or just given explicitly as Format parameter.
 
   Image class does @bold(not)
@@ -1614,8 +1592,8 @@ type
 
   @groupBegin }
 procedure SaveImage(const img: TCastleImage; const Format: TImageFormat; Stream: TStream); overload;
-procedure SaveImage(const img: TCastleImage; const typeext: string; Stream: TStream); overload;
-procedure SaveImage(const Img: TCastleImage; const fname: string); overload;
+procedure SaveImage(const img: TCastleImage; const MimeType: string; Stream: TStream); overload;
+procedure SaveImage(const Img: TCastleImage; const URL: string); overload;
 { @groupEnd }
 
 { Other TCastleImage processing ---------------------------------------------------- }
@@ -1631,11 +1609,11 @@ procedure ImageAlphaConstTo1st(var Img: TCastleImage; const AlphaConst: byte);
   chooses TRGBImage for anything else.
 
   For the overloaded version with FileName, file format is determined
-  by FileName extension.
+  by guessing based on file extension.
 
   @groupBegin }
-function ImageClassBestForSavingToFormat(ImgFormat: TImageFormat): TCastleImageClass; overload;
-function ImageClassBestForSavingToFormat(const FileName: string): TCastleImageClass; overload;
+function ImageClassBestForSavingToFormat(const Format: TImageFormat): TCastleImageClass; overload;
+function ImageClassBestForSavingToFormat(const URL: string): TCastleImageClass; overload;
 { @groupEnd }
 
 var
@@ -3326,29 +3304,6 @@ end;
 
 { file formats managing ---------------------------------------------------------------- }
 
-function FileExtToImageFormat(FileExt: string;
-  const OnlyLoadable, OnlySaveable: boolean; out ImgFormat: TImageFormat): boolean;
-var
-  iff: TImageFormat;
-  i: integer;
-begin
-  if SCharIs(FileExt, 1, '.') then Delete(FileExt, 1, 1);
-  FileExt := AnsiLowerCase(FileExt);
-  for iff := Low(iff) to High(iff) do
-  begin
-    if ((not OnlyLoadable) or Assigned(ImageFormatInfos[iff].Load)) and
-       ((not OnlySaveable) or Assigned(ImageFormatInfos[iff].Save)) then
-    for i := 1 to ImageFormatInfos[iff].extsCount do
-      if FileExt = ImageFormatInfos[iff].exts[i] then
-      begin
-        ImgFormat := iff;
-        result := true;
-        exit;
-      end;
-  end;
-  result := false;
-end;
-
 function MimeTypeToImageFormat(const MimeType: string;
   const OnlyLoadable, OnlySaveable: boolean; out ImgFormat: TImageFormat): boolean;
 var
@@ -3367,26 +3322,6 @@ begin
       end;
   end;
   Result := false;
-end;
-
-function FileExtToImageFormatDef(const FileExt: string;
-  const OnlyLoadable, OnlySaveable: boolean; DefFormat: TImageFormat): TImageFormat;
-begin
-  if not FileExtToImageFormat(FileExt, OnlyLoadable, OnlySaveable, result) then
-    result := DefFormat;
-end;
-
-function IsFileExtToImageFormat(const FileExt: string;
-  const OnlyLoadable, OnlySaveable: boolean): boolean;
-var
-  dummy: TImageFormat;
-begin
-  result := FileExtToImageFormat(FileExt, OnlyLoadable, OnlySaveable, dummy);
-end;
-
-function IsFileExtLoadableImage(const FileExt: string): boolean;
-begin
-  result := IsFileExtToImageFormat(FileExt, true, false);
 end;
 
 function ListImageExtsLong(OnlyLoadable, OnlySaveable: boolean; const LinePrefix: string): string;
@@ -3668,20 +3603,33 @@ begin
     raise EImageSaveError.CreateFmt('Saving image class %s not implemented', [Img.ClassName]);
 end;
 
-procedure SaveImage(const img: TCastleImage; const typeext: string; Stream: TStream);
+procedure SaveImage(const img: TCastleImage; const MimeType: string; Stream: TStream);
+var
+  Format: TImageFormat;
 begin
-  SaveImage(Img, FileExtToImageFormatDef(
-    typeext, false, true, DefaultSaveImageFormat), Stream);
+  if not MimeTypeToImageFormat(MimeType, false, true, Format) then
+    raise EImageSaveError.CreateFmt('Unknown image MIME type "%s", cannot save. Make sure the filename/URL you want to save has one of the recognized extensions',
+      [MimeType]);
+  SaveImage(Img, Format, Stream);
 end;
 
-procedure SaveImage(const Img: TCastleImage; const fname: string);
+procedure SaveImage(const Img: TCastleImage; const URL: string);
 var
-  f: TFileStream;
+  Stream: TStream;
+  Format: TImageFormat;
+  MimeType: string;
 begin
-  f := TFileStream.Create(fname, fmCreate);
+  { Do not call SaveImage with MimeType: string parameter, instead calculate
+    Format here. This way we can make better error messaage. }
+  MimeType := URIMimeType(URL);
+  if not MimeTypeToImageFormat(MimeType, false, true, Format) then
+    raise EImageSaveError.CreateFmt('Unknown image MIME type "%s", cannot save URL "%s". Make sure the filename/URL you want to save has one of the recognized extensions',
+      [MimeType, URL]);
+
+  Stream := URISaveStream(URL);
   try
-    SaveImage(img, ExtractFileExt(fname), f);
-  finally f.Free end;
+    SaveImage(Img, Format, Stream);
+  finally FreeAndNil(Stream) end;
 end;
 
 { other image processing ------------------------------------------- }
@@ -3709,16 +3657,18 @@ begin
       'ImageAlphaConstTo1st not possible for this TCastleImage descendant: ' + Img.ClassName);
 end;
 
-function ImageClassBestForSavingToFormat(const FileName: string): TCastleImageClass;
+function ImageClassBestForSavingToFormat(const URL: string): TCastleImageClass;
+var
+  Format: TImageFormat;
 begin
-  Result := ImageClassBestForSavingToFormat(
-    FileExtToImageFormatDef(ExtractFileExt(Filename), false, true,
-      DefaultSaveImageFormat));
+  if not MimeTypeToImageFormat(URIMimeType(URL), false, true, Format) then
+    Exit(TRGBImage);
+  Result := ImageClassBestForSavingToFormat(Format);
 end;
 
-function ImageClassBestForSavingToFormat(ImgFormat: TImageFormat): TCastleImageClass;
+function ImageClassBestForSavingToFormat(const Format: TImageFormat): TCastleImageClass;
 begin
-  if ImgFormat = ifRGBE then
+  if Format = ifRGBE then
     Result := TRGBFloatImage else
     Result := TRGBImage;
 end;
