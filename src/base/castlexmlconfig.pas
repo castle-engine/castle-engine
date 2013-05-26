@@ -384,8 +384,10 @@ begin
   FileName := F;
   OnLoad.ExecuteAll(Self);
 
+  { This is used for various files (not just user preferences,
+    also resource.xml files), and logging this gets too talkative for now.
   if Log then
-    WritelnLog('Config', 'Loading configuration from "%s"', [AURL]);
+    WritelnLog('Config', 'Loading configuration from "%s"', [AURL]); }
 end;
 
 procedure TCastleConfig.Load;
