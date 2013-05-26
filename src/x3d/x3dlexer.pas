@@ -167,8 +167,6 @@ type
       @raises(EX3DGzipCompressed If the Stream starts with gzip file header.) }
     constructor Create(AStream: TPeekCharStream; AOwnsStream: boolean);
 
-    constructor CreateFromFile(const FileName: string);
-
     { Constructor for the case when you only have part of normal
       VRML tokens stream.
 
@@ -653,14 +651,6 @@ begin
       'VRML signature error : unrecognized signature');
 
   CreateCommonEnd;
-end;
-
-constructor TX3DLexer.CreateFromFile(const FileName: string);
-var
-  FileStream: TFileStream;
-begin
-  FileStream := TFileStream.Create(FileName, fmOpenRead);
-  Create(TBufferedReadStream.Create(FileStream, true), true);
 end;
 
 constructor TX3DLexer.CreateForPartialStream(

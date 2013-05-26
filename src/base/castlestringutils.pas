@@ -343,7 +343,7 @@ function FileToString(const URL: string;
 function FileToString(const URL: string;
   const AllowStdIn: boolean = false): string;
 
-procedure StringToFile(const FileName, contents: string);
+procedure StringToFile(const URL, contents: string);
 
 type
   EDeformatError = class(Exception);
@@ -835,7 +835,7 @@ function SCompressWhiteSpace(const S: string): string;
 
 implementation
 
-uses CastleFilesUtils, CastleClassUtils, CastleDownload, Regexpr;
+uses CastleFilesUtils, CastleClassUtils, CastleDownload, CastleURIUtils, Regexpr;
 
 { TCastleStringList ------------------------------------------------------------- }
 
@@ -1324,11 +1324,11 @@ begin
   Result := FileToString(URL, AllowStdIn, MimeType { ignored });
 end;
 
-procedure StringToFile(const FileName, Contents: string);
+procedure StringToFile(const URL, Contents: string);
 var
-  F: TFileStream;
+  F: TStream;
 begin
-  F := TFileStream.Create(FileName, fmCreate);
+  F := URISaveStream(URL);
   try
     if Length(Contents) <> 0 then
       F.WriteBuffer(Contents[1], Length(Contents));

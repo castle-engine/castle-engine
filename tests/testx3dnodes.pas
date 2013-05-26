@@ -90,7 +90,7 @@ type
 implementation
 
 uses CastleUtils, X3DLexer, CastleClassUtils, CastleFilesUtils, X3DFields,
-  CastleTimeUtils, FGL;
+  CastleTimeUtils, FGL, CastleDownload;
 
 { TNode* ------------------------------------------------------------ }
 
@@ -226,11 +226,19 @@ var
     Result.AString := Lexer.TokenString;
   end;
 
+  function LexerFromFile(const URL: string): TX3DLexer;
+  var
+    Stream: TStream;
+  begin
+    Stream := Download(URL);
+    Result := TX3DLexer.Create(TBufferedReadStream.Create(Stream, true), true);
+  end;
+
 var
   I: Integer;
 begin
   Count := 0;
-  Lexer := TX3DLexer.CreateFromFile(FileName);
+  Lexer := LexerFromFile(FileName);
   try
     Add(CurrentToken);
     while Lexer.Token <> vtEnd do

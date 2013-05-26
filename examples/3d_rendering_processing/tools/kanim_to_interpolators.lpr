@@ -24,8 +24,8 @@
 
   Call with params:
   $1 - coordinate node name in VRML/X3D file
-  $2 - animation input filename (usually kanim filename, also md3 would be sensible)
-  $3 - vrml/x3d output filename
+  $2 - animation input URL (usually kanim filename, also md3 would be sensible)
+  $3 - vrml/x3d output URL (usually filename)
 
   For example:
     kanim_to_interpolators coord_MOD_Plane \
@@ -35,19 +35,20 @@
 program kanim_to_interpolators;
 
 uses SysUtils, Classes, CastleUtils, CastleClassUtils, X3DNodes, CastlePrecalculatedAnimation,
-  CastleStringUtils, CastleProgress, CastleProgressConsole, CastleParameters;
+  CastleStringUtils, CastleProgress, CastleProgressConsole, CastleParameters,
+  CastleURIUtils;
 
 var
   CoordinateNodeName: string;
 
-procedure SaveFile(Node: TX3DNode; const Filename: string; const CycleInterval: Single);
+procedure SaveFile(Node: TX3DNode; const URL: string; const CycleInterval: Single);
 const
   SceneSuffix = {$I kanim_to_interpolators_suffix.inc};
 var
-  Stream: TFileStream;
+  Stream: TStream;
   Suffix: string;
 begin
-  Stream := TFileStream.Create(Filename, fmCreate);
+  Stream := URISaveStream(URL);
   try
     Save3D(Node, Stream, 'kanim_to_interpolators', '', xeClassic);
 
@@ -59,7 +60,7 @@ begin
 end;
 
 var
-  InputFileName, OutputFileName: string;
+  InputURL, OutputURL: string;
   Anim: TCastlePrecalculatedAnimation;
   OutputX3d: TX3DRootNode;
   Interp: TCoordinateInterpolatorNode;
@@ -70,13 +71,13 @@ begin
   Parameters.CheckHigh(3);
 
   CoordinateNodeName := Parameters[1];
-  InputFileName := Parameters[2];
-  OutputFileName := Parameters[3];
+  InputURL := Parameters[2];
+  OutputURL := Parameters[3];
 
   Anim := TCastlePrecalculatedAnimation.Create(nil);
   try
-    Writeln('Reading ', InputFileName, ' ...');
-    Anim.LoadFromFile(InputFileName, false, false);
+    Writeln('Reading ', InputURL, ' ...');
+    Anim.LoadFromFile(InputURL, false, false);
 
     { check Anim.TimeBegin }
     if Anim.TimeBegin <> 0 then
@@ -119,8 +120,8 @@ begin
 
       finally Progress.Fini end;
 
-      Writeln('Writing ', OutputFileName, '...');
-      SaveFile(OutputX3d, OutputFileName, Anim.TimeEnd);
+      Writeln('Writing ', OutputURL, '...');
+      SaveFile(OutputX3d, OutputURL, Anim.TimeEnd);
     finally FreeAndNil(OutputX3d) end;
   finally FreeAndNil(Anim) end;
 end.

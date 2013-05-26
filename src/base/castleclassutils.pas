@@ -242,7 +242,7 @@ function StreamReadString(Stream: TStream): string;
   so be sure that Stream.Size is usable. }
 function StreamToString(Stream: TStream): string;
 
-procedure StreamSaveToFile(Stream: TStream; const FileName: string);
+procedure StreamSaveToFile(Stream: TStream; const URL: string);
 
 { Set contents of TMemoryStream to given string.
   If Rewind then the position is reset to the beginning,
@@ -253,31 +253,6 @@ function MemoryStreamLoadFromString(
   const S: string; const Rewind: boolean = true): TMemoryStream;
 
 type
-  { Simple file mapped into the memory. This is a TMemoryStream descendant
-    that at construction loads it's contents from file,
-    and (if not ReadOnly) at the destruction saves it's contents into
-    the same file.
-
-    This allows for full stream capabilities, very fast seeking in all
-    direction, you can seek and read freely, as the whole thing is buffered
-    in memory. However, it wastes a lot of memory --- don't use this for large
-    files.
-
-    You shouldn't use LoadFromFile/SaveToFile methods. Although this class
-    is actually so simple that it won't break anything. But you should be
-    aware of what you are doing, i.e. you can possibly break connection
-    between FileName property and actual contents of the stream. }
-  TMemoryFileStream = class(TMemoryStream)
-  private
-    FFileName: string;
-    FReadOnly: boolean;
-    FileContentsLoaded: boolean;
-  public
-    constructor Create(const AFileName: string; AReadOnly: boolean);
-    destructor Destroy; override;
-    property FileName: string read FFileName;
-  end;
-
   EStreamNotImplemented = class(Exception);
   EStreamNotImplementedWrite = class(EStreamNotImplemented);
   EStreamNotImplementedSeek = class(EStreamNotImplemented);
@@ -631,7 +606,7 @@ procedure FPGObjectList_NilItem(List: TFPSList; I: Integer);
 implementation
 
 uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
-  StrUtils, CastleFilesUtils, CastleDownload;
+  StrUtils, CastleFilesUtils, CastleDownload, CastleURIUtils;
 
 { TTextReader ---------------------------------------------------------------- }
 
@@ -928,12 +903,7 @@ end;
 
 function CreateReadFileStream(const filename: string): TStream;
 begin
-  {NAIWNA implementacja : result := TFileStream.Create(filename, fmOpenRead) }
-  result := TMemoryStream.Create;
-  try
-    TMemoryStream(result).LoadFromFile(filename);
-    result.Position := 0;
-  except FreeAndNil(result); raise end;
+  Result := Download(FileName, [doForceMemoryStream]);
 end;
 
 procedure ReadGrowingStream(GrowingStream, DestStream: TStream;
@@ -993,17 +963,17 @@ begin
   Stream.ReadBuffer(Pointer(Result)^, Length(Result));
 end;
 
-procedure StreamSaveToFile(Stream: TStream; const FileName: string);
+procedure StreamSaveToFile(Stream: TStream; const URL: string);
 const
   BufSize = 100000;
 var
-  S : TFileStream;
+  S : TStream;
   Buffer: Pointer;
   ReadCount: Integer;
 begin
   Buffer := GetMem(BufSize);
   try
-    S := TFileStream.Create(FileName, fmCreate);
+    S := URISaveStream(URL);
     try
       repeat
         ReadCount := Stream.Read(Buffer^, BufSize);
@@ -1034,28 +1004,6 @@ begin
   try
     MemoryStreamLoadFromString(Result, S, Rewind);
   except FreeAndNil(Result); raise end;
-end;
-
-{ TMemoryFileStream ------------------------------------------------------- }
-
-constructor TMemoryFileStream.Create(const AFileName: string; AReadOnly: boolean);
-begin
-  inherited Create;
-  FFileName := AFileName;
-  FReadOnly := AReadOnly;
-  LoadFromFile(AFileName);
-  FileContentsLoaded := true;
-end;
-
-destructor TMemoryFileStream.Destroy;
-begin
-  { I'm checking FileContentsLoaded here, to prevent situation
-    where constructor failed (in inherited TMemoryStream constructor)
-    with exception -- this causes destructor to be called, but of couse
-    I should NOT in this situation save my contents to file
-    (as this would erase contents of innocent file). }
-  if FileContentsLoaded and (not FReadOnly) then
-    SaveToFile(FileName);
 end;
 
 { TPeekCharStream -------------------------------------------------- }
