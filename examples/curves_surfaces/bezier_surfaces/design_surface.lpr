@@ -493,7 +493,7 @@ procedure MenuClick(Window: TCastleWindowBase; MenuItem: TMenuItem);
     S: string;
   begin
     S := SurfaceURL;
-    if Window.URLDialog('Open surface file', S, true) then
+    if Window.FileDialog('Open surface file', S, true) then
       SurfaceLoad(S);
   end;
 
@@ -502,7 +502,7 @@ procedure MenuClick(Window: TCastleWindowBase; MenuItem: TMenuItem);
     S: string;
   begin
     S := SurfaceURL;
-    if Window.URLDialog('Save surface file', S, false) then
+    if Window.FileDialog('Save surface file', S, false) then
       SurfaceSave(S);
   end;
 

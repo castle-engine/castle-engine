@@ -590,7 +590,7 @@ begin
     10: Wireframe := not Wireframe;
     50: begin
           URL := '';
-          if Glwin.URLDialog('Open SRTM (.hgt) terrain file', URL, true,
+          if Glwin.FileDialog('Open SRTM (.hgt) terrain file', URL, true,
             'All Files|*|' +
             '*SRTM (*.hgt) terrain|*.hgt') then
           begin
@@ -662,7 +662,7 @@ begin
         if Elevation is TElevationImage then
         begin
           URL := TElevationImage(Elevation).ImageURL;
-          if Glwin.URLDialog('Open image file', URL, true,
+          if Glwin.FileDialog('Open image file', URL, true,
             LoadImage_FileFilters) then
           begin
             try
@@ -702,7 +702,7 @@ begin
     1000, 1001:
       begin
         URL := '';
-        if Glwin.URLDialog('Save terrain to X3D', URL, false,
+        if Glwin.FileDialog('Save terrain to X3D', URL, false,
           X3DVersion.FileFilters(xeClassic)) then
           ExportToX3D(URL, Item.IntData = 1001);
       end;

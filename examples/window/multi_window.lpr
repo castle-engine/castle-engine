@@ -159,7 +159,7 @@ begin
         URL := '';
         { when file dialog is open, note that the other windows
           are still active as they should. }
-        URLDialog('Test open file dialog', URL, true);
+        FileDialog('Test open file dialog', URL, true);
       end;
  end;
 end;

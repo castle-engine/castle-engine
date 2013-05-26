@@ -219,7 +219,7 @@ procedure ImageDrawPart(const image: TCastleImage;
   from GL_FRONT OpenGL buffer (or any part of front buffer).
   That's because when our window is covered by other window
   (from other programs, or our own program --- other TCastleWindowBase
-  or dialog like TCastleWindowBase.URLDialog)
+  or dialog like TCastleWindowBase.FileDialog)
   then glReadPixels *may* return pixel array filled with contents of
   *those other windows that coves us*.
 

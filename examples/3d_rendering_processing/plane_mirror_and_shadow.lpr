@@ -555,7 +555,7 @@ begin
     10:
       begin
         S := ExtractURIPath(SceneURL);
-        if Window.URLDialog('Open 3d model (VRML etc.) file', S, true,
+        if Window.FileDialog('Open 3d model (VRML etc.) file', S, true,
           Load3D_FileFilters) then
         begin
           SceneForShadow.BeforeNodesFree; { loading Scene will free also SceneForShadow.RootNode }

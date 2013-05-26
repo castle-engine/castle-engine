@@ -41,7 +41,7 @@ var
   S: string;
 begin
   S := ExtractURIPath(URL);
-  if Window.URLDialog('Open 3D model', S, true, Load3D_FileFilters) then
+  if Window.FileDialog('Open 3D model', S, true, Load3D_FileFilters) then
   begin
     URL := S;
     Scene.Load(URL);

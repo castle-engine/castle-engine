@@ -293,7 +293,7 @@ type
       to be zero.
 
       This is useful if you just came back from some lenghty
-      state, like a GUI dialog box (like TCastleWindowBase.URLDialog or modal boxes
+      state, like a GUI dialog box (like TCastleWindowBase.FileDialog or modal boxes
       in CastleMessages --- but actually all our stuff already calls this
       as needed, TGLMode takes care of this). UpdateSecondsPassed would be ridicoulously
       long in such case (if our loop is totally stopped) or not relevant

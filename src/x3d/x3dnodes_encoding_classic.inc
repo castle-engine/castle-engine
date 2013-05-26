@@ -21,7 +21,7 @@ const
   { File filters if you want to open a file and then
     pass it to LoadX3DClassic. Note that only LoadX3DClassic that takes a FileName
     parameter (as a string) can deal with gzip compressed files.
-    Suitable for TCastleWindowBase.URLDialog and such. }
+    Suitable for TCastleWindowBase.FileDialog and such. }
   LoadX3DClassic_FileFilters =
   'All files|*|' +
   '*VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz';

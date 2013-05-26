@@ -88,7 +88,7 @@ type
 
   TLoadResourceButton = class(TCastleButton)
   public
-    { remember this only to make repeated usage of URLDialog more comfortable }
+    { remember this only to make repeated usage of FileDialog more comfortable }
     LastChosenURL: string;
     procedure DoClick; override;
   end;
@@ -127,7 +127,7 @@ end;
 
 procedure TLoadResourceButton.DoClick;
 begin
-  if Window.URLDialog('Resource file to load', LastChosenURL, true,
+  if Window.FileDialog('Resource file to load', LastChosenURL, true,
     'All Files|*|*Resource files (resource.xml)|resource.xml|') then
   begin
     Resources.LoadResourceFile(LastChosenURL);

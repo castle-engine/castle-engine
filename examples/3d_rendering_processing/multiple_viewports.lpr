@@ -270,7 +270,7 @@ var
   NewURL: string;
 begin
   NewURL := URL;
-  if Window.URLDialog('Open 3D file', NewURL, true, Load3D_FileFilters) then
+  if Window.FileDialog('Open 3D file', NewURL, true, Load3D_FileFilters) then
   begin
     try
       Scene.Load(NewURL);

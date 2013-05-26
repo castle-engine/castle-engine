@@ -160,13 +160,13 @@ begin
     10:
       begin
         S := ExtractURIPath(VideoURL);
-        if Window.URLDialog('Open file', S, true) then
+        if Window.FileDialog('Open file', S, true) then
           LoadVideo(S);
       end;
     13:
       begin
         S := VideoURL;
-        if Window.URLDialog('Save to file', S, false) then
+        if Window.FileDialog('Save to file', S, false) then
           SaveVideo(S);
       end;
     15:

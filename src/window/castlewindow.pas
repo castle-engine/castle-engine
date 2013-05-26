@@ -185,7 +185,7 @@
       will use Windows dialog boxes, XLib backend will fall back
       on CastleMessages text input.
 
-      See TCastleWindowBase.URLDialog (for opening and saving files) and
+      See TCastleWindowBase.FileDialog (for opening and saving files) and
       TCastleWindowBase.ColorDialog (for choosing RGB colors).)
 
     @item(TCastleWindowBase.ParseParameters method allows you to easily initialize TCastleWindowBase
@@ -1897,7 +1897,7 @@ end;
         SavedAreaHeight: integer): TGLImage; overload;
 
     { Asks and saves current screenshot.
-      Asks user where to save the file (using @link(URLDialog),
+      Asks user where to save the file (using @link(FileDialog),
       as default filename taking ProposedURL).
       If user accepts calls Window.SaveScreen.
       In case of problems with saving, shows a dialog (doesn't raise exception). }
@@ -2092,9 +2092,9 @@ end;
         for explanation how to encode filters in a string.)
 
       @groupBegin }
-    function URLDialog(const Title: string; var URL: string;
+    function FileDialog(const Title: string; var URL: string;
       OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean; overload;
-    function URLDialog(const Title: string; var URL: string;
+    function FileDialog(const Title: string; var URL: string;
       OpenDialog: boolean; const FileFilters: string): boolean; overload;
     { @groupEnd }
 
@@ -3500,7 +3500,7 @@ end;
 
 procedure TCastleWindowBase.SaveScreenDialog(ProposedURL: string);
 begin
-  if URLDialog('Save screen to file', ProposedURL, false, SaveImage_FileFilters) then
+  if FileDialog('Save screen to file', ProposedURL, false, SaveImage_FileFilters) then
   try
     SaveScreen(ProposedURL);
   except
@@ -3508,7 +3508,7 @@ begin
   end;
 end;
 
-function TCastleWindowBase.URLDialog(const Title: string; var URL: string;
+function TCastleWindowBase.FileDialog(const Title: string; var URL: string;
   OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean;
 var
   FileName: string;
@@ -3520,7 +3520,7 @@ begin
     URL := FilenameToURISafe(FileName);
 end;
 
-function TCastleWindowBase.URLDialog(const Title: string; var URL: string;
+function TCastleWindowBase.FileDialog(const Title: string; var URL: string;
   OpenDialog: boolean; const FileFilters: string): boolean;
 var
   FFList: TFileFilterList;
@@ -3528,7 +3528,7 @@ begin
   FFList := TFileFilterList.Create(true);
   try
     FFList.AddFiltersFromString(FileFilters);
-    Result := URLDialog(Title, URL, OpenDialog, FFList);
+    Result := FileDialog(Title, URL, OpenDialog, FFList);
   finally FreeAndNil(FFList) end;
 end;
 
