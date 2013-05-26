@@ -150,18 +150,18 @@ end;
 
 procedure TButtons.ScreenshotButtonClick(Sender: TObject);
 var
-  FileName: string;
+  URL: string;
 begin
   { Capture a screenshot straight to a file.
     There are more interesting things that you can do with a screenshot
     (overloaded Window.SaveScreen returns you a TRGBImage and we have
     a whole image library in CastleImages unit to process such image).
-    You could also ask for a filename (e.g. by Window.URLDialog).
+    You could also ask use to choose a file (e.g. by Window.URLDialog).
     But this is just a simple example, and this way we also have
     an opportunity to show how to use Notifications. }
-  FileName := FileNameAutoInc(ApplicationName + '_screen_%d.png');
-  Window.SaveScreen(FileName);
-  Notifications.Show('Saved screen to ' + FileName);
+  URL := FileNameAutoInc(ApplicationName + '_screen_%d.png');
+  Window.SaveScreen(URL);
+  Notifications.Show('Saved screen to ' + URL);
 end;
 
 procedure TButtons.AddCreatureButtonClick(Sender: TObject);
@@ -445,12 +445,12 @@ begin
   SoundEngine.ParseParameters;
 
   { Load named sounds defined in sounds/index.xml }
-  SoundEngine.SoundsFileName := ProgramDataPath + 'data' + PathDelim +
+  SoundEngine.RepositoryURL := ProgramDataPath + 'data' + PathDelim +
     'sounds' + PathDelim + 'index.xml';
 
   { Load texture properties, used to assign footsteps sounds based
     on ground texture }
-  MaterialProperties.FileName := ProgramDataPath + 'data' + PathDelim +
+  MaterialProperties.URL := ProgramDataPath + 'data' + PathDelim +
     'material_properties.xml';
 
   { Load configuration file. This loads configuration for various parts of the

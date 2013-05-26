@@ -43,7 +43,7 @@ type
     textures, in all levels, at once.
 
     You have to load an XML file by setting
-    @link(TMaterialProperties.FileName MaterialProperties.FileName) property. }
+    @link(TMaterialProperties.URL MaterialProperties.URL) property. }
   TMaterialProperty = class
   private
     FTextureBaseName: string;
@@ -82,28 +82,31 @@ type
   { Material properties collection, see TMaterialProperty. }
   TMaterialProperties = class(specialize TFPGObjectList<TMaterialProperty>)
   private
-    FFileName: string;
-    procedure SetFileName(const Value: string);
+    FURL: string;
+    procedure SetURL(const Value: string);
   public
     { Load material properties from given XML file.
       See Castle1 and fps_game data for examples how this looks like,
       in @code(material_properties.xml). }
-    property FileName: string read FFileName write SetFileName;
+    property URL: string read FURL write SetURL;
+    { Deprecated name for URL. @deprecated }
+    property FileName: string read FURL write SetURL; deprecated;
 
     { Find material properties for given texture basename.
       Returns @nil if no material properties are found
-      (in particular, if @link(FileName) was not set yet). }
+      (in particular, if @link(URL) was not set yet). }
     function FindTextureBaseName(const TextureBaseName: string): TMaterialProperty;
   end;
 
 { Known material properties.
-  Set the @link(TMaterialProperties.FileName FileName) property
+  Set the @link(TMaterialProperties.URL URL) property
   to load material properties from XML file. }
 function MaterialProperties: TMaterialProperties;
 
 implementation
 
-uses SysUtils, XMLRead, CastleXMLUtils, CastleFilesUtils, X3DNodes;
+uses SysUtils, XMLRead, CastleXMLUtils, CastleFilesUtils, X3DNodes,
+  CastleURIUtils, CastleDownload;
 
 { TMaterialProperty --------------------------------------------------------- }
 
@@ -123,7 +126,7 @@ begin
     FFootstepsSound := stNone;
 
   if DOMGetAttribute(Element, 'normal_map', FNormalMap) and (FNormalMap <> '') then
-    FNormalMap := CombinePaths(BaseUrl, FNormalMap) else
+    FNormalMap := CombineURI(BaseUrl, FNormalMap) else
     FNormalMap := '';
 
   I := TXMLElementIterator.Create(Element);
@@ -149,22 +152,26 @@ end;
 
 { TMaterialProperties ---------------------------------------------------------- }
 
-procedure TMaterialProperties.SetFileName(const Value: string);
+procedure TMaterialProperties.SetURL(const Value: string);
 var
   Config: TXMLDocument;
   Element: TDOMElement;
   Elements: TDOMNodeList;
   MaterialProperty: TMaterialProperty;
   I: Integer;
+  Stream: TStream;
 begin
-  FFileName := Value;
+  FURL := Value;
 
   Clear;
 
   try
     { ReadXMLFile always sets TXMLDocument param (possibly to nil),
       even in case of exception. So place it inside try..finally. }
-    ReadXMLFile(Config, FileName);
+    Stream := Download(URL);
+    try
+      ReadXMLFile(Config, Stream, URL);
+    finally FreeAndNil(Stream) end;
 
     Check(Config.DocumentElement.TagName = 'properties',
       'Root node of material properties file must be <properties>');
@@ -181,7 +188,7 @@ begin
           MaterialProperty := TMaterialProperty.Create;
           Add(MaterialProperty);
 
-          MaterialProperty.LoadFromDOMElement(Element, ExtractFilePath(FileName));
+          MaterialProperty.LoadFromDOMElement(Element, AbsoluteURI(URL));
         end;
     finally FreeChildNodes(Elements); end;
   finally

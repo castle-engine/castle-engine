@@ -453,18 +453,17 @@ type
     and all other methods. This only adds easy preloaded sounds,
     but you're not limited to them.
 
-    You have to set the SoundsFileName property, to gain anything
-    from TRepoSoundEngine. Otherwise, it just acts exactly like TSoundEngine.
-    See SoundsFileName docs for details. }
+    To initialize your sounds repository, you have to set the RepositoryURL
+    property. }
   TRepoSoundEngine = class(TSoundEngine)
   private
     FSoundImportanceNames: TStringList;
     FSounds: TSoundInfoList;
-    FSoundsFileName: string;
+    FRepositoryURL: string;
     { This is the only allowed instance of TMusicPlayer class,
       created and destroyed in this class create/destroy. }
     FMusicPlayer: TMusicPlayer;
-    procedure SetSoundsFileName(const Value: string);
+    procedure SetRepositoryURL(const Value: string);
     { Load buffers for all Sounds. Should be called as soon as Sounds changes
       and we may have OpenAL context (but it checks ALActive and Sounds.Count,
       and does something only if we have OpenAL context and some sounds,
@@ -482,13 +481,16 @@ type
     procedure ALContextClose; override;
 
     { The XML file that contains description of your sounds.
-      See engine examples, @code(examples/audio/sample_sounds.xml) file,
-      for a heavily commented example.
+      This should be an URL (in simple cases, just a filename)
+      pointing to an XML file describing your sounds.
+      See http://castle-engine.sourceforge.net/creating_data_sound.php and
+      engine examples for details (@code(examples/audio/sample_sounds.xml)
+      contains an example file with lots of comments).
 
-      When you set SoundsFileName property, we read sound information from
-      given XML file. You usually set SoundsFileName at the very beginning,
+      When you set RepositoryURL property, we read sound information from
+      given XML file. You usually set RepositoryURL at the very beginning,
       before OpenAL context is initialized (although it's also Ok to do this after).
-      Right after setting SoundsFileName you usually call SoundFromName
+      Right after setting RepositoryURL you usually call SoundFromName
       a couple of times to convert some names into TSoundType values,
       to later use these TSoundType values with @link(Sound) and @link(Sound3D)
       methods.
@@ -504,7 +506,7 @@ type
       property. For example like this:
 
 @longCode(#
-  SoundEngine.SoundsFileName := ProgramDataPath + 'sounds.xml';
+  SoundEngine.RepositoryURL := ProgramDataPath + 'sounds.xml';
   stMySound1 := SoundEngine.SoundFromName('my_sound_1');
   stMySound2 := SoundEngine.SoundFromName('my_sound_2');
   // ... and later in your game you can do stuff like this:
@@ -514,10 +516,12 @@ type
 
       See CastleFilesUtils unit for docs of a useful ProgramDataPath function.
     }
-    property SoundsFileName: string
-      read FSoundsFileName write SetSoundsFileName;
+    property RepositoryURL: string read FRepositoryURL write SetRepositoryURL;
 
-    { Reload the SoundsFileName and all referenced buffers.
+    { Deprecated name for RepositoryURL. @deprecated }
+    property SoundsFileName: string read FRepositoryURL write SetRepositoryURL; deprecated;
+
+    { Reload the RepositoryURL and all referenced buffers.
       Useful as a tool for 3D data designers, to reload the sounds XML file
       without restarting the game/sound engine etc. }
     procedure ReloadSounds;
@@ -534,7 +538,7 @@ type
 
     { Return sound with given name.
       Available names are given in SoundNames, defined in XML file pointed
-      by SoundsFileName.
+      by RepositoryURL.
       Always for SoundName = '' it will return stNone.
 
       @raises Exception On invalid SoundName when RaiseError = @true. }
@@ -632,16 +636,15 @@ var
   { Common sounds.
 
     The sounds types listed below are automatically
-    initialized when you set TRepoSoundEngine.SoundsFileName.
+    initialized when you set TRepoSoundEngine.RepositoryURL.
     All engine units can use them if you define them in your sounds XML file.
     If they are not defined in your XML file (or if you don't even have
-    an XML file, that is you leave TRepoSoundEngine.SoundsFileName empty)
+    an XML file, that is you leave TRepoSoundEngine.RepositoryURL empty)
     then they remain stNone (and nothing will happen if anything will try
     to play them by TRepoSoundEngine.Sound or TRepoSoundEngine.Sound3D).
 
     Simply define them in your sounds XML file (see
-    TRepoSoundEngine.SoundsFileName)
-    under a suitable name with underscores,
+    TRepoSoundEngine.RepositoryURL) under a suitable name with underscores,
     like 'player_dies' for stPlayerDies. }
 
   { Player sounds.
@@ -681,8 +684,9 @@ var
 implementation
 
 uses CastleUtils, CastleStringUtils, CastleALUtils, CastleLog, CastleProgress,
-  CastleSoundFile, CastleVorbisFile, CastleEFX, CastleParameters, StrUtils, CastleWarnings,
-  DOM, XMLRead, CastleXMLUtils, CastleFilesUtils, CastleConfig, CastleURIUtils;
+  CastleSoundFile, CastleVorbisFile, CastleEFX, CastleParameters, StrUtils,
+  CastleWarnings, DOM, XMLRead, CastleXMLUtils, CastleFilesUtils, CastleConfig,
+  CastleURIUtils, CastleDownload;
 
 type
   { For alcGetError errors (ALC_xxx constants). }
@@ -1594,33 +1598,37 @@ begin
     Position);
 end;
 
-procedure TRepoSoundEngine.SetSoundsFileName(const Value: string);
+procedure TRepoSoundEngine.SetRepositoryURL(const Value: string);
 var
   SoundConfig: TXMLDocument;
   ImportanceStr: string;
   SoundImportanceIndex: Integer;
   I: TXMLElementIterator;
-  SoundsBaseUrl: string;
+  RepositoryURLAbsolute: string;
   S: TSoundInfo;
+  Stream: TStream;
 begin
-  if FSoundsFileName = Value then Exit;
-  FSoundsFileName := Value;
+  if FRepositoryURL = Value then Exit;
+  FRepositoryURL := Value;
 
   Sounds.Clear;
   { add stNone sound }
   Sounds.Add(TSoundInfo.Create);
 
   { if no sounds XML file, then that's it --- no more sounds }
-  if SoundsFileName = '' then Exit;
+  if RepositoryURL = '' then Exit;
 
   { This must be an absolute path, since Sounds[].URL should be
     absolute (to not depend on the current dir when loading sound files. }
-  SoundsBaseUrl := AbsoluteURI(SoundsFileName);
+  RepositoryURLAbsolute := AbsoluteURI(RepositoryURL);
 
   try
     { ReadXMLFile always sets TXMLDocument param (possibly to nil),
       even in case of exception. So place it inside try..finally. }
-    ReadXMLFile(SoundConfig, SoundsFileName);
+    Stream := Download(RepositoryURLAbsolute);
+    try
+      ReadXMLFile(SoundConfig, Stream, RepositoryURLAbsolute);
+    finally FreeAndNil(Stream) end;
 
     Check(SoundConfig.DocumentElement.TagName = 'sounds',
       'Root node of sounds/index.xml must be <sounds>');
@@ -1636,7 +1644,7 @@ begin
         S.Name := I.Current.GetAttribute('name');
 
         { init to default values }
-        S.URL := CombineURI(SoundsBaseUrl, S.Name + '.wav');
+        S.URL := CombineURI(RepositoryURLAbsolute, S.Name + '.wav');
         S.Gain := 1;
         S.MinGain := 0;
         S.MaxGain := 1;
@@ -1653,9 +1661,9 @@ begin
           Standard I.Current.GetAttribute wouldn't allow me this. }
         if DOMGetAttribute(I.Current, 'file_name', S.URL) and
           (S.URL <> '') then
-          { Make URL absolute, using SoundsBaseUrl, if non-empty URL
+          { Make URL absolute, using RepositoryURLAbsolute, if non-empty URL
             was specified in XML file. }
-          S.URL := CombineURI(SoundsBaseUrl, S.URL);
+          S.URL := CombineURI(RepositoryURLAbsolute, S.URL);
 
         DOMGetSingleAttribute(I.Current, 'gain', S.Gain);
         DOMGetSingleAttribute(I.Current, 'min_gain', S.MinGain);
@@ -1696,20 +1704,20 @@ begin
   stMenuCurrentItemChanged := SoundFromName('menu_current_item_changed', false);
   stMenuClick              := SoundFromName('menu_click'               , false);
 
-  { in case you set SoundsFileName when OpenAL context is already
+  { in case you set RepositoryURL when OpenAL context is already
     initialized, load buffers now }
   LoadSoundsBuffers;
 end;
 
 procedure TRepoSoundEngine.ReloadSounds;
 var
-  OldSoundsFileName: string;
+  OldRepositoryURL: string;
 begin
-  if SoundsFileName <> '' then
+  if RepositoryURL <> '' then
   begin
-    OldSoundsFileName := SoundsFileName;
-    SoundsFileName := '';
-    SoundsFileName := OldSoundsFileName;
+    OldRepositoryURL := RepositoryURL;
+    RepositoryURL := '';
+    RepositoryURL := OldRepositoryURL;
   end;
 end;
 

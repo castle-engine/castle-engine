@@ -28,7 +28,8 @@ type
 implementation
 
 uses CastleVectors, CastleLevels, CastleResources, CastleSoundEngine, CastlePlayer,
-  CastleMaterialProperties, CastleCreatures, CastleShapes, Castle3D;
+  CastleMaterialProperties, CastleCreatures, CastleShapes, Castle3D,
+  CastleURIUtils;
 
 procedure TTestGame.TestGameData;
 
@@ -37,11 +38,11 @@ procedure TTestGame.TestGameData;
     Assert(FloatsEqual(A, B, 0.01));
   end;
 
-  procedure AssertFileName(const A, B: string);
+  procedure AssertURL(const A, B: string);
   begin
-    { When reading XML files, we make filenames absolute. For comparison,
+    { When reading XML files, we make URLs absolute. For comparison,
       strip directory part. }
-    Assert(ExtractFileName(A) = B);
+    Assert(ExtractURIName(A) = B);
   end;
 
   procedure AssertSound(const A: TSoundType; const B: string);
@@ -60,13 +61,13 @@ var
   SoundType: TSoundType;
   C: TWalkAttackCreatureResource;
 begin
-  SoundEngine.SoundsFileName := 'data/game/sounds.xml';
+  SoundEngine.RepositoryURL := 'data/game/sounds.xml';
 
   Assert(SoundEngine.Sounds[stNone].Name = '');
   Assert(SoundEngine.Sounds[stNone].URL = '');
   SoundType := SoundEngine.SoundFromName('player_sudden_pain');
   Assert(SoundEngine.Sounds[SoundType].Name = 'player_sudden_pain');
-  AssertFileName(SoundEngine.Sounds[SoundType].URL, 'test_name.wav');
+  AssertURL(SoundEngine.Sounds[SoundType].URL, 'test_name.wav');
   Assert(SoundEngine.Sounds[SoundType].DefaultImportance = PlayerSoundImportance);
   AssertFloat(SoundEngine.Sounds[SoundType].Gain, 1);
   AssertFloat(SoundEngine.Sounds[SoundType].MinGain, 0.8);
@@ -99,9 +100,9 @@ begin
   AssertFloat(C.GrowSpeed, 3.4);
   Assert(C.ReceiveShadowVolumes = false);
   Assert(C.CastShadowVolumes = false);
-  AssertFileName(C.ModelFileName, 'main.x3d');
+  AssertURL(C.ModelURL, 'main.x3d');
   Assert(C.IdleAnimation.Defined);
-//  AssertFileName(C.IdleAnimation.FileName, 'idle.x3d')); // private
+//  AssertURL(C.IdleAnimation.URL, 'idle.x3d')); // private
 //  Assert(C.IdleAnimation.TimeSensor = 'TimeSensorIdle'); // private
   Assert(C.IdleToWalkAnimation.Defined);
   Assert(C.WalkAnimation.Defined);
@@ -139,7 +140,7 @@ begin
 
   Assert(Levels[0].Name = 'my_level');
   Assert(Levels[0].LogicClass = TLevelLogic);
-  AssertFileName(Levels[0].SceneFileName, 'scene.x3d');
+  AssertURL(Levels[0].SceneURL, 'scene.x3d');
   Assert(Levels[0].Title = 'My Level');
   Assert(Levels[0].Number = 123);
   Assert(Levels[0].Demo = true);
@@ -153,7 +154,7 @@ begin
   AssertVector(Levels[0].PlaceholderReferenceDirection, 1, 2, 3);
   AssertSound(Levels[0].MusicSound, 'test_sound_2');
 
-  MaterialProperties.FileName := 'data/game/material_properties.xml';
+  MaterialProperties.URL := 'data/game/material_properties.xml';
 
   Assert(MaterialProperties.Count = 2);
 
@@ -163,7 +164,7 @@ begin
   AssertFloat(MaterialProperties[0].ToxicDamageConst, 1.2);
   AssertFloat(MaterialProperties[0].ToxicDamageRandom, 3.4);
   AssertFloat(MaterialProperties[0].ToxicDamageTime, 5.6);
-  AssertFileName(MaterialProperties[0].NormalMap, '');
+  AssertURL(MaterialProperties[0].NormalMap, '');
 
   Assert(MaterialProperties[1].TextureBaseName = 'test_texture_2');
   Assert(MaterialProperties[1].FootstepsSound = stNone);
@@ -171,7 +172,7 @@ begin
   AssertFloat(MaterialProperties[1].ToxicDamageConst, 0.0);
   AssertFloat(MaterialProperties[1].ToxicDamageRandom, 0.0);
   AssertFloat(MaterialProperties[1].ToxicDamageTime, 0.0);
-  AssertFileName(MaterialProperties[1].NormalMap, 'test_normal_map.png');
+  AssertURL(MaterialProperties[1].NormalMap, 'test_normal_map.png');
 
   Player := TPlayer.Create(nil);
   try
