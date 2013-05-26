@@ -1160,7 +1160,7 @@ begin
   Windows.SwapBuffers(h_Dc);
 end;
 
-function TCastleWindowBase.FileDialog(const Title: string; var FileName: string;
+function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
   { Prepare string with encoded filter names and patterns, as specified

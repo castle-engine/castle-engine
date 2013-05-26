@@ -886,7 +886,7 @@ type
 
       Only DoKeyDown: pass also CharKey. Pass Key = K_None if this is not
       representable as TKey, pass CharKey =#0 if this is not representable
-      as char. But never pass both Key = K_None and CharKey =#0
+      as char. But never pass both Key = K_None and CharKey = #0
       (this would have no meaning).
 
       Only DoKeyUp: never pass Key = K_None.
@@ -924,6 +924,11 @@ type
         Item.DoClick,
         optional EventMenuClick or EventKeyDown }
     procedure DoMenuClick(Item: TMenuItem);
+
+    { Just like FileDialog, but these always get and should set FileName,
+      not an URL. }
+    function BackendFileDialog(const Title: string; var FileName: string;
+      OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean; overload;
 
     procedure OpenCore;
     { Current OpenGL buffers configuration required.
@@ -2018,37 +2023,65 @@ end;
     }
 
     { Select a file to open or save.
+      Accepts and returns argument as an URL.
+      Passing a filename as an URL is also allowed (as everywhere),
+      it may be changed into an URL on return.
 
       This dialog may also allow user for some typical file-management
       operations by the way (create some directories, rename some files etc.).
 
-      Returns @true and sets FileName accordingly if user chooses some
+      Returns @true and sets URL accordingly if user chooses some
       filename and accepts it. Returns @false if user cancels.
 
       @param(Title A dialog title.)
 
-      @param(FileName Specifies default filename (path and/or name, or '' if current dir
-        is the default dir and there is no default filename). Note that if you
-        have to specify only path in FileName you have to end this paths with
-        PathDelim (otherwise '/tmp/blah' would not be clear: whether it's
-        filename 'blah' in '/tmp/' dir or whether it's only dir '/tmp/blah/'?).)
+      @param(URL Specifies default filename as an URL (or simple filename).
+        This can be absolute or relative, may include a path, may include a name.
+        If you specify only a path (remember to end it with the slash),
+        then it's the default path where to save the file.
+        If you specify the name (component after final slash), then it's the
+        proposed filename.
+
+        Empty value ('') always means the same as "current directory", guaranteed.
+        So it's equivalent to @code(FilenameToURISafe(InclPathDelim(GetCurrentDir))).
+
+        Note that the path must end with a slash. Otherwise '/tmp/blah' would be
+        ambigous (it could mean either file name 'blah' in the dir '/tmp/' dir,
+        or dir '/tmp/blah' without a proposed file name).)
 
       @param(OpenDialog Is this an open (@true) or save (@false) file dialog.
 
-        If OpenDialog: force the user to only choose existing
-        (and readable) file. The intention is that you should be able to open
-        FileName for at least reading. We may be unable to force this
-        (especially the "readable" requirement),
-        so you still should watch for some exceptions when opening a file
-        (as is always the case when opening files, anyway).
+        @unorderedList(
+          @item(
+            If OpenDialog = @true: force the user to only choose existing
+            (and readable) file. The intention is that you should be able to open
+            file indicated by URL at least for reading. There is no guarantee
+            about it though (it's not possible to guarantee it on a multi-process OS),
+            the only 100% sure way to know that the file can be opened and read
+            is to actually try to do it.
 
-        If not OpenDialog: allows user to select a non-existent filename.
-        Still, it may try to force ExtractFilePath(FileName) to be valid,
-        i.e. user may be forced to choose only filenames with existing paths.
-        (But, again, no guarantees.)
-        Some warning to user may be shown if FileName already exists, like
-        "are you sure you want to overwrite this file?".
-        The intention is that you should be able to open FileName for writing.)
+            To directly read a file (as a stream) from the obtained URL
+            you should usually use our CastleDownload.Download function.
+            This way you get a readable stream and you
+            automatically support loading data from the other protocols (http,
+            data etc.) too.)
+
+          @item(
+            If OpenDialog = @false: a save dialog.
+            Allows user to select a non-existent filename.
+            If user chooses an existing filename, some backends may show
+            a warning like @italic("Are you sure you want to overwrite this file?").
+
+            The intention is that directory of the returned file should exist,
+            and you should be able to write files there.
+            But, again, there is no 100% guarantee about it.
+            The only way to be sure whether you can save a file is to actually
+            try to do it.
+
+            To directly write to a file (as a stream) to the obtained URL
+            you should usually use our CastleURIUtils.URISaveStream.)
+        )
+      )
 
       @param(FileFilters A set of file filters to present to user.
         Pass @nil (default) if you do not want to use file file filters,
@@ -2056,19 +2089,14 @@ end;
         allows you to pass file filters encoded in a single string,
         this may be slightly more comfortable for call, see
         TFileFilterList.AddFiltersFromString
-        for explanation how to encode filters in a string.) }
-    function FileDialog(const Title: string; var FileName: string;
-      OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean; overload;
-    function FileDialog(const Title: string; var FileName: string;
-      OpenDialog: boolean; const FileFilters: string): boolean; overload;
+        for explanation how to encode filters in a string.)
 
-    { Just like FileDialog, but accepts and returns argument as an URL.
-      Passing a FileName as an URL is also allowed (as everywhere),
-      it may be changed into an URL on return. }
+      @groupBegin }
     function URLDialog(const Title: string; var URL: string;
       OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean; overload;
     function URLDialog(const Title: string; var URL: string;
       OpenDialog: boolean; const FileFilters: string): boolean; overload;
+    { @groupEnd }
 
     { Shows a dialog window allowing user to choose an RGB color.
       Initial value of Color specifies initial RGB values proposed to the user.
@@ -3480,18 +3508,6 @@ begin
   end;
 end;
 
-function TCastleWindowBase.FileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean; const FileFilters: string): boolean;
-var
-  FFList: TFileFilterList;
-begin
-  FFList := TFileFilterList.Create(true);
-  try
-    FFList.AddFiltersFromString(FileFilters);
-    Result := FileDialog(Title, FileName, OpenDialog, FFList);
-  finally FreeAndNil(FFList) end;
-end;
-
 function TCastleWindowBase.URLDialog(const Title: string; var URL: string;
   OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean;
 var
@@ -3499,7 +3515,7 @@ var
 begin
   { calculate FileName from URL }
   FileName := URIToFilenameSafe(URL);
-  Result := FileDialog(Title, FileName, OpenDialog, FileFilters);
+  Result := BackendFileDialog(Title, FileName, OpenDialog, FileFilters);
   if Result then
     URL := FilenameToURISafe(FileName);
 end;

@@ -165,7 +165,7 @@ end;
   unit. }
 { $I castlewindow_dialogs_by_messages.inc}
 
-function TCastleWindowBase.FileDialog(const Title: string; var FileName: string;
+function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 begin
   { TODO }

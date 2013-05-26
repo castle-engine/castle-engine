@@ -1144,7 +1144,7 @@ begin
   Data^.Answered := true;
   Data^.Answer := GTK_RESPONSE_DELETE_EVENT;
   { don't allow to call gtk_widget_destroy, we will call it ourselves
-    in FileDialog/ColorDialog. }
+    in BackendFileDialog/ColorDialog. }
   Result := g_true;
 end;
 
@@ -1243,7 +1243,7 @@ begin
          (gtk_micro_version >= Micro) ));
 end;
 
-function TCastleWindowBase.FileDialog(const Title: string; var FileName: string;
+function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
 { FileChooser is available only in GTK >= 2.4.
@@ -1328,7 +1328,7 @@ begin
 
   if FileName = '' then
   begin
-    { We explicitly allow FileName = '' in the interface of FileDialog,
+    { We explicitly allow FileName = '' in the interface of BackendFileDialog,
       it's equal to FileName = GetCurrentDir (with PathDelim at the end) }
     gtk_file_chooser_set_current_folder(Dialog, PChar(GetCurrentDir));
   end else

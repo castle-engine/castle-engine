@@ -50,7 +50,7 @@
     because changing MainMenu.Enabled forced rebuild of the menu.
     Reproduced by project_2 in temp dir.
 
-    This has nothing to do with dialog boxes (FileDialog or own MessageOk).
+    This has nothing to do with dialog boxes (BackendFileDialog or own MessageOk).
     This is triggered by having a menu item key shortcut,
     and when this menu item is executed --- we destroy and create new menu
     that also reacts to this shortcut. In this case, Carbon executes the menu item again.
@@ -626,7 +626,7 @@ end;
 
 { TCastleWindowBase dialogs ---------------------------------------------------------- }
 
-function TCastleWindowBase.FileDialog(const Title: string; var FileName: string;
+function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 var
   Dialog: TFileDialog;
