@@ -22,13 +22,13 @@ program view_3d_model_advanced;
 
 uses SysUtils, CastleUtils, CastleWindow, CastleProgress, CastleWindowProgress,
   CastleSceneCore, CastleWarnings, CastleParameters, CastleScene, X3DLoad,
-  CastleControls;
+  CastleControls, CastleURIUtils;
 
 var
   Window: TCastleWindow;
   Scene: TCastleScene;
   OpenButton: TCastleButton;
-  FileName: string = 'models' + PathDelim + 'bridge_final.x3dv';
+  URL: string = 'models/bridge_final.x3dv';
 
 type
   { Dummy class, just to keep OpenButtonClick method. }
@@ -40,11 +40,11 @@ class procedure THelper.OpenButtonClick(Sender: TObject);
 var
   S: string;
 begin
-  S := ExtractFilePath(FileName);
-  if Window.FileDialog('Open 3D model', S, true, Load3D_FileFilters) then
+  S := ExtractURIPath(URL);
+  if Window.URLDialog('Open 3D model', S, true, Load3D_FileFilters) then
   begin
-    FileName := S;
-    Scene.Load(FileName);
+    URL := S;
+    Scene.Load(URL);
 
     { camera is separate from the 3D world, and so it is *not* reinitialized
       by simple reloading of the scene. In this demo, we want to move camera
@@ -57,10 +57,10 @@ begin
 end;
 
 begin
-  { You can specify initial 3D model filename by command-line parameter. }
+  { You can specify initial 3D model URL by command-line parameter. }
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
-    FileName := Parameters[1];
+    URL := Parameters[1];
 
   { Output warnings on a console. }
   OnWarning := @OnWarningWrite;
@@ -87,7 +87,7 @@ begin
 
   { load a Scene and add it to Window.SceneManager, just like view_3d_model_simple }
   Scene := TCastleScene.Create(Application);
-  Scene.Load(FileName);
+  Scene.Load(URL);
 
   { set titles for progress bars, otherwise progress bars are not used.
     This should be done before setting Scene.Spatial, since setting it may

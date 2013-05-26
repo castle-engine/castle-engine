@@ -320,7 +320,7 @@ var
     IsMaterial := false;
 
     try
-      F := TTextReader.Create(Download(CombineURI(BasePath, URL)), true);
+      F := TTextReader.Create(CombineURI(BasePath, URL));
     except
       on E: Exception do
       begin
@@ -409,7 +409,7 @@ begin
 
   UsedMaterial := nil;
 
-  F := TTextReader.Create(Download(URL), true);
+  F := TTextReader.Create(URL);
   try
     while not F.Eof do
     begin

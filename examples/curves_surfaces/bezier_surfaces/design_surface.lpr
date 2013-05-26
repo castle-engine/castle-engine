@@ -23,7 +23,8 @@ program design_surface;
 uses CastleCameras, Surfaces, CastleWindow, GL, GLU, CastleVectors,
   CastleGLUtils, CastleCurves, CastleBoxes, SysUtils, CastleUtils, CastleKeysMouse,
   CastleStringUtils, CastleMessages, CastleFilesUtils, CastleUIControls,
-  CastleBitmapFont_BVSans, CastleGLBitmapFonts, CastleColors, Castle3D, CastleFrustum;
+  CastleBitmapFont_BVSans, CastleGLBitmapFonts, CastleColors, Castle3D,
+  CastleFrustum, CastleURIUtils, CastleParameters;
 
 type
   TShow = (shNone, shWire, shFill);
@@ -40,7 +41,7 @@ var
   SurfaceXSegments: Cardinal = 16;
   SurfaceYSegments: Cardinal = 16;
 
-  SurfaceFileName: string = '';
+  SurfaceURL: string = '';
 
   { True when dragging (between right mouse down and up). Other operations
     than mouse up may also cancel the dragging to keep assumptions below:
@@ -62,13 +63,13 @@ begin
     ControlPoints;
 end;
 
-procedure SetSurfaceFileName(const Value: string);
+procedure SetSurfaceURL(const Value: string);
 var
   S: string;
 begin
-  SurfaceFileName := Value;
+  SurfaceURL := Value;
   if Value <> '' then
-    S := ExtractFileName(Value) else
+    S := ExtractURIName(Value) else
     S := 'Unsaved surface';
   S := S + ' - design Bezier surface';
 
@@ -107,13 +108,14 @@ begin
     Surface.Curves.Add(MyCurve);
   end;
 
-  SetSurfaceFileName('');
+  SetSurfaceURL('');
 end;
 
-procedure SurfaceLoad(const FileName: string);
+procedure SurfaceLoad(const URL: string);
 var
   CurvesCount, CurveControlPointsCount: Cardinal;
   F: TextFile;
+  FileName: string;
   I, J: Integer;
   MyCurve: TRationalBezierCurve;
   V: TVector3Single;
@@ -121,6 +123,12 @@ var
 begin
   try
     NewSurface := TSurface.Create(0, 1, 0, 1);
+
+    { TODO: reading is done using TextFile instead of TTextReader for now,
+      so limited to local files. }
+    FileName := URIToFilenameSafe(URL);
+    if FileName = '' then
+      raise Exception.CreateFmt('Cannot open local file from "%s"', [URL]);
 
     SafeReset(F, FileName, true);
     try
@@ -143,7 +151,7 @@ begin
     on E: Exception do
     begin
       FreeAndNil(NewSurface);
-      MessageOK(Window, 'Error while loading file "' + FileName +'" : ' + E.Message);
+      MessageOK(Window, 'Error while loading file "' + URL +'" : ' + E.Message);
       Exit;
     end;
   end;
@@ -153,17 +161,24 @@ begin
     or bad file format) existing surface data will be preserved, }
   FreeAndNil(Surface);
   Surface := NewSurface;
-  SetSurfaceFileName(FileName);
+  SetSurfaceURL(URL);
 end;
 
-procedure SurfaceSave(const FileName: string);
+procedure SurfaceSave(const URL: string);
 var
   CurveControlPointsCount: Cardinal;
   F: TextFile;
   I, J: Integer;
   V: TVector3Single;
+  FileName: string;
 begin
   CurveControlPointsCount := ControlPoints(0).Count;
+
+  { TODO: reading is done using TextFile instead of TTextReader for now,
+    so limited to local files. }
+  FileName := URIToFilenameSafe(URL);
+  if FileName = '' then
+    raise Exception.CreateFmt('Cannot open local file from "%s"', [URL]);
 
   SafeRewrite(F, FileName);
   try
@@ -180,7 +195,7 @@ begin
     end;
   finally CloseFile(F) end;
 
-  SetSurfaceFileName(FileName);
+  SetSurfaceURL(URL);
 end;
 
 { CastleWindow callbacks --------------------------------------------------------- }
@@ -477,8 +492,8 @@ procedure MenuClick(Window: TCastleWindowBase; MenuItem: TMenuItem);
   var
     S: string;
   begin
-    S := SurfaceFileName;
-    if Window.FileDialog('Open surface file', S, true) then
+    S := SurfaceURL;
+    if Window.URLDialog('Open surface file', S, true) then
       SurfaceLoad(S);
   end;
 
@@ -486,8 +501,8 @@ procedure MenuClick(Window: TCastleWindowBase; MenuItem: TMenuItem);
   var
     S: string;
   begin
-    S := SurfaceFileName;
-    if Window.FileDialog('Save surface file', S, false) then
+    S := SurfaceURL;
+    if Window.URLDialog('Save surface file', S, false) then
       SurfaceSave(S);
   end;
 
@@ -602,6 +617,7 @@ end;
 { main ----------------------------------------------------------------------- }
 
 begin
+  Parameters.CheckHigh(0);
   Window := TCastleWindow.Create(Application);
 
   Window.OnMenuClick := @MenuClick;

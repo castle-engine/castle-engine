@@ -122,7 +122,7 @@ begin
  Verts := TVector3SingleList.Create;
  Faces := TVector3CardinalList.Create;
 
- Reader := TTextReader.Create(Download(URL), true);
+ Reader := TTextReader.Create(URL);
  try
   { Read first line: magic number (or not existent in older GEO format) }
   Line := Reader.Readln;

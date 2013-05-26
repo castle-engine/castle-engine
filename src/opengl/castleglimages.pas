@@ -215,13 +215,13 @@ procedure ImageDrawPart(const image: TCastleImage;
 { Saving screen to TRGBImage ----------------------------------- }
 
 { Note about saving images from GL_FRONT:
-  in general, it's not predictable to save image from GL_FRONT OpenGL buffer
-  (or any part of front buffer). That's because when our window will
-  be covered by other window (of other programs or our own window
-  (like other instances of TCastleWindowBase or dialog windows produced
-  by TCastleWindowBase.FileDialog, in case you use CastleWindow unit)) then
-  glReadPixels will return pixel array filled with contents of
-  *those other windows*.
+  in general, it's not predictable what happens when you save image
+  from GL_FRONT OpenGL buffer (or any part of front buffer).
+  That's because when our window is covered by other window
+  (from other programs, or our own program --- other TCastleWindowBase
+  or dialog like TCastleWindowBase.URLDialog)
+  then glReadPixels *may* return pixel array filled with contents of
+  *those other windows that coves us*.
 
   Prefixing functions below, SaveScreen_NoFlush, with things like
     TCastleWindowBase.FlushRedisplay, or even

@@ -18,7 +18,7 @@
   Terrain data may be obtained from various sources:
 
   1. There's terrain data reader from a very simple SRTM-3 *.hgt file
-     (pass $1 a filename of .hgt file).
+     (pass $1 an URL (just a filename in simple cases) of .hgt file).
 
      See http://www2.jpl.nasa.gov/srtm/, see (linked there)
      http://dds.cr.usgs.gov/srtm/ for sample data for whole Earth.
@@ -27,7 +27,7 @@
      Sample files for Poland are on http://netgis.geo.uw.edu.pl/srtm/Poland/,
      for Europe http://netgis.geo.uw.edu.pl/srtm/Europe/.
 
-     You can run the program with command-line parameter to pass filename
+     You can run the program with command-line parameter to pass URL
      of such .hgt file to load on start.
 
   2. You can also define terrain as an explicit function using CastleScript
@@ -57,7 +57,7 @@ uses SysUtils, Classes, CastleBoxes, CastleKeysMouse,
   CastleCameras, CastleVectors, CastleFilesUtils, Elevations, CastleMessages,
   CastleStringUtils, CastleOnScreenMenu, CastleUIControls, CastleImages,
   RenderElevations, CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,
-  Castle3D, CastleFrustum, CastleSceneManager;
+  Castle3D, CastleFrustum, CastleSceneManager, CastleURIUtils;
 
 type
   TTerrainType = (ttNoise, ttCasScript, ttImage, ttGrid);
@@ -425,9 +425,9 @@ end;
 
 procedure Open(Glwin: TCastleWindowBase);
 
-  function LoadTexture(const FileName: string): TGLuint;
+  function LoadTexture(const URL: string): TGLuint;
   begin
-    Result := LoadGLTexture('textures' + PathDelim + FileName,
+    Result := LoadGLTexture('textures/' + URL,
       GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, Texture2DRepeat);
   end;
 
@@ -482,7 +482,7 @@ end;
 
 procedure MenuClick(Glwin: TCastleWindowBase; Item: TMenuItem);
 
-  procedure ExportToX3D(const FileName: string;
+  procedure ExportToX3D(const URL: string;
     const AddShadersTextures: boolean);
   var
     CountSteps, X, Z: Cardinal;
@@ -577,30 +577,30 @@ procedure MenuClick(Glwin: TCastleWindowBase; Item: TMenuItem);
         Part.FdUrl.Items.Add('elevation.vs');
       end;
 
-      Save3D(Root, FileName, 'terrain', '', xeClassic);
+      Save3D(Root, URL, 'terrain', '', xeClassic);
     finally FreeAndNil(Root) end;
   end;
 
 var
-  FileName: string;
+  URL: string;
   Expression: string;
   NewElevation: TElevation;
 begin
   case Item.IntData of
     10: Wireframe := not Wireframe;
     50: begin
-          FileName := '';
-          if Glwin.FileDialog('Open SRTM (.hgt) terrain file', FileName, true,
+          URL := '';
+          if Glwin.URLDialog('Open SRTM (.hgt) terrain file', URL, true,
             'All Files|*|' +
             '*SRTM (*.hgt) terrain|*.hgt') then
           begin
             try
-              NewElevation := TElevationSRTM.CreateFromFile(FileName);
+              NewElevation := TElevationSRTM.CreateFromFile(URL);
             except
               on E: Exception do
               begin
                 MessageOk(Glwin, Format('Error when loading file "%s" as terrain: %s',
-                  [FileName, E.Message]));
+                  [URL, E.Message]));
                 Exit;
               end;
             end;
@@ -661,17 +661,17 @@ begin
       begin
         if Elevation is TElevationImage then
         begin
-          FileName := TElevationImage(Elevation).ImageFileName;
-          if Glwin.FileDialog('Open image file', FileName, true,
+          URL := TElevationImage(Elevation).ImageURL;
+          if Glwin.URLDialog('Open image file', URL, true,
             LoadImage_FileFilters) then
           begin
             try
-              TElevationImage(Elevation).LoadImage(FileName);
+              TElevationImage(Elevation).LoadImage(URL);
             except
               on E: Exception do
               begin
                 MessageOk(Glwin, Format('Error when loading image "%s": %s',
-                  [FileName, E.Message]));
+                  [URL, E.Message]));
               end;
             end;
           end;
@@ -701,10 +701,10 @@ begin
       end;
     1000, 1001:
       begin
-        FileName := '';
-        if Glwin.FileDialog('Save terrain to X3D', FileName, false,
+        URL := '';
+        if Glwin.URLDialog('Save terrain to X3D', URL, false,
           X3DVersion.FileFilters(xeClassic)) then
-          ExportToX3D(FileName, Item.IntData = 1001);
+          ExportToX3D(URL, Item.IntData = 1001);
       end;
   end;
   Glwin.PostRedisplay;

@@ -185,7 +185,7 @@
       will use Windows dialog boxes, XLib backend will fall back
       on CastleMessages text input.
 
-      See TCastleWindowBase.FileDialog (for opening and saving files) and
+      See TCastleWindowBase.URLDialog (for opening and saving files) and
       TCastleWindowBase.ColorDialog (for choosing RGB colors).)
 
     @item(TCastleWindowBase.ParseParameters method allows you to easily initialize TCastleWindowBase
@@ -469,7 +469,6 @@ unit CastleWindow;
     do some proc DisplayExists and EnumDisplays.
   - Allow passing VideoColorBits, VideoFrequency for --fullscreen-custom
     param.
-  - Add to multi_window testing call to FileDialog and ColorDialog.
 
   See also backend-specific TODOs in castlewindow_xxx.inc files.
 }
@@ -1893,11 +1892,11 @@ end;
         SavedAreaHeight: integer): TGLImage; overload;
 
     { Asks and saves current screenshot.
-      Asks user where to save the file (using @link(FileDialog),
-      as default filename taking ProposedFname).
+      Asks user where to save the file (using @link(URLDialog),
+      as default filename taking ProposedURL).
       If user accepts calls Window.SaveScreen.
       In case of problems with saving, shows a dialog (doesn't raise exception). }
-    procedure SaveScreenDialog(ProposedFileName: string);
+    procedure SaveScreenDialog(ProposedURL: string);
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2765,8 +2764,8 @@ procedure Resize2D(Window: TCastleWindowBase);
 implementation
 
 uses CastleParameters, CastleLog, CastleGLVersion, X3DLoad, CastleURIUtils
-  { using here CastleWindowModes/CastleMessages makes recursive CastleWindow usage,
-    but it's needed for FileDialog }
+  { Using here CastleWindowModes / CastleMessages makes recursive
+    CastleWindow usage, but it's needed for dialogs.  }
   {$ifdef CASTLE_WINDOW_GTK_ANY}, CastleWindowModes {$endif}
   {$ifdef CASTLE_WINDOW_WINAPI}, CastleWindowModes {$endif}
   {$ifdef CASTLE_WINDOW_XLIB}, CastleMessages {$endif};
@@ -3471,12 +3470,11 @@ begin
     SavedAreaWidth, SavedAreaHeight, ReadBuffer);
 end;
 
-procedure TCastleWindowBase.SaveScreenDialog(ProposedFileName: string);
+procedure TCastleWindowBase.SaveScreenDialog(ProposedURL: string);
 begin
-  if FileDialog('Save screen to file', ProposedFileName, false,
-    SaveImage_FileFilters) then
+  if URLDialog('Save screen to file', ProposedURL, false, SaveImage_FileFilters) then
   try
-    SaveScreen(ProposedFileName);
+    SaveScreen(ProposedURL);
   except
     on E: Exception do MessageOK('Unable to save screen: ' + E.Message, mtError);
   end;

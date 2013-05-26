@@ -132,19 +132,18 @@ type
       from regular XMLConfig Get/SetValue methods. }
     function PathElement(const APath: string): TDOMElement;
 
-    { Read a file name from an XML attribute.
-      The attribute in an XML file may be absolute or relative to this
-      XML file's path (we will look at own TXMLConfig.FileName directory
-      to resolve relative filenames).
-      The returned filename is always an absolute filename.
+    { Read an URL from an XML attribute.
+      The attribute in an XML file may be an absolute or relative URL,
+      (we will look at own TXMLConfig.FileName directory to resolve relative
+      URLs). The returned URL is always an absolute URL.
 
-      If EmptyIfNoAttribute, then this will just set FileName to ''
+      If EmptyIfNoAttribute, then this will just set URL to ''
       if appropriate XML attribute not found. Otherwise
       (when EmptyIfNoAttribute = @false, this is default),
       error will be raised.
 
       @raises(EMissingAttribute If EmptyIfNoAttribute = @false and no such attribute.) }
-    function GetFileName(const APath: string;
+    function GetURL(const APath: string;
       const EmptyIfNoAttribute: boolean = false): string;
 
     { Get a value, as a string. Value must exist and cannot be empty in XML file.
@@ -165,7 +164,10 @@ type
       and then calls the OnLoad callbacks to allow all engine components
       read their settings.
 
-      The overloaded version without AFileName chooses
+      Accepts URL as parameter, converting it to a local filename
+      under the hood.
+
+      The overloaded version without AURL chooses
       a suitable filename for storing per-program user preferences.
       It uses ApplicationName to pick a filename that is unique
       to your application (usually you want to assign OnGetApplicationName
@@ -175,7 +177,7 @@ type
       It uses @link(UserConfigFile) to determine location of this file.
 
       @groupBegin }
-    procedure Load(const AFileName: string);
+    procedure Load(const AURL: string);
     procedure Load;
     { @groupEnd }
 
@@ -190,7 +192,7 @@ procedure Register;
 
 implementation
 
-uses CastleStringUtils, CastleFilesUtils, CastleLog;
+uses CastleStringUtils, CastleFilesUtils, CastleLog, CastleURIUtils;
 
 procedure Register;
 begin
@@ -348,7 +350,7 @@ begin
   end;
 end;
 
-function TCastleConfig.GetFileName(const APath: string;
+function TCastleConfig.GetURL(const APath: string;
   const EmptyIfNoAttribute: boolean): string;
 begin
   Result := GetValue(APath, '');
@@ -357,7 +359,7 @@ begin
     if not EmptyIfNoAttribute then
       raise EMissingAttribute.CreateFmt('Missing attribute "%s" in XML file', [APath]);
   end else
-    Result := CombinePaths(ExtractFilePath(FileName), Result);
+    Result := CombineURI(FilenameToURISafe(FileName), Result);
 end;
 
 function TCastleConfig.GetNonEmptyValue(const APath: string): string;
@@ -372,18 +374,23 @@ begin
   FModified := false;
 end;
 
-procedure TCastleConfig.Load(const AFileName: string);
+procedure TCastleConfig.Load(const AURL: string);
+var
+  F: string;
 begin
-  FileName := AFileName;
+  F := URIToFilenameSafe(AURL);
+  if F = '' then
+    raise Exception.CreateFmt('Cannot load local file from "%s"', [AURL]);
+  FileName := F;
   OnLoad.ExecuteAll(Self);
 
   if Log then
-    WritelnLog('Config', 'Loading configuration from "%s"', [FileName]);
+    WritelnLog('Config', 'Loading configuration from "%s"', [AURL]);
 end;
 
 procedure TCastleConfig.Load;
 begin
-  Load(UserConfigFile('.conf'));
+  Load(FilenameToURISafe(UserConfigFile('.conf')));
 end;
 
 procedure TCastleConfig.Save;

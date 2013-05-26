@@ -88,8 +88,8 @@ type
 
   TLoadResourceButton = class(TCastleButton)
   public
-    { remember this only to make repeated usage of FileDialog more comfortable }
-    LastChosenFileName: string;
+    { remember this only to make repeated usage of URLDialog more comfortable }
+    LastChosenURL: string;
     procedure DoClick; override;
   end;
 
@@ -127,10 +127,10 @@ end;
 
 procedure TLoadResourceButton.DoClick;
 begin
-  if Window.FileDialog('Resource file to load', LastChosenFileName, true,
+  if Window.URLDialog('Resource file to load', LastChosenURL, true,
     'All Files|*|*Resource files (resource.xml)|resource.xml|') then
   begin
-    Resources.LoadResourceFile(LastChosenFileName);
+    Resources.LoadResourceFile(LastChosenURL);
     { directly prepare new resource }
     Resources.Prepare(
       Window.SceneManager.Items.BaseLights,
@@ -257,7 +257,7 @@ begin
     but it's an easy way to add a camera with headlight,
     and some grid to help with orientation. }
   BaseScene := TCastleScene.Create(Application);
-  BaseScene.Load(ProgramDataPath + 'data' + PathDelim + 'base.x3d');
+  BaseScene.Load(ProgramDataPath + 'data/base.x3d');
   { turn on headlight, as base.x3d exported from Blender has always headlight=false }
   BaseScene.NavigationInfoStack.Top.FdHeadlight.Send(true);
   Window.SceneManager.MainScene := BaseScene;

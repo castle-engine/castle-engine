@@ -27,13 +27,13 @@ uses CastleUtils, SysUtils, CastleWindow, GL, GLU, CastleGLImages,
   CastleVideos, CastleStringUtils, CastleMessages, CastleColors,
   CastleBitmapFont_BVSansMono_Bold_m15, CastleGLBitmapFonts, CastleParameters,
   CastleGLUtils, CastleVectors, Classes, CastleProgress, CastleWindowProgress,
-  CastleTimeUtils, CastleKeysMouse;
+  CastleTimeUtils, CastleKeysMouse, CastleURIUtils;
 
 var
   Window: TCastleWindowDemo;
 
   Video: TVideo;
-  VideoFileName: string;
+  VideoURL: string;
 
   Time: TFloatTime;
   TimePlaying: boolean = true;
@@ -63,7 +63,7 @@ const
 
       if Video.Loaded then
       begin
-        Strs.Append(Format('File name: %s', [VideoFileName]));
+        Strs.Append(Format('Video URL: %s', [VideoURL]));
         Strs.Append(Format('Size: %d x %d', [Video.Width, Video.Height]));
         Strs.Append(Format('Time: %f seconds (%d frames, with %f frames per second)',
           [Video.TimeDuration, Video.Count, Video.FramesPerSecond]));
@@ -106,30 +106,30 @@ begin
     Time += Window.Fps.UpdateSecondsPassed;
 end;
 
-procedure LoadVideo(const NewVideoFileName: string);
+procedure LoadVideo(const NewVideoURL: string);
 begin
   try
-    Video.LoadFromFile(NewVideoFileName);
-    VideoFileName := NewVideoFileName;
+    Video.LoadFromFile(NewVideoURL);
+    VideoURL := NewVideoURL;
     Time := 0;
     MenuEdit.Enabled := Video.Loaded;
     MenuRevert.Enabled := Video.Loaded;
     MenuSave.Enabled := Video.Loaded;
   except
     on E: Exception do
-      MessageOk(Window, 'Loading of "' + VideoFileName + '" failed:' + NL +
+      MessageOk(Window, 'Loading of "' + VideoURL + '" failed:' + NL +
         E.Message, taLeft);
   end;
 end;
 
-procedure SaveVideo(const NewVideoFileName: string);
+procedure SaveVideo(const NewVideoURL: string);
 begin
   try
-    Video.SaveToFile(NewVideoFileName);
-    VideoFileName := NewVideoFileName;
+    Video.SaveToFile(NewVideoURL);
+    VideoURL := NewVideoURL;
   except
     on E: Exception do
-      MessageOk(Window, 'Saving of "' + NewVideoFileName + '" failed:' + NL +
+      MessageOk(Window, 'Saving of "' + NewVideoURL + '" failed:' + NL +
         E.Message, taLeft);
   end;
 end;
@@ -159,20 +159,20 @@ begin
   case MenuItem.IntData of
     10:
       begin
-        S := ExtractFilePath(VideoFileName);
-        if Window.FileDialog('Open file', S, true) then
+        S := ExtractURIPath(VideoURL);
+        if Window.URLDialog('Open file', S, true) then
           LoadVideo(S);
       end;
     13:
       begin
-        S := VideoFileName;
-        if Window.FileDialog('Save to file', S, false) then
+        S := VideoURL;
+        if Window.URLDialog('Save to file', S, false) then
           SaveVideo(S);
       end;
     15:
       begin
         if Video.Loaded then
-          LoadVideo(VideoFileName);
+          LoadVideo(VideoURL);
       end;
     20: Window.Close;
     110: TimePlaying := not TimePlaying;

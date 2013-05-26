@@ -31,7 +31,7 @@ type
     FName: string;
     FRequired: boolean;
     FOwner: T3DResource;
-    FileName: string;
+    URL: string;
     TimeSensor: string;
     { At most one of Animation or TimeSensorScene is defined }
     Animation: TCastlePrecalculatedAnimation;
@@ -119,8 +119,8 @@ type
     FAnimations: T3DResourceAnimationList;
     FReceiveShadowVolumes: boolean;
     FCastShadowVolumes: boolean;
-    FModelFileName: string;
-    { Model loaded from ModelFileName }
+    FModelURL: string;
+    { Model loaded from ModelURL }
     Model: TCastleScene;
   protected
     { Prepare or release everything needed to use this resource.
@@ -286,12 +286,11 @@ type
       read FCastShadowVolumes write FCastShadowVolumes
       default DefaultCastShadowVolumes;
 
-    { Model filename, only when you define multiple animations inside
+    { Model URL, only when you define multiple animations inside
       a single 3D file. See
       [http://castle-engine.sourceforge.net/creating_data_resources.php]
       for notes about <model> element in resource.xml files. }
-    property ModelFileName: string
-      read FModelFileName write FModelFileName;
+    property ModelURL: string read FModelURL write FModelURL;
   end;
 
   T3DResourceClass = class of T3DResource;
@@ -299,7 +298,7 @@ type
   T3DResourceList = class(specialize TFPGObjectList<T3DResource>)
   private
     ResourceXmlReload: boolean;
-    procedure LoadResourceXml(const FileName: string);
+    procedure LoadResourceXml(const URL: string);
   public
     { Find resource with given T3DResource.Name.
       @raises Exception if not found and NilWhenNotFound = false. }
@@ -329,7 +328,7 @@ type
       @param(Reload If @true, and the loaded resource will have a name
         matching existing T3DResource.Name, we will replace the current resource.
         Otherwise, we'll make an exception.) }
-    procedure LoadResourceFile(const FileName: string; const Reload: boolean = false);
+    procedure LoadResourceFile(const URL: string; const Reload: boolean = false);
 
     { Reads <prepare_resources> XML element.
       <prepare_resources> element is an optional child of given ParentElement.
@@ -426,14 +425,14 @@ end;
 
 function T3DResourceAnimation.Defined: boolean;
 begin
-  Result := (FileName <> '') or (TimeSensor <> '');
+  Result := (URL <> '') or (TimeSensor <> '');
 end;
 
 procedure T3DResourceAnimation.Prepare(const BaseLights: TAbstractLightInstancesList;
   const DoProgress: boolean);
 
-  { Prepare 3D resource loading it from given filename.
-    Loads the resource only if filename is not empty,
+  { Prepare 3D resource loading it from given URL.
+    Loads the resource only if URL is not empty,
     and only if it's not already loaded (that is,
     when Animation or Scene = nil).
     Prepares for fast rendering and other processing by T3D.PrepareResources.
@@ -441,12 +440,12 @@ procedure T3DResourceAnimation.Prepare(const BaseLights: TAbstractLightInstances
 
   procedure PreparePrecalculatedAnimation(
     var Animation: TCastlePrecalculatedAnimation; var Duration: Single;
-    const FileName: string);
+    const URL: string);
   begin
-    if (FileName <> '') and (Animation = nil) then
+    if (URL <> '') and (Animation = nil) then
     begin
       Animation := TCastlePrecalculatedAnimation.Create(nil);
-      Animation.LoadFromFile(FileName, { AllowStdIn } false, { LoadTime } true);
+      Animation.LoadFromFile(URL, { AllowStdIn } false, { LoadTime } true);
     end;
     if DoProgress then Progress.Step;
 
@@ -463,12 +462,12 @@ procedure T3DResourceAnimation.Prepare(const BaseLights: TAbstractLightInstances
     if DoProgress then Progress.Step;
   end;
 
-  procedure PrepareScene(var Scene: TCastleScene; const FileName: string);
+  procedure PrepareScene(var Scene: TCastleScene; const URL: string);
   begin
-    if (FileName <> '') and (Scene = nil) then
+    if (URL <> '') and (Scene = nil) then
     begin
       Scene := TCastleScene.Create(nil);
-      Scene.Load(FileName);
+      Scene.Load(URL);
       Scene.ReceiveShadowVolumes := Owner.ReceiveShadowVolumes;
     end;
     if DoProgress then Progress.Step;
@@ -480,26 +479,26 @@ procedure T3DResourceAnimation.Prepare(const BaseLights: TAbstractLightInstances
   end;
 
 begin
-  if (TimeSensor <> '') and (FileName <> '') then
+  if (TimeSensor <> '') and (URL <> '') then
   begin
-    PrepareScene(TimeSensorScene, FileName);
+    PrepareScene(TimeSensorScene, URL);
     TimeSensorNode := TimeSensorScene.RootNode.FindNodeByName(
       TTimeSensorNode, TimeSensor, false) as TTimeSensorNode;
     FDuration := TimeSensorNode.FdCycleInterval.Value;
   end else
   if TimeSensor <> '' then
   begin
-    if Owner.ModelFileName = '' then
+    if Owner.ModelURL = '' then
       raise Exception.CreateFmt('Animation "%s" of resource "%s": time_sensor is defined, but 3D model file_name is not defined (neither specific to this animation nor containing multiple animations)',
         [Name, Owner.Name]);
-    PrepareScene(Owner.Model, Owner.ModelFileName);
+    PrepareScene(Owner.Model, Owner.ModelURL);
     TimeSensorNode := Owner.Model.RootNode.FindNodeByName(
       TTimeSensorNode, TimeSensor, false) as TTimeSensorNode;
     FDuration := TimeSensorNode.FdCycleInterval.Value;
   end else
-  if FileName <> '' then
+  if URL <> '' then
   begin
-    PreparePrecalculatedAnimation(Animation, FDuration, FileName);
+    PreparePrecalculatedAnimation(Animation, FDuration, URL);
   end else
   if Required then
     raise Exception.CreateFmt('No definition for required animation "%s" of resource "%s". You have to define file_name or time_sensor for this animation in appropriate resource.xml file',
@@ -522,7 +521,7 @@ end;
 
 procedure T3DResourceAnimation.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
-  FileName := ResourceConfig.GetFileName('model/' + Name + '/file_name', true);
+  URL := ResourceConfig.GetURL('model/' + Name + '/file_name', true);
   TimeSensor := ResourceConfig.GetValue('model/' + Name + '/time_sensor', '');
 end;
 
@@ -608,7 +607,7 @@ begin
     DefaultReceiveShadowVolumes);
   FCastShadowVolumes := ResourceConfig.GetValue('cast_shadow_volumes',
     DefaultCastShadowVolumes);
-  FModelFileName := ResourceConfig.GetFileName('model/file_name', true);
+  FModelURL := ResourceConfig.GetURL('model/file_name', true);
 
   for I := 0 to Animations.Count - 1 do
     Animations[I].LoadFromFile(ResourceConfig);
@@ -669,7 +668,7 @@ end;
 
 { T3DResourceList ------------------------------------------------------------- }
 
-procedure T3DResourceList.LoadResourceXml(const FileName: string);
+procedure T3DResourceList.LoadResourceXml(const URL: string);
 var
   Xml: TCastleConfig;
   ResourceClassName, ResourceName: string;
@@ -682,16 +681,16 @@ begin
     try
       Xml.RootName := 'resource';
       Xml.NotModified; { otherwise changing RootName makes it modified, and saved back at freeing }
-      Xml.FileName := FileName;
+      Xml.Load(URL);
       if Log then
-        WritelnLog('Resources', Format('Loading T3DResource from "%s"', [FileName]));
+        WritelnLog('Resources', Format('Loading T3DResource from "%s"', [URL]));
 
       ResourceClassName := Xml.GetNonEmptyValue('type');
       ResourceClassIndex := ResourceClasses.IndexOf(ResourceClassName);
       if ResourceClassIndex <> -1 then
         ResourceClass := ResourceClasses.Data[ResourceClassIndex] else
         raise Exception.CreateFmt('Resource type "%s" not found, mentioned in file "%s"',
-          [ResourceClassName, FileName]);
+          [ResourceClassName, URL]);
 
       ResourceName := Xml.GetNonEmptyValue('name');
       if CharsPos(AllChars - ['a'..'z', 'A'..'Z'], ResourceName) <> 0 then
@@ -720,17 +719,17 @@ begin
         it occured }
       on E: EMissingAttribute do
       begin
-        E.Message := E.Message + ' (When reading "' + FileName + '")';
+        E.Message := E.Message + ' (When reading "' + URL + '")';
         raise;
       end;
     end;
   finally FreeAndNil(Xml) end;
 end;
 
-procedure T3DResourceList.LoadResourceFile(const FileName: string; const Reload: boolean);
+procedure T3DResourceList.LoadResourceFile(const URL: string; const Reload: boolean);
 begin
   ResourceXmlReload := Reload;
-  LoadResourceXml(FileName);
+  LoadResourceXml(URL);
 end;
 
 procedure T3DResourceList.LoadFromFiles(const Path: string; const Reload: boolean);
@@ -738,9 +737,7 @@ begin
   if not Reload then
     Clear;
   ResourceXmlReload := Reload;
-  { For now, LoadResourceXml uses TCastleConfig, which doesn't handle URLs,
-    only filenames. So we pass URLs = false to ScanForFiles. }
-  ScanForFiles(Path, 'resource.xml', @LoadResourceXml, false);
+  ScanForFiles(Path, 'resource.xml', @LoadResourceXml, true);
 end;
 
 procedure T3DResourceList.LoadFromFiles(const Reload: boolean);

@@ -45,7 +45,7 @@ type
   private
     FBaseAnimation: T3DResourceAnimation;
     FCaption: string;
-    FImageFileName: string;
+    FImageURL: string;
     FImage: TCastleImage;
     FGLImage: TGLImage;
     FBoundingBoxRotated: TBox3D;
@@ -84,7 +84,7 @@ type
       menu option. }
     function Image: TCastleImage;
 
-    property ImageFileName: string read FImageFileName;
+    property ImageURL: string read FImageURL;
 
     { OpenGL resource to draw @link(Image). }
     function GLImage: TGLImage;
@@ -603,7 +603,7 @@ procedure TItemResource.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
   inherited;
 
-  FImageFileName := ResourceConfig.GetFileName('image');
+  FImageURL := ResourceConfig.GetURL('image');
 
   FCaption := ResourceConfig.GetValue('caption', '');
   if FCaption = '' then
@@ -613,7 +613,7 @@ end;
 function TItemResource.Image: TCastleImage;
 begin
   if FImage = nil then
-    FImage := LoadImage(ImageFileName, []);
+    FImage := LoadImage(ImageURL, []);
   Result := FImage;
 end;
 

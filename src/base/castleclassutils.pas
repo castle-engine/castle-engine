@@ -69,9 +69,8 @@ type
       (tells to ignore next #10 char) }
     LastNewLineChar: char;
   public
-    { Open a file in read-only mode. }
-    constructor CreateFromFileStream(const FileName: string);
-
+    { Download and open a file. }
+    constructor Create(const URL: string);
     { Open a stream. If AOwnsStream then in destructor we will free
       given Stream object. }
     constructor Create(AStream: TStream; AOwnsStream: boolean);
@@ -632,13 +631,13 @@ procedure FPGObjectList_NilItem(List: TFPSList; I: Integer);
 implementation
 
 uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
-  StrUtils, CastleFilesUtils;
+  StrUtils, CastleFilesUtils, CastleDownload;
 
 { TTextReader ---------------------------------------------------------------- }
 
-constructor TTextReader.CreateFromFileStream(const FileName: string);
+constructor TTextReader.Create(const URL: string);
 begin
-  Create(TFileStream.Create(FileName, fmOpenRead), true);
+  Create(Download(URL), true);
 end;
 
 constructor TTextReader.Create(AStream: TStream; AOwnsStream: boolean);

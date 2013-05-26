@@ -38,9 +38,9 @@ type
     When image is not loaded, this always returns height = 0. }
   TElevationImage = class(TElevation)
   private
-    { FImage = nil and FImageFileName = '' when not loaded. }
+    { FImage = nil and FImageURL = '' when not loaded. }
     FImage: TGrayscaleImage;
-    FImageFileName: string;
+    FImageURL: string;
     FImageHeightScale: Single;
     FImageRepeat: boolean;
     FImageX1, FImageX2, FImageY1, FImageY2: Single;
@@ -50,9 +50,9 @@ type
 
     function Height(const X, Y: Single): Single; override;
 
-    procedure LoadImage(const AImageFileName: string);
+    procedure LoadImage(const AImageURL: string);
     procedure ClearImage;
-    property ImageFileName: string read FImageFileName;
+    property ImageURL: string read FImageURL;
 
     property ImageHeightScale: Single
       read FImageHeightScale write FImageHeightScale default 1.0;
@@ -288,7 +288,7 @@ type
   private
     FData: array [0..1200, 0..1200] of SmallInt;
   public
-    constructor CreateFromFile(const FileName: string);
+    constructor CreateFromFile(const URL: string);
 
     function GridHeight(const X, Y: Cardinal): Single; override;
     function GridSizeX: Cardinal; override;
@@ -297,7 +297,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleScriptParser, CastleNoise, Math;
+uses CastleUtils, CastleScriptParser, CastleNoise, Math, CastleDownload;
 
 { TElevationImage ------------------------------------------------------------ }
 
@@ -317,21 +317,21 @@ begin
   inherited;
 end;
 
-procedure TElevationImage.LoadImage(const AImageFileName: string);
+procedure TElevationImage.LoadImage(const AImageURL: string);
 var
   NewImage: TGrayscaleImage;
 begin
-  NewImage := CastleImages.LoadImage(AImageFileName, [TGrayscaleImage]) as TGrayscaleImage;
+  NewImage := CastleImages.LoadImage(AImageURL, [TGrayscaleImage]) as TGrayscaleImage;
 
   FreeAndNil(FImage);
   FImage := NewImage;
-  FImageFileName := AImageFileName;
+  FImageURL := AImageURL;
 end;
 
 procedure TElevationImage.ClearImage;
 begin
   FreeAndNil(FImage);
-  FImageFileName := '';
+  FImageURL := '';
 end;
 
 function TElevationImage.Height(const X, Y: Single): Single;
@@ -525,16 +525,16 @@ end;
 
 { TElevationSRTM ------------------------------------------------------------- }
 
-constructor TElevationSRTM.CreateFromFile(const FileName: string);
+constructor TElevationSRTM.CreateFromFile(const URL: string);
 var
-  Stream: TFileStream;
+  Stream: TStream;
   P: PSmallInt;
   I: Cardinal;
   LastCorrectHeight: SmallInt;
 begin
   inherited Create;
 
-  Stream := TFileStream.Create(FileName, fmOpenRead);
+  Stream := Download(URL, [doForceMemoryStream]);
   try
     Stream.ReadBuffer(FData, SizeOf(FData));
   finally FreeAndNil(Stream) end;

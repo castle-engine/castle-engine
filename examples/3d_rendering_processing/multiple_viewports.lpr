@@ -256,7 +256,7 @@ begin
 end;
 
 var
-  FileName: string = 'models/teapot.x3dv';
+  URL: string = 'models/teapot.x3dv';
   //  '../../../demo_models/shadow_volumes/shadows_dynamic.x3dv'
 
 type
@@ -267,21 +267,21 @@ type
 
 procedure TDummy.OpenButtonClick(Sender: TObject);
 var
-  NewFileName: string;
+  NewURL: string;
 begin
-  NewFileName := FileName;
-  if Window.FileDialog('Open 3D file', NewFileName, true, Load3D_FileFilters) then
+  NewURL := URL;
+  if Window.URLDialog('Open 3D file', NewURL, true, Load3D_FileFilters) then
   begin
     try
-      Scene.Load(NewFileName);
+      Scene.Load(NewURL);
     except
       on E: Exception do
       begin
-        Window.MessageOk('Cannot open file "' + NewFileName + '": ' + E.Message, mtError);
+        Window.MessageOk('Cannot open file "' + NewURL + '": ' + E.Message, mtError);
         Exit;
       end;
     end;
-    FileName := NewFileName;
+    URL := NewURL;
     CameraReinitialize;
   end;
 end;
@@ -299,12 +299,12 @@ var
   {$endif ADD_GL_ANIMATION}
 begin
   if Parameters.High = 1 then
-    FileName := Parameters[1];
+    URL := Parameters[1];
 
   OnWarning := @OnWarningWrite;
 
   Scene := TCastleScene.Create(Application);
-  Scene.Load(FileName);
+  Scene.Load(URL);
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
 

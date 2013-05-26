@@ -146,7 +146,7 @@ end;
 
 procedure TMyWindow.EventPress(const Event: TInputPressRelease);
 var
-  FileName: string;
+  URL: string;
 begin
  inherited;
  case Event.KeyCharacter of
@@ -156,10 +156,10 @@ begin
       end;
   'c':if Cursor = High(Cursor) then Cursor := Low(Cursor) else Cursor := Succ(Cursor);
   'o':begin
-        FileName := '';
+        URL := '';
         { when file dialog is open, note that the other windows
           are still active as they should. }
-        FileDialog('Test open file dialog', FileName, true);
+        URLDialog('Test open file dialog', URL, true);
       end;
  end;
 end;

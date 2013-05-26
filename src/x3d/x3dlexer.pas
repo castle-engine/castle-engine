@@ -100,8 +100,7 @@ type
     Major, Minor: Integer;
     function FileExtension(const Encoding: TX3DEncoding;
       const ForceConvertingToX3D: boolean = false): string;
-    { File filters for TCastleWindowBase.FileDialog if you want to save a file using
-      Save3D. }
+    { File filters if you want to save a file using Save3D. }
     function FileFilters(const Encoding: TX3DEncoding;
       const ForceConvertingToX3D: boolean = false): string;
   end;

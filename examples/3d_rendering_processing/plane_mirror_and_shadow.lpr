@@ -37,7 +37,7 @@
     See menu shortcuts for other keys.
 
   Command-line params:
-    Optional $1 is the initial 3d model filename to load.
+    Optional $1 is the initial 3d model URL to load.
     If not given, a simple internal cube model is loaded.
 
     You can later change it using "Open" menu item anyway.
@@ -54,7 +54,7 @@ uses CastleVectors, CastleBoxes, X3DNodes, GL, GLU, GLExt, CastleWindow, CastleR
   CastleClassUtils, CastleUtils, SysUtils, Classes, X3DLoad, CastleWarnings,
   CastleGLUtils, CastleScene, CastleCameras, CastleRenderingCamera, CastleParameters,
   CastleFilesUtils, CastleStringUtils, CastleKeysMouse, CastleSceneManager,
-  CastleColors;
+  CastleColors, CastleURIUtils;
 
 var
   Window: TCastleWindowCustom;
@@ -65,9 +65,9 @@ var
   LightNode: TPointLightNode;
   LightInstance: TLightInstance;
 
-  { FileName of currently loaded Scene.
+  { URL of currently loaded Scene.
     '' means to load internal cube model. }
-  SceneFileName: string;
+  SceneURL: string;
 
   { 4th component must be always 1, because LightNode
     is always created as positional }
@@ -554,8 +554,8 @@ begin
   case MenuItem.IntData of
     10:
       begin
-        S := ExtractFilePath(SceneFileName);
-        if Window.FileDialog('Open 3d model (VRML etc.) file', S, true,
+        S := ExtractURIPath(SceneURL);
+        if Window.URLDialog('Open 3d model (VRML etc.) file', S, true,
           Load3D_FileFilters) then
         begin
           SceneForShadow.BeforeNodesFree; { loading Scene will free also SceneForShadow.RootNode }
@@ -563,7 +563,7 @@ begin
           Scene.Load(S, false);
           SceneForShadow.Load(Scene.RootNode, false);
 
-          SceneFileName := S;
+          SceneURL := S;
           { refresh projection matrix, since Scene.BoundingBox changed }
           Window.EventResize;
           { reinit camera, since Scene.BoundingBox changed }
@@ -632,8 +632,8 @@ begin
   Window.ParseParameters(StandardParseOptions);
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
-    SceneFileName := Parameters[1] else
-    SceneFileName := '';
+    SceneURL := Parameters[1] else
+    SceneURL := '';
 
   SceneManager := TMySceneManager.Create(Application);
   SceneManager.DefaultVisibilityLimit := 100;
@@ -642,8 +642,8 @@ begin
   OnWarning := @OnWarningWrite;
 
   { calculate RootNode }
-  if SceneFileName <> '' then
-    RootNode := Load3D(SceneFileName, true) else
+  if SceneURL <> '' then
+    RootNode := Load3D(SceneURL, true) else
     { use box, just to show anything }
     RootNode := LoadX3DClassicFromString('#VRML V1.0 ascii' + LineEnding +  'Cube { }', '');
 

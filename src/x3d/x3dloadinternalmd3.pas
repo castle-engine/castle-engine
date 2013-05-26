@@ -381,7 +381,7 @@ begin
   { TODO-net: FileExists is wrong for URLs }
   if FileExists(SkinURL) then
   begin
-    SkinFile := TTextReader.Create(Download(SkinURL), true);
+    SkinFile := TTextReader.Create(SkinURL);
     try
       while not SkinFile.Eof do
       begin
