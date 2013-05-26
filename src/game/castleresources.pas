@@ -681,7 +681,7 @@ begin
     try
       Xml.RootName := 'resource';
       Xml.NotModified; { otherwise changing RootName makes it modified, and saved back at freeing }
-      Xml.Load(URL);
+      Xml.URL := URL;
       if Log then
         WritelnLog('Resources', Format('Loading T3DResource from "%s"', [URL]));
 

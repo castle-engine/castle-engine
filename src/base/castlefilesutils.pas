@@ -290,8 +290,11 @@ procedure SafeRewrite(var f: text; const filename: string); overload;
   on Unix it must begin with "/". RelPath can be relative and can
   be absolute. If RelPath is absolute, result is RelPath.
   Else the result is an absolute path calculated by combining RelPath
-  with BasePath. }
-function CombinePaths(BasePath, RelPath: string): string;
+  with BasePath.
+
+  @deprecated This is deprecated, you should instead operate on URLs
+  and combine them using CastleURIUtils.Combines. }
+function CombinePaths(BasePath, RelPath: string): string; deprecated;
 
 { Search a file on $PATH. Works with double quotes around components
   of path list, avoiding this bug: http://bugs.freepascal.org/view.php?id=19279.

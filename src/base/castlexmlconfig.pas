@@ -55,6 +55,8 @@ type
   TCastleConfig = class(TXMLConfig)
   private
     FOnLoad, FOnSave: TCastleConfigEventList;
+    procedure SetMyURL(const Value: string);
+    function GetMyURL: string;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -158,6 +160,11 @@ type
 
     { Called at @link(Save). }
     property OnSave: TCastleConfigEventList read FOnSave;
+
+    { The URL from which to load and save configuration.
+      This is converted underneath to ancestor TXMLConfig.FileName,
+      so in fact we only support local files here for now. }
+    property URL: string read GetMyURL write SetMyURL;
 
     { Load the current configuration of the engine components.
       Sets FileName, loading the appropriate file to our properties,
@@ -374,14 +381,24 @@ begin
   FModified := false;
 end;
 
-procedure TCastleConfig.Load(const AURL: string);
+procedure TCastleConfig.SetMyURL(const Value: string);
 var
   F: string;
 begin
-  F := URIToFilenameSafe(AURL);
+  F := URIToFilenameSafe(Value);
   if F = '' then
-    raise Exception.CreateFmt('Cannot load local file from "%s"', [AURL]);
+    raise Exception.CreateFmt('Cannot load local file from "%s", TCastleConfig for now supports only local files', [Value]);
   FileName := F;
+end;
+
+function TCastleConfig.GetMyURL: string;
+begin
+  Result := FilenameToURISafe(FileName);
+end;
+
+procedure TCastleConfig.Load(const AURL: string);
+begin
+  URL := AURL;
   OnLoad.ExecuteAll(Self);
 
   { This is used for various files (not just user preferences,

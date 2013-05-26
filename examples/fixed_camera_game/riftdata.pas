@@ -38,21 +38,16 @@ function DataFileNameFromConfig(const ARelativeFileName: string): string;
 
 implementation
 
-uses SysUtils, CastleFilesUtils;
-
-var
-  { ExtractFilePath(DataConfig.Filename), calculated once for speed. }
-  ConfigPath: string;
+uses SysUtils, CastleFilesUtils, CastleURIUtils;
 
 function DataFileNameFromConfig(const ARelativeFileName: string): string;
 begin
-  Result := CombinePaths(ConfigPath, ARelativeFileName);
+  Result := CombineURI(DataConfig.URL, ARelativeFileName);
 end;
 
 initialization
   DataConfig := TCastleConfig.Create(nil);
-  DataConfig.Filename := ProgramDataPath + 'data' + PathDelim + 'index.xml';
-  ConfigPath := ExtractFilePath(DataConfig.Filename);
+  DataConfig.URL := ProgramDataPath + 'data/index.xml';
 finalization
   FreeAndNil(DataConfig);
 end.
