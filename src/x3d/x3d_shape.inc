@@ -770,7 +770,7 @@ begin
     TextureUrl := TImageTextureNode(Texture).FdUrl.Items[0];
     if TextureUrl <> '' then
       Result := MaterialProperties.FindTextureBaseName(
-        DeleteFileExt(ExtractFileName(TextureUrl)));
+        DeleteURIExt(ExtractURIName(TextureUrl)));
   end;
 end;
 

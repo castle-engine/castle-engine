@@ -171,6 +171,9 @@ function URISaveStream(const URI: string): TStream;
 { Change extension of the URL. }
 function ChangeURIExt(const URL, Extension: string): string;
 
+{ Delete extension of the URL. }
+function DeleteURIExt(const URL: string): string;
+
 { Extract filename (last part after slash) from URL. }
 function ExtractURIName(const URL: string): string;
 
@@ -624,7 +627,9 @@ begin
      (P = 'ftp') or
      (P = 'https') then
     { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,
-      although they should be used for filenames. }
+      although they should be used for filenames.
+      Note that this unit does not define public functions like ExtractURIExt
+      or ExtractURIDoubleExt: *everything* should operate on MIME types instead. }
     Result := ExtToMimeType(ExtractFileExt(URI), ExtractFileDoubleExt(URI)) else
 
   if P = 'data' then
@@ -701,6 +706,11 @@ end;
 function ChangeURIExt(const URL, Extension: string): string;
 begin
   Result := ChangeFileExt(URL, Extension);
+end;
+
+function DeleteURIExt(const URL: string): string;
+begin
+  Result := DeleteFileExt(URL);
 end;
 
 function ExtractURIName(const URL: string): string;
