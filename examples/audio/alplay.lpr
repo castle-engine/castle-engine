@@ -21,7 +21,7 @@ uses SysUtils, CastleUtils, CastleOpenAL,
 
 var
   Buffer: TSoundBuffer;
-  FileName: string;
+  URL: string;
   Duration: TFloatTime;
 begin
   OnWarning := @OnWarningWrite;
@@ -32,7 +32,7 @@ begin
   { parse params }
   SoundEngine.ParseParameters;
   Parameters.CheckHigh(1);
-  FileName := Parameters[1];
+  URL := Parameters[1];
 
   { Change the default MinAllocatedSources (it may be larger for the default
     engine usage, as we expect that some sound mixing will be needed;
@@ -43,7 +43,7 @@ begin
     OpenAL will be automatically initialized when needed below.
     Although you could also initialize it explicitly by SoundEngine.ALContextOpen,
     check SoundEngine.SoundInitializationReport, SoundEngine.ALActive etc. }
-  Buffer := SoundEngine.LoadBuffer(FileName, Duration);
+  Buffer := SoundEngine.LoadBuffer(URL, Duration);
   Writeln('Sound loaded, duration in seconds: ', Duration:1:2);
   SoundEngine.PlaySound(Buffer, false, false, 0, 1, 0, 1, ZeroVector3Single);
 

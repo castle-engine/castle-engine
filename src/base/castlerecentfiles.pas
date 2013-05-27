@@ -60,7 +60,7 @@ type
       Note that we want to store only absolute URLs.
       So this method will always call AbsoluteURI (which will eventually
       call ExpandFileName on filename inside, and make sure it has appropriate
-      protocol) on the passes URL. }
+      protocol) on the given URL. }
     procedure Add(const URL: string; const MaybeStdIn: boolean = true); virtual;
 
     { List of currently stored URLs. @italic(This is readonly.) }

@@ -14,7 +14,7 @@
 }
 
 { Simple demo of EFX effects.
-  Run with $1 = filename of sound to test,
+  Run with $1 = URL (usually just a filename) of sound to test,
   $2 = demo number (int between 0 ... 2). }
 program efx_demo;
 
