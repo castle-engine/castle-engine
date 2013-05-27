@@ -192,73 +192,35 @@ var
     { Initialized to VerticesFaces[VertexNum] }
     ThisVertexFaces: TIntegerList;
 
-    { Can face FaceNum may be smoothed together with all faces in FaceNums.
-      This is the moment when CreaseAngleRad comes into play.
-      FaceNum and FaceNums[] are indexes to ThisVertexFaces array. }
-    function FaceCanBeSmoothedWithFaces(FaceNum: integer;
-      FaceNums: TIntegerList): boolean;
-    var
-      I: integer;
+    { Can face FaceNum1 be smoothed together with face FaceNum2. }
+    function FaceCanBeSmoothedWith(const FaceNum1, FaceNum2: integer): boolean;
     begin
-      for I := 0 to FaceNums.Count - 1 do
+      Result :=
         { I want to check that
-            AngleRadBetweenNormals(...) >= CreaseAngleRad
+            AngleRadBetweenNormals(...) < CreaseAngleRad
           so
-            ArcCos(CosAngleRadBetweenNormals(...)) >= CreaseAngleRad
+            ArcCos(CosAngleRadBetweenNormals(...)) < CreaseAngleRad
           so
-            CosAngleBetweenNormals(...) < CosCreaseAngle }
-        if CosAngleBetweenNormals(
-          Faces.L[ThisVertexFaces.L[FaceNum]].Normal,
-          Faces.L[ThisVertexFaces.L[FaceNums[i]]].Normal) <
-          CosCreaseAngle then
-          Exit(false);
-      Result := true;
+            CosAngleBetweenNormals(...) > CosCreaseAngle }
+        CosAngleBetweenNormals(
+          Faces.L[ThisVertexFaces.L[FaceNum1]].Normal,
+          Faces.L[ThisVertexFaces.L[FaceNum2]].Normal) >
+          CosCreaseAngle;
     end;
 
   var
     I, J: Integer;
-    { Current face group that shares a common normal vector on this vertex. }
-    SmoothFaces: TIntegerList;
-    { Did we store normal vector for given face (and this vertex VertexNum) }
-    HandledFaces: TBooleanList;
     Normal: TVector3Single;
   begin
     ThisVertexFaces := VerticesFaces[VertexNum];
-
-    SmoothFaces := nil;
-    HandledFaces := nil;
-    try
-      HandledFaces := TBooleanList.Create;
-      HandledFaces.Count := ThisVertexFaces.Count; { TFPGList initialized everything to false }
-      SmoothFaces := TIntegerList.Create;
-
-      for I := 0 to ThisVertexFaces.Count - 1 do
-        if not HandledFaces[I] then
-        begin
-          { calculate SmoothFaces }
-          SmoothFaces.Count := 1;
-          SmoothFaces[0] := i;
-
-          for J := I + 1 to ThisVertexFaces.Count - 1 do
-            if (not HandledFaces[j]) and FaceCanBeSmoothedWithFaces(J, SmoothFaces) then
-              SmoothFaces.Add(J);
-
-          { handle faces in SmoothFaces }
-          FillChar(Normal, SizeOf(Normal), 0);
-          for J := 0 to SmoothFaces.Count - 1 do
-          begin
-            HandledFaces[SmoothFaces[J]] := true;
-            VectorAddTo1st(Normal, faces.L[ThisVertexFaces[SmoothFaces[J]]].Normal);
-          end;
-          NormalizeTo1st(Normal);
-
-          { use calculated normal vector }
-          for J := 0 to SmoothFaces.Count - 1 do
-            SetNormal(VertexNum, Faces.L[ThisVertexFaces[SmoothFaces[J]]], Normal);
-        end;
-    finally
-      SmoothFaces.Free;
-      HandledFaces.Free;
+    for I := 0 to ThisVertexFaces.Count - 1 do
+    begin
+      Normal := Faces.L[ThisVertexFaces[I]].Normal;
+      for J := 0 to ThisVertexFaces.Count - 1 do
+        if (I <> J) and FaceCanBeSmoothedWith(I, J) then
+          VectorAddTo1st(Normal, Faces.L[ThisVertexFaces[J]].Normal);
+      NormalizeTo1st(Normal);
+      SetNormal(VertexNum, Faces.L[ThisVertexFaces[I]], Normal);
     end;
   end;
 
