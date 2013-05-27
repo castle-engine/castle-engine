@@ -18,9 +18,10 @@ unit CastlePlayer;
 
 interface
 
-uses CastleBoxes, CastleCameras, CastleItems, CastleVectors, GL, GLU, CastleInputs, CastleKeysMouse,
-  X3DTriangles, CastleMaterialProperties, CastleSoundEngine, Classes, Castle3D,
-  CastleGLUtils, CastleColors, CastleFrustum, CastleTriangles, CastleTimeUtils;
+uses CastleBoxes, CastleCameras, CastleItems, CastleVectors, GL, GLU, CastleInputs,
+  CastleKeysMouse, X3DTriangles, CastleMaterialProperties, CastleSoundEngine,
+  Classes, Castle3D, CastleGLUtils, CastleColors, CastleFrustum, CastleTriangles,
+  CastleTimeUtils;
 
 type
   TPlayerSwimming = (psNo,
