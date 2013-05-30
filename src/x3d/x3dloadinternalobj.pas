@@ -16,7 +16,7 @@
 { Load Wavefront OBJ 3D format.
   See [http://www.fileformat.info/format/wavefrontobj/]
   and [http://www.fileformat.info/format/material/].
-  Texture filename is also read from material file. }
+  Texture URL is also read from material file. }
 unit X3DLoadInternalOBJ;
 
 interface
@@ -489,13 +489,13 @@ var
     begin
       Texture := TImageTextureNode.Create('', BaseUrl);
       Result.FdTexture.Value := Texture;
-      Texture.FdUrl.Items.Add(SearchTextureFileName(BaseUrl, Material.DiffuseTextureURL));
+      Texture.FdUrl.Items.Add(SearchTextureFile(BaseUrl, Material.DiffuseTextureURL));
 
       if Material.BumpTextureURL <> '' then
       begin
         Texture := TImageTextureNode.Create('', BaseUrl);
         Result.FdNormalMap.Value := Texture;
-        Texture.FdUrl.Items.Add(SearchTextureFileName(BaseUrl, Material.BumpTextureURL));
+        Texture.FdUrl.Items.Add(SearchTextureFile(BaseUrl, Material.BumpTextureURL));
       end;
     end;
   end;

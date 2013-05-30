@@ -868,7 +868,7 @@ procedure TCastlePrecalculatedAnimation.LoadCore(
     { We are interested whether Model1.BaseUrl and Model2.BaseUrl will
       give different results when using them to resolve relative URLs.
       Simply comparing them is not good --- they may contain filenames
-      at the end. Stripping these filenames with ExtractFilePath
+      at the end. Stripping these filenames with ExtractURIPath
       is dirty. So we just test CombineURI with a test name. }
     if Model1.PathFromBaseUrl('test') <> Model2.PathFromBaseUrl('test') then
       raise EModelsStructureDifferent.CreateFmt(

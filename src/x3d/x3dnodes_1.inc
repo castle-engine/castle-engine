@@ -1617,7 +1617,7 @@ begin
   CacheUsed := false;
   FTextureUsedFullUrl := '';
 
-  { sprobuj zaladowac teksture z pliku FdFilename }
+  { load from FdFilename }
   if FdFilename.Value <> '' then
   try
     FullUrl := PathFromBaseUrl(FdFilename.Value);

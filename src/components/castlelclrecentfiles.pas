@@ -94,8 +94,7 @@ begin
   if Number = 10 then
     S := '1&0' else
     S := IntToStr(Number);
-  { TODO-net: url as a filename treated }
-  S += '. ' + SQuoteLCLCaption(ExtractFileName(URL));
+  S += '. ' + SQuoteLCLCaption(ExtractURIName(URL));
 
   inherited Create(AOwner);
 

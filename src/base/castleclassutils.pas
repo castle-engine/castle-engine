@@ -209,7 +209,7 @@ function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): st
 
   @deprecated Instead of this, use CastleDownload.Download with
   LocalFileInMemory. }
-function CreateReadFileStream(const filename: string): TStream; deprecated;
+function CreateReadFileStream(const URL: string): TStream; deprecated;
 
 { Read a growing stream, and append it to another destination stream.
   A "growing stream" is a stream that we can only read
@@ -901,9 +901,9 @@ begin
   result := StreamReadUpto_EOS(Stream, endingChars, false);
 end;
 
-function CreateReadFileStream(const filename: string): TStream;
+function CreateReadFileStream(const URL: string): TStream;
 begin
-  Result := Download(FileName, [doForceMemoryStream]);
+  Result := Download(URL, [doForceMemoryStream]);
 end;
 
 procedure ReadGrowingStream(GrowingStream, DestStream: TStream;

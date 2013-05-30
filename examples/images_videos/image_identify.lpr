@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Given a list of image filenames (as parameters), load and write
+{ Given a list of image URLs (as parameters), load and write
   some information about them. Image size, type, alpha channel
   (detailed analysis of alpha: yes/no or full range).
   Can be used as a test of our Images loading capabilities,

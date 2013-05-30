@@ -149,7 +149,7 @@ begin
   C := Config.GetValue(Path + '/count', 0);
   for I := 0 to C - 1 do
   begin
-    S := Config.GetValue(Path + '/item' + IntToStr(I) + '/filename', '');
+    S := Config.GetValue(Path + '/item' + IntToStr(I) + '/url', '');
     if S <> '' then
       URLs.Append(S);
   end;
@@ -164,7 +164,7 @@ var
 begin
   Config.SetDeleteValue(Path + '/count', URLs.Count, 0);
   for I := 0 to URLs.Count - 1 do
-    Config.SetDeleteValue(Path + '/item' + IntToStr(I) + '/filename', URLs[I], '');
+    Config.SetDeleteValue(Path + '/item' + IntToStr(I) + '/url', URLs[I], '');
 end;
 
 end.

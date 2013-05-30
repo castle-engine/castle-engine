@@ -28,7 +28,7 @@ procedure Font2Pascal(const OutlineFont: TOutlineFont;
 { @noAutoLinkHere }
 procedure Font2Pascal(const OutlineFont: TOutlineFont;
   const UnitName, PrecedingComment, FontFunctionName: string;
-  const OutFileName: string); overload;
+  const OutURL: string); overload;
 
 { @noAutoLinkHere }
 procedure Font2Pascal(const BitmapFont: TBitmapFont;
@@ -38,11 +38,11 @@ procedure Font2Pascal(const BitmapFont: TBitmapFont;
 { @noAutoLinkHere }
 procedure Font2Pascal(const BitmapFont: TBitmapFont;
   const UnitName, PrecedingComment, FontFunctionName: string;
-  const OutFileName: string); overload;
+  const OutURL: string); overload;
 
 implementation
 
-uses SysUtils, CastleUtils, CastleStringUtils, CastleClassUtils;
+uses SysUtils, CastleUtils, CastleStringUtils, CastleClassUtils, CastleURIUtils;
 
 { WriteUnit* ---------------------------------------------------------- }
 
@@ -273,15 +273,15 @@ begin
   WriteUnitEnd(Stream, FontFunctionName, 'TBitmapFont');
 end;
 
-{ OutFileName versions ---------------------------------------------------- }
+{ OutURL versions ---------------------------------------------------- }
 
 procedure Font2Pascal(const OutlineFont: TOutlineFont;
   const UnitName, PrecedingComment, FontFunctionName: string;
-  const OutFileName: string); overload;
+  const OutURL: string); overload;
 var
   Stream: TStream;
 begin
-  Stream := TFileStream.Create(OutFileName, fmCreate);
+  Stream := URISaveStream(OutURL);
   try
     Font2Pascal(OutlineFont, UnitName, PrecedingComment, FontFunctionName, Stream);
   finally Stream.Free end;
@@ -289,11 +289,11 @@ end;
 
 procedure Font2Pascal(const BitmapFont: TBitmapFont;
   const UnitName, PrecedingComment, FontFunctionName: string;
-  const OutFileName: string); overload;
+  const OutURL: string); overload;
 var
   Stream: TStream;
 begin
-  Stream := TFileStream.Create(OutFileName, fmCreate);
+  Stream := URISaveStream(OutURL);
   try
     Font2Pascal(BitmapFont, UnitName, PrecedingComment, FontFunctionName, Stream);
   finally Stream.Free end;

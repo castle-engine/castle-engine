@@ -1898,7 +1898,7 @@ end;
 
     { Asks and saves current screenshot.
       Asks user where to save the file (using @link(FileDialog),
-      as default filename taking ProposedURL).
+      as default URL taking ProposedURL).
       If user accepts calls Window.SaveScreen.
       In case of problems with saving, shows a dialog (doesn't raise exception). }
     procedure SaveScreenDialog(ProposedURL: string);
@@ -2031,16 +2031,16 @@ end;
       operations by the way (create some directories, rename some files etc.).
 
       Returns @true and sets URL accordingly if user chooses some
-      filename and accepts it. Returns @false if user cancels.
+      file and accepts it. Returns @false if user cancels.
 
       @param(Title A dialog title.)
 
-      @param(URL Specifies default filename as an URL (or simple filename).
+      @param(URL Specifies default file as an URL (or simple filename).
         This can be absolute or relative, may include a path, may include a name.
         If you specify only a path (remember to end it with the slash),
         then it's the default path where to save the file.
         If you specify the name (component after final slash), then it's the
-        proposed filename.
+        proposed file name.
 
         Empty value ('') always means the same as "current directory", guaranteed.
         So it's equivalent to @code(FilenameToURISafe(InclPathDelim(GetCurrentDir))).
@@ -2068,8 +2068,8 @@ end;
 
           @item(
             If OpenDialog = @false: a save dialog.
-            Allows user to select a non-existent filename.
-            If user chooses an existing filename, some backends may show
+            Allows user to select a non-existing file.
+            If user chooses an existing file, some backends may show
             a warning like @italic("Are you sure you want to overwrite this file?").
 
             The intention is that directory of the returned file should exist,
@@ -2405,7 +2405,7 @@ end;
       don't want to use this method --- it's more flexible to create TCastleScene
       yourself, and add it to scene manager yourself, see engine examples like
       scene_manager_basic.lpr. }
-    procedure Load(const SceneFileName: string);
+    procedure Load(const SceneURL: string);
     procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
 
     function MainScene: TCastleScene;
@@ -4673,9 +4673,9 @@ begin
   Controls.Add(SceneManager);
 end;
 
-procedure TCastleWindow.Load(const SceneFileName: string);
+procedure TCastleWindow.Load(const SceneURL: string);
 begin
-  Load(Load3D(SceneFileName, false), true);
+  Load(Load3D(SceneURL, false), true);
 end;
 
 procedure TCastleWindow.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);

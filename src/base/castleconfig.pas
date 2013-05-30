@@ -31,7 +31,7 @@ var
     @link(TCastleConfig.OnSave Config.OnSave) list.
     This way final application may (but doesn't have to) preserve
     the user configuration of all engine components,
-    by setting Config.FileName and calling Config.Load, Config.Save. }
+    by calling Config.Load, Config.Save. }
   Config: TCastleConfig;
 
 implementation

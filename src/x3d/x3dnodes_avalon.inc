@@ -538,7 +538,7 @@ begin
       begin
         WriteStream := TFileStream.Create(
           FileNameAutoInc(ApplicationName + '_logger_' +
-            ExtractOnlyFileName(FdLogFile.Value) + '_%d.log'), fmCreate);
+            DeleteURIExt(ExtractURIName(FdLogFile.Value)) + '_%d.log'), fmCreate);
         OwnsWriteStream := true;
       end else
       begin

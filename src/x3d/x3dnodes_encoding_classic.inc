@@ -19,8 +19,7 @@
 
 const
   { File filters if you want to open a file and then
-    pass it to LoadX3DClassic. Note that only LoadX3DClassic that takes a FileName
-    parameter (as a string) can deal with gzip compressed files.
+    pass it to LoadX3DClassic.
     Suitable for TCastleWindowBase.FileDialog and such. }
   LoadX3DClassic_FileFilters =
   'All files|*|' +

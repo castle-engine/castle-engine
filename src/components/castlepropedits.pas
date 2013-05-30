@@ -31,12 +31,12 @@ uses CastleSceneCore, PropEdits, CastleLCLUtils, X3DLoad, CastleUIControls,
   CastleControl, CastleControls, CastleImages, LResources;
 
 type
-  TSceneFileNamePropertyEditor = class(TFileNamePropertyEditor)
+  TSceneURLPropertyEditor = class(TFileNamePropertyEditor)
   public
     function GetFilter: String; override;
   end;
 
-  TImageFileNamePropertyEditor = class(TFileNamePropertyEditor)
+  TImageURLPropertyEditor = class(TFileNamePropertyEditor)
   public
     function GetFilter: String; override;
   end;
@@ -44,7 +44,7 @@ type
   TUIControlListPropertyEditor = class(TListPropertyEditor)
   end;
 
-function TSceneFileNamePropertyEditor.GetFilter: String;
+function TSceneURLPropertyEditor.GetFilter: String;
 var
   LCLFilter: string;
   FilterIndex: Integer;
@@ -54,7 +54,7 @@ begin
   Result := LCLFilter + (inherited GetFilter);
 end;
 
-function TImageFileNamePropertyEditor.GetFilter: String;
+function TImageURLPropertyEditor.GetFilter: String;
 var
   LCLFilter: string;
   FilterIndex: Integer;
@@ -67,9 +67,9 @@ end;
 procedure Register;
 begin
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore,
-    'FileName', TSceneFileNamePropertyEditor);
+    'URL', TSceneURLPropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageControl,
-    'FileName', TImageFileNamePropertyEditor);
+    'URL', TImageURLPropertyEditor);
   { TODO: crashes
   RegisterPropertyEditor(TypeInfo(TUIControlList), TCastleControlCustom,
     'Controls', TUIControlListPropertyEditor);

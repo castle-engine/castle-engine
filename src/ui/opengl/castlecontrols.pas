@@ -217,15 +217,15 @@ type
   { Image control inside OpenGL context.
     Size is automatically adjusted to the image size.
     You should set TCastleImageControl.Left, TCastleImageControl.Bottom properties,
-    and load your image by setting TCastleImageControl.FileName property
+    and load your image by setting TCastleImageControl.URL property
     or straight TCastleImageControl.Image. }
   TCastleImageControl = class(TUIControlPos)
   private
-    FFileName: string;
+    FURL: string;
     FImage: TCastleImage;
     FGLImage: TGLImage;
     FBlending: boolean;
-    procedure SetFileName(const Value: string);
+    procedure SetURL(const Value: string);
     procedure SetImage(const Value: TCastleImage);
   public
     destructor Destroy; override;
@@ -249,9 +249,11 @@ type
     property Image: TCastleImage read FImage write SetImage;
 
   published
-    { File name of the image. Setting this also sets @link(Image).
+    { URL of the image. Setting this also sets @link(Image).
       Set this to '' to clear the image. }
-    property FileName: string read FFileName write SetFileName;
+    property URL: string read FURL write SetURL;
+    { Deprecated name for @link(URL). }
+    property FileName: string read FURL write SetURL; deprecated;
 
     { Set to @true to draw image with blending. This is suitable for images
       that (may) have nice alpha channel. }
@@ -866,15 +868,15 @@ begin
   inherited;
 end;
 
-procedure TCastleImageControl.SetFileName(const Value: string);
+procedure TCastleImageControl.SetURL(const Value: string);
 begin
   if Value <> '' then
     Image := LoadImage(Value, []) else
     Image := nil;
 
   { only once new Image is successfully loaded, change property value.
-    If LoadImage raised exception, FileName will remain unchanged. }
-  FFileName := Value;
+    If LoadImage raised exception, URL will remain unchanged. }
+  FURL := Value;
 end;
 
 procedure TCastleImageControl.SetImage(const Value: TCastleImage);

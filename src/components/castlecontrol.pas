@@ -340,7 +340,7 @@ type
       don't want to use this method --- it's more flexible to create TCastleScene
       yourself, and add it to scene manager yourself, see engine examples like
       scene_manager_basic.lpr. }
-    procedure Load(const SceneFileName: string);
+    procedure Load(const SceneURL: string);
     procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
 
     function MainScene: TCastleScene;
@@ -1596,9 +1596,9 @@ begin
   Controls.Add(SceneManager);
 end;
 
-procedure TCastleControl.Load(const SceneFileName: string);
+procedure TCastleControl.Load(const SceneURL: string);
 begin
-  Load(Load3D(SceneFileName, false), true);
+  Load(Load3D(SceneURL, false), true);
 end;
 
 procedure TCastleControl.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);

@@ -1828,8 +1828,8 @@ type
     property ProcessEvents: boolean
       read FProcessEvents write SetProcessEvents default false;
 
-    { Currently loaded scene filename. Set this to load a 3D scene
-      from the given file, this can load from any known 3D format
+    { Currently loaded scene URL. Set this to load a 3D scene
+      from the given URL, we can load from any known 3D format
       (VRML, X3D, Collada, 3ds, Wavefront, etc.).
 
       Works just like the @link(Load) method (the overloaded version
@@ -1837,7 +1837,7 @@ type
       directly the @link(Load) method will also change this URL property.
 
       The only difference of @code(Scene.URL := 'blah.x3d') vs
-      @code(Scene.Load('blah.x3d')) is that setting the filename will
+      @code(Scene.Load('blah.x3d')) is that setting the URL will
       @italic(not) reload the scene if you set it to the same value.
       That is, @code(Scene.URL := Scene.URL;) will not reload
       the scene (you have to use explicit @link(Load) for this.). }
@@ -1915,7 +1915,7 @@ var
 implementation
 
 uses X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils, CastleWarnings,
-  X3DLoad;
+  X3DLoad, CastleURIUtils;
 
 { TX3DBindableStack ----------------------------------------------------- }
 
@@ -6584,8 +6584,7 @@ begin
   if (WorldInfoNode <> nil) and
      (WorldInfoNode.FdTitle.Value <> '') then
     Result := WorldInfoNode.FdTitle.Value else
-    { TODO-net using file operations on URL }
-    Result := ExtractFileName(URL);
+    Result := ExtractURIName(URL);
 end;
 
 function TCastleSceneCore.Node(const NodeName: string): TX3DNode;

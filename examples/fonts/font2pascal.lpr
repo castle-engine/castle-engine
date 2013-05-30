@@ -34,8 +34,9 @@
 {$apptype CONSOLE}
 
 uses Windows, SysUtils, CastleWindowsFonts, CastleFont2Pascal, CastleUtils,
-  CastleClassUtils, CastleParameters, CastleOutlineFonts, CastleBitmapFonts, CastleWinFontConvert,
-  Classes, CastleStringUtils, CastleTimeUtils;
+  CastleClassUtils, CastleParameters, CastleOutlineFonts, CastleBitmapFonts,
+  CastleWinFontConvert, Classes, CastleStringUtils, CastleTimeUtils,
+  CastleURIUtils;
 
 const
   DefaultFontHeight: Integer = -20;
@@ -77,7 +78,7 @@ begin
            '                        (CastleOutlineFonts) or bitmap font (CastleBitmapFonts)' +nl+
            '                        Default is "as outline".' +nl+
            '  --dir DIR             This tells font2pascal to write output to file' +nl+
-           '                        in directory DIR with a filename deduced from' +nl+
+           '                        in directory DIR with URL deduced from' +nl+
            '                        generated unit name (e.g. unit CastleOutlineFont_CourierNew' +nl+
            '                        will be output to castleoutlinefont_couriernew.pas).' +nl+
            '                        Some one-line comment' +nl+
@@ -133,7 +134,7 @@ var
   WinFontHandle: HFont;
   OutlineFont: TOutlineFont;
   BitmapFont: TBitmapFont;
-  S, PrecedingComment, UnitName, FontConstantName, OutFileName: string;
+  S, PrecedingComment, UnitName, FontConstantName, OutURL: string;
   Stream: TStream;
 begin
   WinFont := TWindowsFont.Create(DefaultFontHeight);
@@ -168,8 +169,8 @@ begin
       { evaluate Stream }
       if WasParam_Dir then
       begin
-        OutFileName := InclPathDelim(Dir) + LowerCase(UnitName) + '.pas';
-        Stream := TFileStream.Create(OutFileName, fmCreate);
+        OutURL := FilenameToURISafe(InclPathDelim(Dir) + LowerCase(UnitName) + '.pas');
+        Stream := URISaveStream(OutURL);
       end else
         Stream := StdOutStream;
 

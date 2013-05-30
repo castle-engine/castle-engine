@@ -888,7 +888,7 @@ var
 implementation
 
 uses CastleProgress, CastleSceneCore, CastleNormals, CastleLog, CastleWarnings,
-  CastleStringUtils, CastleArraysGenerator, CastleImages;
+  CastleStringUtils, CastleArraysGenerator, CastleImages, CastleURIUtils;
 
 const
   UnknownTexCoord: TTriangle4Single = (
@@ -2088,7 +2088,7 @@ begin
     TextureUrl := State.LastNodes.Texture2.FdFileName.Value;
     if TextureUrl <> '' then
       Result := MaterialProperties.FindTextureBaseName(
-        DeleteFileExt(ExtractFileName(TextureUrl)));
+        DeleteURIExt(ExtractURIName(TextureUrl)));
   end;
 
   IsCachedMaterialProperty := true;

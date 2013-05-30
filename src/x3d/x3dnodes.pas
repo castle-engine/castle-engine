@@ -756,7 +756,7 @@ type
     destructor Destroy; override;
 
     { Load 3D model, just like Load3D but with a cache.
-      URL must be absolute (not relative) filename.
+      URL must be absolute (not relative).
 
       Note that this should not be used if you plan to modify the model graph
       (for example by VRML/X3D events). In such case, the cache should not

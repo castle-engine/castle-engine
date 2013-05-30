@@ -1484,11 +1484,11 @@ type
 
 @longCode(#
   { When you don't care what TCastleImage descendant you get: }
-  Image := LoadImage('filename.png', []);
+  Image := LoadImage('image.png', []);
 
   { When you insist on getting TRGBImage, that is 8-bit color image
     without an alpha channel. }
-  ImageRGB := LoadImage('filename.png', [TRGBImage]) as TRGBImage;
+  ImageRGB := LoadImage('image.png', [TRGBImage]) as TRGBImage;
 #)
 
   Image file format may be given explicitly (overloaded version with
@@ -1609,7 +1609,7 @@ procedure ImageAlphaConstTo1st(var Img: TCastleImage; const AlphaConst: byte);
   The only purpose of this for now is to pick TRGBFloatImage for RGBE files,
   chooses TRGBImage for anything else.
 
-  For the overloaded version with FileName, file format is determined
+  For the overloaded version with URL, file format is determined
   by guessing based on file extension.
 
   @groupBegin }

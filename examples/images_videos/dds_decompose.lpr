@@ -65,8 +65,8 @@ begin
         raise Exception.CreateFmt('Cannot save S3TC compressed images (image class is %s)',
           [DImg.Images[0].ClassName]);
 
-      OutputBaseName := ExtractFilePath(Parameters[1]) +
-        ExtractOnlyFileName(Parameters[1]) + '_';
+      OutputBaseName := ExtractURIPath(Parameters[1]) +
+        DeleteURIExt(ExtractURIName(Parameters[1])) + '_';
       for I := 0 to DImg.Images.Count - 1 do
       begin
         OutputName := OutputBaseName + IntToStrZPad(I, 2) + '.png';

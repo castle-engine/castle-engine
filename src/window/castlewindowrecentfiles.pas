@@ -57,7 +57,7 @@ type
 
 implementation
 
-uses SysUtils, CastleClassUtils;
+uses SysUtils, CastleClassUtils, CastleURIUtils;
 
 { TMenuRecentItem ------------------------------------------------------------ }
 
@@ -87,8 +87,7 @@ begin
   if Number = 10 then
     S := '1_0' else
     S := IntToStr(Number);
-  { TODO-net: url as a filename treated }
-  S += '. ' + SQuoteMenuEntryCaption(ExtractFileName(URL));
+  S += '. ' + SQuoteMenuEntryCaption(ExtractURIName(URL));
 
   inherited Create(S, AIntData);
 end;

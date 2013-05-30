@@ -17,7 +17,7 @@
   you to easily embed image files in program executables.
 
   1st command-line option specifies the unit name, usually in CamelCase.
-  Rest of the command-line options specify image filenames.
+  Rest of the command-line options specify image URLs (usually filenames).
 
   The output unit filename will be lowercase(unit name) + '.pas'.
   (We make the name lowercase, as this is nice under Unix.)
@@ -31,7 +31,7 @@
   The generated Pascal unit defines TCastleImage instances
   (created / freed in unit's initialization / finalization)
   that contain the size and contents of your images.
-  Remember that you can provide many image filenames on the command-line,
+  Remember that you can provide many image URLs on the command-line,
   then all of them will be included in the unit.
 
   For an example output of this program see e.g. view3dscene sources,
@@ -90,7 +90,7 @@ end;
 
 var
   Image, TempImage: TCastleImage;
-  ImageFileName: string;
+  ImageURL: string;
   UnitName, NameWidth, NameHeight, NamePixels, NameImage: string;
   ImagesInterface, ImagesImplementation, ImagesInitialization,
     ImagesFinalization: string;
@@ -115,23 +115,23 @@ begin
   ImagesFinalization := '';
   for ImageIndex := 1 to Parameters.High do
   begin
-    ImageFilename := Parameters[ImageIndex];
+    ImageURL := Parameters[ImageIndex];
 
-    if ImageFilename = '@alpha=strip' then
+    if ImageURL = '@alpha=strip' then
     begin
       AlphaStrip := true;
       Continue;
     end else
-    if ImageFilename = '@alpha=keep' then
+    if ImageURL = '@alpha=keep' then
     begin
       AlphaStrip := false;
       Continue;
     end;
 
     { init other Image* variables }
-    NameImage := ExtractOnlyFileName(ImageFileName);
+    NameImage := DeleteURIExt(ExtractURIName(ImageURL));
     NameImage[1] := UpCase(NameImage[1]);
-    Image := LoadImage(ImageFileName, []);
+    Image := LoadImage(ImageURL, []);
     try
       if AlphaStrip and Image.HasAlpha then
       begin
@@ -143,7 +143,7 @@ begin
           TempImage := nil; {< for safety }
         end else
           raise Exception.CreateFmt('Cannot strip alpha channel information from image %s (class %s)',
-            [ImageFileName, Image.ClassName]);
+            [ImageURL, Image.ClassName]);
       end;
 
       { calculate Name* variables }

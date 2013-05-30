@@ -107,7 +107,7 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
     property SceneURL: string read FSceneURL write FSceneURL;
 
     { @deprecated Deprecated name for SceneURL. }
-    property SceneFileName: string read FSceneURL write FSceneURL;
+    property SceneFileName: string read FSceneURL write FSceneURL; deprecated;
 
     { Nice name of the level for user. This should be user-friendly,
       so it can use spaces, non-English letters and such.

@@ -161,13 +161,13 @@ type
     { Called at @link(Save). }
     property OnSave: TCastleConfigEventList read FOnSave;
 
-    { The URL from which to load and save configuration.
+    { The URL from which to load and save configuration, always absolute.
       This is converted underneath to ancestor TXMLConfig.FileName,
       so in fact we only support local files here for now. }
     property URL: string read GetMyURL write SetMyURL;
 
     { Load the current configuration of the engine components.
-      Sets FileName, loading the appropriate file to our properties,
+      Sets @link(URL) and FileName, loading the appropriate file to our properties,
       and then calls the OnLoad callbacks to allow all engine components
       read their settings.
 
@@ -191,7 +191,8 @@ type
     { Save the configuration of all engine components.
       Calls the OnSave callbacks to allow all engine components
       to store their settings in our properties, and then flushes
-      them to disk (using FileName property) by inherited Flush method. }
+      them to disk (using FileName property, synchronized with @link(URL) property)
+      by inherited Flush method. }
     procedure Save;
   end;
 
@@ -366,7 +367,7 @@ begin
     if not EmptyIfNoAttribute then
       raise EMissingAttribute.CreateFmt('Missing attribute "%s" in XML file', [APath]);
   end else
-    Result := CombineURI(FilenameToURISafe(FileName), Result);
+    Result := CombineURI(URL, Result);
 end;
 
 function TCastleConfig.GetNonEmptyValue(const APath: string): string;

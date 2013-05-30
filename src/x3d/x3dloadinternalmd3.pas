@@ -396,8 +396,7 @@ begin
               it's usually a relative directory inside quake/tremulous/etc.
               data. We just assume that this is inside the same dir as
               md3 model file, so we strip the directory part. }
-            { TODO-net: file operations on URLs }
-            ATextureURL := ExtractFileName(ATextureURL);
+            ATextureURL := ExtractURIName(ATextureURL);
 
             { TODO-net: file operations on URLs  - lots below }
 

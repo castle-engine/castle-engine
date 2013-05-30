@@ -32,17 +32,14 @@ function ToX3DName(const S: string): string;
 function AmbientIntensity(const AmbientColor, DiffuseColor: TVector3Single): Single;
 function AmbientIntensity(const AmbientColor, DiffuseColor: TVector4Single): Single;
 
-{ Search harder for filename Base inside directory Path.
-  Path must be absolute and contain the final PathDelim.
-  Returns filename relative to Path.
+{ Search harder for file named Base inside directory of BaseUrl.
+  BaseUrl must be an absolute URL, we will extract path from it.
+  Returns URL relative to BaseUrl.
 
   We prefer to return just Base, if it exists, or when no alternative exists.
   When Base doesn't exist but some likely alternative exists (e.g. with
-  different case), we return it.
-
-  TODO-net: if directory contains any protocol (even file), we always return
-  just Base, without any smart searching. }
-function SearchTextureFileName(const Path, Base: string): string;
+  different case), we return it. }
+function SearchTextureFile(const BaseUrl, Base: string): string;
 
 implementation
 
@@ -77,13 +74,12 @@ begin
     Vector3SingleCut(DiffuseColor));
 end;
 
-function SearchTextureFileName(const Path, Base: string): string;
+function SearchTextureFile(const BaseUrl, Base: string): string;
 var
   SomePathDelim: Integer;
-  BaseShort: string;
+  BaseShort, Path: string;
 begin
-  { TODO-net: We cannot work with Base being URL, so just exit in this case }
-  if URIProtocol(Base) <> '' then Exit(Base);
+  Path := ExtractURIPath(BaseUrl);
 
   try
     if SearchFileHard(Path, Base, Result) then
@@ -93,12 +89,12 @@ begin
       some archives expect search within textures/ subdirectory.
       Example on http://www.gfx-3d-model.com/2008/06/house-07/#more-445
       for Wavefront OBJ. }
-    if SearchFileHard(Path + 'textures' + PathDelim, Base, Result) then
+    if SearchFileHard(Path + 'textures/', Base, Result) then
     begin
       Result := 'textures/' + Result;
       Exit;
     end;
-    if SearchFileHard(Path + 'Textures' + PathDelim, Base, Result) then
+    if SearchFileHard(Path + 'Textures/', Base, Result) then
     begin
       Result := 'Textures/' + Result;
       Exit;
@@ -114,12 +110,12 @@ begin
 
       if SearchFileHard(Path, BaseShort, Result) then
         Exit;
-      if SearchFileHard(Path + 'textures' + PathDelim, BaseShort, Result) then
+      if SearchFileHard(Path + 'textures/', BaseShort, Result) then
       begin
         Result := 'textures/' + Result;
         Exit;
       end;
-      if SearchFileHard(Path + 'Textures' + PathDelim, BaseShort, Result) then
+      if SearchFileHard(Path + 'Textures/', BaseShort, Result) then
       begin
         Result := 'Textures/' + Result;
         Exit;
@@ -129,7 +125,7 @@ begin
   finally
     if Result <> Base then
       { Texture file found, but not under original name }
-      OnWarning(wtMinor, 'Texture', Format('Exact texture filename "%s" not found, using instead "%s"',
+      OnWarning(wtMinor, 'Texture', Format('Exact texture URL "%s" not found, using instead "%s"',
         [Base, Result]));
   end;
 

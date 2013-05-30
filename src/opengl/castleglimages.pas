@@ -138,7 +138,7 @@ type
       @raises(EImageClassNotSupportedForOpenGL When image class is not supported
         by OpenGL.)
     }
-    constructor Create(const FileName: string;
+    constructor Create(const URL: string;
       const LoadAsClass: array of TCastleImageClass;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
@@ -411,7 +411,7 @@ function LoadGLTexture(const image: TEncodedImage;
   GrayscaleIsAlpha: boolean = false;
   DDSForMipmaps: TDDSImage = nil): TGLuint; overload;
 
-function LoadGLTexture(const FileName: string;
+function LoadGLTexture(const URL: string;
   MinFilter, MagFilter: TGLenum;
   const Wrap: TTextureWrap2D;
   GrayscaleIsAlpha: boolean = false;
@@ -898,7 +898,7 @@ begin
   FHeight := Image.Height;
 end;
 
-constructor TGLImage.Create(const FileName: string;
+constructor TGLImage.Create(const URL: string;
   const LoadAsClass: array of TCastleImageClass;
   const ResizeToX, ResizeToY: Cardinal;
   const Interpolation: TResizeInterpolation);
@@ -906,8 +906,8 @@ var
   Image: TCastleImage;
 begin
   if High(LoadAsClass) = -1 then
-    Image := LoadImage(FileName, PixelsImageClasses, ResizeToX, ResizeToY, Interpolation) else
-    Image := LoadImage(FileName, LoadAsClass, ResizeToX, ResizeToY, Interpolation);
+    Image := LoadImage(URL, PixelsImageClasses, ResizeToX, ResizeToY, Interpolation) else
+    Image := LoadImage(URL, LoadAsClass, ResizeToX, ResizeToY, Interpolation);
   try
     Create(Image);
   finally FreeAndNil(Image) end;
@@ -1308,7 +1308,7 @@ begin
     GrayscaleIsAlpha, DDSForMipmaps);
 end;
 
-function LoadGLTexture(const FileName: string;
+function LoadGLTexture(const URL: string;
   MinFilter, MagFilter: TGLenum;
   const Wrap: TTextureWrap2D;
   GrayscaleIsAlpha: boolean;
@@ -1316,7 +1316,7 @@ function LoadGLTexture(const FileName: string;
 var
   Image: TEncodedImage;
 begin
-  Image := LoadTextureImage(FileName);
+  Image := LoadTextureImage(URL);
   try
     Result := LoadGLTexture(Image, MinFilter, MagFilter, Wrap,
       GrayscaleIsAlpha, DDSForMipmaps);
@@ -2373,15 +2373,15 @@ begin
 end;
 
 { A debug trick, saves color or depth buffer of the generated framebuffer image
-  to a filename (/tmp/framebuffer_color/depth.png, change the code below
-  if you want other filename). Useful e.g. to visualize captured shadow maps. }
+  to a URL (file:///tmp/framebuffer_color/depth.png, change the code below
+  if you want other URL). Useful e.g. to visualize captured shadow maps. }
 { $define DEBUG_SAVE_FRAMEBUFFER_DEPTH}
 { $define DEBUG_SAVE_FRAMEBUFFER_COLOR}
 
 procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
 
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_COLOR}
-  procedure SaveColor(const FileName: string);
+  procedure SaveColor(const URL: string);
   var
     PackData: TPackNotAlignedData;
     Image: TCastleImage;
@@ -2394,13 +2394,13 @@ procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
           ImageGLType(Image), Image.RawPixels);
       finally AfterPackImage(PackData, Image) end;
 
-      SaveImage(Image, FileName);
+      SaveImage(Image, URL);
     finally FreeAndNil(Image) end;
   end;
 {$endif DEBUG_SAVE_FRAMEBUFFER_COLOR}
 
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_DEPTH}
-  procedure SaveDepth(const FileName: string);
+  procedure SaveDepth(const URL: string);
   var
     PackData: TPackNotAlignedData;
     Image: TGrayscaleImage;
@@ -2413,7 +2413,7 @@ procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
           ImageGLType(Image), Image.RawPixels);
       finally AfterPackImage(PackData, Image) end;
 
-      SaveImage(Image, FileName);
+      SaveImage(Image, URL);
     finally FreeAndNil(Image) end;
   end;
 {$endif DEBUG_SAVE_FRAMEBUFFER_DEPTH}
@@ -2423,10 +2423,10 @@ var
 begin
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_COLOR}
   if Buffer <> tbDepth then
-    SaveColor('/tmp/framebuffer_color.png');
+    SaveColor('file:///tmp/framebuffer_color.png');
 {$endif DEBUG_SAVE_FRAMEBUFFER_COLOR}
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_DEPTH}
-  SaveDepth('/tmp/framebuffer_depth.png');
+  SaveDepth('file:///tmp/framebuffer_depth.png');
 {$endif DEBUG_SAVE_FRAMEBUFFER_DEPTH}
 
   if Framebuffer <> 0 then

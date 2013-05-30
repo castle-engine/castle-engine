@@ -110,10 +110,8 @@ begin
     finally FreeAndNil(PngStream) end;
 
   finally
-    { Don't check result of DeleteFile --- TODO: although we should report
-      failures here as warnings. }
-    DeleteFile(ImageFileName);
-    DeleteFile(PngFileName);
+    CheckDeleteFile(ImageFileName, true);
+    CheckDeleteFile(PngFileName, true);
   end;
 end;
 

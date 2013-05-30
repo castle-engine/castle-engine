@@ -50,14 +50,14 @@ type
     CountVertexes: Integer;
     TriangleCount: Cardinal;
     {$ifdef VISUALIZE_TRIANGULATION}
-    ImageFileNamePrefix: string;
+    ImageUrlPrefix: string;
     Image: TFPCustomImage;
     Canvas: TFPCustomCanvas;
     VisualizeX, VisualizeY: Cardinal;
     MinV, MaxV: TVector3Single;
     function VisualizePoint(const P: TVector3Single): TPoint;
     function VisualizePointRect(const P: TVector3Single): TRect;
-    procedure SaveImage(const FileName, Message: string);
+    procedure SaveImage(const Url, Message: string);
     {$endif VISUALIZE_TRIANGULATION}
     procedure Face(const Tri: TVector3Longint);
   published
@@ -118,7 +118,7 @@ begin
   Result := Rect(Pt.X - 10, Pt.Y - 10, Pt.X + 10, Pt.Y + 10);
 end;
 
-procedure TTestCastleTriangulate.SaveImage(const FileName, Message: string);
+procedure TTestCastleTriangulate.SaveImage(const Url, Message: string);
 var
   Writer: TFPWriterPNG;
 begin
@@ -126,10 +126,10 @@ begin
   Writer := TFPWriterPNG.Create;
   try
     Writer.Indexed := false;
-    Image.SaveToFile(FileName, Writer);
+    Image.SaveToFile(Url, Writer);
   finally FreeAndNil(Writer) end;
 
-  Writeln(Message, ' (Saved to ', FileName, ')');
+  Writeln(Message, ' (Saved to ', Url, ')');
 end;
 {$endif VISUALIZE_TRIANGULATION}
 
@@ -191,7 +191,7 @@ begin
   Canvas.PolyLine([VisualizePoint((V2 + V0) / 2.0),
                    VisualizePoint((V2 + V0) / 2.0 + E3 / 10.0)]);
 
-  SaveImage(Format(ImageFileNamePrefix + '_%d.png', [TriangleCount]),
+  SaveImage(Format(ImageUrlPrefix + '_%d.png', [TriangleCount]),
     Format('Triangle %d: %d - %d - %d', [TriangleCount, Tri[0], Tri[1], Tri[2]]));
   {$endif VISUALIZE_TRIANGULATION}
 end;
@@ -222,9 +222,9 @@ procedure TTestCastleTriangulate.TestTriangulateFace;
       Canvas := TFPImageCanvas.Create(Image);
       {$warnings on}
 
-      ImageFileNamePrefix := SUnformattable(InclPathDelim(GetTempDir) + Name);
+      ImageUrlPrefix := SUnformattable(InclPathDelim(GetTempDir) + Name);
       if RevertOrder then
-        ImageFileNamePrefix += '_reverted';
+        ImageUrlPrefix += '_reverted';
       VisualizeX := AVisualizeX;
       VisualizeY := AVisualizeY;
 
@@ -254,13 +254,13 @@ procedure TTestCastleTriangulate.TestTriangulateFace;
 
       Canvas.MoveTo(VisualizePoint(Vertexes[0]));
       Canvas.Ellipse(VisualizePointRect(Vertexes[0]));
-      SaveImage(Format(ImageFileNamePrefix + '_0_%d.png', [0]),
+      SaveImage(Format(ImageUrlPrefix + '_0_%d.png', [0]),
         Format('Vertex %d', [0]));
       for I := 1 to CountVertexes - 1 do
       begin
         Canvas.LineTo(VisualizePoint(Vertexes[I]));
         Canvas.Ellipse(VisualizePointRect(Vertexes[I]));
-        SaveImage(Format(ImageFileNamePrefix + '_0_%d.png', [I]),
+        SaveImage(Format(ImageUrlPrefix + '_0_%d.png', [I]),
           Format('Vertex %d', [I]));
       end;
       Canvas.LineTo(VisualizePoint(Vertexes[0]));

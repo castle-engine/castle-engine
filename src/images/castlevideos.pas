@@ -160,7 +160,7 @@ type
 
       Handled formats: just like LoadFromFile. Also, just like LoadFromFile,
       we need ffmpeg on $PATH to save to any single-file movie format. }
-    procedure SaveToFile(const FileName: string);
+    procedure SaveToFile(const URL: string);
 
     { This releases all resources allocared by Load (or LoadFromFile).
       @link(Loaded) property changes to @false after calling this.
@@ -590,31 +590,31 @@ begin
   FLoaded := true;
 end;
 
-procedure TVideo.SaveToFile(const FileName: string);
+procedure TVideo.SaveToFile(const URL: string);
 
-  procedure SaveToImages(const FileName: string);
+  procedure SaveToImages(const URL: string);
   var
     Index, ReplacementsDone: Cardinal;
     S: string;
   begin
-    FormatNameCounter(FileName, 0, true, ReplacementsDone);
+    FormatNameCounter(URL, 0, true, ReplacementsDone);
     if ReplacementsDone > 0 then
     begin
       { Note that Index is 1-based, that's how FormatNameCounter
         works for LoadFromFile and ffmpeg, so also here. }
       for Index := 1 to Count do
       begin
-        S := FormatNameCounter(FileName, Index, true);
+        S := FormatNameCounter(URL, Index, true);
         SaveImage(FItems[Index - 1], S);
       end;
     end else
     begin
       { single image file --- suitable only if video has exactly one frame }
       if Count <> 1 then
-        raise Exception.CreateFmt('Single image filename detected ("%s"), but saved video doesn''t have exactly one frame (it has %d frames). Cannot save',
-          [FileName, Count]);
+        raise Exception.CreateFmt('Single image URL detected ("%s"), but saved video doesn''t have exactly one frame (it has %d frames). Cannot save',
+          [URL, Count]);
 
-      SaveImage(FItems[0], FileName);
+      SaveImage(FItems[0], URL);
     end;
   end;
 
@@ -699,9 +699,9 @@ procedure TVideo.SaveToFile(const FileName: string);
 begin
   Assert(Loaded);
 
-  if FfmpegVideoMimeType(URIMimeType(FilenameToURISafe(FileName)), false) then
-    SaveToFfmpeg(FileName) else
-    SaveToImages(FileName);
+  if FfmpegVideoMimeType(URIMimeType(URL), false) then
+    SaveToFfmpeg(URL) else
+    SaveToImages(URIToFilenameSafe(URL));
 end;
 
 function TVideo.Width: Cardinal;

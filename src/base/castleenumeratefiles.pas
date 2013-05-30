@@ -153,8 +153,8 @@ function EnumFilesObj(const Mask: string; Attr: integer;
 { @groupEnd }
 
 { Search for a file, ignoring the case.
-  Path must be absolute and contain the final PathDelim.
-  Returns filename relative to Path.
+  Path must be absolute URL and contain the final slash.
+  Returns URL relative to Path.
 
   We prefer to return just Base, if it exists, or when no alternative exists.
   When Base doesn't exist but some likely alternative exists (e.g. with
@@ -165,11 +165,11 @@ function EnumFilesObj(const Mask: string; Attr: integer;
 
   Returns if some file was found. Note that even when we return @false,
   we still set NewBase (to original Base). }
-function SearchFileHard(const Path, Base: string; out NewBase: string): boolean;
+function SearchFileHard(Path: string; const Base: string; out NewBase: string): boolean;
 
 implementation
 
-uses CastleFilesUtils;
+uses CastleFilesUtils, CastleURIUtils;
 
 { EnumFiles ------------------------------------------------------------ }
 
@@ -436,12 +436,21 @@ begin
   end;
 end;
 
-function SearchFileHard(const Path, Base: string; out NewBase: string): boolean;
+function SearchFileHard(Path: string; const Base: string; out NewBase: string): boolean;
 var
   S: TSearchFileHard;
+  P: string;
 begin
   NewBase := Base;
   Result := false;
+
+  P := URIProtocol(Path);
+  if P = 'file' then
+    { convert Path to filename and continue }
+    Path := URIToFilenameSafe(Path) else
+  if P <> '' then
+    { we can't do anything when protocol is not file or empty. }
+    Exit(true);
 
   if FileExists(Path + Base) then Exit(true);
 

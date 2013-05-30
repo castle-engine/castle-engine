@@ -1010,7 +1010,7 @@ var
     if Material.TextureMap1.Exists then
     begin
       Tex := TImageTextureNode.Create('', BaseUrl);
-      Tex.FdUrl.Items.Add(SearchTextureFileName(BaseUrl,
+      Tex.FdUrl.Items.Add(SearchTextureFile(BaseUrl,
         Material.TextureMap1.MapURL));
       Result.FdTexture.Value := Tex;
 
@@ -1021,7 +1021,7 @@ var
       if Material.TextureMapBump.Exists then
       begin
         Tex := TImageTextureNode.Create('', BaseUrl);
-        Tex.FdUrl.Items.Add(SearchTextureFileName(BaseUrl,
+        Tex.FdUrl.Items.Add(SearchTextureFile(BaseUrl,
           Material.TextureMapBump.MapURL));
         Result.FdNormalMap.Value := Tex;
 

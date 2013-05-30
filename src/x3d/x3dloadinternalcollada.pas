@@ -2618,8 +2618,7 @@ begin
             ReadSceneElement(I.Current);
       finally FreeAndNil(I); end;
 
-      { TODO-net: file operations on URLs }
-      Result.Meta.PutPreserve('source', ExtractFileName(URL));
+      Result.Meta.PutPreserve('source', ExtractURIName(URL));
       Result.Meta['source-collada-version'] := Version;
     finally
       FreeAndNil(Doc);

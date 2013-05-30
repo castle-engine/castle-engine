@@ -88,8 +88,7 @@ type
   private
     FBaseUrl: string;
   public
-    { Base URL to resolve relative filenames.
-      Similar to TX3DNode.BaseUrl. }
+    { Base URL to resolve relative URLs. Similar to TX3DNode.BaseUrl. }
     property BaseUrl: string read FBaseUrl write FBaseUrl;
   end;
 

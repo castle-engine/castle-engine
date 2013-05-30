@@ -19,7 +19,7 @@
   implementations.
 
   You can run this with an optional command-line option:
-  a filename of any sound file we can load
+  an URL of any sound file we can load
   (right now, the allowed formats are wav and OggVorbis;
   see CastleSoundFile unit for up-to-date list). Then the sound file will
   be loaded as OpenAL sound, and some additional tests will be performed. }
@@ -114,7 +114,7 @@ var
   end;
 
 var
-  TestSoundFileName: string;
+  TestSoundURL: string;
   Device: PALCDevice;
   IgnoredDuration: TFloatTime;
 begin
@@ -160,14 +160,14 @@ begin
 
     if Parameters.High > 0 then
     begin
-      TestSoundFileName := Parameters[1];
+      TestSoundURL := Parameters[1];
 
-      TALSoundFile.alBufferDataFromFile(SampleBuffer, TestSoundFileName, IgnoredDuration);
+      TALSoundFile.alBufferDataFromFile(SampleBuffer, TestSoundURL, IgnoredDuration);
       alSourcei(SampleSource, AL_BUFFER, SampleBuffer);
 
       Write(
         '----------------------------------------------------------------', nl,
-        'after loading ', TestSoundFileName, ' to SampleBuffer and linking', nl,
+        'after loading ', TestSoundURL, ' to SampleBuffer and linking', nl,
         '  SampleBuffer with SampleSource :', nl,
         nl,
         SampleSourceState,
