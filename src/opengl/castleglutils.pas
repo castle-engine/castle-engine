@@ -64,27 +64,6 @@ type
   TGLdouble   = GLdouble;
   TGLclampd   = GLclampd;
 
-const
-  { OpenGL so/dll filenames.
-    These constants @italic(must) match constants used in implementation
-    of GL and GLU units, so that we link to the same libraries. } { }
-  OpenGLDLL =
-    {$ifdef MSWINDOWS} {TODO: needs fix for WIN64?} 'opengl32.dll' {$endif}
-    {$ifdef UNIX}
-      {$ifdef DARWIN}
-        '/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib'
-      {$else} 'libGL.so.1'
-      {$endif}
-    {$endif};
-  GluDLL =
-    {$ifdef MSWINDOWS} {TODO: needs fix for WIN64?} 'glu32.dll' {$endif}
-    {$ifdef UNIX}
-      {$ifdef DARWIN}
-        '/System/Library/Frameworks/OpenGL.framework/Libraries/libGLU.dylib'
-      {$else} 'libGLU.so.1'
-      {$endif}
-    {$endif};
-
 { OpenGL versions and extensions and features -------------------------------- }
 
 var
