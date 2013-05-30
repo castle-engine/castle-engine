@@ -19,8 +19,8 @@
   where to read/write files:
   @unorderedList(
     @itemSpacing Compact
-    @item(UserConfigFile and UserConfigPath -- user config files)
-    @item(ProgramDataPath -- installed program's data files)
+    @item(ApplicationConfig -- user config files)
+    @item(ApplicationData -- installed program's data files)
   )
 }
 unit CastleFilesUtils;
@@ -55,18 +55,19 @@ type
   may raise @link(EExeNameNotAvailable). }
 function ExeName: string;
 
-{ A name of our program.
+{ The name of our program.
 
-  Suitable to show to user. Should also indicate how to run the program,
-  that is: should be the basename of the executable (although we do depend on it
-  technically, but some log messages may suggest it).
-  Also suitable to derive config/data paths for this program.
+  @deprecated Deprecated, this is equivalent to ApplicationName,
+  and you should just call ApplicationName directly in new code.
+  ApplicationName is included in standard FPC SysUtils unit, had good default
+  and is easily configurable by callback OnGetApplicationName.
+  See http://www.freepascal.org/docs-html/rtl/sysutils/getappconfigdir.html .
 
-  Right now this is simply equivalent to FPC's ApplicationName.
-  We had a complicated mechanisms for this in earlier versions,
-  but ultimately the FPC's ApplicationName approach, which is fully configurable
-  by callback OnGetApplicationName and has a nice default, is good. }
-function ProgramName: string;
+  This is suitable to show to user. It should also indicate how to run the program,
+  usually it should be the basename of the executable (although we do not depend
+  on it technically). It is used to derive config and data paths for our program,
+  see ApplicationConfig and ApplicationData. }
+function ProgramName: string; deprecated;
 
 { Returns true if file exists and is a normal file.
   Detects and returns @false for special Windows files
@@ -77,20 +78,13 @@ function ProgramName: string;
 function NormalFileExists(const fileName: string): boolean;
 
 { Path to store user configuration files.
-  This is some directory that is probably writeable
+  This is some directory that should be writeable
   and that is a standard directory under this OS to put user config files.
   Always returns absolute (not relative) path. Result contains trailing
   PathDelim.
 
-  Right now, this is simply a comfortable wrapper around FPC's GetAppConfigDir,
-  making sure dir exists and we return it with final path delimiter.
-  Which means we look at OnGetApplicationName, and we use OS-specific
-  algorithm, see
-  http://www.freepascal.org/docs-html/rtl/sysutils/ongetapplicationname.html .
-  On UNIX this follows XDG Base Directory Specification,
-  see http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
-  (in short: look inside ~/.config/<application-name>/). }
-function UserConfigPath: string;
+  @deprecated Deprecated, use ApplicationConfig instead. }
+function UserConfigPath: string; deprecated;
 
 { Filename to store user configuration.
   Always returns absolute (not relative) path.
@@ -103,38 +97,78 @@ function UserConfigPath: string;
     @item(has given Extension. Extension should contain
       beginning dot. E.g. FExtension = '.ini'. This way you can pass
       FExtension = '' to have a filename without extension.)
-  ) }
-function UserConfigFile(const Extension: string): string;
+  )
+
+  @deprecated Deprecated,
+  use ApplicationConfig(ApplicatioName + Extension) instead. }
+function UserConfigFile(const Extension: string): string; deprecated;
 
 { Path to access installed data files.
   Returns absolute path, containing trailing PathDelim.
 
-  Based on ApplicationName (and possibly ExeName under Windows).
-  Here are details:
+  @deprecated Deprecated, use ApplicationData instead. }
+function ProgramDataPath: string; deprecated;
 
-  (Note that in normal circumstances such details are treated as
-  internal implementation notes that shouldn't be exposed...
-  But in case of this function, they must be exposed, since
-  user and programmer must know how this function works
-  (and usually it should be described in documentation of a program).)
+{ URL where we should read and write configuration files.
+  This always returns a @code(file://...) URL,
+  which is comfortable since our engine operates on URLs most of the time.
+
+  Given Path specifies a name of the file (with possible subdirectories)
+  under the user config directory. The Path is a relative URL, so you should
+  always use slashes (regardless of OS), and you can escape characters by %xx.
+  We make sure that the directory (including
+  the subdirectories you specify in Path) exists, creating it if necessary.
+  But we do not create the file. We should have permissions
+  to write inside the given directory (although, as always on multi-process OS,
+  the only 100% way to know if you can write there is to actually try it).
+
+  This uses FPC GetAppConfigDir under the hood.
+  Which in turn looks at OnGetApplicationName, and may use
+  OS-specific algorithm to find good config directory, see
+  http://www.freepascal.org/docs-html/rtl/sysutils/ongetapplicationname.html .
+  On UNIX this follows XDG Base Directory Specification,
+  see http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
+  (simplifying: looks inside ~/.config/<application-name>/). }
+function ApplicationConfig(const Path: string): string;
+
+{ URL from which we should read data files.
+  This always returns a @code(file://...) URL,
+  which is comfortable since our engine operates on URLs most of the time.
+
+  Given Path specifies a path under the data directory,
+  with possible subdirectories, with possible filename at the end.
+  The Path is a relative URL, so you should
+  always use slashes (regardless of OS), and you can escape characters by %xx.
+  You can use Path = '' to get the URL to whole data directory.
+  Note that files there may be read-only, do not try to write there.
+
+  The algorithm to find data directory may be OS-specific.
+  It uses ApplicationName (and may use ExeName under Windows).
+  Here are details (specified here so that you know how to install
+  your program):
 
   Under Windows: returns ExtractFilePath(ExeName).
 
-  Under UNIXes: tries these three locations, in order:
+  Under UNIXes: tries these locations, in order:
 
   @orderedList(
-    @item(@code(HomePath +'.' +ApplicationName+'.data/').
+    @item(@code(~/.local/share/) + ApplicationName.
+      This is nice user-specific data directory, following the default set by
+      http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html .
       If such directory exists, it is returned.
 
       This is checked first, to allow local user to always override system-wide
-      installation of my program with his own installation.
-      E.g. consider the situation when an old version of my program
+      installation of a program with his own installation.
+      E.g. consider the situation when an old version of a program
       is installed system-wide in /usr/local/share/my_program/,
       but some user (with no access to root account) wants to
       install a newer version of it for himself. Now he can do it,
-      because ~/.my_program.data/ is checked 1st, system-wide
-      /usr/local/share/my_program/ is used only if ~/.my_program.data/
-      does not exist.)
+      because ~/.local/share/my_program/ is checked 1st, before system-wide paths.)
+
+    @item(@code(HomePath +'.' +ApplicationName+'.data/').
+      If such directory exists, it is returned.
+
+      This is another location of user-specific data directory, deprecated now.)
 
     @item(@code('/usr/local/share/' +ApplicationName+ '/').
       If such directory exists, it is returned.
@@ -147,16 +181,10 @@ function UserConfigFile(const Extension: string): string;
       This is suitable for system-wide installations with package manager.)
 
     @item(As a last resort, we return the current directory.
-      This always exists, and is an easy way for users to run my game
-      without making any symlinks.
-
-      Although conceptually this should be checked first (even before
-      @code(HomePath +'.' +ApplicationName+'.data/')), as it's
-      @italic("most local"), but we can't: current directory always
-      exists. To remedy this, we would need to know some filename inside
-      this directory that is required to exist. Maybe for later.)
+      This always exists, and is an easy way for users to run a game
+      without making any symlinks.)
   ) }
-function ProgramDataPath: string;
+function ApplicationData(const Path: string): string;
 
 { Functions IsSymLink, CanonicalizeFileName assume Windows has no symlinks.
 
@@ -185,14 +213,16 @@ function ProgramDataPath: string;
 { Is FileName a symbolic link. }
 function IsSymLink(const FileName: string): boolean; overload;
 
+{$ifdef UNIX}
 { User's home directory, with trailing PathDelim.
 
-  Taken from $HOME, unless $HOME = '' or is not defined,
-  then I'm trying to take this from user-database by real-uid.
+  Taken from environment variable $HOME, unless it's empty or unset,
+  in which case we take this from Unix user database by real uid.
   This is what bash does (more-or-less, when home directory does
   not exist strange things happen), that's what programs should
-  do according to `info libc' and my (Kambi's) preferences. }
-{$ifdef UNIX} function HomePath: string; {$endif}
+  do according to `info libc' and Kambi preferences. }
+function HomePath: string;
+{$endif}
 
 { Expand tilde (~) in path, just like shell. Expands ~ to
   ExclPathDelim(HomePath) under UNIX. Under Windows, does nothing. }
@@ -326,7 +356,7 @@ type
   If URLs is @false, we pass to HandleFile method a filename
   (relative or absolute, just like given Path parameter).
   If URLs is @true then we pass an absolute URL to HandleFile method. }
-procedure ScanForFiles(Path: string; const Name: string;
+procedure ScanForFiles(PathURL: string; const Name: string;
   const HandleFile: THandleFileMethod; const URLs: boolean);
 
 { Get temporary filename, suitable for ApplicationName, checking that
@@ -380,32 +410,48 @@ end;
 
 function UserConfigPath: string;
 begin
-  Result := GetAppConfigDir(false);
-  if not ForceDirectories(Result) then
-    raise Exception.CreateFmt('Cannot create directory for config file: "%s"',
-      [Result]);
-
-  Result := IncludeTrailingPathDelimiter(Result);
+  Result := ApplicationConfig('');
 end;
 
 function UserConfigFile(const Extension: string): string;
 begin
-  Result := UserConfigPath + ApplicationName + Extension;
+  Result := ApplicationConfig(ApplicationName + Extension);
+end;
+
+function ApplicationConfig(const Path: string): string;
+var
+  ConfigDir, Dir: string;
+begin
+  ConfigDir := InclPathDelim(GetAppConfigDir(false));
+  Dir := ConfigDir + ExtractFilePath(Path);
+  if not ForceDirectories(Dir) then
+    raise Exception.CreateFmt('Cannot create directory for config file: "%s"',
+      [Dir]);
+
+  Result := FilenameToURISafe(ConfigDir + Path);
+end;
+
+function ProgramDataPath: string;
+begin
+  Result := ApplicationData('');
 end;
 
 var
-  ProgramDataPathIsCache: boolean = false;
-  ProgramDataPathCache: string;
+  ApplicationDataIsCache: boolean = false;
+  ApplicationDataCache: string;
 
-function ProgramDataPath: string;
+function ApplicationData(const Path: string): string;
 
-  function GetProgramDataPath: string;
+  function GetApplicationDataPath: string;
   {$ifdef MSWINDOWS}
   begin
     Result := ExtractFilePath(ExeName);
   {$endif}
   {$ifdef UNIX}
   begin
+    Result := HomePath +'.local/share/' +ApplicationName +'/';
+    if DirectoryExists(Result) then Exit;
+
     Result := HomePath +'.' +ApplicationName +'.data/';
     if DirectoryExists(Result) then Exit;
 
@@ -420,22 +466,21 @@ function ProgramDataPath: string;
   end;
 
 begin
-  { Cache results of ProgramDataPath. This has two reasons:
-    1. ProgramDataPath_Other on Unix makes three DirectoryExists calls,
-       so it's not too fast,
-    2. the main reason is that it would be strange if ProgramDataPath results
+  { Cache directory of ApplicationData. This has two reasons:
+    1. On Unix this makes three DirectoryExists calls, so it's not too fast.
+    2. It would be strange if ApplicationData results
        suddenly changed in the middle of the program (e.g. because user just
        made appropriate symlink or such). }
 
-  if not ProgramDataPathIsCache then
+  if not ApplicationDataIsCache then
   begin
-    ProgramDataPathCache := GetProgramDataPath;
+    ApplicationDataCache := FilenameToURISafe(GetApplicationDataPath);
     if Log then
-      WritelnLog('Path', Format('Program data path detected as "%s"', [ProgramDataPathCache]));
-    ProgramDataPathIsCache := true;
+      WritelnLog('Path', Format('Program data path detected as "%s"', [ApplicationDataCache]));
+    ApplicationDataIsCache := true;
   end;
 
-  Result := ProgramDataPathCache;
+  Result := ApplicationDataCache + Path;
 end;
 
 { other file utilities ---------------------------------------------------- }
@@ -733,13 +778,13 @@ begin
  {$ifdef MSWINDOWS} FExeName := ParamStr(0) {$endif};
 end;
 
-procedure ScanForFiles(Path: string; const Name: string;
+procedure ScanForFiles(PathURL: string; const Name: string;
   const HandleFile: THandleFileMethod; const URLs: boolean);
 var
   F: TSearchRec;
-  FileName: string;
+  FileName, Path: string;
 begin
-  Path := InclPathDelim(Path);
+  Path := InclPathDelim(URIToFilenameSafe(PathURL));
 
   FileName := Path + Name;
   if FileExists(FileName) then
@@ -758,7 +803,7 @@ end;
 
 function GetTempFileNameCheck: string;
 begin
-  Result := GetTempFileName('', ProgramName);
+  Result := GetTempFileName('', ApplicationName);
   { Be paranoid and check whether file does not exist. }
   if FileExists(Result) then
     raise Exception.CreateFmt('Temporary file "%s" already exists', [Result]);

@@ -486,7 +486,7 @@ procedure TLoggerNode.EventWriteReceive(
       'Logger node wants to write on standard output, but it seems that stdout (standard output) ' +
       'is not available. Under Windows you should explicitly ' +
       'redirect program''s stdout to make it available, e.g. ' +
-      'run "' + ProgramName + ' > ' + ProgramName + '.log".');
+      'run "' + ApplicationName + ' > ' + ApplicationName + '.log".');
   end;
 
   procedure WritelnLogMessage;
@@ -537,7 +537,7 @@ begin
       if FdLogFile.Value <> '' then
       begin
         WriteStream := TFileStream.Create(
-          FileNameAutoInc(ProgramName + '_logger_' +
+          FileNameAutoInc(ApplicationName + '_logger_' +
             ExtractOnlyFileName(FdLogFile.Value) + '_%d.log'), fmCreate);
         OwnsWriteStream := true;
       end else

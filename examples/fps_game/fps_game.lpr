@@ -445,13 +445,11 @@ begin
   SoundEngine.ParseParameters;
 
   { Load named sounds defined in sounds/index.xml }
-  SoundEngine.RepositoryURL := ProgramDataPath + 'data' + PathDelim +
-    'sounds' + PathDelim + 'index.xml';
+  SoundEngine.RepositoryURL := ApplicationData('data/sounds/index.xml');
 
   { Load texture properties, used to assign footsteps sounds based
     on ground texture }
-  MaterialProperties.URL := ProgramDataPath + 'data' + PathDelim +
-    'material_properties.xml';
+  MaterialProperties.URL := ApplicationData('data/material_properties.xml');
 
   { Load configuration file. This loads configuration for various parts of the
     engine that add their callbacks to Config.OnLoad, Config.OnSave.
@@ -514,9 +512,9 @@ begin
   RegisterResourceClass(TMedKitResource, 'MedKit');
 
   { Load all resources (creatures and items kinds) information from
-    resource.xml files found inside ProgramDataPath.
+    resource.xml files found inside ApplicationData.
     Similarly, load all available levels information from level.xml
-    files inside ProgramDataPath. }
+    files inside ApplicationData. }
   Resources.LoadFromFiles;
   Levels.LoadFromFiles;
 

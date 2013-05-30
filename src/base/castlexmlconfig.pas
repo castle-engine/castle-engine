@@ -181,7 +181,7 @@ type
       callback to set your name, unless you're fine with default determination
       that looks at stuff like ParamStr(0)).
       See FPC OnGetApplicationName docs.
-      It uses @link(UserConfigFile) to determine location of this file.
+      It uses @link(ApplicationConfig) to determine location of this file.
 
       @groupBegin }
     procedure Load(const AURL: string);
@@ -409,7 +409,7 @@ end;
 
 procedure TCastleConfig.Load;
 begin
-  Load(FilenameToURISafe(UserConfigFile('.conf')));
+  Load(ApplicationConfig(ApplicationName + '.conf'));
 end;
 
 procedure TCastleConfig.Save;

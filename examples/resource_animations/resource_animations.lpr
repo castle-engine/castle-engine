@@ -161,7 +161,7 @@ begin
       Window.Controls.InsertFront(ResButton);
     end;
     if Resources.Count = 0 then
-      raise Exception.CreateFmt('No resources found. Make sure we search in proper path (current data path is detected as "%s")', [ProgramDataPath]);
+      raise Exception.CreateFmt('No resources found. Make sure we search in proper path (current data path is detected as "%s")', [ApplicationData('')]);
     case UpdateCurrentResource of
       ucpActivateFirst:
         begin
@@ -257,7 +257,7 @@ begin
     but it's an easy way to add a camera with headlight,
     and some grid to help with orientation. }
   BaseScene := TCastleScene.Create(Application);
-  BaseScene.Load(ProgramDataPath + 'data/base.x3d');
+  BaseScene.Load(ApplicationData('data/base.x3d'));
   { turn on headlight, as base.x3d exported from Blender has always headlight=false }
   BaseScene.NavigationInfoStack.Top.FdHeadlight.Send(true);
   Window.SceneManager.MainScene := BaseScene;

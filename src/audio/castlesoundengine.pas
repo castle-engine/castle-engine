@@ -506,7 +506,7 @@ type
       property. For example like this:
 
 @longCode(#
-  SoundEngine.RepositoryURL := ProgramDataPath + 'sounds.xml';
+  SoundEngine.RepositoryURL := ApplicationData('sounds.xml');
   stMySound1 := SoundEngine.SoundFromName('my_sound_1');
   stMySound2 := SoundEngine.SoundFromName('my_sound_2');
   // ... and later in your game you can do stuff like this:
@@ -514,7 +514,7 @@ type
   SoundEngine.Sound3D(stMySound1, Vector3Single(0, 0, 10));
 #)
 
-      See CastleFilesUtils unit for docs of a useful ProgramDataPath function.
+      See CastleFilesUtils unit for docs of ApplicationData function.
     }
     property RepositoryURL: string read FRepositoryURL write SetRepositoryURL;
 
@@ -1622,14 +1622,12 @@ begin
     absolute (to not depend on the current dir when loading sound files. }
   RepositoryURLAbsolute := AbsoluteURI(RepositoryURL);
 
+  Stream := Download(RepositoryURLAbsolute);
   try
-    { ReadXMLFile always sets TXMLDocument param (possibly to nil),
-      even in case of exception. So place it inside try..finally. }
-    Stream := Download(RepositoryURLAbsolute);
-    try
-      ReadXMLFile(SoundConfig, Stream, RepositoryURLAbsolute);
-    finally FreeAndNil(Stream) end;
+    ReadXMLFile(SoundConfig, Stream, RepositoryURLAbsolute);
+  finally FreeAndNil(Stream) end;
 
+  try
     Check(SoundConfig.DocumentElement.TagName = 'sounds',
       'Root node of sounds/index.xml must be <sounds>');
 

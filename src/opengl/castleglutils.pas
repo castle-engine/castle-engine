@@ -1854,7 +1854,7 @@ const
 
 begin
   Result:=
-    'OpenGL information (detected by ' + ProgramName +'):' +nl+
+    'OpenGL information (detected by ' + ApplicationName +'):' +nl+
     nl+
 
     '--------' +nl+

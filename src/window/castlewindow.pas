@@ -1432,7 +1432,7 @@ end;
        *)
     property Visible: boolean read FVisible write FVisible default true;
 
-    { Caption of the window. By default it's initialized to ProgramName.
+    { Caption of the window. By default it's initialized to ApplicationName.
       May be changed even when the window is already open. }
     property Caption: string read FCaption write SetCaption;
 
@@ -2815,7 +2815,7 @@ begin
  FLeft  := WindowPositionCenter;
  FTop   := WindowPositionCenter;
  FDoubleBuffer := true;
- FCaption := ProgramName;
+ FCaption := ApplicationName;
  FResizeAllowed := raAllowed;
  minWidth := 100;  maxWidth := 4000;
  minHeight := 100; maxHeight := 4000;
@@ -3719,14 +3719,14 @@ begin
   case OptionNum of
     0: {$ifdef CASTLE_WINDOW_XLIB}
        if Application.FOpenWindows.Count <> 0 then
-         WarningWrite(ProgramName + ': some windows are already open ' +
+         WarningWrite(ApplicationName + ': some windows are already open ' +
            'so --display option is ignored.') else
          Application.XDisplayName := Argument;
        {$else}
          {$ifdef CASTLE_WINDOW_GTK_2}
          Application.XDisplayName := Argument;
          {$else}
-         WarningWrite(ProgramName + ': warning: --display option is ignored ' +
+         WarningWrite(ApplicationName + ': warning: --display option is ignored ' +
            'when we don''t use directly Xlib');
          {$endif}
        {$endif}

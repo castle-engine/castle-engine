@@ -808,7 +808,7 @@ begin
         This isn't difficult, but would complicate source code for little gain.)
       - Close_CharKey: it would make it too easy to close. }
     Glw.FpsShowOnCaption := true;
-    Glw.Caption := ProgramName;
+    Glw.Caption := ApplicationName;
     Glw.OpenAndRun;
   finally FreeAndNil(Elevation) end;
 end.

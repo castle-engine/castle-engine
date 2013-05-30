@@ -158,7 +158,7 @@ end;
 function LoadScene(const Name: string; AOwner: TComponent): TCastleScene;
 begin
   Result := TCastleScene.Create(AOwner);
-  Result.Load(ProgramDataPath + 'data' + PathDelim + '3d' + PathDelim + Name);
+  Result.Load(ApplicationData('data/3d/' + Name);
 end;
 
 type
@@ -193,14 +193,14 @@ end;
 
 const
   Version = '1.2.4';
-  DisplayProgramName = 'lets_take_a_walk';
+  DisplayApplicationName = 'lets_take_a_walk';
 
 procedure ShowHelpMessage;
 const
   HelpMessage = {$I help_message.inc};
 begin
   MessageOK(Window, HelpMessage + nl +
-    SCastleEngineProgramHelpSuffix(DisplayProgramName, Version, false), taLeft);
+    SCastleEngineProgramHelpSuffix(DisplayApplicationName, Version, false), taLeft);
 end;
 
 { window callbacks ----------------------------------------------------------- }
@@ -272,7 +272,7 @@ begin
           nl+
           TCastleWindowBase.ParseParametersHelp(StandardParseOptions, true) +nl+
           nl+
-          SCastleEngineProgramHelpSuffix(DisplayProgramName, Version, true));
+          SCastleEngineProgramHelpSuffix(DisplayApplicationName, Version, true));
         ProgramBreak;
       end;
     1:begin
@@ -314,7 +314,7 @@ begin
     as opening window calls Resize which uses MuteImage. }
   MuteImage := TCastleImageControl.Create(Application);
   MuteImage.Blending := true;
-  MuteImage.FileName := ProgramDataPath + 'data' + PathDelim + 'textures' + PathDelim +'mute_sign.png';
+  MuteImage.FileName := ApplicationData('data/textures/mute_sign.png');
   MuteImage.Exists := false; // don't show it on initial progress
   Window.Controls.InsertFront(MuteImage);
 
@@ -359,8 +359,7 @@ begin
   while TntsCount < MaxTntsCount do NewTnt(0.0);
 
   { init 3D sounds }
-  SoundEngine.RepositoryURL := ProgramDataPath + 'data' +
-    PathDelim + 'sounds' + PathDelim + 'index.xml';
+  SoundEngine.RepositoryURL := ApplicationData('data/sounds/index.xml');
   SoundEngine.DistanceModel := dmInverseDistanceClamped; //< OpenAL default
   stRatSound  := SoundEngine.SoundFromName('rat_sound');
   stRatSqueak := SoundEngine.SoundFromName('rat_squeak');

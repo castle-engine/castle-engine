@@ -171,7 +171,7 @@ begin
     11: ViewMode := vmSimpleOcclusion;
     12: ViewMode := vmFull;
     20: with Scene.Attributes do Lighting := not Lighting;
-    100: Glwin.SaveScreenDialog(FileNameAutoInc(SUnformattable(ProgramName) + '_screen_%d.png'));
+    100: Glwin.SaveScreenDialog(FileNameAutoInc(SUnformattable(ApplicationName) + '_screen_%d.png'));
     200: Glwin.Close;
     else Exit;
   end;

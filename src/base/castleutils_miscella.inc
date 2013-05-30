@@ -135,7 +135,7 @@ function SCompilerDescription: string;
   This is useful only for programs released on this WWW page by Michalis.
   Resulting string is multiline.
 
-  @param(DisplayProgramName Usually ProgramName, but you can give
+  @param(DisplayApplicationName Usually ApplicationName, but you can give
     here something else if you want.)
 
   @param(Version For my programs this usually looks like '%d.%d.%d'
@@ -144,7 +144,7 @@ function SCompilerDescription: string;
   @param(WrapLines If true then resulting string will not have lines
     longer than 80 characters. Suitable for printing program
     help message on stdout, e.g. in response to @--help option.) }
-function SCastleEngineProgramHelpSuffix(const DisplayProgramName: string;
+function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: string;
   const Version: string; WrapLines: boolean): string;
 
 { If not TrueValue then RaiseLastOSError. }
@@ -278,11 +278,11 @@ begin
    {$endif} {$endif} {$endif} ;
 end;
 
-function SCastleEngineProgramHelpSuffix(const DisplayProgramName: string;
+function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: string;
   const Version: string; WrapLines: boolean): string;
 begin
   Result :=
-    DisplayProgramName + ' version ' + Version + '.' +nl+
+    DisplayApplicationName + ' version ' + Version + '.' +nl+
     'Author: Michalis Kamburelis, aka Kambi <michalis.kambi@gmail.com>' +nl+
     'See http://castle-engine.sourceforge.net/ for latest versions' +
     Iff(WrapLines, nl + ' ', '') +

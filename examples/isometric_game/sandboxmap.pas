@@ -80,7 +80,7 @@ end;
 
 function TTile.FullFileName: string;
 begin
-  Result := ProgramDataPath + 'tiles' + PathDelim + RelativeFileName;
+  Result := ApplicationData('tiles/' + RelativeFileName);
 end;
 
 { TBaseTile ------------------------------------------------------------------ }

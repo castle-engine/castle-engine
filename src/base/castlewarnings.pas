@@ -67,13 +67,13 @@ var
 
 implementation
 
-uses CastleUtils, CastleFilesUtils, CastleLog;
+uses CastleUtils, SysUtils, CastleLog;
 
 procedure OnWarningWrite(const AType: TWarningType; const Category, S: string);
 begin
   if Log then
     WritelnLog('Warning: ' + Category, S);
-  WarningWrite(ProgramName + ': ' + Category + ' warning: ' + S);
+  WarningWrite(ApplicationName + ': ' + Category + ' warning: ' + S);
 end;
 
 procedure OnWarningLog(const AType: TWarningType; const Category, S: string);

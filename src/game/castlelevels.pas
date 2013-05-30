@@ -264,7 +264,7 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
     function FindName(const AName: string): TLevelInfo;
 
     { Add all available levels found by scanning for level.xml inside data directory.
-      Overloaded version without parameter just looks inside ProgramDataPath.
+      Overloaded version without parameter just looks inside ApplicationData.
       For the specification of level.xml format see
       [http://castle-engine.sourceforge.net/creating_data_levels.php] .
 
@@ -1276,7 +1276,7 @@ end;
 
 procedure TLevelInfoList.LoadFromFiles;
 begin
-  LoadFromFiles(ProgramDataPath);
+  LoadFromFiles(ApplicationData(''));
   Sort(@IsSmallerByNumber);
 end;
 

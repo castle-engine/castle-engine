@@ -522,7 +522,7 @@ procedure TVideo.LoadFromFile(const URL: string);
     begin
       { initialize TemporaryImagesPrefix, TemporaryImagesPattern }
 
-      TemporaryImagesPrefix := GetTempFileName('', ProgramName) + '_' +
+      TemporaryImagesPrefix := GetTempFileName('', ApplicationName) + '_' +
         { Although GetTempFileName should add some randomization here,
           there's no guarantee. And we really need randomization ---
           we load ffmpeg output using image %d pattern, so we don't want to
@@ -661,7 +661,7 @@ procedure TVideo.SaveToFile(const FileName: string);
     begin
       { initialize TemporaryImagesPrefix, TemporaryImagesPattern }
 
-      TemporaryImagesPrefix := GetTempFileName('', ProgramName) + '_' +
+      TemporaryImagesPrefix := GetTempFileName('', ApplicationName) + '_' +
         { Although GetTempFileName should add some randomization here,
           there's no guarentee. And we really need randomization ---
           we pass to ffmpeg input using image %d pattern, so we don't want to

@@ -15,7 +15,7 @@ var
 
 procedure LoadMap;
 begin
-  Map := TMap.CreateFromFile(ProgramDataPath + 'maps' + PathDelim + '1.map');
+  Map := TMap.CreateFromFile(ApplicationData('maps/1.map'));
   Player := TPlayer.Create;
   Player.Teleport(Map.PlayerStartX, Map.PlayerStartY, dirSouth);
 end;
@@ -212,8 +212,7 @@ begin
              if MessageInputQuery(Window, 'Save map as name' +
                ' (don''t specify here initial path and .map extension)',
                FileName, taLeft) then
-             Map.SaveToFile(ProgramDataPath + 'maps' + PathDelim +
-               FileName + '.map');
+               Map.SaveToFile(ApplicationData('maps/' + FileName + '.map'));
            end;
       'i': ShowFieldInfo;
       CharEscape: Quit := true;

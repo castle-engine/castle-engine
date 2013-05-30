@@ -113,7 +113,7 @@ begin
     LogStream := ALogStream;
 
   try
-    WritelnStr(LogStream, 'Log for "' + ProgramName +
+    WritelnStr(LogStream, 'Log for "' + ApplicationName +
       '", version ' + ProgramVersion +
       '. Started on ' + DateTimeToAtStr(Now) + '.');
   except

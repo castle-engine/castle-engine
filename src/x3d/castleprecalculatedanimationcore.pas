@@ -90,14 +90,12 @@ var
   Document: TXMLDocument;
   Stream: TStream;
 begin
+  Stream := Download(URL);
   try
-    { ReadXMLFile always sets TXMLDocument param (possibly to nil),
-      even in case of exception. So place it inside try..finally. }
-    Stream := Download(URL);
-    try
-      ReadXMLFile(Document, Stream);
-    finally FreeAndNil(Stream) end;
+    ReadXMLFile(Document, Stream);
+  finally FreeAndNil(Stream) end;
 
+  try
     LoadFromDOMElementToVars(Document.DocumentElement, URL,
       ModelURLs, Times, ScenesPerTime,
       EqualityEpsilon, ATimeLoop, ATimeBackwards);

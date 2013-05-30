@@ -139,35 +139,6 @@ begin
     [ ProcessTimerEnd, (Timer - TimerStart) / TimerFrequency ])); }
 end;
 
-procedure TTestOSSpecific.TestProgramPaths;
-{const
-  Other_WindowsExeName = 'c:\foo\bar.exe';
-  Other_ProgramName = 'bar';}
-begin
-{  Writeln(
-    '---- This program''s files/paths:', nl,
-    nl,
-    'UserConfigPath = ', UserConfigPath, nl,
-    'UserConfigFile(''.ini'') = ', UserConfigFile('.ini'), nl,
-    'UserConfigFile_FromProposed(''some_config'') = ',
-      UserConfigFile_FromProposed('some_config'), nl,
-    'ProgramDataPath = ', ProgramDataPath, nl,
-    nl,
-
-    '---- Files/paths of program with ProgramName = ', Other_ProgramName,
-      ', ExeName (Windows only) = ', Other_WindowsExeName, nl,
-    nl,
-    'UserConfigPath = ',
-      UserConfigPath_Other(ExtractFilePath(Other_WindowsExeName)), nl,
-    'UserConfigFile(''.ini'') = ',
-      UserConfigFile_Other('.ini', Other_ProgramName, Other_WindowsExeName), nl,
-    'UserConfigFile_FromProposed(''some_config'') = ',
-      UserConfigFile_FromProposed_Other('some_config', ExtractFilePath(Other_WindowsExeName)), nl,
-    'ProgramDataPath = ',
-      ProgramDataPath_Other(Other_ProgramName, ExtractFilePath(Other_WindowsExeName)), nl
-    );}
-end;
-
 {$ifdef UNIX}
 procedure TTestOSSpecific.TestHomePath;
 begin

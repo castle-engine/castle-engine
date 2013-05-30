@@ -280,8 +280,8 @@ begin
     { ready WMHints, ClassHints }
     WMHints.flags := InputHint;
     WMHints.input := XBool_True;
-    ClassHint.res_name := StrNew(PChar(ProgramName));
-    ClassHint.res_class := StrNew(PChar(ProgramName));
+    ClassHint.res_name := StrNew(PChar(ApplicationName));
+    ClassHint.res_class := StrNew(PChar(ApplicationName));
 
     { ready WindTitle }
     PWindTitle := PChar(FCaption);

@@ -203,7 +203,7 @@ begin
 
   WriteStr(Stream,'#?RADIANCE'#10 +
                   'FORMAT=32-bit_rle_rgbe'#10 +
-                  'SOFTWARE=' + ProgramName + #10 +
+                  'SOFTWARE=' + ApplicationName + #10 +
                   #10 +
                   '-Y '+IntToStr(Img.Height)+' +X '+IntToStr(Img.Width)+#10);
 

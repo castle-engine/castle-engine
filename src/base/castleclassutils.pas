@@ -111,7 +111,7 @@ procedure Strings_AddSplittedString(Strings: TStrings;
 { Something like @link(SCastleEngineProgramHelpSuffix), but appends
   contents as a couple of lines to Strings. }
 procedure Strings_AddCastleEngineProgramHelpSuffix(
-  Strings: TStrings; const DisplayProgramName: string;
+  Strings: TStrings; const DisplayApplicationName: string;
   const Version: string; WrapLines: boolean);
 
 { Use this instead of @code(SList.Text := S) to workaround FPC 2.0.2 bug.
@@ -730,11 +730,11 @@ begin
 end;
 
 procedure Strings_AddCastleEngineProgramHelpSuffix(
-  Strings: TStrings; const DisplayProgramName: string;
+  Strings: TStrings; const DisplayApplicationName: string;
   const Version: string; WrapLines: boolean);
 begin
   Strings_AddSplittedString(Strings,
-    SCastleEngineProgramHelpSuffix(DisplayProgramName, Version, WrapLines), nl);
+    SCastleEngineProgramHelpSuffix(DisplayApplicationName, Version, WrapLines), nl);
 end;
 
 procedure Strings_SetText(SList: TStrings; const S: string);

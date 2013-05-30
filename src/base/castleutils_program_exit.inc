@@ -58,7 +58,7 @@ type
     is good enough, and showing exception class is not needed. }
   EWithHiddenClassName = class(Exception);
 
-{ Nice exception description. Contains ProgramName, exception ClassName
+{ Nice exception description. Contains ApplicationName, exception ClassName
   (if not descends from EWithHiddenClassName), exception Message (if
   descends from Exception), and ExceptAddr (and not-nil, and this is compiled
   with -dDEBUG), and BonusErrorMesssg. }
@@ -154,9 +154,9 @@ begin
   Message := '';
 
  if (E is EWithHiddenClassName) and (Message<>'') then
-  result := ProgramName +': ' +Message else
+  result := ApplicationName +': ' +Message else
  begin
-  result := ProgramName +': Exception ' +E.ClassName;
+  result := ApplicationName +': Exception ' +E.ClassName;
   {$ifdef DEBUG}
   if ExceptAddr<>nil then
    result := result +' (at address ' + PointerToStr(ExceptAddr) + ')';

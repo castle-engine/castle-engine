@@ -2536,14 +2536,12 @@ begin
   Result := nil;
 
   try
+    Stream := Download(URL);
     try
-      { ReadXMLFile always sets TXMLDocument param (possibly to nil),
-        even in case of exception. So place it inside try..finally. }
-      Stream := Download(URL);
-      try
-        ReadXMLFile(Doc, Stream);
-      finally FreeAndNil(Stream) end;
+      ReadXMLFile(Doc, Stream);
+    finally FreeAndNil(Stream) end;
 
+    try
       Check(Doc.DocumentElement.TagName = 'COLLADA',
         'Root node of Collada file must be <COLLADA>');
 

@@ -135,8 +135,8 @@ begin
     - I sometimes display ApplicationName for user, and under Windows
       ParamStr(0) is ugly uppercased.
     - ParamStr(0) is unsure for Unixes.
-    - UserConfigFile uses this. }
-  OnGetApplicationName := {$ifdef FPC_OBJFPC} @ {$endif} MyGetApplicationName;
+    - ApplicationConfig uses this. }
+  OnGetApplicationName := @MyGetApplicationName;
 
   { configure Notifications }
   Notifications.MaxMessages := 4;

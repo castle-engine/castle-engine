@@ -165,14 +165,12 @@ begin
 
   Clear;
 
+  Stream := Download(URL);
   try
-    { ReadXMLFile always sets TXMLDocument param (possibly to nil),
-      even in case of exception. So place it inside try..finally. }
-    Stream := Download(URL);
-    try
-      ReadXMLFile(Config, Stream, URL);
-    finally FreeAndNil(Stream) end;
+    ReadXMLFile(Config, Stream, URL);
+  finally FreeAndNil(Stream) end;
 
+  try
     Check(Config.DocumentElement.TagName = 'properties',
       'Root node of material properties file must be <properties>');
 

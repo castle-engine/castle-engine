@@ -237,5 +237,5 @@ begin
   Window.OnMenuClick := @MenuClick;
   Window.OnDrawStyle := ds2D;
   Window.SetDemoOptions(K_F11, CharEscape, true);
-  Window.OpenAndRun(ProgramName, @Draw2D);
+  Window.OpenAndRun(ApplicationName, @Draw2D);
 end.

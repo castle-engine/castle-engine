@@ -306,7 +306,8 @@ type
 
     { Load all resources (creatures and items) information from
       resource.xml files found in given Path.
-      Overloaded version without Path just scans the whole ProgramDataPath.
+      Overloaded version without Path just scans the whole ApplicationData
+      directory.
 
       @param(Reload
         If Reload, then we will not clear the initial list contents.
@@ -742,7 +743,7 @@ end;
 
 procedure T3DResourceList.LoadFromFiles(const Reload: boolean);
 begin
-  LoadFromFiles(ProgramDataPath, Reload);
+  LoadFromFiles(ApplicationData(''), Reload);
 end;
 
 function T3DResourceList.FindName(const AName: string; const NilWhenNotFound: boolean): T3DResource;

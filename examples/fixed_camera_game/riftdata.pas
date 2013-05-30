@@ -47,7 +47,7 @@ end;
 
 initialization
   DataConfig := TCastleConfig.Create(nil);
-  DataConfig.URL := ProgramDataPath + 'data/index.xml';
+  DataConfig.URL := ApplicationData('data/index.xml');
 finalization
   FreeAndNil(DataConfig);
 end.
