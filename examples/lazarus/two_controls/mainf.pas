@@ -67,7 +67,7 @@ procedure TMain.ButtonLoad1Click(Sender: TObject);
 begin
   if OpenDialog.Execute then
   begin
-    CastleControl1.Load(OpenDialog.FileName);
+    CastleControl1.Load(URIToFilenameSafeUTF8(OpenDialog.FileName));
     CastleControl1.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
     CastleControl1.MainScene.ProcessEvents := true;
   end;
@@ -77,7 +77,7 @@ procedure TMain.ButtonLoad2Click(Sender: TObject);
 begin
   if OpenDialog.Execute then
   begin
-    CastleControl2.Load(OpenDialog.FileName);
+    CastleControl2.Load(URIToFilenameSafeUTF8(OpenDialog.FileName));
     CastleControl2.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
     CastleControl2.MainScene.ProcessEvents := true;
   end;

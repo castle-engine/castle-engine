@@ -122,7 +122,7 @@ begin
 
   Scene := TCastleScene.Create(Application);
   OnWarning := @OnWarningWrite;
-  Scene.Load('models' + PathDelim + 'fog_culling_final.x3dv');
+  Scene.Load('models/fog_culling_final.x3dv');
   SceneManager.MainScene := Scene;
   SceneManager.Items.Add(Scene);
 

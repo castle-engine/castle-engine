@@ -96,9 +96,13 @@ const
   ( crDefault, crNone, crDefault { mcCustom treat like mcDefault },
     crArrow, crHourGlass, crIBeam, crHandPoint );
 
+function FilenameToURISafeUTF8(const FileName: string): string;
+function URIToFilenameSafeUTF8(const URL: string): string;
+
 implementation
 
-uses SysUtils, LCLType, CastleClassUtils, CastleStringUtils;
+uses SysUtils, LCLType, CastleClassUtils, CastleStringUtils, CastleURIUtils,
+  FileUtil;
 
 procedure FileFiltersToDialog(const FileFilters: string;
   Dialog: TFileDialog; const AllFields: boolean);
@@ -370,6 +374,16 @@ begin
     Controls.mbMiddle: MyMouseButton := CastleKeysMouse.mbMiddle;
     else Result := false;
   end;
+end;
+
+function FilenameToURISafeUTF8(const FileName: string): string;
+begin
+  Result := FilenameToURISafe(UTF8ToSys(FileName));
+end;
+
+function URIToFilenameSafeUTF8(const URL: string): string;
+begin
+  Result := SysToUTF8(URIToFilenameSafe(URL));
 end;
 
 end.

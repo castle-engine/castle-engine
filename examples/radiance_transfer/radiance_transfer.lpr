@@ -260,19 +260,19 @@ begin
 end;
 
 var
-  FileName: string = 'models' + PathDelim + 'chinchilla_with_prt.wrl.gz';
+  URL: string = 'models/chinchilla_with_prt.wrl.gz';
 begin
   Window := TCastleWindowCustom.Create(Application);
 
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
-    FileName := Parameters[1];
+    URL := Parameters[1];
 
   RenderParams := TBasicRenderParams.Create;
 
   Scene := TCastleScene.Create(Application);
   OnWarning := @OnWarningWrite;
-  Scene.Load(FileName);
+  Scene.Load(URL);
 
   if Scene.BoundingBox.IsEmpty then
   begin

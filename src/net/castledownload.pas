@@ -325,7 +325,7 @@ var
 const
   MaxRedirects = 32;
 begin
-  P := LowerCase(URIProtocol(URL));
+  P := URIProtocol(URL);
 
   { network protocols: get data into a new TMemoryStream using FpHttpClient }
   if EnableNetwork and (P = 'http') then
@@ -354,15 +354,8 @@ begin
   { local filenames are directly handled, without the need for any downloader }
   if (P = '') or (P = 'file') then
   begin
-    { when there is no protocol, do not call URIToFilename.
-      This fixes the case when URL = absolute Windows filename.
-      Our URIProtocol detects an empty protocol, but ParseURI and URIToFilename
-      will detect a single-letter protocol and URIToFilename will fail.
-      So it's just not possible to pass safely a Windows filename to URIToFilename
-      and expect it to do nothing. }
-    if P = '' then
-      FileName := URL else
-    if not URIToFilename(URL, FileName) then
+    FileName := URIToFilenameSafe(URL);
+    if FileName = '' then
       raise EDownloadError.CreateFmt('Cannot convert URL "%s" to filename', [URL]);
 
     if doGunzip in Options then

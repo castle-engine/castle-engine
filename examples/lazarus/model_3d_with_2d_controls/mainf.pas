@@ -86,11 +86,11 @@ begin
   ButtonImage3.Image := ButtonImageFixSize1.Image;
   ButtonImage4.Image := ButtonImageFixSize1.Image;
 
-  { Load images. We do not set FileName at design-time,
+  { Load images. We do not set URL at design-time,
     as we want to use relative paths, which may be invalid at design-time
     (depends on Lazarus current dir). }
-  SampleImage.FileName := 'sample_image.png';
-  SampleImageAlpha.FileName := 'sample_image_with_alpha.png';
+  SampleImage.URL := 'sample_image.png';
+  SampleImageAlpha.URL := 'sample_image_with_alpha.png';
 
   OnScreenMenu1.Position := Vector2Integer(400, 150);
 end;

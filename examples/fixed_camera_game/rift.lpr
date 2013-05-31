@@ -150,11 +150,11 @@ begin
   Window.ParseParameters([poDisplay]);
   Parameters.Parse(Options, @OptionProc, nil);
 
-  { This should be called from CastleGameConfig actually...
-    but at CastleGameConfig initialization it's too soon to call it
+  { This should be called from CastleXMLConfig actually...
+    but at CastleXMLConfig initialization it's too soon to call it
     (Log is not initialized yet). }
   if Log then
-    WritelnLog('Config', 'Loading configuration from "%s"', [Config.FileName]);
+    WritelnLog('Config', 'Loading configuration from "%s"', [Config.URL]);
 
   Window.Width := RequestedScreenWidth;
   Window.Height := RequestedScreenHeight;

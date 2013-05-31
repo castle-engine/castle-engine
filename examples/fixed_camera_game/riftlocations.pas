@@ -32,9 +32,9 @@ type
   TLocation = class(TLoadable)
   private
     FName: string;
-    FImageFileName: string;
-    FShadowedImageFileName: string;
-    FSceneFileName: string;
+    FImageURL: string;
+    FShadowedImageURL: string;
+    FSceneURL: string;
     FScene: TCastleScene;
     FGLImage, FGLShadowedImage: TGLImage;
     FSceneCameraDescription: string;
@@ -51,9 +51,9 @@ type
 
     function LoadSteps: Cardinal; override;
 
-    property ImageFileName: string read FImageFileName;
-    property ShadowedImageFileName: string read FShadowedImageFileName;
-    property SceneFileName: string read FSceneFileName;
+    property ImageURL: string read FImageURL;
+    property ShadowedImageURL: string read FShadowedImageURL;
+    property SceneURL: string read FSceneURL;
 
     property SceneCameraDescription: string read FSceneCameraDescription;
 
@@ -89,7 +89,7 @@ begin
   inherited;
 
   FScene := TCastleScene.Create(nil);
-  FScene.Load(SceneFileName);
+  FScene.Load(SceneURL);
   Progress.Step;
 
   { in normal (non-debug) circumstances, scene is only rendered to depth buffer }
@@ -110,9 +110,9 @@ begin
 
   Progress.Step;
 
-  FGLImage := TGLImage.Create(ImageFileName,
+  FGLImage := TGLImage.Create(ImageURL,
     [TRGBImage], Window.Width, Window.Height);
-  FGLShadowedImage := TGLImage.Create(ShadowedImageFileName,
+  FGLShadowedImage := TGLImage.Create(ShadowedImageURL,
     [TRGBImage], Window.Width, Window.Height);
   Progress.Step;
 end;
@@ -187,17 +187,17 @@ begin
       if Location.Name = StartLocationName then
         StartLocation := Location;
 
-      if not DOMGetAttribute(I.Current, 'image_file_name', Location.FImageFileName) then
+      if not DOMGetAttribute(I.Current, 'image_file_name', Location.FImageURL) then
         MissingLocationAttribute('image_file_name');
-      Location.FImageFileName := DataFileNameFromConfig(Location.FImageFileName);
+      Location.FImageURL := DataURLFromConfig(Location.FImageURL);
 
-      if not DOMGetAttribute(I.Current, 'shadowed_image_file_name', Location.FShadowedImageFileName) then
+      if not DOMGetAttribute(I.Current, 'shadowed_image_file_name', Location.FShadowedImageURL) then
         MissingLocationAttribute('shadowed_image_file_name');
-      Location.FShadowedImageFileName := DataFileNameFromConfig(Location.FShadowedImageFileName);
+      Location.FShadowedImageURL := DataURLFromConfig(Location.FShadowedImageURL);
 
-      if not DOMGetAttribute(I.Current, 'scene_file_name', Location.FSceneFileName) then
+      if not DOMGetAttribute(I.Current, 'scene_file_name', Location.FSceneURL) then
         MissingLocationAttribute('scene_file_name');
-      Location.FSceneFileName := DataFileNameFromConfig(Location.FSceneFileName);
+      Location.FSceneURL := DataURLFromConfig(Location.FSceneURL);
 
       DOMGetAttribute(I.Current, 'scene_camera_description',
         Location.FSceneCameraDescription);

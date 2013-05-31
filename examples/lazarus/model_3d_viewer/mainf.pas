@@ -85,12 +85,12 @@ type
     procedure Timer1Timer(Sender: TObject);
     procedure MenuMouseLookToggleClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure RecentFilesOpenRecent(const FileName: string);
+    procedure RecentFilesOpenRecent(const URL: string);
   private
-    SceneFileName: string;
+    SceneURL: string;
     CameraChanged: boolean;
     ButtonsNavigationType: array [TCameraNavigationType] of TSpeedButton;
-    procedure OpenScene(const FileName: string);
+    procedure OpenScene(const URL: string);
     procedure UpdateCaption;
   public
     { public declarations }
@@ -102,20 +102,20 @@ var
 implementation
 
 uses LCLType, LCLIntf, CastleVectors, CastleBoxes, X3DNodes, CastleRenderer,
-  GL, GLU, GLExt, CastleClassUtils, CastleUtils, X3DLoad,
+  GL, GLU, GLExt, CastleClassUtils, CastleUtils, X3DLoad, CastleURIUtils,
   CastleGLUtils, CastleSceneCore, CastleFilesUtils, CastleParameters,
   OpenGLInformation, CastleLCLUtils, ConsoleF, CastleImages;
 
-procedure TMain.OpenScene(const FileName: string);
+procedure TMain.OpenScene(const URL: string);
 begin
   Console.WasWarnings := false;
-  Console.Memo1.Lines.Append('--- Loading ' + FileName);
+  Console.Memo1.Lines.Append('--- Loading ' + URL);
 
-  Browser.Load(FileName);
+  Browser.Load(URL);
   Browser.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
   Browser.MainScene.ProcessEvents := true;
 
-  SceneFileName := FileName;
+  SceneURL := URL;
   UpdateCaption;
 
   if Console.WasWarnings then
@@ -124,7 +124,7 @@ begin
     Console.Visible := MenuShowConsole.Checked;
   end;
 
-  RecentFiles.Add(FileName);
+  RecentFiles.Add(URL);
 
   { after loading the scene, make sure to update ButtonsNavigationType state.
     Although during scene loading, OnBoundNavigationInfoChanged was already
@@ -149,18 +149,18 @@ end;
 
 procedure TMain.MenuOpenClick(Sender: TObject);
 begin
-  if SceneFileName <> '' then
-    OpenDialog1.FileName := SceneFileName;
+  if SceneURL <> '' then
+    OpenDialog1.FileName := URIToFilenameSafeUTF8(SceneURL);
   if OpenDialog1.Execute then
-    OpenScene(OpenDialog1.FileName);
+    OpenScene(FilenameToURISafeUTF8(OpenDialog1.FileName));
 end;
 
 procedure TMain.UpdateCaption;
 var
   S: string;
 begin
-  if SceneFileName <> '' then
-    S := ExtractFileName(SceneFileName) else
+  if SceneURL <> '' then
+    S := ExtractURIName(SceneURL) else
     S := 'No Scene';
   S += ' - ' +  ApplicationName +
     Format(' - FPS : %f (real : %f)', [Browser.Fps.FrameTime, Browser.Fps.RealTime]);
@@ -299,9 +299,9 @@ begin
   Config.Save;
 end;
 
-procedure TMain.RecentFilesOpenRecent(const FileName: string);
+procedure TMain.RecentFilesOpenRecent(const URL: string);
 begin
-  OpenScene(FileName);
+  OpenScene(URL);
 end;
 
 procedure TMain.FormDeactivate(Sender: TObject);
@@ -383,7 +383,7 @@ begin
   begin
     Image := Browser.SaveScreen;
     try
-      SaveImage(Image, SaveScreenshotDialog.FileName);
+      SaveImage(Image, FilenameToURISafeUTF8(SaveScreenshotDialog.FileName));
     finally FreeAndNil(Image) end;
   end;
 end;

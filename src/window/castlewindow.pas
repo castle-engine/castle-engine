@@ -2043,7 +2043,7 @@ end;
         proposed file name.
 
         Empty value ('') always means the same as "current directory", guaranteed.
-        So it's equivalent to @code(FilenameToURISafe(InclPathDelim(GetCurrentDir))).
+        So it's equivalent to @code(URICurrentPath).
 
         Note that the path must end with a slash. Otherwise '/tmp/blah' would be
         ambigous (it could mean either file name 'blah' in the dir '/tmp/' dir,

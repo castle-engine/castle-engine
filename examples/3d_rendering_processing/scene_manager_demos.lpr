@@ -18,8 +18,8 @@
   see simplest_vrml_browser.lpr first.
 
   This reads a couple of 3D files from models/ subdirectory.
-  Their filenames are in the source code below.
-  Do not hesitate to experiment, just replace filenames of the 3D models
+  Their URLs are in the source code below.
+  Do not hesitate to experiment, just replace URLs of the 3D models
   with your own, and generally experiment freely with this program :)
 }
 program scene_manager_demos;

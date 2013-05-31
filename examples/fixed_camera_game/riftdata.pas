@@ -30,19 +30,19 @@ uses CastleXMLConfig;
 var
   DataConfig: TCastleConfig;
 
-{ If ARelativeFileName is a filename relative to a location of our index.xml
-  config file, this returns the full absolute filename of this file.
-  It's OK if ARelativeFileName is in fact absolute --- then it will
+{ If ARelativeURL is a URL relative to a location of our index.xml
+  config file, this returns the full absolute URL of this file.
+  It's OK if ARelativeURL is in fact absolute --- then it will
   be simply returned. }
-function DataFileNameFromConfig(const ARelativeFileName: string): string;
+function DataURLFromConfig(const ARelativeURL: string): string;
 
 implementation
 
 uses SysUtils, CastleFilesUtils, CastleURIUtils;
 
-function DataFileNameFromConfig(const ARelativeFileName: string): string;
+function DataURLFromConfig(const ARelativeURL: string): string;
 begin
-  Result := CombineURI(DataConfig.URL, ARelativeFileName);
+  Result := CombineURI(DataConfig.URL, ARelativeURL);
 end;
 
 initialization

@@ -59,7 +59,7 @@ procedure Register;
 
 implementation
 
-uses SysUtils, Classes, CastleLCLUtils;
+uses SysUtils, Classes, CastleLCLUtils, CastleURIUtils;
 
 procedure Register;
 begin

@@ -39,7 +39,7 @@ var
   Scene: TCastleSceneCore;
   Image: TCastleImage;
 
-  SceneFileName, OutImageFileName: string;
+  SceneURL, OutImageURL: string;
   ImageSizeX, ImageSizeY: Integer;
 
   Quad: TQuad3Single;
@@ -50,8 +50,8 @@ var
 begin
  { parse params }
  Parameters.CheckHigh(4 + 3*5);
- SceneFileName := Parameters[1];
- OutImageFileName := Parameters[2];
+ SceneURL := Parameters[1];
+ OutImageURL := Parameters[2];
  ImageSizeX := StrToInt(Parameters[3]);
  ImageSizeY := StrToInt(Parameters[4]);
  for i := 0 to 3 do Quad[i] := ReadParametersVectorTo1st(5 + i*3);
@@ -64,13 +64,13 @@ begin
   { prepare Image (Image contents are not initialized - they may contain
     trash, we will render every pixel of this image so there is no point
     in clearing image at the beginning) }
-  Image := ImageClassBestForSavingToFormat(OutImageFilename).
+  Image := ImageClassBestForSavingToFormat(OutImageURL).
     Create(ImageSizeX, ImageSizeY);
 
   { calculate Scene (from the same RootNode) }
   Write('Loading scene... ');
   Scene := TCastleSceneCore.Create(nil);
-  Scene.Load(SceneFileName, true);
+  Scene.Load(SceneURL, true);
   Writeln('done.');
   if Scene.GlobalLights.Count = 0 then
    Writeln('WARNING: scene has no global lights defined (everything will be black)');
@@ -86,7 +86,7 @@ begin
     RenderDir, 'Rendering');
   Writeln(Format('Rendering done in %f seconds.', [ProcessTimerEnd]));
 
-  SaveImage(Image, OutImageFilename);
+  SaveImage(Image, OutImageURL);
  finally
   Scene.Free;
   Image.Free;

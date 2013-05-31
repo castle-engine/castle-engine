@@ -4,7 +4,8 @@
   and perform basic image processing. After the script executed,
   we will save image to file.
 
-  Run with two parameters: script filename, and output image filename.
+  Run with two parameters: script URL (usually just a filename),
+  and output image URL (usualy just a filename).
   For example
     image_make_by_script mkimage_gradient.castlescript new_image.png
 
@@ -64,7 +65,7 @@ begin
 
     Prog := ParseProgram(FileToString(Parameters[1]), Vars);
     try
-      Prog.Environment.BaseUrl := InclPathDelim(GetCurrentDir);
+      Prog.Environment.BaseUrl := URICurrentPath;
       Prog.ExecuteFunction('main', []);
       SaveImage(TCasScriptImage(Vars[0]).Value, Parameters[2]);
     finally FreeAndNil(Prog) end;

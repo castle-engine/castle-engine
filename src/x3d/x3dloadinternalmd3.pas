@@ -373,13 +373,10 @@ var
   Md3Path, NoExt: string;
 begin
   Result := false;
-  { TODO-net: file operations on URLs }
-  NoExt := DeleteFileExt(Md3URL);
+  NoExt := DeleteURIExt(Md3URL);
   SkinURL := NoExt + '_default.skin';
-  { TODO-net: file operations on URLs }
-  Md3Path := ExtractFilePath(Md3URL);
-  { TODO-net: FileExists is wrong for URLs }
-  if FileExists(SkinURL) then
+  Md3Path := ExtractURIPath(Md3URL);
+  if URIFileExists(SkinURL) then
   begin
     SkinFile := TTextReader.Create(SkinURL);
     try
@@ -398,25 +395,23 @@ begin
               md3 model file, so we strip the directory part. }
             ATextureURL := ExtractURIName(ATextureURL);
 
-            { TODO-net: file operations on URLs  - lots below }
-
-            if not FileExists(Md3Path + ATextureURL) then
+            if not URIFileExists(Md3Path + ATextureURL) then
             begin
-              { Now, I know this is stupid, but we simply cannot trust
+              { We simply cannot trust
                 the extension of texture given in ATextureURL in skin file.
                 It's common in Quake3 data files that texture URL is given
                 as xxx.tga, while in fact only xxx.jpg exists and should be used. }
-              if FileExists(Md3Path + ChangeFileExt(ATextureURL, '.jpg')) then
-                ATextureURL := ChangeFileExt(ATextureURL, '.jpg') else
+              if URIFileExists(Md3Path + ChangeURIExt(ATextureURL, '.jpg')) then
+                ATextureURL := ChangeURIExt(ATextureURL, '.jpg') else
 
               { Also, some files have texture names with missing extension...
                 So we have to check also for tga here.
                 E.g. tremulous-unpacked-data/models/players/human_base/head }
-              if FileExists(Md3Path + ChangeFileExt(ATextureURL, '.tga')) then
-                ATextureURL := ChangeFileExt(ATextureURL, '.tga') else
+              if URIFileExists(Md3Path + ChangeURIExt(ATextureURL, '.tga')) then
+                ATextureURL := ChangeURIExt(ATextureURL, '.tga') else
 
-              { Now this is also stupid... But some tremulous data
-                has texture recorded as "null". We should ignore this
+              { Some tremulous data has texture recorded as "null".
+                We should ignore this
                 texture, and look at the next line. (We do it only
                 if above checks proved that texture URL doesn't
                 exist, and texture URL with .jpg also doesn't exist) }
@@ -444,8 +439,7 @@ begin
       object may be without skin file, but just texture with
       basename same as model exists. }
     ATextureURL := NoExt + '.jpg';
-    { TODO-net: file operations on URLs }
-    if FileExists(ATextureURL) then
+    if URIFileExists(ATextureURL) then
       Result := true;
   end;
 end;

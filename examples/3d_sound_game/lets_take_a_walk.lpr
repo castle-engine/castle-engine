@@ -158,7 +158,7 @@ end;
 function LoadScene(const Name: string; AOwner: TComponent): TCastleScene;
 begin
   Result := TCastleScene.Create(AOwner);
-  Result.Load(ApplicationData('data/3d/' + Name);
+  Result.Load(ApplicationData('data/3d/' + Name));
 end;
 
 type
@@ -314,7 +314,7 @@ begin
     as opening window calls Resize which uses MuteImage. }
   MuteImage := TCastleImageControl.Create(Application);
   MuteImage.Blending := true;
-  MuteImage.FileName := ApplicationData('data/textures/mute_sign.png');
+  MuteImage.URL := ApplicationData('data/textures/mute_sign.png');
   MuteImage.Exists := false; // don't show it on initial progress
   Window.Controls.InsertFront(MuteImage);
 

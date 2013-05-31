@@ -68,7 +68,7 @@ begin
 
     { test 2 }
 
-    Prog := ParseProgram(FileToString('data' + PathDelim + 'test_script_vectors.kscript'), Vars);
+    Prog := ParseProgram(FileToString('data/test_script_vectors.kscript'), Vars);
     Prog.ExecuteFunction('test_2', []);
 
     Assert((Vars[0] as TCasScriptInteger).Value = 0);
@@ -169,7 +169,7 @@ begin
 
     { test 2 }
 
-    Prog := ParseProgram(FileToString('data' + PathDelim + 'test_script_vectors_double.kscript'), Vars);
+    Prog := ParseProgram(FileToString('data/test_script_vectors_double.kscript'), Vars);
     Prog.ExecuteFunction('test_2', []);
 
     Assert((Vars[0] as TCasScriptInteger).Value = 0);
@@ -256,7 +256,7 @@ begin
     Vars[3].Name := 'my_mat3';
     Vars[4].Name := 'my_mat4';
 
-    Prog := ParseProgram(FileToString('data' + PathDelim + 'test_script_matrix.kscript'), Vars);
+    Prog := ParseProgram(FileToString('data/test_script_matrix.kscript'), Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
 

@@ -74,7 +74,8 @@ uses CastleVectors, SysUtils, X3DNodes, X3DLoadInternalMD3,
   as the URL parameter.
 
   @param(AllowStdIn If AllowStdIn and URL = '-' then it will load
-    a VRML/X3D file from StdInStream (using GetCurrentDir as BaseUrl).) }
+    a VRML/X3D file from StdInStream (using current working directory
+    as BaseUrl).) }
 function Load3D(const URL: string;
   AllowStdIn: boolean = false;
   NilOnUnrecognizedFormat: boolean = false): TX3DRootNode;

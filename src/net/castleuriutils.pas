@@ -75,6 +75,12 @@ function RawURIDecode(const S: string): string;
       (In contrast with URIParser.ParseURI that would detect protocol called "c".)
       See doc/uri_filename.txt in sources for more comments about differentiating
       URI and filenames in our engine.)
+
+    @item(We always return lowercase protocol. This is comfortable,
+      since you almost always calculate protocol to compare it,
+      and protocol names are not case-sensitive,
+      and you should always produce URLs with lowercase
+      (see http://tools.ietf.org/html/rfc3986#section-3.1).)
   )
 }
 function URIProtocol(const URI: string): string;
@@ -179,6 +185,14 @@ function ExtractURIName(const URL: string): string;
 
 { Extract path (everything before last part), including final slash, from URL. }
 function ExtractURIPath(const URL: string): string;
+
+{ Does a local file exist. Always answers @true for URLs that do not indicate
+  local files (assume remote file exist). }
+function URIFileExists(const URL: string): boolean;
+
+{ Current working directory of the application, expressed as URL,
+  including always final slash at the end. }
+function URICurrentPath: string;
 
 implementation
 
@@ -335,7 +349,7 @@ var
   FirstCharacter, Colon: Integer;
 begin
   if URIProtocolIndex(URI, FirstCharacter, Colon) then
-    Result := CopyPos(URI, FirstCharacter, Colon - 1) else
+    Result := LowerCase(CopyPos(URI, FirstCharacter, Colon - 1)) else
     Result := '';
 end;
 
@@ -348,7 +362,7 @@ begin
      (Colon - FirstCharacter = Length(Protocol)) then
   begin
     for I := 1 to Length(Protocol) do
-      if UpCase(Protocol[I]) <> UpCase(S[I - FirstCharacter + 1]) then
+      if LoCase(Protocol[I]) <> LoCase(S[I - FirstCharacter + 1]) then
         Exit;
     Result := true;
   end;
@@ -619,7 +633,7 @@ begin
   Result := '';
   Gzipped := false;
 
-  P := LowerCase(URIProtocol(URI));
+  P := URIProtocol(URI);
 
   if (P = '') or
      (P = 'file') or
@@ -721,6 +735,19 @@ end;
 function ExtractURIPath(const URL: string): string;
 begin
   Result := ExtractFilePath(URL);
+end;
+
+function URIFileExists(const URL: string): boolean;
+var
+  F: string;
+begin
+  F := URIToFilenameSafe(URL);
+  Result := (F = '') or FileExists(F);
+end;
+
+function URICurrentPath: string;
+begin
+  Result := FilenameToURISafe(InclPathDelim(GetCurrentDir));
 end;
 
 end.

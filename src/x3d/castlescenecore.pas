@@ -828,7 +828,7 @@ type
       as the URL parameter.
 
       @param(AllowStdIn If AllowStdIn and AURL = '-' then we will load
-        a file from standard input (StdInStream), using GetCurrentDir
+        a file from standard input (StdInStream), using current working directory
         as BaseUrl (to resolve relative URLs from the file).
         Currently, this limits the file to be VRML/X3D.) }
     procedure Load(const AURL: string; AllowStdIn: boolean = false;

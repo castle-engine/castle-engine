@@ -83,17 +83,17 @@ var
   Side: TCubeMapSide;
   BoundingSphereCenter: TVector3Single;
   BoundingSphereRadius: Single;
-  InputFileName, OutputFileName: string;
+  InputURL, OutputURL: string;
 begin
   Parameters.Parse(Options, @OptionProc, nil);
   Parameters.CheckHighAtLeast(1);
   Parameters.CheckHighAtMost(2);
 
-  InputFileName := Parameters[1];
+  InputURL := Parameters[1];
   if Parameters.High = 1 then
-    OutputFileName := ChangeFileExt(InputFileName, ShadowFieldExt) else
-    OutputFileName := Parameters[2];
-  Writeln('Output file name: ', OutputFileName);
+    OutputURL := ChangeURIExt(InputURL, ShadowFieldExt) else
+    OutputURL := Parameters[2];
+  Writeln('Output URL: ', OutputURL);
 
   InitializeSHBasisMap;
 
@@ -101,7 +101,7 @@ begin
 
   Scene := TCastleSceneCore.Create(nil);
   try
-    Scene.Load(InputFileName);
+    Scene.Load(InputURL);
     Scene.TriangleOctreeProgressTitle := 'Building octree';
     Scene.Spatial := [ssVisibleTriangles];
 
@@ -148,7 +148,7 @@ begin
                            6 * Sqr(CubeMapSize),
           ProcessTimerEnd]));
 
-      SF.SaveToFile(OutputFileName);
+      SF.SaveToFile(OutputURL);
     finally FreeAndNil(SF) end;
   finally FreeAndNil(Scene) end;
 end.

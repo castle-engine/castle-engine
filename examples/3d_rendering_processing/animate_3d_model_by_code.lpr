@@ -76,7 +76,7 @@ begin
 
   Scene := TCastleScene.Create(nil);
   try
-    Scene.Load('models' + PathDelim + 'boxes.x3dv');
+    Scene.Load('models/boxes.x3dv');
     TransformBox2 := Scene.RootNode.FindNodeByName(TTransformNode,
       'Box2Transform', true) as TTransformNode;
     TransformBox3 := Scene.RootNode.FindNodeByName(TTransformNode,

@@ -40,7 +40,7 @@ const
 type
   TCreatureAnimation = class
   public
-    FileName: string;
+    URL: string;
     { Created in TCreatureKind.Load }
     Animation: TCastlePrecalculatedAnimation;
 
@@ -202,7 +202,7 @@ begin
   begin
     StatePath := 'creatures/' + Name + '/' + CreatureStateName[S] + '/';
 
-    Animations[S].FileName := DataFileNameFromConfig(
+    Animations[S].URL := DataURLFromConfig(
       DataConfig.GetValue(StatePath + 'file_name', ''));
 
     for SChange := Low(SChange) to High(SChange) do
@@ -256,12 +256,12 @@ begin
   for S := Low(S) to High(S) do
   begin
     Animations[S].Animation := TCastlePrecalculatedAnimation.Create(nil);
-    Animations[S].Animation.LoadFromFile(Animations[S].FileName, false, true);
+    Animations[S].Animation.LoadFromFile(Animations[S].URL, false, true);
     AnimationPrepareResources(Animations[S].Animation);
     Progress.Step;
 
     if Log then
-      WritelnLog('Creature Animation', 'Loaded ' + Animations[S].FileName);
+      WritelnLog('Creature Animation', 'Loaded ' + Animations[S].URL);
   end;
 
   RootNodes := nil;

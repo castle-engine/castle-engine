@@ -39,10 +39,10 @@ uses CastleVectors, ShadowFields, CastleUtils, CastleCubeMaps;
 procedure TTestShadowFields.Test1;
 var
   SF: TShadowField;
-  FileName: string;
+  URL: string;
   Map: PCubeMapByte;
 begin
-  FileName := InclPathDelim(GetTempDir) + 'testing.shadow_field';
+  URL := InclPathDelim(GetTempDir) + 'testing.shadow_field';
 
   { Save and load shadow field with some non-zero values.
     Tests that save, load work.
@@ -76,12 +76,12 @@ begin
     Map^[csPositiveX, 10] := 99;
     Map^[csNegativeX, 20] := 88;
 
-    SF.SaveToFile(FileName);
+    SF.SaveToFile(URL);
   finally FreeAndNil(SF) end;
 
   SF := TShadowField.Create;
   try
-    SF.LoadFromFile(FileName);
+    SF.LoadFromFile(URL);
     Assert(SF.FirstSphereRadius = 2);
     Assert(SF.LastSphereRadius = 10);
 

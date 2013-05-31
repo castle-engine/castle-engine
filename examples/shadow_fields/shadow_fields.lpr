@@ -15,13 +15,14 @@
 
 { Shadow fields demo. See README.
 
-  Run with 0 to 3 parameters: filenames of shadow caster, shadow receiver,
+  Run with 0 to 3 parameters: URLs (usually filenames) of shadow caster, 
+  shadow receiver,
   light source. All three things must be 3D models understood by my engine
   (X3D, VRML, Collada, etc.), for shadow caster and light source there
   must also exist a xxx.shadow_field file in the same directory
   (use precompute_shadow_field to make this, with --light for light source).
 
-  You can omit any of the filenames, even run with no parameters, then
+  You can omit any of the URLs, even run with no parameters, then
   the default models from models/ subdir will be picked up.
 
   Navigate with mouse or keyboard (like view3dscene in Examine mode,
@@ -554,20 +555,20 @@ end;
 
 var
   BoxSum: TBox3D;
-  ShadowCasterFileName: string = 'models/humanoid_stand.wrl';
-  ShadowReceiverFileName: string = 'models/plane.wrl';
-  LocalLightFileName: string = 'models/sphere.wrl';
+  ShadowCasterURL: string = 'models/humanoid_stand.wrl';
+  ShadowReceiverURL: string = 'models/plane.wrl';
+  LocalLightURL: string = 'models/sphere.wrl';
 begin
   Window := TCastleWindowCustom.Create(Application);
 
   Parameters.CheckHighAtMost(3);
 
   if Parameters.High >= 1 then
-    ShadowCasterFileName := Parameters[1];
+    ShadowCasterURL := Parameters[1];
   if Parameters.High >= 2 then
-    ShadowReceiverFileName := Parameters[2];
+    ShadowReceiverURL := Parameters[2];
   if Parameters.High >= 3 then
-    LocalLightFileName := Parameters[3];
+    LocalLightURL := Parameters[3];
 
   try
     OnWarning := @OnWarningWrite;
@@ -575,19 +576,19 @@ begin
     RenderParams := TBasicRenderParams.Create;
 
     SceneCaster := TCastleScene.Create(nil);
-    SceneCaster.Load(ShadowCasterFileName);
+    SceneCaster.Load(ShadowCasterURL);
 
     SceneReceiver := TCastleScene.Create(nil);
-    SceneReceiver.Load(ShadowReceiverFileName);
+    SceneReceiver.Load(ShadowReceiverURL);
 
     SceneLocalLight := TCastleScene.Create(nil);
-    SceneLocalLight.Load(LocalLightFileName);
+    SceneLocalLight.Load(LocalLightURL);
 
     CasterOOF := TShadowField.Create;
-    CasterOOF.LoadFromFile(ChangeFileExt(ShadowCasterFileName, ShadowFieldExt));
+    CasterOOF.LoadFromFile(ChangeURIExt(ShadowCasterURL, ShadowFieldExt));
 
     LocalLightSRF := TShadowField.Create;
-    LocalLightSRF.LoadFromFile(ChangeFileExt(LocalLightFileName, ShadowFieldExt));
+    LocalLightSRF.LoadFromFile(ChangeURIExt(LocalLightURL, ShadowFieldExt));
 
     SceneManager := TMySceneManager.Create(nil);
     Window.Controls.Add(SceneManager);

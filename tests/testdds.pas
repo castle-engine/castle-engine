@@ -118,10 +118,10 @@ procedure TTestDDS.TestLoadSaveDDS;
   end;
 
 begin
-  TestImage('data' + PathDelim + 'images' + PathDelim + 'mipmaps_no.dds', false);
-  TestImage('data' + PathDelim + 'images' + PathDelim + 'mipmaps_yes.dds', false);
-  TestImage('data' + PathDelim + 'images' + PathDelim + 'random3d.dds', true);
-  TestImage('data' + PathDelim + 'images' + PathDelim + 'random3d_with_mipmaps.dds', true);
+  TestImage('data/images/mipmaps_no.dds', false);
+  TestImage('data/images/mipmaps_yes.dds', false);
+  TestImage('data/images/random3d.dds', true);
+  TestImage('data/images/random3d_with_mipmaps.dds', true);
 end;
 
 procedure TTestDDS.TestLoadSaveS3TC;
@@ -169,7 +169,7 @@ procedure TTestDDS.TestLoadSaveS3TC;
   end;
 
 begin
-  TestImage('data' + PathDelim + 'images' + PathDelim + 'metal_decal_dxt5.dds', true);
+  TestImage('data/images/metal_decal_dxt5.dds', true);
 end;
 
 initialization

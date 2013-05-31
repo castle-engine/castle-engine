@@ -151,7 +151,7 @@ end;
 
 procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 var
-  FileName: string;
+  URL: string;
   RayOrigin, RayDirection, SelectedPoint: TVector3Single;
 begin
   case Event.EventType of
@@ -173,9 +173,9 @@ begin
           case Event.Key of
             K_F5:
               begin
-                FileName := FileNameAutoInc('rift_screen_%d.png');
-                Window.SaveScreen(FileName);
-                Notifications.Show(Format('Saved screenshot to "%s"', [FileName]));
+                URL := FileNameAutoInc('rift_screen_%d.png');
+                Window.SaveScreen(URL);
+                Notifications.Show(Format('Saved screenshot to "%s"', [URL]));
               end;
           end;
       end;

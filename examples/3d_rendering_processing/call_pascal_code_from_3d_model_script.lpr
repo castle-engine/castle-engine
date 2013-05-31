@@ -60,18 +60,18 @@ end;
 
 var
   { May also be given on command-line. }
-  FileName: string = 'models' + PathDelim + 'compiled_script_tests.x3dv';
+  URL: string = 'models/compiled_script_tests.x3dv';
 begin
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
-    FileName := Parameters[1];
+    URL := Parameters[1];
 
   OnWarning := @OnWarningWrite;
   Progress.UserInterface := ProgressConsoleInterface;
 
   Window := TCastleWindow.Create(nil);
   try
-    Window.Load(FileName);
+    Window.Load(URL);
 
     { initialize events procesing }
     Window.MainScene.RegisterCompiledScript('touch_initialize',

@@ -13,9 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Pass on command-line the filename ("-" means stdin) of 3D model file
-  and the name of placeholder detection routine (like "x3dshape"
-  or "blender").
+{ Pass on command-line the URL (usually just a filename; "-" means stdin)
+  of 3D model file and the name of placeholder detection routine
+  (like "x3dshape" or "blender").
   We will output information about detected placeholders in the file.
 
   For example,

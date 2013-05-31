@@ -30,7 +30,7 @@ var
 begin
   Scene := TCastleSceneCore.Create(nil);
   try
-    Scene.Load('data' + PathDelim + 'model_manifold.wrl');
+    Scene.Load('data/model_manifold.wrl');
     Assert(Scene.BorderEdges.Count = 0);
   finally FreeAndNil(Scene) end;
 end;
@@ -86,8 +86,8 @@ begin
   CheckIteratorSpeed('../../demo_models/x3d/switches_and_transforms.x3dv');
   CheckIteratorSpeed('../../demo_models/x3d/key_sensor.x3dv');
 
-  CheckIteratorSpeed('data' + PathDelim + 'switches_and_transforms_2.x3dv');
-  CheckIteratorSpeed('data' + PathDelim + 'key_sensor_2.x3dv');
+  CheckIteratorSpeed('data/switches_and_transforms_2.x3dv');
+  CheckIteratorSpeed('data/key_sensor_2.x3dv');
 
   CheckIteratorSpeed('/home/michalis/sources/rrtankticks2/rrtankticks3/rrtt.wrl',
     10); { smaller TestCount, as it's quite slow }
@@ -137,11 +137,11 @@ begin
   CheckIterator('../../demo_models/x3d/key_sensor.x3dv');
   {$endif CASTLE_ENGINE_TRUNK_AVAILABLE}
 
-  CheckIterator('data' + PathDelim + 'switches_and_transforms_2.x3dv');
-  CheckIterator('data' + PathDelim + 'key_sensor_2.x3dv');
-  CheckIterator('data' + PathDelim + 'extrusion_empty_spine.x3dv');
-  CheckIterator('data' + PathDelim + 'extrusion_empty_spine_concave.x3dv');
-  CheckIterator('data' + PathDelim + 'extrusion_empty_spine_smooth.x3dv');
+  CheckIterator('data/switches_and_transforms_2.x3dv');
+  CheckIterator('data/key_sensor_2.x3dv');
+  CheckIterator('data/extrusion_empty_spine.x3dv');
+  CheckIterator('data/extrusion_empty_spine_concave.x3dv');
+  CheckIterator('data/extrusion_empty_spine_smooth.x3dv');
 end;
 
 procedure TTestSceneCore.TestFind;

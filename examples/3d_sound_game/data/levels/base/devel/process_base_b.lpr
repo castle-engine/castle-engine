@@ -29,8 +29,8 @@ uses SysUtils, CastleUtils, X3DNodes, CastleVectors, CastleTimeUtils;
 
 const
   BasePath= '../../';
-  InVrmlFileName= BasePath +'devel/vrml/base_b.wrl';
-  OutVrmlFileName= BasePath +'vrml/base_b_proc.wrl';
+  InVrmlURL = BasePath + 'devel/vrml/base_b.wrl';
+  OutVrmlURL = BasePath + 'vrml/base_b_proc.wrl';
 
 var
   RootNode: TX3DNode;
@@ -46,7 +46,7 @@ var
 
   i: Integer;
 begin
- RootNode := LoadX3DClassic(InVrmlFileName, false);
+ RootNode := LoadX3DClassic(InVrmlURL, false);
  try
   { find nodes we will need to operate on }
   MeshBasePlaneNode := RootNode.FindNodeByName(TX3DNode, 'MeshBasePlane', false);
@@ -57,7 +57,7 @@ begin
 
   { add Texture2ForMeshBasePlane }
   Texture2ForMeshBasePlane := TTexture2Node_1.Create('', '');
-  Texture2ForMeshBasePlane.FdFileName.Value := 'textures/base_shadowed.png';
+  Texture2ForMeshBasePlane.FdURL.Value := 'textures/base_shadowed.png';
   MeshBasePlaneNode.VRML1ChildAdd(0, Texture2ForMeshBasePlane);
 
   { add TextureCoordinate2ForMeshBasePlane }
@@ -75,6 +75,6 @@ begin
   StreetIFS.FdTextureCoordIndex.Items.Assign(StreetIFS.FdCoordIndex.Items);
   GroundIFS.FdTextureCoordIndex.Items.Assign(GroundIFS.FdCoordIndex.Items);
 
-  Save3D(RootNode, OutVrmlFileName, 'process_base_b', '', xeClassic);
+  Save3D(RootNode, OutVrmlURL, 'process_base_b', '', xeClassic);
  finally RootNode.Free end;
 end.

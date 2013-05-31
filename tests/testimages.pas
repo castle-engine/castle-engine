@@ -37,7 +37,7 @@ implementation
 uses SysUtils, CastleVectors, CastleImages;
 
 procedure TTestImages.TestLoadImage;
-const ImagesPath = 'data' + PathDelim +  'images' + PathDelim;
+const ImagesPath = 'data/images/';
 
   procedure DoTest(const fname: string;
     const AllowedImageClasses: array of TCastleImageClass;
@@ -207,7 +207,7 @@ var
   end;
 
 begin
-  Orig := LoadImage('data' + PathDelim + 'images' + PathDelim + 'no_alpha.png', []);
+  Orig := LoadImage('data/images/no_alpha.png', []);
 
   SimpleTest(riNearest);
   SimpleTest(riBilinear);

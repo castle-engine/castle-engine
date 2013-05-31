@@ -54,7 +54,8 @@ function LoadX3DClassicFromString(const VRMLContents: string;
   to current dir). We can also load network URLs using CastleDownload.
 
   If AllowStdIn then URL = '-' is understood as "standard input"
-  (StdInStream). Base path for resolving URLs in this case is GetCurrentDir.
+  (StdInStream). Base for resolving relative URLs in this case is
+  the current working directory.
 
   If Gzipped then we can be relatively sure that stream is gzipped.
   Otherwise, it can still be gzipped (.wrl files are sometimes gzipped
@@ -576,7 +577,7 @@ var
 begin
   if AllowStdIn and (URL = '-') then
   begin
-    BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
+    BaseUrl := URICurrentPath;
     Result := DoIt(StdInStream, false, BaseUrl);
   end else
   begin
