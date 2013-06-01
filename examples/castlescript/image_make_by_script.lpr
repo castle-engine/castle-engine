@@ -21,7 +21,7 @@
 }
 
 uses SysUtils, CastleUtils, CastleFilesUtils, CastleStringUtils, CastleImages,
-  CastleClassUtils, CastleParameters,
+  CastleClassUtils, CastleParameters, CastleURIUtils,
   CastleScript, CastleScriptParser, CastleScriptVectors, CastleScriptImages,
   CastleWarnings;
 

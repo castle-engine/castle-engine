@@ -10,11 +10,11 @@ type
     { @noAutoLinkHere }
     Image: TCastleImage;
     GLImage: TGLImage;
-    { Relative filename vs tiles directory.
+    { Relative URL vs tiles directory.
       This is read and written from/to a map file. }
-    RelativeFileName: string;
-    { This is an absolute filename constructed from RelativeFileName. }
-    function FullFileName: string;
+    RelativeURL: string;
+    { This is an absolute URL constructed from RelativeURL. }
+    function FullURL: string;
   public
     CharCode: char;
     procedure LoadFromFile; virtual; abstract;
@@ -60,14 +60,15 @@ type
     Width, Height: Cardinal;
     PlayerStartX, PlayerStartY: Cardinal;
     constructor Create(AWidth, AHeight: Cardinal);
-    constructor CreateFromFile(const AFileName: string);
+    constructor CreateFromFile(const AURL: string);
     destructor Destroy; override;
-    procedure SaveToFile(const AFileName: string);
+    procedure SaveToFile(const AURL: string);
   end;
 
 implementation
 
-uses SysUtils, CastleFilesUtils, CastleUtils, SandBoxGame, CastleStringUtils;
+uses SysUtils, CastleFilesUtils, CastleUtils, SandBoxGame, CastleStringUtils,
+  CastleClassUtils, CastleURIUtils;
 
 { TTile ---------------------------------------------------------------------- }
 
@@ -78,16 +79,16 @@ begin
   inherited;
 end;
 
-function TTile.FullFileName: string;
+function TTile.FullURL: string;
 begin
-  Result := ApplicationData('tiles/' + RelativeFileName);
+  Result := ApplicationData('tiles/' + RelativeURL);
 end;
 
 { TBaseTile ------------------------------------------------------------------ }
 
 procedure TBaseTile.LoadFromFile;
 begin
-  Image := LoadImage(FullFileName, PixelsImageClasses, BaseWidth, BaseHeight);
+  Image := LoadImage(FullURL, PixelsImageClasses, BaseWidth, BaseHeight);
   if not (Image is TRGBAlphaImage) then
   begin
     ImageAlphaConstTo1st(Image, 255);
@@ -98,10 +99,10 @@ begin
         TRGBAlphaImage(Image).AlphaPixels[1][0],
         TRGBAlphaImage(Image).AlphaPixels[2][0]),
       0, 0, 255);
-    Writeln('Alpha added to "', RelativeFileName, '" while loading');
-    { This will automatically fix such images, assuming that FileName
+    Writeln('Alpha added to "', RelativeURL, '" while loading');
+    { This will automatically fix such images, assuming that URL
       extension is PNG.
-    SaveImage(Image, FullFileName); }
+    SaveImage(Image, FullURL); }
   end;
 
   GLImage := TGLImage.Create(Image);
@@ -111,7 +112,7 @@ end;
 
 procedure TBonusTile.LoadFromFile;
 begin
-  Image := LoadImage(FullFileName, PixelsImageClasses);
+  Image := LoadImage(FullURL, PixelsImageClasses);
   GLImage := TGLImage.Create(Image);
 end;
 
@@ -132,18 +133,22 @@ begin
   CreateItems;
 end;
 
-constructor TMap.CreateFromFile(const AFileName: string);
+constructor TMap.CreateFromFile(const AURL: string);
 
-  procedure ReadlnTileLine(var F: TextFile;
-    var C: char; var RelativeFileName: string);
+  procedure ReadlnTileLine(const Line: string;
+    var C: char; var RelativeURL: string);
+  var
+    CStr: string;
   begin
-    Read(F, C);
-    Readln(F, RelativeFileName);
-    RelativeFileName := Trim(RelativeFileName);
+    DeFormat(Line, '%s %s', [@CStr, @RelativeURL]);
+    if Length(CStr) <> 1 then
+      raise Exception.Create('Not a single 1st character');
+    C := CStr[1];
+    RelativeURL := Trim(RelativeURL);
   end;
 
 var
-  F: TextFile;
+  F: TTextReader;
   BaseTilesCount, BonusTilesCount: Cardinal;
   C: char;
   S: string;
@@ -152,32 +157,32 @@ var
 begin
   CommonCreate;
 
-  SafeReset(F, AFileName, true);
+  F := TTextReader.Create(AURL);
   try
-    Readln(F, Width, Height);
-    Readln(F, PlayerStartX, PlayerStartY);
-    Readln(F, BaseTilesCount, BonusTilesCount);
+    DeFormat(F.Readln, '%d %d', [@Width, @Height]);
+    DeFormat(F.Readln, '%d %d', [@PlayerStartX, @PlayerStartY]);
+    DeFormat(F.Readln, '%d %d', [@BaseTilesCount, @BonusTilesCount]);
     if (Width = 0) or (Height = 0) then
       raise Exception.Create('Map width and height must be > 0');
 
     for I := 0 to Integer(BaseTilesCount) - 1 do
     begin
-      ReadlnTileLine(F, C, S);
+      ReadlnTileLine(F.Readln, C, S);
       BaseTiles[C] := TBaseTile.Create;
       BaseTiles[C].CharCode := C;
-      BaseTiles[C].RelativeFileName := S;
+      BaseTiles[C].RelativeURL := S;
       BaseTiles[C].LoadFromFile;
       BaseTilesList.Add(BaseTiles[C]);
     end;
 
     for I := 0 to Integer(BonusTilesCount) - 1 do
     begin
-      ReadlnTileLine(F, C, S);
+      ReadlnTileLine(F.Readln, C, S);
       if C = '_' then
         raise Exception.Create('Bonus tile character cannot be "_"');
       BonusTiles[C] := TBonusTile.Create;
       BonusTiles[C].CharCode := C;
-      BonusTiles[C].RelativeFileName := S;
+      BonusTiles[C].RelativeURL := S;
       BonusTiles[C].LoadFromFile;
       BonusTilesList.Add(BonusTiles[C]);
     end;
@@ -186,7 +191,7 @@ begin
 
     for Y := Height - 1 downto 0 do
     begin
-      Readln(F, S);
+      S := F.Readln;
       if Cardinal(Length(S)) <> Width * 2  then
         raise Exception.CreateFmt('Map line %d has wrong length (%d instead of %d)',
           [Y, Cardinal(Length(S)), Width * 2]);
@@ -208,7 +213,7 @@ begin
           Items[X, Y].BonusTile := nil;
       end;
     end;
-  finally CloseFile(F) end;
+  finally FreeAndNil(F) end;
 end;
 
 procedure TMap.CreateItems;
@@ -245,28 +250,28 @@ begin
   inherited;
 end;
 
-procedure TMap.SaveToFile(const AFileName: string);
+procedure TMap.SaveToFile(const AURL: string);
 var
-  F: TextFile;
+  F: TStream;
   S: string;
   I: Integer;
   X, Y: Cardinal;
 begin
-  SafeRewrite(F, AFileName);
+  F := URISaveStream(AURL);
   try
-    Writeln(F, Width, ' ', Height);
-    Writeln(F, PlayerStartX, ' ', PlayerStartY);
-    Writeln(F, BaseTilesList.Count, ' ', BonusTilesList.Count);
+    WritelnStr(F, Format('%d %d', [Width, Height]));
+    WritelnStr(F, Format('%d %d', [PlayerStartX, PlayerStartY]));
+    WritelnStr(F, Format('%d %d', [BaseTilesList.Count, BonusTilesList.Count]));
 
     for I := 0 to BaseTilesList.Count - 1 do
-      Writeln(F,
-        TBaseTile(BaseTilesList[I]).CharCode, ' ',
-        TBaseTile(BaseTilesList[I]).RelativeFileName);
+      WritelnStr(F, Format('%s %s', [
+        TBaseTile(BaseTilesList[I]).CharCode,
+        TBaseTile(BaseTilesList[I]).RelativeURL]));
 
     for I := 0 to BonusTilesList.Count - 1 do
-      Writeln(F,
-        TBonusTile(BonusTilesList[I]).CharCode, ' ',
-        TBonusTile(BonusTilesList[I]).RelativeFileName);
+      WritelnStr(F, Format('%s %s', [
+        TBonusTile(BonusTilesList[I]).CharCode,
+        TBonusTile(BonusTilesList[I]).RelativeURL]));
 
     for Y := Height - 1 downto 0 do
     begin
@@ -278,9 +283,9 @@ begin
           S[X*2 + 2] := Items[X, Y].BonusTile.CharCode else
           S[X*2 + 2] := '_';
       end;
-      Writeln(F, S);
+      WritelnStr(F, S);
     end;
-  finally CloseFile(F) end;
+  finally FreeAndNil(F) end;
 end;
 
 end.

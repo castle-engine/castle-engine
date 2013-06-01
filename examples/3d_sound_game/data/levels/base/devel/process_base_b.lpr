@@ -57,7 +57,7 @@ begin
 
   { add Texture2ForMeshBasePlane }
   Texture2ForMeshBasePlane := TTexture2Node_1.Create('', '');
-  Texture2ForMeshBasePlane.FdURL.Value := 'textures/base_shadowed.png';
+  Texture2ForMeshBasePlane.FdFileName.Value := 'textures/base_shadowed.png';
   MeshBasePlaneNode.VRML1ChildAdd(0, Texture2ForMeshBasePlane);
 
   { add TextureCoordinate2ForMeshBasePlane }

@@ -173,8 +173,8 @@ var
     begin
       if Tile = nil then
         Result := '<none>' else
-        Result := Format('"%s" (filename "%s")',
-          [Tile.CharCode, Tile.RelativeFileName]);
+        Result := Format('"%s" (URL "%s")',
+          [Tile.CharCode, Tile.RelativeURL]);
     end;
 
   begin
@@ -188,7 +188,7 @@ var
   end;
 
 var
-  FileName: string;
+  URL: string;
 begin
   if Event.EventType = itKey then
   begin
@@ -208,11 +208,11 @@ begin
       'e': EditBaseTile;
       'E': EditBonusTile;
       's': begin
-             FileName := 'new';
+             URL := 'new';
              if MessageInputQuery(Window, 'Save map as name' +
                ' (don''t specify here initial path and .map extension)',
-               FileName, taLeft) then
-               Map.SaveToFile(ApplicationData('maps/' + FileName + '.map'));
+               URL, taLeft) then
+               Map.SaveToFile(ApplicationData('maps/' + URL + '.map'));
            end;
       'i': ShowFieldInfo;
       CharEscape: Quit := true;
