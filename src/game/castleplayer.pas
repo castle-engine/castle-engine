@@ -280,7 +280,7 @@ type
       by simply editing an XML file (instead of hacking code).
 
       Overloaded parameterless version reads from file
-      @code(ApplicationData('data/player.xml')).
+      @code(ApplicationData('player.xml')).
 
       Note that the indicated file may not exist, and it will not cause errors.
       Not existing file is equivalent to a file with everything set at default
@@ -1196,7 +1196,7 @@ end;
 
 procedure TPlayer.LoadFromFile;
 begin
-  LoadFromFile(ApplicationData('data/player.xml'));
+  LoadFromFile(ApplicationData('player.xml'));
 end;
 
 procedure TPlayer.LevelChanged;

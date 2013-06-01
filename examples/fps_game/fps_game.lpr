@@ -445,11 +445,11 @@ begin
   SoundEngine.ParseParameters;
 
   { Load named sounds defined in sounds/index.xml }
-  SoundEngine.RepositoryURL := ApplicationData('data/sounds/index.xml');
+  SoundEngine.RepositoryURL := ApplicationData('sounds/index.xml');
 
   { Load texture properties, used to assign footsteps sounds based
     on ground texture }
-  MaterialProperties.URL := ApplicationData('data/material_properties.xml');
+  MaterialProperties.URL := ApplicationData('material_properties.xml');
 
   { Load configuration file. This loads configuration for various parts of the
     engine that add their callbacks to Config.OnLoad, Config.OnSave.

@@ -257,7 +257,7 @@ begin
     but it's an easy way to add a camera with headlight,
     and some grid to help with orientation. }
   BaseScene := TCastleScene.Create(Application);
-  BaseScene.Load(ApplicationData('data/base.x3d'));
+  BaseScene.Load(ApplicationData('base.x3d'));
   { turn on headlight, as base.x3d exported from Blender has always headlight=false }
   BaseScene.NavigationInfoStack.Top.FdHeadlight.Send(true);
   Window.SceneManager.MainScene := BaseScene;

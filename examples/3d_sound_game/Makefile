@@ -4,7 +4,8 @@ help_message.inc: help_message.txt
 	file_to_pascal_string help_message.txt help_message.inc
 
 # Simple install.
-# You may as well symlink to /usr/local/share/lets_take_a_walk, for system-wide install.
+# You may as well symlink data to /usr/local/share/lets_take_a_walk,
+# for system-wide install.
 install:
-	rm -f $(HOME)/.lets_take_a_walk.data
-	ln -s $(shell pwd) $(HOME)/.lets_take_a_walk.data
+	rm -f $(HOME)/.local/share/lets_take_a_walk
+	ln -s $(shell pwd)/data $(HOME)/.local/share/lets_take_a_walk

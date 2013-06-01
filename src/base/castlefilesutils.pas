@@ -142,48 +142,67 @@ function ApplicationConfig(const Path: string): string;
   You can use Path = '' to get the URL to whole data directory.
   Note that files there may be read-only, do not try to write there.
 
-  The algorithm to find data directory may be OS-specific.
-  It uses ApplicationName (and may use ExeName under Windows).
-  Here are details (specified here so that you know how to install
-  your program):
+  The algorithm to find base data directory (with respect to which
+  Path is resolved) is OS-specific.
+  It looks at ApplicationName, and searches a couple of common locations,
+  using the first location that exists. We try to look first inside
+  user-specific directories, then inside system-wide directories,
+  and as a fallback we use current exe directory (under Windows)
+  or current working directory (under other OSes).
 
-  Under Windows: returns ExtractFilePath(ExeName).
+  The exact details how we currently look for data directory
+  (specified here so that you know how to install your program):
 
-  Under UNIXes: tries these locations, in order:
+  @definitionList(
+    @itemLabel(Windows)
+    @item(@orderedList(
+      @item(@code(data) subdirectory inside our exe directory, if exists.)
+      @item(Last resort fallback: just our exe directory.)
+    ))
 
-  @orderedList(
-    @item(@code(~/.local/share/) + ApplicationName.
-      This is nice user-specific data directory, following the default set by
-      http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html .
-      If such directory exists, it is returned.
+    @itemLabel(Unix (Linux, Mac OS X, FreeBSD etc.))
+    @item(@orderedList(
+      @item(@code(~/.local/share/) + ApplicationName.
+        This is nice user-specific data directory, following the default distated by
+        http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html .
+        If such directory exists, it is returned.
 
-      This is checked first, to allow local user to always override system-wide
-      installation of a program with his own installation.
-      E.g. consider the situation when an old version of a program
-      is installed system-wide in /usr/local/share/my_program/,
-      but some user (with no access to root account) wants to
-      install a newer version of it for himself. Now he can do it,
-      because ~/.local/share/my_program/ is checked 1st, before system-wide paths.)
+        This is checked first, to allow user to always override system-wide
+        installation of a program with his own installation.
+        E.g. consider the situation when an old version of a program
+        is installed system-wide in /usr/local/share/my_program/,
+        but some user (with no access to root account) wants to
+        install a newer version of it for himself. Now he can do it,
+        because ~/.local/share/my_program/ is checked 1st, before system-wide paths.)
 
-    @item(@code(HomePath +'.' +ApplicationName+'.data/').
-      If such directory exists, it is returned.
+      @item(@code(HomePath +'.' +ApplicationName+'.data/').
+        If such directory exists, it is returned.
 
-      This is another location of user-specific data directory, deprecated now.)
+        This is another location of user-specific data directory, deprecated now.
+        You should instead use more standard
+        @code(~/.local/share/) + ApplicationName.)
 
-    @item(@code('/usr/local/share/' +ApplicationName+ '/').
-      If such directory exists, it is returned.
+      @item(@code('/usr/local/share/' +ApplicationName+ '/').
+        If such directory exists, it is returned.
 
-      This is suitable for system-wide installations without package manager.)
+        This is suitable for system-wide installations without package manager.)
 
-    @item(@code('/usr/share/' +ApplicationName+ '/').
-      If such directory exists, it is returned.
+      @item(@code('/usr/share/' +ApplicationName+ '/').
+        If such directory exists, it is returned.
 
-      This is suitable for system-wide installations with package manager.)
+        This is suitable for system-wide installations with package manager.)
 
-    @item(As a last resort, we return the current directory.
-      This always exists, and is an easy way for users to run a game
-      without making any symlinks.)
-  ) }
+       @item(@code(data) subdirectory of current directory, if exists.
+         Using @code(data) subdirectory is usually comfortable,
+         it allows you to separate code from data better.)
+
+      @item(As a last resort, we just return the current directory.
+        So you can just place data files inside the current directory,
+        and if user will run your game from it's own directory --- it will
+        work without any fuss.)
+    )
+  )
+) }
 function ApplicationData(const Path: string): string;
 
 { Functions IsSymLink, CanonicalizeFileName assume Windows has no symlinks.
@@ -444,24 +463,38 @@ function ApplicationData(const Path: string): string;
 
   function GetApplicationDataPath: string;
   {$ifdef MSWINDOWS}
+  var
+    ExePath: string;
   begin
-    Result := ExtractFilePath(ExeName);
+    ExePath := ExtractFilePath(ExeName);
+
+    Result := ExePath + 'data' + PathDelim;
+    if DirectoryExists(Result) then Exit;
+
+    Result := ExePath;
   {$endif}
   {$ifdef UNIX}
+  var
+    CurPath: string;
   begin
-    Result := HomePath +'.local/share/' +ApplicationName +'/';
+    Result := HomePath + '.local/share/' + ApplicationName + '/';
     if DirectoryExists(Result) then Exit;
 
-    Result := HomePath +'.' +ApplicationName +'.data/';
+    Result := HomePath + '.' + ApplicationName + '.data/';
     if DirectoryExists(Result) then Exit;
 
-    Result := '/usr/local/share/' +ApplicationName +'/';
+    Result := '/usr/local/share/' + ApplicationName + '/';
     if DirectoryExists(Result) then Exit;
 
-    Result := '/usr/share/' +ApplicationName +'/';
+    Result := '/usr/share/' + ApplicationName + '/';
     if DirectoryExists(Result) then Exit;
 
-    Result := InclPathDelim(GetCurrentDir);
+    CurPath := InclPathDelim(GetCurrentDir);
+
+    Result := CurPath + 'data/';
+    if DirectoryExists(Result) then Exit;
+
+    Result := CurPath;
   {$endif}
   end;
 
