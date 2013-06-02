@@ -102,7 +102,16 @@ function URIDeleteProtocol(const S: string): string;
 
   Relative URI may be a relative URI or an absolute URI.
   In the former case it is merged with Base.
-  In the latter case it is simply returned. }
+  In the latter case it is simply returned.
+
+  If you want to support relative URIs, you want to use this routine.
+  It treats Relative always as an URI (so it should be percent-escaped,
+  with slashes and such). Other routines in our engine,
+  like AbsoluteURI and @link(Download), treat strings without protocol
+  as a filename (so it's not percent-escaped, it uses PathDelim
+  specific to OS --- slash or backslash etc.).
+  This routine, on the other hand, treats Relative string always as an
+  URI (when it doesn't include protocol, it just means it's relative to Base). }
 function CombineURI(const Base, Relative: string): string;
 
 { Make sure that the URI is absolute (always has a protocol).
