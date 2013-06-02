@@ -312,30 +312,6 @@ function FnameAutoInc(const FileNamePattern: string): string; deprecated;
 function ParentPath(DirName: string;
   DoExpandDirName: boolean = true): string;
 
-type
-  { }
-  EFileOpenError=class(Exception);
-
-{ Safely open files. Does Assign and then resets/rewrites a file.
-
-  @raises(EFileOpenError In case of error. Error message is nice
-    and contains filename, contrary to standard EInOutError.)
-
-  SafeReset sets always FileMode variable (to fmOpenRead if ReadOnly,
-  or fmOpenReadWrite if not ReadOnly). This is important,
-  and too easy to forget otherwise.
-
-  For undefined files, default size is 1, not the strange default 128.
-  @groupBegin }
-procedure SafeReset(var f: file; const filename: string; readonly: boolean;
-  opensize: word = 1); overload;
-procedure SafeReset(var f: text; const filename: string; readonly: boolean); overload;
-
-procedure SafeRewrite(var f: file; const filename: string;
-  opensize: word = 1); overload;
-procedure SafeRewrite(var f: text; const filename: string); overload;
-{ @groupEnd }
-
 { Combines BasePath with RelPath into complete path.
   BasePath MUST be an absolute path,
   on Windows it must contain at least drive specifier (like 'c:'),
@@ -658,51 +634,6 @@ begin
  DirName := ExclPathDelim(DirName);
  p := LastDelimiter(PathDelim, DirName);
  if p>0 then Result := Copy(DirName,1,p) else Result := RootDir;
-end;
-
-{ bezpieczne otw. plikow ------------------------------------------------------ }
-
-procedure ShowFileException(E: Exception; const FileName: string);
-begin
- raise EFileOpenError.Create('Error ' +E.ClassName +' while trying to open file "'
-   +FileName+'" : '+E.Message);
-end;
-
-procedure SafeReset(var f: file; const filename: string; readonly: boolean; opensize: word); overload;
-begin
- try
-  if readonly then FileMode := fmOpenRead else FileMode := fmOpenReadWrite;
-  { FileMode dotyczy tylko Reseta i tylko not-text Files.
-    Dlatego w innych funkcjach sie nim nie zajmujemy. }
-  AssignFile(f,filename);
-  Reset(f,opensize);
- except on e: Exception do ShowFileException(e,filename) end;
-end;
-
-procedure SafeReset(var f: text; const filename: string; readonly: boolean); overload;
-begin
- {readonly not used; but let this param exist - maybe one day
-  it will be usable to do something here.}
- try
-  AssignFile(f,filename);
-  Reset(f);
- except on e: Exception do ShowFileException(e,filename) end;
-end;
-
-procedure SafeRewrite(var f: file; const filename: string; opensize: word); overload;
-begin
- try
-  AssignFile(f,filename);
-  Rewrite(f,opensize);
- except on e: Exception do ShowFileException(e,filename) end;
-end;
-
-procedure SafeRewrite(var f: text; const filename: string); overload;
-begin
- try
-  AssignFile(f,filename);
-  Rewrite(f);
- except on e: Exception do ShowFileException(e,filename) end;
 end;
 
 function CombinePaths(BasePath, RelPath: string): string;

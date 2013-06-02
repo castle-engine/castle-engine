@@ -76,8 +76,6 @@
       they don't need whole VCL / CLX stuff,
       and eliminate Kylix 1 bug in Application.ExeName)
 
-    @item(Reset/Rewrite => it's often better to use SafeReset/SafeRewrite)
-
     @item(FreeMem => it's often better to use FreeMemNiling)
 
     @item(FindFirst/FindNext => it's often better to use CastleEnumerateFiles unit)
