@@ -41,15 +41,19 @@ function DeleteFileExt(const FileName: string): string;
 function ExtractFileDoubleExt(const FileName: string): string;
 
 { Extracts from FileName the name of file, without directory,
-  without last extension and without any Windows drive letter. }
-function ExtractOnlyFilename(const FileName: string): string;
+  without last extension and without any Windows drive letter.
+
+  @deprecated Deprecated, since we use URLs everywhere and also
+  because this has very low usage. Use DeleteURIExt(ExtractURIName(URL))
+  if you really need to. }
+function ExtractOnlyFilename(const FileName: string): string; deprecated;
 
 { Returns FileName with directory (path) part replaced
-  with given NewPath. NewPath @bold(must) contain trailing PathDelim. }
-function ChangeFilePath(const FileName, NewPath: string): string;
+  with given NewPath. NewPath @bold(must) contain trailing PathDelim.
 
-{ Duplicates (makes them double) the PathDelim characters in the string. }
-function DuplicateSlash(const s: string): string;
+  @deprecated Deprecated, since we use URLs everywhere and also
+  because this has very low usage. }
+function ChangeFilePath(const FileName, NewPath: string): string; deprecated;
 
 { Checks is C valid path delimiter under this platform.
 
@@ -79,41 +83,6 @@ function IsPathDelim(c: char): boolean;
 function InclPathDelim(const s: string): string;
 function ExclPathDelim(const s: string): string;
 { @groupEnd }
-
-{ Forces FileName to be relative (relative from CurrentDir).
-
-  Given FileName may be absolute (then it's directory part will be modified
-  accordingly) or already relative (then it will simply be returned
-  without any changes). }
-function RelativeFilename(const FileName: string): string;
-
-{ Makes FileName relative or absolute, whichever is nicer to show the user.
-
-  Given FileName may be absolute or relative (with respect to CurrentDir).
-  This function maybe will convert FileName to absolute filename and
-  maybe will convert it to relative filename -- whichever will be
-  nicer to show the user.
-
-  It's not guaranteed what exactly this function considers as "nicer for
-  the user". Current implementation simply assumes that if FileName
-  is under current directory, then relative name is nicer,
-  otherwise absolute name is nicer. In other words, it tries to
-  make a relative name but without any leading "..".
-
-  Examples:
-
-@preformatted(
-  If CurrentDir = '/usr/share/' and
-     FileName = '/usr/share/some_file'
-     Result will be a relative filename 'some_file'
-  If CurrentDir = '/usr/share/' and
-     FileName = '/lib/bla/bla'
-     Result will be equal to FileName '/lib/bla/bla'
-  If CurrentDir = '/usr/share/' and
-     FileName = '../../lib/bla/bla'
-     Result will be absolute filename '/lib/bla/bla'
-) }
-function NiceFileName(const FileName: string): string;
 
 { Check is the given Path absolute.
 
@@ -184,18 +153,6 @@ begin
  result := NewPath + ExtractFileName(FileName);
 end;
 
-function DuplicateSlash(const s: string): string;
-var i: integer;
-begin
- result := s;
- i := 1;
- while i <= length(result) do
- begin
-  if result[i] = PathDelim then begin Insert(PathDelim, result, i); Inc(i) end;
-  Inc(i);
- end;
-end;
-
 function IsPathDelim(c: char): boolean;
 begin
  result:=(c = PathDelim) {$ifdef MSWINDOWS} or (c = '/') {$endif};
@@ -214,28 +171,6 @@ begin
  L := Length(S);
  if (L > 0) and IsPathDelim(S[L]) then Dec(L);
  Result := Copy(S, 1, L);
-end;
-
-function RelativeFilename(const FileName: string): string;
-begin
- if IsPathAbsolute(FileName) then
-  Result := ExtractRelativePath( InclPathDelim(GetCurrentDir) + 'dummy_file',
-    FileName) else
- { TODO: MSWINDOWS - chyba nie trzeba uwzgledniac tu
-   IsPathAbsoluteOnDrive(FileName) ? }
-  Result := FileName;
-end;
-
-function NiceFileName(const FileName: string): string;
-var AbsoluteFileName: string;
-begin
- AbsoluteFileName := ExpandFileName(FileName);
- { It's important that we end InclPathDelim(GetCurrentDir) and
-   ExtractFilePath(AbsoluteFileName) always with PathDelim, it makes sure that
-   IsPrefix actually checks is one file in subdirectory of another. }
- if IsPrefix( InclPathDelim(GetCurrentDir), ExtractFilePath(AbsoluteFileName) ) then
-  Result := RelativeFilename(FileName) else
-  Result := AbsoluteFileName;
 end;
 
 function IsPathAbsolute(const Path: string): boolean;

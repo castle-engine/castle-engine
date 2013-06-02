@@ -74,8 +74,11 @@ function ProgramName: string; deprecated;
   like 'con', 'c:\con', 'c:\somedir\con' etc.
   ('con' is a special device name).
   For all other files (and other OSes) this function returns the same
-  as FileExists. }
-function NormalFileExists(const fileName: string): boolean;
+  as FileExists.
+
+  @deprecated Deprecated, since we use URLs everywhere,
+  use URIFileExists to check does file exist. }
+function NormalFileExists(const fileName: string): boolean; deprecated;
 
 { Path to store user configuration files.
   This is some directory that should be writeable

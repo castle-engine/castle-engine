@@ -15,7 +15,7 @@
 
 { Command-line utility for various string and filename operations.
   Very useful in scripts, when simple Unix utils (like dirname or basename)
-  are not enought (and when using sed seems just an awful ugly hackery).
+  are not enough (and when using sed seems just an awful ugly hackery).
 
   For a list of possible operations, run "stringoper help".
 
@@ -27,39 +27,6 @@ program stringoper;
 
 uses SysUtils, CastleUtils, Classes, CastleStringUtils, CastleFilesUtils,
   CastleParameters;
-
-function FileLinesToParams(const fname: string): string;
-
-  function Quoted(const s: string): string;
-  begin
-    Result := '''' + s + '''';
-  end;
-
-var
-  slist: TStringList;
-  i: integer;
-begin
-  slist := TStringList.Create;
-  try
-    slist.LoadFromFile(fname);
-    result := '';
-    for i := 0 to slist.Count-1 do
-    begin
-      slist[i] := Trim(slist[i]);
-      if slist[i] <> '' then
-        result := result +Quoted(slist[i]) +' ';
-    end;
-    if result <> '' then SetLength(result, Length(result)-1); { remove one trailing space }
-  finally slist.Free end;
-end;
-
-{ ExpandFileName, and change all backslashes to slashes.
-  Paths with slashes are usable under Windows too, and they are more sanely
-  handled in Makefiles etc., so this is sometimes useful. }
-function ExpandPosixFileName(const S: string): string;
-begin
-  Result := SReplaceChars(ExpandFileName(S), '\', '/');
-end;
 
 { help ------------------------------------------------------------------  }
 
@@ -75,11 +42,8 @@ const
     '    the leading dot (if you want to see it in the result).' +nl+
     '  DeleteFileExt fname       StdOut <<fname without last extension' +nl+
     '  ExtractFileExt fname      StdOut <<last extension of fname (with leading dot)' +nl+
-    '  ExtractOnlyFilename fname StdOut <<tylko nazwa pliku, ' +nl+
-    '    bez dysku, katalogu i ostatniego rozszerzenia' +nl+
     '  ExtractFileName fname     StdOut <<sama nazwa pliku + rozszerzenie' +nl+
     '    czyli wycina nazwe dysku+katalogu' +nl+
-    '  ExtractFileDrive fname    StdOut <<drive pliku.' +nl+
     '  ExtractFilePath fname     StdOut <<drive+katalog pliku' +nl+
     '    wycina drive i filename+extension. Wynik zawiera (back)slash.' +nl+
     '  ExtractFileDir fname      StdOut <<drive+katalog pliku' +nl+
@@ -88,23 +52,12 @@ const
     '  InclPathDelim dirname     StdOut <<dirname z (back)slashem na koncu' +nl+
     '  ExclPathDelim dirname     StdOut <<dirname bez (back)slasha na koncu' +nl+
     '    dirname jesli go tam nie ma' +nl+
-    '  FileLinesToParams fname   StdOut <<plik fname jest czytany i kazda'+nl+
-    '    jego linia (za wyjatkiem linii pustych lub skladajacych sie z'+nl+
-    '    samych bialych znakow) jest wypisywana w apostrofach,'+nl+
-    '    zamiast znakow nowej linii linie sa przy tym'+nl+
-    '    oddzielane pojedyncza spacja. Przydatne do zapisywania argumentow'+nl+
-    '    dowolnego programu w pliku.' +nl+
     '  SubString str start len StdOut <<wycina ze stringa STR LEN znakow, ' +nl+
     '    zaczynajac od pozycji START (pozycje sa liczone od 1). ' +nl+
     '    Jesli str jest za krotki to wynik jest obcinany (nie jest ' +nl+
     '    sygnalizowany blad ani nic).' +nl+
     '    Mozesz nie podac LEN - bedzie to oznaczalo jakby LEN bylo nieskonczone.'+nl+
-    '  AppendToFileName FILENAME APPENDED-STR'+nl+
     '  ExpandFileName FILENAME'+nl+
-    '  ExpandPosixFileName FILENAME'+nl+
-    '    Just like ExpandFileName, but returns path with only "/".' +nl+
-    '    Useful for Makefiles, that poorly handle things with "\" inside.' +nl+
-    '  FileNameAutoInc FNAME-PATTERN'+nl+
     '  UpperCase STR - print STR upper case. Conversion respects current locale.'+nl+
     '  LowerCase STR - print STR lower case. Conversion respects current locale.'+nl+
     '  ReplaceAll STR OLD-PATTERN NEW-PATTERN '+nl+
@@ -153,29 +106,23 @@ type
   end;
 
 const
-  CommandsCount = 22;
+  CommandsCount = 16;
   Commands: array [0..CommandsCount-1]of TCommand =
   (
     (Param:'changefileext'; ParCountRequired: 2; CommandResult: crString),
     (Param:'deletefileext'; ParCountRequired: 1; CommandResult: crString),
     (Param:'extractfileext'; ParCountRequired: 1; CommandResult: crString),
-    (Param:'extractonlyfilename'; ParCountRequired: 1; CommandResult: crString),
     (Param:'extractfilename'; ParCountRequired: 1; CommandResult: crString),
-    (Param:'extractfiledrive'; ParCountRequired: 1; CommandResult: crString),
     (Param:'extractfilepath'; ParCountRequired: 1; CommandResult: crString),
     (Param:'extractfiledir'; ParCountRequired: 1; CommandResult: crString),
     (Param:'inclpathdelim'; ParCountRequired: 1; CommandResult: crString),
     (Param:'exclpathdelim'; ParCountRequired: 1; CommandResult: crString),
-    (Param:'filelinestoparams'; ParCountRequired: 1; CommandResult: crString),
     (Param:'isprefix'; ParCountRequired: 2; CommandResult: crBoolean),
     (Param:'issuffix'; ParCountRequired: 2; CommandResult: crBoolean),
     (Param:'substring'; ParCountRequired:-1; CommandResult: crString),
-    (Param:'appendtofilename'; ParCountRequired: 2; CommandResult: crString),
     (Param:'expandfilename'; ParCountRequired: 1; CommandResult: crString),
-    (Param:'filenameautoinc'; ParCountRequired: 1; CommandResult: crString),
     (Param:'uppercase'; ParCountRequired: 1; CommandResult: crString),
     (Param:'lowercase'; ParCountRequired: 1; CommandResult: crString),
-    (Param:'expandposixfilename'; ParCountRequired: 1; CommandResult: crString),
     (Param:'replaceall'; ParCountRequired:3; CommandResult: crString),
     (Param:'trim'; ParCountRequired: 1; CommandResult: crString)
   );
@@ -226,30 +173,24 @@ begin
   0 : ResultStr := ChangeFileExt(Parameters[1], Parameters[2]);
   1 : ResultStr := DeleteFileExt(Parameters[1]);
   2 : ResultStr := ExtractFileExt(Parameters[1]);
-  3 : ResultStr := ExtractOnlyFileName(Parameters[1]);
-  4 : ResultStr := ExtractFileName(Parameters[1]);
-  5 : ResultStr := ExtractFileDrive(Parameters[1]);
-  6 : ResultStr := ExtractFilePath(Parameters[1]);
-  7 : ResultStr := ExtractFileDir(Parameters[1]);
-  8 : ResultStr := InclPathDelim(Parameters[1]);
-  9 : ResultStr := ExclPathDelim(Parameters[1]);
-  10: ResultStr := FileLinesToParams(Parameters[1]);
-  11: ResultBool := IsPrefix(Parameters[1], Parameters[2]);
-  12: ResultBool := IsSuffix(Parameters[1], Parameters[2]);
-  13: case Parameters.High of
+  3 : ResultStr := ExtractFileName(Parameters[1]);
+  4 : ResultStr := ExtractFilePath(Parameters[1]);
+  5 : ResultStr := ExtractFileDir(Parameters[1]);
+  6 : ResultStr := InclPathDelim(Parameters[1]);
+  7 : ResultStr := ExclPathDelim(Parameters[1]);
+  8 : ResultBool := IsPrefix(Parameters[1], Parameters[2]);
+  9 : ResultBool := IsSuffix(Parameters[1], Parameters[2]);
+  10: case Parameters.High of
        2: ResultStr := SEnding(Parameters[1], StrToInt(Parameters[2]));
        3: ResultStr := Copy(Parameters[1], StrToInt(Parameters[2]), StrToInt(Parameters[3]));
        else raise EInvalidParams.Create('invalid params count for SubString command');
       end;
-  14: ResultStr := AppendToFilename(Parameters[1], Parameters[2]);
-  15: ResultStr := ExpandFileName(Parameters[1]);
-  16: ResultStr := FileNameAutoInc(Parameters[1]);
-  17: ResultStr := AnsiUpperCase(Parameters[1]);
-  18: ResultStr := AnsiLowerCase(Parameters[1]);
-  19: ResultStr := ExpandPosixFileName(Parameters[1]);
-  20: ResultStr := StringReplace(Parameters[1], Parameters[2], Parameters[3],
+  11: ResultStr := ExpandFileName(Parameters[1]);
+  12: ResultStr := AnsiUpperCase(Parameters[1]);
+  13: ResultStr := AnsiLowerCase(Parameters[1]);
+  14: ResultStr := StringReplace(Parameters[1], Parameters[2], Parameters[3],
         [rfReplaceAll, rfIgnoreCase]);
-  21: ResultStr := Trim(Parameters[1]);
+  15: ResultStr := Trim(Parameters[1]);
   else raise EInternalError.Create('CommandNum not impl');
  end;
 
