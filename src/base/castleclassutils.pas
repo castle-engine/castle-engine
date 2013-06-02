@@ -733,7 +733,7 @@ end;
 
 function TTextReader.Read: string;
 var
-  Start, I, DeleteCount: integer;
+  Start, I: integer;
 begin
   I := 1;
 

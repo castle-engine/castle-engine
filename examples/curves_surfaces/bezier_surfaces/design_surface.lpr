@@ -165,7 +165,6 @@ var
   F: TTextWriter;
   I, J: Integer;
   V: TVector3Single;
-  FileName: string;
 begin
   CurveControlPointsCount := ControlPoints(0).Count;
 
