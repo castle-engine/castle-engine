@@ -27,7 +27,11 @@ const
 { Remove from the FileName the last extension (including the dot).
   Note that if the FileName had a couple of extensions (e.g. @code(blah.x3d.gz))
   this will remove only the last one.
-  Will remove nothing if filename has no extension. }
+  Will remove nothing if filename has no extension.
+
+  @italic(It is not adviced to use this function,
+  better to operate on URLs and MIME types instead of filenames
+  and extensions, see CastleURIUtils.) }
 function DeleteFileExt(const FileName: string): string;
 
 { Extracts @italic(two) last extensions from the filename, if it has two extensions.
@@ -37,7 +41,11 @@ function DeleteFileExt(const FileName: string): string;
 
   This is useful to detect file types from filenames like @code(model.x3d.gz),
   where ExtractFileExt returns only @code(.gz).
-  This function will return @code(.x3d.gz). }
+  This function will return @code(.x3d.gz).
+
+  @italic(It is not adviced to use this function,
+  better to operate on URLs and MIME types instead of filenames
+  and extensions, see CastleURIUtils.) }
 function ExtractFileDoubleExt(const FileName: string): string;
 
 { Extracts from FileName the name of file, without directory,
@@ -55,30 +63,9 @@ function ExtractOnlyFilename(const FileName: string): string; deprecated;
   because this has very low usage. }
 function ChangeFilePath(const FileName, NewPath: string): string; deprecated;
 
-{ Checks is C valid path delimiter under this platform.
-
-  For all platforms this just compares C with PathDelim,
-  and under Windows additionally accepts also C = '/'.
-  (Since under Windows the Unix-like '/' is not standard PathDelim,
-  but it's accepted by all WinAPI functions and programs,
-  and it's comfortable to use if you're accustomed to Unix.) }
-function IsPathDelim(c: char): boolean;
-
-{ These do almost the same as standard Include/ExcludeTrailingPathDelimiter
-  functions, but have shorter names. So InclPathDelim makes sure
-  S has some path delimiter at the end (appends PathDelim if needed),
-  and ExclPathDelim makes sure there's no path delimiter at the end
-  (strips it if needed).
-
-  The difference from Delphi Include/ExcludeTrailingPathDelimiter
-  is that my functions use IsPathDelim, so they take into account
-  the fact that under Windows '/' is also a valid path delimiter.
-  For FPC, default Include/ExcludeTrailingPathDelimiter already
-  take this into account, so my versions are not really useful,
-  they only have shorter names.
-
-  Also, my functions do not handle MBCS strings.
-
+{ Include / exclude the last path delimiter, if necessary.
+  They are just comfortable shorter names for
+  IncludeTrailingPathDelimiter and ExcludeTrailingPathDelimiter.
   @groupBegin }
 function InclPathDelim(const s: string): string;
 function ExclPathDelim(const s: string): string;
@@ -141,24 +128,14 @@ begin
  result := NewPath + ExtractFileName(FileName);
 end;
 
-function IsPathDelim(c: char): boolean;
-begin
- result:=(c = PathDelim) {$ifdef MSWINDOWS} or (c = '/') {$endif};
-end;
-
 function InclPathDelim(const s: string): string;
-var L: Integer;
 begin
- L := Length(S);
- if (L = 0) or (not IsPathDelim(S[L])) then result := S+PathDelim else result := S;
+  Result := IncludeTrailingPathDelimiter(S);
 end;
 
 function ExclPathDelim(const s: string): string;
-var L: Integer;
 begin
- L := Length(S);
- if (L > 0) and IsPathDelim(S[L]) then Dec(L);
- Result := Copy(S, 1, L);
+  Result := ExcludeTrailingPathDelimiter(S);
 end;
 
 function IsPathAbsolute(const Path: string): boolean;

@@ -32,6 +32,7 @@ type
   private
     SymlinkName, SymlinkFullName, SymlinkTarget: string;
   published
+    procedure TestPathDelim;
     procedure TestChangeDir;
     {$ifdef UNIX} procedure TestIsSymLink; {$endif}
     procedure TestExeName;
@@ -43,6 +44,47 @@ type
 implementation
 
 uses CastleUtils, CastleEnumerateFiles, CastleFilesUtils, CastleTimeUtils {$ifdef UNIX}, BaseUnix {$endif};
+
+procedure TTestOSSpecific.TestPathDelim;
+begin
+  { slash should be added / stripped on both Windows and Unix }
+
+  AssertEquals('/tmp', ExclPathDelim('/tmp/'));
+  AssertEquals('', ExclPathDelim('/'));
+  AssertEquals('/tmp', ExclPathDelim('/tmp'));
+  AssertEquals('', ExclPathDelim(''));
+
+  AssertEquals('/tmp/', InclPathDelim('/tmp/'));
+  AssertEquals('/', InclPathDelim('/'));
+  AssertEquals('/tmp/', InclPathDelim('/tmp'));
+  AssertEquals('/', InclPathDelim(''));
+
+  { backslash should be likewise added / stripped on Windows }
+  {$ifdef MSWINDOWS}
+  AssertEquals('\tmp', ExclPathDelim('\tmp\'));
+  AssertEquals('', ExclPathDelim('\'));
+  AssertEquals('\tmp', ExclPathDelim('\tmp'));
+  AssertEquals('', ExclPathDelim(''));
+
+  AssertEquals('\tmp\', InclPathDelim('\tmp\'));
+  AssertEquals('\', InclPathDelim('\'));
+  AssertEquals('\tmp\', InclPathDelim('\tmp'));
+  AssertEquals('\', InclPathDelim(''));
+  {$endif}
+
+  { backslash should not be treated like dir separator on Unix }
+  {$ifdef UNIX}
+  AssertEquals('\tmp\', ExclPathDelim('\tmp\'));
+  AssertEquals('\', ExclPathDelim('\'));
+  AssertEquals('\tmp', ExclPathDelim('\tmp'));
+  AssertEquals('', ExclPathDelim(''));
+
+  AssertEquals('\tmp\/', InclPathDelim('\tmp\'));
+  AssertEquals('\/', InclPathDelim('\'));
+  AssertEquals('\tmp/', InclPathDelim('\tmp'));
+  AssertEquals('/', InclPathDelim(''));
+  {$endif}
+end;
 
 procedure TTestOSSpecific.TestChangeDir;
 var

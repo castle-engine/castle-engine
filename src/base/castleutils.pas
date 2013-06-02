@@ -172,6 +172,18 @@ initialization
 
  LocaleDecimalSeparator := DefaultFormatSettings.DecimalSeparator;
  DefaultFormatSettings.DecimalSeparator := '.';
+
+ { FPC includes backslash in AllowDirectorySeparators also on non-Windows,
+   so backslash will be considered as directory separator by
+   Include/ExcludeTrailingPathDelimiter. This is IMHO very stupid,
+   since normal OS routines on Unix *do not* consider backslash to be any
+   special character in a filename, it certainly does not separate dirs.
+   So Include/ExcludeTrailingPathDelimiter are basically buggy by default.
+
+   Fortunately we can fix it by globally changing AllowDirectorySeparators. }
+ {$ifndef MSWINDOWS}
+ AllowDirectorySeparators -= ['\'];
+ {$endif}
 finalization
  FinalizationOSSpecific;
  FinalizationProgramExit;
