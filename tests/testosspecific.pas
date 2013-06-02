@@ -36,7 +36,6 @@ type
     {$ifdef UNIX} procedure TestIsSymLink; {$endif}
     procedure TestExeName;
     procedure TestTimer;
-    procedure TestProgramPaths;
     {$ifdef UNIX} procedure TestHomePath; {$endif}
     procedure TestGetTempDir;
   end;
