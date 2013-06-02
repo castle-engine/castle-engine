@@ -281,7 +281,7 @@ procedure Font2Pascal(const OutlineFont: TOutlineFont;
 var
   Stream: TStream;
 begin
-  Stream := URISaveStream(OutURL);
+  Stream := URLSaveStream(OutURL);
   try
     Font2Pascal(OutlineFont, UnitName, PrecedingComment, FontFunctionName, Stream);
   finally Stream.Free end;
@@ -293,7 +293,7 @@ procedure Font2Pascal(const BitmapFont: TBitmapFont;
 var
   Stream: TStream;
 begin
-  Stream := URISaveStream(OutURL);
+  Stream := URLSaveStream(OutURL);
   try
     Font2Pascal(BitmapFont, UnitName, PrecedingComment, FontFunctionName, Stream);
   finally Stream.Free end;

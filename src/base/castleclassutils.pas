@@ -787,7 +787,7 @@ end;
 
 constructor TTextWriter.Create(const URL: string);
 begin
-  inherited Create(URISaveStream(URL), true);
+  inherited Create(URLSaveStream(URL), true);
 end;
 
 procedure TTextWriter.Write(const S: string);
@@ -1092,7 +1092,7 @@ var
 begin
   Buffer := GetMem(BufSize);
   try
-    S := URISaveStream(URL);
+    S := URLSaveStream(URL);
     try
       repeat
         ReadCount := Stream.Read(Buffer^, BufSize);

@@ -2079,7 +2079,7 @@ end;
             try to do it.
 
             To directly write to a file (as a stream) to the obtained URL
-            you should usually use our CastleURIUtils.URISaveStream.)
+            you should usually use our URLSaveStream.)
         )
       )
 

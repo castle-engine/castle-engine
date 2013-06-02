@@ -48,7 +48,7 @@ var
   Stream: TStream;
   Suffix: string;
 begin
-  Stream := URISaveStream(URL);
+  Stream := URLSaveStream(URL);
   try
     Save3D(Node, Stream, 'kanim_to_interpolators', '', xeClassic);
 

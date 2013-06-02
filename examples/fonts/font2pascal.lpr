@@ -170,7 +170,7 @@ begin
       if WasParam_Dir then
       begin
         OutURL := FilenameToURISafe(InclPathDelim(Dir) + LowerCase(UnitName) + '.pas');
-        Stream := URISaveStream(OutURL);
+        Stream := URLSaveStream(OutURL);
       end else
         Stream := StdOutStream;
 

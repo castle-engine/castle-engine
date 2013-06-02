@@ -3627,7 +3627,7 @@ begin
     raise EImageSaveError.CreateFmt('Unknown image MIME type "%s", cannot save URL "%s". Make sure the filename/URL you want to save has one of the recognized extensions',
       [MimeType, URL]);
 
-  Stream := URISaveStream(URL);
+  Stream := URLSaveStream(URL);
   try
     SaveImage(Img, Format, Stream);
   finally FreeAndNil(Stream) end;

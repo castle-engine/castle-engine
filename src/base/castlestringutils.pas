@@ -1328,7 +1328,7 @@ procedure StringToFile(const URL, Contents: string);
 var
   F: TStream;
 begin
-  F := URISaveStream(URL);
+  F := URLSaveStream(URL);
   try
     if Length(Contents) <> 0 then
       F.WriteBuffer(Contents[1], Length(Contents));

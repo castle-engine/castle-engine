@@ -1359,7 +1359,7 @@ procedure TDDSImage.SaveToFile(const URL: string);
 var
   S: TStream;
 begin
-  S := URISaveStream(URL);
+  S := URLSaveStream(URL);
   try
     SaveToStream(S);
   finally FreeAndNil(S) end;

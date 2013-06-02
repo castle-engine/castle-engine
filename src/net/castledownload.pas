@@ -92,6 +92,12 @@ function Download(const URL: string; const Options: TDownloadOptions = []): TStr
 function Download(const URL: string; const Options: TDownloadOptions;
   out MimeType: string): TStream;
 
+{ Create a stream to save a given URL, for example create a TFileStream
+  to save a file for a @code(file) URL. In other words, perform @italic(upload).
+  Right now, this only works for @code(file) URLs, and the only advantage
+  it has over manually creating TFileStream is that this accepts URLs. }
+function URLSaveStream(const URL: string): TStream;
+
 implementation
 
 uses URIParser, CastleURIUtils, CastleUtils, CastleLog, CastleZStream,
@@ -417,6 +423,23 @@ var
   MimeType: string;
 begin
   Result := Download(URL, Options, MimeType { ignored });
+end;
+
+function URLSaveStream(const URL: string): TStream;
+var
+  P, FileName: string;
+begin
+  P := URIProtocol(URL);
+  if P = '' then
+    FileName := URL else
+  if P = 'file' then
+  begin
+    FileName := URIToFilenameSafe(URL);
+    if FileName = '' then
+      raise Exception.CreateFmt('Cannot convert URL to a filename: "%s"', [URL]);
+  end else
+    raise Exception.CreateFmt('Saving of URL with protocol "%s" not possible', [P]);
+  Result := TFileStream.Create(Filename, fmCreate);
 end;
 
 end.

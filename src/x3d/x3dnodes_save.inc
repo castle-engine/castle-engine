@@ -450,7 +450,7 @@ procedure Save3D(Node: TX3DNode;
 var
   Stream: TStream;
 begin
-  Stream := URISaveStream(URL);
+  Stream := URLSaveStream(URL);
   try
     Save3D(Node, Stream, Generator, Source, Version,
       Encoding, ForceConvertingToX3D);

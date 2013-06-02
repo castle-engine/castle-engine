@@ -266,7 +266,7 @@ var
   I: Integer;
   X, Y: Cardinal;
 begin
-  F := URISaveStream(AURL);
+  F := URLSaveStream(AURL);
   try
     WritelnStr(F, Format('%d %d', [Width, Height]));
     WritelnStr(F, Format('%d %d', [PlayerStartX, PlayerStartY]));
