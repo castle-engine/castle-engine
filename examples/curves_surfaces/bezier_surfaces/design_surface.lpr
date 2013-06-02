@@ -24,7 +24,7 @@ uses CastleCameras, Surfaces, CastleWindow, GL, GLU, CastleVectors,
   CastleGLUtils, CastleCurves, CastleBoxes, SysUtils, CastleUtils, CastleKeysMouse,
   CastleStringUtils, CastleMessages, CastleFilesUtils, CastleUIControls,
   CastleBitmapFont_BVSans, CastleGLBitmapFonts, CastleColors, Castle3D,
-  CastleFrustum, CastleURIUtils, CastleParameters;
+  CastleFrustum, CastleURIUtils, CastleClassUtils, CastleParameters;
 
 type
   TShow = (shNone, shWire, shFill);
@@ -114,8 +114,7 @@ end;
 procedure SurfaceLoad(const URL: string);
 var
   CurvesCount, CurveControlPointsCount: Cardinal;
-  F: TextFile;
-  FileName: string;
+  F: TTextReader;
   I, J: Integer;
   MyCurve: TRationalBezierCurve;
   V: TVector3Single;
@@ -124,29 +123,25 @@ begin
   try
     NewSurface := TSurface.Create(0, 1, 0, 1);
 
-    { TODO: reading is done using TextFile instead of TTextReader for now,
-      so limited to local files. }
-    FileName := URIToFilenameSafe(URL);
-    if FileName = '' then
-      raise Exception.CreateFmt('Cannot open local file from "%s"', [URL]);
-
-    SafeReset(F, FileName, true);
+    F := TTextReader.Create(URL);
     try
-      Readln(F, CurvesCount, CurveControlPointsCount);
+      CurvesCount := F.ReadInteger;
+      CurveControlPointsCount := F.ReadInteger;
+      F.Readln;
       for I := 0 to CurvesCount - 1 do
       begin
         MyCurve := TRationalBezierCurve.Create(NewSurface.XBegin, NewSurface.XEnd);
         for J := 0 to CurveControlPointsCount - 1 do
         begin
-          Read(F, V[0], V[1], V[2]);
+          V := F.ReadVector3Single;
           MyCurve.ControlPoints.Add(V);
           MyCurve.Weights.Add(1.0);
         end;
-        Readln(F);
+        F.Readln;
         MyCurve.UpdateControlPoints;
         NewSurface.Curves.Add(MyCurve);
       end;
-    finally CloseFile(F) end;
+    finally FreeAndNil(F) end;
   except
     on E: Exception do
     begin
@@ -167,33 +162,27 @@ end;
 procedure SurfaceSave(const URL: string);
 var
   CurveControlPointsCount: Cardinal;
-  F: TextFile;
+  F: TTextWriter;
   I, J: Integer;
   V: TVector3Single;
   FileName: string;
 begin
   CurveControlPointsCount := ControlPoints(0).Count;
 
-  { TODO: reading is done using TextFile instead of TTextReader for now,
-    so limited to local files. }
-  FileName := URIToFilenameSafe(URL);
-  if FileName = '' then
-    raise Exception.CreateFmt('Cannot open local file from "%s"', [URL]);
-
-  SafeRewrite(F, FileName);
+  F := TTextWriter.Create(URL);
   try
-    Writeln(F, Surface.Curves.Count, ' ', CurveControlPointsCount);
+    F.Writeln('%d %d', [Surface.Curves.Count, CurveControlPointsCount]);
     for I := 0 to Surface.Curves.Count - 1 do
     begin
       Assert(CurveControlPointsCount = Cardinal(ControlPoints(I).Count));
       for J := 0 to CurveControlPointsCount - 1 do
       begin
         V := ControlPoints(I).L[J];
-        Write(F, V[0], ' ', V[1], ' ', V[2], ' ');
+        F.Write('%g %g %g ', [V[0], V[1], V[2]]);
       end;
-      Writeln(F);
+      F.Writeln;
     end;
-  finally CloseFile(F) end;
+  finally FreeAndNil(F) end;
 
   SetSurfaceURL(URL);
 end;

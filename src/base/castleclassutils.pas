@@ -45,12 +45,24 @@ unit CastleClassUtils;
 interface
 
 uses Classes, SysUtils, CastleUtils, CastleStringUtils, Contnrs,
-  FGL, CastleGenericLists;
+  FGL, CastleGenericLists, CastleVectors;
 
 { ---------------------------------------------------------------------------- }
 { @section(Text reading) }
 
 type
+  { Common class for reading or writing a stream like a text file. }
+  TTextReaderWriter = class
+  private
+    FOwnsStream: boolean;
+    FStream: TStream;
+  public
+    { Open a stream. If AOwnsStream then in destructor we will free
+      given AStream object. }
+    constructor Create(AStream: TStream; AOwnsStream: boolean); overload;
+    destructor Destroy; override;
+  end;
+
   { Read any TStream like a text file.
     Includes comfortable @link(Readln) routine to read line by line
     (lines may be terminated in any OS convention).
@@ -59,22 +71,16 @@ type
 
     Do not use the underlying stream once you started reading it with
     this class. We will move the position within this stream ourselves. }
-  TTextReader = class
+  TTextReader = class(TTextReaderWriter)
   private
-    Stream: TStream;
     ReadBuf: string;
-    FOwnsStream: boolean;
     { Try to read more data from underlying stream and add it to ReadBuf.
       Returns if we succeded, @false means that the stream ends.
       When it returns @true, you can be sure that Length(ReadBuf) increased. }
     function IncreaseReadBuf: boolean;
   public
     { Download and open a file. }
-    constructor Create(const URL: string);
-    { Open a stream. If AOwnsStream then in destructor we will free
-      given Stream object. }
-    constructor Create(AStream: TStream; AOwnsStream: boolean);
-    destructor Destroy; override;
+    constructor Create(const URL: string); overload;
 
     { Read next line from Stream. Returned string does not contain
       any end-of-line characters. }
@@ -89,7 +95,7 @@ type
       Otherwise, returns the read non-whitespace characters. }
     function Read: string;
 
-    { Read the next Integer from string. Reads next string of non-whitespace
+    { Read the next Integer from stream. Reads next string of non-whitespace
       characters, like @linke(Read), and then converts it to Integer.
 
        @raises(EConvertError If the next non-whitespace string
@@ -98,7 +104,34 @@ type
          case).)  }
     function ReadInteger: Integer;
 
+    { Read the next Single value from stream.
+      Reads next string of non-whitespace
+      characters, like @linke(Read), and then converts it to Single.
+
+       @raises(EConvertError If the next non-whitespace string
+         cannot be converted to Single. This includes situations
+         when stream ended (@link(Read) would return empty string in this
+         case).)  }
+    function ReadSingle: Single;
+
+    { Read the next vector from a stream, simply reading 3 Single values
+      in sequence.
+
+       @raises(EConvertError If one of the components cannot be converted
+         to Single, or when stream ended prematurely.) }
+    function ReadVector3Single: TVector3Single;
+
     function Eof: boolean;
+  end;
+
+  { Write to a stream like to a text file. }
+  TTextWriter = class(TTextReaderWriter)
+  public
+    constructor Create(const URL: string); overload;
+    procedure Write(const S: string);
+    procedure Write(const S: string; const Args: array of const);
+    procedure Writeln(const S: string = '');
+    procedure Writeln(const S: string; const Args: array of const);
   end;
 
 { ---------------------------------------------------------------------------- }
@@ -626,24 +659,26 @@ implementation
 uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
   StrUtils, CastleFilesUtils, CastleDownload, CastleURIUtils;
 
+{ TTextReaderWriter ---------------------------------------------------------- }
+
+constructor TTextReaderWriter.Create(AStream: TStream; AOwnsStream: boolean);
+begin
+  inherited Create;
+  FStream := Astream;
+  FOwnsStream := AOwnsStream;
+end;
+
+destructor TTextReaderWriter.Destroy;
+begin
+  if FOwnsStream then FStream.Free;
+  inherited;
+end;
+
 { TTextReader ---------------------------------------------------------------- }
 
 constructor TTextReader.Create(const URL: string);
 begin
-  Create(Download(URL), true);
-end;
-
-constructor TTextReader.Create(AStream: TStream; AOwnsStream: boolean);
-begin
-  inherited Create;
-  Stream := AStream;
-  FOwnsStream := AOwnsStream;
-end;
-
-destructor TTextReader.Destroy;
-begin
-  if FOwnsStream then Stream.Free;
-  inherited;
+  inherited Create(Download(URL), true);
 end;
 
 function TTextReader.IncreaseReadBuf: boolean;
@@ -653,7 +688,7 @@ var
   ReadCnt: Integer;
 begin
   SetLength(ReadBuf, Length(ReadBuf) + BufferIncrease);
-  ReadCnt := Stream.Read(ReadBuf[Length(ReadBuf) - BufferIncrease + 1], BufferIncrease);
+  ReadCnt := FStream.Read(ReadBuf[Length(ReadBuf) - BufferIncrease + 1], BufferIncrease);
   SetLength(ReadBuf, Length(ReadBuf) - BufferIncrease + ReadCnt);
   Result := ReadCnt <> 0;
 end;
@@ -731,9 +766,48 @@ begin
   Result := StrToInt(Read);
 end;
 
+function TTextReader.ReadSingle: Single;
+begin
+  Result := StrToFloat(Read);
+end;
+
+function TTextReader.ReadVector3Single: TVector3Single;
+begin
+  Result[0] := ReadSingle;
+  Result[1] := ReadSingle;
+  Result[2] := ReadSingle;
+end;
+
 function TTextReader.Eof: boolean;
 begin
   Result := (ReadBuf = '') and not IncreaseReadBuf;
+end;
+
+{ TTextWriter ---------------------------------------------------------------- }
+
+constructor TTextWriter.Create(const URL: string);
+begin
+  inherited Create(URISaveStream(URL), true);
+end;
+
+procedure TTextWriter.Write(const S: string);
+begin
+  WriteStr(FStream, S);
+end;
+
+procedure TTextWriter.Writeln(const S: string);
+begin
+  WritelnStr(FStream, S);
+end;
+
+procedure TTextWriter.Write(const S: string; const Args: array of const);
+begin
+  WriteStr(FStream, Format(S, Args));
+end;
+
+procedure TTextWriter.Writeln(const S: string; const Args: array of const);
+begin
+  WritelnStr(FStream, Format(S, Args));
 end;
 
 { TStrings helpers ------------------------------------------------------- }
