@@ -20,7 +20,7 @@ program animate_surface;
 uses CastleCameras, Surfaces, CastleWindow, GL, GLU, CastleVectors,
   CastleGLUtils, CastleCurves, CastleBoxes, SysUtils, CastleUtils, CastleKeysMouse,
   CastleStringUtils, CastleMessages, CastleFilesUtils, CastleParameters,
-  CastleColors, Castle3D, CastleFrustum;
+  CastleColors, Castle3D, CastleFrustum, CastleClassUtils;
 
 var
   Window: TCastleWindow;
@@ -43,10 +43,10 @@ begin
   Camera.MoveSpeed := SurfaceMoveSpeed;
 end;
 
-procedure SurfacesLoad(const FileName: string);
+procedure SurfacesLoad(const URL: string);
 var
   N: Cardinal;
-  F: TextFile;
+  F: TTextReader;
 
   procedure Load(Surface: TSurface);
   var
@@ -59,11 +59,11 @@ var
       MyCurve := TRationalBezierCurve.Create(Surface.XBegin, Surface.XEnd);
       for J := 0 to N - 1 do
       begin
-        Read(F, V[0], V[1], V[2]);
+        V := F.ReadVector3Single;
         MyCurve.ControlPoints.Add(V);
         MyCurve.Weights.Add(1.0);
       end;
-      Readln(F);
+      F.Readln;
       MyCurve.UpdateControlPoints;
       Surface.Curves.Add(MyCurve);
     end;
@@ -73,19 +73,19 @@ begin
   Surface1 := TSurface.Create(0, 1, 0, 1);
   Surface2 := TSurface.Create(0, 1, 0, 1);
 
-  SafeReset(F, FileName, true);
+  F := TTextReader.Create(URL);
   try
-    Readln(F, SurfacePos[0], SurfacePos[1], SurfacePos[2],
-              SurfaceDir[0], SurfaceDir[1], SurfaceDir[2],
-              SurfaceUp [0], SurfaceUp [1], SurfaceUp [2]);
+    SurfacePos := F.ReadVector3Single;
+    SurfaceDir := F.ReadVector3Single;
+    SurfaceUp := F.ReadVector3Single;
     { The lengths of our direction vectors express speed in old terms
       (1/50 of the second), rescale them here. }
     SurfaceMoveSpeed := VectorLen(SurfaceDir) * 50;
     NormalizeTo1st(SurfaceDir);
-    Readln(F, N);
+    N := F.ReadInteger;
     Load(Surface1);
     Load(Surface2);
-  finally CloseFile(F) end;
+  finally FreeAndNil(F) end;
 
   CameraScene;
 end;
@@ -190,7 +190,7 @@ begin
 end;
 
 var
-  FileName: string = 'sample_data/sail.animation';
+  URL: string = 'sample_data/sail.animation';
 begin
   Window := TCastleWindow.Create(Application);
 
@@ -204,9 +204,9 @@ begin
 
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
-    FileName := Parameters[1];
+    URL := Parameters[1];
 
-  SurfacesLoad(FileName);
+  SurfacesLoad(URL);
   try
     Window.OnOpen := @Open;
     Window.OnUpdate := @Update;
