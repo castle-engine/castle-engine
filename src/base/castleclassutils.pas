@@ -51,23 +51,23 @@ uses Classes, SysUtils, CastleUtils, CastleStringUtils, Contnrs,
 { @section(Text reading) }
 
 type
-  { Read given Stream line by line.
-    Lines may be terminated in the Stream with #13, #10, #13+#10 or #10+#13.
-    This way I can treat any TStream quite like standard Pascal text files:
-    I have simple Readln method.
+  { Read any TStream like a text file.
+    Includes comfortable @link(Readln) routine to read line by line
+    (lines may be terminated in any OS convention).
+    Includes comfortable @link(Read) to read next non-whitespace
+    characters, @link(ReadInteger) to read next integer and such.
 
-    After calling Readln or Eof you should stop directly using underlying
-    Stream (but you can use Stream right after creating
-    TTextReader.Create(Stream) and before any Readln or Eof
-    operations on this TTextReader). }
+    Do not use the underlying stream once you started reading it with
+    this class. We will move the position within this stream ourselves. }
   TTextReader = class
   private
     Stream: TStream;
     ReadBuf: string;
     FOwnsStream: boolean;
-    { This is either #0 or #10 (tells to ignore next #13 char) or #13
-      (tells to ignore next #10 char) }
-    LastNewLineChar: char;
+    { Try to read more data from underlying stream and add it to ReadBuf.
+      Returns if we succeded, @false means that the stream ends.
+      When it returns @true, you can be sure that Length(ReadBuf) increased. }
+    function IncreaseReadBuf: boolean;
   public
     { Download and open a file. }
     constructor Create(const URL: string);
@@ -79,6 +79,24 @@ type
     { Read next line from Stream. Returned string does not contain
       any end-of-line characters. }
     function Readln: string;
+
+    { Read the next string of non-whitespace characters.
+      This skips any whitespace (including newlines) we currently see,
+      then reads all non-whitespace characters as far as it can.
+      It does not consume any whitespace characters after the string.
+
+      Returns empty string if and only if the stream ended.
+      Otherwise, returns the read non-whitespace characters. }
+    function Read: string;
+
+    { Read the next Integer from string. Reads next string of non-whitespace
+      characters, like @linke(Read), and then converts it to Integer.
+
+       @raises(EConvertError If the next non-whitespace string
+         cannot be converted to Integer. This includes situations
+         when stream ended (@link(Read) would return empty string in this
+         case).)  }
+    function ReadInteger: Integer;
 
     function Eof: boolean;
   end;
@@ -620,7 +638,6 @@ begin
   inherited Create;
   Stream := AStream;
   FOwnsStream := AOwnsStream;
-  LastNewLineChar := #0;
 end;
 
 destructor TTextReader.Destroy;
@@ -629,13 +646,23 @@ begin
   inherited;
 end;
 
-function TTextReader.Readln: string;
+function TTextReader.IncreaseReadBuf: boolean;
 const
-  BUF_INC = 100;
+  BufferIncrease = 100;
 var
-  ReadCnt, i: integer;
+  ReadCnt: Integer;
 begin
-  i := 1;
+  SetLength(ReadBuf, Length(ReadBuf) + BufferIncrease);
+  ReadCnt := Stream.Read(ReadBuf[Length(ReadBuf) - BufferIncrease + 1], BufferIncrease);
+  SetLength(ReadBuf, Length(ReadBuf) - BufferIncrease + ReadCnt);
+  Result := ReadCnt <> 0;
+end;
+
+function TTextReader.Readln: string;
+var
+  I, DeleteCount: integer;
+begin
+  I := 1;
 
   { Note that ReadBuf may contain data that we
     already read from stream at some time but did not returned it to
@@ -643,52 +670,70 @@ begin
     (because we realized we have read too much). }
 
   repeat
-    if i > Length(ReadBuf) then
+    if (I > Length(ReadBuf)) and not IncreaseReadBuf then
     begin
-      SetLength(ReadBuf, Length(ReadBuf) + BUF_INC);
-      ReadCnt := Stream.Read(ReadBuf[Length(ReadBuf) - BUF_INC + 1], BUF_INC);
-      SetLength(ReadBuf, Length(ReadBuf) - BUF_INC + ReadCnt);
-      if ReadCnt = 0 then
-      begin
-        Result := ReadBuf;
-        ReadBuf := '';
-        Exit;
-      end;
+      Result := ReadBuf;
+      ReadBuf := '';
+      Exit;
     end;
 
-    if ((ReadBuf[i] = #10) and (LastNewLineChar = #13)) or
-       ((ReadBuf[i] = #13) and (LastNewLineChar = #10)) then
+    if ReadBuf[I] in [#10, #13] then
     begin
-      { We got 2nd newline character? Ignore it. }
-      Assert(i = 1);
-      Delete(ReadBuf, 1, 1);
-      LastNewLineChar := #0;
-    end else
-    if ReadBuf[i] in [#10, #13] then
-    begin
-      Result := Copy(ReadBuf, 1, i-1);
-      LastNewLineChar := ReadBuf[i];
-      Delete(ReadBuf, 1, i);
+      Result := Copy(ReadBuf, 1, I - 1);
+      DeleteCount := I;
+
+      { If this is followed by 2nd newline character, we want to consume it.
+        To do this, we may have to increase ReadBuf. }
+      if ( (I < Length(ReadBuf)) or IncreaseReadBuf ) and
+         (ReadBuf[I + 1] in [#10, #13]) then
+        Inc(DeleteCount);
+
+      Delete(ReadBuf, 1, DeleteCount);
       Exit;
-    end else
-    begin
-      LastNewLineChar := #0;
-      Inc(i);
     end;
+
+    Inc(I);
   until false;
 end;
 
-function TTextReader.Eof: boolean;
+function TTextReader.Read: string;
 var
-  ReadCnt: Integer;
+  Start, I, DeleteCount: integer;
 begin
-  if ReadBuf = '' then
-  begin
-    SetLength(ReadBuf, 1);
-    ReadCnt := Stream.Read(ReadBuf[1], 1);
-    SetLength(ReadBuf, ReadCnt);
-  end;
-  Result := ReadBuf = '';
+  I := 1;
+
+  repeat
+    if (I > Length(ReadBuf)) and not IncreaseReadBuf then
+      Exit('');
+    if not (ReadBuf[I] in WhiteSpaces) then
+      Break;
+    Inc(I);
+  until false;
+
+  Start := I;
+
+  repeat
+    if (I > Length(ReadBuf)) and not IncreaseReadBuf then
+      Break;
+    if ReadBuf[I] in WhiteSpaces then
+      Break;
+    Inc(I);
+  until false;
+
+  Dec(I); { we know we're 1 position too far now }
+  Assert(I > 0);
+  Result := CopyPos(ReadBuf, Start, I);
+  Delete(ReadBuf, 1, I);
+end;
+
+function TTextReader.ReadInteger: Integer;
+begin
+  Result := StrToInt(Read);
+end;
+
+function TTextReader.Eof: boolean;
+begin
+  Result := (ReadBuf = '') and not IncreaseReadBuf;
 end;
 
 { TStrings helpers ------------------------------------------------------- }

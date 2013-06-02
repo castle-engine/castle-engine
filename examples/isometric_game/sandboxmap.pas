@@ -135,16 +135,21 @@ end;
 
 constructor TMap.CreateFromFile(const AURL: string);
 
-  procedure ReadlnTileLine(const Line: string;
+  procedure ReadlnTileLine(const F: TTextReader;
     var C: char; var RelativeURL: string);
   var
     CStr: string;
   begin
-    DeFormat(Line, '%s %s', [@CStr, @RelativeURL]);
+    CStr := F.Read;
     if Length(CStr) <> 1 then
       raise Exception.Create('Not a single 1st character');
     C := CStr[1];
-    RelativeURL := Trim(RelativeURL);
+
+    RelativeURL := F.Read;
+    if RelativeURL = '' then
+      raise Exception.CreateFmt('Empty URL after character "%s"', [C]);
+
+    F.Readln;
   end;
 
 var
@@ -159,15 +164,19 @@ begin
 
   F := TTextReader.Create(AURL);
   try
-    DeFormat(F.Readln, '%d %d', [@Width, @Height]);
-    DeFormat(F.Readln, '%d %d', [@PlayerStartX, @PlayerStartY]);
-    DeFormat(F.Readln, '%d %d', [@BaseTilesCount, @BonusTilesCount]);
+    Width := F.ReadInteger;
+    Height := F.ReadInteger;
+    PlayerStartX := F.ReadInteger;
+    PlayerStartY := F.ReadInteger;
+    BaseTilesCount := F.ReadInteger;
+    BonusTilesCount := F.ReadInteger;
+
     if (Width = 0) or (Height = 0) then
       raise Exception.Create('Map width and height must be > 0');
 
     for I := 0 to Integer(BaseTilesCount) - 1 do
     begin
-      ReadlnTileLine(F.Readln, C, S);
+      ReadlnTileLine(F, C, S);
       BaseTiles[C] := TBaseTile.Create;
       BaseTiles[C].CharCode := C;
       BaseTiles[C].RelativeURL := S;
@@ -177,7 +186,7 @@ begin
 
     for I := 0 to Integer(BonusTilesCount) - 1 do
     begin
-      ReadlnTileLine(F.Readln, C, S);
+      ReadlnTileLine(F, C, S);
       if C = '_' then
         raise Exception.Create('Bonus tile character cannot be "_"');
       BonusTiles[C] := TBonusTile.Create;
