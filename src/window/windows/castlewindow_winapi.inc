@@ -1163,6 +1163,30 @@ end;
 function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
+  { Make path absolute. Same as ExpandFileName, but knows that
+    FilePath contains only a path and will always work as it should.
+    (Delphi's and FPC's do not guarantee correct ExpandFileName result
+    for paths ended with PathDelim.)
+
+    FilePath may, but doesn't have to, end with PathDelim.
+    Result will always end with PathDelim.
+
+    Note: '' is treated as current dir (as it always should be, because
+    ExtractFilePath('file') = '' and 'file' is in current dir). }
+  function ExpandFilePath(const FilePath: string): string;
+  begin
+   if FilePath = '' then
+    Result := InclPathDelim(GetCurrentDir) else
+    Result := ExtractFilePath( ExpandFileName(InclPathDelim(FilePath) +
+      'dummy_file_name' ));
+
+   { note : doing here something like
+       ExtractFilePath( ExpandFileName(ExclPathDelim(FilePath)) )
+     (i.e., pretending that FilePath points to a file, not directory)
+     would not be safe, because we don't know what ExpandFileName
+     will do with 'c:' }
+  end;
+
   { Prepare string with encoded filter names and patterns, as specified
     in WinAPI OPENFILENAME reference.
 
