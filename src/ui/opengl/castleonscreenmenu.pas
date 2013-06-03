@@ -1547,7 +1547,7 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
         CtrlD:
           begin
             InfoWrite(Format(
-              'Position.Init(%d, %d);' +nl+
+              'Position := Vector2Integer(%d, %d);' +nl+
               'PositionRelativeScreenX := %s;' +nl+
               'PositionRelativeScreenY := %s;' +nl+
               'PositionRelativeMenuX := %s;' +nl+
