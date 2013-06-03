@@ -3361,17 +3361,17 @@ initialization
   { Items shortcuts. }
   Input_InventoryShow := TInputShortcut.Create(nil, 'Inventory show / hide', 'inventory_toggle', igItems);
   Input_InventoryShow.Assign(K_None, K_None, #0, false, mbLeft);
-  Input_InventoryPrevious := TInputShortcut.Create(nil, 'Select previous inventory item', 'inventory_previous', igItems);
+  Input_InventoryPrevious := TInputShortcut.Create(nil, 'Select previous item', 'inventory_previous', igItems);
   Input_InventoryPrevious.Assign(K_LeftBracket, K_None, #0, false, mbLeft, mwUp);
-  Input_InventoryNext := TInputShortcut.Create(nil, 'Select next inventory item', 'inventory_next', igItems);
+  Input_InventoryNext := TInputShortcut.Create(nil, 'Select next item', 'inventory_next', igItems);
   Input_InventoryNext.Assign(K_RightBracket, K_None, #0, false, mbLeft, mwDown);
-  Input_UseItem := TInputShortcut.Create(nil, 'Use (or equip) selected inventory item', 'item_use', igItems);
+  Input_UseItem := TInputShortcut.Create(nil, 'Use (or equip) selected item', 'item_use', igItems);
   Input_UseItem.Assign(K_Enter, K_None, #0, false, mbLeft);
-  Input_DropItem := TInputShortcut.Create(nil, 'Drop selected inventory item', 'item_drop', igItems);
+  Input_DropItem := TInputShortcut.Create(nil, 'Drop selected item', 'item_drop', igItems);
   Input_DropItem.Assign(K_None, K_None, #0, false, mbLeft);
 
   { Other shortcuts. }
-  Input_Interact := TInputShortcut.Create(nil, 'Interact (press button / open door etc.)', 'interact', igOther);
+  Input_Interact := TInputShortcut.Create(nil, 'Interact (press, open door)', 'interact', igOther);
   Input_Interact.Assign(K_None, K_None, #0, true, mbLeft);
   Input_CancelFlying := TInputShortcut.Create(nil, 'Cancel flying spell', 'cancel_flying', igOther);
   Input_CancelFlying.Assign(K_None, K_None, #0, false, mbLeft);
