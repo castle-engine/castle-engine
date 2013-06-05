@@ -42,7 +42,7 @@ procedure Font2Pascal(const BitmapFont: TBitmapFont;
 
 implementation
 
-uses SysUtils, CastleUtils, CastleStringUtils, CastleClassUtils, CastleURIUtils;
+uses SysUtils, CastleUtils, CastleStringUtils, CastleClassUtils, CastleDownload;
 
 { WriteUnit* ---------------------------------------------------------- }
 
