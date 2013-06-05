@@ -390,7 +390,7 @@ function StringToX3DXmlMulti(const s: string): string;
 
 implementation
 
-uses CastleLog;
+uses CastleLog, CastleWarnings;
 
 const
   { utf8 specific constants below }
@@ -702,25 +702,34 @@ begin
  fToken := vtString;
  fTokenString := '';
  repeat
-  fTokenString += Stream.ReadUpto(['\','"']);
+  fTokenString += Stream.ReadUpto(['\', '"']);
   endingChar := Stream.ReadChar;
 
   if endingChar = -1 then
    raise EX3DLexerError.Create(Self,
      'Unexpected end of file in the middle of string token');
 
-  { gdy endingChar = '\' to ignorujemy palke ktora wlasnie przeczytalismy
-    i nastepny znak ze strumienia nie jest interpretowany - odczytujemy
-    go przez Stream.ReadChar i zawsze dopisujemy do fTokenString. W ten sposob
-    \\ zostanie zrozumiane jako \, \" zostanie zrozumiane jako " (i nie bedzie
-    oznaczac konca stringu), wszystko inne \? bedzie oznaczac ?. }
-  if endingChar = Ord('\') then
+  { When EndingChar is a backslash, and it is followed by " or \,
+    we ignore the 1st backslash and the next character
+    is interpreted verbatim.
+    This way \\ becomes \ and \" becomes \.
+
+    Moreover, for https://sourceforge.net/p/castle-engine/tickets/14/ ,
+    we detect (and warn) about invalid sequences after backslash,
+    and in this case we keep the backslash. }
+  if EndingChar = Ord('\') then
   begin
     NextChar := Stream.ReadChar;
     if NextChar = -1 then
       raise EX3DLexerError.Create(Self,
         'Unexpected end of file in the middle of string token');
-    fTokenString += Chr(NextChar);
+    if not (Chr(NextChar) in ['"', '\']) then
+    begin
+      OnWarning(wtMajor, 'X3D', Format('Invalid sequence in a string: "\%s". Backslash must be followed by another backslash or double quote, for SFString and MFString (in X3D classic (VRML) encoding) and for MFString (in X3D XML encoding).',
+        [Chr(NextChar)]));
+      FTokenString += '\';
+    end;
+    FTokenString += Chr(NextChar);
   end;
 
  until endingChar = Ord('"');
