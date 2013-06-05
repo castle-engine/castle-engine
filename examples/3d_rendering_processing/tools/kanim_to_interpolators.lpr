@@ -36,7 +36,7 @@ program kanim_to_interpolators;
 
 uses SysUtils, Classes, CastleUtils, CastleClassUtils, X3DNodes, CastlePrecalculatedAnimation,
   CastleStringUtils, CastleProgress, CastleProgressConsole, CastleParameters,
-  CastleURIUtils;
+  CastleDownload;
 
 var
   CoordinateNodeName: string;

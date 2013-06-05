@@ -68,7 +68,7 @@ type
 implementation
 
 uses SysUtils, CastleFilesUtils, CastleUtils, SandBoxGame, CastleStringUtils,
-  CastleClassUtils, CastleURIUtils;
+  CastleClassUtils, CastleDownload;
 
 { TTile ---------------------------------------------------------------------- }
 
