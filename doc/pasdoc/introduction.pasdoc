@@ -89,33 +89,43 @@ To use the engine in your own programs, there are a couple of options:
 
 @section(2 SectionLibraries Libraries)
 
-@link(CastleImages) unit requires libpng (libpng.so under UNIXes,
-libpng12.dll under Windows) installed if you want to load/save
-PNG images. Otherwise you will get ELibPngNotAvailable exception
-when trying to load/save files in PNG format.
-Note that libpng requires also zlib installed.
+@unorderedList(
+  @item(@code(libpng) and @code(zlib).
 
-CastleZLib unit (required by CastleZStream unit and used by
-X3DNodes) requires zlib installed.
+    @link(CastleImages) unit requires libpng (libpng.so under UNIXes,
+    libpng12.dll under Windows) installed if you want to load/save
+    PNG images. Otherwise you will get ELibPngNotAvailable exception
+    when trying to load/save files in PNG format.
+    Note that libpng depends on zlib.
 
-Some additional libraries are required for sound playing: OggVorbis stuff
-requires @code(@noAutoLink(vorbisfile)) library, OpenAL stuff naturally requires
-the OpenAL library. But all sound units are implemented in such way that
-even if the user doesn't have OpenAL/@noAutoLink(vorbisfile) installed,
-programs using these units can still run fine (e.g. units will not raise
-any exception at unit initialization just because some library cannot
-be loaded; instead, appropriate boolean variable will be set to @false,
-and higher-level code can always check this).
+    CastleZLib unit (required by CastleZStream unit and used by
+    X3DNodes) requires zlib installed. This is used to open and save
+    gzip-compressed files.)
 
-For Windows, you can get some of the required DLLs easily
-from my site, [http://castle-engine.sourceforge.net/miscella/win32_dlls.zip].
+  @item(@code(OpenAL).
+
+    To play 3D sound. If OpenAL is not installed, everything will stil
+    run just fine (we will not raise any exception), you will just not get
+    any sound.)
+
+  @item(@code(@noAutoLink(vorbisfile)).
+
+    To load sounds in OggVorbis format.)
+
+  @item(@code(GtkGLExt) (on Unix).
+
+    Used by CastleWindow on Unix to create a window with OpenGL context.
+    There is an alternative CastleWindow backend that doesn't use GtkGLExt
+    (uses directly Xlib), although it doesn't show native manu or dialog boxes.)
+)
+
+For Windows, you can get the required DLLs easily
+from [http://castle-engine.sourceforge.net/miscella/win32_dlls.zip].
 Inside this archive there are also pointers where the "upstream" versions
 of these DLLs can be found on WWW.
 
-On Mac OS X there are some additional requirements, since Mac OS X
-port is done much like any other Unix right now. So some units require
-some typical Unix libraries, like X11, GTK, GTKGlExt etc. See
-[http://castle-engine.sourceforge.net/macosx_requirements.php]
+On Mac OS X there are some additional requirements.
+See [http://castle-engine.sourceforge.net/macosx_requirements.php]
 for details.
 
 @section(1 SectionUnitsMap Units map)
