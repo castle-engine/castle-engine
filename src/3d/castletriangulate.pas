@@ -404,6 +404,22 @@ begin
     try
       Outs.Count := Count; { TFPGList initialized everything to false }
 
+      { Special version for polygons with 4 points.
+        After determining the 1st ear triangle, we have only one choice for
+        the 2nd triangle, so use it. This is useful in case of quads at the sides
+        of Extrusion, that may be "bend" in various weird ways and not really
+        suitable for triangulation in 2D. See 2nd page of
+        https://sourceforge.net/p/castle-engine/tickets/13/ for example. }
+      if Count = 4 then
+      begin
+        P1 := GetMostDistantVertex(Center);
+        P0 := PreviousNotOut(P1);
+        P2 := NextNotOut(P1);
+        NewTriangle(P0, P1, P2);
+        NewTriangle(P2, NextNotOut(P2), P0);
+        Exit;
+      end;
+
       { P1 is the most distant vertex, P0 is previous, P2 is next.
         We calculate them only for the sake of calculating PolygonNormal
         (they do not determine triangulation in any other way). }
