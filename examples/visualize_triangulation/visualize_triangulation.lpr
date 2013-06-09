@@ -33,9 +33,10 @@
   polygon points in code below, see array Polygon below.
 }
 
-uses SysUtils, Classes, CastleStringUtils, CastleLog,
+uses SysUtils, Classes, CastleStringUtils, CastleLog, CastleParameters,
   FpImage, FpCanvas, FpImgCanv, FpWritePNG, CastleUtils, CastleGraphUtil,
-  CastleTriangulate, CastleVectors, CastleTriangles;
+  CastleTriangulate, CastleVectors, CastleTriangles, CastleSceneCore,
+  CastleURIUtils, X3DNodes;
 
 type
   { Do visualize triangulation of a single polygon. }
@@ -53,10 +54,14 @@ type
     function VisualizePointRect(const P: TVector3Single): TRect;
     procedure SaveImage(const Url, Message: string);
     procedure Face(const Tri: TVector3Longint);
+    procedure CreateCommon(
+      const Name: string; AVisualizeX, AVisualizeY: Cardinal;
+      const RevertOrder: boolean);
   public
     constructor Create(AVertexes: array of TVector3Single;
       const Name: string; AVisualizeX, AVisualizeY: Cardinal;
       const RevertOrder: boolean);
+    constructor Create(const URL: string);
     destructor Destroy; override;
     procedure VisualizePolygon;
     procedure VisualizeTriangulation;
@@ -141,19 +146,52 @@ begin
     Format('Triangle %d: %d - %d - %d', [TriangleCount, Tri[0], Tri[1], Tri[2]]));
 end;
 
+constructor TVisualizeTriangulation.Create(const URL: string);
+var
+  Scene: TCastleSceneCore;
+  Extrusion: TExtrusionNode;
+  I: Integer;
+begin
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.URL := URL;
+    Extrusion := Scene.RootNode.TryFindNode(TExtrusionNode, false) as TExtrusionNode;
+    if Extrusion = nil then
+      raise Exception.CreateFmt('No Extrusion node found in scene "%s"', [URL]);
+
+    { initialize Vertexes based on Extrusion.crossSection }
+    Vertexes := TVector3SingleList.Create;
+    Vertexes.Count := Extrusion.FdCrossSection.Count;
+    for I := 0 to Vertexes.Count - 1 do
+      Vertexes.L[I] := Extrusion.CrossSection3D(I);
+  finally FreeAndNil(Scene) end;
+
+  CreateCommon(ExtractURIName(URL), 0, 2, false);
+end;
+
 constructor TVisualizeTriangulation.Create(AVertexes: array of TVector3Single;
-  const Name: string;
-  AVisualizeX, AVisualizeY: Cardinal; const RevertOrder: boolean);
+  const Name: string; AVisualizeX, AVisualizeY: Cardinal;
+  const RevertOrder: boolean);
 var
   I: Integer;
 begin
   inherited Create;
 
+  { initialize Vertexes based on array AVertexes }
   Vertexes := TVector3SingleList.Create;
   Vertexes.Count := High(AVertexes) + 1;
   for I := 0 to Vertexes.Count - 1 do
     Vertexes.L[I] := AVertexes[I];
 
+  CreateCommon(Name, AVisualizeX, AVisualizeY, RevertOrder);
+end;
+
+procedure TVisualizeTriangulation.CreateCommon(
+  const Name: string; AVisualizeX, AVisualizeY: Cardinal;
+  const RevertOrder: boolean);
+var
+  I: Integer;
+begin
   TriangleCount := 0;
 
   if RevertOrder then
@@ -231,9 +269,11 @@ begin
   inherited;
 end;
 
+{ global routines ------------------------------------------------------------ }
+
 const
   { Hardcoded polygon from https://sourceforge.net/p/castle-engine/tickets/13/ }
-  Polygon_Bug13: array [0..17] of TVector3Single = (
+  Polygon: array [0..17] of TVector3Single = (
     (1, 0, -2.44921e-016),
     (0.932472, 0, -0.361242),
     (0.739009, 0, -0.673696),
@@ -255,12 +295,21 @@ const
   );
 
 var
+  URL: string;
   Vis: TVisualizeTriangulation;
 begin
   InitializeLog('1.0.0');
   LogTriangulation := true;
 
-  Vis := TVisualizeTriangulation.Create(Polygon_Bug13, 'Bug13', 0, 2, false);
+  Parameters.CheckHighAtMost(1);
+  if Parameters.High = 1 then
+    URL := Parameters[1] else
+    URL := '';
+
+  if URL <> '' then
+    Vis := TVisualizeTriangulation.Create(URL) else
+    { If no URL given, just visualize hardcoded Polygon array. }
+    Vis := TVisualizeTriangulation.Create(Polygon, 'Polygon', 0, 2, false);
   try
     Vis.VisualizePolygon;
     Vis.VisualizeTriangulation;
