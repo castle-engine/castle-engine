@@ -1,6 +1,18 @@
-{ Canvas utils adjusted from LCL GraphUtil unit.
-  License the same as our engine: LGPL with static linking exception,
-  see COPYING.txt. }
+{
+  Copyright 2011-2013 Lazarus developers and Michalis Kamburelis.
+
+  Parts of this unit are based on LCL GraphUtil unit.
+  Luckily, both LCL and Castle Game Engine use the same license,
+  LGPL with static linking exception, see the file COPYING.txt.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Canvas utils. }
 unit CastleGraphUtil;
 
 interface
@@ -18,6 +30,9 @@ type
   Adjusted from LCL GraphUtil, to work with TFPCustomCanvas. }
 procedure FloodFill(Canvas: TFPCustomCanvas; X, Y: Integer; lColor: TFPColor;
   FillStyle: TFillStyle);
+
+{ Random TFPColor value that isn't too dark. }
+function RandomLightFPColor: TFPColor;
 
 implementation
 
@@ -146,5 +161,14 @@ begin //FloodFill
 end;
 
 {$I norqcheckend.inc}
+
+function RandomLightFPColor: TFPColor;
+begin
+  repeat
+    Result := FPColor(Random($FFFF), Random($FFFF), Random($FFFF));
+  until ( (Result.Red / High(Word)) +
+          (Result.Green / High(Word)) +
+          (Result.Blue / High(Word)) ) / 3.0 > 0.2;
+end;
 
 end.

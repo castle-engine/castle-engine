@@ -102,16 +102,14 @@ function IndexedPolygonNormal(
   Vertices: PVector3Single; const VerticesCount: Integer;
   const ResultForIncorrectPoly: TVector3Single; const Convex: boolean): TVector3Single;
 
+var
+  { Write to Log a @italic(lot) of comments how the triangulation goes.
+    Useful for examples/visualize_triangulation/ . }
+  LogTriangulation: boolean;
+
 implementation
 
 uses CastleLog, CastleStringUtils, CastleWarnings;
-
-{ Write some debug messages about triangulation.
-
-  The same symbol name is used in tests/testtriangulator.pas unit,
-  so you can just -dVISUALIZE_TRIANGULATION for the compilation of whole program
-  (e.g. add it to tests/compile_console.sh) to have all debugging messages. }
-{ $define VISUALIZE_TRIANGULATION}
 
 { Do additional operations (normalize some vectors etc.)
   that in theory should improve numerical stability of this algorithm.
@@ -376,10 +374,9 @@ var
       VBorder + PullDirection * 0.01,
       Triangle3Single(V0, V1, V2), TriangleNormal)); }
 
-    {$ifdef VISUALIZE_TRIANGULATION}
-    Writeln(Format('Border vertex %d (part of %d - %d - %d) considered inside triangle? %s.',
-      [Border, BorderPrevious, Border, BorderNext, BoolToStr[Result]]));
-    {$endif VISUALIZE_TRIANGULATION}
+    if Log and LogTriangulation then
+      WritelnLog('Triangulation', Format('Border vertex %d (part of %d - %d - %d) considered inside triangle? %s.',
+        [Border, BorderPrevious, Border, BorderNext, BoolToStr[Result]]));
   end;
 
 var
@@ -415,10 +412,9 @@ begin
       Assert(not ZeroVector(PolygonNormal));
       NormalizeTo1st(PolygonNormal);
 
-      {$ifdef VISUALIZE_TRIANGULATION}
-      Writeln(Format('Most distant vertex: %d. Triangle for PolygonNormal: %d - %d - %d. Polygon normal: %s',
-        [P1, P0, P1, P2, VectorToNiceStr(PolygonNormal)]));
-      {$endif VISUALIZE_TRIANGULATION}
+      if Log and LogTriangulation then
+        WritelnLog('Triangulation', Format('Most distant vertex: %d. Triangle for PolygonNormal: %d - %d - %d. Polygon normal: %s',
+          [P1, P0, P1, P2, VectorToNiceStr(PolygonNormal)]));
 
       Corners := Count; { Corners = always "how many Outs are false" }
 
@@ -459,12 +455,11 @@ begin
             polygon. }
           if P0 = Start then
           begin
-            {$ifdef VISUALIZE_TRIANGULATION}
-            Writeln('Impossible to find an "ear" to cut off, this concave polygon cannot be triangulated.');
-            {$endif VISUALIZE_TRIANGULATION}
+            if Log and LogTriangulation then
+              WritelnLog('Triangulation', 'Impossible to find an "ear" to cut off, this concave polygon cannot be triangulated.');
             if not FailureWarningDone then
             begin
-              OnWarning(wtMinor, 'Triangulator', 'Triangulation of concave polygon failed. Polygon is self-intersecting, or we have floating-point errors (if you used some huge and/or tiny values). Report bug otherwise.');
+              OnWarning(wtMinor, 'Triangulator', 'Triangulation of concave polygon failed. Polygon is probably self-intersecting (not allowed by VRML / X3D). You can use Castle Game Engine tool in castle_game_engine/examples/visualize_triangulation/ to easily observe the polygon vertexes and triangulation process.');
               FailureWarningDone := true;
             end;
             Break;
@@ -473,9 +468,8 @@ begin
           EarNormal := TriangleDir(V0, V1, V2);
           if ZeroVector(EarNormal) then
           begin
-            {$ifdef VISUALIZE_TRIANGULATION}
-            Writeln(Format('Triangle %d - %d - %d is colinear, removing.', [P0, P1, P2]));
-            {$endif VISUALIZE_TRIANGULATION}
+            if Log and LogTriangulation then
+              WritelnLog('Triangulation', Format('Triangle %d - %d - %d is colinear, removing.', [P0, P1, P2]));
             { We know in this case we can safely remove P1.
               We cannot remove P0 or P2 (even if they are equal),
               because they are important for the shape of the polygon.
@@ -490,11 +484,10 @@ begin
             orientation as whole polygon, not reverted. }
           DistanceSqr := PointsDistanceSqr(EarNormal, PolygonNormal);
           EarFound := DistanceSqr <= 1.0;
-          {$ifdef VISUALIZE_TRIANGULATION}
-          Writeln(Format('Does the ear %d - %d - %d have the same orientation as polygon? %s. (Ear normal: %s, distance to polygon normal: %f.)' ,
-            [P0, P1, P2, BoolToStr[EarFound],
-             VectorToNiceStr(EarNormal), Sqrt(DistanceSqr)]));
-          {$endif VISUALIZE_TRIANGULATION}
+          if Log and LogTriangulation then
+            WritelnLog('Triangulation', Format('Does the ear %d - %d - %d have the same orientation as polygon? %s. (Ear normal: %s, distance to polygon normal: %f.)' ,
+              [P0, P1, P2, BoolToStr[EarFound],
+               VectorToNiceStr(EarNormal), Sqrt(DistanceSqr)]));
 
           { check is the ear triangle non-empty }
           if EarFound then
@@ -531,9 +524,8 @@ begin
                      BorderVertexInsideTriangle(V0, V1, V2, EarNormal,
                        Inside1, Inside2, Inside3, I) ) then
                 begin
-                  {$ifdef VISUALIZE_TRIANGULATION}
-                  Writeln(Format('Triangle %d - %d - %d would not be empty: point %d would be inside.', [P0, P1, P2, I]));
-                  {$endif VISUALIZE_TRIANGULATION}
+                  if Log and LogTriangulation then
+                    WritelnLog('Triangulation', Format('Triangle %d - %d - %d would not be empty: point %d would be inside.', [P0, P1, P2, I]));
                   EarFound := false;
                   Break;
                 end;
