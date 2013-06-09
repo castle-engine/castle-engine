@@ -1022,7 +1022,7 @@ end;
 
 function CreateReadFileStream(const URL: string): TStream;
 begin
-  Result := Download(URL, [doForceMemoryStream]);
+  Result := Download(URL, [soForceMemoryStream]);
 end;
 
 procedure ReadGrowingStream(GrowingStream, DestStream: TStream;

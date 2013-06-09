@@ -51,8 +51,8 @@ type
       Must be > FirstSphereRadius. }
     LastSphereRadius: Float;
 
-    procedure LoadFromFile(const FileName: string);
-    procedure SaveToFile(const FileName: string);
+    procedure LoadFromFile(const URL: string);
+    procedure SaveToFile(const URL: string);
 
     { Environment map, from EnvMaps, corresponding to point V in 3D space.
       This just uses IndexFromPoint, and returns appropriate environment map.
@@ -131,13 +131,14 @@ type
 
 implementation
 
-uses SysUtils, CastleFilesUtils, CastleUtils, CastleZStream, Classes;
+uses SysUtils, CastleFilesUtils, CastleUtils, CastleZStream, Classes,
+  CastleDownload;
 
-procedure TShadowField.LoadFromFile(const FileName: string);
+procedure TShadowField.LoadFromFile(const URL: string);
 var
   F: TStream;
 begin
-  F := TGZFileStream.Create(FileName, gzOpenRead);
+  F := Download(URL, [soGzip]);
   try
     F.ReadBuffer(EnvMaps, SizeOf(EnvMaps));
     F.ReadBuffer(SHVectors, SizeOf(SHVectors));
@@ -147,11 +148,11 @@ begin
   finally FreeAndNil(F) end;
 end;
 
-procedure TShadowField.SaveToFile(const FileName: string);
+procedure TShadowField.SaveToFile(const URL: string);
 var
   F: TStream;
 begin
-  F := TGZFileStream.Create(FileName, gzOpenWrite);
+  F := URLSaveStream(URL, [soGzip]);
   try
     F.WriteBuffer(EnvMaps, SizeOf(EnvMaps));
     F.WriteBuffer(SHVectors, SizeOf(SHVectors));

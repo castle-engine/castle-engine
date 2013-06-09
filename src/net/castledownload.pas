@@ -32,8 +32,8 @@ var
 type
   EDownloadError = class(Exception);
 
-  { Options for the @link(Download) function. }
-  TDownloadOption = (
+  { Options for the @link(Download) and URLSaveStream functions. }
+  TStreamOption = (
     { Force result to be a TMemoryStream,
       with contents fully loaded to the memory,
       and freely seekable (you can move back and forth within).
@@ -49,12 +49,13 @@ type
 
       For larger files, you usually don't want to use this option,
       instead wrap result in TBufferedReadStream. }
-    doForceMemoryStream,
+    soForceMemoryStream,
 
-    { Filter the contents through gzip decompression. }
-    doGunzip
+    { Filter the contents through gzip decompression (for @link(Download))
+      or compression (for @link(URLSaveStream)). }
+    soGzip
   );
-  TDownloadOptions = set of TDownloadOption;
+  TStreamOptions = set of TStreamOption;
 
 { Return a stream to read given URL.
   Returned stream is suitable only for reading, and the initial position
@@ -72,7 +73,7 @@ type
   A data URI scheme (http://en.wikipedia.org/wiki/Data_URI_scheme)
   is also always supported.
   The MIME type for such content is specified explicitly in URI.
-  TODO: right now, doGunzip is ignored for data URIs, we never filter them
+  TODO: right now, soGzip is ignored for data URIs, we never filter them
   through gunzip.
 
   It also automatically supports protocols to embed script contents:
@@ -88,15 +89,15 @@ type
   The MIME type for such content is usually reported by the http server
   (but if the server doesn't report MIME type, we still try to guess it,
   looking at URL using URIMimeType). }
-function Download(const URL: string; const Options: TDownloadOptions = []): TStream;
-function Download(const URL: string; const Options: TDownloadOptions;
+function Download(const URL: string; const Options: TStreamOptions = []): TStream;
+function Download(const URL: string; const Options: TStreamOptions;
   out MimeType: string): TStream;
 
 { Create a stream to save a given URL, for example create a TFileStream
   to save a file for a @code(file) URL. In other words, perform @italic(upload).
   Right now, this only works for @code(file) URLs, and the only advantage
   it has over manually creating TFileStream is that this accepts URLs. }
-function URLSaveStream(const URL: string): TStream;
+function URLSaveStream(const URL: string; const Options: TStreamOptions = []): TStream;
 
 implementation
 
@@ -310,7 +311,7 @@ begin
   try
     if ForceMemoryStream then
     begin
-      { TODO: our engine never uses both doGunzip and doForceMemoryStream
+      { TODO: our engine never uses both soGzip and soForceMemoryStream
         for now, so below code path is untested. }
       NewResult := TMemoryStream.Create;
       ReadGrowingStream(Result, NewResult, true);
@@ -322,7 +323,7 @@ begin
   end;
 end;
 
-function Download(const URL: string; const Options: TDownloadOptions;
+function Download(const URL: string; const Options: TStreamOptions;
   out MimeType: string): TStream;
 var
   P, FileName, TempFileName, S: string;
@@ -339,7 +340,7 @@ begin
     WritelnLog('Network', 'Downloading "%s"', [URL]);
     NetworkResult := NetworkDownload(URL, MaxRedirects, MimeType);
     try
-      if doGunzip in Options then
+      if soGzip in Options then
       begin
         { for now, reading gzipped file from a TMemoryStream means using
           a temporary file }
@@ -348,7 +349,7 @@ begin
           WritelnLog('Network', Format('Decompressing gzip from the network by temporary file "%s"', [TempFileName]));
         NetworkResult.SaveToFile(TempFileName);
         FreeAndNil(NetworkResult);
-        Result := ReadGzipped(TempFileName, doForceMemoryStream in Options);
+        Result := ReadGzipped(TempFileName, soForceMemoryStream in Options);
         CheckDeleteFile(TempFileName, true);
       end else
         Result := NetworkResult;
@@ -364,9 +365,9 @@ begin
     if FileName = '' then
       raise EDownloadError.CreateFmt('Cannot convert URL "%s" to filename', [URL]);
 
-    if doGunzip in Options then
-      Result := ReadGzipped(FileName, doForceMemoryStream in Options) else
-    if doForceMemoryStream in Options then
+    if soGzip in Options then
+      Result := ReadGzipped(FileName, soForceMemoryStream in Options) else
+    if soForceMemoryStream in Options then
       Result := CreateMemoryStream(FileName) else
       Result := TFileStream.Create(FileName, fmOpenRead);
     MimeType := URIMimeType(URL);
@@ -378,7 +379,7 @@ begin
     DataURI := TDataURI.Create;
     try
       DataURI.URI := URL;
-      DataURI.ForceMemoryStream := doForceMemoryStream in Options;
+      DataURI.ForceMemoryStream := soForceMemoryStream in Options;
       if not DataURI.Valid then
         raise EDownloadError.Create('Invalid data: URI scheme');
       Result := DataURI.ExtractStream;
@@ -390,7 +391,7 @@ begin
   if (P = 'ecmascript') or
      (P = 'javascript') then
   begin
-    { This ignores doGunzip in Options, as it's not used by anything. }
+    { This ignores soGzip in Options, as it's not used by anything. }
     MimeType := 'application/javascript';
     Result := MemoryStreamLoadFromString(URIDeleteProtocol(URL));
   end else
@@ -398,14 +399,14 @@ begin
   if (P = 'castlescript') or
      (P = 'kambiscript') then
   begin
-    { This ignores doGunzip in Options, as it's not used by anything. }
+    { This ignores soGzip in Options, as it's not used by anything. }
     MimeType := 'text/x-castlescript';
     Result := MemoryStreamLoadFromString(URIDeleteProtocol(URL));
   end else
 
   if P = 'compiled' then
   begin
-    { This ignores doGunzip in Options, as it's not used by anything. }
+    { This ignores soGzip in Options, as it's not used by anything. }
     MimeType := 'text/x-castle-compiled';
     Result := MemoryStreamLoadFromString(URIDeleteProtocol(URL));
   end else
@@ -418,14 +419,15 @@ begin
   end;
 end;
 
-function Download(const URL: string; const Options: TDownloadOptions): TStream;
+function Download(const URL: string; const Options: TStreamOptions): TStream;
 var
   MimeType: string;
 begin
   Result := Download(URL, Options, MimeType { ignored });
 end;
 
-function URLSaveStream(const URL: string): TStream;
+function URLSaveStream(const URL: string; const Options: TStreamOptions): TStream;
+{ TODO: for now, this ignores soForceMemoryStream flag in Options. }
 var
   P, FileName: string;
 begin
@@ -439,7 +441,9 @@ begin
       raise Exception.CreateFmt('Cannot convert URL to a filename: "%s"', [URL]);
   end else
     raise Exception.CreateFmt('Saving of URL with protocol "%s" not possible', [P]);
-  Result := TFileStream.Create(Filename, fmCreate);
+  if soGzip in Options then
+    Result := TGZFileStream.Create(FileName, gzOpenWrite) else
+    Result := TFileStream.Create(Filename, fmCreate);
 end;
 
 end.

@@ -534,7 +534,7 @@ var
 begin
   inherited Create;
 
-  Stream := Download(URL, [doForceMemoryStream]);
+  Stream := Download(URL, [soForceMemoryStream]);
   try
     Stream.ReadBuffer(FData, SizeOf(FData));
   finally FreeAndNil(Stream) end;

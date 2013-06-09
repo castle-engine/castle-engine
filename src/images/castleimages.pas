@@ -3519,7 +3519,7 @@ var
 begin
   try
     try
-      f := Download(URL, [doForceMemoryStream], MimeType);
+      f := Download(URL, [soForceMemoryStream], MimeType);
     except
       on E: EReadError do raise EImageLoadError.Create(E.Message);
     end;

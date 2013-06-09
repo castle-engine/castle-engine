@@ -584,7 +584,7 @@ begin
     BaseUrl := AbsoluteURI(URL);
 
     if Gzipped then
-      Result := DoIt(Download(URL, [doGunzip]), true, BaseUrl) else
+      Result := DoIt(Download(URL, [soGzip]), true, BaseUrl) else
     begin
       try
         Result := DoIt(Download(URL, []), true, BaseUrl);
@@ -604,7 +604,7 @@ begin
              For now, our Download function uses temporary files to overcome
              this for network data, so it creates even more overhead. }
         on EX3DGzipCompressed do
-          Result := DoIt(Download(URL, [doGunzip]), true, BaseUrl);
+          Result := DoIt(Download(URL, [soGzip]), true, BaseUrl);
       end;
     end;
   end;
