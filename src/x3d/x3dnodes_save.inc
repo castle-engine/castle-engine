@@ -24,6 +24,10 @@ function Save3DVersion(Node: TX3DNode): TX3DVersion;
   Generates a complete file, with header lines (XML headers,
   or #VRML / #X3D in classic encoding) and everything.
 
+  Overloaded version that takes an URL will automatically compress
+  the file with gzip if an extension indicating gzip compression is present
+  (like .x3dv.gz, or .x3d.gz).
+
   Generator and Source, if not empty, will be used to set appropriate
   META values of X3D root file node. This way you can indicate inside X3D file
   the generator (your program) name and source (original 3D model file name).
@@ -67,7 +71,7 @@ function Save3DVersion(Node: TX3DNode): TX3DVersion;
 
   @groupBegin }
 procedure Save3D(Node: TX3DNode;
-  Stream: TStream; const Generator, Source: string;
+  const Stream: TStream; const Generator, Source: string;
   Version: TX3DVersion; const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload;
 procedure Save3D(Node: TX3DNode;
@@ -75,7 +79,7 @@ procedure Save3D(Node: TX3DNode;
   const Version: TX3DVersion; const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload;
 procedure Save3D(Node: TX3DNode;
-  Stream: TStream; const Generator, Source: string;
+  const Stream: TStream; const Generator, Source: string;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload;
 procedure Save3D(Node: TX3DNode;
@@ -238,7 +242,7 @@ begin
 end;
 
 procedure Save3D(Node: TX3DNode;
-  Stream: TStream; const Generator, Source: string;
+  const Stream: TStream; const Generator, Source: string;
   Version: TX3DVersion;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean);
@@ -449,8 +453,16 @@ procedure Save3D(Node: TX3DNode;
   const ForceConvertingToX3D: boolean);
 var
   Stream: TStream;
+  Gzipped: boolean;
+  StreamOptions: TStreamOptions;
 begin
-  Stream := URLSaveStream(URL);
+  { calculate StreamOptions to include gzip compression when necessary }
+  StreamOptions := [];
+  URIMimeType(URL, Gzipped);
+  if Gzipped then
+    Include(StreamOptions, soGzip);
+
+  Stream := URLSaveStream(URL, StreamOptions);
   try
     Save3D(Node, Stream, Generator, Source, Version,
       Encoding, ForceConvertingToX3D);
@@ -458,7 +470,7 @@ begin
 end;
 
 procedure Save3D(Node: TX3DNode;
-  Stream: TStream; const Generator, Source: string;
+  const Stream: TStream; const Generator, Source: string;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean);
 begin

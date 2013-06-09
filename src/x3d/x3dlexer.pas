@@ -436,13 +436,16 @@ function TX3DVersion.FileFilters(const Encoding: TX3DEncoding;
 const
   SaveVRMLClassic_FileFilters =
   'All files|*|' +
-  '*VRML (not compressed) (*.wrl)|*.wrl';
+  '*VRML (*.wrl)|*.wrl|' +
+  'VRML (compressed) (*.wrz, *.wrl.gz)|*.wrz;*.wrl.gz';
   SaveX3DClassic_FileFilters =
   'All files|*|' +
-  '*X3D classic (*.x3dv)|*.x3dv';
+  '*X3D classic (*.x3dv)|*.x3dv|' +
+  'X3D classic (compressed) (*.x3dvz, *.x3dv.gz)|*.x3dvz;*.x3dv.gz';
   SaveX3DXml_FileFilters =
   'All files|*|' +
-  '*X3D XML (*.x3d)|*.x3d';
+  '*X3D XML (*.x3d)|*.x3d|' +
+  'X3D XML (compressed) (*.x3dz, *.x3d.gz)|*.x3dz;*.x3d.gz';
 begin
   if Encoding = xeXML then
     Result := SaveX3DXml_FileFilters else
