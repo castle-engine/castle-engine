@@ -250,15 +250,16 @@ procedure TTestCastleTriangulate.TestTriangulateFace;
       end;
 
       Canvas.Pen.FPColor := FPColor($FFFF, $FFFF, $FFFF);
-      Canvas.Brush.FPColor := FPColor($FFFF, $FFFF, $FFFF);
 
       Canvas.MoveTo(VisualizePoint(Vertexes[0]));
+      Canvas.Brush.FPColor := RandomLightFPColor;
       Canvas.Ellipse(VisualizePointRect(Vertexes[0]));
       SaveImage(Format(ImageUrlPrefix + '_0_%d.png', [0]),
         Format('Vertex %d', [0]));
       for I := 1 to CountVertexes - 1 do
       begin
         Canvas.LineTo(VisualizePoint(Vertexes[I]));
+        Canvas.Brush.FPColor := RandomLightFPColor;
         Canvas.Ellipse(VisualizePointRect(Vertexes[I]));
         SaveImage(Format(ImageUrlPrefix + '_0_%d.png', [I]),
           Format('Vertex %d', [I]));
@@ -614,6 +615,35 @@ const
     (0.095, 0, 0.157),
     (0.099, 0, 0.166)
   );
+
+  { from https://sourceforge.net/p/castle-engine/tickets/13/ }
+  Polygon_Bug13: array [1..18] of TVector3Single = (
+    (1, 0, -2.44921e-016),
+    (0.932472, 0, -0.361242),
+    (0.739009, 0, -0.673696),
+    (0.445738, 0, -0.895164),
+    (0.00838485, 0, 0.0251547),
+    (-0.273664, 0, -0.961825),
+    (-0.602635, 0, -0.798017),
+    (-0.850218, 0, -0.526432),
+    (-0.982973, 0, -0.183749),
+    (-0.982973, 0, 0.18375),
+    (-0.850217, 0, 0.526433),
+    (-0.602634, 0, 0.798018),
+
+    // (-0.850218, 0, -0.526432),
+    // (-0.982973, 0, -0.183749),
+    // (-0.982973, 0, 0.18375),
+    // (-0.850217, 0, 0.526433),
+    // (-0.602634, 0, 0.798018),
+
+    (-0.273663, 0, 0.961826),
+    (0.0922688, 0, 0.995734),
+    (0.445739, 0, 0.895163),
+    (0.739009, 0, 0.673695),
+    (0.932472, 0, 0.361241),
+    (1, 0, -2.44921e-016)
+  );
 var
   RevertOrder: boolean;
   PreviousOnWarning: TWarningProc;
@@ -633,6 +663,7 @@ begin
     DoPolygon(Polygon_R3D_cs, 'R3D_cs', 0, 2, RevertOrder);
     DoPolygon(Polygon_R3D_cs_full, 'R3D_cs_full', 0, 2, RevertOrder);
     DoPolygon(Polygon_RoomArranger_Cave, 'RoomArranger_Cave', 0, 2, RevertOrder);
+    DoPolygon(Polygon_Bug13, 'Bug13', 0, 2, RevertOrder);
   end;
 
   { TODO: test that results are same as hardcoded results? }
