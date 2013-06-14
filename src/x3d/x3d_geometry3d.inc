@@ -215,6 +215,8 @@
   end;
 
   TExtrusionNode = class(TAbstractX3DGeometryNode)
+  protected
+    procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
   private
     procedure Eventset_crossSectionReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
@@ -276,6 +278,10 @@
     private FFdSpine: TMFVec3f;
     public property FdSpine: TMFVec3f read FFdSpine;
 
+    private FFdTexCoord: TSFNode;
+    public property FdTexCoord: TSFNode read FFdTexCoord;
+    function TexCoordField: TSFNode; override;
+
     { For given Index, return appropriate FdCrossIndex item as 3D vertex.
       That is, uses FdCrossIndex values as X, Z of 3D vertex and sets Y = 0
       (that's how Extrusion is defined in VRML / X3D). }
@@ -299,6 +305,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+    function AutoGenerate3DTexCoords: boolean; override;
   end;
 
   TIndexedFaceSetNode = class(TAbstractComposedGeometryNode)
@@ -807,6 +814,10 @@ begin
    FdSpine.ChangesAlways := [chGeometry];
   Fields.Add(FFdSpine);
   { X3D specification comment: (-Inf,Inf) }
+
+  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
+   FdTexCoord.ChangesAlways := [chGeometry];
+  Fields.Add(FFdTexCoord);
 end;
 
 class function TExtrusionNode.ClassNodeTypeName: string;
@@ -894,14 +905,18 @@ var
   IFS: TIndexedFaceSetNode absolute Result;
   Index: Integer;
   E: TVRMLExtrusion;
+  TexCoords: TVector2SingleList;
 
   procedure NextIndex(SpineIndex, CrossSectionIndex: Integer;
     SpecialTex: boolean; SpecialTexIndex: Integer);
   begin
-    if SpecialTex then
-      IFS.FdTexCoordIndex.Items.L[Index] := SpecialTexIndex else
-      IFS.FdTexCoordIndex.Items.L[Index] :=
-        SpineIndex * FdCrossSection.Count + CrossSectionIndex;
+    if TexCoords <> nil then
+    begin
+      if SpecialTex then
+        IFS.FdTexCoordIndex.Items.L[Index] := SpecialTexIndex else
+        IFS.FdTexCoordIndex.Items.L[Index] :=
+          SpineIndex * FdCrossSection.Count + CrossSectionIndex;
+    end;
 
     { For closed spine and/or crossSection, specify the same indexes.
       For coordIndex (for texCoordIndex, this is not correct, texture
@@ -926,7 +941,8 @@ var
   procedure NextIndexFaceDelimiter;
   begin
     IFS.FdCoordIndex.Items.L[Index] := -1;
-    IFS.FdTexCoordIndex.Items.L[Index] := -1;
+    if TexCoords <> nil then
+      IFS.FdTexCoordIndex.Items.L[Index] := -1;
     Inc(Index);
   end;
 
@@ -979,55 +995,66 @@ begin
 
       { Fill TexCoordNode }
 
-      TexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
-      IFS.FdTexCoord.Value := TexCoordNode;
-
-      Len := SidesCount;
-      if FdBeginCap.Value or FdEndCap.Value then
-        Len += FdCrossSection.Count;
-      TexCoordNode.FdPoint.Items.Count := Len;
-
-      for I := 0 to E.High do
-        for J := 0 to FdCrossSection.Count - 1 do
-          TexCoordNode.FdPoint.Items.L[I * FdCrossSection.Count + J] :=
-            SideTexCoord(I, J);
-
-      { calculate TexCapsTranslation, TexCapsScale }
-      if FdBeginCap.Value or FdEndCap.Value then
+      if (FdTexCoord.Value <> nil) and FdTexCoord.CurrentChildAllowed then
       begin
-        TexCapsTranslation := 0;
-        TexCapsScale := 1;
-        if FdCrossSection.Items.MinMax(TexCapsMin, TexCapsMax) then
+        { No need for to create tex coords. }
+        IFS.FdTexCoord.Value := FdTexCoord.Value;
+        TexCoords := nil;
+      end else
+      begin
+        TexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
+        IFS.FdTexCoord.Value := TexCoordNode;
+        TexCoords := TexCoordNode.FdPoint.Items;
+      end;
+
+      if TexCoords <> nil then
+      begin
+        Len := SidesCount;
+        if FdBeginCap.Value or FdEndCap.Value then
+          Len += FdCrossSection.Count;
+        TexCoords.Count := Len;
+
+        for I := 0 to E.High do
+          for J := 0 to FdCrossSection.Count - 1 do
+            TexCoords.L[I * FdCrossSection.Count + J] := SideTexCoord(I, J);
+
+        { calculate TexCapsTranslation, TexCapsScale }
+        if FdBeginCap.Value or FdEndCap.Value then
         begin
-          if TexCapsMax[0] - TexCapsMin[0] >=
-             TexCapsMax[1] - TexCapsMin[1] then
+          TexCapsTranslation := 0;
+          TexCapsScale := 1;
+          if FdCrossSection.Items.MinMax(TexCapsMin, TexCapsMax) then
           begin
-            if not Zero(TexCapsMax[0] - TexCapsMin[0]) then
+            if TexCapsMax[0] - TexCapsMin[0] >=
+               TexCapsMax[1] - TexCapsMin[1] then
             begin
-              { scale such that U is along the X of cap.
-                Coord calculation will go like
-                  u := (x - TexCapsMin[0]) / (TexCapsMax[0] - TexCapsMin[0]) }
-              TexCapsTranslation := -TexCapsMin[0];
-              TexCapsScale := 1 /  (TexCapsMax[0] - TexCapsMin[0]);
-            end;
-          end else
-          begin
-            if not Zero(TexCapsMax[1] - TexCapsMin[1]) then
+              if not Zero(TexCapsMax[0] - TexCapsMin[0]) then
+              begin
+                { scale such that U is along the X of cap.
+                  Coord calculation will go like
+                    u := (x - TexCapsMin[0]) / (TexCapsMax[0] - TexCapsMin[0]) }
+                TexCapsTranslation := -TexCapsMin[0];
+                TexCapsScale := 1 /  (TexCapsMax[0] - TexCapsMin[0]);
+              end;
+            end else
             begin
-              TexCapsTranslation := -TexCapsMin[1];
-              TexCapsScale := 1 /  (TexCapsMax[1] - TexCapsMin[1]);
+              if not Zero(TexCapsMax[1] - TexCapsMin[1]) then
+              begin
+                TexCapsTranslation := -TexCapsMin[1];
+                TexCapsScale := 1 /  (TexCapsMax[1] - TexCapsMin[1]);
+              end;
             end;
           end;
-        end;
 
-        for I := 0 to FdCrossSection.Count - 1 do
-        begin
-          TexCoordNode.FdPoint.Items.L[
-            SidesCount + I] :=
-            VectorScale(VectorAdd(
-              FdCrossSection.Items.L[I],
-              Vector2Single(TexCapsTranslation, TexCapsTranslation)),
-              TexCapsScale);
+          for I := 0 to FdCrossSection.Count - 1 do
+          begin
+            TexCoordNode.FdPoint.Items.L[
+              SidesCount + I] :=
+              VectorScale(VectorAdd(
+                FdCrossSection.Items.L[I],
+                Vector2Single(TexCapsTranslation, TexCapsTranslation)),
+                TexCapsScale);
+          end;
         end;
       end;
 
@@ -1041,7 +1068,8 @@ begin
       if FdEndCap.Value then
         Len += FdCrossSection.Count + 1 - E.CrossSectionOmit;
       IFS.FdCoordIndex.Items.Count := Len;
-      IFS.FdTexCoordIndex.Items.Count := Len;
+      if TexCoords <> nil then
+        IFS.FdTexCoordIndex.Items.Count := Len;
 
       Index := 0;
 
@@ -1099,6 +1127,22 @@ end;
 function TExtrusionNode.ProxyUsesOverTriangulate: boolean;
 begin
   Result := false;
+end;
+
+procedure TExtrusionNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+begin
+  inherited;
+  FdtexCoord.EnumerateValid(Func);
+end;
+
+function TExtrusionNode.TexCoordField: TSFNode;
+begin
+  Result := FdTexCoord;
+end;
+
+function TExtrusionNode.AutoGenerate3DTexCoords: boolean;
+begin
+  Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
 
 procedure TExtrusionNode.EventSet_crossSectionReceive(
