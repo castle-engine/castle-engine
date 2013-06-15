@@ -125,6 +125,7 @@ var
   ControlsImage: TControlsImage;
   ControlsGeneral: TControlsGeneral;
   SubdivisionSlider: TMenuIntegerSlider;
+  BaseSizeSlider: TMenuFloatSlider;
   LayersCountSlider: TMenuIntegerSlider;
   ImageHeightScaleSlider: TMenuFloatSlider;
   SceneManager: TCastleSceneManager;
@@ -327,6 +328,7 @@ begin
   Items.AddObject('Frequency (scales size)', FrequencySlider);
   Items.AddObject('Seed', SeedSlider);
   Items.AddObject('Subdivision (render details)', SubdivisionSlider);
+  Items.AddObject('Size of the most detailed layer (and export)', BaseSizeSlider);
   Items.AddObject('Layers Count (render farther)', LayersCountSlider);
   Items.AddObject('Image scale (load image first)', ImageHeightScaleSlider);
   PositionRelativeScreenX := prLowerBorder;
@@ -339,17 +341,26 @@ end;
 procedure TControlsNoise.AccessoryValueChanged;
 begin
   if not (Elevation is TElevationNoise) then Exit;
-  case CurrentItem of
-    0: (Elevation as TElevationNoise).Octaves := OctavesSlider.Value;
-    1: (Elevation as TElevationNoise).Smoothness := SmoothnessSlider.Value;
-    2: (Elevation as TElevationNoise).Heterogeneous := HeterogeneousSlider.Value;
-    3: (Elevation as TElevationNoise).Amplitude := AmplitudeSlider.Value;
-    4: (Elevation as TElevationNoise).Frequency := FrequencySlider.Value;
-    5: (Elevation as TElevationNoise).Seed := SeedSlider.Value;
-    6: Subdivision := SubdivisionSlider.Value;
-    7: LayersCount := LayersCountSlider.Value;
-    8: (Elevation as TElevationNoise).ImageHeightScale := ImageHeightScaleSlider.Value;
-  end;
+  if CurrentAccessory = OctavesSlider then
+    (Elevation as TElevationNoise).Octaves := OctavesSlider.Value;
+  if CurrentAccessory = SmoothnessSlider then
+    (Elevation as TElevationNoise).Smoothness := SmoothnessSlider.Value;
+  if CurrentAccessory = HeterogeneousSlider then
+    (Elevation as TElevationNoise).Heterogeneous := HeterogeneousSlider.Value;
+  if CurrentAccessory = AmplitudeSlider then
+    (Elevation as TElevationNoise).Amplitude := AmplitudeSlider.Value;
+  if CurrentAccessory = FrequencySlider then
+    (Elevation as TElevationNoise).Frequency := FrequencySlider.Value;
+  if CurrentAccessory = SeedSlider then
+    (Elevation as TElevationNoise).Seed := SeedSlider.Value;
+  if CurrentAccessory = SubdivisionSlider then
+    Subdivision := SubdivisionSlider.Value;
+  if CurrentAccessory = BaseSizeSlider then
+    BaseSize := BaseSizeSlider.Value;
+  if CurrentAccessory = LayersCountSlider then
+    LayersCount := LayersCountSlider.Value;
+  if CurrentAccessory = ImageHeightScaleSlider then
+    (Elevation as TElevationNoise).ImageHeightScale := ImageHeightScaleSlider.Value;
   inherited;
 end;
 
@@ -357,6 +368,7 @@ constructor TControlsImage.Create(AOwner: TComponent);
 begin
   inherited;
   Items.AddObject('Subdivision (render details)', SubdivisionSlider);
+  Items.AddObject('Size of the most detailed layer (and export)', BaseSizeSlider);
   Items.AddObject('Layers Count (render farther)', LayersCountSlider);
   Items.AddObject('Image scale (load image first)', ImageHeightScaleSlider);
   PositionRelativeScreenX := prLowerBorder;
@@ -368,11 +380,14 @@ end;
 
 procedure TControlsImage.AccessoryValueChanged;
 begin
-  case CurrentItem of
-    0: Subdivision := SubdivisionSlider.Value;
-    1: LayersCount := LayersCountSlider.Value;
-    2: (Elevation as TElevationImage).ImageHeightScale := ImageHeightScaleSlider.Value;
-  end;
+  if CurrentAccessory = SubdivisionSlider then
+    Subdivision := SubdivisionSlider.Value;
+  if CurrentAccessory = BaseSizeSlider then
+    BaseSize := BaseSizeSlider.Value;
+  if CurrentAccessory = LayersCountSlider then
+    LayersCount := LayersCountSlider.Value;
+  if CurrentAccessory = ImageHeightScaleSlider then
+    (Elevation as TElevationImage).ImageHeightScale := ImageHeightScaleSlider.Value;
   inherited;
 end;
 
@@ -380,6 +395,7 @@ constructor TControlsGeneral.Create(AOwner: TComponent);
 begin
   inherited;
   Items.AddObject('Subdivision (render details)', SubdivisionSlider);
+  Items.AddObject('Size of the most detailed layer (and export)', BaseSizeSlider);
   Items.AddObject('Layers Count (render farther)', LayersCountSlider);
   PositionRelativeScreenX := prLowerBorder;
   PositionRelativeScreenY := prLowerBorder;
@@ -390,10 +406,12 @@ end;
 
 procedure TControlsGeneral.AccessoryValueChanged;
 begin
-  case CurrentItem of
-    0: Subdivision := SubdivisionSlider.Value;
-    1: LayersCount := LayersCountSlider.Value;
-  end;
+  if CurrentAccessory = SubdivisionSlider then
+    Subdivision := SubdivisionSlider.Value;
+  if CurrentAccessory = BaseSizeSlider then
+    BaseSize := BaseSizeSlider.Value;
+  if CurrentAccessory = LayersCountSlider then
+    LayersCount := LayersCountSlider.Value;
   inherited;
 end;
 
@@ -437,6 +455,8 @@ begin
   { sliders used by both Controls* }
   SubdivisionSlider := TMenuIntegerSlider.Create(2, 10, Subdivision);
   SubdivisionSlider.OwnedByParent := false;
+  BaseSizeSlider := TMenuFloatSlider.Create(0.1, 20, BaseSize);
+  BaseSizeSlider.OwnedByParent := false;
   LayersCountSlider := TMenuIntegerSlider.Create(1, 10, LayersCount);
   LayersCountSlider.OwnedByParent := false;
   ImageHeightScaleSlider := TMenuFloatSlider.Create(0.0, 2.0, 0.25);
@@ -474,6 +494,7 @@ begin
   FreeAndNil(ControlsImage);
   FreeAndNil(ControlsGeneral);
   FreeAndNil(SubdivisionSlider);
+  FreeAndNil(BaseSizeSlider);
   FreeAndNil(LayersCountSlider);
   FreeAndNil(ImageHeightScaleSlider);
 

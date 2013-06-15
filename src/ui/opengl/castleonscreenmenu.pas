@@ -423,6 +423,10 @@ type
       Changing this calls CurrentItemChanged automatically when needed. }
     property CurrentItem: Integer read GetCurrentItem write SetCurrentItem;
 
+    { The accessory (like a slider) attached to currently selected menu item.
+      @nil if none. }
+    function CurrentAccessory: TMenuAccessory;
+
     { These change CurrentItem as appropriate.
       Usually you will just let this class call it internally
       (from MouseMove, KeyDown etc.) and will not need to call it yourself.
@@ -510,14 +514,15 @@ type
     procedure CurrentItemSelected; virtual; deprecated;
 
     { Called when the value of current accessory (TMenuAccessory assigned
-      to CurrentItem) will change value.
+      to CurrentItem) changed its value.
       (Which may happen due to user clicking, or pressing some keys etc.)
 
       Note that this will not be called when you just set
       Value of some property.
 
       In the TCastleOnScreenMenu class this just calls VisibleChange,
-      and OnAccessoryValueChanged. }
+      and OnAccessoryValueChanged. You can look at CurrentAccessory
+      or (less advised) CurrentItem to see what changed. }
     procedure AccessoryValueChanged; virtual;
 
     { @deprecated Deprecated name for AccessoryValueChanged. }
@@ -1192,6 +1197,17 @@ begin
     Result := -1;
 end;
 
+function TCastleOnScreenMenu.CurrentAccessory: TMenuAccessory;
+var
+  I: Integer;
+begin
+  I := CurrentItem;
+  if (I <> -1) and
+     (Items.Objects[I] is TMenuAccessory) then
+    Result := TMenuAccessory(Items.Objects[I]) else
+    Result := nil;
+end;
+
 procedure TCastleOnScreenMenu.SetCurrentItem(const Value: Integer);
 var
   OldCurrentItem, NewCurrentItem: Integer;
@@ -1453,7 +1469,7 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
 
   function KeyDown(const Key: TKey; const C: char): boolean;
 
-    function CurrentItemAccessoryKeyDown: boolean;
+    function CurrentAccessoryKeyDown: boolean;
     begin
       Result := false;
       if Items.Objects[CurrentItem] <> nil then
@@ -1526,11 +1542,11 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
     end else
     if Key = KeySelectItem then
     begin
-      CurrentItemAccessoryKeyDown;
+      CurrentAccessoryKeyDown;
       Click;
       Result := ExclusiveEvents;
     end else
-      Result := CurrentItemAccessoryKeyDown;
+      Result := CurrentAccessoryKeyDown;
 
     if DesignerMode then
     begin
