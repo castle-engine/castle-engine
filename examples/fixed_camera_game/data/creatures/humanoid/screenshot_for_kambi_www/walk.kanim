@@ -5,6 +5,6 @@
   equality_epsilon="0.01"
   loop="true"
   backwards="true">
-  <frame file_name="walk_1.wrl" time="0" />
-  <frame file_name="walk_2.wrl" time="0.5" />
+  <frame url="walk_1.wrl" time="0" />
+  <frame url="walk_2.wrl" time="0.5" />
 </animation>

@@ -203,7 +203,7 @@ begin
     StatePath := 'creatures/' + Name + '/' + CreatureStateName[S] + '/';
 
     Animations[S].URL := DataURLFromConfig(
-      DataConfig.GetValue(StatePath + 'file_name', ''));
+      DataConfig.GetValue(StatePath + 'url', ''));
 
     for SChange := Low(SChange) to High(SChange) do
     begin

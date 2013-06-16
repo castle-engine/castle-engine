@@ -7,6 +7,6 @@
   image="inventory_image.png"
 >
   <model>
-    <base file_name="medkit.x3d"/>
+    <base url="medkit.x3d"/>
   </model>
 </resource>

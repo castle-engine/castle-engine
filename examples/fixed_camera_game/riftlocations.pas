@@ -187,16 +187,16 @@ begin
       if Location.Name = StartLocationName then
         StartLocation := Location;
 
-      if not DOMGetAttribute(I.Current, 'image_file_name', Location.FImageURL) then
-        MissingLocationAttribute('image_file_name');
+      if not DOMGetAttribute(I.Current, 'image_url', Location.FImageURL) then
+        MissingLocationAttribute('image_url');
       Location.FImageURL := DataURLFromConfig(Location.FImageURL);
 
-      if not DOMGetAttribute(I.Current, 'shadowed_image_file_name', Location.FShadowedImageURL) then
-        MissingLocationAttribute('shadowed_image_file_name');
+      if not DOMGetAttribute(I.Current, 'shadowed_image_url', Location.FShadowedImageURL) then
+        MissingLocationAttribute('shadowed_image_url');
       Location.FShadowedImageURL := DataURLFromConfig(Location.FShadowedImageURL);
 
-      if not DOMGetAttribute(I.Current, 'scene_file_name', Location.FSceneURL) then
-        MissingLocationAttribute('scene_file_name');
+      if not DOMGetAttribute(I.Current, 'scene_url', Location.FSceneURL) then
+        MissingLocationAttribute('scene_url');
       Location.FSceneURL := DataURLFromConfig(Location.FSceneURL);
 
       DOMGetAttribute(I.Current, 'scene_camera_description',

@@ -5,10 +5,10 @@
   type="WalkAttack"
 >
   <model>
-    <idle   file_name="idle.x3dv"   time_sensor="AnimTimeSensor"/>
-    <walk   file_name="walk.x3dv"   time_sensor="AnimTimeSensor"/>
-    <attack file_name="attack.x3dv" time_sensor="AnimTimeSensor"/>
-    <die    file_name="die.x3dv"    time_sensor="AnimTimeSensor"/>
-    <hurt   file_name="hurt.x3dv"   time_sensor="AnimTimeSensor"/>
+    <idle   url="idle.x3dv"   time_sensor="AnimTimeSensor"/>
+    <walk   url="walk.x3dv"   time_sensor="AnimTimeSensor"/>
+    <attack url="attack.x3dv" time_sensor="AnimTimeSensor"/>
+    <die    url="die.x3dv"    time_sensor="AnimTimeSensor"/>
+    <hurt   url="hurt.x3dv"   time_sensor="AnimTimeSensor"/>
   </model>
 </resource>

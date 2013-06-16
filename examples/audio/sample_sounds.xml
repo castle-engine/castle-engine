@@ -10,15 +10,15 @@
    `name' is the unique sound name. Each <sound> element must have a different
    name.
 
-   `file_name' attribute defaults to `name' + '.wav', so in the most
+   `url' attribute defaults to `name' + '.wav', so in the most
    common situation, when sound named xxx has the filename xxx.wav,
-   you don't have to specify filename. You have to specify file_name
-   only if the sound needs different file_name (for whatever reason),
-   or when the sound currently has no file_name (which means that it will
-   not be ever played). In the last case, you should set file_name to
-   empty string, i.e. file_name="".
+   you don't have to specify this. You have to specify url
+   only if the sound needs different url (for whatever reason),
+   or when the sound currently has no url (which means that it will
+   not be ever played). In the last case, you should set url to
+   empty string, i.e. url="".
 
-   Note that file_name can be relative to the location of this XML file.
+   Note that url can be relative to the location of this XML file.
    In the simple case, you can just place this XML file in the same directory
    as your sounds.
 
@@ -51,10 +51,10 @@
 
   <!-- Example sounds that have non-standard filename (i.e. filename
        is not simply the sound name + '.wav' extension). -->
-  <sound name="player_lava_pain" file_name="doom/dsplpain.wav" />
-  <sound name="intro_music" file_name="intro_music.ogg" />
+  <sound name="player_lava_pain" url="doom/dsplpain.wav" />
+  <sound name="intro_music" url="intro_music.ogg" />
 
-  <!-- Example sound that has explicit empty file_name, to indicate
+  <!-- Example sound that has explicit empty url, to indicate
        that the sound doesn't exist actually.
        Such sound can be treated as usual by your program using
        XmlSoundEngine unit, you can pass it to Sound or Sound3d
@@ -63,9 +63,9 @@
        This is useful if you plan to use the sound in the game,
        but you don't have actually the sound data (WAV file etc.)
        prepared yet. Then you can write such sound with empty
-       file_name and use it everywhere like it would exist.
+       url and use it everywhere like it would exist.
 
        Later, when someone will add the actual WAV file, you just
-       fill file_name below and everything works.  -->
-  <sound name="player_footsteps_watery" file_name="" />
+       fill url below and everything works.  -->
+  <sound name="player_footsteps_watery" url="" />
 </sounds>

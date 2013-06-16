@@ -5,10 +5,10 @@
   type="WalkAttack"
 >
   <model>
-    <idle   file_name="idle.kanim"  />
-    <walk   file_name="walk.kanim"  />
-    <attack file_name="attack.kanim"/>
-    <die    file_name="die.kanim"   />
-    <hurt   file_name="hurt.kanim"  />
+    <idle   url="idle.kanim"  />
+    <walk   url="walk.kanim"  />
+    <attack url="attack.kanim"/>
+    <die    url="die.kanim"   />
+    <hurt   url="hurt.kanim"  />
   </model>
 </resource>

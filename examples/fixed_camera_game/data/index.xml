@@ -25,7 +25,7 @@
   </intro>
   <creatures>
     <player>
-      <!-- Each state has a file_name of associated animation.
+      <!-- Each state has a url of associated animation.
 
            Note that all animations should start from time 0,
            strange things could happen otherwise.
@@ -40,15 +40,15 @@
              so don't prepare such animation (saves resources and loading
              time).
       -->
-      <stand file_name="creatures/humanoid/stand.kanim">
+      <stand url="creatures/humanoid/stand.kanim">
         <bored duration="0.5" />
         <walk duration="0.5" />
       </stand>
-      <walk file_name="creatures/humanoid/walk.kanim">
+      <walk url="creatures/humanoid/walk.kanim">
         <bored possible="False" />
         <stand duration="0.5" />
       </walk>
-      <bored file_name="creatures/humanoid/bored.kanim">
+      <bored url="creatures/humanoid/bored.kanim">
         <walk duration="0.5" />
         <stand duration="0.5" />
       </bored>
@@ -64,9 +64,9 @@
          specifies which Viewpoint to use (useful if your exported VRML
          file has more than 1 viewpoint). -->
     <location name="home"
-      image_file_name="locations/home/renders/render.png"
-      shadowed_image_file_name="locations/home/renders/render_shadowed.png"
-      scene_file_name="locations/home/scene_final.wrl"
+      image_url="locations/home/renders/render.png"
+      shadowed_image_url="locations/home/renders/render_shadowed.png"
+      scene_url="locations/home/scene_final.wrl"
       scene_camera_description="Camera"
       initial_position="0 0 0"
       initial_direction="1 0 0"

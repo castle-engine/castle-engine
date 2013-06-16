@@ -8,8 +8,8 @@
 -->
 
 <sounds>
-  <sound name="intro_music" file_name="music/among_us.wav" />
-  <sound name="main_menu_music" file_name="music/cool_grove.wav" />
+  <sound name="intro_music" url="music/among_us.wav" />
+  <sound name="main_menu_music" url="music/cool_grove.wav" />
 
   <sound name="menu_current_item_changed"
     default_importance="minor_non_spatial"/>

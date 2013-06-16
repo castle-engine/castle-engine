@@ -1653,11 +1653,13 @@ begin
 
         { retrieve URL using DOMGetAttribute
           (that internally uses I.Current.Attributes.GetNamedItem),
-          because we have to distinguish between the case when file_name
-          attribute is not present (in this case URL is left as it was)
-          and when it's present as set to empty string.
+          because we have to distinguish between the case when url/file_name
+          attribute is not present (in this case S.URL is left as it was)
+          and when it's present and set to empty string
+          (in this case S.URL must also be set to empty string).
           Standard I.Current.GetAttribute wouldn't allow me this. }
-        if DOMGetAttribute(I.Current, 'file_name', S.URL) and
+        if (DOMGetAttribute(I.Current, 'url', S.URL) or
+            DOMGetAttribute(I.Current, 'file_name', S.URL)) and
           (S.URL <> '') then
           { Make URL absolute, using RepositoryURLAbsolute, if non-empty URL
             was specified in XML file. }

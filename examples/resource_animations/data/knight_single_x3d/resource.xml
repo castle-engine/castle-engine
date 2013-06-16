@@ -4,7 +4,7 @@
   name="KnightSingle"
   type="WalkAttack"
 >
-  <model file_name="knight.x3dv">
+  <model url="knight.x3dv">
     <idle   time_sensor="IdleTimeSensor"/>
     <walk   time_sensor="WalkTimeSensor"/>
     <attack time_sensor="AttackTimeSensor"/>

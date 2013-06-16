@@ -490,7 +490,7 @@ begin
   if TimeSensor <> '' then
   begin
     if Owner.ModelURL = '' then
-      raise Exception.CreateFmt('Animation "%s" of resource "%s": time_sensor is defined, but 3D model file_name is not defined (neither specific to this animation nor containing multiple animations)',
+      raise Exception.CreateFmt('Animation "%s" of resource "%s": time_sensor is defined, but 3D model url is not defined (neither specific to this animation nor containing multiple animations)',
         [Name, Owner.Name]);
     PrepareScene(Owner.Model, Owner.ModelURL);
     TimeSensorNode := Owner.Model.RootNode.FindNodeByName(
@@ -502,7 +502,7 @@ begin
     PreparePrecalculatedAnimation(Animation, FDuration, URL);
   end else
   if Required then
-    raise Exception.CreateFmt('No definition for required animation "%s" of resource "%s". You have to define file_name or time_sensor for this animation in appropriate resource.xml file',
+    raise Exception.CreateFmt('No definition for required animation "%s" of resource "%s". You have to define url or time_sensor for this animation in appropriate resource.xml file',
       [Name, Owner.Name]);
 end;
 
@@ -522,7 +522,12 @@ end;
 
 procedure T3DResourceAnimation.LoadFromFile(ResourceConfig: TCastleConfig);
 begin
-  URL := ResourceConfig.GetURL('model/' + Name + '/file_name', true);
+  if ResourceConfig.GetValue('model/' + Name + '/file_name', '') <> '' then
+  begin
+    URL := ResourceConfig.GetURL('model/' + Name + '/file_name', true);
+    WritelnLog('Deprecated', 'Reading from deprecated "file_name" attribute inside resource.xml. Use "url" instead.');
+  end else
+    URL := ResourceConfig.GetURL('model/' + Name + '/url', true);
   TimeSensor := ResourceConfig.GetValue('model/' + Name + '/time_sensor', '');
 end;
 
@@ -608,7 +613,12 @@ begin
     DefaultReceiveShadowVolumes);
   FCastShadowVolumes := ResourceConfig.GetValue('cast_shadow_volumes',
     DefaultCastShadowVolumes);
-  FModelURL := ResourceConfig.GetURL('model/file_name', true);
+  if ResourceConfig.GetValue('model/file_name', '') <> '' then
+  begin
+    FModelURL := ResourceConfig.GetURL('model/file_name', true);
+    WritelnLog('Deprecated', 'Reading from deprecated "file_name" attribute inside resource.xml. Use "url" instead.');
+  end else
+    FModelURL := ResourceConfig.GetURL('model/url', true);
 
   for I := 0 to Animations.Count - 1 do
     Animations[I].LoadFromFile(ResourceConfig);

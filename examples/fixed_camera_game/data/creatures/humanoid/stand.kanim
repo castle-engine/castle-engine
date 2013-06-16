@@ -5,5 +5,5 @@
   equality_epsilon="0.01"
   loop="true"
   backwards="true">
-  <frame file_name="stand.wrl" time="0" />
+  <frame url="stand.wrl" time="0" />
 </animation>

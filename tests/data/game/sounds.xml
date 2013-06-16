@@ -3,7 +3,7 @@
 <sounds>
   <sound
     name="player_sudden_pain"
-    file_name="test_name.wav"
+    url="test_name.wav"
     default_importance="player"
     gain="1"
     min_gain="0.8"
