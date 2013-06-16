@@ -468,21 +468,19 @@ class procedure TCastleApplicationIdle.ApplicationIdle(Sender: TObject; var Done
 var
   I: Integer;
   C: TCastleControlBase;
-  AllowLimitFPS: boolean;
 begin
-  AllowLimitFPS := true;
+  { This should never be registered in design mode, to not conflict
+    (by DoLimitFPS, or Done setting) with using Lazarus IDE. }
+  Assert(not (csDesigning in Application.ComponentState));
 
-  { Call UpdateEvent for all TCastleControl instances.
-    Also, calculate AllowLimitFPS. }
+  { Call UpdateEvent for all TCastleControl instances. }
   for I := 0 to CastleControls.Count - 1 do
   begin
     C := CastleControls[I] as TCastleControlBase;
     C.UpdateEvent;
-    AllowLimitFPS := AllowLimitFPS and not (csDesigning in C.ComponentState);
   end;
 
-  if AllowLimitFPS then
-    DoLimitFPS;
+  DoLimitFPS;
 
   { With Done := true (this is actually default Done value here),
     ApplicationIdle events are not occuring as often
@@ -523,7 +521,7 @@ begin
 
   Invalidated := false;
 
-  if not ApplicationIdleSet then
+  if (not (csDesigning in ComponentState)) and (not ApplicationIdleSet) then
   begin
     ApplicationIdleSet := true;
     Application.AddOnIdleHandler(@(TCastleApplicationIdle(nil).ApplicationIdle));
