@@ -22,9 +22,17 @@ unit CastleOpenDocument;
 interface
 
 resourcestring
-  SCannotOpenURL = 'WWW browser not found on your system.';
+  SCannotOpenURL = 'Browser not found on your system.';
 
+{ Open URL with the suitable application.
+
+  This detects and handles also local files (as filenames, or URLs with "file:"
+  protocol). }
 function OpenURL(AURL: String): Boolean;
+
+{ Open a local file or directory.
+  @deprecated You should instead use OpenURL,
+  that automatically detects local filenames and URLs leading to local filenames. }
 function OpenDocument(APath: String): Boolean;
 
 implementation
@@ -61,7 +69,7 @@ implementation
 uses
   {$ifdef UNIX} BaseUnix, {$endif}
   {$ifdef MSWINDOWS} Windows, {$endif}
-  {$ifdef DARWIN} MacOSAll, {$endif}
+  {$ifdef DARWIN} MacOSAll, {$endif} CastleURIUtils,
   SysUtils, Classes, Process, CastleUtils, CastleFilesUtils, CastleLog;
 
 { lcl/lclstrconsts.pas ------------------------------------------------------- }
@@ -186,9 +194,16 @@ function OpenURL(AURL: String): Boolean;
 var
   cf: CFStringRef;
   url: CFURLRef;
+  FileName: string;
 begin
   if AURL = '' then
     Exit(False);
+
+  { If this is a local filename, open it using OpenDocument. }
+  FileName := URIToFilenameSafe(AURL);
+  if FileName <> '' then
+    Exit(OpenDocument(FileName));
+
   cf := CFStringCreateWithCString(kCFAllocatorDefault, @AURL[1], kCFStringEncodingUTF8);
   if not Assigned(cf) then
     Exit(False);
@@ -237,8 +252,13 @@ end;
 // Open a given URL with the default browser
 function OpenURL(AURL: String): Boolean;
 var
-  ABrowser: String;
+  ABrowser, FileName: String;
 begin
+  { If this is a local filename, open it using OpenDocument. }
+  FileName := URIToFilenameSafe(AURL);
+  if FileName <> '' then
+    Exit(OpenDocument(FileName));
+
   Result := FindDefaultBrowser(ABrowser) and FileExists(ABrowser) and FileIsExecutable(ABrowser);
   if not Result then
     Exit;
