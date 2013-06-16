@@ -978,9 +978,8 @@ object Main: TMain
       end
     end
   end
-  object OpenDialog1: TOpenDialog
+  object OpenDialog1: TCastleOpen3DDialog
     Title = 'Open 3d model file'
-    FilterIndex = 0
     left = 80
     top = 184
   end

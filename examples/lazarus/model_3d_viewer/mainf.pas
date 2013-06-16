@@ -24,7 +24,7 @@ uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
   OpenGLContext, Menus, CastleScene, CastleCameras, CastleControl, CastleWarnings,
   CastleLCLRecentFiles, CastleConfig, Buttons, ExtCtrls, StdCtrls, CastleRecentFiles,
-  CastleSceneManager;
+  CastleSceneManager, CastleDialogs;
 
 type
   TMain = class(TForm)
@@ -63,7 +63,7 @@ type
     MenuQuit: TMenuItem;
     MenuSep1: TMenuItem;
     MenuOpen: TMenuItem;
-    OpenDialog1: TOpenDialog;
+    OpenDialog1: TCastleOpen3DDialog;
     PanelBottom: TPanel;
     SaveScreenshotDialog: TSaveDialog;
     Timer1: TTimer;
@@ -150,9 +150,9 @@ end;
 procedure TMain.MenuOpenClick(Sender: TObject);
 begin
   if SceneURL <> '' then
-    OpenDialog1.FileName := URIToFilenameSafeUTF8(SceneURL);
+    OpenDialog1.URL := SceneURL;
   if OpenDialog1.Execute then
-    OpenScene(FilenameToURISafeUTF8(OpenDialog1.FileName));
+    OpenScene(OpenDialog1.URL);
 end;
 
 procedure TMain.UpdateCaption;
@@ -261,8 +261,6 @@ end;
 
 procedure TMain.FormCreate(Sender: TObject);
 begin
-  FileFiltersToDialog(Load3D_FileFilters, OpenDialog1);
-
   { load config settings }
   OnGetApplicationName := @MyGetApplicationName;
   Config.Load;

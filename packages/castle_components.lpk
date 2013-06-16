@@ -30,30 +30,35 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="4" Release="1"/>
-    <Files Count="5">
+    <Files Count="6">
       <Item1>
         <Filename Value="../src/components/castlecontrol.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastleControl"/>
       </Item1>
       <Item2>
+        <Filename Value="../src/components/castledialogs.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="castledialogs"/>
+      </Item2>
+      <Item3>
         <Filename Value="../src/components/castlelclrecentfiles.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastleLCLRecentFiles"/>
-      </Item2>
-      <Item3>
-        <Filename Value="../src/components/castlelclutils.pas"/>
-        <UnitName Value="CastleLCLUtils"/>
       </Item3>
       <Item4>
+        <Filename Value="../src/components/castlelclutils.pas"/>
+        <UnitName Value="CastleLCLUtils"/>
+      </Item4>
+      <Item5>
         <Filename Value="../src/components/castlepropedits.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastlePropEdits"/>
-      </Item4>
-      <Item5>
+      </Item5>
+      <Item6>
         <Filename Value="../src/components/icons/castleicons.lrs"/>
         <Type Value="LRS"/>
-      </Item5>
+      </Item6>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="4">
