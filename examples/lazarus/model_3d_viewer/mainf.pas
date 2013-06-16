@@ -65,7 +65,7 @@ type
     MenuOpen: TMenuItem;
     OpenDialog1: TCastleOpen3DDialog;
     PanelBottom: TPanel;
-    SaveScreenshotDialog: TSaveDialog;
+    SaveScreenshotDialog: TCastleSaveImageDialog;
     Timer1: TTimer;
     MenuMouseLookToggle: TMenuItem;
     RecentFiles: TCastleRecentFiles;
@@ -375,13 +375,11 @@ procedure TMain.ButtonScreenshotClick(Sender: TObject);
 var
   Image: TRGBImage;
 begin
-  FileFiltersToDialog(SaveImage_FileFilters, SaveScreenshotDialog);
-
   if SaveScreenshotDialog.Execute then
   begin
     Image := Browser.SaveScreen;
     try
-      SaveImage(Image, FilenameToURISafeUTF8(SaveScreenshotDialog.FileName));
+      SaveImage(Image, SaveScreenshotDialog.URL);
     finally FreeAndNil(Image) end;
   end;
 end;

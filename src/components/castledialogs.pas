@@ -26,7 +26,7 @@ type
   private
     function GetURL: string;
     procedure SetURL(AValue: string);
-  published
+  public
     property URL: string read GetURL write SetURL stored false;
   end;
 
@@ -35,7 +35,7 @@ type
   private
     function GetURL: string;
     procedure SetURL(AValue: string);
-  published
+  public
     property URL: string read GetURL write SetURL stored false;
   end;
 
@@ -51,8 +51,8 @@ type
     function StoreFilterAndFilterIndex: boolean;
   public
     constructor Create(AOwner: TComponent); override;
-  published
     property URL: string read GetURL write SetURL stored false;
+  published
     property Filter stored StoreFilterAndFilterIndex;
     property FilterIndex stored StoreFilterAndFilterIndex;
   end;
@@ -69,8 +69,8 @@ type
     function StoreFilterAndFilterIndex: boolean;
   public
     constructor Create(AOwner: TComponent); override;
-  published
     property URL: string read GetURL write SetURL stored false;
+  published
     property Filter stored StoreFilterAndFilterIndex;
     property FilterIndex stored StoreFilterAndFilterIndex;
   end;
@@ -87,8 +87,8 @@ type
     function StoreFilterAndFilterIndex: boolean;
   public
     constructor Create(AOwner: TComponent); override;
-  published
     property URL: string read GetURL write SetURL stored false;
+  published
     property Filter stored StoreFilterAndFilterIndex;
     property FilterIndex stored StoreFilterAndFilterIndex;
   end;

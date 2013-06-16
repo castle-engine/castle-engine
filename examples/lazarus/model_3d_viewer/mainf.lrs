@@ -907,11 +907,12 @@ LazarusResources.Add('TMain','FORMDATA',[
   +'OpenGLClick'#0#0#9'TMenuItem'#8'MenuSep2'#7'Caption'#6#1'-'#0#0#9'TMenuItem'
   +#11'MenuWebsite'#7'Caption'#6'"Visit "Castle Game Engine" website'#7'OnClick'
   +#7#16'MenuWebsiteClick'#0#0#0#0#19'TCastleOpen3DDialog'#11'OpenDialog1'#5'Ti'
-  +'tle'#6#18'Open 3d model file'#4'left'#2'P'#3'top'#3#184#0#0#0#6'TTimer'#6'T'
+  +'tle'#6#18'Open 3d model file'#4'left'#2'S'#3'top'#3#200#0#0#0#6'TTimer'#6'T'
   +'imer1'#7'OnTimer'#7#11'Timer1Timer'#4'left'#2'S'#3'top'#2'I'#0#0#18'TCastle'
   +'RecentFiles'#11'RecentFiles'#12'OnOpenRecent'#7#21'RecentFilesOpenRecent'#4
   +'left'#3#18#1#3'top'#3#175#0#0#0#22'TApplicationProperties'#22'ApplicationPr'
-  +'operties1'#4'left'#3#12#1#3'top'#2','#0#0#11'TSaveDialog'#20'SaveScreenshot'
-  +'Dialog'#5'Title'#6#18'Save Screenshot As'#7'Options'#11#17'ofOverwritePromp'
-  +'t'#14'ofEnableSizing'#12'ofViewDetail'#0#4'left'#3#3#1#3'top'#3#15#1#0#0#0
+  +'operties1'#4'left'#3#12#1#3'top'#2','#0#0#22'TCastleSaveImageDialog'#20'Sav'
+  +'eScreenshotDialog'#5'Title'#6#18'Save Screenshot As'#7'Options'#11#17'ofOve'
+  +'rwritePrompt'#14'ofEnableSizing'#12'ofViewDetail'#0#4'left'#3#3#1#3'top'#3
+  +#15#1#0#0#0
 ]);

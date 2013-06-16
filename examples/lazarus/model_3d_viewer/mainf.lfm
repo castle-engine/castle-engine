@@ -980,8 +980,8 @@ object Main: TMain
   end
   object OpenDialog1: TCastleOpen3DDialog
     Title = 'Open 3d model file'
-    left = 80
-    top = 184
+    left = 83
+    top = 200
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
@@ -997,7 +997,7 @@ object Main: TMain
     left = 268
     top = 44
   end
-  object SaveScreenshotDialog: TSaveDialog
+  object SaveScreenshotDialog: TCastleSaveImageDialog
     Title = 'Save Screenshot As'
     Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
     left = 259
