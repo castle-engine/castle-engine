@@ -171,11 +171,34 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
 { Convert URI to a nice form for display (to show in messages and such).
   It makes sure to nicely trim URLs that would be too long/unreadable otherwise
   (like "data:" URI, or multi-line URLs with inlined ECMAScript/CastleScript/shader
-  code). For most normal (short) URLs, just returns them untouched.
+  code).
+
+  When Short = @false (default), then for most "file:" and "http:" URLs,
+  it just returns them untouched.
+
+  When Short = @true, it will try to extract the last path component from
+  URLs like "file:" and "http:", if this last component is not empty.
+  Similar to what ExtractFileName does for filenames.
+  It will also decode the URI (convert %xx to normal charaters).
+  Because of the percent-decoding,
+  it is not advised to use this on filenames with Short=true.
+  Usually, you want to call URICaption that makes sure that argument is URL
+  (using AbsoluteURI) and then returns URIDisplay with Short=true.
 
   It is safe to use this on both absolute and relative URLs.
-  It does not resolve relative URLs in any way. }
-function URIDisplay(const URI: string): string;
+  It does not resolve relative URLs in any way.
+  It also means that it returns empty string for empty URI
+  (contrary to most other routines that convert empty string
+  to a current directory when resolving relative URLs). }
+function URIDisplay(const URI: string; const Short: boolean = false): string;
+
+{ Convert URI to a nice form for a short caption.
+
+  Returns empty string for empty URI (contrary to most other routines that
+  treat empty string like a current directory).
+
+  See URIDisplay documentation for details. }
+function URICaption(const URI: string): string;
 
 { Change extension of the URL. }
 function ChangeURIExt(const URL, Extension: string): string;
@@ -676,10 +699,11 @@ begin
   Result := URIMimeType(URI, Gzipped);
 end;
 
-function URIDisplay(const URI: string): string;
+function URIDisplay(const URI: string; const Short: boolean): string;
 var
   DataURI: TDataURI;
   NewLinePos: Integer;
+  Parsed: TURI;
 begin
   Result := Trim(URI);
 
@@ -699,8 +723,23 @@ begin
       { we have done Trim(URI) to prevent starting from newline }
       Assert(NewLinePos <> 1);
       Result := Copy(Result, 1, NewLinePos - 1) + '...';
+    end else
+    if Short then
+    begin
+      { try to extract last path component }
+      Parsed := ParseURI(URI);
+      Parsed.Document := Trim(Parsed.Document);
+      if Parsed.Document <> '' then
+        Result := Parsed.Document;
     end;
   end;
+end;
+
+function URICaption(const URI: string): string;
+begin
+  if URI = '' then
+    Result := '' else
+    Result := URIDisplay(AbsoluteURI(URI), true);
 end;
 
 function ChangeURIExt(const URL, Extension: string): string;

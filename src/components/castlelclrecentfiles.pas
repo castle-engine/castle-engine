@@ -94,7 +94,7 @@ begin
   if Number = 10 then
     S := '1&0' else
     S := IntToStr(Number);
-  S += '. ' + SQuoteLCLCaption(ExtractURIName(URL));
+  S += '. ' + SQuoteLCLCaption(URICaption(URL));
 
   inherited Create(AOwner);
 

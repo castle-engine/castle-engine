@@ -154,6 +154,10 @@ begin
   AssertEquals('data:model/x3d+xml,...', URIDisplay(DataUriX3D));
   AssertEquals('ecmascript:...', URIDisplay(ScriptUri));
   AssertEquals('ecmascript:', URIDisplay(ScriptUri2));
+
+  AssertEquals('', URIDisplay('', false));
+  AssertEquals('', URIDisplay('', true));
+  AssertEquals('', URICaption(''));
 end;
 
 initialization

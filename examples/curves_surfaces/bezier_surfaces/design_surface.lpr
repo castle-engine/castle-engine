@@ -69,7 +69,7 @@ var
 begin
   SurfaceURL := Value;
   if Value <> '' then
-    S := ExtractURIName(Value) else
+    S := URICaption(Value) else
     S := 'Unsaved surface';
   S := S + ' - design Bezier surface';
 

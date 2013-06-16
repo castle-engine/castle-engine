@@ -6584,7 +6584,7 @@ begin
   if (WorldInfoNode <> nil) and
      (WorldInfoNode.FdTitle.Value <> '') then
     Result := WorldInfoNode.FdTitle.Value else
-    Result := ExtractURIName(URL);
+    Result := URICaption(URL);
 end;
 
 function TCastleSceneCore.Node(const NodeName: string): TX3DNode;

@@ -160,7 +160,7 @@ var
   S: string;
 begin
   if SceneURL <> '' then
-    S := ExtractURIName(SceneURL) else
+    S := URICaption(SceneURL) else
     S := 'No Scene';
   S += ' - ' +  ApplicationName +
     Format(' - FPS : %f (real : %f)', [Browser.Fps.FrameTime, Browser.Fps.RealTime]);
