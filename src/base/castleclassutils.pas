@@ -96,7 +96,7 @@ type
     function Read: string;
 
     { Read the next Integer from stream. Reads next string of non-whitespace
-      characters, like @linke(Read), and then converts it to Integer.
+      characters, like @link(Read), and then converts it to Integer.
 
        @raises(EConvertError If the next non-whitespace string
          cannot be converted to Integer. This includes situations
@@ -106,7 +106,7 @@ type
 
     { Read the next Single value from stream.
       Reads next string of non-whitespace
-      characters, like @linke(Read), and then converts it to Single.
+      characters, like @link(Read), and then converts it to Single.
 
        @raises(EConvertError If the next non-whitespace string
          cannot be converted to Single. This includes situations

@@ -172,13 +172,17 @@
     @item(Changing screen resolution and bit depth,
       see TCastleApplication.VideoChange.)
 
-    @item(You can request OpenGL context properties: color buffer with alpha
-      channel (@link(TCastleWindowBase.AlphaBits AlphaBits)),
-      stencil buffer (@link(TCastleWindowBase.StencilBits StencilBits)),
-      double buffer (@link(TCastleWindowBase.DoubleBuffer DoubleBuffer))).
-      And multisampling (full-screen antialiasing) buffers (by
-      @link(TCastleWindowBase.MultiSampling MultiSampling) or higher-level
-      @link(TCastleWindowBase.AntiAliasing AntiAliasing).)
+    @item(You can request OpenGL context properties:
+      @unorderedList(
+        @item color buffer
+        @item with alpha channel (@link(TCastleWindowBase.AlphaBits AlphaBits)),
+        @item stencil buffer (@link(TCastleWindowBase.StencilBits StencilBits)),
+        @item double buffer (@link(TCastleWindowBase.DoubleBuffer DoubleBuffer)),
+        @item(multisampling (full-screen antialiasing) buffers (by
+          @link(TCastleWindowBase.MultiSampling MultiSampling) or higher-level
+          @link(TCastleWindowBase.AntiAliasing AntiAliasing)))
+      )
+    )
 
     @item(You can use native modal dialogs for things such as file selection.
       GTK backend will use GTK dialogs, WinAPI backend
