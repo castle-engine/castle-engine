@@ -39,21 +39,6 @@
 
   Bugs on GTK2, not on Carbon:
   - All radio menu items are always on. Why?
-
-  Bugs on Carbon, not on GTK2:
-  - Using command+r shows message twice. That is because rebuilding the menu.
-    Fix to not do rebuilding on MainMenu.Enabled changes.
-
-    Investigation: That's because after a successfull file open,
-    view3dscene rebuilds the menu (because we move entries in recent files section).
-    On command+r, we also rebuild the menu (even when you exit MessageOk by escape),
-    because changing MainMenu.Enabled forced rebuild of the menu.
-    Reproduced by project_2 in temp dir.
-
-    This has nothing to do with dialog boxes (BackendFileDialog or own MessageOk).
-    This is triggered by having a menu item key shortcut,
-    and when this menu item is executed --- we destroy and create new menu
-    that also reacts to this shortcut. In this case, Carbon executes the menu item again.
 *)
 
 {$ifdef read_window_interface}
@@ -250,6 +235,24 @@ begin
 end;
 
 procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+
+  procedure RefreshEnabled(MyMenu: TMenu);
+
+    procedure RefreshEnabledEntry(const MyEntry: TMenuEntry);
+    begin
+      if MyEntry is TMenuEntryWithCaption then
+        MenuUpdateEnabled(TMenuEntryWithCaption(MyEntry));
+      if MyEntry is TMenu then
+        RefreshEnabled(TMenu(MyEntry));
+    end;
+
+  var
+    I: Integer;
+  begin
+    for I := 0 to MyMenu.Count - 1 do
+      RefreshEnabledEntry(MyMenu[I]);
+  end;
+
 var
   EntryLCL: Menus.TMenuItem;
 begin
@@ -259,9 +262,29 @@ begin
     completely ignore Menu.Items.Enabled.
 
     So to do make it work, we
-    - always combine MainMenu.Enabled with particular item's Enabled value
-      (in particular, this way BackendMenuInitialize applies it to every item).
-    - at MenuUpdateEnabled for MainMenu, just rebuild whole menu in this case. }
+    1. Always combine MainMenu.Enabled with particular item's Enabled value
+       (in particular, this way BackendMenuInitialize applies it to every item).
+    2. At MenuUpdateEnabled for MainMenu (so when you change MainMenu.Enabled
+       value) we do a refresh (update enabled state) of all the menu items.
+
+    Note that we cannot just do MenuFinalize + MenuInitialize to implement
+    the 2nd step, because Mac OS X (Carbon) reacts very badly to menu rebuilds.
+    There is a problem when you have a menu item with key shortcut,
+    and when this menu item is executed --- we destroy and create new menu
+    that also reacts to this shortcut. In this case, Carbon executes
+    the menu item again! Consider e.g. view3dscene "File->Open" with
+    Ctrl+O shortcut, that after opening a new file rebuilds the menu
+    to update the "recent files" menu section. Consider also "Display->Raytrace"
+    with Ctrl+R shortcut, that after choosing options changes
+    the MainMenu.Enabled. If we would do a MenuFinalize + MenuInitialize
+    to easiy recreate LCL menu, we would see open dialog twice after Ctrl+O,
+    and raytrace dialog twice after Ctrl+R. So we don't do it.
+    In MenuInsert and MenuDelete and in this method, MenuUpdateEnabled,
+    we merely change the existing LCL menu instances.
+
+    This all could be considered Carbon's bug, anyway we have to work with it.
+  }
+
   if Entry = MainMenu then
   begin
     MenuFinalize;
@@ -404,10 +427,13 @@ begin
   OpenGLControl.TabStop := true;
 
   OpenGLControl.DoubleBuffered := DoubleBuffer;
+  { $define LAZARUS_OLD}
+  {$ifndef LAZARUS_OLD}
   OpenGLControl.StencilBits := StencilBits;
   OpenGLControl.DepthBits := DepthBits;
   OpenGLControl.AlphaBits := AlphaBits;
   OpenGLControl.MultiSampling := MultiSampling;
+  {$endif LAZARUS_OLD}
 
   Form.ActiveControl := OpenGLControl;
 
