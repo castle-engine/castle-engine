@@ -287,8 +287,7 @@ begin
 
   if Entry = MainMenu then
   begin
-    MenuFinalize;
-    MenuInitialize;
+    RefreshEnabled(MainMenu);
     Exit;
   end;
 
