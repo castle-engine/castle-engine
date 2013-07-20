@@ -205,6 +205,10 @@ begin
   FileFiltersToDialog(FFList, LCLFilter, LCLFilterIndex);
 end;
 
+const
+  { Ctrl key on most systems, Command key on Mac OS X. }
+  ssCtrlOrCommand = {$ifdef DARWIN} ssMeta {$else} ssCtrl {$endif};
+
 procedure KeyLCLToCastle(const Key: Word; const Shift: TShiftState;
   out MyKey: TKey; out MyCharKey: char);
 begin
@@ -264,7 +268,7 @@ begin
     Ord('A') .. Ord('Z'):
       begin
         MyKey := TKey(Ord(K_A)  + Ord(Key) - Ord('A'));
-        if ssCtrl in Shift then
+        if ssCtrlOrCommand in Shift then
           MyCharKey := Chr(Ord(CtrlA) + Ord(Key) - Ord('A')) else
         begin
           MyCharKey := Chr(Key);
@@ -357,7 +361,7 @@ begin
         CtrlA .. CtrlZ:
           begin
             LazKey := Ord('A') + Ord(CharKey) - Ord(CtrlA);
-            Shift := [{$ifdef DARWIN} ssMeta {$else} ssCtrl {$endif}];
+            Shift := [ssCtrlOrCommand];
           end;
       end;
   end;
