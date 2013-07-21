@@ -824,7 +824,9 @@ const
   #8, #9, #13. These may be either described as Backspace/Tab/Enter
   (if BackSpaceTabEnterString = true)
   or as Ctrl+H, Ctrl+I, Ctrl+M (if BackSpaceTabEnterString = false). }
-function CharToNiceStr(c: char; BackSpaceTabEnterString: boolean = true): string;
+function CharToNiceStr(c: char; 
+  const BackSpaceTabEnterString: boolean = true;
+  const CtrlIsCommand: boolean = false): string;
 
 { Replace any number of consecutive whitespace (including newlines)
   with a single whitespace. This is nice when you have a string
@@ -2083,10 +2085,16 @@ end;
 function PCharOrNil(const s: string): PChar;
 begin if s = '' then result := nil else result := PChar(s); end;
 
-function CharToNiceStr(c: char; BackSpaceTabEnterString: boolean): string;
+function CharToNiceStr(c: char;
+  const BackSpaceTabEnterString, CtrlIsCommand: boolean): string;
 
   function DescribeCtrlKey(c: char): string;
-  begin result := 'Ctrl+'+Chr(Ord(c)-1+Ord('a')) end;
+  begin
+    if CtrlIsCommand then
+      Result := 'Command' else
+      Result := 'Ctrl';
+    Result += '+' + Chr(Ord(c) - 1 + Ord('A'));
+  end;
 
 begin
   if BackSpaceTabEnterString then

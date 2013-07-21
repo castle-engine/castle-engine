@@ -706,17 +706,7 @@ end;
 
 function TMenuItem.KeyString(out S: string): boolean;
 begin
- if CharKey <> #0 then
- begin
-  S := CharToNiceStr(CharKey, false);
-  Result := true;
- end else
- if Key <> K_None then
- begin
-  S := KeyToStr(Key);
-  Result := true;
- end else
- Result := false;
+  Result := CastleWindow.KeyString(CharKey, Key, S);
 end;
 
 function TMenuItem.KeyMatches(const AKey: TKey; const ACharKey: char): boolean;

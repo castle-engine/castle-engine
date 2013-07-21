@@ -78,7 +78,7 @@ type
 
 { Check condition.
   @raises ECheckFailed Raised with ErrMessage if condition TrueValue if false. }
-procedure Check(TrueValue: boolean; const ErrMessage: string);
+procedure Check(TrueValue: boolean; const ErrMessage: string = 'Check failed');
 
 { Arrays searching ----------------------------------------------------------- }
 

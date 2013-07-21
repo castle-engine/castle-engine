@@ -2787,6 +2787,12 @@ function Clipboard: TCastleClipboard;
 #) }
 procedure Resize2D(Window: TCastleWindowBase);
 
+{ Describe given key. Key is given as combination of character code (may be #0)
+  and Key code (may be K_None). Only when both CharKey = #0 and Key = K_None
+  then this combination doesn't describe any key, and we return @false.
+  Otherwise we return @true and set S. }
+function KeyString(const CharKey: char; const Key: TKey; out S: string): boolean;
+
 {$undef read_interface}
 
 {$define read_interface_2}
@@ -4966,6 +4972,22 @@ procedure Resize2D(Window: TCastleWindowBase);
 begin
   glViewport(0, 0, Window.Width, Window.Height);
   OrthoProjection(0, Window.Width, 0, Window.Height);
+end;
+
+function KeyString(const CharKey: char; const Key: TKey; out S: string): boolean;
+begin
+  if CharKey <> #0 then
+  begin
+    S := CharToNiceStr(CharKey, false
+      {$ifdef CASTLE_WINDOW_LCL} {$ifdef LCLCarbon}, true {$endif} {$endif} );
+    Result := true;
+  end else
+  if Key <> K_None then
+  begin
+    S := KeyToStr(Key);
+    Result := true;
+  end else
+  Result := false;
 end;
 
 function Application: TCastleApplication;
