@@ -94,10 +94,17 @@ private
 {$ifdef read_application_interface}
 private
   LastDoTimerTime: TMilisecTime;
+  {$ifdef LCLCarbon}
+  FTimer: TCustomTimer;
+  procedure ApplicationTimer(Sender: TObject);
+  {$endif LCLCarbon}
   procedure ApplicationIdle(Sender: TObject; var Done: Boolean);
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
+
+const
+  MaxDesiredFPS = DefaultLimitFPS;
 
 { TGoodMenuItem ---------------------------------------------------------------- }
 
@@ -626,8 +633,6 @@ end;
   See TCastleControl implementation for analogous AggressiveUpdate
   procedure with detailed discussion about why this is needed. }
 procedure TCastleWindowBase.AggressiveUpdate;
-const
-  MaxDesiredFPS = DefaultLimitFPS;
 var
   DesiredFPS: Single;
 begin
@@ -735,12 +740,47 @@ procedure TCastleApplication.CreateBackend;
 begin
   Forms.Application.Initialize;
   Forms.Application.AddOnIdleHandler(@ApplicationIdle);
+
+  {$ifdef LCLCarbon}
+  FTimer := TCustomTimer.Create(Self);
+  FTimer.Interval := Round(1000 / MaxDesiredFPS);
+  FTimer.OnTimer := @ApplicationTimer;
+  FTimer.Enabled := true;
+  {$endif LCLCarbon}
 end;
 
 procedure TCastleApplication.DestroyBackend;
 begin
   Forms.Application.RemoveOnIdleHandler(@ApplicationIdle);
+  {$ifdef LCLCarbon}
+  FreeAndNil(FTimer);
+  {$endif LCLCarbon}
 end;
+
+{$ifdef LCLCarbon}
+{ Only for LCL Carbon: Using LCL timer (that is translated to Carbon timer)
+  is the only way to receive continous messages in some cases.
+
+  Otherwise such bugs can be observed (only on LCL-Carbon, not on LCL-GTK2):
+
+  - When trying to Walk using mouse dragging in view3dscene, it doesn't
+    work smoothly: when you simply keep some mouse button pressed,
+    but don't move the mouse anymore (which should result in constant
+    movement forward/backward if you did it after dragging up/down),
+    then we don't get any events (so no movement, no redraw...).
+
+  - Using view3dscene Navigation->Jump to viewpoint... doesn't work
+    smoothly, there is a visible delay when we don't receive messages
+    right after menu click, and so transtion is visible with some delay.
+}
+procedure TCastleApplication.ApplicationTimer(Sender: TObject);
+var
+  I: Integer;
+begin
+  for I := 0 to OpenWindowsCount - 1 do
+    OpenWindows[I].AggressiveUpdate;
+end;
+{$endif LCLCarbon}
 
 procedure TCastleApplication.ApplicationIdle(Sender: TObject; var Done: Boolean);
 begin
