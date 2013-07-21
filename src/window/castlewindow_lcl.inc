@@ -24,19 +24,6 @@
     but doesn't completely fix the problem. Other CastleWindow backends
     have smooth mouse look.
 
-  Bugs on Carbon, not tested on GTK:
-  - Progress is a little weird. It goes forward (can be seen on fps_game
-    and view3dscene compiled with -dTESTING_PROGRESS_DELAY),
-    but it's not smoothly updated.
-    It seems that it's only redrawn when mouse move (not even key down helps)?
-    Actually, it only moves forward when mouse move (not even key down helps)?
-
-    This may all be caused by current TCastleApplication.ProcessMessage
-    calling Forms.Application.ProcessMessages, maybe it hangs and waits for
-    messages on Carbon?
-    Or maybe the Carbon doesn't redraw us often enough, and AggressiveUpdate
-    inside MouseMove helps to force redraw?
-
   Bugs on GTK2, not on Carbon:
   - All radio menu items are always on. Why?
 *)
@@ -83,6 +70,7 @@ private
 
   procedure MenuItemClick(Sender: TObject);
   procedure MenuUpdateShortcut(Entry: TMenuItem);
+  procedure AggressiveUpdate;
 
   procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   procedure FormDeactivate(Sender: TObject);
@@ -632,41 +620,40 @@ begin
     DoMouseUp(X, Y, MyButton);
 end;
 
+{ Since LCL event loop may become clogged when dragging with mouse
+  (like when using mouse look), force doing update and (if needed) redraw
+  from time to time.
+  See TCastleControl implementation for analogous AggressiveUpdate
+  procedure with detailed discussion about why this is needed. }
+procedure TCastleWindowBase.AggressiveUpdate;
+const
+  MaxDesiredFPS = DefaultLimitFPS;
+var
+  DesiredFPS: Single;
+begin
+  if Application.LimitFPS <= 0 then
+    DesiredFPS := MaxDesiredFPS else
+    DesiredFPS := Min(MaxDesiredFPS, Application.LimitFPS);
+  if Timer - Fps.UpdateStartTime > TimerFrequency / DesiredFPS then
+  begin
+    DoUpdate;
+
+    { TODO:
+      - TCastleApplication.OnIdle is not taken care of here.
+        This takes care of calling OnUpdate for this window.
+        Other windows (in case you have multiple TCastleWindow instances)
+        will take care of themselves too, they all have separate Fps counter.
+        But TCastleApplication.OnIdle is left not called.
+      - OnTimer (both from Application and TCastleWindow)
+        is not taken care of here.
+    }
+
+    FlushRedisplay;
+  end;
+end;
+
 procedure TCastleWindowBase.OpenGLControlMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Integer);
-
-  { Since LCL event loop may become clogged when dragging with mouse
-    (like when using mouse look), force doing update and (if needed) redraw
-    from time to time.
-    See TCastleControl implementation for analogous AggressiveUpdate
-    procedure with detailed discussion about why this is needed. }
-  procedure AggressiveUpdate;
-  const
-    MaxDesiredFPS = DefaultLimitFPS;
-  var
-    DesiredFPS: Single;
-  begin
-    if Application.LimitFPS <= 0 then
-      DesiredFPS := MaxDesiredFPS else
-      DesiredFPS := Min(MaxDesiredFPS, Application.LimitFPS);
-    if Timer - Fps.UpdateStartTime > TimerFrequency / DesiredFPS then
-    begin
-      DoUpdate;
-
-      { TODO:
-        - TCastleApplication.OnIdle is not taken care of here.
-          This takes care of calling OnUpdate for this window.
-          Other windows (in case you have multiple TCastleWindow instances)
-          will take care of themselves too, they all have separate Fps counter.
-          But TCastleApplication.OnIdle is left not called.
-        - OnTimer (both from Application and TCastleWindow)
-          is not taken care of here.
-      }
-
-      FlushRedisplay;
-    end;
-  end;
-
 begin
   DoMouseMove(X, Y);
   AggressiveUpdate;
@@ -775,12 +762,23 @@ begin
 end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+var
+  I: Integer;
 begin
   if Forms.Application.Terminated then Exit(false);
 
   { TODO: take WaitForMessage, WaitToLimitFPS into account }
   Forms.Application.ProcessMessages;
   Result := not Forms.Application.Terminated;
+
+  { Without this, OnUpdate will not be called when application calls
+    TCastleApplication.ProcessMessage in a loop, because LCL will not make
+    ApplicationIdle calls from Forms.Application.ProcessMessages. }
+  {if Result then
+  begin
+    for I := 0 to OpenWindowsCount - 1 do
+      OpenWindows[I].AggressiveUpdate;
+  end;}
 end;
 
 function TCastleApplication.ProcessAllMessages: boolean;
