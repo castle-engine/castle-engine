@@ -82,6 +82,7 @@ private
   function MenuEntryCastleToLCL(const MyEntry: TMenuEntry): TGoodMenuItem;
 
   procedure MenuItemClick(Sender: TObject);
+  procedure MenuUpdateShortcut(Entry: TMenuItem);
 
   procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   procedure FormDeactivate(Sender: TObject);
@@ -143,16 +144,6 @@ begin
 end;
 
 function TCastleWindowBase.MenuEntryCastleToLCL(const MyEntry: TMenuEntry): TGoodMenuItem;
-
-  function MenuShortcutCastleToLCL(const Key: TKey; const CharKey: char): TShortCut;
-  var
-    LazKey: Word;
-    Shift: TShiftState;
-  begin
-    KeyCastleToLCL(Key, CharKey, LazKey, Shift);
-    Result := KeyToShortCut(LazKey, Shift);
-  end;
-
 begin
   Result := TGoodMenuItem.Create(Form);
   Result.Window := Self;
@@ -161,8 +152,7 @@ begin
   Result.Entry := MyEntry;
   MyEntry.Handle := Result;
   if MyEntry is TMenuItem then
-    Result.ShortCut := MenuShortcutCastleToLCL(
-      TMenuItem(MyEntry).Key, TMenuItem(MyEntry).CharKey);
+    MenuUpdateShortcut(TMenuItem(MyEntry));
   if MyEntry is TMenuEntryWithCaption then
   begin
     { set MenuItem.Caption and Enabled }
@@ -213,6 +203,41 @@ begin
   Result := EntryLCL <> nil;
   if (not Result) and Log then
     WritelnLog('Menu', 'Warning: menu entry has Handle = nil (this means that corresponding LCL menu item object was not created, but it should)');
+end;
+
+procedure TCastleWindowBase.MenuUpdateShortcut(Entry: TMenuItem);
+var
+  LazKey: Word;
+  Shift: TShiftState;
+  EntryLCL: Menus.TMenuItem;
+begin
+  if not CheckMenu(Entry, EntryLCL) then Exit;
+
+  {$ifdef LCLCarbon}
+  { Workaround yet another bug in LCL Carbon.
+    When a menu item is disabled (because Entry.Enabled is false or
+    MainMenu.Enabled is false), it turns out we have to disable it's shortcut.
+    Otherwise pressing this shortcut can be captured and cause strange behavior
+    later.
+
+    view3dscene bugs (when this workaround not present) on Mac OS X:
+    - Enter "Open Link" with Command+L. Press Command+O (that leads to disabled
+      menu item, and doesn't do anything!). Nothing happens, dummy letter with
+      Ord(CtrlO) is inserted, that's Ok. Then press Escape. And the dialog appears
+      again... Somehow, the Command+O (pressed when it was disabled!) was captured,
+      with delay, and caused weird double menu item activation.
+    - Similarly, after Command+R, press Command+O before escaping.
+      It causes the raytracing dialog to appear again after escaping.
+  }
+  if not EntryLCL.Enabled then
+  begin
+    EntryLCL.ShortCut := 0;
+    Exit;
+  end;
+  {$endif}
+
+  KeyCastleToLCL(Entry.Key, Entry.CharKey, LazKey, Shift);
+  EntryLCL.ShortCut := KeyToShortCut(LazKey, Shift);
 end;
 
 procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
@@ -293,6 +318,11 @@ begin
 
   if not CheckMenu(Entry, EntryLCL) then Exit;
   EntryLCL.Enabled := Entry.Enabled and MainMenu.Enabled;
+
+  {$ifdef LCLCarbon}
+  if Entry is TMenuItem then
+    MenuUpdateShortcut(TMenuItem(Entry));
+  {$endif}
 end;
 
 procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
@@ -325,7 +355,7 @@ begin
   if not CheckMenu(Entry, EntryLCL) then Exit;
   Entry.ClearHandles;
 
-  {$ifdef DARWIN}
+  {$ifdef LCLCarbon}
     (*Workaround LCL on Carbon bug http://bugs.freepascal.org/view.php?id=20688 .
 
       Symptoms:
