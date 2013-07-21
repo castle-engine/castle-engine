@@ -3349,11 +3349,13 @@ end;
 
 procedure TCastleWindowBase.EventOpen;                              const EventName = 'Open';       begin {$I castlewindow_eventbegin.inc} if Assigned(OnOpen)        then begin OnOpen(Self);              end;   {$I castlewindow_eventend.inc} end;
 procedure TCastleWindowBase.EventClose;                             const EventName = 'Close';      begin {$I castlewindow_eventbegin.inc} if Assigned(OnClose)       then begin OnClose(Self);             end;   {$I castlewindow_eventend.inc} end;
-{$define BONUS_LOG_STRING := Format('NewSize : %d,%d', [Width, Height])}
+{$define BONUS_LOG_STRING := Format('%d, %d', [Width, Height])}
 procedure TCastleWindowBase.EventResize;                            const EventName = 'Resize';     begin {$I castlewindow_eventbegin.inc} if Assigned(OnResize)      then begin OnResize(Self);            end;   {$I castlewindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
+{$define BONUS_LOG_STRING := Event.Description}
 procedure TCastleWindowBase.EventPress(const Event: TInputPressRelease);       const EventName = 'Press';    begin {$I castlewindow_eventbegin.inc} if Assigned(OnPress)   then begin OnPress  (Self, Event); end; {$I castlewindow_eventend.inc} end;
 procedure TCastleWindowBase.EventRelease(const Event: TInputPressRelease);     const EventName = 'Release';  begin {$I castlewindow_eventbegin.inc} if Assigned(OnRelease) then begin OnRelease(Self, Event); end; {$I castlewindow_eventend.inc} end;
+{$undef BONUS_LOG_STRING}
 procedure TCastleWindowBase.EventMenuClick(Item: TMenuItem);                   const EventName = 'MenuClick';begin {$I castlewindow_eventbegin.inc} if Assigned(OnMenuClick) then begin OnMenuClick(Self, Item); end;   {$I castlewindow_eventend.inc} end;
 
 { Events below happen so often, that they are logged only when
@@ -3369,7 +3371,7 @@ procedure TCastleWindowBase.EventMenuClick(Item: TMenuItem);                   c
   {$endif}
 {$endif}
 
-  {$define BONUS_LOG_STRING := Format('New position: %d %d', [newX, newY])}
+  {$define BONUS_LOG_STRING := Format('%d, %d', [newX, newY])}
   procedure TCastleWindowBase.EventMouseMove(newX, newY: integer);const EventName = 'MouseMove'; begin {$I castlewindow_eventbegin.inc} if Assigned(OnMouseMove) then begin OnMouseMove(Self, newX, newY); end;   {$I castlewindow_eventend.inc} end;
   {$undef BONUS_LOG_STRING}
 
