@@ -854,6 +854,13 @@ type
       This ignores the geometry of this 3D object (to not accidentaly collide
       with your own geometry), and checks collisions with the rest of the world. }
     function Ray(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
+
+    { In case this scene shares lights with other scenes,
+      this is the source scene. In usual circumstances, this method
+      simply returns @code(Self), which means "no sharing".
+      In case of scenes that are children of TCastlePrecalculatedAnimation,
+      their Shared methods all point to the 1st animation scene. }
+    function Shared: T3D; virtual;
   end;
 
   { List of 3D objects (T3D instances).
@@ -2268,6 +2275,11 @@ begin
 
   if Result then
     Translate(NewMiddle - OldMiddle);
+end;
+
+function T3D.Shared: T3D;
+begin
+  Result := Self;
 end;
 
 { T3DListCore ------------------------------------------------------------ }

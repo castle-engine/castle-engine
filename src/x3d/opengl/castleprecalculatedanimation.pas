@@ -699,6 +699,7 @@ type
       LocalGeometryShape: TShape); override;
     procedure VisibleChangeHere(const Changes: TVisibleChanges); override;
     procedure CursorChange; override;
+    function Shared: TCastleScene; override;
   end;
 
 constructor TAnimationScene.CreateForAnimation(
@@ -722,6 +723,11 @@ begin
   Static := AStatic;
 
   Load(ARootNode, AOwnsRootNode);
+end;
+
+function TAnimationScene.Shared: TCastleScene;
+begin
+  Result := FParentAnimation.FirstScene;
 end;
 
 procedure TAnimationScene.DoGeometryChanged(const Change: TGeometryChange;
@@ -1498,8 +1504,8 @@ begin
 
     FScenes[I].PrepareResources(SceneOptions, false, BaseLights);
 
-    { TODO: this isn't so simple, since not all scenes have to structurally
-      equal anymore. }
+    { TODO: this isn't so simple, since not all scenes have to
+      be structurally equal anymore. }
     if (prManifoldAndBorderEdges in Options) and (I <> 0) then
       FScenes[I].ShareManifoldAndBorderEdges(
         FScenes[0].ManifoldEdges, FScenes[0].BorderEdges);

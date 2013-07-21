@@ -1184,7 +1184,15 @@ end;
 
 function TManagerRenderParams.BaseLights(Scene: T3D): TAbstractLightInstancesList;
 begin
-  Result := FBaseLights[Scene = MainScene];
+  { Use Scene.Shared, not just Scene, for comparison.
+    This way all scenes within a single TCastlePrecalculatedAnimation
+    are treated the same, which makes UseGlobalLights work correctly
+    in case when you render TCastlePrecalculatedAnimation and MainScene
+    refers to the 1st animation scene.
+
+    Testcase: demo_models/kanim/raptor.kanim, without this fix
+    the lights woud be duplicated on non-first animation scene. }
+  Result := FBaseLights[Scene.Shared = MainScene];
 end;
 
 { TCastleAbstractViewport ------------------------------------------------------- }
