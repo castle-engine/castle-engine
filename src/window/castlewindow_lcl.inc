@@ -773,12 +773,22 @@ begin
 
   { Without this, OnUpdate will not be called when application calls
     TCastleApplication.ProcessMessage in a loop, because LCL will not make
-    ApplicationIdle calls from Forms.Application.ProcessMessages. }
-  {if Result then
+    ApplicationIdle calls from Forms.Application.ProcessMessages.
+
+    Bugs observed when the below workaround is not used (on both LCL-Carbon and LCL-GTK2):
+    - Arrow keys up/down do not work in CastleMessages window.
+      E.g. view3dscene "OpenGL info".
+      That's becaue UpdateMessg is never called.
+    - Progress is not rendered smoothly.
+      E.g. in fps_game, define -dTESTING_PROGRESS_DELAY, and notice that progress
+      is not smoothly updated (if you don't move the mouse, since MouseMove
+      already causes AggressiveUpdate).
+  }
+  if Result then
   begin
     for I := 0 to OpenWindowsCount - 1 do
       OpenWindows[I].AggressiveUpdate;
-  end;}
+  end;
 end;
 
 function TCastleApplication.ProcessAllMessages: boolean;
