@@ -539,13 +539,15 @@ end;
 
 function TAbstractTextureNode.AlphaChannel: TAlphaChannel;
 type
-  TDetectAlphaChannel = (daAuto, daSimpleYesNo, daFullRange);
+  TDetectAlphaChannel = (daAuto, daNone, daSimpleYesNo, daFullRange);
 
   function DetectAlphaChannelFromString(S: string): TDetectAlphaChannel;
   begin
     S := UpperCase(S);
     if S = 'AUTO' then
       Result := daAuto else
+    if S = 'NONE' then
+      Result := daNone else
     if S = 'SIMPLE_YES_NO' then
       Result := daSimpleYesNo else
     if S = 'FULL_RANGE' then
@@ -556,20 +558,13 @@ type
     end;
   end;
 
-var
-  DetectAlphaChannel: TDetectAlphaChannel;
 begin
-  DetectAlphaChannel := DetectAlphaChannelFromString(FdAlphaChannel.Value);
-  if DetectAlphaChannel = daAuto then
-    Result := AlphaChannelData else
-  begin
-    if AlphaChannelData <> acNone then
-    begin
-      if DetectAlphaChannel = daFullRange then
-        Result := acFullRange else
-        Result := acSimpleYesNo;
-    end else
-      Result := acNone;
+  case DetectAlphaChannelFromString(FdAlphaChannel.Value) of
+    daAuto       : Result := AlphaChannelData;
+    daNone       : Result := acNone;
+    daSimpleYesNo: Result := acSimpleYesNo;
+    daFullRange  : Result := acFullRange;
+    else raise EInternalError.Create('TAbstractTextureNode.AlphaChannel:DetectAlphaChannel?');
   end;
 end;
 
