@@ -737,7 +737,7 @@ type
       Whole scene is transformed by Transform (before checking which
       edges are silhouette and before rendering). In other words,
       Transform must transform the scene to the same coord space where
-      given ObserverPos is. When they are is the same space, just use
+      given ObserverPos is. When they are in the same space, just use
       IdentityMatrix4Single.
 
       This implicitly creates and uses ManifoldEdges. In fact, one of the uses
