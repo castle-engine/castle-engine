@@ -2444,8 +2444,7 @@ function TCasScriptFunctionHandlers.SearchArgumentClasses(
   function ArgumentClassesEqual(const A1, A2: TCasScriptValueClassArray): boolean;
   begin
     Result := (Length(A1) = Length(A2)) and
-      CompareMem(Pointer(A1), Pointer(A1),
-        SizeOf(TCasScriptValueClass) * Length(A1));
+      CompareMem(Pointer(A1), Pointer(A2), SizeOf(TCasScriptValueClass) * Length(A1));
   end;
 
 begin
@@ -2462,7 +2461,18 @@ begin
     { Result not in the cache. So calculate it, and record in the cache. }
     Cache.IsCache := true;
     Cache.QueryHandlersByArgument := HandlersByArgument;
-    Cache.QueryArgumentClasses := ArgumentClasses;
+    { Copying the reference here, by
+        Cache.QueryArgumentClasses := ArgumentClasses;
+      would be incorrect: our argument may be a long-lived instance in
+      TCasScriptFunction.ExecuteArgumentClasses, that is changed in
+      TCasScriptFunction.CoreExecute. With a reference copy here,
+      the CoreExecute would accidentaly change also our cache state,
+      which will cause trouble later.
+
+      Testcase: demo_models/castle_script/edit_texture.x3dv,
+      key "e", would cause errors, because suddenly CoreExecute may decide
+      that TCasScriptFloat.HandleAdd may be called without promoting int to float. }
+    Cache.QueryArgumentClasses := Copy(ArgumentClasses, 0, Length(ArgumentClasses));
     Cache.Answer := SearchArgumentClasses(
       HandlersByArgument, ArgumentClasses,
       Cache.AnswerArgumentIndex, Cache.AnswerHandler);
