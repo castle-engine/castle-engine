@@ -451,13 +451,14 @@ begin
   OpenGLControl.TabStop := true;
 
   OpenGLControl.DoubleBuffered := DoubleBuffer;
-  { $define LAZARUS_OLD}
-  {$ifndef LAZARUS_OLD}
+  {$if (LCL_FullVersion > 1001000)}
   OpenGLControl.StencilBits := StencilBits;
   OpenGLControl.DepthBits := DepthBits;
   OpenGLControl.AlphaBits := AlphaBits;
   OpenGLControl.MultiSampling := MultiSampling;
-  {$endif LAZARUS_OLD}
+  {$else}
+  {$warning Using LCL (Lazarus library) version before 1.1. OpenGL control doesn't have features to control stencil/alpha/multi-sampling etc.}
+  {$endif}
 
   Form.ActiveControl := OpenGLControl;
 
