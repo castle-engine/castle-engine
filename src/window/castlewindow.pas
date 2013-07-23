@@ -575,7 +575,7 @@ type
   TInputPressReleaseFunc = procedure (Window: TCastleWindowBase; const Event: TInputPressRelease);
   TMenuClickFunc = procedure (Window: TCastleWindowBase; Item: TMenuItem);
   TGLContextRetryOpenFunc = function (Window: TCastleWindowBase): boolean;
-
+  TDropFilesFunc = procedure (Window: TCastleWindowBase; const FileNames: array of string);
   { }
   TResizeAllowed = (raNotAllowed, raOnlyAtOpen, raAllowed);
 
@@ -609,6 +609,7 @@ type
     FOnPress, FOnRelease: TInputPressReleaseFunc;
     FMouseMove: TMouseMoveFunc;
     FOnUpdate, FOnTimer: TWindowFunc;
+    FOnDropFiles: TDropFilesFunc;
     FFullScreen, FDoubleBuffer: boolean;
     FResizeAllowed: TResizeAllowed;
     FMousePressed: TMouseButtons;
@@ -930,6 +931,8 @@ type
         optional EventMenuClick or EventKeyDown }
     procedure DoMenuClick(Item: TMenuItem);
 
+    procedure DoDropFiles(const FileNames: array of string);
+
     { Just like FileDialog, but these always get and should set FileName,
       not an URL. }
     function BackendFileDialog(const Title: string; var FileName: string;
@@ -1014,6 +1017,7 @@ type
     procedure EventUpdate; virtual;
     procedure EventTimer; virtual;
     procedure EventMenuClick(Item: TMenuItem); virtual;
+    procedure EventDropFiles(const FileNames: array of string); virtual;
     { @groupEnd }
 
     { Is it allowed to suspend (for an indefinite amount of time) waiting
@@ -1599,6 +1603,12 @@ end;
 
       Under Lazarus, you can of course also use LCL timers. }
     property OnTimer: TWindowFunc read FOnTimer write FOnTimer;
+
+    { Called when user drag and drops file(s) on the window.
+      In case of Mac OS X bundle, this is also called when user opens a document
+      associated with our application by double-clicking.
+      Note: this is currently supported only by CASTLE_WINDOW_LCL backend. }
+    property OnDropFiles: TDropFilesFunc read FOnDropFiles write FOnDropFiles;
 
     { Should we automatically redraw the window all the time,
       without a need for PostRedisplay call.
@@ -3323,15 +3333,21 @@ procedure TCastleWindowBase.DoTimer; begin  MakeCurrent; EventTimer end;
 
 procedure TCastleWindowBase.DoMenuClick(Item: TMenuItem);
 begin
- if (MainMenu <> nil) and (not MainMenu.Enabled) then Exit;
+  if (MainMenu <> nil) and (not MainMenu.Enabled) then Exit;
 
- MakeCurrent;
- if Item.DoClick then Exit;
+  MakeCurrent;
+  if Item.DoClick then Exit;
 
- { Maybe Item.DoClick changed current OpenGL context and returned false?
-   We want to be safe, so we do here MakeCurrent again. }
- MakeCurrent;
- EventMenuClick(Item);
+  { Maybe Item.DoClick changed current OpenGL context and returned false?
+    We want to be safe, so we do here MakeCurrent again. }
+  MakeCurrent;
+  EventMenuClick(Item);
+end;
+
+procedure TCastleWindowBase.DoDropFiles(const FileNames: array of string);
+begin
+  MakeCurrent;
+  EventDropFiles(FileNames);
 end;
 
 { funkcje EventXxx ktore sa wirtualne i sa GWARANTOWANE ze w klasie bazowej
@@ -3357,7 +3373,8 @@ procedure TCastleWindowBase.EventResize;                            const EventN
 procedure TCastleWindowBase.EventPress(const Event: TInputPressRelease);       const EventName = 'Press';    begin {$I castlewindow_eventbegin.inc} if Assigned(OnPress)   then begin OnPress  (Self, Event); end; {$I castlewindow_eventend.inc} end;
 procedure TCastleWindowBase.EventRelease(const Event: TInputPressRelease);     const EventName = 'Release';  begin {$I castlewindow_eventbegin.inc} if Assigned(OnRelease) then begin OnRelease(Self, Event); end; {$I castlewindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
-procedure TCastleWindowBase.EventMenuClick(Item: TMenuItem);                   const EventName = 'MenuClick';begin {$I castlewindow_eventbegin.inc} if Assigned(OnMenuClick) then begin OnMenuClick(Self, Item); end;   {$I castlewindow_eventend.inc} end;
+procedure TCastleWindowBase.EventMenuClick(Item: TMenuItem);                   const EventName = 'MenuClick';begin {$I castlewindow_eventbegin.inc} if Assigned(OnMenuClick) then begin OnMenuClick(Self, Item);      end; {$I castlewindow_eventend.inc} end;
+procedure TCastleWindowBase.EventDropFiles(const FileNames: array of string);  const EventName = 'DropFiles';begin {$I castlewindow_eventbegin.inc} if Assigned(OnDropFiles) then begin OnDropFiles(Self, FileNames); end; {$I castlewindow_eventend.inc} end;
 
 { Events below happen so often, that they are logged only when
   CASTLE_WINDOW_EVENTS_LOG_ALL is defined.

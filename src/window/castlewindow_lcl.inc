@@ -74,6 +74,7 @@ private
 
   procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   procedure FormDeactivate(Sender: TObject);
+  procedure FormDropFiles(Sender: TObject; const FileNames: array of string);
 
   procedure OpenGLControlPaint(Sender: TObject);
   procedure OpenGLControlResize(Sender: TObject);
@@ -417,6 +418,7 @@ begin
     have a TForm class (see TCustomForm.Create in LCL), so that's not a problem. }
 
   Forms.Application.CreateForm(TForm, Form);
+  Form.OnDropFiles := @FormDropFiles;
 
   Form.Top := Top;
   Form.Left := Left;
@@ -733,6 +735,11 @@ function TCastleWindowBase.MessageYesNo(const S: string;
 begin
   ReleaseAllKeysAndMouse; // do it manually
   Result := MessageDlg(S, mtConfirmation, mbYesNo, 0) = mrYes;
+end;
+
+procedure TCastleWindowBase.FormDropFiles(Sender: TObject; const FileNames: array of string);
+begin
+  DoDropFiles(FileNames);
 end;
 
 { TCastleApplication ---------------------------------------------------------- }
