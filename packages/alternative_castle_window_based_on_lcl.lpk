@@ -13,24 +13,19 @@
       </SearchPaths>
       <Parsing>
         <SyntaxOptions>
-          <IncludeAssertionCode Value="True"/>
           <CStyleMacros Value="True"/>
         </SyntaxOptions>
       </Parsing>
       <CodeGeneration>
         <Checks>
           <IOChecks Value="True"/>
-          <RangeChecks Value="True"/>
-          <OverflowChecks Value="True"/>
-          <StackChecks Value="True"/>
         </Checks>
         <Optimizations>
-          <OptimizationLevel Value="0"/>
+          <OptimizationLevel Value="2"/>
         </Optimizations>
       </CodeGeneration>
       <Other>
         <Verbosity>
-          <ShowNotes Value="False"/>
           <ShowHints Value="False"/>
         </Verbosity>
         <CustomOptions Value="-Sh
