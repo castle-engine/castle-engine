@@ -739,6 +739,10 @@ end;
 
 procedure TCastleApplication.CreateBackend;
 begin
+  { Do not install LCL handler for ExceptProc, we want to use our own handler
+    in CastleUtils. }
+  Forms.Application.CaptureExceptions := false;
+
   Forms.Application.Initialize;
   Forms.Application.AddOnIdleHandler(@ApplicationIdle);
 
