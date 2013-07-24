@@ -230,11 +230,6 @@ initialization
 
  if FCastleZLibInited then
  begin
-  (* Note: at first I wrote it like
-       {$ifdef FPC_OBJFPC} Pointer {$else} @ {$endif} (xxx)
-     but unfortunately stupid Delphi doesn't get @(xxx) construct.
-     I must use @xxx construct. *)
-
   Pointer(zlibVersionpchar) := ZLibrary.Symbol('zlibVersion');
   Pointer(deflate) := ZLibrary.Symbol('deflate');
   Pointer(deflateEnd) := ZLibrary.Symbol('deflateEnd');
