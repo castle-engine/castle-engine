@@ -70,7 +70,8 @@ end;
 
 Destructor TGZFileStream.Destroy;
 begin
-  gzclose(FFile);
+  If FFile <> nil then
+    gzclose(FFile);
   Inherited Destroy;
 end;
 
