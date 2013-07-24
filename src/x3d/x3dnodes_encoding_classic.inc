@@ -599,10 +599,10 @@ begin
              class (we already wrap TFileStream in TBufferedReadStream)
              when I don't have to.
 
-          2. TDecompressionStream doesn't handle gzip compressed data for now
-             (it handles zlib-compressed streams, which is not the same thing).
-             For now, our Download function uses temporary files to overcome
-             this for network data, so it creates even more overhead. }
+          2. Our Download function uses temporary files to overcome
+             the limitations of TGZFileStream (it cannot compress/decompress
+             memory data, only files on disk) for network data.
+             So it creates even more overhead. }
         on EX3DGzipCompressed do
           Result := DoIt(Download(URL, [soGzip]), true, BaseUrl);
       end;
