@@ -13,35 +13,31 @@
   ----------------------------------------------------------------------------
 }
 
-{ Define some useful symbols for conditional compilation.
+{ Common compiler defines and symbols.
+  This is a central include file for Castle Game Engine.
 
-  This is a central include file for our Castle Game Engine.
-  It is not necessarily included in all of our units, however it's included
-  in many of them --- always when something needs to check for given symbol.
+  This file is *not* included in 100% of our units (for now),
+  it's just included where it's needed.
 
-  This file does not define some basic compiler settings, like
-  syntax things (hugestrings ? which FPC mode to use ? ...) or what
-  checks to do (io checks ? range checks ? assertions ? ...).
-  Instead I depend on the fact that all my units must be compiled with
-  my ../castle-fpc.cfg configuration file. That file defines such basic
-  compiler options. That's because I can't control everything using
-  include file, like this one. E.g. I can't say here to add HeapTrc
-  and LineInfo at the beginning of "uses" clause of current unit/program.
-  But I can say it easily in ../castle-fpc.cfg using "-gl -gh" options.
+  Note that we don't try to set compilation options here (like $H or FPC
+  ObjFpc mode) because not all interesting compiler settings can be set
+  by directives. And specyfying only a subset of them is useless.
+  The proper compiler options to compile the engine are in ../../castle-fpc.cfg
+  configuration file (used also by fpmake compilation method),
+  and they are replicated in Lazarus packages compilation settings.
 }
 
 {$ifndef CASTLE_CONF_INCLUDED}
 {$define CASTLE_CONF_INCLUDED}
 
+{$ifndef FPC}
+  {$error You have to use FPC (Free Pascal Compiler) to compile Castle Game Engine. The engine is not suitable for Delphi or other Pascal compilers. (But patches to change this are welcome. Michalis doesn't care about Delphi, but if someone else wants to step up and fix Delphi compatibility --- go for it.)}
+{$endif}
+
 { Configurable: define CASTLE_ENGINE_LGPL to compile only
   components available on permissive LGPL (see
   http://castle-engine.sourceforge.net/engine.php#section_license) }
 { $define CASTLE_ENGINE_LGPL}
-
-{ MSWINDOWS is the preferred symbol to mark Windows-only code
-  (that is not necessarily tied only to 32-bit Windows).
-  But older Delphi and FPC 1.0.x did not define this symbol, fix it. }
-{$ifdef WIN32} {$define MSWINDOWS} {$endif}
 
 (*EXTENDED_EQUALS_DOUBLE should be defined when Extended type is
   the same thing as Double type on this platform.
@@ -61,30 +57,26 @@
   Exception to the above is Linux on x86-64, that allows to use normal Extended.
   Maybe Darwin on x86-64 also?
 *)
-{$ifdef FPC}
-  {$ifndef FPC_HAS_TYPE_EXTENDED}
-    {$define EXTENDED_EQUALS_DOUBLE}
-  {$endif}
+{$ifndef FPC_HAS_TYPE_EXTENDED}
+  {$define EXTENDED_EQUALS_DOUBLE}
 {$endif}
 
-{$ifdef FPC}
-  { We do *not* define inline functions/methods when compiling from
-    Lazarus package. This is to workaround FPC bug
-    http://bugs.freepascal.org/view.php?id=12223 }
-  {$ifndef CASTLE_ENGINE_LAZARUS_PACKAGE}
-    {$define SUPPORTS_INLINE}
-  {$endif}
-
-  {$ifdef VER2_0} {$fatal FPC 2.0.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
-  {$ifdef VER2_2} {$fatal FPC 2.2.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
-  {$ifdef VER2_4} {$fatal FPC 2.4.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
-
-  {$define TOBJECT_HAS_EQUALS}
-  {$ifdef VER2_0}   {$undef TOBJECT_HAS_EQUALS} {$endif}
-  {$ifdef VER2_2_0} {$undef TOBJECT_HAS_EQUALS} {$endif}
-  {$ifdef VER2_2_2} {$undef TOBJECT_HAS_EQUALS} {$endif}
-  {$ifdef VER2_2_4} {$undef TOBJECT_HAS_EQUALS} {$endif}
-  {$ifdef VER2_4_0} {$undef TOBJECT_HAS_EQUALS} {$endif}
+{ We do *not* define inline functions/methods when compiling from
+  Lazarus package. This is to workaround FPC bug
+  http://bugs.freepascal.org/view.php?id=12223 }
+{$ifndef CASTLE_ENGINE_LAZARUS_PACKAGE}
+  {$define SUPPORTS_INLINE}
 {$endif}
+
+{$ifdef VER2_0} {$fatal FPC 2.0.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
+{$ifdef VER2_2} {$fatal FPC 2.2.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
+{$ifdef VER2_4} {$fatal FPC 2.4.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
+
+{$define TOBJECT_HAS_EQUALS}
+{$ifdef VER2_0}   {$undef TOBJECT_HAS_EQUALS} {$endif}
+{$ifdef VER2_2_0} {$undef TOBJECT_HAS_EQUALS} {$endif}
+{$ifdef VER2_2_2} {$undef TOBJECT_HAS_EQUALS} {$endif}
+{$ifdef VER2_2_4} {$undef TOBJECT_HAS_EQUALS} {$endif}
+{$ifdef VER2_4_0} {$undef TOBJECT_HAS_EQUALS} {$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}
