@@ -782,6 +782,7 @@ begin
     raise Exception.CreateFmt('Temporary file "%s" already exists', [Result]);
 end;
 
+{$ifdef DARWIN}
 var
   BundlePathCached: boolean;
   BundlePathCache: string;
@@ -813,6 +814,7 @@ begin
   end;
   Result := BundlePathCache;
 end;
+{$endif DARWIN}
 
 initialization
   DoInitialization;
