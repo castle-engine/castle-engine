@@ -36,7 +36,7 @@ const
 
   ZLibraryName =
     {$ifdef UNIX}
-      {$ifdef DARWIN} 'libz.dylib' { TODO--confirm this works under Darwin }
+      {$ifdef DARWIN} 'libz.dylib'
       {$else} 'libz.so.1'
       {$endif}
     {$endif}
