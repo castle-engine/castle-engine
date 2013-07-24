@@ -361,10 +361,16 @@ procedure ScanForFiles(PathURL: string; const Name: string;
   it doesn't exist. }
 function GetTempFileNameCheck: string;
 
+{$ifdef DARWIN}
+{ Main directory of the current Mac OS X bundle, including final slash.
+  Empty string if we're not run from a bundle. }
+function BundlePath: string;
+{$endif}
+
 implementation
 
-uses CastleStringUtils, {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog,
-  CastleWarnings, CastleURIUtils;
+uses {$ifdef DARWIN} MacOSAll, {$endif} CastleStringUtils,
+  {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog, CastleWarnings, CastleURIUtils;
 
 var
   { inicjowane w initialization i pozniej stale.
@@ -774,6 +780,38 @@ begin
   { Be paranoid and check whether file does not exist. }
   if FileExists(Result) then
     raise Exception.CreateFmt('Temporary file "%s" already exists', [Result]);
+end;
+
+var
+  BundlePathCached: boolean;
+  BundlePathCache: string;
+
+function BundlePath: string;
+{ Based on
+  http://wiki.freepascal.org/OS_X_Programming_Tips#How_to_obtain_the_path_to_the_Bundle }
+var
+  bundle: CFBundleRef;
+  pathRef: CFURLRef;
+  pathCFStr: CFStringRef;
+  pathStr: shortstring;
+begin
+  if not BundlePathCached then
+  begin
+    bundle := CFBundleGetMainBundle();
+    if bundle = nil then
+      BundlePathCache := '' else
+    begin
+      pathRef := CFBundleCopyBundleURL(bundle);
+      pathCFStr := CFURLCopyFileSystemPath(pathRef, kCFURLPOSIXPathStyle);
+      CFStringGetPascalString(pathCFStr, @pathStr, 255, CFStringGetSystemEncoding());
+      CFRelease(pathRef);
+      CFRelease(pathCFStr);
+      BundlePathCache := pathStr;
+      BundlePathCache := InclPathDelim(BundlePathCache);
+    end;
+    BundlePathCached := true;
+  end;
+  Result := BundlePathCache;
 end;
 
 initialization

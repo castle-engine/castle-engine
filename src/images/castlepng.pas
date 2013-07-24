@@ -926,7 +926,7 @@ function CastlePngInited: boolean;
 
 implementation
 
-uses SysUtils, CastleUtils, CastleDynLib;
+uses SysUtils, CastleUtils, CastleDynLib, CastleFilesUtils;
 
 var
   PngLibrary: TDynLib;
@@ -954,6 +954,8 @@ initialization
 
   {$ifdef DARWIN}
   PngLibrary := TDynLib.Load('libpng.dylib', false);
+  if (PngLibrary = nil) and (BundlePath <> '') then
+    PngLibrary := TDynLib.Load(BundlePath + 'Contents/MacOS/libpng.dylib', false);
   {$else DARWIN}
   PngLibrary := TDynLib.Load('libpng12.so.0', false);
   { Alternative libpng library name for Unix. Use the one that comes usually
