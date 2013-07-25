@@ -91,7 +91,6 @@ var
   GL_ARB_texture_compression: boolean;
   GL_ARB_texture_env_combine: boolean;
   GL_ARB_texture_env_dot3: boolean;
-  GL_ARB_vertex_program: boolean;
   GL_ARB_window_pos: boolean;
   GL_EXT_compiled_vertex_array: boolean;
   GL_EXT_fog_coord: boolean;
@@ -106,7 +105,6 @@ var
   GL_NV_multisample_filter_hint: boolean;
   GL_MESA_window_pos: boolean;
   GL_SGIS_generate_mipmap: boolean;
-  GL_ARB_fragment_program: boolean;
   GL_ATI_separate_stencil: boolean;
   GL_ARB_texture_non_power_of_two: boolean;
   GL_ARB_vertex_buffer_object: boolean;
@@ -731,7 +729,6 @@ begin
   GL_ARB_texture_compression := Load_GL_ARB_texture_compression;
   GL_ARB_texture_env_combine := Load_GL_ARB_texture_env_combine;
   GL_ARB_texture_env_dot3 := Load_GL_ARB_texture_env_dot3;
-  GL_ARB_vertex_program := Load_GL_ARB_vertex_program;
   GL_ARB_window_pos := Load_GL_ARB_window_pos;
   GL_EXT_compiled_vertex_array := Load_GL_EXT_compiled_vertex_array;
   GL_EXT_fog_coord := Load_GL_EXT_fog_coord;
@@ -746,7 +743,6 @@ begin
   GL_NV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
   GL_MESA_window_pos := Load_GL_MESA_window_pos;
   GL_SGIS_generate_mipmap := Load_GL_SGIS_generate_mipmap;
-  GL_ARB_fragment_program := Load_GL_ARB_fragment_program;
   GL_ATI_separate_stencil := Load_GL_ATI_separate_stencil;
   GL_ARB_texture_non_power_of_two := Load_GL_ARB_texture_non_power_of_two;
   GL_ARB_vertex_buffer_object := Load_GL_ARB_vertex_buffer_object;
@@ -1506,8 +1502,6 @@ begin
     '---------' +nl+
     'Features:' +nl+
     '  GLSL shaders support: ' + GLSupportNames[TGLSLProgram.ClassSupport] +nl+
-    '  Assembly ARB vertex program support: ' + GLSupportNames[TARBVertexProgram.ClassSupport] +nl+
-    '  Assembly ARB fragment program support: ' + GLSupportNames[TARBFragmentProgram.ClassSupport] +nl+
     '  Multi-texturing: ' + BoolToStr[GLUseMultiTexturing] +nl+
     '  Framebuffer Object: ' + GLSupportNamesFBO[GLFramebuffer] +nl+
     '  Vertex Buffer Object: ' + BoolToStr[GL_ARB_vertex_buffer_object] +nl+

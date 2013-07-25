@@ -13,21 +13,18 @@
   ----------------------------------------------------------------------------
 }
 
-{ OpenGL shaders (GLSL through the TGLSLProgram,
-  ARB assembly through TARBProgram descendants).
-
-  Some common notes for all classes defined here:
+{ OpenGL shaders in GLSL language.
 
   @unorderedList(
     @item(
-      Creating/destroying the class instance immediately creates/destroys
-      appropriate program. So be sure to create/destroy these classes only
-      when you have OpenGL context available (for example, create in TCastleWindowBase.OnInit
+      Creating/destroying the TGLSLProgram instance immediately creates/destroys
+      appropriate program on GPU. So be sure to create/destroy it only
+      when you have OpenGL context available (for example, create in TCastleWindowBase.OnOpen
       and destroy in TCastleWindowBase.OnClose).)
 
     @item(
-      Upon creation, these classes check current OpenGL context abilities.
-      Currently three support levels are possible for all programs:
+      Upon creation, we check current OpenGL context abilities.
+      Currently three support levels are possible:
       no support at all (old OpenGL), support through ARB extensions,
       or support built-in (newer OpenGL versions, >= 2.0).
 
@@ -38,61 +35,14 @@
 }
 unit CastleGLShaders;
 
+{$I castleconf.inc}
+
 interface
 
-uses SysUtils, Classes, GL, GLU, GLExt, CastleGLUtils, CastleUtils, CastleVectors,
+uses SysUtils, Classes, CastleGL, CastleGLUtils, CastleUtils, CastleVectors,
   FGL, CastleShaders;
 
 type
-  { Abstract class for both ARB vertex and fragment programs. }
-  TARBProgram = class
-  private
-    Target: TGLenum;
-    FSupport: TGLSupport;
-    ProgId: TGLuint;
-  public
-    destructor Destroy; override;
-
-    { Bind and load program contents. }
-    procedure Load(const S: string);
-
-    { Bind and enable this program. }
-    procedure Enable;
-
-    { Bind and disable this program. }
-    procedure Disable;
-
-    property Support: TGLSupport read FSupport;
-
-    { Returns multiline debug info about current program.
-      Things like how it's supported (not at all ? ARB extension ?
-      standard ?), how much of GL limit is used (number of instructions,
-      temporaries etc.), whether program fits within native limits etc. }
-    function DebugInfo: string; virtual;
-  end;
-
-  { Easily handle ARB vertex program. }
-  TARBVertexProgram = class(TARBProgram)
-  public
-    constructor Create;
-    function DebugInfo: string; override;
-
-    { @abstract(What support do we get from current OpenGL context ?)
-      This is much like @link(Support), but it's a class function. }
-    class function ClassSupport: TGLSupport;
-  end;
-
-  { Easily handle ARB fragment program. }
-  TARBFragmentProgram = class(TARBProgram)
-  public
-    constructor Create;
-    function DebugInfo: string; override;
-
-    { @abstract(What support do we get from current OpenGL context ?)
-      This is much like @link(Support), but it's a class function. }
-    class function ClassSupport: TGLSupport;
-  end;
-
   { Common class for exceptions related to GLSL programs. }
   EGLSLError = class(Exception);
 
@@ -380,10 +330,12 @@ type
     procedure SetAttribute(const Name: string; const Value: TVector2Single);
     procedure SetAttribute(const Name: string; const Value: TVector3Single);
     procedure SetAttribute(const Name: string; const Value: TVector4Single);
+    {$ifndef OpenGLES}
     procedure SetAttribute(const Name: string; const Value: TGLdouble);
     procedure SetAttribute(const Name: string; const Value: TVector2Double);
     procedure SetAttribute(const Name: string; const Value: TVector3Double);
     procedure SetAttribute(const Name: string; const Value: TVector4Double);
+    {$endif}
     procedure SetAttribute(const Name: string; const Value: TMatrix3Single);
     procedure SetAttribute(const Name: string; const Value: TMatrix4Single);
     { @groupEnd }
@@ -408,12 +360,6 @@ property CurrentProgram: TGLSLProgram
 implementation
 
 uses CastleStringUtils, CastleWarnings, CastleLog, CastleGLVersion;
-
-{ Comfortable shortcut for glGetProgramivARB that always returns 1 value. }
-function glGetProgramiARB(target: TGLenum; pname: TGLenum): TGLint;
-begin
-  glGetProgramivARB(target, pname, @Result);
-end;
 
 { Wrapper around glGetShaderInfoLog.
   Based on Dean Ellis BasicShader.dpr, but somewhat fixed ? <> 0 not > 1. }
@@ -501,144 +447,8 @@ begin
           end;
         gsStandard    : glUseProgram         (0);
       end;
+    end;
   end;
-end;
-
-end;
-
-{ TARBProgram ---------------------------------------------------------------- }
-
-destructor TARBProgram.Destroy;
-begin
-  glDeleteProgramsARB(1, @ProgId);
-  inherited;
-end;
-
-procedure TARBProgram.Load(const S: string);
-begin
-  case Support of
-    gsExtension:
-      begin
-        glBindProgramARB(Target, ProgId);
-        glProgramStringARB(Target,
-          GL_PROGRAM_FORMAT_ASCII_ARB, Length(S), PCharOrNil(S));
-      end;
-    gsStandard: { TODO };
-  end;
-end;
-
-function TARBProgram.DebugInfo: string;
-begin
-  Result := 'support: ' + GLSupportNames[Support];
-
-  case Support of
-    gsExtension:
-      begin
-        Result += NL + Format(
-          'Number of instructions: %d / %d' +NL+
-          'Number of temporaries: %d / %d' +NL+
-          'Number of program parameter bindings: %d / %d',
-          [ glGetProgramiARB(Target, GL_PROGRAM_INSTRUCTIONS_ARB),
-            glGetProgramiARB(Target, GL_MAX_PROGRAM_INSTRUCTIONS_ARB),
-            glGetProgramiARB(Target, GL_PROGRAM_TEMPORARIES_ARB),
-            glGetProgramiARB(Target, GL_MAX_PROGRAM_TEMPORARIES_ARB),
-            glGetProgramiARB(Target, GL_PROGRAM_PARAMETERS_ARB),
-            glGetProgramiARB(Target, GL_MAX_PROGRAM_PARAMETERS_ARB) ]);
-
-        if glGetProgramiARB(Target, GL_PROGRAM_UNDER_NATIVE_LIMITS_ARB) <> 0 then
-          Result += NL + 'Program fits within native limits, OK.' else
-          Result += NL + 'Program doesn''t fit within native limits, performance/quality will suffer!';
-      end;
-    gsStandard: { TODO };
-  end;
-end;
-
-procedure TARBProgram.Enable;
-begin
-  case Support of
-    gsExtension:
-      begin
-        glBindProgramARB(Target, ProgId);
-        glEnable(Target);
-      end;
-    gsStandard: { TODO };
-  end;
-end;
-
-procedure TARBProgram.Disable;
-begin
-  case Support of
-    gsExtension:
-      begin
-        glBindProgramARB(Target, ProgId);
-        glDisable(Target);
-      end;
-    gsStandard: { TODO };
-  end;
-end;
-
-{ TARBVertexProgram ---------------------------------------------------------- }
-
-constructor TARBVertexProgram.Create;
-begin
-  inherited;
-
-  Target := GL_VERTEX_PROGRAM_ARB;
-
-  FSupport := ClassSupport;
-
-  case Support of
-    gsExtension: glGenProgramsARB(1, @ProgId);
-    gsStandard: { TODO };
-  end;
-end;
-
-function TARBVertexProgram.DebugInfo: string;
-begin
-  Result := 'Vertex program ' + inherited;
-end;
-
-class function TARBVertexProgram.ClassSupport: TGLSupport;
-begin
-  { TODO: gsStandard not implemented now }
-
-  { if GL_version_2_0 then
-    Result := gsStandard else }
-  if GL_ARB_vertex_program then
-    Result := gsExtension else
-    Result := gsNone;
-end;
-
-{ TARBFragmentProgram ---------------------------------------------------------- }
-
-constructor TARBFragmentProgram.Create;
-begin
-  inherited;
-
-  Target := GL_FRAGMENT_PROGRAM_ARB;
-
-  FSupport := ClassSupport;
-
-  case Support of
-    gsExtension: glGenProgramsARB(1, @ProgId);
-    gsStandard: { TODO };
-  end;
-end;
-
-function TARBFragmentProgram.DebugInfo: string;
-begin
-  Result := 'Fragment program ' + inherited;
-end;
-
-class function TARBFragmentProgram.ClassSupport: TGLSupport;
-begin
-  { TODO: gsStandard not implemented now }
-
-  { if GL_version_2_0 then
-    Result := gsStandard else }
-  if GL_ARB_fragment_program then
-    Result := gsExtension else
-    Result := gsNone;
 end;
 
 { TGLSLProgram --------------------------------------------------------------- }
@@ -1524,6 +1334,7 @@ begin
   end;
 end;
 
+{$ifndef OpenGLES}
 procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TGLdouble);
 begin
   case Support of
@@ -1555,6 +1366,7 @@ begin
     gsStandard : glVertexAttrib4dv   (GetAttribLocation   (Name), @Value);
   end;
 end;
+{$endif}
 
 procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TMatrix3Single);
 var
