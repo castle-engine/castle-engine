@@ -76,20 +76,12 @@ var
   GL_version_1_4: boolean;
   GL_version_1_5: boolean;
   GL_version_2_0: boolean;
-
-  {$define HAS_GL_VERSION_ABOVE_2}
-  {$ifdef VER2_0}   {$undef HAS_GL_VERSION_ABOVE_2} {$endif}
-  {$ifdef VER2_2}   {$undef HAS_GL_VERSION_ABOVE_2} {$endif}
-  {$ifdef VER2_4_0} {$undef HAS_GL_VERSION_ABOVE_2} {$endif}
-  {$ifdef VER2_4_2} {$undef HAS_GL_VERSION_ABOVE_2} {$endif}
-  {$ifdef HAS_GL_VERSION_ABOVE_2}
   GL_version_2_1: boolean;
   GL_version_3_0: boolean;
   GL_version_3_1: boolean;
   GL_version_3_2: boolean;
   GL_version_3_3: boolean;
   GL_version_4_0: boolean;
-  {$endif}
 
   GL_ARB_imaging: boolean;
   GL_ARB_multisample: boolean;
@@ -718,22 +710,18 @@ begin
   if Assigned(gluGetString) then
     GLUVersion := TGenericGLVersion.Create(gluGetString(GLU_VERSION)) else
     GLUVersion := TGenericGLVersion.Create('1.0');
-  {$endif}
 
-  {$ifndef OpenGLES}
   GL_version_1_2 := GLVersion.AtLeast(1, 2) and Load_GL_version_1_2;
   GL_version_1_3 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_3;
   GL_version_1_4 := GLVersion.AtLeast(1, 4) and Load_GL_version_1_4;
   GL_version_1_5 := GLVersion.AtLeast(1, 5) and Load_GL_version_1_5;
   GL_version_2_0 := GLVersion.AtLeast(2, 0) and Load_GL_version_2_0;
-  {$ifdef HAS_GL_VERSION_ABOVE_2}
   GL_version_2_1 := GLVersion.AtLeast(2, 1) and Load_GL_version_2_1;
   GL_version_3_0 := GLVersion.AtLeast(3, 0) and Load_GL_version_3_0;
   GL_version_3_1 := GLVersion.AtLeast(3, 1) and Load_GL_version_3_1;
   GL_version_3_2 := GLVersion.AtLeast(3, 2) and Load_GL_version_3_2;
   GL_version_3_3 := GLVersion.AtLeast(3, 3) and Load_GL_version_3_3;
   GL_version_4_0 := GLVersion.AtLeast(4, 0) and Load_GL_version_4_0;
-  {$endif}
 
   GL_ARB_imaging := Load_GL_ARB_imaging;
   GL_ARB_multisample := Load_GL_ARB_multisample;
