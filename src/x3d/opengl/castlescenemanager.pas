@@ -102,6 +102,21 @@ type
     procedure ItemsAndCameraCursorChange(Sender: TObject);
     function PlayerNotBlocked: boolean;
     procedure SetScreenSpaceAmbientOcclusion(const Value: boolean);
+
+    { Render everything (by RenderFromViewEverything) on the screen.
+      Takes care to set RenderingCamera (Target = rtScreen and camera as given),
+      and takes care to apply glScissor if not FullSize,
+      and calls RenderFromViewEverything.
+
+      Takes care of using ScreenEffects. For this,
+      before we render to the actual screen,
+      we may render a couple times to a texture by a framebuffer.
+
+      Always call ApplyProjection right before this, to set correct projection matrix.
+      And before ApplyProjection you should also call UpdateGeneratedTexturesIfNeeded. }
+    procedure RenderOnScreen(ACamera: TCamera);
+
+    procedure RenderScreenEffect;
   protected
     { These variables are writeable from overridden ApplyProjection. }
     FPerspectiveView: boolean;
@@ -191,16 +206,6 @@ type
       This will change Params.Transparent, Params.InShadow and Params.ShadowVolumesReceivers
       as needed. Their previous values do not matter. }
     procedure RenderFromView3D(const Params: TRenderParams); virtual;
-
-    { Render everything (by RenderFromViewEverything) on the screen.
-      Takes care to set RenderingCamera (Target = rtScreen and camera as given),
-      and takes care to apply glScissor if not FullSize,
-      and calls RenderFromViewEverything.
-
-      Takes care of using ScreenEffects. For this,
-      before we render to the actual screen,
-      we may render a couple times to a texture by a framebuffer. }
-    procedure RenderOnScreen(ACamera: TCamera);
 
     { The background used during rendering.
       @nil if no background should be rendered.
@@ -719,7 +724,8 @@ type
     LastSoundRefresh: TMilisecTime;
 
     { Call at the beginning of Draw (from both scene manager and custom viewport),
-      to make sure UpdateGeneratedTextures was done before actual drawing. }
+      to make sure UpdateGeneratedTextures was done before actual drawing.
+      It *can* carelessly change the OpenGL projection matrix (but not viewport). }
     procedure UpdateGeneratedTexturesIfNeeded;
 
     procedure SetMainScene(const Value: TCastleScene);
@@ -1972,104 +1978,96 @@ begin
   RenderFromView3D(FRenderParams);
 end;
 
-procedure RenderScreenEffect(ViewportPtr: Pointer);
-var
-  Viewport: TCastleAbstractViewport absolute ViewportPtr;
+procedure TCastleAbstractViewport.RenderScreenEffect;
 
   procedure RenderOneEffect(Shader: TGLSLProgram);
   var
     BoundTextureUnits: Cardinal;
   begin
-    with Viewport do
-    begin
-      glActiveTexture(GL_TEXTURE0); // GLUseMultiTexturing is already checked
-      glBindTexture(ScreenEffectTextureTarget, ScreenEffectTextureSrc);
-      BoundTextureUnits := 1;
+    glActiveTexture(GL_TEXTURE0); // GLUseMultiTexturing is already checked
+    glBindTexture(ScreenEffectTextureTarget, ScreenEffectTextureSrc);
+    BoundTextureUnits := 1;
 
+    if CurrentScreenEffectsNeedDepth then
+    begin
+      glActiveTexture(GL_TEXTURE1);
+      glBindTexture(ScreenEffectTextureTarget, ScreenEffectTextureDepth);
+      Inc(BoundTextureUnits);
+    end;
+
+    glLoadIdentity();
+    { Although shaders will typically ignore glColor, for consistency
+      we want to have a fully determined state. That is, this must work
+      reliably even if you comment out ScreenEffects[*].Enable/Disable
+      commands below. }
+    glColor3f(1, 1, 1);
+    Shader.Enable;
+      Shader.SetUniform('screen', 0);
       if CurrentScreenEffectsNeedDepth then
+        Shader.SetUniform('screen_depth', 1);
+      Shader.SetUniform('screen_width', TGLint(ScreenEffectTextureWidth));
+      Shader.SetUniform('screen_height', TGLint(ScreenEffectTextureHeight));
+
+      { set special uniforms for SSAO shader }
+      if Shader = SSAOShader then
       begin
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(ScreenEffectTextureTarget, ScreenEffectTextureDepth);
-        Inc(BoundTextureUnits);
+       { TODO: use actual projection near/far values, instead of hardcoded ones.
+         Assignment below works, but it seems that effect is much less noticeable
+         then?
+
+        Writeln('setting near to ', ProjectionNear:0:10); // testing
+        Writeln('setting far to ', ProjectionFarFinite:0:10); // testing
+        Shader.SetUniform('near', ProjectionNear);
+        Shader.SetUniform('far', ProjectionFarFinite);
+        }
+
+        Shader.SetUniform('near', 1.0);
+        Shader.SetUniform('far', 1000.0);
       end;
 
-      glLoadIdentity();
-      { Although shaders will typically ignore glColor, for consistency
-        we want to have a fully determined state. That is, this must work
-        reliably even if you comment out ScreenEffects[*].Enable/Disable
-        commands below. }
-      glColor3f(1, 1, 1);
-      Shader.Enable;
-        Shader.SetUniform('screen', 0);
-        if CurrentScreenEffectsNeedDepth then
-          Shader.SetUniform('screen_depth', 1);
-        Shader.SetUniform('screen_width', TGLint(ScreenEffectTextureWidth));
-        Shader.SetUniform('screen_height', TGLint(ScreenEffectTextureHeight));
+      { Note that we ignore SetupUniforms result --- if some texture
+        could not be bound, it will be undefined for shader.
+        I don't see anything much better to do now. }
+      Shader.SetupUniforms(BoundTextureUnits);
 
-        { set special uniforms for SSAO shader }
-        if Shader = SSAOShader then
-        begin
-         { TODO: use actual projection near/far values, instead of hardcoded ones.
-           Assignment below works, but it seems that effect is much less noticeable
-           then?
+      { Note that there's no need to worry about CorrectLeft / CorrectBottom,
+        here or inside RenderScreenEffect, because we're already within
+        glViewport that takes care of this. }
 
-          Writeln('setting near to ', ProjectionNear:0:10); // testing
-          Writeln('setting far to ', ProjectionFarFinite:0:10); // testing
-          Shader.SetUniform('near', ProjectionNear);
-          Shader.SetUniform('far', ProjectionFarFinite);
-          }
-
-          Shader.SetUniform('near', 1.0);
-          Shader.SetUniform('far', 1000.0);
-        end;
-
-        { Note that we ignore SetupUniforms result --- if some texture
-          could not be bound, it will be undefined for shader.
-          I don't see anything much better to do now. }
-        Shader.SetupUniforms(BoundTextureUnits);
-
-        { Note that there's no need to worry about CorrectLeft / CorrectBottom,
-          here or inside RenderScreenEffect, because we're already within
-          glViewport that takes care of this. }
-
-        glBegin(GL_QUADS);
-          glTexCoord2i(0, 0);
-          glVertex2i(0, 0);
-          glTexCoord2i(ScreenEffectTextureWidth, 0);
-          glVertex2i(CorrectWidth, 0);
-          glTexCoord2i(ScreenEffectTextureWidth, ScreenEffectTextureHeight);
-          glVertex2i(CorrectWidth, CorrectHeight);
-          glTexCoord2i(0, ScreenEffectTextureHeight);
-          glVertex2i(0, CorrectHeight);
-        glEnd();
-      Shader.Disable;
-    end;
+      glBegin(GL_QUADS);
+        glTexCoord2i(0, 0);
+        glVertex2i(0, 0);
+        glTexCoord2i(ScreenEffectTextureWidth, 0);
+        glVertex2i(CorrectWidth, 0);
+        glTexCoord2i(ScreenEffectTextureWidth, ScreenEffectTextureHeight);
+        glVertex2i(CorrectWidth, CorrectHeight);
+        glTexCoord2i(0, ScreenEffectTextureHeight);
+        glVertex2i(0, CorrectHeight);
+      glEnd();
+    Shader.Disable;
   end;
 
 var
   I: Integer;
 begin
-  with Viewport do
+  { Render all except the last screen effects: from texture
+    (ScreenEffectTextureDest/Src) and to texture (using ScreenEffectRTT) }
+  for I := 0 to CurrentScreenEffectsCount - 2 do
   begin
-    { Render all except the last screen effects: from texture
-      (ScreenEffectTextureDest/Src) and to texture (using ScreenEffectRTT) }
-    for I := 0 to CurrentScreenEffectsCount - 2 do
-    begin
-      ScreenEffectRTT.RenderBegin;
-      ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, ScreenEffectTextureTarget);
-      RenderOneEffect(ScreenEffects[I]);
-      ScreenEffectRTT.RenderEnd;
+    ScreenEffectRTT.RenderBegin;
+    ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, ScreenEffectTextureTarget);
+    RenderOneEffect(ScreenEffects[I]);
+    ScreenEffectRTT.RenderEnd;
 
-      SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
-    end;
-
-    { Restore glViewport set by ApplyProjection }
-    if not FullSize then
-      glViewport(CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
-
-    { the last effect gets a texture, and renders straight into screen }
-    RenderOneEffect(ScreenEffects[CurrentScreenEffectsCount - 1]);
+    SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
   end;
+
+  { Restore glViewport set by ApplyProjection }
+  if not FullSize then
+    glViewport(CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
+
+  { the last effect gets a texture, and renders straight into screen }
+  RenderOneEffect(ScreenEffects[CurrentScreenEffectsCount - 1]);
 end;
 
 procedure TCastleAbstractViewport.RenderOnScreen(ACamera: TCamera);
@@ -2230,7 +2228,11 @@ begin
           glEnable(ScreenEffectTextureTarget);
       end;
 
-      glProjectionPushPopOrtho2D(@RenderScreenEffect, Self, 0, CorrectWidth, 0, CorrectHeight);
+      glMatrixMode(GL_PROJECTION);
+      glLoadMatrix(Ortho2dProjMatrix(0, CorrectWidth, 0, CorrectHeight));
+      glMatrixMode(GL_MODELVIEW);
+
+      RenderScreenEffect;
 
       if CurrentScreenEffectsNeedDepth then
       begin

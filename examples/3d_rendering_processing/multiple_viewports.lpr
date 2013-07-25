@@ -58,26 +58,25 @@ type
   TMyViewport = class(TCastleViewport)
   public
     Caption: string;
+    procedure Draw2D;
     procedure Draw; override;
     procedure SetFocused(const Value: boolean); override;
   end;
 
-procedure ViewportDraw2D(ViewportPtr: Pointer);
+procedure TMyViewport.Draw2D;
 const
   Margin = 5;
-var
-  Viewport: TMyViewport absolute ViewportPtr;
 begin
   glLoadIdentity;
 
-  if Viewport.Focused then
+  if Focused then
   begin
-    GLRectangleBorder(0, 0, Viewport.Width, Viewport.Height, White4Single, 3);
+    GLRectangleBorder(0, 0, Width, Height, White4Single, 3);
     { line width saved by GL_LINE_BIT, although we can generally change
       it carelessly (without saving) when drawing in our engine }
   end;
 
-  if Viewport.Caption <> '' then
+  if Caption <> '' then
   begin
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); { saved by GL_COLOR_BUFFER_BIT }
     glEnable(GL_BLEND); { saved by GL_COLOR_BUFFER_BIT }
@@ -86,13 +85,13 @@ begin
     glRectf(
       10 - Margin,
       10 - Margin,
-      10 + UIFont.TextWidth(Viewport.Caption) + Margin,
+      10 + UIFont.TextWidth(Caption) + Margin,
       10 + UIFont.RowHeight + Margin);
     glDisable(GL_BLEND); { saved by GL_COLOR_BUFFER_BIT }
 
     glColor3f(1, 1, 0);
-    SetWindowPos(Viewport.Left + 10, Viewport.Bottom + 10);
-    UIFont.Print(Viewport.Caption);
+    SetWindowPos(Left + 10, Bottom + 10);
+    UIFont.Print(Caption);
   end;
 end;
 
@@ -100,11 +99,15 @@ procedure TMyViewport.Draw;
 begin
   inherited;
 
-  glPushAttrib(GL_ENABLE_BIT or GL_LINE_BIT or GL_COLOR_BUFFER_BIT or GL_POLYGON_BIT);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_DEPTH_TEST);
-    glProjectionPushPopOrtho2D(@ViewportDraw2D, Self, 0, Width, 0, Height);
-  glPopAttrib;
+  { TODO: This is not an adviced method to draw 2D stuff.
+    It should be moved to separate TUIControl instance with DrawStyle = ds2D.
+    Below, we just overuse the knowledge that every viewport starts drawing
+    by applying its's own projection, so you *can* carelessly change projection
+    after calling inherited.  }
+  glMatrixMode(GL_PROJECTION);
+  glLoadMatrix(Ortho2dProjMatrix(0, CorrectWidth, 0, CorrectHeight));
+  glMatrixMode(GL_MODELVIEW);
+  Draw2D;
 end;
 
 procedure TMyViewport.SetFocused(const Value: boolean);

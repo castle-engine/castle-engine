@@ -655,31 +655,6 @@ procedure glDrawBox3DWire(const Box: TBox3D);
   It can be safely placed in a display list. }
 procedure glDrawBox3DSimple(const Box: TBox3D);
 
-type
-  TProcData = procedure (Data: Pointer);
-
-{$ifndef OpenGLES}
-{ Temporarily switch to 2D OpenGL projection, call given callback,
-  then restore original projection.
-
-  2D projection is like gluOrtho2d(0, Viewport.width, 0, Viewport.height).
-  Use more general glProjectionPushPop to provide any projection matrix.
-
-  The current matrix mode doesn't have to be GL_PROJECTION at call time.
-  We will take care to have the original matrix mode when calling Proc
-  callback. }
-procedure glProjectionPushPop2D(proc: TProcData; Data: Pointer);
-
-procedure glProjectionPushPopOrtho(proc: TProcData; Data: Pointer;
-  const Left, Right, Bottom, Top, ZNear, ZFar: TGLdouble);
-procedure glProjectionPushPopOrtho2D(proc: TProcData; Data: Pointer;
-  const Left, Right, Bottom, Top: TGLdouble);
-procedure glProjectionPushPopPerspective(proc: TProcData; Data: Pointer;
-  const FovyDeg, Aspect, ZNear, ZFar: TGLdouble);
-procedure glProjectionPushPop(proc: TProcData; Data: Pointer;
-  const projMatrix: TMatrix4f);
-{$endif}
-
 { Draw a rectangle that modulates colors underneath,
   suddenly changing it to FadeColor and then fading to blackness and
   then fading back to normal, as FadeIntensity goes down from 1.0 to 0.0.
@@ -1571,73 +1546,6 @@ begin
   if GL_EXT_compiled_vertex_array then
     glUnlockArraysEXT;
 end;
-
-{$ifndef OpenGLES}
-
-{$define PROJECTION_PUSH_POP_BEGIN:=
-var
-  oldMatrixMode: TGLenum;
-begin
-  oldMatrixMode := glGetInteger(GL_MATRIX_MODE);
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix;
-  try}
-
-{$define PROJECTION_PUSH_POP_END:=
-    glMatrixMode(oldMatrixMode);
-    proc(data);
-  finally
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix;
-    glMatrixMode(oldMatrixMode);
-  end;
-end;}
-
-procedure glProjectionPushPop(proc: TProcData; Data: Pointer;
-  const projMatrix: TMatrix4f);
-PROJECTION_PUSH_POP_BEGIN
-  glLoadMatrixf(@projMatrix);
-PROJECTION_PUSH_POP_END
-
-procedure glProjectionPushPopOrtho(proc: TProcData; Data: Pointer;
-  const Left, Right, Bottom, Top, ZNear, ZFar: TGLdouble);
-PROJECTION_PUSH_POP_BEGIN
-  glLoadIdentity;
-  glOrtho(Left, Right, Bottom, Top, ZNear, ZFar);
-PROJECTION_PUSH_POP_END
-
-procedure glProjectionPushPopOrtho2D(proc: TProcData; Data: Pointer;
-  const Left, Right, Bottom, Top: TGLdouble);
-PROJECTION_PUSH_POP_BEGIN
-  glLoadIdentity;
-  gluOrtho2D(Left, Right, Bottom, Top);
-PROJECTION_PUSH_POP_END
-
-procedure glProjectionPushPopPerspective(proc: TProcData; Data: Pointer;
-  const FovyDeg, Aspect, ZNear, ZFar: TGLdouble);
-PROJECTION_PUSH_POP_BEGIN
-  glLoadIdentity;
-  gluPerspective(FovyDeg, Aspect, ZNear, ZFar);
-PROJECTION_PUSH_POP_END
-
-{$undef PROJECTION_PUSH_POP_BEGIN}
-{$undef PROJECTION_PUSH_POP_END}
-
-procedure glProjectionPushPop2D(proc: TProcData; Data: Pointer);
-var
-  Viewport: TVector4i;
-begin
-  glGetIntegerv(GL_VIEWPORT, @viewport);
-
-  { Other version is to use here
-      glProjectionPushPop(proc, data,
-        OrthoProjMatrix(0, viewport[2], 0, viewport[3], -1, 1));
-    but causing OpenGL to calculate it's matrices may be faster. }
-
-  glProjectionPushPopOrtho2D(proc, data, 0, viewport[2], 0, viewport[3]);
-end;
-
-{$endif}
 
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
   const FadeColor: TVector3Single; const FadeIntensity: Single);
