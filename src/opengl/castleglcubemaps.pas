@@ -175,8 +175,7 @@ procedure SHVectorGLCapture(
 
       glPushMatrix;
 
-        glLoadIdentity;
-        gluLookDirv(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up);
+        glLoadMatrix(LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up));
         Render(true);
 
       glPopMatrix;
