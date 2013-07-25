@@ -79,4 +79,15 @@
 {$ifdef VER2_2_4} {$undef TOBJECT_HAS_EQUALS} {$endif}
 {$ifdef VER2_4_0} {$undef TOBJECT_HAS_EQUALS} {$endif}
 
+{ Whether we use OpenGL ES or normal OpenGL.
+  OpenGL ES is generally for mobile devices.
+  For testing, you can also use OpenGL ES on normal desktop OSes.
+  Put "CastleGL" in uses clause to include the appropriate OpenGL API. }
+{ $define OpenGLES}
+{$ifdef OpenGLES}
+  {$define CastleGL := GLES20}
+{$else}
+  {$define CastleGL := GL, GLU, GLExt}
+{$endif}
+
 {$endif not CASTLE_CONF_INCLUDED}

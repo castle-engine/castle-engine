@@ -31,7 +31,7 @@ unit CastleGLUtils;
 
 interface
 
-uses Math, GL, GLU, GLExt, SysUtils, CastleUtils, CastleVectors, CastleBoxes,
+uses Math, CastleGL, SysUtils, CastleUtils, CastleVectors, CastleBoxes,
   CastleImages, Matrix;
 
 {$define read_interface}
@@ -61,8 +61,10 @@ type
   TGLuint     = GLuint;
   TGLfloat    = GLfloat;
   TGLclampf   = GLclampf;
+  {$ifndef OpenGLES}
   TGLdouble   = GLdouble;
   TGLclampd   = GLclampd;
+  {$endif not OpenGLES}
 
 { OpenGL versions and extensions and features -------------------------------- }
 
@@ -417,7 +419,9 @@ procedure GLErrorRaise(ErrorCode: TGLenum);
 function glGetFloat(pname: TGLEnum): TGLfloat;
 function glGetInteger(pname: TGLEnum): TGLint;
 function glGetBoolean(pname: TGLEnum): TGLboolean;
+{$ifndef OpenGLES}
 function glGetDouble(pname: TGLEnum): TGLdouble;
+{$endif}
 { @groupEnd }
 
 { ------------------------------------------------------------------------------
@@ -444,69 +448,48 @@ procedure glColorv(const v: TVector3ub); overload;
 procedure glColorv(const v: TVector4ub); overload;
 
 procedure glTranslatev(const V: TVector3f); overload;
-procedure glTranslatev(const V: TVector3d); overload;
 procedure glTranslatev(const V: TVector3_Single); overload;
-procedure glTranslatev(const V: TVector3_Double); overload;
 
 procedure glScalev(const V: Single); overload;
 procedure glScalev(const V: TVector3f); overload;
-procedure glScalev(const V: TVector3d); overload;
 procedure glScalev(const V: TVector3_Single); overload;
-procedure glScalev(const V: TVector3_Double); overload;
 
 procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); overload;
-procedure glRotatev(const Angle: TGLdouble; const V: TVector3d); overload;
 
 procedure glClipPlane(plane: GLenum; const V: TVector4d); overload;
 
 procedure gluLookAtv(const Eye, Center, Up: TVector3Single);
 procedure gluLookDirv(const Eye, Dir, Up: TVector3Single);
 
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2d); overload;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2f); overload;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3d); overload;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3f); overload;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4d); overload;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4f); overload;
 
 procedure glClearColorv(const v: TVector3f; alpha: Single);
 
-procedure glNormalv(const v: TVector3d); overload;
 procedure glNormalv(const v: TVector3f); overload;
 
-procedure glColorv(const v: TVector3d); overload;
 procedure glColorv(const v: TVector3f); overload;
 
-procedure glColorv(const v: TVector4d); overload;
 procedure glColorv(const v: TVector4f); overload;
 
 procedure glMaterialv(face, pname: TGLEnum; const params: TVector4f); overload;
 
-procedure glVertexv(const v: TVector2d); overload;
 procedure glVertexv(const v: TVector2f); overload;
 procedure glVertexv(const v: TVector2i); overload;
-procedure glVertexv(const v: TVector3d); overload;
 procedure glVertexv(const v: TVector3f); overload;
 procedure glVertexv(const v: TVector3i); overload;
-procedure glVertexv(const v: TVector4d); overload;
 procedure glVertexv(const v: TVector4f); overload;
 procedure glVertexv(const v: TVector4i); overload;
 
-procedure glVertexv(const v: TVector2_Double); overload;
 procedure glVertexv(const v: TVector2_Single); overload;
-procedure glVertexv(const v: TVector3_Double); overload;
 procedure glVertexv(const v: TVector3_Single); overload;
-procedure glVertexv(const v: TVector4_Double); overload;
 procedure glVertexv(const v: TVector4_Single); overload;
 
-procedure glTexCoordv(const v: TVector2d); overload;
 procedure glTexCoordv(const v: TVector2f); overload;
-procedure glTexCoordv(const v: TVector3d); overload;
 procedure glTexCoordv(const v: TVector3f); overload;
-procedure glTexCoordv(const v: TVector4d); overload;
 procedure glTexCoordv(const v: TVector4f); overload;
 
-procedure glTexGenv(coord, pname: TGLenum; const params: TVector4d); overload;
 procedure glTexGenv(coord, pname: TGLenum; const params: TVector4f); overload;
 
 procedure glLightv(light, pname: TGLEnum; const params: TVector4f); overload;
@@ -517,9 +500,7 @@ procedure glLightModelv(pname: TGLenum; const params: TVector4f); overload;
 procedure glFogv(pname: TGLEnum; const params: TVector4f); overload;
 
 procedure glMultMatrix(const m: TMatrix4f); overload;
-procedure glMultMatrix(const m: TMatrix4d); overload;
 procedure glLoadMatrix(const m: TMatrix4f); overload;
-procedure glLoadMatrix(const m: TMatrix4d); overload;
 
 procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); overload;
 
@@ -628,6 +609,7 @@ procedure GLRectangleBorder(const x1, y1, x2, y2: TGLfloat;
 procedure GLDrawArrow(HeadThickness: TGLfloat = 0.4;
   HeadLength: TGLfloat = 0.5);
 
+{$ifndef OpenGLES}
 { Comfortable wrapper for gluNewQuadric. Sets all quadric parameters.
   Sets also the GLU_ERROR callback to ReportGLerror.
   @raises Exception If gluNewQuadric fails (returns nil). }
@@ -647,6 +629,7 @@ procedure CastleGluSphere(
   Normals: TGLenum = GLU_NONE;
   Orientation: TGLenum = GLU_OUTSIDE;
   DrawStyle: TGLenum = GLU_FILL);
+{$endif}
 
 { Draw axis (3 lines) around given position.
   Nothing is generated besides vertex positions ---
@@ -675,6 +658,7 @@ procedure glDrawBox3DSimple(const Box: TBox3D);
 type
   TProcData = procedure (Data: Pointer);
 
+{$ifndef OpenGLES}
 { Temporarily switch to 2D OpenGL projection, call given callback,
   then restore original projection.
 
@@ -694,6 +678,7 @@ procedure glProjectionPushPopPerspective(proc: TProcData; Data: Pointer;
   const FovyDeg, Aspect, ZNear, ZFar: TGLdouble);
 procedure glProjectionPushPop(proc: TProcData; Data: Pointer;
   const projMatrix: TMatrix4f);
+{$endif}
 
 { Draw a rectangle that modulates colors underneath,
   suddenly changing it to FadeColor and then fading to blackness and
@@ -860,15 +845,18 @@ var
   GL_ARB_framebuffer_object: boolean;
 begin
   FreeAndNil(GLVersion);
-  GLVersion := TGLVersion.Create(glGetString(GL_VERSION),
-    glGetString(GL_VENDOR), glGetString(GL_RENDERER));
+  GLVersion := TGLVersion.Create(PChar(glGetString(GL_VERSION)),
+    PChar(glGetString(GL_VENDOR)), PChar(glGetString(GL_RENDERER)));
 
+  {$ifndef OpenGLES}
   FreeAndNil(GLUVersion);
   { gluGetString is valid for version 1.1 or later }
   if Assigned(gluGetString) then
     GLUVersion := TGenericGLVersion.Create(gluGetString(GLU_VERSION)) else
     GLUVersion := TGenericGLVersion.Create('1.0');
+  {$endif}
 
+  {$ifndef OpenGLES}
   GL_version_1_2 := GLVersion.AtLeast(1, 2) and Load_GL_version_1_2;
   GL_version_1_3 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_3;
   GL_version_1_4 := GLVersion.AtLeast(1, 4) and Load_GL_version_1_4;
@@ -1024,6 +1012,7 @@ begin
   { Workaround http://bugs.freepascal.org/view.php?id=18613 }
   if GL_ARB_vertex_buffer_object then
     Pointer(glBufferSubDataARB) := Glext.wglGetProcAddress('glBufferSubDataARB');
+  {$endif}
 
   GLMaxTextureSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
   GLMaxLights := glGetInteger(GL_MAX_LIGHTS);
@@ -1467,6 +1456,7 @@ begin
   glEnd;
 end;
 
+{$ifndef OpenGLES}
 function NewGLUQuadric(texture: boolean; normals: TGLenum;
   orientation: TGLenum; drawStyle: TGLenum): PGLUQuadric;
 begin
@@ -1493,6 +1483,7 @@ begin
     gluSphere(Q, Radius, Slices, Stacks);
   finally gluDeleteQuadric(Q); end;
 end;
+{$endif}
 
 procedure glDrawAxisWire(const Position: TVector3Single; Size: Single);
 begin
@@ -1581,6 +1572,8 @@ begin
     glUnlockArraysEXT;
 end;
 
+{$ifndef OpenGLES}
+
 {$define PROJECTION_PUSH_POP_BEGIN:=
 var
   oldMatrixMode: TGLenum;
@@ -1643,6 +1636,8 @@ begin
 
   glProjectionPushPopOrtho2D(proc, data, 0, viewport[2], 0, viewport[3]);
 end;
+
+{$endif}
 
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
   const FadeColor: TVector3Single; const FadeIntensity: Single);
