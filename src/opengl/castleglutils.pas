@@ -281,6 +281,8 @@ type
       const AdditionalComment: string = '');
   end;
 
+function GLErrorString(const ErrorCode: TGLenum; const AdditionalComment: string = ''): string;
+
 { Check are any OpenGL errors recorded (in glGetError).
   If there are errors, our behavior depends on whether we were compiled
   with -dRELEASE. With -dRELEASE, we make OnWarning. This way eventual
@@ -861,11 +863,26 @@ end;
 { EOpenGLError, CheckGLErrors ------------------------------------------------ }
 
 function GLErrorString(const ErrorCode: TGLenum; const AdditionalComment: string): string;
+var
+  S: string;
 begin
+  { Do not use gluErrorString, not available in OpenGL ES.
+    Error decriptions below from
+    http://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetError.xml }
+  case ErrorCode of
+    GL_NO_ERROR: S := 'No error has been recorded.';
+    GL_INVALID_ENUM: S := 'An unacceptable value is specified for an enumerated argument.';
+    GL_INVALID_VALUE: S := 'A numeric argument is out of range.';
+    GL_INVALID_OPERATION: S := 'The specified operation is not allowed in the current state.';
+    GL_INVALID_FRAMEBUFFER_OPERATION: S := 'The command is trying to render to or read from the framebuffer while the currently bound framebuffer is not framebuffer complete (i.e. the return value from glCheckFramebufferStatus is not GL_FRAMEBUFFER_COMPLETE).';
+    GL_OUT_OF_MEMORY: S := 'There is not enough memory left to execute the command.';
+    else S := 'Unknown error.';
+  end;
+
   if AdditionalComment <> '' then
     Result := AdditionalComment + nl else
     Result := '';
-  Result += Format('OpenGL error (%d): %s', [ErrorCode, gluErrorString(ErrorCode)]);
+  Result += Format('OpenGL error (%d): %s', [ErrorCode, S]);
 end;
 
 constructor EOpenGLError.Create(const AErrorCode: TGLenum; const AdditionalComment: string);

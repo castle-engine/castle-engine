@@ -100,7 +100,9 @@ type
     procedure SetUniformEnd(const UniformName: string; const ForceException: boolean);
 
     { Wrapper over glGetAttribLocationARB (use only if gsExtension) }
+    {$ifndef OpenGLES}
     function GetAttribLocationARB(const Name: string): TGLint;
+    {$endif}
 
     { Wrapper over glGetAttribLocation (use only if gsStandard) }
     function GetAttribLocation(const Name: string): TGLint;
@@ -324,20 +326,20 @@ type
         call CheckGLErrors from time to time to catch them.)
 
       @groupBegin }
-    procedure SetAttribute(const Name: string; const Value: TVector4Integer);
-    procedure SetAttribute(const Name: string; const Value: TVector4Byte);
     procedure SetAttribute(const Name: string; const Value: TGLfloat);
     procedure SetAttribute(const Name: string; const Value: TVector2Single);
     procedure SetAttribute(const Name: string; const Value: TVector3Single);
     procedure SetAttribute(const Name: string; const Value: TVector4Single);
+    procedure SetAttribute(const Name: string; const Value: TMatrix3Single);
+    procedure SetAttribute(const Name: string; const Value: TMatrix4Single);
     {$ifndef OpenGLES}
+    procedure SetAttribute(const Name: string; const Value: TVector4Integer);
+    procedure SetAttribute(const Name: string; const Value: TVector4Byte);
     procedure SetAttribute(const Name: string; const Value: TGLdouble);
     procedure SetAttribute(const Name: string; const Value: TVector2Double);
     procedure SetAttribute(const Name: string; const Value: TVector3Double);
     procedure SetAttribute(const Name: string; const Value: TVector4Double);
     {$endif}
-    procedure SetAttribute(const Name: string; const Value: TMatrix3Single);
-    procedure SetAttribute(const Name: string; const Value: TMatrix4Single);
     { @groupEnd }
   end;
 
@@ -394,6 +396,7 @@ begin
     Result := '';
 end;
 
+{$ifndef OpenGLES}
 { Wrapper around glGetInfoLogARB (this is for both shaders and programs). }
 function GetInfoLogARB(ObjectId: TGLuint): String;
 var
@@ -409,6 +412,7 @@ begin
   end else
     Result := '';
 end;
+{$endif}
 
 var
   FCurrentProgram: TGLSLProgram;
@@ -427,12 +431,15 @@ begin
     if Value <> nil then
     begin
       case TGLSLProgram.ClassSupport of
+        {$ifndef OpenGLES}
         gsExtension: glUseProgramObjectARB(Value.ProgramId);
+        {$endif}
         gsStandard : glUseProgram         (Value.ProgramId);
       end;
     end else
     begin
       case TGLSLProgram.ClassSupport of
+        {$ifndef OpenGLES}
         gsExtension:
           begin
             glUseProgramObjectARB(0);
@@ -445,6 +452,7 @@ begin
               active and text would look black. }
             if GLVersion.Fglrx then glUseProgramObjectARB(0);
           end;
+        {$endif}
         gsStandard    : glUseProgram         (0);
       end;
     end;
@@ -460,7 +468,9 @@ begin
   FSupport := ClassSupport;
 
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: ProgramId := glCreateProgramObjectARB();
+    {$endif}
     gsStandard : ProgramId := glCreateProgram         ();
   end;
 
@@ -498,7 +508,9 @@ begin
     DetachAllShaders;
 
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: glDeleteObjectARB(ProgramId);
+    {$endif}
     gsStandard : glDeleteProgram  (ProgramId);
   end;
 
@@ -509,17 +521,23 @@ end;
 
 class function TGLSLProgram.ClassSupport: TGLSupport;
 begin
+  {$ifdef OpenGLES}
+  Result := gsStandard;
+  {$else}
   if GL_version_2_0 then
     Result := gsStandard else
   if GLUseARBGLSL then
     Result := gsExtension else
     Result := gsNone;
+  {$endif}
 end;
 
 function TGLSLProgram.ProgramInfoLog: string;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: Result := GetInfoLogARB(ProgramId);
+    {$endif}
     gsStandard : Result := GetProgramInfoLog(ProgramId);
     else Result := '';
   end;
@@ -566,12 +584,12 @@ function TGLSLProgram.DebugInfo: string;
       GL_FLOAT_MAT3x4: Result := 'FLOAT_MAT3x4';
       GL_FLOAT_MAT4x2: Result := 'FLOAT_MAT4x2';
       GL_FLOAT_MAT4x3: Result := 'FLOAT_MAT4x3';
-      GL_SAMPLER_1D: Result := 'SAMPLER_1D';
+      {$ifndef OpenGLES} GL_SAMPLER_1D: Result := 'SAMPLER_1D'; {$endif}
       GL_SAMPLER_2D: Result := 'SAMPLER_2D';
-      GL_SAMPLER_3D: Result := 'SAMPLER_3D';
+      {$ifndef OpenGLES} GL_SAMPLER_3D: Result := 'SAMPLER_3D'; {$endif}
       GL_SAMPLER_CUBE: Result := 'SAMPLER_CUBE';
-      GL_SAMPLER_1D_SHADOW: Result := 'SAMPLER_1D_SHADOW';
-      GL_SAMPLER_2D_SHADOW: Result := 'SAMPLER_2D_SHADOW';
+      {$ifndef OpenGLES} GL_SAMPLER_1D_SHADOW: Result := 'SAMPLER_1D_SHADOW'; {$endif}
+      {$ifndef OpenGLES} GL_SAMPLER_2D_SHADOW: Result := 'SAMPLER_2D_SHADOW'; {$endif}
       GL_SAMPLER_2D_RECT: Result := 'SAMPLER_2D_RECT';
       GL_SAMPLER_2D_RECT_SHADOW: Result := 'SAMPLER_2D_RECT_SHADOW';
       GL_INT_SAMPLER_2D_RECT: Result := 'INT_SAMPLER_2D_RECT';
@@ -609,6 +627,7 @@ function TGLSLProgram.DebugInfo: string;
     ErrorCode: TGLenum;
   begin
     case Support of
+      {$ifndef OpenGLES}
       gsExtension:
         begin
           glGetProgramivARB(ProgramId, GL_OBJECT_ACTIVE_UNIFORMS_ARB, @UniformsCount);
@@ -635,6 +654,7 @@ function TGLSLProgram.DebugInfo: string;
               [Name, GLShaderVariableTypeName(AType), Size]));
           end;
         end;
+      {$endif}
 
       gsStandard    :
         begin
@@ -675,6 +695,7 @@ function TGLSLProgram.DebugInfo: string;
     ErrorCode: TGLenum;
   begin
     case Support of
+      {$ifndef OpenGLES}
       gsExtension:
         begin
           glGetProgramivARB(ProgramId, GL_OBJECT_ACTIVE_ATTRIBUTES_ARB, @AttribsCount);
@@ -700,6 +721,7 @@ function TGLSLProgram.DebugInfo: string;
               [Name, GLShaderVariableTypeName(AType), Size]));
           end;
         end;
+      {$endif}
 
       gsStandard    :
         begin
@@ -732,7 +754,9 @@ function TGLSLProgram.DebugInfo: string;
   function ShaderInfoLog(ShaderId: TGLuint): string;
   begin
     case Support of
+      {$ifndef OpenGLES}
       gsExtension: Result := GetInfoLogARB(ShaderId);
+      {$endif}
       gsStandard : Result := GetShaderInfoLog(ShaderId);
     end;
   end;
@@ -788,6 +812,7 @@ var
       [ShaderTypeName[ShaderType]]);
   end;
 
+  {$ifndef OpenGLES}
   function CreateShaderARB(const S: string): TGLuint;
   var
     SrcPtr: PChar;
@@ -808,6 +833,7 @@ var
       raise EGLSLShaderCompileError.CreateFmt('%s shader not compiled:' + NL + '%s',
         [ShaderTypeName[ShaderType], GetInfoLogARB(Result)]);
   end;
+  {$endif}
 
   { Based on Dean Ellis BasicShader.dpr }
   function CreateShader(const S: string): TGLuint;
@@ -845,7 +871,9 @@ begin
   case ShaderType of
     stVertex:
       case Support of
+        {$ifndef OpenGLES}
         gsExtension: AType := GL_VERTEX_SHADER_ARB;
+        {$endif}
         gsStandard : AType := GL_VERTEX_SHADER    ;
         else Exit;
       end;
@@ -859,7 +887,9 @@ begin
         Exit;
     stFragment:
       case Support of
+        {$ifndef OpenGLES}
         gsExtension: AType := GL_FRAGMENT_SHADER_ARB;
+        {$endif}
         gsStandard : AType := GL_FRAGMENT_SHADER    ;
         else Exit;
       end;
@@ -867,12 +897,14 @@ begin
   end;
 
   case Support of
+    {$ifndef OpenGLES}
     gsExtension:
       begin
         ShaderId := CreateShaderARB(S);
         glAttachObjectARB(ProgramId, ShaderId);
         ShaderIds.Add(ShaderId);
       end;
+    {$endif}
     gsStandard:
       begin
         ShaderId := CreateShader(S);
@@ -902,12 +934,14 @@ var
   I: Integer;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension:
       for I := 0 to ShaderIds.Count - 1 do
       begin
         glDetachObjectARB(ProgramId, ShaderIds[I]);
         glDeleteObjectARB(ShaderIds[I]);
       end;
+    {$endif}
     gsStandard    :
       for I := 0 to ShaderIds.Count - 1 do
       begin
@@ -923,6 +957,7 @@ var
   Linked: TGLuint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension:
       begin
         glLinkProgramARB(ProgramId);
@@ -931,6 +966,7 @@ begin
           raise EGLSLProgramLinkError.Create('GLSL program not linked' + NL +
             GetInfoLogARB(ProgramId));
       end;
+    {$endif}
     gsStandard:
       begin
         glLinkProgram(ProgramId);
@@ -990,6 +1026,7 @@ begin
   end;
 end;
 
+{$ifndef OpenGLES}
 { Wrapper over glGetUniformLocationARB (use only if gsExtension) }
 {$define GetLocationCheckARB :=
 
@@ -1004,6 +1041,7 @@ end;
      ForceException then
     CheckGLErrors('Cleaning GL errors before setting GLSL uniform:');
 }
+{$endif}
 
 { Wrapper over glGetUniformLocation (use only if gsStandard) }
 {$define GetLocationCheck :=
@@ -1025,8 +1063,8 @@ var
 
   function ErrMessage: string;
   begin
-    Result := Format('Error when setting GLSL uniform variable "%s". Probably the type in the shader source code does not match with the type declared in VRML/X3D. OpenGL error (%d): %s',
-      [UniformName, ErrorCode,  gluErrorString(ErrorCode)]);
+    Result := Format('Error when setting GLSL uniform variable "%s". Probably the type in the shader source code does not match with the type declared in VRML/X3D. ',
+      [UniformName]) + GLErrorString(ErrorCode);
   end;
 
 begin
@@ -1064,7 +1102,9 @@ begin
     Which means that I can simply call glUniform1i, with Ord(Value). }
 
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniform1iARB(Location, Ord(Value)); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniform1i   (Location, Ord(Value)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
@@ -1074,7 +1114,9 @@ var
   Location: TGLint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniform1iARB(Location, Value); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniform1i   (Location, Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
@@ -1084,7 +1126,9 @@ var
   Location: TGLint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniform2ivARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniform2iv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
@@ -1094,7 +1138,9 @@ var
   Location: TGLint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniform3ivARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniform3iv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
@@ -1104,7 +1150,9 @@ var
   Location: TGLint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniform4ivARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniform4iv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
@@ -1114,7 +1162,9 @@ var
   Location: TGLint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniform1fARB(Location, Value); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniform1f   (Location, Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
@@ -1124,7 +1174,9 @@ var
   Location: TGLint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniform2fvARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniform2fv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
@@ -1134,7 +1186,9 @@ var
   Location: TGLint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniform3fvARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniform3fv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
@@ -1144,7 +1198,9 @@ var
   Location: TGLint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniform4fvARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniform4fv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
@@ -1154,7 +1210,9 @@ var
   Location: TGLint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniformMatrix2fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniformMatrix2fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
@@ -1164,7 +1222,9 @@ var
   Location: TGLint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniformMatrix3fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
@@ -1174,7 +1234,9 @@ var
   Location: TGLint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniformMatrix4fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
@@ -1195,7 +1257,9 @@ begin
   Ints := Value.ToLongInt;
   try
     case Support of
+      {$ifndef OpenGLES}
       gsExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Ints.List)); SetUniformEnd(Name, ForceException); end;
+      {$endif}
       gsStandard : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Ints.List)); SetUniformEnd(Name, ForceException); end;
     end;
   finally FreeAndNil(Ints) end;
@@ -1207,7 +1271,9 @@ var
 begin
   Assert(SizeOf(LongInt) = SizeOf(TGLint));
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Value.List)); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
@@ -1217,7 +1283,9 @@ var
   Location: TGLint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniform1fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniform1fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
@@ -1227,7 +1295,9 @@ var
   Location: TGLint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniform2fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniform2fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
@@ -1237,7 +1307,9 @@ var
   Location: TGLint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniform3fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniform3fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
@@ -1247,7 +1319,9 @@ var
   Location: TGLint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniform4fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniform4fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
@@ -1257,7 +1331,9 @@ var
   Location: TGLint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniformMatrix3fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
@@ -1267,17 +1343,21 @@ var
   Location: TGLint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    {$endif}
     gsStandard : begin GetLocationCheck    glUniformMatrix4fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
+{$ifndef OpenGLES}
 function TGLSLProgram.GetAttribLocationARB(const Name: string): TGLint;
 begin
   Result := glGetAttribLocationARB(ProgramId, PCharOrNil(Name));
   if Result = -1 then
     raise EGLSLAttributeNotFound.CreateFmt('Attribute variable "%s" not found', [Name]);
 end;
+{$endif}
 
 function TGLSLProgram.GetAttribLocation(const Name: string): TGLint;
 begin
@@ -1286,6 +1366,97 @@ begin
     raise EGLSLAttributeNotFound.CreateFmt('Attribute variable "%s" not found', [Name]);
 end;
 
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TGLfloat);
+begin
+  case Support of
+    {$ifndef OpenGLES}
+    gsExtension: glVertexAttrib1fARB(GetAttribLocationARB(Name), Value);
+    {$endif}
+    gsStandard : glVertexAttrib1f   (GetAttribLocation   (Name), Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector2Single);
+begin
+  case Support of
+    {$ifndef OpenGLES}
+    gsExtension: glVertexAttrib2fvARB(GetAttribLocationARB(Name), @Value);
+    {$endif}
+    gsStandard : glVertexAttrib2fv   (GetAttribLocation   (Name), @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector3Single);
+begin
+  case Support of
+    {$ifndef OpenGLES}
+    gsExtension: glVertexAttrib3fvARB(GetAttribLocationARB(Name), @Value);
+    {$endif}
+    gsStandard : glVertexAttrib3fv   (GetAttribLocation   (Name), @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector4Single);
+begin
+  case Support of
+    {$ifndef OpenGLES}
+    gsExtension: glVertexAttrib4fvARB(GetAttribLocationARB(Name), @Value);
+    {$endif}
+    gsStandard : glVertexAttrib4fv   (GetAttribLocation   (Name), @Value);
+  end;
+end;
+
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TMatrix3Single);
+var
+  Location: TGLint;
+begin
+  case Support of
+    {$ifndef OpenGLES}
+    gsExtension:
+      begin
+        Location := GetAttribLocationARB(Name);
+        glVertexAttrib3fvARB(Location    , @Value[0]);
+        glVertexAttrib3fvARB(Location + 1, @Value[1]);
+        glVertexAttrib3fvARB(Location + 2, @Value[2]);
+      end;
+    {$endif}
+    gsStandard    :
+      begin
+        Location := GetAttribLocation   (Name);
+        glVertexAttrib3fv   (Location    , @Value[0]);
+        glVertexAttrib3fv   (Location + 1, @Value[1]);
+        glVertexAttrib3fv   (Location + 2, @Value[2]);
+      end;
+  end;
+end;
+
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TMatrix4Single);
+var
+  Location: TGLint;
+begin
+  case Support of
+    {$ifndef OpenGLES}
+    gsExtension:
+      begin
+        Location := GetAttribLocationARB(Name);
+        glVertexAttrib4fvARB(Location    , @Value[0]);
+        glVertexAttrib4fvARB(Location + 1, @Value[1]);
+        glVertexAttrib4fvARB(Location + 2, @Value[2]);
+        glVertexAttrib4fvARB(Location + 3, @Value[3]);
+      end;
+    {$endif}
+    gsStandard    :
+      begin
+        Location := GetAttribLocation   (Name);
+        glVertexAttrib4fv   (Location    , @Value[0]);
+        glVertexAttrib4fv   (Location + 1, @Value[1]);
+        glVertexAttrib4fv   (Location + 2, @Value[2]);
+        glVertexAttrib4fv   (Location + 3, @Value[3]);
+      end;
+  end;
+end;
+
+{$ifndef OpenGLES}
 procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector4Integer);
 begin
   case Support of
@@ -1302,39 +1473,6 @@ begin
   end;
 end;
 
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TGLfloat);
-begin
-  case Support of
-    gsExtension: glVertexAttrib1fARB(GetAttribLocationARB(Name), Value);
-    gsStandard : glVertexAttrib1f   (GetAttribLocation   (Name), Value);
-  end;
-end;
-
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector2Single);
-begin
-  case Support of
-    gsExtension: glVertexAttrib2fvARB(GetAttribLocationARB(Name), @Value);
-    gsStandard : glVertexAttrib2fv   (GetAttribLocation   (Name), @Value);
-  end;
-end;
-
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector3Single);
-begin
-  case Support of
-    gsExtension: glVertexAttrib3fvARB(GetAttribLocationARB(Name), @Value);
-    gsStandard : glVertexAttrib3fv   (GetAttribLocation   (Name), @Value);
-  end;
-end;
-
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector4Single);
-begin
-  case Support of
-    gsExtension: glVertexAttrib4fvARB(GetAttribLocationARB(Name), @Value);
-    gsStandard : glVertexAttrib4fv   (GetAttribLocation   (Name), @Value);
-  end;
-end;
-
-{$ifndef OpenGLES}
 procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TGLdouble);
 begin
   case Support of
@@ -1368,64 +1506,20 @@ begin
 end;
 {$endif}
 
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TMatrix3Single);
-var
-  Location: TGLint;
-begin
-  case Support of
-    gsExtension:
-      begin
-        Location := GetAttribLocationARB(Name);
-        glVertexAttrib3fvARB(Location    , @Value[0]);
-        glVertexAttrib3fvARB(Location + 1, @Value[1]);
-        glVertexAttrib3fvARB(Location + 2, @Value[2]);
-      end;
-    gsStandard    :
-      begin
-        Location := GetAttribLocation   (Name);
-        glVertexAttrib3fv   (Location    , @Value[0]);
-        glVertexAttrib3fv   (Location + 1, @Value[1]);
-        glVertexAttrib3fv   (Location + 2, @Value[2]);
-      end;
-  end;
-end;
-
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TMatrix4Single);
-var
-  Location: TGLint;
-begin
-  case Support of
-    gsExtension:
-      begin
-        Location := GetAttribLocationARB(Name);
-        glVertexAttrib4fvARB(Location    , @Value[0]);
-        glVertexAttrib4fvARB(Location + 1, @Value[1]);
-        glVertexAttrib4fvARB(Location + 2, @Value[2]);
-        glVertexAttrib4fvARB(Location + 3, @Value[3]);
-      end;
-    gsStandard    :
-      begin
-        Location := GetAttribLocation   (Name);
-        glVertexAttrib4fv   (Location    , @Value[0]);
-        glVertexAttrib4fv   (Location + 1, @Value[1]);
-        glVertexAttrib4fv   (Location + 2, @Value[2]);
-        glVertexAttrib4fv   (Location + 3, @Value[3]);
-      end;
-  end;
-end;
-
 function TGLSLProgram.VertexAttribPointer(const Name: string;
   LocationOffset: TGLint;
   Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
   Ptr: Pointer): TGLint;
 begin
   case Support of
+    {$ifndef OpenGLES}
     gsExtension:
       begin
         Result := GetAttribLocationARB(Name) + LocationOffset;
         glEnableVertexAttribArrayARB(Result);
         glVertexAttribPointerARB(Result, Size, AType, Normalized, Stride, Ptr);
       end;
+    {$endif}
     gsStandard    :
       begin
         Result := GetAttribLocation   (Name) + LocationOffset;
@@ -1438,7 +1532,9 @@ end;
 class procedure TGLSLProgram.DisableVertexAttribArray(Location: TGLint);
 begin
   case ClassSupport of
+    {$ifndef OpenGLES}
     gsExtension: glDisableVertexAttribArrayARB(Location);
+    {$endif}
     gsStandard : glDisableVertexAttribArray   (Location);
   end;
 end;
