@@ -461,10 +461,6 @@ procedure glClipPlane(plane: GLenum; const V: TVector4d); overload;
 procedure gluLookAtv(const Eye, Center, Up: TVector3Single);
 procedure gluLookDirv(const Eye, Dir, Up: TVector3Single);
 
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2f); overload;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3f); overload;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4f); overload;
-
 procedure glClearColorv(const v: TVector3f; alpha: Single);
 
 procedure glNormalv(const v: TVector3f); overload;
@@ -1164,29 +1160,21 @@ procedure glColorv(const v: TVector3ub); begin glColor3ubv(@v); end;
 procedure glColorv(const v: TVector4ub); begin glColor4ubv(@v); end;
 
 procedure glTranslatev(const V: TVector3f); begin glTranslatef(V[0], V[1], V[2]); end;
-procedure glTranslatev(const V: TVector3d); begin glTranslated(V[0], V[1], V[2]); end;
 
 procedure glTranslatev(const V: TVector3_Single); begin glTranslatef(V.Data[0], V.Data[1], V.Data[2]); end;
-procedure glTranslatev(const V: TVector3_Double); begin glTranslated(V.Data[0], V.Data[1], V.Data[2]); end;
 
 procedure glScalev(const V: Single); begin glScalef(V, V, V); end;
 
 procedure glScalev(const V: TVector3f); begin glScalef(V[0], V[1], V[2]); end;
-procedure glScalev(const V: TVector3d); begin glScaled(V[0], V[1], V[2]); end;
 
 procedure glScalev(const V: TVector3_Single); begin glScalef(V.Data[0], V.Data[1], V.Data[2]); end;
-procedure glScalev(const V: TVector3_Double); begin glScaled(V.Data[0], V.Data[1], V.Data[2]); end;
 
 procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); begin glRotatef(Angle, V[0], V[1], V[2]); end;
-procedure glRotatev(const Angle: TGLdouble; const V: TVector3d); begin glRotated(Angle, V[0], V[1], V[2]); end;
 
-procedure glVertexv(const v: TVector2_Double);  begin glVertex2dv(@v.Data); end;
 procedure glVertexv(const v: TVector2_Single);  begin glVertex2fv(@v.Data); end;
 
-procedure glVertexv(const v: TVector3_Double);  begin glVertex3dv(@v.Data); end;
 procedure glVertexv(const v: TVector3_Single);  begin glVertex3fv(@v.Data); end;
 
-procedure glVertexv(const v: TVector4_Double);  begin glVertex4dv(@v.Data); end;
 procedure glVertexv(const v: TVector4_Single);  begin glVertex4fv(@v.Data); end;
 
 procedure glClipPlane(plane: GLenum; const V: TVector4d);
@@ -1208,13 +1196,6 @@ begin
             Up [0]         , Up [1]         , Up [2]);
 end;
 
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2d);  begin glMultiTexCoord2dv(Target, @v); end;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector2f);  begin glMultiTexCoord2fv(Target, @v); end;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3d);  begin glMultiTexCoord3dv(Target, @v); end;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector3f);  begin glMultiTexCoord3fv(Target, @v); end;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4d);  begin glMultiTexCoord4dv(Target, @v); end;
-procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4f);  begin glMultiTexCoord4fv(Target, @v); end;
-
 procedure glClearColorv(const v: TVector3Single; alpha: Single);
 begin
   glClearColor(v[0], v[1], v[2], alpha);
@@ -1231,24 +1212,17 @@ procedure glColorv(const v: TVector4f);  begin glColor4fv(@v); end;
 
 procedure glMaterialv(face, pname: TGLEnum; const params: TVector4f);  begin glMaterialfv(face, pname, @params); end;
 
-procedure glVertexv(const v: TVector2d);  begin glVertex2dv(@v); end;
 procedure glVertexv(const v: TVector2f);  begin glVertex2fv(@v); end;
 procedure glVertexv(const v: TVector2i);  begin glVertex2iv(@v); end;
-procedure glVertexv(const v: TVector3d);  begin glVertex3dv(@v); end;
 procedure glVertexv(const v: TVector3f);  begin glVertex3fv(@v); end;
 procedure glVertexv(const v: TVector3i);  begin glVertex3iv(@v); end;
-procedure glVertexv(const v: TVector4d);  begin glVertex4dv(@v); end;
 procedure glVertexv(const v: TVector4f);  begin glVertex4fv(@v); end;
 procedure glVertexv(const v: TVector4i);  begin glVertex4iv(@v); end;
 
-procedure glTexCoordv(const v: TVector2d);  begin glTexCoord2dv(@v); end;
 procedure glTexCoordv(const v: TVector2f);  begin glTexCoord2fv(@v); end;
-procedure glTexCoordv(const v: TVector3d);  begin glTexCoord3dv(@v); end;
 procedure glTexCoordv(const v: TVector3f);  begin glTexCoord3fv(@v); end;
-procedure glTexCoordv(const v: TVector4d);  begin glTexCoord4dv(@v); end;
 procedure glTexCoordv(const v: TVector4f);  begin glTexCoord4fv(@v); end;
 
-procedure glTexGenv(coord, pname: TGLenum; const params: TVector4d);  begin glTexGendv(coord, pname, @params); end;
 procedure glTexGenv(coord, pname: TGLenum; const params: TVector4f);  begin glTexGenfv(coord, pname, @params); end;
 
 procedure glLightv(light, pname: TGLEnum; const params: TVector4f);  begin glLightfv(light, pname, @params); end;
@@ -1260,9 +1234,7 @@ procedure glLightModelv(pname: TGLenum; const params: TVector4i); begin glLightM
 procedure glFogv(pname: TGLEnum; const params: TVector4f);  begin glFogfv(pname, @params); end;
 
 procedure glMultMatrix(const m: TMatrix4f); begin glMultMatrixf(@m) end;
-procedure glMultMatrix(const m: TMatrix4d); begin glMultMatrixd(@m) end;
 procedure glLoadMatrix(const m: TMatrix4f); begin glLoadMatrixf(@m) end;
-procedure glLoadMatrix(const m: TMatrix4d); begin glLoadMatrixd(@m) end;
 
 procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); begin glTexEnvfv(target, pname, @params); end;
 

@@ -383,8 +383,8 @@ end;
 procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
 begin
   if GLUseMultiTexturing then
-    glMultiTexCoordv(GL_TEXTURE0 + TextureUnit, TexCoord) else
-    glTexCoordv(TexCoord);
+    glMultiTexCoord4fv(GL_TEXTURE0 + TextureUnit, @TexCoord) else
+    glTexCoord4fv(@TexCoord);
 end;
 
 procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
