@@ -526,7 +526,10 @@ begin
   {$else}
   if GLFeatures.Version_2_0 then
     Result := gsStandard else
-  if GLFeatures.UseARBGLSL then
+  if Load_GL_ARB_shader_objects and
+     Load_GL_ARB_vertex_shader and
+     Load_GL_ARB_fragment_shader and
+     Load_GL_ARB_shading_language_100 then
     Result := gsExtension else
     Result := gsNone;
   {$endif}
@@ -563,22 +566,26 @@ function TGLSLProgram.DebugInfo: string;
       GL_FLOAT_MAT2: Result := 'FLOAT_MAT2';
       GL_FLOAT_MAT3: Result := 'FLOAT_MAT3';
       GL_FLOAT_MAT4: Result := 'FLOAT_MAT4';
+      {$ifndef OpenGLES}
       GL_FLOAT_MAT2x3: Result := 'FLOAT_MAT2x3';
       GL_FLOAT_MAT2x4: Result := 'FLOAT_MAT2x4';
       GL_FLOAT_MAT3x2: Result := 'FLOAT_MAT3x2';
       GL_FLOAT_MAT3x4: Result := 'FLOAT_MAT3x4';
       GL_FLOAT_MAT4x2: Result := 'FLOAT_MAT4x2';
       GL_FLOAT_MAT4x3: Result := 'FLOAT_MAT4x3';
-      {$ifndef OpenGLES} GL_SAMPLER_1D: Result := 'SAMPLER_1D'; {$endif}
+      GL_SAMPLER_1D: Result := 'SAMPLER_1D';
+      {$endif}
       GL_SAMPLER_2D: Result := 'SAMPLER_2D';
       {$ifndef OpenGLES} GL_SAMPLER_3D: Result := 'SAMPLER_3D'; {$endif}
       GL_SAMPLER_CUBE: Result := 'SAMPLER_CUBE';
-      {$ifndef OpenGLES} GL_SAMPLER_1D_SHADOW: Result := 'SAMPLER_1D_SHADOW'; {$endif}
-      {$ifndef OpenGLES} GL_SAMPLER_2D_SHADOW: Result := 'SAMPLER_2D_SHADOW'; {$endif}
+      {$ifndef OpenGLES}
+      GL_SAMPLER_1D_SHADOW: Result := 'SAMPLER_1D_SHADOW';
+      GL_SAMPLER_2D_SHADOW: Result := 'SAMPLER_2D_SHADOW';
       GL_SAMPLER_2D_RECT: Result := 'SAMPLER_2D_RECT';
       GL_SAMPLER_2D_RECT_SHADOW: Result := 'SAMPLER_2D_RECT_SHADOW';
       GL_INT_SAMPLER_2D_RECT: Result := 'INT_SAMPLER_2D_RECT';
       GL_UNSIGNED_INT_SAMPLER_2D_RECT: Result := 'UNSIGNED_INT_SAMPLER_2D_RECT';
+      {$endif}
       else Result := Format('Unrecognized uniform type "%d"', [AType]);
     end;
   end;
