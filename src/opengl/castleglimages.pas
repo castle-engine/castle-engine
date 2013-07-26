@@ -1244,7 +1244,7 @@ end;
 function IsCubeMapTextureSized(const Size: Cardinal): boolean;
 begin
   Result :=
-    (not GL_ARB_texture_cube_map) or
+    (not GLTextureCubeMapSupport) or
     (
       IsPowerOf2(Size) and
       (Size > 0) and
@@ -1255,7 +1255,7 @@ end;
 function IsCubeMapTextureSized(const R: TEncodedImage): boolean;
 begin
   Result :=
-    (not GL_ARB_texture_cube_map) or
+    (not GLTextureCubeMapSupport) or
     (
       (r.Width = r.Height) { must be square } and
       IsPowerOf2(r.Width) and
@@ -1281,7 +1281,7 @@ end;
 function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
 begin
   Result := Size;
-  if GL_ARB_texture_cube_map then
+  if GLTextureCubeMapSupport then
   begin
     if Size <= 0 then
       Result := 1 else
@@ -1300,7 +1300,7 @@ function ResizeToCubeMapTextureSize(const r: TCastleImage): TCastleImage;
 var
   Size: Cardinal;
 begin
-  if GL_ARB_texture_cube_map then
+  if GLTextureCubeMapSupport then
   begin
     Size := Max(r.Width, r.Height);
     Size := ResizeToCubeMapTextureSize(Size);

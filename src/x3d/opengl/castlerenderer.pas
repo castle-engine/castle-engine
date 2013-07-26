@@ -2590,7 +2590,7 @@ end;
 procedure TGLRenderer.DisableCurrentTexture;
 begin
   glDisable(GL_TEXTURE_2D);
-  if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+  if GLTextureCubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
   if GL3DTextures <> gsNone  then glDisable(GL_TEXTURE_3D);
 end;
 

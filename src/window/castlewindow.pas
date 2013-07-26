@@ -477,9 +477,11 @@ unit CastleWindow;
   See also backend-specific TODOs in castlewindow_xxx.inc files.
 }
 
+{$I castleconf.inc}
+
 interface
 
-uses SysUtils, Classes, CastleVectors, GL, GLU, GLExt,
+uses SysUtils, Classes, CastleVectors, CastleGL,
   {$ifdef CASTLE_WINDOW_WINAPI} Windows, CommDlg, {$endif}
   {$ifdef CASTLE_WINDOW_XLIB} Xlib, CastleXlib, XUtil, X, KeySym, CursorFont, CastleGlx, {$endif}
   {$ifdef CASTLE_WINDOW_USE_XF86VMODE} CastleXF86VMode, {$endif}
@@ -4602,7 +4604,7 @@ procedure TCastleWindowCustom.EventDraw;
       glDisable(GL_LIGHTING);
       glDisable(GL_DEPTH_TEST);
       glDisable(GL_TEXTURE_2D);
-      if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+      if GLTextureCubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
       if GL3DTextures <> gsNone  then glDisable(GL_TEXTURE_3D);
       glViewport(0, 0, Width, Height); // saved by GL_VIEWPORT_BIT
 

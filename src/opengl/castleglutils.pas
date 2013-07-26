@@ -85,7 +85,6 @@ var
 
   GL_ARB_imaging: boolean;
   GL_ARB_multisample: boolean;
-  GL_ARB_texture_cube_map: boolean;
   GL_ARB_depth_texture: boolean;
   GL_ARB_shadow: boolean;
   GL_ARB_texture_compression: boolean;
@@ -202,6 +201,9 @@ var
 
   { Are non-power-of-2 textures supported. }
   GLTextureNonPowerOfTwo: boolean;
+
+  { Are cubemaps supported. This means support for GL_ARB_texture_cube_map. }
+  GLTextureCubeMapSupport: boolean;
 
 { Initialize all extensions and OpenGL versions.
 
@@ -725,7 +727,6 @@ begin
 
   GL_ARB_imaging := Load_GL_ARB_imaging;
   GL_ARB_multisample := Load_GL_ARB_multisample;
-  GL_ARB_texture_cube_map := Load_GL_ARB_texture_cube_map;
   GL_ARB_depth_texture := Load_GL_ARB_depth_texture;
   GL_ARB_shadow := Load_GL_ARB_shadow;
   GL_ARB_texture_compression := Load_GL_ARB_texture_compression;
@@ -768,9 +769,11 @@ begin
     GLMaxTextureUnits := glGetInteger(GL_MAX_TEXTURE_UNITS) else
     GLMaxTextureUnits := 1;
 
-  if GL_ARB_texture_cube_map then
-    GLMaxCubeMapTextureSizeARB := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB) else
-    GLMaxCubeMapTextureSizeARB := 0;
+  GLMaxCubeMapTextureSizeARB := 0;
+  GLTextureCubeMapSupport :=  {$ifdef OpenGLES} false; {$else} Load_GL_ARB_texture_cube_map;
+  if GLTextureCubeMapSupport then
+    GLMaxCubeMapTextureSizeARB := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB);
+  {$endif}
 
   if GL_version_1_2 then
     GL3DTextures := gsStandard else
@@ -1432,9 +1435,9 @@ const
 
   function GetMaxCubeMapTextureSize: string;
   begin
-    if GL_ARB_texture_cube_map then
+    if GLTextureCubeMapSupport then
       Result := IntToStr(GLMaxCubeMapTextureSizeARB) else
-      Result := 'ARB_texture_cube_map not available';
+      Result := 'Cube maps not available';
   end;
 
   function GetMaxTexture3DSize: string;

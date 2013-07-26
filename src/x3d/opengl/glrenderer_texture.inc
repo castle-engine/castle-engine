@@ -1524,7 +1524,7 @@ var
   Anisotropy: TGLfloat;
   BackRot, FrontRot, LeftRot, RightRot: TCastleImage;
 begin
-  if not GL_ARB_texture_cube_map then
+  if not GLTextureCubeMapSupport then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
     Exit;
@@ -1588,7 +1588,7 @@ var
   Anisotropy: TGLfloat;
   DDS: TDDSImage;
 begin
-  if not GL_ARB_texture_cube_map then
+  if not GLTextureCubeMapSupport then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
     Exit;
@@ -1648,7 +1648,7 @@ var
   Anisotropy: TGLfloat;
   InitialImage: TCastleImage;
 begin
-  if not GL_ARB_texture_cube_map then
+  if not GLTextureCubeMapSupport then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
     Exit;
