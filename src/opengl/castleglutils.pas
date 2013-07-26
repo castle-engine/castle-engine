@@ -708,7 +708,6 @@ begin
   ARB_depth_texture := Load_GL_ARB_depth_texture;
   ARB_shadow := Load_GL_ARB_shadow;
   EXT_fog_coord := Load_GL_EXT_fog_coord;
-  EXT_texture_filter_anisotropic := Load_GL_EXT_texture_filter_anisotropic;
   NV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
   {$endif}
 
@@ -765,6 +764,9 @@ begin
     if Log then WritelnLog('OpenGL', 'Buggy OpenGL 3D texture support: reported as supported, but GL_MAX_3D_TEXTURE_SIZE[_EXT] is zero. (Bug may be found on Mesa 7.0.4.)');
   end;
 
+  // TODO: there is also such extension for OpenGL ES
+  EXT_texture_filter_anisotropic := {$ifdef OpenGLES} false {$else}
+    Load_GL_EXT_texture_filter_anisotropic {$endif};
   if EXT_texture_filter_anisotropic then
     MaxTextureMaxAnisotropyEXT := glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT) else
     MaxTextureMaxAnisotropyEXT := 0.0;
