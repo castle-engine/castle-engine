@@ -98,7 +98,6 @@ var
   GL_EXT_vertex_array: boolean;
   GL_EXT_vertex_shader: boolean;
   GL_NV_multisample_filter_hint: boolean;
-  GL_SGIS_generate_mipmap: boolean;
   GL_ATI_separate_stencil: boolean;
   GL_ARB_occlusion_query: boolean;
   GL_EXT_packed_depth_stencil: boolean;
@@ -749,7 +748,6 @@ begin
   GL_EXT_vertex_array := Load_GL_EXT_vertex_array;
   GL_EXT_vertex_shader := Load_GL_EXT_vertex_shader;
   GL_NV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
-  GL_SGIS_generate_mipmap := Load_GL_SGIS_generate_mipmap;
   GL_ATI_separate_stencil := Load_GL_ATI_separate_stencil;
   GL_ARB_occlusion_query := Load_GL_ARB_occlusion_query;
   GL_EXT_packed_depth_stencil := Load_GL_EXT_packed_depth_stencil;

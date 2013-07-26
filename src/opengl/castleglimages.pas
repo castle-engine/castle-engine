@@ -412,13 +412,10 @@ function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
       Otherwise, we'll try to generate mipmaps, using various OpenGL mechanisms.)
 
     @item(
-      If GenerateMipmap functionality will be required to create mipmaps,
-      but is not available on this OpenGL implementation,
-      we will change MinFilter to simple GL_LINEAR and make OnWarning.
-      So usually you just don't have to worry about this.
-      Note that current implementation requires GenerateMipmap functionality
-      only for S3TC textures, for normal uncompressed textures we can
-      generate mipmaps on CPU or through SGIS_GENERATE_MIPMAP extension.)
+      We will try using GenerateMipmap functionality to generate mipmaps on GPU.
+      If not available, for uncompressed textures, we will generate mipmaps on CPU.
+      For compressed textures, we will change MinFilter to simple GL_LINEAR
+      and make OnWarning.)
   )
 
   @raises(ETextureLoadError If texture cannot be loaded for whatever reason.
@@ -1479,14 +1476,6 @@ var
 
   procedure LoadNormal(const image: TCastleImage);
   begin
-    { Setting GL_GENERATE_MIPMAP_SGIS to GL_FALSE isn't really needed here, AFAIK.
-      It's false by default after all, and glTexParameter isn't part of the
-      global state, it's part of currently bound texture state (which means
-      you don't have to reset it to GL_FALSE just because you potentially
-      set it to GL_TRUE on some other texture previously loaded). }
-    if GL_SGIS_generate_mipmap then
-      glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_FALSE);
-
     glTexImage2DImage(Image, 0);
   end;
 
@@ -1556,15 +1545,11 @@ var
   procedure LoadMipmapped(const image: TCastleImage);
   begin
     if not LoadMipmapsFromDDS(DDSForMipmaps, true) then
-    if GL_SGIS_generate_mipmap then
+    if HasGenerateMipmap then
     begin
-      { hardware-accelerated mipmap generation.
-        Thanks go to Eric Grange for mentioning it on
-        [http://www.pascalgamedevelopment.com/forums/viewtopic.php?p=20514]
-        Documentation is on
-        [http://oss.sgi.com/projects/ogl-sample/registry/SGIS/generate_mipmap.txt] }
-      glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
       glTexImage2DImage(Image, 0);
+      { hardware-accelerated mipmap generation }
+      GenerateMipmap(GL_TEXTURE_2D);
     end else
       gluBuild2DMipmapsImage(Image);
   end;
@@ -1794,6 +1779,7 @@ var
 
       So I don't use SGIS_generate_mipmap, instead making mipmaps always
       by gluBuild2DMipmapsImage.
+      TODO: But GenerateMipmap should work? Test.
     }
 
     gluBuild2DMipmapsImage(Image);
