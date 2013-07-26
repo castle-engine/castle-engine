@@ -936,9 +936,9 @@ begin
   {$ifdef UseTexturesForImage}
   glGenTextures(1, @Texture);
   glBindTexture(GL_TEXTURE_2D, Texture);
-  if not IsTextureSized(Image, GLTextureNonPowerOfTwo) then
+  if not IsTextureSized(Image, GLFeatures.TextureNonPowerOfTwo) then
   begin
-    NewImage := ResizeToTextureSize(Image, GLTextureNonPowerOfTwo);
+    NewImage := ResizeToTextureSize(Image, GLFeatures.TextureNonPowerOfTwo);
     try
       LoadImage(NewImage);
     finally FreeAndNil(NewImage) end;
