@@ -86,7 +86,6 @@ var
   GL_ARB_multisample: boolean;
   GL_ARB_depth_texture: boolean;
   GL_ARB_shadow: boolean;
-  GL_EXT_compiled_vertex_array: boolean;
   GL_EXT_fog_coord: boolean;
   GL_EXT_stencil_two_side: boolean;
   GL_EXT_stencil_wrap: boolean;
@@ -736,7 +735,6 @@ begin
   GL_ARB_multisample := Load_GL_ARB_multisample;
   GL_ARB_depth_texture := Load_GL_ARB_depth_texture;
   GL_ARB_shadow := Load_GL_ARB_shadow;
-  GL_EXT_compiled_vertex_array := Load_GL_EXT_compiled_vertex_array;
   GL_EXT_fog_coord := Load_GL_EXT_fog_coord;
   GL_EXT_stencil_two_side := Load_GL_EXT_stencil_two_side;
   GL_EXT_stencil_wrap := Load_GL_EXT_stencil_wrap;
@@ -1303,13 +1301,9 @@ begin
 
   glVertexPointer(3, GL_FLOAT, 0, @Verts);
 
-  if GL_EXT_compiled_vertex_array then
-    glLockArraysEXT(0, 8);
+  { TODO: use vbo. Speed of this is important for occlusion query. }
 
   glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, @VertsIndices);
-
-  if GL_EXT_compiled_vertex_array then
-    glUnlockArraysEXT;
 end;
 
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
