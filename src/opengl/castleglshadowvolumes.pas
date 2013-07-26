@@ -16,9 +16,11 @@
 { Rendering shadow volumes in OpenGL (TGLShadowVolumeRenderer). }
 unit CastleGLShadowVolumes;
 
+{$I castleconf.inc}
+
 interface
 
-uses CastleVectors, CastleBoxes, GL, GLExt, CastleGLUtils, CastleFrustum, Castle3D;
+uses CastleVectors, CastleBoxes, CastleGL, CastleGLUtils, CastleFrustum, Castle3D;
 
 type
   TStencilSetupKind = (ssFrontAndBack, ssFront, ssBack);
@@ -269,7 +271,12 @@ end;
 procedure TGLShadowVolumeRenderer.GLContextOpen;
 begin
   { calcualte WrapAvailable, StencilOpIncrWrap, StencilOpDecrWrap }
-  FWrapAvailable := (GLVersion.Major >= 2) or GLFeatures.EXT_stencil_wrap;
+  {$ifdef OpenGLES}
+  FWrapAvailable := true;
+  FStencilOpIncrWrap := GL_INCR_WRAP;
+  FStencilOpDecrWrap := GL_DECR_WRAP;
+  {$else}
+  FWrapAvailable := GLFeatures.Version_2_0 or Load_GL_EXT_stencil_wrap;
   if WrapAvailable then
   begin
     FStencilOpIncrWrap := GL_INCR_WRAP_EXT;
@@ -293,7 +300,7 @@ begin
   { This again looks hacky but is Ok, glStencilOpSeparateATI has the same
     call semantics as glStencilOpSeparate, in fact glStencilOpSeparate
     is just an extension promoted to standard in GL 2.0... }
-  if (glStencilOpSeparate = nil) and GLFeatures.ATI_separate_stencil then
+  if (glStencilOpSeparate = nil) and Load_GL_ATI_separate_stencil then
   begin
     if Log and LogShadowVolumes then
       WritelnLog('Shadow volumes',
@@ -302,6 +309,7 @@ begin
         'GL_ATI_separate_stencil available)');
     glStencilOpSeparate := glStencilOpSeparateATI;
   end;
+  {$endif}
 
   FStencilTwoSided := glStencilOpSeparate <> nil;
 

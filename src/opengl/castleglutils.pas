@@ -110,14 +110,11 @@ type
       like below.
       Instead most interesting extensions are wrapped in "features"
       like @link(UseMultiTexturing), see lower. }
-    ARB_multisample: boolean;
     ARB_depth_texture: boolean;
     ARB_shadow: boolean;
     EXT_fog_coord: boolean;
-    EXT_stencil_wrap: boolean;
     EXT_texture_filter_anisotropic: boolean;
     NV_multisample_filter_hint: boolean;
-    ATI_separate_stencil: boolean;
     ARB_occlusion_query: boolean;
     ARB_texture_rectangle: boolean;
 
@@ -143,6 +140,8 @@ type
     MaxRectangleTextureSize: Cardinal;
     MaxClipPlanes: Cardinal;
     { @groupEnd }
+
+    Multisample: boolean;
 
     { Number of texture units available.
       Equal to glGetInteger(GL_MAX_TEXTURE_UNITS), if multi-texturing
@@ -709,10 +708,8 @@ begin
   ARB_depth_texture := Load_GL_ARB_depth_texture;
   ARB_shadow := Load_GL_ARB_shadow;
   EXT_fog_coord := Load_GL_EXT_fog_coord;
-  EXT_stencil_wrap := Load_GL_EXT_stencil_wrap;
   EXT_texture_filter_anisotropic := Load_GL_EXT_texture_filter_anisotropic;
   NV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
-  ATI_separate_stencil := Load_GL_ATI_separate_stencil;
   {$endif}
 
   {$ifdef OpenGLES}
@@ -830,8 +827,8 @@ begin
     Load_GL_ARB_texture_multisample and
     (not GLVersion.BuggyFBOMultiSampling) {$endif};
 
-  ARB_multisample := {$ifdef OpenGLES} true {$else} Load_GL_ARB_multisample {$endif};
-  if ARB_multisample and (glGetInteger({$ifdef OpenGLES} GL_SAMPLE_BUFFERS {$else} GL_SAMPLE_BUFFERS_ARB {$endif}) <> 0) then
+  Multisample := {$ifdef OpenGLES} true {$else} Load_GL_ARB_multisample {$endif};
+  if Multisample and (glGetInteger({$ifdef OpenGLES} GL_SAMPLE_BUFFERS {$else} GL_SAMPLE_BUFFERS_ARB {$endif}) <> 0) then
   begin
     CurrentMultiSampling := glGetInteger({$ifdef OpenGLES} GL_SAMPLES {$else} GL_SAMPLES_ARB {$endif});
     if CurrentMultiSampling <= 1 then
@@ -1421,20 +1418,6 @@ const
       Result := 'EXT_texture_filter_anisotropic not available';
   end;
 
-  function GetSampleBuffers: string;
-  begin
-    if GLFeatures.ARB_multisample then
-      Result := GetBoolean(GL_SAMPLE_BUFFERS_ARB) else
-      Result := 'GL_ARB_multisample not available';
-  end;
-
-  function GetSamples: string;
-  begin
-    if GLFeatures.ARB_multisample then
-      Result := GetInteger(GL_SAMPLES_ARB) else
-      Result := 'GL_ARB_multisample not available';
-  end;
-
   function GetQueryCounterBits: string;
   begin
     if GLFeatures.ARB_occlusion_query then
@@ -1527,10 +1510,8 @@ begin
       +GetInteger(GL_ACCUM_BLUE_BITS) +' / '
       +GetInteger(GL_ACCUM_ALPHA_BITS) +nl+
     '  Double buffer: ' + GetBoolean(GL_DOUBLEBUFFER) +nl+
-    '  Multisampling (full-screen antialiasing):' +nl+
-    '    Sample buffers: ' + GetSampleBuffers +nl+
-    '    Samples: ' + GetSamples +nl+
-    '    Summary: ' + IntToStr(GLFeatures.CurrentMultiSampling) + ' samples per pixel' +nl+
+    '  Multisampling (full-screen antialiasing): ' + BoolToStr[GLFeatures.Multisample] +nl+
+    '    Current: ' + IntToStr(GLFeatures.CurrentMultiSampling) + ' samples per pixel' +nl+
     nl+
 
     '-------------' +nl+
