@@ -91,6 +91,8 @@ type
       features (not yet advertised in GL version string),
       e.g. Mesa 6.x had such buggy glStencilOpSeparate. This is correct OpenGL
       behavior AFAIK, and we handle it. }
+    { TODO: this should not even be defined for OpenGLES, since it's always false,
+      OpenGL ES versions are different. }
     Version_1_2: boolean;
     Version_1_3: boolean;
     Version_1_4: boolean;
@@ -157,9 +159,6 @@ type
       and eventual fallback code (when this is false) write only for really
       ancient GPUs. }
     UseMultiTexturing: boolean;
-
-    { Are all OpenGL ARB extensions for GLSL available. }
-    UseARBGLSL: boolean;
 
     { Are 3D textures supported by OpenGL.
       If they are, note that GL_TEXTURE_3D and GL_TEXTURE_3D_EXT are equal,
@@ -308,9 +307,6 @@ procedure GLErrorRaise(ErrorCode: TGLenum);
 function glGetFloat(pname: TGLEnum): TGLfloat;
 function glGetInteger(pname: TGLEnum): TGLint;
 function glGetBoolean(pname: TGLEnum): TGLboolean;
-{$ifndef OpenGLES}
-function glGetDouble(pname: TGLEnum): TGLdouble;
-{$endif}
 { @groupEnd }
 
 { ------------------------------------------------------------------------------
@@ -330,8 +326,13 @@ function glGetDouble(pname: TGLEnum): TGLdouble;
   Or we could just declare these functions as "inline".
   However, speeding these functions is just not needed at all anymore
   (especially with new VBO renderer that passes everything through arrays).
+
+  TODO: almost all these functions belong to deprecated fixed-function
+  and do immediate operations. They should be just removed, and everything
+  using them fixed to use VBO.
 }
 
+{$ifndef OpenGLES}
 { }
 procedure glColorv(const v: TVector3ub); overload;
 procedure glColorv(const v: TVector4ub); overload;
@@ -385,6 +386,8 @@ procedure glMultMatrix(const m: TMatrix4f); overload;
 procedure glLoadMatrix(const m: TMatrix4f); overload;
 
 procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); overload;
+
+{$endif}
 
 { Simple save/restore of OpenGL pixel store ---------------------------------- }
 
@@ -717,7 +720,6 @@ begin
   ARB_window_pos := Load_GL_ARB_window_pos;
   MESA_window_pos := Load_GL_MESA_window_pos;
 
-  ARB_multisample := Load_GL_ARB_multisample;
   ARB_depth_texture := Load_GL_ARB_depth_texture;
   ARB_shadow := Load_GL_ARB_shadow;
   EXT_fog_coord := Load_GL_EXT_fog_coord;
@@ -725,8 +727,6 @@ begin
   EXT_texture_filter_anisotropic := Load_GL_EXT_texture_filter_anisotropic;
   NV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
   ATI_separate_stencil := Load_GL_ATI_separate_stencil;
-  ARB_occlusion_query := Load_GL_ARB_occlusion_query;
-  ARB_texture_rectangle := Load_GL_ARB_texture_rectangle;
   {$endif}
 
   {$ifdef OpenGLES}
@@ -738,11 +738,21 @@ begin
   {$endif}
 
   MaxTextureSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
-  MaxLights := glGetInteger(GL_MAX_LIGHTS);
 
+  { TODO: for OpenGLES, as well as non-shader pipeline, this can be actually
+    infinite (in theory, of course even 8 lights at the same shape is slow).
+    Make it configurable somewhere, e.g. at Attribtes.MaxLightsPerShape ? }
+  MaxLights := {$ifdef OpenGLES} 8 {$else} glGetInteger(GL_MAX_LIGHTS) {$endif};
+
+  {$ifdef OpenGLES}
+  MaxTextureUnits := Min(
+    glGetInteger(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS),
+    glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS));
+  {$else}
   if Version_1_3 then
     MaxTextureUnits := glGetInteger(GL_MAX_TEXTURE_UNITS) else
     MaxTextureUnits := 1;
+  {$endif}
 
   MaxCubeMapTextureSizeARB := 0;
   CubeMapSupport :=  {$ifdef OpenGLES} false; {$else} Load_GL_ARB_texture_cube_map;
@@ -776,13 +786,17 @@ begin
     MaxTextureMaxAnisotropyEXT := glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT) else
     MaxTextureMaxAnisotropyEXT := 0.0;
 
+  ARB_occlusion_query := false;
+  QueryCounterBits := 0;
+  {$ifndef OpenGLES}
+  ARB_occlusion_query := Load_GL_ARB_occlusion_query;
   if ARB_occlusion_query then
-    glGetQueryivARB(GL_SAMPLES_PASSED_ARB, GL_QUERY_COUNTER_BITS_ARB, @QueryCounterBits) else
-    QueryCounterBits := 0;
+    glGetQueryivARB(GL_SAMPLES_PASSED_ARB, GL_QUERY_COUNTER_BITS_ARB, @QueryCounterBits);
+  {$endif}
 
   { calculate GLFramebuffer }
   {$ifdef OpenGLES}
-  GLFramebuffer := gsStandard;
+  Framebuffer := gsStandard;
   {$else}
   if Version_3_0 or Load_GL_ARB_framebuffer_object then
     Framebuffer := gsStandard else
@@ -802,11 +816,17 @@ begin
   end else
     MaxRenderbufferSize := 0;
 
+  MaxRectangleTextureSize := 0;
+  ARB_texture_rectangle := false;
+  {$ifndef OpenGLES}
+  ARB_texture_rectangle := Load_GL_ARB_texture_rectangle;
   if ARB_texture_rectangle then
-    MaxRectangleTextureSize := glGetInteger(GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB) else
-    MaxRectangleTextureSize := 0;
+    MaxRectangleTextureSize := glGetInteger(GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB);
+  {$endif}
 
-  MaxClipPlanes := glGetInteger(GL_MAX_CLIP_PLANES);
+  { TODO: this should be completely configurable in shader pipeline.
+    Make it configurable at Attributes.MaxClipPlanes? }
+  MaxClipPlanes := {$ifdef OpenGLES} 8 {$else} glGetInteger(GL_MAX_CLIP_PLANES) {$endif};
 
   { calculate UseMultiTexturing: check extensions required for multitexturing.
 
@@ -816,22 +836,18 @@ begin
     - ARB_texture_env_dot3
     But GL version >= 1.3 is actually required for GL_subtract,
     and includes all above extensions in core. }
-  UseMultiTexturing := Version_1_3;
+  UseMultiTexturing := {$ifdef OpenGLES} true {$else} Version_1_3 {$endif};
 
-  UseARBGLSL := Load_GL_ARB_shader_objects and
-                  Load_GL_ARB_vertex_shader and
-                  Load_GL_ARB_fragment_shader and
-                  Load_GL_ARB_shading_language_100;
-
-  FBOMultiSampling :=
+  FBOMultiSampling := {$ifdef OpenGLES} false {$else}
     { Is GL_ARB_framebuffer_object available? }
     (Framebuffer = gsStandard) and
     Load_GL_ARB_texture_multisample and
-    (not GLVersion.BuggyFBOMultiSampling);
+    (not GLVersion.BuggyFBOMultiSampling) {$endif};
 
-  if ARB_multisample and (glGetInteger(GL_SAMPLE_BUFFERS_ARB) <> 0) then
+  ARB_multisample := {$ifdef OpenGLES} true {$else} Load_GL_ARB_multisample {$endif};
+  if ARB_multisample and (glGetInteger({$ifdef OpenGLES} GL_SAMPLE_BUFFERS {$else} GL_SAMPLE_BUFFERS_ARB {$endif}) <> 0) then
   begin
-    CurrentMultiSampling := glGetInteger(GL_SAMPLES_ARB);
+    CurrentMultiSampling := glGetInteger({$ifdef OpenGLES} GL_SAMPLES {$else} GL_SAMPLES_ARB {$endif});
     if CurrentMultiSampling <= 1 then
     begin
       OnWarning(wtMinor, 'MultiSampling', Format('We successfully got multi-sampling buffer, but only %d samples per pixel. This doesn''t make much sense, assuming buggy OpenGL implementation, and anti-aliasing may not work.',
@@ -942,13 +958,9 @@ begin
   glGetBooleanv(pname, @result)
 end;
 
-function glGetDouble(pname: TGLEnum): TGLdouble;
-begin
-  FillChar(result, SizeOf(result), 0);
-  glGetDoublev(pname, @result)
-end;
-
 { ---------------------------------------------------- }
+
+{$ifndef OpenGLES}
 
 procedure glColorv(const v: TVector3ub); begin glColor3ubv(@v); end;
 procedure glColorv(const v: TVector4ub); begin glColor4ubv(@v); end;
@@ -1017,6 +1029,8 @@ procedure glMultMatrix(const m: TMatrix4f); begin glMultMatrixf(@m) end;
 procedure glLoadMatrix(const m: TMatrix4f); begin glLoadMatrixf(@m) end;
 
 procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); begin glTexEnvfv(target, pname, @params); end;
+
+{$endif}
 
 { uproszczenia dla sejwowania / ladowania gl state : ---------------------------------- }
 
