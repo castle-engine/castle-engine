@@ -86,8 +86,6 @@ var
   GL_ARB_multisample: boolean;
   GL_ARB_depth_texture: boolean;
   GL_ARB_shadow: boolean;
-  GL_ARB_texture_env_combine: boolean;
-  GL_ARB_texture_env_dot3: boolean;
   GL_EXT_compiled_vertex_array: boolean;
   GL_EXT_fog_coord: boolean;
   GL_EXT_stencil_two_side: boolean;
@@ -738,8 +736,6 @@ begin
   GL_ARB_multisample := Load_GL_ARB_multisample;
   GL_ARB_depth_texture := Load_GL_ARB_depth_texture;
   GL_ARB_shadow := Load_GL_ARB_shadow;
-  GL_ARB_texture_env_combine := Load_GL_ARB_texture_env_combine;
-  GL_ARB_texture_env_dot3 := Load_GL_ARB_texture_env_dot3;
   GL_EXT_compiled_vertex_array := Load_GL_EXT_compiled_vertex_array;
   GL_EXT_fog_coord := Load_GL_EXT_fog_coord;
   GL_EXT_stencil_two_side := Load_GL_EXT_stencil_two_side;
