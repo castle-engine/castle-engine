@@ -83,7 +83,6 @@ var
   GL_version_3_3: boolean;
   GL_version_4_0: boolean;
 
-  GL_ARB_imaging: boolean;
   GL_ARB_multisample: boolean;
   GL_ARB_depth_texture: boolean;
   GL_ARB_shadow: boolean;
@@ -202,6 +201,9 @@ var
 
   { VBO support (in OpenGL (ES) core). }
   GLVertexBufferObject: boolean;
+
+  { glBlendColor and GL_CONSTANT_ALPHA support. }
+  GLBlendConstant: boolean;
 
 { Initialize all extensions and OpenGL versions.
 
@@ -733,7 +735,6 @@ begin
   GL_ARB_window_pos := Load_GL_ARB_window_pos;
   GL_MESA_window_pos := Load_GL_MESA_window_pos;
 
-  GL_ARB_imaging := Load_GL_ARB_imaging;
   GL_ARB_multisample := Load_GL_ARB_multisample;
   GL_ARB_depth_texture := Load_GL_ARB_depth_texture;
   GL_ARB_shadow := Load_GL_ARB_shadow;
@@ -872,6 +873,11 @@ begin
 
   GLVertexBufferObject := {$ifdef OpenGLES} true {$else}
     GL_version_1_5 and not GLVersion.BuggyVBO {$endif};
+
+  GLBlendConstant := {$ifdef OpenGLES} true {$else}
+    { GL_CONSTANT_ALPHA is available as part of ARB_imaging, since GL 1.4
+      as standard. glBlendColor is available since 1.2 as standard. }
+    ((GL_version_1_2 and Load_GL_ARB_imaging) or GL_version_1_4) and not GLVersion.Fglrx {$endif};
 end;
 
 { EOpenGLError, CheckGLErrors ------------------------------------------------ }

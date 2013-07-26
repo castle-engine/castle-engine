@@ -89,9 +89,7 @@ begin
         glDisable(GL_LIGHTING);
         if DebugScene3DDisplay = 1 then
         begin
-          { GL_CONSTANT_ALPHA is available as part of ARB_imaging, since GL 1.4
-            as standard. glBlendColor is available since 1.2 as standard. }
-          if (GL_version_1_2 and GL_ARB_imaging) or GL_version_1_4 then
+          if GLBlendConstant then
           begin
             glBlendColor(0, 0, 0, 0.5);
             glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);

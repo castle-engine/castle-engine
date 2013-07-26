@@ -1325,10 +1325,10 @@ begin
         if BlendingFactors[I].NeedsConstColor or
            BlendingFactors[I].NeedsConstAlpha then
         begin
-          if (not (GL_ARB_imaging or GL_version_1_4)) or GLVersion.Fglrx then
+          if not GLBlendConstant then
           begin
             if Log then
-              WritelnLog('Blending', Format('Blending factor "%s" requires OpenGL 1.4 or ARB_imaging extension, and is known to not work with fglrx (ATI Linux drivers)', [S]));
+              WritelnLog('Blending', Format('Blending factor "%s" not available. It requires OpenGL >= 1.4 or ARB_imaging or OpenGL ES >= 2.0 extension, and is known to not work with fglrx (ATI Linux drivers)', [S]));
             Exit(false);
           end;
         end;
@@ -1613,7 +1613,7 @@ var
 
     { We track last source/dest factor, but we don't track last constant color/alpha.
       So just set them always, if needed. }
-    if GL_ARB_imaging then
+    if GLBlendConstant then
     begin
       if NeedsConstColor then
       begin
