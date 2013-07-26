@@ -253,7 +253,7 @@ begin
     begin
       { Initialize vertex arrays that we we will use with indexed nodes. }
       if Vbo[vtCoordinate] <> 0 then
-        glBindBufferARB(GL_ARRAY_BUFFER_ARB, Vbo[vtCoordinate]);
+        glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtCoordinate]);
 
       glEnableClientState(GL_VERTEX_ARRAY);
       glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);
@@ -262,7 +262,7 @@ begin
       glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal);
 
       if Vbo[vtAttribute] <> 0 then
-        glBindBufferARB(GL_ARRAY_BUFFER_ARB, Vbo[vtAttribute]);
+        glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtAttribute]);
 
       if HasColor then
       begin
@@ -314,7 +314,7 @@ begin
       if Arrays.HasIndexes then
       begin
         if Vbo[vtIndex] <> 0 then
-          glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Vbo[vtIndex]);
+          glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo[vtIndex]);
 
         if Arrays.Counts = nil then
           glDrawElements(Mode, Arrays.IndexesCount, GL_UNSIGNED_INT, Arrays.IndexesPtr(First)) else

@@ -87,14 +87,12 @@ var
   GL_ARB_multisample: boolean;
   GL_ARB_depth_texture: boolean;
   GL_ARB_shadow: boolean;
-  GL_ARB_texture_compression: boolean;
   GL_ARB_texture_env_combine: boolean;
   GL_ARB_texture_env_dot3: boolean;
   GL_EXT_compiled_vertex_array: boolean;
   GL_EXT_fog_coord: boolean;
   GL_EXT_stencil_two_side: boolean;
   GL_EXT_stencil_wrap: boolean;
-  GL_EXT_texture_compression_s3tc: boolean;
   GL_EXT_texture_filter_anisotropic: boolean;
   GL_EXT_texture_object: boolean;
   GL_EXT_vertex_array: boolean;
@@ -102,7 +100,6 @@ var
   GL_NV_multisample_filter_hint: boolean;
   GL_SGIS_generate_mipmap: boolean;
   GL_ATI_separate_stencil: boolean;
-  GL_ARB_vertex_buffer_object: boolean;
   GL_ARB_occlusion_query: boolean;
   GL_EXT_packed_depth_stencil: boolean;
   GL_ATI_texture_float: boolean;
@@ -199,6 +196,13 @@ var
 
   { Are cubemaps supported. This means support for GL_ARB_texture_cube_map. }
   GLTextureCubeMapSupport: boolean;
+
+  { Texture S3TC compression support. This means you can load textures by
+    glCompressedTexImage2DARB and use GL_COMPRESSED_*_S3TC_*_EXT enums. }
+  GLTextureCompressionS3TC: boolean;
+
+  { VBO support (in OpenGL (ES) core). }
+  GLVertexBufferObject: TGLSupport;
 
 { Initialize all extensions and OpenGL versions.
 
@@ -734,14 +738,12 @@ begin
   GL_ARB_multisample := Load_GL_ARB_multisample;
   GL_ARB_depth_texture := Load_GL_ARB_depth_texture;
   GL_ARB_shadow := Load_GL_ARB_shadow;
-  GL_ARB_texture_compression := Load_GL_ARB_texture_compression;
   GL_ARB_texture_env_combine := Load_GL_ARB_texture_env_combine;
   GL_ARB_texture_env_dot3 := Load_GL_ARB_texture_env_dot3;
   GL_EXT_compiled_vertex_array := Load_GL_EXT_compiled_vertex_array;
   GL_EXT_fog_coord := Load_GL_EXT_fog_coord;
   GL_EXT_stencil_two_side := Load_GL_EXT_stencil_two_side;
   GL_EXT_stencil_wrap := Load_GL_EXT_stencil_wrap;
-  GL_EXT_texture_compression_s3tc := Load_GL_EXT_texture_compression_s3tc;
   GL_EXT_texture_filter_anisotropic := Load_GL_EXT_texture_filter_anisotropic;
   GL_EXT_texture_object := Load_GL_EXT_texture_object;
   GL_EXT_vertex_array := Load_GL_EXT_vertex_array;
@@ -749,16 +751,11 @@ begin
   GL_NV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
   GL_SGIS_generate_mipmap := Load_GL_SGIS_generate_mipmap;
   GL_ATI_separate_stencil := Load_GL_ATI_separate_stencil;
-  GL_ARB_vertex_buffer_object := Load_GL_ARB_vertex_buffer_object;
   GL_ARB_occlusion_query := Load_GL_ARB_occlusion_query;
   GL_EXT_packed_depth_stencil := Load_GL_EXT_packed_depth_stencil;
   GL_ATI_texture_float := Load_GL_ATI_texture_float;
   GL_ARB_texture_float := Load_GL_ARB_texture_float;
   GL_ARB_texture_rectangle := Load_GL_ARB_texture_rectangle;
-
-  { Workaround http://bugs.freepascal.org/view.php?id=18613 }
-  if GL_ARB_vertex_buffer_object then
-    Pointer(glBufferSubDataARB) := Glext.wglGetProcAddress('glBufferSubDataARB');
   {$endif}
 
   GLMaxTextureSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
@@ -871,6 +868,12 @@ begin
 
   GLTextureNonPowerOfTwo := {$ifdef OpenGLES} true {$else}
     Load_GL_ARB_texture_non_power_of_two or GL_version_2_0 {$endif};
+
+  GLTextureCompressionS3TC := {$ifdef OpenGLES} false {$else}
+    Load_GL_ARB_texture_compression and Load_GL_EXT_texture_compression_s3tc {$endif};
+
+  GLVertexBufferObject := {$ifdef OpenGLES} true {$else}
+    GL_version_1_5 and not GLVersion.BuggyVBO {$endif};
 end;
 
 { EOpenGLError, CheckGLErrors ------------------------------------------------ }
@@ -1532,9 +1535,9 @@ begin
     '  GLSL shaders support: ' + GLSupportNames[TGLSLProgram.ClassSupport] +nl+
     '  Multi-texturing: ' + BoolToStr[GLUseMultiTexturing] +nl+
     '  Framebuffer Object: ' + GLSupportNamesFBO[GLFramebuffer] +nl+
-    '  Vertex Buffer Object: ' + BoolToStr[GL_ARB_vertex_buffer_object] +nl+
+    '  Vertex Buffer Object: ' + BoolToStr[GLVertexBufferObject] +nl+
     '  GenerateMipmap available: ' + BoolToStr[HasGenerateMipmap] +nl+
-    '  S3TC compressed textures: ' + BoolToStr[GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc] +nl+
+    '  S3TC compressed textures: ' + BoolToStr[GLTextureCompressionS3TC] +nl+
     '  3D textures: ' + GLSupportNames[GL3DTextures] +nl+
     '  Multi-sampling for FBO buffers and textures: ' + BoolToStr[GLFBOMultiSampling] +nl+
     '  Textures non-power-of-2: ' + BoolToStr[GLTextureNonPowerOfTwo] +nl+

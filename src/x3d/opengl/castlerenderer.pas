@@ -863,7 +863,7 @@ type
   TX3DRendererShape = class(TShape)
   private
     { Generate VBO if needed, and reload VBO contents.
-      Assumes (GL_ARB_vertex_buffer_object and not BuggyVBO) is true.
+      Assumes GLVertexBufferObject is true.
 
       Arrays data @italic(must not) be freed (by TGeometryArrays.FreeData)
       before calling this method. Also, this method will always call
@@ -2281,15 +2281,15 @@ var
          as it tries to access non-existent data from vertex arrays). }
        (VboAllocatedSize[VboType] <> Size) then
     begin
-      glBindBufferARB(Target, Vbo[VboType]);
+      glBindBuffer(Target, Vbo[VboType]);
       if NewVbos or
         (VboAllocatedUsage <> DataUsage) or
         (VboAllocatedSize[VboType] <> Size) then
       begin
-        glBufferDataARB(Target, Size, Data, DataUsage);
+        glBufferData(Target, Size, Data, DataUsage);
         VboAllocatedSize[VboType] := Size;
       end else
-        glBufferSubDataARB(Target, 0, Size, Data);
+        glBufferSubData(Target, 0, Size, Data);
     end;
   end;
 
@@ -2311,13 +2311,13 @@ var
   end;
 
 begin
-  Assert(GL_ARB_vertex_buffer_object and not GLVersion.BuggyVBO);
+  Assert(GLVertexBufferObject);
   Assert(not Arrays.DataFreed);
 
   NewVbos := Vbo[vtCoordinate] = 0;
   if NewVbos then
   begin
-    glGenBuffersARB(Ord(High(Vbo)) + 1, @Vbo);
+    glGenBuffers(Ord(High(Vbo)) + 1, @Vbo);
     if Log and LogRenderer then
       WritelnLog('Renderer', Format('Creating and loading data to VBOs (%d,%d,%d)',
         [Vbo[vtCoordinate], Vbo[vtAttribute], Vbo[vtIndex]]));
@@ -2330,17 +2330,17 @@ begin
   end;
 
   if DynamicGeometry then
-    DataUsage := GL_DYNAMIC_DRAW_ARB else
-    DataUsage := GL_STATIC_DRAW_ARB;
+    DataUsage := GL_DYNAMIC_DRAW else
+    DataUsage := GL_STATIC_DRAW;
 
-  BufferData(vtCoordinate, GL_ARRAY_BUFFER_ARB,
+  BufferData(vtCoordinate, GL_ARRAY_BUFFER,
     Arrays.Count * Arrays.CoordinateSize, Arrays.CoordinateArray);
 
-  BufferData(vtAttribute, GL_ARRAY_BUFFER_ARB,
+  BufferData(vtAttribute, GL_ARRAY_BUFFER,
     Arrays.Count * Arrays.AttributeSize, Arrays.AttributeArray);
 
   if Arrays.Indexes <> nil then
-    BufferData(vtIndex, GL_ELEMENT_ARRAY_BUFFER_ARB,
+    BufferData(vtIndex, GL_ELEMENT_ARRAY_BUFFER,
       Arrays.Indexes.Count * SizeOf(LongInt), Arrays.Indexes.List);
 
   VboAllocatedUsage := DataUsage;
@@ -3508,8 +3508,7 @@ begin
     if Shape.Cache = nil then
       Shape.Cache := Cache.Shape_IncReference(Shape, Fog, Self);
 
-    VBO := Attributes.VertexBufferObject and GL_ARB_vertex_buffer_object
-      and not GLVersion.BuggyVBO;
+    VBO := Attributes.VertexBufferObject and GLVertexBufferObject;
 
     { calculate Shape.Cache.Arrays }
     if Shape.Cache.Arrays = nil then
@@ -3560,8 +3559,8 @@ begin
     { unbind arrays, to have a clean state on exit.
       TODO: this should not be needed, instead move to RenderEnd.
       Check does occlusion query work Ok when some vbo is bound. }
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-    glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   end;
 
   {$endif USE_VRML_TRIANGULATION}

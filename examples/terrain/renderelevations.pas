@@ -16,6 +16,8 @@
 { Rendering elevations (terrains) in OpenGL. }
 unit RenderElevations;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleVectors, Elevations;
@@ -56,7 +58,7 @@ function ColorFromHeight(Elevation: TElevation; Height: Single): TVector3Single;
 
 implementation
 
-uses GL, GLU, GLExt, CastleGLUtils, CastleUtils, SysUtils;
+uses CastleGL, CastleGLUtils, CastleUtils, SysUtils;
 
 var
   ElevationVbo: TGLuint;
@@ -64,16 +66,16 @@ var
 
 procedure RenderElevationsOpenGL;
 begin
-  if not GL_ARB_vertex_buffer_object then
-    raise Exception.Create('ARB_vertex_buffer_object is required');
-  glGenBuffersARB(1, @ElevationVbo);
-  glGenBuffersARB(1, @ElevationIndexVbo);
+  if not GLVertexBufferObject then
+    raise Exception.Create('VBO support is required');
+  glGenBuffers(1, @ElevationVbo);
+  glGenBuffers(1, @ElevationIndexVbo);
 end;
 
 procedure RenderElevationsCloseGL;
 begin
-  glDeleteBuffersARB(1, @ElevationVbo);
-  glDeleteBuffersARB(1, @ElevationIndexVbo);
+  glDeleteBuffers(1, @ElevationVbo);
+  glDeleteBuffers(1, @ElevationIndexVbo);
 end;
 
 function ColorFromHeightCore(const H: Single): TVector3Single;
@@ -273,9 +275,9 @@ begin
 
   { load Points into VBO, render }
 
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, ElevationVbo);
-  glBufferDataARB(GL_ARRAY_BUFFER_ARB, Length(Points) * SizeOf(TElevationPoint),
-    Pointer(Points), GL_STREAM_DRAW_ARB);
+  glBindBuffer(GL_ARRAY_BUFFER, ElevationVbo);
+  glBufferData(GL_ARRAY_BUFFER, Length(Points) * SizeOf(TElevationPoint),
+    Pointer(Points), GL_STREAM_DRAW);
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glVertexPointer(3, GL_FLOAT, SizeOf(TElevationPoint), Offset(Points[0].Position, Points[0]));
@@ -286,9 +288,9 @@ begin
   glEnableClientState(GL_COLOR_ARRAY);
   glColorPointer(3, GL_FLOAT, SizeOf(TElevationPoint), Offset(Points[0].Color, Points[0]));
 
-  glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, ElevationIndexVbo);
-  glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Length(PointsIndex) * SizeOf(TGLuint),
-    Pointer(PointsIndex), GL_STREAM_DRAW_ARB);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElevationIndexVbo);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, Length(PointsIndex) * SizeOf(TGLuint),
+    Pointer(PointsIndex), GL_STREAM_DRAW);
 
   Assert(CountStepsQ * 4 - 1 = CountSteps - 2);
 
@@ -339,16 +341,16 @@ begin
       Index^ := CountSteps-1 + (I*2 + 2)*CountSteps1; Inc(Index);
     end;
 
-    glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, Length(TrisIndex) * SizeOf(TGLuint),
-      Pointer(TrisIndex), GL_STREAM_DRAW_ARB);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, Length(TrisIndex) * SizeOf(TGLuint),
+      Pointer(TrisIndex), GL_STREAM_DRAW);
     glDrawElements(GL_TRIANGLES, Length(TrisIndex), GL_UNSIGNED_INT, nil);
   end;
 
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_NORMAL_ARRAY);
   glDisableClientState(GL_COLOR_ARRAY);
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-  glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 end;
 
 procedure DrawElevation(Elevation: TElevation;

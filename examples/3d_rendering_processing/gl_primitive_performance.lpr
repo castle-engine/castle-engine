@@ -191,8 +191,8 @@ begin
           glDisableClientState(GL_VERTEX_ARRAY);
           if Mode in VBOModes then
           begin
-            glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-            glDeleteBuffersARB(1, @VBOVertex);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glDeleteBuffers(1, @VBOVertex);
           end;
 
           Mode := TRenderMode(Item.IntData - 20);
@@ -208,11 +208,10 @@ begin
           end else
           if Mode in VBOModes then
           begin
-            glGenBuffersARB(1, @VBOVertex);
-            glBindBufferARB(GL_ARRAY_BUFFER_ARB, VBOVertex);
-            glBufferDataARB(GL_ARRAY_BUFFER_ARB,
-              3 * SizeOf(Single) * Vertexes.Count, Vertexes.List,
-              GL_STATIC_DRAW_ARB);
+            glGenBuffers(1, @VBOVertex);
+            glBindBuffer(GL_ARRAY_BUFFER, VBOVertex);
+            glBufferData(GL_ARRAY_BUFFER,
+              3 * SizeOf(Single) * Vertexes.Count, Vertexes.List, GL_STATIC_DRAW);
             glVertexPointer(3, GL_FLOAT, 0, nil);
             glEnableClientState(GL_VERTEX_ARRAY);
           end;

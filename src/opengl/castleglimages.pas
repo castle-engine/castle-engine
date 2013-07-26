@@ -1406,7 +1406,7 @@ end;
     extensions are missing.) }
 procedure glCompressedTextureImage2D(Image: TS3TCImage; Level: TGLint);
 begin
-  if not (GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc) then
+  if not GLTextureCompressionS3TC then
     raise ECannotLoadS3TCTexture.Create('Cannot load S3TC compressed textures: OpenGL doesn''t support one (or both) of ARB_texture_compression and EXT_texture_compression_s3tc extensions');
 
   if not IsTextureSized(Image, false) then
@@ -1708,7 +1708,7 @@ var
       extensions are missing or mipmaps were required.) }
   procedure LoadCompressed(const Image: TS3TCImage);
   begin
-    if not (GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc) then
+    if not GLTextureCompressionS3TC then
       raise ECannotLoadS3TCTexture.Create('Cannot load S3TC compressed textures: OpenGL doesn''t support one (or both) of ARB_texture_compression and EXT_texture_compression_s3tc extensions');
 
     if not IsCubeMapTextureSized(Image) then
