@@ -799,7 +799,7 @@ begin
     GLQueryCounterBits := 0;
 
   { calculate GLFramebuffer }
-  if {$ifdef HAS_GL_VERSION_ABOVE_2} GL_version_3_0 or {$endif} GL_ARB_framebuffer_object then
+  if GL_version_3_0 or GL_ARB_framebuffer_object then
     GLFramebuffer := gsStandard else
   if GL_EXT_framebuffer_object then
     GLFramebuffer := gsExtension else
@@ -839,7 +839,7 @@ begin
 
   GLFBOMultiSampling :=
     { Is GL_ARB_framebuffer_object available? }
-    ({$ifdef HAS_GL_VERSION_ABOVE_2} GL_version_3_0 or {$endif} GL_ARB_framebuffer_object) and
+    (GL_version_3_0 or GL_ARB_framebuffer_object) and
     Load_GL_ARB_texture_multisample and
     (not GLVersion.BuggyFBOMultiSampling);
 
@@ -1509,14 +1509,12 @@ begin
     '  1.4: ' + BoolToStr[GL_version_1_4] +nl+
     '  1.5: ' + BoolToStr[GL_version_1_5] +nl+
     '  2.0: ' + BoolToStr[GL_version_2_0] +nl+
-    {$ifdef HAS_GL_VERSION_ABOVE_2}
     '  2.1: ' + BoolToStr[GL_version_2_1] +nl+
     '  3.0: ' + BoolToStr[GL_version_3_0] +nl+
     '  3.1: ' + BoolToStr[GL_version_3_1] +nl+
     '  3.2: ' + BoolToStr[GL_version_3_2] +nl+
     '  3.3: ' + BoolToStr[GL_version_3_3] +nl+
     '  4.0: ' + BoolToStr[GL_version_4_0] +nl+
-    {$endif}
     nl+
 
     '---------' +nl+
