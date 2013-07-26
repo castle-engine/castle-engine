@@ -1063,6 +1063,44 @@ end;
 
 procedure ImageDrawPart(const image: TCastleImage;
   const X0, Y0, Width, Height: Cardinal);
+
+  type
+    { }
+    TPixelStoreUnpack = record
+      UnpackSwapBytes,
+      UnpackLSBFirst: TGLboolean;
+      UnpackRowLength,
+      UnpackSkipRows,
+      UnpackSkipPixels: TGLint;
+      UnpackAlignment: Cardinal;
+    end;
+
+  procedure SavePixelStoreUnpack(out pixUnpack: TPixelStoreUnpack);
+  begin
+    with pixUnpack do
+    begin
+      UnpackSwapBytes := glGetBoolean(GL_UNPACK_SWAP_BYTES);
+      UnpackLSBFirst := glGetBoolean(GL_UNPACK_LSB_FIRST);
+      UnpackRowLength := glGetInteger(GL_UNPACK_ROW_LENGTH);
+      UnpackSkipRows := glGetInteger(GL_UNPACK_SKIP_ROWS);
+      UnpackSkipPixels := glGetInteger(GL_UNPACK_SKIP_PIXELS);
+      UnpackAlignment := glGetInteger(GL_UNPACK_ALIGNMENT);
+    end;
+  end;
+
+  procedure LoadPixelStoreUnpack(const pixUnpack: TPixelStoreUnpack);
+  begin
+    with pixUnpack do
+    begin
+      glPixelStorei(GL_UNPACK_SWAP_BYTES, UnpackSwapBytes);
+      glPixelStorei(GL_UNPACK_LSB_FIRST, UnpackLSBFirst);
+      glPixelStorei(GL_UNPACK_ROW_LENGTH, UnpackRowLength);
+      glPixelStorei(GL_UNPACK_SKIP_ROWS,  UnpackSkipRows);
+      glPixelStorei(GL_UNPACK_SKIP_PIXELS, UnpackSkipPixels);
+      glPixelStorei(GL_UNPACK_ALIGNMENT, UnpackAlignment);
+    end;
+  end;
+
 var
   pixUnpack: TPixelStoreUnpack;
   W, H: cardinal;

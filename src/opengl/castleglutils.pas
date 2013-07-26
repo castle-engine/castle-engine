@@ -392,20 +392,6 @@ procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); overload;
 { Simple save/restore of OpenGL pixel store ---------------------------------- }
 
 type
-  { }
-  TPixelStoreUnpack = record
-    UnpackSwapBytes,
-    UnpackLSBFirst: TGLboolean;
-    UnpackRowLength,
-    UnpackSkipRows,
-    UnpackSkipPixels: TGLint;
-    UnpackAlignment: Cardinal;
-  end;
-
-procedure SavePixelStoreUnpack(out pixUnpack: TPixelStoreUnpack);
-procedure LoadPixelStoreUnpack(const pixUnpack: TPixelStoreUnpack);
-
-type
   TUnpackNotAlignedData = record
     Alignment: Cardinal;
   end;
@@ -1033,32 +1019,6 @@ procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); begin glTe
 {$endif}
 
 { uproszczenia dla sejwowania / ladowania gl state : ---------------------------------- }
-
-procedure SavePixelStoreUnpack(out pixUnpack: TPixelStoreUnpack);
-begin
-  with pixUnpack do
-  begin
-    UnpackSwapBytes := glGetBoolean(GL_UNPACK_SWAP_BYTES);
-    UnpackLSBFirst := glGetBoolean(GL_UNPACK_LSB_FIRST);
-    UnpackRowLength := glGetInteger(GL_UNPACK_ROW_LENGTH);
-    UnpackSkipRows := glGetInteger(GL_UNPACK_SKIP_ROWS);
-    UnpackSkipPixels := glGetInteger(GL_UNPACK_SKIP_PIXELS);
-    UnpackAlignment := glGetInteger(GL_UNPACK_ALIGNMENT);
-  end;
-end;
-
-procedure LoadPixelStoreUnpack(const pixUnpack: TPixelStoreUnpack);
-begin
-  with pixUnpack do
-  begin
-    glPixelStorei(GL_UNPACK_SWAP_BYTES, UnpackSwapBytes);
-    glPixelStorei(GL_UNPACK_LSB_FIRST, UnpackLSBFirst);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, UnpackRowLength);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS,  UnpackSkipRows);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, UnpackSkipPixels);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, UnpackAlignment);
-  end;
-end;
 
 procedure BeforeUnpackImage(out unpackdata: TUnpackNotAlignedData; image: TCastleImage);
 begin

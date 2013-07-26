@@ -150,7 +150,6 @@ type
   private
     oldWinState: TWindowState;
     oldProjectionMatrix, oldTextureMatrix, oldModelviewMatrix: TMatrix4f;
-    oldPixelStoreUnpack: TPixelStoreUnpack;
     oldMatrixMode: TGLenum;
     oldWinWidth, oldWinHeight: integer;
     oldMessagesTheme: TMessagesTheme;
@@ -463,7 +462,6 @@ begin
  glGetFloatv(GL_TEXTURE_MATRIX, @oldTextureMatrix);
  glGetFloatv(GL_MODELVIEW_MATRIX, @oldModelviewMatrix);
  oldMatrixMode := glGetInteger(GL_MATRIX_MODE);
- SavePixelStoreUnpack(oldPixelStoreUnpack);
 
  Window.PostRedisplay;
 
@@ -510,8 +508,6 @@ begin
    Window.MakeCurrent;
 
    { restore OpenGL state }
-   LoadPixelStoreUnpack(oldPixelStoreUnpack);
-
    if RestoreProjectionMatrix then
    begin
      glMatrixMode(GL_PROJECTION);
