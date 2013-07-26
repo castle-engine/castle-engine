@@ -4625,7 +4625,7 @@ procedure TCastleWindowCustom.EventDraw;
               { Set OpenGL state that may be changed carelessly, and has some
                 guanteed value, for Draw2d calls. }
               glLoadIdentity;
-              SetWindowPosZero;
+              SetWindowPos(0, 0);
               C.Draw;
             end;
           end;
@@ -4633,7 +4633,7 @@ procedure TCastleWindowCustom.EventDraw;
           if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = ds2D) then
           begin
             glLoadIdentity;
-            SetWindowPosZero;
+            SetWindowPos(0, 0);
             Focus.DrawTooltip;
           end;
         end;
@@ -4641,7 +4641,7 @@ procedure TCastleWindowCustom.EventDraw;
         if OnDrawStyle = ds2D then
         begin
           glLoadIdentity;
-          SetWindowPosZero;
+          SetWindowPos(0, 0);
           inherited EventDraw;
         end;
 

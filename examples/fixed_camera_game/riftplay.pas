@@ -81,7 +81,7 @@ begin
     if DebugScene3DDisplay = 0 then
       glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
-    SetWindowPosZero;
+    SetWindowPos(0, 0);
 
     if DebugScene3DDisplay <> 2 then
     begin

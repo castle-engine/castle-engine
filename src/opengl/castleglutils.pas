@@ -632,33 +632,30 @@ var
   #) }
 procedure glSetDepthAndColorWriteable(Writeable: TGLboolean);
 
-{ Set raster position in window coordinates, and the raster position
-  is never clipped.
+{ Draw the 2D GUI stuff (like following GUI images and bitmap fonts)
+  with lower-left corner in the X,Y pixel.
 
-  This is similar to glWindowPos and actually will simply call
-  glWindowPos if available (if OpenGL version >= 1.4 or ARB_window_pos or
-  MESA_window_pos are available).
+  For OpenGL versions that have a concept of a "raster"
+  (not present in OpenGL ES) this sets raster position in window
+  coordinates. Such that the raster position is never clipped.
+  In this case this is similar to just calling glWindowPos,
+  and actually will simply call glWindowPos if available
+  (if OpenGL version is adequate, or equivalent OpenGL extension is available).
 
-  If not available, it will fall back on a simple
-  implementation that sets identity to projection and modelview and
-  sets a special viewport (setting special viewport means that
-  we can avoid clipping the raster pos, also it means that you
-  don't have to pass here parameters like window width/height --- viewport
-  will appropriately map to your window coordinates).
-
-  What with the depth value of raster is undefined (although OpenGL
-  ARB_window_pos specifies it, we don't want to specify it,
-  to be able to pull our simple implementation when ARB_window_pos
-  is not available).
-
-  SetWindowPosZero is equivalent to SetWindowPos(0, 0),
-  but may be slightly optimized.
+  The depth value of raster is undefined
+  after calling this. This is necessary, in case of old OpenGL with no
+  glWindowPos extension, where we do a little trick to similate glWindowPos.
+  It should not be a problem if you only use this to draw simple 2D GUI stuff.
 
   @groupBegin }
-procedure SetWindowPos(const X, Y: TGLint); overload;
-procedure SetWindowPosF(const X, Y: TGLfloat); overload;
-procedure SetWindowPosZero;
+procedure SetWindowPos(const X, Y: TGLint);
+procedure SetWindowPos(const Value: TVector2i);
+procedure SetWindowPosF(const X, Y: TGLfloat); deprecated;
+procedure SetWindowPosZero; deprecated;
 { @groupEnd }
+
+function GetWindowPos: TVector2i;
+property WindowPos: TVector2i read GetWindowPos write SetWindowPos;
 
 { Return GL_CLAMP_TO_EDGE, if available in current OpenGL version.
   Otherwise returns GL_CLAMP.
@@ -1644,8 +1641,16 @@ begin
   glPopAttrib;
 end;
 
+var
+  FWindowPos: TVector2LongInt;
+
 procedure SetWindowPosF(const X, Y: TGLfloat);
 begin
+  { Hack, only to somewhat support SetWindowPosF for old programs.
+    SetWindowPosF should not be used in new code. }
+  FWindowPos[0] := Floor(X);
+  FWindowPos[1] := Floor(Y);
+
   if GL_version_1_4 then
   begin
     glWindowPos2f(X, Y);
@@ -1664,6 +1669,13 @@ begin
   begin
     SetWindowPos_HackBegin;
 
+    { Fall back on a simple
+      implementation that sets identity to projection and modelview and
+      sets a special viewport. Setting special viewport means that
+      we can avoid clipping the raster pos, also it means that you
+      don't have to pass here parameters like window width/height ---
+      viewport will appropriately map to your window coordinates. }
+
     glViewport(Floor(X) - 1, Floor(Y) - 1, 2, 2);
     glRasterPos4f(Frac(X), Frac(Y), 0, 1);
 
@@ -1673,6 +1685,9 @@ end;
 
 procedure SetWindowPos(const X, Y: TGLint);
 begin
+  FWindowPos[0] := X;
+  FWindowPos[1] := Y;
+
   if GL_version_1_4 then
     glWindowPos2i(X, Y) else
   if GL_ARB_window_pos then
@@ -1689,22 +1704,19 @@ begin
   end;
 end;
 
+procedure SetWindowPos(const Value: TVector2i);
+begin
+  SetWindowPos(Value[0], Value[1]);
+end;
+
 procedure SetWindowPosZero;
 begin
-  if GL_version_1_4 then
-    glWindowPos2i(0, 0) else
-  if GL_ARB_window_pos then
-    glWindowPos2iARB(0, 0) else
-  if GL_MESA_window_pos then
-    glWindowPos2iMESA(0, 0) else
-  begin
-    SetWindowPos_HackBegin;
+  SetWindowPos(0, 0);
+end;
 
-    glViewport(-1, -1, 2, 2);
-    glRasterPos2i(0, 0);
-
-    SetWindowPos_HackEnd;
-  end;
+function GetWindowPos: TVector2i;
+begin
+  Result := FWindowPos;
 end;
 
 function CastleGL_CLAMP_TO_EDGE: TGLenum;

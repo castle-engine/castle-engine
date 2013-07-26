@@ -182,7 +182,7 @@ begin
   ProgressInterface := Progress.UserInterface as TWindowProgressInterface;
 
   glLoadIdentity;
-  SetWindowPosZero;
+  SetWindowPos(0, 0);
   ProgressInterface.GLImage.Draw;
 
   Margin := 100 * Window.width div 800;

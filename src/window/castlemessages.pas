@@ -850,7 +850,7 @@ begin
  glClear(GL_COLOR_BUFFER_BIT);
  glLoadIdentity;
 
- SetWindowPosZero;
+ SetWindowPos(0, 0);
  md.DrawBG.Draw;
 
  RealScrollBarWholeWidth := Iff(md.ScrollBarVisible, ScrollBarWholeWidth, 0);

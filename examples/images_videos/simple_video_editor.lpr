@@ -80,7 +80,7 @@ begin
   glClear(GL_COLOR_BUFFER_BIT);
 
   glLoadIdentity();
-  SetWindowPosZero;
+  SetWindowPos(0, 0);
   if Video.Loaded then
   begin
     ImageDraw(Video.ImageFromTime(Time));

@@ -579,7 +579,7 @@ begin
   try
    glDisable(GL_DEPTH_TEST);
 
-   SetWindowPosZero;
+   SetWindowPos(0, 0);
    Mode.ScreenImage.Draw;
   finally glPopMatrix end;
  finally glPopAttrib end;
