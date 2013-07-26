@@ -49,8 +49,7 @@
   This unit hides from your some details about OpenGL images handling.
   For example, you don't have to worry about "pixel store alignment",
   we handle it here internally when transferring images between memory and GPU.
-  You also don't have to worry about texture sizes being power of 2
-  (for OpenGLs with missing or buggy/slow ARB_texture_non_power_of_two),
+  You also don't have to worry about texture sizes being power of 2,
   or about maximum texture sizes --- we will resize textures if necessary.
 
   Routines in this unit that take TCastleImage or TEncodedImage parameter
@@ -58,6 +57,8 @@
   or PixelsImageClasses (for routines dealing with images drawn on 2D screen).
 }
 unit CastleGLImages;
+
+{$I castleconf.inc}
 
 interface
 
@@ -97,9 +98,11 @@ type
   { OpenGL image ready to be drawn on 2D screen. }
   TGLImage = class
   private
-    { For now, we use display lists to store 2D images.
-      We will migrate to PBO in the future. }
+    {$ifdef UseTexturesForImage}
+    Texture: TGLuint;
+    {$else}
     DisplayList: TGLuint;
+    {$endif}
     FWidth: Cardinal;
     FHeight: Cardinal;
   public
@@ -144,29 +147,38 @@ type
       const ResizeToY: Cardinal = 0;
       const Interpolation: TResizeInterpolation = riNearest);
 
+    {$ifndef UseTexturesForImage}
     { Prepare part of the image for drawing.
 
       @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
         by OpenGL.) }
     constructor CreatePart(
       const Image: TCastleImage;
-      const X0, Y0, AWidth, AHeight: Cardinal);
+      const X0, Y0, AWidth, AHeight: Cardinal); deprecated;
+    {$endif}
 
     destructor Destroy; override;
 
     { Draw the image as 2D on screen.
 
-      The current OpenGL raster position determines where the left-bottom
-      corner of the image will be placed. Usually it's most comfortable
-      to set the raster in window coordinates by CastleGLUtils.SetWindowPos.
-      You can also set it using OpenGL glRasterPos2i or similar commands
-      (in which case raster is transformed by OpenGL projection and modelview
-      matrices and affected by current OpenGL viewport, so be sure they are Ok).
+      The current WindowPos determines where the left-bottom
+      corner of the image will be placed. Right now, WindowPos corresponds to
+      an OpenGL raster position expressed in window coordinates,
+      although you should not depend on it in new programs (the idea
+      of raster disappears in new OpenGL versions).
 
       The image is drawn in 2D, which means that in normal circumstances
       1 pixel of the image is just placed over 1 pixel of the screen.
-      This can be affected by glPixelZoom.
-      Normal 3D transformations have no effect over how the image is drawn. }
+      For older OpenGL versions, this can be affected by glPixelZoom
+      (for newer versions, we will provide new methods to choose a part
+      of the image and/or scale it in the future).
+
+      You should only use this inside TUIControl.Draw when TUIControl.DrawStyle
+      returns ds2D. This means that we require that current projection is 2D
+      and lighting / depth test and such are off.
+      For engine <= 4.1.0, the above is not really a strict requirement,
+      normal 3D transformations have no effect over how the image is drawn.
+      But for new engine versions, it will become required. }
     procedure Draw;
 
     property Width: Cardinal read FWidth;
@@ -180,12 +192,13 @@ type
     by OpenGL.) }
 procedure ImageDraw(const Image: TCastleImage);
 
+{$ifndef UseTexturesForImage}
 { Draw the subset of image rows on 2D screen.
   Draws RowsCount rows starting from Row0.
 
   @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
     by OpenGL.) }
-procedure ImageDrawRows(const Image: TCastleImage; Row0, RowsCount: integer);
+procedure ImageDrawRows(const Image: TCastleImage; Row0, RowsCount: integer); deprecated;
 
 { Draw a part of the image on 2D screen.
 
@@ -207,10 +220,11 @@ procedure ImageDrawRows(const Image: TCastleImage; Row0, RowsCount: integer);
 
   @groupBegin }
 procedure ImageDrawPart(const image: TCastleImage;
-  const X0, Y0, Width, Height: Cardinal); overload;
+  const X0, Y0, Width, Height: Cardinal); deprecated;
 procedure ImageDrawPart(const image: TCastleImage;
-  const X0, Y0: Cardinal); overload;
+  const X0, Y0: Cardinal); deprecated;
 { @groupEnd }
+{$endif}
 
 { Saving screen to TRGBImage ----------------------------------- }
 
@@ -305,27 +319,40 @@ function SaveScreenToGL_NoFlush(
   const ReadBuffer: TGLenum): TGLImage;
 
 { ----------------------------------------------------------------------
-  Adjusting image size to load them as textures. }
+  Adjusting image sizes to load them as textures.
+  Usually you don't need these functions, LoadGLTexture* and TGLImage
+  and such call it automatically when needed. }
 
 { Resize the image to a size accepted as GL_TEXTURE_2D texture size
   for OpenGL. It tries to resize to a larger size, not smaller,
-  to avoid losing image
-  information. Usually you don't have to call this, LoadGLTexture*
-  functions call it automatically when needed.
+  to avoid losing image information.
+
+  It also makes texture have power-of-two size, if AllowNonPowerOfTwo
+  = @false. This is a must for normal textures, used for 3D rendering
+  (with mipmapping etc.).
+  Using GL_ARB_texture_non_power_of_two (in GL core since 2)
+  is not good for these textures. Some OpenGLs crash (ATI),
+  some are ultra slow (NVidia), some cause artifacts (Mesa).
+  OpenGL ES explicitly limits what you can do with non-power-of-2.
+  Sample model using non-power-of-2 is in inlined_textures.wrl.
+
+  Use AllowNonPowerOfTwo = @true only for textures that you plan to use
+  for drawing GUI images by TGLImage. Of course, be sure to check
+  first does OpenGL support it at all (e.g. is GL_ARB_texture_non_power_of_two
+  or appropriate GL version present, see GLTextureNonPowerOfTwo ).
 
   @groupBegin }
-procedure ResizeForTextureSize(var r: TCastleImage);
-function ResizeToTextureSize(const r: TCastleImage): TCastleImage;
+procedure ResizeForTextureSize(var r: TCastleImage; const AllowNonPowerOfTwo: boolean);
+function ResizeToTextureSize(const r: TCastleImage; const AllowNonPowerOfTwo: boolean): TCastleImage;
 { @groupEnd }
 
-{ Does image have proper size for OpenGL texture (GL_TEXTURE_2D).
-  That is, for passing to glTexImage2D for GL_TEXTURE_2D target.
-  This checks glGet(GL_MAX_TEXTURE_SIZE),
+{ Does image have proper size for 2D OpenGL texture.
+  See ResizeForTextureSize. Note that this checks glGet(GL_MAX_TEXTURE_SIZE),
   so requires initialized OpenGL context. }
-function IsTextureSized(const r: TEncodedImage): boolean;
+function IsTextureSized(const r: TEncodedImage; const AllowNonPowerOfTwo: boolean): boolean;
 
-function IsTextureSized(const Width, Height: Cardinal): boolean;
-procedure ResizeToTextureSize(var Width, Height: Cardinal);
+function IsTextureSized(const Width, Height: Cardinal; const AllowNonPowerOfTwo: boolean): boolean;
+procedure ResizeToTextureSize(var Width, Height: Cardinal; const AllowNonPowerOfTwo: boolean);
 
 function IsCubeMapTextureSized(const Size: Cardinal): boolean;
 function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
@@ -888,12 +915,57 @@ end;
 { TGLImage ------------------------------------------------------------------- }
 
 constructor TGLImage.Create(const Image: TCastleImage);
+{$ifdef UseTexturesForImage}
+var
+  UnpackData: TUnpackNotAlignedData;
+  NewImage: TCastleImage;
+
+  { Load an image to Texture, knowing that Image has already good sizes for OpenGL. }
+  procedure LoadImage(const Image: TCastleImage);
+  begin
+    BeforeUnpackImage(UnpackData, Image);
+    try
+      glTexImage2D(GL_TEXTURE_2D, 0, ImageGLInternalFormat(Image),
+        Image.Width, Image.Height, 0, ImageGLFormat(Image), ImageGLType(Image),
+        Image.RawPixels);
+    finally AfterUnpackImage(UnpackData, image) end;
+  end;
+
+const
+  { TODO: allow this as constructor param, to allow scaling/cutting at Draw time
+    with sensible results. }
+  ScalingPossible = false;
+{$endif}
 begin
+  {$ifdef UseTexturesForImage}
+  glGenTextures(1, @Texture);
+  glBindTexture(GL_TEXTURE_2D, Texture);
+  if not IsTextureSized(Image, GLTextureNonPowerOfTwo) then
+  begin
+    NewImage := ResizeToTextureSize(Image, GLTextureNonPowerOfTwo);
+    try
+      LoadImage(NewImage);
+    finally FreeAndNil(NewImage) end;
+  end else
+    LoadImage(Image);
+  if ScalingPossible then
+  begin
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  end else
+  begin
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  end;
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  {$else}
   DisplayList := glGenListsCheck(1, 'TGLImage.Create');
   glNewList(DisplayList, GL_COMPILE);
   try
     ImageDraw(Image);
   finally glEndList end;
+  {$endif}
   FWidth := Image.Width;
   FHeight := Image.Height;
 end;
@@ -913,6 +985,7 @@ begin
   finally FreeAndNil(Image) end;
 end;
 
+{$ifndef UseTexturesForImage}
 constructor TGLImage.CreatePart(
   const Image: TCastleImage;
   const X0, Y0, AWidth, AHeight: Cardinal);
@@ -920,21 +993,51 @@ begin
   DisplayList := glGenListsCheck(1, 'TGLImage.CreatePart');
   glNewList(DisplayList, GL_COMPILE);
   try
+    {$warnings off}
+    { This is one deprecated thing referencing other, don't warn about it. }
     ImageDrawPart(Image, X0, Y0, Width, Height);
+    {$warnings on}
   finally glEndList end;
   FWidth := AWidth;
   FHeight := AHeight;
 end;
+{$endif}
 
 destructor TGLImage.Destroy;
 begin
+  {$ifdef UseTexturesForImage}
+  glFreeTexture(Texture);
+  {$else}
   glFreeDisplayList(DisplayList);
+  {$endif}
   inherited;
 end;
 
 procedure TGLImage.Draw;
 begin
+  {$ifdef UseTexturesForImage}
+  // TODO: use vbos
+  // TODO: enable/disable textures smarter, by having some global
+  // (or maybe per-gl-context? Also for CurrentProgram?) state.
+  // TODO: use texture cache here, like GL renderer does for textures for 3D.
+  glLoadIdentity();
+  glBindTexture(GL_TEXTURE_2D, Texture);
+  glEnable(GL_TEXTURE_2D);
+  glColor4f(1, 1, 1, 1); // don't modify texture colors
+  glBegin(GL_QUADS);
+    glTexCoord2f(0, 0);
+    glVertex2i(WindowPos[0]        , WindowPos[1]);
+    glTexCoord2f(1, 0);
+    glVertex2i(WindowPos[0] + Width, WindowPos[1]);
+    glTexCoord2f(1, 1);
+    glVertex2i(WindowPos[0] + Width, WindowPos[1] + Height);
+    glTexCoord2f(0, 1);
+    glVertex2i(WindowPos[0]        , WindowPos[1] + Height);
+  glEnd();
+  glDisable(GL_TEXTURE_2D);
+  {$else}
   glCallList(DisplayList);
+  {$endif}
 end;
 
 { Drawing images on 2D screen ------------------------------------------------ }
@@ -950,6 +1053,7 @@ begin
   finally AfterUnpackImage(UnpackData, image) end;
 end;
 
+{$ifndef UseTexturesForImage}
 procedure ImageDrawRows(const Image: TCastleImage; Row0, RowsCount: integer);
 var
   UnpackData: TUnpackNotAlignedData;
@@ -992,8 +1096,12 @@ end;
 procedure ImageDrawPart(const image: TCastleImage;
   const X0, Y0: Cardinal);
 begin
+  {$warnings off}
+  { This is one deprecated thing referencing other, don't warn about it. }
   ImageDrawPart(Image, X0, Y0, MaxInt, MaxInt);
+  {$warnings on}
 end;
+{$endif}
 
 { Saving screen to TRGBImage ------------------------------------------------ }
 
@@ -1063,55 +1171,10 @@ end;
 { ----------------------------------------------------------------------
   Adjusting image size for 2D texture. }
 
-{ Check does OpenGL support non-power-of-2 texture sizes.
-  If not, then textures will be scaled to have power-of-2 size before
-  loading them to OpenGL.
-
-  As you can see, for now we just always return false.
-  You can uncomment the "real" check for ARB_texture_non_power_of_two below,
-  and see how it works on your GPU --- in my experience, it's just always
-  horribly slow and/or buggy, on all GPUs.
-
-  @unorderedList(
-    @item(On Mesa, small artifacts occur (strange cracks appears on
-      non-power-of-2 texture, see inlined_textures.wrl in demo_models).
-      That's the @italic(best) result compared to other vendors, see below.)
-
-    @item(On ATI (fglrx on Linux on Mac Book Pro),
-      the extension is not present and OpenGL 2.0 entry points
-      are not fully present. (Although GL_VERSION claims 2.1 version,
-      glBlendEquationSeparate entry point from GL 2.0 is not present.)
-      For safety, I just assume that ATI is not able to make OpenGL 2.0,
-      so no extension and no 2.0 means textures must be power of two.
-
-      Just for kicks, I tried anyway to pass texture 4x3 (after all,
-      GL_VERSION claims 2.1 so this should be supported), and... uhh...
-      libGL segfaulted. Congrats, ATI.)
-
-    @item(Let's try NVidia, they will for sure do this right. Well, yes, it works
-      correctly on NVidia (GeForce FX 5200)... but the slowdown is
-      enormous. For trivial box with 4x3 texture (see
-      inlined_textures.wrl in demo_models), that normally runs with
-      virtually infinite speed, suddenly the speed becomes ~ 1 frame per second.
-      Other example when the slowdown is enormous: castle/levels/castle_hall.wrl
-
-      You can test yourself (with view3dscene using
-      inlined_textures.wrl model;
-      just compile view3dscene to use non-power-of-2 textures;
-      contact me if you want a binary compiled as such for testing.)
-
-      Such slowdown is not acceptable, I prefer to loose texture quality
-      by scaling them to powers of 2 in this case...)
-  )
-}
-function TextureNonPowerOfTwo: boolean;
+function IsTextureSized(const Width, Height: Cardinal;
+  const AllowNonPowerOfTwo: boolean): boolean;
 begin
-  Result := false {GL_ARB_texture_non_power_of_two or GL_version_2_0};
-end;
-
-function IsTextureSized(const Width, Height: Cardinal): boolean;
-begin
-  if TextureNonPowerOfTwo then
+  if AllowNonPowerOfTwo then
     Result :=
       (Width <= GLMaxTextureSize) and
       (Height <= GLMaxTextureSize) else
@@ -1122,31 +1185,31 @@ begin
       (Height <= GLMaxTextureSize);
 end;
 
-function IsTextureSized(const r: TEncodedImage): boolean;
+function IsTextureSized(const r: TEncodedImage; const AllowNonPowerOfTwo: boolean): boolean;
 begin
-  Result := IsTextureSized(r.Width, r.Height);
+  Result := IsTextureSized(r.Width, r.Height, AllowNonPowerOfTwo);
 end;
 
-procedure ResizeForTextureSize(var r: TCastleImage);
+procedure ResizeForTextureSize(var r: TCastleImage; const AllowNonPowerOfTwo: boolean);
 var
   newR: TCastleImage;
 begin
-  if not IsTextureSized(r) then
+  if not IsTextureSized(r, AllowNonPowerOfTwo) then
   begin
-    newR := ResizeToTextureSize(r);
+    newR := ResizeToTextureSize(r, AllowNonPowerOfTwo);
     FreeAndNil(r);
     r := newR;
   end;
 end;
 
-procedure ResizeToTextureSize(var Width, Height: Cardinal);
+procedure ResizeToTextureSize(var Width, Height: Cardinal; const AllowNonPowerOfTwo: boolean);
 
   function BestTexSize(size: Cardinal): Cardinal;
   begin
     if size > GLMaxTextureSize then
       result := GLMaxTextureSize else
     begin
-      if TextureNonPowerOfTwo or IsPowerOf2(size) then
+      if AllowNonPowerOfTwo or IsPowerOf2(size) then
         result := size else
         result := 1 shl (Biggest2Exponent(size)+1);
         {result jakie otrzymamy w ostatnim przypisaniu jest na pewno < GLMaxTextureSize bo
@@ -1160,19 +1223,19 @@ begin
   Height := BestTexSize(Height);
 end;
 
-function ResizeToTextureSize(const r: TCastleImage): TCastleImage;
+function ResizeToTextureSize(const r: TCastleImage; const AllowNonPowerOfTwo: boolean): TCastleImage;
 var
   NewWidth, NewHeight: Cardinal;
 begin
   NewWidth  := R.Width ;
   NewHeight := R.Height;
-  ResizeToTextureSize(NewWidth, NewHeight);
+  ResizeToTextureSize(NewWidth, NewHeight, AllowNonPowerOfTwo);
 
   if Log then
     WritelnLog('Textures', Format('Resizing 2D texture from %dx%d to %dx%d to satisfy OpenGL',
       [R.Width, R.Height, NewWidth, NewHeight]));
 
-  result := r.MakeResized(NewWidth, NewHeight);
+  result := r.MakeResized(NewWidth, NewHeight, riBilinear);
 end;
 
 { ----------------------------------------------------------------------------
@@ -1246,7 +1309,7 @@ begin
       WritelnLog('Texture loading', Format('Resizing image for cube map texture from (%d, %d) to (%d, %d)',
         [R.Width, R.Height, Size, Size]));
 
-    result := r.MakeResized(Size, Size);
+    result := r.MakeResized(Size, Size, riBilinear);
   end else
     result := r.MakeCopy;
 end;
@@ -1347,7 +1410,7 @@ begin
   if not (GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc) then
     raise ECannotLoadS3TCTexture.Create('Cannot load S3TC compressed textures: OpenGL doesn''t support one (or both) of ARB_texture_compression and EXT_texture_compression_s3tc extensions');
 
-  if not IsTextureSized(Image) then
+  if not IsTextureSized(Image, false) then
     raise ECannotLoadS3TCTexture.CreateFmt('Cannot load S3TC compressed textures: texture size is %d x %d, it''s not correct for OpenGL, and we cannot resize on CPU compressed textures',
       [Image.Width, Image.Height]);
 
@@ -1405,10 +1468,10 @@ var
   var
     ImgGood: TCastleImage;
   begin
-    if IsTextureSized(Image) then
+    if IsTextureSized(Image, false) then
       Core(Image) else
     begin
-      ImgGood := ResizeToTextureSize(Image);
+      ImgGood := ResizeToTextureSize(Image, false);
       try
         Core(ImgGood);
       finally ImgGood.Free end;

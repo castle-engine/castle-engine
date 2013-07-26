@@ -90,4 +90,16 @@
   {$define CastleGL := GL, GLU, GLExt}
 {$endif}
 
+{ Whether to use textures (possibly non-power-of-2, if supported)
+  for drawing images on the screen by TGLImage (for GUI).
+  This is expected to be the default, and only, way to draw images
+  in future engine versions.
+  Engine version 4.1.0 keeps using display lists only for max compatibility,
+  but you can try to define it and see that (almost) everything works equally
+  good. }
+{$ifdef OpenGLES}
+  {$define UseTexturesForImage}
+{$endif}
+{ $define UseTexturesForImage} // Just use it always. This will be default in future engine versions.
+
 {$endif not CASTLE_CONF_INCLUDED}

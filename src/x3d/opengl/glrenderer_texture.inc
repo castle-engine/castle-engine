@@ -1169,9 +1169,9 @@ begin
     NodeHeight := DefaultRenderedTextureHeight;
   Width  := NodeWidth ;
   Height := NodeHeight;
-  if not IsTextureSized(Width, Height) then
+  if not IsTextureSized(Width, Height, false) then
   begin
-    ResizeToTextureSize(Width, Height);
+    ResizeToTextureSize(Width, Height, false);
     OnWarning(wtMinor, 'VRML/X3D' { This may be caused by OpenGL implementation
       limits, so it may be impossible to predict by VRML author,
       so it's "ignorable" warning. },

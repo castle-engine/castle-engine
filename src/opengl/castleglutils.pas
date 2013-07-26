@@ -200,6 +200,9 @@ var
     This simply checks do we have stencil buffer with at least 4 bits for now. }
   GLShadowVolumesPossible: boolean;
 
+  { Are non-power-of-2 textures supported. }
+  GLTextureNonPowerOfTwo: boolean;
+
 { Initialize all extensions and OpenGL versions.
 
   Calls all Load_GLXxx routines from glext unit, so tries to init
@@ -855,6 +858,9 @@ begin
   GLPackedDepthStencil := GL_EXT_packed_depth_stencil;
 
   GLShadowVolumesPossible := glGetInteger(GL_STENCIL_BITS) >= 4;
+
+  GLTextureNonPowerOfTwo := {$ifdef OpenGLES} true {$else}
+    GL_ARB_texture_non_power_of_two or GL_version_2_0 {$endif};
 end;
 
 { EOpenGLError, CheckGLErrors ------------------------------------------------ }
@@ -1523,6 +1529,7 @@ begin
     '  S3TC compressed textures: ' + BoolToStr[GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc] +nl+
     '  3D textures: ' + GLSupportNames[GL3DTextures] +nl+
     '  Multi-sampling for FBO buffers and textures: ' + BoolToStr[GLFBOMultiSampling] +nl+
+    '  Textures non-power-of-2: ' + BoolToStr[GLTextureNonPowerOfTwo] +nl+
     nl+
     '  All extensions: ' +glGetString(GL_EXTENSIONS) +nl+
     nl+
