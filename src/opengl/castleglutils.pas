@@ -43,10 +43,6 @@ const
   GLSupportNames: array [TGLSupport] of string =
   ( 'None', 'Extension', 'Standard' );
 
-{$I glext_packed_depth_stencil.inc}
-{$I glext_arb_framebuffer_object.inc}
-{$I glext_ext_fog_coord.inc}
-
 type
   { Types with leading "T" } { }
   TGLenum     = GLenum;
@@ -692,10 +688,6 @@ implementation
 
 uses CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders, CastleGLImages,
   CastleLog, CastleWarnings, CastleColors;
-
-{$I glext_packed_depth_stencil.inc}
-{$I glext_arb_framebuffer_object.inc}
-{$I glext_ext_fog_coord.inc}
 
 { OpenGL extensions which presence is used by this unit's implementation. }
 {$ifndef OpenGLES}
