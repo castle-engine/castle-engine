@@ -2246,7 +2246,7 @@ begin
     for I := Low(I) to High(I) do
       Assert(Vbo[I] <> 0);
 
-    glDeleteBuffersARB(Ord(High(Vbo)) + 1, @Vbo);
+    glDeleteBuffers(Ord(High(Vbo)) + 1, @Vbo);
 
     for I := Low(I) to High(I) do
       Vbo[I] := 0;
