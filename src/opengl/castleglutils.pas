@@ -202,7 +202,7 @@ var
   GLTextureCompressionS3TC: boolean;
 
   { VBO support (in OpenGL (ES) core). }
-  GLVertexBufferObject: TGLSupport;
+  GLVertexBufferObject: boolean;
 
 { Initialize all extensions and OpenGL versions.
 
