@@ -83,18 +83,12 @@ var
   GL_ARB_depth_texture: boolean;
   GL_ARB_shadow: boolean;
   GL_EXT_fog_coord: boolean;
-  GL_EXT_stencil_two_side: boolean;
   GL_EXT_stencil_wrap: boolean;
   GL_EXT_texture_filter_anisotropic: boolean;
-  GL_EXT_texture_object: boolean;
-  GL_EXT_vertex_array: boolean;
-  GL_EXT_vertex_shader: boolean;
   GL_NV_multisample_filter_hint: boolean;
   GL_ATI_separate_stencil: boolean;
   GL_ARB_occlusion_query: boolean;
   GL_EXT_packed_depth_stencil: boolean;
-  GL_ATI_texture_float: boolean;
-  GL_ARB_texture_float: boolean;
   GL_ARB_texture_rectangle: boolean;
 
 var
@@ -197,6 +191,9 @@ var
 
   { glBlendColor and GL_CONSTANT_ALPHA support. }
   GLBlendConstant: boolean;
+
+  { Support for float texture formats for glTexImage2d. }
+  GLTextureFloat: boolean;
 
 { Initialize all extensions and OpenGL versions.
 
@@ -728,18 +725,12 @@ begin
   GL_ARB_depth_texture := Load_GL_ARB_depth_texture;
   GL_ARB_shadow := Load_GL_ARB_shadow;
   GL_EXT_fog_coord := Load_GL_EXT_fog_coord;
-  GL_EXT_stencil_two_side := Load_GL_EXT_stencil_two_side;
   GL_EXT_stencil_wrap := Load_GL_EXT_stencil_wrap;
   GL_EXT_texture_filter_anisotropic := Load_GL_EXT_texture_filter_anisotropic;
-  GL_EXT_texture_object := Load_GL_EXT_texture_object;
-  GL_EXT_vertex_array := Load_GL_EXT_vertex_array;
-  GL_EXT_vertex_shader := Load_GL_EXT_vertex_shader;
   GL_NV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
   GL_ATI_separate_stencil := Load_GL_ATI_separate_stencil;
   GL_ARB_occlusion_query := Load_GL_ARB_occlusion_query;
   GL_EXT_packed_depth_stencil := Load_GL_EXT_packed_depth_stencil;
-  GL_ATI_texture_float := Load_GL_ATI_texture_float;
-  GL_ARB_texture_float := Load_GL_ARB_texture_float;
   GL_ARB_texture_rectangle := Load_GL_ARB_texture_rectangle;
   {$endif}
 
@@ -864,6 +855,9 @@ begin
     { GL_CONSTANT_ALPHA is available as part of ARB_imaging, since GL 1.4
       as standard. glBlendColor is available since 1.2 as standard. }
     ((GL_version_1_2 and Load_GL_ARB_imaging) or GL_version_1_4) and not GLVersion.Fglrx {$endif};
+
+  GLTextureFloat := {$ifdef OpenGLES} false {$else}
+    Load_GL_ATI_texture_float or Load_GL_ARB_texture_float {$endif};
 end;
 
 { EOpenGLError, CheckGLErrors ------------------------------------------------ }
@@ -1527,6 +1521,8 @@ begin
     '  3D textures: ' + GLSupportNames[GL3DTextures] +nl+
     '  Multi-sampling for FBO buffers and textures: ' + BoolToStr[GLFBOMultiSampling] +nl+
     '  Textures non-power-of-2: ' + BoolToStr[GLTextureNonPowerOfTwo] +nl+
+    '  Blend constant parameter: ' + BoolToStr[GLBlendConstant] +nl+
+    '  Float textures: ' + BoolToStr[GLTextureFloat] +nl+
     nl+
     '  All extensions: ' +glGetString(GL_EXTENSIONS) +nl+
     nl+

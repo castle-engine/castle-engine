@@ -1854,7 +1854,7 @@ begin
   Result :=
     (Attributes.ShadowSampling = ssVarianceShadowMaps) and
     (TGLSLProgram.ClassSupport <> gsNone) and
-    (GL_ATI_texture_float or GL_ARB_texture_float);
+    GLTextureFloat;
 end;
 
 procedure TGLGeneratedShadowMap.PrepareCore(State: TX3DGraphTraverseState);
@@ -1870,12 +1870,11 @@ begin
   VarianceShadowMaps := ClassVarianceShadowMaps(Renderer.Attributes);
 
   if Log then
-    WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: Attributes.Shadow sampling = %s, GLSL support = %s, ATI_texture_float = %s, ARB_texture_float = %s)',
+    WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: Attributes.Shadow sampling = %s, GLSL support = %s, texture_float support = %s)',
       [ BoolToStr[VarianceShadowMaps],
         ShadowSamplingNames[Renderer.Attributes.ShadowSampling],
         GLSupportNames[TGLSLProgram.ClassSupport],
-        BoolToStr[GL_ATI_texture_float],
-        BoolToStr[GL_ARB_texture_float] ]));
+        BoolToStr[GLTextureFloat] ]));
 
   { TODO: fix TextureNode.FdSize.Value if needed }
   Size := TextureNode.FdSize.Value;
