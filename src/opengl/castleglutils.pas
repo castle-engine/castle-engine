@@ -90,30 +90,24 @@ var
   GL_ARB_texture_compression: boolean;
   GL_ARB_texture_env_combine: boolean;
   GL_ARB_texture_env_dot3: boolean;
-  GL_ARB_window_pos: boolean;
   GL_EXT_compiled_vertex_array: boolean;
   GL_EXT_fog_coord: boolean;
   GL_EXT_stencil_two_side: boolean;
   GL_EXT_stencil_wrap: boolean;
-  GL_EXT_texture3D: boolean;
   GL_EXT_texture_compression_s3tc: boolean;
   GL_EXT_texture_filter_anisotropic: boolean;
   GL_EXT_texture_object: boolean;
   GL_EXT_vertex_array: boolean;
   GL_EXT_vertex_shader: boolean;
   GL_NV_multisample_filter_hint: boolean;
-  GL_MESA_window_pos: boolean;
   GL_SGIS_generate_mipmap: boolean;
   GL_ATI_separate_stencil: boolean;
-  GL_ARB_texture_non_power_of_two: boolean;
   GL_ARB_vertex_buffer_object: boolean;
   GL_ARB_occlusion_query: boolean;
   GL_EXT_packed_depth_stencil: boolean;
   GL_ATI_texture_float: boolean;
   GL_ARB_texture_float: boolean;
   GL_ARB_texture_rectangle: boolean;
-  GL_EXT_framebuffer_object: boolean;
-  GL_ARB_framebuffer_object: boolean;
 
 var
   { Constant (for given context) OpenGL limits.
@@ -158,7 +152,8 @@ var
 
   { Is Framebuffer supported. Value gsExtension means that EXT_framebuffer_object
     is used, gsStandard means that ARB_framebuffer_object (which is
-    a "core extesion", present the same way in OpenGL 3 core) is available. }
+    a "core extesion", present the same way in OpenGL 3 core,
+    also in OpenGL ES >= 2.0 core) is available. }
   GLFramebuffer: TGLSupport;
 
   { Is multisampling possible for FBO buffers and textures.
@@ -700,6 +695,13 @@ uses CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders, Cast
 {$I glext_arb_framebuffer_object.inc}
 {$I glext_ext_fog_coord.inc}
 
+{ OpenGL extensions which presence is used by this unit's implementation. }
+{$ifndef OpenGLES}
+var
+  GL_ARB_window_pos: boolean;
+  GL_MESA_window_pos: boolean;
+{$endif}
+
 procedure LoadAllExtensions;
 begin
   FreeAndNil(GLVersion);
@@ -725,6 +727,9 @@ begin
   GL_version_3_3 := GLVersion.AtLeast(3, 3) and Load_GL_version_3_3;
   GL_version_4_0 := GLVersion.AtLeast(4, 0) and Load_GL_version_4_0;
 
+  GL_ARB_window_pos := Load_GL_ARB_window_pos;
+  GL_MESA_window_pos := Load_GL_MESA_window_pos;
+
   GL_ARB_imaging := Load_GL_ARB_imaging;
   GL_ARB_multisample := Load_GL_ARB_multisample;
   GL_ARB_depth_texture := Load_GL_ARB_depth_texture;
@@ -732,30 +737,24 @@ begin
   GL_ARB_texture_compression := Load_GL_ARB_texture_compression;
   GL_ARB_texture_env_combine := Load_GL_ARB_texture_env_combine;
   GL_ARB_texture_env_dot3 := Load_GL_ARB_texture_env_dot3;
-  GL_ARB_window_pos := Load_GL_ARB_window_pos;
   GL_EXT_compiled_vertex_array := Load_GL_EXT_compiled_vertex_array;
   GL_EXT_fog_coord := Load_GL_EXT_fog_coord;
   GL_EXT_stencil_two_side := Load_GL_EXT_stencil_two_side;
   GL_EXT_stencil_wrap := Load_GL_EXT_stencil_wrap;
-  GL_EXT_texture3D := Load_GL_EXT_texture3D;
   GL_EXT_texture_compression_s3tc := Load_GL_EXT_texture_compression_s3tc;
   GL_EXT_texture_filter_anisotropic := Load_GL_EXT_texture_filter_anisotropic;
   GL_EXT_texture_object := Load_GL_EXT_texture_object;
   GL_EXT_vertex_array := Load_GL_EXT_vertex_array;
   GL_EXT_vertex_shader := Load_GL_EXT_vertex_shader;
   GL_NV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
-  GL_MESA_window_pos := Load_GL_MESA_window_pos;
   GL_SGIS_generate_mipmap := Load_GL_SGIS_generate_mipmap;
   GL_ATI_separate_stencil := Load_GL_ATI_separate_stencil;
-  GL_ARB_texture_non_power_of_two := Load_GL_ARB_texture_non_power_of_two;
   GL_ARB_vertex_buffer_object := Load_GL_ARB_vertex_buffer_object;
   GL_ARB_occlusion_query := Load_GL_ARB_occlusion_query;
   GL_EXT_packed_depth_stencil := Load_GL_EXT_packed_depth_stencil;
   GL_ATI_texture_float := Load_GL_ATI_texture_float;
   GL_ARB_texture_float := Load_GL_ARB_texture_float;
   GL_ARB_texture_rectangle := Load_GL_ARB_texture_rectangle;
-  GL_EXT_framebuffer_object := Load_GL_EXT_framebuffer_object;
-  GL_ARB_framebuffer_object := Load_GL_ARB_framebuffer_object;
 
   { Workaround http://bugs.freepascal.org/view.php?id=18613 }
   if GL_ARB_vertex_buffer_object then
@@ -775,16 +774,20 @@ begin
     GLMaxCubeMapTextureSizeARB := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB);
   {$endif}
 
+  {$ifndef OpenGLES}
   if GL_version_1_2 then
     GL3DTextures := gsStandard else
-  if GL_EXT_texture3D then
+  if Load_GL_EXT_texture3D then
     GL3DTextures := gsExtension else
+  {$endif}
     GL3DTextures := gsNone;
 
   { calculate GLMax3DTextureSize, eventually correct GL3DTextures if buggy }
   case GL3DTextures of
+    {$ifndef OpenGLES}
     gsExtension: GLMax3DTextureSize := glGetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT);
     gsStandard : GLMax3DTextureSize := glGetInteger(GL_MAX_3D_TEXTURE_SIZE);
+    {$endif}
     gsNone     : GLMax3DTextureSize := 0;
   end;
   if (GLMax3DTextureSize = 0) and (GL3DTextures <> gsNone) then
@@ -802,11 +805,15 @@ begin
     GLQueryCounterBits := 0;
 
   { calculate GLFramebuffer }
-  if GL_version_3_0 or GL_ARB_framebuffer_object then
+  {$ifdef OpenGLES}
+  GLFramebuffer := gsStandard;
+  {$else}
+  if GL_version_3_0 or Load_GL_ARB_framebuffer_object then
     GLFramebuffer := gsStandard else
-  if GL_EXT_framebuffer_object then
+  if Load_GL_EXT_framebuffer_object then
     GLFramebuffer := gsExtension else
     GLFramebuffer := gsNone;
+  {$endif}
 
   if GLFramebuffer <> gsNone then
   begin
@@ -842,7 +849,7 @@ begin
 
   GLFBOMultiSampling :=
     { Is GL_ARB_framebuffer_object available? }
-    (GL_version_3_0 or GL_ARB_framebuffer_object) and
+    (GLFramebuffer = gsStandard) and
     Load_GL_ARB_texture_multisample and
     (not GLVersion.BuggyFBOMultiSampling);
 
@@ -863,7 +870,7 @@ begin
   GLShadowVolumesPossible := glGetInteger(GL_STENCIL_BITS) >= 4;
 
   GLTextureNonPowerOfTwo := {$ifdef OpenGLES} true {$else}
-    GL_ARB_texture_non_power_of_two or GL_version_2_0 {$endif};
+    Load_GL_ARB_texture_non_power_of_two or GL_version_2_0 {$endif};
 end;
 
 { EOpenGLError, CheckGLErrors ------------------------------------------------ }
@@ -1627,6 +1634,7 @@ begin
   glColorMask(Writeable, Writeable, Writeable, Writeable);
 end;
 
+{$ifndef OpenGLES}
 procedure SetWindowPos_HackBegin;
 begin
   { Idea how to implement this --- see
@@ -1648,6 +1656,7 @@ begin
     glPopMatrix;
   glPopAttrib;
 end;
+{$endif}
 
 var
   FWindowPos: TVector2LongInt;
@@ -1659,6 +1668,7 @@ begin
   FWindowPos[0] := Floor(X);
   FWindowPos[1] := Floor(Y);
 
+  {$ifndef OpenGLES}
   if GL_version_1_4 then
   begin
     glWindowPos2f(X, Y);
@@ -1689,6 +1699,7 @@ begin
 
     SetWindowPos_HackEnd;
   end;
+  {$endif}
 end;
 
 procedure SetWindowPos(const X, Y: TGLint);
@@ -1696,6 +1707,7 @@ begin
   FWindowPos[0] := X;
   FWindowPos[1] := Y;
 
+  {$ifndef OpenGLES}
   if GL_version_1_4 then
     glWindowPos2i(X, Y) else
   if GL_ARB_window_pos then
@@ -1710,6 +1722,7 @@ begin
 
     SetWindowPos_HackEnd;
   end;
+  {$endif}
 end;
 
 procedure SetWindowPos(const Value: TVector2i);

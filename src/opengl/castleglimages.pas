@@ -329,17 +329,16 @@ function SaveScreenToGL_NoFlush(
 
   It also makes texture have power-of-two size, if AllowNonPowerOfTwo
   = @false. This is a must for normal textures, used for 3D rendering
-  (with mipmapping etc.).
-  Using GL_ARB_texture_non_power_of_two (in GL core since 2)
-  is not good for these textures. Some OpenGLs crash (ATI),
+  (with mipmapping and such).
+  Using OpenGL non-power-of-2 textures is not good for such usage case,
+  some OpenGLs crash (ATI),
   some are ultra slow (NVidia), some cause artifacts (Mesa).
   OpenGL ES explicitly limits what you can do with non-power-of-2.
   Sample model using non-power-of-2 is in inlined_textures.wrl.
 
   Use AllowNonPowerOfTwo = @true only for textures that you plan to use
   for drawing GUI images by TGLImage. Of course, be sure to check
-  first does OpenGL support it at all (e.g. is GL_ARB_texture_non_power_of_two
-  or appropriate GL version present, see GLTextureNonPowerOfTwo ).
+  first does OpenGL support it at all (GLTextureNonPowerOfTwo).
 
   @groupBegin }
 procedure ResizeForTextureSize(var r: TCastleImage; const AllowNonPowerOfTwo: boolean);
