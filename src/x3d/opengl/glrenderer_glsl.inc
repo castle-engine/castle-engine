@@ -39,7 +39,7 @@ function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean
       if (TextureNode <> nil) and
          (TextureNode is TAbstractTextureNode) then
       begin
-        if BoundTextureUnits < GLMaxTextureUnits then
+        if BoundTextureUnits < GLFeatures.MaxTextureUnits then
         begin
           if Renderer.GLTextureNodes.Bind(
             TAbstractTextureNode(TextureNode), BoundTextureUnits) then

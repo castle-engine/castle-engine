@@ -889,7 +889,7 @@ begin
 
     { calculate Options for PrepareResources }
     Options := [prRender, prBackground, prBoundingBox];
-    if GLShadowVolumesPossible then
+    if GLFeatures.ShadowVolumesPossible then
       Options := Options + prShadowVolume;
 
     MainScene.PrepareResources(Options, false, BaseLights);
@@ -1015,7 +1015,7 @@ begin
 
   { calculate Options for PrepareResources }
   Options := [prRender, prBoundingBox { always needed }];
-  if GLShadowVolumesPossible then
+  if GLFeatures.ShadowVolumesPossible then
     Options := Options + prShadowVolume;
 
   Result.PrepareResources(Options, false, World.BaseLights);
@@ -1047,7 +1047,7 @@ begin
 
   { calculate Options for PrepareResources }
   Options := [prRender, prBoundingBox { always needed }];
-  if GLShadowVolumesPossible then
+  if GLFeatures.ShadowVolumesPossible then
     Options := Options + prShadowVolume;
 
   Result.PrepareResources(Options, false, World.BaseLights);

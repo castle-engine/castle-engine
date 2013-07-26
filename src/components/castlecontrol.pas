@@ -1449,7 +1449,7 @@ procedure TCastleControlCustom.DoDraw;
       glDisable(GL_LIGHTING);
       glDisable(GL_DEPTH_TEST);
       glDisable(GL_TEXTURE_2D);
-      if GLTextureCubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+      if GLFeatures.CubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
       if GL3DTextures <> gsNone  then glDisable(GL_TEXTURE_3D);
 
       glMatrixMode(GL_PROJECTION);

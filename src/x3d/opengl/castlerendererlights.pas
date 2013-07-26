@@ -226,7 +226,7 @@ begin
   inherited Create;
   FLightRenderEvent := ALightRenderEvent;
   LightsKnown := false;
-  SetLength(LightsDone, GLMaxLights);
+  SetLength(LightsDone, GLFeatures.MaxLights);
 end;
 
 function TVRMLGLLightsRenderer.NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
@@ -279,7 +279,7 @@ var
           glLightFromVRMLLight(LightsEnabled, Light^);
         Shader.EnableLight(LightsEnabled, Light);
         Inc(LightsEnabled);
-        if LightsEnabled >= GLMaxLights then Exit;
+        if LightsEnabled >= GLFeatures.MaxLights then Exit;
       end;
     end;
   end;
@@ -288,19 +288,19 @@ var
   I: Integer;
 begin
   LightsEnabled := 0;
-  if LightsEnabled >= GLMaxLights then Exit;
+  if LightsEnabled >= GLFeatures.MaxLights then Exit;
 
   AddList(Lights1);
-  if LightsEnabled >= GLMaxLights then Exit;
+  if LightsEnabled >= GLFeatures.MaxLights then Exit;
 
   if Lights2 <> nil then
   begin
     AddList(Lights2);
-    if LightsEnabled >= GLMaxLights then Exit;
+    if LightsEnabled >= GLFeatures.MaxLights then Exit;
   end;
 
   { Disable remaining light for fixed-function pipeline }
-  for I := LightsEnabled to GLMaxLights - 1 do
+  for I := LightsEnabled to GLFeatures.MaxLights - 1 do
     if NeedRenderLight(I, nil) then
       glDisable(GL_LIGHT0 + I);
 

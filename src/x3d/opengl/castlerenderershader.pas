@@ -2154,32 +2154,32 @@ var
   TextureShader: TTextureShader;
 begin
   { Enable for fixed-function pipeline }
-  if GLUseMultiTexturing then
+  if GLFeatures.UseMultiTexturing then
     glActiveTexture(GL_TEXTURE0 + TextureUnit);
   case TextureType of
     tt2D, tt2DShadow:
       begin
         glEnable(GL_TEXTURE_2D);
-        if GLTextureCubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-        if GL3DTextures <> gsNone  then glDisable(GL_TEXTURE_3D);
+        if GLFeatures.CubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+        if GLFeatures.Textures3D <> gsNone  then glDisable(GL_TEXTURE_3D);
       end;
     ttCubeMap:
       begin
         glDisable(GL_TEXTURE_2D);
-        if GLTextureCubeMapSupport then glEnable(GL_TEXTURE_CUBE_MAP_ARB);
-        if GL3DTextures <> gsNone  then glDisable(GL_TEXTURE_3D);
+        if GLFeatures.CubeMapSupport then glEnable(GL_TEXTURE_CUBE_MAP_ARB);
+        if GLFeatures.Textures3D <> gsNone  then glDisable(GL_TEXTURE_3D);
       end;
     tt3D:
       begin
         glDisable(GL_TEXTURE_2D);
-        if GLTextureCubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-        if GL3DTextures <> gsNone  then glEnable(GL_TEXTURE_3D);
+        if GLFeatures.CubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+        if GLFeatures.Textures3D <> gsNone  then glEnable(GL_TEXTURE_3D);
       end;
     ttShader:
       begin
         glDisable(GL_TEXTURE_2D);
-        if GLTextureCubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-        if GL3DTextures <> gsNone  then glDisable(GL_TEXTURE_3D);
+        if GLFeatures.CubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+        if GLFeatures.Textures3D <> gsNone  then glDisable(GL_TEXTURE_3D);
       end;
     else raise EInternalError.Create('TextureEnableDisable?');
   end;
@@ -2211,7 +2211,7 @@ procedure TShader.EnableTexGen(const TextureUnit: Cardinal;
   const Generation: TTexGenerationComplete);
 begin
   { Enable for fixed-function pipeline }
-  if GLUseMultiTexturing then
+  if GLFeatures.UseMultiTexturing then
     glActiveTexture(GL_TEXTURE0 + TextureUnit);
   { glEnable(GL_TEXTURE_GEN_*) below }
 
@@ -2265,7 +2265,7 @@ var
   PlaneName, CoordSource: string;
 begin
   { Enable for fixed-function pipeline }
-  if GLUseMultiTexturing then
+  if GLFeatures.UseMultiTexturing then
     glActiveTexture(GL_TEXTURE0 + TextureUnit);
   case Component of
     0: glEnable(GL_TEXTURE_GEN_S);
@@ -2294,7 +2294,7 @@ end;
 procedure TShader.DisableTexGen(const TextureUnit: Cardinal);
 begin
   { Disable for fixed-function pipeline }
-  if GLUseMultiTexturing then
+  if GLFeatures.UseMultiTexturing then
     glActiveTexture(GL_TEXTURE0 + TextureUnit);
   glDisable(GL_TEXTURE_GEN_S);
   glDisable(GL_TEXTURE_GEN_T);

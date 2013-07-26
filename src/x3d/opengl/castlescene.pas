@@ -1325,7 +1325,7 @@ begin
         if BlendingFactors[I].NeedsConstColor or
            BlendingFactors[I].NeedsConstAlpha then
         begin
-          if not GLBlendConstant then
+          if not GLFeatures.BlendConstant then
           begin
             if Log then
               WritelnLog('Blending', Format('Blending factor "%s" not available. It requires OpenGL >= 1.4 or ARB_imaging or OpenGL ES >= 2.0 extension, and is known to not work with fglrx (ATI Linux drivers)', [S]));
@@ -1333,7 +1333,7 @@ begin
           end;
         end;
 
-        if not GL_version_1_4 then
+        if not GLFeatures.Version_1_4 then
         begin
           if ((Factor = GL_SRC_COLOR) or
               (Factor = GL_ONE_MINUS_SRC_COLOR)) and Source then
@@ -1435,8 +1435,8 @@ var
       glDisable(GL_ALPHA_TEST); { saved by GL_ENABLE_BIT }
       glDisable(GL_FOG); { saved by GL_ENABLE_BIT }
       glDisable(GL_TEXTURE_2D); { saved by GL_ENABLE_BIT }
-      if GLTextureCubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-      if GL3DTextures  <> gsNone then glDisable(GL_TEXTURE_3D);
+      if GLFeatures.CubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+      if GLFeatures.Textures3D  <> gsNone then glDisable(GL_TEXTURE_3D);
 
       glShadeModel(GL_FLAT); { saved by GL_LIGHTING_BIT }
 
@@ -1613,7 +1613,7 @@ var
 
     { We track last source/dest factor, but we don't track last constant color/alpha.
       So just set them always, if needed. }
-    if GLBlendConstant then
+    if GLFeatures.BlendConstant then
     begin
       if NeedsConstColor then
       begin
@@ -3674,14 +3674,14 @@ end;
 function TSceneRenderingAttributes.ReallyUseOcclusionQuery: boolean;
 begin
   Result := UseOcclusionQuery and (not UseHierarchicalOcclusionQuery) and
-    GL_ARB_occlusion_query and (GLQueryCounterBits > 0);
+    GLFeatures.ARB_occlusion_query and (GLFeatures.QueryCounterBits > 0);
 end;
 
 function TSceneRenderingAttributes.
   ReallyUseHierarchicalOcclusionQuery: boolean;
 begin
-  Result := UseHierarchicalOcclusionQuery and GL_ARB_occlusion_query and
-    (GLQueryCounterBits > 0);
+  Result := UseHierarchicalOcclusionQuery and GLFeatures.ARB_occlusion_query and
+    (GLFeatures.QueryCounterBits > 0);
 end;
 
 procedure TSceneRenderingAttributes.SetShaders(const Value: TShadersRendering);

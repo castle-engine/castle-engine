@@ -66,7 +66,7 @@ var
 
 procedure RenderElevationsOpenGL;
 begin
-  if not GLVertexBufferObject then
+  if not GLFeatures.VertexBufferObject then
     raise Exception.Create('VBO support is required');
   glGenBuffers(1, @ElevationVbo);
   glGenBuffers(1, @ElevationIndexVbo);

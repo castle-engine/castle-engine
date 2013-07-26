@@ -269,7 +269,7 @@ end;
 procedure TGLShadowVolumeRenderer.GLContextOpen;
 begin
   { calcualte WrapAvailable, StencilOpIncrWrap, StencilOpDecrWrap }
-  FWrapAvailable := (GLVersion.Major >= 2) or GL_EXT_stencil_wrap;
+  FWrapAvailable := (GLVersion.Major >= 2) or GLFeatures.EXT_stencil_wrap;
   if WrapAvailable then
   begin
     FStencilOpIncrWrap := GL_INCR_WRAP_EXT;
@@ -293,7 +293,7 @@ begin
   { This again looks hacky but is Ok, glStencilOpSeparateATI has the same
     call semantics as glStencilOpSeparate, in fact glStencilOpSeparate
     is just an extension promoted to standard in GL 2.0... }
-  if (glStencilOpSeparate = nil) and GL_ATI_separate_stencil then
+  if (glStencilOpSeparate = nil) and GLFeatures.ATI_separate_stencil then
   begin
     if Log and LogShadowVolumes then
       WritelnLog('Shadow volumes',

@@ -1172,13 +1172,13 @@ function IsTextureSized(const Width, Height: Cardinal;
 begin
   if AllowNonPowerOfTwo then
     Result :=
-      (Width <= GLMaxTextureSize) and
-      (Height <= GLMaxTextureSize) else
+      (Width <= GLFeatures.MaxTextureSize) and
+      (Height <= GLFeatures.MaxTextureSize) else
     Result :=
       IsPowerOf2(Width) and
       IsPowerOf2(Height) and
-      (Width <= GLMaxTextureSize) and
-      (Height <= GLMaxTextureSize);
+      (Width <= GLFeatures.MaxTextureSize) and
+      (Height <= GLFeatures.MaxTextureSize);
 end;
 
 function IsTextureSized(const r: TEncodedImage; const AllowNonPowerOfTwo: boolean): boolean;
@@ -1202,14 +1202,14 @@ procedure ResizeToTextureSize(var Width, Height: Cardinal; const AllowNonPowerOf
 
   function BestTexSize(size: Cardinal): Cardinal;
   begin
-    if size > GLMaxTextureSize then
-      result := GLMaxTextureSize else
+    if size > GLFeatures.MaxTextureSize then
+      result := GLFeatures.MaxTextureSize else
     begin
       if AllowNonPowerOfTwo or IsPowerOf2(size) then
         result := size else
         result := 1 shl (Biggest2Exponent(size)+1);
-        {result jakie otrzymamy w ostatnim przypisaniu jest na pewno < GLMaxTextureSize bo
-         skoro size <= GLMaxTextureSize i not IsPowerOf2(size) to size < GLMaxTextureSize a GLMaxTextureSize
+        {result jakie otrzymamy w ostatnim przypisaniu jest na pewno < GLFeatures.MaxTextureSize bo
+         skoro size <= GLFeatures.MaxTextureSize i not IsPowerOf2(size) to size < GLFeatures.MaxTextureSize a GLFeatures.MaxTextureSize
          samo jest potega dwojki. }
      end;
   end;
@@ -1240,23 +1240,23 @@ end;
 function IsCubeMapTextureSized(const Size: Cardinal): boolean;
 begin
   Result :=
-    (not GLTextureCubeMapSupport) or
+    (not GLFeatures.CubeMapSupport) or
     (
       IsPowerOf2(Size) and
       (Size > 0) and
-      (Size <= GLMaxCubeMapTextureSizeARB)
+      (Size <= GLFeatures.MaxCubeMapTextureSizeARB)
     );
 end;
 
 function IsCubeMapTextureSized(const R: TEncodedImage): boolean;
 begin
   Result :=
-    (not GLTextureCubeMapSupport) or
+    (not GLFeatures.CubeMapSupport) or
     (
       (r.Width = r.Height) { must be square } and
       IsPowerOf2(r.Width) and
       (r.Width > 0) and
-      (r.Width <= GLMaxCubeMapTextureSizeARB)
+      (r.Width <= GLFeatures.MaxCubeMapTextureSizeARB)
     );
 end;
 
@@ -1277,12 +1277,12 @@ end;
 function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
 begin
   Result := Size;
-  if GLTextureCubeMapSupport then
+  if GLFeatures.CubeMapSupport then
   begin
     if Size <= 0 then
       Result := 1 else
-    if Size > GLMaxCubeMapTextureSizeARB then
-      Result := GLMaxCubeMapTextureSizeARB else
+    if Size > GLFeatures.MaxCubeMapTextureSizeARB then
+      Result := GLFeatures.MaxCubeMapTextureSizeARB else
     if IsPowerOf2(Size) then
       Result := Size else
       { Result jakie otrzymamy below jest na pewno < MaxTexSize bo
@@ -1296,7 +1296,7 @@ function ResizeToCubeMapTextureSize(const r: TCastleImage): TCastleImage;
 var
   Size: Cardinal;
 begin
-  if GLTextureCubeMapSupport then
+  if GLFeatures.CubeMapSupport then
   begin
     Size := Max(r.Width, r.Height);
     Size := ResizeToCubeMapTextureSize(Size);
@@ -1316,22 +1316,22 @@ end;
 function IsTexture3DSized(const Size: Cardinal): boolean;
 begin
   Result :=
-    (GL3DTextures = gsNone) or
+    (GLFeatures.Textures3D = gsNone) or
     (
       IsPowerOf2(Size) and
       (Size > 0) and
-      (Size <= GLMax3DTextureSize)
+      (Size <= GLFeatures.MaxTexture3DSize)
     );
 end;
 
 function IsTexture3DSized(const R: TCastleImage): boolean;
 begin
-  if GL3DTextures <> gsNone then
+  if GLFeatures.Textures3D <> gsNone then
   begin
     Result :=
-      IsPowerOf2(R.Width ) and (R.Width  > 0) and (R.Width  <= GLMax3DTextureSize) and
-      IsPowerOf2(R.Height) and (R.Height > 0) and (R.Height <= GLMax3DTextureSize) and
-      IsPowerOf2(R.Depth ) and (R.Depth  > 0) and (R.Depth  <= GLMax3DTextureSize);
+      IsPowerOf2(R.Width ) and (R.Width  > 0) and (R.Width  <= GLFeatures.MaxTexture3DSize) and
+      IsPowerOf2(R.Height) and (R.Height > 0) and (R.Height <= GLFeatures.MaxTexture3DSize) and
+      IsPowerOf2(R.Depth ) and (R.Depth  > 0) and (R.Depth  <= GLFeatures.MaxTexture3DSize);
   end else
     Result := true;
 end;
@@ -1350,7 +1350,7 @@ end;
 
 function Texture2DClampToEdge: TTextureWrap2D;
 begin
-  Result[0] := CastleGL_CLAMP_TO_EDGE;
+  Result[0] := GLFeatures.CLAMP_TO_EDGE;
   Result[1] := Result[0];
 end;
 
@@ -1403,7 +1403,7 @@ end;
     extensions are missing.) }
 procedure glCompressedTextureImage2D(Image: TS3TCImage; Level: TGLint);
 begin
-  if not GLTextureCompressionS3TC then
+  if not GLFeatures.TextureCompressionS3TC then
     raise ECannotLoadS3TCTexture.Create('Cannot load S3TC compressed textures: OpenGL doesn''t support one (or both) of ARB_texture_compression and EXT_texture_compression_s3tc extensions');
 
   if not IsTextureSized(Image, false) then
@@ -1505,7 +1505,7 @@ var
       Result := false;
     end;
 
-    if Result and (not GL_version_1_2) then
+    if Result and (not GLFeatures.Version_1_2) then
     begin
       OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
       Result := false;
@@ -1693,7 +1693,7 @@ var
       extensions are missing or mipmaps were required.) }
   procedure LoadCompressed(const Image: TS3TCImage);
   begin
-    if not GLTextureCompressionS3TC then
+    if not GLFeatures.TextureCompressionS3TC then
       raise ECannotLoadS3TCTexture.Create('Cannot load S3TC compressed textures: OpenGL doesn''t support one (or both) of ARB_texture_compression and EXT_texture_compression_s3tc extensions');
 
     if not IsCubeMapTextureSized(Image) then
@@ -1834,7 +1834,7 @@ procedure glTextureCubeMap(
     end;
 
   begin
-    if not GL_version_1_2 then
+    if not GLFeatures.Version_1_2 then
     begin
       OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
       Exit;
@@ -1903,7 +1903,7 @@ var
     begin
       BeforeUnpackImage(UnpackData, Image);
       try
-        case GL3DTextures of
+        case GLFeatures.Textures3D of
           gsExtension:
             glTexImage3DEXT(GL_TEXTURE_3D_EXT, Level, ImageInternalFormat,
               Image.Width, Image.Height, Image.Depth, 0, ImageFormat, ImageGLType(Image),
@@ -1919,7 +1919,7 @@ var
   begin
     if not IsTexture3DSized(Image) then
       raise ETextureLoadError.CreateFmt('Image is not properly sized for a 3D texture, sizes must be a power-of-two and <= GL_MAX_3D_TEXTURE_SIZE (%d). Sizes are: %d x %d x %d',
-        [ GLMax3DTextureSize, Image.Width, Image.Height, Image.Depth ]);
+        [ GLFeatures.MaxTexture3DSize, Image.Width, Image.Height, Image.Depth ]);
 
     Core(Image);
   end;
@@ -1936,7 +1936,7 @@ var
       Result := false;
     end;
 
-    if Result and (not GL_version_1_2) then
+    if Result and (not GLFeatures.Version_1_2) then
     begin
       OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
       Result := false;
@@ -1991,14 +1991,14 @@ begin
   Result := false;
 {$else}
 begin
-  Result := (GLFramebuffer <> gsNone) and (not GLVersion.BuggyGenerateMipmap);
+  Result := (GLFeatures.Framebuffer <> gsNone) and (not GLVersion.BuggyGenerateMipmap);
 {$endif}
 end;
 
 procedure GenerateMipmap(target: TGLenum);
 begin
   {$ifndef TEST_NO_GENERATE_MIPMAP}
-  if GLFramebuffer <> gsNone then
+  if GLFeatures.Framebuffer <> gsNone then
   begin
     glPushAttrib(GL_ENABLE_BIT);
       { To work under fglrx (confirmed on chantal (ATI Mobility Radeon X1600)),
@@ -2007,7 +2007,7 @@ begin
         This is a known ATI drivers problem:
         http://www.opengl.org/discussion_boards/ubbthreads.php?ubb=showflat&Number=237052 }
       glEnable(Target);
-      case GLFramebuffer of
+      case GLFeatures.Framebuffer of
         gsExtension: glGenerateMipmapEXT(Target);
         gsStandard : glGenerateMipmap   (Target);
       end;
@@ -2021,9 +2021,9 @@ end;
 
 procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGLfloat);
 begin
-  if GL_EXT_texture_filter_anisotropic then
+  if GLFeatures.EXT_texture_filter_anisotropic then
     glTexParameterf(Target, GL_TEXTURE_MAX_ANISOTROPY_EXT,
-      Min(GLMaxTextureMaxAnisotropyEXT, Anisotropy));
+      Min(GLFeatures.MaxTextureMaxAnisotropyEXT, Anisotropy));
 end;
 
 { DecompressS3TC ------------------------------------------------------------- }
@@ -2093,7 +2093,7 @@ begin
     BoundFboStack := TLongWordList.Create;
   BoundFboStack.Add(Fbo);
 
-  case GLFramebuffer of
+  case GLFeatures.Framebuffer of
     gsExtension: glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Fbo);
     gsStandard : glBindFramebuffer   (GL_FRAMEBUFFER    , Fbo);
   end;
@@ -2128,7 +2128,7 @@ begin
     PreviousFboDefaultBuffer := GL_BACK else
     PreviousFboDefaultBuffer := GL_COLOR_ATTACHMENT0;
 
-  case GLFramebuffer of
+  case GLFeatures.Framebuffer of
     gsExtension: glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, PreviousFbo);
     gsStandard : glBindFramebuffer   (GL_FRAMEBUFFER    , PreviousFbo);
   end;
@@ -2161,7 +2161,7 @@ end;
 procedure FramebufferTexture2D(const Target, Attachment, TexTarget: TGLenum;
   const Texture: TGLuint; const Level: TGLint);
 begin
-  case GLFramebuffer of
+  case GLFeatures.Framebuffer of
     gsExtension: glFramebufferTexture2DEXT(Target, Attachment, TexTarget, Texture, Level);
     gsStandard : glFramebufferTexture2D   (Target, Attachment, TexTarget, Texture, Level);
   end;
@@ -2199,7 +2199,7 @@ begin
     begin
       if not FramebufferBound then
         BindFramebuffer(Framebuffer);
-      case GLFramebuffer of
+      case GLFeatures.Framebuffer of
         gsExtension: glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, TextureTarget, Texture, 0);
         gsStandard : glFramebufferTexture2D   (GL_FRAMEBUFFER    , GL_COLOR_ATTACHMENT0    , TextureTarget, Texture, 0);
       end;
@@ -2234,7 +2234,7 @@ procedure TGLRenderToTexture.GLContextOpen;
   procedure GenBindRenderbuffer(var RenderbufferId: TGLuint;
     const InternalFormat: TGLenum; const Attachment: TGLenum);
   begin
-    case GLFramebuffer of
+    case GLFeatures.Framebuffer of
       gsExtension:
         begin
           glGenRenderbuffersEXT(1, @RenderbufferId);
@@ -2246,7 +2246,7 @@ procedure TGLRenderToTexture.GLContextOpen;
         begin
           glGenRenderbuffers(1, @RenderbufferId);
           glBindRenderbuffer   (GL_RENDERBUFFER    , RenderbufferId);
-          if (MultiSampling > 1) and GLFBOMultiSampling then
+          if (MultiSampling > 1) and GLFeatures.FBOMultiSampling then
             glRenderbufferStorageMultisample(GL_RENDERBUFFER, MultiSampling, InternalFormat, Width, Height) else
             glRenderbufferStorage           (GL_RENDERBUFFER,                InternalFormat, Width, Height);
           glFramebufferRenderbuffer   (GL_FRAMEBUFFER    , Attachment, GL_RENDERBUFFER    , RenderbufferId);
@@ -2269,16 +2269,16 @@ var
 begin
   Assert(not FGLInitialized, 'You cannot call TGLRenderToTexture.GLContextInit on already OpenGL-initialized instance. Call GLContextClose first if this is really what you want.');
 
-  if (GLFramebuffer <> gsNone) and
+  if (GLFeatures.Framebuffer <> gsNone) and
      (not (GLVersion.BuggyFBOCubeMap and
            Between(TextureTarget, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB))) then
   begin
-    if (Width > GLMaxRenderbufferSize) or
-       (Height > GLMaxRenderbufferSize) then
+    if (Width > GLFeatures.MaxRenderbufferSize) or
+       (Height > GLFeatures.MaxRenderbufferSize) then
       raise EFramebufferSizeTooLow.CreateFmt('Maximum renderbuffer (within framebuffer) size is %d x %d in your OpenGL implementation, while we require %d x %d',
-        [ GLMaxRenderbufferSize, GLMaxRenderbufferSize, Width, Height ]);
+        [ GLFeatures.MaxRenderbufferSize, GLFeatures.MaxRenderbufferSize, Width, Height ]);
 
-    case GLFramebuffer of
+    case GLFeatures.Framebuffer of
       gsExtension: glGenFramebuffersEXT(1, @Framebuffer);
       gsStandard : glGenFramebuffers   (1, @Framebuffer);
     end;
@@ -2290,7 +2290,7 @@ begin
       use one renderbuffer or one texture with combined depth/stencil info.
       Other possibilities may be not available at all (e.g. Radeon on chantal,
       but probably most GPUs with EXT_packed_depth_stencil). }
-    if Stencil and GLPackedDepthStencil then
+    if Stencil and GLFeatures.PackedDepthStencil then
     begin
       DepthBufferFormatPacked := GL_DEPTH_STENCIL;
       DepthAttachmentPacked := GL_DEPTH_STENCIL_ATTACHMENT;
@@ -2328,13 +2328,13 @@ begin
     end;
 
     { setup separate stencil buffer }
-    if Stencil and not GLPackedDepthStencil then
+    if Stencil and not GLFeatures.PackedDepthStencil then
       { initialize RenderbufferStencil, attach it to FBO stencil }
       GenBindRenderbuffer(RenderbufferStencil, GL_STENCIL_INDEX, GL_STENCIL_ATTACHMENT);
 
     Success := false;
     try
-      case GLFramebuffer of
+      case GLFeatures.Framebuffer of
         gsExtension: Status := glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
         gsStandard : Status := glCheckFramebufferStatus   (GL_FRAMEBUFFER    );
       end;
@@ -2346,7 +2346,7 @@ begin
       end;
     finally
       { Always, regardless of Success, unbind FBO and restore normal gl*Buffer }
-      case GLFramebuffer of
+      case GLFeatures.Framebuffer of
         gsExtension: glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
         gsStandard : glBindRenderbuffer   (GL_RENDERBUFFER    , 0);
       end;
@@ -2374,7 +2374,7 @@ procedure TGLRenderToTexture.GLContextClose;
   begin
     if Buf <> 0 then
     begin
-      case GLFramebuffer of
+      case GLFeatures.Framebuffer of
         gsExtension: glDeleteRenderbuffersEXT(1, @Buf);
         gsStandard : glDeleteRenderbuffers   (1, @Buf);
       end;
@@ -2386,7 +2386,7 @@ procedure TGLRenderToTexture.GLContextClose;
   begin
     if Buf <> 0 then
     begin
-      case GLFramebuffer of
+      case GLFeatures.Framebuffer of
         gsExtension: glDeleteFramebuffersEXT(1, @Buf);
         gsStandard : glDeleteFramebuffers   (1, @Buf);
       end;

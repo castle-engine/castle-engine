@@ -933,7 +933,7 @@ type
 
       It's always clamped by the number of available texture units
       (GLMaxTextureUnits). Always <= 1 if OpenGL doesn't support
-      multitexturing (not GLUseMultiTexturing). }
+      multitexturing (not GLFeatures.UseMultiTexturing). }
     BoundTextureUnits: Cardinal;
 
     { For how many texture units do we have to generate tex coords.
@@ -947,7 +947,7 @@ type
 
     { For which texture units we pushed and modified the texture matrix.
       Only inside RenderShape.
-      Always <= 1 if not GLUseMultiTexturing. }
+      Always <= 1 if not GLFeatures.UseMultiTexturing. }
     TextureTransformUnitsUsed: Cardinal;
 
     { Additional texture units used,
@@ -1539,8 +1539,8 @@ begin
   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_MAG_FILTER, MagFilter);
   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_MIN_FILTER, MinFilter);
 
-  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_S, CastleGL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_T, CastleGL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_S, GLFeatures.CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_T, GLFeatures.CLAMP_TO_EDGE);
 
   glTextureCubeMap(
     PositiveX, NegativeX,
@@ -1703,7 +1703,7 @@ begin
   glTexImage2d(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
     Width, Height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nil);
 
-  if GL_ARB_shadow then
+  if GLFeatures.ARB_shadow then
   begin
     if DepthCompareField <> nil then
     begin
@@ -2311,7 +2311,7 @@ var
   end;
 
 begin
-  Assert(GLVertexBufferObject);
+  Assert(GLFeatures.VertexBufferObject);
   Assert(not Arrays.DataFreed);
 
   NewVbos := Vbo[vtCoordinate] = 0;
@@ -2562,7 +2562,7 @@ begin
   if (Attributes.BumpMapping <> bmNone) and
     Attributes.EnableTextures and
     (Attributes.Mode = rmFull) and
-    GLUseMultiTexturing and
+    GLFeatures.UseMultiTexturing and
     (TGLSLProgram.ClassSupport <> gsNone) then
     Result := Attributes.BumpMapping else
     Result := bmNone;
@@ -2572,7 +2572,7 @@ end;
 
 procedure TGLRenderer.ActiveTexture(const TextureUnit: Cardinal);
 begin
-  if GLUseMultiTexturing then
+  if GLFeatures.UseMultiTexturing then
     glActiveTexture(GL_TEXTURE0 + TextureUnit);
 end;
 
@@ -2590,8 +2590,8 @@ end;
 procedure TGLRenderer.DisableCurrentTexture;
 begin
   glDisable(GL_TEXTURE_2D);
-  if GLTextureCubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-  if GL3DTextures <> gsNone  then glDisable(GL_TEXTURE_3D);
+  if GLFeatures.CubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+  if GLFeatures.Textures3D <> gsNone  then glDisable(GL_TEXTURE_3D);
 end;
 
 procedure TGLRenderer.GetFog(Node: IAbstractFogObject;
@@ -2601,7 +2601,7 @@ procedure TGLRenderer.GetFog(Node: IAbstractFogObject;
 begin
   Enabled := (Attributes.Mode = rmFull) and
     (Node <> nil) and (Node.FdVisibilityRange.Value <> 0.0);
-  Volumetric := Enabled and Node.FdVolumetric.Value and GL_EXT_fog_coord;
+  Volumetric := Enabled and Node.FdVolumetric.Value and GLFeatures.EXT_fog_coord;
 
   if Volumetric then
   begin
@@ -2622,7 +2622,7 @@ procedure TGLRenderer.RenderCleanState(const Beginning: boolean);
   var
     I: Integer;
   begin
-    for I := 0 to GLMaxTextureUnits - 1 do
+    for I := 0 to GLFeatures.MaxTextureUnits - 1 do
       DisableTexture(I);
   end;
 
@@ -2632,7 +2632,7 @@ begin
   DisabeAllTextureUnits;
 
   { Restore active texture unit to 0 }
-  if GLUseMultiTexturing then
+  if GLFeatures.UseMultiTexturing then
   begin
     ActiveTexture(0);
     glClientActiveTexture(GL_TEXTURE0);
@@ -2719,7 +2719,7 @@ begin
       LightsRenderer already assumes that state of lights is initially unknown,
       and handles it. }
     if not Beginning then
-      for I := 0 to GLMaxLights - 1 do
+      for I := 0 to GLFeatures.MaxLights - 1 do
         glDisable(GL_LIGHT0 + I);
 
     glDisable(GL_FOG);
@@ -2925,7 +2925,7 @@ const
 
       VisibilityRangeScaled := Node.FdVisibilityRange.Value * Node.TransformScale;
 
-      if Node.FdVolumetric.Value and (not GL_EXT_fog_coord) then
+      if Node.FdVolumetric.Value and (not GLFeatures.EXT_fog_coord) then
       begin
         { Try to make normal fog that looks similar. This looks poorly,
           but it's not a real problem --- EXT_fog_coord is supported
@@ -2942,7 +2942,7 @@ const
       begin
         { If not Volumetric but still GL_EXT_fog_coord, we make sure
           that we're *not* using FogCoord below. }
-        if GL_EXT_fog_coord then
+        if GLFeatures.EXT_fog_coord then
           glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
       end;
 
@@ -3073,7 +3073,7 @@ begin
           { Multitexturing, so use as many texture units as there are children in
             MultiTextureTransform.textureTransform.
             Cap by available texture units. }
-          TextureTransformUnitsUsed := Min(Transforms.Count, GLMaxTextureUnits);
+          TextureTransformUnitsUsed := Min(Transforms.Count, GLFeatures.MaxTextureUnits);
 
           for I := 0 to TextureTransformUnitsUsed - 1 do
           begin
@@ -3120,7 +3120,7 @@ begin
 
     for I := 0 to TextureTransformUnitsUsed - 1 do
     begin
-      { This code is Ok also when not GLUseMultiTexturing: then
+      { This code is Ok also when not GLFeatures.UseMultiTexturing: then
         TextureTransformUnitsUsed for sure is <= 1 and ActiveTexture
         will be simply ignored. }
       ActiveTexture(I);
@@ -3157,13 +3157,13 @@ var
     ClipPlanesEnabled := 0;
     { GLMaxClipPlanes should be >= 6 with every conforming OpenGL,
       but still better check. }
-    if (GLMaxClipPlanes > 0) and (ClipPlanes <> nil) then
+    if (GLFeatures.MaxClipPlanes > 0) and (ClipPlanes <> nil) then
       for I := 0 to ClipPlanes.Count - 1 do
       begin
         ClipPlane := Addr(ClipPlanes.L[I]);
         if ClipPlane^.Node.FdEnabled.Value then
         begin
-          Assert(ClipPlanesEnabled < GLMaxClipPlanes);
+          Assert(ClipPlanesEnabled < GLFeatures.MaxClipPlanes);
 
           { Nope, you should *not* multiply
             ClipPlane^.Transform * plane yourself.
@@ -3192,7 +3192,7 @@ var
 
           { No more clip planes possible, regardless if there are any more
             enabled clip planes on the list. }
-          if ClipPlanesEnabled = GLMaxClipPlanes then Break;
+          if ClipPlanesEnabled = GLFeatures.MaxClipPlanes then Break;
         end;
       end;
   end;
@@ -3426,7 +3426,7 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
         since it has smartly calculated AlphaChannel based on children. }
       AlphaTest := TextureNode.AlphaChannel = acSimpleYesNo;
 
-      GLTextureNode.EnableAll(GLMaxTextureUnits, TexCoordsNeeded, Shader);
+      GLTextureNode.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
       BoundTextureUnits := TexCoordsNeeded;
 
       { If there is any texture, and we have room for one more texture,
@@ -3434,7 +3434,7 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
         TexCoordsNeeded for this, as bump mapping uses the existing
         texture coord. }
       if (TexCoordsNeeded > 0) and
-         (TexCoordsNeeded < GLMaxTextureUnits) then
+         (TexCoordsNeeded < GLFeatures.MaxTextureUnits) then
         BumpMappingRenderers.Enable(Shape.State, BoundTextureUnits, Shader);
     end;
 
@@ -3461,7 +3461,7 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
       this way they will at least define correct texture coordinates
       for texture unit 0. }
 
-    if (TexCoordsNeeded > 0) and GLUseMultiTexturing then
+    if (TexCoordsNeeded > 0) and GLFeatures.UseMultiTexturing then
       ActiveTexture(0);
   end;
 
@@ -3508,7 +3508,7 @@ begin
     if Shape.Cache = nil then
       Shape.Cache := Cache.Shape_IncReference(Shape, Fog, Self);
 
-    VBO := Attributes.VertexBufferObject and GLVertexBufferObject;
+    VBO := Attributes.VertexBufferObject and GLFeatures.VertexBufferObject;
 
     { calculate Shape.Cache.Arrays }
     if Shape.Cache.Arrays = nil then
@@ -3808,15 +3808,15 @@ begin
   Result := '';
   if Depth then
     Result += '#define DEPTH' +NL;
-  if GLFBOMultiSampling then
+  if GLFeatures.FBOMultiSampling then
   begin
-    if GLCurrentMultiSampling > 1 then
+    if GLFeatures.CurrentMultiSampling > 1 then
       Result +=
         '#define MULTI_SAMPLING' +NL +
-        '#define MULTI_SAMPLING_' + IntToStr(GLCurrentMultiSampling) +NL;
-    if not (GLCurrentMultiSampling in [1, 2, 4, 8, 16]) then
+        '#define MULTI_SAMPLING_' + IntToStr(GLFeatures.CurrentMultiSampling) +NL;
+    if not (GLFeatures.CurrentMultiSampling in [1, 2, 4, 8, 16]) then
       OnWarning(wtMajor, 'Screen Effects', Format('Our GLSL library for screen effects is not prepared for your number of samples (anti-aliasing): %d. This may indicate that your GPU is very new or very weird. Please submit this as a bug (see http://castle-engine.sourceforge.net/forum.php for links to forum, bug tracker and more), citing this message. For now, screen effects will not work.',
-        [GLCurrentMultiSampling]));
+        [GLFeatures.CurrentMultiSampling]));
   end;
   Result += {$I screen_effect_library.glsl.inc};
 end;

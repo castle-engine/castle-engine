@@ -98,10 +98,10 @@
 
       TextureUnitsCount does *not* take into account whether multitexturing
       OpenGL extensions are available at all.
-      Look at GLUseMultiTexturing for this.
-      Think of GLUseMultiTexturing as capping TextureUnitsCount to 1
+      Look at GLFeatures.UseMultiTexturing for this.
+      Think of GLFeatures.UseMultiTexturing as capping TextureUnitsCount to 1
       (still, remember to honour TextureUnitsCount = 0 case in your implementation,
-      even when GLUseMultiTexturing = @true).
+      even when GLFeatures.UseMultiTexturing = @true).
 
       You have to set TexCoordsNeeded, this is the count of texture units
       where some texture coordinates should be generated.
@@ -422,7 +422,7 @@ begin
       and CLAMP_TO_EDGE is available by TextureProperties.boundaryMode*.
       But until this will get implemented, it's much safer (and more sensible?)
       to use GL_CLAMP_TO_EDGE here. }
-    Result := CastleGL_CLAMP_TO_EDGE;
+    Result := GLFeatures.CLAMP_TO_EDGE;
 end;
 
 { TGLTextureNode ------------------------------------------------------------- }
@@ -866,7 +866,7 @@ var
 begin
   { calculate TexCoordsNeeded }
   TexCoordsNeeded := Min(TextureUnitsCount, TextureNode.FdTexture.Count);
-  if not GLUseMultiTexturing then
+  if not GLFeatures.UseMultiTexturing then
     MinTo1st(TexCoordsNeeded, 1);
 
   for I := 0 to TexCoordsNeeded - 1 do
@@ -894,7 +894,7 @@ begin
           TAbstractTextureNode(ChildTex), I, Shader, Env);
 
       { Apply Env for fixed-function pipeline. }
-      if Success and GLUseMultiTexturing { needed OpenGL exts available } then
+      if Success and GLFeatures.UseMultiTexturing { needed OpenGL exts available } then
       begin
         { Set all the multitexture mode-related stuff.
           Below we handle TextureNode.mode, source, color, alpha,
@@ -1177,7 +1177,7 @@ begin
       so it's "ignorable" warning. },
       Format('Rendered texture size %d x %d is incorrect (texture size must be a power of two, > 0 and <= GL_MAX_TEXTURE_SIZE = %d), corrected to %d x %d',
         [ NodeWidth, NodeHeight,
-          GLMaxTextureSize,
+          GLFeatures.MaxTextureSize,
           Width, Height]));
   end;
 
@@ -1188,7 +1188,7 @@ begin
 
   if DepthMap then
   begin
-    if not GL_ARB_depth_texture then
+    if not GLFeatures.ARB_depth_texture then
     begin
       OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_depth_texture, cannot use RenderedTexture with depthMap = TRUE');
       Exit;
@@ -1524,7 +1524,7 @@ var
   Anisotropy: TGLfloat;
   BackRot, FrontRot, LeftRot, RightRot: TCastleImage;
 begin
-  if not GLTextureCubeMapSupport then
+  if not GLFeatures.CubeMapSupport then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
     Exit;
@@ -1588,7 +1588,7 @@ var
   Anisotropy: TGLfloat;
   DDS: TDDSImage;
 begin
-  if not GLTextureCubeMapSupport then
+  if not GLFeatures.CubeMapSupport then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
     Exit;
@@ -1648,7 +1648,7 @@ var
   Anisotropy: TGLfloat;
   InitialImage: TCastleImage;
 begin
-  if not GLTextureCubeMapSupport then
+  if not GLFeatures.CubeMapSupport then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
     Exit;
@@ -1679,7 +1679,7 @@ begin
       so it's "ignorable" warning. },
       Format('Cube map texture size %d is incorrect (cube map texture size must be a power of two, > 0 and <= GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB = %d), corrected to %d',
         [ TextureNode.FdSize.Value,
-          GLMaxCubeMapTextureSizeARB,
+          GLFeatures.MaxCubeMapTextureSizeARB,
           Size]));
   end;
 
@@ -1781,7 +1781,7 @@ var
   Anisotropy: TGLfloat;
   TextureWrap: TTextureWrap3D;
 begin
-  if GL3DTextures = gsNone then
+  if GLFeatures.Textures3D = gsNone then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support 3D textures, cannot use Texture3D nodes');
     Exit;
@@ -1854,7 +1854,7 @@ begin
   Result :=
     (Attributes.ShadowSampling = ssVarianceShadowMaps) and
     (TGLSLProgram.ClassSupport <> gsNone) and
-    GLTextureFloat;
+    GLFeatures.TextureFloat;
 end;
 
 procedure TGLGeneratedShadowMap.PrepareCore(State: TX3DGraphTraverseState);
@@ -1874,7 +1874,7 @@ begin
       [ BoolToStr[VarianceShadowMaps],
         ShadowSamplingNames[Renderer.Attributes.ShadowSampling],
         GLSupportNames[TGLSLProgram.ClassSupport],
-        BoolToStr[GLTextureFloat] ]));
+        BoolToStr[GLFeatures.TextureFloat] ]));
 
   { TODO: fix TextureNode.FdSize.Value if needed }
   Size := TextureNode.FdSize.Value;
@@ -1885,8 +1885,8 @@ begin
   { At least in case of float textures for VSM, CLAMP_TO_EDGE is needed
     (instead of standard clamp to border). Didn't see any difference
     for depth textures. }
-  TextureWrap[0] := CastleGL_CLAMP_TO_EDGE;
-  TextureWrap[1] := CastleGL_CLAMP_TO_EDGE;
+  TextureWrap[0] := GLFeatures.CLAMP_TO_EDGE;
+  TextureWrap[1] := GLFeatures.CLAMP_TO_EDGE;
 
   { calculate MinFilter, NeedsMipmaps }
   if VarianceShadowMaps and HasGenerateMipmap then
@@ -1905,7 +1905,7 @@ begin
       TextureNode, MinFilter, GL_LINEAR, TextureWrap, Size, Size, true);
   end else
   begin
-    if not GL_ARB_depth_texture then
+    if not GLFeatures.ARB_depth_texture then
     begin
       OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_depth_texture, cannot use GeneratedShadowMap nodes');
       Exit;

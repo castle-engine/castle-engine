@@ -208,10 +208,10 @@ var
     if Attributes.Mode = rmFull then
       glDisableClientState(GL_COLOR_ARRAY);
 
-    if Arrays.HasFogCoord and GL_EXT_fog_coord then
+    if Arrays.HasFogCoord and GLFeatures.EXT_fog_coord then
       glDisableClientState(GL_FOG_COORDINATE_ARRAY_EXT);
 
-    if GLUseMultiTexturing then
+    if GLFeatures.UseMultiTexturing then
     begin
       for I := 0 to Arrays.TexCoords.Count - 1 do
         if (Arrays.TexCoords[I] <> nil) and
@@ -275,13 +275,13 @@ begin
           glColorv(Arrays.DefaultColor);
       end;
 
-      if Arrays.HasFogCoord and GL_EXT_fog_coord then
+      if Arrays.HasFogCoord and GLFeatures.EXT_fog_coord then
       begin
         glEnableClientState(GL_FOG_COORDINATE_ARRAY_EXT);
         glFogCoordPointerEXT(GL_FLOAT, Arrays.AttributeSize, Arrays.FogCoord);
       end;
 
-      if GLUseMultiTexturing then
+      if GLFeatures.UseMultiTexturing then
       begin
         for I := 0 to Arrays.TexCoords.Count - 1 do
           if (Arrays.TexCoords[I] <> nil) and
@@ -382,7 +382,7 @@ end;
   available, and shifting TextureUnit by GL_TEXTURE0) is taken care of inside here. }
 procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
 begin
-  if GLUseMultiTexturing then
+  if GLFeatures.UseMultiTexturing then
     glMultiTexCoord4fv(GL_TEXTURE0 + TextureUnit, @TexCoord) else
     glTexCoord4fv(@TexCoord);
 end;
@@ -491,7 +491,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       tgCameraSpaceNormal,
       tgWorldSpaceNormal:
         begin
-          if not GLTextureCubeMapSupport then
+          if not GLFeatures.CubeMapSupport then
           begin
             OnWarning(wtMajor, 'VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACENORMAL", will do "COORD" instead');
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -519,7 +519,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       tgCameraSpaceReflectionVector,
       tgWorldSpaceReflectionVector:
         begin
-          if not GLTextureCubeMapSupport then
+          if not GLFeatures.CubeMapSupport then
           begin
             OnWarning(wtMajor, 'VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACEREFLECTIONVECTOR", will do "COORD" instead');
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -633,7 +633,7 @@ begin
 
   if Arrays.HasFogCoord and
      Arrays.FogDirectValues and
-     GL_EXT_fog_coord then
+     GLFeatures.EXT_fog_coord then
   begin
     { When Renderer.FogVolumetric, GL_FOG_COORDINATE_SOURCE_EXT
       is already set correctly by RenderBegin. }
@@ -658,7 +658,7 @@ begin
   { Restore defaults }
   if Arrays.HasFogCoord and
      Arrays.FogDirectValues and
-     GL_EXT_fog_coord then
+     GLFeatures.EXT_fog_coord then
   begin
     glPopAttrib;
 

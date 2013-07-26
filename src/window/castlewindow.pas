@@ -2957,7 +2957,7 @@ begin
 
   if ( (AntiAliasing = aa2SamplesNicer) or
        (AntiAliasing = aa4SamplesNicer) ) and
-     GL_NV_multisample_filter_hint then
+     GLFeatures.NV_multisample_filter_hint then
     glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
 
   { call first EventOpen and EventResize. Zwroc uwage ze te DoResize i DoOpen
@@ -4604,8 +4604,8 @@ procedure TCastleWindowCustom.EventDraw;
       glDisable(GL_LIGHTING);
       glDisable(GL_DEPTH_TEST);
       glDisable(GL_TEXTURE_2D);
-      if GLTextureCubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-      if GL3DTextures <> gsNone  then glDisable(GL_TEXTURE_3D);
+      if GLFeatures.CubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+      if GLFeatures.Textures3D <> gsNone  then glDisable(GL_TEXTURE_3D);
       glViewport(0, 0, Width, Height); // saved by GL_VIEWPORT_BIT
 
       glMatrixMode(GL_PROJECTION);

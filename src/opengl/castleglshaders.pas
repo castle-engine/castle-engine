@@ -524,9 +524,9 @@ begin
   {$ifdef OpenGLES}
   Result := gsStandard;
   {$else}
-  if GL_version_2_0 then
+  if GLFeatures.Version_2_0 then
     Result := gsStandard else
-  if GLUseARBGLSL then
+  if GLFeatures.UseARBGLSL then
     Result := gsExtension else
     Result := gsNone;
   {$endif}
@@ -546,21 +546,6 @@ end;
 function TGLSLProgram.DebugInfo: string;
 
   function GLShaderVariableTypeName(AType: TGLenum): string;
-  const
-    { Present in glext since GL_VERSION_2_1, define here to support
-      older FPC versions. }
-    GL_FLOAT_MAT2x3 = $8B65;
-    GL_FLOAT_MAT2x4 = $8B66;
-    GL_FLOAT_MAT3x2 = $8B67;
-    GL_FLOAT_MAT3x4 = $8B68;
-    GL_FLOAT_MAT4x2 = $8B69;
-    GL_FLOAT_MAT4x3 = $8B6A;
-    { Present in glext since GL_VERSION_3_1, define here to support
-      older FPC versions. }
-    GL_SAMPLER_2D_RECT = $8B63;
-    GL_SAMPLER_2D_RECT_SHADOW = $8B64;
-    GL_INT_SAMPLER_2D_RECT = $8DCD;
-    GL_UNSIGNED_INT_SAMPLER_2D_RECT = $8DD5;
   begin
     case AType of
       GL_FLOAT: Result := 'FLOAT';

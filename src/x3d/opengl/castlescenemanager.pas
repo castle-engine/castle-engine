@@ -1565,7 +1565,7 @@ var
   procedure DoPerspective;
   begin
     { Only perspective projection supports z far in infinity. }
-    if GLShadowVolumesPossible and ShadowVolumes then
+    if GLFeatures.ShadowVolumesPossible and ShadowVolumes then
       FProjectionFar := ZFarInfinity;
 
     FPerspectiveView := true;
@@ -1879,7 +1879,7 @@ procedure TCastleAbstractViewport.RenderFromView3D(const Params: TRenderParams);
 var
   MainLightPosition: TVector4Single;
 begin
-  if GLShadowVolumesPossible and
+  if GLFeatures.ShadowVolumesPossible and
      ShadowVolumes and
      MainLightForShadows(MainLightPosition) then
     RenderWithShadows(MainLightPosition) else
@@ -1942,7 +1942,7 @@ begin
       ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;
   end;
 
-  if GLShadowVolumesPossible and
+  if GLFeatures.ShadowVolumesPossible and
      ShadowVolumes and
      MainLightForShadows(MainLightPosition) then
     ClearBuffers := ClearBuffers or GL_STENCIL_BUFFER_BIT;
@@ -1984,7 +1984,7 @@ procedure TCastleAbstractViewport.RenderScreenEffect;
   var
     BoundTextureUnits: Cardinal;
   begin
-    glActiveTexture(GL_TEXTURE0); // GLUseMultiTexturing is already checked
+    glActiveTexture(GL_TEXTURE0); // GLFeatures.UseMultiTexturing is already checked
     glBindTexture(ScreenEffectTextureTarget, ScreenEffectTextureSrc);
     BoundTextureUnits := 1;
 
@@ -2090,9 +2090,9 @@ procedure TCastleAbstractViewport.RenderOnScreen(ACamera: TCamera);
     procedure TexImage2D(const InternalFormat: TGLint;
       const Format, AType: TGLenum);
     begin
-      if (GLCurrentMultiSampling > 1) and GLFBOMultiSampling then
+      if (GLFeatures.CurrentMultiSampling > 1) and GLFeatures.FBOMultiSampling then
         glTexImage2DMultisample(ScreenEffectTextureTarget,
-          GLCurrentMultiSampling, InternalFormat,
+          GLFeatures.CurrentMultiSampling, InternalFormat,
           ScreenEffectTextureWidth,
           ScreenEffectTextureHeight, GL_FALSE { TODO: false or true here? }) else
         glTexImage2D(ScreenEffectTextureTarget, 0, InternalFormat,
@@ -2111,12 +2111,12 @@ procedure TCastleAbstractViewport.RenderOnScreen(ACamera: TCamera);
         before each screen effect? }
       glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_WRAP_S, CastleGL_CLAMP_TO_EDGE);
-      glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_WRAP_T, CastleGL_CLAMP_TO_EDGE);
+      glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_WRAP_S, GLFeatures.CLAMP_TO_EDGE);
+      glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_WRAP_T, GLFeatures.CLAMP_TO_EDGE);
     end;
     if Depth then
     begin
-      if GLShadowVolumesPossible and GLPackedDepthStencil then
+      if GLFeatures.ShadowVolumesPossible and GLFeatures.PackedDepthStencil then
         TexImage2D(GL_DEPTH24_STENCIL8_EXT, GL_DEPTH_STENCIL_EXT, GL_UNSIGNED_INT_24_8_EXT) else
         TexImage2D(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE);
       //glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
@@ -2135,7 +2135,7 @@ begin
     ScreenEffects* methods do something weird. }
   CurrentScreenEffectsCount := ScreenEffectsCount;
 
-  if GL_ARB_texture_rectangle and GLUseMultiTexturing and
+  if GLFeatures.ARB_texture_rectangle and GLFeatures.UseMultiTexturing and
     (CurrentScreenEffectsCount <> 0) then
   begin
     CurrentScreenEffectsNeedDepth := ScreenEffectsNeedDepth;
@@ -2153,7 +2153,7 @@ begin
       glFreeTexture(ScreenEffectTextureDepth);
       FreeAndNil(ScreenEffectRTT);
 
-      if (GLCurrentMultiSampling > 1) and GLFBOMultiSampling then
+      if (GLFeatures.CurrentMultiSampling > 1) and GLFeatures.FBOMultiSampling then
         ScreenEffectTextureTarget := GL_TEXTURE_2D_MULTISAMPLE else
         ScreenEffectTextureTarget := GL_TEXTURE_RECTANGLE_ARB;
 
@@ -2180,7 +2180,7 @@ begin
       ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, ScreenEffectTextureTarget);
       ScreenEffectRTT.CompleteTextureTarget := ScreenEffectTextureTarget;
       { use the same multi-sampling strategy as container }
-      ScreenEffectRTT.MultiSampling := GLCurrentMultiSampling;
+      ScreenEffectRTT.MultiSampling := GLFeatures.CurrentMultiSampling;
       if CurrentScreenEffectsNeedDepth then
       begin
         ScreenEffectRTT.Buffer := tbColorAndDepth;
@@ -2188,7 +2188,7 @@ begin
         ScreenEffectRTT.DepthTextureTarget := ScreenEffectTextureTarget;
       end else
         ScreenEffectRTT.Buffer := tbColor;
-      ScreenEffectRTT.Stencil := GLShadowVolumesPossible;
+      ScreenEffectRTT.Stencil := GLFeatures.ShadowVolumesPossible;
       ScreenEffectRTT.GLContextOpen;
 
       if Log then
@@ -2309,7 +2309,7 @@ begin
   if SSAOShader = nil then
   begin
     if (TGLSLProgram.ClassSupport <> gsNone) and
-       GL_ARB_texture_rectangle then
+       GLFeatures.ARB_texture_rectangle then
     begin
       try
         SSAOShader := TGLSLProgram.Create;
@@ -2400,7 +2400,7 @@ begin
   for I := 0 to Count - 1 do
   begin
     V := Items[I];
-    if GLShadowVolumesPossible and
+    if GLFeatures.ShadowVolumesPossible and
        V.ShadowVolumes and
        V.MainLightForShadows(MainLightPosition) then
       Exit(true);

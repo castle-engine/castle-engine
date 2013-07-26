@@ -62,180 +62,182 @@ type
   TGLclampd   = GLclampd;
   {$endif not OpenGLES}
 
-{ OpenGL versions and extensions and features -------------------------------- }
+type
+  { OpenGL features, analyzed based on OpenGL extensions and version.
+    A single instance of this class is assigned to @link(GLFeatures)
+    after the first OpenGL context was created.
 
-var
-  { OpenGL versions supported. Checked by looking at GL version string
-    @italic(and) by checking whether actual entry points are available. }
-  GL_version_1_2: boolean;
-  GL_version_1_3: boolean;
-  GL_version_1_4: boolean;
-  GL_version_1_5: boolean;
-  GL_version_2_0: boolean;
-  GL_version_2_1: boolean;
-  GL_version_3_0: boolean;
-  GL_version_3_1: boolean;
-  GL_version_3_2: boolean;
-  GL_version_3_3: boolean;
-  GL_version_4_0: boolean;
+    If you have multiple OpenGL contexts, our engine assumes they share resources
+    and have equal features. }
+  TGLFeatures = class
+  private
+    {$ifndef OpenGLES}
+    ARB_window_pos: boolean;
+    MESA_window_pos: boolean;
+    {$endif}
+  public
+    { OpenGL versions supported. Checked by looking at GL version string
+      @italic(and) by checking whether actual entry points are available.
 
-  GL_ARB_multisample: boolean;
-  GL_ARB_depth_texture: boolean;
-  GL_ARB_shadow: boolean;
-  GL_EXT_fog_coord: boolean;
-  GL_EXT_stencil_wrap: boolean;
-  GL_EXT_texture_filter_anisotropic: boolean;
-  GL_NV_multisample_filter_hint: boolean;
-  GL_ATI_separate_stencil: boolean;
-  GL_ARB_occlusion_query: boolean;
-  GL_EXT_packed_depth_stencil: boolean;
-  GL_ARB_texture_rectangle: boolean;
+      This is important because bad OpenGL implementations
+      (like the horrible ATI Linux closed drivers) sometimes lie,
+      claiming support in the GL version string but actually lacking proper
+      function entry points.
+      We check the actual presence of entry points (GLExt.Load_GL_version_x_x
+      do that).
 
-var
-  { Constant (for given context) OpenGL limits.
-    Initialized once by LoadAllExtensions, this is usually most comfortable.
-    Initialized to 0 if appropriate OpenGL extension is not available.
-    @groupBegin }
-  GLMaxTextureSize: Cardinal;
-  GLMaxLights: Cardinal;
-  GLMaxCubeMapTextureSizeARB: Cardinal;
-  GLMax3DTextureSize: Cardinal;
-  GLMaxTextureMaxAnisotropyEXT: Single;
-  GLQueryCounterBits: TGLint;
-  GLMaxRenderbufferSize: TGLuint;
-  GLMaxRectangleTextureSize: Cardinal;
-  GLMaxClipPlanes: Cardinal;
-  { @groupEnd }
+      We *also* check version string (TGLVersion.AtLeast),
+      since OpenGL may have some buggy entry point in case of work-in-progress
+      features (not yet advertised in GL version string),
+      e.g. Mesa 6.x had such buggy glStencilOpSeparate. This is correct OpenGL
+      behavior AFAIK, and we handle it. }
+    Version_1_2: boolean;
+    Version_1_3: boolean;
+    Version_1_4: boolean;
+    Version_1_5: boolean;
+    Version_2_0: boolean;
+    Version_2_1: boolean;
+    Version_3_0: boolean;
+    Version_3_1: boolean;
+    Version_3_2: boolean;
+    Version_3_3: boolean;
+    Version_4_0: boolean;
 
-  { Numer of texture units available.
-    Equal to glGetInteger(GL_MAX_TEXTURE_UNITS_ARB), if multi-texturing
-    available. Equal to 1 (OpenGL supports always 1 texture) otherwise. }
-  GLMaxTextureUnits: Cardinal;
+    { Is the extension below loaded.
+      Note: we prefer to avoid exposing directly each extension presence
+      like below.
+      Instead most interesting extensions are wrapped in "features"
+      like @link(UseMultiTexturing), see lower. }
+    ARB_multisample: boolean;
+    ARB_depth_texture: boolean;
+    ARB_shadow: boolean;
+    EXT_fog_coord: boolean;
+    EXT_stencil_wrap: boolean;
+    EXT_texture_filter_anisotropic: boolean;
+    NV_multisample_filter_hint: boolean;
+    ATI_separate_stencil: boolean;
+    ARB_occlusion_query: boolean;
+    ARB_texture_rectangle: boolean;
 
-  { Are all OpenGL multi-texturing extensions for
-    VRML/X3D MultiTexture support available.
+    { GL_CLAMP_TO_EDGE, if available in current OpenGL version.
+      Otherwise GL_CLAMP.
 
-    This used to check a couple of multitexturing extensions,
-    like ARB_multitexture. Right now, it simply checks for OpenGL 1.3 version.
-    It is supported by virtually all existing GPUs.
-    So it's acceptable to just check it, and write your code for 1.3,
-    and eventual fallback code (when this is false) write only for really
-    ancient GPUs. }
-  GLUseMultiTexturing: boolean;
+      Use this (insteaf of direct GL_CLAMP_TO_EDGE)
+      to work with @italic(really ancient) OpenGL versions before 1.2.
+      Note that our engine officially supports only OpenGL >= 1.2,
+      so don't expect everything to work smootly with such ancient OpenGL anyway! }
+    CLAMP_TO_EDGE: TGLenum;
 
-  { Are all OpenGL ARB extensions for GLSL available. }
-  GLUseARBGLSL: boolean;
+    { Constant (for given context) OpenGL limits.
+      Initialized to 0 if appropriate OpenGL functionality is not available.
+      @groupBegin }
+    MaxTextureSize: Cardinal;
+    MaxLights: Cardinal;
+    MaxCubeMapTextureSizeARB: Cardinal;
+    MaxTexture3DSize: Cardinal;
+    MaxTextureMaxAnisotropyEXT: Single;
+    QueryCounterBits: TGLint;
+    MaxRenderbufferSize: TGLuint;
+    MaxRectangleTextureSize: Cardinal;
+    MaxClipPlanes: Cardinal;
+    { @groupEnd }
 
-  { Are 3D textures supported by OpenGL.
-    If they are, note that GL_TEXTURE_3D and GL_TEXTURE_3D_EXT are equal,
-    so often both GL3DTextures = gsStandard and GL3DTextures = gsExtension
-    cases may be handled by the same code. }
-  GL3DTextures: TGLSupport;
+    { Number of texture units available.
+      Equal to glGetInteger(GL_MAX_TEXTURE_UNITS), if multi-texturing
+      available. Equal to 1 (OpenGL supports always 1 texture) otherwise. }
+    MaxTextureUnits: Cardinal;
 
-  { Is Framebuffer supported. Value gsExtension means that EXT_framebuffer_object
-    is used, gsStandard means that ARB_framebuffer_object (which is
-    a "core extesion", present the same way in OpenGL 3 core,
-    also in OpenGL ES >= 2.0 core) is available. }
-  GLFramebuffer: TGLSupport;
+    { Are all OpenGL multi-texturing extensions for
+      VRML/X3D MultiTexture support available.
 
-  { Is multisampling possible for FBO buffers and textures.
-    Although these are two orthogonal features of OpenGL,
-    in practice you want to use multisample for both FBO buffers and textures,
-    or for none --- otherwise, FBO can not be initialized correctly
-    when you mix various multisample settings. }
-  GLFBOMultiSampling: boolean;
+      This used to check a couple of multitexturing extensions,
+      like ARB_multitexture. Right now, it simply checks for OpenGL 1.3 version.
+      It is supported by virtually all existing GPUs.
+      So it's acceptable to just check it, and write your code for 1.3,
+      and eventual fallback code (when this is false) write only for really
+      ancient GPUs. }
+    UseMultiTexturing: boolean;
 
-  { How multi-sampling was initialized for this OpenGL context.
-    Value = 1 means that no multi-sampling is initialized.
-    Values > 1 mean that you have multi-sampling, with given number of samples
-    per pixel.
-    Contrast this with TCastleWindowBase.MultiSampling or TOpenGLControl.MultiSampling,
-    that say @italic(how many samples you wanted to get). }
-  GLCurrentMultiSampling: Cardinal;
+    { Are all OpenGL ARB extensions for GLSL available. }
+    UseARBGLSL: boolean;
 
-  { Does OpenGL context have depth buffer packed with stencil buffer.
-    See EXT_packed_depth_stencil extension for explanation.
+    { Are 3D textures supported by OpenGL.
+      If they are, note that GL_TEXTURE_3D and GL_TEXTURE_3D_EXT are equal,
+      so often both GL3DTextures = gsStandard and GL3DTextures = gsExtension
+      cases may be handled by the same code. }
+    Textures3D: TGLSupport;
 
-    This is important for FBOs, as the depth/stencil have to be set up differently
-    depending on GLPackedDepthStencil value.
-    This is also important for all code using TGLRenderToTexture
-    with TGLRenderToTexture.Buffer equal tbDepth or tbColorAndDepth:
-    your depth texture must be prepared differently, to include both depth+stencil
-    data, to work.
+    { Is Framebuffer supported. Value gsExtension means that EXT_framebuffer_object
+      is used, gsStandard means that ARB_framebuffer_object (which is
+      a "core extesion", present the same way in OpenGL 3 core,
+      also in OpenGL ES >= 2.0 core) is available. }
+    Framebuffer: TGLSupport;
 
-    For now, this is simply equal to GL_EXT_packed_depth_stencil.
-    (TODO: for core OpenGL 3, how to detect should we use packed version?
-    http://www.opengl.org/registry/specs/ARB/framebuffer_object.txt
-    incorporates EXT_packed_depth_stencil, so forward-compatible contexts
-    do not need to declare it.
-    Should we assume that forward-compatible gl 3 contexts always have
-    depth/stencil packed?) }
-  GLPackedDepthStencil: boolean;
+    { Is multisampling possible for FBO buffers and textures.
+      Although these are two orthogonal features of OpenGL,
+      in practice you want to use multisample for both FBO buffers and textures,
+      or for none --- otherwise, FBO can not be initialized correctly
+      when you mix various multisample settings. }
+    FBOMultiSampling: boolean;
 
-  { Does OpenGL context support shadow volumes.
-    This simply checks do we have stencil buffer with at least 4 bits for now. }
-  GLShadowVolumesPossible: boolean;
+    { How multi-sampling was initialized for this OpenGL context.
+      Value = 1 means that no multi-sampling is initialized.
+      Values > 1 mean that you have multi-sampling, with given number of samples
+      per pixel.
+      Contrast this with TCastleWindowBase.MultiSampling or TOpenGLControl.MultiSampling,
+      that say @italic(how many samples you wanted to get). }
+    CurrentMultiSampling: Cardinal;
 
-  { Are non-power-of-2 textures supported. }
-  GLTextureNonPowerOfTwo: boolean;
+    { Does OpenGL context have depth buffer packed with stencil buffer.
+      See EXT_packed_depth_stencil extension for explanation.
 
-  { Are cubemaps supported. This means support for GL_ARB_texture_cube_map. }
-  GLTextureCubeMapSupport: boolean;
+      This is important for FBOs, as the depth/stencil have to be set up differently
+      depending on PackedDepthStencil value.
+      This is also important for all code using TGLRenderToTexture
+      with TGLRenderToTexture.Buffer equal tbDepth or tbColorAndDepth:
+      your depth texture must be prepared differently, to include both depth+stencil
+      data, to work.
 
-  { Texture S3TC compression support. This means you can load textures by
-    glCompressedTexImage2DARB and use GL_COMPRESSED_*_S3TC_*_EXT enums. }
-  GLTextureCompressionS3TC: boolean;
+      For now, this is simply equal to GL_EXT_packed_depth_stencil.
+      (TODO: for core OpenGL 3, how to detect should we use packed version?
+      http://www.opengl.org/registry/specs/ARB/framebuffer_object.txt
+      incorporates EXT_packed_depth_stencil, so forward-compatible contexts
+      do not need to declare it.
+      Should we assume that forward-compatible gl 3 contexts always have
+      depth/stencil packed?) }
+    PackedDepthStencil: boolean;
 
-  { VBO support (in OpenGL (ES) core). }
-  GLVertexBufferObject: boolean;
+    { Does OpenGL context support shadow volumes.
+      This simply checks do we have stencil buffer with at least 4 bits for now. }
+    ShadowVolumesPossible: boolean;
 
-  { glBlendColor and GL_CONSTANT_ALPHA support. }
-  GLBlendConstant: boolean;
+    { Are non-power-of-2 textures supported. }
+    TextureNonPowerOfTwo: boolean;
 
-  { Support for float texture formats for glTexImage2d. }
-  GLTextureFloat: boolean;
+    { Are cubemaps supported. This means support for GL_ARB_texture_cube_map. }
+    CubeMapSupport: boolean;
 
-{ Initialize all extensions and OpenGL versions.
+    { Texture S3TC compression support. This means you can load textures by
+      glCompressedTexImage2DARB and use GL_COMPRESSED_*_S3TC_*_EXT enums. }
+    TextureCompressionS3TC: boolean;
 
-  Calls all Load_GLXxx routines from glext unit, so tries to init
-  @unorderedList(
-    @itemSpacing compact
-    @item all GL 1.2, 1.3, 2.0 etc. function addresses and
-    @item all gl extensions function addresses and
-    @item inits all boolean extensions variables.
-  )
+    { VBO support (in OpenGL (ES) core). }
+    VertexBufferObject: boolean;
 
-  Note that variables GL_version_x_x, like GL_version_2_0, are initialized
-  by checking both version string (glGetString(GL_VERSION) etc) @bold(and) by
-  actually checking whether all entry points are non-nil.
-  This is important because with buggy OpenGL implementations
-  (see shitty ATI Linux closed drivers) version number in version string
-  may be untrue: version string reports OpenGL 2.0,
-  but actually lack entry points for pretty much all OpenGL 2.0 functions.
-  So GLVersion.AtLeast(2, 0) returns @true, but in fact you can't have
-  OpenGL 2.0 functions.
+    { glBlendColor and GL_CONSTANT_ALPHA support. }
+    BlendConstant: boolean;
 
-  Implementation: Load_GL_version_x_x from GLExt unit actually always checks
-  whether all entry points are <> nil, that's good. GLVersion.AtLeast by
-  definition only checks version string, so this is used to check version
-  string.
+    { Support for float texture formats for glTexImage2d. }
+    TextureFloat: boolean;
 
-  Note that it would be an error to check only whether entry points
-  are non-nil, I should always check version string too. For example
-  see @code(glStencilOpSeparate := nil) in TGLShadowVolumeRenderer.InitGLContext
-  fix, on Mesa 6.x and NVidia legacy 96xx on Linux this is non-nil
-  (i.e. entry point exists in GL library), but doesn't work
-  (I didn't use GLExt back then, but OpenGLh).
-  And OpenGL version string indicates gl 1.x version.
-  This is OK, I think: and it means I should always check version string
-  (not depend that all library entry points are actually implemented).
+    constructor Create;
+  end;
 
-  So when e.g. GL_version_2_0 is @true, you are
-  actually sure that all GL 2.0 entry points are really non-nil and they
-  really should work.
-
-  Inits also GLVersion and GLUVersion from GLVersionUnit. }
+{ Initialize GLVersion and GLUVersion and GLFeatures. }
 procedure LoadAllExtensions;
+
+var
+  GLFeatures: TGLFeatures;
 
 { OpenGL vector/matrix types ------------------------------------------------- }
 
@@ -652,15 +654,6 @@ procedure SetWindowPosZero; deprecated;
 function GetWindowPos: TVector2i;
 property WindowPos: TVector2i read GetWindowPos write SetWindowPos;
 
-{ Return GL_CLAMP_TO_EDGE, if available in current OpenGL version.
-  Otherwise returns GL_CLAMP.
-
-  Use this (insteaf of direct GL_CLAMP_TO_EDGE)
-  to work with @italic(really ancient) OpenGL versions before 1.2.
-  Note that our engine officially supports only OpenGL >= 1.2,
-  so don't expect everything to work smootly with such ancient OpenGL anyway! }
-function CastleGL_CLAMP_TO_EDGE: TGLenum;
-
 { Call glColor, taking Opacity as separate Single argument.
   @groupBegin }
 procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single);
@@ -686,13 +679,6 @@ implementation
 uses CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders, CastleGLImages,
   CastleLog, CastleWarnings, CastleColors;
 
-{ OpenGL extensions which presence is used by this unit's implementation. }
-{$ifndef OpenGLES}
-var
-  GL_ARB_window_pos: boolean;
-  GL_MESA_window_pos: boolean;
-{$endif}
-
 procedure LoadAllExtensions;
 begin
   FreeAndNil(GLVersion);
@@ -705,107 +691,124 @@ begin
   if Assigned(gluGetString) then
     GLUVersion := TGenericGLVersion.Create(gluGetString(GLU_VERSION)) else
     GLUVersion := TGenericGLVersion.Create('1.0');
-
-  GL_version_1_2 := GLVersion.AtLeast(1, 2) and Load_GL_version_1_2;
-  GL_version_1_3 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_3;
-  GL_version_1_4 := GLVersion.AtLeast(1, 4) and Load_GL_version_1_4;
-  GL_version_1_5 := GLVersion.AtLeast(1, 5) and Load_GL_version_1_5;
-  GL_version_2_0 := GLVersion.AtLeast(2, 0) and Load_GL_version_2_0;
-  GL_version_2_1 := GLVersion.AtLeast(2, 1) and Load_GL_version_2_1;
-  GL_version_3_0 := GLVersion.AtLeast(3, 0) and Load_GL_version_3_0;
-  GL_version_3_1 := GLVersion.AtLeast(3, 1) and Load_GL_version_3_1;
-  GL_version_3_2 := GLVersion.AtLeast(3, 2) and Load_GL_version_3_2;
-  GL_version_3_3 := GLVersion.AtLeast(3, 3) and Load_GL_version_3_3;
-  GL_version_4_0 := GLVersion.AtLeast(4, 0) and Load_GL_version_4_0;
-
-  GL_ARB_window_pos := Load_GL_ARB_window_pos;
-  GL_MESA_window_pos := Load_GL_MESA_window_pos;
-
-  GL_ARB_multisample := Load_GL_ARB_multisample;
-  GL_ARB_depth_texture := Load_GL_ARB_depth_texture;
-  GL_ARB_shadow := Load_GL_ARB_shadow;
-  GL_EXT_fog_coord := Load_GL_EXT_fog_coord;
-  GL_EXT_stencil_wrap := Load_GL_EXT_stencil_wrap;
-  GL_EXT_texture_filter_anisotropic := Load_GL_EXT_texture_filter_anisotropic;
-  GL_NV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
-  GL_ATI_separate_stencil := Load_GL_ATI_separate_stencil;
-  GL_ARB_occlusion_query := Load_GL_ARB_occlusion_query;
-  GL_EXT_packed_depth_stencil := Load_GL_EXT_packed_depth_stencil;
-  GL_ARB_texture_rectangle := Load_GL_ARB_texture_rectangle;
   {$endif}
 
-  GLMaxTextureSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
-  GLMaxLights := glGetInteger(GL_MAX_LIGHTS);
+  FreeAndNil(GLFeatures);
+  GLFeatures := TGLFeatures.Create;
+end;
 
-  if GL_version_1_3 then
-    GLMaxTextureUnits := glGetInteger(GL_MAX_TEXTURE_UNITS) else
-    GLMaxTextureUnits := 1;
+constructor TGLFeatures.Create;
+begin
+  inherited;
 
-  GLMaxCubeMapTextureSizeARB := 0;
-  GLTextureCubeMapSupport :=  {$ifdef OpenGLES} false; {$else} Load_GL_ARB_texture_cube_map;
-  if GLTextureCubeMapSupport then
-    GLMaxCubeMapTextureSizeARB := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB);
+  {$ifndef OpenGLES}
+  Version_1_2 := GLVersion.AtLeast(1, 2) and Load_GL_version_1_2;
+  Version_1_3 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_3;
+  Version_1_4 := GLVersion.AtLeast(1, 4) and Load_GL_version_1_4;
+  Version_1_5 := GLVersion.AtLeast(1, 5) and Load_GL_version_1_5;
+  Version_2_0 := GLVersion.AtLeast(2, 0) and Load_GL_version_2_0;
+  Version_2_1 := GLVersion.AtLeast(2, 1) and Load_GL_version_2_1;
+  Version_3_0 := GLVersion.AtLeast(3, 0) and Load_GL_version_3_0;
+  Version_3_1 := GLVersion.AtLeast(3, 1) and Load_GL_version_3_1;
+  Version_3_2 := GLVersion.AtLeast(3, 2) and Load_GL_version_3_2;
+  Version_3_3 := GLVersion.AtLeast(3, 3) and Load_GL_version_3_3;
+  Version_4_0 := GLVersion.AtLeast(4, 0) and Load_GL_version_4_0;
+
+  ARB_window_pos := Load_GL_ARB_window_pos;
+  MESA_window_pos := Load_GL_MESA_window_pos;
+
+  ARB_multisample := Load_GL_ARB_multisample;
+  ARB_depth_texture := Load_GL_ARB_depth_texture;
+  ARB_shadow := Load_GL_ARB_shadow;
+  EXT_fog_coord := Load_GL_EXT_fog_coord;
+  EXT_stencil_wrap := Load_GL_EXT_stencil_wrap;
+  EXT_texture_filter_anisotropic := Load_GL_EXT_texture_filter_anisotropic;
+  NV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
+  ATI_separate_stencil := Load_GL_ATI_separate_stencil;
+  ARB_occlusion_query := Load_GL_ARB_occlusion_query;
+  ARB_texture_rectangle := Load_GL_ARB_texture_rectangle;
+  {$endif}
+
+  {$ifdef OpenGLES}
+  CLAMP_TO_EDGE := GL_CLAMP_TO_EDGE;
+  {$else}
+  if Version_1_2 then
+    CLAMP_TO_EDGE := GL_CLAMP_TO_EDGE else
+    CLAMP_TO_EDGE := GL_CLAMP;
+  {$endif}
+
+  MaxTextureSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
+  MaxLights := glGetInteger(GL_MAX_LIGHTS);
+
+  if Version_1_3 then
+    MaxTextureUnits := glGetInteger(GL_MAX_TEXTURE_UNITS) else
+    MaxTextureUnits := 1;
+
+  MaxCubeMapTextureSizeARB := 0;
+  CubeMapSupport :=  {$ifdef OpenGLES} false; {$else} Load_GL_ARB_texture_cube_map;
+  if CubeMapSupport then
+    MaxCubeMapTextureSizeARB := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB);
   {$endif}
 
   {$ifndef OpenGLES}
-  if GL_version_1_2 then
-    GL3DTextures := gsStandard else
+  if Version_1_2 then
+    Textures3D := gsStandard else
   if Load_GL_EXT_texture3D then
-    GL3DTextures := gsExtension else
+    Textures3D := gsExtension else
   {$endif}
-    GL3DTextures := gsNone;
+    Textures3D := gsNone;
 
-  { calculate GLMax3DTextureSize, eventually correct GL3DTextures if buggy }
-  case GL3DTextures of
+  { calculate MaxTexture3DSize, eventually correct Textures3D if buggy }
+  case Textures3D of
     {$ifndef OpenGLES}
-    gsExtension: GLMax3DTextureSize := glGetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT);
-    gsStandard : GLMax3DTextureSize := glGetInteger(GL_MAX_3D_TEXTURE_SIZE);
+    gsExtension: MaxTexture3DSize := glGetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT);
+    gsStandard : MaxTexture3DSize := glGetInteger(GL_MAX_3D_TEXTURE_SIZE);
     {$endif}
-    gsNone     : GLMax3DTextureSize := 0;
+    gsNone     : MaxTexture3DSize := 0;
   end;
-  if (GLMax3DTextureSize = 0) and (GL3DTextures <> gsNone) then
+  if (MaxTexture3DSize = 0) and (Textures3D <> gsNone) then
   begin
-    GL3DTextures := gsNone;
+    Textures3D := gsNone;
     if Log then WritelnLog('OpenGL', 'Buggy OpenGL 3D texture support: reported as supported, but GL_MAX_3D_TEXTURE_SIZE[_EXT] is zero. (Bug may be found on Mesa 7.0.4.)');
   end;
 
-  if GL_EXT_texture_filter_anisotropic then
-    GLMaxTextureMaxAnisotropyEXT := glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT) else
-    GLMaxTextureMaxAnisotropyEXT := 0.0;
+  if EXT_texture_filter_anisotropic then
+    MaxTextureMaxAnisotropyEXT := glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT) else
+    MaxTextureMaxAnisotropyEXT := 0.0;
 
-  if GL_ARB_occlusion_query then
-    glGetQueryivARB(GL_SAMPLES_PASSED_ARB, GL_QUERY_COUNTER_BITS_ARB, @GLQueryCounterBits) else
-    GLQueryCounterBits := 0;
+  if ARB_occlusion_query then
+    glGetQueryivARB(GL_SAMPLES_PASSED_ARB, GL_QUERY_COUNTER_BITS_ARB, @QueryCounterBits) else
+    QueryCounterBits := 0;
 
   { calculate GLFramebuffer }
   {$ifdef OpenGLES}
   GLFramebuffer := gsStandard;
   {$else}
-  if GL_version_3_0 or Load_GL_ARB_framebuffer_object then
-    GLFramebuffer := gsStandard else
+  if Version_3_0 or Load_GL_ARB_framebuffer_object then
+    Framebuffer := gsStandard else
   if Load_GL_EXT_framebuffer_object then
-    GLFramebuffer := gsExtension else
-    GLFramebuffer := gsNone;
+    Framebuffer := gsExtension else
+    Framebuffer := gsNone;
   {$endif}
 
-  if GLFramebuffer <> gsNone then
+  if Framebuffer <> gsNone then
   begin
-    GLMaxRenderbufferSize := glGetInteger(GL_MAX_RENDERBUFFER_SIZE { equal to GL_MAX_RENDERBUFFER_SIZE_EXT });
-    if GLMaxRenderbufferSize = 0 then
+    MaxRenderbufferSize := glGetInteger(GL_MAX_RENDERBUFFER_SIZE { equal to GL_MAX_RENDERBUFFER_SIZE_EXT });
+    if MaxRenderbufferSize = 0 then
     begin
-      GLFramebuffer := gsNone;
+      Framebuffer := gsNone;
       if Log then WritelnLog('OpenGL', 'Buggy OpenGL Framebuffer: reported as supported, but GL_MAX_RENDERBUFFER_SIZE[_EXT] is zero. (Bug may be found on Mesa 7.0.4.)');
     end;
   end else
-    GLMaxRenderbufferSize := 0;
+    MaxRenderbufferSize := 0;
 
-  if GL_ARB_texture_rectangle then
-    GLMaxRectangleTextureSize := glGetInteger(GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB) else
-    GLMaxRectangleTextureSize := 0;
+  if ARB_texture_rectangle then
+    MaxRectangleTextureSize := glGetInteger(GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB) else
+    MaxRectangleTextureSize := 0;
 
-  GLMaxClipPlanes := glGetInteger(GL_MAX_CLIP_PLANES);
+  MaxClipPlanes := glGetInteger(GL_MAX_CLIP_PLANES);
 
-  { calculate GLUseMultiTexturing: check extensions required for multitexturing.
+  { calculate UseMultiTexturing: check extensions required for multitexturing.
 
     We used to require a couple of extensions for this:
     - EXT_texture_env_combine
@@ -813,50 +816,50 @@ begin
     - ARB_texture_env_dot3
     But GL version >= 1.3 is actually required for GL_subtract,
     and includes all above extensions in core. }
-  GLUseMultiTexturing := GL_version_1_3;
+  UseMultiTexturing := Version_1_3;
 
-  GLUseARBGLSL := Load_GL_ARB_shader_objects and
+  UseARBGLSL := Load_GL_ARB_shader_objects and
                   Load_GL_ARB_vertex_shader and
                   Load_GL_ARB_fragment_shader and
                   Load_GL_ARB_shading_language_100;
 
-  GLFBOMultiSampling :=
+  FBOMultiSampling :=
     { Is GL_ARB_framebuffer_object available? }
-    (GLFramebuffer = gsStandard) and
+    (Framebuffer = gsStandard) and
     Load_GL_ARB_texture_multisample and
     (not GLVersion.BuggyFBOMultiSampling);
 
-  if GL_ARB_multisample and (glGetInteger(GL_SAMPLE_BUFFERS_ARB) <> 0) then
+  if ARB_multisample and (glGetInteger(GL_SAMPLE_BUFFERS_ARB) <> 0) then
   begin
-    GLCurrentMultiSampling := glGetInteger(GL_SAMPLES_ARB);
-    if GLCurrentMultiSampling <= 1 then
+    CurrentMultiSampling := glGetInteger(GL_SAMPLES_ARB);
+    if CurrentMultiSampling <= 1 then
     begin
       OnWarning(wtMinor, 'MultiSampling', Format('We successfully got multi-sampling buffer, but only %d samples per pixel. This doesn''t make much sense, assuming buggy OpenGL implementation, and anti-aliasing may not work.',
-        [GLCurrentMultiSampling]));
-      GLCurrentMultiSampling := 1;
+        [CurrentMultiSampling]));
+      CurrentMultiSampling := 1;
     end;
   end else
-    GLCurrentMultiSampling := 1;
+    CurrentMultiSampling := 1;
 
-  GLPackedDepthStencil := GL_EXT_packed_depth_stencil;
+  PackedDepthStencil := {$ifdef OpenGLES} true {TODO?unknown?} {$else} Load_GL_EXT_packed_depth_stencil {$endif};
 
-  GLShadowVolumesPossible := glGetInteger(GL_STENCIL_BITS) >= 4;
+  ShadowVolumesPossible := glGetInteger(GL_STENCIL_BITS) >= 4;
 
-  GLTextureNonPowerOfTwo := {$ifdef OpenGLES} true {$else}
-    Load_GL_ARB_texture_non_power_of_two or GL_version_2_0 {$endif};
+  TextureNonPowerOfTwo := {$ifdef OpenGLES} true {$else}
+    Load_GL_ARB_texture_non_power_of_two or Version_2_0 {$endif};
 
-  GLTextureCompressionS3TC := {$ifdef OpenGLES} false {$else}
+  TextureCompressionS3TC := {$ifdef OpenGLES} false {$else}
     Load_GL_ARB_texture_compression and Load_GL_EXT_texture_compression_s3tc {$endif};
 
-  GLVertexBufferObject := {$ifdef OpenGLES} true {$else}
-    GL_version_1_5 and not GLVersion.BuggyVBO {$endif};
+  VertexBufferObject := {$ifdef OpenGLES} true {$else}
+    Version_1_5 and not GLVersion.BuggyVBO {$endif};
 
-  GLBlendConstant := {$ifdef OpenGLES} true {$else}
+  BlendConstant := {$ifdef OpenGLES} true {$else}
     { GL_CONSTANT_ALPHA is available as part of ARB_imaging, since GL 1.4
       as standard. glBlendColor is available since 1.2 as standard. }
-    ((GL_version_1_2 and Load_GL_ARB_imaging) or GL_version_1_4) and not GLVersion.Fglrx {$endif};
+    ((Version_1_2 and Load_GL_ARB_imaging) or Version_1_4) and not GLVersion.Fglrx {$endif};
 
-  GLTextureFloat := {$ifdef OpenGLES} false {$else}
+  TextureFloat := {$ifdef OpenGLES} false {$else}
     Load_GL_ATI_texture_float or Load_GL_ARB_texture_float {$endif};
 end;
 
@@ -1425,57 +1428,57 @@ const
 
   function GetMaxCubeMapTextureSize: string;
   begin
-    if GLTextureCubeMapSupport then
-      Result := IntToStr(GLMaxCubeMapTextureSizeARB) else
+    if GLFeatures.CubeMapSupport then
+      Result := IntToStr(GLFeatures.MaxCubeMapTextureSizeARB) else
       Result := 'Cube maps not available';
   end;
 
   function GetMaxTexture3DSize: string;
   begin
-    if GL3DTextures <> gsNone then
-      Result := IntToStr(GLMax3DTextureSize) else
+    if GLFeatures.Textures3D <> gsNone then
+      Result := IntToStr(GLFeatures.MaxTexture3DSize) else
       Result := '3D textures not available';
   end;
 
   function GetMaxTextureMaxAnisotropy: string;
   begin
-    if GL_EXT_texture_filter_anisotropic then
-      Result := FloatToStr(GLMaxTextureMaxAnisotropyEXT) else
+    if GLFeatures.EXT_texture_filter_anisotropic then
+      Result := FloatToStr(GLFeatures.MaxTextureMaxAnisotropyEXT) else
       Result := 'EXT_texture_filter_anisotropic not available';
   end;
 
   function GetSampleBuffers: string;
   begin
-    if GL_ARB_multisample then
+    if GLFeatures.ARB_multisample then
       Result := GetBoolean(GL_SAMPLE_BUFFERS_ARB) else
       Result := 'GL_ARB_multisample not available';
   end;
 
   function GetSamples: string;
   begin
-    if GL_ARB_multisample then
+    if GLFeatures.ARB_multisample then
       Result := GetInteger(GL_SAMPLES_ARB) else
       Result := 'GL_ARB_multisample not available';
   end;
 
   function GetQueryCounterBits: string;
   begin
-    if GL_ARB_occlusion_query then
-      Result := IntToStr(GLQueryCounterBits) else
+    if GLFeatures.ARB_occlusion_query then
+      Result := IntToStr(GLFeatures.QueryCounterBits) else
       Result := 'ARB_occlusion_query not available';
   end;
 
   function GetMaxRenderbufferSize: string;
   begin
-    if GLFramebuffer <> gsNone then
-      Result := IntToStr(GLMaxRenderbufferSize) else
+    if GLFeatures.Framebuffer <> gsNone then
+      Result := IntToStr(GLFeatures.MaxRenderbufferSize) else
       Result := 'Framebuffer not available';
   end;
 
   function GetMaxRectangleTextureSize: string;
   begin
-    if GL_ARB_texture_rectangle then
-      Result := IntToStr(GLMaxRectangleTextureSize) else
+    if GLFeatures.ARB_texture_rectangle then
+      Result := IntToStr(GLFeatures.MaxRectangleTextureSize) else
       Result := 'ARB_texture_rectangle not available';
   end;
 
@@ -1497,32 +1500,32 @@ begin
     'Real versions available:' +nl+
     '(checks both version string and actual functions availability in GL library, to secure from buggy OpenGL implementations)' +nl+
     nl+
-    '  1.2: ' + BoolToStr[GL_version_1_2] +nl+
-    '  1.3: ' + BoolToStr[GL_version_1_3] +nl+
-    '  1.4: ' + BoolToStr[GL_version_1_4] +nl+
-    '  1.5: ' + BoolToStr[GL_version_1_5] +nl+
-    '  2.0: ' + BoolToStr[GL_version_2_0] +nl+
-    '  2.1: ' + BoolToStr[GL_version_2_1] +nl+
-    '  3.0: ' + BoolToStr[GL_version_3_0] +nl+
-    '  3.1: ' + BoolToStr[GL_version_3_1] +nl+
-    '  3.2: ' + BoolToStr[GL_version_3_2] +nl+
-    '  3.3: ' + BoolToStr[GL_version_3_3] +nl+
-    '  4.0: ' + BoolToStr[GL_version_4_0] +nl+
+    '  1.2: ' + BoolToStr[GLFeatures.Version_1_2] +nl+
+    '  1.3: ' + BoolToStr[GLFeatures.Version_1_3] +nl+
+    '  1.4: ' + BoolToStr[GLFeatures.Version_1_4] +nl+
+    '  1.5: ' + BoolToStr[GLFeatures.Version_1_5] +nl+
+    '  2.0: ' + BoolToStr[GLFeatures.Version_2_0] +nl+
+    '  2.1: ' + BoolToStr[GLFeatures.Version_2_1] +nl+
+    '  3.0: ' + BoolToStr[GLFeatures.Version_3_0] +nl+
+    '  3.1: ' + BoolToStr[GLFeatures.Version_3_1] +nl+
+    '  3.2: ' + BoolToStr[GLFeatures.Version_3_2] +nl+
+    '  3.3: ' + BoolToStr[GLFeatures.Version_3_3] +nl+
+    '  4.0: ' + BoolToStr[GLFeatures.Version_4_0] +nl+
     nl+
 
     '---------' +nl+
     'Features:' +nl+
     '  GLSL shaders support: ' + GLSupportNames[TGLSLProgram.ClassSupport] +nl+
-    '  Multi-texturing: ' + BoolToStr[GLUseMultiTexturing] +nl+
-    '  Framebuffer Object: ' + GLSupportNamesFBO[GLFramebuffer] +nl+
-    '  Vertex Buffer Object: ' + BoolToStr[GLVertexBufferObject] +nl+
+    '  Multi-texturing: ' + BoolToStr[GLFeatures.UseMultiTexturing] +nl+
+    '  Framebuffer Object: ' + GLSupportNamesFBO[GLFeatures.Framebuffer] +nl+
+    '  Vertex Buffer Object: ' + BoolToStr[GLFeatures.VertexBufferObject] +nl+
     '  GenerateMipmap available: ' + BoolToStr[HasGenerateMipmap] +nl+
-    '  S3TC compressed textures: ' + BoolToStr[GLTextureCompressionS3TC] +nl+
-    '  3D textures: ' + GLSupportNames[GL3DTextures] +nl+
-    '  Multi-sampling for FBO buffers and textures: ' + BoolToStr[GLFBOMultiSampling] +nl+
-    '  Textures non-power-of-2: ' + BoolToStr[GLTextureNonPowerOfTwo] +nl+
-    '  Blend constant parameter: ' + BoolToStr[GLBlendConstant] +nl+
-    '  Float textures: ' + BoolToStr[GLTextureFloat] +nl+
+    '  S3TC compressed textures: ' + BoolToStr[GLFeatures.TextureCompressionS3TC] +nl+
+    '  3D textures: ' + GLSupportNames[GLFeatures.Textures3D] +nl+
+    '  Multi-sampling for FBO buffers and textures: ' + BoolToStr[GLFeatures.FBOMultiSampling] +nl+
+    '  Textures non-power-of-2: ' + BoolToStr[GLFeatures.TextureNonPowerOfTwo] +nl+
+    '  Blend constant parameter: ' + BoolToStr[GLFeatures.BlendConstant] +nl+
+    '  Float textures: ' + BoolToStr[GLFeatures.TextureFloat] +nl+
     nl+
     '  All extensions: ' +glGetString(GL_EXTENSIONS) +nl+
     nl+
@@ -1553,7 +1556,7 @@ begin
     '  Multisampling (full-screen antialiasing):' +nl+
     '    Sample buffers: ' + GetSampleBuffers +nl+
     '    Samples: ' + GetSamples +nl+
-    '    Summary: ' + IntToStr(GLCurrentMultiSampling) + ' samples per pixel' +nl+
+    '    Summary: ' + IntToStr(GLFeatures.CurrentMultiSampling) + ' samples per pixel' +nl+
     nl+
 
     '-------------' +nl+
@@ -1568,14 +1571,14 @@ begin
 
     '-------' +nl+
     'Limits:' +nl+
-    '  Max clip planes: ' + IntToStr(GLMaxClipPlanes) +nl+
+    '  Max clip planes: ' + IntToStr(GLFeatures.MaxClipPlanes) +nl+
     '  Max eval order: ' +GetInteger(GL_MAX_EVAL_ORDER) +nl+
-    '  Max lights: ' + IntToStr(GLMaxLights) +nl+
+    '  Max lights: ' + IntToStr(GLFeatures.MaxLights) +nl+
     '  Max list nesting: ' +GetInteger(GL_MAX_LIST_NESTING) +nl+
     '  Max pixel map table: ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) +nl+
-    '  Max texture size: ' + IntToStr(GLMaxTextureSize) +nl+
+    '  Max texture size: ' + IntToStr(GLFeatures.MaxTextureSize) +nl+
     '  Max viewport dims: ' +GetInteger2(GL_MAX_VIEWPORT_DIMS, 'width %d / height %d') +nl+
-    '  Max texture units: ' + IntToStr(GLMaxTextureUnits) +nl+
+    '  Max texture units: ' + IntToStr(GLFeatures.MaxTextureUnits) +nl+
     '  Max cube map texture size: ' + GetMaxCubeMapTextureSize +nl+
     '  Max 3d texture size: ' + GetMaxTexture3DSize +nl+
     '  Max rectangle texture size: ' + GetMaxRectangleTextureSize +nl+
@@ -1654,17 +1657,17 @@ begin
   FWindowPos[1] := Floor(Y);
 
   {$ifndef OpenGLES}
-  if GL_version_1_4 then
+  if GLFeatures.Version_1_4 then
   begin
     glWindowPos2f(X, Y);
     { tests: Writeln('using std'); }
   end else
-  if GL_ARB_window_pos then
+  if GLFeatures.ARB_window_pos then
   begin
     glWindowPos2fARB(X, Y);
     { tests: Writeln('using ARB'); }
   end else
-  if GL_MESA_window_pos then
+  if GLFeatures.MESA_window_pos then
   begin
     glWindowPos2fMESA(X, Y);
     { tests: Writeln('using MESA'); }
@@ -1693,11 +1696,11 @@ begin
   FWindowPos[1] := Y;
 
   {$ifndef OpenGLES}
-  if GL_version_1_4 then
+  if GLFeatures.Version_1_4 then
     glWindowPos2i(X, Y) else
-  if GL_ARB_window_pos then
+  if GLFeatures.ARB_window_pos then
     glWindowPos2iARB(X, Y) else
-  if GL_MESA_window_pos then
+  if GLFeatures.MESA_window_pos then
     glWindowPos2iMESA(X, Y) else
   begin
     SetWindowPos_HackBegin;
@@ -1723,13 +1726,6 @@ end;
 function GetWindowPos: TVector2i;
 begin
   Result := FWindowPos;
-end;
-
-function CastleGL_CLAMP_TO_EDGE: TGLenum;
-begin
-  if GL_version_1_2 then
-    Result := GL_CLAMP_TO_EDGE else
-    Result := GL_CLAMP;
 end;
 
 procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single);
@@ -1811,4 +1807,6 @@ initialization
   Set8087CW($133F);
 
   Pointer(glListIBase) := glListBase;
+finalization
+  FreeAndNil(GLFeatures);
 end.
