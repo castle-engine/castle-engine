@@ -26,12 +26,17 @@ const
 { Simple standard Windows message boxes.
   If Parent is 0 (default), the box will be a modal box for the whole process
   (all our windows), since we use MB_TASKMODAL.
+
+  @deprecated Deprecated. Instead of these it's much better to use:
+  - TCastleWindowBase.MessageOK, TCastleWindowBase.MessageYesNo if you use
+    CastleWindow.
+  - or LCL dialog routines (like ShowMessage and everything in Dialogs unit)
+    if you use LCL.
+
   @groupBegin }
-function YesNoBox       (const tekst:string; const caption:string ='Question'          ; parent:HWND =0):boolean; overload;
-procedure ErrorBox      (const tekst:string; const caption:string ='Error'             ; parent:HWND =0);         overload;
-procedure InfoBox       (const tekst:string; const caption:string ='Information'       ; parent:HWND =0);         overload;
-procedure WarningBox    (const tekst:string; const caption:string ='Warning'           ; parent:HWND =0);         overload;
-function WarningYesNoBox(const tekst:string; const caption:string ='Important question'; parent:HWND =0):boolean; overload;
+procedure ErrorBox  (const Text:string; const caption:string ='Error'      ; parent:HWND =0); deprecated;
+procedure InfoBox   (const Text:string; const caption:string ='Information'; parent:HWND =0); deprecated;
+procedure WarningBox(const Text:string; const caption:string ='Warning'    ; parent:HWND =0); deprecated;
 { @groupEnd }
 
 type
@@ -59,29 +64,19 @@ function DispChangeToStr(L: LongInt): string;
 
 {$ifdef read_implementation}
 
-function YesNoBox(const tekst:string; const caption:string; parent:HWND):boolean;
+procedure ErrorBox(const Text:string; const caption:string; parent:HWND);
 begin
- result:=MessageBox(parent,PChar(tekst),PCHar(caption),MB_YESNO or MB_ICONQUESTION or MB_TASKMODAL)=IDYES;
+ MessageBox(parent,PChar(Text),PChar(caption),MB_OK or MB_ICONERROR or MB_TASKMODAL);
 end;
 
-procedure ErrorBox(const tekst:string; const caption:string; parent:HWND);
+procedure InfoBox(const Text:string; const caption:string;parent:HWND);
 begin
- MessageBox(parent,PChar(tekst),PChar(caption),MB_OK or MB_ICONERROR or MB_TASKMODAL);
+ MessageBox(parent,PChar(Text),PChar(caption),MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
 end;
 
-procedure InfoBox(const tekst:string; const caption:string;parent:HWND);
+procedure WarningBox(const Text:string; const caption:string;parent:HWND);
 begin
- MessageBox(parent,PChar(tekst),PChar(caption),MB_OK or MB_ICONINFORMATION or MB_TASKMODAL);
-end;
-
-procedure WarningBox(const tekst:string; const caption:string;parent:HWND);
-begin
- MessageBox(parent,PChar(tekst),PChar(caption),MB_OK or MB_ICONWARNING or MB_TASKMODAL);
-end;
-
-function WarningYesNoBox(const tekst:string; const caption:string{='Wazne pytanie'}; parent:HWND{=0}):boolean;
-begin
- result:=MessageBox(parent,PChar(tekst),PCHar(caption),MB_YESNO or MB_ICONWARNING or MB_TASKMODAL)=IDYES;
+ MessageBox(parent,PChar(Text),PChar(caption),MB_OK or MB_ICONWARNING or MB_TASKMODAL);
 end;
 
 { minX / minY / maxX / maxY : WM_SIZING handler -----------------------------
