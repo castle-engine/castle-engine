@@ -88,10 +88,7 @@ unit CastleUtils;
 
 interface
 
-uses
-  {$ifdef MSWINDOWS}
-    Windows, {$ifdef DELPHI} Messages, Types, ShellAPI, {$endif}
-  {$endif}
+uses {$ifdef MSWINDOWS} Windows, {$endif}
   {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif}
   Variants, SysUtils, Math, FGL;
 
