@@ -971,15 +971,22 @@ var
 
         if (Header.Flags and DDSD_LINEARSIZE <> 0) and
            { It seems there are textures with DDSD_LINEARSIZE set but
-             PitchOrLinearSize still 0, so I guess I should ignore
+             PitchOrLinearSize 0, and we should ignore
              PitchOrLinearSize then (e.g. ~/images/dds_tests/greek_imperial_swordsman.tga.dds
-             on chantal) }
+             on chantal). Same for PitchOrLinearSize = -1
+             (e.g. UberPack-1/Torque3D/levels/lonerock_island/
+             inside UberPack-1 on opengameart.org). }
            (Header.PitchOrLinearSize <> 0) and
+           (Header.PitchOrLinearSize <> High(LongWord)) and
            { Checl this only for level 0 of mipmap level }
            (MipmapLevel = 0) and
            (Header.PitchOrLinearSize <> Res.Size) then
-          raise EInvalidDDS.CreateFmt('DDS header indicates different S3TC compressed image size (%d) than our image unit (%d)',
-            [Header.PitchOrLinearSize, Res.Size]);
+          OnWarning(wtMajor, 'DDS', Format('DDS header indicates different S3TC compressed image size (%d) than our image unit (%d)',
+             { convert to Int64, as passing LongWord directly to
+               "array of const" will cause range check error
+               in case of values > High(LongInt) }
+            [Int64(Header.PitchOrLinearSize),
+             Int64(Res.Size)]));
 
         Stream.ReadBuffer(Res.RawPixels^, Res.Size);
 
