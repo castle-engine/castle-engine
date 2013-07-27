@@ -666,16 +666,19 @@ type
   Use this instead of manually calling @code(glDisable(GL_TEXTURE_2D)),
   @code(glEnable(GL_TEXTURE_2D)) and such. This makes sure to have at most
   one texture target enabled, and disable others.
-  Remember that this state is different for every texture unit in OpenGL.
 
-  Returns whether the requested texture target is supported by current OpenGL.
+  Remember that this state is different for every texture unit in OpenGL,
+  in case you use multi-texturing.
+
+  Remember that not all texture targets are guaranteed to be supported by OpenGL.
   Target=etNone and Target=et2D are always supported.
-  For the rest, you have to check the result of this function,
-  or check yourself appropriate GLFeatures property first.
+  For the rest, check appropriate GLFeatures property (before even
+  creating a texture with such type). If you pass an unsupported target type
+  to this procedure, it will be ignored (all targets will be disabled,
+  like for Target=etNone).
 
-  If you will try to enable a texture target not supported by
-  (for example, Target=etCubeMap but GLFeatures.TextureCubeMap=@false)
-  then it will return @false. And disable all texture targets.  }
+  Note that this is only for fixed-function OpenGL pipeline.
+  Shader pipeline completely ignores the enabled state of texture units. }
 function GLEnableTexture(const Target: TEnableTextureTarget): boolean;
 
 {$undef read_interface}
