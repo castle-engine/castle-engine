@@ -4603,9 +4603,7 @@ procedure TCastleWindowCustom.EventDraw;
         but TUIControl.Draw cannot change it carelessly. }
       glDisable(GL_LIGHTING);
       glDisable(GL_DEPTH_TEST);
-      glDisable(GL_TEXTURE_2D);
-      if GLFeatures.CubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-      if GLFeatures.Textures3D <> gsNone  then glDisable(GL_TEXTURE_3D);
+      GLEnableTexture(etNone);
       glViewport(0, 0, Width, Height); // saved by GL_VIEWPORT_BIT
 
       glMatrixMode(GL_PROJECTION);

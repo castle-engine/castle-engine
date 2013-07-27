@@ -2135,7 +2135,7 @@ begin
     ScreenEffects* methods do something weird. }
   CurrentScreenEffectsCount := ScreenEffectsCount;
 
-  if GLFeatures.ARB_texture_rectangle and GLFeatures.UseMultiTexturing and
+  if GLFeatures.TextureRectangle and GLFeatures.UseMultiTexturing and
     (CurrentScreenEffectsCount <> 0) then
   begin
     CurrentScreenEffectsNeedDepth := ScreenEffectsNeedDepth;
@@ -2309,7 +2309,7 @@ begin
   if SSAOShader = nil then
   begin
     if (TGLSLProgram.ClassSupport <> gsNone) and
-       GLFeatures.ARB_texture_rectangle then
+       GLFeatures.TextureRectangle then
     begin
       try
         SSAOShader := TGLSLProgram.Create;

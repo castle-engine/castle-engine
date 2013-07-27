@@ -1278,7 +1278,7 @@ end;
 function IsCubeMapTextureSized(const Size: Cardinal): boolean;
 begin
   Result :=
-    (not GLFeatures.CubeMapSupport) or
+    (not GLFeatures.TextureCubeMap) or
     (
       IsPowerOf2(Size) and
       (Size > 0) and
@@ -1289,7 +1289,7 @@ end;
 function IsCubeMapTextureSized(const R: TEncodedImage): boolean;
 begin
   Result :=
-    (not GLFeatures.CubeMapSupport) or
+    (not GLFeatures.TextureCubeMap) or
     (
       (r.Width = r.Height) { must be square } and
       IsPowerOf2(r.Width) and
@@ -1315,7 +1315,7 @@ end;
 function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
 begin
   Result := Size;
-  if GLFeatures.CubeMapSupport then
+  if GLFeatures.TextureCubeMap then
   begin
     if Size <= 0 then
       Result := 1 else
@@ -1334,7 +1334,7 @@ function ResizeToCubeMapTextureSize(const r: TCastleImage): TCastleImage;
 var
   Size: Cardinal;
 begin
-  if GLFeatures.CubeMapSupport then
+  if GLFeatures.TextureCubeMap then
   begin
     Size := Max(r.Width, r.Height);
     Size := ResizeToCubeMapTextureSize(Size);
@@ -1354,7 +1354,7 @@ end;
 function IsTexture3DSized(const Size: Cardinal): boolean;
 begin
   Result :=
-    (GLFeatures.Textures3D = gsNone) or
+    (GLFeatures.Texture3D = gsNone) or
     (
       IsPowerOf2(Size) and
       (Size > 0) and
@@ -1364,7 +1364,7 @@ end;
 
 function IsTexture3DSized(const R: TCastleImage): boolean;
 begin
-  if GLFeatures.Textures3D <> gsNone then
+  if GLFeatures.Texture3D <> gsNone then
   begin
     Result :=
       IsPowerOf2(R.Width ) and (R.Width  > 0) and (R.Width  <= GLFeatures.MaxTexture3DSize) and
@@ -1941,7 +1941,7 @@ var
     begin
       BeforeUnpackImage(UnpackData, Image);
       try
-        case GLFeatures.Textures3D of
+        case GLFeatures.Texture3D of
           gsExtension:
             glTexImage3DEXT(GL_TEXTURE_3D_EXT, Level, ImageInternalFormat,
               Image.Width, Image.Height, Image.Depth, 0, ImageFormat, ImageGLType(Image),

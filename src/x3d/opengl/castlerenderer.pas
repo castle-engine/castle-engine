@@ -2589,9 +2589,7 @@ end;
 
 procedure TGLRenderer.DisableCurrentTexture;
 begin
-  glDisable(GL_TEXTURE_2D);
-  if GLFeatures.CubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-  if GLFeatures.Textures3D <> gsNone  then glDisable(GL_TEXTURE_3D);
+  GLEnableTexture(etNone);
 end;
 
 procedure TGLRenderer.GetFog(Node: IAbstractFogObject;

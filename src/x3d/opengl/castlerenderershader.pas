@@ -2157,30 +2157,10 @@ begin
   if GLFeatures.UseMultiTexturing then
     glActiveTexture(GL_TEXTURE0 + TextureUnit);
   case TextureType of
-    tt2D, tt2DShadow:
-      begin
-        glEnable(GL_TEXTURE_2D);
-        if GLFeatures.CubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-        if GLFeatures.Textures3D <> gsNone  then glDisable(GL_TEXTURE_3D);
-      end;
-    ttCubeMap:
-      begin
-        glDisable(GL_TEXTURE_2D);
-        if GLFeatures.CubeMapSupport then glEnable(GL_TEXTURE_CUBE_MAP_ARB);
-        if GLFeatures.Textures3D <> gsNone  then glDisable(GL_TEXTURE_3D);
-      end;
-    tt3D:
-      begin
-        glDisable(GL_TEXTURE_2D);
-        if GLFeatures.CubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-        if GLFeatures.Textures3D <> gsNone  then glEnable(GL_TEXTURE_3D);
-      end;
-    ttShader:
-      begin
-        glDisable(GL_TEXTURE_2D);
-        if GLFeatures.CubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-        if GLFeatures.Textures3D <> gsNone  then glDisable(GL_TEXTURE_3D);
-      end;
+    tt2D, tt2DShadow: GLEnableTexture(et2D);
+    ttCubeMap       : GLEnableTexture(etCubeMap);
+    tt3D            : GLEnableTexture(et3D);
+    ttShader        : GLEnableTexture(etNone);
     else raise EInternalError.Create('TextureEnableDisable?');
   end;
 

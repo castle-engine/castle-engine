@@ -1524,7 +1524,7 @@ var
   Anisotropy: TGLfloat;
   BackRot, FrontRot, LeftRot, RightRot: TCastleImage;
 begin
-  if not GLFeatures.CubeMapSupport then
+  if not GLFeatures.TextureCubeMap then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
     Exit;
@@ -1588,7 +1588,7 @@ var
   Anisotropy: TGLfloat;
   DDS: TDDSImage;
 begin
-  if not GLFeatures.CubeMapSupport then
+  if not GLFeatures.TextureCubeMap then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
     Exit;
@@ -1648,7 +1648,7 @@ var
   Anisotropy: TGLfloat;
   InitialImage: TCastleImage;
 begin
-  if not GLFeatures.CubeMapSupport then
+  if not GLFeatures.TextureCubeMap then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
     Exit;
@@ -1781,7 +1781,7 @@ var
   Anisotropy: TGLfloat;
   TextureWrap: TTextureWrap3D;
 begin
-  if GLFeatures.Textures3D = gsNone then
+  if GLFeatures.Texture3D = gsNone then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support 3D textures, cannot use Texture3D nodes');
     Exit;

@@ -167,7 +167,7 @@ procedure TScreenEffectDemoViewport.GLContextOpen;
 begin
   inherited;
   if (TGLSLProgram.ClassSupport <> gsNone) and
-     GL_ARB_texture_rectangle then
+     GLFeatures.TextureRectangle then
   begin
     GLSLProgram := TGLSLProgram.Create;
     GLSLProgram.AttachFragmentShader(

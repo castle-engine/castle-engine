@@ -1434,9 +1434,7 @@ var
       glDisable(GL_COLOR_MATERIAL); { saved by GL_ENABLE_BIT }
       glDisable(GL_ALPHA_TEST); { saved by GL_ENABLE_BIT }
       glDisable(GL_FOG); { saved by GL_ENABLE_BIT }
-      glDisable(GL_TEXTURE_2D); { saved by GL_ENABLE_BIT }
-      if GLFeatures.CubeMapSupport then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-      if GLFeatures.Textures3D  <> gsNone then glDisable(GL_TEXTURE_3D);
+      GLEnableTexture(etNone); { saved by GL_ENABLE_BIT }
 
       glShadeModel(GL_FLAT); { saved by GL_LIGHTING_BIT }
 
