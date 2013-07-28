@@ -21,6 +21,8 @@
   end;
 
   TAbstractTextureNode = class(TAbstractAppearanceChildNode)
+  private
+    AlphaChannelWarningDone: boolean;
   protected
     { Alpha channel detected from image contents (or children nodes),
       ignoring our FdAlphaChannel field.
@@ -553,7 +555,11 @@ type
     if S = 'FULL_RANGE' then
       Result := daFullRange else
     begin
-      OnWarning(wtMajor, 'VRML/X3D', Format('Invalid "alphaChannel" field value "%s"', [S]));
+      if not AlphaChannelWarningDone then
+      begin
+        OnWarning(wtMajor, 'VRML/X3D', Format('Invalid "alphaChannel" field value "%s"', [S]));
+        AlphaChannelWarningDone := true;
+      end;
       Result := daAuto;
     end;
   end;
