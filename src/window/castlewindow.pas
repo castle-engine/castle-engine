@@ -4603,7 +4603,7 @@ procedure TCastleWindowCustom.EventDraw;
         but TUIControl.Draw cannot change it carelessly. }
       glDisable(GL_LIGHTING);
       glDisable(GL_DEPTH_TEST);
-      GLEnableTexture(etNone);
+      GLEnableTexture(CastleGLUtils.etNone);
       glViewport(0, 0, Width, Height); // saved by GL_VIEWPORT_BIT
 
       glMatrixMode(GL_PROJECTION);

@@ -50,14 +50,14 @@ unit pk3DConnexion;
 
 interface
 
-{$ifdef MSWINDOWS} // JA: one big ifdef around the whole file
-
+{$ifdef MSWINDOWS}
 uses
    SysUtils,
    Windows,
    Classes,
    ActiveX,
    TDxInput_TLB;
+{$endif}
 
 type
    TEmulationAxis = (eaRotateX, eaRotateY, eaRotateZ, eaRotateAngle,
@@ -277,6 +277,12 @@ type
    TOnKeyChange = procedure(const KeyIndex: integer; const Pressed: boolean) of object;
    TOnKeySomething = procedure(const KeyIndex: integer) of object;
 
+{ Surround most of the content in Windows-only ifdef.
+  Still, the above types, like TEmulationAxis, are defined on all OSes.
+  This is useful e.g. to detect name clash errors on any OS. }
+{$ifdef MSWINDOWS}
+
+type
    T3DConnexionDevice = class(TObject)
    private
       FDevice: ISimpleDevice; /// Device interface
@@ -415,7 +421,7 @@ end;
 
 {*------------------------------------------------------------------------------
   Fires an event about a changed key status.
-  
+
   @param KeyIndex   Index of key that was pressed, 0..n-1
   @param Pressed   Whether key is currently down
 ------------------------------------------------------------------------------*}
