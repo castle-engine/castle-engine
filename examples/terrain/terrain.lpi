@@ -9,8 +9,8 @@
         <MainUnitHasTitleStatement Value="False"/>
         <LRSInOutputDirectory Value="False"/>
       </Flags>
+      <SessionStorage Value="InIDEConfig"/>
       <MainUnit Value="0"/>
-      <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <VersionInfo>
       <Language Value=""/>
@@ -40,82 +40,27 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="1">
       <Unit0>
         <Filename Value="terrain.lpr"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="0"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="37"/>
-        <CursorPos X="1" Y="59"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
       </Unit0>
-      <Unit1>
-        <Filename Value="../../src/base/castleclassutils.pas"/>
-        <UnitName Value="CastleClassUtils"/>
-        <EditorIndex Value="2"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="605"/>
-        <CursorPos X="1" Y="617"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit1>
-      <Unit2>
-        <Filename Value="../../src/ui/castleuicontrols.pas"/>
-        <UnitName Value="CastleUIControls"/>
-        <EditorIndex Value="1"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="481"/>
-        <CursorPos X="71" Y="494"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit2>
     </Units>
-    <JumpHistory Count="9" HistoryIndex="8">
-      <Position1>
-        <Filename Value="terrain.lpr"/>
-        <Caret Line="410" Column="3" TopLine="400"/>
-      </Position1>
-      <Position2>
-        <Filename Value="terrain.lpr"/>
-        <Caret Line="150" Column="18" TopLine="133"/>
-      </Position2>
-      <Position3>
-        <Filename Value="terrain.lpr"/>
-        <Caret Line="650" Column="49" TopLine="636"/>
-      </Position3>
-      <Position4>
-        <Filename Value="../../src/base/castleclassutils.pas"/>
-        <Caret Line="1512" Column="15" TopLine="1488"/>
-      </Position4>
-      <Position5>
-        <Filename Value="../../src/base/castleclassutils.pas"/>
-        <Caret Line="49" Column="1" TopLine="49"/>
-      </Position5>
-      <Position6>
-        <Filename Value="../../src/base/castleclassutils.pas"/>
-        <Caret Line="574" Column="66" TopLine="554"/>
-      </Position6>
-      <Position7>
-        <Filename Value="../../src/base/castleclassutils.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position7>
-      <Position8>
-        <Filename Value="terrain.lpr"/>
-        <Caret Line="650" Column="1" TopLine="636"/>
-      </Position8>
-      <Position9>
-        <Filename Value="terrain.lpr"/>
-        <Caret Line="59" Column="1" TopLine="37"/>
-      </Position9>
-    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
+    <SearchPaths>
+      <IncludeFiles Value="../../src/base"/>
+    </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <CStyleMacros Value="True"/>
+      </SyntaxOptions>
+    </Parsing>
     <Other>
+      <Verbosity>
+        <ShowHints Value="False"/>
+      </Verbosity>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
@@ -135,5 +80,4 @@
       </Item4>
     </Exceptions>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>
