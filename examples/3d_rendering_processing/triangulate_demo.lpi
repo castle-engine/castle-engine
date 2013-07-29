@@ -52,6 +52,9 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Other>
+      <Verbosity>
+        <ShowHints Value="False"/>
+      </Verbosity>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>

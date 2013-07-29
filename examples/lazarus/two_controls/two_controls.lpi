@@ -73,9 +73,6 @@
       <Verbosity>
         <ShowHints Value="False"/>
       </Verbosity>
-      <CompilerMessages>
-        <MsgFileName Value=""/>
-      </CompilerMessages>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>

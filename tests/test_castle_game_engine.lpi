@@ -7,9 +7,9 @@
         <SaveClosedFiles Value="False"/>
         <LRSInOutputDirectory Value="False"/>
       </Flags>
+      <SessionStorage Value="InIDEConfig"/>
       <MainUnit Value="0"/>
       <Title Value="test_castle_game_engine"/>
-      <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
@@ -40,64 +40,13 @@
         <PackageName Value="FCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="4">
+    <Units Count="1">
       <Unit0>
         <Filename Value="test_castle_game_engine.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="test_castle_game_engine"/>
-        <EditorIndex Value="0"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="12"/>
-        <CursorPos X="51" Y="20"/>
-        <UsageCount Value="37"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
       </Unit0>
-      <Unit1>
-        <Filename Value="../src/castlescript/castlescript.pas"/>
-        <UnitName Value="CastleScript"/>
-        <EditorIndex Value="1"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="1112"/>
-        <CursorPos X="82" Y="1118"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit1>
-      <Unit2>
-        <Filename Value="../src/base/castleutils_miscella.inc"/>
-        <EditorIndex Value="2"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="284"/>
-        <CursorPos X="47" Y="290"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit2>
-      <Unit3>
-        <Filename Value="testcastlescript.pas"/>
-        <UnitName Value="TestCastleScript"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="3"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="163"/>
-        <CursorPos X="57" Y="175"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit3>
     </Units>
-    <JumpHistory Count="3" HistoryIndex="2">
-      <Position1>
-        <Filename Value="test_castle_game_engine.lpr"/>
-        <Caret Line="20" Column="51" TopLine="12"/>
-      </Position1>
-      <Position2>
-        <Filename Value="../src/castlescript/castlescript.pas"/>
-        <Caret Line="1118" Column="82" TopLine="1112"/>
-      </Position2>
-      <Position3>
-        <Filename Value="../src/base/castleutils_miscella.inc"/>
-        <Caret Line="290" Column="47" TopLine="284"/>
-      </Position3>
-    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
@@ -121,17 +70,13 @@
     </CodeGeneration>
     <Other>
       <Verbosity>
-        <ShowNotes Value="False"/>
         <ShowHints Value="False"/>
-        <ShowGenInfo Value="False"/>
       </Verbosity>
-      <WriteFPCLogo Value="False"/>
-      <CustomOptions Value="-Sh"/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="21">
+    <Exceptions Count="27">
       <Item1>
         <Name Value="ECodetoolError"/>
       </Item1>
@@ -195,7 +140,24 @@
       <Item21>
         <Name Value="EDivByZero"/>
       </Item21>
+      <Item22>
+        <Name Value="EOSError"/>
+      </Item22>
+      <Item23>
+        <Name Value="EInOutError"/>
+      </Item23>
+      <Item24>
+        <Name Value="EInternalError"/>
+      </Item24>
+      <Item25>
+        <Name Value="EX3DNotFound"/>
+      </Item25>
+      <Item26>
+        <Name Value="BreakTryFindNode"/>
+      </Item26>
+      <Item27>
+        <Name Value="ECasScriptAssignError"/>
+      </Item27>
     </Exceptions>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>

@@ -51,6 +51,9 @@
       </SyntaxOptions>
     </Parsing>
     <Other>
+      <Verbosity>
+        <ShowHints Value="False"/>
+      </Verbosity>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>

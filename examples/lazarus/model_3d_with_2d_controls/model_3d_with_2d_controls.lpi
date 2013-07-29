@@ -148,9 +148,6 @@
       <Verbosity>
         <ShowHints Value="False"/>
       </Verbosity>
-      <CompilerMessages>
-        <UseMsgFile Value="True"/>
-      </CompilerMessages>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
