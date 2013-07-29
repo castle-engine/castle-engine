@@ -222,14 +222,25 @@ type
       @seeAlso TCastleWindowBase.AllowSuspendForInput }
     function AllowSuspendForInput: boolean; virtual;
 
-    { Called always when containing window size changes.
-      Also, when the control is first inserted into the window controls list
-      (like @link(TCastleWindowCustom.Controls)), it will also receive
-      initial ContainerResize event. So every member of of Controls list
-      knows window width / height.
+    { Called always when the container (component or window with OpenGL context)
+      size changes. Called only when the OpenGL context of the container
+      is initialized, so you can be sure that this is called only between
+      GLContextOpen and GLContextClose.
 
-      In this class, this sets values of ContainerWidth, ContainerHeight, ContainerSizeKnown
-      properties. }
+      We also make sure to call this once when inserting into
+      the container controls list
+      (like @link(TCastleWindowCustom.Controls) or
+      @link(TCastleControlCustom.Controls)), if inserting into the container
+      with already initialized OpenGL context. If inserting into the container
+      without OpenGL context initialized, it will be called later,
+      when OpenGL context will get initialized, right after GLContextOpen.
+
+      In other words, this is always called to let the control know
+      the size of the container, if and only if the OpenGL context is
+      initialized.
+
+      In this class, this sets values of ContainerWidth, ContainerHeight,
+      ContainerSizeKnown properties. }
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); virtual;
 
     { Container of this control. When adding control to container's Controls
@@ -237,10 +248,7 @@ type
       set itself here, an when removing from container this will be changed
       back to @nil.
 
-      May be @nil if this control is not yet inserted into any container.
-      May also be @nil since not all containers have to implement
-      right now IUIContainer interface, it's not crucial for most controls
-      to work. }
+      May be @nil if this control is not yet inserted into any container. }
     property Container: IUIContainer read FContainer write SetContainer;
 
     { Mouse cursor over this control.
