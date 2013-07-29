@@ -144,8 +144,10 @@ type
         For now, these can only be used to surround whole lines
         (so you have to place opening tag at the beginnig of line,
         and closing tag at the end of line).
-        And for now, the only tag handled is @code(<font color="#rrggbb">)
+        For now, the only tag handled is @code(<font color="#rrggbb">)
         that changes line color to specified RGB.
+        Also, we handle @code(<font color="#rrggbbaa">) where the last
+        component is alpha (opacity), and when it's < 1 then we render using blending.
         Close with @code(</font>).
 
         This functionality may be enhanced in the future (feature requests
@@ -291,23 +293,32 @@ uses CastleUtils, CastleVectors, CastleStringUtils, CastleClassUtils;
 { HandleTags ----------------------------------------------------------------- }
 
 function HandleTags(const S: string;
-  out ColorChange: boolean; out Color: TVector3Single): string;
+  out ColorChange: boolean; out Color: TVector4Single): string;
 
-  function ExtractColor(const S: string; P: Integer; out Color: TVector3Single): boolean;
+  function ExtractColor(const S: string; P: Integer;
+    out Color: TVector4Single; out Length: Integer): boolean;
   const
     HexDigits = ['0'..'9', 'a'..'f', 'A'..'F'];
   begin
-    Result := (S[P    ] in HexDigits) and
-              (S[P + 1] in HexDigits) and
-              (S[P + 2] in HexDigits) and
-              (S[P + 3] in HexDigits) and
-              (S[P + 4] in HexDigits) and
-              (S[P + 5] in HexDigits);
+    Result := SCharIs(S, P    , HexDigits) and
+              SCharIs(S, P + 1, HexDigits) and
+              SCharIs(S, P + 2, HexDigits) and
+              SCharIs(S, P + 3, HexDigits) and
+              SCharIs(S, P + 4, HexDigits) and
+              SCharIs(S, P + 5, HexDigits);
+    Length := 6;
     if Result then
     begin
       Color[0] := StrHexToInt(Copy(S, P    , 2)) / 255;
       Color[1] := StrHexToInt(Copy(S, P + 2, 2)) / 255;
       Color[2] := StrHexToInt(Copy(S, P + 4, 2)) / 255;
+      if SCharIs(S, P + 6, HexDigits) and
+         SCharIs(S, P + 7, HexDigits) then
+      begin
+        Length += 2;
+        Color[3] := StrHexToInt(Copy(S, P + 6, 2)) / 255;
+      end else
+        Color[3] := 1;
     end;
   end;
 
@@ -333,19 +344,21 @@ const
   SFontColorBegin1 = '<font color="#';
   SFontColorBegin2 = '">';
   SFontEnd = '</font>';
+var
+  ColorLength: Integer;
 begin
   ColorChange :=
     { first check something most likely to fail, for speed }
     SCharIs(S, 1, '<') and
     SubStringMatch(SFontColorBegin1, S, 1) and
-    ExtractColor(S, Length(SFontColorBegin1) + 1, Color) and
-    SubStringMatch(SFontColorBegin2, S, Length(SFontColorBegin1) + 7) and
+    ExtractColor(S, Length(SFontColorBegin1) + 1, Color, ColorLength) and
+    SubStringMatch(SFontColorBegin2, S, Length(SFontColorBegin1) + ColorLength + 1) and
     SubStringMatch(SFontEnd, S, Length(S) - Length(SFontEnd) + 1);
 
   if ColorChange then
   begin
     Result := CopyPos(S,
-      Length(SFontColorBegin1) + Length(SFontColorBegin2) + 7,
+      Length(SFontColorBegin1) + Length(SFontColorBegin2) + ColorLength + 1,
       Length(S) - Length(SFontEnd));
   end else
     Result := S;
@@ -553,7 +566,7 @@ function TGLBitmapFontAbstract.MaxTextWidth(SList: TStringList;
 var
   I, LineW: integer;
   DummyColorChange: boolean;
-  DummyColor: TVector3Single;
+  DummyColor: TVector4Single;
   S: string;
 begin
   result := 0;
@@ -601,7 +614,7 @@ var
 var
   S: string;
   ColorChange: boolean;
-  Color: TVector3Single;
+  Color: TVector4Single;
 begin
   for Line := 0 to Strs.Count - 1 do
   begin
@@ -611,12 +624,17 @@ begin
       S := HandleTags(S, ColorChange, Color);
       if ColorChange then
       begin
-        glPushAttrib(GL_CURRENT_BIT);
+        glPushAttrib(GL_CURRENT_BIT or GL_COLOR_BUFFER_BIT);
           { glColor must be before setting raster to have proper effect.
             It will be correctly saved/restored by glPush/PopAttrib,
             as docs say that GL_CURRENT_BIT saves
             "RGBA color associated with current raster position". }
-          glColorv(Color);
+          glColorv(Color); // saved by GL_CURRENT_BIT
+          if Color[3] < 1 then
+          begin
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
+            glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
+          end;
           SetPos;
           PrintAndMove(S);
         glPopAttrib;

@@ -147,9 +147,14 @@ function HsvToRgbByte(const Value: TVector3Single): TVector3Byte;
 { Given two colors in RGB, interpolate them in HSV space. }
 function LerpRgbInHsv(const A: Single; const V1, V2: TVector3Single): TVector3Single;
 
+{ Change color into a hexadecimal notation of it (like in HTML).
+  Note that version that takes 4-component vector adds the alpha too
+  at the end. }
+function ColorToHex(const V: TVector4Single): string;
+
 implementation
 
-uses CastleUtils;
+uses SysUtils, CastleUtils;
 
 { grayscale ------------------------------------------------------------------ }
 
@@ -394,6 +399,14 @@ begin
   HOut[2] := H1[2] + A * (H2[2] - H1[2]);
 
   Result := HsvToRgb(HOut);
+end;
+
+function ColorToHex(const V: TVector4Single): string;
+begin
+  Result := IntToHex(RoundClamp255(V[0] * 255), 2) +
+            IntToHex(RoundClamp255(V[1] * 255), 2) +
+            IntToHex(RoundClamp255(V[2] * 255), 2) +
+            IntToHex(RoundClamp255(V[3] * 255), 2);
 end;
 
 end.
