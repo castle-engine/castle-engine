@@ -1996,9 +1996,9 @@ type
   T3BoolKeys = array [0..2, boolean] of TKey;
 const
   DefaultInputs_Move: T3BoolKeys =
-    ((K_Left, K_Right), (K_Down, K_Up), (K_PageDown, K_PageUp));
+    ((K_Left, K_Right), (K_Down, K_Up), (K_None, K_None));
   DefaultInputs_Rotate: T3BoolKeys =
-    ((K_Up, K_Down), (K_Left, K_Right), (K_PageDown, K_PageUp));
+    ((K_Up, K_Down), (K_Left, K_Right), (K_None, K_None));
   CoordToStr: array [0..2] of string = ('X', 'Y', 'Z');
   IncreaseToStr: array [boolean] of string = ('Dec', 'Inc');
 var
@@ -2045,7 +2045,7 @@ begin
   FInput_Home := TInputShortcut.Create(Self);
    Input_Home.Name := 'Input_Home';
    Input_Home.SetSubComponent(true);
-   Input_Home.Assign(K_Home);
+   Input_Home.Assign(K_None);
 
   FInput_StopRotating := TInputShortcut.Create(Self);
    Input_StopRotating.Name := 'Input_StopRotating';
@@ -2772,13 +2772,13 @@ begin
   Input_RightRot                .Assign(K_Right);
   Input_LeftStrafe              .Assign(K_Comma);
   Input_RightStrafe             .Assign(K_Period);
-  Input_UpRotate                .Assign(K_PageUp);
-  Input_DownRotate              .Assign(K_PageDown);
+  Input_UpRotate                .Assign(K_None);
+  Input_DownRotate              .Assign(K_None);
   Input_UpMove                  .Assign(K_Insert);
   Input_DownMove                .Assign(K_Delete);
   Input_IncreasePreferredHeight .Assign(K_Insert);
   Input_DecreasePreferredHeight .Assign(K_Delete);
-  Input_GravityUp               .Assign(K_Home);
+  Input_GravityUp               .Assign(K_None);
   { For move speed we use also character codes +/-, as numpad
     may be hard to reach on some keyboards (e.g. on laptops). }
   Input_MoveSpeedInc            .Assign(K_Numpad_Plus , K_None, '+');

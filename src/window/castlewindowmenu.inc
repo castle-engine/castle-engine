@@ -418,6 +418,8 @@
   private
     FSelected: TMenuItemRadio;
     procedure SetSelected(Value: TMenuItemRadio);
+    { Index of @link(Selected) menu item. -1 if Selected is @nil. }
+    function SelectedIndex: Integer;
   public
     { Adds an existing radio menu item to this group.
       After this, Item.Group will point to this group object.
@@ -438,6 +440,18 @@
       group; we need a state to represent this situation, that's why
       it's allowed for radio group to have none radio item chosen). }
     property Selected: TMenuItemRadio read FSelected write SetSelected;
+
+    { Return previous (from @link(Selected)) menu item in this group.
+      If there is no previous item, but still @link(Selected) <> nil,
+      return @link(Selected).
+      Only when there's no @link(Selected) item, returns @false. }
+    function Previous(out Item: TMenuItemRadio): boolean;
+
+    { Return next (from @link(Selected)) menu item in this group.
+      If there is no next item, but still @link(Selected) <> nil,
+      return @link(Selected).
+      Only when there's no @link(Selected) item, returns @false. }
+    function Next(out Item: TMenuItemRadio): boolean;
 
     (* procedure DebugWriteln; *)
   end;
@@ -948,7 +962,7 @@ procedure TMenuItemRadioGroup.SetSelected(Value: TMenuItemRadio);
 var
   I: Integer;
   Item: TMenuItemRadio;
-  CheckedFast: boolean;
+  CheckedFast, SelectedFound: boolean;
   P: TCastleWindowBase;
 begin
   { When count is 0, we have no items belonging to our group.
@@ -981,14 +995,19 @@ begin
     P.MenuFinalize;
 
   FSelected := Value;
+  SelectedFound := false;
 
   for I := 0 to Count - 1 do
   begin
     Item := Items[I];
     Item.FChecked := Item = Selected;
+    if Item.FChecked then
+      SelectedFound := true;
     if CheckedFast then
       if P <> nil then P.MenuUpdateChecked(Item);
   end;
+
+  Assert(SelectedFound, 'Menu item set as TMenuItemRadioGroup.Selected is not part of this TMenuItemRadioGroup');
 
   if not CheckedFast then
     P.MenuInitialize;
@@ -1009,6 +1028,48 @@ begin
   Writeln('--------------------');
 end;
 *)
+
+function TMenuItemRadioGroup.SelectedIndex: Integer;
+begin
+  if Selected <> nil then
+  begin
+    Result := IndexOf(Selected);
+    Assert(Result <> -1, 'Selected item of TMenuItemRadioGroup does not belong to this group');
+  end else
+    Result := -1;
+end;
+
+function TMenuItemRadioGroup.Previous(out Item: TMenuItemRadio): boolean;
+var
+  SI: Integer;
+begin
+  SI := SelectedIndex;
+  if SI <> -1 then
+  begin
+    Item := Items[Max(SI - 1, 0)];
+    Result := true;
+  end else
+  begin
+    Item := nil;
+    Result := false;
+  end;
+end;
+
+function TMenuItemRadioGroup.Next(out Item: TMenuItemRadio): boolean;
+var
+  SI: Integer;
+begin
+  SI := SelectedIndex;
+  if SI <> -1 then
+  begin
+    Item := Items[Min(SI + 1, Count - 1)];
+    Result := true;
+  end else
+  begin
+    Item := nil;
+    Result := false;
+  end;
+end;
 
 { init/fini ------------------------------------------------------------ }
 
