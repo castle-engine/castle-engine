@@ -1695,7 +1695,7 @@ procedure TCastleOnScreenMenu.Update(const SecondsPassed: Single;
   var LetOthersHandleMouseAndKeys: boolean);
 begin
   inherited;
-
+  if not GetExists then Exit;
   MenuAnimation += 0.5 * SecondsPassed;
   MenuAnimation := Frac(MenuAnimation);
   VisibleChange;
