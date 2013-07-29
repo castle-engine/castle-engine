@@ -89,7 +89,7 @@ begin
         glDisable(GL_LIGHTING);
         if DebugScene3DDisplay = 1 then
         begin
-          if GLBlendConstant then
+          if GLFeatures.BlendConstant then
           begin
             glBlendColor(0, 0, 0, 0.5);
             glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
@@ -137,7 +137,7 @@ procedure TGameSceneManager.ApplyProjection;
 var
   ZFar: TGLfloat;
 begin
-  if GLShadowVolumesPossible and ShadowVolumes then
+  if GLFeatures.ShadowVolumesPossible and ShadowVolumes then
     ZFar := ZFarInfinity else
     ZFar := 100;
 

@@ -515,7 +515,7 @@ type
       You can change this at any time, to switch rendering shadows on/off.
 
       This works only if OpenGL context actually can render shadow volumes,
-      checked by GLShadowVolumesPossible, which means that you have
+      checked by GLFeatures.ShadowVolumesPossible, which means that you have
       to initialize OpenGL context with stencil buffer.
 
       The shadow volumes algorithm is used only if shadow caster
@@ -528,7 +528,7 @@ type
       read FShadowVolumes write FShadowVolumes default DefaultShadowVolumes;
 
     { Actually draw the shadow volumes to the color buffer, for debugging.
-      If shadows are rendered (see GLShadowVolumesPossible and ShadowVolumes),
+      If shadows are rendered (see GLFeatures.ShadowVolumesPossible and ShadowVolumes),
       you can use this to actually see shadow volumes, for debug / demo
       purposes. Shadow volumes will be rendered on top of the scene,
       as yellow blended polygons. }
@@ -628,7 +628,7 @@ type
 
       Our @link(ApplyProjection) calculates the final visibility limit as follows:
       @unorderedList(
-        @item(First of all, if (GLShadowVolumesPossible and ShadowVolumes),
+        @item(First of all, if (GLFeatures.ShadowVolumesPossible and ShadowVolumes),
           then it's infinity.)
         @item(Then we look NavigationInfo.visibilityLimit value inside MainScene.
           This allows your 3D data creators to set this inside VRML/X3D data.
@@ -2604,7 +2604,7 @@ procedure TCastleSceneManager.GLContextOpen;
 begin
   inherited;
 
-  { We actually need to do it only if GLShadowVolumesPossible
+  { We actually need to do it only if GLFeatures.ShadowVolumesPossible
     and ShadowVolumes for any viewport.
     But we can as well do it always, it's harmless (just checks some GL
     extensions). (Otherwise we'd have to handle SetShadowVolumes.) }
