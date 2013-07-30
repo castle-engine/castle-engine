@@ -120,7 +120,7 @@ begin
 
   { Test what messages happen when switching FullScreen }
   if Event.IsKey(K_F11) {$ifdef DARWIN} and Window.Pressed[K_Ctrl] {$endif} then
-    Window.SwapFullScreen;
+    Window.FullScreen := not Window.FullScreen;
 end;
 
 procedure Release(Window: TCastleWindowBase; const Event: TInputPressRelease);

@@ -822,7 +822,7 @@ begin
     Glw.OnClose := @Close;
     Glw.OnDrawStyle := ds3D;
     { Do not enable
-      - SwapFullScreen: (Close+Open) is for now broken here
+      - SwapFullScreen_Key: (which may do Close+Open) is for now broken here
         (we should readd appropriate Controls* and camera to Glw.Controls,
         sliders should be recreated but with default values coming from
         last values, elevation should be updated with sliders values;

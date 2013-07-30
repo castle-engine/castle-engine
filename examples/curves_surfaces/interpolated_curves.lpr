@@ -269,7 +269,7 @@ type
     Result := true;
   end;
 
-procedure MenuClick(Window: TCastleWindowBase; MenuItem: TMenuItem);
+procedure MenuClick(Sender: TCastleWindowBase; MenuItem: TMenuItem);
 
   { Inputs a string from user. User can accept the string or cancel
     operation. If user will cancel operation -- we will return false.
@@ -306,7 +306,7 @@ var
   NewTBegin, NewTEnd: Float;
 begin
   case MenuItem.IntData of
-    1: (Window as TCastleWindowCustom).SwapFullScreen;
+    1: Window.FullScreen := not Window.FullScreen;
     2: Window.Close;
 
     201: StatusVisible := not StatusVisible;

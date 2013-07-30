@@ -4111,7 +4111,7 @@ begin
   if Event.IsKey(Close_CharKey) then
     Close else
   if Event.IsKey(SwapFullScreen_Key) then
-    SwapFullScreen else
+    FullScreen := not FullScreen else
     inherited;
     { nie wywoluj inherited jesli to byl klawisz Close_CharKey lub
       SwapFullScreen_Key bo te klawisze zmienily okienko na tyle ze mozna
