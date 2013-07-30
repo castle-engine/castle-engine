@@ -425,12 +425,11 @@ unit CastleWindow;
 
 { Sometimes GTK backend needs to call some X-specific things:
   1. Implementing TCastleWindowBase.SetMousePosition.
-     There is no GDK or GTK function for this.
-     (confirmed by google, e.g. see here
-     [http://mail.gnome.org/archives/gtk-list/2001-January/msg00035.html]).
-     You have to bypass GTK and use things like Xlib's XWarpPointer or
-     Windows' SetCursorPos.
-  2. Screen resizing. I have to use there XF86VidMode extension,
+     Older GDK/GTK versions didn't have any function for this (see here
+     [http://mail.gnome.org/archives/gtk-list/2001-January/msg00035.html]),
+     although newer GDK has gdk_display_warp_pointer.
+     So we had to bypass GTK and use Xlib's XWarpPointer.
+  2. Screen resizing. We have to use for this XF86VidMode extension,
      just like for CASTLE_WINDOW_XLIB backend. }
 {$ifdef CASTLE_WINDOW_GTK_2}
   {$ifdef UNIX}
