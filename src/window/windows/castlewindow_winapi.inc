@@ -24,6 +24,14 @@
   - Implement MainMenu.Enabled.
 }
 
+{$ifdef read_interface_uses}
+Windows, CommDlg,
+{$endif}
+
+{$ifdef read_implementation_uses}
+CastleWindowModes,
+{$endif}
+
 {$ifdef read_window_interface}
 private
   h_GLRc: HGLRC;

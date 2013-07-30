@@ -29,6 +29,15 @@
     forced by user (using window manager, not F11) really cleanly.
 }
 
+{$ifdef read_interface_uses}
+Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, CastleDynLib,
+{$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} Gdk2X, X, Xlib, {$endif}
+{$endif}
+
+{$ifdef read_implementation_uses}
+CastleWindowModes,
+{$endif}
+
 {$ifdef read_interface_types}
   { @exclude }
   { For now I use GtkDrawingArea when CASTLE_WINDOW_GTK_2.

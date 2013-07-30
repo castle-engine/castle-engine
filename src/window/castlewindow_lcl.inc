@@ -32,6 +32,11 @@
     in LCL. Seems harmless, so we just ignore it for now.
 *)
 
+{$ifdef read_interface_uses}
+Interfaces, Forms, Dialogs, OpenGLContext, Menus,
+Controls, FileUtil, Graphics, LCLType, CastleLCLUtils, Clipbrd, CustomTimer, LCLVersion,
+{$endif}
+
 {$ifdef read_window_interface}
 private
   type

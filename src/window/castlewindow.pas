@@ -481,17 +481,12 @@ unit CastleWindow;
 interface
 
 uses SysUtils, Classes, CastleVectors, CastleGL,
-  {$ifdef CASTLE_WINDOW_WINAPI} Windows, CommDlg, {$endif}
-  {$ifdef CASTLE_WINDOW_XLIB} Xlib, CastleXlib, XUtil, X, KeySym, CursorFont, CastleGlx, {$endif}
-  {$ifdef CASTLE_WINDOW_USE_XF86VMODE} CastleXF86VMode, {$endif}
-  {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} Gdk2X, X, Xlib, {$endif}
-  {$ifdef CASTLE_WINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, CastleDynLib, {$endif}
-  {$ifdef CASTLE_WINDOW_LCL} Interfaces, Forms, Dialogs, OpenGLContext, Menus,
-    Controls, FileUtil, Graphics, LCLType, CastleLCLUtils, Clipbrd, CustomTimer,
-    LCLVersion, {$endif}
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
   CastleFileFilters, CastleUIControls, FGL, pk3DConnexion,
+  {$define read_interface_uses}
+  {$I castlewindow_backend.inc}
+  {$undef read_interface_uses}
   { VRML/X3D stuff }
   X3DNodes, CastleScene, CastleSceneManager, CastleLevels;
 
@@ -2840,12 +2835,13 @@ function KeyString(const CharKey: char; const Key: TKey; const Modifiers: TModif
 
 implementation
 
-uses CastleParameters, CastleLog, CastleGLVersion, X3DLoad, CastleURIUtils
+uses CastleParameters, CastleLog, CastleGLVersion, CastleURIUtils,
   { Using here CastleWindowModes / CastleMessages makes recursive
     CastleWindow usage, but it's needed for dialogs.  }
-  {$ifdef CASTLE_WINDOW_GTK_ANY}, CastleWindowModes {$endif}
-  {$ifdef CASTLE_WINDOW_WINAPI}, CastleWindowModes {$endif}
-  {$ifdef CASTLE_WINDOW_XLIB}, CastleMessages {$endif};
+  {$define read_implementation_uses}
+  {$I castlewindow_backend.inc}
+  {$undef read_implementation_uses}
+  X3DLoad;
 
 {$define read_implementation}
 

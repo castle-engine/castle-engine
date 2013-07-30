@@ -13,6 +13,14 @@
   ----------------------------------------------------------------------------
 }
 
+{$ifdef read_interface_uses}
+Xlib, CastleXlib, XUtil, X, KeySym, CursorFont, CastleGlx,
+{$endif}
+
+{$ifdef read_implementation_uses}
+CastleMessages,
+{$endif}
+
 {$ifdef read_window_interface}
 private
   glcontext: GLXContext;

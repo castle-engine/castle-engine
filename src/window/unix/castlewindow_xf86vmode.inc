@@ -13,6 +13,10 @@
   ----------------------------------------------------------------------------
 }
 
+{$ifdef read_interface_uses}
+CastleXF86VMode,
+{$endif}
+
 { This implements TCastleApplication video resizing with XF86VMode }
 
 {$ifdef read_application_interface}
