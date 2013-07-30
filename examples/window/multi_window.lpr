@@ -21,11 +21,6 @@
   - press c to change cursor in the window that has focus, this is to demo
     that TCastleWindowBase.Cursor indeed works as appropriate, i.e. changes the cursor
     only for the given window.
-
-  Started as program based on NeHe 14th tutorial. Now the things insprired
-  by NeHe 14th tutorial are in implementation of TGLOutlineFont for
-  Windows in OpenGLWinFonts. This program evolved to something completely
-  different.
 }
 
 program multi_window;
