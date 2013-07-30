@@ -194,7 +194,7 @@ begin
   if not Output.Closed then Output.UpdateGLImage;
 end;
 
-procedure MenuClick(glwin: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Window: TCastleWindowBase; Item: TMenuItem);
 begin
   case Item.IntData of
     10: Application.Quit;
@@ -268,7 +268,7 @@ begin
   Parameters.CheckHigh(1);
   try
     Source := TWindowImage.Create(nil);
-    Source.Image := LoadImage(Parameters[1], [TRGBImage], []) as TRGBImage;
+    Source.Image := LoadImage(Parameters[1], [TRGBImage]) as TRGBImage;
     Source.Width  := Source.Image.Width ;
     Source.Height := Source.Image.Height;
     Source.Caption := 'Source image';
