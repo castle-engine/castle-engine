@@ -186,6 +186,7 @@ begin
   DefaultFilesToClean.Add('*.cmi');  { ocamlc }
   DefaultFilesToClean.Add('*.cmo');  { -'- }
   DefaultFilesToClean.Add('*.cmx');  { -'- }
+  DefaultFilesToClean.Add('.DS_Store'); { Mac OS X (Finder?) }
 end;
 
 procedure DefaultDirsToCleanInit;
