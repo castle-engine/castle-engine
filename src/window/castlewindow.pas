@@ -936,7 +936,10 @@ type
     procedure DoDropFiles(const FileNames: array of string);
 
     { Just like FileDialog, but these always get and should set FileName,
-      not an URL. }
+      not an URL. Also, for OpenDialog, we make sure that initial FileName
+      contains only a path (not the final file name), since this is
+      good behaviour for users (even if some API allow to set proposed
+      file name). }
     function BackendFileDialog(const Title: string; var FileName: string;
       OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean; overload;
 
@@ -2053,11 +2056,16 @@ end;
       @param(Title A dialog title.)
 
       @param(URL Specifies default file as an URL (or simple filename).
-        This can be absolute or relative, may include a path, may include a name.
+
+        In short, things are designed such that for normal file viewers,
+        you can give here the URL of last opened file, or '' if none.
+
+        This URL can be absolute or relative, may include a path, may include a name.
         If you specify only a path (remember to end it with the slash),
         then it's the default path where to save the file.
         If you specify the name (component after final slash), then it's the
-        proposed file name.
+        proposed file name for saving (for OpenDialog, this proposed file name
+        is ignored, since that's more natural for open dialogs).
 
         Empty value ('') always means the same as "current directory", guaranteed.
         So it's equivalent to @code(URICurrentPath).
@@ -2071,8 +2079,8 @@ end;
         @unorderedList(
           @item(
             If OpenDialog = @true: force the user to only choose existing
-            (and readable) file. The intention is that you should be able to open
-            file indicated by URL at least for reading. There is no guarantee
+            (and readable) file. The intention is that you can open
+            file indicated by URL, at least for reading. There is no guarantee
             about it though (it's not possible to guarantee it on a multi-process OS),
             the only 100% sure way to know that the file can be opened and read
             is to actually try to do it.
@@ -2493,12 +2501,12 @@ end;
 
     { Delete window from OpenWindows.
 
-      glwin don't have to be on the OpenWindows list. If it is not, this
+      Given Window doesn't have to be on the OpenWindows list. If it is not, this
       method is NOOP. This is useful when this is called from TCastleWindowBase.Close
       because TCastleWindowBase.Close should work even for partially constructed
       Windows.
 
-      If glwin was present on OpenWindows and after removing glwin
+      If Window was present on OpenWindows and after removing Window
       OpenWindowsCount = 0 and QuitWhenLastWindowClosed then it calls Quit. }
     procedure OpenWindowsRemove(Window: TCastleWindowBase; QuitWhenLastWindowClosed: boolean);
 
@@ -3547,6 +3555,8 @@ var
 begin
   { calculate FileName from URL }
   FileName := URIToFilenameSafe(URL);
+  if OpenDialog then
+    FileName := ExtractFilePath(FileName);
   Result := BackendFileDialog(Title, FileName, OpenDialog, FileFilters);
   if Result then
     URL := FilenameToURISafe(FileName);

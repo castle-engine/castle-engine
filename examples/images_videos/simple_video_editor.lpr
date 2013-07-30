@@ -159,7 +159,7 @@ begin
   case MenuItem.IntData of
     10:
       begin
-        S := ExtractURIPath(VideoURL);
+        S := VideoURL;
         if Window.FileDialog('Open file', S, true) then
           LoadVideo(S);
       end;

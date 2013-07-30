@@ -554,8 +554,8 @@ begin
   case MenuItem.IntData of
     10:
       begin
-        S := ExtractURIPath(SceneURL);
-        if Window.FileDialog('Open 3d model (VRML etc.) file', S, true,
+        S := SceneURL;
+        if Window.FileDialog('Open 3D model file', S, true,
           Load3D_FileFilters) then
         begin
           SceneForShadow.BeforeNodesFree; { loading Scene will free also SceneForShadow.RootNode }

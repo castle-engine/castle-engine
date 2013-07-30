@@ -37,13 +37,9 @@ type
   end;
 
 class procedure THelper.OpenButtonClick(Sender: TObject);
-var
-  S: string;
 begin
-  S := ExtractURIPath(URL);
-  if Window.FileDialog('Open 3D model', S, true, Load3D_FileFilters) then
+  if Window.FileDialog('Open 3D model', URL, true, Load3D_FileFilters) then
   begin
-    URL := S;
     Scene.Load(URL);
 
     { camera is separate from the 3D world, and so it is *not* reinitialized
