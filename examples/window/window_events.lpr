@@ -102,21 +102,25 @@ begin
   Notifications.Show(Format('Timer message. Time now %s', [FormatDateTime('tt', Time)]));
 end;
 
-procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
+procedure Press(Sender: TCastleWindowBase; const Event: TInputPressRelease);
 begin
+  Notifications.Show('Press message : ' + Event.Description);
+
   { Cursor tests: }
   case Event.KeyCharacter of
     'n': Window.Cursor := mcNone;
     'd': Window.Cursor := mcDefault;
     'w': Window.Cursor := mcWait;
-    '1': Window.SetMousePosition(0          , 0);
+    '1': Window.SetMousePosition(0           , 0);
     '2': Window.SetMousePosition(Window.Width, 0);
     '3': Window.SetMousePosition(Window.Width, Window.Height);
-    '4': Window.SetMousePosition(0          , Window.Height);
+    '4': Window.SetMousePosition(0           , Window.Height);
     '5': Window.SetMousePosition(Window.Width div 2, Window.Height div 2);
   end;
 
-  Notifications.Show('Press message : ' + Event.Description);
+  { Test what messages happen when switching FullScreen }
+  if Event.IsKey(K_F11) {$ifdef DARWIN} and Window.Pressed[K_Ctrl] {$endif} then
+    Window.SwapFullScreen;
 end;
 
 procedure Release(Window: TCastleWindowBase; const Event: TInputPressRelease);
