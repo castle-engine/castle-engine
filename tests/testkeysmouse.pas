@@ -25,6 +25,7 @@ type
   published
     procedure TestKey;
     procedure TestKeyToStrAndBack;
+    procedure TestCharToNiceStr;
   end;
 
 implementation
@@ -92,6 +93,20 @@ begin
     { no whitespace around }
     Assert(Trim(KeyToStr(K)) =  KeyToStr(K));
   end;
+end;
+
+procedure TTestKeysMouse.TestCharToNiceStr;
+begin
+  Assert(CharToNiceStr('a') = 'A');
+  Assert(CharToNiceStr('A') = 'Shift+A');
+  Assert(CharToNiceStr(CtrlA) = 'Ctrl+A');
+  Assert(CharToNiceStr(CtrlA, [mkCtrl]) = 'Ctrl+A');
+  Assert(CharToNiceStr(CtrlA, [mkCtrl, mkShift]) = 'Shift+Ctrl+A');
+  Assert(CharToNiceStr(CtrlA, [mkCtrl], false, true) = 'Command+A');
+  Assert(CharToNiceStr(CtrlA, [mkCtrl, mkShift], false, true) = 'Shift+Command+A');
+  Assert(KeyToStr(K_F11, []) = 'F11');
+  Assert(KeyToStr(K_F11, [mkCtrl]) = 'Ctrl+F11');
+  Assert(KeyToStr(K_F11, [mkCtrl], true) = 'Command+F11');
 end;
 
 initialization

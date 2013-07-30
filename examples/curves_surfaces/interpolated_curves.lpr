@@ -306,7 +306,6 @@ var
   NewTBegin, NewTEnd: Float;
 begin
   case MenuItem.IntData of
-    1: Window.FullScreen := not Window.FullScreen;
     2: Window.Close;
 
     201: StatusVisible := not StatusVisible;
@@ -355,8 +354,7 @@ var
 begin
   Result := TMenu.Create('Main menu');
     M := TMenu.Create('File');
-    M.Append(TMenuItemChecked.Create('FullScreen on/off', 1, K_F11,
-      Window.FullScreen, true));
+    M.Append(TMenuItemToggleFullScreen.Create(Window.FullScreen));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Exit',                     2, CharEscape));
   Result.Append(M);

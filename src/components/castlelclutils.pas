@@ -75,11 +75,17 @@ procedure KeyLCLToCastle(const Key: Word; const Shift: TShiftState;
   Sets LazKey to VK_UNKNOWN (zero) when convertion not possible
   (or when Key is K_None and CharKey = #0).
 
-  Note that this is not perfectly a reverse of KeyLCLToCastle function.
-  On Mac OS X (Darwin), the shortcuts which use Ctrl key are converted
-  to use Command (ssMeta in LCL) modifier. }
+  Note that this is not a perfect reverse of KeyLCLToCastle function.
+  It can't, as there are ambiguities (e.g. character 'A' may
+  be a key K_A with mkShift in modifiers).
+
+  @groupBegin }
+procedure KeyCastleToLCL(const Key: TKey; const CharKey: char;
+  const Modifiers: TModifierKeys;
+  out LazKey: Word; out Shift: TShiftState);
 procedure KeyCastleToLCL(const Key: TKey; const CharKey: char;
   out LazKey: Word; out Shift: TShiftState);
+{ @groupEnd }
 
 { Convert Lazarus Controls.TMouseButton value to Castle Game Engine
   CastleKeysMouse.TMouseButton.
@@ -284,6 +290,13 @@ end;
 procedure KeyCastleToLCL(const Key: TKey; const CharKey: char;
   out LazKey: Word; out Shift: TShiftState);
 begin
+  KeyCastleToLCL(Key, CharKey, [], LazKey, Shift);
+end;
+
+procedure KeyCastleToLCL(const Key: TKey; const CharKey: char;
+  const Modifiers: TModifierKeys;
+  out LazKey: Word; out Shift: TShiftState);
+begin
   Shift := [];
   LazKey := VK_UNKNOWN;
   case Key of
@@ -365,6 +378,13 @@ begin
           end;
       end;
   end;
+
+  if mkShift in Modifiers then
+    Shift += [ssShift];
+  if mkCtrl in Modifiers then
+    Shift += [ssCtrlOrCommand];
+  if mkAlt in Modifiers then
+    Shift += [ssAlt];
 end;
 
 function MouseButtonLCLToCastle(

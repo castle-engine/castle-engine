@@ -137,9 +137,11 @@ procedure TCastleWindowBase.BackendMenuInitialize;
   { This tells GTK that key shortcut to Item is as specified in
     Key and CharKey. Key and Charkey are taken from TMenuItem.Key/CharKey
     properties. }
-  procedure InstallGtkAccelerator(Item: PGtkMenuItem; Key: TKey; CharKey: char);
-  var gdk_keyval: GUint;
-      modifier_type: TGdkModifierType;
+  procedure InstallGtkAccelerator(Item: PGtkMenuItem;
+    const Key: TKey; const CharKey: char; const Modifiers: TModifierKeys);
+  var
+    gdk_keyval: GUint;
+    modifier_type: TGdkModifierType;
   begin
    { Calculate GDK keyval gdk_keyval and modifier_type.
      (Look for possible gdk_keyval values in gdk/gdkkeysyms.h header
@@ -224,6 +226,13 @@ procedure TCastleWindowBase.BackendMenuInitialize;
        K_Period: gdk_keyval := GDK_KEY_Period;
        else Exit;
       end;
+
+      if mkShift in Modifiers then
+        modifier_type := modifier_type or GDK_SHIFT_MASK;
+      if mkCtrl in Modifiers then
+        modifier_type := modifier_type or GDK_CONTROL_MASK;
+      if mkAlt in Modifiers then
+        modifier_type := modifier_type or GDK_ALT_MASK;
    end;
 
    gtk_widget_add_accelerator(PGtkWidget(Item), 'activate', window_accel_group,

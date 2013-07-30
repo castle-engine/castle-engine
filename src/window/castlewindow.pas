@@ -2830,10 +2830,15 @@ function Clipboard: TCastleClipboard;
 procedure Resize2D(Window: TCastleWindowBase);
 
 { Describe given key. Key is given as combination of character code (may be #0)
-  and Key code (may be K_None). Only when both CharKey = #0 and Key = K_None
+  and Key code (may be K_None), and additional required @link(Modifiers)
+  (although some modifiers may be already implied by CharKey).
+  See @link(TMenuItem.Key) and @link(TMenuItem.CharKey) and @link(TMenuItem.Modifiers).
+
+  Only when both CharKey = #0 and Key = K_None
   then this combination doesn't describe any key, and we return @false.
   Otherwise we return @true and set S. }
-function KeyString(const CharKey: char; const Key: TKey; out S: string): boolean;
+function KeyString(const CharKey: char; const Key: TKey; const Modifiers: TModifierKeys;
+  out S: string): boolean;
 
 {$undef read_interface}
 
@@ -3260,7 +3265,7 @@ procedure TCastleWindowBase.DoKeyDown(Key: TKey; CharKey: char);
       end;
      end else
      if (Entry is TMenuItem) and
-        TMenuItem(Entry).KeyMatches(Key, CharKey) then
+        TMenuItem(Entry).KeyMatches(Key, CharKey, Pressed.Modifiers) then
       Result := TMenuItem(Entry);
     end;
 
@@ -5016,17 +5021,19 @@ begin
   OrthoProjection(0, Window.Width, 0, Window.Height);
 end;
 
-function KeyString(const CharKey: char; const Key: TKey; out S: string): boolean;
+function KeyString(const CharKey: char; const Key: TKey;
+  const Modifiers: TModifierKeys; out S: string): boolean;
 begin
   if CharKey <> #0 then
   begin
-    S := CharToNiceStr(CharKey, false
+    S := CharToNiceStr(CharKey, Modifiers, false
       {$ifdef CASTLE_WINDOW_LCL} {$ifdef LCLCarbon}, true {$endif} {$endif} );
     Result := true;
   end else
   if Key <> K_None then
   begin
-    S := KeyToStr(Key);
+    S := KeyToStr(Key, Modifiers
+      {$ifdef CASTLE_WINDOW_LCL} {$ifdef LCLCarbon}, true {$endif} {$endif});
     Result := true;
   end else
   Result := false;

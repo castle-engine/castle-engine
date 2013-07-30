@@ -25,11 +25,12 @@ type
   published
     procedure Test1;
     procedure TestNotifications;
+    procedure TestMenu;
   end;
 
 implementation
 
-uses SysUtils, CastleWindow, CastleControls;
+uses SysUtils, CastleWindow, CastleControls, CastleStringUtils, CastleKeysMouse;
 
 procedure TTestWindow.Test1;
 var
@@ -52,6 +53,31 @@ begin
     C := TCastleButton.Create(Window);
     FreeAndNil(C);
   finally FreeAndNil(Window) end;
+end;
+
+procedure TTestWindow.TestMenu;
+var
+  M: TMenuItem;
+begin
+  M := TMenuItem.Create('blah', 123, 'a');
+  Assert(M.KeyMatches(K_A, 'a', []));
+  { Below may be improved in the future, for now our KeyMatches is probably too forgiving.
+    Below combination is not even usually possible, with mkCtrl you would get CtrlA
+    character usually. }
+  Assert(M.KeyMatches(K_A, 'a', [mkCtrl]));
+  FreeAndNil(M);
+
+  M := TMenuItem.Create('blah', 123, K_F11);
+  Assert(M.KeyMatches(K_F11, #0, []));
+  { below may be improved in the future, for now our KeyMatches is probably too forgiving }
+  Assert(M.KeyMatches(K_F11, #0, [mkCtrl]));
+  FreeAndNil(M);
+
+  M := TMenuItem.Create('blah', 123, K_F11);
+  M.Modifiers := [mkCtrl];
+  Assert(not M.KeyMatches(K_F11, #0, []));
+  Assert(M.KeyMatches(K_F11, #0, [mkCtrl]));
+  FreeAndNil(M);
 end;
 
 initialization

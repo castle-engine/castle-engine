@@ -237,7 +237,7 @@ begin
   end;
   {$endif}
 
-  KeyCastleToLCL(Entry.Key, Entry.CharKey, LazKey, Shift);
+  KeyCastleToLCL(Entry.Key, Entry.CharKey, Entry.Modifiers, LazKey, Shift);
   EntryLCL.ShortCut := KeyToShortCut(LazKey, Shift);
 end;
 

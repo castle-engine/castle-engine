@@ -283,8 +283,6 @@ type
 const
   MouseButtonStr: array [TMouseButton] of string = ('left', 'middle', 'right');
 
-function KeyToStr(key: TKey): string;
-
 type
   { Modifier keys are keys that, when pressed, modify the meaning of
     other keys. Of course, this is actually just a convention.
@@ -385,6 +383,9 @@ type
     procedure Clear;
   end;
 
+function KeyToStr(const Key: TKey; const Modifiers: TModifierKeys = [];
+  const CtrlIsCommand: boolean = false): string;
+
 const
   ModifierKeyToKey: array[TModifierKey]of TKey = (K_Ctrl, K_Shift, K_Alt);
 
@@ -400,6 +401,26 @@ function ModifiersDown(Pressed: TKeysPressed): TModifierKeys; overload;
 { @groupEnd }
 
 function ModifierKeysToNiceStr(const MK: TModifierKeys): string;
+
+{ Return a nice very short description of the character.
+  When Modifiers is not empty, these are the additional modifiers
+  required to be pressed (although some C values, like CtrlA ... CtrlZ,
+  may already indicate some modifier).
+
+  For normal readable characters just returns them, for special
+  characters returns short string like "Ctrl+C" or "Escape".
+
+  The returned string doesn't contain any quotes around, doesn't
+  contain any word merely stating "character" (for example argument 'c' just
+  generates 'c', not 'character "c"').
+
+  BackSpaceTabEnterString determines behavior on three special values:
+  #8, #9, #13. These may be either described as Backspace/Tab/Enter
+  (if BackSpaceTabEnterString = true)
+  or as Ctrl+H, Ctrl+I, Ctrl+M (if BackSpaceTabEnterString = false). }
+function CharToNiceStr(const C: char; const Modifiers: TModifierKeys = [];
+  const BackSpaceTabEnterString: boolean = true;
+  const CtrlIsCommand: boolean = false): string;
 
 type
   TMouseWheelDirection = (mwNone, mwUp, mwDown, mwLeft, mwRight);
@@ -711,9 +732,27 @@ const
   'Reserved_191'
   );
 
-function KeyToStr(Key: TKey): string;
+function KeyToStr(const Key: TKey; const Modifiers: TModifierKeys;
+  const CtrlIsCommand: boolean): string;
 begin
-  Result := KeyToStrTable[Key];
+  { early exit, key K_None means "no key", Modifiers are ignored }
+  if Key = K_None then Exit(KeyToStrTable[Key]);
+
+  Result := '';
+
+  { add modifiers description }
+  if mkShift in Modifiers then
+    Result += 'Shift+';
+  if mkAlt in Modifiers then
+    Result += 'Alt+';
+  if mkCtrl in Modifiers then
+  begin
+    if CtrlIsCommand then
+      Result += 'Command+' else
+      Result += 'Ctrl+';
+  end;
+
+  Result += KeyToStrTable[Key];
 end;
 
 function StrToKey(const S: string; const DefaultKey: TKey): TKey;
@@ -748,6 +787,46 @@ begin
    so it's safe to check Result[Length(result)]. }
  if Result[Length(result)] = ',' then SetLength(result, Length(result)-1);
  Result += ']';
+end;
+
+function CharToNiceStr(const C: char; const Modifiers: TModifierKeys;
+  const BackSpaceTabEnterString, CtrlIsCommand: boolean): string;
+begin
+  { early exit, character #0 means "no key", Modifiers are ignored }
+  if C = #0 then Exit('#0');
+
+  Result := '';
+
+  { add modifiers description }
+  if (mkShift in Modifiers) or (C in ['A'..'Z']) then
+    Result += 'Shift+';
+  if mkAlt in Modifiers then
+    Result += 'Alt+';
+  if (mkCtrl in Modifiers) or (C in [CtrlA .. CtrlZ]) then
+  begin
+    if CtrlIsCommand then
+      Result += 'Command+' else
+      Result += 'Ctrl+';
+  end;
+
+  if BackSpaceTabEnterString then
+  begin
+    case C of
+      CharBackSpace: begin Result += 'BackSpace'; Exit; end;
+      CharTab      : begin Result += 'Tab'      ; Exit; end;
+      CharEnter    : begin Result += 'Enter'    ; Exit; end;
+    end;
+  end;
+
+  case c of
+    CharEscape: Result += 'Esc';
+    ' ' : Result += 'Space';
+    { Show lowercase letters as uppercase, this is standard for showing menu item shortcuts.
+      Uppercase letters will be prefixed with Shift+. }
+    'a' .. 'z': Result += Chr(Ord(C) - Ord('a') + Ord('A'));
+    CtrlA .. CtrlZ: Result += Chr(Ord(C) - Ord(CtrlA) + Ord('A')); // we already added Ctrl+ prefix
+    else Result += C;
+  end;
 end;
 
 function MouseWheelDirection(const Scroll: Single; const Vertical: boolean): TMouseWheelDirection;

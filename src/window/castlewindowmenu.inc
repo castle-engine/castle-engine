@@ -34,7 +34,7 @@
 
       Used only on root menu item
       (the one with ParentMenu = @nil). From TMenuEntry implementations,
-      you should use CorrentParentWindow, that looks for it recursively.
+      you should use CorrectParentWindow, that looks for it recursively.
       This way we only have to update it on SetMainMenu (no need to keep
       it recursively updated in all TMenuEntry instances). }
     ParentWindow: TCastleWindowBase;
@@ -193,34 +193,28 @@
 
     FCharKey: char;
     FKey: TKey;
+    FModifiers: TModifierKeys;
   public
-    { This is any data for user-specific purposes. }
+    { An integer value, for any purpose you want. Useful to identify this item in
+      TCastleWindowBase.OnMenuClick callback. }
     property IntData: Integer read FIntData write FIntData;
 
-    { This is internally initialized at creation of this object.
-      Each existing TMenuItem will have a unique SmallId. Each "existing" --
-      -- this means that after destroying some TMenuItem object, it's SmallId
-      may be reused by some TMenuItem created after that (even if this does not
-      occur now).
+    { Unique small identifier of this menu item.
+      This is initialized at creation of this object, to be unique among
+      all currently existing (created and not destroyed) TMenuItem instances.
 
-      The intention is that this SmallId should be smallest possible value >= 0.
-      So it's NOT something like PtrInt(Self).
-      This means that as long as you won't create, say, more than 60 000
-      menu items in your program (and that's a reasonable assumption) you
-      can count on the fact that "every SmallId is >= 0 and < 60 000".
-
-      And this makes SmallId very useful when you're constructing a menu
+      The intention is that this SmallId should be the smallest possible value >= 0.
+      So it's not something like PtrUInt(Self).
+      This may be useful when you're constructing a menu
       using some API --- you usually want to identify
       your menu item by some unique id and you want this id to be small
       (e.g. under WinAPI menu item's id must fit in 16 bit integer).
-      That's where PtrInt(Self) is not useful and that's where
-      this SmallId is useful.
 
       @seealso MenuItemFromSmallId }
     property SmallId: Integer read FSmallId;
 
-    { This will be called when this MenuItem will be choosen by a user
-      (or user will press key matching with our Key/CharKey).
+    { Called when this menu item will be choosen by user (by clicking,
+      or pressing the matching key shortcut).
 
       You can override this and return true if you handled the event.
       If this will return false, CastleWindow will call EventMenuClick
@@ -232,92 +226,71 @@
       Default implementation of this method in this class always returns false. }
     function DoClick: boolean; virtual;
 
-    { Key shortcuts for this menu item.
+    { Key shortcut for this menu item.
 
-      If Key <> K_None and user will press this Key
-      then this object's DoClick will be called
-      (and TCastleWindowBase.EventMenuClick, and TCastleWindowBase.OnMenuClick,
+      When user presses indicated Key (if it's not K_None)
+      or CharKey (if it's not #0) then DoClick will be called
+      (which results in TCastleWindowBase.EventMenuClick,
+      and TCastleWindowBase.OnMenuClick,
       if DoClick returns false).
-      Similiar, is CharKey <> #0 and user will press a key with CharKey
-      then it will be treated as this menu item click.
 
-      Such key press redirection is handled internally in CastleWindow
-      (possibly it's even internally handled in some library on top
-      of which CastleWindow is implemented, e.g. WinAPI and GTK menus
-      can be explicitly connected with some key press
-      (i.e. without doing any special redirection keypress -> DoClick
-      in CastleWindow).
-      So you will not get EventPress (OnPress) messages for such
-      keypresses (that translate to menu click). Although
-      TCastleWindowBase.Pressed.Keys will be appropriately updated, of course.
+      Handling of menu key shortcuts is completely within the CastleWindow
+      (usually, it's even done by the underlying backend like GTK or WinAPI).
+      You will not get EventPress (OnPress) messages for keypresses that translate
+      to menu clicks. Although TCastleWindowBase.Pressed.Keys will be
+      still appropriately updated.
 
-      Note: Caption of this object should not contain
-      description of Key and CharKey, such description will be automatically
-      shown to user (maybe by adding something like ' [Ctrl+O]' to displayed
-      Caption, maybe in some better (more visually-pleasing) way).
+      Note that Caption of this object should not contain
+      description of Key or CharKey. The backend will automatically show the
+      key description in an appropriate way.
 
-      Note: you don't have to give really corresponding Key and CharKey
-      values, as such correspondency may be dependent on state of modifier keys
-      and OS configuration.
+      You should use at most one of these properties, not both.
+      So either use Key or CharKey, and leave the other one at default
+      value (Key = K_None, CharKey = #0).
 
-      In fact, usually you SHOULD give Key = K_None or c = #0.
-      E.g. you should NOT set Key = K_C and CharKey = 'c'.
-      Instead you should set Key = K_C and CharKey = #0 or
-      Key = K_None and CharKey = 'c'. This way you avoid some uncertainty:
-      Key = K_C is something other than CharKey = 'c' (e.g. Shift+C
-      generates K_C, but does not translate as CharKey = 'c' (it is translated
-      as CharKey = 'C' ('C' uppercase !)).
+      Note that
+      CharKey = #8 (CharBackSpace = CtrlH) or
+      CharKey = #9 (CharTab = CtrlI) or
+      CharKey = #13 (CharEnter = CtrlM)
+      are interpreted to mean the combination of letter with Ctrl modfier.
+      They do @bold(not) mean the backspace or tab or enter keys.
+      If you want to have backspace/tab/enter keys to activate the menu item,
+      use Key = K_BackSpace, Key = K_Tab or Key =  K_Enter.
 
-      Notes about CharKey values #8 (CharBackSpace = CtrlH),
-      #9 (CharTab = CtrlI), #13 (CharEnter = CtrlM): these are problematic,
-      since they may mean backspace/tab/enter or combinations with Ctrl key.
-      Our algorithm to deal with this:
-
-      @orderedList(
-        @item(If your CharKey is one of the CharBackSpace/Tab/Enter constants,
-          @italic(and @link(Key) is K_None), then you mean the combination
-          with Ctrl key. That's how it's displayed, and moreover: keyboard
-          presses with K_BackSpace/K_Tab/K_Enter do @italic(not) trigger
-          this menu item.
-
-          This way menu items with Ctrl+H or Ctrl+M or Ctrl+I do not block
-          you from assigning keyboard K_BackSpace/K_Tab/K_Enter
-          to some other useful action.)
-
-        @item(If you really want to assign keyboard backspace/tab/enter
-          presses to menu item, use TKey constants K_BackSpace, K_Tab, K_Enter.)
-      )
-
-      Design notes: I am no longer using TMenuItemKey class.
-      Instead I put this functionality into base TMenuItem class.
-      Before, I had in this class TMenuItemChecked functionality,
-      but it's better to put here TMenuItemKey functionality.
-      That's because in this class we have a natural way to specify
-      TMenuItem that does not translate to any key (Key = K_None and
-      CharKey = #0). While with TMenuItemChecked it would require
-      additional property ShowChecked. And I HAVE to integrate into
-      TMenuItem class some functionality -- otherwise, if I would
-      separated both TMenuItemKey and TMenuItemChecked classes,
-      then I would be forced to create additional TMenuItemKeyChecked
-      class.
-
-      TODO:  change these to writeable
+      TODO: for now, this must be assigned before adding this menu item
+      to parent (actually, before the parent menu is added to window MainMenu)
+      to work reliably. Don't change this property afterwards.
+      Usually, you will set this property by an argument to the constructor.
 
       @groupBegin }
-    property CharKey: char read FCharKey default #0;
-    property Key: TKey read FKey default K_None;
+    property CharKey: char read FCharKey write FCharKey default #0;
+    property Key: TKey read FKey write FKey default K_None;
     { @groupEnd }
 
-    { This returns as S the string that describes CharKey (if CharKey <> #0)
-      or Key (if Key <> K_None) and then returns true.
+    { Modifiers (shift, ctrl and such) required to activate this menu item.
+      These have to be pressed along with @link(Key) or @link(CharKey).
+
+      Note that CharKey may already indicate some modifiers,
+      if it's one of the CtrlA ... CtrlZ then the Ctrl key is required
+      and if it's an uppercase letter then the Shift key is required.
+      There's no need to include this modifier in this property then.
+
+      TODO: for now, this must be assigned before adding this menu item
+      to parent (actually, before the parent menu is added to window MainMenu)
+      to work reliably. Don't change this property afterwards. }
+    property Modifiers: TModifierKeys read FModifiers write FModifiers;
+
+    { Returns as S the string that describes key shortcut
+      (@link(CharKey), @link(Key), @link(Modifiers)) and then returns true.
       If both CharKey = #0 and Key = K_None then returns false and
       S is undefined. }
     function KeyString(out S: string): boolean;
 
-    function KeyMatches(const AKey: TKey; const ACharKey: char): boolean;
+    function KeyMatches(const AKey: TKey; const ACharKey: char;
+      const AModifiers: TModifierKeys): boolean;
 
-    { This is Caption with optional key description (returned by KeyString)
-      appended in '[' ... ']'. }
+    { Caption with optional key description (returned by KeyString)
+      appended. }
     function CaptionWithKey: string;
 
     constructor Create(const ACaption: String; AIntData: Integer); overload;
@@ -343,7 +316,7 @@
     { Called when Checked property is assigned. }
     procedure SetChecked(Value: boolean); virtual;
 
-    { This is called from DoClick when AutoCheckedToggle is @true.
+    { Called from DoClick when AutoCheckedToggle is @true.
       It's supposed to actually implement the AutoCheckedToggle behavior.
 
       Note that this is overriden ina a "dirty" way
@@ -352,13 +325,13 @@
   public
     property Checked: boolean read FChecked write SetChecked;
 
-    { true means that each time user chooses this menu item,
-      Checked is changed to not Checked. }
+    { If @true then each time user chooses this menu item,
+      @link(Checked) is changed to @code(not Checked). }
     property AutoCheckedToggle: boolean read FAutoCheckedToggle
       write FAutoCheckedToggle;
 
-    { This always returns false.
-      It is overriden here only to handle AutoCheckedToggle }
+    { Overriden to handle AutoCheckedToggle. In this class,
+      DoClick still returns false (like in ancestor class). }
     function DoClick: boolean; override;
 
     constructor Create(const ACaption: String; AIntData: Integer;
@@ -454,6 +427,20 @@
     function Next(out Item: TMenuItemRadio): boolean;
 
     (* procedure DebugWriteln; *)
+  end;
+
+  { Menu item that toggles TCastleWindowBase.FullScreen.
+
+    This already has a nice caption, key shortcut (F11 on most platforms,
+    except Mac OS X where it's Command+F11 (on LCL backend) or Ctrl+F11
+    (on other backends), since the bare F11 is reserved on Mac OS X).
+    And it has a DoClick implementation that takes care of the actual job.
+
+    So you can just add it to your menu, and forget about it.
+    It's initial state }
+  TMenuItemToggleFullScreen = class(TMenuItemChecked)
+    constructor Create(const InitialFullScreen: boolean);
+    function DoClick: boolean; override;
   end;
 
 {$endif read_interface}
@@ -720,11 +707,16 @@ end;
 
 function TMenuItem.KeyString(out S: string): boolean;
 begin
-  Result := CastleWindow.KeyString(CharKey, Key, S);
+  Result := CastleWindow.KeyString(CharKey, Key, Modifiers, S);
 end;
 
-function TMenuItem.KeyMatches(const AKey: TKey; const ACharKey: char): boolean;
+function TMenuItem.KeyMatches(const AKey: TKey; const ACharKey: char;
+  const AModifiers: TModifierKeys): boolean;
 begin
+  { AModifiers (currently pressed) must be a superset of required Modifiers. }
+  if not (AModifiers >= Modifiers) then
+    Exit(false);
+
   { For CtrlH (= CharBackspace), *do not* match backspace key. }
   if (Key = K_None) and (CharKey = CharBackSpace) then
     Result := (ACharKey = CharBackSpace) and not (AKey = K_BackSpace) else
@@ -1068,6 +1060,24 @@ begin
   begin
     Item := nil;
     Result := false;
+  end;
+end;
+
+{ TMenuItemToggleFullScreen -------------------------------------------------- }
+
+constructor TMenuItemToggleFullScreen.Create(const InitialFullScreen: boolean);
+begin
+  inherited Create('_Full Screen', 0, K_F11, InitialFullScreen, true);
+  {$ifdef DARWIN} Modifiers := [mkCtrl]; {$endif}
+end;
+
+function TMenuItemToggleFullScreen.DoClick: boolean;
+begin
+  Result := inherited;
+  if not Result then
+  begin
+    with CorrectParentWindow do FullScreen := not FullScreen;
+    Result := true;
   end;
 end;
 
