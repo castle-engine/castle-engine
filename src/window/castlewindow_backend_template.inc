@@ -113,10 +113,10 @@ begin
   if not Closed then { TODO };
 end;
 
-procedure TCastleWindowBase.SetCaption(const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
-  FCaption := Value;
-  if not Closed then { TODO };
+  FCaption[Part] := Value;
+  if not Closed then { TODO: use GetWholeCaption };
 end;
 
 procedure TCastleWindowBase.BackendMakeCurrent;

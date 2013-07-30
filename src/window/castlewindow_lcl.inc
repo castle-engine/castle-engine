@@ -431,7 +431,7 @@ begin
     to OpenGLControl.Width/Height. But it doesn't work. }
   Form.Width := Width;
   Form.Height := Height;
-  Form.Caption := Caption; // SetCaption may also change it later
+  Form.Caption := GetWholeCaption; // SetCaption may also change it later
   Form.Cursor := CursorCastleToLCL[Cursor]; // SetCursor may also change it later
 
   UpdateFullScreen;
@@ -535,10 +535,10 @@ begin
   if not Closed then OpenGLControl.Invalidate;
 end;
 
-procedure TCastleWindowBase.SetCaption(const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
-  FCaption := Value;
-  if not Closed then Form.Caption := Caption;
+  FCaption[Part] := Value;
+  if not Closed then Form.Caption := GetWholeCaption;
 end;
 
 procedure TCastleWindowBase.BackendMakeCurrent;

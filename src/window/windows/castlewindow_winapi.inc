@@ -1144,10 +1144,10 @@ begin
   OSCheck( wglMakeCurrent(h_Dc, h_GLRc), 'wglMakeCurrent');
 end;
 
-procedure TCastleWindowBase.SetCaption(const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
-  fCaption := Value;
-  if h_Wnd <> 0 then SetWindowText(h_Wnd, PChar(Value));
+  FCaption[Part] := Value;
+  if h_Wnd <> 0 then SetWindowText(h_Wnd, PChar(GetWholeCaption));
 end;
 
 procedure TCastleWindowBase.CreateBackend;

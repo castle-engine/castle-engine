@@ -455,17 +455,17 @@ begin
   windowXID := None;
 end;
 
-procedure TCastleWindowBase.SetCaption(const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
 var
   PValue: PChar;
   WindTitleProp: TXTextProperty;
 begin
-  fCaption := Value;
+  FCaption[Part] := Value;
 
   if windowXID <> None then
   begin
     { create, use, free WindTitleProp }
-    PValue := PChar(Value);
+    PValue := PChar(GetWholeCaption);
     Check( XStringListToTextProperty(@PValue, 1, @WindTitleProp) <> 0,
       'not enough memory for XStringListToTextProperty');
     XSetTextProperty(Application.XDisplay, windowXID, @WindTitleProp, XInternAtom(Application.XDisplay, 'WM_NAME', XBool_True) );

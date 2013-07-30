@@ -72,15 +72,7 @@ begin
     S := URICaption(Value) else
     S := 'Unsaved surface';
   S := S + ' - design Bezier surface';
-
-  { This may be called from SurfaceNew when window is not yet open.
-    In this case it's best to set Window.Caption instead of Window.FpsBaseCaption.
-    We shouldn't set here Window.FpsBaseCaption, because Window.FpsBaseCaption
-    will be initialized later (when window is open) from Window.Caption... }
-
-  if not Window.Closed then
-    Window.FpsBaseCaption := S else
-    Window.Caption := S;
+  Window.Caption := S;
 end;
 
 { surface new/load/save ------------------------------------------------------ }

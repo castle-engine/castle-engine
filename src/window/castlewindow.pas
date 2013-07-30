@@ -601,6 +601,9 @@ type
   {$undef read_window_interface}
 
   private
+    type
+      TCaptionPart = (cpPublic, cpFps);
+    var
     FWidth, FHeight, FLeft, FTop: Integer;
     FOnOpen: TWindowFunc;
     FOnBeforeDraw, FOnDraw: TDrawFunc;
@@ -619,7 +622,7 @@ type
     FCursor: TMouseCursor;
     FCustomCursor: TRGBAlphaImage;
     FAutoRedisplay: boolean;
-    FCaption: string;
+    FCaption: array [TCaptionPart] of string;
     BeforeFullScreenGeometryKnown: boolean;
     BeforeFullScreenLeft, BeforeFullScreenTop, BeforeFullScreenWidth, BeforeFullScreenHeight: Integer;
 
@@ -656,7 +659,10 @@ type
     procedure SetCursor(const Value: TMouseCursor);
     procedure SetCustomCursor(const Value: TRGBAlphaImage);
     procedure SetAutoRedisplay(value: boolean);
-    procedure SetCaption(const Value: string);
+    function GetPublicCaption: string;
+    procedure SetPublicCaption(const Value: string);
+    procedure SetCaption(const Part: TCaptionPart; const Value: string);
+    function GetWholeCaption: string;
     procedure SetFullScreen(const Value: boolean);
 
     { Set FullScreen value in a dumb (but always reliable) way:
@@ -1485,7 +1491,7 @@ end;
 
     { Caption of the window. By default it's initialized to ApplicationName.
       May be changed even when the window is already open. }
-    property Caption: string read FCaption write SetCaption;
+    property Caption: string read GetPublicCaption write SetPublicCaption;
 
     { Draw your window contents here.
 
@@ -1972,10 +1978,6 @@ end;
     { Frames per second measuring. }
     property Fps: TFramesPerSecond read FFps;
 
-    { Set Caption to WindowTitle with description of
-      Fps.FrameTime and Fps.RealTime. }
-    procedure FpsToCaption(const WindowTitle: string);
-
     { OpenAndRun stuff --------------------------------------------------------- }
 
     { Shortcut for Open (create and show the window with GL contex)
@@ -2183,13 +2185,11 @@ end;
     switch FullScreen, and to display FPS on window caption. }
   TCastleWindowDemo = class(TCastleWindowBase)
   private
-    lastFpsOutputTick: DWORD;
-    FFpsBaseCaption: string;
+    LastFpsOutputTick: DWORD;
     FFpsShowOnCaption: boolean;
     FSwapFullScreen_Key: TKey;
     FClose_CharKey: char;
     FFpsCaptionUpdateInterval: TMilisecTime;
-    procedure SetFpsBaseCaption(const Value: string);
   public
     { Show current frames per second on window caption.
       You can modify this property only @italic(before calling @link(Open).) }
@@ -2216,13 +2216,6 @@ end;
     property Close_CharKey: char
       read FClose_CharKey write FClose_CharKey default #0;
 
-    { Caption prefix to use when you have FpsShowOnCaption = @true.
-      When FpsShowOnCaption = @true, you should not set Caption directly,
-      set only this property and leave to us setting final Caption.
-
-      FpsBaseCaption will be initialized from Caption at EventOpen. }
-    property FpsBaseCaption: string read FFpsBaseCaption write SetFpsBaseCaption;
-
     { The amount of time (in miliseconds) between updating Caption
       with current FPS value. Used when FpsShowOnCaption.
 
@@ -2244,7 +2237,6 @@ end;
       read FFpsCaptionUpdateInterval write FFpsCaptionUpdateInterval
       default DefaultFpsCaptionUpdateInterval;
 
-    procedure EventOpen; override;
     procedure EventPress(const Event: TInputPressRelease); override;
     procedure EventUpdate; override;
     function AllowSuspendForInput: boolean; override;
@@ -2872,7 +2864,7 @@ begin
  FLeft  := WindowPositionCenter;
  FTop   := WindowPositionCenter;
  FDoubleBuffer := true;
- FCaption := ApplicationName;
+ FCaption[cpPublic] := ApplicationName;
  FResizeAllowed := raAllowed;
  minWidth := 100;  maxWidth := 4000;
  minHeight := 100; maxHeight := 4000;
@@ -3597,15 +3589,15 @@ end;
 
 procedure TCastleWindowBase.OpenAndRun(const ACaption: string; AOnDraw: TDrawFunc);
 begin
- FCaption := ACaption;
- OnDraw := AOnDraw;
- OpenAndRun;
+  SetPublicCaption(ACaption);
+  OnDraw := AOnDraw;
+  OpenAndRun;
 end;
 
 procedure TCastleWindowBase.OpenAndRun;
 begin
- Open;
- Application.Run;
+  Open;
+  Application.Run;
 end;
 
 { TCastleWindowBase ParseParameters -------------------------------------------------- }
@@ -3893,14 +3885,6 @@ begin
     end;
 end;
 
-{ Fps ------------------------------------------------------------------------ }
-
-procedure TCastleWindowBase.FpsToCaption(const WindowTitle: string);
-begin
-  Caption := WindowTitle +
-    Format(' - FPS : %f (real : %f)', [Fps.FrameTime, Fps.RealTime]);
-end;
-
 { TCastleWindowBase miscellaneous -------------------------------------------- }
 
 function TCastleWindowBase.RequestedBufferAttributes: string;
@@ -4081,6 +4065,21 @@ begin
   FullScreen := not FullScreen;
 end;
 
+function TCastleWindowBase.GetPublicCaption: string;
+begin
+  Result := FCaption[cpPublic];
+end;
+
+procedure TCastleWindowBase.SetPublicCaption(const Value: string);
+begin
+  SetCaption(cpPublic, Value);
+end;
+
+function TCastleWindowBase.GetWholeCaption: string;
+begin
+  Result := FCaption[cpPublic] + FCaption[cpFps];
+end;
+
 { TCastleWindowDemo ---------------------------------------------------------------- }
 
 procedure TCastleWindowDemo.EventUpdate;
@@ -4091,24 +4090,14 @@ begin
      ((lastFpsOutputTick = 0) or
       (TimeTickDiff(lastFpsOutputTick, GetTickCount) >= FpsCaptionUpdateInterval)) then
   begin
-    lastFpsOutputTick := GetTickCount;
-    FpsToCaption(FFpsBaseCaption);
+    LastFpsOutputTick := GetTickCount;
+    SetCaption(cpFps, Format(' - FPS : %f (real : %f)', [Fps.FrameTime, Fps.RealTime]));
   end;
 end;
 
 function TCastleWindowDemo.AllowSuspendForInput: boolean;
 begin
   result := (inherited AllowSuspendForInput) and (not FpsShowOnCaption);
-end;
-
-procedure TCastleWindowDemo.EventOpen;
-begin
-  { Calculate FFpsBaseCaption at 1st EventOpen. Don't update it later,
-    since later Caption will already contain the FPS string appended. }
-  if FpsShowOnCaption and (FFpsBaseCaption = '') then
-    FFpsBaseCaption := Caption;
-
-  inherited;
 end;
 
 procedure TCastleWindowDemo.EventPress(const Event: TInputPressRelease);
@@ -4130,17 +4119,6 @@ begin
   SwapFullScreen_Key := ASwapFullScreen_Key;
   Close_CharKey := AClose_CharKey;
   FpsShowOnCaption := AFpsShowOnCaption;
-end;
-
-procedure TCastleWindowDemo.SetFpsBaseCaption(const Value: string);
-begin
-  if FFpsBaseCaption <> Value then
-  begin
-    FFpsBaseCaption := Value;
-    { Update Caption now, otherwise Caption would get updated with
-      some latency (because only when FpsCaptionUpdateInterval is reached). }
-    FpsToCaption(FFpsBaseCaption);
-  end;
 end;
 
 constructor TCastleWindowDemo.Create(AOwner: TComponent);

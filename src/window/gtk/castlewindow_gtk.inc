@@ -766,11 +766,11 @@ begin
     gdk_window_process_updates(GTK_WIDGET(WindowGtk)^.Window, g_true); }
 end;
 
-procedure TCastleWindowBase.SetCaption(const Value: string);
+procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
- FCaption := Value;
- if not Closed then
-  gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(Caption));
+  FCaption[Part] := Value;
+  if not Closed then
+    gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(GetWholeCaption));
 end;
 
 procedure TCastleWindowBase.BackendMakeCurrent;
