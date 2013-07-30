@@ -295,7 +295,7 @@ begin
     ClassHint.res_class := StrNew(PChar(ApplicationName));
 
     { ready WindTitle }
-    PWindTitle := PChar(FCaption);
+    PWindTitle := PChar(GetWholeCaption);
     Check( XStringListToTextProperty(@PWindTitle, 1, @WindTitleProp) <> 0, 'not enough memory for XStringListToTextProperty');
 
     { use prepared WindTitleProp, Size/WM/ClassHints to give a lot of
@@ -331,6 +331,10 @@ begin
     glcontext := glXCreateContext(Application.XDisplay, XVisual, nil, true);
 
   Check(glcontext <> nil, 'Could not create rendering context');
+
+  { applying FullScreen changed the Width / Height }
+  if FullScreen then
+    DoResize(Application.ScreenWidth, Application.ScreenHeight, false);
 
   UpdateCursor;
 

@@ -871,7 +871,7 @@ begin
     Assigned(@gtk_window_set_icon_name) then
    gtk_window_set_icon_name(WindowGtk, PCharOrNil(GtkIconName));
 
- gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(Caption));
+ gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(GetWholeCaption));
  gtk_container_set_border_width(GTK_CONTAINER(WindowGtk), BorderWidth);
 
  { Create VisualAttr and then create appropriate GLAreaGtk
@@ -1068,6 +1068,10 @@ begin
    and always return nil if their widget is not realized. }
  GLDrawable := gtk_widget_get_gl_drawable(GLAreaGtk);
  GLContext := gtk_widget_get_gl_context(GLAreaGtk);
+
+ { applying FullScreen changed the Width / Height }
+ if FullScreen then
+   DoResize(Application.ScreenWidth, Application.ScreenHeight, false);
 
  UpdateCursor;
 end;

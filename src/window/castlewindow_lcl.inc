@@ -473,7 +473,8 @@ begin
 
   { pass the actual OpenGLControl sizes (e.g. after accounting for MainMenu size
     under GTK2 widgetset, actually under all widgetsets that do not have global
-    menu (like Mac OS X). DoResize is already implemented to handle such
+    menu (like Mac OS X), and after accounting for FullScreen).
+    DoResize is already implemented to handle such
     call (from OpenBackend, before EventOpen was called) correctly. }
   DoResize(OpenGLControl.Width, OpenGLControl.Height, false);
 

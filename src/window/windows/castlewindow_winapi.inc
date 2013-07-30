@@ -757,7 +757,7 @@ procedure TCastleWindowBase.OpenWinSystemDepend;
         { create Temp_H_wnd }
         Temp_H_wnd := CreateWindowEx(WS_EX_APPWINDOW or WS_EX_WINDOWEDGE,
           PChar(Application.wndClassName),
-          PChar(FCaption + ' - temporary window for wgl'),
+          PChar(GetWholeCaption + ' - temporary window for wgl'),
           WS_OVERLAPPEDWINDOW or WS_CLIPSIBLINGS or WS_CLIPCHILDREN,
           0, 0, 100, 100,
           0 { no parent window }, 0 { no menu }, hInstance,
@@ -1014,7 +1014,7 @@ begin
 
   { main point : create the window }
   H_wnd := CreateWindowEx(dwExStyle,
-    PChar(Application.wndClassName), PChar(fCaption), dwStyle,
+    PChar(Application.wndClassName), PChar(GetWholeCaption), dwStyle,
     windowRect.left, windowRect.top,
     windowRect.right-windowRect.left, windowRect.Bottom-windowRect.top,
     0 { no parent window }, H_Menu, hInstance,
@@ -1072,15 +1072,16 @@ begin
 
   { Windows does not send us WM_SIZE messages when FullScreen (that's probably
     caused by our special dwStyle and dwStyleEx for FullScreen, probably
-    by the lack of WS_OVERLAPPED in dwStyle). But we should check it here,
-    because it's possible that the real Width/Height of the OpenGL window is now
-    NOT Application.ScreenWidth/Height - that's because of MainMenu, it takes some space.
+    by the lack of WS_OVERLAPPED in dwStyle). So we should simulate it here,
+    because we actually "manualy" changed the size (to screen size) by applying FullScreen.
+    Also, MainMenu may take some space, so our size is not even precisely
+    Application.ScreenWidth / Application.ScreenHeight.
     So we check client rect size explicitly, with GetClientRect, and call DoResize
     (we don't care here about ResizeAllowed, DoResize will take care of averything). }
   if FullScreen then
   begin
     OSCheck( GetClientRect(h_Wnd, ClientRect), 'GetClientRect');
-    DoResize(ClientRect.Right-ClientRect.Left, ClientRect.Bottom-ClientRect.Top, false);
+    DoResize(ClientRect.Right - ClientRect.Left, ClientRect.Bottom - ClientRect.Top, false);
   end;
 end;
 
