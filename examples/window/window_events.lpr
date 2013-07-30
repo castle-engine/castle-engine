@@ -104,8 +104,8 @@ end;
 
 procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 begin
-  { Tests:
-  case C of
+  { Cursor tests: }
+  case Event.KeyCharacter of
     'n': Window.Cursor := mcNone;
     'd': Window.Cursor := mcDefault;
     'w': Window.Cursor := mcWait;
@@ -114,7 +114,7 @@ begin
     '3': Window.SetMousePosition(Window.Width, Window.Height);
     '4': Window.SetMousePosition(0          , Window.Height);
     '5': Window.SetMousePosition(Window.Width div 2, Window.Height div 2);
-  end; }
+  end;
 
   Notifications.Show('Press message : ' + Event.Description);
 end;
