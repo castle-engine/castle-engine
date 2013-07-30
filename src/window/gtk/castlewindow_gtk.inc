@@ -706,18 +706,39 @@ begin
   gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk)^.Window, Application.Cursors[Cursor]);
 end;
 
+{$ifndef CASTLE_WINDOW_GTK_WITH_XLIB}
+// Since GDK >= 2.8
+procedure gdk_display_warp_pointer(Display: PGdkDisplay;
+  Screen: PGdkScreen; X, Y: GInt); cdecl; external gdklib;
+// Since GTK >= 2.18
+procedure gdk_window_get_root_coords(Window: PGdkWindow;
+  X, Y: GInt; RootX, RootY: PGInt); cdecl; external gtklib;
+{$endif}
+
 procedure TCastleWindowBase.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+{$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
+{ With older GDK/GTK, you had to use XWarpPointer to position mouse.
+  We still use it, for now, for GTK under Xlib --- this way we work
+  even with ancient GTK versions. }
 begin
-  {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
   if not Closed then
     XWarpPointer(
       gdk_x11_drawable_get_xdisplay(GTK_WIDGET(GLAreaGtk)^.Window),
       X.None,
       gdk_x11_drawable_get_xid(GTK_WIDGET(GLAreaGtk)^.Window),
       0, 0, 0, 0, NewMouseX, NewMouseY);
-  {$else}
-  raise Exception.Create('TCastleWindowBase.SetMousePosition not implemented with GTK under something else than Unix');
-  {$endif}
+{$else}
+var
+  RootX, RootY: GInt;
+begin
+  if not Closed then
+  begin
+    gdk_window_get_root_coords(GTK_WIDGET(GLAreaGtk)^.Window,
+      NewMouseX, NewMouseY, @RootX, @RootY);
+    gdk_display_warp_pointer(Application.XDisplayGdk,
+      Application.XScreenGdk, RootX, RootY);
+  end;
+{$endif}
 end;
 
 procedure TCastleWindowBase.SwapBuffers;
