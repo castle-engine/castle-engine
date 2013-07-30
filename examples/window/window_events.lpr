@@ -54,7 +54,7 @@ end;
 procedure BeforeDraw(Window: TCastleWindowBase);
 begin
   { Part of functionality of OnDraw moved to BeforeDraw.
-    In this program, glWinEvents, there is no point in doing that.
+    In this program there is no point in doing that.
     But I wanted just to show that BeforeDraw really works. }
   glClear(GL_COLOR_BUFFER_BIT);
 end;

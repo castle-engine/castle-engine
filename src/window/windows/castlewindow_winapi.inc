@@ -1368,7 +1368,6 @@ begin
     end;
   end;
 
-  { enter glwin mode }
   Mode := TGLModeFrozenScreen.Create(Self, 0, false);
   try
     if OpenDialog then

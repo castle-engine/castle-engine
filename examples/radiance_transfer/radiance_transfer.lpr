@@ -121,7 +121,7 @@ var
 
 procedure UpdateViewMode; forward;
 
-procedure Open(Glwin: TCastleWindowBase);
+procedure Open(Window: TCastleWindowBase);
 begin
   glEnable(GL_LIGHT0);
   UpdateViewMode;
@@ -164,66 +164,66 @@ begin
     Scene.Attributes.OnRadianceTransfer := @THelper(nil).DoRadianceTransfer;
 end;
 
-procedure MenuClick(Glwin: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Window: TCastleWindowBase; Item: TMenuItem);
 begin
   case Item.IntData of
     10: ViewMode := vmNormal;
     11: ViewMode := vmSimpleOcclusion;
     12: ViewMode := vmFull;
     20: with Scene.Attributes do Lighting := not Lighting;
-    100: Glwin.SaveScreenDialog(FileNameAutoInc(SUnformattable(ApplicationName) + '_screen_%d.png'));
-    200: Glwin.Close;
+    100: Window.SaveScreenDialog(FileNameAutoInc(SUnformattable(ApplicationName) + '_screen_%d.png'));
+    200: Window.Close;
     else Exit;
   end;
   UpdateViewMode;
   Window.PostRedisplay;
 end;
 
-procedure Update(Glwin: TCastleWindowBase);
+procedure Update(Window: TCastleWindowBase);
 
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin
-    LightPos[Coord] += Change * Glwin.Fps.UpdateSecondsPassed *
+    LightPos[Coord] += Change * Window.Fps.UpdateSecondsPassed *
       { scale by Box3DAvgSize, to get similar move on all models }
       Scene.BoundingBox.AverageSize;
-    Glwin.PostRedisplay;
+    Window.PostRedisplay;
   end;
 
   procedure ChangeLightRadius(Change: Float);
   begin
-    LightRadius *= Power(Change, Glwin.Fps.UpdateSecondsPassed);
-    Glwin.PostRedisplay;
+    LightRadius *= Power(Change, Window.Fps.UpdateSecondsPassed);
+    Window.PostRedisplay;
   end;
 
   procedure ChangeLightIntensityScale(Change: Float);
   begin
-    LightIntensityScale *= Power(Change, Glwin.Fps.UpdateSecondsPassed);
-    Glwin.PostRedisplay;
+    LightIntensityScale *= Power(Change, Window.Fps.UpdateSecondsPassed);
+    Window.PostRedisplay;
   end;
 
 begin
-  if Glwin.Pressed[K_A] then ChangeLightPosition(0, -1);
-  if Glwin.Pressed[K_D] then ChangeLightPosition(0,  1);
-  if Glwin.Pressed[K_S] then ChangeLightPosition(1, -1);
-  if Glwin.Pressed[K_W] then ChangeLightPosition(1,  1);
+  if Window.Pressed[K_A] then ChangeLightPosition(0, -1);
+  if Window.Pressed[K_D] then ChangeLightPosition(0,  1);
+  if Window.Pressed[K_S] then ChangeLightPosition(1, -1);
+  if Window.Pressed[K_W] then ChangeLightPosition(1,  1);
 
-  if Glwin.Pressed[K_Q] then
+  if Window.Pressed[K_Q] then
   begin
-    if mkShift in Glwin.Pressed.Modifiers then
+    if mkShift in Window.Pressed.Modifiers then
       ChangeLightPosition(2,  1) else
       ChangeLightPosition(2, -1);
   end;
 
-  if Glwin.Pressed[K_R] then
+  if Window.Pressed[K_R] then
   begin
-    if mkShift in Glwin.Pressed.Modifiers then
+    if mkShift in Window.Pressed.Modifiers then
       ChangeLightRadius(1/1.8) else
       ChangeLightRadius(1.8);
   end;
 
-  if Glwin.Pressed[K_L] then
+  if Window.Pressed[K_L] then
   begin
-    if mkShift in Glwin.Pressed.Modifiers then
+    if mkShift in Window.Pressed.Modifiers then
       ChangeLightIntensityScale(1/1.5) else
       ChangeLightIntensityScale(1.5);
   end;

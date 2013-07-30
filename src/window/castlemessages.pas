@@ -1012,9 +1012,7 @@ begin
  end else
   Window.FlushRedisplay;
 
- {2 faza :
-   Sejwujemy sobie wszystkie wlasciwosci okienka glwin ktore chcemy zmienic.
-   Kiedy juz skonczymy bedziemy chcieli je odtworzyc. }
+ { 2: save all Window properties that we will restore later. }
  SavedMode := TGLMode.CreateReset(Window,
    GL_PIXEL_MODE_BIT or GL_SCISSOR_BIT or GL_ENABLE_BIT or
    GL_LINE_BIT or GL_TRANSFORM_BIT or GL_COLOR_BUFFER_BIT, false,
@@ -1301,7 +1299,7 @@ begin
  inputdata.answerCancelled := false;
 
  {uzywamy dodatkowej zmiennej SAdditional zamiast bezposrednio przekazywac
-  GLWinMessage zmienna answer bo jezeli not result to nie chcemy zmieniac
+  MessageCore zmienna answer bo jezeli not result to nie chcemy zmieniac
   answer. }
  SAdditional := answer;
  MessageCore(Window, textlist, textalign,

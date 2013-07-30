@@ -441,7 +441,7 @@ begin
   Writeln(GLSLProgram.DebugInfo);
 end;
 
-procedure Open(Glwin: TCastleWindowBase);
+procedure Open(Window: TCastleWindowBase);
 
   function LoadTexture(const URL: string): TGLuint;
   begin
@@ -486,7 +486,7 @@ begin
   GLSLProgramRegenerate;
 end;
 
-procedure Close(Glwin: TCastleWindowBase);
+procedure Close(Window: TCastleWindowBase);
 begin
   FreeAndNil(GLSLProgram);
 
@@ -501,7 +501,7 @@ begin
   RenderElevationsCloseGL;
 end;
 
-procedure MenuClick(Glwin: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Window: TCastleWindowBase; Item: TMenuItem);
 
   procedure ExportToX3D(const URL: string;
     const AddShadersTextures: boolean);
@@ -611,7 +611,7 @@ begin
     10: Wireframe := not Wireframe;
     50: begin
           URL := '';
-          if Glwin.FileDialog('Open SRTM (.hgt) terrain file', URL, true,
+          if Window.FileDialog('Open SRTM (.hgt) terrain file', URL, true,
             'All Files|*|' +
             '*SRTM (*.hgt) terrain|*.hgt') then
           begin
@@ -620,7 +620,7 @@ begin
             except
               on E: Exception do
               begin
-                MessageOk(Glwin, Format('Error when loading file "%s" as terrain: %s',
+                MessageOk(Window, Format('Error when loading file "%s" as terrain: %s',
                   [URL, E.Message]));
                 Exit;
               end;
@@ -631,7 +631,7 @@ begin
         end;
     60: begin
           Expression := '';
-          if MessageInputQuery(Glwin, 'Pass CastleScript function expression, using X and Y variables, and calculating height of the terrain at given point.' + nl + nl +
+          if MessageInputQuery(Window, 'Pass CastleScript function expression, using X and Y variables, and calculating height of the terrain at given point.' + nl + nl +
             '(For example, try "sin(x*2) * sin(y*2)").', Expression, taLeft) then
           begin
             try
@@ -639,7 +639,7 @@ begin
             except
               on E: Exception do
               begin
-                MessageOk(Glwin, Format('Error when interpreting expression: %s',
+                MessageOk(Window, Format('Error when interpreting expression: %s',
                   [E.Message]));
                 Exit;
               end;
@@ -650,7 +650,7 @@ begin
         end;
     70: SetElevation(TElevationNoise.Create);
     80: SetElevation(TElevationImage.Create);
-    100: Glwin.Close;
+    100: Window.Close;
     110:
       begin
         NoiseBlur := not NoiseBlur;
@@ -683,7 +683,7 @@ begin
         if Elevation is TElevationImage then
         begin
           URL := TElevationImage(Elevation).ImageURL;
-          if Glwin.FileDialog('Open image file', URL, true,
+          if Window.FileDialog('Open image file', URL, true,
             LoadImage_FileFilters) then
           begin
             try
@@ -691,23 +691,23 @@ begin
             except
               on E: Exception do
               begin
-                MessageOk(Glwin, Format('Error when loading image "%s": %s',
+                MessageOk(Window, Format('Error when loading image "%s": %s',
                   [URL, E.Message]));
               end;
             end;
           end;
         end else
-          MessageOk(Glwin, 'Not an image elevation');
+          MessageOk(Window, 'Not an image elevation');
       end;
     160:
       begin
         if Elevation is TElevationImage then
           TElevationImage(Elevation).ClearImage else
-          MessageOk(Glwin, 'Not an image elevation');
+          MessageOk(Window, 'Not an image elevation');
       end;
     170:
       begin
-        Glwin.ColorDialog(BackgroundColor);
+        Window.ColorDialog(BackgroundColor);
         { It's a little hacky but valid to just set glClearColor directly here.
           If we would use some TCastleSceneManager.MainScene with it's own
           Background, it would override this glClearColor... but we don't have
@@ -723,12 +723,12 @@ begin
     1000, 1001:
       begin
         URL := '';
-        if Glwin.FileDialog('Save terrain to X3D', URL, false,
+        if Window.FileDialog('Save terrain to X3D', URL, false,
           X3DVersion.FileFilters(xeClassic)) then
           ExportToX3D(URL, Item.IntData = 1001);
       end;
   end;
-  Glwin.PostRedisplay;
+  Window.PostRedisplay;
 end;
 
 function CreateMainMenu: TMenu;

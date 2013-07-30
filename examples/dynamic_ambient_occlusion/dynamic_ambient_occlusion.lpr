@@ -716,7 +716,7 @@ end;
 
 { CastleWindow callbacks --------------------------------------------------------- }
 
-procedure Open(Glwin: TCastleWindowBase);
+procedure Open(Sender: TCastleWindowBase);
 const
   GLSLProgramBaseName = 'dynamic_ambient_occlusion';
 var
@@ -726,8 +726,8 @@ begin
      Scene.BoundingBox.IsEmpty then
   begin
     Window.Controls.Remove(SceneManager); { do not try to render }
-    MessageOk(Glwin, 'No elements, or empty bounding box --- we cannot do dyn ambient occlusion. Exiting.', taLeft);
-    Glwin.Close;
+    MessageOk(Window, 'No elements, or empty bounding box --- we cannot do dyn ambient occlusion. Exiting.', taLeft);
+    Window.Close;
     Exit;
   end;
 
@@ -739,8 +739,8 @@ begin
   if GLSLProgram[0].Support = gsNone then
   begin
     Window.Controls.Remove(SceneManager); { do not try to render }
-    MessageOk(Glwin, 'Sorry, GLSL shaders not supported on your graphic card. Exiting.', taLeft);
-    Glwin.Close;
+    MessageOk(Window, 'Sorry, GLSL shaders not supported on your graphic card. Exiting.', taLeft);
+    Window.Close;
     Exit;
   end;
 
@@ -783,23 +783,23 @@ begin
   Writeln('--------------------------------------------------');
 end;
 
-procedure Close(Glwin: TCastleWindowBase);
+procedure Close(Window: TCastleWindowBase);
 begin
   FreeAndNil(GLSLProgram[0]);
   FreeAndNil(GLSLProgram[1]);
 end;
 
-procedure Update(Glwin: TCastleWindowBase);
+procedure Update(Window: TCastleWindowBase);
 begin
-  if Glwin.Pressed.Characters['s'] then
+  if Window.Pressed.Characters['s'] then
   begin
-    ShadowScale *= Power(1.1, Glwin.Fps.UpdateSecondsPassed * 20);
-    Glwin.PostRedisplay;
+    ShadowScale *= Power(1.1, Window.Fps.UpdateSecondsPassed * 20);
+    Window.PostRedisplay;
   end;
-  if Glwin.Pressed.Characters['S'] then
+  if Window.Pressed.Characters['S'] then
   begin
-    ShadowScale *= Power(1/1.1, Glwin.Fps.UpdateSecondsPassed * 20);
-    Glwin.PostRedisplay;
+    ShadowScale *= Power(1/1.1, Window.Fps.UpdateSecondsPassed * 20);
+    Window.PostRedisplay;
   end;
 end;
 
@@ -859,7 +859,7 @@ begin
   end;
 end;
 
-procedure MenuClick(Glwin: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Window: TCastleWindowBase; Item: TMenuItem);
 begin
   case Item.IntData of
     100: begin DrawType := dtNormalGL; UpdateSceneAttribs; end;
@@ -870,7 +870,7 @@ begin
 
     150: Scene.TimePlaying := not Scene.TimePlaying;
 
-    200: Glwin.Close;
+    200: Window.Close;
     else Exit;
   end;
 

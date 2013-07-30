@@ -36,7 +36,7 @@ var
 
   MinSHValue, MaxSHValue: Float;
 
-procedure Draw2D(Glwin: TCastleWindowBase);
+procedure Draw2D(Window: TCastleWindowBase);
 var
   L: Cardinal;
   M: Integer;
@@ -191,18 +191,18 @@ begin
   end;
 end;
 
-procedure Open(Glwin: TCastleWindowBase);
+procedure Open(Window: TCastleWindowBase);
 begin
   glEnable(GL_DEPTH_TEST);
   Font := TGLBitmapFont.Create(BitmapFont_BVSans);
 end;
 
-procedure Close(Glwin: TCastleWindowBase);
+procedure Close(Window: TCastleWindowBase);
 begin
   FreeAndNil(Font);
 end;
 
-procedure MenuClick(Glwin: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Window: TCastleWindowBase; Item: TMenuItem);
 begin
   case Item.IntData of
     10: LM := ChangeIntCycle(LM, -1, MaxSHBasis - 1);
