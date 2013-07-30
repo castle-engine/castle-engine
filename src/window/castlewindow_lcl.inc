@@ -26,6 +26,10 @@
 
   Bugs on GTK2, not on Carbon:
   - All radio menu items are always on. Why?
+
+  Bugs on Carbon, untested elsewhere:
+  - When you switch FullScreen, at application exit there is an access violation
+    in LCL. Seems harmless, so we just ignore it for now.
 *)
 
 {$ifdef read_window_interface}
@@ -71,6 +75,7 @@ private
   procedure MenuItemClick(Sender: TObject);
   procedure MenuUpdateShortcut(Entry: TMenuItem);
   procedure AggressiveUpdate;
+  procedure UpdateFullScreen;
 
   procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   procedure FormDeactivate(Sender: TObject);
@@ -428,10 +433,8 @@ begin
   Form.Height := Height;
   Form.Caption := Caption; // SetCaption may also change it later
   Form.Cursor := CursorCastleToLCL[Cursor]; // SetCursor may also change it later
-  if FullScreen then
-    Form.BorderStyle := bsNone else
-  if ResizeAllowed <> raAllowed then
-    Form.BorderStyle := bsSingle;
+
+  UpdateFullScreen;
 
   Form.OnCloseQuery := @FormCloseQuery;
   { Note: I tried also using OpenGLControl.OnExit for this, seems to be quivalent
@@ -488,6 +491,31 @@ begin
   OpenGLControl.OnMouseWheel := @OpenGLControlMouseWheel;
 
   Application.OpenWindowsAdd(Self);
+end;
+
+procedure TCastleWindowBase.UpdateFullScreen;
+begin
+  if FullScreen then
+  begin
+    Form.BorderStyle := bsNone;
+    Form.WindowState := wsFullScreen;
+  end else
+  begin
+    if ResizeAllowed <> raAllowed then
+      Form.BorderStyle := bsSingle else
+      Form.BorderStyle := bsSizeable;
+    Form.WindowState := wsNormal;
+  end;
+end;
+
+procedure TCastleWindowBase.SetFullScreen(const Value: boolean);
+begin
+  if FFullScreen <> Value then
+  begin
+    FFullScreen := Value;
+    if not Closed then
+      UpdateFullScreen;
+  end;
 end;
 
 procedure TCastleWindowBase.CloseBackend;

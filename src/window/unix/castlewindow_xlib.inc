@@ -120,6 +120,7 @@ var
   FBConfigs: PGLXFBConfig;
   FBConfig: TGLXFBConfig;
   FBConfigsCount: Integer;
+  CorrectLeft, CorrectTop, CorrectWidth, CorrectHeight: Integer;
 const
   AllPointerEventsMask = ButtonPressMask or ButtonReleaseMask or
     EnterWindowMask or LeaveWindowMask or PointerMotionMask;
@@ -216,12 +217,22 @@ begin
 
   if fullscreen then
   begin
-    attr.override_redirect := XBool_true;
+    Attr.override_redirect := XBool_true;
     AttrValueMask := AttrValueMask or CWOverrideRedirect;
+    CorrectLeft := 0;
+    CorrectTop := 0;
+    CorrectWidth := Application.ScreenWidth;
+    CorrectHeight := Application.ScreenHeight;
+  end else
+  begin
+    CorrectLeft := Left;
+    CorrectTop := Top;
+    CorrectWidth := Width;
+    CorrectHeight := Height;
   end;
 
   windowXID := XCreateWindow(Application.XDisplay, parentwinXID,
-    left, top, width, height,
+    CorrectLeft, CorrectTop, CorrectWidth, CorrectHeight,
     0, XVisual^.depth, InputOutput, XVisual^.visual,
     AttrValueMask, @attr);
 
@@ -257,10 +268,10 @@ begin
     XSetWMProtocols(Application.XDisplay, windowXID, @Application.wmDeleteWindow, 1);
 
     { ready sizeHints structure }
-    sizeHints.x := left;
-    sizeHints.y := top;
-    sizeHints.width := width;
-    sizeHints.height := height;
+    sizeHints.x := CorrectLeft;
+    sizeHints.y := CorrectTop;
+    sizeHints.width := CorrectWidth;
+    sizeHints.height := CorrectHeight;
     sizeHints.flags := USSize or USPosition;
     if ResizeAllowed = raAllowed then
     begin
@@ -270,10 +281,10 @@ begin
       sizeHints.max_height := maxHeight;
     end else
     begin
-      sizeHints.min_width := width;
-      sizeHints.min_height := height;
-      sizeHints.max_width := width;
-      sizeHints.max_height := height;
+      sizeHints.min_width := CorrectWidth;
+      sizeHints.min_height := CorrectHeight;
+      sizeHints.max_width := CorrectWidth;
+      sizeHints.max_height := CorrectHeight;
     end;
     sizeHints.flags := sizeHints.flags or PMinSize or PMaxSize;
 
@@ -641,6 +652,12 @@ begin
     the key/mouse with our window in focus, then (holding the key/mouse)
     switched to other window. }
   ReleaseAllKeysAndMouse;
+end;
+
+procedure TCastleWindowBase.SetFullScreen(const Value: boolean);
+begin
+  { Some backends may provide a better way of doing this. }
+  SimpleSetFullScreen(Value);
 end;
 
 { TCastleApplication ------------------------------------------------------- }

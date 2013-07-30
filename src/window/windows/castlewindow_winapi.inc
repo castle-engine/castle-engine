@@ -947,10 +947,12 @@ begin
     set dwStyle and dwExStyle for our window }
   if FFullScreen then
   begin
+    WindowRect := Bounds(0, 0, Application.ScreenWidth, Application.ScreenHeight);
     dwExStyle := WS_EX_APPWINDOW;
     dwStyle := DWord(WS_POPUP); { glut daje tutaj tez WS_MAXIMIZE; bez znaczenia, jak sadze; }
   end else
   begin
+    WindowRect := Bounds(fleft, ftop, fwidth, fheight);
     dwExStyle := WS_EX_APPWINDOW or WS_EX_WINDOWEDGE;
     if ResizeAllowed = raAllowed then
     begin
@@ -971,41 +973,39 @@ begin
       { dwStyle jest tu dokladnien taki sam jak WS_OVERLAPPEDWINDOW ale bez
         WS_THICKFRAME i WS_MAXIMIZEBOX czyli nie mozna resizowac okna. }
       dwStyle := WS_OVERLAPPED or WS_CAPTION or WS_SYSMENU or WS_MINIMIZEBOX;
+
+    { Adjust WindowRect - so that ClientRect will hold the requested size and
+      position. Whole WindowRect will be a bit larger (depends on dwStyle,
+      dwExStyle).
+
+      Note that when FullScreen = true there is no need to do this - the intention
+      of FullScreen is that whole window (with menu) covers whole screen and
+      window has no frame. So WindowRect should be (0, 0, Application.ScreenWidth,
+      Application.ScreenHeight) and this is done set. I could write it like that:
+        AdjustWindowRectEx(WindowRect, dwStyle,
+          (not FullScreen) and (MainMenu <> nil), dwExStyle);
+      but it's more clear to just omit AdjustWindowRectEx call when FullScreen.
+
+      Note the (documented) WinAPI bug here: AdjustWindowRectEx cannot take
+      into account if the menu bar wraps (in two or more rows). This wrapping
+      happens, depending on menu contents and user fonts. But AdjustWindowRectEx
+      has to way to account for it: it only knows if the menu exists at all.
+      Documented in MSDN explicitly: "The AdjustWindowRectEx function does not add
+      extra space when a menu bar wraps to two or more rows.", with no workaround
+      pointed...
+
+      This means that actual OpenGL area size may be different than
+      requested (OnResize will report it corectly, eventually lying, honoring
+      ResizeAllowed properrty). Happened e.g. when glViewImage allowed minimal
+      window size = 200, and default welcome image had 256x256 pixels.
+      When you opened glViewImage with no params in directory with no images,
+      then OpenGL area of size 256x256 was requested, which was so narrow that
+      menu bar wrapped. Which made OpenGL area not tall enough for 256 pixels,
+      and glViewImage had to add a vertical scrollbar to display welcome image.
+    }
+    AdjustWindowRectEx(WindowRect, dwStyle, MainMenu <> nil, dwExStyle);
   end;
   dwStyle := dwStyle or WS_CLIPSIBLINGS or WS_CLIPCHILDREN;
-
-  WindowRect := Bounds(fleft, ftop, fwidth, fheight);
-  { Adjust WindowRect - so that ClientRect will hold the requested size and
-    position. Whole WindowRect will be a bit larger (depends on dwStyle,
-    dwExStyle).
-
-    Note that when FullScreen = true there is no need to do this - the intention
-    of FullScreen is that whole window (with menu) covers whole screen and
-    window has no frame. So WindowRect should be (0, 0, Application.ScreenWidth,
-    Application.ScreenHeight) and this is already set. I could write it like that:
-      AdjustWindowRectEx(WindowRect, dwStyle,
-        (not FullScreen) and (MainMenu <> nil), dwExStyle);
-    but it's more clear to just omit AdjustWindowRectEx call when FullScreen.
-
-    Note the (documented) WinAPI bug here: AdjustWindowRectEx cannot take
-    into account if the menu bar wraps (in two or more rows). This wrapping
-    happens, depending on menu contents and user fonts. But AdjustWindowRectEx
-    has to way to account for it: it only knows if the menu exists at all.
-    Documented in MSDN explicitly: "The AdjustWindowRectEx function does not add
-    extra space when a menu bar wraps to two or more rows.", with no workaround
-    pointed...
-
-    This means that actual OpenGL area size may be different than
-    requested (OnResize will report it corectly, eventually lying, honoring
-    ResizeAllowed properrty). Happened e.g. when glViewImage allowed minimal
-    window size = 200, and default welcome image had 256x256 pixels.
-    When you opened glViewImage with no params in directory with no images,
-    then OpenGL area of size 256x256 was requested, which was so narrow that
-    menu bar wrapped. Which made OpenGL area not tall enough for 256 pixels,
-    and glViewImage had to add a vertical scrollbar to display welcome image.
-  }
-  if not FullScreen then
-    AdjustWindowRectEx(WindowRect, dwStyle, MainMenu <> nil, dwExStyle);
 
   { calculate H_Menu }
   if MainMenu <> nil then
@@ -1014,8 +1014,7 @@ begin
 
   { main point : create the window }
   H_wnd := CreateWindowEx(dwExStyle,
-    PChar(Application.wndClassName), PChar(fCaption),
-    dwStyle,
+    PChar(Application.wndClassName), PChar(fCaption), dwStyle,
     windowRect.left, windowRect.top,
     windowRect.right-windowRect.left, windowRect.Bottom-windowRect.top,
     0 { no parent window }, H_Menu, hInstance,
@@ -1466,6 +1465,12 @@ begin
     { MB_APPLMODAL is actually the default. MB_TASKMODAL would also be suitable
       probably, as we always pass non-nil H_Wnd. }
     MB_APPLMODAL) = IDYES;
+end;
+
+procedure TCastleWindowBase.SetFullScreen(const Value: boolean);
+begin
+  { Some backends may provide a better way of doing this. }
+  SimpleSetFullScreen(Value);
 end;
 
 { TCastleApplication ----------------------------------------------- }

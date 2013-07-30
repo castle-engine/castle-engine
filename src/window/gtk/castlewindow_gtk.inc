@@ -1004,20 +1004,15 @@ begin
    MinWidth, MinHeight, Width, Height, ResizeAllowed }
  if FullScreen then
  begin
-
-  { When I'm in FullScreen I'm setting whole window size to screen size,
-    not only GLArea size to Width/Height. This is the ultimate sense of FullScreen,
+  { When in FullScreen we set whole window size, not just GLArea size, to screen size.
+    This is the ultimate sense of FullScreen,
     so there is no discussion, no matter what value has ResizeAllowed.
     So I'm doing gtk_widget_set_usize(WindowGtk, ...) and
                  gtk_window_set_default_size
     instead of
                  gtk_widget_set_usize(GLAreaGtk, ...) and
                  set_default_glarea_size
-
-    If FullScreen, Width/Height here should be equal to
-    Application.ScreenWidth/Height. But maybe later I will change this
-    in TCastleWindowBase.Open implementation, so I do not want to depend on this. }
-
+  }
   gtk_widget_set_usize(GTK_WIDGET(WindowGtk), MinWidth, MinHeight);
   gtk_window_set_default_size(WindowGtk, Application.ScreenWidth, Application.ScreenHeight);
 
@@ -1485,6 +1480,12 @@ begin
   try
     Result := GtkDialogRun(GTK_DIALOG(Dialog)) = GTK_RESPONSE_YES;
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
+end;
+
+procedure TCastleWindowBase.SetFullScreen(const Value: boolean);
+begin
+  { Some backends may provide a better way of doing this. }
+  SimpleSetFullScreen(Value);
 end;
 
 { TCastleApplication ------------------------------------------------------------- }

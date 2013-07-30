@@ -620,6 +620,8 @@ type
     FCustomCursor: TRGBAlphaImage;
     FAutoRedisplay: boolean;
     FCaption: string;
+    BeforeFullScreenGeometryKnown: boolean;
+    BeforeFullScreenLeft, BeforeFullScreenTop, BeforeFullScreenWidth, BeforeFullScreenHeight: Integer;
 
     { FClosed = are we outside of Open..Close }
     FClosed: boolean;
@@ -655,6 +657,12 @@ type
     procedure SetCustomCursor(const Value: TRGBAlphaImage);
     procedure SetAutoRedisplay(value: boolean);
     procedure SetCaption(const Value: string);
+    procedure SetFullScreen(const Value: boolean);
+
+    { Set FullScreen value in a dumb (but always reliable) way:
+      when it changes, just close, negate FFullScreen and reopen the window.
+      This will work, as long as OpenBackend honors the FullScreen setting. }
+    procedure SimpleSetFullScreen(const Value: boolean);
 
     { Used in particular backend, open OpenGL context and do
       Application.OpenWindowsAdd(Self) there.
@@ -662,8 +670,8 @@ type
       Here's a list of properties that should be made "visible" to the user
       in OpenBackend:
 
-        Width, Height, Left, Top, FullScreen
-        Cursor, CustomCursor (remember that changes to this after OpenBackend
+        Width, Height, Left, Top
+        Cursor, CustomCursor, FullScreen (remember that changes to this after OpenBackend
           should also be allowed)
         ResizeAllowed (DoResize already implements appropriate
           checks, but implementation should provide user with visual clues that
@@ -1083,7 +1091,31 @@ type
     property Top :integer read FTop write FTop default WindowPositionCenter;
     { @groupEnd }
 
-    property FullScreen: boolean read FFullScreen write FFullScreen default false;
+    { Whether the window is fullscreen.
+      This forces @link(Width) and @link(Height) and position and window style
+      to fill the whole screen.
+
+      Note that we always set fullscreen UI (no border, size matching
+      Application.ScreenWidth and Application.ScreenHeight), ignoring
+      the window size constraints like MinWidth, MaxWidth, MinHeight, MaxHeight
+      and ResizeAllowed. For example we do not check does Application.ScreenWidth
+      fit inside MinWidth and MaxWidth. It's assumed that you really want
+      to set/unset the fullscreen UI if you change this property.
+      However, the sizes known to your application (stored in @link(Width), @link(Height))
+      are still constrained by MinWidth, MaxWidth, MinHeight, MaxHeight
+      and ResizeAllowed.
+
+      You can change this always, even on already open window.
+      Just note that some backends don't allow to switch this without
+      destroying / recreating the OpenGL context. So be prepared that changing FullScreen
+      may result in OnClose + OnOpen sequence, so make sure that closing and opening
+      recreates the whole necessary OpenGL state exactly as it was. This is usually
+      natural, all our TUIControl automatically work with this,
+      so this is only a concern if you do some direct OpenGL tricks. }
+    property FullScreen: boolean read FFullScreen write SetFullScreen default false;
+
+    { Deprecated, instead just do @code(FullScreen := not FullScreen). }
+    procedure SwapFullScreen; deprecated;
 
     { Should we request and use the double buffer.
       After every draw, we automatically swap buffers (if DoubleBuffer)
@@ -1164,9 +1196,12 @@ type
           Absolutely nothing else may cause them to change,
           user cannot resize the window.
 
-          This may even force FullScreen change from @true to @false
-          at @link(Open) call, when you will request a fullscreen window
-          but @link(Width) / @link(Height) will not match screen size.
+          Note that setting the @link(FullScreen) property to @true
+          works regardless of this. Just don't change @link(FullScreen) property
+          if you don't want to. However, @link(Width) / @link(Height)
+          values will be kept unchanged (they will not be updated to Application.ScreenWidth
+          and Application.ScreenHeight), so from the point of view of you code
+          the raNotAllowed works always.
 
           You can be sure that EventResize (OnResize) will be called only
           once, when window is opened (right after initial EventOpen (OnOpen)).)
@@ -1237,7 +1272,10 @@ type
 
       In other words, these constraints have a higher priority than
       ResizeAllowed and your desired @link(Width) and @link(Height)
-      and even @link(FullScreen). So you can be sure that (as long as window
+      and even @link(FullScreen) (setting @link(FullScreen) property
+      will stil change the visible sizes, but your perceived sizes
+      will be constrained by this min/max).
+      So you can be sure that (as long as window
       is open) @link(Width) / @link(Height) will always fit in these constraints.
       @groupBegin }
     property MinWidth: Integer read FMinWidth write FMinWidth default 100;
@@ -2140,25 +2178,11 @@ end;
       const MessageType: TWindowMessageType = mtQuestion): boolean;
   end;
 
-  { Window with OpenGL context and some functionality typically useful
-    for simple demo programs.
-
-    The additional "demo" functionality
-    is purely optional and may be turned off by appropriate properties.
-    And, for larger non-demo programs, I would advice to @italic(not)
-    use features of this class. For example, by default this allows
-    user to close a window by the Escape key. This is comfortable
-    for small demo programs, but it's too accident-prone for large programs
-    (when you may prefer to ask user for confirmation, maybe save some game
-    and such).
-
-    Call SetDemoOptions method to be forced to configure all "demo" options.
-    By default they are all off. }
+  { Window with OpenGL context and some helper functionality, useful
+    for demo programs. This includes key shortcuts to close the window,
+    switch FullScreen, and to display FPS on window caption. }
   TCastleWindowDemo = class(TCastleWindowBase)
   private
-    wLeft, wTop, wWidth, wHeight: integer;
-    { Are we in the middle of fullscreen swap. }
-    DuringSwapFullScreen: boolean;
     lastFpsOutputTick: DWORD;
     FFpsBaseCaption: string;
     FFpsShowOnCaption: boolean;
@@ -2219,8 +2243,6 @@ end;
     property FpsCaptionUpdateInterval: TMilisecTime
       read FFpsCaptionUpdateInterval write FFpsCaptionUpdateInterval
       default DefaultFpsCaptionUpdateInterval;
-
-    procedure SwapFullScreen;
 
     procedure EventOpen; override;
     procedure EventPress(const Event: TInputPressRelease); override;
@@ -2882,7 +2904,7 @@ begin
  if not FClosed then Exit;
 
  try
-  { Adjust Left/Top/Width/Height/FullScreen as needed.
+  { Adjust Left/Top/Width/Height as needed.
     Note: calculations below try to correct window geometry but they
     can fail to foresee some things. In particular, they do not take
     into account a potential menu bar that may be visible when MainMenu <> nil.
@@ -2891,31 +2913,12 @@ begin
     the actual OpenGL window size will NOT match ScreenWidth/Height,
     it will be slightly smaller (menu bar takes some space).
   }
-  if FFullscreen and
-    ((not between(Application.ScreenWidth, minWidth, maxWidth)) or
-     (not between(Application.ScreenHeight, minHeight, maxHeight)) or
-     ((ResizeAllowed = raNotAllowed) and
-       ((Application.ScreenWidth <> Width) or (Application.ScreenHeight <> Height)) )
-    ) then
-   FFullscreen := false;
-
-  if FFullScreen then
-  begin
-   fleft := 0;
-   ftop := 0;
-   fwidth := Application.ScreenWidth;
-   fheight := Application.ScreenHeight;
-  end else
-  begin
-   if Width  = WindowDefaultSize then FWidth  := Application.ScreenWidth  * 4 div 5;
-   if Height = WindowDefaultSize then FHeight := Application.ScreenHeight * 4 div 5;
-
-   Clamp(fwidth, minWidth, maxWidth);
-   Clamp(fheight, minHeight, maxHeight);
-
-   if left = WindowPositionCenter then fleft := (Application.ScreenWidth-width) div 2;
-   if top  = WindowPositionCenter then ftop := (Application.ScreenHeight-height) div 2;
-  end;
+  if Width  = WindowDefaultSize then FWidth  := Application.ScreenWidth  * 4 div 5;
+  if Height = WindowDefaultSize then FHeight := Application.ScreenHeight * 4 div 5;
+  Clamp(fwidth, minWidth, maxWidth);
+  Clamp(fheight, minHeight, maxHeight);
+  if left = WindowPositionCenter then fleft := (Application.ScreenWidth-width) div 2;
+  if top  = WindowPositionCenter then ftop := (Application.ScreenHeight-height) div 2;
 
   { reset some window state variables }
   Pressed.Clear;
@@ -4026,34 +4029,54 @@ begin
   end;
 end;
 
-{ TCastleWindowDemo ---------------------------------------------------------------- }
-
-procedure TCastleWindowDemo.SwapFullScreen;
-
-  procedure SaveRect;
-  begin
-    wLeft := Left;
-    wTop := Top;
-    wWidth := Width;
-    wHeight := Height;
-  end;
-
+procedure TCastleWindowBase.SimpleSetFullScreen(const Value: boolean);
 begin
-  DuringSwapFullScreen := true;
-  try
-    Close(false);
-    if not FFullScreen then SaveRect; { save window rect }
-    FFullScreen := not FFullScreen;
-    if not FFullScreen then
+  if FFullScreen <> Value then
+  begin
+    FFullScreen := Value;
+    if not Closed then
     begin
-      Left := wLeft;
-      Top := wTop;
-      Width := wWidth;
-      Height := wHeight;
+      Close(false);
+      if Value then
+      begin
+        { Value is true, so we change FFullScreen from false to true.
+          Save BeforeFullScreen* now. }
+        BeforeFullScreenGeometryKnown := true;
+        BeforeFullScreenLeft := Left;
+        BeforeFullScreenTop := Top;
+        BeforeFullScreenWidth := Width;
+        BeforeFullScreenHeight := Height;
+      end else
+      begin
+        { We change FFullScreen from true to false.
+          Set window geometry. Note that BeforeFullScreenGeometryKnown may be false,
+          if the window was initially opened in FullScreen mode, in which case
+          we just set default sensible geometry. }
+        if BeforeFullScreenGeometryKnown then
+        begin
+          Left := BeforeFullScreenLeft;
+          Top := BeforeFullScreenTop;
+          Width := BeforeFullScreenWidth;
+          Height := BeforeFullScreenHeight;
+        end else
+        begin
+          Left := WindowPositionCenter;
+          Top := WindowPositionCenter;
+          Width := WindowDefaultSize;
+          Height := WindowDefaultSize;
+        end;
+      end;
+      Open;
     end;
-    Open;
-  finally DuringSwapFullScreen := false end;
+  end;
 end;
+
+procedure TCastleWindowBase.SwapFullScreen;
+begin
+  FullScreen := not FullScreen;
+end;
+
+{ TCastleWindowDemo ---------------------------------------------------------------- }
 
 procedure TCastleWindowDemo.EventUpdate;
 begin
@@ -4075,20 +4098,10 @@ end;
 
 procedure TCastleWindowDemo.EventOpen;
 begin
-  if not DuringSwapFullScreen then
-  begin
-    if FpsShowOnCaption then
-      FFpsBaseCaption := Caption;
-
-    { set initial window rect (wLeft/top/width/height) if fullscreen = true }
-    if FFullScreen then
-    begin
-      wWidth  := WindowDefaultSize;
-      wHeight := WindowDefaultSize;
-      wLeft   := WindowPositionCenter;
-      wTop    := WindowPositionCenter;
-    end;
-  end;
+  { Calculate FFpsBaseCaption at 1st EventOpen. Don't update it later,
+    since later Caption will already contain the FPS string appended. }
+  if FpsShowOnCaption and (FFpsBaseCaption = '') then
+    FFpsBaseCaption := Caption;
 
   inherited;
 end;
@@ -4128,8 +4141,8 @@ end;
 constructor TCastleWindowDemo.Create(AOwner: TComponent);
 begin
   inherited;
-  Close_CharKey := #0; { CharEscape; }
-  SwapFullScreen_Key := K_None; { K_F11; }
+  Close_CharKey := #0;
+  SwapFullScreen_Key := K_None;
   FpsShowOnCaption := false;
   FFpsCaptionUpdateInterval := DefaultFpsCaptionUpdateInterval;
 end;
