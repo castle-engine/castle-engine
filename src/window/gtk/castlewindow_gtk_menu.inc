@@ -134,109 +134,112 @@ end;
 
 procedure TCastleWindowBase.BackendMenuInitialize;
 
-  { This tells GTK that key shortcut to Item is as specified in
-    Key and CharKey. Key and Charkey are taken from TMenuItem.Key/CharKey
-    properties. }
-  procedure InstallGtkAccelerator(Item: PGtkMenuItem;
-    const Key: TKey; const CharKey: char; const Modifiers: TModifierKeys);
+  { Install GTK menu accelerator (key shortcut) from given MenuItem. }
+  procedure InstallGtkAccelerator(const Item: PGtkMenuItem;
+    const MenuItem: TMenuItem);
   var
+    Key: TKey;
+    CharKey: char;
+    Modifiers: TModifierKeys;
     gdk_keyval: GUint;
     modifier_type: TGdkModifierType;
   begin
-   { Calculate GDK keyval gdk_keyval and modifier_type.
-     (Look for possible gdk_keyval values in gdk/gdkkeysyms.h header
-     (e.g. /usr/include/gtk-1.2/gdk/gdkkeysyms.h on my system)). }
-   modifier_type := 0;
-   case CharKey of
+    Key := MenuItem.Key;
+    CharKey := MenuItem.CharKey;
+    Modifiers := MenuItem.Modifiers;
 
-    CtrlA .. CtrlZ:
-      { I could handle here specially three keys:
-          CharBackspace: gdk_keyval := GDK_KEY_BackSpace;
-          CharTab: gdk_keyval := GDK_KEY_Tab;
-          CharEnter: gdk_keyval := GDK_KEY_Return;
-        but it would be bad idea --- I would have no way to specify
-        then actual Ctrl+H, Ctrl+I, Ctrl+M shortcuts.
-        (While Backspace, Tab, Enter can always be specified by TKey
-        constants K_BackSpace, K_Tab, K_Enter).
-      }
-      begin
-        gdk_keyval := GDK_KEY_A + Ord(CharKey) - Ord(CtrlA);
-        modifier_type := GDK_CONTROL_MASK;
-      end;
+    { Calculate GDK keyval gdk_keyval and modifier_type.
+      (Look for possible gdk_keyval values in gdk/gdkkeysyms.h header
+      (e.g. /usr/include/gtk-1.2/gdk/gdkkeysyms.h on my system)). }
+    modifier_type := 0;
+    case CharKey of
+      CtrlA .. CtrlZ:
+        { I could handle here specially three keys:
+            CharBackspace: gdk_keyval := GDK_KEY_BackSpace;
+            CharTab: gdk_keyval := GDK_KEY_Tab;
+            CharEnter: gdk_keyval := GDK_KEY_Return;
+          but it would be bad idea --- I would have no way to specify
+          then actual Ctrl+H, Ctrl+I, Ctrl+M shortcuts.
+          (While Backspace, Tab, Enter can always be specified by TKey
+          constants K_BackSpace, K_Tab, K_Enter).
+        }
+        begin
+          gdk_keyval := GDK_KEY_A + Ord(CharKey) - Ord(CtrlA);
+          modifier_type := GDK_CONTROL_MASK;
+        end;
 
-    CharEscape: gdk_keyval := GDK_KEY_Escape;
-    '0' .. '9': gdk_keyval := GDK_KEY_0 + Ord(CharKey) - Ord('0');
-    'a' .. 'z': gdk_keyval := GDK_KEY_A + Ord(CharKey) - Ord('a');
-    'A' .. 'Z':
-      begin
-       gdk_keyval := GDK_KEY_A + Ord(CharKey) - Ord('A');
-       modifier_type := GDK_SHIFT_MASK;
-      end;
-    '?': gdk_keyval := GDK_KEY_question;
+      CharEscape: gdk_keyval := GDK_KEY_Escape;
+      '0' .. '9': gdk_keyval := GDK_KEY_0 + Ord(CharKey) - Ord('0');
+      'a' .. 'z': gdk_keyval := GDK_KEY_A + Ord(CharKey) - Ord('a');
+      'A' .. 'Z':
+        begin
+          gdk_keyval := GDK_KEY_A + Ord(CharKey) - Ord('A');
+          modifier_type := GDK_SHIFT_MASK;
+        end;
+      '?': gdk_keyval := GDK_KEY_question;
+      else
+        case Key of
+          K_BackSpace: gdk_keyval := GDK_KEY_BackSpace;
+          K_Tab: gdk_keyval := GDK_KEY_Tab;
+          K_Enter: gdk_keyval := GDK_KEY_Return;
 
-    else
-      case Key of
-       K_BackSpace: gdk_keyval := GDK_KEY_BackSpace;
-       K_Tab: gdk_keyval := GDK_KEY_Tab;
-       K_Enter: gdk_keyval := GDK_KEY_Return;
+          { This is not proper translation: K_Xxx constants do not make
+            difference between left/right Ctrl/Shift/Alt,
+            while GDK_KEY_Xxx constants do.
 
-       { This is not proper translation: K_Xxx constants do not make
-         difference between left/right Ctrl/Shift/Alt,
-         while GDK_KEY_Xxx constants do.
+            Some solution would be to make two accelerators for one
+            menu item -- TODO when this will be useful. }
+          K_Shift: gdk_keyval := GDK_KEY_Shift_L;
+          K_Ctrl: gdk_keyval := GDK_KEY_Control_L;
+          K_Alt: gdk_keyval := GDK_KEY_Alt_L;
 
-         Some solution would be to make two accelerators for one
-         menu item -- TODO when this will be useful. }
-       K_Shift: gdk_keyval := GDK_KEY_Shift_L;
-       K_Ctrl: gdk_keyval := GDK_KEY_Control_L;
-       K_Alt: gdk_keyval := GDK_KEY_Alt_L;
+          K_Escape: gdk_keyval := GDK_KEY_Escape;
+          K_Space: gdk_keyval := GDK_KEY_Space;
+          K_PageUp: gdk_keyval := GDK_KEY_Page_Up;
+          K_PageDown: gdk_keyval := GDK_KEY_Page_Down;
+          K_End: gdk_keyval := GDK_KEY_End;
+          K_Home: gdk_keyval := GDK_KEY_Home;
+          K_Left: gdk_keyval := GDK_KEY_Left;
+          K_Up: gdk_keyval := GDK_KEY_Up;
+          K_Right: gdk_keyval := GDK_KEY_Right;
+          K_Down: gdk_keyval := GDK_KEY_Down;
+          K_Insert: gdk_keyval := GDK_KEY_Insert;
+          K_Delete: gdk_keyval := GDK_KEY_Delete;
 
-       K_Escape: gdk_keyval := GDK_KEY_Escape;
-       K_Space: gdk_keyval := GDK_KEY_Space;
-       K_PageUp: gdk_keyval := GDK_KEY_Page_Up;
-       K_PageDown: gdk_keyval := GDK_KEY_Page_Down;
-       K_End: gdk_keyval := GDK_KEY_End;
-       K_Home: gdk_keyval := GDK_KEY_Home;
-       K_Left: gdk_keyval := GDK_KEY_Left;
-       K_Up: gdk_keyval := GDK_KEY_Up;
-       K_Right: gdk_keyval := GDK_KEY_Right;
-       K_Down: gdk_keyval := GDK_KEY_Down;
-       K_Insert: gdk_keyval := GDK_KEY_Insert;
-       K_Delete: gdk_keyval := GDK_KEY_Delete;
+          K_Numpad_Plus: gdk_keyval := GDK_KEY_Plus;
+          K_Numpad_Minus: gdk_keyval := GDK_KEY_Minus;
 
-       K_Numpad_Plus: gdk_keyval := GDK_KEY_Plus;
-       K_Numpad_Minus: gdk_keyval := GDK_KEY_Minus;
+          K_0 .. K_9: gdk_keyval := GDK_KEY_0 + Ord(Key) - Ord(K_0);
+          K_A .. K_Z: gdk_keyval := GDK_KEY_A + Ord(Key) - Ord(K_A);
 
-       K_0 .. K_9: gdk_keyval := GDK_KEY_0 + Ord(Key) - Ord(K_0);
-       K_A .. K_Z: gdk_keyval := GDK_KEY_A + Ord(Key) - Ord(K_A);
+          K_F1 : gdk_keyval := GDK_KEY_F1;
+          K_F2 : gdk_keyval := GDK_KEY_F2;
+          K_F3 : gdk_keyval := GDK_KEY_F3;
+          K_F4 : gdk_keyval := GDK_KEY_F4;
+          K_F5 : gdk_keyval := GDK_KEY_F5;
+          K_F6 : gdk_keyval := GDK_KEY_F6;
+          K_F7 : gdk_keyval := GDK_KEY_F7;
+          K_F8 : gdk_keyval := GDK_KEY_F8;
+          K_F9 : gdk_keyval := GDK_KEY_F9;
+          K_F10: gdk_keyval := GDK_KEY_F10;
+          K_F11: gdk_keyval := GDK_KEY_F11;
+          K_F12: gdk_keyval := GDK_KEY_F12;
 
-       K_F1 : gdk_keyval := GDK_KEY_F1;
-       K_F2 : gdk_keyval := GDK_KEY_F2;
-       K_F3 : gdk_keyval := GDK_KEY_F3;
-       K_F4 : gdk_keyval := GDK_KEY_F4;
-       K_F5 : gdk_keyval := GDK_KEY_F5;
-       K_F6 : gdk_keyval := GDK_KEY_F6;
-       K_F7 : gdk_keyval := GDK_KEY_F7;
-       K_F8 : gdk_keyval := GDK_KEY_F8;
-       K_F9 : gdk_keyval := GDK_KEY_F9;
-       K_F10: gdk_keyval := GDK_KEY_F10;
-       K_F11: gdk_keyval := GDK_KEY_F11;
-       K_F12: gdk_keyval := GDK_KEY_F12;
+          K_Comma: gdk_keyval := GDK_KEY_Comma;
+          K_Period: gdk_keyval := GDK_KEY_Period;
+          else Exit;
+        end;
+    end;
 
-       K_Comma: gdk_keyval := GDK_KEY_Comma;
-       K_Period: gdk_keyval := GDK_KEY_Period;
-       else Exit;
-      end;
+    if mkShift in Modifiers then
+      modifier_type := modifier_type or GDK_SHIFT_MASK;
+    if mkCtrl in Modifiers then
+      modifier_type := modifier_type or GDK_CONTROL_MASK;
+    if mkAlt in Modifiers then
+      modifier_type := modifier_type or GDK_MOD1_MASK;
 
-      if mkShift in Modifiers then
-        modifier_type := modifier_type or GDK_SHIFT_MASK;
-      if mkCtrl in Modifiers then
-        modifier_type := modifier_type or GDK_CONTROL_MASK;
-      if mkAlt in Modifiers then
-        modifier_type := modifier_type or GDK_ALT_MASK;
-   end;
-
-   gtk_widget_add_accelerator(PGtkWidget(Item), 'activate', window_accel_group,
-     gdk_keyval, modifier_type, GTK_ACCEL_VISIBLE);
+    gtk_widget_add_accelerator(PGtkWidget(Item), 'activate', window_accel_group,
+      gdk_keyval, modifier_type, GTK_ACCEL_VISIBLE);
   end;
 
   { Assuming MainMenu <> nil, builds appropriate GtkMenuBar.
@@ -247,85 +250,91 @@ procedure TCastleWindowBase.BackendMenuInitialize;
 
     function MenuEntryToGtkMenuItem(Entry: TMenuEntry): PGtkMenuItem;
 
-      function NewGtkMenu(): PGtkMenu;
       { Returns fresh gtk_menu_new() }
+      function NewGtkMenu(): PGtkMenu;
       begin
-       Result := PGtkMenu(gtk_menu_new());
-       { Do not show ! No "gtk_widget_show(GTK_WIDGET(Result));",
-         you do not want to show GtkMenu (it will be automatically
-         shown when user selects it with a mouse click etc.)  }
+        Result := PGtkMenu(gtk_menu_new());
+        { Do not show ! No "gtk_widget_show(GTK_WIDGET(Result));",
+          you do not want to show GtkMenu (it will be automatically
+          shown when user selects it with a mouse click etc.)  }
       end;
 
-    var SubMenu: PGtkMenu;
-        i: Integer;
+    var
+      SubMenu: PGtkMenu;
+      i: Integer;
+      EntryItem: TMenuItem;
+      EntryChecked: TMenuItemChecked;
+      EntryMenu: TMenu;
     begin
-     if Entry is TMenuItem then
-     begin
-      if Entry is TMenuItemChecked then
+      if Entry is TMenuItem then
       begin
-       Result := PGtkMenuItem(gtk_check_menu_item_new_with_mnemonic(
-         PChar(TMenuItem(Entry).Caption)));
-       gtk_check_menu_item_set_active(PGtkCheckMenuItem(Result),
-         TMenuItemChecked(Entry).Checked);
-       gtk_check_menu_item_set_show_toggle(PGtkCheckMenuItem(Result), g_true);
+        EntryItem := TMenuItem(Entry);
+        if EntryItem is TMenuItemChecked then
+        begin
+          EntryChecked := TMenuItemChecked(EntryItem);
+          Result := PGtkMenuItem(gtk_check_menu_item_new_with_mnemonic(
+            PChar(EntryItem.Caption)));
+          gtk_check_menu_item_set_active(PGtkCheckMenuItem(Result),
+            EntryChecked.Checked);
+          gtk_check_menu_item_set_show_toggle(PGtkCheckMenuItem(Result), g_true);
 
-       { To implement TMenuItemRadio I use normal GTK check menu items
-         and just make them look like radio items.
+          { To implement TMenuItemRadio I use normal GTK check menu items
+            and just make them look like radio items.
 
-         That's because we implement radio behavior (radio groups,
-         turning Checked on and turning Checked off of the rest)
-         ourselves. So there's no need to map our groups to GTK radio
-         groups (even though they follow the same design...).
-         But in GTK "at each instant exactly one of the radio menu
-         items from a group is selected." So I cannot just create
-         radio items carelessly, I have to set their groups correctly.
+            That's because we implement radio behavior (radio groups,
+            turning Checked on and turning Checked off of the rest)
+            ourselves. So there's no need to map our groups to GTK radio
+            groups (even though they follow the same design...).
+            But in GTK "at each instant exactly one of the radio menu
+            items from a group is selected." So I cannot just create
+            radio items carelessly, I have to set their groups correctly.
 
-         So it's easier for me just to use normal check menu items
-         and only make them look like radios. }
-       gtk_check_menu_item_set_draw_as_radio(
-         PGtkCheckMenuItem(Result), Entry is TMenuItemRadio);
+            So it's easier for me just to use normal check menu items
+            and only make them look like radios. }
+          gtk_check_menu_item_set_draw_as_radio(
+            PGtkCheckMenuItem(Result), Entry is TMenuItemRadio);
+        end else
+          Result := PGtkMenuItem(gtk_menu_item_new_with_mnemonic(
+            PChar(EntryItem.Caption)));
+
+        gtk_object_set_user_data(GTK_OBJECT(Result), Pointer(Self));
+        gtk_signal_connect(GTK_OBJECT(Result), 'activate',
+          GTK_SIGNAL_FUNC(@signal_menu_item_activate),
+          Pointer(PtrUInt(EntryItem.SmallId)));
+
+        InstallGtkAccelerator(Result, EntryItem);
       end else
-       Result := PGtkMenuItem(gtk_menu_item_new_with_mnemonic(
-         PChar(TMenuItem(Entry).Caption)));
+      if Entry is TMenuSeparator then
+      begin
+        { gtk_menu_item_new() creates a separator menu item, this can be found
+          in GTK FAQ. }
+        Result := PGtkMenuItem(gtk_menu_item_new());
+      end else
+      if Entry is TMenu then
+      begin
+        EntryMenu := TMenu(Entry);
+        Result := PGtkMenuItem(gtk_menu_item_new_with_mnemonic(
+          PChar(EntryMenu.Caption)));
 
-      gtk_object_set_user_data(GTK_OBJECT(Result), Pointer(Self));
-      gtk_signal_connect(GTK_OBJECT(Result), 'activate',
-        GTK_SIGNAL_FUNC(@signal_menu_item_activate),
-        Pointer(PtrUInt(TMenuItem(Entry).SmallId)));
+        SubMenu := NewGtkMenu();
 
-      InstallGtkAccelerator(Result,
-        TMenuItem(Entry).Key, TMenuItem(Entry).CharKey);
-     end else
-     if Entry is TMenuSeparator then
-     begin
-      { gtk_menu_item_new() creates a separator menu item, this can be found
-        in GTK FAQ. }
-      Result := PGtkMenuItem(gtk_menu_item_new());
-     end else
-     if Entry is TMenu then
-     begin
-      Result := PGtkMenuItem(gtk_menu_item_new_with_mnemonic(
-        PChar(TMenu(Entry).Caption)));
+        for i := 0 to EntryMenu.Count - 1 do
+         gtk_menu_append(GTK_WIDGET(SubMenu),
+           GTK_WIDGET( MenuEntryToGtkMenuItem(EntryMenu.Entries[i]) ));
 
-      SubMenu := NewGtkMenu();
+        gtk_menu_item_set_submenu(Result, GTK_WIDGET(SubMenu));
+      end else
+        raise EInternalError.Create('Not implemented TMenuEntry subclass');
 
-      for i := 0 to TMenu(Entry).Count - 1 do
-       gtk_menu_append(GTK_WIDGET(SubMenu),
-         GTK_WIDGET( MenuEntryToGtkMenuItem(TMenu(Entry).Entries[i]) ));
+      Entry.Handle := Result;
 
-      gtk_menu_item_set_submenu(Result, GTK_WIDGET(SubMenu));
-     end else
-      raise EInternalError.Create('Not implemented TMenuEntry subclass');
+      if Entry is TMenuEntryWithCaption then
+        MenuUpdateEnabled(TMenuEntryWithCaption(Entry));
 
-     Entry.Handle := Result;
+      gtk_signal_connect(GTK_OBJECT(Result), 'select',
+        GTK_SIGNAL_FUNC(@signal_menu_item_select), Self);
 
-     if Entry is TMenuEntryWithCaption then
-       MenuUpdateEnabled(TMenuEntryWithCaption(Entry));
-
-     gtk_signal_connect(GTK_OBJECT(Result), 'select',
-       GTK_SIGNAL_FUNC(@signal_menu_item_select), Self);
-
-     gtk_widget_show(GTK_WIDGET(Result));
+      gtk_widget_show(GTK_WIDGET(Result));
     end;
 
   var i: Integer;
