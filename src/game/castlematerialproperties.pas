@@ -51,23 +51,24 @@ type
     FToxic: boolean;
     FToxicDamageConst, FToxicDamageRandom, FToxicDamageTime: Single;
     FNormalMap: string;
+    FAlphaChannel: string;
     procedure LoadFromDOMElement(Element: TDOMElement; const BaseUrl: string);
   public
     { Texture basename to associate this property will all appearances
       using given texture. For now, this is the only way to associate
       property, but more are possible in the future (like MaterialNodeName). }
-    property TextureBaseName: string read FTextureBaseName;
+    property TextureBaseName: string read FTextureBaseName write FTextureBaseName;
 
     { Footsteps sound to make when player is walking on this material.
       stNone is no information is available. }
-    property FootstepsSound: TSoundType read FFootstepsSound;
+    property FootstepsSound: TSoundType read FFootstepsSound write FFootstepsSound;
 
     { Is the floor toxic when walking on it.
       @groupBegin }
-    property Toxic: boolean read FToxic;
-    property ToxicDamageConst: Single read FToxicDamageConst;
-    property ToxicDamageRandom: Single read FToxicDamageRandom;
-    property ToxicDamageTime: Single read FToxicDamageTime;
+    property Toxic: boolean read FToxic write FToxic;
+    property ToxicDamageConst: Single read FToxicDamageConst write FToxicDamageConst;
+    property ToxicDamageRandom: Single read FToxicDamageRandom write FToxicDamageRandom;
+    property ToxicDamageTime: Single read FToxicDamageTime write FToxicDamageTime;
     { @groupEnd }
 
     { Normal map texture URL. This is a simple method to activate bump mapping,
@@ -76,7 +77,15 @@ type
 
       In case both VRML/X3D Appearance specifies normalMap and we have
       NormalMap defined here, the VRML/X3D Appearance is used. }
-    property NormalMap: string read FNormalMap;
+    property NormalMap: string read FNormalMap write FNormalMap;
+
+    { Override alpha channel type for diffuse texture.
+      The meaning and allowed values for this are the same as for
+      alphaChannel field for texture nodes, see
+      http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_alpha_channel_detection .
+      Empty value (default) doesn't change the alpha channel type
+      (set in VRML/X3D or auto-detected). }
+    property AlphaChannel: string read FAlphaChannel write FAlphaChannel;
   end;
 
   { Material properties collection, see TMaterialProperty. }
@@ -129,6 +138,9 @@ begin
   if DOMGetAttribute(Element, 'normal_map', FNormalMap) and (FNormalMap <> '') then
     FNormalMap := CombineURI(BaseUrl, FNormalMap) else
     FNormalMap := '';
+
+  if not DOMGetAttribute(Element, 'alpha_channel', FAlphaChannel) then
+    FAlphaChannel := '';
 
   I := TXMLElementIterator.Create(Element);
   try

@@ -781,14 +781,18 @@ var
 begin
   inherited;
 
-  { use normalMap from MaterialProperty, if our normalMap field is empty now }
   MP := MaterialProperty;
+
   if (MP <> nil) and (MP.NormalMap <> '') and (FdNormalMap.Value = nil) then
   begin
+    { use normalMap from MaterialProperty, if our normalMap field is empty now }
     NormalMapNode := TImageTextureNode.Create('', BaseUrl);
     NormalMapNode.FdUrl.Items.Add(MP.NormalMap);
     FdNormalMap.Value := NormalMapNode;
   end;
+
+  if (MP <> nil) and (MP.AlphaChannel <> '') and (Texture <> nil) then
+    Texture.FdAlphaChannel.Value := MP.AlphaChannel;
 end;
 
 procedure TFillPropertiesNode.CreateNode;
