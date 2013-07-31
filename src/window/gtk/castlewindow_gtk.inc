@@ -1013,6 +1013,13 @@ begin
    MinWidth, MinHeight, Width, Height, ResizeAllowed }
  if FullScreen then
  begin
+  { Applying FullScreen changed the Width / Height.
+    Call DoResize (not perfect, since it doesn't account for menu bar
+    height, but better than nothing), in case GTK will not send
+    us proper resize event (but it will send up proper resize event,
+    tests show). }
+  DoResize(Application.ScreenWidth, Application.ScreenHeight, false);
+
   { When in FullScreen we set whole window size, not just GLArea size, to screen size.
     This is the ultimate sense of FullScreen,
     so there is no discussion, no matter what value has ResizeAllowed.
@@ -1077,10 +1084,6 @@ begin
    and always return nil if their widget is not realized. }
  GLDrawable := gtk_widget_get_gl_drawable(GLAreaGtk);
  GLContext := gtk_widget_get_gl_context(GLAreaGtk);
-
- { applying FullScreen changed the Width / Height }
- if FullScreen then
-   DoResize(Application.ScreenWidth, Application.ScreenHeight, false);
 
  UpdateCursor;
 end;
