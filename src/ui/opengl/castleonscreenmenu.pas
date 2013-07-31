@@ -501,8 +501,7 @@ type
     function Release(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
     procedure Update(const SecondsPassed: Single;
-      const HandleMouseAndKeys: boolean;
-      var LetOthersHandleMouseAndKeys: boolean); override;
+      var HandleInput: boolean); override;
     function PositionInside(const X, Y: Integer): boolean; override;
     function AllowSuspendForInput: boolean; override;
 
@@ -1691,8 +1690,7 @@ begin
 end;
 
 procedure TCastleOnScreenMenu.Update(const SecondsPassed: Single;
-  const HandleMouseAndKeys: boolean;
-  var LetOthersHandleMouseAndKeys: boolean);
+  var HandleInput: boolean);
 begin
   inherited;
   if not GetExists then Exit;

@@ -143,35 +143,58 @@ type
     function Mouse3dTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; virtual;
 
     { Control may do here anything that must be continously repeated.
-      This is called often by the container.
-      E.g. camera handles here falling down due to gravity
-      in Walker mode, rotating model in Examine mode, and many more.
+      E.g. camera handles here falling down due to gravity,
+      rotating model in Examine mode, and many more.
 
       @param(SecondsPassed Should be calculated like TFramesPerSecond.UpdateSecondsPassed,
         and usually it's in fact just taken from TCastleWindowBase.Fps.UpdateSecondsPassed.)
 
-      HandleMouseAndKeys says if this control can
-      handle currently pressed keys and mouse buttons.
-      Only if it is @true, the control can look at Container.Pressed
-      and Container.MousePressed. HandleMouseAndKeys will be passed as @true
-      only to the controls under the mouse, and only if previous
-      controls under the mouse did not set LetOthersHandleMouseAndKeys = @false.
+      This method may be used, among many other things, to continously
+      react to the fact that user pressed some key (or mouse button).
+      For example, if holding some key should move some 3D object,
+      you should do something like:
 
-      Also (only when HandleMouseAndKeys = @true) the control can
-      set LetOthersHandleMouseAndKeys. In fact, it's by default
-      set to @code(not ExclusiveEvents), which (since ExclusiveEvents by default
-      is @true) usually means @false. This reflects the fact that "normal"
-      UI controls, that actually take screen space implied by PositionInside,
-      want to block controls underneath from handling keys/mouse.
-      For example, when pressing key "left" over TCastleOnScreenMenu, you do not
-      want to let the scene manager to also capture this left key down.
+@longCode(#
+if HandleInput then
+begin
+  if Container.Pressed[K_Right] then
+    Transform.Position += Vector3Single(SecondsPassed * 10, 0, 0);
+  HandleInput := not ExclusiveEvents;
+end;
+#)
 
-      @italic(More reasoning behind HandleMouseAndKeys:)
+      Instead of directly using a key code, consider also
+      using TInputShortcut that makes the input key nicely configurable.
+      See engine tutorial about handling inputs.
 
-      Note that the "Update" events are called
-      differently than other mouse and key events.
+      Multiplying movement by SecondsPassed makes your
+      operation frame-rate independent. Object will move by 10
+      units in a second, regardless of how many FPS your game has.
 
-      Mouse and key events
+      The code related to HandleInput is important if you write
+      a generally-useful control that should nicely cooperate with all other
+      controls, even when placed on top of them or under them.
+      The correct approach is to only look at pressed keys/mouse buttons
+      if HandleInput is @true. Moreover, if you did check
+      that HandleInput is @true, and you did actually handle some keys,
+      then you have to set @code(HandleInput := not ExclusiveEvents).
+      As ExclusiveEvents is @true in normal circumstances,
+      this will prevent the other controls (behind the current control)
+      from handling the keys (they will get HandleInput = @false).
+      And this is important to avoid doubly-processing the same key press,
+      e.g. if two controls react to the same key, only the one on top should
+      process it.
+
+      Note that to handle a single press / release (like "switch
+      light on when pressing a key") you should rather
+      use @link(Press) and @link(Release) methods. Use this method
+      only for continous handling (like "holding this key makes
+      the light brighter and brighter").
+
+      To understand why such HandleInput approach is needed,
+      realize that the "Update" events are called
+      differently than simple mouse and key events like "Press" and "Release".
+      "Press" and "Release" events
       return whether the event was somehow "handled", and the container
       passes them only to the controls under the mouse (decided by
       PositionInside). And as soon as some control says it "handled"
@@ -184,16 +207,13 @@ type
       of what other controls already did. So all controls receive
       Update calls.
 
-      So the "handled" status is passed through HandleMouseAndKeys
-      and controlled by LetOthersHandleMouseAndKeys.
-      If a control is not under the mouse, it will receive HandleMouseAndKeys
-      = @false, and LetOthersHandleMouseAndKeys return value is ignored.
-      If a control is under the mouse, it will receive HandleMouseAndKeys
-      = @true and has the power to disallow mouse/key handling for all other
-      controls by LetOthersHandleMouseAndKeys. }
+      So the "handled" status is passed through HandleInput.
+      If a control is not under the mouse, it will receive HandleInput
+      = @false. If a control is under the mouse, it will receive HandleInput
+      = @true as long as no other control on top of it didn't already
+      change it to @false. }
     procedure Update(const SecondsPassed: Single;
-      const HandleMouseAndKeys: boolean;
-      var LetOthersHandleMouseAndKeys: boolean); virtual;
+      var HandleInput: boolean); virtual;
 
     { Called always when some visible part of this control
       changes. In the simplest case, this is used by the controls manager to
@@ -572,8 +592,7 @@ begin
 end;
 
 procedure TInputListener.Update(const SecondsPassed: Single;
-  const HandleMouseAndKeys: boolean;
-  var LetOthersHandleMouseAndKeys: boolean);
+  var HandleInput: boolean);
 begin
 end;
 

@@ -86,8 +86,7 @@ type
     procedure Clear;
 
     procedure Update(const SecondsPassed: Single;
-      const HandleMouseAndKeys: boolean;
-      var LetOthersHandleMouseAndKeys: boolean); override;
+      var HandleInput: boolean); override;
 
     procedure Draw; override;
     function DrawStyle: TUIControlDrawStyle; override;
@@ -204,7 +203,7 @@ var
 begin
   if Log then
     WriteLog('Time message', S.Text);
-    
+
   { TODO: It's a bummer that we need UIFont created (which means:
     OpenGL context must be initialized) to make BreakLines,
     while BreakLines only really uses font metrics (doesn't need OpenGL
@@ -282,13 +281,13 @@ begin
 end;
 
 procedure TCastleNotifications.Update(const SecondsPassed: Single;
-  const HandleMouseAndKeys: boolean;
-  var LetOthersHandleMouseAndKeys: boolean);
+  var HandleInput: boolean);
 { Check which messages should time out. }
 var
   gtc: TMilisecTime;
   i: integer;
 begin
+  inherited;
   gtc := GetTickCount;
   for i := Messages.Count - 1 downto 0 do
     if TimeTickSecondLater(Messages[i].Time, gtc, Timeout) then
@@ -297,10 +296,6 @@ begin
       VisibleChange;
       break;
     end;
-
-  { let controls under handle keys/mouse,
-    because we don't do anything with them by default. }
-  LetOthersHandleMouseAndKeys := true;
 end;
 
 end.

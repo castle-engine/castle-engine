@@ -1189,7 +1189,7 @@ procedure TCastleControlCustom.UpdateEvent;
 var
   I: Integer;
   C: TUIControl;
-  HandleMouseAndKeys: boolean;
+  HandleInput: boolean;
   Dummy: boolean;
   Tx, Ty, Tz, TLength, Rx, Ry, Rz, RAngle: Double;
   Mouse3dPollSpeed: Single;
@@ -1233,22 +1233,21 @@ begin
     end;
 
     { Although we call Update for all the controls, we look
-      at PositionInside and track HandleMouseAndKeys values.
+      at PositionInside and track HandleInput values.
       See TUIControl.Update for explanation. }
 
-    HandleMouseAndKeys := true;
+    HandleInput := true;
 
     for I := 0 to Controls.Count - 1 do
     begin
       C := Controls[I];
-      if HandleMouseAndKeys and C.PositionInside(MouseX, MouseY) then
+      if C.PositionInside(MouseX, MouseY) then
       begin
-        HandleMouseAndKeys := not C.ExclusiveEvents;
-        C.Update(Fps.UpdateSecondsPassed, true, HandleMouseAndKeys);
+        C.Update(Fps.UpdateSecondsPassed, HandleInput);
       end else
       begin
-        Dummy := not C.ExclusiveEvents;
-        C.Update(Fps.UpdateSecondsPassed, false, Dummy);
+        Dummy := false;
+        C.Update(Fps.UpdateSecondsPassed, Dummy);
       end;
     end;
   end;

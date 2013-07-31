@@ -93,9 +93,6 @@ type
     procedure GLContextClose; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
-    procedure Update(const SecondsPassed: Single;
-      const HandleMouseAndKeys: boolean;
-      var LetOthersHandleMouseAndKeys: boolean); override;
 
     { Called when user clicks the button. In this class, simply calls
       OnClick callback. }
@@ -192,9 +189,6 @@ type
     function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw; override;
     function PositionInside(const X, Y: Integer): boolean; override;
-    procedure Update(const SecondsPassed: Single;
-      const HandleMouseAndKeys: boolean;
-      var LetOthersHandleMouseAndKeys: boolean); override;
 
     { Separator lines drawn on panel. Useful if you want to visually separate
       groups of contols (like a groups of buttons when you use
@@ -234,9 +228,6 @@ type
     function PositionInside(const X, Y: Integer): boolean; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
-    procedure Update(const SecondsPassed: Single;
-      const HandleMouseAndKeys: boolean;
-      var LetOthersHandleMouseAndKeys: boolean); override;
     function Width: Cardinal;
     function Height: Cardinal;
 
@@ -697,16 +688,6 @@ begin
   end;
 end;
 
-procedure TCastleButton.Update(const SecondsPassed: Single;
-  const HandleMouseAndKeys: boolean;
-  var LetOthersHandleMouseAndKeys: boolean);
-begin
-  inherited;
-  { let controls under the TCastleButton handle keys/mouse,
-    because TCastleButton doesn't do anything with them by default. }
-  LetOthersHandleMouseAndKeys := true;
-end;
-
 procedure TCastleButton.SetImageLayout(const Value: TCastleButtonImageLayout);
 begin
   if FImageLayout <> Value then
@@ -826,16 +807,6 @@ begin
     (ContainerHeight - Y  < Bottom + Height);
 end;
 
-procedure TCastlePanel.Update(const SecondsPassed: Single;
-  const HandleMouseAndKeys: boolean;
-  var LetOthersHandleMouseAndKeys: boolean);
-begin
-  inherited;
-  { let controls under the TCastlePanel handle keys/mouse,
-    because TCastlePanel doesn't do anything with them by default. }
-  LetOthersHandleMouseAndKeys := true;
-end;
-
 class function TCastlePanel.SeparatorSize: Cardinal;
 begin
   Result := 2;
@@ -938,16 +909,6 @@ procedure TCastleImageControl.GLContextClose;
 begin
   FreeAndNil(FGLImage);
   inherited;
-end;
-
-procedure TCastleImageControl.Update(const SecondsPassed: Single;
-  const HandleMouseAndKeys: boolean;
-  var LetOthersHandleMouseAndKeys: boolean);
-begin
-  inherited;
-  { let controls under the TCastleImageControl handle keys/mouse,
-    because TCastleImageControl doesn't do anything with them by default. }
-  LetOthersHandleMouseAndKeys := true;
 end;
 
 function TCastleImageControl.Width: Cardinal;

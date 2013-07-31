@@ -312,8 +312,7 @@ type
     function Mouse3dRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
     function Mouse3dTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
     procedure Update(const SecondsPassed: Single;
-      const HandleMouseAndKeys: boolean;
-      var LetOthersHandleMouseAndKeys: boolean); override;
+      var HandleInput: boolean); override;
 
     { Actual position and size of the viewport. Calculated looking
       at @link(FullSize) value, and the current container sizes
@@ -820,8 +819,7 @@ type
     function CameraToChanges: TVisibleChanges; virtual;
 
     procedure Update(const SecondsPassed: Single;
-      const HandleMouseAndKeys: boolean;
-      var LetOthersHandleMouseAndKeys: boolean); override;
+      var HandleInput: boolean); override;
 
     function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
 
@@ -1470,8 +1468,7 @@ begin
 end;
 
 procedure TCastleAbstractViewport.Update(const SecondsPassed: Single;
-  const HandleMouseAndKeys: boolean;
-  var LetOthersHandleMouseAndKeys: boolean);
+  var HandleInput: boolean);
 var
   P: TPlayer;
   S, C: Extended;
@@ -1479,21 +1476,18 @@ begin
   inherited;
 
   if Paused or (not GetExists) then
-  begin
-    LetOthersHandleMouseAndKeys := true;
     Exit;
-  end;
 
-  { As for LetOthersHandleMouseAndKeys: let Camera decide.
+  { As for HandleInput: let Camera decide.
     By default, camera (like all TUIControl) has ExclusiveEvents = true
-    and will cause LetOthersHandleMouseAndKeys := false, so things under this
+    and so will cause HandleInput := false, so things under this
     viewport do not get keys/mouse events. This is good when you have
     one viewport covering another, like in fps_game. This means pressing
     e.g. the "up arrow key" only moves camera in one viewport.
 
     Note about Items.Update (called in TCastleSceneManager.Update):
-    Our Items.Update do not have HandleMouseAndKeys or LetOthersHandleMouseAndKeys
-    parameters, as it would not be controllable for them: 3D objects do not
+    Our Items.Update do not have HandleInput
+    parameter, as it would not be controllable for them: 3D objects do not
     have strict front-to-back order, so we would not know in what order
     call their Update methods, so we have to let many Items handle keys anyway.
     So, it's consistent to just treat 3D objects as "cannot definitely
@@ -1502,11 +1496,7 @@ begin
     so they could not process keys/mouse anyway. }
 
   if Camera <> nil then
-  begin
-    LetOthersHandleMouseAndKeys := not Camera.ExclusiveEvents;
-    Camera.Update(SecondsPassed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
-  end else
-    LetOthersHandleMouseAndKeys := true;
+    Camera.Update(SecondsPassed, HandleInput);
 
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
@@ -3058,8 +3048,7 @@ begin
 end;
 
 procedure TCastleSceneManager.Update(const SecondsPassed: Single;
-  const HandleMouseAndKeys: boolean;
-  var LetOthersHandleMouseAndKeys: boolean);
+  var HandleInput: boolean);
 const
   { Delay between calling SoundEngine.Refresh, in miliseconds. }
   SoundRefreshDelay = 100;

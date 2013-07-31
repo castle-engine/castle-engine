@@ -290,8 +290,7 @@ type
       out RayOrigin, RayDirection: TVector3Single);
 
     procedure Update(const SecondsPassed: Single;
-      const HandleMouseAndKeys: boolean;
-      var LetOthersHandleMouseAndKeys: boolean); override;
+      var HandleInput: boolean); override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
 
@@ -466,8 +465,7 @@ type
 
     function RotationMatrix: TMatrix4Single; override;
     procedure Update(const SecondsPassed: Single;
-      const HandleMouseAndKeys: boolean;
-      var LetOthersHandleMouseAndKeys: boolean); override;
+      var HandleInput: boolean); override;
     function AllowSuspendForInput: boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
@@ -816,8 +814,7 @@ type
     function Matrix: TMatrix4Single; override;
     function RotationMatrix: TMatrix4Single; override;
     procedure Update(const SecondsPassed: Single;
-      const HandleMouseAndKeys: boolean;
-      var LetOthersHandleMouseAndKeys: boolean); override;
+      var HandleInput: boolean); override;
     function AllowSuspendForInput: boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Mouse3dTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
@@ -1588,8 +1585,7 @@ type
       const AdjustUp: boolean = true); override;
 
     procedure Update(const SecondsPassed: Single;
-      const HandleMouseAndKeys: boolean;
-      var LetOthersHandleMouseAndKeys: boolean); override;
+      var HandleInput: boolean); override;
     function AllowSuspendForInput: boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
@@ -1850,8 +1846,7 @@ begin
 end;
 
 procedure TCamera.Update(const SecondsPassed: Single;
-  const HandleMouseAndKeys: boolean;
-  var LetOthersHandleMouseAndKeys: boolean);
+  var HandleInput: boolean);
 begin
   inherited;
   if FAnimation then
@@ -2095,8 +2090,7 @@ begin
 end;
 
 procedure TExamineCamera.Update(const SecondsPassed: Single;
-  const HandleMouseAndKeys: boolean;
-  var LetOthersHandleMouseAndKeys: boolean);
+  var HandleInput: boolean);
 
   { Increase speed of rotating, or just rotation angle
     (depending on RotationAccelerate). Direction must be -1 or +1. }
@@ -2162,8 +2156,9 @@ begin
     ScheduleVisibleChange;
   end;
 
-  if HandleMouseAndKeys and (ciNormal in Input) then
+  if HandleInput and (ciNormal in Input) then
   begin
+    HandleInput := not ExclusiveEvents;
     if ModelBox.IsEmptyOrZero then
       MoveChange := SecondsPassed else
       MoveChange := ModelBox.AverageSize * SecondsPassed;
@@ -3144,8 +3139,7 @@ begin
 end;
 
 procedure TWalkCamera.Update(const SecondsPassed: Single;
-  const HandleMouseAndKeys: boolean;
-  var LetOthersHandleMouseAndKeys: boolean);
+  var HandleInput: boolean);
 
   { Check are keys for left/right/down/up rotations are pressed, and handle them.
     SpeedScale = 1 indicates a normal rotation speed, you can use it to scale
@@ -3814,103 +3808,110 @@ begin
 
   BeginVisibleChangeSchedule;
   try
-    if (ciNormal in Input) and HandleMouseAndKeys then
+    if HandleInput then
     begin
-      FIsCrouching := Input_Crouch.IsPressed(Container);
-
-      if (not CheckModsDown) or
-         (ModsDown - Input_Run.Modifiers = []) then
+      if ciNormal in Input then
       begin
-        CheckRotates(1.0);
+        HandleInput := not ExclusiveEvents;
+        FIsCrouching := Input_Crouch.IsPressed(Container);
 
-        if Input_Forward.IsPressed(Container) then
-          MoveHorizontal(SecondsPassed, 1);
-        if Input_Backward.IsPressed(Container) then
-          MoveHorizontal(SecondsPassed, -1);
-
-        if Input_RightStrafe.IsPressed(Container) then
+        if (not CheckModsDown) or
+           (ModsDown - Input_Run.Modifiers = []) then
         begin
-          RotateHorizontalForStrafeMove(-90);
-          MoveHorizontal(SecondsPassed, 1);
-          RotateHorizontalForStrafeMove(90);
-        end;
+          CheckRotates(1.0);
 
-        if Input_LeftStrafe.IsPressed(Container) then
-        begin
-          RotateHorizontalForStrafeMove(90);
-          MoveHorizontal(SecondsPassed, 1);
-          RotateHorizontalForStrafeMove(-90);
-        end;
+          if Input_Forward.IsPressed(Container) then
+            MoveHorizontal(SecondsPassed, 1);
+          if Input_Backward.IsPressed(Container) then
+            MoveHorizontal(SecondsPassed, -1);
 
-        { A simple implementation of Input_UpMove was
-            RotateVertical(90); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(-90)
-          Similarly, simple implementation of Input_DownMove was
-            RotateVertical(-90); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(90)
-          But this is not good, because when PreferGravityUp, we want to move
-          along the GravityUp. (Also later note: RotateVertical is now bounded by
-          MinAngleRadFromGravityUp). }
+          if Input_RightStrafe.IsPressed(Container) then
+          begin
+            RotateHorizontalForStrafeMove(-90);
+            MoveHorizontal(SecondsPassed, 1);
+            RotateHorizontalForStrafeMove(90);
+          end;
 
-        if Input_UpMove.IsPressed(Container) then
-          MoveVertical(SecondsPassed, 1);
-        if Input_DownMove.IsPressed(Container) then
-          MoveVertical(SecondsPassed, -1);
+          if Input_LeftStrafe.IsPressed(Container) then
+          begin
+            RotateHorizontalForStrafeMove(90);
+            MoveHorizontal(SecondsPassed, 1);
+            RotateHorizontalForStrafeMove(-90);
+          end;
 
-        { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
-          ScheduleVisibleChange - zmienilismy swoje wlasciwosci, moze sa one np. gdzies
-          wypisywane w oknie na statusie i okno potrzebuje miec PostRedisplay po zmianie
-          Move*Speed ?.
+          { A simple implementation of Input_UpMove was
+              RotateVertical(90); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(-90)
+            Similarly, simple implementation of Input_DownMove was
+              RotateVertical(-90); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(90)
+            But this is not good, because when PreferGravityUp, we want to move
+            along the GravityUp. (Also later note: RotateVertical is now bounded by
+            MinAngleRadFromGravityUp). }
 
-          How to apply SecondsPassed here ?
-          I can't just ignore SecondsPassed, but I can't also write
-            FMoveSpeed *= 10 * SecondsPassed;
-          What I want is such continous function that e.g.
-            F(FMoveSpeed, 10) = F(F(FMoveSpeed, 1), 1)
-          I.e. SecondsPassed = 10 should work just like doing the same change twice.
-          So F is FMoveSpeed * Power(10, SecondsPassed)
-          Easy!
-        }
-        if Input_MoveSpeedInc.IsPressed(Container) then
-        begin
-          MoveSpeed := MoveSpeed * Power(10, SecondsPassed);
-          ScheduleVisibleChange;
-        end;
+          if Input_UpMove.IsPressed(Container) then
+            MoveVertical(SecondsPassed, 1);
+          if Input_DownMove.IsPressed(Container) then
+            MoveVertical(SecondsPassed, -1);
 
-        if Input_MoveSpeedDec.IsPressed(Container) then
-        begin
-          MoveSpeed := MoveSpeed / Power(10, SecondsPassed);
-          ScheduleVisibleChange;
-        end;
-      end else
-      if ModsDown = [mkCtrl] then
-      begin
-        if AllowSlowerRotations then
-          CheckRotates(0.1);
+          { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
+            ScheduleVisibleChange - zmienilismy swoje wlasciwosci, moze sa one np. gdzies
+            wypisywane w oknie na statusie i okno potrzebuje miec PostRedisplay po zmianie
+            Move*Speed ?.
 
-        { Either MoveSpeedInc/Dec work, or Increase/DecreasePreferredHeight,
-          as they by default have the same shortcuts, so should not work
-          together. }
+            How to apply SecondsPassed here ?
+            I can't just ignore SecondsPassed, but I can't also write
+              FMoveSpeed *= 10 * SecondsPassed;
+            What I want is such continous function that e.g.
+              F(FMoveSpeed, 10) = F(F(FMoveSpeed, 1), 1)
+            I.e. SecondsPassed = 10 should work just like doing the same change twice.
+            So F is FMoveSpeed * Power(10, SecondsPassed)
+            Easy!
+          }
+          if Input_MoveSpeedInc.IsPressed(Container) then
+          begin
+            MoveSpeed := MoveSpeed * Power(10, SecondsPassed);
+            ScheduleVisibleChange;
+          end;
+
+          if Input_MoveSpeedDec.IsPressed(Container) then
+          begin
+            MoveSpeed := MoveSpeed / Power(10, SecondsPassed);
+            ScheduleVisibleChange;
+          end;
+        end else
         if ModsDown = [mkCtrl] then
         begin
-          if Input_IncreasePreferredHeight.IsPressed(Container) then
-            ChangePreferredHeight(+1);
-          if Input_DecreasePreferredHeight.IsPressed(Container) then
-            ChangePreferredHeight(-1);
+          if AllowSlowerRotations then
+            CheckRotates(0.1);
+
+          { Either MoveSpeedInc/Dec work, or Increase/DecreasePreferredHeight,
+            as they by default have the same shortcuts, so should not work
+            together. }
+          if ModsDown = [mkCtrl] then
+          begin
+            if Input_IncreasePreferredHeight.IsPressed(Container) then
+              ChangePreferredHeight(+1);
+            if Input_DecreasePreferredHeight.IsPressed(Container) then
+              ChangePreferredHeight(-1);
+          end;
         end;
       end;
-    end;
 
-    { mouse dragging navigation }
-    if MouseDraggingStarted and
-       (ciMouseDragging in Input) and EnableDragging and
-       ((mbLeft in Container.MousePressed) or (mbRight in Container.MousePressed)) and
-       { Enable dragging only when no modifiers (except Input_Run,
-         which must be allowed to enable running) are pressed.
-         This allows application to handle e.g. ctrl + dragging
-         in some custom ways (like view3dscene selecting a triangle). }
-       (Container.Pressed.Modifiers - Input_Run.Modifiers = []) and
-       (not MouseLook) and HandleMouseAndKeys then
-      MoveViaMouseDragging(Container.MouseX - MouseDraggingStart[0],
-                           Container.MouseY - MouseDraggingStart[1]);
+      { mouse dragging navigation }
+      if MouseDraggingStarted and
+         (ciMouseDragging in Input) and EnableDragging and
+         ((mbLeft in Container.MousePressed) or (mbRight in Container.MousePressed)) and
+         { Enable dragging only when no modifiers (except Input_Run,
+           which must be allowed to enable running) are pressed.
+           This allows application to handle e.g. ctrl + dragging
+           in some custom ways (like view3dscene selecting a triangle). }
+         (Container.Pressed.Modifiers - Input_Run.Modifiers = []) and
+         (not MouseLook) then
+      begin
+        HandleInput := not ExclusiveEvents;
+        MoveViaMouseDragging(Container.MouseX - MouseDraggingStart[0],
+                             Container.MouseY - MouseDraggingStart[1]);
+      end;
+    end;
 
     PreferGravityUpForRotationsUpdate;
 
@@ -4514,13 +4515,10 @@ begin
 end;
 
 procedure TUniversalCamera.Update(const SecondsPassed: Single;
-  const HandleMouseAndKeys: boolean;
-  var LetOthersHandleMouseAndKeys: boolean);
+  var HandleInput: boolean);
 begin
   inherited;
-
-  LetOthersHandleMouseAndKeys := not Current.ExclusiveEvents;
-  Current.Update(SecondsPassed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
+  Current.Update(SecondsPassed, HandleInput);
 end;
 
 function TUniversalCamera.Mouse3dTranslation(const X, Y, Z, Length: Double;
