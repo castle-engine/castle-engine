@@ -19,12 +19,8 @@
   - In OpenBackend implement MaxWidth/Height
     (Or maybe these properties should be removed?
     They are made for symmetry with MinWidth/Height. Are they really useful?)
-  - Implement better fullscreen toggle now (that doesn't need
-    recreating window).
-    Update docs about capabilities of GTK_2 backend.
-  - Value of propery FullScreen should change at runtime,
-    and parts of things that I'm doing now in OpenBackend
-    should be done on such changes.
+  - Value of propery FullScreen could change at runtime.
+    Observe window-state-event, change FullScreen at such times.
     This way I should be able to react to fullscreen changes
     forced by user (using window manager, not F11) really cleanly.
 }
@@ -1039,8 +1035,8 @@ begin
    gtk_widget_set_usize(GTK_WIDGET(GLAreaGtk), Width, Height) else
    gtk_widget_set_usize(GTK_WIDGET(GLAreaGtk), MinWidth, MinHeight);
   set_default_glarea_size(Width, Height);
-  gtk_window_set_resizable(WindowGtk, ResizeAllowed = raAllowed);
  end;
+ gtk_window_set_resizable(WindowGtk, ResizeAllowed = raAllowed);
 
  { Honour display (XScreenGdk is default screen on chosen display)
    chosen by user. }
@@ -1500,7 +1496,14 @@ end;
 
 procedure TCastleWindowBase.SetFullScreen(const Value: boolean);
 begin
-  SimpleSetFullScreen(Value);
+  if FFullScreen <> Value then
+  begin
+    FFullScreen := Value;
+    if not Closed then
+      if Value then
+        gtk_window_fullscreen(WindowGtk) else
+        gtk_window_unfullscreen(WindowGtk);
+  end;
 end;
 
 { TCastleApplication ------------------------------------------------------------- }

@@ -222,6 +222,9 @@ unit CastleWindow;
     FullScreen is cleanly implemented in GTK_2, never using override_redirect,
     so Alt+Tab always works (even when your window is fullscreen),
     and things like gnome-panel will never cover your fullscreen window.
+    Also changing FullScreen is nice, GTK will instruct the window manager
+    to fullscreen/unfullscreen the window, which means it will happen
+    without recreating the OpenGL context.
 
     Known problems:
     - Tab key cannot work as menu item shortcut (it's always only
