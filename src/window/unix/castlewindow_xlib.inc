@@ -668,7 +668,6 @@ end;
 
 procedure TCastleWindowBase.SetFullScreen(const Value: boolean);
 begin
-  { Some backends may provide a better way of doing this. }
   SimpleSetFullScreen(Value);
 end;
 
