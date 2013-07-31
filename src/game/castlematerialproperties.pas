@@ -86,6 +86,7 @@ type
     procedure SetURL(const Value: string);
   public
     { Load material properties from given XML file.
+      Set this to empty string to unload previously loaded properties.
       See Castle1 and fps_game data for examples how this looks like,
       in @code(material_properties.xml). }
     property URL: string read FURL write SetURL;
@@ -164,6 +165,8 @@ begin
   FURL := Value;
 
   Clear;
+
+  if URL = '' then Exit;
 
   Stream := Download(URL);
   try
