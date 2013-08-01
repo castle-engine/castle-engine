@@ -401,7 +401,11 @@ function NormalFileExists(const FileName: string): boolean;
 {$ifdef MSWINDOWS}
 var s: string;
 begin
+ { Don't warn about deprecation of ExtractOnlyFileName,
+   since NormalFileExists is deprecated too... }
+ {$warnings off}
  s := UpperCase(ExtractOnlyFileName(fileName));
+ {$warnings on}
  result :=  FileExists(fileName) and
     (not( (s='CON') or (s='PRN') or (s='NUL') or
           (s='LPT1') or (s='LPT2') or (s='LPT3') or (s='LPT4') or
