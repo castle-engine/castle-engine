@@ -551,6 +551,7 @@ function Zero(const f1, EqEpsilon: Extended): boolean; overload;
 { }
 function Vector2Cardinal(const x, y: Cardinal): TVector2Cardinal;
 function Vector2Integer(const x, y: Integer): TVector2Integer;
+function Vector2LongInt(const x, y: Longint): TVector2LongInt;
 
 function Vector2Single(const x, y: Single): TVector2Single; overload;
 function Vector2Single(const V: TVector2Double): TVector2Single; overload;
@@ -2542,6 +2543,11 @@ end;
 { type constructors ---------------------------------------------------------- }
 
 function Vector2Integer(const x, y: Integer): TVector2Integer;
+begin
+  result[0] := x; result[1] := y;
+end;
+
+function Vector2LongInt(const x, y: Longint): TVector2LongInt;
 begin
   result[0] := x; result[1] := y;
 end;

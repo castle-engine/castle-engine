@@ -1468,7 +1468,7 @@ procedure TCastleControlCustom.DoDraw;
               { Set OpenGL state that may be changed carelessly, and has some
                 guanteed value, for Draw2d calls. }
               glLoadIdentity;
-              SetWindowPos(0, 0);
+              WindowPos := Vector2LongInt(0, 0);
               C.Draw;
             end;
           end;
@@ -1476,7 +1476,7 @@ procedure TCastleControlCustom.DoDraw;
           if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = ds2D) then
           begin
             glLoadIdentity;
-            SetWindowPos(0, 0);
+            WindowPos := Vector2LongInt(0, 0);
             Focus.DrawTooltip;
           end;
         end;
@@ -1484,7 +1484,7 @@ procedure TCastleControlCustom.DoDraw;
         if OnDrawStyle = ds2D then
         begin
           glLoadIdentity;
-          SetWindowPos(0, 0);
+          WindowPos := Vector2LongInt(0, 0);
           inherited DoDraw;
         end;
 
