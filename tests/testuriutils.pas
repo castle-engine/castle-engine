@@ -38,7 +38,7 @@ begin
   {$ifdef MSWINDOWS}
   AssertEquals('file:///C:/foo.txt', AbsoluteURI('c:\foo.txt'));
   { Below ExpandFileName will change /foo.txt on Windows to add drive letter }
-  AssertEquals('file:///c:/foo.txt', AbsoluteURI('/foo.txt'));
+  AssertEquals('file:///C:/foo.txt', AbsoluteURI('/foo.txt'));
   {$endif}
 
   {$ifdef UNIX}
@@ -75,7 +75,7 @@ begin
   { FilenameToURISafe must percent-encode,
     URIToFilenameSafe must decode it back. }
   {$ifdef MSWINDOWS}
-  AssertEquals('file:///c:/foo%254d.txt', FilenameToURISafe('c:\foo%4d.txt'));
+  AssertEquals('file:///C:/foo%254d.txt', FilenameToURISafe('c:\foo%4d.txt'));
   AssertEquals('C:\fooM.txt', URIToFilenameSafe('file:///C:/foo%4d.txt'));
   AssertEquals('C:\foo%.txt', URIToFilenameSafe('file:///C:/foo%25.txt'));
   {$endif}
@@ -87,7 +87,7 @@ begin
 
   { Always URIToFilenameSafe and FilenameToURISafe should reverse each other. }
   {$ifdef MSWINDOWS}
-  AssertEquals('c:\foo%4d.txt', URIToFilenameSafe(FilenameToURISafe('c:\foo%4d.txt')));
+  AssertEquals('C:\foo%4d.txt', URIToFilenameSafe(FilenameToURISafe('c:\foo%4d.txt')));
   { Actually this would be valid too:
     AssertEquals('file:///C:/foo%4d.txt', FilenameToURISafe(URIToFilenameSafe('file:///C:/foo%4d.txt')));
     But it's Ok that %4d gets converted to M, as char "M" is safe inside URI. }

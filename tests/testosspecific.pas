@@ -56,8 +56,8 @@ begin
 
   AssertEquals('/tmp/', InclPathDelim('/tmp/'));
   AssertEquals('/', InclPathDelim('/'));
-  AssertEquals('/tmp/', InclPathDelim('/tmp'));
-  AssertEquals('/', InclPathDelim(''));
+  AssertEquals('/tmp' + PathDelim, InclPathDelim('/tmp'));
+  AssertEquals(PathDelim, InclPathDelim(''));
 
   { backslash should be likewise added / stripped on Windows }
   {$ifdef MSWINDOWS}
