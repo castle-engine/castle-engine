@@ -3187,11 +3187,17 @@ begin
    Below we are explicitly forcing assertions about ResizeAllowed:
    when ResizeAllowed
      = raNotAllowed: FWidth and FHeight cannot change
-     = raOnlyAtOpen: FWidth and FHeight can change only once, at first EventResize
+     = raOnlyAtOpen: FWidth and FHeight can change only at first EventResize
+       (with FromIndependentOpen = true), at least from the point of view of outside.
+       Internally, every call to DoResize upto and including FromIndependentOpen call
+       changes FWidth and FHeight. This allows to accumulate e.g. size changes
+       caused by FullScreen=true, in case OpenBackend does them by explicitly
+       calling DoResize, like unix/castlewindow_xlib.inc .
      = raAllowed: FWidth and FHeight can change freely
  }
  if (ResizeAllowed = raAllowed) or
-    ((ResizeAllowed = raOnlyAtOpen) and FromIndependentOpen) then
+    ((ResizeAllowed = raOnlyAtOpen) and
+     (FromIndependentOpen or not EventOpenCalled)) then
  begin
   FWidth := Clamped(AWidth,  MinWidth,  MaxWidth);
   FHeight := Clamped(AHeight, MinHeight, MaxHeight);
