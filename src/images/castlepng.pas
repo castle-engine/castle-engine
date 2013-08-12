@@ -955,7 +955,7 @@ initialization
   {$ifdef DARWIN}
   PngLibrary := TDynLib.Load('libpng.dylib', false);
   if (PngLibrary = nil) and (BundlePath <> '') then
-    PngLibrary := TDynLib.Load(BundlePath + 'Contents/MacOS/libpng.dylib', false);
+    PngLibrary := TDynLib.Load(BundlePath + 'Contents/MacOS/libpng14.14.dylib', false);
   {$else DARWIN}
   PngLibrary := TDynLib.Load('libpng12.so.0', false);
   { Alternative libpng library name for Unix. Use the one that comes usually
