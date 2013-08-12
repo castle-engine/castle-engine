@@ -932,8 +932,8 @@ type
         update MousePressed
         MakeCurrent
         EventMouseDown/Up }
-    procedure DoMouseDown(x, y: integer; btn: TMouseButton);
-    procedure DoMouseUp(x, y: integer; btn: TMouseButton);
+    procedure DoMouseDown(x, y: integer; btn: CastleKeysMouse.TMouseButton);
+    procedure DoMouseUp(x, y: integer; btn: CastleKeysMouse.TMouseButton);
     procedure DoMouseWheel(const Scroll: Single; const Vertical: boolean);
     procedure DoUpdate;
     procedure DoTimer;
@@ -3095,7 +3095,7 @@ end;
 
 procedure TCastleWindowBase.ReleaseAllKeysAndMouse;
 var k: TKey;
-    mb: TMouseButton;
+    mb: CastleKeysMouse.TMouseButton;
     {$ifdef CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
     mk: TModifierKey;
     b: boolean;
@@ -3306,7 +3306,7 @@ begin
  FMouseY := y;
 end;
 
-procedure TCastleWindowBase.DoMouseDown(x, y: integer; btn: TMouseButton);
+procedure TCastleWindowBase.DoMouseDown(x, y: integer; btn: CastleKeysMouse.TMouseButton);
 begin
  FMouseX := x;
  FMouseY := y;
@@ -3315,7 +3315,7 @@ begin
  EventPress(InputMouseButton(btn));
 end;
 
-procedure TCastleWindowBase.DoMouseUp(x, y: integer; btn: TMouseButton);
+procedure TCastleWindowBase.DoMouseUp(x, y: integer; btn: CastleKeysMouse.TMouseButton);
 begin
  FMouseX := x;
  FMouseY := y;
