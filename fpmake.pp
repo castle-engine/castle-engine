@@ -36,7 +36,10 @@ begin
     P.Dependencies.Add('fcl-image');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-process');
+    P.Dependencies.Add('fcl-web');
     P.Dependencies.Add('pasjpeg');
+    P.Dependencies.Add('paszlib'); { used by FpReadTiff, we don't use paszlib in our engine }
+    P.Dependencies.Add('regexpr');
     if Defaults.OS in AllUnixOSes then
     begin
       P.Dependencies.Add('x11');
@@ -57,7 +60,7 @@ begin
     P.HomepageURL
     {$endif} := 'http://castle-engine.sourceforge.net/';
     P.Email := 'michalis.kambi' + '@gmail.com'; { at least protect sources from spammers }
-    P.Version := '4.0.1';
+    P.Version := '4.1.0';
 
     P.SourcePath.Add('src' + PathDelim + '3d');
     P.Targets.AddUnit('castle3d.pas');
