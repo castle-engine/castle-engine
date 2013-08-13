@@ -34,7 +34,7 @@ interface
 
   @raises(EInvalidParams on violation of allowed Detail values
     (e.g. when Detail_QuadricSlices < 3 etc.))
-  @raises(EConverError when option Argument is not an int) }
+  @raises(EConvertError when option Argument is not an int) }
 procedure X3DNodesDetailOptionsParse;
 
 function X3DNodesDetailOptionsHelp: string;
