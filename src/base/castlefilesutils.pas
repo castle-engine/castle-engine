@@ -163,10 +163,18 @@ function ApplicationConfig(const Path: string): string;
       @item(Last resort fallback: just our exe directory.)
     ))
 
+    @itemLabel(Mac OS X)
+    @item(@orderedList(
+      @item(@code(Contents/Resources/data) subdirectory inside our bundle directory,
+        if we are inside a bundle and such subdirectory exists.)
+      @item(Otherwise, algorithm on Mac OS X follows algorithm on other Unixes,
+        see below.)
+    ))
+
     @itemLabel(Unix (Linux, Mac OS X, FreeBSD etc.))
     @item(@orderedList(
       @item(@code(~/.local/share/) + ApplicationName.
-        This is nice user-specific data directory, following the default distated by
+        This is nice user-specific data directory, following the default dictated by
         http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html .
         If such directory exists, it is returned.
 
@@ -466,6 +474,14 @@ function ApplicationData(const Path: string): string;
   var
     CurPath: string;
   begin
+    {$ifdef DARWIN}
+    if BundlePath <> '' then
+    begin
+      Result := BundlePath + 'Contents/Resources/data/';
+      if DirectoryExists(Result) then Exit;
+    end;
+    {$endif}
+
     Result := HomePath + '.local/share/' + ApplicationName + '/';
     if DirectoryExists(Result) then Exit;
 
