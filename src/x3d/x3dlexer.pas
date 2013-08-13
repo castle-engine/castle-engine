@@ -116,10 +116,8 @@ type
 
     Note that this lexer can read only from @link(TPeekCharStream), not just
     from any TStream. You may have to wrap your stream in some
-    @link(TPeekCharStream) descendant (see for example at
-    @link(CreateFromFile) implementation,
-    that creates TFileStream and then wraps it inside
-    @link(TBufferedReadStream)). }
+    @link(TPeekCharStream) descendant (for example create TFileStream
+    and then wrap it inside @link(TBufferedReadStream)). }
   TX3DLexer = class
   private
     fVersion: TX3DVersion;
