@@ -220,6 +220,7 @@ const
 var
   Player: TPlayer;
   I, X, Y: Integer;
+  S: string;
 begin
   Player := SceneManager.Player;
 
@@ -251,10 +252,10 @@ begin
   begin
     X := ControlsMargin + I * (InventoryImageSize + ControlsMargin);
     Player.Inventory[I].Resource.GLImage.Draw(X, Y);
-    UIFontSmall.Print(X, Y - UIFontSmall.RowHeight,
-      Player.Inventory[I].Resource.Caption);
+    S := Player.Inventory[I].Resource.Caption;
     if Player.Inventory[I].Quantity <> 1 then
-      UIFontSmall.PrintAndMove(Format(' (%d)', [Player.Inventory[I].Quantity]));
+      S += Format(' (%d)', [Player.Inventory[I].Quantity]);
+    UIFontSmall.Print(X, Y - UIFontSmall.RowHeight, S);
   end;
 
   { Mark currently chosen item. You can change currently selected item by

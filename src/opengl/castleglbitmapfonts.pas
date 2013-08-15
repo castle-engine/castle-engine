@@ -196,7 +196,7 @@ type
       The text is printed like by PrintStrings.
 
       The X0, Y0 give explicitly the left-bottom box corner (in window
-      coordinates, i.e. applied with SetWindowPos).
+      coordinates).
 
       BonusVerticalSpace has the same interpretation as for PrintStrings:
       additional space between lines (if positive) or forces
@@ -641,12 +641,9 @@ procedure TGLBitmapFontAbstract.PrintStrings(strs: TStrings;
 var
   Line: Integer;
 
-  procedure SetPos;
-  var
-    Y: Integer;
+  function YPos: Integer;
   begin
-    Y := (Strs.Count - 1 - Line) * (RowHeight + BonusVerticalSpace) + Y0;
-    SetWindowPos(X0, Y);
+    Result := (Strs.Count - 1 - Line) * (RowHeight + BonusVerticalSpace) + Y0;
   end;
 
 var
@@ -673,19 +670,12 @@ begin
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
             glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
           end;
-          SetPos;
-          PrintAndMove(S);
+          Print(X0, YPos, S);
         glPopAttrib;
       end else
-      begin
-        SetPos;
-        PrintAndMove(S);
-      end;
+        Print(X0, YPos, S);
     end else
-    begin
-      SetPos;
-      PrintAndMove(S);
-    end;
+      Print(X0, YPos, S);
   end;
 end;
 
