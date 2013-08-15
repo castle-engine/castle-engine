@@ -568,9 +568,9 @@ procedure TVideo.LoadFromFile(const URL: string);
           by ffmpeg anyway... }
         Writeln(Output, 'FFMpeg found, executing...');
         Writeln(Output, Executable + ' -i "' + MovieFileName +
-          '" -y -sameq -f image2 "' + FfmpegTemporaryImagesPattern + '"');
+          '" -y -qscale 1 -f image2 "' + FfmpegTemporaryImagesPattern + '"');
         ExecuteProcess(Executable,
-          [ '-i', MovieFileName, '-y', '-sameq', '-f', 'image2', FfmpegTemporaryImagesPattern ]);
+          [ '-i', MovieFileName, '-y', '-qscale', '1', '-f', 'image2', FfmpegTemporaryImagesPattern ]);
       finally
         if MovieFileNameTemporary then
           CheckDeleteFile(MovieFileName, true);
@@ -687,10 +687,10 @@ procedure TVideo.SaveToFile(const URL: string);
 
       Writeln(Output, 'FFMpeg found, executing...');
       Writeln(Output, Executable + ' -f image2 -i "' + TemporaryImagesPattern +
-        '" -y -sameq "' + FileName + '"');
+        '" -y -qscale 1 "' + FileName + '"');
 
       ExecuteProcess(Executable,
-        ['-f', 'image2', '-i', TemporaryImagesPattern, '-y', '-sameq', FileName]);
+        ['-f', 'image2', '-i', TemporaryImagesPattern, '-y', '-qscale', '1', FileName]);
 
       RemoveTemporaryImages(TemporaryImagesPattern);
     end;
