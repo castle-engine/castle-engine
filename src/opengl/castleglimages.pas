@@ -95,14 +95,10 @@ function ImageGLType(const Img: TCastleImage): TGLenum;
 { Loading images ------------------------------------------------------------- }
 
 type
-  { OpenGL image ready to be drawn on 2D screen. }
+  { Image ready to be drawn on 2D screen. }
   TGLImage = class
   private
-    {$ifdef UseTexturesForImage}
     Texture: TGLuint;
-    {$else}
-    DisplayList: TGLuint;
-    {$endif}
     FWidth: Cardinal;
     FHeight: Cardinal;
   public
@@ -110,7 +106,8 @@ type
 
       @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
         by OpenGL.) }
-    constructor Create(const Image: TCastleImage);
+    constructor Create(const Image: TCastleImage;
+      const AScalingPossible: boolean = false);
 
     { Load image from disk, and prepare for drawing.
 
@@ -123,9 +120,6 @@ type
 
         You can pass e.g. [TRGBImage] to force loading into an RGB image without
         an alpha channel (it will be stripped from the image if necessary).)
-
-      @param(Forbidden convertions to do when loading,
-        see CastleImages.LoadImage. Pass empty set [] to not forbid anything.)
 
       @param(ResizeToX After loading, resize to given width.
         Pass 0 to not resize width.)
@@ -146,40 +140,38 @@ type
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
       const Interpolation: TResizeInterpolation = riNearest);
-
-    {$ifndef UseTexturesForImage}
-    { Prepare part of the image for drawing.
-
-      @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
-        by OpenGL.) }
-    constructor CreatePart(
-      const Image: TCastleImage;
-      const X0, Y0, AWidth, AHeight: Cardinal); deprecated;
-    {$endif}
+    constructor Create(const URL: string;
+      const LoadAsClass: array of TCastleImageClass;
+      const AScalingPossible: boolean);
 
     destructor Destroy; override;
 
     { Draw the image as 2D on screen.
 
-      The current WindowPos determines where the left-bottom
-      corner of the image will be placed. Right now, WindowPos corresponds to
-      an OpenGL raster position expressed in window coordinates,
-      although you should not depend on it in new programs (the idea
-      of raster disappears in new OpenGL versions).
-
-      The image is drawn in 2D, which means that in normal circumstances
-      1 pixel of the image is just placed over 1 pixel of the screen.
-      For older OpenGL versions, this can be affected by glPixelZoom
-      (for newer versions, we will provide new methods to choose a part
-      of the image and/or scale it in the future).
+      The X, Y parameters determine where the left-bottom
+      corner of the image will be placed (from 0 to size - 1).
+      The overloaded version without X, Y parameters uses current WindowPos.
 
       You should only use this inside TUIControl.Draw when TUIControl.DrawStyle
       returns ds2D. This means that we require that current projection is 2D
       and lighting / depth test and such are off.
-      For engine <= 4.1.0, the above is not really a strict requirement,
-      normal 3D transformations have no effect over how the image is drawn.
-      But for new engine versions, it will become required. }
+
+      The image is drawn in 2D. In normal circumstances
+      1 pixel of the image is just placed over 1 pixel of the screen,
+      and we draw the whole image. You can also use the overloaded
+      version with 8 parameters where you explicitly specify the
+      DrawWidth and DrawHeight of the rectangle on the screen, and explicitly choose
+      the portion of the image to draw. If you want to draw scaled image
+      (that is, use ImageWidth different than DrawWidth or ImageHeight
+      different than DrawHeight) be sure to construct an image with
+      ScalingPossible = @true (otherwise runtime scaling may look ugly).
+
+      @groupBegin }
     procedure Draw;
+    procedure Draw(const X, Y: Integer);
+    procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
+      const ImageX, ImageY, ImageWidth, ImageHeight: Integer);
+    { @groupEnd }
 
     property Width: Cardinal read FWidth;
     property Height: Cardinal read FHeight;
@@ -191,40 +183,6 @@ type
   @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
     by OpenGL.) }
 procedure ImageDraw(const Image: TCastleImage);
-
-{$ifndef UseTexturesForImage}
-{ Draw the subset of image rows on 2D screen.
-  Draws RowsCount rows starting from Row0.
-
-  @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
-    by OpenGL.) }
-procedure ImageDrawRows(const Image: TCastleImage; Row0, RowsCount: integer); deprecated;
-
-{ Draw a part of the image on 2D screen.
-
-  Part of the image starts from X0, Y0 (where 0, 0 is the left/bottom
-  pixel, i.e. where the normal ImageDraw starts) and spans Width/Height.
-  Overloaded version without Width, Height parameters just draws the
-  whole remaining image.
-
-  Too large X0, Y0, Width, Height values are automatically detected
-  and cut as appropriate, so you can safely pass any large values here.
-
-  This will cut of some columns at the left/right and bottom/top
-  by using tricks with OpenGL pixel store unpack (don't worry, the whole
-  state of pixel store unpack will be taken care of and preserved
-  by this). So it works fast.
-
-  @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
-    by OpenGL.)
-
-  @groupBegin }
-procedure ImageDrawPart(const image: TCastleImage;
-  const X0, Y0, Width, Height: Cardinal); deprecated;
-procedure ImageDrawPart(const image: TCastleImage;
-  const X0, Y0: Cardinal); deprecated;
-{ @groupEnd }
-{$endif}
 
 { Saving screen to TRGBImage ----------------------------------- }
 
@@ -910,8 +868,8 @@ end;
 
 { TGLImage ------------------------------------------------------------------- }
 
-constructor TGLImage.Create(const Image: TCastleImage);
-{$ifdef UseTexturesForImage}
+constructor TGLImage.Create(const Image: TCastleImage;
+  const AScalingPossible: boolean);
 var
   UnpackData: TUnpackNotAlignedData;
   NewImage: TCastleImage;
@@ -927,13 +885,8 @@ var
     finally AfterUnpackImage(UnpackData, image) end;
   end;
 
-const
-  { TODO: allow this as constructor param, to allow scaling/cutting at Draw time
-    with sensible results. }
-  ScalingPossible = false;
-{$endif}
 begin
-  {$ifdef UseTexturesForImage}
+  inherited Create;
   glGenTextures(1, @Texture);
   glBindTexture(GL_TEXTURE_2D, Texture);
   if not IsTextureSized(Image, GLFeatures.TextureNonPowerOfTwo) then
@@ -944,24 +897,17 @@ begin
     finally FreeAndNil(NewImage) end;
   end else
     LoadImage(Image);
-  if ScalingPossible then
-  begin
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  end else
+  if AScalingPossible then
   begin
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  end else
+  begin
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   end;
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  {$else}
-  DisplayList := glGenListsCheck(1, 'TGLImage.Create');
-  glNewList(DisplayList, GL_COMPILE);
-  try
-    ImageDraw(Image);
-  finally glEndList end;
-  {$endif}
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLFeatures.CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLFeatures.CLAMP_TO_EDGE);
   FWidth := Image.Width;
   FHeight := Image.Height;
 end;
@@ -981,59 +927,56 @@ begin
   finally FreeAndNil(Image) end;
 end;
 
-{$ifndef UseTexturesForImage}
-constructor TGLImage.CreatePart(
-  const Image: TCastleImage;
-  const X0, Y0, AWidth, AHeight: Cardinal);
+constructor TGLImage.Create(const URL: string;
+  const LoadAsClass: array of TCastleImageClass;
+  const AScalingPossible: boolean);
+var
+  Image: TCastleImage;
 begin
-  DisplayList := glGenListsCheck(1, 'TGLImage.CreatePart');
-  glNewList(DisplayList, GL_COMPILE);
+  if High(LoadAsClass) = -1 then
+    Image := LoadImage(URL, PixelsImageClasses) else
+    Image := LoadImage(URL, LoadAsClass);
   try
-    {$warnings off}
-    { This is one deprecated thing referencing other, don't warn about it. }
-    ImageDrawPart(Image, X0, Y0, Width, Height);
-    {$warnings on}
-  finally glEndList end;
-  FWidth := AWidth;
-  FHeight := AHeight;
+    Create(Image, AScalingPossible);
+  finally FreeAndNil(Image) end;
 end;
-{$endif}
 
 destructor TGLImage.Destroy;
 begin
-  {$ifdef UseTexturesForImage}
   glFreeTexture(Texture);
-  {$else}
-  glFreeDisplayList(DisplayList);
-  {$endif}
   inherited;
 end;
 
 procedure TGLImage.Draw;
 begin
-  {$ifdef UseTexturesForImage}
+  Draw(WindowPos[0], WindowPos[1]);
+end;
+
+procedure TGLImage.Draw(const X, Y: Integer);
+begin
+  Draw(X, Y, Width, Height, 0, 0, Width, Height);
+end;
+
+procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
+  const ImageX, ImageY, ImageWidth, ImageHeight: Integer);
+begin
   // TODO: use vbos
-  // TODO: enable/disable textures smarter, by having some global
-  // (or maybe per-gl-context? Also for CurrentProgram?) state.
   // TODO: use texture cache here, like GL renderer does for textures for 3D.
   glLoadIdentity();
   glBindTexture(GL_TEXTURE_2D, Texture);
-  glEnable(GL_TEXTURE_2D);
+  GLEnableTexture(et2D);
   glColor4f(1, 1, 1, 1); // don't modify texture colors
   glBegin(GL_QUADS);
-    glTexCoord2f(0, 0);
-    glVertex2i(WindowPos[0]        , WindowPos[1]);
-    glTexCoord2f(1, 0);
-    glVertex2i(WindowPos[0] + Width, WindowPos[1]);
-    glTexCoord2f(1, 1);
-    glVertex2i(WindowPos[0] + Width, WindowPos[1] + Height);
-    glTexCoord2f(0, 1);
-    glVertex2i(WindowPos[0]        , WindowPos[1] + Height);
+    glTexCoord2f(    ImageX / Width,      ImageY / Height);
+    glVertex2i(X            , Y);
+    glTexCoord2f(ImageWidth / Width,      ImageY / Height);
+    glVertex2i(X + DrawWidth, Y);
+    glTexCoord2f(ImageWidth / Width, ImageHeight / Height);
+    glVertex2i(X + DrawWidth, Y + DrawHeight);
+    glTexCoord2f(    ImageX / Width, ImageHeight / Height);
+    glVertex2i(X            , Y + DrawHeight);
   glEnd();
-  glDisable(GL_TEXTURE_2D);
-  {$else}
-  glCallList(DisplayList);
-  {$endif}
+  GLEnableTexture(etNone);
 end;
 
 { Drawing images on 2D screen ------------------------------------------------ }
@@ -1048,94 +991,6 @@ begin
       glDrawPixels(Width, Height, ImageGLFormat(image), ImageGLType(image), RawPixels);
   finally AfterUnpackImage(UnpackData, image) end;
 end;
-
-{$ifndef UseTexturesForImage}
-procedure ImageDrawRows(const Image: TCastleImage; Row0, RowsCount: integer);
-var
-  UnpackData: TUnpackNotAlignedData;
-begin
-  BeforeUnpackImage(UnpackData, image);
-  try
-    with image do
-      glDrawPixels(Width, RowsCount, ImageGLFormat(image), ImageGLType(image), Image.RowPtr(Row0));
-  finally AfterUnpackImage(UnpackData, image) end;
-end;
-
-procedure ImageDrawPart(const image: TCastleImage;
-  const X0, Y0, Width, Height: Cardinal);
-
-  type
-    { }
-    TPixelStoreUnpack = record
-      UnpackSwapBytes,
-      UnpackLSBFirst: TGLboolean;
-      UnpackRowLength,
-      UnpackSkipRows,
-      UnpackSkipPixels: TGLint;
-      UnpackAlignment: Cardinal;
-    end;
-
-  procedure SavePixelStoreUnpack(out pixUnpack: TPixelStoreUnpack);
-  begin
-    with pixUnpack do
-    begin
-      UnpackSwapBytes := glGetBoolean(GL_UNPACK_SWAP_BYTES);
-      UnpackLSBFirst := glGetBoolean(GL_UNPACK_LSB_FIRST);
-      UnpackRowLength := glGetInteger(GL_UNPACK_ROW_LENGTH);
-      UnpackSkipRows := glGetInteger(GL_UNPACK_SKIP_ROWS);
-      UnpackSkipPixels := glGetInteger(GL_UNPACK_SKIP_PIXELS);
-      UnpackAlignment := glGetInteger(GL_UNPACK_ALIGNMENT);
-    end;
-  end;
-
-  procedure LoadPixelStoreUnpack(const pixUnpack: TPixelStoreUnpack);
-  begin
-    with pixUnpack do
-    begin
-      glPixelStorei(GL_UNPACK_SWAP_BYTES, UnpackSwapBytes);
-      glPixelStorei(GL_UNPACK_LSB_FIRST, UnpackLSBFirst);
-      glPixelStorei(GL_UNPACK_ROW_LENGTH, UnpackRowLength);
-      glPixelStorei(GL_UNPACK_SKIP_ROWS,  UnpackSkipRows);
-      glPixelStorei(GL_UNPACK_SKIP_PIXELS, UnpackSkipPixels);
-      glPixelStorei(GL_UNPACK_ALIGNMENT, UnpackAlignment);
-    end;
-  end;
-
-var
-  pixUnpack: TPixelStoreUnpack;
-  W, H: cardinal;
-begin
-  if (X0 >= Image.Width) or
-     (Y0 >= Image.Height) then
-    Exit; { no need to draw anything }
-
-  SavePixelStoreUnpack(pixUnpack);
-  try
-    W := Min(Image.Width  - X0, Width );
-    H := Min(Image.Height - Y0, Height);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, Image.Width);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, X0);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, Y0);
-
-    { We always make Save/Load Pixel Store Unpack here, so there's
-      no need to use Before/After Unpack NotAligned Image.
-      However, we still have to set some alignment. We can just
-      set it to 1, this will be always correct. }
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-    glDrawPixels(W, H, ImageGLFormat(image), ImageGLType(image), image.RawPixels);
-  finally LoadPixelStoreUnpack(pixUnpack) end;
-end;
-
-procedure ImageDrawPart(const image: TCastleImage;
-  const X0, Y0: Cardinal);
-begin
-  {$warnings off}
-  { This is one deprecated thing referencing other, don't warn about it. }
-  ImageDrawPart(Image, X0, Y0, MaxInt, MaxInt);
-  {$warnings on}
-end;
-{$endif}
 
 { Saving screen to TRGBImage ------------------------------------------------ }
 
