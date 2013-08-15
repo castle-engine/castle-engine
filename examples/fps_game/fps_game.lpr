@@ -235,8 +235,7 @@ begin
     You can take font measurements by UIFont.RowHeight or UIFont.TextWidth
     to adjust initial position as needed. }
   Y -= UIFont.RowHeight + ControlsMargin;
-  SetWindowPos(0, Y);
-  UIFont.PrintAndMove(Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
+  UIFont.Print(0, Y, Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
 
   { A simple way to draw player inventory.
     The image representing each item (exactly for purposes like inventory
@@ -252,8 +251,8 @@ begin
   begin
     X := ControlsMargin + I * (InventoryImageSize + ControlsMargin);
     Player.Inventory[I].Resource.GLImage.Draw(X, Y);
-    SetWindowPos(X, Y - UIFontSmall.RowHeight);
-    UIFontSmall.PrintAndMove(Player.Inventory[I].Resource.Caption);
+    UIFontSmall.Print(X, Y - UIFontSmall.RowHeight,
+      Player.Inventory[I].Resource.Caption);
     if Player.Inventory[I].Quantity <> 1 then
       UIFontSmall.PrintAndMove(Format(' (%d)', [Player.Inventory[I].Quantity]));
   end;

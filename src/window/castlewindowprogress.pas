@@ -182,8 +182,7 @@ begin
   ProgressInterface := Progress.UserInterface as TWindowProgressInterface;
 
   glLoadIdentity;
-  SetWindowPos(0, 0);
-  ProgressInterface.GLImage.Draw;
+  ProgressInterface.GLImage.Draw(0, 0);
 
   Margin := 100 * Window.width div 800;
   BarHeight := 50 * Window.height div 600;
@@ -215,8 +214,7 @@ begin
     Font := UIFontSmall;
     MakeTextFit(Caption, Font, MaxTextWidth);
   end;
-  SetWindowPos(Margin + InsideMargin, YMiddle - Font.RowHeight div 2);
-  Font.PrintAndMove(Caption);
+  Font.Print(Margin + InsideMargin, YMiddle - Font.RowHeight div 2, Caption);
 end;
 
 { TWindowProgressInterface  ------------------------------------------------ }

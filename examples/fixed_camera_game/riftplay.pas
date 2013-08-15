@@ -81,8 +81,6 @@ begin
     if DebugScene3DDisplay = 0 then
       glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
-    SetWindowPos(0, 0);
-
     if DebugScene3DDisplay <> 2 then
     begin
       glPushAttrib(GL_ENABLE_BIT);
@@ -97,8 +95,8 @@ begin
           end;
         end;
         if Params.InShadow then
-          CurrentLocation.GLShadowedImage.Draw else
-          CurrentLocation.GLImage.Draw;
+          CurrentLocation.GLShadowedImage.Draw(0, 0) else
+          CurrentLocation.GLImage.Draw(0, 0);
       glPopAttrib;
     end;
 

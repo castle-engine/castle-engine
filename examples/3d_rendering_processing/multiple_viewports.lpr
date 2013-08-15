@@ -90,8 +90,7 @@ begin
     glDisable(GL_BLEND); { saved by GL_COLOR_BUFFER_BIT }
 
     glColor3f(1, 1, 0);
-    SetWindowPos(Left + 10, Bottom + 10);
-    UIFont.Print(Caption);
+    UIFont.Print(Left + 10, Bottom + 10, Caption);
   end;
 end;
 

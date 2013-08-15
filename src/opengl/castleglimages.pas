@@ -1142,13 +1142,12 @@ end;
 
 procedure ImageDraw(const Image: TCastleImage);
 var
-  UnpackData: TUnpackNotAlignedData;
+  GLImage: TGLImage;
 begin
-  BeforeUnpackImage(UnpackData, image);
+  GLImage := TGLImage.Create(Image);
   try
-    with image do
-      glDrawPixels(Width, Height, ImageGLFormat(image), ImageGLType(image), RawPixels);
-  finally AfterUnpackImage(UnpackData, image) end;
+    GLImage.Draw(0, 0);
+  finally FreeAndNil(GLImage) end;
 end;
 
 { Saving screen to TRGBImage ------------------------------------------------ }

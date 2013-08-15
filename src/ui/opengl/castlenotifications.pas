@@ -268,8 +268,7 @@ begin
       vpUp   :  y :=  ContainerHeight-(i+1)*UIFont.RowHeight - VerticalMargin;
     end;
 
-    SetWindowPos(x, y);
-    UIFont.PrintAndMove(Messages[i].Text);
+    UIFont.Print(x, y, Messages[i].Text);
   end;
 end;
 

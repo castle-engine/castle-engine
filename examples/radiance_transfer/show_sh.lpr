@@ -44,8 +44,8 @@ begin
   LMDecode(LM, L, M);
   glLoadIdentity;
   glColor3f(1, 1, 0);
-  SetWindowPos(10, 10);
-  Font.Print(Format('Spherical harmonic number %d. (L, M) = (%d, %d). Resuls in range (%f, %f)',
+  Font.Print(10, 10,
+    Format('Spherical harmonic number %d. (L, M) = (%d, %d). Resuls in range (%f, %f)',
     [LM, L, M, MinSHValue, MaxSHValue]));
 end;
 

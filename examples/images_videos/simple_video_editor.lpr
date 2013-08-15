@@ -80,9 +80,9 @@ begin
   glClear(GL_COLOR_BUFFER_BIT);
 
   glLoadIdentity();
-  SetWindowPos(0, 0);
   if Video.Loaded then
   begin
+    SetWindowPos(0, 0);
     ImageDraw(Video.ImageFromTime(Time));
 
     { draw time of the video bar }

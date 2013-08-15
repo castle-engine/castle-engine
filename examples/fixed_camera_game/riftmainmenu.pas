@@ -117,8 +117,7 @@ end;
 procedure Draw(Window: TCastleWindowBase);
 begin
   glLoadIdentity;
-  SetWindowPos(0, 0);
-  GLMenuBg.Draw;
+  GLMenuBg.Draw(0, 0);
 end;
 
 procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
@@ -240,9 +239,9 @@ begin
   inherited;
 
   glColorv(SubMenuTextColor);
-  SetWindowPos(PositionAbsolute[0],
-    PositionAbsolute[1] + AllItemsRectangle.Height - 20);
-  UIFont.Print(SubMenuTitle + ' :');
+  UIFont.Print(PositionAbsolute[0],
+    PositionAbsolute[1] + AllItemsRectangle.Height - 20,
+    SubMenuTitle + ' :');
 end;
 
 { TRiftSoundMenu ------------------------------------------------------------- }

@@ -83,11 +83,10 @@ begin
   if IntroPart > High(IntroParts) then Exit;
 
   glLoadIdentity();
-  SetWindowPos(0, 0);
 
   if IntroPartTime >= IntroParts[IntroPart].CorrodeDuration then
   begin
-    IntroParts[IntroPart].ImageCorroded.Draw;
+    IntroParts[IntroPart].ImageCorroded.Draw(0, 0);
   end else
   begin
     Corrosion := IntroPartTime / IntroParts[IntroPart].CorrodeDuration;
@@ -101,7 +100,7 @@ begin
     glPixelTransferf(GL_GREEN_SCALE, 1 - Corrosion);
     glPixelTransferf(GL_BLUE_SCALE, 1 - Corrosion);
 
-    IntroParts[IntroPart].Image.Draw;
+    IntroParts[IntroPart].Image.Draw(0, 0);
 
     glPixelTransferf(GL_RED_SCALE, Corrosion);
     glPixelTransferf(GL_GREEN_SCALE, Corrosion);
@@ -110,7 +109,7 @@ begin
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
     IntroParts[IntroPart].ImageCorroded.Alpha := acNone;
-    IntroParts[IntroPart].ImageCorroded.Draw;
+    IntroParts[IntroPart].ImageCorroded.Draw(0, 0);
     glDisable(GL_BLEND);
 
     glPixelTransferf(GL_RED_SCALE, 1);

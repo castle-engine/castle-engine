@@ -802,8 +802,7 @@ var md: TMessageData;
       taMiddle: X += (md.MaxLineWidth - md.font.TextWidth(text)) div 2;
       taRight: X += md.MaxLineWidth - md.font.TextWidth(text);
     end;
-    SetWindowPos(X, Y);
-    md.font.PrintAndMove(text);
+    md.font.Print(X, Y, text);
     { change Y for caller, to print next line higher }
     Y += md.font.RowHeight;
   end;
@@ -850,15 +849,14 @@ begin
  glClear(GL_COLOR_BUFFER_BIT);
  glLoadIdentity;
 
- SetWindowPos(0, 0);
- md.DrawBG.Draw;
+ md.DrawBG.Draw(0, 0);
 
  RealScrollBarWholeWidth := Iff(md.ScrollBarVisible, ScrollBarWholeWidth, 0);
 
  { InnerRect and MD.WholeMessageRect and MessageRect coords are absolute,
    that is: we cannot shift now everything by glTranslate
    and calculate the rest relative to new position.
-   That is because we will use them with glScissor and SetWindowPos
+   That is because we will use them with glScissor and font X,Y
    that work in window coordinates. }
 
  MD.WholeMessageRect := CenteredRect(

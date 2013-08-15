@@ -856,8 +856,7 @@ end;
 procedure TMenuArgument.Draw(const Rectangle: TRectangle);
 begin
   glColorv(LightGreen3Single);
-  SetWindowPos(Rectangle.X0, Rectangle.Y0 + UIFont.Descend);
-  UIFont.PrintAndMove(Value);
+  UIFont.Print(Rectangle.X0, Rectangle.Y0 + UIFont.Descend, Value);
 end;
 
 { TMenuBooleanArgument ----------------------------------------------------- }
@@ -898,9 +897,8 @@ procedure TMenuSlider.Draw(const Rectangle: TRectangle);
 begin
   ImageSliderInit;
 
-  SetWindowPos(Rectangle.X0, Rectangle.Y0 +
+  GLImageSlider.Draw(Rectangle.X0, Rectangle.Y0 +
     (Rectangle.Height - ImageSlider.Height) div 2);
-  GLImageSlider.Draw;
 end;
 
 const
@@ -911,12 +909,11 @@ procedure TMenuSlider.DrawSliderPosition(const Rectangle: TRectangle;
 begin
   ImageSliderInit;
 
-  SetWindowPos(Rectangle.X0 + ImageSliderPositionMargin +
+  GLImageSliderPosition.Draw(Rectangle.X0 + ImageSliderPositionMargin +
     Round(MapRange(Clamped(Position, 0, 1), 0, 1, 0,
       ImageSlider.Width - 2 * ImageSliderPositionMargin -
       ImageSliderPosition.Width)),
     Rectangle.Y0 + (Rectangle.Height - ImageSliderPosition.Height) div 2);
-  GLImageSliderPosition.Draw;
 end;
 
 function TMenuSlider.XCoordToSliderPosition(
@@ -937,10 +934,10 @@ procedure TMenuSlider.DrawSliderText(
   const Rectangle: TRectangle; const Text: string);
 begin
   glColorv(Black3Single);
-  SetWindowPos(
+  UIFontSmall.Print(
     Rectangle.X0 + (Rectangle.Width - UIFontSmall.TextWidth(Text)) div 2,
-    Rectangle.Y0 + (Rectangle.Height - UIFontSmall.RowHeight) div 2);
-  UIFontSmall.PrintAndMove(Text);
+    Rectangle.Y0 + (Rectangle.Height - UIFontSmall.RowHeight) div 2,
+    Text);
 end;
 
 { TMenuFloatSlider --------------------------------------------------------- }
@@ -1453,8 +1450,8 @@ begin
     end else
       glColorv(NonCurrentItemColor);
 
-    SetWindowPos(Rectangles.L[I].X0, Rectangles.L[I].Y0 + UIFont.Descend);
-    UIFont.PrintAndMove(Items[I]);
+    UIFont.Print(Rectangles.L[I].X0, Rectangles.L[I].Y0 + UIFont.Descend,
+      Items[I]);
 
     if Items.Objects[I] <> nil then
       TMenuAccessory(Items.Objects[I]).Draw(FAccessoryRectangles.L[I]);

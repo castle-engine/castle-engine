@@ -574,9 +574,7 @@ begin
   glPushMatrix;
   try
    glDisable(GL_DEPTH_TEST);
-
-   SetWindowPos(0, 0);
-   Mode.ScreenImage.Draw;
+   Mode.ScreenImage.Draw(0, 0);
   finally glPopMatrix end;
  finally glPopAttrib end;
 end;

@@ -70,11 +70,6 @@ type
     If you have multiple OpenGL contexts, our engine assumes they share resources
     and have equal features. }
   TGLFeatures = class
-  private
-    {$ifndef OpenGLES}
-    ARB_window_pos: boolean;
-    MESA_window_pos: boolean;
-    {$endif}
   public
     { OpenGL versions supported. Checked by looking at GL version string
       @italic(and) by checking whether actual entry points are available.
@@ -116,6 +111,10 @@ type
     EXT_texture_filter_anisotropic: boolean;
     NV_multisample_filter_hint: boolean;
     ARB_occlusion_query: boolean;
+    {$ifndef OpenGLES}
+    ARB_window_pos: boolean;
+    MESA_window_pos: boolean;
+    {$endif}
 
     { GL_CLAMP_TO_EDGE, if available in current OpenGL version.
       Otherwise GL_CLAMP.
@@ -620,19 +619,8 @@ procedure glSetDepthAndColorWriteable(Writeable: TGLboolean);
 
 { Draw the 2D GUI stuff (like following GUI images and bitmap fonts)
   with lower-left corner in the X,Y pixel.
-
-  For OpenGL versions that have a concept of a "raster"
-  (not present in OpenGL ES) this sets raster position in window
-  coordinates. Such that the raster position is never clipped.
-  In this case this is similar to just calling glWindowPos,
-  and actually will simply call glWindowPos if available
-  (if OpenGL version is adequate, or equivalent OpenGL extension is available).
-
-  The depth value of raster is undefined
-  after calling this. This is necessary, in case of old OpenGL with no
-  glWindowPos extension, where we do a little trick to similate glWindowPos.
-  It should not be a problem if you only use this to draw simple 2D GUI stuff.
-
+  It's not adviced to use this, better use TGLImage.Draw(X,Y)
+  or TGLBitmapFont.Print(X,Y,string) methods.
   @groupBegin }
 procedure SetWindowPos(const X, Y: TGLint);
 procedure SetWindowPos(const Value: TVector2i);
@@ -1603,30 +1591,6 @@ begin
   glColorMask(Writeable, Writeable, Writeable, Writeable);
 end;
 
-{$ifndef OpenGLES}
-procedure SetWindowPos_HackBegin;
-begin
-  { Idea how to implement this --- see
-    [http://www.opengl.org/resources/features/KilgardTechniques/oglpitfall/]. }
-
-  glPushAttrib(GL_TRANSFORM_BIT);
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix;
-      glLoadIdentity;
-      glMatrixMode(GL_MODELVIEW);
-      glPushMatrix;
-        glLoadIdentity;
-end;
-
-procedure SetWindowPos_HackEnd;
-begin
-      glPopMatrix;
-      glMatrixMode(GL_PROJECTION);
-    glPopMatrix;
-  glPopAttrib;
-end;
-{$endif}
-
 var
   FWindowPos: TVector2LongInt;
 
@@ -1636,62 +1600,12 @@ begin
     SetWindowPosF should not be used in new code. }
   FWindowPos[0] := Floor(X);
   FWindowPos[1] := Floor(Y);
-
-  {$ifndef OpenGLES}
-  if GLFeatures.Version_1_4 then
-  begin
-    glWindowPos2f(X, Y);
-    { tests: Writeln('using std'); }
-  end else
-  if GLFeatures.ARB_window_pos then
-  begin
-    glWindowPos2fARB(X, Y);
-    { tests: Writeln('using ARB'); }
-  end else
-  if GLFeatures.MESA_window_pos then
-  begin
-    glWindowPos2fMESA(X, Y);
-    { tests: Writeln('using MESA'); }
-  end else
-  begin
-    SetWindowPos_HackBegin;
-
-    { Fall back on a simple
-      implementation that sets identity to projection and modelview and
-      sets a special viewport. Setting special viewport means that
-      we can avoid clipping the raster pos, also it means that you
-      don't have to pass here parameters like window width/height ---
-      viewport will appropriately map to your window coordinates. }
-
-    glViewport(Floor(X) - 1, Floor(Y) - 1, 2, 2);
-    glRasterPos4f(Frac(X), Frac(Y), 0, 1);
-
-    SetWindowPos_HackEnd;
-  end;
-  {$endif}
 end;
 
 procedure SetWindowPos(const X, Y: TGLint);
 begin
   FWindowPos[0] := X;
   FWindowPos[1] := Y;
-
-  {$ifndef OpenGLES}
-  if GLFeatures.Version_1_4 then
-    glWindowPos2i(X, Y) else
-  if GLFeatures.ARB_window_pos then
-    glWindowPos2iARB(X, Y) else
-  if GLFeatures.MESA_window_pos then
-    glWindowPos2iMESA(X, Y) else
-  begin
-    SetWindowPos_HackBegin;
-
-    glViewport(X - 1, Y - 1, 2, 2);
-    glRasterPos2i(0, 0);
-
-    SetWindowPos_HackEnd;
-  end;
-  {$endif}
 end;
 
 procedure SetWindowPos(const Value: TVector2i);

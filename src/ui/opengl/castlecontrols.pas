@@ -396,8 +396,7 @@ begin
   if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilTop) then
     TextBottom -= (FImage.Height + ButtonCaptionImageMargin) div 2;
 
-  SetWindowPos(TextLeft, TextBottom);
-  Font.PrintAndMove(Caption);
+  Font.Print(TextLeft, TextBottom, Caption);
 
   if (FImage <> nil) and (FGLImage <> nil) then
   begin
@@ -418,8 +417,7 @@ begin
       ilTop          : ImgBottom := TextBottom + TextHeight + ButtonCaptionImageMargin;
       ilLeft, ilRight: ImgBottom := Bottom + (Height - FImage.Height) div 2;
     end;
-    SetWindowPos(ImgLeft, ImgBottom);
-    FGLImage.Draw;
+    FGLImage.Draw(ImgLeft, ImgBottom);
   end;
 end;
 
@@ -794,9 +792,7 @@ end;
 procedure TCastleImageControl.Draw;
 begin
   if not (GetExists and (FGLImage <> nil)) then Exit;
-
-  SetWindowPos(Left, Bottom);
-  FGLImage.Draw;
+  FGLImage.Draw(Left, Bottom);
 end;
 
 function TCastleImageControl.PositionInside(const X, Y: Integer): boolean;

@@ -14,12 +14,13 @@
 }
 
 { OpenGL bitmap fonts (TGLBitmapFont). }
-
 unit CastleGLBitmapFonts;
+
+{$I castleconf.inc}
 
 interface
 
-uses CastleBitmapFonts, GL, GLU, CastleGLUtils, Classes;
+uses CastleBitmapFonts, CastleGL, CastleGLUtils, Classes;
 
 type
   { Abstract class for all OpenGL bitmap fonts. }
@@ -28,8 +29,8 @@ type
     FRowHeight: Integer;
     FRowHeightBase: Integer;
   public
-    { Draw text at the current OpenGL raster position, and move
-      the raster position at the end. This way you can immediately
+    { Draw text at the current WindowPos, and move
+      the WindowPos at the end. This way you can immediately
       call another PrintAndMove again, to add something at the end.
 
       May require 1 free slot on the attributes stack.
@@ -37,13 +38,15 @@ type
       Doesn't modify any OpenGL state or matrix, except it moves raster position. }
     procedure PrintAndMove(const s: string); virtual; abstract;
 
-    { Draw text at the current OpenGL raster position.
-      In contrast to PrintAndMove, raster position is not changed.
+    { Draw text at the given position.
+      Overloaded version without X, Y uses WindowPos (but doesn't modify
+      it, in contrast to PrintAndMove).
 
       May require 1 free slot on the attributes stack.
       May only be called when current matrix is modelview.
-      Doesn't modify any OpenGL state or matrix. }
-    procedure Print(const s: string);
+      Doesn't modify any OpenGL state or matrix, except it moves raster position. }
+    procedure Print(const X, Y: Integer; const s: string); overload; virtual; abstract;
+    procedure Print(const s: string); overload;
 
     function TextWidth(const s: string): integer; virtual; abstract;
     function TextHeight(const s: string): integer; virtual; abstract;
@@ -122,19 +125,10 @@ type
       (that is, it is the bottom-left position of the last string).
       Distance between each line is (RowHeight + BonusVerticalSpace) pixels.
 
-      If PositionAsRaster is @true (this is default, for backwards compatibility)
-      then the (X0, Y0) position is interpreted as OpenGL raster 2D position
-      (so it is transformed by modelview matrix and such).
-      For new code, we advice using PositionAsRaster = @false,
-      as this will ease future transitions to OpenGL versions >= 3.
-
       Note that BonusVerticalSpace can be < 0 (as well as > 0),
       this may be sometimes useful if you really want to squeeze
       more text into some size. Still, make sure that
       (RowHeight + BonusVerticalSpace) is > 0.
-
-      Previous OpenGL raster position value will be ignored
-      and then modified by this method.
 
       May require 1 free slot on the attributes stack.
       May only be called when current matrix is modelview.
@@ -160,14 +154,12 @@ type
     procedure PrintStrings(strs: TStrings;
       const Tags: boolean; BonusVerticalSpace: TGLint;
       const X0: Integer = 0;
-      const Y0: Integer = 0;
-      const PositionAsRaster: boolean = true); overload;
+      const Y0: Integer = 0); overload;
     procedure PrintStrings(const Strs: array of string;
       const Tags: boolean;
       BonusVerticalSpace: TGLint;
       const X0: Integer = 0;
-      const Y0: Integer = 0;
-      const PositionAsRaster: boolean = true); overload;
+      const Y0: Integer = 0); overload;
     { @groupEnd }
 
     { Print the string, broken such that it fits within MaxLineWidth.
@@ -196,8 +188,7 @@ type
       Doesn't modify any OpenGL state or matrix. }
     function PrintBrokenString(const s: string;
       MaxLineWidth, X0, Y0: Integer;
-      PositionsFirst: boolean; BonusVerticalSpace: Integer;
-      const PositionAsRaster: boolean = true): Integer;
+      PositionsFirst: boolean; BonusVerticalSpace: Integer): Integer;
 
     { Print all strings from the list, and draw a box with frames
       around it.
@@ -280,6 +271,7 @@ type
     constructor Create(ABitmapFont: TBitmapFont);
     destructor Destroy; override;
 
+    procedure Print(const X, Y: Integer; const s: string); override;
     procedure PrintAndMove(const s: string); override;
     function TextWidth(const s: string): integer; override;
     function TextHeight(const s: string): integer; override;
@@ -288,7 +280,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleVectors, CastleStringUtils, CastleClassUtils;
+uses CastleUtils, CastleVectors, CastleStringUtils, CastleClassUtils, Math;
 
 { HandleTags ----------------------------------------------------------------- }
 
@@ -371,43 +363,122 @@ var i: Cardinal;
     Znak: PBitmapChar;
     Saved_Unpack_Alignment: TGLint;
 begin
- inherited Create;
- base := glGenListsCheck(BitmapTableCount, 'TGLBitmapFont.Create');
- BitmapFont := ABitmapFont;
- Saved_Unpack_Alignment := glGetInteger(GL_UNPACK_ALIGNMENT);
+  inherited Create;
+  base := glGenListsCheck(BitmapTableCount, 'TGLBitmapFont.Create');
+  BitmapFont := ABitmapFont;
+  Saved_Unpack_Alignment := glGetInteger(GL_UNPACK_ALIGNMENT);
 
- for i := 0 to 255 do
- begin
-  Znak := BitmapFont.Data[Chr(i)];
-  glPixelStorei(GL_UNPACK_ALIGNMENT, Znak^.Info.Alignment);
-  glNewList(i+base, GL_COMPILE);
-  glBitmap(Znak^.Info.Width, Znak^.Info.Height,
-           Znak^.Info.XOrig, Znak^.Info.YOrig,
-           Znak^.Info.XMove, Znak^.Info.YMove,
-           @Znak^.Data);
-  glEndList;
- end;
- glPixelStorei(GL_UNPACK_ALIGNMENT, Saved_Unpack_Alignment);
+  for i := 0 to 255 do
+  begin
+    Znak := BitmapFont.Data[Chr(i)];
+    glPixelStorei(GL_UNPACK_ALIGNMENT, Znak^.Info.Alignment);
+    glNewList(i+base, GL_COMPILE);
+    glBitmap(Znak^.Info.Width, Znak^.Info.Height,
+             Znak^.Info.XOrig, Znak^.Info.YOrig,
+             Znak^.Info.XMove, Znak^.Info.YMove,
+             @Znak^.Data);
+    glEndList;
+  end;
+  glPixelStorei(GL_UNPACK_ALIGNMENT, Saved_Unpack_Alignment);
 
- FRowHeight := TextHeight('Wy') + 2;
- { RowHeight zwiekszylem o +2 zeby byl odstep miedzy liniami.
-   TODO: this +2 is actually a bad idea, but can't remove now without careful testing. }
- { For RowHeightBase, I do not use +2. }
- FRowHeightBase := TextHeightBase('W');
+  FRowHeight := TextHeight('Wy') + 2;
+  { RowHeight zwiekszylem o +2 zeby byl odstep miedzy liniami.
+    TODO: this +2 is actually a bad idea, but can't remove now without careful testing. }
+  { For RowHeightBase, I do not use +2. }
+  FRowHeightBase := TextHeightBase('W');
 end;
 
 destructor TGLBitmapFont.Destroy;
 begin
- glDeleteLists(base, BitmapTableCount);
- inherited;
+  glDeleteLists(base, BitmapTableCount);
+  inherited;
+end;
+
+procedure TGLBitmapFont.Print(const X, Y: Integer; const s: string);
+
+  { For OpenGL versions that have a concept of a "raster"
+    (not present in OpenGL ES) this sets raster position in window
+    coordinates. Such that the raster position is never clipped.
+    In this case this is similar to just calling glWindowPos,
+    and actually will simply call glWindowPos if available
+    (if OpenGL version is adequate, or equivalent OpenGL extension is available).
+
+    The depth value of raster is undefined
+    after calling this. This is necessary, in case of old OpenGL with no
+    glWindowPos extension, where we do a little trick to similate glWindowPos.
+    It should not be a problem if you only use this to draw simple 2D GUI stuff. }
+  procedure SetRasterInWindowCoords(const X, Y: Integer);
+  begin
+    if GLFeatures.Version_1_4 then
+    begin
+      glWindowPos2f(X, Y);
+      { tests: Writeln('using std'); }
+    end else
+    if GLFeatures.ARB_window_pos then
+    begin
+      glWindowPos2fARB(X, Y);
+      { tests: Writeln('using ARB'); }
+    end else
+    if GLFeatures.MESA_window_pos then
+    begin
+      glWindowPos2fMESA(X, Y);
+      { tests: Writeln('using MESA'); }
+    end else
+    begin
+      { Idea how to implement this --- see
+        [http://www.opengl.org/resources/features/KilgardTechniques/oglpitfall/]. }
+
+      glPushAttrib(GL_TRANSFORM_BIT);
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix;
+          glLoadIdentity;
+          glMatrixMode(GL_MODELVIEW);
+          glPushMatrix;
+            glLoadIdentity;
+
+            { Fall back on a simple
+              implementation that sets identity to projection and modelview and
+              sets a special viewport. Setting special viewport means that
+              we can avoid clipping the raster pos, also it means that you
+              don't have to pass here parameters like window width/height ---
+              viewport will appropriately map to your window coordinates. }
+
+            glViewport(Floor(X) - 1, Floor(Y) - 1, 2, 2);
+            glRasterPos4f(Frac(X), Frac(Y), 0, 1);
+
+          glPopMatrix;
+          glMatrixMode(GL_PROJECTION);
+        glPopMatrix;
+      glPopAttrib;
+    end;
+  end;
+
+begin
+  glPushAttrib(GL_LIST_BIT);
+    SetRasterInWindowCoords(X, Y);
+    glListIBase(TGLint(base));
+    glCallLists(length(s), GL_UNSIGNED_BYTE, PChar(s));
+  glPopAttrib;
 end;
 
 procedure TGLBitmapFont.PrintAndMove(const s: string);
+var
+  I: Integer;
+  X, Y: Single;
+  Znak: PBitmapChar;
 begin
- glPushAttrib(GL_LIST_BIT);
-   glListIBase(TGLint(base));
-   glCallLists(length(s), GL_UNSIGNED_BYTE, PChar(s));
- glPopAttrib;
+  Print(S);
+
+  { move WindowPos }
+  X := WindowPos[0];
+  Y := WindowPos[1];
+  for I := 1 to Length(S) do
+  begin
+    Znak := BitmapFont.Data[S[I]];
+    X += Znak^.Info.XMove;
+    Y += Znak^.Info.YMove;
+  end;
+  WindowPos := Vector2LongInt(Round(X), Round(Y));
 end;
 
 function TGLBitmapFont.TextWidth(const s: string): integer;
@@ -453,19 +524,8 @@ end;
 { TGLBitmapFontAbstract ------------------------------------------------------}
 
 procedure TGLBitmapFontAbstract.Print(const s: string);
-var
-  rasterPos4f: TVector4f;
 begin
-  { TODO: it is very ugly to do glGetFloatv here, may be slow for OpenGL
-    if you call this often. We should rather calculate the shift
-    do by PrintAndMove, and move back by glBitmap with x/yoffset params.
-
-    This problem will become moot when new bitmap font rendering,
-    using textures instead of rasters and textures, will be implemented. }
-
-  glGetFloatv(GL_CURRENT_RASTER_POSITION, @rasterPos4f);
-  PrintAndMove(s);
-  glRasterPos4fv(@rasterPos4f);
+  Print(WindowPos[0], WindowPos[1], S);
 end;
 
 function TGLBitmapFontAbstract.Descend: integer;
@@ -582,22 +642,20 @@ end;
 
 procedure TGLBitmapFontAbstract.PrintStrings(const Strs: array of string;
   const Tags: boolean; BonusVerticalSpace: TGLint;
-  const X0, Y0: Integer;
-  const PositionAsRaster: boolean);
+  const X0, Y0: Integer);
 var
   SList: TStringList;
 begin
   SList := TStringList.Create;
   try
     AddStrArrayToStrings(Strs, SList);
-    PrintStrings(SList, Tags, BonusVerticalSpace, X0, Y0, PositionAsRaster);
+    PrintStrings(SList, Tags, BonusVerticalSpace, X0, Y0);
   finally SList.Free end;
 end;
 
 procedure TGLBitmapFontAbstract.PrintStrings(strs: TStrings;
   const Tags: boolean; BonusVerticalSpace: TGLint;
-  const X0, Y0: Integer;
-  const PositionAsRaster: boolean);
+  const X0, Y0: Integer);
 var
   Line: Integer;
 
@@ -606,9 +664,7 @@ var
     Y: Integer;
   begin
     Y := (Strs.Count - 1 - Line) * (RowHeight + BonusVerticalSpace) + Y0;
-    if PositionAsRaster then
-      glRasterPos2i(X0, Y) else
-      SetWindowPos(X0, Y);
+    SetWindowPos(X0, Y);
   end;
 
 var
@@ -653,8 +709,7 @@ end;
 
 function TGLBitmapFontAbstract.PrintBrokenString(const s: string;
   MaxLineWidth, X0, Y0: integer;
-  PositionsFirst: boolean; BonusVerticalSpace: Integer;
-  const PositionAsRaster: boolean): Integer;
+  PositionsFirst: boolean; BonusVerticalSpace: Integer): Integer;
 var
   broken: TStringList;
 begin
@@ -663,7 +718,7 @@ begin
     BreakLines(s, broken, MaxLineWidth);
     if PositionsFirst then
       Y0 -= (broken.Count-1)*(RowHeight + BonusVerticalSpace);
-    PrintStrings(broken, false, BonusVerticalSpace, X0, Y0, PositionAsRaster);
+    PrintStrings(broken, false, BonusVerticalSpace, X0, Y0);
     result := broken.Count;
   finally broken.Free end;
 end;
@@ -712,7 +767,7 @@ begin
     InsideCol, BorderCol);
   glColorv(TextCol);
   PrintStrings(strs, Tags, BonusVerticalSpace, X0 + BoxPixelMargin,
-    Y0 + BoxPixelMargin + Descend, false);
+    Y0 + BoxPixelMargin + Descend);
 end;
 
 procedure TGLBitmapFontAbstract.PrintStringsBox(
