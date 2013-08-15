@@ -313,7 +313,6 @@ begin
     which already causes MuteImage update. Before opening window,
     as opening window calls Resize which uses MuteImage. }
   MuteImage := TCastleImageControl.Create(Application);
-  MuteImage.Blending := true;
   MuteImage.URL := ApplicationData('textures/mute_sign.png');
   MuteImage.Exists := false; // don't show it on initial progress
   Window.Controls.InsertFront(MuteImage);

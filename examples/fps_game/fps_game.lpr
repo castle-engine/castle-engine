@@ -238,9 +238,6 @@ begin
   SetWindowPos(0, Y);
   UIFont.PrintAndMove(Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
 
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glEnable(GL_BLEND);
-
   { A simple way to draw player inventory.
     The image representing each item (exactly for purposes like inventory
     display) is specified in the resource.xml file of each item,
@@ -261,8 +258,6 @@ begin
     if Player.Inventory[I].Quantity <> 1 then
       UIFontSmall.PrintAndMove(Format(' (%d)', [Player.Inventory[I].Quantity]));
   end;
-
-  glDisable(GL_BLEND);
 
   { Mark currently chosen item. You can change currently selected item by
     Input_InventoryPrevious, Input_InventoryNext (by default: [ ] keys or mouse

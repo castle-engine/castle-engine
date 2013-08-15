@@ -109,6 +109,7 @@ begin
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE);
+    IntroParts[IntroPart].ImageCorroded.Alpha := acNone;
     IntroParts[IntroPart].ImageCorroded.Draw;
     glDisable(GL_BLEND);
 

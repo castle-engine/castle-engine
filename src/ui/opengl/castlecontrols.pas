@@ -204,13 +204,15 @@ type
     Size is automatically adjusted to the image size.
     You should set TCastleImageControl.Left, TCastleImageControl.Bottom properties,
     and load your image by setting TCastleImageControl.URL property
-    or straight TCastleImageControl.Image. }
+    or straight TCastleImageControl.Image.
+
+    We automatically use alpha test or alpha blending based
+    on loaded image alpha channel (see TGLImage.Alpha). }
   TCastleImageControl = class(TUIControlPos)
   private
     FURL: string;
     FImage: TCastleImage;
     FGLImage: TGLImage;
-    FBlending: boolean;
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TCastleImage);
   public
@@ -237,10 +239,6 @@ type
     property URL: string read FURL write SetURL;
     { Deprecated name for @link(URL). }
     property FileName: string read FURL write SetURL; deprecated;
-
-    { Set to @true to draw image with blending. This is suitable for images
-      that (may) have nice alpha channel. }
-    property Blending: boolean read FBlending write FBlending default false;
   end;
 
   { Theme for controls derived from TUIControl.
@@ -382,13 +380,6 @@ begin
     GLBackground := GLButtonFocused else
     GLBackground := GLButtonNormal;
 
-  if GLBackground.HasAlpha then
-  begin
-    glPushAttrib(GL_COLOR_BUFFER_BIT);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
-    glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
-  end;
-
   GLBackground.Draw3x3(Left, Bottom, Width, Height, 2, 2, 2, 2);
 
   glColorOpacity(Theme.TextColor, 1);
@@ -408,24 +399,14 @@ begin
   SetWindowPos(TextLeft, TextBottom);
   Font.PrintAndMove(Caption);
 
-  if GLBackground.HasAlpha then
-    glPopAttrib;
-
   if (FImage <> nil) and (FGLImage <> nil) then
   begin
+    { update FGLImage.Alpha based on ImageAlphaTest }
     if FImage.HasAlpha then
     begin
-      glPushAttrib(GL_COLOR_BUFFER_BIT);
-
       if ImageAlphaTest then
-      begin
-        glAlphaFunc(GL_GEQUAL, 0.5); // saved by GL_COLOR_BUFFER_BIT
-        glEnable(GL_ALPHA_TEST); // saved by GL_COLOR_BUFFER_BIT
-      end else
-      begin
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
-        glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
-      end;
+        FGLImage.Alpha := acSimpleYesNo else
+        FGLImage.Alpha := acFullRange;
     end;
     case ImageLayout of
       ilLeft         : ImgLeft := TextLeft - FImage.Width - ButtonCaptionImageMargin;
@@ -439,8 +420,6 @@ begin
     end;
     SetWindowPos(ImgLeft, ImgBottom);
     FGLImage.Draw;
-    if FImage.HasAlpha then
-      glPopAttrib;
   end;
 end;
 
@@ -715,13 +694,6 @@ var
 begin
   if not GetExists then Exit;
 
-  if Panel.HasAlpha then
-  begin
-    glPushAttrib(GL_COLOR_BUFFER_BIT);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
-    glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
-  end;
-
   GLPanel.Draw(Left, Bottom, Width, Height,
     0, 0, GLPanel.Width, GLPanel.Height);
 
@@ -729,9 +701,6 @@ begin
     GLPanelSeparator.Draw(Left + VerticalSeparators[I], Bottom + SeparatorMargin,
       GLPanelSeparator.Width, Height - 2 * SeparatorMargin,
       0, 0, GLPanelSeparator.Width, GLPanelSeparator.Height);
-
-  if Panel.HasAlpha then
-    glPopAttrib;
 end;
 
 function TCastlePanel.PositionInside(const X, Y: Integer): boolean;
@@ -826,18 +795,8 @@ procedure TCastleImageControl.Draw;
 begin
   if not (GetExists and (FGLImage <> nil)) then Exit;
 
-  if Blending then
-  begin
-    glPushAttrib(GL_COLOR_BUFFER_BIT);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
-    glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
-  end;
-
   SetWindowPos(Left, Bottom);
   FGLImage.Draw;
-
-  if Blending then
-    glPopAttrib;
 end;
 
 function TCastleImageControl.PositionInside(const X, Y: Integer): boolean;

@@ -101,7 +101,9 @@ type
     Texture: TGLuint;
     FWidth: Cardinal;
     FHeight: Cardinal;
-    FHasAlpha: boolean;
+    FAlpha: TAlphaChannel;
+    procedure AlphaBegin;
+    procedure AlphaEnd;
   public
     { Prepare image for drawing.
 
@@ -149,7 +151,31 @@ type
 
     property Width: Cardinal read FWidth;
     property Height: Cardinal read FHeight;
-    property HasAlpha: boolean read FHasAlpha;
+
+    { How to treat alpha channel of the texture.
+
+      @unorderedList(
+        @item acNone means to ignore it.
+        @item acSimpleYesNo means to render with alpha-test.
+        @item acFullRange means to render with blending.
+      )
+
+      This is initialized based on loaded image class and data.
+      This means that e.g. if you have smooth alpha channel in the image,
+      it will be automatically rendered with nice blending.
+
+      You can change the value of this property to force a specific
+      rendering method, for example to force using alpha test or alpha blending
+      regardless of alpha values. Or to disable alpha channel usage,
+      because your image must always cover pixels underneath.
+
+      Remember that you can also change the alpha channel existence
+      at loading: use LoadAsClass parameters of LoadImage
+      or TGLImage.Create to force your image to have/don't have
+      an alpha channel (e.g. use LoadAsClass=[TRGBImage]
+      to force RGB image without alpha, use LoadAsClass=[TRGBAlphaImage]
+      to force alpha channel). }
+    property Alpha: TAlphaChannel read FAlpha write FAlpha;
 
     { Draw the image as 2D on screen.
 
@@ -184,6 +210,7 @@ type
       Just like the regular @link(Draw) method, this fills a rectangle on the
       2D screen, with bottom-left corner in (X, Y), and size (DrawWidth,
       DrawHeight). The image is divided into 3 * 3 = 9 parts:
+
       @unorderedList(
         @item(4 corners, used to fill the corners of the screen
           rectangle. They are not stretched.)
@@ -931,7 +958,7 @@ begin
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLFeatures.CLAMP_TO_EDGE);
   FWidth := Image.Width;
   FHeight := Image.Height;
-  FHasAlpha := Image.HasAlpha;
+  FAlpha := Image.AlphaChannel;
 end;
 
 constructor TGLImage.Create(const URL: string;
@@ -969,6 +996,30 @@ begin
   inherited;
 end;
 
+procedure TGLImage.AlphaBegin;
+begin
+  if Alpha <> acNone then
+  begin
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
+
+    if Alpha = acSimpleYesNo then
+    begin
+      glAlphaFunc(GL_GEQUAL, 0.5); // saved by GL_COLOR_BUFFER_BIT
+      glEnable(GL_ALPHA_TEST); // saved by GL_COLOR_BUFFER_BIT
+    end else
+    begin
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
+      glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
+    end;
+  end;
+end;
+
+procedure TGLImage.AlphaEnd;
+begin
+  if Alpha <> acNone then
+    glPopAttrib;
+end;
+
 procedure TGLImage.Draw;
 begin
   Draw(WindowPos[0], WindowPos[1]);
@@ -984,6 +1035,8 @@ procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
 var
   TexX0, TexY0, TexX1, TexY1: Single;
 begin
+  AlphaBegin;
+
   // TODO: use vbos
   // TODO: use texture cache here, like GL renderer does for textures for 3D.
   glLoadIdentity();
@@ -1005,6 +1058,8 @@ begin
     glVertex2i(X            , Y + DrawHeight);
   glEnd();
   GLEnableTexture(etNone);
+
+  AlphaEnd;
 end;
 
 procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
@@ -1014,6 +1069,7 @@ var
     HorizontalScreenSize, VerticalScreenSize: Integer;
   XImageLeft, XImageRight, YImageBottom, YImageTop,
     HorizontalImageSize, VerticalImageSize: Single;
+  OldAlpha: TAlphaChannel;
 const
   { We tweak texture coordinates a little, to avoid bilinear filtering
     that would cause border colors to "bleed" over the texture inside.
@@ -1042,6 +1098,11 @@ begin
   YImageBottom := 0;
   YScreenTop := Y + DrawHeight - CornerTop;
   YImageTop := Height - CornerTop;
+
+  { for speed, we only apply AlphaBegin/End once }
+  AlphaBegin;
+  OldAlpha := Alpha;
+  Alpha := acNone;
 
   { 4 corners }
   Draw(XScreenLeft, YScreenBottom, CornerLeft, CornerBottom,
@@ -1072,6 +1133,9 @@ begin
   { inside }
   Draw(X + CornerLeft          , Y + CornerBottom          , HorizontalScreenSize              , VerticalScreenSize,
            CornerLeft + Epsilon,     CornerBottom + Epsilon,  HorizontalImageSize - 2 * Epsilon,  VerticalImageSize - 2 * Epsilon);
+
+  Alpha := OldAlpha;
+  AlphaEnd;
 end;
 
 { Drawing images on 2D screen ------------------------------------------------ }

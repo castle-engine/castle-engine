@@ -71,8 +71,9 @@ uses SysUtils, Classes, Math, CastleUtils, CastleVectors,
   FPReadJPEG, FPWriteJPEG, FPReadPNM;
 
 type
+  TAutoAlphaChannel = (acAuto, acNone, acSimpleYesNo, acFullRange);
   { See TCastleImage.AlphaChannel. }
-  TAlphaChannel = (acNone, acSimpleYesNo, acFullRange);
+  TAlphaChannel = acNone .. acFullRange;
 
 const
   { Default parameters for TEncodedImage.AlphaChannel,
@@ -1633,6 +1634,12 @@ var
   otherwise choose "simple yes/no" if anything is "simple yes/no",
   otherwise returns "no alpha channel". }
 procedure AlphaMaxTo1st(var A: TAlphaChannel; const B: TAlphaChannel);
+
+function StringToAlpha(S: string; var WarningDone: boolean): TAutoAlphaChannel;
+
+const
+  AlphaToString: array [TAutoAlphaChannel] of string =
+  ('AUTO', 'NONE', 'SIMPLE_YES_NO', 'FULL_RANGE');
 
 {$undef read_interface}
 
@@ -3734,6 +3741,27 @@ begin
   if B > A then A := B;
 end;
 
+function StringToAlpha(S: string; var WarningDone: boolean): TAutoAlphaChannel;
+begin
+  S := UpperCase(S);
+  if S = 'AUTO' then
+    Result := acAuto else
+  if S = 'NONE' then
+    Result := acNone else
+  if S = 'SIMPLE_YES_NO' then
+    Result := acSimpleYesNo else
+  if S = 'FULL_RANGE' then
+    Result := acFullRange else
+  begin
+    if not WarningDone then
+    begin
+      OnWarning(wtMajor, 'VRML/X3D', Format('Invalid "alphaChannel" field value "%s"', [S]));
+      WarningDone := true;
+    end;
+    Result := acAuto;
+  end;
+end;
+
 initialization
   InitializeImagesFileFilters;
   InitializePNG;
@@ -3741,24 +3769,3 @@ finalization
   FreeAndNil(LoadImage_FileFilters);
   FreeAndNil(SaveImage_FileFilters);
 end.
-
-(* ----------------------------------------------------------------------------------
-stare comments do LoadImage :
-
- { w result.data zwracaja bitmape w formacie GL_RGB na GL_UNSIGNED_BYTE, bez alignowania !
-   Tzn. powinno byc PixelStorei(GL_UNPACK_ALIGNMENT, 1) aby dzialaly w kazdej sytuacji.
-   LoadImageData zwraca tylko wskaznik result.data.
-   Jesli resizeTo[] <> 0 to dany wymiar bedzie resizowany.
-   UWAGA ! Przydzielony pointer data ZAWSZE nalezy zwolnic z pamieci przez FreeMem
-     (polecam moje FreeMemNiling).
-   ImageProc, jesli <> nil, jest wywolywane dla zaladowanego image'a PRZED wykonaniem
-     ewentualnego skalowania. Ma to zastosowanie np. gdy chcesz zaladowac stosunkowo
-     maly obrazek z pliku, zamienic go np. na czarno-bialy i potem przeskalowac na
-     bardzo duzy rozmiar. W takiej sytuacji duzo bardziej ekonomiczne jest wywolanie
-     konwersji na black&white jeszcze PRZED skalowaniem, a wiec najlepiej przekaz
-     MakeBlackAndWhite jako ImageProc. Acha, jesli chcesz to mozesz w ImageProc
-     zmienic rozmiary obrazka. (chociaz dla typowego resizu pewnie wygodniej bedzie
-     uzyc parametrow resizeToX, resizeToY)
- }
-
-*)

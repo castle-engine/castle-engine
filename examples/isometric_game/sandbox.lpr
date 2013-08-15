@@ -4,7 +4,8 @@ program SandBox;
 
 uses SysUtils, GL, GLU, GLExt, CastleWindow, SandBoxMap, CastleFilesUtils,
   CastleWindowModes, SandBoxPlayer, CastleStringUtils, Math, CastleUtils,
-  CastleGLUtils, SandBoxGame, CastleKeysMouse, CastleMessages, CastleGLImages;
+  CastleGLUtils, SandBoxGame, CastleKeysMouse, CastleMessages, CastleGLImages,
+  CastleImages;
 
 var
   Window: TCastleWindowDemo;
@@ -36,8 +37,8 @@ var
     PosX += RealViewMoveX + SpecialMoveX;
     PosY := Y * (BaseHeight div 2);
     PosY += RealViewMoveY + SpecialMoveY;
-    SetWindowPos(PosX, PosY);
-    GLImage.Draw;
+    GLImage.Alpha := acNone; // we control alpha ourselves
+    GLImage.Draw(PosX, PosY);
   end;
 
 var

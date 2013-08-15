@@ -540,38 +540,13 @@ begin
 end;
 
 function TAbstractTextureNode.AlphaChannel: TAlphaChannel;
-type
-  TDetectAlphaChannel = (daAuto, daNone, daSimpleYesNo, daFullRange);
-
-  function DetectAlphaChannelFromString(S: string): TDetectAlphaChannel;
-  begin
-    S := UpperCase(S);
-    if S = 'AUTO' then
-      Result := daAuto else
-    if S = 'NONE' then
-      Result := daNone else
-    if S = 'SIMPLE_YES_NO' then
-      Result := daSimpleYesNo else
-    if S = 'FULL_RANGE' then
-      Result := daFullRange else
-    begin
-      if not AlphaChannelWarningDone then
-      begin
-        OnWarning(wtMajor, 'VRML/X3D', Format('Invalid "alphaChannel" field value "%s"', [S]));
-        AlphaChannelWarningDone := true;
-      end;
-      Result := daAuto;
-    end;
-  end;
-
+var
+  Res: TAutoAlphaChannel;
 begin
-  case DetectAlphaChannelFromString(FdAlphaChannel.Value) of
-    daAuto       : Result := AlphaChannelData;
-    daNone       : Result := acNone;
-    daSimpleYesNo: Result := acSimpleYesNo;
-    daFullRange  : Result := acFullRange;
-    else raise EInternalError.Create('TAbstractTextureNode.AlphaChannel:DetectAlphaChannel?');
-  end;
+  Res := StringToAlpha(FdAlphaChannel.Value, AlphaChannelWarningDone);
+  if Res = acAuto then
+    Result := AlphaChannelData else
+    Result := Res;
 end;
 
 { TAbstractTexture2DNode ----------------------------------------------------------- }

@@ -46,16 +46,14 @@ begin
       end;
     end;
     try
+      AlphaChannel := AlphaToString[Img.AlphaChannel];
       case Img.AlphaChannel of
-        acNone       : AlphaChannel := 'no';
-        acSimpleYesNo: AlphaChannel := 'simple yes/no (only fully transparent / fully opaque parts)';
-        acFullRange  : AlphaChannel := 'full range (partially transparent parts)';
-        else raise EInternalError.Create('AlphaChannel?');
+        acSimpleYesNo: AlphaChannel += ' (only fully transparent / fully opaque parts)';
+        acFullRange  : AlphaChannel += ' (partially transparent parts)';
       end;
 
       Writeln(Parameters[I], ': ', Img.Width, ' x ', Img.Height,
-        ',  type: ', Img.ClassName,
-        ', alpha: ' + AlphaChannel);
+        ', type: ', Img.ClassName, ', alpha: ' + AlphaChannel);
     finally FreeAndNil(Img) end;
   end;
 end.

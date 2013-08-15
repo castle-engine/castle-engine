@@ -41,7 +41,6 @@ object Form1: TForm1
   end
   object SampleImageAlpha: TCastleImageControl
     Bottom = 150
-    Blending = True
     TUIControlPos_RealLeft = 200
     TUIControlPos_Design_Left = 152
     TUIControlPos_Design_Top = 184
