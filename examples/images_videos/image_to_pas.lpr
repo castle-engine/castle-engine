@@ -166,7 +166,7 @@ begin
 
       if ShowProgress then
         Progress.Init((Image.Width * Image.Height * Image.PixelSize - 1) div 12,
-          'Generating image ' +NameImage);
+          Format('Generating %s (%s)', [NameImage, Image.ClassName]));
 
       pb := PByte(Image.RawPixels);
       for I := 1 to Image.Width * Image.Height * Image.PixelSize - 1 do
