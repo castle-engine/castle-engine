@@ -251,8 +251,7 @@ begin
   for I := 0 to Player.Inventory.Count - 1 do
   begin
     X := ControlsMargin + I * (InventoryImageSize + ControlsMargin);
-    SetWindowPos(X, Y);
-    Player.Inventory[I].Resource.GLImage.Draw;
+    Player.Inventory[I].Resource.GLImage.Draw(X, Y);
     SetWindowPos(X, Y - UIFontSmall.RowHeight);
     UIFontSmall.PrintAndMove(Player.Inventory[I].Resource.Caption);
     if Player.Inventory[I].Quantity <> 1 then
