@@ -101,6 +101,7 @@ type
     Texture: TGLuint;
     FWidth: Cardinal;
     FHeight: Cardinal;
+    FHasAlpha: boolean;
   public
     { Prepare image for drawing.
 
@@ -146,6 +147,10 @@ type
 
     destructor Destroy; override;
 
+    property Width: Cardinal read FWidth;
+    property Height: Cardinal read FHeight;
+    property HasAlpha: boolean read FHasAlpha;
+
     { Draw the image as 2D on screen.
 
       The X, Y parameters determine where the left-bottom
@@ -170,11 +175,27 @@ type
     procedure Draw;
     procedure Draw(const X, Y: Integer);
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
-      const ImageX, ImageY, ImageWidth, ImageHeight: Integer);
+      const ImageX, ImageY, ImageWidth, ImageHeight: Single);
     { @groupEnd }
 
-    property Width: Cardinal read FWidth;
-    property Height: Cardinal read FHeight;
+    { Draw the image on the screen, divided into 3x3 parts for corners,
+      sides, and inside.
+
+      Just like the regular @link(Draw) method, this fills a rectangle on the
+      2D screen, with bottom-left corner in (X, Y), and size (DrawWidth,
+      DrawHeight). The image is divided into 3 * 3 = 9 parts:
+      @unorderedList(
+        @item(4 corners, used to fill the corners of the screen
+          rectangle. They are not stretched.)
+        @item(4 sides, used to fill the sides of the screen rectangle
+          between the corners. They are scaled in one dimension, to fill
+          the space between corners completely.)
+        @item(the inside. Used to fill the rectangular inside.
+          Scaled in both dimensions as necessary.)
+      )
+    }
+    procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
+      const CornerTop, CornerRight, CornerBottom, CornerLeft: Integer);
   end;
 
 { Draw the image on 2D screen. Note that if you want to use this
@@ -910,6 +931,7 @@ begin
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLFeatures.CLAMP_TO_EDGE);
   FWidth := Image.Width;
   FHeight := Image.Height;
+  FHasAlpha := Image.HasAlpha;
 end;
 
 constructor TGLImage.Create(const URL: string;
@@ -958,7 +980,9 @@ begin
 end;
 
 procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
-  const ImageX, ImageY, ImageWidth, ImageHeight: Integer);
+  const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+var
+  TexX0, TexY0, TexX1, TexY1: Single;
 begin
   // TODO: use vbos
   // TODO: use texture cache here, like GL renderer does for textures for 3D.
@@ -966,17 +990,88 @@ begin
   glBindTexture(GL_TEXTURE_2D, Texture);
   GLEnableTexture(et2D);
   glColor4f(1, 1, 1, 1); // don't modify texture colors
+  TexX0 := ImageX / Width;
+  TexY0 := ImageY / Height;
+  TexX1 := (ImageX + ImageWidth ) / Width;
+  TexY1 := (ImageY + ImageHeight) / Height;
   glBegin(GL_QUADS);
-    glTexCoord2f(    ImageX / Width,      ImageY / Height);
+    glTexCoord2f(TexX0, TexY0);
     glVertex2i(X            , Y);
-    glTexCoord2f(ImageWidth / Width,      ImageY / Height);
+    glTexCoord2f(TexX1, TexY0);
     glVertex2i(X + DrawWidth, Y);
-    glTexCoord2f(ImageWidth / Width, ImageHeight / Height);
+    glTexCoord2f(TexX1, TexY1);
     glVertex2i(X + DrawWidth, Y + DrawHeight);
-    glTexCoord2f(    ImageX / Width, ImageHeight / Height);
+    glTexCoord2f(TexX0, TexY1);
     glVertex2i(X            , Y + DrawHeight);
   glEnd();
   GLEnableTexture(etNone);
+end;
+
+procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
+  const CornerTop, CornerRight, CornerBottom, CornerLeft: Integer);
+var
+  XScreenLeft, XScreenRight, YScreenBottom, YScreenTop,
+    HorizontalScreenSize, VerticalScreenSize: Integer;
+  XImageLeft, XImageRight, YImageBottom, YImageTop,
+    HorizontalImageSize, VerticalImageSize: Single;
+const
+  { We tweak texture coordinates a little, to avoid bilinear filtering
+    that would cause border colors to "bleed" over the texture inside.
+    Something minimally > 0.5 is necessary. }
+  Epsilon = 0.51;
+begin
+  if not ( (CornerLeft + CornerRight < Width) and
+           (CornerLeft + CornerRight < DrawWidth) and
+           (CornerBottom + CornerTop < Height) and
+           (CornerBottom + CornerTop < DrawHeight)) then
+  begin
+    if Log then
+      WritelnLog('Draw3x3', 'Image corners are too large to draw it: corners are %d %d %d %d, image size is %d %d, draw area size is %d %d',
+        [CornerTop, CornerRight, CornerBottom, CornerLeft,
+         Width, Height,
+         DrawWidth, DrawHeight]);
+    Exit;
+  end;
+
+  XScreenLeft := X;
+  XImageLeft := 0;
+  XScreenRight := X + DrawWidth - CornerRight;
+  XImageRight := Width - CornerRight;
+
+  YScreenBottom := Y;
+  YImageBottom := 0;
+  YScreenTop := Y + DrawHeight - CornerTop;
+  YImageTop := Height - CornerTop;
+
+  { 4 corners }
+  Draw(XScreenLeft, YScreenBottom, CornerLeft, CornerBottom,
+        XImageLeft,  YImageBottom, CornerLeft, CornerBottom);
+  Draw(XScreenRight, YScreenBottom, CornerRight, CornerBottom,
+        XImageRight,  YImageBottom, CornerRight, CornerBottom);
+  Draw(XScreenRight, YScreenTop, CornerRight, CornerTop,
+        XImageRight,  YImageTop, CornerRight, CornerTop);
+  Draw(XScreenLeft, YScreenTop, CornerLeft, CornerTop,
+        XImageLeft,  YImageTop, CornerLeft, CornerTop);
+
+  { 4 sides }
+  HorizontalScreenSize := DrawWidth - CornerLeft - CornerRight;
+  HorizontalImageSize  :=     Width - CornerLeft - CornerRight;
+  VerticalScreenSize := DrawHeight - CornerTop - CornerBottom;
+  VerticalImageSize  :=     Height - CornerTop - CornerBottom;
+
+  Draw(XScreenLeft + CornerLeft, YScreenBottom, HorizontalScreenSize, CornerBottom,
+        XImageLeft + CornerLeft,  YImageBottom,  HorizontalImageSize, CornerBottom);
+  Draw(XScreenLeft + CornerLeft, YScreenTop, HorizontalScreenSize, CornerTop,
+        XImageLeft + CornerLeft,  YImageTop,  HorizontalImageSize, CornerTop);
+
+  Draw(XScreenLeft, YScreenBottom + CornerBottom, CornerLeft, VerticalScreenSize,
+        XImageLeft,  YImageBottom + CornerBottom, CornerLeft,  VerticalImageSize);
+  Draw(XScreenRight, YScreenBottom + CornerBottom, CornerRight, VerticalScreenSize,
+        XImageRight,  YImageBottom + CornerBottom, CornerRight,  VerticalImageSize);
+
+  { inside }
+  Draw(X + CornerLeft          , Y + CornerBottom          , HorizontalScreenSize              , VerticalScreenSize,
+           CornerLeft + Epsilon,     CornerBottom + Epsilon,  HorizontalImageSize - 2 * Epsilon,  VerticalImageSize - 2 * Epsilon);
 end;
 
 { Drawing images on 2D screen ------------------------------------------------ }

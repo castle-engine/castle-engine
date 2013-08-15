@@ -64,11 +64,11 @@ type
     FGLImage: TGLImage;
     FToggle: boolean;
     ClickStarted: boolean;
-    FOpacity: Single;
     FMinImageWidth: Cardinal;
     FMinImageHeight: Cardinal;
     FImageLayout: TCastleButtonImageLayout;
     FImageAlphaTest: boolean;
+    GLButtonPressed, GLButtonFocused, GLButtonNormal: TGLImage;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
@@ -154,11 +154,6 @@ type
       but you cannot reliably set it. }
     property Pressed: boolean read FPressed write SetPressed default false;
 
-    { Opacity (1 - transparency) with which control is drawn.
-      When this is < 1, we draw control with nice blending.
-      Make sure you have some background control underneath in this case. }
-    property Opacity: Single read FOpacity write FOpacity default 1.0;
-
     { Where the @link(Image) is drawn on a button. }
     property ImageLayout: TCastleButtonImageLayout
       read FImageLayout write SetImageLayout default ilLeft;
@@ -179,8 +174,8 @@ type
   private
     FWidth: Cardinal;
     FHeight: Cardinal;
-    FOpacity: Single;
     FVerticalSeparators: TCardinalList;
+    GLPanel, GLPanelSeparator: TGLImage;
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
   public
@@ -189,6 +184,8 @@ type
     function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw; override;
     function PositionInside(const X, Y: Integer): boolean; override;
+    procedure GLContextOpen; override;
+    procedure GLContextClose; override;
 
     { Separator lines drawn on panel. Useful if you want to visually separate
       groups of contols (like a groups of buttons when you use
@@ -201,11 +198,6 @@ type
   published
     property Width: Cardinal read FWidth write SetWidth default 0;
     property Height: Cardinal read FHeight write SetHeight default 0;
-
-    { Opacity (1 - transparency) with which control is drawn.
-      When this is < 1, we draw control with nice blending.
-      Make sure you have some background control underneath in this case. }
-    property Opacity: Single read FOpacity write FOpacity default 1.0;
   end;
 
   { Image control inside OpenGL context.
@@ -259,10 +251,6 @@ type
     TooltipBorderColor: TVector3Byte;
     TooltipTextColor  : TVector3Byte;
 
-    InsideUpColor  : array [boolean] of TVector3Byte;
-    InsideDownColor: array [boolean] of TVector3Byte;
-    DarkFrameColor : TVector3Byte;
-    LightFrameColor: TVector3Byte;
     TextColor      : TVector3Byte;
 
     BarEmptyColor : TVector3Byte;
@@ -297,7 +285,7 @@ procedure Register;
 
 implementation
 
-uses SysUtils, CastleBitmapFont_BVSans_m10,
+uses SysUtils, CastleControlsImages, CastleBitmapFont_BVSans_m10,
   CastleBitmapFont_BVSans, CastleGLUtils, Math;
 
 procedure Register;
@@ -364,7 +352,6 @@ begin
   FAutoSizeWidth := true;
   FAutoSizeHeight := true;
   FImageLayout := ilLeft;
-  FOpacity := 1;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
 end;
 
@@ -383,73 +370,45 @@ begin
 end;
 
 procedure TCastleButton.Draw;
-
-  procedure DrawFrame(const Level: Cardinal; const Inset: boolean);
-  begin
-    if Inset then
-      glColorOpacity(Theme.LightFrameColor, Opacity) else
-      glColorOpacity(Theme.DarkFrameColor, Opacity);
-    glVertexPixel( Level + Left            ,  Level + Bottom);
-    glVertexPixel(-Level + Left + Width - 1,  Level + Bottom);
-    glVertexPixel(-Level + Left + Width - 1,  Level + Bottom);
-    glVertexPixel(-Level + Left + Width - 1, -Level + Bottom + Height - 1);
-    if Inset then
-      glColorOpacity(Theme.DarkFrameColor, Opacity) else
-      glColorOpacity(Theme.LightFrameColor, Opacity);
-    glVertexPixel( Level + Left            ,  Level + Bottom + 1);
-    glVertexPixel( Level + Left            , -Level + Bottom + Height - 1);
-    glVertexPixel( Level + Left            , -Level + Bottom + Height - 1);
-    glVertexPixel(-Level + Left + Width    , -Level + Bottom + Height - 1);
-  end;
-
 var
   TextLeft, TextBottom, ImgLeft, ImgBottom: Integer;
+  GLBackground: TGLImage;
 begin
   if not GetExists then Exit;
 
-  if Opacity < 1 then
+  if Pressed then
+    GLBackground := GLButtonPressed else
+  if Focused then
+    GLBackground := GLButtonFocused else
+    GLBackground := GLButtonNormal;
+
+  if GLBackground.HasAlpha then
   begin
     glPushAttrib(GL_COLOR_BUFFER_BIT);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
     glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
   end;
 
-  glPushAttrib(GL_LIGHTING_BIT);
-    glShadeModel(GL_SMOOTH); // saved by GL_LIGHTING_BIT
-    glBegin(GL_QUADS);
-      glColorOpacity(Theme.InsideDownColor[Focused and not Pressed], Opacity);
-      glVertexPixel(Left        , Bottom);
-      glVertexPixel(Left + Width, Bottom);
-      glColorOpacity(Theme.InsideUpColor[Focused and not Pressed], Opacity);
-      glVertexPixel(Left + Width, Bottom + Height);
-      glVertexPixel(Left        , Bottom + Height);
-    glEnd;
+  GLBackground.Draw3x3(Left, Bottom, Width, Height, 2, 2, 2, 2);
 
-    glLineWidth(1.0);
-    glBegin(GL_LINES);
-      DrawFrame(0, Pressed);
-      DrawFrame(1, Pressed);
-    glEnd;
+  glColorOpacity(Theme.TextColor, 1);
 
-    glColorOpacity(Theme.TextColor, Opacity);
+  TextLeft := Left + (Width - TextWidth) div 2;
+  if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilLeft) then
+    TextLeft += (FImage.Width + ButtonCaptionImageMargin) div 2 else
+  if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilRight) then
+    TextLeft -= (FImage.Width + ButtonCaptionImageMargin) div 2;
 
-    TextLeft := Left + (Width - TextWidth) div 2;
-    if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilLeft) then
-      TextLeft += (FImage.Width + ButtonCaptionImageMargin) div 2 else
-    if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilRight) then
-      TextLeft -= (FImage.Width + ButtonCaptionImageMargin) div 2;
+  TextBottom := Bottom + (Height - TextHeight) div 2;
+  if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilBottom) then
+    TextBottom += (FImage.Height + ButtonCaptionImageMargin) div 2 else
+  if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilTop) then
+    TextBottom -= (FImage.Height + ButtonCaptionImageMargin) div 2;
 
-    TextBottom := Bottom + (Height - TextHeight) div 2;
-    if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilBottom) then
-      TextBottom += (FImage.Height + ButtonCaptionImageMargin) div 2 else
-    if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilTop) then
-      TextBottom -= (FImage.Height + ButtonCaptionImageMargin) div 2;
+  SetWindowPos(TextLeft, TextBottom);
+  Font.PrintAndMove(Caption);
 
-    SetWindowPos(TextLeft, TextBottom);
-    Font.PrintAndMove(Caption);
-  glPopAttrib;
-
-  if Opacity < 1 then
+  if GLBackground.HasAlpha then
     glPopAttrib;
 
   if (FImage <> nil) and (FGLImage <> nil) then
@@ -499,12 +458,23 @@ begin
   inherited;
   if (FGLImage = nil) and (FImage <> nil) then
     FGLImage := TGLImage.Create(FImage);
+
+  if GLButtonPressed = nil then
+    GLButtonPressed := TGLImage.Create(Button_pressed, true);
+  if GLButtonFocused = nil then
+    GLButtonFocused := TGLImage.Create(Button_focused, true);
+  if GLButtonNormal = nil then
+    GLButtonNormal := TGLImage.Create(Button_normal, true);
+
   UpdateTextSize;
 end;
 
 procedure TCastleButton.GLContextClose;
 begin
   FreeAndNil(FGLImage);
+  FreeAndNil(GLButtonPressed);
+  FreeAndNil(GLButtonFocused);
+  FreeAndNil(GLButtonNormal);
   inherited;
 end;
 
@@ -721,7 +691,6 @@ end;
 constructor TCastlePanel.Create(AOwner: TComponent);
 begin
   inherited;
-  FOpacity := 1;
   FVerticalSeparators := TCardinalList.Create;
 end;
 
@@ -739,16 +708,6 @@ begin
 end;
 
 procedure TCastlePanel.Draw;
-
-  function PanelCol(const V: TVector3Byte): TVector3Single;
-  const
-    Exp = 1.3;
-  begin
-    Result[0] := Power(V[0] / 255, Exp);
-    Result[1] := Power(V[1] / 255, Exp);
-    Result[2] := Power(V[2] / 255, Exp);
-  end;
-
 const
   SeparatorMargin = 8;
 var
@@ -756,45 +715,22 @@ var
 begin
   if not GetExists then Exit;
 
-  if Opacity < 1 then
+  if Panel.HasAlpha then
   begin
     glPushAttrib(GL_COLOR_BUFFER_BIT);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
     glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
   end;
 
-  glPushAttrib(GL_LIGHTING_BIT);
-    glShadeModel(GL_SMOOTH); // saved by GL_LIGHTING_BIT
-    glBegin(GL_QUADS);
-      glColorOpacity(PanelCol(Theme.InsideDownColor[false]), Opacity);
-      glVertexPixel(Left        , Bottom);
-      glVertexPixel(Left + Width, Bottom);
-      glColorOpacity(PanelCol(Theme.InsideUpColor[false]), Opacity);
-      glVertexPixel(Left + Width, Bottom + Height);
-      glVertexPixel(Left        , Bottom + Height);
-    glEnd;
-  glPopAttrib;
+  GLPanel.Draw(Left, Bottom, Width, Height,
+    0, 0, GLPanel.Width, GLPanel.Height);
 
-  if VerticalSeparators.Count <> 0 then
-  begin
-    glLineWidth(1.0);
-    glBegin(GL_LINES);
-      glColorOpacity(Theme.DarkFrameColor, Opacity);
-      for I := 0 to VerticalSeparators.Count - 1 do
-      begin
-        glVertexPixel(Left + VerticalSeparators[I], Bottom + SeparatorMargin);
-        glVertexPixel(Left + VerticalSeparators[I], Bottom + Height - SeparatorMargin);
-      end;
-      glColorOpacity(Theme.LightFrameColor, Opacity);
-      for I := 0 to VerticalSeparators.Count - 1 do
-      begin
-        glVertexPixel(Left + VerticalSeparators[I] + 1, Bottom + SeparatorMargin);
-        glVertexPixel(Left + VerticalSeparators[I] + 1, Bottom + Height - SeparatorMargin);
-      end;
-    glEnd;
-  end;
+  for I := 0 to VerticalSeparators.Count - 1 do
+    GLPanelSeparator.Draw(Left + VerticalSeparators[I], Bottom + SeparatorMargin,
+      GLPanelSeparator.Width, Height - 2 * SeparatorMargin,
+      0, 0, GLPanelSeparator.Width, GLPanelSeparator.Height);
 
-  if Opacity < 1 then
+  if Panel.HasAlpha then
     glPopAttrib;
 end;
 
@@ -828,6 +764,22 @@ begin
     FHeight := Value;
     if Container <> nil then Container.UpdateFocusAndMouseCursor;
   end;
+end;
+
+procedure TCastlePanel.GLContextOpen;
+begin
+  inherited;
+  if GLPanel = nil then
+    GLPanel := TGLImage.Create(Panel, true);
+  if GLPanelSeparator = nil then
+    GLPanelSeparator := TGLImage.Create(Panel_separator, true);
+end;
+
+procedure TCastlePanel.GLContextClose;
+begin
+  FreeAndNil(GLPanel);
+  FreeAndNil(GLPanelSeparator);
+  inherited;
 end;
 
 { TCastleImageControl ---------------------------------------------------------------- }
@@ -933,12 +885,6 @@ begin
   TooltipInsideColor := Vector3Byte(255, 234, 169);
   TooltipBorderColor := Vector3Byte(157, 133, 105);
   TooltipTextColor   := Vector3Byte(  0,   0,   0);
-  InsideUpColor[false] := Vector3Byte(165, 245, 210);
-  InsideUpColor[true ] := Vector3Byte(169, 251, 216);
-  InsideDownColor[false] := Vector3Byte(126, 188, 161);
-  InsideDownColor[true ] := Vector3Byte(139, 207, 177);
-  DarkFrameColor  := Vector3Byte( 99,  99,  99);
-  LightFrameColor := Vector3Byte(221, 221, 221);
   TextColor       := Vector3Byte(  0,   0,   0);
   BarEmptyColor  := Vector3Byte(192, 192, 192);
   BarFilledColor := Vector3Byte(Round(0.2 * 255), Round(0.5 * 255), 0);
