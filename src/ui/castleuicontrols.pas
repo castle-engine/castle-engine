@@ -371,7 +371,8 @@ end;
           @unorderedList(
             @itemSpacing Compact
             @item The modelview matrix value.
-            @item The raster position.
+            @item(The raster position (the only place that uses it in our engine,
+              TGLBitmapFont.Print, always overrides it).)
             @item The color (glColor), material (glMaterial) values.
             @item The line width, point size.
           )
@@ -381,8 +382,7 @@ end;
           @unorderedList(
             @itemSpacing Compact
             @item The current matrix is modelview, and it's value is identity.
-            @item(Only for DrawStyle = ds2D: the raster position is at (0, 0).
-              This is (0, 0) in window coordinates, see SetWindowPos.)
+            @item(Only for DrawStyle = ds2D: the WindowPos is at (0, 0).)
             @item Only for DrawStyle = ds2D: Texturing, depth test, lighting are turned off.
           )
           If you require anything else, set this yourself.)
@@ -411,7 +411,7 @@ end;
       The values of ds2D and ds3D are interpreted in the same way
       as DrawStyle. And DrawTooltip is called in the same way as @link(Draw),
       so e.g. you can safely assume that modelview matrix is identity
-      and (for 2D) raster is zero.
+      and (for 2D) WindowPos is zero.
       DrawTooltip is always called as a last (front-most) 2D or 3D control.
 
       @groupBegin }

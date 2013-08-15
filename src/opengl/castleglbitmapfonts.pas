@@ -195,14 +195,7 @@ type
 
       The text is printed like by PrintStrings.
 
-      For the deprecated overloaded versions without X0, Y0:
-      the position of the text and box is determined by the current
-      modelview matrix. The left-bottom box corner is at raster position 0, 0.
-      The current raster position when this method is called doesn't matter.
-      So your only way to move this box is to modify modelview matrix.
-
-      For the new overloaded versions with X0, Y0:
-      the X0, Y0 give explicitly the left-bottom box corner (in window
+      The X0, Y0 give explicitly the left-bottom box corner (in window
       coordinates, i.e. applied with SetWindowPos).
 
       BonusVerticalSpace has the same interpretation as for PrintStrings:
@@ -225,16 +218,6 @@ type
       Doesn't modify any OpenGL state or matrix, except it modifies the raster position.
 
       @groupBegin }
-    procedure PrintStringsBox(const Strs: array of string;
-      const Tags: boolean; BonusVerticalSpace: TGLint;
-      const InsideCol, BorderCol, TextCol: TVector4f;
-      BoxPixelMargin: integer) overload; deprecated;
-
-    procedure PrintStringsBox(Strs: TStringList;
-      const Tags: boolean; BonusVerticalSpace: TGLint;
-      const InsideCol, BorderCol, TextCol: TVector4f;
-      BoxPixelMargin: integer) overload; deprecated;
-
     procedure PrintStringsBox(const Strs: array of string;
       const Tags: boolean; const X0, Y0: Integer; BonusVerticalSpace: TGLint;
       const InsideCol, BorderCol, TextCol: TVector4f;
@@ -396,10 +379,9 @@ end;
 
 procedure TGLBitmapFont.Print(const X, Y: Integer; const s: string);
 
-  { For OpenGL versions that have a concept of a "raster"
-    (not present in OpenGL ES) this sets raster position in window
+  { Sets raster position in window
     coordinates. Such that the raster position is never clipped.
-    In this case this is similar to just calling glWindowPos,
+    Similar to just calling glWindowPos,
     and actually will simply call glWindowPos if available
     (if OpenGL version is adequate, or equivalent OpenGL extension is available).
 
@@ -721,38 +703,6 @@ begin
     PrintStrings(broken, false, BonusVerticalSpace, X0, Y0);
     result := broken.Count;
   finally broken.Free end;
-end;
-
-procedure TGLBitmapFontAbstract.PrintStringsBox(
-  Strs: TStringList; const Tags: boolean; BonusVerticalSpace: TGLint;
-  const InsideCol, BorderCol, TextCol: TVector4f;
-  BoxPixelMargin: integer);
-begin
-  GLRectangleWithBorder(0, 0, MaxTextWidth(Strs, Tags) + 2 * BoxPixelMargin,
-    (RowHeight + BonusVerticalSpace) * Strs.Count + 2 * BoxPixelMargin + Descend,
-    InsideCol, BorderCol);
-  glColorv(TextCol);
-  PrintStrings(strs, Tags, BonusVerticalSpace, BoxPixelMargin,
-    BoxPixelMargin + Descend);
-end;
-
-procedure TGLBitmapFontAbstract.PrintStringsBox(
-  const Strs: array of string; const Tags: boolean; BonusVerticalSpace: TGLint;
-  const InsideCol, BorderCol, TextCol: TVector4f;
-  BoxPixelMargin: integer);
-var
-  slist: TStringList;
-begin
-  slist := TStringList.Create;
-  try
-    AddStrArrayToStrings(strs, slist);
-    {$warnings off}
-    { Do not warn that PrintStringsBox call below is deprecated.
-      *This* method is deprecated too. }
-    PrintStringsBox(slist, Tags, BonusVerticalSpace,
-      InsideCol, BorderCol, TextCol, BoxPixelMargin);
-    {$warnings on}
-  finally slist.Free end;
 end;
 
 procedure TGLBitmapFontAbstract.PrintStringsBox(
