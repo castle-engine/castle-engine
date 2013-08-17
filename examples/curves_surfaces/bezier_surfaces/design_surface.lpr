@@ -186,7 +186,7 @@ begin
   StatusFont.PrintStrings(
     [ Format('Surface X segments: %d', [SurfaceXSegments]),
       Format('Surface Y segments: %d', [SurfaceYSegments]) ],
-    false, 5, 10, 10, false);
+    false, 5, 10, 10);
 end;
 
 type
