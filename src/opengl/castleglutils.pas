@@ -13,17 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Various low-level utilities for working with OpenGL.
-
-  This unit contains a mixture of useful utilities.
-  Simple wrappers for OpenGL procedures (like glVertexv, that is overloaded
-  for various vector types, and calls appropriate version like glVertex3fv
-  based on parameter type). Also simple drawing routines for basic primitives
-  (boxes etc.).
-  This unit does not assume that you initialized OpenGL in any particular
-  way (e.g. using CastleWindow, Glut, SDL, or whatever).
-}
-
+{ Various low-level utilities for working with OpenGL. }
 unit CastleGLUtils;
 
 {$I castleconf.inc}
