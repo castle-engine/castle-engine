@@ -193,7 +193,7 @@ procedure alFreeBuffer(var Buffer: TALuint);
 
 implementation
 
-uses CastleVectors, CastleStringUtils, CastleLog;
+uses CastleVectors, CastleStringUtils, CastleLog, CastleURIUtils;
 
 {$define read_implementation}
 
@@ -257,7 +257,7 @@ begin
         there (and this way we get to know it's duration). }
       if Log then
         WritelnLog('Sound', Format('Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f',
-          [ URL, F.ClassName, ALDataFormatToStr(F.DataFormat),
+          [ URIDisplay(URL), F.ClassName, ALDataFormatToStr(F.DataFormat),
             F.DataSize, F.Frequency, F.Duration ]));
 
       Duration := F.Duration;

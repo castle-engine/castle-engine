@@ -1247,7 +1247,7 @@ begin
       Inc(BuffersCache[I].References);
       if Log then
         WritelnLog('Sound', Format('Loaded "%s" from cache, now has %d references',
-          [FullURL, BuffersCache[I].References]));
+          [URIDisplay(FullURL), BuffersCache[I].References]));
       Duration := BuffersCache[I].Duration;
       Exit(BuffersCache[I].Buffer);
     end;

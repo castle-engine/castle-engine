@@ -241,7 +241,7 @@ begin
   Writeln('++ : texture image ', URL, ' : ', 1);
   {$endif}
   if Log and (AlphaChannel <> acNone) then
-    WritelnLog('Alpha Detection', 'Texture image ' + URL +
+    WritelnLog('Alpha Detection', 'Texture image ' + URIDisplay(URL) +
       ' detected as simple yes/no alpha channel: ' + BoolToStr[AlphaChannel = acSimpleYesNo]);
 end;
 
