@@ -436,8 +436,7 @@
     (on other backends), since the bare F11 is reserved on Mac OS X).
     And it has a DoClick implementation that takes care of the actual job.
 
-    So you can just add it to your menu, and forget about it.
-    It's initial state }
+    So you can just add it to your menu, and forget about it. }
   TMenuItemToggleFullScreen = class(TMenuItemChecked)
     constructor Create(const InitialFullScreen: boolean);
     function DoClick: boolean; override;
