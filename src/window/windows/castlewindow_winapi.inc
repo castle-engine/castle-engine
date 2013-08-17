@@ -252,13 +252,13 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
   procedure MaybeCapture;
   { mouse down occurred; so capture the mouse if it's not captured already }
   begin
-   if GetCapture <> H_Wnd then SetCapture(H_Wnd);
+    if GetCapture <> H_Wnd then SetCapture(H_Wnd);
   end;
 
   procedure MaybeRelease;
   { mouse up occurred; release capture if all mouse buttons are now up }
   begin
-   if (mousePressed=[]) and (GetCapture = H_Wnd) then ReleaseCapture;
+    if (mousePressed=[]) and (GetCapture = H_Wnd) then ReleaseCapture;
   end;
 
   type

@@ -629,7 +629,7 @@ type
 
     { EventOpenCalled = has OnOpen been called from Open? }
     EventOpenCalled: boolean;
-    closeerrors: string; { Used by Close. }
+    CloseErrors: string; { Used by CloseBackend. }
 
     MenuUpdateInside: Cardinal;
     MenuUpdateNeedsInitialize: boolean;
@@ -853,10 +853,10 @@ type
       - checking MainMenu.Enabled
     }
 
-    { DoResize with FromIndependentOpen = true is called only once
+    { DoResize with FirstResizeAfterOpen = true is called only once
       (and exactly once) from TCastleWindowBase.Open implementation.
       So all CastleWindow-backend code should always
-      pass FromIndependentOpen = false (EVEN if it may be called from
+      pass FirstResizeAfterOpen = false (EVEN if it may be called from
       OpenBackend (that is called before DoResize in Open) !).
 
       Some more notes about calling DoResize from OpenBackend:
@@ -881,7 +881,7 @@ type
       calling DoResize; but usually (under WinAPI, Xlib, GTK)
       it's not needed, i.e. WinAPI, Xlib, and GTK all take care of this
       automatically). }
-    procedure DoResize(AWidth, AHeight: integer; FromIndependentOpen: boolean);
+    procedure DoResize(AWidth, AHeight: integer; FirstResizeAfterOpen: boolean);
     { Wywoluj kiedy user kliknie na przycisku "Zamknij" itp.
       Wywola EventCloseQuery i ew. Close (and Close will execute EventClose,
       CloseBackend etc.). Note that there is no DoClose method and there
@@ -2851,147 +2851,145 @@ uses CastleParameters, CastleLog, CastleGLVersion, CastleURIUtils,
 {$I castlewindowmenu.inc}
 {$I castlewindow_backend.inc}
 
-{ ----------------------------------------------------------------------------
-  niezalezne od CASTLE_WINDOW_xxx rzeczy TCastleWindowBase }
+{ TCastleWindowBase ---------------------------------------------------------- }
 
 constructor TCastleWindowBase.Create(AOwner: TComponent);
 begin
- inherited;
- FClosed := true;
- FWidth  := WindowDefaultSize;
- FHeight := WindowDefaultSize;
- FLeft  := WindowPositionCenter;
- FTop   := WindowPositionCenter;
- FDoubleBuffer := true;
- FCaption[cpPublic] := ApplicationName;
- FResizeAllowed := raAllowed;
- minWidth := 100;  maxWidth := 4000;
- minHeight := 100; maxHeight := 4000;
- DepthBits := DefaultDepthBits;
- FCursor := mcDefault;
- FMultiSampling := 1;
- FVisible := true;
- OwnsMainMenu := true;
- FPressed := TKeysPressed.Create;
- FFps := TFramesPerSecond.Create;
+  inherited;
+  FClosed := true;
+  FWidth  := WindowDefaultSize;
+  FHeight := WindowDefaultSize;
+  FLeft  := WindowPositionCenter;
+  FTop   := WindowPositionCenter;
+  FDoubleBuffer := true;
+  FCaption[cpPublic] := ApplicationName;
+  FResizeAllowed := raAllowed;
+  minWidth := 100;  maxWidth := 4000;
+  minHeight := 100; maxHeight := 4000;
+  DepthBits := DefaultDepthBits;
+  FCursor := mcDefault;
+  FMultiSampling := 1;
+  FVisible := true;
+  OwnsMainMenu := true;
+  FPressed := TKeysPressed.Create;
+  FFps := TFramesPerSecond.Create;
 
- CreateBackend;
+  CreateBackend;
 end;
 
 destructor TCastleWindowBase.Destroy;
 begin
- Close; { <- This will be ignored if already Closed }
+  Close; { <- This will be ignored if already Closed }
 
- if OwnsMainMenu then
-   FreeAndNil(FMainMenu) else
- if FMainMenu <> nil then
- begin
-   FMainMenu.ParentWindow := nil; { clear Self from FMainMenu.ParentWindow }
-   FMainMenu := nil;
- end;
+  if OwnsMainMenu then
+    FreeAndNil(FMainMenu) else
+  if FMainMenu <> nil then
+  begin
+    FMainMenu.ParentWindow := nil; { clear Self from FMainMenu.ParentWindow }
+    FMainMenu := nil;
+  end;
 
- FreeAndNil(FFps);
- FreeAndNil(FPressed);
- inherited;
+  FreeAndNil(FFps);
+  FreeAndNil(FPressed);
+  inherited;
 end;
 
 procedure TCastleWindowBase.OpenCore;
 begin
- if not FClosed then Exit;
+  if not FClosed then Exit;
 
- try
-  { Adjust Left/Top/Width/Height as needed.
-    Note: calculations below try to correct window geometry but they
-    can fail to foresee some things. In particular, they do not take
-    into account a potential menu bar that may be visible when MainMenu <> nil.
-    E.g., when MainMenu <> nil and implementation supports MainMenu as
-    menu bar (GTK and WINAPI implementations) and FullScreen then
-    the actual OpenGL window size will NOT match ScreenWidth/Height,
-    it will be slightly smaller (menu bar takes some space).
-  }
-  if Width  = WindowDefaultSize then FWidth  := Application.ScreenWidth  * 4 div 5;
-  if Height = WindowDefaultSize then FHeight := Application.ScreenHeight * 4 div 5;
-  Clamp(fwidth, minWidth, maxWidth);
-  Clamp(fheight, minHeight, maxHeight);
-  if left = WindowPositionCenter then fleft := (Application.ScreenWidth-width) div 2;
-  if top  = WindowPositionCenter then ftop := (Application.ScreenHeight-height) div 2;
+  try
+    { Adjust Left/Top/Width/Height as needed.
+      Note: calculations below try to correct window geometry but they
+      can fail to foresee some things. In particular, they do not take
+      into account a potential menu bar that may be visible when MainMenu <> nil.
+      E.g., when MainMenu <> nil and implementation supports MainMenu as
+      menu bar (GTK and WINAPI implementations) and FullScreen then
+      the actual OpenGL window size will NOT match ScreenWidth/Height,
+      it will be slightly smaller (menu bar takes some space).
+    }
+    if Width  = WindowDefaultSize then FWidth  := Application.ScreenWidth  * 4 div 5;
+    if Height = WindowDefaultSize then FHeight := Application.ScreenHeight * 4 div 5;
+    Clamp(fwidth, minWidth, maxWidth);
+    Clamp(fheight, minHeight, maxHeight);
+    if left = WindowPositionCenter then fleft := (Application.ScreenWidth-width) div 2;
+    if top  = WindowPositionCenter then ftop := (Application.ScreenHeight-height) div 2;
 
-  { reset some window state variables }
-  Pressed.Clear;
-  fmousePressed := [];
-  EventOpenCalled := false;
+    { reset some window state variables }
+    Pressed.Clear;
+    fmousePressed := [];
+    EventOpenCalled := false;
 
-  { Set Closed to false.
-    W tym miejscu, przed OpenBackend i wywolaniem OnOpen + OnResize, bo
-   - te rzeczy moga rzucic wyjatki a w reakcji na wyjatek
-     chcemy wywolac Close ktore do dzialania wymaga aby bylo not FClosed. }
-  FClosed := false;
+    { Set Closed to false. Before OpenBackend and EventOpen + EventResize,
+      since they can raise exceptions, and in reaction to it we will cleanly
+      Close the window. }
+    FClosed := false;
 
-  { Najwazniejsze : zrob to co implementacja zrobic musi.
-    Mozesz stad smialo wywolywac DoResize, beda ignorowane dzieki temu
-    ze EventOpenCalled = false.  }
-  OpenBackend;
+    { Call OpenBackend. Note that OpenBackend can call DoResize,
+      it will still be correctly understood. }
+    OpenBackend;
 
-  { Do MakeCurrent before glViewport and EventOpen. }
-  MakeCurrent;
+    { Do MakeCurrent before glViewport and EventOpen. }
+    MakeCurrent;
 
-  LoadAllExtensions;
+    LoadAllExtensions;
 
-  if Log then
-    WritelnLogMultiline('OpenGL context initialization', GLInformationString);
-
-  if GLVersion.BuggyDepth32 and
-    (glGetInteger(GL_DEPTH_BITS) >= 32) and
-    (StencilBits = 0) then
-  begin
     if Log then
-      WritelnLog('OpenGL context initialization',
-        'Got >= 32-bit depth buffer, unfortunately it is known to be buggy on this OpenGL implementation. We will try to force 24-bit depth buffer by forcing stencil buffer.');
-    { Close the window, increase StencilBits to try to force 24-bit
-      depth buffer, and call ourselves again.
-      Checking "StencilBits = 0" above prevents from getting into
-      an infinite loop here. }
-    Close({ QuitWhenLastWindowClosed } false);
-    StencilBits := 8;
-    OpenCore;
-    Exit;
+      WritelnLogMultiline('OpenGL context initialization', GLInformationString);
+
+    if GLVersion.BuggyDepth32 and
+      (glGetInteger(GL_DEPTH_BITS) >= 32) and
+      (StencilBits = 0) then
+    begin
+      if Log then
+        WritelnLog('OpenGL context initialization',
+          'Got >= 32-bit depth buffer, unfortunately it is known to be buggy on this OpenGL implementation. We will try to force 24-bit depth buffer by forcing stencil buffer.');
+      { Close the window, increase StencilBits to try to force 24-bit
+        depth buffer, and call ourselves again.
+        Checking "StencilBits = 0" above prevents from getting into
+        an infinite loop here. }
+      Close({ QuitWhenLastWindowClosed } false);
+      StencilBits := 8;
+      OpenCore;
+      Exit;
+    end;
+
+    { synchronize glViewport with our Width/Height (note that, because
+      of ResizeAllowed and MinWidth etc. that can be different than actual window
+      sizes). }
+    glViewport(0, 0, Width, Height);
+
+    if ( (AntiAliasing = aa2SamplesNicer) or
+         (AntiAliasing = aa4SamplesNicer) ) and
+       GLFeatures.NV_multisample_filter_hint then
+      glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+
+    { call first EventOpen and EventResize. Zwroc uwage ze te DoResize i DoOpen
+      MUSZA byc wykonane na samym koncu procedury Open - jak juz wszystko inne
+      zostalo wykonane. Wszystko po to ze juz w pierwszym OnOpen lub OnResize
+      moze zostac wywolane Application.ProcessMessages np. w wyniku wywolania w OnOpen
+      CastleMessages.MessageOk. }
+    EventOpenCalled := true;
+    EventOpen;
+
+    { Check Closed here, in case OnOpen closed the window
+      (by calling Application.Quit (that calls Close on all windows) or direct Close
+      on this window). Note that Close calls
+      CloseBackend and generally has *immediate* effect --- that's why
+      doing anything more with window now (like MakeCurrent) would be wrong. }
+    if Closed then Exit;
+
+    DoResize(FWidth, FHeight, true);
+
+    { Check Closed here, in case OnResize closed the window. }
+    if Closed then Exit;
+
+    { to be SURE that current window's gl context is active,
+      even if someone in EventOpen changed current gl context }
+    MakeCurrent;
+  except
+    Close; raise;
   end;
-
-  { zsynchronizuj glViewport z naszymi Width/Height (bo one moga sie roznic od
-    rzeczywistych rozmiarow okienka) }
-  glViewport(0, 0, Width, Height);
-
-  if ( (AntiAliasing = aa2SamplesNicer) or
-       (AntiAliasing = aa4SamplesNicer) ) and
-     GLFeatures.NV_multisample_filter_hint then
-    glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
-
-  { call first EventOpen and EventResize. Zwroc uwage ze te DoResize i DoOpen
-    MUSZA byc wykonane na samym koncu procedury Open - jak juz wszystko inne
-    zostalo wykonane. Wszystko po to ze juz w pierwszym OnOpen lub OnResize
-    moze zostac wywolane Application.ProcessMessages np. w wyniku wywolania w OnOpen
-    CastleMessages.MessageOk. }
-  EventOpenCalled := true;
-  EventOpen;
-
-  { Check Closed here, in case OnOpen closed the window
-    (by calling Application.Quit (that calls Close on all windows) or direct Close
-    on this window). Note that Close calls
-    CloseBackend and generally has *immediate* effect --- that's why
-    doing anything more with window now (like MakeCurrent) would be wrong. }
-  if Closed then Exit;
-
-  DoResize(FWidth, FHeight, true);
-
-  { Check Closed here, in case OnResize closed the window. }
-  if Closed then Exit;
-
-  { to be SURE that current window's gl context is active,
-    even if someone in EventOpen changed current gl context }
-  MakeCurrent;
- except
-  Close; raise;
- end;
 end;
 
 procedure TCastleWindowBase.Open(const Retry: TGLContextRetryOpenFunc);
@@ -3034,45 +3032,44 @@ end;
 
 procedure TCastleWindowBase.CloseError(const error: string);
 begin
- if closeerrors <> '' then
-  closeerrors := closeerrors+nl+error else
-  closeerrors := error
+  if CloseErrors <> '' then
+    CloseErrors := CloseErrors + nl + Error else
+    CloseErrors := Error
 end;
 
 procedure TCastleWindowBase.Close(QuitWhenLastWindowClosed: boolean);
 begin
- if FClosed then Exit;
+  if FClosed then Exit;
 
- try
-  if EventOpenCalled then
-  begin
-   MakeCurrent;
-   EventClose;
+  try
+    if EventOpenCalled then
+    begin
+      MakeCurrent;
+      EventClose;
+    end;
+  finally
+    CloseErrors := '';
+    CloseBackend;
+
+    FClosed := true;
+
+    Application.Current := nil;
+
+    { Note: it is important here that OpenWindowsRemove will not raise any error
+      if Self is not on OpenWindows list. This is useful if the window
+      was partially constructed.
+
+      E.g. when StencilBits was too high and OpenBackend
+      method raised an exception EGLContextNotPossible. Then this method, Close,
+      is called, but Self is not on OpenWindows list. And this fact should not be
+      reported as an error -- error is EGLContextNotPossible ! }
+    Application.OpenWindowsRemove(Self, QuitWhenLastWindowClosed);
+
+    { Only raise at the end. This way we always go fully through CloseBackend,
+      regardless of errors.}
+    if CloseErrors <> '' then
+      raise Exception.Create('Error while trying to close window ' + CloseErrors);
   end;
- finally
-  closeerrors := '';
-  CloseBackend;
-
-  FClosed := true;
-
-  Application.Current := nil;
-
-  { Note: it is important here that OpenWindowsRemove will not raise any error
-    if Self is not on OpenWindows list. This is useful if the window was partially
-    constructed.
-
-    E.g. when StencilBits was too high and OpenBackend
-    method raised an exception EGLContextNotPossible. Then this method, Close,
-    is called, but Self is not on OpenWindows list. And this fact should not be
-    reported as an error -- error is EGLContextNotPossible ! }
-  Application.OpenWindowsRemove(Self, QuitWhenLastWindowClosed);
-
-  { dopiero tutaj rzucamy wyjatek. Zawsze bedziemy probowac wykonac cala
-    powyzsza procedure, w szczegolnosci cale CloseImplDepened,
-    bez wzgledu na bledy - a ewentualny wyjatek rzucimy dopiero teraz.}
-  if closeerrors <> '' then
-   raise Exception.Create('Error(errors?) while trying to close CastleWindow : '+nl+closeerrors);
- end;
 end;
 
 procedure TCastleWindowBase.MakeCurrent;
@@ -3089,37 +3086,38 @@ end;
 
 procedure TCastleWindowBase.SetAutoRedisplay(value: boolean);
 begin
- fAutoRedisplay := value;
- if value and (not Closed) then PostRedisplay;
+  fAutoRedisplay := value;
+  if value and (not Closed) then PostRedisplay;
 end;
 
 procedure TCastleWindowBase.ReleaseAllKeysAndMouse;
-var k: TKey;
-    mb: CastleKeysMouse.TMouseButton;
-    {$ifdef CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
-    mk: TModifierKey;
-    b: boolean;
-    {$endif}
+var
+  k: TKey;
+  mb: CastleKeysMouse.TMouseButton;
+  {$ifdef CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
+  mk: TModifierKey;
+  b: boolean;
+  {$endif}
 begin
- {$ifdef CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
- { When CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN, I *HAVE* to use below
-   SetPrivateModifiersDown. It would be an error to do DoKeyUp(K_Ctrl)
-   directly when CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN, instead we have to
-   use SetPrivateModifiersDown(mkCtrl, ...).
-   This is the only way to make values in PrivateModifiersDown[]
-   and Pressed[] arrays consistent. }
- for mk := Low(mk) to High(mk) do
-  for b := Low(b) to High(b) do
-   SetPrivateModifiersDown(mk, b, false);
- {$endif CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
+  {$ifdef CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
+  { When CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN, I *HAVE* to use below
+    SetPrivateModifiersDown. It would be an error to do DoKeyUp(K_Ctrl)
+    directly when CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN, instead we have to
+    use SetPrivateModifiersDown(mkCtrl, ...).
+    This is the only way to make values in PrivateModifiersDown[]
+    and Pressed[] arrays consistent. }
+  for mk := Low(mk) to High(mk) do
+    for b := Low(b) to High(b) do
+      SetPrivateModifiersDown(mk, b, false);
+  {$endif CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
 
- { Since we do DoKeyUp, this should also take care of Characters. }
+  { Since we do DoKeyUp, this should also take care of Characters. }
 
- for k := Low(k) to High(k) do
-  if Pressed[k] then DoKeyUp(k);
+  for k := Low(k) to High(k) do
+    if Pressed[k] then DoKeyUp(k);
 
- for mb := Low(mb) to High(mb) do if mb in MousePressed then
-  DoMouseUp(MouseX, MouseY, mb);
+  for mb := Low(mb) to High(mb) do if mb in MousePressed then
+    DoMouseUp(MouseX, MouseY, mb);
 end;
 
 function TCastleWindowBase.GetColorBits: Cardinal;
@@ -3162,59 +3160,59 @@ end;
   bezposrednio EventXxx ani tym bardziej OnXxx !
   ------------------------------------------------------------------------------------ }
 
-procedure TCastleWindowBase.DoResize(AWidth, AHeight: integer; FromIndependentOpen: boolean);
+procedure TCastleWindowBase.DoResize(AWidth, AHeight: integer; FirstResizeAfterOpen: boolean);
 begin
- { zabezpiecz sie przed
-   1) backends where we can't express ResizeAllowed <> raAllowed
-   2) Windowsem, ktory moze zresizowac nasze okno np. gdy sie nie miescimy na ekranie
-   3) XWindow-Managerem ktory zawsze moze nas zresizowac, mimo ze prosimy go
-      zeby tego nie robil.
-   wiec pod wszystkimi trzema implementacjami musimy sprawdzic warunek ze
-     albo ResizeAllowed = raAllowed albo naprawde fwidth = w itd.
-   Sprawdzamy tez czy w i h sa w odpowiednim zakresie minXxx .. maxXxx.
-     Oczywiscie implementacje powinny starac sie zeby nic spoza tego zakresu do nas
-     nie dotarlo, ale nigdy nie ma pewnosci. Zwracam uwage, ze wymagamy aby zawsze
-     minWidth > 0 i minHeight > 0 wiec jednoczesnie ponizej gwarantujemy sobie ze nie
-     zachodzi sytuacja w = 0 lub h = 0.
+  { zabezpiecz sie przed
+    1) backends where we can't express ResizeAllowed <> raAllowed
+    2) Windowsem, ktory moze zresizowac nasze okno np. gdy sie nie miescimy na ekranie
+    3) XWindow-Managerem ktory zawsze moze nas zresizowac, mimo ze prosimy go
+       zeby tego nie robil.
+    wiec pod wszystkimi trzema implementacjami musimy sprawdzic warunek ze
+      albo ResizeAllowed = raAllowed albo naprawde fwidth = w itd.
+    Sprawdzamy tez czy w i h sa w odpowiednim zakresie minXxx .. maxXxx.
+      Oczywiscie implementacje powinny starac sie zeby nic spoza tego zakresu do nas
+      nie dotarlo, ale nigdy nie ma pewnosci. Zwracam uwage, ze wymagamy aby zawsze
+      minWidth > 0 i minHeight > 0 wiec jednoczesnie ponizej gwarantujemy sobie ze nie
+      zachodzi sytuacja w = 0 lub h = 0.
 
-   Apropos wywolywania DoResize(.., false) z OpenBackend:
-   zabezpieczamy sie przed tym zawsze. Ale mozna tu odnotowac ze z pewnoscia
-   OpenBackend moze wywolywac DoResize(.., false) w przypadku
-   implementacji WINAPI i GTK.
- }
+    Apropos wywolywania DoResize(.., false) z OpenBackend:
+    zabezpieczamy sie przed tym zawsze. Ale mozna tu odnotowac ze z pewnoscia
+    OpenBackend moze wywolywac DoResize(.., false) w przypadku
+    implementacji WINAPI i GTK.
+  }
 
- { update FWidth, FHeight.
-   Below we are explicitly forcing assertions about ResizeAllowed:
-   when ResizeAllowed
-     = raNotAllowed: FWidth and FHeight cannot change
-     = raOnlyAtOpen: FWidth and FHeight can change only at first EventResize
-       (with FromIndependentOpen = true), at least from the point of view of outside.
-       Internally, every call to DoResize upto and including FromIndependentOpen call
-       changes FWidth and FHeight. This allows to accumulate e.g. size changes
-       caused by FullScreen=true, in case OpenBackend does them by explicitly
-       calling DoResize, like unix/castlewindow_xlib.inc .
-     = raAllowed: FWidth and FHeight can change freely
- }
- if (ResizeAllowed = raAllowed) or
-    ((ResizeAllowed = raOnlyAtOpen) and
-     (FromIndependentOpen or not EventOpenCalled)) then
- begin
-  FWidth := Clamped(AWidth,  MinWidth,  MaxWidth);
-  FHeight := Clamped(AHeight, MinHeight, MaxHeight);
- end;
+  { update FWidth, FHeight.
+    Below we are explicitly forcing assertions about ResizeAllowed:
+    when ResizeAllowed
+      = raNotAllowed: FWidth and FHeight cannot change
+      = raOnlyAtOpen: FWidth and FHeight can change only at first EventResize
+        (with FirstResizeAfterOpen = true), at least from the point of view of outside.
+        Internally, every call to DoResize upto and including FirstResizeAfterOpen call
+        changes FWidth and FHeight. This allows to accumulate e.g. size changes
+        caused by FullScreen=true, in case OpenBackend does them by explicitly
+        calling DoResize, like unix/castlewindow_xlib.inc .
+      = raAllowed: FWidth and FHeight can change freely
+  }
+  if (ResizeAllowed = raAllowed) or
+     ((ResizeAllowed = raOnlyAtOpen) and
+      (FirstResizeAfterOpen or not EventOpenCalled)) then
+  begin
+    FWidth := Clamped(AWidth,  MinWidth,  MaxWidth);
+    FHeight := Clamped(AHeight, MinHeight, MaxHeight);
+  end;
 
- { do not call EventResize before EventOpen (this check is needed
-   because OpenBackend is allowed to call DoResize) }
- if not EventOpenCalled then Exit;
+  { do not call EventResize before EventOpen (this check is needed
+    because OpenBackend is allowed to call DoResize) }
+  if not EventOpenCalled then Exit;
 
- { jezeli ResizeAllowed <> raAllowed to nie powinnismy wywolywac EventResize
-   poza pierwszym razem (gdy FromIndependentOpen).
-   Kazdy nastepny raz i tak bylby pozbawiony
-   znaczenia, bo przeciez Width i Height i tak nie ulegly zmianie. }
- if (not FromIndependentOpen) and (ResizeAllowed <> raAllowed) then Exit;
+  { jezeli ResizeAllowed <> raAllowed to nie powinnismy wywolywac EventResize
+    poza pierwszym razem (gdy FirstResizeAfterOpen).
+    Kazdy nastepny raz i tak bylby pozbawiony
+    znaczenia, bo przeciez Width i Height i tak nie ulegly zmianie. }
+  if (not FirstResizeAfterOpen) and (ResizeAllowed <> raAllowed) then Exit;
 
- MakeCurrent;
- EventResize;
+  MakeCurrent;
+  EventResize;
 end;
 
 procedure TCastleWindowBase.DoCloseQuery;
@@ -3250,44 +3248,46 @@ procedure TCastleWindowBase.DoKeyDown(Key: TKey; CharKey: char);
   function SeekMatchingMenuItem: TMenuItem;
 
     function SeekMe(Entry: TMenuEntry): TMenuItem;
-    var i: Integer;
+    var
+      i: Integer;
     begin
-     Result := nil;
-     if Entry is TMenu then
-     begin
-      for i := 0 to TMenu(Entry).Count - 1 do
+      Result := nil;
+      if Entry is TMenu then
       begin
-       Result := SeekMe(TMenu(Entry).Entries[i]);
-       if Result <> nil then Break;
-      end;
-     end else
-     if (Entry is TMenuItem) and
-        TMenuItem(Entry).KeyMatches(Key, CharKey, Pressed.Modifiers) then
-      Result := TMenuItem(Entry);
+        for i := 0 to TMenu(Entry).Count - 1 do
+        begin
+          Result := SeekMe(TMenu(Entry).Entries[i]);
+          if Result <> nil then Break;
+        end;
+      end else
+      if (Entry is TMenuItem) and
+         TMenuItem(Entry).KeyMatches(Key, CharKey, Pressed.Modifiers) then
+        Result := TMenuItem(Entry);
     end;
 
   begin
-   if MainMenu <> nil then
-    Result := SeekMe(MainMenu) else
-    Result := nil;
+    if MainMenu <> nil then
+      Result := SeekMe(MainMenu) else
+      Result := nil;
   end;
 
-var MatchingMI: TMenuItem;
+var
+  MatchingMI: TMenuItem;
 begin
- Pressed.KeyDown(Key, CharKey);
+  Pressed.KeyDown(Key, CharKey);
 
- MatchingMI := SeekMatchingMenuItem;
- if (MainMenu <> nil) and
-    MainMenu.Enabled and
-    (MatchingMI <> nil) then
- begin
-  if RedirectKeyDownToMenuClick then
-   DoMenuClick(MatchingMI);
- end else
- begin
-  MakeCurrent;
-  EventPress(InputKey(Key, CharKey));
- end;
+  MatchingMI := SeekMatchingMenuItem;
+  if (MainMenu <> nil) and
+     MainMenu.Enabled and
+     (MatchingMI <> nil) then
+  begin
+    if RedirectKeyDownToMenuClick then
+      DoMenuClick(MatchingMI);
+  end else
+  begin
+    MakeCurrent;
+    EventPress(InputKey(Key, CharKey));
+  end;
 end;
 
 procedure TCastleWindowBase.DoKeyUp(key: TKey);
