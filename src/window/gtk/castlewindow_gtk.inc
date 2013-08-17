@@ -1035,8 +1035,8 @@ begin
    gtk_widget_set_usize(GTK_WIDGET(GLAreaGtk), Width, Height) else
    gtk_widget_set_usize(GTK_WIDGET(GLAreaGtk), MinWidth, MinHeight);
   set_default_glarea_size(Width, Height);
+  gtk_window_set_resizable(WindowGtk, ResizeAllowed = raAllowed);
  end;
- gtk_window_set_resizable(WindowGtk, ResizeAllowed = raAllowed);
 
  { Honour display (XScreenGdk is default screen on chosen display)
    chosen by user. }
