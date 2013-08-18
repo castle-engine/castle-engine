@@ -83,21 +83,25 @@ begin
 
     if DebugScene3DDisplay <> 2 then
     begin
-      glPushAttrib(GL_ENABLE_BIT);
-        glDisable(GL_LIGHTING);
-        if DebugScene3DDisplay = 1 then
-        begin
-          if GLFeatures.BlendConstant then
+      OrthoProjection(0, Window.Width, 0, Window.Height); // need 2D projection
+      glPushMatrix; // TGLImage.Draw will reset matrix, so save it
+        glPushAttrib(GL_ENABLE_BIT);
+          glDisable(GL_LIGHTING);
+          if DebugScene3DDisplay = 1 then
           begin
-            glBlendColor(0, 0, 0, 0.5);
-            glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
-            glEnable(GL_BLEND);
+            if GLFeatures.BlendConstant then
+            begin
+              glBlendColor(0, 0, 0, 0.5);
+              glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
+              glEnable(GL_BLEND);
+            end;
           end;
-        end;
-        if Params.InShadow then
-          CurrentLocation.GLShadowedImage.Draw(0, 0) else
-          CurrentLocation.GLImage.Draw(0, 0);
-      glPopAttrib;
+          if Params.InShadow then
+            CurrentLocation.GLShadowedImage.Draw(0, 0) else
+            CurrentLocation.GLImage.Draw(0, 0);
+        glPopAttrib;
+      glPopMatrix;
+      ApplyProjection; // restore 3D projection
     end;
 
     if not DebugNoCreatures then
