@@ -3629,8 +3629,13 @@ var
     SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
-        if SI.Current.Geometry.Coord(SI.Current.State, Coord) and
-           (Coord = Field) then
+        if (SI.Current.Geometry.Coord(SI.Current.State, Coord) and
+            (Coord = Field)) or
+           { Change to OriginalGeometry.Coord should also be reported,
+             since it may cause FreeProxy for shape. This is necessary
+             for animation of NURBS controlPoint to work. }
+           (SI.Current.OriginalGeometry.Coord(SI.Current.State, Coord) and
+            (Coord = Field)) then
           SI.Current.Changed(false, Changes);
 
       VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);

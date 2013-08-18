@@ -204,6 +204,8 @@
       Override this for descendants that have some kind of "coord" field,
       then this should return @true and set ACoord to coord.point field,
       assuming that coord is set and specifies Coordinate node.
+      Override this even if coordinates affect the look indirectly,
+      e.g. NURBS "controlPoint" fields also should be returned here.
       Otherwise should return @true and set ACoord = @nil.
 
       For VRML 1.0, coord may be taken from State, that's why we have to
