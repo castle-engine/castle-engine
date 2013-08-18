@@ -58,66 +58,64 @@ type
   TMyViewport = class(TCastleViewport)
   public
     Caption: string;
-    procedure Draw2D;
-    procedure Draw; override;
     procedure SetFocused(const Value: boolean); override;
   end;
 
-procedure TMyViewport.Draw2D;
+procedure TMyViewport.SetFocused(const Value: boolean);
+begin
+  if Value <> Focused then
+    { The TMyViewport2D.Draw is based on Focused value. }
+    VisibleChange;
+
+  inherited;
+end;
+
+{ TMyViewport2D -------------------------------------------------------------- }
+
+type
+  { 2D controls over the viewport. For this we need TUIControl instance
+    with DrawStyle 2D. }
+  TMyViewport2D = class(TUIControl)
+  public
+    Viewport: TMyViewport;
+    procedure Draw; override;
+    function DrawStyle: TUIControlDrawStyle; override;
+  end;
+
+function TMyViewport2D.DrawStyle: TUIControlDrawStyle;
+begin
+  Result := ds2D;
+end;
+
+procedure TMyViewport2D.Draw;
 const
   Margin = 5;
 begin
-  glLoadIdentity;
-
-  if Focused then
+  if Viewport.Focused then
   begin
-    GLRectangleBorder(0, 0, Width, Height, White4Single, 3);
-    { line width saved by GL_LINE_BIT, although we can generally change
-      it carelessly (without saving) when drawing in our engine }
+    GLRectangleBorder(
+      Viewport.CorrectLeft, Viewport.CorrectBottom,
+      Viewport.CorrectLeft + Viewport.CorrectWidth,
+      Viewport.CorrectBottom + Viewport.CorrectHeight, White4Single, 3);
   end;
 
-  if Caption <> '' then
+  if Viewport.Caption <> '' then
   begin
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); { saved by GL_COLOR_BUFFER_BIT }
     glEnable(GL_BLEND); { saved by GL_COLOR_BUFFER_BIT }
     glColor4f(0, 0, 0, 0.5);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); { saved by GL_POLYGON_BIT }
     glRectf(
-      10 - Margin,
-      10 - Margin,
-      10 + UIFont.TextWidth(Caption) + Margin,
-      10 + UIFont.RowHeight + Margin);
+      Viewport.CorrectLeft + 10 - Margin,
+      Viewport.CorrectBottom + 10 - Margin,
+      Viewport.CorrectLeft + 10 + UIFont.TextWidth(Viewport.Caption) + Margin,
+      Viewport.CorrectBottom + 10 + UIFont.RowHeight + Margin);
     glDisable(GL_BLEND); { saved by GL_COLOR_BUFFER_BIT }
 
     glColor3f(1, 1, 0);
-    UIFont.Print(Left + 10, Bottom + 10, Caption);
+    UIFont.Print(Viewport.CorrectLeft + 10, Viewport.CorrectBottom + 10,
+      Viewport.Caption);
   end;
-end;
-
-procedure TMyViewport.Draw;
-begin
-  inherited;
-
-  { TODO: This is not an adviced method to draw 2D stuff.
-    It should be moved to separate TUIControl instance with DrawStyle = ds2D.
-    Below, we just overuse the knowledge that every viewport starts drawing
-    by applying its's own projection, so you *can* carelessly change projection
-    after calling inherited.  }
-  glMatrixMode(GL_PROJECTION);
-  glLoadMatrix(Ortho2dProjMatrix(0, CorrectWidth, 0, CorrectHeight));
-  glMatrixMode(GL_MODELVIEW);
-  Draw2D;
-end;
-
-procedure TMyViewport.SetFocused(const Value: boolean);
-begin
-  if Value <> Focused then
-  begin
-    { We base our Draw on Focused value. }
-    VisibleChange;
-  end;
-
-  inherited;
 end;
 
 { TWireViewport -------------------------------------------------------------- }
@@ -195,6 +193,7 @@ var
   Window: TCastleWindow;
   Scene: TCastleScene;
   Viewports: array [0..3] of TMyViewport;
+  Viewports2D: array [0..3] of TMyViewport2D;
   OpenButton, QuitButton: TCastleButton;
 
 procedure Resize(Window: TCastleWindowBase);
@@ -345,6 +344,10 @@ begin
     Viewports[I].ShadowVolumes := I = 1;
     { The initial Resize event will position viewports correctly }
     Window.Controls.Add(Viewports[I]);
+
+    Viewports2D[I] := TMyViewport2D.Create(Application);
+    Viewports2D[I].Viewport := Viewports[I];
+    Window.Controls.Add(Viewports2D[I]);
   end;
   Assert(Window.SceneManager.Viewports.Count = High(Viewports) + 1);
 
