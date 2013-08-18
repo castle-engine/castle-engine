@@ -494,10 +494,7 @@ begin
     end;
   end else
   { Otherwise, all the weights are assumed 1.0 }
-  begin
-    Result := CalculateBoundingBox(PVector3Single(Point.List),
-      Point.Count, 0);
-  end;
+    Result := CalculateBoundingBox(Point);
 end;
 
 function NurbsBoundingBox(Point: TVector3SingleList;
@@ -549,10 +546,7 @@ begin
     end;
   end else
   { Otherwise, all the weights are assumed 1.0 }
-  begin
-    Result := CalculateBoundingBox(PVector3Single(Point.List),
-      Point.Count, 0);
-  end;
+    Result := CalculateBoundingBox(Point, Transform);
 end;
 
 function NurbsBoundingBox(Point: TVector3SingleList;

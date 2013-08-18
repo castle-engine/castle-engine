@@ -427,6 +427,8 @@ function CalculateBoundingBox(
   Verts: PVector3Single; VertsCount: Cardinal; VertsStride: Cardinal;
   const Transform: TMatrix4Single): TBox3D; overload;
 function CalculateBoundingBox(Verts: TVector3SingleList): TBox3D; overload;
+function CalculateBoundingBox(Verts: TVector3SingleList;
+  const Transform: TMatrix4Single): TBox3D; overload;
 function CalculateBoundingBox(
   GetVertex: TGetVertexFromIndexFunc;
   VertsCount: integer): TBox3D; overload;
@@ -1802,6 +1804,13 @@ end;
 function CalculateBoundingBox(Verts: TVector3SingleList): TBox3D;
 begin
   Result := CalculateBoundingBox(PVector3Single(Verts.List), Verts.Count, 0);
+end;
+
+function CalculateBoundingBox(Verts: TVector3SingleList;
+  const Transform: TMatrix4Single): TBox3D;
+begin
+  Result := CalculateBoundingBox(PVector3Single(Verts.List), Verts.Count, 0,
+    Transform);
 end;
 
 function CalculateBoundingBoxFromIndices(
