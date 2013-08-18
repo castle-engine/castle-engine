@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -9,6 +9,7 @@
         <MainUnitHasTitleStatement Value="False"/>
         <LRSInOutputDirectory Value="False"/>
       </Flags>
+      <SessionStorage Value="InIDEConfig"/>
       <MainUnit Value="0"/>
     </General>
     <VersionInfo>
@@ -43,15 +44,13 @@
       <Unit0>
         <Filename Value="rift.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UsageCount Value="20"/>
       </Unit0>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <SearchPaths>
-      <IncludeFiles Value="../castle_game_engine/src/base"/>
+      <IncludeFiles Value="../../src/base"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
@@ -81,5 +80,4 @@
       </Item4>
     </Exceptions>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>
