@@ -23,6 +23,8 @@
 { }
 unit RiftIntro;
 
+{$I castleconf.inc}
+
 interface
 
 uses RiftWindow;
@@ -31,7 +33,7 @@ procedure DoIntro;
 
 implementation
 
-uses SysUtils, GL, CastleWindow, CastleFilesUtils,
+uses SysUtils, CastleGL, CastleWindow, CastleFilesUtils,
   CastleGLUtils, RiftData, CastleWindowModes, DOM, CastleImages, CastleSoundEngine,
   CastleGLImages, CastleUIControls, CastleStringUtils, RiftSound, RiftVideoOptions,
   CastleKeysMouse;
@@ -83,38 +85,27 @@ begin
   if IntroPart > High(IntroParts) then Exit;
 
   glLoadIdentity();
+  glClear(GL_COLOR_BUFFER_BIT);
 
-  if IntroPartTime >= IntroParts[IntroPart].CorrodeDuration then
+  if (IntroPartTime >= IntroParts[IntroPart].CorrodeDuration) or
+     not GLFeatures.BlendConstant then
   begin
     IntroParts[IntroPart].ImageCorroded.Draw(0, 0);
   end else
   begin
     Corrosion := IntroPartTime / IntroParts[IntroPart].CorrodeDuration;
 
-    { I use glPixelTransferf to affect whole drawn image by
-      Corrosion factor. In newer OpenGLs I could do it with appropriate
-      glBlendFunc and glBlendColor, but I prefer to stick to oldest
-      OpenGL possible if I can... so I do it by glPixelTransferf. }
-
-    glPixelTransferf(GL_RED_SCALE, 1 - Corrosion);
-    glPixelTransferf(GL_GREEN_SCALE, 1 - Corrosion);
-    glPixelTransferf(GL_BLUE_SCALE, 1 - Corrosion);
+    glBlendFunc(GL_CONSTANT_COLOR, GL_ONE);
+    glBlendColor(1 - Corrosion, 1 - Corrosion, 1 - Corrosion, 1);
+    glEnable(GL_BLEND);
 
     IntroParts[IntroPart].Image.Draw(0, 0);
 
-    glPixelTransferf(GL_RED_SCALE, Corrosion);
-    glPixelTransferf(GL_GREEN_SCALE, Corrosion);
-    glPixelTransferf(GL_BLUE_SCALE, Corrosion);
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE);
+    glBlendColor(Corrosion, Corrosion, Corrosion, 1);
     IntroParts[IntroPart].ImageCorroded.Alpha := acNone;
     IntroParts[IntroPart].ImageCorroded.Draw(0, 0);
-    glDisable(GL_BLEND);
 
-    glPixelTransferf(GL_RED_SCALE, 1);
-    glPixelTransferf(GL_GREEN_SCALE, 1);
-    glPixelTransferf(GL_BLUE_SCALE, 1);
+    glDisable(GL_BLEND);
   end;
 end;
 
@@ -148,8 +139,7 @@ begin
     Window.AutoRedisplay := true;
     Window.OnPress := @Press;
     Window.OnUpdate := @Update;
-    { actually we draw in 2D, but it's the current projection anyway }
-    Window.OnDrawStyle := ds3D;
+    Window.OnDrawStyle := ds2D;
 
     Window.EventResize;
 
