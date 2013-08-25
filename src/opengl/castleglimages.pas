@@ -527,7 +527,10 @@ type
   private
     FItems: array of TGLImage;
   public
-    constructor Create(Video: TVideo);
+    constructor Create(Video: TVideo;
+      const ScalingPossible: boolean = false);
+    constructor Create(const URL: string;
+      const ScalingPossible: boolean = false);
     constructor Create(const URL: string;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
@@ -1734,7 +1737,8 @@ end;
 
 { TGLVideo2D ----------------------------------------------------------------- }
 
-constructor TGLVideo2D.Create(Video: TVideo);
+constructor TGLVideo2D.Create(Video: TVideo;
+  const ScalingPossible: boolean = false);
 var
   I: Integer;
 begin
@@ -1742,7 +1746,19 @@ begin
 
   SetLength(FItems, Count);
   for I := 0 to High(FItems) do
-    FItems[I] := TGLImage.Create(Video.Items[I]);
+    FItems[I] := TGLImage.Create(Video.Items[I], ScalingPossible);
+end;
+
+constructor TGLVideo2D.Create(const URL: string;
+  const ScalingPossible: boolean = false);
+var
+  Video: TVideo;
+begin
+  Video := TVideo.Create;
+  try
+    Video.LoadFromFile(URL);
+    Create(Video, ScalingPossible);
+  finally FreeAndNil(Video) end;
 end;
 
 constructor TGLVideo2D.Create(const URL: string;
