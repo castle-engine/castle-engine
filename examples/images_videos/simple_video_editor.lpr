@@ -33,6 +33,7 @@ var
   Window: TCastleWindowDemo;
 
   Video: TVideo;
+  GLVideo: TGLVideo2D;
   VideoURL: string;
 
   Time: TFloatTime;
@@ -43,6 +44,12 @@ var
   MenuEdit: TMenu;
   MenuTimeBackwards: TMenuItemChecked;
   MenuRevert, MenuSave: TMenuItem;
+
+procedure RemakeGLVideo;
+begin
+  FreeAndNil(GLVideo);
+  GLVideo := TGLVideo2D.Create(Video);
+end;
 
 procedure Draw(Window: TCastleWindowBase);
 const
@@ -82,8 +89,7 @@ begin
   glLoadIdentity();
   if Video.Loaded then
   begin
-    SetWindowPos(0, 0);
-    ImageDraw(Video.ImageFromTime(Time));
+    GLVideo.GLImageFromTime(Time).Draw(0, 0);
 
     { draw time of the video bar }
     glColorv(Black4Single);
@@ -115,6 +121,7 @@ begin
     MenuEdit.Enabled := Video.Loaded;
     MenuRevert.Enabled := Video.Loaded;
     MenuSave.Enabled := Video.Loaded;
+    RemakeGLVideo;
   except
     on E: Exception do
       MessageOk(Window, 'Loading of "' + VideoURL + '" failed:' + NL +
@@ -148,6 +155,7 @@ end;
 procedure Close(Window: TCastleWindowBase);
 begin
   FreeAndNil(StatusFont);
+  FreeAndNil(GLVideo);
 end;
 
 procedure MenuClick(Window: TCastleWindowBase; MenuItem: TMenuItem);
@@ -177,8 +185,16 @@ begin
     20: Window.Close;
     110: TimePlaying := not TimePlaying;
     120: Time := 0;
-    130: Video.TimeLoop := not Video.TimeLoop;
-    140: Video.TimeBackwards := not Video.TimeBackwards;
+    130:
+      begin
+        Video.TimeLoop := not Video.TimeLoop;
+        GLVideo.TimeLoop := Video.TimeLoop;
+      end;
+    140:
+      begin
+        Video.TimeBackwards := not Video.TimeBackwards;
+        GLVideo.TimeBackwards := Video.TimeBackwards;
+      end;
 
     { Editing operations.
       Should be implemented nicer, as a single procedure with
@@ -193,6 +209,7 @@ begin
                Video.Items[I].Grayscale;
                Progress.Step;
              end;
+             RemakeGLVideo;
            finally Progress.Fini end;
          end;
     420..422:
@@ -205,6 +222,7 @@ begin
                Video.Items[I].ConvertToChannelRGB(MenuItem.IntData - 420);
                Progress.Step;
              end;
+             RemakeGLVideo;
            finally Progress.Fini end;
          end;
     430..432:
@@ -217,6 +235,7 @@ begin
                Video.Items[I].StripToChannelRGB(MenuItem.IntData - 430);
                Progress.Step;
              end;
+             RemakeGLVideo;
            finally Progress.Fini end;
          end;
     440: begin
@@ -228,6 +247,7 @@ begin
                Video.Items[I].FlipHorizontal;
                Progress.Step;
              end;
+             RemakeGLVideo;
            finally Progress.Fini end;
          end;
 
@@ -237,11 +257,13 @@ begin
              'How many frames to use for fading?', FadeFrames, taLeft) then
            begin
              Video.FadeWithSelf(FadeFrames, 'Fade with self');
+             RemakeGLVideo;
            end;
          end;
 
     450: begin
            Video.MixWithSelfBackwards('Mix with self backwards');
+           RemakeGLVideo;
            { MixWithSelfBackwards changes TimeBackwards, we have to reflect
              this in our menu item. }
            MenuTimeBackwards.Checked := Video.TimeBackwards;

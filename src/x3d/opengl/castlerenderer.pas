@@ -606,7 +606,7 @@ type
       This is only the first TMovieTextureNode node, that initiated this
       TTextureVideoCache item. Note that many TMovieTextureNode nodes
       may correspond to a single TTextureVideoCache (since TTextureVideoCache
-      only tries to share TGLVideo between them, they don't have to share
+      only tries to share TGLVideo3D between them, they don't have to share
       other fields like current time etc.). So this may help during
       _IncReference, but nothing more --- it's *not* an exhaustive list
       of MovieTexture nodes related to this video texture! }
@@ -617,7 +617,7 @@ type
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap2D;
     References: Cardinal;
-    GLVideo: TGLVideo;
+    GLVideo: TGLVideo3D;
   end;
   TTextureVideoCacheList = specialize TFPGObjectList<TTextureVideoCache>;
 
@@ -763,10 +763,10 @@ type
       const TextureNode: TMovieTextureNode;
       const TextureMinFilter, TextureMagFilter: TGLint;
       const TextureAnisotropy: TGLfloat;
-      const TextureWrap: TTextureWrap2D): TGLVideo;
+      const TextureWrap: TTextureWrap2D): TGLVideo3D;
 
     procedure TextureVideo_DecReference(
-      const TextureVideo: TGLVideo);
+      const TextureVideo: TGLVideo3D);
 
     { Load given cube texture to OpenGL, using our cache.
 
@@ -1433,7 +1433,7 @@ function TGLRendererContextCache.TextureVideo_IncReference(
   const TextureNode: TMovieTextureNode;
   const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureAnisotropy: TGLfloat;
-  const TextureWrap: TTextureWrap2D): TGLVideo;
+  const TextureWrap: TTextureWrap2D): TGLVideo3D;
 var
   I: Integer;
   TextureCached: TTextureVideoCache;
@@ -1458,10 +1458,10 @@ begin
   end;
 
   { Initialize Result first, before calling TextureVideoCaches.Add.
-    That's because in case TGLVideo.Create raises exception,
+    That's because in case TGLVideo3D.Create raises exception,
     we don't want to add texture to cache (because caller would have
     no way to call TextureVideo_DecReference later). }
-  Result := TGLVideo.Create(
+  Result := TGLVideo3D.Create(
     TextureVideo, TextureMinFilter, TextureMagFilter, TextureAnisotropy,
     TextureWrap);
 
@@ -1481,7 +1481,7 @@ begin
 end;
 
 procedure TGLRendererContextCache.TextureVideo_DecReference(
-  const TextureVideo: TGLVideo);
+  const TextureVideo: TGLVideo3D);
 var
   I: Integer;
 begin

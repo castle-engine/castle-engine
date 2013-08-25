@@ -245,7 +245,7 @@
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
     procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
-    GLVideo: TGLVideo;
+    GLVideo: TGLVideo3D;
 
     function TextureNode: TMovieTextureNode;
 

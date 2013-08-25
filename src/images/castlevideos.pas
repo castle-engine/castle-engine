@@ -153,8 +153,16 @@ type
           I don't know if any video file format supports any kind of
           alpha channel, so using image sequence may be actually your
           only choice for videos with alpha channel.)
-      ) }
-    procedure LoadFromFile(const URL: string);
+      )
+
+      Parameters ResizeToX, ResizeToY allow you to resize video frames.
+      If one of them is non-zero, the appropriate video size (width and/or
+      height) will be resized. Resizing quality is controlled by
+      Interpolation parameter. }
+    procedure LoadFromFile(const URL: string;
+      const ResizeToX: Cardinal = 0;
+      const ResizeToY: Cardinal = 0;
+      const Interpolation: TResizeInterpolation = riBilinear);
 
     { Save video to file (or image sequence).
 
@@ -445,7 +453,16 @@ begin
   FLoaded := false;
 end;
 
-procedure TVideo.LoadFromFile(const URL: string);
+procedure TVideo.LoadFromFile(const URL: string;
+  const ResizeToX: Cardinal = 0;
+  const ResizeToY: Cardinal = 0;
+  const Interpolation: TResizeInterpolation = riBilinear);
+
+  function LoadSingleImage(const URL: string): TCastleImage;
+  begin
+    Result := LoadImage(URL, TextureImageClasses,
+      ResizeToX, ResizeToY, Interpolation);
+  end;
 
   { Load from an image sequence (possibly just a single image).
     When RemoveLoadedTempImages, we will remove the loaded image files,
@@ -468,7 +485,7 @@ procedure TVideo.LoadFromFile(const URL: string);
           { LoadImage will raise an exception
             for invalid / not existing / not readable image file / url.
             Don't increase FItems before NewItem is successfully loaded. }
-          NewItem := LoadImage(URLComplete, TextureImageClasses);
+          NewItem := LoadSingleImage(URLComplete);
         except
           Break;
         end;
@@ -487,7 +504,7 @@ procedure TVideo.LoadFromFile(const URL: string);
           [URLComplete]);
     end else
     begin
-      NewItem := LoadImage(URL, TextureImageClasses);
+      NewItem := LoadSingleImage(URL);
       SetLength(FItems, 1);
       FItems[0] := NewItem;
 

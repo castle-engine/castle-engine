@@ -468,10 +468,13 @@ procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
 { @groupEnd }
 
 type
-  { Sequence of OpenGL textures to be played as a video. }
+  { Video as a sequence of OpenGL textures that can be easily played.
+    Use TGLVideo3D to have a list of normal OpenGL textures,
+    e.g. for rendering video as texture on free 3D objects.
+    Use TGLVideo2D to have a list of GUI textures (TGLImage),
+    e.g. for rendering video as simple 2D control. }
   TGLVideo = class
   private
-    FItems: array of TGLuint;
     FCount: Integer;
     FTimeLoop: boolean;
     FTimeBackwards: boolean;
@@ -489,16 +492,10 @@ type
       and so is rather memory-costly.
       (Actually, TGLVideo itself may eat a lot of texture memory,
       so be careful with large videos anyway.) }
-    constructor Create(Video: TVideo;
-      MinFilter, MagFilter: TGLenum;
-      const Anisotropy: TGLfloat;
-      const Wrap: TTextureWrap2D);
-
-    destructor Destroy; override;
+    constructor Create(Video: TVideo);
 
     property Count: Integer read FCount;
     function IndexFromTime(const Time: Single): Integer;
-    function GLTextureFromTime(const Time: Single): TGLuint;
 
     { See TVideo.FramesPerSecond. }
     property FramesPerSecond: Single read FFramesPerSecond;
@@ -509,6 +506,35 @@ type
     { See TVideo.TimeBackwards. }
     property TimeBackwards: boolean
       read FTimeBackwards write FTimeBackwards;
+  end;
+
+  { Video expressed as a series of textures, to play as texture on any 3D object. }
+  TGLVideo3D = class(TGLVideo)
+  private
+    FItems: array of TGLuint;
+  public
+    constructor Create(Video: TVideo;
+      MinFilter, MagFilter: TGLenum;
+      const Anisotropy: TGLfloat;
+      const Wrap: TTextureWrap2D);
+    destructor Destroy; override;
+
+    function GLTextureFromTime(const Time: Single): TGLuint;
+  end;
+
+  { Video expressed as a series of TGLImage, to play as 2D GUI control. }
+  TGLVideo2D = class(TGLVideo)
+  private
+    FItems: array of TGLImage;
+  public
+    constructor Create(Video: TVideo);
+    constructor Create(const URL: string;
+      const ResizeToX: Cardinal = 0;
+      const ResizeToY: Cardinal = 0;
+      const Interpolation: TResizeInterpolation = riBilinear);
+    destructor Destroy; override;
+
+    function GLImageFromTime(const Time: Single): TGLImage;
   end;
 
 { Comfortably load all six cube map texture images.
@@ -1659,37 +1685,14 @@ end;
 
 { TGLVideo ------------------------------------------------------------------- }
 
-constructor TGLVideo.Create(Video: TVideo;
-  MinFilter, MagFilter: TGLenum;
-  const Anisotropy: TGLfloat;
-  const Wrap: TTextureWrap2D);
-var
-  I: Integer;
+constructor TGLVideo.Create(Video: TVideo);
 begin
   inherited Create;
-
   Check(Video.Loaded, 'Video must be loaded before using TGLVideo.Create');
-
   FCount := Video.Count;
-
-  SetLength(FItems, Count);
-  for I := 0 to High(FItems) do
-  begin
-    FItems[I] := LoadGLTexture(Video.Items[I], MinFilter, MagFilter, Wrap);
-    TexParameterMaxAnisotropy(GL_TEXTURE_2D, Anisotropy);
-  end;
-
   FTimeLoop := Video.TimeLoop;
   FTimeBackwards := Video.TimeBackwards;
   FFramesPerSecond := Video.FramesPerSecond;
-end;
-
-destructor TGLVideo.Destroy;
-begin
-  if Count > 0 then
-    glDeleteTextures(Count, @FItems[0]);
-
-  inherited;
 end;
 
 function TGLVideo.IndexFromTime(const Time: Single): Integer;
@@ -1698,7 +1701,74 @@ begin
     TimeLoop, TimeBackwards);
 end;
 
-function TGLVideo.GLTextureFromTime(const Time: Single): TGLuint;
+{ TGLVideo3D ----------------------------------------------------------------- }
+
+constructor TGLVideo3D.Create(Video: TVideo;
+  MinFilter, MagFilter: TGLenum;
+  const Anisotropy: TGLfloat;
+  const Wrap: TTextureWrap2D);
+var
+  I: Integer;
+begin
+  inherited Create(Video);
+
+  SetLength(FItems, Count);
+  for I := 0 to High(FItems) do
+  begin
+    FItems[I] := LoadGLTexture(Video.Items[I], MinFilter, MagFilter, Wrap);
+    TexParameterMaxAnisotropy(GL_TEXTURE_2D, Anisotropy);
+  end;
+end;
+
+destructor TGLVideo3D.Destroy;
+begin
+  if Count <> 0 then
+    glDeleteTextures(Count, @FItems[0]);
+  inherited;
+end;
+
+function TGLVideo3D.GLTextureFromTime(const Time: Single): TGLuint;
+begin
+  Result := FItems[IndexFromTime(Time)];
+end;
+
+{ TGLVideo2D ----------------------------------------------------------------- }
+
+constructor TGLVideo2D.Create(Video: TVideo);
+var
+  I: Integer;
+begin
+  inherited Create(Video);
+
+  SetLength(FItems, Count);
+  for I := 0 to High(FItems) do
+    FItems[I] := TGLImage.Create(Video.Items[I]);
+end;
+
+constructor TGLVideo2D.Create(const URL: string;
+  const ResizeToX: Cardinal;
+  const ResizeToY: Cardinal;
+  const Interpolation: TResizeInterpolation);
+var
+  Video: TVideo;
+begin
+  Video := TVideo.Create;
+  try
+    Video.LoadFromFile(URL, ResizeToX, ResizeToY, Interpolation);
+    Create(Video);
+  finally FreeAndNil(Video) end;
+end;
+
+destructor TGLVideo2D.Destroy;
+var
+  I: Integer;
+begin
+  for I := 0 to High(FItems) do
+    FreeAndNil(FItems[I]);
+  inherited;
+end;
+
+function TGLVideo2D.GLImageFromTime(const Time: Single): TGLImage;
 begin
   Result := FItems[IndexFromTime(Time)];
 end;
