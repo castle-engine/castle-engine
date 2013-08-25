@@ -241,6 +241,22 @@ type
     property FileName: string read FURL write SetURL; deprecated;
   end;
 
+type
+  { Simple background fill. Using OpenGL glClear, so unconditionally
+    clears things underneath. In simple cases, you don't want to use this:
+    instead you usually have TCastleSceneManager that fill the whole screen,
+    and it provides a background already. }
+  TCastleSimpleBackground = class(TUIControl)
+  private
+    FColor: TVector4Single;
+  public
+    constructor Create(AOwner: TComponent); override;
+    function DrawStyle: TUIControlDrawStyle; override;
+    procedure Draw; override;
+    { Background color. By default, this is black color with opaque (1.0) alpha. }
+    property Color: TVector4Single read FColor write FColor;
+  end;
+
   { Theme for controls derived from TUIControl.
     For now it's only useful through the single global instance @link(Theme). }
   TCastleTheme = class
@@ -284,7 +300,7 @@ procedure Register;
 implementation
 
 uses SysUtils, CastleControlsImages, CastleBitmapFont_BVSans_m10,
-  CastleBitmapFont_BVSans, CastleGLUtils, Math;
+  CastleBitmapFont_BVSans, CastleGLUtils, Math, CastleColors;
 
 procedure Register;
 begin
@@ -830,6 +846,31 @@ begin
   if FImage <> nil then
     Result := FImage.Height else
     Result := 0;
+end;
+
+{ TCastleSimpleBackground ---------------------------------------------------- }
+
+constructor TCastleSimpleBackground.Create(AOwner: TComponent);
+begin
+  inherited;
+  FColor := Black4Single;
+end;
+
+function TCastleSimpleBackground.DrawStyle: TUIControlDrawStyle;
+begin
+  if GetExists then
+    { 3D, because we want to be drawn before other 3D objects }
+    Result := ds3D else
+    Result := dsNone;
+end;
+
+procedure TCastleSimpleBackground.Draw;
+begin
+  if not GetExists then Exit;
+  glPushAttrib(GL_COLOR_BUFFER_BIT);
+    glClearColor(Color[0], Color[1], Color[2], Color[3]); // saved by GL_COLOR_BUFFER_BIT
+    glClear(GL_COLOR_BUFFER_BIT);
+  glPopAttrib;
 end;
 
 { TCastleTheme --------------------------------------------------------------- }

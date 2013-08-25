@@ -24,32 +24,10 @@
 { $define ADD_GL_ANIMATION}
 
 uses SysUtils, GL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleSceneManager,
-  CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors, CastleControls, CastleWarnings,
+  CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors, 
+  CastleControls, CastleWarnings,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,
   CastleStringUtils, CastleKeysMouse, CastleColors;
-
-{ TBackground ---------------------------------------------------------------- }
-
-type
-  TBackground = class(TUIControl)
-  public
-    function DrawStyle: TUIControlDrawStyle; override;
-    procedure Draw; override;
-  end;
-
-function TBackground.DrawStyle: TUIControlDrawStyle;
-begin
-  { 3D, because we want to be drawn before other 3D objects }
-  Result := ds3D;
-end;
-
-procedure TBackground.Draw;
-begin
-  glPushAttrib(GL_COLOR_BUFFER_BIT);
-    glClearColor(0.5, 0.5, 1, 1); // saved by GL_COLOR_BUFFER_BIT
-    glClear(GL_COLOR_BUFFER_BIT);
-  glPopAttrib;
-end;
 
 { TMyViewport ---------------------------------------------------------------- }
 
@@ -294,6 +272,7 @@ end;
 
 var
   I: Integer;
+  Background: TCastleSimpleBackground;
   {$ifdef ADD_GL_ANIMATION}
   Animation: TCastlePrecalculatedAnimation;
   Transform: T3DTransform;
@@ -366,9 +345,11 @@ begin
   QuitButton.OnClick := @TDummy(nil).QuitButtonClick;
   Window.Controls.InsertFront(QuitButton);
 
-  { add a background, since our viewpoints (deliberately, for demo)
+  { add a background, since our viewports (deliberately, for demo)
     do not cover whole window. }
-  Window.Controls.InsertBack(TBackground.Create(Application));
+  Background := TCastleSimpleBackground.Create(Application);
+  Background.Color := Vector4Single(0.5, 0.5, 1, 1);
+  Window.Controls.InsertBack(Background);
 
   Window.StencilBits := 8;
   Window.OnResize := @Resize;
