@@ -1012,6 +1012,9 @@ type
     procedure Add(Position: Integer; Node: TX3DNode); overload;
 
     procedure Delete(Index: Integer);
+    { Search list for given node, and, if found, remove it.
+      Returns the index of removed item, or -1 if not found. }
+    function Remove(const Node: TX3DNode): Integer;
     { Remove child with given Index, and return it, @italic(never freeing it).
       This is analogous to TX3DNode.ExtractChild, see there for more
       explanation. }
@@ -3334,6 +3337,13 @@ procedure TMFNode.Delete(Index: Integer);
 begin
   Items[Index].RemoveParentField(Self);
   Items.Delete(Index);
+end;
+
+function TMFNode.Remove(const Node: TX3DNode): Integer;
+begin
+  Result := Items.IndexOf(Node);
+  if Result <> -1 then
+    Delete(Result);
 end;
 
 function TMFNode.Extract(Index: Integer): TX3DNode;
