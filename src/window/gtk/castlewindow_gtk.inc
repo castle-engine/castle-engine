@@ -262,6 +262,8 @@ function gdk_cursor_new_for_display(Display: PGdkDisplay;
   cdecl; external gdklib name 'gdk_cursor_new_for_display';
 function gdk_display_get_default: PGdkDisplay;
   cdecl; external gdklib name 'gdk_display_get_default';
+function gdk_screen_get_primary_monitor(Screen: PGdkScreen): GInt;
+  cdecl; external gdklib name 'gdk_screen_get_primary_monitor';
 
 { Converts GDK keysym (from gdkkeysyms.pp, or gdk/gdkkeysym.h) to
   K_Xxx constant (from Keys unit). Returns K_None if no conversion is possible
@@ -1770,15 +1772,33 @@ end;
   will provide implementation for ScreenWidth and ScreenHeight. }
 {$ifndef CASTLE_WINDOW_USE_XF86VMODE}
 function TCastleApplication.ScreenWidth: integer;
+var
+  Monitor: GInt;
+  Rect: TGdkRectangle;
 begin
   InitializeXDisplay;
-  Result := gdk_screen_get_width(XScreenGdk);
+  //Result := gdk_screen_get_width(XScreenGdk);
+  // Below is better for dual monitors.
+  // TODO: add to docs that Left/Top are relative to global coords, not this monitor
+  // TODO: this is actually still bad, different window may be on different monitors with different resolutions
+  Monitor := gdk_screen_get_primary_monitor(XScreenGdk);
+  gdk_screen_get_monitor_geometry(XScreenGdk, Monitor, @Rect);
+  Result := Rect.Width;
 end;
 
 function TCastleApplication.ScreenHeight: integer;
+var
+  Monitor: GInt;
+  Rect: TGdkRectangle;
 begin
   InitializeXDisplay;
-  Result := gdk_screen_get_height(XScreenGdk);
+  //Result := gdk_screen_get_height(XScreenGdk);
+  // Below is better for dual monitors.
+  // TODO: add to docs that Left/Top are relative to global coords, not this monitor
+  // TODO: this is actually still bad, different window may be on different monitors with different resolutions
+  Monitor := gdk_screen_get_primary_monitor(XScreenGdk);
+  gdk_screen_get_monitor_geometry(XScreenGdk, Monitor, @Rect);
+  Result := Rect.Height;
 end;
 {$endif CASTLE_WINDOW_USE_XF86VMODE}
 
