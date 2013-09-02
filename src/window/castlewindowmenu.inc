@@ -986,19 +986,22 @@ begin
     P.MenuFinalize;
 
   FSelected := Value;
-  SelectedFound := false;
-
-  for I := 0 to Count - 1 do
+  if FSelected <> nil then
   begin
-    Item := Items[I];
-    Item.FChecked := Item = Selected;
-    if Item.FChecked then
-      SelectedFound := true;
-    if CheckedFast then
-      if P <> nil then P.MenuUpdateChecked(Item);
-  end;
+    SelectedFound := false;
 
-  Assert(SelectedFound, 'Menu item set as TMenuItemRadioGroup.Selected is not part of this TMenuItemRadioGroup');
+    for I := 0 to Count - 1 do
+    begin
+      Item := Items[I];
+      Item.FChecked := Item = Selected;
+      if Item.FChecked then
+        SelectedFound := true;
+      if CheckedFast then
+        if P <> nil then P.MenuUpdateChecked(Item);
+    end;
+
+    Assert(SelectedFound, 'Menu item set as TMenuItemRadioGroup.Selected is not part of this TMenuItemRadioGroup');
+  end;
 
   if not CheckedFast then
     P.MenuInitialize;
