@@ -735,7 +735,7 @@ const
     'Normal=normal' + NL +
     'NormalInterpolator=children' + NL +
     'NurbsCurve=geometry' + NL +
-    'NurbsCurve2D=geometry' + NL +
+    'NurbsCurve2D=children' + NL +
     'NurbsOrientationInterpolator=children' + NL +
     'NurbsPatchSurface=geometry' + NL +
     'NurbsPositionInterpolator=children' + NL +
