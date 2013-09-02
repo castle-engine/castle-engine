@@ -860,7 +860,7 @@ begin
   Fields.Add(FFdOrder);
   { X3D specification comment: [2,Inf) }
 
-  DefaultContainerField := 'geometry';
+  DefaultContainerField := 'children';
 end;
 
 class function TNurbsCurve2DNode.ClassNodeTypeName: string;
