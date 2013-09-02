@@ -300,12 +300,9 @@ function MessageInputQueryVector4Single(
 
 type
   TMessagesTheme = record
-    { Color of the inside area in the message rectangle.
-      If RectColor[3] <> 1.0, then it will be nicely blended on the screen. }
-    RectColor: TVector4f;
+    RectColor: TVector4f deprecated;
+    RectBorderCol: TVector3f deprecated;
 
-    { Color of the frame of the rectangle. }
-    RectBorderCol: TVector3f;
     ScrollBarCol: TVector3f;
     ClosingInfoCol: TVector3f;
     AdditionalStrCol: TVector3f;
@@ -352,7 +349,7 @@ var
 
 implementation
 
-uses CastleBitmapFont_BVSansMono_m18, CastleImages,
+uses CastleBitmapFont_BVSansMono_m18, CastleImages, CastleControls,
   CastleClassUtils, SysUtils, CastleWindowModes, CastleLog, CastleGLImages;
 
 { TIntRect ------------------------------------------------------------------- }
@@ -869,17 +866,9 @@ begin
      Window.Height - WindMargin*2));
  MessageRect := MD.WholeMessageRect;
 
- { draw MessageRect (using
-   MessagesTheme.RectColor,
-   MessagesTheme.RectBorderCol) }
- if MessagesTheme.RectColor[3] <> 1.0 then
- begin
-   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-   glEnable(GL_BLEND);
- end;
- GLRectangleWithBorder(MessageRect,
-   MessagesTheme.RectColor, Vector4Single(MessagesTheme.RectBorderCol));
- glDisable(GL_BLEND);
+ Theme.GLWindow.Draw3x3(MessageRect[0][0], MessageRect[0][1],
+   RectWidth(MessageRect), RectHeight(MessageRect),
+   Theme.WindowCorner);
 
  { Now draw MD.Broken_ClosingInfo. After this, make MessageRect
    smaller as appropriate. }
@@ -893,11 +882,6 @@ begin
    MessageRect[0, 1] += BoxMargin +
      MD.Font.RowHeight * MD.Broken_ClosingInfo.Count +
      BoxMargin;
-
-   glColorv(MessagesTheme.RectBorderCol);
-   GLHorizontalLine(MessageRect[0, 0], MessageRect[1, 0], MessageRect[0, 1]);
-
-   MessageRect[0, 1] +=  1 { width of horizontal line };
  end;
 
  { Calculate InnerRect now }
@@ -918,10 +902,6 @@ begin
     max(0, ScrollBarVisibleBegin -
       (md.VisibleScrolledLinesCount / md.AllScrolledLinesCount)*ScrollBarLength);
   md.przewVisY2 := MessageRect[0, 1] + ScrollBarMargin + ScrollBarVisibleBegin;
-
-  glColorv(MessagesTheme.RectBorderCol);
-  GLVerticalLine(md.ScrollBarRect[0, 0],
-    md.ScrollBarRect[0, 1], md.ScrollBarRect[1, 1]);
 
   glLineWidth(ScrollBarInternalWidth);
   glColorv(MessagesTheme.ScrollBarCol);

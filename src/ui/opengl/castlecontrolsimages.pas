@@ -24,6 +24,9 @@ var
 var
   Button_normal: TRGBImage;
 
+var
+  Window: TRGBImage;
+
 implementation
 
 uses SysUtils;
@@ -44,10 +47,13 @@ initialization
   Move(Button_focusedPixels, Button_focused.RawPixels^, SizeOf(Button_focusedPixels));
   Button_normal := TRGBImage.Create(Button_normalWidth, Button_normalHeight);
   Move(Button_normalPixels, Button_normal.RawPixels^, SizeOf(Button_normalPixels));
+  Window := TRGBImage.Create(WindowWidth, WindowHeight);
+  Move(WindowPixels, Window.RawPixels^, SizeOf(WindowPixels));
 finalization
   FreeAndNil(Panel);
   FreeAndNil(Panel_separator);
   FreeAndNil(Button_pressed);
   FreeAndNil(Button_focused);
   FreeAndNil(Button_normal);
+  FreeAndNil(Window);
 end.

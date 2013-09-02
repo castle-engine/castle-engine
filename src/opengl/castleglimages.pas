@@ -223,6 +223,8 @@ type
     }
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
       const CornerTop, CornerRight, CornerBottom, CornerLeft: Integer);
+    procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
+      const Corner: TVector4Integer);
   end;
 
 { Draw the image on 2D screen. Note that if you want to use this
@@ -1165,6 +1167,13 @@ begin
 
   Alpha := OldAlpha;
   AlphaEnd;
+end;
+
+procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
+  const Corner: TVector4Integer);
+begin
+  Draw3x3(X, Y, DrawWidth, DrawHeight,
+    Corner[0], Corner[1], Corner[2], Corner[3]);
 end;
 
 { Drawing images on 2D screen ------------------------------------------------ }

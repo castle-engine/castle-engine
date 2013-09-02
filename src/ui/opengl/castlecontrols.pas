@@ -258,8 +258,36 @@ type
   end;
 
   { Theme for controls derived from TUIControl.
-    For now it's only useful through the single global instance @link(Theme). }
+    For now it's only useful through the single global instance @link(Theme).
+
+    Many of the 2D GUI is defined through images, represented as TCastleImage.
+    Although they all have sensible defaults, you can also change them
+    at any time. Simply create TCastleImage instance (e.g. by LoadImage
+    function) and assign it here.
+    Note that TCastleImage instance is not owned by this class,
+    you're responsible for freeing it.
+    The alpha channel of the image, if any, is automatically correctly used
+    (for alpha test or alpha blending, see TGLImage).
+
+    Together with assigning image, adjust also the XxxCorner property.
+    It is used for images rendered using TGLImage.Draw3x3,
+    it determines how the image is stretched.
+    The corners are specified as 4D vector, order like in CSS: top, right, down,
+    left.
+
+    The GLXxx functions expose the TGLImage instances used
+    for fast and easy drawing of these images on 2D screen.
+    Reading them for the 1st time means that the TGLImage instance is created,
+    so use them only when OpenGL context is already active (window is open etc.).
+    Changing the TCastleImage instance will automatically free (and recreate
+    at next access) the corresponding TGLImage instance. }
   TCastleTheme = class
+  private
+    FWindow: TCastleImage;
+    FWindowCorner: TVector4Integer;
+    FGLWindow: TGLImage;
+    procedure SetWindow(const Value: TCastleImage);
+    procedure GLContextClose;
   public
     TooltipInsideColor: TVector3Byte;
     TooltipBorderColor: TVector3Byte;
@@ -269,6 +297,10 @@ type
 
     BarEmptyColor : TVector3Byte;
     BarFilledColor: TVector3Byte;
+
+    property Window: TCastleImage read FWindow write SetWindow;
+    property WindowCorner: TVector4Integer read FWindowCorner write FWindowCorner;
+    function GLWindow: TGLImage;
 
     constructor Create;
   end;
@@ -884,6 +916,30 @@ begin
   TextColor       := Vector3Byte(  0,   0,   0);
   BarEmptyColor  := Vector3Byte(192, 192, 192);
   BarFilledColor := Vector3Byte(Round(0.2 * 255), Round(0.5 * 255), 0);
+
+  Window := CastleControlsImages.Window;
+  WindowCorner := Vector4Integer(2, 2, 2, 2);
+end;
+
+procedure TCastleTheme.SetWindow(const Value: TCastleImage);
+begin
+  if FWindow <> Value then
+  begin
+    FWindow := Value;
+    FreeAndNil(FGLWindow);
+  end;
+end;
+
+function TCastleTheme.GLWindow: TGLImage;
+begin
+  if FGLWindow = nil then
+    FGLWindow := TGLImage.Create(FWindow, true);
+  Result := FGLWindow;
+end;
+
+procedure TCastleTheme.GLContextClose;
+begin
+  FreeAndNil(FGLWindow);
 end;
 
 var
@@ -936,6 +992,8 @@ procedure WindowClose(const Container: IUIContainer);
 begin
   FreeAndNil(FUIFont);
   FreeAndNil(FUIFontSmall);
+  if FTheme <> nil then
+    FTheme.GLContextClose;
 end;
 
 initialization

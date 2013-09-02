@@ -597,6 +597,8 @@ function Vector4Byte(const f4: TVector4Single): TVector4Byte; overload;
 function Vector4Byte(x, y, z, w: Byte): TVector4Byte; overload;
 function Vector4Byte(const f3: TVector3Byte; w: Byte): TVector4Byte; overload;
 
+function Vector4Integer(const X, Y, Z, W: Integer): TVector4Integer;
+
 { Convert a point in homogeneous coordinates into normal 3D point.
   In other words, convert 4D @code((x, y, z, w)) into
   @code((x/w, y/w, z/w)). Make sure the 4th vector component <> 0. }
@@ -2710,6 +2712,14 @@ begin
   result[1] := f3[1];
   result[2] := f3[2];
   result[3] := w;
+end;
+
+function Vector4Integer(const X, Y, Z, W: Integer): TVector4Integer;
+begin
+  Result[0] := X;
+  Result[1] := Y;
+  Result[2] := Z;
+  Result[3] := W;
 end;
 
 function Vector3SinglePoint(const v: TVector4Single): TVector3Single;
