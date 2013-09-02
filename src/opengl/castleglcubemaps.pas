@@ -58,45 +58,26 @@ type
   from the CapturePoint. You should at least load RenderingCamera.Matrix
   to OpenGL modelview matrix before rendering your 3D scene.
 
-  Scene is rendered to color buffer, captured as appropriate
-  for Images classes (e.g. TGrayscaleImage, or TRGBImage).
-
-  Cube map is recorded in six images provided in Images parameter.
-  These must be already created TCastleImage instances with the exact same size.
-  (But we do not require here the images to be square, or have power-of-two
+  Cube map is recorded in six images you provide in the Images parameter.
+  These must be already created TCastleImage instances, with the exact same size.
+  (They do not have to be square, or have power-of-two
   size, or honor GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB limit,
   as we do not initialize actual OpenGL cube map here.
   You can use generated images for any purpose.)
+  The classes of these images will also matter --- e.g. use TGrayscaleImage
+  to capture scene as grayscale, use TRGBImage for RGB colors.
 
   This changes glViewport, so be sure to reset glViewport to something
   normal after calling this.
 
   ProjectionNear, ProjectionFar parameters will be used to set GL
   projection matrix. ProjectionFar may be equal to ZFarInfinity,
-  as always.
-
-  @param(MapsOverlap
-
-    If @false then the six maps will be drawn on non-overlapping
-    locations in the color buffer, and will be shifted by MapScreenX, Y.
-    This has two benefits: you can actually show the generated maps then
-    (useful for debug purposes). And, more important, you can sometimes
-    get away then with only one glClear before GLCaptureCubeMapImages
-    (avoiding doing glClear in each Render).
-
-    Otherwise (when NiceMapsLayout = @false),
-    then MapScreenX, Y will be ignored, and all images will be simply
-    drawn in screen lower-left corner starting from (0, 0).
-    The benefit is that this has the most chance of fitting into
-    your window size.) }
-
+  as always. }
 procedure GLCaptureCubeMapImages(
   const Images: TCubeMapImages;
   const CapturePoint: TVector3Single;
   const Render: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single;
-  const MapsOverlap: boolean;
-  const MapScreenX, MapScreenY: Integer);
+  const ProjectionNear, ProjectionFar: Single);
 
 { Capture cube map to DDS image by rendering environment from CapturePoint.
 
@@ -107,9 +88,7 @@ function GLCaptureCubeMapDDS(
   const Size: Cardinal;
   const CapturePoint: TVector3Single;
   const Render: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single;
-  const MapsOverlap: boolean;
-  const MapScreenX, MapScreenY: Integer): TDDSImage;
+  const ProjectionNear, ProjectionFar: Single): TDDSImage;
 
 { Capture cube map to OpenGL cube map texture by rendering environment
   from CapturePoint.
@@ -243,44 +222,36 @@ procedure GLCaptureCubeMapImages(
   const Images: TCubeMapImages;
   const CapturePoint: TVector3Single;
   const Render: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single;
-  const MapsOverlap: boolean;
-  const MapScreenX, MapScreenY: Integer);
+  const ProjectionNear, ProjectionFar: Single);
 var
   Width, Height: Cardinal;
+  RenderToTexture: TGLRenderToTexture;
 
   procedure DrawMap(Side: TCubeMapSide);
   var
-    ScreenX, ScreenY: Integer;
     ProjectionMatrix: TMatrix4Single;
   begin
-    if MapsOverlap then
-    begin
-      ScreenX := 0;
-      ScreenY := 0;
-    end else
-    begin
-      ScreenX := CubeMapInfo[Side].ScreenX * Integer(Width ) + MapScreenX;
-      ScreenY := CubeMapInfo[Side].ScreenY * Integer(Height) + MapScreenY;
-    end;
+    RenderToTexture.RenderBegin;
 
-    glViewport(ScreenX, ScreenY, Width, Height);
-
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix;
-      ProjectionMatrix := PerspectiveProjMatrixDeg(90, 1, ProjectionNear, ProjectionFar);
-      glLoadMatrix(ProjectionMatrix);
-      glMatrixMode(GL_MODELVIEW);
-
-        RenderingCamera.Target := rtCubeMapEnvironment;
-        SetRenderingCamera(CapturePoint, Side, ProjectionMatrix);
-        Render;
+      glViewport(0, 0, Width, Height);
 
       glMatrixMode(GL_PROJECTION);
-    glPopMatrix;
-    glMatrixMode(GL_MODELVIEW);
+      glPushMatrix;
+        ProjectionMatrix := PerspectiveProjMatrixDeg(90, 1, ProjectionNear, ProjectionFar);
+        glLoadMatrix(ProjectionMatrix);
+        glMatrixMode(GL_MODELVIEW);
 
-    SaveScreen_noflush(Images[Side], ScreenX, ScreenY, GL_BACK);
+          RenderingCamera.Target := rtCubeMapEnvironment;
+          SetRenderingCamera(CapturePoint, Side, ProjectionMatrix);
+          Render;
+
+        glMatrixMode(GL_PROJECTION);
+      glPopMatrix;
+      glMatrixMode(GL_MODELVIEW);
+
+      SaveScreen_noflush(Images[Side], 0, 0, RenderToTexture.ColorBuffer);
+
+    RenderToTexture.RenderEnd(Side < High(Side));
   end;
 
 var
@@ -289,17 +260,20 @@ begin
   Width  := Images[csPositiveX].Width ;
   Height := Images[csPositiveX].Height;
 
-  for Side := Low(TCubeMapSide) to High(TCubeMapSide) do
-    DrawMap(Side);
+  RenderToTexture := TGLRenderToTexture.Create(Width, Height);
+  try
+    RenderToTexture.Buffer := tbNone;
+    RenderToTexture.GLContextOpen;
+    for Side := Low(TCubeMapSide) to High(TCubeMapSide) do
+      DrawMap(Side);
+  finally FreeAndNil(RenderToTexture) end;
 end;
 
 function GLCaptureCubeMapDDS(
   const Size: Cardinal;
   const CapturePoint: TVector3Single;
   const Render: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single;
-  const MapsOverlap: boolean;
-  const MapScreenX, MapScreenY: Integer): TDDSImage;
+  const ProjectionNear, ProjectionFar: Single): TDDSImage;
 var
   Images: TCubeMapImages;
   Side: TCubeMapSide;
@@ -308,8 +282,7 @@ begin
     Images[Side] := TRGBImage.Create(Size, Size);
 
   GLCaptureCubeMapImages(Images, CapturePoint, Render,
-    ProjectionNear, ProjectionFar,
-    MapsOverlap, MapScreenX, MapScreenY);
+    ProjectionNear, ProjectionFar);
 
   Result := TDDSImage.Create;
   Result.Width := Size;
@@ -341,21 +314,6 @@ procedure GLCaptureCubeMapTexture(
   var
     ProjectionMatrix: TMatrix4Single;
   begin
-    { I used to implement here MapsOverlap, MapScreenX, MapScreenY,
-      but removed (since inherently conflicting with framebuffer possibility
-      inside TGLRenderToTexture).
-
-    if MapsOverlap then
-    begin
-      ScreenX := 0;
-      ScreenY := 0;
-    end else
-    begin
-      ScreenX := CubeMapInfo[Side].ScreenX * Integer(Size) + MapScreenX;
-      ScreenY := CubeMapInfo[Side].ScreenY * Integer(Size) + MapScreenY;
-    end;
-    }
-
     RenderToTexture.RenderBegin;
     RenderToTexture.SetTexture(Tex, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB + Ord(Side));
 
