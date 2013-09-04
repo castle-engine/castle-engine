@@ -45,7 +45,7 @@ uses GL, CastleWindow, CastleScene, X3DNodes, SysUtils,
   CastleParameters, CastleImages, CastleMessages, CastleFilesUtils, CastleGLImages,
   Castle3D, CastleSoundEngine,
   CastleRenderingCamera, Classes, CastleControls, CastleLevels, CastleConfig,
-  CastleInputs, CastleKeysMouse, CastlePlayer;
+  CastleInputs, CastleKeysMouse, CastlePlayer, CastleControlsImages;
 
 { global variables ----------------------------------------------------------- }
 
@@ -290,7 +290,7 @@ begin
   Config.Load;
 
   { init messages }
-  MessagesTheme.RectColor[3] := 0.8;
+  Theme.Window := Window_Transparent;
 
   { init window }
   Window := TCastleWindow.Create(Application);

@@ -917,7 +917,7 @@ begin
   BarEmptyColor  := Vector3Byte(192, 192, 192);
   BarFilledColor := Vector3Byte(Round(0.2 * 255), Round(0.5 * 255), 0);
 
-  Window := CastleControlsImages.Window;
+  Window := Window_Dark;
   WindowCorner := Vector4Integer(2, 2, 2, 2);
 end;
 

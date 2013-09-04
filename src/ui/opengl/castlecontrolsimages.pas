@@ -13,6 +13,9 @@ var
   Panel: TRGBAlphaImage;
 
 var
+  Window_transparent: TRGBAlphaImage;
+
+var
   Panel_separator: TRGBImage;
 
 var
@@ -25,7 +28,10 @@ var
   Button_normal: TRGBImage;
 
 var
-  Window: TRGBImage;
+  Window_dark: TRGBImage;
+
+var
+  Window_gray: TRGBImage;
 
 implementation
 
@@ -39,6 +45,8 @@ uses SysUtils;
 initialization
   Panel := TRGBAlphaImage.Create(PanelWidth, PanelHeight);
   Move(PanelPixels, Panel.RawPixels^, SizeOf(PanelPixels));
+  Window_transparent := TRGBAlphaImage.Create(Window_transparentWidth, Window_transparentHeight);
+  Move(Window_transparentPixels, Window_transparent.RawPixels^, SizeOf(Window_transparentPixels));
   Panel_separator := TRGBImage.Create(Panel_separatorWidth, Panel_separatorHeight);
   Move(Panel_separatorPixels, Panel_separator.RawPixels^, SizeOf(Panel_separatorPixels));
   Button_pressed := TRGBImage.Create(Button_pressedWidth, Button_pressedHeight);
@@ -47,13 +55,17 @@ initialization
   Move(Button_focusedPixels, Button_focused.RawPixels^, SizeOf(Button_focusedPixels));
   Button_normal := TRGBImage.Create(Button_normalWidth, Button_normalHeight);
   Move(Button_normalPixels, Button_normal.RawPixels^, SizeOf(Button_normalPixels));
-  Window := TRGBImage.Create(WindowWidth, WindowHeight);
-  Move(WindowPixels, Window.RawPixels^, SizeOf(WindowPixels));
+  Window_dark := TRGBImage.Create(Window_darkWidth, Window_darkHeight);
+  Move(Window_darkPixels, Window_dark.RawPixels^, SizeOf(Window_darkPixels));
+  Window_gray := TRGBImage.Create(Window_grayWidth, Window_grayHeight);
+  Move(Window_grayPixels, Window_gray.RawPixels^, SizeOf(Window_grayPixels));
 finalization
   FreeAndNil(Panel);
+  FreeAndNil(Window_transparent);
   FreeAndNil(Panel_separator);
   FreeAndNil(Button_pressed);
   FreeAndNil(Button_focused);
   FreeAndNil(Button_normal);
-  FreeAndNil(Window);
+  FreeAndNil(Window_dark);
+  FreeAndNil(Window_gray);
 end.
