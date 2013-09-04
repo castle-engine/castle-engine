@@ -355,7 +355,7 @@ function GLX_SGIS_multisample(Display: PDisplay; Screen: Integer): boolean;
 
 implementation
 
-uses GL, dynlibs, GLExt { for glext_ExtensionSupported utility };
+uses GL, dynlibs, GLExt { for glext_ExtensionSupported utility }, CastleWarnings;
 
 {$LINKLIB m}
 
@@ -582,7 +582,7 @@ function GetProc(handle: PtrInt; name: PChar): Pointer;
 begin
   Result := GetProcAddress(handle, name);
   if (Result = nil) and GLXDumpUnresolvedFunctions then
-    WriteLn('Unresolved: ', name);
+    OnWarning(wtMajor, 'GLX', 'Unresolved: ' + name);
 end;
 
 function InitGLX: Boolean;

@@ -1,7 +1,8 @@
 function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 begin
-  Result := MessageInputQuery(Self, Title, FileName, taLeft);
+  if not (Self is TCastleWindowCustom) then Exit;
+  Result := MessageInputQuery(Self as TCastleWindowCustom, Title, FileName, taLeft);
 end;
 
 function TCastleWindowBase.ColorDialog(var Color: TVector3Single): boolean;
@@ -9,9 +10,10 @@ var
   NewColor: TVector3Single;
 begin
   Result := false;
-  if not MessageInputQuery(Self, 'Input Red value:'  , NewColor[0], taLeft) then Exit;
-  if not MessageInputQuery(Self, 'Input Green value:', NewColor[1], taLeft) then Exit;
-  if not MessageInputQuery(Self, 'Input Blue value:' , NewColor[2], taLeft) then Exit;
+  if not (Self is TCastleWindowCustom) then Exit;
+  if not MessageInputQuery(Self as TCastleWindowCustom, 'Input Red value:'  , NewColor[0], taLeft) then Exit;
+  if not MessageInputQuery(Self as TCastleWindowCustom, 'Input Green value:', NewColor[1], taLeft) then Exit;
+  if not MessageInputQuery(Self as TCastleWindowCustom, 'Input Blue value:' , NewColor[2], taLeft) then Exit;
 
   Result := true;
   Color := NewColor;
@@ -19,11 +21,13 @@ end;
 
 procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
 begin
-  CastleMessages.MessageOK(Self, S);
+  if not (Self is TCastleWindowCustom) then Exit;
+  CastleMessages.MessageOK(Self as TCastleWindowCustom, S);
 end;
 
 function TCastleWindowBase.MessageYesNo(const S: string;
   const MessageType: TWindowMessageType): boolean;
 begin
-  Result := CastleMessages.MessageYesNo(Self, S);
+  if not (Self is TCastleWindowCustom) then Exit;
+  Result := CastleMessages.MessageYesNo(Self as TCastleWindowCustom, S);
 end;

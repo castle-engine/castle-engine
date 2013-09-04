@@ -15,7 +15,7 @@
 
 (*
   @abstract(Dialog boxes (asking user for confirmation, question,
-  simple text input etc.) inside @link(TCastleWindowBase).)
+  simple text input etc.) inside @link(TCastleWindowCustom).)
 
   Features:
 
@@ -45,7 +45,7 @@
       be modified in any way.)
 
     @item(User is allowed to resize the window while MessageXxx works.
-      (As long as TCastleWindowBase.ResizeAllowed = raAllowed, of course.)
+      (As long as TCastleWindowCustom.ResizeAllowed = raAllowed, of course.)
       Long lines are automatically broken taking into account current window
       width.)
 
@@ -60,42 +60,26 @@
   Notes about implementation:
 
   @unorderedList(
-    @item(
-      It's implemented using CastleWindowModes approach. Which means that when you call
-      some MessageXxx procedure, it temporarily switches all TCastleWindowBase callbacks
-      (OnDraw, OnPress, OnRelease, OnUpdate etc.) for it's own.
-      So you can be sure that e.g. no TCastleWindow callbacks that you registered in your
-      own programs/units will be called while MessageXxx works.
-      When message box ends (e.g. for simple MessageOk, this happens when user
-      will accept it by Enter key or clicking OK), original callbacks are
-      restored.
+    @item(We temporary replace normal window callbacks and controls
+      using TGLMode. This allows you to call MessageXxx procedures
+      in any place of your program, and things will just work,
+      the MessageXxx will return only once user answers the dialog box.)
 
-      This way you can call MessageXxx procedures in virtually any place of your
-      program, and things will magically work --- inside MessageXxx we wait until
-      user answers the dialog box.)
+    @item(Be careful if you use TCastleApplication.OnUpdate or
+      TCastleApplication.OnTimer. As these events are not tied
+      to a particular window, they continue to work even
+      while we're inside MessageXxx procedure.
+      Be sure to implement them such that they make sense also when
+      we're inside a dialog box.
 
-    @item(
-      Be careful if you use Application callbacks, OnUpdate / OnTimer.
-      They are tied to GL window manager, Glwn, not to any particular window,
-      and so they continue to work even while we're inside MessageXxx procedure.
+      In particular, remember that you cannot close the Window
+      when the message box in running. So do not blindly call
+      TCastleWindowBase.Close from TCastleApplication callbacks. )
 
-      While this can be useful, you should be careful when implementing these
-      Application callbacks. When they access some TCastleWindowBase instance, it may be currently
-      inside MessageXxx call.)
-
-    @item(
-      The whole MessageXxx is supposed to start and end on an open TCastleWindowBase
-      instance, so no Open or Close methods of TCastleWindowBase will be called during
-      MessageXxx.
-
-      OnCloseQuery during MessageXxx calls prevents user from exiting the program,
-      actually OnCloseQuery callback is simple no-op. Which means, among other things,
-      that you can safely use MessageXxx inside your own OnCloseQuery, for example
-      you can implement you OnCloseQuery like
-      @longCode(#
-  if MessageYesNo('Are you sure ?') then
-    Window.Close;
-#))
+    @item(Since your normal callbacks
+      and controls are not run when message box is running, you usually
+      don't need to do anything special about it, unless you use
+      TCastleApplication callbacks mentioned above.)
   )
 *)
 
@@ -123,12 +107,12 @@ type
   and simplest "OK" dialog box.
 
   @groupBegin }
-procedure MessageOK(Window: TCastleWindowBase; const s: string;
-  textalign: TTextAlign = taMiddle); overload;
-procedure MessageOK(Window: TCastleWindowBase;  const SArray: array of string;
-  textalign: TTextAlign = taMiddle); overload;
-procedure MessageOK(Window: TCastleWindowBase;  textlist: TStringList;
-  textalign: TTextAlign = taMiddle); overload;
+procedure MessageOK(Window: TCastleWindowCustom; const s: string;
+  TextAlign: TTextAlign = taMiddle); overload;
+procedure MessageOK(Window: TCastleWindowCustom;  const SArray: array of string;
+  TextAlign: TTextAlign = taMiddle); overload;
+procedure MessageOK(Window: TCastleWindowCustom;  TextList: TStringList;
+  TextAlign: TTextAlign = taMiddle); overload;
 { @groupEnd }
 
 { Ask user to input a string.
@@ -137,14 +121,14 @@ procedure MessageOK(Window: TCastleWindowBase;  textlist: TStringList;
   @param AnswerMaxLen 0 (zero) means that there's no maximum answer length.
 
   @groupBegin }
-function MessageInput(Window: TCastleWindowBase; const s: string;
-  textalign: TTextAlign = taMiddle;
+function MessageInput(Window: TCastleWindowCustom; const s: string;
+  TextAlign: TTextAlign = taMiddle;
   const answerDefault: string = '';
   answerMinLen: integer = 0;
   answerMaxLen: integer = 0;
   const answerAllowedChars: TSetOfChars = AllChars): string; overload;
-function MessageInput(Window: TCastleWindowBase; textlist: TStringList;
-  textalign: TTextAlign = taMiddle;
+function MessageInput(Window: TCastleWindowCustom; TextList: TStringList;
+  TextAlign: TTextAlign = taMiddle;
   const answerDefault: string = '';
   answerMinLen: integer = 0;
   answerMaxLen: integer = 0;
@@ -157,13 +141,13 @@ function MessageInput(Window: TCastleWindowBase; textlist: TStringList;
   @param AnswerMaxLen 0 (zero) means that there's no maximum answer length.
 
   @groupBegin }
-function MessageInputQuery(Window: TCastleWindowBase; const s: string;
-  var answer: string; textalign: TTextAlign;
+function MessageInputQuery(Window: TCastleWindowCustom; const s: string;
+  var answer: string; TextAlign: TTextAlign;
   answerMinLen: integer = 0;
   answerMaxLen: integer = 0;
   const answerAllowedChars: TSetOfChars = AllChars): boolean; overload;
-function MessageInputQuery(Window: TCastleWindowBase; textlist: TStringList;
-  var answer: string; textalign: TTextAlign;
+function MessageInputQuery(Window: TCastleWindowCustom; TextList: TStringList;
+  var answer: string; TextAlign: TTextAlign;
   answerMinLen: integer = 0;
   answerMaxLen: integer = 0;
   const answerAllowedChars: TSetOfChars = AllChars): boolean; overload;
@@ -175,8 +159,8 @@ function MessageInputQuery(Window: TCastleWindowBase; textlist: TStringList;
   built on top of this procedure: keys "y" and "n" are allowed characters that
   user can input.
 
-  @param(ClosingInfo This is a text to indicate to user what keys can be pressed
-    and what they mean. ClosingInfo is displayed below basic Text of the
+  @param(ClosingText This is a text to indicate to user what keys can be pressed
+    and what they mean. ClosingText is displayed below basic Text of the
     message, and in a different color. If may be '' if you don't want this.)
 
   @param(IgnoreCase This means that case of letters in AllowedChars
@@ -188,20 +172,20 @@ function MessageInputQuery(Window: TCastleWindowBase; textlist: TStringList;
     So you can't even know if user pressed lower of upper case letter.)
 
   @groupBegin }
-function MessageChar(Window: TCastleWindowBase; const s: string;
+function MessageChar(Window: TCastleWindowCustom; const s: string;
   const AllowedChars: TSetOfChars;
-  const ClosingInfo: string;
-  textalign: TTextAlign = taMiddle;
+  const ClosingText: string;
+  TextAlign: TTextAlign = taMiddle;
   IgnoreCase: boolean = false): char; overload;
-function MessageChar(Window: TCastleWindowBase;  const SArray: array of string;
+function MessageChar(Window: TCastleWindowCustom;  const SArray: array of string;
   const AllowedChars: TSetOfChars;
-  const ClosingInfo: string;
-  textalign: TTextAlign = taMiddle;
+  const ClosingText: string;
+  TextAlign: TTextAlign = taMiddle;
   IgnoreCase: boolean = false): char; overload;
-function MessageChar(Window: TCastleWindowBase;  textlist: TStringList;
+function MessageChar(Window: TCastleWindowCustom;  TextList: TStringList;
   const AllowedChars: TSetOfChars;
-  const ClosingInfo: string;
-  textalign: TTextAlign = taMiddle;
+  const ClosingText: string;
+  TextAlign: TTextAlign = taMiddle;
   IgnoreCase: boolean = false): char; overload;
 { @groupEnd }
 
@@ -211,14 +195,14 @@ function MessageChar(Window: TCastleWindowBase;  textlist: TStringList;
   as Keys.TKey will be ignored, and will not close the dialog box).
 
   @groupBegin }
-function MessageKey(Window: TCastleWindowBase; const S: string;
-  const ClosingInfo: string; TextAlign: TTextAlign): TKey; overload;
+function MessageKey(Window: TCastleWindowCustom; const S: string;
+  const ClosingText: string; TextAlign: TTextAlign): TKey; overload;
 
-function MessageKey(Window: TCastleWindowBase; const SArray: array of string;
-  const ClosingInfo: string; TextAlign: TTextAlign): TKey; overload;
+function MessageKey(Window: TCastleWindowCustom; const SArray: array of string;
+  const ClosingText: string; TextAlign: TTextAlign): TKey; overload;
 
-function MessageKey(Window: TCastleWindowBase; TextList: TStringList;
-  const ClosingInfo: string; TextAlign: TTextAlign): TKey; overload;
+function MessageKey(Window: TCastleWindowCustom; TextList: TStringList;
+  const ClosingText: string; TextAlign: TTextAlign): TKey; overload;
 { @groupEnd }
 
 { Ask user to press any key or mouse button or mouse wheel, and return it.
@@ -230,21 +214,21 @@ function MessageKey(Window: TCastleWindowBase; TextList: TStringList;
   (so Event.Key <> K_None, as long as Event.EventType = itKey).
 
   @groupBegin }
-procedure MessageKeyMouse(Window: TCastleWindowBase; const S: string;
-  const ClosingInfo: string; TextAlign: TTextAlign;
+procedure MessageKeyMouse(Window: TCastleWindowCustom; const S: string;
+  const ClosingText: string; TextAlign: TTextAlign;
   out Event: TInputPressRelease); overload;
 
-procedure MessageKeyMouse(Window: TCastleWindowBase; TextList: TStringList;
-  const ClosingInfo: string; TextAlign: TTextAlign;
+procedure MessageKeyMouse(Window: TCastleWindowCustom; TextList: TStringList;
+  const ClosingText: string; TextAlign: TTextAlign;
   out Event: TInputPressRelease); overload;
 { @groupEnd }
 
-function MessageYesNo(Window: TCastleWindowBase; const s: string;
-  textalign: TTextAlign = taMiddle): boolean; overload;
-function MessageYesNo(Window: TCastleWindowBase;  const SArray: array of string;
-  textalign: TTextAlign = taMiddle): boolean; overload;
-function MessageYesNo(Window: TCastleWindowBase;  textlist: TStringList;
-  textalign: TTextAlign = taMiddle): boolean; overload;
+function MessageYesNo(Window: TCastleWindowCustom; const s: string;
+  TextAlign: TTextAlign = taMiddle): boolean; overload;
+function MessageYesNo(Window: TCastleWindowCustom;  const SArray: array of string;
+  TextAlign: TTextAlign = taMiddle): boolean; overload;
+function MessageYesNo(Window: TCastleWindowCustom;  TextList: TStringList;
+  TextAlign: TTextAlign = taMiddle): boolean; overload;
 
 { Ask user to input an unsigned integer.
 
@@ -257,18 +241,18 @@ function MessageYesNo(Window: TCastleWindowBase;  textlist: TStringList;
   --- no default answer.
 
   @groupBegin }
-function MessageInputCardinal(Window: TCastleWindowBase; const s: string;
+function MessageInputCardinal(Window: TCastleWindowCustom; const s: string;
   TextAlign: TTextAlign; const AnswerDefault: string): Cardinal; overload;
-function MessageInputCardinal(Window: TCastleWindowBase; const s: string;
+function MessageInputCardinal(Window: TCastleWindowCustom; const s: string;
   TextAlign: TTextAlign; AnswerDefault: Cardinal): Cardinal; overload;
 
-function MessageInputQueryCardinal(Window: TCastleWindowBase; const Title: string;
+function MessageInputQueryCardinal(Window: TCastleWindowCustom; const Title: string;
   var Value: Cardinal; TextAlign: TTextAlign): boolean;
 { @groupEnd }
 
 { Ask user to input a value in hexadecimal.
   Give MaxWidth = 0 to say that there is no maximum width. }
-function MessageInputQueryCardinalHex(Window: TCastleWindowBase; const Title: string;
+function MessageInputQueryCardinalHex(Window: TCastleWindowCustom; const Title: string;
   var Value: Cardinal; TextAlign: TTextAlign; MaxWidth: Cardinal): boolean;
 
 { Ask user to input a floating-point number.
@@ -280,22 +264,22 @@ function MessageInputQueryCardinalHex(Window: TCastleWindowBase; const Title: st
   number, and FloatToStr shows that this is really something like 0.0099xxxxx.
 
   @groupBegin }
-function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
+function MessageInputQuery(Window: TCastleWindowCustom; const Title: string;
   var Value: Extended; TextAlign: TTextAlign; const ValueAsString: string = ''): boolean;
-function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
+function MessageInputQuery(Window: TCastleWindowCustom; const Title: string;
   var Value: Single; TextAlign: TTextAlign; const ValueAsString: string = ''): boolean;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
+function MessageInputQuery(Window: TCastleWindowCustom; const Title: string;
   var Value: Double; TextAlign: TTextAlign; const ValueAsString: string = ''): boolean;
 {$endif not EXTENDED_EQUALS_DOUBLE}
 { @groupEnd }
 
 function MessageInputQueryVector3Single(
-  Window: TCastleWindowBase; const Title: string;
+  Window: TCastleWindowCustom; const Title: string;
   var Value: TVector3Single; TextAlign: TTextAlign): boolean;
 
 function MessageInputQueryVector4Single(
-  Window: TCastleWindowBase; const Title: string;
+  Window: TCastleWindowCustom; const Title: string;
   var Value: TVector4Single; TextAlign: TTextAlign): boolean;
 
 type
@@ -304,8 +288,8 @@ type
     RectBorderCol: TVector3f deprecated;
 
     ScrollBarCol: TVector3f;
-    ClosingInfoCol: TVector3f;
-    AdditionalStrCol: TVector3f;
+    ClosingTextCol: TVector3f;
+    InputTextStrCol: TVector3f;
     TextCol: TVector3f;
 
     { Font used by procedures in this unit.
@@ -319,8 +303,8 @@ const
   ( RectColor: (0, 0, 0, 1);           { = Black3Single }
     RectBorderCol: (1, 1, 0.33);       { = Yellow3Single }
     ScrollBarCol: (0.5, 0.5, 0.5);     { = Gray3Single }
-    ClosingInfoCol: (1, 1, 0.33);      { = Yellow3Single }
-    AdditionalStrCol: (0.33, 1, 1);    { = LightCyan3Single }
+    ClosingTextCol: (1, 1, 0.33);      { = Yellow3Single }
+    InputTextStrCol: (0.33, 1, 1);    { = LightCyan3Single }
     TextCol: (1, 1, 1);                { = White3Single }
     Font: nil;
   );
@@ -330,8 +314,8 @@ const
   ( RectColor: (0.75, 0.75, 0.66, 1);
     RectBorderCol: (0.87, 0.87, 0.81);
     ScrollBarCol: (0.87, 0.87, 0.81);
-    ClosingInfoCol: (0.4, 0, 1);
-    AdditionalStrCol: (0, 0.4, 0);
+    ClosingTextCol: (0.4, 0, 1);
+    InputTextStrCol: (0, 0.4, 0);
     TextCol: (0, 0, 0);
     Font: nil;
   );
@@ -350,12 +334,13 @@ var
 implementation
 
 uses CastleBitmapFont_BVSansMono_m18, CastleImages, CastleControls,
-  CastleClassUtils, SysUtils, CastleWindowModes, CastleLog, CastleGLImages;
+  CastleClassUtils, SysUtils, CastleWindowModes, CastleLog, CastleGLImages,
+  CastleUIControls;
 
 { TIntRect ------------------------------------------------------------------- }
 
 type
-  TIntRect = array[0..1]of TVector2Integer;
+  TIntRect = array [0..1] of TVector2Integer;
 
 const
   IntRectEmpty: TIntRect = ((0, 0), (0, 0));
@@ -406,73 +391,44 @@ begin
             (r[0, 1] <= y) and (y < r[1, 1]);
 end;
 
-procedure GLRectangleWithBorder(const R: TIntRect;
-  const InsideCol, BorderCol: TVector4f);
-begin
-  CastleGLUtils.GLRectangleWithBorder(R[0, 0], R[0, 1], R[1, 0], R[1, 1],
-    InsideCol, BorderCol);
-end;
-
-{ end of TIntRect utils ------------------------------------------------------ }
-
-const
-  DrawMessg_BoxMargin = 10;
-  DrawMessg_WindMargin = 10;
-  DrawMessg_ScrollBarWholeWidth = 20;
-
-{ TMessageData ------------------------------------------------------------ }
+{ TCastleDialog -------------------------------------------------------------- }
 
 type
-  TMessageData = class
+  TCastleDialog = class abstract(TUIControl)
   private
-    FFloatShiftY: Single;
-    FSAdditional: string;
-  public
-    { zmienne ktore mowia jak i co rysowac }
-    { Broken (using Font.BreakLines) MessgText (calculated in every ResizeMessg). }
-    Broken_MessgText: TStringList;
-    { Ignored (not visible) if ClosingInfo = ''.
-      Else broken ClosingInfo (calculated in every ResizeMessg). }
-    Broken_ClosingInfo: TStringList;
-    { Ignored (not visible) if not DrawAdditional.
-      Else broken SAdditional (calculated in every ResizeMessg). }
-    Broken_SAdditional: TStringList;
+    const
+      BoxMargin = 10;
+      WindowMargin = 10;
+      ScrollBarWholeWidth = 20;
+    var
+    FScroll: Single;
+    FInputText: string;
+
+    { What to draw. }
+    { Broken (using Font.BreakLines) Text. }
+    Broken_Text: TStringList;
+    { Ignored (not visible) if ClosingText = ''.
+      Else broken ClosingText. }
+    Broken_ClosingText: TStringList;
+    { Ignored (not visible) if not DrawInputText.
+      Else broken InputText. }
+    Broken_InputText: TStringList;
 
     { Maximum of Font.MaxTextWidth(Broken_Xxx) for all visible Broken_Xxx.
       Calculated in every ResizeMessg. }
     MaxLineWidth: integer;
-    { Sum of all Broken_MessgText.Count + Broken_SAdditional.Count.
+    { Sum of all Broken_Text.Count + Broken_InputText.Count.
       In other words, all lines that are scrolled by the scrollbar. }
     AllScrolledLinesCount: integer;
     { linie w calosci widoczne na ekranie (przydatne do obslugi page up / down),
-      sposrod linii scrolled by the scrollbar (MessgText and SAdditional).
+      sposrod linii scrolled by the scrollbar (Text and InputText).
       Calculated in every ResizeMessg. }
     VisibleScrolledLinesCount: integer;
 
-    { shiftY = o ile pixeli w gore przesunac caly napis. Przechowywane w
-      formacie float zeby umozliwic time-based zmiane w UpdateMessg.
-      Uwaga - SetFloatShiftY jest tak napisane ze SetFloatShitY(..,FloatShiftY)
-      spowoduje ew. clamp wartosci shiftY, tzn. mozesz tego uzywac np.
-      gdy zmienisz min/maxShiftY }
-    function ShiftY: integer;
-    property FloatShiftY: Single read FFloatshiftY;
-    procedure SetFloatShiftY(Window: TCastleWindowBase; newValue: Single);
+    { Min and max sensible values for @link(Scroll). }
+    ScrollMin, ScrollMax: integer;
 
-    procedure SetFloatShiftYPageDown(Window: TCastleWindowBase);
-    procedure SetFloatShiftYPageUp(Window: TCastleWindowBase);
-  public
-    { minimalne i maksymalne sensowne wartosci dla shiftY }
-    minShiftY, maxShiftY: integer;
-
-    { normalne min/maxShiftY dba zeby na ekranie zawsze
-      bylo mozliwie duzo linii, zeby nie bylo tak ze zostaje na samym dole ekranu
-      tylko malo linii poczatkowych linii albo tylko malo koncowych linii
-      na samej gorze ekranu a reszta recta jest pusta.
-      Zakres minShiftY .. notprettyMaxShiftY zmienia ten punkt widzenia.
-      W ten sposob minShiftY w tym zakresie jest proporcjonalne to
-      pozycji pierwszej widocznej linii w AllScrolledLinesCount.
-      (co jest nam potrzebne przy rysowaniu ScrollBara) }
-    notprettyMaxShiftY: integer;
+    ScrollMaxForScrollbar: integer;
 
     { rzeczy zwiazane ze ScrollBarem; na poczatku ScrollBarVisible := false;
       potem jest uaktualniane w drawMessg na false lub true;
@@ -489,155 +445,155 @@ type
     przewVisY1, przewVisY2: Single;
     ScrollBarDragging: boolean;
 
-    { set in MessageCore, readonly afterwards }
-    OnUserPress: TInputPressReleaseFunc;
-    { If @true then OnUserPress with itMouseButton will occur only when user clicks
-      inside the rectangular area of our message window.
-      If @false, it will occur on mouse down event
-      anywhere on our window. }
-    UserMouseDownOnlyWithinRect: boolean;
-
     { Wspolrzedne calego recta messaga, tzn. poza MessageRect nie rysujemy
       naszego okienka (tam powinno byc widoczne tlo, czyli list_DrawBG). }
     WholeMessageRect: TIntRect;
 
     { set in MessageCore, readonly afterwards for various callbacks }
 
-    { przekazana jako parametr lista stringow; tylko do odczytu,
-      nie modyfikuj tego zawartosci ! }
-    MessgText: TStringList;
+    { Main text to display. Read-only contents. }
+    Text: TStringList;
     Font: TGLBitmapFontAbstract;   { font ktorego uzyc }
     DrawBG: TGLImage;            { zapamietane tlo okienka }
-    align: TTextAlign;
-    DrawAdditional: boolean; { czy wypisywac SAdditional }
-    ClosingInfo: string;     { ClosingInfo : jesli '' to nie bedzie wypisywane }
+    Align: TTextAlign;
+    { Should we display InputText }
+    DrawInputText: boolean;
+    { Displayed only if not ''. }
+    ClosingText: string;
 
-    { zmienne ktore umozliwiaja inna komunikacje miedzy MessageCore a callbackami }
-    answered: boolean;              { ustaw na true aby zakonczyc }
+    { When implementing TCastleDialog descendants, set this
+      to @true to signal that dialog window should be closed and
+      the MessageCore should finish. }
+    Answered: boolean;
 
-    { bedzie wyswietlany jezeli DrawAdditional }
-    property SAdditional: string read FSAdditional;
-    procedure SetSAdditional(Window: TCastleWindowBase; const value: string);
-  public
-    UserData: Pointer;
+    procedure SetScroll(Value: Single);
+    { How many pixels up should be move the text.
+      Kept as a float, to allow smooth time-based changes.
+      Note that setting Scroll always clamps the value to sensible range. }
+    property Scroll: Single read FScroll write SetScroll;
 
-    { Calculate height in pixels needed to draw ClosingInfo.
-      Returns 0 if ClosingInfo = ''. Uses ClosingInfo and Broken_ClosingInfo
+    procedure ScrollPageDown;
+    procedure ScrollPageUp;
+
+    procedure SetInputText(const value: string);
+    { Displayed only if DrawInputText. }
+    property InputText: string read FInputText write SetInputText;
+
+    { Calculate height in pixels needed to draw ClosingText.
+      Returns 0 if ClosingText = ''. Uses ClosingText and Broken_ClosingText
       (and of course Font), so be sure to init these things before
       calling this. }
-    function ClosingInfoBoxHeight: Integer;
+    function ClosingTextBoxHeight: Integer;
+    procedure UpdateSizes;
+  public
+    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
+    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
+    function DrawStyle: TUIControlDrawStyle; override;
+    procedure Draw; override;
+    function PositionInside(const X, Y: Integer): boolean; override;
   end;
 
-function TMessageData.ShiftY: integer;
-begin result := Round(FloatShiftY) end;
-
-procedure TMessageData.SetFloatShiftY(Window: TCastleWindowBase; newValue: Single);
+procedure TCastleDialog.SetScroll(Value: Single);
 begin
- Clamp(newValue, minShiftY, maxShiftY);
- if newValue <> FloatShiftY then
- begin
-  FFloatShiftY := newValue;
-  Window.PostRedisplay;
- end;
-end;
-
-procedure TMessageData.SetFloatShiftYPageDown(Window: TCastleWindowBase);
-var
-  PageHeight: Single;
-begin
-  PageHeight := VisibleScrolledLinesCount * Font.RowHeight;
-  SetFloatShiftY(Window, ShiftY + PageHeight);
-end;
-
-procedure TMessageData.SetFloatShiftYPageUp(Window: TCastleWindowBase);
-var
-  PageHeight: Single;
-begin
-  PageHeight := VisibleScrolledLinesCount * Font.RowHeight;
-  SetFloatShiftY(Window, ShiftY - PageHeight);
-end;
-
-procedure TMessageData.SetSAdditional(Window: TCastleWindowBase; const value: string);
-begin
- FSAdditional := value;
- Window.PostRedisplay;
- {moznaby zoptymalizowac rzeczy gdyby robic tutaj tylko czesc tego co jest
-  robione w resizeMessg. }
- Window.EventResize; { zeby zlamal SAdditional }
-end;
-
-function TMessageData.ClosingInfoBoxHeight: Integer;
-begin
-  if ClosingInfo <> '' then
+  Clamp(Value, ScrollMin, ScrollMax);
+  if Value <> Scroll then
   begin
-    Result := 2 * DrawMessg_BoxMargin +
-      Font.RowHeight * Broken_ClosingInfo.Count +
+    FScroll := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleDialog.ScrollPageDown;
+var
+  PageHeight: Single;
+begin
+  PageHeight := VisibleScrolledLinesCount * Font.RowHeight;
+  Scroll := Scroll + PageHeight;
+end;
+
+procedure TCastleDialog.ScrollPageUp;
+var
+  PageHeight: Single;
+begin
+  PageHeight := VisibleScrolledLinesCount * Font.RowHeight;
+  Scroll := Scroll - PageHeight;
+end;
+
+procedure TCastleDialog.SetInputText(const value: string);
+begin
+  FInputText := value;
+  VisibleChange;
+  UpdateSizes;
+end;
+
+function TCastleDialog.ClosingTextBoxHeight: Integer;
+begin
+  if ClosingText <> '' then
+  begin
+    Result := 2 * BoxMargin +
+      Font.RowHeight * Broken_ClosingText.Count +
       1 { width of horizontal line };
   end else
     Result := 0;
 end;
 
-{ MessageCore callbacks -------------------------------------------------- }
+procedure TCastleDialog.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+begin
+  inherited;
+  UpdateSizes;
+end;
 
-procedure ResizeMessg(Window: TCastleWindowBase);
+procedure TCastleDialog.UpdateSizes;
 var
-  MD: TMessageData;
-  { width at which we should break our string lists md.Broken_Xxx }
+  { width at which we should break our string lists Broken_Xxx }
   BreakWidth: integer;
   WindowScrolledHeight: Integer;
 begin
- glViewport(0, 0, Window.Width, Window.Height);
- OrthoProjection(0, Window.Width, 0, Window.Height);
+  { calculate BreakWidth. We must here always subtract
+    ScrollBarWholeWidth to be on the safe side, because we don't know
+    yet is ScrollBarVisible. }
+  BreakWidth := max(0, ContainerWidth - BoxMargin * 2
+    - WindowMargin * 2 - ScrollBarWholeWidth);
 
- { calculate BreakWidth. We must here always subtract
-   DrawMessg_ScrollBarWholeWidth to be on the safe side, because we don't know
-   yet is md.ScrollBarVisible. }
- BreakWidth := max(0, Window.Width -DrawMessg_BoxMargin*2
-                                -DrawMessg_WindMargin*2
-                                -DrawMessg_ScrollBarWholeWidth);
-
- md := TMessageData(Window.UserData);
-
- with md do
- begin
   { calculate MaxLineWidth and AllScrolledLinesCount }
 
-  { calculate Broken_MessgText }
-  Broken_MessgText.Clear;
-  font.BreakLines(MessgText, Broken_MessgText,  BreakWidth);
-  MaxLineWidth := font.MaxTextWidth(Broken_MessgText);
-  AllScrolledLinesCount := Broken_MessgText.count;
+  { calculate Broken_Text }
+  Broken_Text.Clear;
+  font.BreakLines(Text, Broken_Text,  BreakWidth);
+  MaxLineWidth := font.MaxTextWidth(Broken_Text);
+  AllScrolledLinesCount := Broken_Text.count;
 
-  if ClosingInfo <> '' then
+  if ClosingText <> '' then
   begin
-   { calculate Broken_ClosingInfo }
-   Broken_ClosingInfo.Clear;
-   Font.BreakLines(ClosingInfo, Broken_ClosingInfo, BreakWidth);
-   MaxLineWidth := max(MaxLineWidth, font.MaxTextWidth(Broken_ClosingInfo));
+    { calculate Broken_ClosingText }
+    Broken_ClosingText.Clear;
+    Font.BreakLines(ClosingText, Broken_ClosingText, BreakWidth);
+    MaxLineWidth := max(MaxLineWidth, font.MaxTextWidth(Broken_ClosingText));
   end;
 
-  if DrawAdditional then
+  if DrawInputText then
   begin
-   { calculate Broken_SAdditional }
-   Broken_SAdditional.Clear;
-   Font.BreakLines(SAdditional, Broken_SAdditional, BreakWidth);
-   { It's our intention that if DrawAdditional then *always*
-     at least 1 line of additional (even if it's empty) will be shown.
-     That's because SAdditional is the editable text for the user,
-     so there should be indication of "empty line". }
-   if Broken_SAdditional.count = 0 then Broken_SAdditional.Add('');
-   MaxLineWidth := max(MaxLineWidth, font.MaxTextWidth(Broken_SAdditional));
-   AllScrolledLinesCount += Broken_SAdditional.count;
+    { calculate Broken_InputText }
+    Broken_InputText.Clear;
+    Font.BreakLines(InputText, Broken_InputText, BreakWidth);
+    { It's our intention that if DrawInputText then *always*
+      at least 1 line of additional (even if it's empty) will be shown.
+      That's because InputText is the editable text for the user,
+      so there should be indication of "empty line". }
+    if Broken_InputText.count = 0 then Broken_InputText.Add('');
+    MaxLineWidth := max(MaxLineWidth, font.MaxTextWidth(Broken_InputText));
+    AllScrolledLinesCount += Broken_InputText.count;
   end;
 
   { Now we have MaxLineWidth and AllScrolledLinesCount calculated }
 
   { Calculate WindowScrolledHeight --- number of pixels that are controlled
     by the scrollbar. }
-  WindowScrolledHeight := Window.Height
-    - DrawMessg_BoxMargin * 2
-    - DrawMessg_WindMargin * 2
-    - ClosingInfoBoxHeight;
+  WindowScrolledHeight := ContainerHeight - BoxMargin * 2
+    - WindowMargin * 2 - ClosingTextBoxHeight;
 
   { calculate VisibleScrolledLinesCount, ScrollBarVisible }
 
@@ -647,530 +603,469 @@ begin
   { if ScrollBarVisible changed from true to false then we must make
     sure that ScrollBarDragging is false. }
   if not ScrollBarVisible then
-   ScrollBarDragging := false;
+    ScrollBarDragging := false;
 
   { Note that when not ScrollBarVisible,
     then VisibleScrolledLinesCount = AllScrolledLinesCount,
-    then minShiftY = 0
-    so minShiftY = maxShiftY,
-    so FloatShiftY will always be 0. }
-  minShiftY := -Font.RowHeight *
+    then ScrollMin = 0
+    so ScrollMin = ScrollMax,
+    so Scroll will always be 0. }
+  ScrollMin := -Font.RowHeight *
     (AllScrolledLinesCount - VisibleScrolledLinesCount);
-  { maxShiftY jest stale ale to nic; wszystko bedziemy pisac
-    tak jakby maxShiftY tez moglo sie zmieniac - byc moze kiedys zrobimy
+  { ScrollMax jest stale ale to nic; wszystko bedziemy pisac
+    tak jakby ScrollMax tez moglo sie zmieniac - byc moze kiedys zrobimy
     z tej mozliwosci uzytek. }
-  maxShiftY := 0;
-  notprettyMaxShiftY := minShiftY + Font.RowHeight * AllScrolledLinesCount;
+  ScrollMax := 0;
+  ScrollMaxForScrollbar := ScrollMin + Font.RowHeight * AllScrolledLinesCount;
 
-  { min / maxShift mogly sie zmienic wiec trzeba sie upewnic ze shiftY ciagle jest
-    w odpowiednim zakresie }
-  SetFloatShiftY(Window, FloatShiftY);
- end;
+  { This clamps Scroll to proper range }
+  Scroll := Scroll;
 end;
 
-procedure PressMessg(Window: TCastleWindowBase; const Event: TInputPressRelease);
+function TCastleDialog.Press(const Event: TInputPressRelease): boolean;
 var
-  md: TMessageData;
-  KeyHandled: boolean;
-  mx, my: integer; { mousex, y przetlumaczone na wspolrzedne OpenGL'a tego okienka }
+  MY: Integer;
 begin
-  md := TMessageData(Window.userdata);
-  case Event.EventType of
-    itKey:
-      begin
-        KeyHandled := false;
+  Result := inherited;
+  if Result or (not GetExists) then Exit;
 
-        { if not ScrollBarVisible then there is no point in doing
-          md.setFloatShiftY (because always
-          minShiftY = maxShiftY = FloatShiftY = 0, see ResizeMessg comments).
+  { if not ScrollBarVisible then there is no point in changing Scroll
+    (because always ScrollMin = ScrollMax = Scroll = 0).
 
-          This way I allow md.OnUserKeyDown to handle K_PageDown, K_PageUp,
-          K_Home and K_End keys. And this is very handy for MessageKey,
-          when it's used e.g. to allow user to choose any TKey.
-          Otherwise MessageKey would not be able to return
-          K_PageDown, K_PageUp, etc. keys. }
-        if MD.ScrollBarVisible then
-        begin
-          case Event.Key of
-            K_PageUp:   begin md.setFloatShiftYPageUp(Window);         KeyHandled := true; end;
-            K_PageDown: begin md.setFloatShiftYPageDown(Window);       KeyHandled := true; end;
-            K_Home:     begin md.setFloatShiftY(Window, md.minShiftY); KeyHandled := true; end;
-            K_End:      begin md.setFloatShiftY(Window, md.maxShiftY); KeyHandled := true; end;
-          end;
+    This way we allow descendants like TCastleKeyMouseDialog
+    to handle K_PageDown, K_PageUp, K_Home and K_End keys
+    and mouse wheel. And this is very good for MessageKey,
+    when it's used e.g. to allow user to choose any TKey.
+    Otherwise MessageKey would not be able to return
+    K_PageDown, K_PageUp, etc. keys. }
+
+  if ScrollBarVisible then
+    case Event.EventType of
+      itKey:
+        case Event.Key of
+          K_PageUp:   begin ScrollPageUp;        Result := true; end;
+          K_PageDown: begin ScrollPageDown;      Result := true; end;
+          K_Home:     begin Scroll := ScrollMin; Result := true; end;
+          K_End:      begin Scroll := ScrollMax; Result := true; end;
         end;
-
-        if not KeyHandled then
+      itMouseButton:
         begin
-          if Assigned(md.OnUserPress) then
-            md.OnUserPress(Window, Event);
-        end;
-      end;
-    itMouseButton:
-      begin
-        mx := Window.mouseX;
-        my := Window.height-Window.mouseY;
-
-        if (Event.MouseButton = mbLeft) and
-          md.ScrollBarVisible and PointInRect(mx, my, md.ScrollBarRect) then
-        begin
-          if my < md.przewVisY1 then md.SetFloatShiftYPageDown(Window) else
-          if my > md.przewVisY2 then md.SetFloatShiftYPageUp(Window) else
+          MY := ContainerHeight - Container.MouseY;
+          if (Event.MouseButton = mbLeft) and ScrollBarVisible and
+            PointInRect(Container.MouseX, MY, ScrollBarRect) then
           begin
-            md.ScrollBarDragging := true;
+            if MY < przewVisY1 then
+              ScrollPageDown else
+            if MY > przewVisY2 then
+              ScrollPageUp else
+              ScrollBarDragging := true;
+            Result := true;
           end;
-        end else
-        if (not MD.UserMouseDownOnlyWithinRect) or
-           PointInRect(mx, my, md.WholeMessageRect) then
-        begin
-          if Assigned(MD.OnUserPress) then
-            MD.OnUserPress(Window, Event);
         end;
-      end;
-    itMouseWheel:
-      begin
+      itMouseWheel:
         if Event.MouseWheelVertical then
         begin
-          MD.SetFloatShiftY(Window,
-            MD.ShiftY - Event.MouseWheelScroll * MD.Font.RowHeight);
-
-          if Assigned(MD.OnUserPress) then
-            MD.OnUserPress(Window, Event);
+          Scroll := Scroll - Event.MouseWheelScroll * Font.RowHeight;
+          Result := true;
         end;
-      end;
-  end;
+    end;
 end;
 
-procedure ReleaseMessg(Window: TCastleWindowBase; const Event: TInputPressRelease);
+function TCastleDialog.Release(const Event: TInputPressRelease): boolean;
 begin
+  Result := inherited;
+  if Result or (not GetExists) then Exit;
+
   if Event.IsMouseButton(mbLeft) then
-    TMessageData(Window.userdata).ScrollBarDragging := false;
-end;
-
-procedure MouseMoveMessg(Window: TCastleWindowBase; newx, newy: integer);
-var md: TMessageData;
-    moveY: integer;
-begin
- md := TMessageData(Window.UserData);
- if not md.ScrollBarDragging then exit;
-
- { przesuniecie wzdluz y w mouse coords to }
- moveY:=(Window.Height-newY) - (Window.Height-Window.MouseY);
-
- { ten ruch w strone dodatnia oznacza chec zobaczenia wyzej a wiec zmniejszenia shiftY.
-   Wiec sobie go tutaj odwracamy. }
- moveY := -moveY;
-
- { mamy teraz ruch, ale w skali gdzie caly tekst to RectHeight(md.ScrollBarHeight).
-   A nas interesuje skala gdzie caly tekst to minShiftY .. notprettyMaxShiftY.
-   A wiec skalujemy. }
- moveY := Round(moveY / RectHeight(md.ScrollBarRect)
-                    * (md.notprettyMaxShiftY - md.minShiftY));
-
- { i gotowe, przesuwamy shiftY o moveY }
- md.setFloatShiftY(Window, md.shiftY + moveY);
-end;
-
-procedure UpdateMessg(Window: TCastleWindowBase);
-
-  function Faktor: Single;
   begin
-   result := 200.0 * Window.Fps.UpdateSecondsPassed;
-   if mkCtrl in Window.Pressed.Modifiers then result *= 6;
+    ScrollBarDragging := false;
+    Result := true;
+  end;
+end;
+
+function TCastleDialog.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+begin
+  Result := inherited;
+  if Result or (not GetExists) then Exit;
+
+  Result := ScrollBarDragging;
+
+  if Result then
+    Scroll := Scroll + NewY- OldY / RectHeight(ScrollBarRect) *
+      (ScrollMaxForScrollbar - ScrollMin);
+end;
+
+procedure TCastleDialog.Update(const SecondsPassed: Single;
+  var HandleInput: boolean);
+
+  function Factor: Single;
+  begin
+    result := 200.0 * SecondsPassed;
+    if mkCtrl in Container.Pressed.Modifiers then result *= 6;
   end;
 
-var md: TMessageData;
 begin
- md := TMessageData(Window.userdata);
- with Window do begin
-  if Pressed[K_up] then md.setFloatShiftY(Window, md.floatShiftY - Faktor);
-  if Pressed[K_down] then md.setFloatShiftY(Window, md.floatShiftY + Faktor);
- end;
+  inherited;
+
+  if HandleInput then
+  begin
+    if Container.Pressed[K_Up  ] then Scroll := Scroll - Factor;
+    if Container.Pressed[K_Down] then Scroll := Scroll + Factor;
+    HandleInput := not ExclusiveEvents;
+  end;
 end;
 
-procedure DrawMessg(Window: TCastleWindowBase);
-var md: TMessageData;
+function TCastleDialog.DrawStyle: TUIControlDrawStyle;
+begin
+  if GetExists then
+    Result := ds2D else
+    Result := dsNone;
+end;
+
+procedure TCastleDialog.Draw;
 
   { Render a Text line, and move Y up to the line above. }
-  procedure DrawString(const text: string; textalign: TTextAlign;
+  procedure DrawString(const text: string; TextAlign: TTextAlign;
     X: Integer; var Y: Integer);
   begin
     { change X only locally, to take TextAlign into account }
-    case textalign of
-      taMiddle: X += (md.MaxLineWidth - md.font.TextWidth(text)) div 2;
-      taRight: X += md.MaxLineWidth - md.font.TextWidth(text);
+    case TextAlign of
+      taMiddle: X += (MaxLineWidth - font.TextWidth(text)) div 2;
+      taRight : X +=  MaxLineWidth - font.TextWidth(text);
     end;
-    md.font.Print(X, Y, text);
+    font.Print(X, Y, text);
     { change Y for caller, to print next line higher }
-    Y += md.font.RowHeight;
+    Y += font.RowHeight;
   end;
 
   { Render all lines in S, and move Y up to the line above. }
-  procedure DrawStrings(const s: TStrings; textalign: TTextAlign;
+  procedure DrawStrings(const s: TStrings; TextAlign: TTextAlign;
     const X: Integer; var Y: Integer);
-  var i: integer;
+  var
+    i: integer;
   begin
     for i := s.count-1 downto 0 do
       { each DrawString call will move Y up }
-      DrawString(s[i], textalign, X, Y);
+      DrawString(s[i], TextAlign, X, Y);
   end;
 
 var
   MessageRect: TIntRect;
   { InnerRect to okienko w ktorym mieszcza sie napisy,
-    a wiec MD.WholeMessageRect zmniejszony o BoxMargin we wszystkich kierunkach
+    a wiec WholeMessageRect zmniejszony o BoxMargin we wszystkich kierunkach
     i z ew. obcieta prawa czescia przeznaczona na ScrollBarRect. }
   InnerRect: TIntRect;
   ScrollBarLength: integer;
   ScrollBarVisibleBegin: TGLfloat;
-  { if md.ScrollBarVisible, ScrollBarWholeWidth. Else 0. }
+  { if ScrollBarVisible, ScrollBarWholeWidth. Else 0. }
   RealScrollBarWholeWidth: Integer;
   TextX, TextY: Integer;
 const
-  { a shorter name; box margin - margines
-    pomiedzy napisami a obwodka Prostokata z Obwodka. }
-  boxmargin = DrawMessg_BoxMargin;
-  { a shorter name; windmargin - margines
-    pomiedzy obwodka Prostokata Z Obwodka a krawedziami okienka. }
-  windmargin = DrawMessg_WindMargin;
-  ScrollBarWholeWidth = DrawMessg_ScrollBarWholeWidth;
   { odleglosc paska ScrollBara od krawedzi swojego waskiego recta
     (prawa krawedz jest zarazem krawedzia duzego recta !) }
   ScrollBarMargin = 2;
   { szerokosc paska ScrollBara }
   ScrollBarInternalWidth = ScrollBarWholeWidth - ScrollBarMargin*2;
 begin
- md := TMessageData(Window.UserData);
+  inherited;
+  if not GetExists then Exit;
 
- { Robimy clear bo bgimg moze nie zakryc calego tla jezeli w trakcie MessageXxx
-   user resized the window. }
- glClear(GL_COLOR_BUFFER_BIT);
- glLoadIdentity;
+  { Robimy clear bo bgimg moze nie zakryc calego tla jezeli w trakcie MessageXxx
+    user resized the window. }
+  glClear(GL_COLOR_BUFFER_BIT);
+  glLoadIdentity;
 
- md.DrawBG.Draw(0, 0);
+  DrawBG.Draw(0, 0);
 
- RealScrollBarWholeWidth := Iff(md.ScrollBarVisible, ScrollBarWholeWidth, 0);
+  RealScrollBarWholeWidth := Iff(ScrollBarVisible, ScrollBarWholeWidth, 0);
 
- { InnerRect and MD.WholeMessageRect and MessageRect coords are absolute,
-   that is: we cannot shift now everything by glTranslate
-   and calculate the rest relative to new position.
-   That is because we will use them with glScissor and font X,Y
-   that work in window coordinates. }
+  { InnerRect and WholeMessageRect and MessageRect coords are absolute,
+    that is: we cannot shift now everything by glTranslate
+    and calculate the rest relative to new position.
+    That is because we will use them with glScissor and font X,Y
+    that work in window coordinates. }
 
- MD.WholeMessageRect := CenteredRect(
-   IntRect(0, 0, Window.Width, Window.Height),
-   Min(md.MaxLineWidth + BoxMargin*2 + RealScrollBarWholeWidth,
-     Window.Width - WindMargin*2),
-   Min(MD.AllScrolledLinesCount * MD.Font.RowHeight +
-       BoxMargin * 2 +
-       MD.ClosingInfoBoxHeight,
-     Window.Height - WindMargin*2));
- MessageRect := MD.WholeMessageRect;
+  WholeMessageRect := CenteredRect(
+    IntRect(0, 0, ContainerWidth, ContainerHeight),
+    Min(MaxLineWidth + BoxMargin * 2 + RealScrollBarWholeWidth,
+      ContainerWidth - WindowMargin * 2),
+    Min(AllScrolledLinesCount * Font.RowHeight +
+      BoxMargin * 2 + ClosingTextBoxHeight, ContainerHeight - WindowMargin*2));
+  MessageRect := WholeMessageRect;
 
- Theme.GLWindow.Draw3x3(MessageRect[0][0], MessageRect[0][1],
-   RectWidth(MessageRect), RectHeight(MessageRect),
-   Theme.WindowCorner);
+  Theme.GLWindow.Draw3x3(MessageRect[0][0], MessageRect[0][1],
+    RectWidth(MessageRect), RectHeight(MessageRect),
+    Theme.WindowCorner);
 
- { Now draw MD.Broken_ClosingInfo. After this, make MessageRect
-   smaller as appropriate. }
- if MD.ClosingInfo <> '' then
- begin
-   glColorv(MessagesTheme.ClosingInfoCol);
-   TextX := MessageRect[0, 0] + BoxMargin;
-   TextY := MessageRect[0, 1] + BoxMargin;
-   DrawStrings(MD.Broken_ClosingInfo, taRight, TextX, TextY);
+  { Now draw Broken_ClosingText. After this, make MessageRect
+    smaller as appropriate. }
+  if ClosingText <> '' then
+  begin
+    glColorv(MessagesTheme.ClosingTextCol);
+    TextX := MessageRect[0, 0] + BoxMargin;
+    TextY := MessageRect[0, 1] + BoxMargin;
+    DrawStrings(Broken_ClosingText, taRight, TextX, TextY);
 
-   MessageRect[0, 1] += BoxMargin +
-     MD.Font.RowHeight * MD.Broken_ClosingInfo.Count +
-     BoxMargin;
- end;
+    MessageRect[0, 1] += BoxMargin +
+      Font.RowHeight * Broken_ClosingText.Count + BoxMargin;
+  end;
 
- { Calculate InnerRect now }
- InnerRect := GrowRect(MessageRect, -BoxMargin);
- InnerRect[1, 0] -= RealScrollBarWholeWidth;
+  { Calculate InnerRect now }
+  InnerRect := GrowRect(MessageRect, -BoxMargin);
+  InnerRect[1, 0] -= RealScrollBarWholeWidth;
 
- { teraz rysuj ScrollBar. Also calculate MD.ScrollBarRect here. }
- if md.ScrollBarVisible then
- begin
-  MD.ScrollBarRect := MessageRect;
-  MD.ScrollBarRect[0, 0] := MessageRect[1, 0] - ScrollBarWholeWidth;
+  { teraz rysuj ScrollBar. Also calculate ScrollBarRect here. }
+  if ScrollBarVisible then
+  begin
+    ScrollBarRect := MessageRect;
+    ScrollBarRect[0, 0] := MessageRect[1, 0] - ScrollBarWholeWidth;
 
-  ScrollBarLength := RectHeight(MessageRect) - ScrollBarMargin*2;
-  ScrollBarVisibleBegin := MapRange(md.shiftY,
-    md.MinShiftY, md.notprettyMaxShiftY,
-    ScrollBarLength, 0);
-  md.przewVisY1 := MessageRect[0, 1] + ScrollBarMargin +
-    max(0, ScrollBarVisibleBegin -
-      (md.VisibleScrolledLinesCount / md.AllScrolledLinesCount)*ScrollBarLength);
-  md.przewVisY2 := MessageRect[0, 1] + ScrollBarMargin + ScrollBarVisibleBegin;
+    ScrollBarLength := RectHeight(MessageRect) - ScrollBarMargin*2;
+    ScrollBarVisibleBegin := MapRange(Scroll,
+      ScrollMin, ScrollMaxForScrollbar, ScrollBarLength, 0);
+    przewVisY1 := MessageRect[0, 1] + ScrollBarMargin +
+      max(0, ScrollBarVisibleBegin -
+        (VisibleScrolledLinesCount / AllScrolledLinesCount)*ScrollBarLength);
+    przewVisY2 := MessageRect[0, 1] + ScrollBarMargin + ScrollBarVisibleBegin;
 
-  glLineWidth(ScrollBarInternalWidth);
-  glColorv(MessagesTheme.ScrollBarCol);
-  GLVerticalLine((md.ScrollBarRect[0, 0] + md.ScrollBarRect[1, 0]) / 2,
-    md.przewVisY1, md.przewVisY2);
-  glLineWidth(1);
- end else
-   MD.ScrollBarRect := IntRectEmpty;
+    glLineWidth(ScrollBarInternalWidth);
+    glColorv(MessagesTheme.ScrollBarCol);
+    GLVerticalLine((ScrollBarRect[0, 0] + ScrollBarRect[1, 0]) / 2,
+      przewVisY1, przewVisY2);
+    glLineWidth(1);
+  end else
+    ScrollBarRect := IntRectEmpty;
 
- { Make scissor to cut off text that is too far up/down.
-   We subtract md.font.Descend from Y0, to see the descend of
-   the bottom line (which is below InnerRect[0, 1], and would not be
-   ever visible otherwise). }
- glScissor(InnerRect[0, 0], InnerRect[0, 1]-md.font.Descend,
-           RectWidth(InnerRect),
-           RectHeight(InnerRect));
- glEnable(GL_SCISSOR_TEST);
+  { Make scissor to cut off text that is too far up/down.
+    We subtract font.Descend from Y0, to see the descend of
+    the bottom line (which is below InnerRect[0, 1], and would not be
+    ever visible otherwise). }
+  glScissor(InnerRect[0, 0], InnerRect[0, 1]-font.Descend,
+    RectWidth(InnerRect), RectHeight(InnerRect));
+  glEnable(GL_SCISSOR_TEST);
 
- TextX := InnerRect[0, 0];
- TextY := InnerRect[0, 1] + md.shiftY;
+  TextX := InnerRect[0, 0];
+  TextY := InnerRect[0, 1] + Round(Scroll);
 
- { rysuj md.broken_SAdditional i Broken_MessgText.
-   Kolejnosc ma znaczenie, kolejne linie sa rysowane od dolu w gore. }
+  { rysuj Broken_InputText i Broken_Text.
+    Kolejnosc ma znaczenie, kolejne linie sa rysowane od dolu w gore. }
 
- if md.drawAdditional then
- begin
-   glColorv(MessagesTheme.AdditionalStrCol);
-   DrawStrings(md.Broken_SAdditional, md.align, TextX, TextY);
- end;
+  if DrawInputText then
+  begin
+    glColorv(MessagesTheme.InputTextStrCol);
+    DrawStrings(Broken_InputText, align, TextX, TextY);
+  end;
 
- glColorv(MessagesTheme.TextCol);
- DrawStrings(md.Broken_MessgText, md.align, TextX, TextY);
+  glColorv(MessagesTheme.TextCol);
+  DrawStrings(Broken_Text, align, TextX, TextY);
 
- glDisable(GL_SCISSOR_TEST);
+  glDisable(GL_SCISSOR_TEST);
 end;
 
-{ main utility MessageCore ------------------------------------- }
+function TCastleDialog.PositionInside(const X, Y: Integer): boolean;
+begin
+  Result := true;
+end;
 
-{ Notes:
-  - MessageOnUserMouseDown will be called only if the mouse position
-    will be within WholeMessageRect. You should not react to mouse
-    click on other places.
-}
-procedure MessageCore(Window: TCastleWindowBase; textlist: TStringList;
-  textalign: TTextAlign; MessageOnUserPress: TInputPressReleaseFunc;
-  AUserMouseDownOnlyWithinRect: boolean;
-  messageUserdata: pointer;
-  const AClosingInfo: string; { = '' znaczy "nie rysuj ClosingInfo" }
-  AdrawAdditional: boolean; var ASAdditional: string);
-{ Robi cos co wyglada jak dialog window w srodku podanego Window.
-  Na pewien czas podmienia callbacki Window; mozna podac jaki
-  bedzie callback na OnPress i OnDraw; W callbackach uzywamy
-  ustawianej w tej procedurze strukturze TMessageData (bierzemy ja z
-  PMessageData(Window.UserData) ). W ten sposob mozna wywolac na wielu
-  roznch okienkach MessageCore i wszystko bedzie dzialalo ok.
+{ MessageCore ---------------------------------------------------------------- }
 
-  OnDraw moze zasadniczo wygladac dowolnie, ale powinno uzywac zmiennych
-  ustawionych dla niego w TMessageData mowiacych mu co i jak wypisac.
+{ Show a modal dialod window. Uses TGLMode to temporarily replace
+  normal event processing (on this Window) with it's own,
+  to wait until the dialog is answered by the user.
 
-  Perspektywa w ktorej dziala OnDraw jest zawsze
-  Ortho2D(0, Window.width, 0, Window.height).
-
-  Zawartosc obiektu textlist nie bedzie modyfikowana - jest to gwarantowane.
-
-  Works until ktorys callback ustawi answered na true.
-}
-var messageData: TMessageData;
-    SavedMode: TGLMode;
+  Given TextList is never modified here. }
+procedure MessageCore(
+  const Window: TCastleWindowCustom; const TextList: TStringList;
+  const TextAlign: TTextAlign; const Dialog: TCastleDialog;
+  const AClosingText: string;
+  const AdrawInputText: boolean; var AInputText: string);
+var
+  SavedMode: TGLMode;
 begin
   if Log then
     WritelnLogMultiline('Message', TextList.Text);
 
- {1 faza :
-   FlushRedisplay; W ten sposob po zainstalowaniu naszych callbackow
-   i ustawieniu wlasciwosci okienka robimy normalne SaveScreen_noflush
-   (a nie chcielibysmy robic wtedy z flushem bo zainstalowalismy juz
-   wlasne callbacki)
+  { FlushRedisplay; W ten sposob po zainstalowaniu naszych callbackow
+    i ustawieniu wlasciwosci okienka robimy normalne SaveScreen_noflush
+    (a nie chcielibysmy robic wtedy z flushem bo zainstalowalismy juz
+    wlasne callbacki)
 
-   If we have DoubleBuffer then we simply call Window.EventDraw,
-   see comments at GLImage.SaveScreen_noflush to know why
-   (in short: we DON'T want to use front buffer to save screen). }
- if Window.DoubleBuffer then
- begin
-  Window.EventBeforeDraw;
-  Window.EventDraw;
- end else
-  Window.FlushRedisplay;
-
- { 2: save all Window properties that we will restore later. }
- SavedMode := TGLMode.CreateReset(Window,
-   GL_PIXEL_MODE_BIT or GL_SCISSOR_BIT or GL_ENABLE_BIT or
-   GL_LINE_BIT or GL_TRANSFORM_BIT or GL_COLOR_BUFFER_BIT, false,
-
- {3 faza zarazem:
-   Ustawiamy wlasne wlasciwosci okienka, w szczegolnosci - wlasne callbacki. }
-   @drawMessg, @resizeMessg, @NoClose);
-
- { FakeMouseDown must be @false.
-   Otherwise closing dialog box with MouseDown will then cause MouseDown
-   when SavedMode is restored. This is bad, because then the mouse click
-   that closes dialog box could also do something else.
-   Actually, FakeMouseDown is @false by default, so this call is not needed. }
- SavedMode.FakeMouseDown := false;
-
- with Window do begin
-  OnMouseMove := @mouseMoveMessg;
-  OnPress := @PressMessg;
-  OnRelease := @ReleaseMessg;
-  OnUpdate := @UpdateMessg;
-  PostRedisplay;
- end;
- glDisable(GL_FOG);
- glDisable(GL_LIGHTING);
- glDisable(GL_TEXTURE_1D);
- glDisable(GL_TEXTURE_2D);
- glDisable(GL_SCISSOR_TEST);
- glDisable(GL_DEPTH_TEST);
- glLineWidth(1);
- glPixelStorei(GL_UNPACK_SWAP_BYTES, GL_FALSE);
- glPixelStorei(GL_UNPACK_LSB_FIRST, GL_FALSE);
- glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
- glPixelStorei(GL_UNPACK_SKIP_ROWS,  0);
- glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
- glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
- glPixelZoom(1, 1);
-
- {4 faza :
-   Inicjuj TMessageData, ktora moze wymagac poprawnego ustawienia
-   naszych rzeczy w OpenGLu (np. utworzenie fontu wymaga poprawnego ustawienia
-   GL_UNPACK_xxx bo tworzenie fontu to generowanie jego display list a te
-   zostaja utworzone z zapisanym na stale odpowiednim pixel-mode). }
- messageData := TMessageData.Create;
- try
-  { TODO: problem : chcielibysmy tutaj zeby SaveScreen zawsze dzialalo, bez
-    wzgledu na ustawienia GL_PACK_xxx. Moglibysmy ustawiac wlasne GL_PACK
-    ale lepszym wyjsciem byloby gdyby
-    SaveScreen_noflush dzialalo zawsze tak samo, bez wzgledu na ustawienia
-    GL_PACK_xxx. }
-  with messageData do
+    If we have DoubleBuffer then we simply call Window.EventDraw,
+    see comments at GLImage.SaveScreen_noflush to know why
+    (in short: we DON'T want to use front buffer to save screen). }
+  if Window.DoubleBuffer then
   begin
-   OnUserPress := messageOnUserPress;
-   UserMouseDownOnlyWithinRect := AUserMouseDownOnlyWithinRect;
-   if Window.DoubleBuffer then
-    DrawBG := SaveScreenToGL_noflush(0, 0, Window.Width, Window.Height, GL_BACK) else
-    DrawBG := SaveScreenToGL_noflush(0, 0, Window.Width, Window.Height, GL_FRONT);
-   answered := false;
-   if MessagesTheme.Font = nil then
-    font := TGLBitmapFont.Create(BitmapFont_BVSansMono_m18) else
-    font := MessagesTheme.Font;
-   MessgText := textlist;
-   { contents of Broken_xxx will be initialized in resizeMessg(),
-     as well as few other MessageData fields like MaxLineWidth or
-     AllScrolledLinesCount }
-   Broken_MessgText := TStringList.Create;
-   Broken_ClosingInfo := TStringList.Create;
-   Broken_SAdditional := TStringList.Create;
-   align := textalign;
-   Userdata := messageUserdata;
-   ClosingInfo := AClosingInfo;
-   ScrollBarVisible := false;
-   ScrollBarDragging := false;
-   drawAdditional := AdrawAdditional;
-   FSAdditional := ASAdditional;
-   { These will be set in nearest DrawMessg }
-   ScrollBarRect := IntRectEmpty;
-   WholeMessageRect := IntRectEmpty;
+    Window.EventBeforeDraw;
+    Window.EventDraw;
+  end else
+    Window.FlushRedisplay;
+
+  SavedMode := TGLMode.CreateReset(Window,
+    GL_PIXEL_MODE_BIT or GL_SCISSOR_BIT or GL_ENABLE_BIT or
+    GL_LINE_BIT or GL_TRANSFORM_BIT or GL_COLOR_BUFFER_BIT, false,
+    { Using @NoClose is good, it also allows users to safely use
+      MessageXxx inside own OnCloseQuery, like
+        if MessageYesNo('Are you sure ?') then Window.Close; }
+    nil, nil, @NoClose);
+
+  { FakeMouseDown must be @false.
+    Otherwise closing dialog box with MouseDown will then cause MouseDown
+    when SavedMode is restored. This is bad, because then the mouse click
+    that closes dialog box could also do something else.
+    Actually, FakeMouseDown is @false by default, so this call is not needed. }
+  SavedMode.FakeMouseDown := false;
+
+  glDisable(GL_FOG);
+  glDisable(GL_LIGHTING);
+  glDisable(GL_TEXTURE_1D);
+  glDisable(GL_TEXTURE_2D);
+  glDisable(GL_SCISSOR_TEST);
+  glDisable(GL_DEPTH_TEST);
+  glLineWidth(1);
+  glPixelStorei(GL_UNPACK_SWAP_BYTES, GL_FALSE);
+  glPixelStorei(GL_UNPACK_LSB_FIRST, GL_FALSE);
+  glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+  glPixelStorei(GL_UNPACK_SKIP_ROWS,  0);
+  glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glPixelZoom(1, 1);
+
+  { Inicjuj Dialog, ktora moze wymagac poprawnego ustawienia
+    naszych rzeczy w OpenGLu (np. utworzenie fontu wymaga poprawnego ustawienia
+    GL_UNPACK_xxx bo tworzenie fontu to generowanie jego display list a te
+    zostaja utworzone z zapisanym na stale odpowiednim pixel-mode). }
+  try
+    { TODO: problem : chcielibysmy tutaj zeby SaveScreen zawsze dzialalo, bez
+      wzgledu na ustawienia GL_PACK_xxx. Moglibysmy ustawiac wlasne GL_PACK
+      ale lepszym wyjsciem byloby gdyby
+      SaveScreen_noflush dzialalo zawsze tak samo, bez wzgledu na ustawienia
+      GL_PACK_xxx. }
+    with Dialog do
+    begin
+      if Window.DoubleBuffer then
+        DrawBG := SaveScreenToGL_noflush(0, 0, Window.Width, Window.Height, GL_BACK) else
+        DrawBG := SaveScreenToGL_noflush(0, 0, Window.Width, Window.Height, GL_FRONT);
+      Answered := false;
+      if MessagesTheme.Font = nil then
+        font := TGLBitmapFont.Create(BitmapFont_BVSansMono_m18) else
+        font := MessagesTheme.Font;
+      Text := TextList;
+      { Contents of Broken_xxx will be initialized in TCastleDialog.UpdateSizes. }
+      Broken_Text := TStringList.Create;
+      Broken_ClosingText := TStringList.Create;
+      Broken_InputText := TStringList.Create;
+      Align := TextAlign;
+      ClosingText := AClosingText;
+      ScrollBarVisible := false;
+      ScrollBarDragging := false;
+      DrawInputText := AdrawInputText;
+      FInputText := AInputText;
+      { These will be set corectly in nearest TCastleDialog.Draw }
+      ScrollBarRect := IntRectEmpty;
+      WholeMessageRect := IntRectEmpty;
+    end;
+
+    Window.Controls.Add(Dialog);
+    Dialog.Scroll := Dialog.ScrollMin;
+
+    Window.PostRedisplay;
+    repeat Application.ProcessMessage(true, true) until Dialog.Answered;
+
+  finally
+    FreeAndNil(Dialog.DrawBG);
+    Dialog.Broken_Text.Free;
+    Dialog.Broken_ClosingText.Free;
+    Dialog.Broken_InputText.Free;
+    if MessagesTheme.Font = nil then Dialog.font.Free;
+    AInputText := Dialog.InputText;
+
+    { Odtwarzamy zasejwowane wlasciwosci okienka. }
+    FreeAndNil(SavedMode);
+  end;
+end;
+
+procedure MessageCore(
+  const Window: TCastleWindowCustom; const TextList: TStringList;
+  const TextAlign: TTextAlign; const Dialog: TCastleDialog;
+  const AClosingText: string);
+var
+  Dummy: string;
+begin
+  Dummy := '';
+  MessageCore(Window, TextList, TextAlign, Dialog, AClosingText, false, Dummy);
+end;
+
+{ MessageOK ------------------------------------------------------------------ }
+
+type
+  TCastleOKDialog = class(TCastleDialog)
+  public
+    function Press(const Event: TInputPressRelease): boolean; override;
   end;
 
-  {5 faza : konczymy ustawiac wlasne wlasciwosci okienka.
-    Jak widac, chodzi tu o reczne wywolanie odpowiednich callbackow aby
-    zainicjowaly swoj stan. To wymaga aby TMessageData bylo juz calkowicie
-    zainicjowane.
-  Podobnie, zainicjowanie Userdata := messageData oczywiscie
-    wymaga aby messageData bylo juz ustalone. }
-  Window.Userdata := messageData;
-  { ustaw nasze projection matrix }
-  resizeMessg(Window);
-  { ustaw nas na poczatku tekstu. }
-  MessageData.SetFloatShiftY(Window, MessageData.MinShiftY);
-
-  {6 faza :
-    Robimy wlasna petle, az do messageData.answered. }
-  repeat Application.ProcessMessage(true, true) until messageData.answered;
-
- { zwolnij zainicjowane messageData }
- finally
-  FreeAndNil(messageData.DrawBG);
-  messageData.Broken_MessgText.Free;
-  messageData.Broken_ClosingInfo.Free;
-  messageData.Broken_SAdditional.Free;
-  if MessagesTheme.Font = nil then messageData.font.Free;
-  ASAdditional := messageData.SAdditional;
-  FreeAndNil(messageData);
-
-  {7 faza :
-    Odtwarzamy zasejwowane wlasciwosci okienka. }
-  FreeAndNil(SavedMode);
- end;
-end;
-
-procedure MessageCore_NoAdditional(Window: TCastleWindowBase; textlist: TStringList;
-  textalign: TTextAlign;
-  MessageOnUserPress: TInputPressReleaseFunc;
-  AUserMouseDownOnlyWithinRect: boolean;
-  messageUserdata: pointer;
-  const AClosingInfo: string);
-var dummy: string;
+function TCastleOKDialog.Press(const Event: TInputPressRelease): boolean;
 begin
- dummy := '';
- MessageCore(Window, textlist, textalign, MessageOnUserPress,
-   AUserMouseDownOnlyWithinRect,
-   messageUserdata, AClosingInfo, false, dummy);
-end;
+  Result := inherited;
+  if Result or (not GetExists) then Exit;
 
-{ MessageOK function with callbacks ------------------------------------------ }
-
-procedure PressMessgOK(Window: TCastleWindowBase; const Event: TInputPressRelease);
-begin
   if Event.IsMouseButton(mbLeft) or Event.IsKey(CharEnter) then
-    TMessageData(Window.UserData).answered := true;
+    Answered := true;
 end;
 
-procedure MessageOK(Window: TCastleWindowBase;  const SArray: array of string;
-  textalign: TTextAlign = taMiddle);
-var textlist: TStringList;
+procedure MessageOK(Window: TCastleWindowCustom;  const SArray: array of string;
+  TextAlign: TTextAlign = taMiddle);
+var
+  TextList: TStringList;
 begin
- textlist := TStringList.Create;
- try
-  AddStrArrayToStrings(SArray, textlist);
-  MessageOK(Window, textlist, textalign);
- finally textlist.Free end;
+  TextList := TStringList.Create;
+  try
+    AddStrArrayToStrings(SArray, TextList);
+    MessageOK(Window, TextList, TextAlign);
+  finally TextList.Free end;
 end;
 
-procedure MessageOK(Window: TCastleWindowBase; const s: string; textalign: TTextAlign);
-var textlist: TStringList;
+procedure MessageOK(Window: TCastleWindowCustom; const s: string; TextAlign: TTextAlign);
+var
+  TextList: TStringList;
 begin
- textlist := TStringList.Create;
- try
-  Strings_SetText(textlist, s);
-  MessageOK(Window, textlist, textalign);
- finally textlist.free end;
+  TextList := TStringList.Create;
+  try
+    Strings_SetText(TextList, s);
+    MessageOK(Window, TextList, TextAlign);
+  finally TextList.free end;
 end;
 
-procedure MessageOK(Window: TCastleWindowBase;  textlist: TStringList;
-  textalign: TTextAlign);
+procedure MessageOK(Window: TCastleWindowCustom;  TextList: TStringList;
+  TextAlign: TTextAlign);
+var
+  Dialog: TCastleOKDialog;
 begin
- MessageCore_NoAdditional(Window, textlist, textalign,
-   @PressMessgOK, true, nil, '[Enter]');
+  Dialog := TCastleOKDialog.Create(nil);
+  try
+    MessageCore(Window, TextList, TextAlign, Dialog, '[Enter]');
+  finally FreeAndNil(Dialog) end;
 end;
 
 { MessageInput function with callbacks --------------------------------------- }
 
 type
-  TInputData = record
-    answerCancelled: boolean; { wazne tylko jesli userCanCancel }
+  TCastleInputDialog = class(TCastleDialog)
+  private
+    { meaningful only if userCanCancel }
+    answerCancelled: boolean;
 
     {pola ustawiane w wywolaniu MessageInput, read only z callbackow xxxMessgInput }
     answerMinLen, answerMaxLen: integer;
     answerAllowedChars: TSetOfChars;
     userCanCancel: boolean; { czy user moze wyjsc przez "Cancel" }
+  public
+    function Press(const Event: TInputPressRelease): boolean; override;
   end;
-  PInputData = ^TInputData;
 
-procedure PressMessgInput(Window: TCastleWindowBase; const Event: TInputPressRelease);
-var md: TMessageData;
-    id: PInputData;
+function TCastleInputDialog.Press(const Event: TInputPressRelease): boolean;
 begin
-  md := TMessageData(Window.UserData);
-  id := PInputData(md.userdata);
+  Result := inherited;
+  if Result or (not GetExists) then Exit;
 
   { Under Windows, pressing ctrl+backspace causes key = K_BackSpace with
     character = CharDelete. That is, Windows automatically replaces ctrl+backspace
@@ -1181,271 +1076,286 @@ begin
     to detect backspace. }
   if Event.IsKey(CharBackSpace) or Event.IsKey(K_BackSpace) then
   begin
-    if md.SAdditional <> '' then
-      if mkCtrl in Window.Pressed.Modifiers then
-        md.SetSAdditional(Window, '') else
-        md.SetSAdditional(Window, Copy(md.SAdditional, 1, Length(md.SAdditional)-1));
+    if InputText <> '' then
+      if mkCtrl in Container.Pressed.Modifiers then
+        InputText := '' else
+        InputText := Copy(InputText, 1, Length(InputText) - 1);
   end else
   if Event.IsKey(CharEnter) then
   begin
-    if Length(md.SAdditional) >= id^.answerMinLen then
-      md.answered := true else
+    if Length(InputText) >= answerMinLen then
+      answered := true;
+      { No nice way to show it for now?
+      else
       MessageOk(Window, Format('You must enter at least %d characters.',
-        [id^.answerMinLen]), taMiddle);
+        [answerMinLen]), taMiddle); }
   end else
   if Event.IsKey(CharEscape) then
   begin
-    if id^.userCanCancel then
+    if userCanCancel then
     begin
-      id^.answerCancelled := true;
-      md.answered := true;
+      answerCancelled := true;
+      answered := true;
     end;
   end else
   if Event.IsKey(CtrlC) then
   begin
-    if MD.SAdditional <> '' then
-      Clipboard.AsText := MD.SAdditional;
+    if InputText <> '' then
+      Clipboard.AsText := InputText;
   end else
   if Event.IsKey(CtrlX) then
   begin
-    if MD.SAdditional <> '' then
+    if InputText <> '' then
     begin
-      Clipboard.AsText := MD.SAdditional;
-      MD.SetSAdditional(Window, '');
+      Clipboard.AsText := InputText;
+      InputText := '';
     end;
   end else
   if Event.IsKey(CtrlV) then
-    MD.SetSAdditional(Window, Clipboard.AsText) else
+    InputText := Clipboard.AsText else
   if (Event.EventType = itKey) and
      (Event.KeyCharacter <> #0) and
-     (Event.KeyCharacter in id^.answerAllowedChars) and
-     ((id^.answerMaxLen = 0) or (length(md.SAdditional) < id^.answerMaxLen)) then
-    md.SetSAdditional(Window, md.SAdditional + Event.KeyCharacter);
+     (Event.KeyCharacter in answerAllowedChars) and
+     ((answerMaxLen = 0) or (Length(InputText) < answerMaxLen)) then
+    InputText := InputText + Event.KeyCharacter;
 end;
 
-function MessageInput(Window: TCastleWindowBase; const s: string;
-  textalign: TTextAlign; const answerDefault: string;
+function MessageInput(Window: TCastleWindowCustom; const s: string;
+  TextAlign: TTextAlign; const answerDefault: string;
   answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): string;
-var textlist: TStringList;
-begin
- textlist := TStringList.Create;
- try
-  Strings_SetText(textlist, s);
-  result := MessageInput(Window, textlist, textalign, answerDefault, answerMinLen,
-     answerMaxLen, answerAllowedChars);
- finally textlist.free end;
-end;
-
-function MessageInput(Window: TCastleWindowBase; textlist: TStringList;
-  textalign: TTextAlign; const answerDefault: string;
-  answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): string;
-var inputData: TInputData;
-begin
- inputdata.answerMinLen := answerMinLen;
- inputdata.answerMaxLen := answerMaxLen;
- inputdata.answerAllowedChars := answerAllowedChars;
- inputdata.userCanCancel := false;
- inputdata.answerCancelled := false;
- result := answerDefault;
- MessageCore(Window, textlist, textalign,
-   @PressMessgInput, false, @inputdata, '', true, result);
-end;
-
-function MessageInputQuery(Window: TCastleWindowBase; const s: string;
-  var answer: string; textalign: TTextAlign;
-  answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): boolean;
-var textlist: TStringList;
-begin
- textlist := TStringList.Create;
- try
-  Strings_SetText(textlist, s);
-  result := MessageInputQuery(Window, textlist, answer, textalign, answerMinLen,
-     answerMaxLen, answerAllowedChars);
- finally textlist.free end;
-end;
-
-function MessageInputQuery(Window: TCastleWindowBase; textlist: TStringList;
-  var answer: string; textalign: TTextAlign;
-  answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): boolean;
-var inputData: TInputData;
-    SAdditional: string;
-begin
- inputdata.answerMinLen := answerMinLen;
- inputdata.answerMaxLen := answerMaxLen;
- inputdata.answerAllowedChars := answerAllowedChars;
- inputdata.userCanCancel := true;
- inputdata.answerCancelled := false;
-
- {uzywamy dodatkowej zmiennej SAdditional zamiast bezposrednio przekazywac
-  MessageCore zmienna answer bo jezeli not result to nie chcemy zmieniac
-  answer. }
- SAdditional := answer;
- MessageCore(Window, textlist, textalign,
-   @PressMessgInput, false, @inputdata, 'OK[Enter] / Cancel[Escape]', true, SAdditional);
- result := not inputdata.answerCancelled;
- if result then answer := SAdditional;
-end;
-
-{ MessageChar functions with callbacks --------------------------------------- }
-
-type
-  TCharData = record
-    AllowedChars: TSetOfChars;
-    answer: char;
-    IgnoreCase: boolean;
-  end;
-  PCharData = ^TCharData;
-
-procedure PressMessgChar(Window: TCastleWindowBase; const Event: TInputPressRelease);
-var
-  md: TMessageData;
-  cd: PCharData;
-  C: char;
-begin
-  md := TMessageData(Window.UserData);
-  cd := PCharData(md.userdata);
-
-  if Event.EventType <> itKey then Exit;
-  C := Event.KeyCharacter;
-
-  if cd^.IgnoreCase then
-  begin
-    if (UpCase(C) in cd^.AllowedChars) or
-       (LoCase(C) in cd^.AllowedChars) then
-    begin
-      md.answered := true;
-      cd^.answer := LoCase(c);
-    end;
-  end else
-  begin
-    if c in cd^.AllowedChars then
-    begin
-      md.answered := true;
-      cd^.answer := c;
-    end;
-  end;
-end;
-
-function MessageChar(Window: TCastleWindowBase; const s: string; const AllowedChars: TSetOfChars;
-  const ClosingInfo: string; textalign: TTextAlign;
-  IgnoreCase: boolean): char;
-var textlist: TStringList;
-begin
- textlist := TStringList.Create;
- try
-  Strings_SetText(textlist, s);
-  result := MessageChar(Window, textlist, AllowedChars, ClosingInfo, textalign, IgnoreCase);
- finally textlist.free end;
-end;
-
-function MessageChar(Window: TCastleWindowBase;  const SArray: array of string; const AllowedChars: TSetOfChars;
-  const ClosingInfo: string; textalign: TTextAlign;
-  IgnoreCase: boolean): char; overload;
-var textlist: TStringList;
-begin
- textlist := TStringList.Create;
- try
-  AddStrArrayToStrings(SArray, textlist);
-  result := MessageChar(Window, textlist, AllowedChars, ClosingInfo, textalign, IgnoreCase);
- finally textlist.Free end;
-end;
-
-function MessageChar(Window: TCastleWindowBase; textlist: TStringList;
-  const AllowedChars: TSetOfChars; const ClosingInfo: string;
-  textalign: TTextAlign;
-  IgnoreCase: boolean): char; overload;
-var charData: TCharData;
-begin
- chardata.allowedChars := AllowedChars;
- chardata.IgnoreCase := IgnoreCase;
- MessageCore_NoAdditional(Window, textlist, textalign,
-   @PressMessgChar, false,
-   @chardata, ClosingInfo);
- result := chardata.answer;
-end;
-
-{ MessageKey functions with callbacks --------------------------------------- }
-
-type
-  TMessageKeyData = record
-    Answer: TKey;
-  end;
-  PMessageKeyData = ^TMessageKeyData;
-
-procedure MessageKey_Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
-var
-  MD: TMessageData;
-  KD: PMessageKeyData;
-begin
-  MD := TMessageData(Window.UserData);
-  KD := PMessageKeyData(MD.UserData);
-
-  if (Event.EventType = itKey) and (Event.Key <> K_None) then
-  begin
-    MD.Answered := true;
-    KD^.Answer := Event.Key;
-  end;
-end;
-
-function MessageKey(Window: TCastleWindowBase; const S: string;
-  const ClosingInfo: string; TextAlign: TTextAlign): TKey;
 var
   TextList: TStringList;
 begin
   TextList := TStringList.Create;
   try
-    Strings_SetText(TextList, S);
-    Result := MessageKey(Window, TextList, ClosingInfo, TextAlign);
+    Strings_SetText(TextList, s);
+    result := MessageInput(Window, TextList, TextAlign, answerDefault,
+      answerMinLen, answerMaxLen, answerAllowedChars);
   finally TextList.free end;
 end;
 
-function MessageKey(Window: TCastleWindowBase; const SArray: array of string;
-  const ClosingInfo: string; TextAlign: TTextAlign): TKey;
+function MessageInput(Window: TCastleWindowCustom; TextList: TStringList;
+  TextAlign: TTextAlign; const answerDefault: string;
+  answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): string;
+var
+  Dialog: TCastleInputDialog;
+begin
+  Dialog := TCastleInputDialog.Create(nil);
+  try
+    Dialog.answerMinLen := answerMinLen;
+    Dialog.answerMaxLen := answerMaxLen;
+    Dialog.answerAllowedChars := answerAllowedChars;
+    Dialog.userCanCancel := false;
+    Dialog.answerCancelled := false;
+    result := answerDefault;
+    MessageCore(Window, TextList, TextAlign, Dialog, '', true, result);
+  finally FreeAndNil(Dialog) end;
+end;
+
+function MessageInputQuery(Window: TCastleWindowCustom; const s: string;
+  var answer: string; TextAlign: TTextAlign;
+  answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): boolean;
+var
+  TextList: TStringList;
+begin
+  TextList := TStringList.Create;
+  try
+    Strings_SetText(TextList, s);
+    result := MessageInputQuery(Window, TextList, answer, TextAlign, answerMinLen,
+      answerMaxLen, answerAllowedChars);
+  finally TextList.free end;
+end;
+
+function MessageInputQuery(Window: TCastleWindowCustom; TextList: TStringList;
+  var answer: string; TextAlign: TTextAlign;
+  answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): boolean;
+var
+  Dialog: TCastleInputDialog;
+  InputText: string;
+begin
+  Dialog := TCastleInputDialog.Create(nil);
+  try
+    Dialog.answerMinLen := answerMinLen;
+    Dialog.answerMaxLen := answerMaxLen;
+    Dialog.answerAllowedChars := answerAllowedChars;
+    Dialog.userCanCancel := true;
+    Dialog.answerCancelled := false;
+
+    { uzywamy dodatkowej zmiennej InputText zamiast bezposrednio przekazywac
+      MessageCore zmienna answer bo jezeli not result to nie chcemy zmieniac
+      answer. }
+    InputText := answer;
+    MessageCore(Window, TextList, TextAlign,
+      Dialog, 'OK[Enter] / Cancel[Escape]', true, InputText);
+    result := not Dialog.answerCancelled;
+    if result then answer := InputText;
+  finally FreeAndNil(Dialog) end;
+end;
+
+{ MessageChar ---------------------------------------------------------------- }
+
+type
+  TCastleCharDialog = class(TCastleDialog)
+  public
+    AllowedChars: TSetOfChars;
+    answer: char;
+    IgnoreCase: boolean;
+  public
+    function Press(const Event: TInputPressRelease): boolean; override;
+  end;
+
+function TCastleCharDialog.Press(const Event: TInputPressRelease): boolean;
+var
+  C: char;
+begin
+  Result := inherited;
+  if Result or (not GetExists) then Exit;
+
+  if Event.EventType <> itKey then Exit;
+  C := Event.KeyCharacter;
+
+  if IgnoreCase then
+  begin
+    if (UpCase(C) in AllowedChars) or
+       (LoCase(C) in AllowedChars) then
+    begin
+      answered := true;
+      answer := LoCase(c);
+    end;
+  end else
+  begin
+    if c in AllowedChars then
+    begin
+      answered := true;
+      answer := c;
+    end;
+  end;
+end;
+
+function MessageChar(Window: TCastleWindowCustom; const s: string; const AllowedChars: TSetOfChars;
+  const ClosingText: string; TextAlign: TTextAlign;
+  IgnoreCase: boolean): char;
+var
+  TextList: TStringList;
+begin
+  TextList := TStringList.Create;
+  try
+    Strings_SetText(TextList, s);
+    result := MessageChar(Window, TextList, AllowedChars, ClosingText, TextAlign, IgnoreCase);
+  finally TextList.free end;
+end;
+
+function MessageChar(Window: TCastleWindowCustom;  const SArray: array of string; const AllowedChars: TSetOfChars;
+  const ClosingText: string; TextAlign: TTextAlign;
+  IgnoreCase: boolean): char; overload;
 var
   TextList: TStringList;
 begin
   TextList := TStringList.Create;
   try
     AddStrArrayToStrings(SArray, TextList);
-    Result := MessageKey(Window, TextList, ClosingInfo, TextAlign);
+    result := MessageChar(Window, TextList, AllowedChars, ClosingText, TextAlign, IgnoreCase);
   finally TextList.Free end;
 end;
 
-function MessageKey(Window: TCastleWindowBase; TextList: TStringList;
-  const ClosingInfo: string; TextAlign: TTextAlign): TKey;
+function MessageChar(Window: TCastleWindowCustom; TextList: TStringList;
+  const AllowedChars: TSetOfChars; const ClosingText: string;
+  TextAlign: TTextAlign;
+  IgnoreCase: boolean): char; overload;
 var
-  MessageKeyData: TMessageKeyData;
+  Dialog: TCastleCharDialog;
 begin
-  MessageCore_NoAdditional(Window, TextList, TextAlign,
-    @MessageKey_Press, false, @MessageKeyData, ClosingInfo);
-  Result := MessageKeyData.Answer;
+  Dialog := TCastleCharDialog.Create(nil);
+  try
+    Dialog.allowedChars := AllowedChars;
+    Dialog.IgnoreCase := IgnoreCase;
+    MessageCore(Window, TextList, TextAlign, Dialog, ClosingText);
+    result := Dialog.answer;
+  finally FreeAndNil(Dialog) end;
 end;
 
-{ MessageKeyMouse functions with callbacks ----------------------------------- }
+{ MessageKey functions with callbacks --------------------------------------- }
 
 type
-  TMessageKeyMouseData = record
-    Answer: TInputPressRelease;
+  TCastleKeyDialog = class(TCastleDialog)
+  private
+    Answer: TKey;
+  public
+    function Press(const Event: TInputPressRelease): boolean; override;
   end;
-  PMessageKeyMouseData = ^TMessageKeyMouseData;
 
-procedure MessageKeyMouse_Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
-var
-  MD: TMessageData;
-  KD: PMessageKeyMouseData;
+function TCastleKeyDialog.Press(const Event: TInputPressRelease): boolean;
 begin
-  MD := TMessageData(Window.UserData);
-  KD := PMessageKeyMouseData(MD.UserData);
+  Result := inherited;
+  if Result or (not GetExists) then Exit;
+
+  if (Event.EventType = itKey) and (Event.Key <> K_None) then
+  begin
+    Answered := true;
+    Answer := Event.Key;
+  end;
+end;
+
+function MessageKey(Window: TCastleWindowCustom; const S: string;
+  const ClosingText: string; TextAlign: TTextAlign): TKey;
+var
+  TextList: TStringList;
+begin
+  TextList := TStringList.Create;
+  try
+    Strings_SetText(TextList, S);
+    Result := MessageKey(Window, TextList, ClosingText, TextAlign);
+  finally TextList.free end;
+end;
+
+function MessageKey(Window: TCastleWindowCustom; const SArray: array of string;
+  const ClosingText: string; TextAlign: TTextAlign): TKey;
+var
+  TextList: TStringList;
+begin
+  TextList := TStringList.Create;
+  try
+    AddStrArrayToStrings(SArray, TextList);
+    Result := MessageKey(Window, TextList, ClosingText, TextAlign);
+  finally TextList.Free end;
+end;
+
+function MessageKey(Window: TCastleWindowCustom; TextList: TStringList;
+  const ClosingText: string; TextAlign: TTextAlign): TKey;
+var
+  Dialog: TCastleKeyDialog;
+begin
+  Dialog := TCastleKeyDialog.Create(nil);
+  try
+    MessageCore(Window, TextList, TextAlign, Dialog, ClosingText);
+    Result := Dialog.Answer;
+  finally FreeAndNil(Dialog) end;
+end;
+
+{ MessageKeyMouse ------------------------------------------------------------ }
+
+type
+  TCastleKeyMouseDialog = class(TCastleDialog)
+  private
+    Answer: TInputPressRelease;
+  public
+    function Press(const Event: TInputPressRelease): boolean; override;
+  end;
+
+function TCastleKeyMouseDialog.Press(const Event: TInputPressRelease): boolean;
+begin
+  Result := inherited;
+  if Result or (not GetExists) then Exit;
 
   if (Event.EventType <> itKey) or (Event.Key <> K_None) then
   begin
-    MD.Answered := true;
-    KD^.Answer := Event;
+    Answered := true;
+    Answer := Event;
   end;
 end;
 
-procedure MessageKeyMouse(Window: TCastleWindowBase; const S: string;
-  const ClosingInfo: string; TextAlign: TTextAlign;
+procedure MessageKeyMouse(Window: TCastleWindowCustom; const S: string;
+  const ClosingText: string; TextAlign: TTextAlign;
   out Event: TInputPressRelease);
 var
   TextList: TStringList;
@@ -1453,19 +1363,21 @@ begin
   TextList := TStringList.Create;
   try
     Strings_SetText(TextList, S);
-    MessageKeyMouse(Window, TextList, ClosingInfo, TextAlign, Event);
+    MessageKeyMouse(Window, TextList, ClosingText, TextAlign, Event);
   finally TextList.Free end;
 end;
 
-procedure MessageKeyMouse(Window: TCastleWindowBase; TextList: TStringList;
-  const ClosingInfo: string; TextAlign: TTextAlign;
+procedure MessageKeyMouse(Window: TCastleWindowCustom; TextList: TStringList;
+  const ClosingText: string; TextAlign: TTextAlign;
   out Event: TInputPressRelease);
 var
-  Data: TMessageKeyMouseData;
+  Dialog: TCastleKeyMouseDialog;
 begin
-  MessageCore_NoAdditional(Window, TextList, TextAlign,
-    @MessageKeyMouse_Press, false, @Data, ClosingInfo);
-  Event := Data.Answer;
+  Dialog := TCastleKeyMouseDialog.Create(nil);
+  try
+    MessageCore(Window, TextList, TextAlign, Dialog, ClosingText);
+    Event := Dialog.Answer;
+  finally FreeAndNil(Dialog) end;
 end;
 
 { MessageYesNo ktore jest po prostu realizowane przez MessageChar ------------ }
@@ -1474,91 +1386,92 @@ const
   { TODO: to be localized ? }
   MessageYesNo_YesLetter = 'y';
   MessageYesNo_NoLetter = 'n';
-  MessageYesNo_ClosingInfo = '[Y]es/[N]o';
+  MessageYesNo_ClosingText = '[Y]es/[N]o';
   MessageYesNo_AllowedChars: TSetOfChars = ['n','N','y','Y'];
 
-function MessageYesNo(Window: TCastleWindowBase; const s: string;
-  textalign: TTextAlign): boolean; overload;
+function MessageYesNo(Window: TCastleWindowCustom; const s: string;
+  TextAlign: TTextAlign): boolean; overload;
 begin
- result := LoCase(MessageChar(Window, s, MessageYesNo_AllowedChars,
-   MessageYesNo_ClosingInfo, textalign)) = MessageYesNo_YesLetter;
+  result := LoCase(MessageChar(Window, s, MessageYesNo_AllowedChars,
+    MessageYesNo_ClosingText, TextAlign)) = MessageYesNo_YesLetter;
 end;
 
-function MessageYesNo(Window: TCastleWindowBase;  const SArray: array of string;
-  textalign: TTextAlign): boolean; overload;
+function MessageYesNo(Window: TCastleWindowCustom;  const SArray: array of string;
+  TextAlign: TTextAlign): boolean; overload;
 begin
- result := LoCase(MessageChar(Window, SArray, MessageYesNo_AllowedChars,
-   MessageYesNo_ClosingInfo, textalign)) = MessageYesNo_YesLetter;
+  result := LoCase(MessageChar(Window, SArray, MessageYesNo_AllowedChars,
+    MessageYesNo_ClosingText, TextAlign)) = MessageYesNo_YesLetter;
 end;
 
-function MessageYesNo(Window: TCastleWindowBase;  textlist: TStringList;
-  textalign: TTextAlign): boolean; overload;
+function MessageYesNo(Window: TCastleWindowCustom;  TextList: TStringList;
+  TextAlign: TTextAlign): boolean; overload;
 begin
- result := LoCase(MessageChar(Window, textlist, MessageYesNo_AllowedChars,
-   MessageYesNo_ClosingInfo, textalign)) = MessageYesNo_YesLetter;
+  result := LoCase(MessageChar(Window, TextList, MessageYesNo_AllowedChars,
+    MessageYesNo_ClosingText, TextAlign)) = MessageYesNo_YesLetter;
 end;
 
 { MessageInputCardinal ------------------------------------------------------- }
 
-function MessageInputCardinal(Window: TCastleWindowBase; const s: string;
+function MessageInputCardinal(Window: TCastleWindowCustom; const s: string;
   TextAlign: TTextAlign; const AnswerDefault: string): Cardinal;
 begin
- result := StrToInt( MessageInput(Window, s, TextAlign, AnswerDefault,
-   1, 0, ['0'..'9']) );
+  result := StrToInt( MessageInput(Window, s, TextAlign, AnswerDefault,
+    1, 0, ['0'..'9']) );
 end;
 
-function MessageInputCardinal(Window: TCastleWindowBase; const s: string;
+function MessageInputCardinal(Window: TCastleWindowCustom; const s: string;
   TextAlign: TTextAlign; AnswerDefault: Cardinal): Cardinal;
 begin
- result := MessageInputCardinal(Window, s, TextAlign, IntToStr(AnswerDefault));
+  result := MessageInputCardinal(Window, s, TextAlign, IntToStr(AnswerDefault));
 end;
 
-function MessageInputQueryCardinal(Window: TCastleWindowBase; const Title: string;
+function MessageInputQueryCardinal(Window: TCastleWindowCustom; const Title: string;
   var Value: Cardinal; TextAlign: TTextAlign): boolean;
-var ValueStr: string;
+var
+  ValueStr: string;
 begin
- ValueStr := IntToStr(Value);
- Result := MessageInputQuery(Window, Title, ValueStr, TextAlign, 1, 0, ['0'..'9']);
- if Result then
-  Value := StrToInt(ValueStr);
+  ValueStr := IntToStr(Value);
+  Result := MessageInputQuery(Window, Title, ValueStr, TextAlign, 1, 0, ['0'..'9']);
+  if Result then
+    Value := StrToInt(ValueStr);
 end;
 
-function MessageInputQueryCardinalHex(Window: TCastleWindowBase; const Title: string;
+function MessageInputQueryCardinalHex(Window: TCastleWindowCustom; const Title: string;
   var Value: Cardinal; TextAlign: TTextAlign; MaxWidth: Cardinal): boolean;
-var ValueStr: string;
+var
+  ValueStr: string;
 begin
- ValueStr := IntToHex(Value, 4);
- Result := MessageInputQuery(Window, Title, ValueStr, TextAlign, 1, MaxWidth,
-   ['0'..'9', 'a'..'f', 'A'..'F']);
- if Result then
-  Value := StrHexToInt(ValueStr);
+  ValueStr := IntToHex(Value, 4);
+  Result := MessageInputQuery(Window, Title, ValueStr, TextAlign, 1, MaxWidth,
+    ['0'..'9', 'a'..'f', 'A'..'F']);
+  if Result then
+    Value := StrHexToInt(ValueStr);
 end;
 
 { MessageInputQuery on floats ------------------------------------------------ }
 
-function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
+function MessageInputQuery(Window: TCastleWindowCustom; const Title: string;
   var Value: Extended; TextAlign: TTextAlign; const ValueAsString: string): boolean;
-var s: string;
+var
+  s: string;
 begin
- Result := false;
- if ValueAsString <> '' then
-   S := ValueAsString else
-   S := FloatToStr(Value);
- if MessageInputQuery(Window, Title, s, TextAlign) then
- begin
-  try
-   Value := StrToFloat(s);
-   Result := true;
-  except
-   on E: EConvertError do
-   begin
-    MessageOK(Window, 'Invalid floating point value : ' +E.Message, taLeft);
-   end;
+  Result := false;
+  if ValueAsString <> '' then
+    S := ValueAsString else
+    S := FloatToStr(Value);
+  if MessageInputQuery(Window, Title, s, TextAlign) then
+  begin
+    try
+      Value := StrToFloat(s);
+      Result := true;
+    except
+      on E: EConvertError do
+        MessageOK(Window, 'Invalid floating point value : ' +E.Message, taLeft);
+    end;
   end;
- end;
 end;
 
-function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
+function MessageInputQuery(Window: TCastleWindowCustom; const Title: string;
   var Value: Single; TextAlign: TTextAlign; const ValueAsString: string): boolean;
 var
   ValueExtended: Extended;
@@ -1570,7 +1483,7 @@ begin
 end;
 
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
+function MessageInputQuery(Window: TCastleWindowCustom; const Title: string;
   var Value: Double; TextAlign: TTextAlign; const ValueAsString: string): boolean;
 var
   ValueExtended: Extended;
@@ -1585,47 +1498,44 @@ end;
 { MessageInputQueryVector3Single --------------------------------------------- }
 
 function MessageInputQueryVector3Single(
-  Window: TCastleWindowBase; const Title: string;
+  Window: TCastleWindowCustom; const Title: string;
   var Value: TVector3Single; TextAlign: TTextAlign): boolean;
 var s: string;
 begin
- Result := false;
- s := Format('%g %g %g', [Value[0], Value[1], Value[2]]);
- if MessageInputQuery(Window, Title, s, TextAlign) then
- begin
-  try
-   Value := Vector3SingleFromStr(s);
-   Result := true;
-  except
-   on E: EConvertError do
-   begin
-    MessageOK(Window, 'Invalid vector 3 value : ' + E.Message, taLeft);
-   end;
+  Result := false;
+  s := Format('%g %g %g', [Value[0], Value[1], Value[2]]);
+  if MessageInputQuery(Window, Title, s, TextAlign) then
+  begin
+    try
+      Value := Vector3SingleFromStr(s);
+      Result := true;
+    except
+      on E: EConvertError do
+        MessageOK(Window, 'Invalid vector 3 value : ' + E.Message, taLeft);
+    end;
   end;
- end;
 end;
 
 { MessageInputQueryVector4Single --------------------------------------------- }
 
 function MessageInputQueryVector4Single(
-  Window: TCastleWindowBase; const Title: string;
+  Window: TCastleWindowCustom; const Title: string;
   var Value: TVector4Single; TextAlign: TTextAlign): boolean;
-var s: string;
+var
+  s: string;
 begin
- Result := false;
- s := Format('%g %g %g %g', [Value[0], Value[1], Value[2], Value[3]]);
- if MessageInputQuery(Window, Title, s, TextAlign) then
- begin
-  try
-   Value := Vector4SingleFromStr(s);
-   Result := true;
-  except
-   on E: EConvertError do
-   begin
-    MessageOK(Window, 'Invalid vector 4 value : ' + E.Message, taLeft);
-   end;
+  Result := false;
+  s := Format('%g %g %g %g', [Value[0], Value[1], Value[2], Value[3]]);
+  if MessageInputQuery(Window, Title, s, TextAlign) then
+  begin
+    try
+      Value := Vector4SingleFromStr(s);
+      Result := true;
+    except
+      on E: EConvertError do
+        MessageOK(Window, 'Invalid vector 4 value : ' + E.Message, taLeft);
+    end;
   end;
- end;
 end;
 
 { init / fini ---------------------------------------------------------------- }

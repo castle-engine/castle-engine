@@ -25,12 +25,12 @@ type
     In the future maybe such idea will be incorporated into CastleOnScreenMenu unit. }
   TOnScreenMenuItem = class
   private
-    FWindow: TCastleWindowBase;
+    FWindow: TCastleWindowCustom;
   protected
-    property Window: TCastleWindowBase read FWindow;
+    property Window: TCastleWindowCustom read FWindow;
   public
     { Creates and adds this menu item to Menu. }
-    constructor Create(AWindow: TCastleWindowBase; Menu: TCastleOnScreenMenu);
+    constructor Create(AWindow: TCastleWindowCustom; Menu: TCastleOnScreenMenu);
     function Title: string; virtual; abstract;
     function Accessory: TMenuAccessory; virtual;
     procedure Selected; virtual;
@@ -59,7 +59,7 @@ type
     FSlider: TMenuVolumeSlider;
     property Slider: TMenuVolumeSlider read FSlider;
   public
-    constructor Create(AWindow: TCastleWindowBase; Menu: TCastleOnScreenMenu);
+    constructor Create(AWindow: TCastleWindowCustom; Menu: TCastleOnScreenMenu);
 
     { Call this if volume changed by something outside of this class. }
     procedure RefreshAccessory;
@@ -74,7 +74,7 @@ type
     FSlider: TMenuVolumeSlider;
     property Slider: TMenuVolumeSlider read FSlider;
   public
-    constructor Create(AWindow: TCastleWindowBase; Menu: TCastleOnScreenMenu);
+    constructor Create(AWindow: TCastleWindowCustom; Menu: TCastleOnScreenMenu);
 
     { Call this if volume changed by something outside of this class. }
     procedure RefreshAccessory;
@@ -90,7 +90,7 @@ uses Classes, CastleClassUtils, CastleUtils, CastleMessages;
 
 { TOnScreenMenuItem ---------------------------------------------------------------- }
 
-constructor TOnScreenMenuItem.Create(AWindow: TCastleWindowBase; Menu: TCastleOnScreenMenu);
+constructor TOnScreenMenuItem.Create(AWindow: TCastleWindowCustom; Menu: TCastleOnScreenMenu);
 begin
   inherited Create;
   Menu.Items.AddObject(Title, Accessory);
@@ -147,7 +147,7 @@ end;
 
 { TSoundVolumeMenuItem ----------------------------------------------------- }
 
-constructor TSoundVolumeMenuItem.Create(AWindow: TCastleWindowBase; Menu: TCastleOnScreenMenu);
+constructor TSoundVolumeMenuItem.Create(AWindow: TCastleWindowCustom; Menu: TCastleOnScreenMenu);
 begin
   FSlider := TMenuVolumeSlider.Create(SoundEngine.Volume);
   inherited;
@@ -175,7 +175,7 @@ end;
 
 { TMusicVolumeMenuItem ----------------------------------------------------- }
 
-constructor TMusicVolumeMenuItem.Create(AWindow: TCastleWindowBase; Menu: TCastleOnScreenMenu);
+constructor TMusicVolumeMenuItem.Create(AWindow: TCastleWindowCustom; Menu: TCastleOnScreenMenu);
 begin
   FSlider := TMenuVolumeSlider.Create(SoundEngine.MusicPlayer.MusicVolume);
   inherited;
