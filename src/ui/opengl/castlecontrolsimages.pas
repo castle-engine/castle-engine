@@ -13,7 +13,7 @@ var
   Panel: TRGBAlphaImage;
 
 var
-  Window_transparent: TRGBAlphaImage;
+  WindowDarkTransparent: TRGBAlphaImage;
 
 var
   Panel_separator: TRGBImage;
@@ -28,10 +28,10 @@ var
   Button_normal: TRGBImage;
 
 var
-  Window_dark: TRGBImage;
+  WindowDark: TRGBImage;
 
 var
-  Window_gray: TRGBImage;
+  WindowGray: TRGBImage;
 
 implementation
 
@@ -45,8 +45,8 @@ uses SysUtils;
 initialization
   Panel := TRGBAlphaImage.Create(PanelWidth, PanelHeight);
   Move(PanelPixels, Panel.RawPixels^, SizeOf(PanelPixels));
-  Window_transparent := TRGBAlphaImage.Create(Window_transparentWidth, Window_transparentHeight);
-  Move(Window_transparentPixels, Window_transparent.RawPixels^, SizeOf(Window_transparentPixels));
+  WindowDarkTransparent := TRGBAlphaImage.Create(WindowDarkTransparentWidth, WindowDarkTransparentHeight);
+  Move(WindowDarkTransparentPixels, WindowDarkTransparent.RawPixels^, SizeOf(WindowDarkTransparentPixels));
   Panel_separator := TRGBImage.Create(Panel_separatorWidth, Panel_separatorHeight);
   Move(Panel_separatorPixels, Panel_separator.RawPixels^, SizeOf(Panel_separatorPixels));
   Button_pressed := TRGBImage.Create(Button_pressedWidth, Button_pressedHeight);
@@ -55,17 +55,17 @@ initialization
   Move(Button_focusedPixels, Button_focused.RawPixels^, SizeOf(Button_focusedPixels));
   Button_normal := TRGBImage.Create(Button_normalWidth, Button_normalHeight);
   Move(Button_normalPixels, Button_normal.RawPixels^, SizeOf(Button_normalPixels));
-  Window_dark := TRGBImage.Create(Window_darkWidth, Window_darkHeight);
-  Move(Window_darkPixels, Window_dark.RawPixels^, SizeOf(Window_darkPixels));
-  Window_gray := TRGBImage.Create(Window_grayWidth, Window_grayHeight);
-  Move(Window_grayPixels, Window_gray.RawPixels^, SizeOf(Window_grayPixels));
+  WindowDark := TRGBImage.Create(WindowDarkWidth, WindowDarkHeight);
+  Move(WindowDarkPixels, WindowDark.RawPixels^, SizeOf(WindowDarkPixels));
+  WindowGray := TRGBImage.Create(WindowGrayWidth, WindowGrayHeight);
+  Move(WindowGrayPixels, WindowGray.RawPixels^, SizeOf(WindowGrayPixels));
 finalization
   FreeAndNil(Panel);
-  FreeAndNil(Window_transparent);
+  FreeAndNil(WindowDarkTransparent);
   FreeAndNil(Panel_separator);
   FreeAndNil(Button_pressed);
   FreeAndNil(Button_focused);
   FreeAndNil(Button_normal);
-  FreeAndNil(Window_dark);
-  FreeAndNil(Window_gray);
+  FreeAndNil(WindowDark);
+  FreeAndNil(WindowGray);
 end.

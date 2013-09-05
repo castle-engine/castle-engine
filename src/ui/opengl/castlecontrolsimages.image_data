@@ -346,9 +346,9 @@ const
      144,  241,  197,  204);
 
 const
-  Window_transparentWidth = 16;
-  Window_transparentHeight = 16;
-  Window_transparentPixels: array[0 .. Window_transparentWidth * Window_transparentHeight * 4 - 1] of Byte = (
+  WindowDarkTransparentWidth = 16;
+  WindowDarkTransparentHeight = 16;
+  WindowDarkTransparentPixels: array[0 .. WindowDarkTransparentWidth * WindowDarkTransparentHeight * 4 - 1] of Byte = (
      236,  242,   25,  255,  236,  242,   25,  255,  236,  242,   25,  255,
      236,  242,   25,  255,  236,  242,   25,  255,  236,  242,   25,  255,
      236,  242,   25,  255,  236,  242,   25,  255,  236,  242,   25,  255,
@@ -1997,9 +1997,9 @@ const
      221,  221,  221,  221,  221,  221,  221,  221,  221,  221,  221,  221);
 
 const
-  Window_darkWidth = 16;
-  Window_darkHeight = 16;
-  Window_darkPixels: array[0 .. Window_darkWidth * Window_darkHeight * 3 - 1] of Byte = (
+  WindowDarkWidth = 16;
+  WindowDarkHeight = 16;
+  WindowDarkPixels: array[0 .. WindowDarkWidth * WindowDarkHeight * 3 - 1] of Byte = (
      236,  242,   25,  236,  242,   25,  236,  242,   25,  236,  242,   25,
      236,  242,   25,  236,  242,   25,  236,  242,   25,  236,  242,   25,
      236,  242,   25,  236,  242,   25,  236,  242,   25,  236,  242,   25,
@@ -2066,9 +2066,9 @@ const
      236,  242,   25,  236,  242,   25,  236,  242,   25,  236,  242,   25);
 
 const
-  Window_grayWidth = 16;
-  Window_grayHeight = 16;
-  Window_grayPixels: array[0 .. Window_grayWidth * Window_grayHeight * 3 - 1] of Byte = (
+  WindowGrayWidth = 16;
+  WindowGrayHeight = 16;
+  WindowGrayPixels: array[0 .. WindowGrayWidth * WindowGrayHeight * 3 - 1] of Byte = (
      109,  106,  104,  109,  106,  104,  109,  106,  104,  109,  106,  104,
      109,  106,  104,  109,  106,  104,  109,  106,  104,  109,  106,  104,
      109,  106,  104,  109,  106,  104,  109,  106,  104,  109,  106,  104,
