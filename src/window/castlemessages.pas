@@ -203,16 +203,10 @@ function MessageKey(Window: TCastleWindowCustom; TextList: TStringList;
 { Ask user to press any key or mouse button or mouse wheel, and return it.
   The natural use for this is to allow user to configure
   keybindings of your program, like for TInputShortcut.
-
-  TODO: for historical reasons, in case of key events,
-  it for now returns only events that can be represented as TKey
-  (so Event.Key <> K_None, as long as Event.EventType = itKey).
-
   @groupBegin }
 procedure MessageKeyMouse(Window: TCastleWindowCustom; const S: string;
   out Event: TInputPressRelease;
   const TextAlign: TTextAlign = DefaultAlign); overload;
-
 procedure MessageKeyMouse(Window: TCastleWindowCustom; TextList: TStringList;
   out Event: TInputPressRelease;
   const TextAlign: TTextAlign = DefaultAlign); overload;
@@ -815,12 +809,8 @@ function TCastleKeyMouseDialog.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
-
-  if (Event.EventType <> itKey) or (Event.Key <> K_None) then
-  begin
-    Answered := true;
-    Answer := Event;
-  end;
+  Answered := true;
+  Answer := Event;
 end;
 
 procedure MessageKeyMouse(Window: TCastleWindowCustom; const S: string;
