@@ -124,8 +124,7 @@ begin
     RemakeGLVideo;
   except
     on E: Exception do
-      MessageOk(Window, 'Loading of "' + VideoURL + '" failed:' + NL +
-        E.Message, taLeft);
+      MessageOk(Window, 'Loading of "' + VideoURL + '" failed:' + NL + E.Message);
   end;
 end;
 
@@ -136,8 +135,7 @@ begin
     VideoURL := NewVideoURL;
   except
     on E: Exception do
-      MessageOk(Window, 'Saving of "' + NewVideoURL + '" failed:' + NL +
-        E.Message, taLeft);
+      MessageOk(Window, 'Saving of "' + NewVideoURL + '" failed:' + NL + E.Message);
   end;
 end;
 
@@ -254,7 +252,7 @@ begin
     445: begin
            FadeFrames := Min(10, Video.Count div 2);
            if MessageInputQueryCardinal(Window,
-             'How many frames to use for fading?', FadeFrames, taLeft) then
+             'How many frames to use for fading?', FadeFrames) then
            begin
              Video.FadeWithSelf(FadeFrames, 'Fade with self');
              RemakeGLVideo;

@@ -1029,7 +1029,7 @@ begin
     if not MessageInputQueryCardinal(Window,
       Format('You have %d items "%s". How many of them do you want to drop ?',
         [SelectedItem.Quantity, SelectedItem.Resource.Caption]),
-      DropQuantity, taLeft) then
+      DropQuantity) then
       Exit(nil);
 
     if not Between(DropQuantity, 1, SelectedItem.Quantity) then

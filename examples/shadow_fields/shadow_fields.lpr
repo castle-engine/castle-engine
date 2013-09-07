@@ -537,15 +537,15 @@ begin
         NewSHCount := SHCount;
         if MessageInputQueryCardinal(Window,
           Format('Number of spherical harmonic factors to use: (must be between 1 and %d)',
-            [MaxSHBasis]), NewSHCount, taLeft) then
+            [MaxSHBasis]), NewSHCount) then
         begin
           if not Between(NewSHCount, 1, MaxSHBasis) then
-            MessageOk(Window, Format('Must be between 1 and %d.', [MaxSHBasis]), taLeft) else
+            MessageOk(Window, Format('Must be between 1 and %d.', [MaxSHBasis])) else
             SHCount := NewSHCount;
         end;
       end;
 
-    150: MessageInputQuery(Window, 'Light intensity:', LightIntensity, taLeft);
+    150: MessageInputQuery(Window, 'Light intensity:', LightIntensity);
 
     200: Window.Close;
     else Exit;

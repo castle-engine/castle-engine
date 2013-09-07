@@ -94,7 +94,7 @@ procedure MenuClick(Sender: TCastleWindowBase; Item: TMenuItem);
   procedure ChangeChecked(Item: TMenuItemRadio);
   begin
     Item.Checked := MessageYesNo(Window, 'Should menu item "' +
-      SRemoveMnemonics(Item.Caption) + '" be checked ?', taLeft);
+      SRemoveMnemonics(Item.Caption) + '" be checked ?');
     if Item.Checked then
       case Item.IntData of
         25: MoveX := -0.5;

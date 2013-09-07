@@ -284,7 +284,7 @@ procedure MenuClick(Sender: TCastleWindowBase; MenuItem: TMenuItem);
     ExprString: string;
   begin
     ExprString := '';
-    Result := MessageInputQuery(Window, Prompt, ExprString, taLeft);
+    Result := MessageInputQuery(Window, Prompt, ExprString);
     if Result then
     begin
 
@@ -292,7 +292,7 @@ procedure MenuClick(Sender: TCastleWindowBase; MenuItem: TMenuItem);
         Expr := ParseFloatExpression(ExprString, [TVariable]);
       except on E: ECasScriptSyntaxError do
         begin
-          MessageOK(Window, ExceptMessage(E, nil), taLeft);
+          MessageOK(Window, ExceptMessage(E, nil));
           Result := false;
           Exit;
         end;
@@ -310,7 +310,7 @@ begin
 
     201: StatusVisible := not StatusVisible;
     202: CurvesRenderSegments := Max(1,
-           MessageInputCardinal(Window, 'Render curves as ... segments ?', taLeft,
+           MessageInputCardinal(Window, 'Render curves as ... segments ?',
              CurvesRenderSegments));
     203: CurvesRenderSegments := CurvesRenderSegments * 2;
     204: CurvesRenderSegments := Max(2, CurvesRenderSegments div 2);
@@ -321,8 +321,8 @@ begin
               MessageInputQueryFunction('Input y(t) = ', NewYFunction) and
               MessageInputQueryFunction('Input z(t) = ', NewZFunction) then
            begin
-             NewTBegin := MessageInputCardinal(Window, 'Input starting t value :', taLeft, '');
-             NewTEnd := MessageInputCardinal(Window, 'Input ending t value :', taLeft, '');
+             NewTBegin := MessageInputCardinal(Window, 'Input starting t value :', '');
+             NewTEnd := MessageInputCardinal(Window, 'Input ending t value :', '');
              SetPreciseCurve(NewXFunction, NewYFunction, NewZFunction,
                NewTBegin, NewTEnd);
            end;
@@ -332,7 +332,7 @@ begin
     401: ApproxCurveControlPointsVisible := not ApproxCurveControlPointsVisible;
     402: begin
            ApproxCurveControlPointsCount := Max(2, MessageInputCardinal(
-             Window, 'How many control points ?', taLeft, ''));
+             Window, 'How many control points ?', ''));
            SetApproxCurve;
          end;
     403: begin

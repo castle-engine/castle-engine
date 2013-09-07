@@ -127,7 +127,7 @@ begin
     S.Append('');
     Strings_AddSplittedString(S, SoundEngine.SoundInitializationReport, nl);
 
-    MessageOK(Window, S, taLeft);
+    MessageOK(Window, S);
   finally S.Free end;
 end;
 

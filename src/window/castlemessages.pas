@@ -97,21 +97,20 @@ unit CastleMessages;
 interface
 
 uses Classes, CastleWindow, CastleGLUtils, GL, GLU, GLExt, CastleUtils,
-  CastleStringUtils, CastleVectors, CastleKeysMouse;
+  CastleStringUtils, CastleVectors, CastleKeysMouse, CastleControls;
 
-type
-  { Text alignment for MessageXxx functions in @link(CastleMessages) unit. }
-  TTextAlign = (taLeft, taMiddle, taRight);
+const
+  DefaultAlign = taLeft;
 
 { Ask user for simple confirmation. This is the simplest "OK" dialog box.
 
   @groupBegin }
 procedure MessageOK(Window: TCastleWindowCustom; const s: string;
-  TextAlign: TTextAlign = taMiddle); overload;
+  const TextAlign: TTextAlign = DefaultAlign); overload;
 procedure MessageOK(Window: TCastleWindowCustom;  const SArray: array of string;
-  TextAlign: TTextAlign = taMiddle); overload;
+  const TextAlign: TTextAlign = DefaultAlign); overload;
 procedure MessageOK(Window: TCastleWindowCustom;  TextList: TStringList;
-  TextAlign: TTextAlign = taMiddle); overload;
+  const TextAlign: TTextAlign = DefaultAlign); overload;
 { @groupEnd }
 
 { Ask user to input a string.
@@ -121,17 +120,17 @@ procedure MessageOK(Window: TCastleWindowCustom;  TextList: TStringList;
 
   @groupBegin }
 function MessageInput(Window: TCastleWindowCustom; const s: string;
-  TextAlign: TTextAlign = taMiddle;
   const answerDefault: string = '';
-  answerMinLen: integer = 0;
-  answerMaxLen: integer = 0;
-  const answerAllowedChars: TSetOfChars = AllChars): string; overload;
+  const answerMinLen: integer = 0;
+  const answerMaxLen: integer = 0;
+  const answerAllowedChars: TSetOfChars = AllChars;
+  const TextAlign: TTextAlign = DefaultAlign): string; overload;
 function MessageInput(Window: TCastleWindowCustom; TextList: TStringList;
-  TextAlign: TTextAlign = taMiddle;
   const answerDefault: string = '';
-  answerMinLen: integer = 0;
-  answerMaxLen: integer = 0;
-  const answerAllowedChars: TSetOfChars = AllChars): string; overload;
+  const answerMinLen: integer = 0;
+  const answerMaxLen: integer = 0;
+  const answerAllowedChars: TSetOfChars = AllChars;
+  const TextAlign: TTextAlign = DefaultAlign): string; overload;
 { @groupEnd }
 
 { Ask user to input a string, or cancel.
@@ -141,55 +140,50 @@ function MessageInput(Window: TCastleWindowCustom; TextList: TStringList;
 
   @groupBegin }
 function MessageInputQuery(Window: TCastleWindowCustom; const s: string;
-  var answer: string; TextAlign: TTextAlign;
-  answerMinLen: integer = 0;
-  answerMaxLen: integer = 0;
-  const answerAllowedChars: TSetOfChars = AllChars): boolean; overload;
+  var answer: string;
+  const answerMinLen: integer = 0;
+  const answerMaxLen: integer = 0;
+  const answerAllowedChars: TSetOfChars = AllChars;
+  const TextAlign: TTextAlign = DefaultAlign): boolean; overload;
 function MessageInputQuery(Window: TCastleWindowCustom; TextList: TStringList;
-  var answer: string; TextAlign: TTextAlign;
-  answerMinLen: integer = 0;
-  answerMaxLen: integer = 0;
-  const answerAllowedChars: TSetOfChars = AllChars): boolean; overload;
+  var answer: string;
+  const answerMinLen: integer = 0;
+  const answerMaxLen: integer = 0;
+  const answerAllowedChars: TSetOfChars = AllChars;
+  const TextAlign: TTextAlign = DefaultAlign): boolean; overload;
 { @groupEnd }
 
-{ Ask user to press a single character from a given set, or to press one
-  of the buttons. This is good to ask user a question with a small number
-  of answers.
+{ Ask user to choose one option from many.
+  Buttons contain a list of button captions.
 
-  AllowedChars specifies the characters that can be used to answer.
+  ButtonsChars (must have always the same length as Buttons)
+  contains the chars that are returned for each corresponding button press.
+  The user can also directly press the given key. ButtonsChars is not case
+  sensitive, all letters on this list must be different (not only in case).
+  We always return a lowercase letter corresponding to one of ButtonsChars letters.
 
-  Buttons specify the buttons available to press,
-  and ButtonsChars specify what character is returned when given button is pressed
-  (always the length of Buttons and ButtonsChars must be equal).
+  Example usage:
 
-  @param(IgnoreCase This means that case of letters in AllowedChars
-    and ButtonsChars will be ignored.
-
-    For example, you can include only uppercase 'A' in
-    AllowedChars. Or you can include lowercase 'a'. Or you can include
-    both. It doesn't matter --- we will always accept both lower and upper case.
-
-    And it doesn't matter what case of letters you use for ButtonsChars.
-
-    Also, when character is returned, it's always lowercased.
-    So you donn't even know if user pressed lower of upper case letter.)
+  @longCode(#
+case MessageChoice(Window, 'Which fruit to you want to eat?',
+  ['Apple', 'Banana', 'Cancel'],
+  ['a', 'b', CharEscape]) of
+  'a': // ... user pressed "Apple" button or "A" key -> likes apples
+  'b': // ... user pressed "Banana" button or "B" key -> likes bananas
+  CharEscape: // ... user pressed "Cancel" button or "Escape" key -> cancelled
+end;
+#)
 
   @groupBegin }
-function MessageChar(Window: TCastleWindowCustom; const s: string;
-  const AllowedChars: TSetOfChars;
+function MessageChoice(Window: TCastleWindowCustom; const s: string;
   const Buttons: array of string; const ButtonsChars: array of char;
-  TextAlign: TTextAlign = taMiddle;
-  IgnoreCase: boolean = false): char; overload;
-function MessageChar(Window: TCastleWindowCustom; const SArray: array of string;
-  const AllowedChars: TSetOfChars;
+  const TextAlign: TTextAlign = DefaultAlign): char; overload;
+function MessageChoice(Window: TCastleWindowCustom; const SArray: array of string;
   const Buttons: array of string; const ButtonsChars: array of char;
-  TextAlign: TTextAlign = taMiddle;
-  IgnoreCase: boolean = false): char; overload;
-function MessageChar(Window: TCastleWindowCustom; TextList: TStringList;
-  const AllowedChars: TSetOfChars;
+  const TextAlign: TTextAlign = DefaultAlign): char; overload;
+function MessageChoice(Window: TCastleWindowCustom; TextList: TStringList;
   const Buttons: array of string; const ButtonsChars: array of char;
-  TextAlign: TTextAlign = taMiddle;
-  IgnoreCase: boolean = false): char; overload;
+  const TextAlign: TTextAlign = DefaultAlign): char; overload;
 { @groupEnd }
 
 { Ask user to press any key, return this key as Keys.TKey.
@@ -199,11 +193,11 @@ function MessageChar(Window: TCastleWindowCustom; TextList: TStringList;
 
   @groupBegin }
 function MessageKey(Window: TCastleWindowCustom; const S: string;
-  TextAlign: TTextAlign): TKey; overload;
+  const TextAlign: TTextAlign = DefaultAlign): TKey; overload;
 function MessageKey(Window: TCastleWindowCustom; const SArray: array of string;
-  TextAlign: TTextAlign): TKey; overload;
+  const TextAlign: TTextAlign = DefaultAlign): TKey; overload;
 function MessageKey(Window: TCastleWindowCustom; TextList: TStringList;
-  TextAlign: TTextAlign): TKey; overload;
+  const TextAlign: TTextAlign = DefaultAlign): TKey; overload;
 { @groupEnd }
 
 { Ask user to press any key or mouse button or mouse wheel, and return it.
@@ -216,18 +210,20 @@ function MessageKey(Window: TCastleWindowCustom; TextList: TStringList;
 
   @groupBegin }
 procedure MessageKeyMouse(Window: TCastleWindowCustom; const S: string;
-  TextAlign: TTextAlign; out Event: TInputPressRelease); overload;
+  out Event: TInputPressRelease;
+  const TextAlign: TTextAlign = DefaultAlign); overload;
 
 procedure MessageKeyMouse(Window: TCastleWindowCustom; TextList: TStringList;
-  TextAlign: TTextAlign; out Event: TInputPressRelease); overload;
+  out Event: TInputPressRelease;
+  const TextAlign: TTextAlign = DefaultAlign); overload;
 { @groupEnd }
 
 function MessageYesNo(Window: TCastleWindowCustom; const s: string;
-  TextAlign: TTextAlign = taMiddle): boolean; overload;
+  const TextAlign: TTextAlign = DefaultAlign): boolean; overload;
 function MessageYesNo(Window: TCastleWindowCustom;  const SArray: array of string;
-  TextAlign: TTextAlign = taMiddle): boolean; overload;
+  const TextAlign: TTextAlign = DefaultAlign): boolean; overload;
 function MessageYesNo(Window: TCastleWindowCustom;  TextList: TStringList;
-  TextAlign: TTextAlign = taMiddle): boolean; overload;
+  const TextAlign: TTextAlign = DefaultAlign): boolean; overload;
 
 { Ask user to input an unsigned integer.
 
@@ -237,17 +233,21 @@ function MessageYesNo(Window: TCastleWindowCustom;  TextList: TStringList;
 
   @groupBegin }
 function MessageInputCardinal(Window: TCastleWindowCustom; const s: string;
-  TextAlign: TTextAlign; const AnswerDefault: string): Cardinal; overload;
+  const AnswerDefault: string;
+  const TextAlign: TTextAlign = DefaultAlign): Cardinal; overload;
 function MessageInputCardinal(Window: TCastleWindowCustom; const s: string;
-  TextAlign: TTextAlign; AnswerDefault: Cardinal): Cardinal; overload;
+  const AnswerDefault: Cardinal;
+  const TextAlign: TTextAlign = DefaultAlign): Cardinal; overload;
 function MessageInputQueryCardinal(Window: TCastleWindowCustom; const Title: string;
-  var Value: Cardinal; TextAlign: TTextAlign): boolean;
+  var Value: Cardinal;
+  const TextAlign: TTextAlign = DefaultAlign): boolean;
 { @groupEnd }
 
 { Ask user to input a value in hexadecimal.
   Give MaxWidth = 0 to say that there is no maximum width. }
 function MessageInputQueryCardinalHex(Window: TCastleWindowCustom; const Title: string;
-  var Value: Cardinal; TextAlign: TTextAlign; MaxWidth: Cardinal): boolean;
+  var Value: Cardinal; const MaxWidth: Cardinal;
+  const TextAlign: TTextAlign = DefaultAlign): boolean;
 
 { Ask user to input a floating-point number.
 
@@ -259,538 +259,39 @@ function MessageInputQueryCardinalHex(Window: TCastleWindowCustom; const Title: 
 
   @groupBegin }
 function MessageInputQuery(Window: TCastleWindowCustom; const Title: string;
-  var Value: Extended; TextAlign: TTextAlign; const ValueAsString: string = ''): boolean;
+  var Value: Extended;
+  const ValueAsString: string = '';
+  const TextAlign: TTextAlign = DefaultAlign): boolean;
 function MessageInputQuery(Window: TCastleWindowCustom; const Title: string;
-  var Value: Single; TextAlign: TTextAlign; const ValueAsString: string = ''): boolean;
+  var Value: Single;
+  const ValueAsString: string = '';
+  const TextAlign: TTextAlign = DefaultAlign): boolean;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
 function MessageInputQuery(Window: TCastleWindowCustom; const Title: string;
-  var Value: Double; TextAlign: TTextAlign; const ValueAsString: string = ''): boolean;
+  var Value: Double;
+  const ValueAsString: string = '';
+  const TextAlign: TTextAlign = DefaultAlign): boolean;
 {$endif not EXTENDED_EQUALS_DOUBLE}
 { @groupEnd }
 
 function MessageInputQueryVector3Single(
   Window: TCastleWindowCustom; const Title: string;
-  var Value: TVector3Single; TextAlign: TTextAlign): boolean;
+  var Value: TVector3Single;
+  const TextAlign: TTextAlign = DefaultAlign): boolean;
 
 function MessageInputQueryVector4Single(
   Window: TCastleWindowCustom; const Title: string;
-  var Value: TVector4Single; TextAlign: TTextAlign): boolean;
+  var Value: TVector4Single;
+  const TextAlign: TTextAlign = DefaultAlign): boolean;
 
 implementation
 
-uses CastleImages, CastleControls, CastleGLBitmapFonts,
+uses CastleImages, CastleGLBitmapFonts,
   CastleClassUtils, SysUtils, CastleWindowModes, CastleLog, CastleGLImages,
   CastleUIControls, CastleRectangles;
 
 const
   MinButtonWidth = 100; //< OK button looks too small without this
-
-{ TCastleDialog -------------------------------------------------------------- }
-
-type
-  TCastleDialog = class abstract(TUIControl)
-  strict private
-    const
-      BoxMargin = 10;
-      WindowMargin = 10;
-      ScrollBarWholeWidth = 20;
-      ButtonHorizontalMargin = 10;
-    var
-    FScroll: Single;
-    FInputText: string;
-
-    { Broken Text. }
-    Broken_Text: TStringList;
-    { Ignored (not visible) if not DrawInputText.
-      Else broken InputText. }
-    Broken_InputText: TStringList;
-
-    MaxLineWidth: integer;
-    { Sum of all Broken_Text.Count + Broken_InputText.Count.
-      In other words, all lines that are scrolled by the scrollbar. }
-    AllScrolledLinesCount: integer;
-    VisibleScrolledLinesCount: integer;
-
-    { Min and max sensible values for @link(Scroll). }
-    ScrollMin, ScrollMax: integer;
-    ScrollInitialized: boolean;
-
-    ScrollMaxForScrollbar: integer;
-
-    ScrollbarVisible: boolean;
-    ScrollbarFrame: TRectangle;
-    ScrollbarSlider: TRectangle;
-    ScrollBarDragging: boolean;
-
-    { Things below set in MessageCore, readonly afterwards. }
-    { Main text to display. Read-only contents. }
-    Text: TStringList;
-    { Drawn as window background. @nil means there is no background
-      (use only if there is always some other 2D control underneath TCastleDialog). }
-    Background: TGLImage;
-    Align: TTextAlign;
-    { Should we display InputText }
-    DrawInputText: boolean;
-    Buttons: array of TCastleButton;
-
-    procedure SetScroll(Value: Single);
-    { How many pixels up should be move the text.
-      Kept as a float, to allow smooth time-based changes.
-      Note that setting Scroll always clamps the value to sensible range. }
-    property Scroll: Single read FScroll write SetScroll;
-    procedure ScrollPageDown;
-    procedure ScrollPageUp;
-
-    procedure SetInputText(const value: string);
-
-    { Calculate height in pixels needed to draw Buttons.
-      Returns 0 if there are no Buttons = ''. }
-    function ButtonsHeight: Integer;
-    procedure UpdateSizes;
-    { The whole rectangle where we draw dialog box. }
-    function WholeMessageRect: TRectangle;
-    { If ScrollBarVisible, ScrollBarWholeWidth. Else 0. }
-    function RealScrollBarWholeWidth: Integer;
-    function Font: TGLBitmapFont;
-  protected
-    { When implementing TCastleDialog descendants, set this
-      to @true to signal that dialog window should be closed and
-      the MessageCore should finish. }
-    Answered: boolean;
-
-    { Displayed only if DrawInputText. }
-    property InputText: string read FInputText write SetInputText;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-    { Assign display stuff. Call this before adding control to Controls list. }
-    procedure Initialize(
-      const TextList: TStringList; const ATextAlign: TTextAlign;
-      const AButtons: array of TCastleButton;
-      const ADrawInputText: boolean; const AInputText: string;
-      const ABackground: TGLImage);
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
-    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
-    function DrawStyle: TUIControlDrawStyle; override;
-    procedure Draw; override;
-    function PositionInside(const X, Y: Integer): boolean; override;
-  end;
-
-constructor TCastleDialog.Create(AOwner: TComponent);
-begin
-  inherited;
-  { Contents of Broken_xxx will be initialized in TCastleDialog.UpdateSizes. }
-  Broken_Text := TStringList.Create;
-  Broken_InputText := TStringList.Create;
-end;
-
-procedure TCastleDialog.Initialize(const TextList: TStringList;
-  const ATextAlign: TTextAlign; const AButtons: array of TCastleButton;
-  const ADrawInputText: boolean; const AInputText: string;
-  const ABackground: TGLImage);
-var
-  I: Integer;
-begin
-  Text := TextList;
-  Background := ABackground;
-  Align := ATextAlign;
-  DrawInputText := ADrawInputText;
-  FInputText := AInputText;
-  SetLength(Buttons, Length(AButtons));
-  for I := 0 to High(AButtons) do
-    Buttons[I] := AButtons[I];
-end;
-
-destructor TCastleDialog.Destroy;
-begin
-  FreeAndNil(Broken_Text);
-  FreeAndNil(Broken_InputText);
-  inherited;
-end;
-
-procedure TCastleDialog.SetScroll(Value: Single);
-begin
-  Clamp(Value, ScrollMin, ScrollMax);
-  if Value <> Scroll then
-  begin
-    FScroll := Value;
-    VisibleChange;
-  end;
-end;
-
-procedure TCastleDialog.ScrollPageDown;
-var
-  PageHeight: Single;
-begin
-  PageHeight := VisibleScrolledLinesCount * Font.RowHeight;
-  Scroll := Scroll + PageHeight;
-end;
-
-procedure TCastleDialog.ScrollPageUp;
-var
-  PageHeight: Single;
-begin
-  PageHeight := VisibleScrolledLinesCount * Font.RowHeight;
-  Scroll := Scroll - PageHeight;
-end;
-
-procedure TCastleDialog.SetInputText(const value: string);
-begin
-  FInputText := value;
-  VisibleChange;
-  UpdateSizes;
-end;
-
-function TCastleDialog.ButtonsHeight: Integer;
-var
-  Button: TCastleButton;
-begin
-  Result := 0;
-  for Button in Buttons do
-    MaxTo1st(Result, Button.Height + 2 * BoxMargin);
-end;
-
-procedure TCastleDialog.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
-var
-  MessageRect: TRectangle;
-  X, Y, I: Integer;
-  Button: TCastleButton;
-begin
-  inherited;
-  UpdateSizes;
-
-  { Reposition Buttons. }
-  if Length(Buttons) <> 0 then
-  begin
-    MessageRect := WholeMessageRect;
-    X := MessageRect.Right  - BoxMargin;
-    Y := MessageRect.Bottom + BoxMargin;
-    for I := Length(Buttons) - 1 downto 0 do
-    begin
-      Button := Buttons[I];
-      X -= Button.Width;
-      Button.Left := X;
-      Button.Bottom := Y;
-      X -= ButtonHorizontalMargin;
-    end;
-  end;
-end;
-
-procedure TCastleDialog.UpdateSizes;
-var
-  BreakWidth, ButtonsWidth: integer;
-  WindowScrolledHeight: Integer;
-  Button: TCastleButton;
-begin
-  { calculate BreakWidth, which is the width at which we should break
-    our string lists Broken_Xxx. We must here always subtract
-    ScrollBarWholeWidth to be on the safe side, because we don't know
-    yet is ScrollBarVisible. }
-  BreakWidth := Max(0, ContainerWidth - BoxMargin * 2
-    - WindowMargin * 2 - ScrollBarWholeWidth);
-
-  { calculate MaxLineWidth and AllScrolledLinesCount }
-
-  { calculate Broken_Text }
-  Broken_Text.Clear;
-  font.BreakLines(Text, Broken_Text,  BreakWidth);
-  MaxLineWidth := font.MaxTextWidth(Broken_Text);
-  AllScrolledLinesCount := Broken_Text.count;
-
-  ButtonsWidth := 0;
-  for Button in Buttons do
-    ButtonsWidth += Button.Width + ButtonHorizontalMargin;
-  if ButtonsWidth > 0 then
-    ButtonsWidth -= ButtonHorizontalMargin; // extract margin from last button
-  MaxTo1st(MaxLineWidth, ButtonsWidth);
-
-  if DrawInputText then
-  begin
-    { calculate Broken_InputText }
-    Broken_InputText.Clear;
-    Font.BreakLines(InputText, Broken_InputText, BreakWidth);
-    { It's our intention that if DrawInputText then *always*
-      at least 1 line of InputText (even if it's empty) will be shown.
-      That's because InputText is the editable text for the user,
-      so there should be indication of "empty line". }
-    if Broken_InputText.count = 0 then Broken_InputText.Add('');
-    MaxLineWidth := max(MaxLineWidth, font.MaxTextWidth(Broken_InputText));
-    AllScrolledLinesCount += Broken_InputText.count;
-  end;
-
-  { Now we have MaxLineWidth and AllScrolledLinesCount calculated }
-
-  { Calculate WindowScrolledHeight --- number of pixels that are controlled
-    by the scrollbar. }
-  WindowScrolledHeight := ContainerHeight - BoxMargin * 2
-    - WindowMargin * 2 - ButtonsHeight;
-
-  { calculate VisibleScrolledLinesCount, ScrollBarVisible }
-
-  VisibleScrolledLinesCount := Clamped(WindowScrolledHeight div Font.RowHeight,
-    0, AllScrolledLinesCount);
-  ScrollBarVisible := VisibleScrolledLinesCount < AllScrolledLinesCount;
-  { if ScrollBarVisible changed from true to false then we must make
-    sure that ScrollBarDragging is false. }
-  if not ScrollBarVisible then
-    ScrollBarDragging := false;
-
-  { Note that when not ScrollBarVisible,
-    then VisibleScrolledLinesCount = AllScrolledLinesCount,
-    then ScrollMin = 0
-    so ScrollMin = ScrollMax,
-    so Scroll will always be 0. }
-  ScrollMin := -Font.RowHeight *
-    (AllScrolledLinesCount - VisibleScrolledLinesCount);
-  { ScrollMax jest stale ale to nic; wszystko bedziemy pisac
-    tak jakby ScrollMax tez moglo sie zmieniac - byc moze kiedys zrobimy
-    z tej mozliwosci uzytek. }
-  ScrollMax := 0;
-  ScrollMaxForScrollbar := ScrollMin + Font.RowHeight * AllScrolledLinesCount;
-
-  if ScrollInitialized then
-    { This clamps Scroll to proper range }
-    Scroll := Scroll else
-  begin
-    { Need to initalize Scroll, otherwise default Scroll = 0 means were
-      at the bottom of the text. }
-    Scroll := ScrollMin;
-    ScrollInitialized := true;
-  end;
-end;
-
-function TCastleDialog.Press(const Event: TInputPressRelease): boolean;
-var
-  MY: Integer;
-begin
-  Result := inherited;
-  if Result or (not GetExists) then Exit;
-
-  { if not ScrollBarVisible then there is no point in changing Scroll
-    (because always ScrollMin = ScrollMax = Scroll = 0).
-
-    This way we allow descendants like TCastleKeyMouseDialog
-    to handle K_PageDown, K_PageUp, K_Home and K_End keys
-    and mouse wheel. And this is very good for MessageKey,
-    when it's used e.g. to allow user to choose any TKey.
-    Otherwise MessageKey would not be able to return
-    K_PageDown, K_PageUp, etc. keys. }
-
-  if ScrollBarVisible then
-    case Event.EventType of
-      itKey:
-        case Event.Key of
-          K_PageUp:   begin ScrollPageUp;        Result := true; end;
-          K_PageDown: begin ScrollPageDown;      Result := true; end;
-          K_Home:     begin Scroll := ScrollMin; Result := true; end;
-          K_End:      begin Scroll := ScrollMax; Result := true; end;
-        end;
-      itMouseButton:
-        begin
-          MY := ContainerHeight - Container.MouseY;
-          if (Event.MouseButton = mbLeft) and ScrollBarVisible and
-            ScrollbarFrame.Contains(Container.MouseX, MY) then
-          begin
-            if MY < ScrollbarSlider.Bottom then
-              ScrollPageDown else
-            if MY >= ScrollbarSlider.Top then
-              ScrollPageUp else
-              ScrollBarDragging := true;
-            Result := true;
-          end;
-        end;
-      itMouseWheel:
-        if Event.MouseWheelVertical then
-        begin
-          Scroll := Scroll - Event.MouseWheelScroll * Font.RowHeight;
-          Result := true;
-        end;
-    end;
-end;
-
-function TCastleDialog.Release(const Event: TInputPressRelease): boolean;
-begin
-  Result := inherited;
-  if Result or (not GetExists) then Exit;
-
-  if Event.IsMouseButton(mbLeft) then
-  begin
-    ScrollBarDragging := false;
-    Result := true;
-  end;
-end;
-
-function TCastleDialog.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
-begin
-  Result := inherited;
-  if Result or (not GetExists) then Exit;
-
-  Result := ScrollBarDragging;
-  if Result then
-    Scroll := Scroll + (NewY- OldY) / ScrollbarFrame.Height *
-      (ScrollMaxForScrollbar - ScrollMin);
-end;
-
-procedure TCastleDialog.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
-
-  function Factor: Single;
-  begin
-    result := 200.0 * SecondsPassed;
-    if mkCtrl in Container.Pressed.Modifiers then result *= 6;
-  end;
-
-begin
-  inherited;
-
-  if HandleInput then
-  begin
-    if Container.Pressed[K_Up  ] then Scroll := Scroll - Factor;
-    if Container.Pressed[K_Down] then Scroll := Scroll + Factor;
-    HandleInput := not ExclusiveEvents;
-  end;
-end;
-
-function TCastleDialog.DrawStyle: TUIControlDrawStyle;
-begin
-  if GetExists then
-    Result := ds2D else
-    Result := dsNone;
-end;
-
-procedure TCastleDialog.Draw;
-
-  { Render a Text line, and move Y up to the line above. }
-  procedure DrawString(const text: string; TextAlign: TTextAlign;
-    X: Integer; var Y: Integer);
-  begin
-    { change X only locally, to take TextAlign into account }
-    case TextAlign of
-      taMiddle: X += (MaxLineWidth - font.TextWidth(text)) div 2;
-      taRight : X +=  MaxLineWidth - font.TextWidth(text);
-    end;
-    font.Print(X, Y, text);
-    { change Y for caller, to print next line higher }
-    Y += font.RowHeight;
-  end;
-
-  { Render all lines in S, and move Y up to the line above. }
-  procedure DrawStrings(const s: TStrings; TextAlign: TTextAlign;
-    const X: Integer; var Y: Integer);
-  var
-    i: integer;
-  begin
-    for i := s.count-1 downto 0 do
-      { each DrawString call will move Y up }
-      DrawString(s[i], TextAlign, X, Y);
-  end;
-
-var
-  MessageRect: TRectangle;
-  { InnerRect to okienko w ktorym mieszcza sie napisy,
-    a wiec WholeMessageRect zmniejszony o BoxMargin we wszystkich kierunkach
-    i z ew. obcieta prawa czescia przeznaczona na ScrollbarFrame. }
-  InnerRect: TRectangle;
-  ScrollBarLength: integer;
-  TextX, TextY: Integer;
-const
-  { odleglosc paska ScrollBara od krawedzi swojego waskiego recta
-    (prawa krawedz jest zarazem krawedzia duzego recta !) }
-  ScrollBarMargin = 2;
-  { szerokosc paska ScrollBara }
-  ScrollBarInternalWidth = ScrollBarWholeWidth - ScrollBarMargin * 2;
-begin
-  inherited;
-  if not GetExists then Exit;
-
-  if Background <> nil then
-  begin
-    { Make clear since Background make not cover whole window. }
-    glClear(GL_COLOR_BUFFER_BIT);
-    glLoadIdentity;
-    Background.Draw(0, 0);
-  end;
-
-  MessageRect := WholeMessageRect;
-  Theme.Draw(MessageRect, tiWindow);
-
-  MessageRect := MessageRect.RemoveBottom(ButtonsHeight);
-
-  { calculate InnerRect }
-  InnerRect := MessageRect.Grow(-BoxMargin);
-  InnerRect.Width -= RealScrollBarWholeWidth;
-
-  { draw scrollbar, and calculate it's rectangles }
-  if ScrollBarVisible then
-  begin
-    ScrollbarFrame := MessageRect.RightPart(ScrollBarWholeWidth);
-    Theme.Draw(ScrollbarFrame, tiScrollbarFrame);
-
-    ScrollBarLength := MessageRect.Height - ScrollBarMargin*2;
-    ScrollbarSlider := ScrollbarFrame;
-    ScrollbarSlider.Height := VisibleScrolledLinesCount * ScrollBarLength
-      div AllScrolledLinesCount;
-    ScrollbarSlider.Bottom += Round(MapRange(Scroll,
-      ScrollMin, ScrollMax, ScrollbarFrame.Height - ScrollbarSlider.Height, 0));
-    Theme.Draw(ScrollbarSlider, tiScrollbarSlider);
-  end else
-  begin
-    ScrollbarFrame := TRectangle.Empty;
-    ScrollbarSlider := TRectangle.Empty;
-  end;
-
-  { Make scissor to cut off text that is too far up/down.
-    We subtract Font.Descend from Y0, to see the descend of
-    the bottom line (which is below InnerRect.Bottom, and would not be
-    ever visible otherwise). }
-  glScissor(InnerRect.Left, InnerRect.Bottom - Font.Descend,
-    InnerRect.Width, InnerRect.Height + Font.Descend);
-  glEnable(GL_SCISSOR_TEST);
-
-  TextX := InnerRect.Left;
-  TextY := InnerRect.Bottom + Round(Scroll);
-
-  { rysuj Broken_InputText i Broken_Text.
-    Kolejnosc ma znaczenie, kolejne linie sa rysowane od dolu w gore. }
-
-  if DrawInputText then
-  begin
-    glColorv(Theme.MessageInputTextColor);
-    DrawStrings(Broken_InputText, align, TextX, TextY);
-  end;
-
-  glColorv(Theme.MessageTextColor);
-  DrawStrings(Broken_Text, align, TextX, TextY);
-
-  glDisable(GL_SCISSOR_TEST);
-end;
-
-function TCastleDialog.PositionInside(const X, Y: Integer): boolean;
-begin
-  Result := true;
-end;
-
-function TCastleDialog.RealScrollBarWholeWidth: Integer;
-begin
-  Result := Iff(ScrollBarVisible, ScrollBarWholeWidth, 0);
-end;
-
-function TCastleDialog.WholeMessageRect: TRectangle;
-begin
-  Result := Rectangle(0, 0, ContainerWidth, ContainerHeight).Center(
-    Min(MaxLineWidth + BoxMargin * 2 + RealScrollBarWholeWidth,
-      ContainerWidth  - WindowMargin * 2),
-    Min(AllScrolledLinesCount * Font.RowHeight + BoxMargin * 2 + ButtonsHeight,
-      ContainerHeight - WindowMargin * 2));
-end;
-
-function TCastleDialog.Font: TGLBitmapFont;
-begin
-  Result := Theme.GLMessageFont;
-end;
 
 { MessageCore ---------------------------------------------------------------- }
 
@@ -845,10 +346,123 @@ begin
   MessageCore(Window, TextList, TextAlign, Dialog, AButtons, false, Dummy);
 end;
 
+{ MessageChar ---------------------------------------------------------------- }
+
+type
+  TCastleCharDialog = class(TCastleDialog)
+  public
+    AllowedChars: TSetOfChars;
+    Answer: char;
+    IgnoreCase: boolean;
+  public
+    function Press(const Event: TInputPressRelease): boolean; override;
+  end;
+
+function TCastleCharDialog.Press(const Event: TInputPressRelease): boolean;
+var
+  C: char;
+begin
+  Result := inherited;
+  if Result or (not GetExists) then Exit;
+
+  if Event.EventType <> itKey then Exit;
+  C := Event.KeyCharacter;
+
+  if IgnoreCase then
+  begin
+    if (UpCase(C) in AllowedChars) or
+       (LoCase(C) in AllowedChars) then
+    begin
+      Answered := true;
+      Answer := LoCase(c);
+    end;
+  end else
+  begin
+    if c in AllowedChars then
+    begin
+      Answered := true;
+      Answer := c;
+    end;
+  end;
+end;
+
+type
+  TCharDialogButton = class(TCastleButton)
+  private
+    Dialog: TCastleCharDialog;
+    Answer: char;
+  public
+    procedure DoClick; override;
+  end;
+
+procedure TCharDialogButton.DoClick;
+begin
+  inherited;
+  Dialog.Answered := true;
+  if Dialog.IgnoreCase then
+    Dialog.Answer := LoCase(Answer) else
+    Dialog.Answer := Answer;
+end;
+
+{ Ask user to press a single character from a given set, or to press one
+  of the buttons. This is good to ask user a question with a small number
+  of answers.
+  This is like a lower-level version of MessageChoice, not in the interface now.
+
+  AllowedChars specifies the characters that can be used to answer.
+
+  Buttons specify the buttons available to press,
+  and ButtonsChars specify what character is returned when given button is pressed
+  (always the length of Buttons and ButtonsChars must be equal).
+
+  @param(IgnoreCase This means that case of letters in AllowedChars
+    and ButtonsChars will be ignored.
+
+    For example, you can include only uppercase 'A' in
+    AllowedChars. Or you can include lowercase 'a'. Or you can include
+    both. It doesn't matter --- we will always accept both lower and upper case.
+
+    And it doesn't matter what case of letters you use for ButtonsChars.
+
+    Also, when character is returned, it's always lowercased.
+    So you donn't even know if user pressed lower of upper case letter.)
+}
+function MessageChar(Window: TCastleWindowCustom; TextList: TStringList;
+  const AllowedChars: TSetOfChars;
+  const Buttons: array of string; const ButtonsChars: array of char;
+  const TextAlign: TTextAlign; const IgnoreCase: boolean): char; overload;
+var
+  Dialog: TCastleCharDialog;
+  Button: TCharDialogButton;
+  ReadyButtons: array of TCastleButton;
+  I: Integer;
+begin
+  Assert(Length(Buttons) = Length(ButtonsChars),
+    'Buttons and ButtonsChars arrays must have equal length');
+
+  Dialog := TCastleCharDialog.Create(nil);
+  try
+    Dialog.AllowedChars := AllowedChars;
+    Dialog.IgnoreCase := IgnoreCase;
+    SetLength(ReadyButtons, Length(Buttons));
+    for I := 0 to Length(Buttons) - 1 do
+    begin
+      Button := TCharDialogButton.Create(Dialog);
+      Button.Dialog := Dialog;
+      Button.Caption := Buttons[I];
+      Button.MinWidth := MinButtonWidth;
+      Button.Answer := ButtonsChars[I];
+      ReadyButtons[I] := Button;
+    end;
+    MessageCore(Window, TextList, TextAlign, Dialog, ReadyButtons);
+    Result := Dialog.Answer;
+  finally FreeAndNil(Dialog) end;
+end;
+
 { MessageOK ------------------------------------------------------------------ }
 
-procedure MessageOK(Window: TCastleWindowCustom;  const SArray: array of string;
-  TextAlign: TTextAlign = taMiddle);
+procedure MessageOK(Window: TCastleWindowCustom; const SArray: array of string;
+  const TextAlign: TTextAlign);
 var
   TextList: TStringList;
 begin
@@ -859,7 +473,8 @@ begin
   finally TextList.Free end;
 end;
 
-procedure MessageOK(Window: TCastleWindowCustom; const s: string; TextAlign: TTextAlign);
+procedure MessageOK(Window: TCastleWindowCustom; const s: string;
+  const TextAlign: TTextAlign);
 var
   TextList: TStringList;
 begin
@@ -870,8 +485,8 @@ begin
   finally TextList.free end;
 end;
 
-procedure MessageOK(Window: TCastleWindowCustom;  TextList: TStringList;
-  TextAlign: TTextAlign);
+procedure MessageOK(Window: TCastleWindowCustom; TextList: TStringList;
+  const TextAlign: TTextAlign);
 begin
   MessageChar(Window, TextList,
     [CharEnter, CharEscape], ['OK'], [CharEnter], TextAlign, true);
@@ -945,7 +560,7 @@ begin
       { No nice way to show it for now?
       else
       MessageOk(Window, Format('You must enter at least %d characters.',
-        [answerMinLen]), taMiddle); }
+        [answerMinLen]), DefaultAlign); }
   end else
   if Event.IsKey(CharEscape) then
   begin
@@ -978,22 +593,26 @@ begin
 end;
 
 function MessageInput(Window: TCastleWindowCustom; const s: string;
-  TextAlign: TTextAlign; const answerDefault: string;
-  answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): string;
+  const answerDefault: string;
+  const answerMinLen: integer; const answerMaxLen: integer;
+  const answerAllowedChars: TSetOfChars;
+  const TextAlign: TTextAlign): string;
 var
   TextList: TStringList;
 begin
   TextList := TStringList.Create;
   try
     Strings_SetText(TextList, s);
-    result := MessageInput(Window, TextList, TextAlign, answerDefault,
-      answerMinLen, answerMaxLen, answerAllowedChars);
+    result := MessageInput(Window, TextList, answerDefault,
+      answerMinLen, answerMaxLen, answerAllowedChars, TextAlign);
   finally TextList.free end;
 end;
 
 function MessageInput(Window: TCastleWindowCustom; TextList: TStringList;
-  TextAlign: TTextAlign; const answerDefault: string;
-  answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): string;
+  const answerDefault: string;
+  const answerMinLen: integer; const answerMaxLen: integer;
+  const answerAllowedChars: TSetOfChars;
+  const TextAlign: TTextAlign): string;
 var
   Dialog: TCastleInputDialog;
   OKButton: TInputDialogOKButton;
@@ -1020,22 +639,26 @@ begin
 end;
 
 function MessageInputQuery(Window: TCastleWindowCustom; const s: string;
-  var answer: string; TextAlign: TTextAlign;
-  answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): boolean;
+  var answer: string;
+  const answerMinLen: integer; const answerMaxLen: integer;
+  const answerAllowedChars: TSetOfChars;
+  const TextAlign: TTextAlign): boolean;
 var
   TextList: TStringList;
 begin
   TextList := TStringList.Create;
   try
     Strings_SetText(TextList, s);
-    result := MessageInputQuery(Window, TextList, answer, TextAlign, answerMinLen,
-      answerMaxLen, answerAllowedChars);
+    result := MessageInputQuery(Window, TextList, answer, answerMinLen,
+      answerMaxLen, answerAllowedChars, TextAlign);
   finally TextList.free end;
 end;
 
 function MessageInputQuery(Window: TCastleWindowCustom; TextList: TStringList;
-  var answer: string; TextAlign: TTextAlign;
-  answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): boolean;
+  var answer: string;
+  const answerMinLen: integer; const answerMaxLen: integer;
+  const answerAllowedChars: TSetOfChars;
+  const TextAlign: TTextAlign): boolean;
 var
   Dialog: TCastleInputDialog;
   InputText: string;
@@ -1068,130 +691,54 @@ begin
     ReadyButtons[0] := CancelButton;
     ReadyButtons[1] := OKButton;
 
-    MessageCore(Window, TextList, TextAlign, Dialog, ReadyButtons,
-      true, InputText);
+    MessageCore(Window, TextList, TextAlign, Dialog, ReadyButtons, true, InputText);
     result := not Dialog.answerCancelled;
     if result then answer := InputText;
   finally FreeAndNil(Dialog) end;
 end;
 
-{ MessageChar ---------------------------------------------------------------- }
+{ MessageChoice -------------------------------------------------------------- }
 
-type
-  TCastleCharDialog = class(TCastleDialog)
-  public
-    AllowedChars: TSetOfChars;
-    Answer: char;
-    IgnoreCase: boolean;
-  public
-    function Press(const Event: TInputPressRelease): boolean; override;
-  end;
-
-function TCastleCharDialog.Press(const Event: TInputPressRelease): boolean;
-var
-  C: char;
-begin
-  Result := inherited;
-  if Result or (not GetExists) then Exit;
-
-  if Event.EventType <> itKey then Exit;
-  C := Event.KeyCharacter;
-
-  if IgnoreCase then
-  begin
-    if (UpCase(C) in AllowedChars) or
-       (LoCase(C) in AllowedChars) then
-    begin
-      Answered := true;
-      Answer := LoCase(c);
-    end;
-  end else
-  begin
-    if c in AllowedChars then
-    begin
-      Answered := true;
-      Answer := c;
-    end;
-  end;
-end;
-
-type
-  TCharDialogButton = class(TCastleButton)
-  private
-    Dialog: TCastleCharDialog;
-    Answer: char;
-  public
-    procedure DoClick; override;
-  end;
-
-procedure TCharDialogButton.DoClick;
-begin
-  inherited;
-  Dialog.Answered := true;
-  if Dialog.IgnoreCase then
-    Dialog.Answer := LoCase(Answer) else
-    Dialog.Answer := Answer;
-end;
-
-function MessageChar(Window: TCastleWindowCustom;
-  const s: string; const AllowedChars: TSetOfChars;
+function MessageChoice(Window: TCastleWindowCustom;
+  const s: string;
   const Buttons: array of string; const ButtonsChars: array of char;
-  TextAlign: TTextAlign; IgnoreCase: boolean): char;
+  const TextAlign: TTextAlign): char;
 var
   TextList: TStringList;
 begin
   TextList := TStringList.Create;
   try
     Strings_SetText(TextList, s);
-    Result := MessageChar(Window, TextList, AllowedChars,
-      Buttons, ButtonsChars, TextAlign, IgnoreCase);
+    Result := MessageChoice(Window, TextList,  Buttons, ButtonsChars, TextAlign);
   finally TextList.free end;
 end;
 
-function MessageChar(Window: TCastleWindowCustom;
-  const SArray: array of string; const AllowedChars: TSetOfChars;
+function MessageChoice(Window: TCastleWindowCustom;
+  const SArray: array of string;
   const Buttons: array of string; const ButtonsChars: array of char;
-  TextAlign: TTextAlign; IgnoreCase: boolean): char; overload;
+  const TextAlign: TTextAlign): char; overload;
 var
   TextList: TStringList;
 begin
   TextList := TStringList.Create;
   try
     AddStrArrayToStrings(SArray, TextList);
-    Result := MessageChar(Window, TextList, AllowedChars,
-      Buttons, ButtonsChars, TextAlign, IgnoreCase);
+    Result := MessageChoice(Window, TextList, Buttons, ButtonsChars, TextAlign);
   finally TextList.Free end;
 end;
 
-function MessageChar(Window: TCastleWindowCustom; TextList: TStringList;
-  const AllowedChars: TSetOfChars;
+function MessageChoice(Window: TCastleWindowCustom; TextList: TStringList;
   const Buttons: array of string; const ButtonsChars: array of char;
-  TextAlign: TTextAlign; IgnoreCase: boolean): char; overload;
+  const TextAlign: TTextAlign): char; overload;
 var
-  Dialog: TCastleCharDialog;
-  Button: TCharDialogButton;
-  ReadyButtons: array of TCastleButton;
-  I: Integer;
+  AllowedChars: TSetOfChars;
+  C: char;
 begin
-  Assert(Length(Buttons) = Length(ButtonsChars));
-
-  Dialog := TCastleCharDialog.Create(nil);
-  try
-    Dialog.AllowedChars := AllowedChars;
-    Dialog.IgnoreCase := IgnoreCase;
-    SetLength(ReadyButtons, Length(Buttons));
-    for I := 0 to Length(Buttons) - 1 do
-    begin
-      Button := TCharDialogButton.Create(Dialog);
-      Button.Dialog := Dialog;
-      Button.Caption := Buttons[I];
-      Button.MinWidth := MinButtonWidth;
-      Button.Answer := ButtonsChars[I];
-      ReadyButtons[I] := Button;
-    end;
-    MessageCore(Window, TextList, TextAlign, Dialog, ReadyButtons);
-    Result := Dialog.Answer;
-  finally FreeAndNil(Dialog) end;
+  AllowedChars := [];
+  for C in ButtonsChars do
+    Include(AllowedChars, C);
+  Result := MessageChar(Window, TextList, AllowedChars, Buttons, ButtonsChars,
+    TextAlign, true);
 end;
 
 { MessageKey functions with callbacks --------------------------------------- }
@@ -1217,7 +764,7 @@ begin
 end;
 
 function MessageKey(Window: TCastleWindowCustom; const S: string;
-  TextAlign: TTextAlign): TKey;
+  const TextAlign: TTextAlign): TKey;
 var
   TextList: TStringList;
 begin
@@ -1229,7 +776,7 @@ begin
 end;
 
 function MessageKey(Window: TCastleWindowCustom; const SArray: array of string;
-  TextAlign: TTextAlign): TKey;
+  const TextAlign: TTextAlign): TKey;
 var
   TextList: TStringList;
 begin
@@ -1241,7 +788,7 @@ begin
 end;
 
 function MessageKey(Window: TCastleWindowCustom; TextList: TStringList;
-  TextAlign: TTextAlign): TKey;
+  const TextAlign: TTextAlign): TKey;
 var
   Dialog: TCastleKeyDialog;
 begin
@@ -1275,19 +822,19 @@ begin
 end;
 
 procedure MessageKeyMouse(Window: TCastleWindowCustom; const S: string;
-  TextAlign: TTextAlign; out Event: TInputPressRelease);
+  out Event: TInputPressRelease; const TextAlign: TTextAlign);
 var
   TextList: TStringList;
 begin
   TextList := TStringList.Create;
   try
     Strings_SetText(TextList, S);
-    MessageKeyMouse(Window, TextList, TextAlign, Event);
+    MessageKeyMouse(Window, TextList, Event, TextAlign);
   finally TextList.Free end;
 end;
 
 procedure MessageKeyMouse(Window: TCastleWindowCustom; TextList: TStringList;
-  TextAlign: TTextAlign; out Event: TInputPressRelease);
+  out Event: TInputPressRelease; const TextAlign: TTextAlign);
 var
   Dialog: TCastleKeyMouseDialog;
 begin
@@ -1301,7 +848,7 @@ end;
 { MessageYesNo --------------------------------------------------------------- }
 
 function MessageYesNo(Window: TCastleWindowCustom; const s: string;
-  TextAlign: TTextAlign): boolean; overload;
+  const TextAlign: TTextAlign): boolean; overload;
 var
   TextList: TStringList;
 begin
@@ -1313,7 +860,7 @@ begin
 end;
 
 function MessageYesNo(Window: TCastleWindowCustom; const SArray: array of string;
-  TextAlign: TTextAlign): boolean; overload;
+  const TextAlign: TTextAlign): boolean; overload;
 var
   TextList: TStringList;
 begin
@@ -1325,46 +872,48 @@ begin
 end;
 
 function MessageYesNo(Window: TCastleWindowCustom; TextList: TStringList;
-  TextAlign: TTextAlign): boolean; overload;
+  const TextAlign: TTextAlign): boolean; overload;
 begin
-  Result := MessageChar(Window, TextList, ['y', 'n'], ['Yes', 'No'], ['y', 'n'],
-    TextAlign, true) = 'y';
+  Result := MessageChar(Window, TextList, ['y', 'n', CharEnter, CharEscape],
+    ['Yes', 'No'], ['y', 'n'], TextAlign, true) in ['y', CharEnter];
 end;
 
 { MessageInputCardinal ------------------------------------------------------- }
 
 function MessageInputCardinal(Window: TCastleWindowCustom; const s: string;
-  TextAlign: TTextAlign; const AnswerDefault: string): Cardinal;
+  const AnswerDefault: string; const TextAlign: TTextAlign): Cardinal;
 begin
-  result := StrToInt( MessageInput(Window, s, TextAlign, AnswerDefault,
-    1, 0, ['0'..'9']) );
+  result := StrToInt( MessageInput(Window, s, AnswerDefault,
+    1, 0, ['0'..'9'], TextAlign) );
 end;
 
 function MessageInputCardinal(Window: TCastleWindowCustom; const s: string;
-  TextAlign: TTextAlign; AnswerDefault: Cardinal): Cardinal;
+  const AnswerDefault: Cardinal; const TextAlign: TTextAlign): Cardinal;
 begin
-  result := MessageInputCardinal(Window, s, TextAlign, IntToStr(AnswerDefault));
+  result := MessageInputCardinal(Window, s, IntToStr(AnswerDefault), TextAlign);
 end;
 
-function MessageInputQueryCardinal(Window: TCastleWindowCustom; const Title: string;
-  var Value: Cardinal; TextAlign: TTextAlign): boolean;
+function MessageInputQueryCardinal(Window: TCastleWindowCustom;
+  const Title: string;
+  var Value: Cardinal; const TextAlign: TTextAlign): boolean;
 var
   ValueStr: string;
 begin
   ValueStr := IntToStr(Value);
-  Result := MessageInputQuery(Window, Title, ValueStr, TextAlign, 1, 0, ['0'..'9']);
+  Result := MessageInputQuery(Window, Title, ValueStr, 1, 0, ['0'..'9'], TextAlign);
   if Result then
     Value := StrToInt(ValueStr);
 end;
 
 function MessageInputQueryCardinalHex(Window: TCastleWindowCustom; const Title: string;
-  var Value: Cardinal; TextAlign: TTextAlign; MaxWidth: Cardinal): boolean;
+  var Value: Cardinal; const MaxWidth: Cardinal;
+  const TextAlign: TTextAlign): boolean;
 var
   ValueStr: string;
 begin
   ValueStr := IntToHex(Value, 4);
-  Result := MessageInputQuery(Window, Title, ValueStr, TextAlign, 1, MaxWidth,
-    ['0'..'9', 'a'..'f', 'A'..'F']);
+  Result := MessageInputQuery(Window, Title, ValueStr, 1, MaxWidth,
+    ['0'..'9', 'a'..'f', 'A'..'F'], TextAlign);
   if Result then
     Value := StrHexToInt(ValueStr);
 end;
@@ -1372,7 +921,8 @@ end;
 { MessageInputQuery on floats ------------------------------------------------ }
 
 function MessageInputQuery(Window: TCastleWindowCustom; const Title: string;
-  var Value: Extended; TextAlign: TTextAlign; const ValueAsString: string): boolean;
+  var Value: Extended; const ValueAsString: string;
+  const TextAlign: TTextAlign): boolean;
 var
   s: string;
 begin
@@ -1380,37 +930,39 @@ begin
   if ValueAsString <> '' then
     S := ValueAsString else
     S := FloatToStr(Value);
-  if MessageInputQuery(Window, Title, s, TextAlign) then
+  if MessageInputQuery(Window, Title, S, 0, 0, AllChars, TextAlign) then
   begin
     try
       Value := StrToFloat(s);
       Result := true;
     except
       on E: EConvertError do
-        MessageOK(Window, 'Invalid floating point value : ' +E.Message, taLeft);
+        MessageOK(Window, 'Invalid floating point value : ' +E.Message);
     end;
   end;
 end;
 
 function MessageInputQuery(Window: TCastleWindowCustom; const Title: string;
-  var Value: Single; TextAlign: TTextAlign; const ValueAsString: string): boolean;
+  var Value: Single; const ValueAsString: string;
+  const TextAlign: TTextAlign): boolean;
 var
   ValueExtended: Extended;
 begin
   ValueExtended := Value;
-  Result := MessageInputQuery(Window, Title, ValueExtended, TextAlign, ValueAsString);
+  Result := MessageInputQuery(Window, Title, ValueExtended, ValueAsString, TextAlign);
   if Result then
     Value := ValueExtended;
 end;
 
 {$ifndef EXTENDED_EQUALS_DOUBLE}
 function MessageInputQuery(Window: TCastleWindowCustom; const Title: string;
-  var Value: Double; TextAlign: TTextAlign; const ValueAsString: string): boolean;
+  var Value: Double; const ValueAsString: string;
+  const TextAlign: TTextAlign): boolean;
 var
   ValueExtended: Extended;
 begin
   ValueExtended := Value;
-  Result := MessageInputQuery(Window, Title, ValueExtended, TextAlign, ValueAsString);
+  Result := MessageInputQuery(Window, Title, ValueExtended, ValueAsString, TextAlign);
   if Result then
     Value := ValueExtended;
 end;
@@ -1420,19 +972,19 @@ end;
 
 function MessageInputQueryVector3Single(
   Window: TCastleWindowCustom; const Title: string;
-  var Value: TVector3Single; TextAlign: TTextAlign): boolean;
+  var Value: TVector3Single; const TextAlign: TTextAlign): boolean;
 var s: string;
 begin
   Result := false;
   s := Format('%g %g %g', [Value[0], Value[1], Value[2]]);
-  if MessageInputQuery(Window, Title, s, TextAlign) then
+  if MessageInputQuery(Window, Title, s, 0, 0, AllChars, TextAlign) then
   begin
     try
       Value := Vector3SingleFromStr(s);
       Result := true;
     except
       on E: EConvertError do
-        MessageOK(Window, 'Invalid vector 3 value : ' + E.Message, taLeft);
+        MessageOK(Window, 'Invalid vector 3 value : ' + E.Message);
     end;
   end;
 end;
@@ -1441,20 +993,20 @@ end;
 
 function MessageInputQueryVector4Single(
   Window: TCastleWindowCustom; const Title: string;
-  var Value: TVector4Single; TextAlign: TTextAlign): boolean;
+  var Value: TVector4Single; const TextAlign: TTextAlign): boolean;
 var
   s: string;
 begin
   Result := false;
   s := Format('%g %g %g %g', [Value[0], Value[1], Value[2], Value[3]]);
-  if MessageInputQuery(Window, Title, s, TextAlign) then
+  if MessageInputQuery(Window, Title, s, 0, 0, AllChars, TextAlign) then
   begin
     try
       Value := Vector4SingleFromStr(s);
       Result := true;
     except
       on E: EConvertError do
-        MessageOK(Window, 'Invalid vector 4 value : ' + E.Message, taLeft);
+        MessageOK(Window, 'Invalid vector 4 value : ' + E.Message);
     end;
   end;
 end;

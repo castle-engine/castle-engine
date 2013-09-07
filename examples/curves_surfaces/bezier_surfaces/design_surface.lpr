@@ -459,11 +459,11 @@ procedure MenuClick(Sender: TCastleWindowBase; MenuItem: TMenuItem);
       (Surface.Curves[0] as TControlPointsCurve).ControlPoints.Count;
     if not MessageInputQueryCardinal(Window,
       'Y size (number of curves, min 2) :',
-      CurvesCount, taLeft) then
+      CurvesCount) then
       Exit;
     if not MessageInputQueryCardinal(Window,
       'X size (number of control points on each curve, min 2) :',
-      CurvesControlPointsCount, taLeft) then
+      CurvesControlPointsCount) then
       Exit;
     SurfaceNew(CurvesCount, CurvesControlPointsCount);
   end;

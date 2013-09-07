@@ -200,7 +200,7 @@ const
   HelpMessage = {$I help_message.inc};
 begin
   MessageOK(Window, HelpMessage + nl +
-    SCastleEngineProgramHelpSuffix(DisplayApplicationName, Version, false), taLeft);
+    SCastleEngineProgramHelpSuffix(DisplayApplicationName, Version, false));
 end;
 
 { window callbacks ----------------------------------------------------------- }

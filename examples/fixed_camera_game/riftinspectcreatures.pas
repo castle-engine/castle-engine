@@ -70,7 +70,7 @@ procedure Press(Sender: TCastleWindowBase; const Event: TInputPressRelease);
       Creature.State := NewState;
     except
       on E: ECreatureStateChangeNotPossible do
-        MessageOk(Window, E.Message, taLeft);
+        MessageOk(Window, E.Message);
     end;
   end;
 

@@ -726,7 +726,7 @@ begin
      Scene.BoundingBox.IsEmpty then
   begin
     Window.Controls.Remove(SceneManager); { do not try to render }
-    MessageOk(Window, 'No elements, or empty bounding box --- we cannot do dyn ambient occlusion. Exiting.', taLeft);
+    MessageOk(Window, 'No elements, or empty bounding box --- we cannot do dyn ambient occlusion. Exiting.');
     Window.Close;
     Exit;
   end;
@@ -739,7 +739,7 @@ begin
   if GLSLProgram[0].Support = gsNone then
   begin
     Window.Controls.Remove(SceneManager); { do not try to render }
-    MessageOk(Window, 'Sorry, GLSL shaders not supported on your graphic card. Exiting.', taLeft);
+    MessageOk(Window, 'Sorry, GLSL shaders not supported on your graphic card. Exiting.');
     Window.Close;
     Exit;
   end;

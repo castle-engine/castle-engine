@@ -136,13 +136,13 @@ var
     C: Char;
   begin
     C := MessageChar(Window, 'Enter the character code of new base tile, ' +
-      'or Escape to cancel', AllChars - [#0], [], [], taMiddle);
+      'or Escape to cancel', AllChars - [#0], [], []);
     if C <> CharEscape then
     begin
       BaseTile := Map.BaseTiles[C];
       if BaseTile = nil then
         MessageOK(Window, Format('The character "%s" is not a code ' +
-          'for any base tile', [C]), taMiddle) else
+          'for any base tile', [C])) else
       Map.Items[Player.X, Player.Y].BaseTile := BaseTile;
     end;
   end;
@@ -153,7 +153,7 @@ var
     C: Char;
   begin
     C := MessageChar(Window, 'Enter the character code of new bonus tile, ' +
-      'or "_" to clear or Escape to cancel', AllChars - [#0], [], [], taMiddle);
+      'or "_" to clear or Escape to cancel', AllChars - [#0], [], []);
     if C <> CharEscape then
     begin
       if C = '_' then
@@ -162,7 +162,7 @@ var
         BonusTile := Map.BonusTiles[C];
         if BonusTile = nil then
           MessageOK(Window, Format('The character "%s" is not a code ' +
-            'for any bonus tile', [C]), taMiddle) else
+            'for any bonus tile', [C])) else
         Map.Items[Player.X, Player.Y].BonusTile := BonusTile;
       end;
     end;
@@ -185,7 +185,7 @@ var
       'Bonus tile: %s',
       [ Player.X, Player.Y,
         TileDescr(Map.Items[Player.X, Player.Y].BaseTile),
-        TileDescr(Map.Items[Player.X, Player.Y].BonusTile) ]), taLeft);
+        TileDescr(Map.Items[Player.X, Player.Y].BonusTile) ]));
   end;
 
 var
@@ -211,8 +211,7 @@ begin
       's': begin
              URL := 'new';
              if MessageInputQuery(Window, 'Save map as name' +
-               ' (don''t specify here initial path and .map extension)',
-               URL, taLeft) then
+               ' (don''t specify here initial path and .map extension)', URL) then
                Map.SaveToFile(ApplicationData('maps/' + URL + '.map'));
            end;
       'i': ShowFieldInfo;

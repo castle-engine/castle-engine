@@ -322,7 +322,7 @@ begin
     { ALCDevice value changed now to new value. }
     SoundMenu.OpenALDeviceArgument.Value := SoundEngine.Devices[CurrentItem].NiceName;
     if not SoundEngine.ALActive then
-      MessageOK(Window, SoundEngine.SoundInitializationReport, taLeft);
+      MessageOK(Window, SoundEngine.SoundInitializationReport);
   end;
 
   SetCurrentMenu(SoundMenu);

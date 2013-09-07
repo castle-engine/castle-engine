@@ -632,7 +632,7 @@ begin
     60: begin
           Expression := '';
           if MessageInputQuery(Window, 'Pass CastleScript function expression, using X and Y variables, and calculating height of the terrain at given point.' + nl + nl +
-            '(For example, try "sin(x*2) * sin(y*2)").', Expression, taLeft) then
+            '(For example, try "sin(x*2) * sin(y*2)").', Expression) then
           begin
             try
               NewElevation := TElevationCasScript.Create(Expression);

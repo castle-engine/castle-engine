@@ -93,7 +93,7 @@ end;
 procedure Update(Window: TCastleWindowBase);
 begin
   if Window.Pressed[K_F12] then
-    // MessageOk(Window, 'F12 key pressed. This is just a test that MessageOk works even from callbacks like OnUpdate.', taLeft);
+    // MessageOk(Window, 'F12 key pressed. This is just a test that MessageOk works even from callbacks like OnUpdate.');
     Window.MessageOk('F12 key pressed. This is just a test that MessageOk works even from callbacks like OnUpdate.', mtInfo);
 end;
 

@@ -2,7 +2,7 @@ function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: 
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 begin
   if not (Self is TCastleWindowCustom) then Exit;
-  Result := MessageInputQuery(Self as TCastleWindowCustom, Title, FileName, taLeft);
+  Result := MessageInputQuery(Self as TCastleWindowCustom, Title, FileName);
 end;
 
 function TCastleWindowBase.ColorDialog(var Color: TVector3Single): boolean;
@@ -11,9 +11,9 @@ var
 begin
   Result := false;
   if not (Self is TCastleWindowCustom) then Exit;
-  if not MessageInputQuery(Self as TCastleWindowCustom, 'Input Red value:'  , NewColor[0], taLeft) then Exit;
-  if not MessageInputQuery(Self as TCastleWindowCustom, 'Input Green value:', NewColor[1], taLeft) then Exit;
-  if not MessageInputQuery(Self as TCastleWindowCustom, 'Input Blue value:' , NewColor[2], taLeft) then Exit;
+  if not MessageInputQuery(Self as TCastleWindowCustom, 'Input Red value:'  , NewColor[0]) then Exit;
+  if not MessageInputQuery(Self as TCastleWindowCustom, 'Input Green value:', NewColor[1]) then Exit;
+  if not MessageInputQuery(Self as TCastleWindowCustom, 'Input Blue value:' , NewColor[2]) then Exit;
 
   Result := true;
   Color := NewColor;
