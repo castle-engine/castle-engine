@@ -326,7 +326,9 @@ begin
       Window.Controls.InsertFront(Button);
     Window.Controls.InsertBack(Dialog);
     Window.PostRedisplay;
-    repeat Application.ProcessMessage(true, true) until Dialog.Answered;
+    { WaitForMessage = false is necessary, otherwise SecondsPassed
+      for update would be large. }
+    repeat Application.ProcessMessage(false, true) until Dialog.Answered;
 
   finally
     FreeAndNil(Background);
