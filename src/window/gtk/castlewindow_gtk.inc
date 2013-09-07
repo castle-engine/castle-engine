@@ -1210,7 +1210,7 @@ begin
   { prepare Data }
   Data.Answered := false;
 
-  Mode := TGLModeFrozenScreen.Create(Self, 0, false);
+  Mode := TGLModeFrozenScreen.Create(Self, 0);
   try
     gtk_widget_show(GTK_WIDGET(ADialog));
     while not Data.Answered do Application.ProcessMessage(true, true);
@@ -1241,7 +1241,7 @@ begin
 
   Data.Answered := false;
 
-  Mode := TGLModeFrozenScreen.Create(Self, 0, false);
+  Mode := TGLModeFrozenScreen.Create(Self, 0);
   try
     gtk_widget_show(GTK_WIDGET(ADialog));
     while not Data.Answered do Application.ProcessMessage(true, true);

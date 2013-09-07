@@ -32,7 +32,7 @@ unit CastleWindowModes;
 
 interface
 
-uses SysUtils, GL, CastleWindow, CastleGLUtils, CastleImages, CastleMessages,
+uses SysUtils, GL, CastleWindow, CastleGLUtils, CastleImages,
   CastleUIControls, CastleKeysMouse, CastleGLImages;
 
 type
@@ -152,8 +152,6 @@ type
     oldProjectionMatrix, oldTextureMatrix, oldModelviewMatrix: TMatrix4f;
     oldMatrixMode: TGLenum;
     oldWinWidth, oldWinHeight: integer;
-    oldMessagesTheme: TMessagesTheme;
-    FPushPopMessagesTheme: boolean;
     FFakeMouseDown: boolean;
     FRestoreProjectionMatrix: boolean;
     FRestoreModelviewMatrix: boolean;
@@ -175,7 +173,6 @@ type
             @item OpenGL matrix mode
             @item OpenGL matrices (saved without using OpenGL stack)
             @item OpenGL PIXEL_STORE_* state
-            @item MessagesTheme (only if APushPopMessagesTheme)
           )
         )
 
@@ -221,8 +218,7 @@ type
           reinitializing window TCastleWindowCustom.Controls OpenGL resources,
           see TUIControl.DisableContextOpenClose.)
       ) }
-    constructor Create(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
-      APushPopMessagesTheme: boolean);
+    constructor Create(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield);
 
     { Save OpenGL and TCastleWindowBase state, and then change this to a standard
       state. Destructor will restore saved state.
@@ -231,7 +227,6 @@ type
       @link(TWindowState.SetStandardState), see there for explanation
       of parameters. }
     constructor CreateReset(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
-      APushPopMessagesTheme: boolean;
       NewDraw, NewResize, NewCloseQuery: TWindowFunc);
 
     destructor Destroy; override;
@@ -263,8 +258,7 @@ type
     ScreenImage: TGLImage;
     SavedScreenWidth, SavedScreenHeight: Cardinal;
   public
-    constructor Create(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
-      APushPopMessagesTheme: boolean);
+    constructor Create(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield);
 
     destructor Destroy; override;
   end;
@@ -405,8 +399,7 @@ end;
 
 { GL Mode ---------------------------------------------------------------- }
 
-constructor TGLMode.Create(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
-  APushPopMessagesTheme: boolean);
+constructor TGLMode.Create(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield);
 
   procedure SimulateReleaseAll;
   var
@@ -443,10 +436,6 @@ begin
  oldWinWidth := Window.Width;
  oldWinHeight := Window.Height;
 
- FPushPopMessagesTheme := APushPopMessagesTheme;
- if FPushPopMessagesTheme then
-   oldMessagesTheme := MessagesTheme;
-
  Window.MakeCurrent;
 
  SimulateReleaseAll;
@@ -479,10 +468,9 @@ begin
 end;
 
 constructor TGLMode.CreateReset(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
-  APushPopMessagesTheme: boolean;
   NewDraw, NewResize, NewCloseQuery: TWindowFunc);
 begin
-  Create(AWindow, AttribsToPush, APushPopMessagesTheme);
+  Create(AWindow, AttribsToPush);
   TWindowState.SetStandardState(AWindow, NewDraw, NewResize, NewCloseQuery);
 end;
 
@@ -495,9 +483,6 @@ begin
 
  if DisabledContextOpenClose then
    TCastleWindowCustom(Window).Controls.EndDisableContextOpenClose;
-
- if FPushPopMessagesTheme then
-   MessagesTheme := oldMessagesTheme;
 
  { Although it's forbidden to use TGLMode on Closed TCastleWindowBase,
    in destructor we must take care of every possible situation
@@ -580,9 +565,9 @@ begin
 end;
 
 constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindowBase;
-  AttribsToPush: TGLbitfield; APushPopMessagesTheme: boolean);
+  AttribsToPush: TGLbitfield);
 begin
- inherited Create(AWindow, AttribsToPush, APushPopMessagesTheme);
+ inherited Create(AWindow, AttribsToPush);
 
  { save screen, before changing state (before changing OnDraw callback
    in SetStandardState, before changing projection in Window.EventResize etc.) }

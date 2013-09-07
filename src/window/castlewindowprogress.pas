@@ -254,7 +254,7 @@ begin
   SavedMode := TGLMode.CreateReset(Window,
     GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT or GL_COLOR_BUFFER_BIT
     or GL_VIEWPORT_BIT,
-    false, @DisplayProgress, nil, @NoClose);
+    @DisplayProgress, nil, @NoClose);
 
   { init our window state }
   Window.UserData := Progress;

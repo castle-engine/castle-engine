@@ -20,7 +20,7 @@ interface
 
 uses Classes, GL, CastleVectors, CastleUIControls, CastleGLBitmapFonts,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages,
-  CastleRectangles;
+  CastleRectangles, CastleBitmapFonts;
 
 type
   { Base class for all controls inside an OpenGL context using a font. }
@@ -277,6 +277,8 @@ type
     FImages: array [TThemeImage] of TCastleImage;
     FCorners: array [TThemeImage] of TVector4Integer;
     FGLImages: array [TThemeImage] of TGLImage;
+    FMessageFont: TBitmapFont;
+    FGLMessageFont: TGLBitmapFont;
     function GetImages(const ImageType: TThemeImage): TCastleImage;
     procedure SetImages(const ImageType: TThemeImage; const Value: TCastleImage);
     function GetCorners(const ImageType: TThemeImage): TVector4Integer;
@@ -289,6 +291,7 @@ type
       Changing the TCastleImage instance will automatically free (and recreate
       at next access) the corresponding TGLImage instance. }
     property GLImages[const ImageType: TThemeImage]: TGLImage read GetGLImages;
+    procedure SetMessageFont(const Value: TBitmapFont);
   public
     TooltipInsideColor: TVector3Byte;
     TooltipBorderColor: TVector3Byte;
@@ -298,6 +301,9 @@ type
 
     BarEmptyColor : TVector3Byte;
     BarFilledColor: TVector3Byte;
+
+    MessageTextColor: TVector3Byte;
+    MessageInputTextColor: TVector3Byte;
 
     constructor Create;
 
@@ -309,7 +315,7 @@ type
       you're responsible for freeing it.
 
       The alpha channel of the image, if any, is automatically correctly used
-     (for alpha test or alpha blending, see TGLImage). }
+      (for alpha test or alpha blending, see TGLImage). }
     property Images[const ImageType: TThemeImage]: TCastleImage read GetImages write SetImages;
 
     { Corners that determine how image on @link(Images) is stretched.
@@ -322,6 +328,11 @@ type
 
     { Draw the selected theme image on screen. }
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage);
+
+    { Font used by dialogs.
+      Note that it doesn't have to be mono-spaced. }
+    property MessageFont: TBitmapFont read FMessageFont write SetMessageFont;
+    function GLMessageFont: TGLBitmapFont;
   end;
 
 { The bitmap fonts used throughout UI interface.
@@ -351,7 +362,8 @@ procedure Register;
 implementation
 
 uses SysUtils, CastleControlsImages, CastleBitmapFont_BVSans_m10,
-  CastleBitmapFont_BVSans, CastleGLUtils, Math, CastleColors;
+  CastleBitmapFont_BVSans, CastleGLUtils, Math, CastleColors,
+  CastleBitmapFont_BVSansMono_m18;
 
 procedure Register;
 begin
@@ -961,6 +973,10 @@ begin
   TextColor       := Vector3Byte(  0,   0,   0);
   BarEmptyColor  := Vector3Byte(192, 192, 192);
   BarFilledColor := Vector3Byte(Round(0.2 * 255), Round(0.5 * 255), 0);
+  MessageInputTextColor := Vector3Byte(85, 255, 255);
+  MessageTextColor := Vector3Byte(255, 255, 255);
+
+  MessageFont := BitmapFont_BVSansMono_M18;
 
   FImages[tiWindow] := WindowDark;
   FCorners[tiWindow] := Vector4Integer(2, 2, 2, 2);
@@ -1008,11 +1024,28 @@ var
 begin
   for ImageType in TThemeImage do
     FreeAndNil(FGLImages[ImageType]);
+  FreeAndNil(FGLMessageFont);
 end;
 
 procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage);
 begin
   GLImages[ImageType].Draw3x3(Rect, Corners[ImageType]);
+end;
+
+procedure TCastleTheme.SetMessageFont(const Value: TBitmapFont);
+begin
+  if FMessageFont <> Value then
+  begin
+    FMessageFont := Value;
+    FreeAndNil(FGLMessageFont);
+  end;
+end;
+
+function TCastleTheme.GLMessageFont: TGLBitmapFont;
+begin
+  if FGLMessageFont = nil then
+    FGLMessageFont := TGLBitmapFont.Create(FMessageFont);
+  Result := FGLMessageFont;
 end;
 
 var

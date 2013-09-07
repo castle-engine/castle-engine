@@ -33,10 +33,7 @@
 
     @item(Long text lines are automatically broken. So it's OK to use
       text with long lines.
-
-      We will try to break text only at whitespace. Note that our "line breaking"
-      works correctly for all fonts (see @link(TMessagesTheme.Font)),
-      even if font is not a fixed-character-width font.
+      We will try to break text only at whitespace.
 
       If you pass a text as a single string parameter, then our "line breaking"
       works  correctly even for text that already contains newline characters
@@ -101,7 +98,7 @@ unit CastleMessages;
 
 interface
 
-uses Classes, CastleWindow, CastleGLUtils, GL, GLU, GLExt, CastleUtils, CastleGLBitmapFonts,
+uses Classes, CastleWindow, CastleGLUtils, GL, GLU, GLExt, CastleUtils,
   CastleStringUtils, CastleVectors, CastleKeysMouse;
 
 type
@@ -281,58 +278,9 @@ function MessageInputQueryVector4Single(
   Window: TCastleWindowCustom; const Title: string;
   var Value: TVector4Single; TextAlign: TTextAlign): boolean;
 
-type
-  TMessagesTheme = record
-    RectColor: TVector4f deprecated;
-    RectBorderCol: TVector3f deprecated;
-
-    ScrollBarCol: TVector3f;
-    ClosingTextCol: TVector3f deprecated;
-    InputTextStrCol: TVector3f;
-    TextCol: TVector3f;
-
-    { Font used by procedures in this unit.
-      Nil means "use default font".
-      This font doesn't have to be mono-spaced.  }
-    Font: TGLBitmapFontAbstract;
-  end;
-
-const
-  MessagesTheme_Default: TMessagesTheme =
-  ( RectColor: (0, 0, 0, 1);           { = Black3Single }
-    RectBorderCol: (1, 1, 0.33);       { = Yellow3Single }
-    ScrollBarCol: (0.5, 0.5, 0.5);     { = Gray3Single }
-    ClosingTextCol: (1, 1, 0.33);      { = Yellow3Single }
-    InputTextStrCol: (0.33, 1, 1);    { = LightCyan3Single }
-    TextCol: (1, 1, 1);                { = White3Single }
-    Font: nil;
-  );
-
-  { }
-  MessagesTheme_TypicalGUI: TMessagesTheme =
-  ( RectColor: (0.75, 0.75, 0.66, 1);
-    RectBorderCol: (0.87, 0.87, 0.81);
-    ScrollBarCol: (0.87, 0.87, 0.81);
-    ClosingTextCol: (0.4, 0, 1);
-    InputTextStrCol: (0, 0.4, 0);
-    TextCol: (0, 0, 0);
-    Font: nil;
-  );
-
-var
-  { The way MessageXxx procedures in this unit are displayed.
-    By default it is equal to MessagesTheme_Default.
-
-    Note that all procedures in this unit are re-entrant (safe for recursive
-    calls, and in threads), unless you modify this variable. When you modify
-    this from one thread, be sure that you don't currently use it in some
-    MessageXxx (in other thread, or maybe you're in Application.OnUpdate or such that
-    is called while other window is in MessageXxx). }
-  MessagesTheme: TMessagesTheme;
-
 implementation
 
-uses CastleBitmapFont_BVSansMono_m18, CastleImages, CastleControls,
+uses CastleImages, CastleControls, CastleGLBitmapFonts,
   CastleClassUtils, SysUtils, CastleWindowModes, CastleLog, CastleGLImages,
   CastleUIControls, CastleRectangles;
 
@@ -352,15 +300,13 @@ type
     FInputText: string;
 
     { What to draw. }
-    { Broken (using Font.BreakLines) Text. }
+    { Broken Text. }
     Broken_Text: TStringList;
     { Ignored (not visible) if not DrawInputText.
       Else broken InputText. }
     Broken_InputText: TStringList;
     Buttons: array of TCastleButton;
 
-    { Maximum of Font.MaxTextWidth(Broken_Xxx) for all visible Broken_Xxx.
-      Calculated in every ResizeMessg. }
     MaxLineWidth: integer;
     { Sum of all Broken_Text.Count + Broken_InputText.Count.
       In other words, all lines that are scrolled by the scrollbar. }
@@ -394,8 +340,7 @@ type
 
     { Main text to display. Read-only contents. }
     Text: TStringList;
-    Font: TGLBitmapFontAbstract;   { font ktorego uzyc }
-    DrawBG: TGLImage;            { zapamietane tlo okienka }
+    DrawBG: TGLImage; // window background
     Align: TTextAlign;
     { Should we display InputText }
     DrawInputText: boolean;
@@ -425,6 +370,7 @@ type
     function WholeMessageRect: TRectangle;
     { If ScrollBarVisible, ScrollBarWholeWidth. Else 0. }
     function RealScrollBarWholeWidth: Integer;
+    function Font: TGLBitmapFont;
   public
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
     function Press(const Event: TInputPressRelease): boolean; override;
@@ -776,11 +722,11 @@ begin
 
   if DrawInputText then
   begin
-    glColorv(MessagesTheme.InputTextStrCol);
+    glColorv(Theme.MessageInputTextColor);
     DrawStrings(Broken_InputText, align, TextX, TextY);
   end;
 
-  glColorv(MessagesTheme.TextCol);
+  glColorv(Theme.MessageTextColor);
   DrawStrings(Broken_Text, align, TextX, TextY);
 
   glDisable(GL_SCISSOR_TEST);
@@ -803,6 +749,11 @@ begin
       ContainerWidth  - WindowMargin * 2),
     Min(AllScrolledLinesCount * Font.RowHeight + BoxMargin * 2 + ButtonsHeight,
       ContainerHeight - WindowMargin * 2));
+end;
+
+function TCastleDialog.Font: TGLBitmapFont;
+begin
+  Result := Theme.GLMessageFont;
 end;
 
 { MessageCore ---------------------------------------------------------------- }
@@ -841,7 +792,7 @@ begin
 
   SavedMode := TGLMode.CreateReset(Window,
     GL_PIXEL_MODE_BIT or GL_SCISSOR_BIT or GL_ENABLE_BIT or
-    GL_LINE_BIT or GL_TRANSFORM_BIT or GL_COLOR_BUFFER_BIT, false,
+    GL_LINE_BIT or GL_TRANSFORM_BIT or GL_COLOR_BUFFER_BIT,
     { Using @NoClose is good, it also allows users to safely use
       MessageXxx inside own OnCloseQuery, like
         if MessageYesNo('Are you sure ?') then Window.Close; }
@@ -885,9 +836,6 @@ begin
         DrawBG := SaveScreenToGL_noflush(0, 0, Window.Width, Window.Height, GL_BACK) else
         DrawBG := SaveScreenToGL_noflush(0, 0, Window.Width, Window.Height, GL_FRONT);
       Answered := false;
-      if MessagesTheme.Font = nil then
-        font := TGLBitmapFont.Create(BitmapFont_BVSansMono_m18) else
-        font := MessagesTheme.Font;
       Text := TextList;
       { Contents of Broken_xxx will be initialized in TCastleDialog.UpdateSizes. }
       Broken_Text := TStringList.Create;
@@ -915,7 +863,6 @@ begin
     FreeAndNil(Dialog.DrawBG);
     Dialog.Broken_Text.Free;
     Dialog.Broken_InputText.Free;
-    if MessagesTheme.Font = nil then Dialog.font.Free;
     AInputText := Dialog.InputText;
 
     { Odtwarzamy zasejwowane wlasciwosci okienka. }
@@ -1548,8 +1495,4 @@ begin
   end;
 end;
 
-{ init / fini ---------------------------------------------------------------- }
-
-initialization
-  MessagesTheme := MessagesTheme_Default;
 end.
