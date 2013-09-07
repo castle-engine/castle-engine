@@ -517,7 +517,7 @@ end;
     { Add at the beginning of the list.
       This is just a shortcut for @code(Insert(0, NewItem)),
       but makes it easy to remember that controls at the beginning of the list
-      are in front (that get key/mouse events first). }
+      are in front (they get key/mouse events first). }
     procedure InsertFront(const NewItem: TUIControl);
 
     { Add at the end of the list.

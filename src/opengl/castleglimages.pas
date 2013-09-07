@@ -63,7 +63,7 @@ unit CastleGLImages;
 interface
 
 uses GL, GLU, GLExt, SysUtils, CastleImages, CastleVectors, CastleGLUtils,
-  CastleVideos, CastleDDS;
+  CastleVideos, CastleDDS, CastleRectangles;
 
 const
   PixelsImageClasses: array [0..3] of TCastleImageClass = (
@@ -224,6 +224,8 @@ type
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
       const CornerTop, CornerRight, CornerBottom, CornerLeft: Integer);
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
+      const Corner: TVector4Integer);
+    procedure Draw3x3(const ScreenRectangle: TRectangle;
       const Corner: TVector4Integer);
   end;
 
@@ -1173,6 +1175,14 @@ procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
   const Corner: TVector4Integer);
 begin
   Draw3x3(X, Y, DrawWidth, DrawHeight,
+    Corner[0], Corner[1], Corner[2], Corner[3]);
+end;
+
+procedure TGLImage.Draw3x3(const ScreenRectangle: TRectangle;
+  const Corner: TVector4Integer);
+begin
+  Draw3x3(ScreenRectangle.Left, ScreenRectangle.Bottom,
+    ScreenRectangle.Width, ScreenRectangle.Height,
     Corner[0], Corner[1], Corner[2], Corner[3]);
 end;
 

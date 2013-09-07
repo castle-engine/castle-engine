@@ -1,0 +1,230 @@
+{
+  Copyright 2006-2013 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Rectangle representation (TRectangle). }
+unit CastleRectangles;
+
+interface
+
+uses CastleGenericLists;
+
+type
+  { 2D rectangle with integer coordinates.
+    Useful for various 2D GUI operations.
+
+    The area covered by the rectangle starts in (Left,Bottom)
+    pixel and spans (Width,Height) pixels. This means that the right-top pixel
+    covered by the rectangle is (Left + Width - 1,Bottom + Height - 1).
+    The rectangle is empty (@link(Contains) will always answer @false)
+    when either Width or Height are zero. }
+  TRectangle = object
+  private
+    function GetRight: Integer;
+    function GetTop: Integer;
+  public
+    Left, Bottom: Integer;
+    Width, Height: Cardinal;
+
+    const
+      Empty: TRectangle = (Left: 0; Bottom: 0; Width: 0; Height: 0);
+
+    function Contains(const X, Y: Integer): boolean;
+
+    { Right and Top pixels are 1 pixel *outside* of the rectangle.
+      @groupBegin }
+    property Right: Integer read GetRight;
+    property Top: Integer read GetTop;
+    { @groupEnd }
+
+    { Return rectangle with given width and height centered
+      in the middle of this rectangle. The given W, H may be smaller or larger
+      than this rectangle sizes. }
+    function Center(const W, H: Cardinal): TRectangle;
+
+    { Grow (when Delta > 0) or shrink (when Delta < 0)
+      the rectangle, returning new value.
+      This adds a margin of Delta pixels around all sides of the rectangle,
+      so in total width grows by 2 * Delta, and the same for height.
+      In case of shrinking, we protect from shrinking too much:
+      the resulting width or height is set to zero (which makes a valid
+      and empty rectangle) if shrinking too much. }
+    function Grow(const Delta: Integer): TRectangle;
+
+    { Returns the rectangle with a number of pixels from given
+      side removed. Returns an empty rectangle if you try to remove too much.
+      @groupBegin }
+    function RemoveLeft(W: Cardinal): TRectangle;
+    function RemoveBottom(H: Cardinal): TRectangle;
+    function RemoveRight(W: Cardinal): TRectangle;
+    function RemoveTop(H: Cardinal): TRectangle;
+    { @groupEnd }
+
+    { Returns the given side of the rectangle, cut down to given number of pixels
+      from given side. This is similar to RemoveXxx methods, but here you specify
+      which side to keep, as opposed to RemoveXxx methods where you specify which
+      side you remove.
+
+      If the requested size is larger than current size (for example,
+      W > Width for LeftPart) then the unmodified rectangle is returned.
+
+      @groupBegin }
+    function LeftPart(W: Cardinal): TRectangle;
+    function BottomPart(H: Cardinal): TRectangle;
+    function RightPart(W: Cardinal): TRectangle;
+    function TopPart(H: Cardinal): TRectangle;
+    { @groupEnd }
+  end;
+
+  TRectangleList = class(specialize TGenericStructList<TRectangle>)
+  public
+    { Index of the first rectangle that contains point (X, Y).
+      Returns -1 if not found. }
+    function FindRectangle(const X, Y: Integer): Integer;
+  end;
+
+function Rectangle(const Left, Bottom, Width, Height: Integer): TRectangle;
+
+implementation
+
+uses CastleUtils;
+
+{ TRectangle ----------------------------------------------------------------- }
+
+function Rectangle(const Left, Bottom, Width, Height: Integer): TRectangle;
+begin
+  Result.Left := Left;
+  Result.Bottom := Bottom;
+  Result.Width := Width;
+  Result.Height := Height;
+end;
+
+function TRectangle.Contains(const X, Y: Integer): boolean;
+begin
+  Result := (X >= Left  ) and (X < Left   + Integer(Width)) and
+            (Y >= Bottom) and (Y < Bottom + Integer(Height));
+end;
+
+function TRectangle.Center(const W, H: Cardinal): TRectangle;
+begin
+  Result.Left   := Left   + (Integer(Width ) - Integer(W)) div 2;
+  Result.Bottom := Bottom + (Integer(Height) - Integer(H)) div 2;
+  Result.Width  := W;
+  Result.Height := H;
+end;
+
+function TRectangle.Grow(const Delta: Integer): TRectangle;
+begin
+  if Integer(Width) + 2 * Delta < 0 then
+  begin
+    Result.Left := Left + Width div 2;
+    Result.Width := 0;
+  end else
+  begin
+    Result.Left := Left - Delta;
+    Result.Width := Integer(Width) + 2 * Delta;
+  end;
+
+  if Integer(Height) + 2 * Delta < 0 then
+  begin
+    Result.Bottom := Bottom + Height div 2;
+    Result.Height := 0;
+  end else
+  begin
+    Result.Bottom := Bottom - Delta;
+    Result.Height := Integer(Height) + 2 * Delta;
+  end;
+end;
+
+function TRectangle.GetRight: Integer;
+begin
+  Result := Left + Width;
+end;
+
+function TRectangle.GetTop: Integer;
+begin
+  Result := Bottom + Height;
+end;
+
+function TRectangle.RemoveLeft(W: Cardinal): TRectangle;
+begin
+  Result := Self;
+  MinTo1st(W, Width);
+  Result.Left += W;
+  Result.Width -= W;
+end;
+
+function TRectangle.RemoveBottom(H: Cardinal): TRectangle;
+begin
+  Result := Self;
+  MinTo1st(H, Height);
+  Result.Bottom += H;
+  Result.Height -= H;
+end;
+
+function TRectangle.RemoveRight(W: Cardinal): TRectangle;
+begin
+  Result := Self;
+  MinTo1st(W, Width);
+  Result.Width -= W;
+end;
+
+function TRectangle.RemoveTop(H: Cardinal): TRectangle;
+begin
+  Result := Self;
+  MinTo1st(H, Height);
+  Result.Height -= H;
+end;
+
+function TRectangle.LeftPart(W: Cardinal): TRectangle;
+begin
+  Result := Self;
+  MinTo1st(W, Width);
+  Result.Width := W;
+end;
+
+function TRectangle.BottomPart(H: Cardinal): TRectangle;
+begin
+  Result := Self;
+  MinTo1st(H, Height);
+  Result.Height := H;
+end;
+
+function TRectangle.RightPart(W: Cardinal): TRectangle;
+begin
+  Result := Self;
+  MinTo1st(W, Width);
+  Result.Left += Width - W;
+  Result.Width := W;
+end;
+
+function TRectangle.TopPart(H: Cardinal): TRectangle;
+begin
+  Result := Self;
+  MinTo1st(H, Height);
+  Result.Bottom += Height - H;
+  Result.Height := H;
+end;
+
+{ TRectangleList -------------------------------------------------------------- }
+
+function TRectangleList.FindRectangle(const X, Y: Integer): integer;
+begin
+  for Result := 0 to Count - 1 do
+    if L[Result].Contains(X, Y) then
+      Exit;
+  Result := -1;
+end;
+
+end.

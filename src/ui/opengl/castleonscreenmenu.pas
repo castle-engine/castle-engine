@@ -20,36 +20,10 @@ interface
 
 uses Classes, CastleVectors, CastleGLBitmapFonts, CastleControls,
   GL, CastleGLUtils, CastleUIControls, CastleKeysMouse, CastleColors,
-  CastleGenericLists;
+  CastleGenericLists, CastleRectangles;
 
 type
   TCastleOnScreenMenu = class;
-
-  { 2D rectangle. Useful to detect in which rectangle a point
-    (like a mouse position) is.
-
-    We don't use standard Types.TRect for this, as TRect behavior is sometimes
-    (see PtInRect) suited for rectangles anchored in top-left corner
-    (while we are anchored in bottom-left corner). }
-  TRectangle = object
-    X0, Y0, Width, Height: Integer;
-    function PointInside(const X, Y: Integer): boolean;
-    procedure DrawBorder(const Color: TVector4f; const BorderWidth: Single = 1.0);
-  end;
-  PRectangle = ^TRectangle;
-
-  TRectangleList = class(specialize TGenericStructList<TRectangle>)
-  public
-    { FindRectangle returns index of the rectangle that contains point (X, Y).
-
-      @italic(It returns the index of the @bold(last) rectangle, that is:
-      it searches from the end of the list.) This way the rectangles added
-      later by Add method are treated as being on top of previous
-      rectangles, which is more intuitive.
-
-      Returns -1 if not found. }
-    function FindRectangle(const X, Y: Integer): integer;
-  end;
 
   { Attachment to a specific menu item of TCastleOnScreenMenu,
     for example may store a value associated with given menu option,
@@ -91,7 +65,7 @@ type
       This will be called only if MouseX and MouseY will be within
       appropriate Rectangle of this accessory. This Rectangle is also
       passed here, so you can e.g. calculate mouse position
-      relative to this accessory as (MouseX - Rectangle.X0, MouseY - Rectangle.Y0).
+      relative to this accessory as (MouseX - Rectangle.Left, MouseY - Rectangle.Bottom).
 
       Note that while the user holds the mouse clicked (MousePressed <> []),
       the mouse is "grabbed" by this accessory, and even when the user
@@ -690,8 +664,6 @@ property MenuFont: TGLBitmapFontAbstract read GetUIFont write SetUIFont;
 property SliderFont: TGLBitmapFontAbstract read GetUIFontSmall write SetUIFontSmall;
 { @groupEnd }
 
-function Rectangle(const X0, Y0, Width, Height: Integer): TRectangle;
-
 implementation
 
 uses SysUtils, CastleUtils, CastleImages, CastleFilesUtils, CastleClassUtils,
@@ -774,35 +746,11 @@ begin
   ImageSliderPosition := nil;
 end;
 
-{ TRectangleList -------------------------------------------------------------- }
-
-function TRectangleList.FindRectangle(const X, Y: Integer): integer;
+procedure RectangleDrawBorder(const Rectangle: TRectangle;
+  const Color: TVector4f; const BorderWidth: Single = 1);
 begin
-  for Result := Count - 1 downto 0 do
-    if L[Result].PointInside(X, Y) then
-      Exit;
-  Result := -1;
-end;
-
-{ TRectangle ----------------------------------------------------------------- }
-
-function Rectangle(const X0, Y0, Width, Height: Integer): TRectangle;
-begin
-  Result.X0 := X0;
-  Result.Y0 := Y0;
-  Result.Width := Width;
-  Result.Height := Height;
-end;
-
-function TRectangle.PointInside(const X, Y: Integer): boolean;
-begin
-  Result := (X >= X0) and (X <= X0 + Width) and
-            (Y >= Y0) and (Y <= Y0 + Height);
-end;
-
-procedure TRectangle.DrawBorder(const Color: TVector4f; const BorderWidth: Single);
-begin
-  GLRectangleBorder(X0, Y0, X0 + Width, Y0 + Height, Color, BorderWidth);
+  GLRectangleBorder(Rectangle.Left, Rectangle.Bottom,
+    Rectangle.Right, Rectangle.Top, Color, BorderWidth);
 end;
 
 { TMenuAccessory ------------------------------------------------------ }
@@ -856,7 +804,7 @@ end;
 procedure TMenuArgument.Draw(const Rectangle: TRectangle);
 begin
   glColorv(LightGreen3Single);
-  UIFont.Print(Rectangle.X0, Rectangle.Y0 + UIFont.Descend, Value);
+  UIFont.Print(Rectangle.Left, Rectangle.Bottom + UIFont.Descend, Value);
 end;
 
 { TMenuBooleanArgument ----------------------------------------------------- }
@@ -897,7 +845,7 @@ procedure TMenuSlider.Draw(const Rectangle: TRectangle);
 begin
   ImageSliderInit;
 
-  GLImageSlider.Draw(Rectangle.X0, Rectangle.Y0 +
+  GLImageSlider.Draw(Rectangle.Left, Rectangle.Bottom +
     (Rectangle.Height - ImageSlider.Height) div 2);
 end;
 
@@ -909,11 +857,11 @@ procedure TMenuSlider.DrawSliderPosition(const Rectangle: TRectangle;
 begin
   ImageSliderInit;
 
-  GLImageSliderPosition.Draw(Rectangle.X0 + ImageSliderPositionMargin +
+  GLImageSliderPosition.Draw(Rectangle.Left + ImageSliderPositionMargin +
     Round(MapRange(Clamped(Position, 0, 1), 0, 1, 0,
       ImageSlider.Width - 2 * ImageSliderPositionMargin -
       ImageSliderPosition.Width)),
-    Rectangle.Y0 + (Rectangle.Height - ImageSliderPosition.Height) div 2);
+    Rectangle.Bottom + (Rectangle.Height - ImageSliderPosition.Height) div 2);
 end;
 
 function TMenuSlider.XCoordToSliderPosition(
@@ -923,8 +871,8 @@ begin
     because we want XCoord to be in the middle
     of ImageSliderPosition, not on the left. }
   Result := MapRange(XCoord - ImageSliderPosition.Width div 2,
-    Rectangle.X0 + ImageSliderPositionMargin,
-    Rectangle.X0 + ImageSlider.Width - 2 * ImageSliderPositionMargin -
+    Rectangle.Left + ImageSliderPositionMargin,
+    Rectangle.Left + ImageSlider.Width - 2 * ImageSliderPositionMargin -
     ImageSliderPosition.Width, 0, 1);
 
   Clamp(Result, 0, 1);
@@ -935,8 +883,8 @@ procedure TMenuSlider.DrawSliderText(
 begin
   glColorv(Black3Single);
   UIFontSmall.Print(
-    Rectangle.X0 + (Rectangle.Width - UIFontSmall.TextWidth(Text)) div 2,
-    Rectangle.Y0 + (Rectangle.Height - UIFontSmall.RowHeight) div 2,
+    Rectangle.Left + (Rectangle.Width - UIFontSmall.TextWidth(Text)) div 2,
+    Rectangle.Bottom + (Rectangle.Height - UIFontSmall.RowHeight) div 2,
     Text);
 end;
 
@@ -1350,27 +1298,27 @@ begin
   { Calculate positions of all rectangles. }
 
   { we iterate downwards from Rectangles.Count - 1 to 0, updating ItemsBelowHeight.
-    That's OpenGL (and so, Rectangles.L[I].Y0) coordinates grow up, while
+    That's OpenGL (and so, Rectangles.L[I].Bottom) coordinates grow up, while
     our menu items are specified from highest to lowest. }
   ItemsBelowHeight := 0;
 
   for I := Rectangles.Count - 1 downto 0 do
   begin
-    Rectangles.L[I].X0 := PositionAbsolute[0] + AllItemsRectangleMargin;
-    Rectangles.L[I].Y0 := PositionAbsolute[1] + AllItemsRectangleMargin + ItemsBelowHeight;
+    Rectangles.L[I].Left := PositionAbsolute[0] + AllItemsRectangleMargin;
+    Rectangles.L[I].Bottom := PositionAbsolute[1] + AllItemsRectangleMargin + ItemsBelowHeight;
 
     if I > 0 then
       ItemsBelowHeight += Cardinal(UIFont.RowHeight + Integer(SpaceBetweenItems(I)));
   end;
-  FAllItemsRectangle.X0 := PositionAbsolute[0];
-  FAllItemsRectangle.Y0 := PositionAbsolute[1];
+  FAllItemsRectangle.Left := PositionAbsolute[0];
+  FAllItemsRectangle.Bottom := PositionAbsolute[1];
 
-  { Calculate FAccessoryRectangles[].X0, Y0, Height }
+  { Calculate FAccessoryRectangles[].Left, Bottom, Height }
   for I := 0 to Rectangles.Count - 1 do
   begin
-    FAccessoryRectangles.L[I].X0 := Rectangles.L[I].X0 +
+    FAccessoryRectangles.L[I].Left := Rectangles.L[I].Left +
       MaxItemWidth + MarginBeforeAccessory;
-    FAccessoryRectangles.L[I].Y0 := Rectangles.L[I].Y0;
+    FAccessoryRectangles.L[I].Bottom := Rectangles.L[I].Bottom;
     FAccessoryRectangles.L[I].Height := Rectangles.L[I].Height;
   end;
 end;
@@ -1415,9 +1363,9 @@ begin
       if Focused then
         glColor4f(0, 0, 0, BackgroundOpacityFocused) else
         glColor4f(0, 0, 0, BackgroundOpacityNotFocused);
-      glRectf(FAllItemsRectangle.X0, FAllItemsRectangle.Y0,
-        FAllItemsRectangle.X0 + FAllItemsRectangle.Width,
-        FAllItemsRectangle.Y0 + FAllItemsRectangle.Height);
+      glRectf(FAllItemsRectangle.Left, FAllItemsRectangle.Bottom,
+        FAllItemsRectangle.Left + FAllItemsRectangle.Width,
+        FAllItemsRectangle.Bottom + FAllItemsRectangle.Height);
     glDisable(GL_BLEND);
   end;
 
@@ -1432,7 +1380,7 @@ begin
 
   if Focused and DrawFocusedBorder then
   begin
-    FAllItemsRectangle.DrawBorder(Vector4Single(CurrentItemBorderColor));
+    RectangleDrawBorder(FAllItemsRectangle, Vector4Single(CurrentItemBorderColor));
   end;
 
   for I := 0 to Items.Count - 1 do
@@ -1440,17 +1388,17 @@ begin
     if I = CurrentItem then
     begin
       GLRectangleBorder(
-        Rectangles.L[I].X0 - CurrentItemBorderMargin,
-        Rectangles.L[I].Y0,
-        Rectangles.L[I].X0 + Rectangles.L[I].Width + CurrentItemBorderMargin,
-        Rectangles.L[I].Y0 + Rectangles.L[I].Height,
+        Rectangles.L[I].Left - CurrentItemBorderMargin,
+        Rectangles.L[I].Bottom,
+        Rectangles.L[I].Left + Rectangles.L[I].Width + CurrentItemBorderMargin,
+        Rectangles.L[I].Bottom + Rectangles.L[I].Height,
         Vector4Single(CurrentItemBorderColor));
 
       glColorv(CurrentItemColor);
     end else
       glColorv(NonCurrentItemColor);
 
-    UIFont.Print(Rectangles.L[I].X0, Rectangles.L[I].Y0 + UIFont.Descend,
+    UIFont.Print(Rectangles.L[I].Left, Rectangles.L[I].Bottom + UIFont.Descend,
       Items[I]);
 
     if Items.Objects[I] <> nil then
@@ -1591,7 +1539,7 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
 
     if (CurrentItem <> -1) and
        (Items.Objects[CurrentItem] <> nil) and
-       FAccessoryRectangles.L[CurrentItem].PointInside(MX, MY) and
+       FAccessoryRectangles.L[CurrentItem].Contains(MX, MY) and
        (Container.MousePressed - [Button] = []) then
     begin
       ItemAccessoryGrabbed := CurrentItem;
@@ -1658,7 +1606,7 @@ begin
       then user just moves mouse within current item.
       So maybe we should call TMenuAccessory.MouseMove. }
     if (Items.Objects[CurrentItem] <> nil) and
-       FAccessoryRectangles.L[CurrentItem].PointInside(MX, MY) and
+       FAccessoryRectangles.L[CurrentItem].Contains(MX, MY) and
        (ItemAccessoryGrabbed = CurrentItem) then
       TMenuAccessory(Items.Objects[CurrentItem]).MouseMove(
         MX, MY, Container.MousePressed,
@@ -1744,7 +1692,7 @@ end;
 function TCastleOnScreenMenu.PositionInside(const X, Y: Integer): boolean;
 begin
   Result := FullSize or
-    FAllItemsRectangle.PointInside(X, ContainerHeight - Y);
+    FAllItemsRectangle.Contains(X, ContainerHeight - Y);
 end;
 
 procedure TCastleOnScreenMenu.SetItems(const Value: TStringList);

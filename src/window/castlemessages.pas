@@ -334,61 +334,7 @@ implementation
 
 uses CastleBitmapFont_BVSansMono_m18, CastleImages, CastleControls,
   CastleClassUtils, SysUtils, CastleWindowModes, CastleLog, CastleGLImages,
-  CastleUIControls;
-
-{ TIntRect ------------------------------------------------------------------- }
-
-type
-  TIntRect = array [0..1] of TVector2Integer;
-
-const
-  IntRectEmpty: TIntRect = ((0, 0), (0, 0));
-
-function IntRect(X1, Y1, X2, Y2: Integer): TIntRect;
-begin
-  Result[0, 0] := X1;
-  Result[0, 1] := Y1;
-  Result[1, 0] := X2;
-  Result[1, 1] := Y2;
-end;
-
-function RectWidth(const r: TIntRect): Cardinal;
-begin
-  Result := r[1, 0] - r[0, 0];
-end;
-
-function RectHeight(const r: TIntRect): Cardinal;
-begin
-  Result := r[1, 1] - r[0, 1];
-end;
-
-{ It's grow, or shrink (when GrowValue < 0).
-  Just remember to preserve basic TIntRect type assumptions
-  (Rect[0, 0] <= Rect [1, 0], Rect[0, 1] <= Rect [1, 1]),
-  so don't shrink it too much. }
-function GrowRect(const r: TIntRect; GrowValue: Integer): TIntRect;
-begin
-  Result[0, 0] := R[0, 0] - GrowValue;
-  Result[0, 1] := R[0, 1] - GrowValue;
-  Result[1, 0] := R[1, 0] + GrowValue;
-  Result[1, 1] := R[1, 1] + GrowValue;
-end;
-
-function CenteredRect(const R: TIntRect; w, h: Cardinal): TIntRect;
-begin
-  { We're casting W, H to integer. They are declared as Cardinal only
-    to produce some compiler RunTime checks in debug mode. }
-  Result[0, 0] := R[0, 0] + (R[1, 0] - R[0, 0] - Integer(W)) div 2;
-  Result[0, 1] := R[0, 1] + (R[1, 1] - R[0, 1] - Integer(H)) div 2;
-  Result[1, 0] := Result[0, 0] + Integer(W);
-  Result[1, 1] := Result[0, 1] + Integer(H);
-end;
-
-function PointInRect(const x, y: Integer; const r: TIntRect): boolean;
-begin
-  Result := (r[0, 0] <= x) and (x < r[1, 0]) and
-            (r[0, 1] <= y) and (y < r[1, 1]);
-end;
+  CastleUIControls, CastleRectangles;
 
 { TCastleDialog -------------------------------------------------------------- }
 
@@ -440,7 +386,7 @@ type
         jak mialoby sie to stac; ale przed takim czyms lepiej sie zabezpieczyc na
         przyszlosc). }
     ScrollBarVisible: boolean; { Calculated in every ResizeMessg. }
-    ScrollBarRect: TIntRect;
+    ScrollBarRect: TRectangle;
     przewVisY1, przewVisY2: Single;
     ScrollBarDragging: boolean;
 
@@ -476,7 +422,7 @@ type
     function ButtonsHeight: Integer;
     procedure UpdateSizes;
     { The whole rectangle where we draw dialog box. }
-    function WholeMessageRect: TIntRect;
+    function WholeMessageRect: TRectangle;
     { If ScrollBarVisible, ScrollBarWholeWidth. Else 0. }
     function RealScrollBarWholeWidth: Integer;
   public
@@ -534,7 +480,7 @@ end;
 
 procedure TCastleDialog.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
 var
-  MessageRect: TIntRect;
+  MessageRect: TRectangle;
   X, Y, I: Integer;
   Button: TCastleButton;
 begin
@@ -545,8 +491,8 @@ begin
   if Length(Buttons) <> 0 then
   begin
     MessageRect := WholeMessageRect;
-    X := MessageRect[1, 0] - BoxMargin;
-    Y := MessageRect[0, 1] + BoxMargin;
+    X := MessageRect.Right  - BoxMargin;
+    Y := MessageRect.Bottom + BoxMargin;
     for I := Length(Buttons) - 1 downto 0 do
     begin
       Button := Buttons[I];
@@ -664,7 +610,7 @@ begin
         begin
           MY := ContainerHeight - Container.MouseY;
           if (Event.MouseButton = mbLeft) and ScrollBarVisible and
-            PointInRect(Container.MouseX, MY, ScrollBarRect) then
+            ScrollBarRect.Contains(Container.MouseX, MY) then
           begin
             if MY < przewVisY1 then
               ScrollPageDown else
@@ -701,9 +647,8 @@ begin
   if Result or (not GetExists) then Exit;
 
   Result := ScrollBarDragging;
-
   if Result then
-    Scroll := Scroll + NewY- OldY / RectHeight(ScrollBarRect) *
+    Scroll := Scroll + (NewY- OldY) / ScrollBarRect.Height *
       (ScrollMaxForScrollbar - ScrollMin);
 end;
 
@@ -762,11 +707,11 @@ procedure TCastleDialog.Draw;
   end;
 
 var
-  MessageRect: TIntRect;
+  MessageRect: TRectangle;
   { InnerRect to okienko w ktorym mieszcza sie napisy,
     a wiec WholeMessageRect zmniejszony o BoxMargin we wszystkich kierunkach
     i z ew. obcieta prawa czescia przeznaczona na ScrollBarRect. }
-  InnerRect: TIntRect;
+  InnerRect: TRectangle;
   ScrollBarLength: integer;
   ScrollBarVisibleBegin: TGLfloat;
   TextX, TextY: Integer;
@@ -775,7 +720,7 @@ const
     (prawa krawedz jest zarazem krawedzia duzego recta !) }
   ScrollBarMargin = 2;
   { szerokosc paska ScrollBara }
-  ScrollBarInternalWidth = ScrollBarWholeWidth - ScrollBarMargin*2;
+  ScrollBarInternalWidth = ScrollBarWholeWidth - ScrollBarMargin * 2;
 begin
   inherited;
   if not GetExists then Exit;
@@ -789,48 +734,45 @@ begin
 
   MessageRect := WholeMessageRect;
 
-  Theme.GLWindow.Draw3x3(MessageRect[0][0], MessageRect[0][1],
-    RectWidth(MessageRect), RectHeight(MessageRect),
-    Theme.WindowCorner);
+  Theme.GLWindow.Draw3x3(MessageRect, Theme.WindowCorner);
 
-  MessageRect[0, 1] += ButtonsHeight;
+  MessageRect := MessageRect.RemoveBottom(ButtonsHeight);
 
   { Calculate InnerRect now }
-  InnerRect := GrowRect(MessageRect, -BoxMargin);
-  InnerRect[1, 0] -= RealScrollBarWholeWidth;
+  InnerRect := MessageRect.Grow(-BoxMargin);
+  InnerRect.Width -= RealScrollBarWholeWidth;
 
   { teraz rysuj ScrollBar. Also calculate ScrollBarRect here. }
   if ScrollBarVisible then
   begin
-    ScrollBarRect := MessageRect;
-    ScrollBarRect[0, 0] := MessageRect[1, 0] - ScrollBarWholeWidth;
+    ScrollBarRect := MessageRect.RightPart(ScrollBarWholeWidth);
 
-    ScrollBarLength := RectHeight(MessageRect) - ScrollBarMargin*2;
+    ScrollBarLength := MessageRect.Height - ScrollBarMargin*2;
     ScrollBarVisibleBegin := MapRange(Scroll,
       ScrollMin, ScrollMaxForScrollbar, ScrollBarLength, 0);
-    przewVisY1 := MessageRect[0, 1] + ScrollBarMargin +
+    przewVisY1 := MessageRect.Bottom + ScrollBarMargin +
       max(0, ScrollBarVisibleBegin -
         (VisibleScrolledLinesCount / AllScrolledLinesCount)*ScrollBarLength);
-    przewVisY2 := MessageRect[0, 1] + ScrollBarMargin + ScrollBarVisibleBegin;
+    przewVisY2 := MessageRect.Bottom + ScrollBarMargin + ScrollBarVisibleBegin;
 
     glLineWidth(ScrollBarInternalWidth);
     glColorv(MessagesTheme.ScrollBarCol);
-    GLVerticalLine((ScrollBarRect[0, 0] + ScrollBarRect[1, 0]) / 2,
+    GLVerticalLine(ScrollBarRect.Left + ScrollBarRect.Width div 2,
       przewVisY1, przewVisY2);
     glLineWidth(1);
   end else
-    ScrollBarRect := IntRectEmpty;
+    ScrollBarRect := TRectangle.Empty;
 
   { Make scissor to cut off text that is too far up/down.
-    We subtract font.Descend from Y0, to see the descend of
-    the bottom line (which is below InnerRect[0, 1], and would not be
+    We subtract Font.Descend from Y0, to see the descend of
+    the bottom line (which is below InnerRect.Bottom, and would not be
     ever visible otherwise). }
-  glScissor(InnerRect[0, 0], InnerRect[0, 1]-font.Descend,
-    RectWidth(InnerRect), RectHeight(InnerRect));
+  glScissor(InnerRect.Left, InnerRect.Bottom - Font.Descend,
+    InnerRect.Width, InnerRect.Height + Font.Descend);
   glEnable(GL_SCISSOR_TEST);
 
-  TextX := InnerRect[0, 0];
-  TextY := InnerRect[0, 1] + Round(Scroll);
+  TextX := InnerRect.Left;
+  TextY := InnerRect.Bottom + Round(Scroll);
 
   { rysuj Broken_InputText i Broken_Text.
     Kolejnosc ma znaczenie, kolejne linie sa rysowane od dolu w gore. }
@@ -857,14 +799,13 @@ begin
   Result := Iff(ScrollBarVisible, ScrollBarWholeWidth, 0);
 end;
 
-function TCastleDialog.WholeMessageRect: TIntRect;
+function TCastleDialog.WholeMessageRect: TRectangle;
 begin
-  Result := CenteredRect(
-    IntRect(0, 0, ContainerWidth, ContainerHeight),
+  Result := Rectangle(0, 0, ContainerWidth, ContainerHeight).Center(
     Min(MaxLineWidth + BoxMargin * 2 + RealScrollBarWholeWidth,
-      ContainerWidth - WindowMargin * 2),
-    Min(AllScrolledLinesCount * Font.RowHeight +
-      BoxMargin * 2 + ButtonsHeight, ContainerHeight - WindowMargin*2));
+      ContainerWidth  - WindowMargin * 2),
+    Min(AllScrolledLinesCount * Font.RowHeight + BoxMargin * 2 + ButtonsHeight,
+      ContainerHeight - WindowMargin * 2));
 end;
 
 { MessageCore ---------------------------------------------------------------- }
@@ -959,8 +900,6 @@ begin
       ScrollBarDragging := false;
       DrawInputText := AdrawInputText;
       FInputText := AInputText;
-      { These will be set correctly in nearest TCastleDialog.Draw }
-      ScrollBarRect := IntRectEmpty;
       SetLength(Buttons, Length(AButtons));
       for I := 0 to High(AButtons) do
       begin
