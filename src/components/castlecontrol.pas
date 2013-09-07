@@ -1446,8 +1446,10 @@ procedure TCastleControlCustom.DoDraw;
       { Set and push/pop OpenGL state that is guaranteed for Draw2D calls,
         but TUIControl.Draw cannot change it carelessly. }
       glDisable(GL_LIGHTING);
+      glDisable(GL_FOG);
       glDisable(GL_DEPTH_TEST);
-      GLEnableTexture(etNone);
+      glDisable(GL_SCISSOR_TEST);
+      GLEnableTexture(CastleGLUtils.etNone);
 
       glMatrixMode(GL_PROJECTION);
       glPushMatrix;

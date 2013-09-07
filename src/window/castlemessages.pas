@@ -88,10 +88,8 @@
 
 unit CastleMessages;
 
-{ TODO
-  - przydalby sie jeszcze kursor dla MessageInput[Query]
-  - this should be implemented on top of CastleWindowModes.TGLModeFrozenScreen,
-    this would simplify implementation a bit
+{ TODO:
+  - blinking cursor for MessageInput[Query] woul be useful
 }
 
 {$I castleconf.inc}
@@ -284,71 +282,56 @@ uses CastleImages, CastleControls, CastleGLBitmapFonts,
   CastleClassUtils, SysUtils, CastleWindowModes, CastleLog, CastleGLImages,
   CastleUIControls, CastleRectangles;
 
+const
+  MinButtonWidth = 100; //< OK button looks too small without this
+
 { TCastleDialog -------------------------------------------------------------- }
 
 type
   TCastleDialog = class abstract(TUIControl)
-  private
+  strict private
     const
       BoxMargin = 10;
       WindowMargin = 10;
       ScrollBarWholeWidth = 20;
       ButtonHorizontalMargin = 10;
-      MinButtonWidth = 100; //< OK button looks too small without this
     var
     FScroll: Single;
     FInputText: string;
 
-    { What to draw. }
     { Broken Text. }
     Broken_Text: TStringList;
     { Ignored (not visible) if not DrawInputText.
       Else broken InputText. }
     Broken_InputText: TStringList;
-    Buttons: array of TCastleButton;
 
     MaxLineWidth: integer;
     { Sum of all Broken_Text.Count + Broken_InputText.Count.
       In other words, all lines that are scrolled by the scrollbar. }
     AllScrolledLinesCount: integer;
-    { linie w calosci widoczne na ekranie (przydatne do obslugi page up / down),
-      sposrod linii scrolled by the scrollbar (Text and InputText).
-      Calculated in every ResizeMessg. }
     VisibleScrolledLinesCount: integer;
 
     { Min and max sensible values for @link(Scroll). }
     ScrollMin, ScrollMax: integer;
+    ScrollInitialized: boolean;
 
     ScrollMaxForScrollbar: integer;
 
-    { rzeczy zwiazane ze ScrollBarem; na poczatku ScrollBarVisible := false;
-      potem jest uaktualniane w drawMessg na false lub true;
-      - jesli na true to jest tez inicjowany
-        przewX1, Y1, X2, Y2 (obszar w ktorym porusza sie ScrollBar)
-        i przewVisY1 , przewVisY2 (ograniczenia w tym obszarze w ktorych jest ScrollBar teraz)
-        (wspolrzedne sa rosnace, tzn. xxxX1 <= xxxX2, xxxY1 <= xxxY2)
-      - jesli na false to przewDrag := false, gdyby jakims sposobem ScrollBar zniknal
-        w czasie gdy bedziemy go przeciagac mysza (chociaz chwilowo nie wyobrazam sobie
-        jak mialoby sie to stac; ale przed takim czyms lepiej sie zabezpieczyc na
-        przyszlosc). }
-    ScrollbarVisible: boolean; { Calculated in every ResizeMessg. }
+    ScrollbarVisible: boolean;
     ScrollbarFrame: TRectangle;
     ScrollbarSlider: TRectangle;
     ScrollBarDragging: boolean;
 
-    { set in MessageCore, readonly afterwards for various callbacks }
-
+    { Things below set in MessageCore, readonly afterwards. }
     { Main text to display. Read-only contents. }
     Text: TStringList;
-    DrawBG: TGLImage; // window background
+    { Drawn as window background. @nil means there is no background
+      (use only if there is always some other 2D control underneath TCastleDialog). }
+    Background: TGLImage;
     Align: TTextAlign;
     { Should we display InputText }
     DrawInputText: boolean;
-
-    { When implementing TCastleDialog descendants, set this
-      to @true to signal that dialog window should be closed and
-      the MessageCore should finish. }
-    Answered: boolean;
+    Buttons: array of TCastleButton;
 
     procedure SetScroll(Value: Single);
     { How many pixels up should be move the text.
@@ -359,8 +342,6 @@ type
     procedure ScrollPageUp;
 
     procedure SetInputText(const value: string);
-    { Displayed only if DrawInputText. }
-    property InputText: string read FInputText write SetInputText;
 
     { Calculate height in pixels needed to draw Buttons.
       Returns 0 if there are no Buttons = ''. }
@@ -371,7 +352,23 @@ type
     { If ScrollBarVisible, ScrollBarWholeWidth. Else 0. }
     function RealScrollBarWholeWidth: Integer;
     function Font: TGLBitmapFont;
+  protected
+    { When implementing TCastleDialog descendants, set this
+      to @true to signal that dialog window should be closed and
+      the MessageCore should finish. }
+    Answered: boolean;
+
+    { Displayed only if DrawInputText. }
+    property InputText: string read FInputText write SetInputText;
   public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    { Assign display stuff. Call this before adding control to Controls list. }
+    procedure Initialize(
+      const TextList: TStringList; const ATextAlign: TTextAlign;
+      const AButtons: array of TCastleButton;
+      const ADrawInputText: boolean; const AInputText: string;
+      const ABackground: TGLImage);
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
@@ -381,6 +378,38 @@ type
     procedure Draw; override;
     function PositionInside(const X, Y: Integer): boolean; override;
   end;
+
+constructor TCastleDialog.Create(AOwner: TComponent);
+begin
+  inherited;
+  { Contents of Broken_xxx will be initialized in TCastleDialog.UpdateSizes. }
+  Broken_Text := TStringList.Create;
+  Broken_InputText := TStringList.Create;
+end;
+
+procedure TCastleDialog.Initialize(const TextList: TStringList;
+  const ATextAlign: TTextAlign; const AButtons: array of TCastleButton;
+  const ADrawInputText: boolean; const AInputText: string;
+  const ABackground: TGLImage);
+var
+  I: Integer;
+begin
+  Text := TextList;
+  Background := ABackground;
+  Align := ATextAlign;
+  DrawInputText := ADrawInputText;
+  FInputText := AInputText;
+  SetLength(Buttons, Length(AButtons));
+  for I := 0 to High(AButtons) do
+    Buttons[I] := AButtons[I];
+end;
+
+destructor TCastleDialog.Destroy;
+begin
+  FreeAndNil(Broken_Text);
+  FreeAndNil(Broken_InputText);
+  inherited;
+end;
 
 procedure TCastleDialog.SetScroll(Value: Single);
 begin
@@ -522,8 +551,15 @@ begin
   ScrollMax := 0;
   ScrollMaxForScrollbar := ScrollMin + Font.RowHeight * AllScrolledLinesCount;
 
-  { This clamps Scroll to proper range }
-  Scroll := Scroll;
+  if ScrollInitialized then
+    { This clamps Scroll to proper range }
+    Scroll := Scroll else
+  begin
+    { Need to initalize Scroll, otherwise default Scroll = 0 means were
+      at the bottom of the text. }
+    Scroll := ScrollMin;
+    ScrollInitialized := true;
+  end;
 end;
 
 function TCastleDialog.Press(const Event: TInputPressRelease): boolean;
@@ -670,15 +706,15 @@ begin
   inherited;
   if not GetExists then Exit;
 
-  { Robimy clear bo bgimg moze nie zakryc calego tla jezeli w trakcie MessageXxx
-    user resized the window. }
-  glClear(GL_COLOR_BUFFER_BIT);
-  glLoadIdentity;
-
-  DrawBG.Draw(0, 0);
+  if Background <> nil then
+  begin
+    { Make clear since Background make not cover whole window. }
+    glClear(GL_COLOR_BUFFER_BIT);
+    glLoadIdentity;
+    Background.Draw(0, 0);
+  end;
 
   MessageRect := WholeMessageRect;
-
   Theme.Draw(MessageRect, tiWindow);
 
   MessageRect := MessageRect.RemoveBottom(ButtonsHeight);
@@ -770,103 +806,31 @@ procedure MessageCore(
   const ADrawInputText: boolean; var AInputText: string);
 var
   SavedMode: TGLMode;
-  I: Integer;
+  Background: TGLImage;
+  Button: TCastleButton;
 begin
   if Log then
     WritelnLogMultiline('Message', TextList.Text);
 
-  { FlushRedisplay; W ten sposob po zainstalowaniu naszych callbackow
-    i ustawieniu wlasciwosci okienka robimy normalne SaveScreen_noflush
-    (a nie chcielibysmy robic wtedy z flushem bo zainstalowalismy juz
-    wlasne callbacki)
-
-    If we have DoubleBuffer then we simply call Window.EventDraw,
-    see comments at GLImage.SaveScreen_noflush to know why
-    (in short: we DON'T want to use front buffer to save screen). }
-  if Window.DoubleBuffer then
-  begin
-    Window.EventBeforeDraw;
-    Window.EventDraw;
-  end else
-    Window.FlushRedisplay;
-
-  SavedMode := TGLMode.CreateReset(Window,
-    GL_PIXEL_MODE_BIT or GL_SCISSOR_BIT or GL_ENABLE_BIT or
-    GL_LINE_BIT or GL_TRANSFORM_BIT or GL_COLOR_BUFFER_BIT,
-    { Using @NoClose is good, it also allows users to safely use
-      MessageXxx inside own OnCloseQuery, like
-        if MessageYesNo('Are you sure ?') then Window.Close; }
-    nil, nil, @NoClose);
-
-  { FakeMouseDown must be @false.
-    Otherwise closing dialog box with MouseDown will then cause MouseDown
-    when SavedMode is restored. This is bad, because then the mouse click
-    that closes dialog box could also do something else.
-    Actually, FakeMouseDown is @false by default, so this call is not needed. }
-  SavedMode.FakeMouseDown := false;
-
-  glDisable(GL_FOG);
-  glDisable(GL_LIGHTING);
-  glDisable(GL_TEXTURE_1D);
-  glDisable(GL_TEXTURE_2D);
-  glDisable(GL_SCISSOR_TEST);
-  glDisable(GL_DEPTH_TEST);
-  glLineWidth(1);
-  glPixelStorei(GL_UNPACK_SWAP_BYTES, GL_FALSE);
-  glPixelStorei(GL_UNPACK_LSB_FIRST, GL_FALSE);
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-  glPixelStorei(GL_UNPACK_SKIP_ROWS,  0);
-  glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  glPixelZoom(1, 1);
-
-  { Inicjuj Dialog, ktora moze wymagac poprawnego ustawienia
-    naszych rzeczy w OpenGLu (np. utworzenie fontu wymaga poprawnego ustawienia
-    GL_UNPACK_xxx bo tworzenie fontu to generowanie jego display list a te
-    zostaja utworzone z zapisanym na stale odpowiednim pixel-mode). }
+  Background := Window.SaveScreenToGL;
+  { Among other things, using @NoClose below allows users to safely use
+    MessageXxx inside own OnCloseQuery, like
+      if MessageYesNo('Are you sure ?') then Window.Close; }
+  SavedMode := TGLMode.CreateReset(Window, 0, nil, nil, @NoClose);
   try
-    { TODO: problem : chcielibysmy tutaj zeby SaveScreen zawsze dzialalo, bez
-      wzgledu na ustawienia GL_PACK_xxx. Moglibysmy ustawiac wlasne GL_PACK
-      ale lepszym wyjsciem byloby gdyby
-      SaveScreen_noflush dzialalo zawsze tak samo, bez wzgledu na ustawienia
-      GL_PACK_xxx. }
-    with Dialog do
-    begin
-      if Window.DoubleBuffer then
-        DrawBG := SaveScreenToGL_noflush(0, 0, Window.Width, Window.Height, GL_BACK) else
-        DrawBG := SaveScreenToGL_noflush(0, 0, Window.Width, Window.Height, GL_FRONT);
-      Answered := false;
-      Text := TextList;
-      { Contents of Broken_xxx will be initialized in TCastleDialog.UpdateSizes. }
-      Broken_Text := TStringList.Create;
-      Broken_InputText := TStringList.Create;
-      Align := TextAlign;
-      ScrollBarVisible := false;
-      ScrollBarDragging := false;
-      DrawInputText := AdrawInputText;
-      FInputText := AInputText;
-      SetLength(Buttons, Length(AButtons));
-      for I := 0 to High(AButtons) do
-      begin
-        Buttons[I] := AButtons[I];
-        Window.Controls.InsertFront(Buttons[I]);
-      end;
-    end;
+    Dialog.Initialize(TextList, TextAlign, AButtons, ADrawInputText, AInputText,
+      Background);
 
+    for Button in AButtons do
+      Window.Controls.InsertFront(Button);
     Window.Controls.InsertBack(Dialog);
-    Dialog.Scroll := Dialog.ScrollMin;
-
     Window.PostRedisplay;
     repeat Application.ProcessMessage(true, true) until Dialog.Answered;
 
   finally
-    FreeAndNil(Dialog.DrawBG);
-    Dialog.Broken_Text.Free;
-    Dialog.Broken_InputText.Free;
-    AInputText := Dialog.InputText;
-
-    { Odtwarzamy zasejwowane wlasciwosci okienka. }
+    FreeAndNil(Background);
     FreeAndNil(SavedMode);
+    AInputText := Dialog.InputText;
   end;
 end;
 
@@ -1047,7 +1011,7 @@ begin
     OKButton := TInputDialogOKButton.Create(Dialog);
     OKButton.Dialog := Dialog;
     OKButton.Caption := 'OK';
-    OKButton.MinWidth := TCastleDialog.MinButtonWidth;
+    OKButton.MinWidth := MinButtonWidth;
     SetLength(ReadyButtons, 1);
     ReadyButtons[0] := OKButton;
 
@@ -1095,11 +1059,11 @@ begin
     OKButton := TInputDialogOKButton.Create(Dialog);
     OKButton.Dialog := Dialog;
     OKButton.Caption := 'OK';
-    OKButton.MinWidth := TCastleDialog.MinButtonWidth;
+    OKButton.MinWidth := MinButtonWidth;
     CancelButton := TInputDialogCancelButton.Create(Dialog);
     CancelButton.Dialog := Dialog;
     CancelButton.Caption := 'Cancel';
-    CancelButton.MinWidth := TCastleDialog.MinButtonWidth;
+    CancelButton.MinWidth := MinButtonWidth;
     SetLength(ReadyButtons, 2);
     ReadyButtons[0] := CancelButton;
     ReadyButtons[1] := OKButton;
@@ -1221,7 +1185,7 @@ begin
       Button := TCharDialogButton.Create(Dialog);
       Button.Dialog := Dialog;
       Button.Caption := Buttons[I];
-      Button.MinWidth := TCastleDialog.MinButtonWidth;
+      Button.MinWidth := MinButtonWidth;
       Button.Answer := ButtonsChars[I];
       ReadyButtons[I] := Button;
     end;

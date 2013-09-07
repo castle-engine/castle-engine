@@ -376,14 +376,22 @@ end;
             @item The color (glColor), material (glMaterial) values.
             @item The line width, point size.
           )
-          Every other change should be wrapped in appropriate glPushAttrib / glPopAttrib.)
+          Every other change should be secured to go back to original value.
+          For older OpenGL, you can use glPushAttrib / glPopAttrib.
+          For things that have guaranteed values at the beginning of draw method
+          (e.g. scissor is always off for ds2D controls),
+          you can also just manually set it back to off at the end
+          (e.g. if you use scissor, them remember to disable it back
+          at the end of draw method.)
+        )
 
         @item(Things that are guaranteed about OpenGL state when Draw is called:
           @unorderedList(
             @itemSpacing Compact
             @item The current matrix is modelview, and it's value is identity.
             @item(Only for DrawStyle = ds2D: the WindowPos is at (0, 0).)
-            @item Only for DrawStyle = ds2D: Texturing, depth test, lighting are turned off.
+            @item(Only for DrawStyle = ds2D: Texturing, depth test,
+              lighting, fog, scissor are turned off.)
           )
           If you require anything else, set this yourself.)
       )
