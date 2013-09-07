@@ -19,7 +19,8 @@ unit CastleControls;
 interface
 
 uses Classes, GL, CastleVectors, CastleUIControls, CastleGLBitmapFonts,
-  CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages;
+  CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages,
+  CastleRectangles;
 
 type
   { Base class for all controls inside an OpenGL context using a font. }
@@ -267,37 +268,27 @@ type
     property Color: TVector4Single read FColor write FColor;
   end;
 
-  { Theme for controls derived from TUIControl.
-    For now it's only useful through the single global instance @link(Theme).
+  TThemeImage = (tiWindow, tiScrollbarFrame, tiScrollbarSlider);
 
-    Many of the 2D GUI is defined through images, represented as TCastleImage.
-    Although they all have sensible defaults, you can also change them
-    at any time. Simply create TCastleImage instance (e.g. by LoadImage
-    function) and assign it here.
-    Note that TCastleImage instance is not owned by this class,
-    you're responsible for freeing it.
-    The alpha channel of the image, if any, is automatically correctly used
-    (for alpha test or alpha blending, see TGLImage).
-
-    Together with assigning image, adjust also the XxxCorner property.
-    It is used for images rendered using TGLImage.Draw3x3,
-    it determines how the image is stretched.
-    The corners are specified as 4D vector, order like in CSS: top, right, down,
-    left.
-
-    The GLXxx functions expose the TGLImage instances used
-    for fast and easy drawing of these images on 2D screen.
-    Reading them for the 1st time means that the TGLImage instance is created,
-    so use them only when OpenGL context is already active (window is open etc.).
-    Changing the TCastleImage instance will automatically free (and recreate
-    at next access) the corresponding TGLImage instance. }
+  { Theme for 2D GUI controls.
+    Should only be used through the single global instance @link(Theme). }
   TCastleTheme = class
   private
-    FWindow: TCastleImage;
-    FWindowCorner: TVector4Integer;
-    FGLWindow: TGLImage;
-    procedure SetWindow(const Value: TCastleImage);
+    FImages: array [TThemeImage] of TCastleImage;
+    FCorners: array [TThemeImage] of TVector4Integer;
+    FGLImages: array [TThemeImage] of TGLImage;
+    function GetImages(const ImageType: TThemeImage): TCastleImage;
+    procedure SetImages(const ImageType: TThemeImage; const Value: TCastleImage);
+    function GetCorners(const ImageType: TThemeImage): TVector4Integer;
+    procedure SetCorners(const ImageType: TThemeImage; const Value: TVector4Integer);
+    function GetGLImages(const ImageType: TThemeImage): TGLImage;
     procedure GLContextClose;
+    { TGLImage instances fast and easy drawing of images on 2D screen.
+      Reading them for the 1st time means that the TGLImage instance is created,
+      so use them only when OpenGL context is already active (window is open etc.).
+      Changing the TCastleImage instance will automatically free (and recreate
+      at next access) the corresponding TGLImage instance. }
+    property GLImages[const ImageType: TThemeImage]: TGLImage read GetGLImages;
   public
     TooltipInsideColor: TVector3Byte;
     TooltipBorderColor: TVector3Byte;
@@ -308,11 +299,29 @@ type
     BarEmptyColor : TVector3Byte;
     BarFilledColor: TVector3Byte;
 
-    property Window: TCastleImage read FWindow write SetWindow;
-    property WindowCorner: TVector4Integer read FWindowCorner write FWindowCorner;
-    function GLWindow: TGLImage;
-
     constructor Create;
+
+    { 2D GUI images, represented as TCastleImage.
+      Although they all have sensible defaults, you can also change them
+      at any time. Simply create TCastleImage instance (e.g. by LoadImage
+      function) and assign it here.
+      Note that TCastleImage instance is not owned by this class,
+      you're responsible for freeing it.
+
+      The alpha channel of the image, if any, is automatically correctly used
+     (for alpha test or alpha blending, see TGLImage). }
+    property Images[const ImageType: TThemeImage]: TCastleImage read GetImages write SetImages;
+
+    { Corners that determine how image on @link(Images) is stretched.
+      Together with assigning @link(Images), adjust also this property.
+      It is used for images rendered using TGLImage.Draw3x3,
+      it determines how the image is stretched.
+      The corners are specified as 4D vector, order like in CSS: top, right, down,
+      left. }
+    property Corners[const ImageType: TThemeImage]: TVector4Integer read GetCorners write SetCorners;
+
+    { Draw the selected theme image on screen. }
+    procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage);
   end;
 
 { The bitmap fonts used throughout UI interface.
@@ -953,29 +962,57 @@ begin
   BarEmptyColor  := Vector3Byte(192, 192, 192);
   BarFilledColor := Vector3Byte(Round(0.2 * 255), Round(0.5 * 255), 0);
 
-  Window := WindowDark;
-  WindowCorner := Vector4Integer(2, 2, 2, 2);
+  FImages[tiWindow] := WindowDark;
+  FCorners[tiWindow] := Vector4Integer(2, 2, 2, 2);
+  FImages[tiScrollbarFrame] := ScrollbarFrame;
+  FCorners[tiScrollbarFrame] := Vector4Integer(1, 1, 1, 1);
+  FImages[tiScrollbarSlider] := ScrollbarSlider;
+  FCorners[tiScrollbarSlider] := Vector4Integer(2, 2, 2, 2);
 end;
 
-procedure TCastleTheme.SetWindow(const Value: TCastleImage);
+function TCastleTheme.GetImages(const ImageType: TThemeImage): TCastleImage;
 begin
-  if FWindow <> Value then
+  Result := FImages[ImageType];
+end;
+
+procedure TCastleTheme.SetImages(const ImageType: TThemeImage;
+  const Value: TCastleImage);
+begin
+  if FImages[ImageType] <> Value then
   begin
-    FWindow := Value;
-    FreeAndNil(FGLWindow);
+    FImages[ImageType] := Value;
+    FreeAndNil(FGLImages[ImageType]);
   end;
 end;
 
-function TCastleTheme.GLWindow: TGLImage;
+function TCastleTheme.GetCorners(const ImageType: TThemeImage): TVector4Integer;
 begin
-  if FGLWindow = nil then
-    FGLWindow := TGLImage.Create(FWindow, true);
-  Result := FGLWindow;
+  Result := FCorners[ImageType];
+end;
+
+procedure TCastleTheme.SetCorners(const ImageType: TThemeImage; const Value: TVector4Integer);
+begin
+  FCorners[ImageType] := Value;
+end;
+
+function TCastleTheme.GetGLImages(const ImageType: TThemeImage): TGLImage;
+begin
+  if FGLImages[ImageType] = nil then
+    FGLImages[ImageType] := TGLImage.Create(FImages[ImageType], true);
+  Result := FGLImages[ImageType];
 end;
 
 procedure TCastleTheme.GLContextClose;
+var
+  ImageType: TThemeImage;
 begin
-  FreeAndNil(FGLWindow);
+  for ImageType in TThemeImage do
+    FreeAndNil(FGLImages[ImageType]);
+end;
+
+procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage);
+begin
+  GLImages[ImageType].Draw3x3(Rect, Corners[ImageType]);
 end;
 
 var

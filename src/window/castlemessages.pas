@@ -385,9 +385,9 @@ type
         w czasie gdy bedziemy go przeciagac mysza (chociaz chwilowo nie wyobrazam sobie
         jak mialoby sie to stac; ale przed takim czyms lepiej sie zabezpieczyc na
         przyszlosc). }
-    ScrollBarVisible: boolean; { Calculated in every ResizeMessg. }
-    ScrollBarRect: TRectangle;
-    przewVisY1, przewVisY2: Single;
+    ScrollbarVisible: boolean; { Calculated in every ResizeMessg. }
+    ScrollbarFrame: TRectangle;
+    ScrollbarSlider: TRectangle;
     ScrollBarDragging: boolean;
 
     { set in MessageCore, readonly afterwards for various callbacks }
@@ -610,11 +610,11 @@ begin
         begin
           MY := ContainerHeight - Container.MouseY;
           if (Event.MouseButton = mbLeft) and ScrollBarVisible and
-            ScrollBarRect.Contains(Container.MouseX, MY) then
+            ScrollbarFrame.Contains(Container.MouseX, MY) then
           begin
-            if MY < przewVisY1 then
+            if MY < ScrollbarSlider.Bottom then
               ScrollPageDown else
-            if MY > przewVisY2 then
+            if MY >= ScrollbarSlider.Top then
               ScrollPageUp else
               ScrollBarDragging := true;
             Result := true;
@@ -648,7 +648,7 @@ begin
 
   Result := ScrollBarDragging;
   if Result then
-    Scroll := Scroll + (NewY- OldY) / ScrollBarRect.Height *
+    Scroll := Scroll + (NewY- OldY) / ScrollbarFrame.Height *
       (ScrollMaxForScrollbar - ScrollMin);
 end;
 
@@ -710,10 +710,9 @@ var
   MessageRect: TRectangle;
   { InnerRect to okienko w ktorym mieszcza sie napisy,
     a wiec WholeMessageRect zmniejszony o BoxMargin we wszystkich kierunkach
-    i z ew. obcieta prawa czescia przeznaczona na ScrollBarRect. }
+    i z ew. obcieta prawa czescia przeznaczona na ScrollbarFrame. }
   InnerRect: TRectangle;
   ScrollBarLength: integer;
-  ScrollBarVisibleBegin: TGLfloat;
   TextX, TextY: Integer;
 const
   { odleglosc paska ScrollBara od krawedzi swojego waskiego recta
@@ -734,34 +733,32 @@ begin
 
   MessageRect := WholeMessageRect;
 
-  Theme.GLWindow.Draw3x3(MessageRect, Theme.WindowCorner);
+  Theme.Draw(MessageRect, tiWindow);
 
   MessageRect := MessageRect.RemoveBottom(ButtonsHeight);
 
-  { Calculate InnerRect now }
+  { calculate InnerRect }
   InnerRect := MessageRect.Grow(-BoxMargin);
   InnerRect.Width -= RealScrollBarWholeWidth;
 
-  { teraz rysuj ScrollBar. Also calculate ScrollBarRect here. }
+  { draw scrollbar, and calculate it's rectangles }
   if ScrollBarVisible then
   begin
-    ScrollBarRect := MessageRect.RightPart(ScrollBarWholeWidth);
+    ScrollbarFrame := MessageRect.RightPart(ScrollBarWholeWidth);
+    Theme.Draw(ScrollbarFrame, tiScrollbarFrame);
 
     ScrollBarLength := MessageRect.Height - ScrollBarMargin*2;
-    ScrollBarVisibleBegin := MapRange(Scroll,
-      ScrollMin, ScrollMaxForScrollbar, ScrollBarLength, 0);
-    przewVisY1 := MessageRect.Bottom + ScrollBarMargin +
-      max(0, ScrollBarVisibleBegin -
-        (VisibleScrolledLinesCount / AllScrolledLinesCount)*ScrollBarLength);
-    przewVisY2 := MessageRect.Bottom + ScrollBarMargin + ScrollBarVisibleBegin;
-
-    glLineWidth(ScrollBarInternalWidth);
-    glColorv(MessagesTheme.ScrollBarCol);
-    GLVerticalLine(ScrollBarRect.Left + ScrollBarRect.Width div 2,
-      przewVisY1, przewVisY2);
-    glLineWidth(1);
+    ScrollbarSlider := ScrollbarFrame;
+    ScrollbarSlider.Height := VisibleScrolledLinesCount * ScrollBarLength
+      div AllScrolledLinesCount;
+    ScrollbarSlider.Bottom += Round(MapRange(Scroll,
+      ScrollMin, ScrollMax, ScrollbarFrame.Height - ScrollbarSlider.Height, 0));
+    Theme.Draw(ScrollbarSlider, tiScrollbarSlider);
   end else
-    ScrollBarRect := TRectangle.Empty;
+  begin
+    ScrollbarFrame := TRectangle.Empty;
+    ScrollbarSlider := TRectangle.Empty;
+  end;
 
   { Make scissor to cut off text that is too far up/down.
     We subtract Font.Descend from Y0, to see the descend of

@@ -11,10 +11,12 @@ clean:
 	image_to_pas --output .. CastleOnScreenMenuImages $^
 
 ../castlecontrolsimages.pas: panel.png panel_separator.png \
-  button_pressed.png button_focused.png button_normal.png WindowDark.png \
-  WindowGray.png WindowDarkTransparent.png
+  button_pressed.png button_focused.png button_normal.png \
+  WindowDark.png WindowGray.png WindowDarkTransparent.png \
+  ScrollbarFrame.png ScrollbarSlider.png
 	image_to_pas --output .. CastleControlsImages \
-	panel.png WindowDarkTransparent.png \
-	@alpha=strip \
-	panel_separator.png button_pressed.png button_focused.png \
-	button_normal.png WindowDark.png WindowGray.png
+	  panel.png WindowDarkTransparent.png \
+	  @alpha=strip \
+	  panel_separator.png button_pressed.png button_focused.png \
+	  button_normal.png WindowDark.png WindowGray.png \
+	  ScrollbarFrame.png ScrollbarSlider.png

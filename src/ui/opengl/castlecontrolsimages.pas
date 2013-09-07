@@ -33,6 +33,12 @@ var
 var
   WindowGray: TRGBImage;
 
+var
+  ScrollbarFrame: TRGBImage;
+
+var
+  ScrollbarSlider: TRGBImage;
+
 implementation
 
 uses SysUtils;
@@ -59,6 +65,10 @@ initialization
   Move(WindowDarkPixels, WindowDark.RawPixels^, SizeOf(WindowDarkPixels));
   WindowGray := TRGBImage.Create(WindowGrayWidth, WindowGrayHeight);
   Move(WindowGrayPixels, WindowGray.RawPixels^, SizeOf(WindowGrayPixels));
+  ScrollbarFrame := TRGBImage.Create(ScrollbarFrameWidth, ScrollbarFrameHeight);
+  Move(ScrollbarFramePixels, ScrollbarFrame.RawPixels^, SizeOf(ScrollbarFramePixels));
+  ScrollbarSlider := TRGBImage.Create(ScrollbarSliderWidth, ScrollbarSliderHeight);
+  Move(ScrollbarSliderPixels, ScrollbarSlider.RawPixels^, SizeOf(ScrollbarSliderPixels));
 finalization
   FreeAndNil(Panel);
   FreeAndNil(WindowDarkTransparent);
@@ -68,4 +78,6 @@ finalization
   FreeAndNil(Button_normal);
   FreeAndNil(WindowDark);
   FreeAndNil(WindowGray);
+  FreeAndNil(ScrollbarFrame);
+  FreeAndNil(ScrollbarSlider);
 end.
