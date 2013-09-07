@@ -34,7 +34,7 @@ uses SysUtils, CastleVectors, GL, GLU, GLExt, CastleKeysMouse,
   CastleWindow, CastleGLUtils, CastleMessages, CastleStringUtils;
 
 var
-  Window: TCastleWindowDemo;
+  Window: TCastleWindowCustom;
   { Some state variables that determine what will be drawn.
     Just to show that menu commands actually work... }
   CurrentColor: Integer = 0;
@@ -89,7 +89,7 @@ end;
 var
   ChangeableMenu: TMenu;
 
-procedure MenuClick(Window: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Sender: TCastleWindowBase; Item: TMenuItem);
 
   procedure ChangeChecked(Item: TMenuItemRadio);
   begin
@@ -143,7 +143,7 @@ var
   Radio: TMenuItemRadio;
   RadioGroup: TMenuItemRadioGroup;
 begin
- Window := TCastleWindowDemo.Create(Application);
+ Window := TCastleWindowCustom.Create(Application);
 
  { create menu }
  MainMenu := TMenu.Create('Main menu');

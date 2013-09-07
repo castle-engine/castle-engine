@@ -448,7 +448,7 @@ end;
 
 { menu ------------------------------------------------------------ }
 
-procedure MenuClick(Window: TCastleWindowBase; MenuItem: TMenuItem);
+procedure MenuClick(Sender: TCastleWindowBase; MenuItem: TMenuItem);
 
   procedure New;
   var

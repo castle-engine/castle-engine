@@ -30,7 +30,7 @@ uses CastleUtils, SysUtils, CastleWindow, GL, GLU, CastleGLImages,
   CastleTimeUtils, CastleKeysMouse, CastleURIUtils;
 
 var
-  Window: TCastleWindowDemo;
+  Window: TCastleWindowCustom;
 
   Video: TVideo;
   GLVideo: TGLVideo2D;
@@ -158,7 +158,7 @@ begin
   FreeAndNil(GLVideo);
 end;
 
-procedure MenuClick(Window: TCastleWindowBase; MenuItem: TMenuItem);
+procedure MenuClick(Sender: TCastleWindowBase; MenuItem: TMenuItem);
 var
   S: string;
   I: Integer;
@@ -320,7 +320,7 @@ begin
 end;
 
 begin
-  Window := TCastleWindowDemo.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   try
     Video := TVideo.Create;

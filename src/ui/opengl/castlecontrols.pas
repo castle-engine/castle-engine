@@ -69,6 +69,7 @@ type
     FImageLayout: TCastleButtonImageLayout;
     FImageAlphaTest: boolean;
     GLButtonPressed, GLButtonFocused, GLButtonNormal: TGLImage;
+    FMinWidth, FMinHeight: Cardinal;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
@@ -83,6 +84,8 @@ type
     procedure SetImageLayout(const Value: TCastleButtonImageLayout);
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
+    procedure SetMinWidth(const Value: Cardinal);
+    procedure SetMinHeight(const Value: Cardinal);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -135,6 +138,13 @@ type
     property AutoSize: boolean read FAutoSize write SetAutoSize default true;
     property AutoSizeWidth: boolean read FAutoSizeWidth write SetAutoSizeWidth default true;
     property AutoSizeHeight: boolean read FAutoSizeHeight write SetAutoSizeHeight default true;
+
+    { When auto-size is in effect, these properties may force
+      a minimal width/height of the button. This is useful if you want
+      to use auto-size (to make sure that the content fits inside),
+      but you want to force filling some space. }
+    property MinWidth: Cardinal read FMinWidth write SetMinWidth default 0;
+    property MinHeight: Cardinal read FMinHeight write SetMinHeight default 0;
 
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
     property Caption: string read FCaption write SetCaption;
@@ -634,6 +644,12 @@ begin
       end;
     end;
 
+    { at the end apply MinXxx properties }
+    if AutoSizeWidth then
+      MaxTo1st(FWidth, MinWidth);
+    if AutoSizeHeight then
+      MaxTo1st(FHeight, MinHeight);
+
     if (AutoSizeWidth or AutoSizeHeight) and (Container <> nil) then
       Container.UpdateFocusAndMouseCursor;
   end;
@@ -708,6 +724,26 @@ begin
   begin
     FHeight := Value;
     if Container <> nil then Container.UpdateFocusAndMouseCursor;
+  end;
+end;
+
+procedure TCastleButton.SetMinWidth(const Value: Cardinal);
+begin
+  if FMinWidth <> Value then
+  begin
+    FMinWidth := Value;
+    UpdateSize;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleButton.SetMinHeight(const Value: Cardinal);
+begin
+  if FMinHeight <> Value then
+  begin
+    FMinHeight := Value;
+    UpdateSize;
+    VisibleChange;
   end;
 end;
 

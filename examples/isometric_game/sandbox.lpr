@@ -8,7 +8,7 @@ uses SysUtils, GL, GLU, GLExt, CastleWindow, SandBoxMap, CastleFilesUtils,
   CastleImages;
 
 var
-  Window: TCastleWindowDemo;
+  Window: TCastleWindowCustom;
   Player: TPlayer;
   Quit: boolean;
   ViewMoveX, ViewMoveY: Single;
@@ -126,7 +126,7 @@ begin
   GLHorizontalLine(0, Window.Width, Window.Height / 2); }
 end;
 
-procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
+procedure Press(Sender: TCastleWindowBase; const Event: TInputPressRelease);
 var
   NewViewMoveX, NewViewMoveY: Integer;
 
@@ -136,7 +136,7 @@ var
     C: Char;
   begin
     C := MessageChar(Window, 'Enter the character code of new base tile, ' +
-      'or Escape to cancel', AllChars - [#0], '', taMiddle);
+      'or Escape to cancel', AllChars - [#0], [], [], taMiddle);
     if C <> CharEscape then
     begin
       BaseTile := Map.BaseTiles[C];
@@ -153,7 +153,7 @@ var
     C: Char;
   begin
     C := MessageChar(Window, 'Enter the character code of new bonus tile, ' +
-      'or "_" to clear or Escape to cancel', AllChars - [#0], '', taMiddle);
+      'or "_" to clear or Escape to cancel', AllChars - [#0], [], [], taMiddle);
     if C <> CharEscape then
     begin
       if C = '_' then
@@ -277,7 +277,7 @@ begin
 end;
 
 begin
-  Window := TCastleWindowDemo.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   Window.Caption := 'The Sandbox';
   Window.ResizeAllowed := raOnlyAtOpen;
