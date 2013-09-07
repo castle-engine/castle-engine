@@ -219,7 +219,7 @@ end;
 
 { TRectangleList -------------------------------------------------------------- }
 
-function TRectangleList.FindRectangle(const X, Y: Integer): integer;
+function TRectangleList.FindRectangle(const X, Y: Integer): Integer;
 begin
   for Result := 0 to Count - 1 do
     if L[Result].Contains(X, Y) then
