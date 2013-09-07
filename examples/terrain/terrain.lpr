@@ -64,7 +64,7 @@ type
 
 var
   { global stuff }
-  Glw: TCastleWindow;
+  Window: TCastleWindow;
   ExamineCamera: TExamineCamera;
   WalkCamera: TWalkCamera;
   Elevation: TElevation;
@@ -149,7 +149,7 @@ begin
     FreeAndNil(Elevation);
     Elevation := Value;
 
-    Glw.Controls.MakeSingle(TCastleOnScreenMenu, CurrentControls, true);
+    Window.Controls.MakeSingle(TCastleOnScreenMenu, CurrentControls, true);
 
     if Elevation is TElevationImage then
       TElevationImage(Elevation).ImageHeightScale := ImageHeightScaleSlider.Value;
@@ -501,7 +501,7 @@ begin
   RenderElevationsCloseGL;
 end;
 
-procedure MenuClick(Window: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Sender: TCastleWindowBase; Item: TMenuItem);
 
   procedure ExportToX3D(const URL: string;
     const AddShadersTextures: boolean);
@@ -675,7 +675,7 @@ begin
     145:
       begin
         ControlsVisible := not ControlsVisible;
-        Glw.Controls.MakeSingle(TCastleOnScreenMenu, CurrentControls, true);
+        Window.Controls.MakeSingle(TCastleOnScreenMenu, CurrentControls, true);
       end;
     147: SpecializedGridRendering := not SpecializedGridRendering;
     150:
@@ -791,18 +791,18 @@ begin
 end;
 
 begin
-  Glw := TCastleWindow.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
-  Glw.ParseParameters(StandardParseOptions);
+  Window.ParseParameters(StandardParseOptions);
   Parameters.CheckHighAtMost(1);
 
   try
-    ExamineCamera := TExamineCamera.Create(Glw);
+    ExamineCamera := TExamineCamera.Create(Window);
     ExamineCamera.Init(Box3D(
       Vector3Single(-1, -1, -1),
       Vector3Single( 1,  1,  1)), { Radius } 0.2);
 
-    WalkCamera := TWalkCamera.Create(Glw);
+    WalkCamera := TWalkCamera.Create(Window);
     WalkCamera.Init(Vector3Single(0, 0, 0) { position },
       Vector3Single(0, 1, 0) { direction },
       Vector3Single(0, 0, 1) { up },
@@ -811,25 +811,25 @@ begin
       { Radius } 0.02);
     WalkCamera.MoveSpeed := 0.5;
 
-    SceneManager := Glw.SceneManager;
-    SceneManager.Items.Add(T3DTerrain.Create(Glw));
+    SceneManager := Window.SceneManager;
+    SceneManager.Items.Add(T3DTerrain.Create(Window));
     SceneManager.Camera := ExamineCamera;
 
-    Glw.MainMenu := CreateMainMenu;
-    Glw.OnMenuClick := @MenuClick;
+    Window.MainMenu := CreateMainMenu;
+    Window.OnMenuClick := @MenuClick;
 
-    Glw.OnOpen := @Open;
-    Glw.OnClose := @Close;
-    Glw.OnDrawStyle := ds3D;
+    Window.OnOpen := @Open;
+    Window.OnClose := @Close;
+    Window.OnDrawStyle := ds3D;
     { Do not enable
       - SwapFullScreen_Key: (which may do Close+Open) is for now broken here
-        (we should readd appropriate Controls* and camera to Glw.Controls,
+        (we should readd appropriate Controls* and camera to Window.Controls,
         sliders should be recreated but with default values coming from
         last values, elevation should be updated with sliders values;
         This isn't difficult, but would complicate source code for little gain.)
       - Close_CharKey: it would make it too easy to close. }
-    Glw.FpsShowOnCaption := true;
-    Glw.Caption := ApplicationName;
-    Glw.OpenAndRun;
+    Window.FpsShowOnCaption := true;
+    Window.Caption := ApplicationName;
+    Window.OpenAndRun;
   finally FreeAndNil(Elevation) end;
 end.

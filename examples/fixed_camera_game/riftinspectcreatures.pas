@@ -62,7 +62,7 @@ begin
   finally S.Free end;
 end;
 
-procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
+procedure Press(Sender: TCastleWindowBase; const Event: TInputPressRelease);
 
   procedure ChangeState(NewState: TCreatureState);
   begin

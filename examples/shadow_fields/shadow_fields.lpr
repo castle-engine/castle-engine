@@ -501,7 +501,7 @@ begin
     Result.Append(M);
 end;
 
-procedure MenuClick(Window: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Sender: TCastleWindowBase; Item: TMenuItem);
 var
   NewSHCount: Cardinal;
 begin
