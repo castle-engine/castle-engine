@@ -130,14 +130,27 @@ procedure Press(Sender: TCastleWindowBase; const Event: TInputPressRelease);
 var
   NewViewMoveX, NewViewMoveY: Integer;
 
+  { Get character from user. Returns #0 if cancelled. }
+  function MessageChar(const S: string): char;
+  var
+    Event: TInputPressRelease;
+  begin
+    MessageKeyMouse(Window,
+      'Enter the character code of new base tile, or Escape to cancel', Event);
+    if (Event.EventType = itKey) and
+       (Event.KeyCharacter <> CharEscape) and
+       (Event.KeyCharacter <> #0)  then
+      Result := Event.KeyCharacter else
+      Result := #0;
+  end;
+
   procedure EditBaseTile;
   var
     BaseTile: TBaseTile;
     C: Char;
   begin
-    C := MessageChar(Window, 'Enter the character code of new base tile, ' +
-      'or Escape to cancel', AllChars - [#0], [], []);
-    if C <> CharEscape then
+    C := MessageChar('Enter the character code of new base tile, or Escape to cancel');
+    if C <> #0 then
     begin
       BaseTile := Map.BaseTiles[C];
       if BaseTile = nil then
@@ -152,9 +165,8 @@ var
     BonusTile: TBonusTile;
     C: Char;
   begin
-    C := MessageChar(Window, 'Enter the character code of new bonus tile, ' +
-      'or "_" to clear or Escape to cancel', AllChars - [#0], [], []);
-    if C <> CharEscape then
+    C := MessageChar('Enter the character code of new bonus tile, or "_" to clear or Escape to cancel');
+    if C <> #0 then
     begin
       if C = '_' then
         Map.Items[Player.X, Player.Y].BonusTile := nil else
@@ -261,7 +273,7 @@ procedure Game;
 var
   SavedMode: TGLMode;
 begin
-  SavedMode := TGLMode.CreateReset(Window, 0, true, @Draw, @Resize2D, nil);
+  SavedMode := TGLMode.CreateReset(Window, 0, @Draw, @Resize2D, nil);
   try
     Window.AutoRedisplay := true;
     Window.OnPress := @Press;
