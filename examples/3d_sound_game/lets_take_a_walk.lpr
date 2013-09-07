@@ -290,7 +290,7 @@ begin
   Config.Load;
 
   { init messages }
-  Theme.Window := WindowDarkTransparent;
+  Theme.Images[tiWindow] := WindowDarkTransparent;
 
   { init window }
   Window := TCastleWindow.Create(Application);

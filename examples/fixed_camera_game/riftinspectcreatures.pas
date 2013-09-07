@@ -100,7 +100,7 @@ var
 begin
   WorldTime := 0;
 
-  SavedMode := TGLMode.CreateReset(Window, 0, false, nil, nil, @NoClose);
+  SavedMode := TGLMode.CreateReset(Window, 0, nil, nil, @NoClose);
   try
     Window.FpsShowOnCaption := DebugMenuFps;
     Window.AutoRedisplay := true;
