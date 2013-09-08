@@ -1467,7 +1467,9 @@ begin
   { draw scrollbar, and calculate it's rectangles }
   if ScrollBarVisible then
   begin
-    ScrollbarFrame := MessageRect.RightPart(ScrollBarWholeWidth);
+    ScrollbarFrame := MessageRect.RightPart(ScrollBarWholeWidth).
+      RemoveRight(Theme.Corners[tiWindow][1]).
+      RemoveTop(Theme.Corners[tiWindow][0]);
     Theme.Draw(ScrollbarFrame, tiScrollbarFrame);
 
     ScrollBarLength := MessageRect.Height - ScrollBarMargin*2;
