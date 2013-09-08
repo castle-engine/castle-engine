@@ -24,10 +24,10 @@
 { $define ADD_GL_ANIMATION}
 
 uses SysUtils, GL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleSceneManager,
-  CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors, 
+  CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors,
   CastleControls, CastleWarnings,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,
-  CastleStringUtils, CastleKeysMouse, CastleColors;
+  CastleStringUtils, CastleKeysMouse, CastleColors, CastleControlsImages;
 
 { TMyViewport ---------------------------------------------------------------- }
 
@@ -66,34 +66,9 @@ begin
 end;
 
 procedure TMyViewport2D.Draw;
-const
-  Margin = 5;
 begin
   if Viewport.Focused then
-  begin
-    GLRectangleBorder(
-      Viewport.CorrectLeft, Viewport.CorrectBottom,
-      Viewport.CorrectLeft + Viewport.CorrectWidth,
-      Viewport.CorrectBottom + Viewport.CorrectHeight, White4Single, 3);
-  end;
-
-  if Viewport.Caption <> '' then
-  begin
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA); { saved by GL_COLOR_BUFFER_BIT }
-    glEnable(GL_BLEND); { saved by GL_COLOR_BUFFER_BIT }
-    glColor4f(0, 0, 0, 0.5);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); { saved by GL_POLYGON_BIT }
-    glRectf(
-      Viewport.CorrectLeft + 10 - Margin,
-      Viewport.CorrectBottom + 10 - Margin,
-      Viewport.CorrectLeft + 10 + UIFont.TextWidth(Viewport.Caption) + Margin,
-      Viewport.CorrectBottom + 10 + UIFont.RowHeight + Margin);
-    glDisable(GL_BLEND); { saved by GL_COLOR_BUFFER_BIT }
-
-    glColor3f(1, 1, 0);
-    UIFont.Print(Viewport.CorrectLeft + 10, Viewport.CorrectBottom + 10,
-      Viewport.Caption);
-  end;
+    Theme.Draw(Viewport.Rect, tiActiveFrame);
 end;
 
 { TWireViewport -------------------------------------------------------------- }
@@ -172,13 +147,14 @@ var
   Scene: TCastleScene;
   Viewports: array [0..3] of TMyViewport;
   Viewports2D: array [0..3] of TMyViewport2D;
+  ViewportsLabels: array [0..3] of TCastleLabel;
   OpenButton, QuitButton: TCastleButton;
 
 procedure Resize(Window: TCastleWindowBase);
 const
   Margin = 5;
 var
-  W, H, ButtonHeight: Integer;
+  W, H, ButtonHeight, I: Integer;
 begin
   ButtonHeight := OpenButton.Height + 2*Margin;
   W := Window.Width div 2;
@@ -209,6 +185,12 @@ begin
 
   QuitButton.Left := Window.Width - Margin - QuitButton.Width;
   QuitButton.Bottom := OpenButton.Bottom;
+
+  for I := Low(ViewportsLabels) to High(ViewportsLabels) do
+  begin
+    ViewportsLabels[I].Left := Viewports[I].Left + 10;
+    ViewportsLabels[I].Bottom := Viewports[I].Bottom + 10;
+  end;
 end;
 
 procedure CameraReinitialize;
@@ -311,8 +293,17 @@ begin
   Viewports[0] := TWireViewport.Create(Application);
   Viewports[0].Caption := 'Wireframe view';
 
+  { shadow on one viewport }
+  Viewports[1] := TMyViewport.Create(Application);
+  Viewports[1].Caption := 'Shadow volumes On';
+
   Viewports[2] := TScreenEffectDemoViewport.Create(Application);
   Viewports[2].Caption := 'Screen effect shader';
+
+  Theme.Images[tiActiveFrame] := FrameThickWhite;
+  Theme.Corners[tiActiveFrame] := Vector4Integer(3, 3, 3, 3);
+  Theme.Images[tiLabel] := FrameYellowBlack;
+  Theme.Corners[tiLabel] := Vector4Integer(1, 1, 1, 1);
 
   for I := 0 to High(Viewports) do
   begin
@@ -327,11 +318,14 @@ begin
     Viewports2D[I] := TMyViewport2D.Create(Application);
     Viewports2D[I].Viewport := Viewports[I];
     Window.Controls.Add(Viewports2D[I]);
+
+    ViewportsLabels[I] := TCastleLabel.Create(Application);
+    ViewportsLabels[I].Text.Text := Viewports[I].Caption;
+    ViewportsLabels[I].Color := Vector3Byte(255, 255, 0);
+    ViewportsLabels[I].Padding := 5;
+    Window.Controls.Add(ViewportsLabels[I]);
   end;
   Assert(Window.SceneManager.Viewports.Count = High(Viewports) + 1);
-
-  { shadow on one viewport }
-  Viewports[1].Caption := 'Shadow volumes On';
 
   CameraReinitialize;
 

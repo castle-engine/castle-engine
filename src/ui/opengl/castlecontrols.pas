@@ -379,7 +379,7 @@ type
     tiPanel, tiPanelSeparator,
     tiButtonPressed, tiButtonFocused, tiButtonNormal,
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
-    tiSlider, tiSliderPosition, tiLabel, tiMenuActive, tiTooltip);
+    tiSlider, tiSliderPosition, tiLabel, tiActiveFrame, tiTooltip);
 
   { Label with possibly multiline text, in a box. }
   TCastleLabel = class(TUIControlFont)
@@ -423,10 +423,13 @@ type
     FImages: array [TThemeImage] of TCastleImage;
     FCorners: array [TThemeImage] of TVector4Integer;
     FGLImages: array [TThemeImage] of TGLImage;
+    FOwnsImages: array [TThemeImage] of boolean;
     FMessageFont: TBitmapFont;
     FGLMessageFont: TGLBitmapFont;
     function GetImages(const ImageType: TThemeImage): TCastleImage;
     procedure SetImages(const ImageType: TThemeImage; const Value: TCastleImage);
+    function GetOwnsImages(const ImageType: TThemeImage): boolean;
+    procedure SetOwnsImages(const ImageType: TThemeImage; const Value: boolean);
     function GetCorners(const ImageType: TThemeImage): TVector4Integer;
     procedure SetCorners(const ImageType: TThemeImage; const Value: TVector4Integer);
     function GetGLImages(const ImageType: TThemeImage): TGLImage;
@@ -450,17 +453,20 @@ type
     MessageInputTextColor: TVector3Byte;
 
     constructor Create;
+    destructor Destroy; override;
 
     { 2D GUI images, represented as TCastleImage.
       Although they all have sensible defaults, you can also change them
       at any time. Simply create TCastleImage instance (e.g. by LoadImage
-      function) and assign it here.
-      Note that TCastleImage instance is not owned by this class,
-      you're responsible for freeing it.
+      function) and assign it here. Be sure to adjust also @link(OwnsImage)
+      if you want the theme to automatically free the image when it's no longer
+      used.
 
       The alpha channel of the image, if any, is automatically correctly used
       (for alpha test or alpha blending, see TGLImage). }
     property Images[const ImageType: TThemeImage]: TCastleImage read GetImages write SetImages;
+
+    property OwnsImages[const ImageType: TThemeImage]: boolean read GetOwnsImages write SetOwnsImages;
 
     { Corners that determine how image on @link(Images) is stretched.
       Together with assigning @link(Images), adjust also this property.
@@ -1606,10 +1612,21 @@ begin
   FCorners[tiSliderPosition] := Vector4Integer(1, 1, 1, 1);
   FImages[tiLabel] := FrameWhiteBlack;
   FCorners[tiLabel] := Vector4Integer(2, 2, 2, 2);
-  FImages[tiMenuActive] := FrameWhite;
-  FCorners[tiMenuActive] := Vector4Integer(2, 2, 2, 2);
+  FImages[tiActiveFrame] := FrameWhite;
+  FCorners[tiActiveFrame] := Vector4Integer(2, 2, 2, 2);
   FImages[tiTooltip] := Tooltip;
   FCorners[tiTooltip] := Vector4Integer(1, 1, 1, 1);
+end;
+
+destructor TCastleTheme.Destroy;
+var
+  I: TThemeImage;
+begin
+  for I in TThemeImage do
+    if FOwnsImages[I] then
+      FreeAndNil(FImages[I]) else
+      FImages[I] := nil;
+  inherited;
 end;
 
 function TCastleTheme.GetImages(const ImageType: TThemeImage): TCastleImage;
@@ -1622,9 +1639,23 @@ procedure TCastleTheme.SetImages(const ImageType: TThemeImage;
 begin
   if FImages[ImageType] <> Value then
   begin
+    { free previous image }
+    if FOwnsImages[ImageType] then
+      FreeAndNil(FImages[ImageType]);
     FImages[ImageType] := Value;
     FreeAndNil(FGLImages[ImageType]);
   end;
+end;
+
+function TCastleTheme.GetOwnsImages(const ImageType: TThemeImage): boolean;
+begin
+  Result := FOwnsImages[ImageType];
+end;
+
+procedure TCastleTheme.SetOwnsImages(const ImageType: TThemeImage;
+  const Value: boolean);
+begin
+  FOwnsImages[ImageType] := Value;
 end;
 
 function TCastleTheme.GetCorners(const ImageType: TThemeImage): TVector4Integer;

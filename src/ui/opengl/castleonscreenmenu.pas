@@ -1292,14 +1292,14 @@ begin
 
   // TODO: animate, like CurrentItemBorderColor
   if Focused and DrawFocusedBorder then
-    Theme.Draw(FAllItemsRectangle, tiMenuActive);
+    Theme.Draw(FAllItemsRectangle, tiActiveFrame);
 
   for I := 0 to Items.Count - 1 do
   begin
     if I = CurrentItem then
     begin
       Theme.Draw(Rectangles.L[I].Grow(CurrentItemBorderMargin, 0),
-        tiMenuActive);
+        tiActiveFrame);
       glColorv(CurrentItemColor);
     end else
       glColorv(NonCurrentItemColor);

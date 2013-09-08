@@ -46,6 +46,12 @@ var
   FrameYellowBlack: TRGBAlphaImage;
 
 var
+  FrameThickWhite: TRGBAlphaImage;
+
+var
+  FrameThickYellow: TRGBAlphaImage;
+
+var
   PanelSeparator: TRGBImage;
 
 var
@@ -97,6 +103,10 @@ initialization
   Move(FrameYellowPixels, FrameYellow.RawPixels^, SizeOf(FrameYellowPixels));
   FrameYellowBlack := TRGBAlphaImage.Create(FrameYellowBlackWidth, FrameYellowBlackHeight);
   Move(FrameYellowBlackPixels, FrameYellowBlack.RawPixels^, SizeOf(FrameYellowBlackPixels));
+  FrameThickWhite := TRGBAlphaImage.Create(FrameThickWhiteWidth, FrameThickWhiteHeight);
+  Move(FrameThickWhitePixels, FrameThickWhite.RawPixels^, SizeOf(FrameThickWhitePixels));
+  FrameThickYellow := TRGBAlphaImage.Create(FrameThickYellowWidth, FrameThickYellowHeight);
+  Move(FrameThickYellowPixels, FrameThickYellow.RawPixels^, SizeOf(FrameThickYellowPixels));
   PanelSeparator := TRGBImage.Create(PanelSeparatorWidth, PanelSeparatorHeight);
   Move(PanelSeparatorPixels, PanelSeparator.RawPixels^, SizeOf(PanelSeparatorPixels));
   WindowDark := TRGBImage.Create(WindowDarkWidth, WindowDarkHeight);
@@ -122,6 +132,8 @@ finalization
   FreeAndNil(FrameWhiteBlack);
   FreeAndNil(FrameYellow);
   FreeAndNil(FrameYellowBlack);
+  FreeAndNil(FrameThickWhite);
+  FreeAndNil(FrameThickYellow);
   FreeAndNil(PanelSeparator);
   FreeAndNil(WindowDark);
   FreeAndNil(WindowGray);

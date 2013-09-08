@@ -22,7 +22,7 @@ uses SysUtils, Classes, CastleWindow, CastleWarnings, CastleConfig, CastleLevels
   CastleRenderer, Castle3D, CastleFilesUtils, CastleGameNotifications,
   CastleSceneManager, CastleVectors, CastleUIControls, GL, CastleGLUtils,
   CastleColors, CastleItems, CastleUtils, CastleCameras, CastleMaterialProperties,
-  CastleCreatures;
+  CastleCreatures, CastleRectangles, CastleImages;
 
 var
   Window: TCastleWindow;
@@ -238,6 +238,22 @@ begin
   Y -= UIFont.RowHeight + ControlsMargin;
   UIFont.Print(0, Y, Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
 
+  Y -= UIFont.RowHeight + InventoryImageSize;
+
+  { Mark currently chosen item. You can change currently selected item by
+    Input_InventoryPrevious, Input_InventoryNext (by default: [ ] keys or mouse
+    wheel). }
+  if Between(Player.InventoryCurrentItem, 0, Player.Inventory.Count - 1) then
+  begin
+    X := ControlsMargin + Player.InventoryCurrentItem * (InventoryImageSize + ControlsMargin);
+    { This allows to draw a standard tiActiveFrame image.
+      You could change the image by assigning Theme.Images[tiActiveFrame]
+      (and choosing one of your own images or one of the predefined images
+      in CastleControlsImages, see main program code for example),
+      or by creating and using TGLImage.Draw3x3 or TGLImage.Draw directly. }
+    Theme.Draw(Rectangle(X, Y, InventoryImageSize, InventoryImageSize), tiActiveFrame);
+  end;
+
   { A simple way to draw player inventory.
     The image representing each item (exactly for purposes like inventory
     display) is specified in the resource.xml file of each item,
@@ -247,7 +263,6 @@ begin
     We assume below that all item images have square size
     InventoryImageSize x InventoryImageSize,
     and we assume that all items will always fit within one row. }
-  Y -= UIFont.RowHeight + InventoryImageSize;
   for I := 0 to Player.Inventory.Count - 1 do
   begin
     X := ControlsMargin + I * (InventoryImageSize + ControlsMargin);
@@ -256,16 +271,6 @@ begin
     if Player.Inventory[I].Quantity <> 1 then
       S += Format(' (%d)', [Player.Inventory[I].Quantity]);
     UIFontSmall.Print(X, Y - UIFontSmall.RowHeight, S);
-  end;
-
-  { Mark currently chosen item. You can change currently selected item by
-    Input_InventoryPrevious, Input_InventoryNext (by default: [ ] keys or mouse
-    wheel). }
-  if Between(Player.InventoryCurrentItem, 0, Player.Inventory.Count - 1) then
-  begin
-    X := ControlsMargin + Player.InventoryCurrentItem * (InventoryImageSize + ControlsMargin);
-    GLRectangleBorder(X, Y, X + InventoryImageSize, Y + InventoryImageSize,
-      Yellow4Single);
   end;
 
   { Simple color effects over the screen:
@@ -444,6 +449,11 @@ begin
   { Load texture properties, used to assign footsteps sounds based
     on ground texture }
   MaterialProperties.URL := ApplicationData('material_properties.xml');
+
+  { Change Theme image tiActiveFrame, used to draw rectangle under image }
+  Theme.Images[tiActiveFrame] := LoadImage(ApplicationData('box.png'), []);
+  Theme.OwnsImages[tiActiveFrame] := true;
+  Theme.Corners[tiActiveFrame] := Vector4Integer(38, 38, 38, 38);
 
   { Load configuration file. This loads configuration for various parts of the
     engine that add their callbacks to Config.OnLoad, Config.OnSave.

@@ -12,12 +12,14 @@ clean:
   ButtonPressed.png ButtonFocused.png ButtonNormal.png \
   WindowDark.png WindowGray.png WindowDarkTransparent.png \
   ScrollbarFrame.png ScrollbarSlider.png Slider.png SliderPosition.png \
-  FrameWhite.png FrameWhiteBlack.png FrameYellow.png FrameYellowBlack.png
+  FrameWhite.png FrameWhiteBlack.png FrameYellow.png FrameYellowBlack.png \
+  FrameThickWhite.png FrameThickYellow.png
 	image_to_pas --output .. CastleControlsImages \
 	  Panel.png WindowDarkTransparent.png Slider.png \
 	  Tooltip.png TooltipRounded.png \
 	  ButtonPressed.png ButtonFocused.png ButtonNormal.png \
 	  FrameWhite.png FrameWhiteBlack.png FrameYellow.png FrameYellowBlack.png \
+	  FrameThickWhite.png FrameThickYellow.png \
 	  @alpha=strip \
 	  PanelSeparator.png WindowDark.png WindowGray.png \
 	  ScrollbarFrame.png ScrollbarSlider.png \

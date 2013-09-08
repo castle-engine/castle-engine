@@ -202,6 +202,7 @@ type
     procedure Draw(const X, Y: Integer);
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
       const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+    procedure Draw(const ScreenRectangle: TRectangle);
     { @groupEnd }
 
     { Draw the image on the screen, divided into 3x3 parts for corners,
@@ -1093,6 +1094,13 @@ begin
   GLEnableTexture(etNone);
 
   AlphaEnd;
+end;
+
+procedure TGLImage.Draw(const ScreenRectangle: TRectangle);
+begin
+  Draw(ScreenRectangle.Left, ScreenRectangle.Bottom,
+    ScreenRectangle.Width, ScreenRectangle.Height,
+    0, 0, Width, Height);
 end;
 
 procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
