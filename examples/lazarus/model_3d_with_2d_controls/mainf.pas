@@ -37,7 +37,8 @@ var
 
 implementation
 
-uses CastleSceneCore, CastleUtils, CastleImages, CastleVectors;
+uses CastleSceneCore, CastleUtils, CastleImages, CastleVectors,
+  CastleControlsImages;
 
 { TForm1 --------------------------------------------------------------------- }
 
@@ -47,6 +48,14 @@ begin
   Browser.Load('../../3d_rendering_processing/models/bridge_final.x3dv');
   Browser.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
   Browser.MainScene.ProcessEvents := true;
+
+  { We can customize the look of all standard 2D controls by changing Theme.
+    Below we change the tooltip image to have rounded corners,
+    using a predefined TooltipRounded image from CastleControlsImages
+    unit. You could also use load and use your own image,
+    e.g. by LoadImage. }
+  Theme.Images[tiTooltip] := TooltipRounded;
+  Theme.Corners[tiTooltip] := Vector4Integer(9, 9, 9, 9);
 
   { Thanks to using this button as a TUIControl descendant
     (placing it on Browser.Controls list), VRML scene sensors

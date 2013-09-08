@@ -23,17 +23,23 @@ uses Classes, GL, CastleVectors, CastleUIControls, CastleGLBitmapFonts,
   CastleRectangles, CastleBitmapFonts;
 
 type
+  TCastleLabel = class;
+
   { Base class for all controls inside an OpenGL context using a font. }
   TUIControlFont = class(TUIControlPos)
   private
-    FFont: TGLBitmapFontAbstract;
     FTooltip: string;
+    TooltipLabel: TCastleLabel;
   protected
-    property Font: TGLBitmapFontAbstract read FFont;
+    { Font custom to this control. By default this returns UIFont,
+      you can override this to return your font.
+      It's OK to return here @nil if font is not ready yet,
+      but during Draw (when OpenGL context is available) font must be ready. }
+    function Font: TGLBitmapFontAbstract; virtual;
   public
+    procedure GLContextClose; override;
     function TooltipStyle: TUIControlDrawStyle; override;
     procedure DrawTooltip; override;
-    procedure GLContextOpen; override;
   published
     { Tooltip string, displayed when user hovers the mouse over a control.
 
@@ -373,7 +379,42 @@ type
     tiPanel, tiPanelSeparator,
     tiButtonPressed, tiButtonFocused, tiButtonNormal,
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
-    tiSlider, tiSliderPosition);
+    tiSlider, tiSliderPosition, tiLabel, tiMenuActive, tiTooltip);
+
+  { Label with possibly multiline text, in a box. }
+  TCastleLabel = class(TUIControlFont)
+  private
+    FText: TStrings;
+    FPadding: Integer;
+    FLineSpacing: Integer;
+    FColor: TVector3Byte;
+    FTags: boolean;
+  protected
+    ImageType: TThemeImage;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    function DrawStyle: TUIControlDrawStyle; override;
+    procedure Draw; override;
+    { Position and size of this control, ignoring GetExists. }
+    function Rect: TRectangle;
+
+    { Text color. By default it's white. }
+    property Color: TVector3Byte read FColor write FColor;
+  published
+    property Text: TStrings read FText;
+
+    { Inside the label box, padding between rect borders and text. }
+    property Padding: Integer read FPadding write FPadding default 0;
+
+    { Extra spacing between lines (may also be negative to squeeze lines
+      tighter). }
+    property LineSpacing: Integer read FLineSpacing write FLineSpacing default 0;
+
+    { Does the text use HTML-like tags. This is very limited for now,
+      see TGLBitmapFontAbstract.PrintStrings documentation. }
+    property Tags: boolean read FTags write FTags default false;
+  end;
 
   { Theme for 2D GUI controls.
     Should only be used through the single global instance @link(Theme). }
@@ -398,8 +439,6 @@ type
     property GLImages[const ImageType: TThemeImage]: TGLImage read GetGLImages;
     procedure SetMessageFont(const Value: TBitmapFont);
   public
-    TooltipInsideColor: TVector3Byte;
-    TooltipBorderColor: TVector3Byte;
     TooltipTextColor  : TVector3Byte;
 
     TextColor      : TVector3Byte;
@@ -497,29 +536,53 @@ end;
 
 procedure TUIControlFont.DrawTooltip;
 var
-  X, Y, W, H: Integer;
+  X, Y: Integer;
+  TooltipRect: TRectangle;
 begin
+  if TooltipLabel = nil then
+  begin
+    TooltipLabel := TCastleLabel.Create(nil);
+    TooltipLabel.ImageType := tiTooltip;
+    { we know that GL context now exists, so just directly call GLContextOpen }
+    TooltipLabel.GLContextOpen;
+  end;
+
+  { assign TooltipLabel.Text first, to get TooltipRect.Width/Height }
+  TooltipLabel.Padding := 5;
+  TooltipLabel.Color := Theme.TooltipTextColor;
+  TooltipLabel.Text.Clear;
+  TooltipLabel.Text.Append(Tooltip);
+  TooltipRect := TooltipLabel.Rect;
+
   X := Container.TooltipX;
   Y := ContainerHeight - Container.TooltipY;
-  W := Font.TextWidth(Tooltip) + 8;
-  H := Font.RowHeight + 8;
 
   { now try to fix X, Y to make tooltip fit inside a window }
-  MinTo1st(X, ContainerWidth - W);
-  MinTo1st(Y, ContainerHeight - H);
+  MinTo1st(X, ContainerWidth - TooltipRect.Width);
+  MinTo1st(Y, ContainerHeight - TooltipRect.Height);
   MaxTo1st(X, 0);
   MaxTo1st(Y, 0);
 
-  Font.PrintStringsBox([Tooltip], false, X, Y, 0,
-    Vector4Single(Theme.TooltipInsideColor, 1),
-    Vector4Single(Theme.TooltipBorderColor, 1),
-    Vector4Single(Theme.TooltipTextColor, 1), 5);
+  TooltipLabel.Left := X;
+  TooltipLabel.Bottom := Y;
+
+  { just explicitly call Draw method of TooltipLabel }
+  TooltipLabel.Draw;
 end;
 
-procedure TUIControlFont.GLContextOpen;
+procedure TUIControlFont.GLContextClose;
 begin
+  { make sure to call GLContextClose on TooltipLabel,
+    actually we can just free it now }
+  FreeAndNil(TooltipLabel);
   inherited;
-  FFont := UIFont;
+end;
+
+function TUIControlFont.Font: TGLBitmapFontAbstract;
+begin
+  if GLInitialized then
+    Result := UIFont else
+    Result := nil;
 end;
 
 { TCastleButton --------------------------------------------------------------- }
@@ -1464,13 +1527,54 @@ begin
   Result := Theme.GLMessageFont;
 end;
 
+{ TCastleLabel --------------------------------------------------------------- }
+
+constructor TCastleLabel.Create(AOwner: TComponent);
+begin
+  inherited;
+  FText := TStringList.Create;
+  FColor := Vector3Byte(255, 255, 255);
+  ImageType := tiLabel;
+end;
+
+destructor TCastleLabel.Destroy;
+begin
+  FreeAndNil(FText);
+  inherited;
+end;
+
+function TCastleLabel.DrawStyle: TUIControlDrawStyle;
+begin
+  if GetExists then
+    Result := ds2D else
+    Result := dsNone;
+end;
+
+function TCastleLabel.Rect: TRectangle;
+begin
+  Result := Rectangle(Left, Bottom,
+    Font.MaxTextWidth(Text, Tags) + 2 * Padding,
+    (Font.RowHeight + LineSpacing) * Text.Count + 2 * Padding + Font.Descend);
+end;
+
+procedure TCastleLabel.Draw;
+var
+  R: TRectangle;
+begin
+  if (not GetExists) or (Text.Count = 0) then Exit;
+  R := Rect;
+  Theme.Draw(Rect, ImageType);
+  glColorv(Color);
+  Font.PrintStrings(Text, Tags, LineSpacing,
+    R.Left + Padding,
+    R.Bottom + Padding + Font.Descend);
+end;
+
 { TCastleTheme --------------------------------------------------------------- }
 
 constructor TCastleTheme.Create;
 begin
   inherited;
-  TooltipInsideColor := Vector3Byte(255, 234, 169);
-  TooltipBorderColor := Vector3Byte(157, 133, 105);
   TooltipTextColor   := Vector3Byte(  0,   0,   0);
   TextColor      := Vector3Byte(  0,   0,   0);
   BarEmptyColor  := Vector3Byte(192, 192, 192);
@@ -1500,6 +1604,12 @@ begin
   FCorners[tiSlider] := Vector4Integer(4, 7, 4, 7);
   FImages[tiSliderPosition] := SliderPosition;
   FCorners[tiSliderPosition] := Vector4Integer(1, 1, 1, 1);
+  FImages[tiLabel] := FrameWhiteBlack;
+  FCorners[tiLabel] := Vector4Integer(2, 2, 2, 2);
+  FImages[tiMenuActive] := FrameWhite;
+  FCorners[tiMenuActive] := Vector4Integer(2, 2, 2, 2);
+  FImages[tiTooltip] := Tooltip;
+  FCorners[tiTooltip] := Vector4Integer(1, 1, 1, 1);
 end;
 
 function TCastleTheme.GetImages(const ImageType: TThemeImage): TCastleImage;

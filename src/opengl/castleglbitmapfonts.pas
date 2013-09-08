@@ -117,7 +117,7 @@ type
         Otherwise, MaxTextWidth will treat tags text (like @code(<font ...>))
         like a normal text, usually making the width incorrectly large.)
     }
-    function MaxTextWidth(SList: TStringList; const Tags: boolean = false): integer;
+    function MaxTextWidth(SList: TStrings; const Tags: boolean = false): integer;
 
     { Print all strings from the list.
 
@@ -189,45 +189,6 @@ type
     function PrintBrokenString(const s: string;
       MaxLineWidth, X0, Y0: Integer;
       PositionsFirst: boolean; BonusVerticalSpace: Integer): Integer;
-
-    { Print all strings from the list, and draw a box with frames
-      around it.
-
-      The text is printed like by PrintStrings.
-
-      The X0, Y0 give explicitly the left-bottom box corner (in window
-      coordinates).
-
-      BonusVerticalSpace has the same interpretation as for PrintStrings:
-      additional space between lines (if positive) or forces
-      the lines to be more tightly squeezed (if negative). Always make
-      sure that (RowHeight + BonusVerticalSpace) > 0.
-
-      The box background inside has color InsideCol. The box frame
-      has color BorderCol. The text has color TextCol.
-
-      BoxPixelMargin is the distance (in pixels) between text and the box
-      frame.
-
-      We assume that moving by 1 in modelview matrix is equal to moving 1 pixel.
-      In other words, we assume you have normal 2D orthographic projection with
-      the dimensions equal to pixel dimensions.
-
-      May require 1 free slot on the attributes stack.
-      May only be called when current matrix is modelview.
-      Doesn't modify any OpenGL state or matrix, except it modifies the raster position.
-
-      @groupBegin }
-    procedure PrintStringsBox(const Strs: array of string;
-      const Tags: boolean; const X0, Y0: Integer; BonusVerticalSpace: TGLint;
-      const InsideCol, BorderCol, TextCol: TVector4f;
-      BoxPixelMargin: integer); overload;
-
-    procedure PrintStringsBox(Strs: TStringList;
-      const Tags: boolean; const X0, Y0: Integer; BonusVerticalSpace: TGLint;
-      const InsideCol, BorderCol, TextCol: TVector4f;
-      BoxPixelMargin: integer); overload;
-    { @groupEnd }
   end;
 
   TGLBitmapFontClass = class of TGLBitmapFontAbstract;
@@ -603,7 +564,7 @@ begin
   end;
 end;
 
-function TGLBitmapFontAbstract.MaxTextWidth(SList: TStringList;
+function TGLBitmapFontAbstract.MaxTextWidth(SList: TStrings;
   const Tags: boolean): Integer;
 var
   I, LineW: integer;
@@ -693,37 +654,6 @@ begin
     PrintStrings(broken, false, BonusVerticalSpace, X0, Y0);
     result := broken.Count;
   finally broken.Free end;
-end;
-
-procedure TGLBitmapFontAbstract.PrintStringsBox(
-  Strs: TStringList; const Tags: boolean;
-  const X0, Y0: Integer; BonusVerticalSpace: TGLint;
-  const InsideCol, BorderCol, TextCol: TVector4f;
-  BoxPixelMargin: integer);
-begin
-  GLRectangleWithBorder(X0, Y0,
-    X0 + MaxTextWidth(Strs, Tags) + 2 * BoxPixelMargin,
-    Y0 + (RowHeight + BonusVerticalSpace) * Strs.Count + 2 * BoxPixelMargin + Descend,
-    InsideCol, BorderCol);
-  glColorv(TextCol);
-  PrintStrings(strs, Tags, BonusVerticalSpace, X0 + BoxPixelMargin,
-    Y0 + BoxPixelMargin + Descend);
-end;
-
-procedure TGLBitmapFontAbstract.PrintStringsBox(
-  const Strs: array of string; const Tags: boolean;
-  const X0, Y0: Integer; BonusVerticalSpace: TGLint;
-  const InsideCol, BorderCol, TextCol: TVector4f;
-  BoxPixelMargin: integer);
-var
-  slist: TStringList;
-begin
-  slist := TStringList.Create;
-  try
-    AddStrArrayToStrings(strs, slist);
-    PrintStringsBox(slist, Tags, X0, Y0, BonusVerticalSpace,
-      InsideCol, BorderCol, TextCol, BoxPixelMargin);
-  finally slist.Free end;
 end;
 
 end.

@@ -674,13 +674,6 @@ begin
   RegisterComponents('Castle', [TCastleOnScreenMenu]);
 end;
 
-procedure RectangleDrawBorder(const Rectangle: TRectangle;
-  const Color: TVector4f; const BorderWidth: Single = 1);
-begin
-  GLRectangleBorder(Rectangle.Left, Rectangle.Bottom,
-    Rectangle.Right, Rectangle.Top, Color, BorderWidth);
-end;
-
 { TMenuAccessory ------------------------------------------------------ }
 
 constructor TMenuAccessory.Create;
@@ -1297,22 +1290,16 @@ begin
       MapRange(MenuAnimation, 0.5, 1, 0, 1),
       CurrentItemBorderColor2, CurrentItemBorderColor1);
 
+  // TODO: animate, like CurrentItemBorderColor
   if Focused and DrawFocusedBorder then
-  begin
-    RectangleDrawBorder(FAllItemsRectangle, Vector4Single(CurrentItemBorderColor));
-  end;
+    Theme.Draw(FAllItemsRectangle, tiMenuActive);
 
   for I := 0 to Items.Count - 1 do
   begin
     if I = CurrentItem then
     begin
-      GLRectangleBorder(
-        Rectangles.L[I].Left - CurrentItemBorderMargin,
-        Rectangles.L[I].Bottom,
-        Rectangles.L[I].Left + Rectangles.L[I].Width + CurrentItemBorderMargin,
-        Rectangles.L[I].Bottom + Rectangles.L[I].Height,
-        Vector4Single(CurrentItemBorderColor));
-
+      Theme.Draw(Rectangles.L[I].Grow(CurrentItemBorderMargin, 0),
+        tiMenuActive);
       glColorv(CurrentItemColor);
     end else
       glColorv(NonCurrentItemColor);

@@ -19,6 +19,12 @@ var
   Slider: TRGBAlphaImage;
 
 var
+  Tooltip: TRGBImage;
+
+var
+  TooltipRounded: TRGBAlphaImage;
+
+var
   ButtonPressed: TRGBAlphaImage;
 
 var
@@ -26,6 +32,18 @@ var
 
 var
   ButtonNormal: TRGBAlphaImage;
+
+var
+  FrameWhite: TRGBAlphaImage;
+
+var
+  FrameWhiteBlack: TRGBAlphaImage;
+
+var
+  FrameYellow: TRGBAlphaImage;
+
+var
+  FrameYellowBlack: TRGBAlphaImage;
 
 var
   PanelSeparator: TRGBImage;
@@ -61,12 +79,24 @@ initialization
   Move(WindowDarkTransparentPixels, WindowDarkTransparent.RawPixels^, SizeOf(WindowDarkTransparentPixels));
   Slider := TRGBAlphaImage.Create(SliderWidth, SliderHeight);
   Move(SliderPixels, Slider.RawPixels^, SizeOf(SliderPixels));
+  Tooltip := TRGBImage.Create(TooltipWidth, TooltipHeight);
+  Move(TooltipPixels, Tooltip.RawPixels^, SizeOf(TooltipPixels));
+  TooltipRounded := TRGBAlphaImage.Create(TooltipRoundedWidth, TooltipRoundedHeight);
+  Move(TooltipRoundedPixels, TooltipRounded.RawPixels^, SizeOf(TooltipRoundedPixels));
   ButtonPressed := TRGBAlphaImage.Create(ButtonPressedWidth, ButtonPressedHeight);
   Move(ButtonPressedPixels, ButtonPressed.RawPixels^, SizeOf(ButtonPressedPixels));
   ButtonFocused := TRGBAlphaImage.Create(ButtonFocusedWidth, ButtonFocusedHeight);
   Move(ButtonFocusedPixels, ButtonFocused.RawPixels^, SizeOf(ButtonFocusedPixels));
   ButtonNormal := TRGBAlphaImage.Create(ButtonNormalWidth, ButtonNormalHeight);
   Move(ButtonNormalPixels, ButtonNormal.RawPixels^, SizeOf(ButtonNormalPixels));
+  FrameWhite := TRGBAlphaImage.Create(FrameWhiteWidth, FrameWhiteHeight);
+  Move(FrameWhitePixels, FrameWhite.RawPixels^, SizeOf(FrameWhitePixels));
+  FrameWhiteBlack := TRGBAlphaImage.Create(FrameWhiteBlackWidth, FrameWhiteBlackHeight);
+  Move(FrameWhiteBlackPixels, FrameWhiteBlack.RawPixels^, SizeOf(FrameWhiteBlackPixels));
+  FrameYellow := TRGBAlphaImage.Create(FrameYellowWidth, FrameYellowHeight);
+  Move(FrameYellowPixels, FrameYellow.RawPixels^, SizeOf(FrameYellowPixels));
+  FrameYellowBlack := TRGBAlphaImage.Create(FrameYellowBlackWidth, FrameYellowBlackHeight);
+  Move(FrameYellowBlackPixels, FrameYellowBlack.RawPixels^, SizeOf(FrameYellowBlackPixels));
   PanelSeparator := TRGBImage.Create(PanelSeparatorWidth, PanelSeparatorHeight);
   Move(PanelSeparatorPixels, PanelSeparator.RawPixels^, SizeOf(PanelSeparatorPixels));
   WindowDark := TRGBImage.Create(WindowDarkWidth, WindowDarkHeight);
@@ -83,9 +113,15 @@ finalization
   FreeAndNil(Panel);
   FreeAndNil(WindowDarkTransparent);
   FreeAndNil(Slider);
+  FreeAndNil(Tooltip);
+  FreeAndNil(TooltipRounded);
   FreeAndNil(ButtonPressed);
   FreeAndNil(ButtonFocused);
   FreeAndNil(ButtonNormal);
+  FreeAndNil(FrameWhite);
+  FreeAndNil(FrameWhiteBlack);
+  FreeAndNil(FrameYellow);
+  FreeAndNil(FrameYellowBlack);
   FreeAndNil(PanelSeparator);
   FreeAndNil(WindowDark);
   FreeAndNil(WindowGray);

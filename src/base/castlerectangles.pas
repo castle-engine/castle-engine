@@ -61,6 +61,7 @@ type
       the resulting width or height is set to zero (which makes a valid
       and empty rectangle) if shrinking too much. }
     function Grow(const Delta: Integer): TRectangle;
+    function Grow(const DeltaX, DeltaY: Integer): TRectangle;
 
     { Returns the rectangle with a number of pixels from given
       side removed. Returns an empty rectangle if you try to remove too much.
@@ -124,27 +125,32 @@ begin
   Result.Height := H;
 end;
 
-function TRectangle.Grow(const Delta: Integer): TRectangle;
+function TRectangle.Grow(const DeltaX, DeltaY: Integer): TRectangle;
 begin
-  if Integer(Width) + 2 * Delta < 0 then
+  if Integer(Width) + 2 * DeltaX < 0 then
   begin
     Result.Left := Left + Width div 2;
     Result.Width := 0;
   end else
   begin
-    Result.Left := Left - Delta;
-    Result.Width := Integer(Width) + 2 * Delta;
+    Result.Left := Left - DeltaX;
+    Result.Width := Integer(Width) + 2 * DeltaX;
   end;
 
-  if Integer(Height) + 2 * Delta < 0 then
+  if Integer(Height) + 2 * DeltaY < 0 then
   begin
     Result.Bottom := Bottom + Height div 2;
     Result.Height := 0;
   end else
   begin
-    Result.Bottom := Bottom - Delta;
-    Result.Height := Integer(Height) + 2 * Delta;
+    Result.Bottom := Bottom - DeltaY;
+    Result.Height := Integer(Height) + 2 * DeltaY;
   end;
+end;
+
+function TRectangle.Grow(const Delta: Integer): TRectangle;
+begin
+  Result := Grow(Delta, Delta);
 end;
 
 function TRectangle.GetRight: Integer;
