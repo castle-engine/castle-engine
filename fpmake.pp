@@ -105,6 +105,7 @@ begin
     P.Targets.AddUnit('castleopendocument.pas');
     P.Targets.AddUnit('castleparameters.pas');
     P.Targets.AddUnit('castleprogress.pas');
+    P.Targets.AddUnit('castlerectangles.pas');
     P.Targets.AddUnit('castlestringutils.pas');
     P.Targets.AddUnit('castletimeutils.pas');
     P.Targets.AddUnit('castleutils.pas');
@@ -210,7 +211,6 @@ begin
     P.Targets.AddUnit('castlecontrols.pas');
     P.Targets.AddUnit('castlenotifications.pas');
     P.Targets.AddUnit('castleonscreenmenu.pas');
-    P.Targets.AddUnit('castleonscreenmenuimages.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'window');
     P.Targets.AddUnit('castlemessages.pas');

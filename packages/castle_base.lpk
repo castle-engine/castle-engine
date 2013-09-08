@@ -509,8 +509,8 @@
         <UnitName Value="CastleOnScreenMenu"/>
       </Item116>
       <Item117>
-        <Filename Value="../src/ui/opengl/castleonscreenmenuimages.pas"/>
-        <UnitName Value="CastleOnScreenMenuImages"/>
+        <Filename Value="../src/base/castlerectangles.pas"/>
+        <UnitName Value="CastleRectangles"/>
       </Item117>
       <Item118>
         <Filename Value="../src/ui/pk3dconnexion.pas"/>
