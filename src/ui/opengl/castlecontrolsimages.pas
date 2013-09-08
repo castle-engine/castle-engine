@@ -19,16 +19,16 @@ var
   Slider: TRGBAlphaImage;
 
 var
+  ButtonPressed: TRGBAlphaImage;
+
+var
+  ButtonFocused: TRGBAlphaImage;
+
+var
+  ButtonNormal: TRGBAlphaImage;
+
+var
   PanelSeparator: TRGBImage;
-
-var
-  ButtonPressed: TRGBImage;
-
-var
-  ButtonFocused: TRGBImage;
-
-var
-  ButtonNormal: TRGBImage;
 
 var
   WindowDark: TRGBImage;
@@ -61,14 +61,14 @@ initialization
   Move(WindowDarkTransparentPixels, WindowDarkTransparent.RawPixels^, SizeOf(WindowDarkTransparentPixels));
   Slider := TRGBAlphaImage.Create(SliderWidth, SliderHeight);
   Move(SliderPixels, Slider.RawPixels^, SizeOf(SliderPixels));
+  ButtonPressed := TRGBAlphaImage.Create(ButtonPressedWidth, ButtonPressedHeight);
+  Move(ButtonPressedPixels, ButtonPressed.RawPixels^, SizeOf(ButtonPressedPixels));
+  ButtonFocused := TRGBAlphaImage.Create(ButtonFocusedWidth, ButtonFocusedHeight);
+  Move(ButtonFocusedPixels, ButtonFocused.RawPixels^, SizeOf(ButtonFocusedPixels));
+  ButtonNormal := TRGBAlphaImage.Create(ButtonNormalWidth, ButtonNormalHeight);
+  Move(ButtonNormalPixels, ButtonNormal.RawPixels^, SizeOf(ButtonNormalPixels));
   PanelSeparator := TRGBImage.Create(PanelSeparatorWidth, PanelSeparatorHeight);
   Move(PanelSeparatorPixels, PanelSeparator.RawPixels^, SizeOf(PanelSeparatorPixels));
-  ButtonPressed := TRGBImage.Create(ButtonPressedWidth, ButtonPressedHeight);
-  Move(ButtonPressedPixels, ButtonPressed.RawPixels^, SizeOf(ButtonPressedPixels));
-  ButtonFocused := TRGBImage.Create(ButtonFocusedWidth, ButtonFocusedHeight);
-  Move(ButtonFocusedPixels, ButtonFocused.RawPixels^, SizeOf(ButtonFocusedPixels));
-  ButtonNormal := TRGBImage.Create(ButtonNormalWidth, ButtonNormalHeight);
-  Move(ButtonNormalPixels, ButtonNormal.RawPixels^, SizeOf(ButtonNormalPixels));
   WindowDark := TRGBImage.Create(WindowDarkWidth, WindowDarkHeight);
   Move(WindowDarkPixels, WindowDark.RawPixels^, SizeOf(WindowDarkPixels));
   WindowGray := TRGBImage.Create(WindowGrayWidth, WindowGrayHeight);
@@ -83,10 +83,10 @@ finalization
   FreeAndNil(Panel);
   FreeAndNil(WindowDarkTransparent);
   FreeAndNil(Slider);
-  FreeAndNil(PanelSeparator);
   FreeAndNil(ButtonPressed);
   FreeAndNil(ButtonFocused);
   FreeAndNil(ButtonNormal);
+  FreeAndNil(PanelSeparator);
   FreeAndNil(WindowDark);
   FreeAndNil(WindowGray);
   FreeAndNil(ScrollbarFrame);

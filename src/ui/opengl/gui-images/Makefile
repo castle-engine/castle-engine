@@ -13,8 +13,8 @@ clean:
   ScrollbarFrame.png ScrollbarSlider.png Slider.png SliderPosition.png
 	image_to_pas --output .. CastleControlsImages \
 	  Panel.png WindowDarkTransparent.png Slider.png \
+	  ButtonPressed.png ButtonFocused.png ButtonNormal.png \
 	  @alpha=strip \
-	  PanelSeparator.png ButtonPressed.png ButtonFocused.png \
-	  ButtonNormal.png WindowDark.png WindowGray.png \
+	  PanelSeparator.png WindowDark.png WindowGray.png \
 	  ScrollbarFrame.png ScrollbarSlider.png \
 	  SliderPosition.png
