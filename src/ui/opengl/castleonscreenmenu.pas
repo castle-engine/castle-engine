@@ -667,83 +667,11 @@ property SliderFont: TGLBitmapFontAbstract read GetUIFontSmall write SetUIFontSm
 implementation
 
 uses SysUtils, CastleUtils, CastleImages, CastleFilesUtils, CastleClassUtils,
-  CastleStringUtils, CastleGLImages, CastleOnScreenMenuImages, CastleSoundEngine;
+  CastleStringUtils, CastleGLImages, CastleSoundEngine;
 
 procedure Register;
 begin
   RegisterComponents('Castle', [TCastleOnScreenMenu]);
-end;
-
-var
-  ImageSlider: TCastleImage;
-  ImageSliderPosition: TCastleImage;
-  GLImageSlider: TGLImage;
-  GLImageSliderPosition: TGLImage;
-
-procedure ImageSliderInit;
-
-  { Compose RGB image of desired width (or very slightly larger),
-    by horizontally stretching base image.
-
-    When stretching, we take MiddleWidth pixels from the image as a pattern
-    that may be infinitely repeated in the middle, as needed to get
-    to DesiredWidth.
-
-    Remaining pixels (to the left / right of MiddleWidth pixels) are placed
-    at the left / right of resulting image. }
-  function ComposeSliderImage(Base: TRGBImage; const MiddleWidth: Cardinal;
-    const DesiredWidth: Cardinal): TRGBImage;
-  var
-    LeftWidth, RightWidth, MiddleCount, I: Cardinal;
-  begin
-    Assert(MiddleWidth <= Base.Width);
-    LeftWidth := (Base.Width - MiddleWidth) div 2;
-    RightWidth := Base.Width - MiddleWidth - LeftWidth;
-    MiddleCount := DivRoundUp(DesiredWidth - LeftWidth - RightWidth, MiddleWidth);
-    Result := TRGBImage.Create(LeftWidth + MiddleWidth * MiddleCount + RightWidth,
-      Base.Height);
-    Result.CopyFrom(Base, 0, 0, 0, 0, LeftWidth, Base.Height);
-    if MiddleCount <> 0 then
-      for I := 0 to MiddleCount do
-        Result.CopyFrom(Base, I * MiddleWidth + LeftWidth, 0,
-          LeftWidth, 0, MiddleWidth, Base.Height);
-    Result.CopyFrom(Base, Result.Width - RightWidth, 0,
-      Base.Width - RightWidth, 0, RightWidth, Base.Height);
-  end;
-
-begin
-  if ImageSlider = nil then
-    ImageSlider := ComposeSliderImage(Slider_Base, 1, 250);
-
-  ImageSliderPosition := Slider_Position;
-
-  if GLImageSlider = nil then
-    GLImageSlider := TGLImage.Create(ImageSlider);
-
-  if GLImageSliderPosition = nil then
-    GLImageSliderPosition := TGLImage.Create(ImageSliderPosition);
-end;
-
-procedure WindowClose(const Container: IUIContainer);
-begin
-  FreeAndNil(GLImageSlider);
-  FreeAndNil(GLImageSliderPosition);
-  FreeAndNil(ImageSlider);
-
-  { Do not free, this is a reference to Slider_Position (that will be freed at
-    unit OnScreenMenuImages finalization.)
-
-    Note: I once tried to make here
-      if ImageSliderPosition <> Slider_Position then
-        FreeAndNil(ImageSliderPosition);
-    but this isn't so smart because WindowClose may be called at various
-    moments, and then Slider_Position may be already freed and nil.
-    Then "ImageSliderPosition <> Slider_Position" = true,
-    but ImageSliderPosition is an invalid pointer.
-    Smarter solutions (like ImageSliderPositionOwned: boolean)
-    are possible. But for now, this is just always equal to Slider_Position,
-    so no point in complicating this. }
-  ImageSliderPosition := nil;
 end;
 
 procedure RectangleDrawBorder(const Rectangle: TRectangle;
@@ -835,47 +763,38 @@ begin
   FDisplayValue := true;
 end;
 
+const
+   // you can increase/decrease these freely
+  SliderWidth = 250;
+  SliderPositionWidth = 10;
+
 function TMenuSlider.GetWidth: Integer;
 begin
-  ImageSliderInit;
-  Result := ImageSlider.Width;
+  Result := SliderWidth;
 end;
 
 procedure TMenuSlider.Draw(const Rectangle: TRectangle);
 begin
-  ImageSliderInit;
-
-  GLImageSlider.Draw(Rectangle.Left, Rectangle.Bottom +
-    (Rectangle.Height - ImageSlider.Height) div 2);
+  Theme.Draw(Rectangle, tiSlider);
 end;
-
-const
-  ImageSliderPositionMargin = 2;
 
 procedure TMenuSlider.DrawSliderPosition(const Rectangle: TRectangle;
   const Position: Single);
 begin
-  ImageSliderInit;
-
-  GLImageSliderPosition.Draw(Rectangle.Left + ImageSliderPositionMargin +
-    Round(MapRange(Clamped(Position, 0, 1), 0, 1, 0,
-      ImageSlider.Width - 2 * ImageSliderPositionMargin -
-      ImageSliderPosition.Width)),
-    Rectangle.Bottom + (Rectangle.Height - ImageSliderPosition.Height) div 2);
+  Theme.Draw(CastleRectangles.Rectangle(
+    Rectangle.Left + Round(MapRange(Clamped(Position, 0, 1), 0, 1,
+      0, SliderWidth - SliderPositionWidth)),
+    Rectangle.Bottom,
+    SliderPositionWidth,
+    Rectangle.Height), tiSliderPosition);
 end;
 
 function TMenuSlider.XCoordToSliderPosition(
   const XCoord: Single; const Rectangle: TRectangle): Single;
 begin
-  { I subtract below ImageSliderPosition.Width div 2
-    because we want XCoord to be in the middle
-    of ImageSliderPosition, not on the left. }
-  Result := MapRange(XCoord - ImageSliderPosition.Width div 2,
-    Rectangle.Left + ImageSliderPositionMargin,
-    Rectangle.Left + ImageSlider.Width - 2 * ImageSliderPositionMargin -
-    ImageSliderPosition.Width, 0, 1);
-
-  Clamp(Result, 0, 1);
+  Result := Clamped(MapRange(XCoord,
+    Rectangle.Left,
+    Rectangle.Left + SliderWidth - SliderPositionWidth, 0, 1), 0, 1);
 end;
 
 procedure TMenuSlider.DrawSliderText(
@@ -1700,6 +1619,4 @@ begin
   FItems.Assign(Value);
 end;
 
-initialization
-  OnGLContextClose.Add(@WindowClose);
 end.

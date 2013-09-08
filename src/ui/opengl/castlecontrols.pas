@@ -368,7 +368,8 @@ type
     function PositionInside(const X, Y: Integer): boolean; override;
   end;
 
-  TThemeImage = (tiWindow, tiScrollbarFrame, tiScrollbarSlider);
+  TThemeImage = (tiWindow, tiScrollbarFrame, tiScrollbarSlider,
+    tiSlider, tiSliderPosition);
 
   { Theme for 2D GUI controls.
     Should only be used through the single global instance @link(Theme). }
@@ -1499,6 +1500,10 @@ begin
   FCorners[tiScrollbarFrame] := Vector4Integer(1, 1, 1, 1);
   FImages[tiScrollbarSlider] := ScrollbarSlider;
   FCorners[tiScrollbarSlider] := Vector4Integer(2, 2, 2, 2);
+  FImages[tiSlider] := Slider;
+  FCorners[tiSlider] := Vector4Integer(4, 7, 4, 7);
+  FImages[tiSliderPosition] := SliderPosition;
+  FCorners[tiSliderPosition] := Vector4Integer(1, 1, 1, 1);
 end;
 
 function TCastleTheme.GetImages(const ImageType: TThemeImage): TCastleImage;

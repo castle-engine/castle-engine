@@ -16,6 +16,9 @@ var
   WindowDarkTransparent: TRGBAlphaImage;
 
 var
+  Slider: TRGBAlphaImage;
+
+var
   Panel_separator: TRGBImage;
 
 var
@@ -39,6 +42,9 @@ var
 var
   ScrollbarSlider: TRGBImage;
 
+var
+  SliderPosition: TRGBImage;
+
 implementation
 
 uses SysUtils;
@@ -53,6 +59,8 @@ initialization
   Move(PanelPixels, Panel.RawPixels^, SizeOf(PanelPixels));
   WindowDarkTransparent := TRGBAlphaImage.Create(WindowDarkTransparentWidth, WindowDarkTransparentHeight);
   Move(WindowDarkTransparentPixels, WindowDarkTransparent.RawPixels^, SizeOf(WindowDarkTransparentPixels));
+  Slider := TRGBAlphaImage.Create(SliderWidth, SliderHeight);
+  Move(SliderPixels, Slider.RawPixels^, SizeOf(SliderPixels));
   Panel_separator := TRGBImage.Create(Panel_separatorWidth, Panel_separatorHeight);
   Move(Panel_separatorPixels, Panel_separator.RawPixels^, SizeOf(Panel_separatorPixels));
   Button_pressed := TRGBImage.Create(Button_pressedWidth, Button_pressedHeight);
@@ -69,9 +77,12 @@ initialization
   Move(ScrollbarFramePixels, ScrollbarFrame.RawPixels^, SizeOf(ScrollbarFramePixels));
   ScrollbarSlider := TRGBImage.Create(ScrollbarSliderWidth, ScrollbarSliderHeight);
   Move(ScrollbarSliderPixels, ScrollbarSlider.RawPixels^, SizeOf(ScrollbarSliderPixels));
+  SliderPosition := TRGBImage.Create(SliderPositionWidth, SliderPositionHeight);
+  Move(SliderPositionPixels, SliderPosition.RawPixels^, SizeOf(SliderPositionPixels));
 finalization
   FreeAndNil(Panel);
   FreeAndNil(WindowDarkTransparent);
+  FreeAndNil(Slider);
   FreeAndNil(Panel_separator);
   FreeAndNil(Button_pressed);
   FreeAndNil(Button_focused);
@@ -80,4 +91,5 @@ finalization
   FreeAndNil(WindowGray);
   FreeAndNil(ScrollbarFrame);
   FreeAndNil(ScrollbarSlider);
+  FreeAndNil(SliderPosition);
 end.
