@@ -39,22 +39,31 @@ unit CastleWindowProgress;
 
 interface
 
-uses GL, CastleWindow, CastleProgress, CastleWindowModes, CastleGLUtils, CastleImages,
-  CastleGLImages;
+uses CastleWindow, CastleProgress, CastleWindowModes,
+  CastleImages, CastleGLImages, CastleUIControls;
 
 type
-  TWindowProgressInterface = class(TProgressUserInterface)
+  TCastleProgressBar = class(TUIControlPos)
   private
     { Background image. }
-    GLImage: TGLImage;
-    BarYPosition: Single;
-    FWindow: TCastleWindowBase;
+    Background: TGLImage;
+    YPosition: Single;
+    Progress: TProgress;
+  public
+    function DrawStyle: TUIControlDrawStyle; override;
+    procedure Draw; override;
+  end;
+
+  TWindowProgressInterface = class(TProgressUserInterface)
+  private
+    Bar: TCastleProgressBar;
+    FWindow: TCastleWindowCustom;
     SavedMode: TGLMode;
   public
     { Window used to render the progress bar.
       Assign this before doing Init. Don't change this when we are
       between Init and Fini. }
-    property Window: TCastleWindowBase read FWindow write FWindow;
+    property Window: TCastleWindowCustom read FWindow write FWindow;
 
     constructor Create;
     procedure Init(Progress: TProgress); override;
@@ -63,14 +72,15 @@ type
   end;
 
 var
-  { Assign this to Progress.UserInterface to use OpenGL progress bar.
+  { Assign this to Progress.UserInterface to use progress bar
+    drawn on TCastleWindow.
     This instance is created in initialization, freed in finalization. }
   WindowProgressInterface: TWindowProgressInterface;
 
 implementation
 
 uses SysUtils, CastleUtils, CastleKeysMouse, CastleControls, CastleGLBitmapFonts,
-  CastleVectors;
+  CastleVectors, CastleRectangles;
 
 const
   Dots = '...';
@@ -161,44 +171,41 @@ begin
     TrimSimple;
 end;
 
-{ display -------------------------------------------------------------------- }
+{ TCastleProgressBar --------------------------------------------------------- }
 
-procedure DisplayProgress(Window: TCastleWindowBase);
+function TCastleProgressBar.DrawStyle: TUIControlDrawStyle;
+begin
+  if GetExists then
+    Result := ds2D else
+    Result := dsNone;
+end;
+
+procedure TCastleProgressBar.Draw;
 const
-  InsideMargin = 20;
+  Padding = 20;
 var
-  Margin, MaxTextWidth, BarHeight, y1, y2, YMiddle: Integer;
-  Progress: TProgress;
-  ProgressInterface: TWindowProgressInterface;
-  PositionFill: Single;
+  XMargin, MaxTextWidth, Height, YMiddle: Integer;
   Font: TGLBitmapFontAbstract;
   Caption: string;
+  BarRect, FillRect: TRectangle;
 begin
-  Progress := TProgress(Window.UserData);
-  ProgressInterface := Progress.UserInterface as TWindowProgressInterface;
+  if not GetExists then Exit;
 
-  glLoadIdentity;
-  ProgressInterface.GLImage.Draw(0, 0);
+  Background.Draw(0, 0);
 
-  Margin := 100 * Window.width div 800;
-  BarHeight := 50 * Window.height div 600;
-  YMiddle := Round(Window.Height * ProgressInterface.BarYPosition);
-  y1 := YMiddle + BarHeight div 2;
-  y2 := YMiddle - BarHeight div 2;
+  XMargin := ContainerWidth div 8;
+  Height := ContainerHeight div 12;
+  YMiddle := Round(ContainerHeight * YPosition);
+  Bottom := YMiddle - Height div 2;
+  BarRect := Rectangle(XMargin, Bottom, ContainerWidth - 2 * XMargin, Height);
+  Theme.Draw(BarRect, tiProgressBar);
 
-  PositionFill := Margin + (Cardinal(Window.Width) - 2 * Margin) *
-    Progress.Position / Progress.Max;
+  FillRect := BarRect.LeftPart(Round(BarRect.Width * Progress.Position / Progress.Max));
+  Theme.Draw(FillRect, tiProgressFill);
 
-  glColorv(Theme.BarEmptyColor);
-  glRectf(PositionFill, y1, Window.Width - Margin, y2);
-
-  glColorv(Theme.BarFilledColor);
-  glRectf(Margin, y1, PositionFill, y2);
-
-  MaxTextWidth := Window.Width - Margin * 2 - InsideMargin;
-
+  MaxTextWidth := BarRect.Width - Padding;
   Caption := Progress.Title;
-  if (UIFont.RowHeight < BarHeight) and
+  if (UIFont.RowHeight < Height) and
      (UIFont.TextWidth(Caption) < MaxTextWidth) then
   begin
     Font := UIFont;
@@ -209,7 +216,7 @@ begin
     Font := UIFontSmall;
     MakeTextFit(Caption, Font, MaxTextWidth);
   end;
-  Font.Print(Margin + InsideMargin, YMiddle - Font.RowHeight div 2,
+  Font.Print(XMargin + Padding, YMiddle - Font.RowHeight div 2,
     Theme.TextColor, Caption);
 end;
 
@@ -227,6 +234,9 @@ begin
   Check(Window <> nil,
     'TWindowProgressInterface: You must assign Window before doing Init');
 
+  Bar := TCastleProgressBar.Create(nil);
+  Bar.Progress := Progress;
+
   { calculate GLImage }
   if Image <> nil then
   begin
@@ -235,43 +245,27 @@ begin
     begin
       GoodSizeImage := Image.MakeResized(Window.Width, Window.Height, riBilinear);
       try
-        GLImage := TGLImage.Create(GoodSizeImage);
+        Bar.Background := TGLImage.Create(GoodSizeImage);
       finally FreeAndNil(GoodSizeImage) end;
     end else
-      GLImage := TGLImage.Create(Image);
-    BarYPosition := ImageBarYPosition;
+      Bar.Background := TGLImage.Create(Image);
+    Bar.YPosition := ImageBarYPosition;
   end else
   begin
-    GLImage := Window.SaveScreenToGL;
-    BarYPosition := DefaultImageBarYPosition;
+    Bar.Background := Window.SaveScreenToGL;
+    Bar.YPosition := DefaultImageBarYPosition;
   end;
 
-  SavedMode := TGLMode.CreateReset(Window,
-    GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT or GL_COLOR_BUFFER_BIT
-    or GL_VIEWPORT_BIT,
-    @DisplayProgress, nil, @NoClose);
+  SavedMode := TGLMode.CreateReset(Window, 0, nil, nil, @NoClose);
+
+  Window.Controls.InsertFront(Bar);
 
   { init our window state }
-  Window.UserData := Progress;
   Window.AutoRedisplay := true;
-
   Window.Cursor := mcWait;
-
-  glDisable(GL_TEXTURE_2D);
-  glDisable(GL_LIGHTING);
-  glDisable(GL_DEPTH_TEST);
-  glDisable(GL_SCISSOR_TEST);
-
-  { Set normal 2D projection.
-    This is done by container for TUIControl with DrawStyle = ds2D, we have
-    to repeat it here too. }
-  glViewport(Window.Rect); // saved by GL_VIEWPORT_BIT
-  OrthoProjection(0, Window.Width, 0, Window.Height);
-
   { To actually draw progress start. }
   Window.PostRedisplay;
   Window.FlushRedisplay;
-
   Application.ProcessMessage(false, false);
 end;
 
@@ -282,8 +276,8 @@ end;
 
 procedure TWindowProgressInterface.Fini(Progress: TProgress);
 begin
-  FreeAndNil(GLImage);
-
+  FreeAndNil(Bar.Background);
+  FreeAndNil(Bar);
   FreeAndNil(SavedMode);
 end;
 

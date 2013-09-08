@@ -52,6 +52,12 @@ var
   FrameThickYellow: TRGBAlphaImage;
 
 var
+  ProgressBar: TRGBAlphaImage;
+
+var
+  ProgressFill: TRGBAlphaImage;
+
+var
   PanelSeparator: TRGBImage;
 
 var
@@ -107,6 +113,10 @@ initialization
   Move(FrameThickWhitePixels, FrameThickWhite.RawPixels^, SizeOf(FrameThickWhitePixels));
   FrameThickYellow := TRGBAlphaImage.Create(FrameThickYellowWidth, FrameThickYellowHeight);
   Move(FrameThickYellowPixels, FrameThickYellow.RawPixels^, SizeOf(FrameThickYellowPixels));
+  ProgressBar := TRGBAlphaImage.Create(ProgressBarWidth, ProgressBarHeight);
+  Move(ProgressBarPixels, ProgressBar.RawPixels^, SizeOf(ProgressBarPixels));
+  ProgressFill := TRGBAlphaImage.Create(ProgressFillWidth, ProgressFillHeight);
+  Move(ProgressFillPixels, ProgressFill.RawPixels^, SizeOf(ProgressFillPixels));
   PanelSeparator := TRGBImage.Create(PanelSeparatorWidth, PanelSeparatorHeight);
   Move(PanelSeparatorPixels, PanelSeparator.RawPixels^, SizeOf(PanelSeparatorPixels));
   WindowDark := TRGBImage.Create(WindowDarkWidth, WindowDarkHeight);
@@ -134,6 +144,8 @@ finalization
   FreeAndNil(FrameYellowBlack);
   FreeAndNil(FrameThickWhite);
   FreeAndNil(FrameThickYellow);
+  FreeAndNil(ProgressBar);
+  FreeAndNil(ProgressFill);
   FreeAndNil(PanelSeparator);
   FreeAndNil(WindowDark);
   FreeAndNil(WindowGray);

@@ -13,13 +13,14 @@ clean:
   WindowDark.png WindowGray.png WindowDarkTransparent.png \
   ScrollbarFrame.png ScrollbarSlider.png Slider.png SliderPosition.png \
   FrameWhite.png FrameWhiteBlack.png FrameYellow.png FrameYellowBlack.png \
-  FrameThickWhite.png FrameThickYellow.png
+  FrameThickWhite.png FrameThickYellow.png \
+  ProgressBar.png ProgressFill.png
 	image_to_pas --output .. CastleControlsImages \
 	  Panel.png WindowDarkTransparent.png Slider.png \
 	  Tooltip.png TooltipRounded.png \
 	  ButtonPressed.png ButtonFocused.png ButtonNormal.png \
 	  FrameWhite.png FrameWhiteBlack.png FrameYellow.png FrameYellowBlack.png \
-	  FrameThickWhite.png FrameThickYellow.png \
+	  FrameThickWhite.png FrameThickYellow.png ProgressBar.png ProgressFill.png \
 	  @alpha=strip \
 	  PanelSeparator.png WindowDark.png WindowGray.png \
 	  ScrollbarFrame.png ScrollbarSlider.png \

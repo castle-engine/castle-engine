@@ -376,7 +376,7 @@ type
   end;
 
   TThemeImage = (
-    tiPanel, tiPanelSeparator,
+    tiPanel, tiPanelSeparator, tiProgressBar, tiProgressFill,
     tiButtonPressed, tiButtonFocused, tiButtonNormal,
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
     tiSlider, tiSliderPosition, tiLabel, tiActiveFrame, tiTooltip);
@@ -1588,6 +1588,10 @@ begin
   FCorners[tiPanel] := Vector4Integer(0, 0, 0, 0);
   FImages[tiPanelSeparator] := PanelSeparator;
   FCorners[tiPanelSeparator] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiProgressBar] := ProgressBar;
+  FCorners[tiProgressBar] := Vector4Integer(7, 7, 7, 7);
+  FImages[tiProgressFill] := ProgressFill;
+  FCorners[tiProgressFill] := Vector4Integer(1, 1, 1, 1);
   FImages[tiButtonNormal] := ButtonNormal;
   FCorners[tiButtonNormal] := Vector4Integer(2, 2, 2, 2);
   FImages[tiButtonPressed] := ButtonPressed;
