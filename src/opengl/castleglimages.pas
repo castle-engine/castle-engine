@@ -1074,6 +1074,7 @@ begin
   // TODO: use vbos
   // TODO: use texture cache here, like GL renderer does for textures for 3D.
   glLoadIdentity();
+  if GLFeatures.UseMultiTexturing then glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, Texture);
   GLEnableTexture(et2D);
   glColor4f(1, 1, 1, 1); // don't modify texture colors
