@@ -50,12 +50,7 @@ type
     BarYPosition: Single;
     FWindow: TCastleWindowBase;
     SavedMode: TGLMode;
-    FOpacity: Single;
   public
-    { Opacity (1 - transparency) with which control is drawn.
-      When this is < 1, we draw control with nice blending. }
-    property Opacity: Single read FOpacity write FOpacity default 1.0;
-
     { Window used to render the progress bar.
       Assign this before doing Init. Don't change this when we are
       between Init and Fini. }
@@ -74,7 +69,8 @@ var
 
 implementation
 
-uses SysUtils, CastleUtils, CastleKeysMouse, CastleControls, CastleGLBitmapFonts;
+uses SysUtils, CastleUtils, CastleKeysMouse, CastleControls, CastleGLBitmapFonts,
+  CastleVectors;
 
 const
   Dots = '...';
@@ -193,15 +189,14 @@ begin
   PositionFill := Margin + (Cardinal(Window.Width) - 2 * Margin) *
     Progress.Position / Progress.Max;
 
-  glColorOpacity(Theme.BarEmptyColor, ProgressInterface.Opacity);
+  glColorv(Theme.BarEmptyColor);
   glRectf(PositionFill, y1, Window.Width - Margin, y2);
 
-  glColorOpacity(Theme.BarFilledColor, ProgressInterface.Opacity);
+  glColorv(Theme.BarFilledColor);
   glRectf(Margin, y1, PositionFill, y2);
 
   MaxTextWidth := Window.Width - Margin * 2 - InsideMargin;
 
-  glColorOpacity(Theme.TextColor, ProgressInterface.Opacity);
   Caption := Progress.Title;
   if (UIFont.RowHeight < BarHeight) and
      (UIFont.TextWidth(Caption) < MaxTextWidth) then
@@ -214,7 +209,8 @@ begin
     Font := UIFontSmall;
     MakeTextFit(Caption, Font, MaxTextWidth);
   end;
-  Font.Print(Margin + InsideMargin, YMiddle - Font.RowHeight div 2, Caption);
+  Font.Print(Margin + InsideMargin, YMiddle - Font.RowHeight div 2,
+    Theme.TextColor, Caption);
 end;
 
 { TWindowProgressInterface  ------------------------------------------------ }
@@ -222,7 +218,6 @@ end;
 constructor TWindowProgressInterface.Create;
 begin
   inherited;
-  FOpacity := 1;
 end;
 
 procedure TWindowProgressInterface.Init(Progress: TProgress);
@@ -266,12 +261,6 @@ begin
   glDisable(GL_LIGHTING);
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_SCISSOR_TEST);
-
-  if Opacity < 1 then
-  begin
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
-    glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
-  end;
 
   { Set normal 2D projection.
     This is done by container for TUIControl with DrawStyle = ds2D, we have

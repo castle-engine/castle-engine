@@ -325,6 +325,8 @@ function glGetBoolean(pname: TGLEnum): TGLboolean;
 { }
 procedure glColorv(const v: TVector3ub); overload;
 procedure glColorv(const v: TVector4ub); overload;
+procedure glColorv(const v: TVector3f); overload;
+procedure glColorv(const v: TVector4f); overload;
 
 procedure glTranslatev(const V: TVector3f); overload;
 procedure glTranslatev(const V: TVector3_Single); overload;
@@ -340,10 +342,6 @@ procedure glClipPlane(plane: GLenum; const V: TVector4d); overload;
 procedure glClearColorv(const v: TVector3f; alpha: Single);
 
 procedure glNormalv(const v: TVector3f); overload;
-
-procedure glColorv(const v: TVector3f); overload;
-
-procedure glColorv(const v: TVector4f); overload;
 
 procedure glMaterialv(face, pname: TGLEnum; const params: TVector4f); overload;
 
@@ -379,6 +377,16 @@ procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); overload;
 {$endif}
 
 procedure GLViewport(const Rect: TRectangle);
+
+function GetCurrentColor: TVector4Byte;
+procedure SetCurrentColor(const Value: TVector4Byte);
+
+{ Current color, set by glColorv and used for bitmap font printing
+  (in case you use deprecated TGLBitmapFont.Print overloads without
+  explicit colors).
+  You should not depend on this in new programs, rather use TGLBitmapFont.Print
+  with explicit Color parameter. }
+property CurrentColor: TVector4Byte read GetCurrentColor write SetCurrentColor;
 
 { Simple save/restore of OpenGL pixel store ---------------------------------- }
 
@@ -932,10 +940,44 @@ end;
 
 { ---------------------------------------------------- }
 
+var
+  FCurrentColor: TVector4Byte;
+
+function GetCurrentColor: TVector4Byte;
+begin
+  Result := FCurrentColor;
+end;
+
+procedure SetCurrentColor(const Value: TVector4Byte);
+begin
+  FCurrentColor := Value;
+end;
+
 {$ifndef OpenGLES}
 
-procedure glColorv(const v: TVector3ub); begin glColor3ubv(@v); end;
-procedure glColorv(const v: TVector4ub); begin glColor4ubv(@v); end;
+procedure glColorv(const v: TVector3ub);
+begin
+  glColor3ubv(@v);
+  FCurrentColor := Vector4Byte(V, 255);
+end;
+
+procedure glColorv(const v: TVector4ub);
+begin
+  glColor4ubv(@v);
+  FCurrentColor := V;
+end;
+
+procedure glColorv(const v: TVector3f);
+begin
+  glColor3fv(@v);
+  FCurrentColor := Vector4Byte(Vector4Single(V));
+end;
+
+procedure glColorv(const v: TVector4f);
+begin
+  glColor4fv(@v);
+  FCurrentColor := Vector4Byte(V);
+end;
 
 procedure glTranslatev(const V: TVector3f); begin glTranslatef(V[0], V[1], V[2]); end;
 
@@ -967,12 +1009,6 @@ end;
 
 procedure glNormalv(const v: TVector3d); begin glNormal3dv(@v); end;
 procedure glNormalv(const v: TVector3f); begin glNormal3fv(@v); end;
-
-procedure glColorv(const v: TVector3d);  begin glColor3dv(@v); end;
-procedure glColorv(const v: TVector3f);  begin glColor3fv(@v); end;
-
-procedure glColorv(const v: TVector4d);  begin glColor4dv(@v); end;
-procedure glColorv(const v: TVector4f);  begin glColor4fv(@v); end;
 
 procedure glMaterialv(face, pname: TGLEnum; const params: TVector4f);  begin glMaterialfv(face, pname, @params); end;
 
@@ -1551,7 +1587,7 @@ begin
 end;
 
 var
-  FWindowPos: TVector2LongInt;
+  FWindowPos: TVector2Integer;
 
 procedure SetWindowPosF(const X, Y: TGLfloat);
 begin

@@ -20,7 +20,7 @@ unit CastleGLBitmapFonts;
 
 interface
 
-uses CastleBitmapFonts, CastleGL, CastleGLUtils, Classes;
+uses CastleVectors, CastleBitmapFonts, CastleGL, CastleGLUtils, Classes;
 
 type
   { Abstract class for all OpenGL bitmap fonts. }
@@ -33,23 +33,39 @@ type
       the WindowPos at the end. This way you can immediately
       call another PrintAndMove again, to add something at the end.
 
+      It is not adviced to use it, as using the global WindowPos leads
+      sooner or later to messy in code, that has to deal with global state.
+      If you need to know how to move after printing text, use TextMove.
+
       May require 1 free slot on the attributes stack.
       May only be called when current matrix is modelview.
       Doesn't modify any OpenGL state or matrix, except it moves raster position. }
-    procedure PrintAndMove(const s: string); virtual; abstract;
+    procedure PrintAndMove(const s: string); virtual; abstract; deprecated;
 
-    { Draw text at the given position.
+    { Draw text at the given position with given color.
+      If the last Color component is not 1, the text is rendered
+      with blending.
+
       Overloaded version without X, Y uses WindowPos (but doesn't modify
       it, in contrast to PrintAndMove).
+      Overloaded version without Color uses CurrentColor,
+      last color set by glColorv.
+      It is not adviced to use overloaded versions without X, Y or Color
+      --- using global state leads to messy code.
+      You should upgrade your code to use the version that gets X,Y,Color
+      explicitly.
 
       May require 1 free slot on the attributes stack.
       May only be called when current matrix is modelview.
       Doesn't modify any OpenGL state or matrix, except it moves raster position. }
-    procedure Print(const X, Y: Integer; const s: string); overload; virtual; abstract;
-    procedure Print(const s: string); overload;
+    procedure Print(const X, Y: Integer; const Color: TVector4Byte;
+      const S: string); overload; virtual; abstract;
+    procedure Print(const X, Y: Integer; const S: string); overload; deprecated;
+    procedure Print(const s: string); overload; deprecated;
 
     function TextWidth(const s: string): integer; virtual; abstract;
     function TextHeight(const s: string): integer; virtual; abstract;
+    function TextMove(const S: string): TVector2Integer; virtual; abstract;
 
     { The height (above the baseline) of the text.
       This doesn't take into account height of the text below the baseline
@@ -150,16 +166,19 @@ type
         Not necessarily replicating some (old version of) HTML standard.
       )
 
+      Overloaded and deprecated versions without
+      explicit Color parameter use CurrentColor.
+
       @groupBegin }
-    procedure PrintStrings(strs: TStrings;
-      const Tags: boolean; BonusVerticalSpace: TGLint;
-      const X0: Integer = 0;
-      const Y0: Integer = 0); overload;
+    procedure PrintStrings(const X0, Y0: Integer; const Color: TVector4Byte;
+      const Strs: TStrings; const Tags: boolean;
+      const BonusVerticalSpace: TGLint); overload;
+    procedure PrintStrings(const Strs: TStrings;
+      const Tags: boolean; const BonusVerticalSpace: TGLint;
+      const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated;
     procedure PrintStrings(const Strs: array of string;
-      const Tags: boolean;
-      BonusVerticalSpace: TGLint;
-      const X0: Integer = 0;
-      const Y0: Integer = 0); overload;
+      const Tags: boolean; const BonusVerticalSpace: TGLint;
+      const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated;
     { @groupEnd }
 
     { Print the string, broken such that it fits within MaxLineWidth.
@@ -185,10 +204,21 @@ type
 
       May require 1 free slot on the attributes stack.
       May only be called when current matrix is modelview.
-      Doesn't modify any OpenGL state or matrix. }
-    function PrintBrokenString(const s: string;
-      MaxLineWidth, X0, Y0: Integer;
-      PositionsFirst: boolean; BonusVerticalSpace: Integer): Integer;
+      Doesn't modify any OpenGL state or matrix.
+
+      Overloaded and deprecated version without
+      explicit Color parameter uses CurrentColor.
+
+      @groupBegin }
+    function PrintBrokenString(X0, Y0: Integer; const Color: TVector4Byte;
+      const S: string; const MaxLineWidth: Integer;
+      const PositionsFirst: boolean;
+      const BonusVerticalSpace: Integer): Integer;
+    function PrintBrokenString(const S: string;
+      const MaxLineWidth, X0, Y0: Integer;
+      const PositionsFirst: boolean;
+      const BonusVerticalSpace: Integer): Integer; deprecated;
+    { @groupEnd }
   end;
 
   TGLBitmapFontClass = class of TGLBitmapFontAbstract;
@@ -215,24 +245,26 @@ type
     constructor Create(ABitmapFont: TBitmapFont);
     destructor Destroy; override;
 
-    procedure Print(const X, Y: Integer; const s: string); override;
+    procedure Print(const X, Y: Integer; const Color: TVector4Byte;
+      const s: string); override;
     procedure PrintAndMove(const s: string); override;
     function TextWidth(const s: string): integer; override;
     function TextHeight(const s: string): integer; override;
+    function TextMove(const S: string): TVector2Integer; override;
     function TextHeightBase(const s: string): integer; override;
   end;
 
 implementation
 
-uses CastleUtils, CastleVectors, CastleStringUtils, CastleClassUtils, Math;
+uses CastleUtils, CastleStringUtils, CastleClassUtils, Math;
 
 { HandleTags ----------------------------------------------------------------- }
 
 function HandleTags(const S: string;
-  out ColorChange: boolean; out Color: TVector4Single): string;
+  out ColorChange: boolean; out Color: TVector4Byte): string;
 
   function ExtractColor(const S: string; P: Integer;
-    out Color: TVector4Single; out Length: Integer): boolean;
+    out Color: TVector4Byte; out Length: Integer): boolean;
   const
     HexDigits = ['0'..'9', 'a'..'f', 'A'..'F'];
   begin
@@ -245,16 +277,16 @@ function HandleTags(const S: string;
     Length := 6;
     if Result then
     begin
-      Color[0] := StrHexToInt(Copy(S, P    , 2)) / 255;
-      Color[1] := StrHexToInt(Copy(S, P + 2, 2)) / 255;
-      Color[2] := StrHexToInt(Copy(S, P + 4, 2)) / 255;
+      Color[0] := StrHexToInt(Copy(S, P    , 2));
+      Color[1] := StrHexToInt(Copy(S, P + 2, 2));
+      Color[2] := StrHexToInt(Copy(S, P + 4, 2));
       if SCharIs(S, P + 6, HexDigits) and
          SCharIs(S, P + 7, HexDigits) then
       begin
         Length += 2;
-        Color[3] := StrHexToInt(Copy(S, P + 6, 2)) / 255;
+        Color[3] := StrHexToInt(Copy(S, P + 6, 2));
       end else
-        Color[3] := 1;
+        Color[3] := 255;
     end;
   end;
 
@@ -300,175 +332,16 @@ begin
     Result := S;
 end;
 
-const BitmapTableCount = Ord(High(char)) - Ord(Low(char)) +1;
-
-constructor TGLBitmapFont.Create(ABitmapFont: TBitmapFont);
-var i: Cardinal;
-    Znak: PBitmapChar;
-    Saved_Unpack_Alignment: TGLint;
-begin
-  inherited Create;
-  base := glGenListsCheck(BitmapTableCount, 'TGLBitmapFont.Create');
-  BitmapFont := ABitmapFont;
-  Saved_Unpack_Alignment := glGetInteger(GL_UNPACK_ALIGNMENT);
-
-  for i := 0 to 255 do
-  begin
-    Znak := BitmapFont.Data[Chr(i)];
-    glPixelStorei(GL_UNPACK_ALIGNMENT, Znak^.Info.Alignment);
-    glNewList(i+base, GL_COMPILE);
-    glBitmap(Znak^.Info.Width, Znak^.Info.Height,
-             Znak^.Info.XOrig, Znak^.Info.YOrig,
-             Znak^.Info.XMove, Znak^.Info.YMove,
-             @Znak^.Data);
-    glEndList;
-  end;
-  glPixelStorei(GL_UNPACK_ALIGNMENT, Saved_Unpack_Alignment);
-
-  FRowHeight := TextHeight('Wy') + 2;
-  { RowHeight zwiekszylem o +2 zeby byl odstep miedzy liniami.
-    TODO: this +2 is actually a bad idea, but can't remove now without careful testing. }
-  { For RowHeightBase, I do not use +2. }
-  FRowHeightBase := TextHeightBase('W');
-end;
-
-destructor TGLBitmapFont.Destroy;
-begin
-  glDeleteLists(base, BitmapTableCount);
-  inherited;
-end;
-
-procedure TGLBitmapFont.Print(const X, Y: Integer; const s: string);
-
-  { Sets raster position in window
-    coordinates. Such that the raster position is never clipped.
-    Similar to just calling glWindowPos,
-    and actually will simply call glWindowPos if available
-    (if OpenGL version is adequate, or equivalent OpenGL extension is available).
-
-    The depth value of raster is undefined
-    after calling this. This is necessary, in case of old OpenGL with no
-    glWindowPos extension, where we do a little trick to similate glWindowPos.
-    It should not be a problem if you only use this to draw simple 2D GUI stuff. }
-  procedure SetRasterInWindowCoords(const X, Y: Integer);
-  begin
-    if GLFeatures.Version_1_4 then
-    begin
-      glWindowPos2f(X, Y);
-      { tests: Writeln('using std'); }
-    end else
-    if GLFeatures.ARB_window_pos then
-    begin
-      glWindowPos2fARB(X, Y);
-      { tests: Writeln('using ARB'); }
-    end else
-    if GLFeatures.MESA_window_pos then
-    begin
-      glWindowPos2fMESA(X, Y);
-      { tests: Writeln('using MESA'); }
-    end else
-    begin
-      { Idea how to implement this --- see
-        [http://www.opengl.org/resources/features/KilgardTechniques/oglpitfall/]. }
-
-      glPushAttrib(GL_TRANSFORM_BIT);
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix;
-          glLoadIdentity;
-          glMatrixMode(GL_MODELVIEW);
-          glPushMatrix;
-            glLoadIdentity;
-
-            { Fall back on a simple
-              implementation that sets identity to projection and modelview and
-              sets a special viewport. Setting special viewport means that
-              we can avoid clipping the raster pos, also it means that you
-              don't have to pass here parameters like window width/height ---
-              viewport will appropriately map to your window coordinates. }
-
-            GL.glViewport(Floor(X) - 1, Floor(Y) - 1, 2, 2);
-            glRasterPos4f(Frac(X), Frac(Y), 0, 1);
-
-          glPopMatrix;
-          glMatrixMode(GL_PROJECTION);
-        glPopMatrix;
-      glPopAttrib;
-    end;
-  end;
-
-begin
-  glPushAttrib(GL_LIST_BIT);
-    SetRasterInWindowCoords(X, Y);
-    glListIBase(TGLint(base));
-    glCallLists(length(s), GL_UNSIGNED_BYTE, PChar(s));
-  glPopAttrib;
-end;
-
-procedure TGLBitmapFont.PrintAndMove(const s: string);
-var
-  I: Integer;
-  X, Y: Single;
-  Znak: PBitmapChar;
-begin
-  Print(S);
-
-  { move WindowPos }
-  X := WindowPos[0];
-  Y := WindowPos[1];
-  for I := 1 to Length(S) do
-  begin
-    Znak := BitmapFont.Data[S[I]];
-    X += Znak^.Info.XMove;
-    Y += Znak^.Info.YMove;
-  end;
-  WindowPos := Vector2LongInt(Round(X), Round(Y));
-end;
-
-function TGLBitmapFont.TextWidth(const s: string): integer;
-var i: integer;
-begin
- Result := 0;
- for i := 1 to length(s) do
-  Result := Result + Round(BitmapFont.Data[s[i]]^.Info.XMove);
-end;
-
-function TGLBitmapFont.TextHeight(const s: string): integer;
-var
-  i: integer;
-  minY, maxY, YOrig: integer;
-begin
-  minY := 0;
-  maxY := 0;
-  for i := 1 to length(s) do
-  begin
-    YOrig := Round(BitmapFont.Data[s[i]]^.Info.YOrig);
-    MinTo1st(minY, -YOrig);
-    { Yes, YOrig is *subtracted* here, see glBitmap meaning of yorig. }
-    MaxTo1st(maxY, BitmapFont.Data[s[i]]^.Info.Height - YOrig);
-  end;
-  result := maxY - minY;
-end;
-
-function TGLBitmapFont.TextHeightBase(const s: string): integer;
-var
-  I: integer;
-  YOrig: integer;
-begin
-  Result := 0;
-  { This is just like TGLBitmapFont.TextHeight implementation, except we only
-    calculate (as Result) the MaxY value (assuming that MinY is zero). }
-  for i := 1 to length(s) do
-  begin
-    YOrig := Round(BitmapFont.Data[s[i]]^.Info.YOrig);
-    MaxTo1st(Result, BitmapFont.Data[s[i]]^.Info.Height - YOrig);
-  end;
-end;
-
 { TGLBitmapFontAbstract ------------------------------------------------------}
 
 procedure TGLBitmapFontAbstract.Print(const s: string);
 begin
-  Print(WindowPos[0], WindowPos[1], S);
+  Print(WindowPos[0], WindowPos[1], CurrentColor, S);
+end;
+
+procedure TGLBitmapFontAbstract.Print(const X, Y: Integer; const S: string);
+begin
+  Print(X, Y, CurrentColor, S);
 end;
 
 function TGLBitmapFontAbstract.Descend: integer;
@@ -569,7 +442,7 @@ function TGLBitmapFontAbstract.MaxTextWidth(SList: TStrings;
 var
   I, LineW: integer;
   DummyColorChange: boolean;
-  DummyColor: TVector4Single;
+  DummyColor: TVector4Byte;
   S: string;
 begin
   result := 0;
@@ -583,22 +456,9 @@ begin
   end;
 end;
 
-procedure TGLBitmapFontAbstract.PrintStrings(const Strs: array of string;
-  const Tags: boolean; BonusVerticalSpace: TGLint;
-  const X0, Y0: Integer);
-var
-  SList: TStringList;
-begin
-  SList := TStringList.Create;
-  try
-    AddStrArrayToStrings(Strs, SList);
-    PrintStrings(SList, Tags, BonusVerticalSpace, X0, Y0);
-  finally SList.Free end;
-end;
-
-procedure TGLBitmapFontAbstract.PrintStrings(strs: TStrings;
-  const Tags: boolean; BonusVerticalSpace: TGLint;
-  const X0, Y0: Integer);
+procedure TGLBitmapFontAbstract.PrintStrings(const X0, Y0: Integer;
+  const Color: TVector4Byte; const Strs: TStrings;
+  const Tags: boolean; const BonusVerticalSpace: TGLint);
 var
   Line: Integer;
 
@@ -610,39 +470,47 @@ var
 var
   S: string;
   ColorChange: boolean;
-  Color: TVector4Single;
+  ColorChanged: TVector4Byte;
 begin
   for Line := 0 to Strs.Count - 1 do
   begin
     S := Strs[Line];
     if Tags then
     begin
-      S := HandleTags(S, ColorChange, Color);
+      S := HandleTags(S, ColorChange, ColorChanged);
       if ColorChange then
-      begin
-        glPushAttrib(GL_CURRENT_BIT or GL_COLOR_BUFFER_BIT);
-          { glColor must be before setting raster to have proper effect.
-            It will be correctly saved/restored by glPush/PopAttrib,
-            as docs say that GL_CURRENT_BIT saves
-            "RGBA color associated with current raster position". }
-          glColorv(Color); // saved by GL_CURRENT_BIT
-          if Color[3] < 1 then
-          begin
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
-            glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
-          end;
-          Print(X0, YPos, S);
-        glPopAttrib;
-      end else
-        Print(X0, YPos, S);
+        Print(X0, YPos, ColorChanged, S) else
+        Print(X0, YPos, Color, S);
     end else
-      Print(X0, YPos, S);
+      Print(X0, YPos, Color, S);
   end;
 end;
 
-function TGLBitmapFontAbstract.PrintBrokenString(const s: string;
-  MaxLineWidth, X0, Y0: integer;
-  PositionsFirst: boolean; BonusVerticalSpace: Integer): Integer;
+procedure TGLBitmapFontAbstract.PrintStrings(const Strs: TStrings;
+  const Tags: boolean; const BonusVerticalSpace: TGLint;
+  const X0: Integer; const Y0: Integer);
+begin
+  PrintStrings(X0, Y0, CurrentColor, Strs, Tags, BonusVerticalSpace);
+end;
+
+procedure TGLBitmapFontAbstract.PrintStrings(const Strs: array of string;
+  const Tags: boolean; const BonusVerticalSpace: TGLint;
+  const X0, Y0: Integer);
+var
+  SList: TStringList;
+begin
+  SList := TStringList.Create;
+  try
+    AddStrArrayToStrings(Strs, SList);
+    PrintStrings(X0, Y0, CurrentColor, SList, Tags, BonusVerticalSpace);
+  finally SList.Free end;
+end;
+
+function TGLBitmapFontAbstract.PrintBrokenString(
+  X0, Y0: integer; const Color: TVector4Byte; const s: string;
+  const MaxLineWidth: Integer;
+  const PositionsFirst: boolean;
+  const BonusVerticalSpace: Integer): Integer;
 var
   broken: TStringList;
 begin
@@ -651,9 +519,203 @@ begin
     BreakLines(s, broken, MaxLineWidth);
     if PositionsFirst then
       Y0 -= (broken.Count-1)*(RowHeight + BonusVerticalSpace);
-    PrintStrings(broken, false, BonusVerticalSpace, X0, Y0);
+    PrintStrings(X0, Y0, Color, broken, false, BonusVerticalSpace);
     result := broken.Count;
   finally broken.Free end;
+end;
+
+function TGLBitmapFontAbstract.PrintBrokenString(const S: string;
+  const MaxLineWidth, X0, Y0: Integer;
+  const PositionsFirst: boolean;
+  const BonusVerticalSpace: Integer): Integer; deprecated;
+begin
+  Result := PrintBrokenString(X0, Y0, CurrentColor, S, maxLineWidth,
+    PositionsFirst, BonusVerticalSpace);
+end;
+
+{ TGLBitmapFont -------------------------------------------------------------- }
+
+const
+  BitmapTableCount = Ord(High(char)) - Ord(Low(char)) +1;
+
+constructor TGLBitmapFont.Create(ABitmapFont: TBitmapFont);
+var i: Cardinal;
+    Znak: PBitmapChar;
+    Saved_Unpack_Alignment: TGLint;
+begin
+  inherited Create;
+  base := glGenListsCheck(BitmapTableCount, 'TGLBitmapFont.Create');
+  BitmapFont := ABitmapFont;
+  Saved_Unpack_Alignment := glGetInteger(GL_UNPACK_ALIGNMENT);
+
+  for i := 0 to 255 do
+  begin
+    Znak := BitmapFont.Data[Chr(i)];
+    glPixelStorei(GL_UNPACK_ALIGNMENT, Znak^.Info.Alignment);
+    glNewList(i+base, GL_COMPILE);
+    glBitmap(Znak^.Info.Width, Znak^.Info.Height,
+             Znak^.Info.XOrig, Znak^.Info.YOrig,
+             Znak^.Info.XMove, Znak^.Info.YMove,
+             @Znak^.Data);
+    glEndList;
+  end;
+  glPixelStorei(GL_UNPACK_ALIGNMENT, Saved_Unpack_Alignment);
+
+  FRowHeight := TextHeight('Wy') + 2;
+  { RowHeight zwiekszylem o +2 zeby byl odstep miedzy liniami.
+    TODO: this +2 is actually a bad idea, but can't remove now without careful testing. }
+  { For RowHeightBase, I do not use +2. }
+  FRowHeightBase := TextHeightBase('W');
+end;
+
+destructor TGLBitmapFont.Destroy;
+begin
+  glDeleteLists(base, BitmapTableCount);
+  inherited;
+end;
+
+procedure TGLBitmapFont.Print(const X, Y: Integer; const Color: TVector4Byte;
+  const S: string);
+
+  { Sets raster position in window
+    coordinates. Such that the raster position is never clipped.
+    Similar to just calling glWindowPos,
+    and actually will simply call glWindowPos if available
+    (if OpenGL version is adequate, or equivalent OpenGL extension is available).
+
+    The depth value of raster is undefined
+    after calling this. This is necessary, in case of old OpenGL with no
+    glWindowPos extension, where we do a little trick to similate glWindowPos.
+    It should not be a problem if you only use this to draw simple 2D GUI stuff. }
+  procedure SetRasterInWindowCoords(const X, Y: Integer);
+  begin
+    if GLFeatures.Version_1_4 then
+    begin
+      glWindowPos2f(X, Y);
+      { tests: Writeln('using std'); }
+    end else
+    if GLFeatures.ARB_window_pos then
+    begin
+      glWindowPos2fARB(X, Y);
+      { tests: Writeln('using ARB'); }
+    end else
+    if GLFeatures.MESA_window_pos then
+    begin
+      glWindowPos2fMESA(X, Y);
+      { tests: Writeln('using MESA'); }
+    end else
+    begin
+      { Idea how to implement this --- see
+        [http://www.opengl.org/resources/features/KilgardTechniques/oglpitfall/]. }
+
+      glPushAttrib(GL_TRANSFORM_BIT);
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix;
+          glLoadIdentity;
+          glMatrixMode(GL_MODELVIEW);
+          glPushMatrix;
+            glLoadIdentity;
+
+            { Fall back on a simple
+              implementation that sets identity to projection and modelview and
+              sets a special viewport. Setting special viewport means that
+              we can avoid clipping the raster pos, also it means that you
+              don't have to pass here parameters like window width/height ---
+              viewport will appropriately map to your window coordinates. }
+
+            GL.glViewport(Floor(X) - 1, Floor(Y) - 1, 2, 2);
+            glRasterPos4f(Frac(X), Frac(Y), 0, 1);
+
+          glPopMatrix;
+          glMatrixMode(GL_PROJECTION);
+        glPopMatrix;
+      glPopAttrib;
+    end;
+  end;
+
+begin
+  glPushAttrib(GL_LIST_BIT or GL_COLOR_BUFFER_BIT or GL_ENABLE_BIT);
+    { glColor must be before setting raster to have proper effect.
+      It will be correctly saved/restored by glPush/PopAttrib,
+      as docs say that GL_CURRENT_BIT saves
+      "RGBA color associated with current raster position". }
+    glColor3ubv(@Color); // saved by GL_COLOR_BUFFER_BIT
+    if Color[3] < 255 then
+    begin
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
+      glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
+    end;
+    SetRasterInWindowCoords(X, Y);
+    glListIBase(TGLint(base)); // saved by GL_LIST_BIT
+    glCallLists(length(s), GL_UNSIGNED_BYTE, PChar(s));
+  glPopAttrib;
+end;
+
+procedure TGLBitmapFont.PrintAndMove(const S: string);
+begin
+  { Deprecated method uses other deprecated method here, don't warn }
+  {$warnings off}
+  Print(S);
+  {$warnings on}
+  WindowPos := WindowPos + TextMove(S);
+end;
+
+function TGLBitmapFont.TextMove(const S: string): TVector2Integer;
+var
+  I: Integer;
+  X, Y: Single;
+  Znak: PBitmapChar;
+begin
+  X := 0;
+  Y := 0;
+  for I := 1 to Length(S) do
+  begin
+    Znak := BitmapFont.Data[S[I]];
+    X += Znak^.Info.XMove;
+    Y += Znak^.Info.YMove;
+  end;
+  Result := Vector2LongInt(Round(X), Round(Y));
+end;
+
+function TGLBitmapFont.TextWidth(const s: string): integer;
+var
+  I: integer;
+begin
+  Result := 0;
+  for i := 1 to Length(S) do
+    Result := Result + Round(BitmapFont.Data[s[i]]^.Info.XMove);
+end;
+
+function TGLBitmapFont.TextHeight(const s: string): integer;
+var
+  i: integer;
+  minY, maxY, YOrig: integer;
+begin
+  minY := 0;
+  maxY := 0;
+  for i := 1 to length(s) do
+  begin
+    YOrig := Round(BitmapFont.Data[s[i]]^.Info.YOrig);
+    MinTo1st(minY, -YOrig);
+    { Yes, YOrig is *subtracted* here, see glBitmap meaning of yorig. }
+    MaxTo1st(maxY, BitmapFont.Data[s[i]]^.Info.Height - YOrig);
+  end;
+  result := maxY - minY;
+end;
+
+function TGLBitmapFont.TextHeightBase(const s: string): integer;
+var
+  I: integer;
+  YOrig: integer;
+begin
+  Result := 0;
+  { This is just like TGLBitmapFont.TextHeight implementation, except we only
+    calculate (as Result) the MaxY value (assuming that MinY is zero). }
+  for i := 1 to length(s) do
+  begin
+    YOrig := Round(BitmapFont.Data[s[i]]^.Info.YOrig);
+    MaxTo1st(Result, BitmapFont.Data[s[i]]^.Info.Height - YOrig);
+  end;
 end;
 
 end.

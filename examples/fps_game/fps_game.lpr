@@ -227,8 +227,6 @@ begin
   Y := ContainerHeight;
 
   { A simple display of current/maximum player life. }
-  { Set text color to yellow }
-  glColorv(Vector3Single(1, 1, 0));
   { Write text in the upper-left corner of the screen.
     For controls with DrawStyle = ds2D,
     the (0, 0) position is always bottom-left corner,
@@ -236,7 +234,8 @@ begin
     You can take font measurements by UIFont.RowHeight or UIFont.TextWidth
     to adjust initial position as needed. }
   Y -= UIFont.RowHeight + ControlsMargin;
-  UIFont.Print(0, Y, Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
+  UIFont.Print(0, Y, Yellow,
+    Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
 
   Y -= UIFont.RowHeight + InventoryImageSize;
 
@@ -270,7 +269,7 @@ begin
     S := Player.Inventory[I].Resource.Caption;
     if Player.Inventory[I].Quantity <> 1 then
       S += Format(' (%d)', [Player.Inventory[I].Quantity]);
-    UIFontSmall.Print(X, Y - UIFontSmall.RowHeight, S);
+    UIFontSmall.Print(X, Y - UIFontSmall.RowHeight, Yellow, S);
   end;
 
   { Simple color effects over the screen:

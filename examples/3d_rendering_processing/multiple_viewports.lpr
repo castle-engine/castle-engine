@@ -321,7 +321,7 @@ begin
 
     ViewportsLabels[I] := TCastleLabel.Create(Application);
     ViewportsLabels[I].Text.Text := Viewports[I].Caption;
-    ViewportsLabels[I].Color := Vector3Byte(255, 255, 0);
+    ViewportsLabels[I].Color := Yellow;
     ViewportsLabels[I].Padding := 5;
     Window.Controls.Add(ViewportsLabels[I]);
   end;
@@ -342,7 +342,7 @@ begin
   { add a background, since our viewports (deliberately, for demo)
     do not cover whole window. }
   Background := TCastleSimpleBackground.Create(Application);
-  Background.Color := Vector4Single(0.5, 0.5, 1, 1);
+  Background.Color := Vector4Byte(128, 128, 255, 255);
   Window.Controls.InsertBack(Background);
 
   Window.StencilBits := 8;

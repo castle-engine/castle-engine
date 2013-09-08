@@ -316,10 +316,10 @@ type
     FKeySliderDecrease: TKey;
     FKeySliderIncrease: TKey;
     MenuAnimation: Single;
-    FCurrentItemBorderColor1: TVector3Single;
-    FCurrentItemBorderColor2: TVector3Single;
-    FCurrentItemColor: TVector3Single;
-    FNonCurrentItemColor: TVector3Single;
+    FCurrentItemBorderColor1: TCastleColor;
+    FCurrentItemBorderColor2: TCastleColor;
+    FCurrentItemColor: TCastleColor;
+    FNonCurrentItemColor: TCastleColor;
     MaxItemWidth: Integer;
     FRegularSpaceBetweenItems: Cardinal;
     FDrawBackgroundRectangle: boolean;
@@ -343,10 +343,10 @@ type
       DefaultMenuKeySliderIncrease = K_Right;
       DefaultMenuKeySliderDecrease = K_Left;
 
-      DefaultCurrentItemBorderColor1: TVector3Single = (   1,    1,    1) { White3Single  }; { }
-      DefaultCurrentItemBorderColor2: TVector3Single = ( 0.5,  0.5,  0.5) { Gray3Single   }; { }
-      DefaultCurrentItemColor       : TVector3Single = (   1,    1,  0.3) { Yellow3Single }; { }
-      DefaultNonCurrentItemColor    : TVector3Single = (   1,    1,    1) { White3Single  }; { }
+      DefaultCurrentItemBorderColor1: TCastleColor = (255, 255, 255, 255) { White  }; { }
+      DefaultCurrentItemBorderColor2: TCastleColor = (128, 128, 128, 255) { Gray   }; { }
+      DefaultCurrentItemColor       : TCastleColor = (255, 255,  85, 255) { Yellow }; { }
+      DefaultNonCurrentItemColor    : TCastleColor = (255, 255, 255, 255) { White  }; { }
 
       DefaultRegularSpaceBetweenItems = 10;
       DefaultBackgroundOpacityNotFocused = 0.4;
@@ -508,18 +508,18 @@ type
     procedure CurrentItemChanged; virtual;
 
     { Default value is DefaultCurrentItemBorderColor1 }
-    property CurrentItemBorderColor1: TVector3Single
+    property CurrentItemBorderColor1: TCastleColor
       read FCurrentItemBorderColor1
       write FCurrentItemBorderColor1;
     { Default value is DefaultCurrentItemBorderColor2 }
-    property CurrentItemBorderColor2: TVector3Single
+    property CurrentItemBorderColor2: TCastleColor
       read FCurrentItemBorderColor2
       write FCurrentItemBorderColor2;
     { Default value is DefaultCurrentItemColor }
-    property CurrentItemColor       : TVector3Single
+    property CurrentItemColor       : TCastleColor
       read FCurrentItemColor write FCurrentItemColor;
     { Default value is DefaultNonCurrentItemColor }
-    property NonCurrentItemColor    : TVector3Single
+    property NonCurrentItemColor    : TCastleColor
       read FNonCurrentItemColor write FNonCurrentItemColor;
 
     { Return the space needed before NextItemIndex.
@@ -724,8 +724,8 @@ end;
 
 procedure TMenuArgument.Draw(const Rectangle: TRectangle);
 begin
-  glColorv(LightGreen3Single);
-  UIFont.Print(Rectangle.Left, Rectangle.Bottom + UIFont.Descend, Value);
+  UIFont.Print(Rectangle.Left, Rectangle.Bottom + UIFont.Descend,
+    LightGreen, Value);
 end;
 
 { TMenuBooleanArgument ----------------------------------------------------- }
@@ -793,11 +793,10 @@ end;
 procedure TMenuSlider.DrawSliderText(
   const Rectangle: TRectangle; const Text: string);
 begin
-  glColorv(Black3Single);
   UIFontSmall.Print(
     Rectangle.Left + (Rectangle.Width - UIFontSmall.TextWidth(Text)) div 2,
     Rectangle.Bottom + (Rectangle.Height - UIFontSmall.RowHeight) div 2,
-    Text);
+    Black, Text);
 end;
 
 { TMenuFloatSlider --------------------------------------------------------- }
@@ -1264,7 +1263,7 @@ const
   CurrentItemBorderMargin = 5;
 var
   I: Integer;
-  CurrentItemBorderColor: TVector3Single;
+  ItemColor: TCastleColor;
 begin
   if not GetExists then Exit;
 
@@ -1281,6 +1280,7 @@ begin
     glDisable(GL_BLEND);
   end;
 
+  (* TODO:
   { Calculate CurrentItemBorderColor }
   if MenuAnimation <= 0.5 then
     CurrentItemBorderColor := Lerp(
@@ -1289,8 +1289,8 @@ begin
     CurrentItemBorderColor := Lerp(
       MapRange(MenuAnimation, 0.5, 1, 0, 1),
       CurrentItemBorderColor2, CurrentItemBorderColor1);
+  *)
 
-  // TODO: animate, like CurrentItemBorderColor
   if Focused and DrawFocusedBorder then
     Theme.Draw(FAllItemsRectangle, tiActiveFrame);
 
@@ -1300,12 +1300,12 @@ begin
     begin
       Theme.Draw(Rectangles.L[I].Grow(CurrentItemBorderMargin, 0),
         tiActiveFrame);
-      glColorv(CurrentItemColor);
+      ItemColor := CurrentItemColor;
     end else
-      glColorv(NonCurrentItemColor);
+      ItemColor := NonCurrentItemColor;
 
     UIFont.Print(Rectangles.L[I].Left, Rectangles.L[I].Bottom + UIFont.Descend,
-      Items[I]);
+      ItemColor, Items[I]);
 
     if Items.Objects[I] <> nil then
       TMenuAccessory(Items.Objects[I]).Draw(FAccessoryRectangles.L[I]);

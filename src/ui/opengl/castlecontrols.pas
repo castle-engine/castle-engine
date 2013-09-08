@@ -20,7 +20,7 @@ interface
 
 uses Classes, GL, CastleVectors, CastleUIControls, CastleGLBitmapFonts,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages,
-  CastleRectangles, CastleBitmapFonts;
+  CastleRectangles, CastleBitmapFonts, CastleColors;
 
 type
   TCastleLabel = class;
@@ -265,13 +265,13 @@ type
     and it provides a background already. }
   TCastleSimpleBackground = class(TUIControl)
   private
-    FColor: TVector4Single;
+    FColor: TCastleColor;
   public
     constructor Create(AOwner: TComponent); override;
     function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw; override;
-    { Background color. By default, this is black color with opaque (1.0) alpha. }
-    property Color: TVector4Single read FColor write FColor;
+    { Background color. By default, this is black color with opaque alpha. }
+    property Color: TCastleColor read FColor write FColor;
   end;
 
   { Text alignment for TCastleDialog. }
@@ -387,7 +387,7 @@ type
     FText: TStrings;
     FPadding: Integer;
     FLineSpacing: Integer;
-    FColor: TVector3Byte;
+    FColor: TCastleColor;
     FTags: boolean;
   protected
     ImageType: TThemeImage;
@@ -400,7 +400,7 @@ type
     function Rect: TRectangle;
 
     { Text color. By default it's white. }
-    property Color: TVector3Byte read FColor write FColor;
+    property Color: TCastleColor read FColor write FColor;
   published
     property Text: TStrings read FText;
 
@@ -442,15 +442,13 @@ type
     property GLImages[const ImageType: TThemeImage]: TGLImage read GetGLImages;
     procedure SetMessageFont(const Value: TBitmapFont);
   public
-    TooltipTextColor  : TVector3Byte;
+    TooltipTextColor: TCastleColor;
+    TextColor: TCastleColor;
+    MessageTextColor: TCastleColor;
+    MessageInputTextColor: TCastleColor;
 
-    TextColor      : TVector3Byte;
-
-    BarEmptyColor : TVector3Byte;
+    BarEmptyColor: TVector3Byte;
     BarFilledColor: TVector3Byte;
-
-    MessageTextColor: TVector3Byte;
-    MessageInputTextColor: TVector3Byte;
 
     constructor Create;
     destructor Destroy; override;
@@ -512,7 +510,7 @@ procedure Register;
 implementation
 
 uses SysUtils, CastleControlsImages, CastleBitmapFont_BVSans_m10,
-  CastleBitmapFont_BVSans, CastleGLUtils, Math, CastleColors,
+  CastleBitmapFont_BVSans, CastleGLUtils, Math,
   CastleBitmapFont_BVSansMono_m18;
 
 procedure Register;
@@ -634,8 +632,6 @@ begin
     Background := tiButtonNormal;
   Theme.Draw(Rect, Background);
 
-  glColorOpacity(Theme.TextColor, 1);
-
   TextLeft := Left + (Width - TextWidth) div 2;
   if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilLeft) then
     TextLeft += (FImage.Width + ButtonCaptionImageMargin) div 2 else
@@ -648,7 +644,7 @@ begin
   if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilTop) then
     TextBottom -= (FImage.Height + ButtonCaptionImageMargin) div 2;
 
-  Font.Print(TextLeft, TextBottom, Caption);
+  Font.Print(TextLeft, TextBottom, Theme.TextColor, Caption);
 
   if (FImage <> nil) and (FGLImage <> nil) then
   begin
@@ -1098,7 +1094,7 @@ end;
 constructor TCastleSimpleBackground.Create(AOwner: TComponent);
 begin
   inherited;
-  FColor := Black4Single;
+  FColor := Black;
 end;
 
 function TCastleSimpleBackground.DrawStyle: TUIControlDrawStyle;
@@ -1113,7 +1109,11 @@ procedure TCastleSimpleBackground.Draw;
 begin
   if not GetExists then Exit;
   glPushAttrib(GL_COLOR_BUFFER_BIT);
-    glClearColor(Color[0], Color[1], Color[2], Color[3]); // saved by GL_COLOR_BUFFER_BIT
+    glClearColor(
+      Color[0] / 255,
+      Color[1] / 255,
+      Color[2] / 255,
+      Color[3] / 255); // saved by GL_COLOR_BUFFER_BIT
     glClear(GL_COLOR_BUFFER_BIT);
   glPopAttrib;
 end;
@@ -1405,28 +1405,28 @@ end;
 procedure TCastleDialog.Draw;
 
   { Render a Text line, and move Y up to the line above. }
-  procedure DrawString(const text: string; TextAlign: TTextAlign;
-    X: Integer; var Y: Integer);
+  procedure DrawString(X: Integer; var Y: Integer; const Color: TCastleColor;
+    const text: string; TextAlign: TTextAlign);
   begin
     { change X only locally, to take TextAlign into account }
     case TextAlign of
       taMiddle: X += (MaxLineWidth - font.TextWidth(text)) div 2;
       taRight : X +=  MaxLineWidth - font.TextWidth(text);
     end;
-    font.Print(X, Y, text);
+    Font.Print(X, Y, Color, text);
     { change Y for caller, to print next line higher }
     Y += font.RowHeight;
   end;
 
   { Render all lines in S, and move Y up to the line above. }
-  procedure DrawStrings(const s: TStrings; TextAlign: TTextAlign;
-    const X: Integer; var Y: Integer);
+  procedure DrawStrings(const X: Integer; var Y: Integer;
+    const Color: TCastleColor; const s: TStrings; TextAlign: TTextAlign);
   var
     i: integer;
   begin
     for i := s.count-1 downto 0 do
       { each DrawString call will move Y up }
-      DrawString(s[i], TextAlign, X, Y);
+      DrawString(X, Y, Color, s[i], TextAlign);
   end;
 
 var
@@ -1496,17 +1496,11 @@ begin
   TextX := InnerRect.Left;
   TextY := InnerRect.Bottom + Round(Scroll);
 
-  { rysuj Broken_InputText i Broken_Text.
-    Kolejnosc ma znaczenie, kolejne linie sa rysowane od dolu w gore. }
-
+  { draw Broken_InputText and Broken_Text.
+    Order matters, as it's drawn from bottom to top. }
   if DrawInputText then
-  begin
-    glColorv(Theme.MessageInputTextColor);
-    DrawStrings(Broken_InputText, align, TextX, TextY);
-  end;
-
-  glColorv(Theme.MessageTextColor);
-  DrawStrings(Broken_Text, align, TextX, TextY);
+    DrawStrings(TextX, TextY, Theme.MessageInputTextColor, Broken_InputText, Align);
+  DrawStrings(TextX, TextY, Theme.MessageTextColor, Broken_Text, Align);
 
   glDisable(GL_SCISSOR_TEST);
 end;
@@ -1541,7 +1535,7 @@ constructor TCastleLabel.Create(AOwner: TComponent);
 begin
   inherited;
   FText := TStringList.Create;
-  FColor := Vector3Byte(255, 255, 255);
+  FColor := White;
   ImageType := tiLabel;
 end;
 
@@ -1572,10 +1566,8 @@ begin
   if (not GetExists) or (Text.Count = 0) then Exit;
   R := Rect;
   Theme.Draw(Rect, ImageType);
-  glColorv(Color);
-  Font.PrintStrings(Text, Tags, LineSpacing,
-    R.Left + Padding,
-    R.Bottom + Padding + Font.Descend);
+  Font.PrintStrings(R.Left + Padding,
+    R.Bottom + Padding + Font.Descend, Color, Text, Tags, LineSpacing);
 end;
 
 { TCastleTheme --------------------------------------------------------------- }
@@ -1583,12 +1575,12 @@ end;
 constructor TCastleTheme.Create;
 begin
   inherited;
-  TooltipTextColor   := Vector3Byte(  0,   0,   0);
-  TextColor      := Vector3Byte(  0,   0,   0);
-  BarEmptyColor  := Vector3Byte(192, 192, 192);
-  BarFilledColor := Vector3Byte(Round(0.2 * 255), Round(0.5 * 255), 0);
-  MessageInputTextColor := Vector3Byte(85, 255, 255);
-  MessageTextColor := Vector3Byte(255, 255, 255);
+  TooltipTextColor := Vector4Byte(  0,   0,   0);
+  TextColor        := Vector4Byte(  0,   0,   0);
+  BarEmptyColor    := Vector3Byte(192, 192, 192);
+  BarFilledColor   := Vector3Byte(Round(0.2 * 255), Round(0.5 * 255), 0);
+  MessageInputTextColor := Vector4Byte( 85, 255, 255);
+  MessageTextColor      := Vector4Byte(255, 255, 255);
 
   MessageFont := BitmapFont_BVSansMono_M18;
 

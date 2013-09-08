@@ -20,6 +20,9 @@ interface
 
 uses Math, CastleVectors;
 
+type
+  TCastleColor = TVector4Byte;
+
 const
   { Some colors.
     3-item colors are in RGB format,
@@ -33,11 +36,13 @@ const
   Blue3Byte   : TVector3Byte = (  0,   0, 255);
   White3Byte  : TVector3Byte = (255, 255, 255);
 
-  Black4Byte  : TVector4Byte = (  0,   0,   0, 255);
-  Red4Byte    : TVector4Byte = (255,   0,   0, 255);
-  Green4Byte  : TVector4Byte = (  0, 255,   0, 255);
-  Blue4Byte   : TVector4Byte = (  0,   0, 255, 255);
-  White4Byte  : TVector4Byte = (255, 255, 255, 255);
+  Black      : TCastleColor = (  0,   0,   0, 255);
+  Red        : TCastleColor = (255,   0,   0, 255);
+  Green      : TCastleColor = (  0, 255,   0, 255);
+  Blue       : TCastleColor = (  0,   0, 255, 255);
+  Yellow     : TCastleColor = (255, 255,  85, 255);
+  White      : TCastleColor = (255, 255, 255, 255);
+  LightGreen : TCastleColor = ( 85, 255,  85, 255);
   { @groupEnd }
 
   { Standard 16 colors.

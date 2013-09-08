@@ -55,7 +55,7 @@ type
     Messages: TNotificationList;
     FHorizontalPosition: THorizontalPosition;
     FVerticalPosition: TVerticalPosition;
-    FColor: TVector3Single;
+    FColor: TVector4Byte;
     FMaxMessages: integer;
     FTimeout: TMilisecTime;
     FHorizontalMargin, FVerticalMargin: Integer;
@@ -92,7 +92,7 @@ type
     function DrawStyle: TUIControlDrawStyle; override;
 
     { Color used to draw messages. Default value is yellow. }
-    property Color: TVector3Single read FColor write FColor;
+    property Color: TVector4Byte read FColor write FColor;
 
     { All the messages passed to @link(Show), collected only if CollectHistory.
       May be @nil when not CollectHistory. }
@@ -169,7 +169,7 @@ begin
   FVerticalPosition := DefaultVerticalPosition;
   FHorizontalMargin := DefaultHorizontalMargin;
   FVerticalMargin := DefaultVerticalMargin;
-  FColor := Yellow3Single;
+  FColor := Yellow;
 end;
 
 destructor TCastleNotifications.Destroy;
@@ -250,8 +250,6 @@ var
 begin
   if DrawStyle = dsNone then Exit;
 
-  glLoadIdentity;
-  glColorv(Color);
   for i := 0 to Messages.Count-1 do
   begin
     { calculate x relative to 0..ContainerWidth, then convert to 0..GLMaxX }
@@ -268,7 +266,7 @@ begin
       vpUp   :  y :=  ContainerHeight-(i+1)*UIFont.RowHeight - VerticalMargin;
     end;
 
-    UIFont.Print(x, y, Messages[i].Text);
+    UIFont.Print(x, y, Color, Messages[i].Text);
   end;
 end;
 

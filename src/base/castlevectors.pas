@@ -594,7 +594,7 @@ function Vector3Byte(const v: TVector3Double): TVector3Byte; overload;
 function Vector4Byte(const f4: TVector4Single): TVector4Byte; overload;
 { @groupEnd }
 
-function Vector4Byte(x, y, z, w: Byte): TVector4Byte; overload;
+function Vector4Byte(const x, y, z: Byte; const w: Byte = 255): TVector4Byte; overload;
 function Vector4Byte(const f3: TVector3Byte; w: Byte): TVector4Byte; overload;
 
 function Vector4Integer(const X, Y, Z, W: Integer): TVector4Integer;
@@ -607,6 +607,7 @@ function Vector3SinglePoint(const v: TVector4Single): TVector3Single;
 { Convert 4D vector into 3D by simply discarding (ignoring) the 4th vector
   component. }
 function Vector3SingleCut(const v: TVector4Single): TVector3Single;
+function Vector3ByteCut(const v: TVector4Byte): TVector3Byte;
 
 { Construct and normalize 3D vector value. }
 function Normal3Single(const x, y: Single; const z: Single = 0.0): TVector3Single; overload;
@@ -2693,7 +2694,7 @@ begin
   result[2] := p2;
 end;
 
-function Vector4Byte(x, y, z, w: Byte): TVector4Byte;
+function Vector4Byte(const x, y, z, w: Byte): TVector4Byte;
 begin
   result[0] := x; result[1] := y; result[2] := z; result[3] := w;
 end;
@@ -2731,7 +2732,12 @@ end;
 
 function Vector3SingleCut(const v: TVector4Single): TVector3Single;
 begin
-  move(v, result, SizeOf(result));
+  Move(v, Result, SizeOf(Result));
+end;
+
+function Vector3ByteCut(const v: TVector4Byte): TVector3Byte;
+begin
+  Move(v, Result, SizeOf(Result));
 end;
 
 function Normal3Single(const x, y: Single; const z: Single{=0}): TVector3Single;
