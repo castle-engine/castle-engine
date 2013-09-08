@@ -18,7 +18,8 @@ unit Castle3D;
 
 interface
 
-uses Classes, Math, CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
+uses Classes, Math, CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils,
+  CastleKeysMouse, CastleRectangles,
   CastleUtils, FGL, CastleGenericLists, CastleTimeUtils,
   CastleSoundEngine, CastleSectors, CastleCameras, CastleTriangles;
 
@@ -636,8 +637,7 @@ type
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      const OriginalViewportX, OriginalViewportY: LongInt;
-      const OriginalViewportWidth, OriginalViewportHeight: Cardinal); virtual;
+      const OriginalViewport: TRectangle); virtual;
 
     { Are we in the middle of dragging something by moving the mouse.
 
@@ -968,8 +968,7 @@ type
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      const OriginalViewportX, OriginalViewportY: LongInt;
-      const OriginalViewportWidth, OriginalViewportHeight: Cardinal); override;
+      const OriginalViewport: TRectangle); override;
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
     function Dragging: boolean; override;
   published
@@ -2116,8 +2115,7 @@ end;
 procedure T3D.UpdateGeneratedTextures(
   const RenderFunc: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  const OriginalViewportX, OriginalViewportY: LongInt;
-  const OriginalViewportWidth, OriginalViewportHeight: Cardinal);
+  const OriginalViewport: TRectangle);
 begin
 end;
 
@@ -2832,22 +2830,17 @@ end;
 procedure T3DList.UpdateGeneratedTextures(
   const RenderFunc: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  const OriginalViewportX, OriginalViewportY: LongInt;
-  const OriginalViewportWidth, OriginalViewportHeight: Cardinal);
+  const OriginalViewport: TRectangle);
 var
   I: Integer;
 begin
   inherited;
   if GetChild <> nil then
-    GetChild.UpdateGeneratedTextures(
-      RenderFunc, ProjectionNear, ProjectionFar,
-      OriginalViewportX, OriginalViewportY,
-      OriginalViewportWidth, OriginalViewportHeight);
+    GetChild.UpdateGeneratedTextures(RenderFunc, ProjectionNear, ProjectionFar,
+      OriginalViewport);
   for I := 0 to List.Count - 1 do
-    List[I].UpdateGeneratedTextures(
-      RenderFunc, ProjectionNear, ProjectionFar,
-      OriginalViewportX, OriginalViewportY,
-      OriginalViewportWidth, OriginalViewportHeight);
+    List[I].UpdateGeneratedTextures(RenderFunc, ProjectionNear, ProjectionFar,
+      OriginalViewport);
 end;
 
 procedure T3DList.VisibleChangeNotification(const Changes: TVisibleChanges);

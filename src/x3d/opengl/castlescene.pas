@@ -24,7 +24,7 @@ uses SysUtils, Classes, CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleSceneCore, CastleRenderer, GL, GLU, GLExt, CastleBackground,
   CastleGLUtils, CastleShapeOctree, CastleGLShadowVolumes, X3DFields, CastleTriangles,
   CastleRendererLights, CastleShapes, CastleFrustum, Castle3D, CastleGLShaders, FGL,
-  CastleGenericLists;
+  CastleGenericLists, CastleRectangles;
 
 {$define read_interface}
 
@@ -802,8 +802,7 @@ type
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      const OriginalViewportX, OriginalViewportY: LongInt;
-      const OriginalViewportWidth, OriginalViewportHeight: Cardinal); override;
+      const OriginalViewport: TRectangle); override;
 
     procedure ViewChangedSuddenly; override;
 
@@ -3419,8 +3418,7 @@ end;
 procedure TCastleScene.UpdateGeneratedTextures(
   const RenderFunc: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  const OriginalViewportX, OriginalViewportY: LongInt;
-  const OriginalViewportWidth, OriginalViewportHeight: Cardinal);
+  const OriginalViewport: TRectangle);
 var
   I: Integer;
   NeedsRestoreViewport: boolean;
@@ -3449,8 +3447,7 @@ begin
   end;
 
   if NeedsRestoreViewport then
-    glViewport(OriginalViewportX, OriginalViewportY,
-               OriginalViewportWidth, OriginalViewportHeight);
+    glViewport(OriginalViewport);
 end;
 
 procedure TCastleScene.ViewChangedSuddenly;

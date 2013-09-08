@@ -1437,7 +1437,7 @@ begin
 
   RenderToTexture.RenderBegin;
 
-    glViewport(0, 0, Width, Height);
+    GL.glViewport(0, 0, Width, Height);
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix;
@@ -1982,7 +1982,7 @@ begin
 
   RenderToTexture.RenderBegin;
 
-    glViewport(0, 0, Size, Size);
+    GL.glViewport(0, 0, Size, Size);
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix;

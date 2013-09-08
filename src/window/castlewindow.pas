@@ -483,7 +483,7 @@ unit CastleWindow;
 
 interface
 
-uses SysUtils, Classes, CastleVectors, CastleGL,
+uses SysUtils, Classes, CastleVectors, CastleGL, CastleRectangles,
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
   CastleFileFilters, CastleUIControls, FGL, pk3DConnexion,
@@ -1086,6 +1086,11 @@ type
     property Width: integer read FWidth write FWidth default WindowDefaultSize;
     property Height: integer read FHeight write FHeight default WindowDefaultSize;
     { @groupEnd }
+
+    { Rectangle representing the inside of this container.
+      Always (Left,Bottom) are zero, and (Width,Height) correspond to window
+      sizes. }
+    function Rect: TRectangle;
 
     { Window position on the screen. If one (or both) of them is equal
       to WindowPositionCenter at the initialization (Open) time,
@@ -2814,7 +2819,7 @@ function Clipboard: TCastleClipboard;
 
   It does
 @longCode(#
-  glViewport(0, 0, Window.Width, Window.Height);
+  glViewport(Window.Rect);
   OrthoProjection(0, Window.Width, 0, Window.Height);
 #) }
 procedure Resize2D(Window: TCastleWindowBase);
@@ -2957,7 +2962,7 @@ begin
     { synchronize glViewport with our Width/Height (note that, because
       of ResizeAllowed and MinWidth etc. that can be different than actual window
       sizes). }
-    glViewport(0, 0, Width, Height);
+    glViewport(Rect);
 
     if ( (AntiAliasing = aa2SamplesNicer) or
          (AntiAliasing = aa4SamplesNicer) ) and
@@ -3234,7 +3239,7 @@ begin
     if Closed then Exit; { check, in case window got closed in the event }
 
     if GLVersion.BuggySwapNonStandardViewport then
-      glViewport(0, 0, Width, Height);
+      glViewport(Rect);
 
     if DoubleBuffer then SwapBuffers else glFlush;
     if AutoRedisplay then PostRedisplay;
@@ -4085,6 +4090,11 @@ begin
   Result := FCaption[cpPublic] + FCaption[cpFps];
 end;
 
+function TCastleWindowBase.Rect: TRectangle;
+begin
+  Result := Rectangle(0, 0, Width, Height);
+end;
+
 { TCastleWindowDemo ---------------------------------------------------------------- }
 
 procedure TCastleWindowDemo.EventUpdate;
@@ -4615,7 +4625,7 @@ procedure TCastleWindowCustom.EventDraw;
       glDisable(GL_DEPTH_TEST);
       glDisable(GL_SCISSOR_TEST);
       GLEnableTexture(CastleGLUtils.etNone);
-      glViewport(0, 0, Width, Height); // saved by GL_VIEWPORT_BIT
+      glViewport(Rect); // saved by GL_VIEWPORT_BIT
 
       glMatrixMode(GL_PROJECTION);
       glPushMatrix;
@@ -5001,7 +5011,7 @@ end;
 
 procedure Resize2D(Window: TCastleWindowBase);
 begin
-  glViewport(0, 0, Window.Width, Window.Height);
+  glViewport(Window.Rect);
   OrthoProjection(0, Window.Width, 0, Window.Height);
 end;
 

@@ -22,7 +22,7 @@ uses Classes, CastleVectors, X3DNodes, CastleScene, CastleSceneCore, CastleCamer
   CastleGLShadowVolumes, GL, CastleUIControls, Castle3D, CastleTriangles,
   CastleKeysMouse, CastleBoxes, CastleBackground, CastleUtils, CastleClassUtils,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, FGL, CastleSectors,
-  CastleInputs, CastlePlayer;
+  CastleInputs, CastlePlayer, CastleRectangles;
 
 type
   TCastleAbstractViewport = class;
@@ -314,18 +314,16 @@ type
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
 
-    { Actual position and size of the viewport. Calculated looking
-      at @link(FullSize) value, and the current container sizes
+    { Position and size of the viewport.
+
+      Looks at @link(FullSize) value, and the current container sizes
       (when @link(FullSize) is @true), and at the properties
       @link(Left), @link(Bottom), @link(Width), @link(Height)
       (when @link(FullSize) is @false).
 
-      @groupBegin }
-    function CorrectLeft: Integer;
-    function CorrectBottom: Integer;
-    function CorrectWidth: Cardinal;
-    function CorrectHeight: Cardinal;
-    { @groupEnd }
+      Does not check GetExists. When using this, remember that we do not
+      exist (our real rectangle is empty) when not GetExists. }
+    function Rect: TRectangle;
 
     { Create default TCamera suitable for navigating in this scene.
       This is automatically used to initialize @link(Camera) property
@@ -412,10 +410,7 @@ type
       the whole container (OpenGL context area, like a window for TCastleWindowBase),
       and the values of Left, Bottom, Width, Height are ignored here.
 
-      @seealso CorrectLeft
-      @seealso CorrectBottom
-      @seealso CorrectWidth
-      @seealso CorrectHeight
+      @seealso Rect
 
       @groupBegin }
     property FullSize: boolean read FFullSize write FFullSize default true;
@@ -1420,8 +1415,7 @@ begin
     Result := Camera.MouseMove(OldX, OldY, NewX, NewY);
     if not Result then
     begin
-      Camera.CustomRay(
-        CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight, ContainerHeight,
+      Camera.CustomRay(Rect, ContainerHeight,
         NewX, NewY, PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
         RayOrigin, RayDirection);
       { TODO: do Result := PointingDeviceMove below? }
@@ -1515,40 +1509,27 @@ begin
   Result := (Camera = nil) or Paused or (not GetExists) or Camera.AllowSuspendForInput;
 end;
 
-function TCastleAbstractViewport.CorrectLeft: Integer;
+function TCastleAbstractViewport.Rect: TRectangle;
 begin
-  if FullSize then Result := 0 else Result := Left;
-end;
-
-function TCastleAbstractViewport.CorrectBottom: Integer;
-begin
-  if FullSize then Result := 0 else Result := Bottom;
-end;
-
-function TCastleAbstractViewport.CorrectWidth: Cardinal;
-begin
-  if FullSize then Result := ContainerWidth else Result := Width;
-end;
-
-function TCastleAbstractViewport.CorrectHeight: Cardinal;
-begin
-  if FullSize then Result := ContainerHeight else Result := Height;
+  if FullSize then
+    Result := ContainerRect else
+    Result := Rectangle(Left, Bottom, Width, Height);
 end;
 
 function TCastleAbstractViewport.PositionInside(const X, Y: Integer): boolean;
 begin
-  Result :=
-    FullSize or
+  Result := GetExists and
+   (FullSize or
     ( (X >= Left) and
       (X  < Left + Width) and
       (ContainerHeight - Y >= Bottom) and
-      (ContainerHeight - Y  < Bottom + Height) );
+      (ContainerHeight - Y  < Bottom + Height) ));
 end;
 
 procedure TCastleAbstractViewport.ApplyProjection;
 var
   Box: TBox3D;
-  ViewportX, ViewportY, ViewportWidth, ViewportHeight: Cardinal;
+  Viewport: TRectangle;
   ViewpointNode: TAbstractViewpointNode;
   PerspectiveFieldOfView: Single;
 
@@ -1565,7 +1546,7 @@ var
 
     Camera.ProjectionMatrix := PerspectiveProjection(
       DistortFieldOfViewY * PerspectiveViewAngles[1],
-      DistortViewAspect * ViewportWidth / ViewportHeight,
+      DistortViewAspect * Viewport.Width / Viewport.Height,
       ProjectionNear, ProjectionFar);
   end;
 
@@ -1610,7 +1591,7 @@ var
     end;
 
     TOrthoViewpointNode.AspectFieldOfView(FOrthoViewDimensions,
-      ViewportWidth / ViewportHeight);
+      Viewport.Width / Viewport.Height);
 
     Camera.ProjectionMatrix := OrthoProjection(
       { Beware: order of OrthoViewpoint.fieldOfView and FOrthoViewDimensions
@@ -1635,12 +1616,8 @@ begin
   Assert(ContainerSizeKnown, ClassName + ' did not receive ContainerResize event yet, cannnot apply OpenGL projection');
 
   Box := GetItems.BoundingBox;
-  ViewportX := CorrectLeft;
-  ViewportY := CorrectBottom;
-  ViewportWidth := CorrectWidth;
-  ViewportHeight := CorrectHeight;
-
-  glViewport(ViewportX, ViewportY, ViewportWidth, ViewportHeight);
+  Viewport := Rect;
+  glViewport(Viewport);
 
   { calculate ViewpointNode }
   if GetMainScene <> nil then
@@ -1656,10 +1633,10 @@ begin
     PerspectiveFieldOfView := DefaultViewpointFieldOfView;
 
   FPerspectiveViewAngles[0] := RadToDeg(TViewpointNode.ViewpointAngleOfView(
-    PerspectiveFieldOfView, ViewportWidth / ViewportHeight));
+    PerspectiveFieldOfView, Viewport.Width / Viewport.Height));
 
   FPerspectiveViewAngles[1] := AdjustViewAngleDegToAspectRatio(
-    PerspectiveViewAngles[0], ViewportHeight / ViewportWidth);
+    PerspectiveViewAngles[0], Viewport.Height / Viewport.Width);
 
   { Tests:
     Writeln(Format('Angle of view: x %f, y %f', [PerspectiveViewAngles[0], PerspectiveViewAngles[1]])); }
@@ -1906,7 +1883,7 @@ begin
       begin
         glMatrixMode(GL_PROJECTION);
         glPushMatrix;
-        glLoadMatrix(PerspectiveProjMatrixDeg(45, CorrectWidth / CorrectHeight,
+        glLoadMatrix(PerspectiveProjMatrixDeg(45, Rect.Width / Rect.Height,
           ProjectionNear, ProjectionFar));
         glMatrixMode(GL_MODELVIEW);
       end;
@@ -2020,19 +1997,19 @@ procedure TCastleAbstractViewport.RenderScreenEffect;
         I don't see anything much better to do now. }
       Shader.SetupUniforms(BoundTextureUnits);
 
-      { Note that there's no need to worry about CorrectLeft / CorrectBottom,
+      { Note that there's no need to worry about Rect.Left or Rect.Bottom,
         here or inside RenderScreenEffect, because we're already within
         glViewport that takes care of this. }
 
       glBegin(GL_QUADS);
-        glTexCoord2i(0, 0);
-        glVertex2i(0, 0);
+        glTexCoord2i(0                       , 0);
+        glVertex2i(0         , 0);
         glTexCoord2i(ScreenEffectTextureWidth, 0);
-        glVertex2i(CorrectWidth, 0);
+        glVertex2i(Rect.Width, 0);
         glTexCoord2i(ScreenEffectTextureWidth, ScreenEffectTextureHeight);
-        glVertex2i(CorrectWidth, CorrectHeight);
-        glTexCoord2i(0, ScreenEffectTextureHeight);
-        glVertex2i(0, CorrectHeight);
+        glVertex2i(Rect.Width, Rect.Height);
+        glTexCoord2i(0                       , ScreenEffectTextureHeight);
+        glVertex2i(0         , Rect.Height);
       glEnd();
     Shader.Disable;
   end;
@@ -2054,7 +2031,7 @@ begin
 
   { Restore glViewport set by ApplyProjection }
   if not FullSize then
-    glViewport(CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
+    glViewport(Rect);
 
   { the last effect gets a texture, and renders straight into screen }
   RenderOneEffect(ScreenEffects[CurrentScreenEffectsCount - 1]);
@@ -2135,8 +2112,8 @@ begin
        (ScreenEffectTextureSrc = 0) or
        (CurrentScreenEffectsNeedDepth and (ScreenEffectTextureDepth = 0)) or
        (ScreenEffectRTT = nil) or
-       (ScreenEffectTextureWidth  <> CorrectWidth ) or
-       (ScreenEffectTextureHeight <> CorrectHeight) then
+       (ScreenEffectTextureWidth  <> Rect.Width ) or
+       (ScreenEffectTextureHeight <> Rect.Height) then
     begin
       glFreeTexture(ScreenEffectTextureDest);
       glFreeTexture(ScreenEffectTextureSrc);
@@ -2147,8 +2124,8 @@ begin
         ScreenEffectTextureTarget := GL_TEXTURE_2D_MULTISAMPLE else
         ScreenEffectTextureTarget := GL_TEXTURE_RECTANGLE_ARB;
 
-      ScreenEffectTextureWidth := CorrectWidth;
-      ScreenEffectTextureHeight := CorrectHeight;
+      ScreenEffectTextureWidth  := Rect.Width;
+      ScreenEffectTextureHeight := Rect.Height;
       { We use two textures: ScreenEffectTextureDest is the destination
         of framebuffer, ScreenEffectTextureSrc is the source to render.
 
@@ -2192,7 +2169,7 @@ begin
       It will be restored from RenderScreenEffect right before actually
       rendering to screen. }
     if not FullSize then
-      glViewport(0, 0, CorrectWidth, CorrectHeight);
+      glViewport(Rectangle(0, 0, Rect.Width, Rect.Height));
 
     ScreenEffectRTT.RenderBegin;
     ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, ScreenEffectTextureTarget);
@@ -2219,7 +2196,7 @@ begin
       end;
 
       glMatrixMode(GL_PROJECTION);
-      glLoadMatrix(Ortho2dProjMatrix(0, CorrectWidth, 0, CorrectHeight));
+      glLoadMatrix(Ortho2dProjMatrix(0, Rect.Width, 0, Rect.Height));
       glMatrixMode(GL_MODELVIEW);
 
       RenderScreenEffect;
@@ -2867,11 +2844,7 @@ begin
       time needed to render textures be summed into "FPS frame time". }
     Items.UpdateGeneratedTextures(@RenderFromViewEverything,
       ChosenViewport.ProjectionNear,
-      ChosenViewport.ProjectionFar,
-      ChosenViewport.CorrectLeft,
-      ChosenViewport.CorrectBottom,
-      ChosenViewport.CorrectWidth,
-      ChosenViewport.CorrectHeight);
+      ChosenViewport.ProjectionFar, ChosenViewport.Rect);
   end;
 end;
 
@@ -2927,8 +2900,7 @@ var
     RayOrigin, RayDirection: TVector3Single;
     RayHit: TRayCollision;
   begin
-    Camera.CustomRay(
-      CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight, ContainerHeight,
+    Camera.CustomRay(Rect, ContainerHeight,
       MouseX + XChange, MouseY + YChange,
       PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
       RayOrigin, RayDirection);

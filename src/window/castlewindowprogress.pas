@@ -276,7 +276,7 @@ begin
   { Set normal 2D projection.
     This is done by container for TUIControl with DrawStyle = ds2D, we have
     to repeat it here too. }
-  glViewport(0, 0, Window.Width, Window.Height); // saved by GL_VIEWPORT_BIT
+  glViewport(Window.Rect); // saved by GL_VIEWPORT_BIT
   OrthoProjection(0, Window.Width, 0, Window.Height);
 
   { To actually draw progress start. }

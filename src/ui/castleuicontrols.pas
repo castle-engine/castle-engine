@@ -19,7 +19,7 @@ unit CastleUIControls;
 interface
 
 uses SysUtils, Classes, CastleKeysMouse, CastleUtils, CastleClassUtils,
-  CastleGenericLists;
+  CastleGenericLists, CastleRectangles;
 
 type
   { Basic user interface container. This may be a window
@@ -40,6 +40,7 @@ type
 
     property Width: Integer read GetWidth;
     property Height: Integer read GetHeight;
+    function Rect: TRectangle;
 
     function GetMousePressed: TMouseButtons;
     function GetPressed: TKeysPressed;
@@ -83,6 +84,7 @@ type
   private
     FOnVisibleChange: TNotifyEvent;
     FContainerWidth, FContainerHeight: Cardinal;
+    FContainerRect: TRectangle;
     FContainerSizeKnown: boolean;
     FContainer: IUIContainer;
     FCursor: TMouseCursor;
@@ -96,6 +98,7 @@ type
       @groupBegin }
     property ContainerWidth: Cardinal read FContainerWidth;
     property ContainerHeight: Cardinal read FContainerHeight;
+    property ContainerRect: TRectangle read FContainerRect;
     property ContainerSizeKnown: boolean read FContainerSizeKnown;
     { @groupEnd }
     procedure SetContainer(const Value: IUIContainer); virtual;
@@ -260,7 +263,7 @@ end;
       initialized.
 
       In this class, this sets values of ContainerWidth, ContainerHeight,
-      ContainerSizeKnown properties. }
+      ContainerRect, ContainerSizeKnown properties. }
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); virtual;
 
     { Container of this control. When adding control to container's Controls
@@ -619,6 +622,7 @@ procedure TInputListener.ContainerResize(const AContainerWidth, AContainerHeight
 begin
   FContainerWidth := AContainerWidth;
   FContainerHeight := AContainerHeight;
+  FContainerRect := Rectangle(0, 0, AContainerWidth, AContainerHeight);
   FContainerSizeKnown := true;
 end;
 

@@ -21,7 +21,7 @@ interface
 uses SysUtils, Classes, X3DNodes, CastleRenderer, CastleSceneCore, CastleScene,
   CastleUtils, CastleBoxes, CastleClassUtils, CastlePrecalculatedAnimationCore,
   CastleKeysMouse, CastleTimeUtils, CastleFrustum, CastleVectors, Castle3D, X3DTriangles,
-  FGL, CastleTriangles;
+  FGL, CastleTriangles, CastleRectangles;
 
 type
   TGetRootNodeWithTime = procedure (const Index: Cardinal;
@@ -558,8 +558,7 @@ type
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
-      const OriginalViewportX, OriginalViewportY: LongInt;
-      const OriginalViewportWidth, OriginalViewportHeight: Cardinal); override;
+      const OriginalViewport: TRectangle); override;
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
     function Dragging: boolean; override;
 
@@ -1997,15 +1996,12 @@ end;
 procedure TCastlePrecalculatedAnimation.UpdateGeneratedTextures(
   const RenderFunc: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
-  const OriginalViewportX, OriginalViewportY: LongInt;
-  const OriginalViewportWidth, OriginalViewportHeight: Cardinal);
+  const OriginalViewport: TRectangle);
 begin
   inherited;
   if Loaded then
-    CurrentScene.UpdateGeneratedTextures(
-      RenderFunc, ProjectionNear, ProjectionFar,
-      OriginalViewportX, OriginalViewportY,
-      OriginalViewportWidth, OriginalViewportHeight);
+    CurrentScene.UpdateGeneratedTextures(RenderFunc, ProjectionNear, ProjectionFar,
+      OriginalViewport);
 end;
 
 procedure TCastlePrecalculatedAnimation.VisibleChangeNotification(const Changes: TVisibleChanges);

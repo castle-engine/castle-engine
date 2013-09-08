@@ -22,7 +22,7 @@ unit CastleControl;
 interface
 
 uses
-  Classes, SysUtils, OpenGLContext, Controls, Forms,
+  Classes, SysUtils, OpenGLContext, Controls, Forms, CastleRectangles,
   CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils, StdCtrls,
   CastleUIControls, CastleCameras, X3DNodes, CastleScene, CastleLevels,
   CastleImages, CastleGLVersion, pk3DConnexion, CastleSceneManager;
@@ -185,6 +185,11 @@ type
       These functions take care of flushing any pending redraw operations
       and capturing the screen contents correctly. }
     function SaveScreen: TRGBImage;
+
+    { Rectangle representing the inside of this container.
+      Always (Left,Bottom) are zero, and (Width,Height) correspond to container
+      sizes. }
+    function Rect: TRectangle;
   published
     { Called right after OpenGL context is created. }
     property OnGLContextOpen: TNotifyEvent
@@ -904,7 +909,7 @@ begin
     try
       DoDraw;
       if GLVersion.BuggySwapNonStandardViewport then
-        glViewport(0, 0, Width, Height);
+        glViewport(Rect);
       SwapBuffers;
     finally Fps._RenderEnd end;
     Invalidated := false;
@@ -961,6 +966,11 @@ end;
 function TCastleControlBase.GetPressed: TKeysPressed;
 begin
   Result := FPressed;
+end;
+
+function TCastleControlBase.Rect: TRectangle;
+begin
+  Result := Rectangle(0, 0, Width, Height);
 end;
 
 { TControlledUIControlList ----------------------------------------------------- }

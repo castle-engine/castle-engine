@@ -20,7 +20,7 @@ interface
 
 uses SysUtils, CastleVectors, CastleUtils, CastleKeysMouse, CastleBoxes, CastleQuaternions,
   CastleFrustum, CastleUIControls, Classes, CastleRays, CastleTimeUtils, CastleInputs,
-  CastleTriangles;
+  CastleTriangles, CastleRectangles;
 
 type
   { Possible navigation input types in cameras, set in TCamera.Input. }
@@ -281,8 +281,8 @@ type
       To understand WindowY (with respect to bottom),
       we also need separate WindowHeight. }
     procedure CustomRay(
-      const ViewportLeft, ViewportBottom: Integer;
-      const ViewportWidth, ViewportHeight, WindowHeight: Cardinal;
+      const Viewport: TRectangle;
+      const WindowHeight: Cardinal;
       const WindowX, WindowY: Integer;
       const PerspectiveView: boolean;
       const PerspectiveViewAngles: TVector2Single;
@@ -1807,7 +1807,7 @@ procedure TCamera.Ray(const WindowX, WindowY: Integer;
   out RayOrigin, RayDirection: TVector3Single);
 begin
   Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCamera.Ray');
-  CustomRay(0, 0, ContainerWidth, ContainerHeight, ContainerHeight,
+  CustomRay(ContainerRect, ContainerHeight,
     WindowX, WindowY,
     PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions, RayOrigin, RayDirection);
 end;
@@ -1819,14 +1819,14 @@ procedure TCamera.MouseRay(
   out RayOrigin, RayDirection: TVector3Single);
 begin
   Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCamera.MouseRay');
-  CustomRay(0, 0, ContainerWidth, ContainerHeight, ContainerHeight,
+  CustomRay(ContainerRect, ContainerHeight,
     Container.MouseX, Container.MouseY,
     PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions, RayOrigin, RayDirection);
 end;
 
 procedure TCamera.CustomRay(
-  const ViewportLeft, ViewportBottom: Integer;
-  const ViewportWidth, ViewportHeight, WindowHeight: Cardinal;
+  const Viewport: TRectangle;
+  const WindowHeight: Cardinal;
   const WindowX, WindowY: Integer;
   const PerspectiveView: boolean;
   const PerspectiveViewAngles: TVector2Single;
@@ -1838,8 +1838,8 @@ begin
   GetView(Pos, Dir, Up);
 
   PrimaryRay(
-    WindowX - ViewportLeft, (WindowHeight - WindowY) - ViewportBottom,
-    ViewportWidth, ViewportHeight,
+    WindowX - Viewport.Left, (WindowHeight - WindowY) - Viewport.Bottom,
+    Viewport.Width, Viewport.Height,
     Pos, Dir, Up,
     PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
     RayOrigin, RayDirection);

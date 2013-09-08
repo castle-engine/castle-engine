@@ -144,7 +144,7 @@ procedure SHVectorGLCapture(
     glDisable(GL_SCISSOR_TEST);
     }
 
-    glViewport(ScreenX, ScreenY, CubeMapSize, CubeMapSize);
+    GL.glViewport(ScreenX, ScreenY, CubeMapSize, CubeMapSize);
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix;
@@ -233,7 +233,7 @@ var
   begin
     RenderToTexture.RenderBegin;
 
-      glViewport(0, 0, Width, Height);
+      GL.glViewport(0, 0, Width, Height);
 
       glMatrixMode(GL_PROJECTION);
       glPushMatrix;
@@ -317,7 +317,7 @@ procedure GLCaptureCubeMapTexture(
     RenderToTexture.RenderBegin;
     RenderToTexture.SetTexture(Tex, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB + Ord(Side));
 
-      glViewport(0, 0, Size, Size);
+      GL.glViewport(0, 0, Size, Size);
 
       glMatrixMode(GL_PROJECTION);
       glPushMatrix;

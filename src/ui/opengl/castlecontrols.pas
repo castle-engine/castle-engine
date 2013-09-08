@@ -114,6 +114,9 @@ type
       to be displayed at the same level, regardless of their images sizes. }
     property MinImageWidth: Cardinal read FMinImageWidth write FMinImageWidth default 0;
     property MinImageHeight: Cardinal read FMinImageHeight write FMinImageHeight default 0;
+
+    { Position and size of this control, ignoring GetExists. }
+    function Rect: TRectangle;
   published
     property Width: Cardinal read FWidth write SetWidth default 0;
     property Height: Cardinal read FHeight write SetHeight default 0;
@@ -193,6 +196,8 @@ type
     function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw; override;
     function PositionInside(const X, Y: Integer): boolean; override;
+    { Position and size of this control, ignoring GetExists. }
+    function Rect: TRectangle;
 
     { Separator lines drawn on panel. Useful if you want to visually separate
       groups of contols (like a groups of buttons when you use
@@ -558,7 +563,7 @@ begin
   if Focused then
     Background := tiButtonFocused else
     Background := tiButtonNormal;
-  Theme.Draw(Rectangle(Left, Bottom, Width, Height), Background);
+  Theme.Draw(Rect, Background);
 
   glColorOpacity(Theme.TextColor, 1);
 
@@ -856,6 +861,11 @@ begin
   end;
 end;
 
+function TCastleButton.Rect: TRectangle;
+begin
+  Result := Rectangle(Left, Bottom, Width, Height);
+end;
+
 { TCastlePanel ------------------------------------------------------------------ }
 
 constructor TCastlePanel.Create(AOwner: TComponent);
@@ -885,7 +895,7 @@ var
 begin
   if not GetExists then Exit;
 
-  Theme.Draw(Rectangle(Left, Bottom, Width, Height), tiPanel);
+  Theme.Draw(Rect, tiPanel);
 
   for I := 0 to VerticalSeparators.Count - 1 do
     Theme.Draw(Rectangle(
@@ -924,6 +934,11 @@ begin
     FHeight := Value;
     if Container <> nil then Container.UpdateFocusAndMouseCursor;
   end;
+end;
+
+function TCastlePanel.Rect: TRectangle;
+begin
+  Result := Rectangle(Left, Bottom, Width, Height);
 end;
 
 { TCastleImageControl ---------------------------------------------------------------- }

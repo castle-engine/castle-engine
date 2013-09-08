@@ -425,7 +425,7 @@ procedure TGLBitmapFont.Print(const X, Y: Integer; const s: string);
               don't have to pass here parameters like window width/height ---
               viewport will appropriately map to your window coordinates. }
 
-            glViewport(Floor(X) - 1, Floor(Y) - 1, 2, 2);
+            GL.glViewport(Floor(X) - 1, Floor(Y) - 1, 2, 2);
             glRasterPos4f(Frac(X), Frac(Y), 0, 1);
 
           glPopMatrix;

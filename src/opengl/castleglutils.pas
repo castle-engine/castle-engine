@@ -22,7 +22,7 @@ unit CastleGLUtils;
 interface
 
 uses Math, CastleGL, SysUtils, CastleUtils, CastleVectors, CastleBoxes,
-  CastleImages, Matrix;
+  CastleImages, Matrix, CastleRectangles;
 
 {$define read_interface}
 
@@ -377,6 +377,8 @@ procedure glLoadMatrix(const m: TMatrix4f); overload;
 procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); overload;
 
 {$endif}
+
+procedure GLViewport(const Rect: TRectangle);
 
 { Simple save/restore of OpenGL pixel store ---------------------------------- }
 
@@ -1017,6 +1019,11 @@ procedure glLoadMatrix(const m: TMatrix4f); begin glLoadMatrixf(@m) end;
 procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); begin glTexEnvfv(target, pname, @params); end;
 
 {$endif}
+
+procedure GLViewport(const Rect: TRectangle);
+begin
+  GL.glViewport(Rect.Left, Rect.Bottom, Rect.Width, Rect.Height);
+end;
 
 { uproszczenia dla sejwowania / ladowania gl state : ---------------------------------- }
 
