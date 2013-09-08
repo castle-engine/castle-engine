@@ -7,15 +7,14 @@ all: $(ALL_UNITS)
 clean:
 	rm -f $(ALL_UNITS)
 
-../castlecontrolsimages.pas: panel.png panel_separator.png \
-  button_pressed.png button_focused.png button_normal.png \
+../castlecontrolsimages.pas: Panel.png PanelSeparator.png \
+  ButtonPressed.png ButtonFocused.png ButtonNormal.png \
   WindowDark.png WindowGray.png WindowDarkTransparent.png \
-  ScrollbarFrame.png ScrollbarSlider.png \
-  Slider.png SliderPosition.png
+  ScrollbarFrame.png ScrollbarSlider.png Slider.png SliderPosition.png
 	image_to_pas --output .. CastleControlsImages \
-	  panel.png WindowDarkTransparent.png Slider.png \
+	  Panel.png WindowDarkTransparent.png Slider.png \
 	  @alpha=strip \
-	  panel_separator.png button_pressed.png button_focused.png \
-	  button_normal.png WindowDark.png WindowGray.png \
+	  PanelSeparator.png ButtonPressed.png ButtonFocused.png \
+	  ButtonNormal.png WindowDark.png WindowGray.png \
 	  ScrollbarFrame.png ScrollbarSlider.png \
 	  SliderPosition.png

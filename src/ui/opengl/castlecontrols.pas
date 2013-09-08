@@ -69,7 +69,6 @@ type
     FMinImageHeight: Cardinal;
     FImageLayout: TCastleButtonImageLayout;
     FImageAlphaTest: boolean;
-    GLButtonPressed, GLButtonFocused, GLButtonNormal: TGLImage;
     FMinWidth, FMinHeight: Cardinal;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
@@ -186,7 +185,6 @@ type
     FWidth: Cardinal;
     FHeight: Cardinal;
     FVerticalSeparators: TCardinalList;
-    GLPanel, GLPanelSeparator: TGLImage;
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
   public
@@ -195,8 +193,6 @@ type
     function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw; override;
     function PositionInside(const X, Y: Integer): boolean; override;
-    procedure GLContextOpen; override;
-    procedure GLContextClose; override;
 
     { Separator lines drawn on panel. Useful if you want to visually separate
       groups of contols (like a groups of buttons when you use
@@ -368,7 +364,10 @@ type
     function PositionInside(const X, Y: Integer): boolean; override;
   end;
 
-  TThemeImage = (tiWindow, tiScrollbarFrame, tiScrollbarSlider,
+  TThemeImage = (
+    tiPanel, tiPanelSeparator,
+    tiButtonPressed, tiButtonFocused, tiButtonNormal,
+    tiWindow, tiScrollbarFrame, tiScrollbarSlider,
     tiSlider, tiSliderPosition);
 
   { Theme for 2D GUI controls.
@@ -550,17 +549,16 @@ end;
 procedure TCastleButton.Draw;
 var
   TextLeft, TextBottom, ImgLeft, ImgBottom: Integer;
-  GLBackground: TGLImage;
+  Background: TThemeImage;
 begin
   if not GetExists then Exit;
 
   if Pressed then
-    GLBackground := GLButtonPressed else
+    Background := tiButtonPressed else
   if Focused then
-    GLBackground := GLButtonFocused else
-    GLBackground := GLButtonNormal;
-
-  GLBackground.Draw3x3(Left, Bottom, Width, Height, 2, 2, 2, 2);
+    Background := tiButtonFocused else
+    Background := tiButtonNormal;
+  Theme.Draw(Rectangle(Left, Bottom, Width, Height), Background);
 
   glColorOpacity(Theme.TextColor, 1);
 
@@ -615,23 +613,12 @@ begin
   inherited;
   if (FGLImage = nil) and (FImage <> nil) then
     FGLImage := TGLImage.Create(FImage);
-
-  if GLButtonPressed = nil then
-    GLButtonPressed := TGLImage.Create(Button_pressed, true);
-  if GLButtonFocused = nil then
-    GLButtonFocused := TGLImage.Create(Button_focused, true);
-  if GLButtonNormal = nil then
-    GLButtonNormal := TGLImage.Create(Button_normal, true);
-
   UpdateTextSize;
 end;
 
 procedure TCastleButton.GLContextClose;
 begin
   FreeAndNil(FGLImage);
-  FreeAndNil(GLButtonPressed);
-  FreeAndNil(GLButtonFocused);
-  FreeAndNil(GLButtonNormal);
   inherited;
 end;
 
@@ -898,13 +885,13 @@ var
 begin
   if not GetExists then Exit;
 
-  GLPanel.Draw(Left, Bottom, Width, Height,
-    0, 0, GLPanel.Width, GLPanel.Height);
+  Theme.Draw(Rectangle(Left, Bottom, Width, Height), tiPanel);
 
   for I := 0 to VerticalSeparators.Count - 1 do
-    GLPanelSeparator.Draw(Left + VerticalSeparators[I], Bottom + SeparatorMargin,
-      GLPanelSeparator.Width, Height - 2 * SeparatorMargin,
-      0, 0, GLPanelSeparator.Width, GLPanelSeparator.Height);
+    Theme.Draw(Rectangle(
+      Left + VerticalSeparators[I], Bottom + SeparatorMargin,
+      Theme.Images[tiPanelSeparator].Width, Height - 2 * SeparatorMargin),
+      tiPanelSeparator);
 end;
 
 function TCastlePanel.PositionInside(const X, Y: Integer): boolean;
@@ -937,22 +924,6 @@ begin
     FHeight := Value;
     if Container <> nil then Container.UpdateFocusAndMouseCursor;
   end;
-end;
-
-procedure TCastlePanel.GLContextOpen;
-begin
-  inherited;
-  if GLPanel = nil then
-    GLPanel := TGLImage.Create(Panel, true);
-  if GLPanelSeparator = nil then
-    GLPanelSeparator := TGLImage.Create(Panel_separator, true);
-end;
-
-procedure TCastlePanel.GLContextClose;
-begin
-  FreeAndNil(GLPanel);
-  FreeAndNil(GLPanelSeparator);
-  inherited;
 end;
 
 { TCastleImageControl ---------------------------------------------------------------- }
@@ -1486,7 +1457,7 @@ begin
   TooltipInsideColor := Vector3Byte(255, 234, 169);
   TooltipBorderColor := Vector3Byte(157, 133, 105);
   TooltipTextColor   := Vector3Byte(  0,   0,   0);
-  TextColor       := Vector3Byte(  0,   0,   0);
+  TextColor      := Vector3Byte(  0,   0,   0);
   BarEmptyColor  := Vector3Byte(192, 192, 192);
   BarFilledColor := Vector3Byte(Round(0.2 * 255), Round(0.5 * 255), 0);
   MessageInputTextColor := Vector3Byte(85, 255, 255);
@@ -1494,6 +1465,16 @@ begin
 
   MessageFont := BitmapFont_BVSansMono_M18;
 
+  FImages[tiPanel] := Panel;
+  FCorners[tiPanel] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiPanelSeparator] := PanelSeparator;
+  FCorners[tiPanelSeparator] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiButtonNormal] := ButtonNormal;
+  FCorners[tiButtonNormal] := Vector4Integer(2, 2, 2, 2);
+  FImages[tiButtonPressed] := ButtonPressed;
+  FCorners[tiButtonPressed] := Vector4Integer(2, 2, 2, 2);
+  FImages[tiButtonFocused] := ButtonFocused;
+  FCorners[tiButtonFocused] := Vector4Integer(2, 2, 2, 2);
   FImages[tiWindow] := WindowDark;
   FCorners[tiWindow] := Vector4Integer(2, 2, 2, 2);
   FImages[tiScrollbarFrame] := ScrollbarFrame;

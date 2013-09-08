@@ -528,18 +528,18 @@ const
      255,  255,  255,    0);
 
 const
-  Panel_separatorWidth = 2;
-  Panel_separatorHeight = 8;
-  Panel_separatorPixels: array[0 .. Panel_separatorWidth * Panel_separatorHeight * 3 - 1] of Byte = (
+  PanelSeparatorWidth = 2;
+  PanelSeparatorHeight = 8;
+  PanelSeparatorPixels: array[0 .. PanelSeparatorWidth * PanelSeparatorHeight * 3 - 1] of Byte = (
       99,   99,   99,  221,  221,  221,   99,   99,   99,  221,  221,  221,
       99,   99,   99,  221,  221,  221,   99,   99,   99,  221,  221,  221,
       99,   99,   99,  221,  221,  221,   99,   99,   99,  221,  221,  221,
       99,   99,   99,  221,  221,  221,   99,   99,   99,  221,  221,  221);
 
 const
-  Button_pressedWidth = 8;
-  Button_pressedHeight = 256;
-  Button_pressedPixels: array[0 .. Button_pressedWidth * Button_pressedHeight * 3 - 1] of Byte = (
+  ButtonPressedWidth = 8;
+  ButtonPressedHeight = 256;
+  ButtonPressedPixels: array[0 .. ButtonPressedWidth * ButtonPressedHeight * 3 - 1] of Byte = (
      221,  221,  221,  221,  221,  221,  221,  221,  221,  221,  221,  221,
      221,  221,  221,  221,  221,  221,  221,  221,  221,  221,  221,  221,
       99,   99,   99,  221,  221,  221,  221,  221,  221,  221,  221,  221,
@@ -1054,9 +1054,9 @@ const
       99,   99,   99,   99,   99,   99,   99,   99,   99,   99,   99,   99);
 
 const
-  Button_focusedWidth = 8;
-  Button_focusedHeight = 256;
-  Button_focusedPixels: array[0 .. Button_focusedWidth * Button_focusedHeight * 3 - 1] of Byte = (
+  ButtonFocusedWidth = 8;
+  ButtonFocusedHeight = 256;
+  ButtonFocusedPixels: array[0 .. ButtonFocusedWidth * ButtonFocusedHeight * 3 - 1] of Byte = (
       99,   99,   99,   99,   99,   99,   99,   99,   99,   99,   99,   99,
       99,   99,   99,   99,   99,   99,   99,   99,   99,   99,   99,   99,
      221,  221,  221,   99,   99,   99,   99,   99,   99,   99,   99,   99,
@@ -1571,9 +1571,9 @@ const
      221,  221,  221,  221,  221,  221,  221,  221,  221,  221,  221,  221);
 
 const
-  Button_normalWidth = 8;
-  Button_normalHeight = 256;
-  Button_normalPixels: array[0 .. Button_normalWidth * Button_normalHeight * 3 - 1] of Byte = (
+  ButtonNormalWidth = 8;
+  ButtonNormalHeight = 256;
+  ButtonNormalPixels: array[0 .. ButtonNormalWidth * ButtonNormalHeight * 3 - 1] of Byte = (
       99,   99,   99,   99,   99,   99,   99,   99,   99,   99,   99,   99,
       99,   99,   99,   99,   99,   99,   99,   99,   99,   99,   99,   99,
      221,  221,  221,   99,   99,   99,   99,   99,   99,   99,   99,   99,
