@@ -867,7 +867,7 @@ function MessageYesNo(Window: TCastleWindowCustom; TextList: TStringList;
   const TextAlign: TTextAlign): boolean; overload;
 begin
   Result := MessageChar(Window, TextList, ['y', 'n', CharEnter, CharEscape],
-    ['Yes', 'No'], ['y', 'n'], TextAlign, true) in ['y', CharEnter];
+    ['No', 'Yes'], ['y', 'n'], TextAlign, true) in ['y', CharEnter];
 end;
 
 { MessageInputCardinal ------------------------------------------------------- }
