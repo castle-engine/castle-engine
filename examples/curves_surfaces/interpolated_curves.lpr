@@ -31,7 +31,7 @@ program interpolated_curves;
 uses GL, CastleWindow, CastleGLUtils, SysUtils, CastleVectors,
   CastleCurves, CastleScript, CastleMessages, CastleUIControls, CastleKeysMouse,
   CastleUtils, CastleScriptParser, CastleScriptCoreFunctions,
-  CastleBitmapFont_BVSansMono_M18, CastleSceneManager,
+  CastleSceneManager, CastleControls,
   CastleGLBitmapFonts, Classes, CastleStringUtils, Castle3D, CastleColors;
 
 { global vars ------------------------------------------------------------ }
@@ -65,9 +65,6 @@ var
   PreciseCurveVisible: boolean = true;
   ApproxCurveControlPointsVisible: boolean = true;
   ApproxCurveVisible: boolean = true;
-
-  StatusFont: TGLBitmapFont;
-  StatusVisible: boolean = true;
 
   { Those are attributes that determine some properties of newly created
     ApproxCurve. They are used in SetApproxCurve.
@@ -163,40 +160,39 @@ begin
   Window.PostRedisplay;
 end;
 
-{ glw callbacks ------------------------------------------------------------ }
+{ TStatusText ---------------------------------------------------------------- }
 
-procedure DrawStatus(Window: TCastleWindowBase);
-var
-  S: TStringList;
-begin
-  if StatusVisible then
-  begin
-    S := TStringList.Create;
-    try
-      { TODO: ToString not implemented yet.
-      S.Append('Precise curve:');
-      S.Append(Format('  x(t) = %s', [PreciseCurve.XFunction.ToString]));
-      S.Append(Format('  y(t) = %s', [PreciseCurve.YFunction.ToString]));
-      S.Append(Format('  z(t) = %s', [PreciseCurve.ZFunction.ToString])); }
-      S.Append('Approximating curve:');
-      S.Append(Format('  Class = %s', [ApproxCurveClass.NiceClassName]));
-      S.Append(Format('  Control points count = %d', [ApproxCurveControlPointsCount]));
-      S.Append(Format('Rendering segments = %d', [CurvesRenderSegments]));
-      StatusFont.PrintStringsBox(S, false, 5, 5, 0,
-        Vector4Single(0.1, 0.1, 0.1, 1), Black4Single, Yellow4Single, 5);
-    finally S.Free end;
+type
+  TStatusText = class(TCastleLabel)
+    procedure Draw; override;
   end;
+
+procedure TStatusText.Draw;
+begin
+  if not GetExists then Exit;
+
+  { regenerate Text contents at every Draw call }
+  Text.Clear;
+
+  { TODO: ToString not implemented yet.
+  Text.Append('Precise curve:');
+  Text.Append(Format('  x(t) = %s', [PreciseCurve.XFunction.ToString]));
+  Text.Append(Format('  y(t) = %s', [PreciseCurve.YFunction.ToString]));
+  Text.Append(Format('  z(t) = %s', [PreciseCurve.ZFunction.ToString])); }
+  Text.Append('Approximating curve:');
+  Text.Append(Format('  Class = %s', [ApproxCurveClass.NiceClassName]));
+  Text.Append(Format('  Control points count = %d', [ApproxCurveControlPointsCount]));
+  Text.Append(Format('Rendering segments = %d', [CurvesRenderSegments]));
+
+  inherited;
 end;
+
+var
+  StatusText: TStatusText;
 
 procedure Open(Window: TCastleWindowBase);
 begin
   glPointSize(10);
-  StatusFont := TGLBitmapFont.Create(BitmapFont_BVSansMono_m18);
-end;
-
-procedure Close(Window: TCastleWindowBase);
-begin
-  FreeAndNil(StatusFont);
 end;
 
 { menu things ------------------------------------------------------------ }
@@ -308,7 +304,7 @@ begin
   case MenuItem.IntData of
     2: Window.Close;
 
-    201: StatusVisible := not StatusVisible;
+    201: StatusText.Exists := not StatusText.Exists;
     202: CurvesRenderSegments := Max(1,
            MessageInputCardinal(Window, 'Render curves as ... segments ?',
              CurvesRenderSegments));
@@ -360,7 +356,7 @@ begin
   Result.Append(M);
     M := TMenu.Create('View');
     M.Append(TMenuItemChecked.Create('Show / Hide status',         201, K_F1,
-      StatusVisible, true));
+      StatusText.Exists, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Set curves rendering segments ...', 202));
     M.Append(TMenuItem.Create('Curves rendering segments x 2',     203, 's'));
@@ -414,6 +410,12 @@ begin
     TVariable.Name := 't';
     TVariable.OwnedByParentExpression := false;
 
+    StatusText := TStatusText.Create(Window);
+    StatusText.Padding := 5;
+    StatusText.Left := 5;
+    StatusText.Bottom := 5;
+    Window.Controls.InsertFront(StatusText);
+
     { init menu }
     Window.OnMenuClick := @MenuClick;
     Window.MainMenu := CreateMainMenu;
@@ -430,9 +432,6 @@ begin
 
     { open Window, go ! }
     Window.OnOpen := @Open;
-    Window.OnClose := @Close;
-    Window.OnDraw := @DrawStatus;
-    Window.OnDrawStyle := ds2D;
     Window.OpenAndRun;
   finally
     FreeAndNil(PreciseCurve);

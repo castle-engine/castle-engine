@@ -32,35 +32,40 @@ implementation
 uses CastleWindowModes, CastleCameras, CastleGLUtils, CastleWindow, GL, CastleVectors, SysUtils,
   CastleBitmapFont_BVSansMono_Bold_m15, CastleGLBitmapFonts,
   Classes, CastleStringUtils, CastleMessages, CastleFilesUtils,
-  RiftVideoOptions, RiftGame, RiftWindow, RiftCreatures,
-  CastleUIControls, RiftSceneManager, CastleColors, CastleKeysMouse;
+  RiftVideoOptions, RiftGame, RiftWindow, RiftCreatures, CastleControlsImages,
+  CastleUIControls, RiftSceneManager, CastleColors, CastleKeysMouse, CastleControls;
 
 var
   Creature: TCreature;
   UserQuit: boolean;
-  StatusFont: TGLBitmapFont;
   SceneManager: TRiftSceneManager;
 
-procedure Draw2D(Window: TCastleWindowBase);
+{ TStatusText ---------------------------------------------------------------- }
+
+type
+  TStatusText = class(TCastleLabel)
+    procedure Draw; override;
+  end;
+
+procedure TStatusText.Draw;
 var
-  S: TStringList;
+  Pos, Dir, Up: TVector3Single;
 begin
-  S := TStringList.Create;
-  try
-    S.Append(Format('Camera: pos %s, dir %s, up %s, Move speed (per sec): %f',
-      [ VectorToNiceStr((SceneManager.Camera as TWalkCamera).Position),
-        VectorToNiceStr((SceneManager.Camera as TWalkCamera).Direction),
-        VectorToNiceStr((SceneManager.Camera as TWalkCamera).Up),
-        (SceneManager.Camera as TWalkCamera).MoveSpeed ]));
+  if not GetExists then Exit;
 
-    S.Append(Format('World time : %f', [WorldTime]));
+  { regenerate Text contents at every Draw call }
+  Text.Clear;
+  SceneManager.Camera.GetView(Pos, Dir, Up);
+  Text.Append(Format('Camera: pos %s, dir %s, up %s',
+    [ VectorToNiceStr(Pos), VectorToNiceStr(Dir), VectorToNiceStr(Up) ]));
+  Text.Append(Format('World time : %f', [WorldTime]));
+  Text.Append(Format('Creature state : %s', [CreatureStateName[Creature.State]]));
 
-    S.Append(Format('Creature state : %s', [CreatureStateName[Creature.State]]));
-
-    StatusFont.PrintStringsBox(S, false, 5, 5, 0,
-      Black4Single, Green4Single, Yellow4Single, 5);
-  finally S.Free end;
+  inherited;
 end;
+
+var
+  StatusText: TStatusText;
 
 procedure Press(Sender: TCastleWindowBase; const Event: TInputPressRelease);
 
@@ -125,10 +130,15 @@ begin
       Creature.Up := Vector3Single(0, 0, 1);
       SceneManager.Items.Add(Creature);
 
-      Window.OnDraw := @Draw2D;
+      StatusText := TStatusText.Create(Window);
+      StatusText.Padding := 5;
+      StatusText.Left := 5;
+      StatusText.Bottom := 5;
+      StatusText.Color := Vector3Byte(255, 255, 0);
+      Window.Controls.InsertFront(StatusText);
+
       Window.OnPress := @Press;
       Window.OnUpdate := @Update;
-      Window.OnDrawStyle := ds2D;
 
       Window.EventResize;
 
@@ -144,17 +154,7 @@ begin
   end;
 end;
 
-procedure WindowOpen(const Container: IUIContainer);
-begin
-  StatusFont := TGLBitmapFont.Create(BitmapFont_BVSansMono_Bold_m15);
-end;
-
-procedure WindowClose(const Container: IUIContainer);
-begin
-  FreeAndNil(StatusFont);
-end;
-
 initialization
-  OnGLContextOpen.Add(@WindowOpen);
-  OnGLContextClose.Add(@WindowClose);
+  Theme.Images[tiLabel] := FrameYellowBlack;
+  Theme.Corners[tiLabel] := Vector4Integer(1, 1, 1, 1);
 end.
