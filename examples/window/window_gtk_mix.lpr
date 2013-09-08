@@ -94,7 +94,7 @@ end;
 
 procedure Resize(Window: TCastleWindowBase);
 begin
-  glViewport(0, 0, Window.Width, Window.Height);
+  glViewport(Window.Rect);
   PerspectiveProjection(45, Window.Width / Window.Height, 0.1, 100);
 end;
 

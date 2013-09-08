@@ -116,8 +116,7 @@ end;
 procedure TMyWindow.EventResize;
 begin
  inherited;
-
- glViewport(0, 0, Width, Height);
+ glViewport(Rect);
  PerspectiveProjection(45.0, Width/Height, 0.1, 100.0);
 end;
 

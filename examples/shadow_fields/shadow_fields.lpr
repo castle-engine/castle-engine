@@ -181,7 +181,7 @@ begin
     SHVectorGLCapture(EnvLightSHVector, SceneReceiver.BoundingBox.Middle,
       @DrawEnvLight, 50, 50, 1 { no ScaleColor ---
         we will apply light intensity at VertexColor });
-    glViewport(0, 0, Window.Width, Window.Height);
+    glViewport(Window.Rect);
   end;
 
   Check(HeadlightInstance(H), 'Headlight must be true, we defined it such');

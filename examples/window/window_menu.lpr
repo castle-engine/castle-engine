@@ -82,7 +82,7 @@ end;
 
 procedure Resize(Window: TCastleWindowBase);
 begin
- glViewport(0, 0, Window.Width, Window.Height);
+ glViewport(Window.Rect);
  OrthoProjection(-1, 1, -1, 1);
 end;
 
