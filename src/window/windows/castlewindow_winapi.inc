@@ -708,7 +708,7 @@ procedure TCastleWindowBase.OpenWinSystemDepend;
                     RoundUpToMultiply(FAccumBits[3], 8);
       iLayerType := PFD_MAIN_PLANE;             // Main Drawing Layer
     end;
-    PixelFormat := ChoosePixelFormat(h_Dc, pfd);
+    PixelFormat := Windows.ChoosePixelFormat(h_Dc, pfd);
     OSCheck( PixelFormat <> 0, 'ChoosePixelFormat');
 
     { sprawdzamy czy dostalismy wymagane AlphaBits, DepthBits, StencilBits i
@@ -787,7 +787,7 @@ procedure TCastleWindowBase.OpenWinSystemDepend;
           iPixelType := PFD_TYPE_RGBA;
           iLayerType := PFD_MAIN_PLANE;
         end;
-        PixelFormat := ChoosePixelFormat(Temp_h_Dc, pfd);
+        PixelFormat := Windows.ChoosePixelFormat(Temp_h_Dc, pfd);
         OSCheck( PixelFormat <> 0, 'ChoosePixelFormat');
         OSCheck( SetPixelFormat(Temp_h_Dc, PixelFormat, @pfd), 'SetPixelFormat');
 
@@ -1529,12 +1529,12 @@ begin
   if WindowClass.hIcon = 0 then WindowClass.hIcon := LoadIcon(0, IDI_APPLICATION);
   WindowClass.hCursor := LoadCursor(0, IDC_ARROW);
   WindowClass.lpszClassName := PChar(WndClassName);
-  OSCheck( RegisterClass(WindowClass) <> 0, 'RegisterClass');
+  OSCheck( Windows.RegisterClass(WindowClass) <> 0, 'RegisterClass');
 end;
 
 procedure TCastleApplication.DestroyBackend;
 begin
-  OSCheck( UnregisterClass(PChar(wndClassName), hInstance), 'UnregisterClass');
+  OSCheck( Windows.UnregisterClass(PChar(wndClassName), hInstance), 'UnregisterClass');
 end;
 
 procedure TCastleApplication.VideoReset;
