@@ -197,6 +197,17 @@ type
       different than DrawHeight) be sure to construct an image with
       ScalingPossible = @true (otherwise runtime scaling may look ugly).
 
+      Note that the image position (ImageX, ImageY) is specified
+      like a texture coordinate. So (0, 0) is actually
+      the left-bottom corner of the left-bottom pixel,
+      and (Width,Height) is the right-top corner of the right-top pixel.
+      That is why image position and sizes are floats, it makes sense
+      to render partial pixels this way (make sure you have
+      ScalingPossible = @true to get nice scaling of image contents).
+      You can also flip the image horizontally or vertically,
+      e.g. use ImageX = Width and ImageWidth = -Width to mirror
+      image horizontally.
+
       @groupBegin }
     procedure Draw;
     procedure Draw(const X, Y: Integer);
