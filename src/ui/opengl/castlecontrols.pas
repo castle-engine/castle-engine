@@ -1109,11 +1109,7 @@ procedure TCastleSimpleBackground.Draw;
 begin
   if not GetExists then Exit;
   glPushAttrib(GL_COLOR_BUFFER_BIT);
-    glClearColor(
-      Color[0] / 255,
-      Color[1] / 255,
-      Color[2] / 255,
-      Color[3] / 255); // saved by GL_COLOR_BUFFER_BIT
+    glClearColorv(Color); // saved by GL_COLOR_BUFFER_BIT
     glClear(GL_COLOR_BUFFER_BIT);
   glPopAttrib;
 end;

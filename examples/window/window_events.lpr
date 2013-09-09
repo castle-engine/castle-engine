@@ -23,7 +23,7 @@ program window_events;
 {$apptype GUI}
 
 uses SysUtils, CastleUtils, CastleGLUtils, GL, GLU, CastleNotifications, CastleWindow,
-  CastleKeysMouse, CastleStringUtils,
+  CastleKeysMouse, CastleStringUtils, CastleColors,
   CastleGLBitmapFonts, CastleBitmapFont_BVSansMono_Bold_m15,
   Classes, CastleMessages;
 
@@ -67,8 +67,6 @@ var
 const
   Margin = 20;
 begin
-  glColor3f(0.5, 0.5, 0.5);
-
   S := '';
   for C := Low(C) to High(C) do
     if Window.Pressed.Characters[C] then
@@ -77,7 +75,7 @@ begin
       S += CharToNiceStr(C);
     end;
   S := 'Characters pressed: [' + S + ']';
-  Font.PrintBrokenString(S, Window.Width - Margin * 2, Margin, 100, false, 0);
+  Font.PrintBrokenString(Margin, 100, Gray, S, Window.Width - Margin * 2, false, 0);
 
   S := '';
   for Key := Low(Key) to High(Key) do
@@ -87,7 +85,7 @@ begin
       S += KeyToStr(Key);
     end;
   S := 'Keys pressed: [' + S + ']';
-  Font.PrintBrokenString(S, Window.Width - Margin * 2, Margin, 200, false, 0);
+  Font.PrintBrokenString(Margin, 200, Gray, S, Window.Width - Margin * 2, false, 0);
 end;
 
 procedure Update(Window: TCastleWindowBase);

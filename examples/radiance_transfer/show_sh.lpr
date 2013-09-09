@@ -26,7 +26,7 @@ uses CastleVectors, CastleBoxes, GL, CastleWindow, Castle3D, CastleUIControls,
   CastleClassUtils, CastleUtils, SysUtils, CastleFilesUtils,
   CastleGLUtils, CastleCameras, Math, CastleSphereSampling, CastleSphericalHarmonics,
   CastleBitmapFont_BVSans, CastleGLBitmapFonts, CastleSceneManager,
-  CastleStringUtils, CastleKeysMouse;
+  CastleStringUtils, CastleKeysMouse, CastleColors;
 
 var
   Window: TCastleWindowCustom;
@@ -42,9 +42,7 @@ var
   M: Integer;
 begin
   LMDecode(LM, L, M);
-  glLoadIdentity;
-  glColor3f(1, 1, 0);
-  Font.Print(10, 10,
+  Font.Print(10, 10, Yellow,
     Format('Spherical harmonic number %d. (L, M) = (%d, %d). Resuls in range (%f, %f)',
     [LM, L, M, MinSHValue, MaxSHValue]));
 end;

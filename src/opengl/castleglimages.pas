@@ -900,7 +900,8 @@ type
 
 implementation
 
-uses CastleUtils, CastleLog, CastleGLVersion, CastleWarnings, CastleTextureImages;
+uses CastleUtils, CastleLog, CastleGLVersion, CastleWarnings, CastleTextureImages,
+  CastleColors;
 
 function ImageGLFormat(const Img: TCastleImage): TGLenum;
 begin
@@ -1077,7 +1078,7 @@ begin
   if GLFeatures.UseMultiTexturing then glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, Texture);
   GLEnableTexture(et2D);
-  glColor4f(1, 1, 1, 1); // don't modify texture colors
+  glColorv(White); // don't modify texture colors
   TexX0 := ImageX / Width;
   TexY0 := ImageY / Height;
   TexX1 := (ImageX + ImageWidth ) / Width;

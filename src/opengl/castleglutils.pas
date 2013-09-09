@@ -22,7 +22,7 @@ unit CastleGLUtils;
 interface
 
 uses Math, CastleGL, SysUtils, CastleUtils, CastleVectors, CastleBoxes,
-  CastleImages, Matrix, CastleRectangles;
+  CastleImages, Matrix, CastleRectangles, CastleColors;
 
 {$define read_interface}
 
@@ -339,7 +339,7 @@ procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); overload;
 
 procedure glClipPlane(plane: GLenum; const V: TVector4d); overload;
 
-procedure glClearColorv(const v: TVector3f; alpha: Single);
+procedure glClearColorv(const C: TCastleColor);
 
 procedure glNormalv(const v: TVector3f); overload;
 
@@ -660,7 +660,7 @@ implementation
 {$define read_implementation}
 
 uses CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders, CastleGLImages,
-  CastleLog, CastleWarnings, CastleColors;
+  CastleLog, CastleWarnings;
 
 procedure LoadAllExtensions;
 begin
@@ -1002,9 +1002,13 @@ begin
   GL.glClipPlane(plane, @V);
 end;
 
-procedure glClearColorv(const v: TVector3Single; alpha: Single);
+procedure glClearColorv(const C: TCastleColor);
 begin
-  glClearColor(v[0], v[1], v[2], alpha);
+  glClearColor(
+    C[0] / 255,
+    C[1] / 255,
+    C[2] / 255,
+    C[3] / 255);
 end;
 
 procedure glNormalv(const v: TVector3d); begin glNormal3dv(@v); end;

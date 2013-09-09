@@ -165,10 +165,10 @@ end;
 constructor TRiftMenu.Create(AOwner: TComponent);
 begin
   inherited;
-  CurrentItemBorderColor1 := Black3Single;
-  CurrentItemBorderColor2 := Vector3Single(186/255, 134/255,  88/255);
-  CurrentItemColor := Vector3Single(252/255, 253/255, 200/255);
-  NonCurrentItemColor := CurrentItemBorderColor2;
+  CurrentItemBorderColor1 := Black;
+  CurrentItemBorderColor2 := Vector4Byte(186, 134,  88, 255);
+  CurrentItemColor        := Vector4Byte(252, 253, 200, 255);
+  NonCurrentItemColor     := CurrentItemBorderColor2;
   PositionRelativeScreenX := prHigherBorder;
   PositionRelativeScreenY := prHigherBorder;
   PositionRelativeMenuX := prHigherBorder;
@@ -231,16 +231,13 @@ end;
 
 procedure TRiftSubMenu.Draw;
 const
-  SubMenuTextColor: TVector3Single = (0.7, 0.7, 0.7);
+  SubMenuTextColor: TVector4Byte = (179, 179, 179, 255);
 begin
   { background of submenu is mainmenu }
   MainMenu.Draw;
-
   inherited;
-
-  glColorv(SubMenuTextColor);
   UIFont.Print(PositionAbsolute[0],
-    PositionAbsolute[1] + AllItemsRectangle.Height - 20,
+    PositionAbsolute[1] + AllItemsRectangle.Height - 20, SubMenuTextColor,
     SubMenuTitle + ' :');
 end;
 

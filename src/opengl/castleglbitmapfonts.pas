@@ -60,6 +60,8 @@ type
       Doesn't modify any OpenGL state or matrix, except it moves raster position. }
     procedure Print(const X, Y: Integer; const Color: TVector4Byte;
       const S: string); overload; virtual; abstract;
+    procedure Print(const Pos: TVector2Integer; const Color: TVector4Byte;
+      const S: string); overload;
     procedure Print(const X, Y: Integer; const S: string); overload; deprecated;
     procedure Print(const s: string); overload; deprecated;
 
@@ -333,6 +335,12 @@ begin
 end;
 
 { TGLBitmapFontAbstract ------------------------------------------------------}
+
+procedure TGLBitmapFontAbstract.Print(const Pos: TVector2Integer;
+  const Color: TVector4Byte; const S: string);
+begin
+  Print(Pos[0], Pos[1], Color, S);
+end;
 
 procedure TGLBitmapFontAbstract.Print(const s: string);
 begin

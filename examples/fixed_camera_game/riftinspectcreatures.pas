@@ -134,7 +134,7 @@ begin
       StatusText.Padding := 5;
       StatusText.Left := 5;
       StatusText.Bottom := 5;
-      StatusText.Color := Vector3Byte(255, 255, 0);
+      StatusText.Color := Yellow;
       Window.Controls.InsertFront(StatusText);
 
       Window.OnPress := @Press;

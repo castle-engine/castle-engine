@@ -20,7 +20,7 @@ program design_surface;
 
 {$apptype GUI}
 
-uses CastleCameras, Surfaces, CastleWindow, GL, GLU, CastleVectors,
+uses Classes, CastleCameras, Surfaces, CastleWindow, GL, GLU, CastleVectors,
   CastleGLUtils, CastleCurves, CastleBoxes, SysUtils, CastleUtils, CastleKeysMouse,
   CastleStringUtils, CastleMessages, CastleFilesUtils, CastleUIControls,
   CastleBitmapFont_BVSans, CastleGLBitmapFonts, CastleColors, Castle3D,
@@ -181,12 +181,15 @@ end;
 { CastleWindow callbacks --------------------------------------------------------- }
 
 procedure Draw(Window: TCastleWindowBase);
+var
+  Text: TStringList;
 begin
-  glColorv(Yellow3Single);
-  StatusFont.PrintStrings(
-    [ Format('Surface X segments: %d', [SurfaceXSegments]),
-      Format('Surface Y segments: %d', [SurfaceYSegments]) ],
-    false, 5, 10, 10);
+  Text := TStringList.Create;
+  try
+    Text.Append(Format('Surface X segments: %d', [SurfaceXSegments]));
+    Text.Append(Format('Surface Y segments: %d', [SurfaceYSegments]));
+    StatusFont.PrintStrings(10, 10, Yellow, Text, false, 5);
+  finally FreeAndNil(Text) end;
 end;
 
 type

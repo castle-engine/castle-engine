@@ -140,7 +140,7 @@ begin
 
   { configure Notifications }
   Notifications.MaxMessages := 4;
-  Notifications.Color := Vector3Single(0.8, 0.8, 0.8);
+  Notifications.Color := Vector4Byte(204, 204, 204, 255);
 
   SoundEngine; //< initialize before loading config and SoundEngine.ParseParameters
   Config.Load;

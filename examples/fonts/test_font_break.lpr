@@ -44,11 +44,10 @@ begin
   glLoadIdentity;
   x1 := (Window.Width - BoxWidth) div 2;
   x2 := x1 + BoxWidth;
-  glColorv(Yellow3Single);
+  glColorv(Yellow);
   GLVerticalLine(x1, 0, Window.Height);
   GLVerticalLine(x2, 0, Window.Height);
-  glColorv(White3Single);
-  UIFont.PrintBrokenString(
+  UIFont.PrintBrokenString(x1, UIFont.Descend, White,
     'blah blah blah, I''m a long long long text and'
     +' I''m very curious how I will be broken to fit nicely between those'
     +' two yellow lines on the screen.' +nl+
@@ -56,9 +55,7 @@ begin
     +' text.' +nl+
     nl+
     'You can resize this window and watch how this text breaks at'
-    +' various line widths.', BoxWidth, x1,
-    { Using Font.Descend instead of 0, so that lower parts of the lowest line
-      are visible } UIFont.Descend,
+    +' various line widths.', BoxWidth,
     false, 0);
 end;
 

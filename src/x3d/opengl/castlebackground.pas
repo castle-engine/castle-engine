@@ -410,7 +410,7 @@ begin
       begin
         { alpha ponizszego koloru nie ma znaczenia dla nas. Uzywamy 0 bo jest
           standardem (standardowo glClearColor ma alpha = wlasnie 0). }
-        glClearColorv(SkyColor^[0], 0);
+        glClearColor(SkyColor^[0][0], SkyColor^[0][1], SkyColor^[0][2], 0);
         glClear(GL_COLOR_BUFFER_BIT);
       end else
       begin

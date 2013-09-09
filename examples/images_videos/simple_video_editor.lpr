@@ -27,7 +27,7 @@ uses CastleUtils, SysUtils, CastleWindow, GL, GLU, CastleGLImages,
   CastleVideos, CastleStringUtils, CastleMessages, CastleColors,
   CastleBitmapFont_BVSansMono_Bold_m15, CastleGLBitmapFonts, CastleParameters,
   CastleGLUtils, CastleVectors, Classes, CastleProgress, CastleWindowProgress,
-  CastleTimeUtils, CastleKeysMouse, CastleURIUtils;
+  CastleTimeUtils, CastleKeysMouse, CastleURIUtils, CastleUIControls;
 
 var
   Window: TCastleWindowCustom;
@@ -56,7 +56,7 @@ const
   TimeBarHeight = 10;
   TimeBarMargin = 2;
 
-  procedure DrawStatus(Data: Pointer);
+  procedure DrawStatus;
   var
     S: string;
     Strs: TStringList;
@@ -77,9 +77,9 @@ const
       end else
         Strs.Append('Video not loaded');
 
-      glColorv(Yellow3Single);
-      StatusFont.PrintStrings(Strs, false, 0, 15,
-        Window.Height - StatusFont.RowHeight * Strs.Count - TimeBarHeight);
+      StatusFont.PrintStrings(15,
+        Window.Height - StatusFont.RowHeight * Strs.Count - TimeBarHeight, Yellow,
+        Strs, false, 0);
     finally FreeAndNil(Strs) end;
   end;
 
@@ -103,7 +103,7 @@ begin
       Window.Height - TimeBarMargin);
   end;
 
-  DrawStatus(nil);
+  DrawStatus;
 end;
 
 procedure Update(Window: TCastleWindowBase);
@@ -139,7 +139,7 @@ begin
   end;
 end;
 
-procedure Open(Window: TCastleWindowBase);
+procedure Open(Sender: TCastleWindowBase);
 begin
   StatusFont := TGLBitmapFont.Create(BitmapFont_BVSansMono_Bold_m15);
 
@@ -333,6 +333,7 @@ begin
     Window.OnOpen := @Open;
     Window.OnClose := @Close;
     Window.OnDraw := @Draw;
+    Window.OnDrawStyle := ds2D;
     Window.OnUpdate := @Update;
     Window.OnResize := @Resize2D;
 

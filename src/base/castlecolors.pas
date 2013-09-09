@@ -43,6 +43,7 @@ const
   Yellow     : TCastleColor = (255, 255,  85, 255);
   White      : TCastleColor = (255, 255, 255, 255);
   LightGreen : TCastleColor = ( 85, 255,  85, 255);
+  Gray       : TCastleColor = (128, 128, 128, 255);
   { @groupEnd }
 
   { Standard 16 colors.
@@ -101,11 +102,13 @@ const
 function GrayscaleValue(const v: TVector3Single): Single; overload;
 function GrayscaleValue(const v: TVector3Double): Double; overload;
 function GrayscaleValue(const v: TVector3Byte): Byte; overload;
+function GrayscaleValue(const v: TCastleColor): Byte; overload;
 { @groupEnd }
 
 function Grayscale(const v: TVector3Single): TVector3Single; overload;
 function Grayscale(const v: TVector4Single): Tvector4Single; overload;
 function Grayscale(const v: TVector3Byte): TVector3Byte; overload;
+function Grayscale(const v: TCastleColor): TCastleColor; overload;
 
 type
   { Function that processes RGB colors, used by TCastleImage.ModulateRGB. }
@@ -213,6 +216,13 @@ begin
              GrayscaleValuesByte[2]*v[2]) div 256;
 end;
 
+function GrayscaleValue(const v: TCastleColor): Byte;
+begin
+  result := (GrayscaleValuesByte[0]*v[0]+
+             GrayscaleValuesByte[1]*v[1]+
+             GrayscaleValuesByte[2]*v[2]) div 256;
+end;
+
 function Grayscale(const v: TVector3Single): TVector3Single;
 begin
   Result[0] := GrayscaleValue(V);
@@ -235,6 +245,14 @@ begin
   Result[0] := GrayscaleValue(V);
   Result[1] := Result[0];
   Result[2] := Result[0];
+end;
+
+function Grayscale(const v: TCastleColor): TCastleColor;
+begin
+  Result[0] := GrayscaleValue(V);
+  Result[1] := Result[0];
+  Result[2] := Result[0];
+  Result[3] := V[3];
 end;
 
 { color changing ------------------------------------------------------------ }

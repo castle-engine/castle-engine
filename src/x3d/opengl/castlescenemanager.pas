@@ -1154,7 +1154,7 @@ implementation
 
 uses SysUtils, CastleRenderingCamera, CastleGLUtils, CastleProgress, CastleRays,
   GLExt, CastleLog, CastleStringUtils, CastleRenderer, CastleSoundEngine, Math,
-  X3DTriangles, CastleGLVersion, CastleShapes;
+  X3DTriangles, CastleGLVersion, CastleShapes, CastleColors;
 
 procedure Register;
 begin
@@ -1967,7 +1967,7 @@ procedure TCastleAbstractViewport.RenderScreenEffect;
       we want to have a fully determined state. That is, this must work
       reliably even if you comment out ScreenEffects[*].Enable/Disable
       commands below. }
-    glColor3f(1, 1, 1);
+    glColorv(White);
     Shader.Enable;
       Shader.SetUniform('screen', 0);
       if CurrentScreenEffectsNeedDepth then
