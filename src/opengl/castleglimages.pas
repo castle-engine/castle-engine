@@ -503,7 +503,7 @@ type
     function IndexFromTime(const Time: Single): Integer;
 
     { See TVideo.FramesPerSecond. }
-    property FramesPerSecond: Single read FFramesPerSecond;
+    property FramesPerSecond: Single read FFramesPerSecond write FFramesPerSecond;
 
     { See TVideo.TimeLoop. }
     property TimeLoop: boolean read FTimeLoop write FTimeLoop;
