@@ -29,7 +29,8 @@ program test_font_break;
 
 uses CastleWindow, GL, GLU, CastleGLUtils, SysUtils, Classes, CastleParameters,
   CastleUtils, CastleGLBitmapFonts, CastleVectors, CastleStringUtils, CastleColors,
-  CastleControls, CastleKeysMouse, CastleBitmapFont_BVSansMono_Bold_M15
+  CastleControls, CastleKeysMouse, CastleBitmapFont_BVSansMono_Bold_M15,
+  CastleRectangles, CastleControlsImages
   {$ifdef MSWINDOWS}, Windows, CastleWindowsFonts, CastleGLWindowsFonts {$endif};
 
 var
@@ -38,15 +39,11 @@ var
 
 procedure Draw(Window: TCastleWindowBase);
 var
-  X1, X2: Integer;
+  X1: Integer;
 begin
   glClear(GL_COLOR_BUFFER_BIT);
-  glLoadIdentity;
-  x1 := (Window.Width - BoxWidth) div 2;
-  x2 := x1 + BoxWidth;
-  glColorv(Yellow);
-  GLVerticalLine(x1, 0, Window.Height);
-  GLVerticalLine(x2, 0, Window.Height);
+  X1 := (Window.Width - BoxWidth) div 2;
+  Theme.Draw(Rectangle(X1, 0, BoxWidth, Window.Height), tiActiveFrame);
   UIFont.PrintBrokenString(x1, UIFont.Descend, White,
     'blah blah blah, I''m a long long long text and'
     +' I''m very curious how I will be broken to fit nicely between those'
@@ -99,6 +96,8 @@ begin
 
   Window.ParseParameters(StandardParseOptions);
   Parameters.Parse(Options, @OptionProc, nil);
+
+  Theme.Images[tiActiveFrame] := FrameYellow;
 
   Window.OnOpen := @Open;
   Window.OnResize := @Resize;

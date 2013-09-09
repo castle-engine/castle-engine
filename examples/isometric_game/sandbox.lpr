@@ -120,10 +120,6 @@ begin
   end;
 
   glDisable(GL_ALPHA_TEST);
-
-  { Tests: middle lines:
-  GLVerticalLine(Window.Width / 2, 0, Window.Height);
-  GLHorizontalLine(0, Window.Width, Window.Height / 2); }
 end;
 
 procedure Press(Sender: TCastleWindowBase; const Event: TInputPressRelease);
