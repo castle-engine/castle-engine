@@ -483,13 +483,13 @@ unit CastleWindow;
 
 interface
 
-uses SysUtils, Classes, CastleVectors, CastleGL, CastleRectangles,
+uses {$define read_interface_uses}
+  {$I castlewindow_backend.inc}
+  {$undef read_interface_uses}
+  SysUtils, Classes, CastleVectors, CastleGL, CastleRectangles,
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
   CastleFileFilters, CastleUIControls, FGL, pk3DConnexion,
-  {$define read_interface_uses}
-  {$I castlewindow_backend.inc}
-  {$undef read_interface_uses}
   { VRML/X3D stuff }
   X3DNodes, CastleScene, CastleSceneManager, CastleLevels;
 
