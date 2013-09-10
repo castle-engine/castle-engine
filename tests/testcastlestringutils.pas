@@ -112,7 +112,7 @@ begin
   raise Exception.Create('Last SPercentReplace SHOULD raise exception');
  except on E: EUnknownPercentFormat do Assert(e.Message = 'Unknown format pattern in format "bla%kkk%jk%pies", wrong sequence is : "%j"'); end;
 
- Assert( SPercentReplace('bla%kkk%Kk%pies', Replaces, true, '%', true) = 'blakotkkkotkpiesies');
+ AssertEquals('blakotkkkotkpiesies', SPercentReplace('bla%kkk%Kk%pies', Replaces, true, '%', true));
  try
   SPercentReplace('bla%kkk%Kk%pies', Replaces, true, '%', false);
   raise Exception.Create('Last SPercentReplace SHOULD raise exception');

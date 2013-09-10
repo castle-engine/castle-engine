@@ -47,7 +47,7 @@ procedure TTestSpaceFillingCurves.TestSpaceFillingCurves;
     try
      Curve := CurveClass.Create(Width, Height);
 
-     Img.Clear(Green4Byte);
+     Img.Clear(Green);
 
      while not Curve.EndOfPixels do
      begin
@@ -62,7 +62,7 @@ procedure TTestSpaceFillingCurves.TestSpaceFillingCurves;
      end;
 
      { na koncu caly obrazek powinien byc czerwony }
-     Assert(Img.IsClear(Red4Byte));
+     Assert(Img.IsClear(Red));
     except
      OutFileName := GetTempDir + '/test_space_filling_curves.ppm';
      SaveImage(Img, OutFileName);

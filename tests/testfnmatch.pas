@@ -41,7 +41,10 @@ implementation
 
 {$ifdef UNIX}
 
-uses UnixUtil;
+{ We know UnixUtils is deprecated. We don't actually use it in the engine. }
+{$warnings off}
+uses UnixUtils;
+{$warnings on}
 
 { Under Linux i386, we could just use Libc unit to get fnmatch definition.
   Unfortunately, Libc unit is only maintained by FPC team for Linux i386,
@@ -54,7 +57,7 @@ procedure TTestFNMatch.TestFNMatch;
   procedure CheckMatch(const Pattern, Name: string; GoodResult: boolean);
   var UnixUtilResult, LibcResult: boolean;
   begin
-   UnixUtilResult := UnixUtil.FNMatch(Pattern, Name);
+   UnixUtilResult := UnixUtils.FNMatch(Pattern, Name, []);
    LibcResult := LibcFnmatch(PChar(Pattern), PChar(Name), 0) = 0;
 
    { We have 3 results. All should be equal. }
