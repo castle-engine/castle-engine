@@ -270,7 +270,7 @@ function TCastleConfig.GetValue(const APath: string;
 var
   I: Integer;
 begin
-  for I := 0 to 1 do
+  for I := 0 to High(ADefaultValue) do
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
@@ -279,7 +279,7 @@ procedure TCastleConfig.SetValue(const APath: string;
 var
   I: Integer;
 begin
-  for I := 0 to 1 do
+  for I := 0 to High(AValue) do
     SetFloat(APath + VectorComponentPaths[I], AValue[I]);
 end;
 
@@ -288,7 +288,7 @@ procedure TCastleConfig.SetDeleteValue(const APath: string;
 var
   I: Integer;
 begin
-  for I := 0 to 2 do
+  for I := 0 to High(AValue) do
     SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
 end;
 
@@ -297,7 +297,7 @@ function TCastleConfig.GetValue(const APath: string;
 var
   I: Integer;
 begin
-  for I := 0 to 2 do
+  for I := 0 to High(ADefaultValue) do
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
@@ -306,7 +306,7 @@ procedure TCastleConfig.SetValue(const APath: string;
 var
   I: Integer;
 begin
-  for I := 0 to 2 do
+  for I := 0 to High(AValue) do
     SetFloat(APath + VectorComponentPaths[I], AValue[I]);
 end;
 
@@ -315,7 +315,7 @@ procedure TCastleConfig.SetDeleteValue(const APath: string;
 var
   I: Integer;
 begin
-  for I := 0 to 2 do
+  for I := 0 to High(AValue) do
     SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
 end;
 
@@ -324,7 +324,7 @@ function TCastleConfig.GetValue(const APath: string;
 var
   I: Integer;
 begin
-  for I := 0 to 3 do
+  for I := 0 to High(ADefaultValue) do
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
@@ -333,7 +333,7 @@ procedure TCastleConfig.SetValue(const APath: string;
 var
   I: Integer;
 begin
-  for I := 0 to 3 do
+  for I := 0 to High(AValue) do
     SetFloat(APath + VectorComponentPaths[I], AValue[I]);
 end;
 
@@ -342,7 +342,7 @@ procedure TCastleConfig.SetDeleteValue(const APath: string;
 var
   I: Integer;
 begin
-  for I := 0 to 3 do
+  for I := 0 to High(AValue) do
     SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
 end;
 
