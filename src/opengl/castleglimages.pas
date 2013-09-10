@@ -214,6 +214,8 @@ type
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
       const ImageX, ImageY, ImageWidth, ImageHeight: Single);
     procedure Draw(const ScreenRectangle: TRectangle);
+    procedure Draw(const ScreenRectangle: TRectangle;
+      const ImageX, ImageY, ImageWidth, ImageHeight: Single);
     { @groupEnd }
 
     { Draw the image on the screen, divided into 3x3 parts for corners,
@@ -1114,6 +1116,14 @@ begin
   Draw(ScreenRectangle.Left, ScreenRectangle.Bottom,
     ScreenRectangle.Width, ScreenRectangle.Height,
     0, 0, Width, Height);
+end;
+
+procedure TGLImage.Draw(const ScreenRectangle: TRectangle;
+  const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+begin
+  Draw(ScreenRectangle.Left, ScreenRectangle.Bottom,
+    ScreenRectangle.Width, ScreenRectangle.Height,
+    ImageX, ImageY, ImageWidth, ImageHeight);
 end;
 
 procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;

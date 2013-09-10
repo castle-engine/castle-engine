@@ -18,7 +18,7 @@ unit CastleRectangles;
 
 interface
 
-uses CastleGenericLists;
+uses CastleGenericLists, CastleVectors;
 
 type
   { 2D rectangle with integer coordinates.
@@ -95,7 +95,10 @@ type
     function FindRectangle(const X, Y: Integer): Integer;
   end;
 
-function Rectangle(const Left, Bottom, Width, Height: Integer): TRectangle;
+function Rectangle(const Left, Bottom: Integer;
+  const Width, Height: Cardinal): TRectangle;
+function Rectangle(const LeftBottom: TVector2Integer;
+  const Width, Height: Cardinal): TRectangle;
 
 implementation
 
@@ -103,10 +106,20 @@ uses CastleUtils;
 
 { TRectangle ----------------------------------------------------------------- }
 
-function Rectangle(const Left, Bottom, Width, Height: Integer): TRectangle;
+function Rectangle(const Left, Bottom: Integer;
+  const Width, Height: Cardinal): TRectangle;
 begin
   Result.Left := Left;
   Result.Bottom := Bottom;
+  Result.Width := Width;
+  Result.Height := Height;
+end;
+
+function Rectangle(const LeftBottom: TVector2Integer;
+  const Width, Height: Cardinal): TRectangle;
+begin
+  Result.Left := LeftBottom[0];
+  Result.Bottom := LeftBottom[1];
   Result.Width := Width;
   Result.Height := Height;
 end;
