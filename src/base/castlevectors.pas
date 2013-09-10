@@ -991,6 +991,13 @@ function MaxAbsVectorCoord(const v: TVector3Single): integer; overload;
 function MaxAbsVectorCoord(const v: TVector3Double): integer; overload;
 { @groupEnd }
 
+function VectorAbs(const V: TVector2Single): TVector2Single;
+function VectorAbs(const V: TVector2Double): TVector2Double;
+function VectorAbs(const V: TVector3Single): TVector3Single;
+function VectorAbs(const V: TVector3Double): TVector3Double;
+function VectorAbs(const V: TVector4Single): TVector4Single;
+function VectorAbs(const V: TVector4Double): TVector4Double;
+
 function MinVectorCoord(const v: TVector3Single): integer; overload;
 function MinVectorCoord(const v: TVector3Double): integer; overload;
 

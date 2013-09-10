@@ -87,6 +87,13 @@ type
       const AValue, ADefaultValue: Float);
 
     function GetValue(const APath: string;
+      const ADefaultValue: TVector2Single): TVector2Single; overload;
+    procedure SetValue(const APath: string;
+      const AValue: TVector2Single); overload;
+    procedure SetDeleteValue(const APath: string;
+      const AValue, ADefaultValue: TVector2Single); overload;
+
+    function GetValue(const APath: string;
       const ADefaultValue: TVector3Single): TVector3Single; overload;
     procedure SetValue(const APath: string;
       const AValue: TVector3Single); overload;
@@ -257,6 +264,33 @@ end;
 const
   VectorComponentPaths: array [0..3] of string =
   ('/x', '/y', '/z', '/w');
+
+function TCastleConfig.GetValue(const APath: string;
+  const ADefaultValue: TVector2Single): TVector2Single;
+var
+  I: Integer;
+begin
+  for I := 0 to 1 do
+    Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
+end;
+
+procedure TCastleConfig.SetValue(const APath: string;
+  const AValue: TVector2Single);
+var
+  I: Integer;
+begin
+  for I := 0 to 1 do
+    SetFloat(APath + VectorComponentPaths[I], AValue[I]);
+end;
+
+procedure TCastleConfig.SetDeleteValue(const APath: string;
+  const AValue, ADefaultValue: TVector2Single);
+var
+  I: Integer;
+begin
+  for I := 0 to 2 do
+    SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
+end;
 
 function TCastleConfig.GetValue(const APath: string;
   const ADefaultValue: TVector3Single): TVector3Single;

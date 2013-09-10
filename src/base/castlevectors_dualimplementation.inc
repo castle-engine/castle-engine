@@ -171,6 +171,27 @@ begin
   Result[2] := V1[0]*V2[1] - V1[1]*V2[0];
 end;
 
+function VectorAbs(const V: TVector2): TVector2;
+begin
+  Result[0] := Abs(V[0]);
+  Result[1] := Abs(V[1]);
+end;
+
+function VectorAbs(const V: TVector3): TVector3;
+begin
+  Result[0] := Abs(V[0]);
+  Result[1] := Abs(V[1]);
+  Result[2] := Abs(V[2]);
+end;
+
+function VectorAbs(const V: TVector4): TVector4;
+begin
+  Result[0] := Abs(V[0]);
+  Result[1] := Abs(V[1]);
+  Result[2] := Abs(V[2]);
+  Result[3] := Abs(V[3]);
+end;
+
 function VectorDotProduct(const V1, V2: TVector2): TScalar;
 begin
   result := V1[0]*V2[0]+ V1[1]*V2[1];
