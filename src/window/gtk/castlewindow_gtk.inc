@@ -214,7 +214,11 @@ public
 
 { gboolean type stuff --------------------------------------------------------
 
-  Remember that under FPC >= 2.4.0 Pascal's "true" is $FFFFFFFF,
+  TODO: this should be removed now, after adding autotests that it's right.
+  We only support FPC >= 2.6.0 now.
+
+  This was done because
+  under FPC >= 2.4.0 Pascal's "true" is $FFFFFFFF,
   not equal to GTK's "true" (equal to int 1). Some GTK routines treat
   $FFFFFFFF as true (since it's <> 0), but some not.
   For example, passing "true" instead of "LongBool(gtrue)"
@@ -229,11 +233,11 @@ public
   so they are not assigment-compatible. So use our g_false/g_true
   (with underscore) for best results.
 
-  In FPC 2.6.0 this is fixed by gboolean = boolean32,
-  but for FPC 2.4.x we have to keep this code. }
+  In FPC >= 2.6.0 this is fixed by gboolean = boolean32. }
+
 const
-  g_true = LongBool(gtrue);
-  g_false = LongBool(gfalse);
+  g_true = gtrue;
+  g_false = gfalse;
 
 function PasToGbool(const B: boolean): gboolean;
 const
@@ -1466,20 +1470,24 @@ begin
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 end;
 
+{ We would like to map to TGtkMessageType,
+  but value GTK_MESSAGE_OTHER is missing from FPC bindings
+  and it prevents compilation in FPC >= 2.7.1. }
+
 const
-  MessageTypeToGtk: array [TWindowMessageType] of TGtkMessageType =
-  ( GTK_MESSAGE_INFO,
-    GTK_MESSAGE_WARNING,
-    GTK_MESSAGE_QUESTION,
-    GTK_MESSAGE_ERROR,
-    { GTK_MESSAGE_OTHER, missing from FPC bindings } TGtkMessageType(4) );
+  MessageTypeToGtk: array [TWindowMessageType] of Integer =
+  ( Ord(GTK_MESSAGE_INFO),
+    Ord(GTK_MESSAGE_WARNING),
+    Ord(GTK_MESSAGE_QUESTION),
+    Ord(GTK_MESSAGE_ERROR),
+    { GTK_MESSAGE_OTHER, missing from FPC bindings } 4 );
 
 procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
 var
   Dialog: PGtkMessageDialog;
 begin
-  Dialog := PGtkMessageDialog(gtk_message_dialog_new(
-    WindowGtk, 0, MessageTypeToGtk[MessageType], GTK_BUTTONS_OK, PChar(S)));
+  Dialog := PGtkMessageDialog(gtk_message_dialog_new(WindowGtk, 0,
+    TGtkMessageType(MessageTypeToGtk[MessageType]), GTK_BUTTONS_OK, PChar(S)));
   try
     GtkDialogRun(GTK_DIALOG(Dialog));
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
@@ -1489,8 +1497,8 @@ function TCastleWindowBase.MessageYesNo(const S: string; const MessageType: TWin
 var
   Dialog: PGtkMessageDialog;
 begin
-  Dialog := PGtkMessageDialog(gtk_message_dialog_new(
-    WindowGtk, 0, MessageTypeToGtk[MessageType], GTK_BUTTONS_YES_NO, PChar(S)));
+  Dialog := PGtkMessageDialog(gtk_message_dialog_new(WindowGtk, 0,
+    TGtkMessageType(MessageTypeToGtk[MessageType]), GTK_BUTTONS_YES_NO, PChar(S)));
   try
     Result := GtkDialogRun(GTK_DIALOG(Dialog)) = GTK_RESPONSE_YES;
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;

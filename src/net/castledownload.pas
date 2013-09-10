@@ -158,7 +158,7 @@ function TCastleHTTPClient.ReadResponseHeaders: Integer;
       S:=Trim(LowerCase(ResponseHeaders[i]));
       If (Copy(S,1,Length(Cl))=Cl) then
         begin
-        Delete(S,1,Length(CL));
+        System.Delete(S,1,Length(CL));
         Result:=StrToIntDef(Trim(S),-1);
         end;
       Inc(I);
