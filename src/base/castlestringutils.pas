@@ -593,6 +593,9 @@ type
   @raises(EUnknownPercentFormat In case of error in InitialFormat string,
     if ErrorOnUnknownPercentFormat is @true.)
 
+  @deprecated Do not use. Use standard StrUtils.StringsReplace instead.
+  This procedure has no place in a game engine...
+
   @groupBegin }
 function SPercentReplace(const InitialFormat: string;
   const Replaces: array of TPercentReplace;
