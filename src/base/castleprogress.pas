@@ -31,10 +31,10 @@ type
   TProgressUserInterface = class
   private
     FImage: TRGBImage;
-    FImageBarYPosition: Single;
+    FBarYPosition: Single;
   public
     const
-      DefaultImageBarYPosition = 0.5;
+      DefaultBarYPosition = 0.5;
 
     constructor Create;
 
@@ -49,18 +49,16 @@ type
       And we don't free it. }
     property Image: TRGBImage read FImage write FImage;
 
-    { Vertical position of the displayed progress bar on the @link(Image).
+    { Vertical position of the displayed progress bar.
       This feature is supposed to indicate a suitable free space on the
       background @link(Image) where we can nicely fit the progress bar UI.
 
       Not all progress bar interfaces support it, some simply ignore it.
-      Always ignored if @link(Image) is @nil.
 
       0 means the middle of progress bar is at the bottom of the image,
       1 means at the top. 0.5 indicates the middle, and it's the default. }
-    property ImageBarYPosition: Single
-      read FImageBarYPosition write FImageBarYPosition
-      default DefaultImageBarYPosition;
+    property BarYPosition: Single read FBarYPosition write FBarYPosition
+      default DefaultBarYPosition;
 
     { Show progress bar. }
     procedure Init(Progress: TProgress); virtual; abstract;
@@ -269,7 +267,7 @@ implementation
 constructor TProgressUserInterface.Create;
 begin
   inherited;
-  FImageBarYPosition := DefaultImageBarYPosition;
+  FBarYPosition := DefaultBarYPosition;
 end;
 
 { TProgress ------------------------------------------------------------------ }

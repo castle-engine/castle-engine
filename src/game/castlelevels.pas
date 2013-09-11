@@ -45,7 +45,7 @@ type
     FPlayed: boolean;
     FDefaultPlayed: boolean;
     FLoadingImage: TRGBImage;
-    FLoadingImageBarYPosition: Single;
+    FLoadingBarYPosition: Single;
     FPlaceholderName: TPlaceholderName;
     FPlaceholderReferenceDirection: TVector3Single;
     FMusicSound: TSoundType;
@@ -193,17 +193,14 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
     property LoadingImage: TRGBImage read FLoadingImage write FLoadingImage;
 
     { Vertical position of progress bar when loading the level.
-      Used only if LoadingImage is defined (as the only purpose of this property
-      is to match LoadingImage look).
       Between 0 and 1, default value 0.5 means "middle of the screen".
-      Should be synchronized with how LoadingImage looks,
+      Should be synchronized with how LoadingImage looks (if you set it),
       to make the progress when loading level look nice.
 
-      Technically, this is used for TProgressUserInterface.BarYPosition.
-      Used only if LoadingImage <> @nil. }
-    property LoadingImageBarYPosition: Single
-      read FLoadingImageBarYPosition write FLoadingImageBarYPosition
-      default TProgressUserInterface.DefaultImageBarYPosition;
+      Technically, this is used for TProgressUserInterface.BarYPosition. }
+    property LoadingBarYPosition: Single
+      read FLoadingBarYPosition write FLoadingBarYPosition
+      default TProgressUserInterface.DefaultBarYPosition;
 
     { Placeholder detection method. See TPlaceholderName, and see
       TGameSceneManager.LoadLevel for a description when we use placeholders.
@@ -927,22 +924,18 @@ end;
 procedure TGameSceneManager.LoadLevel(const AInfo: TLevelInfo);
 var
   SavedImage: TRGBImage;
-  SavedImageBarYPosition: Single;
+  SavedBarYPosition: Single;
 begin
-  if AInfo.LoadingImage <> nil then
-  begin
-    SavedImage := Progress.UserInterface.Image;
-    SavedImageBarYPosition := Progress.UserInterface.ImageBarYPosition;
-    try
-      Progress.UserInterface.Image := AInfo.LoadingImage;
-      Progress.UserInterface.ImageBarYPosition := AInfo.LoadingImageBarYPosition;
-      LoadLevelCore(AInfo);
-    finally
-      Progress.UserInterface.Image := SavedImage;
-      Progress.UserInterface.ImageBarYPosition := SavedImageBarYPosition;
-    end;
-  end else
+  SavedImage := Progress.UserInterface.Image;
+  SavedBarYPosition := Progress.UserInterface.BarYPosition;
+  try
+    Progress.UserInterface.Image := AInfo.LoadingImage;
+    Progress.UserInterface.BarYPosition := AInfo.LoadingBarYPosition;
     LoadLevelCore(AInfo);
+  finally
+    Progress.UserInterface.Image := SavedImage;
+    Progress.UserInterface.BarYPosition := SavedBarYPosition;
+  end;
 end;
 
 procedure TGameSceneManager.LoadLevel(const LevelName: string);
@@ -1193,9 +1186,12 @@ begin
     LoadingImage := LoadImage(LoadingImageURL, [TRGBImage]) as TRGBImage;
   end;
 
-  if not DOMGetSingleAttribute(Element, 'loading_image_bar_y_position',
-    FLoadingImageBarYPosition) then
-    LoadingImageBarYPosition := TProgressUserInterface.DefaultImageBarYPosition;
+  if (not DOMGetSingleAttribute(Element, 'loading_bar_y_position',
+       FLoadingBarYPosition)) and
+     { handle loading_image_bar_y_position for backward compatibility }
+     (not DOMGetSingleAttribute(Element, 'loading_image_bar_y_position',
+       FLoadingBarYPosition)) then
+    LoadingBarYPosition := TProgressUserInterface.DefaultBarYPosition;
 
   if DOMGetAttribute(Element, 'placeholder_reference_direction', S) then
     PlaceholderReferenceDirection := Vector3SingleFromStr(S) else
