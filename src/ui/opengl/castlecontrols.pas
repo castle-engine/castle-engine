@@ -225,14 +225,17 @@ type
     or straight TCastleImageControl.Image.
 
     We automatically use alpha test or alpha blending based
-    on loaded image alpha channel (see TGLImage.Alpha). }
+    on loaded image alpha channel (see TGLImage.Alpha).
+    You can influence this by @link(AlphaChannel) property. }
   TCastleImageControl = class(TUIControlPos)
   private
     FURL: string;
     FImage: TCastleImage;
     FGLImage: TGLImage;
+    FAlphaChannel: TAutoAlphaChannel;
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TCastleImage);
+    procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
   public
     destructor Destroy; override;
     function DrawStyle: TUIControlDrawStyle; override;
@@ -250,13 +253,18 @@ type
       If necessary, you can always create a copy by TCastleImage.MakeCopy
       if you want to give here only a copy. }
     property Image: TCastleImage read FImage write SetImage;
-
   published
     { URL of the image. Setting this also sets @link(Image).
       Set this to '' to clear the image. }
     property URL: string read FURL write SetURL;
     { Deprecated name for @link(URL). }
     property FileName: string read FURL write SetURL; deprecated;
+    { How to treat alpha channel of the assigned image.
+      By default, this is acAuto, which means that image contents
+      determine how the alpha of image is treated (opaque, alpha test,
+      alpha blending). Set this to force specific treatment. }
+    property AlphaChannel: TAutoAlphaChannel
+      read FAlphaChannel write SetAlphaChannel default acAuto;
   end;
 
   { Simple background fill. Using OpenGL glClear, so unconditionally
@@ -1075,7 +1083,11 @@ begin
 
     FImage := Value;
     if GLInitialized and (FImage <> nil) then
+    begin
       FGLImage := TGLImage.Create(FImage);
+      if AlphaChannel <> acAuto then
+        FGLImage.Alpha := AlphaChannel;
+    end;
   end;
 end;
 
@@ -1106,7 +1118,11 @@ procedure TCastleImageControl.GLContextOpen;
 begin
   inherited;
   if (FGLImage = nil) and (FImage <> nil) then
+  begin
     FGLImage := TGLImage.Create(FImage);
+    if AlphaChannel <> acAuto then
+      FGLImage.Alpha := AlphaChannel;
+  end;
 end;
 
 procedure TCastleImageControl.GLContextClose;
@@ -1127,6 +1143,21 @@ begin
   if FImage <> nil then
     Result := FImage.Height else
     Result := 0;
+end;
+
+procedure TCastleImageControl.SetAlphaChannel(const Value: TAutoAlphaChannel);
+begin
+  if FAlphaChannel <> Value then
+  Begin
+    FAlphaChannel := Value;
+    if FGLImage <> nil then
+    begin
+      { update FGLImage.Alpha }
+      if AlphaChannel <> acAuto then
+        FGLImage.Alpha := AlphaChannel else
+        FGLImage.Alpha := FImage.AlphaChannel;
+    end;
+  end;
 end;
 
 { TCastleSimpleBackground ---------------------------------------------------- }
@@ -1768,7 +1799,7 @@ begin
       We keep assertion that when FBackground is assigned and OpenGL
       context is active => FGLBackground is assigned too. }
     FreeAndNil(FGLBackground);
-    if FBackground <> nil then
+    if GLInitialized and (FBackground <> nil) then
       FGLBackground := TGLImage.Create(FBackground, true);
   end;
 end;
