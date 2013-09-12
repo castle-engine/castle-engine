@@ -28,7 +28,12 @@ type
 
 implementation
 
-uses CastleVectors, CastleImages, CastleSpaceFillingCurves, CastleUtils, CastleColors;
+uses CastleVectors, CastleImages, CastleSpaceFillingCurves, CastleUtils,
+  CastleColors;
+
+const
+  Red3Byte: TVector3Byte = (255, 0, 0);
+  Green3Byte: TVector3Byte = (0, 255, 0);
 
 procedure TTestSpaceFillingCurves.TestSpaceFillingCurves;
 
@@ -47,7 +52,7 @@ procedure TTestSpaceFillingCurves.TestSpaceFillingCurves;
     try
      Curve := CurveClass.Create(Width, Height);
 
-     Img.Clear(Green);
+     Img.Clear(Vector4Byte(Green3Byte, 255));
 
      while not Curve.EndOfPixels do
      begin
@@ -58,11 +63,11 @@ procedure TTestSpaceFillingCurves.TestSpaceFillingCurves;
       { kazdy pix moze byc podany tylko raz, czyli teraz pix powinien
 	byc zielony. }
       Assert(CompareMem(pix, @Green3Byte, SizeOf(TVector3Byte)));
-      pix^:=Red3Byte;
+      pix^ := Red3Byte;
      end;
 
      { na koncu caly obrazek powinien byc czerwony }
-     Assert(Img.IsClear(Red));
+     Assert(Img.IsClear(Vector4Byte(Red3Byte, 255)));
     except
      OutFileName := GetTempDir + '/test_space_filling_curves.ppm';
      SaveImage(Img, OutFileName);
