@@ -28,7 +28,7 @@
 
 program window_gtk_mix;
 
-uses CastleWindow, GL, GLU, GLExt, CastleGLUtils, SysUtils,
+uses CastleWindow, GL, GLU, GLExt, CastleGLUtils, SysUtils, CastleColors,
   CastleVectors, CastleUtils, CastleGLOutlineFonts, CastleOutlineFont_BVSans,
   Gtk2, Glib2, CastleStringUtils, CastleKeysMouse;
 

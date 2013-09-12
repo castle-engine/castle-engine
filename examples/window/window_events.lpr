@@ -22,7 +22,7 @@ program window_events;
 
 {$apptype GUI}
 
-uses SysUtils, CastleUtils, CastleGLUtils, GL, GLU, CastleNotifications, CastleWindow,
+uses SysUtils, CastleUtils, CastleGLUtils, CastleNotifications, CastleWindow,
   CastleKeysMouse, CastleStringUtils, CastleColors,
   CastleGLBitmapFonts, CastleBitmapFont_BVSansMono_Bold_m15,
   Classes, CastleMessages;

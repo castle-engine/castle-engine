@@ -29,7 +29,7 @@ uses CastleVectors, X3DNodes, GL, GLU, CastleWindow,
   CastleClassUtils, CastleUtils, SysUtils, Classes, CastleRenderingCamera,
   CastleGLUtils, CastleScene, CastleKeysMouse, CastleSceneManager,
   CastleFilesUtils, CastleWarnings, CastleSphericalHarmonics, Math, CastleImages,
-  CastleGLCubeMaps, CastleStringUtils, CastleParameters;
+  CastleGLCubeMaps, CastleStringUtils, CastleParameters, CastleColors;
 
 type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);

@@ -30,7 +30,7 @@ program multi_window;
 uses
   GL, GLU, CastleWindow, SysUtils, CastleUtils, CastleGLOutlineFonts,
   CastleOutlineFont_BVSans, CastleGLUtils, CastleKeysMouse, CastleVectors,
-  CastleStringUtils;
+  CastleStringUtils, CastleColors;
 
 type
   TMyWindow = class(TCastleWindowDemo)
