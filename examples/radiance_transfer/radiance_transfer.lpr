@@ -97,7 +97,7 @@ procedure TMySceneManager.RenderFromViewEverything;
   and Render3D (and move DrawLight there). But then, our debugging view
   of SHVectorGLCapture (under 3d model) would not be visible. }
 begin
-  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+  GLClear([cbColor, cbDepth], Black);
   glLoadMatrix(RenderingCamera.Matrix);
 
   if not Scene.BoundingBox.IsEmpty then

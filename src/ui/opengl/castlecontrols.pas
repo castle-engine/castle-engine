@@ -18,7 +18,7 @@ unit CastleControls;
 
 interface
 
-uses Classes, GL, CastleVectors, CastleUIControls, CastleGLBitmapFonts,
+uses Classes, CastleVectors, CastleUIControls, CastleGLBitmapFonts,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages,
   CastleRectangles, CastleBitmapFonts, CastleColors, CastleProgress;
 
@@ -267,9 +267,9 @@ type
       read FAlphaChannel write SetAlphaChannel default acAuto;
   end;
 
-  { Simple background fill. Using OpenGL glClear, so unconditionally
+  { Simple background fill. Using OpenGL GLClear, so unconditionally
     clears things underneath. In simple cases, you don't want to use this:
-    instead you usually have TCastleSceneManager that fill the whole screen,
+    instead you usually have TCastleSceneManager that fills the whole screen,
     and it provides a background already. }
   TCastleSimpleBackground = class(TUIControl)
   private
@@ -330,7 +330,8 @@ type
     { Main text to display. Read-only contents. }
     Text: TStringList;
     { Drawn as window background. @nil means there is no background
-      (use only if there is always some other 2D control underneath TCastleDialog). }
+      (use only if there is always some other 2D control underneath TCastleDialog).
+      When assigned, stretched to cover whole screen. }
     Background: TGLImage;
     Align: TTextAlign;
     { Should we display InputText }
@@ -372,7 +373,7 @@ type
       const TextList: TStringList; const ATextAlign: TTextAlign;
       const AButtons: array of TCastleButton;
       const ADrawInputText: boolean; const AInputText: string;
-      const ABackground: TGLImage);
+      const ABackground: TCastleImage);
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
@@ -564,17 +565,6 @@ uses SysUtils, CastleControlsImages, CastleBitmapFont_BVSans_m10,
 procedure Register;
 begin
   RegisterComponents('Castle', [TCastleButton, TCastleImageControl]);
-end;
-
-{ Specify vertex at given pixel.
-
-  With standard OpenGL ortho projection,
-  glVertex takes coordinates in float [0..Width, 0..Height] range.
-  To reliably draw on (0,0) pixel you should pass (0+epsilon, 0+epsilon)
-  to glVertex. This procedure takes care of adding this epsilon. }
-procedure glVertexPixel(const X, Y: Integer);
-begin
-  glVertex2f(X + 0.1, Y + 0.1);
 end;
 
 { TUIControlFont ---------------------------------------------------------- }
@@ -1179,10 +1169,7 @@ end;
 procedure TCastleSimpleBackground.Draw;
 begin
   if not GetExists then Exit;
-  glPushAttrib(GL_COLOR_BUFFER_BIT);
-    glClearColorv(Color); // saved by GL_COLOR_BUFFER_BIT
-    glClear(GL_COLOR_BUFFER_BIT);
-  glPopAttrib;
+  GLClear([cbColor], Color);
 end;
 
 { TCastleDialog -------------------------------------------------------------- }
@@ -1198,12 +1185,12 @@ end;
 procedure TCastleDialog.Initialize(const TextList: TStringList;
   const ATextAlign: TTextAlign; const AButtons: array of TCastleButton;
   const ADrawInputText: boolean; const AInputText: string;
-  const ABackground: TGLImage);
+  const ABackground: TCastleImage);
 var
   I: Integer;
 begin
   Text := TextList;
-  Background := ABackground;
+  Background := TGLImage.Create(ABackground, true);
   Align := ATextAlign;
   DrawInputText := ADrawInputText;
   FInputText := AInputText;
@@ -1216,6 +1203,7 @@ destructor TCastleDialog.Destroy;
 begin
   FreeAndNil(Broken_Text);
   FreeAndNil(Broken_InputText);
+  FreeAndNil(Background);
   inherited;
 end;
 
@@ -1515,12 +1503,7 @@ begin
   if not GetExists then Exit;
 
   if Background <> nil then
-  begin
-    { Make clear since Background make not cover whole window. }
-    glClear(GL_COLOR_BUFFER_BIT);
-    glLoadIdentity;
-    Background.Draw(0, 0);
-  end;
+    Background.Draw(ContainerRect);
 
   MessageRect := WholeMessageRect;
   Theme.Draw(MessageRect, tiWindow);
@@ -1553,12 +1536,10 @@ begin
   end;
 
   { Make scissor to cut off text that is too far up/down.
-    We subtract Font.Descend from Y0, to see the descend of
+    We add bottom height Font.Descend, to see the descend of
     the bottom line (which is below InnerRect.Bottom, and would not be
     ever visible otherwise). }
-  glScissor(InnerRect.Left, InnerRect.Bottom - Font.Descend,
-    InnerRect.Width, InnerRect.Height + Font.Descend);
-  glEnable(GL_SCISSOR_TEST);
+  ScissorEnable(InnerRect.GrowBottom(Font.Descend));
 
   TextX := InnerRect.Left;
   TextY := InnerRect.Bottom + Round(Scroll);
@@ -1569,7 +1550,7 @@ begin
     DrawStrings(TextX, TextY, Theme.MessageInputTextColor, Broken_InputText, Align);
   DrawStrings(TextX, TextY, Theme.MessageTextColor, Broken_Text, Align);
 
-  glDisable(GL_SCISSOR_TEST);
+  ScissorDisable;
 end;
 
 function TCastleDialog.PositionInside(const X, Y: Integer): boolean;

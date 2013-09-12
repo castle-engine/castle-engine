@@ -301,13 +301,13 @@ procedure MessageCore(
   const ADrawInputText: boolean; var AInputText: string);
 var
   SavedMode: TGLMode;
-  Background: TGLImage;
+  Background: TCastleImage;
   Button: TCastleButton;
 begin
   if Log then
     WritelnLogMultiline('Message', TextList.Text);
 
-  Background := Window.SaveScreenToGL;
+  Background := Window.SaveScreen;
   { Among other things, using @NoClose below allows users to safely use
     MessageXxx inside own OnCloseQuery, like
       if MessageYesNo('Are you sure ?') then Window.Close; }

@@ -223,7 +223,7 @@ var
   procedure DoMirror;
 
     { Clears depth buffer (sets it's values to 1, i.e. maximum).
-      Contrary to glClear(GL_DEPTH_BUFFER_BIT), this honours stencil test,
+      Contrary to GLClear([cbDepth]...) this honours stencil test,
       since it does the job by rasterizing a rectangle over the screen.
 
       Assumes that current matrix mode is modelview
@@ -366,7 +366,7 @@ var
   end;
 
 begin
-  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT);
+  GLClear([cbColor, cbDepth, cbStencil], Black);
   glLoadMatrix(RenderingCamera.Matrix);
 
   { set light position (for Scene (by LightInstance and LightNode) and for direct

@@ -72,6 +72,15 @@ type
     function RemoveTop(H: Cardinal): TRectangle;
     { @groupEnd }
 
+    { Returns the rectangle with a number of pixels on given
+      side added.
+      @groupBegin }
+    function GrowLeft(const W: Cardinal): TRectangle;
+    function GrowBottom(const H: Cardinal): TRectangle;
+    function GrowRight(const W: Cardinal): TRectangle;
+    function GrowTop(const H: Cardinal): TRectangle;
+    { @groupEnd }
+
     { Returns the given side of the rectangle, cut down to given number of pixels
       from given side. This is similar to RemoveXxx methods, but here you specify
       which side to keep, as opposed to RemoveXxx methods where you specify which
@@ -204,6 +213,32 @@ begin
   Result := Self;
   MinTo1st(H, Height);
   Result.Height -= H;
+end;
+
+function TRectangle.GrowLeft(const W: Cardinal): TRectangle;
+begin
+  Result := Self;
+  Result.Left -= Integer(W);
+  Result.Width += W;
+end;
+
+function TRectangle.GrowBottom(const H: Cardinal): TRectangle;
+begin
+  Result := Self;
+  Result.Bottom -= Integer(H);
+  Result.Height += H;
+end;
+
+function TRectangle.GrowRight(const W: Cardinal): TRectangle;
+begin
+  Result := Self;
+  Result.Width += W;
+end;
+
+function TRectangle.GrowTop(const H: Cardinal): TRectangle;
+begin
+  Result := Self;
+  Result.Height += H;
 end;
 
 function TRectangle.LeftPart(W: Cardinal): TRectangle;

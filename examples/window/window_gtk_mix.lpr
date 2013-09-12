@@ -66,7 +66,7 @@ end;
 
 procedure Draw(Window: TCastleWindowBase);
 begin
- glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+ GLClear([cbColor, cbDepth], Black);
  glLoadIdentity;
  glTranslatef(-13, 0, -20);
  glScalef(0.1, 0.1, 0.1);

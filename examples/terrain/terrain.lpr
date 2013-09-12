@@ -52,7 +52,7 @@
 }
 program terrain;
 
-uses SysUtils, Classes, CastleBoxes, CastleKeysMouse,
+uses SysUtils, Classes, CastleBoxes, CastleKeysMouse, CastleColors,
   CastleUtils, CastleWindow, GL, GLExt, CastleGLUtils, CastleParameters,
   CastleCameras, CastleVectors, CastleFilesUtils, Elevations, CastleMessages,
   CastleStringUtils, CastleOnScreenMenu, CastleUIControls, CastleImages,
@@ -87,7 +87,7 @@ var
   LayersCount: Cardinal = 3;
   ControlsVisible: boolean = true;
   Fog: boolean = false;
-  BackgroundColor: TVector3Single = (0, 0, 0);
+  BackgroundColor: TCastleColor;
   SpecializedGridRendering: boolean = true;
 
 type
@@ -280,7 +280,7 @@ begin
             VisibilityEnd := BaseSize * (1 shl (LayersCount-1));
             GLSLProgram.SetUniform('fog_start', VisibilityEnd * 0.7);
             GLSLProgram.SetUniform('fog_end', VisibilityEnd);
-            GLSLProgram.SetUniform('fog_color', BackgroundColor);
+            GLSLProgram.SetUniform('fog_color', Vector3SingleCut(BackgroundColor));
           end;
         end;
 
@@ -706,14 +706,8 @@ begin
           MessageOk(Window, 'Not an image elevation');
       end;
     170:
-      begin
-        Window.ColorDialog(BackgroundColor);
-        { It's a little hacky but valid to just set glClearColor directly here.
-          If we would use some TCastleSceneManager.MainScene with it's own
-          Background, it would override this glClearColor... but we don't have
-          MainScene here. So this is safe. }
-        glClearColor(BackgroundColor[0], BackgroundColor[1], BackgroundColor[2], 1.0);
-      end;
+      if Window.ColorDialog(BackgroundColor) then
+        SceneManager.BackgroundColor := BackgroundColor;
     200..299:
       begin
         NoiseInterpolation := TNoiseInterpolation(Item.IntData - 200);

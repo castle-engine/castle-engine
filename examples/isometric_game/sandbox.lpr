@@ -5,7 +5,7 @@ program SandBox;
 uses SysUtils, GL, GLU, GLExt, CastleWindow, SandBoxMap, CastleFilesUtils,
   CastleWindowModes, SandBoxPlayer, CastleStringUtils, Math, CastleUtils,
   CastleGLUtils, SandBoxGame, CastleKeysMouse, CastleMessages, CastleGLImages,
-  CastleImages;
+  CastleImages, CastleColors;
 
 var
   Window: TCastleWindowCustom;
@@ -47,7 +47,7 @@ var
   BaseFitX, BaseFitY: Cardinal;
   X1, X2, Y1, Y2: Integer;
 begin
-  glClear(GL_COLOR_BUFFER_BIT);
+  GLClear([cbColor], Black);
   glEnable(GL_ALPHA_TEST);
   glAlphaFunc(GL_GREATER, 0.5);
 

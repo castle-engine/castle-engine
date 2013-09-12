@@ -39,7 +39,7 @@ var
 
 procedure Draw(Window: TCastleWindowBase);
 begin
-  glClear(GL_COLOR_BUFFER_BIT);
+  GLClear([cbColor], Black);
 
   glPointSize(20.0);
 

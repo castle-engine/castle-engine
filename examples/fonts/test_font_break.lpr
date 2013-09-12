@@ -27,7 +27,7 @@
 
 program test_font_break;
 
-uses CastleWindow, GL, GLU, CastleGLUtils, SysUtils, Classes, CastleParameters,
+uses CastleWindow, CastleGLUtils, SysUtils, Classes, CastleParameters,
   CastleUtils, CastleGLBitmapFonts, CastleVectors, CastleStringUtils, CastleColors,
   CastleControls, CastleKeysMouse, CastleBitmapFont_BVSansMono_Bold_M15,
   CastleRectangles, CastleControlsImages
@@ -41,7 +41,7 @@ procedure Draw(Window: TCastleWindowBase);
 var
   X1: Integer;
 begin
-  glClear(GL_COLOR_BUFFER_BIT);
+  GLClear([cbColor], Black);
   X1 := (Window.Width - BoxWidth) div 2;
   Theme.Draw(Rectangle(X1, 0, BoxWidth, Window.Height), tiActiveFrame);
   UIFont.PrintBrokenString(x1, UIFont.Descend, White,

@@ -339,8 +339,6 @@ procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); overload;
 
 procedure glClipPlane(plane: GLenum; const V: TVector4d); overload;
 
-procedure glClearColorv(const C: TCastleColor);
-
 procedure glNormalv(const v: TVector3f); overload;
 
 procedure glMaterialv(face, pname: TGLEnum; const params: TVector4f); overload;
@@ -663,6 +661,22 @@ type
   Note that this is only for fixed-function OpenGL pipeline.
   Shader pipeline completely ignores the enabled state of texture units. }
 function GLEnableTexture(const Target: TEnableTextureTarget): boolean;
+
+type
+  TClearBuffer = (cbColor, cbDepth, cbStencil);
+  TClearBuffers = set of TClearBuffer;
+
+{ Clear OpenGL buffer contents.
+  Never call OpenGL glClear or glClearColor, always use this procedure. }
+procedure GLClear(const Buffers: TClearBuffers;
+  const ClearColor: TCastleColor);
+
+{ Enable or disable scissor.
+  Always do it using these procedures, do not call glScissor or
+  glEnable(GL_SCISSOR_TEST) / glDisable(GL_SCISSOR_TEST) yourself,
+  or push/pop attrib. }
+procedure ScissorEnable(const Rect: TRectangle);
+procedure ScissorDisable;
 
 {$undef read_interface}
 
@@ -1011,11 +1025,6 @@ procedure glVertexv(const v: TVector4_Single);  begin glVertex4fv(@v.Data); end;
 procedure glClipPlane(plane: GLenum; const V: TVector4d);
 begin
   GL.glClipPlane(plane, @V);
-end;
-
-procedure glClearColorv(const C: TCastleColor);
-begin
-  glClearColor(C[0], C[1], C[2], C[3]);
 end;
 
 procedure glNormalv(const v: TVector3d); begin glNormal3dv(@v); end;
@@ -1702,6 +1711,53 @@ begin
         if GLFeatures.TextureRectangle then glEnable(GL_TEXTURE_RECTANGLE_ARB) else Result := false;
       end;
     else raise EInternalError.Create('GLEnableTexture:Target?');
+  end;
+end;
+
+var
+  FClearColor: TCastleColor;
+
+procedure GLClear(const Buffers: TClearBuffers;
+  const ClearColor: TCastleColor);
+const
+  ClearBufferMask: array [TClearBuffer] of TGLbitfield =
+  ( GL_COLOR_BUFFER_BIT,
+    GL_DEPTH_BUFFER_BIT,
+    GL_STENCIL_BUFFER_BIT );
+var
+  Mask: TGLbitfield;
+  B: TClearBuffer;
+begin
+  if not VectorsPerfectlyEqual(FClearColor, ClearColor) then
+  begin
+    FClearColor := ClearColor;
+    glClearColor(FClearColor[0], FClearColor[1], FClearColor[2], FClearColor[3]);
+  end;
+  Mask := 0;
+  for B in Buffers do
+    Mask := Mask or ClearBufferMask[B];
+  if Mask <> 0 then
+    GL.GLClear(Mask);
+end;
+
+var
+//  FScissor: TRectangle; // not needed now
+  FScissorEnabled: boolean;
+
+procedure ScissorEnable(const Rect: TRectangle);
+begin
+//  FScissor := Rect;
+  FScissorEnabled := true;
+  glScissor(Rect.Left, Rect.Bottom, Rect.Width, Rect.Height);
+  glEnable(GL_SCISSOR_TEST);
+end;
+
+procedure ScissorDisable;
+begin
+  if FScissorEnabled then
+  begin
+    glDisable(GL_SCISSOR_TEST);
+    FScissorEnabled := false;
   end;
 end;
 

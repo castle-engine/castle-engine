@@ -36,9 +36,9 @@ program draw_space_filling_curve;
 
 {$apptype GUI}
 
-uses SysUtils, GL, GLU, CastleWindow, CastleUtils, CastleGLUtils, CastleParameters,
+uses SysUtils, CastleWindow, CastleUtils, CastleGLUtils, CastleParameters,
   CastleImages, CastleVectors, Math, CastleSpaceFillingCurves, CastleStringUtils, CastleGLImages,
-  CastleKeysMouse;
+  CastleKeysMouse, CastleColors;
 
 var
   Window: TCastleWindowDemo;
@@ -53,14 +53,9 @@ procedure Draw(Window: TCastleWindowBase);
 begin
   { If DoubleBuffer available, then use it.
     This program should work perfectly with and without DoubleBuffer. }
-  if Window.DoubleBuffer then glClear(GL_COLOR_BUFFER_BIT);
+  if Window.DoubleBuffer then GLClear([cbColor], Gray);
 
   ImageDraw(CurveImage);
-end;
-
-procedure Open(Window: TCastleWindowBase);
-begin
-  glClearColor(0.5, 0.5, 0.5, 1.0);
 end;
 
 procedure CloseQueryNotAllowed(Window: TCastleWindowBase); begin end;
@@ -143,7 +138,6 @@ begin
   { setup Window, Window.Open }
   Window.OnDraw := @Draw;
   Window.OnResize := @Resize2D;
-  Window.OnOpen := @Open;
   Window.DoubleBuffer := true;
   Window.OnCloseQuery := @CloseQueryNotAllowed;
   Window.ParseParameters(StandardParseOptions);

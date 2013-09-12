@@ -47,7 +47,7 @@ end;
 procedure TWindowImage.EventDraw;
 begin
   inherited;
-  glClear(GL_COLOR_BUFFER_BIT);
+  GLClear([cbColor], Black);
   if GLImage <> nil then
     GLImage.Draw;
 end;

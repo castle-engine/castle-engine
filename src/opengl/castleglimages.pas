@@ -340,7 +340,8 @@ function SaveAlignedScreen_NoFlush(
 { Captures current screen as a TGLImage instance, ready to be drawn on 2D screen. }
 function SaveScreenToGL_NoFlush(
   const XPos, YPos: Integer; const Width, Height: Cardinal;
-  const ReadBuffer: TGLenum): TGLImage;
+  const ReadBuffer: TGLenum;
+  const ScalingPossible: boolean = false): TGLImage;
 
 { ----------------------------------------------------------------------
   Adjusting image sizes to load them as textures.
@@ -1276,7 +1277,8 @@ end;
 
 function SaveScreenToGL_NoFlush(
   const XPos, YPos: Integer; const Width, Height: Cardinal;
-  const ReadBuffer: TGLenum): TGLImage;
+  const ReadBuffer: TGLenum;
+  const ScalingPossible: boolean): TGLImage;
 { We capture the screen with SaveAlignedScreen_NoFlush,
   to workaround GLVersion.BuggyDrawOddWidth bug.
   We also have to actually draw it a little larger. }
@@ -1290,7 +1292,7 @@ begin
       to draw only part of the screen when GLVersion.BuggyDrawOddWidth.
       Unfortunately, it doesn't really work, even drawing the screen
       is buggy with GLVersion.BuggyDrawOddWidth... }
-    Result := TGLImage.Create(ScreenImage);
+    Result := TGLImage.Create(ScreenImage, ScalingPossible);
   finally FreeAndNil(ScreenImage) end;
 end;
 

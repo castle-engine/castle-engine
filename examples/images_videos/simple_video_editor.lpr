@@ -84,7 +84,7 @@ const
   end;
 
 begin
-  glClear(GL_COLOR_BUFFER_BIT);
+  GLClear([cbColor], Black);
 
   glLoadIdentity();
   if Video.Loaded then

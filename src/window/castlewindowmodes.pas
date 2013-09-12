@@ -255,11 +255,18 @@ type
     We'll restore initial TCastleWindowBase.UserData at destruction. }
   TGLModeFrozenScreen = class(TGLMode)
   private
-    ScreenImage: TGLImage;
-    SavedScreenWidth, SavedScreenHeight: Cardinal;
+    type
+      TFrozenScreenControl = class(TUIControl)
+      private
+        Background: TGLImage;
+      public
+        function DrawStyle: TUIControlDrawStyle; override;
+        procedure Draw; override;
+      end;
+    var
+      Control: TFrozenScreenControl;
   public
-    constructor Create(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield);
-
+    constructor Create(AWindow: TCastleWindowCustom; AttribsToPush: TGLbitfield);
     destructor Destroy; override;
   end;
 
@@ -539,53 +546,43 @@ end;
 
 { TGLModeFrozenScreen ------------------------------------------------------ }
 
-procedure FrozenImageDraw(Window: TCastleWindowBase);
-var
-  Mode: TGLModeFrozenScreen;
-  Attribs: TGLbitfield;
+function TGLModeFrozenScreen.TFrozenScreenControl.DrawStyle: TUIControlDrawStyle;
 begin
-  Mode := TGLModeFrozenScreen(Window.UserData);
-
-  if (Cardinal(Window.Width ) > Mode.SavedScreenWidth ) or
-     (Cardinal(Window.Height) > Mode.SavedScreenHeight) then
-    glClear(GL_COLOR_BUFFER_BIT);
-
-  Attribs := GL_CURRENT_BIT or GL_ENABLE_BIT;
-
-  glPushAttrib(Attribs);
-  try
-    glPushMatrix;
-    try
-      glDisable(GL_DEPTH_TEST);
-      Mode.ScreenImage.Draw(0, 0);
-    finally glPopMatrix end;
-  finally glPopAttrib end;
+  if GetExists then
+    Result := ds2D else
+    Result := dsNone;
 end;
 
-constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindowBase;
+procedure TGLModeFrozenScreen.TFrozenScreenControl.Draw;
+begin
+  inherited;
+  if not GetExists then Exit;
+  Background.Draw(ContainerRect);
+end;
+
+constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindowCustom;
   AttribsToPush: TGLbitfield);
 begin
   inherited Create(AWindow, AttribsToPush);
 
-  { save screen, before changing state (before changing OnDraw callback
-    in SetStandardState, before changing projection in Window.EventResize etc.) }
-  ScreenImage := Window.SaveScreenToGL;
+  Control := TFrozenScreenControl.Create(nil);
 
-  TWindowState.SetStandardState(AWindow, @FrozenImageDraw, @Resize2D, @NoClose);
-  AWindow.UserData := Self;
+  { save screen, before changing state. }
+  Control.Background := Window.SaveScreenToGL(true);
+
+  TWindowState.SetStandardState(AWindow, nil, @Resize2D, @NoClose);
+  AWindow.Controls.InsertFront(Control);
 
   { setup our 2d projection }
   Window.EventResize;
-
-  SavedScreenWidth  := Window.Width;
-  SavedScreenHeight := Window.Height;
 end;
 
 destructor TGLModeFrozenScreen.Destroy;
 begin
   inherited;
   { it's a little safer to call this after inherited }
-  FreeAndNil(ScreenImage);
+  FreeAndNil(Control.Background);
+  FreeAndNil(Control);
 end;
 
 { routines ------------------------------------------------------------------- }

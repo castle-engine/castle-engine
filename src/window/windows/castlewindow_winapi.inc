@@ -1376,7 +1376,7 @@ begin
     end;
   end;
 
-  Mode := TGLModeFrozenScreen.Create(Self, 0);
+  Mode := TGLModeFrozenScreen.Create(Self as TCastleWindowCustom { TODO hack }, 0);
   try
     if OpenDialog then
       Result := GetOpenFileName(@Struct) else
@@ -1428,7 +1428,7 @@ begin
     only the predefined ones. }
   Struct.Flags := CC_FULLOPEN or CC_RGBINIT;
 
-  Mode := TGLModeFrozenScreen.Create(Self, 0);
+  Mode := TGLModeFrozenScreen.Create(Self as TCastleWindowCustom { TODO hack }, 0);
   try
     Result := ChooseColor(@Struct);
   finally Mode.Free end;

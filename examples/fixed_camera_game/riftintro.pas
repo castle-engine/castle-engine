@@ -85,7 +85,7 @@ begin
   if IntroPart > High(IntroParts) then Exit;
 
   glLoadIdentity();
-  glClear(GL_COLOR_BUFFER_BIT);
+  GLClear([cbColor], Black);
 
   if (IntroPartTime >= IntroParts[IntroPart].CorrodeDuration) or
      not GLFeatures.BlendConstant then

@@ -54,7 +54,7 @@ procedure TMyWindow.EventDraw;
 begin
  inherited;
 
- glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+ GLClear([cbColor, cbDepth], Black);
  glLoadIdentity();
  glTranslatef(MoveX, MoveY, MoveZ);
 

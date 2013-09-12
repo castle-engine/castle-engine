@@ -22,7 +22,7 @@ uses Classes, CastleVectors, X3DNodes, CastleScene, CastleSceneCore, CastleCamer
   CastleGLShadowVolumes, GL, CastleUIControls, Castle3D, CastleTriangles,
   CastleKeysMouse, CastleBoxes, CastleBackground, CastleUtils, CastleClassUtils,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, FGL, CastleSectors,
-  CastleInputs, CastlePlayer, CastleRectangles;
+  CastleInputs, CastlePlayer, CastleRectangles, CastleColors;
 
 type
   TCastleAbstractViewport = class;
@@ -65,6 +65,7 @@ type
     FShadowVolumesDraw: boolean;
 
     FBackgroundWireframe: boolean;
+    FBackgroundColor: TCastleColor;
     FOnRender3D: TRender3DEvent;
     FHeadlightFromViewport: boolean;
     FUseGlobalLights: boolean;
@@ -404,6 +405,17 @@ type
 
     { Statistics about last rendering frame. See TRenderStatistics docs. }
     function Statistics: TRenderStatistics;
+
+    { Background color, displayed behind the 3D world.
+      Unless the MainScene has a Background node defined, in which
+      case the Background (colored and/or textured) of the 3D scene is used.
+
+      Also, this background is used when using BackgroundWireframe.
+      It is then displayed behind the wireframe background on MainScene.
+
+      Black by default. }
+    property BackgroundColor: TCastleColor
+      read FBackgroundColor write FBackgroundColor;
   published
     { Viewport dimensions where the 3D world will be drawn.
       When FullSize is @true (the default), the viewport always fills
@@ -529,7 +541,7 @@ type
     property ShadowVolumesDraw: boolean read FShadowVolumesDraw write FShadowVolumesDraw default false;
 
     { If yes then the scene background will be rendered wireframe,
-      over the background filled with glClearColor.
+      over the background filled with BackgroundColor.
 
       There's a catch here: this works only if the background is actually
       internally rendered as a geometry. If the background is rendered
@@ -551,8 +563,8 @@ type
       under this viewport, that actually draws something predictable underneath.
 
       The normal background, derived from @link(Background) will be ignored.
-      We will also not do any glClear on color buffer.
-      Also BackgroundWireframe doesn't matter in this case. }
+      We will also not do any GLClear on color buffer.
+      Also BackgroundWireframe and BackgroundColor doesn't matter in this case. }
     property Transparent: boolean read FTransparent write FTransparent default false;
 
     { When @true then headlight is always rendered from custom viewport's
@@ -1154,7 +1166,7 @@ implementation
 
 uses SysUtils, CastleRenderingCamera, CastleGLUtils, CastleProgress, CastleRays,
   GLExt, CastleLog, CastleStringUtils, CastleRenderer, CastleSoundEngine, Math,
-  X3DTriangles, CastleGLVersion, CastleShapes, CastleColors;
+  X3DTriangles, CastleGLVersion, CastleShapes;
 
 procedure Register;
 begin
@@ -1199,6 +1211,7 @@ end;
 constructor TCastleAbstractViewport.Create(AOwner: TComponent);
 begin
   inherited;
+  FBackgroundColor := Black;
   FUseGlobalLights := DefaultUseGlobalLights;
   FFullSize := true;
   FRenderParams := TManagerRenderParams.Create;
@@ -1855,18 +1868,18 @@ end;
 
 procedure TCastleAbstractViewport.RenderFromViewEverything;
 var
-  ClearBuffers: TGLbitfield;
+  ClearBuffers: TClearBuffers;
+  ClearColor: TCastleColor;
   UsedBackground: TBackground;
   MainLightPosition: TVector4Single; { ignored }
 begin
-  ClearBuffers := GL_DEPTH_BUFFER_BIT;
+  ClearBuffers := [cbDepth];
 
   if RenderingCamera.Target = rtVarianceShadowMap then
   begin
     { When rendering to VSM, we want to clear the screen to max depths (1, 1^2). }
-    ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;
-    glPushAttrib(GL_COLOR_BUFFER_BIT);
-    glClearColor(1.0, 1.0, 0.0, 1.0); // saved by GL_COLOR_BUFFER_BIT
+    Include(ClearBuffers, cbColor);
+    ClearColor := Vector4Single(1, 1, 0, 1);
   end else
   if not Transparent then
   begin
@@ -1891,7 +1904,7 @@ begin
       if BackgroundWireframe then
       begin
         { Color buffer needs clear *now*, before drawing background. }
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear([cbColor], BackgroundColor);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         try
           UsedBackground.Render;
@@ -1906,18 +1919,18 @@ begin
         glMatrixMode(GL_MODELVIEW);
       end;
     end else
-      ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;
+    begin
+      Include(ClearBuffers, cbColor);
+      ClearColor := BackgroundColor;
+    end;
   end;
 
   if GLFeatures.ShadowVolumesPossible and
      ShadowVolumes and
      MainLightForShadows(MainLightPosition) then
-    ClearBuffers := ClearBuffers or GL_STENCIL_BUFFER_BIT;
+    Include(ClearBuffers, cbStencil);
 
-  glClear(ClearBuffers);
-
-  if RenderingCamera.Target = rtVarianceShadowMap then
-    glPopAttrib;
+  GLClear(ClearBuffers, ClearColor);
 
   glLoadMatrix(RenderingCamera.Matrix);
 

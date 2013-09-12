@@ -60,8 +60,8 @@ type
       We render without GL_DEPTH_TEST to cover everyhing on the screen
       (so rendering a background should be a first thing you render,
       no point in even doing glClear yourself).
-      When possible (we have only one sky color), we even use
-      glClear(GL_COLOR_BUFFER) to set initial color. }
+      When possible (we have only one sky color), we use GLClear
+      to quickly clear color buffer with single uniform color. }
     procedure Render;
 
     { Calculate (or just confirm that Proposed value is still OK)
@@ -408,10 +408,7 @@ begin
 
       if SkyColorCount = 1 then
       begin
-        { alpha ponizszego koloru nie ma znaczenia dla nas. Uzywamy 0 bo jest
-          standardem (standardowo glClearColor ma alpha = wlasnie 0). }
-        glClearColor(SkyColor^[0][0], SkyColor^[0][1], SkyColor^[0][2], 0);
-        glClear(GL_COLOR_BUFFER_BIT);
+        GLClear([cbColor], Vector4Single(SkyColor^[0]));
       end else
       begin
         { wiec SkyColorCount >= 2. W zasadzie rendering przebiega na zasadzie

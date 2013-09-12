@@ -1952,7 +1952,7 @@ end;
     { Saves screen, making sure Image width is a multiple of 4 on buggy Radeon
       drivers. The meaningful image width is equal to window's @link(Width). }
     function SaveAlignedScreen: TRGBImage;
-    function SaveScreenToGL: TGLImage; overload;
+    function SaveScreenToGL(const ScalingPossible: boolean = false): TGLImage; overload;
     { @groupEnd }
 
     function SaveScreen(
@@ -1960,7 +1960,8 @@ end;
         SavedAreaHeight: integer): TRGBImage; overload;
     function SaveScreenToGL(
       const xpos, ypos, SavedAreaWidth,
-        SavedAreaHeight: integer): TGLImage; overload;
+        SavedAreaHeight: integer;
+      const ScalingPossible: boolean = false): TGLImage; overload;
 
     { Asks and saves current screenshot.
       Asks user where to save the file (using @link(FileDialog),
@@ -3515,22 +3516,23 @@ begin
     SavedAreaWidth, SavedAreaHeight, ReadBuffer);
 end;
 
-function TCastleWindowBase.SaveScreenToGL: TGLImage;
+function TCastleWindowBase.SaveScreenToGL(const ScalingPossible: boolean): TGLImage;
 begin
   if DoubleBuffer then
   begin
     EventBeforeDraw;
     EventDraw;
-    Result := SaveScreenToGL_NoFlush(0, 0, Width, Height, GL_BACK);
+    Result := SaveScreenToGL_NoFlush(0, 0, Width, Height, GL_BACK, ScalingPossible);
   end else
   begin
     FlushRedisplay;
-    Result := SaveScreenToGL_NoFlush(0, 0, Width, Height, GL_FRONT);
+    Result := SaveScreenToGL_NoFlush(0, 0, Width, Height, GL_FRONT, ScalingPossible);
   end;
 end;
 
 function TCastleWindowBase.SaveScreenToGL(
-  const xpos, ypos, SavedAreaWidth, SavedAreaHeight: integer): TGLImage;
+  const xpos, ypos, SavedAreaWidth, SavedAreaHeight: integer;
+  const ScalingPossible: boolean): TGLImage;
 var
   ReadBuffer: TGLenum;
 begin
@@ -3545,7 +3547,7 @@ begin
     ReadBuffer := GL_FRONT;
   end;
   Result := SaveScreenToGL_NoFlush(xpos, ypos,
-    SavedAreaWidth, SavedAreaHeight, ReadBuffer);
+    SavedAreaWidth, SavedAreaHeight, ReadBuffer, ScalingPossible);
 end;
 
 procedure TCastleWindowBase.SaveScreenDialog(ProposedURL: string);

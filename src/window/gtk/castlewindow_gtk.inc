@@ -1214,7 +1214,7 @@ begin
   { prepare Data }
   Data.Answered := false;
 
-  Mode := TGLModeFrozenScreen.Create(Self, 0);
+  Mode := TGLModeFrozenScreen.Create(Self as TCastleWindowCustom { TODO hack }, 0);
   try
     gtk_widget_show(GTK_WIDGET(ADialog));
     while not Data.Answered do Application.ProcessMessage(true, true);
@@ -1245,7 +1245,7 @@ begin
 
   Data.Answered := false;
 
-  Mode := TGLModeFrozenScreen.Create(Self, 0);
+  Mode := TGLModeFrozenScreen.Create(Self as TCastleWindowCustom { TODO hack }, 0);
   try
     gtk_widget_show(GTK_WIDGET(ADialog));
     while not Data.Answered do Application.ProcessMessage(true, true);

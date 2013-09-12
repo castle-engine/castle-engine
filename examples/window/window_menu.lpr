@@ -59,7 +59,7 @@ const
 
 procedure Draw(Window: TCastleWindowBase);
 begin
- glClear(GL_COLOR_BUFFER_BIT);
+ GLClear([cbColor], Black);
  glColorv(Colors[CurrentColor]);
 
  if Filled then
