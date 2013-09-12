@@ -818,7 +818,7 @@ procedure TArraysGenerator.PrepareAttributes(var AllowIndexed: boolean);
 begin
   if Geometry is TAbstractComposedGeometryNode then
   begin
-    Arrays.CullBackFaces := (Geometry as TAbstractComposedGeometryNode).FdSolid.Value;
+    Arrays.CullBackFaces := Geometry.Solid;
     Arrays.FrontFaceCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
   end;
 end;

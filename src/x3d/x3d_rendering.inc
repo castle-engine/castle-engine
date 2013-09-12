@@ -60,6 +60,7 @@
     HasBounds2DST: boolean;
     Bounds2DS, Bounds2DT: Integer;
     FIgnoredSolid: boolean; {< keeps value of Solid property when FdSolid is nil }
+    FIgnoredConvex: boolean; {< keeps value of Convex property when FdConvex is nil }
     { Workaround http://bugs.freepascal.org/view.php?id=17402
       by these methods. }
     function CallProxyLocalBoundingBox(
@@ -74,6 +75,8 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
     function GetSolid: boolean;
     procedure SetSolid(const Value: boolean);
+    function GetConvex: boolean;
+    procedure SetConvex(const Value: boolean);
   public
     { Constructor for node.
       Only sets DefaultContainerField to 'geometry', since this is valid
@@ -366,9 +369,13 @@
 
     function ColorField: TSFNode; virtual;
 
-    { Is backface culling used. @nil if given geometry node doesn't have
-      a field to control it. }
+    { Is backface culling used.
+      @nil if given geometry node doesn't have a field to control it. }
     function SolidField: TSFBool; virtual;
+
+    { Are faces guaranteed to be convex.
+      @nil if given geometry node doesn't have a field to control it. }
+    function ConvexField: TSFBool; virtual;
 
     { Should renderer automatically generate 3D texture coordinates,
       in case we will apply 3D texture on this geometry.
@@ -396,10 +403,9 @@
       Default implementation in TAbstractGeometryNode says @true. }
     function Lit(State: TX3DGraphTraverseState): boolean; virtual;
 
-    { Are faces convex. This knowledge is used when calculating normal vectors,
-      and has to be defined only for nodes used with CastleNormals.
-      Default implementation is this class answers @true. }
-    function Convex: boolean; virtual;
+    { Are faces convex. This knowledge is used when calculating normal vectors
+      by CastleNormals. }
+    property Convex: boolean read GetConvex write SetConvex;
 
     { Is backface culling used. }
     property Solid: boolean read GetSolid write SetSolid;
@@ -828,6 +834,7 @@ begin
   DefaultContainerField := 'geometry';
   { to make notes with and without FdSolid behave consistent }
   FIgnoredSolid := true;
+  FIgnoredConvex := true;
 end;
 
 function TAbstractGeometryNode.Coord(State: TX3DGraphTraverseState;
@@ -999,9 +1006,29 @@ begin
   Result := true;
 end;
 
-function TAbstractGeometryNode.Convex: boolean;
+function TAbstractGeometryNode.ConvexField: TSFBool;
 begin
-  Result := true;
+  Result := nil;
+end;
+
+function TAbstractGeometryNode.GetConvex: boolean;
+var
+  F: TSFBool;
+begin
+  F := ConvexField;
+  if F <> nil then
+    Result := F.Value else
+    Result := FIgnoredConvex;
+end;
+
+procedure TAbstractGeometryNode.SetConvex(const Value: boolean);
+var
+  F: TSFBool;
+begin
+  F := ConvexField;
+  if F <> nil then
+    F.Send(Value) else
+    FIgnoredConvex := Value;
 end;
 
 function TAbstractGeometryNode.SolidField: TSFBool;

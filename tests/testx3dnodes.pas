@@ -86,6 +86,7 @@ type
     procedure TestConvertToX3D;
     procedure TestReadingWritingQuotes;
     procedure TestSolid;
+    procedure TestConvex;
   end;
 
 implementation
@@ -1796,6 +1797,37 @@ begin
     //Assert(not LineSet.FdSolid.Value);
     Assert(LineSet.SolidField = nil);
     Assert(not LineSet.Solid);
+  finally FreeAndNil(LineSet) end;
+end;
+
+procedure TTestX3DNodes.TestConvex;
+var
+  IFS: TIndexedFaceSetNode;
+  LineSet: TLineSetNode;
+begin
+  IFS := TIndexedFaceSetNode.Create('', '');
+  try
+    Assert(IFS.FdConvex.Value);
+    Assert(IFS.ConvexField.Value);
+    Assert(IFS.Convex);
+
+    IFS.Convex := false;
+    Assert(not IFS.FdConvex.Value);
+    Assert(not IFS.ConvexField.Value);
+    Assert(not IFS.Convex);
+  finally FreeAndNil(IFS) end;
+
+  // LineSet doesn't have FdConvex field, but still Convex property should exist
+  LineSet := TLineSetNode.Create('', '');
+  try
+    //Assert(LineSet.FdConvex.Value);
+    Assert(LineSet.ConvexField = nil);
+    Assert(LineSet.Convex);
+
+    LineSet.Convex := false;
+    //Assert(not LineSet.FdConvex.Value);
+    Assert(LineSet.ConvexField = nil);
+    Assert(not LineSet.Convex);
   finally FreeAndNil(LineSet) end;
 end;
 

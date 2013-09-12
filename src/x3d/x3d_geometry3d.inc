@@ -258,7 +258,6 @@
 
     private FFdConvex: TSFBool;
     public property FdConvex: TSFBool read FFdConvex;
-    function Convex: boolean; override;
 
     private FFdCreaseAngle: TSFFloat;
     public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
@@ -285,6 +284,7 @@
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
+    function ConvexField: TSFBool; override;
 
     { For given Index, return appropriate FdCrossIndex item as 3D vertex.
       That is, uses FdCrossIndex values as X, Z of 3D vertex and sets Y = 0
@@ -348,7 +348,7 @@
 
     private FFdConvex: TSFBool;
     public property FdConvex: TSFBool read FFdConvex;
-    function Convex: boolean; override;
+    function ConvexField: TSFBool; override;
 
     private FFdCoordIndex: TMFInt32;
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
@@ -1195,9 +1195,9 @@ begin
   Fdspine.Changed;
 end;
 
-function TExtrusionNode.Convex: boolean;
+function TExtrusionNode.ConvexField: TSFBool;
 begin
-  Result := FdConvex.Value;
+  Result := FdConvex;
 end;
 
 function TExtrusionNode.SolidField: TSFBool;
@@ -1318,9 +1318,9 @@ begin
   FdtexCoordIndex.Changed;
 end;
 
-function TIndexedFaceSetNode.Convex: boolean;
+function TIndexedFaceSetNode.ConvexField: TSFBool;
 begin
-  Result := FdConvex.Value;
+  Result := FdConvex;
 end;
 
 procedure TSphereNode.CreateNode;
