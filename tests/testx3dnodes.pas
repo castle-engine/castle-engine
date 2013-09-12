@@ -85,6 +85,7 @@ type
     procedure TestRootNodeMeta;
     procedure TestConvertToX3D;
     procedure TestReadingWritingQuotes;
+    procedure TestSolid;
   end;
 
 implementation
@@ -1765,6 +1766,37 @@ begin
     FreeAndNil(Node);
     FreeAndNil(TempStream);
   end;
+end;
+
+procedure TTestX3DNodes.TestSolid;
+var
+  IFS: TIndexedFaceSetNode;
+  LineSet: TLineSetNode;
+begin
+  IFS := TIndexedFaceSetNode.Create('', '');
+  try
+    Assert(IFS.FdSolid.Value);
+    Assert(IFS.SolidField.Value);
+    Assert(IFS.Solid);
+
+    IFS.Solid := false;
+    Assert(not IFS.FdSolid.Value);
+    Assert(not IFS.SolidField.Value);
+    Assert(not IFS.Solid);
+  finally FreeAndNil(IFS) end;
+
+  // LineSet doesn't have FdSolid field, but still Solid property should exist
+  LineSet := TLineSetNode.Create('', '');
+  try
+    //Assert(LineSet.FdSolid.Value);
+    Assert(LineSet.SolidField = nil);
+    Assert(LineSet.Solid);
+
+    LineSet.Solid := false;
+    //Assert(not LineSet.FdSolid.Value);
+    Assert(LineSet.SolidField = nil);
+    Assert(not LineSet.Solid);
+  finally FreeAndNil(LineSet) end;
 end;
 
 initialization

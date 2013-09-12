@@ -112,6 +112,7 @@
     { This returns FdFontStyle.Value. Returns nil if FdFontStyle.Value
       is nil or if it's not TFontStyleNode. }
     function FontStyle: TFontStyleNode;
+    function SolidField: TSFBool; override;
   end;
 
   { BlendMode node.
@@ -540,6 +541,13 @@ begin
     Result := TFontStyleNode(FdFontStyle.Value) else
     Result := nil;
 end;
+
+function TText3DNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
+end;
+
+{ TBlendModeNode ------------------------------------------------------------- }
 
 class function TBlendModeNode.ClassNodeTypeName: string;
 begin

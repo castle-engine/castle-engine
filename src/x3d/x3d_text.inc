@@ -131,6 +131,7 @@
     { This returns FdFontStyle.Value. Returns nil if FdFontStyle.Value
       is nil or if it's not TFontStyleNode. }
     function FontStyle: TFontStyleNode;
+    function SolidField: TSFBool; override;
   end;
 
 {$endif read_interface}
@@ -476,6 +477,11 @@ begin
      (FdFontStyle.Value is TFontStyleNode) then
     Result := TFontStyleNode(FdFontStyle.Value) else
     Result := nil;
+end;
+
+function TTextNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
 end;
 
 procedure RegisterTextNodes;

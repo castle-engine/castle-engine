@@ -3787,11 +3787,8 @@ var
     SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
-        if ((SI.Current.Geometry is TAbstractComposedGeometryNode) and (TAbstractComposedGeometryNode(SI.Current.Geometry).FdColor.Value = ANode)) or
-           ((SI.Current.Geometry is TIndexedLineSetNode          ) and (TIndexedLineSetNode          (SI.Current.Geometry).FdColor.Value = ANode)) or
-           ((SI.Current.Geometry is TLineSetNode                 ) and (TLineSetNode                 (SI.Current.Geometry).FdColor.Value = ANode)) or
-           ((SI.Current.Geometry is TPointSetNode                ) and (TPointSetNode                (SI.Current.Geometry).FdColor.Value = ANode)) or
-           ((SI.Current.Geometry is TElevationGridNode           ) and (TElevationGridNode           (SI.Current.Geometry).FdColor.Value = ANode)) then
+        if (SI.Current.Geometry.ColorField <> nil) and
+           (SI.Current.Geometry.ColorField.Value = ANode) then
           SI.Current.Changed(false, Changes);
     finally FreeAndNil(SI) end;
   end;

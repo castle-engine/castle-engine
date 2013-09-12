@@ -223,6 +223,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+    function SolidField: TSFBool; override;
   end;
 
   TNurbsTextureSurfaceNode = class(TX3DNode)
@@ -749,6 +750,11 @@ begin
     Result := (UTess - 1) * (VTess - 1) * 2;
   end else
     Result := 0;
+end;
+
+function TNurbsSurfaceNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
 end;
 
 procedure TNurbsTextureSurfaceNode.CreateNode;

@@ -18,7 +18,8 @@ unit CastleArraysGenerator;
 
 interface
 
-uses CastleShapes, X3DNodes, X3DFields, CastleUtils, CastleGeometryArrays, CastleVectors;
+uses CastleShapes, X3DNodes, X3DFields, CastleUtils, CastleGeometryArrays,
+  CastleVectors;
 
 type
   TRadianceTransferFunction = function (Node: TAbstractGeometryNode;

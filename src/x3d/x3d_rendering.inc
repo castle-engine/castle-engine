@@ -59,6 +59,7 @@
   private
     HasBounds2DST: boolean;
     Bounds2DS, Bounds2DT: Integer;
+    FIgnoredSolid: boolean; {< keeps value of Solid property when FdSolid is nil }
     { Workaround http://bugs.freepascal.org/view.php?id=17402
       by these methods. }
     function CallProxyLocalBoundingBox(
@@ -71,6 +72,8 @@
     function CallProxyVerticesCount(
       OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+    function GetSolid: boolean;
+    procedure SetSolid(const Value: boolean);
   public
     { Constructor for node.
       Only sets DefaultContainerField to 'geometry', since this is valid
@@ -354,12 +357,18 @@
       since "color" field may contain only one of them.
 
       @groupBegin }
-    function Color: TMFVec3f; virtual;
-    function ColorRGBA: TMFColorRGBA; virtual;
+    function Color: TMFVec3f;
+    function ColorRGBA: TMFColorRGBA;
     { @groupEnd }
 
     function FogCoord: TMFFloat; virtual;
     function Attrib: TMFNode; virtual;
+
+    function ColorField: TSFNode; virtual;
+
+    { Is backface culling used. @nil if given geometry node doesn't have
+      a field to control it. }
+    function SolidField: TSFBool; virtual;
 
     { Should renderer automatically generate 3D texture coordinates,
       in case we will apply 3D texture on this geometry.
@@ -391,6 +400,9 @@
       and has to be defined only for nodes used with CastleNormals.
       Default implementation is this class answers @true. }
     function Convex: boolean; virtual;
+
+    { Is backface culling used. }
+    property Solid: boolean read GetSolid write SetSolid;
   end;
 
   { }
@@ -449,8 +461,8 @@
       out ACoord: TMFVec3f): boolean; override;
 
     function TexCoordField: TSFNode; override;
-    function Color: TMFVec3f; override;
-    function ColorRGBA: TMFColorRGBA; override;
+    function ColorField: TSFNode; override;
+    function SolidField: TSFBool; override;
     function FogCoord: TMFFloat; override;
     function Attrib: TMFNode; override;
 
@@ -574,8 +586,7 @@
       out ACoord: TMFVec3f): boolean; override;
     function CoordIndex: TMFLong; override;
 
-    function Color: TMFVec3f; override;
-    function ColorRGBA: TMFColorRGBA; override;
+    function ColorField: TSFNode; override;
     function FogCoord: TMFFloat; override;
     function Attrib: TMFNode; override;
   end;
@@ -690,8 +701,7 @@
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; override;
 
-    function Color: TMFVec3f; override;
-    function ColorRGBA: TMFColorRGBA; override;
+    function ColorField: TSFNode; override;
     function FogCoord: TMFFloat; override;
     function Attrib: TMFNode; override;
 
@@ -744,8 +754,7 @@
     function Coord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
 
-    function Color: TMFVec3f; override;
-    function ColorRGBA: TMFColorRGBA; override;
+    function ColorField: TSFNode; override;
     function FogCoord: TMFFloat; override;
     function Attrib: TMFNode; override;
   end;
@@ -817,6 +826,8 @@ begin
   inherited;
 
   DefaultContainerField := 'geometry';
+  { to make notes with and without FdSolid behave consistent }
+  FIgnoredSolid := true;
 end;
 
 function TAbstractGeometryNode.Coord(State: TX3DGraphTraverseState;
@@ -936,16 +947,6 @@ begin
   Result := true;
 end;
 
-function TAbstractGeometryNode.Color: TMFVec3f;
-begin
-  Result := nil;
-end;
-
-function TAbstractGeometryNode.ColorRGBA: TMFColorRGBA;
-begin
-  Result := nil;
-end;
-
 function TAbstractGeometryNode.FogCoord: TMFFloat;
 begin
   Result := nil;
@@ -1001,6 +1002,60 @@ end;
 function TAbstractGeometryNode.Convex: boolean;
 begin
   Result := true;
+end;
+
+function TAbstractGeometryNode.SolidField: TSFBool;
+begin
+  Result := nil;
+end;
+
+function TAbstractGeometryNode.GetSolid: boolean;
+var
+  F: TSFBool;
+begin
+  F := SolidField;
+  if F <> nil then
+    Result := F.Value else
+    Result := FIgnoredSolid;
+end;
+
+procedure TAbstractGeometryNode.SetSolid(const Value: boolean);
+var
+  F: TSFBool;
+begin
+  F := SolidField;
+  if F <> nil then
+    F.Send(Value) else
+    FIgnoredSolid := Value;
+end;
+
+function TAbstractGeometryNode.ColorField: TSFNode;
+begin
+  Result := nil;
+end;
+
+function TAbstractGeometryNode.Color: TMFVec3f;
+var
+  F: TSFNode;
+begin
+  F := ColorField;
+  if (F <> nil) and
+     (F.Value <> nil) and
+     (F.Value is TColorNode) then
+    Result := TColorNode(F.Value).FdColor else
+    Result := nil;
+end;
+
+function TAbstractGeometryNode.ColorRGBA: TMFColorRGBA;
+var
+  F: TSFNode;
+begin
+  F := ColorField;
+  if (F <> nil) and
+     (F.Value <> nil) and
+     (F.Value is TColorRGBANode) then
+    Result := TColorRGBANode(F.Value).FdColor else
+    Result := nil;
 end;
 
 { Normal X3D spec nodes ------------------------------------------------------ }
@@ -1080,20 +1135,14 @@ begin
   Result := FdTexCoord;
 end;
 
-function TAbstractComposedGeometryNode.Color: TMFVec3f;
+function TAbstractComposedGeometryNode.ColorField: TSFNode;
 begin
-  if (FdColor.Value <> nil) and
-     (FdColor.Value is TColorNode) then
-    Result := TColorNode(FdColor.Value).FdColor else
-    Result := nil;
+  Result := FdColor;
 end;
 
-function TAbstractComposedGeometryNode.ColorRGBA: TMFColorRGBA;
+function TAbstractComposedGeometryNode.SolidField: TSFBool;
 begin
-  if (FdColor.Value <> nil) and
-     (FdColor.Value is TColorRGBANode) then
-    Result := TColorRGBANode(FdColor.Value).FdColor else
-    Result := nil;
+  Result := FdSolid;
 end;
 
 function TAbstractComposedGeometryNode.FogCoord: TMFFloat;
@@ -1318,20 +1367,9 @@ begin
     ACoord := nil;
 end;
 
-function TIndexedLineSetNode.Color: TMFVec3f;
+function TIndexedLineSetNode.ColorField: TSFNode;
 begin
-  if (FdColor.Value <> nil) and
-     (FdColor.Value is TColorNode) then
-    Result := TColorNode(FdColor.Value).FdColor else
-    Result := nil;
-end;
-
-function TIndexedLineSetNode.ColorRGBA: TMFColorRGBA;
-begin
-  if (FdColor.Value <> nil) and
-     (FdColor.Value is TColorRGBANode) then
-    Result := TColorRGBANode(FdColor.Value).FdColor else
-    Result := nil;
+  Result := FdColor;
 end;
 
 function TIndexedLineSetNode.FogCoord: TMFFloat;
@@ -1533,20 +1571,9 @@ begin
     ACoord := nil;
 end;
 
-function TLineSetNode.Color: TMFVec3f;
+function TLineSetNode.ColorField: TSFNode;
 begin
-  if (FdColor.Value <> nil) and
-     (FdColor.Value is TColorNode) then
-    Result := TColorNode(FdColor.Value).FdColor else
-    Result := nil;
-end;
-
-function TLineSetNode.ColorRGBA: TMFColorRGBA;
-begin
-  if (FdColor.Value <> nil) and
-     (FdColor.Value is TColorRGBANode) then
-    Result := TColorRGBANode(FdColor.Value).FdColor else
-    Result := nil;
+  Result := FdColor;
 end;
 
 function TLineSetNode.FogCoord: TMFFloat;
@@ -1661,20 +1688,9 @@ begin
     ACoord := nil;
 end;
 
-function TPointSetNode.Color: TMFVec3f;
+function TPointSetNode.ColorField: TSFNode;
 begin
-  if (FdColor.Value <> nil) and
-     (FdColor.Value is TColorNode) then
-    Result := TColorNode(FdColor.Value).FdColor else
-    Result := nil;
-end;
-
-function TPointSetNode.ColorRGBA: TMFColorRGBA;
-begin
-  if (FdColor.Value <> nil) and
-     (FdColor.Value is TColorRGBANode) then
-    Result := TColorRGBANode(FdColor.Value).FdColor else
-    Result := nil;
+  Result := FdColor;
 end;
 
 function TPointSetNode.FogCoord: TMFFloat;

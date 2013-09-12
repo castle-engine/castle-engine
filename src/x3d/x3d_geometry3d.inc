@@ -30,6 +30,7 @@
     private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
+    function SolidField: TSFBool; override;
 
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
@@ -72,6 +73,7 @@
     private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
+    function SolidField: TSFBool; override;
 
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
@@ -121,6 +123,7 @@
     private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
+    function SolidField: TSFBool; override;
 
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
@@ -197,10 +200,10 @@
       have any vertices/triangles etc. }
     function IsNotEmpty: boolean;
 
-    function Color: TMFVec3f; override;
-    function ColorRGBA: TMFColorRGBA; override;
+    function ColorField: TSFNode; override;
     function FogCoord: TMFFloat; override;
     function Attrib: TMFNode; override;
+    function SolidField: TSFBool; override;
 
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
@@ -281,6 +284,7 @@
     private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
+    function SolidField: TSFBool; override;
 
     { For given Index, return appropriate FdCrossIndex item as 3D vertex.
       That is, uses FdCrossIndex values as X, Z of 3D vertex and sets Y = 0
@@ -390,6 +394,7 @@
     private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
+    function SolidField: TSFBool; override;
 
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
@@ -448,6 +453,13 @@ function TBoxNode.AutoGenerate3DTexCoords: boolean;
 begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
+
+function TBoxNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
+end;
+
+{ TConeNode ------------------------------------------------------------------ }
 
 procedure TConeNode.CreateNode;
 begin
@@ -517,6 +529,13 @@ function TConeNode.AutoGenerate3DTexCoords: boolean;
 begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
+
+function TConeNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
+end;
+
+{ TCylinderNode -------------------------------------------------------------- }
 
 procedure TCylinderNode.CreateNode;
 begin
@@ -591,6 +610,13 @@ function TCylinderNode.AutoGenerate3DTexCoords: boolean;
 begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
+
+function TCylinderNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
+end;
+
+{ TElevationGridNode --------------------------------------------------------- }
 
 procedure TElevationGridNode.CreateNode;
 begin
@@ -703,20 +729,9 @@ begin
     (FdHeight.Count >= FdXDimension.Value * FdZDimension.Value);
 end;
 
-function TElevationGridNode.Color: TMFVec3f;
+function TElevationGridNode.ColorField: TSFNode;
 begin
-  if (FdColor.Value <> nil) and
-     (FdColor.Value is TColorNode) then
-    Result := TColorNode(FdColor.Value).FdColor else
-    Result := nil;
-end;
-
-function TElevationGridNode.ColorRGBA: TMFColorRGBA;
-begin
-  if (FdColor.Value <> nil) and
-     (FdColor.Value is TColorRGBANode) then
-    Result := TColorRGBANode(FdColor.Value).FdColor else
-    Result := nil;
+  Result := FdColor;
 end;
 
 function TElevationGridNode.FogCoord: TMFFloat;
@@ -738,6 +753,13 @@ begin
   FdHeight.Assign(Value);
   FdHeight.Changed;
 end;
+
+function TElevationGridNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
+end;
+
+{ TExtrusionNode ------------------------------------------------------------- }
 
 procedure TExtrusionNode.CreateNode;
 begin
@@ -1178,6 +1200,13 @@ begin
   Result := FdConvex.Value;
 end;
 
+function TExtrusionNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
+end;
+
+{ TIndexedFaceSetNode -------------------------------------------------------- }
+
 procedure TIndexedFaceSetNode.CreateNode;
 begin
   inherited;
@@ -1340,6 +1369,13 @@ function TSphereNode.AutoGenerate3DTexCoords: boolean;
 begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
+
+function TSphereNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
+end;
+
+{ routines ------------------------------------------------------------------- }
 
 procedure RegisterGeometry3DNodes;
 begin

@@ -48,6 +48,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function Coord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
+    function SolidField: TSFBool; override;
 
     private FFdControlPoint: TSFNode;
     public property FdControlPoint: TSFNode read FFdControlPoint;
@@ -368,6 +369,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
+    function SolidField: TSFBool; override;
 
     private FFdCrossSectionCurve: TSFNode;
     public property FdCrossSectionCurve: TSFNode read FFdCrossSectionCurve;
@@ -398,6 +400,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
+    function SolidField: TSFBool; override;
 
     private FFdProfileCurve: TSFNode;
     public property FdProfileCurve: TSFNode read FFdProfileCurve;
@@ -1309,6 +1312,11 @@ begin
     Result := 0;
 end;
 
+function TAbstractNurbsSurfaceGeometryNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
+end;
+
 procedure TNurbsPositionInterpolatorNode.CreateNode;
 begin
   inherited;
@@ -1634,6 +1642,11 @@ end;
 {$define TGeometryNotImplemented := TNurbsSweptSurfaceNode}
 GeometryNotImplemented
 
+function TNurbsSweptSurfaceNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
+end;
+
 procedure TNurbsSwungSurfaceNode.CreateNode;
 begin
   inherited;
@@ -1677,6 +1690,11 @@ end;
 
 {$define TGeometryNotImplemented := TNurbsSwungSurfaceNode}
 GeometryNotImplemented
+
+function TNurbsSwungSurfaceNode.SolidField: TSFBool;
+begin
+  Result := FdSolid;
+end;
 
 procedure TNurbsTextureCoordinateNode.CreateNode;
 begin

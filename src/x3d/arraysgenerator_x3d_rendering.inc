@@ -265,8 +265,8 @@ constructor TTriangleSetGenerator.Create(AShape: TShape; AOverTriangulate: boole
 begin
   inherited;
 
-  Color := (Geometry as TAbstractComposedGeometryNode).Color;
-  ColorRGBA := (Geometry as TAbstractComposedGeometryNode).ColorRGBA;
+  Color := Geometry.Color;
+  ColorRGBA := Geometry.ColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -409,8 +409,8 @@ constructor TTriangleFanSetGenerator.Create(AShape: TShape; AOverTriangulate: bo
 begin
   inherited;
 
-  Color := (Geometry as TAbstractComposedGeometryNode).Color;
-  ColorRGBA := (Geometry as TAbstractComposedGeometryNode).ColorRGBA;
+  Color := Geometry.Color;
+  ColorRGBA := Geometry.ColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -621,8 +621,8 @@ begin
 
   { Rest of this constructor initializes for X3D [Indexed]TriangleStripSet }
 
-  Color := (Geometry as TAbstractComposedGeometryNode).Color;
-  ColorRGBA := (Geometry as TAbstractComposedGeometryNode).ColorRGBA;
+  Color := Geometry.Color;
+  ColorRGBA := Geometry.ColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -810,8 +810,8 @@ constructor TQuadSetGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
 begin
   inherited;
 
-  Color := (Geometry as TAbstractComposedGeometryNode).Color;
-  ColorRGBA := (Geometry as TAbstractComposedGeometryNode).ColorRGBA;
+  Color := Geometry.Color;
+  ColorRGBA := Geometry.ColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
