@@ -132,7 +132,7 @@ type
     FFlyingTimeOut: TFloatTime;
     { FadeOut settings. }
     FFadeOutIntensity: Single;
-    FFadeOutColor: TVector3Single;
+    FFadeOutColor: TCastleColor;
 
     FFallMinHeightToSound: Single;
     FFallMinHeightToDamage: Single;
@@ -157,9 +157,10 @@ type
 
     { This sets life, just like SetLife.
       But in case of life loss, the fadeout is done with specified
-      Color (while SetLife always uses red color). }
+      Color (while SetLife always uses red color).
+      Color's alpha doesn't matter for now. }
     procedure SetLifeCustomFadeOut(const Value: Single;
-      const Color: TVector3Single);
+      const Color: TCastleColor);
 
     procedure SwimmingChangeSoundRelease(Sender: TSound);
     procedure SwimmingSoundRelease(Sender: TSound);
@@ -260,9 +261,9 @@ type
       on the screen, we merely store and animate the FadeOutColor and FadeOutIntensity
       properties. To draw the effect, use a procedure like GLFadeRectangle
       inside your 2D controls drawing code, see engine tutorial for example. }
-    procedure FadeOut(const Color: TVector3Single);
+    procedure FadeOut(const Color: TCastleColor);
 
-    property FadeOutColor: TVector3Single read FFadeOutColor;
+    property FadeOutColor: TCastleColor read FFadeOutColor;
     property FadeOutIntensity: Single read FFadeOutIntensity;
 
     { @noAutoLinkHere }
@@ -460,7 +461,7 @@ begin
       glEnable(GL_DEPTH_TEST);
       glPushMatrix;
         glMultMatrix(Params.RenderTransform);
-        glColorv(Gray3Single);
+        glColorv(Gray);
         glDrawBox3DWire(BoundingBox);
       glPopMatrix;
     glPopAttrib;
@@ -909,7 +910,7 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
         begin
           SoundEngine.Sound(stPlayerToxicPain);
           SetLifeCustomFadeOut(Life - (GroundProperty.ToxicDamageConst +
-            Random * GroundProperty.ToxicDamageRandom), Green3Single);
+            Random * GroundProperty.ToxicDamageRandom), Green);
         end;
       end;
     end;
@@ -1049,7 +1050,7 @@ begin
   UpdateFootstepsSoundPlaying;
 end;
 
-procedure TPlayer.FadeOut(const Color: TVector3Single);
+procedure TPlayer.FadeOut(const Color: TCastleColor);
 begin
   FFadeOutColor := Color;
   FFadeOutIntensity := 1;
@@ -1073,7 +1074,7 @@ begin
 end;
 
 procedure TPlayer.SetLifeCustomFadeOut(const Value: Single;
-  const Color: TVector3Single);
+  const Color: TCastleColor);
 begin
   if (Life > 0) and (Value <= 0) then
   begin
@@ -1091,7 +1092,7 @@ end;
 
 procedure TPlayer.SetLife(const Value: Single);
 begin
-  SetLifeCustomFadeOut(Value, Red3Single);
+  SetLifeCustomFadeOut(Value, Red);
   { cancel flying when dead }
   if Dead then
     Flying := false;

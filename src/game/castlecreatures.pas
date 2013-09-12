@@ -1377,7 +1377,7 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
   var
     R: Single;
   begin
-    glColorv(Gray3Single);
+    glColorv(Gray);
     glDrawBox3DWire(BoundingBox);
 
     if Sphere(R) then
@@ -1395,7 +1395,7 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
       glPopMatrix;
     end;
 
-    glColorv(Yellow3Single);
+    glColorv(Yellow);
     glDrawAxisWire(Middle, BoundingBox.AverageSize(true, 0));
   end;
 
@@ -2449,13 +2449,13 @@ begin
     AxisSize := BoundingBox.AverageSize(true, 0);
     if HasAlternativeTarget then
     begin
-      glColorv(Blue3Single);
+      glColorv(Blue);
       glDrawAxisWire(AlternativeTarget, AxisSize);
     end;
 
     if HasLastSeenEnemy then
     begin
-      glColorv(Red3Single);
+      glColorv(Red);
       glDrawAxisWire(LastSeenEnemy, AxisSize);
     end;
   end;

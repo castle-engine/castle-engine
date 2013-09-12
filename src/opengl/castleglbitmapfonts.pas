@@ -20,7 +20,8 @@ unit CastleGLBitmapFonts;
 
 interface
 
-uses CastleVectors, CastleBitmapFonts, CastleGL, CastleGLUtils, Classes;
+uses CastleVectors, CastleBitmapFonts, CastleGL, CastleGLUtils, Classes,
+  CastleColors;
 
 type
   { Abstract class for all OpenGL bitmap fonts. }
@@ -58,9 +59,9 @@ type
       May require 1 free slot on the attributes stack.
       May only be called when current matrix is modelview.
       Doesn't modify any OpenGL state or matrix, except it moves raster position. }
-    procedure Print(const X, Y: Integer; const Color: TVector4Byte;
+    procedure Print(const X, Y: Integer; const Color: TCastleColor;
       const S: string); overload; virtual; abstract;
-    procedure Print(const Pos: TVector2Integer; const Color: TVector4Byte;
+    procedure Print(const Pos: TVector2Integer; const Color: TCastleColor;
       const S: string); overload;
     procedure Print(const X, Y: Integer; const S: string); overload; deprecated;
     procedure Print(const s: string); overload; deprecated;
@@ -172,7 +173,7 @@ type
       explicit Color parameter use CurrentColor.
 
       @groupBegin }
-    procedure PrintStrings(const X0, Y0: Integer; const Color: TVector4Byte;
+    procedure PrintStrings(const X0, Y0: Integer; const Color: TCastleColor;
       const Strs: TStrings; const Tags: boolean;
       const BonusVerticalSpace: TGLint); overload;
     procedure PrintStrings(const Strs: TStrings;
@@ -212,7 +213,7 @@ type
       explicit Color parameter uses CurrentColor.
 
       @groupBegin }
-    function PrintBrokenString(X0, Y0: Integer; const Color: TVector4Byte;
+    function PrintBrokenString(X0, Y0: Integer; const Color: TCastleColor;
       const S: string; const MaxLineWidth: Integer;
       const PositionsFirst: boolean;
       const BonusVerticalSpace: Integer): Integer;
@@ -247,7 +248,7 @@ type
     constructor Create(ABitmapFont: TBitmapFont);
     destructor Destroy; override;
 
-    procedure Print(const X, Y: Integer; const Color: TVector4Byte;
+    procedure Print(const X, Y: Integer; const Color: TCastleColor;
       const s: string); override;
     procedure PrintAndMove(const s: string); override;
     function TextWidth(const s: string): integer; override;
@@ -263,10 +264,10 @@ uses CastleUtils, CastleStringUtils, CastleClassUtils, Math;
 { HandleTags ----------------------------------------------------------------- }
 
 function HandleTags(const S: string;
-  out ColorChange: boolean; out Color: TVector4Byte): string;
+  out ColorChange: boolean; out Color: TCastleColor): string;
 
   function ExtractColor(const S: string; P: Integer;
-    out Color: TVector4Byte; out Length: Integer): boolean;
+    out Color: TCastleColor; out Length: Integer): boolean;
   const
     HexDigits = ['0'..'9', 'a'..'f', 'A'..'F'];
   begin
@@ -279,16 +280,16 @@ function HandleTags(const S: string;
     Length := 6;
     if Result then
     begin
-      Color[0] := StrHexToInt(Copy(S, P    , 2));
-      Color[1] := StrHexToInt(Copy(S, P + 2, 2));
-      Color[2] := StrHexToInt(Copy(S, P + 4, 2));
+      Color[0] := StrHexToInt(Copy(S, P    , 2)) / 255;
+      Color[1] := StrHexToInt(Copy(S, P + 2, 2)) / 255;
+      Color[2] := StrHexToInt(Copy(S, P + 4, 2)) / 255;
       if SCharIs(S, P + 6, HexDigits) and
          SCharIs(S, P + 7, HexDigits) then
       begin
         Length += 2;
-        Color[3] := StrHexToInt(Copy(S, P + 6, 2));
+        Color[3] := StrHexToInt(Copy(S, P + 6, 2)) / 255;
       end else
-        Color[3] := 255;
+        Color[3] := 1.0;
     end;
   end;
 
@@ -337,7 +338,7 @@ end;
 { TGLBitmapFontAbstract ------------------------------------------------------}
 
 procedure TGLBitmapFontAbstract.Print(const Pos: TVector2Integer;
-  const Color: TVector4Byte; const S: string);
+  const Color: TCastleColor; const S: string);
 begin
   Print(Pos[0], Pos[1], Color, S);
 end;
@@ -450,7 +451,7 @@ function TGLBitmapFontAbstract.MaxTextWidth(SList: TStrings;
 var
   I, LineW: integer;
   DummyColorChange: boolean;
-  DummyColor: TVector4Byte;
+  DummyColor: TCastleColor;
   S: string;
 begin
   result := 0;
@@ -465,7 +466,7 @@ begin
 end;
 
 procedure TGLBitmapFontAbstract.PrintStrings(const X0, Y0: Integer;
-  const Color: TVector4Byte; const Strs: TStrings;
+  const Color: TCastleColor; const Strs: TStrings;
   const Tags: boolean; const BonusVerticalSpace: TGLint);
 var
   Line: Integer;
@@ -478,7 +479,7 @@ var
 var
   S: string;
   ColorChange: boolean;
-  ColorChanged: TVector4Byte;
+  ColorChanged: TCastleColor;
 begin
   for Line := 0 to Strs.Count - 1 do
   begin
@@ -515,7 +516,7 @@ begin
 end;
 
 function TGLBitmapFontAbstract.PrintBrokenString(
-  X0, Y0: integer; const Color: TVector4Byte; const s: string;
+  X0, Y0: integer; const Color: TCastleColor; const s: string;
   const MaxLineWidth: Integer;
   const PositionsFirst: boolean;
   const BonusVerticalSpace: Integer): Integer;
@@ -582,7 +583,7 @@ begin
   inherited;
 end;
 
-procedure TGLBitmapFont.Print(const X, Y: Integer; const Color: TVector4Byte;
+procedure TGLBitmapFont.Print(const X, Y: Integer; const Color: TCastleColor;
   const S: string);
 
   { Sets raster position in window
@@ -647,8 +648,8 @@ begin
       It will be correctly saved/restored by glPush/PopAttrib,
       as docs say that GL_CURRENT_BIT saves
       "RGBA color associated with current raster position". }
-    glColor3ubv(@Color); // saved by GL_COLOR_BUFFER_BIT
-    if Color[3] < 255 then
+    glColorv(Color); // saved by GL_COLOR_BUFFER_BIT
+    if Color[3] < 1.0 then
     begin
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
       glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT

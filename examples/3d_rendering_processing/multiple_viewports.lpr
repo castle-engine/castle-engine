@@ -342,7 +342,7 @@ begin
   { add a background, since our viewports (deliberately, for demo)
     do not cover whole window. }
   Background := TCastleSimpleBackground.Create(Application);
-  Background.Color := Vector4Byte(128, 128, 255, 255);
+  Background.Color := Vector4Single(0.5, 0.5, 1.0, 1.0);
   Window.Controls.InsertBack(Background);
 
   Window.StencilBits := 8;

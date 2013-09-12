@@ -232,7 +232,7 @@ begin
     shNone: ;
     shWire:
       begin
-        glColorv(Red3Single);
+        glColorv(Red);
         glPushAttrib(GL_POLYGON_BIT or GL_LIGHTING_BIT);
           glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
           glDisable(GL_LIGHTING); { saved by GL_LIGHTING_BIT }
@@ -241,7 +241,7 @@ begin
       end;
     shFill:
       begin
-        glColorv(Red3Single);
+        glColorv(Red);
         glPushAttrib(GL_LIGHTING_BIT);
           glShadeModel(GL_FLAT); { saved by GL_LIGHTING_BIT }
           Surface.RenderControlPoints;
@@ -251,7 +251,7 @@ begin
 
   if (CurrentCurve <> - 1) and (CurrentPoint <> -1) then
   begin
-    glColorv(Green3Single);
+    glColorv(Green);
     glPushAttrib(GL_ENABLE_BIT);
       glDisable(GL_LIGHTING); { saved by GL_ENABLE_BIT }
       glDisable(GL_DEPTH_TEST);

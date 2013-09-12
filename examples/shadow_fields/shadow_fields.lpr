@@ -219,7 +219,7 @@ begin
   glPopMatrix;
 
   glEnable(GL_DEPTH_TEST);
-    glColorv(Blue3Single);
+    glColorv(Blue);
     glPointSize(10); { GLRenderer will reset point size }
     glBegin(GL_POINTS);
       glVertexv(NavigatorData[ntSFExplorer].Pos);

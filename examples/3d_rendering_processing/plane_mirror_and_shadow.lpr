@@ -380,7 +380,7 @@ begin
   glPushAttrib(GL_ENABLE_BIT);
     glDisable(GL_LIGHTING);
 
-    glColorv(Yellow3Single);
+    glColorv(Yellow);
     glPointSize(10); { VRML renderer will reset it }
     glBegin(GL_POINTS);
       glVertexv(LightPosition);

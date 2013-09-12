@@ -1822,12 +1822,10 @@ end;
 constructor TCastleTheme.Create;
 begin
   inherited;
-  TooltipTextColor := Vector4Byte(  0,   0,   0);
-  TextColor        := Vector4Byte(  0,   0,   0);
-  BarEmptyColor    := Vector3Byte(192, 192, 192);
-  BarFilledColor   := Vector3Byte(Round(0.2 * 255), Round(0.5 * 255), 0);
-  MessageInputTextColor := Vector4Byte( 85, 255, 255);
-  MessageTextColor      := Vector4Byte(255, 255, 255);
+  TooltipTextColor      := Vector4Single(0   , 0, 0, 1);
+  TextColor             := Vector4Single(0   , 0, 0, 1);
+  MessageInputTextColor := Vector4Single(0.33, 1, 1, 1);
+  MessageTextColor      := Vector4Single(1   , 1, 1, 1);
 
   MessageFont := BitmapFont_BVSansMono_M18;
 

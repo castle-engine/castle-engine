@@ -1117,10 +1117,10 @@ begin
       glPushAttrib(GL_ENABLE_BIT);
         glDisable(GL_LIGHTING);
         glEnable(GL_DEPTH_TEST);
-        glColorv(Gray3Single);
+        glColorv(Gray);
         glDrawBox3DWire(BoundingBox);
         glDrawBox3DWire(BoxRotated);
-        glColorv(Yellow3Single);
+        glColorv(Yellow);
         glDrawAxisWire(Middle, BoxRotated.AverageSize(true, 0));
       glPopAttrib;
     end;

@@ -378,15 +378,15 @@ procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); overload;
 
 procedure GLViewport(const Rect: TRectangle);
 
-function GetCurrentColor: TVector4Byte;
-procedure SetCurrentColor(const Value: TVector4Byte);
+function GetCurrentColor: TCastleColor;
+procedure SetCurrentColor(const Value: TCastleColor);
 
 { Current color, set by glColorv and used for bitmap font printing
   (in case you use deprecated TGLBitmapFont.Print overloads without
   explicit colors).
   You should not depend on this in new programs, rather use TGLBitmapFont.Print
   with explicit Color parameter. }
-property CurrentColor: TVector4Byte read GetCurrentColor write SetCurrentColor;
+property CurrentColor: TCastleColor read GetCurrentColor write SetCurrentColor;
 
 { Simple save/restore of OpenGL pixel store ---------------------------------- }
 
@@ -517,10 +517,15 @@ procedure glDrawBox3DSimple(const Box: TBox3D);
   then fading back to normal, as FadeIntensity goes down from 1.0 to 0.0.
   This is nice to use for a screen effect when player is hurt.
 
+  Only RGB portion of FadeColor is used.
+
   The rectangle is affected by current modelview matrix.
   Requires one attrib stack place. }
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
   const FadeColor: TVector3Single;
+  const FadeIntensity: Single);
+procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
+  const FadeColor: TCastleColor;
   const FadeIntensity: Single);
 
 { Draw a rectangle with blending.
@@ -947,14 +952,14 @@ end;
 { ---------------------------------------------------- }
 
 var
-  FCurrentColor: TVector4Byte;
+  FCurrentColor: TCastleColor;
 
-function GetCurrentColor: TVector4Byte;
+function GetCurrentColor: TCastleColor;
 begin
   Result := FCurrentColor;
 end;
 
-procedure SetCurrentColor(const Value: TVector4Byte);
+procedure SetCurrentColor(const Value: TCastleColor);
 begin
   FCurrentColor := Value;
 end;
@@ -964,25 +969,25 @@ end;
 procedure glColorv(const v: TVector3ub);
 begin
   glColor3ubv(@v);
-  FCurrentColor := Vector4Byte(V, 255);
+  FCurrentColor := Vector4Single(Vector4Byte(V, 255));
 end;
 
 procedure glColorv(const v: TVector4ub);
 begin
   glColor4ubv(@v);
-  FCurrentColor := V;
+  FCurrentColor := Vector4Single(V);
 end;
 
 procedure glColorv(const v: TVector3f);
 begin
   glColor3fv(@v);
-  FCurrentColor := Vector4Byte(Vector4Single(V));
+  FCurrentColor := Vector4Single(V);
 end;
 
 procedure glColorv(const v: TVector4f);
 begin
   glColor4fv(@v);
-  FCurrentColor := Vector4Byte(V);
+  FCurrentColor := V;
 end;
 
 procedure glTranslatev(const V: TVector3f); begin glTranslatef(V[0], V[1], V[2]); end;
@@ -1010,11 +1015,7 @@ end;
 
 procedure glClearColorv(const C: TCastleColor);
 begin
-  glClearColor(
-    C[0] / 255,
-    C[1] / 255,
-    C[2] / 255,
-    C[3] / 255);
+  glClearColor(C[0], C[1], C[2], C[3]);
 end;
 
 procedure glNormalv(const v: TVector3d); begin glNormal3dv(@v); end;
@@ -1322,6 +1323,12 @@ begin
     Color4[3] := 1.0; { alpha always 1.0 in this case }
     GLBlendRectangle(X1, Y1, X2, Y2, SourceFactor, DestinationFactor, Color4);
   end;
+end;
+
+procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
+  const FadeColor: TCastleColor; const FadeIntensity: Single);
+begin
+  GLFadeRectangle(X1, Y1, X2, Y2, Vector3SingleCut(FadeColor), FadeIntensity);
 end;
 
 procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;

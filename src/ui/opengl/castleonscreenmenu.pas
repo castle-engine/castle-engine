@@ -343,10 +343,10 @@ type
       DefaultMenuKeySliderIncrease = K_Right;
       DefaultMenuKeySliderDecrease = K_Left;
 
-      DefaultCurrentItemBorderColor1: TCastleColor = (255, 255, 255, 255) { White  }; { }
-      DefaultCurrentItemBorderColor2: TCastleColor = (128, 128, 128, 255) { Gray   }; { }
-      DefaultCurrentItemColor       : TCastleColor = (255, 255,  85, 255) { Yellow }; { }
-      DefaultNonCurrentItemColor    : TCastleColor = (255, 255, 255, 255) { White  }; { }
+      DefaultCurrentItemBorderColor1: TCastleColor = (1.0, 1.0, 1.0, 1.0) { White  }; { }
+      DefaultCurrentItemBorderColor2: TCastleColor = (0.5, 0.5, 0.5, 1.0) { Gray   }; { }
+      DefaultCurrentItemColor       : TCastleColor = (1.0, 1.0, 0.0, 1.0) { Yellow }; { }
+      DefaultNonCurrentItemColor    : TCastleColor = (1.0, 1.0, 1.0, 1.0) { White  }; { }
 
       DefaultRegularSpaceBetweenItems = 10;
       DefaultBackgroundOpacityNotFocused = 0.4;

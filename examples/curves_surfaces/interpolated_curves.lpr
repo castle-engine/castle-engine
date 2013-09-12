@@ -99,17 +99,17 @@ begin
   begin
     if PreciseCurveVisible then
     begin
-      glColorv(White3Single);
+      glColorv(White);
       PreciseCurve.Render(CurvesRenderSegments);
     end;
     if ApproxCurveVisible then
     begin
-      glColorv(Yellow3Single);
+      glColorv(Yellow);
       ApproxCurve.Render(CurvesRenderSegments);
     end;
     if ApproxCurveControlPointsVisible then
     begin
-      glColorv(LightBlue3Single);
+      glColorv(LightBlue);
       ApproxCurve.RenderControlPoints;
     end;
   end;

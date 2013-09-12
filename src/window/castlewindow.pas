@@ -486,7 +486,7 @@ interface
 uses {$define read_interface_uses}
   {$I castlewindow_backend.inc}
   {$undef read_interface_uses}
-  SysUtils, Classes, CastleVectors, CastleGL, CastleRectangles,
+  SysUtils, Classes, CastleVectors, CastleGL, CastleRectangles, CastleColors,
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
   CastleFileFilters, CastleUIControls, FGL, pk3DConnexion,
@@ -2171,6 +2171,7 @@ end;
       returns false (and does not modify Color).
 
       @groupBegin }
+    function ColorDialog(var Color: TCastleColor): boolean;
     function ColorDialog(var Color: TVector3Single): boolean;
     function ColorDialog(var Color: TVector3Byte): boolean;
     { @groupEnd }
@@ -3581,6 +3582,16 @@ begin
     FFList.AddFiltersFromString(FileFilters);
     Result := FileDialog(Title, URL, OpenDialog, FFList);
   finally FreeAndNil(FFList) end;
+end;
+
+function TCastleWindowBase.ColorDialog(var Color: TCastleColor): boolean;
+var
+  Color3: TVector3Single;
+begin
+  Color3 := Vector3SingleCut(Color);
+  Result := ColorDialog(Color3);
+  if Result then
+    Color := Vector4Single(Color3, 1.0);
 end;
 
 function TCastleWindowBase.ColorDialog(var Color: TVector3Byte): boolean;

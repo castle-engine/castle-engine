@@ -55,7 +55,7 @@ type
     Messages: TNotificationList;
     FHorizontalPosition: THorizontalPosition;
     FVerticalPosition: TVerticalPosition;
-    FColor: TVector4Byte;
+    FColor: TCastleColor;
     FMaxMessages: integer;
     FTimeout: TMilisecTime;
     FHorizontalMargin, FVerticalMargin: Integer;
@@ -92,7 +92,7 @@ type
     function DrawStyle: TUIControlDrawStyle; override;
 
     { Color used to draw messages. Default value is yellow. }
-    property Color: TVector4Byte read FColor write FColor;
+    property Color: TCastleColor read FColor write FColor;
 
     { All the messages passed to @link(Show), collected only if CollectHistory.
       May be @nil when not CollectHistory. }

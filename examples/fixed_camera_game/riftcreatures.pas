@@ -517,7 +517,7 @@ begin
     glPushAttrib(GL_ENABLE_BIT);
       glDisable(GL_LIGHTING);
       glEnable(GL_DEPTH_TEST);
-      glColorv(Gray3Single);
+      glColorv(Gray);
 
       glDrawBox3DWire(BoundingBox);
     glPopAttrib;

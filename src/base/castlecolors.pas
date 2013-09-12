@@ -21,92 +21,50 @@ interface
 uses Math, CastleVectors;
 
 type
-  TCastleColor = TVector4Byte;
+  TCastleColor = TVector4Single;
 
 const
-  { Some colors.
-    3-item colors are in RGB format,
-    4-item colors have additional 4th component always at maximum
-    (1.0 for floats, 255 for bytes etc.)
-
+  { Common color constants, for comfort.
+    They follow the CSS colors constants
+    [http://www.w3.org/TR/CSS21/syndata.html#color-units].
     @groupBegin }
-  Black3Byte  : TVector3Byte = (  0,   0,   0);
-  Red3Byte    : TVector3Byte = (255,   0,   0);
-  Green3Byte  : TVector3Byte = (  0, 255,   0);
-  Blue3Byte   : TVector3Byte = (  0,   0, 255);
-  White3Byte  : TVector3Byte = (255, 255, 255);
-
-  Black      : TCastleColor = (  0,   0,   0, 255);
-  Red        : TCastleColor = (255,   0,   0, 255);
-  Green      : TCastleColor = (  0, 255,   0, 255);
-  Blue       : TCastleColor = (  0,   0, 255, 255);
-  Yellow     : TCastleColor = (255, 255,  85, 255);
-  White      : TCastleColor = (255, 255, 255, 255);
-  LightGreen : TCastleColor = ( 85, 255,  85, 255);
-  Gray       : TCastleColor = (128, 128, 128, 255);
+  Maroon : TCastleColor = ( 0.5 , 0.0 , 0.0 , 1.0);
+  Red    : TCastleColor = ( 1.0 , 0.0 , 0.0 , 1.0);
+  Orange : TCastleColor = ( 1.0 , 0.65, 0.0 , 1.0);
+  Yellow : TCastleColor = ( 1.0 , 1.0 , 0.0 , 1.0);
+  Olive  : TCastleColor = ( 0.5 , 0.5 , 0.0 , 1.0);
+  Purple : TCastleColor = ( 0.5 , 0.0 , 0.5 , 1.0);
+  Fuchsia: TCastleColor = ( 1.0 , 0.0 , 1.0 , 1.0);
+  White  : TCastleColor = ( 1.0 , 1.0 , 1.0 , 1.0);
+  Lime   : TCastleColor = ( 0.0 , 1.0 , 0.0 , 1.0);
+  Green  : TCastleColor = ( 0.0 , 0.5 , 0.0 , 1.0);
+  Navy   : TCastleColor = ( 0.0 , 0.0 , 0.5 , 1.0);
+  Blue   : TCastleColor = ( 0.0 , 0.0 , 1.0 , 1.0);
+  Aqua   : TCastleColor = ( 0.0 , 1.0 , 1.0 , 1.0);
+  Teal   : TCastleColor = ( 0.0 , 0.5 , 0.5 , 1.0);
+  Black  : TCastleColor = ( 0.0 , 0.0 , 0.0 , 1.0);
+  Silver : TCastleColor = ( 0.75, 0.75, 0.75, 1.0);
+  Gray   : TCastleColor = ( 0.5 , 0.5 , 0.5 , 1.0);
   { @groupEnd }
 
-  { Standard 16 colors.
-    @groupBegin }
-  Black3Single        : TVector3Single = (   0,    0,    0);
-  Blue3Single         : TVector3Single = (   0,    0,  0.6);
-  Green3Single        : TVector3Single = (   0,  0.6,    0);
-  Cyan3Single         : TVector3Single = (   0,  0.6,  0.6);
-  Red3Single          : TVector3Single = ( 0.6,    0,    0);
-  Magenta3Single      : TVector3Single = ( 0.6,    0,  0.6);
-  Brown3Single        : TVector3Single = ( 0.6,  0.3,    0);
-  LightGray3Single    : TVector3Single = ( 0.6,  0.6,  0.6);
-  DarkGray3Single     : TVector3Single = ( 0.3,  0.3,  0.3);
-  LightBlue3Single    : TVector3Single = ( 0.3,  0.3,    1);
-  LightGreen3Single   : TVector3Single = ( 0.3,    1,  0.3);
-  LightCyan3Single    : TVector3Single = ( 0.3,    1,    1);
-  LightRed3Single     : TVector3Single = (   1,  0.3,  0.3);
-  LightMagenta3Single : TVector3Single = (   1,  0.3,    1);
-  Yellow3Single       : TVector3Single = (   1,    1,  0.3);
-  White3Single        : TVector3Single = (   1,    1,    1);
-  { @groupEnd }
+  { Additional color constants. }
+  LightGreen: TCastleColor = ( 0.33, 1.0 , 0.33, 1.0);
+  LightBlue : TCastleColor = ( 0.33, 0.33, 1.0 , 1.0);
 
-  { Some additional colors.
-    @groupBegin }
-  Gray3Single         : TVector3Single = ( 0.5,  0.5,  0.5);
-  DarkGreen3Single    : TVector3Single = (   0,  0.3,    0);
-  DarkBrown3Single    : TVector3Single = (0.63, 0.15,    0);
-  Orange3Single       : TVector3Single = (   1,  0.5,    0);
-  { @groupEnd }
-
-  { 4-components versions of 3Single colors above.
-    Just for your comfort (and some small speed gain sometimes),
-    as opposed to calling Vector4Single(Xxx3Single) all the time.
-
-    @groupBegin }
-  Black4Single        : TVector4Single = (   0,    0,    0, 1);
-  Blue4Single         : TVector4Single = (   0,    0,  0.6, 1);
-  Green4Single        : TVector4Single = (   0,  0.6,    0, 1);
-  Cyan4Single         : TVector4Single = (   0,  0.6,  0.6, 1);
-  Red4Single          : TVector4Single = ( 0.6,    0,    0, 1);
-  Magenta4Single      : TVector4Single = ( 0.6,    0,  0.6, 1);
-  Brown4Single        : TVector4Single = ( 0.6,  0.3,    0, 1);
-  LightGray4Single    : TVector4Single = ( 0.6,  0.6,  0.6, 1);
-  DarkGray4Single     : TVector4Single = ( 0.3,  0.3,  0.3, 1);
-  LightBlue4Single    : TVector4Single = ( 0.3,  0.3,    1, 1);
-  LightGreen4Single   : TVector4Single = ( 0.3,    1,  0.3, 1);
-  LightCyan4Single    : TVector4Single = ( 0.3,    1,    1, 1);
-  LightRed4Single     : TVector4Single = (   1,  0.3,  0.3, 1);
-  LightMagenta4Single : TVector4Single = (   1,  0.3,    1, 1);
-  Yellow4Single       : TVector4Single = (   1,    1,  0.3, 1);
-  White4Single        : TVector4Single = (   1,    1,    1, 1);
-  { @groupEnd }
+  White3Single  : TVector3Single = ( 1.0 , 1.0 , 1.0);
+  Black3Single  : TVector3Single = ( 0.0 , 0.0 , 0.0);
+  Red3Single    : TVector3Single = ( 1.0 , 0.0 , 0.0);
+  Green3Single  : TVector3Single = ( 0.0 , 0.5 , 0.0);
+  Blue3Single   : TVector3Single = ( 0.0 , 0.0 , 1.0);
 
 { Calculate color intensity, as for converting color to grayscale.
   @groupBegin }
 function GrayscaleValue(const v: TVector3Single): Single; overload;
-function GrayscaleValue(const v: TVector3Double): Double; overload;
 function GrayscaleValue(const v: TVector3Byte): Byte; overload;
-function GrayscaleValue(const v: TCastleColor): Byte; overload;
+function GrayscaleValue(const v: TCastleColor): Single; overload;
 { @groupEnd }
 
 function Grayscale(const v: TVector3Single): TVector3Single; overload;
-function Grayscale(const v: TVector4Single): Tvector4Single; overload;
 function Grayscale(const v: TVector3Byte): TVector3Byte; overload;
 function Grayscale(const v: TCastleColor): TCastleColor; overload;
 
@@ -158,7 +116,7 @@ function LerpRgbInHsv(const A: Single; const V1, V2: TVector3Single): TVector3Si
 { Change color into a hexadecimal notation of it (like in HTML).
   Note that version that takes 4-component vector adds the alpha too
   at the end. }
-function ColorToHex(const V: TVector4Single): string;
+function ColorToHex(const V: TCastleColor): string;
 
 implementation
 
@@ -195,14 +153,14 @@ const
   GrayscaleValuesByte: array [0..2] of Word = (54, 183, 19);
   { @groupEnd }
 
-function GrayscaleValue(const v: TVector3Single): Single;
+function GrayscaleValue(const v: TCastleColor): Single;
 begin
-  result := GrayscaleValuesFloat[0]*v[0]+
-            GrayscaleValuesFloat[1]*v[1]+
-            GrayscaleValuesFloat[2]*v[2];
+  result := (GrayscaleValuesFloat[0]*v[0]+
+             GrayscaleValuesFloat[1]*v[1]+
+             GrayscaleValuesFloat[2]*v[2]);
 end;
 
-function GrayscaleValue(const v: TVector3Double): Double;
+function GrayscaleValue(const v: TVector3Single): Single;
 begin
   result := GrayscaleValuesFloat[0]*v[0]+
             GrayscaleValuesFloat[1]*v[1]+
@@ -216,21 +174,7 @@ begin
              GrayscaleValuesByte[2]*v[2]) div 256;
 end;
 
-function GrayscaleValue(const v: TCastleColor): Byte;
-begin
-  result := (GrayscaleValuesByte[0]*v[0]+
-             GrayscaleValuesByte[1]*v[1]+
-             GrayscaleValuesByte[2]*v[2]) div 256;
-end;
-
-function Grayscale(const v: TVector3Single): TVector3Single;
-begin
-  Result[0] := GrayscaleValue(V);
-  Result[1] := Result[0];
-  Result[2] := Result[0];
-end;
-
-function Grayscale(const v: TVector4Single): TVector4Single;
+function Grayscale(const v: TCastleColor): TCastleColor;
 var
   V3: TVector3Single absolute V;
 begin
@@ -240,19 +184,18 @@ begin
   Result[3] := V[3];
 end;
 
-function Grayscale(const v: TVector3Byte): TVector3Byte;
+function Grayscale(const v: TVector3Single): TVector3Single;
 begin
   Result[0] := GrayscaleValue(V);
   Result[1] := Result[0];
   Result[2] := Result[0];
 end;
 
-function Grayscale(const v: TCastleColor): TCastleColor;
+function Grayscale(const v: TVector3Byte): TVector3Byte;
 begin
   Result[0] := GrayscaleValue(V);
   Result[1] := Result[0];
   Result[2] := Result[0];
-  Result[3] := V[3];
 end;
 
 { color changing ------------------------------------------------------------ }
@@ -424,7 +367,7 @@ begin
   Result := HsvToRgb(HOut);
 end;
 
-function ColorToHex(const V: TVector4Single): string;
+function ColorToHex(const V: TCastleColor): string;
 begin
   Result := IntToHex(RoundClamp255(V[0] * 255), 2) +
             IntToHex(RoundClamp255(V[1] * 255), 2) +

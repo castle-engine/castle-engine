@@ -166,8 +166,8 @@ constructor TRiftMenu.Create(AOwner: TComponent);
 begin
   inherited;
   CurrentItemBorderColor1 := Black;
-  CurrentItemBorderColor2 := Vector4Byte(186, 134,  88, 255);
-  CurrentItemColor        := Vector4Byte(252, 253, 200, 255);
+  CurrentItemBorderColor2 := Vector4Single(186/255, 134/255,  88/255, 1.0);
+  CurrentItemColor        := Vector4Single(252/255, 253/255, 200/255, 1.0);
   NonCurrentItemColor     := CurrentItemBorderColor2;
   PositionRelativeScreenX := prHigherBorder;
   PositionRelativeScreenY := prHigherBorder;
@@ -231,7 +231,7 @@ end;
 
 procedure TRiftSubMenu.Draw;
 const
-  SubMenuTextColor: TVector4Byte = (179, 179, 179, 255);
+  SubMenuTextColor: TCastleColor = (0.7, 0.7, 0.7, 1.0);
 begin
   { background of submenu is mainmenu }
   MainMenu.Draw;

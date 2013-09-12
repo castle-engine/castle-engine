@@ -415,6 +415,7 @@ type
       This also means that you must not call inherited in
       descendants when overriding this method. }
     procedure Clear(const Pixel: TVector4Byte); virtual;
+    procedure Clear(const Pixel: TCastleColor);
 
     { Check do all image pixels have the same value Pixel.
       This is implemented only in descendants that represent a pixel
@@ -802,10 +803,14 @@ type
     { Draw horizontal line. Must be y1 <= y2, else it is NOOP. }
     procedure HorizontalLine(const x1, x2, y: Integer;
       const Color: TVector3Byte);
+    procedure HorizontalLine(const x1, x2, y: Integer;
+      const Color: TCastleColor);
 
     { Draw vertical line. Must be x1 <= x2, else it is NOOP. }
     procedure VerticalLine(const x, y1, y2: Integer;
       const Color: TVector3Byte);
+    procedure VerticalLine(const x, y1, y2: Integer;
+      const Color: TCastleColor);
 
     { Create image by merging two images according to a (third) mask image.
       This is a very special constructor.
@@ -2061,6 +2066,11 @@ begin
   NotImplemented('Clear');
 end;
 
+procedure TCastleImage.Clear(const Pixel: TCastleColor);
+begin
+  Clear(Vector4Byte(Pixel));
+end;
+
 function TCastleImage.IsClear(const Pixel: TVector4Byte): boolean;
 begin
   NotImplemented('IsClear');
@@ -2569,6 +2579,12 @@ begin
   for i := 0 to x2 - x1 do begin P^ := Color; Inc(P) end;
 end;
 
+procedure TRGBImage.HorizontalLine(const X1, X2, Y: Integer;
+  const Color: TCastleColor);
+begin
+  HorizontalLine(X1, X2, Y, Vector3Byte(Vector3SingleCut(Color)));
+end;
+
 procedure TRGBImage.VerticalLine(const x, y1, y2: Integer;
   const Color: TVector3Byte);
 var P: PVector3Byte;
@@ -2580,6 +2596,12 @@ begin
   P^ := Color;
   P := PointerAdd(P, SizeOf(TVector3Byte) * Width);
  end;
+end;
+
+procedure TRGBImage.VerticalLine(const x, y1, y2: Integer;
+  const Color: TCastleColor);
+begin
+  VerticalLine(X, Y1, Y2, Vector3Byte(Vector3SingleCut(Color)));
 end;
 
 procedure TRGBImage.LerpWith(const Value: Single; SecondImage: TCastleImage);

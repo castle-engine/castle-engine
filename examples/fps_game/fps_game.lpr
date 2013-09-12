@@ -291,7 +291,7 @@ begin
     GLBlendRectangle(0, 0, ContainerWidth, ContainerHeight,
       GL_ONE, GL_SRC_ALPHA, Vector4Single(0, 0, 0.1, 0.5));
   if Player.Dead then
-    GLFadeRectangle(0, 0, ContainerWidth, ContainerHeight, Red3Single, 1.0) else
+    GLFadeRectangle(0, 0, ContainerWidth, ContainerHeight, Red, 1.0) else
     GLFadeRectangle(0, 0, ContainerWidth, ContainerHeight,
       Player.FadeOutColor, Player.FadeOutIntensity);
 end;

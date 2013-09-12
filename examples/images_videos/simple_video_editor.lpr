@@ -92,9 +92,9 @@ begin
     GLVideo.GLImageFromTime(Time).Draw(0, 0);
 
     { draw time of the video bar }
-    glColorv(Black4Single);
+    glColorv(Black);
     glRectf(0, Window.Height - TimeBarHeight, Window.Width, Window.Height);
-    glColorv(Vector4Single(0.5, 0.5, 0.5, 1));
+    glColorv(Gray);
     glRectf(TimeBarMargin, Window.Height - TimeBarHeight + TimeBarMargin,
       MapRange(
         Video.IndexFromTime(Time),
