@@ -150,7 +150,7 @@ begin
   Assert(not Levels[0].LoadingImage.IsEmpty);
   Assert(Levels[0].LoadingImage.Width = 16);
   Assert(Levels[0].LoadingImage.Height = 16);
-  AssertFloat(Levels[0].LoadingImageBarYPosition, 1.2);
+  AssertFloat(Levels[0].LoadingBarYPosition, 1.2);
   AssertVector(Levels[0].PlaceholderReferenceDirection, 1, 2, 3);
   AssertSound(Levels[0].MusicSound, 'test_sound_2');
 
