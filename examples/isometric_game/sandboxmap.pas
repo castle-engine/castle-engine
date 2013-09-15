@@ -88,7 +88,7 @@ end;
 
 procedure TBaseTile.LoadFromFile;
 begin
-  Image := LoadImage(FullURL, PixelsImageClasses, BaseWidth, BaseHeight);
+  Image := LoadImage(FullURL, [TRGBImage, TRGBAlphaImage], BaseWidth, BaseHeight);
   if not (Image is TRGBAlphaImage) then
   begin
     ImageAlphaConstTo1st(Image, 255);

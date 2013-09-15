@@ -37,7 +37,7 @@ var
     PosX += RealViewMoveX + SpecialMoveX;
     PosY := Y * (BaseHeight div 2);
     PosY += RealViewMoveY + SpecialMoveY;
-    GLImage.Alpha := acNone; // we control alpha ourselves
+    GLImage.Alpha := acSimpleYesNo;
     GLImage.Draw(PosX, PosY);
   end;
 
@@ -48,8 +48,6 @@ var
   X1, X2, Y1, Y2: Integer;
 begin
   GLClear([cbColor], Black);
-  glEnable(GL_ALPHA_TEST);
-  glAlphaFunc(GL_GREATER, 0.5);
 
   BaseFitX := Ceil(ScreenWidth / BaseWidth) + 1;
   BaseFitY := Ceil(2 * ScreenHeight / BaseHeight) + 1;
@@ -118,8 +116,6 @@ begin
         DrawImageOnTile(X, Y, MapTile.BonusTile.GLImage);
     end;
   end;
-
-  glDisable(GL_ALPHA_TEST);
 end;
 
 procedure Press(Sender: TCastleWindowBase; const Event: TInputPressRelease);
@@ -274,6 +270,7 @@ begin
     Window.AutoRedisplay := true;
     Window.OnPress := @Press;
     Window.OnUpdate := @Update;
+    Window.FpsShowOnCaption := true;
 
     Quit := false;
     repeat
@@ -289,7 +286,6 @@ begin
   Window.Caption := 'The Sandbox';
   Window.ResizeAllowed := raOnlyAtOpen;
   Window.OnResize := @Resize2D;
-  Window.SetDemoOptions(K_F11, CharEscape, true);
 
   Window.Open;
   ScreenWidth := Window.Width;
