@@ -60,6 +60,10 @@ type
     property BarYPosition: Single read FBarYPosition write FBarYPosition
       default DefaultBarYPosition;
 
+    { Deprecated name for BarYPosition. }
+    property ImageBarYPosition: Single read FBarYPosition write FBarYPosition
+      default DefaultBarYPosition; deprecated;
+
     { Show progress bar. }
     procedure Init(Progress: TProgress); virtual; abstract;
     { Update progress bar (because Progress.Position changed). }
