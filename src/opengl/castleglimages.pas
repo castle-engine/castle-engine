@@ -320,25 +320,6 @@ procedure SaveScreen_NoFlush(
   ReadBuffer: TGLenum); overload;
 { @groupEnd }
 
-{ Save the screen, except it may make the width larger,
-  to make it divisible by four,
-  to workaround Radeon bug TGLVersion.BuggyDrawOddWidth.
-
-  If GLVersion.BuggyDrawOddWidth then it will eventually
-  enlarge the Width to make it a multiple of 4.
-  Possibly, multiple of 2 would be enough, but you don't want to risk
-  with Radeon bugs...
-
-  You can draw this image by normal ImageDraw, although you risk
-  then that you will see an additional column at the right filled
-  with garbage colors (due to enlarging of screen done here).
-  Ideally, it would be best to draw this only by
-  ImageDrawPart(0, 0, Width (given here, not Image.Width), Image.Height)
-  but it may not be possible --- again, thanks to TGLVersion.BuggyDrawOddWidth. }
-function SaveAlignedScreen_NoFlush(
-  const XPos, YPos: Integer; Width: Cardinal; const Height: Cardinal;
-  const ReadBuffer: TGLenum): TRGBImage;
-
 { Captures current screen as a TGLImage instance, ready to be drawn on 2D screen. }
 function SaveScreenToGL_NoFlush(
   const XPos, YPos: Integer; const Width, Height: Cardinal;
@@ -1268,32 +1249,15 @@ begin
   Result := TRGBImage(SaveScreen_NoFlush(TRGBImage, xpos, ypos, width, height, ReadBuffer));
 end;
 
-function SaveAlignedScreen_NoFlush(
-  const XPos, YPos: Integer; Width: Cardinal; const Height: Cardinal;
-  const ReadBuffer: TGLenum): TRGBImage;
-begin
-  if GLVersion.BuggyDrawOddWidth and (Width mod 4 <> 0) then
-    Width += (4 - Width mod 4);
-  Result := SaveScreen_NoFlush(XPos, YPos, Width, Height, ReadBuffer);
-end;
-
 function SaveScreenToGL_NoFlush(
   const XPos, YPos: Integer; const Width, Height: Cardinal;
   const ReadBuffer: TGLenum;
   const ScalingPossible: boolean): TGLImage;
-{ We capture the screen with SaveAlignedScreen_NoFlush,
-  to workaround GLVersion.BuggyDrawOddWidth bug.
-  We also have to actually draw it a little larger. }
 var
   ScreenImage: TRGBImage;
 begin
-  ScreenImage := SaveAlignedScreen_NoFlush(XPos, YPos, Width, Height, ReadBuffer);
+  ScreenImage := SaveScreen_NoFlush(XPos, YPos, Width, Height, ReadBuffer);
   try
-    { There was an idea to do here
-        TGLImage.CreatePart(ScreenImage, 0, 0, Width, Height);
-      to draw only part of the screen when GLVersion.BuggyDrawOddWidth.
-      Unfortunately, it doesn't really work, even drawing the screen
-      is buggy with GLVersion.BuggyDrawOddWidth... }
     Result := TGLImage.Create(ScreenImage, ScalingPossible);
   finally FreeAndNil(ScreenImage) end;
 end;

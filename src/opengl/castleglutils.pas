@@ -1426,8 +1426,7 @@ const
         '  Vendor Intel: %s' +nl+
         '  Mesa: %s (Mesa parsed version major: %d, minor: %d, release: %d)' +nl+
         nl+
-        '  Buggy glDrawPixels for odd widths: %s' +nl+
-        '  Buggy glGenerateMipmapEXT: %s' +nl+
+        '  Buggy glGenerateMipmap(EXT): %s' +nl+
         '  Buggy GL_LIGHT_MODEL_TWO_SIDE: %s' +nl+
         '  Buggy VBO: %s' +nl+
         '  Buggy shader shadow map: %s' +nl+
@@ -1443,7 +1442,6 @@ const
           BoolToStr[Version.Mesa],
           Version.MesaMajor, Version.MesaMinor, Version.MesaRelease,
 
-          BoolToStr[Version.BuggyDrawOddWidth],
           BoolToStr[Version.BuggyGenerateMipmap],
           BoolToStr[Version.BuggyLightModelTwoSide],
           BoolToStr[Version.BuggyVBO],

@@ -69,8 +69,6 @@ type
     FMesaMajor: Integer;
     FMesaMinor: Integer;
     FMesaRelease: Integer;
-    FBuggyPointSetAttrib: boolean;
-    FBuggyDrawOddWidth: boolean;
     FBuggyGenerateMipmap: boolean;
     FBuggyGenerateCubeMap: boolean;
     FBuggyFBOCubeMap: boolean;
@@ -115,34 +113,6 @@ type
 
     { Intel GPU with Intel drivers. }
     property VendorIntel: boolean read FVendorIntel;
-
-    { Buggy drawing of images with odd width (fglrx (ATI on Linux) bug).
-
-      I observe this under Debian testing after upgrading fglrx
-      from 8-12-4 to 9-2-2. I know the bug wasn't present in 8-12-4
-      (and some other < 8-12-4 that I previously used), and it is in 9-2-2.
-
-      I also see this on Mac OS X with the same GPU (driver GL_VERSION:
-      2.0 ATI-1.4.56, GL_RENDERER: ATI Radeon X1600 OpenGL Engine).
-      Although it's less common on Mac OS X, but can be seen with
-      demo_models/x3d/rendered_texture.x3dv:
-      open it, then make some operation that saves screen,
-      e.g. open dialog by Ctrl+O.
-
-      Precisely, the problem is for images with size like 819 x 614.
-      Drawing them by glDrawPixels (including the case when you put
-      this in display list) requires glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-      (as our TRGBImage is not aligned). And on GPUs with
-      BuggyDrawOddWidth, such glDrawPixels will simply draw a random
-      mess of colors on the screen, like some memory garbage.
-      (Note that the image is actually correct, even capturing it
-      by glReadPixels works Ok; only drawing of it fails.)
-
-      As far as I tested, this doesn't seem related to
-      actual GL_UNPACK_ALIGNMENT (glPixelStorei(GL_UNPACK_ALIGNMENT, 4)
-      may also produce the bug, e.g. when used with ImageDrawPart
-      trying to draw subimage with odd width). }
-    property BuggyDrawOddWidth: boolean read FBuggyDrawOddWidth;
 
     { Buggy glGenerateMipmapEXT (Mesa and Intel(Windows) bug).
 
@@ -471,22 +441,6 @@ begin
   FFglrx := {$ifdef LINUX} VendorATI {$else} false {$endif};
 
   FVendorIntel := IsPrefix('Intel', Vendor);
-
-  FBuggyPointSetAttrib := Mesa and IsPrefix('Mesa DRI Intel', Renderer)
-    and (not MesaVersionAtLeast(7, 6, 0));
-
-  { Initially, I wanted to set this when fglrx version 9.x is detected.
-
-    This can be detected by looking at the last number in GL_VERSION,
-    it's an internal fglrx version number (9.x is an "official" Catalyst
-    version). Looking at http://www2.ati.com/drivers/linux/catalyst_91_linux.pdf
-    (linked from http://wiki.cchtml.com/index.php/Catalyst_9.1)
-    the 9.1 release corresponds to internal number 8.573,
-    which I think is encoded directly in Release number we have here.
-
-    Later: I'll just do this do every ATI, since Mac OS X GPU has the same
-    problem on rendered_texture.x3dv test. }
-  FBuggyDrawOddWidth := VendorATI;
 
   FBuggyGenerateMipmap := (Mesa and (not MesaVersionAtLeast(7, 5, 0)))
                           {$ifdef WINDOWS} or VendorIntel {$endif};

@@ -1949,9 +1949,6 @@ end;
       @groupBegin }
     procedure SaveScreen(const fname: string); overload;
     function SaveScreen: TRGBImage; overload;
-    { Saves screen, making sure Image width is a multiple of 4 on buggy Radeon
-      drivers. The meaningful image width is equal to window's @link(Width). }
-    function SaveAlignedScreen: TRGBImage;
     function SaveScreenToGL(const ScalingPossible: boolean = false): TGLImage; overload;
     { @groupEnd }
 
@@ -3480,20 +3477,6 @@ begin
   begin
     FlushRedisplay;
     Result := SaveScreen_NoFlush(0, 0, Width, Height, GL_FRONT);
-  end;
-end;
-
-function TCastleWindowBase.SaveAlignedScreen: TRGBImage;
-begin
-  if DoubleBuffer then
-  begin
-    EventBeforeDraw;
-    EventDraw;
-    Result := SaveAlignedScreen_NoFlush(0, 0, Width, Height, GL_BACK);
-  end else
-  begin
-    FlushRedisplay;
-    Result := SaveAlignedScreen_NoFlush(0, 0, Width, Height, GL_FRONT);
   end;
 end;
 
