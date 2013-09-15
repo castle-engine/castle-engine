@@ -133,17 +133,6 @@ procedure SHVectorGLCapture(
     ScreenX := CubeMapInfo[Side].ScreenX * CubeMapSize + MapScreenX;
     ScreenY := CubeMapInfo[Side].ScreenY * CubeMapSize + MapScreenY;
 
-    { We have to clear the buffer first. Clearing with GLClear is fast,
-      but it must be clipped with scissor (glViewport does not clip glClear).
-      Later: actually, clearing is not needed now, since we call DrawLightMap
-      at the beginning, right after clearing the whole screen.
-
-    glScissor(ScreenX, ScreenY, CubeMapSize, CubeMapSize);
-    glEnable(GL_SCISSOR_TEST);
-      glClear(GL_COLOR_BUFFER_BIT);
-    glDisable(GL_SCISSOR_TEST);
-    }
-
     GL.glViewport(ScreenX, ScreenY, CubeMapSize, CubeMapSize);
 
     glMatrixMode(GL_PROJECTION);

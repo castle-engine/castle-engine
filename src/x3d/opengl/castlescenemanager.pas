@@ -106,7 +106,7 @@ type
 
     { Render everything (by RenderFromViewEverything) on the screen.
       Takes care to set RenderingCamera (Target = rtScreen and camera as given),
-      and takes care to apply glScissor if not FullSize,
+      and takes care to apply Scissor if not FullSize,
       and calls RenderFromViewEverything.
 
       Takes care of using ScreenEffects. For this,
@@ -2231,17 +2231,13 @@ begin
   begin
     { Rendering directly to the screen, when no screen effects are used. }
     if not FullSize then
-    begin
-      glPushAttrib(GL_SCISSOR_BIT);
-        { Use Scissor to limit what glClear clears. }
-        glScissor(Left, Bottom, Width, Height); // saved by GL_SCISSOR_BIT
-        glEnable(GL_SCISSOR_TEST); // saved by GL_SCISSOR_BIT
-    end;
+      { Use Scissor to limit what glClear clears. }
+      ScissorEnable(Rect);
 
     RenderFromViewEverything;
 
     if not FullSize then
-      glPopAttrib;
+      ScissorDisable;
   end;
 end;
 

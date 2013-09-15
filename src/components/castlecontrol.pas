@@ -1458,7 +1458,7 @@ procedure TCastleControlCustom.DoDraw;
       glDisable(GL_LIGHTING);
       glDisable(GL_FOG);
       glDisable(GL_DEPTH_TEST);
-      glDisable(GL_SCISSOR_TEST);
+      ScissorDisable;
       GLEnableTexture(CastleGLUtils.etNone);
 
       glMatrixMode(GL_PROJECTION);
