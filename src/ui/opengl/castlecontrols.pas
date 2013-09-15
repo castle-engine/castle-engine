@@ -236,6 +236,8 @@ type
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TCastleImage);
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
+    function GetBlending: boolean;
+    procedure SetBlending(const Value: boolean);
   public
     destructor Destroy; override;
     function DrawStyle: TUIControlDrawStyle; override;
@@ -265,6 +267,8 @@ type
       alpha blending). Set this to force specific treatment. }
     property AlphaChannel: TAutoAlphaChannel
       read FAlphaChannel write SetAlphaChannel default acAuto;
+    { Deprecated, use more flexible AlphaChannel instead. }
+    property Blending: boolean read GetBlending write SetBlending; deprecated;
   end;
 
   { Simple background fill. Using OpenGL GLClear, so unconditionally
@@ -1148,6 +1152,18 @@ begin
         FGLImage.Alpha := FImage.AlphaChannel;
     end;
   end;
+end;
+
+function TCastleImageControl.GetBlending: boolean;
+begin
+  Result := AlphaChannel <> acFullRange;
+end;
+
+procedure TCastleImageControl.SetBlending(const Value: boolean);
+begin
+  if Value then
+    AlphaChannel := acFullRange else
+    AlphaChannel := acSimpleYesNo;
 end;
 
 { TCastleSimpleBackground ---------------------------------------------------- }
