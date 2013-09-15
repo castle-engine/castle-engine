@@ -246,9 +246,11 @@ type
 { Draw the image on 2D screen. Note that if you want to use this
   many times, it will be much faster to create TGLImage instance.
 
+  @deprecated Deprecated, always use TGLImage to draw 2D images.
+
   @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
     by OpenGL.) }
-procedure ImageDraw(const Image: TCastleImage);
+procedure ImageDraw(const Image: TCastleImage); deprecated;
 
 { Saving screen to TRGBImage ----------------------------------- }
 

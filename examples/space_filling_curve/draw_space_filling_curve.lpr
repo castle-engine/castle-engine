@@ -50,12 +50,17 @@ const
 { CastleWindow callbacks ------------------------------------------------------- }
 
 procedure Draw(Window: TCastleWindowBase);
+var
+  GLImage: TGLImage;
 begin
   { If DoubleBuffer available, then use it.
     This program should work perfectly with and without DoubleBuffer. }
   if Window.DoubleBuffer then GLClear([cbColor], Gray);
 
-  ImageDraw(CurveImage);
+  GLImage := TGLImage.Create(CurveImage);
+  try
+    GLImage.Draw(0, 0);
+  finally FreeAndNil(GLImage) end;
 end;
 
 procedure CloseQueryNotAllowed(Window: TCastleWindowBase); begin end;
