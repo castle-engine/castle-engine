@@ -83,7 +83,7 @@ var
   Mirror: boolean = true;
 
 const
-  ClearColor: TVector4Single = (0.5, 0.5, 0.5, 1);
+  ClearColor: TCastleColor = (0.5, 0.5, 0.5, 1);
 
 var
   PlaneConstCoord: Integer = 2;
@@ -354,6 +354,17 @@ var
 
   procedure DrawFloor;
   begin
+    { Set and enable light for direct fixed-function pipeline rendering
+      (used by DrawPlane). This is reset after every TCastleScene.Render,
+      so we have to repeat it. }
+    glLightv(GL_LIGHT0, GL_POSITION, LightPosition);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+    { For VRML Scene rendering, this is always enabled anyway,
+      but for the plane (drawn without VRML renderer) this is needed. }
+    glEnable(GL_DEPTH_TEST);
+
     { Render the plane where the shadow lies.
       The plane size and position is calculated to have a nice shadow receiver
       for Scene. }
@@ -366,15 +377,12 @@ var
   end;
 
 begin
-  GLClear([cbColor, cbDepth, cbStencil], Black);
+  GLClear([cbColor, cbDepth, cbStencil], ClearColor);
   glLoadMatrix(RenderingCamera.Matrix);
 
-  { set light position (for Scene (by LightInstance and LightNode) and for direct
-    fixed-function pipeline rendering (by glLight, used by DrawFloor). }
+  { set light position for Scene (by LightInstance and LightNode) }
   LightInstance.Location := Vector3SingleCut(LightPosition);
   LightNode.FdLocation.Value := Vector3SingleCut(LightPosition);
-  glEnable(GL_LIGHT0);
-  glLightv(GL_LIGHT0, GL_POSITION, LightPosition);
 
   { draw point indicating LightPosition }
   glPushAttrib(GL_ENABLE_BIT);
@@ -498,15 +506,6 @@ var
 
 procedure Open(Window: TCastleWindowBase);
 begin
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-  { For VRML Scene rendering, this is always enabled anyway,
-    but for the plane (drawn without VRML renderer) this is needed. }
-  glEnable(GL_DEPTH_TEST);
-
-  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-
-  glClearColor(ClearColor[0], ClearColor[1], ClearColor[2], ClearColor[3]);
 end;
 
 procedure Close(Window: TCastleWindowBase);
@@ -650,14 +649,12 @@ begin
   Scene := TCastleScene.Create(nil);
   try
     Scene.Load(RootNode, true);
-    Scene.Attributes.PreserveOpenGLState := true;
 
     { init SceneForShadow.
       It doesn't own RootNode, and always has RootNode = Scene.RootNode }
     SceneForShadow := TCastleScene.Create(nil);
     SceneForShadow.Load(RootNode, false);
     SceneForShadow.Attributes.Mode := rmPureGeometry;
-    SceneForShadow.Attributes.PreserveOpenGLState := true;
 
     { init light that we'll control }
     LightNode := TPointLightNode.Create('', '');

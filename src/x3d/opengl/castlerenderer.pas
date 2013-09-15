@@ -89,7 +89,6 @@
   @bold(OpenGL state affecting VRML rendering:)
 
   Some OpenGL state is unconditionally reset by TGLRenderer.RenderBegin.
-  See TRenderingAttributes.PreserveOpenGLState.
 
   There's also some OpenGL state that we let affect our rendering.
   This allows you to customize rendering by using normal OpenGL commands.
@@ -306,7 +305,6 @@ type
     FTextureModeGrayscale: TGLenum;
     FTextureModeRGB: TGLenum;
     FVertexBufferObject: boolean;
-    FPreserveOpenGLState: boolean;
     FShadowSampling: TShadowSampling;
     FVisualizeDepthMap: boolean;
   protected
@@ -535,15 +533,6 @@ type
       for debug purposes, e.g. to check how much speedup you get from VBO. }
     property VertexBufferObject: boolean
       read FVertexBufferObject write SetVertexBufferObject default true;
-
-    { Do we have to restore OpenGL state at the end of rendering.
-      If @true, then RenderEnd restores the exact OpenGL state that was
-      before RenderBegin. This is comfortable if you do some other rendering
-      besides TCastleScene, and depend on some state preserved.
-      Unfortunately this is also quite expensive, and can slow down
-      the rendering. }
-    property PreserveOpenGLState: boolean
-      read FPreserveOpenGLState write FPreserveOpenGLState default false;
 
     { Shadow maps sampling. Various approaches result in various quality and speed. }
     property ShadowSampling: TShadowSampling
@@ -2066,7 +2055,6 @@ begin
   FTextureModeGrayscale := GL_MODULATE;
   FTextureModeRGB := GL_MODULATE;
   FVertexBufferObject := true;
-  FPreserveOpenGLState := false;
   FShadowSampling := DefaultShadowSampling;
 end;
 
@@ -2736,36 +2724,7 @@ end;
 
 procedure TGLRenderer.RenderBegin(ABaseLights: TLightInstancesList;
   LightRenderEvent: TVRMLLightRenderEvent; const APass: TRenderingPass);
-var
-  Attribs: TGLbitfield;
 begin
-  if Attributes.PreserveOpenGLState then
-  begin
-    { Push OpenGL attributes that can be changed by RenderCleanState, RenderShape }
-    Attribs := GL_COLOR_BUFFER_BIT or GL_CURRENT_BIT or GL_ENABLE_BIT
-      or GL_FOG_BIT or GL_LIGHTING_BIT or GL_POLYGON_BIT or GL_TEXTURE_BIT
-      or GL_TRANSFORM_BIT or GL_LINE_BIT;
-    { When BuggyPointSetAttrib, then glPointSize call "leaks" out.
-      But there's nothing we can do about it, we cannot use GL_POINT_BIT
-      as it crashes Mesa (and produces "invalid enumerant" error in case
-      of debug compile). }
-    if not GLVersion.BuggyPointSetAttrib then
-      Attribs := Attribs or GL_POINT_BIT;
-    glPushAttrib(Attribs);
-
-    { Note that push/pop is not fully correctly done for multitexturing:
-      - We should push/pop all texture units matrices.
-        Right now, we actually push only 0th texture unit matrix.
-      - We should make sure that currently active texture unit is saved?
-        I'm not sure, does some glPushAttrib param saves this?
-
-      Push/pop texture state saves environment state of all texture units,
-      so at least we got glTexEnv covered. (this says OpenGL manpage for
-      glPushAttrib, and it applies to both multitexturing by
-      ARB extension and by standard GL).
-    }
-  end;
-
   BaseLights := ABaseLights;
   Pass := APass;
 
@@ -2794,10 +2753,7 @@ begin
 
   glPopMatrix;
 
-  { pop attribs }
-  if Attributes.PreserveOpenGLState then
-    glPopAttrib else
-    RenderCleanState(false);
+  RenderCleanState(false);
 
   CurrentProgram := nil;
 end;

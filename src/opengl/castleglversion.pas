@@ -116,20 +116,6 @@ type
     { Intel GPU with Intel drivers. }
     property VendorIntel: boolean read FVendorIntel;
 
-    { Buggy GL_POINT_BIT flag for glPushAttrib (Mesa DRI Intel bug).
-
-      Observed on Ubuntu 8.10 on computer "domek".
-      It seems a bug in upstream Mesa 7.2, as it's reproducible with
-      version from http://mesa3d.org/.
-      Seemingly reproducible only with "DRI Intel"
-      (not reproducible on "chantal" with upstream Mesa 7.2).
-
-      Reported to Ubuntu as
-      https://bugs.launchpad.net/ubuntu/+source/mesa/+bug/312830,
-      let them report upstream if needed.
-      Not observed with Mesa 7.6 in Ubuntu 10.4. }
-    property BuggyPointSetAttrib: boolean read FBuggyPointSetAttrib;
-
     { Buggy drawing of images with odd width (fglrx (ATI on Linux) bug).
 
       I observe this under Debian testing after upgrading fglrx
