@@ -521,8 +521,8 @@ procedure glDrawBox3DSimple(const Box: TBox3D);
   Requires one attrib stack place. }
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
   const FadeColor: TVector3Single;
-  const FadeIntensity: Single);
-procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
+  const FadeIntensity: Single); deprecated;
+procedure GLFadeRectangle(const Rect: TRectangle;
   const FadeColor: TCastleColor;
   const FadeIntensity: Single);
 
@@ -532,6 +532,8 @@ procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
   Requires one attrib stack place. }
 procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
   const SourceFactor, DestinationFactor: TGLenum;
+  const Color: TVector4Single); deprecated;
+procedure GLBlendRectangle(const Rect: TRectangle;
   const Color: TVector4Single);
 
 { Call glColor, taking Opacity as separate Single argument.
@@ -1293,8 +1295,48 @@ begin
   glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, @VertsIndices);
 end;
 
+procedure GLBlendRectangleCore(const Rect: TRectangle;
+  const SourceFactor, DestinationFactor: TGLenum;
+  const Color: TCastleColor);
+begin
+  glPushAttrib(GL_COLOR_BUFFER_BIT or GL_CURRENT_BIT);
+    glEnable(GL_BLEND);
+      glBlendFunc(SourceFactor, DestinationFactor);
+      glColorv(Color);
+      glBegin(GL_QUADS);
+        glVertex2i(Rect.Left             , Rect.Bottom);
+        glVertex2i(Rect.Left + Rect.Width, Rect.Bottom);
+        glVertex2i(Rect.Left + Rect.Width, Rect.Bottom + Rect.Height);
+        glVertex2i(Rect.Left             , Rect.Bottom + Rect.Height);
+      glEnd();
+    glDisable(GL_BLEND);
+  glPopAttrib;
+end;
+
+procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
+  const SourceFactor, DestinationFactor: TGLenum;
+  const Color: TVector4Single);
+begin
+  GLBlendRectangleCore(Rectangle(X1, Y1, X2 - X1, Y2 - Y1),
+    SourceFactor, DestinationFactor, Color);
+end;
+
+
+procedure GLBlendRectangle(const Rect: TRectangle;
+  const Color: TVector4Single);
+begin
+  GLBlendRectangleCore(Rect, GL_ONE, GL_SRC_ALPHA, Color);
+end;
+
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
   const FadeColor: TVector3Single; const FadeIntensity: Single);
+begin
+  GLFadeRectangle(Rectangle(X1, Y1, X2 - X1, Y2 - Y1),
+    Vector4Single(FadeColor, 1.0), FadeIntensity);
+end;
+
+procedure GLFadeRectangle(const Rect: TRectangle;
+  const FadeColor: TCastleColor; const FadeIntensity: Single);
 const
   FullWhiteEnd = 0.9;
   FullBlack = 0.3;
@@ -1310,52 +1352,27 @@ const
   SourceFactor = GL_ZERO;
   DestinationFactor = GL_SRC_COLOR;
 var
-  Color4: TVector4Single;
-  Color3: TVector3Single absolute Color4;
+  Color: TCastleColor;
 begin
   if FadeIntensity > 0 then
   begin
     { for FadeIntensity in 1...FullWhiteEnd (going down):
       screen color := FadeColor * screen color }
     if FadeIntensity > FullWhiteEnd then
-      Color3 := FadeColor else
+      Color := FadeColor else
     { for FadeIntensity in FullWhiteEnd...FullBlack (going down):
       screen color := FadeColor * screen color ...
         FadeColor * MinScale * screen color }
     if FadeIntensity > FullBlack then
-      Color3 := FadeColor * MapRange(FadeIntensity, FullWhiteEnd, FullBlack, 1, MinScale) else
+      Color := FadeColor * MapRange(FadeIntensity, FullWhiteEnd, FullBlack, 1, MinScale) else
     { for FadeIntensity in FullBlack...0 (going down):
       screen color := MinScale * screen color ...
         unchanged screen color }
-      Color3 := White3Single * MapRange(FadeIntensity, FullBlack, 0, MinScale, 1);
+      Color := White * MapRange(FadeIntensity, FullBlack, 0, MinScale, 1);
 
-    Color4[3] := 1.0; { alpha always 1.0 in this case }
-    GLBlendRectangle(X1, Y1, X2, Y2, SourceFactor, DestinationFactor, Color4);
+    Color[3] := 1.0; { alpha always 1.0 in this case }
+    GLBlendRectangleCore(Rect, SourceFactor, DestinationFactor, Color);
   end;
-end;
-
-procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
-  const FadeColor: TCastleColor; const FadeIntensity: Single);
-begin
-  GLFadeRectangle(X1, Y1, X2, Y2, Vector3SingleCut(FadeColor), FadeIntensity);
-end;
-
-procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
-  const SourceFactor, DestinationFactor: TGLenum;
-  const Color: TVector4Single);
-begin
-  glPushAttrib(GL_COLOR_BUFFER_BIT or GL_CURRENT_BIT);
-    glEnable(GL_BLEND);
-      glBlendFunc(SourceFactor, DestinationFactor);
-      glColorv(Color);
-      glBegin(GL_QUADS);
-        glVertex2i(X1, Y1);
-        glVertex2i(X2, Y1);
-        glVertex2i(X2, Y2);
-        glVertex2i(X1, Y2);
-      glEnd();
-    glDisable(GL_BLEND);
-  glPopAttrib;
 end;
 
 procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single);

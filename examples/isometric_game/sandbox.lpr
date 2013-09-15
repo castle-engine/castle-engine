@@ -2,7 +2,7 @@ program SandBox;
 
 {$apptype GUI}
 
-uses SysUtils, GL, GLU, GLExt, CastleWindow, SandBoxMap, CastleFilesUtils,
+uses SysUtils, CastleWindow, SandBoxMap, CastleFilesUtils,
   CastleWindowModes, SandBoxPlayer, CastleStringUtils, Math, CastleUtils,
   CastleGLUtils, SandBoxGame, CastleKeysMouse, CastleMessages, CastleGLImages,
   CastleImages, CastleColors;

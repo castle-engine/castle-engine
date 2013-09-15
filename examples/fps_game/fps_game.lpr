@@ -20,7 +20,7 @@ uses SysUtils, Classes, CastleWindow, CastleWarnings, CastleConfig, CastleLevels
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   CastleRenderer, Castle3D, CastleFilesUtils, CastleGameNotifications,
-  CastleSceneManager, CastleVectors, CastleUIControls, GL, CastleGLUtils,
+  CastleSceneManager, CastleVectors, CastleUIControls, CastleGLUtils,
   CastleColors, CastleItems, CastleUtils, CastleCameras, CastleMaterialProperties,
   CastleCreatures, CastleRectangles, CastleImages;
 
@@ -288,12 +288,10 @@ begin
     code). Engine example examples/3d_rendering_processing/multiple_viewports.lpr
     shows how to set them up in code. }
   if Player.Swimming = psUnderWater then
-    GLBlendRectangle(0, 0, ContainerWidth, ContainerHeight,
-      GL_ONE, GL_SRC_ALPHA, Vector4Single(0, 0, 0.1, 0.5));
+    GLBlendRectangle(ContainerRect, Vector4Single(0, 0, 0.1, 0.5));
   if Player.Dead then
-    GLFadeRectangle(0, 0, ContainerWidth, ContainerHeight, Red, 1.0) else
-    GLFadeRectangle(0, 0, ContainerWidth, ContainerHeight,
-      Player.FadeOutColor, Player.FadeOutIntensity);
+    GLFadeRectangle(ContainerRect, Red, 1.0) else
+    GLFadeRectangle(ContainerRect, Player.FadeOutColor, Player.FadeOutIntensity);
 end;
 
 var
