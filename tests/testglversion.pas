@@ -58,8 +58,6 @@ begin
     Assert(G.MesaMajor = 7);
     Assert(G.MesaMinor = 0);
     Assert(G.MesaRelease = 4);
-
-    Assert(not G.BuggyPointSetAttrib);
   finally FreeAndNil(G) end;
 
   G := TGLVersion.Create('2.1 Mesa 7.1', 'Brian Paul',
@@ -78,8 +76,6 @@ begin
     Assert(G.MesaMajor = 7);
     Assert(G.MesaMinor = 1);
     Assert(G.MesaRelease = 0);
-
-    Assert(G.BuggyPointSetAttrib);
   finally FreeAndNil(G) end;
 
   G := TGLVersion.Create('1.2.3', 'foobar', '');
@@ -93,8 +89,6 @@ begin
     Assert(G.ReleaseExists);
     Assert(G.Release = 3);
     Assert(not G.Mesa);
-
-    Assert(not G.BuggyPointSetAttrib);
   finally FreeAndNil(G) end;
 end;
 
