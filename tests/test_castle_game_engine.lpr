@@ -39,6 +39,7 @@ uses
   TestX3DNodesOptimizedProxy,
   TestScene,
   TestSceneCore,
+  TestVideos,
   { Not used anymore --- IntRects stuff is internal inside CastleMessages,
     and honestly not important enough.
   TestIntRects, }

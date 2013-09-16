@@ -469,44 +469,56 @@ procedure TVideo.LoadFromFile(const URL: string;
     in this case the URL @italic(must) be a filename. }
   procedure LoadFromImages(const URL: string;
     RemoveLoadedTempImages: boolean);
+
+    { Load movie frame number Index. Returns if success. }
+    function LoadFrame(const Index: Cardinal): boolean;
+    var
+      URLComplete: string;
+      NewItem: TCastleImage;
+    begin
+      URLComplete := FormatNameCounter(URL, Index, false);
+
+      try
+        { LoadImage will raise an exception
+          for invalid / not existing / not readable image file / url.
+          Don't increase FItems before NewItem is successfully loaded. }
+        NewItem := LoadSingleImage(URLComplete);
+      except
+        Exit(false);
+      end;
+
+      SetLength(FItems, Length(FItems) + 1);
+      FItems[High(FItems)] := NewItem;
+
+      if RemoveLoadedTempImages then
+        CheckDeleteFile(URLComplete, true);
+
+      Result := true;
+    end;
+
   var
     Index, ReplacementsDone: Cardinal;
-    URLComplete: string;
-    NewItem: TCastleImage;
+    SingleFrame: TCastleImage;
   begin
     FormatNameCounter(URL, 0, false, ReplacementsDone);
     if ReplacementsDone > 0 then
     begin
+      { Try to load frame 0. Ignore failure (it means movie starts at frame 1). }
+      LoadFrame(0);
+
       Index := 1;
-      URLComplete := FormatNameCounter(URL, Index, false);
-      while true do
-      begin
-        try
-          { LoadImage will raise an exception
-            for invalid / not existing / not readable image file / url.
-            Don't increase FItems before NewItem is successfully loaded. }
-          NewItem := LoadSingleImage(URLComplete);
-        except
-          Break;
-        end;
-
-        SetLength(FItems, Length(FItems) + 1);
-        FItems[High(FItems)] := NewItem;
-
-        if RemoveLoadedTempImages then
-          CheckDeleteFile(URLComplete, true);
-
+      while LoadFrame(Index) do
         Inc(Index);
-        URLComplete := FormatNameCounter(URL, Index, false);
-      end;
+
       if Length(FItems) = 0 then
-        raise Exception.CreateFmt('First video image "%s" not found, cannot load the video',
-          [URLComplete]);
+        raise Exception.CreateFmt('First video image ("%s" or "%s") cannot be loaded (not found, or not supported image format --- in case of png make sure libpng is installed). Cannot load the video',
+          [FormatNameCounter(URL, 0, false),
+           FormatNameCounter(URL, 1, false)]);
     end else
     begin
-      NewItem := LoadSingleImage(URL);
+      SingleFrame := LoadSingleImage(URL);
       SetLength(FItems, 1);
-      FItems[0] := NewItem;
+      FItems[0] := SingleFrame;
 
       { when RemoveLoadedTempImages, we know URL is a filename and can be safely
         passed to CheckDeleteFile }
