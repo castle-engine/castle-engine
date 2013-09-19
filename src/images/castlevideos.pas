@@ -354,6 +354,20 @@ type
 function FfmpegVideoMimeType(const MimeType: string;
   const FfmpegOutput: boolean): boolean;
 
+{ Returns full path to ffmpeg-compatible executable.
+
+  When not found:
+  @unorderedList(
+    @item If ExceptionOnError then we raise an exception.
+    @item If not ExceptionOnError then we simply return ''.
+  ) }
+function FfmpegExecutable(const ExceptionOnError: boolean): string;
+
+{ Execute ffmpeg. 1st parameter must not be ''.
+  It should usually be calculated by FfmpegExecutable. }
+procedure FfmpegExecute(const Executable: string;
+  const Parameters: array of string);
+
 var
   { Maximum number of video frames to read, for TVideo.LoadFromFile.
 
@@ -466,30 +480,6 @@ begin
   FLoaded := false;
 end;
 
-procedure ExecuteFfmpeg(const Executable: string;
-  const Parameters: array of string);
-var
-  S, Parameter: string;
-begin
-  { ffmpeg call will output some things on stdout anyway.
-    So it's Ok that we also output something, stdout is required
-    by ffmpeg anyway... }
-  Writeln(Output, 'FFMpeg found, executing...');
-  { Only for the sake of logging we glue Parameters together.
-    For actual execution, we pass Parameters as an array, which is *much*
-    safer (no need to worry whether Parameter contains " inside etc.) }
-  S := Executable;
-  for Parameter in Parameters do
-  begin
-    S += ' ';
-    if Pos(' ', Parameter) <> 0 then
-      S += '"' + Parameter + '"' else
-      S += Parameter;
-  end;
-  Writeln(Output, S);
-  ExecuteProcess(Executable, Parameters);
-end;
-
 procedure TVideo.LoadFromFile(const URL: string;
   const ResizeToX: Cardinal = 0;
   const ResizeToY: Cardinal = 0;
@@ -576,70 +566,60 @@ procedure TVideo.LoadFromFile(const URL: string;
     Executable: string;
     S: TStream;
   begin
-    Executable := PathFileSearch(
-      {$ifdef MSWINDOWS} 'ffmpeg.exe' {$endif}
-      {$ifdef UNIX} 'ffmpeg' {$endif});
+    Executable := FfmpegExecutable(true);
 
-    if Executable = '' then
+    { initialize TemporaryImagesPrefix, TemporaryImagesPattern }
+
+    TemporaryImagesPrefix := GetTempFileName('', ApplicationName) + '_' +
+      { Although GetTempFileName should add some randomization here,
+        there's no guarantee. And we really need randomization ---
+        we load ffmpeg output using image %d pattern, so we don't want to
+        accidentaly pick up other images in the temporary directory. }
+      IntToStr(Random(MaxInt)) + '_';
+
+    { Check is it really Ok. }
+    SearchError := FindFirst(TemporaryImagesPrefix + '*', faReallyAnyFile,
+      FileRec);
+    try
+      if SearchError = 0 then
+        raise Exception.CreateFmt('Failed to generate unique temporary file prefix "%s": filename "%s" already exists',
+          [TemporaryImagesPrefix, FileRec.Name]);
+    finally FindClose(FileRec) end;
+
+    FfmpegTemporaryImagesPattern := TemporaryImagesPrefix + '%d.png';
+    OurTemporaryImagesPattern := TemporaryImagesPrefix + '@counter(1).png';
+
+    MovieFileName := URIToFilenameSafe(URL);
+    MovieFileNameTemporary := false;
+
+    { If URL isn't a local file (maybe it's http, maybe data URI) then
+      download it ourselves to a temporary file.
+
+      We don't let ffmpeg to download video. Although ffmpeg can handle
+      http URLs, but then progress of download is not visible using
+      our progress (OTOH, it is streamed and converted during downloading).
+      Most important: ffmpeg can't handle data URI (we could not even
+      pass such long strings on the command-line). }
+    if MovieFileName = '' then
     begin
-      raise Exception.Create('You must have "ffmpeg" program from ' +
-        '[http://ffmpeg.mplayerhq.hu/] installed and available on $PATH to be able to ' +
-        'load movie files');
-    end else
-    begin
-      { initialize TemporaryImagesPrefix, TemporaryImagesPattern }
-
-      TemporaryImagesPrefix := GetTempFileName('', ApplicationName) + '_' +
-        { Although GetTempFileName should add some randomization here,
-          there's no guarantee. And we really need randomization ---
-          we load ffmpeg output using image %d pattern, so we don't want to
-          accidentaly pick up other images in the temporary directory. }
-        IntToStr(Random(MaxInt)) + '_';
-
-      { Check is it really Ok. }
-      SearchError := FindFirst(TemporaryImagesPrefix + '*', faReallyAnyFile,
-        FileRec);
+      MovieFileName := GetTempFileNameCheck;
+      MovieFileNameTemporary := true;
+      S := Download(URL);
       try
-        if SearchError = 0 then
-          raise Exception.CreateFmt('Failed to generate unique temporary file prefix "%s": filename "%s" already exists',
-            [TemporaryImagesPrefix, FileRec.Name]);
-      finally FindClose(FileRec) end;
-
-      FfmpegTemporaryImagesPattern := TemporaryImagesPrefix + '%d.png';
-      OurTemporaryImagesPattern := TemporaryImagesPrefix + '@counter(1).png';
-
-      MovieFileName := URIToFilenameSafe(URL);
-      MovieFileNameTemporary := false;
-
-      { If URL isn't a local file (maybe it's http, maybe data URI) then
-        download it ourselves to a temporary file.
-
-        We don't let ffmpeg to download video. Although ffmpeg can handle
-        http URLs, but then progress of download is not visible using
-        our progress (OTOH, it is streamed and converted during downloading).
-        Most important: ffmpeg can't handle data URI (we could not even
-        pass such long strings on the command-line). }
-      if MovieFileName = '' then
-      begin
-        MovieFileName := GetTempFileNameCheck;
-        MovieFileNameTemporary := true;
-        S := Download(URL);
-        try
-          StreamSaveToFile(S, MovieFileName);
-        finally FreeAndNil(S) end;
-      end;
-
-      try
-        ExecuteFfmpeg(Executable, [ '-i', MovieFileName, '-y', '-qscale', '1',
-          '-vframes', IntToStr(MaximumVideoLength),
-          '-f', 'image2', FfmpegTemporaryImagesPattern ]);
-      finally
-        if MovieFileNameTemporary then
-          CheckDeleteFile(MovieFileName, true);
-      end;
-
-      LoadFromImages(OurTemporaryImagesPattern, true);
+        StreamSaveToFile(S, MovieFileName);
+      finally FreeAndNil(S) end;
     end;
+
+    try
+      FfmpegExecute(Executable, [ '-i', MovieFileName, '-y', '-qscale', '1',
+        '-vframes', IntToStr(MaximumVideoLength),
+        '-f', 'image2', FfmpegTemporaryImagesPattern ]);
+    finally
+      if MovieFileNameTemporary then
+        CheckDeleteFile(MovieFileName, true);
+    end;
+
+    LoadFromImages(OurTemporaryImagesPattern, true);
   end;
 
 begin
@@ -985,6 +965,43 @@ begin
     (MimeType = 'video/x-flv') or
     (MimeType = 'application/x-shockwave-flash') or
     (MimeType = 'video/mp4');
+end;
+
+function FfmpegExecutable(const ExceptionOnError: boolean): string;
+const
+  SFfmpegNotFound = 'You must have "ffmpeg" from [http://www.ffmpeg.org/] ' +
+    '(or "avconv" from [http://www.libav.org/]) ' +
+    'installed and available on $PATH to be able to load movie files';
+begin
+  Result := PathFileSearch('ffmpeg'  + ExeExtension);
+  if Result = '' then
+    Result := PathFileSearch('avconv'  + ExeExtension);
+  if (Result = '') and ExceptionOnError then
+    raise Exception.Create(SFfmpegNotFound);
+end;
+
+procedure FfmpegExecute(const Executable: string;
+  const Parameters: array of string);
+var
+  S, Parameter: string;
+begin
+  { ffmpeg call will output some things on stdout anyway.
+    So it's Ok that we also output something, stdout is required
+    by ffmpeg anyway... }
+  Writeln(Output, 'FFMpeg found, executing...');
+  { Only for the sake of logging we glue Parameters together.
+    For actual execution, we pass Parameters as an array, which is *much*
+    safer (no need to worry whether Parameter contains " inside etc.) }
+  S := Executable;
+  for Parameter in Parameters do
+  begin
+    S += ' ';
+    if Pos(' ', Parameter) <> 0 then
+      S += '"' + Parameter + '"' else
+      S += Parameter;
+  end;
+  Writeln(Output, S);
+  ExecuteProcess(Executable, Parameters);
 end;
 
 end.
