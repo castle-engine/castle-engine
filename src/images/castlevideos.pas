@@ -354,6 +354,19 @@ type
 function FfmpegVideoMimeType(const MimeType: string;
   const FfmpegOutput: boolean): boolean;
 
+var
+  { Maximum number of video frames to read, for TVideo.LoadFromFile.
+
+    This prevents using up all the memory by accidentaly trying to read
+    a long movie. Remember that our current implementation is @bold(not)
+    suited for long movies, it will load very slowly and consume a lot of memory.
+    See http://castle-engine.sourceforge.net/x3d_implementation_texturing.php
+    notes about MovieTexture.
+
+    By default this is equal to 1 minute, for 25 frames-per-second movie.
+    Even this can eat 2 GB for 640 x 350 resolution. }
+  MaximumVideoLength: Cardinal = 1 * 60 * 25;
+
 implementation
 
 uses Classes, CastleClassUtils,
@@ -453,6 +466,30 @@ begin
   FLoaded := false;
 end;
 
+procedure ExecuteFfmpeg(const Executable: string;
+  const Parameters: array of string);
+var
+  S, Parameter: string;
+begin
+  { ffmpeg call will output some things on stdout anyway.
+    So it's Ok that we also output something, stdout is required
+    by ffmpeg anyway... }
+  Writeln(Output, 'FFMpeg found, executing...');
+  { Only for the sake of logging we glue Parameters together.
+    For actual execution, we pass Parameters as an array, which is *much*
+    safer (no need to worry whether Parameter contains " inside etc.) }
+  S := Executable;
+  for Parameter in Parameters do
+  begin
+    S += ' ';
+    if Pos(' ', Parameter) <> 0 then
+      S += '"' + Parameter + '"' else
+      S += Parameter;
+  end;
+  Writeln(Output, S);
+  ExecuteProcess(Executable, Parameters);
+end;
+
 procedure TVideo.LoadFromFile(const URL: string;
   const ResizeToX: Cardinal = 0;
   const ResizeToY: Cardinal = 0;
@@ -507,7 +544,8 @@ procedure TVideo.LoadFromFile(const URL: string;
       LoadFrame(0);
 
       Index := 1;
-      while LoadFrame(Index) do
+      while LoadFrame(Index) and
+            (Length(FItems) < MaximumVideoLength) do
         Inc(Index);
 
       if Length(FItems) = 0 then
@@ -592,14 +630,9 @@ procedure TVideo.LoadFromFile(const URL: string;
       end;
 
       try
-        { ffmpeg call will output some things on stdout anyway.
-          So it's Ok that we also output something, stdout is required
-          by ffmpeg anyway... }
-        Writeln(Output, 'FFMpeg found, executing...');
-        Writeln(Output, Executable + ' -i "' + MovieFileName +
-          '" -y -qscale 1 -f image2 "' + FfmpegTemporaryImagesPattern + '"');
-        ExecuteProcess(Executable,
-          [ '-i', MovieFileName, '-y', '-qscale', '1', '-f', 'image2', FfmpegTemporaryImagesPattern ]);
+        ExecuteFfmpeg(Executable, [ '-i', MovieFileName, '-y', '-qscale', '1',
+          '-vframes', IntToStr(MaximumVideoLength),
+          '-f', 'image2', FfmpegTemporaryImagesPattern ]);
       finally
         if MovieFileNameTemporary then
           CheckDeleteFile(MovieFileName, true);
