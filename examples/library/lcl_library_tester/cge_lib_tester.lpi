@@ -30,13 +30,19 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="2">
+    <RequiredPackages Count="4">
       <Item1>
-        <PackageName Value="LazOpenGLContext"/>
+        <PackageName Value="castle_components"/>
       </Item1>
       <Item2>
-        <PackageName Value="LCL"/>
+        <PackageName Value="castle_base"/>
       </Item2>
+      <Item3>
+        <PackageName Value="LazOpenGLContext"/>
+      </Item3>
+      <Item4>
+        <PackageName Value="LCL"/>
+      </Item4>
     </RequiredPackages>
     <Units Count="2">
       <Unit0>
@@ -61,8 +67,8 @@
       <Filename Value="cge_lib_tester"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir);..\..\..\src\base\windows;..\..\..\src\x3d\opengl\glsl;..\..\..\src\base"/>
-      <OtherUnitFiles Value="..\..\..\src\library;..\..\..\src\audio;..\..\..\src\game;..\..\..\src\components;..\..\..\src\castlescript;..\..\..\src\base;..\..\..\src\net;..\..\..\src\opengl;..\..\..\src\ui;..\..\..\src\ui\opengl;..\..\..\src\fonts;..\..\..\src\images;..\..\..\src\3d;..\..\..\src\x3d;..\..\..\src\x3d\opengl"/>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="..\..\..\src\library"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
