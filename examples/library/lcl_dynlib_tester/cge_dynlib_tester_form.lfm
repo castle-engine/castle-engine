@@ -1,0 +1,25 @@
+object Form1: TForm1
+  Left = 359
+  Height = 399
+  Top = 227
+  Width = 646
+  Caption = 'Form1'
+  ClientHeight = 399
+  ClientWidth = 646
+  OnCreate = FormCreate
+  OnResize = FormResize
+  LCLVersion = '1.0.10.0'
+  object OpenGLControl1: TOpenGLControl
+    Left = 25
+    Height = 367
+    Top = 15
+    Width = 591
+    OnKeyDown = OpenGLControl1KeyDown
+    OnKeyUp = OpenGLControl1KeyUp
+    OnMouseDown = OpenGLControl1MouseDown
+    OnMouseMove = OpenGLControl1MouseMove
+    OnMouseUp = OpenGLControl1MouseUp
+    OnMouseWheel = OpenGLControl1MouseWheel
+    OnPaint = OpenGLControl1Paint
+  end
+end

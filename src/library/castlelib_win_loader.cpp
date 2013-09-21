@@ -75,7 +75,7 @@ void CGE_LoadLibrary()
 	pfrd_CGE_OnMouseMove = (PFNRD_CGE_OnMouseMove)GetProcAddress(g_hCgeDll, "CGE_OnMouseMove");
 	pfrd_CGE_OnMouseUp = (PFNRD_CGE_OnMouseUp)GetProcAddress(g_hCgeDll, "CGE_OnMouseUp");
 	pfrd_CGE_OnMouseWheel =(PFNRD_CGE_OnMouseWheel) GetProcAddress(g_hCgeDll, "CGE_OnMouseWheel");
-	pfrd_CGE_LoadSceneFromFile = (PFNRD_CGE_LoadSceneFromFile)GetProcAddress(g_hCgeDll, "CGE_LoadSceneFile");
+	pfrd_CGE_LoadSceneFromFile = (PFNRD_CGE_LoadSceneFromFile)GetProcAddress(g_hCgeDll, "CGE_LoadSceneFromFile");
 	pfrd_CGE_MoveToViewpoint = (PFNRD_CGE_MoveToViewpoint)GetProcAddress(g_hCgeDll, "CGE_MoveToViewpoint");
 }
 
