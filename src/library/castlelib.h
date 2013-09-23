@@ -33,21 +33,41 @@ enum ECgeShiftState
     ecgessCtrl  = 4,
 };
 
+enum ECgeNavigationType
+{
+    ecgenavWalk         = 0,
+    ecgenavFly          = 1,
+    ecgenavExamine      = 2,
+    ecgenavArchitecture = 3,
+};
+
+typedef void (__cdecl *TCgeNeedsDisplayCallbackProc)();
+
+
+//-----------------------------------------------------------------------------
 extern void CGE_LoadLibrary();	// function defined in the loader CPP file
 
+//-----------------------------------------------------------------------------
 extern void CGE_Init();
 extern void CGE_Close();
 
 extern void CGE_SetRenderParams(unsigned uiViewWidth, unsigned uiViewHeight);
 extern void CGE_Render();
+extern void CGE_SetDisplayNeededCallbackProc(TCgeNeedsDisplayCallbackProc pProc);
 extern void CGE_OnIdle();
 
 extern void CGE_OnMouseDown(int x, int y, bool bLeftBtn, unsigned uiShift);
 extern void CGE_OnMouseMove(int x, int y, unsigned uiShift);
 extern void CGE_OnMouseUp(int x, int y, bool bLeftBtn, unsigned uiShift);
-extern void CGE_OnMouseWheel(float zDelta);
+extern void CGE_OnMouseWheel(float zDelta, bool bVertical, unsigned uiShift);
 
 extern void CGE_LoadSceneFromFile(const char *szFile);
+
+extern int CGE_GetViewpointsCount();
+extern void CGE_GetViewpointName(int iViewpointIdx, char *szName, int nBufSize);
 extern void CGE_MoveToViewpoint(int iViewpointIdx, bool bAnimated);
+
+extern int CGE_GetCurrentNavigationType();
+extern void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType);
 
 #endif //CGE_LIBRARY_INCLUDED

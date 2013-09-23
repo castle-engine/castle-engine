@@ -31,6 +31,8 @@ const
   DefaultLimitFPS = 100.0;
 
 type
+  TViewportNeedsDisplayProc = procedure (); cdecl;
+
   TCastleFrame = class(TComponent, IUIContainer)
   private
     FSceneManager: TGameSceneManager;
@@ -50,6 +52,7 @@ type
 
     { manually track when we need to be repainted, useful for AggressiveUpdate }
     Invalidated: boolean;
+    FNeedsDisplayCallbackProc: TViewportNeedsDisplayProc;
 
     procedure UpdateShiftState(const Shift: TShiftState);
     procedure ControlsVisibleChange(Sender: TObject);
@@ -94,6 +97,7 @@ type
     procedure Paint;
     procedure Invalidate;
     procedure SetRenderSize(const NewWidth, NewHeight: Integer);
+    procedure SetDisplayNeededCallbackProc(aProc: TViewportNeedsDisplayProc);
     procedure Update;
     procedure GLContextOpen;
 
@@ -172,6 +176,18 @@ type
     property ShadowVolumesDraw: boolean
       read GetShadowVolumesDraw write SetShadowVolumesDraw default false;
 
+    { Viewpoints array management }
+    private
+      ArrayViewpoints: array of TAbstractX3DViewpointNode;
+
+      procedure AddViewpoint(Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
+                             ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
+    public
+      function GetViewpointsCount(): integer;
+      function GetViewpointName(Idx: integer): string;
+      procedure MoveToViewpoint(Idx: integer; Animated: boolean);
+      function GetCurrentNavigationType(): TCameraNavigationType;
+      procedure SetNavigationType(NewType: TCameraNavigationType);
   end;
 
 
@@ -306,6 +322,7 @@ begin
   FOnDrawStyle := dsNone;
 
   Invalidated := false;
+  FNeedsDisplayCallbackProc := nil;
 
   FSceneManager := TGameSceneManager.Create(Self);
   { SetSubComponent and Name setting (must be unique only within TCastleControl,
@@ -332,6 +349,13 @@ end;
 procedure TCastleFrame.Invalidate;
 begin
   Invalidated := true;
+  if (FNeedsDisplayCallbackProc<>nil) then  // tell the parent window to repaint
+    FNeedsDisplayCallbackProc();
+end;
+
+procedure TCastleFrame.SetDisplayNeededCallbackProc(aProc: TViewportNeedsDisplayProc);
+begin
+  FNeedsDisplayCallbackProc := aProc;
 end;
 
 procedure TCastleFrame.Notification(AComponent: TComponent; Operation: TOperation);
@@ -630,7 +654,7 @@ end;
 
 procedure TCastleFrame.ControlsVisibleChange(Sender: TObject);
 begin
-  {JA Invalidate;}
+  Invalidate;
 end;
 
 procedure TCastleFrame.DoBeforeDraw;
@@ -848,6 +872,11 @@ begin
     Useful for model_3d_viewer that wants to initialize NavigationType
     from camera. }
   SceneManager.Camera := SceneManager.CreateDefaultCamera;
+
+  { init viewpoints }
+  SetLength(ArrayViewpoints, 0);
+  if (MainScene.RootNode <> nil) then
+    MainScene.RootNode.Traverse(TAbstractViewpointNode, @AddViewpoint);
 end;
 
 function TCastleFrame.MainScene: TCastleScene;
@@ -949,5 +978,46 @@ begin
   Result := FPressed;
 end;
 
+procedure TCastleFrame.AddViewpoint(Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
+                       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
+var
+  nCount: integer;
+begin
+  if Node is TAbstractX3DViewpointNode then
+  begin
+    nCount := Length(ArrayViewpoints);
+    SetLength(ArrayViewpoints, nCount+1);
+    ArrayViewpoints[nCount] := Node as TAbstractX3DViewpointNode;
+  end;
+end;
+
+function TCastleFrame.GetViewpointsCount(): integer;
+begin
+  Result := Length(ArrayViewpoints);
+end;
+
+function TCastleFrame.GetViewpointName(Idx: integer): string;
+begin
+  Result := ArrayViewpoints[Idx].FdDescription.Value;
+end;
+
+procedure TCastleFrame.MoveToViewpoint(Idx: integer; Animated: boolean);
+begin
+  ArrayViewpoints[Idx].EventSet_Bind.Send(true, MainScene.Time);
+end;
+
+function TCastleFrame.GetCurrentNavigationType(): TCameraNavigationType;
+begin
+  if Camera is TUniversalCamera then
+    Result := (Camera as TUniversalCamera).NavigationType
+  else
+    Result := ntExamine;
+end;
+
+procedure TCastleFrame.SetNavigationType(NewType: TCameraNavigationType);
+begin
+  if (Camera<>nil) AND (Camera is TUniversalCamera) then
+     (Camera as TUniversalCamera).NavigationType := NewType;
+end;
 
 end.

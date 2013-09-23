@@ -47,6 +47,11 @@ uses
 
 {$R *.lfm}
 
+procedure OpenGlNeedsDisplayCallback(); cdecl;
+begin
+  Form1.OpenGLControl1.Invalidate;
+end;
+
 { TForm1 }
 
 procedure TForm1.FormCreate(Sender: TObject);
@@ -56,6 +61,7 @@ begin
   aCastleFrame := TCastleFrame.Create(nil);
   aCastleFrame.GLContextOpen;
   aCastleFrame.SetRenderSize(OpenGLControl1.Width, OpenGLControl1.Height);
+  aCastleFrame.SetDisplayNeededCallbackProc(@OpenGlNeedsDisplayCallback);
   aCastleFrame.Load('../../../examples/shadow_fields/models/humanoid_stand.wrl');
   OpenGLControl1.Invalidate;
   ActiveControl := OpenGLControl1;   // set focus in order to receive keydowns
@@ -147,7 +153,6 @@ end;
 procedure TForm1.IdleFunc(Sender: TObject; var Done: Boolean);
 begin
   aCastleFrame.Update;
-  OpenGLControl1.Invalidate;
   Done:=false;
 end;
 

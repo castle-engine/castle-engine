@@ -9,7 +9,7 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "castlelib.h"
+#include "../../../src/library/castlelib.h"
 
 #if defined(_DEBUG)
 #include <crtdbg.h>
@@ -27,6 +27,10 @@ int       g_windowWidth;
 int       g_windowHeight;
 bool      g_isFullScreen;
 bool      g_hasFocus;
+
+//-----------------------------------------------------------------------------
+int g_nViewpointCount = 0;
+int g_nCurrentViewpoint;
 
 //-----------------------------------------------------------------------------
 // Function Prototypes.
@@ -103,6 +107,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     return msg.wParam;
 }
 
+//-----------------------------------------------------------------------------
 unsigned WinShiftToCgeShift(unsigned wParam)
 {
 	unsigned res = 0;
@@ -111,6 +116,7 @@ unsigned WinShiftToCgeShift(unsigned wParam)
 	return res;
 }
 
+//-----------------------------------------------------------------------------
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
@@ -138,7 +144,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         if (IsWindowEnabled(hWnd))
         {
 	        wglMakeCurrent(g_hDC, g_hRC);
-	        CGE_Render();			// do not draw in WM_PAINT
+	        CGE_Render();			// do not draw in WM_PAINT (inspired in CastleWindow)
             SwapBuffers(g_hDC);
         }
         return TRUE;
@@ -161,7 +167,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_MOUSEWHEEL:
-        CGE_OnMouseWheel(GET_WHEEL_DELTA_WPARAM(wParam));
+        CGE_OnMouseWheel(GET_WHEEL_DELTA_WPARAM(wParam), true, WinShiftToCgeShift(GET_KEYSTATE_WPARAM(wParam)));
         break;
 
     case WM_CHAR:
@@ -171,6 +177,35 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             PostMessage(hWnd, WM_CLOSE, 0, 0);
             break;
 
+        default:
+            break;
+        }
+        break;
+
+    case WM_KEYDOWN:
+        switch (wParam)
+        {
+        case VK_PRIOR:      // PageUp - move to previous viewpoint
+            if (g_nViewpointCount > 0)
+            {
+                if (g_nCurrentViewpoint > 0)
+                    g_nCurrentViewpoint--;
+                else
+                    g_nCurrentViewpoint = g_nViewpointCount-1;
+                CGE_MoveToViewpoint(g_nCurrentViewpoint, true);
+            }
+            break;
+
+        case VK_NEXT:       // PageDown - move to next viewpoint
+            if (g_nViewpointCount > 0)
+            {
+                if (g_nCurrentViewpoint < g_nViewpointCount-1)
+                    g_nCurrentViewpoint++;
+                else
+                    g_nCurrentViewpoint = 0;
+                CGE_MoveToViewpoint(g_nCurrentViewpoint, true);
+            }
+            break;
         default:
             break;
         }
@@ -199,6 +234,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
+//-----------------------------------------------------------------------------
 void Cleanup()
 {
     if (g_hDC)
@@ -215,6 +251,7 @@ void Cleanup()
     }
 }
 
+//-----------------------------------------------------------------------------
 HWND CreateAppWindow(const WNDCLASSEX &wcl, const char *pszTitle)
 {
     DWORD wndExStyle = WS_EX_OVERLAPPEDWINDOW;
@@ -246,6 +283,13 @@ HWND CreateAppWindow(const WNDCLASSEX &wcl, const char *pszTitle)
     return hWnd;
 }
 
+//-----------------------------------------------------------------------------
+void __cdecl OpenGlNeedsDisplayCallback()
+{
+    InvalidateRect(g_hWnd, NULL, TRUE);
+}
+
+//-----------------------------------------------------------------------------
 bool Init()
 {
     try
@@ -255,6 +299,7 @@ bool Init()
         CGE_LoadLibrary();
         CGE_Init();
         CGE_SetRenderParams(g_windowWidth, g_windowHeight);
+        CGE_SetDisplayNeededCallbackProc(OpenGlNeedsDisplayCallback);
         //CGE_LoadSceneFromFile("c:\\projects\\humanoid_stand.wrl");
         ShowOpenFileDialog();
         return true;
@@ -271,6 +316,7 @@ bool Init()
     }
 }
 
+//-----------------------------------------------------------------------------
 void InitGL()
 {
     if (!(g_hDC = GetDC(g_hWnd)))
@@ -303,6 +349,7 @@ void InitGL()
     SetWindowText(g_hWnd, text.str().c_str());*/
 }
 
+//-----------------------------------------------------------------------------
 void ToggleFullScreen()
 {
     static DWORD savedExStyle;
@@ -342,12 +389,13 @@ void ToggleFullScreen()
 	CGE_SetRenderParams(g_windowWidth, g_windowHeight);
 }
 
+//-----------------------------------------------------------------------------
 void OnIdle()
 {
     CGE_OnIdle();
-    InvalidateRect(g_hWnd, NULL, TRUE);
 }
 
+//-----------------------------------------------------------------------------
 void ShowOpenFileDialog()
 {
     char szFile[MAX_PATH];
@@ -368,6 +416,21 @@ void ShowOpenFileDialog()
 	if (GetOpenFileName(&ofn))
     {
         CGE_LoadSceneFromFile(szFile);
+
+        // show viewpoints available
+        std::string sViewpointList;
+        int nCount = CGE_GetViewpointsCount();
+        for (int i = 0; i < nCount; i++)
+        {
+            char sName[512];
+            CGE_GetViewpointName(i, sName, 512);
+            sViewpointList += sName;
+            sViewpointList += "\n";
+        }
+        MessageBox(g_hWnd, sViewpointList.c_str(), "Viewpoints found", 0);
+
         InvalidateRect(g_hWnd, NULL, TRUE);
+        g_nViewpointCount = nCount;
+        g_nCurrentViewpoint = 0;
     }
 }
