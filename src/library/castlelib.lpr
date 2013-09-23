@@ -12,7 +12,7 @@ Library castlelib;
 }
 
 uses
-  ctypes, math, CastleFrame, Classes, CastleKeysMouse;
+  ctypes, math, CastleFrame, Classes, CastleKeysMouse, sysutils;
 
 { See http://fpc.freedoors.org/dos204full/source/rtl/unix/ctypes.inc
   For a full list of c-types
@@ -23,29 +23,46 @@ var
 
 procedure CGE_Init(); cdecl;
 begin
-  aCastleFrame := TCastleFrame.Create(nil);
-  aCastleFrame.GLContextOpen;
+  try
+    aCastleFrame := TCastleFrame.Create(nil);
+    aCastleFrame.GLContextOpen;
+  except
+  end;
 end;
 
 procedure CGE_Close; cdecl;
 begin
-  aCastleFrame.Destroy();
-  aCastleFrame := nil;
+  try
+    aCastleFrame.Destroy();
+    aCastleFrame := nil;
+  except
+  end;
 end;
 
 procedure CGE_SetRenderParams(uiViewWidth, uiViewHeight: cUInt32); cdecl;
 begin
-  aCastleFrame.SetRenderSize(uiViewWidth, uiViewHeight);
+  try
+    aCastleFrame.SetRenderSize(uiViewWidth, uiViewHeight);
+  except
+  end;
 end;
 
 procedure CGE_Render; cdecl;
 begin
-  aCastleFrame.Paint();
+  try
+    aCastleFrame.Paint();
+  except
+    //on E: Exception do OutputDebugString(@E.Message[1]);
+  end;
 end;
 
 procedure CGE_OnIdle; cdecl;
 begin
-  aCastleFrame.Update();
+  try
+    aCastleFrame.Update();
+  except
+    //on E: Exception do OutputDebugString(@E.Message[1]);
+  end;
 end;
 
 function CGE_ShiftToFPCShift(uiShift: cUInt32): TShiftState;
@@ -64,17 +81,23 @@ var
   MyButton: TMouseButton;
   Shift: TShiftState;
 begin
-  if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
-  Shift := CGE_ShiftToFPCShift(uiShift);
-  aCastleFrame.OnMouseDown(MyButton, Shift, x, y);
+  try
+    if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
+    Shift := CGE_ShiftToFPCShift(uiShift);
+    aCastleFrame.OnMouseDown(MyButton, Shift, x, y);
+  except
+  end;
 end;
 
 procedure CGE_OnMouseMove(x, y: cInt32; uiShift: cUInt32); cdecl;
 var
   Shift: TShiftState;
 begin
-  Shift := CGE_ShiftToFPCShift(uiShift);
-  aCastleFrame.OnMouseMove(Shift, x, y);
+  try
+    Shift := CGE_ShiftToFPCShift(uiShift);
+    aCastleFrame.OnMouseMove(Shift, x, y);
+  except
+  end;
 end;
 
 procedure CGE_OnMouseUp(x, y: cInt32; bLeftBtn: cBool; uiShift: cUInt32); cdecl;
@@ -82,19 +105,29 @@ var
   MyButton: TMouseButton;
   Shift: TShiftState;
 begin
-  if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
-  Shift := CGE_ShiftToFPCShift(uiShift);
-  aCastleFrame.OnMouseUp(MyButton, Shift, x, y);
+  try
+    if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
+    Shift := CGE_ShiftToFPCShift(uiShift);
+    aCastleFrame.OnMouseUp(MyButton, Shift, x, y);
+  except
+  end;
 end;
 
 procedure CGE_OnMouseWheel(zDelta: cFloat); cdecl;
 begin
-  aCastleFrame.OnMouseWheel(zDelta/120, true);
+  try
+    aCastleFrame.OnMouseWheel(zDelta/120, true);
+  except
+  end;
 end;
 
 procedure CGE_LoadSceneFromFile(szFile: pcchar); cdecl;
 begin
-  aCastleFrame.Load(StrPas(PChar(szFile)));
+  try
+    aCastleFrame.Load(StrPas(PChar(szFile)));
+  except
+    //on E: Exception do OutputDebugString(@E.Message[1]);
+  end;
 end;
 
 procedure CGE_MoveToViewpoint(iViewpointIdx: cInt32; bAnimated: cBool); cdecl;
@@ -111,5 +144,6 @@ exports
 begin
   {Do not remove the exception masking lines}
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
+  Set8087CW(Get8087CW or $3f);
 end.
 

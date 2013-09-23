@@ -1,0 +1,23 @@
+
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "castlelib_win_tester", "castlelib_win_tester.vcxproj", "{1FED6030-D176-4FE2-8703-6C6D7D28D95C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1FED6030-D176-4FE2-8703-6C6D7D28D95C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1FED6030-D176-4FE2-8703-6C6D7D28D95C}.Debug|Win32.Build.0 = Debug|Win32
+		{1FED6030-D176-4FE2-8703-6C6D7D28D95C}.Release|Win32.ActiveCfg = Release|Win32
+		{1FED6030-D176-4FE2-8703-6C6D7D28D95C}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		VisualSVNWorkingCopyRoot = .
+	EndGlobalSection
+EndGlobal

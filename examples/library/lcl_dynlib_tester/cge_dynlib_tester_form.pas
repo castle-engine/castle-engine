@@ -102,8 +102,7 @@ begin
   { TODO }
 end;
 
-procedure TForm1.OpenGLControl1MouseDown(Sender: TObject; Button: Controls.TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
+function ShiftToCgeShift(Shift: TShiftState): integer;
 var
   uiShift: Integer;
 begin
@@ -111,25 +110,25 @@ begin
   if ssShift in Shift then uiShift := uiShift or ecgessShift;
   if ssCtrl in Shift then uiShift := uiShift or ecgessCtrl;
   if ssAlt in Shift then uiShift := uiShift or ecgessAlt;
-  CGE_OnMouseDown(x, y, Button=mbLeft, uiShift);
+  Result := uiShift;
+end;
+
+procedure TForm1.OpenGLControl1MouseDown(Sender: TObject; Button: Controls.TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  CGE_OnMouseDown(x, y, Button=mbLeft, ShiftToCgeShift(Shift));
 end;
 
 procedure TForm1.OpenGLControl1MouseMove(Sender: TObject; Shift: TShiftState;
   X, Y: Integer);
 begin
-  CGE_OnMouseMove(x, y, 0);
+  CGE_OnMouseMove(x, y, ShiftToCgeShift(Shift));
 end;
 
 procedure TForm1.OpenGLControl1MouseUp(Sender: TObject; Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
-var
-  uiShift: Integer;
 begin
-  uiShift := 0;
-  if ssShift in Shift then uiShift := uiShift or ecgessShift;
-  if ssCtrl in Shift then uiShift := uiShift or ecgessCtrl;
-  if ssAlt in Shift then uiShift := uiShift or ecgessAlt;
-  CGE_OnMouseUp(x, y, Button=mbLeft, uiShift);
+  CGE_OnMouseUp(x, y, Button=mbLeft, ShiftToCgeShift(Shift));
 end;
 
 procedure TForm1.OpenGLControl1MouseWheel(Sender: TObject; Shift: TShiftState;
