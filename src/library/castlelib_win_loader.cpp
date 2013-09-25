@@ -36,7 +36,7 @@ typedef void (__cdecl *PFNRD_CGE_Close)();
 
 typedef void (__cdecl *PFNRD_CGE_SetRenderParams)(unsigned uiViewWidth, unsigned uiViewHeight);
 typedef void (__cdecl *PFNRD_CGE_Render)();
-typedef void (__cdecl *PFNRD_CGE_SetDisplayNeededCallbackProc)(TCgeNeedsDisplayCallbackProc pProc);
+typedef void (__cdecl *PFNRD_CGE_SetLibraryCallbackProc)(TCgeLibraryCallbackProc pProc);
 typedef void (__cdecl *PFNRD_CGE_OnIdle)();
 
 typedef void (__cdecl *PFNRD_CGE_OnMouseDown)(int x, int y, bool bLeftBtn, unsigned uiShift);
@@ -58,7 +58,7 @@ PFNRD_CGE_Init pfrd_CGE_Init = NULL;
 PFNRD_CGE_Close pfrd_CGE_Close = NULL;
 PFNRD_CGE_SetRenderParams pfrd_CGE_SetRenderParams = NULL;
 PFNRD_CGE_Render pfrd_CGE_Render = NULL;
-PFNRD_CGE_SetDisplayNeededCallbackProc pfrd_CGE_SetDisplayNeededCallbackProc = NULL;
+PFNRD_CGE_SetLibraryCallbackProc pfrd_CGE_SetLibraryCallbackProc = NULL;
 PFNRD_CGE_OnIdle pfrd_CGE_OnIdle = NULL;
 PFNRD_CGE_OnMouseDown pfrd_CGE_OnMouseDown = NULL;
 PFNRD_CGE_OnMouseMove pfrd_CGE_OnMouseMove = NULL;
@@ -82,7 +82,7 @@ void CGE_LoadLibrary()
 	pfrd_CGE_Close = (PFNRD_CGE_Close)GetProcAddress(g_hCgeDll, "CGE_Close");
 	pfrd_CGE_SetRenderParams = (PFNRD_CGE_SetRenderParams)GetProcAddress(g_hCgeDll, "CGE_SetRenderParams");
 	pfrd_CGE_Render = (PFNRD_CGE_Render)GetProcAddress(g_hCgeDll, "CGE_Render");
-	pfrd_CGE_SetDisplayNeededCallbackProc = (PFNRD_CGE_SetDisplayNeededCallbackProc)GetProcAddress(g_hCgeDll, "CGE_SetDisplayNeededCallbackProc");
+	pfrd_CGE_SetLibraryCallbackProc = (PFNRD_CGE_SetLibraryCallbackProc)GetProcAddress(g_hCgeDll, "CGE_SetLibraryCallbackProc");
 	pfrd_CGE_OnIdle = (PFNRD_CGE_OnIdle)GetProcAddress(g_hCgeDll, "CGE_OnIdle");
 	pfrd_CGE_OnMouseDown = (PFNRD_CGE_OnMouseDown)GetProcAddress(g_hCgeDll, "CGE_OnMouseDown");
 	pfrd_CGE_OnMouseMove = (PFNRD_CGE_OnMouseMove)GetProcAddress(g_hCgeDll, "CGE_OnMouseMove");
@@ -123,10 +123,10 @@ void CGE_Render()
 }
 
 //-----------------------------------------------------------------------------
-void CGE_SetDisplayNeededCallbackProc(TCgeNeedsDisplayCallbackProc pProc)
+void CGE_SetLibraryCallbackProc(TCgeLibraryCallbackProc pProc)
 {
-	if (pfrd_CGE_SetDisplayNeededCallbackProc!=NULL)
-		(*pfrd_CGE_SetDisplayNeededCallbackProc)(pProc);
+	if (pfrd_CGE_SetLibraryCallbackProc!=NULL)
+		(*pfrd_CGE_SetLibraryCallbackProc)(pProc);
 }
 
 //-----------------------------------------------------------------------------

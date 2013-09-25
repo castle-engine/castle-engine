@@ -284,9 +284,30 @@ HWND CreateAppWindow(const WNDCLASSEX &wcl, const char *pszTitle)
 }
 
 //-----------------------------------------------------------------------------
-void __cdecl OpenGlNeedsDisplayCallback()
+int __cdecl OpenGlLibraryCallback(int eCode, int iParam1, int iParam2)
 {
-    InvalidateRect(g_hWnd, NULL, TRUE);
+    switch (eCode)
+    {
+    case ecgelibNeedsDisplay:
+        InvalidateRect(g_hWnd, NULL, TRUE);
+        return 1;
+
+    case ecgelibSetMouseCursor:
+        {
+            HCURSOR hNewCur = NULL;
+            switch (iParam1)
+            {
+            case ecgecursorWait: hNewCur = LoadCursor(NULL, IDC_WAIT); break;
+            case ecgecursorHand: hNewCur = LoadCursor(NULL, IDC_HAND); break;
+            case ecgecursorText: hNewCur = LoadCursor(NULL, IDC_IBEAM); break;
+            default: hNewCur = LoadCursor(NULL, IDC_ARROW);
+            }
+            SetCursor(hNewCur);
+        }
+        return 1;
+
+    }
+    return 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -299,7 +320,7 @@ bool Init()
         CGE_LoadLibrary();
         CGE_Init();
         CGE_SetRenderParams(g_windowWidth, g_windowHeight);
-        CGE_SetDisplayNeededCallbackProc(OpenGlNeedsDisplayCallback);
+        CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);
         //CGE_LoadSceneFromFile("c:\\projects\\humanoid_stand.wrl");
         ShowOpenFileDialog();
         return true;
@@ -332,9 +353,29 @@ void InitGL()
     pfd.cDepthBits = 24;
     pfd.iLayerType = PFD_MAIN_PLANE;
 
-    int pf = ChoosePixelFormat(g_hDC, &pfd);
-    if (!SetPixelFormat(g_hDC, pf, &pfd))
-        throw std::runtime_error("SetPixelFormat() failed.");
+    bool bMsInitSuccess = false;
+    /*if (WGL_ARB_multisample && WGL_ARB_pixel_format && wglChoosePixelFormatARB)
+    {
+        float fVisualAttr[2];
+        int *pVisualAttrList = LGlMsCreateOpenGLContextAttrList(DoubleBuffered, RGBA, MultiSampling);
+        fVisualAttr[0] = fVisualAttr[1] = 0;
+        unsigned uiReturnedFormats = 0;
+        int pf;
+        bMsInitSuccess = wglChoosePixelFormatARB(g_hDC, (GLint*)pVisualAttrList, fVisualAttr, 1, &pf, &uiReturnedFormats);
+        free(pVisualAttrList);
+
+        if (bMsInitSuccess && uiReturnedFormats >= 1)
+            SetPixelFormat(g_hDC, pf, nil);
+        else
+            bMsInitSuccess = false;
+    }*/
+
+    if (!bMsInitSuccess)
+    {
+        int pf = ChoosePixelFormat(g_hDC, &pfd);
+        if (!SetPixelFormat(g_hDC, pf, &pfd))
+            throw std::runtime_error("SetPixelFormat() failed.");
+    }
 
 	g_hRC = wglCreateContext(g_hDC);
 

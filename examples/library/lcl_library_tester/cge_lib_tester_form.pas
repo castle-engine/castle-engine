@@ -43,13 +43,26 @@ var
 implementation
 
 uses
-  LCLType;
+  LCLType, ctypes;
 
 {$R *.lfm}
 
-procedure OpenGlNeedsDisplayCallback(); cdecl;
+function OpenGlLibraryCallback(eCode, iParam1, iParam2: cInt32):cInt32; cdecl;
 begin
-  Form1.OpenGLControl1.Invalidate;
+  case eCode of
+    ecgelibNeedsDisplay: Form1.OpenGLControl1.Invalidate;
+    ecgelibSetMouseCursor:
+      begin
+        case iParam1 of
+          ecgecursorNone: Form1.OpenGLControl1.Cursor := crNone;
+          ecgecursorWait: Form1.OpenGLControl1.Cursor := crHourGlass;
+          ecgecursorHand: Form1.OpenGLControl1.Cursor := crHandPoint;
+          ecgecursorText: Form1.OpenGLControl1.Cursor := crIBeam;
+          else Form1.OpenGLControl1.Cursor := crDefault;
+        end;
+      end;
+  end;
+  Result := 0;
 end;
 
 { TForm1 }
@@ -61,8 +74,9 @@ begin
   aCastleFrame := TCastleFrame.Create(nil);
   aCastleFrame.GLContextOpen;
   aCastleFrame.SetRenderSize(OpenGLControl1.Width, OpenGLControl1.Height);
-  aCastleFrame.SetDisplayNeededCallbackProc(@OpenGlNeedsDisplayCallback);
-  aCastleFrame.Load('../../../examples/shadow_fields/models/humanoid_stand.wrl');
+  aCastleFrame.SetLibraryCallbackProc(@OpenGlLibraryCallback);
+  //aCastleFrame.Load('../../../examples/shadow_fields/models/humanoid_stand.wrl');
+  aCastleFrame.Load('./mojedata/Image3D.wrl');
   OpenGLControl1.Invalidate;
   ActiveControl := OpenGLControl1;   // set focus in order to receive keydowns
 end;

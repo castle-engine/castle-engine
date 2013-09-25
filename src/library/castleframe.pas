@@ -22,7 +22,7 @@ unit CastleFrame;
 interface
 
 uses
-  Classes, SysUtils,
+  Classes, SysUtils, ctypes,
   CastleVectors, CastleRectangles, CastleKeysMouse, CastleUtils, CastleTimeUtils,
   CastleUIControls, CastleCameras, X3DNodes, CastleScene, CastleLevels,
   CastleImages, CastleGLVersion, CastleSceneManager;
@@ -30,8 +30,19 @@ uses
 const
   DefaultLimitFPS = 100.0;
 
+  // library callback codes
+  ecgelibNeedsDisplay     = 0;
+  ecgelibSetMouseCursor   = 1;   // sends mouse cursor code in iParam1
+
+  // mouse cursor codes
+  ecgecursorDefault   = 0;
+  ecgecursorWait      = 1;
+  ecgecursorHand      = 2;
+  ecgecursorText      = 3;
+  ecgecursorNone      = 4;
+
 type
-  TViewportNeedsDisplayProc = procedure (); cdecl;
+  TCgeLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32):cInt32; cdecl;
 
   TCastleFrame = class(TComponent, IUIContainer)
   private
@@ -52,7 +63,7 @@ type
 
     { manually track when we need to be repainted, useful for AggressiveUpdate }
     Invalidated: boolean;
-    FNeedsDisplayCallbackProc: TViewportNeedsDisplayProc;
+    FLibraryCallbackProc: TCgeLibraryCallbackProc;
 
     procedure UpdateShiftState(const Shift: TShiftState);
     procedure ControlsVisibleChange(Sender: TObject);
@@ -97,7 +108,7 @@ type
     procedure Paint;
     procedure Invalidate;
     procedure SetRenderSize(const NewWidth, NewHeight: Integer);
-    procedure SetDisplayNeededCallbackProc(aProc: TViewportNeedsDisplayProc);
+    procedure SetLibraryCallbackProc(aProc: TCgeLibraryCallbackProc);
     procedure Update;
     procedure GLContextOpen;
 
@@ -196,8 +207,8 @@ var
 
 implementation
 
-uses GL, GLU, GLExt, CastleGLUtils, CastleStringUtils, X3DLoad,
-  CastleGLImages, CastleLog, Contnrs;
+uses GL, GLU, CastleGLUtils, CastleStringUtils, X3DLoad,
+  CastleGLImages, CastleSceneCore;
 
 { TControlledUIControlList ----------------------------------------------------- }
 
@@ -322,7 +333,7 @@ begin
   FOnDrawStyle := dsNone;
 
   Invalidated := false;
-  FNeedsDisplayCallbackProc := nil;
+  FLibraryCallbackProc := nil;
 
   FSceneManager := TGameSceneManager.Create(Self);
   { SetSubComponent and Name setting (must be unique only within TCastleControl,
@@ -349,13 +360,13 @@ end;
 procedure TCastleFrame.Invalidate;
 begin
   Invalidated := true;
-  if (FNeedsDisplayCallbackProc<>nil) then  // tell the parent window to repaint
-    FNeedsDisplayCallbackProc();
+  if (FLibraryCallbackProc<>nil) then  // tell the parent window to repaint
+    FLibraryCallbackProc(ecgelibNeedsDisplay, 0, 0);
 end;
 
-procedure TCastleFrame.SetDisplayNeededCallbackProc(aProc: TViewportNeedsDisplayProc);
+procedure TCastleFrame.SetLibraryCallbackProc(aProc: TCgeLibraryCallbackProc);
 begin
-  FNeedsDisplayCallbackProc := aProc;
+  FLibraryCallbackProc := aProc;
 end;
 
 procedure TCastleFrame.Notification(AComponent: TComponent; Operation: TOperation);
@@ -405,6 +416,7 @@ procedure TCastleFrame.UpdateFocusAndMouseCursor;
 var
   NewFocus: TUIControl;
   NewCursor: TMouseCursor;
+  CursorCode: cInt32;
 begin
   NewFocus := CalculateFocus;
 
@@ -417,8 +429,19 @@ begin
     if (Focus <> nil) then Focus.Focused := true;
   end;
 
-  NewCursor := CalculateMouseCursor;
-  // TODO: send to client
+  if FLibraryCallbackProc <> nil then
+  begin
+    NewCursor := CalculateMouseCursor;
+    // send to client
+    case NewCursor of
+      mcNone: CursorCode := ecgecursorNone;
+      mcWait: CursorCode := ecgecursorWait;
+      mcHand: CursorCode := ecgecursorHand;
+      mcText: CursorCode := ecgecursorText;
+      else CursorCode := ecgecursorDefault;
+    end;
+    FLibraryCallbackProc(ecgelibSetMouseCursor, CursorCode, 0);
+  end;
 end;
 
 procedure TCastleFrame.Update;
@@ -850,6 +873,8 @@ end;
 procedure TCastleFrame.Load(const SceneURL: string);
 begin
   Load(Load3D(SceneURL, false), true);
+  MainScene.Spatial := [ssRendering, ssDynamicCollisions];
+  MainScene.ProcessEvents := true;
 end;
 
 procedure TCastleFrame.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
@@ -931,9 +956,12 @@ end;
 
 procedure TCastleFrame.SetRenderSize(const NewWidth, NewHeight: Integer);
 begin
-  FWidth := NewWidth;
-  FHeight := NewHeight;
-  Resize();
+  if (FWidth <> NewWidth) or (FHeight <> NewHeight) then
+  begin
+    FWidth := NewWidth;
+    FHeight := NewHeight;
+    Resize();
+  end;
 end;
 
 { IUIContainer required functions }

@@ -62,9 +62,27 @@ var
 implementation
 
 uses
-  LCLType, castlelib_dynloader;
+  LCLType, castlelib_dynloader, ctypes;
 
 {$R *.lfm}
+
+function OpenGlLibraryCallback(eCode, iParam1, iParam2: cInt32):cInt32; cdecl;
+begin
+  case eCode of
+    ecgelibNeedsDisplay: Form1.OpenGLControl1.Invalidate;
+    ecgelibSetMouseCursor:
+      begin
+        case iParam1 of
+          ecgecursorNone: Form1.OpenGLControl1.Cursor := crNone;
+          ecgecursorWait: Form1.OpenGLControl1.Cursor := crHourGlass;
+          ecgecursorHand: Form1.OpenGLControl1.Cursor := crHandPoint;
+          ecgecursorText: Form1.OpenGLControl1.Cursor := crIBeam;
+          else Form1.OpenGLControl1.Cursor := crDefault;
+        end;
+      end;
+  end;
+  Result := 0;
+end;
 
 { TForm1 }
 
@@ -77,6 +95,7 @@ begin
   CGE_LoadLibrary();
   CGE_Init();
   CGE_SetRenderParams(OpenGLControl1.Width, OpenGLControl1.Height);
+  CGE_SetLibraryCallbackProc(@OpenGlLibraryCallback);
   sFile := '../../../examples/shadow_fields/models/humanoid_stand.wrl';
   CGE_LoadSceneFromFile(@sFile[1]);
   OpenGLControl1.Invalidate;
@@ -134,14 +153,13 @@ end;
 procedure TForm1.OpenGLControl1MouseWheel(Sender: TObject; Shift: TShiftState;
   WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
 begin
-  CGE_OnMouseWheel(WheelDelta);
+  CGE_OnMouseWheel(WheelDelta, true, ShiftToCgeShift(Shift));
   Handled := true;
 end;
 
 procedure TForm1.IdleFunc(Sender: TObject; var Done: Boolean);
 begin
   CGE_OnIdle();
-  OpenGLControl1.Invalidate;
   Done:=false;
 end;
 

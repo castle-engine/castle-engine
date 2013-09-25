@@ -39,20 +39,31 @@ const
   ecgessAlt   = 2;
   ecgessCtrl  = 4;
 
+  // library callback codes
+  ecgelibNeedsDisplay     = 0;
+  ecgelibSetMouseCursor   = 1;   // sends mouse cursor code in iParam1
+
+  // mouse cursor codes
+  ecgecursorDefault   = 0;
+  ecgecursorWait      = 1;
+  ecgecursorHand      = 2;
+  ecgecursorText      = 3;
+  ecgecursorNone      = 4;
+
 type
-  TViewportNeedsDisplayProc = procedure (); cdecl;
+  TCgeLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32):cInt32; cdecl;
 
 procedure CGE_LoadLibrary();
 procedure CGE_Init();
 procedure CGE_Close();
 procedure CGE_SetRenderParams(uiViewWidth, uiViewHeight: cUInt32);
 procedure CGE_Render();
-procedure CGE_SetDisplayNeededCallbackProc(aProc: TViewportNeedsDisplayProc);
+procedure CGE_SetLibraryCallbackProc(aProc: TCgeLibraryCallbackProc);
 procedure CGE_OnIdle();
 procedure CGE_OnMouseDown(x, y: cInt32; bLeftBtn: cBool; uiShift: cUInt32);
 procedure CGE_OnMouseMove(x, y: cInt32; uiShift: cUInt32);
 procedure CGE_OnMouseUp(x, y: cInt32; bLeftBtn: cBool; uiShift: cUInt32);
-procedure CGE_OnMouseWheel(zDelta: cFloat);
+procedure CGE_OnMouseWheel(zDelta: cFloat; bVertical: cBool; uiShift: cUint32);
 procedure CGE_LoadSceneFromFile(szFile: pcchar);
 function CGE_GetViewpointsCount(): cInt32;
 procedure CGE_GetViewpointName(iViewpointIdx: cInt32; szName: pchar; nBufSize: cInt32);
@@ -70,7 +81,7 @@ type
   PFNRD_CGE_Close = procedure(); cdecl;
   PFNRD_CGE_SetRenderParams = procedure(uiViewWidth, uiViewHeight: cUInt32); cdecl;
   PFNRD_CGE_Render = procedure(); cdecl;
-  PFNRD_CGE_SetDisplayNeededCallbackProc = procedure(TCgeNeedsDisplayCallbackProc pProc); cdecl;
+  PFNRD_CGE_SetLibraryCallbackProc = procedure(pProc: TCgeLibraryCallbackProc); cdecl;
   PFNRD_CGE_OnIdle = procedure(); cdecl;
 
   PFNRD_CGE_OnMouseDown = procedure(x, y: cInt32; bLeftBtn: cBool; uiShift: cUInt32); cdecl;
@@ -92,7 +103,7 @@ var
   pfrd_CGE_Close: PFNRD_CGE_Close;
   pfrd_CGE_SetRenderParams: PFNRD_CGE_SetRenderParams;
   pfrd_CGE_Render: PFNRD_CGE_Render;
-  pfrd_CGE_SetDisplayNeededCallbackProc: PFNRD_CGE_SetDisplayNeededCallbackProc;
+  pfrd_CGE_SetLibraryCallbackProc: PFNRD_CGE_SetLibraryCallbackProc;
   pfrd_CGE_OnIdle: PFNRD_CGE_OnIdle;
   pfrd_CGE_OnMouseDown: PFNRD_CGE_OnMouseDown;
   pfrd_CGE_OnMouseMove: PFNRD_CGE_OnMouseMove;
@@ -115,7 +126,7 @@ begin
   pfrd_CGE_Close := PFNRD_CGE_Close(GetProcedureAddress(g_hCgeDll, 'CGE_Close'));
   pfrd_CGE_SetRenderParams := PFNRD_CGE_SetRenderParams(GetProcedureAddress(g_hCgeDll, 'CGE_SetRenderParams'));
   pfrd_CGE_Render := PFNRD_CGE_Render(GetProcedureAddress(g_hCgeDll, 'CGE_Render'));
-  pfrd_CGE_SetDisplayNeededCallbackProc := PFNRD_CGE_SetDisplayNeededCallbackProc(GetProcedureAddress(g_hCgeDll, 'CGE_SetDisplayNeededCallbackProc'));
+  pfrd_CGE_SetLibraryCallbackProc := PFNRD_CGE_SetLibraryCallbackProc(GetProcedureAddress(g_hCgeDll, 'CGE_SetLibraryCallbackProc'));
   pfrd_CGE_OnIdle := PFNRD_CGE_OnIdle(GetProcedureAddress(g_hCgeDll, 'CGE_OnIdle'));
   pfrd_CGE_OnMouseDown := PFNRD_CGE_OnMouseDown(GetProcedureAddress(g_hCgeDll, 'CGE_OnMouseDown'));
   pfrd_CGE_OnMouseMove := PFNRD_CGE_OnMouseMove(GetProcedureAddress(g_hCgeDll, 'CGE_OnMouseMove'));
@@ -149,9 +160,9 @@ begin
   pfrd_CGE_Render();
 end;
 
-procedure CGE_SetDisplayNeededCallbackProc(aProc: TViewportNeedsDisplayProc);
+procedure CGE_SetLibraryCallbackProc(aProc: TCgeLibraryCallbackProc);
 begin
-  pfrd_CGE_SetDisplayNeededCallbackProc(aProc);
+  pfrd_CGE_SetLibraryCallbackProc(aProc);
 end;
 
 procedure CGE_OnIdle();

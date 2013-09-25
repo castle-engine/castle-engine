@@ -56,10 +56,10 @@ begin
   end;
 end;
 
-procedure CGE_SetDisplayNeededCallbackProc(aProc: TViewportNeedsDisplayProc); cdecl;
+procedure CGE_SetLibraryCallbackProc(aProc: TCgeLibraryCallbackProc); cdecl;
 begin
   try
-    aCastleFrame.SetDisplayNeededCallbackProc(aProc);
+    aCastleFrame.SetLibraryCallbackProc(aProc);
   except
     //on E: Exception do OutputDebugString(@E.Message[1]);
   end;
@@ -200,7 +200,7 @@ end;
 
 exports
   CGE_Init, CGE_Close,
-  CGE_Render, CGE_SetRenderParams, CGE_SetDisplayNeededCallbackProc, CGE_OnIdle,
+  CGE_Render, CGE_SetRenderParams, CGE_SetLibraryCallbackProc, CGE_OnIdle,
   CGE_OnMouseDown, CGE_OnMouseMove, CGE_OnMouseUp, CGE_OnMouseWheel,
   CGE_LoadSceneFromFile, CGE_GetCurrentNavigationType, CGE_SetNavigationType,
   CGE_GetViewpointsCount, CGE_GetViewpointName, CGE_MoveToViewpoint;

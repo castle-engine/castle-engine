@@ -41,30 +41,45 @@ enum ECgeNavigationType
     ecgenavArchitecture = 3,
 };
 
-typedef void (__cdecl *TCgeNeedsDisplayCallbackProc)();
+enum ECgeMouseCursor
+{
+    ecgecursorDefault   = 0,
+    ecgecursorWait      = 1,
+    ecgecursorHand      = 2,
+    ecgecursorText      = 3,
+    ecgecursorNone      = 4,
+};
+
+enum ECgeLibCallbackCode
+{
+    ecgelibNeedsDisplay     = 0,    // app should repaint the view (content changed)
+    ecgelibSetMouseCursor   = 1,    // sends ECgeMouseCursor in iParam1
+};
+
+typedef int (__cdecl *TCgeLibraryCallbackProc)(int /*ECgeLibCallbackCode*/eCode, int iParam1, int iParam2);
 
 
 //-----------------------------------------------------------------------------
 extern void CGE_LoadLibrary();	// function defined in the loader CPP file
 
 //-----------------------------------------------------------------------------
-extern void CGE_Init();
+extern void CGE_Init();     // init the library, this function must be called first (required)
 extern void CGE_Close();
 
-extern void CGE_SetRenderParams(unsigned uiViewWidth, unsigned uiViewHeight);
-extern void CGE_Render();
-extern void CGE_SetDisplayNeededCallbackProc(TCgeNeedsDisplayCallbackProc pProc);
-extern void CGE_OnIdle();
+extern void CGE_SetRenderParams(unsigned uiViewWidth, unsigned uiViewHeight);   // let the library know about the viewport size (required)
+extern void CGE_Render();                                                       // paints the 3d scene into the context
+extern void CGE_SetLibraryCallbackProc(TCgeLibraryCallbackProc pProc);          // set callback function
+extern void CGE_OnIdle();                                                       // let the 3d engine perform the animations, etc
 
-extern void CGE_OnMouseDown(int x, int y, bool bLeftBtn, unsigned uiShift);
+extern void CGE_OnMouseDown(int x, int y, bool bLeftBtn, unsigned uiShift);     // uiShift is the combination of ECgeShiftState
 extern void CGE_OnMouseMove(int x, int y, unsigned uiShift);
 extern void CGE_OnMouseUp(int x, int y, bool bLeftBtn, unsigned uiShift);
 extern void CGE_OnMouseWheel(float zDelta, bool bVertical, unsigned uiShift);
 
-extern void CGE_LoadSceneFromFile(const char *szFile);
+extern void CGE_LoadSceneFromFile(const char *szFile);                          // name od the file has to be utf-8 encoded
 
 extern int CGE_GetViewpointsCount();
-extern void CGE_GetViewpointName(int iViewpointIdx, char *szName, int nBufSize);
+extern void CGE_GetViewpointName(int iViewpointIdx, char *szName, int nBufSize);    // szName is buffer of size nBufSize, and is filled with utf-8 encoded string
 extern void CGE_MoveToViewpoint(int iViewpointIdx, bool bAnimated);
 
 extern int CGE_GetCurrentNavigationType();
