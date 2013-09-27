@@ -25,7 +25,7 @@ uses
   Classes, SysUtils, ctypes,
   CastleVectors, CastleRectangles, CastleKeysMouse, CastleUtils, CastleTimeUtils,
   CastleUIControls, CastleCameras, X3DNodes, CastleScene, CastleLevels,
-  CastleImages, CastleGLVersion, CastleSceneManager;
+  CastleImages, CastleGLVersion, CastleSceneManager, CastleControls, pk3DConnexion;
 
 const
   DefaultLimitFPS = 100.0;
@@ -51,12 +51,15 @@ type
     FUseControls: boolean;
     FOnDrawStyle: TUIControlDrawStyle;
     FFocus: TUIControl;
+    FCtlCaptureInput: TUIControl;
 
     FWidth, FHeight: Integer;
     FMouseX: Integer;
     FMouseY: Integer;
     FPressed: TKeysPressed;
     FMousePressed: TMouseButtons;
+    Mouse3d: T3DConnexionDevice;
+    Mouse3dPollTimer: Single;
 
     FFps: TFramesPerSecond;
     FGLInitialized: boolean;
@@ -129,6 +132,8 @@ type
     property Fps: TFramesPerSecond read FFps;
     property GLInitialized: boolean read FGLInitialized;
 
+    function Mouse3dLoaded: boolean;
+
     function OnKeyDown(const MyKey: TKey; Ch: char): boolean;
     function OnKeyUp(const MyKey: TKey; Ch: char): boolean;
     procedure OnMouseDown(Button: TMouseButton; Shift:TShiftState; X,Y:Integer);
@@ -199,6 +204,11 @@ type
       procedure MoveToViewpoint(Idx: integer; Animated: boolean);
       function GetCurrentNavigationType(): TCameraNavigationType;
       procedure SetNavigationType(NewType: TCameraNavigationType);
+
+    public
+      LeftTouchCtl, RightTouchCtl: TCastleTouchControl;
+      procedure AddTouchController(LeftSide: boolean);
+
   end;
 
 
@@ -334,6 +344,8 @@ begin
 
   Invalidated := false;
   FLibraryCallbackProc := nil;
+  LeftTouchCtl := nil;
+  RightTouchCtl := nil;
 
   FSceneManager := TGameSceneManager.Create(Self);
   { SetSubComponent and Name setting (must be unique only within TCastleControl,
@@ -342,6 +354,13 @@ begin
   FSceneManager.SetSubComponent(true);
   FSceneManager.Name := 'SceneManager';
   Controls.Add(SceneManager);
+
+  { connect 3D device - 3Dconnexion device }
+  Mouse3dPollTimer := 0;
+  try
+    Mouse3d := T3DConnexionDevice.Create('Castle Control');
+  except
+  end;
 
   if not GLInitialized then
   begin
@@ -352,9 +371,15 @@ end;
 destructor TCastleFrame.Destroy;
 begin
   FreeAndNil(FControls);
+  FreeAndNil(Mouse3d);
   FreeAndNil(FPressed);
   FreeAndNil(FFps);
   inherited;
+end;
+
+function TCastleFrame.Mouse3dLoaded: boolean;
+begin
+  Result := Assigned(Mouse3d) and Mouse3d.Loaded;
 end;
 
 procedure TCastleFrame.Invalidate;
@@ -418,7 +443,8 @@ var
   NewCursor: TMouseCursor;
   CursorCode: cInt32;
 begin
-  NewFocus := CalculateFocus;
+  if  (FCtlCaptureInput<>nil) then NewFocus := FCtlCaptureInput
+  else NewFocus := CalculateFocus;
 
   if NewFocus <> Focus then
   begin
@@ -456,8 +482,59 @@ var
   C: TUIControl;
   HandleInput: boolean;
   Dummy: boolean;
+  Tx, Ty, Tz, TLength, Rx, Ry, Rz, RAngle: Double;
+  Mouse3dPollSpeed: Single;
+const
+  Mouse3dPollDelay = 0.05;
 begin
   Fps._UpdateBegin;
+
+  { 3D Mouse }
+  if (Assigned(Mouse3D) and Mouse3D.Loaded) or (LeftTouchCtl<>nil) or (RightTouchCtl<>nil) then
+  begin
+    Mouse3dPollTimer -= Fps.UpdateSecondsPassed;
+    if Mouse3dPollTimer < 0 then
+    begin
+      Tx := 0; Ty := 0; Tz := 0; TLength := 0;
+      Rx := 0; Ry := 0; Rz := 0; RAngle := 0;
+      { get values from sensor }
+      Mouse3dPollSpeed := Mouse3dPollTimer + Mouse3dPollDelay;
+      if (Assigned(Mouse3D) and Mouse3D.Loaded) then
+      begin
+        Mouse3D.GetTranslationValues(Tx, Ty, Tz, TLength);
+        Mouse3D.GetRotationValues(Rx, Ry, Rz, RAngle);
+      end;
+      if (LeftTouchCtl<>nil) then
+      begin
+        LeftTouchCtl.GetTranslationValues(Tx, Ty, Tz, TLength);
+        LeftTouchCtl.GetRotationValues(Rx, Ry, Rz, RAngle);
+      end;
+      if (RightTouchCtl<>nil) then
+      begin
+        RightTouchCtl.GetTranslationValues(Tx, Ty, Tz, TLength);
+        RightTouchCtl.GetRotationValues(Rx, Ry, Rz, RAngle);
+      end;
+
+      { send to all 2D controls, including viewports }
+      for I := 0 to Controls.Count - 1 do
+      begin
+        C := Controls[I];
+        if C.PositionInside(MouseX, MouseY) then
+        begin
+          C.Mouse3dTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
+          C.Mouse3dRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
+        end;
+      end;
+
+      { set timer.
+        The "repeat ... until" below should not be necessary under normal
+        circumstances, as Mouse3dPollDelay should be much larger than typical
+        frequency of how often this is checked. But we do it for safety
+        (in case something else, like AI or collision detection,
+        slows us down *a lot*). }
+      repeat Mouse3dPollTimer += Mouse3dPollDelay until Mouse3dPollTimer > 0;
+    end;
+  end;
 
   if UseControls then
   begin
@@ -568,7 +645,10 @@ begin
       C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
         if C.Press(InputMouseButton(Button)) then
+        begin
+          FCtlCaptureInput := C;
           Exit;
+        end;
     end;
   end;
 
@@ -589,8 +669,16 @@ var
   C: TUIControl;
   I: Integer;
 begin
+  C := FCtlCaptureInput;
+  FCtlCaptureInput := nil;
+
   if UseControls then
   begin
+    if (C <> nil) then
+    begin
+      C.Release(InputMouseButton(Button));
+      Exit;
+    end;
     for I := 0 to Controls.Count - 1 do
     begin
       C := Controls[I];
@@ -638,6 +726,11 @@ begin
 
   if UseControls then
   begin
+    if (FCtlCaptureInput<>nil) then
+    begin
+      FCtlCaptureInput.MouseMove(MouseX, MouseY, NewX, NewY);
+      Exit;
+    end;
     for I := 0 to Controls.Count - 1 do
     begin
       C := Controls[I];
@@ -810,7 +903,7 @@ end;
 
 procedure TCastleFrame.Resize;
 var
-  I: Integer;
+  I, CtlBorder: Integer;
 begin
   inherited;
 
@@ -820,6 +913,18 @@ begin
   begin
     for I := 0 to Controls.Count - 1 do
       Controls[I].ContainerResize(Width, Height);
+  end;
+
+  CtlBorder := 1;
+  if LeftTouchCtl<>nil then
+  begin
+    LeftTouchCtl.Left := CtlBorder;
+    LeftTouchCtl.Bottom := CtlBorder;
+  end;
+  if RightTouchCtl<>nil then
+  begin
+    RightTouchCtl.Left := Width - RightTouchCtl.Width - CtlBorder;
+    RightTouchCtl.Bottom := CtlBorder;
   end;
 end;
 
@@ -1046,6 +1151,26 @@ procedure TCastleFrame.SetNavigationType(NewType: TCameraNavigationType);
 begin
   if (Camera<>nil) AND (Camera is TUniversalCamera) then
      (Camera as TUniversalCamera).NavigationType := NewType;
+end;
+
+procedure TCastleFrame.AddTouchController(LeftSide: boolean);
+var
+  aNewCtl: TCastleTouchControl;
+begin
+  aNewCtl := TCastleTouchControl.Create(self);
+  //aNewCtl.Width := 200;                        // is set automatically
+  //aNewCtl.Height := 200;
+  Controls.InsertFront(aNewCtl);
+  if LeftSide then
+  begin
+    aNewCtl.TouchMode := ctcmWalking;
+    LeftTouchCtl := aNewCtl;
+  end
+  else begin
+    aNewCtl.TouchMode := ctcmHeadRotation;
+    RightTouchCtl := aNewCtl;
+  end;
+  Resize();
 end;
 
 end.

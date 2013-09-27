@@ -271,6 +271,38 @@ type
     property Blending: boolean read GetBlending write SetBlending; deprecated;
   end;
 
+  TCastleTouchCtlMode = (ctcmWalking, ctcmHeadRotation);
+
+  { Control for touch interfaces. Shows one "lever", that can be moved
+    up/down/left/right, and controls the movement while Walking or Flying. }
+
+  TCastleTouchControl = class(TCastleImageControl)
+  private
+    FTouchMode: TCastleTouchCtlMode;
+    FLeverOffsetX: Integer;
+    FLeverOffsetY: Integer;
+    FImageLever: TCastleImage;
+    FGLImageLever: TGLImage;
+    FDragStarted: boolean;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure Draw; override;
+    procedure GLContextOpen; override;
+    procedure GLContextClose; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
+    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+    procedure SetTouchMode(const Value: TCastleTouchCtlMode);
+    procedure GetRotationValues(var X, Y, Z, Angle: Double);
+    procedure GetTranslationValues(var X, Y, Z, Length: Double);
+  private
+    function MaxOffsetDist: Integer;
+  published
+    property TouchMode: TCastleTouchCtlMode
+      read FTouchMode write SetTouchMode default ctcmWalking;
+  end;
+
   { Simple background fill. Using OpenGL GLClear, so unconditionally
     clears things underneath. In simple cases, you don't want to use this:
     instead you usually have TCastleSceneManager that fills the whole screen,
@@ -1164,6 +1196,138 @@ begin
   if Value then
     AlphaChannel := acFullRange else
     AlphaChannel := acSimpleYesNo;
+end;
+
+{ TCastleTouchControl ---------------------------------------------------------------- }
+
+constructor TCastleTouchControl.Create(AOwner: TComponent);
+begin
+  inherited;
+  SetImage(LoadImage('../../../src/ui/opengl/gui-images/TouchCtlOuter.png', [])); { TODO: use image from our own storage }
+  FImageLever := LoadImage('../../../src/ui/opengl/gui-images/TouchCtlInner.png', []);
+  if GLInitialized and (FImageLever <> nil) then
+    FGLImageLever := TGLImage.Create(FImageLever);
+end;
+
+destructor TCastleTouchControl.Destroy;
+begin
+  FreeAndNil(FImageLever);
+  FreeAndNil(FGLImageLever);
+  inherited;
+end;
+
+function TCastleTouchControl.MaxOffsetDist: Integer;
+begin
+  Result := FImage.Width div 2 - FImageLever.Width;
+end;
+
+procedure TCastleTouchControl.Draw;
+var
+  LevOffsetTrimmedX, LevOffsetTrimmedY, MaxDist: Integer;
+  LeverDist: Double;
+begin
+  if not (GetExists and (FGLImage <> nil)) then Exit;
+  FGLImage.Draw(Left, Bottom);
+  if (FGLImageLever <> nil) then
+  begin
+    LeverDist := sqrt(FLeverOffsetX*FLeverOffsetX + FLeverOffsetY*FLeverOffsetY);
+    MaxDist := MaxOffsetDist();
+    if LeverDist <= MaxDist then
+    begin
+      LevOffsetTrimmedX := FLeverOffsetX;
+      LevOffsetTrimmedY := FLeverOffsetY;
+    end
+    else begin
+      LevOffsetTrimmedX := Floor((FLeverOffsetX*MaxDist)/LeverDist);
+      LevOffsetTrimmedY := Floor((FLeverOffsetY*MaxDist)/LeverDist);
+    end;
+
+    FGLImageLever.Draw(Left + (FImage.Width - FImageLever.Width) div 2 + LevOffsetTrimmedX,
+                    Bottom + (FImage.Height - FImageLever.Height) div 2 - LevOffsetTrimmedY);
+  end;
+end;
+
+procedure TCastleTouchControl.GLContextOpen;
+begin
+  inherited;
+  if (FGLImageLever = nil) and (FImageLever <> nil) then
+    FGLImageLever := TGLImage.Create(FImageLever);
+end;
+
+procedure TCastleTouchControl.GLContextClose;
+begin
+  FreeAndNil(FGLImageLever);
+  inherited;
+end;
+
+procedure TCastleTouchControl.SetTouchMode(const Value: TCastleTouchCtlMode);
+begin
+  FTouchMode := Value;
+  { we may swap outer image depending on the TouchMode in some later version }
+end;
+
+function TCastleTouchControl.Press(const Event: TInputPressRelease): boolean;
+begin
+  Result := inherited;
+  if Result or (not GetExists) or (Event.EventType <> itMouseButton) then Exit;
+
+  Result := ExclusiveEvents;
+  FDragStarted := true;
+  FLeverOffsetX := 0;
+  FLeverOffsetY := 0;
+end;
+
+function TCastleTouchControl.Release(const Event: TInputPressRelease): boolean;
+begin
+  Result := inherited;
+  if Result or (not GetExists) or (Event.EventType <> itMouseButton) then Exit;
+
+  if FDragStarted then
+  begin
+    Result := ExclusiveEvents;
+
+    FDragStarted := false;
+    FLeverOffsetX := 0;
+    FLeverOffsetY := 0;
+    VisibleChange;   { repaint with lever back in the center }
+  end;
+end;
+
+function TCastleTouchControl.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+begin
+  if FDragStarted then
+  begin
+    FLeverOffsetX := FLeverOffsetX + NewX - OldX;
+    FLeverOffsetY := FLeverOffsetY + NewY - OldY;
+    VisibleChange;
+  end;
+  Result := FDragStarted;
+end;
+
+procedure TCastleTouchControl.GetRotationValues(var X, Y, Z, Angle: Double);
+var
+  FxConst: Double;
+begin
+  if FTouchMode = ctcmHeadRotation then
+  begin
+    FxConst := 5/MaxOffsetDist();
+    X := -FLeverOffsetY*FxConst;
+    Y := -FLeverOffsetX*FxConst;
+    Angle := 1;
+  end;
+end;
+
+procedure TCastleTouchControl.GetTranslationValues(var X, Y, Z, Length: Double);
+var
+  FxConst: Double;
+begin
+  if FTouchMode = ctcmWalking then
+  begin
+    FxConst := 100/MaxOffsetDist();
+    X := FLeverOffsetX*FxConst/1.5;  { walking to the sides should be slower }
+    Z := FLeverOffsetY*FxConst;
+    Length := 20;
+  end
 end;
 
 { TCastleSimpleBackground ---------------------------------------------------- }
