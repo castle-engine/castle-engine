@@ -65,7 +65,7 @@ unit CastleImages;
 
 interface
 
-uses SysUtils, Classes, Math, CastleUtils, CastleVectors,
+uses SysUtils, Classes, Math, CastleUtils, CastleVectors, CastleRectangles,
   CastlePng, CastleFileFilters, CastleClassUtils, CastleColors,
   FGL, FPImage, FPReadPCX, FPReadGIF, FPReadPSD, FPReadTGA, FPReadTiff, FPReadXPM,
   FPReadJPEG, FPWriteJPEG, FPReadPNM;
@@ -186,6 +186,11 @@ type
       const AlphaTolerance: Byte = DefaultAlphaTolerance;
       const WrongPixelsTolerance: Single = DefaultAlphaWrongPixelsTolerance):
       TAlphaChannel; virtual;
+
+    { Rectangle representing the inside of this image.
+      Always (Left,Bottom) are zero, and (Width,Height) correspond to image
+      sizes. }
+    function Rect: TRectangle;
   end;
 
   TResizeInterpolation = (riNearest, riBilinear);
@@ -1730,6 +1735,11 @@ function TEncodedImage.AlphaChannel(
   const WrongPixelsTolerance: Single): TAlphaChannel;
 begin
   Result := acNone;
+end;
+
+function TEncodedImage.Rect: TRectangle;
+begin
+  Result := Rectangle(0, 0, Width, Height);
 end;
 
 { TCastleImage --------------------------------------------------------------- }
