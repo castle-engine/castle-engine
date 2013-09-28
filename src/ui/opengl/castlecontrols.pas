@@ -276,20 +276,23 @@ type
   { Control for touch interfaces. Shows one "lever", that can be moved
     up/down/left/right, and controls the movement while Walking or Flying. }
 
-  TCastleTouchControl = class(TCastleImageControl)
+  TCastleTouchControl = class(TUIControlPos)
   private
     FTouchMode: TCastleTouchCtlMode;
     FLeverOffsetX: Integer;
     FLeverOffsetY: Integer;
-    FImageLever: TCastleImage;
-    FGLImageLever: TGLImage;
     FDragStarted: boolean;
   public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
     procedure Draw; override;
-    procedure GLContextOpen; override;
-    procedure GLContextClose; override;
+    function DrawStyle: TUIControlDrawStyle; override;
+
+    { Size of this control, ignoring GetExists. }
+    function Width: Cardinal;
+    function Height: Cardinal;
+    { Position and size of this control, ignoring GetExists. }
+    function Rect: TRectangle;
+
+    function PositionInside(const X, Y: Integer): boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
@@ -424,7 +427,8 @@ type
     tiPanel, tiPanelSeparator, tiProgressBar, tiProgressFill,
     tiButtonPressed, tiButtonFocused, tiButtonNormal,
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
-    tiSlider, tiSliderPosition, tiLabel, tiActiveFrame, tiTooltip);
+    tiSlider, tiSliderPosition, tiLabel, tiActiveFrame, tiTooltip,
+    tiTouchCtlInner, tiTouchCtlOuter);
 
   { Label with possibly multiline text, in a box. }
   TCastleLabel = class(TUIControlFont)
@@ -519,7 +523,7 @@ type
     procedure SetCorners(const ImageType: TThemeImage; const Value: TVector4Integer);
     function GetGLImages(const ImageType: TThemeImage): TGLImage;
     procedure GLContextClose;
-    { TGLImage instances fast and easy drawing of images on 2D screen.
+    { TGLImage instances for fast and easy drawing of images on 2D screen.
       Reading them for the 1st time means that the TGLImage instance is created,
       so use them only when OpenGL context is already active (window is open etc.).
       Changing the TCastleImage instance will automatically free (and recreate
@@ -551,7 +555,8 @@ type
 
     property OwnsImages[const ImageType: TThemeImage]: boolean read GetOwnsImages write SetOwnsImages;
 
-    { Corners that determine how image on @link(Images) is stretched.
+    { Corners that determine how image on @link(Images) is stretched when
+      drawing by @link(TCastleTheme.Draw) method.
       Together with assigning @link(Images), adjust also this property.
       It is used for images rendered using TGLImage.Draw3x3,
       it determines how the image is stretched.
@@ -1200,64 +1205,63 @@ end;
 
 { TCastleTouchControl ---------------------------------------------------------------- }
 
-constructor TCastleTouchControl.Create(AOwner: TComponent);
+function TCastleTouchControl.DrawStyle: TUIControlDrawStyle;
 begin
-  inherited;
-  SetImage(LoadImage('../../../src/ui/opengl/gui-images/TouchCtlOuter.png', [])); { TODO: use image from our own storage }
-  FImageLever := LoadImage('../../../src/ui/opengl/gui-images/TouchCtlInner.png', []);
-  if GLInitialized and (FImageLever <> nil) then
-    FGLImageLever := TGLImage.Create(FImageLever);
+  if GetExists then
+    Result := ds2D else
+    Result := dsNone;
 end;
 
-destructor TCastleTouchControl.Destroy;
+function TCastleTouchControl.Width: Cardinal;
 begin
-  FreeAndNil(FImageLever);
-  FreeAndNil(FGLImageLever);
-  inherited;
+  Result := Theme.Images[tiTouchCtlOuter].Width;
+end;
+
+function TCastleTouchControl.Height: Cardinal;
+begin
+  Result := Theme.Images[tiTouchCtlOuter].Height;
+end;
+
+function TCastleTouchControl.Rect: TRectangle;
+begin
+  Result := Rectangle(Left, Bottom, Width, Height);
+end;
+
+function TCastleTouchControl.PositionInside(const X, Y: Integer): boolean;
+begin
+  Result := GetExists and Rect.Contains(X, ContainerHeight - Y);
 end;
 
 function TCastleTouchControl.MaxOffsetDist: Integer;
 begin
-  Result := (FImage.Width - FImageLever.Width) div 2;
+  Result := (Theme.Images[tiTouchCtlOuter].Width -
+             Theme.Images[tiTouchCtlInner].Width) div 2;
 end;
 
 procedure TCastleTouchControl.Draw;
 var
   LevOffsetTrimmedX, LevOffsetTrimmedY, MaxDist: Integer;
   LeverDist: Double;
+  InnerRect: TRectangle;
 begin
-  if not (GetExists and (FGLImage <> nil)) then Exit;
-  FGLImage.Draw(Left, Bottom);
-  if (FGLImageLever <> nil) then
+  if not GetExists then Exit;
+  Theme.Draw(Rect, tiTouchCtlOuter);
+
+  LeverDist := sqrt(FLeverOffsetX*FLeverOffsetX + FLeverOffsetY*FLeverOffsetY);
+  MaxDist := MaxOffsetDist();
+  if LeverDist <= MaxDist then
   begin
-    LeverDist := sqrt(FLeverOffsetX*FLeverOffsetX + FLeverOffsetY*FLeverOffsetY);
-    MaxDist := MaxOffsetDist();
-    if LeverDist <= MaxDist then
-    begin
-      LevOffsetTrimmedX := FLeverOffsetX;
-      LevOffsetTrimmedY := FLeverOffsetY;
-    end
-    else begin
-      LevOffsetTrimmedX := Floor((FLeverOffsetX*MaxDist)/LeverDist);
-      LevOffsetTrimmedY := Floor((FLeverOffsetY*MaxDist)/LeverDist);
-    end;
-
-    FGLImageLever.Draw(Left + (FImage.Width - FImageLever.Width) div 2 + LevOffsetTrimmedX,
-                    Bottom + (FImage.Height - FImageLever.Height) div 2 - LevOffsetTrimmedY);
+    LevOffsetTrimmedX := FLeverOffsetX;
+    LevOffsetTrimmedY := FLeverOffsetY;
+  end
+  else begin
+    LevOffsetTrimmedX := Floor((FLeverOffsetX*MaxDist)/LeverDist);
+    LevOffsetTrimmedY := Floor((FLeverOffsetY*MaxDist)/LeverDist);
   end;
-end;
-
-procedure TCastleTouchControl.GLContextOpen;
-begin
-  inherited;
-  if (FGLImageLever = nil) and (FImageLever <> nil) then
-    FGLImageLever := TGLImage.Create(FImageLever);
-end;
-
-procedure TCastleTouchControl.GLContextClose;
-begin
-  FreeAndNil(FGLImageLever);
-  inherited;
+  InnerRect := Theme.Images[tiTouchCtlInner].Rect; // rectangle at (0,0)
+  InnerRect.Left   := Left   + (Width  - InnerRect.Width ) div 2 + LevOffsetTrimmedX;
+  InnerRect.Bottom := Bottom + (Height - InnerRect.Height) div 2 - LevOffsetTrimmedY;
+  Theme.Draw(InnerRect, tiTouchCtlInner);
 end;
 
 procedure TCastleTouchControl.SetTouchMode(const Value: TCastleTouchCtlMode);
@@ -2020,6 +2024,10 @@ begin
   FCorners[tiActiveFrame] := Vector4Integer(2, 2, 2, 2);
   FImages[tiTooltip] := Tooltip;
   FCorners[tiTooltip] := Vector4Integer(1, 1, 1, 1);
+  FImages[tiTouchCtlInner] := TouchCtlInner;
+  FCorners[tiTouchCtlInner] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiTouchCtlOuter] := TouchCtlOuter;
+  FCorners[tiTouchCtlOuter] := Vector4Integer(0, 0, 0, 0);
 end;
 
 destructor TCastleTheme.Destroy;
