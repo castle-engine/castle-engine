@@ -120,7 +120,9 @@ EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls \
   examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually \
   examples/lazarus/two_controls/two_controls \
-  tests/test_castle_game_engine
+  tests/test_castle_game_engine \
+  examples/library/lcl_library_tester/cge_lib_tester \
+  examples/library/lcl_dynlib_tester/cge_dynlib_tester
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   $(EXAMPLES_LAZARUS_BASE_NAMES)
@@ -165,7 +167,8 @@ clean: cleanexamples
 			   -iname '*.or'  -or \
 			   -iname '*.compiled' -or \
 			   -iname '*.libimp*.a' -or \
-	                   -iname '*.dcu' -or -iname '*.dpu' ')' \
+	                   -iname '*.dcu' -or -iname '*.dpu' -or \
+			   -iname 'castlelib.dll' -or -iname 'libcastlelib.so' ')' \
 	     -print \
 	     | xargs rm -f
 	find . -type d -name lib -exec rm -Rf '{}' ';' -prune

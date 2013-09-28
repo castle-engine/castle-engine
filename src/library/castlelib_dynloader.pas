@@ -74,7 +74,7 @@ procedure CGE_SetNavigationType(NewType: cInt32);
 implementation
 
 uses
-  dynlibs;
+  SysUtils, dynlibs;
 
 type
   PFNRD_CGE_Init = procedure(); cdecl;
@@ -118,9 +118,16 @@ var
 
 //-----------------------------------------------------------------------------
 procedure CGE_LoadLibrary();
+const
+  SharedPrefix = {$ifdef UNIX} 'lib' {$else} '' {$endif};
+var
+  LibName: string;
 begin
-  g_hCgeDll := LoadLibrary('castlelib.' + SharedSuffix);
-  if g_hCgeDll = 0 then Exit;
+  LibName := SharedPrefix + 'castlelib.' + SharedSuffix;
+  g_hCgeDll := LoadLibrary(LibName);
+  if g_hCgeDll = 0 then
+    raise Exception.CreateFmt('Castle Game Engine shared library "%s" cannot be loaded',
+      [LibName]);
 
   pfrd_CGE_Init := PFNRD_CGE_Init(GetProcedureAddress(g_hCgeDll, 'CGE_Init'));
   pfrd_CGE_Close := PFNRD_CGE_Close(GetProcedureAddress(g_hCgeDll, 'CGE_Close'));
@@ -221,4 +228,4 @@ begin
 end;
 
 begin
-end.
+end.

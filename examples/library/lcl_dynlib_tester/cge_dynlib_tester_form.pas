@@ -15,8 +15,21 @@
   This is another test project for our library. Instead of including library
   units directly, it uses the compiled dynamic library.
 
-  Note: prior running the project, copile and copy castlelib.dll to this project
-     folder (where the executable file is generated).
+  Note: prior running the project, compile and copy the shared library
+  (in src/library/) to a place where it can be loaded:
+
+  - Windows: copy castlelib.dll to this project folder
+    (where the executable file is generated), or anywhere on $PATH.
+
+  - Unix: copy libcastlelib.so (or libcastlelib.dylib on Mac OS X)
+    to any directory listed on $LD_LIBRARY_PATH.
+    For example you can set LD_LIBRARY_PATH to contain empty directory,
+    and then you can just copy to the current directory (from which you
+    run the program).
+    Or you can explicitly list the directory with libcastlelib.so,
+    by doing this (in your shell, or even in your ~/.bashrc or similar file):
+
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":<path-to-cge>/castle_game_engine/src/library/
 }
 unit cge_dynlib_tester_form;
 
@@ -171,4 +184,4 @@ begin
 end;
 
 end.
-
+
