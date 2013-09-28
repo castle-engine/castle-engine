@@ -1218,7 +1218,7 @@ end;
 
 function TCastleTouchControl.MaxOffsetDist: Integer;
 begin
-  Result := FImage.Width div 2 - FImageLever.Width;
+  Result := (FImage.Width - FImageLever.Width) div 2;
 end;
 
 procedure TCastleTouchControl.Draw;

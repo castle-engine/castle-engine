@@ -43,7 +43,7 @@ var
 implementation
 
 uses
-  LCLType, ctypes;
+  LCLType, ctypes, CastleControls;
 
 {$R *.lfm}
 
@@ -75,8 +75,8 @@ begin
   aCastleFrame.GLContextOpen;
   aCastleFrame.SetRenderSize(OpenGLControl1.Width, OpenGLControl1.Height);
   aCastleFrame.SetLibraryCallbackProc(@OpenGlLibraryCallback);
-  aCastleFrame.AddTouchController(true);
-  aCastleFrame.AddTouchController(false);
+  aCastleFrame.AddTouchController(ctcmWalking, true);
+  aCastleFrame.AddTouchController(ctcmHeadRotation, false);
 
   aCastleFrame.Load('../../../../demo_models/navigation/type_walk.wrl');
   //aCastleFrame.Load('../../../examples/shadow_fields/models/humanoid_stand.wrl');

@@ -207,7 +207,7 @@ type
 
     public
       LeftTouchCtl, RightTouchCtl: TCastleTouchControl;
-      procedure AddTouchController(LeftSide: boolean);
+      procedure AddTouchController(Mode: TCastleTouchCtlMode; LeftSide: boolean);
 
   end;
 
@@ -1153,23 +1153,19 @@ begin
      (Camera as TUniversalCamera).NavigationType := NewType;
 end;
 
-procedure TCastleFrame.AddTouchController(LeftSide: boolean);
+procedure TCastleFrame.AddTouchController(Mode: TCastleTouchCtlMode; LeftSide: boolean);
 var
   aNewCtl: TCastleTouchControl;
 begin
   aNewCtl := TCastleTouchControl.Create(self);
+  aNewCtl.TouchMode := Mode;
   //aNewCtl.Width := 200;                        // is set automatically
   //aNewCtl.Height := 200;
   Controls.InsertFront(aNewCtl);
   if LeftSide then
-  begin
-    aNewCtl.TouchMode := ctcmWalking;
-    LeftTouchCtl := aNewCtl;
-  end
-  else begin
-    aNewCtl.TouchMode := ctcmHeadRotation;
+    LeftTouchCtl := aNewCtl
+  else
     RightTouchCtl := aNewCtl;
-  end;
   Resize();
 end;
 
