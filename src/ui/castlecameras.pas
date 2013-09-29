@@ -619,8 +619,8 @@ type
 
   TWalkCamera = class;
 
-  { How mouse dragging should be performed in Walk camera. IT is useful for
-    touch interfaces. DragToWalk moes avatar contiuosly in the direction of
+  { How mouse dragging should be performed in Walk camera. It is useful for
+    touch interfaces. DragToWalk moves avatar continously in the direction of
     mouse drag (default). DragToRotate rotates the head when mouse is moved,
     and None ignores the dragging at all. }
   TWalkDragMode = (cwdmDragToWalk, cwdmDragToRotate, cwdmNone);
@@ -1097,7 +1097,7 @@ type
       read FInvertVerticalMouseLook write FInvertVerticalMouseLook
       default false;
 
-    { How mouse dragging should be performed in Walk camera. For touch interfaces }
+    { How mouse dragging should be performed in Walk camera. For touch interfaces. }
     property MouseDragMode: TWalkDragMode
       read FMouseDragMode write FMouseDragMode
       default cwdmDragToWalk;

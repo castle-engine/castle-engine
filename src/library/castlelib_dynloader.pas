@@ -15,17 +15,26 @@
   This is another test project for our library. Instead of including library
   units directly, it uses the compiled dynamic library.
 
-  This file is here as a wrapper, only to load the CastleLib.dll for you and
-  to call GetProcedureAddress for all exported functions.
+  This file is here as a wrapper, only to load the castleengine shared library
+  (castleengine.dll, libcastleengine.so, libcastleengine.dylib depending on OS)
+  for you.
 
   Usage:
-  1. Copy castle_dynloader.pas into your project folder.
+  1. Copy castlelib_dynloader.pas into your project folder.
 
-  2. Copy castleengine.dll to your project folder, where executable file is
-     generated.
+  2. Make the shared library accessible to your project.
+  
+     Windows: Copy castleengine.dll to your project folder, 
+     where executable file is generated. Or to any directory listed on $PATH.
+     
+     Linux: Make sure libcastleengine.so is available in a directory
+     listed on $LD_LIBRARY_PATH (or in one of the predefined directories,
+     like /usr/lib; see "man dlopen" for details). For local testing,
+     it's usually most comfortable to set LD_LIBRARY_PATH to just contain
+     .../castle_game_engine/src/library/ directory.
 
-  3. Include castlelib_dynloader in your source files, call CGE_LoadLibrary at
-     the start of your program, and then call CGE_xxx functions as usual.
+  3. Include castlelib_dynloader in your source files. Library is automatically
+     initialized. Just call CGE_xxx functions as usual.
 }
 
 unit castlelib_dynloader;
