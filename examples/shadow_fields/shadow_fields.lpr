@@ -42,7 +42,9 @@
 
 program shadow_fields;
 
-uses SysUtils, GL, CastleGLUtils, CastleVectors, CastleBoxes, CastleColors,
+{$I castleconf.inc}
+
+uses SysUtils, CastleGL, CastleGLUtils, CastleVectors, CastleBoxes, CastleColors,
   CastleWindow, CastleScene, CastleCameras, CastleWarnings, CastleParameters,
   ShadowFields, CastleUtils, CastleCubeMaps, X3DNodes, CastleSceneManager,
   CastleSphericalHarmonics, CastleGLCubeMaps, CastleMessages, CastleShapes,

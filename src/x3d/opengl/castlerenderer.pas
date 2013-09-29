@@ -1090,7 +1090,7 @@ type
     procedure UnprepareAll;
 
     procedure RenderBegin(ABaseLights: TLightInstancesList;
-      LightRenderEvent: TVRMLLightRenderEvent; const APass: TRenderingPass);
+      LightRenderEvent: TLightRenderEvent; const APass: TRenderingPass);
     procedure RenderEnd;
 
     procedure RenderShape(Shape: TX3DRendererShape; Fog: IAbstractFogObject);
@@ -2669,7 +2669,7 @@ begin
 end;
 
 procedure TGLRenderer.RenderBegin(ABaseLights: TLightInstancesList;
-  LightRenderEvent: TVRMLLightRenderEvent; const APass: TRenderingPass);
+  LightRenderEvent: TLightRenderEvent; const APass: TRenderingPass);
 begin
   BaseLights := ABaseLights;
   Pass := APass;

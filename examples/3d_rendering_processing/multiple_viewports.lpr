@@ -23,7 +23,9 @@
   by GeneratedCubeMapTexture, also in custom viewports. }
 { $define ADD_GL_ANIMATION}
 
-uses SysUtils, GL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleSceneManager,
+{$I castleconf.inc}
+
+uses SysUtils, CastleGL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleSceneManager,
   CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors,
   CastleControls, CastleWarnings,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,

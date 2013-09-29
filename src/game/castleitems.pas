@@ -16,10 +16,12 @@
 { Items, things that can be picked up, carried and used. }
 unit CastleItems;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleUtils,
-  CastleClassUtils, Classes, CastleImages, GL, GLU, CastleGLUtils,
+  CastleClassUtils, Classes, CastleImages, CastleGLUtils,
   CastlePrecalculatedAnimation, CastleResources, CastleGLImages,
   CastleXMLConfig, CastleSoundEngine, CastleFrustum, Castle3D, FGL, CastleColors;
 
@@ -582,7 +584,7 @@ var
 
 implementation
 
-uses SysUtils, CastleFilesUtils, CastlePlayer, CastleGameNotifications,
+uses SysUtils, CastleGL, CastleFilesUtils, CastlePlayer, CastleGameNotifications,
   CastleConfig, CastleCreatures;
 
 { TItemResource ------------------------------------------------------------ }

@@ -16,9 +16,11 @@
 { VRML/X3D lights OpenGL rendering. Internal for CastleRenderer. @exclude }
 unit CastleRendererLights;
 
+{$I castleconf.inc}
+
 interface
 
-uses CastleVectors, GL, GLU, CastleGLUtils, X3DNodes, CastleRendererShader;
+uses CastleVectors, CastleGLUtils, X3DNodes, CastleRendererShader;
 
 type
   { Modify light's properties of the light right before it's rendered.
@@ -26,7 +28,7 @@ type
 
     By default, LightOn is the value of Light.LightNode.FdOn field.
     You can change it if you want. }
-  TVRMLLightRenderEvent = procedure (const Light: TLightInstance;
+  TLightRenderEvent = procedure (const Light: TLightInstance;
     var LightOn: boolean) of object;
 
   { Render lights to OpenGL.
@@ -41,7 +43,7 @@ type
     lifetime. }
   TVRMLGLLightsRenderer = class
   private
-    FLightRenderEvent: TVRMLLightRenderEvent;
+    FLightRenderEvent: TLightRenderEvent;
     LightsKnown: boolean;
     LightsDone: array of PLightInstance;
     function NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
@@ -52,7 +54,7 @@ type
       that using a cache of LightsDone inside this class was useful. }
     Statistics: array [boolean] of Cardinal;
 
-    constructor Create(const ALightRenderEvent: TVRMLLightRenderEvent);
+    constructor Create(const ALightRenderEvent: TLightRenderEvent);
 
     { Set OpenGL lights properties.
       Sets OpenGL fixed-function pipeline lights,
@@ -73,12 +75,12 @@ type
       It is @italic(not Ok) to make LightRenderEvent that sets LightOn to
       a random boolean value. That because caching here assumes that
       for the same Light values, LightRenderEvent will set LightOn the same. }
-    property LightRenderEvent: TVRMLLightRenderEvent read FLightRenderEvent;
+    property LightRenderEvent: TLightRenderEvent read FLightRenderEvent;
   end;
 
 implementation
 
-uses SysUtils, CastleUtils, Math, CastleRenderingCamera;
+uses SysUtils, CastleUtils, Math, CastleRenderingCamera, CastleGL;
 
 { Set and enable OpenGL light properties based on VRML/X3D light.
 
@@ -221,7 +223,7 @@ end;
 { TVRMLGLLightsRenderer ----------------------------------------------- }
 
 constructor TVRMLGLLightsRenderer.Create(
-  const ALightRenderEvent: TVRMLLightRenderEvent);
+  const ALightRenderEvent: TLightRenderEvent);
 begin
   inherited Create;
   FLightRenderEvent := ALightRenderEvent;

@@ -23,6 +23,8 @@
 { }
 unit RiftCreatures;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastlePrecalculatedAnimation, CastleUtils, CastleClassUtils, Classes, CastleScene,
@@ -163,7 +165,7 @@ var
 
 implementation
 
-uses CastleLog, CastleProgress, Math, GL, GLU, CastleGLUtils, CastleWindow,
+uses CastleLog, CastleProgress, Math, CastleGL, CastleGLUtils, CastleWindow,
   CastleUIControls, RiftData, RiftVideoOptions;
 
 { TCreatureKind -------------------------------------------------------------- }

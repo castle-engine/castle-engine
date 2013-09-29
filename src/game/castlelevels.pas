@@ -23,7 +23,7 @@ uses CastleVectors, CastleSceneCore, CastleScene, CastleBoxes,
   X3DNodes, X3DFields, CastleCameras, CastleSectors,
   CastleUtils, CastleClassUtils, CastlePlayer, CastleResources,
   CastleProgress, CastlePrecalculatedAnimation,
-  DOM, CastleSoundEngine, Castle3D, CastleShapes, GL, CastleConfig, CastleImages,
+  DOM, CastleSoundEngine, Castle3D, CastleShapes, CastleConfig, CastleImages,
   Classes, CastleTimeUtils, CastleSceneManager, CastleRendererShader, FGL;
 
 type

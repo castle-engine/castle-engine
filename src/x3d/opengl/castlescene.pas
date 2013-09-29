@@ -1903,7 +1903,7 @@ var
 var
   BlendingSourceFactorSet, BlendingDestinationFactorSet: TGLEnum;
   I: Integer;
-  LightRenderEvent: TVRMLLightRenderEvent;
+  LightRenderEvent: TLightRenderEvent;
 begin
   { We update ShapesVisible only for one value of Params.Transparent.
     Otherwise, we would increase it twice.

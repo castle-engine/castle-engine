@@ -14,8 +14,9 @@
 }
 
 { 3D curves (TCurve and basic descendants). }
-
 unit CastleCurves;
+
+{$I castleconf.inc}
 
 interface
 
@@ -376,7 +377,7 @@ type
 
 implementation
 
-uses SysUtils, GL, GLU, CastleConvexHull, CastleGLUtils;
+uses SysUtils, CastleGL, CastleConvexHull, CastleGLUtils;
 
 { TCurve ------------------------------------------------------------ }
 

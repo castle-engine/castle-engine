@@ -17,6 +17,7 @@
   of "Castle Game Engine". Requires pre-initialized OpenGL context.}
 unit CastleFrame;
 
+{$I castleconf.inc}
 {$mode objfpc}{$H+}
 
 interface
@@ -223,7 +224,7 @@ var
 
 implementation
 
-uses GL, GLU, CastleGLUtils, CastleStringUtils, X3DLoad,
+uses CastleGL, CastleGLUtils, CastleStringUtils, X3DLoad,
   CastleGLImages, CastleSceneCore;
 
 { TControlledUIControlList ----------------------------------------------------- }

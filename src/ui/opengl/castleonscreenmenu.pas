@@ -16,10 +16,12 @@
 { On-screen menu displayed in OpenGL (TCastleOnScreenMenu). }
 unit CastleOnScreenMenu;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, CastleVectors, CastleGLBitmapFonts, CastleControls,
-  GL, CastleGLUtils, CastleUIControls, CastleKeysMouse, CastleColors,
+  CastleGLUtils, CastleUIControls, CastleKeysMouse, CastleColors,
   CastleGenericLists, CastleRectangles;
 
 type
@@ -667,7 +669,7 @@ property SliderFont: TGLBitmapFontAbstract read GetUIFontSmall write SetUIFontSm
 implementation
 
 uses SysUtils, CastleUtils, CastleImages, CastleFilesUtils, CastleClassUtils,
-  CastleStringUtils, CastleGLImages, CastleSoundEngine;
+  CastleStringUtils, CastleGLImages, CastleSoundEngine, CastleGL;
 
 procedure Register;
 begin

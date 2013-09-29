@@ -17,7 +17,9 @@
   Test on sample_data/*.animation files. }
 program animate_surface;
 
-uses CastleCameras, Surfaces, CastleWindow, GL, GLU, CastleVectors,
+{$I castleconf.inc}
+
+uses CastleCameras, Surfaces, CastleWindow, CastleGL, CastleVectors,
   CastleGLUtils, CastleCurves, CastleBoxes, SysUtils, CastleUtils, CastleKeysMouse,
   CastleStringUtils, CastleMessages, CastleFilesUtils, CastleParameters,
   CastleColors, Castle3D, CastleFrustum, CastleClassUtils;

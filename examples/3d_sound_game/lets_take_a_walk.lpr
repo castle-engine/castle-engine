@@ -39,7 +39,7 @@
 
 program lets_take_a_walk;
 
-uses GL, CastleWindow, CastleScene, X3DNodes, SysUtils,
+uses CastleWindow, CastleScene, X3DNodes, SysUtils,
   CastleUtils, CastleGLUtils, CastleBoxes, CastleVectors,
   CastleProgress, CastleWindowProgress, CastleStringUtils,
   CastleParameters, CastleImages, CastleMessages, CastleFilesUtils, CastleGLImages,

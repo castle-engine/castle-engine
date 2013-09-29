@@ -16,6 +16,8 @@
 { Bezier surface. }
 unit Surfaces;
 
+{$I castleconf.inc}
+
 interface
 
 uses Math, CastleCurves, CastleBoxes, CastleTriangles;
@@ -84,7 +86,7 @@ type
 
 implementation
 
-uses CastleClassUtils, GL, GLU, CastleGLUtils, CastleVectors, SysUtils,
+uses CastleClassUtils, CastleGL, CastleGLUtils, CastleVectors, SysUtils,
   CastleUtils;
 
 constructor TSurface.Create(const AXBegin, AXEnd, AYBegin, AYEnd: Float);

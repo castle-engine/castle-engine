@@ -25,7 +25,7 @@ unit RiftLocations;
 
 interface
 
-uses CastleUtils, CastleClassUtils, Classes, CastleScene, GL, CastleVectors,
+uses CastleUtils, CastleClassUtils, Classes, CastleScene, CastleVectors,
   RiftLoadable, X3DNodes, FGL, CastleGLImages;
 
 type

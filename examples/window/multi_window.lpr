@@ -25,10 +25,10 @@
 
 program multi_window;
 
+{$I castleconf.inc}
 {$apptype GUI}
 
-uses
-  GL, GLU, CastleWindow, SysUtils, CastleUtils, CastleGLOutlineFonts,
+uses CastleGL, CastleWindow, SysUtils, CastleUtils, CastleGLOutlineFonts,
   CastleOutlineFont_BVSans, CastleGLUtils, CastleKeysMouse, CastleVectors,
   CastleStringUtils, CastleColors;
 

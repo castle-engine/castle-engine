@@ -16,6 +16,8 @@
 { Creatures. }
 unit CastleCreatures;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, CastleVectors, CastlePrecalculatedAnimation, CastleBoxes, CastleClassUtils,
@@ -927,7 +929,7 @@ var
 
 implementation
 
-uses SysUtils, DOM, GL, GLU, CastleFilesUtils, CastleGLUtils,
+uses SysUtils, DOM, CastleGL, CastleFilesUtils, CastleGLUtils,
   CastleProgress, CastleGameNotifications, CastleGLOutlineFonts, CastleUIControls;
 
 var

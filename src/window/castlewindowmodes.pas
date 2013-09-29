@@ -32,7 +32,7 @@ unit CastleWindowModes;
 
 interface
 
-uses SysUtils, GL, CastleWindow, CastleGLUtils, CastleImages,
+uses SysUtils, CastleWindow, CastleGLUtils, CastleImages,
   CastleUIControls, CastleKeysMouse, CastleGLImages;
 
 type
@@ -276,7 +276,7 @@ procedure NoClose(Window: TCastleWindowBase);
 
 implementation
 
-uses CastleUtils;
+uses CastleGL, CastleUtils;
 
 { TWindowState -------------------------------------------------------------- }
 

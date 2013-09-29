@@ -21,7 +21,7 @@
 
 program animate_3d_model_by_code_2;
 
-uses CastleVectors, X3DNodes, GL, GLU, CastleWindow, CastleWarnings,
+uses CastleVectors, X3DNodes, CastleWindow, CastleWarnings,
   CastleUtils, SysUtils, CastleGLUtils, CastleScene, CastleCameras,
   CastleFilesUtils, CastleQuaternions {$ifdef LOG} ,CastleLog {$endif}, CastleParameters,
   CastleStringUtils, CastleKeysMouse;

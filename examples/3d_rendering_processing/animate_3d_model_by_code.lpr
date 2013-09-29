@@ -39,7 +39,7 @@
 
 program animate_3d_model_by_code;
 
-uses CastleVectors, X3DNodes, GL, GLU, CastleWindow, CastleWarnings,
+uses CastleVectors, X3DNodes, CastleWindow, CastleWarnings,
   CastleUtils, SysUtils, CastleGLUtils, CastleScene, CastleCameras,
   CastleFilesUtils, CastleParameters, CastleStringUtils, CastleKeysMouse;
 

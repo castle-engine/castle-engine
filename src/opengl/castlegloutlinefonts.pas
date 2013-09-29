@@ -22,8 +22,7 @@ unit CastleGLOutlineFonts;
 
 interface
 
-uses GL, GLU, CastleOutlineFonts, SysUtils, CastleGLUtils,
-  CastleStringUtils;
+uses CastleOutlineFonts, SysUtils, CastleGLUtils, CastleStringUtils;
 
 const
   SimpleAsciiCharacters = [#32 .. #126];
@@ -92,9 +91,9 @@ type
     base : TGLuint;
     Font : TOutlineFont;
 
-    TexturedXShift: TGLfloat;
-    procedure TexturedBegin(const TexOriginX, TexOriginY: TGLfloat);
-    procedure TexturedLetterEnd(const TexOriginX, TexOriginY: TGLfloat; const C: char);
+    TexturedXShift: Single;
+    procedure TexturedBegin(const TexOriginX, TexOriginY: Single);
+    procedure TexturedLetterEnd(const TexOriginX, TexOriginY: Single; const C: char);
     procedure TexturedEnd;
 
     procedure CharPrint(c: char);
@@ -161,7 +160,7 @@ type
         Also, font takes less memory space.)
     }
     constructor Create(AFont: TOutlineFont;
-      const depth: TGLfloat = 0.0;
+      const depth: Single = 0.0;
       const onlyLines: boolean = false;
       const CharactersSubset: TSetOfChars = SimpleAsciiCharacters); overload;
     destructor Destroy; override;
@@ -183,10 +182,10 @@ type
 
       @groupBegin }
     procedure PrintTexturedAndMove(const s: string;
-      const texOriginX, texOriginY: TGLfloat);
+      const texOriginX, texOriginY: Single);
 
     procedure PrintTextured(const s: string;
-      const texOriginX, texOriginY: TGLfloat);
+      const texOriginX, texOriginY: Single);
     { @groupEnd }
 
     { Render extrusion of given text. This renders the side walls of text
@@ -218,13 +217,13 @@ type
 
     procedure PrintTexturedExtrusionAndMove(
       const S: string; const Depth: Single;
-      const TexOriginX, TexOriginY: TGLfloat);
+      const TexOriginX, TexOriginY: Single);
     { @groupEnd }
   end;
 
 implementation
 
-uses CastleUtils, CastleVectors, CastleGLVersion, CastleTriangles;
+uses CastleUtils, CastleVectors, CastleGLVersion, CastleTriangles, CastleGL;
 
 { TGLOutlineFontAbstract ------------------------------------------------------}
 
@@ -270,7 +269,7 @@ begin
 end;
 
 constructor TGLOutlineFont.Create(AFont: TOutlineFont;
-  const depth: TGLfloat;
+  const depth: Single;
   const onlyLines: boolean;
   const CharactersSubset: TSetOfChars);
 var i, poz,
@@ -281,7 +280,7 @@ var i, poz,
     { tablica przechowujaca vertexy na ktore tesselator bedzie dostawal wskazniki. }
     vertices : PVerticesTable;
 
-  procedure TesselatedPolygon(polZ: TGLfloat);
+  procedure TesselatedPolygon(polZ: Single);
   var PolygonNum, LineNum, PointNum: Integer;
       PointsKind: TPolygonKind;
   begin
@@ -448,7 +447,7 @@ begin result := Font.TextWidth(s) end;
 function TGLOutlineFont.TextHeight(const s: string): single;
 begin result := Font.TextHeight(s) end;
 
-procedure TGLOutlineFont.TexturedBegin(const TexOriginX, TexOriginY: TGLfloat);
+procedure TGLOutlineFont.TexturedBegin(const TexOriginX, TexOriginY: Single);
 begin
   glPushAttrib(GL_TEXTURE_BIT);
 
@@ -470,7 +469,7 @@ begin
 end;
 
 procedure TGLOutlineFont.TexturedLetterEnd(
-  const TexOriginX, TexOriginY: TGLfloat; const C: char);
+  const TexOriginX, TexOriginY: Single; const C: char);
 begin
   TexturedXShift += Font.Data[C]^.Info.MoveX;
 
@@ -490,7 +489,7 @@ begin
 end;
 
 procedure TGLOutlineFont.PrintTexturedAndMove(const s: string;
-  const TexOriginX, TexOriginY: TGLfloat);
+  const TexOriginX, TexOriginY: Single);
 var
   i: integer;
 begin
@@ -504,7 +503,7 @@ begin
 end;
 
 procedure TGLOutlineFont.PrintTextured(const s: string;
-  const texOriginX, texOriginY: TGLfloat);
+  const texOriginX, texOriginY: Single);
 begin
   glPushMatrix;
   PrintTexturedAndMove(s, texOriginX, texOriginY);
@@ -618,7 +617,7 @@ end;
 
 procedure TGLOutlineFont.PrintTexturedExtrusionAndMove(
   const S: string; const Depth: Single;
-  const TexOriginX, TexOriginY: TGLfloat);
+  const TexOriginX, TexOriginY: Single);
 var
   I: Integer;
 begin

@@ -34,7 +34,7 @@ procedure DoMainMenu;
 
 implementation
 
-uses SysUtils, GL, CastleWindow, CastleFilesUtils,
+uses SysUtils, CastleWindow, CastleFilesUtils,
   CastleGLUtils, CastleMessages, CastleOnScreenMenu, CastleWindowModes, CastleUtils,
   CastleVectors, CastleSoundMenu, Classes, CastleStringUtils, CastleControls,
   CastleGLImages, CastleUIControls, CastleColors, CastleSoundEngine,
@@ -116,7 +116,6 @@ end;
 
 procedure Draw(Window: TCastleWindowBase);
 begin
-  glLoadIdentity;
   GLMenuBg.Draw(0, 0);
 end;
 

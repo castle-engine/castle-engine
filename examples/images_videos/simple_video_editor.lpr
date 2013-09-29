@@ -22,8 +22,9 @@ program simple_video_editor;
 { Console, not GUI, since loading files through ffmpeg will output some
   info on stdout anyway. }
 {$apptype CONSOLE}
+{$I castleconf.inc}
 
-uses CastleUtils, SysUtils, CastleWindow, GL, GLU, CastleGLImages,
+uses CastleUtils, SysUtils, CastleWindow, CastleGL, CastleGLImages,
   CastleVideos, CastleStringUtils, CastleMessages, CastleColors,
   CastleBitmapFont_BVSansMono_Bold_m15, CastleGLBitmapFonts, CastleParameters,
   CastleGLUtils, CastleVectors, Classes, CastleProgress, CastleWindowProgress,

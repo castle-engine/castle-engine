@@ -25,7 +25,9 @@
 
 program radiance_transfer;
 
-uses CastleVectors, X3DNodes, GL, GLU, CastleWindow,
+{$I castleconf.inc}
+
+uses CastleVectors, X3DNodes, CastleGL, CastleWindow,
   CastleClassUtils, CastleUtils, SysUtils, Classes, CastleRenderingCamera,
   CastleGLUtils, CastleScene, CastleKeysMouse, CastleSceneManager,
   CastleFilesUtils, CastleWarnings, CastleSphericalHarmonics, Math, CastleImages,

@@ -22,7 +22,9 @@
 
 program show_sh;
 
-uses CastleVectors, CastleBoxes, GL, CastleWindow, Castle3D, CastleUIControls,
+{$I castleconf.inc}
+
+uses CastleVectors, CastleBoxes, CastleGL, CastleWindow, Castle3D, CastleUIControls,
   CastleClassUtils, CastleUtils, SysUtils, CastleFilesUtils,
   CastleGLUtils, CastleCameras, Math, CastleSphereSampling, CastleSphericalHarmonics,
   CastleBitmapFont_BVSans, CastleGLBitmapFonts, CastleSceneManager,

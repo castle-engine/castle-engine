@@ -16,9 +16,11 @@
 { Player (TPlayer). }
 unit CastlePlayer;
 
+{$I castleconf.inc}
+
 interface
 
-uses CastleBoxes, CastleCameras, CastleItems, CastleVectors, GL, GLU, CastleInputs,
+uses CastleBoxes, CastleCameras, CastleItems, CastleVectors, CastleInputs,
   CastleKeysMouse, X3DTriangles, CastleMaterialProperties, CastleSoundEngine,
   Classes, Castle3D, CastleGLUtils, CastleColors, CastleFrustum, CastleTriangles,
   CastleTimeUtils;
@@ -414,7 +416,8 @@ var
 implementation
 
 uses Math, SysUtils, CastleClassUtils, CastleUtils, X3DNodes, CastleControls,
-  CastleImages, CastleFilesUtils, CastleUIControls, CastlePrecalculatedAnimation, CastleOpenAL,
+  CastleImages, CastleFilesUtils, CastleUIControls, CastlePrecalculatedAnimation,
+  CastleOpenAL, CastleGL,
   CastleGameNotifications, CastleXMLConfig, CastleGLImages, CastleConfig,
   CastleResources, CastleShapes, CastleRenderingCamera;
 

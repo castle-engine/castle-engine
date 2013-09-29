@@ -18,9 +18,10 @@
   Test on sample_data/*.surface files. }
 program design_surface;
 
+{$I castleconf.inc}
 {$apptype GUI}
 
-uses Classes, CastleCameras, Surfaces, CastleWindow, GL, GLU, CastleVectors,
+uses Classes, CastleCameras, Surfaces, CastleWindow, CastleGL, CastleVectors,
   CastleGLUtils, CastleCurves, CastleBoxes, SysUtils, CastleUtils, CastleKeysMouse,
   CastleStringUtils, CastleMessages, CastleFilesUtils, CastleUIControls,
   CastleBitmapFont_BVSans, CastleGLBitmapFonts, CastleColors, Castle3D,
