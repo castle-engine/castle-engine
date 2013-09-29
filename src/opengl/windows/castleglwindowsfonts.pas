@@ -23,9 +23,11 @@
 
 unit CastleGLWindowsFonts;
 
+{$I castleconf.inc}
+
 interface
 
-uses CastleWindowsFonts, GL, GLU, GLExt, Windows,
+uses CastleWindowsFonts, CastleGL, Windows,
   CastleBitmapFonts, CastleOutlineFonts, CastleWinFontConvert,
   CastleGLBitmapFonts, CastleGLOutlineFonts;
 

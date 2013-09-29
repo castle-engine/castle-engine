@@ -17,6 +17,7 @@
   of "Castle Game Engine". }
 unit CastleControl;
 
+{$I castleconf.inc}
 {$mode objfpc}{$H+}
 
 interface
@@ -25,7 +26,8 @@ uses
   Classes, SysUtils, OpenGLContext, Controls, Forms, CastleRectangles,
   CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils, StdCtrls,
   CastleUIControls, CastleCameras, X3DNodes, CastleScene, CastleLevels,
-  CastleImages, CastleGLVersion, pk3DConnexion, CastleSceneManager;
+  CastleImages, CastleGLVersion, pk3DConnexion, CastleSceneManager,
+  CastleGLImages;
 
 const
   DefaultLimitFPS = 100.0;
@@ -180,6 +182,10 @@ type
 
       Ignored when window is closed. }
     procedure SetMousePosition(const NewMouseX, NewMouseY: Integer);
+
+    { Color buffer where we draw, and from which it makes sense to grab pixels.
+      Use with SaveScreen_NoFlush. }
+    function SaveScreenBuffer: TColorBuffer;
 
     { Capture the current control contents to an image.
       These functions take care of flushing any pending redraw operations
@@ -394,8 +400,8 @@ var
 
 implementation
 
-uses LCLType, GL, GLU, GLExt, CastleGLUtils, CastleStringUtils, X3DLoad,
-  CastleGLImages, CastleLog, Contnrs, CastleLCLUtils;
+uses LCLType, CastleGL, CastleGLUtils, CastleStringUtils, X3DLoad,
+  CastleLog, Contnrs, CastleLCLUtils;
 
 procedure Register;
 begin
@@ -916,21 +922,21 @@ begin
   end;
 end;
 
+function TCastleControlBase.SaveScreenBuffer: TColorBuffer;
+begin
+  if DoubleBuffered then
+    Result := cbBack else
+    Result := cbFront;
+end;
+
 function TCastleControlBase.SaveScreen: TRGBImage;
-var
-  ReadBuffer: TGLenum;
 begin
   if MakeCurrent then
   begin
     DoBeforeDraw;
     DoDraw;
   end;
-
-  if DoubleBuffered then
-    ReadBuffer := GL_BACK else
-    ReadBuffer := GL_FRONT;
-
-  Result := SaveScreen_NoFlush(0, 0, Width, Height, ReadBuffer);
+  Result := SaveScreen_NoFlush(Rect, SaveScreenBuffer);
 end;
 
 procedure TCastleControlBase.SetMousePosition(const NewMouseX, NewMouseY: Integer);

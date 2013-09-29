@@ -28,9 +28,10 @@
 }
 program window_menu;
 
+{$I castleconf.inc}
 {$apptype CONSOLE}
 
-uses SysUtils, CastleVectors, GL, GLU, GLExt, CastleKeysMouse, CastleColors,
+uses SysUtils, CastleVectors, CastleGL, CastleKeysMouse, CastleColors,
   CastleWindow, CastleGLUtils, CastleMessages, CastleStringUtils;
 
 var

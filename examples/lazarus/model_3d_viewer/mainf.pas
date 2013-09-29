@@ -20,8 +20,7 @@ unit mainf;
 
 interface
 
-uses
-  Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
+uses Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
   OpenGLContext, Menus, CastleScene, CastleCameras, CastleControl, CastleWarnings,
   CastleLCLRecentFiles, CastleConfig, Buttons, ExtCtrls, StdCtrls, CastleRecentFiles,
   CastleSceneManager, CastleDialogs;
@@ -102,7 +101,7 @@ var
 implementation
 
 uses LCLType, LCLIntf, CastleVectors, CastleBoxes, X3DNodes, CastleRenderer,
-  GL, GLU, GLExt, CastleClassUtils, CastleUtils, X3DLoad, CastleURIUtils,
+  CastleClassUtils, CastleUtils, X3DLoad, CastleURIUtils,
   CastleGLUtils, CastleSceneCore, CastleFilesUtils, CastleParameters,
   OpenGLInformation, CastleLCLUtils, ConsoleF, CastleImages;
 

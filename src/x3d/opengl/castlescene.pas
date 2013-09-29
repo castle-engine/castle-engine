@@ -16,12 +16,13 @@
 { VRML/X3D complete scene handling and OpenGL rendering (TCastleScene). }
 unit CastleScene;
 
+{$I castleconf.inc}
 {$modeswitch nestedprocvars}{$H+}
 
 interface
 
 uses SysUtils, Classes, CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils,
-  CastleUtils, CastleSceneCore, CastleRenderer, GL, GLU, GLExt, CastleBackground,
+  CastleUtils, CastleSceneCore, CastleRenderer, CastleGL, CastleBackground,
   CastleGLUtils, CastleShapeOctree, CastleGLShadowVolumes, X3DFields, CastleTriangles,
   CastleRendererLights, CastleShapes, CastleFrustum, Castle3D, CastleGLShaders, FGL,
   CastleGenericLists, CastleRectangles;

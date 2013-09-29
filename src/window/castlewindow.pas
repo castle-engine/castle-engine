@@ -1479,8 +1479,8 @@ begin
     { render your stuff here }
 
     { capture the screen }
-    glFlush;
-    Image := SaveScreen_NoFlush(0, 0, Width, Height, GL_BACK);
+    Image := SaveScreen_NoFlush(Rectangle(0, 0, Width, Height),
+      ScreenshotRender.ColorBuffer);
     try
       SaveImage(Image, 'aaa.png');
     finally FreeAndNil(Image) end;
@@ -1918,47 +1918,23 @@ end;
     { Capture the current window contents to an image (file).
 
       These functions take care of flushing any pending redraw operations
-      (like FlushRedisplay) and capturing the screen contents correctly.
+      (like FlushRedisplay: they will redraw the window if necessary)
+      and then capture the screen contents correctly.
 
-      @unorderedList(
-        @item(@italic(When we use OpenGL double buffer), we do something like
-
-@longCode(#
-  EventBeforeDraw;
-  EventDraw;
-  CastleGLUtils.SaveScreenXxx_NoFlush(..,GL_BACK);
-#)
-
-          This draws to the back buffer and captures it's contents,
-          which is reliable.)
-
-        @item(@italic(When we do not use OpenGL double buffer),
-          we do something like
-
-@longCode(#
-  FlushRedisplay;
-  CastleGLUtils.SaveScreenXxx_NoFlush(..,GL_FRONT);
-#)
-
-          This isn't absolutely reliable. Read
-          CastleGLUtils.SaveScreenXxx_NoFlush docs, and OpenGL FAQ:
-          capturing the front buffer contents is generally not reliable
-          with OpenGL.)
-      )
-
+      Note that only capturing the double-buffered windows (the default)
+      is reliable.
       @groupBegin }
     procedure SaveScreen(const fname: string); overload;
     function SaveScreen: TRGBImage; overload;
+    function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload;
     function SaveScreenToGL(const ScalingPossible: boolean = false): TGLImage; overload;
+    function SaveScreenToGL(const SaveRect: TRectangle;
+      const ScalingPossible: boolean = false): TGLImage; overload;
     { @groupEnd }
 
-    function SaveScreen(
-      const xpos, ypos, SavedAreaWidth,
-        SavedAreaHeight: integer): TRGBImage; overload;
-    function SaveScreenToGL(
-      const xpos, ypos, SavedAreaWidth,
-        SavedAreaHeight: integer;
-      const ScalingPossible: boolean = false): TGLImage; overload;
+    { Color buffer where we draw, and from which it makes sense to grab pixels.
+      Use with SaveScreen_NoFlush. }
+    function SaveScreenBuffer: TColorBuffer;
 
     { Asks and saves current screenshot.
       Asks user where to save the file (using @link(FileDialog),
@@ -3456,6 +3432,13 @@ end;
 { SaveScreen wykonane na CastleWindow (robimy najpierw FlushRedisplay)
   -------------------------------------------------------------------------- }
 
+function TCastleWindowBase.SaveScreenBuffer: TColorBuffer;
+begin
+  if DoubleBuffer then
+    Result := cbBack else
+    Result := cbFront;
+end;
+
 procedure TCastleWindowBase.SaveScreen(const fname: string);
 var
   Image: TRGBImage;
@@ -3468,69 +3451,36 @@ end;
 
 function TCastleWindowBase.SaveScreen: TRGBImage;
 begin
-  if DoubleBuffer then
-  begin
-    EventBeforeDraw;
-    EventDraw;
-    Result := SaveScreen_NoFlush(0, 0, Width, Height, GL_BACK);
-  end else
-  begin
-    FlushRedisplay;
-    Result := SaveScreen_NoFlush(0, 0, Width, Height, GL_FRONT);
-  end;
+  Result := SaveScreen(Rect);
 end;
 
-function TCastleWindowBase.SaveScreen(
-  const xpos, ypos, SavedAreaWidth, SavedAreaHeight: integer): TRGBImage;
-var
-  ReadBuffer: TGLenum;
+function TCastleWindowBase.SaveScreen(const SaveRect: TRectangle): TRGBImage;
 begin
   if DoubleBuffer then
   begin
     EventBeforeDraw;
     EventDraw;
-    ReadBuffer := GL_BACK;
   end else
-  begin
     FlushRedisplay;
-    ReadBuffer := GL_FRONT;
-  end;
-  Result := SaveScreen_NoFlush(xpos, ypos,
-    SavedAreaWidth, SavedAreaHeight, ReadBuffer);
+  Result := SaveScreen_NoFlush(SaveRect, SaveScreenBuffer);
 end;
 
 function TCastleWindowBase.SaveScreenToGL(const ScalingPossible: boolean): TGLImage;
 begin
-  if DoubleBuffer then
-  begin
-    EventBeforeDraw;
-    EventDraw;
-    Result := SaveScreenToGL_NoFlush(0, 0, Width, Height, GL_BACK, ScalingPossible);
-  end else
-  begin
-    FlushRedisplay;
-    Result := SaveScreenToGL_NoFlush(0, 0, Width, Height, GL_FRONT, ScalingPossible);
-  end;
+  Result := SaveScreenToGL(Rect, ScalingPossible);
 end;
 
 function TCastleWindowBase.SaveScreenToGL(
-  const xpos, ypos, SavedAreaWidth, SavedAreaHeight: integer;
+  const SaveRect: TRectangle;
   const ScalingPossible: boolean): TGLImage;
-var
-  ReadBuffer: TGLenum;
 begin
   if DoubleBuffer then
   begin
     EventBeforeDraw;
     EventDraw;
-    ReadBuffer := GL_BACK;
   end else
-  begin
     FlushRedisplay;
-    ReadBuffer := GL_FRONT;
-  end;
-  Result := SaveScreenToGL_NoFlush(xpos, ypos,
-    SavedAreaWidth, SavedAreaHeight, ReadBuffer, ScalingPossible);
+  Result := SaveScreenToGL_NoFlush(SaveRect, SaveScreenBuffer, ScalingPossible);
 end;
 
 procedure TCastleWindowBase.SaveScreenDialog(ProposedURL: string);

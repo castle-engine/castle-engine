@@ -16,9 +16,11 @@
 { OpenGL utilities for cube (environment) maps. }
 unit CastleGLCubeMaps;
 
+{$I castleconf.inc}
+
 interface
 
-uses CastleVectors, CastleCubeMaps, CastleImages, CastleDDS, GL, GLU, CastleGLUtils,
+uses CastleVectors, CastleCubeMaps, CastleImages, CastleDDS, CastleGLUtils,
   CastleRenderingCamera, CastleGLImages, Castle3D;
 
 type
@@ -116,7 +118,7 @@ procedure GLCaptureCubeMapTexture(
 
 implementation
 
-uses SysUtils, CastleSphericalHarmonics, GLExt;
+uses SysUtils, CastleSphericalHarmonics, CastleGL, CastleRectangles;
 
 procedure SHVectorGLCapture(
   var SHVector: array of Single;
@@ -152,8 +154,8 @@ procedure SHVectorGLCapture(
     glPopMatrix;
     glMatrixMode(GL_MODELVIEW);
 
-    Map := TGrayscaleImage(SaveScreen_noflush(TGrayscaleImage,
-      ScreenX, ScreenY, CubeMapSize, CubeMapSize, GL_BACK));
+    Map := SaveScreen_noflush(TGrayscaleImage,
+      Rectangle(ScreenX, ScreenY, CubeMapSize, CubeMapSize), cbBack) as TGrayscaleImage;
     try
       { Use the Map to calculate SHVector[SHBasis] (this is the actual
         purpose of drawing the Render). SHVector[SHBasis] is just a dot product
@@ -238,7 +240,7 @@ var
       glPopMatrix;
       glMatrixMode(GL_MODELVIEW);
 
-      SaveScreen_noflush(Images[Side], 0, 0, RenderToTexture.ColorBuffer);
+      SaveScreen_NoFlush(Images[Side], 0, 0, RenderToTexture.ColorBuffer);
 
     RenderToTexture.RenderEnd(Side < High(Side));
   end;

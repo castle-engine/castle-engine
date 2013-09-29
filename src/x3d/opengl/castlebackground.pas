@@ -20,7 +20,7 @@ unit CastleBackground;
 
 interface
 
-uses CastleVectors, SysUtils, GL, GLExt, CastleGLUtils, CastleUtils, CastleImages,
+uses CastleVectors, SysUtils, CastleGL, CastleGLUtils, CastleUtils, CastleImages,
   X3DNodes;
 
 type

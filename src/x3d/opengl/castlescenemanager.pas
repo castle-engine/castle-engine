@@ -16,13 +16,15 @@
 { Scene manager (TCastleSceneManager) and viewport (TCastleViewport) classes. }
 unit CastleSceneManager;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, CastleVectors, X3DNodes, CastleScene, CastleSceneCore, CastleCameras,
-  CastleGLShadowVolumes, GL, CastleUIControls, Castle3D, CastleTriangles,
+  CastleGLShadowVolumes, CastleUIControls, Castle3D, CastleTriangles,
   CastleKeysMouse, CastleBoxes, CastleBackground, CastleUtils, CastleClassUtils,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, FGL, CastleSectors,
-  CastleInputs, CastlePlayer, CastleRectangles, CastleColors;
+  CastleInputs, CastlePlayer, CastleRectangles, CastleColors, CastleGL;
 
 type
   TCastleAbstractViewport = class;
@@ -1165,7 +1167,7 @@ var
 implementation
 
 uses SysUtils, CastleRenderingCamera, CastleGLUtils, CastleProgress, CastleRays,
-  GLExt, CastleLog, CastleStringUtils, CastleRenderer, CastleSoundEngine, Math,
+  CastleLog, CastleStringUtils, CastleRenderer, CastleSoundEngine, Math,
   X3DTriangles, CastleGLVersion, CastleShapes;
 
 procedure Register;

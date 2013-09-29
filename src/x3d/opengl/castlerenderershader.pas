@@ -18,6 +18,8 @@
   Internal for GLRenderer. @exclude }
 unit CastleRendererShader;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleVectors, CastleGLShaders, FGL,
@@ -388,7 +390,7 @@ operator = (const A, B: TShaderCodeHash): boolean;
 
 implementation
 
-uses SysUtils, GL, GLExt, CastleGLUtils, CastleWarnings,
+uses SysUtils, CastleGL, CastleGLUtils, CastleWarnings,
   CastleLog, StrUtils, Castle3D, CastleGLVersion;
 
 { TODO: a way to turn off using fixed-function pipeline completely

@@ -217,7 +217,7 @@ unit CastleRenderer;
 interface
 
 uses
-  Classes, SysUtils, CastleUtils, CastleVectors, GL, GLExt,
+  Classes, SysUtils, CastleUtils, CastleVectors, CastleGL,
   X3DFields, X3DNodes, X3DLexer, CastleOutlineFonts, CastleImages,
   CastleGLUtils, CastleRendererLights, CastleGLOutlineFonts,
   CastleGLShaders, CastleGLImages, CastleVideos, X3DTime, CastleShapes,

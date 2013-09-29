@@ -23,14 +23,16 @@
 { }
 unit RiftPlay;
 
+{$I castleconf.inc}
+
 interface
 
 procedure Play;
 
 implementation
 
-uses GL, CastleGLUtils, CastleWindow, CastleStringUtils, CastleVectors, CastleFilesUtils,
-  CastleWindowModes, CastleCameras, SysUtils, GLExt, X3DNodes,
+uses CastleGL, CastleGLUtils, CastleWindow, CastleStringUtils, CastleVectors, CastleFilesUtils,
+  CastleWindowModes, CastleCameras, SysUtils, X3DNodes,
   CastleRays, Math, CastleUIControls, CastleRenderer,
   RiftVideoOptions, RiftLocations, RiftCreatures, RiftWindow, RiftGame,
   CastleGameNotifications, CastleRenderingCamera, Castle3D,

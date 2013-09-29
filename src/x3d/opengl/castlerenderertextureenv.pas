@@ -17,9 +17,11 @@
   @exclude Internal unit for GLRenderer and GLRendererShader. }
 unit CastleRendererTextureEnv;
 
+{$I castleconf.inc}
+
 interface
 
-uses GL, GLExt;
+uses CastleGL;
 
 type
   { Source of color for texture mixing.

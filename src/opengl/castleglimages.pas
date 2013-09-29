@@ -62,7 +62,7 @@ unit CastleGLImages;
 
 interface
 
-uses GL, GLU, GLExt, SysUtils, CastleImages, CastleVectors, CastleGLUtils,
+uses CastleGL, SysUtils, CastleImages, CastleVectors, CastleGLUtils,
   CastleVideos, CastleDDS, CastleRectangles;
 
 const
@@ -254,43 +254,44 @@ procedure ImageDraw(const Image: TCastleImage); deprecated;
 
 { Saving screen to TRGBImage ----------------------------------- }
 
-{ Note about saving images from GL_FRONT:
-  in general, it's not predictable what happens when you save image
-  from GL_FRONT OpenGL buffer (or any part of front buffer).
-  That's because when our window is covered by other window
-  (from other programs, or our own program --- other TCastleWindowBase
-  or dialog like TCastleWindowBase.FileDialog)
-  then glReadPixels *may* return pixel array filled with contents of
-  *those other windows that coves us*.
+type
+  TColorBuffer = (
+    cbFront,
+    cbBack,
 
-  Prefixing functions below, SaveScreen_NoFlush, with things like
-    TCastleWindowBase.FlushRedisplay, or even
-    TCastleWindowBase.PostRedisplay + TCastleWindowBase.FlushRedisplay, or even
-    an explicit call to Draw procedure and an explicit call
-      to SwapBuffers / glFlush, or oven
-    only an explicit call to Draw procedure (without glFlush/swapbuffers)
-  ... DOES NOT help. If we are covered by some other
-  window, glReadPixels on front buffer will simply return invalid
-  contents.
+    cbFrontLeft,
+    cbFrontRight,
+    cbBackLeft,
+    cbBackRight,
+    cbLeft,
+    cbRight,
 
-  This means that the only really reliable way to save screen contents
-  is to draw something to BACK buffer and (without doing any swapbuffers)
-  do SaveScreen_NoFlush(GL_BACK) (where ReadBuffer may be some part of back
-  buffer, not necessarily only simple GL_BACK). This is only possible
-  if you have double-buffered window, of course.
+    cbColorAttachment0,
+    cbColorAttachment1,
+    cbColorAttachment2,
+    cbColorAttachment3
+  );
+
+{ Notes about saving images from cbFront buffer:
+
+  Don't do it. It just not defined what will be returned when you read from
+  the front buffer. When our OpenGL context is covered by some other window,
+  then glReadPixels *may* return pixels with contents of obscuring window.
+  It doesn't help to draw right before trying to save buffer contents,
+  reading from front buffer is just not reliable.
+
+  The only reliable way to save screen contents is to draw something to back
+  buffer and (without doing any swapbuffers) read it from cbBack buffer.
+  This is only possible if you have double-buffered window, of course.
 }
 
 { Save the current color buffer contents to image.
-  Does glReadBuffer(ReadBuffer) and then glReadPixels with appropriate
-  parameters.
 
-  The suffix "noflush" in the name is there to remind you that this
-  function grabs the current buffer contents. Usually you want to
-  call something like @link(TCastleWindowBase.FlushRedisplay) right before grabbing
-  from the front buffer (which isn't reliable anyway), or redraw
-  (like by TCastleWindowBase.EventDraw) right before grabbing from the back buffer.
-
-  See TCastleWindowBase.SaveScreen for more friendly ways to capture the screen.
+  The suffix "NoFlush" is there to remind you that this
+  function grabs the @italic(current) buffer contents. Usually you want to
+  call something like @link(TCastleWindowBase.FlushRedisplay) right before
+  doing this. In practice, usually you don't want to use this function
+  --- instead use safer TCastleWindowBase.SaveScreen.
 
   Version with ImageClass can save to any image format from PixelsImageClasses.
 
@@ -298,32 +299,23 @@ procedure ImageDraw(const Image: TCastleImage); deprecated;
   You must pass here already created TCastleImage instance, it's class,
   Width and Height will be used when saving.
 
-  We always take explicit Width, Height (from parameter, or from Image.Width,
-  Image.Height). Guessing screen size automatically doesn't really work,
-  as the viewport may change when we use custom viewports.
-
   @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
     by OpenGL.)
 
   @groupBegin }
-function SaveScreen_NoFlush(xpos, ypos, width, height: integer;
-  ReadBuffer: TGLenum): TRGBImage; overload;
-
 function SaveScreen_NoFlush(
-  ImageClass: TCastleImageClass;
-  xpos, ypos, width, height: integer;
-  ReadBuffer: TGLenum): TCastleImage; overload;
+  const Rect: TRectangle; const ReadBuffer: TColorBuffer): TRGBImage; overload;
 
-procedure SaveScreen_NoFlush(
-  Image: TCastleImage;
-  xpos, ypos: integer;
-  ReadBuffer: TGLenum); overload;
+function SaveScreen_NoFlush(const ImageClass: TCastleImageClass;
+  const Rect: TRectangle; const ReadBuffer: TColorBuffer): TCastleImage; overload;
+
+procedure SaveScreen_NoFlush(const Image: TCastleImage;
+  const Left, Bottom: Integer; const ReadBuffer: TColorBuffer); overload;
 { @groupEnd }
 
 { Captures current screen as a TGLImage instance, ready to be drawn on 2D screen. }
-function SaveScreenToGL_NoFlush(
-  const XPos, YPos: Integer; const Width, Height: Cardinal;
-  const ReadBuffer: TGLenum;
+function SaveScreenToGL_NoFlush(const Rect: TRectangle;
+  const ReadBuffer: TColorBuffer;
   const ScalingPossible: boolean = false): TGLImage;
 
 { ----------------------------------------------------------------------
@@ -870,9 +862,9 @@ type
 
     { Color buffer name. Use only when Buffer = tbNone, between GLContextOpen
       and GLContextClose. This is the buffer name that you should pass to
-      glReadBuffer (or our SaveScreen_NoFlush), currently it's just
-      GL_COLOR_ATTACHMENT0_EXT if we actually have FBO or GL_BACK if not. }
-    function ColorBuffer: TGLuint;
+      SaveScreen_NoFlush, currently it's just rbColorAttachment0
+      if we actually have FBO or rbBack if not. }
+    function ColorBuffer: TColorBuffer;
 
     { Do we require color buffer with alpha channel.
       Relevant only when Buffer = tbNone (as in all other cases,
@@ -1215,48 +1207,60 @@ end;
 
 { Saving screen to TRGBImage ------------------------------------------------ }
 
+const
+  ColorBufferGL: array [TColorBuffer] of TGLenum = (
+    GL_FRONT,
+    GL_BACK,
+
+    GL_FRONT_LEFT,
+    GL_FRONT_RIGHT,
+    GL_BACK_LEFT,
+    GL_BACK_RIGHT,
+    GL_LEFT,
+    GL_RIGHT,
+
+    GL_COLOR_ATTACHMENT0,
+    GL_COLOR_ATTACHMENT1,
+    GL_COLOR_ATTACHMENT2,
+    GL_COLOR_ATTACHMENT3
+  );
+
 { This is the basis for all other SaveScreen* functions below. }
-procedure SaveScreen_NoFlush(
-  Image: TCastleImage;
-  xpos, ypos: integer;
-  ReadBuffer: TGLenum);
+procedure SaveScreen_NoFlush(const Image: TCastleImage;
+  const Left, Bottom: Integer; const ReadBuffer: TColorBuffer);
 var
   PackData: TPackNotAlignedData;
 begin
   BeforePackNotAlignedRGBImage(packData, Image.width);
   try
-    glReadBuffer(ReadBuffer);
-    glReadPixels(xpos, ypos, Image.width, Image.height, ImageGLFormat(Image),
+    glReadBuffer(ColorBufferGL[ReadBuffer]);
+    glReadPixels(Left, Bottom, Image.width, Image.height, ImageGLFormat(Image),
       ImageGLType(Image), Image.RawPixels);
   finally AfterPackNotAlignedRGBImage(packData, Image.width) end;
 end;
 
-function SaveScreen_NoFlush(
-  ImageClass: TCastleImageClass;
-  xpos, ypos, width, height: integer;
-  ReadBuffer: TGLenum): TCastleImage;
+function SaveScreen_NoFlush(const ImageClass: TCastleImageClass;
+  const Rect: TRectangle; const ReadBuffer: TColorBuffer): TCastleImage;
 begin
-  Result := ImageClass.Create(width, height);
+  Result := ImageClass.Create(Rect.Width, Rect.Height);
   try
-    SaveScreen_NoFlush(Result, xpos, ypos, ReadBuffer);
+    SaveScreen_NoFlush(Result, Rect.Left, Rect.Bottom, ReadBuffer);
   except Result.Free; raise end;
 end;
 
-function SaveScreen_NoFlush(
-  xpos, ypos, width, height: integer;
-  ReadBuffer: TGLenum): TRGBImage;
+function SaveScreen_NoFlush(const Rect: TRectangle;
+  const ReadBuffer: TColorBuffer): TRGBImage;
 begin
-  Result := TRGBImage(SaveScreen_NoFlush(TRGBImage, xpos, ypos, width, height, ReadBuffer));
+  Result := SaveScreen_NoFlush(TRGBImage, Rect, ReadBuffer) as TRGBImage;
 end;
 
-function SaveScreenToGL_NoFlush(
-  const XPos, YPos: Integer; const Width, Height: Cardinal;
-  const ReadBuffer: TGLenum;
+function SaveScreenToGL_NoFlush(const Rect: TRectangle;
+  const ReadBuffer: TColorBuffer;
   const ScalingPossible: boolean): TGLImage;
 var
   ScreenImage: TRGBImage;
 begin
-  ScreenImage := SaveScreen_NoFlush(XPos, YPos, Width, Height, ReadBuffer);
+  ScreenImage := SaveScreen_NoFlush(Rect, ReadBuffer);
   try
     Result := TGLImage.Create(ScreenImage, ScalingPossible);
   finally FreeAndNil(ScreenImage) end;
@@ -2669,11 +2673,11 @@ begin
   CastleGLImages.GenerateMipmap(CompleteTextureTarget);
 end;
 
-function TGLRenderToTexture.ColorBuffer: TGLuint;
+function TGLRenderToTexture.ColorBuffer: TColorBuffer;
 begin
   if Framebuffer <> 0 then
-    Result := GL_COLOR_ATTACHMENT0 else
-    Result := GL_BACK;
+    Result := cbColorAttachment0 else
+    Result := cbBack;
 end;
 
 finalization

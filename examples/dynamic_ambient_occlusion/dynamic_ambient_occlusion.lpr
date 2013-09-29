@@ -26,12 +26,15 @@
 }
 program dynamic_ambient_occlusion;
 
-uses CastleVectors, GL, GLU, GLExt, CastleWindow, CastleTriangles,
+{$I castleconf.inc}
+
+uses CastleVectors, CastleGL, CastleWindow, CastleTriangles,
   CastleClassUtils, CastleUtils, SysUtils, Classes, CastleKeysMouse,
   CastleGLUtils, CastleSceneCore, CastleScene, Castle3D, CastleParameters,
   CastleFilesUtils, CastleStringUtils, CastleGLShaders, CastleShapes,
   X3DFields, CastleImages, CastleGLImages, CastleMessages, CastleWarnings,
-  CastleGLVersion, Math, CastleSceneManager, CastleRenderingCamera, CastleGenericLists;
+  CastleGLVersion, Math, CastleSceneManager, CastleRenderingCamera,
+  CastleGenericLists, CastleRectangles;
 
 type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
@@ -45,8 +48,7 @@ var
 
   { Math correctly, this should be 1 / (2 * Pi)
     (= inverted hemisphere surface area).
-    In practice, larger values are useful, to make shadows look
-    more "dramatic". }
+    In practice, larger values are useful, to make shadows look more "dramatic". }
   ShadowScale: Single = 1 / (1 * Pi);
 
 { Storing and calculating "elements" for algorithm --------------------------- }
@@ -520,9 +522,9 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
         only for CPU), then height may be smaller, which is a good thing
         --- we don't have to grab so much pixels from color buffer. }
       TexHeight := DivRoundUp(Cardinal(Elements.Count), ElementsTexSize);
-    Result := TGrayscaleImage(SaveScreen_noflush(TGrayscaleImage,
-      0, 0, ElementsTexSize, TexHeight,
-      GL_BACK));
+    Result := SaveScreen_NoFlush(TGrayscaleImage,
+      Rectangle(0, 0, ElementsTexSize, TexHeight), Window.SaveScreenBuffer) as
+      TGrayscaleImage;
   end;
 
   procedure RenderAORect;

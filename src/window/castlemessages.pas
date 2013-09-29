@@ -96,7 +96,7 @@ unit CastleMessages;
 
 interface
 
-uses Classes, CastleWindow, CastleGLUtils, GL, GLU, GLExt, CastleUtils,
+uses Classes, CastleWindow, CastleGLUtils, CastleUtils,
   CastleStringUtils, CastleVectors, CastleKeysMouse, CastleControls;
 
 const
