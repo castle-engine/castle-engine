@@ -351,7 +351,8 @@ begin
     if (Imgs.Images[bs] <> nil) and (not Imgs.Images[bs].IsEmpty) then
     begin
       try
-        nieboTex[bs] := LoadGLTexture(Imgs.Images[bs], GL_LINEAR, GL_LINEAR,
+        nieboTex[bs] := LoadGLTexture(Imgs.Images[bs],
+          TextureFilter(minLinear, magLinear),
           { poniewaz rozciagamy teksture przy pomocy GL_LINEAR a nie chce nam
             sie robic teksturze borderow - musimy uzyc GL_CLAMP_TO_EDGE
             aby uzyskac dobry efekt na krancach }

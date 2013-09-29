@@ -2091,8 +2091,7 @@ procedure TCastleAbstractViewport.RenderOnScreen(ACamera: TCamera);
     begin
       { TODO: NEAREST or LINEAR? Allow to config this and eventually change
         before each screen effect? }
-      glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      SetTextureFilter(ScreenEffectTextureTarget, TextureFilter(minNearest, magNearest));
       glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_WRAP_S, GLFeatures.CLAMP_TO_EDGE);
       glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_WRAP_T, GLFeatures.CLAMP_TO_EDGE);
     end;

@@ -230,12 +230,12 @@ uses
 type
   TBeforeGLVertexProc = procedure (Node: TAbstractGeometryNode;
     const Vert: TVector3Single) of object;
+
   TShadersRendering = (srDisable, srWhenRequired, srAlways);
   { Faces to cull (make invisible) during VRML/X3D rendering. }
   TCullFace = (cfNone, cfCW, cfCCW);
   TBumpMapping = CastleRendererShader.TBumpMapping;
 
-type
   { TRenderingAttributes.Mode possible values. }
   TRenderingMode = (
     { Normal rendering features. Everything is enabled
@@ -294,16 +294,14 @@ type
     FUseSceneLights: boolean;
     FOpacity: Single;
     FEnableTextures: boolean;
-    FTextureMinFilter: TGLint;
-    FTextureMagFilter: TGLint;
+    FMinificationFilter: TMinificationFilter;
+    FMagnificationFilter: TMagnificationFilter;
     FPointSize: TGLFloat;
     FLineWidth: TGLFloat;
     FBumpMapping: TBumpMapping;
     FShaders: TShadersRendering;
     FCustomShader, FCustomShaderAlphaTest: TGLSLProgram;
     FMode: TRenderingMode;
-    FTextureModeGrayscale: TGLenum;
-    FTextureModeRGB: TGLenum;
     FVertexBufferObject: boolean;
     FShadowSampling: TShadowSampling;
     FVisualizeDepthMap: boolean;
@@ -314,12 +312,10 @@ type
     procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction); virtual;
     procedure SetOnVertexColor(const Value: TVertexColorFunction); virtual;
     procedure SetEnableTextures(const Value: boolean); virtual;
-    procedure SetTextureMinFilter(const Value: TGLint); virtual;
-    procedure SetTextureMagFilter(const Value: TGLint); virtual;
+    procedure SetMinificationFilter(const Value: TMinificationFilter); virtual;
+    procedure SetMagnificationFilter(const Value: TMagnificationFilter); virtual;
     procedure SetBumpMapping(const Value: TBumpMapping); virtual;
     procedure SetMode(const Value: TRenderingMode); virtual;
-    procedure SetTextureModeGrayscale(const Value: TGLenum); virtual;
-    procedure SetTextureModeRGB(const Value: TGLenum); virtual;
     procedure SetShadowSampling(const Value: TShadowSampling); virtual;
     procedure SetVertexBufferObject(const Value: boolean); virtual;
     procedure SetVisualizeDepthMap(const Value: boolean); virtual;
@@ -427,10 +423,11 @@ type
       by X3D TextureProperties node (see X3D specification).
 
       @groupBegin }
-    property TextureMinFilter: TGLint
-      read FTextureMinFilter write SetTextureMinFilter default GL_LINEAR_MIPMAP_LINEAR;
-    property TextureMagFilter: TGLint
-      read FTextureMagFilter write SetTextureMagFilter default GL_LINEAR;
+    property MinificationFilter: TMinificationFilter
+      read FMinificationFilter write SetMinificationFilter default minLinearMipmapLinear;
+    property MagnificationFilter: TMagnificationFilter
+      read FMagnificationFilter write SetMagnificationFilter default magLinear;
+    function TextureFilter: TTextureFilter;
     { @groupEnd }
 
     { Size of points. This has an effect on VRML/X3D PointSet rendering.
@@ -503,31 +500,6 @@ type
     { Rendering mode, can be used to disable many rendering features at once. }
     property Mode: TRenderingMode read FMode write SetMode default rmFull;
 
-    { Default texture mode for single texturing.
-      For X3D MultiTexture nodes, they are always explicitly given
-      by MultiTexture.mode field. This field applies only to non-multi textures.
-
-      VRML 2 / X3D specifications say that the mode for TextureModeRGB
-      should be GL_REPLACE to be conforming (see "Lighting model"
-      spec). So our default value here contradicts the spec --- but,
-      practically, it's much more useful, so I decided that, as an exception,
-      I can contradict the spec in this case.
-
-      Note that this should specify the mode only on non-alpha channels.
-      On the alpha channel, specification says clearly that texture alpha
-      should replace (never modulate) alpha channel, if only texture
-      has any alpha channel.
-
-      TODO: this is not honored, for now setting below controls mode
-      on both alpha and non-alpha channels.
-
-      @groupBegin }
-    property TextureModeGrayscale: TGLenum
-      read FTextureModeGrayscale write SetTextureModeGrayscale default GL_MODULATE;
-    property TextureModeRGB: TGLenum
-      read FTextureModeRGB write SetTextureModeRGB default GL_MODULATE;
-    { @groupEnd }
-
     { Use OpenGL vertex buffer object.
       This is always a good idea. You can set this to @false
       for debug purposes, e.g. to check how much speedup you get from VBO. }
@@ -579,8 +551,7 @@ type
       It may be currently TAbstractTexture2DNode, or TRenderedTextureNode. }
     InitialNode: TAbstractTextureNode;
 
-    MinFilter: TGLint;
-    MagFilter: TGLint;
+    Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap2D;
     References: Cardinal;
@@ -601,8 +572,7 @@ type
       of MovieTexture nodes related to this video texture! }
     InitialNode: TMovieTextureNode;
 
-    MinFilter: TGLint;
-    MagFilter: TGLint;
+    Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap2D;
     References: Cardinal;
@@ -612,8 +582,7 @@ type
 
   TTextureCubeMapCache = class
     InitialNode: TAbstractEnvironmentTextureNode;
-    MinFilter: TGLint;
-    MagFilter: TGLint;
+    Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     References: Cardinal;
     GLName: TGLuint;
@@ -622,8 +591,7 @@ type
 
   TTexture3DCache = class
     InitialNode: TAbstractTexture3DNode;
-    MinFilter: TGLint;
-    MagFilter: TGLint;
+    Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap3D;
     References: Cardinal;
@@ -738,7 +706,7 @@ type
       const TextureImage: TEncodedImage;
       const TextureFullUrl: string;
       const TextureNode: TAbstractTextureNode;
-      const TextureMinFilter, TextureMagFilter: TGLint;
+      const Filter: TTextureFilter;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
       const DDSForMipmaps: TDDSImage): TGLuint;
@@ -750,7 +718,7 @@ type
       const TextureVideo: TVideo;
       const TextureFullUrl: string;
       const TextureNode: TMovieTextureNode;
-      const TextureMinFilter, TextureMagFilter: TGLint;
+      const Filter: TTextureFilter;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D): TGLVideo3D;
 
@@ -763,7 +731,7 @@ type
       reason.) }
     function TextureCubeMap_IncReference(
       Node: TAbstractEnvironmentTextureNode;
-      const MinFilter, MagFilter: TGLint;
+      const Filter: TTextureFilter;
       const Anisotropy: TGLfloat;
       PositiveX, NegativeX,
       PositiveY, NegativeY,
@@ -793,7 +761,7 @@ type
       Precision32 = @true requires 32-bit full Single floats,
       Precision32 = @false requires 16-bit (half) floats. }
     function TextureFloat_IncReference(Node: TAbstractTextureNode;
-      const TextureMinFilter, TextureMagFilter: TGLint;
+      const Filter: TTextureFilter;
       const TextureWrap: TTextureWrap2D;
       const Width, Height: Cardinal;
       const Precision32: boolean): TGLuint;
@@ -806,7 +774,7 @@ type
       reason.) }
     function Texture3D_IncReference(
       Node: TAbstractTexture3DNode;
-      const MinFilter, MagFilter: TGLint;
+      const Filter: TTextureFilter;
       const Anisotropy: TGLfloat;
       const TextureWrap: TTextureWrap3D;
       Image: TEncodedImage; DDS: TDDSImage): TGLuint;
@@ -1318,7 +1286,7 @@ function TGLRendererContextCache.TextureImage_IncReference(
   const TextureImage: TEncodedImage;
   const TextureFullUrl: string;
   const TextureNode: TAbstractTextureNode;
-  const TextureMinFilter, TextureMagFilter: TGLint;
+  const Filter: TTextureFilter;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
   const DDSForMipmaps: TDDSImage): TGLuint;
@@ -1354,8 +1322,7 @@ begin
     if ( ( (TextureFullUrl <> '') and
            (TextureCached.FullUrl = TextureFullUrl) ) or
          (TextureCached.InitialNode = TextureNode) ) and
-       (TextureCached.MinFilter = TextureMinFilter) and
-       (TextureCached.MagFilter = TextureMagFilter) and
+       (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = TextureAnisotropy) and
        (TextureCached.Wrap = TextureWrap) then
     begin
@@ -1370,9 +1337,7 @@ begin
     That's because in case LoadGLTexture raises exception,
     we don't want to add texture to cache (because caller would have
     no way to call TextureImage_DecReference later). }
-  Result := LoadGLTexture(
-    TextureImage, TextureMinFilter, TextureMagFilter,
-    TextureWrap, false, DDSForMipmaps);
+  Result := LoadGLTexture(TextureImage, Filter, TextureWrap, false, DDSForMipmaps);
 
   TexParameterMaxAnisotropy(GL_TEXTURE_2D, TextureAnisotropy);
 
@@ -1380,8 +1345,7 @@ begin
   TextureImageCaches.Add(TextureCached);
   TextureCached.FullUrl := TextureFullUrl;
   TextureCached.InitialNode := TextureNode;
-  TextureCached.MinFilter := TextureMinFilter;
-  TextureCached.MagFilter := TextureMagFilter;
+  TextureCached.Filter := Filter;
   TextureCached.Anisotropy := TextureAnisotropy;
   TextureCached.Wrap := TextureWrap;
   TextureCached.References := 1;
@@ -1420,7 +1384,7 @@ function TGLRendererContextCache.TextureVideo_IncReference(
   const TextureVideo: TVideo;
   const TextureFullUrl: string;
   const TextureNode: TMovieTextureNode;
-  const TextureMinFilter, TextureMagFilter: TGLint;
+  const Filter: TTextureFilter;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D): TGLVideo3D;
 var
@@ -1434,8 +1398,7 @@ begin
     if ( ( (TextureFullUrl <> '') and
            (TextureCached.FullUrl = TextureFullUrl) ) or
          (TextureCached.InitialNode = TextureNode) ) and
-       (TextureCached.MinFilter = TextureMinFilter) and
-       (TextureCached.MagFilter = TextureMagFilter) and
+       (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = TextureAnisotropy) and
        (TextureCached.Wrap = TextureWrap) then
     begin
@@ -1450,16 +1413,13 @@ begin
     That's because in case TGLVideo3D.Create raises exception,
     we don't want to add texture to cache (because caller would have
     no way to call TextureVideo_DecReference later). }
-  Result := TGLVideo3D.Create(
-    TextureVideo, TextureMinFilter, TextureMagFilter, TextureAnisotropy,
-    TextureWrap);
+  Result := TGLVideo3D.Create(TextureVideo, Filter, TextureAnisotropy, TextureWrap);
 
   TextureCached := TTextureVideoCache.Create;
   TextureVideoCaches.Add(TextureCached);
   TextureCached.FullUrl := TextureFullUrl;
   TextureCached.InitialNode := TextureNode;
-  TextureCached.MinFilter := TextureMinFilter;
-  TextureCached.MagFilter := TextureMagFilter;
+  TextureCached.Filter := Filter;
   TextureCached.Anisotropy := TextureAnisotropy;
   TextureCached.Wrap := TextureWrap;
   TextureCached.References := 1;
@@ -1496,7 +1456,7 @@ end;
 
 function TGLRendererContextCache.TextureCubeMap_IncReference(
   Node: TAbstractEnvironmentTextureNode;
-  const MinFilter, MagFilter: TGLint;
+  const Filter: TTextureFilter;
   const Anisotropy: TGLfloat;
   PositiveX, NegativeX,
   PositiveY, NegativeY,
@@ -1511,8 +1471,7 @@ begin
     TextureCached := TextureCubeMapCaches[I];
 
     if (TextureCached.InitialNode = Node) and
-       (TextureCached.MinFilter = MinFilter) and
-       (TextureCached.MagFilter = MagFilter) and
+       (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = Anisotropy) then
     begin
       Inc(TextureCached.References);
@@ -1525,9 +1484,7 @@ begin
   glGenTextures(1, @Result);
   glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, Result);
 
-  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_MAG_FILTER, MagFilter);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_MIN_FILTER, MinFilter);
-
+  SetTextureFilter(GL_TEXTURE_CUBE_MAP_ARB, Filter);
   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_S, GLFeatures.CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_T, GLFeatures.CLAMP_TO_EDGE);
 
@@ -1536,15 +1493,14 @@ begin
     PositiveY, NegativeY,
     PositiveZ, NegativeZ,
     DDSForMipmaps,
-    TextureMinFilterNeedsMipmaps(MinFilter));
+    Filter.NeedsMipmaps);
 
   TexParameterMaxAnisotropy(GL_TEXTURE_CUBE_MAP_ARB, Anisotropy);
 
   TextureCached := TTextureCubeMapCache.Create;
   TextureCubeMapCaches.Add(TextureCached);
   TextureCached.InitialNode := Node;
-  TextureCached.MinFilter := MinFilter;
-  TextureCached.MagFilter := MagFilter;
+  TextureCached.Filter := Filter;
   TextureCached.Anisotropy := Anisotropy;
   TextureCached.References := 1;
   TextureCached.GLName := Result;
@@ -1579,7 +1535,7 @@ end;
 
 function TGLRendererContextCache.Texture3D_IncReference(
   Node: TAbstractTexture3DNode;
-  const MinFilter, MagFilter: TGLint;
+  const Filter: TTextureFilter;
   const Anisotropy: TGLfloat;
   const TextureWrap: TTextureWrap3D;
   Image: TEncodedImage; DDS: TDDSImage): TGLuint;
@@ -1592,8 +1548,7 @@ begin
     TextureCached := Texture3DCaches[I];
 
     if (TextureCached.InitialNode = Node) and
-       (TextureCached.MinFilter = MinFilter) and
-       (TextureCached.MagFilter = MagFilter) and
+       (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = Anisotropy) and
        (TextureCached.Wrap = TextureWrap) then
     begin
@@ -1607,7 +1562,7 @@ begin
   glGenTextures(1, @Result);
   glBindTexture(GL_TEXTURE_3D, Result);
 
-  glTextureImage3d(Image, MinFilter, MagFilter, DDS);
+  glTextureImage3d(Image, Filter, DDS);
 
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, TextureWrap[0]);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, TextureWrap[1]);
@@ -1618,8 +1573,7 @@ begin
   TextureCached := TTexture3DCache.Create;
   Texture3DCaches.Add(TextureCached);
   TextureCached.InitialNode := Node;
-  TextureCached.MinFilter := MinFilter;
-  TextureCached.MagFilter := MagFilter;
+  TextureCached.Filter := Filter;
   TextureCached.Anisotropy := Anisotropy;
   TextureCached.Wrap := TextureWrap;
   TextureCached.References := 1;
@@ -1662,6 +1616,7 @@ function TGLRendererContextCache.TextureDepth_IncReference(
 var
   I: Integer;
   TextureCached: TTextureDepthOrFloatCache;
+  Filter: TTextureFilter;
 begin
   for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
   begin
@@ -1680,9 +1635,9 @@ begin
   glGenTextures(1, @Result);
   glBindTexture(GL_TEXTURE_2D, Result);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
+  Filter.Minification := minLinear;
+  Filter.Magnification := magLinear;
+  SetTextureFilter(GL_TEXTURE_2D, Filter);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap[0]);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap[1]);
 
@@ -1763,7 +1718,7 @@ end;
 
 function TGLRendererContextCache.TextureFloat_IncReference(
   Node: TAbstractTextureNode;
-  const TextureMinFilter, TextureMagFilter: TGLint;
+  const Filter: TTextureFilter;
   const TextureWrap: TTextureWrap2D;
   const Width, Height: Cardinal;
   const Precision32: boolean): TGLuint;
@@ -1788,10 +1743,7 @@ begin
 
   glGenTextures(1, @Result);
   glBindTexture(GL_TEXTURE_2D, Result);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, TextureMagFilter);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, TextureMinFilter);
-
+  SetTextureFilter(GL_TEXTURE_2D, Filter);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap[0]);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap[1]);
 
@@ -1809,7 +1761,7 @@ begin
   TextureCached.References := 1;
   TextureCached.Wrap := TextureWrap;
   TextureCached.GLName := Result;
-  { Hm, we probably should store TextureMinFilter, TextureMagFilter, Precision32
+  { Hm, we probably should store Filter, Precision32
     inside TextureCached as well... Ignore this, useless for now ---
     one Node will require only one float texture anyway. }
 
@@ -2021,8 +1973,8 @@ begin
     UseSceneLights := TRenderingAttributes(Source).UseSceneLights;
     Opacity := TRenderingAttributes(Source).Opacity;
     EnableTextures := TRenderingAttributes(Source).EnableTextures;
-    TextureMinFilter := TRenderingAttributes(Source).TextureMinFilter;
-    TextureMagFilter := TRenderingAttributes(Source).TextureMagFilter;
+    MinificationFilter := TRenderingAttributes(Source).MinificationFilter;
+    MagnificationFilter := TRenderingAttributes(Source).MagnificationFilter;
     PointSize := TRenderingAttributes(Source).PointSize;
     LineWidth := TRenderingAttributes(Source).LineWidth;
   end else
@@ -2046,14 +1998,12 @@ begin
   FUseSceneLights := true;
   FOpacity := 1;
   FEnableTextures := true;
-  FTextureMinFilter := GL_LINEAR_MIPMAP_LINEAR;
-  FTextureMagFilter := GL_LINEAR;
+  FMinificationFilter := minLinearMipmapLinear;
+  FMagnificationFilter := magLinear;
   FPointSize := DefaultPointSize;
   FLineWidth := DefaultLineWidth;
   FBumpMapping := DefaultBumpMapping;
   FShaders := DefaultShaders;
-  FTextureModeGrayscale := GL_MODULATE;
-  FTextureModeRGB := GL_MODULATE;
   FVertexBufferObject := true;
   FShadowSampling := DefaultShadowSampling;
 end;
@@ -2092,22 +2042,28 @@ begin
   end;
 end;
 
-procedure TRenderingAttributes.SetTextureMinFilter(const Value: TGLint);
+procedure TRenderingAttributes.SetMinificationFilter(const Value: TMinificationFilter);
 begin
-  if TextureMinFilter <> Value then
+  if MinificationFilter <> Value then
   begin
     ReleaseCachedResources;
-    FTextureMinFilter := Value;
+    FMinificationFilter := Value;
   end;
 end;
 
-procedure TRenderingAttributes.SetTextureMagFilter(const Value: TGLint);
+procedure TRenderingAttributes.SetMagnificationFilter(const Value: TMagnificationFilter);
 begin
-  if TextureMagFilter <> Value then
+  if MagnificationFilter <> Value then
   begin
     ReleaseCachedResources;
-    FTextureMagFilter := Value;
+    FMagnificationFilter := Value;
   end;
+end;
+
+function TRenderingAttributes.TextureFilter: TTextureFilter;
+begin
+  Result.Minification := MinificationFilter;
+  Result.Magnification := MagnificationFilter;
 end;
 
 procedure TRenderingAttributes.SetBumpMapping(const Value: TBumpMapping);
@@ -2122,16 +2078,6 @@ end;
 procedure TRenderingAttributes.SetMode(const Value: TRenderingMode);
 begin
   FMode := Value;
-end;
-
-procedure TRenderingAttributes.SetTextureModeGrayscale(const Value: TGLenum);
-begin
-  FTextureModeGrayscale := Value;
-end;
-
-procedure TRenderingAttributes.SetTextureModeRGB(const Value: TGLenum);
-begin
-  FTextureModeRGB := Value;
 end;
 
 procedure TRenderingAttributes.SetShadowSampling(const Value: TShadowSampling);

@@ -372,6 +372,44 @@ const
 { Return wrap GL_CLAMP_TO_EDGE in both directions. }
 function Texture2DClampToEdge: TTextureWrap2D;
 
+{ TTextureFilter ------------------------------------------------------------- }
+
+type
+  { Texture minification filter (what happens when many texture pixels
+    are squeezed in one screen pixel). }
+  TMinificationFilter = (
+    minNearest,
+    minLinear,
+    minNearestMipmapNearest,
+    minNearestMipmapLinear,
+    minLinearMipmapNearest,
+    minLinearMipmapLinear);
+
+  { Texture magnification filter (what happens when a single texture pixel
+    in stretched over many screen pixels). }
+  TMagnificationFilter = (magNearest, magLinear);
+
+  TTextureFilter = object
+  public
+    Magnification: TMagnificationFilter;
+    Minification: TMinificationFilter;
+    function NeedsMipmaps: boolean;
+  end;
+
+operator = (const V1, V2: TTextureFilter): boolean;
+
+function TextureFilter(const Minification: TMinificationFilter;
+  const Magnification: TMagnificationFilter): TTextureFilter;
+
+{ Set current texture minification and magnification filter.
+
+  This is just a thin wrapper for calling
+@longCode(#
+  glTexParameteri(Target, GL_TEXTURE_MIN_FILTER, ...);
+  glTexParameteri(Target, GL_TEXTURE_MAG_FILTER, ...);
+#) }
+procedure SetTextureFilter(const Target: TGLenum; const Filter: TTextureFilter);
+
 { Loading textures ----------------------------------------------------------- }
 
 type
@@ -379,8 +417,6 @@ type
   ETextureLoadError = class(Exception);
   ECannotLoadS3TCTexture = class(ETextureLoadError);
   EInvalidImageForOpenGLTexture = class(ETextureLoadError);
-
-function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
 
 { Load new texture to OpenGL. Generates new texture number by glGenTextures,
   then binds this texture, and loads it's data.
@@ -400,7 +436,7 @@ function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
   fragments alpha value, it doesn't have any "color" in the normal sense,
   it's only for opacity).
 
-  If mipmaps will be needed (this is decided looking at MinFilter)
+  If mipmaps will be needed (this is decided looking at Filter.Minification)
   we will load them too.
 
   @orderedList(
@@ -414,8 +450,8 @@ function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
     @item(
       We will try using GenerateMipmap functionality to generate mipmaps on GPU.
       If not available, for uncompressed textures, we will generate mipmaps on CPU.
-      For compressed textures, we will change MinFilter to simple GL_LINEAR
-      and make OnWarning.)
+      For compressed textures, we will change minification filter to simple
+      minLinear and make OnWarning.)
   )
 
   @raises(ETextureLoadError If texture cannot be loaded for whatever reason.
@@ -429,13 +465,13 @@ function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
 
   @groupBegin }
 function LoadGLTexture(const image: TEncodedImage;
-  MinFilter, MagFilter: TGLenum;
+  const Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
   GrayscaleIsAlpha: boolean = false;
   DDSForMipmaps: TDDSImage = nil): TGLuint; overload;
 
 function LoadGLTexture(const URL: string;
-  MinFilter, MagFilter: TGLenum;
+  const Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
   GrayscaleIsAlpha: boolean = false;
   DDSForMipmaps: TDDSImage = nil): TGLuint; overload;
@@ -455,7 +491,7 @@ function LoadGLTexture(const URL: string;
 
   @groupBegin }
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
-  MinFilter, MagFilter: TGLenum;
+  const Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
   GrayscaleIsAlpha: boolean = false;
   DDSForMipmaps: TDDSImage = nil); overload;
@@ -508,7 +544,7 @@ type
     FItems: array of TGLuint;
   public
     constructor Create(Video: TVideo;
-      MinFilter, MagFilter: TGLenum;
+      const Filter: TTextureFilter;
       const Anisotropy: TGLfloat;
       const Wrap: TTextureWrap2D);
     destructor Destroy; override;
@@ -591,7 +627,7 @@ procedure glTextureCubeMap(
 
   It takes care about OpenGL unpack parameters. Just don't worry about it.
 
-  If MinFilter uses mipmaps, then all mipmap levels will be loaded.
+  If Filter uses mipmaps, then all mipmap levels will be loaded.
 
   @orderedList(
     @item(
@@ -603,7 +639,7 @@ procedure glTextureCubeMap(
 
       GenerateMipmap functionality will be required for this.
       When it is not available on this OpenGL implementation,
-      we will change MinFilter to simple GL_LINEAR and make OnWarning.
+      we will change minification filter to simple linear and make OnWarning.
       So usually you just don't have to worry about this.)
   )
 
@@ -617,8 +653,7 @@ procedure glTextureCubeMap(
     by OpenGL.)
 }
 procedure glTextureImage3D(const Image: TEncodedImage;
-  MinFilter, MagFilter: TGLenum;
-  DDSForMipmaps: TDDSImage);
+  Filter: TTextureFilter; DDSForMipmaps: TDDSImage);
 
 type
   EGenerateMipmapNotAvailable = class(Exception);
@@ -957,6 +992,8 @@ var
     finally AfterUnpackImage(UnpackData, image) end;
   end;
 
+var
+  Filter: TTextureFilter;
 begin
   inherited Create;
   glGenTextures(1, @Texture);
@@ -971,13 +1008,14 @@ begin
     LoadImage(Image);
   if AScalingPossible then
   begin
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    Filter.Minification := minLinear;
+    Filter.Magnification := magLinear;
   end else
   begin
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    Filter.Minification := minNearest;
+    Filter.Magnification := magNearest;
   end;
+  SetTextureFilter(GL_TEXTURE_2D, Filter);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLFeatures.CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLFeatures.CLAMP_TO_EDGE);
   FWidth := Image.Width;
@@ -1456,41 +1494,68 @@ begin
   Result[1] := Result[0];
 end;
 
+{ TTextureFilter ------------------------------------------------------------- }
+
+procedure SetTextureFilter(const Target: TGLenum; const Filter: TTextureFilter);
+const
+  MinFilterGL: array [TMinificationFilter] of TGLint =
+  ( GL_NEAREST,
+    GL_LINEAR,
+    GL_NEAREST_MIPMAP_NEAREST,
+    GL_NEAREST_MIPMAP_LINEAR,
+    GL_LINEAR_MIPMAP_NEAREST,
+    GL_LINEAR_MIPMAP_LINEAR );
+  MagFilterGL: array [TMagnificationFilter] of TGLint =
+  ( GL_NEAREST,
+    GL_LINEAR );
+begin
+  glTexParameteri(Target, GL_TEXTURE_MIN_FILTER, MinFilterGL[Filter.Minification]);
+  glTexParameteri(Target, GL_TEXTURE_MAG_FILTER, MagFilterGL[Filter.Magnification]);
+end;
+
+function TTextureFilter.NeedsMipmaps: boolean;
+begin
+  Result := Minification in
+    [ minNearestMipmapNearest,
+      minNearestMipmapLinear,
+      minLinearMipmapNearest,
+      minLinearMipmapLinear ];
+end;
+
+operator = (const V1, V2: TTextureFilter): boolean;
+begin
+  Result :=
+    (V1.Minification  = V2.Minification ) and
+    (V1.Magnification = V2.Magnification);
+end;
+
+function TextureFilter(const Minification: TMinificationFilter;
+  const Magnification: TMagnificationFilter): TTextureFilter;
+begin
+  Result.Minification := Minification;
+  Result.Magnification := Magnification;
+end;
+
 { 2D texture loading --------------------------------------------------------- }
 
 function LoadGLTexture(const image: TEncodedImage;
-  MinFilter, MagFilter: TGLenum;
-  const Wrap: TTextureWrap2D;
-  GrayscaleIsAlpha: boolean;
-  DDSForMipmaps: TDDSImage): TGLuint;
+  const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
+  GrayscaleIsAlpha: boolean; DDSForMipmaps: TDDSImage): TGLuint;
 begin
   glGenTextures(1, @result);
-  LoadGLGeneratedTexture(result, image, MinFilter, MagFilter, Wrap,
-    GrayscaleIsAlpha, DDSForMipmaps);
+  LoadGLGeneratedTexture(result, image, Filter, Wrap, GrayscaleIsAlpha, DDSForMipmaps);
 end;
 
 function LoadGLTexture(const URL: string;
-  MinFilter, MagFilter: TGLenum;
-  const Wrap: TTextureWrap2D;
-  GrayscaleIsAlpha: boolean;
-  DDSForMipmaps: TDDSImage): TGLuint;
+  const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
+  GrayscaleIsAlpha: boolean; DDSForMipmaps: TDDSImage): TGLuint;
 var
   Image: TEncodedImage;
 begin
   Image := LoadTextureImage(URL);
   try
-    Result := LoadGLTexture(Image, MinFilter, MagFilter, Wrap,
-      GrayscaleIsAlpha, DDSForMipmaps);
+    Result := LoadGLTexture(Image, Filter, Wrap, GrayscaleIsAlpha, DDSForMipmaps);
   finally Image.Free end;
-end;
-
-function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
-begin
-  Result :=
-    ( (MinFilter = GL_NEAREST_MIPMAP_NEAREST) or
-      (MinFilter = GL_LINEAR_MIPMAP_NEAREST) or
-      (MinFilter = GL_NEAREST_MIPMAP_LINEAR) or
-      (MinFilter = GL_LINEAR_MIPMAP_LINEAR) );
 end;
 
 { Load Image through glCompressedTexImage2DARB.
@@ -1521,10 +1586,8 @@ begin
 end;
 
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
-  MinFilter, MagFilter: TGLenum;
-  const Wrap: TTextureWrap2D;
-  GrayscaleIsAlpha: boolean;
-  DDSForMipmaps: TDDSImage);
+  const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
+  GrayscaleIsAlpha: boolean; DDSForMipmaps: TDDSImage);
 var
   ImageInternalFormat: TGLuint;
   ImageFormat: TGLuint;
@@ -1589,7 +1652,7 @@ var
     versions on both Linux 32 bit, 64 bit, and Windows 32 bit:
     you cannot load the base texture level (0) *after* loading the mipmaps.
     Doing so results in mipmaps being ignored, and seemingly GL_NEAREST
-    mininification filtering used (ignoring our set MinFilter filtering).
+    minification filtering used (ignoring our set Filter.Minification).
     This could be easily observed with
     demo_models/x3d/tex_visualize_mipmaps.x3dv,
     switching to viewpoint like "Mipmaps from DDS" or "Colored mipmaps from DDS"
@@ -1659,8 +1722,7 @@ var
 begin
   { bind the texture, set min, mag filters and wrap parameters }
   glBindTexture(GL_TEXTURE_2D, texnum);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+  SetTextureFilter(GL_TEXTURE_2D, Filter);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Wrap[0]);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Wrap[1]);
 
@@ -1680,7 +1742,7 @@ begin
     end;
 
     { Load uncompressed }
-    if TextureMinFilterNeedsMipmaps(MinFilter) then
+    if Filter.NeedsMipmaps then
       LoadMipmapped(TCastleImage(Image)) else
       LoadNormal(TCastleImage(Image));
   end else
@@ -1689,7 +1751,7 @@ begin
     { Load compressed }
     glCompressedTextureImage2D(TS3TCImage(Image), 0);
 
-    if TextureMinFilterNeedsMipmaps(MinFilter) then
+    if Filter.NeedsMipmaps then
     begin
       if not LoadMipmapsFromDDS(DDSForMipmaps, false) then
       try
@@ -1697,9 +1759,8 @@ begin
       except
         on E: EGenerateMipmapNotAvailable do
         begin
-          MinFilter := GL_LINEAR;
           { Update GL_TEXTURE_MIN_FILTER, since we already initialized it earlier. }
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, MinFilter);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
           OnWarning(wtMinor, 'Texture', 'Creating mipmaps for S3TC compressed textures requires GenerateMipmap functionality, will fallback to GL_LINEAR minification: ' + E.Message);
         end;
       end;
@@ -1729,8 +1790,7 @@ end;
 { TGLVideo3D ----------------------------------------------------------------- }
 
 constructor TGLVideo3D.Create(Video: TVideo;
-  MinFilter, MagFilter: TGLenum;
-  const Anisotropy: TGLfloat;
+  const Filter: TTextureFilter; const Anisotropy: TGLfloat;
   const Wrap: TTextureWrap2D);
 var
   I: Integer;
@@ -1740,7 +1800,7 @@ begin
   SetLength(FItems, Count);
   for I := 0 to High(FItems) do
   begin
-    FItems[I] := LoadGLTexture(Video.Items[I], MinFilter, MagFilter, Wrap);
+    FItems[I] := LoadGLTexture(Video.Items[I], Filter, Wrap);
     TexParameterMaxAnisotropy(GL_TEXTURE_2D, Anisotropy);
   end;
 end;
@@ -2042,8 +2102,8 @@ end;
 
 { 3D texture loading --------------------------------------------------------- }
 
-procedure glTextureImage3D(const Image: TEncodedImage; MinFilter, MagFilter: TGLenum;
-  DDSForMipmaps: TDDSImage);
+procedure glTextureImage3D(const Image: TEncodedImage;
+  Filter: TTextureFilter; DDSForMipmaps: TDDSImage);
 var
   ImageInternalFormat: TGLuint;
   ImageFormat: TGLuint;
@@ -2122,7 +2182,7 @@ begin
 
   glTexImage3DImage(TCastleImage(Image), 0);
 
-  if TextureMinFilterNeedsMipmaps(MinFilter) then
+  if Filter.NeedsMipmaps then
   begin
     if not LoadMipmapsFromDDS(DDSForMipmaps) then
     try
@@ -2130,14 +2190,13 @@ begin
     except
       on E: EGenerateMipmapNotAvailable do
       begin
-        MinFilter := GL_LINEAR;
+        Filter.Minification := minLinear;
         OnWarning(wtMinor, 'Texture', 'Creating mipmaps for 3D textures requires GenerateMipmap functionality, will fallback to GL_LINEAR minification: ' + E.Message);
       end;
     end;
   end;
 
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, MagFilter);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, MinFilter);
+  SetTextureFilter(GL_TEXTURE_3D, Filter);
 end;
 
 { GenerateMipmap ------------------------------------------------------------- }
