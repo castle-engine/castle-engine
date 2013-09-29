@@ -168,7 +168,7 @@ clean: cleanexamples
 			   -iname '*.compiled' -or \
 			   -iname '*.libimp*.a' -or \
 	                   -iname '*.dcu' -or -iname '*.dpu' -or \
-			   -iname 'castlelib.dll' -or -iname 'libcastlelib.so' ')' \
+			   -iname 'castleengine.dll' -or -iname 'libcastleengine.so' ')' \
 	     -print \
 	     | xargs rm -f
 	find . -type d -name lib -exec rm -Rf '{}' ';' -prune
