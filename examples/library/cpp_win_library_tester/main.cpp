@@ -323,6 +323,7 @@ bool Init()
         CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);
         //CGE_LoadSceneFromFile("c:\\projects\\humanoid_stand.wrl");
         ShowOpenFileDialog();
+        CGE_UpdateTouchInterface(ecgetciCtlWalkDragRotate);
         return true;
     }
     catch (const std::exception &e)

@@ -39,6 +39,11 @@ const
   ecgessAlt   = 2;
   ecgessCtrl  = 4;
 
+  // touch interface modes
+  ecgetciNone              = 0;
+  ecgetciCtlWalkCtlRotate  = 1;
+  ecgetciCtlWalkDragRotate = 2;
+
   // library callback codes
   ecgelibNeedsDisplay     = 0;
   ecgelibSetMouseCursor   = 1;   // sends mouse cursor code in iParam1
@@ -69,6 +74,7 @@ procedure CGE_GetViewpointName(iViewpointIdx: cInt32; szName: pchar; nBufSize: c
 procedure CGE_MoveToViewpoint(iViewpointIdx: cInt32; bAnimated: cBool); cdecl; external 'castleengine';
 function CGE_GetCurrentNavigationType(): cInt32; cdecl; external 'castleengine';
 procedure CGE_SetNavigationType(NewType: cInt32); cdecl; external 'castleengine';
+procedure CGE_UpdateTouchInterface(eMode: cInt32); cdecl; external 'castleengine';
 
 implementation
 

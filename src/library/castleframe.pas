@@ -44,6 +44,8 @@ const
 type
   TCgeLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32):cInt32; cdecl;
 
+  TTouchCtlInterface = (etciNone, etciCtlWalkCtlRotate, etciCtlWalkDragRotate);
+
   TCastleFrame = class(TComponent, IUIContainer)
   private
     FSceneManager: TGameSceneManager;
@@ -205,9 +207,13 @@ type
       function GetCurrentNavigationType(): TCameraNavigationType;
       procedure SetNavigationType(NewType: TCameraNavigationType);
 
+    { Touch interface methods }
     public
       LeftTouchCtl, RightTouchCtl: TCastleTouchControl;
-      procedure AddTouchController(Mode: TCastleTouchCtlMode; LeftSide: boolean);
+      procedure UpdateTouchController(LeftSide, CtlVisible: boolean; Mode: TCastleTouchCtlMode = ctcmWalking);
+
+      { This function should be called every time the navigation type changes. }
+      procedure UpdateTouchInterface(Mode: TTouchCtlInterface);
 
   end;
 
@@ -1155,10 +1161,36 @@ begin
      (Camera as TUniversalCamera).NavigationType := NewType;
 end;
 
-procedure TCastleFrame.AddTouchController(Mode: TCastleTouchCtlMode; LeftSide: boolean);
+procedure TCastleFrame.UpdateTouchController(LeftSide, CtlVisible: boolean; Mode: TCastleTouchCtlMode);
 var
   aNewCtl: TCastleTouchControl;
 begin
+  // left controller
+  if LeftSide and (LeftTouchCtl<>nil) then
+  begin
+    if CtlVisible then
+      LeftTouchCtl.TouchMode := Mode
+    else begin
+      Controls.Remove(LeftTouchCtl);
+      FreeAndNil(LeftTouchCtl);
+    end;
+    Exit;
+  end;
+
+  // right controller
+  if (not LeftSide) and (RightTouchCtl<>nil) then
+  begin
+    if CtlVisible then
+      RightTouchCtl.TouchMode := Mode
+    else begin
+      Controls.Remove(RightTouchCtl);
+      FreeAndNil(RightTouchCtl);
+    end;
+    Exit;
+  end;
+
+  if not CtlVisible then Exit;
+
   aNewCtl := TCastleTouchControl.Create(self);
   aNewCtl.TouchMode := Mode;
   Controls.InsertFront(aNewCtl);
@@ -1166,6 +1198,43 @@ begin
     LeftTouchCtl := aNewCtl
   else
     RightTouchCtl := aNewCtl;
+  Resize();
+end;
+
+procedure TCastleFrame.UpdateTouchInterface(Mode: TTouchCtlInterface);
+var
+  NavType: TCameraNavigationType;
+  IsWalking: boolean;
+  WalkCamera: TWalkCamera;
+begin
+  NavType := GetCurrentNavigationType();
+  IsWalking := ((NavType = ntWalk) or (NavType = ntFly));
+  if (Camera<>nil) and (Camera is TUniversalCamera) then
+     WalkCamera := (Camera as TUniversalCamera).Walk
+  else
+    WalkCamera := nil;
+
+  if (Mode = etciNone) or (not IsWalking) then
+  begin
+    UpdateTouchController(true, false);
+    UpdateTouchController(false, false);
+    if WalkCamera<>nil then
+      WalkCamera.MouseDragMode := cwdmDragToWalk;
+  end
+  else if Mode = etciCtlWalkCtlRotate then
+  begin
+    UpdateTouchController(true, true, ctcmWalking);
+    UpdateTouchController(false, true, ctcmHeadRotation);
+    if WalkCamera<>nil then
+      WalkCamera.MouseDragMode := cwdmNone;
+  end
+  else if Mode = etciCtlWalkDragRotate then
+  begin
+    UpdateTouchController(true, false);
+    UpdateTouchController(false, true, ctcmWalking);
+    if WalkCamera<>nil then
+      WalkCamera.MouseDragMode := cwdmDragToRotate;
+  end;
   Resize();
 end;
 

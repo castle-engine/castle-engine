@@ -619,6 +619,12 @@ type
 
   TWalkCamera = class;
 
+  { How mouse dragging should be performed in Walk camera. IT is useful for
+    touch interfaces. DragToWalk moes avatar contiuosly in the direction of
+    mouse drag (default). DragToRotate rotates the head when mouse is moved,
+    and None ignores the dragging at all. }
+  TWalkDragMode = (cwdmDragToWalk, cwdmDragToRotate, cwdmNone);
+
   { See @link(TWalkCamera.DoMoveAllowed) and
     @link(TWalkCamera.OnMoveAllowed) }
   TMoveAllowedFunc = function(Camera: TWalkCamera;
@@ -649,6 +655,7 @@ type
     FAboveHeight: Single;
     FAboveGround: P3DTriangle;
     FMouseLook: boolean;
+    FMouseDragMode: TWalkDragMode;
 
     procedure SetPosition(const Value: TVector3Single);
     procedure SetDirection(const Value: TVector3Single);
@@ -1089,6 +1096,11 @@ type
     property InvertVerticalMouseLook: boolean
       read FInvertVerticalMouseLook write FInvertVerticalMouseLook
       default false;
+
+    { How mouse dragging should be performed in Walk camera. For touch interfaces }
+    property MouseDragMode: TWalkDragMode
+      read FMouseDragMode write FMouseDragMode
+      default cwdmDragToWalk;
 
     { Call when mouse moves. Must be called to make MouseLook work. }
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
@@ -3905,7 +3917,7 @@ begin
            This allows application to handle e.g. ctrl + dragging
            in some custom ways (like view3dscene selecting a triangle). }
          (Container.Pressed.Modifiers - Input_Run.Modifiers = []) and
-         (not MouseLook) then
+         (not MouseLook) and (MouseDragMode = cwdmDragToWalk) then
       begin
         HandleInput := not ExclusiveEvents;
         MoveViaMouseDragging(Container.MouseX - MouseDraggingStart[0],
@@ -3966,6 +3978,15 @@ begin
      CheckModsDown and
      (ModifiersDown(Container.Pressed) - Input_Run.Modifiers <> []) then
     Exit;
+
+  if (Event.EventType = itMouseButton) and
+     (ciMouseDragging in Input) and
+     (MouseDragMode = cwdmNone) then
+  begin
+    MouseDraggingStarted := false;
+    Result := false;
+    Exit;
+  end;
 
   if (Event.EventType = itMouseWheel) and
      (ciMouseDragging in Input) and
@@ -4254,6 +4275,19 @@ begin
       but I want to safeguard anyway. }
     if (NewX <> MiddleWidth) or (NewY <> MiddleHeight) then
       Container.SetMousePosition(MiddleWidth, MiddleHeight);
+    Exit;
+  end;
+
+  if (MouseDraggingStarted) and (MouseDragMode = cwdmDragToRotate) and
+    (not Animation) and (not MouseLook) then
+  begin
+    MouseXChange := NewX - OldX;
+    MouseYChange := NewY - OldY;
+    if MouseXChange <> 0 then
+      RotateHorizontal(-MouseXChange/10.0);
+    if MouseYChange <> 0 then
+      RotateVertical(-MouseYChange/10.0);
+    Result := ExclusiveEvents;
   end;
 end;
 

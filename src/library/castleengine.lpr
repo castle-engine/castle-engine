@@ -189,11 +189,30 @@ var
   aNavType: TCameraNavigationType;
 begin
   try
-    if (NewType = 0) then aNavType := ntWalk
-    else if (NewType = 1) then aNavType := ntFly
-    else if (NewType = 2) then aNavType := ntExamine
-    else if (NewType = 3) then aNavType := ntArchitecture;
+    case NewType of
+    0: aNavType := ntWalk;
+    1: aNavType := ntFly;
+    2: aNavType := ntExamine;
+    3: aNavType := ntArchitecture;
+    else aNavType := ntExamine;
+    end;
     aCastleFrame.SetNavigationType(aNavType);
+  except
+  end;
+end;
+
+procedure CGE_UpdateTouchInterface(eMode: cInt32); cdecl;
+var
+  aNewMode: TTouchCtlInterface;
+begin
+  try
+    case eMode of
+    0: aNewMode := etciNone;
+    1: aNewMode := etciCtlWalkCtlRotate;
+    2: aNewMode := etciCtlWalkDragRotate;
+    else aNewMode := etciNone;
+    end;
+    aCastleFrame.UpdateTouchInterface(aNewMode);
   except
   end;
 end;
@@ -203,7 +222,8 @@ exports
   CGE_Render, CGE_SetRenderParams, CGE_SetLibraryCallbackProc, CGE_OnIdle,
   CGE_OnMouseDown, CGE_OnMouseMove, CGE_OnMouseUp, CGE_OnMouseWheel,
   CGE_LoadSceneFromFile, CGE_GetCurrentNavigationType, CGE_SetNavigationType,
-  CGE_GetViewpointsCount, CGE_GetViewpointName, CGE_MoveToViewpoint;
+  CGE_GetViewpointsCount, CGE_GetViewpointName, CGE_MoveToViewpoint,
+  CGE_UpdateTouchInterface;
 
 begin
   {Do not remove the exception masking lines}

@@ -75,11 +75,13 @@ begin
   aCastleFrame.GLContextOpen;
   aCastleFrame.SetRenderSize(OpenGLControl1.Width, OpenGLControl1.Height);
   aCastleFrame.SetLibraryCallbackProc(@OpenGlLibraryCallback);
-  aCastleFrame.AddTouchController(ctcmWalking, true);
-  aCastleFrame.AddTouchController(ctcmHeadRotation, false);
 
   aCastleFrame.Load('../../../../demo_models/navigation/type_walk.wrl');
   //aCastleFrame.Load('../../../examples/shadow_fields/models/humanoid_stand.wrl');
+
+  //aCastleFrame.UpdateTouchInterface(etciCtlWalkCtlRotate);
+  aCastleFrame.UpdateTouchInterface(etciCtlWalkDragRotate);
+
   OpenGLControl1.Invalidate;
   ActiveControl := OpenGLControl1;   // set focus in order to receive keydowns
 end;

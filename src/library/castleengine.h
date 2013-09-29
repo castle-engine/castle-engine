@@ -1,5 +1,5 @@
 /*
-  Copyright 2008-2013 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -39,6 +39,13 @@ enum ECgeNavigationType
     ecgenavFly          = 1,
     ecgenavExamine      = 2,
     ecgenavArchitecture = 3,
+};
+
+enum ECgeTouchCtlInterface
+{
+    ecgetciNone              = 0,
+    ecgetciCtlWalkCtlRotate  = 1,
+    ecgetciCtlWalkDragRotate = 2,
 };
 
 enum ECgeMouseCursor
@@ -84,5 +91,7 @@ extern void CGE_MoveToViewpoint(int iViewpointIdx, bool bAnimated);
 
 extern int CGE_GetCurrentNavigationType();
 extern void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType);
+
+extern void CGE_UpdateTouchInterface(int /*ECgeTouchCtlInterface*/ eMode);
 
 #endif //CGE_LIBRARY_INCLUDED

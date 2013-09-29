@@ -1,5 +1,5 @@
 /*
-  Copyright 2008-2013 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -52,6 +52,7 @@ typedef void (__cdecl *PFNRD_CGE_MoveToViewpoint)(int iViewpointIdx, bool bAnima
 
 typedef int (__cdecl *PFNRD_CGE_GetCurrentNavigationType)();
 typedef void (__cdecl *PFNRD_CGE_SetNavigationType)(int eNewType);
+typedef void (__cdecl *PFNRD_CGE_UpdateTouchInterface)(int eMode);
 
 
 PFNRD_CGE_Init pfrd_CGE_Init = NULL;
@@ -70,6 +71,7 @@ PFNRD_CGE_GetViewpointName pfrd_CGE_GetViewpointName = NULL;
 PFNRD_CGE_MoveToViewpoint pfrd_CGE_MoveToViewpoint = NULL;
 PFNRD_CGE_GetCurrentNavigationType pfrd_CGE_GetCurrentNavigationType = NULL;
 PFNRD_CGE_SetNavigationType pfrd_CGE_SetNavigationType = NULL;
+PFNRD_CGE_UpdateTouchInterface pfrd_CGE_UpdateTouchInterface = NULL;
 
 //-----------------------------------------------------------------------------
 void CGE_LoadLibrary()
@@ -92,6 +94,9 @@ void CGE_LoadLibrary()
 	pfrd_CGE_GetViewpointsCount = (PFNRD_CGE_GetViewpointsCount)GetProcAddress(g_hCgeDll, "CGE_GetViewpointsCount");
 	pfrd_CGE_GetViewpointName = (PFNRD_CGE_GetViewpointName)GetProcAddress(g_hCgeDll, "CGE_GetViewpointName");
 	pfrd_CGE_MoveToViewpoint = (PFNRD_CGE_MoveToViewpoint)GetProcAddress(g_hCgeDll, "CGE_MoveToViewpoint");
+	pfrd_CGE_GetCurrentNavigationType = (PFNRD_CGE_GetCurrentNavigationType)GetProcAddress(g_hCgeDll, "CGE_GetCurrentNavigationType");
+	pfrd_CGE_SetNavigationType = (PFNRD_CGE_SetNavigationType)GetProcAddress(g_hCgeDll, "CGE_SetNavigationType");
+	pfrd_CGE_UpdateTouchInterface = (PFNRD_CGE_UpdateTouchInterface)GetProcAddress(g_hCgeDll, "CGE_UpdateTouchInterface");
 }
 
 //-----------------------------------------------------------------------------
@@ -208,4 +213,11 @@ void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType)
 {
 	if (pfrd_CGE_SetNavigationType!=NULL)
         (*pfrd_CGE_SetNavigationType)(eNewType);
+}
+
+//-----------------------------------------------------------------------------
+void CGE_UpdateTouchInterface(int /*ECgeTouchCtlInterface*/ eMode)
+{
+	if (pfrd_CGE_UpdateTouchInterface!=NULL)
+        (*pfrd_CGE_UpdateTouchInterface)(eMode);
 }
