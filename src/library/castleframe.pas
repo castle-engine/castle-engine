@@ -410,6 +410,7 @@ begin
   begin
     Controls.DeleteAll(AComponent);
     if AComponent = FFocus then FFocus := nil;
+    if AComponent = FCtlCaptureInput then FCtlCaptureInput := nil;
   end;
 end;
 
@@ -670,7 +671,8 @@ var
   I: Integer;
 begin
   C := FCtlCaptureInput;
-  FCtlCaptureInput := nil;
+  if FMousePressed = [] then
+    FCtlCaptureInput := nil;
 
   if UseControls then
   begin
@@ -1159,8 +1161,6 @@ var
 begin
   aNewCtl := TCastleTouchControl.Create(self);
   aNewCtl.TouchMode := Mode;
-  //aNewCtl.Width := 200;                        // is set automatically
-  //aNewCtl.Height := 200;
   Controls.InsertFront(aNewCtl);
   if LeftSide then
     LeftTouchCtl := aNewCtl

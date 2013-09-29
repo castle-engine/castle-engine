@@ -10,7 +10,7 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <Title Value="castlelib"/>
+      <Title Value="castleengine"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -40,9 +40,9 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="castlelib.lpr"/>
+        <Filename Value="castleengine.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="castlelib"/>
+        <UnitName Value="castleengine"/>
       </Unit0>
     </Units>
   </ProjectOptions>
@@ -50,7 +50,7 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="castlelib"/>
+      <Filename Value="castleengine"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>

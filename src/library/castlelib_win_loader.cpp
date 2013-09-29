@@ -19,14 +19,14 @@
   1. Copy castle_win_loader.cpp and castlelib.h into your project folder and
      add them to your project workspace.
 
-  2. Copy castlelib.dll to your project folder (or to Debug and Release folders)
+  2. Copy castleengine.dll to your project folder (or to Debug and Release folders)
 
   3. Include castlelib.h in your source files, call CGE_LoadLibrary at
      the start of your program, and then call CGE_xxx functions as usual.
 */
 
 #include <windows.h>
-#include "castlelib.h"
+#include "castleengine.h"
 
 //-----------------------------------------------------------------------------
 HMODULE g_hCgeDll = NULL;
@@ -74,7 +74,7 @@ PFNRD_CGE_SetNavigationType pfrd_CGE_SetNavigationType = NULL;
 //-----------------------------------------------------------------------------
 void CGE_LoadLibrary()
 {
-	g_hCgeDll = LoadLibrary("castlelib.dll");
+	g_hCgeDll = LoadLibrary("castleengine.dll");
 	if (g_hCgeDll==NULL)
 		return;
 

@@ -1,5 +1,5 @@
 {$MODE ObjFPC}
-Library castlelib;
+Library castleengine;
 
 { Adapted from Jonas Maebe's example project :
   http://users.elis.ugent.be/~jmaebe/fpc/FPC_Objective-C_Cocoa.tbz

@@ -9,7 +9,7 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "../../../src/library/castlelib.h"
+#include "../../../src/library/castleengine.h"
 
 #if defined(_DEBUG)
 #include <crtdbg.h>

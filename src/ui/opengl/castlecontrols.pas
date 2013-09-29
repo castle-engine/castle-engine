@@ -271,7 +271,7 @@ type
     property Blending: boolean read GetBlending write SetBlending; deprecated;
   end;
 
-  TCastleTouchCtlMode = (ctcmWalking, ctcmHeadRotation);
+  TCastleTouchCtlMode = (ctcmWalking, ctcmWalkWithSideRot, ctcmHeadRotation);
 
   { Control for touch interfaces. Shows one "lever", that can be moved
     up/down/left/right, and controls the movement while Walking or Flying. }
@@ -1312,10 +1312,15 @@ procedure TCastleTouchControl.GetRotationValues(var X, Y, Z, Angle: Double);
 var
   FxConst: Double;
 begin
+  FxConst := 10/MaxOffsetDist();
   if FTouchMode = ctcmHeadRotation then
   begin
-    FxConst := 5/MaxOffsetDist();
     X := -FLeverOffsetY*FxConst;
+    Y := -FLeverOffsetX*FxConst;
+    Angle := 1;
+  end
+  else if FTouchMode = ctcmWalkWithSideRot then
+  begin
     Y := -FLeverOffsetX*FxConst;
     Angle := 1;
   end;
@@ -1325,13 +1330,18 @@ procedure TCastleTouchControl.GetTranslationValues(var X, Y, Z, Length: Double);
 var
   FxConst: Double;
 begin
+  FxConst := 100/MaxOffsetDist();
   if FTouchMode = ctcmWalking then
   begin
-    FxConst := 100/MaxOffsetDist();
     X := FLeverOffsetX*FxConst/1.5;  { walking to the sides should be slower }
     Z := FLeverOffsetY*FxConst;
     Length := 20;
   end
+  else if FTouchMode = ctcmWalkWithSideRot then
+  begin
+    Z := FLeverOffsetY*FxConst;
+    Length := 20;
+  end;
 end;
 
 { TCastleSimpleBackground ---------------------------------------------------- }

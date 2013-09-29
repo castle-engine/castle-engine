@@ -105,7 +105,6 @@ var
 begin
   OpenGLControl1.MakeCurrent();
   Application.OnIdle := @IdleFunc;
-  CGE_LoadLibrary();
   CGE_Init();
   CGE_SetRenderParams(OpenGLControl1.Width, OpenGLControl1.Height);
   CGE_SetLibraryCallbackProc(@OpenGlLibraryCallback);
@@ -184,4 +183,4 @@ begin
 end;
 
 end.
-
+
