@@ -102,8 +102,10 @@ type
     FWidth: Cardinal;
     FHeight: Cardinal;
     FAlpha: TAlphaChannel;
+    {$ifndef GLImageUseShaders}
     procedure AlphaBegin;
     procedure AlphaEnd;
+    {$endif}
   public
     { Prepare image for drawing.
 
@@ -258,18 +260,7 @@ type
   TColorBuffer = (
     cbFront,
     cbBack,
-
-    cbFrontLeft,
-    cbFrontRight,
-    cbBackLeft,
-    cbBackRight,
-    cbLeft,
-    cbRight,
-
-    cbColorAttachment0,
-    cbColorAttachment1,
-    cbColorAttachment2,
-    cbColorAttachment3
+    cbColorAttachment0
   );
 
 { Notes about saving images from cbFront buffer:
@@ -686,6 +677,9 @@ procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGL
     extensions are not available, or such).) }
 function GLDecompressS3TC(Image: TS3TCImage): TCastleImage;
 
+procedure SetReadBuffer(const Buffer: TGLEnum);
+procedure SetDrawBuffer(const Buffer: TGLEnum);
+
 type
   EFramebufferError = class(Exception);
   EFramebufferSizeTooLow = class(EFramebufferError);
@@ -773,7 +767,7 @@ type
 
     { Bind target of texture associated with rendered color buffer.
       "Bind target" means that it describes the whole texture, for example
-      for cube map it should be GL_TEXTURE_CUBE_MAP_ARB. }
+      for cube map it should be GL_TEXTURE_CUBE_MAP. }
     property CompleteTextureTarget: TGLenum
       read FCompleteTextureTarget write FCompleteTextureTarget default GL_TEXTURE_2D;
 
@@ -948,6 +942,9 @@ begin
     Result := TCastleImage(Img).ColorComponentsCount else
   if Img is TS3TCImage then
   begin
+    {$ifdef OpenGLES}
+    raise EImageClassNotSupportedForOpenGL.Create('S3TC compression not supported by OpenGL ES');
+    {$else}
     case TS3TCImage(Img).Compression of
       s3tcDxt1_RGB : Result := GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
       s3tcDxt1_RGBA: Result := GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
@@ -955,6 +952,7 @@ begin
       s3tcDxt5     : Result := GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
       else raise EImageClassNotSupportedForOpenGL.Create('TS3TCImage.Compression not supported by OpenGL');
     end;
+    {$endif}
   end else
     raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to OpenGL',
       [Img.ClassName]);
@@ -1058,6 +1056,7 @@ begin
   inherited;
 end;
 
+{$ifndef GLImageUseShaders}
 procedure TGLImage.AlphaBegin;
 begin
   if Alpha <> acNone then
@@ -1081,6 +1080,7 @@ begin
   if Alpha <> acNone then
     glPopAttrib;
 end;
+{$endif}
 
 procedure TGLImage.Draw;
 begin
@@ -1094,9 +1094,14 @@ end;
 
 procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
   const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+{$ifndef GLImageUseShaders}
 var
   TexX0, TexY0, TexX1, TexY1: Single;
+{$endif}
 begin
+  {$ifdef GLImageUseShaders}
+  // TODO-es
+  {$else}
   AlphaBegin;
 
   // TODO: use vbos
@@ -1123,6 +1128,7 @@ begin
   GLEnableTexture(etNone);
 
   AlphaEnd;
+  {$endif}
 end;
 
 procedure TGLImage.Draw(const ScreenRectangle: TRectangle);
@@ -1147,7 +1153,9 @@ var
     HorizontalScreenSize, VerticalScreenSize: Integer;
   XImageLeft, XImageRight, YImageBottom, YImageTop,
     HorizontalImageSize, VerticalImageSize: Single;
+  {$ifndef GLImageUseShaders}
   OldAlpha: TAlphaChannel;
+  {$endif}
 const
   { We tweak texture coordinates a little, to avoid bilinear filtering
     that would cause border colors to "bleed" over the texture inside.
@@ -1177,10 +1185,12 @@ begin
   YScreenTop := Y + DrawHeight - CornerTop;
   YImageTop := Height - CornerTop;
 
+  {$ifndef GLImageUseShaders}
   { for speed, we only apply AlphaBegin/End once }
   AlphaBegin;
   OldAlpha := Alpha;
   Alpha := acNone;
+  {$endif}
 
   { 4 corners }
   Draw(XScreenLeft, YScreenBottom, CornerLeft, CornerBottom,
@@ -1212,8 +1222,10 @@ begin
   Draw(X + CornerLeft          , Y + CornerBottom          , HorizontalScreenSize              , VerticalScreenSize,
            CornerLeft + Epsilon,     CornerBottom + Epsilon,  HorizontalImageSize - 2 * Epsilon,  VerticalImageSize - 2 * Epsilon);
 
+  {$ifndef GLImageUseShaders}
   Alpha := OldAlpha;
   AlphaEnd;
+  {$endif}
 end;
 
 procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
@@ -1249,18 +1261,7 @@ const
   ColorBufferGL: array [TColorBuffer] of TGLenum = (
     GL_FRONT,
     GL_BACK,
-
-    GL_FRONT_LEFT,
-    GL_FRONT_RIGHT,
-    GL_BACK_LEFT,
-    GL_BACK_RIGHT,
-    GL_LEFT,
-    GL_RIGHT,
-
-    GL_COLOR_ATTACHMENT0,
-    GL_COLOR_ATTACHMENT1,
-    GL_COLOR_ATTACHMENT2,
-    GL_COLOR_ATTACHMENT3
+    GL_COLOR_ATTACHMENT0
   );
 
 { This is the basis for all other SaveScreen* functions below. }
@@ -1271,7 +1272,7 @@ var
 begin
   BeforePackNotAlignedRGBImage(packData, Image.width);
   try
-    glReadBuffer(ColorBufferGL[ReadBuffer]);
+    SetReadBuffer(ColorBufferGL[ReadBuffer]);
     glReadPixels(Left, Bottom, Image.width, Image.height, ImageGLFormat(Image),
       ImageGLType(Image), Image.RawPixels);
   finally AfterPackNotAlignedRGBImage(packData, Image.width) end;
@@ -1558,6 +1559,7 @@ begin
   finally Image.Free end;
 end;
 
+{$ifndef OpenGLES}
 { Load Image through glCompressedTexImage2DARB.
   This checks existence of OpenGL extensions for S3TC,
   and checks Image sizes.
@@ -1584,6 +1586,7 @@ begin
     Image.Width, Image.Height, 0, Image.Size,
     Image.RawPixels);
 end;
+{$endif}
 
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
   const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
@@ -1613,16 +1616,20 @@ var
         niepodzielne na 4). }
       BeforeUnpackImage(UnpackData, Image);
       try
+        {$ifndef OpenGLES}
         { Workaround Mesa 7.9-devel bug (at least with Intel DRI,
           on Ubuntu 10.10, observed on domek): glTexImage2D accidentaly
           enables GL_TEXTURE_2D. }
         if GLVersion.Mesa then glPushAttrib(GL_ENABLE_BIT);
+        {$endif}
 
         glTexImage2D(GL_TEXTURE_2D, Level, ImageInternalFormat,
           Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
           Image.RawPixels);
 
+        {$ifndef OpenGLES}
         if GLVersion.Mesa then glPopAttrib;
+        {$endif}
       finally AfterUnpackImage(UnpackData, Image) end;
     end;
 
@@ -1644,6 +1651,7 @@ var
     glTexImage2DImage(Image, 0);
   end;
 
+  {$ifndef OpenGLES}
   { Check should we load mipmaps from DDS. Load them, if yes.
 
     If LoadBase this also loads the base image (mipmap level 0).
@@ -1706,17 +1714,22 @@ var
         Image.RawPixels);
     finally AfterUnpackImage(UnpackData, Image) end;
   end;
+  {$endif}
 
   procedure LoadMipmapped(const image: TCastleImage);
   begin
+    {$ifndef OpenGLES}
     if not LoadMipmapsFromDDS(DDSForMipmaps, true) then
     if HasGenerateMipmap then
     begin
+    {$endif}
       glTexImage2DImage(Image, 0);
       { hardware-accelerated mipmap generation }
       GenerateMipmap(GL_TEXTURE_2D);
+    {$ifndef OpenGLES}
     end else
       gluBuild2DMipmapsImage(Image);
+    {$endif}
   end;
 
 begin
@@ -1746,6 +1759,7 @@ begin
       LoadMipmapped(TCastleImage(Image)) else
       LoadNormal(TCastleImage(Image));
   end else
+  {$ifndef OpenGLES}
   if Image is TS3TCImage then
   begin
     { Load compressed }
@@ -1766,6 +1780,7 @@ begin
       end;
     end;
   end else
+  {$endif}
     raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
 end;
 
@@ -1872,6 +1887,8 @@ begin
 end;
 
 { Cube map texture loading --------------------------------------------------- }
+
+{$ifndef OpenGLES}
 
 { Comfortably load a single image for one cube map texture side.
 
@@ -2059,16 +2076,16 @@ procedure glTextureCubeMap(
       Exit;
     end;
 
-    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
-    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, dcsPositiveX);
-    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, dcsNegativeX);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
+    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, dcsPositiveX);
+    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, dcsNegativeX);
     { Note Positive/Negative are swapped for Y.
       DDS cube map sides are in left-handed coordinate system, like Direct X.
       See TDDSCubeMapSide comments. }
-    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB, dcsNegativeY);
-    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB, dcsPositiveY);
-    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB, dcsPositiveZ);
-    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB, dcsNegativeZ);
+    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, dcsNegativeY);
+    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, dcsPositiveY);
+    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, dcsPositiveZ);
+    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, dcsNegativeZ);
   end;
 
 begin
@@ -2076,34 +2093,51 @@ begin
   begin
     { Load six cube faces without mipmaps, then generate them all
       in one go with GenerateMipmap. }
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, PositiveX, 0, false);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, NegativeX, 0, false);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB, PositiveY, 0, false);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB, NegativeY, 0, false);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB, PositiveZ, 0, false);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB, NegativeZ, 0, false);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, PositiveX, 0, false);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, NegativeX, 0, false);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, PositiveY, 0, false);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, NegativeY, 0, false);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, PositiveZ, 0, false);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, NegativeZ, 0, false);
     if HasMipmapsFromDDS(DDSForMipmaps) then
       LoadMipmapsFromDDS(DDSForMipmaps) else
     begin
-      GenerateMipmap(GL_TEXTURE_CUBE_MAP_ARB);
+      GenerateMipmap(GL_TEXTURE_CUBE_MAP);
       if Log then
         WritelnLog('Mipmaps', 'Generating mipmaps for cube map by GenerateMipmap (GOOD)');
     end;
   end else
   begin
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, PositiveX, 0, Mipmaps);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, NegativeX, 0, Mipmaps);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB, PositiveY, 0, Mipmaps);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB, NegativeY, 0, Mipmaps);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB, PositiveZ, 0, Mipmaps);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB, NegativeZ, 0, Mipmaps);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, PositiveX, 0, Mipmaps);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, NegativeX, 0, Mipmaps);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, PositiveY, 0, Mipmaps);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, NegativeY, 0, Mipmaps);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, PositiveZ, 0, Mipmaps);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, NegativeZ, 0, Mipmaps);
   end;
 end;
+
+{$else}
+
+procedure glTextureCubeMap(
+  PositiveX, NegativeX,
+  PositiveY, NegativeY,
+  PositiveZ, NegativeZ: TEncodedImage;
+  DDSForMipmaps: TDDSImage;
+  Mipmaps: boolean);
+begin
+  // TODO-es Load cubemaps on OpenGL ES
+end;
+
+{$endif}
+
 
 { 3D texture loading --------------------------------------------------------- }
 
 procedure glTextureImage3D(const Image: TEncodedImage;
   Filter: TTextureFilter; DDSForMipmaps: TDDSImage);
+
+{$ifndef OpenGLES}
 var
   ImageInternalFormat: TGLuint;
   ImageFormat: TGLuint;
@@ -2199,6 +2233,14 @@ begin
   SetTextureFilter(GL_TEXTURE_3D, Filter);
 end;
 
+{$else}
+
+begin
+  // TODO-es Loading 3D textures on OpenGL ES -- use GL_OES_texture_3D extension
+end;
+
+{$endif}
+
 { GenerateMipmap ------------------------------------------------------------- }
 
 { $define TEST_NO_GENERATE_MIPMAP}
@@ -2218,6 +2260,7 @@ begin
   {$ifndef TEST_NO_GENERATE_MIPMAP}
   if GLFeatures.Framebuffer <> gsNone then
   begin
+    {$ifndef OpenGLES}
     glPushAttrib(GL_ENABLE_BIT);
       { To work under fglrx (confirmed on chantal (ATI Mobility Radeon X1600)),
         we have to temporarily enable target.
@@ -2230,6 +2273,9 @@ begin
         gsStandard : glGenerateMipmap   (Target);
       end;
     glPopAttrib;
+    {$else}
+    glGenerateMipmap(Target);
+    {$endif}
   end else
   {$endif}
     raise EGenerateMipmapNotAvailable.Create('Framebuffer not supported, glGenerateMipmap[EXT] not available');
@@ -2247,6 +2293,8 @@ end;
 { DecompressS3TC ------------------------------------------------------------- }
 
 function GLDecompressS3TC(Image: TS3TCImage): TCastleImage;
+
+{$ifndef OpenGLES}
 var
   Tex: TGLuint;
   PackData: TPackNotAlignedData;
@@ -2289,6 +2337,27 @@ begin
   glDeleteTextures(1, @Tex);
 end;
 
+{$else}
+begin
+  raise ECannotDecompressS3TC.Create('Cannot decompress S3TC texture on OpenGL ES');
+  Result := nil; // get rid of warning
+end;
+{$endif}
+
+procedure SetReadBuffer(const Buffer: TGLEnum);
+begin
+  {$ifndef OpenGLES}
+  glReadBuffer(Buffer);
+  {$endif}
+end;
+
+procedure SetDrawBuffer(const Buffer: TGLEnum);
+begin
+  {$ifndef OpenGLES}
+  glDrawBuffer(Buffer);
+  {$endif}
+end;
+
 { BindFramebuffer stack ------------------------------------------------------ }
 
 var
@@ -2312,7 +2381,9 @@ begin
   BoundFboStack.Add(Fbo);
 
   case GLFeatures.Framebuffer of
+    {$ifndef OpenGLES}
     gsExtension: glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Fbo);
+    {$endif}
     gsStandard : glBindFramebuffer   (GL_FRAMEBUFFER    , Fbo);
   end;
 end;
@@ -2325,7 +2396,7 @@ end;
   now in normal rendering to window (TODO: we assume you always use double-buffer then),
   or GL_COLOR_ATTACHMENT0 if we're in another non-window FBO.
   TODO: it should be GL_NONE if we're in another non-window FBO for tbDepth.
-  Without this, if you would blindly try glDrawBuffer(GL_BACK)
+  Without this, if you would blindly try SetDrawBuffer(GL_BACK)
   after UnbindFramebuffer, and you are in another single-buffered FBO,
   OpenGL (at least NVidia and fglrx) will (rightly) report OpenGL
   "invalid enum" error. }
@@ -2347,7 +2418,9 @@ begin
     PreviousFboDefaultBuffer := GL_COLOR_ATTACHMENT0;
 
   case GLFeatures.Framebuffer of
+    {$ifndef OpenGLES}
     gsExtension: glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, PreviousFbo);
+    {$endif}
     gsStandard : glBindFramebuffer   (GL_FRAMEBUFFER    , PreviousFbo);
   end;
 end;
@@ -2380,7 +2453,9 @@ procedure FramebufferTexture2D(const Target, Attachment, TexTarget: TGLenum;
   const Texture: TGLuint; const Level: TGLint);
 begin
   case GLFeatures.Framebuffer of
+    {$ifndef OpenGLES}
     gsExtension: glFramebufferTexture2DEXT(Target, Attachment, TexTarget, Texture, Level);
+    {$endif}
     gsStandard : glFramebufferTexture2D   (Target, Attachment, TexTarget, Texture, Level);
   end;
 end;
@@ -2418,7 +2493,9 @@ begin
       if not FramebufferBound then
         BindFramebuffer(Framebuffer);
       case GLFeatures.Framebuffer of
+        {$ifndef OpenGLES}
         gsExtension: glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, TextureTarget, Texture, 0);
+        {$endif}
         gsStandard : glFramebufferTexture2D   (GL_FRAMEBUFFER    , GL_COLOR_ATTACHMENT0    , TextureTarget, Texture, 0);
       end;
       if not FramebufferBound then
@@ -2430,6 +2507,10 @@ end;
 procedure TGLRenderToTexture.GLContextOpen;
 
   function FramebufferStatusToString(const Status: TGLenum): string;
+  {$ifndef OpenGLES}
+  const
+    GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS = GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT;
+  {$endif}
   begin
     { some of these messages based on spec wording
       http://oss.sgi.com/projects/ogl-sample/registry/EXT/framebuffer_object.txt ,
@@ -2438,14 +2519,16 @@ procedure TGLRenderToTexture.GLContextOpen;
       GL_FRAMEBUFFER_COMPLETE                          : Result := 'Complete (no error)';
       GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT             : Result := 'INCOMPLETE_ATTACHMENT: Not all framebuffer attachment points are "framebuffer attachment complete"';
       GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT     : Result := 'INCOMPLETE_MISSING_ATTACHMENT: None image attached to the framebuffer. On some GPUs/drivers (fglrx) it may also mean that desired image size is too large';
-      GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT         : Result := 'INCOMPLETE_DIMENSIONS: Not all attached images have the same width and height';
+      GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS             : Result := 'INCOMPLETE_DIMENSIONS: Not all attached images have the same width and height';
+      {$ifndef OpenGLES}
       GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT            : Result := 'INCOMPLETE_FORMATS: Not all images attached to the attachment points COLOR_ATTACHMENT* have the same internal format';
       GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER            : Result := 'INCOMPLETE_DRAW_BUFFER: The value of FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE is NONE for some color attachment point(s) named by DRAW_BUFFERi';
       GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER            : Result := 'INCOMPLETE_READ_BUFFER: READ_BUFFER is not NONE, and the value of FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE is NONE for the color attachment point named by READ_BUFFER';
-      GL_FRAMEBUFFER_UNSUPPORTED                       : Result := 'UNSUPPORTED: The combination of internal formats of the attached images violates an implementation-dependent set of restrictions';
       GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE            : Result := 'INCOMPLETE_MULTISAMPLE: The value of RENDERBUFFER_SAMPLES is not the same for all attached images.';
+      {$endif}
+      GL_FRAMEBUFFER_UNSUPPORTED                       : Result := 'UNSUPPORTED: The combination of internal formats of the attached images violates an implementation-dependent set of restrictions';
       0: Result := 'OpenGL error during CheckFramebufferStatus';
-      else Result := 'Unknown FramebufferStatus error: ' + gluErrorString(Status);
+      else Result := 'Unknown FramebufferStatus error: ' + GLErrorString(Status);
     end;
   end;
 
@@ -2453,6 +2536,7 @@ procedure TGLRenderToTexture.GLContextOpen;
     const InternalFormat: TGLenum; const Attachment: TGLenum);
   begin
     case GLFeatures.Framebuffer of
+      {$ifndef OpenGLES}
       gsExtension:
         begin
           glGenRenderbuffersEXT(1, @RenderbufferId);
@@ -2460,12 +2544,15 @@ procedure TGLRenderToTexture.GLContextOpen;
           glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, InternalFormat, Width, Height);
           glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, Attachment, GL_RENDERBUFFER_EXT, RenderbufferId);
         end;
+      {$endif}
       gsStandard:
         begin
           glGenRenderbuffers(1, @RenderbufferId);
           glBindRenderbuffer   (GL_RENDERBUFFER    , RenderbufferId);
+          {$ifndef OpenGLES}
           if (MultiSampling > 1) and GLFeatures.FBOMultiSampling then
             glRenderbufferStorageMultisample(GL_RENDERBUFFER, MultiSampling, InternalFormat, Width, Height) else
+          {$endif}
             glRenderbufferStorage           (GL_RENDERBUFFER,                InternalFormat, Width, Height);
           glFramebufferRenderbuffer   (GL_FRAMEBUFFER    , Attachment, GL_RENDERBUFFER    , RenderbufferId);
         end;
@@ -2489,7 +2576,7 @@ begin
 
   if (GLFeatures.Framebuffer <> gsNone) and
      (not (GLVersion.BuggyFBOCubeMap and
-           Between(TextureTarget, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB))) then
+           Between(TextureTarget, GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z))) then
   begin
     if (Width > GLFeatures.MaxRenderbufferSize) or
        (Height > GLFeatures.MaxRenderbufferSize) then
@@ -2497,7 +2584,9 @@ begin
         [ GLFeatures.MaxRenderbufferSize, GLFeatures.MaxRenderbufferSize, Width, Height ]);
 
     case GLFeatures.Framebuffer of
+      {$ifndef OpenGLES}
       gsExtension: glGenFramebuffersEXT(1, @Framebuffer);
+      {$endif}
       gsStandard : glGenFramebuffers   (1, @Framebuffer);
     end;
     BindFramebuffer(Framebuffer);
@@ -2508,11 +2597,15 @@ begin
       use one renderbuffer or one texture with combined depth/stencil info.
       Other possibilities may be not available at all (e.g. Radeon on chantal,
       but probably most GPUs with EXT_packed_depth_stencil). }
+    {$ifndef OpenGLES}
     if Stencil and GLFeatures.PackedDepthStencil then
     begin
       DepthBufferFormatPacked := GL_DEPTH_STENCIL;
       DepthAttachmentPacked := GL_DEPTH_STENCIL_ATTACHMENT;
     end else
+    // TODO-es This is probably needed on gles too?
+    // we have GL_DEPTH_STENCIL_OES, but what is the equivalent of GL_DEPTH_STENCIL_ATTACHMENT?
+    {$endif}
     begin
       DepthBufferFormatPacked := GL_DEPTH_COMPONENT;
       DepthAttachmentPacked := GL_DEPTH_ATTACHMENT;
@@ -2527,8 +2620,8 @@ begin
       tbDepth:
         begin
           { Needed to consider FBO "complete" }
-          glDrawBuffer(GL_NONE);
-          glReadBuffer(GL_NONE);
+          SetDrawBuffer(GL_NONE);
+          SetReadBuffer(GL_NONE);
 
           FramebufferTexture2D(GL_FRAMEBUFFER, DepthAttachmentPacked, TextureTarget, Texture, 0);
         end;
@@ -2553,7 +2646,9 @@ begin
     Success := false;
     try
       case GLFeatures.Framebuffer of
+        {$ifndef OpenGLES}
         gsExtension: Status := glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+        {$endif}
         gsStandard : Status := glCheckFramebufferStatus   (GL_FRAMEBUFFER    );
       end;
       case Status of
@@ -2565,15 +2660,17 @@ begin
     finally
       { Always, regardless of Success, unbind FBO and restore normal gl*Buffer }
       case GLFeatures.Framebuffer of
+        {$ifndef OpenGLES}
         gsExtension: glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
+        {$endif}
         gsStandard : glBindRenderbuffer   (GL_RENDERBUFFER    , 0);
       end;
       UnbindFramebuffer(PreviousFboDefaultBuffer);
 
       if Buffer = tbDepth then
       begin
-        glDrawBuffer(PreviousFboDefaultBuffer);
-        glReadBuffer(PreviousFboDefaultBuffer);
+        SetDrawBuffer(PreviousFboDefaultBuffer);
+        SetReadBuffer(PreviousFboDefaultBuffer);
       end;
 
       { If failure, release resources. In particular, this sets Framebuffer = 0,
@@ -2593,7 +2690,9 @@ procedure TGLRenderToTexture.GLContextClose;
     if Buf <> 0 then
     begin
       case GLFeatures.Framebuffer of
+        {$ifndef OpenGLES}
         gsExtension: glDeleteRenderbuffersEXT(1, @Buf);
+        {$endif}
         gsStandard : glDeleteRenderbuffers   (1, @Buf);
       end;
       Buf := 0;
@@ -2605,7 +2704,9 @@ procedure TGLRenderToTexture.GLContextClose;
     if Buf <> 0 then
     begin
       case GLFeatures.Framebuffer of
+        {$ifndef OpenGLES}
         gsExtension: glDeleteFramebuffersEXT(1, @Buf);
+        {$endif}
         gsStandard : glDeleteFramebuffers   (1, @Buf);
       end;
       Buf := 0;
@@ -2630,8 +2731,8 @@ begin
 
       if Buffer = tbDepth then
       begin
-        glDrawBuffer(GL_NONE);
-        glReadBuffer(GL_NONE);
+        SetDrawBuffer(GL_NONE);
+        SetReadBuffer(GL_NONE);
       end;
     end;
     Assert(FramebufferBound);
@@ -2705,8 +2806,8 @@ begin
 
       if Buffer = tbDepth then
       begin
-        glDrawBuffer(PreviousFboDefaultBuffer);
-        glReadBuffer(PreviousFboDefaultBuffer);
+        SetDrawBuffer(PreviousFboDefaultBuffer);
+        SetReadBuffer(PreviousFboDefaultBuffer);
       end;
     end;
   end else
@@ -2714,13 +2815,13 @@ begin
   begin
     { Actually update OpenGL texture }
     glBindTexture(CompleteTextureTarget, Texture);
-    glReadBuffer(GL_BACK);
+    SetReadBuffer(GL_BACK);
     glCopyTexSubImage2D(TextureTarget, 0, 0, 0, 0, 0, Width, Height);
 
     if Buffer = tbColorAndDepth then
     begin
       glBindTexture(DepthTextureTarget, DepthTexture);
-      glReadBuffer(GL_BACK);
+      SetReadBuffer(GL_BACK);
       glCopyTexSubImage2D(DepthTextureTarget, 0, 0, 0, 0, 0, Width, Height);
     end;
   end;

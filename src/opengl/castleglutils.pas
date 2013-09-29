@@ -425,8 +425,15 @@ procedure AfterPackImage(const packData: TPackNotAlignedData; image: TCastleImag
 
 { Projection matrix -------------------------------------------------------- }
 
-{ Load projection matrix to OpenGL GL_PROJECTION matrix.
+var
+  ProjectionMatrix: TMatrix4Single;
 
+{ Set OpenGL projection matrix.
+
+  For OpenGLES, these merely set global ProjectionMatrix variable.
+
+  For desktop OpenGL, these also set projection matrix (GL_PROJECTION) for
+  fixed-function rendering.
   At the end, these unconditionally change matrix mode to GL_MODELVIEW.
 
   ZFar is allowed to have special ZFarInfinity value
@@ -558,6 +565,10 @@ const
   GLDefaultLightModelAmbient: TVector4Single = (0.2, 0.2, 0.2, 1.0);
 
 { Utilities for display lists ---------------------------------------- }
+{ Deprecated: all display list usage will be removed, since it doesn't
+  exist in modern OpenGL and OpenGL ES. }
+
+{$ifndef OpenGLES}
 
 type
   { }
@@ -580,6 +591,8 @@ function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint;
   ) }
 procedure glFreeDisplayList(var list: TGLuint);
 
+{$endif}
+
 { If Tex <> 0 then it does glDeleteTextures on Tex and sets Tex to 0.
   In other words, this is a simple wrapper over glDeleteTextures that
   @orderedList(
@@ -587,28 +600,6 @@ procedure glFreeDisplayList(var list: TGLuint);
     @item sets Tex to 0 to not free it once again
   ) }
 procedure glFreeTexture(var Tex: TGLuint);
-
-{ Equivalent to glListBase but it's parameter is a signed integer.
-
-  Original declararations of glListBase take unsigned integer,
-  while actually a signed integer is also allowed. Actually,
-  you should always call gListBase with range/overflow checking turned off.
-  That's because argument to glListBase is used by OpenGL
-  only in an expression like
-
-    @longcode# Base + CurrentListNumber #
-
-  so it's the "CurrentListNumber" that determines what Base actually means
-  --- e.g. if Base = LongWord(-100) and CurrentListNumber = 1000 then
-  the actual list number is 900, and this is all that matters.
-  So you can say that Base was nagative.
-  But if Base = LongWord(-100) and CurrentListNumber = 0 then
-  the actual list number is LongWord(-100) = <some big integer around 4 * 10^9>.
-  So you can say that Base was positive. }
-var
-  glListIBase: procedure(base: TGLint);
-    {$ifdef OPENGL_CDECL} cdecl; {$endif}
-    {$ifdef OPENGL_STDCALL} stdcall; {$endif}
 
 { Set color and depth buffers writeable or not.
   This is just a shortcut for
@@ -1064,7 +1055,8 @@ procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); begin glTe
 
 procedure GLViewport(const Rect: TRectangle);
 begin
-  GL.glViewport(Rect.Left, Rect.Bottom, Rect.Width, Rect.Height);
+  {$ifndef OpenGLES} GL {$else} GLES20 {$endif}
+    .glViewport(Rect.Left, Rect.Bottom, Rect.Width, Rect.Height);
 end;
 
 { uproszczenia dla sejwowania / ladowania gl state : ---------------------------------- }
@@ -1125,18 +1117,28 @@ end;
 
 function PerspectiveProjection(const fovy, aspect, zNear, zFar: Single): TMatrix4Single;
 begin
+  {$ifndef OpenGLES}
   glMatrixMode(GL_PROJECTION);
+  {$endif}
   Result := PerspectiveProjMatrixDeg(fovy, aspect, zNear, zFar);
-  glLoadMatrix(Result);
+  ProjectionMatrix := Result;
+  {$ifndef OpenGLES}
+  glLoadMatrix(ProjectionMatrix);
   glMatrixMode(GL_MODELVIEW);
+  {$endif}
 end;
 
 function OrthoProjection(const left, right, bottom, top, zNear, zFar: Single): TMatrix4Single;
 begin
+  {$ifndef OpenGLES}
   glMatrixMode(GL_PROJECTION);
+  {$endif}
   Result := OrthoProjMatrix(left, right, bottom, top, zNear, zFar);
-  glLoadMatrix(Result);
+  ProjectionMatrix := Result;
+  {$ifndef OpenGLES}
+  glLoadMatrix(ProjectionMatrix);
   glMatrixMode(GL_MODELVIEW);
+  {$endif}
 end;
 
 { Various helpers ------------------------------------------------------------ }
@@ -1503,10 +1505,10 @@ begin
 
     '--------' +nl+
     'Version:' +nl+
-    '  Version string: ' +glGetString(GL_VERSION) +nl+
+    '  Version string: ' +PChar(glGetString(GL_VERSION)) +nl+
     VersionReport(GLVersion) +nl+
-    '  Vendor: ' +glGetString(GL_VENDOR) +nl+
-    '  Renderer: ' +glGetString(GL_RENDERER) +nl+
+    '  Vendor: ' +PChar(glGetString(GL_VENDOR)) +nl+
+    '  Renderer: ' +PChar(glGetString(GL_RENDERER)) +nl+
     VendorReport(GLVersion) +nl+
     nl+
 
@@ -1542,15 +1544,17 @@ begin
     '  Blend constant parameter: ' + BoolToStr[GLFeatures.BlendConstant] +nl+
     '  Float textures: ' + BoolToStr[GLFeatures.TextureFloat] +nl+
     nl+
-    '  All extensions: ' +glGetString(GL_EXTENSIONS) +nl+
+    '  All extensions: ' +PChar(glGetString(GL_EXTENSIONS)) +nl+
     nl+
 
+    {$ifndef OpenGLES}
     '-----------------------------' +nl+
     'OpenGL utility (GLU) version:' +nl+
     '  Version string: ' +gluGetString(GLU_VERSION) +nl+
     VersionReport(GLUVersion) +nl+
     '  Extensions: '+gluGetString(GLU_EXTENSIONS) +nl+
     nl+
+    {$endif}
 
     '---------------------------' +nl+
     'Current buffers bit depths:' +nl+
@@ -1560,18 +1564,23 @@ begin
       +GetInteger(GL_BLUE_BITS) +' / '
       +GetInteger(GL_ALPHA_BITS) +nl+
     '  Depth: ' +GetInteger(GL_DEPTH_BITS) +nl+
+    {$ifndef OpenGLES}
     '  Index: ' +GetInteger(GL_INDEX_BITS) +nl+
+    {$endif}
     '  Stencil: ' +GetInteger(GL_STENCIL_BITS) +nl+
+    {$ifndef OpenGLES}
     '  Accumulation (red / greeen / blue / alpha): '
       +GetInteger(GL_ACCUM_RED_BITS) +' / '
       +GetInteger(GL_ACCUM_GREEN_BITS) +' / '
       +GetInteger(GL_ACCUM_BLUE_BITS) +' / '
       +GetInteger(GL_ACCUM_ALPHA_BITS) +nl+
     '  Double buffer: ' + GetBoolean(GL_DOUBLEBUFFER) +nl+
+    {$endif}
     '  Multisampling (full-screen antialiasing): ' + BoolToStr[GLFeatures.Multisample] +nl+
     '    Current: ' + IntToStr(GLFeatures.CurrentMultiSampling) + ' samples per pixel' +nl+
     nl+
 
+    {$ifndef OpenGLES}
     '-------------' +nl+
     'Stack depths:' +nl+
     '  Attributes: ' +GetInteger(GL_MAX_ATTRIB_STACK_DEPTH) +nl+
@@ -1581,14 +1590,17 @@ begin
     '  Texture: ' +GetInteger(GL_MAX_TEXTURE_STACK_DEPTH) +nl+
     '  Name: ' +GetInteger(GL_MAX_NAME_STACK_DEPTH) +nl+
     nl+
+    {$endif}
 
     '-------' +nl+
     'Limits:' +nl+
     '  Max clip planes: ' + IntToStr(GLFeatures.MaxClipPlanes) +nl+
-    '  Max eval order: ' +GetInteger(GL_MAX_EVAL_ORDER) +nl+
     '  Max lights: ' + IntToStr(GLFeatures.MaxLights) +nl+
+    {$ifndef OpenGLES}
+    '  Max eval order: ' +GetInteger(GL_MAX_EVAL_ORDER) +nl+
     '  Max list nesting: ' +GetInteger(GL_MAX_LIST_NESTING) +nl+
     '  Max pixel map table: ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) +nl+
+    {$endif}
     '  Max texture size: ' + IntToStr(GLFeatures.MaxTextureSize) +nl+
     '  Max viewport dims: ' +GetInteger2(GL_MAX_VIEWPORT_DIMS, 'width %d / height %d') +nl+
     '  Max texture units: ' + IntToStr(GLFeatures.MaxTextureUnits) +nl+
@@ -1602,6 +1614,8 @@ begin
 
    CheckGLErrors;
 end;
+
+{$ifndef OpenGLES}
 
 function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint;
 begin
@@ -1619,6 +1633,8 @@ begin
   list := 0;
  end;
 end;
+
+{$endif}
 
 procedure glFreeTexture(var Tex: TGLuint);
 begin
@@ -1680,11 +1696,14 @@ begin
   if FDepthRange <> Value then
   begin
     FDepthRange := Value;
+    {$ifndef OpenGLES}
+    // TODO-es How to port it to OpenGL ES? We need it for PlayerOnTop
     case Value of
       drFull: glDepthRange(0  , 1);
       drNear: glDepthRange(0  , 0.1);
       drFar : glDepthRange(0.1, 1);
     end;
+    {$endif}
   end;
 end;
 
@@ -1695,33 +1714,43 @@ begin
   case Target of
     etNone: begin
         glDisable(GL_TEXTURE_2D);
-        if GLFeatures.TextureCubeMap then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+        if GLFeatures.TextureCubeMap then glDisable(GL_TEXTURE_CUBE_MAP);
+        {$ifndef OpenGLES}
         if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
         if GLFeatures.TextureRectangle then glDisable(GL_TEXTURE_RECTANGLE_ARB);
+        {$endif}
       end;
     et2D: begin
         glEnable(GL_TEXTURE_2D);
-        if GLFeatures.TextureCubeMap then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+        if GLFeatures.TextureCubeMap then glDisable(GL_TEXTURE_CUBE_MAP);
+        {$ifndef OpenGLES}
         if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
         if GLFeatures.TextureRectangle then glDisable(GL_TEXTURE_RECTANGLE_ARB);
+        {$endif}
       end;
     etCubeMap: begin
         glDisable(GL_TEXTURE_2D);
-        if GLFeatures.TextureCubeMap then glEnable(GL_TEXTURE_CUBE_MAP_ARB) else Result := false;
+        if GLFeatures.TextureCubeMap then glEnable(GL_TEXTURE_CUBE_MAP) else Result := false;
+        {$ifndef OpenGLES}
         if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
         if GLFeatures.TextureRectangle then glDisable(GL_TEXTURE_RECTANGLE_ARB);
+        {$endif}
       end;
     et3D: begin
         glDisable(GL_TEXTURE_2D);
-        if GLFeatures.TextureCubeMap then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+        if GLFeatures.TextureCubeMap then glDisable(GL_TEXTURE_CUBE_MAP);
+        {$ifndef OpenGLES}
         if GLFeatures.Texture3D <> gsNone then glEnable(GL_TEXTURE_3D) else Result := false;
         if GLFeatures.TextureRectangle then glDisable(GL_TEXTURE_RECTANGLE_ARB);
+        {$endif}
       end;
     etRectangle: begin
         glDisable(GL_TEXTURE_2D);
-        if GLFeatures.TextureCubeMap then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+        if GLFeatures.TextureCubeMap then glDisable(GL_TEXTURE_CUBE_MAP);
+        {$ifndef OpenGLES}
         if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
         if GLFeatures.TextureRectangle then glEnable(GL_TEXTURE_RECTANGLE_ARB) else Result := false;
+        {$endif}
       end;
     else raise EInternalError.Create('GLEnableTexture:Target?');
   end;
@@ -1750,7 +1779,7 @@ begin
   for B in Buffers do
     Mask := Mask or ClearBufferMask[B];
   if Mask <> 0 then
-    GL.GLClear(Mask);
+    {$ifndef OpenGLES} GL {$else} GLES20 {$endif}.GLClear(Mask);
 end;
 
 var
@@ -1775,9 +1804,6 @@ begin
 end;
 
 initialization
-  { This is needed for gllistIBase declaration to be correct. }
-  Assert(SizeOf(TGLint) = SizeOf(TGLuint));
-
   { This Set8087CW is actually not needed, because FPC GL units,
     since version 2.2.2, already do this, for all necessary platforms,
     thanks to Michalis bug reports :) See
@@ -1820,8 +1846,6 @@ initialization
     implementation that doesn't require caller to disable fp exceptions?
   }
   Set8087CW($133F);
-
-  Pointer(glListIBase) := glListBase;
 finalization
   FreeAndNil(GLFeatures);
 end.

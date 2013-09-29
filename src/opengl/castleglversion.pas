@@ -22,6 +22,8 @@
 }
 unit CastleGLVersion;
 
+{$I castleconf.inc}
+
 interface
 
 type
@@ -196,9 +198,11 @@ var
     This is usually created by CastleGLUtils.LoadAllExtensions. }
   GLVersion: TGLVersion;
 
+  {$ifndef OpenGLES}
   { GLU version information.
     This is usually created by CastleGLUtils.LoadAllExtensions. }
   GLUVersion: TGenericGLVersion;
+  {$endif}
 
 implementation
 
@@ -534,5 +538,7 @@ end;
 
 finalization
   FreeAndNil(GLVersion);
+  {$ifndef OpenGLES}
   FreeAndNil(GLUVersion);
+  {$endif}
 end.

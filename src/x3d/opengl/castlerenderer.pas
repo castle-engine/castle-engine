@@ -1482,11 +1482,11 @@ begin
   end;
 
   glGenTextures(1, @Result);
-  glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, Result);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, Result);
 
-  SetTextureFilter(GL_TEXTURE_CUBE_MAP_ARB, Filter);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_S, GLFeatures.CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_T, GLFeatures.CLAMP_TO_EDGE);
+  SetTextureFilter(GL_TEXTURE_CUBE_MAP, Filter);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GLFeatures.CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GLFeatures.CLAMP_TO_EDGE);
 
   glTextureCubeMap(
     PositiveX, NegativeX,
@@ -1495,7 +1495,7 @@ begin
     DDSForMipmaps,
     Filter.NeedsMipmaps);
 
-  TexParameterMaxAnisotropy(GL_TEXTURE_CUBE_MAP_ARB, Anisotropy);
+  TexParameterMaxAnisotropy(GL_TEXTURE_CUBE_MAP, Anisotropy);
 
   TextureCached := TTextureCubeMapCache.Create;
   TextureCubeMapCaches.Add(TextureCached);

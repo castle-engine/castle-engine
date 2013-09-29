@@ -86,6 +86,7 @@
 { $define OpenGLES}
 {$ifdef OpenGLES}
   {$define CastleGL := GLES20}
+  {$define GLImageUseShaders}
 {$else}
   {$define CastleGL := GL, GLU, GLExt}
 {$endif}

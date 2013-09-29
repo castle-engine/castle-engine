@@ -306,7 +306,7 @@ procedure GLCaptureCubeMapTexture(
     ProjectionMatrix: TMatrix4Single;
   begin
     RenderToTexture.RenderBegin;
-    RenderToTexture.SetTexture(Tex, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB + Ord(Side));
+    RenderToTexture.SetTexture(Tex, GL_TEXTURE_CUBE_MAP_POSITIVE_X + Ord(Side));
 
       GL.glViewport(0, 0, Size, Size);
 
@@ -330,7 +330,7 @@ procedure GLCaptureCubeMapTexture(
 var
   Side: TCubeMapSide;
 begin
-  RenderToTexture.CompleteTextureTarget := GL_TEXTURE_CUBE_MAP_ARB;
+  RenderToTexture.CompleteTextureTarget := GL_TEXTURE_CUBE_MAP;
   for Side := Low(TCubeMapSide) to High(TCubeMapSide) do
     DrawMap(Side);
 end;

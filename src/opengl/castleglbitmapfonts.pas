@@ -237,7 +237,9 @@ type
     See also TGLOutlineFont for a similar class for outline fonts. }
   TGLBitmapFont = class(TGLBitmapFontAbstract)
   private
+    {$ifndef OpenGLES}
     base: TGLuint;
+    {$endif}
     BitmapFont: TBitmapFont;
   public
     { Create OpenGL resources to render given bitmap font.
@@ -548,15 +550,19 @@ const
   BitmapTableCount = Ord(High(char)) - Ord(Low(char)) +1;
 
 constructor TGLBitmapFont.Create(ABitmapFont: TBitmapFont);
-var i: Cardinal;
-    Znak: PBitmapChar;
-    Saved_Unpack_Alignment: TGLint;
+{$ifndef OpenGLES}
+var
+  i: Cardinal;
+  Znak: PBitmapChar;
+  Saved_Unpack_Alignment: TGLint;
+{$endif}
 begin
   inherited Create;
-  base := glGenListsCheck(BitmapTableCount, 'TGLBitmapFont.Create');
   BitmapFont := ABitmapFont;
-  Saved_Unpack_Alignment := glGetInteger(GL_UNPACK_ALIGNMENT);
 
+  {$ifndef OpenGLES}
+  base := glGenListsCheck(BitmapTableCount, 'TGLBitmapFont.Create');
+  Saved_Unpack_Alignment := glGetInteger(GL_UNPACK_ALIGNMENT);
   for i := 0 to 255 do
   begin
     Znak := BitmapFont.Data[Chr(i)];
@@ -569,6 +575,9 @@ begin
     glEndList;
   end;
   glPixelStorei(GL_UNPACK_ALIGNMENT, Saved_Unpack_Alignment);
+  {$endif}
+
+  // TODO-es Font rendering should use glyphs in TGLImage, not display lists
 
   FRowHeight := TextHeight('Wy') + 2;
   { RowHeight zwiekszylem o +2 zeby byl odstep miedzy liniami.
@@ -579,13 +588,16 @@ end;
 
 destructor TGLBitmapFont.Destroy;
 begin
+  {$ifndef OpenGLES}
   glDeleteLists(base, BitmapTableCount);
+  {$endif}
   inherited;
 end;
 
 procedure TGLBitmapFont.Print(const X, Y: Integer; const Color: TCastleColor;
   const S: string);
 
+  {$ifndef OpenGLES}
   { Sets raster position in window
     coordinates. Such that the raster position is never clipped.
     Similar to just calling glWindowPos,
@@ -655,9 +667,17 @@ begin
       glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
     end;
     SetRasterInWindowCoords(X, Y);
-    glListIBase(TGLint(base)); // saved by GL_LIST_BIT
+    {$I norqcheckbegin.inc}
+    { Argument to glListBase is actually signed, although it's declaration
+      says it's unsigned. }
+    glListBase(TGLint(base)); // saved by GL_LIST_BIT
+    {$I norqcheckend.inc}
     glCallLists(length(s), GL_UNSIGNED_BYTE, PChar(s));
   glPopAttrib;
+{$else}
+begin
+  // TODO-es
+{$endif}
 end;
 
 procedure TGLBitmapFont.PrintAndMove(const S: string);

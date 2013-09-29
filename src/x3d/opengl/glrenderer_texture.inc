@@ -83,7 +83,7 @@
       glTexEnvi(GL_TEXTURE_ENV, ...).
 
       It's also already enabled (by glEnable(GL_TEXTURE_2D /
-      GL_TEXTURE_CUBE_MAP_ARB / GL_TEXTURE_3D) ). }
+      GL_TEXTURE_CUBE_MAP / GL_TEXTURE_3D) ). }
     function Enable(const TextureUnit: Cardinal;
       Shader: TShader; const Env: TTextureEnv): boolean; virtual; abstract;
 
@@ -1508,7 +1508,7 @@ begin
   if not Result then Exit;
 
   Renderer.ActiveTexture(TextureUnit);
-  glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, GLName);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, GLName);
 end;
 
 function TGLCubeMapTextureNode.Enable(const TextureUnit: Cardinal;
@@ -1720,7 +1720,7 @@ begin
   finally FreeAndNil(InitialImage) end;
 
   RenderToTexture := TGLRenderToTexture.Create(Size, Size);
-  RenderToTexture.SetTexture(GLName, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB);
+  RenderToTexture.SetTexture(GLName, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
   RenderToTexture.GLContextOpen;
 
   { Workaround for NVidia GeForce FX 5200 bug:
@@ -1745,7 +1745,7 @@ begin
     RenderToTexture.GLContextOpen to first Update call, but this obfuscates code. }
   if GLVersion.VendorNvidia and NeedsMipmaps then
   begin
-    RenderToTexture.CompleteTextureTarget := GL_TEXTURE_CUBE_MAP_ARB;
+    RenderToTexture.CompleteTextureTarget := GL_TEXTURE_CUBE_MAP;
     RenderToTexture.GenerateMipmap;
   end;
 end;
