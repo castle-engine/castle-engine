@@ -1467,49 +1467,38 @@ procedure TCastleControlCustom.DoDraw;
       ScissorDisable;
       GLEnableTexture(CastleGLUtils.etNone);
 
-      glMatrixMode(GL_PROJECTION);
-      glPushMatrix;
-      glLoadIdentity;
-      gluOrtho2D(0, Width, 0, Height);
-      glMatrixMode(GL_MODELVIEW);
-      try
+      OrthoProjection(0, Width, 0, Height);
 
-        if UseControls then
+      if UseControls then
+      begin
+        { draw controls in "downto" order, back to front }
+        for I := Controls.Count - 1 downto 0 do
         begin
-          { draw controls in "downto" order, back to front }
-          for I := Controls.Count - 1 downto 0 do
-          begin
-            C := Controls[I];
+          C := Controls[I];
 
-            if C.DrawStyle = ds2D then
-            begin
-              { Set OpenGL state that may be changed carelessly, and has some
-                guanteed value, for Draw2d calls. }
-              glLoadIdentity;
-              WindowPos := Vector2LongInt(0, 0);
-              C.Draw;
-            end;
-          end;
-
-          if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = ds2D) then
+          if C.DrawStyle = ds2D then
           begin
+            { Set OpenGL state that may be changed carelessly, and has some
+              guanteed value, for Draw2d calls. }
             glLoadIdentity;
             WindowPos := Vector2LongInt(0, 0);
-            Focus.DrawTooltip;
+            C.Draw;
           end;
         end;
 
-        if OnDrawStyle = ds2D then
+        if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = ds2D) then
         begin
           glLoadIdentity;
           WindowPos := Vector2LongInt(0, 0);
-          inherited DoDraw;
+          Focus.DrawTooltip;
         end;
+      end;
 
-      finally
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix;
-        glMatrixMode(GL_MODELVIEW);
+      if OnDrawStyle = ds2D then
+      begin
+        glLoadIdentity;
+        WindowPos := Vector2LongInt(0, 0);
+        inherited DoDraw;
       end;
     glPopAttrib;
   end;

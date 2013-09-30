@@ -63,7 +63,7 @@ unit CastleGLImages;
 interface
 
 uses CastleGL, SysUtils, CastleImages, CastleVectors, CastleGLUtils,
-  CastleVideos, CastleDDS, CastleRectangles;
+  CastleVideos, CastleDDS, CastleRectangles, CastleGLShaders;
 
 const
   PixelsImageClasses: array [0..3] of TCastleImageClass = (
@@ -113,7 +113,9 @@ type
     PointVbo: TGLuint;
     { Point VBO contents, reused in every Draw. }
     Point: array [0..PointCount - 1] of TPoint;
-    {$ifndef GLImageUseShaders}
+    {$ifdef GLImageUseShaders}
+    GLSLProgram: TGLSLProgram;
+    {$else}
     procedure AlphaBegin;
     procedure AlphaEnd;
     {$endif}
@@ -1032,6 +1034,14 @@ begin
   FAlpha := Image.AlphaChannel;
 
   glGenBuffers(1, @PointVbo);
+
+  {$ifdef GLImageUseShaders}
+  GLSLProgram := TGLSLProgram.Create;
+  GLSLProgram.AttachVertexShader({$I image.vs.inc});
+  GLSLProgram.AttachFragmentShader({$I image.fs.inc});
+  GLSLProgram.Link(true);
+  Writeln(GLSLProgram.DebugInfo);
+  {$endif}
 end;
 
 constructor TGLImage.Create(const URL: string;
@@ -1067,6 +1077,9 @@ destructor TGLImage.Destroy;
 begin
   glFreeTexture(Texture);
   glFreeBuffer(PointVbo);
+  {$ifdef GLImageUseShaders}
+  FreeAndNil(GLSLProgram);
+  {$endif}
   inherited;
 end;
 
@@ -1110,6 +1123,10 @@ procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
   const ImageX, ImageY, ImageWidth, ImageHeight: Single);
 var
   TexX0, TexY0, TexX1, TexY1: Single;
+  {$ifdef GLImageUseShaders}
+  AttribEnabled: array [0..1] of TGLuint;
+  AttribLocation: TGLuint;
+  {$endif}
 begin
   if GLFeatures.UseMultiTexturing then glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, Texture);
@@ -1133,29 +1150,43 @@ begin
   glBufferData(GL_ARRAY_BUFFER, PointCount * SizeOf(TPoint),
     @Point[0], GL_STREAM_DRAW);
 
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glVertexPointer(2, GL_INT, SizeOf(TPoint), Offset(Point[0].Position, Point[0]));
-
-  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-  glTexCoordPointer(2, GL_FLOAT, SizeOf(TPoint), Offset(Point[0].TexCoord, Point[0]));
-
   {$ifdef GLImageUseShaders}
   // TODO-es: alpha treatment (blending and test) implement
+  GLSLProgram.Enable;
+  AttribEnabled[0] := GLSLProgram.VertexAttribPointer('vertex', 0, 2, GL_INT, GL_FALSE,
+    SizeOf(TPoint), Offset(Point[0].Position, Point[0]));
+  AttribEnabled[1] := GLSLProgram.VertexAttribPointer('tex_coord', 0, 2, GL_FLOAT, GL_FALSE,
+    SizeOf(TPoint), Offset(Point[0].TexCoord, Point[0]));
+  GLSLProgram.SetUniform('projection_matrix', ProjectionMatrix);
+
   {$else}
   AlphaBegin;
   glLoadIdentity();
   glColorv(White); // don't modify texture colors
+
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  glVertexPointer(2, GL_INT,
+    SizeOf(TPoint), Offset(Point[0].Position, Point[0]));
+  glTexCoordPointer(2, GL_FLOAT,
+    SizeOf(TPoint), Offset(Point[0].TexCoord, Point[0]));
   {$endif}
 
   glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
   {$ifdef GLImageUseShaders}
+  GLSLProgram.Disable;
+  { attribute arrays are enabled independent from GLSL program, so we need
+    to disable them separately }
+  for AttribLocation in AttribEnabled do
+    TGLSLProgram.DisableVertexAttribArray(AttribLocation);
   {$else}
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
   AlphaEnd;
   {$endif}
 
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 

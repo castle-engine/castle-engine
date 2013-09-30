@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <Package Version="4">
     <Name Value="castle_base"/>
@@ -7,8 +7,8 @@
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/base;../src/base/unix;../src/base/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/castlescript;../src/3d;../src/x3d/opengl/glsl"/>
-        <OtherUnitFiles Value="../src/base;../src/3d;../src/3d/opengl;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/net;../src/castlescript;../src/ui;../src/ui/windows;../src/ui/opengl;../src/game"/>
+        <IncludeFiles Value="../src/base;../src/base/unix;../src/base/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/opengl/glsl;../src/castlescript;../src/3d;../src/x3d/opengl/glsl"/>
+        <OtherUnitFiles Value="../src/base;../src/3d;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/net;../src/castlescript;../src/ui;../src/ui/windows;../src/ui/opengl;../src/game"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -83,7 +83,7 @@
       </Item11>
       <Item12>
         <Filename Value="../src/3d/castlesectors.pas"/>
-        <UnitName Value="castlesectors"/>
+        <UnitName Value="CastleSectors"/>
       </Item12>
       <Item13>
         <Filename Value="../src/3d/castleshaders.pas"/>
@@ -316,51 +316,51 @@
       </Item69>
       <Item70>
         <Filename Value="../src/fonts/castleoutlinefont_bvsans.pas"/>
-        <UnitName Value="castleoutlinefont_bvsans"/>
+        <UnitName Value="CastleOutlineFont_BVSans"/>
       </Item70>
       <Item71>
         <Filename Value="../src/fonts/castleoutlinefont_bvsans_bold.pas"/>
-        <UnitName Value="castleoutlinefont_bvsans_bold"/>
+        <UnitName Value="CastleOutlineFont_BVSans_Bold"/>
       </Item71>
       <Item72>
         <Filename Value="../src/fonts/castleoutlinefont_bvsans_bold_italic.pas"/>
-        <UnitName Value="castleoutlinefont_bvsans_bold_italic"/>
+        <UnitName Value="CastleOutlineFont_BVSans_Bold_Italic"/>
       </Item72>
       <Item73>
         <Filename Value="../src/fonts/castleoutlinefont_bvsans_italic.pas"/>
-        <UnitName Value="castleoutlinefont_bvsans_italic"/>
+        <UnitName Value="CastleOutlineFont_BVSans_Italic"/>
       </Item73>
       <Item74>
         <Filename Value="../src/fonts/castleoutlinefont_bvsansmono.pas"/>
-        <UnitName Value="castleoutlinefont_bvsansmono"/>
+        <UnitName Value="CastleOutlineFont_BVSansMono"/>
       </Item74>
       <Item75>
         <Filename Value="../src/fonts/castleoutlinefont_bvsansmono_bold.pas"/>
-        <UnitName Value="castleoutlinefont_bvsansmono_bold"/>
+        <UnitName Value="CastleOutlineFont_BVSansMono_Bold"/>
       </Item75>
       <Item76>
         <Filename Value="../src/fonts/castleoutlinefont_bvsansmono_bold_italic.pas"/>
-        <UnitName Value="castleoutlinefont_bvsansmono_bold_italic"/>
+        <UnitName Value="CastleOutlineFont_BVSansMono_Bold_Italic"/>
       </Item76>
       <Item77>
         <Filename Value="../src/fonts/castleoutlinefont_bvsansmono_italic.pas"/>
-        <UnitName Value="castleoutlinefont_bvsansmono_italic"/>
+        <UnitName Value="CastleOutlineFont_BVSansMono_Italic"/>
       </Item77>
       <Item78>
         <Filename Value="../src/fonts/castleoutlinefont_bvserif.pas"/>
-        <UnitName Value="castleoutlinefont_bvserif"/>
+        <UnitName Value="CastleOutlineFont_BVSerif"/>
       </Item78>
       <Item79>
         <Filename Value="../src/fonts/castleoutlinefont_bvserif_bold.pas"/>
-        <UnitName Value="castleoutlinefont_bvserif_bold"/>
+        <UnitName Value="CastleOutlineFont_BVSerif_Bold"/>
       </Item79>
       <Item80>
         <Filename Value="../src/fonts/castleoutlinefont_bvserif_bold_italic.pas"/>
-        <UnitName Value="castleoutlinefont_bvserif_bold_italic"/>
+        <UnitName Value="CastleOutlineFont_BVSerif_Bold_Italic"/>
       </Item80>
       <Item81>
         <Filename Value="../src/fonts/castleoutlinefont_bvserif_italic.pas"/>
-        <UnitName Value="castleoutlinefont_bvserif_italic"/>
+        <UnitName Value="CastleOutlineFont_BVSerif_Italic"/>
       </Item81>
       <Item82>
         <Filename Value="../src/fonts/castleoutlinefonts.pas"/>
