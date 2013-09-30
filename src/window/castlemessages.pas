@@ -311,7 +311,7 @@ begin
   { Among other things, using @NoClose below allows users to safely use
     MessageXxx inside own OnCloseQuery, like
       if MessageYesNo('Are you sure ?') then Window.Close; }
-  SavedMode := TGLMode.CreateReset(Window, 0, nil, nil, @NoClose);
+  SavedMode := TGLMode.CreateReset(Window, nil, nil, @NoClose);
   try
     Dialog.Initialize(TextList, TextAlign, AButtons, ADrawInputText, AInputText,
       Background);

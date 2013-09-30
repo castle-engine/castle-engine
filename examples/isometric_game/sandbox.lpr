@@ -265,7 +265,7 @@ procedure Game;
 var
   SavedMode: TGLMode;
 begin
-  SavedMode := TGLMode.CreateReset(Window, 0, @Draw, @Resize2D, nil);
+  SavedMode := TGLMode.CreateReset(Window, @Draw, @Resize2D, nil);
   try
     Window.AutoRedisplay := true;
     Window.OnPress := @Press;

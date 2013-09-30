@@ -15,8 +15,7 @@
 
 { Helpers for making modal boxes (TWindowState, TGLMode, TGLModeFrozenScreen)
   cooperating with the TCastleWindowBase windows.
-  They allow to easily save/restore TCastleWindowBase attributes along
-  with OpenGL state.
+  They allow to easily save/restore TCastleWindowBase attributes.
 
   This unit is a tool for creating functions like
   @link(CastleMessages.MessageOK). To make nice "modal" box,
@@ -149,13 +148,8 @@ type
     Window: TCastleWindowBase;
   private
     oldWinState: TWindowState;
-    oldProjectionMatrix, oldTextureMatrix, oldModelviewMatrix: TMatrix4f;
-    oldMatrixMode: TGLenum;
     oldWinWidth, oldWinHeight: integer;
     FFakeMouseDown: boolean;
-    FRestoreProjectionMatrix: boolean;
-    FRestoreModelviewMatrix: boolean;
-    FRestoreTextureMatrix: boolean;
     DisabledContextOpenClose: boolean;
   public
     { Constructor saves open TCastleWindowBase and OpenGL state.
@@ -165,16 +159,7 @@ type
       the point is: everything works sensibly of the box) :
 
       @unorderedList(
-        @item(We save/restore:
-          @unorderedList(
-            @itemSpacing Compact
-            @item TWindowState
-            @item OpenGL attributes specified in AttribsToPush
-            @item OpenGL matrix mode
-            @item OpenGL matrices (saved without using OpenGL stack)
-            @item OpenGL PIXEL_STORE_* state
-          )
-        )
+        @item(We save/restore TWindowState.)
 
         @item(OpenGL context connected to this window is also made current
           during constructor and destructor. Also, TCastleWindowBase.PostRedisplay
@@ -218,7 +203,7 @@ type
           reinitializing window TCastleWindowCustom.Controls OpenGL resources,
           see TUIControl.DisableContextOpenClose.)
       ) }
-    constructor Create(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield);
+    constructor Create(AWindow: TCastleWindowBase);
 
     { Save OpenGL and TCastleWindowBase state, and then change this to a standard
       state. Destructor will restore saved state.
@@ -226,20 +211,13 @@ type
       This is a shortcut for @link(Create) followed by
       @link(TWindowState.SetStandardState), see there for explanation
       of parameters. }
-    constructor CreateReset(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
+    constructor CreateReset(AWindow: TCastleWindowBase;
       NewDraw, NewResize, NewCloseQuery: TWindowFunc);
 
     destructor Destroy; override;
 
     property FakeMouseDown: boolean
       read FFakeMouseDown write FFakeMouseDown default false;
-
-    property RestoreProjectionMatrix: boolean
-      read FRestoreProjectionMatrix write FRestoreProjectionMatrix default true;
-    property RestoreModelviewMatrix: boolean
-      read FRestoreModelviewMatrix write FRestoreModelviewMatrix default true;
-    property RestoreTextureMatrix: boolean
-      read FRestoreTextureMatrix write FRestoreTextureMatrix default true;
   end;
 
   { Enter / exit modal box on a TCastleWindowBase, additionally saving the screen
@@ -266,7 +244,7 @@ type
     var
       Control: TFrozenScreenControl;
   public
-    constructor Create(AWindow: TCastleWindowCustom; AttribsToPush: TGLbitfield);
+    constructor Create(AWindow: TCastleWindowCustom);
     destructor Destroy; override;
   end;
 
@@ -406,7 +384,7 @@ end;
 
 { GL Mode ---------------------------------------------------------------- }
 
-constructor TGLMode.Create(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield);
+constructor TGLMode.Create(AWindow: TCastleWindowBase);
 
   procedure SimulateReleaseAll;
   var
@@ -433,9 +411,6 @@ begin
  Window := AWindow;
 
  FFakeMouseDown := false;
- FRestoreProjectionMatrix := true;
- FRestoreModelviewMatrix := true;
- FRestoreTextureMatrix := true;
 
  Check(not Window.Closed, 'ModeGLEnter cannot be called on a closed CastleWindow.');
 
@@ -446,18 +421,6 @@ begin
  Window.MakeCurrent;
 
  SimulateReleaseAll;
-
- { save some OpenGL state.
-   Musimy sejwowac MatrixMode specjalnie - nie mozemy polegac na tym ze
-   GL_TRANSFORM_BIT jest w atrybutach AttribsToPush, a nie chcemy tez
-   tego wymuszac (bo byc moze bedzie kiedys pozadane dla uzywajacego teog modulu
-   zeby jakies atrybuty z maski GL_TRANSFORM_BIT "przeciekly" na zewnatrz
-   ModeGLExit - my sprawiamy tylko ze nie przecieknie MatrixMode).  }
- glPushAttrib(AttribsToPush);
- glGetFloatv(GL_PROJECTION_MATRIX, @oldProjectionMatrix);
- glGetFloatv(GL_TEXTURE_MATRIX, @oldTextureMatrix);
- glGetFloatv(GL_MODELVIEW_MATRIX, @oldModelviewMatrix);
- oldMatrixMode := glGetInteger(GL_MATRIX_MODE);
 
  Window.PostRedisplay;
 
@@ -474,10 +437,10 @@ begin
  end;
 end;
 
-constructor TGLMode.CreateReset(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
+constructor TGLMode.CreateReset(AWindow: TCastleWindowBase;
   NewDraw, NewResize, NewCloseQuery: TWindowFunc);
 begin
-  Create(AWindow, AttribsToPush);
+  Create(AWindow);
   TWindowState.SetStandardState(AWindow, NewDraw, NewResize, NewCloseQuery);
 end;
 
@@ -498,28 +461,6 @@ begin
  if not Window.Closed then
  begin
    Window.MakeCurrent;
-
-   { restore OpenGL state }
-   if RestoreProjectionMatrix then
-   begin
-     glMatrixMode(GL_PROJECTION);
-     glLoadMatrix(oldProjectionMatrix);
-   end;
-
-   if RestoreTextureMatrix then
-   begin
-     glMatrixMode(GL_TEXTURE);
-     glLoadMatrix(oldTextureMatrix);
-   end;
-
-   if RestoreModelviewMatrix then
-   begin
-     glMatrixMode(GL_MODELVIEW);
-     glLoadMatrix(oldModelviewMatrix);
-   end;
-
-   glMatrixMode(oldMatrixMode);
-   glPopAttrib;
 
    { (pamietajmy ze przed EventXxx musi byc MakeCurrent) - juz zrobilismy
      je powyzej }
@@ -560,10 +501,9 @@ begin
   Background.Draw(ContainerRect);
 end;
 
-constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindowCustom;
-  AttribsToPush: TGLbitfield);
+constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindowCustom);
 begin
-  inherited Create(AWindow, AttribsToPush);
+  inherited Create(AWindow);
 
   Control := TFrozenScreenControl.Create(nil);
 

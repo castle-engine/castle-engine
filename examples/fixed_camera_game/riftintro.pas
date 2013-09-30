@@ -131,7 +131,7 @@ var
 begin
   IntroPart := 0;
   IntroPartTime := 0.0;
-  SavedMode := TGLMode.CreateReset(Window, 0, @Draw, @Resize, @CloseQuery);
+  SavedMode := TGLMode.CreateReset(Window, @Draw, @Resize, @CloseQuery);
   try
     SoundEngine.MusicPlayer.Sound := stIntroMusic;
 

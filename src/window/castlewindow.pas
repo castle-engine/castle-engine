@@ -489,9 +489,12 @@ uses {$define read_interface_uses}
   SysUtils, Classes, CastleVectors, CastleGL, CastleRectangles, CastleColors,
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
-  CastleFileFilters, CastleUIControls, FGL, pk3DConnexion,
+  CastleFileFilters, CastleUIControls, FGL, pk3DConnexion
   { VRML/X3D stuff }
-  X3DNodes, CastleScene, CastleSceneManager, CastleLevels;
+  {$ifndef OpenGLES}
+  // TODO-es This is ifdefed out only until we 100% port 3D renderer to OpenGLES
+  , X3DNodes, CastleScene, CastleSceneManager, CastleLevels
+  {$endif};
 
 {$define read_interface}
 
@@ -2390,6 +2393,7 @@ end;
     procedure EventResize; override;
   end;
 
+  {$ifndef OpenGLES}
   { Window with an OpenGL context, most comfortable to render 3D worlds
     with 2D controls above. Add your 3D stuff to the scene manager
     available in @link(SceneManager) property. Add your 2D stuff
@@ -2436,6 +2440,7 @@ end;
     property ShadowVolumesDraw: boolean
       read GetShadowVolumesDraw write SetShadowVolumesDraw default false;
   end;
+  {$endif}
 
   TWindowList = class(specialize TFPGObjectList<TCastleWindowBase>)
   private
@@ -2939,10 +2944,12 @@ begin
       sizes). }
     glViewport(Rect);
 
+    {$ifndef OpenGLES}
     if ( (AntiAliasing = aa2SamplesNicer) or
          (AntiAliasing = aa4SamplesNicer) ) and
        GLFeatures.NV_multisample_filter_hint then
       glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+    {$endif}
 
     { call first EventOpen and EventResize. Zwroc uwage ze te DoResize i DoOpen
       MUSZA byc wykonane na samym koncu procedury Open - jak juz wszystko inne
@@ -4541,20 +4548,20 @@ procedure TCastleWindowCustom.EventDraw;
           { Set OpenGL state that may be changed carelessly, and has some
             guanteed value, for TUIControl.Draw calls.
             For now, just glLoadIdentity. }
-          ds3D: begin glLoadIdentity; C.Draw; end;
+          ds3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} C.Draw; end;
         end;
       end;
 
       if TooltipVisible and (Focus <> nil) then
         case Focus.TooltipStyle of
           ds2D: AnythingWants2D := true;
-          ds3D: begin glLoadIdentity; Focus.DrawTooltip; end;
+          ds3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} Focus.DrawTooltip; end;
         end;
     end;
 
     case OnDrawStyle of
       ds2D: AnythingWants2D := true;
-      ds3D: begin glLoadIdentity; inherited EventDraw; end;
+      ds3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} inherited EventDraw; end;
     end;
   end;
 
@@ -4563,50 +4570,50 @@ procedure TCastleWindowCustom.EventDraw;
     C: TUIControl;
     I: Integer;
   begin
-    glPushAttrib(GL_ENABLE_BIT or GL_VIEWPORT_BIT);
-      { Set and push/pop OpenGL state that is guaranteed for Draw2D calls,
-        but TUIControl.Draw cannot change it carelessly. }
-      glDisable(GL_LIGHTING);
-      glDisable(GL_FOG);
-      glDisable(GL_DEPTH_TEST);
-      ScissorDisable;
-      GLEnableTexture(CastleGLUtils.etNone);
-      glViewport(Rect); // saved by GL_VIEWPORT_BIT
+    { Set state that is guaranteed for Draw2D calls,
+      but TUIControl.Draw cannot change it carelessly. }
+    {$ifndef OpenGLES}
+    glDisable(GL_LIGHTING);
+    glDisable(GL_FOG);
+    {$endif}
+    glDisable(GL_DEPTH_TEST);
+    ScissorDisable;
+    GLEnableTexture(CastleGLUtils.etNone);
+    glViewport(Rect); // saved by GL_VIEWPORT_BIT
 
-      OrthoProjection(0, Width, 0, Height);
+    OrthoProjection(0, Width, 0, Height);
 
-      if UseControls then
+    if UseControls then
+    begin
+      { draw controls in "downto" order, back to front }
+      for I := Controls.Count - 1 downto 0 do
       begin
-        { draw controls in "downto" order, back to front }
-        for I := Controls.Count - 1 downto 0 do
-        begin
-          C := Controls[I];
+        C := Controls[I];
 
-          if C.DrawStyle = ds2D then
-          begin
-            { Set OpenGL state that may be changed carelessly, and has some
-              guanteed value, for Draw2d calls. }
-            glLoadIdentity;
-            CastleGLUtils.WindowPos := Vector2LongInt(0, 0);
-            C.Draw;
-          end;
-        end;
-
-        if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = ds2D) then
+        if C.DrawStyle = ds2D then
         begin
-          glLoadIdentity;
+          { Set OpenGL state that may be changed carelessly, and has some
+            guanteed value, for Draw2d calls. }
+          {$ifndef OpenGLES} glLoadIdentity; {$endif}
           CastleGLUtils.WindowPos := Vector2LongInt(0, 0);
-          Focus.DrawTooltip;
+          C.Draw;
         end;
       end;
 
-      if OnDrawStyle = ds2D then
+      if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = ds2D) then
       begin
-        glLoadIdentity;
+        {$ifndef OpenGLES} glLoadIdentity; {$endif}
         CastleGLUtils.WindowPos := Vector2LongInt(0, 0);
-        inherited EventDraw;
+        Focus.DrawTooltip;
       end;
-    glPopAttrib;
+    end;
+
+    if OnDrawStyle = ds2D then
+    begin
+      {$ifndef OpenGLES} glLoadIdentity; {$endif}
+      CastleGLUtils.WindowPos := Vector2LongInt(0, 0);
+      inherited EventDraw;
+    end;
   end;
 
 var
@@ -4645,6 +4652,8 @@ begin
 end;
 
 { TCastleWindow ------------------------------------------------------- }
+
+{$ifndef OpenGLES}
 
 constructor TCastleWindow.Create(AOwner: TComponent);
 begin
@@ -4708,6 +4717,8 @@ procedure TCastleWindow.SetShadowVolumesDraw(const Value: boolean);
 begin
   SceneManager.ShadowVolumesDraw := Value;
 end;
+
+{$endif}
 
 { TWindowList ------------------------------------------------------------ }
 

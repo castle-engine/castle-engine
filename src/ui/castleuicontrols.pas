@@ -354,14 +354,20 @@ end;
       Do's and don't's when implementing Draw:
 
       @unorderedList(
-        @item(All controls with DrawStyle = ds3D are drawn first,
-          with projection that you set yourself. Usually you should
-          use TCastleSceneManager, which sets projection automatically for you
-          to something suitable, see TCastleSceneManager.ApplyProjection and
-          TCastleScene.GLProjection.
+        @item(All controls with DrawStyle = ds3D are drawn first.
+
+          The state of projection matrix (GL_PROJECTION for fixed-function
+          pipeline, and global ProjectionMatrix variable) is undefined for
+          ds3D objects. As is the viewport.
+          So you should always set the viewport and projection yourself
+          at the beginning of ds3D rendring, usually by
+          CastleGLUtils.PerspectiveProjection or CastleGLUtils.OrthoProjection.
+          Usually you should just use TCastleSceneManager,
+          which automatically sets projection to something suitable,
+          see TCastleSceneManager.ApplyProjection and TCastleScene.GLProjection.
 
           Then all the controls with DrawStyle = ds2D are drawn.
-          For them, OpenGL viewport and projection are guaranteed to be set
+          For them, OpenGL projection is guaranteed to be set
           to standard 2D that fills the whole screen, like by
 
 @longCode(#
@@ -374,6 +380,7 @@ end;
           @unorderedList(
             @itemSpacing Compact
             @item The modelview matrix value.
+            @item ds3D controls can also freely change projection matrix value and viewport.
             @item(The raster position (the only place that uses it in our engine,
               TGLBitmapFont.Print, always overrides it).)
             @item The color (glColor), material (glMaterial) values.
@@ -392,7 +399,8 @@ end;
           @unorderedList(
             @itemSpacing Compact
             @item The current matrix is modelview, and it's value is identity.
-            @item(Only for DrawStyle = ds2D: the WindowPos is at (0, 0).)
+            @item(Only for DrawStyle = ds2D: the WindowPos is at (0, 0).
+              The projection and viewport is suitable as for 2D, see above.)
             @item(Only for DrawStyle = ds2D: Texturing, depth test,
               lighting, fog, scissor are turned off.)
           )

@@ -84,7 +84,7 @@ begin
     Bar.Background := Window.SaveScreen;
   Bar.YPosition := BarYPosition;
 
-  SavedMode := TGLMode.CreateReset(Window, 0, nil, nil, @NoClose);
+  SavedMode := TGLMode.CreateReset(Window, nil, nil, @NoClose);
 
   Window.Controls.InsertFront(Bar);
 
