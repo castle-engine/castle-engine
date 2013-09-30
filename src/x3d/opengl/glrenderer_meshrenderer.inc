@@ -491,7 +491,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       tgCameraSpaceNormal,
       tgWorldSpaceNormal:
         begin
-          if not GLFeatures.TextureCubeMap then
+          if GLFeatures.TextureCubeMap = gsNone then
           begin
             OnWarning(wtMajor, 'VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACENORMAL", will do "COORD" instead');
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -519,7 +519,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       tgCameraSpaceReflectionVector,
       tgWorldSpaceReflectionVector:
         begin
-          if not GLFeatures.TextureCubeMap then
+          if GLFeatures.TextureCubeMap = gsNone then
           begin
             OnWarning(wtMajor, 'VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACEREFLECTIONVECTOR", will do "COORD" instead');
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);

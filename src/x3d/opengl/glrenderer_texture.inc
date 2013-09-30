@@ -1539,7 +1539,7 @@ var
   Anisotropy: TGLfloat;
   BackRot, FrontRot, LeftRot, RightRot: TCastleImage;
 begin
-  if not GLFeatures.TextureCubeMap then
+  if GLFeatures.TextureCubeMap = gsNone then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
     Exit;
@@ -1603,7 +1603,7 @@ var
   Anisotropy: TGLfloat;
   DDS: TDDSImage;
 begin
-  if not GLFeatures.TextureCubeMap then
+  if GLFeatures.TextureCubeMap = gsNone then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
     Exit;
@@ -1663,7 +1663,7 @@ var
   Anisotropy: TGLfloat;
   InitialImage: TCastleImage;
 begin
-  if not GLFeatures.TextureCubeMap then
+  if GLFeatures.TextureCubeMap = gsNone then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
     Exit;
@@ -1693,9 +1693,7 @@ begin
       limits, so it may be impossible to predict by VRML author,
       so it's "ignorable" warning. },
       Format('Cube map texture size %d is incorrect (cube map texture size must be a power of two, > 0 and <= GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB = %d), corrected to %d',
-        [ TextureNode.FdSize.Value,
-          GLFeatures.MaxCubeMapTextureSizeARB,
-          Size]));
+        [ TextureNode.FdSize.Value, GLFeatures.MaxCubeMapTextureSize, Size]));
   end;
 
   InitialImage := TRGBImage.Create(Size, Size);
