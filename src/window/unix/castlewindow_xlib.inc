@@ -13,8 +13,17 @@
   ----------------------------------------------------------------------------
 }
 
+{ CastleWindow backend using Xlib
+  and glX (for desktop OpenGL) or EGL (for OpenGL ES). }
+
+{$ifdef OpenGLES}
+  {$I castlewindow_egl.inc}
+{$else}
+  {$I castlewindow_glx.inc}
+{$endif}
+
 {$ifdef read_interface_uses}
-Xlib, CastleXlib, XUtil, X, KeySym, CursorFont, CastleGlx,
+Xlib, CastleXlib, XUtil, X, KeySym, CursorFont,
 {$endif}
 
 {$ifdef read_implementation_uses}
@@ -23,11 +32,8 @@ CastleMessages,
 
 {$ifdef read_window_interface}
 private
-  glcontext: GLXContext;
   windowXID: TWindow;
   parentwinXID: TWindow; { refreshed on ReparentNotify, needed for X_Configureevent }
-  XVisual: PXVisualInfo;
-  colormap: TColormap;
   procedure X_KeyPress(const event: TXKeyEvent);
   procedure X_KeyRelease(const event: TXKeyEvent);
   procedure X_ConfigureNotify(const event: TXConfigureEvent);
@@ -37,6 +43,14 @@ private
   procedure X_FocusOut(const event: TXFocusOutEvent);
 
   procedure UpdateCursor;
+
+  { GL context creation before creating X window. }
+  procedure ContextCreateBegin(var Attr: TXSetWindowAttributes;
+    var AttrValueMask: Cardinal);
+  { GL context creation after creating X window (windowXID is available now). }
+  procedure ContextCreateEnd;
+  { Destroy context created by ContextCreateBegin + ContextCreateEnd. }
+  procedure ContextDestroy;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -48,7 +62,7 @@ private
   XCursors: array [TMouseCursor] of TCursor;
 
   { uzywamy tego aby wylapac quit message. Inicjowane w SetXDisplayName }
-  wmDeleteWindow: TAtom;
+  WMDeleteWindow: TAtom;
   { Arrays for fast conversion between X keysyms (cut off to least significant
     byte) to our TKey values. The most significant byte of X keysym determines
     which array to use. }
@@ -66,7 +80,7 @@ private
     value desired by used now.
 
     And since we know now that XDisplay is OK, we initialize some
-    things: XScreen, check for glx extension, get WM_DELETE_WINDOW
+    things: XScreen, check for glX extension, get WM_DELETE_WINDOW
     (we do it actually only if this was run for the 1st time).
     These things actually have be done only once, after XDisplay selection.
     But note that this can't be called in SetXDisplayName automatically.
@@ -74,6 +88,9 @@ private
     So you should call this when you know that last SetXDisplayName was
     called --- good choice is before initializing your window. }
   procedure InitializeXDisplay;
+
+  { Check is context creation possible. XDisplay is available now. }
+  procedure ContextApplicationCheck;
 public
   { XDisplayName uzywane przez wszystkie nastepne wywolania Window.Open.
     Application nie jest przygotowany na zarzadzanie oknami na wielu displayach i
@@ -94,16 +111,6 @@ public
 
 {$ifdef read_implementation}
 
-{ Czyli implementacja CastleWindow za pomoca XWindows poprzez
-  Xlib + glX.
-
-  Punktem wyjscia byl znacznie przerobiony, rozszerzony, poprawiony prosty
-  programik testgl jaki dostalem razem z modulem opengl12 pod Kylixa.
-  Byl tam prosciutki schemat "openGL poprzez glX" i na nim sie opieralem
-  na poczatku. Potem znaczna pomoca okazal sie glxdino w "OpenGL and X"
-  by Mark Kilgard i Lesson1 z Nehe w wersji glX.
-  No a wreszcie mam wszystko z "Xlib Programming Manual". }
-
 const
   AcceptedEventsMask = ExposureMask or StructureNotifyMask or
     KeyPressMask or KeyReleaseMask {key events} or
@@ -118,110 +125,26 @@ procedure TCastleWindowBase.OpenWinSystemDepend;
 var
   sizeHints: TXSizeHints;
   AttrValueMask: Cardinal;
-  attr: TXSetWindowAttributes;
+  Attr: TXSetWindowAttributes;
   WindTitleProp: TXTextProperty;
   ClassHint: TXClassHint;
   WMHints: TXWMHints;
   PWindTitle: PChar;
-  Attribs: TLongIntList;
-  UseFBConfig: boolean;
-  FBConfigs: PGLXFBConfig;
-  FBConfig: TGLXFBConfig;
-  FBConfigsCount: Integer;
+var
   CorrectLeft, CorrectTop, CorrectWidth, CorrectHeight: Integer;
 const
   AllPointerEventsMask = ButtonPressMask or ButtonReleaseMask or
     EnterWindowMask or LeaveWindowMask or PointerMotionMask;
-
-  { Used with glXCreateContextAttribsARB to select 3.0 forward-compatible context }
-  Context30Forward: array [0..6] of Integer =
-  ( GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-    GLX_CONTEXT_MINOR_VERSION_ARB, 0,
-    GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
-    None
-  );
 begin
   Application.InitializeXDisplay;
 
-  { Use new glX 1.3 functions to create context, that take TGLXFBConfig?
-    About modern GLX context selection, see
-    http://www.opengl.org/wiki/Creating_an_OpenGL_Context and
-    http://www.opengl.org/wiki/Tutorial:_OpenGL_3.0_Context_Creation_%28GLX%29 }
-  UseFBConfig := GLX_version_1_3(Application.XDisplay);
-
-  Attribs := TLongIntList.Create;
-  try
-    { constant Attribs part }
-    if UseFBConfig then
-      Attribs.AddArray([GLX_X_RENDERABLE, 1 { true }]) else
-      Attribs.Add(GLX_RGBA);
-
-    if DoubleBuffer then
-      if UseFBConfig then
-        Attribs.AddArray([GLX_DOUBLEBUFFER, 1]) else
-        Attribs.Add(GLX_DOUBLEBUFFER);
-
-    Attribs.AddArray([
-      { Buffer sizes below are all in bits. }
-      GLX_DEPTH_SIZE, DepthBits,
-      GLX_STENCIL_SIZE, StencilBits,
-      GLX_ALPHA_SIZE, AlphaBits,
-      GLX_ACCUM_RED_SIZE, FAccumBits[0],
-      GLX_ACCUM_GREEN_SIZE, FAccumBits[1],
-      GLX_ACCUM_BLUE_SIZE, FAccumBits[2],
-      GLX_ACCUM_ALPHA_SIZE, FAccumBits[3] ]);
-    if RedBits   <> 0 then Attribs.AddArray([GLX_RED_SIZE  , RedBits  ]);
-    if GreenBits <> 0 then Attribs.AddArray([GLX_GREEN_SIZE, GreenBits]);
-    if BlueBits  <> 0 then Attribs.AddArray([GLX_BLUE_SIZE , BlueBits ]);
-
-    if MultiSampling > 1 then
-    begin
-      if GLX_ARB_multisample(Application.XDisplay, Application.XScreen) then
-      begin
-        Attribs.AddArray([
-          GLX_SAMPLE_BUFFERS_ARB, 1,
-          GLX_SAMPLES_ARB, MultiSampling ]);
-        if Log then
-          WritelnLog('MultiSampling', 'GLX_ARB_multisample supported, using multisampling');
-      end else
-        raise EGLContextNotPossible.CreateFmt('Multisampling (%d samples) ' +
-          'requested, but GLX_ARB_multisample not supported on this screen',
-          [MultiSampling]);
-    end;
-
-    { end of Attribs array }
-    Attribs.Add(None);
-
-    if UseFBConfig then
-    begin
-      FBConfigs := glXChooseFBConfig(Application.XDisplay, Application.XScreen,
-        PInteger(Attribs.List), FBConfigsCount);
-      if FBConfigsCount = 0 then
-        raise EGLContextNotPossible.CreateFmt('No frame buffer configurations that match the specified attributes (%s)',
-          [RequestedBufferAttributes]);
-      { just choose the first FB config from the FBConfigs list.
-        More involved selection possible. }
-      FBConfig := FBConfigs^;
-      XVisual := glXGetVisualFromFBConfig(Application.XDisplay, FBConfig);
-    end else
-      XVisual := glXChooseVisual(Application.XDisplay, Application.XScreen, PInteger(Attribs.List));
-  finally FreeAndNil(Attribs) end;
-
-  if XVisual = nil then
-    raise EGLContextNotPossible.CreateFmt(
-      'X visual with requested attributes (%s) not found',
-      [ RequestedBufferAttributes ]);
-  { Application.XScreen should always be XVisual.screen now }
+  Attr.event_mask := AcceptedEventsMask;
+  Attr.border_pixel := 0;
+  AttrValueMask := CWBorderPixel or CWEventMask;
 
   parentwinXID := XRootWindow(Application.XDisplay, Application.XScreen);
 
-  colormap := XCreateColormap(Application.XDisplay, parentwinXID,
-                              XVisual^.visual, AllocNone);
-  { see glxdino example for more involved way to get colormap }
-  attr.colormap := colormap;
-  attr.border_pixel := 0;
-  attr.event_mask := AcceptedEventsMask;
-  AttrValueMask := CWBorderPixel or CWColormap or CWEventMask;
+  ContextCreateBegin(Attr, AttrValueMask);
 
   if fullscreen then
   begin
@@ -240,9 +163,11 @@ begin
   end;
 
   windowXID := XCreateWindow(Application.XDisplay, parentwinXID,
-    CorrectLeft, CorrectTop, CorrectWidth, CorrectHeight,
-    0, XVisual^.depth, InputOutput, XVisual^.visual,
-    AttrValueMask, @attr);
+    CorrectLeft, CorrectTop, CorrectWidth, CorrectHeight, 0,
+    {$ifndef OpenGLES} XVisual^.depth {$else} CopyFromParent {$endif},
+    InputOutput,
+    {$ifndef OpenGLES} XVisual^.visual {$else} PVisual(CopyFromParent) {$endif},
+    AttrValueMask, @Attr);
 
   if FFullscreen and Visible then
   begin
@@ -320,25 +245,7 @@ begin
       XMapWindow(Application.XDisplay, windowXID);
   end;
 
-  if UseFBConfig then
-  begin
-    { For now, we just use GLX_ARB_create_context for testing
-      "how much can we render with forward-compatible context".
-      TODO:
-      - The ability to change Context30Forward version is not available.
-        Or not request compatibility, or debug, etc.
-      - We also don't properly catch errors: we should catch X errors
-        (see XSync and XSetErrorHandler inside
-        http://www.opengl.org/wiki/Tutorial:_OpenGL_3.0_Context_Creation_%28GLX%29).
-        Right now, our XLibUtils catches X errors, but without XSync
-        it's not known where they occur anyway. }
-//    if GLX_ARB_create_context(Application.XDisplay, Application.XScreen) then
-//      glcontext := glXCreateContextAttribsARB(Application.XDisplay, FBConfig, nil, true, Context30Forward) else
-      glcontext := glXCreateNewContext(Application.XDisplay, FBConfig, GLX_RGBA_TYPE, nil, true);
-  end else
-    glcontext := glXCreateContext(Application.XDisplay, XVisual, nil, true);
-
-  Check(glcontext <> nil, 'Could not create rendering context');
+  ContextCreateEnd;
 
   { applying FullScreen changed the Width / Height }
   if FullScreen then
@@ -355,11 +262,7 @@ procedure TCastleWindowBase.CloseBackend;
 var
   dummy_event: TXEvent;
 begin
-  if glcontext <> nil then
-  begin
-    glXDestroyContext(Application.XDisplay, glcontext);
-    glcontext := nil;
-  end;
+  ContextDestroy;
 
   if FFullscreen and Visible then
   begin
@@ -380,8 +283,11 @@ begin
     Application.XDisplay, windowXID, Longint($FFFFFFFF), @dummy_event)) <> XBool_False do ;
 
   if windowXID <> None then begin XDestroyWindow(Application.XDisplay, windowXID); windowXID := None end;
+
+  {$ifndef OpenGLES}
   if colormap  <> None then begin XFreeColormap(Application.XDisplay, colormap);   colormap := None  end;
   if XVisual   <> nil  then begin XFree(XVisual);                                  XVisual := nil    end;
+  {$endif}
 end;
 
 procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
@@ -456,12 +362,6 @@ begin
       0, 0, 0, 0, NewMouseX, NewMouseY);
 end;
 
-procedure TCastleWindowBase.BackendMakeCurrent;
-begin
-  Assert(not Closed);
-  Check( glXMakeCurrent(Application.XDisplay, windowXID, glcontext), 'glXMakeCurrent');
-end;
-
 procedure TCastleWindowBase.CreateBackend;
 begin
   windowXID := None;
@@ -530,11 +430,6 @@ procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { does nothing }
-end;
-
-procedure TCastleWindowBase.SwapBuffers;
-begin
-  glXSwapBuffers(Application.XDisplay, windowXID);
 end;
 
 procedure TCastleWindowBase.X_KeyPress(const event: TXKeyEvent);
@@ -720,8 +615,6 @@ procedure TCastleApplication.InitializeXDisplay;
 const
   AltXDisplayName = ':0';
 {$endif}
-var
-  GlxExtensions: string;
 begin
   if XDisplay = nil then
   begin
@@ -738,29 +631,8 @@ begin
   if not InitializeXDisplayDone then
   begin
     FXScreen := XDefaultScreen(XDisplay);
-
-    if not GLX_version_1_0(XDisplay) then
-      raise Exception.Create('glX extension (version at least 1.0) not found (necessary for OpenGL-based programs)') else
-    if Log then
-    begin
-      GlxExtensions := glXQueryExtensionsString(XDisplay, FXScreen);
-      WritelnLogMultiline('GLX', 'GLX extension at least 1.0 found.' +NL+
-        'Versions (determined by checking both glXQueryExtension, glXQueryVersion and assigned entry points):' +NL+
-        Format('  Version 1.1: %s', [CastleStringUtils.BoolToStr[GLX_version_1_1(XDisplay)]]) +NL+
-        Format('  Version 1.2: %s', [CastleStringUtils.BoolToStr[GLX_version_1_2(XDisplay)]]) +NL+
-        Format('  Version 1.3: %s', [CastleStringUtils.BoolToStr[GLX_version_1_3(XDisplay)]]) +NL+
-        Format('  Version 1.4: %s', [CastleStringUtils.BoolToStr[GLX_version_1_4(XDisplay)]]) +NL+
-        NL+
-        'Important extensions (determined by checking glXQueryExtensionsString and assigned entry points):' +NL+
-        Format('  GLX_ARB_multisample: %s'   , [CastleStringUtils.BoolToStr[GLX_ARB_multisample(XDisplay, FXScreen)]]) + NL+
-        Format('  GLX_ARB_create_context: %s', [CastleStringUtils.BoolToStr[GLX_ARB_create_context(XDisplay, FXScreen)]]) +NL+
-        NL+
-        'All extensions (according to glXQueryExtensionsString):' +NL+
-        GlxExtensions);
-    end;
-
+    ContextApplicationCheck;
     wmDeleteWindow := XInternAtom(XDisplay, 'WM_DELETE_WINDOW', XBool_True);
-
     InitializeXDisplayDone := true;
   end;
 end;
@@ -870,7 +742,7 @@ end;
 
 function TCastleApplication.BackendName: string;
 begin
-  Result := 'Xlib';
+  Result := 'Xlib+' + {$ifndef OpenGLES} 'glX' {$else} 'EGL' {$endif};
 end;
 
 { TCastleClipboard ----------------------------------------------------------- }

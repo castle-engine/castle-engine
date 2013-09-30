@@ -251,8 +251,14 @@ unit CastleWindow;
 
   CASTLE_WINDOW_XLIB
     Based on XLib units. No X toolkit is used.
-
     Only for OSes where X is used, which in practice means Unix.
+
+    For desktop OpenGL (when OpenGLES is not defined) this is implemented
+    on top of glX.
+    For OpenGL ES (when OpenGLES is defined) this is implemented
+    on top of EGL, Embedded-System Graphics Library.
+    This is the only backend capable of initializing OpenGL ES contexts
+    for now.
 
     MainMenu is not implemented (it's ignored).
     That's not easy to implement when you don't want to use any X toolkit.
@@ -343,6 +349,7 @@ unit CastleWindow;
   {$ifndef CASTLE_WINDOW_GTK_2}
    {$ifndef CASTLE_WINDOW_TEMPLATE}
     {$ifndef CASTLE_WINDOW_LCL}
+
      {$ifdef MSWINDOWS}
        {$define CASTLE_WINDOW_WINAPI} // best (looks native and most functional) on Windows
        { $define CASTLE_WINDOW_GTK_2}
@@ -362,6 +369,7 @@ unit CastleWindow;
          { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
        {$endif}
      {$endif}
+
     {$endif}
    {$endif}
   {$endif}

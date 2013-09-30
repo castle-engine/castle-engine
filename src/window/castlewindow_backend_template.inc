@@ -13,12 +13,16 @@
   ----------------------------------------------------------------------------
 }
 
-{$ifdef read_window_interface}
+{$ifdef read_interface_uses}
+{$endif}
 
+{$ifdef read_implementation_uses}
+{$endif}
+
+{$ifdef read_window_interface}
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
-
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
