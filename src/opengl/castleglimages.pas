@@ -1463,23 +1463,23 @@ end;
 function IsCubeMapTextureSized(const Size: Cardinal): boolean;
 begin
   Result :=
-    (not GLFeatures.TextureCubeMap) or
+    (GLFeatures.TextureCubeMap = gsNone) or
     (
       IsPowerOf2(Size) and
       (Size > 0) and
-      (Size <= GLFeatures.MaxCubeMapTextureSizeARB)
+      (Size <= GLFeatures.MaxCubeMapTextureSize)
     );
 end;
 
 function IsCubeMapTextureSized(const R: TEncodedImage): boolean;
 begin
   Result :=
-    (not GLFeatures.TextureCubeMap) or
+    (GLFeatures.TextureCubeMap = gsNone) or
     (
       (r.Width = r.Height) { must be square } and
       IsPowerOf2(r.Width) and
       (r.Width > 0) and
-      (r.Width <= GLFeatures.MaxCubeMapTextureSizeARB)
+      (r.Width <= GLFeatures.MaxCubeMapTextureSize)
     );
 end;
 
@@ -1500,12 +1500,12 @@ end;
 function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
 begin
   Result := Size;
-  if GLFeatures.TextureCubeMap then
+  if GLFeatures.TextureCubeMap <> gsNone then
   begin
     if Size <= 0 then
       Result := 1 else
-    if Size > GLFeatures.MaxCubeMapTextureSizeARB then
-      Result := GLFeatures.MaxCubeMapTextureSizeARB else
+    if Size > GLFeatures.MaxCubeMapTextureSize then
+      Result := GLFeatures.MaxCubeMapTextureSize else
     if IsPowerOf2(Size) then
       Result := Size else
       { Result jakie otrzymamy below jest na pewno < MaxTexSize bo
@@ -1519,7 +1519,7 @@ function ResizeToCubeMapTextureSize(const r: TCastleImage): TCastleImage;
 var
   Size: Cardinal;
 begin
-  if GLFeatures.TextureCubeMap then
+  if GLFeatures.TextureCubeMap <> gsNone then
   begin
     Size := Max(r.Width, r.Height);
     Size := ResizeToCubeMapTextureSize(Size);

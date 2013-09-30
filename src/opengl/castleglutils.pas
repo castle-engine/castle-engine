@@ -61,6 +61,7 @@ type
     and have equal features. }
   TGLFeatures = class
   public
+    {$ifndef OpenGLES}
     { OpenGL versions supported. Checked by looking at GL version string
       @italic(and) by checking whether actual entry points are available.
 
@@ -76,8 +77,6 @@ type
       features (not yet advertised in GL version string),
       e.g. Mesa 6.x had such buggy glStencilOpSeparate. This is correct OpenGL
       behavior AFAIK, and we handle it. }
-    { TODO: this should not even be defined for OpenGLES, since it's always false,
-      OpenGL ES versions are different. }
     Version_1_2: boolean;
     Version_1_3: boolean;
     Version_1_4: boolean;
@@ -89,6 +88,7 @@ type
     Version_3_2: boolean;
     Version_3_3: boolean;
     Version_4_0: boolean;
+    {$endif}
 
     { Is the extension below loaded.
       Note: we prefer to avoid exposing directly each extension presence
@@ -120,7 +120,7 @@ type
       @groupBegin }
     MaxTextureSize: Cardinal;
     MaxLights: Cardinal;
-    MaxCubeMapTextureSizeARB: Cardinal;
+    MaxCubeMapTextureSize: Cardinal;
     MaxTexture3DSize: Cardinal;
     MaxTextureMaxAnisotropyEXT: Single;
     QueryCounterBits: TGLint;
@@ -202,8 +202,14 @@ type
     { Are non-power-of-2 textures supported. }
     TextureNonPowerOfTwo: boolean;
 
-    { Are cubemaps supported. This means support for GL_ARB_texture_cube_map. }
-    TextureCubeMap: boolean;
+    { Are cubemaps supported.
+
+      gsExtension means GL_ARB_texture_cube_map on core OpenGL.
+      gsStandard means standard feature of OpenGL or OpenGL ES.
+      Since the constants defined by ARB_texture_cube_map were promoted
+      to core with the same values, the distinction between gsExtension
+      and gsStandard in practice doesn't exist. }
+    TextureCubeMap: TGLSupport;
 
     { Texture S3TC compression support. This means you can load textures by
       glCompressedTexImage2DARB and use GL_COMPRESSED_*_S3TC_*_EXT enums. }
@@ -752,11 +758,18 @@ begin
     MaxTextureUnits := 1;
   {$endif}
 
-  MaxCubeMapTextureSizeARB := 0;
-  TextureCubeMap := {$ifdef OpenGLES} false; {$else} Load_GL_ARB_texture_cube_map;
-  if TextureCubeMap then
-    MaxCubeMapTextureSizeARB := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB);
+  MaxCubeMapTextureSize := 0;
+  {$ifdef OpenGLES}
+  TextureCubeMap := gsStandard;
+  {$else}
+  if Version_1_3 then
+    TextureCubeMap := gsStandard else
+  if Load_GL_ARB_texture_cube_map then
+    TextureCubeMap := gsExtension else
+    TextureCubeMap := gsNone;
   {$endif}
+  if TextureCubeMap <> gsNone then
+    MaxCubeMapTextureSize := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE);
 
   {$ifndef OpenGLES}
   if Version_1_2 then
@@ -1461,8 +1474,8 @@ const
 
   function GetMaxCubeMapTextureSize: string;
   begin
-    if GLFeatures.TextureCubeMap then
-      Result := IntToStr(GLFeatures.MaxCubeMapTextureSizeARB) else
+    if GLFeatures.TextureCubeMap <> gsNone then
+      Result := IntToStr(GLFeatures.MaxCubeMapTextureSize) else
       Result := 'Cube maps not available';
   end;
 
@@ -1515,6 +1528,7 @@ begin
     VendorReport(GLVersion) +nl+
     nl+
 
+    {$ifndef OpenGLES}
     '------------------------' +nl+
     'Real versions available:' +nl+
     '(checks both version string and actual functions availability in GL library, to secure from buggy OpenGL implementations)' +nl+
@@ -1531,6 +1545,7 @@ begin
     '  3.3: ' + BoolToStr[GLFeatures.Version_3_3] +nl+
     '  4.0: ' + BoolToStr[GLFeatures.Version_4_0] +nl+
     nl+
+    {$endif}
 
     '---------' +nl+
     'Features:' +nl+
@@ -1540,7 +1555,7 @@ begin
     '  Multi-sampling for FBO buffers and textures: ' + BoolToStr[GLFeatures.FBOMultiSampling] +nl+
     '  Vertex Buffer Object: ' + BoolToStr[GLFeatures.VertexBufferObject] +nl+
     '  GenerateMipmap available (and reliable): ' + BoolToStr[HasGenerateMipmap] +nl+
-    '  Cube map textures: ' + BoolToStr[GLFeatures.TextureCubeMap] +nl+
+    '  Cube map textures: ' + GLSupportNames[GLFeatures.TextureCubeMap] +nl+
     '  S3TC compressed textures: ' + BoolToStr[GLFeatures.TextureCompressionS3TC] +nl+
     '  3D textures: ' + GLSupportNames[GLFeatures.Texture3D] +nl+
     '  Textures non-power-of-2: ' + BoolToStr[GLFeatures.TextureNonPowerOfTwo] +nl+
@@ -1726,7 +1741,7 @@ begin
   case Target of
     etNone: begin
         glDisable(GL_TEXTURE_2D);
-        if GLFeatures.TextureCubeMap then glDisable(GL_TEXTURE_CUBE_MAP);
+        if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
         {$ifndef OpenGLES}
         if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
         if GLFeatures.TextureRectangle then glDisable(GL_TEXTURE_RECTANGLE_ARB);
@@ -1734,7 +1749,7 @@ begin
       end;
     et2D: begin
         glEnable(GL_TEXTURE_2D);
-        if GLFeatures.TextureCubeMap then glDisable(GL_TEXTURE_CUBE_MAP);
+        if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
         {$ifndef OpenGLES}
         if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
         if GLFeatures.TextureRectangle then glDisable(GL_TEXTURE_RECTANGLE_ARB);
@@ -1742,7 +1757,7 @@ begin
       end;
     etCubeMap: begin
         glDisable(GL_TEXTURE_2D);
-        if GLFeatures.TextureCubeMap then glEnable(GL_TEXTURE_CUBE_MAP) else Result := false;
+        if GLFeatures.TextureCubeMap <> gsNone then glEnable(GL_TEXTURE_CUBE_MAP) else Result := false;
         {$ifndef OpenGLES}
         if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
         if GLFeatures.TextureRectangle then glDisable(GL_TEXTURE_RECTANGLE_ARB);
@@ -1750,7 +1765,7 @@ begin
       end;
     et3D: begin
         glDisable(GL_TEXTURE_2D);
-        if GLFeatures.TextureCubeMap then glDisable(GL_TEXTURE_CUBE_MAP);
+        if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
         {$ifndef OpenGLES}
         if GLFeatures.Texture3D <> gsNone then glEnable(GL_TEXTURE_3D) else Result := false;
         if GLFeatures.TextureRectangle then glDisable(GL_TEXTURE_RECTANGLE_ARB);
@@ -1758,7 +1773,7 @@ begin
       end;
     etRectangle: begin
         glDisable(GL_TEXTURE_2D);
-        if GLFeatures.TextureCubeMap then glDisable(GL_TEXTURE_CUBE_MAP);
+        if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
         {$ifndef OpenGLES}
         if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
         if GLFeatures.TextureRectangle then glEnable(GL_TEXTURE_RECTANGLE_ARB) else Result := false;
