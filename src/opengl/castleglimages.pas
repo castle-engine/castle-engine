@@ -106,16 +106,18 @@ type
         TexCoord: TVector2Single;
       end;
     var
+    { Static OpenGL resources, used by all TGLImage instances. }
+    PointVbo: TGLuint; static;
+    { Point VBO contents, reused in every Draw. }
+    Point: array [0..PointCount - 1] of TPoint; static;
+    {$ifdef GLImageUseShaders}
+    GLSLProgram: TGLSLProgram; static;
+    {$endif}
+
     Texture: TGLuint;
     FWidth: Cardinal;
     FHeight: Cardinal;
     FAlpha: TAlphaChannel;
-    PointVbo: TGLuint;
-    { Point VBO contents, reused in every Draw. }
-    Point: array [0..PointCount - 1] of TPoint;
-    {$ifdef GLImageUseShaders}
-    GLSLProgram: TGLSLProgram;
-    {$endif}
     procedure AlphaBegin;
     procedure AlphaEnd;
   public
@@ -931,7 +933,7 @@ type
 implementation
 
 uses CastleUtils, CastleLog, CastleGLVersion, CastleWarnings, CastleTextureImages,
-  CastleColors;
+  CastleColors, CastleUIControls;
 
 function ImageGLFormat(const Img: TCastleImage): TGLenum;
 begin
@@ -1032,14 +1034,17 @@ begin
   FHeight := Image.Height;
   FAlpha := Image.AlphaChannel;
 
-  glGenBuffers(1, @PointVbo);
+  if PointVbo = 0 then
+    glGenBuffers(1, @PointVbo);
 
   {$ifdef GLImageUseShaders}
-  GLSLProgram := TGLSLProgram.Create;
-  GLSLProgram.AttachVertexShader({$I image.vs.inc});
-  GLSLProgram.AttachFragmentShader({$I image.fs.inc});
-  GLSLProgram.Link(true);
-  Writeln(GLSLProgram.DebugInfo);
+  if GLSLProgram = nil then
+  begin
+    GLSLProgram := TGLSLProgram.Create;
+    GLSLProgram.AttachVertexShader({$I image.vs.inc});
+    GLSLProgram.AttachFragmentShader({$I image.fs.inc});
+    GLSLProgram.Link(true);
+  end;
   {$endif}
 end;
 
@@ -1075,10 +1080,6 @@ end;
 destructor TGLImage.Destroy;
 begin
   glFreeTexture(Texture);
-  glFreeBuffer(PointVbo);
-  {$ifdef GLImageUseShaders}
-  FreeAndNil(GLSLProgram);
-  {$endif}
   inherited;
 end;
 
@@ -2901,6 +2902,16 @@ begin
     Result := cbBack;
 end;
 
+procedure WindowClose(const Container: IUIContainer);
+begin
+  glFreeBuffer(TGLImage.PointVbo);
+  {$ifdef GLImageUseShaders}
+  FreeAndNil(TGLImage.GLSLProgram);
+  {$endif}
+end;
+
+initialization
+  OnGLContextClose.Add(@WindowClose);
 finalization
   FreeAndNil(BoundFboStack);
 end.
