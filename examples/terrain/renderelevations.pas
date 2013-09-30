@@ -74,8 +74,8 @@ end;
 
 procedure RenderElevationsCloseGL;
 begin
-  glDeleteBuffers(1, @ElevationVbo);
-  glDeleteBuffers(1, @ElevationIndexVbo);
+  glFreeBuffer(ElevationVbo);
+  glFreeBuffer(ElevationIndexVbo);
 end;
 
 function ColorFromHeightCore(const H: Single): TVector3Single;
@@ -124,14 +124,6 @@ var
   Points: array of TElevationPoint;
   PointsIndex: array of TGLuint;
   TrisIndex: array of TGLuint;
-
-{ Calculate shift between A and B addresses (in bytes), and cast to Pointer.
-  This is simply Result := A - B, except we do some typecasting. }
-function Offset(var A, B): Pointer;
-begin
-  { additional PtrUInt typecast before Pointer, to avoid warning. }
-  Result := Pointer(PtrUInt( PtrUInt(@A) - PtrUInt(@B) ));
-end;
 
 procedure DrawElevationLayer(Elevation: TElevation; const Subdivision: Cardinal;
   const X1, Y1, X2, Y2: Single; Hole, BorderTriangles: boolean);

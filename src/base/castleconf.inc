@@ -89,6 +89,9 @@
   {$define GLImageUseShaders}
 {$else}
   {$define CastleGL := GL, GLU, GLExt}
+  { It is possible to test GLImageUseShaders also with non-OpenGLES version.
+    All the TGLImage rendering will go through shaders. }
+  { $define GLImageUseShaders}
 {$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}

@@ -49,6 +49,10 @@ function IsMemWordFilled(const Data; Size: Integer; Value: Word): boolean;
   with Size parameter from FillDWord from FPC's RTL. }
 function IsMemDWordFilled(const Data; Size: Integer; Value: DWord): boolean;
 
+{ Calculate shift between A and B addresses (in bytes), and cast to Pointer.
+  Useful to pass as offsets to OpenGL glVertexPointer and similar functions.
+  This is simply Result := A - B, except we do some typecasting. }
+function Offset(var A, B): Pointer;
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -166,6 +170,12 @@ begin
   Inc(P);
  end;
  Result := true;
+end;
+
+function Offset(var A, B): Pointer;
+begin
+  { additional PtrUInt typecast before Pointer, to avoid warning. }
+  Result := Pointer(PtrUInt( PtrUInt(@A) - PtrUInt(@B) ));
 end;
 
 {$endif read_implementation}

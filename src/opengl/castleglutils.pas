@@ -601,6 +601,9 @@ procedure glFreeDisplayList(var list: TGLuint);
   ) }
 procedure glFreeTexture(var Tex: TGLuint);
 
+{ If Buffer <> 0 then it does glDeleteBuffers and sets Buffer to 0. }
+procedure glFreeBuffer(var Buffer: TGLuint);
+
 { Set color and depth buffers writeable or not.
   This is just a shortcut for
   @longcode(#
@@ -1642,6 +1645,15 @@ begin
   begin
     glDeleteTextures(1, @Tex);
     Tex := 0;
+  end;
+end;
+
+procedure glFreeBuffer(var Buffer: TGLuint);
+begin
+  if Buffer <> 0 then
+  begin
+    glDeleteBuffers(1, @Buffer);
+    Buffer := 0;
   end;
 end;
 

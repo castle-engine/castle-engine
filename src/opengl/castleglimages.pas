@@ -98,10 +98,21 @@ type
   { Image ready to be drawn on 2D screen. }
   TGLImage = class
   private
+    const
+      PointCount = 4;
+    type
+      TPoint = packed record
+        Position: TVector2LongInt;
+        TexCoord: TVector2Single;
+      end;
+    var
     Texture: TGLuint;
     FWidth: Cardinal;
     FHeight: Cardinal;
     FAlpha: TAlphaChannel;
+    PointVbo, PointIndexVbo: TGLuint;
+    { Point VBO contents, reused in every Draw. }
+    Point: array [0..PointCount - 1] of TPoint;
     {$ifndef GLImageUseShaders}
     procedure AlphaBegin;
     procedure AlphaEnd;
@@ -990,6 +1001,8 @@ var
     finally AfterUnpackImage(UnpackData, image) end;
   end;
 
+const
+  PointIndex: array [0..PointCount - 1] of TGLuint = (0, 1, 2, 3);
 var
   Filter: TTextureFilter;
 begin
@@ -1019,6 +1032,15 @@ begin
   FWidth := Image.Width;
   FHeight := Image.Height;
   FAlpha := Image.AlphaChannel;
+
+  glGenBuffers(1, @PointVbo);
+  glGenBuffers(1, @PointIndexVbo);
+
+  { PointIndexVbo contents are constant }
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, PointIndexVbo);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, PointCount * SizeOf(TGLuint),
+    @PointIndex[0], GL_STATIC_DRAW);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 end;
 
 constructor TGLImage.Create(const URL: string;
@@ -1053,6 +1075,8 @@ end;
 destructor TGLImage.Destroy;
 begin
   glFreeTexture(Texture);
+  glFreeBuffer(PointVbo);
+  glFreeBuffer(PointIndexVbo);
   inherited;
 end;
 
@@ -1094,41 +1118,63 @@ end;
 
 procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
   const ImageX, ImageY, ImageWidth, ImageHeight: Single);
-{$ifndef GLImageUseShaders}
 var
   TexX0, TexY0, TexX1, TexY1: Single;
-{$endif}
 begin
-  {$ifdef GLImageUseShaders}
-  // TODO-es
-  {$else}
-  AlphaBegin;
-
-  // TODO: use vbos
-  // TODO: use texture cache here, like GL renderer does for textures for 3D.
-  glLoadIdentity();
   if GLFeatures.UseMultiTexturing then glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, Texture);
   GLEnableTexture(et2D);
-  glColorv(White); // don't modify texture colors
+
   TexX0 := ImageX / Width;
   TexY0 := ImageY / Height;
   TexX1 := (ImageX + ImageWidth ) / Width;
   TexY1 := (ImageY + ImageHeight) / Height;
-  glBegin(GL_QUADS);
-    glTexCoord2f(TexX0, TexY0);
-    glVertex2i(X            , Y);
-    glTexCoord2f(TexX1, TexY0);
-    glVertex2i(X + DrawWidth, Y);
-    glTexCoord2f(TexX1, TexY1);
-    glVertex2i(X + DrawWidth, Y + DrawHeight);
-    glTexCoord2f(TexX0, TexY1);
-    glVertex2i(X            , Y + DrawHeight);
-  glEnd();
-  GLEnableTexture(etNone);
 
+  Point[0].TexCoord := Vector2Single(TexX0, TexY0);
+  Point[0].Position := Vector2LongInt(X            , Y);
+  Point[1].TexCoord := Vector2Single(TexX1, TexY0);
+  Point[1].Position := Vector2LongInt(X + DrawWidth, Y);
+  Point[2].TexCoord := Vector2Single(TexX1, TexY1);
+  Point[2].Position := Vector2LongInt(X + DrawWidth, Y + DrawHeight);
+  Point[3].TexCoord := Vector2Single(TexX0, TexY1);
+  Point[3].Position := Vector2LongInt(X            , Y + DrawHeight);
+
+  glBindBuffer(GL_ARRAY_BUFFER, PointVbo);
+  glBufferData(GL_ARRAY_BUFFER, PointCount * SizeOf(TPoint),
+    @Point[0], GL_STREAM_DRAW);
+
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glVertexPointer(2, GL_INT, SizeOf(TPoint), Offset(Point[0].Position, Point[0]));
+
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  glTexCoordPointer(2, GL_FLOAT, SizeOf(TPoint), Offset(Point[0].TexCoord, Point[0]));
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, PointIndexVbo);
+
+  {$ifdef GLImageUseShaders}
+  // TODO-es: alpha treatment (blending and test) implement
+  {$else}
+  AlphaBegin;
+  glLoadIdentity();
+  glColorv(White); // don't modify texture colors
+  {$endif}
+
+  glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+  {$ifdef GLImageUseShaders}
+  {$else}
   AlphaEnd;
   {$endif}
+
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+  GLEnableTexture(etNone);
+
+  // TODO: keep a single vbo for whole GL context for this purpose?
+  // TODO: use texture cache here, like GL renderer does for textures for 3D.
 end;
 
 procedure TGLImage.Draw(const ScreenRectangle: TRectangle);
