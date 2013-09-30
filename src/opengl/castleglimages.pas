@@ -1011,6 +1011,10 @@ var
   {$endif}
 begin
   inherited Create;
+
+  // TODO: use texture cache here, like GL renderer does for textures for 3D.
+  // no need to create new OpenGL texture for the same image.
+
   glGenTextures(1, @Texture);
   glBindTexture(GL_TEXTURE_2D, Texture);
   if not IsTextureSized(Image, GLFeatures.TextureNonPowerOfTwo) then
@@ -1201,9 +1205,6 @@ begin
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
   GLEnableTexture(etNone);
-
-  // TODO: keep a single vbo for whole GL context for this purpose?
-  // TODO: use texture cache here, like GL renderer does for textures for 3D.
 end;
 
 procedure TGLImage.Draw(const ScreenRectangle: TRectangle);
