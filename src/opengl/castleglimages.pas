@@ -111,7 +111,7 @@ type
     { Point VBO contents, reused in every Draw. }
     Point: array [0..PointCount - 1] of TPoint; static;
     {$ifdef GLImageUseShaders}
-    GLSLProgram: TGLSLProgram; static;
+    GLSLProgram: array [boolean { alpha test? }] of TGLSLProgram; static;
     {$endif}
 
     Texture: TGLuint;
@@ -1006,6 +1006,9 @@ var
 
 var
   Filter: TTextureFilter;
+  {$ifdef GLImageUseShaders}
+  AlphaTestShader: boolean;
+  {$endif}
 begin
   inherited Create;
   glGenTextures(1, @Texture);
@@ -1038,13 +1041,16 @@ begin
     glGenBuffers(1, @PointVbo);
 
   {$ifdef GLImageUseShaders}
-  if GLSLProgram = nil then
-  begin
-    GLSLProgram := TGLSLProgram.Create;
-    GLSLProgram.AttachVertexShader({$I image.vs.inc});
-    GLSLProgram.AttachFragmentShader({$I image.fs.inc});
-    GLSLProgram.Link(true);
-  end;
+  for AlphaTestShader := false to true do
+    if GLSLProgram[AlphaTestShader] = nil then
+    begin
+      GLSLProgram[AlphaTestShader] := TGLSLProgram.Create;
+      GLSLProgram[AlphaTestShader].AttachVertexShader({$I image.vs.inc});
+      GLSLProgram[AlphaTestShader].AttachFragmentShader(
+        Iff(AlphaTestShader, '#define ALPHA_TEST' + NL, '') +
+        {$I image.fs.inc});
+      GLSLProgram[AlphaTestShader].Link(true);
+    end;
   {$endif}
 end;
 
@@ -1128,6 +1134,7 @@ var
   {$ifdef GLImageUseShaders}
   AttribEnabled: array [0..1] of TGLuint;
   AttribLocation: TGLuint;
+  Prog: TGLSLProgram;
   {$endif}
 begin
   if GLFeatures.UseMultiTexturing then glActiveTexture(GL_TEXTURE0);
@@ -1155,13 +1162,13 @@ begin
   AlphaBegin;
 
   {$ifdef GLImageUseShaders}
-  // TODO-es: alpha test implement - different shader with discard()
-  GLSLProgram.Enable;
-  AttribEnabled[0] := GLSLProgram.VertexAttribPointer('vertex', 0, 2, GL_INT, GL_FALSE,
+  Prog := GLSLProgram[Alpha = acSimpleYesNo];
+  Prog.Enable;
+  AttribEnabled[0] := Prog.VertexAttribPointer('vertex', 0, 2, GL_INT, GL_FALSE,
     SizeOf(TPoint), Offset(Point[0].Position, Point[0]));
-  AttribEnabled[1] := GLSLProgram.VertexAttribPointer('tex_coord', 0, 2, GL_FLOAT, GL_FALSE,
+  AttribEnabled[1] := Prog.VertexAttribPointer('tex_coord', 0, 2, GL_FLOAT, GL_FALSE,
     SizeOf(TPoint), Offset(Point[0].TexCoord, Point[0]));
-  GLSLProgram.SetUniform('projection_matrix', ProjectionMatrix);
+  Prog.SetUniform('projection_matrix', ProjectionMatrix);
 
   {$else}
   glLoadIdentity();
@@ -1178,7 +1185,7 @@ begin
   glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
   {$ifdef GLImageUseShaders}
-  GLSLProgram.Disable;
+  Prog.Disable;
   { attribute arrays are enabled independent from GLSL program, so we need
     to disable them separately }
   for AttribLocation in AttribEnabled do
@@ -1251,10 +1258,17 @@ begin
   YScreenTop := Y + DrawHeight - CornerTop;
   YImageTop := Height - CornerTop;
 
-  { for speed, we only apply AlphaBegin/End once }
-  AlphaBegin;
-  OldAlpha := Alpha;
-  Alpha := acNone;
+  { For speed, we only apply AlphaBegin/End once.
+    In case of GLImageUseShaders, this optimization is only useful
+    for acFullRange, and it would actually break the acSimpleYesNo case. }
+  {$ifdef GLImageUseShaders}
+  if Alpha = acFullRange then
+  {$endif}
+  begin
+    AlphaBegin;
+    OldAlpha := Alpha;
+    Alpha := acNone;
+  end;
 
   { 4 corners }
   Draw(XScreenLeft, YScreenBottom, CornerLeft, CornerBottom,
@@ -1286,8 +1300,13 @@ begin
   Draw(X + CornerLeft          , Y + CornerBottom          , HorizontalScreenSize              , VerticalScreenSize,
            CornerLeft + Epsilon,     CornerBottom + Epsilon,  HorizontalImageSize - 2 * Epsilon,  VerticalImageSize - 2 * Epsilon);
 
-  Alpha := OldAlpha;
-  AlphaEnd;
+  {$ifdef GLImageUseShaders}
+  if Alpha = acFullRange then
+  {$endif}
+  begin
+    Alpha := OldAlpha;
+    AlphaEnd;
+  end;
 end;
 
 procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
@@ -2906,7 +2925,8 @@ procedure WindowClose(const Container: IUIContainer);
 begin
   glFreeBuffer(TGLImage.PointVbo);
   {$ifdef GLImageUseShaders}
-  FreeAndNil(TGLImage.GLSLProgram);
+  FreeAndNil(TGLImage.GLSLProgram[false]);
+  FreeAndNil(TGLImage.GLSLProgram[true]);
   {$endif}
 end;
 

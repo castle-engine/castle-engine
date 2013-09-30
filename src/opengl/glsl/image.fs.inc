@@ -6,5 +6,8 @@
 'void main(void)' + LineEnding +
 '{' + LineEnding +
 '  gl_FragColor = texture2D(texture, tex_coord_frag);' + LineEnding +
+'#ifdef ALPHA_TEST' + LineEnding +
+'  if (gl_FragColor.a < 0.5) discard;' + LineEnding +
+'#endif' + LineEnding +
 '}' + LineEnding +
 ''
