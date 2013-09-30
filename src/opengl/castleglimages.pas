@@ -115,10 +115,9 @@ type
     Point: array [0..PointCount - 1] of TPoint;
     {$ifdef GLImageUseShaders}
     GLSLProgram: TGLSLProgram;
-    {$else}
+    {$endif}
     procedure AlphaBegin;
     procedure AlphaEnd;
-    {$endif}
   public
     { Prepare image for drawing.
 
@@ -1083,31 +1082,33 @@ begin
   inherited;
 end;
 
-{$ifndef GLImageUseShaders}
 procedure TGLImage.AlphaBegin;
 begin
-  if Alpha <> acNone then
-  begin
-    glPushAttrib(GL_COLOR_BUFFER_BIT);
-
-    if Alpha = acSimpleYesNo then
-    begin
-      glAlphaFunc(GL_GEQUAL, 0.5); // saved by GL_COLOR_BUFFER_BIT
-      glEnable(GL_ALPHA_TEST); // saved by GL_COLOR_BUFFER_BIT
-    end else
-    begin
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
-      glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
-    end;
+  case Alpha of
+    {$ifndef GLImageUseShaders}
+    acSimpleYesNo:
+      begin
+        glAlphaFunc(GL_GEQUAL, 0.5); // saved by GL_COLOR_BUFFER_BIT
+        glEnable(GL_ALPHA_TEST); // saved by GL_COLOR_BUFFER_BIT
+      end;
+    {$endif}
+    acFullRange:
+      begin
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
+        glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
+      end;
   end;
 end;
 
 procedure TGLImage.AlphaEnd;
 begin
-  if Alpha <> acNone then
-    glPopAttrib;
+  case Alpha of
+    {$ifndef GLImageUseShaders}
+    acSimpleYesNo: glDisable(GL_ALPHA_TEST);
+    {$endif}
+    acFullRange: glDisable(GL_BLEND);
+  end;
 end;
-{$endif}
 
 procedure TGLImage.Draw;
 begin
@@ -1150,8 +1151,10 @@ begin
   glBufferData(GL_ARRAY_BUFFER, PointCount * SizeOf(TPoint),
     @Point[0], GL_STREAM_DRAW);
 
+  AlphaBegin;
+
   {$ifdef GLImageUseShaders}
-  // TODO-es: alpha treatment (blending and test) implement
+  // TODO-es: alpha test implement - different shader with discard()
   GLSLProgram.Enable;
   AttribEnabled[0] := GLSLProgram.VertexAttribPointer('vertex', 0, 2, GL_INT, GL_FALSE,
     SizeOf(TPoint), Offset(Point[0].Position, Point[0]));
@@ -1160,7 +1163,6 @@ begin
   GLSLProgram.SetUniform('projection_matrix', ProjectionMatrix);
 
   {$else}
-  AlphaBegin;
   glLoadIdentity();
   glColorv(White); // don't modify texture colors
 
@@ -1183,9 +1185,9 @@ begin
   {$else}
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+  {$endif}
 
   AlphaEnd;
-  {$endif}
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -1218,9 +1220,7 @@ var
     HorizontalScreenSize, VerticalScreenSize: Integer;
   XImageLeft, XImageRight, YImageBottom, YImageTop,
     HorizontalImageSize, VerticalImageSize: Single;
-  {$ifndef GLImageUseShaders}
   OldAlpha: TAlphaChannel;
-  {$endif}
 const
   { We tweak texture coordinates a little, to avoid bilinear filtering
     that would cause border colors to "bleed" over the texture inside.
@@ -1250,12 +1250,10 @@ begin
   YScreenTop := Y + DrawHeight - CornerTop;
   YImageTop := Height - CornerTop;
 
-  {$ifndef GLImageUseShaders}
   { for speed, we only apply AlphaBegin/End once }
   AlphaBegin;
   OldAlpha := Alpha;
   Alpha := acNone;
-  {$endif}
 
   { 4 corners }
   Draw(XScreenLeft, YScreenBottom, CornerLeft, CornerBottom,
@@ -1287,10 +1285,8 @@ begin
   Draw(X + CornerLeft          , Y + CornerBottom          , HorizontalScreenSize              , VerticalScreenSize,
            CornerLeft + Epsilon,     CornerBottom + Epsilon,  HorizontalImageSize - 2 * Epsilon,  VerticalImageSize - 2 * Epsilon);
 
-  {$ifndef GLImageUseShaders}
   Alpha := OldAlpha;
   AlphaEnd;
-  {$endif}
 end;
 
 procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
