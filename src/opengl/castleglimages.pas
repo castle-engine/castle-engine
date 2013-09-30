@@ -110,7 +110,7 @@ type
     FWidth: Cardinal;
     FHeight: Cardinal;
     FAlpha: TAlphaChannel;
-    PointVbo, PointIndexVbo: TGLuint;
+    PointVbo: TGLuint;
     { Point VBO contents, reused in every Draw. }
     Point: array [0..PointCount - 1] of TPoint;
     {$ifndef GLImageUseShaders}
@@ -1001,8 +1001,6 @@ var
     finally AfterUnpackImage(UnpackData, image) end;
   end;
 
-const
-  PointIndex: array [0..PointCount - 1] of TGLuint = (0, 1, 2, 3);
 var
   Filter: TTextureFilter;
 begin
@@ -1034,13 +1032,6 @@ begin
   FAlpha := Image.AlphaChannel;
 
   glGenBuffers(1, @PointVbo);
-  glGenBuffers(1, @PointIndexVbo);
-
-  { PointIndexVbo contents are constant }
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, PointIndexVbo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, PointCount * SizeOf(TGLuint),
-    @PointIndex[0], GL_STATIC_DRAW);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 end;
 
 constructor TGLImage.Create(const URL: string;
@@ -1076,7 +1067,6 @@ destructor TGLImage.Destroy;
 begin
   glFreeTexture(Texture);
   glFreeBuffer(PointVbo);
-  glFreeBuffer(PointIndexVbo);
   inherited;
 end;
 
@@ -1148,8 +1138,6 @@ begin
 
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
   glTexCoordPointer(2, GL_FLOAT, SizeOf(TPoint), Offset(Point[0].TexCoord, Point[0]));
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, PointIndexVbo);
 
   {$ifdef GLImageUseShaders}
   // TODO-es: alpha treatment (blending and test) implement
