@@ -585,6 +585,7 @@ function TGLSLProgram.DebugInfo: string;
       GL_SAMPLER_2D_RECT_SHADOW: Result := 'SAMPLER_2D_RECT_SHADOW';
       GL_INT_SAMPLER_2D_RECT: Result := 'INT_SAMPLER_2D_RECT';
       GL_UNSIGNED_INT_SAMPLER_2D_RECT: Result := 'UNSIGNED_INT_SAMPLER_2D_RECT';
+      GL_SAMPLER_2D_MULTISAMPLE: Result := 'SAMPLER_2D_MULTISAMPLE';
       {$endif}
       else Result := Format('Unrecognized uniform type "%d"', [AType]);
     end;
