@@ -243,6 +243,7 @@ type
   TVector2Extended = Tvector2_extended_data;          PVector2Extended = ^TVector2Extended;
   TVector2Byte = packed array [0..1] of Byte;         PVector2Byte = ^TVector2Byte;
   TVector2Word = packed array [0..1] of Word;         PVector2Word = ^TVector2Word;
+  TVector2SmallInt = packed array [0..1] of SmallInt; PVector2SmallInt = ^TVector2SmallInt;
   TVector2Longint = packed array [0..1] of Longint;   PVector2Longint = ^TVector2Longint;
   TVector2Pointer = packed array [0..1] of Pointer;   PVector2Pointer = ^TVector2Pointer;
   TVector2Cardinal = packed array [0..1] of Cardinal; PVector2Cardinal = ^TVector2Cardinal;
@@ -552,6 +553,7 @@ function Zero(const f1, EqEpsilon: Extended): boolean; overload;
 function Vector2Cardinal(const x, y: Cardinal): TVector2Cardinal;
 function Vector2Integer(const x, y: Integer): TVector2Integer;
 function Vector2LongInt(const x, y: Longint): TVector2LongInt;
+function Vector2SmallInt(const x, y: SmallInt): TVector2SmallInt;
 
 function Vector2Single(const x, y: Single): TVector2Single; overload;
 function Vector2Single(const V: TVector2Double): TVector2Single; overload;
@@ -2558,6 +2560,11 @@ begin
 end;
 
 function Vector2LongInt(const x, y: Longint): TVector2LongInt;
+begin
+  result[0] := x; result[1] := y;
+end;
+
+function Vector2SmallInt(const x, y: SmallInt): TVector2SmallInt;
 begin
   result[0] := x; result[1] := y;
 end;

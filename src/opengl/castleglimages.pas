@@ -102,7 +102,7 @@ type
       PointCount = 4;
     type
       TPoint = packed record
-        Position: TVector2LongInt;
+        Position: TVector2SmallInt;
         TexCoord: TVector2Single;
       end;
     var
@@ -953,7 +953,9 @@ end;
 function ImageGLInternalFormat(const Img: TEncodedImage): TGLenum;
 begin
   if Img is TCastleImage then
-    Result := TCastleImage(Img).ColorComponentsCount else
+    Result := {$ifdef OpenGLES} ImageGLFormat(TCastleImage(Img))
+              {$else} TCastleImage(Img).ColorComponentsCount
+              {$endif} else
   if Img is TS3TCImage then
   begin
     {$ifdef OpenGLES}
@@ -1151,13 +1153,13 @@ begin
   TexY1 := (ImageY + ImageHeight) / Height;
 
   Point[0].TexCoord := Vector2Single(TexX0, TexY0);
-  Point[0].Position := Vector2LongInt(X            , Y);
+  Point[0].Position := Vector2SmallInt(X            , Y);
   Point[1].TexCoord := Vector2Single(TexX1, TexY0);
-  Point[1].Position := Vector2LongInt(X + DrawWidth, Y);
+  Point[1].Position := Vector2SmallInt(X + DrawWidth, Y);
   Point[2].TexCoord := Vector2Single(TexX1, TexY1);
-  Point[2].Position := Vector2LongInt(X + DrawWidth, Y + DrawHeight);
+  Point[2].Position := Vector2SmallInt(X + DrawWidth, Y + DrawHeight);
   Point[3].TexCoord := Vector2Single(TexX0, TexY1);
-  Point[3].Position := Vector2LongInt(X            , Y + DrawHeight);
+  Point[3].Position := Vector2SmallInt(X            , Y + DrawHeight);
 
   glBindBuffer(GL_ARRAY_BUFFER, PointVbo);
   glBufferData(GL_ARRAY_BUFFER, PointCount * SizeOf(TPoint),
@@ -1168,7 +1170,7 @@ begin
   {$ifdef GLImageUseShaders}
   Prog := GLSLProgram[Alpha = acSimpleYesNo];
   Prog.Enable;
-  AttribEnabled[0] := Prog.VertexAttribPointer('vertex', 0, 2, GL_INT, GL_FALSE,
+  AttribEnabled[0] := Prog.VertexAttribPointer('vertex', 0, 2, GL_SHORT, GL_FALSE,
     SizeOf(TPoint), Offset(Point[0].Position, Point[0]));
   AttribEnabled[1] := Prog.VertexAttribPointer('tex_coord', 0, 2, GL_FLOAT, GL_FALSE,
     SizeOf(TPoint), Offset(Point[0].TexCoord, Point[0]));
@@ -1180,7 +1182,7 @@ begin
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-  glVertexPointer(2, GL_INT,
+  glVertexPointer(2, GL_SHORT,
     SizeOf(TPoint), Offset(Point[0].Position, Point[0]));
   glTexCoordPointer(2, GL_FLOAT,
     SizeOf(TPoint), Offset(Point[0].TexCoord, Point[0]));
