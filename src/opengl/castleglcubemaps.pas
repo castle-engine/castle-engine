@@ -20,8 +20,8 @@ unit CastleGLCubeMaps;
 
 interface
 
-uses CastleVectors, CastleCubeMaps, CastleImages, CastleDDS, CastleGLUtils,
-  CastleRenderingCamera, CastleGLImages, Castle3D;
+uses CastleVectors, CastleCubeMaps, CastleImages, CastleDDS,
+  CastleRenderingCamera, CastleGLImages, Castle3D, CastleGL, CastleGLUtils;
 
 type
   TCubeMapRenderSimpleFunction = procedure (ForCubeMap: boolean);
@@ -118,7 +118,7 @@ procedure GLCaptureCubeMapTexture(
 
 implementation
 
-uses SysUtils, CastleSphericalHarmonics, CastleGL, CastleRectangles;
+uses SysUtils, CastleSphericalHarmonics, CastleRectangles;
 
 procedure SHVectorGLCapture(
   var SHVector: array of Single;
@@ -135,24 +135,17 @@ procedure SHVectorGLCapture(
     ScreenX := CubeMapInfo[Side].ScreenX * CubeMapSize + MapScreenX;
     ScreenY := CubeMapInfo[Side].ScreenY * CubeMapSize + MapScreenY;
 
-    GL.glViewport(ScreenX, ScreenY, CubeMapSize, CubeMapSize);
+    glViewport(Rectangle(ScreenX, ScreenY, CubeMapSize, CubeMapSize));
 
-    glMatrixMode(GL_PROJECTION);
+    {$ifndef OpenGLES}
+    // TODO-es
     glPushMatrix;
-      glLoadIdentity;
-      glMultMatrix(PerspectiveProjMatrixDeg(90, 1, 0.01, 100));
-      glMatrixMode(GL_MODELVIEW);
-
-      glPushMatrix;
-
-        glLoadMatrix(LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up));
-        Render(true);
-
-      glPopMatrix;
-
-      glMatrixMode(GL_PROJECTION);
+      glLoadMatrix(LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up));
+    {$endif}
+      Render(true);
+    {$ifndef OpenGLES}
     glPopMatrix;
-    glMatrixMode(GL_MODELVIEW);
+    {$endif}
 
     Map := SaveScreen_noflush(TGrayscaleImage,
       Rectangle(ScreenX, ScreenY, CubeMapSize, CubeMapSize), cbBack) as TGrayscaleImage;
@@ -173,6 +166,7 @@ procedure SHVectorGLCapture(
 var
   SHBasis: Integer;
   Side: TCubeMapSide;
+  SavedProjectionMatrix: TMatrix4Single;
 begin
   InitializeSHBasisMap;
 
@@ -182,8 +176,13 @@ begin
   for SHBasis := 0 to High(SHVector) do
     SHVector[SHBasis] := 0;
 
+  SavedProjectionMatrix := ProjectionMatrix;
+  PerspectiveProjection(90, 1, 0.01, 100);
+
   for Side := Low(TCubeMapSide) to High(TCubeMapSide) do
     DrawMap(Side);
+
+  ProjectionMatrix := SavedProjectionMatrix;
 
   for SHBasis := 0 to High(SHVector) do
   begin
@@ -200,8 +199,7 @@ end;
 
 procedure SetRenderingCamera(
   const CapturePoint: TVector3Single;
-  const Side: TCubeMapSide;
-  const ProjectionMatrix: TMatrix4Single);
+  const Side: TCubeMapSide);
 begin
   RenderingCamera.FromMatrix(
     LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
@@ -219,26 +217,14 @@ var
   RenderToTexture: TGLRenderToTexture;
 
   procedure DrawMap(Side: TCubeMapSide);
-  var
-    ProjectionMatrix: TMatrix4Single;
   begin
     RenderToTexture.RenderBegin;
 
-      GL.glViewport(0, 0, Width, Height);
+      glViewport(Rectangle(0, 0, Width, Height));
 
-      glMatrixMode(GL_PROJECTION);
-      glPushMatrix;
-        ProjectionMatrix := PerspectiveProjMatrixDeg(90, 1, ProjectionNear, ProjectionFar);
-        glLoadMatrix(ProjectionMatrix);
-        glMatrixMode(GL_MODELVIEW);
-
-          RenderingCamera.Target := rtCubeMapEnvironment;
-          SetRenderingCamera(CapturePoint, Side, ProjectionMatrix);
-          Render;
-
-        glMatrixMode(GL_PROJECTION);
-      glPopMatrix;
-      glMatrixMode(GL_MODELVIEW);
+      RenderingCamera.Target := rtCubeMapEnvironment;
+      SetRenderingCamera(CapturePoint, Side);
+      Render;
 
       SaveScreen_NoFlush(Images[Side], 0, 0, RenderToTexture.ColorBuffer);
 
@@ -247,6 +233,7 @@ var
 
 var
   Side: TCubeMapSide;
+  SavedProjectionMatrix: TMatrix4Single;
 begin
   Width  := Images[csPositiveX].Width ;
   Height := Images[csPositiveX].Height;
@@ -255,8 +242,14 @@ begin
   try
     RenderToTexture.Buffer := tbNone;
     RenderToTexture.GLContextOpen;
+
+    SavedProjectionMatrix := ProjectionMatrix;
+    PerspectiveProjection(90, 1, ProjectionNear, ProjectionFar);
+
     for Side := Low(TCubeMapSide) to High(TCubeMapSide) do
       DrawMap(Side);
+
+    ProjectionMatrix := SavedProjectionMatrix;
   finally FreeAndNil(RenderToTexture) end;
 end;
 
@@ -302,37 +295,32 @@ procedure GLCaptureCubeMapTexture(
   RenderToTexture: TGLRenderToTexture);
 
   procedure DrawMap(Side: TCubeMapSide);
-  var
-    ProjectionMatrix: TMatrix4Single;
   begin
     RenderToTexture.RenderBegin;
     RenderToTexture.SetTexture(Tex, GL_TEXTURE_CUBE_MAP_POSITIVE_X + Ord(Side));
 
-      GL.glViewport(0, 0, Size, Size);
+      glViewport(Rectangle(0, 0, Size, Size));
 
-      glMatrixMode(GL_PROJECTION);
-      glPushMatrix;
-        ProjectionMatrix := PerspectiveProjMatrixDeg(90, 1, ProjectionNear, ProjectionFar);
-        glLoadMatrix(ProjectionMatrix);
-        glMatrixMode(GL_MODELVIEW);
-
-          RenderingCamera.Target := rtCubeMapEnvironment;
-          SetRenderingCamera(CapturePoint, Side, ProjectionMatrix);
-          Render;
-
-        glMatrixMode(GL_PROJECTION);
-      glPopMatrix;
-      glMatrixMode(GL_MODELVIEW);
+      RenderingCamera.Target := rtCubeMapEnvironment;
+      SetRenderingCamera(CapturePoint, Side);
+      Render;
 
     RenderToTexture.RenderEnd(Side < High(Side));
   end;
 
 var
   Side: TCubeMapSide;
+  SavedProjectionMatrix: TMatrix4Single;
 begin
   RenderToTexture.CompleteTextureTarget := GL_TEXTURE_CUBE_MAP;
+
+  SavedProjectionMatrix := ProjectionMatrix;
+  PerspectiveProjection(90, 1, ProjectionNear, ProjectionFar);
+
   for Side := Low(TCubeMapSide) to High(TCubeMapSide) do
     DrawMap(Side);
+
+  ProjectionMatrix := SavedProjectionMatrix;
 end;
 
 end.

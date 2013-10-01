@@ -431,21 +431,27 @@ procedure AfterPackImage(const packData: TPackNotAlignedData; image: TCastleImag
 
 { Projection matrix -------------------------------------------------------- }
 
-var
-  ProjectionMatrix: TMatrix4Single;
+function GetProjectionMatrix: TMatrix4Single;
+procedure SetProjectionMatrix(const Value: TMatrix4Single);
 
-{ Set OpenGL projection matrix.
+{ Current projection matrix.
 
-  For OpenGLES, these merely set global ProjectionMatrix variable.
+  For OpenGLES, this is merely a global ProjectionMatrix variable.
+  It must be passed to various shaders to honour the projection.
 
-  For desktop OpenGL, these also set projection matrix (GL_PROJECTION) for
-  fixed-function rendering.
-  At the end, these unconditionally change matrix mode to GL_MODELVIEW.
+  For desktop OpenGL, setting this also sets fixed-function projection matrix.
+  The OpenGL matrix mode is temporarily changed to GL_PROJECTION,
+  then changed back to GL_MODELVIEW. }
+property ProjectionMatrix: TMatrix4Single
+  read GetProjectionMatrix write SetProjectionMatrix;
 
-  ZFar is allowed to have special ZFarInfinity value
-  for PerspectiveProjection.
-  Then we set special perspective matrix, that has far plane set
-  at infinity --- useful for z-fail shadow volumes.
+// TODO-es: all projection matrix settign should go through this
+
+{ Set ProjectionMatrix to perspective or orthogonal.
+
+  For PerspectiveProjection, ZFar may have special ZFarInfinity value
+  to create a perspective projection with far plane set at infinity.
+  Useful e.g. for z-fail shadow volumes.
 
   @groupBegin }
 function PerspectiveProjection(const fovy, aspect, zNear, zFar: Single): TMatrix4Single;
@@ -1131,30 +1137,36 @@ end;
 
 { projection matrix ---------------------------------------------------------- }
 
-function PerspectiveProjection(const fovy, aspect, zNear, zFar: Single): TMatrix4Single;
+var
+  FProjectionMatrix: TMatrix4Single;
+
+function GetProjectionMatrix: TMatrix4Single;
+begin
+  Result := FProjectionMatrix;
+end;
+
+procedure SetProjectionMatrix(const Value: TMatrix4Single);
 begin
   {$ifndef OpenGLES}
   glMatrixMode(GL_PROJECTION);
   {$endif}
-  Result := PerspectiveProjMatrixDeg(fovy, aspect, zNear, zFar);
-  ProjectionMatrix := Result;
+  FProjectionMatrix := Value;
   {$ifndef OpenGLES}
-  glLoadMatrix(ProjectionMatrix);
+  glLoadMatrix(Value);
   glMatrixMode(GL_MODELVIEW);
   {$endif}
 end;
 
+function PerspectiveProjection(const fovy, aspect, zNear, zFar: Single): TMatrix4Single;
+begin
+  Result := PerspectiveProjMatrixDeg(fovy, aspect, zNear, zFar);
+  ProjectionMatrix := Result;
+end;
+
 function OrthoProjection(const left, right, bottom, top, zNear, zFar: Single): TMatrix4Single;
 begin
-  {$ifndef OpenGLES}
-  glMatrixMode(GL_PROJECTION);
-  {$endif}
   Result := OrthoProjMatrix(left, right, bottom, top, zNear, zFar);
   ProjectionMatrix := Result;
-  {$ifndef OpenGLES}
-  glLoadMatrix(ProjectionMatrix);
-  glMatrixMode(GL_MODELVIEW);
-  {$endif}
 end;
 
 { Various helpers ------------------------------------------------------------ }
