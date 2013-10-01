@@ -749,7 +749,7 @@ begin
   MaxLights := {$ifdef OpenGLES} 8 {$else} glGetInteger(GL_MAX_LIGHTS) {$endif};
 
   {$ifdef OpenGLES}
-  MaxTextureUnits := Min(
+  MaxTextureUnits := Max(
     glGetInteger(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS),
     glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS));
   {$else}
