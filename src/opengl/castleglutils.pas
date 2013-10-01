@@ -1738,49 +1738,43 @@ function GLEnableTexture(const Target: TEnableTextureTarget): boolean;
 begin
   Result := true;
 
+  {$ifndef OpenGLES}
+
   case Target of
     etNone: begin
         glDisable(GL_TEXTURE_2D);
         if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
-        {$ifndef OpenGLES}
         if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
         if GLFeatures.TextureRectangle then glDisable(GL_TEXTURE_RECTANGLE_ARB);
-        {$endif}
       end;
     et2D: begin
         glEnable(GL_TEXTURE_2D);
         if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
-        {$ifndef OpenGLES}
         if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
         if GLFeatures.TextureRectangle then glDisable(GL_TEXTURE_RECTANGLE_ARB);
-        {$endif}
       end;
     etCubeMap: begin
         glDisable(GL_TEXTURE_2D);
         if GLFeatures.TextureCubeMap <> gsNone then glEnable(GL_TEXTURE_CUBE_MAP) else Result := false;
-        {$ifndef OpenGLES}
         if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
         if GLFeatures.TextureRectangle then glDisable(GL_TEXTURE_RECTANGLE_ARB);
-        {$endif}
       end;
     et3D: begin
         glDisable(GL_TEXTURE_2D);
         if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
-        {$ifndef OpenGLES}
         if GLFeatures.Texture3D <> gsNone then glEnable(GL_TEXTURE_3D) else Result := false;
         if GLFeatures.TextureRectangle then glDisable(GL_TEXTURE_RECTANGLE_ARB);
-        {$endif}
       end;
     etRectangle: begin
         glDisable(GL_TEXTURE_2D);
         if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
-        {$ifndef OpenGLES}
         if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
         if GLFeatures.TextureRectangle then glEnable(GL_TEXTURE_RECTANGLE_ARB) else Result := false;
-        {$endif}
       end;
     else raise EInternalError.Create('GLEnableTexture:Target?');
   end;
+
+  {$endif}
 end;
 
 var
