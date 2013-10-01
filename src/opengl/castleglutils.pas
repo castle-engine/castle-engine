@@ -1084,6 +1084,8 @@ end;
 procedure BeforeUnpackImage(out unpackdata: TUnpackNotAlignedData; image: TCastleImage);
 begin
   unpackData.Alignment := glGetInteger(GL_UNPACK_ALIGNMENT);
+  if unpackData.Alignment = 0 then
+    raise Exception.Create('OpenGL context is probably not initialized yet: glGetInteger(GL_UNPACK_ALIGNMENT) returned 0');
   if (image.Width * Image.PixelSize mod unpackData.Alignment) <> 0 then
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 end;
