@@ -13,16 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Use this from castlewindow_xlib.inc to make a CastleWindow backend
-  using Xlib and EGL (initialize window on X, without any toolkit,
-  with OpenGL ES context).
-
-  Written based on
-  http://www.khronos.org/registry/egl/sdk/docs/man/xhtml/eglIntro.html .
-  See http://www.khronos.org/registry/egl/sdk/docs/man/xhtml/
-  for an up-to-date reference of EGL.
-  FPC example in packages/opengles/examples/es2example1.pas
-  was also useful. }
+{ Use this from castlewindow_winapi.inc to make a CastleWindow backend
+  using WinAPI and wgl. Initializes window on Windows with OpenGL context. }
 
 {$ifdef read_interface_uses}
 {$endif}
