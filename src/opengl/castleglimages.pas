@@ -1232,6 +1232,9 @@ var
   XImageLeft, XImageRight, YImageBottom, YImageTop,
     HorizontalImageSize, VerticalImageSize: Single;
   OldAlpha: TAlphaChannel;
+  {$ifdef GLImageUseShaders}
+  OptimizeAlpha: boolean;
+  {$endif}
 const
   { We tweak texture coordinates a little, to avoid bilinear filtering
     that would cause border colors to "bleed" over the texture inside.
@@ -1265,7 +1268,8 @@ begin
     In case of GLImageUseShaders, this optimization is only useful
     for acFullRange, and it would actually break the acSimpleYesNo case. }
   {$ifdef GLImageUseShaders}
-  if Alpha = acFullRange then
+  OptimizeAlpha := Alpha = acFullRange;
+  if OptimizeAlpha then
   {$endif}
   begin
     AlphaBegin;
@@ -1304,7 +1308,7 @@ begin
            CornerLeft + Epsilon,     CornerBottom + Epsilon,  HorizontalImageSize - 2 * Epsilon,  VerticalImageSize - 2 * Epsilon);
 
   {$ifdef GLImageUseShaders}
-  if Alpha = acFullRange then
+  if OptimizeAlpha then
   {$endif}
   begin
     Alpha := OldAlpha;
