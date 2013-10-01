@@ -1253,12 +1253,15 @@ procedure TCastleOnScreenMenu.Draw;
 
   procedure DrawPositionRelativeLine;
   begin
+    {$ifndef OpenGLES}
+    // TODO-es
     glColorv(White);
     glLineWidth(1.0);
     glBegin(GL_LINES);
       glVertexv(PositionScreenRelativeMove);
       glVertexv(PositionAbsolute + PositionMenuRelativeMove);
     glEnd();
+    {$endif}
   end;
 
 const
@@ -1271,6 +1274,8 @@ begin
 
   if DrawBackgroundRectangle then
   begin
+    {$ifndef OpenGLES}
+    // TODO-es  
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
       if Focused then
@@ -1280,6 +1285,7 @@ begin
         FAllItemsRectangle.Left + FAllItemsRectangle.Width,
         FAllItemsRectangle.Bottom + FAllItemsRectangle.Height);
     glDisable(GL_BLEND);
+    {$endif}
   end;
 
   (* TODO:
