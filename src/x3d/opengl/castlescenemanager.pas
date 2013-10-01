@@ -1874,6 +1874,7 @@ var
   ClearColor: TCastleColor;
   UsedBackground: TBackground;
   MainLightPosition: TVector4Single; { ignored }
+  SavedProjectionMatrix: TMatrix4Single;
 begin
   ClearBuffers := [cbDepth];
 
@@ -1896,11 +1897,8 @@ begin
         testcase. So temporary set good perspective projection. }
       if not PerspectiveView then
       begin
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix;
-        glLoadMatrix(PerspectiveProjMatrixDeg(45, Rect.Width / Rect.Height,
-          ProjectionNear, ProjectionFar));
-        glMatrixMode(GL_MODELVIEW);
+        SavedProjectionMatrix := ProjectionMatrix;
+        PerspectiveProjection(45, Rect.Width / Rect.Height, ProjectionNear, ProjectionFar);
       end;
 
       if BackgroundWireframe then
@@ -1915,11 +1913,7 @@ begin
         UsedBackground.Render;
 
       if not PerspectiveView then
-      begin
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix;
-        glMatrixMode(GL_MODELVIEW);
-      end;
+        ProjectionMatrix := SavedProjectionMatrix;
     end else
     begin
       Include(ClearBuffers, cbColor);
@@ -2209,9 +2203,7 @@ begin
           glEnable(ScreenEffectTextureTarget);
       end;
 
-      glMatrixMode(GL_PROJECTION);
-      glLoadMatrix(Ortho2dProjMatrix(0, Rect.Width, 0, Rect.Height));
-      glMatrixMode(GL_MODELVIEW);
+      OrthoProjection(0, Rect.Width, 0, Rect.Height);
 
       RenderScreenEffect;
 

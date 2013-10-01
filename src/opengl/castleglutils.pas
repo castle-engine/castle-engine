@@ -445,8 +445,6 @@ procedure SetProjectionMatrix(const Value: TMatrix4Single);
 property ProjectionMatrix: TMatrix4Single
   read GetProjectionMatrix write SetProjectionMatrix;
 
-// TODO-es: all projection matrix settign should go through this
-
 { Set ProjectionMatrix to perspective or orthogonal.
 
   For PerspectiveProjection, ZFar may have special ZFarInfinity value

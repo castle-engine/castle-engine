@@ -1424,7 +1424,7 @@ var
   end;
 
 var
-  CameraMatrix, CameraRotationMatrix, ProjectionMatrix: TMatrix4Single;
+  CameraMatrix, CameraRotationMatrix, SavedProjectionMatrix, NewProjectionMatrix: TMatrix4Single;
   Pos, Dir, Up: TVector3Single;
   Scene: TX3DEventsEngine;
 begin
@@ -1436,8 +1436,8 @@ begin
     Viewpoint := TAbstractViewpointNode(TextureNode.FdViewpoint.Value) else
     Viewpoint := CurrentViewpoint;
 
-  ProjectionMatrix := GetProjectionMatrix;
-  TextureNode.EventProjection.Send(ProjectionMatrix);
+  NewProjectionMatrix := GetProjectionMatrix;
+  TextureNode.EventProjection.Send(NewProjectionMatrix);
 
   GetRenderedTextureCamera(Pos, Dir, Up);
   CameraMatrix := LookDirMatrix(Pos, Dir, Up);
@@ -1447,21 +1447,19 @@ begin
   TextureNode.EventRendering.Send(true);
 
   RenderingCamera.Target := rfOffScreen;
-  RenderingCamera.FromMatrix(CameraMatrix, CameraRotationMatrix, ProjectionMatrix,
+  RenderingCamera.FromMatrix(CameraMatrix, CameraRotationMatrix, NewProjectionMatrix,
     Viewpoint);
 
   RenderToTexture.RenderBegin;
 
-    GL.glViewport(0, 0, Width, Height);
+    glViewport(Rectangle(0, 0, Width, Height));
 
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix;
-      glLoadMatrix(ProjectionMatrix);
-      glMatrixMode(GL_MODELVIEW);
-      Render;
-      glMatrixMode(GL_PROJECTION);
-    glPopMatrix;
-    glMatrixMode(GL_MODELVIEW);
+    SavedProjectionMatrix := ProjectionMatrix;
+    ProjectionMatrix := NewProjectionMatrix;
+
+    Render;
+
+    ProjectionMatrix := SavedProjectionMatrix;
 
   RenderToTexture.RenderEnd;
 
@@ -1977,13 +1975,13 @@ procedure TGLGeneratedShadowMap.Update(
   var NeedsRestoreViewport: boolean;
   Light: TAbstractLightNode);
 var
-  ProjectionMatrix: TMatrix4Single;
+  NewProjectionMatrix, SavedProjectionMatrix: TMatrix4Single;
   SavedDepthRange: TDepthRange;
 begin
   if GLName = 0 then Exit;
 
   { Render view for shadow map }
-  ProjectionMatrix := Light.ProjectionMatrix;
+  NewProjectionMatrix := Light.ProjectionMatrix;
 
   if VarianceShadowMaps then
     RenderingCamera.Target := rtVarianceShadowMap else
@@ -1992,16 +1990,14 @@ begin
   RenderingCamera.FromMatrix(
     Light.ModelviewMatrix,
     Light.ModelviewRotationMatrix,
-    ProjectionMatrix, nil);
+    NewProjectionMatrix, nil);
 
   RenderToTexture.RenderBegin;
 
-    GL.glViewport(0, 0, Size, Size);
+    glViewport(Rectangle(0, 0, Size, Size));
 
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix;
-      glLoadMatrix(ProjectionMatrix);
-      glMatrixMode(GL_MODELVIEW);
+    SavedProjectionMatrix := ProjectionMatrix;
+    ProjectionMatrix := NewProjectionMatrix;
 
       { fix glDepthRange in case was changed by TPlayer.RenderOnTop }
       SavedDepthRange := DepthRange;
@@ -2025,9 +2021,7 @@ begin
 
       DepthRange := SavedDepthRange;
 
-      glMatrixMode(GL_PROJECTION);
-    glPopMatrix;
-    glMatrixMode(GL_MODELVIEW);
+    ProjectionMatrix := SavedProjectionMatrix;
 
   RenderToTexture.RenderEnd;
 

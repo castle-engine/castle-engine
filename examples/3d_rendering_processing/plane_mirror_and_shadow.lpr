@@ -235,12 +235,12 @@ var
       Tests show that it has no impact on speed, it's really fast,
       just like glClear(GL_DEPTH_BUFFER_BIT).  }
     procedure ClearDepthBufferHonouringStencil;
+    var
+      SavedProjectionMatrix: TMatrix4Single;
     begin
-      glMatrixMode(GL_PROJECTION);
-      glPushMatrix;
-      glLoadIdentity;
+      SavedProjectionMatrix := ProjectionMatrix;
+      ProjectionMatrix := IdentityMatrix4Single;
 
-      glMatrixMode(GL_MODELVIEW);
       glPushMatrix;
         glLoadIdentity;
 
@@ -256,10 +256,7 @@ var
         glPopAttrib;
       glPopMatrix;
 
-      glMatrixMode(GL_PROJECTION);
-      glPopMatrix;
-
-      glMatrixMode(GL_MODELVIEW);
+      ProjectionMatrix := SavedProjectionMatrix;
     end;
 
   begin

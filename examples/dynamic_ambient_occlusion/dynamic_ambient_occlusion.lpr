@@ -419,9 +419,9 @@ begin
   end;
 
   GLElementsPositionAreaTex := LoadGLTexture(ElementsPositionAreaTex,
-    GL_NEAREST, GL_NEAREST, Texture2DRepeat);
+    TextureFilter(minNearest, magNearest), Texture2DRepeat);
   GLElementsNormalTex := LoadGLTexture(ElementsNormalTex,
-    GL_NEAREST, GL_NEAREST, Texture2DRepeat);
+    TextureFilter(minNearest, magNearest), Texture2DRepeat);
 
   { Prepare OpenGL texture for shaders output (and also input to 2nd pass
     of algorithm). }
@@ -569,45 +569,42 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
       GLSLProgram[Pass].Disable;
     end;
 
+  var
+    SavedProjectionMatrix: TMatrix4Single;
   begin
-    glMatrixMode(GL_PROJECTION);
+    SavedProjectionMatrix := ProjectionMatrix;
+    OrthoProjection(0, Window.Width, 0, Window.Height);
+
     glPushMatrix;
+
       glLoadIdentity;
-      gluOrtho2D(0, Window.Width, 0, Window.Height);
-      glMatrixMode(GL_MODELVIEW);
+      DoRender(0);
 
-      glPushMatrix;
+      if DrawType = dtPass2 then
+      begin
+        { Alternative way to copy texture through CPU:
+        var
+          ElementsIntensityTex: TGrayscaleImage;
+        ElementsIntensityTex := CaptureAORect(true);
+        LoadGLGeneratedTexture(GLElementsIntensityTex, ElementsIntensityTex,
+          GL_NEAREST, GL_NEAREST);}
 
-        glLoadIdentity;
-        DoRender(0);
+        { Capture result of 1st pass into GLElementsIntensityTex
+          using glCopyTexSubImage2D. Also, this BTW binds GLElementsIntensityTex
+          to GL_TEXTURE2 texture unit, used by DoRender(1). }
 
-        if DrawType = dtPass2 then
-        begin
-          { Alternative way to copy texture through CPU:
-          var
-            ElementsIntensityTex: TGrayscaleImage;
-          ElementsIntensityTex := CaptureAORect(true);
-          LoadGLGeneratedTexture(GLElementsIntensityTex, ElementsIntensityTex,
-            GL_NEAREST, GL_NEAREST);}
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, GLElementsIntensityTex);
+        glReadBuffer(GL_BACK);
+        glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0,
+          ElementsTexSize, ElementsTexSize);
 
-          { Capture result of 1st pass into GLElementsIntensityTex
-            using glCopyTexSubImage2D. Also, this BTW binds GLElementsIntensityTex
-            to GL_TEXTURE2 texture unit, used by DoRender(1). }
+        DoRender(1);
+      end;
 
-          glActiveTexture(GL_TEXTURE2);
-          glBindTexture(GL_TEXTURE_2D, GLElementsIntensityTex);
-          glReadBuffer(GL_BACK);
-          glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0,
-            ElementsTexSize, ElementsTexSize);
-
-          DoRender(1);
-        end;
-
-      glPopMatrix;
-
-      glMatrixMode(GL_PROJECTION);
     glPopMatrix;
-    glMatrixMode(GL_MODELVIEW);
+
+    ProjectionMatrix := SavedProjectionMatrix;
   end;
 
 var

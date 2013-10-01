@@ -1155,7 +1155,7 @@ function ScreenEffectLibrary(const Depth: boolean): string;
 implementation
 
 uses Math, CastleStringUtils, CastleGLVersion, CastleLog, CastleWarnings,
-  CastleRenderingCamera, X3DCameraUtils, CastleRays, CastleColors;
+  CastleRenderingCamera, X3DCameraUtils, CastleRays, CastleColors, CastleRectangles;
 
 {$define read_implementation}
 
