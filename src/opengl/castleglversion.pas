@@ -206,23 +206,51 @@ var
 
 implementation
 
-uses SysUtils, CastleStringUtils, CastleUtils;
-
-{ TGenericGLVersion ---------------------------------------------------------- }
+uses SysUtils, CastleStringUtils, CastleUtils, CastleWarnings;
 
 type
   EInvalidGLVersionString = class(Exception);
 
+{ Skip whitespace. Moves I to next index after whitespace. }
 procedure ParseWhiteSpaces(const S: string; var I: Integer);
 begin
   while SCharIs(S, I, WhiteSpaces) do Inc(I);
 end;
 
-constructor TGenericGLVersion.Create(const VersionString: string);
+{ Parse next non-white-space part of string, assuming we stand on it's start.
+  Returns empty string if none (string ended).
+  Moves I to next index after this part. }
+function ParseString(const S: string; var I: Integer): string;
+var
+  Start: Integer;
+begin
+  if (I <= Length(S)) and not (S[I] in WhiteSpaces) then
+  begin
+    Start := I;
+    repeat Inc(I) until not ((I <= Length(S)) and not (S[I] in WhiteSpaces));
+    Result := CopyPos(S, Start, I - 1);
+  end else
+    Result := '';
+end;
+
+function ParseNumber(const S: string; var I: Integer): Integer;
 const
   Digits = ['0'..'9'];
 var
-  NumberBegin, I: Integer;
+  Start: Integer;
+begin
+  if not SCharIs(S, I, Digits) then
+    raise EInvalidGLVersionString.Create('Next number not found');
+  Start := I;
+  while SCharIs(S, I, Digits) do Inc(I);
+  Result := StrToInt(CopyPos(S, Start, I - 1));
+end;
+
+{ TGenericGLVersion ---------------------------------------------------------- }
+
+constructor TGenericGLVersion.Create(const VersionString: string);
+var
+  I: Integer;
 begin
   inherited Create;
 
@@ -233,17 +261,19 @@ begin
       spec. That's because we try hard to work correctly even with
       broken GL_VERSION / GLU_VERSION strings. }
 
-    { Whitespace }
     ParseWhiteSpaces(VersionString, I);
 
-    { Major number }
-    if not SCharIs(VersionString, I, Digits) then
-      raise EInvalidGLVersionString.Create('Major version number not found');
-    NumberBegin := I;
-    while SCharIs(VersionString, I, Digits) do Inc(I);
-    Major := StrToInt(CopyPos(VersionString, NumberBegin, I - 1));
+    {$ifdef OpenGLES}
+    if ParseString(VersionString, I) <> 'OpenGL' then
+      OnWarning(wtMinor, 'OpenGL', 'OpenGL ES version string 1st component must be "OpenGL"');
+    ParseWhiteSpaces(VersionString, I);
 
-    { Whitespace }
+    if not IsPrefix('ES', ParseString(VersionString, I)) then
+      OnWarning(wtMinor, 'OpenGL', 'OpenGL ES version string 2nd component must start with "ES"');
+    ParseWhiteSpaces(VersionString, I);
+    {$endif}
+
+    Major := ParseNumber(VersionString, I);
     ParseWhiteSpaces(VersionString, I);
 
     { Dot }
@@ -251,35 +281,17 @@ begin
       raise EInvalidGLVersionString.Create(
         'The dot "." separator major and minor version number not found');
     Inc(I);
-
-    { Whitespace }
     ParseWhiteSpaces(VersionString, I);
 
-    { Minor number }
-    if not SCharIs(VersionString, I, Digits) then
-      raise EInvalidGLVersionString.Create('Minor version number not found');
-    NumberBegin := I;
-    while SCharIs(VersionString, I, Digits) do Inc(I);
-    Minor := StrToInt(CopyPos(VersionString, NumberBegin, I - 1));
+    Minor := ParseNumber(VersionString, I);
 
+    { Release number }
     ReleaseExists := SCharIs(VersionString, I, '.');
-
     if ReleaseExists then
     begin
-      { Dot }
       Inc(I);
-
-      { Release number }
-      if not SCharIs(VersionString, I, Digits) then
-      raise EInvalidGLVersionString.Create(
-        'Release version number not found, ' +
-        'although there was a dot after minor number');
-      NumberBegin := I;
-      while SCharIs(VersionString, I, Digits) do Inc(I);
-      Release := StrToInt(CopyPos(VersionString, NumberBegin, I - 1));
+      Release := ParseNumber(VersionString, I);
     end;
-
-    { Whitespace }
     ParseWhiteSpaces(VersionString, I);
 
     VendorVersion := SEnding(VersionString, I);
@@ -308,22 +320,10 @@ constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
   { Parse Mesa version, starting from S[I] (where I should
     be the index in S right after the word "Mesa"). }
   procedure ParseMesaVersion(const S: string; var I: Integer);
-  const
-    Digits = ['0'..'9'];
-  var
-    NumberBegin: Integer;
   begin
-    { Whitespace }
     ParseWhiteSpaces(S, I);
 
-    { Mesa major number }
-    if not SCharIs(S, I, Digits) then
-      raise EInvalidGLVersionString.Create('Mesa major version number not found');
-    NumberBegin := I;
-    while SCharIs(S, I, Digits) do Inc(I);
-    FMesaMajor := StrToInt(CopyPos(S, NumberBegin, I - 1));
-
-    { Whitespace }
+    FMesaMajor := ParseNumber(S, I);
     ParseWhiteSpaces(S, I);
 
     { Dot }
@@ -331,34 +331,17 @@ constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
       raise EInvalidGLVersionString.Create(
         'The dot "." separator between Mesa major and minor version number not found');
     Inc(I);
-
-    { Whitespace }
     ParseWhiteSpaces(S, I);
 
-    { Mesa minor number }
-    if not SCharIs(S, I, Digits) then
-      raise EInvalidGLVersionString.Create('Mesa minor version number not found');
-    NumberBegin := I;
-    while SCharIs(S, I, Digits) do Inc(I);
-    FMesaMinor := StrToInt(CopyPos(S, NumberBegin, I - 1));
-
-    { Whitespace }
+    FMesaMinor := ParseNumber(S, I);
     ParseWhiteSpaces(S, I);
 
-    { Dot }
+    { Mesa release number }
     if SCharIs(S, I, '.') then
     begin
       Inc(I);
-
-      { Whitespace }
       ParseWhiteSpaces(S, I);
-
-      { Mesa release number }
-      if not SCharIs(S, I, Digits) then
-        raise EInvalidGLVersionString.Create('Mesa release version number not found');
-      NumberBegin := I;
-      while SCharIs(S, I, Digits) do Inc(I);
-      FMesaRelease := StrToInt(CopyPos(S, NumberBegin, I - 1));
+      FMesaRelease := ParseNumber(S, I);
     end else
     begin
       { Some older Mesa versions (like 5.1) and newer (7.2) really
