@@ -125,7 +125,7 @@ begin
   AttrValueMask := AttrValueMask or CWColormap;
 end;
 
-procedure TCastleWindowBase.ContextCreateEnd;
+procedure TCastleWindowBase.ContextCreateEnd(WndPtr: Integer);
 begin
   if UseFBConfig then
   begin

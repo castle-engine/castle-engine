@@ -48,7 +48,7 @@ private
   procedure ContextCreateBegin(var Attr: TXSetWindowAttributes;
     var AttrValueMask: Cardinal);
   { GL context creation after creating X window (windowXID is available now). }
-  procedure ContextCreateEnd;
+  procedure ContextCreateEnd(WndPtr: Integer);
   { Destroy context created by ContextCreateBegin + ContextCreateEnd. }
   procedure ContextDestroy;
 {$endif read_window_interface}
@@ -245,7 +245,7 @@ begin
       XMapWindow(Application.XDisplay, windowXID);
   end;
 
-  ContextCreateEnd;
+  ContextCreateEnd(windowXID);
 
   { applying FullScreen changed the Width / Height }
   if FullScreen then
