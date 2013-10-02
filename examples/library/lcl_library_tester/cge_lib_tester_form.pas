@@ -43,7 +43,7 @@ var
 implementation
 
 uses
-  LCLType, ctypes, CastleControls;
+  LCLType, ctypes, CastleControls, CastleGLUtils;
 
 {$R *.lfm}
 
@@ -68,6 +68,8 @@ end;
 { TForm1 }
 
 procedure TForm1.FormCreate(Sender: TObject);
+var
+  OglInfo: string;
 begin
   OpenGLControl1.MakeCurrent();
   Application.OnIdle := @IdleFunc;
@@ -81,6 +83,9 @@ begin
 
   //aCastleFrame.UpdateTouchInterface(etciCtlWalkCtlRotate);
   aCastleFrame.UpdateTouchInterface(etciCtlWalkDragRotate);
+
+  OglInfo := GLInformationString;
+  //Application.MessageBox(PChar(OglInfo), 'GL Info', 0);
 
   OpenGLControl1.Invalidate;
   ActiveControl := OpenGLControl1;   // set focus in order to receive keydowns

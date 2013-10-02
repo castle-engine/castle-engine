@@ -69,8 +69,10 @@ type
 
 procedure CGE_Init(); cdecl; external 'castleengine';
 procedure CGE_Close(); cdecl; external 'castleengine';
+procedure CGE_GetOpenGLInformation(szBuffer: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
 procedure CGE_SetRenderParams(uiViewWidth, uiViewHeight: cUInt32); cdecl; external 'castleengine';
 procedure CGE_Render(); cdecl; external 'castleengine';
+procedure CGE_SaveScreenshotToFile(szFile: pcchar); cdecl; external 'castleengine';
 procedure CGE_SetLibraryCallbackProc(aProc: TCgeLibraryCallbackProc); cdecl; external 'castleengine';
 procedure CGE_OnIdle(); cdecl; external 'castleengine';
 procedure CGE_OnMouseDown(x, y: cInt32; bLeftBtn: cBool; uiShift: cUInt32); cdecl; external 'castleengine';
@@ -81,6 +83,10 @@ procedure CGE_LoadSceneFromFile(szFile: pcchar); cdecl; external 'castleengine';
 function CGE_GetViewpointsCount(): cInt32; cdecl; external 'castleengine';
 procedure CGE_GetViewpointName(iViewpointIdx: cInt32; szName: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
 procedure CGE_MoveToViewpoint(iViewpointIdx: cInt32; bAnimated: cBool); cdecl; external 'castleengine';
+procedure CGE_GetViewCoords(pfPosX, pfPosY, pfPosZ, pfDirX, pfDirY, pfDirZ,
+                            pfUpX, pfUpY, pfUpZ, pfGravX, pfGravY, pfGravZ: pcfloat); cdecl; external 'castleengine';
+procedure CGE_MoveViewToCoords(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ,
+                               fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ: cFloat); cdecl; external 'castleengine';
 function CGE_GetCurrentNavigationType(): cInt32; cdecl; external 'castleengine';
 procedure CGE_SetNavigationType(NewType: cInt32); cdecl; external 'castleengine';
 procedure CGE_UpdateTouchInterface(eMode: cInt32); cdecl; external 'castleengine';

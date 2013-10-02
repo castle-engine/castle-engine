@@ -72,9 +72,11 @@ extern void CGE_LoadLibrary();	// function defined in the loader CPP file
 //-----------------------------------------------------------------------------
 extern void CGE_Init();     // init the library, this function must be called first (required)
 extern void CGE_Close();
+extern void CGE_GetOpenGLInformation(char *szBuffer, int nBufSize);             // szBuffer is filled inside the function with max size of nBufSize
 
 extern void CGE_SetRenderParams(unsigned uiViewWidth, unsigned uiViewHeight);   // let the library know about the viewport size (required)
 extern void CGE_Render();                                                       // paints the 3d scene into the context
+extern void CGE_SaveScreenshotToFile(const char *szFile);
 extern void CGE_SetLibraryCallbackProc(TCgeLibraryCallbackProc pProc);          // set callback function
 extern void CGE_OnIdle();                                                       // let the 3d engine perform the animations, etc
 
@@ -88,6 +90,10 @@ extern void CGE_LoadSceneFromFile(const char *szFile);                          
 extern int CGE_GetViewpointsCount();
 extern void CGE_GetViewpointName(int iViewpointIdx, char *szName, int nBufSize);    // szName is buffer of size nBufSize, and is filled with utf-8 encoded string
 extern void CGE_MoveToViewpoint(int iViewpointIdx, bool bAnimated);
+extern void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ, 
+                              float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ);
+extern void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ, 
+                                 float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ);
 
 extern int CGE_GetCurrentNavigationType();
 extern void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType);

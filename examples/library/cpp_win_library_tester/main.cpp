@@ -177,6 +177,10 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             PostMessage(hWnd, WM_CLOSE, 0, 0);
             break;
 
+        case 's':
+            CGE_SaveScreenshotToFile("screenshot.jpg");
+            break;
+
         default:
             break;
         }
@@ -470,6 +474,10 @@ void ShowOpenFileDialog()
             sViewpointList += "\n";
         }
         MessageBox(g_hWnd, sViewpointList.c_str(), "Viewpoints found", 0);
+
+        /*char sGlInfo[1024];
+        CGE_GetOpenGLInformation(sGlInfo, 1024);
+        MessageBox(g_hWnd, sGlInfo, "GL Info", 0);*/
 
         InvalidateRect(g_hWnd, NULL, TRUE);
         g_nViewpointCount = nCount;

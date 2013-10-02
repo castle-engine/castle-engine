@@ -67,7 +67,7 @@
       <Filename Value="cge_lib_tester"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir)"/>
+      <IncludeFiles Value="$(ProjOutDir);..\..\..\src\base"/>
       <OtherUnitFiles Value="..\..\..\src\library"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>

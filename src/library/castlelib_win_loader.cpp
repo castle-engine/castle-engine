@@ -33,9 +33,11 @@ HMODULE g_hCgeDll = NULL;
 
 typedef void (__cdecl *PFNRD_CGE_Init)();
 typedef void (__cdecl *PFNRD_CGE_Close)();
+typedef void (__cdecl *PFNRD_CGE_GetOpenGLInformation)(char *szBuffer, int nBufSize);
 
 typedef void (__cdecl *PFNRD_CGE_SetRenderParams)(unsigned uiViewWidth, unsigned uiViewHeight);
 typedef void (__cdecl *PFNRD_CGE_Render)();
+typedef void (__cdecl *PFNRD_CGE_SaveScreenshotToFile)(const char *szFile);
 typedef void (__cdecl *PFNRD_CGE_SetLibraryCallbackProc)(TCgeLibraryCallbackProc pProc);
 typedef void (__cdecl *PFNRD_CGE_OnIdle)();
 
@@ -49,6 +51,10 @@ typedef void (__cdecl *PFNRD_CGE_LoadSceneFromFile)(const char *szFile);
 typedef int (__cdecl *PFNRD_CGE_GetViewpointsCount)();
 typedef void (__cdecl *PFNRD_CGE_GetViewpointName)(int iViewpointIdx, char *szName, int nBufSize);
 typedef void (__cdecl *PFNRD_CGE_MoveToViewpoint)(int iViewpointIdx, bool bAnimated);
+typedef void (__cdecl *PFNRD_CGE_GetViewCoords)(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ, 
+                                                float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ);
+typedef void (__cdecl *PFNRD_CGE_MoveViewToCoords)(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ, 
+                                                   float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ);
 
 typedef int (__cdecl *PFNRD_CGE_GetCurrentNavigationType)();
 typedef void (__cdecl *PFNRD_CGE_SetNavigationType)(int eNewType);
@@ -57,8 +63,10 @@ typedef void (__cdecl *PFNRD_CGE_UpdateTouchInterface)(int eMode);
 
 PFNRD_CGE_Init pfrd_CGE_Init = NULL;
 PFNRD_CGE_Close pfrd_CGE_Close = NULL;
+PFNRD_CGE_GetOpenGLInformation pfrd_CGE_GetOpenGLInformation = NULL;
 PFNRD_CGE_SetRenderParams pfrd_CGE_SetRenderParams = NULL;
 PFNRD_CGE_Render pfrd_CGE_Render = NULL;
+PFNRD_CGE_SaveScreenshotToFile pfrd_CGE_SaveScreenshotToFile = NULL;
 PFNRD_CGE_SetLibraryCallbackProc pfrd_CGE_SetLibraryCallbackProc = NULL;
 PFNRD_CGE_OnIdle pfrd_CGE_OnIdle = NULL;
 PFNRD_CGE_OnMouseDown pfrd_CGE_OnMouseDown = NULL;
@@ -69,6 +77,8 @@ PFNRD_CGE_LoadSceneFromFile pfrd_CGE_LoadSceneFromFile = NULL;
 PFNRD_CGE_GetViewpointsCount pfrd_CGE_GetViewpointsCount = NULL;
 PFNRD_CGE_GetViewpointName pfrd_CGE_GetViewpointName = NULL;
 PFNRD_CGE_MoveToViewpoint pfrd_CGE_MoveToViewpoint = NULL;
+PFNRD_CGE_GetViewCoords pfrd_CGE_GetViewCoords = NULL;
+PFNRD_CGE_MoveViewToCoords pfrd_CGE_MoveViewToCoords = NULL;
 PFNRD_CGE_GetCurrentNavigationType pfrd_CGE_GetCurrentNavigationType = NULL;
 PFNRD_CGE_SetNavigationType pfrd_CGE_SetNavigationType = NULL;
 PFNRD_CGE_UpdateTouchInterface pfrd_CGE_UpdateTouchInterface = NULL;
@@ -82,8 +92,10 @@ void CGE_LoadLibrary()
 
 	pfrd_CGE_Init = (PFNRD_CGE_Init)GetProcAddress(g_hCgeDll, "CGE_Init");
 	pfrd_CGE_Close = (PFNRD_CGE_Close)GetProcAddress(g_hCgeDll, "CGE_Close");
+	pfrd_CGE_GetOpenGLInformation = (PFNRD_CGE_GetOpenGLInformation)GetProcAddress(g_hCgeDll, "CGE_GetOpenGLInformation");
 	pfrd_CGE_SetRenderParams = (PFNRD_CGE_SetRenderParams)GetProcAddress(g_hCgeDll, "CGE_SetRenderParams");
 	pfrd_CGE_Render = (PFNRD_CGE_Render)GetProcAddress(g_hCgeDll, "CGE_Render");
+	pfrd_CGE_SaveScreenshotToFile = (PFNRD_CGE_SaveScreenshotToFile)GetProcAddress(g_hCgeDll, "CGE_SaveScreenshotToFile");
 	pfrd_CGE_SetLibraryCallbackProc = (PFNRD_CGE_SetLibraryCallbackProc)GetProcAddress(g_hCgeDll, "CGE_SetLibraryCallbackProc");
 	pfrd_CGE_OnIdle = (PFNRD_CGE_OnIdle)GetProcAddress(g_hCgeDll, "CGE_OnIdle");
 	pfrd_CGE_OnMouseDown = (PFNRD_CGE_OnMouseDown)GetProcAddress(g_hCgeDll, "CGE_OnMouseDown");
@@ -94,6 +106,8 @@ void CGE_LoadLibrary()
 	pfrd_CGE_GetViewpointsCount = (PFNRD_CGE_GetViewpointsCount)GetProcAddress(g_hCgeDll, "CGE_GetViewpointsCount");
 	pfrd_CGE_GetViewpointName = (PFNRD_CGE_GetViewpointName)GetProcAddress(g_hCgeDll, "CGE_GetViewpointName");
 	pfrd_CGE_MoveToViewpoint = (PFNRD_CGE_MoveToViewpoint)GetProcAddress(g_hCgeDll, "CGE_MoveToViewpoint");
+	pfrd_CGE_GetViewCoords = (PFNRD_CGE_GetViewCoords)GetProcAddress(g_hCgeDll, "CGE_GetViewCoords");
+	pfrd_CGE_MoveViewToCoords = (PFNRD_CGE_MoveViewToCoords)GetProcAddress(g_hCgeDll, "CGE_MoveViewToCoords");
 	pfrd_CGE_GetCurrentNavigationType = (PFNRD_CGE_GetCurrentNavigationType)GetProcAddress(g_hCgeDll, "CGE_GetCurrentNavigationType");
 	pfrd_CGE_SetNavigationType = (PFNRD_CGE_SetNavigationType)GetProcAddress(g_hCgeDll, "CGE_SetNavigationType");
 	pfrd_CGE_UpdateTouchInterface = (PFNRD_CGE_UpdateTouchInterface)GetProcAddress(g_hCgeDll, "CGE_UpdateTouchInterface");
@@ -114,6 +128,13 @@ void CGE_Close()
 }
 
 //-----------------------------------------------------------------------------
+void CGE_GetOpenGLInformation(char *szBuffer, int nBufSize)
+{
+	if (pfrd_CGE_GetOpenGLInformation!=NULL)
+        (*pfrd_CGE_GetOpenGLInformation)(szBuffer, nBufSize);
+}
+
+//-----------------------------------------------------------------------------
 void CGE_SetRenderParams(unsigned uiViewWidth, unsigned uiViewHeight)
 {
 	if (pfrd_CGE_SetRenderParams!=NULL)
@@ -125,6 +146,13 @@ void CGE_Render()
 {
 	if (pfrd_CGE_Render!=NULL)
 		(*pfrd_CGE_Render)();
+}
+
+//-----------------------------------------------------------------------------
+void CGE_SaveScreenshotToFile(const char *szFile)
+{
+	if (pfrd_CGE_SaveScreenshotToFile!=NULL)
+		(*pfrd_CGE_SaveScreenshotToFile)(szFile);
 }
 
 //-----------------------------------------------------------------------------
@@ -197,6 +225,22 @@ void CGE_MoveToViewpoint(int iViewpointIdx, bool bAnimated)
 {
 	if (pfrd_CGE_MoveToViewpoint!=NULL)
 		(*pfrd_CGE_MoveToViewpoint)(iViewpointIdx, bAnimated);
+}
+
+//-----------------------------------------------------------------------------
+void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ, 
+                              float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ)
+{
+	if (pfrd_CGE_GetViewCoords!=NULL)
+		(*pfrd_CGE_GetViewCoords)(pfPosX, pfPosY, pfPosZ, pfDirX, pfDirY, pfDirZ, pfUpX, pfUpY, pfUpZ, pfGravX, pfGravY, pfGravZ);
+}
+
+//-----------------------------------------------------------------------------
+void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ, 
+                                 float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ)
+{
+	if (pfrd_CGE_MoveViewToCoords!=NULL)
+		(*pfrd_CGE_MoveViewToCoords)(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ, fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ);
 }
 
 //-----------------------------------------------------------------------------

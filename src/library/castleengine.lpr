@@ -12,7 +12,8 @@ Library castleengine;
 }
 
 uses
-  ctypes, math, CastleFrame, Classes, CastleKeysMouse, CastleCameras, sysutils;
+  ctypes, math, CastleFrame, Classes, CastleKeysMouse, CastleCameras, sysutils,
+  CastleGLUtils, CastleVectors, CastleImages, CastleGLImages;
 
 { See http://fpc.freedoors.org/dos204full/source/rtl/unix/ctypes.inc
   For a full list of c-types
@@ -39,6 +40,17 @@ begin
   end;
 end;
 
+procedure CGE_GetOpenGLInformation(szBuffer: pchar; nBufSize: cInt32); cdecl;
+var
+  sText: string;
+begin
+  try
+    sText := GLInformationString;
+    StrPLCopy(szBuffer, sText, nBufSize-1);
+  except
+  end;
+end;
+
 procedure CGE_SetRenderParams(uiViewWidth, uiViewHeight: cUInt32); cdecl;
 begin
   try
@@ -53,6 +65,18 @@ begin
     aCastleFrame.Paint();
   except
     //on E: Exception do OutputDebugString(@E.Message[1]);
+  end;
+end;
+
+procedure CGE_SaveScreenshotToFile(szFile: pcchar); cdecl;
+var
+  Image: TRGBImage;
+begin
+  try
+    // TODO: remove touch controls
+    Image := SaveScreen_NoFlush(aCastleFrame.Rect, cbBack);
+    SaveImage(Image, StrPas(PChar(szFile)));
+  except
   end;
 end;
 
@@ -154,9 +178,7 @@ var
 begin
   try
     sName := aCastleFrame.GetViewpointName(iViewpointIdx);
-    if (Length(sName) > nBufSize-1) then
-      sName := Copy(sName, 1, nBufSize-1);
-    StrPCopy(szName, sName);
+    StrPLCopy(szName, sName, nBufSize-1);
   except
   end;
 end;
@@ -165,6 +187,36 @@ procedure CGE_MoveToViewpoint(iViewpointIdx: cInt32; bAnimated: cBool); cdecl;
 begin
   try
     aCastleFrame.MoveToViewpoint(iViewpointIdx, bAnimated);
+  except
+  end;
+end;
+
+procedure CGE_GetViewCoords(pfPosX, pfPosY, pfPosZ, pfDirX, pfDirY, pfDirZ,
+                            pfUpX, pfUpY, pfUpZ, pfGravX, pfGravY, pfGravZ: pcfloat); cdecl;
+var
+  Pos, Dir, Up, GravityUp: TVector3Single;
+begin
+  try
+    aCastleFrame.Camera.GetView(Pos, Dir, Up, GravityUp);
+    pfPosX^ := Pos[0]; pfPosY^ := Pos[1]; pfPosZ^ := Pos[2];
+    pfDirX^ := Dir[0]; pfDirY^ := Dir[1]; pfDirZ^ := Dir[2];
+    pfUpX^ := Up[0]; pfUpY^ := Up[1]; pfUpZ^ := Up[2];
+    pfGravX^ := GravityUp[0]; pfGravY^ := GravityUp[1]; pfGravZ^ := GravityUp[2];
+  except
+  end;
+end;
+
+procedure CGE_MoveViewToCoords(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ,
+                               fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ: cFloat); cdecl;
+var
+  Pos, Dir, Up, GravityUp: TVector3Single;
+begin
+  try
+    Pos[0] := fPosX; Pos[1] := fPosY; Pos[2] := fPosZ;
+    Dir[0] := fDirX; Dir[1] := fDirY; Dir[2] := fDirZ;
+    Up[0] := fUpX; Up[1] := fUpY; Up[2] := fUpZ;
+    GravityUp[0] := fGravX; GravityUp[1] := fGravY; GravityUp[2] := fGravZ;
+    aCastleFrame.Camera.SetView(Pos, Dir, Up, GravityUp);
   except
   end;
 end;
@@ -218,11 +270,12 @@ begin
 end;
 
 exports
-  CGE_Init, CGE_Close,
+  CGE_Init, CGE_Close, CGE_GetOpenGLInformation,
   CGE_Render, CGE_SetRenderParams, CGE_SetLibraryCallbackProc, CGE_OnIdle,
   CGE_OnMouseDown, CGE_OnMouseMove, CGE_OnMouseUp, CGE_OnMouseWheel,
   CGE_LoadSceneFromFile, CGE_GetCurrentNavigationType, CGE_SetNavigationType,
   CGE_GetViewpointsCount, CGE_GetViewpointName, CGE_MoveToViewpoint,
+  CGE_GetViewCoords, CGE_MoveViewToCoords, CGE_SaveScreenshotToFile,
   CGE_UpdateTouchInterface;
 
 begin
