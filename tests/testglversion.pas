@@ -90,6 +90,27 @@ begin
     Assert(G.Release = 3);
     Assert(not G.Mesa);
   finally FreeAndNil(G) end;
+
+  G := TGLVersion.Create('4.2.0 NVIDIA 304.108', 'NVIDIA Corporation', 'GeForce GTS 450/PCIe/SSE2/3DNOW!');
+  try
+    AssertEquals('NVIDIA 304.108', G.VendorInfo);
+    AssertEquals('NVIDIA Corporation', G.Vendor);
+    AssertEquals('GeForce GTS 450/PCIe/SSE2/3DNOW!', G.Renderer);
+
+    AssertEquals(4, G.Major);
+    AssertEquals(2, G.Minor);
+    AssertEquals(true, G.ReleaseExists);
+    AssertEquals(0, G.Release);
+
+    AssertEquals(304, G.VendorMajor);
+    AssertEquals(108, G.VendorMinor);
+    AssertEquals(0, G.VendorRelease);
+
+    Assert(not G.Mesa);
+    Assert(not G.VendorATI);
+    Assert(not G.VendorIntel);
+    Assert(G.VendorNVidia);
+  finally FreeAndNil(G) end;
 end;
 
 initialization
