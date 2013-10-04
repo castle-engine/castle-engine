@@ -410,6 +410,11 @@
 
 {$ifdef read_implementation}
 
+const
+  CombineGL: array [TCombine] of TGLint = (
+    GL_MODULATE, GL_REPLACE, GL_ADD_SIGNED_EXT, GL_ADD, GL_SUBTRACT,
+    GL_INTERPOLATE_EXT, GL_DOT3_RGB_ARB, GL_DOT3_RGBA_ARB );
+
 function TextureRepeatToGL(const VrmlTextureRepeat: boolean): TGLenum;
 begin
   if VrmlTextureRepeat then
@@ -745,8 +750,8 @@ procedure TGLSingleTextureNode.EnableAll(const TextureUnitsCount: Cardinal;
   lighting calculation (not just material color, which is input to
   lighting calculation). So it would not be conforming either. }
 const
-  TextureModeGrayscale = GL_MODULATE;
-  TextureModeRGB = GL_MODULATE;
+  TextureModeGrayscale = coModulate;
+  TextureModeRGB = coModulate;
 
 var
   Env: TTextureEnv;
@@ -765,7 +770,7 @@ begin
       So we know that mode is simple, the same for rgb and alpha,
       and can be set using GL_TEXTURE_ENV_MODE
       (doesn't require using GL_COMBINE). }
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, Env.Combine[cRGB]);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, CombineGL[Env.Combine[cRGB]]);
     TexCoordsNeeded := 1;
   end;
 end;
@@ -926,8 +931,8 @@ begin
         begin
           glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 
-          glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, Env.Combine[cRGB]);
-          glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, Env.Combine[cAlpha]);
+          glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, CombineGL[Env.Combine[cRGB]]);
+          glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, CombineGL[Env.Combine[cAlpha]]);
 
           glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, Env.Scale[cRGB]);
           glTexEnvf(GL_TEXTURE_ENV, GL_ALPHA_SCALE, Env.Scale[cAlpha]);
@@ -956,8 +961,8 @@ begin
             glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA + Argument[Env.SourceArgument[cAlpha]], GL_SRC_ALPHA);
           end;
 
-          if (Env.Combine[cRGB] = GL_INTERPOLATE) or
-             (Env.Combine[cAlpha] = GL_INTERPOLATE) then
+          if (Env.Combine[cRGB] = coInterpolate) or
+             (Env.Combine[cAlpha] = coInterpolate) then
           begin
             { Whole source2 (both RGB and alpha) is filled by alpha from color
               specified by InterpolateAlphaSource. }

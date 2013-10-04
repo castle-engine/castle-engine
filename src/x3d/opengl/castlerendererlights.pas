@@ -99,6 +99,8 @@ uses SysUtils, CastleUtils, Math, CastleRenderingCamera, CastleGL;
   (as OpenGL will not use them anyway). }
 procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TLightInstance);
 
+{$ifndef OpenGLES}
+
   { SetupXxx light : setup glLight properties GL_POSITION, GL_SPOT_* }
   procedure SetupDirectionalLight(LightNode: TAbstractDirectionalLightNode);
   begin
@@ -218,6 +220,10 @@ begin
   glLightv(glLightNum, GL_SPECULAR, Color4);
 
   glEnable(glLightNum);
+{$else}
+begin
+  // TODO-es We shave to pass light to shaders in our own vars
+{$endif}
 end;
 
 { TVRMLGLLightsRenderer ----------------------------------------------- }
@@ -301,10 +307,12 @@ begin
     if LightsEnabled >= GLFeatures.MaxLights then Exit;
   end;
 
+  {$ifndef OpenGLES}
   { Disable remaining light for fixed-function pipeline }
   for I := LightsEnabled to GLFeatures.MaxLights - 1 do
     if NeedRenderLight(I, nil) then
       glDisable(GL_LIGHT0 + I);
+  {$endif}
 
   LightsKnown := true;
 end;

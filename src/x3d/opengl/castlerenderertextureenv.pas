@@ -17,11 +17,7 @@
   @exclude Internal unit for GLRenderer and GLRendererShader. }
 unit CastleRendererTextureEnv;
 
-{$I castleconf.inc}
-
 interface
-
-uses CastleGL;
 
 type
   { Source of color for texture mixing.
@@ -45,17 +41,22 @@ type
   { Function for texture mixing, corresponds to X3D MultiTexture.function field. }
   TTextureFunction = (tfNone, tfComplement, tfAlphaReplicate);
 
+  { How to combine textures, on a single channel. }
+  TCombine = (coModulate, coReplace, coAddSigned, coAdd, coSubtract, coInterpolate,
+    coDot3Rgb, coDot3Rgba);
+
   TChannel = (cRGB, cAlpha);
-  TCombinePerChannel = array [TChannel] of TGLint;
+  TCombinePerChannel = array [TChannel] of TCombine;
   TArgPerChannel = array [TChannel] of TTextureEnvArgument;
-  TScalePerChannel = array [TChannel] of TGLfloat;
+  TScalePerChannel = array [TChannel] of Single;
   TSourcePerChannel = array [TChannel] of TColorSource;
 
   { How to mix the current texture color into the fragment color. }
   TTextureEnv = object
   public
     { How to calculate given fragment channel using this texture unit.
-      Return OpenGL values for GL_COMBINE_RGB_EXT, GL_COMBINE_ALPHA_EXT.
+      Returned values correspond to parameters of
+      GL_COMBINE_RGB_EXT, GL_COMBINE_ALPHA_EXT.
       For some details about particular values,
       see OpenGL EXT_texture_env_combine extension
       (http://www.opengl.org/registry/specs/EXT/texture_env_combine.txt). }
@@ -84,7 +85,7 @@ type
 
     TextureFunction: TTextureFunction;
 
-    { If, and only if, one of Combine is GL_INTERPOLATE_EXT,
+    { If, and only if, one of Combine is coInterpolate,
       then this specifies what is the OpenGL GL_SOURCE2.
       It should be filled (both RGB and alpha) with alpha from this source. }
     InterpolateAlphaSource: TColorSource;
@@ -96,7 +97,7 @@ type
     constructor Init(const Mode, SourceStr, FunctionStr: string);
 
     { Calculate values based on simple OpenGL mode value. }
-    constructor Init(const Mode: TGLint);
+    constructor Init(const Mode: TCombine);
 
     function Hash: LongWord;
   end;
@@ -107,13 +108,13 @@ uses SysUtils, CastleStringUtils, CastleWarnings;
 
 { Simple type constructors, for ease of coding.
   Versions with only 1 argument set both channel (rgb and alpha) to the same. }
-function CombinePerChannel(const RGB, Alpha: TGLint): TCombinePerChannel;
+function CombinePerChannel(const RGB, Alpha: TCombine): TCombinePerChannel;
 begin
   Result[cRGB] := RGB;
   Result[cAlpha] := Alpha;
 end;
 
-function CombinePerChannel(const Value: TGLint): TCombinePerChannel;
+function CombinePerChannel(const Value: TCombine): TCombinePerChannel;
 begin
   Result := CombinePerChannel(Value, Value);
 end;
@@ -165,27 +166,27 @@ procedure ModeFromString(const S: string;
     Scale passed here must be initially 1.0. }
   procedure SimpleModeFromString(
     const LS: string;
-    out Combine: TGLint;
+    out Combine: TCombine;
     out CurrentTextureArgument, SourceArgument: TTextureEnvArgument;
-    var Scale: TGLfloat;
+    var Scale: Single;
     const Channels: string);
   begin
     if LS = 'modulate' then
     begin
-      Combine := GL_MODULATE;
+      Combine := coModulate;
       CurrentTextureArgument := ta0;
       SourceArgument := ta1;
     end else
     if LS = 'modulate2x' then
     begin
-      Combine := GL_MODULATE;
+      Combine := coModulate;
       CurrentTextureArgument := ta0;
       SourceArgument := ta1;
       Scale := 2;
     end else
     if LS = 'modulate4x' then
     begin
-      Combine := GL_MODULATE;
+      Combine := coModulate;
       CurrentTextureArgument := ta0;
       SourceArgument := ta1;
       Scale := 4;
@@ -200,43 +201,43 @@ procedure ModeFromString(const S: string;
         I wrote some remarks about this on
         http://castle-engine.sourceforge.net/x3d_implementation_status.php }
 
-      Combine := GL_REPLACE;
+      Combine := coReplace;
       CurrentTextureArgument := ta0;
       SourceArgument := taNone;
     end else
     if LS = 'selectarg2' then
     begin
-      Combine := GL_REPLACE;
+      Combine := coReplace;
       CurrentTextureArgument := taNone;
       SourceArgument := ta0;
     end else
     if LS = 'add' then
     begin
-      Combine := GL_ADD;
+      Combine := coAdd;
       CurrentTextureArgument := ta0;
       SourceArgument := ta1;
     end else
     if LS = 'addsigned' then
     begin
-      Combine := GL_ADD_SIGNED_EXT;
+      Combine := coAddSigned;
       CurrentTextureArgument := ta0;
       SourceArgument := ta1;
     end else
     if LS = 'addsigned2x' then
     begin
-      Combine := GL_ADD_SIGNED_EXT;
+      Combine := coAddSigned;
       CurrentTextureArgument := ta0;
       SourceArgument := ta1;
       Scale := 2;
     end else
     if LS = 'subtract' then
     begin
-      Combine := GL_SUBTRACT;
+      Combine := coSubtract;
       CurrentTextureArgument := ta0;
       SourceArgument := ta1;
     end else
     begin
-      Combine := GL_MODULATE;
+      Combine := coModulate;
       CurrentTextureArgument := ta0;
       SourceArgument := ta1;
       OnWarning(wtMajor, 'VRML/X3D', Format('Not supported multi-texturing mode "%s" for channels "%s"', [LS, Channels]));
@@ -245,9 +246,9 @@ procedure ModeFromString(const S: string;
 
   procedure RGBModeFromString(
     const LS: string;
-    out Combine: TGLint;
+    out Combine: TCombine;
     out CurrentTextureArgument, SourceArgument: TTextureEnvArgument;
-    var Scale: TGLfloat);
+    var Scale: Single);
   begin
     if LS = 'dotproduct3' then
     begin
@@ -257,7 +258,7 @@ procedure ModeFromString(const S: string;
         This is our extension (X3D spec allows only DOTPRODUCT3
         for both channels, and to fill them both, this case is handled
         in BothModesFromString). }
-      Combine := GL_DOT3_RGB_ARB;
+      Combine := coDot3Rgb;
       CurrentTextureArgument := ta0;
       SourceArgument := ta1;
     end else
@@ -266,9 +267,9 @@ procedure ModeFromString(const S: string;
 
   procedure AlphaModeFromString(
     const LS: string;
-    out Combine: TGLint;
+    out Combine: TCombine;
     out CurrentTextureArgument, SourceArgument: TTextureEnvArgument;
-    var Scale: TGLfloat);
+    var Scale: Single);
   begin
     SimpleModeFromString(LS, Combine, CurrentTextureArgument, SourceArgument, Scale, 'Alpha');
   end;
@@ -287,7 +288,7 @@ procedure ModeFromString(const S: string;
         explict "" string as "MODULATE" --- not a worry, we don't
         have to produce error messages for all possible invalid VRMLs...). }
 
-      Combine := CombinePerChannel(GL_MODULATE);
+      Combine := CombinePerChannel(coModulate);
       CurrentTextureArgument := ArgPerChannel(ta0);
       SourceArgument := ArgPerChannel(ta1);
     end else
@@ -305,28 +306,28 @@ procedure ModeFromString(const S: string;
         the X3D specification requires, so we're happy.
         Yes, this means that COMBINE_ALPHA_ARB will be ignored. }
 
-      Combine := CombinePerChannel(GL_DOT3_RGBA_ARB,
-        GL_REPLACE { <- whatever, alpha combine will be ignored });
+      Combine := CombinePerChannel(coDot3Rgba,
+        coReplace { <- whatever, alpha combine will be ignored });
       CurrentTextureArgument := ArgPerChannel(ta0);
       SourceArgument := ArgPerChannel(ta1);
     end else
     if LS = 'blenddiffusealpha' then
     begin
-      Combine := CombinePerChannel(GL_INTERPOLATE_EXT);
+      Combine := CombinePerChannel(coInterpolate);
       CurrentTextureArgument := ArgPerChannel(ta0);
       SourceArgument := ArgPerChannel(ta1);
       InterpolateAlphaSource := csMaterial;
     end else
     if LS = 'blendtexturealpha' then
     begin
-      Combine := CombinePerChannel(GL_INTERPOLATE_EXT);
+      Combine := CombinePerChannel(coInterpolate);
       CurrentTextureArgument := ArgPerChannel(ta0);
       SourceArgument := ArgPerChannel(ta1);
       InterpolateAlphaSource := csCurrentTexture;
     end else
     if LS = 'blendfactoralpha' then
     begin
-      Combine := CombinePerChannel(GL_INTERPOLATE_EXT);
+      Combine := CombinePerChannel(coInterpolate);
       CurrentTextureArgument := ArgPerChannel(ta0);
       SourceArgument := ArgPerChannel(ta1);
       InterpolateAlphaSource := csConstant;
@@ -334,7 +335,7 @@ procedure ModeFromString(const S: string;
     end else
     if LS = 'blendcurrentalpha' then
     begin
-      Combine := CombinePerChannel(GL_INTERPOLATE_EXT);
+      Combine := CombinePerChannel(coInterpolate);
       CurrentTextureArgument := ArgPerChannel(ta0);
       SourceArgument := ArgPerChannel(ta1);
       InterpolateAlphaSource := csPreviousTexture;
@@ -436,7 +437,7 @@ begin
   TextureFunction := FunctionFromString(FunctionStr);
 end;
 
-constructor TTextureEnv.Init(const Mode: TGLint);
+constructor TTextureEnv.Init(const Mode: TCombine);
 begin
   Combine := CombinePerChannel(Mode);
 

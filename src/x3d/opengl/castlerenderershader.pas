@@ -1054,7 +1054,7 @@ begin
   end;
 
   case AEnv.Combine[cRGB] of
-    GL_REPLACE:
+    coReplace:
       begin
         if AEnv.SourceArgument[cRGB] = ta0 then
           { mode is SELECTARG2 }
@@ -1062,17 +1062,17 @@ begin
           { assume CurrentTextureArgument = ta0, mode = REPLACE or SELECTARG1 }
           Result := FragmentColor + ' = ' + CurrentTexture + ';';
       end;
-    GL_ADD:
+    coAdd:
       begin
         if FragmentColor = Arg2 then
           Result := FragmentColor + ' += ' + CurrentTexture + ';' else
           Result := FragmentColor + ' = ' + CurrentTexture + ' + ' + Arg2 + ';';
       end;
-    GL_SUBTRACT:
+    coSubtract:
       Result := FragmentColor + ' = ' + CurrentTexture + ' - ' + Arg2 + ';';
     else
       begin
-        { assume GL_MODULATE }
+        { assume coModulate }
         if FragmentColor = Arg2 then
           Result := FragmentColor + ' *= ' + CurrentTexture + ';' else
           Result := FragmentColor + ' = ' + CurrentTexture + ' * ' + Arg2 + ';';
@@ -2197,12 +2197,14 @@ begin
     glActiveTexture(GL_TEXTURE0 + TextureUnit);
   { glEnable(GL_TEXTURE_GEN_*) below }
 
-  { Enable for shader pipeline }
+  { Enable for fixed-function and shader pipeline }
   case Generation of
     tgSphere:
       begin
+        {$ifndef OpenGLES}
         glEnable(GL_TEXTURE_GEN_S);
         glEnable(GL_TEXTURE_GEN_T);
+        {$endif}
         TextureCoordGen += Format(
           { Sphere mapping in GLSL adapted from
             http://www.ozone3d.net/tutorials/glsl_texturing_p04.php#part_41
@@ -2216,18 +2218,22 @@ begin
       end;
     tgNormal:
       begin
+        {$ifndef OpenGLES}
         glEnable(GL_TEXTURE_GEN_S);
         glEnable(GL_TEXTURE_GEN_T);
         glEnable(GL_TEXTURE_GEN_R);
+        {$endif}
         TextureCoordGen += Format('gl_TexCoord[%d].xyz = castle_normal_eye;' + NL,
           [TextureUnit]);
         FCodeHash.AddInteger(1303 * (TextureUnit + 1));
       end;
     tgReflection:
       begin
+        {$ifndef OpenGLES}
         glEnable(GL_TEXTURE_GEN_S);
         glEnable(GL_TEXTURE_GEN_T);
         glEnable(GL_TEXTURE_GEN_R);
+        {$endif}
         { Negate reflect result --- just like for demo_models/water/water_reflections_normalmap.fs }
         TextureCoordGen += Format('gl_TexCoord[%d].xyz = -reflect(-vec3(castle_vertex_eye), castle_normal_eye);' + NL,
           [TextureUnit]);
@@ -2249,6 +2255,7 @@ begin
   { Enable for fixed-function pipeline }
   if GLFeatures.UseMultiTexturing then
     glActiveTexture(GL_TEXTURE0 + TextureUnit);
+  {$ifndef OpenGLES}
   case Component of
     0: glEnable(GL_TEXTURE_GEN_S);
     1: glEnable(GL_TEXTURE_GEN_T);
@@ -2256,6 +2263,7 @@ begin
     3: glEnable(GL_TEXTURE_GEN_Q);
     else raise EInternalError.Create('TShader.EnableTexGen:Component?');
   end;
+  {$endif}
 
   { Enable for shader pipeline.
     See helpful info about simulating glTexGen in GLSL in:
@@ -2278,15 +2286,20 @@ begin
   { Disable for fixed-function pipeline }
   if GLFeatures.UseMultiTexturing then
     glActiveTexture(GL_TEXTURE0 + TextureUnit);
+  {$ifndef OpenGLES}
   glDisable(GL_TEXTURE_GEN_S);
   glDisable(GL_TEXTURE_GEN_T);
   glDisable(GL_TEXTURE_GEN_R);
   glDisable(GL_TEXTURE_GEN_Q);
+  {$endif}
 end;
 
 procedure TShader.EnableClipPlane(const ClipPlaneIndex: Cardinal);
 begin
+  {$ifndef OpenGLES}
+  // TODO-es how to do it on OpenGLES?
   glEnable(GL_CLIP_PLANE0 + ClipPlaneIndex);
+  {$endif}
   if ClipPlane = '' then
   begin
     ClipPlane := 'gl_ClipVertex = castle_vertex_eye;';
@@ -2313,7 +2326,9 @@ end;
 
 procedure TShader.DisableClipPlane(const ClipPlaneIndex: Cardinal);
 begin
+  {$ifndef OpenGLES}
   glDisable(GL_CLIP_PLANE0 + ClipPlaneIndex);
+  {$endif}
 end;
 
 procedure TShader.EnableAlphaTest;
@@ -2472,7 +2487,10 @@ end;
 procedure TShader.EnableMaterialFromColor;
 begin
   { glColorMaterial is already set by TGLRenderer.RenderBegin }
+  {$ifndef OpenGLES}
+  // TODO-es We depend on it in shader, to get correct values from deprecated inputs. We should not.
   glEnable(GL_COLOR_MATERIAL);
+  {$endif}
 
   { This will cause appropriate shader later }
   MaterialFromColor := true;
