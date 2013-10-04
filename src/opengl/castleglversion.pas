@@ -428,6 +428,16 @@ begin
   FFglrx := {$ifdef LINUX} VendorATI {$else} false {$endif};
 
   FVendorIntel := IsPrefix('Intel', Vendor);
+  if VendorIntel then
+  begin
+    { get the driver version too }
+    I := 1;
+    while SCharIs(VendorVersion, I, AllChars - ['0'..'9']) and (I<Length(VendorVersion)) do Inc(I);
+    try
+      ParseMesaVersion(VendorVersion, I);
+    except
+    end;
+  end;
 
   FBuggyGenerateMipmap := (Mesa and (not MesaVersionAtLeast(7, 5, 0)))
                           {$ifdef WINDOWS} or VendorIntel {$endif};
@@ -489,7 +499,7 @@ begin
   FBuggyFBOMultiSampling :=
     {$ifdef WINDOWS} (VendorATI and
       (IsPrefix('AMD Radeon HD 6', Renderer) or IsPrefix('AMD Radeon HD6', Renderer)))
-    or VendorIntel
+    or (VendorIntel and (not MesaVersionAtLeast(9, 18, 10)))
     {$else} false {$endif};
 
   { Observed on fglrx (ATI proprietary OpenGL driver under Linux,
