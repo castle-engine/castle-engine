@@ -68,9 +68,9 @@ type
     FVendorNVidia: boolean;
     FVendorIntel: boolean;
     FMesa: boolean;
-    FMesaMajor: Integer;
-    FMesaMinor: Integer;
-    FMesaRelease: Integer;
+    FVendorMajor: Integer;
+    FVendorMinor: Integer;
+    FVendorRelease: Integer;
     FBuggyGenerateMipmap: boolean;
     FBuggyGenerateCubeMap: boolean;
     FBuggyFBOCubeMap: boolean;
@@ -94,14 +94,15 @@ type
     property Renderer: string read FRenderer;
 
     { Are we using Mesa (http://mesa3d.org/).
-      Detected using VendorSpecific information
-      (extracted by base TGenericGLVersion), this allows us to also detect
-      Mesa version.
-      @groupBegin }
+      Detected using VendorSpecific information. }
     property Mesa: boolean read FMesa;
-    property MesaMajor: Integer read FMesaMajor;
-    property MesaMinor: Integer read FMesaMinor;
-    property MesaRelease: Integer read FMesaRelease;
+
+    { Vendor-specific drivers version.
+      Right now this is detected for Mesa and Intel.
+      @groupBegin }
+    property VendorMajor: Integer read FVendorMajor;
+    property VendorMinor: Integer read FVendorMinor;
+    property VendorRelease: Integer read FVendorRelease;
     { @groupEnd }
 
     { ATI GPU with ATI drivers. }
@@ -317,31 +318,30 @@ end;
 
 constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
 
-  { Parse Mesa version, starting from S[I] (where I should
-    be the index in S right after the word "Mesa"). }
-  procedure ParseMesaVersion(const S: string; var I: Integer);
+  { Parse Vendor version, starting from S[I]. }
+  procedure ParseVendorVersion(const S: string; var I: Integer);
   begin
     ParseWhiteSpaces(S, I);
 
-    FMesaMajor := ParseNumber(S, I);
+    FVendorMajor := ParseNumber(S, I);
     ParseWhiteSpaces(S, I);
 
     { Dot }
     if not SCharIs(S, I, '.') then
       raise EInvalidGLVersionString.Create(
-        'The dot "." separator between Mesa major and minor version number not found');
+        'The dot "." separator between Vendor major and minor version number not found');
     Inc(I);
     ParseWhiteSpaces(S, I);
 
-    FMesaMinor := ParseNumber(S, I);
+    FVendorMinor := ParseNumber(S, I);
     ParseWhiteSpaces(S, I);
 
-    { Mesa release number }
+    { Vendor release number }
     if SCharIs(S, I, '.') then
     begin
       Inc(I);
       ParseWhiteSpaces(S, I);
-      FMesaRelease := ParseNumber(S, I);
+      FVendorRelease := ParseNumber(S, I);
     end else
     begin
       { Some older Mesa versions (like 5.1) and newer (7.2) really
@@ -349,22 +349,22 @@ constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
         Seems like they don't have
         release number at all, and assuming "0" seems sensible following
         version names on WWW. So the missing dot "."
-        separator between Mesa minor and release version number should
+        separator between Vendor minor and release version number should
         be ignored. }
-      FMesaRelease := 0;
+      FVendorRelease := 0;
     end;
   end;
 
-  function MesaVersionAtLeast(VerMaj, VerMin, VerRel: Integer): boolean;
+  function VendorVersionAtLeast(VerMaj, VerMin, VerRel: Integer): boolean;
   begin
     Result :=
-        (MesaMajor > VerMaj) or
-      ( (MesaMajor = VerMaj) and (
+        (VendorMajor > VerMaj) or
+      ( (VendorMajor = VerMaj) and (
 
-        (MesaMinor > VerMin) or
-      ( (MesaMinor = VerMin) and (
+        (VendorMinor > VerMin) or
+      ( (VendorMinor = VerMin) and (
 
-         MesaRelease >= VerRel
+         VendorRelease >= VerRel
       ))));
   end;
 
@@ -381,7 +381,7 @@ begin
     VendorName := CopyPos(VendorVersion, 1, I - 1);
     FMesa := SameText(VendorName, 'Mesa');
     if Mesa then
-      ParseMesaVersion(VendorVersion, I) else
+      ParseVendorVersion(VendorVersion, I) else
     begin
       { I'm seeing also things like GL_VERSION = 1.4 (2.1 Mesa 7.0.4)
         (Debian testing (lenny) on 2008-12-31).
@@ -406,7 +406,7 @@ begin
         VendorName := CopyPos(S, MesaStartIndex, I - 1);
         FMesa := SameText(VendorName, 'Mesa');
         if Mesa then
-          ParseMesaVersion(S, I);
+          ParseVendorVersion(S, I);
       end;
     end;
 
@@ -434,12 +434,12 @@ begin
     I := 1;
     while SCharIs(VendorVersion, I, AllChars - ['0'..'9']) and (I<Length(VendorVersion)) do Inc(I);
     try
-      ParseMesaVersion(VendorVersion, I);
+      ParseVendorVersion(VendorVersion, I);
     except
     end;
   end;
 
-  FBuggyGenerateMipmap := (Mesa and (not MesaVersionAtLeast(7, 5, 0)))
+  FBuggyGenerateMipmap := (Mesa and (not VendorVersionAtLeast(7, 5, 0)))
                           {$ifdef WINDOWS} or VendorIntel {$endif};
 
   FBuggyFBOCubeMap := {$ifdef WINDOWS} VendorIntel {$else} false {$endif};
@@ -499,7 +499,7 @@ begin
   FBuggyFBOMultiSampling :=
     {$ifdef WINDOWS} (VendorATI and
       (IsPrefix('AMD Radeon HD 6', Renderer) or IsPrefix('AMD Radeon HD6', Renderer)))
-    or (VendorIntel and (not MesaVersionAtLeast(9, 18, 10)))
+    or (VendorIntel and (not VendorVersionAtLeast(9, 18, 10)))
     {$else} false {$endif};
 
   { Observed on fglrx (ATI proprietary OpenGL driver under Linux,
@@ -525,7 +525,7 @@ begin
       Vendor: VMware, Inc.
       Renderer: Gallium 0.4 on llvmpipe (LLVM 0x209)
   }
-  FBuggyDepth32 := Mesa and (MesaMajor = 8) and (MesaMinor = 0) and
+  FBuggyDepth32 := Mesa and (VendorMajor = 8) and (VendorMinor = 0) and
     (Vendor = 'VMware, Inc.') and IsPrefix('Gallium 0.4 on llvmpipe', Renderer);
 end;
 

@@ -1455,7 +1455,8 @@ const
         '  Vendor NVidia: %s' +nl+
         '  Vendor ATI: %s (fglrx: %s)' +nl+
         '  Vendor Intel: %s' +nl+
-        '  Mesa: %s (Mesa parsed version major: %d, minor: %d, release: %d)' +nl+
+        '  Mesa: %s' +nl+
+        '  Vendor parsed version: major: %d, minor: %d, release: %d' +nl+
         nl+
         '  Buggy glGenerateMipmap(EXT): %s' +nl+
         '  Buggy GL_LIGHT_MODEL_TWO_SIDE: %s' +nl+
@@ -1471,7 +1472,7 @@ const
           BoolToStr[Version.Fglrx],
           BoolToStr[Version.VendorIntel],
           BoolToStr[Version.Mesa],
-          Version.MesaMajor, Version.MesaMinor, Version.MesaRelease,
+          Version.VendorMajor, Version.VendorMinor, Version.VendorRelease,
 
           BoolToStr[Version.BuggyGenerateMipmap],
           BoolToStr[Version.BuggyLightModelTwoSide],
