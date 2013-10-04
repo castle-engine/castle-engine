@@ -32,6 +32,8 @@ procedure RenderMaterialsBegin;
     Shader.MaterialSpecularColor := SpecularColor;
     MaterialOpacity := ShapeOpacity * Attributes.Opacity;
 
+    {$ifndef OpenGLES}
+
     if Lighting then
     begin
       glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(AmbientColor, MaterialOpacity));
@@ -57,6 +59,7 @@ procedure RenderMaterialsBegin;
         turned off lighting. }
       glColorv(Vector4Single(DiffuseColor, MaterialOpacity)) else
       glColorv(Vector4Single(UnLitColor, MaterialOpacity));
+    {$endif}
   end;
 
   { Sets current OpenGL material and color properties for VRML 1.0 material

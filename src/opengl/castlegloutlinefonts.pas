@@ -88,8 +88,10 @@ type
     ) }
   TGLOutlineFont = class(TGLOutlineFontAbstract)
   private
-    base : TGLuint;
-    Font : TOutlineFont;
+    {$ifndef OpenGLES}
+    Base: TGLuint;
+    {$endif}
+    Font: TOutlineFont;
 
     TexturedXShift: Single;
     procedure TexturedBegin(const TexOriginX, TexOriginY: Single);
@@ -225,6 +227,12 @@ implementation
 
 uses CastleUtils, CastleVectors, CastleGLVersion, CastleTriangles, CastleGL;
 
+// TODO-es TGLOutlineFont is completely not implemented under OpenGL ES now.
+// To make it work, we should implement it without accessing OpenGL API,
+// 1. maybe by Proxy TAbstractGeometryNode mechanism (so we would convert
+//    3D font into normal mesh)
+// 2. or maybe draw this using textured rectangles?
+
 { TGLOutlineFontAbstract ------------------------------------------------------}
 
 function TGLOutlineFontAbstract.descend: single;
@@ -238,6 +246,7 @@ const
   {w tej chwili zawsze 256 ale byc moze kiedys cos tu zmienie}
   TTTableCount = Ord(High(char)) - Ord(Low(char)) +1;
 
+{$ifndef OpenGLES}
 type
   TVerticesTable = record
     { Sample font that requires length of p > 1000 is "Christmas Card".
@@ -249,196 +258,211 @@ type
 
   procedure AddVertex(var table: TVerticesTable; const v: TVector3d);
   begin
-   if table.count >= High(table.p) then
-    raise EInternalError.Create('CastleGLOutlineFonts: too small size of '+
-      'TVerticesTable.p - tesselator can''t work') else
+    if table.count >= High(table.p) then
+      raise EInternalError.Create('CastleGLOutlineFonts: too small size of '+
+        'TVerticesTable.p - tesselator can''t work') else
     begin
-     Inc(table.count);
-     table.p[table.count] := v;
+      Inc(table.count);
+      table.p[table.count] := v;
     end;
   end;
 
   function LastAdded(const table: TVerticesTable): PVector3d;
-  begin result := @table.p[table.count] end;
+  begin
+    result := @table.p[table.count]
+  end;
 
 procedure TessCombineCallback(Coords: PVector3d; vertex_data: Pointer;
   Weight: PVector4f; dataOut: PPointer; tablep: PVerticesTable ); OPENGL_CALLBACK_CALL
 begin
- AddVertex(tablep^, Coords^);
- dataOut^ := LastAdded(tablep^);
+  AddVertex(tablep^, Coords^);
+  dataOut^ := LastAdded(tablep^);
 end;
+{$endif}
 
 constructor TGLOutlineFont.Create(AFont: TOutlineFont;
   const depth: Single;
   const onlyLines: boolean;
   const CharactersSubset: TSetOfChars);
-var i, poz,
-    linesCount, pointsCount :Cardinal;
-    Znak: POutlineChar;
-    tobj: PGLUTesselator;
 
-    { tablica przechowujaca vertexy na ktore tesselator bedzie dostawal wskazniki. }
-    vertices : PVerticesTable;
+{$ifndef OpenGLES}
+var
+  i, poz,
+  linesCount, pointsCount :Cardinal;
+  Znak: POutlineChar;
+  tobj: PGLUTesselator;
+
+  { tablica przechowujaca vertexy na ktore tesselator bedzie dostawal wskazniki. }
+  vertices : PVerticesTable;
 
   procedure TesselatedPolygon(polZ: Single);
-  var PolygonNum, LineNum, PointNum: Integer;
-      PointsKind: TPolygonKind;
+  var
+    PolygonNum, LineNum, PointNum: Integer;
+    PointsKind: TPolygonKind;
   begin
-   vertices^.count := 0;
+    vertices^.count := 0;
 
-   gluTessBeginPolygon(tobj, vertices);
-   poz := 0;
-   for PolygonNum := 1 to Znak^.Info.PolygonsCount do
-   begin
-    { read pkNewPolygon starter }
-    Assert(Znak^.Items[poz].Kind = pkNewPolygon);
-    linesCount := Znak^.Items[poz].Count;
-    Inc(poz);
-
-    gluTessBeginContour(tobj);
-    for LineNum := 1 to linesCount do
+    gluTessBeginPolygon(tobj, vertices);
+    poz := 0;
+    for PolygonNum := 1 to Znak^.Info.PolygonsCount do
     begin
-     { read pkLines/Bezier starter }
-     Assert(Znak^.Items[poz].Kind in [pkLines, pkBezier]);
-     PointsKind := Znak^.Items[poz].Kind;
-     PointsCount := Znak^.Items[poz].Count;
-     Inc(poz);
+      { read pkNewPolygon starter }
+      Assert(Znak^.Items[poz].Kind = pkNewPolygon);
+      linesCount := Znak^.Items[poz].Count;
+      Inc(poz);
 
-     case PointsKind of
-      pkLines,
-      pkBezier:
+      gluTessBeginContour(tobj);
+      for LineNum := 1 to linesCount do
+      begin
+        { read pkLines/Bezier starter }
+        Assert(Znak^.Items[poz].Kind in [pkLines, pkBezier]);
+        PointsKind := Znak^.Items[poz].Kind;
+        PointsCount := Znak^.Items[poz].Count;
+        Inc(poz);
+
+        if PointsKind in [pkLines, pkBezier] then
         begin
-         for PointNum := 1 to PointsCount-1 do
-         begin
-          with Znak^.Items[poz] do
+          for PointNum := 1 to PointsCount-1 do
           begin
-           { vertexy dla tesselatora musza byc podawane w postaci 3 x GLdouble
-             (a my mamy 2 x GLfloat). Nie mozna ich tworzyc tymczasowo (za pomoca
-             funkcji Vector3d, na przyklad) bo przekazujemy WSKAZNIK i glu nie kopiuje
-             sobie jego zawartosci ale pozniej przekazuje do glVertex3dv zapamietany
-             wskaznik. Wiec te strukturki 3 x GLdouble musza byc troche bardziej trwale
-             (wskazniki musza byc poprawne az do konca tesselowania tego znaku).
-             Dlatego uzywamy tablicy vertices (zwroc uwage ze tablica o dynamicznym
-             rozmiarze nie jest tu dobrym rozwiazaniem bo przy kazdej alokacji
-             cala tablica dynamiczna moze zostac przesunieta w inne miejsce
-             pamieci. Wiec wskazniki na elementy tablicy dynamicznej nie maja
-             zadnej trwalosci ! }
-           AddVertex(vertices^, Vector3Double(x, y, polZ) );
-           gluTessVertex(tobj, T3dArray(LastAdded(vertices^)^), LastAdded(vertices^) );
+            with Znak^.Items[poz] do
+            begin
+              { vertexy dla tesselatora musza byc podawane w postaci 3 x GLdouble
+                (a my mamy 2 x GLfloat). Nie mozna ich tworzyc tymczasowo (za pomoca
+                funkcji Vector3d, na przyklad) bo przekazujemy WSKAZNIK i glu nie kopiuje
+                sobie jego zawartosci ale pozniej przekazuje do glVertex3dv zapamietany
+                wskaznik. Wiec te strukturki 3 x GLdouble musza byc troche bardziej trwale
+                (wskazniki musza byc poprawne az do konca tesselowania tego znaku).
+                Dlatego uzywamy tablicy vertices (zwroc uwage ze tablica o dynamicznym
+                rozmiarze nie jest tu dobrym rozwiazaniem bo przy kazdej alokacji
+                cala tablica dynamiczna moze zostac przesunieta w inne miejsce
+                pamieci. Wiec wskazniki na elementy tablicy dynamicznej nie maja
+                zadnej trwalosci ! }
+              AddVertex(vertices^, Vector3Double(x, y, polZ) );
+              gluTessVertex(tobj, T3dArray(LastAdded(vertices^)^), LastAdded(vertices^) );
+            end;
+            Inc(poz);
           end;
-          Inc(poz);
-         end;
-         Inc(poz); { ostatniego punktu linii nie czytamy - to jest pierwszy
-                     punkt nastepnej linii lub pierwszy punkt polygonu }
+          Inc(poz); { ostatniego punktu linii nie czytamy - to jest pierwszy
+                      punkt nastepnej linii lub pierwszy punkt polygonu }
         end;
         { TODO:  zrobic opcje ktora pozwoli na robienie tu krzywych beziera,
           jesli kiedys bedziesz potrzebowal BARDZO dokladnie wyrenderowac
           jakas literke (np. w duzym powiekszeniu) }
-     end;
+      end;
+      gluTessEndContour(tobj);
     end;
-    gluTessEndContour(tobj);
-   end;
-   gluTessEndPolygon(tobj);
+    gluTessEndPolygon(tobj);
   end;
+{$endif}
 
 begin
- inherited Create;
- New(vertices);
- try
-  base := glGenListsCheck(TTTableCount, 'TGLOutlineFont.Create');
+  inherited Create;
   Font := AFont;
+  fRowHeight := Font.RowHeight;
 
-  tobj := gluNewTess();  { inicjuj tesselator }
-  gluTessCallback(tobj, GLU_TESS_VERTEX, TCallBack(glVertex3dv));
-  gluTessCallback(tobj, GLU_TESS_BEGIN, TCallBack(glBegin));
-  gluTessCallback(tobj, GLU_TESS_END, TCallBack(glEnd));
+{$ifndef OpenGLES}
+  New(vertices);
+  try
+    base := glGenListsCheck(TTTableCount, 'TGLOutlineFont.Create');
 
-  { Avoid Mesa3D bug. Testcase:
-      $ view3dscene cones.wrl
-      view3dscene: tnl/t_save_api.c:1605: _tnl_EndList: Assertion `((TNLcontext *)((ctx)->swtnl_context))->save.vertex_size == 0' failed.
-    Mesa version: bug confirmed with Mesa 6.5.1 and 6.5.2,
-    not observed on Mesa 5.1 and 6.4.2.
-    See ../../doc/old_mesa_normals_edge_flag_bug.txt in SVN for details.
+    tobj := gluNewTess();  { inicjuj tesselator }
+    gluTessCallback(tobj, GLU_TESS_VERTEX, TCallBack(glVertex3dv));
+    gluTessCallback(tobj, GLU_TESS_BEGIN, TCallBack(glBegin));
+    gluTessCallback(tobj, GLU_TESS_END, TCallBack(glEnd));
 
-    Avoid fglrx bug. Testcase:
-      $ view3dscene demo_models/shaders/geometry_shader_fun_smoothing.x3dv
-    causes segmentation fault inside /usr/lib/fglrx/dri/fglrx_dri.so
-    on Ubuntu 10.04 32-bit, with fglrx coming from Ubuntu 10.04 package
-    (version 2:8.840-0ubuntu4, see http://packages.ubuntu.com/natty/fglrx).
-    See https://sourceforge.net/p/castle-engine/tickets/2/ . }
-  if not (GLVersion.Mesa or GLVersion.Fglrx) then
-    gluTessCallback(tobj, GLU_TESS_EDGE_FLAG, TCallBack(glEdgeFlag));
+    { Avoid Mesa3D bug. Testcase:
+        $ view3dscene cones.wrl
+        view3dscene: tnl/t_save_api.c:1605: _tnl_EndList: Assertion `((TNLcontext *)((ctx)->swtnl_context))->save.vertex_size == 0' failed.
+      Mesa version: bug confirmed with Mesa 6.5.1 and 6.5.2,
+      not observed on Mesa 5.1 and 6.4.2.
+      See ../../doc/old_mesa_normals_edge_flag_bug.txt in SVN for details.
 
-  gluTessCallback(tobj, GLU_TESS_ERROR, TCallBack(@GLErrorRaise));
-  gluTessCallback(tobj, GLU_TESS_COMBINE_DATA, TCallBack(@TessCombineCallback));
+      Avoid fglrx bug. Testcase:
+        $ view3dscene demo_models/shaders/geometry_shader_fun_smoothing.x3dv
+      causes segmentation fault inside /usr/lib/fglrx/dri/fglrx_dri.so
+      on Ubuntu 10.04 32-bit, with fglrx coming from Ubuntu 10.04 package
+      (version 2:8.840-0ubuntu4, see http://packages.ubuntu.com/natty/fglrx).
+      See https://sourceforge.net/p/castle-engine/tickets/2/ . }
+    if not (GLVersion.Mesa or GLVersion.Fglrx) then
+      gluTessCallback(tobj, GLU_TESS_EDGE_FLAG, TCallBack(glEdgeFlag));
 
-  if onlyLines then gluTessProperty(tobj, GLU_TESS_BOUNDARY_ONLY, GL_TRUE);
+    gluTessCallback(tobj, GLU_TESS_ERROR, TCallBack(@GLErrorRaise));
+    gluTessCallback(tobj, GLU_TESS_COMBINE_DATA, TCallBack(@TessCombineCallback));
 
-  {line below speeds up the tesselation and makes sure that all letters
-   have consistent winding (conterclockwise with respect to normal 0, 0, -1)}
-  gluTessNormal(tobj, 0, 0, -1);
+    if onlyLines then gluTessProperty(tobj, GLU_TESS_BOUNDARY_ONLY, GL_TRUE);
 
-  for i := 0 to 255 do
-  begin
-   Znak := Font.Data[Chr(i)];
-   glNewList(i+base, GL_COMPILE);
+    {line below speeds up the tesselation and makes sure that all letters
+     have consistent winding (conterclockwise with respect to normal 0, 0, -1)}
+    gluTessNormal(tobj, 0, 0, -1);
 
-   if (CharactersSubset = []) or (Chr(i) in CharactersSubset) then
-   begin
-     if Depth <> 0 then glNormal3f(0, 0, -1);
+    for i := 0 to 255 do
+    begin
+      Znak := Font.Data[Chr(i)];
+      glNewList(i+base, GL_COMPILE);
 
-     TesselatedPolygon(0);
+      if (CharactersSubset = []) or (Chr(i) in CharactersSubset) then
+      begin
+        if Depth <> 0 then glNormal3f(0, 0, -1);
 
-     if depth <> 0 then
-     begin
-       { Draw copy of polygons on Depth. This still gets
-         normal (0, 0, -1), set above for the 1st copy at Depth = 0.  }
-       TesselatedPolygon(depth);
+        TesselatedPolygon(0);
 
-       { Draw sides. CharExtrusionPrint will produce appropriate normal vectors. }
-       CharExtrusionPrint(Chr(I), Depth, onlyLines);
-     end;
-   end;
+        if depth <> 0 then
+        begin
+          { Draw copy of polygons on Depth. This still gets
+            normal (0, 0, -1), set above for the 1st copy at Depth = 0.  }
+          TesselatedPolygon(depth);
 
-   glEndList;
+          { Draw sides. CharExtrusionPrint will produce appropriate normal vectors. }
+          CharExtrusionPrint(Chr(I), Depth, onlyLines);
+        end;
+      end;
 
-  end;
+      glEndList;
+    end;
 
-  gluDeleteTess(tobj);
+    gluDeleteTess(tobj);
 
- finally Dispose(vertices) end;
-
- fRowHeight := Font.RowHeight;
+  finally Dispose(vertices) end;
+{$endif}
 end;
 
 destructor TGLOutlineFont.Destroy;
 begin
- glDeleteLists(base, TTTableCount);
- inherited;
+{$ifndef OpenGLES}
+  glDeleteLists(base, TTTableCount);
+{$endif}
+  inherited;
 end;
 
 procedure TGLOutlineFont.CharPrint(c: char);
 begin
- glCallList(Ord(c)+base);
+{$ifndef OpenGLES}
+  glCallList(Ord(c)+base);
+{$endif}
 end;
 
 procedure TGLOutlineFont.CharPrintAndMove(c: char);
 begin
- CharPrint(c);
- glTranslatef(Font.Data[c]^.Info.MoveX, Font.Data[c]^.Info.MoveY, 0);
+  CharPrint(c);
+{$ifndef OpenGLES}
+  glTranslatef(Font.Data[c]^.Info.MoveX, Font.Data[c]^.Info.MoveY, 0);
+{$endif}
 end;
 
 procedure TGLOutlineFont.Print(const s: string);
 begin
- glPushMatrix;
- PrintAndMove(s);
- glPopMatrix;
+{$ifndef OpenGLES}
+  glPushMatrix;
+  PrintAndMove(s);
+  glPopMatrix;
+{$endif}
 end;
 
 procedure TGLOutlineFont.PrintAndMove(const s: string);
-var i: integer;
+var
+  i: integer;
 begin
- for i := 1 to Length(s) do CharPrintAndMove(s[i]);
+  for i := 1 to Length(s) do CharPrintAndMove(s[i]);
 end;
 
 function TGLOutlineFont.TextWidth(const s: string): single;
@@ -449,6 +473,7 @@ begin result := Font.TextHeight(s) end;
 
 procedure TGLOutlineFont.TexturedBegin(const TexOriginX, TexOriginY: Single);
 begin
+{$ifndef OpenGLES}
   glPushAttrib(GL_TEXTURE_BIT);
 
   glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -466,12 +491,15 @@ begin
   glEnable(GL_TEXTURE_GEN_T);
 
   TexturedXShift := 0;
+{$endif}
 end;
 
 procedure TGLOutlineFont.TexturedLetterEnd(
   const TexOriginX, TexOriginY: Single; const C: char);
 begin
   TexturedXShift += Font.Data[C]^.Info.MoveX;
+
+{$ifndef OpenGLES}
 
   { texS = (objectX+xshift - texOriginX)/RowHeight =
            objectX/RowHeight + (xshift-texOriginX)/RowHeight
@@ -481,11 +509,14 @@ begin
   glTexGenv(GL_S, GL_OBJECT_PLANE,
     Vector4Single(1/RowHeight, 0, 0,
     (TexturedXShift - texOriginX) / RowHeight));
+{$endif}
 end;
 
 procedure TGLOutlineFont.TexturedEnd;
 begin
+{$ifndef OpenGLES}
   glPopAttrib;
+{$endif}
 end;
 
 procedure TGLOutlineFont.PrintTexturedAndMove(const s: string;
@@ -505,13 +536,16 @@ end;
 procedure TGLOutlineFont.PrintTextured(const s: string;
   const texOriginX, texOriginY: Single);
 begin
+{$ifndef OpenGLES}
   glPushMatrix;
   PrintTexturedAndMove(s, texOriginX, texOriginY);
   glPopMatrix;
+{$endif}
 end;
 
 procedure TGLOutlineFont.CharExtrusionPrint(
   const C: char; const Depth: Single; onlyLines: boolean);
+{$ifndef OpenGLES}
 var
   Znak: POutlineChar;
   Poz: Cardinal;
@@ -526,28 +560,26 @@ begin
   poz := 0;
   for PolygonNum := 1 to Znak^.Info.PolygonsCount do
   begin
-   Assert(Znak^.Items[poz].Kind = pkNewPolygon);
-   linesCount := Znak^.Items[poz].Count;
-   Inc(poz);
-
-   { Set Normal, only to have it initially set to anything.
-     Value below will be used as normal for 2nd vertex, and for flat shading
-     this will simply be ignored. }
-   Normal := Vector3Single(1, 0, 0);
-
-   if onlyLines then glBegin(GL_LINES) else glBegin(GL_QUAD_STRIP);
-
-   for LineNum := 1 to LinesCount do
-   begin
-    Assert(Znak^.Items[poz].Kind in [pkLines, pkBezier]);
-    PointsKind := Znak^.Items[poz].Kind;
-    PointsCount := Znak^.Items[poz].Count;
+    Assert(Znak^.Items[poz].Kind = pkNewPolygon);
+    linesCount := Znak^.Items[poz].Count;
     Inc(poz);
 
-    case PointsKind of
-     pkLines,
-     pkBezier:
-       begin
+    { Set Normal, only to have it initially set to anything.
+      Value below will be used as normal for 2nd vertex, and for flat shading
+      this will simply be ignored. }
+    Normal := Vector3Single(1, 0, 0);
+
+    if onlyLines then glBegin(GL_LINES) else glBegin(GL_QUAD_STRIP);
+
+    for LineNum := 1 to LinesCount do
+    begin
+      Assert(Znak^.Items[poz].Kind in [pkLines, pkBezier]);
+      PointsKind := Znak^.Items[poz].Kind;
+      PointsCount := Znak^.Items[poz].Count;
+      Inc(poz);
+
+      if PointsKind in [pkLines, pkBezier] then
+      begin
         for PointNum := 1 to PointsCount-1 do
         begin
           { Thanks to the fact that each line always has as it's last point
@@ -580,30 +612,34 @@ begin
         end;
         Inc(poz); { ostatniego punktu linii nie czytamy - to jest pierwszy
                     punkt nastepnej linii lub pierwszy punkt polygonu }
-       end;
-       { TODO:  robic tu krzywe beziera jezeli kiedys bede potrzebowal
-         takiej dokladnosci? }
+      end;
+      { TODO:  robic tu krzywe beziera jezeli kiedys bede potrzebowal
+        takiej dokladnosci? }
     end;
-   end;
 
-   {na koncu - laczymy ostatnia pare z pierwsza}
-   if not onlyLines then
-   with Znak^.Items[poz-1] do
-   begin
-    glVertex2f(x, y);
-    glNormalv(Normal);
-    glVertex3f(x, y, depth);
-   end;
+    {na koncu - laczymy ostatnia pare z pierwsza}
+    if not onlyLines then
+      with Znak^.Items[poz-1] do
+      begin
+        glVertex2f(x, y);
+        glNormalv(Normal);
+        glVertex3f(x, y, depth);
+      end;
 
-   glEnd;
+    glEnd;
   end;
+{$else}
+begin
+{$endif}
 end;
 
 procedure TGLOutlineFont.CharExtrusionPrintAndMove(
   const C: char; const Depth: Single);
 begin
   CharExtrusionPrint(C, Depth);
+{$ifndef OpenGLES}
   glTranslatef(Font.Data[C]^.Info.MoveX, Font.Data[C]^.Info.MoveY, 0);
+{$endif}
 end;
 
 procedure TGLOutlineFont.PrintExtrusionAndMove(

@@ -169,6 +169,8 @@ begin
       MaxTo1st(MaxTextWidth, TextWidths.L[I]);
     end;
 
+    {$ifndef OpenGLES} // TODO-es
+
     glPushMatrix;
       glScalef(1, YScale, 1);
 
@@ -259,6 +261,8 @@ begin
       end;
 
     glPopMatrix;
+
+    {$endif}
 
     { These events should be generated only when
       the default values of length and maxExtent are used.

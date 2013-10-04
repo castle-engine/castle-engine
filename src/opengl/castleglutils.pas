@@ -459,9 +459,10 @@ function OrthoProjection(const left, right, bottom, top: Single;
 
 { ---------------------------------------------------------------------------- }
 
-{$ifndef OpenGLES}
 { }
 procedure GLSetEnabled(value: TGLenum; isEnabled: boolean);
+
+{$ifndef OpenGLES}
 
 { Draw vertical line using OpenGL. Uses current OpenGL color.
 
@@ -1171,12 +1172,12 @@ end;
 
 { Various helpers ------------------------------------------------------------ }
 
-{$ifndef OpenGLES}
 procedure GLSetEnabled(value: TGLenum; isEnabled: boolean);
 begin
   if isEnabled then glEnable(value) else glDisable(value);
 end;
 
+{$ifndef OpenGLES}
 procedure GLVerticalLine(x, y1, y2: TGLfloat);
 begin
   glBegin(GL_LINES); glVertex2f(x, y1); glVertex2f(x, y2); glEnd;

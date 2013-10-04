@@ -410,10 +410,12 @@
 
 {$ifdef read_implementation}
 
+{$ifndef OpenGLES} // TODO-es
 const
   CombineGL: array [TCombine] of TGLint = (
     GL_MODULATE, GL_REPLACE, GL_ADD_SIGNED_EXT, GL_ADD, GL_SUBTRACT,
     GL_INTERPOLATE_EXT, GL_DOT3_RGB_ARB, GL_DOT3_RGBA_ARB );
+{$endif}
 
 function TextureRepeatToGL(const VrmlTextureRepeat: boolean): TGLenum;
 begin
@@ -766,11 +768,13 @@ begin
   if (TextureUnitsCount > 0) and
      Enable(0, Shader, Env) then
   begin
+    {$ifndef OpenGLES} // TODO-es
     { Here we know that Env was initialized above.
       So we know that mode is simple, the same for rgb and alpha,
       and can be set using GL_TEXTURE_ENV_MODE
       (doesn't require using GL_COMBINE). }
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, CombineGL[Env.Combine[cRGB]]);
+    {$endif}
     TexCoordsNeeded := 1;
   end;
 end;
@@ -876,10 +880,12 @@ end;
 
 procedure TGLMultiTextureNode.EnableAll(const TextureUnitsCount: Cardinal;
   out TexCoordsNeeded: Cardinal; Shader: TShader);
+{$ifndef OpenGLES} // TODO-es
 const
   ColorSourceGL: array [TColorSource] of TGLint =
   ( GL_PRIMARY_COLOR, GL_TEXTURE, GL_CONSTANT, GL_PREVIOUS );
   Argument: array [ta0..ta1] of Integer = ( 0, 1 );
+{$endif}
 var
   ChildTex: TX3DNode;
   I: Integer;
@@ -929,6 +935,7 @@ begin
           Renderer.DisableCurrentTexture;
         end else
         begin
+          {$ifndef OpenGLES} // TODO-es
           glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 
           glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, CombineGL[Env.Combine[cRGB]]);
@@ -979,6 +986,7 @@ begin
               TextureNode.FdColor.Value,
               TextureNode.FdAlpha.Value));
           end;
+          {$endif}
         end;
       end;
     end;
@@ -1839,7 +1847,9 @@ begin
   if not Result then Exit;
 
   Renderer.ActiveTexture(TextureUnit);
+  {$ifndef OpenGLES} // TODO-es
   glBindTexture(GL_TEXTURE_3D, GLName);
+  {$endif}
 end;
 
 function TGL3DTextureNode.Enable(const TextureUnit: Cardinal;
@@ -2008,6 +2018,7 @@ begin
       SavedDepthRange := DepthRange;
       DepthRange := drFull;
 
+      {$ifndef OpenGLES} // TODO-es
       glPushAttrib(GL_POLYGON_BIT);
         { enable polygon offset for everything (whole scene).
 
@@ -2019,10 +2030,13 @@ begin
         glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
         glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
         glPolygonOffset(TextureNode.FdScale.Value, TextureNode.FdBias.Value); { saved by GL_POLYGON_BIT }
+      {$endif}
 
         Render;
 
+      {$ifndef OpenGLES} // TODO-es
       glPopAttrib;
+      {$endif}
 
       DepthRange := SavedDepthRange;
 

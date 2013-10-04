@@ -1560,6 +1560,7 @@ begin
   end;
 
   glGenTextures(1, @Result);
+  {$ifndef OpenGLES} // TODO-es
   glBindTexture(GL_TEXTURE_3D, Result);
 
   glTextureImage3d(Image, Filter, DDS);
@@ -1569,6 +1570,7 @@ begin
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, TextureWrap[2]);
 
   TexParameterMaxAnisotropy(GL_TEXTURE_3D, Anisotropy);
+  {$endif}
 
   TextureCached := TTexture3DCache.Create;
   Texture3DCaches.Add(TextureCached);
@@ -1647,6 +1649,8 @@ begin
   glTexImage2d(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
     Width, Height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nil);
 
+  {$ifndef OpenGLES} // TODO-es
+
   if GLFeatures.ARB_shadow then
   begin
     if DepthCompareField <> nil then
@@ -1680,6 +1684,8 @@ begin
     glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
   end else
     OnWarning(wtMinor, 'VRML/X3D', 'OpenGL doesn''t support ARB_shadow, we cannot set depth comparison for depth texture');
+
+  {$endif}
 
   TextureCached := TTextureDepthOrFloatCache.Create;
   TextureDepthOrFloatCaches.Add(TextureCached);
@@ -1747,6 +1753,7 @@ begin
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap[0]);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap[1]);
 
+  {$ifndef OpenGLES} // TODO-es
   if Precision32 then
     InternalFormat := GL_RGB32F_ARB { same thing as GL_RGB_FLOAT32_ATI } else
     InternalFormat := GL_RGB16F_ARB { same thing as GL_RGB_FLOAT16_ATI };
@@ -1754,6 +1761,7 @@ begin
   { Do not init any texture image. Just initialize texture sizes and formats. }
   glTexImage2d(GL_TEXTURE_2D, 0, InternalFormat,
     Width, Height, 0, GL_RGB, GL_FLOAT, nil);
+  {$endif}
 
   TextureCached := TTextureDepthOrFloatCache.Create;
   TextureDepthOrFloatCaches.Add(TextureCached);
@@ -2567,25 +2575,33 @@ begin
   if GLFeatures.UseMultiTexturing then
   begin
     ActiveTexture(0);
+    {$ifndef OpenGLES} // TODO-es
     glClientActiveTexture(GL_TEXTURE0);
+    {$endif}
   end;
 
   { init our OpenGL state }
+  {$ifndef OpenGLES} // TODO-es
   glMatrixMode(GL_MODELVIEW);
 
   glPointSize(Attributes.PointSize);
+  {$endif}
 
   if Beginning then
   begin
     FLineWidth := Attributes.LineWidth;
+    {$ifndef OpenGLES} // TODO-es
     glLineWidth(FLineWidth);
+    {$endif}
   end else
     LineWidth := Attributes.LineWidth;
 
   if Beginning then
   begin
     FLineType := ltSolid;
+    {$ifndef OpenGLES} // TODO-es
     glDisable(GL_LINE_STIPPLE);
+    {$endif}
   end else
     LineType := ltSolid;
 
@@ -2597,23 +2613,30 @@ begin
 
   if Attributes.Mode in [rmDepth, rmFull] then
   begin
+    {$ifndef OpenGLES} // TODO-es
     glDisable(GL_TEXTURE_GEN_S);
     glDisable(GL_TEXTURE_GEN_T);
     glDisable(GL_TEXTURE_GEN_R);
     glDisable(GL_TEXTURE_GEN_Q);
+    {$endif}
 
     { Initialize FFixedFunctionAlphaTest, make sure OpenGL state is appropriate }
     FFixedFunctionAlphaTest := false;
+    {$ifndef OpenGLES} // TODO-es
     glDisable(GL_ALPHA_TEST);
+    {$endif}
 
     { We only use glAlphaFunc for textures, and there this value is suitable.
       We never change glAlphaFunc during rendering, so no need to call this in RenderEnd. }
+    {$ifndef OpenGLES} // TODO-es
     if Beginning then
       glAlphaFunc(GL_GEQUAL, 0.5);
+    {$endif}
   end;
 
   if Attributes.Mode = rmFull then
   begin
+    {$ifndef OpenGLES} // TODO-es
     glDisable(GL_COLOR_MATERIAL);
 
     { We don't really need to enable GL_NORMALIZE.
@@ -2635,17 +2658,27 @@ begin
     if Log then
       WritelnLog('Lighting', GLVersion.BuggyLightModelTwoSideMessage);
 
+    {$endif}
+
     { Initialize FSmoothShading, make sure OpenGL state is appropriate }
     FSmoothShading := true;
+    {$ifndef OpenGLES} // TODO-es
     glShadeModel(GL_SMOOTH);
+    {$endif}
 
     if Beginning then
     begin
       { Initialize FFixedFunctionLighting, make sure OpenGL state is appropriate }
       FFixedFunctionLighting := Attributes.Lighting;
+      {$ifndef OpenGLES} // TODO-es
       GLSetEnabled(GL_LIGHTING, FFixedFunctionLighting);
+      {$endif}
     end else
+      {$ifndef OpenGLES} // TODO-es
       glDisable(GL_LIGHTING);
+      {$endif}
+
+    {$ifndef OpenGLES} // TODO-es
 
     { No need to disable lights at the beginning.
       LightsRenderer already assumes that state of lights is initially unknown,
@@ -2665,6 +2698,7 @@ begin
         so no need to call this in RenderEnd. }
     if Beginning then
       glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+    {$endif}
   end;
 end;
 
@@ -2677,7 +2711,9 @@ begin
   RenderCleanState(true);
 
   { push matrix after RenderCleanState, to be sure we're in modelview mode }
+  {$ifndef OpenGLES} // TODO-es
   glPushMatrix;
+  {$endif}
 
   Assert(FogNode = nil);
   Assert(not FogEnabled);
@@ -2697,7 +2733,9 @@ begin
   FogNode := nil;
   FogEnabled := false;
 
+  {$ifndef OpenGLES} // TODO-es
   glPopMatrix;
+  {$endif}
 
   RenderCleanState(false);
 
@@ -2819,6 +2857,8 @@ const
   begin
     GetFog(Node, FogEnabled, Volumetric, VolumetricDirection, VolumetricVisibilityStart);
 
+    {$ifndef OpenGLES} // TODO-es
+
     if FogEnabled then
     begin
       Assert(Node <> nil);
@@ -2867,6 +2907,7 @@ const
       glEnable(GL_FOG);
     end else
       glDisable(GL_FOG);
+    {$endif}
   end;
 
 begin
@@ -2893,14 +2934,14 @@ procedure TGLRenderer.RenderShapeTextureTransform(Shape: TX3DRendererShape;
     transformations encoded in this TextureTransform node. }
   procedure TextureMultMatrix(TextureTransform: TAbstractTextureTransformNode);
   begin
+    { Optimized version of
+        glMultMatrix(TextureTransform.TransformMatrix);
+      specially for TTextureTransformNode. Possibly using OpenGL
+      translate etc. commands instead of loading directly 4x4 matrix will
+      result in some performance/precision gain (but, not confirmed in
+      practice).
     if TextureTransform is TTextureTransformNode then
     begin
-      { Optimized version of
-          glMultMatrix(TextureTransform.TransformMatrix);
-        specially for TTextureTransformNode. Possibly using OpenGL
-        translate etc. commands instead of loading directly 4x4 matrix will
-        result in some performance/precision gain (but, not confirmed in
-        practice). }
       with TTextureTransformNode(TextureTransform) do
       begin
         glTranslatef(-FdCenter.Value[0], -FdCenter.Value[1], 0);
@@ -2910,8 +2951,10 @@ procedure TGLRenderer.RenderShapeTextureTransform(Shape: TX3DRendererShape;
           FdTranslation.Value[0] + FdCenter.Value[0],
           FdTranslation.Value[1] + FdCenter.Value[1], 0);
       end;
-    end else
+    end else }
+    {$ifndef OpenGLES} //TODO-es
       glMultMatrix(TextureTransform.TransformMatrix);
+    {$endif}
   end;
 
 var
@@ -2925,6 +2968,8 @@ begin
 
   TextureTransformUnitsUsed := 0;
   TextureTransformUnitsUsedMore.Count := 0;
+
+  {$ifndef OpenGLES} //TODO-es
 
   if (State.ShapeNode = nil { VRML 1.0, always some texture transform }) or
      (State.ShapeNode.TextureTransform <> nil { VRML 2.0 with tex transform }) then
@@ -3010,9 +3055,11 @@ begin
     { restore GL_MODELVIEW }
     glMatrixMode(GL_MODELVIEW);
   end;
+  {$endif}
 
   RenderShapeClipPlanes(Shape, Fog, Shader, MaterialOpacity, Lighting);
 
+  {$ifndef OpenGLES} //TODO-es
   if (TextureTransformUnitsUsed <> 0) or
      (TextureTransformUnitsUsedMore.Count <> 0) then
   begin
@@ -3036,6 +3083,7 @@ begin
     { restore GL_MODELVIEW }
     glMatrixMode(GL_MODELVIEW);
   end;
+  {$endif}
 end;
 
 procedure TGLRenderer.RenderShapeClipPlanes(Shape: TX3DRendererShape;
@@ -3081,12 +3129,14 @@ var
             the *inverse* of modelview. The wording is crucial here:
             plane is multiplied by the matrix, not the other way around. }
 
+          {$ifndef OpenGLES} // TODO-es
           glPushMatrix;
             glMultMatrix(ClipPlane^.Transform);
             glClipPlane(GL_CLIP_PLANE0 + ClipPlanesEnabled,
               Vector4Double(ClipPlane^.Node.FdPlane.Value));
             Shader.EnableClipPlane(ClipPlanesEnabled);
           glPopMatrix;
+          {$endif}
 
           Inc(ClipPlanesEnabled);
 
@@ -3110,10 +3160,14 @@ var
 begin
   ClipPlanesBegin(Shape.State.ClipPlanes);
 
+  {$ifndef OpenGLES} // TODO-es
   glPushMatrix;
     glMultMatrix(Shape.State.Transform);
+  {$endif}
     RenderShapeCreateMeshRenderer(Shape, Fog, Shader, MaterialOpacity, Lighting);
+  {$ifndef OpenGLES} // TODO-es
   glPopMatrix;
+  {$endif}
 
   ClipPlanesEnd;
 end;
@@ -3475,7 +3529,9 @@ begin
   if (TexUnit >= TextureTransformUnitsUsed) and
      (TextureTransformUnitsUsedMore.IndexOf(TexUnit) = -1) then
   begin
+    {$ifndef OpenGLES} //TODO-es
     glPushMatrix;
+    {$endif}
 
     { Simple implementation would just add always TexUnit
       to TextureTransformUnitsUsedMore. But there are optimizations possible,
@@ -3652,9 +3708,11 @@ begin
   if FSmoothShading <> Value then
   begin
     FSmoothShading := Value;
+    {$ifndef OpenGLES} //TODO-es
     if Value then
       glShadeModel(GL_SMOOTH) else
       glShadeModel(GL_FLAT);
+    {$endif}
   end;
 end;
 
@@ -3663,7 +3721,9 @@ begin
   if FFixedFunctionLighting <> Value then
   begin
     FFixedFunctionLighting := Value;
+    {$ifndef OpenGLES} //TODO-es
     GLSetEnabled(GL_LIGHTING, FixedFunctionLighting);
+    {$endif}
   end;
 end;
 
@@ -3672,7 +3732,9 @@ begin
   if FFixedFunctionAlphaTest <> Value then
   begin
     FFixedFunctionAlphaTest := Value;
+    {$ifndef OpenGLES} //TODO-es
     GLSetEnabled(GL_ALPHA_TEST, FixedFunctionAlphaTest);
+    {$endif}
   end;
 end;
 
@@ -3690,6 +3752,7 @@ begin
   if FLineType <> Value then
   begin
     FLineType := Value;
+    {$ifndef OpenGLES} //TODO-es
     case LineType of
       ltSolid: glDisable(GL_LINE_STIPPLE);
       ltDashed      : begin glLineStipple(1, $00FF); glEnable(GL_LINE_STIPPLE); end;
@@ -3698,6 +3761,7 @@ begin
       ltDashDotDot  : begin glLineStipple(1, $FCCC); glEnable(GL_LINE_STIPPLE); end;
       else raise EInternalError.Create('LineType?');
     end;
+    {$endif}
   end;
 end;
 

@@ -159,6 +159,7 @@ end;
 { TBaseCoordinateRenderer ------------------------------------------------ }
 
 procedure TBaseCoordinateRenderer.Render;
+{$ifndef OpenGLES} // TODO-es
 var
   Locations: TLongIntList;
 
@@ -341,6 +342,9 @@ begin
       DisableArrays;
     end;
   finally RenderCoordinateEnd end;
+{$else}
+begin
+{$endif}
 end;
 
 procedure TBaseCoordinateRenderer.RenderCoordinateBegin;
@@ -382,9 +386,11 @@ end;
   available, and shifting TextureUnit by GL_TEXTURE0) is taken care of inside here. }
 procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
 begin
+{$ifndef OpenGLES} // TODO-es
   if GLFeatures.UseMultiTexturing then
     glMultiTexCoord4fv(GL_TEXTURE0 + TextureUnit, @TexCoord) else
     glTexCoord4fv(@TexCoord);
+{$endif}
 end;
 
 procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
@@ -393,6 +399,8 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
     for texture units where TexCoords[].Generation[] <> tgExplicit. }
   procedure EnableTextureGen(const TexUnit: Cardinal;
     TexCoord: TGeometryTexCoord);
+
+  {$ifndef OpenGLES} // TODO-es
 
     { Do the necessary things for WorldSpaceNormal and
       WorldSpaceReflectionVector. }
@@ -594,6 +602,9 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         end;
       else raise EInternalError.Create('EnableTextureGen - Gen?');
     end;
+  {$else}
+  begin
+  {$endif}
   end;
 
 var
@@ -635,6 +646,7 @@ begin
      Arrays.FogDirectValues and
      GLFeatures.EXT_fog_coord then
   begin
+    {$ifndef OpenGLES} // TODO-es
     { When Renderer.FogVolumetric, GL_FOG_COORDINATE_SOURCE_EXT
       is already set correctly by RenderBegin. }
     if not Renderer.FogVolumetric then
@@ -644,6 +656,7 @@ begin
     glFogi(GL_FOG_MODE, GL_LINEAR); // saved by GL_FOG_BIT
     glFogf(GL_FOG_START, 0); // saved by GL_FOG_BIT
     glFogf(GL_FOG_END, 1); // saved by GL_FOG_BIT
+    {$endif}
 
     { We potentially override the fog already set
       by TGLRenderer.RenderShapeFog here. Not a problem
@@ -660,6 +673,7 @@ begin
      Arrays.FogDirectValues and
      GLFeatures.EXT_fog_coord then
   begin
+    {$ifndef OpenGLES} // TODO-es
     glPopAttrib;
 
     { Restore GL_FOG_COORDINATE_SOURCE_EXT. Actually, it seems glPopAttrib
@@ -667,6 +681,7 @@ begin
       on it. }
     if not Renderer.FogVolumetric then
       glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
+    {$endif}
   end;
   inherited;
 end;
@@ -684,8 +699,10 @@ end;
 
 procedure TMaterialFromColorCoordinateRenderer.RenderCoordinateEnd;
 begin
+  {$ifndef OpenGLES} // TODO-es
   if MaterialFromColorEnabled then
     glDisable(GL_COLOR_MATERIAL);
+  {$endif}
   inherited;
 end;
 
