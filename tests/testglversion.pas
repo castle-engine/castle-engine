@@ -37,7 +37,7 @@ begin
   G := TGLVersion.Create('1.4 (2.1 Mesa 7.0.4)',
     'Mesa project: www.mesa3d.org', 'Mesa GLX Indirect');
   try
-    Assert(G.VendorVersion = '(2.1 Mesa 7.0.4)');
+    Assert(G.VendorInfo = '(2.1 Mesa 7.0.4)');
     Assert(G.Vendor = 'Mesa project: www.mesa3d.org');
     Assert(G.Renderer = 'Mesa GLX Indirect');
 
@@ -55,15 +55,15 @@ begin
     Assert(not G.ReleaseExists);
 
     Assert(G.Mesa);
-    Assert(G.MesaMajor = 7);
-    Assert(G.MesaMinor = 0);
-    Assert(G.MesaRelease = 4);
+    Assert(G.VendorMajor = 7);
+    Assert(G.VendorMinor = 0);
+    Assert(G.VendorRelease = 4);
   finally FreeAndNil(G) end;
 
   G := TGLVersion.Create('2.1 Mesa 7.1', 'Brian Paul',
     'Mesa DRI Intel(blah blah blah)');
   try
-    Assert(G.VendorVersion = 'Mesa 7.1');
+    Assert(G.VendorInfo = 'Mesa 7.1');
     Assert(G.Vendor = 'Brian Paul');
     Assert(G.Renderer = 'Mesa DRI Intel(blah blah blah)');
 
@@ -73,14 +73,14 @@ begin
     Assert(not G.ReleaseExists);
 
     Assert(G.Mesa);
-    Assert(G.MesaMajor = 7);
-    Assert(G.MesaMinor = 1);
-    Assert(G.MesaRelease = 0);
+    Assert(G.VendorMajor = 7);
+    Assert(G.VendorMinor = 1);
+    Assert(G.VendorRelease = 0);
   finally FreeAndNil(G) end;
 
   G := TGLVersion.Create('1.2.3', 'foobar', '');
   try
-    Assert(G.VendorVersion = '');
+    Assert(G.VendorInfo = '');
     Assert(G.Vendor = 'foobar');
     Assert(G.Renderer = '');
 
