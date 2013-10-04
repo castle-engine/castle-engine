@@ -1443,20 +1443,23 @@ const
   function VersionReport(Version: TGenericGLVersion): string;
   begin
     Result := Format('  Version parsed: major: %d, minor: %d, release exists: %s, ' +
-      'release: %d, vendor-specific version: "%s"',
+      'release: %d, vendor-specific information: "%s"',
       [ Version.Major, Version.Minor, BoolToStr[Version.ReleaseExists],
-        Version.Release,  Version.VendorVersion ]);
+        Version.Release, Version.VendorInfo ]);
   end;
 
   function VendorReport(Version: TGLVersion): string;
   begin
     Result :=
       Format(
-        '  Vendor NVidia: %s' +nl+
-        '  Vendor ATI: %s (fglrx: %s)' +nl+
-        '  Vendor Intel: %s' +nl+
+        '  Vendor-specific version parsed: major: %d, minor: %d, release: %d' +nl+
+        '  Vendor: ' +PChar(glGetString(GL_VENDOR)) +nl+
+        '  Renderer: ' +PChar(glGetString(GL_RENDERER)) +nl+
+        nl+
+        '  NVidia: %s' +nl+
+        '  ATI: %s (fglrx: %s)' +nl+
+        '  Intel: %s' +nl+
         '  Mesa: %s' +nl+
-        '  Vendor parsed version: major: %d, minor: %d, release: %d' +nl+
         nl+
         '  Buggy glGenerateMipmap(EXT): %s' +nl+
         '  Buggy GL_LIGHT_MODEL_TWO_SIDE: %s' +nl+
@@ -1467,12 +1470,12 @@ const
         '  Buggy FBO rendering to cube map texture: %s' +nl+
         '  Buggy swap buffers with non-standard glViewport: %s' +nl+
         '  Buggy 32-bit depth buffer: %s',
-        [ BoolToStr[Version.VendorNVidia],
+        [ Version.VendorMajor, Version.VendorMinor, Version.VendorRelease,
+          BoolToStr[Version.VendorNVidia],
           BoolToStr[Version.VendorATI],
           BoolToStr[Version.Fglrx],
           BoolToStr[Version.VendorIntel],
           BoolToStr[Version.Mesa],
-          Version.VendorMajor, Version.VendorMinor, Version.VendorRelease,
 
           BoolToStr[Version.BuggyGenerateMipmap],
           BoolToStr[Version.BuggyLightModelTwoSide],
@@ -1537,8 +1540,6 @@ begin
     'Version:' +nl+
     '  Version string: ' +PChar(glGetString(GL_VERSION)) +nl+
     VersionReport(GLVersion) +nl+
-    '  Vendor: ' +PChar(glGetString(GL_VENDOR)) +nl+
-    '  Renderer: ' +PChar(glGetString(GL_RENDERER)) +nl+
     VendorReport(GLVersion) +nl+
     nl+
 

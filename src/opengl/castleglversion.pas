@@ -50,11 +50,11 @@ type
     Release: Integer;
     { @groupEnd }
 
-    { VendorVersion is whatever vendor-specific information was placed
+    { VendorInfo is whatever vendor-specific information was placed
       inside VersionString, after the
       major_number.minor_number.release_number. It never has any whitespace
       at the beginning (we trim it when initializing). }
-    VendorVersion: string;
+    VendorInfo: string;
 
     function AtLeast(AMajor, AMinor: Integer): boolean;
   end;
@@ -295,7 +295,7 @@ begin
     end;
     ParseWhiteSpaces(VersionString, I);
 
-    VendorVersion := SEnding(VersionString, I);
+    VendorInfo := SEnding(VersionString, I);
   except
     { In case of any error here: silence it.
       So actually EInvalidGLVersionString is not useful.
@@ -303,7 +303,7 @@ begin
       strings.
 
       Class constructor always starts with Major and Minor initialized
-      to 0, ReleaseExists initialized to false, and VendorVersion to ''.
+      to 0, ReleaseExists initialized to false, and VendorInfo to ''.
       If we have here an exception, only part of them may be initialized. }
   end;
 end;
@@ -318,7 +318,7 @@ end;
 
 constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
 
-  { Parse Vendor version, starting from S[I]. }
+  { Parse VendorMajor / VendorMinor / VendorRelease, starting from S[I]. }
   procedure ParseVendorVersion(const S: string; var I: Integer);
   begin
     ParseWhiteSpaces(S, I);
@@ -376,40 +376,45 @@ begin
 
   try
     I := 1;
-    while SCharIs(VendorVersion, I, AllChars - WhiteSpaces) do Inc(I);
+    while SCharIs(VendorInfo, I, AllChars - WhiteSpaces) do Inc(I);
 
-    VendorName := CopyPos(VendorVersion, 1, I - 1);
+    VendorName := CopyPos(VendorInfo, 1, I - 1);
     FMesa := SameText(VendorName, 'Mesa');
-    if Mesa then
-      ParseVendorVersion(VendorVersion, I) else
+
+    { Handle version strings when vendor version is in parenthesis,
+      like this: GL_VERSION = '1.4 (2.1 Mesa 7.0.4)'
+      (Debian testing (lenny) on 2008-12-31).
+      In such case "Mesa" is within parenthesis, preceeded by another version
+      number. }
+    if SCharIs(VendorInfo, 1, '(') and
+       (VendorInfo[Length(VendorInfo)] = ')') then
     begin
-      { I'm seeing also things like GL_VERSION = 1.4 (2.1 Mesa 7.0.4)
-        (Debian testing (lenny) on 2008-12-31).
-        So "Mesa" may be within parenthesis, preceeded by another version
-        number. }
-      if SCharIs(VendorVersion, 1, '(') and
-         (VendorVersion[Length(VendorVersion)] = ')') then
-      begin
-        S := Copy(VendorVersion, 2, Length(VendorVersion) - 2);
-        I := 1;
+      S := Copy(VendorInfo, 2, Length(VendorInfo) - 2);
+      I := 1;
 
-        { omit preceeding version number }
-        while SCharIs(S, I, AllChars - WhiteSpaces) do Inc(I);
+      { omit preceeding version number }
+      while SCharIs(S, I, AllChars - WhiteSpaces) do Inc(I);
 
-        { omit whitespace }
-        ParseWhiteSpaces(S, I);
+      { omit whitespace }
+      ParseWhiteSpaces(S, I);
 
-        { read "Mesa" (hopefully) string }
-        MesaStartIndex := I;
-        while SCharIs(S, I, AllChars - WhiteSpaces) do Inc(I);
+      { read "Mesa" (hopefully) string }
+      MesaStartIndex := I;
+      while SCharIs(S, I, AllChars - WhiteSpaces) do Inc(I);
 
-        VendorName := CopyPos(S, MesaStartIndex, I - 1);
-        FMesa := SameText(VendorName, 'Mesa');
-        if Mesa then
-          ParseVendorVersion(S, I);
-      end;
+      VendorName := CopyPos(S, MesaStartIndex, I - 1);
+      FMesa := SameText(VendorName, 'Mesa');
+      if Mesa then
+        ParseVendorVersion(S, I);
+    end else
+    begin
+      { Try to handle normal vendor version.
+        This should work on various GPUs (at least for Mesa, Intel and NVidia). }
+      while SCharIs(VendorInfo, I, AllChars - ['0'..'9']) and
+            (I < Length(VendorInfo)) do
+        Inc(I);
+      ParseVendorVersion(VendorInfo, I);
     end;
-
   except
     { Just like in TGenericGLVersion: in case of trouble (broken GL_VERSION
       string) ignore the problem. }
@@ -428,16 +433,6 @@ begin
   FFglrx := {$ifdef LINUX} VendorATI {$else} false {$endif};
 
   FVendorIntel := IsPrefix('Intel', Vendor);
-  if VendorIntel then
-  begin
-    { get the driver version too }
-    I := 1;
-    while SCharIs(VendorVersion, I, AllChars - ['0'..'9']) and (I<Length(VendorVersion)) do Inc(I);
-    try
-      ParseVendorVersion(VendorVersion, I);
-    except
-    end;
-  end;
 
   FBuggyGenerateMipmap := (Mesa and (not VendorVersionAtLeast(7, 5, 0)))
                           {$ifdef WINDOWS} or VendorIntel {$endif};
