@@ -92,12 +92,12 @@ begin
     GLVideo.GLImageFromTime(Time).Draw(0, 0);
 
     { draw time of the video bar }
-    Theme.Draw(Rectangle(0, Window.Height - TimeBarHeight, Window.Width, TimeBarHeight),
-      tiWindow);
-    Theme.Draw(Rectangle(TimeBarMargin, Window.Height - TimeBarHeight + TimeBarMargin,
+    DrawRectangle(Rectangle(0, Window.Height - TimeBarHeight,
+      Window.Width, TimeBarHeight), Black);
+    DrawRectangle(Rectangle(TimeBarMargin, Window.Height - TimeBarHeight + TimeBarMargin,
       Round(MapRange(Video.IndexFromTime(Time), 0, Video.Count - 1,
         0, Window.Width - 2 * TimeBarMargin)), TimeBarHeight - 2 * TimeBarMargin),
-      tiActiveFrame);
+      Gray);
   end;
 
   DrawStatus;

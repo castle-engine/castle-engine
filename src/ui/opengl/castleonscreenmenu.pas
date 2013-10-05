@@ -1268,24 +1268,16 @@ const
   CurrentItemBorderMargin = 5;
 var
   I: Integer;
-  ItemColor: TCastleColor;
+  ItemColor, BgColor: TCastleColor;
 begin
   if not GetExists then Exit;
 
   if DrawBackgroundRectangle then
   begin
-    {$ifndef OpenGLES}
-    // TODO-es  
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_BLEND);
-      if Focused then
-        glColor4f(0, 0, 0, BackgroundOpacityFocused) else
-        glColor4f(0, 0, 0, BackgroundOpacityNotFocused);
-      glRectf(FAllItemsRectangle.Left, FAllItemsRectangle.Bottom,
-        FAllItemsRectangle.Left + FAllItemsRectangle.Width,
-        FAllItemsRectangle.Bottom + FAllItemsRectangle.Height);
-    glDisable(GL_BLEND);
-    {$endif}
+    if Focused then
+      BgColor := Vector4Single(0, 0, 0, BackgroundOpacityFocused) else
+      BgColor := Vector4Single(0, 0, 0, BackgroundOpacityNotFocused);
+    DrawRectangle(FAllItemsRectangle, BgColor);
   end;
 
   (* TODO:

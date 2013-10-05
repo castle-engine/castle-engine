@@ -25,13 +25,13 @@ program doppler_demo;
 
 uses SysUtils, CastleVectors, CastleWindow, CastleColors, CastleGLUtils,
   CastleALUtils, CastleSoundEngine, CastleStringUtils, CastleKeysMouse,
-  CastleControls, CastleRectangles;
+  CastleRectangles, CastleUIControls;
 
 const
   ALDistanceScaling = 0.02;
 
 var
-  Window: TCastleWindowDemo;
+  Window: TCastleWindowCustom;
   PreviousSoundPosition, SoundPosition, ListenerPosition: TVector3Single;
   { Playing sound. It may be @nil if we couldn't allocate it,
     which practically will happen only when OpenAL is not installed
@@ -40,21 +40,20 @@ var
 
 procedure Draw(Window: TCastleWindowBase);
 
-  { Dummy visualization of a point (over-)using one of the predefined
-    Theme images }
-  procedure DrawPoint(const V: TVector3Single; const Image: TThemeImage);
+  { Trivial visualization of a point. }
+  procedure DrawPoint(const V: TVector3Single; const Color: TCastleColor);
   var
     R: TRectangle;
   begin
     R := Rectangle(Round(V[0]), Round(V[1]), 0, 0);
     R := R.Grow(10);
-    Theme.Draw(R, Image);
+    DrawRectangle(R, Color);
   end;
 
 begin
   GLClear([cbColor], Black);
-  DrawPoint(ListenerPosition, tiActiveFrame);
-  DrawPoint(SoundPosition, tiWindow);
+  DrawPoint(ListenerPosition, Yellow);
+  DrawPoint(SoundPosition, White);
 end;
 
 procedure Timer(Window: TCastleWindowBase);
@@ -78,7 +77,7 @@ end;
 var
   Buffer: TSoundBuffer;
 begin
-  Window := TCastleWindowDemo.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   SoundEngine.ParseParameters;
   SoundEngine.MinAllocatedSources := 1;
@@ -100,7 +99,7 @@ begin
     Application.TimerMilisec := 1000;
     Window.OnTimer := @Timer;
     Window.OnDraw := @Draw;
-    Window.OnResize := @Resize2D;
+    Window.OnDrawStyle := ds2D;
     Window.OnMouseMove := @MouseMove;
     Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.OpenAndRun;

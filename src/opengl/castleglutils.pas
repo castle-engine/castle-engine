@@ -563,6 +563,10 @@ procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single); depr
 { @groupEnd }
 {$endif}
 
+{ Draw a simple rectangle filled with a color.
+  Blending is automatically used if Color alpha < 1. }
+procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor);
+
 { Multiline string describing attributes of current OpenGL
   library. This simply queries OpenGL using glGet* functions
   about many things. Does not change OpenGL state in any way.
@@ -691,8 +695,8 @@ implementation
 
 {$define read_implementation}
 
-uses CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders, CastleGLImages,
-  CastleLog, CastleWarnings;
+uses CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
+  CastleGLImages, CastleLog, CastleWarnings, CastleUIControls;
 
 procedure LoadAllExtensions;
 begin
@@ -1417,6 +1421,85 @@ begin
 end;
 {$endif}
 
+{ DrawRectangle ---------------------------------------------------------------- }
+
+var
+  {$ifdef GLImageUseShaders}
+  GLRectangleProgram: TGLSLProgram;
+  {$endif}
+  RectanglePointVbo: TGLuint;
+  RectanglePoint: packed array [0..3] of TVector2SmallInt;
+
+procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor);
+{$ifdef GLImageUseShaders}
+var
+  AttribEnabled: array [0..0] of TGLuint;
+  AttribLocation: TGLuint;
+{$endif}
+begin
+  {$ifdef GLImageUseShaders}
+  if GLRectangleProgram = nil then
+  begin
+    GLRectangleProgram := TGLSLProgram.Create;
+    GLRectangleProgram.AttachVertexShader({$I rectangle.vs.inc});
+    GLRectangleProgram.AttachFragmentShader({$I rectangle.fs.inc});
+    GLRectangleProgram.Link(true);
+  end;
+  {$endif}
+
+  if Color[3] < 1 then
+  begin
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
+    glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
+  end;
+
+  if RectanglePointVbo = 0 then
+    glGenBuffers(1, @RectanglePointVbo);
+
+  RectanglePoint[0] := Vector2SmallInt(R.Left          , R.Bottom);
+  RectanglePoint[1] := Vector2SmallInt(R.Left + R.Width, R.Bottom);
+  RectanglePoint[2] := Vector2SmallInt(R.Left + R.Width, R.Bottom + R.Height);
+  RectanglePoint[3] := Vector2SmallInt(R.Left          , R.Bottom + R.Height);
+
+  glBindBuffer(GL_ARRAY_BUFFER, RectanglePointVbo);
+  glBufferData(GL_ARRAY_BUFFER, 4 * SizeOf(TVector2SmallInt),
+    @RectanglePoint[0], GL_STREAM_DRAW);
+
+  {$ifdef GLImageUseShaders}
+  GLRectangleProgram.Enable;
+  AttribEnabled[0] := GLRectangleProgram.VertexAttribPointer(
+    'vertex', 0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), nil);
+  GLRectangleProgram.SetUniform('projection_matrix', ProjectionMatrix);
+  GLRectangleProgram.SetUniform('color', Color);
+
+  {$else}
+  glLoadIdentity();
+  glColorv(Color);
+
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), nil);
+  {$endif}
+
+  glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+  {$ifdef GLImageUseShaders}
+  GLRectangleProgram.Disable;
+  { attribute arrays are enabled independent from GLSL program, so we need
+    to disable them separately }
+  for AttribLocation in AttribEnabled do
+    TGLSLProgram.DisableVertexAttribArray(AttribLocation);
+  {$else}
+  glDisableClientState(GL_VERTEX_ARRAY);
+  {$endif}
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+  if Color[3] < 1 then
+    glDisable(GL_BLEND);
+end;
+
 function GLInformationString: string;
 const
   GLSupportNamesFBO: array [TGLSupport] of string =
@@ -1839,7 +1922,17 @@ begin
   end;
 end;
 
+procedure WindowClose(const Container: IUIContainer);
+begin
+  glFreeBuffer(RectanglePointVbo);
+  {$ifdef GLImageUseShaders}
+  FreeAndNil(GLRectangleProgram);
+  {$endif}
+end;
+
 initialization
+  OnGLContextClose.Add(@WindowClose);
+
   { This Set8087CW is actually not needed, because FPC GL units,
     since version 2.2.2, already do this, for all necessary platforms,
     thanks to Michalis bug reports :) See
