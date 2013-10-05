@@ -23,10 +23,9 @@
   http://castle-engine.sourceforge.net/openal.php }
 program doppler_demo;
 
-{$I castleconf.inc}
-
-uses SysUtils, CastleVectors, CastleWindow, CastleGL, CastleColors, CastleGLUtils,
-  CastleALUtils, CastleSoundEngine, CastleStringUtils, CastleKeysMouse;
+uses SysUtils, CastleVectors, CastleWindow, CastleColors, CastleGLUtils,
+  CastleALUtils, CastleSoundEngine, CastleStringUtils, CastleKeysMouse,
+  CastleControls, CastleRectangles;
 
 const
   ALDistanceScaling = 0.02;
@@ -40,20 +39,22 @@ var
   Sound: TSound;
 
 procedure Draw(Window: TCastleWindowBase);
+
+  { Dummy visualization of a point (over-)using one of the predefined
+    Theme images }
+  procedure DrawPoint(const V: TVector3Single; const Image: TThemeImage);
+  var
+    R: TRectangle;
+  begin
+    R := Rectangle(Round(V[0]), Round(V[1]), 0, 0);
+    R := R.Grow(10);
+    Theme.Draw(R, Image);
+  end;
+
 begin
   GLClear([cbColor], Black);
-
-  glPointSize(20.0);
-
-  glColor3f(1, 1, 0);
-  glBegin(GL_POINTS);
-    glVertexv(ListenerPosition);
-  glEnd;
-
-  glColor3f(1, 1, 1);
-  glBegin(GL_POINTS);
-    glVertexv(SoundPosition);
-  glEnd;
+  DrawPoint(ListenerPosition, tiActiveFrame);
+  DrawPoint(SoundPosition, tiWindow);
 end;
 
 procedure Timer(Window: TCastleWindowBase);
