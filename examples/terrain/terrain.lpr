@@ -448,7 +448,7 @@ procedure Open(Window: TCastleWindowBase);
   function LoadTexture(const URL: string): TGLuint;
   begin
     Result := LoadGLTexture('textures/' + URL,
-      GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, Texture2DRepeat);
+      TextureFilter(minLinearMipmapLinear, magLinear), Texture2DRepeat);
   end;
 
 begin
