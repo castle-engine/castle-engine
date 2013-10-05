@@ -22,13 +22,13 @@ program simple_video_editor;
 { Console, not GUI, since loading files through ffmpeg will output some
   info on stdout anyway. }
 {$apptype CONSOLE}
-{$I castleconf.inc}
 
-uses CastleUtils, SysUtils, CastleWindow, CastleGL, CastleGLImages,
+uses CastleUtils, SysUtils, CastleWindow, CastleGLImages, CastleControls,
   CastleVideos, CastleStringUtils, CastleMessages, CastleColors,
   CastleBitmapFont_BVSansMono_Bold_m15, CastleGLBitmapFonts, CastleParameters,
   CastleGLUtils, CastleVectors, Classes, CastleProgress, CastleWindowProgress,
-  CastleTimeUtils, CastleKeysMouse, CastleURIUtils, CastleUIControls;
+  CastleTimeUtils, CastleKeysMouse, CastleURIUtils, CastleUIControls,
+  CastleRectangles;
 
 var
   Window: TCastleWindowCustom;
@@ -87,21 +87,17 @@ const
 begin
   GLClear([cbColor], Black);
 
-  glLoadIdentity();
   if Video.Loaded then
   begin
     GLVideo.GLImageFromTime(Time).Draw(0, 0);
 
     { draw time of the video bar }
-    glColorv(Black);
-    glRectf(0, Window.Height - TimeBarHeight, Window.Width, Window.Height);
-    glColorv(Gray);
-    glRectf(TimeBarMargin, Window.Height - TimeBarHeight + TimeBarMargin,
-      MapRange(
-        Video.IndexFromTime(Time),
-        0, Video.Count - 1,
-        TimeBarMargin, Window.Width - TimeBarMargin),
-      Window.Height - TimeBarMargin);
+    Theme.Draw(Rectangle(0, Window.Height - TimeBarHeight, Window.Width, TimeBarHeight),
+      tiWindow);
+    Theme.Draw(Rectangle(TimeBarMargin, Window.Height - TimeBarHeight + TimeBarMargin,
+      Round(MapRange(Video.IndexFromTime(Time), 0, Video.Count - 1,
+        0, Window.Width - 2 * TimeBarMargin)), TimeBarHeight - 2 * TimeBarMargin),
+      tiActiveFrame);
   end;
 
   DrawStatus;
