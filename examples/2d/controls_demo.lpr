@@ -39,6 +39,7 @@ begin
 
   Button := TCastleButton.Create(Window);
   Button.Caption := 'My Button';
+  Button.Tooltip := 'Sample tooltip over my button';
   Button.Left := 10;
   Button.Bottom := 10;
   Button.Image := LoadImage(ApplicationData('sample_button_icon.png'), []);
