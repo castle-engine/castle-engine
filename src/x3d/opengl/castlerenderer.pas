@@ -1822,7 +1822,7 @@ var
     Result := not (
       { If we use any features that (may) render shape differently
         if shape's transform (or other stuff handled outside arrays
-        and vrmlmeshrenderer), then Result must be false. }
+        and castlerenderer) changes, then Result must be false. }
       Assigned(ARenderer.Attributes.OnVertexColor) or
       Assigned(ARenderer.Attributes.OnRadianceTransfer) or
       FogVolumetric);
