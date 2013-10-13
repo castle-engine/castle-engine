@@ -1462,8 +1462,8 @@ begin
   RectanglePoint[3] := Vector2SmallInt(R.Left          , R.Bottom + R.Height);
 
   glBindBuffer(GL_ARRAY_BUFFER, RectanglePointVbo);
-  glBufferData(GL_ARRAY_BUFFER, 4 * SizeOf(TVector2SmallInt),
-    @RectanglePoint[0], GL_STREAM_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, SizeOf(RectanglePoint),
+    @(RectanglePoint[0]), GL_STREAM_DRAW);
 
   {$ifdef GLImageUseShaders}
   GLRectangleProgram.Enable;
@@ -1477,7 +1477,6 @@ begin
   glColorv(Color);
 
   glEnableClientState(GL_VERTEX_ARRAY);
-  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
   glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), nil);
   {$endif}
 
