@@ -132,5 +132,14 @@
 '#endif' + LineEnding + 
 '#endif' + LineEnding + 
 '}' + LineEnding + 
-'#endif' + LineEnding + 
+'' + LineEnding +
+'float screen_get_depth_fast(ivec2 position)' + LineEnding +
+'{' + LineEnding +
+'#ifdef MULTI_SAMPLING' + LineEnding +
+'  return texelFetch(screen_depth, position, 0).r;' + LineEnding +
+'#else' + LineEnding +
+'  return texture2DRect(screen_depth, vec2(position)+vec2(0.5)).r;' + LineEnding +
+'#endif' + LineEnding +
+'}' + LineEnding +
+'#endif' + LineEnding +
 ''

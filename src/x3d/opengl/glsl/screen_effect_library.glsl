@@ -130,4 +130,13 @@ float screen_get_depth(ivec2 position)
 #endif
 #endif
 }
+
+float screen_get_depth_fast(ivec2 position)
+{
+#ifdef MULTI_SAMPLING
+  return texelFetch(screen_depth, position, 0).r;
+#else
+  return texture2DRect(screen_depth, vec2(position)+vec2(0.5)).r;
+#endif
+}
 #endif
