@@ -769,26 +769,17 @@ type
     procedure SetBackgroundSkySphereRadius(const Value: Single);
     procedure PrepareBackground;
   public
-    property BackgroundSkySphereRadius: Single
-      read FBackgroundSkySphereRadius write SetBackgroundSkySphereRadius
-      default 1;
-
     { TBackground instance to render current background. Current background
       is the top node on the BackgroundStack of this scene, following VRML/X3D
       specifications, and can be dynamic.
       The scene manager should use this to render background.
 
-      We use the current value of BackgroundSkySphereRadius.
-
       Returns @nil if there is no currently bound background node
-      in this scene, or if the bound background is not supported for now
-      (the latter case right now happens with TextureBakckground).
+      in this scene, or if the bound background is not supported for now.
 
       This instance is managed (automatically created/freed
       and so on) by this TCastleScene instance. It is cached
-      (so that it's recreated only when relevant things change,
-      like VRML/X3D nodes affecting this background,
-      or changes to BackgroundSkySphereRadius, or OpenGL context is closed). }
+      (so that it's recreated only when relevant things change. }
     function Background: TBackground;
 
     { Rendering attributes.
@@ -3317,7 +3308,7 @@ end;
 procedure TCastleScene.PrepareBackground;
 { After PrepareBackground assertion FBackgroundValid is valid }
 var
-  BgNode: TBackgroundNode;
+  BgNode: TAbstractBackgroundNode;
   SkyAngleCount: Integer;
   SkyColorCount: Integer;
   GroundAngleCount: Integer;
@@ -3331,17 +3322,17 @@ begin
   if FBackgroundValid then
     InvalidateBackground;
 
-  if (BackgroundStack.Top <> nil) and
-     (BackgroundStack.Top is TBackgroundNode) then
+  if BackgroundStack.Top <> nil then
   begin
     if Log then
-      WritelnLog('Background', Format('OpenGL background recreated, with radius %f',
-        [BackgroundSkySphereRadius]));
+      WritelnLog('Background', 'OpenGL background recreated');
 
-    BgNode := TBackgroundNode(BackgroundStack.Top);
+    BgNode := BackgroundStack.Top;
 
     SkyAngleCount := BgNode.FdSkyAngle.Count;
     SkyColorCount := BgNode.FdSkyColor.Count;
+    GroundAngleCount := BgNode.FdGroundAngle.Count;
+    GroundColorCount := BgNode.FdGroundColor.Count;
 
     if SkyColorCount <= 0 then
     begin
@@ -3349,42 +3340,37 @@ begin
         'Sky must have at least one color');
       FBackground := nil;
     end else
+    if SkyAngleCount + 1 <> SkyColorCount then
     begin
-      if SkyAngleCount + 1 <> SkyColorCount then
-      begin
-        OnWarning(wtMajor, 'VRML/X3D', 'Background node incorrect: ' +
-          'Sky must have exactly one more Color than Angles');
-        { We know now that SkyColorCount >= 1 and
-          SkyAngleCount >= 0 (since SkyAngleCount is a count of an array).
-          So we correct one of them to be smaller. }
-        if SkyAngleCount + 1 > SkyColorCount then
-          SkyAngleCount := SkyColorCount - 1 else
-          SkyColorCount := SkyAngleCount + 1;
-      end;
-
-      GroundAngleCount := BgNode.FdGroundAngle.Count;
-      GroundColorCount := BgNode.FdGroundColor.Count;
-
-      if (GroundAngleCount <> 0) and
-         (GroundAngleCount + 1 <> GroundColorCount) then
-      begin
-        OnWarning(wtMajor, 'VRML/X3D', 'Background node incorrect: ' +
-          'Ground must have exactly one more Color than Angles');
-        { We know now that GroundColorCount >= 1 and
-          GroundAngleCount >= 0 (since GroundAngleCount is a count of an array).
-          So we correct one of them to be smaller. }
-        if GroundAngleCount + 1 > GroundColorCount then
-          GroundAngleCount := GroundColorCount - 1 else
-          GroundColorCount := GroundAngleCount + 1;
-      end;
-
-      FBackground := TBackground.Create(
-        PArray_Single(BgNode.FdGroundAngle.Items.List), GroundAngleCount,
-        PArray_Vector3Single(BgNode.FdGroundColor.Items.List), GroundColorCount,
-        BgNode.Textures,
-        PArray_Single(BgNode.FdSkyAngle.Items.List), SkyAngleCount,
-        PArray_Vector3Single(BgNode.FdSkyColor.Items.List), SkyColorCount,
-        BackgroundSkySphereRadius);
+      OnWarning(wtMajor, 'VRML/X3D', 'Background node incorrect: ' +
+        'Sky must have exactly one more Color than Angles');
+      { We know now that SkyColorCount >= 1 and
+        SkyAngleCount >= 0 (since SkyAngleCount is a count of an array).
+        So we correct one of them to be smaller. }
+      {TODO-background: redo this in TBackground:
+      if SkyAngleCount + 1 > SkyColorCount then
+        SkyAngleCount := SkyColorCount - 1 else
+        SkyColorCount := SkyAngleCount + 1;}
+      FBackground := nil;
+    end else
+    if (GroundAngleCount <> 0) and
+       (GroundAngleCount + 1 <> GroundColorCount) then
+    begin
+      OnWarning(wtMajor, 'VRML/X3D', 'Background node incorrect: ' +
+        'Ground must have exactly one more Color than Angles');
+      { We know now that GroundColorCount >= 1 and
+        GroundAngleCount >= 0 (since GroundAngleCount is a count of an array).
+        So we correct one of them to be smaller. }
+      {TODO-background: redo this in TBackground:
+      if GroundAngleCount + 1 > GroundColorCount then
+        GroundAngleCount := GroundColorCount - 1 else
+        GroundColorCount := GroundAngleCount + 1;}
+      FBackground := nil;
+    end else
+    begin
+      { TODO-background: use the fact that you can just update the background? }
+      FBackground := TBackground.Create;
+      FBackground.Update(BgNode);
     end;
   end else
     FBackground := nil;
@@ -3394,21 +3380,24 @@ begin
 end;
 
 function TCastleScene.Background: TBackground;
-var
-  BackgroundNode: TAbstractBackgroundNode;
 begin
   PrepareBackground;
   Result := FBackground;
 
-  BackgroundNode := BackgroundStack.Top;
-  if (BackgroundNode <> nil) and
-     { We have to still check Result, since not every TAbstractBackgroundNode
-       is supported now, so for some background nodes we still have
-       Result = nil. }
-     (Result <> nil) then
-  begin
-    Result.Transform := BackgroundNode.TransformRotation;
-  end;
+  // TODO-background: new code uses transform, but doesn't update it.
+  // if background transform gets animated, this should be ported
+  // such that new code simply applies the new transform.
+
+// -  BackgroundNode := BackgroundStack.Top;
+// -  if (BackgroundNode <> nil) and
+// -     { We have to still check Result, since not every TAbstractBackgroundNode
+// -       is supported now, so for some background nodes we still have
+// -       Result = nil. }
+// -     (Result <> nil) then
+// -  begin
+// -    Result.Transform := BackgroundNode.TransformRotation;
+// -  end;
+
 end;
 
 function TCastleScene.Attributes: TSceneRenderingAttributes;

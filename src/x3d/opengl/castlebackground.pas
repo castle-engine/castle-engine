@@ -13,102 +13,47 @@
   ----------------------------------------------------------------------------
 }
 
-{ Rendering backgrounds, sky and such (TBackground). }
+{ Background for 3D world (TBackground). }
 unit CastleBackground;
-
-{$I castleconf.inc}
 
 interface
 
-uses CastleVectors, SysUtils, CastleGL, CastleGLUtils, CastleUtils, CastleImages,
-  X3DNodes;
+uses CastleVectors, SysUtils, CastleUtils, CastleImages, X3DNodes,
+  CastleFrustum, CastleColors, CastleGLUtils;
 
 type
-  { Background rendering sky, ground and such around the camera.
+  { Background for 3D world.
     Background defined here has the same features as VRML/X3D Background:
 
     @unorderedList(
       @itemSpacing Compact
-      @item a cube with each face textured (textures may have alpha channel)
+      @item(skybox - a cube with each face potentially textured
+        (textures may have alpha channel))
       @item a ground sphere around this, with color rings for ground colors
       @item a sky sphere around this, with color rings for sky colors
     )
 
-    See [http://web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/Part01/components/enveffects.html#Background]
-    for the detailed meaning of constructor parameters.
-
-    Conceptually, the background is infinitely far from the camera,
-    regardless of the camera position. So actually, we just ignore camera
-    position, and render like the camera was always in the middle
-    of the background box/sphere. But still we take into acccount camera
-    rotations. This makes convincing sky look. }
+    Engine users should not use this class directly. Instead TCastleSceneManager
+    automatically uses this to render the background defined by
+    TCastleSceneManager.MainScene. }
   TBackground = class
   private
-    szescianNieba_list: TGLuint;
-    nieboTex: packed array [TBackgroundSide] of TGLuint;
+    { TCastleScene to render the background in most cases.
+      Cannot be declared as TCastleScene as it would create a circular dependency
+      with CastleScene unit. }
+    SceneObj: TObject;
+    ParamsObj: TObject;
+    ClearColor: TCastleColor;
   public
-    Transform: TMatrix4Single;
-
-    { Render background around.
-
-      Current modelview matrix should contain only the camera rotation.
-      Uses one OpenGL attrib stack place.
-      Automatically creates and uses a display list.
-      Assumes that the user is standing in the middle of background,
-      so we can use backface culling.
-
-      We render without GL_DEPTH_TEST to cover everyhing on the screen
-      (so rendering a background should be a first thing you render,
-      no point in even doing glClear yourself).
-      When possible (we have only one sky color), we use GLClear
-      to quickly clear color buffer with single uniform color. }
-    procedure Render;
-
-    { Calculate (or just confirm that Proposed value is still OK)
-      the sky sphere radius that fits nicely in your projection near/far.
-
-      Background spheres (for sky and ground) are rendered at given radius.
-      And inside these spheres, we have a cube (to apply background textures).
-      Both spheres and cube must fit nicely within your projection near/far
-      to avoid any artifacts.
-
-      We first check is Proposed a good result value (it satisfies
-      the conditions, with some safety margin). If yes, then we return
-      exactly the Proposed value. Otherwise, we calculate new value
-      as an average in our range.
-      This way, if you already had sky sphere radius calculated
-      (and prepared some OpenGL resources for it),
-      and projection near/far changes very slightly
-      (e.g. because bounding box slightly changed), then you don't have
-      to recreate background --- if the old sky sphere radius is still OK,
-      then the old background resources are still OK.
-
-      Just pass Proposed = 0 (or anything else that is always outside
-      the range) if you don't need this feature. }
-    class function NearFarToSkySphereRadius(const zNear, zFar: Single;
-      const Proposed: Single = 0): Single;
-
-    { Construct background. Prepares OpenGL resources for rendering.
-
-      Parameters correspond to VRML/X3D Background node,
-      see [http://web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/Part01/components/enveffects.html#Background].
-      For example SkyColorCount > 0 and GroundColorCount > GroundAngleCount.
-
-      Any of the TBackgroundTextures passed here may be @nil,
-      or of a class that can be rendered as OpenGL textures (TextureImageClasses). }
-    constructor Create(
-      GroundAngle: PArray_Single; GroundAngleCount: Integer;
-      GroundColor: PArray_Vector3Single; GroundColorCount: Integer;
-      const Imgs: TBackgroundTextures;
-      SkyAngle: PArray_Single; SkyAngleCount: Integer;
-      SkyColor: PArray_Vector3Single; SkyColorCount: Integer;
-      SkySphereRadius: Single);
+    constructor Create;
     destructor Destroy; override;
+    procedure Update(Node: TAbstractBackgroundNode);
+    procedure Render(const Frustum: TFrustum);
   end;
 
 implementation
 
-uses CastleWarnings, CastleGLImages;
+uses CastleWarnings, CastleScene;
 
 const
   { Relation of a cube size and a radius of it's bounding sphere.
@@ -118,110 +63,100 @@ const
     Cube diameter = sqrt(sqr(cube size) + sqr(cube face diameter)),
     and cube face diameter = sqrt(2) * cube size.
     This gives constants below. }
-  SphereRadiusToCubeSize = 2/Sqrt(3);
-  CubeSizeToSphereRadius = Sqrt(3)/2;
-
-  BGAllSides: TBackgroundSides = [Low(TBackgroundSide) .. High(TBackgroundSide)];
+  SphereRadiusToCubeSize = 2 / Sqrt(3);
+  CubeSizeToSphereRadius = Sqrt(3) / 2;
 
 { TBackground ------------------------------------------------------------ }
 
-procedure TBackground.Render;
+{$define Scene := TCastleScene(SceneObj)}
+{$define Params := TBasicRenderParams(ParamsObj)}
+
+constructor TBackground.Create;
 begin
-  glPushMatrix;
-    glMultMatrix(Transform);
-    glCallList(szescianNieba_list);
-  glPopMatrix;
+  inherited;
+  Scene := TCastleScene.Create(nil);
+  Params := TBasicRenderParams.Create;
 end;
 
-class function TBackground.NearFarToSkySphereRadius(const zNear, zFar: Single;
-  const Proposed: Single): Single;
-
-{ Conditions are ZNear < CubeSize/2, ZFar > SphereRadius.
-  So conditions for radius are
-
-    ZNear * 2 * CubeSizeToSphereRadius < SphereRadius < ZFar
-
-  Note that 2 * CubeSizeToSphereRadius is Sqrt(3) =~ 1.7,
-  so it's possible to choose
-  ZNear <= ZFar that still yield no possible radius.
-
-  It would be possible to avoid whole need for this method
-  by setting projection matrix in our own render. But then,
-  you'd have to pass fovy and such parameters to the background renderer.
-}
-
-var
-  Min, Max, SafeMin, SafeMax: Single;
+destructor TBackground.Destroy;
 begin
-  Min := zNear * 2 * CubeSizeToSphereRadius;
-  Max := zFar;
-
-  { The new sphere radius should be in [Min...Max].
-    For maximum safety (from floating point troubles), we require
-    that it's within slightly smaller "safe" range. }
-
-  SafeMin := Lerp(0.1, Min, Max);
-  SafeMax := Lerp(0.9, Min, Max);
-
-  if (Proposed >= SafeMin) and
-     (Proposed <= SafeMax) then
-    Result := Proposed else
-    Result := (Min + Max) / 2;
+  FreeAndNil(Scene);
+  FreeAndNil(Params);
+  inherited;
 end;
 
-constructor TBackground.Create(
-  GroundAngle: PArray_Single; GroundAngleCount: Integer;
-  GroundColor: PArray_Vector3Single; GroundColorCount: Integer;
-  const Imgs: TBackgroundTextures;
-  SkyAngle: PArray_Single; SkyAngleCount: Integer;
-  SkyColor: PArray_Vector3Single; SkyColorCount: Integer;
-  SkySphereRadius: Single);
-
+procedure TBackground.Update(Node: TAbstractBackgroundNode);
 var
-  CubeSize, CubeSize2: Single;
+  RootNode: TX3DRootNode;
+  MatrixTransform: TMatrixTransformNode;
 
-  procedure RenderTextureSide(bs: TBackgroundSide);
+  procedure RenderTextureSide(const Side: TBackgroundSide);
   const
-    { wspolrzedne tekstury beda zawsze nakladane na te coords w kolejnosci
-      (0, 0), (1, 0), (1, 1), (0, 1). }
-    Coords: array[TBackgroundSide, 0..3]of TVector3Integer =
-    ( ((1, 0, 1), (0, 0, 1), (0, 1, 1), (1, 1, 1)), {back}
-      ((0, 0, 1), (1, 0, 1), (1, 0, 0), (0, 0, 0)), {bottom}
-      ((0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0)), {front}
-      ((0, 0, 1), (0, 0, 0), (0, 1, 0), (0, 1, 1)), {left}
-      ((1, 0, 0), (1, 0, 1), (1, 1, 1), (1, 1, 0)), {right}
-      ((0, 1, 0), (1, 1, 0), (1, 1, 1), (0, 1, 1))  {top}
+    Coords: array [TBackgroundSide, 0..3] of TVector3Single =
+    ( (( 1, -1,  1), (-1, -1,  1), (-1,  1,  1), ( 1,  1,  1)), {back}
+      ((-1, -1,  1), ( 1, -1,  1), ( 1, -1, -1), (-1, -1, -1)), {bottom}
+      ((-1, -1, -1), ( 1, -1, -1), ( 1,  1, -1), (-1,  1, -1)), {front}
+      ((-1, -1,  1), (-1, -1, -1), (-1,  1, -1), (-1,  1,  1)), {left}
+      (( 1, -1, -1), ( 1, -1,  1), ( 1,  1,  1), ( 1,  1, -1)), {right}
+      ((-1,  1, -1), ( 1,  1, -1), ( 1,  1,  1), (-1,  1,  1))  {top}
     );
-    TexCoords: array [0..3] of TVector2f = ((0, 0), (1, 0), (1, 1), (0, 1));
+    TexCoords: array [0..3] of TVector2Single = ((0, 0), (1, 0), (1, 1), (0, 1));
   var
-    i: Integer;
+    Shape: TShapeNode;
+    Appearance: TAppearanceNode;
+    QuadSet: TQuadSetNode;
+    Coord: TCoordinateNode;
+    TexCoord: TTextureCoordinateNode;
+    Texture: TAbstractTextureNode;
   begin
-    if nieboTex[bs] = 0 then Exit;
+    Texture := Node.Texture(Side);
+    if Texture = nil then Exit;
 
-    { If nieboTex[bs] <> 0 to for sure Imgs[bs] <> nil,
-      so I can safely do here checks "Imgs[bs] is ..." }
+    Coord := TCoordinateNode.Create('', Node.BaseUrl);
+    Coord.FdPoint.Send(Coords[Side]);
 
-    if Imgs.Images[bs].HasAlpha then
+    TexCoord := TTextureCoordinateNode.Create('', Node.BaseUrl);
+    TexCoord.FdPoint.Send(TexCoords);
+
+    QuadSet := TQuadSetNode.Create('', Node.BaseUrl);
+    QuadSet.FdCoord.Value := Coord;
+    QuadSet.FdTexCoord.Value := TexCoord;
+
+    Appearance := TAppearanceNode.Create('', Node.BaseUrl);
+    Appearance.Texture := Texture;
+    if Texture is TAbstractTexture2DNode then
     begin
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      glEnable(GL_BLEND);
+      { We have to change repeat mode of this texture, even if it came from
+        TTextureBackgroundNode. The only reasonable way to render background
+        is to use clamp mode. More correct alternative would be creating
+        a copy of node in case of TTextureBackgroundNode,
+        but this would often be wasteful --- the background texture is
+        probably not DEF/USEd in other places (that need repeat mode),
+        and it's probably repeat=true by accident (since this is the default value). }
+      TAbstractTexture2DNode(Texture).RepeatS := false;
+      TAbstractTexture2DNode(Texture).RepeatT := false;
     end;
 
-    glBindTexture(GL_TEXTURE_2D, nieboTex[bs]);
-    glBegin(GL_QUADS);
-      for i := 0 to 3 do
-      begin
-        glTexCoordv(TexCoords[i]);
-        glVertex3f( (Coords[bs, i, 0]*2-1)*CubeSize2,
-                    (Coords[bs, i, 1]*2-1)*CubeSize2,
-                    (Coords[bs, i, 2]*2-1)*CubeSize2);
-      end;
-    glEnd;
+    Shape := TShapeNode.Create('', Node.BaseUrl);
+    Shape.FdGeometry.Value := QuadSet;
+    Shape.Appearance := Appearance;
 
-    if Imgs.Images[bs].HasAlpha then
-      glDisable(GL_BLEND);
+// TODO-background: do we need to set REPLACE (e.g. by MultiTexture.mode),
+// or are we already optimized Ok for unlit case to just use white color?
+// check.
+
+    { Wybieramy GL_REPLACE bo scianki szescianu beda zawsze cale teksturowane
+      i chcemy olac zupelnie kolor/material jaki bedzie na tych sciankach.
+      Chcemy wziac to z tekstury (dlatego standardowe GL_MODULATE nie jest dobre).
+      Ponadto, kanal alpha tez chcemy wziac z tekstury, tzn. szescian
+      nieba ma byc przeswitujacy gdy tekstura bedzie przeswitujaca
+      (dlatego GL_DECAL nie jest odpowiedni). }
+//    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+    MatrixTransform.FdChildren.Add(Shape);
   end;
 
+(*
   { For given Angle (meaning: 0 = zenith, Pi = nadir), calculate the height
     and radius of given circle of sky sphere. }
   procedure StackCircleCalc(const Angle: Single; out Y, Radius: Single);
@@ -328,9 +263,23 @@ var
       Pt(0);
     glEnd;
   end;
-
+*)
 var
-  bs: TBackgroundSide;
+  BS: TBackgroundSide;
+begin
+  RootNode := TX3DRootNode.Create('', Node.BaseUrl);
+
+  MatrixTransform := TMatrixTransformNode.Create('', Node.BaseUrl);
+  MatrixTransform.FdMatrix.Value := Node.TransformRotation;
+  RootNode.FdChildren.Add(MatrixTransform);
+
+  for BS := Low(BS) to High(BS) do RenderTextureSide(BS);
+
+  ClearColor := Vector4Single(Node.FdSkyColor.Items[0], 1.0);
+
+// TODO-background: implement ground and sky in new approach
+(*
+var
   TexturedSides: TBackgroundSides;
   i: Integer;
   GroundHighestAngle: Single;
@@ -338,58 +287,20 @@ var
 begin
   inherited Create;
 
-  { caly konstruktor sprowadza sie do skonstruowania display listy
-    szescianNieba_list, no i do zaladowania tekstur nieboTex zeby pozniej
-    ta display lista mogla ich uzyc. }
-
   { calculate nieboTex and SomeTexturesWithAlpha }
   SomeTexturesWithAlpha := false;
   TexturedSides := [];
   for bs := Low(bs) to High(bs) do
   begin
-    nieboTex[bs] := 0;
-    if (Imgs.Images[bs] <> nil) and (not Imgs.Images[bs].IsEmpty) then
-    begin
-      try
-        nieboTex[bs] := LoadGLTexture(Imgs.Images[bs],
-          TextureFilter(minLinear, magLinear),
-          { poniewaz rozciagamy teksture przy pomocy GL_LINEAR a nie chce nam
-            sie robic teksturze borderow - musimy uzyc GL_CLAMP_TO_EDGE
-            aby uzyskac dobry efekt na krancach }
-          Texture2DClampToEdge);
-      except
-        { Although texture image is already loaded in Imgs[bs],
-          still texture loading may fail, e.g. with ECannotLoadS3TCTexture
-          when OpenGL doesn't have proper extensions. Secure against this by
-          making nice OnWarning. }
-        on E: ETextureLoadError do
-        begin
-          OnWarning(wtMinor, 'Texture', 'Texture load error: ' + E.Message);
-          Continue;
-        end;
-      end;
-
-      Include(TexturedSides, bs);
-      if Imgs.Images[bs].HasAlpha then SomeTexturesWithAlpha := true;
-    end;
+    Include(TexturedSides, bs);
+    if Imgs.Images[bs].HasAlpha then SomeTexturesWithAlpha := true;
   end;
 
-  CubeSize := SkySphereRadius * SphereRadiusToCubeSize;
-  CubeSize2 := CubeSize / 2;
+    // TODO-background: we lost now the optimization that allowed us to draw background
+    // without depth test.
 
-  szescianNieba_list := glGenListsCheck(1, 'TBackground.Create');
-
-  glNewList(szescianNieba_list, GL_COMPILE);
-  glPushAttrib(GL_ENABLE_BIT or GL_TEXTURE_BIT or GL_COLOR_BUFFER_BIT);
-  try
     glDisable(GL_DEPTH_TEST);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_FOG);
-    glDisable(GL_BLEND);
 
-    if GLFeatures.UseMultiTexturing then
-      glActiveTexture(GL_TEXTURE0);
-    GLEnableTexture(etNone);
 
     { wykonujemy najbardziej elementarna optymalizacje : jesli mamy 6 tekstur
       i zadna nie ma kanalu alpha (a w praktyce jest to chyba najczestsza sytuacja)
@@ -451,29 +362,25 @@ begin
       end;
     end;
 
-    { render cube with six textured faces }
+*)
 
-    glEnable(GL_TEXTURE_2D);
-    { Wybieramy GL_REPLACE bo scianki szescianu beda zawsze cale teksturowane
-      i chcemy olac zupelnie kolor/material jaki bedzie na tych sciankach.
-      Chcemy wziac to z tekstury (dlatego standardowe GL_MODULATE nie jest dobre).
-      Ponadto, kanal alpha tez chcemy wziac z tekstury, tzn. szescian
-      nieba ma byc przeswitujacy gdy tekstura bedzie przeswitujaca
-      (dlatego GL_DECAL nie jest odpowiedni). }
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-    for bs := Low(bs) to High(bs) do RenderTextureSide(bs);
-  finally
-    glPopAttrib;
-    glEndList;
-  end;
+  Scene.Load(RootNode, true);
 end;
 
-destructor TBackground.Destroy;
+procedure TBackground.Render(const Frustum: TFrustum);
 begin
-  glDeleteLists(szescianNieba_list, 1);
-  glDeleteTextures(6, @nieboTex);
-  inherited;
+  Params.InShadow := false;
+  { since we constructed Scene ourselves,
+    we know it only has ShadowVolumesReceivers=true shapes }
+  Params.ShadowVolumesReceivers := true;
+
+  // TODO-background: we ignore Frustum, as it contains shifted camera, not just rotated
+
+  // TODO-background: for now we always do GLClear, although we don't have to
+  GLClear([cbColor], ClearColor);
+
+  Params.Transparent := false; Scene.Render(nil, Frustum, Params);
+  Params.Transparent := true ; Scene.Render(nil, Frustum, Params);
 end;
 
 end.

@@ -1300,6 +1300,8 @@ type
     procedure AssignDefaultValueFromValue; override;
 
     class function TypeName: string; override;
+
+    procedure Send(const AValue: LongInt); overload;
   end;
 
   TSFFloat = class(TX3DSingleField)
@@ -5341,6 +5343,16 @@ end;
 class function TSFEnum.TypeName: string;
 begin
   Result := 'SFEnum';
+end;
+
+procedure TSFEnum.Send(const AValue: LongInt);
+var
+  FieldValue: TX3DField;
+begin
+  FieldValue := TSFEnum.Create(ParentNode, Name, [], AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
 end;
 
 { multiple value fields ----------------------------------------------------- }

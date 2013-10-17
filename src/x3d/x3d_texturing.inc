@@ -134,6 +134,11 @@
       and then ignore (while not overriden abstract method would cause
       simple crashes). }
     procedure LoadTextureData(out WasCacheUsed: boolean); virtual;
+
+    function GetRepeatS: boolean; virtual; abstract;
+    function GetRepeatT: boolean; virtual; abstract;
+    procedure SetRepeatS(const Value: boolean); virtual; abstract;
+    procedure SetRepeatT(const Value: boolean); virtual; abstract;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -194,8 +199,14 @@
     property IsTextureLoaded: boolean
       read FIsTextureLoaded write SetIsTextureLoaded;
 
-    function RepeatS: boolean; virtual; abstract;
-    function RepeatT: boolean; virtual; abstract;
+    { Whether the texture repeats or clamps in given direction.
+      Getting or setting this is the most comfortable way to change underlying
+      node fields, setting this automatically does all necessary (sends events
+      etc., see TVRMLField.Send).
+      @groupBegin }
+    property RepeatS: boolean read GetRepeatS write SetRepeatS;
+    property RepeatT: boolean read GetRepeatT write SetRepeatT;
+    { @groupEnd }
 
     { Once the texture data (image or video) is loaded,
       this is set to the URL that was used to load,
@@ -215,6 +226,11 @@
   end;
 
   TAbstractX3DTexture2DNode = class(TAbstractTexture2DNode)
+  protected
+    function GetRepeatS: boolean; override;
+    function GetRepeatT: boolean; override;
+    procedure SetRepeatS(const Value: boolean); override;
+    procedure SetRepeatT(const Value: boolean); override;
   public
     procedure CreateNode; override;
 
@@ -226,9 +242,6 @@
 
     private FFdTextureProperties: TSFNode;
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
-
-    function RepeatS: boolean; override;
-    function RepeatT: boolean; override;
 
     function TextureProperties: TTexturePropertiesNode; override;
   end;
@@ -698,14 +711,24 @@ begin
   Fields.Add(FFdTextureProperties);
 end;
 
-function TAbstractX3DTexture2DNode.RepeatS: boolean;
+function TAbstractX3DTexture2DNode.GetRepeatS: boolean;
 begin
   Result := FdRepeatS.Value;
 end;
 
-function TAbstractX3DTexture2DNode.RepeatT: boolean;
+function TAbstractX3DTexture2DNode.GetRepeatT: boolean;
 begin
   Result := FdRepeatT.Value;
+end;
+
+procedure TAbstractX3DTexture2DNode.SetRepeatS(const Value: boolean);
+begin
+  FdRepeatS.Send(Value);
+end;
+
+procedure TAbstractX3DTexture2DNode.SetRepeatT(const Value: boolean);
+begin
+  FdRepeatT.Send(Value);
 end;
 
 function TAbstractX3DTexture2DNode.TextureProperties: TTexturePropertiesNode;

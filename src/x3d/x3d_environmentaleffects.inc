@@ -15,6 +15,8 @@
 
 {$ifdef read_interface}
   { }
+  TBackgroundSide = (bsBack, bsBottom, bsFront, bsLeft, bsRight, bsTop);
+
   TAbstractBackgroundNode = class(TAbstractBindableNode)
   private
     procedure EventSet_BindReceive(
@@ -22,6 +24,16 @@
   public
     procedure CreateNode; override;
     function TransformationChange: TNodeTransformationChange; override;
+
+    { Texture node for given background side.
+      May return @nil if none.
+
+      It is the caller's responsibility to take care of freeing the result,
+      but only if it's not otherwise used. In other words, use TX3DNode.FreeIfUnused
+      (or some routine based on it), unless you're sure that you always
+      make the returned node a child of another node (in this case
+      the returned node is always used, and remains managed by parent node). }
+    function Texture(const Side: TBackgroundSide): TAbstractTextureNode; virtual; abstract;
 
     private FFdGroundAngle: TMFFloat;
     public property FdGroundAngle: TMFFloat read FFdGroundAngle;
@@ -66,35 +78,13 @@
     function FogType: TFogType;
   end;
 
-  TBackgroundSide = (bsBack, bsBottom, bsFront, bsLeft, bsRight, bsTop);
-  TBackgroundSides = set of TBackgroundSide;
-
-  { Background textures. }
-  TBackgroundTextures = object
-  public
-    Images: array [TBackgroundSide] of TEncodedImage;
-
-    constructor InitClear;
-
-    { Release and set to @nil all images.
-      If Cache is @nil, release images by simple FreeAndNil,
-      otherwise they are released from the cache by TextureImage_DecReference. }
-    procedure FreeAll(Cache: TTexturesVideosCache);
-  end;
-
   TBackgroundNode = class(TAbstractBackgroundNode)
-  private
-    FTexturesLoaded: boolean; { = false }
-    { If not FTexturesLoaded all images are @nil. }
-    FTextures: TBackgroundTextures;
-    procedure SetTexturesLoaded(const Value: boolean);
-    function GetTextures: TBackgroundTextures;
   public
     procedure CreateNode; override;
-    destructor Destroy; override;
 
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
+    function Texture(const Side: TBackgroundSide): TAbstractTextureNode; override;
 
     private FFdBackUrl: TMFString;
     public property FdBackUrl: TMFString read FFdBackUrl;
@@ -113,31 +103,6 @@
 
     private FFdTopUrl: TMFString;
     public property FdTopUrl: TMFString read FFdTopUrl;
-
-    procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames); override;
-
-    { Background images, automatically loaded when necessary.
-      Each particular image on @link(TBackgroundTextures.Images) list
-      is @nil if the URL for a particular side was not loaded.
-      The loaded images are cached, so next time you use this property
-      it will return instantly (unless something happened in
-      the meantime that invalidated cache, e.g. some URL changed).
-
-      Images are loaded to the classes suitable for textures,
-      see CastleTextureImages. }
-    property Textures: TBackgroundTextures read GetTextures;
-
-    { @deprecated Deprecated name for @link(Textures). }
-    property BgImages: TBackgroundTextures read GetTextures;
-
-    { Are the @link(Textures) currently loaded.
-      You don't usually need to use this function, usually you can just
-      use @link(Textures) and let them be loaded automatically
-      at the first use, and released when no longer needed.
-
-      You can set this to @true to force loading of images now, and you
-      can set to this to @false to force release of background images now. }
-    property TexturesLoaded: boolean read FTexturesLoaded write SetTexturesLoaded;
   end;
 
   TFogNode = class(TAbstractBindableNode, IAbstractFogObject)
@@ -264,6 +229,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
+    function Texture(const Side: TBackgroundSide): TAbstractTextureNode; override;
 
     private FFdBackTexture: TSFNode;
     public property FdBackTexture: TSFNode read FFdBackTexture;
@@ -354,33 +320,6 @@ begin
   Result[3][2] := 0;
 end;
 
-constructor TBackgroundTextures.InitClear;
-begin
-  Images[bsBack  ] := nil;
-  Images[bsBottom] := nil;
-  Images[bsFront ] := nil;
-  Images[bsLeft  ] := nil;
-  Images[bsRight ] := nil;
-  Images[bsTop   ] := nil;
-end;
-
-procedure TBackgroundTextures.FreeAll(Cache: TTexturesVideosCache);
-var
-  bs: TBackgroundSide;
-begin
-  if Cache <> nil then
-  begin
-    for bs := Low(bs) to High(bs) do
-      { Cache.TextureImage_DecReference is not prepared for nil parameters,
-        and some of our Images[bs] may be nil. }
-      if Images[bs] <> nil then
-        Cache.TextureImage_DecReference(Images[bs]);
-  end else
-  begin
-    for bs := Low(bs) to High(bs) do FreeAndNil(Images[bs]);
-  end;
-end;
-
 procedure TBackgroundNode.CreateNode;
 begin
   inherited;
@@ -421,15 +360,6 @@ begin
   { X3D specification comment: [URI] }
 
   DefaultContainerField := 'children';
-
-  FTexturesLoaded := false;
-  FTextures.InitClear;
-end;
-
-destructor TBackgroundNode.Destroy;
-begin
-  TexturesLoaded := false;
-  inherited;
 end;
 
 class function TBackgroundNode.ClassNodeTypeName: string;
@@ -444,71 +374,27 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TBackgroundNode.SetTexturesLoaded(const Value: boolean);
-
-  procedure LoadImg(bs: TBackgroundSide; Urls: TMFString);
-  var
-    I: Integer;
-    URL: string;
-    IgnoreAlpha: TAlphaChannel;
-  begin
-    FTextures.Images[bs] := nil;
-    for i := 0 to Urls.Count-1 do
-    begin
-      try
-        URL := PathFromBaseUrl(Urls.Items[i]);
-        FTextures.Images[bs] := X3DCache.TextureImage_IncReference(URL, IgnoreAlpha);
-        Break;
-      except
-        on E: Exception do
-        begin
-          OnWarning(wtMinor, 'Background', Format(SLoadError,
-            [E.ClassName, 'background image', URIDisplay(URL), E.Message]));
-          { and silence exception }
-        end;
-      end;
-    end;
+function TBackgroundNode.Texture(const Side: TBackgroundSide): TAbstractTextureNode;
+var
+  TextureField: TMFString;
+  ResultImgTex: TImageTextureNode;
+begin
+  case Side of
+    bsBack  : TextureField := FdBackUrl;
+    bsBottom: TextureField := FdBottomUrl;
+    bsFront : TextureField := FdFrontUrl;
+    bsLeft  : TextureField := FdLeftUrl;
+    bsRight : TextureField := FdRightUrl;
+    bsTop   : TextureField := FdTopUrl;
+    else raise EInternalError.Create('TTextureBackgroundNode.Texture:Side?');
   end;
-
-begin
-  if Value <> TexturesLoaded then
+  if TextureField.Items.Count <> 0 then
   begin
-    if Value then
-    begin
-      try
-        LoadImg(bsBack, FdBackUrl);
-        LoadImg(bsBottom, FdBottomUrl);
-        LoadImg(bsFront, FdFrontUrl);
-        LoadImg(bsLeft, FdLeftUrl);
-        LoadImg(bsRight, FdRightUrl);
-        LoadImg(bsTop, FdTopUrl);
-      except
-        { In case of trouble, free the images that were loaded.
-          This may happen if OnWarning raises exception and some
-          image cannot be loaded. }
-        FTextures.FreeAll(X3DCache);
-        raise;
-      end;
-    end else
-    begin
-      FTextures.FreeAll(X3DCache);
-    end;
-
-    FTexturesLoaded := Value;
-  end;
-end;
-
-procedure TBackgroundNode.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
-begin
-  inherited;
-  { Force reload on next Textures use, since our fields are different now }
-  TexturesLoaded := false;
-end;
-
-function TBackgroundNode.GetTextures: TBackgroundTextures;
-begin
-  TexturesLoaded := true;
-  Result := FTextures;
+    ResultImgTex := TImageTextureNode.Create('', BaseUrl);
+    ResultImgTex.FdUrl.Assign(TextureField);
+    Result := ResultImgTex;
+  end else
+    Result := nil;
 end;
 
 procedure TFogNode.CreateNode;
@@ -855,6 +741,24 @@ begin
   Fields.Add(FFdTopTexture);
 
   DefaultContainerField := 'children';
+end;
+
+function TTextureBackgroundNode.Texture(const Side: TBackgroundSide): TAbstractTextureNode;
+var
+  TextureField: TSFNode;
+begin
+  case Side of
+    bsBack  : TextureField := FdBackTexture;
+    bsBottom: TextureField := FdBottomTexture;
+    bsFront : TextureField := FdFrontTexture;
+    bsLeft  : TextureField := FdLeftTexture;
+    bsRight : TextureField := FdRightTexture;
+    bsTop   : TextureField := FdTopTexture;
+    else raise EInternalError.Create('TTextureBackgroundNode.Texture:Side?');
+  end;
+  if TextureField.Value is TAbstractTextureNode then
+    Result := TAbstractTextureNode(TextureField.Value) else
+    Result := nil;
 end;
 
 class function TTextureBackgroundNode.ClassNodeTypeName: string;

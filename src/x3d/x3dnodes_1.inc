@@ -452,6 +452,11 @@
 
   TTexture2Node_1 = class(TAbstractTexture2DNode)
   protected
+    function GetRepeatS: boolean; override;
+    function GetRepeatT: boolean; override;
+    procedure SetRepeatS(const Value: boolean); override;
+    procedure SetRepeatT(const Value: boolean); override;
+
     { Texture is loaded from file or inlined.
       The priority has the filename, only if it's empty (or an exception
       occurs during file loading) then the inlined texture will be used.
@@ -488,8 +493,6 @@
     { @groupEnd }
 
     function TextureDescription: string; override;
-    function RepeatS: boolean; override;
-    function RepeatT: boolean; override;
   end;
 
   TTexture2TransformNode_1 = class(TAbstractChildNode)
@@ -1659,14 +1662,28 @@ begin
     result := 'none';
 end;
 
-function TTexture2Node_1.RepeatS: boolean;
+function TTexture2Node_1.GetRepeatS: boolean;
 begin
   Result := FdWrapS.Value = TEXWRAP_REPEAT;
 end;
 
-function TTexture2Node_1.RepeatT: boolean;
+function TTexture2Node_1.GetRepeatT: boolean;
 begin
   Result := FdWrapT.Value = TEXWRAP_REPEAT;
+end;
+
+procedure TTexture2Node_1.SetRepeatS(const Value: boolean);
+begin
+  if Value then
+    FdWrapS.Send(TEXWRAP_REPEAT) else
+    FdWrapS.Send(TEXWRAP_CLAMP);
+end;
+
+procedure TTexture2Node_1.SetRepeatT(const Value: boolean);
+begin
+  if Value then
+    FdWrapT.Send(TEXWRAP_REPEAT) else
+    FdWrapT.Send(TEXWRAP_CLAMP);
 end;
 
 procedure TTexture2TransformNode_1.CreateNode;

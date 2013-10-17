@@ -1684,13 +1684,6 @@ begin
     ProjectionType := ViewpointNode.ProjectionType else
     ProjectionType := ptPerspective;
 
-  { Calculate BackgroundSkySphereRadius here,
-    using ProjectionFar that is *not* ZFarInfinity }
-  if GetMainScene <> nil then
-    GetMainScene.BackgroundSkySphereRadius :=
-      TBackground.NearFarToSkySphereRadius(FProjectionNear, FProjectionFar,
-        GetMainScene.BackgroundSkySphereRadius);
-
   { update ProjectionFarFinite.
     ProjectionFar may be later changed to ZFarInfinity. }
   FProjectionFarFinite := FProjectionFar;
@@ -1901,6 +1894,7 @@ begin
         PerspectiveProjection(45, Rect.Width / Rect.Height, ProjectionNear, ProjectionFar);
       end;
 
+(*TODO-background:
       if BackgroundWireframe then
       begin
         { Color buffer needs clear *now*, before drawing background. }
@@ -1910,7 +1904,8 @@ begin
           UsedBackground.Render;
         finally glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); end;
       end else
-        UsedBackground.Render;
+*)
+        UsedBackground.Render(RenderingCamera.Frustum);
 
       if not PerspectiveView then
         ProjectionMatrix := SavedProjectionMatrix;

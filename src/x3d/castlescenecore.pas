@@ -564,7 +564,6 @@ type
 
     procedure FreeResources_UnloadTextureData(Node: TX3DNode);
     procedure FreeResources_UnloadTexture3DData(Node: TX3DNode);
-    procedure FreeResources_UnloadBackgroundImage(Node: TX3DNode);
   private
     FOnGeometryChanged: TSceneGeometryChanged;
     FOnViewpointsChanged: TSceneNotification;
@@ -5020,11 +5019,6 @@ begin
   (Node as TAbstractTexture3DNode).TextureLoaded := false;
 end;
 
-procedure TCastleSceneCore.FreeResources_UnloadBackgroundImage(Node: TX3DNode);
-begin
-  (Node as TBackgroundNode).TexturesLoaded := false;
-end;
-
 procedure TCastleSceneCore.FreeResources(Resources: TSceneFreeResources);
 begin
   if (frTextureDataInNodes in Resources) and (RootNode <> nil) then
@@ -5035,9 +5029,11 @@ begin
       @FreeResources_UnloadTexture3DData, false);
   end;
 
-  if (frBackgroundImageInNodes in Resources) and (RootNode <> nil) then
-    RootNode.EnumerateNodes(TBackgroundNode,
-      @FreeResources_UnloadBackgroundImage, false);
+  { TODO-background:
+  if (frBackgroundImageInNodes in Resources) and
+     (FBackground <> nil) then
+    FBackground.FreeResources([frTextureDataInNodes]);
+    }
 
   if frTrianglesListShadowCasters in Resources then
     InvalidateTrianglesListShadowCasters;
