@@ -769,17 +769,26 @@ type
     procedure SetBackgroundSkySphereRadius(const Value: Single);
     procedure PrepareBackground;
   public
+    property BackgroundSkySphereRadius: Single
+      read FBackgroundSkySphereRadius write SetBackgroundSkySphereRadius
+      default 1;
+
     { TBackground instance to render current background. Current background
       is the top node on the BackgroundStack of this scene, following VRML/X3D
       specifications, and can be dynamic.
       The scene manager should use this to render background.
 
+      We use the current value of BackgroundSkySphereRadius.
+
       Returns @nil if there is no currently bound background node
-      in this scene, or if the bound background is not supported for now.
+      in this scene, or if the bound background is not supported for now
+      (the latter case right now happens with TextureBakckground).
 
       This instance is managed (automatically created/freed
       and so on) by this TCastleScene instance. It is cached
-      (so that it's recreated only when relevant things change. }
+      (so that it's recreated only when relevant things change,
+      like VRML/X3D nodes affecting this background,
+      or changes to BackgroundSkySphereRadius, or OpenGL context is closed). }
     function Background: TBackground;
 
     { Rendering attributes.
@@ -3325,7 +3334,8 @@ begin
   if BackgroundStack.Top <> nil then
   begin
     if Log then
-      WritelnLog('Background', 'OpenGL background recreated');
+      WritelnLog('Background', Format('OpenGL background recreated, with radius %f',
+        [BackgroundSkySphereRadius]));
 
     BgNode := BackgroundStack.Top;
 
@@ -3370,7 +3380,7 @@ begin
     begin
       { TODO-background: use the fact that you can just update the background? }
       FBackground := TBackground.Create;
-      FBackground.Update(BgNode);
+      FBackground.Update(BgNode, BackgroundSkySphereRadius);
     end;
   end else
     FBackground := nil;

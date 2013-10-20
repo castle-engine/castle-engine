@@ -45,9 +45,34 @@ type
     ParamsObj: TObject;
     ClearColor: TCastleColor;
   public
+    { Calculate (or just confirm that Proposed value is still OK)
+      the sky sphere radius that fits nicely in your projection near/far.
+
+      Background spheres (for sky and ground) are rendered at given radius.
+      And inside these spheres, we have a cube (to apply background textures).
+      Both spheres and cube must fit nicely within your projection near/far
+      to avoid any artifacts.
+
+      We first check is Proposed a good result value (it satisfies
+      the conditions, with some safety margin). If yes, then we return
+      exactly the Proposed value. Otherwise, we calculate new value
+      as an average in our range.
+      This way, if you already had sky sphere radius calculated
+      (and prepared some OpenGL resources for it),
+      and projection near/far changes very slightly
+      (e.g. because bounding box slightly changed), then you don't have
+      to recreate background --- if the old sky sphere radius is still OK,
+      then the old background resources are still OK.
+
+      Just pass Proposed = 0 (or anything else that is always outside
+      the range) if you don't need this feature. }
+    class function NearFarToSkySphereRadius(const zNear, zFar: Single;
+      const Proposed: Single = 0): Single;
+
     constructor Create;
     destructor Destroy; override;
-    procedure Update(Node: TAbstractBackgroundNode);
+    procedure Update(const Node: TAbstractBackgroundNode;
+      const SkySphereRadius: Single);
     procedure Render(const Frustum: TFrustum);
   end;
 
@@ -68,6 +93,42 @@ const
 
 { TBackground ------------------------------------------------------------ }
 
+class function TBackground.NearFarToSkySphereRadius(const zNear, zFar: Single;
+  const Proposed: Single): Single;
+
+{ Conditions are ZNear < CubeSize/2, ZFar > SphereRadius.
+  So conditions for radius are
+
+    ZNear * 2 * CubeSizeToSphereRadius < SphereRadius < ZFar
+
+  Note that 2 * CubeSizeToSphereRadius is Sqrt(3) =~ 1.7,
+  so it's possible to choose
+  ZNear <= ZFar that still yield no possible radius.
+
+  It would be possible to avoid whole need for this method
+  by setting projection matrix in our own render. But then,
+  you'd have to pass fovy and such parameters to the background renderer.
+}
+
+var
+  Min, Max, SafeMin, SafeMax: Single;
+begin
+  Min := zNear * 2 * CubeSizeToSphereRadius;
+  Max := zFar;
+
+  { The new sphere radius should be in [Min...Max].
+    For maximum safety (from floating point troubles), we require
+    that it's within slightly smaller "safe" range. }
+
+  SafeMin := Lerp(0.1, Min, Max);
+  SafeMax := Lerp(0.9, Min, Max);
+
+  if (Proposed >= SafeMin) and
+     (Proposed <= SafeMax) then
+    Result := Proposed else
+    Result := (Min + Max) / 2;
+end;
+
 {$define Scene := TCastleScene(SceneObj)}
 {$define Params := TBasicRenderParams(ParamsObj)}
 
@@ -75,6 +136,11 @@ constructor TBackground.Create;
 begin
   inherited;
   Scene := TCastleScene.Create(nil);
+  { We don't need depth test (we put our shapes in proper order),
+    we even don't want it (because we don't clear depth buffer
+    before drawing, so it may contain the depths on 3D world rendered
+    in previous frame). }
+  Scene.Attributes.DepthTest := false;
   Params := TBasicRenderParams.Create;
 end;
 
@@ -85,8 +151,10 @@ begin
   inherited;
 end;
 
-procedure TBackground.Update(Node: TAbstractBackgroundNode);
+procedure TBackground.Update(const Node: TAbstractBackgroundNode;
+  const SkySphereRadius: Single);
 var
+  CubeSize, CubeSize2: Single;
   RootNode: TX3DRootNode;
   MatrixTransform: TMatrixTransformNode;
 
@@ -108,12 +176,14 @@ var
     Coord: TCoordinateNode;
     TexCoord: TTextureCoordinateNode;
     Texture: TAbstractTextureNode;
+    V: TVector3Single;
   begin
     Texture := Node.Texture(Side);
     if Texture = nil then Exit;
 
     Coord := TCoordinateNode.Create('', Node.BaseUrl);
-    Coord.FdPoint.Send(Coords[Side]);
+    for V in Coords[Side] do
+      Coord.FdPoint.Items.Add(V * CubeSize2);
 
     TexCoord := TTextureCoordinateNode.Create('', Node.BaseUrl);
     TexCoord.FdPoint.Send(TexCoords);
@@ -273,6 +343,9 @@ begin
   MatrixTransform.FdMatrix.Value := Node.TransformRotation;
   RootNode.FdChildren.Add(MatrixTransform);
 
+  CubeSize := SkySphereRadius * SphereRadiusToCubeSize;
+  CubeSize2 := CubeSize / 2;
+
   for BS := Low(BS) to High(BS) do RenderTextureSide(BS);
 
   ClearColor := Vector4Single(Node.FdSkyColor.Items[0], 1.0);
@@ -295,12 +368,6 @@ begin
     Include(TexturedSides, bs);
     if Imgs.Images[bs].HasAlpha then SomeTexturesWithAlpha := true;
   end;
-
-    // TODO-background: we lost now the optimization that allowed us to draw background
-    // without depth test.
-
-    glDisable(GL_DEPTH_TEST);
-
 
     { wykonujemy najbardziej elementarna optymalizacje : jesli mamy 6 tekstur
       i zadna nie ma kanalu alpha (a w praktyce jest to chyba najczestsza sytuacja)

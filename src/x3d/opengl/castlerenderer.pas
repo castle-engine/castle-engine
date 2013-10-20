@@ -305,6 +305,7 @@ type
     FVertexBufferObject: boolean;
     FShadowSampling: TShadowSampling;
     FVisualizeDepthMap: boolean;
+    FDepthTest: boolean;
   protected
     { These methods just set the value on given property,
       eventually (some of them) calling ReleaseCachedResources.
@@ -526,6 +527,18 @@ type
       GeneratedShadowMap nodes. }
     property VisualizeDepthMap: boolean
       read FVisualizeDepthMap write SetVisualizeDepthMap default false;
+
+    { By default, we use depth testing to determine which objects are in front
+      of the others. This allows to display all 3D content (all TCastleScene
+      instances, and all shapes inside them) in any order.
+
+      For very special purposes, you can disable depth testing.
+      This means that 3D objects will always be drawn in front of the previous
+      ones, in the order in which they are rendered,
+      ignoring the contents of the depth buffer. Use only if you know
+      what you're doing, if you're sure that the order of rendering will
+      always be good. }
+    property DepthTest: boolean read FDepthTest write FDepthTest default true;
   end;
 
   TRenderingAttributesClass = class of TRenderingAttributes;
@@ -2014,6 +2027,7 @@ begin
   FShaders := DefaultShaders;
   FVertexBufferObject := true;
   FShadowSampling := DefaultShadowSampling;
+  FDepthTest := true;
 end;
 
 procedure TRenderingAttributes.ReleaseCachedResources;
@@ -2609,7 +2623,7 @@ begin
   FCullFace := cfNone;
   glDisable(GL_CULL_FACE);
 
-  GLSetEnabled(GL_DEPTH_TEST, Beginning);
+  GLSetEnabled(GL_DEPTH_TEST, Beginning and Attributes.DepthTest);
 
   if Attributes.Mode in [rmDepth, rmFull] then
   begin

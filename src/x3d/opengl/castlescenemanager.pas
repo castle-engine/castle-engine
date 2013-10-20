@@ -1684,6 +1684,13 @@ begin
     ProjectionType := ViewpointNode.ProjectionType else
     ProjectionType := ptPerspective;
 
+  { Calculate BackgroundSkySphereRadius here,
+    using ProjectionFar that is *not* ZFarInfinity }
+  if GetMainScene <> nil then
+    GetMainScene.BackgroundSkySphereRadius :=
+      TBackground.NearFarToSkySphereRadius(FProjectionNear, FProjectionFar,
+        GetMainScene.BackgroundSkySphereRadius);
+
   { update ProjectionFarFinite.
     ProjectionFar may be later changed to ZFarInfinity. }
   FProjectionFarFinite := FProjectionFar;
