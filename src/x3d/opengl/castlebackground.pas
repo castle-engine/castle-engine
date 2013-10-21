@@ -73,12 +73,12 @@ type
     destructor Destroy; override;
     procedure Update(const Node: TAbstractBackgroundNode;
       const SkySphereRadius: Single);
-    procedure Render(const Frustum: TFrustum);
+    procedure Render(const Wireframe: boolean; const Frustum: TFrustum);
   end;
 
 implementation
 
-uses CastleWarnings, CastleScene;
+uses CastleWarnings, CastleScene, X3DFields, Math;
 
 const
   { Relation of a cube size and a radius of it's bounding sphere.
@@ -154,298 +154,392 @@ end;
 procedure TBackground.Update(const Node: TAbstractBackgroundNode;
   const SkySphereRadius: Single);
 var
-  CubeSize, CubeSize2: Single;
   RootNode: TX3DRootNode;
   MatrixTransform: TMatrixTransformNode;
 
-  procedure RenderTextureSide(const Side: TBackgroundSide);
-  const
-    Coords: array [TBackgroundSide, 0..3] of TVector3Single =
-    ( (( 1, -1,  1), (-1, -1,  1), (-1,  1,  1), ( 1,  1,  1)), {back}
-      ((-1, -1,  1), ( 1, -1,  1), ( 1, -1, -1), (-1, -1, -1)), {bottom}
-      ((-1, -1, -1), ( 1, -1, -1), ( 1,  1, -1), (-1,  1, -1)), {front}
-      ((-1, -1,  1), (-1, -1, -1), (-1,  1, -1), (-1,  1,  1)), {left}
-      (( 1, -1, -1), ( 1, -1,  1), ( 1,  1,  1), ( 1,  1, -1)), {right}
-      ((-1,  1, -1), ( 1,  1, -1), ( 1,  1,  1), (-1,  1,  1))  {top}
-    );
-    TexCoords: array [0..3] of TVector2Single = ((0, 0), (1, 0), (1, 1), (0, 1));
+  procedure RenderCubeSides;
   var
-    Shape: TShapeNode;
-    Appearance: TAppearanceNode;
-    QuadSet: TQuadSetNode;
-    Coord: TCoordinateNode;
-    TexCoord: TTextureCoordinateNode;
-    Texture: TAbstractTextureNode;
-    V: TVector3Single;
-  begin
-    Texture := Node.Texture(Side);
-    if Texture = nil then Exit;
+    CubeSize, CubeSize2: Single;
 
-    Coord := TCoordinateNode.Create('', Node.BaseUrl);
-    for V in Coords[Side] do
-      Coord.FdPoint.Items.Add(V * CubeSize2);
-
-    TexCoord := TTextureCoordinateNode.Create('', Node.BaseUrl);
-    TexCoord.FdPoint.Send(TexCoords);
-
-    QuadSet := TQuadSetNode.Create('', Node.BaseUrl);
-    QuadSet.FdCoord.Value := Coord;
-    QuadSet.FdTexCoord.Value := TexCoord;
-
-    Appearance := TAppearanceNode.Create('', Node.BaseUrl);
-    Appearance.Texture := Texture;
-    if Texture is TAbstractTexture2DNode then
+    procedure RenderTextureSide(const Side: TBackgroundSide);
+    const
+      Coords: array [TBackgroundSide, 0..3] of TVector3Single =
+      ( (( 1, -1,  1), (-1, -1,  1), (-1,  1,  1), ( 1,  1,  1)), {back}
+        ((-1, -1,  1), ( 1, -1,  1), ( 1, -1, -1), (-1, -1, -1)), {bottom}
+        ((-1, -1, -1), ( 1, -1, -1), ( 1,  1, -1), (-1,  1, -1)), {front}
+        ((-1, -1,  1), (-1, -1, -1), (-1,  1, -1), (-1,  1,  1)), {left}
+        (( 1, -1, -1), ( 1, -1,  1), ( 1,  1,  1), ( 1,  1, -1)), {right}
+        ((-1,  1, -1), ( 1,  1, -1), ( 1,  1,  1), (-1,  1,  1))  {top}
+      );
+      TexCoords: array [0..3] of TVector2Single = ((0, 0), (1, 0), (1, 1), (0, 1));
+    var
+      Shape: TShapeNode;
+      Appearance: TAppearanceNode;
+      QuadSet: TQuadSetNode;
+      Coord: TCoordinateNode;
+      TexCoord: TTextureCoordinateNode;
+      Texture: TAbstractTextureNode;
+      V: TVector3Single;
     begin
-      { We have to change repeat mode of this texture, even if it came from
-        TTextureBackgroundNode. The only reasonable way to render background
-        is to use clamp mode. More correct alternative would be creating
-        a copy of node in case of TTextureBackgroundNode,
-        but this would often be wasteful --- the background texture is
-        probably not DEF/USEd in other places (that need repeat mode),
-        and it's probably repeat=true by accident (since this is the default value). }
-      TAbstractTexture2DNode(Texture).RepeatS := false;
-      TAbstractTexture2DNode(Texture).RepeatT := false;
+      Texture := Node.Texture(Side);
+      if Texture = nil then Exit;
+
+      Coord := TCoordinateNode.Create('', Node.BaseUrl);
+      for V in Coords[Side] do
+        Coord.FdPoint.Items.Add(V * CubeSize2);
+
+      TexCoord := TTextureCoordinateNode.Create('', Node.BaseUrl);
+      TexCoord.FdPoint.Send(TexCoords);
+
+      QuadSet := TQuadSetNode.Create('', Node.BaseUrl);
+      QuadSet.FdCoord.Value := Coord;
+      QuadSet.FdTexCoord.Value := TexCoord;
+
+      Appearance := TAppearanceNode.Create('', Node.BaseUrl);
+      Appearance.Texture := Texture;
+      if Texture is TAbstractTexture2DNode then
+      begin
+        { We have to change repeat mode of this texture, even if it came from
+          TTextureBackgroundNode. The only reasonable way to render background
+          is to use clamp mode. More correct alternative would be creating
+          a copy of node in case of TTextureBackgroundNode,
+          but this would often be wasteful --- the background texture is
+          probably not DEF/USEd in other places (that need repeat mode),
+          and it's probably repeat=true by accident (since this is the default value). }
+        TAbstractTexture2DNode(Texture).RepeatS := false;
+        TAbstractTexture2DNode(Texture).RepeatT := false;
+      end;
+
+      Shape := TShapeNode.Create('', Node.BaseUrl);
+      Shape.FdGeometry.Value := QuadSet;
+      Shape.Appearance := Appearance;
+
+      MatrixTransform.FdChildren.Add(Shape);
     end;
 
-    Shape := TShapeNode.Create('', Node.BaseUrl);
-    Shape.FdGeometry.Value := QuadSet;
-    Shape.Appearance := Appearance;
-
-// TODO-background: do we need to set REPLACE (e.g. by MultiTexture.mode),
-// or are we already optimized Ok for unlit case to just use white color?
-// check.
-
-    { Wybieramy GL_REPLACE bo scianki szescianu beda zawsze cale teksturowane
-      i chcemy olac zupelnie kolor/material jaki bedzie na tych sciankach.
-      Chcemy wziac to z tekstury (dlatego standardowe GL_MODULATE nie jest dobre).
-      Ponadto, kanal alpha tez chcemy wziac z tekstury, tzn. szescian
-      nieba ma byc przeswitujacy gdy tekstura bedzie przeswitujaca
-      (dlatego GL_DECAL nie jest odpowiedni). }
-//    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-    MatrixTransform.FdChildren.Add(Shape);
+  var
+    BS: TBackgroundSide;
+  begin
+    CubeSize := SkySphereRadius * SphereRadiusToCubeSize;
+    CubeSize2 := CubeSize / 2;
+    for BS := Low(BS) to High(BS) do RenderTextureSide(BS);
   end;
 
-(*
+var
+  SphereCreated: boolean;
+  SphereCoord: TMFVec3f;
+  SphereCoordIndex: TMFInt32;
+  SphereColor: TMFColor;
+
+  procedure NeedsSphere;
+  var
+    Coord: TCoordinateNode;
+    Color: TColorNode;
+    Geometry: TIndexedFaceSetNode;
+    Shape: TShapeNode;
+  begin
+    { add a mesh for sphere, if not present already }
+    if not SphereCreated then
+    begin
+      SphereCreated := true;
+
+      Coord := TCoordinateNode.Create('', Node.BaseUrl);
+      SphereCoord := Coord.FdPoint;
+
+      Color := TColorNode.Create('', Node.BaseUrl);
+      SphereColor := Color.FdColor;
+
+      Geometry := TIndexedFaceSetNode.Create('', Node.BaseUrl);
+      Geometry.FdCoord.Value := Coord;
+      Geometry.FdColor.Value := Color;
+      Geometry.FdSolid.Value := false;
+      SphereCoordIndex := Geometry.FdCoordIndex;
+
+      Shape := TShapeNode.Create('', Node.BaseUrl);
+      Shape.FdGeometry.Value := Geometry;
+
+      MatrixTransform.FdChildren.Add(Shape);
+    end;
+  end;
+
+const
+  { slices of rings rendered in Render*Stack }
+  Slices = 24;
+
   { For given Angle (meaning: 0 = zenith, Pi = nadir), calculate the height
     and radius of given circle of sky sphere. }
   procedure StackCircleCalc(const Angle: Single; out Y, Radius: Single);
+  var
+    S, C: Extended;
   begin
-    Radius := sin(Angle) * SkySphereRadius;
-    Y := cos(Angle) * SkySphereRadius;
+    SinCos(Angle, S, C);
+    Radius := S * SkySphereRadius;
+    Y := C * SkySphereRadius;
+  end;
+
+  function StackTipCalc(const Angle: Single): TVector3Single;
+  begin
+    // Result := Vector3Single(0, Cos(Angle) * SkySphereRadius, 0);
+    { simpler are more accurate version, since StackTipCalc is only called with
+      these argument 0 or Pi }
+    if Angle = 0 then
+      Result := Vector3Single(0,  SkySphereRadius, 0) else
+    begin
+      Assert(Angle = Single(Pi));
+      Result := Vector3Single(0, -SkySphereRadius, 0);
+    end;
+  end;
+
+  function CirclePoint(const Y, Radius: Single; const SliceIndex: Integer): TVector3Single;
+  var
+    S, C: Extended;
+  begin
+    SinCos(SliceIndex * 2 * Pi / Slices, S, C);
+    Result := Vector3Single(S * Radius, Y, C * Radius);
   end;
 
   { Render*Stack: render one stack of sky/ground sphere.
-    Angles are given in the sky connvention : 0 is zenith, Pi is nadir.
-    Colors are nterpolated from upper to lower angle from upper to lower color.
-    RenderUpper/LowerStack do not need upper/lower angle: it is implicitly
-    understood to be the zenith/nadir.
+    Angles are given in the sky connvention : 0 is zenith, Pi is nadir. }
 
-    TODO: ustalic we wszystkich Render*Stack ze sciany do wewnatrz sa
-    zawsze CCW (albo na odwrot) i uzyc backface culling ? Czy cos na
-    tym zyskamy ?
-  }
-
-  const
-    { slices of rings rendered in Render*Stack }
-    Slices = 24;
-
-  procedure RenderStack(
-    const UpperColor: TVector3Single; const UpperAngle: Single;
-    const LowerColor: TVector3Single; const LowerAngle: Single);
+  procedure RenderFirstStack(
+    const TipColor   : TVector3Single; const TipAngle   : Single;
+    const CircleColor: TVector3Single; const CircleAngle: Single);
   var
-    UpperY, UpperRadius, LowerY, LowerRadius: Single;
-
-    procedure Bar(const SliceAngle: Single);
-    var
-      SinSliceAngle, CosSliceAngle: Single;
-    begin
-      SinSliceAngle := Sin(SliceAngle);
-      CosSliceAngle := Cos(SliceAngle);
-      glColorv(LowerColor);
-      glVertex3f(SinSliceAngle*LowerRadius, LowerY, CosSliceAngle*LowerRadius);
-      glColorv(UpperColor);
-      glVertex3f(SinSliceAngle*UpperRadius, UpperY, CosSliceAngle*UpperRadius);
-    end;
-
-  var
-    i: Integer;
+    CircleY, CircleRadius: Single;
+    I, Start, Next, StartIndex, NextIndex: Integer;
   begin
-    StackCircleCalc(UpperAngle, UpperY, UpperRadius);
-    StackCircleCalc(LowerAngle, LowerY, LowerRadius);
-    glBegin(GL_QUAD_STRIP);
-      Bar(0);
-      for i := 1 to Slices-1 do Bar(i* 2*Pi/Slices);
-      Bar(0);
-    glEnd;
+    Start := SphereCoord.Count;
+    Next := Start;
+    Assert(Start = SphereColor.Count);
+    SphereCoord.Count := Start + Slices + 1;
+    SphereColor.Count := Start + Slices + 1;
+
+    StartIndex := SphereCoordIndex.Count;
+    NextIndex := StartIndex;
+    SphereCoordIndex.Count := SphereCoordIndex.Count + Slices * 4;
+
+    StackCircleCalc(CircleAngle, CircleY, CircleRadius);
+
+    SphereCoord.Items.L[Start] := StackTipCalc(TipAngle);
+    SphereColor.Items.L[Start] := TipColor;
+    Inc(Next);
+
+    for I := 0 to Slices - 1 do
+    begin
+      SphereCoord.Items.L[Next] := CirclePoint(CircleY, CircleRadius, I);
+      SphereColor.Items.L[Next] := CircleColor;
+      Inc(Next);
+
+      SphereCoordIndex.Items.L[NextIndex    ] := Start;
+      SphereCoordIndex.Items.L[NextIndex + 1] := Start + 1 + I;
+      if I <> Slices - 1 then
+        SphereCoordIndex.Items.L[NextIndex + 2] := Start + 2 + I else
+        SphereCoordIndex.Items.L[NextIndex + 2] := Start + 1;
+      SphereCoordIndex.Items.L[NextIndex + 3] := -1;
+      NextIndex += 4;
+    end;
   end;
 
-  procedure RenderUpperStack(
-    const UpperColor: TVector3Single;
-    const LowerColor: TVector3Single; const LowerAngle: Single);
-  { Easy but not optimal implementation of this is
-    RenderStack(UpperColor, 0, LowerColor, LowerAngle); }
+  procedure RenderNextStack(
+    const CircleColor: TVector3Single; const CircleAngle: Single);
   var
-    LowerY, LowerRadius: Single;
-
-    procedure Pt(const SliceAngle: Single);
-    begin
-      glVertex3f(Sin(SliceAngle)*LowerRadius, LowerY, Cos(SliceAngle)*LowerRadius);
-    end;
-
-  var
-    i: Integer;
+    CircleY, CircleRadius: Single;
+    I, Start, Next, StartIndex, NextIndex: Integer;
   begin
-    StackCircleCalc(LowerAngle, LowerY, LowerRadius);
-    glBegin(GL_TRIANGLE_FAN);
-      glColorv(UpperColor);
-      glVertex3f(0, SkySphereRadius, 0);
-      glColorv(LowerColor);
-      Pt(0);
-      for i := 1 to Slices-1 do Pt(i* 2*Pi/Slices);
-      Pt(0);
-    glEnd;
+    Start := SphereCoord.Count;
+    Next := Start;
+    Assert(Start = SphereColor.Count);
+    SphereCoord.Count := Start + Slices;
+    SphereColor.Count := Start + Slices;
+
+    StartIndex := SphereCoordIndex.Count;
+    NextIndex := StartIndex;
+    SphereCoordIndex.Count := SphereCoordIndex.Count + Slices * 5;
+
+    StackCircleCalc(CircleAngle, CircleY, CircleRadius);
+
+    for I := 0 to Slices - 1 do
+    begin
+      SphereCoord.Items.L[Next] := CirclePoint(CircleY, CircleRadius, I);
+      SphereColor.Items.L[Next] := CircleColor;
+      Inc(Next);
+
+      SphereCoordIndex.Items.L[NextIndex    ] := Start + I;
+      if I <> Slices - 1 then
+      begin
+        SphereCoordIndex.Items.L[NextIndex + 1] := Start + 1 + I;
+        SphereCoordIndex.Items.L[NextIndex + 2] := Start + 1 + I - Slices;
+      end else
+      begin
+        SphereCoordIndex.Items.L[NextIndex + 1] := Start;
+        SphereCoordIndex.Items.L[NextIndex + 2] := Start - Slices;
+      end;
+      SphereCoordIndex.Items.L[NextIndex + 3] := Start + I - Slices;
+      SphereCoordIndex.Items.L[NextIndex + 4] := -1;
+      NextIndex += 5;
+    end;
   end;
 
-  procedure RenderLowerStack(
-    const UpperColor: TVector3Single; const UpperAngle: Single;
-    const LowerColor: TVector3Single);
-  { Easy but not optimal implementation of this is
-    RenderStack(UpperColor, UpperAngle, LowerColor, Pi); }
+  procedure RenderLastStack(
+    const TipColor: TVector3Single; const TipAngle: Single);
   var
-    UpperY, UpperRadius: Single;
+    I, Start, StartIndex, NextIndex: Integer;
+  begin
+    Start := SphereCoord.Count;
+    Assert(Start = SphereColor.Count);
+    SphereCoord.Count := Start + 1;
+    SphereColor.Count := Start + 1;
 
-    procedure Pt(const SliceAngle: Single);
+    StartIndex := SphereCoordIndex.Count;
+    NextIndex := StartIndex;
+    SphereCoordIndex.Count := SphereCoordIndex.Count + Slices * 4;
+
+    SphereCoord.Items.L[Start] := StackTipCalc(TipAngle);
+    SphereColor.Items.L[Start] := TipColor;
+
+    for I := 0 to Slices - 1 do
     begin
-      glVertex3f(Sin(SliceAngle)*UpperRadius, UpperY, Cos(SliceAngle)*UpperRadius);
+      SphereCoordIndex.Items.L[NextIndex    ] := Start;
+      SphereCoordIndex.Items.L[NextIndex + 1] := Start - Slices + I + 1;
+      SphereCoordIndex.Items.L[NextIndex + 2] := Start - Slices + I;
+      SphereCoordIndex.Items.L[NextIndex + 3] := -1;
+      NextIndex += 4;
+    end;
+  end;
+
+  procedure RenderSky;
+  var
+    I, ColorCount, AngleCount: Integer;
+    Angle: PSingle;
+    Color: PVector3Single;
+    GroundHighestAngle: Single;
+  begin
+    { calculate GroundHighestAngle, will be usable to optimize rendering sky.
+      GroundHighestAngle is measured in sky convention (0 = zenith, Pi = nadir).
+      If there is no sky I simply set GroundHighestAngle to sthg > Pi. }
+    if Node.FdGroundAngle.Count <> 0 then
+      GroundHighestAngle := Pi - Node.FdGroundAngle.Items.Last else
+      GroundHighestAngle := Pi + 1;
+
+    ColorCount := Node.FdSkyColor.Count;
+    AngleCount := Node.FdSkyAngle.Count;
+    Color := Node.FdSkyColor.Items.L;
+    Angle := Node.FdSkyAngle.Items.L;
+
+    if ColorCount <= 0 then
+    begin
+      OnWarning(wtMajor, 'VRML/X3D', 'Background node incorrect: Sky must have at least one color');
+      Exit;
+    end else
+    if AngleCount + 1 <> ColorCount then
+    begin
+      OnWarning(wtMajor, 'VRML/X3D', 'Background node incorrect: Sky must have exactly one more Color than Angles');
+      { We know now that ColorCount >= 1, and of course AngleCount >= 0
+        (since array always has >= 0 items). So we correct one of them to be
+        smaller. }
+      if AngleCount + 1 > ColorCount then
+        AngleCount := ColorCount - 1 else
+        ColorCount := AngleCount + 1;
     end;
 
-  var
-    i: Integer;
-  begin
-    StackCircleCalc(UpperAngle, UpperY, UpperRadius);
-    glBegin(GL_TRIANGLE_FAN);
-      glColorv(LowerColor);
-      glVertex3f(0, -SkySphereRadius, 0);
-      glColorv(UpperColor);
-      Pt(0);
-      for i := 1 to Slices-1 do Pt(i* 2*Pi/Slices);
-      Pt(0);
-    glEnd;
+    Assert(ColorCount >= 1);
+    Assert(AngleCount + 1 = ColorCount);
+
+    ClearColor := Vector4Single(Color[0], 1.0);
+    if ColorCount > 1 then
+    begin
+      { When ColorCount >= 2, the idea of rendering is to do:
+        - RenderFirstStack
+        - RenderNextStack many times
+        - RenderLastStack
+        But we try to break this early, to not waste time rendering
+        something that will be covered anyway by the ground sphere,
+        using GroundHighestAngle. }
+
+      NeedsSphere;
+
+      RenderFirstStack(Color[0], 0,
+                       Color[1], Angle[0]);
+      for I := 1 to AngleCount - 1 do
+      begin
+        if Angle[I - 1] > GroundHighestAngle then Break;
+        RenderNextStack(Color[I + 1], Angle[I]);
+      end;
+      { close the tip of the sky sphere with constant color (last on Color[] table) }
+      if Angle[AngleCount - 1] <= GroundHighestAngle then
+        RenderLastStack(Color[ColorCount - 1], Pi);
+    end;
   end;
-*)
-var
-  BS: TBackgroundSide;
+
+  procedure RenderGround;
+  var
+    I: Integer;
+    ColorCount, AngleCount: Integer;
+    Angle: PSingle;
+    Color: PVector3Single;
+  begin
+    ColorCount := Node.FdGroundColor.Count;
+    AngleCount := Node.FdGroundAngle.Count;
+    Color := Node.FdGroundColor.Items.L;
+    Angle := Node.FdGroundAngle.Items.L;
+
+    if AngleCount <> 0 then
+    begin
+      if AngleCount + 1 <> ColorCount then
+      begin
+        OnWarning(wtMajor, 'VRML/X3D', 'Background node incorrect: Ground must have exactly one more Color than Angles');
+        if AngleCount + 1 > ColorCount then
+          AngleCount := ColorCount - 1 else
+          ColorCount := AngleCount + 1;
+      end;
+      Assert(AngleCount + 1 = ColorCount);
+
+      NeedsSphere;
+
+      RenderFirstStack(Color[0], Pi,
+                       Color[1], Pi - Angle[0]);
+      for I := 1 to AngleCount - 1 do
+        RenderNextStack(Color[I + 1], Pi - Angle[I]);
+    end;
+  end;
+
 begin
   RootNode := TX3DRootNode.Create('', Node.BaseUrl);
+  SphereCreated := false;
 
   MatrixTransform := TMatrixTransformNode.Create('', Node.BaseUrl);
   MatrixTransform.FdMatrix.Value := Node.TransformRotation;
   RootNode.FdChildren.Add(MatrixTransform);
 
-  CubeSize := SkySphereRadius * SphereRadiusToCubeSize;
-  CubeSize2 := CubeSize / 2;
-
-  for BS := Low(BS) to High(BS) do RenderTextureSide(BS);
-
-  ClearColor := Vector4Single(Node.FdSkyColor.Items[0], 1.0);
-
-// TODO-background: implement ground and sky in new approach
-(*
-var
-  TexturedSides: TBackgroundSides;
-  i: Integer;
-  GroundHighestAngle: Single;
-  SomeTexturesWithAlpha: boolean;
-begin
-  inherited Create;
-
-  { calculate nieboTex and SomeTexturesWithAlpha }
-  SomeTexturesWithAlpha := false;
-  TexturedSides := [];
-  for bs := Low(bs) to High(bs) do
-  begin
-    Include(TexturedSides, bs);
-    if Imgs.Images[bs].HasAlpha then SomeTexturesWithAlpha := true;
-  end;
-
-    { wykonujemy najbardziej elementarna optymalizacje : jesli mamy 6 tekstur
-      i zadna nie ma kanalu alpha (a w praktyce jest to chyba najczestsza sytuacja)
-      to nie ma sensu sie w ogole przejmowac sky i ground, tekstury je zaslonia. }
-    if (TexturedSides <> BGAllSides) or SomeTexturesWithAlpha then
-    begin
-      { calculate GroundHighestAngle, will be usable to optimize rendering sky.
-        GroundHighestAngle is measured in sky convention (0 = zenith, Pi = nadir).
-        If there is no sky I simply set GroundHighestAngle to sthg > Pi. }
-      if GroundAngleCount <> 0 then
-        GroundHighestAngle := Pi-GroundAngle^[GroundAngleCount-1] else
-        GroundHighestAngle := Pi + 1;
-
-      { render sky }
-      Assert(SkyColorCount >= 1, 'Sky must have at least one color');
-      Assert(SkyAngleCount+1 = SkyColorCount, 'Sky must have exactly one more Color than Angles');
-
-      if SkyColorCount = 1 then
-      begin
-        GLClear([cbColor], Vector4Single(SkyColor^[0]));
-      end else
-      begin
-        { wiec SkyColorCount >= 2. W zasadzie rendering przebiega na zasadzie
-            RenderUpperStack
-            RenderStack iles razy
-            RenderLowerStack
-          Probujemy jednak przerwac robote w trakcie ktoregos RenderStack
-          lub RenderLowerStack zeby nie tracic czasu na malowanie obszaru
-          ktory i tak zamalujemy przez ground. Uzywamy do tego GroundHighestAngle.
-        }
-        RenderUpperStack(SkyColor^[0], SkyColor^[1], SkyAngle^[0]);
-        for i := 1 to SkyAngleCount-1 do
-        begin
-          if SkyAngle^[i-1] > GroundHighestAngle then Break;
-          RenderStack(SkyColor^[i]  , SkyAngle^[i-1],
-                      SkyColor^[i+1], SkyAngle^[i]);
-        end;
-        { TODO: jesli ostatni stack ma SkyAngle bliskie Pi to powinnismy renderowac
-          juz ostatni stack przy uzyciu RenderLowerStack. }
-        if SkyAngle^[SkyAngleCount-1] <= GroundHighestAngle then
-          RenderLowerStack(
-            SkyColor^[SkyColorCount-1], SkyAngle^[SkyAngleCount-1],
-            SkyColor^[SkyColorCount-1]);
-      end;
-
-      { render ground }
-      if GroundAngleCount <> 0 then
-      begin
-        { jesli GroundAngleCount = 0 to nie ma ground wiec nie wymagamy wtedy
-          zeby GroundColorCount = 1 (a wiec jest to wyjatek od zasady
-          GroundAngleCount + 1 = GroundColorCount) }
-        Assert(GroundAngleCount+1 = GroundColorCount, 'Ground must have exactly one more Color than Angles');
-
-        RenderLowerStack(GroundColor^[1], Pi-GroundAngle^[0],
-                         GroundColor^[0]);
-        for i := 1 to GroundAngleCount-1 do
-         RenderStack(GroundColor^[i+1], Pi-GroundAngle^[i],
-                     GroundColor^[i]  , Pi-GroundAngle^[i-1]);
-      end;
-    end;
-
-*)
+  RenderSky;
+  RenderGround;
+  RenderCubeSides;
 
   Scene.Load(RootNode, true);
 end;
 
-procedure TBackground.Render(const Frustum: TFrustum);
+procedure TBackground.Render(const Wireframe: boolean; const Frustum: TFrustum);
 begin
   Params.InShadow := false;
   { since we constructed Scene ourselves,
     we know it only has ShadowVolumesReceivers=true shapes }
   Params.ShadowVolumesReceivers := true;
 
-  // TODO-background: we ignore Frustum, as it contains shifted camera, not just rotated
+  if Wireframe then
+    Scene.Attributes.WireframeEffect := weWireframeOnly else
+    Scene.Attributes.WireframeEffect := weNormal;
 
-  // TODO-background: for now we always do GLClear, although we don't have to
+  { TODO: in the old times, we had here an optimization:
+    if the background is not displayed as Wireframe,
+    and it has all 6 cube sides filled with textures without
+    an alpha channel, then there's no need to display sky/ground spheres,
+    and no need to even clear color buffer before.
+    We lose this optimization now, since we don't know now which cube sides
+    are successfully loaded and which have alpha. }
   GLClear([cbColor], ClearColor);
 
+  { Note: the Frustum is useless now, as it contains a shifted camera,
+    not just rotated. We pass it, but it will be ignored. }
   Params.Transparent := false; Scene.Render(nil, Frustum, Params);
   Params.Transparent := true ; Scene.Render(nil, Frustum, Params);
 end;

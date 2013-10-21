@@ -412,9 +412,6 @@ type
       Unless the MainScene has a Background node defined, in which
       case the Background (colored and/or textured) of the 3D scene is used.
 
-      Also, this background is used when using BackgroundWireframe.
-      It is then displayed behind the wireframe background on MainScene.
-
       Black by default. }
     property BackgroundColor: TCastleColor
       read FBackgroundColor write FBackgroundColor;
@@ -1901,18 +1898,7 @@ begin
         PerspectiveProjection(45, Rect.Width / Rect.Height, ProjectionNear, ProjectionFar);
       end;
 
-(*TODO-background:
-      if BackgroundWireframe then
-      begin
-        { Color buffer needs clear *now*, before drawing background. }
-        glClear([cbColor], BackgroundColor);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        try
-          UsedBackground.Render;
-        finally glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); end;
-      end else
-*)
-        UsedBackground.Render(RenderingCamera.Frustum);
+      UsedBackground.Render(BackgroundWireframe, RenderingCamera.Frustum);
 
       if not PerspectiveView then
         ProjectionMatrix := SavedProjectionMatrix;

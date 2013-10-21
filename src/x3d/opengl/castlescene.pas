@@ -3315,13 +3315,7 @@ begin
 end;
 
 procedure TCastleScene.PrepareBackground;
-{ After PrepareBackground assertion FBackgroundValid is valid }
-var
-  BgNode: TAbstractBackgroundNode;
-  SkyAngleCount: Integer;
-  SkyColorCount: Integer;
-  GroundAngleCount: Integer;
-  GroundColorCount: Integer;
+{ Alwayts after PrepareBackground => FBackgroundValid = true }
 begin
   if FBackgroundValid and (BackgroundStack.Top = FBackgroundNode) then
     Exit;
@@ -3337,51 +3331,9 @@ begin
       WritelnLog('Background', Format('OpenGL background recreated, with radius %f',
         [BackgroundSkySphereRadius]));
 
-    BgNode := BackgroundStack.Top;
-
-    SkyAngleCount := BgNode.FdSkyAngle.Count;
-    SkyColorCount := BgNode.FdSkyColor.Count;
-    GroundAngleCount := BgNode.FdGroundAngle.Count;
-    GroundColorCount := BgNode.FdGroundColor.Count;
-
-    if SkyColorCount <= 0 then
-    begin
-      OnWarning(wtMajor, 'VRML/X3D', 'Background node incorrect: ' +
-        'Sky must have at least one color');
-      FBackground := nil;
-    end else
-    if SkyAngleCount + 1 <> SkyColorCount then
-    begin
-      OnWarning(wtMajor, 'VRML/X3D', 'Background node incorrect: ' +
-        'Sky must have exactly one more Color than Angles');
-      { We know now that SkyColorCount >= 1 and
-        SkyAngleCount >= 0 (since SkyAngleCount is a count of an array).
-        So we correct one of them to be smaller. }
-      {TODO-background: redo this in TBackground:
-      if SkyAngleCount + 1 > SkyColorCount then
-        SkyAngleCount := SkyColorCount - 1 else
-        SkyColorCount := SkyAngleCount + 1;}
-      FBackground := nil;
-    end else
-    if (GroundAngleCount <> 0) and
-       (GroundAngleCount + 1 <> GroundColorCount) then
-    begin
-      OnWarning(wtMajor, 'VRML/X3D', 'Background node incorrect: ' +
-        'Ground must have exactly one more Color than Angles');
-      { We know now that GroundColorCount >= 1 and
-        GroundAngleCount >= 0 (since GroundAngleCount is a count of an array).
-        So we correct one of them to be smaller. }
-      {TODO-background: redo this in TBackground:
-      if GroundAngleCount + 1 > GroundColorCount then
-        GroundAngleCount := GroundColorCount - 1 else
-        GroundColorCount := GroundAngleCount + 1;}
-      FBackground := nil;
-    end else
-    begin
-      { TODO-background: use the fact that you can just update the background? }
-      FBackground := TBackground.Create;
-      FBackground.Update(BgNode, BackgroundSkySphereRadius);
-    end;
+    { TODO-background: use the fact that you can just update the background? }
+    FBackground := TBackground.Create;
+    FBackground.Update(BackgroundStack.Top, BackgroundSkySphereRadius);
   end else
     FBackground := nil;
 
