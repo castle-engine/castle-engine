@@ -33,6 +33,8 @@ type
   private
     function GetRight: Integer;
     function GetTop: Integer;
+    function GetLeftBottom: TVector2Integer;
+    procedure SetLeftBottom(const Value: TVector2Integer);
   public
     Left, Bottom: Integer;
     Width, Height: Cardinal;
@@ -95,6 +97,8 @@ type
     function RightPart(W: Cardinal): TRectangle;
     function TopPart(H: Cardinal): TRectangle;
     { @groupEnd }
+
+    property LeftBottom: TVector2Integer read GetLeftBottom write SetLeftBottom;
   end;
 
   TRectangleList = class(specialize TGenericStructList<TRectangle>)
@@ -269,6 +273,18 @@ begin
   MinTo1st(H, Height);
   Result.Bottom += Height - H;
   Result.Height := H;
+end;
+
+function TRectangle.GetLeftBottom: TVector2Integer;
+begin
+  Result[0] := Left;
+  Result[1] := Bottom;
+end;
+
+procedure TRectangle.SetLeftBottom(const Value: TVector2Integer);
+begin
+  Left := Value[0];
+  Bottom := Value[1];
 end;
 
 { TRectangleList -------------------------------------------------------------- }
