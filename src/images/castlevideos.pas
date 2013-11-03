@@ -381,6 +381,9 @@ var
     Even this can eat 2 GB for 640 x 350 resolution. }
   MaximumVideoLength: Cardinal = 1 * 60 * 25;
 
+const
+  DefaultFramesPerSecond = 25.0;
+
 implementation
 
 uses Classes, CastleClassUtils,
@@ -394,7 +397,7 @@ begin
   inherited;
   FLoaded := false;
   { This is just constant for now }
-  FFramesPerSecond := 25.0;
+  FFramesPerSecond := DefaultFramesPerSecond;
 end;
 
 destructor TVideo.Destroy;

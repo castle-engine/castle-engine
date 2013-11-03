@@ -514,6 +514,7 @@ type
     FTimeLoop: boolean;
     FTimeBackwards: boolean;
     FFramesPerSecond: Single;
+    FWidth, FHeight: Cardinal;
   public
     { Constructor that initializes video from TVideo class.
 
@@ -541,6 +542,9 @@ type
     { See TVideo.TimeBackwards. }
     property TimeBackwards: boolean
       read FTimeBackwards write FTimeBackwards;
+
+    property Width: Cardinal read FWidth;
+    property Height: Cardinal read FHeight;
   end;
 
   { Video expressed as a series of textures, to play as texture on any 3D object. }
@@ -1882,6 +1886,8 @@ begin
   FTimeLoop := Video.TimeLoop;
   FTimeBackwards := Video.TimeBackwards;
   FFramesPerSecond := Video.FramesPerSecond;
+  FWidth := Video.Width;
+  FHeight := Video.Height
 end;
 
 function TGLVideo.IndexFromTime(const Time: Single): Integer;
