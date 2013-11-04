@@ -28,87 +28,81 @@
 
 program window_gtk_mix;
 
-{$I castleconf.inc}
-
-uses CastleWindow, CastleGL, CastleGLUtils, SysUtils, CastleColors,
-  CastleVectors, CastleUtils, CastleGLOutlineFonts, CastleOutlineFont_BVSans,
-  Gtk2, Glib2, CastleStringUtils, CastleKeysMouse;
+uses CastleWindow, SysUtils, CastleColors,
+  CastleVectors, CastleUtils, Gtk2, Glib2, CastleStringUtils,
+  CastleKeysMouse, CastleScene, X3DNodes;
 
 type
-  TMyWindow = class(TCastleWindowDemo)
+  TMyWindow = class(TCastleWindow)
   protected
     function MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget; override;
   end;
 
 var
   Window: TMyWindow;
-  Font: TGLOutlineFontAbstract;
+  Scene: TCastleScene;
+  Text: TTextNode;
   Entry: PGtkWidget;
+  TextString: string = 'Text entered in GtkEntry is rendered in OpenGL';
 
 procedure EntryTextChanged(editable: PGtkEditable; user_data: GPointer); cdecl;
 begin
- Window.PostRedisplay;
+  TextString := gtk_entry_get_text(GTK_ENTRY(Entry));
+  Text.FdString.Send([TextString]);
 end;
 
 function TMyWindow.MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget;
 begin
- Entry := gtk_entry_new;
- gtk_entry_set_text(GTK_ENTRY(Entry),
-   'Text entered in GtkEntry is rendered in OpenGL');
- gtk_signal_connect(PGtkObject(Entry), 'changed',
-   GTK_SIGNAL_FUNC(@EntryTextChanged), nil);
- gtk_widget_show(Entry);
+  Entry := gtk_entry_new;
+  gtk_entry_set_text(GTK_ENTRY(Entry), PChar(TextString));
+  gtk_signal_connect(PGtkObject(Entry), 'changed',
+    GTK_SIGNAL_FUNC(@EntryTextChanged), nil);
+  gtk_widget_show(Entry);
 
- Result := gtk_vbox_new(false, 2);
+  Result := gtk_vbox_new(false, 2);
 
- gtk_box_pack_end(GTK_BOX(Result), GTK_WIDGET(GLArea), true, true, 0);
- gtk_box_pack_end(GTK_BOX(Result), Entry, false, false, 0);
- gtk_widget_show(Result);
+  gtk_box_pack_end(GTK_BOX(Result), GTK_WIDGET(GLArea), true, true, 0);
+  gtk_box_pack_end(GTK_BOX(Result), Entry, false, false, 0);
+  gtk_widget_show(Result);
 end;
 
-procedure Draw(Window: TCastleWindowBase);
+procedure CreateScene;
+var
+  Appearance: TAppearanceNode;
+  Material: TMaterialNode;
+  Root: TX3DRootNode;
+  Shape: TShapeNode;
 begin
- GLClear([cbColor, cbDepth], Black);
- glLoadIdentity;
- glTranslatef(-13, 0, -20);
- glScalef(0.1, 0.1, 0.1);
- glRotatef(40, 0, 1, 0);
- glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
-   Vector4Single(1, 1, 0, 1));
- Font.Print(gtk_entry_get_text(GTK_ENTRY(Entry)));
-end;
+  Text := TTextNode.Create;
+  Text.FdString.Send([TextString]);
 
-procedure Open(Window: TCastleWindowBase);
-begin
- Font := TGLOutlineFont.Create(OutlineFont_BVSans, 10);
- glEnable(GL_DEPTH_TEST);
- glEnable(GL_LIGHT0);
- glEnable(GL_LIGHTING);
- glEnable(GL_NORMALIZE);
- glShadeModel(GL_FLAT);
- glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-end;
+  Material := TMaterialNode.Create;
+  Material.FdDiffuseColor.Value := Vector3Single(1, 1, 0);
 
-procedure Close(Window: TCastleWindowBase);
-begin
- FreeAndNil(Font);
-end;
+  Appearance := TAppearanceNode.Create;
+  Appearance.FdMaterial.Value := Material;
 
-procedure Resize(Window: TCastleWindowBase);
-begin
-  glViewport(Window.Rect);
-  PerspectiveProjection(45, Window.Width / Window.Height, 0.1, 100);
+  Shape := TShapeNode.Create;
+  Shape.FdGeometry.Value := Text;
+  Shape.Appearance := Appearance;
+
+  Root := TX3DRootNode.Create;
+  Root.FdChildren.Add(Shape);
+
+  Scene := TCastleScene.Create(Application);
+  Scene.Load(Root, true);
 end;
 
 begin
- Window := TMyWindow.Create(nil);
- try
+  Window := TMyWindow.Create(Application);
+
+  CreateScene;
+  Window.SceneManager.Items.Add(Scene);
+  Window.SceneManager.MainScene := Scene;
+
   Window.Width := 600;
   Window.Height := 400;
-  Window.OnOpen := @Open;
-  Window.OnClose := @Close;
-  Window.OnResize := @Resize;
   Window.SetDemoOptions(K_F11, CharEscape, true);
-  Window.OpenAndRun('CastleWindow with some GTK widgets', @Draw);
- finally Window.Free end;
+  Window.Caption := 'CastleWindow with some GTK widgets';
+  Window.OpenAndRun;
 end.
