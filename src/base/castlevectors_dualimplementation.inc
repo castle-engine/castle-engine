@@ -288,6 +288,16 @@ begin
   Result.Data := V;
 end;
 
+procedure NormalizeTo1st(var V: TVector2);
+var
+  len: TScalar;
+begin
+  len := Sqrt( Sqr(V[0]) + Sqr(V[1]) );
+  if len = 0.0 then exit;
+  V[0] /= len;
+  V[1] /= len;
+end;
+
 procedure NormalizeTo1st(var V: TVector3);
 var
   len: TScalar;
@@ -473,7 +483,13 @@ end;
 
 function Normalized(const v: TVector3): TVector3;
 begin
-  result := v;
+  Result := v;
+  NormalizeTo1st(result);
+end;
+
+function Normalized(const v: TVector2): TVector2;
+begin
+  Result := v;
   NormalizeTo1st(result);
 end;
 
@@ -544,6 +560,12 @@ begin
   if v[1] > v[result] then result := 1;
   if v[2] > v[result] then result := 2;
   if v[3] > v[result] then result := 3;
+end;
+
+function MaxAbsVectorCoord(const v: TVector2): integer;
+begin
+  result := 0;
+  if Abs(v[1]) > Abs(v[result]) then result := 1;
 end;
 
 function MaxAbsVectorCoord(const v: TVector3): integer;

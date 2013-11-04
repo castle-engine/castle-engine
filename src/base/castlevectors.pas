@@ -690,9 +690,13 @@ procedure NormalizeTo1st3Singlev(vv: PVector3Single);
 procedure NormalizeTo1st3Bytev(vv: PVector3Byte);
 { @groupEnd }
 
+procedure NormalizeTo1st(var v: TVector2Single); overload;
+procedure NormalizeTo1st(var v: TVector2Double); overload;
 procedure NormalizeTo1st(var v: TVector3Single); overload;
 procedure NormalizeTo1st(var v: TVector3Double); overload;
 
+function Normalized(const v: TVector2Single): TVector2Single; overload;
+function Normalized(const v: TVector2Double): TVector2Double; overload;
 function Normalized(const v: TVector3Single): TVector3Single; overload;
 function Normalized(const v: TVector3Double): TVector3Double; overload;
 
@@ -989,6 +993,8 @@ function MaxVectorCoord(const v: TVector3Single): integer; overload;
 function MaxVectorCoord(const v: TVector3Double): integer; overload;
 function MaxVectorCoord(const v: TVector4Single): integer; overload;
 function MaxVectorCoord(const v: TVector4Double): integer; overload;
+function MaxAbsVectorCoord(const v: TVector2Single): integer; overload;
+function MaxAbsVectorCoord(const v: TVector2Double): integer; overload;
 function MaxAbsVectorCoord(const v: TVector3Single): integer; overload;
 function MaxAbsVectorCoord(const v: TVector3Double): integer; overload;
 { @groupEnd }
