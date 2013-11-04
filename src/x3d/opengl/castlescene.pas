@@ -25,12 +25,12 @@ uses SysUtils, Classes, CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleSceneCore, CastleRenderer, CastleGL, CastleBackground,
   CastleGLUtils, CastleShapeOctree, CastleGLShadowVolumes, X3DFields, CastleTriangles,
   CastleRendererLights, CastleShapes, CastleFrustum, Castle3D, CastleGLShaders, FGL,
-  CastleGenericLists, CastleRectangles;
+  CastleGenericLists, CastleRectangles,
+  CastleSceneInternalShape, CastleSceneInternalOcclusion;
 
 {$define read_interface}
 
 type
-  TGLShape = class;
   TSceneRenderingAttributes = class;
   TCastleSceneList = class;
 
@@ -117,19 +117,6 @@ type
     FUseOcclusionQuery: boolean;
     FUseHierarchicalOcclusionQuery: boolean;
     FDebugHierOcclusionQueryResults: boolean;
-
-    { Checks UseOcclusionQuery, existence of GL_ARB_occlusion_query,
-      and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
-      be used.
-
-      Also, returns @false when UseHierarchicalOcclusionQuery is @true
-      --- because then UseHierarchicalOcclusionQuery should take precedence. }
-    function ReallyUseOcclusionQuery: boolean;
-
-    { Checks UseHierarchicalOcclusionQuery, existence of GL_ARB_occlusion_query,
-      and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
-      be used. }
-    function ReallyUseHierarchicalOcclusionQuery: boolean;
   protected
     procedure ReleaseCachedResources; override;
 
@@ -302,40 +289,23 @@ type
     property DebugHierOcclusionQueryResults: boolean
       read FDebugHierOcclusionQueryResults
       write FDebugHierOcclusionQueryResults default false;
-  end;
 
-  { TShape descendant for usage within TCastleScene.
-    Basically, this is just the same thing as TShape, with some
-    internal information needed by TCastleScene. }
-  TGLShape = class(TX3DRendererShape)
-  private
-    { Keeps track if this shape was passed to Renderer.Prepare. }
-    PreparedForRenderer: boolean;
+    { Checks UseOcclusionQuery, existence of GL_ARB_occlusion_query,
+      and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
+      be used.
 
-    UseBlending: boolean;
-    { Is UseBlending calculated and current. }
-    PreparedUseBlending: boolean;
+      Also, returns @false when UseHierarchicalOcclusionQuery is @true
+      --- because then UseHierarchicalOcclusionQuery should take precedence.
 
-    procedure PrepareResources;
-  private
-    { Private things only for RenderFrustumOctree ---------------------- }
-    RenderFrustumOctree_Visible: boolean;
+      @exclude Internal. }
+    function ReallyUseOcclusionQuery: boolean;
 
-    { ------------------------------------------------------------
-      Private things used only when Attributes.ReallyUseOcclusionQuery }
+    { Checks UseHierarchicalOcclusionQuery, existence of GL_ARB_occlusion_query,
+      and GLQueryCounterBits > 0. If @false, ARB_occlusion_query just cannot
+      be used.
 
-    { OcclusionQueryId is 0 if not initialized yet.
-      When it's 0, value of OcclusionQueryAsked doesn't matter,
-      OcclusionQueryAsked is always reset to @false when initializing
-      OcclusionQueryId. }
-    OcclusionQueryId: TGLint;
-    OcclusionQueryAsked: boolean;
-
-    { For Hierarchical Occlusion Culling }
-    RenderedFrameId: Cardinal;
-  public
-    procedure Changed(const InactiveOnly: boolean;
-      const Changes: TX3DChanges); override;
+      @exclude Internal. }
+    function ReallyUseHierarchicalOcclusionQuery: boolean;
   end;
 
 type
@@ -453,8 +423,7 @@ type
 
       Updates Params.Statistics. }
     procedure RenderScene(TestShapeVisibility: TTestShapeVisibility;
-      const Frustum: TFrustum;
-      const Params: TRenderParams);
+      const Frustum: TFrustum; const Params: TRenderParams);
 
     { Destroy any associations of Renderer with OpenGL context.
 
@@ -580,8 +549,7 @@ type
       LightCap, DarkCap: boolean);
 
   private
-    { For Hierarchical Occlusion Culling }
-    FrameId: Cardinal;
+    HierarchicalOcclusionQueryRenderer: THierarchicalOcclusionQueryRenderer;
   protected
     function CreateShape(AGeometry: TAbstractGeometryNode;
       AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape; override;
@@ -899,75 +867,24 @@ begin
   RegisterComponents('Castle', [TCastleScene]);
 end;
 
-{ TGLShape --------------------------------------------------------------- }
+{ TGLSceneShape -------------------------------------------------------------- }
 
-procedure TGLShape.Changed(const InactiveOnly: boolean;
-  const Changes: TX3DChanges);
-var
-  GLScene: TCastleScene;
+type
+  { TGLShape that can access internal data of TCastleScene. }
+  TGLSceneShape = class(TGLShape)
+  public
+    function Renderer: TGLRenderer; override;
+    procedure SchedulePrepareResources; override;
+  end;
+
+function TGLSceneShape.Renderer: TGLRenderer;
 begin
-  inherited;
-
-  GLScene := TCastleScene(ParentScene);
-
-  if Cache <> nil then
-  begin
-    { Ignore changes that don't affect prepared arrays,
-      like transformation, clip planes and everything else that is applied
-      by renderer every time, and doesn't affect TGeometryArrays. }
-    if Changes * [chCoordinate] <> [] then
-      Cache.FreeArrays([vtCoordinate]) else
-    if Changes * [chVisibleVRML1State, chGeometryVRML1State,
-      chColorNode, chTextureCoordinate, chGeometry, chFontStyle] <> [] then
-      Cache.FreeArrays(AllVboTypes);
-  end;
-
-  if Changes * [chTextureImage, chTextureRendererProperties] <> [] then
-  begin
-    GLScene.Renderer.UnprepareTexture(State.Texture);
-    PreparedForRenderer := false;
-    PreparedUseBlending := false;
-    { PreparedShapesResouces must be reset, otherwise scene will not even
-      call our PrepareResources next time. }
-    GLScene.PreparedShapesResouces := false;
-  end;
-
-  { When Material.transparency changes, recalculate UseBlending. }
-  if chUseBlending in Changes then
-  begin
-    PreparedUseBlending := false;
-    { PreparedShapesResouces must be reset, otherwise scene will not even
-      call our PrepareResources next time. }
-    GLScene.PreparedShapesResouces := false;
-  end;
+  Result := TCastleScene(ParentScene).Renderer;
 end;
 
-procedure TGLShape.PrepareResources;
-var
-  GLScene: TCastleScene;
+procedure TGLSceneShape.SchedulePrepareResources;
 begin
-  GLScene := TCastleScene(ParentScene);
-
-  if not PreparedForRenderer then
-  begin
-    GLScene.Renderer.Prepare(State);
-    PreparedForRenderer := true;
-  end;
-
-  if not PreparedUseBlending then
-  begin
-    { UseBlending is used by RenderScene to decide is Blending used for given
-      shape. }
-    UseBlending := Transparent;
-    PreparedUseBlending := true;
-  end;
-
-  if GLScene.Attributes.ReallyUseOcclusionQuery and
-     (OcclusionQueryId = 0) then
-  begin
-    glGenQueriesARB(1, @OcclusionQueryId);
-    OcclusionQueryAsked := false;
-  end;
+  TCastleScene(ParentScene).PreparedShapesResouces := false;
 end;
 
 { ShapesSplitBlending ---------------------------------------------------- }
@@ -1078,6 +995,8 @@ begin
   FReceiveShadowVolumes := true;
 
   FilteredShapes := TShapeList.Create;
+
+  HierarchicalOcclusionQueryRenderer := THierarchicalOcclusionQueryRenderer.Create(Self);
 end;
 
 constructor TCastleScene.CreateCustomCache(
@@ -1100,6 +1019,7 @@ end;
 
 destructor TCastleScene.Destroy;
 begin
+  FreeAndNil(HierarchicalOcclusionQueryRenderer);
   FreeAndNil(FilteredShapes);
 
   GLContextClose;
@@ -1149,7 +1069,7 @@ end;
 function TCastleScene.CreateShape(AGeometry: TAbstractGeometryNode;
   AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape;
 begin
-  Result := TGLShape.Create(Self, AGeometry, AState, ParentInfo);
+  Result := TGLSceneShape.Create(Self, AGeometry, AState, ParentInfo);
 end;
 
 procedure TCastleScene.CloseGLRenderer;
@@ -1215,18 +1135,7 @@ begin
     SI := TShapeTreeIterator.Create(Shapes, false, true);
     try
       while SI.GetNext do
-      begin
-        S := TGLShape(SI.Current);
-
-        S.PreparedForRenderer := false;
-        S.PreparedUseBlending := false;
-
-        if S.OcclusionQueryId <> 0 then
-        begin
-          glDeleteQueriesARB(1, @(S.OcclusionQueryId));
-          S.OcclusionQueryId := 0;
-        end;
-      end;
+        TGLShape(SI.Current).GLContextClose;
     finally FreeAndNil(SI) end;
   end;
 
@@ -1366,123 +1275,29 @@ begin
       [ SourceToStr[Source], S ]));
 end;
 
-type
-  TOcclusionQuery = class
-  public
-    constructor Create;
-    destructor Destroy; override;
-
-  public
-    Id: TGLuint;
-
-    Node: TShapeOctreeNode;
-
-    function Available: LongBool;
-    function GetResult: TGLuint;
-  end;
-
-constructor TOcclusionQuery.Create;
-begin
-  inherited;
-  glGenQueriesARB(1, @Id);
-end;
-
-destructor TOcclusionQuery.Destroy;
-begin
-  glDeleteQueriesARB(1, @Id);
-  inherited;
-end;
-
-function TOcclusionQuery.Available: LongBool;
-begin
-  Assert(SizeOf(LongBool) = SizeOf(TGLuint));
-  glGetQueryObjectuivARB(Id, GL_QUERY_RESULT_AVAILABLE_ARB, @Result);
-end;
-
-function TOcclusionQuery.GetResult: TGLuint;
-begin
-  glGetQueryObjectuivARB(Id, GL_QUERY_RESULT_ARB, @Result);
-end;
-
 procedure TCastleScene.RenderScene(
   TestShapeVisibility: TTestShapeVisibility;
   const Frustum: TFrustum; const Params: TRenderParams);
-var
-  OcclusionBoxState: boolean;
 
-  procedure OcclusionBoxStateBegin;
+  { Renders Shape, by calling Renderer.RenderShape. }
+  procedure RenderShape_NoTests(Shape: TGLShape);
   begin
-    if not OcclusionBoxState then
-    begin
-      glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or
-        GL_ENABLE_BIT or GL_LIGHTING_BIT);
+    OcclusionBoxStateEnd;
 
-      glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); { saved by GL_COLOR_BUFFER_BIT }
-      glDepthMask(GL_FALSE); { saved by GL_DEPTH_BUFFER_BIT }
+    if Params.Pass = 0 then Inc(Params.Statistics.ShapesRendered);
 
-      { A lot of state should be disabled. Remember that this is done
-        in the middle of TGLRenderer rendering, between
-        RenderBegin/End, and TGLRenderer doesn't need to
-        restore state after each shape render. So e.g. texturing
-        and alpha test may be enabled, which could lead to very
-        strange effects (box would be rendered with random texel,
-        possibly alpha tested and rejected...).
+    { Optionally free Shape arrays data now, if they need to be regenerated. }
+    if (Assigned(Attributes.OnVertexColor) or
+        Assigned(Attributes.OnRadianceTransfer)) and
+       (Shape.Cache <> nil) then
+      Shape.Cache.FreeArrays([vtAttribute]);
 
-        Also, some state should be disabled just to speed up
-        rendering. E.g. lighting is totally not needed here. }
-
-      glDisable(GL_LIGHTING); { saved by GL_ENABLE_BIT }
-      glDisable(GL_CULL_FACE); { saved by GL_ENABLE_BIT }
-      glDisable(GL_COLOR_MATERIAL); { saved by GL_ENABLE_BIT }
-      glDisable(GL_ALPHA_TEST); { saved by GL_ENABLE_BIT }
-      glDisable(GL_FOG); { saved by GL_ENABLE_BIT }
-      GLEnableTexture(etNone); { saved by GL_ENABLE_BIT }
-
-      glShadeModel(GL_FLAT); { saved by GL_LIGHTING_BIT }
-
-      glEnableClientState(GL_VERTEX_ARRAY);
-
-      OcclusionBoxState := true;
-    end;
-  end;
-
-  procedure OcclusionBoxStateEnd;
-  begin
-    if OcclusionBoxState then
-    begin
-      glDisableClientState(GL_VERTEX_ARRAY);
-      glPopAttrib;
-      OcclusionBoxState := false;
-    end;
+    Renderer.RenderShape(Shape, ShapeFog(Shape));
   end;
 
   { Call RenderShape if some tests succeed.
     It assumes that test with TestShapeVisibility is already done. }
   procedure RenderShape_SomeTests(Shape: TGLShape);
-
-    procedure DoRenderShape;
-
-      { Renders Shape, by calling Renderer.RenderShape. }
-      procedure RenderShape(Shape: TGLShape);
-      begin
-        { Optionally free Shape arrays data now, if they need to be regenerated. }
-        if (Assigned(Attributes.OnVertexColor) or
-            Assigned(Attributes.OnRadianceTransfer)) and
-           (Shape.Cache <> nil) then
-          Shape.Cache.FreeArrays([vtAttribute]);
-
-        Renderer.RenderShape(Shape, ShapeFog(Shape));
-      end;
-
-    begin
-      OcclusionBoxStateEnd;
-
-      if Params.Pass = 0 then Inc(Params.Statistics.ShapesRendered);
-      RenderShape(Shape);
-    end;
-
-  var
-    SampleCount: TGLuint;
   begin
     if (Shape <> AvoidShapeRendering) and
        ( (not AvoidNonShadowCasterRendering) or Shape.ShadowCaster) then
@@ -1502,51 +1317,16 @@ var
       if Attributes.ReallyUseOcclusionQuery and
          (RenderingCamera.Target = rtScreen) then
       begin
-        Assert(Shape.OcclusionQueryId <> 0);
-        if Shape.OcclusionQueryAsked then
-          glGetQueryObjectuivARB(Shape.OcclusionQueryId, GL_QUERY_RESULT_ARB,
-            @SampleCount) else
-          SampleCount := 1; { if not asked, assume it's visible }
-
-        { Do not do occlusion query (although still use results from previous
-          query) if we're within stencil test (like in InShadow = false pass
-          of shadow volumes). This would incorrectly mark some shapes
-          as non-visible (just because they don't pass stencil test on any pixel),
-          while in fact they should be visible in the very next
-          (with InShadow = true) render pass. }
-
-        if Params.StencilTest = 0 then
-          glBeginQueryARB(GL_SAMPLES_PASSED_ARB, Shape.OcclusionQueryId);
-
-          if SampleCount > 0 then
-          begin
-            DoRenderShape;
-          end else
-          begin
-            { Object was not visible in the last frame.
-              In this frame, only render it's bounding box, to test
-              occlusion query. This is the speedup of using occlusion query:
-              we render only bbox. }
-
-            OcclusionBoxStateBegin;
-            glDrawBox3DSimple(Shape.BoundingBox);
-            if Params.Pass = 0 then Inc(Params.Statistics.BoxesOcclusionQueriedCount);
-          end;
-
-        if Params.StencilTest = 0 then
-        begin
-          glEndQueryARB(GL_SAMPLES_PASSED_ARB);
-          Shape.OcclusionQueryAsked := true;
-        end;
+        SimpleOcclusionQueryRender(Shape, @RenderShape_NoTests, Params);
       end else
       if Attributes.DebugHierOcclusionQueryResults and
          Attributes.UseHierarchicalOcclusionQuery then
       begin
-        if Shape.RenderedFrameId = FrameId then
-          DoRenderShape;
+        if HierarchicalOcclusionQueryRenderer.WasLastVisible(Shape) then
+          RenderShape_NoTests(Shape);
       end else
         { No occlusion query-related stuff. Just render the shape. }
-        DoRenderShape;
+        RenderShape_NoTests(Shape);
     end;
   end;
 
@@ -1632,239 +1412,6 @@ var
     end;
   end;
 
-  procedure DoHierarchicalOcclusionQuery;
-  var
-    { Stack of TShapeOctreeNode.
-
-      Although queue would also work not so bad, stack is better.
-      The idea is that it should try to keep front-to-back order,
-      assuming that Node.PushChildren* keeps this order.
-      Stack gives more chance to process front shapes first. }
-    TraversalStack: TCastleObjectStack;
-
-    procedure TraverseNode(Node: TShapeOctreeNode);
-    var
-      I: Integer;
-      Shape: TGLShape;
-    begin
-      if Node.IsLeaf then
-      begin
-        { Render all shapes within this leaf, taking care to render
-          shape only once within this frame (FrameId is useful here). }
-        for I := 0 to Node.ItemsIndices.Count - 1 do
-        begin
-          Shape := TGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
-          if Shape.RenderedFrameId <> FrameId then
-          begin
-            RenderShape_SomeTests(Shape);
-            Shape.RenderedFrameId := FrameId;
-          end;
-        end;
-      end else
-      begin
-        { Push Node children onto TraversalStack.
-          We want to Pop them front-first, to (since this is a stack)
-          we want to push back first. }
-        if CameraViewKnown then
-          Node.PushChildrenBackToFront(TraversalStack, CameraPosition) else
-          Node.PushChildren(TraversalStack);
-      end;
-    end;
-
-    procedure PullUpVisibility(Node: TShapeOctreeNode);
-    begin
-      while not Node.Visible do
-      begin
-        Node.Visible := true;
-        Node := Node.ParentNode;
-        if Node = nil then Break;
-      end;
-    end;
-
-    procedure RenderLeafNodeVolume(Node: TShapeOctreeNode);
-    var
-      I: Integer;
-      Shape: TGLShape;
-      Box: TBox3D;
-    begin
-      OcclusionBoxStateBegin;
-
-      { How to render bounding volume of leaf for occlusion query?
-
-        - Simple version is just to render Node.Box. But this may be
-          much greater than actual box of shapes inside, Box of our
-          octree node is not adjusted to be tight.
-
-        - Another version is to render boxes of all shapes within this leaf.
-          This is much tighter than Node.Box, and results in much less
-          shapes quialified as visible. (See e.g. bzwgen city view behind
-          building 1 when trying to walk towards the city center.)
-          Unfortunately, this produces really a lot of boxes, so the
-          overhead of drawing glDrawBox3DSimple becomes large then.
-
-        - Compromise: calculate tight bounding box here, and use it.
-          Works best: number of both visible shapes and cull boxes
-          is small.
-
-        Note that we can render here boxes of only non-rendered shapes,
-        that's Ok and may actually speed up. }
-      Box := EmptyBox3D;
-
-      for I := 0 to Node.ItemsIndices.Count - 1 do
-      begin
-        Shape := TGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
-        if Shape.RenderedFrameId <> FrameId then
-          Box.Add(Shape.BoundingBox);
-      end;
-
-      glDrawBox3DSimple(Box);
-      if Params.Pass = 0 then Inc(Params.Statistics.BoxesOcclusionQueriedCount);
-    end;
-
-  const
-    VisibilityThreshold = 0;
-  { $define VISIBILITY_KEEP_FRAMES}
-  {$ifdef VISIBILITY_KEEP_FRAMES}
-    VisibilityKeepFrames = 10;
-  {$endif}
-  var
-    { queue of TOcclusionQuery }
-    QueryQueue: TCastleObjectQueue;
-    Q: TOcclusionQuery;
-    Node: TShapeOctreeNode;
-    WasVisible, LeafOrWasInvisible: boolean;
-  begin
-    {$include norqcheckbegin.inc}
-    Inc(FrameId);
-    {$include norqcheckend.inc}
-
-    TraversalStack := TCastleObjectStack.Create;
-    TraversalStack.Capacity := OctreeRendering.ShapesList.Count;
-
-    QueryQueue := TCastleObjectQueue.Create;
-    QueryQueue.Capacity := OctreeRendering.ShapesList.Count;
-
-    try
-      TraversalStack.Push(OctreeRendering.TreeRoot);
-
-      repeat
-        if (QueryQueue.Count <> 0) and
-           ( (TOcclusionQuery(QueryQueue.Peek).Available) or
-             (TraversalStack.Count = 0) ) then
-        begin
-          Q := TOcclusionQuery(QueryQueue.Pop);
-          if Q.GetResult > VisibilityThreshold then
-          begin
-            PullUpVisibility(Q.Node);
-            TraverseNode(Q.Node);
-          end;
-          FreeAndNil(Q);
-        end;
-
-        if TraversalStack.Count <> 0 then
-        begin
-          Node := TShapeOctreeNode(TraversalStack.Pop);
-          if Node.FrustumCollisionPossible(RenderFrustum_Frustum^) then
-          begin
-            {$ifdef VISIBILITY_KEEP_FRAMES}
-            { There was a resigned idea below (maybe useful later) to do
-              "or (Node.Depth >= 5)", to assume visible = true below some
-              octree depth. }
-
-            if (Node.Visible and (Node.LastVisitedFrameId >= FrameId - VisibilityKeepFrames)) then
-            begin
-              { Visible somewhere during VisibilityKeepFrames.
-                Just assume it's still visible.
-                (This is the optimization described in 6.6.4
-                "Conservative Visibility Testing") }
-              TraverseNode(Node);
-            end else
-            {$endif VISIBILITY_KEEP_FRAMES}
-            begin
-              WasVisible := Node.Visible and (Node.LastVisitedFrameId = FrameId - 1);
-              LeafOrWasInvisible := (not WasVisible) or Node.IsLeaf;
-
-              Node.Visible := false;
-              Node.LastVisitedFrameId := FrameId;
-
-              { Original logic goes like:
-
-                  if LeafOrWasInvisible then
-                    Add query with Node.Box;
-                  if WasVisible then
-                    TraverseNode(Node);
-
-                But this is not optimal: it would always query using bounding
-                boxes. Even for the case when we have a visible leaf,
-                then the above version would query using box of this leaf
-                and then render this leaf.
-                But in this case we can query using actual geometry.
-
-                So a modification is to do
-
-                  if LeafOrWasInvisible then
-                  begin
-                    if Leaf and WasVisible then
-                      Add query for Node and render the leaf else
-                      Add query with Node.Box;
-                  end else
-                  if WasVisible then
-                    TraverseNode(Node);
-
-                This exhausts all possibilities, since if
-                LeafOrWasInvisible and WasVisible then only leaf nodes
-                could satisfy this.
-
-                There's additional note about this:
-                rendering inside TraverseNode may render
-                only part of the leaf's items (or even none at all).
-                This is needed (although in original paper they write
-                about rendering single shape there, unline my many-shapes-in-leaf
-                approach, but still they have to safeguard against rendering
-                the same node many times, since visible leaf confirmed to
-                be visible may be passed twice to Render).
-
-                But this means that object may be classified as invisible
-                (because it didn't have any unrendered shapes), while in fact
-                it's visible. That's not a problem, since we check our
-                query in the next frame, and the object will be found
-                then visible again (or again invisible if other leafs
-                will render it's shapes, but then it's not a problem). }
-
-              if LeafOrWasInvisible then
-              begin
-                Q := TOcclusionQuery.Create;
-                Q.Node := Node;
-
-                glBeginQueryARB(GL_SAMPLES_PASSED_ARB, Q.Id);
-                  if Node.IsLeaf and WasVisible then
-                    TraverseNode(Node) else
-                  if Node.IsLeaf then
-                    { Leaf nodes have optimized version of rendering their
-                      bounding volume for occlusion query. }
-                    RenderLeafNodeVolume(Node) else
-                  begin
-                    OcclusionBoxStateBegin;
-                    glDrawBox3DSimple(Node.Box);
-                    if Params.Pass = 0 then Inc(Params.Statistics.BoxesOcclusionQueriedCount);
-                  end;
-                glEndQueryARB(GL_SAMPLES_PASSED_ARB);
-
-                QueryQueue.Push(Q);
-              end else
-              if WasVisible then
-                TraverseNode(Node);
-            end;
-          end;
-        end;
-
-      until (TraversalStack.Count = 0) and (QueryQueue.Count = 0);
-    finally
-      FreeAndNil(TraversalStack);
-      FreeAndNil(QueryQueue);
-    end;
-  end;
-
   procedure UpdateVisibilitySensors;
   var
     I, J: Integer;
@@ -1947,7 +1494,8 @@ begin
        (RenderingCamera.Target = rtScreen) and
        (OctreeRendering <> nil) then
     begin
-      DoHierarchicalOcclusionQuery;
+      HierarchicalOcclusionQueryRenderer.Render(@RenderShape_SomeTests,
+        Frustum, Params);
 
       { Inside we could set OcclusionBoxState }
       OcclusionBoxStateEnd;
