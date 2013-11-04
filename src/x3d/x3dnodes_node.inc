@@ -419,24 +419,10 @@
     procedure KeepExistingEnd;
     { @groupEnd }
 
-    { Name of this node, as defined by VRML "DEF" construct.
+    { Name of this node. When saving/loading, this comes from VRML/X3D
+      "DEF" construct. Empty value means that the name is not defined.
 
-      NodeName = '' oznacza ze obiekt nie mial zdefiniowanej nazwy.
-
-      It's named NodeName, to not confuse this with TX3DField.Name.
-      (Even though TX3DField and TX3DNode classes have nothing in common.
-      TSFNode descends from TX3DField and @italic(contains) TX3DNode
-      instance in it's Value field. Once I wanted to just make
-      TSFNode = TX3DNode and TX3DNode descendant of TX3DField,
-      but this wasn't a good idea: TSFNode may be NULL, but still
-      it has a field name, so it should be nicely represented as
-      TSFNode instance with Value = nil.)
-
-      Note that this is writeable property, so you can change NodeName
-      at runtime. Beware that some operations depend that node names
-      don't change during their work: loading and saving nodes
-      from stream (since these operations keep current collection names to
-      read / write VRML DEF / USE statements), searching for nodes by name. }
+      Do not change it during loading / saving or searching. }
     property NodeName: string read fNodeName write FNodeName;
 
     { Base URL for all URLs inside our fields.
@@ -485,11 +471,12 @@
           in CreateNode, that is called at the end of this constructor.)
       )
     }
-    constructor Create(const ANodeName, ABaseUrl: string); virtual;
+    constructor Create(const ANodeName: string = '';
+      const ABaseUrl: string = ''); virtual;
 
     destructor Destroy; override;
 
-    { Name of the VRML/X3D node. Never empty.
+    { Node type name in VRML/X3D. Never empty.
       Constant for the class lifetime (even for special
       TX3DUnknownNode and TX3DPrototypeNode, where this is calculated
       at runtime).
@@ -500,7 +487,7 @@
       for most nodes. See ClassNodeTypeName. }
     function NodeTypeName: string; virtual;
 
-    { Name of the VRML/X3D node associated with this class.
+    { Node type name in VRML/X3D, for this class.
       Normal VRML/X3D node classes should override this to return something
       non-empty, and then NodeTypeName automatically will return the same value.
 
