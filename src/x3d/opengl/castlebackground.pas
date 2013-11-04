@@ -44,6 +44,7 @@ type
     SceneObj: TObject;
     ParamsObj: TObject;
     ClearColor: TCastleColor;
+    MatrixTransform: TMatrixTransformNode;
   public
     { Calculate (or just confirm that Proposed value is still OK)
       the sky sphere radius that fits nicely in your projection near/far.
@@ -74,6 +75,7 @@ type
     procedure Update(const Node: TAbstractBackgroundNode;
       const SkySphereRadius: Single);
     procedure Render(const Wireframe: boolean; const Frustum: TFrustum);
+    procedure UpdateTransform(const Transform: TMatrix4Single);
     procedure FreeResources;
   end;
 
@@ -156,7 +158,6 @@ procedure TBackground.Update(const Node: TAbstractBackgroundNode;
   const SkySphereRadius: Single);
 var
   RootNode: TX3DRootNode;
-  MatrixTransform: TMatrixTransformNode;
 
   procedure RenderCubeSides;
   var
@@ -548,6 +549,11 @@ end;
 procedure TBackground.FreeResources;
 begin
   Scene.FreeResources([frTextureDataInNodes]);
+end;
+
+procedure TBackground.UpdateTransform(const Transform: TMatrix4Single);
+begin
+  MatrixTransform.FdMatrix.Send(Transform);
 end;
 
 end.

@@ -3333,7 +3333,8 @@ begin
       WritelnLog('Background', Format('OpenGL background recreated, with radius %f',
         [BackgroundSkySphereRadius]));
 
-    { TODO-background: use the fact that you can just update the background? }
+    { In the future we could use FBackground.Update without recreating
+      the instance. }
     FBackground := TBackground.Create;
     FBackground.Update(BackgroundStack.Top, BackgroundSkySphereRadius);
   end else
@@ -3344,24 +3345,18 @@ begin
 end;
 
 function TCastleScene.Background: TBackground;
+var
+  BackgroundNode: TAbstractBackgroundNode;
 begin
   PrepareBackground;
   Result := FBackground;
 
-  // TODO-background: new code uses transform, but doesn't update it.
-  // if background transform gets animated, this should be ported
-  // such that new code simply applies the new transform.
-
-// -  BackgroundNode := BackgroundStack.Top;
-// -  if (BackgroundNode <> nil) and
-// -     { We have to still check Result, since not every TAbstractBackgroundNode
-// -       is supported now, so for some background nodes we still have
-// -       Result = nil. }
-// -     (Result <> nil) then
-// -  begin
-// -    Result.Transform := BackgroundNode.TransformRotation;
-// -  end;
-
+  { If background transform changed, we have to update the FBackground
+    scene. Note that we check Result <> nil always, since not every
+    TAbstractBackgroundNode may be supported. }
+  BackgroundNode := BackgroundStack.Top;
+  if (BackgroundNode <> nil) and (Result <> nil) then
+    Result.UpdateTransform(BackgroundNode.TransformRotation);
 end;
 
 function TCastleScene.Attributes: TSceneRenderingAttributes;
