@@ -671,6 +671,15 @@ procedure TGLShadowVolumeRenderer.Render(
   const Render3D: TSVRenderParamsProc;
   const RenderShadowVolumes: TSVRenderProc;
   const DrawShadowVolumes: boolean);
+{$ifdef OpenGLES}
+begin
+  // TODO-es
+  Params.Transparent := false; Params.ShadowVolumesReceivers := false; Render3D(Params);
+  Params.Transparent := false; Params.ShadowVolumesReceivers := true ; Render3D(Params);
+  Params.Transparent := true ; Params.ShadowVolumesReceivers := false; Render3D(Params);
+  Params.Transparent := true ; Params.ShadowVolumesReceivers := true ; Render3D(Params);
+{$else}
+
 const
   { Which stencil bits should be tested when determining which things
     are in the scene ?
@@ -845,6 +854,7 @@ begin
   Params.Transparent := true;
   Params.ShadowVolumesReceivers := false;
   Render3D(Params);
+{$endif}
 end;
 
 end.
