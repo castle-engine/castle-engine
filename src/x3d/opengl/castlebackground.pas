@@ -74,11 +74,12 @@ type
     procedure Update(const Node: TAbstractBackgroundNode;
       const SkySphereRadius: Single);
     procedure Render(const Wireframe: boolean; const Frustum: TFrustum);
+    procedure FreeResources;
   end;
 
 implementation
 
-uses CastleWarnings, CastleScene, X3DFields, Math;
+uses CastleWarnings, CastleScene, X3DFields, Math, CastleSceneCore;
 
 const
   { Relation of a cube size and a radius of it's bounding sphere.
@@ -542,6 +543,11 @@ begin
     not just rotated. We pass it, but it will be ignored. }
   Params.Transparent := false; Scene.Render(nil, Frustum, Params);
   Params.Transparent := true ; Scene.Render(nil, Frustum, Params);
+end;
+
+procedure TBackground.FreeResources;
+begin
+  Scene.FreeResources([frTextureDataInNodes]);
 end;
 
 end.

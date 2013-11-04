@@ -769,6 +769,8 @@ type
     procedure SetBackgroundSkySphereRadius(const Value: Single);
     procedure PrepareBackground;
   public
+    procedure FreeResources(Resources: TSceneFreeResources); override;
+
     property BackgroundSkySphereRadius: Single
       read FBackgroundSkySphereRadius write SetBackgroundSkySphereRadius
       default 1;
@@ -3315,7 +3317,7 @@ begin
 end;
 
 procedure TCastleScene.PrepareBackground;
-{ Alwayts after PrepareBackground => FBackgroundValid = true }
+{ Always after PrepareBackground => FBackgroundValid = true }
 begin
   if FBackgroundValid and (BackgroundStack.Top = FBackgroundNode) then
     Exit;
@@ -3505,6 +3507,15 @@ begin
         TScreenEffectNode(ScreenEffectNodes[I]).FdNeedsDepth.Value then
       Exit(true);
   Exit(false);
+end;
+
+procedure TCastleScene.FreeResources(Resources: TSceneFreeResources);
+begin
+  inherited;
+
+  if (frBackgroundImageInNodes in Resources) and
+     (FBackground <> nil) then
+    FBackground.FreeResources;
 end;
 
 { TSceneRenderingAttributes ---------------------------------------------- }

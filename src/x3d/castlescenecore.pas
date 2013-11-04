@@ -1332,7 +1332,7 @@ type
 
     { Frees some scene resources, to conserve memory.
       See TSceneFreeResources documentation. }
-    procedure FreeResources(Resources: TSceneFreeResources);
+    procedure FreeResources(Resources: TSceneFreeResources); virtual;
 
     { Recursively unset node's TX3DNode.Scene. Useful if you want to remove
       part of a node graph and put it in some other scene.
@@ -5028,12 +5028,6 @@ begin
     RootNode.EnumerateNodes(TAbstractTexture3DNode,
       @FreeResources_UnloadTexture3DData, false);
   end;
-
-  { TODO-background:
-  if (frBackgroundImageInNodes in Resources) and
-     (FBackground <> nil) then
-    FBackground.FreeResources([frTextureDataInNodes]);
-    }
 
   if frTrianglesListShadowCasters in Resources then
     InvalidateTrianglesListShadowCasters;
