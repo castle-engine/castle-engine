@@ -70,15 +70,17 @@ var
   Root: TX3DRootNode;
 begin
   CoordRect := TCoordinateNode.Create;
-  CoordRect.FdPoint.Items.Add(Vector3Single(-0.5, -0.5, 0));
-  CoordRect.FdPoint.Items.Add(Vector3Single( 0.5, -0.5, 0));
-  CoordRect.FdPoint.Items.Add(Vector3Single( 0.5,  0.5, 0));
-  CoordRect.FdPoint.Items.Add(Vector3Single(-0.5,  0.5, 0));
+  CoordRect.FdPoint.Send([
+    Vector3Single(-0.5, -0.5, 0),
+    Vector3Single( 0.5, -0.5, 0),
+    Vector3Single( 0.5,  0.5, 0),
+    Vector3Single(-0.5,  0.5, 0)]);
 
   CoordTriangle := TCoordinateNode.Create;
-  CoordTriangle.FdPoint.Items.Add(Vector3Single(-0.5, -0.5, 0));
-  CoordTriangle.FdPoint.Items.Add(Vector3Single( 0.5, -0.5, 0));
-  CoordTriangle.FdPoint.Items.Add(Vector3Single(   0,  0.5, 0));
+  CoordTriangle.FdPoint.Send([
+    Vector3Single(-0.5, -0.5, 0),
+    Vector3Single( 0.5, -0.5, 0),
+    Vector3Single(   0,  0.5, 0)]);
 
   GeometryRect := TQuadSetNode.Create;
   GeometryRect.FdCoord.Value := CoordRect;
