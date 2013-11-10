@@ -4586,7 +4586,7 @@ procedure TCastleWindowCustom.EventDraw;
     glDisable(GL_DEPTH_TEST);
     ScissorDisable;
     GLEnableTexture(CastleGLUtils.etNone);
-    glViewport(Rect); // saved by GL_VIEWPORT_BIT
+    glViewport(Rect);
 
     OrthoProjection(0, Width, 0, Height);
 

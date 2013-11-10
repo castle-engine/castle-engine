@@ -389,9 +389,11 @@ end;
 procedure TCurve.Render(Segments: Cardinal);
 var i: Integer;
 begin
+  {$ifndef OpenGLES} //TODO-es
   glBegin(GL_LINE_STRIP);
   for i := 0 to Segments do glVertexv(PointOfSegment(i, Segments));
   glEnd;
+  {$endif}
 end;
 
 procedure TCurve.Render(const Frustum: TFrustum;
@@ -399,16 +401,20 @@ procedure TCurve.Render(const Frustum: TFrustum;
 begin
   if GetExists and (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
+    {$ifndef OpenGLES} //TODO-es
     if not Params.RenderTransformIdentity then
     begin
       glPushMatrix;
       glMultMatrix(Params.RenderTransform);
     end;
+    {$endif}
 
     Render(DefaultSegments);
 
+    {$ifndef OpenGLES}
     if not Params.RenderTransformIdentity then
       glPopMatrix;
+    {$endif}
   end;
 end;
 
@@ -479,9 +485,11 @@ end;
 procedure TControlPointsCurve.RenderControlPoints;
 var i: Integer;
 begin
- glBegin(GL_POINTS);
- for i := 0 to ControlPoints.Count-1 do glVertexv(ControlPoints.L[i]);
- glEnd;
+  {$ifndef OpenGLES} //TODO-es
+  glBegin(GL_POINTS);
+  for i := 0 to ControlPoints.Count-1 do glVertexv(ControlPoints.L[i]);
+  glEnd;
+  {$endif}
 end;
 
 function TControlPointsCurve.BoundingBox: TBox3D;
@@ -513,11 +521,13 @@ begin
  try
   CH := ConvexHull(CHPoints);
   try
+   {$ifndef OpenGLES} //TODO-es
    glBegin(GL_POLYGON);
    try
     for i := 0 to CH.Count-1 do
      glVertexv(CHPoints.L[CH[i]]);
    finally glEnd end;
+   {$endif}
   finally CH.Free end;
  finally DestroyConvexHullPoints(CHPoints) end;
 end;

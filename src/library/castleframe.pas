@@ -819,14 +819,14 @@ procedure TCastleFrame.DoDraw;
           ds2D: AnythingWants2D := true;
           { Set OpenGL state that may be changed carelessly, and has some
             guanteed value, for TUIControl.Draw calls. }
-          ds3D: begin glLoadIdentity; C.Draw; end;
+          ds3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} C.Draw; end;
         end;
       end;
     end;
 
     case OnDrawStyle of
       ds2D: AnythingWants2D := true;
-      ds3D: begin glLoadIdentity; {JA inherited DoDraw; }end;
+      ds3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} {JA inherited DoDraw; }end;
     end;
   end;
 
@@ -835,40 +835,43 @@ procedure TCastleFrame.DoDraw;
     C: TUIControl;
     I: Integer;
   begin
-    glPushAttrib(GL_ENABLE_BIT);
-      { Set and push/pop OpenGL state that is guaranteed for Draw2D calls,
-        but TUIControl.Draw cannot change it carelessly. }
-      glDisable(GL_LIGHTING);
-      glDisable(GL_DEPTH_TEST);
-      GLEnableTexture(etNone);
+    { Set state that is guaranteed for Draw2D calls,
+      but TUIControl.Draw cannot change it carelessly. }
+    {$ifndef OpenGLES}
+    glDisable(GL_LIGHTING);
+    glDisable(GL_FOG);
+    {$endif}
+    glDisable(GL_DEPTH_TEST);
+    ScissorDisable;
+    GLEnableTexture(CastleGLUtils.etNone);
+    glViewport(Rect);
 
-      OrthoProjection(0, Width, 0, Height);
+    OrthoProjection(0, Width, 0, Height);
 
-      if UseControls then
+    if UseControls then
+    begin
+      { draw controls in "downto" order, back to front }
+      for I := Controls.Count - 1 downto 0 do
       begin
-        { draw controls in "downto" order, back to front }
-        for I := Controls.Count - 1 downto 0 do
-        begin
-          C := Controls[I];
+        C := Controls[I];
 
-          if C.DrawStyle = ds2D then
-          begin
-            { Set OpenGL state that may be changed carelessly, and has some
-              guanteed value, for Draw2d calls. }
-            glLoadIdentity;
-            WindowPos := Vector2LongInt(0, 0);
-            C.Draw;
-          end;
+        if C.DrawStyle = ds2D then
+        begin
+          { Set OpenGL state that may be changed carelessly, and has some
+            guanteed value, for Draw2d calls. }
+          {$ifndef OpenGLES} glLoadIdentity; {$endif}
+          WindowPos := Vector2LongInt(0, 0);
+          C.Draw;
         end;
       end;
+    end;
 
-      if OnDrawStyle = ds2D then
-      begin
-        glLoadIdentity;
-        WindowPos := Vector2LongInt(0, 0);
-        {JA inherited DoDraw;}
-      end;
-    glPopAttrib;
+    if OnDrawStyle = ds2D then
+    begin
+      {$ifndef OpenGLES} glLoadIdentity; {$endif}
+      WindowPos := Vector2LongInt(0, 0);
+      {JA inherited DoDraw;}
+    end;
   end;
 
 var

@@ -1436,20 +1436,20 @@ procedure TCastleControlCustom.DoDraw;
           ds2D: AnythingWants2D := true;
           { Set OpenGL state that may be changed carelessly, and has some
             guanteed value, for TUIControl.Draw calls. }
-          ds3D: begin glLoadIdentity; C.Draw; end;
+          ds3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} C.Draw; end;
         end;
       end;
 
       if TooltipVisible and (Focus <> nil) then
         case Focus.TooltipStyle of
           ds2D: AnythingWants2D := true;
-          ds3D: begin glLoadIdentity; Focus.DrawTooltip; end;
+          ds3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} Focus.DrawTooltip; end;
         end;
     end;
 
     case OnDrawStyle of
       ds2D: AnythingWants2D := true;
-      ds3D: begin glLoadIdentity; inherited DoDraw; end;
+      ds3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} inherited DoDraw; end;
     end;
   end;
 
@@ -1458,49 +1458,50 @@ procedure TCastleControlCustom.DoDraw;
     C: TUIControl;
     I: Integer;
   begin
-    glPushAttrib(GL_ENABLE_BIT);
-      { Set and push/pop OpenGL state that is guaranteed for Draw2D calls,
-        but TUIControl.Draw cannot change it carelessly. }
-      glDisable(GL_LIGHTING);
-      glDisable(GL_FOG);
-      glDisable(GL_DEPTH_TEST);
-      ScissorDisable;
-      GLEnableTexture(CastleGLUtils.etNone);
+    { Set state that is guaranteed for Draw2D calls,
+      but TUIControl.Draw cannot change it carelessly. }
+    {$ifndef OpenGLES}
+    glDisable(GL_LIGHTING);
+    glDisable(GL_FOG);
+    {$endif}
+    glDisable(GL_DEPTH_TEST);
+    ScissorDisable;
+    GLEnableTexture(CastleGLUtils.etNone);
+    glViewport(Rect);
 
-      OrthoProjection(0, Width, 0, Height);
+    OrthoProjection(0, Width, 0, Height);
 
-      if UseControls then
+    if UseControls then
+    begin
+      { draw controls in "downto" order, back to front }
+      for I := Controls.Count - 1 downto 0 do
       begin
-        { draw controls in "downto" order, back to front }
-        for I := Controls.Count - 1 downto 0 do
-        begin
-          C := Controls[I];
+        C := Controls[I];
 
-          if C.DrawStyle = ds2D then
-          begin
-            { Set OpenGL state that may be changed carelessly, and has some
-              guanteed value, for Draw2d calls. }
-            glLoadIdentity;
-            WindowPos := Vector2LongInt(0, 0);
-            C.Draw;
-          end;
-        end;
-
-        if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = ds2D) then
+        if C.DrawStyle = ds2D then
         begin
-          glLoadIdentity;
+          { Set OpenGL state that may be changed carelessly, and has some
+            guanteed value, for Draw2d calls. }
+          {$ifndef OpenGLES} glLoadIdentity; {$endif}
           WindowPos := Vector2LongInt(0, 0);
-          Focus.DrawTooltip;
+          C.Draw;
         end;
       end;
 
-      if OnDrawStyle = ds2D then
+      if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = ds2D) then
       begin
-        glLoadIdentity;
+        {$ifndef OpenGLES} glLoadIdentity; {$endif}
         WindowPos := Vector2LongInt(0, 0);
-        inherited DoDraw;
+        Focus.DrawTooltip;
       end;
-    glPopAttrib;
+    end;
+
+    if OnDrawStyle = ds2D then
+    begin
+      {$ifndef OpenGLES} glLoadIdentity; {$endif}
+      WindowPos := Vector2LongInt(0, 0);
+      inherited DoDraw;
+    end;
   end;
 
 var
