@@ -1260,7 +1260,7 @@ begin
       OcclusionBoxStateEnd;
     end else
     begin
-      if Attributes.ControlBlending and Attributes.Blending then
+      if Attributes.Blending then
       begin
         if not Params.Transparent then
         begin
@@ -1920,8 +1920,7 @@ var
     { If light is directional, no need to render dark cap }
     DarkCap := DarkCap and (LightPos[3] <> 0);
 
-    if Attributes.ControlBlending and
-       Attributes.Blending and
+    if Attributes.Blending and
        (Attributes.Mode = rmFull) then
       OpaqueCount := Triangles.OpaqueCount else
       OpaqueCount := Triangles.Count; { everything is opaque in this case }
