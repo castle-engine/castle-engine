@@ -100,6 +100,8 @@ type
   EImageLerpInvalidClasses = class(EImageLerpError);
   EImageLerpDifferentSizes = class(EImageLerpError);
 
+  EImageAssignmentError = class(Exception);
+
   { Abstract class for an image with unspecified, possibly compressed,
     memory format. The idea is that both uncompressed images (TCastleImage)
     and compressed images (TS3TCImage) are derived from this class. }
@@ -279,17 +281,22 @@ type
       It sets Width = Height = 0 and RawPixels = nil. }
     procedure Empty;
 
-    { Change Width and Height to given AWidth, AHeight.
-      RawPixels is changed to point to the new memory.
-      Previous image contents are lost. (use one of the other methods,
-      like @link(Resize), if you want to change image size preserving
-      it's contents) }
+    { Change size (Width and Height and Depth).
+      Previous pixel contents (RawPixels) are lost,
+      and the contents of new pixels are undefined.
+
+      Use other method, like @link(Resize), if you want to change image size
+      preserving it's contents. }
     procedure SetSize(
       const AWidth, AHeight: Cardinal;
       const ADepth: Cardinal = 1);
+    procedure SetSize(const Source: TCastleImage);
 
     { Size of TPixel in bytes for this TCastleImage descendant. }
     class function PixelSize: Cardinal; virtual; abstract;
+
+    { Size of image contents in bytes. }
+    function ImageSize: Cardinal;
 
     { Number of color components in TPixel.
 
@@ -596,6 +603,24 @@ type
         for this image class.) }
     class procedure MixColors(const OutputColor: Pointer;
        const Weights: TVector4Single; const Colors: TVector4Pointer); virtual;
+
+    { Copy size and contents from Source.
+      This sets our size (Width, Height and Depth)
+      to match Source image, and copies pixels from the Source image,
+      converting them as closely as possible.
+      For example, converting RGBA to RGB will strip alpha channel,
+      but copy RGB values.
+
+      When implementing descendants: the base implementation of this method
+      in TCastleImage handles only the case when Image class equals our own class.
+      And raises EImageAssignmentError in other cases.
+      Override this method if you want to actually handle some convertions
+      when assignning.
+
+      @raises(EImageAssignmentError If it's not possible to convert from
+        Source class to us. Not every possible convertion is implemented now.)
+    }
+    procedure Assign(const Source: TCastleImage); virtual;
   end;
 
   TCastleImageList = specialize TFPGObjectList<TCastleImage>;
@@ -843,6 +868,8 @@ type
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
        const Weights: TVector4Single; const Colors: TVector4Pointer); override;
+
+    procedure Assign(const Source: TCastleImage); override;
   end;
 
   TRGBAlphaImage = class(TCastleImage)
@@ -1769,12 +1796,22 @@ end;
 procedure TCastleImage.SetSize(const AWidth, AHeight: Cardinal;
   const ADepth: Cardinal = 1);
 begin
-  FreeMemNiling(FRawPixels);
-  FWidth := AWidth;
-  FHeight := AHeight;
-  FDepth := ADepth;
-  if (AWidth <> 0) and (AHeight <> 0) and (ADepth <> 0) then
-    FRawPixels := GetMem(PixelSize * AWidth * AHeight * ADepth);
+  if (FWidth <> AWidth) or
+     (FHeight <> AHeight) or
+     (FDepth <> ADepth) then
+  begin
+    FreeMemNiling(FRawPixels);
+    FWidth := AWidth;
+    FHeight := AHeight;
+    FDepth := ADepth;
+    if (AWidth <> 0) and (AHeight <> 0) and (ADepth <> 0) then
+      FRawPixels := GetMem(PixelSize * AWidth * AHeight * ADepth);
+  end;
+end;
+
+procedure TCastleImage.SetSize(const Source: TCastleImage);
+begin
+  SetSize(Source.Width, Source.Height, Source.Depth);
 end;
 
 function TCastleImage.PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): Pointer;
@@ -1803,10 +1840,15 @@ begin
   NotImplemented('SetColorRGB');
 end;
 
+function TCastleImage.ImageSize: Cardinal;
+begin
+  Result := Width * Height * Depth * PixelSize;
+end;
+
 function TCastleImage.MakeCopy: TCastleImage;
 begin
-  Result := TCastleImageClass(Self.ClassType).Create(Width, Height);
-  Move(RawPixels^, Result.RawPixels^, Depth * Width * Height * PixelSize);
+  Result := TCastleImageClass(Self.ClassType).Create(Width, Height, Depth);
+  Move(RawPixels^, Result.RawPixels^, ImageSize);
 end;
 
 type
@@ -2004,8 +2046,7 @@ var
 begin
   New := MakeRotated(Angle);
   try
-    SetSize(New.Width, New.Height);
-    Move(New.RawPixels^, RawPixels^, New.Width * New.Height * PixelSize);
+    Assign(New);
   finally FreeAndNil(New) end;
 end;
 
@@ -2141,7 +2182,7 @@ begin
     (Image.Width = Width) and
     (Image.Height = Height) and
     (Image.Depth = Depth) and
-    (CompareMem(Image.RawPixels, RawPixels, Width * Height * PixelSize));
+    (CompareMem(Image.RawPixels, RawPixels, ImageSize));
 end;
 
 function TCastleImage.ArePartsEqual(
@@ -2254,6 +2295,17 @@ class procedure TCastleImage.MixColors(const OutputColor: Pointer;
   const Weights: TVector4Single; const Colors: TVector4Pointer);
 begin
   raise EImageLerpInvalidClasses.Create('Mixing colors (TCastleImage.MixColors) not possible with the base TCastleImage class');
+end;
+
+procedure TCastleImage.Assign(const Source: TCastleImage);
+begin
+  if Source.ClassType = ClassType then
+  begin
+    SetSize(Source);
+    Move(Source.RawPixels^, RawPixels^, ImageSize);
+  end else
+    raise EImageAssignmentError.CreateFmt('Cannot copy image contents from %s to %s',
+      [Source.ClassName, ClassName]);
 end;
 
 { TS3TCImage ----------------------------------------------------------------- }
@@ -2396,7 +2448,7 @@ begin
   Black := ReplaceBlackImage.RGBPixels;
   Res := RGBPixels;
 
-  for i := 1 to Width * Height do
+  for i := 1 to Width * Height * Depth do
   begin
     s := (Map^[0] + Map^[1] + Map^[2]) / 255 / 3;
     Res^[0] := Round(s * White^[0] + (1-s) * Black^[0]);
@@ -2440,7 +2492,7 @@ var
   prgb: PVector3byte;
 begin
   prgb := RGBPixels;
-  for i := 1 to Width * Height do
+  for i := 1 to Width * Height * Depth do
   begin
     prgb^[0] := High(byte)-prgb^[0];
     prgb^[1] := High(byte)-prgb^[1];
@@ -2460,7 +2512,7 @@ var
   I: Cardinal;
 begin
   P := RGBPixels;
-  for I := 1 to Width * Height do
+  for I := 1 to Width * Height * Depth do
   begin
     Move(Pixel, P^, SizeOf(TVector3Byte));
     Inc(P);
@@ -2473,7 +2525,7 @@ var
   I: Cardinal;
 begin
   P := RGBPixels;
-  for I := 1 to Width * Height do
+  for I := 1 to Width * Height * Depth do
   begin
     if not CompareMem(@Pixel, P, SizeOf(TVector3Byte)) then
     begin
@@ -2502,7 +2554,7 @@ begin
   Result := TRGBAlphaImage.Create(Width, Height);
   pi := RGBPixels;
   pa := Result.AlphaPixels;
-  for i := 1 to Width * Height do
+  for i := 1 to Width * Height * Depth do
   begin
     Move(pi^, pa^, SizeOf(TVector3Byte));
     {pa^[3] := <dont_care_about_this_value>}
@@ -2524,7 +2576,7 @@ begin
   Result := TRGBAlphaImage.Create(Width, Height);
   pi := RGBPixels;
   pa := Result.AlphaPixels;
-  for i := 1 to Width * Height do
+  for i := 1 to Width * Height * Depth do
   begin
     Move(pi^, pa^, SizeOf(TVector3Byte));
     pa^[3] := Alpha;
@@ -2551,7 +2603,7 @@ begin
   try
     PByte := RGBPixels;
     PFloat := Result.RGBFloatPixels;
-    for i := 1 to Width * Height do
+    for i := 1 to Width * Height * Depth do
     begin
       PFloat^ := Vector3Single(PByte^);
       Inc(PByte);
@@ -2570,7 +2622,7 @@ begin
   try
     pRGB := RGBPixels;
     pGrayscale := Result.GrayscalePixels;
-    for i := 1 to Width * Height do
+    for i := 1 to Width * Height * Depth do
     begin
       pGrayscale^ := GrayscaleValue(pRGB^);
       Inc(pRGB);
@@ -2624,7 +2676,7 @@ begin
 
   SelfPtr := RGBPixels;
   SecondPtr := TRGBImage(SecondImage).RGBPixels;
-  for I := 1 to Width * Height do
+  for I := 1 to Width * Height * Depth do
   begin
     SelfPtr^ := Lerp(Value, SelfPtr^, SecondPtr^);
     Inc(SelfPtr);
@@ -2641,6 +2693,42 @@ begin
   OutputCol^[0] := Clamped(Round(Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0]), 0, High(Byte));
   OutputCol^[1] := Clamped(Round(Weights[0] * Cols[0]^[1] + Weights[1] * Cols[1]^[1] + Weights[2] * Cols[2]^[1] + Weights[3] * Cols[3]^[1]), 0, High(Byte));
   OutputCol^[2] := Clamped(Round(Weights[0] * Cols[0]^[2] + Weights[1] * Cols[1]^[2] + Weights[2] * Cols[2]^[2] + Weights[3] * Cols[3]^[2]), 0, High(Byte));
+end;
+
+procedure TRGBImage.Assign(const Source: TCastleImage);
+var
+  FloatPtr: PVector3Single;
+  RgbaPtr: PVector4Byte;
+  SelfPtr: PVector3Byte;
+  I: Cardinal;
+begin
+  SelfPtr := RGBPixels;
+
+  if Source is TRGBAlphaImage then
+  begin
+    SetSize(Source);
+    RgbaPtr := TRGBAlphaImage(Source).AlphaPixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      Move(RgbaPtr^, SelfPtr^, SizeOf(TVector3Byte));
+      Inc(SelfPtr);
+      Inc(RgbaPtr);
+    end;
+  end else
+
+  if Source is TRGBFloatImage then
+  begin
+    SetSize(Source);
+    FloatPtr := TRGBFloatImage(Source).RGBFloatPixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      SelfPtr^ := Vector3Byte(FloatPtr^);
+      Inc(SelfPtr);
+      Inc(FloatPtr);
+    end;
+  end else
+
+    inherited;
 end;
 
 { TRGBAlphaImage ------------------------------------------------------------ }
@@ -2676,7 +2764,7 @@ var
   palpha: PVector4byte;
 begin
   palpha := AlphaPixels;
-  for i := 1 to Width * Height do
+  for i := 1 to Width * Height * Depth do
   begin
     palpha^[0] := High(byte)-palpha^[0];
     palpha^[1] := High(byte)-palpha^[1];
@@ -2701,7 +2789,7 @@ var
   palpha: PVector4byte;
 begin
   palpha := AlphaPixels;
-  for i := 1 to Width * Height do
+  for i := 1 to Width * Height * Depth do
   begin
     palpha^[3] := Alpha;
     Inc(palpha);
@@ -2728,7 +2816,7 @@ var
   i: Cardinal;
 begin
   pa := AlphaPixels;
-  for i := 1 to Width * Height do
+  for i := 1 to Width * Height * Depth do
   begin
     if EqualRGB(AlphaColor, PVector3Byte(pa)^, Tolerance) then
       pa^[3] := AlphaOnColor else
@@ -2745,16 +2833,17 @@ var
   I: Cardinal;
 begin
   Check( (RGB.Width = AGrayscale.Width) and
-         (RGB.Height = AGrayscale.Height),
+         (RGB.Height = AGrayscale.Height) and
+         (RGB.Depth = AGrayscale.Depth),
     'For TRGBAlphaImage.Compose, RGB and alpha images must have the same sizes');
 
-  SetSize(RGB.Width, RGB.Height);
+  SetSize(RGB);
 
   PtrAlpha := AlphaPixels;
   PtrRGB := RGB.RGBPixels;
   PtrGrayscale := AGrayscale.GrayscalePixels;
 
-  for I := 1 to Width * Height do
+  for I := 1 to Width * Height * Depth do
   begin
     System.Move(PtrRGB^, PtrAlpha^, SizeOf(TVector3Byte));
     PtrAlpha^[3] := PtrGrayscale^;
@@ -2778,7 +2867,7 @@ var
   I, WrongPixels, AllPixels: Cardinal;
 begin
   WrongPixels := 0;
-  AllPixels := Width * Height;
+  AllPixels := Width * Height * Depth;
 
   PtrAlpha := AlphaPixels;
 
@@ -2831,7 +2920,7 @@ begin
 
   SelfPtr := AlphaPixels;
   SecondPtr := TRGBAlphaImage(SecondImage).AlphaPixels;
-  for I := 1 to Width * Height do
+  for I := 1 to Width * Height * Depth do
   begin
     SelfPtr^ := Lerp(Value, SelfPtr^, SecondPtr^);
     Inc(SelfPtr);
@@ -2852,20 +2941,9 @@ begin
 end;
 
 function TRGBAlphaImage.ToRGBImage: TRGBImage;
-var
-  SelfPtr: PVector4Byte;
-  ResultPtr: PVector3Byte;
-  I: Cardinal;
 begin
-  Result := TRGBImage.Create(Width, Height);
-  SelfPtr := AlphaPixels;
-  ResultPtr := Result.RGBPixels;
-  for I := 1 to Width * Height do
-  begin
-    Move(SelfPtr^, ResultPtr^, SizeOf(TVector3Byte));
-    Inc(SelfPtr);
-    Inc(ResultPtr);
-  end;
+  Result := TRGBImage.Create(0, 0);
+  Result.Assign(Self);
 end;
 
 { TRGBFloatImage ------------------------------------------------------------ }
@@ -2906,7 +2984,7 @@ var
   I: Cardinal;
 begin
   P := RGBFloatPixels;
-  for I := 1 to Width * Height do
+  for I := 1 to Width * Height * Depth do
   begin
     Move(Pixel, P^, SizeOf(TVector3Single));
     Inc(P);
@@ -2919,7 +2997,7 @@ var
   I: Cardinal;
 begin
   P := RGBFloatPixels;
-  for I := 1 to Width * Height do
+  for I := 1 to Width * Height * Depth do
   begin
     if not CompareMem(@Pixel, P, SizeOf(TVector3Single)) then
     begin
@@ -2932,22 +3010,9 @@ begin
 end;
 
 function TRGBFloatImage.ToRGBImage: TRGBImage;
-var
-  PFloat: PVector3Single;
-  PByte: PVector3Byte;
-  i: Cardinal;
 begin
-  Result := TRGBImage.Create(Width, Height);
-  try
-    PByte := Result.RGBPixels;
-    PFloat := RGBFloatPixels;
-    for i := 1 to Width * Height do
-    begin
-      PByte^ := Vector3Byte(PFloat^);
-      Inc(PByte);
-      Inc(PFloat);
-    end;
-  except Result.Free; raise end;
+  Result := TRGBImage.Create(0, 0);
+  Result.Assign(Self);
 end;
 
 procedure TRGBFloatImage.ScaleColors(const Scale: Single);
@@ -2956,7 +3021,7 @@ var
   i: Cardinal;
 begin
   PFloat := RGBFloatPixels;
-  for i := 1 to Width * Height do
+  for i := 1 to Width * Height * Depth do
   begin
     PFloat^ := VectorScale(PFloat^, Scale);
     Inc(PFloat);
@@ -2969,7 +3034,7 @@ var
   i: Cardinal;
 begin
   PFloat := RGBFloatPixels;
-  for i := 1 to Width * Height do
+  for i := 1 to Width * Height * Depth do
   begin
     PFloat^ := VectorPowerComponents(PFloat^, Exp);
     Inc(PFloat);
@@ -2986,7 +3051,7 @@ begin
 
   SelfPtr := RGBFloatPixels;
   SecondPtr := TRGBFloatImage(SecondImage).RGBFloatPixels;
-  for I := 1 to Width * Height do
+  for I := 1 to Width * Height * Depth do
   begin
     SelfPtr^ := Lerp(Value, SelfPtr^, SecondPtr^);
     Inc(SelfPtr);
@@ -3034,12 +3099,12 @@ end;
 
 procedure TGrayscaleImage.Clear(const Pixel: Byte);
 begin
-  FillChar(RawPixels^, Width * Height, Pixel);
+  FillChar(RawPixels^, ImageSize, Pixel);
 end;
 
 function TGrayscaleImage.IsClear(const Pixel: Byte): boolean;
 begin
-  Result := IsMemCharFilled(RawPixels^, Width * Height, Char(Pixel));
+  Result := IsMemCharFilled(RawPixels^, ImageSize, Char(Pixel));
 end;
 
 procedure TGrayscaleImage.HalfColors;
@@ -3048,7 +3113,7 @@ var
   I: Cardinal;
 begin
   P := GrayscalePixels;
-  for I := 1 to Width * Height do
+  for I := 1 to Width * Height * Depth do
   begin
     P^ := P^ shr 1;
     Inc(P);
@@ -3065,7 +3130,7 @@ begin
 
   SelfPtr := GrayscalePixels;
   SecondPtr := TGrayscaleImage(SecondImage).GrayscalePixels;
-  for I := 1 to Width * Height do
+  for I := 1 to Width * Height * Depth do
   begin
     SelfPtr^ := Clamped(Round(Lerp(Value, SelfPtr^, SecondPtr^)), 0, High(Byte));
     Inc(SelfPtr);
@@ -3091,7 +3156,7 @@ begin
   Result := TGrayscaleAlphaImage.Create(Width, Height);
   pg := GrayscalePixels;
   pa := Result.GrayscaleAlphaPixels;
-  for i := 1 to Width * Height do
+  for i := 1 to Width * Height * Depth do
   begin
     pa^[0] := pg^;
     pa^[1] := Alpha;
@@ -3133,7 +3198,7 @@ var
   I: Cardinal;
 begin
   P := GrayscaleAlphaPixels;
-  for I := 1 to Width * Height do
+  for I := 1 to Width * Height * Depth do
   begin
     Move(Pixel, P^, SizeOf(Pixel));
     Inc(P);
@@ -3146,7 +3211,7 @@ var
   I: Cardinal;
 begin
   P := GrayscaleAlphaPixels;
-  for I := 1 to Width * Height do
+  for I := 1 to Width * Height * Depth do
   begin
     if not CompareMem(@Pixel, P, SizeOf(Pixel)) then
     begin
@@ -3171,7 +3236,7 @@ var
   I, WrongPixels, AllPixels: Cardinal;
 begin
   WrongPixels := 0;
-  AllPixels := Width * Height;
+  AllPixels := Width * Height * Depth;
 
   PtrAlpha := GrayscaleAlphaPixels;
 
@@ -3224,7 +3289,7 @@ begin
 
   SelfPtr := GrayscaleAlphaPixels;
   SecondPtr := TGrayscaleAlphaImage(SecondImage).GrayscaleAlphaPixels;
-  for I := 1 to Width * Height do
+  for I := 1 to Width * Height * Depth do
   begin
     SelfPtr^ := Lerp(Value, SelfPtr^, SecondPtr^);
     Inc(SelfPtr);

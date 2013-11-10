@@ -410,13 +410,6 @@ procedure BeforeUnpackNotAlignedRGBImage(out unpackdata: TUnpackNotAlignedData; 
 procedure AfterUnpackNotAlignedRGBImage(const unpackData: TUnpackNotAlignedData; imageWidth: cardinal);
 { @groupEnd }
 
-{ Save/restore OpenGL pixel store for packing TRGBImage.
-  Use around glReadPixels and such with TRGBImage.
-  @groupBegin }
-procedure BeforePackNotAlignedRGBImage(out packdata: TPackNotAlignedData; imageWidth: cardinal);
-procedure AfterPackNotAlignedRGBImage(const packData: TPackNotAlignedData; imageWidth: cardinal);
-{ @groupEnd }
-
 { Save/restore OpenGL pixel store for unpacking / packing given TCastleImage.
   Before you pass this image to some OpenGL procedures
   (like glDrawPixels for unpacking, glReadPixels for packing),

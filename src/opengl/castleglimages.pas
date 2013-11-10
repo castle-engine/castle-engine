@@ -1359,15 +1359,42 @@ const
 { This is the basis for all other SaveScreen* functions below. }
 procedure SaveScreen_NoFlush(const Image: TCastleImage;
   const Left, Bottom: Integer; const ReadBuffer: TColorBuffer);
+
+  procedure ReadPixels(const Image: TCastleImage);
+  var
+    PackData: TPackNotAlignedData;
+  begin
+    BeforePackImage(PackData, Image);
+    try
+      SetReadBuffer(ColorBufferGL[ReadBuffer]);
+      glReadPixels(Left, Bottom, Image.Width, Image.Height, ImageGLFormat(Image),
+        ImageGLType(Image), Image.RawPixels);
+    finally AfterPackImage(PackData, Image) end;
+  end;
+
+{$ifdef OpenGLES}
+
+{ Under OpenGLES, the only type+format combination that is guaranteed
+  to work is GL_RGBA + GL_UNSIGNED_BYTE,
+  see http://www.khronos.org/opengles/sdk/docs/man/xhtml/glReadPixels.xml .
+  So grab image to TRGBAlphaImage, and later convert it as necessary. }
+
 var
-  PackData: TPackNotAlignedData;
+  ImageRGBA: TRGBAlphaImage;
 begin
-  BeforePackNotAlignedRGBImage(packData, Image.width);
-  try
-    SetReadBuffer(ColorBufferGL[ReadBuffer]);
-    glReadPixels(Left, Bottom, Image.width, Image.height, ImageGLFormat(Image),
-      ImageGLType(Image), Image.RawPixels);
-  finally AfterPackNotAlignedRGBImage(packData, Image.width) end;
+  if Image is TRGBAlphaImage then
+    ReadPixels(Image) else
+  begin
+    ImageRGBA := TRGBAlphaImage.Create(Image.Width, Image.Height, Image.Depth);
+    try
+      ReadPixels(ImageRGBA);
+      Image.Assign(ImageRGBA);
+    finally FreeAndNil(ImageRGBA) end;
+  end;
+{$else}
+begin
+  ReadPixels(Image);
+{$endif}
 end;
 
 function SaveScreen_NoFlush(const ImageClass: TCastleImageClass;
