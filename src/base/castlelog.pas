@@ -73,6 +73,16 @@ implementation
 uses CastleUtils, CastleClassUtils, CastleTimeUtils,
   SysUtils, CastleFilesUtils;
 
+{ Dump backtrace (always to StdErr for now, regardless of LogStream)
+  of each log.
+
+  Displaying line info requires compiling your program with -gl.
+  Unfortunately line info is not 100% reliable (sometimes it only works in gdb;
+  sometimes it does not even work in gdb, but still you can use gdb's "info symbol xxx"
+  to resolve addresses to method names).
+  Depends very much on OS, debug info type, and FPC version. }
+{ $define BACKTRACE_ON_LOG}
+
 var
   FLog: boolean = false;
   LogStream: TStream;
@@ -134,7 +144,12 @@ end;
 procedure WriteLog(const Title: string; const LogMessage: string);
 begin
   if Log then
+  begin
     WriteStr(LogStream, Title + ': ' + LogMessage);
+    {$ifdef BACKTRACE_ON_LOG}
+    Dump_Stack(StdErr, Get_Frame);
+    {$endif}
+  end;
 end;
 
 procedure WritelnLog(const Title: string; const LogMessage: string);
@@ -151,10 +166,15 @@ end;
 procedure WriteLogMultiline(const Title: string; const LogMessage: string);
 begin
   if Log then
+  begin
     WritelnStr(LogStream,
       '-------------------- ' + Title + ' begin' + NL +
       LogMessage +
       '-------------------- ' + Title + ' end');
+    {$ifdef BACKTRACE_ON_LOG}
+    Dump_Stack(StdErr, Get_Frame);
+    {$endif}
+  end;
 end;
 
 procedure WritelnLogMultiline(const Title: string; const LogMessage: string);
