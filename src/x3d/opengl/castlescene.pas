@@ -487,45 +487,29 @@ type
 
     { shadow things ---------------------------------------------------------- }
 
-    { Rendering shadow volumes.
+    { Rendering shadow volumes with silhouette optimization.
 
-      There are two algorithms here:
+      This renders shadow quads of silhouette edge. Edges from ManifoldEdges
+      list are used to find silhouette edge. Additionally edges from
+      BorderEdges always produce shadow quads, i.e. we treat them
+      like they would always be silhouette edges.
 
-      @orderedList(
-        @item(Rendering with silhouette optimization.
+      The very idea of this optimization is that most edges are in
+      ManifoldEdges and so only real silhouette edges produce shadow quads.
+      In other words, BorderEdges list should not contain too many items.
+      When BorderEdges contains all edges (ManifoldEdges is empty), then
+      this method degenerates to a naive rendering without silhouette
+      optimization. So you should try to make your models as much as
+      possible resembling nice 2-manifolds. Ideally, if your mesh
+      is a number of perfectly closed manifolds, and vertex ordering
+      is consistent, then BorderEdges is empty, and this works perfect.
 
-          This renders shadow quads of silhouette edge. Edges from ManifoldEdges
-          list are used to find silhouette edge. Additionally edges from
-          BorderEdges always produce shadow quads, i.e. we treat them
-          like they would always be silhouette edges.
-
-          The very idea of this optimization is that most edges are in
-          ManifoldEdges and so only real silhouette edges produce shadow quads.
-          In other words, BorderEdges list should not contain too many items.
-          When BorderEdges contains all edges (ManifoldEdges is empty), then
-          this method degenerates to a naive rendering without silhouette
-          optimization. So you should try to make your models as much as
-          possible resembling nice 2-manifolds. Ideally, if your mesh
-          is a number of perfectly closed manifolds, and vertex ordering
-          is consistent, then BorderEdges is empty, and this works perfect.
-
-          Usually, most models are mostly 2-manifold (only the real border
-          edges are, well, in BorderEdges), and this works great.
-          See "VRML engine documentation" on
-          [http://castle-engine.sourceforge.net/engine_doc.php],
-          chapter "Shadows", for description and pictures of possible artifacts
-          when trying to use this on models that are not 2-manifold.)
-
-        @item(Without silhouette optimization.
-          This is the naive approach that just renders
-          3 shadow quads for each triangle.
-
-          It is so slow that there's no public way to actually
-          get this behavior, you have to edit source code and set
-          AllowSilhouetteOptimization constant to false if you really want this.
-          In all real uses, it's better to
-          fix your 3D model to be correct 2-manifold.)
-      )
+      Usually, most models are mostly 2-manifold (only the real border
+      edges are, well, in BorderEdges), and this works great.
+      See "VRML engine documentation" on
+      [http://castle-engine.sourceforge.net/engine_doc.php],
+      chapter "Shadows", for description and pictures of possible artifacts
+      when trying to use this on models that are not 2-manifold.)
 
       LightCap and DarkCap say whether you want to cap your shadow volume.
       LightCap is the cap at the caster position, DarkCap is the cap in infinity.
@@ -539,13 +523,6 @@ type
       const TransformIsIdentity: boolean;
       const Transform: TMatrix4Single;
       const LightCap, DarkCap: boolean);
-
-    procedure RenderAllShadowVolume(
-      const LightPos: TVector4Single;
-      const TransformIsIdentity: boolean;
-      const Transform: TMatrix4Single;
-      LightCap, DarkCap: boolean);
-
   private
     HierarchicalOcclusionQueryRenderer: THierarchicalOcclusionQueryRenderer;
     BlendingRenderer: TBlendingRenderer;
@@ -656,19 +633,14 @@ type
       Will not do anything (treat scene like not casting shadows,
       like CastShadowVolumes = false) if the model is not perfect 2-manifold,
       i.e. has some BorderEdges (although we could handle some BorderEdges
-      for some points of view, this was always inherently dangerous
-      and leading to rendering artifacts).
-      See RenderSilhouetteShadowVolume, RenderAllShadowVolume comments in code
-      for more explanation.
+      for some points of view, this could leading to rendering artifacts).
 
       All shadow quads are generated from scene triangles transformed
       by ParentTransform. We must be able to correctly detect front and
       back facing triangles with respect to light position,
       so ShadowVolumeRenderer.LightPosition and
       "this scene transformed by ParentTransform" must be in the same coordinate system.
-      That's why explicit ParentTransform parameter is needed, you can't get away
-      with simply doing glPush/PopMatrix and glMultMatrix around RenderShadowVolume
-      call. If ParentTransformIsIdentity then ParentTransform value is ignored and
+      If ParentTransformIsIdentity then ParentTransform value is ignored and
       everything works like ParentTransform = identity matrix (and is a little
       faster in this special case).
 
@@ -690,10 +662,7 @@ type
 
       Faces (both shadow quads and caps) are rendered such that
       CCW <=> you're looking at it from outside
-      (i.e. it's considered front face of this shadow volume).
-
-      All the commands passed to OpenGL by this methods are:
-      glBegin, sequence of glVertex, then glEnd. }
+      (i.e. it's considered front face of this shadow volume). }
     procedure RenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
@@ -701,23 +670,19 @@ type
 
     { Render silhouette edges.
       Silhouette is determined from the ObserverPos.
+      Useful to debug (visualize) ManifoldEdges of the scene.
 
       Whole scene is transformed by Transform (before checking which
       edges are silhouette and before rendering). In other words,
       Transform must transform the scene to the same coord space where
       given ObserverPos is. When they are in the same space, just use
-      IdentityMatrix4Single.
-
-      This implicitly creates and uses ManifoldEdges. In fact, one of the uses
-      of this is to visually see that ManifoldEdges are coorect. }
+      IdentityMatrix4Single. }
     procedure RenderSilhouetteEdges(
       const ObserverPos: TVector4Single;
       const Transform: TMatrix4Single);
 
     { Render all border edges (the edges without neighbor).
-
-      This implicitly creates and uses BorderEdges. In fact, one of the uses
-      of this is to visually see that BorderEdges are coorect. }
+      Useful to debug (visualize) BorderEdges of the scene. }
     procedure RenderBorderEdges(
       const Transform: TMatrix4Single);
   private
@@ -1674,254 +1639,6 @@ begin
   Result[3] := 0;
 end;
 
-procedure TCastleScene.RenderAllShadowVolume(
-  const LightPos: TVector4Single;
-  const TransformIsIdentity: boolean;
-  const Transform: TMatrix4Single;
-  LightCap, DarkCap: boolean);
-var
-  TrianglesForLightCap: TTriangle3SingleList;
-  TrianglesForDarkCap: TTriangle4SingleList;
-
-  procedure RenderShadowQuad(
-    const P0, P1: TVector3Single;
-    const PExtruded0, PExtruded1: TVector4Single); overload;
-  begin
-    //glNormalv(TriangleNormal(P0, P1, PExtruded1));
-    glVertexv(P0);
-    glVertexv(P1);
-    glVertexv(PExtruded1);
-    glVertexv(PExtruded0);
-  end;
-
-  procedure RenderShadowQuad(
-    const P0, P1: TVector3Single;
-    const PExtruded: TVector4Single); overload;
-  begin
-    glVertexv(P0);
-    glVertexv(P1);
-    glVertexv(PExtruded);
-  end;
-
-  procedure HandleTriangle(const T: TTriangle3Single);
-  var
-    TExtruded: TTriangle4Single;
-    Plane: TVector4Single;
-    PlaneSide: Single;
-  begin
-    { We want to have consistent CCW orientation of shadow quads faces,
-      so that face is oriented CCW <=> you're looking at it from outside
-      (i.e. it's considered front face of this shadow quad).
-      This is needed, since user of this method may want to do culling
-      to eliminate back or front faces.
-
-      If TriangleDir(T) indicates direction that goes from CCW triangle side.
-      If TriangleDir(T) points in the same direction as LightPos then
-      1st quad should be T1, T0, TExtruded0, TExtruded1.
-      If TriangleDir(T) points in the opposite direction as LightPos then
-      1st quad should be T0, T1, TExtruded1, TExtruded0.
-      And so on.
-
-      Note that this works for any LightPos[3].
-      - For LightPos[3] = 1 this is  normal check.
-      - For other LightPos[3] > 0 this is equivalent to normal check.
-      - For LightPos[3] = 0, this calculates dot between light direction
-        and plane direction. Plane direction points outwards, so PlaneSide > 0
-        indicates that light is from the outside. So it matches results for
-        LightPos[3] = 1.
-      - For LightPos[3] < 0, is seems that the test has to be reversed !
-        I.e. add "if LightPos[3] < 0 then PlaneSide := -PlaneSide;".
-        This will be done when we'll have to do accept any homogeneous
-        coords for LightPos, right now it's not needed.
-    }
-    Plane := TrianglePlane(T);
-    PlaneSide := Plane[0] * LightPos[0] +
-                 Plane[1] * LightPos[1] +
-                 Plane[2] * LightPos[2] +
-                 Plane[3] * LightPos[3];
-
-    { Don't render quads on caps if LightPos lies on the Plane
-      (which means that PlaneSide = 0) }
-    if PlaneSide = 0 then
-      Exit;
-
-    if LightPos[3] <> 0 then
-    begin
-      TExtruded[0] := ExtrudeVertex(T[0], LightPos);
-      TExtruded[1] := ExtrudeVertex(T[1], LightPos);
-      TExtruded[2] := ExtrudeVertex(T[2], LightPos);
-
-      if PlaneSide > 0 then
-      begin
-        RenderShadowQuad(T[1], T[0], TExtruded[1], TExtruded[0]);
-        RenderShadowQuad(T[0], T[2], TExtruded[0], TExtruded[2]);
-        RenderShadowQuad(T[2], T[1], TExtruded[2], TExtruded[1]);
-      end else
-      begin
-        RenderShadowQuad(T[0], T[1], TExtruded[0], TExtruded[1]);
-        RenderShadowQuad(T[1], T[2], TExtruded[1], TExtruded[2]);
-        RenderShadowQuad(T[2], T[0], TExtruded[2], TExtruded[0]);
-      end;
-
-      if DarkCap then
-      begin
-        { reverse TExtruded dir, we want to render caps CCW outside always.
-
-          Note that the test for reversing here is "PlaneSide > 0", while
-          test for reversing LightCaps is "PlaneSide < 0": that's as it should
-          be, as DarkCap triangle should always be in reversed direction
-          than corresponding LightCap triangle (since they both should be
-          CCW outside). }
-        if PlaneSide > 0 then
-          SwapValues(TExtruded[0], TExtruded[2]);
-        TrianglesForDarkCap.Add(TExtruded);
-      end;
-    end else
-    begin
-      { For directional lights, this gets a little simpler, since
-        all extruded points are the same and equal just LightPos. }
-      if PlaneSide > 0 then
-      begin
-        RenderShadowQuad(T[1], T[0], LightPos);
-        RenderShadowQuad(T[0], T[2], LightPos);
-        RenderShadowQuad(T[2], T[1], LightPos);
-      end else
-      begin
-        RenderShadowQuad(T[0], T[1], LightPos);
-        RenderShadowQuad(T[1], T[2], LightPos);
-        RenderShadowQuad(T[2], T[0], LightPos);
-      end;
-    end;
-
-    if LightCap then
-    begin
-      { reverse T dir, we want to render caps CCW outside always }
-      if PlaneSide < 0 then
-        TrianglesForLightCap.Add(Triangle3Single(T[2], T[1], T[0])) else
-        TrianglesForLightCap.Add(T);
-    end;
-  end;
-
-  procedure RenderTriangle3Single(const T: TTriangle3Single);
-  begin
-    glVertexv(T[0]);
-    glVertexv(T[1]);
-    glVertexv(T[2]);
-  end;
-
-  procedure RenderTriangle4Single(const T: TTriangle4Single);
-  begin
-    glVertexv(T[0]);
-    glVertexv(T[1]);
-    glVertexv(T[2]);
-  end;
-
-var
-  I: Integer;
-  Triangles: TTriangle3SingleList;
-  TransformedTri: TTriangle3Single;
-  TPtr: PTriangle3Single;
-  T4Ptr: PTriangle4Single;
-begin
-  TrianglesForLightCap := nil;
-  TrianglesForDarkCap := nil;
-
-  { Note that we require that all triangles on Triangles list are valid
-    (have non-zero area). That's Ok, TrianglesListShadowCasters guarantees it.
-    Otherwise, degenerate triangles could cause artifacts --- image a degenerate
-    triangle on the silhouette edge, it will cause two shadow quads (with all
-    it's neighboring triangles) where there should be one. }
-  Triangles := TrianglesListShadowCasters;
-
-  { If light is directional, no need to render dark cap }
-  DarkCap := DarkCap and (LightPos[3] <> 0);
-
-  { It's a not nice that we have to create a structure in memory
-    to hold TrianglesForLight/DarkCap. But that's because they have to be rendered
-    after rendering normal shadow quads (because shadow quads may be
-    quads or triangles, caps are only triangles, and are rendered in
-    glDepthFunc(GL_NEVER) mode. }
-
-  if LightCap then
-  begin
-    TrianglesForLightCap := TTriangle3SingleList.Create;
-    TrianglesForLightCap.Capacity := Triangles.Count;
-  end;
-
-  if DarkCap then
-  begin
-    TrianglesForDarkCap := TTriangle4SingleList.Create;
-    TrianglesForDarkCap.Capacity := Triangles.Count;
-  end;
-
-  try
-
-    if LightPos[3] <> 0 then
-      glBegin(GL_QUADS) else
-      glBegin(GL_TRIANGLES);
-
-    TPtr := PTriangle3Single(Triangles.List);
-
-    if TransformIsIdentity then
-    begin
-      for I := 0 to Triangles.Count - 1 do
-      begin
-        HandleTriangle(TPtr^);
-        Inc(TPtr);
-      end;
-    end else
-    begin
-      for I := 0 to Triangles.Count - 1 do
-      begin
-        { calculate TransformedTri := Triangles[I] transformed by Transform }
-        TransformedTri[0] := MatrixMultPoint(Transform, TPtr^[0]);
-        TransformedTri[1] := MatrixMultPoint(Transform, TPtr^[1]);
-        TransformedTri[2] := MatrixMultPoint(Transform, TPtr^[2]);
-
-        HandleTriangle(TransformedTri);
-        Inc(TPtr);
-      end;
-    end;
-
-    glEnd;
-
-    if LightCap or DarkCap then
-    begin
-      { See RenderSilhouetteShadowVolume for explanation why caps
-        should be rendered with glDepthFunc(GL_NEVER). }
-      glPushAttrib(GL_DEPTH_BUFFER_BIT); { to save glDepthFunc call below }
-      glDepthFunc(GL_NEVER);
-      glBegin(GL_TRIANGLES);
-
-      if LightCap then
-      begin
-        TPtr := PTriangle3Single(TrianglesForLightCap.List);
-        for I := 0 to TrianglesForLightCap.Count - 1 do
-        begin
-          RenderTriangle3Single(TPtr^);
-          Inc(TPtr);
-        end;
-      end;
-
-      if DarkCap then
-      begin
-        T4Ptr := PTriangle4Single(TrianglesForDarkCap.List);
-        for I := 0 to TrianglesForDarkCap.Count - 1 do
-        begin
-          RenderTriangle4Single(T4Ptr^);
-          Inc(T4Ptr);
-        end;
-      end;
-
-      glEnd;
-      glPopAttrib;
-    end;
-  finally
-    FreeAndNil(TrianglesForLightCap);
-    FreeAndNil(TrianglesForDarkCap);
-  end;
-end;
-
 procedure TCastleScene.RenderSilhouetteShadowVolume(
   const LightPos: TVector4Single;
   const TransformIsIdentity: boolean;
@@ -2362,8 +2079,6 @@ procedure TCastleScene.RenderShadowVolume(
 var
   Box: TBox3D;
   SVRenderer: TGLShadowVolumeRenderer;
-const
-  AllowSilhouetteOptimization = true;
 begin
   if GetExists and CastShadowVolumes then
   begin
@@ -2376,21 +2091,10 @@ begin
     SVRenderer.InitScene(Box);
 
     if SVRenderer.SceneShadowPossiblyVisible then
-    begin
-      if AllowSilhouetteOptimization then
-        RenderSilhouetteShadowVolume(
-          SVRenderer.LightPosition, ParentTransformIsIdentity, ParentTransform,
-          SVRenderer.ZFailAndLightCap,
-          SVRenderer.ZFail) else
-        {$warnings off}
-        { Do not warn that this code is not reachable because
-          AllowSilhouetteOptimization is constant. }
-        RenderAllShadowVolume(
-          SVRenderer.LightPosition, ParentTransformIsIdentity, ParentTransform,
-          SVRenderer.ZFailAndLightCap,
-          SVRenderer.ZFail);
-        {$warnings on}
-    end;
+      RenderSilhouetteShadowVolume(
+        SVRenderer.LightPosition, ParentTransformIsIdentity, ParentTransform,
+        SVRenderer.ZFailAndLightCap,
+        SVRenderer.ZFail);
   end;
 end;
 
