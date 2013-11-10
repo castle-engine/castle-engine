@@ -1235,6 +1235,9 @@ begin
     glPushMatrix;
     glMultMatrix(Params.RenderTransform);
   end;
+  { Or
+  glLoadMatrix(Params.ModelViewTransform);
+    to just load full matrix. }
 
   Renderer.RenderBegin(Params.BaseLights(Self) as TLightInstancesList,
     LightRenderEvent, Params.Pass);
@@ -1314,7 +1317,7 @@ begin
 
         TODO: in case of blending, glPopAttrib inside could restore now
         glDepthMask(GL_TRUE) and glDisable(GL_BLEND).
-        This will problem will disappear when we'll get rid of push/pop inside
+        This problem will disappear when we'll get rid of push/pop inside
         OcclusionBoxStateXxx. }
       OcclusionBoxStateEnd;
     end;
