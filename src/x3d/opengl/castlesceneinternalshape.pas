@@ -104,11 +104,7 @@ begin
 end;
 
 procedure TGLShape.PrepareResources;
-var
-  GLScene: TCastleScene;
 begin
-  GLScene := TCastleScene(ParentScene);
-
   if not PreparedForRenderer then
   begin
     Renderer.Prepare(State);
@@ -123,12 +119,14 @@ begin
     PreparedUseBlending := true;
   end;
 
-  if GLScene.Attributes.ReallyUseOcclusionQuery and
+  {$ifndef OpenGLES}
+  if TCastleScene(ParentScene).Attributes.ReallyUseOcclusionQuery and
      (OcclusionQueryId = 0) then
   begin
     glGenQueriesARB(1, @OcclusionQueryId);
     OcclusionQueryAsked := false;
   end;
+  {$endif}
 end;
 
 procedure TGLShape.GLContextClose;
@@ -136,11 +134,13 @@ begin
   PreparedForRenderer := false;
   PreparedUseBlending := false;
 
+  {$ifndef OpenGLES}
   if OcclusionQueryId <> 0 then
   begin
     glDeleteQueriesARB(1, @OcclusionQueryId);
     OcclusionQueryId := 0;
   end;
+  {$endif}
 end;
 
 end.

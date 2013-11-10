@@ -363,7 +363,11 @@ unit CastleWindow;
          { $define CASTLE_WINDOW_GTK_2}
          { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
        {$else}
-         {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional) on Unix (except Mac OS X)
+         {$ifndef OpenGLES}
+           {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional) on Unix (except Mac OS X)
+         {$else}
+           {$define CASTLE_WINDOW_XLIB}
+         {$endif}
          { $define CASTLE_WINDOW_XLIB}
          { $define CASTLE_WINDOW_LCL}
          { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
@@ -497,12 +501,9 @@ uses {$define read_interface_uses}
   SysUtils, Classes, CastleVectors, CastleGL, CastleRectangles, CastleColors,
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
-  CastleFileFilters, CastleUIControls, FGL, pk3DConnexion
+  CastleFileFilters, CastleUIControls, FGL, pk3DConnexion,
   { VRML/X3D stuff }
-  {$ifndef OpenGLES}
-  // TODO-es This is ifdefed out only until we 100% port 3D renderer to OpenGLES
-  , X3DNodes, CastleScene, CastleSceneManager, CastleLevels
-  {$endif};
+  X3DNodes, CastleScene, CastleSceneManager, CastleLevels;
 
 {$define read_interface}
 
@@ -2401,7 +2402,6 @@ end;
     procedure EventResize; override;
   end;
 
-  {$ifndef OpenGLES}
   { Window with an OpenGL context, most comfortable to render 3D worlds
     with 2D controls above. Add your 3D stuff to the scene manager
     available in @link(SceneManager) property. Add your 2D stuff
@@ -2448,7 +2448,6 @@ end;
     property ShadowVolumesDraw: boolean
       read GetShadowVolumesDraw write SetShadowVolumesDraw default false;
   end;
-  {$endif}
 
   TWindowList = class(specialize TFPGObjectList<TCastleWindowBase>)
   private
@@ -4661,8 +4660,6 @@ end;
 
 { TCastleWindow ------------------------------------------------------- }
 
-{$ifndef OpenGLES}
-
 constructor TCastleWindow.Create(AOwner: TComponent);
 begin
   inherited;
@@ -4725,8 +4722,6 @@ procedure TCastleWindow.SetShadowVolumesDraw(const Value: boolean);
 begin
   SceneManager.ShadowVolumesDraw := Value;
 end;
-
-{$endif}
 
 { TWindowList ------------------------------------------------------------ }
 

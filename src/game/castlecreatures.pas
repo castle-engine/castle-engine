@@ -1375,6 +1375,7 @@ end;
 
 procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams);
 
+  {$ifndef OpenGLES} // TODO-es
   procedure DebugBoundingVolumes;
   var
     R: Single;
@@ -1434,10 +1435,12 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
       finally FreeAndNil(S) end;
     glPopMatrix;
   end;
+  {$endif}
 
 begin
   inherited;
 
+  {$ifndef OpenGLES} // TODO-es
   if (RenderDebugCaptions or RenderDebug3D) and
      GetExists and Frustum.Box3DCollisionPossibleSimple(BoundingBox) and
      (not Params.Transparent) and Params.ShadowVolumesReceivers then
@@ -1451,6 +1454,7 @@ begin
         DebugBoundingVolumes;
     glPopAttrib;
   end;
+  {$endif}
 end;
 
 function TCreature.DebugCaption: TCastleStringList;
@@ -2440,11 +2444,14 @@ begin
 end;
 
 procedure TWalkAttackCreature.Render(const Frustum: TFrustum; const Params: TRenderParams);
+{$ifndef OpenGLES} // TODO-es
 var
   AxisSize: Single;
+{$endif}
 begin
   inherited;
 
+  {$ifndef OpenGLES} // TODO-es
   if RenderDebug3D and GetExists and
      (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
@@ -2461,6 +2468,7 @@ begin
       glDrawAxisWire(LastSeenEnemy, AxisSize);
     end;
   end;
+  {$endif}
 end;
 
 { TMissileCreature ----------------------------------------------------------- }

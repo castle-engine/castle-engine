@@ -81,12 +81,14 @@ type
     ScreenEffectTextureDest, ScreenEffectTextureSrc: TGLuint;
     ScreenEffectTextureTarget: TGLenum;
     ScreenEffectTextureDepth: TGLuint;
+    ScreenEffectRTT: TGLRenderToTexture;
+    {$ifndef OpenGLES}
     ScreenEffectTextureWidth: Cardinal;
     ScreenEffectTextureHeight: Cardinal;
-    ScreenEffectRTT: TGLRenderToTexture;
     { Saved ScreenEffectsCount/NeedDepth result, during rendering. }
     CurrentScreenEffectsCount: Integer;
     CurrentScreenEffectsNeedDepth: boolean;
+    {$endif}
 
     FApproximateActivation: boolean;
     FDefaultVisibilityLimit: Single;
@@ -119,7 +121,10 @@ type
       And before ApplyProjection you should also call UpdateGeneratedTexturesIfNeeded. }
     procedure RenderOnScreen(ACamera: TCamera);
 
-    procedure RenderScreenEffect;
+    {$ifndef OpenGLES}
+    procedure RenderWithScreenEffectsCore;
+    function RenderWithScreenEffects: boolean;
+    {$endif}
   protected
     { These variables are writeable from overridden ApplyProjection. }
     FPerspectiveView: boolean;
@@ -1886,7 +1891,9 @@ begin
     UsedBackground := Background;
     if UsedBackground <> nil then
     begin
+      {$ifndef OpenGLES} // TODO-es
       glLoadMatrix(RenderingCamera.RotationMatrix);
+      {$endif}
 
       { The background rendering doesn't like custom OrthoViewDimensions.
         They could make the background sky box very small, such that it
@@ -1916,7 +1923,9 @@ begin
 
   GLClear(ClearBuffers, ClearColor);
 
+  {$ifndef OpenGLES} // TODO-es
   glLoadMatrix(RenderingCamera.Matrix);
+  {$endif}
 
   { clear FRenderParams instance }
 
@@ -1942,7 +1951,9 @@ begin
   RenderFromView3D(FRenderParams);
 end;
 
-procedure TCastleAbstractViewport.RenderScreenEffect;
+{$ifndef OpenGLES}
+
+procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
 
   procedure RenderOneEffect(Shader: TGLSLProgram);
   var
@@ -1995,7 +2006,7 @@ procedure TCastleAbstractViewport.RenderScreenEffect;
       Shader.SetupUniforms(BoundTextureUnits);
 
       { Note that there's no need to worry about Rect.Left or Rect.Bottom,
-        here or inside RenderScreenEffect, because we're already within
+        here or inside RenderWithScreenEffectsCore, because we're already within
         glViewport that takes care of this. }
 
       glBegin(GL_QUADS);
@@ -2034,7 +2045,7 @@ begin
   RenderOneEffect(ScreenEffects[CurrentScreenEffectsCount - 1]);
 end;
 
-procedure TCastleAbstractViewport.RenderOnScreen(ACamera: TCamera);
+function TCastleAbstractViewport.RenderWithScreenEffects: boolean;
 
   { Create and setup new OpenGL texture for screen effects.
     Depends on ScreenEffectTextureWidth, ScreenEffectTextureHeight being set. }
@@ -2089,17 +2100,16 @@ procedure TCastleAbstractViewport.RenderOnScreen(ACamera: TCamera);
   end;
 
 begin
-  RenderingCamera.Target := rtScreen;
-  RenderingCamera.FromCameraObject(ACamera, nil);
-
   { save ScreenEffectsCount/NeedDepth result, to not recalculate it,
     and also to make the following code stable --- this way we know
     CurrentScreenEffects* values are constant, even if overridden
     ScreenEffects* methods do something weird. }
   CurrentScreenEffectsCount := ScreenEffectsCount;
 
-  if GLFeatures.TextureRectangle and GLFeatures.UseMultiTexturing and
-    (CurrentScreenEffectsCount <> 0) then
+  Result := GLFeatures.TextureRectangle and GLFeatures.UseMultiTexturing and
+    (CurrentScreenEffectsCount <> 0);
+
+  if Result then
   begin
     CurrentScreenEffectsNeedDepth := ScreenEffectsNeedDepth;
 
@@ -2162,7 +2172,7 @@ begin
     end;
 
     { We have to adjust glViewport.
-      It will be restored from RenderScreenEffect right before actually
+      It will be restored from RenderWithScreenEffectsCore right before actually
       rendering to screen. }
     if not FullSize then
       glViewport(Rectangle(0, 0, Rect.Width, Rect.Height));
@@ -2193,7 +2203,7 @@ begin
 
       OrthoProjection(0, Rect.Width, 0, Rect.Height);
 
-      RenderScreenEffect;
+      RenderWithScreenEffectsCore;
 
       if CurrentScreenEffectsNeedDepth then
       begin
@@ -2208,7 +2218,19 @@ begin
 
       { at the end, we left active texture as default GL_TEXTURE0 }
     glPopAttrib;
-  end else
+  end;
+end;
+
+{$endif not OpenGLES}
+
+procedure TCastleAbstractViewport.RenderOnScreen(ACamera: TCamera);
+begin
+  RenderingCamera.Target := rtScreen;
+  RenderingCamera.FromCameraObject(ACamera, nil);
+
+  {$ifndef OpenGLES} // TODO-es
+  if not RenderWithScreenEffects then
+  {$endif}
   begin
     { Rendering directly to the screen, when no screen effects are used. }
     if not FullSize then

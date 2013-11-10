@@ -228,6 +228,7 @@ begin
           end;
         end;
 
+        {$ifndef OpenGLES}
         if not GLFeatures.Version_1_4 then
         begin
           if ((Factor = GL_SRC_COLOR) or
@@ -246,6 +247,7 @@ begin
             Exit(false);
           end;
         end;
+        {$endif}
 
         NeedsConstColor := NeedsConstColor or BlendingFactors[I].NeedsConstColor;
         NeedsConstAlpha := NeedsConstAlpha or BlendingFactors[I].NeedsConstAlpha;

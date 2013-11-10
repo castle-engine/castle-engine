@@ -52,6 +52,8 @@ implementation
 uses SysUtils, CastleClassUtils, CastleShapeOctree, CastleBoxes,
   CastleGLUtils, CastleGL;
 
+{$ifndef OpenGLES} // TODO-es this whole unit
+
 { TOcclusionQuery ------------------------------------------------------------ }
 
 type
@@ -92,6 +94,8 @@ begin
   glGetQueryObjectuivARB(Id, GL_QUERY_RESULT_ARB, @Result);
 end;
 
+{$endif}
+
 { THierarchicalOcclusionQueryRenderer ---------------------------------------- }
 
 constructor THierarchicalOcclusionQueryRenderer.Create(
@@ -104,6 +108,7 @@ end;
 procedure THierarchicalOcclusionQueryRenderer.Render(
   const RenderShape: TShapeProcedure;
   const Frustum: TFrustum; const Params: TRenderParams);
+{$ifndef OpenGLES}
 var
   { Stack of TShapeOctreeNode.
 
@@ -334,6 +339,9 @@ begin
     FreeAndNil(TraversalStack);
     FreeAndNil(QueryQueue);
   end;
+{$else}
+begin
+{$endif}
 end;
 
 function THierarchicalOcclusionQueryRenderer.WasLastVisible(const Shape: TGLShape): boolean;
@@ -347,6 +355,7 @@ procedure OcclusionBoxStateBegin;
 begin
   if not OcclusionBoxState then
   begin
+    {$ifndef OpenGLES}
     glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or
       GL_ENABLE_BIT or GL_LIGHTING_BIT);
 
@@ -375,6 +384,8 @@ begin
 
     glEnableClientState(GL_VERTEX_ARRAY);
 
+    {$endif}
+
     OcclusionBoxState := true;
   end;
 end;
@@ -383,14 +394,17 @@ procedure OcclusionBoxStateEnd;
 begin
   if OcclusionBoxState then
   begin
+    {$ifndef OpenGLES}
     glDisableClientState(GL_VERTEX_ARRAY);
     glPopAttrib;
+    {$endif}
     OcclusionBoxState := false;
   end;
 end;
 
 procedure SimpleOcclusionQueryRender(const Shape: TGLShape;
   const RenderShape: TShapeProcedure; const Params: TRenderParams);
+{$ifndef OpenGLES}
 var
   SampleCount: TGLuint;
 begin
@@ -430,6 +444,9 @@ begin
     glEndQueryARB(GL_SAMPLES_PASSED_ARB);
     Shape.OcclusionQueryAsked := true;
   end;
+{$else}
+begin
+{$endif}
 end;
 
 end.

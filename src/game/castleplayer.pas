@@ -455,6 +455,7 @@ procedure TPlayerBox.Render(const Frustum: TFrustum; const Params: TRenderParams
 begin
   inherited;
 
+  {$ifndef OpenGLES} // TODO-es
   if RenderDebug3D and GetExists and
     Frustum.Box3DCollisionPossibleSimple(BoundingBox) and
     (not Params.Transparent) and Params.ShadowVolumesReceivers then
@@ -469,6 +470,7 @@ begin
       glPopMatrix;
     glPopAttrib;
   end;
+  {$endif}
 end;
 
 { TPlayer -------------------------------------------------------------------- }

@@ -1230,6 +1230,7 @@ begin
     LightRenderEvent := @LightRenderInShadow else
     LightRenderEvent := nil;
 
+  {$ifndef OpenGLES}
   if not Params.RenderTransformIdentity then
   begin
     glPushMatrix;
@@ -1238,6 +1239,7 @@ begin
   { Or
   glLoadMatrix(Params.ModelViewTransform);
     to just load full matrix. }
+  {$endif}
 
   Renderer.RenderBegin(Params.BaseLights(Self) as TLightInstancesList,
     LightRenderEvent, Params.Pass);
@@ -1323,8 +1325,10 @@ begin
     end;
   finally Renderer.RenderEnd end;
 
+  {$ifndef OpenGLES}
   if not Params.RenderTransformIdentity then
     glPopMatrix;
+  {$endif}
 end;
 
 procedure TCastleScene.PrepareResources(
@@ -1437,6 +1441,7 @@ procedure TCastleScene.Render(
     RenderScene(TestShapeVisibility, Frustum, Params);
   end;
 
+  {$ifndef OpenGLES} //TODO-es
   procedure RenderWireframe(UseWireframeColor: boolean);
   var
     SavedMode: TRenderingMode;
@@ -1459,9 +1464,11 @@ procedure TCastleScene.Render(
         Attributes.Mode := SavedMode;
     glPopAttrib;
   end;
+  {$endif}
 
   { Render taking Attributes.WireframeEffect into account. }
   procedure RenderWithWireframeEffect;
+  {$ifndef OpenGLES}
   begin
     case Attributes.WireframeEffect of
       weNormal: RenderNormal;
@@ -1500,6 +1507,10 @@ procedure TCastleScene.Render(
         end;
       else raise EInternalError.Create('Render: Attributes.WireframeEffect ?');
     end;
+  {$else}
+  begin
+    RenderNormal;
+  {$endif}
   end;
 
   { Render, doing some special tricks when rendering to shadow maps. }
@@ -1610,6 +1621,8 @@ procedure TCastleScene.RenderSilhouetteShadowVolume(
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
   const LightCap, DarkCap: boolean);
+
+{$ifndef OpenGLES} //TODO-es
 
 { Is it worth preparing ManifoldEdges list: yes.
 
@@ -2064,6 +2077,9 @@ begin
     glEnd;
 
   finally FreeAndNil(TrianglesPlaneSide) end;
+{$else}
+begin
+{$endif}
 end;
 
 procedure TCastleScene.RenderShadowVolume(
@@ -2095,6 +2111,8 @@ end;
 procedure TCastleScene.RenderSilhouetteEdges(
   const ObserverPos: TVector4Single;
   const Transform: TMatrix4Single);
+
+{$ifndef OpenGLES} //TODO-es
 
 { This is actually a modified implementation of
   TCastleScene.RenderSilhouetteShadowQuads: instead of rendering
@@ -2174,10 +2192,14 @@ begin
 
     finally FreeAndNil(TrianglesPlaneSide) end;
   glEnd;
+{$else}
+begin
+{$endif}
 end;
 
 procedure TCastleScene.RenderBorderEdges(
   const Transform: TMatrix4Single);
+{$ifndef OpenGLES} //TODO-es
 var
   Triangles: TTriangle3SingleList;
   EdgePtr: PBorderEdge;
@@ -2215,6 +2237,9 @@ begin
       Inc(EdgePtr);
     end;
   glEnd;
+{$else}
+begin
+{$endif}
 end;
 
 { Frustum culling ------------------------------------------------------------ }

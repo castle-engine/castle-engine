@@ -1106,10 +1106,14 @@ end;
 
 procedure TItemOnWorld.Render(const Frustum: TFrustum;
   const Params: TRenderParams);
+{$ifndef OpenGLES} // TODO-es
 var
   BoxRotated: TBox3D;
+{$endif}
 begin
   inherited;
+
+  {$ifndef OpenGLES} // TODO-es
   if RenderDebug3D and GetExists and
     (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
@@ -1127,6 +1131,7 @@ begin
       glPopAttrib;
     end;
   end;
+  {$endif}
 end;
 
 procedure TItemOnWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
