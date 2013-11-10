@@ -62,6 +62,8 @@ type
     procedure SchedulePrepareResources; virtual; abstract;
   end;
 
+  TTestShapeVisibility = function (Shape: TGLShape): boolean of object;
+
 implementation
 
 uses CastleScene;
