@@ -62,8 +62,8 @@ type
   public
     constructor Create(const AName: string); override;
     destructor Destroy; override;
-
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
+    procedure GLContextClose; override;
 
     { Nice caption to display. }
     property Caption: string read FCaption;
@@ -641,6 +641,12 @@ begin
     B.Transform(RotationMatrixDeg(45 + 90 * 3, GravityUp));
   { prepare GLImage now }
   GLImage;
+end;
+
+procedure TItemResource.GLContextClose;
+begin
+  FreeAndNil(FGLImage);
+  inherited;
 end;
 
 procedure TItemResource.ReleaseCore;
