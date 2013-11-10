@@ -277,9 +277,9 @@ begin
     when player is underwater,
     when player has fadeout from any other cause (e.g. player is hurt).
 
-    GLBlendRectangle and GLFaceRectangle make simple color effects by blending.
+    DrawRectangle and GLFaceRectangle make simple color effects by blending.
     They are trivial to use (by all means, do experiment with parameters below,
-    see GLBlendRectangle and GLFaceRectangle documentation and also OpenGL
+    see DrawRectangle and GLFaceRectangle documentation and also OpenGL
     glBlendFunc parameters), and they will work even on ancient GPUs.
 
     To create more fancy effects, you can use our GLSL screen effects API.
