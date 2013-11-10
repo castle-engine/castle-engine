@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -6,8 +6,8 @@
       <Flags>
         <LRSInOutputDirectory Value="False"/>
       </Flags>
+      <SessionStorage Value="InIDEConfig"/>
       <MainUnit Value="0"/>
-      <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
@@ -30,59 +30,12 @@
         <PackageName Value="castle_window"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="2">
+    <Units Count="1">
       <Unit0>
         <Filename Value="fps_game.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="0"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="1" Y="1"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
       </Unit0>
-      <Unit1>
-        <Filename Value="../../src/ui/castleuicontrols.pas"/>
-        <UnitName Value="CastleUIControls"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="1"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="779"/>
-        <CursorPos X="3" Y="813"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit1>
     </Units>
-    <JumpHistory Count="7" HistoryIndex="6">
-      <Position1>
-        <Filename Value="fps_game.lpr"/>
-        <Caret Line="11" Column="39" TopLine="1"/>
-      </Position1>
-      <Position2>
-        <Filename Value="fps_game.lpr"/>
-        <Caret Line="74" Column="3" TopLine="74"/>
-      </Position2>
-      <Position3>
-        <Filename Value="fps_game.lpr"/>
-        <Caret Line="73" Column="9" TopLine="54"/>
-      </Position3>
-      <Position4>
-        <Filename Value="fps_game.lpr"/>
-        <Caret Line="589" Column="30" TopLine="559"/>
-      </Position4>
-      <Position5>
-        <Filename Value="fps_game.lpr"/>
-        <Caret Line="490" Column="1" TopLine="452"/>
-      </Position5>
-      <Position6>
-        <Filename Value="../../src/ui/castleuicontrols.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position6>
-      <Position7>
-        <Filename Value="../../src/ui/castleuicontrols.pas"/>
-        <Caret Line="497" Column="1" TopLine="471"/>
-      </Position7>
-    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
@@ -105,5 +58,4 @@
       </Item1>
     </Exceptions>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>
