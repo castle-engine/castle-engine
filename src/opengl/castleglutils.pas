@@ -521,32 +521,6 @@ procedure glDrawBox3DWire(const Box: TBox3D);
   It can be safely placed in a display list. }
 procedure glDrawBox3DSimple(const Box: TBox3D);
 
-{ Draw a rectangle that modulates colors underneath,
-  suddenly changing it to FadeColor and then fading to blackness and
-  then fading back to normal, as FadeIntensity goes down from 1.0 to 0.0.
-  This is nice to use for a screen effect when player is hurt.
-
-  Only RGB portion of FadeColor is used.
-
-  The rectangle is affected by current modelview matrix.
-  Requires one attrib stack place. }
-procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
-  const FadeColor: TVector3Single;
-  const FadeIntensity: Single); deprecated;
-procedure GLFadeRectangle(const Rect: TRectangle;
-  const FadeColor: TCastleColor;
-  const FadeIntensity: Single);
-
-{ Draw a rectangle with blending.
-
-  The rectangle is affected by current modelview matrix.
-  Requires one attrib stack place. }
-procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
-  const SourceFactor, DestinationFactor: TGLenum;
-  const Color: TVector4Single); deprecated;
-procedure GLBlendRectangle(const Rect: TRectangle;
-  const Color: TVector4Single);
-
 { Call glColor, taking Opacity as separate Single argument.
   Deprecated, do not use colors like that, instead pass TCastleColor
   to appropriate routines like TGLBitmapFont.Print.
@@ -556,9 +530,32 @@ procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single); depr
 { @groupEnd }
 {$endif}
 
+{ Draw a rectangle that modulates colors underneath,
+  suddenly changing it to FadeColor and then fading to blackness and
+  then fading back to normal, as FadeIntensity goes down from 1.0 to 0.0.
+  This is nice to use for a screen effect when player is hurt.
+
+  Only RGB portion of FadeColor is used. }
+procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
+  const FadeColor: TVector3Single;
+  const FadeIntensity: Single); deprecated;
+procedure GLFadeRectangle(const Rect: TRectangle;
+  const FadeColor: TCastleColor;
+  const FadeIntensity: Single);
+
+{ Draw a rectangle with blending.
+  @deprecated Deprecated, use DrawRectangle instead. }
+procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
+  const SourceFactor, DestinationFactor: TGLenum;
+  const Color: TVector4Single); deprecated;
+procedure GLBlendRectangle(const Rect: TRectangle;
+  const Color: TVector4Single); deprecated;
+
 { Draw a simple rectangle filled with a color.
   Blending is automatically used if Color alpha < 1. }
-procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor);
+procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
+  const BlendingSourceFactor: TGLEnum = GL_SRC_ALPHA;
+  const BlendingDestinationFactor: TGLEnum = GL_ONE_MINUS_SRC_ALPHA);
 
 { Multiline string describing attributes of current OpenGL
   library. This simply queries OpenGL using glGet* functions
@@ -1323,37 +1320,29 @@ begin
   glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, @VertsIndices);
 end;
 
-procedure GLBlendRectangleCore(const Rect: TRectangle;
-  const SourceFactor, DestinationFactor: TGLenum;
-  const Color: TCastleColor);
+procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single);
 begin
-  glPushAttrib(GL_COLOR_BUFFER_BIT or GL_CURRENT_BIT);
-    glEnable(GL_BLEND);
-      glBlendFunc(SourceFactor, DestinationFactor);
-      glColorv(Color);
-      glBegin(GL_QUADS);
-        glVertex2i(Rect.Left             , Rect.Bottom);
-        glVertex2i(Rect.Left + Rect.Width, Rect.Bottom);
-        glVertex2i(Rect.Left + Rect.Width, Rect.Bottom + Rect.Height);
-        glVertex2i(Rect.Left             , Rect.Bottom + Rect.Height);
-      glEnd();
-    glDisable(GL_BLEND);
-  glPopAttrib;
+  glColor4f(Color[0], Color[1], Color[2], Opacity);
 end;
+
+procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single);
+begin
+  glColor4f(Color[0] / 255, Color[1] / 255, Color[2] / 255, Opacity);
+end;
+{$endif}
 
 procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
   const SourceFactor, DestinationFactor: TGLenum;
   const Color: TVector4Single);
 begin
-  GLBlendRectangleCore(Rectangle(X1, Y1, X2 - X1, Y2 - Y1),
-    SourceFactor, DestinationFactor, Color);
+  DrawRectangle(Rectangle(X1, Y1, X2 - X1, Y2 - Y1), Color,
+    SourceFactor, DestinationFactor);
 end;
-
 
 procedure GLBlendRectangle(const Rect: TRectangle;
   const Color: TVector4Single);
 begin
-  GLBlendRectangleCore(Rect, GL_ONE, GL_SRC_ALPHA, Color);
+  DrawRectangle(Rect, Color, GL_ONE, GL_SRC_ALPHA);
 end;
 
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
@@ -1399,20 +1388,9 @@ begin
       Color := White * MapRange(FadeIntensity, FullBlack, 0, MinScale, 1);
 
     Color[3] := 1.0; { alpha always 1.0 in this case }
-    GLBlendRectangleCore(Rect, SourceFactor, DestinationFactor, Color);
+    DrawRectangle(Rect, Color, SourceFactor, DestinationFactor);
   end;
 end;
-
-procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single);
-begin
-  glColor4f(Color[0], Color[1], Color[2], Opacity);
-end;
-
-procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single);
-begin
-  glColor4f(Color[0] / 255, Color[1] / 255, Color[2] / 255, Opacity);
-end;
-{$endif}
 
 { DrawRectangle ---------------------------------------------------------------- }
 
@@ -1423,7 +1401,8 @@ var
   RectanglePointVbo: TGLuint;
   RectanglePoint: packed array [0..3] of TVector2SmallInt;
 
-procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor);
+procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
+  const BlendingSourceFactor, BlendingDestinationFactor: TGLEnum);
 {$ifdef GLImageUseShaders}
 var
   AttribEnabled: array [0..0] of TGLuint;
@@ -1442,7 +1421,7 @@ begin
 
   if Color[3] < 1 then
   begin
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
+    glBlendFunc(BlendingSourceFactor, BlendingDestinationFactor); // saved by GL_COLOR_BUFFER_BIT
     glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
   end;
 
