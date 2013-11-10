@@ -1932,6 +1932,8 @@ begin
   Theme.Draw(BarRect, tiProgressBar);
 
   FillRect := BarRect.LeftPart(Round(BarRect.Width * Progress.Position / Progress.Max));
+  { it's normal that at the beginning FillRect is too small to be drawn }
+  Theme.GLImages[tiProgressFill].IgnoreTooLargeCorners := true;
   Theme.Draw(FillRect, tiProgressFill);
 
   MaxTextWidth := BarRect.Width - Padding;

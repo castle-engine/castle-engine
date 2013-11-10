@@ -118,6 +118,7 @@ type
     FWidth: Cardinal;
     FHeight: Cardinal;
     FAlpha: TAlphaChannel;
+    FIgnoreTooLargeCorners: boolean;
     procedure AlphaBegin;
     procedure AlphaEnd;
   public
@@ -257,6 +258,14 @@ type
       const Corner: TVector4Integer);
     procedure Draw3x3(const ScreenRectangle: TRectangle;
       const Corner: TVector4Integer);
+
+    { Ignore (do not log to CastleLog) situations when Draw3x3 cannot work
+      because corners are larger than draw area size.
+      Set this to @true when it's perfectly possible (you do not want to even
+      see it in log) for Draw3x3 calls to fail because corners are larger than
+      draw area size. }
+    property IgnoreTooLargeCorners: boolean
+      read FIgnoreTooLargeCorners write FIgnoreTooLargeCorners default false;
   end;
 
 { Draw the image on 2D screen. Note that if you want to use this
@@ -1250,7 +1259,7 @@ begin
            (CornerBottom + CornerTop < Height) and
            (CornerBottom + CornerTop < DrawHeight)) then
   begin
-    if Log then
+    if Log and not IgnoreTooLargeCorners then
       WritelnLog('Draw3x3', 'Image corners are too large to draw it: corners are %d %d %d %d, image size is %d %d, draw area size is %d %d',
         [CornerTop, CornerRight, CornerBottom, CornerLeft,
          Width, Height,
