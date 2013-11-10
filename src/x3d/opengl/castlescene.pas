@@ -1260,71 +1260,63 @@ begin
       OcclusionBoxStateEnd;
     end else
     begin
-      glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-      try
-        if Attributes.ControlBlending and Attributes.Blending then
+      if Attributes.ControlBlending and Attributes.Blending then
+      begin
+        if not Params.Transparent then
         begin
-          if not Params.Transparent then
+          { draw fully opaque objects }
+          if CameraViewKnown and Attributes.ReallyUseOcclusionQuery then
           begin
-            { draw fully opaque objects }
+            ShapesFilterBlending(Shapes, true, true, false,
+              TestShapeVisibility, FilteredShapes, false);
 
-            glDepthMask(GL_TRUE);
-            glDisable(GL_BLEND);
+            { ShapesSplitBlending already filtered shapes through
+              TestShapeVisibility callback, so later we can render them
+              with RenderShape_SomeTests to skip checking TestShapeVisibility
+              twice. This is a good thing: it means that sorting below has
+              much less shapes to consider. }
+            FilteredShapes.SortFrontToBack(CameraPosition);
 
-            if CameraViewKnown and Attributes.ReallyUseOcclusionQuery then
-            begin
-              ShapesFilterBlending(Shapes, true, true, false,
-                TestShapeVisibility, FilteredShapes, false);
-
-              { ShapesSplitBlending already filtered shapes through
-                TestShapeVisibility callback, so later we can render them
-                with RenderShape_SomeTests to skip checking TestShapeVisibility
-                twice. This is a good thing: it means that sorting below has
-                much less shapes to consider. }
-              FilteredShapes.SortFrontToBack(CameraPosition);
-
-              for I := 0 to FilteredShapes.Count - 1 do
-                RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
-            end else
-              Shapes.Traverse(@RenderShape_AllTests_Opaque, true, true, false);
+            for I := 0 to FilteredShapes.Count - 1 do
+              RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
           end else
-          { this means Params.Transparent = true }
-          begin
-            { draw partially transparent objects }
-
-            glDepthMask(GL_FALSE);
-            glEnable(GL_BLEND);
-
-            BlendingRenderer.RenderBegin;
-
-            if CameraViewKnown and Attributes.BlendingSort then
-            begin
-              ShapesFilterBlending(Shapes, true, true, false,
-                TestShapeVisibility, FilteredShapes, true);
-              FilteredShapes.SortBackToFront(CameraPosition);
-              for I := 0 to FilteredShapes.Count - 1 do
-              begin
-                BlendingRenderer.BeforeRenderShape(FilteredShapes[I]);
-                RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
-              end;
-            end else
-              Shapes.Traverse(@RenderShape_AllTests_Transparent, true, true, false);
-          end;
+            Shapes.Traverse(@RenderShape_AllTests_Opaque, true, true, false);
         end else
+        { this means Params.Transparent = true }
         begin
-          if Attributes.ControlBlending then
+          { draw partially transparent objects }
+          glDepthMask(GL_FALSE);
+          glEnable(GL_BLEND);
+
+          BlendingRenderer.RenderBegin;
+
+          if CameraViewKnown and Attributes.BlendingSort then
           begin
-            glDepthMask(GL_TRUE);
-            glDisable(GL_BLEND);
-          end;
+            ShapesFilterBlending(Shapes, true, true, false,
+              TestShapeVisibility, FilteredShapes, true);
+            FilteredShapes.SortBackToFront(CameraPosition);
+            for I := 0 to FilteredShapes.Count - 1 do
+            begin
+              BlendingRenderer.BeforeRenderShape(FilteredShapes[I]);
+              RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
+            end;
+          end else
+            Shapes.Traverse(@RenderShape_AllTests_Transparent, true, true, false);
 
-          RenderAllAsOpaque;
+          { restore glDepthMask and blending state to default values }
+          glDepthMask(GL_TRUE);
+          glDisable(GL_BLEND);
         end;
+      end else
+        RenderAllAsOpaque;
 
-        { Each RenderShape_SomeTests inside could set OcclusionBoxState.
-          Finish it now, before following glPopAttrib. }
-        OcclusionBoxStateEnd;
-      finally glPopAttrib end;
+      { Each RenderShape_SomeTests inside could set OcclusionBoxState.
+
+        TODO: in case of blending, glPopAttrib inside could restore now
+        glDepthMask(GL_TRUE) and glDisable(GL_BLEND).
+        This will problem will disappear when we'll get rid of push/pop inside
+        OcclusionBoxStateXxx. }
+      OcclusionBoxStateEnd;
     end;
   finally Renderer.RenderEnd end;
 
