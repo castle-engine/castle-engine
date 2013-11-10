@@ -2450,7 +2450,7 @@ begin
       ImageGLFormat(Result), ImageGLType(Result), Result.RawPixels);
   finally AfterPackImage(PackData, Result) end;
 
-  glDeleteTextures(1, @Tex);
+  glFreeTexture(Tex);
 end;
 
 {$else}

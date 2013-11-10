@@ -1382,7 +1382,7 @@ begin
                                     TextureImageCaches[I].References]);
       if TextureImageCaches[I].References = 0 then
       begin
-        glDeleteTextures(1, Addr(TextureImageCaches[I].GLName));
+        glFreeTexture(TextureImageCaches[I].GLName);
         TextureImageCaches.Delete(I);
       end;
       Exit;
@@ -1535,7 +1535,7 @@ begin
         WritelnLog('--', 'cube map %s: %d', [PointerToStr(TextureCubeMapCaches[I].InitialNode), TextureCubeMapCaches[I].References]);
       if TextureCubeMapCaches[I].References = 0 then
       begin
-        glDeleteTextures(1, Addr(TextureCubeMapCaches[I].GLName));
+        glFreeTexture(TextureCubeMapCaches[I].GLName);
         TextureCubeMapCaches.Delete(I);
       end;
       Exit;
@@ -1611,7 +1611,7 @@ begin
         WritelnLog('--', '3d texture %s: %d', [PointerToStr(Texture3DCaches[I].InitialNode), Texture3DCaches[I].References]);
       if Texture3DCaches[I].References = 0 then
       begin
-        glDeleteTextures(1, Addr(Texture3DCaches[I].GLName));
+        glFreeTexture(Texture3DCaches[I].GLName);
         Texture3DCaches.Delete(I);
       end;
       Exit;
@@ -1724,7 +1724,7 @@ begin
         WritelnLog('--', 'Depth texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches[I].InitialNode), TextureDepthOrFloatCaches[I].References]);
       if TextureDepthOrFloatCaches[I].References = 0 then
       begin
-        glDeleteTextures(1, Addr(TextureDepthOrFloatCaches[I].GLName));
+        glFreeTexture(TextureDepthOrFloatCaches[I].GLName);
         TextureDepthOrFloatCaches.Delete(I);
       end;
       Exit;
@@ -1803,7 +1803,7 @@ begin
         WritelnLog('--', 'Float texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches[I].InitialNode), TextureDepthOrFloatCaches[I].References]);
       if TextureDepthOrFloatCaches[I].References = 0 then
       begin
-        glDeleteTextures(1, Addr(TextureDepthOrFloatCaches[I].GLName));
+        glFreeTexture(TextureDepthOrFloatCaches[I].GLName);
         TextureDepthOrFloatCaches.Delete(I);
       end;
       Exit;
