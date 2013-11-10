@@ -1982,7 +1982,9 @@ end;
 
 { Cube map texture loading --------------------------------------------------- }
 
-{$ifndef OpenGLES}
+{$ifdef OpenGLES}
+  {$define glCompressedTexImage2DARB := glCompressedTexImage2D}
+{$endif}
 
 { Comfortably load a single image for one cube map texture side.
 
@@ -2083,6 +2085,7 @@ var
     end;
   end;
 
+  {$ifndef OpenGLES}
   { Calls gluBuild2DMipmaps for given image.
     Takes care of OpenGL unpacking (alignment etc.).
     gluBuild2DMipmaps doesn't require size to be a power of 2, so no problems
@@ -2098,21 +2101,22 @@ var
         Image.RawPixels);
     finally AfterUnpackImage(UnpackData, Image) end;
   end;
+  {$endif}
 
   procedure LoadMipmapped(const image: TCastleImage);
   begin
-    { Testing on ATI Mobility Radeon X1600 (fglrx, Linux, on Mac Book Pro),
-      it looks like SGIS_generate_mipmap doesn't work on cube map texture
-      targets: I get GL error "invalid enumerant" when trying
+    { This should only be called by glTextureCubeMap when mipmaps are needed
+      but GenerateMipmap was not available.
+      We have no choice but to use old gluBuild2DMipmapsImage.
 
-      glTexParameteri(Target, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
+      Note: SGIS_generate_mipmap doesn't work on cube map texture,
+      testing on ATI Mobility Radeon X1600 (fglrx, Linux, on Mac Book Pro). }
 
-      So I don't use SGIS_generate_mipmap, instead making mipmaps always
-      by gluBuild2DMipmapsImage.
-      TODO: But GenerateMipmap should work? Test.
-    }
-
+    {$ifdef OpenGLES}
+    raise ETextureLoadError.Create('Cannot load texture on OpenGLES using gluBuild2DMipmapsImage. On OpenGLES, GenerateMipmap should always be available, so this should not happen.');
+    {$else}
     gluBuild2DMipmapsImage(Image);
+    {$endif}
   end;
 
   procedure LoadNormal(const image: TCastleImage);
@@ -2164,6 +2168,11 @@ procedure glTextureCubeMap(
     end;
 
   begin
+    {$ifdef OpenGLES}
+    OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
+    // TODO-es
+    {$else}
+
     if not GLFeatures.Version_1_2 then
     begin
       OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
@@ -2180,6 +2189,7 @@ procedure glTextureCubeMap(
     LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, dcsPositiveY);
     LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, dcsPositiveZ);
     LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, dcsNegativeZ);
+    {$endif}
   end;
 
 begin
@@ -2210,21 +2220,6 @@ begin
     glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, NegativeZ, 0, Mipmaps);
   end;
 end;
-
-{$else}
-
-procedure glTextureCubeMap(
-  PositiveX, NegativeX,
-  PositiveY, NegativeY,
-  PositiveZ, NegativeZ: TEncodedImage;
-  DDSForMipmaps: TDDSImage;
-  Mipmaps: boolean);
-begin
-  // TODO-es Load cubemaps on OpenGL ES
-end;
-
-{$endif}
-
 
 { 3D texture loading --------------------------------------------------------- }
 
@@ -2546,6 +2541,7 @@ end;
 procedure FramebufferTexture2D(const Target, Attachment, TexTarget: TGLenum;
   const Texture: TGLuint; const Level: TGLint);
 begin
+  Assert(Texture <> 0, 'Texture 0 assigned to framebuffer, FBO will be incomplete');
   case GLFeatures.Framebuffer of
     {$ifndef OpenGLES}
     gsExtension: glFramebufferTexture2DEXT(Target, Attachment, TexTarget, Texture, Level);
@@ -2701,7 +2697,7 @@ begin
     // we have GL_DEPTH_STENCIL_OES, but what is the equivalent of GL_DEPTH_STENCIL_ATTACHMENT?
     {$endif}
     begin
-      DepthBufferFormatPacked := GL_DEPTH_COMPONENT;
+      DepthBufferFormatPacked := {$ifndef OpenGLES} GL_DEPTH_COMPONENT {$else} GL_DEPTH_COMPONENT16 {$endif};
       DepthAttachmentPacked := GL_DEPTH_ATTACHMENT;
     end;
 
