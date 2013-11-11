@@ -82,11 +82,15 @@ type
 
 procedure TWireViewport.Draw;
 begin
+  {$ifndef OpenGLES} //TODO-es
   glPushAttrib(GL_POLYGON_BIT or GL_LINE_BIT);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
     glLineWidth(1); { saved by GL_LINE_BIT }
+  {$endif}
     inherited;
+  {$ifndef OpenGLES}
   glPopAttrib;
+  {$endif}
 end;
 
 { TScreenEffectDemoViewport -------------------------------------------------- }

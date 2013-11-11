@@ -891,12 +891,12 @@ end;
 
 { initialization / finalization ---------------------------------------------- }
 
-procedure WindowClose;
+procedure ContextClose;
 var
   I: Integer;
 begin
   { Resources may be nil here, because
-    WindowClose may be called from CastleWindow unit finalization
+    ContextClose may be called from CastleWindow unit finalization
     that will be done after this unit's finalization (DoFinalization).
 
     That's OK --- DoFinalization already freed
@@ -919,7 +919,7 @@ begin
 end;
 
 initialization
-  OnGLContextClose.Add(@WindowClose);
+  OnGLContextClose.Add(@ContextClose);
   FResources := T3DResourceList.Create(true);
   ResourceClasses := TResourceClasses.Create;
 finalization

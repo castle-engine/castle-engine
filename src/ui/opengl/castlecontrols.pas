@@ -2175,7 +2175,7 @@ begin
   end;
 end;
 
-procedure WindowClose;
+procedure ContextClose;
 begin
   FreeAndNil(FUIFont);
   FreeAndNil(FUIFontSmall);
@@ -2184,7 +2184,7 @@ begin
 end;
 
 initialization
-  OnGLContextClose.Add(@WindowClose);
+  OnGLContextClose.Add(@ContextClose);
   FTheme := TCastleTheme.Create;
 finalization
   FreeAndNil(FTheme);

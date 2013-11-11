@@ -150,7 +150,7 @@ end;
 
 { initialization / finalization ---------------------------------------------- }
 
-procedure WindowOpen(const Container: IUIContainer);
+procedure ContextOpen;
 
   procedure MissingLocationAttribute(const AttrName: string);
   begin
@@ -221,12 +221,12 @@ begin
       [StartLocationName]);
 end;
 
-procedure WindowClose(const Container: IUIContainer);
+procedure ContextClose;
 begin
   FreeAndNil(Locations);
 end;
 
 initialization
-  OnGLContextOpen.Add(@WindowOpen);
-  OnGLContextClose.Add(@WindowClose);
+  OnGLContextOpen.Add(@ContextOpen);
+  OnGLContextClose.Add(@ContextClose);
 end.

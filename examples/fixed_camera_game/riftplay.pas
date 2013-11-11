@@ -83,6 +83,7 @@ begin
     if DebugScene3DDisplay = 0 then
       glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
+    {$ifndef OpenGLES} //TODO-es
     if DebugScene3DDisplay <> 2 then
     begin
       OrthoProjection(0, Window.Width, 0, Window.Height); // need 2D projection
@@ -105,6 +106,7 @@ begin
       glPopMatrix;
       ApplyProjection; // restore 3D projection
     end;
+    {$endif}
 
     if not DebugNoCreatures then
     begin

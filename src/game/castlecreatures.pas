@@ -2664,14 +2664,14 @@ const
   Font3dBold = false;
   Font3dItalic = false;
 
-procedure WindowOpen;
+procedure ContextOpen;
 begin
   Font3d := GLContextCache.Fonts_IncReference(
     Font3dFamily, Font3dBold, Font3dItalic,
     TFontStyleNode.ClassFont(Font3dFamily, Font3dBold, Font3dItalic));
 end;
 
-procedure WindowClose;
+procedure ContextClose;
 begin
   if Font3d <> nil then
   begin
@@ -2681,8 +2681,8 @@ begin
 end;
 
 initialization
-  OnGLContextOpen.Add(@WindowOpen);
-  OnGLContextClose.Add(@WindowClose);
+  OnGLContextOpen.Add(@ContextOpen);
+  OnGLContextClose.Add(@ContextClose);
 
   RegisterResourceClass(TWalkAttackCreatureResource, 'WalkAttack');
   RegisterResourceClass(TMissileCreatureResource, 'Missile');

@@ -1893,7 +1893,7 @@ begin
   end;
 end;
 
-procedure WindowClose;
+procedure ContextClose;
 begin
   glFreeBuffer(RectanglePointVbo);
   {$ifdef GLImageUseShaders}
@@ -1902,7 +1902,7 @@ begin
 end;
 
 initialization
-  OnGLContextClose.Add(@WindowClose);
+  OnGLContextClose.Add(@ContextClose);
 
   { This Set8087CW is actually not needed, because FPC GL units,
     since version 2.2.2, already do this, for all necessary platforms,

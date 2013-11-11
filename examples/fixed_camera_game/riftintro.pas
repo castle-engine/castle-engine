@@ -84,7 +84,6 @@ begin
   { Are we on the way to exit intro }
   if IntroPart > High(IntroParts) then Exit;
 
-  glLoadIdentity();
   GLClear([cbColor], Black);
 
   if (IntroPartTime >= IntroParts[IntroPart].CorrodeDuration) or
@@ -152,7 +151,7 @@ begin
   finally FreeAndNil(SavedMode); end;
 end;
 
-procedure WindowOpen(const Container: IUIContainer);
+procedure ContextOpen;
 
   procedure InitializeIntroParts;
   var
@@ -196,7 +195,7 @@ begin
   InitializeIntroParts;
 end;
 
-procedure WindowClose(const Container: IUIContainer);
+procedure ContextClose;
 
   procedure FinalizeIntroParts;
   var
@@ -214,12 +213,12 @@ begin
 end;
 
 initialization
-  OnGLContextOpen.Add(@WindowOpen);
-  OnGLContextClose.Add(@WindowClose);
+  OnGLContextOpen.Add(@ContextOpen);
+  OnGLContextClose.Add(@ContextClose);
 finalization
-  { WindowClose will be done anyway at GL context close,
+  { ContextClose will be done anyway at GL context close,
     but it may be after finalization of this unit, when IntroParts is
-    automatically set to zero length. So do WindowClose now,
+    automatically set to zero length. So do ContextClose now,
     to free TGLImage instances inside. }
-  WindowClose(nil);
+  ContextClose;
 end.

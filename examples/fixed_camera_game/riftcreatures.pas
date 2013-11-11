@@ -507,6 +507,7 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
 begin
   inherited;
 
+  {$ifndef OpenGLES} //TODO-es
   if DebugRenderBoundingGeometry and
     (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
@@ -527,6 +528,7 @@ begin
     if not Params.RenderTransformIdentity then
       glPopMatrix;
   end;
+  {$endif}
 end;
 
 { TPlayer -------------------------------------------------------------------- }
@@ -661,10 +663,12 @@ begin
 
   if DebugRenderWantsToWalk and (State = csWalk) then
   begin
+    {$ifndef OpenGLES} //TODO-es
     glPushMatrix();
       glTranslatev(WantsToWalkPos);
       TargetVisualize.Render(Frustum.Move(-WantsToWalkPos), Params);
     glPopMatrix();
+    {$endif}
   end;
 end;
 
@@ -686,7 +690,7 @@ end;
 
 { initialization / finalization ---------------------------------------------- }
 
-procedure WindowClose(const Container: IUIContainer);
+procedure ContextClose;
 begin
   FreeAndNil(CreaturesKinds);
 end;
@@ -698,5 +702,5 @@ initialization
   PlayerKind := TCreatureKind.Create('player');
   CreaturesKinds.Add(PlayerKind);
 
-  OnGLContextClose.Add(@WindowClose);
+  OnGLContextClose.Add(@ContextClose);
 end.

@@ -2966,7 +2966,7 @@ begin
     Result := cbBack;
 end;
 
-procedure WindowClose;
+procedure ContextClose;
 begin
   glFreeBuffer(TGLImage.PointVbo);
   {$ifdef GLImageUseShaders}
@@ -2976,7 +2976,7 @@ begin
 end;
 
 initialization
-  OnGLContextClose.Add(@WindowClose);
+  OnGLContextClose.Add(@ContextClose);
 finalization
   FreeAndNil(BoundFboStack);
 end.
