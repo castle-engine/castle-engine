@@ -455,10 +455,10 @@ type
 
     { Private things for RenderFrustum --------------------------------------- }
 
-    function FrustumCulling_None(Shape: TGLShape): boolean;
-    function FrustumCulling_Sphere(Shape: TGLShape): boolean;
-    function FrustumCulling_Box(Shape: TGLShape): boolean;
-    function FrustumCulling_Both(Shape: TGLShape): boolean;
+    function FrustumCulling_None(Shape: TShape): boolean;
+    function FrustumCulling_Sphere(Shape: TShape): boolean;
+    function FrustumCulling_Box(Shape: TShape): boolean;
+    function FrustumCulling_Both(Shape: TShape): boolean;
   private
           FFrustumCulling: TFrustumCulling;
     FOctreeFrustumCulling: TFrustumCulling;
@@ -470,7 +470,7 @@ type
 
     RenderFrustum_Frustum: PFrustum;
 
-    function RenderFrustumOctree_TestShape(Shape: TGLShape): boolean;
+    function RenderFrustumOctree_TestShape(Shape: TShape): boolean;
     procedure RenderFrustumOctree_EnumerateShapes(
       ShapeIndex: Integer; CollidesForSure: boolean);
 
@@ -2250,24 +2250,24 @@ end;
 
 { Frustum culling ------------------------------------------------------------ }
 
-function TCastleScene.FrustumCulling_None(Shape: TGLShape): boolean;
+function TCastleScene.FrustumCulling_None(Shape: TShape): boolean;
 begin
   Result := true;
 end;
 
-function TCastleScene.FrustumCulling_Sphere(Shape: TGLShape): boolean;
+function TCastleScene.FrustumCulling_Sphere(Shape: TShape): boolean;
 begin
   Result := Shape.FrustumBoundingSphereCollisionPossibleSimple(
     RenderFrustum_Frustum^);
 end;
 
-function TCastleScene.FrustumCulling_Box(Shape: TGLShape): boolean;
+function TCastleScene.FrustumCulling_Box(Shape: TShape): boolean;
 begin
   Result := RenderFrustum_Frustum^.Box3DCollisionPossibleSimple(
     Shape.BoundingBox);
 end;
 
-function TCastleScene.FrustumCulling_Both(Shape: TGLShape): boolean;
+function TCastleScene.FrustumCulling_Both(Shape: TShape): boolean;
 begin
   Result :=
     Shape.FrustumBoundingSphereCollisionPossibleSimple(
@@ -2310,9 +2310,10 @@ end;
 { Render --------------------------------------------------------------------- }
 
 function TCastleScene.RenderFrustumOctree_TestShape(
-  Shape: TGLShape): boolean;
+  Shape: TShape): boolean;
 begin
-  Result := Shape.RenderFrustumOctree_Visible;
+  { We know that all shapes passed here are TGLShape, so we can cast }
+  Result := TGLShape(Shape).RenderFrustumOctree_Visible;
 end;
 
 procedure TCastleScene.RenderFrustumOctree_EnumerateShapes(

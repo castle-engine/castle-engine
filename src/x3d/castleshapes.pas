@@ -71,6 +71,8 @@ type
   TEnumerateShapeTexturesFunction = procedure (Shape: TShape;
     Texture: TAbstractTextureNode) of object;
 
+  TTestShapeVisibility = function (Shape: TShape): boolean of object;
+
   { Triangle information, called by TShape.LocalTriangulate and such.
 
     @param(Shape A shape containing this triangle.

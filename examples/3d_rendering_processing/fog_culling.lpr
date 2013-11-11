@@ -30,11 +30,9 @@
 
 program fog_culling;
 
-{$I castleconf.inc}
-
-uses SysUtils, CastleVectors, CastleGL, CastleWindow, CastleStringUtils,
+uses SysUtils, CastleVectors, CastleWindow, CastleStringUtils,
   CastleClassUtils, CastleUtils, Classes, CastleWarnings,
-  CastleGLUtils, X3DNodes, CastleSceneCore, CastleScene,
+  CastleGLUtils, X3DNodes, CastleSceneCore, CastleScene, CastleShapes,
   CastleProgress, CastleProgressConsole, CastleFilesUtils, Castle3D,
   CastleSceneManager, CastleParameters, CastleRenderingCamera, CastleKeysMouse;
 
@@ -45,7 +43,7 @@ var
 type
   TMySceneManager = class(TCastleSceneManager)
   private
-    function TestFogVisibility(Shape: TGLShape): boolean;
+    function TestFogVisibility(Shape: TShape): boolean;
   protected
     procedure Render3D(const Params: TRenderParams); override;
     procedure RenderFromViewEverything; override;
@@ -54,7 +52,7 @@ type
 var
   SceneManager: TMySceneManager;
 
-function TMySceneManager.TestFogVisibility(Shape: TGLShape): boolean;
+function TMySceneManager.TestFogVisibility(Shape: TShape): boolean;
 begin
   { Test for collision between two spheres.
     1st is the bounding sphere of Shape.
@@ -83,15 +81,6 @@ begin
   Writeln(Format('Rendered Shapes: %d / %d (fog culling: %s)',
     [ Statistics.ShapesRendered, Statistics.ShapesVisible,
       BoolToStr[FogCulling] ]));
-end;
-
-procedure Open(Window: TCastleWindowBase);
-begin
-  { We use quite large triangles for fog_culling level demo wall.
-    This means that fog must be correctly rendered,
-    with perspective correction hint, otherwise ugly artifacts
-    will be visible. }
-  glHint(GL_FOG_HINT, GL_NICEST);
 end;
 
 procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
@@ -136,7 +125,6 @@ begin
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
 
-  Window.OnOpen := @Open;
   Window.OnPress := @Press;
   Window.SetDemoOptions(K_F11, CharEscape, true);
   Window.OpenAndRun;
