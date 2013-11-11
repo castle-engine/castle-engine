@@ -866,6 +866,7 @@ const
   end;
 
 var
+  ShareContext: PGdkGLContext;
   VisualAttr: TLongIntList;
   GLAreaContainer: PGtkWidget;
 begin
@@ -938,8 +939,13 @@ begin
   if GLConfig = nil then
    ContextNotPossible;
 
+  { All OpenGL contexts should be shared }
+  if Application.OpenWindowsCount <> 0 then
+    ShareContext := Application.OpenWindows[0].GLContext else
+    ShareContext := nil;
+
   GLAreaGtk := gtk_drawing_area_new;
-  if not GboolToPas(gtk_widget_set_gl_capability(GLAreaGtk, GLConfig, nil,
+  if not GboolToPas(gtk_widget_set_gl_capability(GLAreaGtk, GLConfig, ShareContext,
     g_true, GDK_GL_RGBA_TYPE)) then
    ContextNotPossible;
  finally FreeAndNil(VisualAttr) end;

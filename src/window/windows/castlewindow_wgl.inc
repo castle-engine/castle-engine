@@ -322,6 +322,13 @@ begin
   if (GetDeviceCaps(h_Dc, RASTERCAPS) and RC_PALETTE) <> 0 then
     raise EGLContextNotPossible.Create('This device is paletted ! Bad display settings !');
 
+  { TODO: below we should enable context sharing.
+    If WGL_ARB_create_context_profile is available, then we can use
+    wglCreateContextAttribsARB instead of wglCreateContext.
+    Otherwise, we still use wglCreateContext but follow with wglShareLists.
+    Testcase: see if examples/window/multi_window.lpr
+    shows font in all windows. }
+
   { create gl context and make it current }
   h_GLRc := wglCreateContext(h_Dc);
   OSCheck(h_GLRc <> 0, 'wglCreateContext');

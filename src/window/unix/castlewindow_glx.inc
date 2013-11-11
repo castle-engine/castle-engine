@@ -126,7 +126,14 @@ begin
 end;
 
 procedure TCastleWindowBase.ContextCreateEnd(WndPtr: Integer);
+var
+  ShareContext: GLXContext;
 begin
+  { All OpenGL contexts should be shared }
+  if Application.OpenWindowsCount <> 0 then
+    ShareContext := Application.OpenWindows[0].Context else
+    ShareContext := nil;
+
   if UseFBConfig then
   begin
     { For now, we just use GLX_ARB_create_context for testing
@@ -141,9 +148,9 @@ begin
         it's not known where they occur anyway. }
 //    if GLX_ARB_create_context(Application.XDisplay, Application.XScreen) then
 //      Context := glXCreateContextAttribsARB(Application.XDisplay, FBConfig, nil, true, Context30Forward) else
-      Context := glXCreateNewContext(Application.XDisplay, FBConfig, GLX_RGBA_TYPE, nil, true);
+      Context := glXCreateNewContext(Application.XDisplay, FBConfig, GLX_RGBA_TYPE, ShareContext, true);
   end else
-    Context := glXCreateContext(Application.XDisplay, XVisual, nil, true);
+    Context := glXCreateContext(Application.XDisplay, XVisual, ShareContext, true);
 
   Check(Context <> nil, 'Could not create OpenGL rendering context');
 end;
