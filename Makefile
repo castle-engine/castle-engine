@@ -122,6 +122,7 @@ EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually \
   examples/lazarus/two_controls/two_controls \
   tests/test_castle_game_engine \
+  src/library/castleengine \
   examples/library/lcl_library_tester/cge_lib_tester \
   examples/library/lcl_dynlib_tester/cge_dynlib_tester
 
