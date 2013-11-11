@@ -264,7 +264,8 @@ begin
       Locations := TLongIntList.Create;
       Locations.Add(CurrentProgram.VertexAttribPointer(
         'castle_Vertex', 0, 3, GL_FLOAT, GL_FALSE, Arrays.CoordinateSize, Arrays.Position));
-      CurrentProgram.SetUniform('castle_ModelViewProjectionMatrix', Shape.ModelViewProjection);
+      CurrentProgram.SetUniform('castle_ModelViewMatrix', Shape.ModelView);
+      CurrentProgram.SetUniform('castle_ProjectionMatrix', ProjectionMatrix);
       {$else}
 
       glEnableClientState(GL_VERTEX_ARRAY);

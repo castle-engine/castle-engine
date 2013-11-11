@@ -1092,7 +1092,7 @@ procedure TCastleScene.RenderScene(
   TestShapeVisibility: TTestShapeVisibility;
   const Frustum: TFrustum; const Params: TRenderParams);
 var
-  ModelViewProjection: TMatrix4Single;
+  ModelView: TMatrix4Single;
 
   { Renders Shape, by calling Renderer.RenderShape. }
   procedure RenderShape_NoTests(Shape: TGLShape);
@@ -1107,7 +1107,7 @@ var
        (Shape.Cache <> nil) then
       Shape.Cache.FreeArrays([vtAttribute]);
 
-    Shape.ModelViewProjection := ModelViewProjection;
+    Shape.ModelView := ModelView;
     Renderer.RenderShape(Shape, ShapeFog(Shape));
   end;
 
@@ -1234,7 +1234,7 @@ begin
     LightRenderEvent := @LightRenderInShadow else
     LightRenderEvent := nil;
 
-  ModelViewProjection := ProjectionMatrix * Params.ModelViewTransform;
+  ModelView := Params.ModelViewTransform;
 
   {$ifndef OpenGLES}
   if not Params.RenderTransformIdentity then

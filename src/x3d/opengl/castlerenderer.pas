@@ -857,7 +857,7 @@ type
     Cache: TShapeCache;
 
     { Assign this each time before passing this shape to RenderShape. }
-    ModelViewProjection: TMatrix4Single;
+    ModelView: TMatrix4Single;
   end;
 
   { Line types (patterns). For ease of implementation, ordered exactly like
@@ -3191,7 +3191,7 @@ begin
   glPushMatrix;
     glMultMatrix(Shape.State.Transform);
   {$endif}
-    Shape.ModelViewProjection := Shape.ModelViewProjection * Shape.State.Transform;
+    Shape.ModelView := Shape.ModelView * Shape.State.Transform;
     RenderShapeCreateMeshRenderer(Shape, Fog, Shader, MaterialOpacity, Lighting);
   {$ifndef OpenGLES} // TODO-es
   glPopMatrix;
