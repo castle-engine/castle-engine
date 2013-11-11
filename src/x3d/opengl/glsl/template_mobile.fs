@@ -1,5 +1,7 @@
 /* Generic GLSL fragment shader, used on OpenGL ES. */
 
+precision mediump float;
+
 /* PLUG-DECLARATIONS */
 
 #ifdef HAS_GEOMETRY_SHADER

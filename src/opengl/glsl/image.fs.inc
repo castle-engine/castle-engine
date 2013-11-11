@@ -1,5 +1,7 @@
 { -*- buffer-read-only: t -*- }
 { DON'T EDIT -- this file was automatically generated from "image.fs" }
+'precision mediump float;' + LineEnding +
+'' + LineEnding +
 'varying vec2 tex_coord_frag;' + LineEnding +
 'uniform sampler2D texture;' + LineEnding +
 '' + LineEnding +

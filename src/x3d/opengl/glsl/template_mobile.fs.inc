@@ -2,6 +2,8 @@
 { DON'T EDIT -- this file was automatically generated from "template_mobile.fs" }
 '/* Generic GLSL fragment shader, used on OpenGL ES. */' + LineEnding +
 '' + LineEnding +
+'precision mediump float;' + LineEnding +
+'' + LineEnding +
 '/* PLUG-DECLARATIONS */' + LineEnding +
 '' + LineEnding +
 '#ifdef HAS_GEOMETRY_SHADER' + LineEnding +
