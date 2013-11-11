@@ -283,9 +283,7 @@ type
     { Add texture coord, with configuration copied from existing texture coord. }
     procedure AddTexCoordCopy(const NewTextureUnit, ExistingTextureUnit: Cardinal);
 
-    function TexCoord(const Dimensions: TTexCoordDimensions;
-      const TextureUnit, Index: Cardinal): Pointer;
-
+    function TexCoord(const TextureUnit, Index: Cardinal): Pointer;
     function TexCoord2D(const TextureUnit, Index: Cardinal): PVector2Single;
     function TexCoord3D(const TextureUnit, Index: Cardinal): PVector3Single;
     function TexCoord4D(const TextureUnit, Index: Cardinal): PVector4Single;
@@ -571,13 +569,11 @@ begin
   end;
 end;
 
-function TGeometryArrays.TexCoord(const Dimensions: TTexCoordDimensions;
-  const TextureUnit, Index: Cardinal): Pointer;
+function TGeometryArrays.TexCoord(const TextureUnit, Index: Cardinal): Pointer;
 begin
   if (TextureUnit < TexCoords.Count) and
      (TexCoords[TextureUnit] <> nil) then
   begin
-    Assert(TexCoords[TextureUnit].Dimensions = Dimensions, 'Texture coord allocated but for different dimensions');
     Assert(TexCoords[TextureUnit].Generation = tgExplicit, 'Texture coords are generated, not explicit, for this unit');
     { When DataFreed, FAttributeArray is already nil }
     Result := Pointer(PtrUInt(PtrUInt(FAttributeArray) +
@@ -588,17 +584,20 @@ end;
 
 function TGeometryArrays.TexCoord2D(const TextureUnit, Index: Cardinal): PVector2Single;
 begin
-  Result := PVector2Single(TexCoord(2, TextureUnit, Index));
+  Assert(TexCoords[TextureUnit].Dimensions = 2, 'Texture coord allocated but for different dimensions');
+  Result := PVector2Single(TexCoord(TextureUnit, Index));
 end;
 
 function TGeometryArrays.TexCoord3D(const TextureUnit, Index: Cardinal): PVector3Single;
 begin
-  Result := PVector3Single(TexCoord(3, TextureUnit, Index));
+  Assert(TexCoords[TextureUnit].Dimensions = 3, 'Texture coord allocated but for different dimensions');
+  Result := PVector3Single(TexCoord(TextureUnit, Index));
 end;
 
 function TGeometryArrays.TexCoord4D(const TextureUnit, Index: Cardinal): PVector4Single;
 begin
-  Result := PVector4Single(TexCoord(4, TextureUnit, Index));
+  Assert(TexCoords[TextureUnit].Dimensions = 4, 'Texture coord allocated but for different dimensions');
+  Result := PVector4Single(TexCoord(TextureUnit, Index));
 end;
 
 const

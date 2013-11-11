@@ -202,7 +202,8 @@ type
     { Update Hash for this light shader. }
     procedure Prepare(var Hash: TShaderCodeHash);
     procedure Enable(var TextureApply, TextureColorDeclare,
-      TextureCoordInitialize, TextureCoordMatrix, TextureUniformsDeclare,
+      TextureCoordInitialize, TextureCoordMatrix,
+      TextureAttributeDeclare, TextureVaryingDeclare, TextureUniformsDeclare,
       GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
   end;
 
@@ -1097,7 +1098,8 @@ begin
 end;
 
 procedure TTextureShader.Enable(var TextureApply, TextureColorDeclare,
-  TextureCoordInitialize, TextureCoordMatrix, TextureUniformsDeclare,
+  TextureCoordInitialize, TextureCoordMatrix,
+  TextureAttributeDeclare, TextureVaryingDeclare, TextureUniformsDeclare,
   GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
 const
   SamplerFromTextureType: array [TTextureType] of string =
@@ -1115,6 +1117,7 @@ begin
   end else
     UniformName := '';
 
+  {$ifndef OpenGLES}
   TexCoordName := Format('gl_TexCoord[%d]', [TextureUnit]);
 
   TextureCoordInitialize += Format('%s = gl_MultiTexCoord%d;' + NL,
@@ -1122,6 +1125,13 @@ begin
   if not (GLVersion.BuggyShaderShadowMap and (TextureType = tt2DShadow)) then
     TextureCoordMatrix += Format('%s = gl_TextureMatrix[%d] * %0:s;' + NL,
       [TexCoordName, TextureUnit]);
+  {$else}
+  TexCoordName := Format('castle_TexCoord%d', [TextureUnit]);
+  TextureAttributeDeclare += Format('attribute vec4 castle_MultiTexCoord%d;' + NL, [TextureUnit]);
+  TextureVaryingDeclare += Format('varying vec4 castle_TexCoord%d;' + NL, [TextureUnit]);
+  TextureCoordInitialize += Format('castle_TexCoord%d = castle_MultiTexCoord%d;' + NL,
+    [TextureUnit, TextureUnit]);
+  {$endif}
 
   GeometryVertexSet  += Format('%s  = gl_in[index].%0:s;' + NL, [TexCoordName]);
   GeometryVertexZero += Format('%s  = vec4(0.0);' + NL, [TexCoordName]);
@@ -1590,8 +1600,8 @@ end;
 
 procedure TShader.LinkProgram(AProgram: TX3DShaderProgram);
 var
-  TextureApply, TextureColorDeclare, TextureCoordInitialize,
-    TextureCoordMatrix, TextureUniformsDeclare,
+  TextureApply, TextureColorDeclare, TextureCoordInitialize, TextureCoordMatrix,
+    TextureAttributeDeclare, TextureVaryingDeclare, TextureUniformsDeclare,
     GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string;
   TextureUniformsSet: boolean;
 
@@ -1603,6 +1613,8 @@ var
     TextureColorDeclare := '';
     TextureCoordInitialize := '';
     TextureCoordMatrix := '';
+    TextureAttributeDeclare := '';
+    TextureVaryingDeclare := '';
     TextureUniformsDeclare := '';
     GeometryVertexSet := '';
     GeometryVertexZero := '';
@@ -1611,13 +1623,15 @@ var
 
     for I := 0 to TextureShaders.Count - 1 do
       TextureShaders[I].Enable(TextureApply, TextureColorDeclare,
-        TextureCoordInitialize, TextureCoordMatrix, TextureUniformsDeclare,
+        TextureCoordInitialize, TextureCoordMatrix,
+        TextureAttributeDeclare, TextureVaryingDeclare, TextureUniformsDeclare,
         GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd);
   end;
 
   { Applies effects from various strings here.
     This also finalizes applying textures. }
   procedure EnableInternalEffects;
+  {$ifndef OpenGLES}
   const
     ShadowMapsFunctions: array [TShadowSampling] of string =
     (                               {$I shadow_map_common.fs.inc},
@@ -1625,6 +1639,7 @@ var
      '#define PCF4_BILINEAR' + NL + {$I shadow_map_common.fs.inc},
      '#define PCF16'         + NL + {$I shadow_map_common.fs.inc},
      {$I variance_shadow_map_common.fs.inc});
+  {$endif}
   begin
     PlugDirectly(Source[stVertex], 0, '/* PLUG: vertex_eye_space',
       TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane, false);
@@ -1636,13 +1651,16 @@ var
     PlugDirectly(Source[stGeometry], 0, '/* PLUG: geometry_vertex_zero', GeometryVertexZero, false);
     PlugDirectly(Source[stGeometry], 0, '/* PLUG: geometry_vertex_add' , GeometryVertexAdd , false);
 
-    if not PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */',
-      TextureUniformsDeclare + NL +
-      DeclareShadowFunctions, false) then
+    if not (
+      PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */',
+        TextureVaryingDeclare + NL + TextureUniformsDeclare
+        {$ifndef OpenGLES} + NL + DeclareShadowFunctions {$endif}, false) and
+      PlugDirectly(Source[stVertex], 0, '/* PLUG-DECLARATIONS */',
+        TextureAttributeDeclare + NL + TextureVaryingDeclare, false) ) then
     begin
       { When we cannot find /* PLUG-DECLARATIONS */, it also means we have
         base shader from ComposedShader. In this case, forcing
-        TextureUniformsDeclare at the beginning of shader code
+        TextureXxxDeclare at the beginning of shader code
         (by InsertAtBeginIfNotFound) would be bad (in case ComposedShader
         has some #version at the beginning). So we choose the safer route
         to *not* integrate our texture handling with ComposedShader.
@@ -1655,8 +1673,10 @@ var
 
     { Don't add to empty Source[stFragment], in case ComposedShader
       doesn't want any fragment shader }
+    {$ifndef OpenGLES}
     if Source[stFragment].Count <> 0 then
       Source[stFragment].Add(ShadowMapsFunctions[ShadowSampling]);
+    {$endif}
   end;
 
 var
@@ -2047,17 +2067,16 @@ var
 var
   ShaderType: TShaderType;
   I: Integer;
-  {$ifndef OpenGLES} //TODO-es
   GeometryInputSize: string;
-  {$endif}
 begin
   EnableTextures;
-  {$ifndef OpenGLES} //TODO-es
   EnableInternalEffects;
+  {$ifndef OpenGLES} //TODO-es
   EnableLights;
   EnableShaderMaterialFromColor;
   EnableShaderBumpMapping;
   EnableShaderFog;
+  {$endif}
   if AppearanceEffects <> nil then
     EnableEffects(AppearanceEffects);
   if GroupEffects <> nil then
@@ -2075,7 +2094,6 @@ begin
       Source[stGeometry][I] := StringReplace(Source[stGeometry][I],
         'CASTLE_GEOMETRY_INPUT_SIZE', GeometryInputSize, [rfReplaceAll]);
   end else
-  {$endif}
     Source[stGeometry].Clear;
 
   if Log and LogShaders then

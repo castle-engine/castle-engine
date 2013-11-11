@@ -292,8 +292,10 @@ var
     end;
   end;
 
+{$ifndef OpenGLES}
 var
   I: Integer;
+{$endif}
 begin
   LightsEnabled := 0;
   if LightsEnabled >= GLFeatures.MaxLights then Exit;

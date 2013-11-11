@@ -267,15 +267,27 @@ begin
       CurrentProgram.SetUniform('castle_ModelViewMatrix', Shape.ModelView);
       CurrentProgram.SetUniform('castle_ProjectionMatrix', ProjectionMatrix);
       {$else}
-
       glEnableClientState(GL_VERTEX_ARRAY);
       glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);
 
       glEnableClientState(GL_NORMAL_ARRAY);
       glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal);
+      {$endif}
 
       if Vbo[vtAttribute] <> 0 then
         glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtAttribute]);
+
+      {$ifdef OpenGLES}
+      for I := 0 to Arrays.TexCoords.Count - 1 do
+        if (Arrays.TexCoords[I] <> nil) and
+           (Arrays.TexCoords[I].Generation = tgExplicit) then
+        begin
+          Locations.Add(CurrentProgram.VertexAttribPointer(
+            Format('castle_MultiTexCoord%d', [I]),
+            0, Arrays.TexCoords[I].Dimensions, GL_FLOAT, GL_FALSE, Arrays.AttributeSize,
+            Arrays.TexCoord(I, 0)));
+        end;
+      {$else}
 
       if HasColor then
       begin
@@ -303,8 +315,7 @@ begin
             glClientActiveTexture(GL_TEXTURE0 + I);
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
             glTexCoordPointer(Arrays.TexCoords[I].Dimensions, GL_FLOAT,
-              Arrays.AttributeSize,
-              Arrays.TexCoord(Arrays.TexCoords[I].Dimensions, I, 0));
+              Arrays.AttributeSize, Arrays.TexCoord(I, 0));
           end;
       end else
       if (Arrays.TexCoords.Count <> 0) and

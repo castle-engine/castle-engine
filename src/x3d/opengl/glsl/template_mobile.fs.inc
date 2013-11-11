@@ -1,7 +1,34 @@
 { -*- buffer-read-only: t -*- }
 { DON'T EDIT -- this file was automatically generated from "template_mobile.fs" }
+'/* Generic GLSL fragment shader, used on OpenGL ES. */' + LineEnding +
+'' + LineEnding +
+'/* PLUG-DECLARATIONS */' + LineEnding +
+'' + LineEnding +
+'#ifdef HAS_GEOMETRY_SHADER' + LineEnding +
+'  #define castle_vertex_eye castle_vertex_eye_geoshader' + LineEnding +
+'  #define castle_normal_eye castle_normal_eye_geoshader' + LineEnding +
+'#endif' + LineEnding +
+'' + LineEnding +
+'varying vec4 castle_vertex_eye;' + LineEnding +
+'varying vec3 castle_normal_eye;' + LineEnding +
+'' + LineEnding +
+'/* Wrapper for calling PLUG texture_coord_shift */' + LineEnding +
+'vec2 texture_coord_shifted(in vec2 tex_coord)' + LineEnding +
+'{' + LineEnding +
+'  /* PLUG: texture_coord_shift (tex_coord) */' + LineEnding +
+'  return tex_coord;' + LineEnding +
+'}' + LineEnding +
+'' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +
-'  gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);' + LineEnding +
+'  vec4 fragment_color = vec4(1.0);' + LineEnding +
+'' + LineEnding +
+'  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */' + LineEnding +
+'  /* PLUG: steep_parallax_shadow_apply (fragment_color) */' + LineEnding +
+'  /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */' + LineEnding +
+'' + LineEnding +
+'  gl_FragColor = fragment_color;' + LineEnding +
+'' + LineEnding +
+'  /* PLUG: fragment_end (gl_FragColor) */' + LineEnding +
 '}' + LineEnding +
 ''

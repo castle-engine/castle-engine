@@ -1336,13 +1336,11 @@ procedure TAbstractTextureCoordinateGenerator.GenerateCoordinateBegin;
   var
     I: Integer;
 
-    procedure Handle(const Dimensions: TTexCoordDimensions;
-      TexCoordArray: TFPSList);
+    procedure Handle(TexCoordArray: TFPSList);
     var
       A: Pointer;
     begin
-      A := Arrays.TexCoord(Dimensions, I, 0);
-
+      A := Arrays.TexCoord(I, 0);
       if TexImplementation = tcCoordIndexed then
       begin
         if Arrays.Indexes <> nil then
@@ -1361,9 +1359,9 @@ procedure TAbstractTextureCoordinateGenerator.GenerateCoordinateBegin;
     for I := 0 to Arrays.TexCoords.Count - 1 do
       if Arrays.TexCoords[I].Generation = tgExplicit then
         case Arrays.TexCoords[I].Dimensions of
-          2: Handle(2, TexCoordArray2d[I].Items);
-          3: Handle(3, TexCoordArray3d[I].Items);
-          4: Handle(4, TexCoordArray4d[I].Items);
+          2: Handle(TexCoordArray2d[I].Items);
+          3: Handle(TexCoordArray3d[I].Items);
+          4: Handle(TexCoordArray4d[I].Items);
         end;
   end;
 
