@@ -278,15 +278,20 @@ begin
         glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtAttribute]);
 
       {$ifdef OpenGLES}
-      for I := 0 to Arrays.TexCoords.Count - 1 do
-        if (Arrays.TexCoords[I] <> nil) and
-           (Arrays.TexCoords[I].Generation = tgExplicit) then
-        begin
-          Locations.Add(CurrentProgram.VertexAttribPointer(
-            Format('castle_MultiTexCoord%d', [I]),
-            0, Arrays.TexCoords[I].Dimensions, GL_FLOAT, GL_FALSE, Arrays.AttributeSize,
-            Arrays.TexCoord(I, 0)));
-        end;
+      try
+        for I := 0 to Arrays.TexCoords.Count - 1 do
+          if (Arrays.TexCoords[I] <> nil) and
+             (Arrays.TexCoords[I].Generation = tgExplicit) then
+          begin
+            Locations.Add(CurrentProgram.VertexAttribPointer(
+              Format('castle_MultiTexCoord%d', [I]),
+              0, Arrays.TexCoords[I].Dimensions, GL_FLOAT, GL_FALSE, Arrays.AttributeSize,
+              Arrays.TexCoord(I, 0)));
+          end;
+      except
+        on E: EGLSLAttributeNotFound do
+          OnWarning(wtMajor, 'OpenGLES', E.Message);
+      end;
       {$else}
 
       if HasColor then
