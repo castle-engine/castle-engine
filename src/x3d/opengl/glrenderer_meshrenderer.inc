@@ -329,8 +329,7 @@ begin
       begin
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
         glTexCoordPointer(Arrays.TexCoords[0].Dimensions, GL_FLOAT,
-          Arrays.AttributeSize,
-          Arrays.TexCoord(Arrays.TexCoords[0].Dimensions, 0, 0));
+          Arrays.AttributeSize, Arrays.TexCoord(0, 0));
       end;
       {$endif}
 
