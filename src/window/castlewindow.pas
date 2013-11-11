@@ -4433,7 +4433,8 @@ var
   I: Integer;
 begin
   inherited;
-  OnGLContextOpen.ExecuteAll(Self);
+  if Application.OpenWindowsCount = 1 then
+    OnGLContextOpen.ExecuteAll;
 
   { call GLContextOpen on controls after inherited (OnOpen). }
   if UseControls then
@@ -4456,7 +4457,8 @@ begin
       Controls[I].GLContextClose;
   end;
 
-  OnGLContextClose.ExecuteAll(Self);
+  if Application.OpenWindowsCount = 1 then
+    OnGLContextClose.ExecuteAll;
   inherited;
 end;
 

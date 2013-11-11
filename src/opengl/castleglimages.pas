@@ -2966,7 +2966,7 @@ begin
     Result := cbBack;
 end;
 
-procedure WindowClose(const Container: IUIContainer);
+procedure WindowClose;
 begin
   glFreeBuffer(TGLImage.PointVbo);
   {$ifdef GLImageUseShaders}

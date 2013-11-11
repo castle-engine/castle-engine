@@ -557,18 +557,30 @@ end;
     { @groupEnd }
   end;
 
-  TGLContextEvent = procedure (const Container: IUIContainer);
+  TGLContextEvent = procedure;
 
   TGLContextEventList = class(specialize TGenericStructList<TGLContextEvent>)
   public
     { Call all items. }
-    procedure ExecuteAll(const Container: IUIContainer);
+    procedure ExecuteAll;
   end;
 
-{ Global list of callbacks called when any OpenGL context (Lazarus TCastleControl
-  or TCastleWindow) is opened/closed. Useful for things that want to be notified
-  about OpenGL context existence, but cannot refer to particular instance
+{ Global callbacks called when OpenGL context (like Lazarus TCastleControl
+  or TCastleWindow) is open/closed.
+  Useful for things that want to be notified
+  about OpenGL context existence, but cannot refer to a particular instance
   of TCastleControl or TCastleWindow.
+
+  Note that we may have many OpenGL contexts (TCastleWindow or TCastleControl)
+  open simultaneously. They all share OpenGL resources.
+  OnGLContextOpen is called when first OpenGL context is open,
+  that is: no previous context was open.
+  OnGLContextClose is called when last OpenGL context is closed,
+  that is: no more contexts remain open.
+  Note that this implies that they may be called many times:
+  e.g. if you open one window, then close it, then open another
+  window then close it.
+
   @groupBegin }
 function OnGLContextOpen: TGLContextEventList;
 function OnGLContextClose: TGLContextEventList;
@@ -865,12 +877,12 @@ end;
 
 { TGLContextEventList -------------------------------------------------------- }
 
-procedure TGLContextEventList.ExecuteAll(const Container: IUIContainer);
+procedure TGLContextEventList.ExecuteAll;
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I](Container);
+    Items[I]();
 end;
 
 var

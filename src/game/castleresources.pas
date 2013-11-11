@@ -891,7 +891,7 @@ end;
 
 { initialization / finalization ---------------------------------------------- }
 
-procedure WindowClose(const Container: IUIContainer);
+procedure WindowClose;
 var
   I: Integer;
 begin

@@ -425,6 +425,8 @@ var
     and it makes implementation much easier). }
   CastleControls: TComponentList;
 
+  ControlsOpen: Cardinal;
+
 { Limit FPS ------------------------------------------------------------------ }
 
 var
@@ -1536,7 +1538,9 @@ var
   I: Integer;
 begin
   inherited;
-  CastleUIControls.OnGLContextOpen.ExecuteAll(Self);
+  Inc(ControlsOpen);
+  if ControlsOpen = 1 then
+    CastleUIControls.OnGLContextOpen.ExecuteAll;
 
   { call GLContextOpen on controls after inherited (OnGLContextOpen). }
   if UseControls then
@@ -1560,7 +1564,9 @@ begin
       Controls[I].GLContextClose;
   end;
 
-  CastleUIControls.OnGLContextClose.ExecuteAll(Self);
+  if ControlsOpen = 1 then
+    CastleUIControls.OnGLContextClose.ExecuteAll;
+  Dec(ControlsOpen);
   inherited;
 end;
 

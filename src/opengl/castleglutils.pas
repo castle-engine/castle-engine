@@ -1893,7 +1893,7 @@ begin
   end;
 end;
 
-procedure WindowClose(const Container: IUIContainer);
+procedure WindowClose;
 begin
   glFreeBuffer(RectanglePointVbo);
   {$ifdef GLImageUseShaders}

@@ -936,11 +936,17 @@ begin
   DoGLContextOpen();
 end;
 
+var
+  ControlsOpen: Cardinal;
+
 procedure TCastleFrame.DoGLContextOpen;
 var
   I: Integer;
 begin
   inherited;
+  Inc(ControlsOpen);
+  if ControlsOpen = 1 then
+    CastleUIControls.OnGLContextOpen.ExecuteAll;
 
   { call GLContextOpen on controls after inherited (OnGLContextOpen). }
   if UseControls then
@@ -963,6 +969,9 @@ begin
       Controls[I].GLContextClose;
   end;
 
+  if ControlsOpen = 1 then
+    CastleUIControls.OnGLContextClose.ExecuteAll;
+  Dec(ControlsOpen);
   inherited;
 end;
 

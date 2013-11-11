@@ -2175,7 +2175,7 @@ begin
   end;
 end;
 
-procedure WindowClose(const Container: IUIContainer);
+procedure WindowClose;
 begin
   FreeAndNil(FUIFont);
   FreeAndNil(FUIFontSmall);

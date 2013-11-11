@@ -2664,14 +2664,14 @@ const
   Font3dBold = false;
   Font3dItalic = false;
 
-procedure WindowOpen(const Container: IUIContainer);
+procedure WindowOpen;
 begin
   Font3d := GLContextCache.Fonts_IncReference(
     Font3dFamily, Font3dBold, Font3dItalic,
     TFontStyleNode.ClassFont(Font3dFamily, Font3dBold, Font3dItalic));
 end;
 
-procedure WindowClose(const Container: IUIContainer);
+procedure WindowClose;
 begin
   if Font3d <> nil then
   begin
