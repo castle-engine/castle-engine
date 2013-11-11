@@ -1244,8 +1244,8 @@ begin
 end;
 
 const
-  DefaultVertexShader = {$I template.vs.inc};
-  DefaultFragmentShader = {$I template.fs.inc};
+  DefaultVertexShader   = {$ifdef OpenGLES} {$I template_mobile.vs.inc} {$else} {$I template.vs.inc} {$endif};
+  DefaultFragmentShader = {$ifdef OpenGLES} {$I template_mobile.fs.inc} {$else} {$I template.fs.inc} {$endif};
   DefaultGeometryShader = {$I template.gs.inc};
 
   GeometryShaderPassColors =
@@ -2047,9 +2047,12 @@ var
 var
   ShaderType: TShaderType;
   I: Integer;
+  {$ifndef OpenGLES} //TODO-es
   GeometryInputSize: string;
+  {$endif}
 begin
   EnableTextures;
+  {$ifndef OpenGLES} //TODO-es
   EnableInternalEffects;
   EnableLights;
   EnableShaderMaterialFromColor;
@@ -2072,6 +2075,7 @@ begin
       Source[stGeometry][I] := StringReplace(Source[stGeometry][I],
         'CASTLE_GEOMETRY_INPUT_SIZE', GeometryInputSize, [rfReplaceAll]);
   end else
+  {$endif}
     Source[stGeometry].Clear;
 
   if Log and LogShaders then

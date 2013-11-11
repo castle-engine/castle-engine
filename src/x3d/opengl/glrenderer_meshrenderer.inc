@@ -159,7 +159,6 @@ end;
 { TBaseCoordinateRenderer ------------------------------------------------ }
 
 procedure TBaseCoordinateRenderer.Render;
-{$ifndef OpenGLES} // TODO-es
 var
   Locations: TLongIntList;
 
@@ -167,7 +166,8 @@ var
   var
     I: Integer;
   begin
-    Locations := TLongIntList.Create;
+    if Locations = nil then
+      Locations := TLongIntList.Create;
     for I := 0 to Arrays.Attribs.Count - 1 do
     try
       case Arrays.Attribs[I].AType of
@@ -203,6 +203,7 @@ var
   var
     I: Integer;
   begin
+    {$ifndef OpenGLES} // TODO-es
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
 
@@ -228,6 +229,7 @@ var
     begin
       glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     end;
+    {$endif}
 
     if Locations <> nil then
     begin
@@ -239,7 +241,8 @@ var
 
 const
   ToMode: array [TGeometryPrimitive] of TGLenum =
-  ( GL_TRIANGLES, GL_QUADS, GL_TRIANGLE_FAN, GL_TRIANGLE_STRIP,
+  ( GL_TRIANGLES, {$ifdef OpenGLES} GL_TRIANGLE_FAN { TODO-es } {$else} GL_QUADS {$endif},
+    GL_TRIANGLE_FAN, GL_TRIANGLE_STRIP,
     GL_LINE_STRIP, GL_POINTS );
 var
   I: Integer;
@@ -255,6 +258,14 @@ begin
       { Initialize vertex arrays that we we will use with indexed nodes. }
       if Vbo[vtCoordinate] <> 0 then
         glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtCoordinate]);
+
+      {$ifdef OpenGLES}
+      Assert(CurrentProgram <> nil, 'OpenGL ES 2.0 rendering must go through shaders');
+      Locations := TLongIntList.Create;
+      Locations.Add(CurrentProgram.VertexAttribPointer(
+        'castle_Vertex', 0, 3, GL_FLOAT, GL_FALSE, Arrays.CoordinateSize, Arrays.Position));
+      CurrentProgram.SetUniform('castle_ModelViewProjectionMatrix', Shape.ModelViewProjection);
+      {$else}
 
       glEnableClientState(GL_VERTEX_ARRAY);
       glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);
@@ -304,6 +315,7 @@ begin
           Arrays.AttributeSize,
           Arrays.TexCoord(Arrays.TexCoords[0].Dimensions, 0, 0));
       end;
+      {$endif}
 
       { We know now that CurrentProgram is the program set by
         TShaderCoordinateRenderer.RenderCoordinateBegin }
@@ -338,13 +350,11 @@ begin
       { We disable arrays explicitly. We could alternatively try
         glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT), but
         1. it makes Mesa 7.2 segfault
-        2. I don't know if it really works for GLSL vertex attribs arrays. }
+        2. I don't know if it really works for GLSL vertex attribs arrays.
+        3. It is not available on OpenGLES. }
       DisableArrays;
     end;
   finally RenderCoordinateEnd end;
-{$else}
-begin
-{$endif}
 end;
 
 procedure TBaseCoordinateRenderer.RenderCoordinateBegin;
@@ -728,9 +738,11 @@ begin
     if Shape.State.Effects <> nil then
       Shader.EnableGroupEffects(Shape.State.Effects);
 
-    UseShaderRendering := (Attributes.Mode = rmFull) and
+    UseShaderRendering := {$ifdef OpenGLES} true {$else}
+      (Attributes.Mode = rmFull) and
       ( ((Attributes.Shaders = srWhenRequired) and Shader.ShapeRequiresShaders) or
-         (Attributes.Shaders = srAlways) );
+         (Attributes.Shaders = srAlways) )
+      {$endif};
 
     if UseShaderRendering then
     begin

@@ -855,6 +855,9 @@ type
     ProgramCache: array [TRenderingPass] of TShaderProgramCache;
 
     Cache: TShapeCache;
+
+    { Assign this each time before passing this shape to RenderShape. }
+    ModelViewProjection: TMatrix4Single;
   end;
 
   { Line types (patterns). For ease of implementation, ordered exactly like
@@ -1741,6 +1744,7 @@ function TGLRendererContextCache.TextureFloat_IncReference(
   const TextureWrap: TTextureWrap2D;
   const Width, Height: Cardinal;
   const Precision32: boolean): TGLuint;
+{$ifndef OpenGLES}
 var
   I: Integer;
   TextureCached: TTextureDepthOrFloatCache;
@@ -1766,7 +1770,6 @@ begin
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap[0]);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap[1]);
 
-  {$ifndef OpenGLES} // TODO-es
   if Precision32 then
     InternalFormat := GL_RGB32F_ARB { same thing as GL_RGB_FLOAT32_ATI } else
     InternalFormat := GL_RGB16F_ARB { same thing as GL_RGB_FLOAT16_ATI };
@@ -1774,7 +1777,6 @@ begin
   { Do not init any texture image. Just initialize texture sizes and formats. }
   glTexImage2d(GL_TEXTURE_2D, 0, InternalFormat,
     Width, Height, 0, GL_RGB, GL_FLOAT, nil);
-  {$endif}
 
   TextureCached := TTextureDepthOrFloatCache.Create;
   TextureDepthOrFloatCaches.Add(TextureCached);
@@ -1788,6 +1790,11 @@ begin
 
   if LogRendererCache and Log then
     WritelnLog('++', 'Float texture %s: %d', [PointerToStr(Node), 1]);
+{$else}
+begin
+  raise Exception.Create('Float textures not available on OpenGL ES 2.0');
+  Result := 0; // silence warning
+{$endif}
 end;
 
 procedure TGLRendererContextCache.TextureFloat_DecReference(
@@ -2580,8 +2587,10 @@ procedure TGLRenderer.RenderCleanState(const Beginning: boolean);
       DisableTexture(I);
   end;
 
+{$ifndef OpenGLES} // TODO-es
 var
   I: Integer;
+{$endif}
 begin
   DisabeAllTextureUnits;
 
@@ -2864,8 +2873,10 @@ const
     out Volumetric: boolean;
     out VolumetricDirection: TVector3Single;
     out VolumetricVisibilityStart: Single);
+  {$ifndef OpenGLES} // TODO-es
   var
     VisibilityRangeScaled: Single;
+  {$endif}
   const
     FogDensityFactor = 3.0;
   begin
@@ -2971,19 +2982,21 @@ procedure TGLRenderer.RenderShapeTextureTransform(Shape: TX3DRendererShape;
     {$endif}
   end;
 
+{$ifndef OpenGLES} // TODO-es
 var
   TextureTransform: TAbstractTextureTransformNode;
   Child: TX3DNode;
   Transforms: TMFNode;
   I: Integer;
   State: TX3DGraphTraverseState;
+{$endif}
 begin
-  State := Shape.State;
-
   TextureTransformUnitsUsed := 0;
   TextureTransformUnitsUsedMore.Count := 0;
 
   {$ifndef OpenGLES} //TODO-es
+
+  State := Shape.State;
 
   if (State.ShapeNode = nil { VRML 1.0, always some texture transform }) or
      (State.ShapeNode.TextureTransform <> nil { VRML 2.0 with tex transform }) then
@@ -3178,6 +3191,7 @@ begin
   glPushMatrix;
     glMultMatrix(Shape.State.Transform);
   {$endif}
+    Shape.ModelViewProjection := Shape.ModelViewProjection * Shape.State.Transform;
     RenderShapeCreateMeshRenderer(Shape, Fog, Shader, MaterialOpacity, Lighting);
   {$ifndef OpenGLES} // TODO-es
   glPopMatrix;

@@ -1091,6 +1091,8 @@ end;
 procedure TCastleScene.RenderScene(
   TestShapeVisibility: TTestShapeVisibility;
   const Frustum: TFrustum; const Params: TRenderParams);
+var
+  ModelViewProjection: TMatrix4Single;
 
   { Renders Shape, by calling Renderer.RenderShape. }
   procedure RenderShape_NoTests(Shape: TGLShape);
@@ -1105,6 +1107,7 @@ procedure TCastleScene.RenderScene(
        (Shape.Cache <> nil) then
       Shape.Cache.FreeArrays([vtAttribute]);
 
+    Shape.ModelViewProjection := ModelViewProjection;
     Renderer.RenderShape(Shape, ShapeFog(Shape));
   end;
 
@@ -1154,7 +1157,8 @@ procedure TCastleScene.RenderScene(
 
   procedure RenderShape_AllTests_Opaque(Shape: TShape);
   begin
-    if not TGLShape(Shape).UseBlending then RenderShape_AllTests(Shape);
+    if not TGLShape(Shape).UseBlending then
+      RenderShape_AllTests(Shape);
   end;
 
   procedure RenderShape_AllTests_Transparent(Shape: TShape);
@@ -1230,15 +1234,17 @@ begin
     LightRenderEvent := @LightRenderInShadow else
     LightRenderEvent := nil;
 
+  ModelViewProjection := ProjectionMatrix * Params.ModelViewTransform;
+
   {$ifndef OpenGLES}
   if not Params.RenderTransformIdentity then
   begin
     glPushMatrix;
     glMultMatrix(Params.RenderTransform);
   end;
-  { Or
+  { TODO: this should be replaced with just
   glLoadMatrix(Params.ModelViewTransform);
-    to just load full matrix. }
+    to just load full matrix, and be consistent with what happens on OpenGLES. }
   {$endif}
 
   Renderer.RenderBegin(Params.BaseLights(Self) as TLightInstancesList,
