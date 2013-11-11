@@ -21,7 +21,11 @@
   that allows to express virtually everything through VRML/X3D nodes,
   and has an optimized renderer, collision solver etc.
 
-  But if you really want, you can define your own T3D descendant. }
+  But if you really want, you can define your own T3D descendant.
+
+  Note that the rendering code below uses immediate mode OpenGL.
+  It will not work with OpenGL ES.
+}
 
 program custom_3d_object;
 
