@@ -16,11 +16,11 @@
 '' + LineEnding +
 '/* Light source position in eye coordinates. */' + LineEnding +
 'const vec3 castle_LightSource0Position = vec3(0.0, 0.0, 0.0);' + LineEnding +
-'const float castle_LightSource0spotExponent = 16.0;' + LineEnding +
+'uniform float castle_LightSource0SpotExponent;' + LineEnding +
 '/* Multiplied colors of light source and material. */' + LineEnding +
-'const vec4 castle_SideLightProduct0Ambient  = vec4(0.1, 0.1, 0.1, 1.0);' + LineEnding +
-'const vec4 castle_SideLightProduct0Diffuse  = vec4(1.0, 1.0, 1.0, 1.0);' + LineEnding +
-'const vec4 castle_SideLightProduct0Specular = vec4(1.0, 1.0, 1.0, 1.0);' + LineEnding +
+'uniform vec4 castle_SideLightProduct0Ambient;' + LineEnding +
+'uniform vec4 castle_SideLightProduct0Diffuse;' + LineEnding +
+'uniform vec4 castle_SideLightProduct0Specular;' + LineEnding +
 '' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +
@@ -42,7 +42,7 @@
 '  float spec = 0.0;' + LineEnding +
 '  if (diffuse > 0.0) {' + LineEnding +
 '      spec = max(dot(reflect_dir, view_dir), 0.0);' + LineEnding +
-'      spec = pow(spec, castle_LightSource0spotExponent);' + LineEnding +
+'      spec = pow(spec, castle_LightSource0SpotExponent);' + LineEnding +
 '  }' + LineEnding +
 '  castle_Color = castle_SideLightProduct0Ambient +' + LineEnding +
 '    castle_SideLightProduct0Diffuse * diffuse +' + LineEnding +

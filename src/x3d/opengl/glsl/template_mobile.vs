@@ -14,11 +14,11 @@ varying vec4 castle_Color;
 
 /* Light source position in eye coordinates. */
 const vec3 castle_LightSource0Position = vec3(0.0, 0.0, 0.0);
-const float castle_LightSource0spotExponent = 16.0;
+uniform float castle_LightSource0SpotExponent;
 /* Multiplied colors of light source and material. */
-const vec4 castle_SideLightProduct0Ambient  = vec4(0.1, 0.1, 0.1, 1.0);
-const vec4 castle_SideLightProduct0Diffuse  = vec4(1.0, 1.0, 1.0, 1.0);
-const vec4 castle_SideLightProduct0Specular = vec4(1.0, 1.0, 1.0, 1.0);
+uniform vec4 castle_SideLightProduct0Ambient;
+uniform vec4 castle_SideLightProduct0Diffuse;
+uniform vec4 castle_SideLightProduct0Specular;
 
 void main(void)
 {
@@ -40,7 +40,7 @@ void main(void)
   float spec = 0.0;
   if (diffuse > 0.0) {
       spec = max(dot(reflect_dir, view_dir), 0.0);
-      spec = pow(spec, castle_LightSource0spotExponent);
+      spec = pow(spec, castle_LightSource0SpotExponent);
   }
   castle_Color = castle_SideLightProduct0Ambient +
     castle_SideLightProduct0Diffuse * diffuse +

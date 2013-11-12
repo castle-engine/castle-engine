@@ -32,19 +32,12 @@ procedure RenderMaterialsBegin;
     Shader.MaterialSpecularColor := SpecularColor;
     MaterialOpacity := ShapeOpacity * Attributes.Opacity;
 
-    {$ifndef OpenGLES}
+    MaterialAmbient := Vector4Single(AmbientColor, MaterialOpacity);
+    MaterialDiffuse := Vector4Single(DiffuseColor, MaterialOpacity);
+    MaterialSpecular := Vector4Single(SpecularColor, MaterialOpacity);
+    MaterialEmission := Vector4Single(EmissiveColor, MaterialOpacity);
+    MaterialShininessExp := ShininessExp;
 
-    if Lighting then
-    begin
-      glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(AmbientColor, MaterialOpacity));
-      glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(DiffuseColor, MaterialOpacity));
-      glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4Single(SpecularColor, MaterialOpacity));
-      glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION, Vector4Single(EmissiveColor, MaterialOpacity));
-      glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, ShininessExp);
-
-      { If Lighting, we know that GL_LIGHTING is enabled
-        (for fixed-function, or shader). So no point in setting glColor. }
-    end else
     if MaterialAndShapeLit then
       { When the lighting is disabled because of Attributes.Lighting
         (not because of this shape's material), it's best to use diffuse color.
@@ -57,8 +50,22 @@ procedure RenderMaterialsBegin;
         as they are written like Attributes.Lighting = always @true.
         So we can just do whatever seems natural for user that
         turned off lighting. }
-      glColorv(Vector4Single(DiffuseColor, MaterialOpacity)) else
-      glColorv(Vector4Single(UnLitColor, MaterialOpacity));
+      MaterialUnlit := Vector4Single(DiffuseColor, MaterialOpacity) else
+      MaterialUnlit := Vector4Single(UnLitColor, MaterialOpacity);
+
+    {$ifndef OpenGLES}
+    if Lighting then
+    begin
+      glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, MaterialAmbient);
+      glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, MaterialDiffuse);
+      glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, MaterialSpecular);
+      glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION, MaterialEmission);
+      glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, MaterialShininessExp);
+
+      { If Lighting, we know that GL_LIGHTING is enabled
+        (for fixed-function, or shader). So no point in setting glColor. }
+    end else
+      glColorv(MaterialUnlit);
     {$endif}
   end;
 

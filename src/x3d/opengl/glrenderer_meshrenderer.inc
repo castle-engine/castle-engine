@@ -264,6 +264,11 @@ begin
       CurrentProgram.SetUniform('castle_ModelViewMatrix', Shape.ModelView);
       CurrentProgram.SetUniform('castle_ProjectionMatrix', ProjectionMatrix);
       CurrentProgram.SetUniform('castle_NormalMatrix', ModelViewToNormalMatrix(Shape.ModelView));
+      { TODO: set these per light, and multiplied by light }
+      CurrentProgram.SetUniform('castle_SideLightProduct0Ambient', Renderer.MaterialAmbient);
+      CurrentProgram.SetUniform('castle_SideLightProduct0Diffuse', Renderer.MaterialDiffuse);
+      CurrentProgram.SetUniform('castle_SideLightProduct0Specular', Renderer.MaterialSpecular);
+      CurrentProgram.SetUniform('castle_LightSource0SpotExponent', Renderer.MaterialShininessExp);
 
       Locations := TLongIntList.Create;
       Locations.Add(CurrentProgram.VertexAttribPointer(
