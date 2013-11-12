@@ -261,11 +261,15 @@ begin
 
       {$ifdef OpenGLES}
       Assert(CurrentProgram <> nil, 'OpenGL ES 2.0 rendering must go through shaders');
+      CurrentProgram.SetUniform('castle_ModelViewMatrix', Shape.ModelView);
+      CurrentProgram.SetUniform('castle_ProjectionMatrix', ProjectionMatrix);
+      CurrentProgram.SetUniform('castle_NormalMatrix', ModelViewToNormalMatrix(Shape.ModelView));
+
       Locations := TLongIntList.Create;
       Locations.Add(CurrentProgram.VertexAttribPointer(
         'castle_Vertex', 0, 3, GL_FLOAT, GL_FALSE, Arrays.CoordinateSize, Arrays.Position));
-      CurrentProgram.SetUniform('castle_ModelViewMatrix', Shape.ModelView);
-      CurrentProgram.SetUniform('castle_ProjectionMatrix', ProjectionMatrix);
+      Locations.Add(CurrentProgram.VertexAttribPointer(
+        'castle_Normal', 0, 3, GL_FLOAT, GL_FALSE, Arrays.CoordinateSize, Arrays.Normal));
       {$else}
       glEnableClientState(GL_VERTEX_ARRAY);
       glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);

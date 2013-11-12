@@ -1668,6 +1668,11 @@ function TryMatrixInverse(const M: TMatrix4Single; out MInverse: TMatrix4Single)
 function TryMatrixInverse(const M: TMatrix4Double; out MInverse: TMatrix4Double): boolean; overload;
 { @groupEnd }
 
+{ Convert ModelView matrix to a Normal matrix, just like 3D graphic libraries do.
+  See e.g. http://www.lighthouse3d.com/tutorials/glsl-tutorial/the-normal-matrix/
+  for explanation why this is necessary, and how it's done. }
+function ModelViewToNormalMatrix(const M: TMatrix4Single): TMatrix3Single;
+
 { Multiply vector by a transposition of the same vector.
   For 3d vectors, this results in a 3x3 matrix.
   To put this inside a 4x4 matrix,
@@ -3436,6 +3441,25 @@ begin
   Result := not Zero(D);
   if Result then
     MInverse := MatrixInverse(M, D);
+end;
+
+function ModelViewToNormalMatrix(const M: TMatrix4Single): TMatrix3Single;
+var
+  D: Single;
+  M3: TMatrix3Single;
+begin
+  Move(M[0], M3[0], SizeOf(TVector3Single));
+  Move(M[1], M3[1], SizeOf(TVector3Single));
+  Move(M[2], M3[2], SizeOf(TVector3Single));
+  D := MatrixDeterminant(M3);
+  if Zero(D) then
+    { modelview not invertible, nothing good to do but we have to continue
+      without errors, since this can happen with arbitrary 3D scenes. }
+    Result := M3 else
+  begin
+    Result := MatrixInverse(M3, D);
+    MatrixTransposeTo1st(Result);
+  end;
 end;
 
 end.

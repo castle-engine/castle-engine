@@ -13,6 +13,7 @@
 '' + LineEnding +
 'varying vec4 castle_vertex_eye;' + LineEnding +
 'varying vec3 castle_normal_eye;' + LineEnding +
+'varying vec4 castle_Color;' + LineEnding +
 '' + LineEnding +
 '/* Wrapper for calling PLUG texture_coord_shift */' + LineEnding +
 'vec2 texture_coord_shifted(in vec2 tex_coord)' + LineEnding +
@@ -23,7 +24,7 @@
 '' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +
-'  vec4 fragment_color = vec4(1.0);' + LineEnding +
+'  vec4 fragment_color = castle_Color;' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */' + LineEnding +
 '  /* PLUG: steep_parallax_shadow_apply (fragment_color) */' + LineEnding +
