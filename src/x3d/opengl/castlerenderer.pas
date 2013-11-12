@@ -936,11 +936,6 @@ type
     FLineWidth: Single;
     FLineType: TLineType;
 
-    { Collected material properties for current shape. }
-    MaterialAmbient, MaterialDiffuse, MaterialSpecular, MaterialEmission: TVector4Single;
-    MaterialShininessExp: Single;
-    MaterialUnlit: TVector4Single;
-
     { This calls glPushMatrix, assuming that current matrix mode is GL_TEXTURE
       and current tex unit is TexUnit (always make sure this is true when
       calling it!).

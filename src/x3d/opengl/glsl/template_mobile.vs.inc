@@ -15,6 +15,7 @@
 'varying vec4 castle_Color;' + LineEnding +
 '' + LineEnding +
 'uniform float castle_MaterialDiffuseAlpha;' + LineEnding +
+'uniform float castle_MaterialShininess;' + LineEnding +
 '' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +

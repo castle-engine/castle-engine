@@ -306,6 +306,11 @@ type
       Useful for example for headlight. }
     WorldCoordinates: boolean;
 
+    { Position expressed in homogeneous coordinates.
+      For positional lights, the last component is always 1.
+      For directional lights, the last component is always 0. }
+    function Position: TVector4Single;
+
     { Light contribution to the specified vertex color.
       This can be used by software renderers (ray-tracers etc.)
       to calculate pixel color following VRML/X3D specifications.
@@ -2276,6 +2281,13 @@ function TLightInstance.ContributionCameraIndependent(
 {$define CAMERA_INDEP}
 {$I x3dnodes_lightcontribution.inc}
 {$undef CAMERA_INDEP}
+
+function TLightInstance.Position: TVector4Single;
+begin
+  if Node is TAbstractPositionalLightNode then
+    Result := Vector4Single(Location, 1) else
+    Result := Vector4Single(-Direction, 0);
+end;
 
 { TLightInstancesList ----------------------------------------------------- }
 

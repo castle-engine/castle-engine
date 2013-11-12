@@ -172,6 +172,8 @@ type
     { Prepare some stuff for Code generation, update Hash for this light shader. }
     procedure Prepare(var Hash: TShaderCodeHash; const LightNumber: Cardinal);
     function Code: TShaderSource;
+    procedure SetUniforms(AProgram: TX3DShaderProgram);
+    procedure SetDynamicUniforms(AProgram: TX3DShaderProgram);
   end;
 
   TLightShaders = class(specialize TFPGObjectList<TLightShader>)
@@ -286,9 +288,13 @@ type
     function DeclareShadowFunctions: string;
   public
     ShapeBoundingBox: TBox3D;
-    { Specular material color. Must be set before EnableLight, and be constant
-      later. }
-    MaterialSpecularColor: TVector3Single;
+
+    { Collected material properties for current shape.
+      Must be set before EnableLight, and be constant later --- this matters
+      esp. for MaterialSpecular. }
+    MaterialAmbient, MaterialDiffuse, MaterialSpecular, MaterialEmission: TVector4Single;
+    MaterialShininessExp: Single;
+    MaterialUnlit: TVector4Single;
 
     constructor Create;
     destructor Destroy; override;
@@ -363,8 +369,7 @@ type
     procedure EnableBumpMapping(const BumpMapping: TBumpMapping;
       const NormalMapTextureUnit: Cardinal;
       const HeightMapInAlpha: boolean; const HeightMapScale: Single);
-    { Enable light source.
-      Remember to set MaterialSpecularColor before calling this. }
+    { Enable light source. Remember to set MaterialXxx before calling this. }
     procedure EnableLight(const Number: Cardinal; Light: PLightInstance);
     { It is Ok to enable this more than once, last EnableFog determines
       the fog settings. TFogCoordinateRenderer.RenderCoordinateBegin for
@@ -385,6 +390,11 @@ type
 
     { Clear instance, bringing it to the state after creation. }
     procedure Clear;
+
+    { Set uniforms that should be set each time before using shader
+      (because changes to their values may happen at any time,
+      and they do not cause rebuilding the shader). }
+    procedure SetDynamicUniforms(AProgram: TX3DShaderProgram);
   end;
 
 operator = (const A, B: TShaderCodeHash): boolean;
@@ -392,7 +402,7 @@ operator = (const A, B: TShaderCodeHash): boolean;
 implementation
 
 uses SysUtils, CastleGL, CastleGLUtils, CastleWarnings,
-  CastleLog, StrUtils, Castle3D, CastleGLVersion;
+  CastleLog, StrUtils, Castle3D, CastleGLVersion, CastleRenderingCamera;
 
 { TODO: a way to turn off using fixed-function pipeline completely
   will be needed some day. Currently, some functions here call
@@ -668,7 +678,9 @@ begin
   end;
   if Node.FdAmbientIntensity.Value <> 0 then
     Define(ldHasAmbient);
-  if not PerfectlyZeroVector(Shader.MaterialSpecularColor) then
+  if not ( (Shader.MaterialSpecular[0] = 0) and
+           (Shader.MaterialSpecular[1] = 0) and
+           (Shader.MaterialSpecular[2] = 0)) then
     Define(ldHasSpecular);
 end;
 
@@ -709,6 +721,53 @@ begin
   end;
 
   Result := FCode;
+end;
+
+procedure TLightShader.SetUniforms(AProgram: TX3DShaderProgram);
+begin
+  if LightUniformName1 <> '' then
+    AProgram.SetUniform(Format(LightUniformName1, [Number]), LightUniformValue1);
+  if LightUniformName2 <> '' then
+    AProgram.SetUniform(Format(LightUniformName2, [Number]), LightUniformValue2);
+end;
+
+procedure TLightShader.SetDynamicUniforms(AProgram: TX3DShaderProgram);
+{$ifdef OpenGLES}
+var
+  Color3, AmbientColor3: TVector3Single;
+  Color4, AmbientColor4: TVector4Single;
+  Position: TVector4Single;
+begin
+  { calculate Color4 = light color * light intensity }
+  Color3 := Node.FdColor.Value * Node.FdIntensity.Value;
+  Color4 := Vector4Single(Color3, 1);
+
+  { calculate AmbientColor4 = light color * light ambient intensity }
+  if Node.FdAmbientIntensity.Value < 0 then
+    AmbientColor4 := Color4 else
+  begin
+    AmbientColor3 := Node.FdColor.Value * Node.FdAmbientIntensity.Value;
+    AmbientColor4 := Vector4Single(AmbientColor3, 1);
+  end;
+
+  Position := Light^.Position;
+  // TODO: assume Light.WorldCoordinates=true or light scene not transformed
+  Position := MatrixMultVector(RenderingCamera.Matrix, Position);
+
+  { Note that we cut off last component of Node.Position,
+    we don't need it. #defines tell the shader whether we deal with direcional
+    or positional light. }
+  AProgram.SetUniform(Format('castle_LightSource%dPosition', [Number]),
+    Vector3SingleCut(Position));
+  AProgram.SetUniform(Format('castle_SideLightProduct%dAmbient', [Number]),
+    Shader.MaterialAmbient * AmbientColor4);
+  AProgram.SetUniform(Format('castle_SideLightProduct%dDiffuse', [Number]),
+    Shader.MaterialDiffuse * Color4);
+  AProgram.SetUniform(Format('castle_SideLightProduct%dSpecular', [Number]),
+    Shader.MaterialSpecular * Color4);
+{$else}
+begin
+{$endif}
 end;
 
 { TLightShaders -------------------------------------------------------------- }
@@ -1345,7 +1404,12 @@ begin
   Lighting := false;
   MaterialFromColor := false;
   ShapeBoundingBox := EmptyBox3D;
-  MaterialSpecularColor := ZeroVector3Single;
+  MaterialAmbient := ZeroVector4Single;
+  MaterialDiffuse := ZeroVector4Single;
+  MaterialSpecular := ZeroVector4Single;
+  MaterialEmission := ZeroVector4Single;
+  MaterialShininessExp := 0;
+  MaterialUnlit := ZeroVector4Single;
 end;
 
 procedure TShader.Plug(const EffectPartType: TShaderType; PlugValue: string;
@@ -2060,16 +2124,7 @@ var
 
     if PassLightsUniforms then
       for I := 0 to LightShaders.Count - 1 do
-      begin
-        if LightShaders[I].LightUniformName1 <> '' then
-          AProgram.SetUniform(Format(
-            LightShaders[I].LightUniformName1, [I]),
-            LightShaders[I].LightUniformValue1);
-        if LightShaders[I].LightUniformName2 <> '' then
-          AProgram.SetUniform(Format(
-            LightShaders[I].LightUniformName2, [I]),
-            LightShaders[I].LightUniformValue2);
-      end;
+        LightShaders[I].SetUniforms(AProgram);
 
     AProgram.Disable;
   end;
@@ -2537,6 +2592,14 @@ const
    'float shadow_depth(sampler2D shadowMap, const vec4 shadowMapCoord);';
 begin
   Result := ShadowDeclare[ShadowSampling = ssVarianceShadowMaps] + NL + ShadowDepthDeclare;
+end;
+
+procedure TShader.SetDynamicUniforms(AProgram: TX3DShaderProgram);
+var
+  I: Integer;
+begin
+  for I := 0 to LightShaders.Count - 1 do
+    LightShaders[I].SetDynamicUniforms(AProgram);
 end;
 
 end.

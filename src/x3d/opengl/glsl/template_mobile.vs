@@ -13,6 +13,7 @@ varying vec3 castle_normal_eye;
 varying vec4 castle_Color;
 
 uniform float castle_MaterialDiffuseAlpha;
+uniform float castle_MaterialShininess;
 
 void main(void)
 {

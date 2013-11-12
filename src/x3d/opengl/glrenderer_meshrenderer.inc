@@ -281,13 +281,10 @@ begin
       CurrentProgram.SetUniform('castle_ModelViewMatrix', Shape.ModelView);
       CurrentProgram.SetUniform('castle_ProjectionMatrix', ProjectionMatrix);
       CurrentProgram.SetUniform('castle_NormalMatrix', ModelViewToNormalMatrix(Shape.ModelView));
-      CurrentProgram.SetUniform('castle_MaterialDiffuseAlpha', Renderer.MaterialDiffuse[3]);
-      { TODO: set these per light, and multiplied by light }
+      CurrentProgram.SetUniform('castle_MaterialDiffuseAlpha', Shader.MaterialDiffuse[3]);
+      CurrentProgram.SetUniform('castle_MaterialShininess', Shader.MaterialShininessExp);
+
       { TODO: reuse normal light shader from desktop? }
-      CurrentProgram.SetUniform('castle_SideLightProduct0Ambient', Renderer.MaterialAmbient);
-      CurrentProgram.SetUniform('castle_SideLightProduct0Diffuse', Renderer.MaterialDiffuse);
-      CurrentProgram.SetUniform('castle_SideLightProduct0Specular', Renderer.MaterialSpecular);
-      CurrentProgram.SetUniform('castle_LightSource0SpotExponent', Renderer.MaterialShininessExp);
 
       Locations := TLongIntList.Create;
       Locations.Add(CurrentProgram.VertexAttribPointer(
@@ -760,6 +757,7 @@ end;
 procedure TShaderCoordinateRenderer.RenderCoordinateBegin;
 var
   UseShaderRendering: boolean;
+  CurrentX3DProgram: TX3DShaderProgram;
 begin
   inherited;
 
@@ -805,7 +803,9 @@ begin
       end;
 
       Assert(Shape.ProgramCache[Renderer.Pass] <> nil);
-      CurrentProgram := Shape.ProgramCache[Renderer.Pass].ShaderProgram;
+      CurrentX3DProgram := Shape.ProgramCache[Renderer.Pass].ShaderProgram;
+      CurrentProgram := CurrentX3DProgram;
+      Shader.SetDynamicUniforms(CurrentX3DProgram);
     end else
       CurrentProgram := nil;
   end;
