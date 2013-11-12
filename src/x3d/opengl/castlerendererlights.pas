@@ -104,20 +104,16 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TLightInstance)
   { SetupXxx light : setup glLight properties GL_POSITION, GL_SPOT_* }
   procedure SetupDirectionalLight(LightNode: TAbstractDirectionalLightNode);
   begin
-    glLightv(glLightNum, GL_POSITION, Vector4Single(VectorNegate(LightNode.FdDirection.Value), 0));
     glLighti(glLightNum, GL_SPOT_CUTOFF, 180);
   end;
 
   procedure SetupPointLight(LightNode: TAbstractPointLightNode);
   begin
-    glLightv(glLightNum, GL_POSITION, Vector4Single(LightNode.FdLocation.Value, 1));
     glLighti(glLightNum, GL_SPOT_CUTOFF, 180);
   end;
 
   procedure SetupSpotLight_1(LightNode: TSpotLightNode_1);
   begin
-    glLightv(glLightNum, GL_POSITION, Vector4Single(LightNode.FdLocation.Value, 1));
-
     glLightv(glLightNum, GL_SPOT_DIRECTION, LightNode.FdDirection.Value);
     glLightf(glLightNum, GL_SPOT_EXPONENT, Clamped(LightNode.SpotExp, 0.0, 128.0));
     glLightf(glLightNum, GL_SPOT_CUTOFF,
@@ -127,8 +123,6 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TLightInstance)
 
   procedure SetupSpotLight(LightNode: TSpotLightNode);
   begin
-    glLightv(glLightNum, GL_POSITION, Vector4Single(LightNode.FdLocation.Value, 1));
-
     glLightv(glLightNum, GL_SPOT_DIRECTION, LightNode.FdDirection.Value);
 
     { There is no way to exactly translate beamWidth to OpenGL GL_SPOT_EXPONENT.
@@ -166,6 +160,8 @@ begin
 
     glMultMatrix(Light.Transform);
 
+    glLightv(glLightNum, GL_POSITION, LightNode.Position);
+
     if Light.Node is TAbstractDirectionalLightNode then
       SetupDirectionalLight(TAbstractDirectionalLightNode(Light.Node)) else
     if Light.Node is TAbstractPointLightNode then
@@ -202,16 +198,15 @@ begin
   finally glPopMatrix end;
 
   { calculate Color4 = light color * light intensity }
-  Color3 := VectorScale(Light.Node.FdColor.Value,
-    Light.Node.FdIntensity.Value);
+  Color3 := Light.Node.FdColor.Value * Light.Node.FdIntensity.Value;
   Color4 := Vector4Single(Color3, 1);
 
   { calculate AmbientColor4 = light color * light ambient intensity }
   if Light.Node.FdAmbientIntensity.Value < 0 then
     AmbientColor4 := Color4 else
   begin
-    AmbientColor3 := VectorScale(Light.Node.FdColor.Value,
-      Light.Node.FdAmbientIntensity.Value);
+    AmbientColor3 := Light.Node.FdColor.Value *
+      Light.Node.FdAmbientIntensity.Value;
     AmbientColor4 := Vector4Single(AmbientColor3, 1);
   end;
 

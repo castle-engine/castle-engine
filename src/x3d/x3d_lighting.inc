@@ -179,6 +179,13 @@
     { Light scope. Default implementation returns lsGlobal or lsLocal,
       depending on "global" field value (this follows VRML/X3D >= 2.0 rules). }
     function Scope: TLightScope; virtual;
+
+    { Position expressed in homogeneous coordinates.
+      For positional lights, the last component is always 1.
+      For directional lights, the last component is always 0.
+
+      Note that this expressed is in the local light node coordinate system. }
+    function Position: TVector4Single; virtual; abstract;
   end;
 
   TAbstractDirectionalLightNode = class(TAbstractLightNode)
@@ -204,6 +211,7 @@
     function DirectionLocal: TVector3Single; override;
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
+    function Position: TVector4Single; override;
   end;
 
   TAbstractPositionalLightNode = class(TAbstractLightNode)
@@ -250,6 +258,7 @@
     function HasRadius: boolean; virtual;
 
     procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
+    function Position: TVector4Single; override;
   end;
 
   TAbstractPointLightNode = class(TAbstractPositionalLightNode)
@@ -625,6 +634,11 @@ begin
   Box.DirectionDistances(Location, Direction, MinDistance, MaxDistance);
 end;
 
+function TAbstractDirectionalLightNode.Position: TVector4Single;
+begin
+  Result := Vector4Single(-FdDirection.Value, 0);
+end;
+
 procedure TAbstractPositionalLightNode.CreateNode;
 begin
   inherited;
@@ -716,6 +730,11 @@ ATTENUATION_IMPLEMENTATION
 
 function TAbstractPositionalLightNode.Attenuation(const DistanceToLight: Double): Double;
 ATTENUATION_IMPLEMENTATION
+
+function TAbstractPositionalLightNode.Position: TVector4Single;
+begin
+  Result := Vector4Single(FdLocation.Value, 1);
+end;
 
 procedure TAbstractPointLightNode.CreateNode;
 begin
