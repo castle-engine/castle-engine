@@ -3,16 +3,16 @@
 /* TODO: use this, i.e. define PLUG_geometry_vertex_*
    for every light source to pass these */
 #ifdef HAS_GEOMETRY_SHADER
-  #define castle_light_light_number_radius castle_light_light_number_radius_geoshader
-  #define castle_light_light_number_beam_width castle_light_light_number_beam_width_geoshader
+  #define castle_light_<Light>_radius castle_light_<Light>_radius_geoshader
+  #define castle_light_<Light>_beam_width castle_light_<Light>_beam_width_geoshader
 #endif
 
 #ifdef LIGHT_HAS_RADIUS
-uniform float castle_light_light_number_radius;
+uniform float castle_light_<Light>_radius;
 #endif
 
 #ifdef LIGHT_HAS_BEAM_WIDTH
-uniform float castle_light_light_number_beam_width;
+uniform float castle_light_<Light>_beam_width;
 #endif
 
 void PLUG_add_light_contribution_side(inout vec4 color,
@@ -25,77 +25,77 @@ void PLUG_add_light_contribution_side(inout vec4 color,
 /* Calculate light_dir */
 #ifdef LIGHT_TYPE_POSITIONAL
   /* positional light. We assume in this case
-     gl_LightSource[light_number].position.w == 1, so there's no need
+     gl_LightSource[<Light>].position.w == 1, so there's no need
      to divide by it. This is true for our VRML/X3D lights. */
-  light_dir = gl_LightSource[light_number].position.xyz - vec3(vertex_eye);
+  light_dir = gl_LightSource[<Light>].position.xyz - vec3(vertex_eye);
   float distance_to_light = length(light_dir);
   light_dir /= distance_to_light;
 #else
-  light_dir = normalize(gl_LightSource[light_number].position.xyz);
+  light_dir = normalize(gl_LightSource[<Light>].position.xyz);
 #endif
 
 #ifdef LIGHT_TYPE_SPOT
-  /* Check gl_LightSource[light_number].position first, as we want to add nothing
+  /* Check gl_LightSource[<Light>].position first, as we want to add nothing
      (not even ambient term) when were outside of spot light cone. */
 
-  float spot_cos = dot(normalize(gl_LightSource[light_number].spotDirection), -light_dir);
+  float spot_cos = dot(normalize(gl_LightSource[<Light>].spotDirection), -light_dir);
   /* non-spot lights have always cutoff = 180, with cos = -1,
      so the check below will always be false. No need to explicitly
      compare with -1, nice. */
-  if (spot_cos < gl_LightSource[light_number].spotCosCutoff)
+  if (spot_cos < gl_LightSource[<Light>].spotCosCutoff)
     return;
 #endif
 
   float scale = 1.0;
-  /* PLUG: light_scale (scale, normal_eye, light_dir, gl_LightSource[light_number], gl_SideLightProduct[light_number], material) */
+  /* PLUG: light_scale (scale, normal_eye, light_dir, gl_LightSource[<Light>], gl_SideLightProduct[<Light>], material) */
 
 #ifdef LIGHT_TYPE_SPOT
 #ifdef LIGHT_HAS_BEAM_WIDTH
   /* calculate spot following VRML 2.0/X3D idea of beamWidth */
-  float cutOffAngle = radians(gl_LightSource[light_number].spotCutoff);
+  float cutOffAngle = radians(gl_LightSource[<Light>].spotCutoff);
   scale *= clamp(
     (                     acos(spot_cos) - cutOffAngle) /
-    (castle_light_light_number_beam_width - cutOffAngle),
+    (castle_light_<Light>_beam_width - cutOffAngle),
     0.0, 1.0);
 #endif
 
 #ifdef LIGHT_HAS_SPOT_EXPONENT
   /* calculate spot like fixed-function pipeline, using exponent */
-  scale *= pow(spot_cos, gl_LightSource[light_number].spotExponent);
+  scale *= pow(spot_cos, gl_LightSource[<Light>].spotExponent);
 #endif
 #endif
 
 #ifdef LIGHT_HAS_ATTENUATION
   scale /= max(1.0,
-           gl_LightSource[light_number].constantAttenuation +
-           gl_LightSource[light_number].linearAttenuation * distance_to_light +
-           gl_LightSource[light_number].quadraticAttenuation * distance_to_light * distance_to_light);
+           gl_LightSource[<Light>].constantAttenuation +
+           gl_LightSource[<Light>].linearAttenuation * distance_to_light +
+           gl_LightSource[<Light>].quadraticAttenuation * distance_to_light * distance_to_light);
 #endif
 
 #ifdef LIGHT_HAS_RADIUS
-  if (distance_to_light >= castle_light_light_number_radius)
+  if (distance_to_light >= castle_light_<Light>_radius)
     scale = 0.0;
 #endif
 
   /* add ambient term */
   vec4 light_color =
 #ifdef LIGHT_HAS_AMBIENT
-  gl_SideLightProduct[light_number].ambient;
+  gl_SideLightProduct[<Light>].ambient;
 #else
   vec4(0.0);
 #endif
 
   /* add diffuse term */
-  vec4 diffuse = gl_SideLightProduct[light_number].diffuse;
-  /* PLUG: material_light_diffuse (diffuse, vertex_eye, normal_eye, gl_LightSource[light_number], material) */
+  vec4 diffuse = gl_SideLightProduct[<Light>].diffuse;
+  /* PLUG: material_light_diffuse (diffuse, vertex_eye, normal_eye, gl_LightSource[<Light>], material) */
   float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);
   light_color += diffuse * diffuse_factor;
 
 #ifdef LIGHT_HAS_SPECULAR
   /* add specular term */
   if (diffuse_factor != 0.0)
-    light_color += gl_SideLightProduct[light_number].specular *
-      pow(max(dot(vec3(gl_LightSource[light_number].halfVector), normal_eye),
+    light_color += gl_SideLightProduct[<Light>].specular *
+      pow(max(dot(vec3(gl_LightSource[<Light>].halfVector), normal_eye),
         0.0), material.shininess);
 #endif
 

@@ -691,14 +691,18 @@ begin
   begin
     FCode := TShaderSource.Create;
 
-    TemplateLight := {$I template_add_light.glsl.inc};
+    TemplateLight := {$ifdef OpenGLES}
+      {$I template_mobile_add_light.glsl.inc}
+    {$else}
+      {$I template_add_light.glsl.inc}
+    {$endif};
     if GLVersion.BuggyGLSLConstStruct then
       TemplateLight := StringReplace(TemplateLight,
         'const in gl_MaterialParameters', 'in gl_MaterialParameters', [rfReplaceAll]);
     TemplateLight := StringReplace(TemplateLight,
-      'light_number', IntToStr(Number), [rfReplaceAll]);
+      '<Light>', IntToStr(Number), [rfReplaceAll]);
 
-    FCode[stFragment].Add(DefinesStr + TemplateLight);
+    FCode[{$ifdef OpenGLES} stVertex {$else} stFragment {$endif}].Add(DefinesStr + TemplateLight);
 
     if Node <> nil then
       Shader.EnableEffects(Node.FdEffects, FCode);
@@ -1685,7 +1689,9 @@ var
   procedure EnableLights;
   var
     I: Integer;
+    {$ifndef OpenGLES}
     LightShaderBack, LightShaderFront: string;
+    {$endif}
   begin
     PassLightsUniforms := false;
 
@@ -1710,6 +1716,7 @@ var
 
       for I := 0 to LightShaders.Count - 1 do
       begin
+        {$ifndef OpenGLES}
         LightShaderBack  := LightShaders[I].Code[stFragment][0];
         LightShaderFront := LightShaderBack;
 
@@ -1727,6 +1734,9 @@ var
         Plug(stFragment, LightShaderFront);
 
         Source.Append(LightShaders[I].Code);
+        {$else}
+        Plug(stVertex, LightShaders[I].Code[stVertex][0]);
+        {$endif}
       end;
     end else
       Plug(stGeometry, GeometryShaderPassColors);
@@ -2071,8 +2081,8 @@ var
 begin
   EnableTextures;
   EnableInternalEffects;
-  {$ifndef OpenGLES} //TODO-es
   EnableLights;
+  {$ifndef OpenGLES} //TODO-es
   EnableShaderMaterialFromColor;
   EnableShaderBumpMapping;
   EnableShaderFog;
@@ -2110,8 +2120,7 @@ begin
       raise EGLSLError.Create('No vertex and no fragment shader for GLSL program');
 
     for ShaderType := Low(ShaderType) to High(ShaderType) do
-      for I := 0 to Source[ShaderType].Count - 1 do
-        AProgram.AttachShader(ShaderType, Source[ShaderType][I]);
+      AProgram.AttachShader(ShaderType, Source[ShaderType]);
     AProgram.Link(true);
 
     if SelectedNode <> nil then

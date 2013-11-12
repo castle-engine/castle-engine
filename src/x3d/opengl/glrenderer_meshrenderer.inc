@@ -199,6 +199,22 @@ var
     end;
   end;
 
+  { Add vertex attribute to shader, ignoring (but logging) if the attribute
+    does not exist (which may happen in case shader doesn't use it,
+    e.g. castle_Normal is unused if not lit). }
+  procedure OptionalVertexAttrib(const Name: string; LocationOffset: TGLint;
+    Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
+    Ptr: Pointer);
+  begin
+    try
+      Locations.Add(CurrentProgram.VertexAttribPointer(
+        Name, LocationOffset, Size, AType, Normalized, Stride, Ptr));
+    except
+      on E: EGLSLAttributeNotFound do
+        WritelnLog('OpenGLES', E.Message);
+    end;
+  end;
+
   procedure DisableArrays;
   var
     I: Integer;
@@ -261,10 +277,13 @@ begin
 
       {$ifdef OpenGLES}
       Assert(CurrentProgram <> nil, 'OpenGL ES 2.0 rendering must go through shaders');
+
       CurrentProgram.SetUniform('castle_ModelViewMatrix', Shape.ModelView);
       CurrentProgram.SetUniform('castle_ProjectionMatrix', ProjectionMatrix);
       CurrentProgram.SetUniform('castle_NormalMatrix', ModelViewToNormalMatrix(Shape.ModelView));
+      CurrentProgram.SetUniform('castle_MaterialDiffuseAlpha', Renderer.MaterialDiffuse[3]);
       { TODO: set these per light, and multiplied by light }
+      { TODO: reuse normal light shader from desktop? }
       CurrentProgram.SetUniform('castle_SideLightProduct0Ambient', Renderer.MaterialAmbient);
       CurrentProgram.SetUniform('castle_SideLightProduct0Diffuse', Renderer.MaterialDiffuse);
       CurrentProgram.SetUniform('castle_SideLightProduct0Specular', Renderer.MaterialSpecular);
@@ -273,8 +292,8 @@ begin
       Locations := TLongIntList.Create;
       Locations.Add(CurrentProgram.VertexAttribPointer(
         'castle_Vertex', 0, 3, GL_FLOAT, GL_FALSE, Arrays.CoordinateSize, Arrays.Position));
-      Locations.Add(CurrentProgram.VertexAttribPointer(
-        'castle_Normal', 0, 3, GL_FLOAT, GL_FALSE, Arrays.CoordinateSize, Arrays.Normal));
+      OptionalVertexAttrib(
+        'castle_Normal', 0, 3, GL_FLOAT, GL_FALSE, Arrays.CoordinateSize, Arrays.Normal);
       {$else}
       glEnableClientState(GL_VERTEX_ARRAY);
       glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);
@@ -287,20 +306,15 @@ begin
         glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtAttribute]);
 
       {$ifdef OpenGLES}
-      try
-        for I := 0 to Arrays.TexCoords.Count - 1 do
-          if (Arrays.TexCoords[I] <> nil) and
-             (Arrays.TexCoords[I].Generation = tgExplicit) then
-          begin
-            Locations.Add(CurrentProgram.VertexAttribPointer(
-              Format('castle_MultiTexCoord%d', [I]),
-              0, Arrays.TexCoords[I].Dimensions, GL_FLOAT, GL_FALSE, Arrays.AttributeSize,
-              Arrays.TexCoord(I, 0)));
-          end;
-      except
-        on E: EGLSLAttributeNotFound do
-          OnWarning(wtMajor, 'OpenGLES', E.Message);
-      end;
+      for I := 0 to Arrays.TexCoords.Count - 1 do
+        if (Arrays.TexCoords[I] <> nil) and
+           (Arrays.TexCoords[I].Generation = tgExplicit) then
+        begin
+          OptionalVertexAttrib(
+            Format('castle_MultiTexCoord%d', [I]),
+            0, Arrays.TexCoords[I].Dimensions, GL_FLOAT, GL_FALSE, Arrays.AttributeSize,
+            Arrays.TexCoord(I, 0));
+        end;
       {$else}
 
       if HasColor then

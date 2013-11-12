@@ -14,13 +14,7 @@
 'varying vec3 castle_normal_eye;' + LineEnding +
 'varying vec4 castle_Color;' + LineEnding +
 '' + LineEnding +
-'/* Light source position in eye coordinates. */' + LineEnding +
-'const vec3 castle_LightSource0Position = vec3(0.0, 0.0, 0.0);' + LineEnding +
-'uniform float castle_LightSource0SpotExponent;' + LineEnding +
-'/* Multiplied colors of light source and material. */' + LineEnding +
-'uniform vec4 castle_SideLightProduct0Ambient;' + LineEnding +
-'uniform vec4 castle_SideLightProduct0Diffuse;' + LineEnding +
-'uniform vec4 castle_SideLightProduct0Specular;' + LineEnding +
+'uniform float castle_MaterialDiffuseAlpha;' + LineEnding +
 '' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +
@@ -34,19 +28,13 @@
 '' + LineEnding +
 '  /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */' + LineEnding +
 '' + LineEnding +
-'  /* Simple lighting calculation for a single positional light source. */' + LineEnding +
-'  vec3 light_dir = normalize(castle_LightSource0Position - vec3(castle_vertex_eye));' + LineEnding +
-'  vec3 reflect_dir = reflect(-light_dir, castle_normal_eye);' + LineEnding +
-'  vec3 view_dir = normalize(-vec3(castle_vertex_eye));' + LineEnding +
-'  float diffuse = max(dot(light_dir, castle_normal_eye), 0.0);' + LineEnding +
-'  float spec = 0.0;' + LineEnding +
-'  if (diffuse > 0.0) {' + LineEnding +
-'      spec = max(dot(reflect_dir, view_dir), 0.0);' + LineEnding +
-'      spec = pow(spec, castle_LightSource0SpotExponent);' + LineEnding +
-'  }' + LineEnding +
-'  castle_Color = castle_SideLightProduct0Ambient +' + LineEnding +
-'    castle_SideLightProduct0Diffuse * diffuse +' + LineEnding +
-'    castle_SideLightProduct0Specular * spec;' + LineEnding +
+'#ifdef LIT' + LineEnding +
+'  castle_Color = vec4(0.0, 0.0, 0.0, castle_MaterialDiffuseAlpha);' + LineEnding +
+'  /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye) */' + LineEnding +
+'  castle_Color.a = castle_MaterialDiffuseAlpha;' + LineEnding +
+'#else' + LineEnding +
+'  castle_Color = vec4(1.0, 1.0, 1.0, 1.0);' + LineEnding +
+'#endif' + LineEnding +
 '' + LineEnding +
 '  gl_Position = castle_ProjectionMatrix * castle_vertex_eye;' + LineEnding +
 '}' + LineEnding +

@@ -131,6 +131,19 @@ type
     procedure AttachShader(const ShaderType: TShaderType; const S: string);
     { @groupEnd }
 
+    { Attach multiple shader parts for given type.
+
+      For normal OpenGL, we can use GLSL separate compilation units.
+      So this is equivalent to just calling
+      @code(AttachShader(ShaderType, Parts[I])) for each part.
+
+      For OpenGL ES, this is unfortunately not possible,
+      you can only attach a single shader of a given type (see
+      http://www.khronos.org/opengles/sdk/docs/man/xhtml/glAttachShader.xml ).
+      So we simply concatenate the shaders into one. }
+    procedure AttachShader(const ShaderType: TShaderType;
+      const Parts: TStrings);
+
     procedure DetachAllShaders;
 
     { Link the program, this should be done after attaching all shaders
@@ -905,6 +918,26 @@ begin
         ShaderIds.Add(ShaderId);
       end;
   end;
+end;
+
+procedure TGLSLProgram.AttachShader(const ShaderType: TShaderType;
+  const Parts: TStrings);
+var
+  I: Integer;
+  {$ifdef OpenGLES}
+  Concatenated: string;
+  {$endif}
+begin
+  {$ifdef OpenGLES}
+  Concatenated := '';
+  for I := 0 to Parts.Count - 1 do
+    Concatenated += Parts[I] + NL;
+  if Trim(Concatenated) <> '' then
+    AttachShader(ShaderType, Concatenated);
+  {$else}
+  for I := 0 to Parts.Count - 1 do
+    AttachShader(ShaderType, Parts[I]);
+  {$endif}
 end;
 
 procedure TGLSLProgram.AttachVertexShader(const S: string);
