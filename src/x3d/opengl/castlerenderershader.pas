@@ -636,7 +636,7 @@ begin
     if Node is TSpotLightNode_1 then
     begin
       Define(ldTypeSpot);
-      if TSpotLightNode_1(Node).SpotExp <> 0 then
+      if TSpotLightNode_1(Node).SpotExponent <> 0 then
         Define(ldHasSpotExponent);
     end else
     if Node is TSpotLightNode then
@@ -738,6 +738,9 @@ var
   Color3, AmbientColor3: TVector3Single;
   Color4, AmbientColor4: TVector4Single;
   Position: TVector4Single;
+  LiPos: TAbstractPositionalLightNode;
+  LiSpot1: TSpotLightNode_1;
+  Lispot: TSpotLightNode;
 begin
   { calculate Color4 = light color * light intensity }
   Color3 := Node.FdColor.Value * Node.FdIntensity.Value;
@@ -753,19 +756,63 @@ begin
 
   Position := Light^.Position;
   // TODO: assume Light.WorldCoordinates=true or light scene not transformed
+  // same TODO about spot light direction below
   Position := MatrixMultVector(RenderingCamera.Matrix, Position);
-
   { Note that we cut off last component of Node.Position,
     we don't need it. #defines tell the shader whether we deal with direcional
     or positional light. }
   AProgram.SetUniform(Format('castle_LightSource%dPosition', [Number]),
     Vector3SingleCut(Position));
-  AProgram.SetUniform(Format('castle_SideLightProduct%dAmbient', [Number]),
-    Shader.MaterialAmbient * AmbientColor4);
+
+  if Node is TAbstractPositionalLightNode then
+  begin
+    LiPos := TAbstractPositionalLightNode(Node);
+    if Node is TSpotLightNode_1 then
+    begin
+      LiSpot1 := TSpotLightNode_1(Node);
+      AProgram.SetUniform(Format('castle_LightSource%dSpotDirection', [Number]),
+        MatrixMultDirection(RenderingCamera.Matrix,
+          MatrixMultDirection(Node.Transform, LiSpot1.FdDirection.Value)));
+      AProgram.SetUniform(Format('castle_LightSource%dSpotCosCutoff', [Number]),
+        LiSpot1.SpotCosCutoff);
+      if LiSpot1.SpotExponent <> 0 then
+      begin
+        AProgram.SetUniform(Format('castle_LightSource%dSpotExponent', [Number]),
+          LiSpot1.SpotExponent);
+      end;
+    end else
+    if Node is TSpotLightNode then
+    begin
+      LiSpot := TSpotLightNode(Node);
+      AProgram.SetUniform(Format('castle_LightSource%dSpotDirection', [Number]),
+        MatrixMultDirection(RenderingCamera.Matrix,
+          MatrixMultDirection(Node.Transform, LiSpot.FdDirection.Value)));
+      AProgram.SetUniform(Format('castle_LightSource%dSpotCosCutoff', [Number]),
+        LiSpot.SpotCosCutoff);
+      if LiSpot.FdBeamWidth.Value < LiSpot.FdCutOffAngle.Value then
+      begin
+        AProgram.SetUniform(Format('castle_LightSource%dSpotCutoff', [Number]),
+          LiSpot.FdCutOffAngle.Value);
+      end;
+    end;
+
+    if LiPos.HasAttenuation then
+      AProgram.SetUniform(Format('castle_LightSource%dAttenuation', [Number]),
+        LiPos.FdAttenuation.Value);
+  end;
+
+  if Node.FdAmbientIntensity.Value <> 0 then
+    AProgram.SetUniform(Format('castle_SideLightProduct%dAmbient', [Number]),
+      Shader.MaterialAmbient * AmbientColor4);
+
+  if not ( (Shader.MaterialSpecular[0] = 0) and
+           (Shader.MaterialSpecular[1] = 0) and
+           (Shader.MaterialSpecular[2] = 0)) then
+    AProgram.SetUniform(Format('castle_SideLightProduct%dSpecular', [Number]),
+      Shader.MaterialSpecular * Color4);
+
   AProgram.SetUniform(Format('castle_SideLightProduct%dDiffuse', [Number]),
     Shader.MaterialDiffuse * Color4);
-  AProgram.SetUniform(Format('castle_SideLightProduct%dSpecular', [Number]),
-    Shader.MaterialSpecular * Color4);
 {$else}
 begin
 {$endif}

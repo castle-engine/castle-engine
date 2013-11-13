@@ -63,7 +63,7 @@ var Spot: Single;
       CosCutOffAngle for every light. }
     SpotAngle := ArcCos(CosSpotAngle);
     if SpotAngle <= SpotLight.FdCutOffAngle.Value then
-      Result := Power(CosSpotAngle, SpotLight.SpotExp) else
+      Result := Power(CosSpotAngle, SpotLight.SpotExponent) else
       Result := 0;
   end;
 

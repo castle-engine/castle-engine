@@ -102,13 +102,15 @@
 '#endif' + LineEnding +
 '' + LineEnding +
 '  color += light_color * scale;' + LineEnding +
+'}' + LineEnding +
 '' + LineEnding +
+'/* Not really necessary, but undefine just in case, just like OpenGL ES shader. */' + LineEnding +
 '#undef LIGHT_TYPE_POSITIONAL' + LineEnding +
 '#undef LIGHT_TYPE_SPOT' + LineEnding +
 '#undef LIGHT_HAS_AMBIENT' + LineEnding +
 '#undef LIGHT_HAS_SPECULAR' + LineEnding +
 '#undef LIGHT_HAS_ATTENUATION' + LineEnding +
 '#undef LIGHT_HAS_RADIUS' + LineEnding +
-'' + LineEnding +
-'}' + LineEnding +
+'#undef LIGHT_HAS_BEAM_WIDTH' + LineEnding +
+'#undef LIGHT_HAS_SPOT_EXPONENT' + LineEnding +
 ''

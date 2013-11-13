@@ -31,8 +31,11 @@
 '' + LineEnding +
 '#ifdef LIT' + LineEnding +
 '  castle_Color = vec4(0.0, 0.0, 0.0, castle_MaterialDiffuseAlpha);' + LineEnding +
-'  /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye) */' + LineEnding +
+'  /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess) */' + LineEnding +
 '  castle_Color.a = castle_MaterialDiffuseAlpha;' + LineEnding +
+'' + LineEnding +
+'  /* Clamp sum of lights colors to be <= 1. See template.fs for comments. */' + LineEnding +
+'  castle_Color.rgb = min(castle_Color.rgb, 1.0);' + LineEnding +
 '#else' + LineEnding +
 '  castle_Color = vec4(1.0, 1.0, 1.0, 1.0);' + LineEnding +
 '#endif' + LineEnding +

@@ -321,6 +321,25 @@
     function DirectionLocal: TVector3Single; override;
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
+
+    { Spot cutoff angle (based on cutOffAngle).
+
+      Expressed in degrees, clamped to correct range
+      (since user can input any value in VRML, and also conversion
+      radians -> degrees could accidentally raise value slightly > 90,
+      so cutOffAngle = 1.5708 is in degrees 90.0002104591,
+      which would cause OpenGL fixed-function error). }
+    function SpotCutoffDeg: Single;
+
+    function SpotCosCutoff: Single;
+
+    { Approximate spot exponent that could be used to render this spot light.
+      Do not use this, unless you really don't have to.
+      X3D spot light should have a linear fallback, from beamWidth to cutOffAngle,
+      and there is no sensible way to approximate it by an exponent.
+      Use this only if you have to render spot light with exponent,
+      e.g. for OpenGL fixed-function pipeline. }
+    function SpotExponentApproximate: Single;
   end;
   TSpotLightNode_2 = TSpotLightNode;
 
@@ -908,6 +927,30 @@ begin
   { TODO: MaxDistance should be a little larger, as spot light rays
     are not parallel. }
   Box.DirectionDistances(Location, Direction, MinDistance, MaxDistance);
+end;
+
+function TSpotLightNode.SpotCutoffDeg: Single;
+begin
+  Result := Min(90, RadToDeg(FdCutOffAngle.Value));
+end;
+
+function TSpotLightNode.SpotCosCutoff: Single;
+begin
+  Result := Cos(FdCutOffAngle.Value);
+end;
+
+function TSpotLightNode.SpotExponentApproximate: Single;
+begin
+  { There is no way to exactly translate beamWidth to OpenGL GL_SPOT_EXPONENT.
+    GL_SPOT_EXPONENT is an exponent for cosinus.
+    beamWidth says to use constant intensity within beamWidth angle,
+    and linear drop off to cutOffAngle.
+    See [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.opengl_rendering.html#section.vrml_lights]
+    for more discussion. }
+
+  if FdBeamWidth.Value >= FdCutOffAngle.Value then
+    Result := 0 else
+    Result := Clamped(0.5 / Max(FdBeamWidth.Value, 0.0001), 0.0, 128.0);
 end;
 
 procedure RegisterLightingNodes;

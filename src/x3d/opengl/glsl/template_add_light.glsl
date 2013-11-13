@@ -100,12 +100,14 @@ void PLUG_add_light_contribution_side(inout vec4 color,
 #endif
 
   color += light_color * scale;
+}
 
+/* Not really necessary, but undefine just in case, just like OpenGL ES shader. */
 #undef LIGHT_TYPE_POSITIONAL
 #undef LIGHT_TYPE_SPOT
 #undef LIGHT_HAS_AMBIENT
 #undef LIGHT_HAS_SPECULAR
 #undef LIGHT_HAS_ATTENUATION
 #undef LIGHT_HAS_RADIUS
-
-}
+#undef LIGHT_HAS_BEAM_WIDTH
+#undef LIGHT_HAS_SPOT_EXPONENT

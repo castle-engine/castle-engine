@@ -29,8 +29,11 @@ void main(void)
 
 #ifdef LIT
   castle_Color = vec4(0.0, 0.0, 0.0, castle_MaterialDiffuseAlpha);
-  /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye) */
+  /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess) */
   castle_Color.a = castle_MaterialDiffuseAlpha;
+
+  /* Clamp sum of lights colors to be <= 1. See template.fs for comments. */
+  castle_Color.rgb = min(castle_Color.rgb, 1.0);
 #else
   castle_Color = vec4(1.0, 1.0, 1.0, 1.0);
 #endif

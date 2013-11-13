@@ -24,6 +24,9 @@ void main(void)
 {
   vec4 fragment_color = castle_Color;
 
+/* Fragment shader on mobile doesn't get a normal vector now, for speed. */
+#define normal_eye_fragment vec3(0.0)
+
   /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */
   /* PLUG: steep_parallax_shadow_apply (fragment_color) */
   /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */

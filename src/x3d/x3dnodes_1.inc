@@ -724,8 +724,23 @@
     private FFdCutOffAngle: TSFFloat;
     public property FdCutOffAngle: TSFFloat read FFdCutOffAngle;
 
-    { Not normalized spot exponent (based on dropOffRate). }
-    function SpotExp: Single;
+    { Spot exponent (based on dropOffRate).
+      Not normalized (i.e. is a real exponent, in VRML 1.0 expresses
+      in [0..1] range to mean exponents [0..128]).
+      Clamp to correct range. }
+    function SpotExponent: Single;
+
+    { Spot cutoff angle (based on cutOffAngle).
+
+      Expressed in degrees, clamped to correct range
+      (see TSpotLightNode.SpotCutoffDeg for reasons).
+      (since user can input any value in VRML, and also conversion
+      radians -> degrees could accidentally raise value slightly > 90,
+      so cutOffAngle = 1.5708 is in degrees 90.0002104591,
+      which would cause OpenGL fixed-function error). }
+    function SpotCutoffDeg: Single;
+
+    function SpotCosCutoff: Single;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
@@ -2165,9 +2180,19 @@ begin
   result := 'SpotLight';
 end;
 
-function TSpotLightNode_1.SpotExp: Single;
+function TSpotLightNode_1.SpotExponent: Single;
 begin
-  result := FdDropOffRate.Value * 128.0;
+  Result := Clamped(FdDropOffRate.Value * 128.0, 0.0, 128.0);
+end;
+
+function TSpotLightNode_1.SpotCutoffDeg: Single;
+begin
+  Result := Min(90, RadToDeg(FdCutOffAngle.Value));
+end;
+
+function TSpotLightNode_1.SpotCosCutoff: Single;
+begin
+  Result := Cos(FdCutOffAngle.Value);
 end;
 
 class function TSpotLightNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;

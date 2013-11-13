@@ -101,7 +101,6 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TLightInstance)
 
 {$ifndef OpenGLES}
 
-  { SetupXxx light : setup glLight properties GL_POSITION, GL_SPOT_* }
   procedure SetupDirectionalLight(LightNode: TAbstractDirectionalLightNode);
   begin
     glLighti(glLightNum, GL_SPOT_CUTOFF, 180);
@@ -115,34 +114,15 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TLightInstance)
   procedure SetupSpotLight_1(LightNode: TSpotLightNode_1);
   begin
     glLightv(glLightNum, GL_SPOT_DIRECTION, LightNode.FdDirection.Value);
-    glLightf(glLightNum, GL_SPOT_EXPONENT, Clamped(LightNode.SpotExp, 0.0, 128.0));
-    glLightf(glLightNum, GL_SPOT_CUTOFF,
-      { Clamp to 90 for safety, see VRML 2.0 version for comments }
-      Min(90, RadToDeg(LightNode.FdCutOffAngle.Value)));
+    glLightf(glLightNum, GL_SPOT_EXPONENT, LightNode.SpotExponent);
+    glLightf(glLightNum, GL_SPOT_CUTOFF, LightNode.SpotCutoffDeg);
   end;
 
   procedure SetupSpotLight(LightNode: TSpotLightNode);
   begin
     glLightv(glLightNum, GL_SPOT_DIRECTION, LightNode.FdDirection.Value);
-
-    { There is no way to exactly translate beamWidth to OpenGL GL_SPOT_EXPONENT.
-      GL_SPOT_EXPONENT is an exponent for cosinus.
-      beamWidth says to use constant intensity within beamWidth angle,
-      and linear drop off to cutOffAngle.
-      See [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.opengl_rendering.html#section.vrml_lights]
-      for more discussion. }
-
-    if LightNode.FdBeamWidth.Value >= LightNode.FdCutOffAngle.Value then
-      glLightf(glLightNum, GL_SPOT_EXPONENT, 0) else
-      glLightf(glLightNum, GL_SPOT_EXPONENT, Clamped(
-        0.5 / Max(LightNode.FdBeamWidth.Value, 0.0001), 0.0, 128.0));
-
-    glLightf(glLightNum, GL_SPOT_CUTOFF,
-      { Clamp to 90, to protect against user inputting invalid value in VRML,
-        or just thing like 1.5708, which may be recalculated by
-        RadToDeg to 90.0002104591, so > 90, and OpenGL raises "invalid value"
-        error then... }
-      Min(90, RadToDeg(LightNode.FdCutOffAngle.Value)));
+    glLightf(glLightNum, GL_SPOT_EXPONENT, LightNode.SpotExponentApproximate);
+    glLightf(glLightNum, GL_SPOT_CUTOFF, LightNode.SpotCutoffDeg);
   end;
 
 var

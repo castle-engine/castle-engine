@@ -199,7 +199,7 @@ var
     end;
   end;
 
-  { Add vertex attribute to shader, ignoring (but logging) if the attribute
+  { Add vertex attribute to shader, ignoring if the attribute
     does not exist (which may happen in case shader doesn't use it,
     e.g. castle_Normal is unused if not lit). }
   procedure OptionalVertexAttrib(const Name: string; LocationOffset: TGLint;
@@ -211,7 +211,7 @@ var
         Name, LocationOffset, Size, AType, Normalized, Stride, Ptr));
     except
       on E: EGLSLAttributeNotFound do
-        WritelnLog('OpenGLES', E.Message);
+        { WritelnLog('OpenGLES', E.Message) };
     end;
   end;
 
