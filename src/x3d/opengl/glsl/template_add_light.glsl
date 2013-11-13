@@ -3,16 +3,16 @@
 /* TODO: use this, i.e. define PLUG_geometry_vertex_*
    for every light source to pass these */
 #ifdef HAS_GEOMETRY_SHADER
-  #define castle_light_<Light>_radius castle_light_<Light>_radius_geoshader
-  #define castle_light_<Light>_beam_width castle_light_<Light>_beam_width_geoshader
+  #define castle_LightSource<Light>Radius castle_LightSource<Light>Radius_geoshader
+  #define castle_LightSource<Light>BeamWidth castle_LightSource<Light>BeamWidth_geoshader
 #endif
 
 #ifdef LIGHT_HAS_RADIUS
-uniform float castle_light_<Light>_radius;
+uniform float castle_LightSource<Light>Radius;
 #endif
 
 #ifdef LIGHT_HAS_BEAM_WIDTH
-uniform float castle_light_<Light>_beam_width;
+uniform float castle_LightSource<Light>BeamWidth;
 #endif
 
 void PLUG_add_light_contribution_side(inout vec4 color,
@@ -54,8 +54,8 @@ void PLUG_add_light_contribution_side(inout vec4 color,
   /* calculate spot following VRML 2.0/X3D idea of beamWidth */
   float cutOffAngle = radians(gl_LightSource[<Light>].spotCutoff);
   scale *= clamp(
-    (                     acos(spot_cos) - cutOffAngle) /
-    (castle_light_<Light>_beam_width - cutOffAngle),
+    (                    acos(spot_cos) - cutOffAngle) /
+    (castle_LightSource<Light>BeamWidth - cutOffAngle),
     0.0, 1.0);
 #endif
 
@@ -73,7 +73,7 @@ void PLUG_add_light_contribution_side(inout vec4 color,
 #endif
 
 #ifdef LIGHT_HAS_RADIUS
-  if (distance_to_light >= castle_light_<Light>_radius)
+  if (distance_to_light >= castle_LightSource<Light>Radius)
     scale = 0.0;
 #endif
 

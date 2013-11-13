@@ -646,7 +646,7 @@ begin
          TSpotLightNode(Node).FdCutOffAngle.Value then
       begin
         Define(ldHasBeamWidth);
-        LightUniformName1 := 'castle_light_%d_beam_width';
+        LightUniformName1 := 'castle_LightSource%dBeamWidth';
         LightUniformValue1 := TSpotLightNode(Node).FdBeamWidth.Value;
         Hash.AddFloat(LightUniformValue1);
       end;
@@ -662,7 +662,7 @@ begin
       (Shader.ShapeBoundingBox.PointMaxDistance(Light^.Location, -1) > Light^.Radius) then
     begin
       Define(ldHasRadius);
-      LightUniformName2 := 'castle_light_%d_radius';
+      LightUniformName2 := 'castle_LightSource%dRadius';
       LightUniformValue2 := Light^.Radius;
       { Uniform value comes from this Node's property,
         so this cannot be shared with other light nodes,
@@ -714,7 +714,8 @@ begin
     TemplateLight := StringReplace(TemplateLight,
       '<Light>', IntToStr(Number), [rfReplaceAll]);
 
-    FCode[{$ifdef OpenGLES} stVertex {$else} stFragment {$endif}].Add(DefinesStr + TemplateLight);
+    FCode[{$ifdef OpenGLES} stVertex {$else} stFragment {$endif}].
+      Add(DefinesStr + TemplateLight);
 
     if Node <> nil then
       Shader.EnableEffects(Node.FdEffects, FCode);

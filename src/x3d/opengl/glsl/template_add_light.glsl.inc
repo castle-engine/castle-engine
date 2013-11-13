@@ -5,16 +5,16 @@
 '/* TODO: use this, i.e. define PLUG_geometry_vertex_*' + LineEnding +
 '   for every light source to pass these */' + LineEnding +
 '#ifdef HAS_GEOMETRY_SHADER' + LineEnding +
-'  #define castle_light_<Light>_radius castle_light_<Light>_radius_geoshader' + LineEnding +
-'  #define castle_light_<Light>_beam_width castle_light_<Light>_beam_width_geoshader' + LineEnding +
+'  #define castle_LightSource<Light>Radius castle_LightSource<Light>Radius_geoshader' + LineEnding +
+'  #define castle_LightSource<Light>BeamWidth castle_LightSource<Light>BeamWidth_geoshader' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '#ifdef LIGHT_HAS_RADIUS' + LineEnding +
-'uniform float castle_light_<Light>_radius;' + LineEnding +
+'uniform float castle_LightSource<Light>Radius;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '#ifdef LIGHT_HAS_BEAM_WIDTH' + LineEnding +
-'uniform float castle_light_<Light>_beam_width;' + LineEnding +
+'uniform float castle_LightSource<Light>BeamWidth;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 'void PLUG_add_light_contribution_side(inout vec4 color,' + LineEnding +
@@ -56,8 +56,8 @@
 '  /* calculate spot following VRML 2.0/X3D idea of beamWidth */' + LineEnding +
 '  float cutOffAngle = radians(gl_LightSource[<Light>].spotCutoff);' + LineEnding +
 '  scale *= clamp(' + LineEnding +
-'    (                     acos(spot_cos) - cutOffAngle) /' + LineEnding +
-'    (castle_light_<Light>_beam_width - cutOffAngle),' + LineEnding +
+'    (                    acos(spot_cos) - cutOffAngle) /' + LineEnding +
+'    (castle_LightSource<Light>BeamWidth - cutOffAngle),' + LineEnding +
 '    0.0, 1.0);' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
@@ -75,7 +75,7 @@
 '#endif' + LineEnding +
 '' + LineEnding +
 '#ifdef LIGHT_HAS_RADIUS' + LineEnding +
-'  if (distance_to_light >= castle_light_<Light>_radius)' + LineEnding +
+'  if (distance_to_light >= castle_LightSource<Light>Radius)' + LineEnding +
 '    scale = 0.0;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
