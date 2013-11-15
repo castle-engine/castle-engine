@@ -314,6 +314,9 @@ unit CastleWindow;
     - And usually you should compile programs only using Lazarus
       (IDE or lazbuild), to automatically have correct LCL paths used.
 
+  CASTLE_WINDOW_ANDROID
+    Initialize OpenGL context using EGL on Android.
+
   CASTLE_WINDOW_TEMPLATE
     This is a special dummy backend, useful only as an example
     for programmers that want to implement another CastleWindow backend
@@ -329,7 +332,11 @@ unit CastleWindow;
   backend. }
 {$ifdef CASTLE_WINDOW_BEST_NOGUI}
   {$ifdef UNIX}
-    {$define CASTLE_WINDOW_XLIB}
+    {$ifdef ANDROID}
+      {$define CASTLE_WINDOW_ANDROID}
+    {$else}
+      {$define CASTLE_WINDOW_XLIB}
+    {$endif}
   {$else}
     {$ifdef MSWINDOWS}
       {$define CASTLE_WINDOW_WINAPI}
@@ -357,20 +364,24 @@ unit CastleWindow;
        { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
      {$endif}
      {$ifdef UNIX}
-       {$ifdef DARWIN}
-         {$define CASTLE_WINDOW_XLIB} // easiest to compile
-         { $define CASTLE_WINDOW_LCL} // best (looks native and most functional) on Mac OS X, but requires LCL
-         { $define CASTLE_WINDOW_GTK_2}
-         { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
+       {$ifdef ANDROID}
+         {$define CASTLE_WINDOW_ANDROID}
        {$else}
-         {$ifndef OpenGLES}
-           {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional) on Unix (except Mac OS X)
+         {$ifdef DARWIN}
+           {$define CASTLE_WINDOW_XLIB} // easiest to compile
+           { $define CASTLE_WINDOW_LCL} // best (looks native and most functional) on Mac OS X, but requires LCL
+           { $define CASTLE_WINDOW_GTK_2}
+           { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
          {$else}
-           {$define CASTLE_WINDOW_XLIB}
+           {$ifndef OpenGLES}
+             {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional) on Unix (except Mac OS X)
+           {$else}
+             {$define CASTLE_WINDOW_XLIB}
+           {$endif}
+           { $define CASTLE_WINDOW_XLIB}
+           { $define CASTLE_WINDOW_LCL}
+           { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
          {$endif}
-         { $define CASTLE_WINDOW_XLIB}
-         { $define CASTLE_WINDOW_LCL}
-         { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
        {$endif}
      {$endif}
 

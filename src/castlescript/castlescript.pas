@@ -928,7 +928,9 @@ uses CastleScriptCoreFunctions, CastleWarnings;
 
   Also 2.3.1 (current trunk on 2009-03-03) still has it...
   It's easier to just define it always, for now. }
-{$define WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
+{$ifndef ANDROID}
+  {$define WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
+{$endif}
 
 { TCasScriptExpression ------------------------------------------------------- }
 

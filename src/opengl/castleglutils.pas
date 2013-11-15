@@ -730,7 +730,7 @@ begin
   ARB_shadow := Load_GL_ARB_shadow;
   EXT_fog_coord := Load_GL_EXT_fog_coord;
   NV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
-  
+
   { We want to be able to render any scene --- so we have to be prepared
     that fog interpolation has to be corrected for perspective.
     TODO: this should be moved elsewhere, but where? }
@@ -1909,6 +1909,7 @@ end;
 initialization
   OnGLContextClose.Add(@ContextClose);
 
+  {$ifndef ANDROID}
   { This Set8087CW is actually not needed, because FPC GL units,
     since version 2.2.2, already do this, for all necessary platforms,
     thanks to Michalis bug reports :) See
@@ -1951,6 +1952,7 @@ initialization
     implementation that doesn't require caller to disable fp exceptions?
   }
   Set8087CW($133F);
+  {$endif}
 finalization
   FreeAndNil(GLFeatures);
 end.

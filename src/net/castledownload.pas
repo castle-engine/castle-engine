@@ -16,9 +16,12 @@
 { Download URLs. }
 unit CastleDownload;
 
+{$define HAS_FP_HTTP_CLIENT}
+{$ifdef ANDROID} {$undef HAS_FP_HTTP_CLIENT} {$endif}
+
 interface
 
-uses SysUtils, Classes, FpHttpClient;
+uses SysUtils, Classes {$ifdef HAS_FP_HTTP_CLIENT}, FpHttpClient {$endif};
 
 const
   DefaultEnableNetwork = false;
@@ -123,6 +126,8 @@ end;
 
 { TCastleHTTPClient ---------------------------------------------------------- }
 
+{$ifdef HAS_FP_HTTP_CLIENT}
+
 type
   { HTTP client. In addition to TFPHTTPClient, it handles a progress bar
     initialization and finalization. }
@@ -208,7 +213,11 @@ begin
   inherited;
 end;
 
+{$endif HAS_FP_HTTP_CLIENT}
+
 { Global functions ----------------------------------------------------------- }
+
+{$ifdef HAS_FP_HTTP_CLIENT}
 
 { Just like Download, but
   - Assumes that the URL is from the network (this prevents network URLs
@@ -289,6 +298,8 @@ begin
   end;
 end;
 
+{$endif HAS_FP_HTTP_CLIENT}
+
 { Load FileName to TMemoryStream. }
 function CreateMemoryStream(const FileName: string): TMemoryStream;
 begin
@@ -334,6 +345,7 @@ const
 begin
   P := URIProtocol(URL);
 
+  {$ifdef HAS_FP_HTTP_CLIENT}
   { network protocols: get data into a new TMemoryStream using FpHttpClient }
   if EnableNetwork and (P = 'http') then
   begin
@@ -357,6 +369,7 @@ begin
       FreeAndNil(NetworkResult); raise;
     end;
   end else
+  {$endif HAS_FP_HTTP_CLIENT}
 
   { local filenames are directly handled, without the need for any downloader }
   if (P = '') or (P = 'file') then

@@ -30,6 +30,10 @@
   {$I castlewindow_lcl.inc}
 {$endif}
 
+{$ifdef CASTLE_WINDOW_ANDROID}
+  {$I castlewindow_android.inc}
+{$endif}
+
 {$ifdef CASTLE_WINDOW_TEMPLATE}
   {$I castlewindow_backend_template.inc}
 {$endif}
