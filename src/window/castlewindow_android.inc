@@ -22,9 +22,16 @@
 {$endif}
 
 {$ifdef read_window_interface}
+public
+  { AnroidXxx functions are called by Android activity from Java. }
+  procedure AndroidDraw;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
+private
+  FScreenWidth, FScreenHeight: Integer;
+public
+  procedure AndroidInit(const AWidth, AHeight: Integer);
 {$endif read_application_interface}
 
 {$ifdef read_implementation_uses}
@@ -172,6 +179,11 @@ begin
   SimpleSetFullScreen(Value);
 end;
 
+procedure TCastleWindowBase.AndroidDraw;
+begin
+  DoDraw;
+end;
+
 { TCastleApplication ---------------------------------------------------------- }
 
 procedure TCastleApplication.CreateBackend;
@@ -213,16 +225,20 @@ begin
   { TODO }
 end;
 
+procedure TCastleApplication.AndroidInit(const AWidth, AHeight: Integer);
+begin
+  FScreenWidth := AWidth;
+  FScreenHeight := AHeight;
+end;
+
 function TCastleApplication.ScreenWidth: integer;
 begin
-  { TODO }
-  Result := 200;
+  Result := FScreenWidth;
 end;
 
 function TCastleApplication.ScreenHeight: integer;
 begin
-  { TODO }
-  Result := 200;
+  Result := FScreenHeight;
 end;
 
 function TCastleApplication.BackendName: string;
