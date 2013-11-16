@@ -85,6 +85,7 @@
   (under Debian, install libegl1-mesa-dev and libgles2-mesa-dev).
   Put "CastleGL" in uses clause to include the appropriate OpenGL API. }
 { $define OpenGLES}
+{$ifdef ANDROID} {$define OpenGLES} {$endif}
 {$ifdef OpenGLES}
   {$define CastleGL := GLES20}
   {$define GLImageUseShaders}
