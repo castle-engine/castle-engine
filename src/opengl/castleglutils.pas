@@ -1908,51 +1908,6 @@ end;
 
 initialization
   OnGLContextClose.Add(@ContextClose);
-
-  {$ifndef ANDROID}
-  { This Set8087CW is actually not needed, because FPC GL units,
-    since version 2.2.2, already do this, for all necessary platforms,
-    thanks to Michalis bug reports :) See
-    - http://www.freepascal.org/mantis/view.php?id=5914
-    - http://www.freepascal.org/mantis/view.php?id=7570
-    - http://bugs.freepascal.org/view.php?id=10507
-
-    The purpose of this Set8087CW is to mask (filter out, ignore)
-    all floating point exceptions.
-    This sucks, but it's the fault of OpenGL implementations and we can't
-    do anything about it:
-
-    - Windows:
-
-      In GLUT faq we can read explanation: this is because Microsoft's
-      OpenGL implementations can raise FPU exceptions doing floating
-      point operations.
-      Microsoft compilers, like Visual C++, by default ignore FPU
-      exceptions so nothing needs to be done when you compile programs
-      in Visual C++. But Borland's compilers (at least Delphi and
-      C++Builder) and FPC don't mask FPU exceptions - by default, they convert
-      them to normal C++/Pascal exceptions. So one should explicitly mask
-      FPU exceptions before using any OpenGL routine under Windows.
-
-    - Linux:
-
-      Radeon open-source OpenGL driver may cause EDivByZero exceptions.
-      Reported by Daniel Mantione with Radeon Mobility M7,
-      EDivByZero was raised by glCallList inside TCastleScene (not used there
-      anymore).
-      Disabling fp exceptions fixed the problem.
-
-      NVidia proprietary drivers exit with EDivByZero on the first
-      glXMakeCurrent call (done also by glut in first glutCreateWindow,
-      done also by GTK glarea in first gtk_glarea_make_current)
-      when no depth buffer was requested.
-
-    Mesa3d doesn't cause such problems.
-    So maybe it's possible to make an efficient OpenGL
-    implementation that doesn't require caller to disable fp exceptions?
-  }
-  Set8087CW($133F);
-  {$endif}
 finalization
   FreeAndNil(GLFeatures);
 end.
