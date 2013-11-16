@@ -1,3 +1,8 @@
+{$ifdef read_implementation_uses}
+CastleMessages,
+{$endif}
+
+{$ifdef read_implementation}
 function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 begin
@@ -31,3 +36,4 @@ begin
   if not (Self is TCastleWindowCustom) then Exit;
   Result := CastleMessages.MessageYesNo(Self as TCastleWindowCustom, S);
 end;
+{$endif read_implementation}

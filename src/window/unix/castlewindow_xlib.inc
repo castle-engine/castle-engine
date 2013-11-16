@@ -16,6 +16,8 @@
 { CastleWindow backend using Xlib
   and glX (for desktop OpenGL) or EGL (for OpenGL ES). }
 
+{$I castlewindow_dialogs_by_messages.inc}
+
 {$ifdef OpenGLES}
   {$I castlewindow_egl.inc}
 {$else}
@@ -24,10 +26,6 @@
 
 {$ifdef read_interface_uses}
 Xlib, CastleXlib, XUtil, X, KeySym, CursorFont,
-{$endif}
-
-{$ifdef read_implementation_uses}
-CastleMessages,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -116,8 +114,6 @@ const
     KeyPressMask or KeyReleaseMask {key events} or
     ButtonPressMask or ButtonReleaseMask or PointerMotionMask {mouse events} or
     FocusChangeMask;
-
-{$I castlewindow_dialogs_by_messages.inc}
 
 { TCastleWindowBase --------------------------------------------------------  }
 

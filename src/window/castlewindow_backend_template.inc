@@ -170,20 +170,20 @@ end;
 { TCastleWindowBase dialogs ---------------------------------------------------------- }
 
 { Methods below should make native-looking dialog boxes.
-  Alternatively, you can include castlewindow_dialogs_by_messages.inc,
-  to have simple dialog boxes drawn on OpenGL context using our CastleMessages
-  unit. }
-{ $I castlewindow_dialogs_by_messages.inc}
+  Alternatively, you can include castlewindow_dialogs_by_messages.inc
+  (outside of $ifdef read_implementation, usually at the beginning of
+  castlewindow_xxx.inc file), to have simple dialog boxes drawn on
+  OpenGL context using our CastleMessages unit. }
 
 function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 begin
-  { TODO }
+  { TODO } Result := false;
 end;
 
 function TCastleWindowBase.ColorDialog(var Color: TVector3Single): boolean;
 begin
-  { TODO }
+  { TODO } Result := false;
 end;
 
 procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
@@ -194,7 +194,7 @@ end;
 function TCastleWindowBase.MessageYesNo(const S: string;
   const MessageType: TWindowMessageType): boolean;
 begin
-  { TODO }
+  { TODO } Result := true;
 end;
 
 { TCastleApplication ---------------------------------------------------------- }
@@ -212,12 +212,12 @@ end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 begin
-  { TODO }
+  Result := { TODO: should we continue? (no quit requested) } true;
 end;
 
 function TCastleApplication.ProcessAllMessages: boolean;
 begin
-  { TODO }
+  Result := { TODO: should we continue? (no quit requested) } true;
 end;
 
 procedure TCastleApplication.Run;
@@ -239,11 +239,13 @@ end;
 function TCastleApplication.ScreenWidth: integer;
 begin
   { TODO }
+  Result := 200;
 end;
 
 function TCastleApplication.ScreenHeight: integer;
 begin
   { TODO }
+  Result := 200;
 end;
 
 function TCastleApplication.BackendName: string;
