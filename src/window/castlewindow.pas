@@ -356,35 +356,37 @@ unit CastleWindow;
   {$ifndef CASTLE_WINDOW_GTK_2}
    {$ifndef CASTLE_WINDOW_TEMPLATE}
     {$ifndef CASTLE_WINDOW_LCL}
+     {$ifndef CASTLE_WINDOW_ANDROID}
 
-     {$ifdef MSWINDOWS}
-       {$define CASTLE_WINDOW_WINAPI} // best (looks native and most functional) on Windows
-       { $define CASTLE_WINDOW_GTK_2}
-       { $define CASTLE_WINDOW_LCL}
-       { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
-     {$endif}
-     {$ifdef UNIX}
-       {$ifdef ANDROID}
-         {$define CASTLE_WINDOW_ANDROID}
-       {$else}
-         {$ifdef DARWIN}
-           {$define CASTLE_WINDOW_XLIB} // easiest to compile
-           { $define CASTLE_WINDOW_LCL} // best (looks native and most functional) on Mac OS X, but requires LCL
-           { $define CASTLE_WINDOW_GTK_2}
-           { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
-         {$else}
-           {$ifndef OpenGLES}
-             {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional) on Unix (except Mac OS X)
-           {$else}
-             {$define CASTLE_WINDOW_XLIB}
-           {$endif}
-           { $define CASTLE_WINDOW_XLIB}
-           { $define CASTLE_WINDOW_LCL}
-           { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
-         {$endif}
-       {$endif}
-     {$endif}
+      {$ifdef MSWINDOWS}
+        {$define CASTLE_WINDOW_WINAPI} // best (looks native and most functional) on Windows
+        { $define CASTLE_WINDOW_GTK_2}
+        { $define CASTLE_WINDOW_LCL}
+        { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
+      {$endif}
+      {$ifdef UNIX}
+        {$ifdef ANDROID}
+          {$define CASTLE_WINDOW_ANDROID}
+        {$else}
+          {$ifdef DARWIN}
+            {$define CASTLE_WINDOW_XLIB} // easiest to compile
+            { $define CASTLE_WINDOW_LCL} // best (looks native and most functional) on Mac OS X, but requires LCL
+            { $define CASTLE_WINDOW_GTK_2}
+            { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
+          {$else}
+            {$ifndef OpenGLES}
+              {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional) on Unix (except Mac OS X)
+            {$else}
+              {$define CASTLE_WINDOW_XLIB}
+            {$endif}
+            { $define CASTLE_WINDOW_XLIB}
+            { $define CASTLE_WINDOW_LCL}
+            { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
+          {$endif}
+        {$endif}
+      {$endif}
 
+     {$endif}
     {$endif}
    {$endif}
   {$endif}
@@ -2842,8 +2844,6 @@ function KeyString(const CharKey: char; const Key: TKey; const Modifiers: TModif
 implementation
 
 uses CastleParameters, CastleLog, CastleGLVersion, CastleURIUtils,
-  { Using here CastleWindowModes / CastleMessages makes recursive
-    CastleWindow usage, but it's needed for dialogs.  }
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
   {$undef read_implementation_uses}
