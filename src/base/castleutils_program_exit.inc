@@ -58,14 +58,14 @@ type
     is good enough, and showing exception class is not needed. }
   EWithHiddenClassName = class(Exception);
 
-{ Nice exception description. Contains ApplicationName, exception ClassName
+{ Nice exception description. Contains exception ClassName
   (if not descends from EWithHiddenClassName), exception Message (if
-  descends from Exception), and ExceptAddr (and not-nil, and this is compiled
+  descends from Exception), and ExceptAddr (if not @nil, and code is compiled
   with -dDEBUG), and BonusErrorMesssg. }
 function ExceptMessage(E: TObject; ExceptAddr: Pointer = nil): string; overload;
 
 { Show nice exception description on console or (for GUI Windows programs)
-  by a message box. Equivalent to ErrorWrite(ExceptMessage(E)). }
+  by a message box. }
 procedure OutputException(E: TObject; ExceptAddr: Pointer = nil); overload;
 
 { If Value then Halt(0), else Halt(1).
@@ -125,52 +125,51 @@ procedure ProgramBreak(AHaltCode: Integer = 0); overload;
 {$ifdef read_implementation}
 
 function ExceptMessage(E: TObject; ExceptAddr: Pointer): string;
-var Message, NiceMessage: string;
+var
+  Message, NiceMessage: string;
 begin
- if E is Exception then
- begin
-  Message := Exception(E).Message;
-
-  if E is EInOutError then
+  if E is Exception then
   begin
-   { jezeli wyjatek to EInOutError to zamien [...] nazwy bledow
-     "IO Error xxx" na troche lepsze. }
-   case EInOutError(E).ErrorCode of
-    1..99: NiceMessage := SysErrorMessage(EInOutError(E).ErrorCode);
-    100: NiceMessage := 'End of File';
-    101: NiceMessage := 'Disk Full';
-    102: NiceMessage := 'File variable not assigned';
-    103: NiceMessage := 'File not open';
-    104: NiceMessage := 'File not open for input';
-    105: NiceMessage := 'File not open for output';
-    106: NiceMessage := 'Error in formatted input';
-    107: NiceMessage := 'File already open';
-    else NiceMessage := '';
-   end;
-   if NiceMessage<>'' then Message := Message +' (' +NiceMessage +')';
+    Message := Exception(E).Message;
+
+    if E is EInOutError then
+    begin
+      { EInOutError message text can be improved }
+      case EInOutError(E).ErrorCode of
+        1..99: NiceMessage := SysErrorMessage(EInOutError(E).ErrorCode);
+        100: NiceMessage := 'End of File';
+        101: NiceMessage := 'Disk Full';
+        102: NiceMessage := 'File variable not assigned';
+        103: NiceMessage := 'File not open';
+        104: NiceMessage := 'File not open for input';
+        105: NiceMessage := 'File not open for output';
+        106: NiceMessage := 'Error in formatted input';
+        107: NiceMessage := 'File already open';
+        else NiceMessage := '';
+      end;
+      if NiceMessage <> '' then Message := Message +' (' +NiceMessage +')';
+    end;
+
+  end else
+    Message := '';
+
+  if (E is EWithHiddenClassName) and (Message <> '') then
+    result := Message else
+  begin
+    result := 'Exception ' +E.ClassName;
+    {$ifdef DEBUG}
+    if ExceptAddr <> nil then
+      result := result +' (at address ' + PointerToStr(ExceptAddr) + ')';
+    {$endif}
+    if Message <> '' then result := result +' : ' +nl +Message;
   end;
 
- end else
-  Message := '';
-
- if (E is EWithHiddenClassName) and (Message<>'') then
-  result := ApplicationName +': ' +Message else
- begin
-  result := ApplicationName +': Exception ' +E.ClassName;
-  {$ifdef DEBUG}
-  if ExceptAddr<>nil then
-   result := result +' (at address ' + PointerToStr(ExceptAddr) + ')';
-  {$endif}
-  if Message<>'' then result := result +' : ' +nl +Message;
- end;
-
- if BonusErrorMessg<>'' then result := result +nl +BonusErrorMessg;
+  if BonusErrorMessg <> '' then result := result +nl +BonusErrorMessg;
 end;
 
 procedure OutputException(E: TObject; ExceptAddr: Pointer);
 begin
- ErrorWrite(ExceptMessage(E, ExceptAddr));
- { zeby wyswietlic tu message tak jak Delphi/Kylix : ShowException(E, nil) }
+  ErrorWrite(ApplicationName + ': ' + ExceptMessage(E, ExceptAddr));
 end;
 
 procedure HaltBool(Value: boolean);

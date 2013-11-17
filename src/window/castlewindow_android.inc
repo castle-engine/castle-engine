@@ -25,6 +25,7 @@
 public
   { AnroidXxx functions are called by Android activity from Java. }
   procedure AndroidDraw;
+  procedure AndroidResize(const AWidth, AHeight: Integer);
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -182,6 +183,11 @@ end;
 procedure TCastleWindowBase.AndroidDraw;
 begin
   DoDraw;
+end;
+
+procedure TCastleWindowBase.AndroidResize(const AWidth, AHeight: Integer);
+begin
+  DoResize(AWidth, AHeight, false);
 end;
 
 { TCastleApplication ---------------------------------------------------------- }

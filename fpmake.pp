@@ -22,7 +22,7 @@ begin
     { Actually, may work on at least
         P.OSes := AllUnixOSes + [win32, win64];
       OSes below are actually tested. }
-    P.OSes := [darwin, linux, freebsd, win32];
+    P.OSes := [darwin, linux, freebsd, win32, android];
 
     P.Options {$ifndef VER2_2} .Text {$endif} := '@castle-fpc.cfg';
 
@@ -120,6 +120,12 @@ begin
     P.Targets.AddUnit('castlegenericlists.pas');
     P.Targets.AddUnit('castleprogressconsole.pas');
     P.Targets.AddUnit('castlerecentfiles.pas');
+
+    if Defaults.OS = Android then
+    begin
+      P.SourcePath.Add('src' + PathDelim + 'base' + PathDelim + 'android');
+      P.Targets.AddUnit('castleandroidlog.pas');
+    end;
 
     P.SourcePath.Add('src' + PathDelim + 'castlescript');
     P.Targets.AddUnit('castlescript.pas');
