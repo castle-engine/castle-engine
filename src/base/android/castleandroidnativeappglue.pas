@@ -401,7 +401,7 @@ begin
         APP_CMD_PAUSE,
         APP_CMD_STOP:
             begin
-               AndroidLog(alInfo,'activityState:=%d', [cmd]);
+               // AndroidLog(alInfo,'activityState:=%d', [cmd]);
                pthread_mutex_lock(@android_app^.mutex);
                android_app^.activityState := cmd;
                pthread_cond_broadcast(@android_app^.cond);
@@ -451,7 +451,7 @@ end;
 
 procedure android_app_destroy(android_app: Pandroid_app);
 begin
-    AndroidLog(alInfo,'android_app_destroy');
+    AndroidLog(alInfo, 'android_app_destroy');
     free_saved_state(android_app);
     pthread_mutex_lock(@android_app^.mutex);
     if (android_app^.inputQueue <> nil) then
@@ -470,7 +470,7 @@ begin
     event := nil;
     if (AInputQueue_getEvent(app^.inputQueue, @event) >= 0) then
     begin
-        AndroidLog(alInfo,'New input event: type:=%d',[AInputEvent_getType(event)]);
+        // AndroidLog(alInfo,'New input event: type:=%d',[AInputEvent_getType(event)]);
         if AInputQueue_preDispatchEvent(app^.inputQueue, event) <> 0 then exit;
         handled := 0;
         if (app^.onInputEvent <> nil) then handled := app^.onInputEvent(app, event);
@@ -550,7 +550,7 @@ begin
     end;
 
     if FpPipe(msgpipe) <> 0 then
-        AndroidLog(alError,'Could not create pipe');
+        AndroidLog(alError, 'Could not create pipe');
 
     android_app^.msgread := msgpipe[0];
     android_app^.msgwrite := msgpipe[1];
@@ -571,7 +571,7 @@ end;
 procedure android_app_write_cmd(android_app: Pandroid_app; cmd: cint8);
 begin
     if fpwrite(android_app^.msgwrite, cmd, sizeof(cmd)) <> sizeof(cmd) then
-        AndroidLog(alError,'Failure writing android_app cmd');
+        AndroidLog(alError, 'Failure writing android_app cmd');
 end;
 
 procedure android_app_set_input(android_app: Pandroid_app; inputQueue: PAInputQueue);
@@ -602,7 +602,7 @@ end;
 
 procedure android_app_set_activity_state(android_app: Pandroid_app; cmd: cint8);
 begin
-    AndroidLog(alInfo,' Setting activity state');
+    // AndroidLog(alInfo,' Setting activity state to %d', [cmd]);
     pthread_mutex_lock(@android_app^.mutex);
     android_app_write_cmd(android_app, cmd);
     while (android_app^.activityState <> cmd) do
@@ -629,19 +629,19 @@ end;
 
 procedure onDestroy(activity: PANativeActivity); cdecl;
 begin
-    AndroidLog(alInfo,'Destroy activity');
+    AndroidLog(alInfo, 'Destroy activity');
     android_app_free(Pandroid_app(activity^.instance));
 end;
 
 procedure onStart(activity: PANativeActivity); cdecl;
 begin
-    AndroidLog(alInfo,'Start activity');
+    AndroidLog(alInfo, 'Start activity');
     android_app_set_activity_state(Pandroid_app(activity^.instance), APP_CMD_START);
 end;
 
 procedure onResume(activity: PANativeActivity); cdecl;
 begin
-    AndroidLog(alInfo,'Resume activity');
+    AndroidLog(alInfo, 'Resume activity');
     android_app_set_activity_state(Pandroid_app(activity^.instance), APP_CMD_RESUME);
 end;
 
@@ -652,7 +652,7 @@ begin
     android_app := activity^.instance;
     savedState := nil;
 
-    AndroidLog(alInfo,'SaveInstanceState activity');
+    AndroidLog(alInfo, 'SaveInstanceState activity');
     pthread_mutex_lock(@android_app^.mutex);
     android_app^.stateSaved := 0;
     android_app_write_cmd(android_app, APP_CMD_SAVE_STATE);
@@ -674,13 +674,13 @@ end;
 
 procedure onPause(activity: PANativeActivity); cdecl;
 begin
-    AndroidLog(alInfo,'Pause activity');
+    AndroidLog(alInfo, 'Pause activity');
     android_app_set_activity_state(Pandroid_app(activity^.instance), APP_CMD_PAUSE);
 end;
 
 procedure onStop(activity: PANativeActivity); cdecl;
 begin
-    AndroidLog(alInfo,'Stop activity');
+    AndroidLog(alInfo, 'Stop activity');
     android_app_set_activity_state(Pandroid_app(activity^.instance), APP_CMD_STOP);
 end;
 
@@ -688,7 +688,7 @@ procedure onConfigurationChanged(activity: PANativeActivity); cdecl;
 var android_app: Pandroid_app;
 begin
     android_app := activity^.instance;
-    AndroidLog(alInfo,'ConfigurationChanged activity');
+    AndroidLog(alInfo, 'ConfigurationChanged activity');
     android_app_write_cmd(android_app, APP_CMD_CONFIG_CHANGED);
 end;
 
@@ -696,13 +696,13 @@ procedure onLowMemory(activity: PANativeActivity); cdecl;
 var android_app: Pandroid_app;
 begin
     android_app := activity^.instance;
-    AndroidLog(alInfo,'LowMemory activity');
+    AndroidLog(alInfo, 'LowMemory activity');
     android_app_write_cmd(android_app, APP_CMD_LOW_MEMORY);
 end;
 
 procedure onWindowFocusChanged(activity: PANativeActivity; focused: cint); cdecl;
 begin
-    AndroidLog(alInfo,'WindowFocusChanged');
+    AndroidLog(alInfo, 'WindowFocusChanged');
 
     if focused <> 0 then
        android_app_write_cmd(activity^.instance, APP_CMD_GAINED_FOCUS)
@@ -712,32 +712,32 @@ end;
 
 procedure onNativeWindowCreated(activity: PANativeActivity; window: PANativeWindow); cdecl;
 begin
-    AndroidLog(alInfo,'NativeWindowCreated');
+    AndroidLog(alInfo, 'NativeWindowCreated');
     android_app_set_window(activity^.instance, window);
 end;
 
 procedure onNativeWindowDestroyed(activity: PANativeActivity; window: PANativeWindow); cdecl;
 begin
-    AndroidLog(alInfo,'NativeWindowDestroyed');
+    AndroidLog(alInfo, 'NativeWindowDestroyed');
     android_app_set_window(activity^.instance, nil);
 end;
 
 procedure onInputQueueCreated(activity: PANativeActivity; queue: PAInputQueue); cdecl;
 begin
-    AndroidLog(alInfo,'InputQueueCreated');
+    AndroidLog(alInfo, 'InputQueueCreated');
     android_app_set_input(activity^.instance, queue);
 end;
 
 procedure onInputQueueDestroyed(activity: PANativeActivity; queue: PAInputQueue); cdecl;
 begin
-    AndroidLog(alInfo,'InputQueueDestroyed');
+    AndroidLog(alInfo, 'InputQueueDestroyed');
     android_app_set_input(activity^.instance, nil);
 end;
 
 procedure ANativeActivity_onCreate(activity: PANativeActivity; savedState: Pointer; savedStateSize: csize_t); cdecl;
 begin
   try
-    AndroidLog(alInfo,'Creating activity');
+    AndroidLog(alInfo, 'Creating activity');
 
     activity^.callbacks^.onDestroy := @onDestroy;
     activity^.callbacks^.onStart := @onStart;
@@ -762,4 +762,3 @@ begin
 end;
 
 end.
-
