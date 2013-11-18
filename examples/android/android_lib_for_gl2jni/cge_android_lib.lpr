@@ -1,12 +1,13 @@
 { -*- compile-command: "sh compile.sh" -*- }
-library castleengine;
+library cge_android_lib;
 
-uses Math, JNI, CTypes, SysUtils, CastleStringUtils, CastleGLUtils, CastleWindow,
+uses CMem, // TODO: CMem is possibly *not* needed here, only used by CastleAndroidNativeAppGlue
+  Math, JNI, CTypes, SysUtils, CastleStringUtils, CastleGLUtils, CastleWindow,
   CastleUIControls, CastleVectors, CastleControls, CastleOnScreenMenu,
   CastleControlsImages, CastleImages, CastleFilesUtils, CastleColors,
   CastleRectangles, CastleAndroidLog, CastleUtils, CastleAndroidNativeActivity,
   CastleAndroidNativeWindow, CastleAndroidRect, CastleAndroidNativeAppGlue,
-  CastleAndroidInput, CastleAndroidLooper;
+  CastleAndroidInput, CastleAndroidLooper, CastleKeysMouse;
 
 { We will only compile this for Android, so all exports are always cdecl. }
 {$define jniexport := cdecl}
@@ -118,16 +119,22 @@ begin
 end;
 
 function HandleInput(App: PAndroid_app; Event: PAInputEvent): CInt; cdecl;
+var
+  MotionAction, MotionIndex, MotionX, MotionY: CInt;
 begin
   Result := 0;
-  {
-  if AInputEvent_getType(event) = AINPUT_EVENT_TYPE_MOTION then
+  if AInputEvent_getType(Event) = AINPUT_EVENT_TYPE_MOTION then
   begin
-    AMotionEvent_getX(event, 0);
-    AMotionEvent_getY(event, 0);
-    Result := true;
+    MotionAction := AMotionEvent_getAction(Event) and AMOTION_EVENT_ACTION_MASK;
+    // MotionIndex := AMotionEvent_getAction(Event) shr AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+    MotionX := Round(AMotionEvent_getX(event, 0));
+    MotionY := Round(AMotionEvent_getY(event, 0));
+    case MotionAction of
+      AMOTION_EVENT_ACTION_DOWN: begin Window.AndroidMouseDown(MotionX, MotionY, mbLeft); Result := 1; end;
+      AMOTION_EVENT_ACTION_UP  : begin Window.AndroidMouseUp(MotionX, MotionY, mbLeft);   Result := 1; end;
+      AMOTION_EVENT_ACTION_MOVE: begin Window.AndroidMouseMove(MotionX, MotionY);         Result := 1; end;
+    end;
   end;
-  }
 end;
 
 procedure android_main(App: Pandroid_app); jniexport;

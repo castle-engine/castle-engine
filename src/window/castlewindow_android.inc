@@ -30,6 +30,9 @@ public
   { AndroidXxx functions are called by library code. }
   procedure AndroidDraw;
   procedure AndroidResize(const AWidth, AHeight: Integer);
+  procedure AndroidMouseDown(const X, Y: Integer; Btn: CastleKeysMouse.TMouseButton);
+  procedure AndroidMouseUp(const X, Y: Integer; Btn: CastleKeysMouse.TMouseButton);
+  procedure AndroidMouseMove(const X, Y: Integer);
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -165,6 +168,21 @@ end;
 procedure TCastleWindowBase.AndroidResize(const AWidth, AHeight: Integer);
 begin
   DoResize(AWidth, AHeight, false);
+end;
+
+procedure TCastleWindowBase.AndroidMouseDown(const X, Y: Integer; Btn: CastleKeysMouse.TMouseButton);
+begin
+  DoMouseDown(X, Y, Btn);
+end;
+
+procedure TCastleWindowBase.AndroidMouseUp(const X, Y: Integer; Btn: CastleKeysMouse.TMouseButton);
+begin
+  DoMouseUp(X, Y, Btn);
+end;
+
+procedure TCastleWindowBase.AndroidMouseMove(const X, Y: Integer);
+begin
+  DoMouseMove(X, Y);
 end;
 
 { TCastleApplication ---------------------------------------------------------- }
