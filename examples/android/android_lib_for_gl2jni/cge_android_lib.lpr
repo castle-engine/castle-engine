@@ -74,6 +74,9 @@ begin
 
   Application.AndroidInit(Width, Height);
 
+  Image.Left := 10;
+  Image.Bottom := Application.ScreenHeight - 300;
+
   //Window.FullScreen := true; // TODO: setting fullscreen should work like that 2 lines below. Also, should be default?
   Window.Width := Width;
   Window.Height := Height;
@@ -94,13 +97,8 @@ begin
   Window.NativeWindow := nil; // make sure to not access the NativeWindow anymore
 end;
 
-procedure Resize;
-var
-  Width, Height: Integer;
+procedure Resize(Width, Height: Integer);
 begin
-  Width := ANativeWindow_getWidth(Window.NativeWindow);
-  Height := ANativeWindow_getHeight(Window.NativeWindow);
-
   AndroidLog(alInfo, 'Resize %d %d', [Width, Height]);
 
   Application.AndroidInit(Width, Height);
@@ -116,7 +114,6 @@ begin
   case Command of
     APP_CMD_INIT_WINDOW: OpenContext(App^.Window);
     APP_CMD_TERM_WINDOW: CloseContext;
-    APP_CMD_WINDOW_RESIZED: Resize;
   end;
 end;
 
@@ -135,40 +132,47 @@ end;
 
 procedure android_main(App: Pandroid_app); jniexport;
 var
-  Ident, Events: Integer;
+  Ident, Events, NewWidth, NewHeight: Integer;
   Source: Pandroid_poll_source;
 begin
   try
-  Initialize;
+    Initialize;
 
-  App^.OnAppCmd := @HandleCommand;
-  App^.OnInputEvent := @HandleInput;
+    App^.OnAppCmd := @HandleCommand;
+    App^.OnInputEvent := @HandleInput;
 
-  while true do
-  begin
-    repeat
-      Ident := ALooper_pollAll(0, nil, @Events, @Source);
-      if Ident < 0 then Break;
-
-      if Source <> nil then
-        Source^.Process(App, Source);
-
-      // Check if we are exiting.
-      if App^.DestroyRequested = 1 then
-      begin
-        CloseContext;
-        Exit;
-      end;
-
-    until false;
-
-    if not Window.Closed then
+    while true do
     begin
-      GLClear([cbColor], Green); // first line on Android that worked :)
-      Window.AndroidDraw;
-    end;
-  end;
+      repeat
+        Ident := ALooper_pollAll(0, nil, @Events, @Source);
+        if Ident < 0 then Break;
 
+        if Source <> nil then
+          Source^.Process(App, Source);
+
+        // Check if we are exiting.
+        if App^.DestroyRequested = 1 then
+        begin
+          CloseContext;
+          Exit;
+        end;
+
+      until false;
+
+      if not Window.Closed then
+      begin
+        { check for Resize. As there is no reliable event to capture it
+          (ANativeWindow_getWidth and ANativeWindow_getheight are immediately
+          updated, but for some time EGL sizes stay old) so we just watch
+          for changes, and only fire our "Resize" when really EGL size changed. }
+        Window.QuerySize(NewWidth, NewHeight);
+        if (NewWidth <> Window.Width) or (NewHeight <> Window.Height) then
+          Resize(NewWidth, NewHeight);
+
+        GLClear([cbColor], Green); // first line on Android that worked :)
+        Window.AndroidDraw;
+      end;
+    end;
   except
     on E: TObject do AndroidLog(E);
   end;

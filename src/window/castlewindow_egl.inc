@@ -42,6 +42,9 @@ private
 
   { Destroy context created by ContextCreateBegin + ContextCreateEnd. }
   procedure ContextDestroy;
+public
+  { Query the EGL context what is current size. }
+  procedure QuerySize(out AWidth, AHeight: EGLint);
 {$endif}
 
 {$ifdef read_application_interface}
@@ -150,6 +153,12 @@ end;
 procedure TCastleWindowBase.SwapBuffers;
 begin
   eglSwapBuffers(Display, Surface);
+end;
+
+procedure TCastleWindowBase.QuerySize(out AWidth, AHeight: EGLint);
+begin
+  eglQuerySurface(Display, Surface, EGL_WIDTH, @AWidth);
+  eglQuerySurface(Display, Surface, EGL_HEIGHT, @AHeight);
 end;
 
 {$ifdef CASTLE_WINDOW_XLIB}
