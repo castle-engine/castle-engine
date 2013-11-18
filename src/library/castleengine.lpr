@@ -281,6 +281,6 @@ exports
 begin
   {Do not remove the exception masking lines}
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
-  Set8087CW(Get8087CW or $3f);
+  //Set8087CW(Get8087CW or $3f);
 end.
 

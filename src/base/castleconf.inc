@@ -86,6 +86,7 @@
   Put "CastleGL" in uses clause to include the appropriate OpenGL API. }
 { $define OpenGLES}
 {$ifdef ANDROID} {$define OpenGLES} {$endif}
+{$ifdef IPHONEOS} {$define OpenGLES} {$endif}
 {$ifdef OpenGLES}
   {$define CastleGL := CastleGLES20}
   {$define GLImageUseShaders}
