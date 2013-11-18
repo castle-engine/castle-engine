@@ -5,13 +5,11 @@ uses Math, JNI, CTypes, SysUtils, CastleStringUtils, CastleGLUtils, CastleWindow
   CastleUIControls, CastleVectors, CastleControls, CastleOnScreenMenu,
   CastleControlsImages, CastleImages, CastleFilesUtils, CastleColors,
   CastleRectangles, CastleAndroidLog, CastleUtils, CastleAndroidNativeActivity,
-  CastleAndroidNativeWindow, CastleAndroidRect;
+  CastleAndroidNativeWindow, CastleAndroidRect, CastleAndroidNativeAppGlue,
+  CastleAndroidInput, CastleAndroidLooper;
 
-{$ifdef mswindows}
-  {$define jniexport := stdcall}
-{$else}
-  {$define jniexport := cdecl}
-{$endif}
+{ We will only compile this for Android, so all exports are always cdecl. }
+{$define jniexport := cdecl}
 
 var
   Window: TCastleWindow;
@@ -34,9 +32,6 @@ begin
     Application.ScreenWidth - 100,
     Application.ScreenHeight - 100, 80, 80), Blue);
 end;
-
-{ See http://developer.android.com/reference/android/opengl/GLSurfaceView.Renderer.html
-  for documentation when these methods are called. }
 
 var
   Background: TCastleSimpleBackground;
@@ -67,140 +62,121 @@ begin
   Window.Load('file:///sdcard/kambitest/castle_with_lights_and_camera.wrl');
 end;
 
-procedure OnDestroy(Activity: PANativeActivity); jniexport;
-begin
-  AndroidLog(alInfo, 'Native Acitivity OnDestroy');
-end;
-
-procedure OnStart(Activity: PANativeActivity); jniexport;
-begin
-  AndroidLog(alInfo, 'Native Acitivity OnStart');
-end;
-
-procedure OnStop(Activity: PANativeActivity); jniexport;
-begin
-  AndroidLog(alInfo, 'Native Acitivity OnStop');
-end;
-
-procedure OnPause(Activity: PANativeActivity); jniexport;
-begin
-  AndroidLog(alInfo, 'Native Acitivity OnPause');
-end;
-
-procedure OnResume(Activity: PANativeActivity); jniexport;
-begin
-  AndroidLog(alInfo, 'Native Acitivity OnResume');
-end;
-
-procedure OnNativeWindowCreated(Activity: PANativeActivity; NativeWindow: PANativeWindow); jniexport;
+procedure OpenContext(NativeWindow: PANativeWindow);
 var
   Width, Height: Integer;
 begin
-  try
-    Window.NativeWindow := NativeWindow;
-    Width := ANativeWindow_getWidth(NativeWindow);
-    Height := ANativeWindow_getHeight(NativeWindow);
+  Window.NativeWindow := NativeWindow;
+  Width := ANativeWindow_getWidth(NativeWindow);
+  Height := ANativeWindow_getHeight(NativeWindow);
 
-    AndroidLog(alInfo, 'Native Acitivity OnNativeWindowCreated (%d %d)', [Width, Height]);
+  AndroidLog(alInfo, 'OpenContext (%d %d)', [Width, Height]);
 
-    Application.AndroidInit(Width, Height);
+  Application.AndroidInit(Width, Height);
 
-    //Window.FullScreen := true; // sTODO: setting fullscreen should work like that 2 lines below. Also, should be default?
-    Window.Width := Width;
-    Window.Height := Height;
-    Window.Open;
-  except
-    on E: TObject do AndroidLog(E);
-  end;
+  //Window.FullScreen := true; // TODO: setting fullscreen should work like that 2 lines below. Also, should be default?
+  Window.Width := Width;
+  Window.Height := Height;
+  Window.Open;
 end;
 
-procedure OnNativeWindowDestroyed(Activity: PANativeActivity; NativeWindow: PANativeWindow); jniexport;
+procedure CloseContext;
 begin
-  try
-    AndroidLog(alInfo, 'Native Acitivity OnNativeWindowDestroyed');
+  AndroidLog(alInfo, 'CloseContext');
 
-    { Whenever the context is lost, this is called.
-      It's important that we release all OpenGL resources, to recreate them later
-      (we wil call Window.Open only from onNativeWindowResized, since we don't know
-      the size yet). }
-    if Window <> nil then
-      Window.Close;
+  { Whenever the context is lost, this is called.
+    It's important that we release all OpenGL resources, to recreate them later
+    (we wil call Window.Open only from onNativeWindowResized, since we don't know
+    the size yet). }
+  if Window <> nil then
+    Window.Close;
 
-    Window.NativeWindow := nil; // make sure to not access the NativeWindow anymore
-  except
-    on E: TObject do AndroidLog(E);
-  end;
+  Window.NativeWindow := nil; // make sure to not access the NativeWindow anymore
 end;
 
-procedure Resize(const CallbackName: string);
+procedure Resize;
 var
   Width, Height: Integer;
 begin
-  try
-    Width := ANativeWindow_getWidth(Window.NativeWindow);
-    Height := ANativeWindow_getHeight(Window.NativeWindow);
+  Width := ANativeWindow_getWidth(Window.NativeWindow);
+  Height := ANativeWindow_getHeight(Window.NativeWindow);
 
-    AndroidLog(alInfo, 'Native Activity %s - %d %d', [CallbackName, Width, Height]);
+  AndroidLog(alInfo, 'Resize %d %d', [Width, Height]);
+
+  Application.AndroidInit(Width, Height);
+  if not Window.Closed then
+    Window.AndroidResize(Width, Height);
+
+  Image.Left := 10;
+  Image.Bottom := Application.ScreenHeight - 300;
+end;
+
+procedure HandleCommand(App: PAndroid_app; Command: CInt32); cdecl;
+begin
+  case Command of
+    APP_CMD_INIT_WINDOW: OpenContext(App^.Window);
+    APP_CMD_TERM_WINDOW: CloseContext;
+    APP_CMD_WINDOW_RESIZED: Resize;
+  end;
+end;
+
+function HandleInput(App: PAndroid_app; Event: PAInputEvent): CInt; cdecl;
+begin
+  Result := 0;
+  {
+  if AInputEvent_getType(event) = AINPUT_EVENT_TYPE_MOTION then
+  begin
+    AMotionEvent_getX(event, 0);
+    AMotionEvent_getY(event, 0);
+    Result := true;
+  end;
+  }
+end;
+
+procedure android_main(App: Pandroid_app); jniexport;
+var
+  Ident, Events: Integer;
+  Source: Pandroid_poll_source;
+begin
+  try
+  Initialize;
+
+  App^.OnAppCmd := @HandleCommand;
+  App^.OnInputEvent := @HandleInput;
+
+  while true do
+  begin
+    repeat
+      Ident := ALooper_pollAll(0, nil, @Events, @Source);
+      if Ident < 0 then Break;
+
+      if Source <> nil then
+        Source^.Process(App, Source);
+
+      // Check if we are exiting.
+      if App^.DestroyRequested = 1 then
+      begin
+        CloseContext;
+        Exit;
+      end;
+
+    until false;
 
     if not Window.Closed then
-      Window.AndroidResize(Width, Height);
+    begin
+      GLClear([cbColor], Green); // first line on Android that worked :)
+      Window.AndroidDraw;
+    end;
+  end;
 
-    Image.Left := 10;
-    Image.Bottom := Application.ScreenHeight - 300;
   except
     on E: TObject do AndroidLog(E);
   end;
 end;
 
-{ On some operations we get both OnNativeWindowResized and OnContentRectChanged,
-  on some we get only one of them... For safety, just handle both. }
-
-procedure OnNativeWindowResized(Activity: PANativeActivity; NativeWindow: PANativeWindow); jniexport;
-begin
-  Resize('OnNativeWindowResized');
-end;
-
-procedure OnContentRectChanged(activity: PANativeActivity; Rect: PARect); jniexport;
-begin
-  Resize('OnContentRectChanged');
-end;
-
-procedure OnNativeWindowRedrawNeeded(Activity: PANativeActivity; NativeWindow: PANativeWindow); jniexport;
-begin
-  try
-    AndroidLog(alInfo, 'Native Acitivity OnNativeWindowRedrawNeeded');
-    GLClear([cbColor], Green); // first line on Android that worked :)
-    Window.AndroidDraw;
-  except
-    on E: TObject do AndroidLog(E);
-  end;
-end;
-
-procedure ANativeActivity_onCreate(Activity: PANativeActivity;
-  SavedState: Pointer; SavedStateSize: csize_t); jniexport;
-begin
-  try
-    AndroidLog(alInfo, 'ANativeActivity_onCreate');
-    Initialize;
-
-    Activity^.Callbacks^.OnDestroy := @OnDestroy;
-    Activity^.Callbacks^.OnStart := @OnStart;
-    Activity^.Callbacks^.OnStop := @OnStop;
-    Activity^.Callbacks^.OnPause := @OnPause;
-    Activity^.Callbacks^.OnResume := @OnResume;
-
-    Activity^.Callbacks^.OnNativeWindowCreated := @OnNativeWindowCreated;
-    Activity^.Callbacks^.OnNativeWindowDestroyed := @OnNativeWindowDestroyed;
-    Activity^.Callbacks^.OnNativeWindowResized := @OnNativeWindowResized;
-    Activity^.Callbacks^.OnNativeWindowRedrawNeeded := @OnNativeWindowRedrawNeeded;
-
-    Activity^.Callbacks^.OnContentRectChanged := @OnContentRectChanged;
-  except
-    on E: TObject do AndroidLog(E);
-  end;
-end;
-
-exports ANativeActivity_onCreate;
+exports ANativeActivity_onCreate,
+  { Export this only for our own CastleAndroidNativeAppGlue unit to load it. }
+  android_main;
 
 function MyGetApplicationName: string;
 begin
@@ -208,5 +184,6 @@ begin
 end;
 
 begin
+  { This should be done as early as possible to mark our log lines correctly. }
   OnGetApplicationName := @MyGetApplicationName;
 end.
