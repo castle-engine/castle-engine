@@ -66,11 +66,6 @@ private
   { convert virtual key code (VK_xxx) to TKey. Returns K_None if no conversion
     available. }
   function VirtualKeyToKey(VirtualKey: Byte): TKey;
-
-  { GL context creation after creating the window (h_Wnd is available now). }
-  procedure ContextCreateEnd(WndPtr: Integer);
-  { Destroy context created by ContextCreateBegin + ContextCreateEnd. }
-  procedure ContextDestroy;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}

@@ -13,6 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
+{ Manage OpenGL ES context on Android using EGL. }
+
+{$I castlewindow_egl.inc}
 {$I castlewindow_dialogs_by_messages.inc}
 
 {$ifdef read_interface_uses}
@@ -23,7 +26,8 @@
 
 {$ifdef read_window_interface}
 public
-  { AnroidXxx functions are called by Android activity from Java. }
+  AndroidWindow: EGLNativeWindowType; //< must be set before Window.Open
+  { AndroidXxx functions are called by library code. }
   procedure AndroidDraw;
   procedure AndroidResize(const AWidth, AHeight: Integer);
 {$endif read_window_interface}
@@ -44,42 +48,32 @@ public
 
 procedure TCastleWindowBase.CreateBackend;
 begin
-  { TODO (initialize backend-specific per-window stuff; may do nothing) }
 end;
+
+// TODO: update Android's app menu based on MainMenu contents?
 
 procedure TCastleWindowBase.BackendMenuInitialize;
 begin
-  { TODO (may do nothing if you do not care about displaying menu) }
 end;
 
 procedure TCastleWindowBase.BackendMenuFinalize;
 begin
-  { TODO (may do nothing if you do not care about displaying menu) }
 end;
 
 procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
-  { TODO (may do nothing if you do not care about displaying menu;
-    may do MenuFinalize + MenuInitialize if you display menu,
-    but don't care about updating it fast) }
   MenuFinalize;
   MenuInitialize;
 end;
 
 procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
-  { TODO (may do nothing if you do not care about displaying menu;
-    may do MenuFinalize + MenuInitialize if you display menu,
-    but don't care about updating it fast) }
   MenuFinalize;
   MenuInitialize;
 end;
 
 procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
-  { TODO (may do nothing if you do not care about displaying menu;
-    may do MenuFinalize + MenuInitialize if you display menu,
-    but don't care about updating it fast) }
   MenuFinalize;
   MenuInitialize;
 end;
@@ -92,9 +86,6 @@ end;
 procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
-  { TODO (may do nothing if you do not care about displaying menu;
-    may do MenuFinalize + MenuInitialize if you display menu,
-    but don't care about updating it fast) }
   MenuFinalize;
   MenuInitialize;
 end;
@@ -102,27 +93,19 @@ end;
 procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
-  { TODO (may do nothing if you do not care about displaying menu;
-    may do MenuFinalize + MenuInitialize if you display menu,
-    but don't care about updating it fast) }
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.SwapBuffers;
-begin
-  { TODO }
-end;
-
 procedure TCastleWindowBase.OpenBackend;
 begin
-  { TODO (create OpenGL context, show window with this context) }
+  ContextCreateEnd(AndroidWindow);
   Application.OpenWindowsAdd(Self);
 end;
 
 procedure TCastleWindowBase.CloseBackend;
 begin
-  { TODO (destroy OpenGL context, hide window; counterpart to OpenBackend) }
+  ContextDestroy;
 end;
 
 procedure TCastleWindowBase.PostRedisplay;
@@ -134,11 +117,6 @@ procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: st
 begin
   FCaption[Part] := Value;
   if not Closed then { TODO: use GetWholeCaption };
-end;
-
-procedure TCastleWindowBase.BackendMakeCurrent;
-begin
-  { TODO }
 end;
 
 procedure TCastleWindowBase.FlushRedisplay;
@@ -176,8 +154,7 @@ end;
 
 procedure TCastleWindowBase.SetFullScreen(const Value: boolean);
 begin
-  { Some backends may provide a better way of doing this. }
-  SimpleSetFullScreen(Value);
+  FFullScreen := Value; //< does nothing on Android
 end;
 
 procedure TCastleWindowBase.AndroidDraw;
@@ -194,36 +171,27 @@ end;
 
 procedure TCastleApplication.CreateBackend;
 begin
-  { TODO (initialize backend-specific stuff for the whole application;
-    may do nothing if you don't need anything) }
 end;
 
 procedure TCastleApplication.DestroyBackend;
 begin
-  { TODO }
 end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 begin
-  { TODO }
+  { no message processing on Android, this makes no sense }
   Result := true;
 end;
 
 function TCastleApplication.ProcessAllMessages: boolean;
 begin
-  { TODO }
+  { no message processing on Android, this makes no sense }
   Result := true;
 end;
 
 procedure TCastleApplication.Run;
 begin
-  if OpenWindowsCount = 0 then Exit;
-
-  { Implementing Run by calling ProcessMessage in a loop (like below)
-    is a valid and good implementation. Make sure your ProcessMessage
-    honours WaitForMessage and WaitToLimitFPS = true,
-    to avoid wasting CPU on "busy waiting". }
-  while ProcessMessage(true, true) do ;
+  { no message processing on Android, Run makes no sense }
 end;
 
 procedure TCastleApplication.QuitWhenNoOpenWindows;

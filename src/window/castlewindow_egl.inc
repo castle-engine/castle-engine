@@ -13,16 +13,14 @@
   ----------------------------------------------------------------------------
 }
 
-{ Use this from castlewindow_xlib.inc to make a CastleWindow backend
-  using Xlib and EGL (initialize window on X, without any toolkit,
-  with OpenGL ES context).
+{ Use this to make a CastleWindow backend using EGL
+  (initialize window with OpenGL ES context).
 
   Written based on
   http://www.khronos.org/registry/egl/sdk/docs/man/xhtml/eglIntro.html .
   See http://www.khronos.org/registry/egl/sdk/docs/man/xhtml/
   for an up-to-date reference of EGL.
-  FPC example in packages/opengles/examples/es2example1.pas
-  was also useful. }
+  FPC example in packages/opengles/examples/es2example1.pas was also useful. }
 
 {$ifdef read_interface_uses}
 {$endif}
@@ -32,18 +30,38 @@ private
   Context: EGLContext;
   Surface: EGLSurface;
   Display: EGLDisplay;
+
+  {$ifdef CASTLE_WINDOW_XLIB}
+  { GL context creation before creating native window. }
+  procedure ContextCreateBegin(var Attr: TXSetWindowAttributes;
+    var AttrValueMask: Cardinal);
+  {$endif}
+
+  { GL context creation after creating native window. }
+  procedure ContextCreateEnd(WndPtr: EGLNativeWindowType);
+
+  { Destroy context created by ContextCreateBegin + ContextCreateEnd. }
+  procedure ContextDestroy;
+{$endif}
+
+{$ifdef read_application_interface}
+private
+  {$ifdef CASTLE_WINDOW_XLIB}
+  { Check is context creation possible. XDisplay is available now. }
+  procedure ContextApplicationCheck;
+  {$endif}
 {$endif}
 
 {$ifdef read_implementation}
 
-{$ifndef MSWINDOWS}
+{$ifdef CASTLE_WINDOW_XLIB}
 procedure TCastleWindowBase.ContextCreateBegin(var Attr: TXSetWindowAttributes;
   var AttrValueMask: Cardinal);
 begin
 end;
 {$endif}
 
-procedure TCastleWindowBase.ContextCreateEnd(WndPtr: Integer);
+procedure TCastleWindowBase.ContextCreateEnd(WndPtr: EGLNativeWindowType);
 
   { EGL error codes and descriptions from
     http://www.khronos.org/registry/egl/sdk/docs/man/xhtml/eglGetError.html }
@@ -134,7 +152,7 @@ begin
   eglSwapBuffers(Display, Surface);
 end;
 
-{$ifndef MSWINDOWS}
+{$ifdef CASTLE_WINDOW_XLIB}
 procedure TCastleApplication.ContextApplicationCheck;
 begin
 end;

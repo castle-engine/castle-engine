@@ -1,10 +1,11 @@
 { -*- compile-command: "sh compile.sh" -*- }
 library castleengine;
 
-uses Math, JNI, SysUtils, CastleStringUtils, CastleGLUtils, CastleWindow,
+uses Math, JNI, CTypes, SysUtils, CastleStringUtils, CastleGLUtils, CastleWindow,
   CastleUIControls, CastleVectors, CastleControls, CastleOnScreenMenu,
   CastleControlsImages, CastleImages, CastleFilesUtils, CastleColors,
-  CastleRectangles, CastleAndroidLog, CastleUtils;
+  CastleRectangles, CastleAndroidLog, CastleUtils, CastleAndroidNativeActivity,
+  CastleAndroidNativeWindow;
 
 {$ifdef mswindows}
   {$define jniexport := stdcall}
@@ -38,8 +39,6 @@ end;
   for documentation when these methods are called. }
 
 var
-  Initialized: boolean;
-
   Background: TCastleSimpleBackground;
   MyControl: T2DControls;
   Image: TCastleImageControl;
@@ -47,8 +46,6 @@ var
 { One-time initialization. }
 procedure Initialize;
 begin
-  if Initialized then Exit;
-
   Window := TCastleWindow.Create(Application);
   Window.SceneManager.Transparent := true;
 
@@ -68,45 +65,71 @@ begin
   Window.Controls.InsertFront(Image);
 
   Window.Load('file:///sdcard/kambitest/castle_with_lights_and_camera.wrl');
-
-  Initialized := true;
 end;
 
-procedure Java_net_sourceforge_castleengine_cgeandroidtest_GL2JNILib_SurfaceCreated(
-  Env: PJNIEnv; Obj: JObject); jniexport;
+procedure OnDestroy(Activity: PANativeActivity); jniexport;
 begin
-  try
-    AndroidLog(alInfo, 'SurfaceCreated');
-
-    { Whenever the context is lost, this is called.
-      It's important that we release all OpenGL resources, to recreate them later
-      (we wil call Window.Open only from SurfaceChanged, since we don't know
-      the size yet). }
-    if Window <> nil then
-      Window.Close;
-  except
-    on E: TObject do AndroidLog(E);
-  end;
+  AndroidLog(alInfo, 'Native Acitivity OnDestroy');
 end;
 
-procedure Java_net_sourceforge_castleengine_cgeandroidtest_GL2JNILib_SurfaceChanged(
-  Env: PJNIEnv; Obj: JObject; Width: JInt; Height: JInt); jniexport;
+procedure OnStart(Activity: PANativeActivity); jniexport;
+begin
+  AndroidLog(alInfo, 'Native Acitivity OnStart');
+end;
+
+procedure OnStop(Activity: PANativeActivity); jniexport;
+begin
+  AndroidLog(alInfo, 'Native Acitivity OnStop');
+end;
+
+procedure OnPause(Activity: PANativeActivity); jniexport;
+begin
+  AndroidLog(alInfo, 'Native Acitivity OnPause');
+end;
+
+procedure OnResume(Activity: PANativeActivity); jniexport;
+begin
+  AndroidLog(alInfo, 'Native Acitivity OnResume');
+end;
+
+procedure OnNativeWindowCreated(Activity: PANativeActivity; NativeWindow: PANativeWindow); jniexport;
+begin
+  AndroidLog(alInfo, 'Native Acitivity OnNativeWindowCreated');
+end;
+
+procedure OnNativeWindowDestroyed(Activity: PANativeActivity; NativeWindow: PANativeWindow); jniexport;
+begin
+  AndroidLog(alInfo, 'Native Acitivity OnNativeWindowDestroyed');
+
+  { Whenever the context is lost, this is called.
+    It's important that we release all OpenGL resources, to recreate them later
+    (we wil call Window.Open only from onNativeWindowResized, since we don't know
+    the size yet). }
+  if Window <> nil then
+    Window.Close;
+end;
+
+procedure OnNativeWindowResized(Activity: PANativeActivity; NativeWindow: PANativeWindow); jniexport;
+var
+  Width, Height: Integer;
 begin
   try
-    Initialize;
+    Width := ANativeWindow_getWidth(NativeWindow);
+    Height := ANativeWindow_getHeight(NativeWindow);
 
     Application.AndroidInit(Width, Height);
 
     if Window.Closed then
     begin
-      AndroidLog(alInfo, 'SurfaceChanged %d %d - creating GL context resources', [Width, Height]);
+      AndroidLog(alInfo, 'Native Acitivity OnNativeWindowResized - %d %d - creating GL context resources', [Width, Height]);
       //Window.FullScreen := true; // sTODO: setting fullscreen should work like that 2 lines below. Also, should be default?
       Window.Width := Width;
       Window.Height := Height;
+      Window.AndroidWindow := NativeWindow;
       Window.Open;
     end else
     begin
-      AndroidLog(alInfo, 'SurfaceChanged %d %d - resizing, keeping GL context resources', [Width, Height]);
+      AndroidLog(alInfo, 'Native Acitivity OnNativeWindowResized - %d %d - resizing, keeping GL context resources', [Width, Height]);
       Window.AndroidResize(Width, Height);
     end;
 
@@ -117,10 +140,10 @@ begin
   end;
 end;
 
-procedure Java_net_sourceforge_castleengine_cgeandroidtest_GL2JNILib_DrawFrame(
-  Env: PJNIEnv; Obj: JObject); jniexport;
+procedure OnNativeWindowRedrawNeeded(Activity: PANativeActivity; NativeWindow: PANativeWindow); jniexport;
 begin
   try
+    AndroidLog(alInfo, 'Native Acitivity OnNativeWindowRedrawNeeded');
     GLClear([cbColor], Green); // first line on Android that worked :)
     Window.AndroidDraw;
   except
@@ -128,41 +151,29 @@ begin
   end;
 end;
 
-{ Following comments from JNI.pas from FPC,
-  export JNI_OnLoad and JNI_OnUnload routines.
-  They are optional (if not exported, VM will not call them).
-  Maybe at some point the information in CurrentJavaVirtualMachine will be useful. }
-
-var
-  CurrentJavaVirtualMachine: PJavaVM = nil;
-
-function JNI_OnLoad(VM: PJavaVM; Reserved: Pointer): jint; jniexport;
+procedure ANativeActivity_onCreate(Activity: PANativeActivity;
+  SavedState: Pointer; SavedStateSize: csize_t); jniexport;
 begin
   try
-    AndroidLog(alInfo, 'JNI OnLoad');
-    CurrentJavaVirtualMachine := VM;
-    Result := JNI_VERSION_1_6;
+    AndroidLog(alInfo, 'ANativeActivity_onCreate');
+    Initialize;
+
+    Activity^.Callbacks^.OnDestroy := @OnDestroy;
+    Activity^.Callbacks^.OnStart := @OnStart;
+    Activity^.Callbacks^.OnStop := @OnStop;
+    Activity^.Callbacks^.OnPause := @OnPause;
+    Activity^.Callbacks^.OnResume := @OnResume;
+
+    Activity^.Callbacks^.OnNativeWindowCreated := @OnNativeWindowCreated;
+    Activity^.Callbacks^.OnNativeWindowDestroyed := @OnNativeWindowDestroyed;
+    Activity^.Callbacks^.OnNativeWindowResized := @OnNativeWindowResized;
+    Activity^.Callbacks^.OnNativeWindowRedrawNeeded := @OnNativeWindowRedrawNeeded;
   except
     on E: TObject do AndroidLog(E);
   end;
 end;
 
-procedure JNI_OnUnload(VM: PJavaVM; Reserved: Pointer); jniexport;
-begin
-  try
-    AndroidLog(alInfo, 'JNI OnUnload');
-    CurrentJavaVirtualMachine := nil;
-  except
-    on E: TObject do AndroidLog(E);
-  end;
-end;
-
-exports
-  Java_net_sourceforge_castleengine_cgeandroidtest_GL2JNILib_SurfaceCreated,
-  Java_net_sourceforge_castleengine_cgeandroidtest_GL2JNILib_SurfaceChanged,
-  Java_net_sourceforge_castleengine_cgeandroidtest_GL2JNILib_DrawFrame,
-  JNI_OnLoad,
-  JNI_OnUnload;
+exports ANativeActivity_onCreate;
 
 function MyGetApplicationName: string;
 begin

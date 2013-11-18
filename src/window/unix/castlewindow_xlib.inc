@@ -41,14 +41,6 @@ private
   procedure X_FocusOut(const event: TXFocusOutEvent);
 
   procedure UpdateCursor;
-
-  { GL context creation before creating X window. }
-  procedure ContextCreateBegin(var Attr: TXSetWindowAttributes;
-    var AttrValueMask: Cardinal);
-  { GL context creation after creating X window (windowXID is available now). }
-  procedure ContextCreateEnd(WndPtr: Integer);
-  { Destroy context created by ContextCreateBegin + ContextCreateEnd. }
-  procedure ContextDestroy;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -86,9 +78,6 @@ private
     So you should call this when you know that last SetXDisplayName was
     called --- good choice is before initializing your window. }
   procedure InitializeXDisplay;
-
-  { Check is context creation possible. XDisplay is available now. }
-  procedure ContextApplicationCheck;
 public
   { XDisplayName uzywane przez wszystkie nastepne wywolania Window.Open.
     Application nie jest przygotowany na zarzadzanie oknami na wielu displayach i

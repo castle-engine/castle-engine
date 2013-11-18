@@ -45,6 +45,9 @@ unit CastleGLES20;
 {$ifdef windows}
   {$define EGL}
 {$endif}
+{$ifdef ANDROID}
+  {$define EGL}
+{$endif}
 
 interface
 

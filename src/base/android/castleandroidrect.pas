@@ -1,5 +1,5 @@
-/*
- * Copyright (C) 2007 The Android Open Source Project
+{*
+ * Copyright (C) 2010 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,23 +12,24 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+ *}
 
-package net.sourceforge.castleengine.cgeandroidtest;
+unit CastleAndroidRect;
 
-// Wrapper for native library
+interface
 
-public class GL2JNILib {
+uses ctypes;
 
-     static {
-         System.loadLibrary("cge_android_lib");
-     }
+type
+  PARect = ^ARect;
+  ARect = packed record
+    left : cint32;
+    top : cint32;
+    right : cint32;
+    bottom : cint32;
+  end;
 
-    /**
-     * @param width the current view width
-     * @param height the current view height
-     */
-     public static native void SurfaceCreated();
-     public static native void SurfaceChanged(int width, int height);
-     public static native void DrawFrame();
-}
+implementation
+
+end.
+
