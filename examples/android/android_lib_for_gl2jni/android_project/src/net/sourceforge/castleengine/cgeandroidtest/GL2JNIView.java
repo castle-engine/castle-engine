@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.gl2jni;
+package net.sourceforge.castleengine.cgeandroidtest;
 /*
  * Copyright (C) 2008 The Android Open Source Project
  *

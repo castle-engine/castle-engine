@@ -6,12 +6,12 @@ After compiling, copy also the data/* files to /sdcard/kambitest/,
 e.g. using
   adb push data/ /sdcard/kambitest
 
-Then compile the actual Android application to .apk, it's easiest to
-  cd android_project/
-  sh run.sh
-This copies the libcge_android_lib.so to the android_project/libs/
+Then copy the libcge_android_lib.so to the android_project/libs/
 (just like ndk-build does for libraries written in C for Android),
-then compiles and runs the project using normal Android SDK tools.
+and compile and run the project using normal Android SDK tools.
+It's easiest to do it just by
+  cd android_project/
+  make
 
 Right now, android_project/ contains a Java wrapper (from hello-gl2
 from NDK samples), that already initializes OpenGL context for us.

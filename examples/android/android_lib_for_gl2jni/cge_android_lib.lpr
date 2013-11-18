@@ -72,7 +72,7 @@ begin
   Initialized := true;
 end;
 
-procedure Java_com_android_gl2jni_GL2JNILib_SurfaceCreated(
+procedure Java_net_sourceforge_castleengine_cgeandroidtest_GL2JNILib_SurfaceCreated(
   Env: PJNIEnv; Obj: JObject); jniexport;
 begin
   try
@@ -89,7 +89,7 @@ begin
   end;
 end;
 
-procedure Java_com_android_gl2jni_GL2JNILib_SurfaceChanged(
+procedure Java_net_sourceforge_castleengine_cgeandroidtest_GL2JNILib_SurfaceChanged(
   Env: PJNIEnv; Obj: JObject; Width: JInt; Height: JInt); jniexport;
 begin
   try
@@ -117,7 +117,7 @@ begin
   end;
 end;
 
-procedure Java_com_android_gl2jni_GL2JNILib_DrawFrame(
+procedure Java_net_sourceforge_castleengine_cgeandroidtest_GL2JNILib_DrawFrame(
   Env: PJNIEnv; Obj: JObject); jniexport;
 begin
   try
@@ -158,9 +158,9 @@ begin
 end;
 
 exports
-  Java_com_android_gl2jni_GL2JNILib_SurfaceCreated,
-  Java_com_android_gl2jni_GL2JNILib_SurfaceChanged,
-  Java_com_android_gl2jni_GL2JNILib_DrawFrame,
+  Java_net_sourceforge_castleengine_cgeandroidtest_GL2JNILib_SurfaceCreated,
+  Java_net_sourceforge_castleengine_cgeandroidtest_GL2JNILib_SurfaceChanged,
+  Java_net_sourceforge_castleengine_cgeandroidtest_GL2JNILib_DrawFrame,
   JNI_OnLoad,
   JNI_OnUnload;
 

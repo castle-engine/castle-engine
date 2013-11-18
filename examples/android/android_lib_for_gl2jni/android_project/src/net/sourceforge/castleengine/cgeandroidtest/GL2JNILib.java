@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.android.gl2jni;
+package net.sourceforge.castleengine.cgeandroidtest;
 
 // Wrapper for native library
 
 public class GL2JNILib {
 
      static {
-         System.loadLibrary("gl2jni");
+         System.loadLibrary("cge_android_lib");
      }
 
     /**

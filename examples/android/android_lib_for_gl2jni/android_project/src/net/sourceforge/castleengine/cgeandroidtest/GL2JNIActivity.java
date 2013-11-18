@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.gl2jni;
+package net.sourceforge.castleengine.cgeandroidtest;
 
 import android.app.Activity;
 import android.os.Bundle;
