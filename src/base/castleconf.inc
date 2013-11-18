@@ -87,7 +87,7 @@
 { $define OpenGLES}
 {$ifdef ANDROID} {$define OpenGLES} {$endif}
 {$ifdef OpenGLES}
-  {$define CastleGL := GLES20}
+  {$define CastleGL := CastleGLES20}
   {$define GLImageUseShaders}
 {$else}
   {$define CastleGL := GL, GLU, GLExt}

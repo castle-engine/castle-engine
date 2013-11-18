@@ -1075,7 +1075,7 @@ procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); begin glTe
 
 procedure GLViewport(const Rect: TRectangle);
 begin
-  {$ifndef OpenGLES} GL {$else} GLES20 {$endif}
+  {$ifndef OpenGLES} GL {$else} CastleGLES20 {$endif}
     .glViewport(Rect.Left, Rect.Bottom, Rect.Width, Rect.Height);
 end;
 
@@ -1874,7 +1874,7 @@ begin
   for B in Buffers do
     Mask := Mask or ClearBufferMask[B];
   if Mask <> 0 then
-    {$ifndef OpenGLES} GL {$else} GLES20 {$endif}.GLClear(Mask);
+    {$ifndef OpenGLES} GL {$else} CastleGLES20 {$endif}.GLClear(Mask);
 end;
 
 var
