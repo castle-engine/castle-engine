@@ -1,5 +1,5 @@
 Many units here are a simple translation of Android NDK C headers to Pascal,
-copies from Lazarus,
+copies from Lazarus and cleaned up a little,
 see trunk/lcl/interfaces/customdrawn/android/ in Lazarus sources.
 
 Note that castleandroidnativeactivity.pas needed a fix:
