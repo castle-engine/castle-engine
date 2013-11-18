@@ -71,7 +71,7 @@ procedure WritelnLogMultiline(const Title: string; const LogMessage: string);
 implementation
 
 uses CastleUtils, CastleClassUtils, CastleTimeUtils,
-  SysUtils, CastleFilesUtils;
+  SysUtils, CastleFilesUtils {$ifdef ANDROID}, CastleAndroidLog {$endif};
 
 { Dump backtrace (always to StdErr for now, regardless of LogStream)
   of each log.
@@ -82,6 +82,7 @@ uses CastleUtils, CastleClassUtils, CastleTimeUtils,
   to resolve addresses to method names).
   Depends very much on OS, debug info type, and FPC version. }
 { $define BACKTRACE_ON_LOG}
+
 
 var
   FLog: boolean = false;
@@ -141,15 +142,24 @@ begin
   FLog := true;
 end;
 
-procedure WriteLog(const Title: string; const LogMessage: string);
+procedure WriteLogRaw(const S: string); inline;
 begin
   if Log then
   begin
-    WriteStr(LogStream, Title + ': ' + LogMessage);
+    WriteStr(LogStream, S);
     {$ifdef BACKTRACE_ON_LOG}
     Dump_Stack(StdErr, Get_Frame);
     {$endif}
+    {$ifdef ANDROID}
+    AndroidLog(alInfo, S);
+    {$endif}
   end;
+end;
+
+procedure WriteLog(const Title: string; const LogMessage: string);
+begin
+  if Log then
+    WriteLogRaw(Title + ': ' + LogMessage);
 end;
 
 procedure WritelnLog(const Title: string; const LogMessage: string);
@@ -166,15 +176,10 @@ end;
 procedure WriteLogMultiline(const Title: string; const LogMessage: string);
 begin
   if Log then
-  begin
-    WritelnStr(LogStream,
+    WriteLogRaw(
       '-------------------- ' + Title + ' begin' + NL +
       LogMessage +
       '-------------------- ' + Title + ' end');
-    {$ifdef BACKTRACE_ON_LOG}
-    Dump_Stack(StdErr, Get_Frame);
-    {$endif}
-  end;
 end;
 
 procedure WritelnLogMultiline(const Title: string; const LogMessage: string);
