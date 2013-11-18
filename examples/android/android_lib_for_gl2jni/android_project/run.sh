@@ -1,6 +1,7 @@
 #!/bin/bash
 set -eu
 
+mkdir -p libs/armeabi/
 cp -f ../libcge_android_lib.so libs/armeabi/libgl2jni.so
 
 ant debug
