@@ -12,10 +12,3 @@ and compile and run the project using normal Android SDK tools.
 It's easiest to do it just by
   cd android_project/
   make
-
-Right now, android_project/ contains a Java wrapper (from hello-gl2
-from NDK samples), that already initializes OpenGL context for us.
-TODO:
-A version that allows us to initialize context (using EGL) will follow soon :),
-and also our own Java wrapper, possibly even just use Android's
-NativeActivity without any custom Java code.
