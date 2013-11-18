@@ -5,7 +5,7 @@ uses Math, JNI, CTypes, SysUtils, CastleStringUtils, CastleGLUtils, CastleWindow
   CastleUIControls, CastleVectors, CastleControls, CastleOnScreenMenu,
   CastleControlsImages, CastleImages, CastleFilesUtils, CastleColors,
   CastleRectangles, CastleAndroidLog, CastleUtils, CastleAndroidNativeActivity,
-  CastleAndroidNativeWindow;
+  CastleAndroidNativeWindow, CastleAndroidRect;
 
 {$ifdef mswindows}
   {$define jniexport := stdcall}
@@ -93,51 +93,76 @@ begin
 end;
 
 procedure OnNativeWindowCreated(Activity: PANativeActivity; NativeWindow: PANativeWindow); jniexport;
-begin
-  AndroidLog(alInfo, 'Native Acitivity OnNativeWindowCreated');
-end;
-
-procedure OnNativeWindowDestroyed(Activity: PANativeActivity; NativeWindow: PANativeWindow); jniexport;
-begin
-  AndroidLog(alInfo, 'Native Acitivity OnNativeWindowDestroyed');
-
-  { Whenever the context is lost, this is called.
-    It's important that we release all OpenGL resources, to recreate them later
-    (we wil call Window.Open only from onNativeWindowResized, since we don't know
-    the size yet). }
-  if Window <> nil then
-    Window.Close;
-end;
-
-procedure OnNativeWindowResized(Activity: PANativeActivity; NativeWindow: PANativeWindow); jniexport;
 var
   Width, Height: Integer;
 begin
   try
+    Window.NativeWindow := NativeWindow;
     Width := ANativeWindow_getWidth(NativeWindow);
     Height := ANativeWindow_getHeight(NativeWindow);
 
+    AndroidLog(alInfo, 'Native Acitivity OnNativeWindowCreated (%d %d)', [Width, Height]);
+
     Application.AndroidInit(Width, Height);
 
-    if Window.Closed then
-    begin
-      AndroidLog(alInfo, 'Native Acitivity OnNativeWindowResized - %d %d - creating GL context resources', [Width, Height]);
-      //Window.FullScreen := true; // sTODO: setting fullscreen should work like that 2 lines below. Also, should be default?
-      Window.Width := Width;
-      Window.Height := Height;
-      Window.AndroidWindow := NativeWindow;
-      Window.Open;
-    end else
-    begin
-      AndroidLog(alInfo, 'Native Acitivity OnNativeWindowResized - %d %d - resizing, keeping GL context resources', [Width, Height]);
+    //Window.FullScreen := true; // sTODO: setting fullscreen should work like that 2 lines below. Also, should be default?
+    Window.Width := Width;
+    Window.Height := Height;
+    Window.Open;
+  except
+    on E: TObject do AndroidLog(E);
+  end;
+end;
+
+procedure OnNativeWindowDestroyed(Activity: PANativeActivity; NativeWindow: PANativeWindow); jniexport;
+begin
+  try
+    AndroidLog(alInfo, 'Native Acitivity OnNativeWindowDestroyed');
+
+    { Whenever the context is lost, this is called.
+      It's important that we release all OpenGL resources, to recreate them later
+      (we wil call Window.Open only from onNativeWindowResized, since we don't know
+      the size yet). }
+    if Window <> nil then
+      Window.Close;
+
+    Window.NativeWindow := nil; // make sure to not access the NativeWindow anymore
+  except
+    on E: TObject do AndroidLog(E);
+  end;
+end;
+
+procedure Resize(const CallbackName: string);
+var
+  Width, Height: Integer;
+begin
+  try
+    Width := ANativeWindow_getWidth(Window.NativeWindow);
+    Height := ANativeWindow_getHeight(Window.NativeWindow);
+
+    AndroidLog(alInfo, 'Native Activity %s - %d %d', [CallbackName, Width, Height]);
+
+    if not Window.Closed then
       Window.AndroidResize(Width, Height);
-    end;
 
     Image.Left := 10;
     Image.Bottom := Application.ScreenHeight - 300;
   except
     on E: TObject do AndroidLog(E);
   end;
+end;
+
+{ On some operations we get both OnNativeWindowResized and OnContentRectChanged,
+  on some we get only one of them... For safety, just handle both. }
+
+procedure OnNativeWindowResized(Activity: PANativeActivity; NativeWindow: PANativeWindow); jniexport;
+begin
+  Resize('OnNativeWindowResized');
+end;
+
+procedure OnContentRectChanged(activity: PANativeActivity; Rect: PARect); jniexport;
+begin
+  Resize('OnContentRectChanged');
 end;
 
 procedure OnNativeWindowRedrawNeeded(Activity: PANativeActivity; NativeWindow: PANativeWindow); jniexport;
@@ -168,6 +193,8 @@ begin
     Activity^.Callbacks^.OnNativeWindowDestroyed := @OnNativeWindowDestroyed;
     Activity^.Callbacks^.OnNativeWindowResized := @OnNativeWindowResized;
     Activity^.Callbacks^.OnNativeWindowRedrawNeeded := @OnNativeWindowRedrawNeeded;
+
+    Activity^.Callbacks^.OnContentRectChanged := @OnContentRectChanged;
   except
     on E: TObject do AndroidLog(E);
   end;

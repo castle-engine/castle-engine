@@ -26,7 +26,7 @@
 
 {$ifdef read_window_interface}
 public
-  AndroidWindow: EGLNativeWindowType; //< must be set before Window.Open
+  NativeWindow: EGLNativeWindowType; //< must be set before Window.Open
   { AndroidXxx functions are called by library code. }
   procedure AndroidDraw;
   procedure AndroidResize(const AWidth, AHeight: Integer);
@@ -99,7 +99,7 @@ end;
 
 procedure TCastleWindowBase.OpenBackend;
 begin
-  ContextCreateEnd(AndroidWindow);
+  ContextCreateEnd(NativeWindow);
   Application.OpenWindowsAdd(Self);
 end;
 
