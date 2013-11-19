@@ -1353,6 +1353,11 @@ begin
   Result := inherited;
   if Result or Paused or (not GetExists) then Exit;
 
+  { Call PointingDeviceMove, set MouseHitRay and such --- otherwise
+    the 1st mouse down event over a 3D object (like a TouchSensor) will be ignored
+    if it happens before any mouse move (which is normal on touch devices). }
+  MouseMove(0, 0, Container.MouseX, Container.MouseY);
+
   Result := GetItems.Press(Event);
   if Result then Exit;
 
