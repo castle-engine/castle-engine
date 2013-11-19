@@ -19,6 +19,8 @@
 { Opening files and URLs. }
 unit CastleOpenDocument;
 
+{$i castleconf.inc}
+
 interface
 
 resourcestring
