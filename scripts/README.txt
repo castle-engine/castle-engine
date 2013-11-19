@@ -175,3 +175,18 @@ Usage is simple:
   on Linux or Mac OS X you already have it, on Windows ---
   you have to install MSys or Cygwin.
 
+- TODO: Maybe? A larger idea:
+  The build script could also just be written in Object Pascal.
+  This would allow it to be much more complex and also easier to maintain.
+  We could parse a file like CastleManifest.xml to read common
+  variables for your project (like a human-readable application title,
+  path to an icon etc.)
+
+- The script automatically defines -dCASTLE_BUILD_xxx conditional variables:
+  CASTLE_TARGET_STANDALONE
+  CASTLE_TARGET_ANDROID
+  CASTLE_TARGET_IOS
+  (Of course, you still have all the normal FPC conditionals
+  to e.g. detect the exact operating system and processor.
+  You can also include castle_game_engine/src/base/castleconf.inc
+  for a couple of extra defines from our engine, e.g. whether we use OpenGLES.)
