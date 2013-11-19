@@ -6,6 +6,8 @@
   fpc fpmake.pp
   ./fpmake compile  # use -v to get more info
   ./fpmake install  # use -v to get more info
+  # to cross-compile e.g. to Android use like this:
+  # ./fpmake --os=android --cpu=arm ...
 }
 
 program fpmake;
@@ -17,34 +19,43 @@ uses SysUtils, fpmkunit;
 
 var
   P: TPackage;
+  IOS: boolean; //< compiling for iOS target
+  Xlib: boolean; //< OS has working Xlib packages
 begin
   with Installer do
   begin
     P := AddPackage('castle-game-engine');
 
-    { Actually, may work on at least
+    { Should work on at least
         P.OSes := AllUnixOSes + [win32, win64];
-      OSes below are actually tested. }
-    P.OSes := [darwin, linux, freebsd, win32
+      But below we limit the list only to the OSes actually tested. }
+    P.OSes := [Darwin, Linux, Freebsd, Win32, IPhoneSim
       {$ifdef ANDROID_POSSIBLE} , android {$endif}];
 
     P.Options {$ifndef VER2_2} .Text {$endif} := '@castle-fpc.cfg';
+
+    { Some variables derived from Defaults.OS/CPU. }
+    IOS := (Defaults.OS = IPhoneSim) or
+      ((Defaults.OS = Darwin) and (Defaults.CPU = Arm));
+    Xlib := Defaults.OS in (AllUnixOSes - [Android]);
 
     { Add dependencies on FPC packages.
       These aren't really needed, as your default fpc.cfg should
       point to them anyway. They are needed only when compiling with --nofpccfg.
       Anyway, maybe this is a good place to document my dependencies
       on FPC packages --- so let's do this. }
-    P.Dependencies.Add('opengl');
+    if (Defaults.OS <> Android) and not IOS then
+      P.Dependencies.Add('opengl');
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-image');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-process');
-    P.Dependencies.Add('fcl-web');
+    if Defaults.OS <> Android then
+      P.Dependencies.Add('fcl-web');
     P.Dependencies.Add('pasjpeg');
     P.Dependencies.Add('paszlib'); { used by FpReadTiff, we don't use paszlib in our engine }
     P.Dependencies.Add('regexpr');
-    if Defaults.OS in AllUnixOSes then
+    if Xlib then
     begin
       P.Dependencies.Add('x11');
       P.Dependencies.Add('gtk2');
@@ -203,6 +214,7 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'opengl');
     P.Targets.AddUnit('castleglbitmapfonts.pas');
+    P.Targets.AddUnit('castlegles20.pas');
     P.Targets.AddUnit('castlegloutlinefonts.pas');
     P.Targets.AddUnit('castleglutils.pas');
     P.Targets.AddUnit('castlecurves.pas');
@@ -241,7 +253,7 @@ begin
     p.targets.addunit('castlewindow.pas');
     P.Targets.AddUnit('castlewindowprogress.pas');
     p.targets.addunit('castlewindowmodes.pas');
-    if Defaults.OS in AllUnixOSes then
+    if Xlib then
     begin
       P.SourcePath.Add('src' + PathDelim + 'window' + PathDelim + 'unix');
       P.Targets.AddUnit('castleglx.pas');
