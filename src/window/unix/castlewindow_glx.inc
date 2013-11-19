@@ -30,6 +30,20 @@ private
   { Used only by ContextCreateBegin and ContextCreateEnd }
   UseFBConfig: boolean;
   FBConfig: TGLXFBConfig;
+public
+  { Methods compatible with castlewindow_egl.inc.
+    @groupBegin }
+  procedure ContextCreateBegin(var Attr: TXSetWindowAttributes;
+    var AttrValueMask: Cardinal);
+  procedure ContextCreateEnd(WndPtr: TWindow);
+  procedure ContextDestroy;
+  { @groupEnd }
+{$endif}
+
+{$ifdef read_application_interface}
+private
+  { Methods compatible with castlewindow_egl.inc. }
+  procedure ContextApplicationCheck;
 {$endif}
 
 {$ifdef read_implementation}
@@ -125,7 +139,7 @@ begin
   AttrValueMask := AttrValueMask or CWColormap;
 end;
 
-procedure TCastleWindowBase.ContextCreateEnd(WndPtr: Integer);
+procedure TCastleWindowBase.ContextCreateEnd(WndPtr: TWindow);
 var
   ShareContext: GLXContext;
 begin
