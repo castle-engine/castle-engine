@@ -10,6 +10,9 @@
 
 program fpmake;
 
+{ Only FPC >= 2.7.1 has the "Android" as a possible OS. }
+{$ifndef VER2_6} {$define ANDROID_POSSIBLE} {$endif}
+
 uses SysUtils, fpmkunit;
 
 var
@@ -22,7 +25,8 @@ begin
     { Actually, may work on at least
         P.OSes := AllUnixOSes + [win32, win64];
       OSes below are actually tested. }
-    P.OSes := [darwin, linux, freebsd, win32, android];
+    P.OSes := [darwin, linux, freebsd, win32
+      {$ifdef ANDROID_POSSIBLE} , android {$endif}];
 
     P.Options {$ifndef VER2_2} .Text {$endif} := '@castle-fpc.cfg';
 
@@ -121,11 +125,23 @@ begin
     P.Targets.AddUnit('castleprogressconsole.pas');
     P.Targets.AddUnit('castlerecentfiles.pas');
 
+    {$ifdef ANDROID_POSSIBLE}
     if Defaults.OS = Android then
     begin
       P.SourcePath.Add('src' + PathDelim + 'base' + PathDelim + 'android');
       P.Targets.AddUnit('castleandroidlog.pas');
+      P.Targets.AddUnit('castleandroidassetmanager.pas');
+      P.Targets.AddUnit('castleandroidconfiguration.pas');
+      P.Targets.AddUnit('castleandroidinput.pas');
+      P.Targets.AddUnit('castleandroidkeycodes.pas');
+      P.Targets.AddUnit('castleandroidlog.pas');
+      P.Targets.AddUnit('castleandroidlooper.pas');
+      P.Targets.AddUnit('castleandroidnativeactivity.pas');
+      P.Targets.AddUnit('castleandroidnativeappglue.pas');
+      P.Targets.AddUnit('castleandroidnativewindow.pas');
+      P.Targets.AddUnit('castleandroidrect.pas');
     end;
+    {$endif}
 
     P.SourcePath.Add('src' + PathDelim + 'castlescript');
     P.Targets.AddUnit('castlescript.pas');
