@@ -22,11 +22,17 @@
 {$ifdef read_window_interface}
 private
   h_GLRc: HGLRC;
+
+  { Methods compatible with castlewindow_egl.inc.
+    @groupBegin }
+  procedure ContextCreateEnd(WndPtr: HWND);
+  procedure ContextDestroy;
+  { @groupEnd }
 {$endif}
 
 {$ifdef read_implementation}
 
-procedure TCastleWindowBase.ContextCreateEnd(WndPtr: Integer);
+procedure TCastleWindowBase.ContextCreateEnd(WndPtr: HWND);
 
   { Both SetPixelFormat* set pixel format (required context capabilities)
     of Windows H_Dc device context. They try to set it, and eventually raise some

@@ -30,7 +30,7 @@ private
   { Used only by ContextCreateBegin and ContextCreateEnd }
   UseFBConfig: boolean;
   FBConfig: TGLXFBConfig;
-public
+
   { Methods compatible with castlewindow_egl.inc.
     @groupBegin }
   procedure ContextCreateBegin(var Attr: TXSetWindowAttributes;
