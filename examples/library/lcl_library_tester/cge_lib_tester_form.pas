@@ -81,8 +81,8 @@ begin
   aCastleFrame.Load('../../../../demo_models/navigation/type_walk.wrl');
   //aCastleFrame.Load('../../../examples/shadow_fields/models/humanoid_stand.wrl');
 
-  //aCastleFrame.UpdateTouchInterface(etciCtlWalkCtlRotate);
-  aCastleFrame.UpdateTouchInterface(etciCtlWalkDragRotate);
+  //aCastleFrame.UpdateTouchInterface(etciCtlWalkCtlRotate, 96);
+  aCastleFrame.UpdateTouchInterface(etciCtlWalkDragRotate, 96);
 
   OglInfo := GLInformationString;
   //Application.MessageBox(PChar(OglInfo), 'GL Info', 0);

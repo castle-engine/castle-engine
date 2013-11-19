@@ -112,7 +112,7 @@ begin
   //sFile := '../../../examples/shadow_fields/models/humanoid_stand.wrl';
   CGE_LoadSceneFromFile(@sFile[1]);
 
-  CGE_UpdateTouchInterface(ecgetciCtlWalkDragRotate);
+  CGE_UpdateTouchInterface(ecgetciCtlWalkDragRotate, 96);
 
   OpenGLControl1.Invalidate;
   ActiveControl := OpenGLControl1;   // set focus in order to receive keydowns

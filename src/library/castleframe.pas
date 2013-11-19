@@ -57,6 +57,7 @@ type
     FCtlCaptureInput: TUIControl;
 
     FWidth, FHeight: Integer;
+    FDpi: Integer;
     FMouseX: Integer;
     FMouseY: Integer;
     FPressed: TKeysPressed;
@@ -214,7 +215,7 @@ type
       procedure UpdateTouchController(LeftSide, CtlVisible: boolean; Mode: TCastleTouchCtlMode = ctcmWalking);
 
       { This function should be called every time the navigation type changes. }
-      procedure UpdateTouchInterface(Mode: TTouchCtlInterface);
+      procedure UpdateTouchInterface(Mode: TTouchCtlInterface; Dpi: integer);
 
   end;
 
@@ -916,7 +917,7 @@ begin
       Controls[I].ContainerResize(Width, Height);
   end;
 
-  CtlBorder := 1;
+  CtlBorder := Round(24*FDpi/96);
   if LeftTouchCtl<>nil then
   begin
     LeftTouchCtl.Left := CtlBorder;
@@ -1195,6 +1196,7 @@ begin
 
   aNewCtl := TCastleTouchControl.Create(self);
   aNewCtl.TouchMode := Mode;
+  aNewCtl.SizeScale := FDpi / 96;
   Controls.InsertFront(aNewCtl);
   if LeftSide then
     LeftTouchCtl := aNewCtl
@@ -1203,12 +1205,14 @@ begin
   Resize();
 end;
 
-procedure TCastleFrame.UpdateTouchInterface(Mode: TTouchCtlInterface);
+procedure TCastleFrame.UpdateTouchInterface(Mode: TTouchCtlInterface; Dpi: integer);
 var
   NavType: TCameraNavigationType;
   IsWalking: boolean;
   WalkCamera: TWalkCamera;
 begin
+  FDpi := Dpi;
+
   NavType := GetCurrentNavigationType();
   IsWalking := ((NavType = ntWalk) or (NavType = ntFly));
   if (Camera<>nil) and (Camera is TUniversalCamera) then

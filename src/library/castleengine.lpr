@@ -1,4 +1,4 @@
-{$MODE ObjFPC}
+{$MODE ObjFPC}{$H+}
 Library castleengine;
 
 { Adapted from Jonas Maebe's example project :
@@ -253,7 +253,7 @@ begin
   end;
 end;
 
-procedure CGE_UpdateTouchInterface(eMode: cInt32); cdecl;
+procedure CGE_UpdateTouchInterface(eMode, nDpi: cInt32); cdecl;
 var
   aNewMode: TTouchCtlInterface;
 begin
@@ -264,7 +264,7 @@ begin
     2: aNewMode := etciCtlWalkDragRotate;
     else aNewMode := etciNone;
     end;
-    aCastleFrame.UpdateTouchInterface(aNewMode);
+    aCastleFrame.UpdateTouchInterface(aNewMode, nDpi);
   except
   end;
 end;

@@ -79,6 +79,10 @@
 {$ifdef VER2_2_4} {$undef TOBJECT_HAS_EQUALS} {$endif}
 {$ifdef VER2_4_0} {$undef TOBJECT_HAS_EQUALS} {$endif}
 
+{$if defined(iPHONESIM) or (defined(DARWIN) and defined(CPUARM))}
+    {$define iOS}
+{$endif}
+
 { Whether we use OpenGL ES or normal OpenGL.
   OpenGL ES is generally for mobile devices.
   For testing, you can also use OpenGL ES on normal desktop OSes
@@ -86,7 +90,7 @@
   Put "CastleGL" in uses clause to include the appropriate OpenGL API. }
 { $define OpenGLES}
 {$ifdef ANDROID} {$define OpenGLES} {$endif}
-{$ifdef IPHONEOS} {$define OpenGLES} {$endif}
+{$ifdef iOS} {$define OpenGLES} {$endif}
 {$ifdef OpenGLES}
   {$define CastleGL := CastleGLES20}
   {$define GLImageUseShaders}

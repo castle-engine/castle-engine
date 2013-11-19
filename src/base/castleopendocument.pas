@@ -185,7 +185,7 @@ begin
   end;
 end;
 
-  {$if defined(darwin) and not defined(IPHONEOS)}
+  {$if defined(darwin) and not defined(iOS)}
 
 { lcl/include/sysenvapis_mac.inc --------------------------------------------- }
 

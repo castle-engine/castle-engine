@@ -282,6 +282,7 @@ type
     FLeverOffsetX: Integer;
     FLeverOffsetY: Integer;
     FDragStarted: boolean;
+    FSizeScale: single;
   public
     procedure Draw; override;
     function DrawStyle: TUIControlDrawStyle; override;
@@ -304,6 +305,8 @@ type
   published
     property TouchMode: TCastleTouchCtlMode
       read FTouchMode write SetTouchMode default ctcmWalking;
+    property SizeScale: single
+      read FSizeScale write FSizeScale default 0;
   end;
 
   { Simple background fill. Using OpenGL GLClear, so unconditionally
@@ -1215,11 +1218,13 @@ end;
 function TCastleTouchControl.Width: Cardinal;
 begin
   Result := Theme.Images[tiTouchCtlOuter].Width;
+  if FSizeScale>0 then Result := Round(Result*FSizeScale);
 end;
 
 function TCastleTouchControl.Height: Cardinal;
 begin
   Result := Theme.Images[tiTouchCtlOuter].Height;
+  if FSizeScale>0 then Result := Round(Result*FSizeScale);
 end;
 
 function TCastleTouchControl.Rect: TRectangle;
@@ -1236,6 +1241,7 @@ function TCastleTouchControl.MaxOffsetDist: Integer;
 begin
   Result := (Theme.Images[tiTouchCtlOuter].Width -
              Theme.Images[tiTouchCtlInner].Width) div 2;
+  if FSizeScale>0 then Result := Round(Result*FSizeScale);
 end;
 
 procedure TCastleTouchControl.Draw;

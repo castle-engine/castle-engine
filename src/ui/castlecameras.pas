@@ -3990,7 +3990,7 @@ begin
 
   if (Event.EventType = itMouseWheel) and
      (ciMouseDragging in Input) and
-     EnableDragging and
+     EnableDragging and (not MouseLook) and (MouseDragMode = cwdmNone) and
      Event.MouseWheelVertical then
   begin
     RotateVertical(-Event.MouseWheelScroll * 3);

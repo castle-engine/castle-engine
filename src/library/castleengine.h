@@ -98,6 +98,6 @@ extern void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fD
 extern int CGE_GetCurrentNavigationType();
 extern void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType);
 
-extern void CGE_UpdateTouchInterface(int /*ECgeTouchCtlInterface*/ eMode);
+extern void CGE_UpdateTouchInterface(int /*ECgeTouchCtlInterface*/ eMode, int nDpi);
 
 #endif //CGE_LIBRARY_INCLUDED
