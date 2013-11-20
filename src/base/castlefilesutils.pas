@@ -474,6 +474,12 @@ function ApplicationData(const Path: string): string;
   var
     CurPath: string;
   begin
+    {$ifdef ANDROID}
+    { TODO: this is just a testing code, to easily use files on Android. }
+    Result := '/sdcard/castle_game_engine/' + ApplicationName + '/';
+    if DirectoryExists(Result) then Exit;
+    {$endif}
+
     {$ifdef DARWIN}
     if BundlePath <> '' then
     begin

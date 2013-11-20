@@ -7,9 +7,10 @@ most important part of it is now inside
 castle_game_engine/src/window/castlewindow_android.inc .
 Using Android API inside castle_game_engine/src/base/android/ .
 
-After compiling, copy also the data/* files to /sdcard/kambitest/,
+After compiling, copy also the data/* files to /sdcard/castle_game_engine/cge_android_lib/,
 e.g. using
-  adb push data/ /sdcard/kambitest
+  adb shell mkdir /sdcard/castle_game_engine/cge_android_lib/
+  adb push data/ /sdcard/castle_game_engine/cge_android_lib/
 (TODO: The need for this will disappear once we implement getting
 data using Android asset manager, then the data will be just packed
 inside .apk.)

@@ -35,7 +35,7 @@ var
 implementation
 
 uses SysUtils, CastleWindow, CastleControls, CastleUIControls, CastleRectangles,
-  CastleGLUtils, CastleColors, X3DNodes;
+  CastleGLUtils, CastleColors, X3DNodes, CastleFilesUtils;
 
 var
   {$ifdef SOLID_BACKGROUND}
@@ -75,10 +75,10 @@ begin
   // TODO: read files using Anroid assets:
   // http://stackoverflow.com/questions/13317387/how-to-get-file-in-assets-from-android-ndk
 //    Image.Image := TouchCtlOuter.MakeCopy;
-  Image.URL := 'file:///sdcard/kambitest/sample_texture.ppm';
+  Image.URL := ApplicationData('sample_texture.ppm');
   Window.Controls.InsertFront(Image);
 
-  Window.Load('file:///sdcard/kambitest/castle_with_lights_and_camera.wrl');
+  Window.Load(ApplicationData('castle_with_lights_and_camera.wrl'));
 
   ToggleShaderButton := TCastleButton.Create(Window);
   ToggleShaderButton.Caption := 'Toggle effect';
