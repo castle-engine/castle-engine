@@ -46,6 +46,8 @@ enum ECgeTouchCtlInterface
     ecgetciNone              = 0,
     ecgetciCtlWalkCtlRotate  = 1,
     ecgetciCtlWalkDragRotate = 2,
+    etciCtlFlyCtlWalkDragRotate = 3,
+    etciCtlPanXYDragRotate   = 4,
 };
 
 enum ECgeMouseCursor

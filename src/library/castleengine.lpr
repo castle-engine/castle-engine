@@ -262,6 +262,8 @@ begin
     0: aNewMode := etciNone;
     1: aNewMode := etciCtlWalkCtlRotate;
     2: aNewMode := etciCtlWalkDragRotate;
+    3: aNewMode := etciCtlFlyCtlWalkDragRotate;
+    4: aNewMode := etciCtlPanXYDragRotate;
     else aNewMode := etciNone;
     end;
     aCastleFrame.UpdateTouchInterface(aNewMode, nDpi);

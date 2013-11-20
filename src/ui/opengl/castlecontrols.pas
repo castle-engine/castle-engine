@@ -271,7 +271,8 @@ type
     property Blending: boolean read GetBlending write SetBlending; deprecated;
   end;
 
-  TCastleTouchCtlMode = (ctcmWalking, ctcmWalkWithSideRot, ctcmHeadRotation);
+  TCastleTouchCtlMode = (ctcmWalking, ctcmWalkWithSideRot, ctcmHeadRotation,
+                         ctcmFlyUpdown, ctcmPanXY);
 
   { Control for touch interfaces. Shows one "lever", that can be moved
     up/down/left/right, and controls the movement while Walking or Flying. }
@@ -1253,6 +1254,7 @@ begin
   if not GetExists then Exit;
   Theme.Draw(Rect, tiTouchCtlOuter);
 
+  // compute lever offset (must not move outside outer ring)
   LeverDist := sqrt(FLeverOffsetX*FLeverOffsetX + FLeverOffsetY*FLeverOffsetY);
   MaxDist := MaxOffsetDist();
   if LeverDist <= MaxDist then
@@ -1264,7 +1266,15 @@ begin
     LevOffsetTrimmedX := Floor((FLeverOffsetX*MaxDist)/LeverDist);
     LevOffsetTrimmedY := Floor((FLeverOffsetY*MaxDist)/LeverDist);
   end;
+  if FTouchMode = ctcmFlyUpdown then LevOffsetTrimmedX := 0;
+
+  // draw lever
   InnerRect := Theme.Images[tiTouchCtlInner].Rect; // rectangle at (0,0)
+  if FSizeScale>0 then
+  begin
+    InnerRect.Width := Round(InnerRect.Width*FSizeScale);
+    InnerRect.Height := Round(InnerRect.Height*FSizeScale);
+  end;
   InnerRect.Left   := Left   + (Width  - InnerRect.Width ) div 2 + LevOffsetTrimmedX;
   InnerRect.Bottom := Bottom + (Height - InnerRect.Height) div 2 - LevOffsetTrimmedY;
   Theme.Draw(InnerRect, tiTouchCtlInner);
@@ -1346,6 +1356,17 @@ begin
   else if FTouchMode = ctcmWalkWithSideRot then
   begin
     Z := FLeverOffsetY*FxConst;
+    Length := 20;
+  end
+  else if FTouchMode = ctcmFlyUpdown then
+  begin
+    Y := -FLeverOffsetY*FxConst;
+    Length := 20;
+  end
+  else if FTouchMode = ctcmPanXY then
+  begin
+    X := -FLeverOffsetX*FxConst;
+    Y := FLeverOffsetY*FxConst;
     Length := 20;
   end;
 end;

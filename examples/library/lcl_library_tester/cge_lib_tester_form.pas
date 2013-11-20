@@ -43,7 +43,7 @@ var
 implementation
 
 uses
-  LCLType, ctypes, CastleControls, CastleGLUtils;
+  LCLType, ctypes, CastleControls, CastleGLUtils, CastleCameras;
 
 {$R *.lfm}
 
@@ -80,9 +80,12 @@ begin
 
   aCastleFrame.Load('../../../../demo_models/navigation/type_walk.wrl');
   //aCastleFrame.Load('../../../examples/shadow_fields/models/humanoid_stand.wrl');
+  aCastleFrame.Load('mojedata/Image3D.wrl');
 
   //aCastleFrame.UpdateTouchInterface(etciCtlWalkCtlRotate, 96);
-  aCastleFrame.UpdateTouchInterface(etciCtlWalkDragRotate, 96);
+  //aCastleFrame.UpdateTouchInterface(etciCtlWalkDragRotate, 96);
+  aCastleFrame.UpdateTouchInterface(etciCtlFlyCtlWalkDragRotate, 96);
+  aCastleFrame.SetNavigationType(ntFly);
 
   OglInfo := GLInformationString;
   //Application.MessageBox(PChar(OglInfo), 'GL Info', 0);
