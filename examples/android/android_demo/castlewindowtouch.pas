@@ -51,13 +51,16 @@ begin
 
   if (LeftTouchCtl<>nil) or (RightTouchCtl<>nil) then
   begin
-    if (LeftTouchCtl<>nil) then
+    Tx := 0; Ty := 0; Tz := 0; TLength := 0;
+    Rx := 0; Ry := 0; Rz := 0; RAngle := 0;
+
+    if LeftTouchCtl <> nil then
     begin
       LeftTouchCtl.GetTranslationValues(Tx, Ty, Tz, TLength);
       LeftTouchCtl.GetRotationValues(Rx, Ry, Rz, RAngle);
     end;
 
-    if (RightTouchCtl<>nil) then
+    if RightTouchCtl <> nil then
     begin
       RightTouchCtl.GetTranslationValues(Tx, Ty, Tz, TLength);
       RightTouchCtl.GetRotationValues(Rx, Ry, Rz, RAngle);
