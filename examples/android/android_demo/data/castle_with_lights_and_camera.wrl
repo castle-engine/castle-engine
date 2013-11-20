@@ -20,7 +20,7 @@ Group{
     }
 
     NavigationInfo {
-      type "EXAMINE"
+      type "WALK"
       speed 20
       avatarSize [ 0.5 4 ]
     }

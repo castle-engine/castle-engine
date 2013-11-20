@@ -27,14 +27,14 @@ unit Game;
 
 interface
 
-uses CastleWindow;
+uses CastleWindowTouch;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowTouch;
 
 implementation
 
-uses SysUtils, CastleControls, CastleUIControls, CastleRectangles,
+uses SysUtils, CastleWindow, CastleControls, CastleUIControls, CastleRectangles,
   CastleGLUtils, CastleColors, X3DNodes;
 
 var
@@ -44,6 +44,7 @@ var
   Image: TCastleImageControl;
   ToggleShaderButton: TCastleButton;
   MyShaderEffect: TEffectNode;
+  LeftTouch, RightTouch: TCastleTouchControl;
 
 type
   TDummy = class
@@ -86,6 +87,8 @@ begin
 
   MyShaderEffect := Window.SceneManager.MainScene.RootNode.TryFindNodeByName(
     TEffectNode, 'MyShaderEffect', false) as TEffectNode;
+
+  Window.TouchInterface(etciCtlWalkDragRotate{etciCtlWalkCtlRotate}, 96);
 end;
 
 procedure WindowResize(Sender: TCastleWindowBase);
@@ -112,7 +115,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowTouch.Create(Application);
   Application.MainWindow := Window;
   Window.OnResize := @WindowResize;
 end.

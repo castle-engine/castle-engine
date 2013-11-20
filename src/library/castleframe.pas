@@ -1153,8 +1153,9 @@ end;
 function TCastleFrame.GetCurrentNavigationType(): TCameraNavigationType;
 begin
   if Camera is TUniversalCamera then
-    Result := (Camera as TUniversalCamera).NavigationType
-  else
+    Result := (Camera as TUniversalCamera).NavigationType else
+  if Camera is TWalkCamera then
+    Result := ntWalk else
     Result := ntExamine;
 end;
 
