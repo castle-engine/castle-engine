@@ -111,6 +111,10 @@ begin
 
   Attribs := TLongIntList.Create;
   try
+    if StencilBits > 0 then
+      Attribs.AddArray([EGL_STENCIL_SIZE, StencilBits]);
+    if AlphaBits > 0 then
+      Attribs.AddArray([EGL_ALPHA_SIZE, AlphaBits]);
     Attribs.AddArray([
       EGL_DEPTH_SIZE, DepthBits,
       EGL_RED_SIZE  , Max(1, RedBits),
