@@ -784,7 +784,7 @@ end;
 
 { TCastleApplication ---------------------------------------------------------- }
 
-procedure TCastleApplication.CreateBackend(var Initialized: boolean);
+procedure TCastleApplication.CreateBackend;
 begin
   { Do not install LCL handler for ExceptProc, we want to use our own handler
     in CastleUtils. }

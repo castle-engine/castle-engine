@@ -282,10 +282,9 @@ end;
 
 { TCastleApplication ---------------------------------------------------------- }
 
-procedure TCastleApplication.CreateBackend(var Initialized: boolean);
+procedure TCastleApplication.CreateBackend;
 begin
   AndroidMain := @AndroidMainImplementation;
-  Initialized := false; // we will call OnInitialize ourselves later
 end;
 
 procedure TCastleApplication.DestroyBackend;

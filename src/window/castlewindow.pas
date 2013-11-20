@@ -2498,6 +2498,7 @@ end;
 
   private
     FOnInitialize: TProcedure;
+    Initialized: boolean;
     FOnUpdate :TUpdateFunc;
     FOnTimer :TProcedure;
     FTimerMilisec :Cardinal;
@@ -2531,7 +2532,7 @@ end;
     { Find window on the OpenWindows list. Returns index, or -1 if not found. }
     function FindWindow(Window: TCastleWindowBase): integer;
 
-    procedure CreateBackend(var Initialized: boolean);
+    procedure CreateBackend;
     procedure DestroyBackend;
 
     { The CastleWindow-backend specific part of Quit method implementation.
@@ -2645,18 +2646,23 @@ end;
     { The backend is initialized. Called only once, at the very beginning
       of the game.
 
-      For standalone games, this is just called as soon as
-      TCastleApplication is constructed (in initialization of this unit).
-      And you usually don't need this callback: you can as well just put
+      For standalone games, this is not called automatically.
+      You can call it from the main program file, to work consistently with
+      "library" targets (see below). Or you can ignore this,
+      if you're not interested in Android and similar targets.
+      For standalone games, you may as well just put
       your initialization code into the main program code.
 
-      However, this callback becomes useful on targets like Android or iOS
-      or browser plugin, where the engine has to run as a library.
+      For targets like Android or iOS or browser plugin,
+      where the engine has to run as a library, this callback is useful.
       In such case, we really should not do anything (even reading files)
       before an external process tells us "Ok, you're ready".
       So you should put all the game initialization in an Application.OnInitialize
-      callback. }
+      callback. It will be automatically called by CastleWindow backend
+      when suitable. }
     property OnInitialize: TProcedure read FOnInitialize write FOnInitialize;
+
+    procedure Initialize;
 
     { Continously occuring event.
       @seealso TCastleWindowBase.OnUpdate. }
@@ -2868,7 +2874,7 @@ function KeyString(const CharKey: char; const Key: TKey; const Modifiers: TModif
 
 implementation
 
-uses CastleParameters, CastleLog, CastleGLVersion, CastleURIUtils,
+uses CastleParameters, CastleLog, CastleGLVersion, CastleURIUtils, CastleWarnings,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
   {$undef read_implementation_uses}
@@ -4792,21 +4798,13 @@ var
   FApplication: TCastleApplication;
 
 constructor TCastleApplication.Create(AOwner: TComponent);
-var
-  Initialized: boolean;
 begin
   inherited;
   FOpenWindows := TWindowList.Create(false);
   FTimerMilisec := 1000;
   FLimitFPS := DefaultLimitFPS;
 
-  { Assign FApplication singleton before calling OnInitialize }
-  FApplication := Self;
-
-  Initialized := true;
-  CreateBackend(Initialized);
-  if Initialized and Assigned(OnInitialize) then
-    OnInitialize();
+  CreateBackend;
 end;
 
 destructor TCastleApplication.Destroy;
@@ -4829,6 +4827,17 @@ begin
   DestroyBackend;
   FreeAndNil(FOpenWindows);
   inherited;
+end;
+
+procedure TCastleApplication.Initialize;
+begin
+  if not Initialized then
+  begin
+    Initialized := true;
+    if Assigned(OnInitialize) then
+      OnInitialize();
+  end else
+    OnWarning(wtMajor, 'Window', 'Application.Initialize called more than once');
 end;
 
 procedure TCastleApplication.SetMainWindow(const Value: TCastleWindowBase);
@@ -5068,7 +5077,7 @@ end;
 
 initialization
   CastleWindowMenu_Init;
-  TCastleApplication.Create(nil);
+  FApplication := TCastleApplication.Create(nil);
   FClipboard := TCastleClipboard.Create;
 finalization
   { Instead of using FreeAndNil, just call Free.

@@ -1733,7 +1733,7 @@ begin
  QuitPosted := true;
 end;
 
-procedure TCastleApplication.CreateBackend(var Initialized: boolean);
+procedure TCastleApplication.CreateBackend;
 {$ifdef DARWIN}
 const
   AltXDisplayName = ':0';

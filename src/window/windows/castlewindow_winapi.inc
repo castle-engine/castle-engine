@@ -1177,7 +1177,7 @@ end;
 
 { TCastleApplication ----------------------------------------------- }
 
-procedure TCastleApplication.CreateBackend(var Initialized: boolean);
+procedure TCastleApplication.CreateBackend;
 var
   WindowClass: TWndClass;
   C: TMouseCursor;
