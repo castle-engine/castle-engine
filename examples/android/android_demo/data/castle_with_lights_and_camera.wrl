@@ -41,6 +41,20 @@ Group{
       }
     }
 
+    DEF MyShaderEffect Effect {
+      language "GLSL"
+      parts EffectPart {
+        type "FRAGMENT"
+        url "data:text/plain,
+        void PLUG_texture_apply(
+           inout vec4 fragment_color,
+           const in vec3 normal)
+        {
+           fragment_color.rgb = pow(fragment_color.rgb * 3.0 / 2.0, vec3(3.0));
+        }"
+      }
+    }
+
     Inline { url "castle_with_lights.wrl" }
   ]
 }

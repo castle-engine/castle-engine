@@ -35,34 +35,26 @@ var
 implementation
 
 uses SysUtils, CastleControls, CastleUIControls, CastleRectangles,
-  CastleGLUtils, CastleColors;
-
-type
-  { Define 2D control with custom drawing code, just to show that we can. }
-  T2DControls = class(TUIControl)
-  public
-    procedure Draw; override;
-    function DrawStyle: TUIControlDrawStyle; override;
-  end;
-
-function T2DControls.DrawStyle: TUIControlDrawStyle;
-begin
-  Result := ds2D;
-end;
-
-procedure T2DControls.Draw;
-begin
-  DrawRectangle(Rectangle(
-    Application.ScreenWidth - 100,
-    Application.ScreenHeight - 100, 80, 80), Blue);
-end;
+  CastleGLUtils, CastleColors, X3DNodes;
 
 var
   {$ifdef SOLID_BACKGROUND}
   Background: TCastleSimpleBackground;
   {$endif}
-  MyControl: T2DControls;
   Image: TCastleImageControl;
+  ToggleShaderButton: TCastleButton;
+  MyShaderEffect: TEffectNode;
+
+type
+  TDummy = class
+    procedure ToggleShaderClick(Sender: TObject);
+  end;
+
+procedure TDummy.ToggleShaderClick(Sender: TObject);
+begin
+  if MyShaderEffect <> nil then
+    MyShaderEffect.FdEnabled.Send(not MyShaderEffect.FdEnabled.Value);
+end;
 
 { One-time initialization. }
 procedure ApplicationInitialize;
@@ -77,9 +69,6 @@ begin
   Window.Controls.InsertBack(Background);
 {$endif}
 
-  MyControl := T2DControls.Create(Window);
-  Window.Controls.InsertFront(MyControl);
-
   Image := TCastleImageControl.Create(Window);
   // TODO: png support for Android
   // TODO: read files using Anroid assets:
@@ -89,12 +78,25 @@ begin
   Window.Controls.InsertFront(Image);
 
   Window.Load('file:///sdcard/kambitest/castle_with_lights_and_camera.wrl');
+
+  ToggleShaderButton := TCastleButton.Create(Window);
+  ToggleShaderButton.Caption := 'Toggle effect';
+  ToggleShaderButton.OnClick := @TDummy(nil).ToggleShaderClick;
+  Window.Controls.InsertFront(ToggleShaderButton);
+
+  MyShaderEffect := Window.SceneManager.MainScene.RootNode.TryFindNodeByName(
+    TEffectNode, 'MyShaderEffect', false) as TEffectNode;
 end;
 
 procedure WindowResize(Sender: TCastleWindowBase);
+const
+  Margin = 10;
 begin
-  Image.Left := 10;
-  Image.Bottom := Application.ScreenHeight - 300;
+  Image.Left := Margin;
+  Image.Bottom := Window.Height - Image.Height - Margin;
+
+  ToggleShaderButton.Left := (Window.Width - ToggleShaderButton.Width) div 2;
+  ToggleShaderButton.Bottom := Window.Height - ToggleShaderButton.Height - Margin;
 end;
 
 function MyGetApplicationName: string;
