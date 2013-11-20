@@ -35,6 +35,7 @@ private
 {$ifdef read_application_interface}
 private
   FScreenWidth, FScreenHeight: Integer;
+  LastDoTimerTime: TMilisecTime;
 {$endif read_application_interface}
 
 {$ifdef read_implementation_uses}
@@ -117,6 +118,15 @@ begin
 end;
 
 procedure AndroidMainImplementation(App: PAndroid_App);
+
+  { Call Update on Application and all open Windows, call OnTimer on Application }
+  procedure WindowsUpdateAndTimer;
+  begin
+    Application.DoSelfUpdate;
+    Application.FOpenWindows.DoUpdate;
+    Application.MaybeDoTimer(Application.LastDoTimerTime);
+  end;
+
 var
   Ident, Events, NewWidth, NewHeight: Integer;
   Source: Pandroid_poll_source;
@@ -160,6 +170,8 @@ begin
           Resize(NewWidth, NewHeight);
 
         Application.MainWindow.DoDraw;
+
+        WindowsUpdateAndTimer;
       end;
     end;
   except
