@@ -1336,7 +1336,7 @@ procedure TCastleTouchControl.GetTranslationValues(var X, Y, Z, Length: Double);
 var
   FxConst: Double;
 begin
-  FxConst := 100/MaxOffsetDist();
+  FxConst := 200/MaxOffsetDist();
   if FTouchMode = ctcmWalking then
   begin
     X := FLeverOffsetX*FxConst/1.5;  { walking to the sides should be slower }
