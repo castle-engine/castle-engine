@@ -13,7 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Manage OpenGL ES context on Android using EGL. }
+{ Manage OpenGL ES context on Android using EGL,
+  and manage message loop using Android NDK. }
 
 {$I castlewindow_egl.inc}
 {$I castlewindow_dialogs_by_messages.inc}
@@ -24,11 +25,10 @@
 {$ifdef read_implementation_uses}
 CastleAndroidNativeWindow, CastleAndroidInput, CastleAndroidLooper,
 CastleAndroidLog, CastleAndroidNativeAppGlue,
-CTypes,
 {$endif}
 
 {$ifdef read_window_interface}
-public
+private
   NativeWindow: EGLNativeWindowType; //< must be set before Window.Open
 {$endif read_window_interface}
 
@@ -89,7 +89,7 @@ begin
     Application.MainWindow.DoResize(Width, Height, false);
 end;
 
-procedure HandleCommand(App: PAndroid_app; Command: CInt32);
+procedure HandleCommand(App: PAndroid_app; Command: Integer);
 begin
   case Command of
     APP_CMD_INIT_WINDOW: OpenContext(App^.Window);
@@ -97,11 +97,11 @@ begin
   end;
 end;
 
-function HandleInput(App: PAndroid_app; Event: PAInputEvent): CInt;
+function HandleInput(App: PAndroid_app; Event: PAInputEvent): boolean;
 var
-  MotionAction, MotionIndex, MotionX, MotionY: CInt;
+  MotionAction, {MotionIndex, }MotionX, MotionY: Integer;
 begin
-  Result := 0;
+  Result := false;
   if AInputEvent_getType(Event) = AINPUT_EVENT_TYPE_MOTION then
   begin
     MotionAction := AMotionEvent_getAction(Event) and AMOTION_EVENT_ACTION_MASK;
@@ -109,9 +109,9 @@ begin
     MotionX := Round(AMotionEvent_getX(event, 0));
     MotionY := Round(AMotionEvent_getY(event, 0));
     case MotionAction of
-      AMOTION_EVENT_ACTION_DOWN: begin Application.MainWindow.DoMouseDown(MotionX, MotionY, mbLeft); Result := 1; end;
-      AMOTION_EVENT_ACTION_UP  : begin Application.MainWindow.DoMouseUp(MotionX, MotionY, mbLeft);   Result := 1; end;
-      AMOTION_EVENT_ACTION_MOVE: begin Application.MainWindow.DoMouseMove(MotionX, MotionY);         Result := 1; end;
+      AMOTION_EVENT_ACTION_DOWN: begin Application.MainWindow.DoMouseDown(MotionX, MotionY, mbLeft); Result := true; end;
+      AMOTION_EVENT_ACTION_UP  : begin Application.MainWindow.DoMouseUp(MotionX, MotionY, mbLeft);   Result := true; end;
+      AMOTION_EVENT_ACTION_MOVE: begin Application.MainWindow.DoMouseMove(MotionX, MotionY);         Result := true; end;
     end;
   end;
 end;

@@ -671,7 +671,7 @@ function AInputQueue_preDispatchEvent(queue: PAInputQueue; event: PAInputEvent):
  * This must be called after receiving an event with AInputQueue_get_event().
   *)
 
-procedure AInputQueue_finishEvent(queue: PAInputQueue; event: PAInputEvent; handled: cint); cdecl; external;
+procedure AInputQueue_finishEvent(queue: PAInputQueue; event: PAInputEvent; handled: boolean32); cdecl; external;
 
 implementation
 

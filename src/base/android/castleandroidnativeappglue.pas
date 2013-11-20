@@ -107,12 +107,12 @@ type
     // here if it likes.
     userData : Pointer;
     // Fill this in with the function to process main app commands (APP_CMD_*)
-    onAppCmd : procedure(app: Pandroid_app; cmd: cint32);
+    onAppCmd : procedure(app: Pandroid_app; cmd: Integer);
     // Fill this in with the function to process input events.  At this point
     // the event has already been pre-dispatched, and it will be finished upon
     // return. Return if you have handled the event, 0 for any default
     // dispatching.
-    onInputEvent : function(app: Pandroid_app; event: PAInputEvent): cint32;
+    onInputEvent : function(app: Pandroid_app; event: PAInputEvent): boolean;
     // The ANativeActivity object instance that this app is running in.
     activity : PANativeActivity;
     // The current configuration the app is running in.
@@ -469,15 +469,16 @@ begin
 end;
 
 procedure process_input(app: Pandroid_app; source: Pandroid_poll_source);
-var event: PAInputEvent;
-    handled: cint32;
+var
+  event: PAInputEvent;
+  handled: boolean;
 begin
     event := nil;
     if (AInputQueue_getEvent(app^.inputQueue, @event) >= 0) then
     begin
         // AndroidLog(alInfo,'New input event: type:=%d',[AInputEvent_getType(event)]);
         if AInputQueue_preDispatchEvent(app^.inputQueue, event) <> 0 then exit;
-        handled := 0;
+        handled := false;
         if (app^.onInputEvent <> nil) then handled := app^.onInputEvent(app, event);
         AInputQueue_finishEvent(app^.inputQueue, event, handled);
     end
