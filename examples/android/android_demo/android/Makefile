@@ -1,5 +1,6 @@
 .PHONY: default
 default:
+	cd ../ && sh compile.sh
 	mkdir -p libs/armeabi/
 	cp -f ../libcge_android_lib.so libs/armeabi/libcge_android_lib.so
 	ant debug
