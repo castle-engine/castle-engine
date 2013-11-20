@@ -58,13 +58,16 @@ begin
 end;
 
 var
+  {$ifdef SOLID_BACKGROUND}
   Background: TCastleSimpleBackground;
+  {$endif}
   MyControl: T2DControls;
   Image: TCastleImageControl;
 
 { One-time initialization. }
 procedure ApplicationInitialize;
 begin
+{$ifdef SOLID_BACKGROUND}
   { Show other controls under SceneManager, this way our Background
     is visible. Otherwise, Background defined in main 3D scene is used. }
   Window.SceneManager.Transparent := true;
@@ -72,6 +75,7 @@ begin
   Background := TCastleSimpleBackground.Create(Window);
   Background.Color := Yellow;
   Window.Controls.InsertBack(Background);
+{$endif}
 
   MyControl := T2DControls.Create(Window);
   Window.Controls.InsertFront(MyControl);

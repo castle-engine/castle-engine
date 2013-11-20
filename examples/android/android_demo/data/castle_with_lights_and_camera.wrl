@@ -29,7 +29,18 @@ Group{
       title "The Castle model"
     }
 
+    Transform {
+      rotation 1 0 0 1.57
+      children Background {
+        backUrl   "skies/foggy_sky_back.ppm"
+        bottomUrl "skies/foggy_sky_bottom.ppm"
+        frontUrl  "skies/foggy_sky_front.ppm"
+        leftUrl   "skies/foggy_sky_left.ppm"
+        rightUrl  "skies/foggy_sky_right.ppm"
+        topUrl    "skies/foggy_sky_top.ppm"
+      }
+    }
+
     Inline { url "castle_with_lights.wrl" }
   ]
 }
-
