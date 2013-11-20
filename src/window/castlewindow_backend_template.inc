@@ -199,7 +199,7 @@ end;
 
 { TCastleApplication ---------------------------------------------------------- }
 
-procedure TCastleApplication.CreateBackend;
+procedure TCastleApplication.CreateBackend(var Initialized: boolean);
 begin
   { TODO (initialize backend-specific stuff for the whole application;
     may do nothing if you don't need anything) }

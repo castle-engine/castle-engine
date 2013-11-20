@@ -22,24 +22,19 @@
 {$endif}
 
 {$ifdef read_implementation_uses}
+CastleAndroidNativeWindow, CastleAndroidInput, CastleAndroidLooper,
+CastleAndroidLog, CastleAndroidNativeAppGlue,
+CTypes,
 {$endif}
 
 {$ifdef read_window_interface}
 public
   NativeWindow: EGLNativeWindowType; //< must be set before Window.Open
-  { AndroidXxx functions are called by library code. }
-  procedure AndroidDraw;
-  procedure AndroidResize(const AWidth, AHeight: Integer);
-  procedure AndroidMouseDown(const X, Y: Integer; Btn: CastleKeysMouse.TMouseButton);
-  procedure AndroidMouseUp(const X, Y: Integer; Btn: CastleKeysMouse.TMouseButton);
-  procedure AndroidMouseMove(const X, Y: Integer);
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
 private
   FScreenWidth, FScreenHeight: Integer;
-public
-  procedure AndroidInit(const AWidth, AHeight: Integer);
 {$endif read_application_interface}
 
 {$ifdef read_implementation_uses}
@@ -47,7 +42,132 @@ public
 
 {$ifdef read_implementation}
 
-{ TCastleWindowBase ------------------------------------------------------------------ }
+{ Android NDK integration ---------------------------------------------------- }
+
+procedure OpenContext(NativeWindow: PANativeWindow);
+var
+  Width, Height: Integer;
+begin
+  Application.MainWindow.NativeWindow := NativeWindow;
+  Width := ANativeWindow_getWidth(NativeWindow);
+  Height := ANativeWindow_getHeight(NativeWindow);
+
+  AndroidLog(alInfo, 'OpenContext (size: %d %d)', [Width, Height]);
+
+  Application.FScreenWidth := Width;
+  Application.FScreenHeight := Height;
+
+  //Application.MainWindow.FullScreen := true; // TODO: setting fullscreen should work like that 2 lines below. Also, should be default?
+  Application.MainWindow.Width := Width;
+  Application.MainWindow.Height := Height;
+  Application.MainWindow.Open;
+end;
+
+procedure CloseContext;
+begin
+  AndroidLog(alInfo, 'CloseContext');
+
+  { Whenever the context is lost, this is called.
+    It's important that we release all OpenGL resources, to recreate them later
+    (we wil call Window.Open only from onNativeWindowResized, since we don't know
+    the size yet). }
+  if Application.MainWindow <> nil then
+  begin
+    Application.MainWindow.Close;
+    Application.MainWindow.NativeWindow := nil; // make sure to not access the NativeWindow anymore
+  end;
+end;
+
+procedure Resize(Width, Height: Integer);
+begin
+  AndroidLog(alInfo, 'Resize (size: %d %d)', [Width, Height]);
+
+  Application.FScreenWidth := Width;
+  Application.FScreenHeight := Height;
+
+  if not Application.MainWindow.Closed then
+    Application.MainWindow.DoResize(Width, Height, false);
+end;
+
+procedure HandleCommand(App: PAndroid_app; Command: CInt32);
+begin
+  case Command of
+    APP_CMD_INIT_WINDOW: OpenContext(App^.Window);
+    APP_CMD_TERM_WINDOW: CloseContext;
+  end;
+end;
+
+function HandleInput(App: PAndroid_app; Event: PAInputEvent): CInt;
+var
+  MotionAction, MotionIndex, MotionX, MotionY: CInt;
+begin
+  Result := 0;
+  if AInputEvent_getType(Event) = AINPUT_EVENT_TYPE_MOTION then
+  begin
+    MotionAction := AMotionEvent_getAction(Event) and AMOTION_EVENT_ACTION_MASK;
+    // MotionIndex := AMotionEvent_getAction(Event) shr AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+    MotionX := Round(AMotionEvent_getX(event, 0));
+    MotionY := Round(AMotionEvent_getY(event, 0));
+    case MotionAction of
+      AMOTION_EVENT_ACTION_DOWN: begin Application.MainWindow.DoMouseDown(MotionX, MotionY, mbLeft); Result := 1; end;
+      AMOTION_EVENT_ACTION_UP  : begin Application.MainWindow.DoMouseUp(MotionX, MotionY, mbLeft);   Result := 1; end;
+      AMOTION_EVENT_ACTION_MOVE: begin Application.MainWindow.DoMouseMove(MotionX, MotionY);         Result := 1; end;
+    end;
+  end;
+end;
+
+procedure AndroidMainImplementation(App: PAndroid_App);
+var
+  Ident, Events, NewWidth, NewHeight: Integer;
+  Source: Pandroid_poll_source;
+begin
+  try
+    if Application.MainWindow = nil then
+      raise Exception.Create('For Android, you have to assign Application.MainWindow');
+    if Assigned(Application.OnInitialize) then
+      Application.OnInitialize();
+
+    App^.OnAppCmd := @HandleCommand;
+    App^.OnInputEvent := @HandleInput;
+
+    while true do
+    begin
+      repeat
+        Ident := ALooper_pollAll(0, nil, @Events, @Source);
+        if Ident < 0 then Break;
+
+        if Source <> nil then
+          Source^.Process(App, Source);
+
+        // Check if we are exiting.
+        if App^.DestroyRequested = 1 then
+        begin
+          CloseContext;
+          Exit;
+        end;
+
+      until false;
+
+      if not Application.MainWindow.Closed then
+      begin
+        { check for Resize. As there is no reliable event to capture it
+          (ANativeWindow_getWidth and ANativeWindow_getheight are immediately
+          updated, but for some time EGL sizes stay old) so we just watch
+          for changes, and only fire our "Resize" when really EGL size changed. }
+        Application.MainWindow.QuerySize(NewWidth, NewHeight);
+        if (NewWidth <> Application.MainWindow.Width) or
+           (NewHeight <> Application.MainWindow.Height) then
+          Resize(NewWidth, NewHeight);
+
+        Application.MainWindow.DoDraw;
+      end;
+    end;
+  except
+    on E: TObject do AndroidLog(E);
+  end;
+end;
+
+{ TCastleWindowBase ---------------------------------------------------------- }
 
 procedure TCastleWindowBase.CreateBackend;
 begin
@@ -160,35 +280,12 @@ begin
   FFullScreen := Value; //< does nothing on Android
 end;
 
-procedure TCastleWindowBase.AndroidDraw;
-begin
-  DoDraw;
-end;
-
-procedure TCastleWindowBase.AndroidResize(const AWidth, AHeight: Integer);
-begin
-  DoResize(AWidth, AHeight, false);
-end;
-
-procedure TCastleWindowBase.AndroidMouseDown(const X, Y: Integer; Btn: CastleKeysMouse.TMouseButton);
-begin
-  DoMouseDown(X, Y, Btn);
-end;
-
-procedure TCastleWindowBase.AndroidMouseUp(const X, Y: Integer; Btn: CastleKeysMouse.TMouseButton);
-begin
-  DoMouseUp(X, Y, Btn);
-end;
-
-procedure TCastleWindowBase.AndroidMouseMove(const X, Y: Integer);
-begin
-  DoMouseMove(X, Y);
-end;
-
 { TCastleApplication ---------------------------------------------------------- }
 
-procedure TCastleApplication.CreateBackend;
+procedure TCastleApplication.CreateBackend(var Initialized: boolean);
 begin
+  AndroidMain := @AndroidMainImplementation;
+  Initialized := false; // we will call OnInitialize ourselves later
 end;
 
 procedure TCastleApplication.DestroyBackend;
@@ -215,12 +312,6 @@ end;
 procedure TCastleApplication.QuitWhenNoOpenWindows;
 begin
   { TODO }
-end;
-
-procedure TCastleApplication.AndroidInit(const AWidth, AHeight: Integer);
-begin
-  FScreenWidth := AWidth;
-  FScreenHeight := AHeight;
 end;
 
 function TCastleApplication.ScreenWidth: integer;

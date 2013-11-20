@@ -622,7 +622,7 @@ begin
   end;
 end;
 
-procedure TCastleApplication.CreateBackend;
+procedure TCastleApplication.CreateBackend(var Initialized: boolean);
 const
   { Under Kylix, capital letters are XK_?  and lower are XK_l?.
     Under FPC,           ...     are XKc_?    ...    are XK_?. }

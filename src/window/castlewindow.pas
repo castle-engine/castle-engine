@@ -2497,6 +2497,7 @@ end;
   {$undef read_application_interface}
 
   private
+    FOnInitialize: TProcedure;
     FOnUpdate :TUpdateFunc;
     FOnTimer :TProcedure;
     FTimerMilisec :Cardinal;
@@ -2507,6 +2508,7 @@ end;
     Current: TCastleWindowBase;
     LastLimitFPSTime: TTimerResult;
     FLimitFPS: Single;
+    FMainWindow: TCastleWindowBase;
 
     FOpenWindows: TWindowList;
     function GetOpenWindows(Index: integer): TCastleWindowBase;
@@ -2529,7 +2531,7 @@ end;
     { Find window on the OpenWindows list. Returns index, or -1 if not found. }
     function FindWindow(Window: TCastleWindowBase): integer;
 
-    procedure CreateBackend;
+    procedure CreateBackend(var Initialized: boolean);
     procedure DestroyBackend;
 
     { The CastleWindow-backend specific part of Quit method implementation.
@@ -2576,6 +2578,7 @@ end;
     function AllowSuspendForInput: boolean;
 
     procedure DoLimitFPS;
+    procedure SetMainWindow(const Value: TCastleWindowBase);
   public
     { If VideoResize, then next VideoChange call will
       try to resize the screen to given VideoResizeWidth /
@@ -2586,6 +2589,8 @@ end;
     VideoResizeWidth,
     VideoResizeheight : integer;
     { @groupEnd }
+
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
     { Color bits per pixel that will be set by next VideoChange call,
       and that are tried to be used at TCastleWindowBase.Open.
@@ -2637,6 +2642,22 @@ end;
     property OpenWindows[Index: integer]: TCastleWindowBase read GetOpenWindows;
     { @groupEnd }
 
+    { The backend is initialized. Called only once, at the very beginning
+      of the game.
+
+      For standalone games, this is just called as soon as
+      TCastleApplication is constructed (in initialization of this unit).
+      And you usually don't need this callback: you can as well just put
+      your initialization code into the main program code.
+
+      However, this callback becomes useful on targets like Android or iOS
+      or browser plugin, where the engine has to run as a library.
+      In such case, we really should not do anything (even reading files)
+      before an external process tells us "Ok, you're ready".
+      So you should put all the game initialization in an Application.OnInitialize
+      callback. }
+    property OnInitialize: TProcedure read FOnInitialize write FOnInitialize;
+
     { Continously occuring event.
       @seealso TCastleWindowBase.OnUpdate. }
     property OnUpdate: TUpdateFunc read FOnUpdate write FOnUpdate;
@@ -2654,6 +2675,10 @@ end;
     property OnTimer: TProcedure read FOnTimer write FOnTimer;
     property TimerMilisec: Cardinal read FTimerMilisec write FTimerMilisec default 1000;
     { @groupEnd }
+
+    { On targets when only one TCastleWindowBase instance makes sense
+      (like Android), set this to the reference of that window. }
+    property MainWindow: TCastleWindowBase read FMainWindow write SetMainWindow;
 
     { Process messages from the window system.
       You have to call this repeatedly to process key presses,
@@ -4767,12 +4792,21 @@ var
   FApplication: TCastleApplication;
 
 constructor TCastleApplication.Create(AOwner: TComponent);
+var
+  Initialized: boolean;
 begin
   inherited;
   FOpenWindows := TWindowList.Create(false);
   FTimerMilisec := 1000;
   FLimitFPS := DefaultLimitFPS;
-  CreateBackend;
+
+  { Assign FApplication singleton before calling OnInitialize }
+  FApplication := Self;
+
+  Initialized := true;
+  CreateBackend(Initialized);
+  if Initialized and Assigned(OnInitialize) then
+    OnInitialize();
 end;
 
 destructor TCastleApplication.Destroy;
@@ -4784,6 +4818,9 @@ begin
     after freeing central Application). }
   Quit;
 
+  { unregister free notification from these objects }
+  MainWindow := nil;
+
   { nil now the Application variable. For reasoning, see this units
     finalization. }
   FApplication := nil;
@@ -4792,6 +4829,25 @@ begin
   DestroyBackend;
   FreeAndNil(FOpenWindows);
   inherited;
+end;
+
+procedure TCastleApplication.SetMainWindow(const Value: TCastleWindowBase);
+begin
+  if FMainWindow <> Value then
+  begin
+    if FMainWindow <> nil then
+      FMainWindow.RemoveFreeNotification(Self);
+    FMainWindow := Value;
+    if FMainWindow <> nil then
+      FMainWindow.FreeNotification(Self);
+  end;
+end;
+
+procedure TCastleApplication.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  if (Operation = opRemove) and (AComponent = MainWindow) then
+    MainWindow := nil;
 end;
 
 function TCastleApplication.GetOpenWindows(Index: integer): TCastleWindowBase;
@@ -5012,7 +5068,7 @@ end;
 
 initialization
   CastleWindowMenu_Init;
-  FApplication := TCastleApplication.Create(nil);
+  TCastleApplication.Create(nil);
   FClipboard := TCastleClipboard.Create;
 finalization
   { Instead of using FreeAndNil, just call Free.

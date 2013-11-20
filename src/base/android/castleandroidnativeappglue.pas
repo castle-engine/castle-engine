@@ -91,7 +91,7 @@ type
     app : Pandroid_app;
     // Function to call to perform the standard processing of data from
     // this source.
-    process : procedure(app: Pandroid_app; source: Pandroid_poll_source); cdecl;
+    process : procedure(app: Pandroid_app; source: Pandroid_poll_source);
   end;
 
 (**
@@ -107,12 +107,12 @@ type
     // here if it likes.
     userData : Pointer;
     // Fill this in with the function to process main app commands (APP_CMD_*)
-    onAppCmd : procedure(app: Pandroid_app; cmd: cint32); cdecl;
+    onAppCmd : procedure(app: Pandroid_app; cmd: cint32);
     // Fill this in with the function to process input events.  At this point
     // the event has already been pre-dispatched, and it will be finished upon
     // return. Return if you have handled the event, 0 for any default
     // dispatching.
-    onInputEvent : function(app: Pandroid_app; event: PAInputEvent): cint32; cdecl;
+    onInputEvent : function(app: Pandroid_app; event: PAInputEvent): cint32;
     // The ANativeActivity object instance that this app is running in.
     activity : PANativeActivity;
     // The current configuration the app is running in.
@@ -292,11 +292,16 @@ procedure android_app_pre_exec_cmd(android_app: Pandroid_app; cmd: cint8); cdecl
 
 procedure android_app_post_exec_cmd(android_app: Pandroid_app; cmd: cint8); cdecl;
 
+type
+  TAndroidMainFunction = procedure (App: PAndroid_App);
+
 (**
  * This is the function that application code must implement, representing
  * the main entry to the app.
   *)
-procedure android_main(app: Pandroid_app); cdecl; external;
+var
+  AndroidMain: TAndroidMainFunction;
+
 procedure ANativeActivity_onCreate(activity: PANativeActivity; savedState: Pointer; savedStateSize: csize_t); cdecl;
 
 implementation
@@ -463,7 +468,7 @@ begin
     // Can't touch android_app object after this.
 end;
 
-procedure process_input(app: Pandroid_app; source: Pandroid_poll_source); cdecl;
+procedure process_input(app: Pandroid_app; source: Pandroid_poll_source);
 var event: PAInputEvent;
     handled: cint32;
 begin
@@ -480,7 +485,7 @@ begin
         AndroidLog(alError,'Failure reading next input event');
 end;
 
-procedure process_cmd(app: Pandroid_app; source: Pandroid_poll_source); cdecl;
+procedure process_cmd(app: Pandroid_app; source: Pandroid_poll_source);
 var cmd: cint8;
 begin
     cmd := android_app_read_cmd(app);
@@ -517,7 +522,7 @@ begin
     pthread_cond_broadcast(@android_app^.cond);
     pthread_mutex_unlock(@android_app^.mutex);
 
-    android_main(android_app);
+    AndroidMain(android_app);
 
     android_app_destroy(android_app);
     result := nil;
