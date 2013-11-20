@@ -2,10 +2,10 @@
 default:
 	cd ../ && sh compile.sh
 	mkdir -p libs/armeabi/
-	cp -f ../libcge_android_lib.so libs/armeabi/libcge_android_lib.so
+	cp -f ../libandroiddemo.so libs/armeabi/libandroiddemo.so
 	ant debug
-	adb install -r bin/CgeAndroidTest-debug.apk
-	adb shell am start -a android.intent.action.MAIN -n net.sourceforge.castleengine.cgeandroidtest/android.app.NativeActivity
+	adb install -r bin/AndroidDemo-debug.apk
+	adb shell am start -a android.intent.action.MAIN -n net.sourceforge.castleengine.androiddemo/android.app.NativeActivity
 
 .PHONY: clean
 clean:

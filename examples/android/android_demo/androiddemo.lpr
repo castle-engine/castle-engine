@@ -1,5 +1,5 @@
 { -*- compile-command: "sh compile.sh" -*- }
-library cge_android_lib;
+library AndroidDemo;
 
 uses CMem, // TODO: CMem is possibly *not* needed here, only used by CastleAndroidNativeAppGlue
   CastleAndroidNativeAppGlue, Game;

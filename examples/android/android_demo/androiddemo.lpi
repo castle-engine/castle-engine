@@ -9,7 +9,7 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <Title Value="cge_android_lib"/>
+      <Title Value="androiddemo"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -43,7 +43,7 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="cge_android_lib.lpr"/>
+        <Filename Value="androiddemo.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
     </Units>
@@ -51,7 +51,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="cge_android_lib.so"/>
+      <Filename Value="androiddemo.so"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>

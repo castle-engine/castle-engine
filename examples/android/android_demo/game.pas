@@ -106,7 +106,7 @@ end;
 
 function MyGetApplicationName: string;
 begin
-  Result := 'cge_android_lib';
+  Result := 'androiddemo';
 end;
 
 initialization
