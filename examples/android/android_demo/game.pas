@@ -35,7 +35,7 @@ var
 implementation
 
 uses SysUtils, CastleWindow, CastleControls, CastleUIControls, CastleRectangles,
-  CastleGLUtils, CastleColors, X3DNodes, CastleFilesUtils;
+  CastleGLUtils, CastleColors, X3DNodes, CastleFilesUtils, CastleLog;
 
 var
   {$ifdef SOLID_BACKGROUND}
@@ -60,6 +60,8 @@ end;
 { One-time initialization. }
 procedure ApplicationInitialize;
 begin
+  InitializeLog('1.0.0');
+
 {$ifdef SOLID_BACKGROUND}
   { Show other controls under SceneManager, this way our Background
     is visible. Otherwise, Background defined in main 3D scene is used. }
