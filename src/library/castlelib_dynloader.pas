@@ -48,10 +48,16 @@ const
   ecgessAlt   = 2;
   ecgessCtrl  = 4;
 
+  // user interface modes
+  ecgeuiDesktop = 0;
+  ecgeuiTouch   = 1;
+
   // touch interface modes
   ecgetciNone              = 0;
   ecgetciCtlWalkCtlRotate  = 1;
   ecgetciCtlWalkDragRotate = 2;
+  etciCtlFlyCtlWalkDragRotate = 3;
+  etciCtlPanXYDragRotate   = 4;
 
   // library callback codes
   ecgelibNeedsDisplay     = 0;
@@ -90,6 +96,7 @@ procedure CGE_MoveViewToCoords(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ,
 function CGE_GetCurrentNavigationType(): cInt32; cdecl; external 'castleengine';
 procedure CGE_SetNavigationType(NewType: cInt32); cdecl; external 'castleengine';
 procedure CGE_UpdateTouchInterface(eMode, nDpi: cInt32); cdecl; external 'castleengine';
+procedure CGE_SetUserInterfaceInfo(eMode, nDpi: cInt32); cdecl; external 'castleengine';
 
 implementation
 

@@ -77,15 +77,11 @@ begin
   aCastleFrame.GLContextOpen;
   aCastleFrame.SetRenderSize(OpenGLControl1.Width, OpenGLControl1.Height);
   aCastleFrame.SetLibraryCallbackProc(@OpenGlLibraryCallback);
+  aCastleFrame.SetUserInterfaceInfo(euiTouch, 96);
 
   aCastleFrame.Load('../../../../demo_models/navigation/type_walk.wrl');
   //aCastleFrame.Load('../../../examples/shadow_fields/models/humanoid_stand.wrl');
-  aCastleFrame.Load('mojedata/Image3D.wrl');
-
-  //aCastleFrame.UpdateTouchInterface(etciCtlWalkCtlRotate, 96);
-  //aCastleFrame.UpdateTouchInterface(etciCtlWalkDragRotate, 96);
-  aCastleFrame.UpdateTouchInterface(etciCtlFlyCtlWalkDragRotate, 96);
-  aCastleFrame.SetNavigationType(ntFly);
+  //aCastleFrame.Load('mojedata/Image3D.wrl');
 
   OglInfo := GLInformationString;
   //Application.MessageBox(PChar(OglInfo), 'GL Info', 0);

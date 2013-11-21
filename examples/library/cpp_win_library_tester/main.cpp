@@ -325,9 +325,9 @@ bool Init()
         CGE_Init();
         CGE_SetRenderParams(g_windowWidth, g_windowHeight);
         CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);
+        CGE_SetUserInterfaceInfo(ecgeuiTouch, 96);
         //CGE_LoadSceneFromFile("c:\\projects\\humanoid_stand.wrl");
         ShowOpenFileDialog();
-        CGE_UpdateTouchInterface(ecgetciCtlWalkDragRotate, 96);
         return true;
     }
     catch (const std::exception &e)

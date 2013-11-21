@@ -271,6 +271,21 @@ begin
   end;
 end;
 
+procedure CGE_SetUserInterfaceInfo(eMode, nDpi: cInt32); cdecl;
+var
+  aNewMode: TUserInterface;
+begin
+  try
+    case eMode of
+    0: aNewMode := euiDesktop;
+    1: aNewMode := euiTouch;
+    else aNewMode := euiDesktop;
+    end;
+    aCastleFrame.SetUserInterfaceInfo(aNewMode, nDpi);
+  except
+  end;
+end;
+
 exports
   CGE_Init, CGE_Close, CGE_GetOpenGLInformation,
   CGE_Render, CGE_SetRenderParams, CGE_SetLibraryCallbackProc, CGE_OnIdle,
@@ -278,7 +293,7 @@ exports
   CGE_LoadSceneFromFile, CGE_GetCurrentNavigationType, CGE_SetNavigationType,
   CGE_GetViewpointsCount, CGE_GetViewpointName, CGE_MoveToViewpoint,
   CGE_GetViewCoords, CGE_MoveViewToCoords, CGE_SaveScreenshotToFile,
-  CGE_UpdateTouchInterface;
+  CGE_UpdateTouchInterface, CGE_SetUserInterfaceInfo;
 
 begin
   {Do not remove the exception masking lines}

@@ -45,6 +45,7 @@ const
 type
   TCgeLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32):cInt32; cdecl;
 
+  TUserInterface = (euiDesktop, euiTouch);
   TTouchCtlInterface = (etciNone, etciCtlWalkCtlRotate, etciCtlWalkDragRotate,
                         etciCtlFlyCtlWalkDragRotate, etciCtlPanXYDragRotate);
 
@@ -59,6 +60,7 @@ type
 
     FWidth, FHeight: Integer;
     FDpi: Integer;
+    FUserInterfaceMode: TUserInterface;
     FMouseX: Integer;
     FMouseY: Integer;
     FPressed: TKeysPressed;
@@ -197,27 +199,35 @@ type
     property ShadowVolumesDraw: boolean
       read GetShadowVolumesDraw write SetShadowVolumesDraw default false;
 
-    { Viewpoints array management }
-    private
-      ArrayViewpoints: array of TAbstractX3DViewpointNode;
+  { Viewpoints array management }
+  private
+    ArrayViewpoints: array of TAbstractX3DViewpointNode;
 
-      procedure AddViewpoint(Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-                             ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
-    public
-      function GetViewpointsCount(): integer;
-      function GetViewpointName(Idx: integer): string;
-      procedure MoveToViewpoint(Idx: integer; Animated: boolean);
-      function GetCurrentNavigationType(): TCameraNavigationType;
-      procedure SetNavigationType(NewType: TCameraNavigationType);
+    procedure AddViewpoint(Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
+                           ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
+  public
+    function GetViewpointsCount(): integer;
+    function GetViewpointName(Idx: integer): string;
+    procedure MoveToViewpoint(Idx: integer; Animated: boolean);
+    function GetCurrentNavigationType(): TCameraNavigationType;
+    procedure SetNavigationType(NewType: TCameraNavigationType);
 
-    { Touch interface methods }
-    public
-      LeftTouchCtl, RightTouchCtl: TCastleTouchControl;
-      procedure UpdateTouchController(LeftSide, CtlVisible: boolean; Mode: TCastleTouchCtlMode = ctcmWalking);
+  { Touch interface methods }
+  public
+    LeftTouchCtl, RightTouchCtl: TCastleTouchControl;
+    procedure UpdateTouchController(LeftSide, CtlVisible: boolean; Mode: TCastleTouchCtlMode = ctcmWalking);
 
-      { This function should be called every time the navigation type changes. }
-      procedure UpdateTouchInterface(Mode: TTouchCtlInterface; Dpi: integer);
+    { This function should be called every time the navigation type changes. }
+    procedure UpdateTouchInterface(Mode: TTouchCtlInterface; Dpi: integer);
 
+    procedure SetUserInterfaceInfo(Mode: TUserInterface; Dpi: integer);
+    { Sets touch controls depending on the current navigation mode. Should
+      be called each time after navigation mode changed. }
+    procedure UpdateUserInterface();
+
+  published
+    property UserInterfaceMode: TUserInterface
+      read FUserInterfaceMode write FUserInterfaceMode default euiDesktop;
   end;
 
 
@@ -995,6 +1005,8 @@ begin
   Load(Load3D(SceneURL, false), true);
   MainScene.Spatial := [ssRendering, ssDynamicCollisions];
   MainScene.ProcessEvents := true;
+
+  UpdateUserInterface();
 end;
 
 procedure TCastleFrame.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
@@ -1152,6 +1164,7 @@ end;
 procedure TCastleFrame.MoveToViewpoint(Idx: integer; Animated: boolean);
 begin
   ArrayViewpoints[Idx].EventSet_Bind.Send(true, MainScene.Time);
+  UpdateUserInterface();
 end;
 
 function TCastleFrame.GetCurrentNavigationType(): TCameraNavigationType;
@@ -1167,6 +1180,7 @@ procedure TCastleFrame.SetNavigationType(NewType: TCameraNavigationType);
 begin
   if (Camera<>nil) AND (Camera is TUniversalCamera) then
      (Camera as TUniversalCamera).NavigationType := NewType;
+  UpdateUserInterface();
 end;
 
 procedure TCastleFrame.UpdateTouchController(LeftSide, CtlVisible: boolean; Mode: TCastleTouchCtlMode);
@@ -1261,6 +1275,28 @@ begin
       WalkCamera.MouseDragMode := cwdmDragToRotate;
   end;
   Resize();
+end;
+
+procedure TCastleFrame.SetUserInterfaceInfo(Mode: TUserInterface; Dpi: integer);
+begin
+  FUserInterfaceMode := Mode;
+  FDpi := Dpi;
+end;
+
+procedure TCastleFrame.UpdateUserInterface();
+var
+  NavType: TCameraNavigationType;
+begin
+  if UserInterfaceMode = euiTouch then
+  begin
+    NavType := GetCurrentNavigationType();
+    case NavType of
+      ntWalk:         UpdateTouchInterface(etciCtlWalkDragRotate, FDpi);
+      ntFly:          UpdateTouchInterface(etciCtlFlyCtlWalkDragRotate, FDpi);
+      ntExamine:      UpdateTouchInterface(etciCtlPanXYDragRotate, FDpi);
+      ntArchitecture: UpdateTouchInterface(etciCtlPanXYDragRotate, FDpi);
+    end;
+  end;
 end;
 
 end.

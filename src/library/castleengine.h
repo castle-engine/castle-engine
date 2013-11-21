@@ -41,6 +41,12 @@ enum ECgeNavigationType
     ecgenavArchitecture = 3,
 };
 
+enum ECgeUserInterface
+{
+    ecgeuiDesktop = 0,
+    ecgeuiTouch   = 1,
+};
+
 enum ECgeTouchCtlInterface
 {
     ecgetciNone              = 0,
@@ -101,5 +107,6 @@ extern int CGE_GetCurrentNavigationType();
 extern void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType);
 
 extern void CGE_UpdateTouchInterface(int /*ECgeTouchCtlInterface*/ eMode, int nDpi);
+extern void CGE_SetUserInterfaceInfo(int /*ECgeUserInterface*/ eMode, int nDpi);    // should be called at the start of the program. Touch interface controls will be updated automatically then.
 
 #endif //CGE_LIBRARY_INCLUDED
