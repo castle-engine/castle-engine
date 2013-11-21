@@ -37,17 +37,26 @@ var
   {$endif}
   Image: TCastleImageControl;
   ToggleShaderButton: TCastleButton;
+  TouchUIButton: TCastleButton;
   MyShaderEffect: TEffectNode;
 
 type
   TDummy = class
     procedure ToggleShaderClick(Sender: TObject);
+    procedure TouchUIClick(Sender: TObject);
   end;
 
 procedure TDummy.ToggleShaderClick(Sender: TObject);
 begin
   if MyShaderEffect <> nil then
     MyShaderEffect.FdEnabled.Send(not MyShaderEffect.FdEnabled.Value);
+end;
+
+procedure TDummy.TouchUIClick(Sender: TObject);
+begin
+  if Window.TouchInterface = High(TTouchCtlInterface) then
+    Window.TouchInterface := Low(TTouchCtlInterface) else
+    Window.TouchInterface := Succ(Window.TouchInterface);
 end;
 
 { One-time initialization. }
@@ -78,14 +87,19 @@ begin
   Window.MainScene.ProcessEvents := true;
 
   ToggleShaderButton := TCastleButton.Create(Window);
-  ToggleShaderButton.Caption := 'Toggle effect';
+  ToggleShaderButton.Caption := 'Toggle Shader Effect';
   ToggleShaderButton.OnClick := @TDummy(nil).ToggleShaderClick;
   Window.Controls.InsertFront(ToggleShaderButton);
+
+  TouchUIButton := TCastleButton.Create(Window);
+  TouchUIButton.Caption := 'Next Touch UI';
+  TouchUIButton.OnClick := @TDummy(nil).TouchUIClick;
+  Window.Controls.InsertFront(TouchUIButton);
 
   MyShaderEffect := Window.SceneManager.MainScene.RootNode.TryFindNodeByName(
     TEffectNode, 'MyShaderEffect', false) as TEffectNode;
 
-  Window.TouchInterface(etciCtlWalkDragRotate{etciCtlWalkCtlRotate}, 96);
+  Window.TouchInterface := etciCtlWalkDragRotate;
 end;
 
 procedure WindowResize(Sender: TCastleWindowBase);
@@ -97,6 +111,9 @@ begin
 
   ToggleShaderButton.Left := (Window.Width - ToggleShaderButton.Width) div 2;
   ToggleShaderButton.Bottom := Window.Height - ToggleShaderButton.Height - Margin;
+
+  TouchUIButton.Left := Window.Width - TouchUIButton.Width - Margin;
+  TouchUIButton.Bottom := Window.Height - TouchUIButton.Height - Margin;
 end;
 
 function MyGetApplicationName: string;

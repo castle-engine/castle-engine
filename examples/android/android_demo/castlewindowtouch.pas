@@ -18,7 +18,7 @@ unit CastleWindowTouch;
 
 interface
 
-uses CastleWindow, CastleControls;
+uses Classes, CastleWindow, CastleControls;
 
 type
   TTouchCtlInterface = (etciNone, etciCtlWalkCtlRotate, etciCtlWalkDragRotate);
@@ -27,19 +27,35 @@ type
   private
     FDpi: Integer;
     LeftTouchCtl, RightTouchCtl: TCastleTouchControl;
-    procedure UpdateTouchController(LeftSide, CtlVisible: boolean;
-      Mode: TCastleTouchCtlMode = ctcmWalking);
+    FTouchInterface: TTouchCtlInterface;
+    procedure UpdateTouchController(const LeftSide, CtlVisible: boolean;
+      const Mode: TCastleTouchCtlMode = ctcmWalking);
     procedure UpdateTouchPositions;
+    procedure SetTouchInterface(const Value: TTouchCtlInterface);
   public
-    { Called when the navigation type changes. }
-    procedure TouchInterface(Mode: TTouchCtlInterface; Dpi: integer);
+    constructor Create(AOwner: TComponent); override;
+    property TouchInterface: TTouchCtlInterface
+      read FTouchInterface write SetTouchInterface;
+    procedure UpdateTouchInterface(const Value: TTouchCtlInterface; const Dpi: integer);
     procedure EventUpdate; override;
     procedure EventResize; override;
+
+    const
+      { Default Dpi. For now, to change it, you have to call
+        UpdateTouchInterface. In the future, it would be nice to have
+        a Dpi as an independent property. }
+      DefaultDpi = 96;
   end;
 
 implementation
 
 uses SysUtils, CastleUIControls, CastleCameras;
+
+constructor TCastleWindowTouch.Create(AOwner: TComponent);
+begin
+  inherited;
+  FDpi := DefaultDpi;
+end;
 
 procedure TCastleWindowTouch.EventUpdate;
 var
@@ -102,7 +118,8 @@ begin
   UpdateTouchPositions;
 end;
 
-procedure TCastleWindowTouch.UpdateTouchController(LeftSide, CtlVisible: boolean; Mode: TCastleTouchCtlMode);
+procedure TCastleWindowTouch.UpdateTouchController(
+  const LeftSide, CtlVisible: boolean; const Mode: TCastleTouchCtlMode);
 var
   aNewCtl: TCastleTouchControl;
 begin
@@ -143,11 +160,18 @@ begin
   UpdateTouchPositions;
 end;
 
-procedure TCastleWindowTouch.TouchInterface(Mode: TTouchCtlInterface; Dpi: integer);
+procedure TCastleWindowTouch.UpdateTouchInterface(
+  const Value: TTouchCtlInterface; const Dpi: integer);
+begin
+  FDpi := Dpi;
+  TouchInterface := Value;
+end;
+
+procedure TCastleWindowTouch.SetTouchInterface(const Value: TTouchCtlInterface);
 var
   WalkCamera: TWalkCamera;
 begin
-  FDpi := Dpi;
+  FTouchInterface := Value;
 
   if SceneManager.Camera <> nil then
   begin
@@ -158,20 +182,20 @@ begin
       WalkCamera := nil;
   end;
 
-  if (Mode = etciNone) or (WalkCamera = nil) then
+  if (Value = etciNone) or (WalkCamera = nil) then
   begin
     UpdateTouchController(true, false);
     UpdateTouchController(false, false);
     if WalkCamera <> nil then
       WalkCamera.MouseDragMode := cwdmDragToWalk;
   end else
-  if Mode = etciCtlWalkCtlRotate then
+  if Value = etciCtlWalkCtlRotate then
   begin
     UpdateTouchController(true, true, ctcmWalking);
     UpdateTouchController(false, true, ctcmHeadRotation);
     WalkCamera.MouseDragMode := cwdmNone;
   end else
-  if Mode = etciCtlWalkDragRotate then
+  if Value = etciCtlWalkDragRotate then
   begin
     UpdateTouchController(true, false);
     UpdateTouchController(false, true, ctcmWalking);
