@@ -4466,12 +4466,12 @@ var
   C, Capture: TUIControl;
   I: Integer;
 begin
+  Capture := FCaptureInput;
+  if FMousePressed = [] then
+    FCaptureInput := nil;
 
   if UseControls then
   begin
-    if (Event.EventType = itMouseButton) and (FMousePressed = []) then
-      Capture := FCaptureInput else
-      Capture := nil;
     if Capture <> nil then
     begin
       Capture.Release(Event);
