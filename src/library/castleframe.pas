@@ -55,7 +55,7 @@ type
     FUseControls: boolean;
     FOnDrawStyle: TUIControlDrawStyle;
     FFocus: TUIControl;
-    FCtlCaptureInput: TUIControl;
+    FCaptureInput: TUIControl;
 
     FWidth, FHeight: Integer;
     FDpi: Integer;
@@ -419,7 +419,7 @@ begin
   begin
     Controls.DeleteAll(AComponent);
     if AComponent = FFocus then FFocus := nil;
-    if AComponent = FCtlCaptureInput then FCtlCaptureInput := nil;
+    if AComponent = FCaptureInput then FCaptureInput := nil;
   end;
 end;
 
@@ -453,8 +453,9 @@ var
   NewCursor: TMouseCursor;
   CursorCode: cInt32;
 begin
-  if  (FCtlCaptureInput<>nil) then NewFocus := FCtlCaptureInput
-  else NewFocus := CalculateFocus;
+  if FCaptureInput <> nil then
+    NewFocus := FCaptureInput else
+    NewFocus := CalculateFocus;
 
   if NewFocus <> Focus then
   begin
@@ -656,7 +657,7 @@ begin
       if C.PositionInside(MouseX, MouseY) then
         if C.Press(InputMouseButton(Button)) then
         begin
-          FCtlCaptureInput := C;
+          FCaptureInput := C;
           Exit;
         end;
     end;
@@ -676,20 +677,20 @@ end;
 
 procedure TCastleFrame.MouseUpEvent(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
-  C: TUIControl;
+  C, Capture: TUIControl;
   I: Integer;
 begin
-  C := FCtlCaptureInput;
-  if FMousePressed = [] then
-    FCtlCaptureInput := nil;
-
   if UseControls then
   begin
-    if (C <> nil) then
+    if FMousePressed = [] then
+      Capture := FCaptureInput else
+      Capture := nil;
+    if Capture <> nil then
     begin
-      C.Release(InputMouseButton(Button));
+      Capture.Release(InputMouseButton(Button));
       Exit;
     end;
+
     for I := 0 to Controls.Count - 1 do
     begin
       C := Controls[I];
@@ -737,11 +738,12 @@ begin
 
   if UseControls then
   begin
-    if (FCtlCaptureInput<>nil) then
+    if FCaptureInput <> nil then
     begin
-      FCtlCaptureInput.MouseMove(MouseX, MouseY, NewX, NewY);
+      FCaptureInput.MouseMove(MouseX, MouseY, NewX, NewY);
       Exit;
     end;
+
     for I := 0 to Controls.Count - 1 do
     begin
       C := Controls[I];

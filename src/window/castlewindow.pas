@@ -2286,6 +2286,7 @@ end;
     FUseControls: boolean;
     FOnDrawStyle: TUIControlDrawStyle;
     FFocus: TUIControl;
+    FCaptureInput: TUIControl;
     FTooltipDelay: TMilisecTime;
     FTooltipDistance: Cardinal;
     FTooltipVisible: boolean;
@@ -4267,6 +4268,7 @@ begin
   begin
     Controls.DeleteAll(AComponent);
     if AComponent = FFocus then FFocus := nil;
+    if AComponent = FCaptureInput then FCaptureInput := nil;
   end;
 end;
 
@@ -4298,7 +4300,9 @@ procedure TCastleWindowCustom.UpdateFocusAndMouseCursor;
 var
   NewFocus: TUIControl;
 begin
-  NewFocus := CalculateFocus;
+  if FCaptureInput <> nil then
+    NewFocus := FCaptureInput else
+    NewFocus := CalculateFocus;
 
   if NewFocus <> Focus then
   begin
@@ -4445,7 +4449,12 @@ begin
     begin
       C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.Press(Event) then Exit;
+        if C.Press(Event) then
+        begin
+          if Event.EventType = itMouseButton then
+            FCaptureInput := C;
+          Exit;
+        end;
     end;
   end;
 
@@ -4454,11 +4463,21 @@ end;
 
 procedure TCastleWindowCustom.EventRelease(const Event: TInputPressRelease);
 var
-  C: TUIControl;
+  C, Capture: TUIControl;
   I: Integer;
 begin
+
   if UseControls then
   begin
+    if (Event.EventType = itMouseButton) and (FMousePressed = []) then
+      Capture := FCaptureInput else
+      Capture := nil;
+    if Capture <> nil then
+    begin
+      Capture.Release(Event);
+      Exit;
+    end;
+
     for I := 0 to Controls.Count - 1 do
     begin
       C := Controls[I];
@@ -4545,6 +4564,12 @@ begin
 
   if UseControls then
   begin
+    if FCaptureInput <> nil then
+    begin
+      FCaptureInput.MouseMove(MouseX, MouseY, NewX, NewY);
+      Exit;
+    end;
+
     for I := 0 to Controls.Count - 1 do
     begin
       C := Controls[I];
