@@ -64,6 +64,12 @@ var
   TouchCtlOuter: TRGBAlphaImage;
 
 var
+  TouchCtlFlyOuter: TRGBAlphaImage;
+
+var
+  TouchCtlFlyInner: TRGBAlphaImage;
+
+var
   PanelSeparator: TRGBImage;
 
 var
@@ -127,6 +133,10 @@ initialization
   Move(TouchCtlInnerPixels, TouchCtlInner.RawPixels^, SizeOf(TouchCtlInnerPixels));
   TouchCtlOuter := TRGBAlphaImage.Create(TouchCtlOuterWidth, TouchCtlOuterHeight);
   Move(TouchCtlOuterPixels, TouchCtlOuter.RawPixels^, SizeOf(TouchCtlOuterPixels));
+  TouchCtlFlyOuter := TRGBAlphaImage.Create(TouchCtlFlyOuterWidth, TouchCtlFlyOuterHeight);
+  Move(TouchCtlFlyOuterPixels, TouchCtlFlyOuter.RawPixels^, SizeOf(TouchCtlFlyOuterPixels));
+  TouchCtlFlyInner := TRGBAlphaImage.Create(TouchCtlFlyInnerWidth, TouchCtlFlyInnerHeight);
+  Move(TouchCtlFlyInnerPixels, TouchCtlFlyInner.RawPixels^, SizeOf(TouchCtlFlyInnerPixels));
   PanelSeparator := TRGBImage.Create(PanelSeparatorWidth, PanelSeparatorHeight);
   Move(PanelSeparatorPixels, PanelSeparator.RawPixels^, SizeOf(PanelSeparatorPixels));
   WindowDark := TRGBImage.Create(WindowDarkWidth, WindowDarkHeight);
@@ -158,6 +168,8 @@ finalization
   FreeAndNil(ProgressFill);
   FreeAndNil(TouchCtlInner);
   FreeAndNil(TouchCtlOuter);
+  FreeAndNil(TouchCtlFlyOuter);
+  FreeAndNil(TouchCtlFlyInner);
   FreeAndNil(PanelSeparator);
   FreeAndNil(WindowDark);
   FreeAndNil(WindowGray);

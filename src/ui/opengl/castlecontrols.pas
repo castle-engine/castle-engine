@@ -432,7 +432,7 @@ type
     tiButtonPressed, tiButtonFocused, tiButtonNormal,
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
     tiSlider, tiSliderPosition, tiLabel, tiActiveFrame, tiTooltip,
-    tiTouchCtlInner, tiTouchCtlOuter);
+    tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter);
 
   { Label with possibly multiline text, in a box. }
   TCastleLabel = class(TUIControlFont)
@@ -1250,9 +1250,20 @@ var
   LevOffsetTrimmedX, LevOffsetTrimmedY, MaxDist: Integer;
   LeverDist: Double;
   InnerRect: TRectangle;
+  ImageInner, ImageOuter: TThemeImage;
 begin
   if not GetExists then Exit;
-  Theme.Draw(Rect, tiTouchCtlOuter);
+  if FTouchMode = ctcmFlyUpdown then
+  begin
+    ImageInner := tiTouchCtlFlyInner;
+    ImageOuter := tiTouchCtlFlyOuter;
+  end
+  else
+  begin
+    ImageInner := tiTouchCtlInner;
+    ImageOuter := tiTouchCtlOuter;
+  end;
+  Theme.Draw(Rect, ImageOuter);
 
   // compute lever offset (must not move outside outer ring)
   LeverDist := sqrt(FLeverOffsetX*FLeverOffsetX + FLeverOffsetY*FLeverOffsetY);
@@ -1269,7 +1280,7 @@ begin
   if FTouchMode = ctcmFlyUpdown then LevOffsetTrimmedX := 0;
 
   // draw lever
-  InnerRect := Theme.Images[tiTouchCtlInner].Rect; // rectangle at (0,0)
+  InnerRect := Theme.Images[ImageInner].Rect; // rectangle at (0,0)
   if FSizeScale>0 then
   begin
     InnerRect.Width := Round(InnerRect.Width*FSizeScale);
@@ -1277,7 +1288,7 @@ begin
   end;
   InnerRect.Left   := Left   + (Width  - InnerRect.Width ) div 2 + LevOffsetTrimmedX;
   InnerRect.Bottom := Bottom + (Height - InnerRect.Height) div 2 - LevOffsetTrimmedY;
-  Theme.Draw(InnerRect, tiTouchCtlInner);
+  Theme.Draw(InnerRect, ImageInner);
 end;
 
 procedure TCastleTouchControl.SetTouchMode(const Value: TCastleTouchCtlMode);
@@ -2067,6 +2078,10 @@ begin
   FCorners[tiTouchCtlInner] := Vector4Integer(0, 0, 0, 0);
   FImages[tiTouchCtlOuter] := TouchCtlOuter;
   FCorners[tiTouchCtlOuter] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiTouchCtlFlyInner] := TouchCtlFlyInner;
+  FCorners[tiTouchCtlFlyInner] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiTouchCtlFlyOuter] := TouchCtlFlyOuter;
+  FCorners[tiTouchCtlFlyOuter] := Vector4Integer(0, 0, 0, 0);
 end;
 
 destructor TCastleTheme.Destroy;

@@ -15,14 +15,14 @@ clean:
   FrameWhite.png FrameWhiteBlack.png FrameYellow.png FrameYellowBlack.png \
   FrameThickWhite.png FrameThickYellow.png \
   ProgressBar.png ProgressFill.png \
-  TouchCtlInner.png TouchCtlOuter.png
+  TouchCtlInner.png TouchCtlOuter.png TouchCtlFlyInner.png TouchCtlFlyOuter.png
 	image_to_pas --output .. CastleControlsImages \
 	  Panel.png WindowDarkTransparent.png Slider.png \
 	  Tooltip.png TooltipRounded.png \
 	  ButtonPressed.png ButtonFocused.png ButtonNormal.png \
 	  FrameWhite.png FrameWhiteBlack.png FrameYellow.png FrameYellowBlack.png \
 	  FrameThickWhite.png FrameThickYellow.png ProgressBar.png ProgressFill.png \
-	  TouchCtlInner.png TouchCtlOuter.png \
+	  TouchCtlInner.png TouchCtlOuter.png TouchCtlFlyInner.png TouchCtlFlyOuter.png\
 	  @alpha=strip \
 	  PanelSeparator.png WindowDark.png WindowGray.png \
 	  ScrollbarFrame.png ScrollbarSlider.png \
