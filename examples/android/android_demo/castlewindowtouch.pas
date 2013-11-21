@@ -183,38 +183,39 @@ begin
       WalkCamera := nil;
   end;
 
-  if (Value = etciNone) or (WalkCamera = nil) then
-  begin
-    UpdateTouchController(true, false);
-    UpdateTouchController(false, false);
-    if WalkCamera <> nil then
-      WalkCamera.MouseDragMode := cwdmDragToWalk;
-  end else
   if Value = etciCtlWalkCtlRotate then
   begin
     UpdateTouchController(true, true, ctcmWalking);
     UpdateTouchController(false, true, ctcmHeadRotation);
-    WalkCamera.MouseDragMode := cwdmNone;
+    if WalkCamera<>nil then
+      WalkCamera.MouseDragMode := cwdmNone;
   end else
   if Value = etciCtlWalkDragRotate then
   begin
     UpdateTouchController(true, false);
     UpdateTouchController(false, true, ctcmWalking);
-    WalkCamera.MouseDragMode := cwdmDragToRotate;
-  end
-  else if Mode = etciCtlFlyCtlWalkDragRotate then
+    if WalkCamera<>nil then
+      WalkCamera.MouseDragMode := cwdmDragToRotate;
+  end else
+  if Mode = etciCtlFlyCtlWalkDragRotate then
   begin
     UpdateTouchController(true, true, ctcmFlyUpdown);
     UpdateTouchController(false, true, ctcmWalking);
     if WalkCamera<>nil then
       WalkCamera.MouseDragMode := cwdmDragToRotate;
-  end
-  else if Mode = etciCtlPanXYDragRotate then
+  end else
+  if Mode = etciCtlPanXYDragRotate then
   begin
     UpdateTouchController(true, false);
     UpdateTouchController(false, true, ctcmPanXY);
     if WalkCamera<>nil then
       WalkCamera.MouseDragMode := cwdmDragToRotate;
+  end else
+  begin
+    UpdateTouchController(true, false);
+    UpdateTouchController(false, false);
+    if WalkCamera <> nil then
+      WalkCamera.MouseDragMode := cwdmDragToWalk;
   end;
   UpdateTouchPositions;
 end;

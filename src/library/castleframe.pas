@@ -1226,27 +1226,16 @@ end;
 
 procedure TCastleFrame.UpdateTouchInterface(Mode: TTouchCtlInterface; Dpi: integer);
 var
-  NavType: TCameraNavigationType;
-  IsWalking: boolean;
   WalkCamera: TWalkCamera;
 begin
   FDpi := Dpi;
 
-  NavType := GetCurrentNavigationType();
-  IsWalking := ((NavType = ntWalk) or (NavType = ntFly));
   if (Camera<>nil) and (Camera is TUniversalCamera) then
-     WalkCamera := (Camera as TUniversalCamera).Walk
+    WalkCamera := (Camera as TUniversalCamera).Walk
   else
     WalkCamera := nil;
 
-  if (Mode = etciNone) or (not IsWalking) then
-  begin
-    UpdateTouchController(true, false);
-    UpdateTouchController(false, false);
-    if WalkCamera<>nil then
-      WalkCamera.MouseDragMode := cwdmDragToWalk;
-  end
-  else if Mode = etciCtlWalkCtlRotate then
+  if Mode = etciCtlWalkCtlRotate then
   begin
     UpdateTouchController(true, true, ctcmWalking);
     UpdateTouchController(false, true, ctcmHeadRotation);
@@ -1273,6 +1262,13 @@ begin
     UpdateTouchController(false, true, ctcmPanXY);
     if WalkCamera<>nil then
       WalkCamera.MouseDragMode := cwdmDragToRotate;
+  end
+  else
+  begin
+    UpdateTouchController(true, false);
+    UpdateTouchController(false, false);
+    if WalkCamera<>nil then
+      WalkCamera.MouseDragMode := cwdmDragToWalk;
   end;
   Resize();
 end;
