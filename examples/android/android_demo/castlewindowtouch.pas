@@ -21,7 +21,8 @@ interface
 uses Classes, CastleWindow, CastleControls;
 
 type
-  TTouchCtlInterface = (etciNone, etciCtlWalkCtlRotate, etciCtlWalkDragRotate);
+  TTouchCtlInterface = (etciNone, etciCtlWalkCtlRotate, etciCtlWalkDragRotate,
+                        etciCtlFlyCtlWalkDragRotate, etciCtlPanXYDragRotate);
 
   TCastleWindowTouch = class(TCastleWindow)
   private
@@ -200,6 +201,20 @@ begin
     UpdateTouchController(true, false);
     UpdateTouchController(false, true, ctcmWalking);
     WalkCamera.MouseDragMode := cwdmDragToRotate;
+  end
+  else if Mode = etciCtlFlyCtlWalkDragRotate then
+  begin
+    UpdateTouchController(true, true, ctcmFlyUpdown);
+    UpdateTouchController(false, true, ctcmWalking);
+    if WalkCamera<>nil then
+      WalkCamera.MouseDragMode := cwdmDragToRotate;
+  end
+  else if Mode = etciCtlPanXYDragRotate then
+  begin
+    UpdateTouchController(true, false);
+    UpdateTouchController(false, true, ctcmPanXY);
+    if WalkCamera<>nil then
+      WalkCamera.MouseDragMode := cwdmDragToRotate;
   end;
   UpdateTouchPositions;
 end;
