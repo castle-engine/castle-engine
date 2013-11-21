@@ -104,5 +104,6 @@
 { Whether we use a different version of CastlePng unit that allows
   static linking to png, see castlepng_static.inc. }
 { $define CASTLE_PNG_STATIC}
+{$ifdef iOS} {$define CASTLE_PNG_STATIC} {$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}
