@@ -28,7 +28,8 @@ var
 implementation
 
 uses SysUtils, CastleWindow, CastleControls, CastleUIControls, CastleRectangles,
-  CastleGLUtils, CastleColors, X3DNodes, CastleFilesUtils, CastleLog;
+  CastleGLUtils, CastleColors, X3DNodes, CastleFilesUtils, CastleLog,
+  CastleSceneCore;
 
 var
   {$ifdef SOLID_BACKGROUND}
@@ -73,6 +74,8 @@ begin
   Window.Controls.InsertFront(Image);
 
   Window.Load(ApplicationData('castle_with_lights_and_camera.wrl'));
+  Window.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
+  Window.MainScene.ProcessEvents := true;
 
   ToggleShaderButton := TCastleButton.Create(Window);
   ToggleShaderButton.Caption := 'Toggle effect';
