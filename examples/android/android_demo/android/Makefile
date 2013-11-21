@@ -10,3 +10,7 @@ default:
 .PHONY: clean
 clean:
 	rm -Rf bin/ gen/ libs/ obj/
+
+.PHONY: data
+data:
+	adb push ../data/ /sdcard/castle_game_engine/androiddemo/
