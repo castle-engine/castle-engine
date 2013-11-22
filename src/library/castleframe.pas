@@ -60,7 +60,7 @@ type
 
     FWidth, FHeight: Integer;
     FDpi: Integer;
-    FUserInterfaceMode: TUserInterface;
+    FUserInterface: TUserInterface;
     FMouseX: Integer;
     FMouseY: Integer;
     FPressed: TKeysPressed;
@@ -218,16 +218,17 @@ type
     procedure UpdateTouchController(LeftSide, CtlVisible: boolean; Mode: TCastleTouchCtlMode = ctcmWalking);
 
     { This function should be called every time the navigation type changes. }
-    procedure UpdateTouchInterface(Mode: TTouchCtlInterface; Dpi: integer);
+    procedure UpdateTouchInterface(Mode: TTouchCtlInterface);
 
-    procedure SetUserInterfaceInfo(Mode: TUserInterface; Dpi: integer);
     { Sets touch controls depending on the current navigation mode. Should
       be called each time after navigation mode changed. }
     procedure UpdateUserInterface();
 
   published
-    property UserInterfaceMode: TUserInterface
-      read FUserInterfaceMode write FUserInterfaceMode default euiDesktop;
+    property UserInterface: TUserInterface
+      read FUserInterface write FUserInterface default euiDesktop;
+    property Dpi: integer
+      read FDpi write FDpi default 96;
   end;
 
 
@@ -1224,12 +1225,10 @@ begin
   Resize();
 end;
 
-procedure TCastleFrame.UpdateTouchInterface(Mode: TTouchCtlInterface; Dpi: integer);
+procedure TCastleFrame.UpdateTouchInterface(Mode: TTouchCtlInterface);
 var
   WalkCamera: TWalkCamera;
 begin
-  FDpi := Dpi;
-
   if (Camera<>nil) and (Camera is TUniversalCamera) then
     WalkCamera := (Camera as TUniversalCamera).Walk
   else
@@ -1273,24 +1272,18 @@ begin
   Resize();
 end;
 
-procedure TCastleFrame.SetUserInterfaceInfo(Mode: TUserInterface; Dpi: integer);
-begin
-  FUserInterfaceMode := Mode;
-  FDpi := Dpi;
-end;
-
 procedure TCastleFrame.UpdateUserInterface();
 var
   NavType: TCameraNavigationType;
 begin
-  if UserInterfaceMode = euiTouch then
+  if UserInterface = euiTouch then
   begin
     NavType := GetCurrentNavigationType();
     case NavType of
-      ntWalk:         UpdateTouchInterface(etciCtlWalkDragRotate, FDpi);
-      ntFly:          UpdateTouchInterface(etciCtlFlyCtlWalkDragRotate, FDpi);
-      ntExamine:      UpdateTouchInterface(etciCtlPanXYDragRotate, FDpi);
-      ntArchitecture: UpdateTouchInterface(etciCtlPanXYDragRotate, FDpi);
+      ntWalk:         UpdateTouchInterface(etciCtlWalkDragRotate);
+      ntFly:          UpdateTouchInterface(etciCtlFlyCtlWalkDragRotate);
+      ntExamine:      UpdateTouchInterface(etciCtlPanXYDragRotate);
+      ntArchitecture: UpdateTouchInterface(etciCtlPanXYDragRotate);
     end;
   end;
 end;

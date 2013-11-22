@@ -58,7 +58,7 @@ typedef void (__cdecl *PFNRD_CGE_MoveViewToCoords)(float fPosX, float fPosY, flo
 
 typedef int (__cdecl *PFNRD_CGE_GetCurrentNavigationType)();
 typedef void (__cdecl *PFNRD_CGE_SetNavigationType)(int eNewType);
-typedef void (__cdecl *PFNRD_CGE_UpdateTouchInterface)(int eMode, int nDpi);
+typedef void (__cdecl *PFNRD_CGE_UpdateTouchInterface)(int eMode);
 typedef void (__cdecl *PFNRD_CGE_SetUserInterfaceInfo)(int eMode, int nDpi);
 
 
@@ -263,10 +263,10 @@ void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType)
 }
 
 //-----------------------------------------------------------------------------
-void CGE_UpdateTouchInterface(int /*ECgeTouchCtlInterface*/ eMode, int nDpi)
+void CGE_UpdateTouchInterface(int /*ECgeTouchCtlInterface*/ eMode)
 {
 	if (pfrd_CGE_UpdateTouchInterface!=NULL)
-        (*pfrd_CGE_UpdateTouchInterface)(eMode, nDpi);
+        (*pfrd_CGE_UpdateTouchInterface)(eMode);
 }
 
 //-----------------------------------------------------------------------------

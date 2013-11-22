@@ -253,7 +253,7 @@ begin
   end;
 end;
 
-procedure CGE_UpdateTouchInterface(eMode, nDpi: cInt32); cdecl;
+procedure CGE_UpdateTouchInterface(eMode: cInt32); cdecl;
 var
   aNewMode: TTouchCtlInterface;
 begin
@@ -266,7 +266,7 @@ begin
     4: aNewMode := etciCtlPanXYDragRotate;
     else aNewMode := etciNone;
     end;
-    aCastleFrame.UpdateTouchInterface(aNewMode, nDpi);
+    aCastleFrame.UpdateTouchInterface(aNewMode);
   except
   end;
 end;
@@ -281,7 +281,8 @@ begin
     1: aNewMode := euiTouch;
     else aNewMode := euiDesktop;
     end;
-    aCastleFrame.SetUserInterfaceInfo(aNewMode, nDpi);
+    aCastleFrame.UserInterface := aNewMode;
+    aCastleFrame.Dpi := nDpi;
   except
   end;
 end;

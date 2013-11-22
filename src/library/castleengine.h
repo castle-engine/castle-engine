@@ -81,6 +81,7 @@ extern void CGE_LoadLibrary();	// function defined in the loader CPP file
 extern void CGE_Init();     // init the library, this function must be called first (required)
 extern void CGE_Close();
 extern void CGE_GetOpenGLInformation(char *szBuffer, int nBufSize);             // szBuffer is filled inside the function with max size of nBufSize
+extern void CGE_SetUserInterfaceInfo(int /*ECgeUserInterface*/ eMode, int nDpi);    // should be called at the start of the program. Touch interface controls will be updated automatically then.
 
 extern void CGE_SetRenderParams(unsigned uiViewWidth, unsigned uiViewHeight);   // let the library know about the viewport size (required)
 extern void CGE_Render();                                                       // paints the 3d scene into the context
@@ -106,7 +107,6 @@ extern void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fD
 extern int CGE_GetCurrentNavigationType();
 extern void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType);
 
-extern void CGE_UpdateTouchInterface(int /*ECgeTouchCtlInterface*/ eMode, int nDpi);
-extern void CGE_SetUserInterfaceInfo(int /*ECgeUserInterface*/ eMode, int nDpi);    // should be called at the start of the program. Touch interface controls will be updated automatically then.
+extern void CGE_UpdateTouchInterface(int /*ECgeTouchCtlInterface*/ eMode);
 
 #endif //CGE_LIBRARY_INCLUDED

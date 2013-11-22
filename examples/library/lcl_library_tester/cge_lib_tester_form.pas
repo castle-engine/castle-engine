@@ -77,7 +77,7 @@ begin
   aCastleFrame.GLContextOpen;
   aCastleFrame.SetRenderSize(OpenGLControl1.Width, OpenGLControl1.Height);
   aCastleFrame.SetLibraryCallbackProc(@OpenGlLibraryCallback);
-  aCastleFrame.SetUserInterfaceInfo(euiTouch, 96);
+  aCastleFrame.UserInterface := euiTouch;
 
   aCastleFrame.Load('../../../../demo_models/navigation/type_walk.wrl');
   //aCastleFrame.Load('../../../examples/shadow_fields/models/humanoid_stand.wrl');
