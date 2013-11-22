@@ -21,12 +21,14 @@ interface
 uses Classes, CastleWindow, CastleControls;
 
 type
+  TUserInterface = (euiDesktop, euiTouch);
   TTouchCtlInterface = (etciNone, etciCtlWalkCtlRotate, etciCtlWalkDragRotate,
                         etciCtlFlyCtlWalkDragRotate, etciCtlPanXYDragRotate);
 
   TCastleWindowTouch = class(TCastleWindow)
   private
     FDpi: Integer;
+    FUserInterface: TUserInterface;
     LeftTouchCtl, RightTouchCtl: TCastleTouchControl;
     FTouchInterface: TTouchCtlInterface;
     procedure UpdateTouchController(const LeftSide, CtlVisible: boolean;
@@ -41,11 +43,15 @@ type
     procedure EventUpdate; override;
     procedure EventResize; override;
 
-    const
-      { Default Dpi. For now, to change it, you have to call
-        UpdateTouchInterface. In the future, it would be nice to have
-        a Dpi as an independent property. }
-      DefaultDpi = 96;
+    { Sets touch controls depending on the current navigation mode. Should
+      be called each time after navigation mode changed. }
+    procedure UpdateUserInterface();
+
+  published
+    property UserInterface: TUserInterface
+      read FUserInterface write FUserInterface default euiDesktop;
+    property Dpi: Integer
+      read FDpi write FDpi default 96;
   end;
 
 implementation
@@ -55,7 +61,7 @@ uses SysUtils, CastleUIControls, CastleCameras;
 constructor TCastleWindowTouch.Create(AOwner: TComponent);
 begin
   inherited;
-  FDpi := DefaultDpi;
+  //FDpi := DefaultDpi;
 end;
 
 procedure TCastleWindowTouch.EventUpdate;
@@ -218,6 +224,25 @@ begin
       WalkCamera.MouseDragMode := cwdmDragToWalk;
   end;
   UpdateTouchPositions;
+end;
+
+procedure TCastleFrame.UpdateUserInterface;
+var
+  NavType: TCameraNavigationType;
+begin
+  if UserInterface = euiTouch then
+  begin
+    if (SceneManager.Camera<>nil) and (SceneManager.Camera is TUniversalCamera) then
+      NavType := (SceneManager.Camera as TUniversalCamera).NavigationType else
+      NavType := ntExamine;
+
+    case NavType of
+      ntWalk:         UpdateTouchInterface(etciCtlWalkDragRotate);
+      ntFly:          UpdateTouchInterface(etciCtlFlyCtlWalkDragRotate);
+      ntExamine:      UpdateTouchInterface(etciCtlPanXYDragRotate);
+      ntArchitecture: UpdateTouchInterface(etciCtlPanXYDragRotate);
+    end;
+  end;
 end;
 
 end.
