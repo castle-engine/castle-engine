@@ -101,9 +101,32 @@
   { $define GLImageUseShaders}
 {$endif}
 
-{ Whether we use a different version of CastlePng unit that allows
-  static linking to png, see castlepng_static.inc. }
-{ $define CASTLE_PNG_STATIC}
+{ There are 3 ways to read/write the PNG format:
+  - By default, we use libpng from a dynamic library (.so or .dll).
+    On Linux and other desktop Unixes, this is pretty much standard.
+    On Windows, see trunk/www/pack/win32_dlls/ and
+    trunk/www/pack/win64_dlls/ .
+
+  - If CASTLE_PNG_USING_FCL_IMAGE is defined, then we use
+    PNG implementation inside fcl-image, that does not depend on libpng API.
+    This is the simplest option if you don't want the hassle of linking
+    to libpng library (and distributing it, in case of dynamic linking).
+
+  - If CASTLE_PNG_STATIC is defined, we use a different version of CastlePng
+    unit that allows static linking to png, see castlepng_static.inc.
+}
+
 {$ifdef iOS} {$define CASTLE_PNG_STATIC} {$endif}
+{$ifdef ANDROID} {$define CASTLE_PNG_USING_FCL_IMAGE} {$endif}
+
+{ Below is relevant only if we use dynamic PNG library (castlepng_dynamic.inc).
+  Determines calling convention of libpng functions and callbacks:
+  LIBPNG_STDCALL or LIBPNG_CDECL. The standard is to just define LIBPNG_CDECL,
+  also for Windows: normal Windows dlls of libpng use cdecl, just like Unix. }
+{$ifdef MSWINDOWS}
+  {$define LIBPNG_CDECL}
+{$else}
+  {$define LIBPNG_CDECL}
+{$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}

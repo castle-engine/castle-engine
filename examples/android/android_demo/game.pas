@@ -79,7 +79,7 @@ begin
   // TODO: read files using Anroid assets:
   // http://stackoverflow.com/questions/13317387/how-to-get-file-in-assets-from-android-ndk
 //    Image.Image := TouchCtlOuter.MakeCopy;
-  Image.URL := ApplicationData('sample_texture.ppm');
+  Image.URL := ApplicationData('sample_image_with_alpha.png' {'sample_texture.ppm'});
   Window.Controls.InsertFront(Image);
 
   Window.Load(ApplicationData('castle_with_lights_and_camera.wrl'));

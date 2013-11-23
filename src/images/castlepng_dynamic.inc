@@ -65,7 +65,6 @@
 unit CastlePng;
 
 {$I castleconf.inc}
-{$I pngconf.inc}
 
 interface
 

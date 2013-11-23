@@ -60,7 +60,6 @@ unit CastleImages;
 }
 
 {$include castleconf.inc}
-{$include pngconf.inc}
 {$modeswitch nestedprocvars}{$H+}
 
 interface
@@ -68,7 +67,8 @@ interface
 uses SysUtils, Classes, Math, CastleUtils, CastleVectors, CastleRectangles,
   CastlePng, CastleFileFilters, CastleClassUtils, CastleColors,
   FGL, FPImage, FPReadPCX, FPReadGIF, FPReadPSD, FPReadTGA, FPReadTiff, FPReadXPM,
-  FPReadJPEG, FPWriteJPEG, FPReadPNM;
+  FPReadJPEG, FPWriteJPEG, FPReadPNM
+  {$ifdef CASTLE_PNG_USING_FCL_IMAGE} , FPReadPNG, FPWritePNG {$endif};
 
 type
   TAutoAlphaChannel = (acAuto, acNone, acSimpleYesNo, acFullRange);
@@ -1151,8 +1151,7 @@ function LoadDDS(Stream: TStream;
 
 { }
 procedure SaveBMP(Img: TCastleImage; Stream: TStream);
-procedure SavePNG(Img: TCastleImage; Stream: TStream; interlaced: boolean); overload;
-procedure SavePNG(Img: TCastleImage; Stream: TStream); { interlaced = false } overload;
+procedure SavePNG(Img: TCastleImage; Stream: TStream);
 { }
 procedure SaveJPEG(Img: TCastleImage; Stream: TStream);
 { }
@@ -1722,7 +1721,9 @@ end;
 { file format specific ------------------------------------------------------- }
 
 {$I images_bmp.inc}
-{$I images_png.inc}
+{$ifndef CASTLE_PNG_USING_FCL_IMAGE}
+  {$I images_png.inc}
+{$endif}
 {$I images_fpimage.inc}
 {$I images_ppm.inc}
 {$I images_ipl.inc}
@@ -3861,7 +3862,9 @@ end;
 
 initialization
   InitializeImagesFileFilters;
+  {$ifndef CASTLE_PNG_USING_FCL_IMAGE}
   InitializePNG;
+  {$endif}
 finalization
   FreeAndNil(LoadImage_FileFilters);
   FreeAndNil(SaveImage_FileFilters);

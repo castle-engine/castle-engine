@@ -235,6 +235,14 @@ begin
   Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderJPEG.Create);
 end;
 
+{$ifdef CASTLE_PNG_USING_FCL_IMAGE}
+function LoadPNG(Stream: TStream;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+begin
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNG.Create);
+end;
+{$endif}
+
 function LoadPNM(Stream: TStream;
   const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 begin
@@ -245,3 +253,10 @@ procedure SaveJPEG(Img: TCastleImage; Stream: TStream);
 begin
   SaveFpImage(Img, Stream, TFPWriterJPEG.Create);
 end;
+
+{$ifdef CASTLE_PNG_USING_FCL_IMAGE}
+procedure SavePNG(Img: TCastleImage; Stream: TStream);
+begin
+  SaveFpImage(Img, Stream, TFPWriterPNG.Create);
+end;
+{$endif}
