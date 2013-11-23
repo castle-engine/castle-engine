@@ -147,6 +147,7 @@ type
     FDrownDamageConst: Single;
     FDrownDamageRandom: Single;
     FSwimSoundPause: Single;
+    FEnableCameraDragging: boolean;
 
     procedure SetEquippedWeapon(Value: TItemWeapon);
 
@@ -171,6 +172,7 @@ type
     procedure FootstepsSoundRelease(Sender: TSound);
     procedure SetFlying(const AValue: boolean);
     procedure SetFlyingTimeOut(const AValue: TFloatTime);
+    procedure SetEnableCameraDragging(const AValue: boolean);
   protected
     procedure SetLife(const Value: Single); override;
     function GetChild: T3D; override;
@@ -391,6 +393,10 @@ type
     property SwimSoundPause: Single read FSwimSoundPause write FSwimSoundPause default DefaultSwimSoundPause;
   published
     property KnockBackSpeed default DefaultPlayerKnockBackSpeed;
+    { Enable camera navigation by dragging. This results in including
+      ciMouseDragging in TCamera.Input. }
+    property EnableCameraDragging: boolean
+      read FEnableCameraDragging write SetEnableCameraDragging default false;
   end;
 
 const
@@ -669,8 +675,8 @@ begin
 end;
 
 procedure TPlayer.UpdateCamera;
-const
-  CastleCameraInput = [ciNormal, ci3dMouse]; { do not include ciMouseDragging }
+var
+  NormalCameraInput: TCameraInputs;
 begin
   Camera.Gravity := (not Blocked) and (not Flying);
   { Note that when not Camera.Gravity then FallingEffect will not
@@ -683,7 +689,11 @@ begin
     Camera.Input := [];
   end else
   begin
-    Camera.Input := CastleCameraInput;
+    NormalCameraInput := [ciNormal, ci3dMouse];
+    if EnableCameraDragging then
+      Include(NormalCameraInput, ciMouseDragging);
+
+    Camera.Input := NormalCameraInput;
 
     { Rotation keys work always, even when player is dead.
       Initially I disabled them, but after some thought:
@@ -1327,6 +1337,15 @@ begin
     TWalkCamera.Gravity does all the work now. }
 
   Result := Position;
+end;
+
+procedure TPlayer.SetEnableCameraDragging(const AValue: boolean);
+begin
+  if FEnableCameraDragging <> AValue then
+  begin
+    FEnableCameraDragging := AValue;
+    UpdateCamera;
+  end;
 end;
 
 { initialization / finalization ---------------------------------------- }
