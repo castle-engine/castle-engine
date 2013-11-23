@@ -366,6 +366,8 @@ begin
   FLibraryCallbackProc := nil;
   LeftTouchCtl := nil;
   RightTouchCtl := nil;
+  FDpi := 96;
+  FUserInterface := euiDesktop;
 
   FSceneManager := TGameSceneManager.Create(Self);
   { SetSubComponent and Name setting (must be unique only within TCastleControl,
