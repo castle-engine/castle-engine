@@ -39,7 +39,6 @@ type
     constructor Create(AOwner: TComponent); override;
     property TouchInterface: TTouchCtlInterface
       read FTouchInterface write SetTouchInterface;
-    procedure UpdateTouchInterface(const Value: TTouchCtlInterface; const Dpi: integer);
     procedure EventUpdate; override;
     procedure EventResize; override;
 
@@ -47,11 +46,15 @@ type
       be called each time after navigation mode changed. }
     procedure UpdateUserInterface();
 
+    const
+      DefaultDpi = 96;
   published
+    // TODO: make a real setter for these properties.
+
     property UserInterface: TUserInterface
       read FUserInterface write FUserInterface default euiDesktop;
     property Dpi: Integer
-      read FDpi write FDpi default 96;
+      read FDpi write FDpi default DefaultDpi;
   end;
 
 implementation
@@ -61,7 +64,7 @@ uses SysUtils, CastleUIControls, CastleCameras;
 constructor TCastleWindowTouch.Create(AOwner: TComponent);
 begin
   inherited;
-  //FDpi := DefaultDpi;
+  FDpi := DefaultDpi;
 end;
 
 procedure TCastleWindowTouch.EventUpdate;
@@ -167,13 +170,6 @@ begin
   UpdateTouchPositions;
 end;
 
-procedure TCastleWindowTouch.UpdateTouchInterface(
-  const Value: TTouchCtlInterface; const Dpi: integer);
-begin
-  FDpi := Dpi;
-  TouchInterface := Value;
-end;
-
 procedure TCastleWindowTouch.SetTouchInterface(const Value: TTouchCtlInterface);
 var
   WalkCamera: TWalkCamera;
@@ -203,14 +199,14 @@ begin
     if WalkCamera<>nil then
       WalkCamera.MouseDragMode := cwdmDragToRotate;
   end else
-  if Mode = etciCtlFlyCtlWalkDragRotate then
+  if Value = etciCtlFlyCtlWalkDragRotate then
   begin
     UpdateTouchController(true, true, ctcmFlyUpdown);
     UpdateTouchController(false, true, ctcmWalking);
     if WalkCamera<>nil then
       WalkCamera.MouseDragMode := cwdmDragToRotate;
   end else
-  if Mode = etciCtlPanXYDragRotate then
+  if Value = etciCtlPanXYDragRotate then
   begin
     UpdateTouchController(true, false);
     UpdateTouchController(false, true, ctcmPanXY);
@@ -226,21 +222,27 @@ begin
   UpdateTouchPositions;
 end;
 
-procedure TCastleFrame.UpdateUserInterface;
+procedure TCastleWindowTouch.UpdateUserInterface;
 var
   NavType: TCameraNavigationType;
 begin
   if UserInterface = euiTouch then
   begin
-    if (SceneManager.Camera<>nil) and (SceneManager.Camera is TUniversalCamera) then
-      NavType := (SceneManager.Camera as TUniversalCamera).NavigationType else
+    if SceneManager.Camera <> nil then
+    begin
+      if SceneManager.Camera is TUniversalCamera then
+        NavType := (SceneManager.Camera as TUniversalCamera).NavigationType else
+      if SceneManager.Camera is TWalkCamera then
+        NavType := ntWalk else
+        NavType := ntExamine;
+    end else
       NavType := ntExamine;
 
     case NavType of
-      ntWalk:         UpdateTouchInterface(etciCtlWalkDragRotate);
-      ntFly:          UpdateTouchInterface(etciCtlFlyCtlWalkDragRotate);
-      ntExamine:      UpdateTouchInterface(etciCtlPanXYDragRotate);
-      ntArchitecture: UpdateTouchInterface(etciCtlPanXYDragRotate);
+      ntWalk:         TouchInterface := etciCtlWalkDragRotate;
+      ntFly:          TouchInterface := etciCtlFlyCtlWalkDragRotate;
+      ntExamine:      TouchInterface := etciCtlPanXYDragRotate;
+      ntArchitecture: TouchInterface := etciCtlPanXYDragRotate;
     end;
   end;
 end;
