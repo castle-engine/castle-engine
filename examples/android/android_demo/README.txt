@@ -5,6 +5,10 @@ This compiles to a library libandroiddemo.so.
 After compiling the library,
 - copy the libandroiddemo.so to the android/libs/
   (just like ndk-build does for libraries written in C for Android),
+- One time: be sure to call
+  android update lib-project -p . --target 1
+  to generate android/local.properties (it contains a path to your sdk,
+  do NOT commit it)
 - compile the project inside android/ using normal Android SDK tools (like ant),
 - install and run the resulting apk using normal Android SDK tools.
 
