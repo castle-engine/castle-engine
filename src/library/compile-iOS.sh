@@ -30,7 +30,7 @@ then
   echo "echo " $CMD_LINE >>ppccmd.sh
   echo $CMD_LINE >>ppccmd.sh
   echo "grep '\.o$' $OUTPUT_SIM/link.res > filelist.tmp" >>ppccmd.sh
-  CMD_LINE="libtool -static -o '$OUTPUT_SIM/$EXECUTABLE_NAME' -filelist filelist.tmp '$OBJECT_FILE_DIR_normal/libs/libpng-ios-sim.a'"
+  CMD_LINE="libtool -static -o '$OUTPUT_SIM/$EXECUTABLE_NAME' -filelist filelist.tmp"
   echo $CMD_LINE >>ppccmd.sh
 fi
 # compile for armv7
@@ -44,7 +44,7 @@ then
   echo "echo " $CMD_LINE >>ppccmd.sh
   echo $CMD_LINE >>ppccmd.sh
   echo "grep '\.o$' '$OUTPUT_ARM/link.res' > filelist.tmp" >>ppccmd.sh
-  CMD_LINE="libtool -static -arch_only armv7 -o '$OUTPUT_ARM/$EXECUTABLE_NAME' -filelist filelist.tmp '$OBJECT_FILE_DIR_normal/libs/libpng-ios-arm.a'"
+  CMD_LINE="libtool -static -arch_only armv7 -o '$OUTPUT_ARM/$EXECUTABLE_NAME' -filelist filelist.tmp"
   echo $CMD_LINE >>ppccmd.sh
   if [ $COMPILE_SIM -eq 0 ]
   then

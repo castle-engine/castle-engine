@@ -116,7 +116,7 @@
     unit that allows static linking to png, see castlepng_static.inc.
 }
 
-{$ifdef iOS} {$define CASTLE_PNG_STATIC} {$endif}
+{$ifdef iOS} {$define CASTLE_PNG_USING_FCL_IMAGE} {$endif}
 {$ifdef ANDROID} {$define CASTLE_PNG_USING_FCL_IMAGE} {$endif}
 
 { Below is relevant only if we use dynamic PNG library (castlepng_dynamic.inc).
