@@ -122,6 +122,7 @@ type
     procedure SetLibraryCallbackProc(aProc: TCgeLibraryCallbackProc);
     procedure Update;
     procedure GLContextOpen;
+    procedure GLContextClose;
 
     { IUIContainer required functions }
     procedure SetMousePosition(const NewMouseX, NewMouseY: Integer);
@@ -976,6 +977,11 @@ begin
     for I := 0 to Controls.Count - 1 do
       Controls[I].GLContextOpen;
   end;
+end;
+
+procedure TCastleFrame.GLContextClose;
+begin
+  DoGLContextClose();
 end;
 
 procedure TCastleFrame.DoGLContextClose;

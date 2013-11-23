@@ -34,6 +34,7 @@ end;
 procedure CGE_Close; cdecl;
 begin
   try
+    aCastleFrame.GLContextClose();
     aCastleFrame.Destroy();
     aCastleFrame := nil;
   except
