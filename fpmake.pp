@@ -251,6 +251,7 @@ begin
     p.targets.addunit('castlewindowrecentfiles.pas');
     P.Targets.AddUnit('castlesoundmenu.pas');
     p.targets.addunit('castlewindow.pas');
+    p.targets.addunit('castlewindowtouch.pas');
     P.Targets.AddUnit('castlewindowprogress.pas');
     p.targets.addunit('castlewindowmodes.pas');
     if Xlib then
