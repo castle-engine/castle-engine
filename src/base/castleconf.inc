@@ -83,6 +83,8 @@
     {$define iOS}
 {$endif}
 
+{ OpenGL ES ------------------------------------------------------------------ }
+
 { Whether we use OpenGL ES or normal OpenGL.
   OpenGL ES is generally for mobile devices.
   For testing, you can also use OpenGL ES on normal desktop OSes
@@ -100,6 +102,22 @@
     All the TGLImage and DrawRectangle rendering will go through shaders. }
   { $define GLImageUseShaders}
 {$endif}
+
+{ Zlib ----------------------------------------------------------------------- }
+
+{ Define CASTLE_ZLIB_USING_PASZLIB
+  for platforms where you don't want to link to external zlib library. }
+{$ifdef ANDROID} {$define CASTLE_ZLIB_USING_PASZLIB} {$endif}
+
+{$ifndef CASTLE_PNG_USING_FCL_IMAGE}
+  {$warning If you define CASTLE_ZLIB_USING_PASZLIB, you have to also define CASTLE_PNG_USING_FCL_IMAGE (usually in castleconf.inc), since CastlePng interface depends on CastleZlin interface. Definining now CASTLE_PNG_USING_FCL_IMAGE automatically.}
+{$endif}
+{$ifdef CASTLE_ZLIB_USING_PASZLIB}
+  {$define CastleZLib := PasZlib}
+  {$define CastleZStream := ZStream}
+{$endif}
+
+{ PNG ------------------------------------------------------------------------ }
 
 { There are 3 ways to read/write the PNG format:
   - By default, we use libpng from a dynamic library (.so or .dll).
@@ -129,13 +147,7 @@
   {$define LIBPNG_CDECL}
 {$endif}
 
-{ Define CASTLE_ZLIB_USING_PASZLIB
-  for platforms where you don't want to link to external zlib library. }
-{$ifdef ANDROID} {$define CASTLE_ZLIB_USING_PASZLIB} {$endif}
-{$ifdef CASTLE_ZLIB_USING_PASZLIB}
-  {$define CastleZLib := Zlib}
-  {$define CastleZStream := ZStream}
-{$endif}
+{ FpHttpClient --------------------------------------------------------------- }
 
 { Keep HAS_FP_HTTP_CLIENT defined for all platforms that have
   FpHttpClient implemented. }

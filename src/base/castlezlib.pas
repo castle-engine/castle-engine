@@ -24,8 +24,7 @@ unit CastleZLib;
 {$ifdef CASTLE_ZLIB_USING_PASZLIB}
 interface
 { CastleZLib unit doesn't expose anything when CASTLE_ZLIB_USING_PASZLIB
-  is defined. Instead, use standard PasZLib unit, which is essentially
-  Zlib implemented in pure Pascal. }
+  is defined. Instead, use PasZLib, which implement Zlib API in pure Pascal. }
 implementation
 end.
 {$else}
