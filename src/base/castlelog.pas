@@ -179,7 +179,7 @@ begin
     WriteLogRaw(
       '-------------------- ' + Title + ' begin' + NL +
       LogMessage +
-      '-------------------- ' + Title + ' end');
+      '-------------------- ' + Title + ' end' + NL);
 end;
 
 procedure WritelnLogMultiline(const Title: string; const LogMessage: string);
