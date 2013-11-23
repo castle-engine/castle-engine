@@ -38,7 +38,7 @@ function Log: boolean;
   i.e. run your program from command-line like "program.exe > log.txt".
   Otherwise, GUI programs (with apptype GUI) do not have StdOut available
   under Windows. }
-procedure InitializeLog(const ProgramVersion: string;
+procedure InitializeLog(const ProgramVersion: string = 'Unknown';
   const ALogStream: TStream = nil);
 
 { Log message. Ignored when log is not initialized (@link(Log) is @false).
@@ -94,7 +94,7 @@ begin
 end;
 
 procedure InitializeLog(const ProgramVersion: string;
-  const ALogStream: TStream = nil);
+  const ALogStream: TStream);
 
   procedure RaiseStdOutNotAvail;
   begin
