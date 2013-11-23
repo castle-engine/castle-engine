@@ -181,6 +181,15 @@ initialization
  {$ifndef MSWINDOWS}
  AllowDirectorySeparators -= ['\'];
  {$endif}
+
+ {$ifdef CASTLE_ZLIB_USING_PASZLIB}
+ { PasZLib (used by TGLFileStream) opens files with Reset with default
+   FileMode, which means read/write.
+   This is bad, and it means that trying to read files on Android on sdcard
+   without android.permission.WRITE_EXTERNAL_STORAGE fails.
+   Workaround it below. }
+ FileMode := 0;
+ {$endif}
 finalization
  FinalizationOSSpecific;
  FinalizationProgramExit;
