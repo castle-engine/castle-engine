@@ -21,6 +21,15 @@ unit CastleZLib;
 
 {$I castleconf.inc}
 
+{$ifdef CASTLE_ZLIB_USING_PASZLIB}
+interface
+{ CastleZLib unit doesn't expose anything when CASTLE_ZLIB_USING_PASZLIB
+  is defined. Instead, use standard PasZLib unit, which is essentially
+  Zlib implemented in pure Pascal. }
+implementation
+end.
+{$else}
+
 interface
 
 {$ifndef DELPHI}
@@ -276,3 +285,5 @@ finalization
  FCastleZLibInited := false;
  FreeAndNil(ZLibrary);
 end.
+
+{$endif CASTLE_ZLIB_USING_PASZLIB}

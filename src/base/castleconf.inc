@@ -129,4 +129,17 @@
   {$define LIBPNG_CDECL}
 {$endif}
 
+{ Define CASTLE_ZLIB_USING_PASZLIB
+  for platforms where you don't want to link to external zlib library. }
+{$ifdef ANDROID} {$define CASTLE_ZLIB_USING_PASZLIB} {$endif}
+{$ifdef CASTLE_ZLIB_USING_PASZLIB}
+  {$define CastleZLib := Zlib}
+  {$define CastleZStream := ZStream}
+{$endif}
+
+{ Keep HAS_FP_HTTP_CLIENT defined for all platforms that have
+  FpHttpClient implemented. }
+{$define HAS_FP_HTTP_CLIENT}
+{$ifdef ANDROID} {$undef HAS_FP_HTTP_CLIENT} {$endif}
+
 {$endif not CASTLE_CONF_INCLUDED}

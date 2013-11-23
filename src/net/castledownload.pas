@@ -16,8 +16,7 @@
 { Download URLs. }
 unit CastleDownload;
 
-{$define HAS_FP_HTTP_CLIENT}
-{$ifdef ANDROID} {$undef HAS_FP_HTTP_CLIENT} {$endif}
+{$I castleconf.inc}
 
 interface
 

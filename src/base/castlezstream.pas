@@ -21,6 +21,17 @@
   the only class useful for reading/writing gz files. }
 unit CastleZStream;
 
+{$I castleconf.inc}
+
+{$ifdef CASTLE_ZLIB_USING_PASZLIB}
+interface
+{ CastleZStream unit doesn't expose anything when CASTLE_ZLIB_USING_PASZLIB
+  is defined. Instead, use standard ZStream unit, that depends on PasZLib. }
+implementation
+end.
+{$else}
+
+
 interface
 
 uses
@@ -98,3 +109,4 @@ end;
 
 end.
 
+{$endif CASTLE_ZLIB_USING_PASZLIB}
