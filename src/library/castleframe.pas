@@ -32,8 +32,9 @@ const
   DefaultLimitFPS = 100.0;
 
   // library callback codes
-  ecgelibNeedsDisplay     = 0;
-  ecgelibSetMouseCursor   = 1;   // sends mouse cursor code in iParam1
+  ecgelibNeedsDisplay          = 0;
+  ecgelibSetMouseCursor        = 1;  // sends mouse cursor code in iParam1
+  ecgelibNavigationTypeChanged = 2;  // sends ECgeNavigationType in iParam1 (see castleengine.h)
 
   // mouse cursor codes
   ecgecursorDefault   = 0;
@@ -211,6 +212,8 @@ type
     procedure MoveToViewpoint(Idx: integer; Animated: boolean);
     function GetCurrentNavigationType(): TCameraNavigationType;
     procedure SetNavigationType(NewType: TCameraNavigationType);
+  private
+    procedure NavigationInfoChanged(Sender: TObject);
 
   { Touch interface methods }
   public
@@ -375,6 +378,7 @@ begin
     nicely. }
   FSceneManager.SetSubComponent(true);
   FSceneManager.Name := 'SceneManager';
+  FSceneManager.OnBoundNavigationInfoChanged := @NavigationInfoChanged;
   Controls.Add(SceneManager);
 
   { connect 3D device - 3Dconnexion device }
@@ -1167,7 +1171,6 @@ end;
 procedure TCastleFrame.MoveToViewpoint(Idx: integer; Animated: boolean);
 begin
   ArrayViewpoints[Idx].EventSet_Bind.Send(true, MainScene.Time);
-  UpdateUserInterface();
 end;
 
 function TCastleFrame.GetCurrentNavigationType(): TCameraNavigationType;
@@ -1184,6 +1187,27 @@ begin
   if (Camera<>nil) AND (Camera is TUniversalCamera) then
      (Camera as TUniversalCamera).NavigationType := NewType;
   UpdateUserInterface();
+end;
+
+procedure TCastleFrame.NavigationInfoChanged(Sender: TObject);
+var
+  NavType: TCameraNavigationType;
+  NavValue: integer;
+begin
+  UpdateUserInterface();
+
+  // send into to parent app (to update navigation buttons state)
+  if (FLibraryCallbackProc<>nil) then
+  begin
+    NavType := GetCurrentNavigationType();
+    case NavType of
+      ntWalk:         NavValue := 0;
+      ntFly:          NavValue := 1;
+      ntExamine:      NavValue := 2;
+      ntArchitecture: NavValue := 3;
+    end;
+    FLibraryCallbackProc(ecgelibNavigationTypeChanged, NavValue, 0);
+  end;
 end;
 
 procedure TCastleFrame.UpdateTouchController(LeftSide, CtlVisible: boolean; Mode: TCastleTouchCtlMode);
@@ -1272,6 +1296,7 @@ begin
       WalkCamera.MouseDragMode := cwdmDragToWalk;
   end;
   Resize();
+  Invalidate();
 end;
 
 procedure TCastleFrame.UpdateUserInterface();

@@ -181,6 +181,10 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             CGE_SaveScreenshotToFile("screenshot.jpg");
             break;
 
+        case 'f':
+            CGE_SetNavigationType(ecgenavFly);
+            break;
+
         default:
             break;
         }
@@ -310,6 +314,9 @@ int __cdecl OpenGlLibraryCallback(int eCode, int iParam1, int iParam2)
         }
         return 1;
 
+    case ecgelibNavigationTypeChanged:
+        // TODO: update nav. buttons
+        return 1;
     }
     return 0;
 }

@@ -67,8 +67,9 @@ enum ECgeMouseCursor
 
 enum ECgeLibCallbackCode
 {
-    ecgelibNeedsDisplay     = 0,    // app should repaint the view (content changed)
-    ecgelibSetMouseCursor   = 1,    // sends ECgeMouseCursor in iParam1
+    ecgelibNeedsDisplay          = 0,  // app should repaint the view (content changed)
+    ecgelibSetMouseCursor        = 1,  // sends ECgeMouseCursor in iParam1
+    ecgelibNavigationTypeChanged = 2,  // sends ECgeNavigationType in iParam1
 };
 
 typedef int (__cdecl *TCgeLibraryCallbackProc)(int /*ECgeLibCallbackCode*/eCode, int iParam1, int iParam2);
