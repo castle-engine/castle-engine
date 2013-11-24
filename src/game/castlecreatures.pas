@@ -330,6 +330,7 @@ type
     FRunAwayLife: Single;
     FRunAwayDistance: Single;
     FVisibilityAngle: Single;
+    FSmellDistance: Single;
     FAttackMinDelay: Single;
     FAttackMaxDistance: Single;
     FAttackMaxAngle: Single;
@@ -357,6 +358,7 @@ type
       DefaultRunAwayLife = 0.3;
       DefaultRunAwayDistance = 10.0;
       DefaultVisibilityAngle = Pi * 2 / 3; //< 120 degrees.
+      DefaultSmellDistance = 0.0;
 
       DefaultAttackTime = 0.0;
       DefaultAttackMinDelay = 2.0;
@@ -553,7 +555,7 @@ type
       read FRunAwayDistance write FRunAwayDistance default DefaultRunAwayDistance;
     { @groupEnd }
 
-    { Creature will only see other things (like enemies) within a cone
+    { Creature sees other things (like enemies) only within a cone
       of this angle. This way, the creature only looks forward, and you can
       sneak upon a creature from the back. Simply set this to >= 2 * Pi
       to remove this limit.
@@ -561,9 +563,26 @@ type
       Note that the creature also becomes aware of the enemy when it is
       hurt by a direct attack, regardless of VisibilityAngle. This way
       if you sneak and attack a creature from the back, it will turn around
-      and fight you. }
+      and fight you.
+
+      Creature can also smell others, see SmellDistance. }
     property VisibilityAngle: Single read FVisibilityAngle write FVisibilityAngle
       default DefaultVisibilityAngle;
+
+    { Creature smells other things (like enemies) within a sphere of this
+      radius. This allows to detect enemy regardless of which direction
+      the creature is facing, regardless of whether there is a line of sight
+      to the enemy, regardless if enemy is moving.
+
+      This is quite powerful ability to detect enemies,
+      if you set this to something large (by default it's zero).
+      Detecting enemies allows to more accurately/faster attack them
+      and/or run away from them.
+
+      Note: If you want the creature to nicely run from behind the corner,
+      be sure to setup good sectors/waypoints in your level.}
+    property SmellDistance: Single read FSmellDistance write FSmellDistance
+      default DefaultSmellDistance;
 
     { When creature is wounded for more than MaxLife * MinLifeLossToHurt
       points and moreover Random < ChanceToHurt then creature will
@@ -838,9 +857,9 @@ type
     MiddleForceBoxTime: Single;
   protected
     { Last known information about enemy. }
-    HasLastSeenEnemy: boolean;
-    LastSeenEnemy: TVector3Single;
-    LastSeenEnemySector: TSector;
+    HasLastSensedEnemy: boolean;
+    LastSensedEnemy: TVector3Single;
+    LastSensedEnemySector: TSector;
 
     procedure SetState(Value: TCreatureState); virtual;
     procedure SetLife(const Value: Single); override;
@@ -1120,6 +1139,7 @@ begin
   FRunAwayLife := DefaultRunAwayLife;
   FRunAwayDistance := DefaultRunAwayDistance;
   FVisibilityAngle := DefaultVisibilityAngle;
+  FSmellDistance := DefaultSmellDistance;
   FAttackTime := DefaultAttackTime;
   FAttackMinDelay := DefaultAttackMinDelay;
   FAttackMaxDistance := DefaultAttackMaxDistance;
@@ -1158,6 +1178,7 @@ begin
   RunAwayLife := ResourceConfig.GetFloat('run_away/life', DefaultRunAwayLife);
   RunAwayDistance := ResourceConfig.GetFloat('run_away/distance', DefaultRunAwayDistance);
   VisibilityAngle := ResourceConfig.GetFloat('visibility/angle', DefaultVisibilityAngle);
+  SmellDistance := ResourceConfig.GetFloat('smell_distance', DefaultSmellDistance);
   PreferredDistance := ResourceConfig.GetFloat('preferred_distance', DefaultPreferredDistance);
 
   AttackTime := ResourceConfig.GetFloat('attack/time', DefaultAttackTime);
@@ -1647,24 +1668,24 @@ end;
 
 procedure TWalkAttackCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
-  EnemyVisibleNow: boolean;
-  SqrDistanceToLastSeenEnemy: Single;
+  EnemySensedNow: boolean;
+  SqrDistanceToLastSensedEnemy: Single;
 
   function ActionAllowed(const Animation: T3DResourceAnimation;
     const LastTime, MinDelay, MaxDistance, MaxAngle: Single): boolean;
   var
     AngleRadBetweenTheDirectionToEnemy: Single;
   begin
-    Result := EnemyVisibleNow and
+    Result := EnemySensedNow and
       Animation.Defined and
       (LifeTime - LastTime > MinDelay) and
-      (SqrDistanceToLastSeenEnemy <= Sqr(MaxDistance));
+      (SqrDistanceToLastSensedEnemy <= Sqr(MaxDistance));
 
     if Result then
     begin
       { Calculate and check AngleRadBetweenTheDirectionToEnemy. }
       AngleRadBetweenTheDirectionToEnemy := AngleRadBetweenVectors(
-        LastSeenEnemy - Middle, Direction);
+        LastSensedEnemy - Middle, Direction);
       Result := AngleRadBetweenTheDirectionToEnemy <= MaxAngle;
     end;
   end;
@@ -1696,11 +1717,11 @@ var
       AngleRadBetweenVectors(DirectionToTarget, Direction);
   end;
 
-  { Call this only when HasLastSeenEnemy }
+  { Call this only when HasLastSensedEnemy }
   procedure CalculateDirectionToEnemy(out DirectionToEnemy: TVector3Single;
     out AngleRadBetweenDirectionToEnemy: Single);
   begin
-    CalculateDirectionToTarget(LastSeenEnemy,
+    CalculateDirectionToTarget(LastSensedEnemy,
       DirectionToEnemy, AngleRadBetweenDirectionToEnemy);
   end;
 
@@ -1803,10 +1824,10 @@ var
   { This doesn't take into account current Direction,
     it only looks at our and enemy Middle positions,
     and asks "do I want to get closer" ?
-    Use only if HasLastSeenEnemy. }
+    Use only if HasLastSensedEnemy. }
   function WantToShortenDistanceToEnemy: boolean;
   begin
-    { Is it wanted to get closer to the LastSeenEnemy?
+    { Is it wanted to get closer to the LastSensedEnemy?
       Yes, if it will help make AttackAllowed from false to true.
       See AttackAllowed implementation for conditions. }
     Result :=
@@ -1821,31 +1842,31 @@ var
       ) and
       (
         { Try to see enemy by walking to last known enemy position. }
-        (not EnemyVisibleNow) or
+        (not EnemySensedNow) or
 
-        { If EnemyVisibleNow and SqrDistanceToLastSeenEnemy is small enough,
+        { If EnemySensedNow and SqrDistanceToLastSensedEnemy is small enough,
           there's no point in getting closer to the enemy. In fact, it would
           be bad to get closer to enemy in this case, as this would allow
           enemy to easier attack (shorter distance --- easier to reach with
           short-range weapon, or easier to aim with long-range weapon). }
-        (SqrDistanceToLastSeenEnemy > Sqr(Resource.PreferredDistance))
+        (SqrDistanceToLastSensedEnemy > Sqr(Resource.PreferredDistance))
       );
   end;
 
-  { Is it wanted to get closer to the LastSeenEnemy ?
+  { Is it wanted to get closer to the LastSensedEnemy ?
     And (if it's wanted) is it sensible to do this by moving
     along current Direction ?
-    Call this only if HasLastSeenEnemy. }
+    Call this only if HasLastSensedEnemy. }
   function WantToWalkToEnemy(
     const AngleRadBetweenDirectionToEnemy: Single): boolean;
   begin
     Result := WantToShortenDistanceToEnemy and
-      WantToWalkToTarget(LastSeenEnemy, AngleRadBetweenDirectionToEnemy);
+      WantToWalkToTarget(LastSensedEnemy, AngleRadBetweenDirectionToEnemy);
   end;
 
   function WantToRunAway: boolean;
   begin
-    { We want to run away whenever HasLastSeenEnemy, not just when EnemyVisibleNow.
+    { We want to run away whenever HasLastSensedEnemy, not just when EnemySensedNow.
       Otherwise creature that tries to run away could easily get into a loop
       (flickering state), caused by small VisibilityAngle:
       in DoWalk creature would rotate to face away from enemy,
@@ -1855,9 +1876,9 @@ var
 
       So we run away even when we do not see enemy *now*, it's only enough
       to know last enemy position. This actually makes sense in Real World too. }
-    Result := HasLastSeenEnemy and
+    Result := HasLastSensedEnemy and
       (Life <= MaxLife * Resource.RunAwayLife) and
-      (SqrDistanceToLastSeenEnemy < Sqr(Resource.RunAwayDistance));
+      (SqrDistanceToLastSensedEnemy < Sqr(Resource.RunAwayDistance));
   end;
 
   procedure InitAlternativeTarget;
@@ -1885,7 +1906,7 @@ var
     DirectionToEnemy: TVector3Single;
     AngleRadBetweenDirectionToEnemy: Single;
   begin
-    if HasLastSeenEnemy then
+    if HasLastSensedEnemy then
     begin
       CalculateDirectionToEnemy(DirectionToEnemy, AngleRadBetweenDirectionToEnemy);
 
@@ -1898,7 +1919,7 @@ var
         SetState(csWalk) else
       if Gravity and
          (AngleRadBetweenDirectionToEnemy < 0.01) and
-         BoundingBox.PointInside2D(LastSeenEnemy, World.GravityCoordinate) then
+         BoundingBox.PointInside2D(LastSensedEnemy, World.GravityCoordinate) then
       begin
         { Then the enemy (or it's last known position) is right above or below us.
           Since we can't fly, we can't get there. Standing in place
@@ -1970,8 +1991,8 @@ var
         Move(Direction * (Resource.MoveSpeed * SecondsPassed), false, false);
     end;
 
-    { Go the way to LastSeenEnemy, *not* by using waypoints.
-      Assumes HasLastSeenEnemy. }
+    { Go the way to LastSensedEnemy, *not* by using waypoints.
+      Assumes HasLastSensedEnemy. }
     procedure WalkNormal;
     var
       DirectionToTarget: TVector3Single;
@@ -2061,7 +2082,7 @@ var
           our Direction a little more. That's why I use
           AngleRadBetweenDirectionToTargetToResign.
 
-          Note that for normal moving (i.e. toward LastSeenEnemy,
+          Note that for normal moving (i.e. toward LastSensedEnemy,
           not AlternativeTarget) we in this case just change state
           to csIdle, and this allows creature to rotate in csIdle
           state. }
@@ -2115,7 +2136,7 @@ var
         AngleRadBetweenDirectionToTarget);
     end else
     begin
-      if not HasLastSeenEnemy then
+      if not HasLastSensedEnemy then
       begin
         { Nowhere to go; so just stay here. }
         SetState(csIdle);
@@ -2125,20 +2146,20 @@ var
       UseWalkNormal := true;
 
       SectorNow := Sector;
-      if (SectorNow <> LastSeenEnemySector) and
+      if (SectorNow <> LastSensedEnemySector) and
          (SectorNow <> nil) and
-         (LastSeenEnemySector <> nil) then
+         (LastSensedEnemySector <> nil) then
       begin
-        { The way to LastSeenEnemy is using waypoints. }
+        { The way to LastSensedEnemy is using waypoints. }
 
         { Recalculate WaypointsSaved.
           Note that I recalculate only when SectorNow or
-          LastSeenEnemySector changed. }
+          LastSensedEnemySector changed. }
         if (SectorNow <> WaypointsSaved_Begin) or
-           (LastSeenEnemySector <> WaypointsSaved_End) then
+           (LastSensedEnemySector <> WaypointsSaved_End) then
         begin
           WaypointsSaved_Begin := SectorNow;
-          WaypointsSaved_End := LastSeenEnemySector;
+          WaypointsSaved_End := LastSensedEnemySector;
           TSectorList.FindWay(WaypointsSaved_Begin, WaypointsSaved_End,
             WaypointsSaved);
         end;
@@ -2258,20 +2279,27 @@ begin
   end;
 
   E := Enemy;
-  EnemyVisibleNow := (E <> nil) and
-    (AngleRadBetweenNormals(E.Middle - Middle, Direction) <=
-     Resource.VisibilityAngle / 2) and
-    LineOfSight(Middle, E.Middle);
-  if EnemyVisibleNow then
+  EnemySensedNow := (E <> nil) and (
+    (
+      { enemy seen }
+      (AngleRadBetweenNormals(E.Middle - Middle, Direction) <=
+       Resource.VisibilityAngle / 2) and
+      LineOfSight(Middle, E.Middle)
+    ) or
+    (
+      { enemy smelled }
+      PointsDistanceSqr(E.Middle, Middle) < Sqr(Resource.SmellDistance)
+    ) );
+  if EnemySensedNow then
   begin
-    HasLastSeenEnemy := true;
-    LastSeenEnemy := E.Middle;
-    LastSeenEnemySector := E.Sector;
+    HasLastSensedEnemy := true;
+    LastSensedEnemy := E.Middle;
+    LastSensedEnemySector := E.Sector;
   end;
 
-  if HasLastSeenEnemy then
+  if HasLastSensedEnemy then
   begin
-    SqrDistanceToLastSeenEnemy := PointsDistanceSqr(LastSeenEnemy, Middle);
+    SqrDistanceToLastSensedEnemy := PointsDistanceSqr(LastSensedEnemy, Middle);
   end;
 
   case FState of
@@ -2392,10 +2420,10 @@ var
   Missile: TCreature;
   MissilePosition, MissileDirection: TVector3Single;
 begin
-  if (Resource.FireMissileName <> '') and HasLastSeenEnemy then
+  if (Resource.FireMissileName <> '') and HasLastSensedEnemy then
   begin
     MissilePosition := LerpLegsMiddle(Resource.FireMissileHeight);
-    MissileDirection := VectorSubtract(LastSeenEnemy, MissilePosition);
+    MissileDirection := VectorSubtract(LastSensedEnemy, MissilePosition);
     Missile := (Resources.FindName(Resource.FireMissileName) as TCreatureResource).
       CreateCreature(World, MissilePosition, MissileDirection);
     Missile.Sound3d(Resource.FireMissileSound, 0.0);
@@ -2420,9 +2448,9 @@ begin
   end;
   Result.Add(StateName);
 
-  if HasLastSeenEnemy then
-    Result.Add(Format('Enemy seen distance: %f',
-      [PointsDistance(LastSeenEnemy, Middle)]));
+  if HasLastSensedEnemy then
+    Result.Add(Format('Enemy sensed distance: %f',
+      [PointsDistance(LastSensedEnemy, Middle)]));
 end;
 
 procedure TWalkAttackCreature.Hurt(const LifeLoss: Single;
@@ -2432,14 +2460,14 @@ begin
   inherited Hurt(LifeLoss, HurtDirection,
     AKnockbackDistance * Resource.KnockBackDistance, Attacker);
 
-  { If attacked by Enemy, update LastSeenEnemy fields.
+  { If attacked by Enemy, update LastSensedEnemy fields.
     This way when you attack a creature from the back, it will turn around
     and fight you. }
   if (Attacker <> nil) and (Attacker = Enemy) then
   begin
-    HasLastSeenEnemy := true;
-    LastSeenEnemy := Attacker.Middle;
-    LastSeenEnemySector := Attacker.Sector;
+    HasLastSensedEnemy := true;
+    LastSensedEnemy := Attacker.Middle;
+    LastSensedEnemySector := Attacker.Sector;
   end;
 end;
 
@@ -2462,10 +2490,10 @@ begin
       glDrawAxisWire(AlternativeTarget, AxisSize);
     end;
 
-    if HasLastSeenEnemy then
+    if HasLastSensedEnemy then
     begin
       glColorv(Red);
-      glDrawAxisWire(LastSeenEnemy, AxisSize);
+      glDrawAxisWire(LastSensedEnemy, AxisSize);
     end;
   end;
   {$endif}
