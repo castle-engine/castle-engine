@@ -790,7 +790,7 @@ type
 
     FInvertVerticalMouseLook: boolean;
     FOnMoveAllowed: TMoveAllowedFunc;
-    FMouseDraggingRotationSpeed: Single;
+    FMouseDraggingHorizontalRotationSpeed, FMouseDraggingVerticalRotationSpeed: Single;
 
     function RealPreferredHeightNoHeadBobbing: Single;
     function RealPreferredHeightMargin: Single;
@@ -815,7 +815,8 @@ type
       DefaultHeadBobbingTime = 0.5;
       DefaultJumpHorizontalSpeedMultiply = 2.0;
       DefaultJumpTime = 1.0 / 8.0;
-      DefaultMouseDraggingRotationSpeed = 0.1;
+      DefaultMouseDraggingHorizontalRotationSpeed = 0.1;
+      DefaultMouseDraggingVerticalRotationSpeed = 0.1;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1547,10 +1548,19 @@ type
 
     { Speed (degrees per pixel delta) of rotations by mouse dragging.
       Relevant only if ciMouseDragging in @link(Input),
-      and MouseDragMode is cwdmDragToRotate. }
-    property MouseDraggingRotationSpeed: Single
-      read FMouseDraggingRotationSpeed write FMouseDraggingRotationSpeed
-      default DefaultMouseDraggingRotationSpeed;
+      and MouseDragMode is cwdmDragToRotate.
+      Separate for horizontal and vertical, this way you can e.g. limit
+      (or disable) vertical rotations, useful for games where you mostly
+      look horizontally and accidentally looking up/down is more confusing
+      than useful.
+      @groupBegin }
+    property MouseDraggingHorizontalRotationSpeed: Single
+      read FMouseDraggingHorizontalRotationSpeed write FMouseDraggingHorizontalRotationSpeed
+      default DefaultMouseDraggingHorizontalRotationSpeed;
+    property MouseDraggingVerticalRotationSpeed: Single
+      read FMouseDraggingVerticalRotationSpeed write FMouseDraggingVerticalRotationSpeed
+      default DefaultMouseDraggingVerticalRotationSpeed;
+    { @groupEnd }
   end;
 
   TCameraNavigationClass = (ncExamine, ncWalk);
@@ -2762,7 +2772,8 @@ begin
   FJumpHorizontalSpeedMultiply := DefaultJumpHorizontalSpeedMultiply;
   FJumpTime := DefaultJumpTime;
   FInvertVerticalMouseLook := false;
-  FMouseDraggingRotationSpeed := DefaultMouseDraggingRotationSpeed;
+  FMouseDraggingHorizontalRotationSpeed := DefaultMouseDraggingHorizontalRotationSpeed;
+  FMouseDraggingVerticalRotationSpeed := DefaultMouseDraggingVerticalRotationSpeed;
 
   FInput_Forward                 := TInputShortcut.Create(Self);
   FInput_Backward                := TInputShortcut.Create(Self);
@@ -4294,9 +4305,9 @@ begin
     MouseXChange := NewX - OldX;
     MouseYChange := NewY - OldY;
     if MouseXChange <> 0 then
-      RotateHorizontal(-MouseXChange * MouseDraggingRotationSpeed);
+      RotateHorizontal(-MouseXChange * MouseDraggingHorizontalRotationSpeed);
     if MouseYChange <> 0 then
-      RotateVertical(-MouseYChange * MouseDraggingRotationSpeed);
+      RotateVertical(-MouseYChange * MouseDraggingVerticalRotationSpeed);
     Result := ExclusiveEvents;
   end;
 end;
