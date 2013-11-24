@@ -552,10 +552,14 @@ procedure GLBlendRectangle(const Rect: TRectangle;
   const Color: TVector4Single); deprecated;
 
 { Draw a simple rectangle filled with a color.
-  Blending is automatically used if Color alpha < 1. }
+  Blending is automatically used if Color alpha < 1.
+
+  ForceBlending forces the usage of blending. When it is @false,
+  we use blending only if Color[3] (alpha) < 1.  }
 procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
   const BlendingSourceFactor: TGLEnum = GL_SRC_ALPHA;
-  const BlendingDestinationFactor: TGLEnum = GL_ONE_MINUS_SRC_ALPHA);
+  const BlendingDestinationFactor: TGLEnum = GL_ONE_MINUS_SRC_ALPHA;
+  const ForceBlending: boolean = false);
 
 { Multiline string describing attributes of current OpenGL
   library. This simply queries OpenGL using glGet* functions
@@ -1341,13 +1345,13 @@ procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
   const Color: TVector4Single);
 begin
   DrawRectangle(Rectangle(X1, Y1, X2 - X1, Y2 - Y1), Color,
-    SourceFactor, DestinationFactor);
+    SourceFactor, DestinationFactor, true);
 end;
 
 procedure GLBlendRectangle(const Rect: TRectangle;
   const Color: TVector4Single);
 begin
-  DrawRectangle(Rect, Color, GL_ONE, GL_SRC_ALPHA);
+  DrawRectangle(Rect, Color, GL_ONE, GL_SRC_ALPHA, true);
 end;
 
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
@@ -1393,7 +1397,7 @@ begin
       Color := White * MapRange(FadeIntensity, FullBlack, 0, MinScale, 1);
 
     Color[3] := 1.0; { alpha always 1.0 in this case }
-    DrawRectangle(Rect, Color, SourceFactor, DestinationFactor);
+    DrawRectangle(Rect, Color, SourceFactor, DestinationFactor, true);
   end;
 end;
 
@@ -1407,9 +1411,11 @@ var
   RectanglePoint: packed array [0..3] of TVector2SmallInt;
 
 procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
-  const BlendingSourceFactor, BlendingDestinationFactor: TGLEnum);
-{$ifdef GLImageUseShaders}
+  const BlendingSourceFactor, BlendingDestinationFactor: TGLEnum;
+  const ForceBlending: boolean);
 var
+  Blending: boolean;
+{$ifdef GLImageUseShaders}
   AttribEnabled: array [0..0] of TGLuint;
   AttribLocation: TGLuint;
 {$endif}
@@ -1424,7 +1430,8 @@ begin
   end;
   {$endif}
 
-  if Color[3] < 1 then
+  Blending := ForceBlending or (Color[3] < 1);
+  if Blending then
   begin
     glBlendFunc(BlendingSourceFactor, BlendingDestinationFactor); // saved by GL_COLOR_BUFFER_BIT
     glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
@@ -1472,7 +1479,7 @@ begin
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-  if Color[3] < 1 then
+  if Blending then
     glDisable(GL_BLEND);
 end;
 
