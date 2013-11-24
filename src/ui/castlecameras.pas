@@ -790,6 +790,7 @@ type
 
     FInvertVerticalMouseLook: boolean;
     FOnMoveAllowed: TMoveAllowedFunc;
+    FMouseDraggingRotationSpeed: Single;
 
     function RealPreferredHeightNoHeadBobbing: Single;
     function RealPreferredHeightMargin: Single;
@@ -814,6 +815,7 @@ type
       DefaultHeadBobbingTime = 0.5;
       DefaultJumpHorizontalSpeedMultiply = 2.0;
       DefaultJumpTime = 1.0 / 8.0;
+      DefaultMouseDraggingRotationSpeed = 0.1;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1542,6 +1544,13 @@ type
       read FRotationVerticalSpeed write FRotationVerticalSpeed
       default DefaultRotationVerticalSpeed;
     { @groupEnd }
+
+    { Speed (degrees per pixel delta) of rotations by mouse dragging.
+      Relevant only if ciMouseDragging in @link(Input),
+      and MouseDragMode is cwdmDragToRotate. }
+    property MouseDraggingRotationSpeed: Single
+      read FMouseDraggingRotationSpeed write FMouseDraggingRotationSpeed
+      default DefaultMouseDraggingRotationSpeed;
   end;
 
   TCameraNavigationClass = (ncExamine, ncWalk);
@@ -2753,6 +2762,7 @@ begin
   FJumpHorizontalSpeedMultiply := DefaultJumpHorizontalSpeedMultiply;
   FJumpTime := DefaultJumpTime;
   FInvertVerticalMouseLook := false;
+  FMouseDraggingRotationSpeed := DefaultMouseDraggingRotationSpeed;
 
   FInput_Forward                 := TInputShortcut.Create(Self);
   FInput_Backward                := TInputShortcut.Create(Self);
@@ -4284,9 +4294,9 @@ begin
     MouseXChange := NewX - OldX;
     MouseYChange := NewY - OldY;
     if MouseXChange <> 0 then
-      RotateHorizontal(-MouseXChange/10.0);
+      RotateHorizontal(-MouseXChange * MouseDraggingRotationSpeed);
     if MouseYChange <> 0 then
-      RotateVertical(-MouseYChange/10.0);
+      RotateVertical(-MouseYChange * MouseDraggingRotationSpeed);
     Result := ExclusiveEvents;
   end;
 end;
