@@ -394,7 +394,8 @@ type
   published
     property KnockBackSpeed default DefaultPlayerKnockBackSpeed;
     { Enable camera navigation by dragging. This results in including
-      ciMouseDragging in TCamera.Input. }
+      ciMouseDragging in TCamera.Input (when player is not
+      @link(Dead) or @link(Blocked)). }
     property EnableCameraDragging: boolean
       read FEnableCameraDragging write SetEnableCameraDragging default false;
   end;
@@ -690,7 +691,7 @@ begin
   end else
   begin
     NormalCameraInput := [ciNormal, ci3dMouse];
-    if EnableCameraDragging then
+    if EnableCameraDragging and not Dead then
       Include(NormalCameraInput, ciMouseDragging);
 
     Camera.Input := NormalCameraInput;
