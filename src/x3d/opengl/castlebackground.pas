@@ -198,6 +198,8 @@ var
       QuadSet.FdTexCoord.Value := TexCoord;
 
       Appearance := TAppearanceNode.Create('', Node.BaseUrl);
+      Appearance.FdShaders.AssignValue(Node.FdShaders);
+      Appearance.FdEffects.AssignValue(Node.FdEffects);
       Appearance.Texture := Texture;
       if Texture is TAbstractTexture2DNode then
       begin

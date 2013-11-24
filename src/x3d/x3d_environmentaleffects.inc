@@ -21,6 +21,8 @@
   private
     procedure EventSet_BindReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+  protected
+    procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
   public
     procedure CreateNode; override;
     function TransformationChange: TNodeTransformationChange; override;
@@ -49,6 +51,12 @@
 
     private FFdTransparency: TSFFloat;
     public property FdTransparency: TSFFloat read FFdTransparency;
+
+    private FFdShaders: TMFNodeShaders;
+    public property FdShaders: TMFNodeShaders read FFdShaders;
+
+    private FFdEffects: TMFNode;
+    public property FdEffects: TMFNode read FFdEffects;
 
     function TransformRotation: TMatrix4Single;
   end;
@@ -284,9 +292,25 @@ begin
   Fields.Add(FFdTransparency);
   { X3D specification comment: [0,1] }
 
+  FFdShaders := TMFNodeShaders.Create(Self, 'shaders', [TAbstractShaderNode]);
+   FdShaders.ChangesAlways := [chEverything];
+  Fields.Add(FFdShaders);
+
+  FFdEffects := TMFNode.Create(Self, 'effects', [TEffectNode]);
+   FdEffects.Exposed := false;
+   FdEffects.ChangesAlways := [chEverything];
+  Fields.Add(FFdEffects);
+
   DefaultContainerField := 'children';
 
   Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
+end;
+
+procedure TAbstractBackgroundNode.DirectEnumerateActive(
+  Func: TEnumerateChildrenFunction);
+begin
+  inherited;
+  FFdShaders.EnumerateValid(Func);
 end;
 
 procedure TAbstractBackgroundNode.EventSet_BindReceive(
