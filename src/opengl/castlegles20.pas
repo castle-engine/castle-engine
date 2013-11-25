@@ -39,6 +39,8 @@
  **}
 unit CastleGLES20;
 {$mode objfpc}
+{$i castleconf.inc}
+
 {$ifdef linux}
   {$define EGL}
 {$endif}
@@ -1474,9 +1476,13 @@ implementation
   procedure LoadEGL(lib : pchar);
     begin
       FreeEGL;
+{$ifdef OpenGLES}
       EGLLib:=dynlibs.LoadLibrary(lib);
       if EGLLib=0 then
         raise Exception.Create(format('Could not load library: %s',[lib]));
+{$else}
+      Exit;
+{$endif}
 
       pointer(eglGetProcAddress):=GetProcAddress(EGLLib,'glGetProcAddress');
 
@@ -1696,9 +1702,13 @@ implementation
   procedure LoadGLESv2(lib : pchar);
     begin
       FreeGLESv2;
+{$ifdef OpenGLES}
       GLESv2Lib:=dynlibs.LoadLibrary(lib);
       if GLESv2Lib=0 then
         raise Exception.Create(format('Could not load library: %s',[lib]));
+{$else}
+      Exit;
+{$endif}
 
       pointer(glActiveTexture):=glGetProcAddress(GLESv2Lib,'glActiveTexture');
       pointer(glAttachShader):=glGetProcAddress(GLESv2Lib,'glAttachShader');
