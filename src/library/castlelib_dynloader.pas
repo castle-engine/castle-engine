@@ -89,6 +89,7 @@ procedure CGE_LoadSceneFromFile(szFile: pcchar); cdecl; external 'castleengine';
 function CGE_GetViewpointsCount(): cInt32; cdecl; external 'castleengine';
 procedure CGE_GetViewpointName(iViewpointIdx: cInt32; szName: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
 procedure CGE_MoveToViewpoint(iViewpointIdx: cInt32; bAnimated: cBool); cdecl; external 'castleengine';
+procedure CGE_AddViewpointFromCurrentView(szName: pcchar); cdecl; external 'castleengine';
 procedure CGE_GetViewCoords(pfPosX, pfPosY, pfPosZ, pfDirX, pfDirY, pfDirZ,
                             pfUpX, pfUpY, pfUpZ, pfGravX, pfGravY, pfGravZ: pcfloat); cdecl; external 'castleengine';
 procedure CGE_MoveViewToCoords(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ,

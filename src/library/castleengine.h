@@ -100,7 +100,9 @@ extern void CGE_LoadSceneFromFile(const char *szFile);                          
 extern int CGE_GetViewpointsCount();
 extern void CGE_GetViewpointName(int iViewpointIdx, char *szName, int nBufSize);    // szName is buffer of size nBufSize, and is filled with utf-8 encoded string
 extern void CGE_MoveToViewpoint(int iViewpointIdx, bool bAnimated);
-extern void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ, 
+extern void CGE_AddViewpointFromCurrentView(const char *szName);
+
+extern void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ,
                               float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ);
 extern void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ, 
                                  float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ);

@@ -51,6 +51,7 @@ typedef void (__cdecl *PFNRD_CGE_LoadSceneFromFile)(const char *szFile);
 typedef int (__cdecl *PFNRD_CGE_GetViewpointsCount)();
 typedef void (__cdecl *PFNRD_CGE_GetViewpointName)(int iViewpointIdx, char *szName, int nBufSize);
 typedef void (__cdecl *PFNRD_CGE_MoveToViewpoint)(int iViewpointIdx, bool bAnimated);
+typedef void (__cdecl *PFNRD_CGE_AddViewpointFromCurrentView)(const char *szName);
 typedef void (__cdecl *PFNRD_CGE_GetViewCoords)(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ, 
                                                 float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ);
 typedef void (__cdecl *PFNRD_CGE_MoveViewToCoords)(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ, 
@@ -78,6 +79,7 @@ PFNRD_CGE_LoadSceneFromFile pfrd_CGE_LoadSceneFromFile = NULL;
 PFNRD_CGE_GetViewpointsCount pfrd_CGE_GetViewpointsCount = NULL;
 PFNRD_CGE_GetViewpointName pfrd_CGE_GetViewpointName = NULL;
 PFNRD_CGE_MoveToViewpoint pfrd_CGE_MoveToViewpoint = NULL;
+PFNRD_CGE_AddViewpointFromCurrentView pfrd_CGE_AddViewpointFromCurrentView = NULL;
 PFNRD_CGE_GetViewCoords pfrd_CGE_GetViewCoords = NULL;
 PFNRD_CGE_MoveViewToCoords pfrd_CGE_MoveViewToCoords = NULL;
 PFNRD_CGE_GetCurrentNavigationType pfrd_CGE_GetCurrentNavigationType = NULL;
@@ -108,6 +110,7 @@ void CGE_LoadLibrary()
 	pfrd_CGE_GetViewpointsCount = (PFNRD_CGE_GetViewpointsCount)GetProcAddress(g_hCgeDll, "CGE_GetViewpointsCount");
 	pfrd_CGE_GetViewpointName = (PFNRD_CGE_GetViewpointName)GetProcAddress(g_hCgeDll, "CGE_GetViewpointName");
 	pfrd_CGE_MoveToViewpoint = (PFNRD_CGE_MoveToViewpoint)GetProcAddress(g_hCgeDll, "CGE_MoveToViewpoint");
+    pfrd_CGE_AddViewpointFromCurrentView = (PFNRD_CGE_AddViewpointFromCurrentView)GetProcAddress(g_hCgeDll, "CGE_AddViewpointFromCurrentView");
 	pfrd_CGE_GetViewCoords = (PFNRD_CGE_GetViewCoords)GetProcAddress(g_hCgeDll, "CGE_GetViewCoords");
 	pfrd_CGE_MoveViewToCoords = (PFNRD_CGE_MoveViewToCoords)GetProcAddress(g_hCgeDll, "CGE_MoveViewToCoords");
 	pfrd_CGE_GetCurrentNavigationType = (PFNRD_CGE_GetCurrentNavigationType)GetProcAddress(g_hCgeDll, "CGE_GetCurrentNavigationType");
@@ -228,6 +231,13 @@ void CGE_MoveToViewpoint(int iViewpointIdx, bool bAnimated)
 {
 	if (pfrd_CGE_MoveToViewpoint!=NULL)
 		(*pfrd_CGE_MoveToViewpoint)(iViewpointIdx, bAnimated);
+}
+
+//-----------------------------------------------------------------------------
+void CGE_AddViewpointFromCurrentView(const char *szName)
+{
+	if (pfrd_CGE_AddViewpointFromCurrentView!=NULL)
+		(*pfrd_CGE_AddViewpointFromCurrentView)(szName);
 }
 
 //-----------------------------------------------------------------------------

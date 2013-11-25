@@ -201,16 +201,8 @@ type
     property ShadowVolumesDraw: boolean
       read GetShadowVolumesDraw write SetShadowVolumesDraw default false;
 
-  { Viewpoints array management }
-  private
-    ArrayViewpoints: array of TAbstractX3DViewpointNode;
-
-    procedure AddViewpoint(Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-                           ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
+  { Navigation info helper functions }
   public
-    function GetViewpointsCount(): integer;
-    function GetViewpointName(Idx: integer): string;
-    procedure MoveToViewpoint(Idx: integer; Animated: boolean);
     function GetCurrentNavigationType(): TCameraNavigationType;
     procedure SetNavigationType(NewType: TCameraNavigationType);
   private
@@ -1042,11 +1034,6 @@ begin
     Useful for model_3d_viewer that wants to initialize NavigationType
     from camera. }
   SceneManager.Camera := SceneManager.CreateDefaultCamera;
-
-  { init viewpoints }
-  SetLength(ArrayViewpoints, 0);
-  if (MainScene.RootNode <> nil) then
-    MainScene.RootNode.Traverse(TAbstractViewpointNode, @AddViewpoint);
 end;
 
 function TCastleFrame.MainScene: TCastleScene;
@@ -1149,34 +1136,6 @@ end;
 function TCastleFrame.GetPressed: TKeysPressed;
 begin
   Result := FPressed;
-end;
-
-procedure TCastleFrame.AddViewpoint(Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-                       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
-var
-  nCount: integer;
-begin
-  if Node is TAbstractX3DViewpointNode then
-  begin
-    nCount := Length(ArrayViewpoints);
-    SetLength(ArrayViewpoints, nCount+1);
-    ArrayViewpoints[nCount] := Node as TAbstractX3DViewpointNode;
-  end;
-end;
-
-function TCastleFrame.GetViewpointsCount(): integer;
-begin
-  Result := Length(ArrayViewpoints);
-end;
-
-function TCastleFrame.GetViewpointName(Idx: integer): string;
-begin
-  Result := ArrayViewpoints[Idx].FdDescription.Value;
-end;
-
-procedure TCastleFrame.MoveToViewpoint(Idx: integer; Animated: boolean);
-begin
-  ArrayViewpoints[Idx].EventSet_Bind.Send(true, MainScene.Time);
 end;
 
 function TCastleFrame.GetCurrentNavigationType(): TCameraNavigationType;

@@ -35,6 +35,7 @@ type
   public
     { public declarations }
     aCastleFrame: TCastleFrame;
+    nCurrentViewpoint: integer;
   end;
 
 var
@@ -71,6 +72,8 @@ procedure TForm1.FormCreate(Sender: TObject);
 var
   OglInfo: string;
 begin
+  nCurrentViewpoint := 0;
+
   OpenGLControl1.MakeCurrent();
   Application.OnIdle := @IdleFunc;
   aCastleFrame := TCastleFrame.Create(nil);
@@ -104,6 +107,40 @@ var
   Ch: char;
 begin
   KeyLCLToCastle(Key, Shift, MyKey, Ch);
+
+  if Key = VK_F3 then        // previous veiwpoint
+  begin
+     if nCurrentViewpoint > 0 then
+       Dec(nCurrentViewpoint)
+     else
+       nCurrentViewpoint := aCastleFrame.MainScene.ViewpointsCount-1;
+     aCastleFrame.MainScene.MoveToViewpoint(nCurrentViewpoint);
+     Exit;
+  end;
+  if Key = VK_F4 then        // next viewpoint
+  begin
+     if nCurrentViewpoint < aCastleFrame.MainScene.ViewpointsCount-1 then
+       Inc(nCurrentViewpoint)
+     else
+       nCurrentViewpoint := 0;
+     aCastleFrame.MainScene.MoveToViewpoint(nCurrentViewpoint);
+     Exit;
+  end;
+  if Key = VK_F5 then        // rebind current viewpoint
+  begin
+     aCastleFrame.MainScene.MoveToViewpoint(nCurrentViewpoint);
+     Exit;
+  end;
+  if Key = VK_F6 then        // add new viewpoint
+  begin
+     aCastleFrame.MainScene.AddViewpointFromCamera(aCastleFrame.Camera, 'New View');
+     Exit;
+  end;
+  if Key = VK_F then
+  begin
+     aCastleFrame.SetNavigationType(ntFly);
+     Exit;
+  end;
 
   { Do not change focus by arrow keys, this would breaks our handling of arrows
     over TCastleControl. We can prevent Lazarus from interpreting these

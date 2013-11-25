@@ -167,7 +167,7 @@ end;
 function CGE_GetViewpointsCount(): cInt32; cdecl;
 begin
   try
-    Result := aCastleFrame.GetViewpointsCount();
+    Result := aCastleFrame.MainScene.ViewpointsCount;
   except
     Result := 0;
   end;
@@ -178,7 +178,7 @@ var
   sName: string;
 begin
   try
-    sName := aCastleFrame.GetViewpointName(iViewpointIdx);
+    sName := aCastleFrame.MainScene.GetViewpointName(iViewpointIdx);
     StrPLCopy(szName, sName, nBufSize-1);
   except
   end;
@@ -187,7 +187,15 @@ end;
 procedure CGE_MoveToViewpoint(iViewpointIdx: cInt32; bAnimated: cBool); cdecl;
 begin
   try
-    aCastleFrame.MoveToViewpoint(iViewpointIdx, bAnimated);
+    aCastleFrame.MainScene.MoveToViewpoint(iViewpointIdx, bAnimated);
+  except
+  end;
+end;
+
+procedure CGE_AddViewpointFromCurrentView(szName: pcchar); cdecl;
+begin
+  try
+    aCastleFrame.MainScene.AddViewpointFromCamera(aCastleFrame.Camera, StrPas(PChar(szName)));
   except
   end;
 end;
@@ -293,7 +301,7 @@ exports
   CGE_Render, CGE_SetRenderParams, CGE_SetLibraryCallbackProc, CGE_OnIdle,
   CGE_OnMouseDown, CGE_OnMouseMove, CGE_OnMouseUp, CGE_OnMouseWheel,
   CGE_LoadSceneFromFile, CGE_GetCurrentNavigationType, CGE_SetNavigationType,
-  CGE_GetViewpointsCount, CGE_GetViewpointName, CGE_MoveToViewpoint,
+  CGE_GetViewpointsCount, CGE_GetViewpointName, CGE_MoveToViewpoint, CGE_AddViewpointFromCamera,
   CGE_GetViewCoords, CGE_MoveViewToCoords, CGE_SaveScreenshotToFile,
   CGE_UpdateTouchInterface, CGE_SetUserInterfaceInfo;
 
