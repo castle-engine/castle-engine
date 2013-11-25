@@ -301,7 +301,7 @@ exports
   CGE_Render, CGE_SetRenderParams, CGE_SetLibraryCallbackProc, CGE_OnIdle,
   CGE_OnMouseDown, CGE_OnMouseMove, CGE_OnMouseUp, CGE_OnMouseWheel,
   CGE_LoadSceneFromFile, CGE_GetCurrentNavigationType, CGE_SetNavigationType,
-  CGE_GetViewpointsCount, CGE_GetViewpointName, CGE_MoveToViewpoint, CGE_AddViewpointFromCamera,
+  CGE_GetViewpointsCount, CGE_GetViewpointName, CGE_MoveToViewpoint, CGE_AddViewpointFromCurrentView,
   CGE_GetViewCoords, CGE_MoveViewToCoords, CGE_SaveScreenshotToFile,
   CGE_UpdateTouchInterface, CGE_SetUserInterfaceInfo;
 
