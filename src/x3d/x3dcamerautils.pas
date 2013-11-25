@@ -42,10 +42,18 @@ function MakeCameraStr(const Version: TX3DCameraVersion;
   const Xml: boolean;
   const Position, Direction, Up, GravityUp: TVector3Single): string;
 
-{ Construct TX3DNode defining camera with given properties. }
+{ Construct TX3DNode defining camera with given properties.
+
+  Overloaded version with ViewpointNode parameter returns
+  the TAbstractViewpointNode descendant that is (somewhere within)
+  the returned node. }
 function MakeCameraNode(const Version: TX3DCameraVersion;
   const BaseUrl: string;
   const Position, Direction, Up, GravityUp: TVector3Single): TX3DNode;
+function MakeCameraNode(const Version: TX3DCameraVersion;
+  const BaseUrl: string;
+  const Position, Direction, Up, GravityUp: TVector3Single;
+  out ViewpointNode: TAbstractViewpointNode): TX3DNode;
 
 { Make camera node (like MakeCameraNode) that makes the whole box
   nicely visible (like CameraViewpointForWholeScene). }
@@ -188,11 +196,11 @@ end;
 
 function MakeCameraNode(const Version: TX3DCameraVersion;
   const BaseUrl: string;
-  const Position, Direction, Up, GravityUp: TVector3Single): TX3DNode;
+  const Position, Direction, Up, GravityUp: TVector3Single;
+  out ViewpointNode: TAbstractViewpointNode): TX3DNode;
 var
   RotationVectorForGravity: TVector3Single;
   AngleForGravity: Single;
-  ViewpointNode: TAbstractViewpointNode;
   Separator: TSeparatorNode_1;
   Transform_1: TTransformNode_1;
   Transform_2: TTransformNode;
@@ -265,6 +273,16 @@ begin
       else raise EInternalError.Create('MakeCameraNode Version incorrect');
     end;
   end;
+end;
+
+function MakeCameraNode(const Version: TX3DCameraVersion;
+  const BaseUrl: string;
+  const Position, Direction, Up, GravityUp: TVector3Single): TX3DNode;
+var
+  ViewpointNode: TAbstractViewpointNode;
+begin
+  Result := MakeCameraNode(Version, BaseUrl, Position, Direction, Up, GravityUp,
+    ViewpointNode { we ignore the returned ViewpointNode });
 end;
 
 function CameraNodeForWholeScene(const Version: TX3DCameraVersion;

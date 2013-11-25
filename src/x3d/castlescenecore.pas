@@ -537,19 +537,18 @@ type
     function CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
     function CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
   private
+  type
+    TAbstractViewpointNodeList = specialize TFPGObjectList<TAbstractViewpointNode>;
+  var
     FShapesActiveCount: Cardinal;
     FShapesActiveVisibleCount: Cardinal;
     FTrianglesListShadowCasters: TTrianglesShadowCastersList;
+    { For easier access to list of viewpoints in the scene }
+    FViewpointsArray: TAbstractViewpointNodeList;
 
     { Removes fvTrianglesListShadowCasters from Validities,
       and clears FTrianglesListShadowCasters variable. }
     procedure InvalidateTrianglesListShadowCasters;
-
-  private
-    { For easier access to list of viewpoints in the scene }
-    FViewpointsArray: array of TAbstractX3DViewpointNode;
-    procedure AddViewpointCallback(Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-                           ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 
     function GetViewpointCore(
       const OnlyPerspective: boolean;
@@ -2324,7 +2323,7 @@ begin
   FFogStack := TFogStack.Create(Self);
   FNavigationInfoStack := TNavigationInfoStack.Create(Self);
   FViewpointStack := TViewpointStack.Create(Self);
-  SetLength(FViewpointsArray, 0);
+  FViewpointsArray := TAbstractViewpointNodeList.Create(false);
 
   FPointingDeviceActiveSensors := TX3DNodeList.Create(false);
 
@@ -2387,6 +2386,7 @@ begin
   FreeAndNil(FFogStack);
   FreeAndNil(FNavigationInfoStack);
   FreeAndNil(FViewpointStack);
+  FreeAndNil(FViewpointsArray);
 
   FreeAndNil(FPointingDeviceActiveSensors);
 
@@ -2437,11 +2437,6 @@ begin
     a viewpoint given as #viewpoint_name at LoadAnchor, see there for
     comments) will be set immediately. }
   ForceTeleportTransitions := true;
-
-  { Init viewpoints array }
-  SetLength(FViewpointsArray, 0);
-  if (RootNode <> nil) then
-    RootNode.Traverse(TAbstractViewpointNode, @AddViewpointCallback);
 
   ScheduleChangedAll;
 
@@ -2850,6 +2845,7 @@ begin
           ParentScene.ViewpointStack.PushIfEmpty( TAbstractViewpointNode(Node), true);
         Inc(ParentScene.ChangedAllCurrentViewpointIndex);
       end;
+      ParentScene.FViewpointsArray.Add(TAbstractViewpointNode(Node));
     end;
   end else
   if Node is TProximitySensorNode then
@@ -3089,6 +3085,7 @@ begin
     FShapes := TShapeTreeGroup.Create(Self);
     ShapeLODs.Clear;
     GlobalLights.Clear;
+    FViewpointsArray.Clear;
 
     if RootNode <> nil then
     begin
@@ -6636,35 +6633,23 @@ begin
   Node.EnumerateNodes(TX3DNode, @UnregisterSceneCallback, false);
 end;
 
-procedure TCastleSceneCore.AddViewpointCallback(Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-                       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
-var
-  NodeCount: integer;
-begin
-  if Node is TAbstractX3DViewpointNode then
-  begin
-    NodeCount := Length(FViewpointsArray);
-    SetLength(FViewpointsArray, NodeCount+1);
-    FViewpointsArray[NodeCount] := Node as TAbstractX3DViewpointNode;
-  end;
-end;
-
 function TCastleSceneCore.ViewpointsCount: Cardinal;
 begin
-  Result := Length(FViewpointsArray);
+  Result := FViewpointsArray.Count;
 end;
 
 function TCastleSceneCore.GetViewpointName(Idx: integer): string;
 begin
-  if (Idx >= 0) and (Idx < Length(FViewpointsArray)) then
-    Result := FViewpointsArray[Idx].FdDescription.Value;
+  if Between(Idx, 0, FViewpointsArray.Count - 1) then
+    Result := FViewpointsArray[Idx].Description else
+    Result := '';
 end;
 
 procedure TCastleSceneCore.MoveToViewpoint(Idx: integer; Animated: boolean);
 var
   OldForceTeleport: boolean;
 begin
-  if (Idx >= 0) and (Idx < Length(FViewpointsArray)) then
+  if Between(Idx, 0, FViewpointsArray.Count - 1) then
   begin
     if not Animated then
     begin
@@ -6680,7 +6665,6 @@ begin
       // rebind the viewpoint
       FViewpointStack.SendIsBound(FViewpointStack.Top, false);
       FViewpointStack.SendIsBound(FViewpointStack.Top, true);
-      FViewpointStack.DoScheduleBoundChanged;
     end;
 
     if not Animated then
@@ -6694,20 +6678,29 @@ var
   Direction: TVector3Single;
   Up: TVector3Single;
   GravityUp: TVector3Single;
-  NewNode: TViewpointNode;
-  nCount: Cardinal;
+  Version: TX3DCameraVersion;
+  NewNode: TX3DNode;
+  NewViewpointNode: TAbstractViewpointNode;
 begin
+  if RootNode = nil then
+    raise Exception.Create('You have to initialize RootNode, usually just by loading some scene to TCastleSceneCore.Load, before adding viewpoints');
+
   ACamera.GetView(Position, Direction, Up, GravityUp);
-  NewNode := TViewpointNode.Create;
-  // TODO: setup the viewpoint
-  //NewNode.FdPosition := Position;
+
+  if RootNode.HasForceVersion and (RootNode.ForceVersion.Major <= 1) then
+    Version := cvVrml1_Inventor else
+    Version := cvVrml2_X3d;
+  NewNode := MakeCameraNode(Version, '', Position, Direction, Up, GravityUp,
+    NewViewpointNode);
+
+  RootNode.FdChildren.Add(NewNode);
+  { The 100% safe version would now call RootNode.FdChildren.Changed,
+    and it would automatically refresh FViewpointsArray.
+    But RootNode.FdChildren.Changed is a little costly, it processes the whole
+    scene again, so it's faster to directly add to FViewpointsArray. }
+  FViewpointsArray.Add(NewViewpointNode);
 
   // TODO: connect with current navigation info
-
-  // add into our array
-  nCount := Length(FViewpointsArray);
-  SetLength(FViewpointsArray, nCount+1);
-  FViewpointsArray[nCount] := NewNode as TAbstractX3DViewpointNode;
 end;
 
 end.
