@@ -667,7 +667,8 @@ begin
       if C.PositionInside(MouseX, MouseY) then
         if C.Press(InputMouseButton(Button)) then
         begin
-          FCaptureInput := C;
+          if C.Container = Self as IUIContainer then // for reasons of this check, see CastleWindow
+            FCaptureInput := C;
           Exit;
         end;
     end;

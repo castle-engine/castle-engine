@@ -4451,7 +4451,16 @@ begin
       if C.PositionInside(MouseX, MouseY) then
         if C.Press(Event) then
         begin
-          if Event.EventType = itMouseButton then
+          { We have to check whether C.Container = Self. That is because
+            the implementation of control's Press method could remove itself
+            from our Controls list. Consider e.g. TCastleOnScreenMenu.Press
+            that may remove itself from the Window.Controls list when clicking
+            "close menu" item. We cannot, in such case, save a reference to
+            this control in FCaptureInput, because we should not speak with it
+            anymore (we don't know when it's destroyed, we cannot call it's
+            Release method because it has Container = nil, and so on). }
+          if (Event.EventType = itMouseButton) and
+             (C.Container = Self as IUIContainer) then
             FCaptureInput := C;
           Exit;
         end;
