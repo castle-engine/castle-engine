@@ -2121,8 +2121,9 @@ var
         '  fragment_color.a = gl_Color.a;' +NL+
         '}');
       {$else}
-      for I := 0 to Source[stVertex].Count - 1 do
-        PlugDirectly(Source[stVertex], I, '/* PLUG-DECLARATIONS */', '#define COLOR_PER_VERTEX', true);
+      { Do not add it to all Source[stVertex], as then GLSL compilers
+        may say "COLOR_PER_VERTEX macro redefinition". }
+      PlugDirectly(Source[stVertex], 0, '/* PLUG-DECLARATIONS */', '#define COLOR_PER_VERTEX', true);
       {$endif}
     end;
   end;
