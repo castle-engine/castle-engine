@@ -1056,7 +1056,7 @@ begin
   FHeight := Image.Height;
   FAlpha := Image.AlphaChannel;
 
-  if (PointVbo = 0) and (glGenBuffers<>nil) then    //glGenBuffers can be nil on some old Intel gpus :-(
+  if (PointVbo = 0) and GLFeatures.VertexBufferObject then    //glGenBuffers can be nil on some old Intel gpus :-(
     glGenBuffers(1, @PointVbo);
 
   {$ifdef GLImageUseShaders}

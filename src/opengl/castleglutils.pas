@@ -1447,7 +1447,7 @@ begin
     glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
   end;
 
-  if RectanglePointVbo = 0 then
+  if (RectanglePointVbo = 0) and GLFeatures.VertexBufferObject then
     glGenBuffers(1, @RectanglePointVbo);
 
   RectanglePoint[0] := Vector2SmallInt(R.Left          , R.Bottom);
