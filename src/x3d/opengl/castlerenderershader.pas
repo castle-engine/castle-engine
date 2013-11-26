@@ -740,7 +740,7 @@ var
   Position: TVector4Single;
   LiPos: TAbstractPositionalLightNode;
   LiSpot1: TSpotLightNode_1;
-  Lispot: TSpotLightNode;
+  LiSpot: TSpotLightNode;
 begin
   { calculate Color4 = light color * light intensity }
   Color3 := Node.FdColor.Value * Node.FdIntensity.Value;
@@ -811,8 +811,13 @@ begin
     AProgram.SetUniform(Format('castle_SideLightProduct%dSpecular', [Number]),
       Shader.MaterialSpecular * Color4);
 
-  AProgram.SetUniform(Format('castle_SideLightProduct%dDiffuse', [Number]),
-    Shader.MaterialDiffuse * Color4);
+  { depending on COLOR_PER_VERTEX define, only one of these uniforms
+    will be actually used. }
+  if Shader.MaterialFromColor then
+    AProgram.SetUniform(Format('castle_LightSource%dDiffuse', [Number]),
+      Color4) else
+    AProgram.SetUniform(Format('castle_SideLightProduct%dDiffuse', [Number]),
+      Shader.MaterialDiffuse * Color4);
 {$else}
 begin
 {$endif}
@@ -2061,9 +2066,14 @@ var
   end;
 
   procedure EnableShaderMaterialFromColor;
+  {$ifdef OpenGLES}
+  var
+    I: Integer;
+  {$endif}
   begin
     if MaterialFromColor then
     begin
+      {$ifndef OpenGLES}
       Plug(stVertex,
         'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
         '{' +NL+
@@ -2110,6 +2120,10 @@ var
         '{' +NL+
         '  fragment_color.a = gl_Color.a;' +NL+
         '}');
+      {$else}
+      for I := 0 to Source[stVertex].Count - 1 do
+        PlugDirectly(Source[stVertex], I, '/* PLUG-DECLARATIONS */', '#define COLOR_PER_VERTEX', true);
+      {$endif}
     end;
   end;
 
@@ -2185,8 +2199,8 @@ begin
   EnableTextures;
   EnableInternalEffects;
   EnableLights;
-  {$ifndef OpenGLES} //TODO-es
   EnableShaderMaterialFromColor;
+  {$ifndef OpenGLES} //TODO-es
   EnableShaderBumpMapping;
   EnableShaderFog;
   {$endif}

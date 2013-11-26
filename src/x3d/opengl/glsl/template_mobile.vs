@@ -19,6 +19,11 @@ uniform float castle_MaterialShininess;
    material emissive color + material ambient color * global (light model) ambient.
 */
 uniform vec3 castle_SceneColor;
+uniform vec4 castle_UnlitColor;
+
+#ifdef COLOR_PER_VERTEX
+attribute vec4 castle_ColorPerVertex;
+#endif
 
 void main(void)
 {
@@ -40,7 +45,11 @@ void main(void)
   /* Clamp sum of lights colors to be <= 1. See template.fs for comments. */
   castle_Color.rgb = min(castle_Color.rgb, 1.0);
 #else
-  castle_Color = vec4(1.0, 1.0, 1.0, 1.0);
+  castle_Color = castle_UnlitColor
+#ifdef COLOR_PER_VERTEX
+    * castle_ColorPerVertex
+#endif
+  ;
 #endif
 
   gl_Position = castle_ProjectionMatrix * castle_vertex_eye;

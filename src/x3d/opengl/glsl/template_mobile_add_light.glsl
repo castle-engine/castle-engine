@@ -33,7 +33,11 @@ uniform float castle_LightSource<Light>SpotExponent;
 #ifdef LIGHT_HAS_AMBIENT
 uniform vec4 castle_SideLightProduct<Light>Ambient;
 #endif
+#ifdef COLOR_PER_VERTEX
+uniform vec4 castle_LightSource<Light>Diffuse;
+#else
 uniform vec4 castle_SideLightProduct<Light>Diffuse;
+#endif
 #ifdef LIGHT_HAS_SPECULAR
 uniform vec4 castle_SideLightProduct<Light>Specular;
 #endif
@@ -108,7 +112,13 @@ void PLUG_add_light_contribution(inout vec4 color,
 #endif
 
   /* add diffuse term */
-  vec4 diffuse = castle_SideLightProduct<Light>Diffuse;
+  vec4 diffuse =
+#ifdef COLOR_PER_VERTEX
+  castle_LightSource<Light>Diffuse * castle_ColorPerVertex;
+#else
+  castle_SideLightProduct<Light>Diffuse;
+#endif
+
   /* PLUG: material_light_diffuse (diffuse, vertex_eye, normal_eye) */
   float diffuse_factor = max(dot(normal_eye, light_dir), 0.0);
   light_color += diffuse * diffuse_factor;

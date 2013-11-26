@@ -286,8 +286,7 @@ begin
       CurrentProgram.SetUniform('castle_SceneColor',
         Vector3SingleCut(Shader.MaterialEmission) +
         GlobalAmbient * Vector3SingleCut(Shader.MaterialAmbient));
-
-      { TODO: reuse normal light shader from desktop? }
+      CurrentProgram.SetUniform('castle_UnlitColor', Shader.MaterialUnlit);
 
       Locations := TLongIntList.Create;
       Locations.Add(CurrentProgram.VertexAttribPointer(
@@ -306,14 +305,25 @@ begin
         glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtAttribute]);
 
       {$ifdef OpenGLES}
+      if HasColor then
+      begin
+        if Arrays.HasColor then
+        begin
+          OptionalVertexAttrib('castle_ColorPerVertex', 0,
+            4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.Color);
+        end { TODO-es: else
+        if Arrays.HasDefaultColor then
+          glColorv(Arrays.DefaultColor); }
+      end;
+
       for I := 0 to Arrays.TexCoords.Count - 1 do
         if (Arrays.TexCoords[I] <> nil) and
            (Arrays.TexCoords[I].Generation = tgExplicit) then
         begin
           OptionalVertexAttrib(
             Format('castle_MultiTexCoord%d', [I]),
-            0, Arrays.TexCoords[I].Dimensions, GL_FLOAT, GL_FALSE, Arrays.AttributeSize,
-            Arrays.TexCoord(I, 0));
+            0, Arrays.TexCoords[I].Dimensions, GL_FLOAT, GL_FALSE,
+            Arrays.AttributeSize, Arrays.TexCoord(I, 0));
         end;
       {$else}
 
@@ -741,7 +751,13 @@ procedure TMaterialFromColorCoordinateRenderer.RenderCoordinateBegin;
 begin
   inherited;
 
-  MaterialFromColorEnabled := HasColor and Lighting;
+  MaterialFromColorEnabled := HasColor
+    {$ifndef OpenGLES}
+    { For OpenGLES, we must call EnableMaterialFromColor regardless
+      if we have lighting or not, as in fact this activates COLOR_PER_VERTEX
+      feature, which works regardless if we're lit or unlit. }
+    and Lighting
+    {$endif};
   if MaterialFromColorEnabled then
     Shader.EnableMaterialFromColor;
 end;
