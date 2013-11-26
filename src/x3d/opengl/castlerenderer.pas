@@ -101,13 +101,6 @@
       matrix transformations, you can even affect rendered texture coords
       by your own texture matrix etc.)
 
-    @item(Current glLightModel (GL_LIGHT_MODEL_AMBIENT) setting.
-
-      Note that VRML 1.0 specification requires GL_LIGHT_MODEL_AMBIENT
-      to be (0.2, 0.2, 0.2), which is equal with default OpenGL value.
-      Note that VRML 97 lighting equations suggest that GL_LIGHT_MODEL_AMBIENT
-      should be zero.)
-
     @item(Current glPolygonMode.
 
       Of course for normal rendering you want to render polygons

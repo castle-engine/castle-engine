@@ -570,9 +570,6 @@ procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
   Writeln(GLInformationString) instead of just Write(GLInformationString)). }
 function GLInformationString: string;
 
-const
-  GLDefaultLightModelAmbient: TVector4Single = (0.2, 0.2, 0.2, 1.0);
-
 { Utilities for display lists ---------------------------------------- }
 { Deprecated: all display list usage will be removed, since it doesn't
   exist in modern OpenGL and OpenGL ES. }
@@ -682,6 +679,19 @@ procedure GLClear(const Buffers: TClearBuffers;
   or push/pop attrib. }
 procedure ScissorEnable(const Rect: TRectangle);
 procedure ScissorDisable;
+
+function GetGlobalAmbient: TVector3Single;
+procedure SetGlobalAmbient(const Value: TVector3Single);
+
+{ Global ambient lighting. This is added to every 3D object color,
+  multiplied by material ambient.
+
+  The default value is (0.2, 0.2, 0.2). It matches default
+  GL_LIGHT_MODEL_AMBIENT in fixed-function OpenGL.
+  It also matches the required value of VRML 1.0 specification.
+  For VRML 2.0 / X3D, lighting equations suggest that it should be zero. }
+property GlobalAmbient: TVector3Single
+  read GetGlobalAmbient write SetGlobalAmbient;
 
 {$undef read_interface}
 
@@ -1903,6 +1913,23 @@ begin
     glDisable(GL_SCISSOR_TEST);
     FScissorEnabled := false;
   end;
+end;
+
+var
+  FGlobalAmbient: TVector3Single = (0.2, 0.2, 0.2);
+
+function GetGlobalAmbient: TVector3Single;
+begin
+  Result := FGlobalAmbient;
+end;
+
+procedure SetGlobalAmbient(const Value: TVector3Single);
+begin
+  FGlobalAmbient := Value;
+
+  {$ifndef OpenGLES}
+  glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(FGlobalAmbient, 1.0));
+  {$endif}
 end;
 
 procedure ContextClose;
