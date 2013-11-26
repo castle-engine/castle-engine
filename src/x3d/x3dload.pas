@@ -170,7 +170,7 @@ begin
   begin
     MimeType := URIMimeType(URL, Gzipped);
 
-    if (MimeType = 'object/x-inventor') or
+    if (MimeType = 'application/x-inventor') or
        (MimeType = 'model/vrml') or
        (MimeType = 'model/x3d+vrml') then
       Result := LoadX3DClassic(URL, false, Gzipped) else

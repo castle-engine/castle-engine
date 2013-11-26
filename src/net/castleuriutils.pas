@@ -575,7 +575,7 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
       image/x-3ds, so I guess image/x-3ds is more popular. }
     if Ext = '.3ds' then Result := 'image/x-3ds' else
     if Ext = '.max' then Result := 'image/x-3ds' else
-    if Ext = '.iv' then Result := 'object/x-inventor' else
+    if Ext = '.iv' then Result := 'application/x-inventor' else
     if Ext = '.md3' then Result := 'application/x-md3' else
     if Ext = '.obj' then Result := 'application/x-wavefront-obj' else
     if Ext = '.geo' then Result := 'application/x-geo' else
