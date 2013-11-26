@@ -164,8 +164,7 @@ examples-laz:
 .PHONY: clean cleanmore cleanall
 
 clean: cleanexamples
-	find . -type d '(' -iwholename '*/src/library/libs/*' -prune ')' \
-	       -type f '(' -iname '*.ow'  -or -iname '*.ppw' -or -iname '*.aw' -or \
+	find . -type f '(' -iname '*.ow'  -or -iname '*.ppw' -or -iname '*.aw' -or \
 	                   -iname '*.o'   -or -iname '*.ppu' -or -iname '*.a' -or \
 			   -iname '*.or'  -or \
 			   -iname '*.compiled' -or \
