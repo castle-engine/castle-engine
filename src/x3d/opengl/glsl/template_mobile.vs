@@ -14,6 +14,11 @@ varying vec4 castle_Color;
 
 uniform float castle_MaterialDiffuseAlpha;
 uniform float castle_MaterialShininess;
+/* Color summed with all the lights.
+   Like gl_Front/BackLightModelProduct.sceneColor:
+   material emissive color + material ambient color * global (light model) ambient.
+*/
+uniform vec3 castle_SceneColor;
 
 void main(void)
 {
@@ -28,7 +33,7 @@ void main(void)
   /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */
 
 #ifdef LIT
-  castle_Color = vec4(0.0, 0.0, 0.0, castle_MaterialDiffuseAlpha);
+  castle_Color = vec4(castle_SceneColor, 1.0);
   /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess) */
   castle_Color.a = castle_MaterialDiffuseAlpha;
 

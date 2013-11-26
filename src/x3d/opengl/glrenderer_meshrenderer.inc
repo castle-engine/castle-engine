@@ -283,6 +283,9 @@ begin
       CurrentProgram.SetUniform('castle_NormalMatrix', ModelViewToNormalMatrix(Shape.ModelView));
       CurrentProgram.SetUniform('castle_MaterialDiffuseAlpha', Shader.MaterialDiffuse[3]);
       CurrentProgram.SetUniform('castle_MaterialShininess', Shader.MaterialShininessExp);
+      CurrentProgram.SetUniform('castle_SceneColor',
+        Vector3SingleCut(Shader.MaterialEmission))
+        { TODO: + material ambient * global ambient };
 
       { TODO: reuse normal light shader from desktop? }
 
