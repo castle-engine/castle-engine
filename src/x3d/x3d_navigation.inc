@@ -87,6 +87,9 @@
       Returned CamDir, CamUp, GravityUp are @italic(always normalized). }
     procedure GetView(out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
 
+    private FFdDescription: TSFString;
+    public property FdDescription: TSFString read FFdDescription;
+
     { Description generated smart (trying to use FdDescription field,
       falling back on other information to help user identify the node). }
     function Description: string; virtual;
@@ -100,9 +103,6 @@
 
     private FFdCenterOfRotation: TSFVec3f;
     public property FdCenterOfRotation: TSFVec3f read FFdCenterOfRotation;
-
-    private FFdDescription: TSFString;
-    public property FdDescription: TSFString read FFdDescription;
 
     private FFdJump: TSFBool;
     public property FdJump: TSFBool read FFdJump;
@@ -119,8 +119,6 @@
     function ModelviewMatrix: TMatrix4Single;
     function GetProjectorMatrix: TMatrix4Single;
     { @groupEnd }
-
-    function Description: string; override;
   end;
 
   TBillboardNode = class(TAbstractX3DGroupingNode, ITransformNode)
@@ -414,6 +412,9 @@ begin
   FFdCameraMatrixSendAlsoOnOffscreenRendering := TSFBool.Create(Self, 'cameraMatrixSendAlsoOnOffscreenRendering', false);
   Fields.Add(FFdCameraMatrixSendAlsoOnOffscreenRendering);
 
+  FFdDescription := TSFString.Create(Self, 'description', '');
+  Fields.Add(FFdDescription);
+
   Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
 end;
 
@@ -475,7 +476,11 @@ end;
 
 function TAbstractViewpointNode.Description: string;
 begin
-  Result := NodeName;
+  Result := FdDescription.Value;
+  { if node doesn't have a "description" field, or it's left empty, use node name }
+  if Result = '' then
+    Result := NodeName;
+  { if even the node name is empty, just show node type. }
   if Result = '' then
     Result := NodeTypeName;
 end;
@@ -487,9 +492,6 @@ begin
   FFdCenterOfRotation := TSFVec3f.Create(Self, 'centerOfRotation', Vector3Single(0, 0, 0));
   Fields.Add(FFdCenterOfRotation);
   { X3D specification comment: (-Inf,Inf) }
-
-  FFdDescription := TSFString.Create(Self, 'description', '');
-  Fields.Add(FFdDescription);
 
   FFdJump := TSFBool.Create(Self, 'jump', true);
   Fields.Add(FFdJump);
@@ -516,13 +518,6 @@ end;
 function TAbstractX3DViewpointNode.GetProjectorMatrix: TMatrix4Single;
 begin
   Result := ProjectionMatrix * ModelviewMatrix;
-end;
-
-function TAbstractX3DViewpointNode.Description: string;
-begin
-  if FdDescription.Value <> '' then
-    Result := FdDescription.Value else
-    Result := inherited;
 end;
 
 procedure TBillboardNode.CreateNode;
@@ -1112,12 +1107,8 @@ end;
 function TViewpointGroupNode.Description: string;
 begin
   Result := FdDescription.Value;
-
-  { if node doesn't have a "description" field, or it's left empty, use node name }
   if Result = '' then
     Result := NodeName;
-
-  { if even the node name is empty, just show node type. }
   if Result = '' then
     Result := NodeTypeName;
 end;
