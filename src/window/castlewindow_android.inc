@@ -20,11 +20,12 @@
 {$I castlewindow_dialogs_by_messages.inc}
 
 {$ifdef read_interface_uses}
+CastleAndroidNativeAppGlue,
 {$endif}
 
 {$ifdef read_implementation_uses}
 CastleAndroidNativeWindow, CastleAndroidInput, CastleAndroidLooper,
-CastleAndroidLog, CastleAndroidNativeAppGlue,
+CastleAndroidLog,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -36,6 +37,7 @@ private
 private
   FScreenWidth, FScreenHeight: Integer;
   LastDoTimerTime: TMilisecTime;
+  AndroidApp: PAndroid_App;
 {$endif read_application_interface}
 
 {$ifdef read_implementation_uses}
@@ -118,62 +120,10 @@ begin
 end;
 
 procedure AndroidMainImplementation(App: PAndroid_App);
-
-  { Call Update on Application and all open Windows, call OnTimer on Application }
-  procedure WindowsUpdateAndTimer;
-  begin
-    Application.DoSelfUpdate;
-    Application.FOpenWindows.DoUpdate;
-    Application.MaybeDoTimer(Application.LastDoTimerTime);
-  end;
-
-var
-  Ident, Events, NewWidth, NewHeight: Integer;
-  Source: Pandroid_poll_source;
 begin
   try
-    if Application.MainWindow = nil then
-      raise Exception.Create('For Android, you have to assign Application.MainWindow');
-    if Assigned(Application.OnInitialize) then
-      Application.OnInitialize();
-
-    App^.OnAppCmd := @HandleCommand;
-    App^.OnInputEvent := @HandleInput;
-
-    while true do
-    begin
-      repeat
-        Ident := ALooper_pollAll(0, nil, @Events, @Source);
-        if Ident < 0 then Break;
-
-        if Source <> nil then
-          Source^.Process(App, Source);
-
-        // Check if we are exiting.
-        if App^.DestroyRequested = 1 then
-        begin
-          CloseContext;
-          Exit;
-        end;
-
-      until false;
-
-      if not Application.MainWindow.Closed then
-      begin
-        { check for Resize. As there is no reliable event to capture it
-          (ANativeWindow_getWidth and ANativeWindow_getheight are immediately
-          updated, but for some time EGL sizes stay old) so we just watch
-          for changes, and only fire our "Resize" when really EGL size changed. }
-        Application.MainWindow.QuerySize(NewWidth, NewHeight);
-        if (NewWidth <> Application.MainWindow.Width) or
-           (NewHeight <> Application.MainWindow.Height) then
-          Resize(NewWidth, NewHeight);
-
-        Application.MainWindow.DoDraw;
-
-        WindowsUpdateAndTimer;
-      end;
-    end;
+    Application.AndroidApp := App;
+    Application.Run;
   except
     on E: TObject do AndroidLog(E);
   end;
@@ -305,19 +255,69 @@ end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 begin
-  { no message processing on Android, this makes no sense }
-  Result := true;
+  // TODO: honor WaitForMessage, WaitToLimitFPS
+  Result := ProcessAllMessages;
 end;
 
 function TCastleApplication.ProcessAllMessages: boolean;
+
+  { Call Update on Application and all open Windows, call OnTimer on Application }
+  procedure WindowsUpdateAndTimer;
+  begin
+    DoSelfUpdate;
+    FOpenWindows.DoUpdate;
+    MaybeDoTimer(LastDoTimerTime);
+  end;
+
+var
+  Ident, Events, NewWidth, NewHeight: Integer;
+  Source: Pandroid_poll_source;
 begin
-  { no message processing on Android, this makes no sense }
+  repeat
+    Ident := ALooper_pollAll(0, nil, @Events, @Source);
+    if Ident < 0 then Break;
+
+    if Source <> nil then
+      Source^.Process(AndroidApp, Source);
+
+    // Check if we are exiting.
+    if AndroidApp^.DestroyRequested = 1 then
+    begin
+      CloseContext;
+      Exit(false);
+    end;
+  until false;
+
+  if not MainWindow.Closed then
+  begin
+    { check for Resize. As there is no reliable event to capture it
+      (ANativeWindow_getWidth and ANativeWindow_getheight are immediately
+      updated, but for some time EGL sizes stay old) so we just watch
+      for changes, and only fire our "Resize" when really EGL size changed. }
+    MainWindow.QuerySize(NewWidth, NewHeight);
+    if (NewWidth <> MainWindow.Width) or
+       (NewHeight <> MainWindow.Height) then
+      Resize(NewWidth, NewHeight);
+
+    MainWindow.DoDraw;
+
+    WindowsUpdateAndTimer;
+  end;
+
   Result := true;
 end;
 
 procedure TCastleApplication.Run;
 begin
-  { no message processing on Android, Run makes no sense }
+  if MainWindow = nil then
+    raise Exception.Create('For Android, you have to assign Application.MainWindow');
+  if Assigned(OnInitialize) then
+    OnInitialize();
+
+  AndroidApp^.OnAppCmd := @HandleCommand;
+  AndroidApp^.OnInputEvent := @HandleInput;
+
+  while ProcessAllMessages do ;
 end;
 
 procedure TCastleApplication.QuitWhenNoOpenWindows;
