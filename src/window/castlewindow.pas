@@ -2301,6 +2301,8 @@ end;
     procedure UpdateFocusAndMouseCursor;
     function GetTooltipX: Integer;
     function GetTooltipY: Integer;
+    { Called when the control C is destroyed or just removed from Controls list. }
+    procedure DetachNotification(const C: TUIControl);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -4209,6 +4211,7 @@ begin
           C.OnVisibleChange := nil;
 
         C.RemoveFreeNotification(Container);
+        Container.DetachNotification(C);
 
         C.Container := nil;
       end;
@@ -4267,9 +4270,14 @@ begin
   if (Operation = opRemove) and (AComponent is TUIControl) {and (Controls <> nil)} then
   begin
     Controls.DeleteAll(AComponent);
-    if AComponent = FFocus then FFocus := nil;
-    if AComponent = FCaptureInput then FCaptureInput := nil;
+    DetachNotification(TUIControl(AComponent));
   end;
+end;
+
+procedure TCastleWindowCustom.DetachNotification(const C: TUIControl);
+begin
+  if C = FFocus        then FFocus := nil;
+  if C = FCaptureInput then FCaptureInput := nil;
 end;
 
 procedure TCastleWindowCustom.UpdateFocusAndMouseCursor;
