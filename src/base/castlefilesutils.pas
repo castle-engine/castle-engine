@@ -135,8 +135,11 @@ function ProgramDataPath: string; deprecated;
 function ApplicationConfig(const Path: string): string;
 
 { URL from which we should read data files.
-  This always returns a @code(file://...) URL,
-  which is comfortable since our engine operates on URLs most of the time.
+  This returns URL, which is comfortable since our engine operates
+  on URLs everywhere. On normal desktops systems this will return
+  a @code(file://...) URL. On Android, it will return an URL indicating
+  assets (files packages together inside Android apk) starting with
+  @code(assets:/...).
 
   Given Path specifies a path under the data directory,
   with possible subdirectories, with possible filename at the end.
@@ -169,6 +172,12 @@ function ApplicationConfig(const Path: string): string;
         if we are inside a bundle and such subdirectory exists.)
       @item(Otherwise, algorithm on Mac OS X follows algorithm on other Unixes,
         see below.)
+    ))
+
+    @itemLabel(Android)
+    @item(@orderedList(
+      @item(We always return @code(assets:/) directory, to read assets
+        from the apk.)
     ))
 
     @itemLabel(Unix (Linux, Mac OS X, FreeBSD etc.))
@@ -457,6 +466,10 @@ var
   ApplicationDataCache: string;
 
 function ApplicationData(const Path: string): string;
+{$ifdef ANDROID}
+begin
+  Result := 'assets:/' + Path;
+{$else}
 
   function GetApplicationDataPath: string;
   {$ifdef MSWINDOWS}
@@ -474,12 +487,6 @@ function ApplicationData(const Path: string): string;
   var
     CurPath: string;
   begin
-    {$ifdef ANDROID}
-    { TODO: this is just a testing code, to easily use files on Android. }
-    Result := '/sdcard/castle_game_engine/' + ApplicationName + '/';
-    if DirectoryExists(Result) then Exit;
-    {$endif}
-
     {$ifdef DARWIN}
     if BundlePath <> '' then
     begin
@@ -525,6 +532,7 @@ begin
   end;
 
   Result := ApplicationDataCache + Path;
+{$endif}
 end;
 
 { other file utilities ---------------------------------------------------- }

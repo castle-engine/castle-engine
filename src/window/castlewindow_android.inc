@@ -25,7 +25,7 @@ CastleAndroidNativeAppGlue,
 
 {$ifdef read_implementation_uses}
 CastleAndroidNativeWindow, CastleAndroidInput, CastleAndroidLooper,
-CastleAndroidLog,
+CastleAndroidLog, CastleAndroidAssetStream,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -311,11 +311,14 @@ procedure TCastleApplication.Run;
 begin
   if MainWindow = nil then
     raise Exception.Create('For Android, you have to assign Application.MainWindow');
-  if Assigned(OnInitialize) then
-    OnInitialize();
 
+  { since we have AndroidApp now, prepare it }
   AndroidApp^.OnAppCmd := @HandleCommand;
   AndroidApp^.OnInputEvent := @HandleInput;
+  AssetManager := AndroidApp^.Activity^.AssetManager;
+
+  if Assigned(OnInitialize) then
+    OnInitialize();
 
   while ProcessAllMessages do ;
 end;

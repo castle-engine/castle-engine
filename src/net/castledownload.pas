@@ -90,7 +90,10 @@ type
   Right now this means only http, handled by FpHttpClient.
   The MIME type for such content is usually reported by the http server
   (but if the server doesn't report MIME type, we still try to guess it,
-  looking at URL using URIMimeType). }
+  looking at URL using URIMimeType).
+
+  On Android, URLs that indicate assets (files packaged inside .apk)
+  are also supported, as @code(assets:/my_file.png). }
 function Download(const URL: string; const Options: TStreamOptions = []): TStream;
 function Download(const URL: string; const Options: TStreamOptions;
   out MimeType: string): TStream;
@@ -104,7 +107,8 @@ function URLSaveStream(const URL: string; const Options: TStreamOptions = []): T
 implementation
 
 uses URIParser, CastleURIUtils, CastleUtils, CastleLog, CastleZStream,
-  CastleClassUtils, CastleFilesUtils, CastleDataURI, CastleProgress;
+  CastleClassUtils, CastleFilesUtils, CastleDataURI, CastleProgress,
+  CastleStringUtils {$ifdef ANDROID}, CastleAndroidAssetStream {$endif};
 
 { TProgressMemoryStream ------------------------------------------------------ }
 
@@ -289,7 +293,7 @@ begin
       if not MimeTypeFromContentHeader then
         MimeType := URIMimeType(URL);
       WritelnLog('Network', 'Successfully downloaded "%s", MIME type "%s", MIME type was specified by server: %s',
-        [URL, MimeType, BoolToStr(MimeTypeFromContentHeader, true)]);
+        [URL, MimeType, SysUtils.BoolToStr(MimeTypeFromContentHeader, true)]);
     finally FreeAndNil(Client) end;
     Result.Position := 0; { rewind for easy reading }
   except
@@ -305,6 +309,19 @@ begin
   Result := TMemoryStream.Create;
   try
     Result.LoadFromFile(FileName);
+    Result.Position := 0; { rewind for easy reading }
+  except
+    FreeAndNil(Result); raise;
+  end;
+end;
+
+{ Load (and free and nil) Stream to TMemoryStream. }
+function CreateMemoryStream(var Stream: TStream): TMemoryStream;
+begin
+  Result := TMemoryStream.Create;
+  try
+    Result.LoadFromStream(Stream);
+    FreeAndNil(Stream);
     Result.Position := 0; { rewind for easy reading }
   except
     FreeAndNil(Result); raise;
@@ -333,12 +350,32 @@ begin
   end;
 end;
 
+{ Decompress (and free and nil) gzipped Stream.
+  When ForceMemoryStream, always returns TMemoryStream. }
+function ReadGzipped(var Stream: TStream; const ForceMemoryStream: boolean): TStream;
+var
+  TempFileName: string;
+begin
+  { for now, reading gzipped file from an arbitrary stream means using
+    a temporary file }
+  TempFileName := GetTempFileNameCheck;
+  if Log then
+    WritelnLog('Network', Format('Decompressing gzip from the network by temporary file "%s"', [TempFileName]));
+  StreamSaveToFile(Stream, FilenameToURISafe(TempFileName));
+  FreeAndNil(Stream);
+  Result := ReadGzipped(TempFileName, ForceMemoryStream);
+  CheckDeleteFile(TempFileName, true);
+end;
+
 function Download(const URL: string; const Options: TStreamOptions;
   out MimeType: string): TStream;
 var
-  P, FileName, TempFileName, S: string;
+  P, FileName, S: string;
   NetworkResult: TMemoryStream;
   DataURI: TDataURI;
+  {$ifdef ANDROID}
+  AssetStream: TReadAssetStream;
+  {$endif}
 const
   MaxRedirects = 32;
 begin
@@ -352,17 +389,8 @@ begin
     NetworkResult := NetworkDownload(URL, MaxRedirects, MimeType);
     try
       if soGzip in Options then
-      begin
-        { for now, reading gzipped file from a TMemoryStream means using
-          a temporary file }
-        TempFileName := GetTempFileNameCheck;
-        if Log then
-          WritelnLog('Network', Format('Decompressing gzip from the network by temporary file "%s"', [TempFileName]));
-        NetworkResult.SaveToFile(TempFileName);
-        FreeAndNil(NetworkResult);
-        Result := ReadGzipped(TempFileName, soForceMemoryStream in Options);
-        CheckDeleteFile(TempFileName, true);
-      end else
+        Result := ReadGzipped(TStream(NetworkResult),
+          soForceMemoryStream in Options) else
         Result := NetworkResult;
     except
       FreeAndNil(NetworkResult); raise;
@@ -383,6 +411,28 @@ begin
       Result := CreateMemoryStream(FileName) else
       Result := TFileStream.Create(FileName, fmOpenRead);
     MimeType := URIMimeType(URL);
+  end else
+
+  { assets: to access Android assets }
+  if P = 'assets' then
+  begin
+    {$ifdef ANDROID}
+    AssetStream := TReadAssetStream.Create(
+      PrefixRemove('/', URIDeleteProtocol(URL), false));
+    try
+      if soGzip in Options then
+        Result := ReadGzipped(TStream(AssetStream), soForceMemoryStream in Options) else
+      if soForceMemoryStream in Options then
+        Result := CreateMemoryStream(TStream(AssetStream)) else
+        Result := AssetStream;
+    except
+      FreeAndNil(AssetStream); raise;
+    end;
+    MimeType := URIMimeType(URL);
+    {$else}
+    raise EDownloadError.CreateFmt('Cannot download an asset URL, because we are not compiled for Android: %s',
+      [URL]);
+    {$endif}
   end else
 
   { data: URI scheme }

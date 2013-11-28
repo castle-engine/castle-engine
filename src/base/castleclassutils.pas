@@ -1090,6 +1090,13 @@ var
   Buffer: Pointer;
   ReadCount: Integer;
 begin
+  { optimized implementation for TMemoryStream }
+  if Stream is TMemoryStream then
+  begin
+    TMemoryStream(Stream).SaveToFile(URIToFilenameSafe(URL));
+    Exit;
+  end;
+
   Buffer := GetMem(BufSize);
   try
     S := URLSaveStream(URL);

@@ -1,5 +1,5 @@
 .PHONY: default
-default:
+default: data
 	cd ../ && sh compile.sh
 	mkdir -p libs/armeabi/
 	cp -f ../libandroiddemo.so libs/armeabi/libandroiddemo.so
@@ -9,8 +9,14 @@ default:
 
 .PHONY: clean
 clean:
-	rm -Rf bin/ gen/ libs/ obj/
+	rm -Rf bin/ gen/ libs/ obj/ assets/
 
 .PHONY: data
 data:
-	adb push ../data/ /sdcard/castle_game_engine/androiddemo/
+	rm -Rf assets/
+	cp -R ../data/ assets/
+	find assets/ -type f \
+	   '(' -iname '*~' -or \
+	       -iname '*.blend1' -or \
+	       -iname '*.blend2' ')' \
+	   -exec rm -f '{}' ';'

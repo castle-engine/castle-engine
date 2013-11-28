@@ -665,7 +665,8 @@ begin
      (P = 'file') or
      (P = 'http') or
      (P = 'ftp') or
-     (P = 'https') then
+     (P = 'https') or
+     (P = 'assets') then
     { We're consciously using here ExtractFileExt and ExtractFileDoubleExt on URIs,
       although they should be used for filenames.
       Note that this unit does not define public functions like ExtractURIExt

@@ -83,7 +83,6 @@ uses CastleUtils, CastleClassUtils, CastleTimeUtils,
   Depends very much on OS, debug info type, and FPC version. }
 { $define BACKTRACE_ON_LOG}
 
-
 var
   FLog: boolean = false;
   LogStream: TStream;
