@@ -63,6 +63,12 @@ function CameraNodeForWholeScene(const Version: TX3DCameraVersion;
   const WantedDirection, WantedUp: Integer;
   const WantedDirectionPositive, WantedUpPositive: boolean): TX3DNode;
 
+function MakeCameraNavNode(const Version: TX3DCameraVersion;
+  const BaseUrl: string;
+  const NavigationType: string;
+  const WalkSpeed, VisibilityLimit: Single; const AvatarSize: TVector3Single;
+  const Headlight: boolean): TNavigationInfoNode;
+
 implementation
 
 uses SysUtils, CastleCameras;
@@ -297,6 +303,26 @@ begin
     WantedDirectionPositive, WantedUpPositive, Position, Direction, Up, GravityUp);
   Result := MakeCameraNode(Version, BaseUrl,
     Position, Direction, Up, GravityUp);
+end;
+
+function MakeCameraNavNode(const Version: TX3DCameraVersion;
+  const BaseUrl: string;
+  const NavigationType: string;
+  const WalkSpeed, VisibilityLimit: Single; const AvatarSize: TVector3Single;
+  const Headlight: boolean): TNavigationInfoNode;
+var
+  NavigationNode: TNavigationInfoNode;
+begin
+  case Version of
+    cvVrml2_X3d     : NavigationNode := TNavigationInfoNode.Create('', BaseUrl);
+    else raise EInternalError.Create('MakeCameraNavNode Version incorrect');
+  end;
+  NavigationNode.FdType.Items.Add(NavigationType);
+  NavigationNode.FdAvatarSize.Items.AddArray(AvatarSize);
+  NavigationNode.FdHeadlight.Value := Headlight;
+  NavigationNode.FdSpeed.Value := WalkSpeed;
+  NavigationNode.FdVisibilityLimit.Value := VisibilityLimit;
+  Result := NavigationNode;
 end;
 
 end.

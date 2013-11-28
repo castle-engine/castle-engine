@@ -6679,8 +6679,17 @@ var
   Up: TVector3Single;
   GravityUp: TVector3Single;
   Version: TX3DCameraVersion;
-  NewNode: TX3DNode;
+  NewViewNode: TX3DNode;
   NewViewpointNode: TAbstractViewpointNode;
+  NavigationType: string;
+  Walk: TWalkCamera;
+  Examine: TExamineCamera;
+  Universal: TUniversalCamera;
+  WalkSpeed, VisibilityLimit: Single;
+  AvatarSize: TVector3Single;
+  NewNavigationNode: TNavigationInfoNode;
+  NewGroupNode: TGroupNode;
+  NewRoute: TX3DRoute;
 begin
   if RootNode = nil then
     raise Exception.Create('You have to initialize RootNode, usually just by loading some scene to TCastleSceneCore.Load, before adding viewpoints');
@@ -6690,17 +6699,72 @@ begin
   if RootNode.HasForceVersion and (RootNode.ForceVersion.Major <= 1) then
     Version := cvVrml1_Inventor else
     Version := cvVrml2_X3d;
-  NewNode := MakeCameraNode(Version, '', Position, Direction, Up, GravityUp,
+  NewViewNode := MakeCameraNode(Version, '', Position, Direction, Up, GravityUp,
     NewViewpointNode);
+  NewViewpointNode.FdDescription.Value := AName;
 
-  RootNode.FdChildren.Add(NewNode);
+  { Create NavigationInfo node }
+  Universal := nil;
+  Walk := nil;
+  Examine := nil;
+  if ACamera is TUniversalCamera then begin
+    Universal := ACamera as TUniversalCamera;
+    Walk := Universal.Walk;
+    Examine := Universal.Examine;
+
+    if Universal.NavigationType = ntWalk then NavigationType := 'WALK'
+    else if Universal.NavigationType = ntFly then NavigationType := 'FLY'
+    else if Universal.NavigationType = ntExamine then NavigationType := 'EXAMINE'
+    else if Universal.NavigationType = ntArchitecture then NavigationType := 'ARCHITECTURE';
+  end
+  else if ACamera is TWalkCamera then begin
+    Walk := ACamera as TWalkCamera;
+    if Walk.Gravity then
+      NavigationType := 'WALK' else
+      NavigationType := 'FLY';
+  end
+  else if ACamera is TExamineCamera then begin
+    Examine := ACamera as TExamineCamera;
+    if Examine.ArchitectureMode then
+      NavigationType := 'ARCHITECTURE' else
+      NavigationType := 'EXAMINE';
+  end;
+
+  AvatarSize[0] := ACamera.Radius;
+  if Walk <> nil then begin
+    WalkSpeed := Walk.MoveSpeed;
+    AvatarSize[1] := Walk.PreferredHeight;
+    AvatarSize[2] := Walk.ClimbHeight;
+  end
+  else begin
+    WalkSpeed := 0;
+    AvatarSize[1] := 0;
+    AvatarSize[2] := 0;
+  end;
+  VisibilityLimit := 0;
+
+  NewNavigationNode := MakeCameraNavNode(Version, '', NavigationType, WalkSpeed,
+    VisibilityLimit, AvatarSize, HeadlightOn);
+
+  // Connect viewpoint with navigation info
+  { TODO
+  NewRoute := TX3DRoute.Create;
+  NewRoute.SetSourceDirectly(NewViewpointNode, TX3DEvent(isBound));
+  NewRoute.SetDestinationDirectly(NewNavigationNode, TX3DEvent(set_bind));
+  }
+
+  // Add both nodes to the scene
+  NewGroupNode := TGroupNode.Create;
+  NewGroupNode.FdChildren.Add(NewViewNode);
+  NewGroupNode.FdChildren.Add(NewNavigationNode);
+  //TODO NewGroupNode.FdChildren.Add(NewRoute);
+
+  RootNode.FdChildren.Add(NewGroupNode);
   { The 100% safe version would now call RootNode.FdChildren.Changed,
     and it would automatically refresh FViewpointsArray.
     But RootNode.FdChildren.Changed is a little costly, it processes the whole
     scene again, so it's faster to directly add to FViewpointsArray. }
   FViewpointsArray.Add(NewViewpointNode);
-
-  // TODO: connect with current navigation info
 end;
 
 end.
