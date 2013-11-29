@@ -317,7 +317,9 @@ begin
     cvVrml2_X3d     : NavigationNode := TNavigationInfoNode.Create('', BaseUrl);
     else raise EInternalError.Create('MakeCameraNavNode Version incorrect');
   end;
+  NavigationNode.FdType.Items.Clear;
   NavigationNode.FdType.Items.Add(NavigationType);
+  NavigationNode.FdAvatarSize.Items.Clear;
   NavigationNode.FdAvatarSize.Items.AddArray(AvatarSize);
   NavigationNode.FdHeadlight.Value := Headlight;
   NavigationNode.FdSpeed.Value := WalkSpeed;

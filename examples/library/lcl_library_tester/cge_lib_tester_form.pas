@@ -134,6 +134,7 @@ begin
   if Key = VK_F6 then        // add new viewpoint
   begin
      aCastleFrame.MainScene.AddViewpointFromCamera(aCastleFrame.Camera, 'New View');
+     nCurrentViewpoint := aCastleFrame.MainScene.ViewpointsCount-1;
      Exit;
   end;
   if Key = VK_F then

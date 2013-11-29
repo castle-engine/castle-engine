@@ -6702,6 +6702,8 @@ begin
   NewViewNode := MakeCameraNode(Version, '', Position, Direction, Up, GravityUp,
     NewViewpointNode);
   NewViewpointNode.FdDescription.Value := AName;
+  NewViewpointNode.NodeName := 'Viewpoint' + IntToStr(Random(10000));
+  NewViewpointNode.Scene := self;
 
   { Create NavigationInfo node }
   Universal := nil;
@@ -6745,19 +6747,19 @@ begin
 
   NewNavigationNode := MakeCameraNavNode(Version, '', NavigationType, WalkSpeed,
     VisibilityLimit, AvatarSize, HeadlightOn);
+  NewNavigationNode.NodeName := 'NavInfo' + IntToStr(Random(10000));
+  NewNavigationNode.Scene := self;
 
   // Connect viewpoint with navigation info
-  { TODO
   NewRoute := TX3DRoute.Create;
-  NewRoute.SetSourceDirectly(NewViewpointNode, TX3DEvent(isBound));
-  NewRoute.SetDestinationDirectly(NewNavigationNode, TX3DEvent(set_bind));
-  }
+  NewRoute.SetSourceDirectly(NewViewpointNode.EventIsBound);
+  NewRoute.SetDestinationDirectly(NewNavigationNode.EventSet_Bind);
 
   // Add both nodes to the scene
   NewGroupNode := TGroupNode.Create;
   NewGroupNode.FdChildren.Add(NewViewNode);
   NewGroupNode.FdChildren.Add(NewNavigationNode);
-  //TODO NewGroupNode.FdChildren.Add(NewRoute);
+  NewGroupNode.Routes.Add(NewRoute);
 
   RootNode.FdChildren.Add(NewGroupNode);
   { The 100% safe version would now call RootNode.FdChildren.Changed,
