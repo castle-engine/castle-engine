@@ -217,7 +217,15 @@ end;
   ) }
 procedure FreeChildNodes(const ChildNodes: TDOMNodeList);
 
+{ Replacements for standard ReadXMLFile and WriteXMLFile that operate on URLs.
+  @groupBegin }
+procedure URLReadXML(out Doc: TXMLDocument; const URL: String);
+procedure URLWriteXML(Doc: TXMLDocument; const URL: String);
+{ @groupEnd }
+
 implementation
+
+uses Classes, CastleDownload, XMLRead, XMLWrite;
 
 function DOMGetAttribute(const Element: TDOMElement;
   const AttrName: string; var Value: string): boolean;
@@ -474,6 +482,27 @@ begin
   {$ifdef VER2_0} ChildNodes.Release; {$endif}
   {$ifdef VER2_1} ChildNodes.Release; {$endif}
   {$ifdef VER2_2} ChildNodes.Release; {$endif}
+end;
+
+procedure URLReadXML(out Doc: TXMLDocument; const URL: String);
+var
+  Stream: TStream;
+begin
+  Doc := nil; // clean "out" param at start, just like ReadXMLFile
+  Stream := Download(URL, []);
+  try
+    ReadXMLFile(Doc, Stream);
+  finally FreeAndNil(Stream); end;
+end;
+
+procedure URLWriteXML(Doc: TXMLDocument; const URL: String);
+var
+  Stream: TStream;
+begin
+  Stream := URLSaveStream(URL);
+  try
+    WriteXMLFile(Doc, Stream);
+  finally FreeAndNil(Stream); end;
 end;
 
 end.

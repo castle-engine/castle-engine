@@ -16,21 +16,9 @@
 { Storing configuration files in XML (TCastleConfig). }
 unit CastleXMLConfig;
 
-{ In new FPC versions, XMLConf unit is advised and XMLCfg is deprecated.
-  See e.g. [http://www.mail-archive.com/lazarus@lists.lazarus.freepascal.org/msg09489.html].
-  But XMLConf requires adding units to your uses clause that are otherwise
-  not needed:
-
-    This binary has no unicodestrings support compiled in.
-    Recompile the application with a unicodestrings-manager in the program uses clause.
-
-  So we keep using XMLCfg for now. Undefine USE_OLD_XMLCFG if you wish
-  to use XMLConf. }
-{$define USE_OLD_XMLCFG}
-
 interface
 
-uses CastleUtils, {$ifdef USE_OLD_XMLCFG} XMLCfg {$else} XMLConf {$endif}, DOM,
+uses CastleUtils, CastleXMLCfgInternal, DOM,
   CastleVectors, CastleKeysMouse, CastleGenericLists, SysUtils, Classes;
 
 type
@@ -55,8 +43,6 @@ type
   TCastleConfig = class(TXMLConfig)
   private
     FOnLoad, FOnSave: TCastleConfigEventList;
-    procedure SetMyURL(const Value: string);
-    function GetMyURL: string;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -167,11 +153,6 @@ type
 
     { Called at @link(Save). }
     property OnSave: TCastleConfigEventList read FOnSave;
-
-    { The URL from which to load and save configuration, always absolute.
-      This is converted underneath to ancestor TXMLConfig.FileName,
-      so in fact we only support local files here for now. }
-    property URL: string read GetMyURL write SetMyURL;
 
     { Load the current configuration of the engine components.
       Sets @link(URL) and FileName, loading the appropriate file to our properties,
@@ -416,21 +397,6 @@ begin
   FModified := false;
 end;
 
-procedure TCastleConfig.SetMyURL(const Value: string);
-var
-  F: string;
-begin
-  F := URIToFilenameSafe(Value);
-  if F = '' then
-    raise Exception.CreateFmt('Cannot load local file from "%s", TCastleConfig for now supports only local files', [Value]);
-  FileName := F;
-end;
-
-function TCastleConfig.GetMyURL: string;
-begin
-  Result := FilenameToURISafe(FileName);
-end;
-
 procedure TCastleConfig.Load(const AURL: string);
 begin
   URL := AURL;
@@ -452,8 +418,8 @@ begin
   OnSave.ExecuteAll(Self);
   Flush;
 
-  if Log and (FileName <> '') then
-    WritelnLog('Config', 'Saving configuration to "%s"', [FileName]);
+  if Log and (URL <> '') then
+    WritelnLog('Config', 'Saving configuration to "%s"', [URL]);
 end;
 
 end.
