@@ -1267,7 +1267,11 @@ end;
 
 procedure TLevelInfoList.LoadFromFiles(const LevelsPath: string);
 begin
+  {$ifdef DARKEST_BEFORE_DAWN_HACK}
+  LoadLevelXml(ApplicationData('level/1/level.xml'));
+  {$else}
   ScanForFiles(LevelsPath, 'level.xml', @LoadLevelXml, true);
+  {$endif}
 end;
 
 procedure TLevelInfoList.LoadFromFiles;

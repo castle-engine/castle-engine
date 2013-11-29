@@ -748,7 +748,11 @@ begin
   if not Reload then
     Clear;
   ResourceXmlReload := Reload;
+  {$ifdef DARKEST_BEFORE_DAWN_HACK}
+  LoadResourceXml(ApplicationData('creatures/light/resource.xml'));
+  {$else}
   ScanForFiles(Path, 'resource.xml', @LoadResourceXml, true);
+  {$endif}
 end;
 
 procedure T3DResourceList.LoadFromFiles(const Reload: boolean);
