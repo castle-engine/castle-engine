@@ -43,8 +43,8 @@ begin
   if SpecialDirName(FileInfo.Name) then exit;
 
   if FileInfo.Directory then
-    CheckRemoveDir(FileInfo.FullFileName) else
-    CheckDeleteFile(FileInfo.FullFileName);
+    CheckRemoveDir(FileInfo.AbsoluteName) else
+    CheckDeleteFile(FileInfo.AbsoluteName);
 end;
 
 { Remove the directory DirName, @italic(recursively, unconditionally,
@@ -103,8 +103,8 @@ begin
 
   case Action of
     aNothing: ;
-    aPrint: Writeln(FileInfo.FullFileName);
-    aClean: CheckDeleteFile(FileInfo.FullFileName);
+    aPrint: Writeln(FileInfo.AbsoluteName);
+    aClean: CheckDeleteFile(FileInfo.AbsoluteName);
   end;
 end;
 
@@ -134,14 +134,14 @@ procedure CleanDirs_FileProc(const FileInfo: TEnumeratedFileInfo;
 begin
   if not FileInfo.Directory then Exit;
 
-  if SpecialDirName(ExtractFileName(FileInfo.FullFileName)) then Exit;
+  if SpecialDirName(ExtractFileName(FileInfo.AbsoluteName)) then Exit;
 
   Inc(DirsCount);
 
   case Action of
     aNothing: ;
-    aPrint: Writeln(FileInfo.FullFileName);
-    aClean: RemoveNonEmptyDir(FileInfo.FullFileName);
+    aPrint: Writeln(FileInfo.AbsoluteName);
+    aClean: RemoveNonEmptyDir(FileInfo.AbsoluteName);
   end;
 end;
 

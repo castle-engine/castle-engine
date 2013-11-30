@@ -352,17 +352,6 @@ function CombinePaths(BasePath, RelPath: string): string; deprecated;
   fix on http://svn.freepascal.org/cgi-bin/viewvc.cgi?view=rev&revision=17717 . }
 Function PathFileSearch(Const Name : String; ImplicitCurrentDir : Boolean = True) : String;
 
-type
-  THandleFileMethod = procedure (const FileName: string) of object;
-
-{ Scan recursively subdirectories of given path for files named Name.
-  For each file, the HandleFile method is called.
-  If URLs is @false, we pass to HandleFile method a filename
-  (relative or absolute, just like given Path parameter).
-  If URLs is @true then we pass an absolute URL to HandleFile method. }
-procedure ScanForFiles(PathURL: string; const Name: string;
-  const HandleFile: THandleFileMethod; const URLs: boolean);
-
 { Get temporary filename, suitable for ApplicationName, checking that
   it doesn't exist. }
 function GetTempFileNameCheck: string;
@@ -772,29 +761,6 @@ begin
  {$endif}
 
  {$ifdef MSWINDOWS} FExeName := ParamStr(0) {$endif};
-end;
-
-procedure ScanForFiles(PathURL: string; const Name: string;
-  const HandleFile: THandleFileMethod; const URLs: boolean);
-var
-  F: TSearchRec;
-  FileName, Path: string;
-begin
-  Path := InclPathDelim(URIToFilenameSafe(PathURL));
-
-  FileName := Path + Name;
-  if FileExists(FileName) then
-    if URLs then
-      HandleFile(FilenameToURISafe(FileName)) else
-      HandleFile(FileName);
-
-  if FindFirst(Path + '*', faDirectory, F) = 0 then
-  repeat
-    if (F.Attr and faDirectory = faDirectory) and
-      not SpecialDirName(F.Name) then
-      ScanForFiles(Path + F.Name + PathDelim, Name, HandleFile, URLs);
-  until FindNext(F) <> 0;
-  FindClose(F);
 end;
 
 function GetTempFileNameCheck: string;

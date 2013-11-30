@@ -118,9 +118,9 @@ procedure TestIsSymLink_Proc(const FileInfo: TEnumeratedFileInfo; Data: Pointer)
 begin
   with TTestOSSpecific(Data) do
   begin
-    Assert(ExtractFileName(FileInfo.FullFileName) = SymlinkName);
-    Assert(IsSymLink(FileInfo.FullFileName));
-    Assert(CastleReadLink(FileInfo.FullFileName) = SymlinkTarget);
+    Assert(ExtractFileName(FileInfo.AbsoluteName) = SymlinkName);
+    Assert(IsSymLink(FileInfo.AbsoluteName));
+    Assert(CastleReadLink(FileInfo.AbsoluteName) = SymlinkTarget);
   end;
 end;
 

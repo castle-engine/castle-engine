@@ -24,7 +24,8 @@ uses CastleVectors, CastleSceneCore, CastleScene, CastleBoxes,
   CastleUtils, CastleClassUtils, CastlePlayer, CastleResources,
   CastleProgress, CastlePrecalculatedAnimation,
   DOM, CastleSoundEngine, Castle3D, CastleShapes, CastleConfig, CastleImages,
-  Classes, CastleTimeUtils, CastleSceneManager, CastleRendererShader, FGL;
+  Classes, CastleTimeUtils, CastleSceneManager, CastleRendererShader, FGL,
+  CastleEnumerateFiles;
 
 type
   TLevelLogic = class;
@@ -252,8 +253,8 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
     { How many TGameSceneManager have references to our children by
       TGameSceneManager.Info? }
     References: Cardinal;
-    { Load level.xml file. URL must be an absolute URL. }
-    procedure LoadLevelXml(const URL: string);
+    { Load level.xml file from Info.URL. }
+    procedure LoadLevelXml(const Info: TEnumeratedFileInfo);
     { Save Played properties of every level. }
     procedure SaveToConfig(const Config: TCastleConfig);
   public
@@ -1248,20 +1249,16 @@ begin
       Items[I].DefaultPlayed);
 end;
 
-procedure TLevelInfoList.LoadLevelXml(const URL: string);
+procedure TLevelInfoList.LoadLevelXml(const Info: TEnumeratedFileInfo);
 var
   NewLevelInfo: TLevelInfo;
-  Stream: TStream;
 begin
   NewLevelInfo := TLevelInfo.Create;
   Add(NewLevelInfo);
   NewLevelInfo.Played := false;
 
-  Stream := Download(URL);
-  try
-    ReadXMLFile(NewLevelInfo.Document, Stream, URL);
-  finally FreeAndNil(Stream) end;
-  NewLevelInfo.DocumentBaseURL := URL;
+  URLReadXML(NewLevelInfo.Document, Info.URL);
+  NewLevelInfo.DocumentBaseURL := Info.URL;
   NewLevelInfo.LoadFromDocument;
 end;
 
@@ -1270,7 +1267,7 @@ begin
   {$ifdef DARKEST_BEFORE_DAWN_HACK}
   LoadLevelXml(ApplicationData('level/1/level.xml'));
   {$else}
-  ScanForFiles(LevelsPath, 'level.xml', @LoadLevelXml, true);
+  ScanForFiles(LevelsPath, 'level.xml', @LoadLevelXml);
   {$endif}
 end;
 

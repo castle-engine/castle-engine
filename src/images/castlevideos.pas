@@ -388,7 +388,8 @@ implementation
 
 uses Classes, CastleClassUtils,
   CastleUtils, Math, CastleStringUtils, CastleWarnings, CastleFilesUtils,
-  CastleProgress, CastleTextureImages, CastleLog, CastleDownload, CastleURIUtils;
+  CastleProgress, CastleTextureImages, CastleLog, CastleDownload, CastleURIUtils,
+  CastleEnumerateFiles;
 
 { TVideo --------------------------------------------------------------------- }
 
@@ -564,8 +565,7 @@ procedure TVideo.LoadFromFile(const URL: string;
     MovieFileName: string;
     MovieFileNameTemporary: boolean;
     TemporaryImagesPrefix, FfmpegTemporaryImagesPattern, OurTemporaryImagesPattern: string;
-    FileRec: TSearchRec;
-    SearchError: Integer;
+    FileInfo: TEnumeratedFileInfo;
     Executable: string;
     S: TStream;
   begin
@@ -581,13 +581,9 @@ procedure TVideo.LoadFromFile(const URL: string;
       IntToStr(Random(MaxInt)) + '_';
 
     { Check is it really Ok. }
-    SearchError := FindFirst(TemporaryImagesPrefix + '*', faReallyAnyFile,
-      FileRec);
-    try
-      if SearchError = 0 then
-        raise Exception.CreateFmt('Failed to generate unique temporary file prefix "%s": filename "%s" already exists',
-          [TemporaryImagesPrefix, FileRec.Name]);
-    finally FindClose(FileRec) end;
+    if EnumerateFirst(TemporaryImagesPrefix + '*', FileInfo) then
+      raise Exception.CreateFmt('Failed to generate unique temporary file prefix "%s": filename "%s" already exists',
+        [TemporaryImagesPrefix, FileInfo.AbsoluteName]);
 
     FfmpegTemporaryImagesPattern := TemporaryImagesPrefix + '%d.png';
     OurTemporaryImagesPattern := TemporaryImagesPrefix + '@counter(1).png';
@@ -689,8 +685,7 @@ procedure TVideo.SaveToFile(const URL: string);
   procedure SaveToFfmpeg(const FileName: string);
   var
     TemporaryImagesPrefix, TemporaryImagesPattern: string;
-    FileRec: TSearchRec;
-    SearchError: Integer;
+    FileInfo: TEnumeratedFileInfo;
     Executable: string;
   begin
     Executable := PathFileSearch(
@@ -714,13 +709,9 @@ procedure TVideo.SaveToFile(const URL: string);
         IntToStr(Random(MaxInt)) + '_';
 
       { Check is it really Ok. }
-      SearchError := FindFirst(TemporaryImagesPrefix + '*', faReallyAnyFile,
-        FileRec);
-      try
-        if SearchError = 0 then
-          raise Exception.CreateFmt('Failed to generate unique temporary file prefix "%s": filename "%s" already exists',
-            [TemporaryImagesPrefix, FileRec.Name]);
-      finally FindClose(FileRec) end;
+      if EnumerateFirst(TemporaryImagesPrefix + '*', FileInfo) then
+        raise Exception.CreateFmt('Failed to generate unique temporary file prefix "%s": filename "%s" already exists',
+          [TemporaryImagesPrefix, FileInfo.AbsoluteName]);
 
       TemporaryImagesPattern := TemporaryImagesPrefix + '%d.png';
 

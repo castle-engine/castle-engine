@@ -28,7 +28,9 @@ type
     { Filename, without any directory path. }
     Name: string;
     { Expanded (with absolute path) file name. }
-    FullFileName: string;
+    AbsoluteName: string;
+    { Absolute URL. }
+    URL: string;
     Directory: boolean;
     Size: Int64; //< This is always 0 in case of Android asset
   end;
@@ -149,6 +151,21 @@ function EnumFilesObj(const Mask: string; const FindDirectories: boolean;
   we still set NewBase (to original Base). }
 function SearchFileHard(Path: string; const Base: string; out NewBase: string): boolean;
 
+{ Find first file matching given Mask. The file can be anything (including
+  a symlink or directory). It is not searched recursively, it is only searched
+  for in the directory inside Mask.
+
+  If found, returns @true and sets FileInfo.
+  Otherwise, returns @false and leaves FileInfo undefined. }
+function EnumerateFirst(const Mask: string;
+  out FileInfo: TEnumeratedFileInfo): boolean;
+
+{ Scan recursively subdirectories of given path for files named Name.
+  For each file, the HandleFile method is called.
+  We always pass an absolute URL to the HandleFile method. }
+procedure ScanForFiles(PathURL: string; const Name: string;
+  const HandleFile: TEnumFileMethod);
+
 implementation
 
 uses CastleFilesUtils, CastleURIUtils;
@@ -169,7 +186,7 @@ function EnumFiles_Core(const FPath, MaskFull: string;
   FileProc: TEnumFileProc; FileProcData: Pointer;
   Symlinks: boolean): Cardinal;
 var
-  Fullname: string;
+  AbsoluteName: string;
   FileRec: TSearchRec;
   Attr, searchError: integer;
   FileInfo: TEnumeratedFileInfo;
@@ -186,29 +203,30 @@ begin
   try
     while SearchError = 0 do
     begin
-      Fullname := FPath + FileRec.Name; { znalazles plik }
+      AbsoluteName := FPath + FileRec.Name; { znalazles plik }
 
       if (faSysFile and FileRec.Attr) <> 0 then { znalazles plik z faSysFile }
       begin
         { TODO: it would be nice to be able to write here FileRec instead of
-          FullName under FPC. See comments at IsSymLink in CastleUtils.
+          AbsoluteName under FPC. See comments at IsSymLink in CastleUtils.
           See FPC bug (wishlist, actually) 2995. }
-        if IsSymLink(FullName) then
+        if IsSymLink(AbsoluteName) then
         begin
-          if not Symlinks then FullName := '';
+          if not Symlinks then AbsoluteName := '';
         end else
         begin { plik faSysFile ale nie sym-link }
-          if (faSysFile and Attr) = 0 then FullName := '';
+          if (faSysFile and Attr) = 0 then AbsoluteName := '';
         end;
       end;
 
-      if Fullname <> '' then { przetwarzaj plik do FileProc }
+      if AbsoluteName <> '' then
       begin
-        Inc(result);
-        FileInfo.FullFileName := FullName;
+        Inc(Result);
+        FileInfo.AbsoluteName := AbsoluteName;
         FileInfo.Name := FileRec.Name;
         FileInfo.Directory := (FileRec.Attr and faDirectory) <> 0;
         FileInfo.Size := FileRec.Size;
+        FileInfo.URL := FilenameToURISafe(AbsoluteName);
         FileProc(FileInfo, FileProcData);
       end;
 
@@ -409,6 +427,44 @@ begin
       end;
     end;
   finally FreeAndNil(S) end;
+end;
+
+type
+  BreakEnumerateFirst = class(TCodeBreaker)
+    FoundFile: TEnumeratedFileInfo;
+  end;
+
+procedure EnumerateFirstCallback(const FileInfo: TEnumeratedFileInfo; Data: Pointer);
+var
+  E: BreakEnumerateFirst;
+begin
+  E := BreakEnumerateFirst.Create;
+  E.FoundFile := FileInfo;
+  raise E;
+end;
+
+function EnumerateFirst(const Mask: string;
+  out FileInfo: TEnumeratedFileInfo): boolean;
+begin
+  try
+    EnumFiles(Mask, true, @EnumerateFirstCallback, nil, [eoSymlinks]);
+    Result := false;
+  except
+    on B: BreakEnumerateFirst do
+    begin
+      Result := true;
+      FileInfo := B.FoundFile;
+    end;
+  end;
+end;
+
+procedure ScanForFiles(PathURL: string; const Name: string;
+  const HandleFile: TEnumFileMethod);
+var
+  Path: string;
+begin
+  Path := InclPathDelim(URIToFilenameSafe(PathURL));
+  EnumFilesObj(Path + Name, true, HandleFile, [eoSymlinks, eoRecursive]);
 end;
 
 end.

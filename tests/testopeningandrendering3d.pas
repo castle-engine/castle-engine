@@ -98,21 +98,21 @@ var
   ParentDirName: string;
 begin
   { do not check files in "errors" subdir, these are known to cause trouble }
-  ParentDirName := ExtractFileName(ExclPathDelim(ExtractFileDir(FileInfo.FullFileName)));
+  ParentDirName := ExtractFileName(ExclPathDelim(ExtractFileDir(FileInfo.AbsoluteName)));
   if ParentDirName = 'errors' then Exit;
 
   if GLVersion.Fglrx and
-    ( (FileInfo.SearchRec.Name = 'ssao_stairs.x3dv') or
-      (FileInfo.SearchRec.Name = 'twoboxes_ssao.x3dv') or
-      (FileInfo.SearchRec.Name = 'ssao_barna29_0.x3dv') or
-      (FileInfo.SearchRec.Name = 'ssao_stairs_with_test_plane.x3dv')
+    ( (FileInfo.Name = 'ssao_stairs.x3dv') or
+      (FileInfo.Name = 'twoboxes_ssao.x3dv') or
+      (FileInfo.Name = 'ssao_barna29_0.x3dv') or
+      (FileInfo.Name = 'ssao_stairs_with_test_plane.x3dv')
     ) then
   begin
-    Writeln('Not testing "' + FileInfo.FullFileName + '": known to fail on fglrx (fucking ATI)');
+    Writeln('Not testing "' + FileInfo.AbsoluteName + '": known to fail on fglrx (fucking ATI)');
     Exit;
   end;
 
-  TestScene(FileInfo.FullFileName);
+  TestScene(FileInfo.AbsoluteName);
 end;
 
 procedure TTestOpeningAndRendering3D.TestOpenAndRender(const ARecreateSceneEachTime: boolean);
@@ -121,8 +121,7 @@ procedure TTestOpeningAndRendering3D.TestOpenAndRender(const ARecreateSceneEachT
 
     procedure DoMask(const Mask: string);
     begin
-      EnumFilesObj(InclPathDelim(Path) + Mask, faReallyAnyFile,
-        @TestSceneFromEnum, [eoRecursive]);
+      EnumFilesObj(InclPathDelim(Path) + Mask, false, @TestSceneFromEnum, [eoRecursive]);
     end;
 
   begin

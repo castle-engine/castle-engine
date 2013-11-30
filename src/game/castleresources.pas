@@ -20,7 +20,7 @@ unit CastleResources;
 interface
 
 uses CastleVectors, Classes, CastleXMLConfig, CastlePrecalculatedAnimation,
-  CastleScene, X3DNodes, Castle3D, DOM, FGL, CastleBoxes;
+  CastleScene, X3DNodes, Castle3D, DOM, FGL, CastleBoxes, CastleEnumerateFiles;
 
 type
   T3DResource = class;
@@ -298,7 +298,7 @@ type
   T3DResourceList = class(specialize TFPGObjectList<T3DResource>)
   private
     ResourceXmlReload: boolean;
-    procedure LoadResourceXml(const URL: string);
+    procedure LoadResourceXml(const FileInfo: TEnumeratedFileInfo);
   public
     { Find resource with given T3DResource.Name.
       @raises Exception if not found and NilWhenNotFound = false. }
@@ -358,7 +358,7 @@ procedure RegisterResourceClass(const AClass: T3DResourceClass; const TypeName: 
 implementation
 
 uses SysUtils, CastleProgress, CastleXMLUtils, CastleTimeUtils, CastleUtils,
-  CastleStringUtils, CastleLog, CastleFilesUtils, CastleConfig, CastleUIControls;
+  CastleStringUtils, CastleLog, CastleConfig, CastleUIControls, CastleFilesUtils;
 
 type
   TResourceClasses = specialize TFPGMap<string, T3DResourceClass>;
@@ -679,7 +679,7 @@ end;
 
 { T3DResourceList ------------------------------------------------------------- }
 
-procedure T3DResourceList.LoadResourceXml(const URL: string);
+procedure T3DResourceList.LoadResourceXml(const FileInfo: TEnumeratedFileInfo);
 var
   Xml: TCastleConfig;
   ResourceClassName, ResourceName: string;
@@ -692,16 +692,16 @@ begin
     try
       Xml.RootName := 'resource';
       Xml.NotModified; { otherwise changing RootName makes it modified, and saved back at freeing }
-      Xml.URL := URL;
+      Xml.URL := FileInfo.URL;
       if Log then
-        WritelnLog('Resources', Format('Loading T3DResource from "%s"', [URL]));
+        WritelnLog('Resources', Format('Loading T3DResource from "%s"', [FileInfo.URL]));
 
       ResourceClassName := Xml.GetNonEmptyValue('type');
       ResourceClassIndex := ResourceClasses.IndexOf(ResourceClassName);
       if ResourceClassIndex <> -1 then
         ResourceClass := ResourceClasses.Data[ResourceClassIndex] else
         raise Exception.CreateFmt('Resource type "%s" not found, mentioned in file "%s"',
-          [ResourceClassName, URL]);
+          [ResourceClassName, FileInfo.URL]);
 
       ResourceName := Xml.GetNonEmptyValue('name');
       if CharsPos(AllChars - ['a'..'z', 'A'..'Z'], ResourceName) <> 0 then
@@ -730,7 +730,7 @@ begin
         it occured }
       on E: EMissingAttribute do
       begin
-        E.Message := E.Message + ' (When reading "' + URL + '")';
+        E.Message := E.Message + ' (When reading "' + FileInfo.URL + '")';
         raise;
       end;
     end;
@@ -738,9 +738,12 @@ begin
 end;
 
 procedure T3DResourceList.LoadResourceFile(const URL: string; const Reload: boolean);
+var
+  Info: TEnumeratedFileInfo;
 begin
   ResourceXmlReload := Reload;
-  LoadResourceXml(URL);
+  Info.URL := URL; // we know that LoadResourceXml only looks at URL
+  LoadResourceXml(Info);
 end;
 
 procedure T3DResourceList.LoadFromFiles(const Path: string; const Reload: boolean);
@@ -751,7 +754,7 @@ begin
   {$ifdef DARKEST_BEFORE_DAWN_HACK}
   LoadResourceXml(ApplicationData('creatures/light/resource.xml'));
   {$else}
-  ScanForFiles(Path, 'resource.xml', @LoadResourceXml, true);
+  ScanForFiles(Path, 'resource.xml', @LoadResourceXml);
   {$endif}
 end;
 
