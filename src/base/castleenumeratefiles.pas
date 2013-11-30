@@ -45,11 +45,6 @@ type
     procedure (const FileInfo: TEnumeratedFileInfo) of object;
 
   TEnumFilesOption = (
-    { Means that symlinks should also be enumerated. Excluding
-      this from Options means that symlinks will not be reported
-      to FileProc. }
-    eoSymlinks,
-
     { If eoRecursive is in Options then EnumFiles (and friends) descend into
       subdirectories.
 
@@ -63,9 +58,9 @@ type
       eoRecursive says whether to descend into directories and enumerate
       their files too.
 
-      Recursive does @italic(not) descend into symlinks to directories.
-      Why? Well, this would produce risk of falling into infinite loop
-      (unless some time-consuming precautions would be taken).
+      Recursive does @italic(not) descend into symlinks to directories on Unix
+      right now. The reason is that this would risk an infinite loop
+      (unless some time-consuming precautions would be taken, or a level limit).
       In other words, it's just not implemented.
       But it @italic(may) be implemented someday, as this would be definitely
       something useful. }
@@ -107,7 +102,7 @@ type
   @param(FileProc Called on each file found.)
 
   @param(Options A set of options. See TEnumFilesOption for meaning
-    of each option. Often [eoSymlinks] is the right choice.)
+    of each option.)
 
   @returns(How many times FileProc was called, that is: how many
     files/directories were matching. Useful to report to user how many
@@ -177,14 +172,10 @@ uses CastleFilesUtils, CastleURIUtils;
 
   Moreover, MaskFull must be a full, absolute filename with path
   (and disk under Windows).
-  FPath must be ExtractFilePath(MaskFull).
-
-  Polegam na FindFirst/Next ze sym-linki sa faSysFile (ale nie musisz podawac
-  w Attr faSysFile zeby znalezc sym-linki - wystarczy ze Symlinks = true) }
+  FPath must be ExtractFilePath(MaskFull). }
 function EnumFiles_Core(const FPath, MaskFull: string;
   const FindDirectories: boolean;
-  FileProc: TEnumFileProc; FileProcData: Pointer;
-  Symlinks: boolean): Cardinal;
+  FileProc: TEnumFileProc; FileProcData: Pointer): Cardinal;
 var
   AbsoluteName: string;
   FileRec: TSearchRec;
@@ -193,42 +184,23 @@ var
 begin
   Result := 0;
 
-  Attr := faReadOnly or faHidden or faArchive;
+  Attr := faReadOnly or faHidden or faArchive { for symlinks } or faSysFile;
   if FindDirectories then
     Attr := Attr or faDirectory;
-  if Symlinks then
-    Attr := Attr or faSysFile;
 
   SearchError := FindFirst(MaskFull, Attr, FileRec);
   try
     while SearchError = 0 do
     begin
-      AbsoluteName := FPath + FileRec.Name; { znalazles plik }
+      AbsoluteName := FPath + FileRec.Name;
+      Inc(Result);
 
-      if (faSysFile and FileRec.Attr) <> 0 then { znalazles plik z faSysFile }
-      begin
-        { TODO: it would be nice to be able to write here FileRec instead of
-          AbsoluteName under FPC. See comments at IsSymLink in CastleUtils.
-          See FPC bug (wishlist, actually) 2995. }
-        if IsSymLink(AbsoluteName) then
-        begin
-          if not Symlinks then AbsoluteName := '';
-        end else
-        begin { plik faSysFile ale nie sym-link }
-          if (faSysFile and Attr) = 0 then AbsoluteName := '';
-        end;
-      end;
-
-      if AbsoluteName <> '' then
-      begin
-        Inc(Result);
-        FileInfo.AbsoluteName := AbsoluteName;
-        FileInfo.Name := FileRec.Name;
-        FileInfo.Directory := (FileRec.Attr and faDirectory) <> 0;
-        FileInfo.Size := FileRec.Size;
-        FileInfo.URL := FilenameToURISafe(AbsoluteName);
-        FileProc(FileInfo, FileProcData);
-      end;
+      FileInfo.AbsoluteName := AbsoluteName;
+      FileInfo.Name := FileRec.Name;
+      FileInfo.Directory := (FileRec.Attr and faDirectory) <> 0;
+      FileInfo.Size := FileRec.Size;
+      FileInfo.URL := FilenameToURISafe(AbsoluteName);
+      FileProc(FileInfo, FileProcData);
 
       SearchError := FindNext(FileRec);
     end;
@@ -238,21 +210,20 @@ end;
 { This is equivalent to EnumFiles with Recursive = false
   and ReadAllFirst = false. }
 function EnumFiles_NonRecursive(const Mask: string; const FindDirectories: boolean;
-  FileProc: TEnumFileProc; FileProcData: Pointer;
-  Symlinks: boolean): Cardinal; overload;
+  FileProc: TEnumFileProc; FileProcData: Pointer): Cardinal; overload;
 var
   MaskFull: string;
 begin
   MaskFull := ExpandFileName(Mask);
   result := EnumFiles_Core(ExtractFilePath(MaskFull), MaskFull, FindDirectories,
-    FileProc, FileProcData, Symlinks);
+    FileProc, FileProcData);
 end;
 
 { This is equivalent to EnumFiles with Recursive = true,
   and ReadAllFirst = false. }
 function EnumFiles_Recursive(const Mask: string; const FindDirectories: boolean;
   FileProc: TEnumFileProc; FileProcData: Pointer;
-  Symlinks: boolean; DirContentsLast: boolean): Cardinal;
+  DirContentsLast: boolean): Cardinal;
 
   function EnumFilesRecursWewn(const Mask: string): Cardinal;
   { The Mask must contain an absolute path }
@@ -262,7 +233,7 @@ function EnumFiles_Recursive(const Mask: string; const FindDirectories: boolean;
     procedure WriteDirContent;
     begin
       result := result + EnumFiles_Core(Directory, Mask, FindDirectories,
-        FileProc, FileProcData, Symlinks);
+        FileProc, FileProcData);
     end;
 
     procedure WriteSubdirs;
@@ -312,11 +283,11 @@ end;
 { This is equivalent to EnumFiles with ReadAllFirst = false. }
 function EnumFiles_NonReadAllFirst(const Mask: string; FindDirectories: boolean;
   FileProc: TEnumFileProc; FileProcData: Pointer;
-  Symlinks, Recursive, DirContentsLast: boolean): Cardinal;
+  Recursive, DirContentsLast: boolean): Cardinal;
 begin
   if Recursive then
-    Result := EnumFiles_Recursive(Mask, FindDirectories, fileProc, FileProcData, Symlinks, DirContentsLast) else
-    Result := EnumFiles_NonRecursive(Mask, FindDirectories, fileProc, FileProcData, Symlinks);
+    Result := EnumFiles_Recursive(Mask, FindDirectories, fileProc, FileProcData, DirContentsLast) else
+    Result := EnumFiles_NonRecursive(Mask, FindDirectories, fileProc, FileProcData);
 end;
 
 procedure FileProc_AddToFileInfos(
@@ -338,7 +309,6 @@ begin
     try
       Result := EnumFiles_NonReadAllFirst(Mask, FindDirectories,
         @FileProc_AddToFileInfos, FileInfos,
-        eoSymlinks in Options,
         eoRecursive in Options,
         eoDirContentsLast in Options);
       for i := 0 to FileInfos.Count - 1 do
@@ -348,7 +318,6 @@ begin
   begin
     Result := EnumFiles_NonReadAllFirst(Mask, FindDirectories,
       FileProc, FileProcData,
-      eoSymlinks in Options,
       eoRecursive in Options,
       eoDirContentsLast in Options);
   end;
@@ -417,7 +386,7 @@ begin
   try
     try
       S.Base := Base;
-      EnumFilesObj(Path + '*', false, @S.Callback, [eoSymlinks]);
+      EnumFilesObj(Path + '*', false, @S.Callback, []);
     except
       on BreakSearchFileHard do
       begin
@@ -447,7 +416,7 @@ function EnumerateFirst(const Mask: string;
   out FileInfo: TEnumeratedFileInfo): boolean;
 begin
   try
-    EnumFiles(Mask, true, @EnumerateFirstCallback, nil, [eoSymlinks]);
+    EnumFiles(Mask, true, @EnumerateFirstCallback, nil, []);
     Result := false;
   except
     on B: BreakEnumerateFirst do
@@ -464,7 +433,7 @@ var
   Path: string;
 begin
   Path := InclPathDelim(URIToFilenameSafe(PathURL));
-  EnumFilesObj(Path + Name, true, HandleFile, [eoSymlinks, eoRecursive]);
+  EnumFilesObj(Path + Name, true, HandleFile, [eoRecursive]);
 end;
 
 end.

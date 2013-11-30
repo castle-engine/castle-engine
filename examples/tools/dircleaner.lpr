@@ -53,7 +53,7 @@ end;
 procedure RemoveNonEmptyDir(const DirName: string);
 begin
   EnumFiles(InclPathDelim(DirName) + '*', true,
-    @RemoveNonEmptyDir_Internal, nil, [eoSymlinks, eoRecursive, eoDirContentsLast]);
+    @RemoveNonEmptyDir_Internal, nil, [eoRecursive, eoDirContentsLast]);
   CheckRemoveDir(Dirname);
 end;
 

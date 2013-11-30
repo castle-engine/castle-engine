@@ -134,7 +134,7 @@ begin
 
   FpSymlink(PChar(SymlinkTarget), PChar(SymlinkFullName));
 
-  EnumFiles(SymlinkFullName, faAnyFile, @TestIsSymLink_Proc, Self, [eoSymlinks]);
+  EnumFiles(SymlinkFullName, faAnyFile, @TestIsSymLink_Proc, Self, []);
 
   if not DeleteFile(SymlinkFullName) then
     raise Exception.CreateFmt('Failed to remove symlink file %s', [SymlinkFullName]);
