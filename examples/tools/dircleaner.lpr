@@ -40,9 +40,9 @@ uses SysUtils, CastleUtils, CastleParameters, CastleEnumerateFiles,
 
 procedure RemoveNonEmptyDir_Internal(const FileInfo: TEnumeratedFileInfo; Data: Pointer);
 begin
-  if SpecialDirName(FileInfo.SearchRec.Name) then exit;
+  if SpecialDirName(FileInfo.Name) then exit;
 
-  if (FileInfo.SearchRec.attr and faDirectory) <> 0 then
+  if FileInfo.Directory then
     CheckRemoveDir(FileInfo.FullFileName) else
     CheckDeleteFile(FileInfo.FullFileName);
 end;
@@ -52,7 +52,7 @@ end;
   DirName may but doesn't have to end with PathDelim. }
 procedure RemoveNonEmptyDir(const DirName: string);
 begin
-  EnumFiles(InclPathDelim(DirName) + '*', RegularFileAttr or faDirectory,
+  EnumFiles(InclPathDelim(DirName) + '*', true,
     @RemoveNonEmptyDir_Internal, nil, [eoSymlinks, eoRecursive, eoDirContentsLast]);
   CheckRemoveDir(Dirname);
 end;
@@ -99,7 +99,7 @@ procedure CleanFiles_FileProc(const FileInfo: TEnumeratedFileInfo;
   Data: Pointer);
 begin
   Inc(FilesCount);
-  FilesSize += FileInfo.SearchRec.Size;
+  FilesSize += FileInfo.Size;
 
   case Action of
     aNothing: ;
@@ -120,8 +120,7 @@ begin
   FilesCount := 0;
   FilesSize := 0;
 
-  EnumFiles(StartPath + Pattern, RegularWriteableFileAttr,
-    @CleanFiles_FileProc, nil, MaybeRecursive);
+  EnumFiles(StartPath + Pattern, false, @CleanFiles_FileProc, nil, MaybeRecursive);
 
   if FilesCount <> 0 then
     Writeln(FilesCount, ' files matching ',Pattern,
@@ -133,7 +132,7 @@ var DirsCount: Cardinal = 0;
 procedure CleanDirs_FileProc(const FileInfo: TEnumeratedFileInfo;
   Data: Pointer);
 begin
-  if (FileInfo.SearchRec.Attr and faDirectory) = 0 then Exit;
+  if not FileInfo.Directory then Exit;
 
   if SpecialDirName(ExtractFileName(FileInfo.FullFileName)) then Exit;
 
@@ -150,8 +149,7 @@ procedure CleanDirs(const Pattern: string);
 begin
   DirsCount := 0;
 
-  EnumFiles(StartPath + Pattern, faDirectory or faSysFile or
-    RegularWriteableFileAttr, @CleanDirs_FileProc, nil, MaybeRecursive);
+  EnumFiles(StartPath + Pattern, true, @CleanDirs_FileProc, nil, MaybeRecursive);
 
   if DirsCount <> 0 then
     Writeln(DirsCount, ' dirs matching ',Pattern);

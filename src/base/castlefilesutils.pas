@@ -352,17 +352,6 @@ function CombinePaths(BasePath, RelPath: string): string; deprecated;
   fix on http://svn.freepascal.org/cgi-bin/viewvc.cgi?view=rev&revision=17717 . }
 Function PathFileSearch(Const Name : String; ImplicitCurrentDir : Boolean = True) : String;
 
-const
-  { }
-  RegularFileAttr = faReadOnly or faHidden or faArchive;
-
-  { Regular file that is possibly writeable.
-    @italic(Possibly) writeable, not @italic(writeable for sure). }
-  RegularWriteableFileAttr = RegularFileAttr and (not faReadOnly);
-
-  { Any file, including symlinks. }
-  faReallyAnyFile = faAnyFile or faSymLink;
-
 type
   THandleFileMethod = procedure (const FileName: string) of object;
 
