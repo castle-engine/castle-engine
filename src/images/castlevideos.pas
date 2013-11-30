@@ -565,26 +565,13 @@ procedure TVideo.LoadFromFile(const URL: string;
     MovieFileName: string;
     MovieFileNameTemporary: boolean;
     TemporaryImagesPrefix, FfmpegTemporaryImagesPattern, OurTemporaryImagesPattern: string;
-    FileInfo: TEnumeratedFileInfo;
     Executable: string;
     S: TStream;
   begin
     Executable := FfmpegExecutable(true);
 
     { initialize TemporaryImagesPrefix, TemporaryImagesPattern }
-
-    TemporaryImagesPrefix := GetTempFileName('', ApplicationName) + '_' +
-      { Although GetTempFileName should add some randomization here,
-        there's no guarantee. And we really need randomization ---
-        we load ffmpeg output using image %d pattern, so we don't want to
-        accidentaly pick up other images in the temporary directory. }
-      IntToStr(Random(MaxInt)) + '_';
-
-    { Check is it really Ok. }
-    if EnumerateFirst(TemporaryImagesPrefix + '*', FileInfo) then
-      raise Exception.CreateFmt('Failed to generate unique temporary file prefix "%s": filename "%s" already exists',
-        [TemporaryImagesPrefix, FileInfo.AbsoluteName]);
-
+    TemporaryImagesPrefix := GetTempFileNamePrefix;
     FfmpegTemporaryImagesPattern := TemporaryImagesPrefix + '%d.png';
     OurTemporaryImagesPattern := TemporaryImagesPrefix + '@counter(1).png';
 
@@ -685,7 +672,6 @@ procedure TVideo.SaveToFile(const URL: string);
   procedure SaveToFfmpeg(const FileName: string);
   var
     TemporaryImagesPrefix, TemporaryImagesPattern: string;
-    FileInfo: TEnumeratedFileInfo;
     Executable: string;
   begin
     Executable := PathFileSearch(
@@ -700,19 +686,7 @@ procedure TVideo.SaveToFile(const URL: string);
     end else
     begin
       { initialize TemporaryImagesPrefix, TemporaryImagesPattern }
-
-      TemporaryImagesPrefix := GetTempFileName('', ApplicationName) + '_' +
-        { Although GetTempFileName should add some randomization here,
-          there's no guarentee. And we really need randomization ---
-          we pass to ffmpeg input using image %d pattern, so we don't want to
-          accidentaly pick up other images in the temporary directory. }
-        IntToStr(Random(MaxInt)) + '_';
-
-      { Check is it really Ok. }
-      if EnumerateFirst(TemporaryImagesPrefix + '*', FileInfo) then
-        raise Exception.CreateFmt('Failed to generate unique temporary file prefix "%s": filename "%s" already exists',
-          [TemporaryImagesPrefix, FileInfo.AbsoluteName]);
-
+      TemporaryImagesPrefix := GetTempFileNamePrefix;
       TemporaryImagesPattern := TemporaryImagesPrefix + '%d.png';
 
       SaveToImages(TemporaryImagesPattern);

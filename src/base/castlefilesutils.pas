@@ -356,6 +356,10 @@ Function PathFileSearch(Const Name : String; ImplicitCurrentDir : Boolean = True
   it doesn't exist. }
 function GetTempFileNameCheck: string;
 
+{ Return a prefix (beginning of an absolute filename)
+  to save a series of temporary files. }
+function GetTempFileNamePrefix: string;
+
 {$ifdef DARWIN}
 { Main directory of the current Mac OS X bundle, including final slash.
   Empty string if we're not run from a bundle. }
@@ -365,7 +369,8 @@ function BundlePath: string;
 implementation
 
 uses {$ifdef DARWIN} MacOSAll, {$endif} CastleStringUtils,
-  {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog, CastleWarnings, CastleURIUtils;
+  {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog, CastleWarnings,
+  CastleURIUtils, CastleEnumerateFiles;
 
 var
   { inicjowane w initialization i pozniej stale.
@@ -769,6 +774,24 @@ begin
   { Be paranoid and check whether file does not exist. }
   if FileExists(Result) then
     raise Exception.CreateFmt('Temporary file "%s" already exists', [Result]);
+end;
+
+function GetTempFileNamePrefix: string;
+var
+  FileInfo: TEnumeratedFileInfo;
+begin
+  Result := GetTempFileName('', ApplicationName) + '_' +
+    { Although GetTempFileName should add some randomization here,
+      there's no guarantee. And we really need randomization ---
+      we may load ffmpeg output using image %d pattern, so we don't want to
+      accidentaly pick up other images in the temporary directory
+      (e.g. leftovers from previous TRangeScreenShot.BeginCapture). }
+    IntToStr(Random(MaxInt)) + '_';
+
+  { Check is it really Ok. }
+  if EnumerateFirst(Result + '*', FileInfo) then
+    raise Exception.CreateFmt('Failed to generate unique temporary file prefix "%s": filename "%s" already exists',
+      [Result, FileInfo.AbsoluteName]);
 end;
 
 {$ifdef DARWIN}
