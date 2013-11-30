@@ -33,12 +33,12 @@
     DefaultDirsToCleanInit to know default masks for removed files.
 
 }
-uses SysUtils, CastleUtils, CastleParameters, CastleEnumerateFiles,
+uses SysUtils, CastleUtils, CastleParameters, CastleFindFiles,
   CastleFilesUtils, CastleStringUtils;
 
 { RemoveNonEmptyDir utility -------------------------------------------------- }
 
-procedure RemoveNonEmptyDir_Internal(const FileInfo: TEnumeratedFileInfo; Data: Pointer);
+procedure RemoveNonEmptyDir_Internal(const FileInfo: TFileInfo; Data: Pointer);
 begin
   if SpecialDirName(FileInfo.Name) then exit;
 
@@ -52,8 +52,8 @@ end;
   DirName may but doesn't have to end with PathDelim. }
 procedure RemoveNonEmptyDir(const DirName: string);
 begin
-  EnumFiles(InclPathDelim(DirName) + '*', true,
-    @RemoveNonEmptyDir_Internal, nil, [eoRecursive, eoDirContentsLast]);
+  FindFiles(DirName, '*', true,
+    @RemoveNonEmptyDir_Internal, nil, [ffRecursive, ffDirContentsLast]);
   CheckRemoveDir(Dirname);
 end;
 
@@ -95,7 +95,7 @@ var
   FilesCount: Cardinal = 0;
   FilesSize: Cardinal = 0;
 
-procedure CleanFiles_FileProc(const FileInfo: TEnumeratedFileInfo;
+procedure CleanFiles_FileProc(const FileInfo: TFileInfo;
   Data: Pointer);
 begin
   Inc(FilesCount);
@@ -108,10 +108,10 @@ begin
   end;
 end;
 
-function MaybeRecursive: TEnumFilesOptions;
+function MaybeRecursive: TFindFilesOptions;
 begin
   if CleanDirsRecursively then
-    Result := [eoRecursive] else
+    Result := [ffRecursive] else
     Result := [];
 end;
 
@@ -120,7 +120,7 @@ begin
   FilesCount := 0;
   FilesSize := 0;
 
-  EnumFiles(StartPath + Pattern, false, @CleanFiles_FileProc, nil, MaybeRecursive);
+  FindFiles(StartPath, Pattern, false, @CleanFiles_FileProc, nil, MaybeRecursive);
 
   if FilesCount <> 0 then
     Writeln(FilesCount, ' files matching ',Pattern,
@@ -129,8 +129,7 @@ end;
 
 var DirsCount: Cardinal = 0;
 
-procedure CleanDirs_FileProc(const FileInfo: TEnumeratedFileInfo;
-  Data: Pointer);
+procedure CleanDirs_FileProc(const FileInfo: TFileInfo; Data: Pointer);
 begin
   if not FileInfo.Directory then Exit;
 
@@ -149,7 +148,7 @@ procedure CleanDirs(const Pattern: string);
 begin
   DirsCount := 0;
 
-  EnumFiles(StartPath + Pattern, true, @CleanDirs_FileProc, nil, MaybeRecursive);
+  FindFiles(StartPath, Pattern, true, @CleanDirs_FileProc, nil, MaybeRecursive);
 
   if DirsCount <> 0 then
     Writeln(DirsCount, ' dirs matching ',Pattern);

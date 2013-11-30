@@ -386,10 +386,9 @@ const
 
 implementation
 
-uses Classes, CastleClassUtils,
-  CastleUtils, Math, CastleStringUtils, CastleWarnings, CastleFilesUtils,
-  CastleProgress, CastleTextureImages, CastleLog, CastleDownload, CastleURIUtils,
-  CastleEnumerateFiles;
+uses Classes, CastleClassUtils, CastleUtils, Math, CastleStringUtils,
+  CastleWarnings, CastleFilesUtils, CastleProgress, CastleTextureImages,
+  CastleLog, CastleDownload, CastleURIUtils, CastleFindFiles;
 
 { TVideo --------------------------------------------------------------------- }
 

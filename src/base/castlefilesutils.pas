@@ -41,7 +41,7 @@
     @item(Do not use standard FindFirst/FindNext.
 
       If you need to search a directory for some files,
-      use CastleEnumerateFiles unit. But it only works for
+      use CastleFindFiles unit. But it only works for
       local filesystems (or Android assets filesystem),
       of course you cannot search for files within http URLs.
       So in general avoid such file searching.)
@@ -354,7 +354,7 @@ implementation
 
 uses {$ifdef DARWIN} MacOSAll, {$endif} CastleStringUtils,
   {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog, CastleWarnings,
-  CastleURIUtils, CastleEnumerateFiles;
+  CastleURIUtils, CastleFindFiles;
 
 var
   { inicjowane w initialization i pozniej stale.
@@ -738,7 +738,7 @@ end;
 
 function GetTempFileNamePrefix: string;
 var
-  FileInfo: TEnumeratedFileInfo;
+  FileInfo: TFileInfo;
 begin
   Result := GetTempFileName('', ApplicationName) + '_' +
     { Although GetTempFileName should add some randomization here,
@@ -749,7 +749,7 @@ begin
     IntToStr(Random(MaxInt)) + '_';
 
   { Check is it really Ok. }
-  if EnumerateFirst(Result + '*', FileInfo) then
+  if FindFirstFile(Result + '*', FileInfo) then
     raise Exception.CreateFmt('Failed to generate unique temporary file prefix "%s": filename "%s" already exists',
       [Result, FileInfo.AbsoluteName]);
 end;

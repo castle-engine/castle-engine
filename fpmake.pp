@@ -130,7 +130,7 @@ begin
     P.Targets.AddUnit('castlexmlutils.pas');
     P.Targets.AddUnit('castlezlib.pas');
     P.Targets.AddUnit('castlezstream.pas');
-    P.Targets.AddUnit('castleenumeratefiles.pas');
+    P.Targets.AddUnit('castlefindfiles.pas');
     P.Targets.AddUnit('castlefilefilters.pas');
     P.Targets.AddUnit('castlegenericlists.pas');
     P.Targets.AddUnit('castleprogressconsole.pas');

@@ -20,7 +20,7 @@ unit TestOpeningAndRendering3D;
 
 interface
 
-uses fpcunit, testutils, testregistry, CastleFilesUtils, CastleEnumerateFiles,
+uses fpcunit, testutils, testregistry, CastleFilesUtils, CastleFindFiles,
   CastleWindow, CastleSceneCore, CastleScene, CastleSceneManager;
 
 type
@@ -34,7 +34,7 @@ type
 
     { FileName empty means to load empty scene. }
     procedure TestScene(const FileName: string);
-    procedure TestSceneFromEnum(const FileInfo: TEnumeratedFileInfo);
+    procedure TestSceneFromEnum(const FileInfo: TFileInfo);
     { If RecreateSceneEachTime, Scene will be destroyed and then created
       again before each load.
 
@@ -93,7 +93,7 @@ begin
   CheckGLErrors;
 end;
 
-procedure TTestOpeningAndRendering3D.TestSceneFromEnum(const FileInfo: TEnumeratedFileInfo);
+procedure TTestOpeningAndRendering3D.TestSceneFromEnum(const FileInfo: TFileInfo);
 var
   ParentDirName: string;
 begin
@@ -121,7 +121,7 @@ procedure TTestOpeningAndRendering3D.TestOpenAndRender(const ARecreateSceneEachT
 
     procedure DoMask(const Mask: string);
     begin
-      EnumFilesObj(InclPathDelim(Path) + Mask, false, @TestSceneFromEnum, [eoRecursive]);
+      FindFiles(Path, Mask, false, @TestSceneFromEnum, [ffRecursive]);
     end;
 
   begin

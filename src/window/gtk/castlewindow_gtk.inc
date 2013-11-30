@@ -31,7 +31,7 @@ Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, CastleDynLib,
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleWindowModes, CastleEnumerateFiles,
+CastleWindowModes, CastleFindFiles,
 {$endif}
 
 {$ifdef read_interface_types}
@@ -1323,7 +1323,7 @@ var
   OkButtonText: PChar;
   Dialog: PGtkFileChooserDialog;
   CFileName: PChar;
-  FoundFile: TEnumeratedFileInfo;
+  FoundFile: TFileInfo;
   ExpandedFileName, Dir: string;
 begin
   if OpenDialog then
@@ -1382,7 +1382,7 @@ begin
     ExpandedFileName := ExpandFileName(FileName);
 
     { Test in one go whether file exists, and is a regular file or dir. }
-    if EnumerateFirst(ExpandedFileName, FoundFile) then
+    if FindFirstFile(ExpandedFileName, FoundFile) then
     begin
       if FoundFile.Directory then
         gtk_file_chooser_set_current_folder(Dialog, PChar(ExpandedFileName)) else

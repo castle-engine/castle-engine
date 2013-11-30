@@ -43,7 +43,7 @@ function SearchTextureFile(const BaseUrl, Base: string): string;
 
 implementation
 
-uses SysUtils, CastleStringUtils, CastleEnumerateFiles, CastleWarnings,
+uses SysUtils, CastleStringUtils, CastleFindFiles, CastleWarnings,
   URIParser, CastleURIUtils;
 
 function ToX3DName(const s: string): string;

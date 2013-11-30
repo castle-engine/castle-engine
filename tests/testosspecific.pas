@@ -41,7 +41,8 @@ type
 
 implementation
 
-uses CastleUtils, CastleEnumerateFiles, CastleFilesUtils, CastleTimeUtils {$ifdef UNIX}, BaseUnix {$endif};
+uses CastleUtils, CastleFindFiles, CastleFilesUtils, CastleTimeUtils
+  {$ifdef UNIX}, BaseUnix {$endif};
 
 procedure TTestOSSpecific.TestPathDelim;
 begin

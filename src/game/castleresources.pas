@@ -20,7 +20,7 @@ unit CastleResources;
 interface
 
 uses CastleVectors, Classes, CastleXMLConfig, CastlePrecalculatedAnimation,
-  CastleScene, X3DNodes, Castle3D, DOM, FGL, CastleBoxes, CastleEnumerateFiles;
+  CastleScene, X3DNodes, Castle3D, DOM, FGL, CastleBoxes, CastleFindFiles;
 
 type
   T3DResource = class;
@@ -298,7 +298,7 @@ type
   T3DResourceList = class(specialize TFPGObjectList<T3DResource>)
   private
     ResourceXmlReload: boolean;
-    procedure LoadResourceXml(const FileInfo: TEnumeratedFileInfo);
+    procedure LoadResourceXml(const FileInfo: TFileInfo);
   public
     { Find resource with given T3DResource.Name.
       @raises Exception if not found and NilWhenNotFound = false. }
@@ -679,7 +679,7 @@ end;
 
 { T3DResourceList ------------------------------------------------------------- }
 
-procedure T3DResourceList.LoadResourceXml(const FileInfo: TEnumeratedFileInfo);
+procedure T3DResourceList.LoadResourceXml(const FileInfo: TFileInfo);
 var
   Xml: TCastleConfig;
   ResourceClassName, ResourceName: string;
@@ -739,7 +739,7 @@ end;
 
 procedure T3DResourceList.LoadResourceFile(const URL: string; const Reload: boolean);
 var
-  Info: TEnumeratedFileInfo;
+  Info: TFileInfo;
 begin
   ResourceXmlReload := Reload;
   Info.URL := URL; // we know that LoadResourceXml only looks at URL
@@ -754,7 +754,7 @@ begin
   {$ifdef DARKEST_BEFORE_DAWN_HACK}
   LoadResourceXml(ApplicationData('creatures/light/resource.xml'));
   {$else}
-  ScanForFiles(Path, 'resource.xml', @LoadResourceXml);
+  FindFiles(Path, 'resource.xml', false, @LoadResourceXml, [ffRecursive]);
   {$endif}
 end;
 

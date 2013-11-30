@@ -19,13 +19,12 @@ unit CastleLevels;
 
 interface
 
-uses CastleVectors, CastleSceneCore, CastleScene, CastleBoxes,
-  X3DNodes, X3DFields, CastleCameras, CastleSectors,
-  CastleUtils, CastleClassUtils, CastlePlayer, CastleResources,
-  CastleProgress, CastlePrecalculatedAnimation,
+uses CastleVectors, CastleSceneCore, CastleScene, CastleBoxes, X3DNodes,
+  X3DFields, CastleCameras, CastleSectors, CastleUtils, CastleClassUtils,
+  CastlePlayer, CastleResources, CastleProgress, CastlePrecalculatedAnimation,
   DOM, CastleSoundEngine, Castle3D, CastleShapes, CastleConfig, CastleImages,
   Classes, CastleTimeUtils, CastleSceneManager, CastleRendererShader, FGL,
-  CastleEnumerateFiles;
+  CastleFindFiles;
 
 type
   TLevelLogic = class;
@@ -254,7 +253,7 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
       TGameSceneManager.Info? }
     References: Cardinal;
     { Load level.xml file from Info.URL. }
-    procedure LoadLevelXml(const Info: TEnumeratedFileInfo);
+    procedure LoadLevelXml(const Info: TFileInfo);
     { Save Played properties of every level. }
     procedure SaveToConfig(const Config: TCastleConfig);
   public
@@ -1249,7 +1248,7 @@ begin
       Items[I].DefaultPlayed);
 end;
 
-procedure TLevelInfoList.LoadLevelXml(const Info: TEnumeratedFileInfo);
+procedure TLevelInfoList.LoadLevelXml(const Info: TFileInfo);
 var
   NewLevelInfo: TLevelInfo;
 begin
@@ -1267,7 +1266,7 @@ begin
   {$ifdef DARKEST_BEFORE_DAWN_HACK}
   LoadLevelXml(ApplicationData('level/1/level.xml'));
   {$else}
-  ScanForFiles(LevelsPath, 'level.xml', @LoadLevelXml);
+  FindFiles(LevelsPath, 'level.xml', false, @LoadLevelXml, [ffRecursive]);
   {$endif}
 end;
 

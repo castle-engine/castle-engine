@@ -170,8 +170,8 @@
         <UnitName Value="CastleDynLib"/>
       </Item33>
       <Item34>
-        <Filename Value="../src/base/castleenumeratefiles.pas"/>
-        <UnitName Value="CastleEnumerateFiles"/>
+        <Filename Value="../src/base/castlefindfiles.pas"/>
+        <UnitName Value="CastleFindFiles"/>
       </Item34>
       <Item35>
         <Filename Value="../src/base/castlefilefilters.pas"/>

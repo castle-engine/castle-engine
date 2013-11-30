@@ -34,7 +34,7 @@ Curve                      CastleCurves
 DataURI                    CastleDataURI
 DDS                        CastleDDS
 EFX                        CastleEFX
-EnumerateFiles             CastleEnumerateFiles
+EnumerateFiles             CastleFindFiles
 FileFilters                CastleFileFilters
 GenericStructList          CastleGenericLists
 GeometryArrays             CastleGeometryArrays
