@@ -32,9 +32,8 @@ type
     { Absolute URL. }
     URL: string;
     Directory: boolean;
-    Size: Int64; //< This is always 0 in case of Android asset
+    Size: Int64; //< This may be 0 in case of non-local file
   end;
-  PEnumeratedFileInfo = ^TEnumeratedFileInfo;
 
   TEnumeratedFileInfoList = specialize TGenericStructList<TEnumeratedFileInfo>;
 

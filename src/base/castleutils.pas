@@ -61,25 +61,6 @@
     @item(Installs my handler for ExceptProc, see comments at
       @link(HaltCodeOnException).)
   )
-
-  Some of the things from Pascal RTL / FCL get better replacemenets here:
-
-  @unorderedList(
-    @item(ChDir with $I+ => better use ChangeDir from CastleFilesUtils
-      (workarouds Delphi 6 bug, workarounds FPC 2.4.2-2.4.4 bug
-      http://bugs.freepascal.org/view.php?id=19977).)
-
-    @item(ParamStr(0), Application.ExeName => better use
-      SysUtils.ApplicationName or ExeName from CastleFilesUtils. They are portable,
-      eliminate the problems under Unixes when ParamStr(0)
-      is not necessarily an exe name, unlike Application.ExeName
-      they don't need whole VCL / CLX stuff,
-      and eliminate Kylix 1 bug in Application.ExeName)
-
-    @item(FreeMem => it's often better to use FreeMemNiling)
-
-    @item(FindFirst/FindNext => it's often better to use CastleEnumerateFiles unit)
-  )
 }
 
 unit CastleUtils;

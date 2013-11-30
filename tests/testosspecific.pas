@@ -34,7 +34,6 @@ type
   published
     procedure TestPathDelim;
     procedure TestChangeDir;
-    {$ifdef UNIX} procedure TestIsSymLink; {$endif}
     procedure TestExeName;
     procedure TestTimer;
     {$ifdef UNIX} procedure TestHomePath; {$endif}
@@ -112,42 +111,6 @@ begin
     ChangeDir(PreviousDir);
   end;
 end;
-
-{$ifdef UNIX}
-procedure TestIsSymLink_Proc(const FileInfo: TEnumeratedFileInfo; Data: Pointer);
-begin
-  with TTestOSSpecific(Data) do
-  begin
-    Assert(ExtractFileName(FileInfo.AbsoluteName) = SymlinkName);
-    Assert(IsSymLink(FileInfo.AbsoluteName));
-    Assert(CastleReadLink(FileInfo.AbsoluteName) = SymlinkTarget);
-  end;
-end;
-
-{ Test IsSymLink, EnumFiles, CastleReadLink }
-procedure TTestOSSpecific.TestIsSymLink;
-begin
-  SymlinkName :=  'castle_game_engine_test_symlink_' + IntToStr(Random(100000));
-  SymlinkFullName := InclPathDelim(GetTempDir) + SymlinkName;
-  // Writeln('Using ', SymlinkFullName);
-  SymlinkTarget := InclPathDelim(GetCurrentDir) + 'data/symlink_target.txt';
-
-  FpSymlink(PChar(SymlinkTarget), PChar(SymlinkFullName));
-
-  EnumFiles(SymlinkFullName, faAnyFile, @TestIsSymLink_Proc, Self, []);
-
-  if not DeleteFile(SymlinkFullName) then
-    raise Exception.CreateFmt('Failed to remove symlink file %s', [SymlinkFullName]);
-
-  try
-    CastleReadLink('/non_existing_file');
-    Assert(false, 'CastleReadLink must raise exception on non-existing file');
-  except
-    on E: EOSError do
-      { OK, CastleReadLink for /non_existing_file should raise exception };
-  end;
-end;
-{$endif}
 
 procedure TTestOSSpecific.TestExeName;
 begin

@@ -22,6 +22,33 @@
     @item(ApplicationConfig -- user config files)
     @item(ApplicationData -- installed program's data files)
   )
+
+  List of things to do / not to do if you want to write
+  truly cross-platform program (that also handles URLs everywhere):
+
+  @unorderedList(
+    @item(Never use things like ParamStr(0), or Lazarus Application.ExeName.
+      If you really want the filename of your executable, we have
+      CastleFilesUtils.ExeName, but this also should not be depended on
+      (it may raise exception on some OSes).
+
+      If you want a nice application name, use SysUtils.ApplicationName
+      (our units use it too).
+
+      If you want to load program data or save program config,
+      it's best to use ApplicationConfig and ApplicationData for all paths.)
+
+    @item(Do not use standard FindFirst/FindNext.
+
+      If you need to search a directory for some files,
+      use CastleEnumerateFiles unit. But it only works for
+      local filesystems (or Android assets filesystem),
+      of course you cannot search for files within http URLs.
+      So in general avoid such file searching.)
+
+    @item(Read / write all data using streams (TStream) descendants.
+      Open and save these streams using our CastleDownload unit.)
+  )
 }
 unit CastleFilesUtils;
 
@@ -224,33 +251,6 @@ function ApplicationConfig(const Path: string): string;
   )
 ) }
 function ApplicationData(const Path: string): string;
-
-{ Functions IsSymLink, CanonicalizeFileName assume Windows has no symlinks.
-
-  Why not treat Windows shell-links as symlinks?
-
-  - normal programs don't do this, so user would be surprised
-
-  - making OpenFile(shell-link) doesn't automatically open target file,
-    like under UNIX.
-
-    Under UNIX you cannot normally open symlink as a file,
-    you have to operate on symlink using special functions.
-
-    Under Windows shell-link is a just a file format,
-    you can open and read/write it as usual. Normal open operations
-    (Reset and such) doesn't derefence the link.
-    Instead, ShellExecute('open',file,...) derefences the link.
-
-    So trying to treat shell-links like normal symlinks, I would have
-    to manually derefence links in a lot of cases.
-
-  - shell-links under Windows have more information (icon, working dir etc.).
-    Using it as mere symlink (using only filename inside) would not feel OK.
-}
-
-{ Is FileName a symbolic link. }
-function IsSymLink(const FileName: string): boolean; overload;
 
 {$ifdef UNIX}
 { User's home directory, with trailing PathDelim.
@@ -519,19 +519,6 @@ begin
 end;
 
 { other file utilities ---------------------------------------------------- }
-
-function IsSymLink(const FileName: string): boolean;
-{$ifdef UNIX}
-var statbuf: TStat;
-begin
- FpLstat(PChar(FileName), @statbuf);
- Result := FpS_ISLNK(statbuf.st_mode);
-{$endif}
-{$ifdef MSWINDOWS}
-begin
- Result := false;
-{$endif}
-end;
 
 {$ifdef UNIX}
 function HomePath:  string;
