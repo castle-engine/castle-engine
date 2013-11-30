@@ -33,7 +33,6 @@ type
     SymlinkName, SymlinkFullName, SymlinkTarget: string;
   published
     procedure TestPathDelim;
-    procedure TestChangeDir;
     procedure TestExeName;
     procedure TestTimer;
     {$ifdef UNIX} procedure TestHomePath; {$endif}
@@ -83,33 +82,6 @@ begin
   AssertEquals('\tmp/', InclPathDelim('\tmp'));
   AssertEquals('/', InclPathDelim(''));
   {$endif}
-end;
-
-procedure TTestOSSpecific.TestChangeDir;
-var
-  PreviousDir: string;
-const
-  ExistingDir = {$ifdef UNIX} '/' {$endif}
-                {$ifdef MSWINDOWS} 'c:\' {$endif};
-  NotExistingDir = {$ifdef UNIX} '/not_existing_directory_castle_test' {$endif}
-                   {$ifdef MSWINDOWS} 'c:\not_existing_directory_castle_test' {$endif};
-begin
-  PreviousDir := GetCurrentDir;
-  try
-    ChangeDir(ExistingDir);
-    Assert(InclPathDelim(GetCurrentDir) = ExistingDir);
-
-    try
-      ChangeDir(NotExistingDir);
-      Assert(false, 'ChangeDir to ' + NotExistingDir + ' didn''t raise an exception');
-    except
-      on E: EInOutError do ;
-    end;
-  finally
-    { restoring dir is necessary for other tests to work, some load
-      files from data/ subdir. }
-    ChangeDir(PreviousDir);
-  end;
 end;
 
 procedure TTestOSSpecific.TestExeName;

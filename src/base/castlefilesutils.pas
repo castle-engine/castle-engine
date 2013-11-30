@@ -277,22 +277,6 @@ procedure CheckDeleteFile(const FileName: string; const Warn: boolean = false);
   @raises Exception If delete failed. }
 procedure CheckRemoveDir(const DirFileName: string);
 
-{ Change directory, raising exception if not possible.
-  NewDir may (but doesn't have to) include trailing PathDelim.
-
-  @raises EInOutError If changing dir is not possible.
-
-  Improvements over ChDir:
-  @orderedList(
-    @item(Fixes a bug in Delphi 6, in Delphi 6 ChDir when fails (and program
-     is compiled in $I+) does not raise EInOutError (but it sets IOResult).)
-    @item(Fixes a bug in FPC 2.4.2-2.4.4:
-      http://bugs.freepascal.org/view.php?id=19977 ,
-      causing EInOutError to be deferred to later I/O call.)
-    @item(Better error message (that will always contain NewDir).)
-  ) }
-procedure ChangeDir(const NewDir: string);
-
 { Substitute %d in given filename pattern with successive numbers,
   until the filename doesn't exist.
 
@@ -594,17 +578,6 @@ begin
 end;
 
 { dir handling -------------------------------------------------------- }
-
-procedure ChangeDir(const NewDir: string);
-begin
-{$ifdef MSWINDOWS}
-  if not SetCurrentDirectory(PChar(NewDir)) then
-{$endif}
-{$ifdef UNIX}
-  if FpChDir(PChar(NewDir)) < 0 Then
-{$endif}
-    raise EInOutError.CreateFmt('Cannot change directory to "%s"', [NewDir]);
-end;
 
 function FileNameAutoInc(const FileNamePattern: string): string;
 var i: integer;
