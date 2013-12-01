@@ -40,7 +40,7 @@ type
     { Open a stream for an asset on given path.
       The path should be a valid Android asset path,
       like @code(images/my_texture.png). }
-    constructor Create(const Path: string);
+    constructor Create(Path: string);
     destructor Destroy; override;
 
     { This stream doesn't support seeking.
@@ -71,9 +71,15 @@ implementation
 
 uses CastleClassUtils, CastleLog, CastleStringUtils, URIParser;
 
-constructor TReadAssetStream.Create(const Path: string);
+constructor TReadAssetStream.Create(Path: string);
 begin
   inherited Create;
+  if ExtractFileExt(Path) = '.gz' then
+  begin
+    WritelnLog('Assets', 'Trying to access asset with .gz extension, stripping the .gz (because Android tools strip them too when packing the .apk file): %s',
+      [Path]);
+    Path := ChangeFileExt(Path, '');
+  end;
   Asset := AAssetManager_open(AssetManager, PChar(Path), AASSET_MODE_STREAMING);
   if Asset = nil then
     raise EAssetNotFound.CreateFmt('Asset "%s" not found', [Path]);
