@@ -103,17 +103,6 @@
   { $define GLImageUseShaders}
 {$endif}
 
-{ Zlib ----------------------------------------------------------------------- }
-
-{ Define CASTLE_ZLIB_USING_PASZLIB
-  for platforms where you don't want to link to external zlib library. }
-{$ifdef ANDROID} {$define CASTLE_ZLIB_USING_PASZLIB} {$endif}
-
-{$ifdef CASTLE_ZLIB_USING_PASZLIB}
-  {$define CastleZLib := PasZlib}
-  {$define CastleZStream := ZStream}
-{$endif}
-
 { PNG ------------------------------------------------------------------------ }
 
 { There are 3 ways to read/write the PNG format:
@@ -142,12 +131,6 @@
   {$define LIBPNG_CDECL}
 {$else}
   {$define LIBPNG_CDECL}
-{$endif}
-
-{$ifdef CASTLE_ZLIB_USING_PASZLIB}
-  {$ifndef CASTLE_PNG_USING_FCL_IMAGE}
-    {$warning If you define CASTLE_ZLIB_USING_PASZLIB, you have to also define CASTLE_PNG_USING_FCL_IMAGE (usually in castleconf.inc), since CastlePng interface depends on CastleZlin interface. Definining now CASTLE_PNG_USING_FCL_IMAGE automatically.}
-  {$endif}
 {$endif}
 
 { FpHttpClient --------------------------------------------------------------- }

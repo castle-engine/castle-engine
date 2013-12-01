@@ -330,12 +330,14 @@ end;
 
 { Decompress gzipped FileName.
   When ForceMemoryStream, always returns TMemoryStream. }
-function ReadGzipped(const FileName: string; const ForceMemoryStream: boolean): TStream;
+function ReadGzipped(var Stream: TStream; const ForceMemoryStream: boolean): TStream;
 var
   NewResult: TMemoryStream;
 begin
-  Result := TGZFileStream.Create(FileName, gzOpenRead);
+  Result := TGZFileStream.Create(Stream, false);
   try
+    Stream := nil; // Stream is owned by Result now
+
     if ForceMemoryStream then
     begin
       { TODO: our engine never uses both soGzip and soForceMemoryStream
@@ -350,28 +352,12 @@ begin
   end;
 end;
 
-{ Decompress (and free and nil) gzipped Stream.
-  When ForceMemoryStream, always returns TMemoryStream. }
-function ReadGzipped(var Stream: TStream; const ForceMemoryStream: boolean): TStream;
-var
-  TempFileName: string;
-begin
-  { for now, reading gzipped file from an arbitrary stream means using
-    a temporary file }
-  TempFileName := GetTempFileNameCheck;
-  if Log then
-    WritelnLog('Network', Format('Decompressing gzip from the network by temporary file "%s"', [TempFileName]));
-  StreamSaveToFile(Stream, FilenameToURISafe(TempFileName));
-  FreeAndNil(Stream);
-  Result := ReadGzipped(TempFileName, ForceMemoryStream);
-  CheckDeleteFile(TempFileName, true);
-end;
-
 function Download(const URL: string; const Options: TStreamOptions;
   out MimeType: string): TStream;
 var
   P, FileName, S: string;
   NetworkResult: TMemoryStream;
+  FileStream: TFileStream;
   DataURI: TDataURI;
   {$ifdef ANDROID}
   AssetStream: TReadAssetStream;
@@ -406,7 +392,10 @@ begin
       raise EDownloadError.CreateFmt('Cannot convert URL "%s" to filename', [URL]);
 
     if soGzip in Options then
-      Result := ReadGzipped(FileName, soForceMemoryStream in Options) else
+    begin
+      FileStream := TFileStream.Create(FileName, fmOpenRead);
+      Result := ReadGzipped(TStream(FileStream), soForceMemoryStream in Options);
+    end else
     if soForceMemoryStream in Options then
       Result := CreateMemoryStream(FileName) else
       Result := TFileStream.Create(FileName, fmOpenRead);
@@ -503,8 +492,10 @@ begin
   end else
     raise Exception.CreateFmt('Saving of URL with protocol "%s" not possible', [P]);
   if soGzip in Options then
-    Result := TGZFileStream.Create(FileName, gzOpenWrite) else
-    Result := TFileStream.Create(Filename, fmCreate);
+  begin
+    Result := TGZFileStream.Create(TFileStream.Create(FileName, fmCreate), true);
+  end else
+    Result := TFileStream.Create(FileName, fmCreate);
 end;
 
 end.

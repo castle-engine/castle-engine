@@ -17,42 +17,29 @@
 { Streams using zlib compression.
 
   This is adjusted from FPC sources unit fcl/inc/zstream.pp,
-  to use our CastleZLib unit. It is also cut down to TGZFileStream,
+  to use our CastleGzioInternal unit. It is also cut down to TGZFileStream,
   the only class useful for reading/writing gz files. }
 unit CastleZStream;
-
-{$I castleconf.inc}
-
-{$ifdef CASTLE_ZLIB_USING_PASZLIB}
-interface
-{ CastleZStream unit doesn't expose anything when CASTLE_ZLIB_USING_PASZLIB
-  is defined. Instead, use standard ZStream unit, that depends on PasZLib. }
-implementation
-end.
-{$else}
-
 
 interface
 
 uses
-  Sysutils, Classes, CastleZLib;
+  Sysutils, Classes, CastleGzioInternal;
 
 type
   EZlibError = class(EStreamError);
 
-  TGZOpenMode = (gzOpenRead,gzOpenWrite);
-
-  TGZFileStream = Class(TStream)
-    Private
-    FOpenMode : TGZOpenmode;
+  TGZFileStream = Class(TOwnerStream)
+  private
+    FWriteMode : boolean;
     FFIle : gzfile;
-    Public
-    Constructor Create(FileName: String;FileMode: TGZOpenMode);
+  public
+    Constructor Create(const Stream: TStream; const AWriteMode: boolean);
     Destructor Destroy;override;
     Function Read(Var Buffer; Count : longint): longint;override;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
-    end;
+  end;
 
 implementation
 
@@ -65,18 +52,12 @@ Const
 
 // TGZFileStream
 
-Constructor TGZFileStream.Create(FileName: String;FileMode: TGZOpenMode);
-
-Const OpenStrings : array[TGZOpenMode] of pchar = ('rb','wb');
-
+Constructor TGZFileStream.Create(const Stream: TStream; const AWriteMode: boolean);
 begin
-  if not CastleZLibInited then
-    raise EZlibError.CreateFmt('Zlib library (%s) not available, cannot read/write gzip files',
-      [ZLibraryName]);
-  FOpenMode:=FileMode;
-  FFile:=gzopen (PChar(FileName),Openstrings[FileMode]);
-  If FFile=Nil then
-    Raise ezlibError.CreateFmt (SCouldntOpenFIle,[FileName]);
+  inherited Create(Stream);
+  SourceOwner := true;
+  FWriteMode := AWriteMode;
+  FFile:=gzopen (Stream, AWriteMode);
 end;
 
 Destructor TGZFileStream.Destroy;
@@ -88,14 +69,14 @@ end;
 
 Function TGZFileStream.Read(Var Buffer; Count : longint): longint;
 begin
-  If FOpenMode=gzOpenWrite then
+  If FWriteMode then
     Raise ezliberror.create(SWriteOnlyStream);
   Result:=gzRead(FFile,@Buffer,Count);
 end;
 
 function TGZFileStream.Write(const Buffer; Count: Longint): Longint;
 begin
-  If FOpenMode=gzOpenRead then
+  If not FWriteMode then
     Raise EzlibError.Create(SReadonlyStream);
   Result:=gzWrite(FFile,@Buffer,Count);
 end;
@@ -108,5 +89,3 @@ begin
 end;
 
 end.
-
-{$endif CASTLE_ZLIB_USING_PASZLIB}

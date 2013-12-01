@@ -115,6 +115,7 @@ begin
     P.Targets.AddUnit('castleconfig.pas');
     P.Targets.AddUnit('castledynlib.pas');
     P.Targets.AddUnit('castlefilesutils.pas');
+    P.Targets.AddUnit('castlegziointernal.pas');
     P.Targets.AddUnit('castleinterfaces.pas');
     P.Targets.AddUnit('castlelog.pas');
     P.Targets.AddUnit('castleopendocument.pas');
