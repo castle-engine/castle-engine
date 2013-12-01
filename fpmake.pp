@@ -30,27 +30,28 @@ begin
         P.OSes := AllUnixOSes + [win32, win64];
       But below we limit the list only to the OSes actually tested. }
     P.OSes := [Darwin, Linux, Freebsd, Win32, IPhoneSim
-      {$ifdef ANDROID_POSSIBLE} , android {$endif}];
+      {$ifdef ANDROID_POSSIBLE} , Android {$endif}];
 
-    P.Options {$ifndef VER2_2} .Text {$endif} := '@castle-fpc.cfg';
+    P.Options.Text := '@castle-fpc.cfg';
 
     { Some variables derived from Defaults.OS/CPU. }
     IOS := (Defaults.OS = IPhoneSim) or
       ((Defaults.OS = Darwin) and (Defaults.CPU = Arm));
-    Xlib := Defaults.OS in (AllUnixOSes - [Android]);
+    Xlib := Defaults.OS in (AllUnixOSes
+      {$ifdef ANDROID_POSSIBLE} - [Android] {$endif});
 
     { Add dependencies on FPC packages.
       These aren't really needed, as your default fpc.cfg should
       point to them anyway. They are needed only when compiling with --nofpccfg.
       Anyway, maybe this is a good place to document my dependencies
       on FPC packages --- so let's do this. }
-    if (Defaults.OS <> Android) and not IOS then
+    if {$ifdef ANDROID_POSSIBLE} (Defaults.OS <> Android) and {$endif} not IOS then
       P.Dependencies.Add('opengl');
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-image');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-process');
-    if Defaults.OS <> Android then
+    {$ifdef ANDROID_POSSIBLE} if Defaults.OS <> Android then {$endif}
       P.Dependencies.Add('fcl-web');
     P.Dependencies.Add('pasjpeg');
     P.Dependencies.Add('paszlib'); { used by FpReadTiff, we don't use paszlib in our engine }
