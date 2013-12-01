@@ -252,15 +252,15 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
     { How many TGameSceneManager have references to our children by
       TGameSceneManager.Info? }
     References: Cardinal;
-    { Load level.xml file from Info.URL. }
-    procedure LoadLevelXml(const Info: TFileInfo);
+    procedure AddFromInfo(const Info: TFileInfo);
     { Save Played properties of every level. }
     procedure SaveToConfig(const Config: TCastleConfig);
   public
     { raises Exception if such Name is not on the list. }
     function FindName(const AName: string): TLevelInfo;
 
-    { Add all available levels found by scanning for level.xml inside data directory.
+    { Add all available levels found by scanning for level.xml inside data
+      directory.
       Overloaded version without parameter just looks inside ApplicationData.
       For the specification of level.xml format see
       [http://castle-engine.sourceforge.net/creating_data_levels.php] .
@@ -274,10 +274,22 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
       All TLevelInfo.Played values are initially set to @false.
       You must call LoadFromConfig @italic(after) calling this
       to read TLevelInfo.Played values from user preferences file.
+
+      Note that on Android, searching the Android asset filesystem
+      recursively is not possible (this is a fault of Android NDK API...).
+      So instead of this method, you should use AddFromFile repeatedly
+      to explicitly list all level.xml locations.
+
       @groupBegin }
     procedure LoadFromFiles(const LevelsPath: string);
     procedure LoadFromFiles;
     { @groupEnd }
+
+    { Add a single level information from the XML file at given location.
+      The given XML file must have <level> root element and be written
+      according to
+      http://castle-engine.sourceforge.net/creating_data_levels.php .  }
+    procedure AddFromFile(const URL: string);
 
     { For all available levels, read their TLevelInfo.Played
       from user preferences.
@@ -1248,7 +1260,12 @@ begin
       Items[I].DefaultPlayed);
 end;
 
-procedure TLevelInfoList.LoadLevelXml(const Info: TFileInfo);
+procedure TLevelInfoList.AddFromInfo(const Info: TFileInfo);
+begin
+  AddFromFile(Info.URL);
+end;
+
+procedure TLevelInfoList.AddFromFile(const URL: string);
 var
   NewLevelInfo: TLevelInfo;
 begin
@@ -1256,18 +1273,14 @@ begin
   Add(NewLevelInfo);
   NewLevelInfo.Played := false;
 
-  URLReadXML(NewLevelInfo.Document, Info.URL);
-  NewLevelInfo.DocumentBaseURL := Info.URL;
+  URLReadXML(NewLevelInfo.Document, URL);
+  NewLevelInfo.DocumentBaseURL := URL;
   NewLevelInfo.LoadFromDocument;
 end;
 
 procedure TLevelInfoList.LoadFromFiles(const LevelsPath: string);
 begin
-  {$ifdef DARKEST_BEFORE_DAWN_HACK}
-  LoadLevelXml(ApplicationData('level/1/level.xml'));
-  {$else}
-  FindFiles(LevelsPath, 'level.xml', false, @LoadLevelXml, [ffRecursive]);
-  {$endif}
+  FindFiles(LevelsPath, 'level.xml', false, @LoadFromInfo, [ffRecursive]);
 end;
 
 procedure TLevelInfoList.LoadFromFiles;

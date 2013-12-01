@@ -29,7 +29,7 @@ implementation
 
 uses SysUtils, CastleWindow, CastleControls, CastleUIControls, CastleRectangles,
   CastleGLUtils, CastleColors, X3DNodes, CastleFilesUtils, CastleLog,
-  CastleSceneCore;
+  CastleSceneCore, CastleFindFiles, CastleStringUtils;
 
 var
   {$ifdef SOLID_BACKGROUND}
@@ -57,6 +57,12 @@ begin
   if Window.TouchInterface = High(TTouchCtlInterface) then
     Window.TouchInterface := Low(TTouchCtlInterface) else
     Window.TouchInterface := Succ(Window.TouchInterface);
+end;
+
+procedure FindFilesCallback(const FileInfo: TFileInfo; Data: Pointer);
+begin
+  WritelnLog('FindFiles', 'Found URL:%s, Name:%s, AbsoluteName:%s, Directory:%s',
+    [FileInfo.URL, FileInfo.Name, FileInfo.AbsoluteName, BoolToStr[FileInfo.Directory]]);
 end;
 
 { One-time initialization. }
@@ -100,6 +106,12 @@ begin
     TEffectNode, 'MyShaderEffect', false) as TEffectNode;
 
   Window.TouchInterface := etciCtlWalkDragRotate;
+
+  { Test that FindFiles works also on Android asset filesystem. }
+  FindFiles(ApplicationData(''), '*', true, @FindFilesCallback, nil, [ffRecursive]);
+  FindFiles(ApplicationData('') + 'skies', '*', true, @FindFilesCallback, nil, [ffRecursive]);
+  FindFiles(ApplicationData('') + 'textures/castle', '*', true, @FindFilesCallback, nil, [ffRecursive]);
+  FindFiles(ApplicationData('') + 'textures/castle/', '*', true, @FindFilesCallback, nil, [ffRecursive]);
 end;
 
 procedure WindowResize(Sender: TCastleWindowBase);

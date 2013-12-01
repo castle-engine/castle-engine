@@ -27,7 +27,11 @@ type
   TFileInfo = record
     { Filename, without any directory path. }
     Name: string;
-    { Expanded (with absolute path) file name. }
+    { Expanded (with absolute path) file name.
+      For local filesystem paths, this is an absolute filename.
+      For Android asset, this is an absolute path within asset (note that
+      absolute paths within Android assets do @italic(not) start with slash).
+      It's adviced to use URL field instead of this. }
     AbsoluteName: string;
     { Absolute URL. }
     URL: string;
@@ -37,7 +41,6 @@ type
 
   TFileInfoList = specialize TGenericStructList<TFileInfo>;
 
-type
   TFoundFileProc = procedure (const FileInfo: TFileInfo; Data: Pointer);
   TFoundFileMethod = procedure (const FileInfo: TFileInfo) of object;
 
@@ -60,7 +63,12 @@ type
       (unless some time-consuming precautions would be taken, or a level limit).
       In other words, it's just not implemented.
       But it @italic(may) be implemented someday, as this would be definitely
-      something useful. }
+      something useful.
+
+      For Android asset searching: note that recursive searching
+      if unfortunately not supported. Although Android NDK contains functions
+      to iterate over a files inside a directory, it stupidly omits
+      the subdirectories (only returns the non-directory files). }
     ffRecursive,
 
     { Determines the order of reporting directory contents.
@@ -153,7 +161,8 @@ function FindFirstFile(const Mask: string;
 
 implementation
 
-uses CastleFilesUtils, CastleURIUtils;
+uses CastleFilesUtils, CastleURIUtils, CastleLog, StrUtils
+  {$ifdef ANDROID}, CastleAndroidAssetManager, CastleAndroidAssetStream {$endif};
 
 { Note that some limitations of FindFirst/FindNext underneath are reflected in our
   functionality. Under Windows, mask is treated somewhat hacky:
@@ -177,37 +186,93 @@ uses CastleFilesUtils, CastleURIUtils;
 function FindFiles_NonRecursive(const Path, Mask: string;
   const FindDirectories: boolean;
   FileProc: TFoundFileProc; FileProcData: Pointer): Cardinal;
+
+  procedure LocalFileSystem;
+  var
+    AbsoluteName, LocalPath: string;
+    FileRec: TSearchRec;
+    Attr, searchError: integer;
+    FileInfo: TFileInfo;
+  begin
+    Result := 0;
+
+    Attr := faReadOnly or faHidden or faArchive { for symlinks } or faSysFile;
+    if FindDirectories then
+      Attr := Attr or faDirectory;
+
+    LocalPath := InclPathDelim(URIToFilenameSafe(Path));
+    SearchError := FindFirst(LocalPath + Mask, Attr, FileRec);
+    try
+      while SearchError = 0 do
+      begin
+        AbsoluteName := LocalPath + FileRec.Name;
+        Inc(Result);
+
+        FileInfo.AbsoluteName := AbsoluteName;
+        FileInfo.Name := FileRec.Name;
+        FileInfo.Directory := (FileRec.Attr and faDirectory) <> 0;
+        FileInfo.Size := FileRec.Size;
+        FileInfo.URL := FilenameToURISafe(AbsoluteName);
+        FileProc(FileInfo, FileProcData);
+
+        SearchError := FindNext(FileRec);
+      end;
+    finally FindClose(FileRec) end;
+  end;
+
+  {$ifdef ANDROID}
+  procedure AndroidAssetFileSystem;
+  var
+    AssetDir, AssetName: string;
+    Dir: PAAssetDir;
+    FileInfo: TFileInfo;
+  begin
+    Result := 0;
+    AssetDir := URIToAssetPath(Path);
+    Dir := AAssetManager_openDir(AssetManager, PChar(ExclPathDelim(AssetDir)));
+    if Dir <> nil then
+    try
+      repeat
+        AssetName := AAssetDir_getNextFileName(Dir);
+        if AssetName = '' then
+          Break;
+
+        if AssetDir <> '' then
+          { Contrary to AAssetDir_getNextFileName docs, returned AssetName
+            *does not* contain full path, we have to prefix it with AssetDir.
+            See http://code.google.com/p/android/issues/detail?id=35079 }
+          FileInfo.AbsoluteName := InclPathDelim(AssetDir) + AssetName else
+          FileInfo.AbsoluteName := AssetName;
+        FileInfo.Name := AssetName;
+        { AAssetDir_getNextFileName never returns directories. }
+        FileInfo.Directory := false;
+        FileInfo.Size := 0;
+        FileInfo.URL := AssetPathToURI(FileInfo.AbsoluteName);
+        if IsWild(FileInfo.Name, Mask, false) then
+        begin
+          FileProc(FileInfo, FileProcData);
+          Inc(Result);
+        end;
+      until false;
+    finally AAssetDir_close(Dir) end;
+  end;
+  {$endif}
+
 var
-  AbsoluteName, LocalPath: string;
-  FileRec: TSearchRec;
-  Attr, searchError: integer;
-  FileInfo: TFileInfo;
+  P: string;
 begin
-  Result := 0;
+  P := URIProtocol(Path);
 
-  Attr := faReadOnly or faHidden or faArchive { for symlinks } or faSysFile;
-  if FindDirectories then
-    Attr := Attr or faDirectory;
-
-  LocalPath := InclPathDelim(URIToFilenameSafe(Path));
-  SearchError := FindFirst(LocalPath + Mask, Attr, FileRec);
-  try
-    while SearchError = 0 do
-    begin
-      AbsoluteName := LocalPath + FileRec.Name;
-      Inc(Result);
-
-      FileInfo.AbsoluteName := AbsoluteName;
-      FileInfo.Name := FileRec.Name;
-      FileInfo.Directory := (FileRec.Attr and faDirectory) <> 0;
-      FileInfo.Size := FileRec.Size;
-      FileInfo.URL := FilenameToURISafe(AbsoluteName);
-      FileProc(FileInfo, FileProcData);
-
-      SearchError := FindNext(FileRec);
-    end;
-  finally FindClose(FileRec) end;
+  if (P = 'file') or (P = '') then
+    LocalFileSystem else
+  {$ifdef ANDROID}
+  if P = 'assets' then
+    AndroidAssetFileSystem else
+  {$endif}
+    WritelnLog('FindFiles',
+      'Searching inside filesystem with protocol %s not possible', [P]);
 end;
+
 
 { This is equivalent to FindFiles with Recursive = true,
   and ReadAllFirst = false. }
@@ -221,14 +286,25 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
       FindFiles_NonRecursive(Path, Mask, FindDirectories, FileProc, FileProcData);
   end;
 
+  { Search in subdirectories recursively. }
   procedure WriteSubdirs;
   var
     FileRec: TSearchRec;
     SearchError: integer;
-    LocalPath: string;
-  { go down recursively }
+    P, LocalPath: string;
   begin
-    LocalPath := InclPathDelim(URIToFilenameSafe(Path));
+    P := URIProtocol(Path);
+    if P = 'file' then
+      LocalPath := URIToFilenameSafe(Path) else
+    if P = '' then
+      LocalPath := Path else
+    begin
+      WritelnLog('FindFiles',
+        'Searching inside subdirectories with protocol %s not possible', [P]);
+      Exit;
+    end;
+
+    LocalPath := InclPathDelim(LocalPath);
     SearchError := FindFirst(LocalPath + '*',
       faDirectory { potential flags on directory: } or faSysFile or faArchive,
       FileRec);

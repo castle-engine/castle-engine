@@ -61,9 +61,15 @@ var
     code (usually CastleWindow), and used for reading assets. }
   AssetManager: PAAssetManager;
 
+{ Assuming that this is @code(assets:/xxx/yyy) URL, convert it to an asset path
+  @code(xxx/yyy). Does percent-decoding along the way. }
+function URIToAssetPath(const URI: string): string;
+
+function AssetPathToURI(const AssetPath: string): string;
+
 implementation
 
-uses CastleClassUtils, CastleLog, CastleStringUtils;
+uses CastleClassUtils, CastleLog, CastleStringUtils, URIParser;
 
 constructor TReadAssetStream.Create(const Path: string);
 begin
@@ -119,6 +125,29 @@ function TReadAssetStream.Write(const Buffer; Count: Longint): Longint;
 begin
   raise EStreamNotImplementedWrite.Create('TReadAssetStream.Write not supported');
   Result := 0; // just to get rid of warning
+end;
+
+{ global routines ------------------------------------------------------------ }
+
+function URIToAssetPath(const URI: string): string;
+var
+  U: TURI;
+begin
+  U := ParseURI(URI);
+  if SameText(U.Protocol, 'assets') then
+    Result := PrefixRemove('/', U.Path + U.Document, false) else
+    raise Exception.CreateFmt('URI does not have protocol "assets:", cannot convert to asset path: %s, protocol %s',
+      [URI, U.Protocol]);
+end;
+
+function AssetPathToURI(const AssetPath: string): string;
+var
+  U: TURI;
+begin
+  FillByte(U, SizeOf(U), 0);
+  U.Protocol := 'assets';
+  U.Path := '/' + AssetPath; // AssetPath does not start with slasht
+  Result := EncodeURI(U);
 end;
 
 end.

@@ -417,8 +417,7 @@ begin
   if P = 'assets' then
   begin
     {$ifdef ANDROID}
-    AssetStream := TReadAssetStream.Create(
-      PrefixRemove('/', URIDeleteProtocol(URL), false));
+    AssetStream := TReadAssetStream.Create(URIToAssetPath(URL));
     try
       if soGzip in Options then
         Result := ReadGzipped(TStream(AssetStream), soForceMemoryStream in Options) else

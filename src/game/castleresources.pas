@@ -298,7 +298,8 @@ type
   T3DResourceList = class(specialize TFPGObjectList<T3DResource>)
   private
     ResourceXmlReload: boolean;
-    procedure LoadResourceXml(const FileInfo: TFileInfo);
+    procedure AddFromInfo(const FileInfo: TFileInfo);
+    procedure AddFromFileDefaultReload(const URL: string);
   public
     { Find resource with given T3DResource.Name.
       @raises Exception if not found and NilWhenNotFound = false. }
@@ -308,6 +309,11 @@ type
       resource.xml files found in given Path.
       Overloaded version without Path just scans the whole ApplicationData
       directory.
+
+      Note that on Android, searching the Android asset filesystem
+      recursively is not possible (this is a fault of Android NDK API...).
+      So instead of this method, you should use AddFromFile repeatedly
+      to explicitly list all resource.xml locations.
 
       @param(Reload
         If Reload, then we will not clear the initial list contents.
@@ -323,13 +329,11 @@ type
     { @groupEnd }
 
     { Load a single resource from resource.xml file.
-      You usually do not want to use this, it's easier to load all your
-      resources in one go by @link(LoadFromFiles) call.
 
       @param(Reload If @true, and the loaded resource will have a name
         matching existing T3DResource.Name, we will replace the current resource.
         Otherwise, we'll make an exception.) }
-    procedure LoadResourceFile(const URL: string; const Reload: boolean = false);
+    procedure AddFromFile(const URL: string; const Reload: boolean = false);
 
     { Reads <prepare_resources> XML element.
       <prepare_resources> element is an optional child of given ParentElement.
@@ -679,7 +683,12 @@ end;
 
 { T3DResourceList ------------------------------------------------------------- }
 
-procedure T3DResourceList.LoadResourceXml(const FileInfo: TFileInfo);
+procedure T3DResourceList.AddFromInfo(const FileInfo: TFileInfo);
+begin
+  AddFromFileDefaultReload(FileInfo.URL);
+end;
+
+procedure T3DResourceList.AddFromFileDefaultReload(const URL: string);
 var
   Xml: TCastleConfig;
   ResourceClassName, ResourceName: string;
@@ -692,16 +701,16 @@ begin
     try
       Xml.RootName := 'resource';
       Xml.NotModified; { otherwise changing RootName makes it modified, and saved back at freeing }
-      Xml.URL := FileInfo.URL;
+      Xml.URL := URL;
       if Log then
-        WritelnLog('Resources', Format('Loading T3DResource from "%s"', [FileInfo.URL]));
+        WritelnLog('Resources', Format('Loading T3DResource from "%s"', [URL]));
 
       ResourceClassName := Xml.GetNonEmptyValue('type');
       ResourceClassIndex := ResourceClasses.IndexOf(ResourceClassName);
       if ResourceClassIndex <> -1 then
         ResourceClass := ResourceClasses.Data[ResourceClassIndex] else
         raise Exception.CreateFmt('Resource type "%s" not found, mentioned in file "%s"',
-          [ResourceClassName, FileInfo.URL]);
+          [ResourceClassName, URL]);
 
       ResourceName := Xml.GetNonEmptyValue('name');
       if CharsPos(AllChars - ['a'..'z', 'A'..'Z'], ResourceName) <> 0 then
@@ -730,20 +739,17 @@ begin
         it occured }
       on E: EMissingAttribute do
       begin
-        E.Message := E.Message + ' (When reading "' + FileInfo.URL + '")';
+        E.Message := E.Message + ' (When reading "' + URL + '")';
         raise;
       end;
     end;
   finally FreeAndNil(Xml) end;
 end;
 
-procedure T3DResourceList.LoadResourceFile(const URL: string; const Reload: boolean);
-var
-  Info: TFileInfo;
+procedure T3DResourceList.AddFromFile(const URL: string; const Reload: boolean);
 begin
   ResourceXmlReload := Reload;
-  Info.URL := URL; // we know that LoadResourceXml only looks at URL
-  LoadResourceXml(Info);
+  AddFromFileDefaultReload(URL);
 end;
 
 procedure T3DResourceList.LoadFromFiles(const Path: string; const Reload: boolean);
@@ -751,11 +757,7 @@ begin
   if not Reload then
     Clear;
   ResourceXmlReload := Reload;
-  {$ifdef DARKEST_BEFORE_DAWN_HACK}
-  LoadResourceXml(ApplicationData('creatures/light/resource.xml'));
-  {$else}
-  FindFiles(Path, 'resource.xml', false, @LoadResourceXml, [ffRecursive]);
-  {$endif}
+  FindFiles(Path, 'resource.xml', false, @AddFromInfo, [ffRecursive]);
 end;
 
 procedure T3DResourceList.LoadFromFiles(const Reload: boolean);
