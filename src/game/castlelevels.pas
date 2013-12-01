@@ -1280,7 +1280,7 @@ end;
 
 procedure TLevelInfoList.LoadFromFiles(const LevelsPath: string);
 begin
-  FindFiles(LevelsPath, 'level.xml', false, @LoadFromInfo, [ffRecursive]);
+  FindFiles(LevelsPath, 'level.xml', false, @AddFromInfo, [ffRecursive]);
 end;
 
 procedure TLevelInfoList.LoadFromFiles;
