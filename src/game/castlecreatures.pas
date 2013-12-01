@@ -940,11 +940,13 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
+  TCreatureExistsEvent = function(const Creature: TCreature): boolean of object;
+
 var
   DebugTimeStopForCreatures: boolean = false;
 
   { Global callback to control creatures existence. }
-  OnCreatureExists: T3DExistsEvent;
+  OnCreatureExists: TCreatureExistsEvent;
 
 implementation
 

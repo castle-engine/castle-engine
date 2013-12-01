@@ -578,9 +578,11 @@ var
     procedure UseItem(const Index: Integer); virtual;
   end;
 
+  TItemOnWorldExistsEvent = function(const Item: TItemOnWorld): boolean of object;
+
 var
   { Global callback to control items on level existence. }
-  OnItemOnWorldExists: T3DExistsEvent;
+  OnItemOnWorldExists: TItemOnWorldExistsEvent;
 
 implementation
 
