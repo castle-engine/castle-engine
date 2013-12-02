@@ -63,7 +63,6 @@ function gzflush (f:gzFile; flush:integer)           : integer;
 function gzseek  (f:gzfile; offset:z_off_t; whence:integer) : z_off_t;
 function gztell  (f:gzfile) : z_off_t;
 function gzclose (f:gzFile)                      : integer;
-function gzerror (f:gzFile; var errnum:smallint)      : string;
 function gzsetparams (f:gzfile; level:integer; strategy:integer) : integer;
 function gzrewind (f:gzFile) : integer;
 function gzeof (f:gzfile) : boolean;
@@ -102,8 +101,7 @@ type gz_stream = record
   inbuf       : Pbyte;   { input buffer }
   outbuf      : Pbyte;   { output buffer }
   crc         : cardinal;    { crc32 of uncompressed data }
-  msg,                    { error message - limit 79 chars }
-  path        : string[79];   { path name for debugging only - limit 79 chars }
+  msg         : string[79]; { error message - limit 79 chars }
   transparent : boolean;  { true if input file is not a .gz file }
   WriteMode   : boolean;  { false means that we're in read mode }
   startpos    : longint;     { start of compressed data in file (header skipped) }
@@ -201,7 +199,7 @@ begin
     gzheader [6] := 0;            { time[2] }
     gzheader [7] := 0;            { time[3] }
     gzheader [8] := 0;            { xflags }
-    gzheader [9] := 0;            { OS code = MS-DOS }
+    gzheader [9] := {$ifdef UNIX} 3 {$else} 0 {$endif}; { OS code, see http://www.gzip.org/zlib/rfc-gzip.html#header-trailer }
     s^.gzStream.WriteBuffer(gzheader, 10);
     s^.startpos := longint(10);
 {$ENDIF}
@@ -1074,7 +1072,7 @@ begin
   if (errnum = Z_ERRNO) then m := '';
   if (m = '') then m := zError(s^.z_err);
 
-  s^.msg := s^.path+': '+m;
+  s^.msg := m;
   gzerror := s^.msg;
 end;
 
