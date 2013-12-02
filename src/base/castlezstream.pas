@@ -72,6 +72,8 @@ begin
   If FWriteMode then
     Raise ezliberror.create(SWriteOnlyStream);
   Result:=gzRead(FFile,@Buffer,Count);
+  if Result < 0 then
+    raise EZlibError.Create('Gzip decompression error: ' + gzerror(FFile));
 end;
 
 function TGZFileStream.Write(const Buffer; Count: Longint): Longint;
@@ -79,6 +81,8 @@ begin
   If not FWriteMode then
     Raise EzlibError.Create(SReadonlyStream);
   Result:=gzWrite(FFile,@Buffer,Count);
+  if Result < 0 then
+    raise EZlibError.Create('Gzip compression error: ' + gzerror(FFile));
 end;
 
 function TGZFileStream.Seek(Offset: Longint; Origin: Word): Longint;

@@ -60,6 +60,7 @@ function gzputs  (f:gzfile; s:Pchar) : integer;
 function gzflush (f:gzFile; flush:integer)           : integer;
 {$endif}
 
+function gzerror (f:gzfile) : string;
 function gzseek  (f:gzfile; offset:z_off_t; whence:integer) : z_off_t;
 function gztell  (f:gzfile) : z_off_t;
 function gzclose (f:gzFile)                      : integer;
@@ -1051,8 +1052,9 @@ end;
 
 ============================================================================}
 
-function gzerror (f:gzfile; var errnum:smallint) : string;
+function gzerror (f:gzfile) : string;
 var
+ errnum:smallint;
  m : string;
  s : gz_streamp;
 begin
