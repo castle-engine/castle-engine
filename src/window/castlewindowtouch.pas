@@ -174,52 +174,55 @@ procedure TCastleWindowTouch.SetTouchInterface(const Value: TTouchCtlInterface);
 var
   WalkCamera: TWalkCamera;
 begin
-  FTouchInterface := Value;
+  if FTouchInterface <> Value then
+  begin
+    FTouchInterface := Value;
 
-  if SceneManager.Camera <> nil then
-  begin
-    if SceneManager.Camera is TUniversalCamera then
-      WalkCamera := (SceneManager.Camera as TUniversalCamera).Walk else
-    if SceneManager.Camera is TWalkCamera then
-      WalkCamera := SceneManager.Camera as TWalkCamera else
-      WalkCamera := nil;
-  end;
+    if SceneManager.Camera <> nil then
+    begin
+      if SceneManager.Camera is TUniversalCamera then
+        WalkCamera := (SceneManager.Camera as TUniversalCamera).Walk else
+      if SceneManager.Camera is TWalkCamera then
+        WalkCamera := SceneManager.Camera as TWalkCamera else
+        WalkCamera := nil;
+    end;
 
-  if Value = etciCtlWalkCtlRotate then
-  begin
-    UpdateTouchController(true, true, ctcmWalking);
-    UpdateTouchController(false, true, ctcmHeadRotation);
-    if WalkCamera<>nil then
-      WalkCamera.MouseDragMode := cwdmNone;
-  end else
-  if Value = etciCtlWalkDragRotate then
-  begin
-    UpdateTouchController(true, false);
-    UpdateTouchController(false, true, ctcmWalking);
-    if WalkCamera<>nil then
-      WalkCamera.MouseDragMode := cwdmDragToRotate;
-  end else
-  if Value = etciCtlFlyCtlWalkDragRotate then
-  begin
-    UpdateTouchController(true, true, ctcmFlyUpdown);
-    UpdateTouchController(false, true, ctcmWalking);
-    if WalkCamera<>nil then
-      WalkCamera.MouseDragMode := cwdmDragToRotate;
-  end else
-  if Value = etciCtlPanXYDragRotate then
-  begin
-    UpdateTouchController(true, false);
-    UpdateTouchController(false, true, ctcmPanXY);
-    if WalkCamera<>nil then
-      WalkCamera.MouseDragMode := cwdmDragToRotate;
-  end else
-  begin
-    UpdateTouchController(true, false);
-    UpdateTouchController(false, false);
-    if WalkCamera <> nil then
-      WalkCamera.MouseDragMode := cwdmDragToWalk;
+    if Value = etciCtlWalkCtlRotate then
+    begin
+      UpdateTouchController(true, true, ctcmWalking);
+      UpdateTouchController(false, true, ctcmHeadRotation);
+      if WalkCamera<>nil then
+        WalkCamera.MouseDragMode := cwdmNone;
+    end else
+    if Value = etciCtlWalkDragRotate then
+    begin
+      UpdateTouchController(true, false);
+      UpdateTouchController(false, true, ctcmWalking);
+      if WalkCamera<>nil then
+        WalkCamera.MouseDragMode := cwdmDragToRotate;
+    end else
+    if Value = etciCtlFlyCtlWalkDragRotate then
+    begin
+      UpdateTouchController(true, true, ctcmFlyUpdown);
+      UpdateTouchController(false, true, ctcmWalking);
+      if WalkCamera<>nil then
+        WalkCamera.MouseDragMode := cwdmDragToRotate;
+    end else
+    if Value = etciCtlPanXYDragRotate then
+    begin
+      UpdateTouchController(true, false);
+      UpdateTouchController(false, true, ctcmPanXY);
+      if WalkCamera<>nil then
+        WalkCamera.MouseDragMode := cwdmDragToRotate;
+    end else
+    begin
+      UpdateTouchController(true, false);
+      UpdateTouchController(false, false);
+      if WalkCamera <> nil then
+        WalkCamera.MouseDragMode := cwdmDragToWalk;
+    end;
+    UpdateTouchPositions;
   end;
-  UpdateTouchPositions;
 end;
 
 procedure TCastleWindowTouch.UpdateUserInterface;
