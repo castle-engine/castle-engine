@@ -337,12 +337,29 @@ function SaveScreenToGL_NoFlush(const Rect: TRectangle;
   Usually you don't need these functions, LoadGLTexture* and TGLImage
   and such call it automatically when needed. }
 
+type
+  TTextureSizing = (
+    { Texture size does not have to be a power of two
+      (unless GLFeatures.TextureNonPowerOfTwo = @false, in which case all textures
+      must have power-of-two, and then tsAny may be scaled to satisfy it
+      (but it still will not be scaled for GLTextureScale)).
+      It is not affected by GLTextureScale. }
+    tsAny,
+    { Texture size must be a power of two.
+      It is not affected by GLTextureScale, because we cannot scale it. }
+    tsRequiredPowerOf2,
+    { Texture size must be a power of two.
+      It is affected by GLTextureScale, we can scale it. }
+    tsScalablePowerOf2
+  );
+
 { Resize the image to a size accepted as GL_TEXTURE_2D texture size
   for OpenGL. It tries to resize to a larger size, not smaller,
   to avoid losing image information.
 
-  It also makes texture have power-of-two size, if AllowNonPowerOfTwo
-  = @false. This is a must for normal textures, used for 3D rendering
+  It also makes texture have power-of-two size, if Sizing <> tsAny
+  (or if GLFeatures.TextureNonPowerOfTwo = @false).
+  This is a must for normal textures, used for 3D rendering
   (with mipmapping and such).
   Using OpenGL non-power-of-2 textures is not good for such usage case,
   some OpenGLs crash (ATI),
@@ -350,22 +367,21 @@ function SaveScreenToGL_NoFlush(const Rect: TRectangle;
   OpenGL ES explicitly limits what you can do with non-power-of-2.
   Sample model using non-power-of-2 is in inlined_textures.wrl.
 
-  Use AllowNonPowerOfTwo = @true only for textures that you plan to use
-  for drawing GUI images by TGLImage. Of course, be sure to check
-  first does OpenGL support it at all (GLTextureNonPowerOfTwo).
+  Use Sizing = tsAny only for textures that you plan to use
+  for drawing GUI images by TGLImage.
 
   @groupBegin }
-procedure ResizeForTextureSize(var r: TCastleImage; const AllowNonPowerOfTwo: boolean);
-function ResizeToTextureSize(const r: TCastleImage; const AllowNonPowerOfTwo: boolean): TCastleImage;
+procedure ResizeForTextureSize(var r: TCastleImage; const Sizing: TTextureSizing);
+function ResizeToTextureSize(const r: TCastleImage; const Sizing: TTextureSizing): TCastleImage;
+function ResizeToTextureSize(const Size: Cardinal; const Sizing: TTextureSizing): Cardinal;
 { @groupEnd }
 
 { Does image have proper size for 2D OpenGL texture.
   See ResizeForTextureSize. Note that this checks glGet(GL_MAX_TEXTURE_SIZE),
   so requires initialized OpenGL context. }
-function IsTextureSized(const r: TEncodedImage; const AllowNonPowerOfTwo: boolean): boolean;
+function IsTextureSized(const r: TEncodedImage; const Sizing: TTextureSizing): boolean;
 
-function IsTextureSized(const Width, Height: Cardinal; const AllowNonPowerOfTwo: boolean): boolean;
-procedure ResizeToTextureSize(var Width, Height: Cardinal; const AllowNonPowerOfTwo: boolean);
+function IsTextureSized(const Width, Height: Cardinal; const Sizing: TTextureSizing): boolean;
 
 function IsCubeMapTextureSized(const Size: Cardinal): boolean;
 function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
@@ -425,6 +441,25 @@ function TextureFilter(const Minification: TMinificationFilter;
 procedure SetTextureFilter(const Target: TGLenum; const Filter: TTextureFilter);
 
 { Loading textures ----------------------------------------------------------- }
+
+var
+  { Scaling for all textures loaded to OpenGL.
+    This allows you to conserve GPU memory.
+    Each size (width, height, and (for 3D textures) depth) is scaled
+    by 1 / 2^GLTextureScale.
+    So value = 1 means no scaling, value = 2 means that each size is 1/2
+    (texture area is 1/4), value = 3 means that each size is 1/4 and so on.
+
+    Note that textures used for GUI, by TGLImage
+    (more precisely: all non-power-of-2 textures) avoid this scaling entirely. }
+  GLTextureScale: Cardinal = 1;
+
+  { Contraints the scaling done by GLTextureScale.
+    Scaling caused by GLTextureScale cannot scale texture to something
+    less than GLTextureMinSize. If texture size was already < GLTextureMinSize,
+    it is not scaled at all by GLTextureScale.
+    This must be a power of two. }
+  GLTextureMinSize: Cardinal = 16;
 
 type
   { }
@@ -1032,9 +1067,9 @@ begin
 
   glGenTextures(1, @Texture);
   glBindTexture(GL_TEXTURE_2D, Texture);
-  if not IsTextureSized(Image, GLFeatures.TextureNonPowerOfTwo) then
+  if not IsTextureSized(Image, tsAny) then
   begin
-    NewImage := ResizeToTextureSize(Image, GLFeatures.TextureNonPowerOfTwo);
+    NewImage := ResizeToTextureSize(Image, tsAny);
     try
       LoadImage(NewImage);
     finally FreeAndNil(NewImage) end;
@@ -1436,71 +1471,62 @@ end;
 { ----------------------------------------------------------------------
   Adjusting image size for 2D texture. }
 
-function IsTextureSized(const Width, Height: Cardinal;
-  const AllowNonPowerOfTwo: boolean): boolean;
+function ResizeToTextureSize(const Size: Cardinal; const Sizing: TTextureSizing): Cardinal;
 begin
-  if AllowNonPowerOfTwo then
-    Result :=
-      (Width <= GLFeatures.MaxTextureSize) and
-      (Height <= GLFeatures.MaxTextureSize) else
-    Result :=
-      IsPowerOf2(Width) and
-      IsPowerOf2(Height) and
-      (Width <= GLFeatures.MaxTextureSize) and
-      (Height <= GLFeatures.MaxTextureSize);
+  { make sure it's power of 2, if necessary }
+  if ((Sizing = tsAny) and GLFeatures.TextureNonPowerOfTwo) or
+    IsPowerOf2(Size) then
+    Result := Size else
+    Result := 1 shl (Biggest2Exponent(Size) + 1);
+
+  { apply GLTextureScale }
+  if (Sizing = tsScalablePowerOf2) and
+     (GLTextureScale > 1) and
+     (Result > GLTextureMinSize) then
+    Result := Max(Result shr (GLTextureScale - 1), GLTextureMinSize);
+
+  { honour GLFeatures.MaxTextureSize }
+  if Result > GLFeatures.MaxTextureSize then
+    Result := GLFeatures.MaxTextureSize;
 end;
 
-function IsTextureSized(const r: TEncodedImage; const AllowNonPowerOfTwo: boolean): boolean;
-begin
-  Result := IsTextureSized(r.Width, r.Height, AllowNonPowerOfTwo);
-end;
-
-procedure ResizeForTextureSize(var r: TCastleImage; const AllowNonPowerOfTwo: boolean);
-var
-  newR: TCastleImage;
-begin
-  if not IsTextureSized(r, AllowNonPowerOfTwo) then
-  begin
-    newR := ResizeToTextureSize(r, AllowNonPowerOfTwo);
-    FreeAndNil(r);
-    r := newR;
-  end;
-end;
-
-procedure ResizeToTextureSize(var Width, Height: Cardinal; const AllowNonPowerOfTwo: boolean);
-
-  function BestTexSize(size: Cardinal): Cardinal;
-  begin
-    if size > GLFeatures.MaxTextureSize then
-      result := GLFeatures.MaxTextureSize else
-    begin
-      if AllowNonPowerOfTwo or IsPowerOf2(size) then
-        result := size else
-        result := 1 shl (Biggest2Exponent(size)+1);
-        {result jakie otrzymamy w ostatnim przypisaniu jest na pewno < GLFeatures.MaxTextureSize bo
-         skoro size <= GLFeatures.MaxTextureSize i not IsPowerOf2(size) to size < GLFeatures.MaxTextureSize a GLFeatures.MaxTextureSize
-         samo jest potega dwojki. }
-     end;
-  end;
-
-begin
-  Width  := BestTexSize(Width );
-  Height := BestTexSize(Height);
-end;
-
-function ResizeToTextureSize(const r: TCastleImage; const AllowNonPowerOfTwo: boolean): TCastleImage;
+function ResizeToTextureSize(const r: TCastleImage; const Sizing: TTextureSizing): TCastleImage;
 var
   NewWidth, NewHeight: Cardinal;
 begin
-  NewWidth  := R.Width ;
-  NewHeight := R.Height;
-  ResizeToTextureSize(NewWidth, NewHeight, AllowNonPowerOfTwo);
+  NewWidth  := ResizeToTextureSize(R.Width , Sizing);
+  NewHeight := ResizeToTextureSize(R.Height, Sizing);
 
   if Log then
-    WritelnLog('Textures', Format('Resizing 2D texture from %dx%d to %dx%d to satisfy OpenGL',
+    WritelnLog('Textures', Format('Resizing 2D texture from %dx%d to %dx%d',
       [R.Width, R.Height, NewWidth, NewHeight]));
 
   result := r.MakeResized(NewWidth, NewHeight, riBilinear);
+end;
+
+function IsTextureSized(const Width, Height: Cardinal;
+  const Sizing: TTextureSizing): boolean;
+begin
+  Result :=
+    (Width  = ResizeToTextureSize(Width , Sizing)) and
+    (Height = ResizeToTextureSize(Height, Sizing));
+end;
+
+function IsTextureSized(const r: TEncodedImage; const Sizing: TTextureSizing): boolean;
+begin
+  Result := IsTextureSized(r.Width, r.Height, Sizing);
+end;
+
+procedure ResizeForTextureSize(var r: TCastleImage; const Sizing: TTextureSizing);
+var
+  newR: TCastleImage;
+begin
+  if not IsTextureSized(r, Sizing) then
+  begin
+    newR := ResizeToTextureSize(r, Sizing);
+    FreeAndNil(r);
+    r := newR;
+  end;
 end;
 
 { ----------------------------------------------------------------------------
@@ -1703,7 +1729,7 @@ begin
   if not GLFeatures.TextureCompressionS3TC then
     raise ECannotLoadS3TCTexture.Create('Cannot load S3TC compressed textures: OpenGL doesn''t support one (or both) of ARB_texture_compression and EXT_texture_compression_s3tc extensions');
 
-  if not IsTextureSized(Image, false) then
+  if not IsTextureSized(Image, tsRequiredPowerOf2) then
     raise ECannotLoadS3TCTexture.CreateFmt('Cannot load S3TC compressed textures: texture size is %d x %d, it''s not correct for OpenGL, and we cannot resize on CPU compressed textures',
       [Image.Width, Image.Height]);
 
@@ -1764,10 +1790,10 @@ var
   var
     ImgGood: TCastleImage;
   begin
-    if IsTextureSized(Image, false) then
+    if IsTextureSized(Image, tsScalablePowerOf2) then
       Core(Image) else
     begin
-      ImgGood := ResizeToTextureSize(Image, false);
+      ImgGood := ResizeToTextureSize(Image, tsScalablePowerOf2);
       try
         Core(ImgGood);
       finally ImgGood.Free end;
