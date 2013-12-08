@@ -76,6 +76,7 @@ type
     FImageLayout: TCastleButtonImageLayout;
     FImageAlphaTest: boolean;
     FMinWidth, FMinHeight: Cardinal;
+    FImageMargin: Cardinal;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
@@ -92,7 +93,11 @@ type
     procedure SetHeight(const Value: Cardinal);
     procedure SetMinWidth(const Value: Cardinal);
     procedure SetMinHeight(const Value: Cardinal);
+    procedure SetImageMargin(const Value: Cardinal);
   public
+    const
+      DefaultImageMargin = 10;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function DrawStyle: TUIControlDrawStyle; override;
@@ -182,6 +187,9 @@ type
       with background using full transparency). }
     property ImageAlphaTest: boolean
       read FImageAlphaTest write FImageAlphaTest default false;
+
+    property ImageMargin: Cardinal read FImageMargin write SetImageMargin
+      default DefaultImageMargin;
   end;
 
   { Panel inside OpenGL context.
@@ -219,7 +227,7 @@ type
   end;
 
   { Image control inside OpenGL context.
-    Size is automatically adjusted to the image size.
+    Size is automatically adjusted to the image size, if Stretch is @false (default).
     You should set TCastleImageControl.Left, TCastleImageControl.Bottom properties,
     and load your image by setting TCastleImageControl.URL property
     or straight TCastleImageControl.Image.
@@ -233,20 +241,30 @@ type
     FImage: TCastleImage;
     FGLImage: TGLImage;
     FAlphaChannel: TAutoAlphaChannel;
+    FStretch: boolean;
+    FFullSize: boolean;
+    FWidth: Cardinal;
+    FHeight: Cardinal;
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TCastleImage);
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
     function GetBlending: boolean;
     procedure SetBlending(const Value: boolean);
+    procedure SetStretch(const Value: boolean);
+    procedure SetWidth(const Value: Cardinal);
+    procedure SetHeight(const Value: Cardinal);
+    procedure SetFullSize(const Value: boolean);
   public
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw; override;
     function PositionInside(const X, Y: Integer): boolean; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
-    function Width: Cardinal;
-    function Height: Cardinal;
+
+    { Position and size of this control, ignoring GetExists. }
+    function Rect: TRectangle;
 
     { Image displayed, or @nil if none.
       This image is owned by this component. If you set this property
@@ -269,6 +287,34 @@ type
       read FAlphaChannel write SetAlphaChannel default acAuto;
     { Deprecated, use more flexible AlphaChannel instead. }
     property Blending: boolean read GetBlending write SetBlending; deprecated;
+
+    { Size of the image control.
+
+      If Stretch = @false, then values you manually set for Width, Height, FullSize
+      properties do not matter (they are still remembered though,
+      so you can set properties in any order).
+      The displayed size (you can check it through @link(Rect) function)
+      always corresponds to the underlying image size.
+      The Left and Bottom properties work as usual, they allow you to move the control.
+
+      If Stretch = @true, then the image will be stretched
+      (without paying attention to the aspect ratio) to fill the requested area.
+      If Stretch = @true and FullSize = @true then values of Width,
+      Height, Left, Bottom do not matter:
+      image always fills the whole container
+      (@link(Rect) corresponds to the container area).
+      If Stretch = @true and FullSize = @false,
+      you have full manual control over the image size and position.
+
+      Note that you can always look at @link(Rect) value to know
+      the current calculated size and position of the image control on screen.
+
+      @groupBegin }
+    property Stretch: boolean read FStretch write SetStretch default false;
+    property Width: Cardinal read FWidth write SetWidth default 0;
+    property Height: Cardinal read FHeight write SetHeight default 0;
+    property FullSize: boolean read FFullSize write SetFullSize default false;
+    { @groupEnd }
   end;
 
   TCastleTouchCtlMode = (ctcmWalking, ctcmWalkWithSideRot, ctcmHeadRotation,
@@ -674,9 +720,6 @@ end;
 
 { TCastleButton --------------------------------------------------------------- }
 
-const
-  ButtonCaptionImageMargin = 10;
-
 constructor TCastleButton.Create(AOwner: TComponent);
 begin
   inherited;
@@ -684,6 +727,7 @@ begin
   FAutoSizeWidth := true;
   FAutoSizeHeight := true;
   FImageLayout := ilLeft;
+  FImageMargin := DefaultImageMargin;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
 end;
 
@@ -717,15 +761,15 @@ begin
 
   TextLeft := Left + (Width - TextWidth) div 2;
   if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilLeft) then
-    TextLeft += (FImage.Width + ButtonCaptionImageMargin) div 2 else
+    TextLeft += (FImage.Width + ImageMargin) div 2 else
   if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilRight) then
-    TextLeft -= (FImage.Width + ButtonCaptionImageMargin) div 2;
+    TextLeft -= (FImage.Width + ImageMargin) div 2;
 
   TextBottom := Bottom + (Height - TextHeight) div 2;
   if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilBottom) then
-    TextBottom += (FImage.Height + ButtonCaptionImageMargin) div 2 else
+    TextBottom += (FImage.Height + ImageMargin) div 2 else
   if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilTop) then
-    TextBottom -= (FImage.Height + ButtonCaptionImageMargin) div 2;
+    TextBottom -= (FImage.Height + ImageMargin) div 2;
 
   Font.Print(TextLeft, TextBottom, Theme.TextColor, Caption);
 
@@ -739,13 +783,13 @@ begin
         FGLImage.Alpha := acFullRange;
     end;
     case ImageLayout of
-      ilLeft         : ImgLeft := TextLeft - FImage.Width - ButtonCaptionImageMargin;
-      ilRight        : ImgLeft := TextLeft + TextWidth + ButtonCaptionImageMargin;
+      ilLeft         : ImgLeft := TextLeft - FImage.Width - ImageMargin;
+      ilRight        : ImgLeft := TextLeft + TextWidth + ImageMargin;
       ilBottom, ilTop: ImgLeft := Left + (Width - FImage.Width) div 2;
     end;
     case ImageLayout of
-      ilBottom       : ImgBottom := TextBottom - FImage.Height - ButtonCaptionImageMargin;
-      ilTop          : ImgBottom := TextBottom + TextHeight + ButtonCaptionImageMargin;
+      ilBottom       : ImgBottom := TextBottom - FImage.Height - ImageMargin;
+      ilTop          : ImgBottom := TextBottom + TextHeight + ImageMargin;
       ilLeft, ilRight: ImgBottom := Bottom + (Height - FImage.Height) div 2;
     end;
     FGLImage.Draw(ImgLeft, ImgBottom);
@@ -890,7 +934,7 @@ begin
           ImgSize := Max(FImage.Width, MinImageWidth) else
           ImgSize := MinImageWidth;
         case ImageLayout of
-          ilLeft, ilRight: FWidth := Width + ImgSize + ButtonCaptionImageMargin;
+          ilLeft, ilRight: FWidth := Width + ImgSize + ImageMargin;
           ilTop, ilBottom: FWidth := Max(Width, ImgSize + HorizontalMargin * 2);
         end;
       end;
@@ -901,7 +945,7 @@ begin
           ImgSize := MinImageHeight;
         case ImageLayout of
           ilLeft, ilRight: FHeight := Max(Height, ImgSize + VerticalMargin * 2);
-          ilTop, ilBottom: FHeight := Height + ImgSize + ButtonCaptionImageMargin;
+          ilTop, ilBottom: FHeight := Height + ImgSize + ImageMargin;
         end;
       end;
     end;
@@ -1009,6 +1053,16 @@ begin
   end;
 end;
 
+procedure TCastleButton.SetImageMargin(const Value: Cardinal);
+begin
+  if FImageMargin <> Value then
+  begin
+    FImageMargin := Value;
+    UpdateSize;
+    VisibleChange;
+  end;
+end;
+
 function TCastleButton.Rect: TRectangle;
 begin
   Result := Rectangle(Left, Bottom, Width, Height);
@@ -1091,6 +1145,11 @@ end;
 
 { TCastleImageControl ---------------------------------------------------------------- }
 
+constructor TCastleImageControl.Create(AOwner: TComponent);
+begin
+  inherited;
+end;
+
 destructor TCastleImageControl.Destroy;
 begin
   FreeAndNil(FImage);
@@ -1101,7 +1160,7 @@ end;
 procedure TCastleImageControl.SetURL(const Value: string);
 begin
   if Value <> '' then
-    Image := LoadImage(Value, []) else
+    Image := LoadImage(Value) else
     Image := nil;
 
   { only once new Image is successfully loaded, change property value.
@@ -1119,7 +1178,7 @@ begin
     FImage := Value;
     if GLInitialized and (FImage <> nil) then
     begin
-      FGLImage := TGLImage.Create(FImage);
+      FGLImage := TGLImage.Create(FImage, true);
       if AlphaChannel <> acAuto then
         FGLImage.Alpha := AlphaChannel;
     end;
@@ -1136,17 +1195,35 @@ end;
 procedure TCastleImageControl.Draw;
 begin
   if not (GetExists and (FGLImage <> nil)) then Exit;
-  FGLImage.Draw(Left, Bottom);
+  FGLImage.Draw(Rect);
 end;
 
 function TCastleImageControl.PositionInside(const X, Y: Integer): boolean;
+var
+  R: TRectangle;
 begin
+  R := Rect;
   Result := GetExists and
-    (FImage <> nil) and
-    (X >= Left) and
-    (X  < Left + FImage.Width) and
-    (ContainerHeight - Y >= Bottom) and
-    (ContainerHeight - Y  < Bottom + FImage.Height);
+    ( FullSize or
+      ( (X >= R.Left) and
+        (X  < R.Left + R.Width) and
+        (R.Height - Y >= R.Bottom) and
+        (R.Height - Y  < R.Bottom + R.Height)
+      )
+    );
+end;
+
+function TCastleImageControl.Rect: TRectangle;
+begin
+  if not Stretch then
+  begin
+    if FImage <> nil then
+      Result := Rectangle(Left, Bottom, FImage.Width, FImage.Height) else
+      Result := Rectangle(Left, Bottom, 0, 0);
+  end else
+  if FullSize then
+    Result := ContainerRect else
+    Result := Rectangle(Left, Bottom, Width, Height);
 end;
 
 procedure TCastleImageControl.GLContextOpen;
@@ -1154,7 +1231,7 @@ begin
   inherited;
   if (FGLImage = nil) and (FImage <> nil) then
   begin
-    FGLImage := TGLImage.Create(FImage);
+    FGLImage := TGLImage.Create(FImage, true);
     if AlphaChannel <> acAuto then
       FGLImage.Alpha := AlphaChannel;
   end;
@@ -1164,20 +1241,6 @@ procedure TCastleImageControl.GLContextClose;
 begin
   FreeAndNil(FGLImage);
   inherited;
-end;
-
-function TCastleImageControl.Width: Cardinal;
-begin
-  if FImage <> nil then
-    Result := FImage.Width else
-    Result := 0;
-end;
-
-function TCastleImageControl.Height: Cardinal;
-begin
-  if FImage <> nil then
-    Result := FImage.Height else
-    Result := 0;
 end;
 
 procedure TCastleImageControl.SetAlphaChannel(const Value: TAutoAlphaChannel);
@@ -1205,6 +1268,42 @@ begin
   if Value then
     AlphaChannel := acFullRange else
     AlphaChannel := acSimpleYesNo;
+end;
+
+procedure TCastleImageControl.SetStretch(const Value: boolean);
+begin
+  if FStretch <> Value then
+  begin
+    FStretch := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleImageControl.SetWidth(const Value: Cardinal);
+begin
+  if FWidth <> Value then
+  begin
+    FWidth := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleImageControl.SetHeight(const Value: Cardinal);
+begin
+  if FHeight <> Value then
+  begin
+    FHeight := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleImageControl.SetFullSize(const Value: boolean);
+begin
+  if FFullSize <> Value then
+  begin
+    FFullSize := Value;
+    VisibleChange;
+  end;
 end;
 
 { TCastleTouchControl ---------------------------------------------------------------- }
