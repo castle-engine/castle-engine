@@ -313,6 +313,9 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
     LevelResourcesPrepared: boolean;
     { Like LoadLevel, but doesn't care about AInfo.LoadingImage. }
     procedure LoadLevelCore(const AInfo: TLevelInfo);
+    { Unload Items from previous level, keeps only Player on Items.
+      Returns previous resources. You have to call Release and free them. }
+    function UnloadLevelCore: T3DResourceList;
     function Placeholder(Shape: TShape; PlaceholderName: string): boolean;
   public
     destructor Destroy; override;
@@ -404,6 +407,22 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
 
     { Level information, independent from current level state. }
     property Info: TLevelInfo read FInfo;
+
+    { Release everything loaded by LoadLevel, clearing the 3D world
+      (only Player is left).
+
+      You do not have to call this in normal circumstances,
+      as each LoadLevel automatically clears previous 3D world. If fact,
+      you should not call this in normal circumstances:
+      calling this prevents the next LoadLevel to reuse resources
+      that were needed by both old and new level.
+
+      Call this only if you really want to conserve memory @italic(right now).
+      Or when you want to force reload of resources at next LoadLevel
+      call (for example, if you changed AnimationSmoothness, it is useful
+      --- otherwise the old animations will remain loaded with old AnimationSmoothness
+      setting). }
+    procedure UnloadLevel;
   end;
 
   { Level logic. We use T3D descendant, since this is the comfortable
@@ -668,6 +687,45 @@ begin
     Result := Logic.Placeholder(Shape, PlaceholderName);
 end;
 
+function TGameSceneManager.UnloadLevelCore: T3DResourceList;
+var
+  I: Integer;
+begin
+  { release stuff from previous level. Our items must be clean.
+    This releases previous Level (logic), MainScene,
+    and our creatures and items --- the ones added in TraverseForResources,
+    but also the ones created dynamically (when creature is added to scene manager,
+    e.g. because player/creature shoots a missile, or when player drops an item).
+    The only thing that can (and should) remain is Player. }
+  I := 0;
+  while I < Items.Count do
+    if Items[I] <> Player then
+      Items[I].Free else
+      Inc(I);
+  FLogic := nil; { we freed FLogic above, since it was on Items list }
+
+  { save PreviousResources, before Info is overridden with new level.
+    This allows us to keep PreviousResources while new resources are required,
+    and this means that resources already loaded for previous level
+    don't need to be reloaded for new. }
+  Result := T3DResourceList.Create(false);
+  if Info <> nil then
+  begin
+    Result.Assign(Info.LevelResources);
+    Dec(Levels.References);
+    FInfo := nil;
+  end;
+end;
+
+procedure TGameSceneManager.UnloadLevel;
+var
+  PreviousResources: T3DResourceList;
+begin
+  PreviousResources := UnloadLevelCore;
+  PreviousResources.Release;
+  FreeAndNil(PreviousResources);
+end;
+
 procedure TGameSceneManager.LoadLevelCore(const AInfo: TLevelInfo);
 var
   { Sometimes it's not comfortable
@@ -796,7 +854,6 @@ var
   Options: TPrepareResourcesOptions;
   SI: TShapeTreeIterator;
   PreviousResources: T3DResourceList;
-  I: Integer;
 begin
   { We want OpenGL context, but we don't want to require that this scene manager
     is actually added to Window.Controls yet. This would prevent taking a screenshot
@@ -807,30 +864,7 @@ begin
   if GLVersion = nil then
     raise Exception.Create('OpenGL context is not initialized yet. You have to initialize OpenGL (for example by calling TCastleWindow.Open, or by waiting for TCastleControl.OnGLContextOpen) before using TGameSceneManager.LoadLevel.');
 
-  { release stuff from previous level. Our items must be clean.
-    This releases previous Level (logic), MainScene,
-    and our creatures and items --- the ones added in TraverseForResources,
-    but also the ones created dynamically (when creature is added to scene manager,
-    e.g. because player/creature shoots a missile, or when player drops an item).
-    The only thing that can (and should) remain is Player. }
-  I := 0;
-  while I < Items.Count do
-    if Items[I] <> Player then
-      Items[I].Free else
-      Inc(I);
-  FLogic := nil; { it's freed now }
-
-  { save PreviousResources, before Info is overridden with new level.
-    This allows us to keep PreviousResources while new resources are required,
-    and this means that resources already loaded for previous level
-    don't need to be reloaded for new. }
-  PreviousResources := T3DResourceList.Create(false);
-  if Info <> nil then
-  begin
-    PreviousResources.Assign(Info.LevelResources);
-    Dec(Levels.References);
-    FInfo := nil;
-  end;
+  PreviousResources := UnloadLevelCore;
 
   FInfo := AInfo;
   Inc(Levels.References);
