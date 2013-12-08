@@ -1416,6 +1416,9 @@ begin
       TimeLoop := NewTimeLoop;
       TimeBackwards := NewTimeBackwards;
     end;
+
+    WritelnLog('PrecalculatedAnimation', 'Loaded %s: %d precalculated scenes',
+      [URL, ScenesCount]);
   finally
     FreeAndNil(Times);
     FreeAndNil(RootNodes);
