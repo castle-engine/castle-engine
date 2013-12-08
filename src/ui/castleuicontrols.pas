@@ -526,12 +526,26 @@ end;
 
   TUIControlList = class(TCastleObjectList)
   private
+    type
+      TEnumerator = class
+      private
+        FList: TUIControlList;
+        FPosition: Integer;
+        function GetCurrent: TUIControl;
+      public
+        constructor Create(AList: TUIControlList);
+        function MoveNext: Boolean;
+        property Current: TUIControl read GetCurrent;
+      end;
+
     function GetItem(const I: Integer): TUIControl;
     procedure SetItem(const I: Integer; const Item: TUIControl);
   public
     property Items[I: Integer]: TUIControl read GetItem write SetItem; default;
     procedure Add(Item: TUIControl);
     procedure Insert(Index: Integer; Item: TUIControl);
+
+    function GetEnumerator: TEnumerator;
 
     { Add at the beginning of the list.
       This is just a shortcut for @code(Insert(0, NewItem)),
@@ -873,6 +887,31 @@ end;
 procedure TUIControlList.InsertBack(const NewItem: TUIControl);
 begin
   Add(NewItem);
+end;
+
+function TUIControlList.GetEnumerator: TEnumerator;
+begin
+  Result := TEnumerator.Create(Self);
+end;
+
+{ TUIControlList.TEnumerator ------------------------------------------------- }
+
+function TUIControlList.TEnumerator.GetCurrent: TUIControl;
+begin
+  Result := FList.Items[FPosition];
+end;
+
+constructor TUIControlList.TEnumerator.Create(AList: TUIControlList);
+begin
+  inherited Create;
+  FList := AList;
+  FPosition := -1;
+end;
+
+function TUIControlList.TEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FList.Count;
 end;
 
 { TGLContextEventList -------------------------------------------------------- }
