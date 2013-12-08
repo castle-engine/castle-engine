@@ -132,7 +132,7 @@ begin
     { init other Image* variables }
     NameImage := DeleteURIExt(ExtractURIName(ImageURL));
     NameImage[1] := UpCase(NameImage[1]);
-    Image := LoadImage(ImageURL, []);
+    Image := LoadImage(ImageURL);
     try
       if AlphaStrip and Image.HasAlpha then
       begin

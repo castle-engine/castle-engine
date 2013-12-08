@@ -84,7 +84,7 @@ begin
 
   { load button's images. Actually, load it only once, and use the same
     reference (leaving OwnsImage = false) on other buttons. }
-  ButtonImageFixSize1.Image := LoadImage('sample_button_icon.png', []);
+  ButtonImageFixSize1.Image := LoadImage('sample_button_icon.png');
   ButtonImageFixSize1.OwnsImage := true;
   ButtonImageFixSize2.Image := ButtonImageFixSize1.Image;
   ButtonImageFixSize3.Image := ButtonImageFixSize1.Image;

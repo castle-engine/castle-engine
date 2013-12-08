@@ -448,7 +448,7 @@ begin
   MaterialProperties.URL := ApplicationData('material_properties.xml');
 
   { Change Theme image tiActiveFrame, used to draw rectangle under image }
-  Theme.Images[tiActiveFrame] := LoadImage(ApplicationData('box.png'), []);
+  Theme.Images[tiActiveFrame] := LoadImage(ApplicationData('box.png'));
   Theme.OwnsImages[tiActiveFrame] := true;
   Theme.Corners[tiActiveFrame] := Vector4Integer(38, 38, 38, 38);
 

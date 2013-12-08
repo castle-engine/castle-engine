@@ -617,7 +617,7 @@ end;
 function TItemResource.Image: TCastleImage;
 begin
   if FImage = nil then
-    FImage := LoadImage(ImageURL, []);
+    FImage := LoadImage(ImageURL);
   Result := FImage;
 end;
 

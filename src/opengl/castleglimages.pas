@@ -155,6 +155,7 @@ type
       @raises(EImageClassNotSupportedForOpenGL When image class is not supported
         by OpenGL.)
     }
+    constructor Create(const URL: string);
     constructor Create(const URL: string;
       const LoadAsClass: array of TCastleImageClass;
       const ResizeToX: Cardinal = 0;
@@ -1121,6 +1122,11 @@ begin
   try
     Create(Image);
   finally FreeAndNil(Image) end;
+end;
+
+constructor TGLImage.Create(const URL: string);
+begin
+  Create(URL, []);
 end;
 
 constructor TGLImage.Create(const URL: string;

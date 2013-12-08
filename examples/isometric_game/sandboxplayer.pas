@@ -36,7 +36,6 @@ type
     property XPixel: Integer read FXPixel;
     property YPixel: Integer read FYPixel;
   public
-    Image: array [TDirection] of TCastleImage;
     GLImage: array [TDirection] of TGLImage;
 
     property Direction: TDirection read FDirection;
@@ -78,10 +77,9 @@ begin
 
   for Dir := Low(Dir) to High(Dir) do
   begin
-    Image[Dir] := LoadImage(ApplicationData(
+    GLImage[Dir] := TGLImage.Create(ApplicationData(
       'tiles/woldforge/sprites/creatures/observer/observer_float_' +
-      MoveShortcutNames[Dir] + '_1_hh.png'), PixelsImageClasses);
-    GLImage[Dir] := TGLImage.Create(Image[Dir]);
+      MoveShortcutNames[Dir] + '_1_hh.png'));
   end;
 end;
 
@@ -90,10 +88,7 @@ var
   Dir: TDirection;
 begin
   for Dir := Low(Dir) to High(Dir) do
-  begin
-    FreeAndNil(Image[Dir]);
     FreeAndNil(GLImage[Dir]);
-  end;
   inherited;
 end;
 

@@ -40,7 +40,7 @@
   var
     Image: TCastleImage;
   begin
-    Image := LoadImage('image.png', []);
+    Image := LoadImage('image.png');
     { scale the image to be 2x smaller }
     Image.Resize(Image.Width div 2, Image.Height div 2);
     SaveImage(Image, 'newimage.png');
@@ -1521,7 +1521,7 @@ type
 
 @longCode(#
   { When you don't care what TCastleImage descendant you get: }
-  Image := LoadImage('image.png', []);
+  Image := LoadImage('image.png');
 
   { When you insist on getting TRGBImage, that is 8-bit color image
     without an alpha channel. }
@@ -1583,6 +1583,8 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
 function LoadImage(Stream: TStream; const MimeType: string;
   const AllowedImageClasses: array of TCastleImageClass)
   :TCastleImage; overload;
+
+function LoadImage(const URL: string): TCastleImage; overload;
 function LoadImage(const URL: string;
   const AllowedImageClasses: array of TCastleImageClass)
   :TCastleImage; overload;
@@ -3645,6 +3647,11 @@ begin
       raise;
     end;
   end;
+end;
+
+function LoadImage(const URL: string): TCastleImage;
+begin
+  Result := LoadImage(URL, []);
 end;
 
 function LoadImage(const URL: string;
