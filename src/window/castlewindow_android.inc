@@ -317,8 +317,11 @@ begin
   AndroidApp^.OnInputEvent := @HandleInput;
   AssetManager := AndroidApp^.Activity^.AssetManager;
 
-  if Assigned(OnInitialize) then
-    OnInitialize();
+  { Note that this may be called many times, because AndroidMainImplementation
+    may be called many times, because ANativeActivity_onCreate may be called
+    multple times. So it is useful that Initialize has
+    mechanism to not call OnInitialize more than once. }
+  Initialize;
 
   while ProcessAllMessages do ;
 end;

@@ -4881,8 +4881,7 @@ begin
     Initialized := true;
     if Assigned(OnInitialize) then
       OnInitialize();
-  end else
-    OnWarning(wtMajor, 'Window', 'Application.Initialize called more than once');
+  end;
 end;
 
 procedure TCastleApplication.SetMainWindow(const Value: TCastleWindowBase);
