@@ -497,16 +497,29 @@ end;
     property Exists: boolean read FExists write SetExists default true;
   end;
 
-  { TUIControl with position (in Left, Bottom fields).
+  { TUIControl that has a position and takes some rectangular space
+    on the container.
 
-    This takes care of some internal quirks with saving Left property
-    correctly. (Because TComponent doesn't declare, but saves/loads a "magic"
-    property named Left during streaming. This is used to place non-visual
-    components on the form. Our Left is completely independent from this.) }
-  TUIControlPos = class(TUIControl)
+    The position is controlled using the Left, Bottom fields.
+    The rectangle where the control is visible can be queried using
+    the @link(Rect) virtual method.
+
+    Note that each descendant has it's own definition of the size of the control.
+    E.g. some descendants may automatically calculate the size
+    (based on text or images or such placed within the control).
+    Some descendants may allow to control the size explicitly
+    using fields like Width, Height, FullSize.
+    Some descendants may allow both approaches, switchable by
+    property like TCastleButton.AutoSize or TCastleImageControl.Stretch. }
+  TUIRectangularControl = class(TUIControl)
   private
     FLeft: Integer;
     FBottom: Integer;
+
+    { This takes care of some internal quirks with saving Left property
+      correctly. (Because TComponent doesn't declare, but saves/loads a "magic"
+      property named Left during streaming. This is used to place non-visual
+      components on the form. Our Left is completely independent from this.) }
     procedure ReadRealLeft(Reader: TReader);
     procedure WriteRealLeft(Writer: TWriter);
 
@@ -519,10 +532,24 @@ end;
     procedure SetBottom(const Value: Integer);
   protected
     procedure DefineProperties(Filer: TFiler); override;
+  public
+    { Position and size of this control, assuming it exists.
+      This must ignore the current value of the @link(GetExists) method
+      and @link(Exists) property, that is: the result of this function
+      assumes that control does exist. }
+    function Rect: TRectangle; virtual; abstract;
+    { Center the control within the container horizontally by adjusting @link(Left). }
+    procedure CenterHorizontal;
+    { Center the control within the container vertically by adjusting @link(Bottom). }
+    procedure CenterVertical;
+    { Center the control within the container both horizontally and vertically. }
+    procedure Center;
   published
     property Left: Integer read FLeft write SetLeft stored false default 0;
     property Bottom: Integer read FBottom write SetBottom default 0;
   end;
+
+  TUIControlPos = TUIRectangularControl deprecated;
 
   TUIControlList = class(TCastleObjectList)
   private
@@ -752,24 +779,24 @@ begin
   end;
 end;
 
-{ TUIControlPos -------------------------------------------------------------- }
+{ TUIRectangularControl -------------------------------------------------------------- }
 
 { We store Left property value in file under "tuicontrolpos_real_left" name,
   to avoid clashing with TComponent magic "left" property name.
   The idea how to do this is taken from TComponent's own implementation
   of it's "left" magic property (rtl/objpas/classes/compon.inc). }
 
-procedure TUIControlPos.ReadRealLeft(Reader: TReader);
+procedure TUIRectangularControl.ReadRealLeft(Reader: TReader);
 begin
   FLeft := Reader.ReadInteger;
 end;
 
-procedure TUIControlPos.WriteRealLeft(Writer: TWriter);
+procedure TUIRectangularControl.WriteRealLeft(Writer: TWriter);
 begin
   Writer.WriteInteger(FLeft);
 end;
 
-Procedure TUIControlPos.ReadLeft(Reader: TReader);
+Procedure TUIRectangularControl.ReadLeft(Reader: TReader);
 var
   D: LongInt;
 begin
@@ -778,7 +805,7 @@ begin
   DesignInfo := D;
 end;
 
-Procedure TUIControlPos.ReadTop(Reader: TReader);
+Procedure TUIRectangularControl.ReadTop(Reader: TReader);
 var
   D: LongInt;
 begin
@@ -787,17 +814,17 @@ begin
   DesignInfo := D;
 end;
 
-Procedure TUIControlPos.WriteLeft(Writer: TWriter);
+Procedure TUIRectangularControl.WriteLeft(Writer: TWriter);
 begin
   Writer.WriteInteger(LongRec(DesignInfo).Lo);
 end;
 
-Procedure TUIControlPos.WriteTop(Writer: TWriter);
+Procedure TUIRectangularControl.WriteTop(Writer: TWriter);
 begin
   Writer.WriteInteger(LongRec(DesignInfo).Hi);
 end;
 
-procedure TUIControlPos.DefineProperties(Filer: TFiler);
+procedure TUIRectangularControl.DefineProperties(Filer: TFiler);
 Var Ancestor : TComponent;
     Temp : longint;
 begin
@@ -821,7 +848,7 @@ begin
                        (longrec(DesignInfo).Hi<>Longrec(temp).Hi));
 end;
 
-procedure TUIControlPos.SetLeft(const Value: Integer);
+procedure TUIRectangularControl.SetLeft(const Value: Integer);
 begin
   if FLeft <> Value then
   begin
@@ -830,13 +857,29 @@ begin
   end;
 end;
 
-procedure TUIControlPos.SetBottom(const Value: Integer);
+procedure TUIRectangularControl.SetBottom(const Value: Integer);
 begin
   if FBottom <> Value then
   begin
     FBottom := Value;
     if Container <> nil then Container.UpdateFocusAndMouseCursor;
   end;
+end;
+
+procedure TUIRectangularControl.CenterHorizontal;
+begin
+  Left := (ContainerWidth - Rect.Width) div 2;
+end;
+
+procedure TUIRectangularControl.CenterVertical;
+begin
+  Bottom := (ContainerHeight - Rect.Height) div 2;
+end;
+
+procedure TUIRectangularControl.Center;
+begin
+  CenterHorizontal;
+  CenterVertical;
 end;
 
 { TUIControlList ------------------------------------------------------------- }

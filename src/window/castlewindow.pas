@@ -4607,13 +4607,13 @@ procedure TCastleWindowCustom.EventBeforeDraw;
 var
   I: Integer;
 begin
-  inherited;
-
   if UseControls then
   begin
     for I := 0 to Controls.Count - 1 do
       Controls[I].BeforeDraw;
   end;
+
+  inherited;
 end;
 
 procedure TCastleWindowCustom.EventDraw;
@@ -4725,13 +4725,16 @@ procedure TCastleWindowCustom.EventResize;
 var
   I: Integer;
 begin
-  inherited;
-
   if UseControls then
   begin
     for I := 0 to Controls.Count - 1 do
       Controls[I].ContainerResize(Width, Height);
   end;
+
+  { This way control's get ContainerResize
+    (so have ContainerWidth / ContainerHeight set) before OnResize,
+    useful to position them in OnResize. }
+  inherited;
 end;
 
 function TCastleWindowCustom.GetTooltipX: Integer;

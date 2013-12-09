@@ -26,7 +26,7 @@ type
   TCastleLabel = class;
 
   { Base class for all controls inside an OpenGL context using a font. }
-  TUIControlFont = class(TUIControlPos)
+  TUIControlFont = class(TUIRectangularControl)
   private
     FTooltip: string;
     TooltipLabel: TCastleLabel;
@@ -107,6 +107,7 @@ type
     procedure GLContextClose; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
+    function Rect: TRectangle; override;
 
     { Called when user clicks the button. In this class, simply calls
       OnClick callback. }
@@ -125,9 +126,6 @@ type
       to be displayed at the same level, regardless of their images sizes. }
     property MinImageWidth: Cardinal read FMinImageWidth write FMinImageWidth default 0;
     property MinImageHeight: Cardinal read FMinImageHeight write FMinImageHeight default 0;
-
-    { Position and size of this control, ignoring GetExists. }
-    function Rect: TRectangle;
   published
     property Width: Cardinal read FWidth write SetWidth default 0;
     property Height: Cardinal read FHeight write SetHeight default 0;
@@ -197,7 +195,7 @@ type
     for other controls like buttons and such.
     May be used as a toolbar, together with appropriately placed
     TCastleButton over it. }
-  TCastlePanel = class(TUIControlPos)
+  TCastlePanel = class(TUIRectangularControl)
   private
     FWidth: Cardinal;
     FHeight: Cardinal;
@@ -210,8 +208,7 @@ type
     function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw; override;
     function PositionInside(const X, Y: Integer): boolean; override;
-    { Position and size of this control, ignoring GetExists. }
-    function Rect: TRectangle;
+    function Rect: TRectangle; override;
 
     { Separator lines drawn on panel. Useful if you want to visually separate
       groups of contols (like a groups of buttons when you use
@@ -235,7 +232,7 @@ type
     We automatically use alpha test or alpha blending based
     on loaded image alpha channel (see TGLImage.Alpha).
     You can influence this by @link(AlphaChannel) property. }
-  TCastleImageControl = class(TUIControlPos)
+  TCastleImageControl = class(TUIRectangularControl)
   private
     FURL: string;
     FImage: TCastleImage;
@@ -262,9 +259,7 @@ type
     function PositionInside(const X, Y: Integer): boolean; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
-
-    { Position and size of this control, ignoring GetExists. }
-    function Rect: TRectangle;
+    function Rect: TRectangle; override;
 
     { Image displayed, or @nil if none.
       This image is owned by this component. If you set this property
@@ -322,8 +317,7 @@ type
 
   { Control for touch interfaces. Shows one "lever", that can be moved
     up/down/left/right, and controls the movement while Walking or Flying. }
-
-  TCastleTouchControl = class(TUIControlPos)
+  TCastleTouchControl = class(TUIRectangularControl)
   private
     FTouchMode: TCastleTouchCtlMode;
     FLeverOffsetX: Integer;
@@ -337,8 +331,7 @@ type
     { Size of this control, ignoring GetExists. }
     function Width: Cardinal;
     function Height: Cardinal;
-    { Position and size of this control, ignoring GetExists. }
-    function Rect: TRectangle;
+    function Rect: TRectangle; override;
 
     function PositionInside(const X, Y: Integer): boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
@@ -495,8 +488,7 @@ type
     destructor Destroy; override;
     function DrawStyle: TUIControlDrawStyle; override;
     procedure Draw; override;
-    { Position and size of this control, ignoring GetExists. }
-    function Rect: TRectangle;
+    function Rect: TRectangle; override;
 
     { Text color. By default it's white. }
     property Color: TCastleColor read FColor write FColor;
@@ -515,7 +507,7 @@ type
     property Tags: boolean read FTags write FTags default false;
   end;
 
-  TCastleProgressBar = class(TUIControlPos)
+  TCastleProgressBar = class(TUIControl)
   private
     { Background image. }
     FBackground: TCastleImage;
@@ -530,6 +522,7 @@ type
     procedure Draw; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
+    function Rect: TRectangle;
 
     { Progress that rules the position and title displayed. }
     property Progress: TProgress read FProgress write FProgress;
@@ -2040,6 +2033,17 @@ begin
     TrimSimple;
 end;
 
+function TCastleProgressBar.Rect: TRectangle;
+var
+  XMargin, Height, YMiddle, Bottom: Integer;
+begin
+  XMargin := ContainerWidth div 8;
+  Height := ContainerHeight div 12;
+  YMiddle := Round(ContainerHeight * YPosition);
+  Bottom := YMiddle - Height div 2;
+  Result := Rectangle(XMargin, Bottom, ContainerWidth - 2 * XMargin, Height);
+end;
+
 function TCastleProgressBar.DrawStyle: TUIControlDrawStyle;
 begin
   if GetExists and (Progress <> nil) then
@@ -2051,7 +2055,7 @@ procedure TCastleProgressBar.Draw;
 const
   Padding = 20;
 var
-  XMargin, MaxTextWidth, Height, YMiddle: Integer;
+  MaxTextWidth: Integer;
   Font: TGLBitmapFontAbstract;
   Caption: string;
   BarRect, FillRect: TRectangle;
@@ -2061,11 +2065,7 @@ begin
   if FGLBackground <> nil then
     FGLBackground.Draw(ContainerRect);
 
-  XMargin := ContainerWidth div 8;
-  Height := ContainerHeight div 12;
-  YMiddle := Round(ContainerHeight * YPosition);
-  Bottom := YMiddle - Height div 2;
-  BarRect := Rectangle(XMargin, Bottom, ContainerWidth - 2 * XMargin, Height);
+  BarRect := Rect;
   Theme.Draw(BarRect, tiProgressBar);
 
   FillRect := BarRect.LeftPart(Round(BarRect.Width * Progress.Position / Progress.Max));
@@ -2075,7 +2075,7 @@ begin
 
   MaxTextWidth := BarRect.Width - Padding;
   Caption := Progress.Title;
-  if (UIFont.RowHeight < Height) and
+  if (UIFont.RowHeight < BarRect.Height) and
      (UIFont.TextWidth(Caption) < MaxTextWidth) then
   begin
     Font := UIFont;
@@ -2086,7 +2086,8 @@ begin
     Font := UIFontSmall;
     MakeTextFit(Caption, Font, MaxTextWidth);
   end;
-  Font.Print(XMargin + Padding, YMiddle - Font.RowHeight div 2,
+  Font.Print(BarRect.Left + Padding,
+    BarRect.Bottom + (BarRect.Height - Font.RowHeight) div 2,
     Theme.TextColor, Caption);
 end;
 

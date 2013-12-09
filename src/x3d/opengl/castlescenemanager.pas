@@ -55,7 +55,7 @@ type
 
   { Common abstract class for things that may act as a viewport:
     TCastleSceneManager and TCastleViewport. }
-  TCastleAbstractViewport = class(TUIControlPos)
+  TCastleAbstractViewport = class(TUIRectangularControl)
   private
     FWidth, FHeight: Cardinal;
     FFullSize: boolean;
@@ -322,16 +322,13 @@ type
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
 
-    { Position and size of the viewport.
+    { Position and size of the viewport, assuming it exists.
 
       Looks at @link(FullSize) value, and the current container sizes
       (when @link(FullSize) is @true), and at the properties
       @link(Left), @link(Bottom), @link(Width), @link(Height)
-      (when @link(FullSize) is @false).
-
-      Does not check GetExists. When using this, remember that we do not
-      exist (our real rectangle is empty) when not GetExists. }
-    function Rect: TRectangle;
+      (when @link(FullSize) is @false). }
+    function Rect: TRectangle; override;
 
     { Create default TCamera suitable for navigating in this scene.
       This is automatically used to initialize @link(Camera) property
