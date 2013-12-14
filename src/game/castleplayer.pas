@@ -417,8 +417,8 @@ var
   PlayerInput_UpRotate: TInputShortcut;
   PlayerInput_DownRotate: TInputShortcut;
   PlayerInput_GravityUp: TInputShortcut;
-  PlayerInput_UpMove: TInputShortcut;
-  PlayerInput_DownMove: TInputShortcut;
+  PlayerInput_Jump: TInputShortcut;
+  PlayerInput_Crouch: TInputShortcut;
 
 implementation
 
@@ -735,8 +735,6 @@ begin
 
     Camera.Input_Jump.MakeClear;
     Camera.Input_Crouch.MakeClear;
-    Camera.Input_UpMove.MakeClear;
-    Camera.Input_DownMove.MakeClear;
 
     Camera.Input_Forward.MakeClear;
     Camera.Input_Backward.MakeClear;
@@ -757,11 +755,6 @@ begin
       Camera.PreferGravityUpForMoving := false;
       Camera.PreferGravityUpForRotations := true;
 
-      Camera.Input_Jump.MakeClear;
-      Camera.Input_Crouch.MakeClear;
-      Camera.Input_UpMove.Assign(PlayerInput_UpMove, false);
-      Camera.Input_DownMove.Assign(PlayerInput_DownMove, false);
-
       { Camera.HeadBobbing and
         Camera.PreferredHeight and
         Camera.FallSpeedStart and
@@ -776,11 +769,6 @@ begin
       Camera.PreferGravityUpForMoving := false;
       Camera.PreferGravityUpForRotations := true;
 
-      Camera.Input_Jump.MakeClear;
-      Camera.Input_Crouch.MakeClear;
-      Camera.Input_UpMove.Assign(PlayerInput_UpMove, false);
-      Camera.Input_DownMove.Assign(PlayerInput_DownMove, false);
-
       Camera.FallSpeedStart := TWalkCamera.DefaultFallSpeedStart / 6;
       Camera.FallSpeedIncrease := 1.0;
       Camera.HeadBobbing := 0.0;
@@ -793,11 +781,6 @@ begin
       Camera.PreferGravityUpForMoving := true;
       Camera.PreferGravityUpForRotations := true;
 
-      Camera.Input_Jump.Assign(PlayerInput_UpMove, false);
-      Camera.Input_Crouch.Assign(PlayerInput_DownMove, false);
-      Camera.Input_UpMove.MakeClear;
-      Camera.Input_DownMove.MakeClear;
-
       Camera.FallSpeedStart := TWalkCamera.DefaultFallSpeedStart;
       Camera.FallSpeedIncrease := TWalkCamera.DefaultFallSpeedIncrease;
       Camera.HeadBobbing := HeadBobbing;
@@ -807,6 +790,8 @@ begin
       Camera.MoveVerticalSpeed := DefaultMoveVerticalSpeed;
     end;
 
+    Camera.Input_Jump.Assign(PlayerInput_Jump, false);
+    Camera.Input_Crouch.Assign(PlayerInput_Crouch, false);
     Camera.Input_Forward.Assign(PlayerInput_Forward, false);
     Camera.Input_Backward.Assign(PlayerInput_Backward, false);
     Camera.Input_LeftStrafe.Assign(PlayerInput_LeftStrafe, false);
@@ -1374,27 +1359,27 @@ initialization
     of menu entries in "Configure controls". }
 
   PlayerInput_Forward := TInputShortcut.Create(nil, 'Move forward', 'move_forward', igBasic);
-  PlayerInput_Forward.Assign(K_W, K_Up, #0, false, mbLeft);
+  PlayerInput_Forward.Assign(K_W, K_Up);
   PlayerInput_Backward := TInputShortcut.Create(nil, 'Move backward', 'move_backward', igBasic);
-  PlayerInput_Backward.Assign(K_S, K_Down, #0, false, mbLeft);
-  PlayerInput_LeftStrafe := TInputShortcut.Create(nil, 'Move left', 'move_left', igBasic);
-  PlayerInput_LeftStrafe.Assign(K_A, K_None, #0, false, mbLeft);
-  PlayerInput_RightStrafe := TInputShortcut.Create(nil, 'Move right', 'move_right', igBasic);
-  PlayerInput_RightStrafe.Assign(K_D, K_None, #0, false, mbLeft);
+  PlayerInput_Backward.Assign(K_S, K_Down);
   PlayerInput_LeftRot := TInputShortcut.Create(nil, 'Turn left', 'turn_left', igBasic);
-  PlayerInput_LeftRot.Assign(K_Left, K_None, #0, false, mbLeft);
+  PlayerInput_LeftRot.Assign(K_Left);
   PlayerInput_RightRot := TInputShortcut.Create(nil, 'Turn right', 'turn_right', igBasic);
-  PlayerInput_RightRot.Assign(K_Right, K_None, #0, false, mbLeft);
+  PlayerInput_RightRot.Assign(K_Right);
+  PlayerInput_LeftStrafe := TInputShortcut.Create(nil, 'Move left', 'move_left', igBasic);
+  PlayerInput_LeftStrafe.Assign(K_A);
+  PlayerInput_RightStrafe := TInputShortcut.Create(nil, 'Move right', 'move_right', igBasic);
+  PlayerInput_RightStrafe.Assign(K_D);
   PlayerInput_UpRotate := TInputShortcut.Create(nil, 'Look up', 'look_up', igBasic);
-  PlayerInput_UpRotate.Assign(K_PageDown, K_None, #0, false, mbLeft);
+  PlayerInput_UpRotate.Assign(K_None);
   PlayerInput_DownRotate := TInputShortcut.Create(nil, 'Look down', 'look_down', igBasic);
-  PlayerInput_DownRotate.Assign(K_Delete, K_None, #0, false, mbLeft);
+  PlayerInput_DownRotate.Assign(K_None);
   PlayerInput_GravityUp := TInputShortcut.Create(nil, 'Look straight', 'look_straight', igBasic);
-  PlayerInput_GravityUp.Assign(K_End, K_None, #0, false, mbLeft);
-  PlayerInput_UpMove := TInputShortcut.Create(nil, 'Jump (or fly/swim up)', 'move_up', igBasic);
-  PlayerInput_UpMove.Assign(K_Space, K_None, #0, true, mbRight);
-  PlayerInput_DownMove := TInputShortcut.Create(nil, 'Crouch (or fly/swim down)', 'move_down', igBasic);
-  PlayerInput_DownMove.Assign(K_C, K_None, #0, false, mbLeft);
+  PlayerInput_GravityUp.Assign(K_None);
+  PlayerInput_Jump := TInputShortcut.Create(nil, 'Jump (or fly/swim up)', 'move_up', igBasic);
+  PlayerInput_Jump.Assign(K_Space);
+  PlayerInput_Crouch := TInputShortcut.Create(nil, 'Crouch (or fly/swim down)', 'move_down', igBasic);
+  PlayerInput_Crouch.Assign(K_C);
 
   Config.OnLoad.Add(@TConfigOptions(nil).LoadFromConfig);
   Config.OnSave.Add(@TConfigOptions(nil).SaveToConfig);

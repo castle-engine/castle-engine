@@ -671,8 +671,6 @@ type
     FInput_LeftStrafe: TInputShortcut;
     FInput_UpRotate: TInputShortcut;
     FInput_DownRotate: TInputShortcut;
-    FInput_UpMove: TInputShortcut;
-    FInput_DownMove: TInputShortcut;
     FInput_IncreasePreferredHeight: TInputShortcut;
     FInput_DecreasePreferredHeight: TInputShortcut;
     FInput_GravityUp: TInputShortcut;
@@ -730,6 +728,7 @@ type
       const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
     { Forward or backward move. Multiply must be +1 or -1. }
     procedure MoveHorizontal(const SecondsPassed: Single; const Multiply: Integer = 1);
+    { Up or down move, only when flying (ignored when @link(Gravity) is @true). }
     procedure MoveVertical(const SecondsPassed: Single; const Multiply: Integer);
     { Like RotateHorizontal, but it uses
       PreferGravityUpForMoving to decide which rotation to use.
@@ -943,7 +942,7 @@ type
 
       With PreferGravityUpForMoving, this affects moving:
       horizontal moving (forward, backward, strafe),
-      and vertical moving (Input_UpMove and Input_DownMove).
+      and vertical moving (Input_Jump and Input_Crouch when @link(Gravity) is @false).
       E.g. when PreferGravityUpForMoving then forward/backward keys are tied
       to horizontal plane defined by GravityUp.
       When not PreferGravityUpForMoving then forward/backward try to move
@@ -998,7 +997,7 @@ type
 
           E.g. when the player is flying / swimming etc. he will probably prefer
           PreferGravityUpForMoving = @false, because this way he will not have to
-          press Input_UpMove and Input_DownMove. Simply pressing Input_Forward
+          press Input_Jump and Input_Crouch. Simply pressing Input_Forward
           and Input_Backward and doing rotations will be enough to move
           freely in 3D space.
 
@@ -1377,7 +1376,7 @@ type
     property CrouchHeight: Single
       read FCrouchHeight write FCrouchHeight default DefaultCrouchHeight;
 
-    { Is player crouching right now ? }
+    { Is player crouching right now. }
     property IsCrouching: boolean read FIsCrouching;
 
     { This is PreferredHeight slightly modified by head bobbing
@@ -1464,10 +1463,8 @@ type
     property Input_RightStrafe: TInputShortcut read FInput_RightStrafe;
     property Input_UpRotate: TInputShortcut read FInput_UpRotate;
     property Input_DownRotate: TInputShortcut read FInput_DownRotate;
-    property Input_UpMove: TInputShortcut read FInput_UpMove;
     property Input_IncreasePreferredHeight: TInputShortcut read FInput_IncreasePreferredHeight;
     property Input_DecreasePreferredHeight: TInputShortcut read FInput_DecreasePreferredHeight;
-    property Input_DownMove: TInputShortcut read FInput_DownMove;
     property Input_GravityUp: TInputShortcut read FInput_GravityUp;
     property Input_Run: TInputShortcut read FInput_Run;
 
@@ -1477,7 +1474,8 @@ type
     property Input_MoveSpeedDec: TInputShortcut read FInput_MoveSpeedDec;
     { @groupEnd }
 
-    { Jumping and crouching. Note that it works only when @link(Gravity) = @true.
+    { Jumping and crouching (when @link(Gravity) = @true) or flying up / down
+      (when @link(Gravity) = @false).
       @groupBegin }
     property Input_Jump: TInputShortcut read FInput_Jump;
     property Input_Crouch: TInputShortcut read FInput_Crouch;
@@ -1740,21 +1738,6 @@ procedure Register;
 begin
   RegisterComponents('Castle', [TExamineCamera, TWalkCamera, TUniversalCamera]);
 end;
-
-{ Define this to have Input_RightRot/LeftRot (right / left arrow keys by default)
-  work in "single step" mode (single press => one rotation by 5 degrees)
-  instead of normal "continous" mode (smooth rotation when you hold the key
-  pressed).
-
-  Only in the Walk mode.
-
-  Note that even in the "single step" mode, holding the key for a longer time
-  will cause successive rotations, since key-down events are repeated.
-  (Just like in a text editor holding a letter key for some time will
-  cause inserting the same letter again and again...) This could be
-  removed in SINGLE_STEP_ROTATION code, but it's not --- it's useful and
-  desired IMHO :) }
-{ $define SINGLE_STEP_ROTATION}
 
 { TCamera ------------------------------------------------------------ }
 
@@ -2783,8 +2766,6 @@ begin
   FInput_RightStrafe             := TInputShortcut.Create(Self);
   FInput_UpRotate                := TInputShortcut.Create(Self);
   FInput_DownRotate              := TInputShortcut.Create(Self);
-  FInput_UpMove                  := TInputShortcut.Create(Self);
-  FInput_DownMove                := TInputShortcut.Create(Self);
   FInput_IncreasePreferredHeight := TInputShortcut.Create(Self);
   FInput_DecreasePreferredHeight := TInputShortcut.Create(Self);
   FInput_GravityUp               := TInputShortcut.Create(Self);
@@ -2794,16 +2775,14 @@ begin
   FInput_Crouch                  := TInputShortcut.Create(Self);
   FInput_Run                     := TInputShortcut.Create(Self);
 
-  Input_Forward                 .Assign(K_Up);
-  Input_Backward                .Assign(K_Down);
+  Input_Forward                 .Assign(K_W, K_Up);
+  Input_Backward                .Assign(K_S, K_Down);
   Input_LeftRot                 .Assign(K_Left);
   Input_RightRot                .Assign(K_Right);
-  Input_LeftStrafe              .Assign(K_Comma);
-  Input_RightStrafe             .Assign(K_Period);
+  Input_LeftStrafe              .Assign(K_A);
+  Input_RightStrafe             .Assign(K_D);
   Input_UpRotate                .Assign(K_None);
   Input_DownRotate              .Assign(K_None);
-  Input_UpMove                  .Assign(K_Insert);
-  Input_DownMove                .Assign(K_Delete);
   Input_IncreasePreferredHeight .Assign(K_Insert);
   Input_DecreasePreferredHeight .Assign(K_Delete);
   Input_GravityUp               .Assign(K_None);
@@ -2811,8 +2790,8 @@ begin
     may be hard to reach on some keyboards (e.g. on laptops). }
   Input_MoveSpeedInc            .Assign(K_Numpad_Plus , K_None, '+');
   Input_MoveSpeedDec            .Assign(K_Numpad_Minus, K_None, '-');
-  Input_Jump                    .Assign(K_A);
-  Input_Crouch                  .Assign(K_Z);
+  Input_Jump                    .Assign(K_Space);
+  Input_Crouch                  .Assign(K_C);
   Input_Run                     .Assign(K_Shift);
 
   Input_Forward                .SetSubComponent(true);
@@ -2823,8 +2802,6 @@ begin
   Input_RightStrafe            .SetSubComponent(true);
   Input_UpRotate               .SetSubComponent(true);
   Input_DownRotate             .SetSubComponent(true);
-  Input_UpMove                 .SetSubComponent(true);
-  Input_DownMove               .SetSubComponent(true);
   Input_IncreasePreferredHeight.SetSubComponent(true);
   Input_DecreasePreferredHeight.SetSubComponent(true);
   Input_GravityUp              .SetSubComponent(true);
@@ -2842,8 +2819,6 @@ begin
   Input_RightStrafe            .Name := 'Input_RightStrafe';
   Input_UpRotate               .Name := 'Input_UpRotate';
   Input_DownRotate             .Name := 'Input_DownRotate';
-  Input_UpMove                 .Name := 'Input_UpMove';
-  Input_DownMove               .Name := 'Input_DownMove';
   Input_IncreasePreferredHeight.Name := 'Input_IncreasePreferredHeight';
   Input_DecreasePreferredHeight.Name := 'Input_DecreasePreferredHeight';
   Input_GravityUp              .Name := 'Input_GravityUp';
@@ -3159,9 +3134,12 @@ procedure TWalkCamera.MoveVertical(const SecondsPassed: Single; const Multiply: 
   end;
 
 begin
-  if PreferGravityUpForMoving then
-    MoveVerticalCore(GravityUp) else
-    MoveVerticalCore(Up);
+  if not Gravity then
+  begin
+    if PreferGravityUpForMoving then
+      MoveVerticalCore(GravityUp) else
+      MoveVerticalCore(Up);
+  end;
 end;
 
 procedure TWalkCamera.RotateHorizontalForStrafeMove(const AngleDeg: Single);
@@ -3179,13 +3157,10 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
     the rotation speed to specific purposes. }
   procedure CheckRotates(SpeedScale: Single);
   begin
-    {$ifndef SINGLE_STEP_ROTATION}
     if Input_RightRot.IsPressed(Container) then
       RotateHorizontal(-RotationHorizontalSpeed * SecondsPassed * SpeedScale);
     if Input_LeftRot.IsPressed(Container) then
       RotateHorizontal(+RotationHorizontalSpeed * SecondsPassed * SpeedScale);
-    {$endif not SINGLE_STEP_ROTATION}
-
     if Input_UpRotate.IsPressed(Container) then
       RotateVertical(+RotationVerticalSpeed * SecondsPassed * SpeedScale);
     if Input_DownRotate.IsPressed(Container) then
@@ -3817,9 +3792,9 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
         RotateHorizontalForStrafeMove(90);
       end;
 
-      if (deltaY < -5) and (not Gravity) then
+      if deltaY < -5 then
         MoveVertical(MoveSizeY * SecondsPassed, 1);    { fly up }
-      if (deltaY > 5) and (not Gravity) then
+      if deltaY > 5 then
         MoveVertical(MoveSizeY * SecondsPassed, -1);   { fly down }
     end;
   end;
@@ -3846,7 +3821,7 @@ begin
       if ciNormal in Input then
       begin
         HandleInput := not ExclusiveEvents;
-        FIsCrouching := Input_Crouch.IsPressed(Container);
+        FIsCrouching := Gravity and Input_Crouch.IsPressed(Container);
 
         if (not CheckModsDown) or
            (ModsDown - Input_Run.Modifiers = []) then
@@ -3872,17 +3847,17 @@ begin
             RotateHorizontalForStrafeMove(-90);
           end;
 
-          { A simple implementation of Input_UpMove was
+          { A simple implementation of Input_Jump was
               RotateVertical(90); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(-90)
-            Similarly, simple implementation of Input_DownMove was
+            Similarly, simple implementation of Input_Crouch was
               RotateVertical(-90); Move(MoveVerticalSpeed * MoveSpeed * SecondsPassed); RotateVertical(90)
             But this is not good, because when PreferGravityUp, we want to move
             along the GravityUp. (Also later note: RotateVertical is now bounded by
             MinAngleRadFromGravityUp). }
 
-          if Input_UpMove.IsPressed(Container) then
+          if Input_Jump.IsPressed(Container) then
             MoveVertical(SecondsPassed, 1);
-          if Input_DownMove.IsPressed(Container) then
+          if Input_Crouch.IsPressed(Container) then
             MoveVertical(SecondsPassed, -1);
 
           { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
@@ -4021,13 +3996,6 @@ begin
 
   if (not (ciNormal in Input)) or Animation then Exit(false);
 
-  {$ifdef SINGLE_STEP_ROTATION}
-  if Input_RightRot.IsEvent(Event) then
-    RotateHorizontal(-5) else
-  if Input_LeftRot.IsEvent(Event) then
-    RotateHorizontal(+5) else
-  {$endif SINGLE_STEP_ROTATION}
-
   if Input_GravityUp.IsEvent(Event) then
   begin
     if VectorsParallel(Direction, GravityUp) then
@@ -4082,9 +4050,9 @@ begin
     RotateHorizontalForStrafeMove(-90);
   end;
 
-  if (Y > 5) and not Gravity then
+  if Y > 5 then
     MoveVertical(Y * MoveSize, 1);    { up }
-  if (Y < -5) and not Gravity then
+  if Y < -5 then
     MoveVertical(-Y * MoveSize, -1);  { down }
 end;
 
