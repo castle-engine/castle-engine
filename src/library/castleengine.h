@@ -26,6 +26,10 @@
 #ifndef CGE_LIBRARY_INCLUDED
 #define CGE_LIBRARY_INCLUDED
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum ECgeShiftState
 {
     ecgessShift = 1,
@@ -111,5 +115,9 @@ extern int CGE_GetCurrentNavigationType();
 extern void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType);
 
 extern void CGE_UpdateTouchInterface(int /*ECgeTouchCtlInterface*/ eMode);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //CGE_LIBRARY_INCLUDED
