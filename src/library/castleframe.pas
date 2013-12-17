@@ -527,7 +527,7 @@ begin
       Tx := 0; Ty := 0; Tz := 0; TLength := 0;
       Rx := 0; Ry := 0; Rz := 0; RAngle := 0;
       { get values from sensor }
-      Mouse3dPollSpeed := Mouse3dPollTimer + Mouse3dPollDelay;
+      Mouse3dPollSpeed := -Mouse3dPollTimer + Mouse3dPollDelay;
       if (Assigned(Mouse3D) and Mouse3D.Loaded) then
       begin
         Mouse3D.GetTranslationValues(Tx, Ty, Tz, TLength);

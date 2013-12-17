@@ -1234,7 +1234,7 @@ begin
       if Mouse3dPollTimer < 0 then
       begin
         { get values from sensor }
-        Mouse3dPollSpeed := Mouse3dPollTimer + Mouse3dPollDelay;
+        Mouse3dPollSpeed := -Mouse3dPollTimer + Mouse3dPollDelay;
         Mouse3D.GetTranslationValues(Tx, Ty, Tz, TLength);
         Mouse3D.GetRotationValues(Rx, Ry, Rz, RAngle);
 
