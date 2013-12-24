@@ -850,7 +850,7 @@ const
      by menu height and VBoxSpacing. }
    WindowWidth := Width;
    WindowHeight := Height;
-   if MainMenu <> nil then
+   if (MainMenu <> nil) and MainMenuVisible then
    begin
     gtk_widget_size_request(GTK_WIDGET(MainMenu.Handle), @WindowReq);
     WindowHeight += WindowReq.Height + VBoxSpacing;
@@ -1004,7 +1004,7 @@ begin
 
  GLAreaContainer := MakeGLAreaContainer(GLAreaGtk);
 
- if MainMenu <> nil then
+ if (MainMenu <> nil) and MainMenuVisible then
  begin
   window_accel_group := gtk_accel_group_new;
   gtk_window_add_accel_group(GTK_WINDOW(WindowGtk), window_accel_group);
@@ -1106,7 +1106,8 @@ begin
    for calling unref on GLAreaGtk. }
  GLAreaGtk := nil;
 
- if MainMenu <> nil then MenuFinalize;
+ if (MainMenu <> nil) and MainMenuVisible then
+   MenuFinalize;
 
  window_vbox := nil;
 

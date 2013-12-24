@@ -747,7 +747,8 @@ type
       already initialized (by BackendMenuInitialize), and
       BackendMenuInitialize is called only when menu is not initialized yet.
 
-      Implementation of these can assume that MainMenu <> nil now.
+      Implementation of these can assume that MainMenu <> nil now,
+      and that MainMenuVisible = @true.
       Also it may assume that Closed = false.
 
       Note: if backend wants, it may itself call these from
@@ -766,6 +767,7 @@ type
       unless we're inside MenuUpdateBegin / MenuUpdateEnd,
       and take care to only initialize when finalized,
       and finalize only when initialized.
+      They also take care of checking Closed and MainMenuVisible properties.
       @groupBegin }
     procedure MenuInitialize;
     procedure MenuFinalize;
@@ -1702,6 +1704,7 @@ end;
 
   private
     FMainMenu: TMenu;
+    FMainMenuVisible: boolean;
     FOwnsMainMenu: boolean;
     FOnMenuClick: TMenuClickFunc;
     FUserData: Pointer;
@@ -1744,6 +1747,12 @@ end;
       functions. The only way to block menu from triggering ANY event is to
       set this to MainMenu.Enabled to @false. }
     property MainMenu: TMenu read FMainMenu write SetMainMenu;
+
+    { Is MainMenu visible. @false means that we do not show main menu bar,
+      but menu key shortcuts should still work.
+      Right now, you can reliably change this only before window is open. }
+    property MainMenuVisible: boolean
+      read FMainMenuVisible write FMainMenuVisible default true;
 
     { If true then in TCastleWindowBase destructor MainMenu will be destroyed too
       (if not nil, od course). Usually this is something useful. }
@@ -2910,6 +2919,7 @@ begin
   OwnsMainMenu := true;
   FPressed := TKeysPressed.Create;
   FFps := TFramesPerSecond.Create;
+  FMainMenuVisible := true;
 
   CreateBackend;
 end;
@@ -3320,7 +3330,7 @@ begin
      MainMenu.Enabled and
      (MatchingMI <> nil) then
   begin
-    if RedirectKeyDownToMenuClick then
+    if (not MainMenuVisible) or RedirectKeyDownToMenuClick then
       DoMenuClick(MatchingMI);
   end else
   begin
@@ -3474,7 +3484,7 @@ begin
 
   if FMainMenu <> nil then
   begin
-    if not Closed then MenuFinalize;
+    MenuFinalize;
     FMainMenu.ParentWindow := nil;
   end;
 
@@ -3483,7 +3493,7 @@ begin
   if FMainMenu <> nil then
   begin
     FMainMenu.ParentWindow := Self;
-    if not Closed then MenuInitialize;
+    MenuInitialize;
   end;
  end;
 end;
@@ -4014,7 +4024,7 @@ procedure TCastleWindowBase.MenuInitialize;
 begin
   if MenuUpdateInside = 0 then
   begin
-    if (not MenuInitialized) and (not Closed) then
+    if (not MenuInitialized) and (not Closed) and MainMenuVisible then
     begin
       BackendMenuInitialize;
       MenuInitialized := true;
@@ -4026,7 +4036,7 @@ end;
 procedure TCastleWindowBase.MenuFinalize;
 begin
   { MenuFinalize ignores MenuUpdateInside state, not needed. }
-  if MenuInitialized and (not Closed) then
+  if MenuInitialized and (not Closed) and MainMenuVisible then
   begin
     MenuInitialized := false;
     BackendMenuFinalize;

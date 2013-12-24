@@ -447,7 +447,7 @@ begin
           that menu bar will always be a single line.
           Note that this is non-perfect also because WM_MOVE message may not get to
           FullScreen window at all, so in OpenBackend I also do this trick. }
-        if FullScreen and (MainMenu <> nil) then
+        if FullScreen and (MainMenu <> nil) and MainMenuVisible then
           FTop += GetSystemMetrics(SM_CYMENU);
 
         { TODO: przerobic to na glViewport ? po co wywolywac tu OnResize ktore
@@ -741,12 +741,13 @@ begin
       menu bar wrapped. Which made OpenGL area not tall enough for 256 pixels,
       and glViewImage had to add a vertical scrollbar to display welcome image.
     }
-    AdjustWindowRectEx(WindowRect, dwStyle, MainMenu <> nil, dwExStyle);
+    AdjustWindowRectEx(WindowRect, dwStyle,
+      (MainMenu <> nil) and MainMenuVisible, dwExStyle);
   end;
   dwStyle := dwStyle or WS_CLIPSIBLINGS or WS_CLIPCHILDREN;
 
   { calculate H_Menu }
-  if MainMenu <> nil then
+  if (MainMenu <> nil) and MainMenuVisible then
     H_Menu := MakeWinapiMenu(MainMenu, true) else
     H_Menu := 0;
 
@@ -760,7 +761,7 @@ begin
   Check( h_Wnd <> 0, 'CreateWindowEx failed');
 
   { See WM_MOVE handling comments why this is needed to make Top correct. }
-  if FullScreen and (MainMenu <> nil) then
+  if FullScreen and (MainMenu <> nil) and MainMenuVisible then
     FTop += GetSystemMetrics(SM_CYMENU);
 
   SetWindowLongPtr(h_Wnd, GWL_USERDATA, PtrUInt(Self));
@@ -842,7 +843,7 @@ begin
   InCloseBackend := true;
   try
     ContextDestroy;
-  
+
     if (h_Dc <> 0) and (ReleaseDC(h_Wnd, h_Dc) = 0) then
       CloseError('Releasing device context (ReleaseDC) failed.');
     h_Dc := 0;

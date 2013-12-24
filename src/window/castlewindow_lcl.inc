@@ -472,7 +472,8 @@ begin
 
   Form.ActiveControl := OpenGLControl;
 
-  if MainMenu <> nil then MenuInitialize;
+  if (MainMenu <> nil) and MainMenuVisible then
+    MenuInitialize;
 
   Form.Visible := Visible;
 
