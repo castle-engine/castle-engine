@@ -16,8 +16,8 @@
 { Play the animations of resources (creatures/items). }
 
 uses SysUtils, FGL, CastleFilesUtils, CastleWindow, CastleResources, CastleScene,
-  CastleProgress, CastleWindowProgress, CastleControls, CastleUIControls, CastleUtils,
-  Castle3D, CastleSoundEngine;
+  CastleProgress, CastleWindowProgress, CastleControls, CastleUIControls,
+  CastleUtils, Castle3D, CastleSoundEngine;
 
 var
   BaseScene: TCastleScene;
@@ -130,7 +130,7 @@ begin
   if Window.FileDialog('Resource file to load', LastChosenURL, true,
     'All Files|*|*Resource files (resource.xml)|resource.xml|') then
   begin
-    Resources.LoadResourceFile(LastChosenURL);
+    Resources.AddFromFile(LastChosenURL);
     { directly prepare new resource }
     Resources.Prepare(
       Window.SceneManager.Items.BaseLights,
