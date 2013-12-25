@@ -1174,7 +1174,7 @@ procedure TTestX3DNodes.TestEmptyChanges;
       { no need to do anything }
       FieldIs(Field, TAbstractTimeDependentNode, 'loop') or
       FieldIs(Field, TMovieTextureNode, 'loop') or
-      FieldIs(Field, TAbstractX3DViewpointNode, 'description') or
+      FieldIs(Field, TAbstractViewpointNode, 'description') or
       FieldIs(Field, TRenderedTextureNode, 'description') or
       FieldIs(Field, TMovieTextureNode, 'description') or
       FieldIs(Field, TAbstractX3DViewpointNode, 'jump') or { also not implemented }
