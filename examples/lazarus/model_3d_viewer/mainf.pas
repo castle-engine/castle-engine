@@ -224,23 +224,7 @@ begin
     Walk := nil;
 
   if Walk <> nil then
-  begin
     Walk.MouseLook := (Sender as TMenuItem).Checked;
-
-    if Walk.MouseLook then
-    begin
-      Walk.Input_LeftStrafe.AssignFromDefault(Walk.Input_LeftRot);
-      Walk.Input_RightStrafe.AssignFromDefault(Walk.Input_RightRot);
-      Walk.Input_LeftRot.AssignFromDefault(Walk.Input_LeftStrafe);
-      Walk.Input_RightRot.AssignFromDefault(Walk.Input_RightStrafe);
-    end else
-    begin
-      Walk.Input_LeftStrafe.MakeDefault;
-      Walk.Input_RightStrafe.MakeDefault;
-      Walk.Input_LeftRot.MakeDefault;
-      Walk.Input_RightRot.MakeDefault;
-    end;
-  end;
 end;
 
 procedure TMain.MenuAboutOpenGLClick(Sender: TObject);
