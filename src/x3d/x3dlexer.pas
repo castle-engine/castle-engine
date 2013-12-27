@@ -618,9 +618,9 @@ begin
     FVersion.Minor := 0;
 
     if not IsPrefix('V1.0 ascii', Line) then
-      raise EX3DLexerError.Create(Self,
-        'Inventor signature recognized, but only '+
-        'Inventor 1.0 ascii files are supported. Sor'+'ry.');
+      raise EX3DLexerError.Create(Self, Format(
+        'Inventor format detected, version "%s", but only Inventor 1.0 ascii files are supported',
+        [TrimRight(Line)]));
   end else
   if IsPrefixRemove(VRML1HeaderStart, Line) then
   begin
