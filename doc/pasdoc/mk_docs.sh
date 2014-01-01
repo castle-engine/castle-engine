@@ -82,28 +82,26 @@ if (( $# == 0 )); then
   # CastleOutlineFont_Xxx and CastleBitmapFont_Xxx, docs for these units would be useless.
   # (all these units have the same structure, after all).
   #
-  # Don't generate docs for automatically generated AllKambi*Units units,
-  # they should not be used in any program (they are only to simplify
-  # compilation).
-  #
-  # Don't generate docs for fglobjectlist22.pas, as this is only a hack
-  # for FPC <= 2.24. Also, it doesn't parse, due to defining generics.
-  #
   # Don't generate docs for units created only for example programs.
   #
   # Don't generate docs for pk3dconnexion.pas, tdxinput_tlb.pas:
   # external code, not ready for pasdoc.
+  #
+  # Don't generate docs for units in base/android/: these should be treated
+  # as internal units.
   find .  \
     '(' -type d '(' -iname old -or \
                     -iname private \
                 ')' -prune ')' -or \
     '(' -type f -iname '*.pas' \
             -not '(' \
-              '(' -iwholename '*/fglobjectlist22.pas' ')' -or \
-              '(' -iwholename '*/AllKambi*Units.pas' ')' -or \
+              '(' -iwholename '*/base/android/*.pas' ')' -or \
+              '(' -iwholename '*/castlelib_dynloader.pas' ')' -or \
+              '(' -iwholename '*/castlegles20.pas' ')' -or \
               '(' -iwholename '*/opengl/x86_64/glext.pas' ')' -or \
               '(' -iwholename '*ui/pk3dconnexion.pas' ')' -or \
               '(' -iwholename '*ui/windows/tdxinput_tlb.pas' ')' -or \
+              '(' -iwholename '*/x3dloadinternal*.pas' ')' -or \
               '(' -iwholename '*fonts/castleoutlinefont_*.pas' ')' -or \
               '(' -iwholename '*fonts/castlebitmapfont_*.pas' ')' \
             ')' \
@@ -147,8 +145,10 @@ pasdoc \
   --auto-link \
   --auto-link-exclude=../doc/pasdoc/auto_link_exclude.txt \
   --external-class-hierarchy=../doc/pasdoc/external_class_hierarchy.txt \
-  --visible-members public,published,automated
+  --visible-members public,published,automated,protected \
+  --footer ../doc/pasdoc/footer.html
 
+# Not anymore:
 # We hide protected members, for now. Makes a cleaner documentation,
 # more useful for engine users, not interested in engine internals.
 

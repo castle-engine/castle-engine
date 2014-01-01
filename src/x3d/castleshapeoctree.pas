@@ -15,8 +15,7 @@
 
 { Octrees for fast 3D seaching in VRML/X3D shapes (TShapeOctree).
 
-  Don't confuse it with @link(TTriangleOctree) from unit
-  @link(TriangleOctree):
+  Don't confuse it with @link(TTriangleOctree):
   @link(TTriangleOctree) is an octree based on scene triangles,
   while @link(TShapeOctree) is an octree based on scene
   Shapes. A scene usually has much more (e.g. 100 000, but this

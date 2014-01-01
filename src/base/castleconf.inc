@@ -79,8 +79,10 @@
 {$ifdef VER2_2_4} {$undef TOBJECT_HAS_EQUALS} {$endif}
 {$ifdef VER2_4_0} {$undef TOBJECT_HAS_EQUALS} {$endif}
 
-{$if defined(iPHONESIM) or (defined(DARWIN) and defined(CPUARM))}
+{$ifndef PASDOC} // Avoid Pasdoc warnings, as Pasdoc cannot calculate $if below
+  {$if defined(iPHONESIM) or (defined(DARWIN) and defined(CPUARM))}
     {$define iOS}
+  {$endif}
 {$endif}
 
 { OpenGL ES ------------------------------------------------------------------ }

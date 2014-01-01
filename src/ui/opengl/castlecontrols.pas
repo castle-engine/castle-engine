@@ -588,7 +588,7 @@ type
     { 2D GUI images, represented as TCastleImage.
       Although they all have sensible defaults, you can also change them
       at any time. Simply create TCastleImage instance (e.g. by LoadImage
-      function) and assign it here. Be sure to adjust also @link(OwnsImage)
+      function) and assign it here. Be sure to adjust also @link(OwnsImages)
       if you want the theme to automatically free the image when it's no longer
       used.
 

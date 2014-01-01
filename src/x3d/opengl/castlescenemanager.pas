@@ -159,9 +159,8 @@ type
       If you want to display something 3D during rendering,
       this is the simplest method to override. (Or you can use OnRender3D
       event, which is called at the end of this method.)
-      Alternatively, you can create new T3D descendant and add it to @link(Items)
-      list --- but for simple (not collidable) stuff, using this method may
-      be simpler.
+      Alternatively, you can create new T3D descendant and add it
+      to the @link(GetItems) list.
 
       @param(Params Parameters specify what lights should be used
         (Params.BaseLights, Params.InShadow), and which parts of the 3D scene

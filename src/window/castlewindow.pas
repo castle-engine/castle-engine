@@ -1886,7 +1886,7 @@ end;
       to allow creating a window.
 
       @raises(EGLContextNotPossible If it's not possible to obtain
-        requested OpenGL context, and the @link(Retry) callback
+        requested OpenGL context, and the @code(Retry) callback
         returned @false.) }
     procedure Open(const Retry: TGLContextRetryOpenFunc);
 
@@ -2868,7 +2868,7 @@ function Clipboard: TCastleClipboard;
 procedure Resize2D(Window: TCastleWindowBase);
 
 { Describe given key. Key is given as combination of character code (may be #0)
-  and Key code (may be K_None), and additional required @link(Modifiers)
+  and Key code (may be K_None), and additional required @code(Modifiers)
   (although some modifiers may be already implied by CharKey).
   See @link(TMenuItem.Key) and @link(TMenuItem.CharKey) and @link(TMenuItem.Modifiers).
 

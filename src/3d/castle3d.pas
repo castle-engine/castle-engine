@@ -912,7 +912,7 @@ type
       method using any condition, which is sometimes more comfortable
       than adding item to Items.
 
-      This item cannot be removed by methods like @link(T3DList,Delete)
+      This item cannot be removed by methods like @link(T3DList.Remove)
       or by setting RemoveMe in it's @link(T3D.Update) implementation.
       Presence of this item is completely determined by GetChild implementation. }
     function GetChild: T3D; virtual;
