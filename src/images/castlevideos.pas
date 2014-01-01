@@ -12,6 +12,8 @@
 
   ----------------------------------------------------------------------------
 }
+
+{ Video (movie) data (TVideo and helpers). }
 unit CastleVideos;
 
 interface
