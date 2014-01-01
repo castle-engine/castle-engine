@@ -32,7 +32,9 @@ type
       CurrentFont: TGLOutlineFont;
       const Depth: Single;
       const CullBackFaces: boolean;
-      const EventLineBounds, EventOrigin, EventTextBounds: TX3DEvent);
+      const EventLineBounds: TMFVec2fEvent;
+      const EventOrigin: TSFVec3fEvent;
+      const EventTextBounds: TSFVec2fEvent);
   end;
 
   TAsciiTextRenderer = class(TAbstractTextRenderer)
@@ -59,7 +61,9 @@ procedure TAbstractTextRenderer.RenderText(
   CurrentFont: TGLOutlineFont;
   const Depth: Single;
   const CullBackFaces: boolean;
-  const EventLineBounds, EventOrigin, EventTextBounds: TX3DEvent);
+  const EventLineBounds: TMFVec2fEvent;
+  const EventOrigin: TSFVec3fEvent;
+  const EventTextBounds: TSFVec2fEvent);
 
 var
   TextWidths: TSingleList;

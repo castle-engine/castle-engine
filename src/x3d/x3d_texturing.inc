@@ -307,21 +307,21 @@
     private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
-    { Event: SFTime, out } { }
-    private FEventDuration_changed: TX3DEvent;
-    public property EventDuration_changed: TX3DEvent read FEventDuration_changed;
+    { Event out } { }
+    private FEventDuration_changed: TSFTimeEvent;
+    public property EventDuration_changed: TSFTimeEvent read FEventDuration_changed;
 
-    { Event: SFTime, out } { }
-    private FEventElapsedTime: TX3DEvent;
-    public property EventElapsedTime: TX3DEvent read FEventElapsedTime;
+    { Event out } { }
+    private FEventElapsedTime: TSFTimeEvent;
+    public property EventElapsedTime: TSFTimeEvent read FEventElapsedTime;
 
-    { Event: SFBool, out } { }
-    private FEventIsActive: TX3DEvent;
-    public property EventIsActive: TX3DEvent read FEventIsActive;
+    { Event out } { }
+    private FEventIsActive: TSFBoolEvent;
+    public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
-    { Event: SFBool, out } { }
-    private FEventIsPaused: TX3DEvent;
-    public property EventIsPaused: TX3DEvent read FEventIsPaused;
+    { Event out } { }
+    private FEventIsPaused: TSFBoolEvent;
+    public property EventIsPaused: TSFBoolEvent read FEventIsPaused;
 
     function TextureDescription: string; override;
 
@@ -846,16 +846,16 @@ begin
   Fields.Add(FFdUrl);
   { X3D specification comment: [URI] }
 
-  FEventDuration_changed := TX3DEvent.Create(Self, 'duration_changed', TSFTime, false);
+  FEventDuration_changed := TSFTimeEvent.Create(Self, 'duration_changed', false);
   Events.Add(FEventDuration_changed);
 
-  FEventElapsedTime := TX3DEvent.Create(Self, 'elapsedTime', TSFTime, false);
+  FEventElapsedTime := TSFTimeEvent.Create(Self, 'elapsedTime', false);
   Events.Add(FEventElapsedTime);
 
-  FEventIsActive := TX3DEvent.Create(Self, 'isActive', TSFBool, false);
+  FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
   Events.Add(FEventIsActive);
 
-  FEventIsPaused := TX3DEvent.Create(Self, 'isPaused', TSFBool, false);
+  FEventIsPaused := TSFBoolEvent.Create(Self, 'isPaused', false);
   Events.Add(FEventIsPaused);
 
   FDuration := -1;

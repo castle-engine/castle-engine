@@ -25,13 +25,13 @@
     private FFdSize: TSFVec3f;
     public property FdSize: TSFVec3f read FFdSize;
 
-    { Event: SFTime, out } { }
-    private FEventEnterTime: TX3DEvent;
-    public property EventEnterTime: TX3DEvent read FEventEnterTime;
+    { Event out } { }
+    private FEventEnterTime: TSFTimeEvent;
+    public property EventEnterTime: TSFTimeEvent read FEventEnterTime;
 
-    { Event: SFTime, out } { }
-    private FEventExitTime: TX3DEvent;
-    public property EventExitTime: TX3DEvent read FEventExitTime;
+    { Event out } { }
+    private FEventExitTime: TSFTimeEvent;
+    public property EventExitTime: TSFTimeEvent read FEventExitTime;
   end;
 
   TProximitySensorNode = class(TAbstractEnvironmentalSensorNode)
@@ -41,17 +41,17 @@
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    { Event: SFVec3f, out } { }
-    private FEventCenterOfRotation_changed: TX3DEvent;
-    public property EventCenterOfRotation_changed: TX3DEvent read FEventCenterOfRotation_changed;
+    { Event out } { }
+    private FEventCenterOfRotation_changed: TSFVec3fEvent;
+    public property EventCenterOfRotation_changed: TSFVec3fEvent read FEventCenterOfRotation_changed;
 
-    { Event: SFRotation, out } { }
-    private FEventOrientation_changed: TX3DEvent;
-    public property EventOrientation_changed: TX3DEvent read FEventOrientation_changed;
+    { Event out } { }
+    private FEventOrientation_changed: TSFRotationEvent;
+    public property EventOrientation_changed: TSFRotationEvent read FEventOrientation_changed;
 
-    { Event: SFVec3f, out } { }
-    private FEventPosition_changed: TX3DEvent;
-    public property EventPosition_changed: TX3DEvent read FEventPosition_changed;
+    { Event out } { }
+    private FEventPosition_changed: TSFVec3fEvent;
+    public property EventPosition_changed: TSFVec3fEvent read FEventPosition_changed;
   end;
 
   TTransformSensorNode = class(TAbstractEnvironmentalSensorNode)
@@ -63,13 +63,13 @@
     private FFdTargetObject: TSFNode;
     public property FdTargetObject: TSFNode read FFdTargetObject;
 
-    { Event: SFRotation, out } { }
-    private FEventOrientation_changed: TX3DEvent;
-    public property EventOrientation_changed: TX3DEvent read FEventOrientation_changed;
+    { Event out } { }
+    private FEventOrientation_changed: TSFRotationEvent;
+    public property EventOrientation_changed: TSFRotationEvent read FEventOrientation_changed;
 
-    { Event: SFVec3f, out } { }
-    private FEventPosition_changed: TX3DEvent;
-    public property EventPosition_changed: TX3DEvent read FEventPosition_changed;
+    { Event out } { }
+    private FEventPosition_changed: TSFVec3fEvent;
+    public property EventPosition_changed: TSFVec3fEvent read FEventPosition_changed;
   end;
 
   TVisibilitySensorNode = class(TAbstractEnvironmentalSensorNode)
@@ -103,10 +103,10 @@ begin
   Fields.Add(FFdSize);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventEnterTime := TX3DEvent.Create(Self, 'enterTime', TSFTime, false);
+  FEventEnterTime := TSFTimeEvent.Create(Self, 'enterTime', false);
   Events.Add(FEventEnterTime);
 
-  FEventExitTime := TX3DEvent.Create(Self, 'exitTime', TSFTime, false);
+  FEventExitTime := TSFTimeEvent.Create(Self, 'exitTime', false);
   Events.Add(FEventExitTime);
 
   DefaultContainerField := 'children';
@@ -116,13 +116,13 @@ procedure TProximitySensorNode.CreateNode;
 begin
   inherited;
 
-  FEventCenterOfRotation_changed := TX3DEvent.Create(Self, 'centerOfRotation_changed', TSFVec3f, false);
+  FEventCenterOfRotation_changed := TSFVec3fEvent.Create(Self, 'centerOfRotation_changed', false);
   Events.Add(FEventCenterOfRotation_changed);
 
-  FEventOrientation_changed := TX3DEvent.Create(Self, 'orientation_changed', TSFRotation, false);
+  FEventOrientation_changed := TSFRotationEvent.Create(Self, 'orientation_changed', false);
   Events.Add(FEventOrientation_changed);
 
-  FEventPosition_changed := TX3DEvent.Create(Self, 'position_changed', TSFVec3f, false);
+  FEventPosition_changed := TSFVec3fEvent.Create(Self, 'position_changed', false);
   Events.Add(FEventPosition_changed);
 
   DefaultContainerField := 'children';
@@ -152,10 +152,10 @@ begin
   FFdTargetObject := TSFNode.Create(Self, 'targetObject', [TAbstractX3DGroupingNode, TAbstractShapeNode]);
   Fields.Add(FFdTargetObject);
 
-  FEventOrientation_changed := TX3DEvent.Create(Self, 'orientation_changed', TSFRotation, false);
+  FEventOrientation_changed := TSFRotationEvent.Create(Self, 'orientation_changed', false);
   Events.Add(FEventOrientation_changed);
 
-  FEventPosition_changed := TX3DEvent.Create(Self, 'position_changed', TSFVec3f, false);
+  FEventPosition_changed := TSFVec3fEvent.Create(Self, 'position_changed', false);
   Events.Add(FEventPosition_changed);
 
   DefaultContainerField := 'children';

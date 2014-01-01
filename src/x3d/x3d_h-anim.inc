@@ -696,7 +696,7 @@ begin
     begin
       ChildJoint := THAnimJointNode(FdChildren[I]);
 
-      { TODO: it's a little hack to update ChildJoint.FdCenter this way.
+      { TODO: it's very hacky to update ChildJoint.FdCenter this way.
         The cleaner way would be to just
 
           ChildJoint.FdCenter.Send(AnimateSkinPoint(ChildJoint.RestCenter))
@@ -710,8 +710,8 @@ begin
       if not VectorsPerfectlyEqual(ChildJoint.FdCenter.Value, NewChildCenter) then
       begin
         ChildJoint.FdCenter.Value := NewChildCenter;
-        if ChildJoint.FdCenter.Exposed then
-          ChildJoint.FdCenter.EventOut.Send(NewChildCenter);
+//        if ChildJoint.FdCenter.Exposed then
+//TODO:          ChildJoint.FdCenter.EventOut.Send(NewChildCenter);
 
         { Increasing here PlusTicks is a little hack.
           If you'll next want to traverse a parent joint,

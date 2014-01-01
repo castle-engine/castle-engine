@@ -58,9 +58,9 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: MFDouble, in } { }
-    private FEventSet_height: TX3DEvent;
-    public property EventSet_height: TX3DEvent read FEventSet_height;
+    { Event in } { }
+    private FEventSet_height: TMFDoubleEvent;
+    public property EventSet_height: TMFDoubleEvent read FEventSet_height;
 
     private FFdColor: TSFNode;
     public property FdColor: TSFNode read FFdColor;
@@ -144,13 +144,13 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: MFNode, out } { }
-    private FEventChildren: TX3DEvent;
-    public property EventChildren: TX3DEvent read FEventChildren;
+    { Event out } { }
+    private FEventChildren: TMFNodeEvent;
+    public property EventChildren: TMFNodeEvent read FEventChildren;
 
-    { Event: SFInt32, out } { }
-    private FEventLevel_changed: TX3DEvent;
-    public property EventLevel_changed: TX3DEvent read FEventLevel_changed;
+    { Event out } { }
+    private FEventLevel_changed: TSFInt32Event;
+    public property EventLevel_changed: TSFInt32Event read FEventLevel_changed;
 
     private FFdCenter: TSFVec3d;
     public property FdCenter: TSFVec3d read FFdCenter;
@@ -230,13 +230,13 @@
     private FFdKeyValue: TMFVec3d;
     public property FdKeyValue: TMFVec3d read FFdKeyValue;
 
-    { Event: SFVec3d, out } { }
-    private FEventGeovalue_changed: TX3DEvent;
-    public property EventGeovalue_changed: TX3DEvent read FEventGeovalue_changed;
+    { Event out } { }
+    private FEventGeovalue_changed: TSFVec3dEvent;
+    public property EventGeovalue_changed: TSFVec3dEvent read FEventGeovalue_changed;
 
-    { Event: SFVec3f, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TSFVec3fEvent;
+    public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
 
     private FFdGeoOrigin: TSFNode;
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
@@ -254,21 +254,21 @@
     private FFdGeoCenter: TSFVec3d;
     public property FdGeoCenter: TSFVec3d read FFdGeoCenter;
 
-    { Event: SFVec3f, out } { }
-    private FEventCenterOfRotation_changed: TX3DEvent;
-    public property EventCenterOfRotation_changed: TX3DEvent read FEventCenterOfRotation_changed;
+    { Event out } { }
+    private FEventCenterOfRotation_changed: TSFVec3fEvent;
+    public property EventCenterOfRotation_changed: TSFVec3fEvent read FEventCenterOfRotation_changed;
 
-    { Event: SFVec3d, out } { }
-    private FEventGeoCoord_changed: TX3DEvent;
-    public property EventGeoCoord_changed: TX3DEvent read FEventGeoCoord_changed;
+    { Event out } { }
+    private FEventGeoCoord_changed: TSFVec3dEvent;
+    public property EventGeoCoord_changed: TSFVec3dEvent read FEventGeoCoord_changed;
 
-    { Event: SFRotation, out } { }
-    private FEventOrientation_changed: TX3DEvent;
-    public property EventOrientation_changed: TX3DEvent read FEventOrientation_changed;
+    { Event out } { }
+    private FEventOrientation_changed: TSFRotationEvent;
+    public property EventOrientation_changed: TSFRotationEvent read FEventOrientation_changed;
 
-    { Event: SFVec3f, out } { }
-    private FEventPosition_changed: TX3DEvent;
-    public property EventPosition_changed: TX3DEvent read FEventPosition_changed;
+    { Event out } { }
+    private FEventPosition_changed: TSFVec3fEvent;
+    public property EventPosition_changed: TSFVec3fEvent read FEventPosition_changed;
 
     private FFdGeoOrigin: TSFNode;
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
@@ -283,21 +283,21 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: SFVec3f, out } { }
-    private FEventHitNormal_changed: TX3DEvent;
-    public property EventHitNormal_changed: TX3DEvent read FEventHitNormal_changed;
+    { Event out } { }
+    private FEventHitNormal_changed: TSFVec3fEvent;
+    public property EventHitNormal_changed: TSFVec3fEvent read FEventHitNormal_changed;
 
-    { Event: SFVec3f, out } { }
-    private FEventHitPoint_changed: TX3DEvent;
-    public property EventHitPoint_changed: TX3DEvent read FEventHitPoint_changed;
+    { Event out } { }
+    private FEventHitPoint_changed: TSFVec3fEvent;
+    public property EventHitPoint_changed: TSFVec3fEvent read FEventHitPoint_changed;
 
-    { Event: SFVec2f, out } { }
-    private FEventHitTexCoord_changed: TX3DEvent;
-    public property EventHitTexCoord_changed: TX3DEvent read FEventHitTexCoord_changed;
+    { Event out } { }
+    private FEventHitTexCoord_changed: TSFVec2fEvent;
+    public property EventHitTexCoord_changed: TSFVec2fEvent read FEventHitTexCoord_changed;
 
-    { Event: SFVec3d, out } { }
-    private FEventHitGeoCoord_changed: TX3DEvent;
-    public property EventHitGeoCoord_changed: TX3DEvent read FEventHitGeoCoord_changed;
+    { Event out } { }
+    private FEventHitGeoCoord_changed: TSFVec3dEvent;
+    public property EventHitGeoCoord_changed: TSFVec3dEvent read FEventHitGeoCoord_changed;
 
     private FFdGeoOrigin: TSFNode;
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
@@ -340,13 +340,13 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: SFRotation, in } { }
-    private FEventSet_orientation: TX3DEvent;
-    public property EventSet_orientation: TX3DEvent read FEventSet_orientation;
+    { Event in } { }
+    private FEventSet_orientation: TSFRotationEvent;
+    public property EventSet_orientation: TSFRotationEvent read FEventSet_orientation;
 
-    { Event: SFVec3d, in } { }
-    private FEventSet_position: TX3DEvent;
-    public property EventSet_position: TX3DEvent read FEventSet_position;
+    { Event in } { }
+    private FEventSet_position: TSFVec3dEvent;
+    public property EventSet_position: TSFVec3dEvent read FEventSet_position;
 
     private FFdFieldOfView: TSFFloat;
     public property FdFieldOfView: TSFFloat read FFdFieldOfView;
@@ -412,7 +412,7 @@ procedure TGeoElevationGridNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_height := TX3DEvent.Create(Self, 'set_height', TMFDouble, true);
+  FEventSet_height := TMFDoubleEvent.Create(Self, 'set_height', true);
   Events.Add(FEventSet_height);
 
   FFdColor := TSFNode.Create(Self, 'color', [TAbstractColorNode]);
@@ -556,10 +556,10 @@ procedure TGeoLODNode.CreateNode;
 begin
   inherited;
 
-  FEventChildren := TX3DEvent.Create(Self, 'children', TMFNode, false);
+  FEventChildren := TMFNodeEvent.Create(Self, 'children', false);
   Events.Add(FEventChildren);
 
-  FEventLevel_changed := TX3DEvent.Create(Self, 'level_changed', TSFInt32, false);
+  FEventLevel_changed := TSFInt32Event.Create(Self, 'level_changed', false);
   Events.Add(FEventLevel_changed);
 
   FFdCenter := TSFVec3d.Create(Self, 'center', Vector3Double(0, 0, 0));
@@ -696,10 +696,10 @@ begin
   FFdKeyValue := TMFVec3d.Create(Self, 'keyValue', []);
   Fields.Add(FFdKeyValue);
 
-  FEventGeovalue_changed := TX3DEvent.Create(Self, 'geovalue_changed', TSFVec3d, false);
+  FEventGeovalue_changed := TSFVec3dEvent.Create(Self, 'geovalue_changed', false);
   Events.Add(FEventGeovalue_changed);
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFVec3f, false);
+  FEventValue_changed := TSFVec3fEvent.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   FFdGeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TGeoOriginNode]);
@@ -731,16 +731,16 @@ begin
   Fields.Add(FFdGeoCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventCenterOfRotation_changed := TX3DEvent.Create(Self, 'centerOfRotation_changed', TSFVec3f, false);
+  FEventCenterOfRotation_changed := TSFVec3fEvent.Create(Self, 'centerOfRotation_changed', false);
   Events.Add(FEventCenterOfRotation_changed);
 
-  FEventGeoCoord_changed := TX3DEvent.Create(Self, 'geoCoord_changed', TSFVec3d, false);
+  FEventGeoCoord_changed := TSFVec3dEvent.Create(Self, 'geoCoord_changed', false);
   Events.Add(FEventGeoCoord_changed);
 
-  FEventOrientation_changed := TX3DEvent.Create(Self, 'orientation_changed', TSFRotation, false);
+  FEventOrientation_changed := TSFRotationEvent.Create(Self, 'orientation_changed', false);
   Events.Add(FEventOrientation_changed);
 
-  FEventPosition_changed := TX3DEvent.Create(Self, 'position_changed', TSFVec3f, false);
+  FEventPosition_changed := TSFVec3fEvent.Create(Self, 'position_changed', false);
   Events.Add(FEventPosition_changed);
 
   FFdGeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TGeoOriginNode]);
@@ -768,16 +768,16 @@ procedure TGeoTouchSensorNode.CreateNode;
 begin
   inherited;
 
-  FEventHitNormal_changed := TX3DEvent.Create(Self, 'hitNormal_changed', TSFVec3f, false);
+  FEventHitNormal_changed := TSFVec3fEvent.Create(Self, 'hitNormal_changed', false);
   Events.Add(FEventHitNormal_changed);
 
-  FEventHitPoint_changed := TX3DEvent.Create(Self, 'hitPoint_changed', TSFVec3f, false);
+  FEventHitPoint_changed := TSFVec3fEvent.Create(Self, 'hitPoint_changed', false);
   Events.Add(FEventHitPoint_changed);
 
-  FEventHitTexCoord_changed := TX3DEvent.Create(Self, 'hitTexCoord_changed', TSFVec2f, false);
+  FEventHitTexCoord_changed := TSFVec2fEvent.Create(Self, 'hitTexCoord_changed', false);
   Events.Add(FEventHitTexCoord_changed);
 
-  FEventHitGeoCoord_changed := TX3DEvent.Create(Self, 'hitGeoCoord_changed', TSFVec3d, false);
+  FEventHitGeoCoord_changed := TSFVec3dEvent.Create(Self, 'hitGeoCoord_changed', false);
   Events.Add(FEventHitGeoCoord_changed);
 
   FFdGeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TGeoOriginNode]);
@@ -850,10 +850,10 @@ procedure TGeoViewpointNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_orientation := TX3DEvent.Create(Self, 'set_orientation', TSFRotation, true);
+  FEventSet_orientation := TSFRotationEvent.Create(Self, 'set_orientation', true);
   Events.Add(FEventSet_orientation);
 
-  FEventSet_position := TX3DEvent.Create(Self, 'set_position', TSFVec3d, true);
+  FEventSet_position := TSFVec3dEvent.Create(Self, 'set_position', true);
   Events.Add(FEventSet_position);
 
   FFdFieldOfView := TSFFloat.Create(Self, 'fieldOfView', Pi/4);

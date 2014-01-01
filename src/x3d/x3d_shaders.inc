@@ -19,17 +19,17 @@
   public
     procedure CreateNode; override;
 
-    { Event: SFBool, in } { }
-    private FEventActivate: TX3DEvent;
-    public property EventActivate: TX3DEvent read FEventActivate;
+    { Event in } { }
+    private FEventActivate: TSFBoolEvent;
+    public property EventActivate: TSFBoolEvent read FEventActivate;
 
-    { Event: SFBool, out } { }
-    private FEventIsSelected: TX3DEvent;
-    public property EventIsSelected: TX3DEvent read FEventIsSelected;
+    { Event out } { }
+    private FEventIsSelected: TSFBoolEvent;
+    public property EventIsSelected: TSFBoolEvent read FEventIsSelected;
 
-    { Event: SFBool, out } { }
-    private FEventIsValid: TX3DEvent;
-    public property EventIsValid: TX3DEvent read FEventIsValid;
+    { Event out } { }
+    private FEventIsValid: TSFBoolEvent;
+    public property EventIsValid: TSFBoolEvent read FEventIsValid;
 
     private FFdLanguage: TSFString;
     public property FdLanguage: TSFString read FFdLanguage;
@@ -162,13 +162,13 @@ procedure TAbstractShaderNode.CreateNode;
 begin
   inherited;
 
-  FEventActivate := TX3DEvent.Create(Self, 'activate', TSFBool, true);
+  FEventActivate := TSFBoolEvent.Create(Self, 'activate', true);
   Events.Add(FEventActivate);
 
-  FEventIsSelected := TX3DEvent.Create(Self, 'isSelected', TSFBool, false);
+  FEventIsSelected := TSFBoolEvent.Create(Self, 'isSelected', false);
   Events.Add(FEventIsSelected);
 
-  FEventIsValid := TX3DEvent.Create(Self, 'isValid', TSFBool, false);
+  FEventIsValid := TSFBoolEvent.Create(Self, 'isValid', false);
   Events.Add(FEventIsValid);
 
   FFdLanguage := TSFString.Create(Self, 'language', '');

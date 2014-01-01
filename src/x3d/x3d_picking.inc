@@ -34,9 +34,9 @@
     private FFdPickTarget: TMFNode;
     public property FdPickTarget: TMFNode read FFdPickTarget;
 
-    { Event: MFNode, out } { }
-    private FEventPickedGeometry: TX3DEvent;
-    public property EventPickedGeometry: TX3DEvent read FEventPickedGeometry;
+    { Event out } { }
+    private FEventPickedGeometry: TMFNodeEvent;
+    public property EventPickedGeometry: TMFNodeEvent read FEventPickedGeometry;
 
     private FFdIntersectionType: TSFString;
     public property FdIntersectionType: TSFString read FFdIntersectionType;
@@ -51,17 +51,17 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: MFVec3f, out } { }
-    private FEventPickedNormal: TX3DEvent;
-    public property EventPickedNormal: TX3DEvent read FEventPickedNormal;
+    { Event out } { }
+    private FEventPickedNormal: TMFVec3fEvent;
+    public property EventPickedNormal: TMFVec3fEvent read FEventPickedNormal;
 
-    { Event: MFVec3f, out } { }
-    private FEventPickedPoint: TX3DEvent;
-    public property EventPickedPoint: TX3DEvent read FEventPickedPoint;
+    { Event out } { }
+    private FEventPickedPoint: TMFVec3fEvent;
+    public property EventPickedPoint: TMFVec3fEvent read FEventPickedPoint;
 
-    { Event: MFVec3f, out } { }
-    private FEventPickedTextureCoordinate: TX3DEvent;
-    public property EventPickedTextureCoordinate: TX3DEvent read FEventPickedTextureCoordinate;
+    { Event out } { }
+    private FEventPickedTextureCoordinate: TMFVec3fEvent;
+    public property EventPickedTextureCoordinate: TMFVec3fEvent read FEventPickedTextureCoordinate;
   end;
 
   TPickableGroupNode = class(TAbstractX3DGroupingNode, IAbstractPickableObject)
@@ -83,9 +83,9 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: MFVec3f, out } { }
-    private FEventPickedPoint: TX3DEvent;
-    public property EventPickedPoint: TX3DEvent read FEventPickedPoint;
+    { Event out } { }
+    private FEventPickedPoint: TMFVec3fEvent;
+    public property EventPickedPoint: TMFVec3fEvent read FEventPickedPoint;
   end;
 
   TPrimitivePickSensorNode = class(TAbstractPickSensorNode)
@@ -124,7 +124,7 @@ begin
   FFdPickTarget := TMFNode.Create(Self, 'pickTarget', [TAbstractX3DGroupingNode, TAbstractShapeNode, TInlineNode]);
   Fields.Add(FFdPickTarget);
 
-  FEventPickedGeometry := TX3DEvent.Create(Self, 'pickedGeometry', TMFNode, false);
+  FEventPickedGeometry := TMFNodeEvent.Create(Self, 'pickedGeometry', false);
   Events.Add(FEventPickedGeometry);
 
   FFdIntersectionType := TSFString.Create(Self, 'intersectionType', 'BOUNDS');
@@ -144,13 +144,13 @@ procedure TLinePickSensorNode.CreateNode;
 begin
   inherited;
 
-  FEventPickedNormal := TX3DEvent.Create(Self, 'pickedNormal', TMFVec3f, false);
+  FEventPickedNormal := TMFVec3fEvent.Create(Self, 'pickedNormal', false);
   Events.Add(FEventPickedNormal);
 
-  FEventPickedPoint := TX3DEvent.Create(Self, 'pickedPoint', TMFVec3f, false);
+  FEventPickedPoint := TMFVec3fEvent.Create(Self, 'pickedPoint', false);
   Events.Add(FEventPickedPoint);
 
-  FEventPickedTextureCoordinate := TX3DEvent.Create(Self, 'pickedTextureCoordinate', TMFVec3f, false);
+  FEventPickedTextureCoordinate := TMFVec3fEvent.Create(Self, 'pickedTextureCoordinate', false);
   Events.Add(FEventPickedTextureCoordinate);
 
   DefaultContainerField := 'children';
@@ -196,7 +196,7 @@ procedure TPointPickSensorNode.CreateNode;
 begin
   inherited;
 
-  FEventPickedPoint := TX3DEvent.Create(Self, 'pickedPoint', TMFVec3f, false);
+  FEventPickedPoint := TMFVec3fEvent.Create(Self, 'pickedPoint', false);
   Events.Add(FEventPickedPoint);
 
   DefaultContainerField := 'children';

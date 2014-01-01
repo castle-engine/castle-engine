@@ -52,13 +52,13 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: MFNode, in } { }
-    private FEventAddChildrenLayer: TX3DEvent;
-    public property EventAddChildrenLayer: TX3DEvent read FEventAddChildrenLayer;
+    { Event in } { }
+    private FEventAddChildrenLayer: TMFNodeEvent;
+    public property EventAddChildrenLayer: TMFNodeEvent read FEventAddChildrenLayer;
 
-    { Event: MFNode, in } { }
-    private FEventRemoveChildrenLayer: TX3DEvent;
-    public property EventRemoveChildrenLayer: TX3DEvent read FEventRemoveChildrenLayer;
+    { Event in } { }
+    private FEventRemoveChildrenLayer: TMFNodeEvent;
+    public property EventRemoveChildrenLayer: TMFNodeEvent read FEventRemoveChildrenLayer;
 
     private FFdChildrenLayer: TMFNode;
     public property FdChildrenLayer: TMFNode read FFdChildrenLayer;
@@ -94,29 +94,29 @@
     private FFdEventsProcessed: TSFBool;
     public property FdEventsProcessed: TSFBool read FFdEventsProcessed;
 
-    { Event: SFVec2f, out } { }
-    private FEventClient: TX3DEvent;
-    public property EventClient: TX3DEvent read FEventClient;
+    { Event out } { }
+    private FEventClient: TSFVec2fEvent;
+    public property EventClient: TSFVec2fEvent read FEventClient;
 
-    { Event: SFVec2f, out } { }
-    private FEventPosition: TX3DEvent;
-    public property EventPosition: TX3DEvent read FEventPosition;
+    { Event out } { }
+    private FEventPosition: TSFVec2fEvent;
+    public property EventPosition: TSFVec2fEvent read FEventPosition;
 
-    { Event: SFBool, out } { }
-    private FEventLButton: TX3DEvent;
-    public property EventLButton: TX3DEvent read FEventLButton;
+    { Event out } { }
+    private FEventLButton: TSFBoolEvent;
+    public property EventLButton: TSFBoolEvent read FEventLButton;
 
-    { Event: SFBool, out } { }
-    private FEventMButton: TX3DEvent;
-    public property EventMButton: TX3DEvent read FEventMButton;
+    { Event out } { }
+    private FEventMButton: TSFBoolEvent;
+    public property EventMButton: TSFBoolEvent read FEventMButton;
 
-    { Event: SFBool, out } { }
-    private FEventRButton: TX3DEvent;
-    public property EventRButton: TX3DEvent read FEventRButton;
+    { Event out } { }
+    private FEventRButton: TSFBoolEvent;
+    public property EventRButton: TSFBoolEvent read FEventRButton;
 
-    { Event: SFFloat, out } { }
-    private FEventMouseWheel: TX3DEvent;
-    public property EventMouseWheel: TX3DEvent read FEventMouseWheel;
+    { Event out } { }
+    private FEventMouseWheel: TSFFloatEvent;
+    public property EventMouseWheel: TSFFloatEvent read FEventMouseWheel;
   end;
 
   TOrderedGroupNode = class(TGroupNode)
@@ -170,10 +170,10 @@ procedure TLayer3DNode.CreateNode;
 begin
   inherited;
 
-  FEventAddChildrenLayer := TX3DEvent.Create(Self, 'addChildrenLayer', TMFNode, true);
+  FEventAddChildrenLayer := TMFNodeEvent.Create(Self, 'addChildrenLayer', true);
   Events.Add(FEventAddChildrenLayer);
 
-  FEventRemoveChildrenLayer := TX3DEvent.Create(Self, 'removeChildrenLayer', TMFNode, true);
+  FEventRemoveChildrenLayer := TMFNodeEvent.Create(Self, 'removeChildrenLayer', true);
   Events.Add(FEventRemoveChildrenLayer);
 
   FFdChildrenLayer := TMFNode.Create(Self, 'childrenLayer', [TLayer3DNode]);
@@ -219,22 +219,22 @@ begin
   FFdEventsProcessed := TSFBool.Create(Self, 'eventsProcessed', true);
   Fields.Add(FFdEventsProcessed);
 
-  FEventClient := TX3DEvent.Create(Self, 'client', TSFVec2f, false);
+  FEventClient := TSFVec2fEvent.Create(Self, 'client', false);
   Events.Add(FEventClient);
 
-  FEventPosition := TX3DEvent.Create(Self, 'position', TSFVec2f, false);
+  FEventPosition := TSFVec2fEvent.Create(Self, 'position', false);
   Events.Add(FEventPosition);
 
-  FEventLButton := TX3DEvent.Create(Self, 'lButton', TSFBool, false);
+  FEventLButton := TSFBoolEvent.Create(Self, 'lButton', false);
   Events.Add(FEventLButton);
 
-  FEventMButton := TX3DEvent.Create(Self, 'mButton', TSFBool, false);
+  FEventMButton := TSFBoolEvent.Create(Self, 'mButton', false);
   Events.Add(FEventMButton);
 
-  FEventRButton := TX3DEvent.Create(Self, 'rButton', TSFBool, false);
+  FEventRButton := TSFBoolEvent.Create(Self, 'rButton', false);
   Events.Add(FEventRButton);
 
-  FEventMouseWheel := TX3DEvent.Create(Self, 'mouseWheel', TSFFloat, false);
+  FEventMouseWheel := TSFFloatEvent.Create(Self, 'mouseWheel', false);
   Events.Add(FEventMouseWheel);
 end;
 

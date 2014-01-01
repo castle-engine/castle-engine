@@ -20,7 +20,7 @@ interface
 
 uses CastleVectors, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
   CastleImages, CastleStringUtils, CastleInterfaces, X3DTime, DOM,
-  FGL, CastleGenericLists;
+  FGL, CastleGenericLists, CastleColors;
 
 {$define read_interface}
 
@@ -2635,6 +2635,7 @@ type
   end;
 
   {$I x3devents.inc}
+  {$I x3devents_descendants.inc}
 
 function X3DFieldsManager: TX3DFieldsManager;
 
@@ -2701,6 +2702,7 @@ uses Math, X3DNodes, CastleXMLUtils, CastleWarnings;
 {$define read_implementation}
 
 {$I x3devents.inc}
+{$I x3devents_descendants.inc}
 
 { TX3DWriter ----------------------------------------------------------------- }
 

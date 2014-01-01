@@ -552,13 +552,13 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: MFInt32, in } { }
-    private FEventSet_colorIndex: TX3DEvent;
-    public property EventSet_colorIndex: TX3DEvent read FEventSet_colorIndex;
+    { Event in } { }
+    private FEventSet_colorIndex: TMFInt32Event;
+    public property EventSet_colorIndex: TMFInt32Event read FEventSet_colorIndex;
 
-    { Event: MFInt32, in } { }
-    private FEventSet_coordIndex: TX3DEvent;
-    public property EventSet_coordIndex: TX3DEvent read FEventSet_coordIndex;
+    { Event in } { }
+    private FEventSet_coordIndex: TMFInt32Event;
+    public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
 
     private FFdAttrib: TMFNode;
     public property FdAttrib: TMFNode read FFdAttrib;
@@ -607,9 +607,9 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: MFInt32, in } { }
-    private FEventSet_index: TX3DEvent;
-    public property EventSet_index: TX3DEvent read FEventSet_index;
+    { Event in } { }
+    private FEventSet_index: TMFInt32Event;
+    public property EventSet_index: TMFInt32Event read FEventSet_index;
 
     private FFdIndex: TMFInt32;
     public property FdIndex: TMFInt32 read FFdIndex;
@@ -633,9 +633,9 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: MFInt32, in } { }
-    private FEventSet_index: TX3DEvent;
-    public property EventSet_index: TX3DEvent read FEventSet_index;
+    { Event in } { }
+    private FEventSet_index: TMFInt32Event;
+    public property EventSet_index: TMFInt32Event read FEventSet_index;
 
     private FFdIndex: TMFInt32;
     public property FdIndex: TMFInt32 read FFdIndex;
@@ -659,9 +659,9 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: MFInt32, in } { }
-    private FEventSet_index: TX3DEvent;
-    public property EventSet_index: TX3DEvent read FEventSet_index;
+    { Event in } { }
+    private FEventSet_index: TMFInt32Event;
+    public property EventSet_index: TMFInt32Event read FEventSet_index;
 
     private FFdIndex: TMFInt32;
     public property FdIndex: TMFInt32 read FFdIndex;
@@ -1323,11 +1323,11 @@ procedure TIndexedLineSetNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_colorIndex := TX3DEvent.Create(Self, 'set_colorIndex', TMFInt32, true);
+  FEventSet_colorIndex := TMFInt32Event.Create(Self, 'set_colorIndex', true);
   Events.Add(FEventSet_colorIndex);
   Eventset_colorIndex.OnReceive.Add(@EventSet_ColorIndexReceive);
 
-  FEventSet_coordIndex := TX3DEvent.Create(Self, 'set_coordIndex', TMFInt32, true);
+  FEventSet_coordIndex := TMFInt32Event.Create(Self, 'set_coordIndex', true);
   Events.Add(FEventSet_coordIndex);
   Eventset_coordIndex.OnReceive.Add(@EventSet_CoordIndexReceive);
 
@@ -1441,7 +1441,7 @@ procedure TIndexedTriangleFanSetNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_index := TX3DEvent.Create(Self, 'set_index', TMFInt32, true);
+  FEventSet_index := TMFInt32Event.Create(Self, 'set_index', true);
   Events.Add(FEventSet_index);
   Eventset_index.OnReceive.Add(@EventSet_IndexReceive);
 
@@ -1479,7 +1479,7 @@ procedure TIndexedTriangleSetNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_index := TX3DEvent.Create(Self, 'set_index', TMFInt32, true);
+  FEventSet_index := TMFInt32Event.Create(Self, 'set_index', true);
   Events.Add(FEventSet_index);
   Eventset_index.OnReceive.Add(@EventSet_IndexReceive);
 
@@ -1517,7 +1517,7 @@ procedure TIndexedTriangleStripSetNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_index := TX3DEvent.Create(Self, 'set_index', TMFInt32, true);
+  FEventSet_index := TMFInt32Event.Create(Self, 'set_index', true);
   Events.Add(FEventSet_index);
   Eventset_index.OnReceive.Add(@EventSet_IndexReceive);
 

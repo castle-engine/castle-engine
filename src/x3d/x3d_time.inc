@@ -19,19 +19,7 @@
   { }
   IAbstractTimeDependentNode = interface(IAbstractChildNode)
   ['{19D68914-F2BA-4CFA-90A1-F561DB264678}']
-  (*
-    property FdLoop: TSFBool { read FFdLoop } { };
-    property FdPauseTime: TSFTime { read FFdPauseTime } { };
-    property FdResumeTime: TSFTime { read FFdResumeTime } { };
-    property FdStartTime: TSFTime { read FFdStartTime } { };
-    property FdStopTime: TSFTime { read FFdStopTime } { };
-    property EventElapsedTime: TX3DEvent { read FEventElapsedTime } { };
-    property EventIsActive: TX3DEvent { read FEventIsActive } { };
-    property EventIsPaused: TX3DEvent { read FEventIsPaused } { };
-  *)
-
     function GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
-
     property TimeDependentNodeHandler: TTimeDependentNodeHandler
       read GetTimeDependentNodeHandler;
   end;
@@ -87,11 +75,11 @@
     { May be @nil if node doesn't have an "enabled" field. }
     Fdenabled: TSFBool;
 
-    EventelapsedTime: TX3DEvent;
-    EventisActive: TX3DEvent;
-    EventisPaused: TX3DEvent;
+    EventelapsedTime: TSFTimeEvent;
+    EventisActive: TSFBoolEvent;
+    EventisPaused: TSFBoolEvent;
     { May be @nil if node doesn't have a "cycleTime" event. }
-    EventcycleTime: TX3DEvent;
+    EventcycleTime: TSFTimeEvent;
 
     { Like ElapsedTime, but spent in the current cycle.
       When cycleInterval = 0, this is always 0.
@@ -149,17 +137,17 @@
     private FFdStopTime: TSFTime;
     public property FdStopTime: TSFTime read FFdStopTime;
 
-    { Event: SFTime, out } { }
-    private FEventElapsedTime: TX3DEvent;
-    public property EventElapsedTime: TX3DEvent read FEventElapsedTime;
+    { Event out } { }
+    private FEventElapsedTime: TSFTimeEvent;
+    public property EventElapsedTime: TSFTimeEvent read FEventElapsedTime;
 
-    { Event: SFBool, out } { }
-    private FEventIsActive: TX3DEvent;
-    public property EventIsActive: TX3DEvent read FEventIsActive;
+    { Event out } { }
+    private FEventIsActive: TSFBoolEvent;
+    public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
-    { Event: SFBool, out } { }
-    private FEventIsPaused: TX3DEvent;
-    public property EventIsPaused: TX3DEvent read FEventIsPaused;
+    { Event out } { }
+    private FEventIsPaused: TSFBoolEvent;
+    public property EventIsPaused: TSFBoolEvent read FEventIsPaused;
 
     property TimeDependentNodeHandler: TTimeDependentNodeHandler
       read FTimeDependentNodeHandler;
@@ -180,17 +168,17 @@
     private FFdCycleInterval: TSFTime;
     public property FdCycleInterval: TSFTime read FFdCycleInterval;
 
-    { Event: SFTime, out } { }
-    private FEventCycleTime: TX3DEvent;
-    public property EventCycleTime: TX3DEvent read FEventCycleTime;
+    { Event out } { }
+    private FEventCycleTime: TSFTimeEvent;
+    public property EventCycleTime: TSFTimeEvent read FEventCycleTime;
 
-    { Event: SFFloat, out } { }
-    private FEventFraction_changed: TX3DEvent;
-    public property EventFraction_changed: TX3DEvent read FEventFraction_changed;
+    { Event out } { }
+    private FEventFraction_changed: TSFFloatEvent;
+    public property EventFraction_changed: TSFFloatEvent read FEventFraction_changed;
 
-    { Event: SFTime, out } { }
-    private FEventTime: TX3DEvent;
-    public property EventTime: TX3DEvent read FEventTime;
+    { Event out } { }
+    private FEventTime: TSFTimeEvent;
+    public property EventTime: TSFTimeEvent read FEventTime;
 
     private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
@@ -614,13 +602,13 @@ begin
   Fields.Add(FFdStopTime);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventElapsedTime := TX3DEvent.Create(Self, 'elapsedTime', TSFTime, false);
+  FEventElapsedTime := TSFTimeEvent.Create(Self, 'elapsedTime', false);
   Events.Add(FEventElapsedTime);
 
-  FEventIsActive := TX3DEvent.Create(Self, 'isActive', TSFBool, false);
+  FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
   Events.Add(FEventIsActive);
 
-  FEventIsPaused := TX3DEvent.Create(Self, 'isPaused', TSFBool, false);
+  FEventIsPaused := TSFBoolEvent.Create(Self, 'isPaused', false);
   Events.Add(FEventIsPaused);
 
   DefaultContainerField := 'children';
@@ -660,16 +648,16 @@ begin
   Fields.Add(FFdCycleInterval);
   { X3D specification comment: (0,Inf) }
 
-  FEventCycleTime := TX3DEvent.Create(Self, 'cycleTime', TSFTime, false);
+  FEventCycleTime := TSFTimeEvent.Create(Self, 'cycleTime', false);
   Events.Add(FEventCycleTime);
   { cycleTime_changed name is used e.g. by
     www.web3d.org/x3d/content/examples/Basic/StudentProjects/WallClock.x3d }
   FEventCycleTime.AddAlternativeName('cycleTime_changed', 0);
 
-  FEventFraction_changed := TX3DEvent.Create(Self, 'fraction_changed', TSFFloat, false);
+  FEventFraction_changed := TSFFloatEvent.Create(Self, 'fraction_changed', false);
   Events.Add(FEventFraction_changed);
 
-  FEventTime := TX3DEvent.Create(Self, 'time', TSFTime, false);
+  FEventTime := TSFTimeEvent.Create(Self, 'time', false);
   Events.Add(FEventTime);
 
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);

@@ -37,9 +37,9 @@
     private FFdPitch: TSFFloat;
     public property FdPitch: TSFFloat read FFdPitch;
 
-    { Event: SFTime, out } { }
-    private FEventDuration_changed: TX3DEvent;
-    public property EventDuration_changed: TX3DEvent read FEventDuration_changed;
+    { Event out } { }
+    private FEventDuration_changed: TSFTimeEvent;
+    public property EventDuration_changed: TSFTimeEvent read FEventDuration_changed;
 
     { Pitch, corrected to always be > 0. }
     function Pitch: Single;
@@ -143,7 +143,7 @@ begin
   Fields.Add(FFdPitch);
   { X3D specification comment: (0,Inf) }
 
-  FEventDuration_changed := TX3DEvent.Create(Self, 'duration_changed', TSFTime, false);
+  FEventDuration_changed := TSFTimeEvent.Create(Self, 'duration_changed', false);
   Events.Add(FEventDuration_changed);
 
   DefaultContainerField := 'children';

@@ -55,17 +55,17 @@
   public
     procedure CreateNode; override;
 
-    { Event: SFBool, in } { }
-    private FEventNext: TX3DEvent;
-    public property EventNext: TX3DEvent read FEventNext;
+    { Event in } { }
+    private FEventNext: TSFBoolEvent;
+    public property EventNext: TSFBoolEvent read FEventNext;
 
-    { Event: SFBool, in } { }
-    private FEventPrevious: TX3DEvent;
-    public property EventPrevious: TX3DEvent read FEventPrevious;
+    { Event in } { }
+    private FEventPrevious: TSFBoolEvent;
+    public property EventPrevious: TSFBoolEvent read FEventPrevious;
 
-    { Event: SFFloat, in } { }
-    private FEventSet_fraction: TX3DEvent;
-    public property EventSet_fraction: TX3DEvent read FEventSet_fraction;
+    { Event in } { }
+    private FEventSet_fraction: TSFFloatEvent;
+    public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
 
     private FFdKey: TMFFloat;
     public property FdKey: TMFFloat read FFdKey;
@@ -85,21 +85,21 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: SFBool, in } { }
-    private FEventSet_boolean: TX3DEvent;
-    public property EventSet_boolean: TX3DEvent read FEventSet_boolean;
+    { Event in } { }
+    private FEventSet_boolean: TSFBoolEvent;
+    public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
 
-    { Event: SFBool, out } { }
-    private FEventInputFalse: TX3DEvent;
-    public property EventInputFalse: TX3DEvent read FEventInputFalse;
+    { Event out } { }
+    private FEventInputFalse: TSFBoolEvent;
+    public property EventInputFalse: TSFBoolEvent read FEventInputFalse;
 
-    { Event: SFBool, out } { }
-    private FEventInputNegate: TX3DEvent;
-    public property EventInputNegate: TX3DEvent read FEventInputNegate;
+    { Event out } { }
+    private FEventInputNegate: TSFBoolEvent;
+    public property EventInputNegate: TSFBoolEvent read FEventInputNegate;
 
-    { Event: SFBool, out } { }
-    private FEventInputTrue: TX3DEvent;
-    public property EventInputTrue: TX3DEvent read FEventInputTrue;
+    { Event out } { }
+    private FEventInputTrue: TSFBoolEvent;
+    public property EventInputTrue: TSFBoolEvent read FEventInputTrue;
   end;
 
   TBooleanSequencerNode = class(TAbstractSequencerNode)
@@ -114,9 +114,9 @@
     private FFdKeyValue: TMFBool;
     public property FdKeyValue: TMFBool read FFdKeyValue;
 
-    { Event: SFBool, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TSFBoolEvent;
+    public property EventValue_changed: TSFBoolEvent read FEventValue_changed;
   end;
 
   TBooleanToggleNode = class(TAbstractChildNode)
@@ -128,9 +128,9 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: SFBool, in } { }
-    private FEventSet_boolean: TX3DEvent;
-    public property EventSet_boolean: TX3DEvent read FEventSet_boolean;
+    { Event in } { }
+    private FEventSet_boolean: TSFBoolEvent;
+    public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
 
     private FFdToggle: TSFBool;
     public property FdToggle: TSFBool read FFdToggle;
@@ -145,13 +145,13 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: SFTime, in } { }
-    private FEventSet_triggerTime: TX3DEvent;
-    public property EventSet_triggerTime: TX3DEvent read FEventSet_triggerTime;
+    { Event in } { }
+    private FEventSet_triggerTime: TSFTimeEvent;
+    public property EventSet_triggerTime: TSFTimeEvent read FEventSet_triggerTime;
 
-    { Event: SFBool, out } { }
-    private FEventTriggerTrue: TX3DEvent;
-    public property EventTriggerTrue: TX3DEvent read FEventTriggerTrue;
+    { Event out } { }
+    private FEventTriggerTrue: TSFBoolEvent;
+    public property EventTriggerTrue: TSFBoolEvent read FEventTriggerTrue;
   end;
 
   TIntegerSequencerNode = class(TAbstractSequencerNode)
@@ -166,9 +166,9 @@
     private FFdKeyValue: TMFInt32;
     public property FdKeyValue: TMFInt32 read FFdKeyValue;
 
-    { Event: SFInt32, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TSFInt32Event;
+    public property EventValue_changed: TSFInt32Event read FEventValue_changed;
   end;
 
   TIntegerTriggerNode = class(TAbstractTriggerNode)
@@ -180,16 +180,16 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: SFBool, in } { }
-    private FEventSet_boolean: TX3DEvent;
-    public property EventSet_boolean: TX3DEvent read FEventSet_boolean;
+    { Event in } { }
+    private FEventSet_boolean: TSFBoolEvent;
+    public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
 
     private FFdIntegerKey: TSFInt32;
     public property FdIntegerKey: TSFInt32 read FFdIntegerKey;
 
-    { Event: SFInt32, out } { }
-    private FEventTriggerValue: TX3DEvent;
-    public property EventTriggerValue: TX3DEvent read FEventTriggerValue;
+    { Event out } { }
+    private FEventTriggerValue: TSFInt32Event;
+    public property EventTriggerValue: TSFInt32Event read FEventTriggerValue;
   end;
 
   TTimeTriggerNode = class(TAbstractTriggerNode)
@@ -201,13 +201,13 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: SFBool, in } { }
-    private FEventSet_boolean: TX3DEvent;
-    public property EventSet_boolean: TX3DEvent read FEventSet_boolean;
+    { Event in } { }
+    private FEventSet_boolean: TSFBoolEvent;
+    public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
 
-    { Event: SFTime, out } { }
-    private FEventTriggerTime: TX3DEvent;
-    public property EventTriggerTime: TX3DEvent read FEventTriggerTime;
+    { Event out } { }
+    private FEventTriggerTime: TSFTimeEvent;
+    public property EventTriggerTime: TSFTimeEvent read FEventTriggerTime;
   end;
 
 {$endif read_interface}
@@ -219,15 +219,15 @@ begin
 
   FCurrentKeyRange := -1;
 
-  FEventNext := TX3DEvent.Create(Self, 'next', TSFBool, true);
+  FEventNext := TSFBoolEvent.Create(Self, 'next', true);
   Events.Add(FEventNext);
   EventNext.OnReceive.Add(@EventNextReceive);
 
-  FEventPrevious := TX3DEvent.Create(Self, 'previous', TSFBool, true);
+  FEventPrevious := TSFBoolEvent.Create(Self, 'previous', true);
   Events.Add(FEventPrevious);
   EventPrevious.OnReceive.Add(@EventPreviousReceive);
 
-  FEventSet_fraction := TX3DEvent.Create(Self, 'set_fraction', TSFFloat, true);
+  FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
   Events.Add(FEventSet_fraction);
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 
@@ -342,17 +342,17 @@ procedure TBooleanFilterNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_boolean := TX3DEvent.Create(Self, 'set_boolean', TSFBool, true);
+  FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
   Events.Add(FEventSet_boolean);
   FEventSet_boolean.OnReceive.Add(@EventSet_BooleanReceive);
 
-  FEventInputFalse := TX3DEvent.Create(Self, 'inputFalse', TSFBool, false);
+  FEventInputFalse := TSFBoolEvent.Create(Self, 'inputFalse', false);
   Events.Add(FEventInputFalse);
 
-  FEventInputNegate := TX3DEvent.Create(Self, 'inputNegate', TSFBool, false);
+  FEventInputNegate := TSFBoolEvent.Create(Self, 'inputNegate', false);
   Events.Add(FEventInputNegate);
 
-  FEventInputTrue := TX3DEvent.Create(Self, 'inputTrue', TSFBool, false);
+  FEventInputTrue := TSFBoolEvent.Create(Self, 'inputTrue', false);
   Events.Add(FEventInputTrue);
 
   DefaultContainerField := 'children';
@@ -388,7 +388,7 @@ begin
   FFdKeyValue := TMFBool.Create(Self, 'keyValue', []);
   Fields.Add(FFdKeyValue);
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFBool, false);
+  FEventValue_changed := TSFBoolEvent.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -418,7 +418,7 @@ procedure TBooleanToggleNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_boolean := TX3DEvent.Create(Self, 'set_boolean', TSFBool, true);
+  FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
   Events.Add(FEventSet_boolean);
   FEventSet_boolean.OnReceive.Add(@EventSet_BooleanReceive);
 
@@ -435,7 +435,7 @@ var
 begin
   B := (Value as TSFBool).Value;
   if B then
-    FdToggle.EventIn.Send(not FdToggle.Value, Time);
+    FdToggle.Send(not FdToggle.Value);
 end;
 
 class function TBooleanToggleNode.ClassNodeTypeName: string;
@@ -453,11 +453,11 @@ procedure TBooleanTriggerNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_triggerTime := TX3DEvent.Create(Self, 'set_triggerTime', TSFTime, true);
+  FEventSet_triggerTime := TSFTimeEvent.Create(Self, 'set_triggerTime', true);
   Events.Add(FEventSet_triggerTime);
   FEventSet_triggerTime.OnReceive.Add(@EventSet_triggerTimeReceive);
 
-  FEventTriggerTrue := TX3DEvent.Create(Self, 'triggerTrue', TSFBool, false);
+  FEventTriggerTrue := TSFBoolEvent.Create(Self, 'triggerTrue', false);
   Events.Add(FEventTriggerTrue);
 
   DefaultContainerField := 'children';
@@ -488,7 +488,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFInt32, false);
+  FEventValue_changed := TSFInt32Event.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -518,7 +518,7 @@ procedure TIntegerTriggerNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_boolean := TX3DEvent.Create(Self, 'set_boolean', TSFBool, true);
+  FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
   Events.Add(FEventSet_boolean);
   FEventSet_boolean.OnReceive.Add(@EventSet_booleanReceive);
 
@@ -528,7 +528,7 @@ begin
   Fields.Add(FFdIntegerKey);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventTriggerValue := TX3DEvent.Create(Self, 'triggerValue', TSFInt32, false);
+  FEventTriggerValue := TSFInt32Event.Create(Self, 'triggerValue', false);
   Events.Add(FEventTriggerValue);
 
   DefaultContainerField := 'children';
@@ -555,11 +555,11 @@ procedure TTimeTriggerNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_boolean := TX3DEvent.Create(Self, 'set_boolean', TSFBool, true);
+  FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
   Events.Add(FEventSet_boolean);
   FEventSet_boolean.OnReceive.Add(@EventSet_BooleanReceive);
 
-  FEventTriggerTime := TX3DEvent.Create(Self, 'triggerTime', TSFTime, false);
+  FEventTriggerTime := TSFTimeEvent.Create(Self, 'triggerTime', false);
   Events.Add(FEventTriggerTime);
 
   DefaultContainerField := 'children';

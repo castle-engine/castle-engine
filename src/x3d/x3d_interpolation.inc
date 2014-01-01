@@ -21,9 +21,9 @@
   public
     procedure CreateNode; override;
 
-    { Event: SFFloat, in } { }
-    private FEventSet_fraction: TX3DEvent;
-    public property EventSet_fraction: TX3DEvent read FEventSet_fraction;
+    { Event in } { }
+    private FEventSet_fraction: TSFFloatEvent;
+    public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
 
     private FFdKey: TMFFloat;
     public property FdKey: TMFFloat read FFdKey;
@@ -41,9 +41,9 @@
     private FFdKeyValue: TMFColor;
     public property FdKeyValue: TMFColor read FFdKeyValue;
 
-    { Event: SFColor, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TSFColorEvent;
+    public property EventValue_changed: TSFColorEvent read FEventValue_changed;
   end;
 
   TColorSetInterpolatorNode = class(TAbstractInterpolatorNode)
@@ -58,9 +58,9 @@
     private FFdKeyValue: TMFColor;
     public property FdKeyValue: TMFColor read FFdKeyValue;
 
-    { Event: MFColor, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TMFColorEvent;
+    public property EventValue_changed: TMFColorEvent read FEventValue_changed;
   end;
 
   TCoordinateInterpolatorNode = class(TAbstractInterpolatorNode)
@@ -75,9 +75,9 @@
     private FFdKeyValue: TMFVec3f;
     public property FdKeyValue: TMFVec3f read FFdKeyValue;
 
-    { Event: MFVec3f, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TMFVec3fEvent;
+    public property EventValue_changed: TMFVec3fEvent read FEventValue_changed;
   end;
 
   TCoordinateInterpolator2DNode = class(TAbstractInterpolatorNode)
@@ -92,9 +92,9 @@
     private FFdKeyValue: TMFVec2f;
     public property FdKeyValue: TMFVec2f read FFdKeyValue;
 
-    { Event: MFVec2f, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TMFVec2fEvent;
+    public property EventValue_changed: TMFVec2fEvent read FEventValue_changed;
   end;
 
   TEaseInEaseOutNode = class(TAbstractNode)
@@ -103,9 +103,9 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: SFFloat, in } { }
-    private FEventSet_fraction: TX3DEvent;
-    public property EventSet_fraction: TX3DEvent read FEventSet_fraction;
+    { Event in } { }
+    private FEventSet_fraction: TSFFloatEvent;
+    public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
 
     private FFdEaseInEaseOut: TMFVec2f;
     public property FdEaseInEaseOut: TMFVec2f read FFdEaseInEaseOut;
@@ -113,9 +113,9 @@
     private FFdKey: TMFFloat;
     public property FdKey: TMFFloat read FFdKey;
 
-    { Event: SFFloat, out } { }
-    private FEventModifiedFraction_changed: TX3DEvent;
-    public property EventModifiedFraction_changed: TX3DEvent read FEventModifiedFraction_changed;
+    { Event out } { }
+    private FEventModifiedFraction_changed: TSFFloatEvent;
+    public property EventModifiedFraction_changed: TSFFloatEvent read FEventModifiedFraction_changed;
   end;
 
   TNormalInterpolatorNode = class(TAbstractInterpolatorNode)
@@ -130,9 +130,9 @@
     private FFdKeyValue: TMFVec3f;
     public property FdKeyValue: TMFVec3f read FFdKeyValue;
 
-    { Event: MFVec3f, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TMFVec3fEvent;
+    public property EventValue_changed: TMFVec3fEvent read FEventValue_changed;
   end;
 
   TOrientationInterpolatorNode = class(TAbstractInterpolatorNode)
@@ -147,9 +147,9 @@
     private FFdKeyValue: TMFRotation;
     public property FdKeyValue: TMFRotation read FFdKeyValue;
 
-    { Event: SFRotation, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TSFRotationEvent;
+    public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
   end;
 
   TPositionInterpolatorNode = class(TAbstractInterpolatorNode)
@@ -164,9 +164,9 @@
     private FFdKeyValue: TMFVec3f;
     public property FdKeyValue: TMFVec3f read FFdKeyValue;
 
-    { Event: SFVec3f, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TSFVec3fEvent;
+    public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
   end;
 
   TPositionInterpolator2DNode = class(TAbstractInterpolatorNode)
@@ -181,9 +181,9 @@
     private FFdKeyValue: TMFVec2f;
     public property FdKeyValue: TMFVec2f read FFdKeyValue;
 
-    { Event: SFVec2f, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TSFVec2fEvent;
+    public property EventValue_changed: TSFVec2fEvent read FEventValue_changed;
   end;
 
   TScalarInterpolatorNode = class(TAbstractInterpolatorNode)
@@ -198,9 +198,9 @@
     private FFdKeyValue: TMFFloat;
     public property FdKeyValue: TMFFloat read FFdKeyValue;
 
-    { Event: SFFloat, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TSFFloatEvent;
+    public property EventValue_changed: TSFFloatEvent read FEventValue_changed;
   end;
 
   TSplinePositionInterpolatorNode = class(TAbstractInterpolatorNode)
@@ -221,9 +221,9 @@
     private FFdNormalizeVelocity: TSFBool;
     public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
 
-    { Event: SFVec3f, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TSFVec3fEvent;
+    public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
   end;
 
   TSplinePositionInterpolator2DNode = class(TAbstractInterpolatorNode)
@@ -244,9 +244,9 @@
     private FFdNormalizeVelocity: TSFBool;
     public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
 
-    { Event: SFVec2f, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TSFVec2fEvent;
+    public property EventValue_changed: TSFVec2fEvent read FEventValue_changed;
   end;
 
   TSplineScalarInterpolatorNode = class(TAbstractInterpolatorNode)
@@ -267,9 +267,9 @@
     private FFdNormalizeVelocity: TSFBool;
     public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
 
-    { Event: SFFloat, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TSFFloatEvent;
+    public property EventValue_changed: TSFFloatEvent read FEventValue_changed;
   end;
 
   TSquadOrientationInterpolatorNode = class(TAbstractInterpolatorNode)
@@ -284,9 +284,9 @@
     private FFdNormalizeVelocity: TSFBool;
     public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
 
-    { Event: SFRotation, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TSFRotationEvent;
+    public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
   end;
 
   TVectorInterpolatorNode = class(TAbstractInterpolatorNode)
@@ -301,9 +301,9 @@
     private FFdKeyValue: TMFFloat;
     public property FdKeyValue: TMFFloat read FFdKeyValue;
 
-    { Event: MFFloat, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TMFFloatEvent;
+    public property EventValue_changed: TMFFloatEvent read FEventValue_changed;
   end;
 
 {$endif read_interface}
@@ -424,7 +424,7 @@ procedure TAbstractInterpolatorNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_fraction := TX3DEvent.Create(Self, 'set_fraction', TSFFloat, true);
+  FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
   Events.Add(FEventSet_fraction);
 
   FFdKey := TMFFloat.Create(Self, 'key', []);
@@ -448,7 +448,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: [0,1] }
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFColor, false);
+  FEventValue_changed := TSFColorEvent.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -483,7 +483,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TMFColor, false);
+  FEventValue_changed := TMFColorEvent.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -519,7 +519,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TMFVec3f, false);
+  FEventValue_changed := TMFVec3fEvent.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -553,7 +553,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TMFVec2f, false);
+  FEventValue_changed := TMFVec2fEvent.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -582,7 +582,7 @@ procedure TEaseInEaseOutNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_fraction := TX3DEvent.Create(Self, 'set_fraction', TSFFloat, true);
+  FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
   Events.Add(FEventSet_fraction);
 
   FFdEaseInEaseOut := TMFVec2f.Create(Self, 'easeInEaseOut', []);
@@ -593,7 +593,7 @@ begin
   Fields.Add(FFdKey);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventModifiedFraction_changed := TX3DEvent.Create(Self, 'modifiedFraction_changed', TSFFloat, false);
+  FEventModifiedFraction_changed := TSFFloatEvent.Create(Self, 'modifiedFraction_changed', false);
   Events.Add(FEventModifiedFraction_changed);
 
   DefaultContainerField := 'children';
@@ -618,7 +618,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TMFVec3f, false);
+  FEventValue_changed := TMFVec3fEvent.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -652,7 +652,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFRotation, false);
+  FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -693,7 +693,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFVec3f, false);
+  FEventValue_changed := TSFVec3fEvent.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -728,7 +728,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFVec2f, false);
+  FEventValue_changed := TSFVec2fEvent.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -762,7 +762,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFFloat, false);
+  FEventValue_changed := TSFFloatEvent.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -807,7 +807,7 @@ begin
   FFdNormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
   Fields.Add(FFdNormalizeVelocity);
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFVec3f, false);
+  FEventValue_changed := TSFVec3fEvent.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -842,7 +842,7 @@ begin
   FFdNormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
   Fields.Add(FFdNormalizeVelocity);
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFVec2f, false);
+  FEventValue_changed := TSFVec2fEvent.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -877,7 +877,7 @@ begin
   FFdNormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
   Fields.Add(FFdNormalizeVelocity);
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFFloat, false);
+  FEventValue_changed := TSFFloatEvent.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -905,7 +905,7 @@ begin
   FFdNormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
   Fields.Add(FFdNormalizeVelocity);
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFRotation, false);
+  FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -930,7 +930,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TMFFloat, false);
+  FEventValue_changed := TMFFloatEvent.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';

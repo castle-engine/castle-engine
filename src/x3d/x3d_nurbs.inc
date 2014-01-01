@@ -108,13 +108,13 @@
     class function URNMatching(const URN: string): boolean; override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
 
-    { Event: MFNode, in } { }
-    private FEventAddChildren: TX3DEvent;
-    public property EventAddChildren: TX3DEvent read FEventAddChildren;
+    { Event in } { }
+    private FEventAddChildren: TMFNodeEvent;
+    public property EventAddChildren: TMFNodeEvent read FEventAddChildren;
 
-    { Event: MFNode, in } { }
-    private FEventRemoveChildren: TX3DEvent;
-    public property EventRemoveChildren: TX3DEvent read FEventRemoveChildren;
+    { Event in } { }
+    private FEventRemoveChildren: TMFNodeEvent;
+    public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
 
     private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
@@ -216,9 +216,9 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: SFFloat, in } { }
-    private FEventSet_fraction: TX3DEvent;
-    public property EventSet_fraction: TX3DEvent read FEventSet_fraction;
+    { Event in } { }
+    private FEventSet_fraction: TSFFloatEvent;
+    public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
 
     private FFdControlPoint: TSFNode;
     public property FdControlPoint: TSFNode read FFdControlPoint;
@@ -232,9 +232,9 @@
     private FFdWeight: TMFDouble;
     public property FdWeight: TMFDouble read FFdWeight;
 
-    { Event: SFRotation, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TSFRotationEvent;
+    public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
   end;
 
   TNurbsPatchSurfaceNode = class(TAbstractNurbsSurfaceGeometryNode)
@@ -256,9 +256,9 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: SFFloat, in } { }
-    private FEventSet_fraction: TX3DEvent;
-    public property EventSet_fraction: TX3DEvent read FEventSet_fraction;
+    { Event in } { }
+    private FEventSet_fraction: TSFFloatEvent;
+    public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
 
     private FFdControlPoint: TSFNode;
     public property FdControlPoint: TSFNode read FFdControlPoint;
@@ -272,9 +272,9 @@
     private FFdWeight: TMFDouble;
     public property FdWeight: TMFDouble read FFdWeight;
 
-    { Event: SFVec3f, out } { }
-    private FEventValue_changed: TX3DEvent;
-    public property EventValue_changed: TX3DEvent read FEventValue_changed;
+    { Event out } { }
+    private FEventValue_changed: TSFVec3fEvent;
+    public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
   end;
@@ -286,13 +286,13 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: MFNode, in } { }
-    private FEventAddGeometry: TX3DEvent;
-    public property EventAddGeometry: TX3DEvent read FEventAddGeometry;
+    { Event in } { }
+    private FEventAddGeometry: TMFNodeEvent;
+    public property EventAddGeometry: TMFNodeEvent read FEventAddGeometry;
 
-    { Event: MFNode, in } { }
-    private FEventRemoveGeometry: TX3DEvent;
-    public property EventRemoveGeometry: TX3DEvent read FEventRemoveGeometry;
+    { Event in } { }
+    private FEventRemoveGeometry: TMFNodeEvent;
+    public property EventRemoveGeometry: TMFNodeEvent read FEventRemoveGeometry;
 
     { Implementation note: Fdgeometry is not enumerated in DirectEnumerateActive,
       as it's not actually rendered from NurbsSet node.
@@ -324,9 +324,9 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: SFVec2f, in } { }
-    private FEventSet_fraction: TX3DEvent;
-    public property EventSet_fraction: TX3DEvent read FEventSet_fraction;
+    { Event in } { }
+    private FEventSet_fraction: TSFVec2fEvent;
+    public property EventSet_fraction: TSFVec2fEvent read FEventSet_fraction;
 
     private FFdControlPoint: TSFNode;
     public property FdControlPoint: TSFNode read FFdControlPoint;
@@ -334,13 +334,13 @@
     private FFdWeight: TMFDouble;
     public property FdWeight: TMFDouble read FFdWeight;
 
-    { Event: SFVec3f, out } { }
-    private FEventPosition_changed: TX3DEvent;
-    public property EventPosition_changed: TX3DEvent read FEventPosition_changed;
+    { Event out } { }
+    private FEventPosition_changed: TSFVec3fEvent;
+    public property EventPosition_changed: TSFVec3fEvent read FEventPosition_changed;
 
-    { Event: SFVec3f, out } { }
-    private FEventNormal_changed: TX3DEvent;
-    public property EventNormal_changed: TX3DEvent read FEventNormal_changed;
+    { Event out } { }
+    private FEventNormal_changed: TSFVec3fEvent;
+    public property EventNormal_changed: TSFVec3fEvent read FEventNormal_changed;
 
     private FFdUDimension: TSFInt32;
     public property FdUDimension: TSFInt32 read FFdUDimension;
@@ -463,13 +463,13 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: MFNode, in } { }
-    private FEventAddTrimmingContour: TX3DEvent;
-    public property EventAddTrimmingContour: TX3DEvent read FEventAddTrimmingContour;
+    { Event in } { }
+    private FEventAddTrimmingContour: TMFNodeEvent;
+    public property EventAddTrimmingContour: TMFNodeEvent read FEventAddTrimmingContour;
 
-    { Event: MFNode, in } { }
-    private FEventRemoveTrimmingContour: TX3DEvent;
-    public property EventRemoveTrimmingContour: TX3DEvent read FEventRemoveTrimmingContour;
+    { Event in } { }
+    private FEventRemoveTrimmingContour: TMFNodeEvent;
+    public property EventRemoveTrimmingContour: TMFNodeEvent read FEventRemoveTrimmingContour;
 
     private FFdTrimmingContour: TMFNode;
     public property FdTrimmingContour: TMFNode read FFdTrimmingContour;
@@ -582,10 +582,10 @@ procedure TContour2DNode.CreateNode;
 begin
   inherited;
 
-  FEventAddChildren := TX3DEvent.Create(Self, 'addChildren', TMFNode, true);
+  FEventAddChildren := TMFNodeEvent.Create(Self, 'addChildren', true);
   Events.Add(FEventAddChildren);
 
-  FEventRemoveChildren := TX3DEvent.Create(Self, 'removeChildren', TMFNode, true);
+  FEventRemoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
   Events.Add(FEventRemoveChildren);
 
   FFdChildren := TMFNode.Create(Self, 'children', [TNurbsCurve2DNode, TContourPolyline2DNode]);
@@ -882,7 +882,7 @@ procedure TNurbsOrientationInterpolatorNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_fraction := TX3DEvent.Create(Self, 'set_fraction', TSFFloat, true);
+  FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
   Events.Add(FEventSet_fraction);
 
   FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractCoordinateNode]);
@@ -900,7 +900,7 @@ begin
   Fields.Add(FFdWeight);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFRotation, false);
+  FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -1321,7 +1321,7 @@ procedure TNurbsPositionInterpolatorNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_fraction := TX3DEvent.Create(Self, 'set_fraction', TSFFloat, true);
+  FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
   Events.Add(FEventSet_fraction);
 
   FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractCoordinateNode]);
@@ -1339,7 +1339,7 @@ begin
   Fields.Add(FFdWeight);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFVec3f, false);
+  FEventValue_changed := TSFVec3fEvent.Create(Self, 'value_changed', false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -1412,10 +1412,10 @@ procedure TNurbsSetNode.CreateNode;
 begin
   inherited;
 
-  FEventAddGeometry := TX3DEvent.Create(Self, 'addGeometry', TMFNode, true);
+  FEventAddGeometry := TMFNodeEvent.Create(Self, 'addGeometry', true);
   Events.Add(FEventAddGeometry);
 
-  FEventRemoveGeometry := TX3DEvent.Create(Self, 'removeGeometry', TMFNode, true);
+  FEventRemoveGeometry := TMFNodeEvent.Create(Self, 'removeGeometry', true);
   Events.Add(FEventRemoveGeometry);
 
   FFdGeometry := TMFNode.Create(Self, 'geometry', [TAbstractParametricGeometryNode]);
@@ -1453,7 +1453,7 @@ procedure TNurbsSurfaceInterpolatorNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_fraction := TX3DEvent.Create(Self, 'set_fraction', TSFVec2f, true);
+  FEventSet_fraction := TSFVec2fEvent.Create(Self, 'set_fraction', true);
   Events.Add(FEventSet_fraction);
 
   FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractCoordinateNode]);
@@ -1463,10 +1463,10 @@ begin
   Fields.Add(FFdWeight);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventPosition_changed := TX3DEvent.Create(Self, 'position_changed', TSFVec3f, false);
+  FEventPosition_changed := TSFVec3fEvent.Create(Self, 'position_changed', false);
   Events.Add(FEventPosition_changed);
 
-  FEventNormal_changed := TX3DEvent.Create(Self, 'normal_changed', TSFVec3f, false);
+  FEventNormal_changed := TSFVec3fEvent.Create(Self, 'normal_changed', false);
   Events.Add(FEventNormal_changed);
 
   FFdUDimension := TSFInt32.Create(Self, 'uDimension', 0);
@@ -1756,10 +1756,10 @@ procedure TNurbsTrimmedSurfaceNode.CreateNode;
 begin
   inherited;
 
-  FEventAddTrimmingContour := TX3DEvent.Create(Self, 'addTrimmingContour', TMFNode, true);
+  FEventAddTrimmingContour := TMFNodeEvent.Create(Self, 'addTrimmingContour', true);
   Events.Add(FEventAddTrimmingContour);
 
-  FEventRemoveTrimmingContour := TX3DEvent.Create(Self, 'removeTrimmingContour', TMFNode, true);
+  FEventRemoveTrimmingContour := TMFNodeEvent.Create(Self, 'removeTrimmingContour', true);
   Events.Add(FEventRemoveTrimmingContour);
 
   FFdTrimmingContour := TMFNode.Create(Self, 'trimmingContour', [TContour2DNode]);

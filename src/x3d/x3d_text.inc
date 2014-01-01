@@ -106,17 +106,17 @@
     private FFdString: TMFString;
     public property FdString: TMFString read FFdString;
 
-    { Event: MFVec2f, out } { }
-    private FEventLineBounds: TX3DEvent;
-    public property EventLineBounds: TX3DEvent read FEventLineBounds;
+    { Event out } { }
+    private FEventLineBounds: TMFVec2fEvent;
+    public property EventLineBounds: TMFVec2fEvent read FEventLineBounds;
 
-    { Event: SFVec3f, out } { }
-    private FEventOrigin: TX3DEvent;
-    public property EventOrigin: TX3DEvent read FEventOrigin;
+    { Event out } { }
+    private FEventOrigin: TSFVec3fEvent;
+    public property EventOrigin: TSFVec3fEvent read FEventOrigin;
 
-    { Event: SFVec2f, out } { }
-    private FEventTextBounds: TX3DEvent;
-    public property EventTextBounds: TX3DEvent read FEventTextBounds;
+    { Event out } { }
+    private FEventTextBounds: TSFVec2fEvent;
+    public property EventTextBounds: TSFVec2fEvent read FEventTextBounds;
 
     private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
@@ -444,13 +444,13 @@ begin
    FdString.ChangesAlways := [chGeometry];
   Fields.Add(FFdString);
 
-  FEventLineBounds := TX3DEvent.Create(Self, 'lineBounds', TMFVec2f, false);
+  FEventLineBounds := TMFVec2fEvent.Create(Self, 'lineBounds', false);
   Events.Add(FEventLineBounds);
 
-  FEventOrigin := TX3DEvent.Create(Self, 'origin', TSFVec3f, false);
+  FEventOrigin := TSFVec3fEvent.Create(Self, 'origin', false);
   Events.Add(FEventOrigin);
 
-  FEventTextBounds := TX3DEvent.Create(Self, 'textBounds', TSFVec2f, false);
+  FEventTextBounds := TSFVec2fEvent.Create(Self, 'textBounds', false);
   Events.Add(FEventTextBounds);
 
   FFdSolid := TSFBool.Create(Self, 'solid', false);

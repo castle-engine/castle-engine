@@ -144,9 +144,9 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: MFFloat, in } { }
-    private FEventSet_height: TX3DEvent;
-    public property EventSet_height: TX3DEvent read FEventSet_height;
+    { Event in } { }
+    private FEventSet_height: TMFFloatEvent;
+    public property EventSet_height: TMFFloatEvent read FEventSet_height;
 
     private FFdAttrib: TMFNode;
     public property FdAttrib: TMFNode read FFdAttrib;
@@ -234,21 +234,21 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: MFVec2f, in } { }
-    private FEventSet_crossSection: TX3DEvent;
-    public property EventSet_crossSection: TX3DEvent read FEventSet_crossSection;
+    { Event in } { }
+    private FEventSet_crossSection: TMFVec2fEvent;
+    public property EventSet_crossSection: TMFVec2fEvent read FEventSet_crossSection;
 
-    { Event: MFRotation, in } { }
-    private FEventSet_orientation: TX3DEvent;
-    public property EventSet_orientation: TX3DEvent read FEventSet_orientation;
+    { Event in } { }
+    private FEventSet_orientation: TMFRotationEvent;
+    public property EventSet_orientation: TMFRotationEvent read FEventSet_orientation;
 
-    { Event: MFVec2f, in } { }
-    private FEventSet_scale: TX3DEvent;
-    public property EventSet_scale: TX3DEvent read FEventSet_scale;
+    { Event in } { }
+    private FEventSet_scale: TMFVec2fEvent;
+    public property EventSet_scale: TMFVec2fEvent read FEventSet_scale;
 
-    { Event: MFVec3f, in } { }
-    private FEventSet_spine: TX3DEvent;
-    public property EventSet_spine: TX3DEvent read FEventSet_spine;
+    { Event in } { }
+    private FEventSet_spine: TMFVec3fEvent;
+    public property EventSet_spine: TMFVec3fEvent read FEventSet_spine;
 
     private FFdBeginCap: TSFBool;
     public property FdBeginCap: TSFBool read FFdBeginCap;
@@ -327,21 +327,21 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: MFInt32, in } { }
-    private FEventSet_colorIndex: TX3DEvent;
-    public property EventSet_colorIndex: TX3DEvent read FEventSet_colorIndex;
+    { Event in } { }
+    private FEventSet_colorIndex: TMFInt32Event;
+    public property EventSet_colorIndex: TMFInt32Event read FEventSet_colorIndex;
 
-    { Event: MFInt32, in } { }
-    private FEventSet_coordIndex: TX3DEvent;
-    public property EventSet_coordIndex: TX3DEvent read FEventSet_coordIndex;
+    { Event in } { }
+    private FEventSet_coordIndex: TMFInt32Event;
+    public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
 
-    { Event: MFInt32, in } { }
-    private FEventSet_normalIndex: TX3DEvent;
-    public property EventSet_normalIndex: TX3DEvent read FEventSet_normalIndex;
+    { Event in } { }
+    private FEventSet_normalIndex: TMFInt32Event;
+    public property EventSet_normalIndex: TMFInt32Event read FEventSet_normalIndex;
 
-    { Event: MFInt32, in } { }
-    private FEventSet_texCoordIndex: TX3DEvent;
-    public property EventSet_texCoordIndex: TX3DEvent read FEventSet_texCoordIndex;
+    { Event in } { }
+    private FEventSet_texCoordIndex: TMFInt32Event;
+    public property EventSet_texCoordIndex: TMFInt32Event read FEventSet_texCoordIndex;
 
     private FFdColorIndex: TMFInt32;
     public property FdColorIndex: TMFInt32 read FFdColorIndex;
@@ -622,7 +622,7 @@ procedure TElevationGridNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_height := TX3DEvent.Create(Self, 'set_height', TMFFloat, true);
+  FEventSet_height := TMFFloatEvent.Create(Self, 'set_height', true);
   Events.Add(FEventSet_height);
   Eventset_height.OnReceive.Add(@EventSet_HeightReceive);
 
@@ -765,19 +765,19 @@ procedure TExtrusionNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_crossSection := TX3DEvent.Create(Self, 'set_crossSection', TMFVec2f, true);
+  FEventSet_crossSection := TMFVec2fEvent.Create(Self, 'set_crossSection', true);
   Events.Add(FEventSet_crossSection);
   Eventset_crossSection.OnReceive.Add(@EventSet_crossSectionReceive);
 
-  FEventSet_orientation := TX3DEvent.Create(Self, 'set_orientation', TMFRotation, true);
+  FEventSet_orientation := TMFRotationEvent.Create(Self, 'set_orientation', true);
   Events.Add(FEventSet_orientation);
   Eventset_orientation.OnReceive.Add(@EventSet_orientationReceive);
 
-  FEventSet_scale := TX3DEvent.Create(Self, 'set_scale', TMFVec2f, true);
+  FEventSet_scale := TMFVec2fEvent.Create(Self, 'set_scale', true);
   Events.Add(FEventSet_scale);
   Eventset_scale.OnReceive.Add(@EventSet_scaleReceive);
 
-  FEventSet_spine := TX3DEvent.Create(Self, 'set_spine', TMFVec3f, true);
+  FEventSet_spine := TMFVec3fEvent.Create(Self, 'set_spine', true);
   Events.Add(FEventSet_spine);
   Eventset_spine.OnReceive.Add(@EventSet_spineReceive);
 
@@ -1211,19 +1211,19 @@ procedure TIndexedFaceSetNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_colorIndex := TX3DEvent.Create(Self, 'set_colorIndex', TMFInt32, true);
+  FEventSet_colorIndex := TMFInt32Event.Create(Self, 'set_colorIndex', true);
   Events.Add(FEventSet_colorIndex);
   Eventset_colorIndex.OnReceive.Add(@EventSet_colorIndexReceive);
 
-  FEventSet_coordIndex := TX3DEvent.Create(Self, 'set_coordIndex', TMFInt32, true);
+  FEventSet_coordIndex := TMFInt32Event.Create(Self, 'set_coordIndex', true);
   Events.Add(FEventSet_coordIndex);
   Eventset_coordIndex.OnReceive.Add(@EventSet_coordIndexReceive);
 
-  FEventSet_normalIndex := TX3DEvent.Create(Self, 'set_normalIndex', TMFInt32, true);
+  FEventSet_normalIndex := TMFInt32Event.Create(Self, 'set_normalIndex', true);
   Events.Add(FEventSet_normalIndex);
   Eventset_normalIndex.OnReceive.Add(@EventSet_normalIndexReceive);
 
-  FEventSet_texCoordIndex := TX3DEvent.Create(Self, 'set_texCoordIndex', TMFInt32, true);
+  FEventSet_texCoordIndex := TMFInt32Event.Create(Self, 'set_texCoordIndex', true);
   Events.Add(FEventSet_texCoordIndex);
   Eventset_texCoordIndex.OnReceive.Add(@EventSet_texCoordIndexReceive);
 

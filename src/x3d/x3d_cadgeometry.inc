@@ -109,9 +109,9 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: MFInt32, in } { }
-    private FEventSet_index: TX3DEvent;
-    public property EventSet_index: TX3DEvent read FEventSet_index;
+    { Event in } { }
+    private FEventSet_index: TMFInt32Event;
+    public property EventSet_index: TMFInt32Event read FEventSet_index;
 
     private FFdIndex: TMFInt32;
     public property FdIndex: TMFInt32 read FFdIndex;
@@ -316,7 +316,7 @@ procedure TIndexedQuadSetNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_index := TX3DEvent.Create(Self, 'set_index', TMFInt32, true);
+  FEventSet_index := TMFInt32Event.Create(Self, 'set_index', true);
   Events.Add(FEventSet_index);
 
   FFdIndex := TMFInt32.Create(Self, 'index', []);

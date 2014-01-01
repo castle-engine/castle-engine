@@ -207,9 +207,9 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: MFNode, out } { }
-    private FEventChildren: TX3DEvent;
-    public property EventChildren: TX3DEvent read FEventChildren;
+    { Event out } { }
+    private FEventChildren: TMFNodeEvent;
+    public property EventChildren: TMFNodeEvent read FEventChildren;
   end;
 
   TLoadSensorNode = class(TAbstractNetworkSensorNode)
@@ -224,17 +224,17 @@
     private FFdWatchList: TMFNode;
     public property FdWatchList: TMFNode read FFdWatchList;
 
-    { Event: SFBool, out } { }
-    private FEventIsLoaded: TX3DEvent;
-    public property EventIsLoaded: TX3DEvent read FEventIsLoaded;
+    { Event out } { }
+    private FEventIsLoaded: TSFBoolEvent;
+    public property EventIsLoaded: TSFBoolEvent read FEventIsLoaded;
 
-    { Event: SFTime, out } { }
-    private FEventLoadTime: TX3DEvent;
-    public property EventLoadTime: TX3DEvent read FEventLoadTime;
+    { Event out } { }
+    private FEventLoadTime: TSFTimeEvent;
+    public property EventLoadTime: TSFTimeEvent read FEventLoadTime;
 
-    { Event: SFFloat, out } { }
-    private FEventProgress: TX3DEvent;
-    public property EventProgress: TX3DEvent read FEventProgress;
+    { Event out } { }
+    private FEventProgress: TSFFloatEvent;
+    public property EventProgress: TSFFloatEvent read FEventProgress;
   end;
 
 {$endif read_interface}
@@ -649,7 +649,7 @@ procedure TInlineLoadControlNode.CreateNode;
 begin
   inherited;
 
-  FEventChildren := TX3DEvent.Create(Self, 'children', TMFNode, false);
+  FEventChildren := TMFNodeEvent.Create(Self, 'children', false);
   Events.Add(FEventChildren);
 
   FInlined := nil;
@@ -697,13 +697,13 @@ begin
   FFdWatchList := TMFNode.Create(Self, 'watchList', IAbstractUrlObject);
   Fields.Add(FFdWatchList);
 
-  FEventIsLoaded := TX3DEvent.Create(Self, 'isLoaded', TSFBool, false);
+  FEventIsLoaded := TSFBoolEvent.Create(Self, 'isLoaded', false);
   Events.Add(FEventIsLoaded);
 
-  FEventLoadTime := TX3DEvent.Create(Self, 'loadTime', TSFTime, false);
+  FEventLoadTime := TSFTimeEvent.Create(Self, 'loadTime', false);
   Events.Add(FEventLoadTime);
 
-  FEventProgress := TX3DEvent.Create(Self, 'progress', TSFFloat, false);
+  FEventProgress := TSFFloatEvent.Create(Self, 'progress', false);
   Events.Add(FEventProgress);
 
   DefaultContainerField := 'children';

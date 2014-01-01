@@ -45,33 +45,33 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    { Event: SFInt32, out } { }
-    private FEventActionKeyPress: TX3DEvent;
-    public property EventActionKeyPress: TX3DEvent read FEventActionKeyPress;
+    { Event out } { }
+    private FEventActionKeyPress: TSFInt32Event;
+    public property EventActionKeyPress: TSFInt32Event read FEventActionKeyPress;
 
-    { Event: SFInt32, out } { }
-    private FEventActionKeyRelease: TX3DEvent;
-    public property EventActionKeyRelease: TX3DEvent read FEventActionKeyRelease;
+    { Event out } { }
+    private FEventActionKeyRelease: TSFInt32Event;
+    public property EventActionKeyRelease: TSFInt32Event read FEventActionKeyRelease;
 
-    { Event: SFBool, out } { }
-    private FEventAltKey: TX3DEvent;
-    public property EventAltKey: TX3DEvent read FEventAltKey;
+    { Event out } { }
+    private FEventAltKey: TSFBoolEvent;
+    public property EventAltKey: TSFBoolEvent read FEventAltKey;
 
-    { Event: SFBool, out } { }
-    private FEventControlKey: TX3DEvent;
-    public property EventControlKey: TX3DEvent read FEventControlKey;
+    { Event out } { }
+    private FEventControlKey: TSFBoolEvent;
+    public property EventControlKey: TSFBoolEvent read FEventControlKey;
 
-    { Event: SFString, out } { }
-    private FEventKeyPress: TX3DEvent;
-    public property EventKeyPress: TX3DEvent read FEventKeyPress;
+    { Event out } { }
+    private FEventKeyPress: TSFStringEvent;
+    public property EventKeyPress: TSFStringEvent read FEventKeyPress;
 
-    { Event: SFString, out } { }
-    private FEventKeyRelease: TX3DEvent;
-    public property EventKeyRelease: TX3DEvent read FEventKeyRelease;
+    { Event out } { }
+    private FEventKeyRelease: TSFStringEvent;
+    public property EventKeyRelease: TSFStringEvent read FEventKeyRelease;
 
-    { Event: SFBool, out } { }
-    private FEventShiftKey: TX3DEvent;
-    public property EventShiftKey: TX3DEvent read FEventShiftKey;
+    { Event out } { }
+    private FEventShiftKey: TSFBoolEvent;
+    public property EventShiftKey: TSFBoolEvent read FEventShiftKey;
 
     procedure KeyDown(Key: TKey; C: char; const Time: TX3DTime); override;
     procedure KeyUp(Key: TKey; C: char; const Time: TX3DTime); override;
@@ -89,13 +89,13 @@
     private FFdDeletionAllowed: TSFBool;
     public property FdDeletionAllowed: TSFBool read FFdDeletionAllowed;
 
-    { Event: SFString, out } { }
-    private FEventEnteredText: TX3DEvent;
-    public property EventEnteredText: TX3DEvent read FEventEnteredText;
+    { Event out } { }
+    private FEventEnteredText: TSFStringEvent;
+    public property EventEnteredText: TSFStringEvent read FEventEnteredText;
 
-    { Event: SFString, out } { }
-    private FEventFinalText: TX3DEvent;
-    public property EventFinalText: TX3DEvent read FEventFinalText;
+    { Event out } { }
+    private FEventFinalText: TSFStringEvent;
+    public property EventFinalText: TSFStringEvent read FEventFinalText;
 
     procedure KeyDown(Key: TKey; C: char; const Time: TX3DTime); override;
   end;
@@ -143,25 +143,25 @@ procedure TKeySensorNode.CreateNode;
 begin
   inherited;
 
-  FEventActionKeyPress := TX3DEvent.Create(Self, 'actionKeyPress', TSFInt32, false);
+  FEventActionKeyPress := TSFInt32Event.Create(Self, 'actionKeyPress', false);
   Events.Add(FEventActionKeyPress);
 
-  FEventActionKeyRelease := TX3DEvent.Create(Self, 'actionKeyRelease', TSFInt32, false);
+  FEventActionKeyRelease := TSFInt32Event.Create(Self, 'actionKeyRelease', false);
   Events.Add(FEventActionKeyRelease);
 
-  FEventAltKey := TX3DEvent.Create(Self, 'altKey', TSFBool, false);
+  FEventAltKey := TSFBoolEvent.Create(Self, 'altKey', false);
   Events.Add(FEventAltKey);
 
-  FEventControlKey := TX3DEvent.Create(Self, 'controlKey', TSFBool, false);
+  FEventControlKey := TSFBoolEvent.Create(Self, 'controlKey', false);
   Events.Add(FEventControlKey);
 
-  FEventKeyPress := TX3DEvent.Create(Self, 'keyPress', TSFString, false);
+  FEventKeyPress := TSFStringEvent.Create(Self, 'keyPress', false);
   Events.Add(FEventKeyPress);
 
-  FEventKeyRelease := TX3DEvent.Create(Self, 'keyRelease', TSFString, false);
+  FEventKeyRelease := TSFStringEvent.Create(Self, 'keyRelease', false);
   Events.Add(FEventKeyRelease);
 
-  FEventShiftKey := TX3DEvent.Create(Self, 'shiftKey', TSFBool, false);
+  FEventShiftKey := TSFBoolEvent.Create(Self, 'shiftKey', false);
   Events.Add(FEventShiftKey);
 
   DefaultContainerField := 'children';
@@ -180,7 +180,7 @@ end;
 
 procedure TKeySensorNode.KeyDown(Key: TKey; C: char; const Time: TX3DTime);
 
-  procedure HandleSpecial(var SpecialPressed: boolean; SpecialEvent: TX3DEvent);
+  procedure HandleSpecial(var SpecialPressed: boolean; SpecialEvent: TSFBoolEvent);
   begin
     if not SpecialPressed then
     begin
@@ -225,7 +225,7 @@ end;
 
 procedure TKeySensorNode.KeyUp(Key: TKey; C: char; const Time: TX3DTime);
 
-  procedure HandleSpecial(var SpecialPressed: boolean; SpecialEvent: TX3DEvent);
+  procedure HandleSpecial(var SpecialPressed: boolean; SpecialEvent: TSFBoolEvent);
   begin
     if SpecialPressed then
     begin
@@ -266,10 +266,10 @@ begin
   FFdDeletionAllowed := TSFBool.Create(Self, 'deletionAllowed', true);
   Fields.Add(FFdDeletionAllowed);
 
-  FEventEnteredText := TX3DEvent.Create(Self, 'enteredText', TSFString, false);
+  FEventEnteredText := TSFStringEvent.Create(Self, 'enteredText', false);
   Events.Add(FEventEnteredText);
 
-  FEventFinalText := TX3DEvent.Create(Self, 'finalText', TSFString, false);
+  FEventFinalText := TSFStringEvent.Create(Self, 'finalText', false);
   Events.Add(FEventFinalText);
 
   DefaultContainerField := 'children';

@@ -89,9 +89,8 @@
     private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
-    { Event: XFAny, in } { }
-    private FEventWrite: TX3DEvent;
-    public property EventWrite: TX3DEvent read FEventWrite;
+    private FEventWrite: TXFAnyEvent;
+    public property EventWrite: TXFAnyEvent read FEventWrite;
   end;
 
   TConverterNode = class(TAbstractChildNode)
@@ -106,13 +105,13 @@
     private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
-    { Event: XFAny, in } { }
-    private FEventIn: TX3DEvent;
-    public property EventIn: TX3DEvent read FEventIn;
+    { Event in } { }
+    private FEventIn: TXFAnyEvent;
+    public property EventIn: TXFAnyEvent read FEventIn;
 
-    { Event: XFAny, out } { }
-    private FEventOut: TX3DEvent;
-    public property EventOut: TX3DEvent read FEventOut;
+    { Event out } { }
+    private FEventOut: TXFAnyEvent;
+    public property EventOut: TXFAnyEvent read FEventOut;
   end;
 
   TRenderedTextureNode = class(TAbstractTextureNode)
@@ -161,13 +160,13 @@
     private FFdDescription: TSFString;
     public property FdDescription: TSFString read FFdDescription;
 
-    { Event: SFMatrix4f, out } { }
-    private FEventViewing: TX3DEvent;
-    public property EventViewing: TX3DEvent read FEventViewing;
+    { Event out } { }
+    private FEventViewing: TSFMatrix4fEvent;
+    public property EventViewing: TSFMatrix4fEvent read FEventViewing;
 
-    { Event: SFMatrix4f, out } { }
-    private FEventProjection: TX3DEvent;
-    public property EventProjection: TX3DEvent read FEventProjection;
+    { Event out } { }
+    private FEventProjection: TSFMatrix4fEvent;
+    public property EventProjection: TSFMatrix4fEvent read FEventProjection;
 
     private FFdUpdate: TSFString;
     public property FdUpdate: TSFString read FFdUpdate;
@@ -181,13 +180,13 @@
     private FFdTriggerName: TSFString;
     public property FdTriggerName: TSFString read FFdTriggerName;
 
-    { Event: SFTime, in } { }
-    private FEventTriggerSlot: TX3DEvent;
-    public property EventTriggerSlot: TX3DEvent read FEventTriggerSlot;
+    { Event in } { }
+    private FEventTriggerSlot: TSFTimeEvent;
+    public property EventTriggerSlot: TSFTimeEvent read FEventTriggerSlot;
 
-    { Event: SFImage, out } { }
-    private FEventImage_changed: TX3DEvent;
-    public property EventImage_changed: TX3DEvent read FEventImage_changed;
+    { Event out } { }
+    private FEventImage_changed: TSFImageEvent;
+    public property EventImage_changed: TSFImageEvent read FEventImage_changed;
 
     private FFdTextureProperties: TSFNode;
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
@@ -201,9 +200,9 @@
     private FFdRepeatR: TSFBool;
     public property FdRepeatR: TSFBool read FFdRepeatR;
 
-    { Event: SFBool, out } { }
-    private FEventRendering: TX3DEvent;
-    public property EventRendering: TX3DEvent read FEventRendering;
+    { Event out } { }
+    private FEventRendering: TSFBoolEvent;
+    public property EventRendering: TSFBoolEvent read FEventRendering;
   end;
 
   TPlaneNode = class(TAbstractX3DGeometryNode)
@@ -246,29 +245,29 @@
     private FFdNotStatus: TSFBool;
     public property FdNotStatus: TSFBool read FFdNotStatus;
 
-    { Event: XFAny, in } { }
-    private FEventToggle: TX3DEvent;
-    public property EventToggle: TX3DEvent read FEventToggle;
+    { Event in } { }
+    private FEventToggle: TXFAnyEvent;
+    public property EventToggle: TXFAnyEvent read FEventToggle;
 
-    { Event: XFAny, in } { }
-    private FEventSet: TX3DEvent;
-    public property EventSet: TX3DEvent read FEventSet;
+    { Event in } { }
+    private FEventSet: TXFAnyEvent;
+    public property EventSet: TXFAnyEvent read FEventSet;
 
-    { Event: XFAny, in } { }
-    private FEventReset: TX3DEvent;
-    public property EventReset: TX3DEvent read FEventReset;
+    { Event in } { }
+    private FEventReset: TXFAnyEvent;
+    public property EventReset: TXFAnyEvent read FEventReset;
 
-    { Event: SFBool, out } { }
-    private FEventChanged: TX3DEvent;
-    public property EventChanged: TX3DEvent read FEventChanged;
+    { Event out } { }
+    private FEventChanged: TSFBoolEvent;
+    public property EventChanged: TSFBoolEvent read FEventChanged;
 
-    { Event: SFBool, out } { }
-    private FEventOn: TX3DEvent;
-    public property EventOn: TX3DEvent read FEventOn;
+    { Event out } { }
+    private FEventOn: TSFBoolEvent;
+    public property EventOn: TSFBoolEvent read FEventOn;
 
-    { Event: SFBool, out } { }
-    private FEventOff: TX3DEvent;
-    public property EventOff: TX3DEvent read FEventOff;
+    { Event out } { }
+    private FEventOff: TSFBoolEvent;
+    public property EventOff: TSFBoolEvent read FEventOff;
 
     private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
@@ -461,7 +460,7 @@ begin
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);
   Fields.Add(FFdEnabled);
 
-  FEventWrite := TX3DEvent.Create(Self, 'write', TX3DField, true);
+  FEventWrite := TXFAnyEvent.Create(Self, 'write', true);
   Events.Add(FEventWrite);
   FEventWrite.OnReceive.Add(@EventWriteReceive);
 end;
@@ -600,11 +599,11 @@ begin
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);
   Fields.Add(FFdEnabled);
 
-  FEventIn := TX3DEvent.Create(Self, 'in', TX3DField, true);
+  FEventIn := TXFAnyEvent.Create(Self, 'in', true);
   Events.Add(FEventIn);
   FEventIn.OnReceive.Add(@EventInReceive);
 
-  FEventOut := TX3DEvent.Create(Self, 'out', TX3DField, true);
+  FEventOut := TXFAnyEvent.Create(Self, 'out', true);
   Events.Add(FEventOut);
 end;
 
@@ -679,10 +678,10 @@ begin
   FFdDescription := TSFString.Create(Self, 'description', '');
   Fields.Add(FFdDescription);
 
-  FEventViewing := TX3DEvent.Create(Self, 'viewing', TSFMatrix4f, false);
+  FEventViewing := TSFMatrix4fEvent.Create(Self, 'viewing', false);
   Events.Add(FEventViewing);
 
-  FEventProjection := TX3DEvent.Create(Self, 'projection', TSFMatrix4f, false);
+  FEventProjection := TSFMatrix4fEvent.Create(Self, 'projection', false);
   Events.Add(FEventProjection);
 
   FFdUpdate := TSFStringUpdate.Create(Self, 'update', 'NONE');
@@ -701,10 +700,10 @@ begin
    FdTriggerName.Exposed := false;
   Fields.Add(FFdTriggerName);
 
-  FEventTriggerSlot := TX3DEvent.Create(Self, 'triggerSlot', TSFTime, true);
+  FEventTriggerSlot := TSFTimeEvent.Create(Self, 'triggerSlot', true);
   Events.Add(FEventTriggerSlot);
 
-  FEventImage_changed := TX3DEvent.Create(Self, 'image_changed', TSFImage, false);
+  FEventImage_changed := TSFImageEvent.Create(Self, 'image_changed', false);
   Events.Add(FEventImage_changed);
 
   FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
@@ -727,7 +726,7 @@ begin
    FdRepeatR.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdRepeatR);
 
-  FEventRendering := TX3DEvent.Create(Self, 'rendering', TSFBool, false);
+  FEventRendering := TSFBoolEvent.Create(Self, 'rendering', false);
   Events.Add(FEventRendering);
 
   FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
@@ -827,25 +826,25 @@ begin
    FdNotstatus.OnReceive.Add(@EventNotStatusReceive);
   Fields.Add(FFdNotStatus);
 
-  FEventToggle := TX3DEvent.Create(Self, 'toggle', TX3DField, true);
+  FEventToggle := TXFAnyEvent.Create(Self, 'toggle', true);
   FEventToggle.OnReceive.Add(@EventToggleReceive);
   Events.Add(FEventToggle);
 
-  FEventSet := TX3DEvent.Create(Self, 'set', TX3DField, true);
+  FEventSet := TXFAnyEvent.Create(Self, 'set', true);
    EventSet.OnReceive.Add(@EventSetReceive);
   Events.Add(FEventSet);
 
-  FEventReset := TX3DEvent.Create(Self, 'reset', TX3DField, true);
+  FEventReset := TXFAnyEvent.Create(Self, 'reset', true);
    EventReset.OnReceive.Add(@EventResetReceive);
   Events.Add(FEventReset);
 
-  FEventChanged := TX3DEvent.Create(Self, 'changed', TSFBool, false);
+  FEventChanged := TSFBoolEvent.Create(Self, 'changed', false);
   Events.Add(FEventChanged);
 
-  FEventOn := TX3DEvent.Create(Self, 'on', TSFBool, false);
+  FEventOn := TSFBoolEvent.Create(Self, 'on', false);
   Events.Add(FEventOn);
 
-  FEventOff := TX3DEvent.Create(Self, 'off', TSFBool, false);
+  FEventOff := TSFBoolEvent.Create(Self, 'off', false);
   Events.Add(FEventOff);
 
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);
@@ -873,8 +872,7 @@ begin
     By the way, also avoid sending excessive changed/on/off. }
   if FdnotStatus.Value <> not FdStatus.Value then
   begin
-    FdnotStatus.EventIn.Send(not FdStatus.Value, Time);
-
+    FdnotStatus.Send(not FdStatus.Value);
     EventChanged.Send(true, Time);
     if FdStatus.Value then EventOn.Send(true, Time);
     if not FdStatus.Value then EventOff.Send(true, Time);
@@ -890,8 +888,7 @@ begin
     By the way, also avoid sending excessive changed/on/off. }
   if FdnotStatus.Value <> not FdStatus.Value then
   begin
-    Fdstatus.EventIn.Send(not FdnotStatus.Value, Time);
-
+    FdStatus.Send(not FdnotStatus.Value);
     EventChanged.Send(true, Time);
     if FdStatus.Value then EventOn.Send(true, Time);
     if not FdStatus.Value then EventOff.Send(true, Time);
@@ -902,21 +899,21 @@ procedure TTogglerNode.EventToggleReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
-    FdStatus.EventIn.Send(not FdStatus.Value, Time);
+    FdStatus.Send(not FdStatus.Value);
 end;
 
 procedure TTogglerNode.EventSetReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
-    FdStatus.EventIn.Send(true, Time);
+    FdStatus.Send(true);
 end;
 
 procedure TTogglerNode.EventResetReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
-    FdStatus.EventIn.Send(false, Time);
+    FdStatus.Send(false);
 end;
 
 procedure RegisterAvalonNodes;

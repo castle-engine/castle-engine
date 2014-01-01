@@ -52,17 +52,17 @@ type
   public
     procedure CreateNode; override;
 
-    { Event: SFBool, in } { }
-    private FEventSet_bind: TX3DEvent;
-    public property EventSet_bind: TX3DEvent read FEventSet_bind;
+    { Event in } { }
+    private FEventSet_bind: TSFBoolEvent;
+    public property EventSet_bind: TSFBoolEvent read FEventSet_bind;
 
-    { Event: SFTime, out } { }
-    private FEventBindTime: TX3DEvent;
-    public property EventBindTime: TX3DEvent read FEventBindTime;
+    { Event out } { }
+    private FEventBindTime: TSFTimeEvent;
+    public property EventBindTime: TSFTimeEvent read FEventBindTime;
 
-    { Event: SFBool, out } { }
-    private FEventIsBound: TX3DEvent;
-    public property EventIsBound: TX3DEvent read FEventIsBound;
+    { Event out } { }
+    private FEventIsBound: TSFBoolEvent;
+    public property EventIsBound: TSFBoolEvent read FEventIsBound;
 
     { Transformation of this bindable node.
 
@@ -108,8 +108,8 @@ type
   ['{7434C62F-8084-40C3-AA57-08F9B574655A}']
     property FdEnabled: TSFBool;
 
-    { Event: SFBool, out } { }
-    property EventIsActive: TX3DEvent;
+    { Event: out } { }
+    property EventIsActive: TSFBoolEvent;
   end;
 
   TAbstractSensorNode = class(TAbstractChildNode, IAbstractSensorNode)
@@ -119,9 +119,9 @@ type
     private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
-    { Event: SFBool, out } { }
-    private FEventIsActive: TX3DEvent;
-    public property EventIsActive: TX3DEvent read FEventIsActive;
+    { Event out } { }
+    private FEventIsActive: TSFBoolEvent;
+    public property EventIsActive: TSFBoolEvent read FEventIsActive;
   end;
 
   TMetadataBooleanNode = class(TAbstractNode, IAbstractMetadataObject)
@@ -260,13 +260,13 @@ procedure TAbstractBindableNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_bind := TX3DEvent.Create(Self, 'set_bind', TSFBool, true);
+  FEventSet_bind := TSFBoolEvent.Create(Self, 'set_bind', true);
   Events.Add(FEventSet_bind);
 
-  FEventBindTime := TX3DEvent.Create(Self, 'bindTime', TSFTime, false);
+  FEventBindTime := TSFTimeEvent.Create(Self, 'bindTime', false);
   Events.Add(FEventBindTime);
 
-  FEventIsBound := TX3DEvent.Create(Self, 'isBound', TSFBool, false);
+  FEventIsBound := TSFBoolEvent.Create(Self, 'isBound', false);
   Events.Add(FEventIsBound);
 
   FTransform := IdentityMatrix4Single;
@@ -289,7 +289,7 @@ begin
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);
   Fields.Add(FFdEnabled);
 
-  FEventIsActive := TX3DEvent.Create(Self, 'isActive', TSFBool, false);
+  FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
   Events.Add(FEventIsActive);
 end;
 

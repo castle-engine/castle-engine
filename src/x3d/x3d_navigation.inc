@@ -39,17 +39,17 @@
     private FFdGravityUp: TSFVec3f;
     public property FdGravityUp: TSFVec3f read FFdGravityUp;
 
-    private FEventCameraMatrix: TX3DEvent;
-    public property EventCameraMatrix: TX3DEvent read FEventCameraMatrix;
+    private FEventCameraMatrix: TSFMatrix4fEvent;
+    public property EventCameraMatrix: TSFMatrix4fEvent read FEventCameraMatrix;
 
-    private FEventCameraInverseMatrix: TX3DEvent;
-    public property EventCameraInverseMatrix: TX3DEvent read FEventCameraInverseMatrix;
+    private FEventCameraInverseMatrix: TSFMatrix4fEvent;
+    public property EventCameraInverseMatrix: TSFMatrix4fEvent read FEventCameraInverseMatrix;
 
-    private FEventCameraRotationMatrix: TX3DEvent;
-    public property EventCameraRotationMatrix: TX3DEvent read FEventCameraRotationMatrix;
+    private FEventCameraRotationMatrix: TSFMatrix3fEvent;
+    public property EventCameraRotationMatrix: TSFMatrix3fEvent read FEventCameraRotationMatrix;
 
-    private FEventCameraRotationInverseMatrix: TX3DEvent;
-    public property EventCameraRotationInverseMatrix: TX3DEvent read FEventCameraRotationInverseMatrix;
+    private FEventCameraRotationInverseMatrix: TSFMatrix3fEvent;
+    public property EventCameraRotationInverseMatrix: TSFMatrix3fEvent read FEventCameraRotationInverseMatrix;
 
     private FFdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool;
     public property FdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool read FFdCameraMatrixSendAlsoOnOffscreenRendering;
@@ -161,13 +161,13 @@
     private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
-    { Event: SFTime, out } { }
-    private FEventCollideTime: TX3DEvent;
-    public property EventCollideTime: TX3DEvent read FEventCollideTime;
+    { Event out } { }
+    private FEventCollideTime: TSFTimeEvent;
+    public property EventCollideTime: TSFTimeEvent read FEventCollideTime;
 
-    { Event: SFBool, out } { }
-    private FEventIsActive: TX3DEvent;
-    public property EventIsActive: TX3DEvent read FEventIsActive;
+    { Event out } { }
+    private FEventIsActive: TSFBoolEvent;
+    public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
     private FFdProxy: TSFNode;
     public property FdProxy: TSFNode read FFdProxy;
@@ -213,9 +213,9 @@
     private FFdForceTransitions: TSFBool;
     public property FdForceTransitions: TSFBool read FFdForceTransitions;
 
-    { Event: SFInt32, out } { }
-    private FEventLevel_changed: TX3DEvent;
-    public property EventLevel_changed: TX3DEvent read FEventLevel_changed;
+    { Event out } { }
+    private FEventLevel_changed: TSFInt32Event;
+    public property EventLevel_changed: TSFInt32Event read FEventLevel_changed;
 
     function TransformationChange: TNodeTransformationChange; override;
   end;
@@ -267,9 +267,9 @@
     private FFdVisibilityLimit: TSFFloat;
     public property FdVisibilityLimit: TSFFloat read FFdVisibilityLimit;
 
-    { Event: SFBool, out } { }
-    private FEventTransitionComplete: TX3DEvent;
-    public property EventTransitionComplete: TX3DEvent read FEventTransitionComplete;
+    { Event out } { }
+    private FEventTransitionComplete: TSFBoolEvent;
+    public property EventTransitionComplete: TSFBoolEvent read FEventTransitionComplete;
   end;
 
   TOrthoViewpointNode = class(TAbstractX3DViewpointNode)
@@ -397,16 +397,16 @@ begin
    FdGravityUp.ChangesAlways := [chViewpointVectors];
   Fields.Add(FFdGravityUp);
 
-  FEventCameraMatrix := TX3DEvent.Create(Self, 'cameraMatrix', TSFMatrix4f, false);
+  FEventCameraMatrix := TSFMatrix4fEvent.Create(Self, 'cameraMatrix', false);
   Events.Add(FEventCameraMatrix);
 
-  FEventCameraInverseMatrix := TX3DEvent.Create(Self, 'cameraInverseMatrix', TSFMatrix4f, false);
+  FEventCameraInverseMatrix := TSFMatrix4fEvent.Create(Self, 'cameraInverseMatrix', false);
   Events.Add(FEventCameraInverseMatrix);
 
-  FEventCameraRotationMatrix := TX3DEvent.Create(Self, 'cameraRotationMatrix', TSFMatrix3f, false);
+  FEventCameraRotationMatrix := TSFMatrix3fEvent.Create(Self, 'cameraRotationMatrix', false);
   Events.Add(FEventCameraRotationMatrix);
 
-  FEventCameraRotationInverseMatrix := TX3DEvent.Create(Self, 'cameraRotationInverseMatrix', TSFMatrix3f, false);
+  FEventCameraRotationInverseMatrix := TSFMatrix3fEvent.Create(Self, 'cameraRotationInverseMatrix', false);
   Events.Add(FEventCameraRotationInverseMatrix);
 
   FFdCameraMatrixSendAlsoOnOffscreenRendering := TSFBool.Create(Self, 'cameraMatrixSendAlsoOnOffscreenRendering', false);
@@ -637,10 +637,10 @@ begin
    FdEnabled.ChangesAlways := [chEverything];
   Fields.Add(FFdEnabled);
 
-  FEventCollideTime := TX3DEvent.Create(Self, 'collideTime', TSFTime, false);
+  FEventCollideTime := TSFTimeEvent.Create(Self, 'collideTime', false);
   Events.Add(FEventCollideTime);
 
-  FEventIsActive := TX3DEvent.Create(Self, 'isActive', TSFBool, false);
+  FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
   Events.Add(FEventIsActive);
 
   FFdProxy := TSFNode.Create(Self, 'proxy', IAbstractChildNode);
@@ -739,7 +739,7 @@ begin
   FFdForceTransitions.Exposed := false;
   Fields.Add(FFdForceTransitions);
 
-  FEventLevel_changed := TX3DEvent.Create(Self, 'level_changed', TSFInt32, false);
+  FEventLevel_changed := TSFInt32Event.Create(Self, 'level_changed', false);
   Events.Add(FEventLevel_changed);
 
   DefaultContainerField := 'children';
@@ -829,7 +829,7 @@ begin
   Fields.Add(FFdVisibilityLimit);
   { X3D specification comment: [0,Inf) }
 
-  FEventTransitionComplete := TX3DEvent.Create(Self, 'transitionComplete', TSFBool, false);
+  FEventTransitionComplete := TSFBoolEvent.Create(Self, 'transitionComplete', false);
   Events.Add(FEventTransitionComplete);
 
   DefaultContainerField := 'children';
