@@ -666,6 +666,7 @@ var
   I: Integer;
   ChildJoint: THAnimJointNode;
   LocalCenter, NewChildCenter: TVector3Single;
+  TempToSend: TSFVec3f;
 begin
   inherited;
 
@@ -710,8 +711,14 @@ begin
       if not VectorsPerfectlyEqual(ChildJoint.FdCenter.Value, NewChildCenter) then
       begin
         ChildJoint.FdCenter.Value := NewChildCenter;
-//        if ChildJoint.FdCenter.Exposed then
-//TODO:          ChildJoint.FdCenter.EventOut.Send(NewChildCenter);
+
+        if ChildJoint.FdCenter.Exposed then
+        begin
+          TempToSend := TSFVec3f.Create(ChildJoint, 'center', NewChildCenter);
+          try
+            ChildJoint.FdCenter.EventOut.Send(TempToSend);
+          finally FreeAndNil(TempToSend) end;
+        end;
 
         { Increasing here PlusTicks is a little hack.
           If you'll next want to traverse a parent joint,
