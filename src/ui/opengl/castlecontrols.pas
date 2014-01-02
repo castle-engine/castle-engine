@@ -325,6 +325,7 @@ type
     FDragStarted: boolean;
     FSizeScale: single;
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Draw; override;
     function DrawStyle: TUIControlDrawStyle; override;
 
@@ -332,6 +333,7 @@ type
     function Width: Cardinal;
     function Height: Cardinal;
     function Rect: TRectangle; override;
+    procedure SetSizeScale(const inContainer: IUIContainer);
 
     function PositionInside(const X, Y: Integer): boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
@@ -1300,6 +1302,18 @@ begin
 end;
 
 { TCastleTouchControl ---------------------------------------------------------------- }
+
+constructor TCastleTouchControl.Create(AOwner: TComponent);
+begin
+  inherited;
+  FSizeScale := 0;
+end;
+
+procedure TCastleTouchControl.SetSizeScale(const inContainer: IUIContainer);
+begin
+  if inContainer <> nil then
+    FSizeScale := inContainer.Dpi / 96;
+end;
 
 function TCastleTouchControl.DrawStyle: TUIControlDrawStyle;
 begin

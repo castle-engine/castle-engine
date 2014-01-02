@@ -133,6 +133,7 @@ type
     function GetWidth: Integer;
     function GetHeight: Integer;
     function Rect: TRectangle;
+    function GetDpi: Integer;
     function GetMousePressed: TMouseButtons;
     function GetPressed: TKeysPressed;
 
@@ -226,7 +227,7 @@ type
     property UserInterface: TUserInterface
       read FUserInterface write FUserInterface default euiDesktop;
     property Dpi: integer
-      read FDpi write FDpi default 96;
+      read FDpi write FDpi default DefaultDpi;
   end;
 
 
@@ -365,7 +366,7 @@ begin
   FLibraryCallbackProc := nil;
   LeftTouchCtl := nil;
   RightTouchCtl := nil;
-  FDpi := 96;
+  FDpi := DefaultDpi;
   FUserInterface := euiDesktop;
 
   FSceneManager := TGameSceneManager.Create(Self);
@@ -1137,6 +1138,11 @@ begin
   Result := Rectangle(0, 0, FWidth, FHeight);
 end;
 
+function TCastleFrame.GetDpi: Integer;
+begin
+  Result := FDpi;
+end;
+
 function TCastleFrame.GetMousePressed: TMouseButtons;
 begin
   Result := FMousePressed;
@@ -1216,7 +1222,7 @@ begin
 
   aNewCtl := TCastleTouchControl.Create(self);
   aNewCtl.TouchMode := Mode;
-  aNewCtl.SizeScale := FDpi / 96;
+  aNewCtl.SetSizeScale(Self);
   Controls.InsertFront(aNewCtl);
   if LeftSide then
     LeftTouchCtl := aNewCtl

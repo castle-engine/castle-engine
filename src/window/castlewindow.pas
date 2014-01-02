@@ -675,6 +675,7 @@ type
     FMinHeight: Integer;
     FMaxWidth: Integer;
     FMaxHeight: Integer;
+    FDpi: Integer;
 
     function GetColorBits: Cardinal;
     procedure SetColorBits(const Value: Cardinal);
@@ -1023,6 +1024,7 @@ type
     function GetMouseY: Integer;
     function GetWidth: Integer;
     function GetHeight: Integer;
+    function GetDpi: Integer;
     function GetMousePressed: TMouseButtons;
     function GetPressed: TKeysPressed;
   public
@@ -1118,6 +1120,10 @@ type
       Always (Left,Bottom) are zero, and (Width,Height) correspond to window
       sizes. }
     function Rect: TRectangle;
+
+    { Window DPI. Defaults to 96, so it is recommended to set to correct value
+      on higher density displays. }
+    property Dpi: integer read FDpi write FDpi default DefaultDpi;
 
     { Window position on the screen. If one (or both) of them is equal
       to WindowPositionCenter at the initialization (Open) time,
@@ -2917,6 +2923,7 @@ begin
   FMultiSampling := 1;
   FVisible := true;
   OwnsMainMenu := true;
+  FDpi := DefaultDpi;
   FPressed := TKeysPressed.Create;
   FFps := TFramesPerSecond.Create;
   FMainMenuVisible := true;
@@ -3987,6 +3994,11 @@ end;
 function TCastleWindowBase.GetHeight: Integer;
 begin
   Result := FHeight;
+end;
+
+function TCastleWindowBase.GetDpi: Integer;
+begin
+  Result := FDpi;
 end;
 
 function TCastleWindowBase.GetMousePressed: TMouseButtons;

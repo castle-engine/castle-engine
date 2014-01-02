@@ -2423,6 +2423,7 @@ var
   Size: Single;
   ModsDown: TModifierKeys;
   DoZooming, DoMoving: boolean;
+  MoveDivConst: Single;
 
   function DragRotation: TQuaternion;
 
@@ -2431,13 +2432,13 @@ var
     begin
       if ArchitectureMode then
         Result :=
-          QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (NewY - OldY) / 100) *
+          QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (NewY - OldY) / MoveDivConst) *
           FRotations *
-          QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (NewX - OldX) / 100)
+          QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (NewX - OldX) / MoveDivConst)
       else
         Result :=
-          QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (NewY - OldY) / 100) *
-          QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (NewX - OldX) / 100);
+          QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (NewY - OldY) / MoveDivConst) *
+          QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (NewX - OldX) / MoveDivConst);
     end;
 
   var
@@ -2479,6 +2480,10 @@ var
 begin
   Result := inherited;
   if Result then Exit;
+
+  if Container <> nil then
+    MoveDivConst := Container.Dpi else
+    MoveDivConst := 100;
 
   { Shortcuts: I'll try to make them intelligent, which means
     "mostly matching shortcuts in other programs" (like Blender) and
@@ -2565,7 +2570,7 @@ begin
                  ( (mbLeft in Container.MousePressed) and (ModsDown = [mkCtrl]) );
   if DoZooming then
   begin
-    if Zoom((NewY - OldY) / 200) then
+    if Zoom((NewY - OldY) / (2*MoveDivConst)) then
       Result := ExclusiveEvents;
   end;
 
@@ -2579,8 +2584,8 @@ begin
   if DoMoving then
   begin
     Size := FModelBox.AverageSize;
-    FMoveAmount[0] -= Size * (OldX - NewX) / 200;
-    FMoveAmount[1] -= Size * (NewY - OldY) / 200;
+    FMoveAmount[0] -= Size * (OldX - NewX) / (2*MoveDivConst);
+    FMoveAmount[1] -= Size * (NewY - OldY) / (2*MoveDivConst);
     ScheduleVisibleChange;
     Result := ExclusiveEvents;
   end;

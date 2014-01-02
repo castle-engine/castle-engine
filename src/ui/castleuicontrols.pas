@@ -21,6 +21,10 @@ interface
 uses SysUtils, Classes, CastleKeysMouse, CastleUtils, CastleClassUtils,
   CastleGenericLists, CastleRectangles;
 
+const
+  { Default value for container's Dpi, as it usually set on desktops. }
+  DefaultDpi = 96;
+
 type
   { Basic user interface container. This may be a window
     (like TCastleWindowCustom) or some Lazarus control (like TCastleControlCustom
@@ -41,6 +45,9 @@ type
     property Width: Integer read GetWidth;
     property Height: Integer read GetHeight;
     function Rect: TRectangle;
+
+    function GetDpi: Integer;
+    property Dpi: Integer read GetDpi;
 
     function GetMousePressed: TMouseButtons;
     function GetPressed: TKeysPressed;

@@ -27,7 +27,6 @@ type
 
   TCastleWindowTouch = class(TCastleWindow)
   private
-    FDpi: Integer;
     FUserInterface: TUserInterface;
     LeftTouchCtl, RightTouchCtl: TCastleTouchControl;
     FTouchInterface: TTouchCtlInterface;
@@ -46,15 +45,11 @@ type
       be called each time after navigation mode changed. }
     procedure UpdateUserInterface();
 
-    const
-      DefaultDpi = 96;
   published
     // TODO: make a real setter for these properties.
 
     property UserInterface: TUserInterface
       read FUserInterface write FUserInterface default euiDesktop;
-    property Dpi: Integer
-      read FDpi write FDpi default DefaultDpi;
   end;
 
 implementation
@@ -64,7 +59,6 @@ uses SysUtils, CastleUIControls, CastleCameras;
 constructor TCastleWindowTouch.Create(AOwner: TComponent);
 begin
   inherited;
-  FDpi := DefaultDpi;
 end;
 
 procedure TCastleWindowTouch.EventUpdate;
@@ -161,7 +155,7 @@ begin
 
   aNewCtl := TCastleTouchControl.Create(self);
   aNewCtl.TouchMode := Mode;
-  aNewCtl.SizeScale := FDpi / 96;
+  aNewCtl.SetSizeScale(Self);
   Controls.InsertFront(aNewCtl);
   if LeftSide then
     LeftTouchCtl := aNewCtl

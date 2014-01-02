@@ -238,6 +238,7 @@ type
     procedure UpdateFocusAndMouseCursor;
     function GetTooltipX: Integer;
     function GetTooltipY: Integer;
+    function GetDpi: Integer;
     { Called when the control C is destroyed or just removed from Controls list. }
     procedure DetachNotification(const C: TUIControl);
   protected
@@ -1597,6 +1598,11 @@ end;
 function TCastleControlCustom.GetTooltipY: Integer;
 begin
   Result := FTooltipY;
+end;
+
+function TCastleControlCustom.GetDpi: Integer;
+begin
+  Result := DefaultDpi;
 end;
 
 { TCastleControl ----------------------------------------------------------- }
