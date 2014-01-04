@@ -236,10 +236,10 @@ begin
       NavType := ntExamine;
 
     case NavType of
-      ntWalk:         TouchInterface := etciCtlWalkDragRotate;
-      ntFly:          TouchInterface := etciCtlFlyCtlWalkDragRotate;
-      ntExamine:      TouchInterface := etciCtlPanXYDragRotate;
-      ntArchitecture: TouchInterface := etciCtlPanXYDragRotate;
+      ntWalk:      TouchInterface := etciCtlWalkDragRotate;
+      ntFly:       TouchInterface := etciCtlFlyCtlWalkDragRotate;
+      ntExamine:   TouchInterface := etciCtlPanXYDragRotate;
+      ntTurntable: TouchInterface := etciCtlPanXYDragRotate;
     end;
   end;
 end;

@@ -5980,13 +5980,14 @@ var
         OnWarning(wtMinor, 'VRML/X3D', 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
       NavigationTypeInitialized := true;
       if Universal <> nil then Universal.NavigationClass := ncExamine;
-      if Examine <> nil then Examine.ArchitectureMode := false;
+      if Examine <> nil then Examine.Turntable := false;
     end else
-    if NavigationType = 'ARCHITECTURE' then
+    if (NavigationType = 'ARCHITECTURE') or
+       (NavigationType = 'TURNTABLE') then
     begin
       NavigationTypeInitialized := true;
       if Universal <> nil then Universal.NavigationClass := ncExamine;
-      if Examine <> nil then Examine.ArchitectureMode := true;
+      if Examine <> nil then Examine.Turntable := true;
     end else
     if NavigationType = 'ANY' then
     begin
@@ -6028,7 +6029,7 @@ begin
   if Walk <> nil then Walk.PreferGravityUpForRotations := true;
   if Walk <> nil then Walk.PreferGravityUpForMoving := true;
   if Walk <> nil then Walk.Gravity := false;
-  if Examine <> nil then Examine.ArchitectureMode := false;
+  if Examine <> nil then Examine.Turntable := false;
   Camera.Input := TCamera.DefaultInput;
 
   if ForceNavigationType <> '' then
@@ -6717,7 +6718,7 @@ begin
     if Universal.NavigationType = ntWalk then NavigationType := 'WALK'
     else if Universal.NavigationType = ntFly then NavigationType := 'FLY'
     else if Universal.NavigationType = ntExamine then NavigationType := 'EXAMINE'
-    else if Universal.NavigationType = ntArchitecture then NavigationType := 'ARCHITECTURE';
+    else if Universal.NavigationType = ntTurntable then NavigationType := 'TURNTABLE';
   end
   else if ACamera is TWalkCamera then begin
     Walk := ACamera as TWalkCamera;
@@ -6727,8 +6728,8 @@ begin
   end
   else if ACamera is TExamineCamera then begin
     Examine := ACamera as TExamineCamera;
-    if Examine.ArchitectureMode then
-      NavigationType := 'ARCHITECTURE' else
+    if Examine.Turntable then
+      NavigationType := 'TURNTABLE' else
       NavigationType := 'EXAMINE';
   end;
 

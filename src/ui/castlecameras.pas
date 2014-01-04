@@ -418,7 +418,7 @@ type
     FRotationAccelerationSpeed: Single;
     FRotationSpeed: Single;
     FPosition, FDirection, FUp: TVector3Single;
-    FArchitectureMode: boolean;
+    FTurntable: boolean;
 
     FInputs_Move: T3BoolInputs;
     FInputs_Rotate: T3BoolInputs;
@@ -497,9 +497,9 @@ type
 
     property CenterOfRotation: TVector3Single read FCenterOfRotation write SetCenterOfRotation;
 
-    { ArchitectureMode rotates the scene around its Y axis instead of current camera axis. }
-    property ArchitectureMode: boolean
-      read FArchitectureMode write FArchitectureMode default false;
+    { Turntable rotates the scene around its Y axis instead of current camera axis. }
+    property Turntable: boolean
+      read FTurntable write FTurntable default false;
 
     { How the model is scaled. Scaling is done around MoveAmount added to
       the middle of ModelBox. @italic(May never be zero (or too near zero).) }
@@ -1562,7 +1562,7 @@ type
   end;
 
   TCameraNavigationClass = (ncExamine, ncWalk);
-  TCameraNavigationType = (ntExamine, ntArchitecture, ntWalk, ntFly, ntNone);
+  TCameraNavigationType = (ntExamine, ntTurntable, ntWalk, ntFly, ntNone);
 
   { Camera that allows any kind of navigation (Examine, Walk).
     You can switch between navigation types, while preserving the camera view.
@@ -2153,12 +2153,11 @@ begin
 
     if FRotationsAnim[1] <> 0 then
     begin
-      if ArchitectureMode then
+      if Turntable then
         FRotations := FRotations * QuatFromAxisAngle(UnitVector3Single[1],
-          FRotationsAnim[1] * RotChange)
-      else
+          FRotationsAnim[1] * RotChange) else
         FRotations := QuatFromAxisAngle(UnitVector3Single[1],
-          FRotationsAnim[1] * RotChange) * FRotations
+          FRotationsAnim[1] * RotChange) * FRotations;
     end;
 
     if FRotationsAnim[2] <> 0 then
@@ -2292,14 +2291,15 @@ begin
 
   if Abs(Y) > 0.4 then      { rotate }
   begin
-    if ArchitectureMode then
-      NewRotation := NewRotation * QuatFromAxisAngle(Vector3Single(0, 1, 0), Y * RotationSize)
-    else
-      NewRotation := QuatFromAxisAngle(Vector3Single(0, 1, 0), Y * RotationSize) * NewRotation;
+    if Turntable then
+      NewRotation := NewRotation *
+        QuatFromAxisAngle(Vector3Single(0, 1, 0), Y * RotationSize) else
+      NewRotation := QuatFromAxisAngle(Vector3Single(0, 1, 0), Y * RotationSize) *
+        NewRotation;
     Moved := true;
   end;
 
-  if (Abs(Z) > 0.4) and (not ArchitectureMode) then      { tilt sidewards }
+  if (Abs(Z) > 0.4) and (not Turntable) then      { tilt sidewards }
   begin
     NewRotation := QuatFromAxisAngle(Vector3Single(0, 0, 1), Z * RotationSize) * NewRotation;
     Moved := true;
@@ -2379,7 +2379,7 @@ begin
   begin
     { For now, doing Zoom on mouse wheel is hardcoded, we don't call EventDown here }
 
-    if ArchitectureMode then
+    if Turntable then
       ZoomScale := 40 else
       ZoomScale := 10;
     if Zoom(Event.MouseWheelScroll / ZoomScale) then
@@ -2430,12 +2430,11 @@ var
     { Returns new rotation }
     function XYRotation(const Scale: Single): TQuaternion;
     begin
-      if ArchitectureMode then
+      if Turntable then
         Result :=
           QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (NewY - OldY) / MoveDivConst) *
           FRotations *
-          QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (NewX - OldX) / MoveDivConst)
-      else
+          QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (NewX - OldX) / MoveDivConst) else
         Result :=
           QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (NewY - OldY) / MoveDivConst) *
           QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (NewX - OldX) / MoveDivConst);
@@ -2445,7 +2444,7 @@ var
     AvgX, AvgY, W2, H2: Cardinal;
     ZRotAngle, ZRotRatio: Single;
   begin
-    if (not ContainerSizeKnown) or ArchitectureMode then
+    if (not ContainerSizeKnown) or Turntable then
     begin
       Result := XYRotation(1);
     end else
@@ -2546,9 +2545,8 @@ begin
   { Rotating }
   if (mbLeft in Container.MousePressed) and (ModsDown = []) then
   begin
-    if ArchitectureMode then
-      FRotations := DragRotation {old FRotations already included in XYRotation}
-    else
+    if Turntable then
+      FRotations := DragRotation {old FRotations already included in XYRotation} else
       FRotations := DragRotation * FRotations;
     ScheduleVisibleChange;
     Result := ExclusiveEvents;
@@ -2563,9 +2561,8 @@ begin
     meaning of mbLeft but they don't change the meaning of mbRight / Middle ? }
 
   { Moving closer/further }
-  if ArchitectureMode then
-    DoZooming := (mbMiddle in Container.MousePressed)
-  else
+  if Turntable then
+    DoZooming := (mbMiddle in Container.MousePressed) else
     DoZooming := ( (mbRight in Container.MousePressed) and (ModsDown = []) ) or
                  ( (mbLeft in Container.MousePressed) and (ModsDown = [mkCtrl]) );
   if DoZooming then
@@ -2575,7 +2572,7 @@ begin
   end;
 
   { Moving left/right/down/up }
-  if ArchitectureMode then
+  if Turntable then
     DoMoving := (not FModelBox.IsEmpty) and (mbRight in Container.MousePressed)
   else
     DoMoving := (not FModelBox.IsEmpty) and
@@ -4665,8 +4662,8 @@ begin
     Result := ntNone else
   if NavigationClass = ncExamine then
   begin
-    if Examine.ArchitectureMode then
-      Result := ntArchitecture else
+    if Examine.Turntable then
+      Result := ntTurntable else
       Result := ntExamine;
   end else
   if Walk.Gravity then
@@ -4688,7 +4685,7 @@ begin
   Walk.Gravity := false;
   Walk.PreferGravityUpForRotations := true;
   Walk.PreferGravityUpForMoving := true;
-  Examine.ArchitectureMode := false;
+  Examine.Turntable := false;
   Input := DefaultInput;
 
   { This follows the same logic as TCastleSceneCore.CameraFromNavigationInfo }
@@ -4696,10 +4693,10 @@ begin
   { set NavigationClass, and eventually adjust Walk properties }
   case Value of
     ntExamine: NavigationClass := ncExamine;
-    ntArchitecture:
+    ntTurntable:
       begin
         NavigationClass := ncExamine;
-        Examine.ArchitectureMode := true;
+        Examine.Turntable := true;
       end;
     ntWalk:
       begin

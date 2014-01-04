@@ -1181,10 +1181,10 @@ begin
   begin
     NavType := GetCurrentNavigationType();
     case NavType of
-      ntWalk:         NavValue := 0;
-      ntFly:          NavValue := 1;
-      ntExamine:      NavValue := 2;
-      ntArchitecture: NavValue := 3;
+      ntWalk:      NavValue := 0;
+      ntFly:       NavValue := 1;
+      ntExamine:   NavValue := 2;
+      ntTurntable: NavValue := 3;
     end;
     FLibraryCallbackProc(ecgelibNavigationTypeChanged, NavValue, 0);
   end;
@@ -1287,10 +1287,10 @@ begin
   begin
     NavType := GetCurrentNavigationType();
     case NavType of
-      ntWalk:         UpdateTouchInterface(etciCtlWalkDragRotate);
-      ntFly:          UpdateTouchInterface(etciCtlFlyCtlWalkDragRotate);
-      ntExamine:      UpdateTouchInterface(etciCtlPanXYDragRotate);
-      ntArchitecture: UpdateTouchInterface(etciCtlPanXYDragRotate);
+      ntWalk:      UpdateTouchInterface(etciCtlWalkDragRotate);
+      ntFly:       UpdateTouchInterface(etciCtlFlyCtlWalkDragRotate);
+      ntExamine:   UpdateTouchInterface(etciCtlPanXYDragRotate);
+      ntTurntable: UpdateTouchInterface(etciCtlPanXYDragRotate);
     end;
   end;
 end;

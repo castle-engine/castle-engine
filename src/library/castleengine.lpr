@@ -240,7 +240,7 @@ begin
     if (aNavType = ntWalk) then Result := 0
     else if (aNavType = ntFly) then Result := 1
     else if (aNavType = ntExamine) then Result := 2
-    else if (aNavType = ntArchitecture) then Result := 3;
+    else if (aNavType = ntTurntable) then Result := 3;
   except
   end;
 end;
@@ -254,7 +254,7 @@ begin
     0: aNavType := ntWalk;
     1: aNavType := ntFly;
     2: aNavType := ntExamine;
-    3: aNavType := ntArchitecture;
+    3: aNavType := ntTurntable;
     else aNavType := ntExamine;
     end;
     aCastleFrame.SetNavigationType(aNavType);
