@@ -398,10 +398,16 @@ begin
       TranslateMessage.
 
       So no WM_CHAR message should be ever dispatched by DispatchMessage.
-      So no WM_CHAR message should ever get here. }
+      So no WM_CHAR message should ever get here.
+
+      Except: It seems wine-1.5.30-1 doesn't implement something correctly,
+      and let's WM_CHAR arrive sometimes (when pressing escape to unfocus
+      menu bar). So this is just commented out now.
+
     WM_CHAR:
        raise EInternalError.Create(
          'All WM_CHAR messages should be handled while handling WM_KEYDOWN');
+    }
 
     WM_SIZE:
       if not InCloseBackend then
