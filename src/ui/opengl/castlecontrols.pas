@@ -30,6 +30,9 @@ type
   private
     FTooltip: string;
     TooltipLabel: TCastleLabel;
+    FCustomFont: TGLBitmapFontAbstract;
+    FOwnsCustomFont: boolean;
+    procedure SetCustomFont(const Value: TGLBitmapFontAbstract);
   protected
     { Font custom to this control. By default this returns UIFont,
       you can override this to return your font.
@@ -46,6 +49,13 @@ type
       Note that you can override TUIControl.TooltipStyle and
       TUIControl.DrawTooltip to customize the tooltip drawing. }
     property Tooltip: string read FTooltip write FTooltip;
+
+    { When non-nil, this font will be used to draw this control.
+      Otherwise the default UIFont will be used. }
+    property CustomFont: TGLBitmapFontAbstract
+      read FCustomFont write SetCustomFont;
+    property OwnsCustomFont: boolean
+      read FOwnsCustomFont write FOwnsCustomFont default false;
   end;
 
   TCastleButtonImageLayout = (ilTop, ilBottom, ilLeft, ilRight);
@@ -703,14 +713,30 @@ begin
   { make sure to call GLContextClose on TooltipLabel,
     actually we can just free it now }
   FreeAndNil(TooltipLabel);
+  CustomFont := nil; // free CustomFont if necessary
   inherited;
 end;
 
 function TUIControlFont.Font: TGLBitmapFontAbstract;
 begin
   if GLInitialized then
-    Result := UIFont else
+  begin
+    if CustomFont <> nil then
+      Result := CustomFont else
+      Result := UIFont;
+  end else
     Result := nil;
+end;
+
+procedure TUIControlFont.SetCustomFont(const Value: TGLBitmapFontAbstract);
+begin
+  if FCustomFont <> Value then
+  begin
+    if OwnsCustomFont then
+      FreeAndNil(FCustomFont) else
+      FCustomFont := nil;
+    FCustomFont := Value;
+  end;
 end;
 
 { TCastleButton --------------------------------------------------------------- }
