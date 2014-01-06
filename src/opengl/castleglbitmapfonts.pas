@@ -26,9 +26,14 @@ uses CastleVectors, CastleBitmapFonts, CastleGL, CastleGLUtils, Classes,
 type
   { Abstract class for all OpenGL bitmap fonts. }
   TGLBitmapFontAbstract = class
+  private
+    CalculatedRowHeight: boolean;
+    FRowHeight, FRowHeightBase: Integer;
   protected
-    FRowHeight: Integer;
-    FRowHeightBase: Integer;
+    { Calculate suitable values for RowHeight and RowHeightBase.
+      The default implementation in TGLBitmapFontAbstract looks at
+      @code(TextHeight('Wy')) and @code(TextHeight('y')). }
+    procedure UpdateRowHeight(out ARowHeight, ARowHeightBase: Integer); virtual;
   public
     { Draw text at the current WindowPos, and move
       the WindowPos at the end. This way you can immediately
@@ -41,7 +46,7 @@ type
       May require 1 free slot on the attributes stack.
       May only be called when current matrix is modelview.
       Doesn't modify any OpenGL state or matrix, except it moves raster position. }
-    procedure PrintAndMove(const s: string); virtual; abstract; deprecated;
+    procedure PrintAndMove(const s: string); deprecated;
 
     { Draw text at the given position with given color.
       If the last Color component is not 1, the text is rendered
@@ -66,31 +71,31 @@ type
     procedure Print(const X, Y: Integer; const S: string); overload; deprecated;
     procedure Print(const s: string); overload; deprecated;
 
-    function TextWidth(const s: string): integer; virtual; abstract;
-    function TextHeight(const s: string): integer; virtual; abstract;
+    function TextWidth(const S: string): Integer; virtual; abstract;
+    function TextHeight(const S: string): Integer; virtual; abstract;
     function TextMove(const S: string): TVector2Integer; virtual; abstract;
 
     { The height (above the baseline) of the text.
       This doesn't take into account height of the text below the baseline
       (for example letter "y" has the tail below the baseline in most fonts). }
-    function TextHeightBase(const s: string): integer; virtual; abstract;
+    function TextHeightBase(const S: string): Integer; virtual; abstract;
 
     { Height of a row of text in this font.
       This may be calculated as simply @code(TextHeight('Wy')) for most
       normal fonts. }
-    property RowHeight: integer read FRowHeight;
+    function RowHeight: Integer;
 
     { Height (above the baseline) of a row of text in this font.
       Similar to TextHeightBase and TextHeight,
       note that RowHeightBase is generally smaller than RowHeight,
       because RowHeightBase doesn't care how low the letter may go below
       the baseline. }
-    property RowHeightBase: Integer read FRowHeightBase;
+    function RowHeightBase: Integer;
 
     { How low the text may go below the baseline.
       By default this returns @code(TextHeight('y')-TextHeight('a')),
       which is suitable for normal fonts. }
-    function Descend: integer; virtual;
+    function Descend: Integer; virtual;
 
     { Break lines (possibly break one long string into more strings)
       to fit the text with given MaxLineWidth.
@@ -123,7 +128,7 @@ type
       @groupBegin }
     procedure BreakLines(const unbroken: string; broken: TStrings; maxLineWidth: integer); overload;
     procedure BreakLines(unbroken, broken: TStrings; maxLineWidth: integer); overload;
-    procedure BreakLines(broken: TStrings; maxLineWidth: integer; FirstToBreak: integer); overload;
+    procedure BreakLines(broken: TStrings; maxLineWidth: Integer; FirstToBreak: integer); overload;
     { @groupEnd }
 
     { Largest width of the line of text in given list.
@@ -136,7 +141,7 @@ type
         Otherwise, MaxTextWidth will treat tags text (like @code(<font ...>))
         like a normal text, usually making the width incorrectly large.)
     }
-    function MaxTextWidth(SList: TStrings; const Tags: boolean = false): integer;
+    function MaxTextWidth(SList: TStrings; const Tags: boolean = false): Integer;
 
     { Print all strings from the list.
 
@@ -252,11 +257,10 @@ type
 
     procedure Print(const X, Y: Integer; const Color: TCastleColor;
       const s: string); override;
-    procedure PrintAndMove(const s: string); override;
-    function TextWidth(const s: string): integer; override;
-    function TextHeight(const s: string): integer; override;
+    function TextWidth(const S: string): Integer; override;
+    function TextHeight(const S: string): Integer; override;
     function TextMove(const S: string): TVector2Integer; override;
-    function TextHeightBase(const s: string): integer; override;
+    function TextHeightBase(const S: string): Integer; override;
   end;
 
 implementation
@@ -350,12 +354,21 @@ begin
   Print(WindowPos[0], WindowPos[1], CurrentColor, S);
 end;
 
+procedure TGLBitmapFontAbstract.PrintAndMove(const S: string);
+begin
+  { Deprecated method uses other deprecated method here, don't warn }
+  {$warnings off}
+  Print(S);
+  {$warnings on}
+  WindowPos := WindowPos + TextMove(S);
+end;
+
 procedure TGLBitmapFontAbstract.Print(const X, Y: Integer; const S: string);
 begin
   Print(X, Y, CurrentColor, S);
 end;
 
-function TGLBitmapFontAbstract.Descend: integer;
+function TGLBitmapFontAbstract.Descend: Integer;
 begin
   result := TextHeight('y')-TextHeight('a');
 end;
@@ -375,19 +388,19 @@ end;
 procedure TGLBitmapFontAbstract.BreakLines(unbroken, broken: TStrings;
   maxLineWidth: integer);
 var
-  i, FirstToBreak: integer;
+  i, FirstToBreak: Integer;
 begin
   FirstToBreak := broken.count;
-  for i := 0 to unbroken.count-1 do broken.Append(unbroken[i]);
+  for I := 0 to unbroken.count-1 do broken.Append(unbroken[i]);
   BreakLines(broken, maxLineWidth, FirstToBreak);
 end;
 
 procedure TGLBitmapFontAbstract.BreakLines(broken: TStrings;
-  maxLineWidth: integer; FirstToBreak: integer);
+  maxLineWidth: Integer; FirstToBreak: integer);
 var
-  i, j: integer;
-  linew: integer;
-  p: integer;
+  i, j: Integer;
+  linew: Integer;
+  p: Integer;
   break1, break2: string;
 begin
   { ponizej lamiemy stringi unbroken.
@@ -451,13 +464,13 @@ end;
 function TGLBitmapFontAbstract.MaxTextWidth(SList: TStrings;
   const Tags: boolean): Integer;
 var
-  I, LineW: integer;
+  I, LineW: Integer;
   DummyColorChange: boolean;
   DummyColor: TCastleColor;
   S: string;
 begin
   result := 0;
-  for i := 0 to slist.Count-1 do
+  for I := 0 to slist.Count-1 do
   begin
     S := SList[i];
     if Tags then
@@ -518,7 +531,7 @@ begin
 end;
 
 function TGLBitmapFontAbstract.PrintBrokenString(
-  X0, Y0: integer; const Color: TCastleColor; const s: string;
+  X0, Y0: Integer; const Color: TCastleColor; const s: string;
   const MaxLineWidth: Integer;
   const PositionsFirst: boolean;
   const BonusVerticalSpace: Integer): Integer;
@@ -544,6 +557,35 @@ begin
     PositionsFirst, BonusVerticalSpace);
 end;
 
+procedure TGLBitmapFontAbstract.UpdateRowHeight(out ARowHeight, ARowHeightBase: Integer);
+begin
+  ARowHeight := TextHeight('Wy') + 2;
+  { RowHeight zwiekszylem o +2 zeby byl odstep miedzy liniami.
+    TODO: this +2 is actually a bad idea, but can't remove now without careful testing. }
+  { For RowHeightBase, I do not use +2. }
+  ARowHeightBase := TextHeightBase('W');
+end;
+
+function TGLBitmapFontAbstract.RowHeight: Integer;
+begin
+  if not CalculatedRowHeight then
+  begin
+    UpdateRowHeight(FRowHeight, FRowHeightBase);
+    CalculatedRowHeight := true;
+  end;
+  Result := FRowHeight;
+end;
+
+function TGLBitmapFontAbstract.RowHeightBase: Integer;
+begin
+  if not CalculatedRowHeight then
+  begin
+    UpdateRowHeight(FRowHeight, FRowHeightBase);
+    CalculatedRowHeight := true;
+  end;
+  Result := FRowHeightBase;
+end;
+
 { TGLBitmapFont -------------------------------------------------------------- }
 
 const
@@ -563,7 +605,7 @@ begin
   {$ifndef OpenGLES}
   base := glGenListsCheck(BitmapTableCount, 'TGLBitmapFont.Create');
   Saved_Unpack_Alignment := glGetInteger(GL_UNPACK_ALIGNMENT);
-  for i := 0 to 255 do
+  for I := 0 to 255 do
   begin
     Znak := BitmapFont.Data[Chr(i)];
     glPixelStorei(GL_UNPACK_ALIGNMENT, Znak^.Info.Alignment);
@@ -578,12 +620,6 @@ begin
   {$endif}
 
   // TODO-es Font rendering should use glyphs in TGLImage, not display lists
-
-  FRowHeight := TextHeight('Wy') + 2;
-  { RowHeight zwiekszylem o +2 zeby byl odstep miedzy liniami.
-    TODO: this +2 is actually a bad idea, but can't remove now without careful testing. }
-  { For RowHeightBase, I do not use +2. }
-  FRowHeightBase := TextHeightBase('W');
 end;
 
 destructor TGLBitmapFont.Destroy;
@@ -672,21 +708,12 @@ begin
       says it's unsigned. }
     glListBase(TGLint(base)); // saved by GL_LIST_BIT
     {$I norqcheckend.inc}
-    glCallLists(length(s), GL_UNSIGNED_BYTE, PChar(s));
+    glCallLists(Length(S), GL_UNSIGNED_BYTE, PChar(s));
   glPopAttrib;
 {$else}
 begin
   // TODO-es
 {$endif}
-end;
-
-procedure TGLBitmapFont.PrintAndMove(const S: string);
-begin
-  { Deprecated method uses other deprecated method here, don't warn }
-  {$warnings off}
-  Print(S);
-  {$warnings on}
-  WindowPos := WindowPos + TextMove(S);
 end;
 
 function TGLBitmapFont.TextMove(const S: string): TVector2Integer;
@@ -706,23 +733,23 @@ begin
   Result := Vector2LongInt(Round(X), Round(Y));
 end;
 
-function TGLBitmapFont.TextWidth(const s: string): integer;
+function TGLBitmapFont.TextWidth(const S: string): Integer;
 var
-  I: integer;
+  I: Integer;
 begin
   Result := 0;
-  for i := 1 to Length(S) do
+  for I := 1 to Length(S) do
     Result := Result + Round(BitmapFont.Data[s[i]]^.Info.XMove);
 end;
 
-function TGLBitmapFont.TextHeight(const s: string): integer;
+function TGLBitmapFont.TextHeight(const S: string): Integer;
 var
-  i: integer;
-  minY, maxY, YOrig: integer;
+  i: Integer;
+  minY, maxY, YOrig: Integer;
 begin
   minY := 0;
   maxY := 0;
-  for i := 1 to length(s) do
+  for I := 1 to Length(S) do
   begin
     YOrig := Round(BitmapFont.Data[s[i]]^.Info.YOrig);
     MinTo1st(minY, -YOrig);
@@ -732,15 +759,15 @@ begin
   result := maxY - minY;
 end;
 
-function TGLBitmapFont.TextHeightBase(const s: string): integer;
+function TGLBitmapFont.TextHeightBase(const S: string): Integer;
 var
-  I: integer;
-  YOrig: integer;
+  I: Integer;
+  YOrig: Integer;
 begin
   Result := 0;
   { This is just like TGLBitmapFont.TextHeight implementation, except we only
     calculate (as Result) the MaxY value (assuming that MinY is zero). }
-  for i := 1 to length(s) do
+  for I := 1 to Length(S) do
   begin
     YOrig := Round(BitmapFont.Data[s[i]]^.Info.YOrig);
     MaxTo1st(Result, BitmapFont.Data[s[i]]^.Info.Height - YOrig);
