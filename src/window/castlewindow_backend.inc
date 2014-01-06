@@ -34,6 +34,10 @@
   {$I castlewindow_android.inc}
 {$endif}
 
+{$ifdef CASTLE_WINDOW_LIBRARY}
+  {$I castlewindow_library.inc}
+{$endif}
+
 {$ifdef CASTLE_WINDOW_TEMPLATE}
   {$I castlewindow_backend_template.inc}
 {$endif}

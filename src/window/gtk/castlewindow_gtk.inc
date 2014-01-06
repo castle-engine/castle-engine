@@ -1876,4 +1876,10 @@ begin
   gtk_clipboard_set_text(C, PChar(Value), Length(Value));
 end;
 
+{ TCastleWindow -------------------------------------------------------------- }
+
+procedure TCastleWindow.NavigationInfoChanged(Sender: TObject);
+begin
+end;
+
 {$endif read_implementation}

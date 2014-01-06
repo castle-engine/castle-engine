@@ -743,4 +743,10 @@ begin
   { TODO }
 end;
 
+{ TCastleWindow -------------------------------------------------------------- }
+
+procedure TCastleWindow.NavigationInfoChanged(Sender: TObject);
+begin
+end;
+
 {$endif read_implementation}

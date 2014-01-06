@@ -8,7 +8,7 @@ object Form1: TForm1
   ClientWidth = 646
   OnCreate = FormCreate
   OnResize = FormResize
-  LCLVersion = '1.0.10.0'
+  LCLVersion = '1.1'
   object OpenGLControl1: TOpenGLControl
     Left = 25
     Height = 367
@@ -22,4 +22,4 @@ object Form1: TForm1
     OnMouseWheel = OpenGLControl1MouseWheel
     OnPaint = OpenGLControl1Paint
   end
-end
+end

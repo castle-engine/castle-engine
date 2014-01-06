@@ -195,7 +195,8 @@ end;
 
 procedure TCastleWindowBase.PostRedisplay;
 begin
-  if not Closed then { TODO };
+  { no point in doing anything here, we redraw every frame }
+  // if not Closed then { };
 end;
 
 procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
@@ -206,8 +207,7 @@ end;
 
 procedure TCastleWindowBase.FlushRedisplay;
 begin
-  { TODO (redraw *now*, if PostRedisplay pending;
-    it's valid (although non-optimal) to just always call DoDraw here) }
+  DoDraw;
 end;
 
 procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
@@ -357,6 +357,12 @@ end;
 procedure TCastleClipboard.SetAsText(const Value: string);
 begin
   { TODO }
+end;
+
+{ TCastleWindow -------------------------------------------------------------- }
+
+procedure TCastleWindow.NavigationInfoChanged(Sender: TObject);
+begin
 end;
 
 {$endif read_implementation}

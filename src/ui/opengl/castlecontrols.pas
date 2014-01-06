@@ -340,8 +340,8 @@ type
     function Release(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
     procedure SetTouchMode(const Value: TCastleTouchCtlMode);
-    procedure GetRotationValues(var X, Y, Z, Angle: Double);
-    procedure GetTranslationValues(var X, Y, Z, Length: Double);
+    procedure GetSensorRotation(var X, Y, Z, Angle: Double);
+    procedure GetSensorTranslation(var X, Y, Z, Length: Double);
   private
     function MaxOffsetDist: Integer;
   published
@@ -1441,7 +1441,7 @@ begin
   Result := FDragStarted;
 end;
 
-procedure TCastleTouchControl.GetRotationValues(var X, Y, Z, Angle: Double);
+procedure TCastleTouchControl.GetSensorRotation(var X, Y, Z, Angle: Double);
 var
   FxConst: Double;
 begin
@@ -1459,7 +1459,7 @@ begin
   end;
 end;
 
-procedure TCastleTouchControl.GetTranslationValues(var X, Y, Z, Length: Double);
+procedure TCastleTouchControl.GetSensorTranslation(var X, Y, Z, Length: Double);
 var
   FxConst: Double;
 begin

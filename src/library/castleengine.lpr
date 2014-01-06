@@ -1,7 +1,25 @@
-{$MODE ObjFPC}{$H+}
-Library castleengine;
+{ -*- compile-command: "./castleengine_compile.sh" -*- }
+{
+  Copyright 2013-2014 Jan Adamec, Michalis Kamburelis.
 
-{ Adapted from Jonas Maebe's example project :
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ The castleengine library main source code.
+  This compiles to castleengine.dll / libcastleengine.so / libcastleengine.dylib.
+
+  Development notes:
+
+  Adapted from Jonas Maebe's example project :
   http://users.elis.ugent.be/~jmaebe/fpc/FPC_Objective-C_Cocoa.tbz
   http://julien.marcel.free.fr/ObjP_Part7.html
 
@@ -9,24 +27,25 @@ Library castleengine;
   1- use c-types arguments
   2- add a "cdecl" declaration after your functions declarations
   3- export your functions
+
+  See FPC CTypes unit (source rtl/unix/ctypes.inc) for a full list of c-types.
 }
 
-uses
-  ctypes, math, CastleFrame, Classes, CastleKeysMouse, CastleCameras, sysutils,
-  CastleGLUtils, CastleVectors, CastleImages, CastleGLImages;
+{$mode objfpc}{$H+}
+library castleengine;
 
-{ See http://fpc.freedoors.org/dos204full/source/rtl/unix/ctypes.inc
-  For a full list of c-types
-}
+uses CTypes, Math, SysUtils, CastleWindow, CastleWindowTouch, CastleUtils,
+  Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils,
+  CastleImages, CastleSceneCore;
 
 var
-  aCastleFrame: TCastleFrame;
+  Window: TCastleWindowTouch;
 
 procedure CGE_Init(); cdecl;
 begin
   try
-    aCastleFrame := TCastleFrame.Create(nil);
-    aCastleFrame.GLContextOpen;
+    Window := TCastleWindowTouch.Create(nil);
+    Window.Open;
   except
   end;
 end;
@@ -34,9 +53,8 @@ end;
 procedure CGE_Close; cdecl;
 begin
   try
-    aCastleFrame.GLContextClose();
-    aCastleFrame.Destroy();
-    aCastleFrame := nil;
+    Window.Close;
+    FreeAndNil(Window);
   except
   end;
 end;
@@ -55,7 +73,7 @@ end;
 procedure CGE_SetRenderParams(uiViewWidth, uiViewHeight: cUInt32); cdecl;
 begin
   try
-    aCastleFrame.SetRenderSize(uiViewWidth, uiViewHeight);
+    Window.LibraryResize(uiViewWidth, uiViewHeight);
   except
   end;
 end;
@@ -63,7 +81,7 @@ end;
 procedure CGE_Render; cdecl;
 begin
   try
-    aCastleFrame.Paint();
+    Window.LibraryDraw;
   except
     //on E: Exception do OutputDebugString(@E.Message[1]);
   end;
@@ -75,82 +93,64 @@ var
 begin
   try
     // TODO: remove touch controls
-    Image := SaveScreen_NoFlush(aCastleFrame.Rect, cbBack);
+    Image := Window.SaveScreen;
     SaveImage(Image, StrPas(PChar(szFile)));
   except
   end;
 end;
 
-procedure CGE_SetLibraryCallbackProc(aProc: TCgeLibraryCallbackProc); cdecl;
+procedure CGE_SetLibraryCallbackProc(aProc: TLibraryCallbackProc); cdecl;
 begin
   try
-    aCastleFrame.SetLibraryCallbackProc(aProc);
+    Window.LibraryCallbackProc := aProc;
   except
     //on E: Exception do OutputDebugString(@E.Message[1]);
   end;
 end;
 
-procedure CGE_OnIdle; cdecl;
+procedure CGE_OnUpdate; cdecl;
 begin
   try
-    aCastleFrame.Update();
+    Application.LibraryUpdate;
   except
     //on E: Exception do OutputDebugString(@E.Message[1]);
   end;
 end;
 
-function CGE_ShiftToFPCShift(uiShift: cUInt32): TShiftState;
-var
-  Shift: TShiftState;
-begin
-  Shift := [];
-  if (uiShift and 1)=1 then Include(Shift, ssShift);
-  if (uiShift and 2)=2 then Include(Shift, ssAlt);
-  if (uiShift and 4)=4 then Include(Shift, ssCtrl);
-  Result := Shift;
-end;
-
-procedure CGE_OnMouseDown(x, y: cInt32; bLeftBtn: cBool; uiShift: cUInt32); cdecl;
+procedure CGE_OnMouseDown(X, Y: CInt32; bLeftBtn: cBool); cdecl;
 var
   MyButton: TMouseButton;
-  Shift: TShiftState;
 begin
   try
     if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
-    Shift := CGE_ShiftToFPCShift(uiShift);
-    aCastleFrame.OnMouseDown(MyButton, Shift, x, y);
+    Window.LibraryMouseDown(X, Y, MyButton);
   except
   end;
 end;
 
-procedure CGE_OnMouseMove(x, y: cInt32; uiShift: cUInt32); cdecl;
-var
-  Shift: TShiftState;
+procedure CGE_OnMouseMove(X, Y: CInt32); cdecl;
 begin
   try
-    Shift := CGE_ShiftToFPCShift(uiShift);
-    aCastleFrame.OnMouseMove(Shift, x, y);
+    Window.LibraryMouseMove(X, Y);
   except
   end;
 end;
 
-procedure CGE_OnMouseUp(x, y: cInt32; bLeftBtn: cBool; uiShift: cUInt32); cdecl;
+procedure CGE_OnMouseUp(x, y: cInt32; bLeftBtn: cBool); cdecl;
 var
   MyButton: TMouseButton;
-  Shift: TShiftState;
 begin
   try
     if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
-    Shift := CGE_ShiftToFPCShift(uiShift);
-    aCastleFrame.OnMouseUp(MyButton, Shift, x, y);
+    Window.LibraryMouseUp(x, y, MyButton);
   except
   end;
 end;
 
-procedure CGE_OnMouseWheel(zDelta: cFloat; bVertical: cBool; uiShift: cUint32); cdecl;
+procedure CGE_OnMouseWheel(zDelta: cFloat; bVertical: cBool); cdecl;
 begin
   try
-    aCastleFrame.OnMouseWheel(zDelta/120, bVertical);
+    Window.LibraryMouseWheel(zDelta/120, bVertical);
   except
   end;
 end;
@@ -158,7 +158,9 @@ end;
 procedure CGE_LoadSceneFromFile(szFile: pcchar); cdecl;
 begin
   try
-    aCastleFrame.Load(StrPas(PChar(szFile)));
+    Window.Load(StrPas(PChar(szFile)));
+    Window.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
+    Window.MainScene.ProcessEvents := true;
   except
     //on E: Exception do OutputDebugString(@E.Message[1]);
   end;
@@ -167,7 +169,7 @@ end;
 function CGE_GetViewpointsCount(): cInt32; cdecl;
 begin
   try
-    Result := aCastleFrame.MainScene.ViewpointsCount;
+    Result := Window.MainScene.ViewpointsCount;
   except
     Result := 0;
   end;
@@ -178,7 +180,7 @@ var
   sName: string;
 begin
   try
-    sName := aCastleFrame.MainScene.GetViewpointName(iViewpointIdx);
+    sName := Window.MainScene.GetViewpointName(iViewpointIdx);
     StrPLCopy(szName, sName, nBufSize-1);
   except
   end;
@@ -187,7 +189,7 @@ end;
 procedure CGE_MoveToViewpoint(iViewpointIdx: cInt32; bAnimated: cBool); cdecl;
 begin
   try
-    aCastleFrame.MainScene.MoveToViewpoint(iViewpointIdx, bAnimated);
+    Window.MainScene.MoveToViewpoint(iViewpointIdx, bAnimated);
   except
   end;
 end;
@@ -195,7 +197,8 @@ end;
 procedure CGE_AddViewpointFromCurrentView(szName: pcchar); cdecl;
 begin
   try
-    aCastleFrame.MainScene.AddViewpointFromCamera(aCastleFrame.Camera, StrPas(PChar(szName)));
+    Window.MainScene.AddViewpointFromCamera(
+      Window.SceneManager.Camera, StrPas(PChar(szName)));
   except
   end;
 end;
@@ -206,7 +209,7 @@ var
   Pos, Dir, Up, GravityUp: TVector3Single;
 begin
   try
-    aCastleFrame.Camera.GetView(Pos, Dir, Up, GravityUp);
+    Window.SceneManager.Camera.GetView(Pos, Dir, Up, GravityUp);
     pfPosX^ := Pos[0]; pfPosY^ := Pos[1]; pfPosZ^ := Pos[2];
     pfDirX^ := Dir[0]; pfDirY^ := Dir[1]; pfDirZ^ := Dir[2];
     pfUpX^ := Up[0]; pfUpY^ := Up[1]; pfUpZ^ := Up[2];
@@ -225,39 +228,41 @@ begin
     Dir[0] := fDirX; Dir[1] := fDirY; Dir[2] := fDirZ;
     Up[0] := fUpX; Up[1] := fUpY; Up[2] := fUpZ;
     GravityUp[0] := fGravX; GravityUp[1] := fGravY; GravityUp[2] := fGravZ;
-    aCastleFrame.Camera.SetView(Pos, Dir, Up, GravityUp);
+    Window.SceneManager.Camera.SetView(Pos, Dir, Up, GravityUp);
   except
   end;
 end;
 
-function CGE_GetCurrentNavigationType(): cInt32; cdecl;
-var
-  aNavType: TCameraNavigationType;
+function CGE_GetNavigationType(): cInt32; cdecl;
 begin
-  Result := 0;
   try
-    aNavType := aCastleFrame.GetCurrentNavigationType();
-    if (aNavType = ntWalk) then Result := 0
-    else if (aNavType = ntFly) then Result := 1
-    else if (aNavType = ntExamine) then Result := 2
-    else if (aNavType = ntTurntable) then Result := 3;
+    case Window.NavigationType of
+      ntWalk     : Result := 0;
+      ntFly      : Result := 1;
+      ntExamine  : Result := 2;
+      ntTurntable: Result := 3;
+      ntNone     : Result := 4;
+      else raise EInternalError.Create('CGE_GetNavigationType: Unrecognized Window.NavigationType');
+    end;
   except
+    Result := -1;
   end;
 end;
 
 procedure CGE_SetNavigationType(NewType: cInt32); cdecl;
 var
-  aNavType: TCameraNavigationType;
+  aNavType: TNavigationType;
 begin
   try
     case NewType of
-    0: aNavType := ntWalk;
-    1: aNavType := ntFly;
-    2: aNavType := ntExamine;
-    3: aNavType := ntTurntable;
-    else aNavType := ntExamine;
+      0: aNavType := ntWalk;
+      1: aNavType := ntFly;
+      2: aNavType := ntExamine;
+      3: aNavType := ntTurntable;
+      4: aNavType := ntNone;
+      else raise EInternalError.CreateFmt('CGE_SetNavigationType: Invalid navigation type %d', [NewType]);
     end;
-    aCastleFrame.SetNavigationType(aNavType);
+    Window.NavigationType := aNavType;
   except
   end;
 end;
@@ -268,14 +273,14 @@ var
 begin
   try
     case eMode of
-    0: aNewMode := etciNone;
-    1: aNewMode := etciCtlWalkCtlRotate;
-    2: aNewMode := etciCtlWalkDragRotate;
-    3: aNewMode := etciCtlFlyCtlWalkDragRotate;
-    4: aNewMode := etciCtlPanXYDragRotate;
-    else aNewMode := etciNone;
+      0: aNewMode := etciNone;
+      1: aNewMode := etciCtlWalkCtlRotate;
+      2: aNewMode := etciCtlWalkDragRotate;
+      3: aNewMode := etciCtlFlyCtlWalkDragRotate;
+      4: aNewMode := etciCtlPanXYDragRotate;
+      else raise EInternalError.CreateFmt('CGE_UpdateTouchInterface: Invalid touch interface mode %d', [eMode]);
     end;
-    aCastleFrame.UpdateTouchInterface(aNewMode);
+    Window.TouchInterface := aNewMode;
   except
   end;
 end;
@@ -286,21 +291,21 @@ var
 begin
   try
     case eMode of
-    0: aNewMode := euiDesktop;
-    1: aNewMode := euiTouch;
-    else aNewMode := euiDesktop;
+      0: aNewMode := euiDesktop;
+      1: aNewMode := euiTouch;
+      else aNewMode := euiDesktop;
     end;
-    aCastleFrame.UserInterface := aNewMode;
-    aCastleFrame.Dpi := nDpi;
+    Window.UserInterface := aNewMode;
+    Window.Dpi := nDpi;
   except
   end;
 end;
 
 exports
   CGE_Init, CGE_Close, CGE_GetOpenGLInformation,
-  CGE_Render, CGE_SetRenderParams, CGE_SetLibraryCallbackProc, CGE_OnIdle,
+  CGE_Render, CGE_SetRenderParams, CGE_SetLibraryCallbackProc, CGE_OnUpdate,
   CGE_OnMouseDown, CGE_OnMouseMove, CGE_OnMouseUp, CGE_OnMouseWheel,
-  CGE_LoadSceneFromFile, CGE_GetCurrentNavigationType, CGE_SetNavigationType,
+  CGE_LoadSceneFromFile, CGE_GetNavigationType, CGE_SetNavigationType,
   CGE_GetViewpointsCount, CGE_GetViewpointName, CGE_MoveToViewpoint, CGE_AddViewpointFromCurrentView,
   CGE_GetViewCoords, CGE_MoveViewToCoords, CGE_SaveScreenshotToFile,
   CGE_UpdateTouchInterface, CGE_SetUserInterfaceInfo;

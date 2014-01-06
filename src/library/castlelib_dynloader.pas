@@ -44,10 +44,6 @@ uses
   ctypes;
 
 const
-  ecgessShift = 1;
-  ecgessAlt   = 2;
-  ecgessCtrl  = 4;
-
   // user interface modes
   ecgeuiDesktop = 0;
   ecgeuiTouch   = 1;
@@ -71,7 +67,7 @@ const
   ecgecursorNone      = 4;
 
 type
-  TCgeLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32):cInt32; cdecl;
+  TLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32):cInt32; cdecl;
 
 procedure CGE_Init(); cdecl; external 'castleengine';
 procedure CGE_Close(); cdecl; external 'castleengine';
@@ -79,12 +75,12 @@ procedure CGE_GetOpenGLInformation(szBuffer: pchar; nBufSize: cInt32); cdecl; ex
 procedure CGE_SetRenderParams(uiViewWidth, uiViewHeight: cUInt32); cdecl; external 'castleengine';
 procedure CGE_Render(); cdecl; external 'castleengine';
 procedure CGE_SaveScreenshotToFile(szFile: pcchar); cdecl; external 'castleengine';
-procedure CGE_SetLibraryCallbackProc(aProc: TCgeLibraryCallbackProc); cdecl; external 'castleengine';
-procedure CGE_OnIdle(); cdecl; external 'castleengine';
-procedure CGE_OnMouseDown(x, y: cInt32; bLeftBtn: cBool; uiShift: cUInt32); cdecl; external 'castleengine';
-procedure CGE_OnMouseMove(x, y: cInt32; uiShift: cUInt32); cdecl; external 'castleengine';
-procedure CGE_OnMouseUp(x, y: cInt32; bLeftBtn: cBool; uiShift: cUInt32); cdecl; external 'castleengine';
-procedure CGE_OnMouseWheel(zDelta: cFloat; bVertical: cBool; uiShift: cUint32); cdecl; external 'castleengine';
+procedure CGE_SetLibraryCallbackProc(aProc: TLibraryCallbackProc); cdecl; external 'castleengine';
+procedure CGE_OnUpdate(); cdecl; external 'castleengine';
+procedure CGE_OnMouseDown(x, y: cInt32; bLeftBtn: cBool); cdecl; external 'castleengine';
+procedure CGE_OnMouseMove(x, y: cInt32); cdecl; external 'castleengine';
+procedure CGE_OnMouseUp(x, y: cInt32; bLeftBtn: cBool); cdecl; external 'castleengine';
+procedure CGE_OnMouseWheel(zDelta: cFloat; bVertical: cBool); cdecl; external 'castleengine';
 procedure CGE_LoadSceneFromFile(szFile: pcchar); cdecl; external 'castleengine';
 function CGE_GetViewpointsCount(): cInt32; cdecl; external 'castleengine';
 procedure CGE_GetViewpointName(iViewpointIdx: cInt32; szName: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
@@ -94,7 +90,7 @@ procedure CGE_GetViewCoords(pfPosX, pfPosY, pfPosZ, pfDirX, pfDirY, pfDirZ,
                             pfUpX, pfUpY, pfUpZ, pfGravX, pfGravY, pfGravZ: pcfloat); cdecl; external 'castleengine';
 procedure CGE_MoveViewToCoords(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ,
                                fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ: cFloat); cdecl; external 'castleengine';
-function CGE_GetCurrentNavigationType(): cInt32; cdecl; external 'castleengine';
+function CGE_GetNavigationType(): cInt32; cdecl; external 'castleengine';
 procedure CGE_SetNavigationType(NewType: cInt32); cdecl; external 'castleengine';
 procedure CGE_UpdateTouchInterface(eMode: cInt32); cdecl; external 'castleengine';
 procedure CGE_SetUserInterfaceInfo(eMode, nDpi: cInt32); cdecl; external 'castleengine';

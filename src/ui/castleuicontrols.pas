@@ -138,19 +138,29 @@ type
 
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; virtual;
 
-    { Rotation of 3Dconnexion devices.
+    { Rotation detected by sensor.
+      Used for example by 3Dconnexion devices or touch controls.
+
       @param X   X axis (tilt forward/backwards)
       @param Y   Y axis (rotate)
       @param Z   Z axis (tilt sidewards)
-      @param Angle   Angle of rotation.}
-    function Mouse3dRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; virtual;
+      @param Angle   Angle of rotation
+      @param(SecondsPassed The time passed since last SensorRotation call.
+        This is necessary because some sensors, e.g. 3Dconnexion,
+        may *not* reported as often as normal @link(Update) calls.) }
+    function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; virtual;
 
-    { Translation of 3Dconnexion devices.
+    { Translation detected by sensor.
+      Used for example by 3Dconnexion devices or touch controls.
+
       @param X   X axis (move left/right)
       @param Y   Y axis (move up/down)
       @param Z   Z axis (move forward/backwards)
-      @param Length   Length of the vector consisting of the above. }
-    function Mouse3dTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; virtual;
+      @param Length   Length of the vector consisting of the above
+      @param(SecondsPassed The time passed since last SensorRotation call.
+        This is necessary because some sensors, e.g. 3Dconnexion,
+        may *not* reported as often as normal @link(Update) calls.) }
+    function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; virtual;
 
     { Control may do here anything that must be continously repeated.
       E.g. camera handles here falling down due to gravity,
@@ -660,12 +670,12 @@ begin
   Result := false;
 end;
 
-function TInputListener.Mouse3dRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
+function TInputListener.SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
 begin
   Result := false;
 end;
 
-function TInputListener.Mouse3dTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
+function TInputListener.SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
 begin
   Result := false;
 end;

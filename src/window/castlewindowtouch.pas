@@ -18,7 +18,7 @@ unit CastleWindowTouch;
 
 interface
 
-uses Classes, CastleWindow, CastleControls;
+uses Classes, CastleWindow, CastleControls, CastleCameras;
 
 type
   TUserInterface = (euiDesktop, euiTouch);
@@ -34,6 +34,8 @@ type
       const Mode: TCastleTouchCtlMode = ctcmWalking);
     procedure UpdateTouchPositions;
     procedure SetTouchInterface(const Value: TTouchCtlInterface);
+  protected
+    procedure NavigationInfoChanged(Sender: TObject); override;
   public
     constructor Create(AOwner: TComponent); override;
     property TouchInterface: TTouchCtlInterface
@@ -44,17 +46,14 @@ type
     { Sets touch controls depending on the current navigation mode. Should
       be called each time after navigation mode changed. }
     procedure UpdateUserInterface();
-
   published
-    // TODO: make a real setter for these properties.
-
     property UserInterface: TUserInterface
       read FUserInterface write FUserInterface default euiDesktop;
   end;
 
 implementation
 
-uses SysUtils, CastleUIControls, CastleCameras;
+uses SysUtils, CastleUIControls, CastleUtils;
 
 constructor TCastleWindowTouch.Create(AOwner: TComponent);
 begin
@@ -76,14 +75,14 @@ begin
 
     if LeftTouchCtl <> nil then
     begin
-      LeftTouchCtl.GetTranslationValues(Tx, Ty, Tz, TLength);
-      LeftTouchCtl.GetRotationValues(Rx, Ry, Rz, RAngle);
+      LeftTouchCtl.GetSensorTranslation(Tx, Ty, Tz, TLength);
+      LeftTouchCtl.GetSensorRotation(Rx, Ry, Rz, RAngle);
     end;
 
     if RightTouchCtl <> nil then
     begin
-      RightTouchCtl.GetTranslationValues(Tx, Ty, Tz, TLength);
-      RightTouchCtl.GetRotationValues(Rx, Ry, Rz, RAngle);
+      RightTouchCtl.GetSensorTranslation(Tx, Ty, Tz, TLength);
+      RightTouchCtl.GetSensorRotation(Rx, Ry, Rz, RAngle);
     end;
 
     { send to all 2D controls, including viewports }
@@ -92,8 +91,8 @@ begin
       C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
       begin
-        C.Mouse3dTranslation(Tx, Ty, Tz, TLength, Fps.UpdateSecondsPassed);
-        C.Mouse3dRotation(Rx, Ry, Rz, RAngle, Fps.UpdateSecondsPassed);
+        C.SensorTranslation(Tx, Ty, Tz, TLength, Fps.UpdateSecondsPassed);
+        C.SensorRotation(Rx, Ry, Rz, RAngle, Fps.UpdateSecondsPassed);
       end;
     end;
   end;
@@ -103,7 +102,7 @@ procedure TCastleWindowTouch.UpdateTouchPositions;
 var
   CtlBorder: Integer;
 begin
-  CtlBorder := Round(24*FDpi/96);
+  CtlBorder := Round(24 * Dpi / 96);
   if LeftTouchCtl <> nil then
   begin
     LeftTouchCtl.Left := CtlBorder;
@@ -114,6 +113,7 @@ begin
     RightTouchCtl.Left := Width - RightTouchCtl.Width - CtlBorder;
     RightTouchCtl.Bottom := CtlBorder;
   end;
+  PostRedisplay;
 end;
 
 procedure TCastleWindowTouch.EventResize;
@@ -220,28 +220,24 @@ begin
 end;
 
 procedure TCastleWindowTouch.UpdateUserInterface;
-var
-  NavType: TCameraNavigationType;
 begin
   if UserInterface = euiTouch then
   begin
-    if SceneManager.Camera <> nil then
-    begin
-      if SceneManager.Camera is TUniversalCamera then
-        NavType := (SceneManager.Camera as TUniversalCamera).NavigationType else
-      if SceneManager.Camera is TWalkCamera then
-        NavType := ntWalk else
-        NavType := ntExamine;
-    end else
-      NavType := ntExamine;
-
-    case NavType of
+    case NavigationType of
+      ntNone:      TouchInterface := etciNone;
       ntWalk:      TouchInterface := etciCtlWalkDragRotate;
       ntFly:       TouchInterface := etciCtlFlyCtlWalkDragRotate;
       ntExamine:   TouchInterface := etciCtlPanXYDragRotate;
       ntTurntable: TouchInterface := etciCtlPanXYDragRotate;
+      else raise EInternalError.Create('TCastleWindowTouch.UpdateUserInterface not implemented for this NavigationType value');
     end;
   end;
+end;
+
+procedure TCastleWindowTouch.NavigationInfoChanged(Sender: TObject);
+begin
+  inherited;
+  UpdateUserInterface;
 end;
 
 end.

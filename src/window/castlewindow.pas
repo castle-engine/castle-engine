@@ -317,6 +317,17 @@ unit CastleWindow;
   CASTLE_WINDOW_ANDROID
     Initialize OpenGL context using EGL on Android.
 
+  CASTLE_WINDOW_LIBRARY
+    Use existing OpenGL context.
+    This is useful when the engine is used as a library (see src/library/),
+    and an external code already initialized OpenGL context.
+
+    Note that the external code must take care to initialize
+    context following our TCastleWindow properties like
+    TCastleWindow.DepthBits, TCastleWindow.StencilBits and such.
+    It also must take care of calling TCastleWindowBase.LibraryXxx
+    methods to notify us about events like key/mouse press.
+
   CASTLE_WINDOW_TEMPLATE
     This is a special dummy backend, useful only as an example
     for programmers that want to implement another CastleWindow backend
@@ -357,35 +368,40 @@ unit CastleWindow;
    {$ifndef CASTLE_WINDOW_TEMPLATE}
     {$ifndef CASTLE_WINDOW_LCL}
      {$ifndef CASTLE_WINDOW_ANDROID}
+      {$ifndef CASTLE_WINDOW_LIBRARY}
 
-      {$ifdef MSWINDOWS}
-        {$define CASTLE_WINDOW_WINAPI} // best (looks native and most functional) on Windows
-        { $define CASTLE_WINDOW_GTK_2}
-        { $define CASTLE_WINDOW_LCL}
-        { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
-      {$endif}
-      {$ifdef UNIX}
-        {$ifdef ANDROID}
-          {$define CASTLE_WINDOW_ANDROID}
-        {$else}
-          {$ifdef DARWIN}
-            {$define CASTLE_WINDOW_XLIB} // easiest to compile
-            { $define CASTLE_WINDOW_LCL} // best (looks native and most functional) on Mac OS X, but requires LCL
-            { $define CASTLE_WINDOW_GTK_2}
-            { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
-          {$else}
-            {$ifndef OpenGLES}
-              {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional) on Unix (except Mac OS X)
-            {$else}
-              {$define CASTLE_WINDOW_XLIB}
-            {$endif}
-            { $define CASTLE_WINDOW_XLIB}
-            { $define CASTLE_WINDOW_LCL}
-            { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
-          {$endif}
-        {$endif}
-      {$endif}
+       {$ifdef MSWINDOWS}
+         {$define CASTLE_WINDOW_WINAPI} // best (looks native and most functional) on Windows
+         { $define CASTLE_WINDOW_GTK_2}
+         { $define CASTLE_WINDOW_LCL}
+         { $define CASTLE_WINDOW_LIBRARY}
+         { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
+       {$endif}
+       {$ifdef UNIX}
+         {$ifdef ANDROID}
+           {$define CASTLE_WINDOW_ANDROID}
+         {$else}
+           {$ifdef DARWIN}
+             {$define CASTLE_WINDOW_XLIB} // easiest to compile
+             { $define CASTLE_WINDOW_LCL} // best (looks native and most functional) on Mac OS X, but requires LCL
+             { $define CASTLE_WINDOW_GTK_2}
+             { $define CASTLE_WINDOW_LIBRARY}
+             { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
+           {$else}
+             {$ifndef OpenGLES}
+               {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional) on Unix (except Mac OS X)
+             {$else}
+               {$define CASTLE_WINDOW_XLIB}
+             {$endif}
+             { $define CASTLE_WINDOW_XLIB}
+             { $define CASTLE_WINDOW_LCL}
+             { $define CASTLE_WINDOW_LIBRARY}
+             { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
+           {$endif}
+         {$endif}
+       {$endif}
 
+      {$endif}
      {$endif}
     {$endif}
    {$endif}
@@ -514,7 +530,7 @@ uses {$define read_interface_uses}
   SysUtils, Classes, CastleVectors, CastleGL, CastleRectangles, CastleColors,
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
-  CastleFileFilters, CastleUIControls, FGL, pk3DConnexion,
+  CastleFileFilters, CastleUIControls, CastleCameras, FGL, pk3DConnexion,
   { VRML/X3D stuff }
   X3DNodes, CastleScene, CastleSceneManager, CastleLevels;
 
@@ -2454,6 +2470,10 @@ end;
     function GetShadowVolumesDraw: boolean;
     procedure SetShadowVolumes(const Value: boolean);
     procedure SetShadowVolumesDraw(const Value: boolean);
+    function GetNavigationType: TNavigationType;
+    procedure SetNavigationType(const Value: TNavigationType);
+  protected
+    procedure NavigationInfoChanged(Sender: TObject); virtual;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -2478,6 +2498,14 @@ end;
     { See TCastleAbstractViewport.ShadowVolumesDraw. }
     property ShadowVolumesDraw: boolean
       read GetShadowVolumesDraw write SetShadowVolumesDraw default false;
+
+    { Navigation type of the main camera associated with the default SceneManager.
+      Note that this may not be the only camera used for rendering,
+      it may not even be used at all (you can do all rendering using
+      @link(TCastleAbstractViewport)s.
+      So use this property only if you use only a single default viewport. }
+    property NavigationType: TNavigationType
+      read GetNavigationType write SetNavigationType;
   end;
 
   TWindowList = class(specialize TFPGObjectList<TCastleWindowBase>)
@@ -4421,8 +4449,8 @@ begin
       begin
         { get values from sensor }
         Mouse3dPollSpeed := -Mouse3dPollTimer + Mouse3dPollDelay;
-        Mouse3D.GetTranslationValues(Tx, Ty, Tz, TLength);
-        Mouse3D.GetRotationValues(Rx, Ry, Rz, RAngle);
+        Mouse3D.GetSensorTranslation(Tx, Ty, Tz, TLength);
+        Mouse3D.GetSensorRotation(Rx, Ry, Rz, RAngle);
 
         { send to all 2D controls, including viewports }
         for I := 0 to Controls.Count - 1 do
@@ -4430,8 +4458,8 @@ begin
           C := Controls[I];
           if C.PositionInside(MouseX, MouseY) then
           begin
-            C.Mouse3dTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
-            C.Mouse3dRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
+            C.SensorTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
+            C.SensorRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
           end;
         end;
 
@@ -4781,6 +4809,7 @@ begin
     we'll make use of it. }
   FSceneManager.SetSubComponent(true);
   FSceneManager.Name := 'SceneManager';
+  FSceneManager.OnBoundNavigationInfoChanged := @NavigationInfoChanged;
   Controls.Add(SceneManager);
 end;
 
@@ -4832,6 +4861,24 @@ end;
 procedure TCastleWindow.SetShadowVolumesDraw(const Value: boolean);
 begin
   SceneManager.ShadowVolumesDraw := Value;
+end;
+
+function TCastleWindow.GetNavigationType: TNavigationType;
+begin
+  if SceneManager.Camera <> nil then
+    Result := SceneManager.Camera.GetNavigationType else
+    Result := ntNone;
+end;
+
+procedure TCastleWindow.SetNavigationType(const Value: TNavigationType);
+begin
+  if (SceneManager.Camera <> nil) and
+     (SceneManager.Camera is TUniversalCamera) then
+  begin
+    (SceneManager.Camera as TUniversalCamera).NavigationType := Value;
+    if Assigned(SceneManager.OnBoundNavigationInfoChanged) then
+      SceneManager.OnBoundNavigationInfoChanged(SceneManager);
+  end;
 end;
 
 { TWindowList ------------------------------------------------------------ }

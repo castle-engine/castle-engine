@@ -88,7 +88,7 @@ type
   private
     SceneURL: string;
     CameraChanged: boolean;
-    ButtonsNavigationType: array [TCameraNavigationType] of TSpeedButton;
+    ButtonsNavigationType: array [TNavigationType] of TSpeedButton;
     procedure OpenScene(const URL: string);
     procedure UpdateCaption;
   public
@@ -314,7 +314,7 @@ end;
 
 procedure TMain.SceneManagerBoundNavigationInfoChanged(Sender: TObject);
 var
-  NavigationType: TCameraNavigationType;
+  NavigationType: TNavigationType;
 begin
   { For safety, we check here Camera existence and class.
     Camera may not exist yet (it is intially nil, and is freed / recreated
@@ -336,7 +336,7 @@ end;
 
 procedure TMain.ButtonNavigationTypeClick(Sender: TObject);
 var
-  NavigationType, NT: TCameraNavigationType;
+  NavigationType, NT: TNavigationType;
 begin
   { Just like in SceneManagerBoundNavigationInfoChanged:
     in practice, our Camera is always of TUniversalCamera class.

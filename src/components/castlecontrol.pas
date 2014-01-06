@@ -1236,8 +1236,8 @@ begin
       begin
         { get values from sensor }
         Mouse3dPollSpeed := -Mouse3dPollTimer + Mouse3dPollDelay;
-        Mouse3D.GetTranslationValues(Tx, Ty, Tz, TLength);
-        Mouse3D.GetRotationValues(Rx, Ry, Rz, RAngle);
+        Mouse3D.GetSensorTranslation(Tx, Ty, Tz, TLength);
+        Mouse3D.GetSensorRotation(Rx, Ry, Rz, RAngle);
 
         { send to all 2D controls, including viewports }
         for I := 0 to Controls.Count - 1 do
@@ -1245,8 +1245,8 @@ begin
           C := Controls[I];
           if C.PositionInside(MouseX, MouseY) then
           begin
-            C.Mouse3dTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
-            C.Mouse3dRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
+            C.SensorTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
+            C.SensorRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
           end;
         end;
 

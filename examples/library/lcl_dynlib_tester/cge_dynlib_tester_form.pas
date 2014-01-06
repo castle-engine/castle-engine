@@ -12,10 +12,26 @@
 
   ----------------------------------------------------------------------------
 
-  This is another test project for our library. Instead of including library
-  units directly, it uses the compiled dynamic library.
+  This is a test project for our library in src/library/.
+  It uses library API (through the castlelib_dynloader unit),
+  and uses a compiled dynamic library with the engine.
 
-  Note: prior running the project, compile and copy the shared library
+  THIS IS *NOT* HOW YOU SHOULD USUALLY USE THE ENGINE from FPC/Lazarus.
+  If you use FPC/Lazarus to make your game, then usually you want to simply
+  use the engine units (and Lazarus packages). For example, unit CastleControl
+  gives you a nice Lazarus component readily integrated with the engine,
+  CastleWindow gives you a window (without LCL dependency) integrated with
+  engine. Countless other engine units give you useful things
+  (like CastleScene, CastleSceneManager, CastleVectors... see engine tutorial
+  and documentation).
+
+  Using the engine units directly gives you a complete object-oriented API
+  in ObjectPascal to do everything :) The C library API (exposed in
+  castlelib_dynloader) offers only a small subset of engine functionality.
+  The library is useful to access the engine from other programming languages.
+
+  HOW TO RUN THIS: prior to running this project,
+  compile and copy the shared library
   (in src/library/) to a place where it can be loaded:
 
   - Windows: copy castleengine.dll to this project folder
@@ -136,45 +152,34 @@ begin
   { TODO }
 end;
 
-function ShiftToCgeShift(Shift: TShiftState): integer;
-var
-  uiShift: Integer;
-begin
-  uiShift := 0;
-  if ssShift in Shift then uiShift := uiShift or ecgessShift;
-  if ssCtrl in Shift then uiShift := uiShift or ecgessCtrl;
-  if ssAlt in Shift then uiShift := uiShift or ecgessAlt;
-  Result := uiShift;
-end;
-
 procedure TForm1.OpenGLControl1MouseDown(Sender: TObject; Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  CGE_OnMouseDown(x, y, Button=mbLeft, ShiftToCgeShift(Shift));
+  CGE_OnMouseDown(x, y, Button=mbLeft);
 end;
 
 procedure TForm1.OpenGLControl1MouseMove(Sender: TObject; Shift: TShiftState;
   X, Y: Integer);
 begin
-  CGE_OnMouseMove(x, y, ShiftToCgeShift(Shift));
+  CGE_OnMouseMove(x, y);
 end;
 
 procedure TForm1.OpenGLControl1MouseUp(Sender: TObject; Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  CGE_OnMouseUp(x, y, Button=mbLeft, ShiftToCgeShift(Shift));
+  CGE_OnMouseUp(x, y, Button=mbLeft);
 end;
 
 procedure TForm1.OpenGLControl1MouseWheel(Sender: TObject; Shift: TShiftState;
   WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
 begin
-  CGE_OnMouseWheel(WheelDelta, true, ShiftToCgeShift(Shift));
+  CGE_OnMouseWheel(WheelDelta, true);
   Handled := true;
 end;
 
 procedure TForm1.IdleFunc(Sender: TObject; var Done: Boolean);
 begin
-  CGE_OnIdle();
+  CGE_OnUpdate();
   Done:=false;
 end;
 

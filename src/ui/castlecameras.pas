@@ -44,7 +44,9 @@ type
     ci3dMouse);
   TCameraInputs = set of TCameraInput;
 
-type
+  TNavigationClass = (ncExamine, ncWalk);
+  TNavigationType = (ntExamine, ntTurntable, ntWalk, ntFly, ntNone);
+
   { Handle user navigation in 3D scene.
     You control camera parameters and provide user input
     to this class by various methods and properties.
@@ -372,6 +374,8 @@ type
     { Jump to initial camera view (set by SetInitialView). }
     procedure GoToInitial; virtual;
 
+    function GetNavigationType: TNavigationType; virtual; abstract;
+
     { Is mouse dragging allowed by scene manager.
       This is an additional condition to enable mouse dragging,
       above the existing ciMouseDragging in Input.
@@ -470,8 +474,8 @@ type
     function Press(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
 
-    function Mouse3dTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
-    function Mouse3dRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
+    function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
+    function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
 
     { Current camera properties ---------------------------------------------- }
 
@@ -559,6 +563,7 @@ type
       const AdjustUp: boolean = true); override;
 
     procedure VisibleChange; override;
+    function GetNavigationType: TNavigationType; override;
 
     { TODO: Input_Xxx not published, although setting them in object inspector
       actually works Ok. They are not published, because they would be always
@@ -826,8 +831,8 @@ type
       var HandleInput: boolean); override;
     function AllowSuspendForInput: boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
-    function Mouse3dTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
-    function Mouse3dRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
+    function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
+    function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
 
     { This is used by @link(DoMoveAllowed), see there for description. }
     property OnMoveAllowed: TMoveAllowedFunc read FOnMoveAllowed write FOnMoveAllowed;
@@ -1423,6 +1428,7 @@ type
       const AdjustUp: boolean = true); override;
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single;
       const AdjustUp: boolean = true); override;
+    function GetNavigationType: TNavigationType; override;
 
     { Change up vector, keeping the direction unchanged.
       If necessary, the up vector provided here will be fixed to be orthogonal
@@ -1561,9 +1567,6 @@ type
     { @groupEnd }
   end;
 
-  TCameraNavigationClass = (ncExamine, ncWalk);
-  TCameraNavigationType = (ntExamine, ntTurntable, ntWalk, ntFly, ntNone);
-
   { Camera that allows any kind of navigation (Examine, Walk).
     You can switch between navigation types, while preserving the camera view.
 
@@ -1585,10 +1588,9 @@ type
   private
     FExamine: TExamineCamera;
     FWalk: TWalkCamera;
-    FNavigationClass: TCameraNavigationClass;
-    procedure SetNavigationClass(const Value: TCameraNavigationClass);
-    function GetNavigationType: TCameraNavigationType;
-    procedure SetNavigationType(const Value: TCameraNavigationType);
+    FNavigationClass: TNavigationClass;
+    procedure SetNavigationClass(const Value: TNavigationClass);
+    procedure SetNavigationType(const Value: TNavigationType);
   protected
     procedure SetInput(const Value: TCameraInputs); override;
     procedure SetEnableDragging(const Value: boolean); override;
@@ -1620,10 +1622,11 @@ type
     function Release(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
 
-    function Mouse3dTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
-    function Mouse3dRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
+    function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
+    function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+    function GetNavigationType: TNavigationType; override;
 
     procedure SetInitialView(
       const AInitialPosition: TVector3Single;
@@ -1636,7 +1639,7 @@ type
     { Choose navigation method by choosing particular camera class.
       The names of this correspond to camera classes (TExamineCamera,
       TWalkCamera). }
-    property NavigationClass: TCameraNavigationClass
+    property NavigationClass: TNavigationClass
       read FNavigationClass write SetNavigationClass default ncExamine;
 
     { Choose navigation method by choosing particular camera class,
@@ -1661,9 +1664,9 @@ type
       above properties directly. That's because not every combination of
       above properties correspond to some sensible value of NavigationType.
       If you directly set some weird configuration, reading NavigationType will
-      try it's best to determine the closest TCameraNavigationType value
+      try it's best to determine the closest TNavigationType value
       that is similar to your configuration. }
-    property NavigationType: TCameraNavigationType
+    property NavigationType: TNavigationType
       read GetNavigationType write SetNavigationType default ntExamine;
   end;
 
@@ -2235,7 +2238,7 @@ begin FScaleFactor *= ScaleBy; ScheduleVisibleChange; end;
 procedure TExamineCamera.Move(coord: integer; const MoveDistance: Single);
 begin FMoveAmount[coord] += MoveDistance; ScheduleVisibleChange; end;
 
-function TExamineCamera.Mouse3dTranslation(const X, Y, Z, Length: Double;
+function TExamineCamera.SensorTranslation(const X, Y, Z, Length: Double;
   const SecondsPassed: Single): boolean;
 var
   Size: Single;
@@ -2269,7 +2272,7 @@ begin
     Zoom(Z * MoveSize / 2);
 end;
 
-function TExamineCamera.Mouse3dRotation(const X, Y, Z, Angle: Double;
+function TExamineCamera.SensorRotation(const X, Y, Z, Angle: Double;
   const SecondsPassed: Single): boolean;
 var
   NewRotation: TQuaternion;
@@ -2720,6 +2723,13 @@ begin
   if Value then
     Input := Input + [ciMouseDragging] else
     Input := Input - [ciMouseDragging];
+end;
+
+function TExamineCamera.GetNavigationType: TNavigationType;
+begin
+  if Turntable then
+    Result := ntTurntable else
+    Result := ntExamine;
 end;
 
 { TWalkCamera ---------------------------------------------------------------- }
@@ -4024,7 +4034,7 @@ begin
     Result := false;
 end;
 
-function TWalkCamera.Mouse3dTranslation(const X, Y, Z, Length: Double;
+function TWalkCamera.SensorTranslation(const X, Y, Z, Length: Double;
   const SecondsPassed: Single): boolean;
 var
   MoveSize: Double;
@@ -4058,7 +4068,7 @@ begin
     MoveVertical(-Y * MoveSize, -1);  { down }
 end;
 
-function TWalkCamera.Mouse3dRotation(const X, Y, Z, Angle: Double;
+function TWalkCamera.SensorRotation(const X, Y, Z, Angle: Double;
   const SecondsPassed: Single): boolean;
 begin
   if not (ci3dMouse in Input) then Exit;
@@ -4343,6 +4353,13 @@ begin
   FGravityUp := Normalized(Value);
 end;
 
+function TWalkCamera.GetNavigationType: TNavigationType;
+begin
+  if Gravity then
+    Result := ntWalk else
+    Result := ntFly;
+end;
+
 { TExamineCameraInUniversal -------------------------------------------------- }
 
 type
@@ -4546,16 +4563,16 @@ begin
   Current.Update(SecondsPassed, HandleInput);
 end;
 
-function TUniversalCamera.Mouse3dTranslation(const X, Y, Z, Length: Double;
+function TUniversalCamera.SensorTranslation(const X, Y, Z, Length: Double;
   const SecondsPassed: Single): boolean;
 begin
-  Result := Current.Mouse3dTranslation(X, Y, Z, Length, SecondsPassed);
+  Result := Current.SensorTranslation(X, Y, Z, Length, SecondsPassed);
 end;
 
-function TUniversalCamera.Mouse3dRotation(const X, Y, Z, Angle: Double;
+function TUniversalCamera.SensorRotation(const X, Y, Z, Angle: Double;
   const SecondsPassed: Single): boolean;
 begin
-  Result := Current.Mouse3dRotation(X, Y, Z, Angle, SecondsPassed);
+  Result := Current.SensorRotation(X, Y, Z, Angle, SecondsPassed);
 end;
 
 function TUniversalCamera.AllowSuspendForInput: boolean;
@@ -4622,7 +4639,7 @@ begin
   finally EndVisibleChangeSchedule end;
 end;
 
-procedure TUniversalCamera.SetNavigationClass(const Value: TCameraNavigationClass);
+procedure TUniversalCamera.SetNavigationClass(const Value: TNavigationClass);
 var
   Position, Direction, Up: TVector3Single;
 begin
@@ -4656,22 +4673,14 @@ begin
   end;
 end;
 
-function TUniversalCamera.GetNavigationType: TCameraNavigationType;
+function TUniversalCamera.GetNavigationType: TNavigationType;
 begin
   if Input = [] then
     Result := ntNone else
-  if NavigationClass = ncExamine then
-  begin
-    if Examine.Turntable then
-      Result := ntTurntable else
-      Result := ntExamine;
-  end else
-  if Walk.Gravity then
-    Result := ntWalk else
-    Result := ntFly;
+    Result := Current.GetNavigationType;
 end;
 
-procedure TUniversalCamera.SetNavigationType(const Value: TCameraNavigationType);
+procedure TUniversalCamera.SetNavigationType(const Value: TNavigationType);
 begin
   { This is not a pure optimization in this case.
     If you set some weird values, then (without this check)

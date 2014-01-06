@@ -163,11 +163,13 @@ end;
 
 procedure TCastleWindowBase.SetFullScreen(const Value: boolean);
 begin
-  { Some backends may provide a better way of doing this. }
+  { This is the simplest implementation of this method: }
   SimpleSetFullScreen(Value);
+  { Some backends may provide a better way of doing this.
+    Remove the above line then, and put better implementation here. }
 end;
 
-{ TCastleWindowBase dialogs ---------------------------------------------------------- }
+{ TCastleWindowBase dialogs -------------------------------------------------- }
 
 { Methods below should make native-looking dialog boxes.
   Alternatively, you can include castlewindow_dialogs_by_messages.inc
@@ -265,6 +267,12 @@ end;
 procedure TCastleClipboard.SetAsText(const Value: string);
 begin
   { TODO }
+end;
+
+{ TCastleWindow -------------------------------------------------------------- }
+
+procedure TCastleWindow.NavigationInfoChanged(Sender: TObject);
+begin
 end;
 
 {$endif read_implementation}

@@ -316,8 +316,8 @@ type
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
-    function Mouse3dRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
-    function Mouse3dTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
+    function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
+    function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
 
@@ -2364,14 +2364,14 @@ begin
   Result := FRenderParams.Statistics;
 end;
 
-function TCastleAbstractViewport.Mouse3dRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
+function TCastleAbstractViewport.SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
 begin
-  Result := (Camera <> nil) and Camera.Mouse3dRotation(X, Y, Z, Angle, SecondsPassed);
+  Result := (Camera <> nil) and Camera.SensorRotation(X, Y, Z, Angle, SecondsPassed);
 end;
 
-function TCastleAbstractViewport.Mouse3dTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
+function TCastleAbstractViewport.SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
 begin
-  Result := (Camera <> nil) and Camera.Mouse3dTranslation(X, Y, Z, Length, SecondsPassed);
+  Result := (Camera <> nil) and Camera.SensorTranslation(X, Y, Z, Length, SecondsPassed);
 end;
 
 { TCastleAbstractViewportList -------------------------------------------------- }
@@ -2751,6 +2751,13 @@ begin
     { Changing camera changes also the view rapidly. }
     if MainScene <> nil then
       MainScene.ViewChangedSuddenly;
+
+    { Call OnBoundNavigationInfoChanged when camera instance changed.
+      This allows code that observes Camera.NavigationType to work,
+      otherwise OnBoundNavigationInfoChanged may be called only
+      when Camera = nil (at loading). }
+    if Assigned(OnBoundNavigationInfoChanged) then
+      OnBoundNavigationInfoChanged(Self);
   end else
     inherited; { not really needed for now, but for safety --- always call inherited }
 end;

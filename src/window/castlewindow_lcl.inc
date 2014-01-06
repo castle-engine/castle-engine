@@ -962,4 +962,10 @@ begin
   Clipbrd.Clipboard.AsText := SysToUTF8(Value);
 end;
 
+{ TCastleWindow -------------------------------------------------------------- }
+
+procedure TCastleWindow.NavigationInfoChanged(Sender: TObject);
+begin
+end;
+
 {$endif read_implementation}

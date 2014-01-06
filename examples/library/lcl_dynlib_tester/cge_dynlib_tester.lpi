@@ -1,10 +1,10 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
     <PathDelim Value="\"/>
     <General>
-      <SessionStorage Value="InProjectDir"/>
+      <SessionStorage Value="InIDEConfig"/>
       <MainUnit Value="0"/>
       <Title Value="cge_dynlib_tester"/>
       <ResourceType Value="res"/>
@@ -65,6 +65,11 @@
       <OtherUnitFiles Value="..\..\..\src\library"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <CStyleMacros Value="True"/>
+      </SyntaxOptions>
+    </Parsing>
     <Linking>
       <Options>
         <Win32>
@@ -73,6 +78,9 @@
       </Options>
     </Linking>
     <Other>
+      <Verbosity>
+        <ShowHints Value="False"/>
+      </Verbosity>
       <CompilerMessages>
         <MsgFileName Value=""/>
       </CompilerMessages>
@@ -96,4 +104,4 @@
       </Item3>
     </Exceptions>
   </Debugging>
-</CONFIG>
+</CONFIG>

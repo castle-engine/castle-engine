@@ -30,19 +30,13 @@
 extern "C" {
 #endif
 
-enum ECgeShiftState
-{
-    ecgessShift = 1,
-    ecgessAlt   = 2,
-    ecgessCtrl  = 4,
-};
-
 enum ECgeNavigationType
 {
-    ecgenavWalk         = 0,
-    ecgenavFly          = 1,
-    ecgenavExamine      = 2,
-    ecgenavArchitecture = 3,
+    ecgenavWalk      = 0,
+    ecgenavFly       = 1,
+    ecgenavExamine   = 2,
+    ecgenavTurntable = 3,
+    ecgenavNone      = 4,
 };
 
 enum ECgeUserInterface
@@ -92,12 +86,12 @@ extern void CGE_SetRenderParams(unsigned uiViewWidth, unsigned uiViewHeight);   
 extern void CGE_Render();                                                       // paints the 3d scene into the context
 extern void CGE_SaveScreenshotToFile(const char *szFile);
 extern void CGE_SetLibraryCallbackProc(TCgeLibraryCallbackProc pProc);          // set callback function
-extern void CGE_OnIdle();                                                       // let the 3d engine perform the animations, etc
+extern void CGE_OnUpdate();                                                       // let the 3d engine perform the animations, etc
 
-extern void CGE_OnMouseDown(int x, int y, bool bLeftBtn, unsigned uiShift);     // uiShift is the combination of ECgeShiftState
-extern void CGE_OnMouseMove(int x, int y, unsigned uiShift);
-extern void CGE_OnMouseUp(int x, int y, bool bLeftBtn, unsigned uiShift);
-extern void CGE_OnMouseWheel(float zDelta, bool bVertical, unsigned uiShift);
+extern void CGE_OnMouseDown(int x, int y, bool bLeftBtn);
+extern void CGE_OnMouseMove(int x, int y);
+extern void CGE_OnMouseUp(int x, int y, bool bLeftBtn);
+extern void CGE_OnMouseWheel(float zDelta, bool bVertical);
 
 extern void CGE_LoadSceneFromFile(const char *szFile);                          // name od the file has to be utf-8 encoded
 
@@ -108,10 +102,10 @@ extern void CGE_AddViewpointFromCurrentView(const char *szName);
 
 extern void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ,
                               float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ);
-extern void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ, 
+extern void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ,
                                  float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ);
 
-extern int CGE_GetCurrentNavigationType();
+extern int CGE_GetNavigationType();
 extern void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType);
 
 extern void CGE_UpdateTouchInterface(int /*ECgeTouchCtlInterface*/ eMode);

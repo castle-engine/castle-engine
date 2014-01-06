@@ -321,8 +321,8 @@ type
       procedure PollTranslation;
       procedure PollKeys;
       procedure Poll;
-      procedure GetRotationValues(var X, Y, Z, Angle: Double);
-      procedure GetTranslationValues(var X, Y, Z, Length: Double);
+      procedure GetSensorRotation(var X, Y, Z, Angle: Double);
+      procedure GetSensorTranslation(var X, Y, Z, Length: Double);
       procedure SetExampleCustomEmulations;
       procedure SetCustomEmulationAxis(const AIndex: TEmulationAxis; const ADetail: TEmulationDetail; const AKeyLeft, AKeyRight: byte; const AThreshold, AMultiplier: integer);
       procedure CopyToSettings(var Settings: TEmulationSettings);
@@ -749,7 +749,7 @@ begin
    FireTranslation(translation);
 end;
 
-procedure T3DConnexionDevice.GetRotationValues(var X, Y, Z, Angle: Double);
+procedure T3DConnexionDevice.GetSensorRotation(var X, Y, Z, Angle: Double);
 var rotation: IAngleAxis;
 begin
    rotation := FSensor.Rotation;
@@ -759,7 +759,7 @@ begin
    Angle := rotation.Angle;
 end;
 
-procedure T3DConnexionDevice.GetTranslationValues(var X, Y, Z, Length: Double);
+procedure T3DConnexionDevice.GetSensorTranslation(var X, Y, Z, Length: Double);
 var translation: IVector3D;
 begin
    translation := FSensor.Translation;
@@ -871,8 +871,8 @@ type
    public
       constructor Create(const ApplicationName: widestring);
       destructor Destroy; override;
-      procedure GetRotationValues(var X, Y, Z, Angle: Double);
-      procedure GetTranslationValues(var X, Y, Z, Length: Double);
+      procedure GetSensorRotation(var X, Y, Z, Angle: Double);
+      procedure GetSensorTranslation(var X, Y, Z, Length: Double);
    published
       property Loaded: boolean read FLoaded;
    end;
@@ -890,12 +890,12 @@ begin
    inherited;
 end;
 
-procedure T3DConnexionDevice.GetRotationValues(var X, Y, Z, Angle: Double);
+procedure T3DConnexionDevice.GetSensorRotation(var X, Y, Z, Angle: Double);
 begin
    X := 0; Y := 0; Z := 0; Angle := 0;
 end;
 
-procedure T3DConnexionDevice.GetTranslationValues(var X, Y, Z, Length: Double);
+procedure T3DConnexionDevice.GetSensorTranslation(var X, Y, Z, Length: Double);
 begin
    X := 0; Y := 0; Z := 0; Length := 0;
 end;
