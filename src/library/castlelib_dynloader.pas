@@ -93,7 +93,7 @@ procedure CGE_MoveViewToCoords(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ,
 function CGE_GetNavigationType(): cInt32; cdecl; external 'castleengine';
 procedure CGE_SetNavigationType(NewType: cInt32); cdecl; external 'castleengine';
 procedure CGE_UpdateTouchInterface(eMode: cInt32); cdecl; external 'castleengine';
-procedure CGE_SetUserInterfaceInfo(eMode, nDpi: cInt32); cdecl; external 'castleengine';
+procedure CGE_SetUserInterfaceInfo(AutomaticTouchInterface: cBool; nDpi: cInt32); cdecl; external 'castleengine';
 
 implementation
 

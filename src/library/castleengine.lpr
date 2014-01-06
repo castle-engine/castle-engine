@@ -285,17 +285,10 @@ begin
   end;
 end;
 
-procedure CGE_SetUserInterfaceInfo(eMode, nDpi: cInt32); cdecl;
-var
-  aNewMode: TUserInterface;
+procedure CGE_SetUserInterfaceInfo(AutomaticTouchInterface: cBool; nDpi: cInt32); cdecl;
 begin
   try
-    case eMode of
-      0: aNewMode := euiDesktop;
-      1: aNewMode := euiTouch;
-      else aNewMode := euiDesktop;
-    end;
-    Window.UserInterface := aNewMode;
+    Window.AutomaticTouchInterface := AutomaticTouchInterface;
     Window.Dpi := nDpi;
   except
   end;

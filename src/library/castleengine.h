@@ -39,12 +39,6 @@ enum ECgeNavigationType
     ecgenavNone      = 4,
 };
 
-enum ECgeUserInterface
-{
-    ecgeuiDesktop = 0,
-    ecgeuiTouch   = 1,
-};
-
 enum ECgeTouchCtlInterface
 {
     ecgetciNone              = 0,
@@ -80,7 +74,7 @@ extern void CGE_LoadLibrary();	// function defined in the loader CPP file
 extern void CGE_Init();     // init the library, this function must be called first (required)
 extern void CGE_Close();
 extern void CGE_GetOpenGLInformation(char *szBuffer, int nBufSize);             // szBuffer is filled inside the function with max size of nBufSize
-extern void CGE_SetUserInterfaceInfo(int /*ECgeUserInterface*/ eMode, int nDpi);    // should be called at the start of the program. Touch interface controls will be updated automatically then.
+extern void CGE_SetUserInterfaceInfo(bool automaticTouchInterface, int nDpi);    // should be called at the start of the program. Touch interface controls will be updated automatically then.
 
 extern void CGE_SetRenderParams(unsigned uiViewWidth, unsigned uiViewHeight);   // let the library know about the viewport size (required)
 extern void CGE_Render();                                                       // paints the 3d scene into the context

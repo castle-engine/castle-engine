@@ -21,34 +21,44 @@ interface
 uses Classes, CastleWindow, CastleControls, CastleCameras;
 
 type
-  TUserInterface = (euiDesktop, euiTouch);
   TTouchCtlInterface = (etciNone, etciCtlWalkCtlRotate, etciCtlWalkDragRotate,
                         etciCtlFlyCtlWalkDragRotate, etciCtlPanXYDragRotate);
-
   TCastleWindowTouch = class(TCastleWindow)
   private
-    FUserInterface: TUserInterface;
+    FAutomaticTouchInterface: boolean;
     LeftTouchCtl, RightTouchCtl: TCastleTouchControl;
     FTouchInterface: TTouchCtlInterface;
     procedure UpdateTouchController(const LeftSide, CtlVisible: boolean;
       const Mode: TCastleTouchCtlMode = ctcmWalking);
     procedure UpdateTouchPositions;
     procedure SetTouchInterface(const Value: TTouchCtlInterface);
+    { Sets touch controls depending on the current navigation mode.
+      Should be called each time after navigation mode changed. }
+    procedure UpdateAutomaticTouchInterface;
   protected
     procedure NavigationInfoChanged(Sender: TObject); override;
   public
     constructor Create(AOwner: TComponent); override;
-    property TouchInterface: TTouchCtlInterface
-      read FTouchInterface write SetTouchInterface;
     procedure EventUpdate; override;
     procedure EventResize; override;
 
-    { Sets touch controls depending on the current navigation mode. Should
-      be called each time after navigation mode changed. }
-    procedure UpdateUserInterface();
+    { Configure touch controls to be displayed on the window.
+      This automatically manages under the hood 0, 1 or 2
+      TCastleTouchControl instances, placing them at suitable positions
+      and handling their operations.
+
+      Note that you can set AutomaticTouchInterface = @true to have this property
+      automatically adjusted. (In which case you should not set this directly.) }
+    property TouchInterface: TTouchCtlInterface
+      read FTouchInterface write SetTouchInterface;
   published
-    property UserInterface: TUserInterface
-      read FUserInterface write FUserInterface default euiDesktop;
+    { Automatically adjust TouchInterface (showing / hiding proper
+      touch controls) based on the current navigation type.
+      The navigation type is obtained from the camera of the default viewport,
+      see TCastleWindow.NavigationType. }
+    property AutomaticTouchInterface: boolean
+      read FAutomaticTouchInterface write FAutomaticTouchInterface
+      default false;
   end;
 
 implementation
@@ -219,9 +229,9 @@ begin
   end;
 end;
 
-procedure TCastleWindowTouch.UpdateUserInterface;
+procedure TCastleWindowTouch.UpdateAutomaticTouchInterface;
 begin
-  if UserInterface = euiTouch then
+  if AutomaticTouchInterface then
   begin
     case NavigationType of
       ntNone:      TouchInterface := etciNone;
@@ -229,7 +239,7 @@ begin
       ntFly:       TouchInterface := etciCtlFlyCtlWalkDragRotate;
       ntExamine:   TouchInterface := etciCtlPanXYDragRotate;
       ntTurntable: TouchInterface := etciCtlPanXYDragRotate;
-      else raise EInternalError.Create('TCastleWindowTouch.UpdateUserInterface not implemented for this NavigationType value');
+      else raise EInternalError.Create('TCastleWindowTouch.UpdateAutomaticTouchInterface not implemented for this NavigationType value');
     end;
   end;
 end;
@@ -237,7 +247,7 @@ end;
 procedure TCastleWindowTouch.NavigationInfoChanged(Sender: TObject);
 begin
   inherited;
-  UpdateUserInterface;
+  UpdateAutomaticTouchInterface;
 end;
 
 end.

@@ -124,7 +124,7 @@ begin
   CGE_Init();
   CGE_SetRenderParams(OpenGLControl1.Width, OpenGLControl1.Height);
   CGE_SetLibraryCallbackProc(@OpenGlLibraryCallback);
-  CGE_SetUserInterfaceInfo(ecgeuiTouch, 96);
+  CGE_SetUserInterfaceInfo(true, 96);
   sFile := '../../../../demo_models/navigation/type_walk.wrl';
   //sFile := '../../../examples/shadow_fields/models/humanoid_stand.wrl';
   CGE_LoadSceneFromFile(@sFile[1]);
