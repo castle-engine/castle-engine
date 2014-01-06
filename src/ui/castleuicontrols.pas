@@ -885,12 +885,14 @@ end;
 
 procedure TUIRectangularControl.CenterHorizontal;
 begin
-  Left := (ContainerWidth - Rect.Width) div 2;
+  // cast to Integer early, as Left may be < 0
+  Left := (ContainerWidth - Integer(Rect.Width)) div 2;
 end;
 
 procedure TUIRectangularControl.CenterVertical;
 begin
-  Bottom := (ContainerHeight - Rect.Height) div 2;
+  // cast to Integer early, as Bottom may be < 0
+  Bottom := (ContainerHeight - Integer(Rect.Height)) div 2;
 end;
 
 procedure TUIRectangularControl.Center;
