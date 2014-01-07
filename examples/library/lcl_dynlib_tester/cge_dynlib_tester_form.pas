@@ -121,10 +121,10 @@ var
 begin
   OpenGLControl1.MakeCurrent();
   Application.OnIdle := @IdleFunc;
-  CGE_Init();
-  CGE_SetRenderParams(OpenGLControl1.Width, OpenGLControl1.Height);
+  CGE_Open();
+  CGE_Resize(OpenGLControl1.Width, OpenGLControl1.Height);
   CGE_SetLibraryCallbackProc(@OpenGlLibraryCallback);
-  CGE_SetUserInterfaceInfo(true, 96);
+  CGE_SetUserInterface(true, 96);
   sFile := '../../../../demo_models/navigation/type_walk.wrl';
   //sFile := '../../../examples/shadow_fields/models/humanoid_stand.wrl';
   CGE_LoadSceneFromFile(@sFile[1]);
@@ -137,7 +137,7 @@ procedure TForm1.FormResize(Sender: TObject);
 begin
   OpenGLControl1.Width := Width-OpenGLControl1.Left*2;
   OpenGLControl1.Height := Height-OpenGLControl1.Top*2;
-  CGE_SetRenderParams(OpenGLControl1.Width, OpenGLControl1.Height);
+  CGE_Resize(OpenGLControl1.Width, OpenGLControl1.Height);
 end;
 
 procedure TForm1.OpenGLControl1KeyDown(Sender: TObject; var Key: Word;
@@ -155,31 +155,31 @@ end;
 procedure TForm1.OpenGLControl1MouseDown(Sender: TObject; Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  CGE_OnMouseDown(x, y, Button=mbLeft);
+  CGE_MouseDown(x, y, Button=mbLeft);
 end;
 
 procedure TForm1.OpenGLControl1MouseMove(Sender: TObject; Shift: TShiftState;
   X, Y: Integer);
 begin
-  CGE_OnMouseMove(x, y);
+  CGE_MouseMove(x, y);
 end;
 
 procedure TForm1.OpenGLControl1MouseUp(Sender: TObject; Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  CGE_OnMouseUp(x, y, Button=mbLeft);
+  CGE_MouseUp(x, y, Button=mbLeft);
 end;
 
 procedure TForm1.OpenGLControl1MouseWheel(Sender: TObject; Shift: TShiftState;
   WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
 begin
-  CGE_OnMouseWheel(WheelDelta, true);
+  CGE_MouseWheel(WheelDelta, true);
   Handled := true;
 end;
 
 procedure TForm1.IdleFunc(Sender: TObject; var Done: Boolean);
 begin
-  CGE_OnUpdate();
+  CGE_Update();
   Done:=false;
 end;
 

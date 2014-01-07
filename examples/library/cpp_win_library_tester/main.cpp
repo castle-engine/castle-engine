@@ -100,20 +100,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             break;
 
         if (g_hasFocus)
-			OnIdle();
+            OnIdle();
         else
             WaitMessage();
     }
     return msg.wParam;
-}
-
-//-----------------------------------------------------------------------------
-unsigned WinShiftToCgeShift(unsigned wParam)
-{
-	unsigned res = 0;
-	if (wParam & MK_CONTROL) res |= ecgessCtrl;
-	if (wParam & MK_SHIFT) res |= ecgessShift;
-	return res;
 }
 
 //-----------------------------------------------------------------------------
@@ -143,31 +134,31 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_ERASEBKGND:
         if (IsWindowEnabled(hWnd))
         {
-	        wglMakeCurrent(g_hDC, g_hRC);
-	        CGE_Render();			// do not draw in WM_PAINT (inspired in CastleWindow)
+            wglMakeCurrent(g_hDC, g_hRC);
+            CGE_Render();			// do not draw in WM_PAINT (inspired in CastleWindow)
             SwapBuffers(g_hDC);
         }
         return TRUE;
 
     case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:
-        CGE_OnMouseDown(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), msg==WM_LBUTTONDOWN, WinShiftToCgeShift(wParam));
+        CGE_MouseDown(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), msg==WM_LBUTTONDOWN);
         SetCapture(hWnd);
         break;
 
     case WM_MOUSEMOVE:
-        CGE_OnMouseMove(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), WinShiftToCgeShift(wParam));
+        CGE_MouseMove(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
         break;
 
     case WM_LBUTTONUP:
     case WM_RBUTTONUP:
-        CGE_OnMouseUp(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), msg==WM_LBUTTONUP, WinShiftToCgeShift(wParam));
+        CGE_MouseUp(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), msg==WM_LBUTTONUP);
         if (GetCapture()==hWnd)
             ReleaseCapture();
         break;
 
     case WM_MOUSEWHEEL:
-        CGE_OnMouseWheel(GET_WHEEL_DELTA_WPARAM(wParam), true, WinShiftToCgeShift(GET_KEYSTATE_WPARAM(wParam)));
+        CGE_MouseWheel(GET_WHEEL_DELTA_WPARAM(wParam), true);
         break;
 
     case WM_CHAR:
@@ -227,7 +218,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_SIZE:
         g_windowWidth = LOWORD(lParam);
         g_windowHeight = HIWORD(lParam);
-		CGE_SetRenderParams(g_windowWidth, g_windowHeight);
+        CGE_Resize(g_windowWidth, g_windowHeight);
         break;
 
     case WM_SYSKEYDOWN:
@@ -329,10 +320,10 @@ bool Init()
         InitGL();
 
         CGE_LoadLibrary();
-        CGE_Init();
-        CGE_SetRenderParams(g_windowWidth, g_windowHeight);
+        CGE_Open();
+        CGE_Resize(g_windowWidth, g_windowHeight);
         CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);
-        CGE_SetUserInterfaceInfo(ecgeuiTouch, 96);
+        CGE_SetUserInterface(true, 96);
         //CGE_LoadSceneFromFile("c:\\projects\\humanoid_stand.wrl");
         ShowOpenFileDialog();
         return true;
@@ -389,7 +380,7 @@ void InitGL()
             throw std::runtime_error("SetPixelFormat() failed.");
     }
 
-	g_hRC = wglCreateContext(g_hDC);
+    g_hRC = wglCreateContext(g_hDC);
 
     if (!wglMakeCurrent(g_hDC, g_hRC))
         throw std::runtime_error("wglMakeCurrent() failed for OpenGL context.");
@@ -439,13 +430,13 @@ void ToggleFullScreen()
 
         SetWindowPos(g_hWnd, HWND_NOTOPMOST, rcSaved.left, rcSaved.top, g_windowWidth, g_windowHeight, SWP_SHOWWINDOW);
     }
-	CGE_SetRenderParams(g_windowWidth, g_windowHeight);
+    CGE_Resize(g_windowWidth, g_windowHeight);
 }
 
 //-----------------------------------------------------------------------------
 void OnIdle()
 {
-    CGE_OnIdle();
+    CGE_Update();
 }
 
 //-----------------------------------------------------------------------------
@@ -455,18 +446,18 @@ void ShowOpenFileDialog()
     szFile[0] = 0;
 
     OPENFILENAME ofn;
-	ZeroMemory(&ofn, sizeof(OPENFILENAME));
-	ofn.lStructSize = sizeof(OPENFILENAME);
+    ZeroMemory(&ofn, sizeof(OPENFILENAME));
+    ofn.lStructSize = sizeof(OPENFILENAME);
     ofn.hwndOwner = g_hWnd;
-	ofn.lpstrFile = szFile;
+    ofn.lpstrFile = szFile;
     ofn.nMaxFile = MAX_PATH;
-	ofn.lpstrFilter = "VRML files (*.wrl)\0*.WRL\0";
-	ofn.nFilterIndex = 0;
-	ofn.lpstrFileTitle = NULL;
-	ofn.nMaxFileTitle = 0;
-	ofn.lpstrInitialDir = NULL;
-	ofn.Flags = OFN_PATHMUSTEXIST|OFN_FILEMUSTEXIST;
-	if (GetOpenFileName(&ofn))
+    ofn.lpstrFilter = "VRML files (*.wrl)\0*.WRL\0";
+    ofn.nFilterIndex = 0;
+    ofn.lpstrFileTitle = NULL;
+    ofn.nMaxFileTitle = 0;
+    ofn.lpstrInitialDir = NULL;
+    ofn.Flags = OFN_PATHMUSTEXIST|OFN_FILEMUSTEXIST;
+    if (GetOpenFileName(&ofn))
     {
         CGE_LoadSceneFromFile(szFile);
 

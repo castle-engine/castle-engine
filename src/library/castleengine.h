@@ -71,23 +71,23 @@ typedef int (__cdecl *TCgeLibraryCallbackProc)(int /*ECgeLibCallbackCode*/eCode,
 extern void CGE_LoadLibrary();	// function defined in the loader CPP file
 
 //-----------------------------------------------------------------------------
-extern void CGE_Init();     // init the library, this function must be called first (required)
+extern void CGE_Open();     // init the library, this function must be called first (required)
 extern void CGE_Close();
-extern void CGE_GetOpenGLInformation(char *szBuffer, int nBufSize);             // szBuffer is filled inside the function with max size of nBufSize
-extern void CGE_SetUserInterfaceInfo(bool automaticTouchInterface, int nDpi);    // should be called at the start of the program. Touch interface controls will be updated automatically then.
+extern void CGE_GetOpenGLInformation(char *szBuffer, int nBufSize);        // szBuffer is filled inside the function with max size of nBufSize
+extern void CGE_SetUserInterface(bool bAutomaticTouchInterface, int nDpi); // should be called at the start of the program. Touch interface controls will be updated automatically then.
 
-extern void CGE_SetRenderParams(unsigned uiViewWidth, unsigned uiViewHeight);   // let the library know about the viewport size (required)
-extern void CGE_Render();                                                       // paints the 3d scene into the context
+extern void CGE_Resize(unsigned uiViewWidth, unsigned uiViewHeight);       // let the library know about the viewport size (required)
+extern void CGE_Render();                                                  // paints the 3d scene into the context
 extern void CGE_SaveScreenshotToFile(const char *szFile);
-extern void CGE_SetLibraryCallbackProc(TCgeLibraryCallbackProc pProc);          // set callback function
-extern void CGE_OnUpdate();                                                       // let the 3d engine perform the animations, etc
+extern void CGE_SetLibraryCallbackProc(TCgeLibraryCallbackProc pProc);     // set callback function
+extern void CGE_Update();                                                  // let the 3d engine perform the animations, etc
 
-extern void CGE_OnMouseDown(int x, int y, bool bLeftBtn);
-extern void CGE_OnMouseMove(int x, int y);
-extern void CGE_OnMouseUp(int x, int y, bool bLeftBtn);
-extern void CGE_OnMouseWheel(float zDelta, bool bVertical);
+extern void CGE_MouseDown(int x, int y, bool bLeftBtn);
+extern void CGE_MouseMove(int x, int y);
+extern void CGE_MouseUp(int x, int y, bool bLeftBtn);
+extern void CGE_MouseWheel(float zDelta, bool bVertical);
 
-extern void CGE_LoadSceneFromFile(const char *szFile);                          // name od the file has to be utf-8 encoded
+extern void CGE_LoadSceneFromFile(const char *szFile);                     // name od the file has to be utf-8 encoded
 
 extern int CGE_GetViewpointsCount();
 extern void CGE_GetViewpointName(int iViewpointIdx, char *szName, int nBufSize);    // szName is buffer of size nBufSize, and is filled with utf-8 encoded string
@@ -102,7 +102,7 @@ extern void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fD
 extern int CGE_GetNavigationType();
 extern void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType);
 
-extern void CGE_UpdateTouchInterface(int /*ECgeTouchCtlInterface*/ eMode);
+extern void CGE_SetTouchInterface(int /*ECgeTouchCtlInterface*/ eMode);
 
 #ifdef __cplusplus
 }

@@ -41,7 +41,7 @@ uses CTypes, Math, SysUtils, CastleWindow, CastleWindowTouch, CastleUtils,
 var
   Window: TCastleWindowTouch;
 
-procedure CGE_Init(); cdecl;
+procedure CGE_Open; cdecl;
 begin
   try
     Window := TCastleWindowTouch.Create(nil);
@@ -70,7 +70,7 @@ begin
   end;
 end;
 
-procedure CGE_SetRenderParams(uiViewWidth, uiViewHeight: cUInt32); cdecl;
+procedure CGE_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl;
 begin
   try
     Window.LibraryResize(uiViewWidth, uiViewHeight);
@@ -108,7 +108,7 @@ begin
   end;
 end;
 
-procedure CGE_OnUpdate; cdecl;
+procedure CGE_Update; cdecl;
 begin
   try
     Application.LibraryUpdate;
@@ -117,7 +117,7 @@ begin
   end;
 end;
 
-procedure CGE_OnMouseDown(X, Y: CInt32; bLeftBtn: cBool); cdecl;
+procedure CGE_MouseDown(X, Y: CInt32; bLeftBtn: cBool); cdecl;
 var
   MyButton: TMouseButton;
 begin
@@ -128,7 +128,7 @@ begin
   end;
 end;
 
-procedure CGE_OnMouseMove(X, Y: CInt32); cdecl;
+procedure CGE_MouseMove(X, Y: CInt32); cdecl;
 begin
   try
     Window.LibraryMouseMove(X, Y);
@@ -136,7 +136,7 @@ begin
   end;
 end;
 
-procedure CGE_OnMouseUp(x, y: cInt32; bLeftBtn: cBool); cdecl;
+procedure CGE_MouseUp(x, y: cInt32; bLeftBtn: cBool); cdecl;
 var
   MyButton: TMouseButton;
 begin
@@ -147,7 +147,7 @@ begin
   end;
 end;
 
-procedure CGE_OnMouseWheel(zDelta: cFloat; bVertical: cBool); cdecl;
+procedure CGE_MouseWheel(zDelta: cFloat; bVertical: cBool); cdecl;
 begin
   try
     Window.LibraryMouseWheel(zDelta/120, bVertical);
@@ -267,7 +267,7 @@ begin
   end;
 end;
 
-procedure CGE_UpdateTouchInterface(eMode: cInt32); cdecl;
+procedure CGE_SetTouchInterface(eMode: cInt32); cdecl;
 var
   aNewMode: TTouchCtlInterface;
 begin
@@ -278,34 +278,33 @@ begin
       2: aNewMode := etciCtlWalkDragRotate;
       3: aNewMode := etciCtlFlyCtlWalkDragRotate;
       4: aNewMode := etciCtlPanXYDragRotate;
-      else raise EInternalError.CreateFmt('CGE_UpdateTouchInterface: Invalid touch interface mode %d', [eMode]);
+      else raise EInternalError.CreateFmt('CGE_SetTouchInterface: Invalid touch interface mode %d', [eMode]);
     end;
     Window.TouchInterface := aNewMode;
   except
   end;
 end;
 
-procedure CGE_SetUserInterfaceInfo(AutomaticTouchInterface: cBool; nDpi: cInt32); cdecl;
+procedure CGE_SetUserInterface(bAutomaticTouchInterface: cBool; nDpi: cInt32); cdecl;
 begin
   try
-    Window.AutomaticTouchInterface := AutomaticTouchInterface;
+    Window.AutomaticTouchInterface := bAutomaticTouchInterface;
     Window.Dpi := nDpi;
   except
   end;
 end;
 
 exports
-  CGE_Init, CGE_Close, CGE_GetOpenGLInformation,
-  CGE_Render, CGE_SetRenderParams, CGE_SetLibraryCallbackProc, CGE_OnUpdate,
-  CGE_OnMouseDown, CGE_OnMouseMove, CGE_OnMouseUp, CGE_OnMouseWheel,
+  CGE_Open, CGE_Close, CGE_GetOpenGLInformation,
+  CGE_Render, CGE_Resize, CGE_SetLibraryCallbackProc, CGE_Update,
+  CGE_MouseDown, CGE_MouseMove, CGE_MouseUp, CGE_MouseWheel,
   CGE_LoadSceneFromFile, CGE_GetNavigationType, CGE_SetNavigationType,
   CGE_GetViewpointsCount, CGE_GetViewpointName, CGE_MoveToViewpoint, CGE_AddViewpointFromCurrentView,
   CGE_GetViewCoords, CGE_MoveViewToCoords, CGE_SaveScreenshotToFile,
-  CGE_UpdateTouchInterface, CGE_SetUserInterfaceInfo;
+  CGE_SetTouchInterface, CGE_SetUserInterface;
 
 begin
   {Do not remove the exception masking lines}
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
-  //Set8087CW(Get8087CW or $3f);
 end.
 

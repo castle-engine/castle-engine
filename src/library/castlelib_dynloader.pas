@@ -69,18 +69,18 @@ const
 type
   TLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32):cInt32; cdecl;
 
-procedure CGE_Init(); cdecl; external 'castleengine';
+procedure CGE_Open(); cdecl; external 'castleengine';
 procedure CGE_Close(); cdecl; external 'castleengine';
 procedure CGE_GetOpenGLInformation(szBuffer: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
-procedure CGE_SetRenderParams(uiViewWidth, uiViewHeight: cUInt32); cdecl; external 'castleengine';
+procedure CGE_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl; external 'castleengine';
 procedure CGE_Render(); cdecl; external 'castleengine';
 procedure CGE_SaveScreenshotToFile(szFile: pcchar); cdecl; external 'castleengine';
 procedure CGE_SetLibraryCallbackProc(aProc: TLibraryCallbackProc); cdecl; external 'castleengine';
-procedure CGE_OnUpdate(); cdecl; external 'castleengine';
-procedure CGE_OnMouseDown(x, y: cInt32; bLeftBtn: cBool); cdecl; external 'castleengine';
-procedure CGE_OnMouseMove(x, y: cInt32); cdecl; external 'castleengine';
-procedure CGE_OnMouseUp(x, y: cInt32; bLeftBtn: cBool); cdecl; external 'castleengine';
-procedure CGE_OnMouseWheel(zDelta: cFloat; bVertical: cBool); cdecl; external 'castleengine';
+procedure CGE_Update(); cdecl; external 'castleengine';
+procedure CGE_MouseDown(x, y: cInt32; bLeftBtn: cBool); cdecl; external 'castleengine';
+procedure CGE_MouseMove(x, y: cInt32); cdecl; external 'castleengine';
+procedure CGE_MouseUp(x, y: cInt32; bLeftBtn: cBool); cdecl; external 'castleengine';
+procedure CGE_MouseWheel(zDelta: cFloat; bVertical: cBool); cdecl; external 'castleengine';
 procedure CGE_LoadSceneFromFile(szFile: pcchar); cdecl; external 'castleengine';
 function CGE_GetViewpointsCount(): cInt32; cdecl; external 'castleengine';
 procedure CGE_GetViewpointName(iViewpointIdx: cInt32; szName: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
@@ -92,8 +92,8 @@ procedure CGE_MoveViewToCoords(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ,
                                fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ: cFloat); cdecl; external 'castleengine';
 function CGE_GetNavigationType(): cInt32; cdecl; external 'castleengine';
 procedure CGE_SetNavigationType(NewType: cInt32); cdecl; external 'castleengine';
-procedure CGE_UpdateTouchInterface(eMode: cInt32); cdecl; external 'castleengine';
-procedure CGE_SetUserInterfaceInfo(AutomaticTouchInterface: cBool; nDpi: cInt32); cdecl; external 'castleengine';
+procedure CGE_SetTouchInterface(eMode: cInt32); cdecl; external 'castleengine';
+procedure CGE_SetUserInterface(AutomaticTouchInterface: cBool; nDpi: cInt32); cdecl; external 'castleengine';
 
 implementation
 

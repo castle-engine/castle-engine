@@ -31,20 +31,20 @@
 //-----------------------------------------------------------------------------
 HMODULE g_hCgeDll = NULL;
 
-typedef void (__cdecl *PFNRD_CGE_Init)();
+typedef void (__cdecl *PFNRD_CGE_Open)();
 typedef void (__cdecl *PFNRD_CGE_Close)();
 typedef void (__cdecl *PFNRD_CGE_GetOpenGLInformation)(char *szBuffer, int nBufSize);
 
-typedef void (__cdecl *PFNRD_CGE_SetRenderParams)(unsigned uiViewWidth, unsigned uiViewHeight);
+typedef void (__cdecl *PFNRD_CGE_Resize)(unsigned uiViewWidth, unsigned uiViewHeight);
 typedef void (__cdecl *PFNRD_CGE_Render)();
 typedef void (__cdecl *PFNRD_CGE_SaveScreenshotToFile)(const char *szFile);
 typedef void (__cdecl *PFNRD_CGE_SetLibraryCallbackProc)(TCgeLibraryCallbackProc pProc);
-typedef void (__cdecl *PFNRD_CGE_OnUpdate)();
+typedef void (__cdecl *PFNRD_CGE_Update)();
 
-typedef void (__cdecl *PFNRD_CGE_OnMouseDown)(int x, int y, bool bLeftBtn);
-typedef void (__cdecl *PFNRD_CGE_OnMouseMove)(int x, int y);
-typedef void (__cdecl *PFNRD_CGE_OnMouseUp)(int x, int y, bool bLeftBtn);
-typedef void (__cdecl *PFNRD_CGE_OnMouseWheel)(float zDelta, bool bVertical);
+typedef void (__cdecl *PFNRD_CGE_MouseDown)(int x, int y, bool bLeftBtn);
+typedef void (__cdecl *PFNRD_CGE_MouseMove)(int x, int y);
+typedef void (__cdecl *PFNRD_CGE_MouseUp)(int x, int y, bool bLeftBtn);
+typedef void (__cdecl *PFNRD_CGE_MouseWheel)(float zDelta, bool bVertical);
 
 typedef void (__cdecl *PFNRD_CGE_LoadSceneFromFile)(const char *szFile);
 
@@ -59,22 +59,22 @@ typedef void (__cdecl *PFNRD_CGE_MoveViewToCoords)(float fPosX, float fPosY, flo
 
 typedef int (__cdecl *PFNRD_CGE_GetNavigationType)();
 typedef void (__cdecl *PFNRD_CGE_SetNavigationType)(int eNewType);
-typedef void (__cdecl *PFNRD_CGE_UpdateTouchInterface)(int eMode);
-typedef void (__cdecl *PFNRD_CGE_SetUserInterfaceInfo)(bool automaticTouchInterface, int nDpi);
+typedef void (__cdecl *PFNRD_CGE_SetTouchInterface)(int eMode);
+typedef void (__cdecl *PFNRD_CGE_SetUserInterface)(bool bAutomaticTouchInterface, int nDpi);
 
 
-PFNRD_CGE_Init pfrd_CGE_Init = NULL;
+PFNRD_CGE_Open pfrd_CGE_Open = NULL;
 PFNRD_CGE_Close pfrd_CGE_Close = NULL;
 PFNRD_CGE_GetOpenGLInformation pfrd_CGE_GetOpenGLInformation = NULL;
-PFNRD_CGE_SetRenderParams pfrd_CGE_SetRenderParams = NULL;
+PFNRD_CGE_Resize pfrd_CGE_Resize = NULL;
 PFNRD_CGE_Render pfrd_CGE_Render = NULL;
 PFNRD_CGE_SaveScreenshotToFile pfrd_CGE_SaveScreenshotToFile = NULL;
 PFNRD_CGE_SetLibraryCallbackProc pfrd_CGE_SetLibraryCallbackProc = NULL;
-PFNRD_CGE_OnUpdate pfrd_CGE_OnUpdate = NULL;
-PFNRD_CGE_OnMouseDown pfrd_CGE_OnMouseDown = NULL;
-PFNRD_CGE_OnMouseMove pfrd_CGE_OnMouseMove = NULL;
-PFNRD_CGE_OnMouseUp pfrd_CGE_OnMouseUp = NULL;
-PFNRD_CGE_OnMouseWheel pfrd_CGE_OnMouseWheel = NULL;
+PFNRD_CGE_Update pfrd_CGE_Update = NULL;
+PFNRD_CGE_MouseDown pfrd_CGE_MouseDown = NULL;
+PFNRD_CGE_MouseMove pfrd_CGE_MouseMove = NULL;
+PFNRD_CGE_MouseUp pfrd_CGE_MouseUp = NULL;
+PFNRD_CGE_MouseWheel pfrd_CGE_MouseWheel = NULL;
 PFNRD_CGE_LoadSceneFromFile pfrd_CGE_LoadSceneFromFile = NULL;
 PFNRD_CGE_GetViewpointsCount pfrd_CGE_GetViewpointsCount = NULL;
 PFNRD_CGE_GetViewpointName pfrd_CGE_GetViewpointName = NULL;
@@ -84,8 +84,8 @@ PFNRD_CGE_GetViewCoords pfrd_CGE_GetViewCoords = NULL;
 PFNRD_CGE_MoveViewToCoords pfrd_CGE_MoveViewToCoords = NULL;
 PFNRD_CGE_GetNavigationType pfrd_CGE_GetNavigationType = NULL;
 PFNRD_CGE_SetNavigationType pfrd_CGE_SetNavigationType = NULL;
-PFNRD_CGE_UpdateTouchInterface pfrd_CGE_UpdateTouchInterface = NULL;
-PFNRD_CGE_SetUserInterfaceInfo pfrd_CGE_SetUserInterfaceInfo = NULL;
+PFNRD_CGE_SetTouchInterface pfrd_CGE_SetTouchInterface = NULL;
+PFNRD_CGE_SetUserInterface pfrd_CGE_SetUserInterface = NULL;
 
 //-----------------------------------------------------------------------------
 void CGE_LoadLibrary()
@@ -94,18 +94,18 @@ void CGE_LoadLibrary()
 	if (g_hCgeDll==NULL)
 		return;
 
-	pfrd_CGE_Init = (PFNRD_CGE_Init)GetProcAddress(g_hCgeDll, "CGE_Init");
+	pfrd_CGE_Open = (PFNRD_CGE_Open)GetProcAddress(g_hCgeDll, "CGE_Open");
 	pfrd_CGE_Close = (PFNRD_CGE_Close)GetProcAddress(g_hCgeDll, "CGE_Close");
 	pfrd_CGE_GetOpenGLInformation = (PFNRD_CGE_GetOpenGLInformation)GetProcAddress(g_hCgeDll, "CGE_GetOpenGLInformation");
-	pfrd_CGE_SetRenderParams = (PFNRD_CGE_SetRenderParams)GetProcAddress(g_hCgeDll, "CGE_SetRenderParams");
+	pfrd_CGE_Resize = (PFNRD_CGE_Resize)GetProcAddress(g_hCgeDll, "CGE_Resize");
 	pfrd_CGE_Render = (PFNRD_CGE_Render)GetProcAddress(g_hCgeDll, "CGE_Render");
 	pfrd_CGE_SaveScreenshotToFile = (PFNRD_CGE_SaveScreenshotToFile)GetProcAddress(g_hCgeDll, "CGE_SaveScreenshotToFile");
 	pfrd_CGE_SetLibraryCallbackProc = (PFNRD_CGE_SetLibraryCallbackProc)GetProcAddress(g_hCgeDll, "CGE_SetLibraryCallbackProc");
-	pfrd_CGE_OnUpdate = (PFNRD_CGE_OnUpdate)GetProcAddress(g_hCgeDll, "CGE_OnUpdate");
-	pfrd_CGE_OnMouseDown = (PFNRD_CGE_OnMouseDown)GetProcAddress(g_hCgeDll, "CGE_OnMouseDown");
-	pfrd_CGE_OnMouseMove = (PFNRD_CGE_OnMouseMove)GetProcAddress(g_hCgeDll, "CGE_OnMouseMove");
-	pfrd_CGE_OnMouseUp = (PFNRD_CGE_OnMouseUp)GetProcAddress(g_hCgeDll, "CGE_OnMouseUp");
-	pfrd_CGE_OnMouseWheel =(PFNRD_CGE_OnMouseWheel) GetProcAddress(g_hCgeDll, "CGE_OnMouseWheel");
+	pfrd_CGE_Update = (PFNRD_CGE_Update)GetProcAddress(g_hCgeDll, "CGE_Update");
+	pfrd_CGE_MouseDown = (PFNRD_CGE_MouseDown)GetProcAddress(g_hCgeDll, "CGE_MouseDown");
+	pfrd_CGE_MouseMove = (PFNRD_CGE_MouseMove)GetProcAddress(g_hCgeDll, "CGE_MouseMove");
+	pfrd_CGE_MouseUp = (PFNRD_CGE_MouseUp)GetProcAddress(g_hCgeDll, "CGE_MouseUp");
+	pfrd_CGE_MouseWheel =(PFNRD_CGE_MouseWheel) GetProcAddress(g_hCgeDll, "CGE_MouseWheel");
 	pfrd_CGE_LoadSceneFromFile = (PFNRD_CGE_LoadSceneFromFile)GetProcAddress(g_hCgeDll, "CGE_LoadSceneFromFile");
 	pfrd_CGE_GetViewpointsCount = (PFNRD_CGE_GetViewpointsCount)GetProcAddress(g_hCgeDll, "CGE_GetViewpointsCount");
 	pfrd_CGE_GetViewpointName = (PFNRD_CGE_GetViewpointName)GetProcAddress(g_hCgeDll, "CGE_GetViewpointName");
@@ -115,15 +115,15 @@ void CGE_LoadLibrary()
 	pfrd_CGE_MoveViewToCoords = (PFNRD_CGE_MoveViewToCoords)GetProcAddress(g_hCgeDll, "CGE_MoveViewToCoords");
 	pfrd_CGE_GetNavigationType = (PFNRD_CGE_GetNavigationType)GetProcAddress(g_hCgeDll, "CGE_GetNavigationType");
 	pfrd_CGE_SetNavigationType = (PFNRD_CGE_SetNavigationType)GetProcAddress(g_hCgeDll, "CGE_SetNavigationType");
-	pfrd_CGE_UpdateTouchInterface = (PFNRD_CGE_UpdateTouchInterface)GetProcAddress(g_hCgeDll, "CGE_UpdateTouchInterface");
-	pfrd_CGE_SetUserInterfaceInfo = (PFNRD_CGE_SetUserInterfaceInfo)GetProcAddress(g_hCgeDll, "CGE_SetUserInterfaceInfo");
+	pfrd_CGE_SetTouchInterface = (PFNRD_CGE_SetTouchInterface)GetProcAddress(g_hCgeDll, "CGE_SetTouchInterface");
+	pfrd_CGE_SetUserInterface = (PFNRD_CGE_SetUserInterface)GetProcAddress(g_hCgeDll, "CGE_SetUserInterface");
 }
 
 //-----------------------------------------------------------------------------
-void CGE_Init()
+void CGE_Open()
 {
-	if (pfrd_CGE_Init!=NULL)
-		(*pfrd_CGE_Init)();
+	if (pfrd_CGE_Open!=NULL)
+		(*pfrd_CGE_Open)();
 }
 
 //-----------------------------------------------------------------------------
@@ -141,10 +141,10 @@ void CGE_GetOpenGLInformation(char *szBuffer, int nBufSize)
 }
 
 //-----------------------------------------------------------------------------
-void CGE_SetRenderParams(unsigned uiViewWidth, unsigned uiViewHeight)
+void CGE_Resize(unsigned uiViewWidth, unsigned uiViewHeight)
 {
-	if (pfrd_CGE_SetRenderParams!=NULL)
-		(*pfrd_CGE_SetRenderParams)(uiViewWidth, uiViewHeight);
+	if (pfrd_CGE_Resize!=NULL)
+		(*pfrd_CGE_Resize)(uiViewWidth, uiViewHeight);
 }
 
 //-----------------------------------------------------------------------------
@@ -169,38 +169,38 @@ void CGE_SetLibraryCallbackProc(TCgeLibraryCallbackProc pProc)
 }
 
 //-----------------------------------------------------------------------------
-void CGE_OnUpdate()
+void CGE_Update()
 {
-	if (pfrd_CGE_OnUpdate!=NULL)
-		(*pfrd_CGE_OnUpdate)();
+	if (pfrd_CGE_Update!=NULL)
+		(*pfrd_CGE_Update)();
 }
 
 //-----------------------------------------------------------------------------
-void CGE_OnMouseDown(int x, int y, bool bLeftBtn)
+void CGE_MouseDown(int x, int y, bool bLeftBtn)
 {
-	if (pfrd_CGE_OnMouseDown!=NULL)
-		(*pfrd_CGE_OnMouseDown)(x, y, bLeftBtn);
+	if (pfrd_CGE_MouseDown!=NULL)
+		(*pfrd_CGE_MouseDown)(x, y, bLeftBtn);
 }
 
 //-----------------------------------------------------------------------------
-void CGE_OnMouseMove(int x, int y)
+void CGE_MouseMove(int x, int y)
 {
-	if (pfrd_CGE_OnMouseMove!=NULL)
-		(*pfrd_CGE_OnMouseMove)(x, y);
+	if (pfrd_CGE_MouseMove!=NULL)
+		(*pfrd_CGE_MouseMove)(x, y);
 }
 
 //-----------------------------------------------------------------------------
-void CGE_OnMouseUp(int x, int y, bool bLeftBtn)
+void CGE_MouseUp(int x, int y, bool bLeftBtn)
 {
-	if (pfrd_CGE_OnMouseUp!=NULL)
-		(*pfrd_CGE_OnMouseUp)(x, y, bLeftBtn);
+	if (pfrd_CGE_MouseUp!=NULL)
+		(*pfrd_CGE_MouseUp)(x, y, bLeftBtn);
 }
 
 //-----------------------------------------------------------------------------
-void CGE_OnMouseWheel(float zDelta, bool bVertical)
+void CGE_MouseWheel(float zDelta, bool bVertical)
 {
-	if (pfrd_CGE_OnMouseWheel!=NULL)
-		(*pfrd_CGE_OnMouseWheel)(zDelta, bVertical);
+	if (pfrd_CGE_MouseWheel!=NULL)
+		(*pfrd_CGE_MouseWheel)(zDelta, bVertical);
 }
 
 //-----------------------------------------------------------------------------
@@ -242,7 +242,7 @@ void CGE_AddViewpointFromCurrentView(const char *szName)
 
 //-----------------------------------------------------------------------------
 void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ, 
-                              float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ)
+                       float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ)
 {
 	if (pfrd_CGE_GetViewCoords!=NULL)
 		(*pfrd_CGE_GetViewCoords)(pfPosX, pfPosY, pfPosZ, pfDirX, pfDirY, pfDirZ, pfUpX, pfUpY, pfUpZ, pfGravX, pfGravY, pfGravZ);
@@ -250,7 +250,7 @@ void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDir
 
 //-----------------------------------------------------------------------------
 void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ, 
-                                 float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ)
+                          float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ)
 {
 	if (pfrd_CGE_MoveViewToCoords!=NULL)
 		(*pfrd_CGE_MoveViewToCoords)(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ, fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ);
@@ -273,15 +273,15 @@ void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType)
 }
 
 //-----------------------------------------------------------------------------
-void CGE_UpdateTouchInterface(int /*ECgeTouchCtlInterface*/ eMode)
+void CGE_SetTouchInterface(int /*ECgeTouchCtlInterface*/ eMode)
 {
-	if (pfrd_CGE_UpdateTouchInterface!=NULL)
-        (*pfrd_CGE_UpdateTouchInterface)(eMode);
+	if (pfrd_CGE_SetTouchInterface!=NULL)
+        (*pfrd_CGE_SetTouchInterface)(eMode);
 }
 
 //-----------------------------------------------------------------------------
-void CGE_SetUserInterfaceInfo(bool automaticTouchInterface, int nDpi)
+void CGE_SetUserInterface(bool bAutomaticTouchInterface, int nDpi)
 {
-	if (pfrd_CGE_SetUserInterfaceInfo!=NULL)
-        (*pfrd_CGE_SetUserInterfaceInfo)(eMode, nDpi);
+	if (pfrd_CGE_SetUserInterface!=NULL)
+        (*pfrd_CGE_SetUserInterface)(bAutomaticTouchInterface, nDpi);
 }
