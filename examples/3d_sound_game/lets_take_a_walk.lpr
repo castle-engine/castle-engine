@@ -39,7 +39,7 @@
 
 program lets_take_a_walk;
 
-uses CastleWindow, CastleScene, X3DNodes, SysUtils,
+uses SysUtils, CastleWindow, CastleScene, X3DFields, X3DNodes,
   CastleUtils, CastleGLUtils, CastleBoxes, CastleVectors,
   CastleProgress, CastleWindowProgress, CastleStringUtils,
   CastleParameters, CastleImages, CastleMessages, CastleFilesUtils, CastleGLImages,
@@ -238,7 +238,8 @@ procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
 begin
   if Event.EventType = itKey then
     case Event.Key of
-      K_T: SceneManager.MainScene.Event('MyScript', 'forceThunderNow').Send(true);
+      K_T : (SceneManager.MainScene.Event('MyScript', 'forceThunderNow')
+              as TSFBoolEvent).Send(true);
       K_F1: ShowHelpMessage;
       K_F5: Window.SaveScreen(FileNameAutoInc('lets_take_a_walk_screen_%d.png'));
     end;

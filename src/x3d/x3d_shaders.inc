@@ -114,7 +114,7 @@
   private
     UpperCaseChecked, WarningInvalidValueDone: boolean;
   protected
-    function ExposedEventsFieldClass: TX3DFieldClass; override;
+    class function ExposedEventsFieldClass: TX3DFieldClass; override;
   public
     function GetValue(out AValue: TShaderType): boolean;
   end;
@@ -331,7 +331,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TSFStringShaderType.ExposedEventsFieldClass: TX3DFieldClass;
+class function TSFStringShaderType.ExposedEventsFieldClass: TX3DFieldClass;
 begin
   Result := TSFString;
 end;

@@ -793,12 +793,12 @@ end;
 type
   TSFBoolIgnorable = class(TSFBool)
   protected
-    function ExposedEventsFieldClass: TX3DFieldClass; override;
+    class function ExposedEventsFieldClass: TX3DFieldClass; override;
     procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
       const Time: TX3DTime); override;
   end;
 
-function TSFBoolIgnorable.ExposedEventsFieldClass: TX3DFieldClass;
+class function TSFBoolIgnorable.ExposedEventsFieldClass: TX3DFieldClass;
 begin
   Result := TSFBool;
 end;

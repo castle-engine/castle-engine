@@ -36,7 +36,7 @@
   private
     WarningDone: boolean;
   protected
-    function ExposedEventsFieldClass: TX3DFieldClass; override;
+    class function ExposedEventsFieldClass: TX3DFieldClass; override;
   public
     function RequiresShaders: boolean;
   end;
@@ -119,7 +119,7 @@
 
   TMFNodeShaders = class(TMFNode)
   protected
-    function ExposedEventsFieldClass: TX3DFieldClass; override;
+    class function ExposedEventsFieldClass: TX3DFieldClass; override;
   public
     { Returns Items[Index], if it's a shader node suitable
       for GLSL  shader. Otherwise returns @nil. Checks the class of
@@ -430,7 +430,7 @@ begin
   DefaultContainerField := 'material';
 end;
 
-function TSFStringShading.ExposedEventsFieldClass: TX3DFieldClass;
+class function TSFStringShading.ExposedEventsFieldClass: TX3DFieldClass;
 begin
   Result := TSFString;
 end;
@@ -716,7 +716,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TMFNodeShaders.ExposedEventsFieldClass: TX3DFieldClass;
+class function TMFNodeShaders.ExposedEventsFieldClass: TX3DFieldClass;
 begin
   Result := TMFNode;
 end;

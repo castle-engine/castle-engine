@@ -908,6 +908,7 @@ type
     property ParentNode: TX3DNode read FParentNode;
 
     class function TypeName: string; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Checks is the Child allowed as a value of this SFNode,
       and makes OnWarning if not.
@@ -1043,6 +1044,7 @@ type
     property ParentNode: TX3DNode read FParentNode;
 
     class function TypeName: string; override;
+    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Checks is Child allowed on the list of nodes of this MFNode,
       and makes OnWarning if not.
@@ -3201,6 +3203,11 @@ begin
     Func(ParentNode, Value);
 end;
 
+class function TSFNode.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+begin
+  Result := TSFNodeEvent.Create(AParentNode, AName, AInEvent);
+end;
+
 { TMFNode -------------------------------------------------------------------- }
 
 constructor TMFNode.CreateUndefined(AParentNode: TX3DFileItem;
@@ -3584,6 +3591,11 @@ begin
   Result := FItems[Index];
 end;
 
+class function TMFNode.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+begin
+  Result := TMFNodeEvent.Create(AParentNode, AName, AInEvent);
+end;
+
 { TX3DUnknownNode ---------------------------------------------------------------- }
 
 function TX3DUnknownNode.NodeTypeName: string;
@@ -3732,12 +3744,9 @@ begin
   { we know everything now to create Event/Field instance }
   case Access of
     atInputOnly, atOutputOnly:
-      FieldOrEvent := TX3DEvent.Create(ParentNode, Name, FieldType, Access = atInputOnly);
+      FieldOrEvent := FieldType.CreateEvent(ParentNode, Name, Access = atInputOnly);
     atInitializeOnly, atInputOutput:
-      begin
-        FieldOrEvent := FieldType.CreateUndefined(ParentNode, Name,
-          { exposed } Access = atInputOutput);
-      end;
+      FieldOrEvent := FieldType.CreateUndefined(ParentNode, Name, Access = atInputOutput);
     else raise EInternalError.Create('Access ? in TX3DInterfaceDeclaration.Parse');
   end;
 
@@ -3798,12 +3807,9 @@ begin
   { we know everything now to create Event/Field instance }
   case Access of
     atInputOnly, atOutputOnly:
-      FieldOrEvent := TX3DEvent.Create(ParentNode, Name, FieldType, Access = atInputOnly);
+      FieldOrEvent := FieldType.CreateEvent(ParentNode, Name, Access = atInputOnly);
     atInitializeOnly, atInputOutput:
-      begin
-        FieldOrEvent := FieldType.CreateUndefined(ParentNode, Name,
-          { exposed } Access = atInputOutput);
-      end;
+      FieldOrEvent := FieldType.CreateUndefined(ParentNode, Name, Access = atInputOutput);
     else raise EInternalError.Create('AccessType ?');
   end;
 
@@ -3865,8 +3871,7 @@ begin
   if Event <> nil then
   begin
     { E := copy of Event }
-    E := TX3DEvent.Create(NewParentNode,
-      Event.Name, Event.FieldClass, Event.InEvent);
+    E := Event.FieldClass.CreateEvent(NewParentNode, Event.Name, Event.InEvent);
     { Although above constructor already copied most event properties,
       some were omitted (like IsClauseNames --- important for Script with
       eventIn/out events with IS clauses inside prototypes).

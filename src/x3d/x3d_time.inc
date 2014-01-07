@@ -217,19 +217,19 @@ type
     is active. }
   TSFTimeIgnoreWhenActive = class(TSFTime)
   protected
-    function ExposedEventsFieldClass: TX3DFieldClass; override;
+    class function ExposedEventsFieldClass: TX3DFieldClass; override;
     procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
       const Time: TX3DTime); override;
   end;
 
   TSFStopTime = class(TSFTime)
   protected
-    function ExposedEventsFieldClass: TX3DFieldClass; override;
+    class function ExposedEventsFieldClass: TX3DFieldClass; override;
     procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
       const Time: TX3DTime); override;
   end;
 
-function TSFTimeIgnoreWhenActive.ExposedEventsFieldClass: TX3DFieldClass;
+class function TSFTimeIgnoreWhenActive.ExposedEventsFieldClass: TX3DFieldClass;
 begin
   Result := TSFTime;
 end;
@@ -253,7 +253,7 @@ begin
   inherited;
 end;
 
-function TSFStopTime.ExposedEventsFieldClass: TX3DFieldClass;
+class function TSFStopTime.ExposedEventsFieldClass: TX3DFieldClass;
 begin
   Result := TSFTime;
 end;
