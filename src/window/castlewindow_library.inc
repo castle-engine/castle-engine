@@ -348,7 +348,6 @@ end;
 
 procedure TCastleWindow.NavigationInfoChanged(Sender: TObject);
 var
-  NavType: TNavigationType;
   NavValue: integer;
 begin
   // send into to parent app (to update navigation buttons state)
