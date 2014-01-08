@@ -1,3 +1,34 @@
+/*
+  Copyright 2013-2014 Jan Adamec, Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+
+  This is a MS Windows test project for our library in src/library/.
+  It uses library API (exposed in castleengine.h), and uses a compiled dynamic
+  library with the engine.
+
+  Using the engine units directly gives you a complete object-oriented API
+  in ObjectPascal to do everything :) The C library API offers only a small
+  subset of engine functionality. The library is useful to access the engine
+  from other programming languages.
+
+  HOW TO RUN THIS: prior to running this project, compile and copy the shared
+  library (in src/library/) to a place where it can be loaded, it means
+  copy castleengine.dll to this project folder, or anywhere on $PATH.
+  
+  You will also need other dynamic libraries (zlib1.dll, libpng.dll, ogg.dll,
+  OpenAL32.dll, ...) that are shipped with view3dscene.
+*/
+
 #if !defined(WIN32_LEAN_AND_MEAN)
 #define WIN32_LEAN_AND_MEAN
 #endif
