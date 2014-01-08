@@ -1,0 +1,17 @@
+#VRML V2.0 utf8
+
+Billboard
+{ axisOfRotation 0.0 1.0 0.0
+  children [ 
+     Shape { appearance Appearance { texture ImageTexture { url "textures/javor.jpg"} }
+             geometry IndexedFaceSet { coord Coordinate { point [-3 -3 0, 3 -3 0, 3 3 0, -3 3 0 ] }
+                                       coordIndex [0,1,2,3]
+                                       texCoord TextureCoordinate { point [0 0 1 0 1 1 0 1 ]} }
+            } 
+     Shape { appearance Appearance { texture ImageTexture { url "textures/dlazba.png"} }
+             geometry IndexedFaceSet { coord Coordinate { point [7 -3 0, 13 -3 0, 13 3 0, 7 3 0 ] }
+                                       coordIndex [0,1,2,3]
+                                       texCoord TextureCoordinate { point [0 0 1 0 1 1 0 1 ]} }
+            } 
+  ]
+}
