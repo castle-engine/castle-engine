@@ -82,6 +82,7 @@ const
   AllChars = [Low(Char) .. High(Char)];
   DefaultWordBorders = AllChars - ['a'..'z', 'A'..'Z', '0'..'9', '_'];
   WhiteSpaces = [' ', #9, #10, #13];
+  SimpleAsciiCharacters = [#32 .. #126];
 
 function RandomString: string;
 

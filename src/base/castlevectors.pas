@@ -451,6 +451,7 @@ type
   TGetVertexFromIndexFunc = function (Index: integer): TVector3Single of object;
 
 const
+  ZeroVector2Integer: TVector2Integer = (0, 0);
   ZeroVector2Single: TVector2Single = (0, 0);
   ZeroVector2Double: TVector2Double = (0, 0);
 

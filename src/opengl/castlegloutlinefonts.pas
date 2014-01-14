@@ -24,9 +24,6 @@ interface
 
 uses CastleOutlineFonts, SysUtils, CastleGLUtils, CastleStringUtils;
 
-const
-  SimpleAsciiCharacters = [#32 .. #126];
-
 type
   { Abstract class for all OpenGL outline fonts. }
   TGLOutlineFontAbstract = class

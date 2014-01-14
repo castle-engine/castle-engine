@@ -13,18 +13,19 @@
   ----------------------------------------------------------------------------
 }
 
-{ Font hand-crafted as the image (data/sonic_asalga_0.png).
+{ Font hand-crafted as the image (data/sonic_asalga_0.png,
+  null_terminator_0.png).
   This example defines and uses a simple class to render such font.
   You could extend it for more advanced situations (here, we assume that
   each character has constant width and height).
 }
 
-{$apptype GUI}
+{$apptype CONSOLE}
 
 program font_from_image;
 
 uses SysUtils, CastleWindow, CastleControls, CastleGLBitmapFonts, CastleGLImages,
-  CastleColors, CastleVectors, CastleFilesUtils;
+  CastleColors, CastleVectors, CastleFilesUtils, CastleLog, GLImageFont;
 
 { TFontFromImage ------------------------------------------------------------- }
 
@@ -119,7 +120,9 @@ end;
 
 var
   Window: TCastleWindow;
-  Label1, Label2: TCastleLabel;
+  Label1, Label2,
+    LabelDeja, LabelDejaBW, LabelDejaLarge,
+    LabelStylish, LabelStylishBW, LabelStylishLarge: TCastleLabel;
 
 procedure Open(Window: TCastleWindowBase);
 begin
@@ -127,18 +130,51 @@ begin
 
   Label2.CustomFont := TFontFromImage.Create('null_terminator_0.png', 1, 1);
   Label2.OwnsCustomFont := true;
+
+  LabelDeja.CustomFont := TGLImageFont.Create(ApplicationData('DejaVuSans.ttf'), true, 15);
+  LabelDeja.OwnsCustomFont := true;
+  LabelDejaBW.CustomFont := TGLImageFont.Create(ApplicationData('DejaVuSans.ttf'), false, 15);
+  LabelDejaBW.OwnsCustomFont := true;
+  LabelDejaLarge.CustomFont := TGLImageFont.Create(ApplicationData('DejaVuSans.ttf'), true, 30);
+  LabelDejaLarge.OwnsCustomFont := true;
+
+  LabelStylish.CustomFont := TGLImageFont.Create(ApplicationData('PARPG.ttf'), true, 15);
+  LabelStylish.OwnsCustomFont := true;
+  LabelStylishBW.CustomFont := TGLImageFont.Create(ApplicationData('PARPG.ttf'), false, 15);
+  LabelStylishBW.OwnsCustomFont := true;
+  LabelStylishLarge.CustomFont := TGLImageFont.Create(ApplicationData('PARPG.ttf'), true, 30);
+  LabelStylishLarge.OwnsCustomFont := true;
 end;
 
 procedure Resize(Window: TCastleWindowBase);
+const
+  Margin = 10;
+var
+  Y: Integer;
+
+  procedure PositionLabel(L: TCastleLabel);
+  begin
+    Y -= Integer(L.Rect.Height) + Margin;
+    L.CenterHorizontal;
+    L.Bottom := Y;
+  end;
+
 begin
-  { each time Window size changes, reposition labels to center }
-  Label1.CenterHorizontal;
-  Label1.Bottom := Window.Height div 2 + 10;
-  Label2.CenterHorizontal;
-  Label2.Bottom := Window.Height div 2 - 10 - Integer(Label2.Rect.Height);
+  { each time Window size changes, reposition labels }
+  Y := Window.Height;
+  PositionLabel(Label1);
+  PositionLabel(Label2);
+  PositionLabel(LabelDeja);
+  PositionLabel(LabelDejaBw);
+  PositionLabel(LabelDejaLarge);
+  PositionLabel(LabelStylish);
+  PositionLabel(LabelStylishBw);
+  PositionLabel(LabelStylishLarge);
 end;
 
 begin
+  InitializeLog;
+
   Window := TCastleWindow.Create(Application);
 
   Label1 := TCastleLabel.Create(Window);
@@ -155,6 +191,47 @@ begin
   Label2.Text.Append('Just because we can :)');
   Label2.Padding := 5;
   Window.Controls.InsertFront(Label2);
+
+  LabelDeja := TCastleLabel.Create(Window);
+  LabelDeja.Text.Append('DejaVuSans font');
+  LabelDeja.Text.Append('with anti-aliasing.');
+  LabelDeja.Padding := 5;
+  Window.Controls.InsertFront(LabelDeja);
+
+  LabelDejaBW := TCastleLabel.Create(Window);
+  LabelDejaBW.Text.Append('DejaVuSans font');
+  LabelDejaBW.Text.Append('without anti-aliasing.');
+  LabelDejaBW.Padding := 5;
+  Window.Controls.InsertFront(LabelDejaBW);
+
+  LabelDejaLarge := TCastleLabel.Create(Window);
+  LabelDejaLarge.Text.Append('DejaVuSans font');
+  LabelDejaLarge.Text.Append('with anti-aliasing');
+  LabelDejaLarge.Text.Append('and larger size.');
+  LabelDejaLarge.Padding := 5;
+  Window.Controls.InsertFront(LabelDejaLarge);
+
+  LabelStylish := TCastleLabel.Create(Window);
+  LabelStylish.Text.Text :=
+    'Stylish "old typewriter" font' +LineEnding+
+    'with anti-aliasing.';
+  LabelStylish.Padding := 5;
+  Window.Controls.InsertFront(LabelStylish);
+
+  LabelStylishBW := TCastleLabel.Create(Window);
+  LabelStylishBW.Text.Text :=
+    'Stylish "old typewriter" font' +LineEnding+
+    'without anti-aliasing.';
+  LabelStylishBW.Padding := 5;
+  Window.Controls.InsertFront(LabelStylishBW);
+
+  LabelStylishLarge := TCastleLabel.Create(Window);
+  LabelStylishLarge.Text.Text :=
+    'Stylish "old typewriter" font' +LineEnding+
+    'with anti-aliasing' +LineEnding+
+    'and larger size.';
+  LabelStylishLarge.Padding := 5;
+  Window.Controls.InsertFront(LabelStylishLarge);
 
   Window.OnOpen := @Open;
   Window.OnResize := @Resize;

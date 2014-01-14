@@ -720,15 +720,15 @@ function TGLBitmapFont.TextMove(const S: string): TVector2Integer;
 var
   I: Integer;
   X, Y: Single;
-  Znak: PBitmapChar;
+  C: PBitmapChar;
 begin
   X := 0;
   Y := 0;
   for I := 1 to Length(S) do
   begin
-    Znak := BitmapFont.Data[S[I]];
-    X += Znak^.Info.XMove;
-    Y += Znak^.Info.YMove;
+    C := BitmapFont.Data[S[I]];
+    X += C^.Info.XMove;
+    Y += C^.Info.YMove;
   end;
   Result := Vector2LongInt(Round(X), Round(Y));
 end;
@@ -744,33 +744,32 @@ end;
 
 function TGLBitmapFont.TextHeight(const S: string): Integer;
 var
-  i: Integer;
-  minY, maxY, YOrig: Integer;
+  I: Integer;
+  MinY, MaxY, YOrigin: Integer;
 begin
-  minY := 0;
-  maxY := 0;
+  MinY := 0;
+  MaxY := 0;
   for I := 1 to Length(S) do
   begin
-    YOrig := Round(BitmapFont.Data[s[i]]^.Info.YOrig);
-    MinTo1st(minY, -YOrig);
-    { Yes, YOrig is *subtracted* here, see glBitmap meaning of yorig. }
-    MaxTo1st(maxY, BitmapFont.Data[s[i]]^.Info.Height - YOrig);
+    YOrigin := Round(BitmapFont.Data[s[i]]^.Info.YOrig);
+    MinTo1st(MinY, -YOrigin);
+    MaxTo1st(MaxY, BitmapFont.Data[s[i]]^.Info.Height - YOrigin);
   end;
-  result := maxY - minY;
+  Result := MaxY - MinY;
 end;
 
 function TGLBitmapFont.TextHeightBase(const S: string): Integer;
 var
   I: Integer;
-  YOrig: Integer;
+  YOrigin: Integer;
 begin
   Result := 0;
   { This is just like TGLBitmapFont.TextHeight implementation, except we only
     calculate (as Result) the MaxY value (assuming that MinY is zero). }
   for I := 1 to Length(S) do
   begin
-    YOrig := Round(BitmapFont.Data[s[i]]^.Info.YOrig);
-    MaxTo1st(Result, BitmapFont.Data[s[i]]^.Info.Height - YOrig);
+    YOrigin := Round(BitmapFont.Data[s[i]]^.Info.YOrig);
+    MaxTo1st(Result, BitmapFont.Data[s[i]]^.Info.Height - YOrigin);
   end;
 end;
 
