@@ -62,16 +62,16 @@ end;
 procedure TGLImageFont.Print(const X, Y: Integer; const Color: TCastleColor;
   const S: string);
 var
-  I: Integer;
+  C: char;
   ScreenX, ScreenY: Integer;
   G: TImageFont.TGlyph;
 begin
   // TODO: use font image as alpha, honour color
   ScreenX := X;
   ScreenY := Y;
-  for I := 1 to Length(S) do
+  for C in S do
   begin
-    G := FFont.Glyph(S[I]);
+    G := FFont.Glyph(C);
     if G <> nil then
     begin
       if (G.Width <> 0) and (G.Height <> 0) then
@@ -85,13 +85,13 @@ end;
 
 function TGLImageFont.TextWidth(const S: string): Integer;
 var
-  I: Integer;
+  C: char;
   G: TImageFont.TGlyph;
 begin
   Result := 0;
-  for I := 1 to Length(S) do
+  for C in S do
   begin
-    G := FFont.Glyph(S[I]);
+    G := FFont.Glyph(C);
     if G <> nil then
       Result += G.AdvanceX;
   end;
@@ -99,15 +99,15 @@ end;
 
 function TGLImageFont.TextHeight(const S: string): Integer;
 var
-  I: Integer;
+  C: char;
   MinY, MaxY, YOrigin: Integer;
   G: TImageFont.TGlyph;
 begin
   MinY := 0;
   MaxY := 0;
-  for I := 1 to Length(S) do
+  for C in S do
   begin
-    G := FFont.Glyph(S[I]);
+    G := FFont.Glyph(C);
     if G <> nil then
     begin
       YOrigin := G.Y;
@@ -120,15 +120,15 @@ end;
 
 function TGLImageFont.TextHeightBase(const S: string): Integer;
 var
-  I: Integer;
+  C: char;
   G: TImageFont.TGlyph;
 begin
   Result := 0;
   { This is just like TGLBitmapFont.TextHeight implementation, except we only
     calculate (as Result) the MaxY value (assuming that MinY is zero). }
-  for I := 1 to Length(S) do
+  for C in S do
   begin
-    G := FFont.Glyph(S[I]);
+    G := FFont.Glyph(C);
     if G <> nil then
       MaxTo1st(Result, G.Height - G.Y);
   end;
@@ -136,13 +136,13 @@ end;
 
 function TGLImageFont.TextMove(const S: string): TVector2Integer;
 var
-  I: Integer;
+  C: char;
   G: TImageFont.TGlyph;
 begin
   Result := ZeroVector2Integer;
-  for I := 1 to Length(S) do
+  for C in S do
   begin
-    G := FFont.Glyph(S[I]);
+    G := FFont.Glyph(C);
     if G <> nil then
     begin
       Result[0] += G.AdvanceX;
