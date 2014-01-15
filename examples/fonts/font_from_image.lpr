@@ -172,10 +172,16 @@ begin
   PositionLabel(LabelStylishLarge);
 end;
 
+var
+  Background: TCastleSimpleBackground;
 begin
   InitializeLog;
 
   Window := TCastleWindow.Create(Application);
+
+  Background := TCastleSimpleBackground.Create(Window);
+  Background.Color := Yellow;
+  Window.Controls.InsertFront(Background);
 
   Label1 := TCastleLabel.Create(Window);
   Label1.Text.Append('A simple test of a font from an image.');
