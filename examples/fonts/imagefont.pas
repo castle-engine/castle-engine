@@ -108,9 +108,9 @@ var
       Result.Width    := Bitmap^.Width;
       Result.Height   := Bitmap^.Height;
       Result.X        := -Bitmap^.X;
-      Result.Y        := Bitmap^.Height + Bitmap^.Y;
-      Result.AdvanceX := Bitmap^.AdvanceX shr 10; // TODO: how much should this be, and why?
-      Result.AdvanceY := Bitmap^.AdvanceY shr 10; // TODO: how much should this be, and why?
+      Result.Y        := Bitmap^.Height - 1 + Bitmap^.Y;
+      Result.AdvanceX := Bitmap^.AdvanceX shr 10; // 64 * 16, looks like this is just magic for freetype
+      Result.AdvanceY := Bitmap^.AdvanceY shr 10; // 64 * 16, looks like this is just magic for freetype
     finally FreeAndNil(Bitmaps) end;
   end;
 
@@ -130,7 +130,7 @@ var
       for RY := 0 to Bitmap^.Height - 1 do
       begin
         for RX := 0 to Bitmap^.Width - 1 do
-          Image.PixelPtr(ImageX + RX, ImageY + Bitmap^.Height - RY)^ := Bitmap^.Data^[B + RX];
+          Image.PixelPtr(ImageX + RX, ImageY + Bitmap^.Height - 1 - RY)^ := Bitmap^.Data^[B + RX];
         Inc(B, Bitmap^.Pitch);
       end;
     end;
@@ -151,7 +151,7 @@ var
         begin
           RB := RX mod 8;
           if (Bitmap^.Data^[B + L] and Bits[RB]) <> 0 then
-            Image.PixelPtr(ImageX + RX, ImageY + Bitmap^.Height - RY)^ := 255;
+            Image.PixelPtr(ImageX + RX, ImageY + Bitmap^.Height - 1 - RY)^ := 255;
           if RB = 7 then
             Inc(L);
         end;
