@@ -1346,7 +1346,7 @@ begin
     That's because in case LoadGLTexture raises exception,
     we don't want to add texture to cache (because caller would have
     no way to call TextureImage_DecReference later). }
-  Result := LoadGLTexture(TextureImage, Filter, TextureWrap, false, DDSForMipmaps);
+  Result := LoadGLTexture(TextureImage, Filter, TextureWrap, DDSForMipmaps);
 
   TexParameterMaxAnisotropy(GL_TEXTURE_2D, TextureAnisotropy);
 

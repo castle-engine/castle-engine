@@ -478,14 +478,6 @@ type
 
   Changes currently bound texture to this one (returned).
 
-  GrayscaleIsAlpha is meaningful only if the image is TGrayscaleImage class.
-  If GrayscaleIsAlpha is @false, then we'll load GL_LUMINANCE texture
-  (this basically behaves like normal RGB texture, except that it has
-  only one channel and stores grayscale colors). If GrayscaleIsAlpha is @true,
-  the texture will be loaded as GL_ALPHA texture (it will modify only the
-  fragments alpha value, it doesn't have any "color" in the normal sense,
-  it's only for opacity).
-
   If mipmaps will be needed (this is decided looking at Filter.Minification)
   we will load them too.
 
@@ -517,13 +509,11 @@ type
 function LoadGLTexture(const image: TEncodedImage;
   const Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
-  GrayscaleIsAlpha: boolean = false;
   DDSForMipmaps: TDDSImage = nil): TGLuint; overload;
 
 function LoadGLTexture(const URL: string;
   const Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
-  GrayscaleIsAlpha: boolean = false;
   DDSForMipmaps: TDDSImage = nil): TGLuint; overload;
 { @groupEnd }
 
@@ -543,7 +533,6 @@ function LoadGLTexture(const URL: string;
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
   const Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
-  GrayscaleIsAlpha: boolean = false;
   DDSForMipmaps: TDDSImage = nil); overload;
 { @groupEnd }
 
@@ -991,7 +980,11 @@ begin
   if Img is TRGBAlphaImage then
     Result := GL_RGBA else
   if Img is TGrayscaleImage then
-    Result := GL_LUMINANCE else
+  begin
+    if TGrayscaleImage(Img).TreatAsAlpha then
+      Result := GL_ALPHA else
+      Result := GL_LUMINANCE;
+  end else
   if Img is TGrayscaleAlphaImage then
     Result := GL_LUMINANCE_ALPHA else
   if Img is TRGBFloatImage then
@@ -1002,9 +995,13 @@ end;
 function ImageGLInternalFormat(const Img: TEncodedImage): TGLenum;
 begin
   if Img is TCastleImage then
-    Result := {$ifdef OpenGLES} ImageGLFormat(TCastleImage(Img))
-              {$else} TCastleImage(Img).ColorComponentsCount
-              {$endif} else
+  begin
+    if (Img is TGrayscaleImage) and TGrayscaleImage(Img).TreatAsAlpha then
+      Result := GL_ALPHA else
+      Result := {$ifdef OpenGLES} ImageGLFormat(TCastleImage(Img))
+                {$else} TCastleImage(Img).ColorComponentsCount
+                {$endif};
+  end else
   if Img is TS3TCImage then
   begin
     {$ifdef OpenGLES}
@@ -1701,21 +1698,21 @@ end;
 
 function LoadGLTexture(const image: TEncodedImage;
   const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
-  GrayscaleIsAlpha: boolean; DDSForMipmaps: TDDSImage): TGLuint;
+  DDSForMipmaps: TDDSImage): TGLuint;
 begin
   glGenTextures(1, @result);
-  LoadGLGeneratedTexture(result, image, Filter, Wrap, GrayscaleIsAlpha, DDSForMipmaps);
+  LoadGLGeneratedTexture(result, image, Filter, Wrap, DDSForMipmaps);
 end;
 
 function LoadGLTexture(const URL: string;
   const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
-  GrayscaleIsAlpha: boolean; DDSForMipmaps: TDDSImage): TGLuint;
+  DDSForMipmaps: TDDSImage): TGLuint;
 var
   Image: TEncodedImage;
 begin
   Image := LoadTextureImage(URL);
   try
-    Result := LoadGLTexture(Image, Filter, Wrap, GrayscaleIsAlpha, DDSForMipmaps);
+    Result := LoadGLTexture(Image, Filter, Wrap, DDSForMipmaps);
   finally Image.Free end;
 end;
 
@@ -1750,7 +1747,7 @@ end;
 
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
   const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
-  GrayscaleIsAlpha: boolean; DDSForMipmaps: TDDSImage);
+  DDSForMipmaps: TDDSImage);
 var
   ImageInternalFormat: TGLuint;
   ImageFormat: TGLuint;
@@ -1902,17 +1899,8 @@ begin
   { give the texture data }
   if Image is TCastleImage then
   begin
-    if (Image is TGrayscaleImage) and GrayscaleIsAlpha then
-    begin
-      { To treat texture as pure alpha channel, both internalFormat and format
-        must be ALPHA }
-      ImageInternalFormat := GL_ALPHA;
-      ImageFormat := GL_ALPHA;
-    end else
-    begin
-      ImageInternalFormat := ImageGLInternalFormat(Image);
-      ImageFormat := ImageGLFormat(TCastleImage(Image));
-    end;
+    ImageInternalFormat := ImageGLInternalFormat(Image);
+    ImageFormat := ImageGLFormat(TCastleImage(Image));
 
     { Load uncompressed }
     if Filter.NeedsMipmaps then

@@ -968,6 +968,7 @@ type
   { Grayscale image. Color is a simple Byte value. }
   TGrayscaleImage = class(TCastleImage)
   private
+    FTreatAsAlpha: boolean;
     function GetGrayscalePixels: PByte;
   public
     { This is the same pointer as RawPixels, only typecasted to PByte }
@@ -994,6 +995,23 @@ type
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
        const Weights: TVector4Single; const Colors: TVector4Pointer); override;
+
+    { Should we treat grayscale image as pure alpha channel (without any color
+      information) when using this as a texture.
+
+      This property is meaningful only for a small subset of operations,
+      right now: only when creating OpenGL texture from this image.
+      If @true, then the grayscale pixel data will be loaded as alpha channel
+      contents (GL_ALPHA texture for OpenGL,
+      it modifies only the fragments alpha value,
+      it doesn't have any "color" in the normal sense).
+      It is also the only way for TGrayscaleImage to return AlphaChannel <> acNone. }
+    property TreatAsAlpha: boolean
+      read FTreatAsAlpha write FTreatAsAlpha;
+
+    function AlphaChannel(
+      const AlphaTolerance: Byte;
+      const WrongPixelsTolerance: Single): TAlphaChannel; override;
   end;
 
   { Grayscale image with an alpha channel.
@@ -3166,6 +3184,60 @@ begin
     Inc(pg);
     Inc(pa);
   end;
+end;
+
+function TGrayscaleImage.AlphaChannel(
+  const AlphaTolerance: Byte;
+  const WrongPixelsTolerance: Single): TAlphaChannel;
+var
+  PtrAlpha: PByte;
+  I, WrongPixels, AllPixels: Cardinal;
+begin
+  if not TreatAsAlpha then
+    Exit(inherited AlphaChannel(AlphaTolerance, WrongPixelsTolerance));
+
+  WrongPixels := 0;
+  AllPixels := Width * Height * Depth;
+
+  PtrAlpha := GrayscalePixels;
+
+  if WrongPixelsTolerance = 0 then
+  begin
+    for I := 1 to AllPixels do
+    begin
+      if (PtrAlpha^ > AlphaTolerance) and
+         (PtrAlpha^ < 255 - AlphaTolerance) then
+        { Special case for WrongPixelsTolerance = exactly 0.
+          Avoids the cases when float "WrongPixels / AllPixels"
+          may be so small that it's equal to 0, which would
+          cause some wrong pixels to "slip" even with
+          WrongPixelsTolerance = 0. }
+        Exit(acFullRange);
+      Inc(PtrAlpha);
+    end;
+  end else
+  begin
+    for I := 1 to AllPixels do
+    begin
+      if (PtrAlpha^ > AlphaTolerance) and
+         (PtrAlpha^ < 255 - AlphaTolerance) then
+      begin
+        Inc(WrongPixels);
+        { From the speed point of view, is it sensible to test
+          WrongPixelsTolerance at each WrongPixels increment?
+          On one hand, we can Exit with false faster.
+          On the other hand, we lose time for checking it many times,
+          if WrongPixelsTolerance is larger.
+          Well, sensible WrongPixelsTolerance are very small --- so I
+          think this is Ok to check this every time. }
+        if WrongPixels / AllPixels > WrongPixelsTolerance then
+          Exit(acFullRange);
+      end;
+      Inc(PtrAlpha);
+    end;
+  end;
+
+  Result := acSimpleYesNo;
 end;
 
 { TGrayscaleAlphaImage ------------------------------------------------------------ }

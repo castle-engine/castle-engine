@@ -232,6 +232,7 @@ begin
 
     FImage := TGrayscaleImage.Create(ImageSize, ImageSize);
     Image.Clear(0);
+    Image.TreatAsAlpha := true;
 
     ImageX := 0;
     ImageY := 0;
