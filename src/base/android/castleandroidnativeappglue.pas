@@ -470,20 +470,27 @@ end;
 
 procedure process_input(app: Pandroid_app; source: Pandroid_poll_source);
 var
-  event: PAInputEvent;
-  handled: boolean;
+  Event: PAInputEvent;
+  Handled, Processed: boolean;
 begin
-    event := nil;
-    if (AInputQueue_getEvent(app^.inputQueue, @event) >= 0) then
-    begin
-        // AndroidLog(alInfo,'New input event: type:=%d',[AInputEvent_getType(event)]);
-        if AInputQueue_preDispatchEvent(app^.inputQueue, event) <> 0 then exit;
-        handled := false;
-        if (app^.onInputEvent <> nil) then handled := app^.onInputEvent(app, event);
-        AInputQueue_finishEvent(app^.inputQueue, event, handled);
-    end
-    else
-        AndroidLog(alError,'Failure reading next input event');
+  { Original native_app_glue was using if and processing only 1 event.
+    Fixed to avoid ANRs following
+    https://developer.nvidia.com/content/nativeactivity-input-crashes-and-anrs-simple-fix-dangerous-bug }
+  Event := nil;
+  Processed := false;
+  while AInputQueue_getEvent(app^.inputQueue, @event) >= 0 do
+  begin
+    // AndroidLog(alInfo,'New input event: type:=%d',[AInputEvent_getType(event)]);
+    if AInputQueue_preDispatchEvent(app^.inputQueue, event) <> 0 then
+      Continue;
+    Handled := false;
+    if Assigned(app^.onInputEvent) then
+      Handled := App^.onInputEvent(app, event);
+    AInputQueue_finishEvent(app^.inputQueue, event, handled);
+    Processed := true;
+  end;
+  if not Processed then
+    AndroidLog(alError, 'Failure reading next input event');
 end;
 
 procedure process_cmd(app: Pandroid_app; source: Pandroid_poll_source);
