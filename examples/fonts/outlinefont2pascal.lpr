@@ -13,20 +13,17 @@
   ----------------------------------------------------------------------------
 }
 
-{ Convert fonts to Pascal units, to embed fonts inside source code.
+{ Convert outline fonts to Pascal units, to embed fonts inside source code.
 
   TODO: This program is Windows-only for now, as it uses CastleWinFontConvert
   to read font information, which in turn uses GetGlpyhOutline WinAPI.
   (Fortunately, at least it works fine through wine.)
 
+  TODO: Rewrite it using FreeType library, or maybe just resign
+  from using outline fonts.
   Michalis plans (since a long time...) to switch to using freetype
   (as I don't even use Windows since a long time), but so far there was no time
-  to do it. The plan is to implement unit like CastleFonts that reads a font file
-  (like ttf) and for a given character returns PBitmapChar structure (for bitmap
-  font) and POutlineChar (for geometric font, composed from lines and curves).
-  It's possible to also change the definition of our PBitmapChar/POutlineChar types
-  at that point, maybe integrate them more with freetype structures,
-  basically: do anything to make the job easier.
+  to do it.
   Contributions are most welcome, if you're familiar with freetype
   this may even be easy!
 }
@@ -34,7 +31,7 @@
 {$apptype CONSOLE}
 
 uses Windows, SysUtils, CastleWindowsFonts, CastleFont2Pascal, CastleUtils,
-  CastleClassUtils, CastleParameters, CastleOutlineFonts, CastleBitmapFonts,
+  CastleClassUtils, CastleParameters, CastleOutlineFonts,
   CastleWinFontConvert, Classes, CastleStringUtils, CastleTimeUtils,
   CastleURIUtils;
 
@@ -48,14 +45,13 @@ var
   Dir: string;
 
 const
-  Options: array [0..8] of TOption =
+  Options: array [0..7] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'n'; Long: 'font-name'; Argument: oaRequired),
     (Short: 'b'; Long: 'font-bold'; Argument: oaRequired),
     (Short: 'w'; Long: 'font-weight'; Argument: oaRequired),
     (Short: 'i'; Long: 'font-italic'; Argument: oaRequired),
-    (Short: #0; Long: 'grab-to'; Argument: oaRequired),
     (Short: #0; Long: 'font-charset'; Argument: oaRequired),
     (Short: #0; Long: 'font-height'; Argument: oaRequired),
     (Short: #0; Long: 'dir'; Argument: oaRequired)
@@ -69,14 +65,10 @@ begin
          Writeln(
            'font2pascal: converts fonts installed' +nl+
            'on your system to Pascal source files, based on types' +nl+
-           'in Castle Game Engine CastleOutlineFonts or CastleBitmapFonts units.' +nl+
+           'in Castle Game Engine CastleOutlineFonts units.' +nl+
            nl+
            'Available options:' +nl+
            '  -h / --help           Print this help message and exit' +nl+
-           '  --grab-to outline|bitmap' +nl+
-           '                        Set whether to generate font as outline' +nl+
-           '                        (CastleOutlineFonts) or bitmap font (CastleBitmapFonts)' +nl+
-           '                        Default is "as outline".' +nl+
            '  --dir DIR             This tells font2pascal to write output to file' +nl+
            '                        in directory DIR with URL deduced from' +nl+
            '                        generated unit name (e.g. unit CastleOutlineFont_CourierNew' +nl+
@@ -116,13 +108,9 @@ begin
          WinFont.Weight := FW_REGULAR;
     3: WinFont.Weight := StrToInt(Argument);
     4: WinFont.Italic := StrToBool(Argument);
-    5: if Argument = 'outline' then AsOutline := true  else
-       if Argument = 'bitmap'  then AsOutline := false else
-         raise EInvalidParams.CreateFmt('Wrong argument, should be "outline" or "bitmap" '+
-           'but is "%s"', [Argument]);
-    6: WinFont.CharSet := WinCharSetFromName(Argument);
-    7: WinFont.Height := StrToInt(Argument);
-    8: begin
+    5: WinFont.CharSet := WinCharSetFromName(Argument);
+    6: WinFont.Height := StrToInt(Argument);
+    7: begin
          WasParam_Dir := true;
          Dir := Argument;
        end;
@@ -133,7 +121,6 @@ end;
 var
   WinFontHandle: HFont;
   OutlineFont: TOutlineFont;
-  BitmapFont: TBitmapFont;
   S, PrecedingComment, UnitName, FontConstantName, OutURL: string;
   Stream: TStream;
 begin
@@ -144,7 +131,7 @@ begin
 
     WinFontHandle := WinFont.GetHandle;
     try
-      if AsOutline then s := 'OutlineFont_' else s := 'BitmapFont_';
+      s := 'OutlineFont_';
       s := s + SDeleteChars(WinFont.FaceName, AllChars - ['a'..'z', 'A'..'Z', '0'..'9']);
       if WinFont.Weight >= FW_BOLD then s := s + '_Bold';
       if WinFont.Italic then s := s + '_Italic';
@@ -175,19 +162,10 @@ begin
         Stream := StdOutStream;
 
       try
-        if AsOutline then
-        begin
-          OutlineFont := Font2OutlineFont(WinFontHandle);
-          try
-            Font2Pascal(OutlineFont, UnitName, PrecedingComment, FontConstantName, Stream);
-          finally FreeAndNilFont(OutlineFont) end;
-        end else
-        begin
-          BitmapFont := Font2BitmapFont(WinFontHandle);
-          try
-            Font2Pascal(BitmapFont, UnitName, PrecedingComment, FontConstantName, Stream);
-          finally FreeAndNilFont(BitmapFont) end;
-        end;
+        OutlineFont := Font2OutlineFont(WinFontHandle);
+        try
+          Font2Pascal(OutlineFont, UnitName, PrecedingComment, FontConstantName, Stream);
+        finally FreeAndNilFont(OutlineFont) end;
 
         if WasParam_Dir then
           Writeln('font2pascal: "' +OutFileName +'" generated');

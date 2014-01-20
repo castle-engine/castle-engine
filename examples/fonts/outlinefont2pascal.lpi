@@ -9,7 +9,7 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="font2pascal.lpi"/>
+        <Filename Value="outlinefont2pascal.lpi"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
     </Units>

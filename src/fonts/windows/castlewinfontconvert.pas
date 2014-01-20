@@ -13,34 +13,31 @@
   ----------------------------------------------------------------------------
 }
 
-{ Convert fonts available on Windows to TBitmapFont and TOutlineFont.
+{ Convert fonts available on Windows to TOutlineFont.
 
   This unit heavily depends on GetGlpyhOutline WinAPI function.
   This function is our "core" of converting Windows fonts to
-  TBitmapFont or TOutlineFont. Unfortunately, this makes this unit
-  Windows-only forever.
-  In the future I plan to write some similiar unit, but portable.
-  Probably using FreeType2 library.
+  TOutlineFont. Unfortunately, this makes this unit Windows-only.
+
+  TODO: Rewrite it using FreeType library, or maybe just resign
+  from using outline fonts.
 }
 
 unit CastleWinFontConvert;
 
 interface
 
-uses Windows, CastleBitmapFonts, CastleOutlineFonts;
+uses Windows, CastleOutlineFonts;
 
 { Create our font from a Windows font handle.
   Remeber to free resulting font later by FreeAndNilFont.
   @groupBegin }
-function Font2BitmapFont(WinFont: HFont): TBitmapFont;
 function Font2OutlineFont(WinFont: HFont): TOutlineFont;
 { @groupEnd }
 
 { Free and nil Font instance, freeing also all characters by FreeMem.
-  Use this only on fonts with characters created by Font2BitmapFont /
-  Font2OutlineFont.
+  Use this only on fonts with characters created by Font2OutlineFont.
   @groupBegin }
-procedure FreeAndNilFont(var Font: TBitmapFont); overload;
 procedure FreeAndNilFont(var Font: TOutlineFont); overload;
 { @groupEnd }
 
@@ -68,84 +65,6 @@ const
   IdentityMat2:Mat2= { identity matrix }
     (eM11:(fract:0; value:1); eM12:(fract:0; value:0);    { 1.0  0.0 }
      eM21:(fract:0; value:0); eM22:(fract:0; value:1));   { 0.0  1.0 }
-
-{ Create a bitmap font character
-  from a currently selected Windows font on device context DC. }
-function Font2BitmapChar_HDc(dc: HDC; c: char): PBitmapChar;
-var
-  GlyphData: PByteArray;
-  GlyphMetrics: TGlyphMetrics;
-  GlyphDataSize: Dword;
-  j: Cardinal;
-  RowByteLength: Cardinal;
-begin
-  GlyphData := nil;
-  try
-    { get GlyphDataSize }
-    GlyphDataSize := GetGlyphOutline(dc, Ord(c), GGO_BITMAP, GlyphMetrics, 0,
-      nil, IdentityMat2);
-    OSCheck( GlyphDataSize <> GDI_ERROR, 'GlyphDataSize');
-
-    if GlyphDataSize = 0 then
-    begin
-      { Assert((gmBlackBoxX = 1) and (gmBlackBoxY = 1)) works under Win2000 Prof,
-        Assert((gmBlackBoxX = 0) and (gmBlackBoxY = 0)) works under Win98.
-        So I just ignore values of gmBlackBoxX and gmBlackBoxY -- it seems
-        that they have no guaranteed value when GlyphDataSize = 0. }
-      Result := GetMem(SizeOf(TBitmapCharInfo));
-
-      Result^.Info.Alignment := 4;
-      Result^.Info.XOrig := -GlyphMetrics.gmptGlyphOrigin.x;
-      Result^.Info.YOrig := -GlyphMetrics.gmptGlyphOrigin.y;
-      Result^.Info.XMove := GlyphMetrics.gmCellIncX;
-      Result^.Info.YMove := GlyphMetrics.gmCellIncY;
-      Result^.Info.Width := 0;
-      Result^.Info.Height := 0;
-    end else
-    begin
-      GlyphData := GetMem(GlyphDataSize);
-      Check( GetGlyphOutline(dc, Ord(c), GGO_BITMAP, GlyphMetrics, GlyphDataSize,
-        GlyphData, IdentityMat2) <> GDI_ERROR, 'GetGlyphOutline failed');
-
-       { alignment w zwroconej data jest zawsze 4 }
-       RowByteLength := BitmapCharRowByteLength(GlyphMetrics.gmBlackBoxX, 4);
-
-       { Under Win98 this assertion was always true.
-           Assert(GlyphDataSize = linelen * gmBlackBoxY);
-         Under Win2000 Prof this is no longer true -- it seems that GlyphDataSize
-         is sometimes excessively large, e.g. I have here gmBlackBoxX = 12
-         (so linelen = 4), gmBlackBoxY = 19, so GlyphDataSize should be 19*4.
-         But it is 80 = 20*4.
-
-         So I'm correcting here GlyphDataSize to something smaller. This
-         leads to no harm because GetMem(Pointer(GlyphData), GlyphDataSize);
-         is already done. So I already allocated memory. I will just look at
-         this memory area as though it would be smaller than it is. }
-      Assert(GlyphDataSize >= RowByteLength * GlyphMetrics.gmBlackBoxY);
-      GlyphDataSize := RowByteLength * GlyphMetrics.gmBlackBoxY;
-
-      Result := GetMem(SizeOf(TBitmapCharInfo) + GlyphDataSize*SizeOf(Byte));
-
-      Result^.Info.Alignment := 4;
-      Result^.Info.XOrig := -GlyphMetrics.gmptGlyphOrigin.x;
-      Result^.Info.YOrig := Integer(GlyphMetrics.gmBlackBoxY) - GlyphMetrics.gmptGlyphOrigin.y;
-      Result^.Info.XMove := GlyphMetrics.gmCellIncX;
-      Result^.Info.YMove := GlyphMetrics.gmCellIncY;
-      Result^.Info.Width:=  GlyphMetrics.gmBlackBoxX;
-      Result^.Info.Height := GlyphMetrics.gmBlackBoxY;
-
-      { copy GlyphData do Result^.Data line by line.
-        We must replace line order - TBitmapFont wants lines bottom -> top,
-        while GlyphData has lines top -> bottom. }
-      for j := 0 to GlyphMetrics.gmBlackBoxY-1 do
-        Move(GlyphData^[(Result^.Info.Height - j - 1) * RowByteLength],
-             Result^.Data[j * RowByteLength],
-             RowByteLength);
-    end;
-  finally
-    FreeMemNiling(Pointer(GlyphData));
-  end;
-end;
 
 type
   TOutlineCharItemList = specialize TGenericStructList<TOutlineCharItem>;
@@ -308,17 +227,6 @@ end;
 
 { Font2XxxFont_HDc ----------------------------------------------- }
 
-function Font2BitmapFont_HDc(dc: HDC): TBitmapFont;
-var
-  c: char;
-begin
-  Result := TBitmapFont.Create;
-  try
-    for c := Low(char) to High(char) do
-      Result.Data[c] := Font2BitmapChar_HDc(dc, c);
-  except FreeAndNilFont(Result); raise end;
-end;
-
 function Font2OutlineFont_HDc(dc: HDC): TOutlineFont;
 var
   c: char;
@@ -331,21 +239,6 @@ begin
 end;
 
 { versions without _HDc ------------------------------------------- }
-
-function Font2BitmapFont(WinFont: HFont): TBitmapFont;
-var
-  dc: HDc;
-  PreviousObject: HGdiObj;
-begin
-  dc := GetDC(0);
-  Check(dc <> 0, 'GetDC(0) failed');
-  try
-    PreviousObject := SelectObject(dc, WinFont);
-    try
-      Result := Font2BitmapFont_HDc(dc);
-    finally SelectObject(dc, PreviousObject) end;
-  finally ReleaseDC(0, dc) end;
-end;
 
 function Font2OutlineFont(WinFont: HFont): TOutlineFont;
 var
@@ -363,14 +256,6 @@ begin
 end;
 
 { FreeAndNilFont ------------------------------------------------------------- }
-
-procedure FreeAndNilFont(var Font: TBitmapFont);
-var
-  c: char;
-begin
-  for c := Low(char) to High(char) do FreeMem(Pointer(Font.Data[c]));
-  FreeAndNil(Font);
-end;
 
 procedure FreeAndNilFont(var Font: TOutlineFont);
 var

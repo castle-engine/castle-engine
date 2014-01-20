@@ -131,7 +131,7 @@ EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
 
 EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES)) \
   $(addsuffix .exe,$(EXAMPLES_LAZARUS_BASE_NAMES)) \
-  examples/fonts/font2pascal.exe
+  examples/fonts/outlinefont2pascal.exe
 
 EXAMPLES_MACOSX_APPS := $(addsuffix .app,$(EXAMPLES_BASE_NAMES)) \
   $(addsuffix .app,$(EXAMPLES_LAZARUS_BASE_NAMES))

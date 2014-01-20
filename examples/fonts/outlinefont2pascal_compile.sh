@@ -6,6 +6,6 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f font2pascal.lpr ]; then cd ../../; fi
+if [ -f outlinefont2pascal.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/fonts/font2pascal.lpr
+fpc -dRELEASE @castle-fpc.cfg examples/fonts/outlinefont2pascal.lpr
