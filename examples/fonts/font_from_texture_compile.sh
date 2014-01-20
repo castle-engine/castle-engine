@@ -6,6 +6,6 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f font_from_image.lpr ]; then cd ../../; fi
+if [ -f font_from_texture.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/fonts/font_from_image.lpr
+fpc -dRELEASE @castle-fpc.cfg examples/fonts/font_from_texture.lpr

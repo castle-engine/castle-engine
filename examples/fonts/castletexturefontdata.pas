@@ -13,16 +13,16 @@
   ----------------------------------------------------------------------------
 }
 
-{ Image-based font initialized from a FreeType font file, like ttf (TImageFont). }
-unit ImageFont;
+{ Data for a 2D font initialized from a FreeType font file (TTextureFontData). }
+unit CastleTextureFontData;
 
 interface
 
 uses CastleStringUtils, CastleImages;
 
 type
-  { Image-based font initialized from a FreeType font file, like ttf. }
-  TImageFont = class
+  { Data for a 2D font initialized from a FreeType font file, like ttf. }
+  TTextureFontData = class
   public
     type
       { Information about a particular font glyph. }
@@ -38,7 +38,7 @@ type
           but note that it is possible that Width = Height = 0
           (it commonly happens for space ' ' character). }
         Width, Height: Cardinal;
-        { Position of the glyph on the image in TImageFont.Image. }
+        { Position of the glyph on the image in TTextureFontData.Image. }
         ImageX, ImageY: Cardinal;
       end;
   private
@@ -68,9 +68,9 @@ implementation
 uses SysUtils, FreeType, FtFont, CastleLog,
   CastleUtils, CastleURIUtils, CastleWarnings;
 
-{ TImageFont ----------------------------------------------------------------- }
+{ TTextureFontData ----------------------------------------------------------------- }
 
-constructor TImageFont.Create(const URL: string;
+constructor TTextureFontData.Create(const URL: string;
   const AnAntiAliased: boolean; const ASize: Integer;
   const ACharacters: TSetOfChars = SimpleAsciiCharacters);
 var
@@ -256,7 +256,7 @@ begin
   end;
 end;
 
-destructor TImageFont.Destroy;
+destructor TTextureFontData.Destroy;
 var
   C: char;
 begin
@@ -266,7 +266,7 @@ begin
   inherited;
 end;
 
-function TImageFont.Glyph(const C: char): TGlyph;
+function TTextureFontData.Glyph(const C: char): TGlyph;
 begin
   Result := FGlyphs[C];
 end;
