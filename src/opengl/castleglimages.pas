@@ -63,7 +63,7 @@ unit CastleGLImages;
 interface
 
 uses CastleGL, SysUtils, CastleImages, CastleVectors, CastleGLUtils,
-  CastleVideos, CastleDDS, CastleRectangles, CastleGLShaders;
+  CastleVideos, CastleDDS, CastleRectangles, CastleGLShaders, CastleColors;
 
 const
   PixelsImageClasses: array [0..3] of TCastleImageClass = (
@@ -105,13 +105,23 @@ type
         Position: TVector2SmallInt;
         TexCoord: TVector2Single;
       end;
+      TColorTreatment = (
+        { Use texture color to draw. }
+        ctTexture,
+        { Use constant color * texture (on all RGBA channels). }
+        ctColorMultipliesTexture,
+        { Use constant color for RGB,
+          for alpha use constant color.a * texture.
+          Useful when texture has no alpha information. }
+        ctColorMultipliesTextureAlpha);
     var
     { Static OpenGL resources, used by all TGLImage instances. }
     PointVbo: TGLuint; static;
     { Point VBO contents, reused in every Draw. }
     Point: array [0..PointCount - 1] of TPoint; static;
     {$ifdef GLImageUseShaders}
-    GLSLProgram: array [boolean { alpha test? }] of TGLSLProgram; static;
+    TextureHasOnlyAlpha: boolean;
+    GLSLProgram: array [boolean { alpha test? }, TColorTreatment] of TGLSLProgram; static;
     {$endif}
 
     Texture: TGLuint;
@@ -119,6 +129,7 @@ type
     FHeight: Cardinal;
     FAlpha: TAlphaChannel;
     FIgnoreTooLargeCorners: boolean;
+    FColor: TCastleColor;
     procedure AlphaBegin;
     procedure AlphaEnd;
   public
@@ -267,6 +278,23 @@ type
       draw area size. }
     property IgnoreTooLargeCorners: boolean
       read FIgnoreTooLargeCorners write FIgnoreTooLargeCorners default false;
+
+    { Color to multiply the texture contents (all RGBA channels).
+      By default this is White, which is (1, 1, 1, 1) as RGBA,
+      and it means that texture contents are not actually modified.
+      This case is also optimized when possible, to no multiplication will
+      actually happen.
+
+      Note that the alpha of this color does not determine our alpha rendering
+      mode (it cannot, as you can change this color at any point,
+      and after creation the @link(Alpha) is never automatically updated).
+      If you set a color with alpha <> 1, consider setting also @link(Alpha)
+      property to whatever you need.
+
+      Note that if use TGrayscaleImage with TGrayscaleImage.TreatAsAlpha
+      (which means that texture does not contain any RGB information),
+      then only this color's RGB values determine the drawn RGB color. }
+    property Color: TCastleColor read FColor write FColor;
   end;
 
 { Draw the image on 2D screen. Note that if you want to use this
@@ -971,7 +999,7 @@ type
 implementation
 
 uses CastleUtils, CastleLog, CastleGLVersion, CastleWarnings, CastleTextureImages,
-  CastleColors, CastleUIControls;
+  CastleUIControls;
 
 function ImageGLFormat(const Img: TCastleImage): TGLenum;
 begin
@@ -1056,12 +1084,16 @@ var
   Filter: TTextureFilter;
   {$ifdef GLImageUseShaders}
   AlphaTestShader: boolean;
+  ColorTreatment: TColorTreatment;
+  NewProgram: TGLSLProgram;
   {$endif}
 begin
   inherited Create;
 
   // TODO: use texture cache here, like GL renderer does for textures for 3D.
   // no need to create new OpenGL texture for the same image.
+
+  FColor := White;
 
   glGenTextures(1, @Texture);
   glBindTexture(GL_TEXTURE_2D, Texture);
@@ -1093,16 +1125,25 @@ begin
     glGenBuffers(1, @PointVbo);
 
   {$ifdef GLImageUseShaders}
-  for AlphaTestShader := false to true do
-    if GLSLProgram[AlphaTestShader] = nil then
-    begin
-      GLSLProgram[AlphaTestShader] := TGLSLProgram.Create;
-      GLSLProgram[AlphaTestShader].AttachVertexShader({$I image.vs.inc});
-      GLSLProgram[AlphaTestShader].AttachFragmentShader(
-        Iff(AlphaTestShader, '#define ALPHA_TEST' + NL, '') +
-        {$I image.fs.inc});
-      GLSLProgram[AlphaTestShader].Link(true);
-    end;
+  { calculate TextureHasOnlyAlpha, useful only for GLSL image rendering }
+  TextureHasOnlyAlpha := (Image is TGrayscaleImage) and
+    (TGrayscaleImage(Image).TreatAsAlpha);
+
+  { create GLSLProgram programs }
+  for AlphaTestShader in boolean do
+    for ColorTreatment in TColorTreatment do
+      if GLSLProgram[AlphaTestShader, ColorTreatment] = nil then
+      begin
+        NewProgram := TGLSLProgram.Create;
+        NewProgram.AttachVertexShader({$I image.vs.inc});
+        NewProgram.AttachFragmentShader(
+          Iff(AlphaTestShader, '#define ALPHA_TEST' + NL, '') +
+          Iff(ColorTreatment in [ctColorMultipliesTexture, ctColorMultipliesTextureAlpha], '#define COLOR_UNIFORM' + NL, '') +
+          Iff(ColorTreatment = ctColorMultipliesTextureAlpha, '#define TEXTURE_HAS_ONLY_ALPHA' + NL, '') +
+          {$I image.fs.inc});
+        NewProgram.Link(true);
+        GLSLProgram[AlphaTestShader, ColorTreatment] := NewProgram;
+      end;
   {$endif}
 end;
 
@@ -1189,6 +1230,7 @@ procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
 var
   TexX0, TexY0, TexX1, TexY1: Single;
   {$ifdef GLImageUseShaders}
+  ColorTreatment: TColorTreatment;
   AttribEnabled: array [0..1] of TGLuint;
   AttribLocation: TGLuint;
   Prog: TGLSLProgram;
@@ -1219,17 +1261,25 @@ begin
   AlphaBegin;
 
   {$ifdef GLImageUseShaders}
-  Prog := GLSLProgram[Alpha = acSimpleYesNo];
+  if TextureHasOnlyAlpha then
+    ColorTreatment := ctColorMultipliesTextureAlpha else
+  if not VectorsPerfectlyEqual(Color, White) then
+    ColorTreatment := ctColorMultipliesTexture else
+    ColorTreatment := ctTexture;
+
+  Prog := GLSLProgram[Alpha = acSimpleYesNo, ColorTreatment];
   Prog.Enable;
   AttribEnabled[0] := Prog.VertexAttribPointer('vertex', 0, 2, GL_SHORT, GL_FALSE,
     SizeOf(TPoint), Offset(Point[0].Position, Point[0]));
   AttribEnabled[1] := Prog.VertexAttribPointer('tex_coord', 0, 2, GL_FLOAT, GL_FALSE,
     SizeOf(TPoint), Offset(Point[0].TexCoord, Point[0]));
   Prog.SetUniform('projection_matrix', ProjectionMatrix);
+  if ColorTreatment <> ctTexture then
+    Prog.SetUniform('color', Color);
 
   {$else}
   glLoadIdentity();
-  glColorv(White); // don't modify texture colors
+  glColorv(Color);
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -2987,11 +3037,15 @@ begin
 end;
 
 procedure ContextClose;
+var
+  AlphaTestShader: boolean;
+  ColorTreatment: TGLImage.TColorTreatment;
 begin
   glFreeBuffer(TGLImage.PointVbo);
   {$ifdef GLImageUseShaders}
-  FreeAndNil(TGLImage.GLSLProgram[false]);
-  FreeAndNil(TGLImage.GLSLProgram[true]);
+  for AlphaTestShader in boolean do
+    for ColorTreatment in TGLImage.TColorTreatment do
+      FreeAndNil(TGLImage.GLSLProgram[AlphaTestShader, ColorTreatment]);
   {$endif}
 end;
 

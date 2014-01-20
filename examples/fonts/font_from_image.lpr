@@ -79,6 +79,7 @@ var
   ImageX, ImageY: Single;
   I, CharIndex, ScreenX, ScreenY: Integer;
 begin
+  Image.Color := Color;
   for I := 1 to Length(S) do
   begin
     CharIndex := Ord(S[I]) - Ord(' ');
@@ -130,6 +131,7 @@ begin
 
   Label2.CustomFont := TFontFromImage.Create('null_terminator_0.png', 1, 1);
   Label2.OwnsCustomFont := true;
+  Label2.Color := Red;
 
   LabelDeja.CustomFont := TGLImageFont.Create(ApplicationData('DejaVuSans.ttf'), true, 15);
   LabelDeja.OwnsCustomFont := true;
@@ -214,6 +216,7 @@ begin
   LabelDejaLarge.Text.Append('DejaVuSans font');
   LabelDejaLarge.Text.Append('with anti-aliasing');
   LabelDejaLarge.Text.Append('and larger size.');
+  LabelDejaLarge.Color := Blue;
   LabelDejaLarge.Padding := 5;
   Window.Controls.InsertFront(LabelDejaLarge);
 

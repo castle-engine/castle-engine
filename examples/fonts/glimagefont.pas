@@ -66,7 +66,7 @@ var
   ScreenX, ScreenY: Integer;
   G: TImageFont.TGlyph;
 begin
-  // TODO: use font image as alpha, honour color
+  Image.Color := Color;
   ScreenX := X;
   ScreenY := Y;
   for C in S do
