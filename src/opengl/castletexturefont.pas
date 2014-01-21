@@ -16,6 +16,8 @@
 { 2D font using a texture initialized from a FreeType font file (TTextureFont). }
 unit CastleTextureFont;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleGLBitmapFonts, CastleGLImages, CastleStringUtils, CastleColors,
@@ -34,10 +36,12 @@ type
     FOwnsFont: boolean;
     Image: TGLImage;
   public
+    {$ifdef HAS_FREE_TYPE}
     { Create by reading a FreeType font file, like ttf. }
     constructor Create(const URL: string;
       const ASize: Integer; const AnAntiAliased: boolean;
       const ACharacters: TSetOfChars = SimpleAsciiCharacters);
+    {$endif}
     { Create from a ready TTextureFontData instance.
       Data instance becomes owned by this class if and only if OwnsData. }
     constructor Create(const Data: TTextureFontData; const OwnsData: boolean);
@@ -95,12 +99,14 @@ uses SysUtils, CastleUtils;
 
 { TTextureFont --------------------------------------------------------------- }
 
+{$ifdef HAS_FREE_TYPE}
 constructor TTextureFont.Create(const URL: string;
   const ASize: Integer; const AnAntiAliased: boolean;
   const ACharacters: TSetOfChars);
 begin
   Create(TTextureFontData.Create(URL, ASize, AnAntiAliased, ACharacters), true);
 end;
+{$endif}
 
 constructor TTextureFont.Create(const Data: TTextureFontData; const OwnsData: boolean);
 begin

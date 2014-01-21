@@ -142,4 +142,9 @@
 {$define HAS_FP_HTTP_CLIENT}
 {$ifdef ANDROID} {$undef HAS_FP_HTTP_CLIENT} {$endif}
 
+{ FreeType ------------------------------------------------------------------- }
+
+{$define HAS_FREE_TYPE}
+{$ifdef ANDROID} {$undef HAS_FREE_TYPE} {$endif}
+
 {$endif not CASTLE_CONF_INCLUDED}

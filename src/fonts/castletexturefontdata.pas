@@ -16,6 +16,8 @@
 { Data for a 2D font initialized from a FreeType font file (TTextureFontData). }
 unit CastleTextureFontData;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleStringUtils, CastleImages;
@@ -49,10 +51,12 @@ type
     FGlyphs: TGlyphDictionary;
     FImage: TGrayscaleImage;
   public
+    {$ifdef HAS_FREE_TYPE}
     { Create by reading a FreeType font file, like ttf. }
     constructor Create(const URL: string;
       const ASize: Integer; const AnAntiAliased: boolean;
       const ACharacters: TSetOfChars = SimpleAsciiCharacters);
+    {$endif}
     { Create from a ready data for glyphs and image.
       Useful when font data is embedded inside the Pascal source code.
       AGlyphs contents, and AImage instance, become owned by this class. }
@@ -73,10 +77,12 @@ type
 
 implementation
 
-uses SysUtils, FreeType, FtFont, CastleLog,
-  CastleUtils, CastleURIUtils, CastleWarnings;
+uses SysUtils, {$ifdef HAS_FREE_TYPE} FreeType, FtFont, {$endif}
+  CastleLog, CastleUtils, CastleURIUtils, CastleWarnings;
 
 { TTextureFontData ----------------------------------------------------------------- }
+
+{$ifdef HAS_FREE_TYPE}
 
 constructor TTextureFontData.Create(const URL: string;
   const ASize: Integer; const AnAntiAliased: boolean;
@@ -263,6 +269,8 @@ begin
     // Debug: SaveImage(Image, '/tmp/a.png');
   end;
 end;
+
+{$endif}
 
 constructor TTextureFontData.CreateFromData(const AGlyphs: TGlyphDictionary;
   const AImage: TGrayscaleImage;
