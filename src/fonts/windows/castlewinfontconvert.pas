@@ -13,11 +13,11 @@
   ----------------------------------------------------------------------------
 }
 
-{ Convert fonts available on Windows to TOutlineFont.
+{ Convert fonts available on Windows to TOutlineFontData.
 
   This unit heavily depends on GetGlpyhOutline WinAPI function.
   This function is our "core" of converting Windows fonts to
-  TOutlineFont. Unfortunately, this makes this unit Windows-only.
+  TOutlineFontData. Unfortunately, this makes this unit Windows-only.
 
   TODO: Rewrite it using FreeType library, or maybe just resign
   from using outline fonts.
@@ -27,18 +27,18 @@ unit CastleWinFontConvert;
 
 interface
 
-uses Windows, CastleOutlineFonts;
+uses Windows, CastleOutlineFontData;
 
 { Create our font from a Windows font handle.
   Remeber to free resulting font later by FreeAndNilFont.
   @groupBegin }
-function Font2OutlineFont(WinFont: HFont): TOutlineFont;
+function Font2OutlineFont(WinFont: HFont): TOutlineFontData;
 { @groupEnd }
 
 { Free and nil Font instance, freeing also all characters by FreeMem.
   Use this only on fonts with characters created by Font2OutlineFont.
   @groupBegin }
-procedure FreeAndNilFont(var Font: TOutlineFont); overload;
+procedure FreeAndNilFont(var Font: TOutlineFontData); overload;
 { @groupEnd }
 
 implementation
@@ -227,11 +227,11 @@ end;
 
 { Font2XxxFont_HDc ----------------------------------------------- }
 
-function Font2OutlineFont_HDc(dc: HDC): TOutlineFont;
+function Font2OutlineFont_HDc(dc: HDC): TOutlineFontData;
 var
   c: char;
 begin
-  Result := TOutlineFont.Create;
+  Result := TOutlineFontData.Create;
   try
     for c := Low(char) to High(char) do
       Result.Data[c] := Font2OutlineChar_HDc(dc, c);
@@ -240,7 +240,7 @@ end;
 
 { versions without _HDc ------------------------------------------- }
 
-function Font2OutlineFont(WinFont: HFont): TOutlineFont;
+function Font2OutlineFont(WinFont: HFont): TOutlineFontData;
 var
   dc: HDc;
   PreviousObject: HGdiObj;
@@ -257,7 +257,7 @@ end;
 
 { FreeAndNilFont ------------------------------------------------------------- }
 
-procedure FreeAndNilFont(var Font: TOutlineFont);
+procedure FreeAndNilFont(var Font: TOutlineFontData);
 var
   c: char;
 begin

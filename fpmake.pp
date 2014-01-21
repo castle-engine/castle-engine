@@ -167,13 +167,13 @@ begin
     P.Targets.AddUnit('x3dcastlescript.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'fonts');
-    P.Targets.AddUnit('castlebitmapfont_bvsans_m10.pas');
-    P.Targets.AddUnit('castlebitmapfont_bvsans.pas');
-    P.Targets.AddUnit('castlebitmapfont_bvsansmono_bold_m15.pas');
-    P.Targets.AddUnit('castlebitmapfont_bvsansmono_m18.pas');
-    P.Targets.AddUnit('castlebitmapfonts.pas');
+    P.Targets.AddUnit('castletexturefont_dejavusans_10.pas');
+    P.Targets.AddUnit('castletexturefont_dejavusans_20.pas');
+    P.Targets.AddUnit('castletexturefont_dejavusansmono_18.pas');
+    P.Targets.AddUnit('castletexturefont_dejavusansmonobold_15.pas');
+    P.Targets.AddUnit('castletexturefontdata.pas');
     P.Targets.AddUnit('castlefont2pascal.pas');
-    P.Targets.AddUnit('castleoutlinefonts.pas');
+    P.Targets.AddUnit('castleoutlinefontdata.pas');
     P.Targets.AddUnit('castleoutlinefont_bvsans_bold_italic.pas');
     P.Targets.AddUnit('castleoutlinefont_bvsans_bold.pas');
     P.Targets.AddUnit('castleoutlinefont_bvsans_italic.pas');
@@ -225,11 +225,7 @@ begin
     P.Targets.AddUnit('castleglshaders.pas');
     P.Targets.AddUnit('castleglshadowvolumes.pas');
     P.Targets.AddUnit('castleglversion.pas');
-    if Defaults.OS in AllWindowsOSes then
-    begin
-      P.SourcePath.Add('src' + PathDelim + 'opengl' + PathDelim + 'windows');
-      P.Targets.AddUnit('castleglwindowsfonts.pas');
-    end;
+    P.Targets.AddUnit('castletexturefont.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'ui');
     P.Targets.AddUnit('castlecameras.pas');

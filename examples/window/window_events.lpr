@@ -23,25 +23,20 @@ program window_events;
 {$apptype GUI}
 
 uses SysUtils, CastleUtils, CastleGLUtils, CastleNotifications, CastleWindow,
-  CastleKeysMouse, CastleStringUtils, CastleColors,
-  CastleGLBitmapFonts, CastleBitmapFont_BVSansMono_Bold_m15,
-  Classes, CastleMessages;
+  CastleKeysMouse, CastleStringUtils, CastleColors, Classes, CastleMessages,
+  CastleControls;
 
 var
   Window: TCastleWindowCustom;
   Notifications: TCastleNotifications;
-  Font: TGLBitmapFont;
 
 procedure Open(Window: TCastleWindowBase);
 begin
   Notifications.Show('Open message');
-
-  Font := TGLBitmapFont.Create(BitmapFont_BVSansMono_Bold_m15);
 end;
 
 procedure Close(Window: TCastleWindowBase);
 begin
-  FreeAndNil(Font);
 end;
 
 procedure Resize(Window: TCastleWindowBase);
@@ -75,7 +70,7 @@ begin
       S += CharToNiceStr(C);
     end;
   S := 'Characters pressed: [' + S + ']';
-  Font.PrintBrokenString(Margin, 100, Gray, S, Window.Width - Margin * 2, false, 0);
+  UIFont.PrintBrokenString(Margin, 100, Gray, S, Window.Width - Margin * 2, false, 0);
 
   S := '';
   for Key := Low(Key) to High(Key) do
@@ -85,7 +80,7 @@ begin
       S += KeyToStr(Key);
     end;
   S := 'Keys pressed: [' + S + ']';
-  Font.PrintBrokenString(Margin, 200, Gray, S, Window.Width - Margin * 2, false, 0);
+  UIFont.PrintBrokenString(Margin, 200, Gray, S, Window.Width - Margin * 2, false, 0);
 end;
 
 procedure Update(Window: TCastleWindowBase);

@@ -73,7 +73,7 @@
     function Bold: boolean;
     function Italic: boolean;
     function Justify: TX3DFontJustify;
-    function Font: TOutlineFont;
+    function Font: TOutlineFontData;
 
     class function DefaultSize: Single;
     class function DefaultSpacing: Single;
@@ -81,10 +81,10 @@
     class function DefaultBold: boolean;
     class function DefaultItalic: boolean;
     class function DefaultJustify: TX3DFontJustify;
-    class function DefaultFont: TOutlineFont;
+    class function DefaultFont: TOutlineFontData;
 
     class function ClassFont(AFamily: TX3DFontFamily;
-      const ABold, AItalic: boolean): TOutlineFont;
+      const ABold, AItalic: boolean): TOutlineFontData;
   end;
   TFontStyleNode_2 = TFontStyleNode;
 
@@ -215,13 +215,13 @@ begin
   Result := Version.Major >= 2;
 end;
 
-function TFontStyleNode.Font: TOutlineFont;
+function TFontStyleNode.Font: TOutlineFontData;
 begin
   Result := ClassFont(Family, Bold, Italic);
 end;
 
 class function TFontStyleNode.ClassFont(
-  AFamily: TX3DFontFamily; const ABold, AItalic: boolean): TOutlineFont;
+  AFamily: TX3DFontFamily; const ABold, AItalic: boolean): TOutlineFontData;
 begin
   case AFamily of
     ffSerif     : case ABold of
@@ -417,7 +417,7 @@ begin
   Result := fjBegin;
 end;
 
-class function TFontStyleNode.DefaultFont: TOutlineFont;
+class function TFontStyleNode.DefaultFont: TOutlineFontData;
 begin
   Result := ClassFont(DefaultFamily, DefaultBold, DefaultItalic);
 end;

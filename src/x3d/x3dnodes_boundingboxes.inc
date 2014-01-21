@@ -192,7 +192,7 @@ end;
 function Text_LocalBoundingBox(State: TX3DGraphTraverseState;
   const Size, Spacing: Single;
   const Justify: TX3DFontJustify;
-  const Font: TOutlineFont;
+  const Font: TOutlineFontData;
   const Strings: TCastleStringList;
   const Depth: Single): TBox3D;
 var
@@ -244,7 +244,7 @@ function TTextNode.LocalBoundingBox(State: TX3DGraphTraverseState;
 var
   Size, Spacing: Single;
   Justify: TX3DFontJustify;
-  Font: TOutlineFont;
+  Font: TOutlineFontData;
 begin
   if FontStyle = nil then
   begin
@@ -269,7 +269,7 @@ function TText3DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
 var
   Size, Spacing: Single;
   Justify: TX3DFontJustify;
-  Font: TOutlineFont;
+  Font: TOutlineFontData;
 begin
   if FontStyle = nil then
   begin

@@ -41,16 +41,24 @@ type
         { Position of the glyph on the image in TTextureFontData.Image. }
         ImageX, ImageY: Cardinal;
       end;
+      TGlyphDictionary = array [char] of TGlyph;
   private
     FAntiAliased: boolean;
     FSize: Integer;
     { Non-nil only for filled glyphs. }
-    FGlyphs: array [char] of TGlyph;
+    FGlyphs: TGlyphDictionary;
     FImage: TGrayscaleImage;
   public
+    { Create by reading a FreeType font file, like ttf. }
     constructor Create(const URL: string;
-      const AnAntiAliased: boolean; const ASize: Integer;
+      const ASize: Integer; const AnAntiAliased: boolean;
       const ACharacters: TSetOfChars = SimpleAsciiCharacters);
+    { Create from a ready data for glyphs and image.
+      Useful when font data is embedded inside the Pascal source code.
+      AGlyphs contents, and AImage instance, become owned by this class. }
+    constructor CreateFromData(const AGlyphs: TGlyphDictionary;
+      const AImage: TGrayscaleImage;
+      const ASize: Integer; const AnAntiAliased: boolean);
     destructor Destroy; override;
 
     property AntiAliased: boolean read FAntiAliased;
@@ -71,7 +79,7 @@ uses SysUtils, FreeType, FtFont, CastleLog,
 { TTextureFontData ----------------------------------------------------------------- }
 
 constructor TTextureFontData.Create(const URL: string;
-  const AnAntiAliased: boolean; const ASize: Integer;
+  const ASize: Integer; const AnAntiAliased: boolean;
   const ACharacters: TSetOfChars = SimpleAsciiCharacters);
 var
   FontId: Integer;
@@ -185,8 +193,8 @@ var
   MaxWidth, MaxHeight, ImageX, ImageY: Cardinal;
 begin
   inherited Create;
-  FAntiAliased := AnAntiAliased;
   FSize := ASize;
+  FAntiAliased := AnAntiAliased;
 
   FtFont.InitEngine;
   { By default TFontManager uses DefaultResolution that is OS-dependent
@@ -254,6 +262,17 @@ begin
 
     // Debug: SaveImage(Image, '/tmp/a.png');
   end;
+end;
+
+constructor TTextureFontData.CreateFromData(const AGlyphs: TGlyphDictionary;
+  const AImage: TGrayscaleImage;
+  const ASize: Integer; const AnAntiAliased: boolean);
+begin
+  inherited Create;
+  FSize := ASize;
+  FAntiAliased := AnAntiAliased;
+  FGlyphs := AGlyphs;
+  FImage := AImage;
 end;
 
 destructor TTextureFontData.Destroy;

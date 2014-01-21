@@ -621,6 +621,11 @@ type
         Source class to us. Not every possible convertion is implemented now.)
     }
     procedure Assign(const Source: TCastleImage); virtual;
+
+    { Append code to embed this image inside Pascal source code. }
+    procedure SaveToPascalCode(const ImageName: string;
+      const ShowProgress: boolean;
+      var CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string);
   end;
 
   TCastleImageList = specialize TFPGObjectList<TCastleImage>;
@@ -2327,6 +2332,65 @@ begin
   end else
     raise EImageAssignmentError.CreateFmt('Cannot copy image contents from %s to %s',
       [Source.ClassName, ClassName]);
+end;
+
+procedure TCastleImage.SaveToPascalCode(const ImageName: string;
+  const ShowProgress: boolean;
+  var CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string);
+var
+  NameWidth, NameHeight, NameDepth, NamePixels: string;
+  pb: PByte;
+  I: Integer;
+begin
+  { calculate Name* variables }
+  NameWidth := ImageName + 'Width';
+  NameHeight := ImageName + 'Height';
+  NameDepth := ImageName + 'Depth';
+  NamePixels := ImageName + 'Pixels';
+
+  CodeInterface +=
+    'var' +nl+
+    '  ' +ImageName+ ': ' +ClassName+ ';' +nl + nl;
+
+  CodeImplementation +=
+    'const' +nl+
+    '  ' +NameWidth+ ' = ' +IntToStr(Width)+ ';' +nl+
+    '  ' +NameHeight+ ' = ' +IntToStr(Height)+ ';' +nl+
+    '  ' +NameDepth+ ' = ' +IntToStr(Depth)+ ';' +nl+
+    '  ' +NamePixels+ ': array[0 .. '
+      +NameWidth+ ' * '
+      +NameHeight+ ' * '
+      +NameDepth+ ' * '
+      +IntToStr(PixelSize) + ' - 1] of Byte = (' +nl+
+    '    ';
+
+  if ShowProgress then
+    Progress.Init((ImageSize - 1) div 12,
+      Format('Generating %s (%s, alpha: %s)',
+        [ImageName, ClassName, AlphaToString[AlphaChannel]]));
+
+  pb := PByte(RawPixels);
+  for I := 1 to ImageSize - 1 do
+  begin
+    CodeImplementation += Format('%4d,', [pb^]);
+    if (i mod 12) = 0 then
+    begin
+      CodeImplementation += nl + '    ';
+      if ShowProgress then Progress.Step;
+    end else
+      CodeImplementation += ' ';
+    Inc(pb);
+  end;
+  CodeImplementation += Format('%4d);', [pb^]) + nl + nl;
+
+  if ShowProgress then Progress.Fini;
+
+  CodeInitialization +=
+    '  ' +ImageName+ ' := ' +ClassName+ '.Create(' +NameWidth+', ' +NameHeight+ ', ' +NameDepth+ ');' +nl+
+    '  Move(' +NamePixels+ ', ' +ImageName+ '.RawPixels^, SizeOf(' +NamePixels+ '));' +nl;
+
+  CodeFinalization +=
+    '  FreeAndNil(' +ImageName+ ');' +nl;
 end;
 
 { TS3TCImage ----------------------------------------------------------------- }

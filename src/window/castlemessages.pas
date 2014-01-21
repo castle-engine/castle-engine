@@ -280,8 +280,7 @@ function MessageInputQueryVector4Single(
 
 implementation
 
-uses CastleImages, CastleGLBitmapFonts,
-  CastleClassUtils, SysUtils, CastleWindowModes, CastleLog, CastleGLImages,
+uses CastleImages, CastleClassUtils, SysUtils, CastleWindowModes, CastleLog,
   CastleUIControls, CastleRectangles;
 
 const

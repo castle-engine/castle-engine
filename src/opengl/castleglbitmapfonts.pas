@@ -20,11 +20,10 @@ unit CastleGLBitmapFonts;
 
 interface
 
-uses CastleVectors, CastleBitmapFonts, CastleGL, CastleGLUtils, Classes,
-  CastleColors;
+uses CastleVectors, CastleGL, CastleGLUtils, Classes, CastleColors;
 
 type
-  { Abstract class for all OpenGL bitmap fonts. }
+  { Abstract class for 2D font. }
   TGLBitmapFontAbstract = class
   private
     CalculatedRowHeight: boolean;
@@ -230,38 +229,6 @@ type
   end;
 
   TGLBitmapFontClass = class of TGLBitmapFontAbstract;
-
-  { OpenGL bitmap font. Uses a font description from CastleBitmapFonts unit
-    (TBitmapFont type), and creates OpenGL resources to render text
-    using this font.
-
-    This way we can use fonts embedded in our source code
-    (as TBitmapFont type), independent from the fonts available in external
-    files, operating system and such. Or we can load TBitmapFont from file.
-
-    See also TGLOutlineFont for a similar class for outline fonts. }
-  TGLBitmapFont = class(TGLBitmapFontAbstract)
-  private
-    {$ifndef OpenGLES}
-    base: TGLuint;
-    {$endif}
-    BitmapFont: TBitmapFont;
-  public
-    { Create OpenGL resources to render given bitmap font.
-
-      We remember the pointer BitmapFont, without copying the contents.
-      So do not free the BitmapFont contents, do not change it at all
-      actually, during the lifetime of this object. }
-    constructor Create(ABitmapFont: TBitmapFont);
-    destructor Destroy; override;
-
-    procedure Print(const X, Y: Integer; const Color: TCastleColor;
-      const s: string); override;
-    function TextWidth(const S: string): Integer; override;
-    function TextHeight(const S: string): Integer; override;
-    function TextMove(const S: string): TVector2Integer; override;
-    function TextHeightBase(const S: string): Integer; override;
-  end;
 
 implementation
 
@@ -584,193 +551,6 @@ begin
     CalculatedRowHeight := true;
   end;
   Result := FRowHeightBase;
-end;
-
-{ TGLBitmapFont -------------------------------------------------------------- }
-
-const
-  BitmapTableCount = Ord(High(char)) - Ord(Low(char)) +1;
-
-constructor TGLBitmapFont.Create(ABitmapFont: TBitmapFont);
-{$ifndef OpenGLES}
-var
-  i: Cardinal;
-  Znak: PBitmapChar;
-  Saved_Unpack_Alignment: TGLint;
-{$endif}
-begin
-  inherited Create;
-  BitmapFont := ABitmapFont;
-
-  {$ifndef OpenGLES}
-  base := glGenListsCheck(BitmapTableCount, 'TGLBitmapFont.Create');
-  Saved_Unpack_Alignment := glGetInteger(GL_UNPACK_ALIGNMENT);
-  for I := 0 to 255 do
-  begin
-    Znak := BitmapFont.Data[Chr(i)];
-    glPixelStorei(GL_UNPACK_ALIGNMENT, Znak^.Info.Alignment);
-    glNewList(i+base, GL_COMPILE);
-    glBitmap(Znak^.Info.Width, Znak^.Info.Height,
-             Znak^.Info.XOrig, Znak^.Info.YOrig,
-             Znak^.Info.XMove, Znak^.Info.YMove,
-             @Znak^.Data);
-    glEndList;
-  end;
-  glPixelStorei(GL_UNPACK_ALIGNMENT, Saved_Unpack_Alignment);
-  {$endif}
-
-  // TODO-es Font rendering should use glyphs in TGLImage, not display lists
-end;
-
-destructor TGLBitmapFont.Destroy;
-begin
-  {$ifndef OpenGLES}
-  glDeleteLists(base, BitmapTableCount);
-  {$endif}
-  inherited;
-end;
-
-procedure TGLBitmapFont.Print(const X, Y: Integer; const Color: TCastleColor;
-  const S: string);
-
-  {$ifndef OpenGLES}
-  { Sets raster position in window
-    coordinates. Such that the raster position is never clipped.
-    Similar to just calling glWindowPos,
-    and actually will simply call glWindowPos if available
-    (if OpenGL version is adequate, or equivalent OpenGL extension is available).
-
-    The depth value of raster is undefined
-    after calling this. This is necessary, in case of old OpenGL with no
-    glWindowPos extension, where we do a little trick to similate glWindowPos.
-    It should not be a problem if you only use this to draw simple 2D GUI stuff. }
-  procedure SetRasterInWindowCoords(const X, Y: Integer);
-  begin
-    if GLFeatures.Version_1_4 then
-    begin
-      glWindowPos2f(X, Y);
-      { tests: Writeln('using std'); }
-    end else
-    if GLFeatures.ARB_window_pos then
-    begin
-      glWindowPos2fARB(X, Y);
-      { tests: Writeln('using ARB'); }
-    end else
-    if GLFeatures.MESA_window_pos then
-    begin
-      glWindowPos2fMESA(X, Y);
-      { tests: Writeln('using MESA'); }
-    end else
-    begin
-      { Idea how to implement this --- see
-        [http://www.opengl.org/resources/features/KilgardTechniques/oglpitfall/]. }
-
-      glPushAttrib(GL_TRANSFORM_BIT);
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix;
-          glLoadIdentity;
-          glMatrixMode(GL_MODELVIEW);
-          glPushMatrix;
-            glLoadIdentity;
-
-            { Fall back on a simple
-              implementation that sets identity to projection and modelview and
-              sets a special viewport. Setting special viewport means that
-              we can avoid clipping the raster pos, also it means that you
-              don't have to pass here parameters like window width/height ---
-              viewport will appropriately map to your window coordinates. }
-
-            GL.glViewport(Floor(X) - 1, Floor(Y) - 1, 2, 2);
-            glRasterPos4f(Frac(X), Frac(Y), 0, 1);
-
-          glPopMatrix;
-          glMatrixMode(GL_PROJECTION);
-        glPopMatrix;
-      glPopAttrib;
-    end;
-  end;
-
-begin
-  glPushAttrib(GL_LIST_BIT or GL_COLOR_BUFFER_BIT or GL_ENABLE_BIT);
-    { glColor must be before setting raster to have proper effect.
-      It will be correctly saved/restored by glPush/PopAttrib,
-      as docs say that GL_CURRENT_BIT saves
-      "RGBA color associated with current raster position". }
-    glColorv(Color); // saved by GL_COLOR_BUFFER_BIT
-    if Color[3] < 1.0 then
-    begin
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
-      glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
-    end;
-    SetRasterInWindowCoords(X, Y);
-    {$I norqcheckbegin.inc}
-    { Argument to glListBase is actually signed, although it's declaration
-      says it's unsigned. }
-    glListBase(TGLint(base)); // saved by GL_LIST_BIT
-    {$I norqcheckend.inc}
-    glCallLists(Length(S), GL_UNSIGNED_BYTE, PChar(s));
-  glPopAttrib;
-{$else}
-begin
-  // TODO-es
-{$endif}
-end;
-
-function TGLBitmapFont.TextMove(const S: string): TVector2Integer;
-var
-  I: Integer;
-  X, Y: Single;
-  C: PBitmapChar;
-begin
-  X := 0;
-  Y := 0;
-  for I := 1 to Length(S) do
-  begin
-    C := BitmapFont.Data[S[I]];
-    X += C^.Info.XMove;
-    Y += C^.Info.YMove;
-  end;
-  Result := Vector2LongInt(Round(X), Round(Y));
-end;
-
-function TGLBitmapFont.TextWidth(const S: string): Integer;
-var
-  I: Integer;
-begin
-  Result := 0;
-  for I := 1 to Length(S) do
-    Result := Result + Round(BitmapFont.Data[s[i]]^.Info.XMove);
-end;
-
-function TGLBitmapFont.TextHeight(const S: string): Integer;
-var
-  I: Integer;
-  MinY, MaxY, YOrigin: Integer;
-begin
-  MinY := 0;
-  MaxY := 0;
-  for I := 1 to Length(S) do
-  begin
-    YOrigin := Round(BitmapFont.Data[s[i]]^.Info.YOrig);
-    MinTo1st(MinY, -YOrigin);
-    MaxTo1st(MaxY, BitmapFont.Data[s[i]]^.Info.Height - YOrigin);
-  end;
-  Result := MaxY - MinY;
-end;
-
-function TGLBitmapFont.TextHeightBase(const S: string): Integer;
-var
-  I: Integer;
-  YOrigin: Integer;
-begin
-  Result := 0;
-  { This is just like TGLBitmapFont.TextHeight implementation, except we only
-    calculate (as Result) the MaxY value (assuming that MinY is zero). }
-  for I := 1 to Length(S) do
-  begin
-    YOrigin := Round(BitmapFont.Data[s[i]]^.Info.YOrig);
-    MaxTo1st(Result, BitmapFont.Data[s[i]]^.Info.Height - YOrigin);
-  end;
 end;
 
 end.

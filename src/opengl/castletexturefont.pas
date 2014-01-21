@@ -22,15 +22,25 @@ uses CastleGLBitmapFonts, CastleGLImages, CastleStringUtils, CastleColors,
   CastleVectors, CastleTextureFontData, CastleImages;
 
 type
-  { 2D font using a texture initialized from a FreeType font file. }
+  { 2D font using a texture initialized from a FreeType font file.
+
+    This can load a font file, or it can use ready data in TTextureFontData.
+    The latter allows to use this for fonts embedded in a Pascal source code,
+    since our texturefont2pascal can convert a font ttf to a unit that defines
+    ready TTextureFontData instance. }
   TTextureFont = class(TGLBitmapFontAbstract)
   private
     FFont: TTextureFontData;
+    FOwnsFont: boolean;
     Image: TGLImage;
   public
+    { Create by reading a FreeType font file, like ttf. }
     constructor Create(const URL: string;
-      const AnAntiAliased: boolean; const ASize: Integer;
+      const ASize: Integer; const AnAntiAliased: boolean;
       const ACharacters: TSetOfChars = SimpleAsciiCharacters);
+    { Create from a ready TTextureFontData instance.
+      Data instance becomes owned by this class if and only if OwnsData. }
+    constructor Create(const Data: TTextureFontData; const OwnsData: boolean);
     destructor Destroy; override;
     procedure Print(const X, Y: Integer; const Color: TCastleColor;
       const S: string); override;
@@ -39,6 +49,9 @@ type
     function TextMove(const S: string): TVector2Integer; override;
     function TextHeightBase(const S: string): Integer; override;
   end;
+
+  { @deprecated Deprecated name, use TTextureFont now. }
+  TGLBitmapFont = TTextureFont deprecated;
 
   { 2D font using a texture to define character images
     with constant width and height.
@@ -83,18 +96,26 @@ uses SysUtils, CastleUtils;
 { TTextureFont --------------------------------------------------------------- }
 
 constructor TTextureFont.Create(const URL: string;
-  const AnAntiAliased: boolean; const ASize: Integer;
+  const ASize: Integer; const AnAntiAliased: boolean;
   const ACharacters: TSetOfChars);
 begin
+  Create(TTextureFontData.Create(URL, ASize, AnAntiAliased, ACharacters), true);
+end;
+
+constructor TTextureFont.Create(const Data: TTextureFontData; const OwnsData: boolean);
+begin
   inherited Create;
-  FFont := TTextureFontData.Create(URL, AnAntiAliased, ASize);
+  FOwnsFont := OwnsData;
+  FFont := Data;
   Image := TGLImage.Create(FFont.Image, false);
 end;
 
 destructor TTextureFont.Destroy;
 begin
   FreeAndNil(Image);
-  FreeAndNil(FFont);
+  if FOwnsFont then
+    FreeAndNil(FFont) else
+    FFont := nil;
   inherited;
 end;
 

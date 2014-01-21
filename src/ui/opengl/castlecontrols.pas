@@ -19,8 +19,9 @@ unit CastleControls;
 interface
 
 uses Classes, CastleVectors, CastleUIControls, CastleGLBitmapFonts,
+  CastleTextureFont, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages,
-  CastleRectangles, CastleBitmapFonts, CastleColors, CastleProgress;
+  CastleRectangles, CastleColors, CastleProgress;
 
 type
   TCastleLabel = class;
@@ -450,7 +451,7 @@ type
     function WholeMessageRect: TRectangle;
     { If ScrollBarVisible, ScrollBarWholeWidth. Else 0. }
     function RealScrollBarWholeWidth: Integer;
-    function Font: TGLBitmapFont;
+    function Font: TTextureFont;
   public
     { Set this to @true to signal that modal dialog window should be closed.
       This is not magically handled --- if you implement a modal dialog box,
@@ -568,8 +569,8 @@ type
     FCorners: array [TThemeImage] of TVector4Integer;
     FGLImages: array [TThemeImage] of TGLImage;
     FOwnsImages: array [TThemeImage] of boolean;
-    FMessageFont: TBitmapFont;
-    FGLMessageFont: TGLBitmapFont;
+    FMessageFont: TTextureFontData;
+    FGLMessageFont: TTextureFont;
     function GetImages(const ImageType: TThemeImage): TCastleImage;
     procedure SetImages(const ImageType: TThemeImage; const Value: TCastleImage);
     function GetOwnsImages(const ImageType: TThemeImage): boolean;
@@ -584,7 +585,7 @@ type
       Changing the TCastleImage instance will automatically free (and recreate
       at next access) the corresponding TGLImage instance. }
     property GLImages[const ImageType: TThemeImage]: TGLImage read GetGLImages;
-    procedure SetMessageFont(const Value: TBitmapFont);
+    procedure SetMessageFont(const Value: TTextureFontData);
   public
     TooltipTextColor: TCastleColor;
     TextColor: TCastleColor;
@@ -624,11 +625,11 @@ type
 
     { Font used by dialogs.
       Note that it doesn't have to be mono-spaced. }
-    property MessageFont: TBitmapFont read FMessageFont write SetMessageFont;
-    function GLMessageFont: TGLBitmapFont;
+    property MessageFont: TTextureFontData read FMessageFont write SetMessageFont;
+    function GLMessageFont: TTextureFont;
   end;
 
-{ The bitmap fonts used throughout UI interface.
+{ The 2D fonts used throughout UI interface.
 
   They work fast. Actually, only the first "create" call does actual work.
   The font is kept until the GL context is destroyed.
@@ -654,9 +655,9 @@ procedure Register;
 
 implementation
 
-uses SysUtils, CastleControlsImages, CastleBitmapFont_BVSans_m10,
-  CastleBitmapFont_BVSans, CastleGLUtils, Math,
-  CastleBitmapFont_BVSansMono_m18;
+uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DejaVuSans_20,
+  CastleTextureFont_DejaVuSans_10, CastleTextureFont_DejaVuSansMono_18,
+  CastleGLUtils;
 
 procedure Register;
 begin
@@ -1936,7 +1937,7 @@ begin
       ContainerHeight - WindowMargin * 2));
 end;
 
-function TCastleDialog.Font: TGLBitmapFont;
+function TCastleDialog.Font: TTextureFont;
 begin
   Result := Theme.GLMessageFont;
 end;
@@ -2182,7 +2183,7 @@ begin
   MessageInputTextColor := Vector4Single(0.33, 1, 1, 1);
   MessageTextColor      := Vector4Single(1   , 1, 1, 1);
 
-  MessageFont := BitmapFont_BVSansMono_M18;
+  MessageFont := TextureFont_DejaVuSansMono_18;
 
   FImages[tiPanel] := Panel;
   FCorners[tiPanel] := Vector4Integer(0, 0, 0, 0);
@@ -2295,7 +2296,7 @@ begin
   GLImages[ImageType].Draw3x3(Rect, Corners[ImageType]);
 end;
 
-procedure TCastleTheme.SetMessageFont(const Value: TBitmapFont);
+procedure TCastleTheme.SetMessageFont(const Value: TTextureFontData);
 begin
   if FMessageFont <> Value then
   begin
@@ -2304,10 +2305,10 @@ begin
   end;
 end;
 
-function TCastleTheme.GLMessageFont: TGLBitmapFont;
+function TCastleTheme.GLMessageFont: TTextureFont;
 begin
   if FGLMessageFont = nil then
-    FGLMessageFont := TGLBitmapFont.Create(FMessageFont);
+    FGLMessageFont := TTextureFont.Create(FMessageFont, false);
   Result := FGLMessageFont;
 end;
 
@@ -2328,7 +2329,7 @@ var
 function GetUIFont: TGLBitmapFontAbstract;
 begin
   if FUIFont = nil then
-    FUIFont := TGLBitmapFont.Create(BitmapFont_BVSans);
+    FUIFont := TTextureFont.Create(TextureFont_DejaVuSans_20, false);
   Result := FUIFont;
 end;
 
@@ -2344,7 +2345,7 @@ end;
 function GetUIFontSmall: TGLBitmapFontAbstract;
 begin
   if FUIFontSmall = nil then
-    FUIFontSmall := TGLBitmapFont.Create(BitmapFont_BVSans_m10);
+    FUIFontSmall := TTextureFont.Create(TextureFont_DejaVuSans_10, false);
   Result := FUIFontSmall;
 end;
 

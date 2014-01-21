@@ -211,7 +211,7 @@ interface
 
 uses
   Classes, SysUtils, CastleUtils, CastleVectors, CastleGL,
-  X3DFields, X3DNodes, X3DLexer, CastleOutlineFonts, CastleImages,
+  X3DFields, X3DNodes, X3DLexer, CastleOutlineFontData, CastleImages,
   CastleGLUtils, CastleRendererLights, CastleGLOutlineFonts,
   CastleGLShaders, CastleGLImages, CastleVideos, X3DTime, CastleShapes,
   CastleGLCubeMaps, CastleClassUtils, CastleDDS, Castle3D, FGL,
@@ -793,7 +793,7 @@ type
 
     function Fonts_IncReference(
       fsfam: TX3DFontFamily; fsbold: boolean; fsitalic: boolean;
-      Font: TOutlineFont): TGLOutlineFont;
+      Font: TOutlineFontData): TGLOutlineFont;
 
     procedure Fonts_DecReference(
       fsfam: TX3DFontFamily; fsbold: boolean; fsitalic: boolean);
@@ -1271,7 +1271,7 @@ end;
 
 function TGLRendererContextCache.Fonts_IncReference(
   fsfam: TX3DFontFamily; fsbold: boolean; fsitalic: boolean;
-  Font: TOutlineFont): TGLOutlineFont;
+  Font: TOutlineFontData): TGLOutlineFont;
 begin
   Inc(Fonts[fsfam, fsbold, fsitalic].References);
   if Fonts[fsfam, fsbold, fsitalic].Instance = nil then
@@ -2348,7 +2348,7 @@ procedure TGLRenderer.Prepare(State: TX3DGraphTraverseState);
   procedure PrepareFont(
     fsfam: TX3DFontFamily;
     fsbold, fsitalic: boolean;
-    Font: TOutlineFont);
+    Font: TOutlineFontData);
   begin
     if not FontsReferences[fsfam, fsbold, fsitalic] then
     begin

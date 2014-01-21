@@ -22,7 +22,7 @@ unit CastleGLOutlineFonts;
 
 interface
 
-uses CastleOutlineFonts, SysUtils, CastleGLUtils, CastleStringUtils;
+uses CastleOutlineFontData, SysUtils, CastleGLUtils, CastleStringUtils;
 
 type
   { Abstract class for all OpenGL outline fonts. }
@@ -66,15 +66,15 @@ type
 
     This allows you to create outline font (that implements
     TGLOutlineFontAbstract interface) based on information
-    expressed as CastleOutlineFonts.TOutlineFont type.
+    expressed as TOutlineFontData type.
 
     You can use font2pascal program to convert fonts' files
-    to Pascal units with TOutlineFont constant.
+    to Pascal units with TOutlineFontData constant.
 
     So the basic road to use some font in your OpenGL program as 3d text is:
     @orderedList(
       @itemSpacing Compact
-      @item(convert font to Pascal unit using font2pascal,
+      @item(convert font to Pascal unit using outlinefont2pascal,
         to get unit like castleoutlinefont_xxx.pas)
       @item(add to your uses clause CastleOutlineFont_Xxx and this unit, CastleGLOutlineFonts)
       @item(and now you can create object like
@@ -88,7 +88,7 @@ type
     {$ifndef OpenGLES}
     Base: TGLuint;
     {$endif}
-    Font: TOutlineFont;
+    Font: TOutlineFontData;
 
     TexturedXShift: Single;
     procedure TexturedBegin(const TexOriginX, TexOriginY: Single);
@@ -105,7 +105,7 @@ type
     { Create instance from OutlineFont.
 
       @param(OutlineFont
-        This is the pointer to your font, TOutlineFont.
+        This is the pointer to your font, TOutlineFontData.
 
         Note that to conserve the use of time and memory this constructor
         @italic(copies only this pointer (not the memory pointed to))
@@ -158,7 +158,7 @@ type
         and so optimizing by providing only SimpleAsciiCharacters makes sense).
         Also, font takes less memory space.)
     }
-    constructor Create(AFont: TOutlineFont;
+    constructor Create(AFont: TOutlineFontData;
       const depth: Single = 0.0;
       const onlyLines: boolean = false;
       const CharactersSubset: TSetOfChars = SimpleAsciiCharacters); overload;
@@ -277,7 +277,7 @@ begin
 end;
 {$endif}
 
-constructor TGLOutlineFont.Create(AFont: TOutlineFont;
+constructor TGLOutlineFont.Create(AFont: TOutlineFontData;
   const depth: Single;
   const onlyLines: boolean;
   const CharactersSubset: TSetOfChars);

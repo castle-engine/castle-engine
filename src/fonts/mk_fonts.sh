@@ -1,32 +1,32 @@
 #!/bin/bash
 set -eu
 
-do_font2pascal ()
+do_outlinefont2pascal ()
 {
-  font2pascal "$@" --dir .
+  outlinefont2pascal "$@" --dir .
 }
 
-mk_4_versions ()
+mk_4_outline_versions ()
 {
-  do_font2pascal "$@"
-  do_font2pascal "$@" -i 1
-  do_font2pascal "$@" -b 1
-  do_font2pascal "$@" -b 1 -i 1
+  do_outlinefont2pascal "$@"
+  do_outlinefont2pascal "$@" -i 1
+  do_outlinefont2pascal "$@" -b 1
+  do_outlinefont2pascal "$@" -b 1 -i 1
 }
 
-# Used by VRMLNodes
-mk_4_versions --font-name 'Bitstream Vera Sans'
-mk_4_versions --font-name 'Bitstream Vera Sans Mono'
-mk_4_versions --font-name 'Bitstream Vera Serif'
+# Outline fonts used by X3DNodes
+mk_4_outline_versions --font-name 'Bitstream Vera Sans'
+mk_4_outline_versions --font-name 'Bitstream Vera Sans Mono'
+mk_4_outline_versions --font-name 'Bitstream Vera Serif'
 
-# Used by CastleNotifications and GLProgress
-do_font2pascal --font-name 'Bitstream Vera Sans' --grab-to bitmap
+# Used by CastleControls.UIFont
+texturefont2pascal --size 20 data/DejaVuSans.ttf
 
-# Used by GLWinMessages
-do_font2pascal --font-name 'Bitstream Vera Sans Mono' --font-height -18 --grab-to bitmap
+# Used by CastleControls.UIFontSmall
+texturefont2pascal --size 10 data/DejaVuSans.ttf
+
+# Used by CastleControls as MessageFont, for TCastleDialog
+texturefont2pascal --size 18 data/DejaVuSansMono.ttf
 
 # Used by view3dscene
-do_font2pascal --font-name 'Bitstream Vera Sans Mono' --font-height -15 --grab-to bitmap -b 1
-
-# Used by GLMenu
-do_font2pascal --font-name 'Bitstream Vera Sans' --grab-to bitmap --font-height -10
+texturefont2pascal --size 15 data/DejaVuSansMono-Bold.ttf

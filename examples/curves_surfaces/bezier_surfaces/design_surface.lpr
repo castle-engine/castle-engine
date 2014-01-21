@@ -24,7 +24,7 @@ program design_surface;
 uses Classes, CastleCameras, Surfaces, CastleWindow, CastleGL, CastleVectors,
   CastleGLUtils, CastleCurves, CastleBoxes, SysUtils, CastleUtils, CastleKeysMouse,
   CastleStringUtils, CastleMessages, CastleFilesUtils, CastleUIControls,
-  CastleBitmapFont_BVSans, CastleGLBitmapFonts, CastleColors, Castle3D,
+  CastleColors, Castle3D, CastleControls,
   CastleFrustum, CastleURIUtils, CastleClassUtils, CastleParameters;
 
 type
@@ -53,8 +53,6 @@ var
       Dragging = true.
       And always CurrentCurve, CurrentPoint <> -1 when Dragging. }
   Dragging: boolean = false;
-
-  StatusFont: TGLBitmapFont;
 
 { various utility funcs ------------------------------------------------------ }
 
@@ -189,7 +187,7 @@ begin
   try
     Text.Append(Format('Surface X segments: %d', [SurfaceXSegments]));
     Text.Append(Format('Surface Y segments: %d', [SurfaceYSegments]));
-    StatusFont.PrintStrings(10, 10, Yellow, Text, false, 5);
+    UIFont.PrintStrings(10, 10, Yellow, Text, false, 5);
   finally FreeAndNil(Text) end;
 end;
 
@@ -271,12 +269,10 @@ begin
   glEnable(GL_COLOR_MATERIAL);
   glPointSize(10);
   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-  StatusFont := TGLBitmapFont.Create(BitmapFont_BVSans);
 end;
 
 procedure Close(Window: TCastleWindowBase);
 begin
-  FreeAndNil(StatusFont);
 end;
 
 procedure Update(Window: TCastleWindowBase);

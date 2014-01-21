@@ -84,7 +84,7 @@ begin
         ProgramBreak;
        end;
     1: ShowProgress := false;
-    2: OutputDirectory := Argument;
+    2: OutputDirectory := Argument + '/';
     else raise EInternalError.Create('OptionProc -- unknown arg');
   end;
 end;
@@ -92,11 +92,9 @@ end;
 var
   Image, TempImage: TCastleImage;
   ImageURL: string;
-  UnitName, NameWidth, NameHeight, NamePixels, NameImage: string;
-  ImagesInterface, ImagesImplementation, ImagesInitialization,
-    ImagesFinalization: string;
-  ImageIndex, I: Integer;
-  pb: PByte;
+  UnitName, ImageName: string;
+  CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string;
+  ImageIndex: Integer;
   OutputUnit: TTextWriter;
   AlphaStrip: boolean = false;
 begin
@@ -110,10 +108,10 @@ begin
   Progress.UserInterface := ProgressConsoleInterface;
 
   { calculate unit's content from images into Images* strings }
-  ImagesInterface := '';
-  ImagesImplementation := '';
-  ImagesInitialization := '';
-  ImagesFinalization := '';
+  CodeInterface := '';
+  CodeImplementation := '';
+  CodeInitialization := '';
+  CodeFinalization := '';
   for ImageIndex := 1 to Parameters.High do
   begin
     ImageURL := Parameters[ImageIndex];
@@ -130,8 +128,8 @@ begin
     end;
 
     { init other Image* variables }
-    NameImage := DeleteURIExt(ExtractURIName(ImageURL));
-    NameImage[1] := UpCase(NameImage[1]);
+    ImageName := DeleteURIExt(ExtractURIName(ImageURL));
+    ImageName[1] := UpCase(ImageName[1]);
     Image := LoadImage(ImageURL);
     try
       if AlphaStrip and Image.HasAlpha then
@@ -146,58 +144,15 @@ begin
           raise Exception.CreateFmt('Cannot strip alpha channel information from image %s (class %s)',
             [ImageURL, Image.ClassName]);
       end;
-
-      { calculate Name* variables }
-      NameWidth := NameImage +'Width';
-      NameHeight := NameImage +'Height';
-      NamePixels := NameImage +'Pixels';
-
-      ImagesInterface +=
-        'var' +nl+
-        '  ' +NameImage+ ': ' +Image.ClassName+ ';' +nl + nl;
-
-      ImagesImplementation +=
-        'const' +nl+
-        '  ' +NameWidth+ ' = ' +IntToStr(Image.Width)+ ';' +nl+
-        '  ' +NameHeight+ ' = ' +IntToStr(Image.Height)+ ';' +nl+
-        '  ' +NamePixels+ ': array[0 .. ' +NameWidth+ ' * '
-          +NameHeight+ ' * ' +IntToStr(Image.PixelSize) + ' - 1] of Byte = (' +nl+
-        '    ';
-
-      if ShowProgress then
-        Progress.Init((Image.Width * Image.Height * Image.PixelSize - 1) div 12,
-          Format('Generating %s (%s, alpha: %s)',
-            [NameImage, Image.ClassName, AlphaToString[Image.AlphaChannel]]));
-
-      pb := PByte(Image.RawPixels);
-      for I := 1 to Image.Width * Image.Height * Image.PixelSize - 1 do
-      begin
-        ImagesImplementation += Format('%4d,', [pb^]);
-        if (i mod 12) = 0 then
-        begin
-          ImagesImplementation += nl + '    ';
-          if ShowProgress then Progress.Step;
-        end else
-          ImagesImplementation += ' ';
-        Inc(pb);
-      end;
-      ImagesImplementation += Format('%4d);', [pb^]) + nl + nl;
-
-      if ShowProgress then Progress.Fini;
-
-      ImagesInitialization +=
-        '  ' +NameImage+ ' := ' +Image.ClassName+ '.Create(' +NameWidth+', ' +NameHeight+ ');' +nl+
-        '  Move(' +NamePixels+ ', ' +NameImage+ '.RawPixels^, SizeOf(' +NamePixels+ '));' +nl;
-
-      ImagesFinalization +=
-        '  FreeAndNil(' +NameImage+ ');' +nl;
+      Image.SaveToPascalCode(ImageName, ShowProgress,
+        CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization);
     finally FreeAndNil(Image) end;
   end;
 
   { output full unit contents.
     Beware to not concatenate huge Images* strings in the memory,
     could be a performance / memory problem? Although code above does it anyway? }
-  OutputUnit := TTextWriter.Create(OutputDirectory + '/' + LowerCase(UnitName) + '.pas');
+  OutputUnit := TTextWriter.Create(OutputDirectory + LowerCase(UnitName) + '.pas');
   OutputUnit.Write(
     '{ -*- buffer-read-only: t -*- }' +nl+
     nl+
@@ -210,7 +165,7 @@ begin
     nl+
     'uses CastleImages;' +nl+
     nl);
-  OutputUnit.Write(ImagesInterface);
+  OutputUnit.Write(CodeInterface);
   OutputUnit.Write(
     'implementation' + nl +
     nl+
@@ -222,13 +177,13 @@ begin
     '{$I ' + LowerCase(UnitName) + '.image_data}' +nl+
     nl +
     'initialization' +nl+
-    ImagesInitialization +
+    CodeInitialization +
     'finalization' +nl+
-    ImagesFinalization +
+    CodeFinalization +
     'end.');
   FreeAndNil(OutputUnit);
 
-  OutputUnit := TTextWriter.Create(OutputDirectory + '/' + LowerCase(UnitName) + '.image_data');
-  OutputUnit.Write(ImagesImplementation);
+  OutputUnit := TTextWriter.Create(OutputDirectory + LowerCase(UnitName) + '.image_data');
+  OutputUnit.Write(CodeImplementation);
   FreeAndNil(OutputUnit);
 end.

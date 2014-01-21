@@ -280,7 +280,7 @@
     function Family: TX3DFontFamily;
     function Bold: boolean;
     function Italic: boolean;
-    function Font: TOutlineFont;
+    function Font: TOutlineFontData;
   end;
 
   TInfoNode_1 = class(TAbstractChildNode)
@@ -1197,7 +1197,7 @@ begin
   result := 'FontStyle';
 end;
 
-function TFontStyleNode_1.Font: TOutlineFont;
+function TFontStyleNode_1.Font: TOutlineFontData;
 begin
   Result := TFontStyleNode.ClassFont(Family, Bold, Italic);
 end;

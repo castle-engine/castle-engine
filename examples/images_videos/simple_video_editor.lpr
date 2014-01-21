@@ -25,10 +25,9 @@ program simple_video_editor;
 
 uses CastleUtils, SysUtils, CastleWindow, CastleGLImages, CastleControls,
   CastleVideos, CastleStringUtils, CastleMessages, CastleColors,
-  CastleBitmapFont_BVSansMono_Bold_m15, CastleGLBitmapFonts, CastleParameters,
-  CastleGLUtils, CastleVectors, Classes, CastleProgress, CastleWindowProgress,
-  CastleTimeUtils, CastleKeysMouse, CastleURIUtils, CastleUIControls,
-  CastleRectangles;
+  CastleParameters, CastleGLUtils, CastleVectors, Classes, CastleProgress,
+  CastleWindowProgress, CastleTimeUtils, CastleKeysMouse, CastleURIUtils,
+  CastleUIControls, CastleRectangles;
 
 var
   Window: TCastleWindowCustom;
@@ -39,8 +38,6 @@ var
 
   Time: TFloatTime;
   TimePlaying: boolean = true;
-
-  StatusFont: TGLBitmapFont;
 
   MenuEdit: TMenu;
   MenuTimeBackwards: TMenuItemChecked;
@@ -78,8 +75,8 @@ const
       end else
         Strs.Append('Video not loaded');
 
-      StatusFont.PrintStrings(15,
-        Window.Height - StatusFont.RowHeight * Strs.Count - TimeBarHeight, Yellow,
+      UIFont.PrintStrings(15,
+        Window.Height - UIFont.RowHeight * Strs.Count - TimeBarHeight, Yellow,
         Strs, false, 0);
     finally FreeAndNil(Strs) end;
   end;
@@ -138,8 +135,6 @@ end;
 
 procedure Open(Sender: TCastleWindowBase);
 begin
-  StatusFont := TGLBitmapFont.Create(BitmapFont_BVSansMono_Bold_m15);
-
   WindowProgressInterface.Window := Window;
   Progress.UserInterface := WindowProgressInterface;
 
@@ -149,7 +144,6 @@ end;
 
 procedure Close(Window: TCastleWindowBase);
 begin
-  FreeAndNil(StatusFont);
   FreeAndNil(GLVideo);
 end;
 

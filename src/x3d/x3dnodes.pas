@@ -173,7 +173,7 @@ unit X3DNodes;
 interface
 
 uses CastleVectors, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
-  X3DFields, CastleBoxes, CastleImages, CastleOutlineFonts,
+  X3DFields, CastleBoxes, CastleImages, CastleOutlineFontData,
   CastleVideos, X3DTime, Castle3D, CastleMaterialProperties,
   CastleScript, X3DCastleScript, CastleOctree, CastleDDS, CastleTextureImages,
   XMLRead, DOM, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,

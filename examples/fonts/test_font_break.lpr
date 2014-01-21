@@ -17,10 +17,8 @@
   Resize the window and watch how the text lines are automatically broken.
 
   By default we use standard UIFont.
-  Call with command-line option -c (or --custom-font) to replace UIFont with
-  another font.
-  Call with command-line option -w (or --windows-font) to replace UIFont with
-  a font installed on Windows (works only when compiled under Windows).
+  Call with command-line option "--custom-font MyFontFile.ttf" to replace
+  UIFont with your own font from MyFontFile.ttf.
 }
 
 {$apptype GUI}
@@ -29,9 +27,8 @@ program test_font_break;
 
 uses CastleWindow, CastleGLUtils, SysUtils, Classes, CastleParameters,
   CastleUtils, CastleGLBitmapFonts, CastleVectors, CastleStringUtils, CastleColors,
-  CastleControls, CastleKeysMouse, CastleBitmapFont_BVSansMono_Bold_M15,
-  CastleRectangles, CastleControlsImages
-  {$ifdef MSWINDOWS}, Windows, CastleWindowsFonts, CastleGLWindowsFonts {$endif};
+  CastleControls, CastleKeysMouse, CastleRectangles, CastleControlsImages,
+  CastleTextureFont;
 
 var
   Window: TCastleWindowCustom;
@@ -63,31 +60,23 @@ begin
 end;
 
 var
-  WindowsFont: boolean;
-  CustomFont: boolean;
+  CustomFont: string;
 
 procedure Open(Window: TCastleWindowBase);
 begin
-  {$ifdef MSWINDOWS}
-  if WindowsFont then
-    UIFont := TWindowsBitmapFont.Create('Arial', -18, FW_REGULAR, false, wcsDEFAULT);
-  {$endif}
-  if CustomFont then
-    UIFont := TGLBitmapFont.Create(BitmapFont_BVSansMono_Bold_M15);
+  if CustomFont <> '' then
+    UIFont := TTextureFont.Create(CustomFont, 20, true);
 end;
 
 const
-  Options: array[0..1]of TOption =
-  ((Short:'w'; Long: 'windows-font'; Argument: oaNone),
-   (Short:'c'; Long: 'custom-font'; Argument: oaNone)
-  );
+  Options: array [0..0] of TOption =
+  ( (Short:'c'; Long: 'custom-font'; Argument: oaRequired) );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 begin
   case OptionNum of
-    0: WindowsFont := true;
-    1: CustomFont := true;
+    0: CustomFont := Argument;
   end;
 end;
 

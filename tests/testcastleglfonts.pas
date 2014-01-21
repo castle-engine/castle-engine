@@ -29,7 +29,7 @@ type
 implementation
 
 uses SysUtils, Classes, CastleWindow,
-  CastleGLBitmapFonts, CastleBitmapFont_BVSansMono_Bold_m15;
+  CastleGLBitmapFonts, CastleTextureFont, CastleTextureFont_DejaVuSansMonoBold_15;
 
 procedure TTestCastleGLFonts.TestMaxTextWidthTags;
 var
@@ -42,7 +42,7 @@ begin
   try
     Window.Visible := false;
     Window.Open;
-    F := TGLBitmapFont.Create(BitmapFont_BVSansMono_Bold_m15);
+    F := TTextureFont.Create(TextureFont_DejaVuSansMonoBold_15, false);
 
     SList := TStringList.Create;
 

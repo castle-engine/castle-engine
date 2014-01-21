@@ -23,7 +23,7 @@
   Basic concepts:
 
   @unorderedList(
-    @item(Font (TOutlineFont) is an array of characters.)
+    @item(Font (TOutlineFontData) is an array of characters.)
 
     @item(Character (TOutlineChar) contains a basic character information
       (size and such) and a sequence of polygons to render this character.)
@@ -57,7 +57,7 @@
   pass all the polygons.
 }
 
-unit CastleOutlineFonts;
+unit CastleOutlineFontData;
 
 interface
 
@@ -103,10 +103,10 @@ type
   end;
   POutlineChar = ^TOutlineChar;
 
-  TOutlineFontArray = array [char] of POutlineChar;
-  TOutlineFont = class
+  TOutlineFontDataArray = array [char] of POutlineChar;
+  TOutlineFontData = class
   public
-    Data: TOutlineFontArray;
+    Data: TOutlineFontDataArray;
 
     { Calculate the height below the font baseline.
       This calculates the descend really simply ,as the height
@@ -177,17 +177,17 @@ type
 
 implementation
 
-function TOutlineFont.Descend: Single;
+function TOutlineFontData.Descend: Single;
 begin
   result := Data['y']^.info.Height - Data['a']^.info.height;
 end;
 
-function TOutlineFont.RowHeight: Single;
+function TOutlineFontData.RowHeight: Single;
 begin
   result := TextHeight('Mg');
 end;
 
-function TOutlineFont.TextWidth(const s: string): Single;
+function TOutlineFontData.TextWidth(const s: string): Single;
 var
   i: integer;
 begin
@@ -195,7 +195,7 @@ begin
   for i := 1 to length(s) do result := result + Data[s[i]]^.info.moveX;
 end;
 
-function TOutlineFont.TextHeight(const s: string): Single;
+function TOutlineFontData.TextHeight(const s: string): Single;
 var i: integer;
 begin
   result := 0.0;

@@ -30,7 +30,6 @@ procedure InspectCreatures;
 implementation
 
 uses CastleWindowModes, CastleCameras, CastleGLUtils, CastleWindow, CastleVectors, SysUtils,
-  CastleBitmapFont_BVSansMono_Bold_m15, CastleGLBitmapFonts,
   Classes, CastleStringUtils, CastleMessages, CastleFilesUtils,
   RiftVideoOptions, RiftGame, RiftWindow, RiftCreatures, CastleControlsImages,
   CastleUIControls, RiftSceneManager, CastleColors, CastleKeysMouse, CastleControls;

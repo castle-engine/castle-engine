@@ -12,9 +12,9 @@ unit CastleOutlineFont_BVSerif_Bold_Italic;
 
 interface
 
-uses CastleOutlineFonts;
+uses CastleOutlineFontData;
 
-function OutlineFont_BVSerif_Bold_Italic: TOutlineFont;
+function OutlineFont_BVSerif_Bold_Italic: TOutlineFontData;
 
 implementation
 
@@ -5143,7 +5143,7 @@ const
     )
   );
 
-  Data : TOutlineFontArray = (
+  Data : TOutlineFontDataArray = (
     @Char0, @Char1, @Char2, @Char3, @Char4, @Char5, @Char6, @Char7, @Char8, @Char9, @Char10, @Char11, @Char12, @Char13, @Char14, @Char15, @Char16, @Char17, @Char18, @Char19, 
     @Char20, @Char21, @Char22, @Char23, @Char24, @Char25, @Char26, @Char27, @Char28, @Char29, @Char30, @Char31, @Char32, @Char33, @Char34, @Char35, @Char36, @Char37, @Char38, @Char39, 
     @Char40, @Char41, @Char42, @Char43, @Char44, @Char45, @Char46, @Char47, @Char48, @Char49, @Char50, @Char51, @Char52, @Char53, @Char54, @Char55, @Char56, @Char57, @Char58, @Char59, 
@@ -5159,15 +5159,15 @@ const
     @Char240, @Char241, @Char242, @Char243, @Char244, @Char245, @Char246, @Char247, @Char248, @Char249, @Char250, @Char251, @Char252, @Char253, @Char254, @Char255);
 
 var
-  FFont: TOutlineFont;
+  FFont: TOutlineFontData;
 
-function OutlineFont_BVSerif_Bold_Italic: TOutlineFont;
+function OutlineFont_BVSerif_Bold_Italic: TOutlineFontData;
 begin
   Result := FFont;
 end;
 
 initialization
-  FFont := TOutlineFont.Create;
+  FFont := TOutlineFontData.Create;
   FFont.Data := Data;
 finalization
   FreeAndNil(FFont);
