@@ -19,7 +19,7 @@ unit CastleNotifications;
 interface
 
 uses CastleUIControls, Classes, SysUtils, CastleUtils, CastleGLUtils,
-  CastleGLBitmapFonts, CastleTimeUtils, CastleVectors, CastleStringUtils,
+  CastleFonts, CastleTimeUtils, CastleVectors, CastleStringUtils,
   FGL, CastleColors;
 
 type

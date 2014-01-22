@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2013 Michalis Kamburelis.
+  Copyright 2001-2014 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,24 +13,25 @@
   ----------------------------------------------------------------------------
 }
 
-{ OpenGL bitmap fonts (TGLBitmapFont). }
-unit CastleGLBitmapFonts;
+{ 2D fonts (TCastleFont, TTextureFont, TSimpleTextureFont). }
+unit CastleFonts;
 
 {$I castleconf.inc}
 
 interface
 
-uses CastleVectors, CastleGL, CastleGLUtils, Classes, CastleColors;
+uses Classes, CastleGLImages, CastleStringUtils, CastleColors,
+  CastleVectors, CastleTextureFontData, CastleImages;
 
 type
   { Abstract class for 2D font. }
-  TGLBitmapFontAbstract = class
+  TCastleFont = class abstract
   private
     CalculatedRowHeight: boolean;
     FRowHeight, FRowHeightBase: Integer;
   protected
     { Calculate suitable values for RowHeight and RowHeightBase.
-      The default implementation in TGLBitmapFontAbstract looks at
+      The default implementation in TCastleFont looks at
       @code(TextHeight('Wy')) and @code(TextHeight('y')). }
     procedure UpdateRowHeight(out ARowHeight, ARowHeightBase: Integer); virtual;
   public
@@ -179,12 +180,12 @@ type
       @groupBegin }
     procedure PrintStrings(const X0, Y0: Integer; const Color: TCastleColor;
       const Strs: TStrings; const Tags: boolean;
-      const BonusVerticalSpace: TGLint); overload;
+      const BonusVerticalSpace: Integer); overload;
     procedure PrintStrings(const Strs: TStrings;
-      const Tags: boolean; const BonusVerticalSpace: TGLint;
+      const Tags: boolean; const BonusVerticalSpace: Integer;
       const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated;
     procedure PrintStrings(const Strs: array of string;
-      const Tags: boolean; const BonusVerticalSpace: TGLint;
+      const Tags: boolean; const BonusVerticalSpace: Integer;
       const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated;
     { @groupEnd }
 
@@ -228,11 +229,81 @@ type
     { @groupEnd }
   end;
 
-  TGLBitmapFontClass = class of TGLBitmapFontAbstract;
+  { @deprecated Deprecated name for TCastleFont. }
+  TGLBitmapFontAbstract = TCastleFont deprecated;
+
+  { 2D font using a texture initialized from a FreeType font file.
+
+    This can load a font file, or it can use ready data in TTextureFontData.
+    The latter allows to use this for fonts embedded in a Pascal source code,
+    since our texturefont2pascal can convert a font ttf to a unit that defines
+    ready TTextureFontData instance. }
+  TTextureFont = class(TCastleFont)
+  private
+    FFont: TTextureFontData;
+    FOwnsFont: boolean;
+    Image: TGLImage;
+  public
+    {$ifdef HAS_FREE_TYPE}
+    { Create by reading a FreeType font file, like ttf. }
+    constructor Create(const URL: string;
+      const ASize: Integer; const AnAntiAliased: boolean;
+      const ACharacters: TSetOfChars = SimpleAsciiCharacters);
+    {$endif}
+    { Create from a ready TTextureFontData instance.
+      Data instance becomes owned by this class if and only if OwnsData. }
+    constructor Create(const Data: TTextureFontData; const OwnsData: boolean);
+    destructor Destroy; override;
+    procedure Print(const X, Y: Integer; const Color: TCastleColor;
+      const S: string); override;
+    function TextWidth(const S: string): Integer; override;
+    function TextHeight(const S: string): Integer; override;
+    function TextMove(const S: string): TVector2Integer; override;
+    function TextHeightBase(const S: string): Integer; override;
+  end;
+
+  { @deprecated Deprecated name, use TTextureFont now. }
+  TGLBitmapFont = TTextureFont deprecated;
+
+  { 2D font using a texture to define character images
+    with constant width and height.
+
+    This class has some assumptions about how the font image looks like:
+    the characters are drawn in ASCII order, starting from space, on an image.
+    Derive your own descendants of TCastleFont to have more flexibility,
+    see the implementation of this class --- it is quite simple.
+    Or use TTextureFont that can read data from a FreeType (like ttf) font file.
+
+    See e.g. castle_game_engine/examples/fonts/data/sonic_asalga_0.png
+    how to prepare an image for use with such font.
+    You can find more such fonts on the Internet, see
+    e.g. http://opengameart.org/content/sonic-font and
+    http://opengameart.org/content/null-terminator. }
+  TSimpleTextureFont = class(TCastleFont)
+  private
+    Image: TGLImage;
+    ImageCols, ImageRows,
+      CharMargin, CharDisplayMargin, CharWidth, CharHeight: Integer;
+  public
+    { Load font from given image.
+      @param AImage Image data, becomes owned by this class.
+      @param ACharMargin There is a margin in the image between rows and cols.
+      @param(ACharDisplayMargin We can display some spacing between characters.
+        This is independent from CharMargin and image contents.) }
+    constructor Create(AImage: TCastleImage;
+      const AImageCols, AImageRows, ACharMargin, ACharDisplayMargin: Integer);
+    destructor Destroy; override;
+    procedure Print(const X, Y: Integer; const Color: TCastleColor;
+      const S: string); override;
+    function TextWidth(const S: string): Integer; override;
+    function TextHeight(const S: string): Integer; override;
+    function TextMove(const S: string): TVector2Integer; override;
+    function TextHeightBase(const S: string): Integer; override;
+  end;
 
 implementation
 
-uses CastleUtils, CastleStringUtils, CastleClassUtils, Math;
+uses CastleClassUtils, CastleGLUtils, SysUtils, CastleUtils, Math;
 
 { HandleTags ----------------------------------------------------------------- }
 
@@ -308,20 +379,20 @@ begin
     Result := S;
 end;
 
-{ TGLBitmapFontAbstract ------------------------------------------------------}
+{ TCastleFont ------------------------------------------------------}
 
-procedure TGLBitmapFontAbstract.Print(const Pos: TVector2Integer;
+procedure TCastleFont.Print(const Pos: TVector2Integer;
   const Color: TCastleColor; const S: string);
 begin
   Print(Pos[0], Pos[1], Color, S);
 end;
 
-procedure TGLBitmapFontAbstract.Print(const s: string);
+procedure TCastleFont.Print(const s: string);
 begin
   Print(WindowPos[0], WindowPos[1], CurrentColor, S);
 end;
 
-procedure TGLBitmapFontAbstract.PrintAndMove(const S: string);
+procedure TCastleFont.PrintAndMove(const S: string);
 begin
   { Deprecated method uses other deprecated method here, don't warn }
   {$warnings off}
@@ -330,17 +401,17 @@ begin
   WindowPos := WindowPos + TextMove(S);
 end;
 
-procedure TGLBitmapFontAbstract.Print(const X, Y: Integer; const S: string);
+procedure TCastleFont.Print(const X, Y: Integer; const S: string);
 begin
   Print(X, Y, CurrentColor, S);
 end;
 
-function TGLBitmapFontAbstract.Descend: Integer;
+function TCastleFont.Descend: Integer;
 begin
   result := TextHeight('y')-TextHeight('a');
 end;
 
-procedure TGLBitmapFontAbstract.BreakLines(const unbroken: string;
+procedure TCastleFont.BreakLines(const unbroken: string;
   broken: TStrings; maxLineWidth: integer);
 var
   unbrokenlist: TStringList;
@@ -352,7 +423,7 @@ begin
   finally unbrokenlist.Free end;
 end;
 
-procedure TGLBitmapFontAbstract.BreakLines(unbroken, broken: TStrings;
+procedure TCastleFont.BreakLines(unbroken, broken: TStrings;
   maxLineWidth: integer);
 var
   i, FirstToBreak: Integer;
@@ -362,7 +433,7 @@ begin
   BreakLines(broken, maxLineWidth, FirstToBreak);
 end;
 
-procedure TGLBitmapFontAbstract.BreakLines(broken: TStrings;
+procedure TCastleFont.BreakLines(broken: TStrings;
   maxLineWidth: Integer; FirstToBreak: integer);
 var
   i, j: Integer;
@@ -428,7 +499,7 @@ begin
   end;
 end;
 
-function TGLBitmapFontAbstract.MaxTextWidth(SList: TStrings;
+function TCastleFont.MaxTextWidth(SList: TStrings;
   const Tags: boolean): Integer;
 var
   I, LineW: Integer;
@@ -447,9 +518,9 @@ begin
   end;
 end;
 
-procedure TGLBitmapFontAbstract.PrintStrings(const X0, Y0: Integer;
+procedure TCastleFont.PrintStrings(const X0, Y0: Integer;
   const Color: TCastleColor; const Strs: TStrings;
-  const Tags: boolean; const BonusVerticalSpace: TGLint);
+  const Tags: boolean; const BonusVerticalSpace: Integer);
 var
   Line: Integer;
 
@@ -477,15 +548,15 @@ begin
   end;
 end;
 
-procedure TGLBitmapFontAbstract.PrintStrings(const Strs: TStrings;
-  const Tags: boolean; const BonusVerticalSpace: TGLint;
+procedure TCastleFont.PrintStrings(const Strs: TStrings;
+  const Tags: boolean; const BonusVerticalSpace: Integer;
   const X0: Integer; const Y0: Integer);
 begin
   PrintStrings(X0, Y0, CurrentColor, Strs, Tags, BonusVerticalSpace);
 end;
 
-procedure TGLBitmapFontAbstract.PrintStrings(const Strs: array of string;
-  const Tags: boolean; const BonusVerticalSpace: TGLint;
+procedure TCastleFont.PrintStrings(const Strs: array of string;
+  const Tags: boolean; const BonusVerticalSpace: Integer;
   const X0, Y0: Integer);
 var
   SList: TStringList;
@@ -497,7 +568,7 @@ begin
   finally SList.Free end;
 end;
 
-function TGLBitmapFontAbstract.PrintBrokenString(
+function TCastleFont.PrintBrokenString(
   X0, Y0: Integer; const Color: TCastleColor; const s: string;
   const MaxLineWidth: Integer;
   const PositionsFirst: boolean;
@@ -515,7 +586,7 @@ begin
   finally broken.Free end;
 end;
 
-function TGLBitmapFontAbstract.PrintBrokenString(const S: string;
+function TCastleFont.PrintBrokenString(const S: string;
   const MaxLineWidth, X0, Y0: Integer;
   const PositionsFirst: boolean;
   const BonusVerticalSpace: Integer): Integer; deprecated;
@@ -524,7 +595,7 @@ begin
     PositionsFirst, BonusVerticalSpace);
 end;
 
-procedure TGLBitmapFontAbstract.UpdateRowHeight(out ARowHeight, ARowHeightBase: Integer);
+procedure TCastleFont.UpdateRowHeight(out ARowHeight, ARowHeightBase: Integer);
 begin
   ARowHeight := TextHeight('Wy') + 2;
   { RowHeight zwiekszylem o +2 zeby byl odstep miedzy liniami.
@@ -533,7 +604,7 @@ begin
   ARowHeightBase := TextHeightBase('W');
 end;
 
-function TGLBitmapFontAbstract.RowHeight: Integer;
+function TCastleFont.RowHeight: Integer;
 begin
   if not CalculatedRowHeight then
   begin
@@ -543,7 +614,7 @@ begin
   Result := FRowHeight;
 end;
 
-function TGLBitmapFontAbstract.RowHeightBase: Integer;
+function TCastleFont.RowHeightBase: Integer;
 begin
   if not CalculatedRowHeight then
   begin
@@ -552,5 +623,194 @@ begin
   end;
   Result := FRowHeightBase;
 end;
+
+{ TTextureFont --------------------------------------------------------------- }
+
+{$ifdef HAS_FREE_TYPE}
+constructor TTextureFont.Create(const URL: string;
+  const ASize: Integer; const AnAntiAliased: boolean;
+  const ACharacters: TSetOfChars);
+begin
+  Create(TTextureFontData.Create(URL, ASize, AnAntiAliased, ACharacters), true);
+end;
+{$endif}
+
+constructor TTextureFont.Create(const Data: TTextureFontData; const OwnsData: boolean);
+begin
+  inherited Create;
+  FOwnsFont := OwnsData;
+  FFont := Data;
+  Image := TGLImage.Create(FFont.Image, false);
+end;
+
+destructor TTextureFont.Destroy;
+begin
+  FreeAndNil(Image);
+  if FOwnsFont then
+    FreeAndNil(FFont) else
+    FFont := nil;
+  inherited;
+end;
+
+procedure TTextureFont.Print(const X, Y: Integer; const Color: TCastleColor;
+  const S: string);
+var
+  C: char;
+  ScreenX, ScreenY: Integer;
+  G: TTextureFontData.TGlyph;
+begin
+  Image.Color := Color;
+  ScreenX := X;
+  ScreenY := Y;
+  for C in S do
+  begin
+    G := FFont.Glyph(C);
+    if G <> nil then
+    begin
+      if (G.Width <> 0) and (G.Height <> 0) then
+        Image.Draw(ScreenX - G.X, ScreenY - G.Y, G.Width, G.Height,
+          G.ImageX, G.ImageY, G.Width, G.Height);
+      ScreenX += G.AdvanceX;
+      ScreenY += G.AdvanceY;
+    end;
+  end;
+end;
+
+function TTextureFont.TextWidth(const S: string): Integer;
+var
+  C: char;
+  G: TTextureFontData.TGlyph;
+begin
+  Result := 0;
+  for C in S do
+  begin
+    G := FFont.Glyph(C);
+    if G <> nil then
+      Result += G.AdvanceX;
+  end;
+end;
+
+function TTextureFont.TextHeight(const S: string): Integer;
+var
+  C: char;
+  MinY, MaxY, YOrigin: Integer;
+  G: TTextureFontData.TGlyph;
+begin
+  MinY := 0;
+  MaxY := 0;
+  for C in S do
+  begin
+    G := FFont.Glyph(C);
+    if G <> nil then
+    begin
+      YOrigin := G.Y;
+      MinTo1st(MinY, -YOrigin);
+      MaxTo1st(MaxY, G.Height - YOrigin);
+    end;
+  end;
+  Result := MaxY - MinY;
+end;
+
+function TTextureFont.TextHeightBase(const S: string): Integer;
+var
+  C: char;
+  G: TTextureFontData.TGlyph;
+begin
+  Result := 0;
+  { This is just like TextHeight implementation, except we only
+    calculate (as Result) the MaxY value (assuming that MinY is zero). }
+  for C in S do
+  begin
+    G := FFont.Glyph(C);
+    if G <> nil then
+      MaxTo1st(Result, G.Height - G.Y);
+  end;
+end;
+
+function TTextureFont.TextMove(const S: string): TVector2Integer;
+var
+  C: char;
+  G: TTextureFontData.TGlyph;
+begin
+  Result := ZeroVector2Integer;
+  for C in S do
+  begin
+    G := FFont.Glyph(C);
+    if G <> nil then
+    begin
+      Result[0] += G.AdvanceX;
+      Result[1] += G.AdvanceY;
+    end;
+  end;
+end;
+
+{ TSimpleTextureFont --------------------------------------------------------- }
+
+constructor TSimpleTextureFont.Create(AImage: TCastleImage;
+  const AImageCols, AImageRows, ACharMargin, ACharDisplayMargin: Integer);
+begin
+  inherited Create;
+  Image := TGLImage.Create(AImage, false);
+  FreeAndNil(AImage); // not needed anymore
+
+  ImageCols := AImageCols;
+  ImageRows := AImageRows;
+  CharMargin := ACharMargin;
+  CharWidth := Image.Width div ImageCols - CharMargin;
+  CharHeight := Image.Height div ImageRows - CharMargin;
+  CharDisplayMargin := ACharDisplayMargin;
+end;
+
+destructor TSimpleTextureFont.Destroy;
+begin
+  FreeAndNil(Image);
+  inherited;
+end;
+
+procedure TSimpleTextureFont.Print(const X, Y: Integer; const Color: TCastleColor;
+  const S: string);
+var
+  ImageX, ImageY: Single;
+  I, CharIndex, ScreenX, ScreenY: Integer;
+begin
+  Image.Color := Color;
+  for I := 1 to Length(S) do
+  begin
+    CharIndex := Ord(S[I]) - Ord(' ');
+    ImageX := CharIndex mod ImageCols;
+    ImageY := CharIndex div ImageCols;
+    if ImageY < ImageRows then
+    begin
+      ImageX := ImageX * (CharWidth + CharMargin);
+      ImageY := Image.Height - (ImageY + 1) * (CharHeight + CharMargin);
+      ScreenX := CharDisplayMargin div 2 + X + (I - 1) * (CharWidth + CharDisplayMargin);
+      ScreenY := CharDisplayMargin div 2 + Y;
+      Image.Draw(ScreenX, ScreenY, CharWidth, CharHeight,
+        ImageX, ImageY, CharWidth, CharHeight);
+    end;
+  end;
+end;
+
+function TSimpleTextureFont.TextWidth(const S: string): Integer;
+begin
+  Result := Length(S) * (CharWidth + CharDisplayMargin);
+end;
+
+function TSimpleTextureFont.TextHeight(const S: string): Integer;
+begin
+  Result := CharHeight + CharDisplayMargin;
+end;
+
+function TSimpleTextureFont.TextHeightBase(const S: string): Integer;
+begin
+  Result := CharHeight + CharDisplayMargin;
+end;
+
+function TSimpleTextureFont.TextMove(const S: string): TVector2Integer;
+begin
+  Result := Vector2Integer(TextWidth(S), TextHeight(S));
+end;
+
+end.
 
 end.

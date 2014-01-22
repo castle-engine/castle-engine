@@ -18,8 +18,8 @@ unit CastleControls;
 
 interface
 
-uses Classes, CastleVectors, CastleUIControls, CastleGLBitmapFonts,
-  CastleTextureFont, CastleTextureFontData,
+uses Classes, CastleVectors, CastleUIControls, CastleFonts,
+  CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages,
   CastleRectangles, CastleColors, CastleProgress;
 
@@ -31,15 +31,15 @@ type
   private
     FTooltip: string;
     TooltipLabel: TCastleLabel;
-    FCustomFont: TGLBitmapFontAbstract;
+    FCustomFont: TCastleFont;
     FOwnsCustomFont: boolean;
-    procedure SetCustomFont(const Value: TGLBitmapFontAbstract);
+    procedure SetCustomFont(const Value: TCastleFont);
   protected
     { Font custom to this control. By default this returns UIFont,
       you can override this to return your font.
       It's OK to return here @nil if font is not ready yet,
       but during Draw (when OpenGL context is available) font must be ready. }
-    function Font: TGLBitmapFontAbstract; virtual;
+    function Font: TCastleFont; virtual;
   public
     procedure GLContextClose; override;
     function TooltipStyle: TUIControlDrawStyle; override;
@@ -53,7 +53,7 @@ type
 
     { When non-nil, this font will be used to draw this control.
       Otherwise the default UIFont will be used. }
-    property CustomFont: TGLBitmapFontAbstract
+    property CustomFont: TCastleFont
       read FCustomFont write SetCustomFont;
     property OwnsCustomFont: boolean
       read FOwnsCustomFont write FOwnsCustomFont default false;
@@ -516,7 +516,7 @@ type
     property LineSpacing: Integer read FLineSpacing write FLineSpacing default 0;
 
     { Does the text use HTML-like tags. This is very limited for now,
-      see TGLBitmapFontAbstract.PrintStrings documentation. }
+      see TCastleFont.PrintStrings documentation. }
     property Tags: boolean read FTags write FTags default false;
   end;
 
@@ -639,14 +639,14 @@ type
   all your controls.)
 
   @groupBegin }
-function GetUIFont: TGLBitmapFontAbstract;
-procedure SetUIFont(const Value: TGLBitmapFontAbstract);
+function GetUIFont: TCastleFont;
+procedure SetUIFont(const Value: TCastleFont);
 
-function GetUIFontSmall: TGLBitmapFontAbstract;
-procedure SetUIFontSmall(const Value: TGLBitmapFontAbstract);
+function GetUIFontSmall: TCastleFont;
+procedure SetUIFontSmall(const Value: TCastleFont);
 
-property UIFont: TGLBitmapFontAbstract read GetUIFont write SetUIFont;
-property UIFontSmall: TGLBitmapFontAbstract read GetUIFontSmall write SetUIFontSmall;
+property UIFont: TCastleFont read GetUIFont write SetUIFont;
+property UIFontSmall: TCastleFont read GetUIFontSmall write SetUIFontSmall;
 { @groupEnd }
 
 function Theme: TCastleTheme;
@@ -718,7 +718,7 @@ begin
   inherited;
 end;
 
-function TUIControlFont.Font: TGLBitmapFontAbstract;
+function TUIControlFont.Font: TCastleFont;
 begin
   if GLInitialized then
   begin
@@ -729,7 +729,7 @@ begin
     Result := nil;
 end;
 
-procedure TUIControlFont.SetCustomFont(const Value: TGLBitmapFontAbstract);
+procedure TUIControlFont.SetCustomFont(const Value: TCastleFont);
 begin
   if FCustomFont <> Value then
   begin
@@ -1990,7 +1990,7 @@ const
 
 { Make Text shorter to fit the text width (as rendered using Font)
   inside MaxWidth (in pixels). }
-procedure MakeTextFit(var Text: string; const Font: TGLBitmapFontAbstract;
+procedure MakeTextFit(var Text: string; const Font: TCastleFont;
   const MaxWidth: Integer);
 var
   DotsWidth: Integer;
@@ -2097,7 +2097,7 @@ const
   Padding = 20;
 var
   MaxTextWidth: Integer;
-  Font: TGLBitmapFontAbstract;
+  Font: TCastleFont;
   Caption: string;
   BarRect, FillRect: TRectangle;
 begin
@@ -2323,17 +2323,17 @@ end;
 { UIFont --------------------------------------------------------------------- }
 
 var
-  FUIFont: TGLBitmapFontAbstract;
-  FUIFontSmall: TGLBitmapFontAbstract;
+  FUIFont: TCastleFont;
+  FUIFontSmall: TCastleFont;
 
-function GetUIFont: TGLBitmapFontAbstract;
+function GetUIFont: TCastleFont;
 begin
   if FUIFont = nil then
     FUIFont := TTextureFont.Create(TextureFont_DejaVuSans_20, false);
   Result := FUIFont;
 end;
 
-procedure SetUIFont(const Value: TGLBitmapFontAbstract);
+procedure SetUIFont(const Value: TCastleFont);
 begin
   if FUIFont <> Value then
   begin
@@ -2342,14 +2342,14 @@ begin
   end;
 end;
 
-function GetUIFontSmall: TGLBitmapFontAbstract;
+function GetUIFontSmall: TCastleFont;
 begin
   if FUIFontSmall = nil then
     FUIFontSmall := TTextureFont.Create(TextureFont_DejaVuSans_10, false);
   Result := FUIFontSmall;
 end;
 
-procedure SetUIFontSmall(const Value: TGLBitmapFontAbstract);
+procedure SetUIFontSmall(const Value: TCastleFont);
 begin
   if FUIFontSmall <> Value then
   begin

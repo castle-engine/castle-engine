@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo of TGLBitmapFontAbstract.BreakLines method.
+{ Demo of TCastleFont.BreakLines method.
   Resize the window and watch how the text lines are automatically broken.
 
   By default we use standard UIFont.
@@ -26,9 +26,8 @@
 program test_font_break;
 
 uses CastleWindow, CastleGLUtils, SysUtils, Classes, CastleParameters,
-  CastleUtils, CastleGLBitmapFonts, CastleVectors, CastleStringUtils, CastleColors,
-  CastleControls, CastleKeysMouse, CastleRectangles, CastleControlsImages,
-  CastleTextureFont;
+  CastleUtils, CastleFonts, CastleVectors, CastleStringUtils, CastleColors,
+  CastleControls, CastleKeysMouse, CastleRectangles, CastleControlsImages;
 
 var
   Window: TCastleWindowCustom;

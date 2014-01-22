@@ -34,7 +34,7 @@ uses CastleGL, CastleWindow, CastleGLUtils, SysUtils, CastleVectors,
   CastleCurves, CastleScript, CastleMessages, CastleUIControls, CastleKeysMouse,
   CastleUtils, CastleScriptParser, CastleScriptCoreFunctions,
   CastleSceneManager, CastleControls,
-  CastleGLBitmapFonts, Classes, CastleStringUtils, Castle3D, CastleColors;
+  Classes, CastleStringUtils, Castle3D, CastleColors;
 
 { global vars ------------------------------------------------------------ }
 

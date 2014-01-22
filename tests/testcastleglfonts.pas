@@ -29,12 +29,12 @@ type
 implementation
 
 uses SysUtils, Classes, CastleWindow,
-  CastleGLBitmapFonts, CastleTextureFont, CastleTextureFont_DejaVuSansMonoBold_15;
+  CastleFonts, CastleTextureFont_DejaVuSansMonoBold_15;
 
 procedure TTestCastleGLFonts.TestMaxTextWidthTags;
 var
   Window: TCastleWindow;
-  F: TGLBitmapFontAbstract;
+  F: TCastleFont;
   SList: TStringList;
   W1, W2: Single;
 begin

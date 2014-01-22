@@ -83,8 +83,7 @@ type
     ItemsCount: Cardinal;
   end;
 
-  { Character information.
-    It's packed because of the same reason as TBitmapChar. }
+  { Character information. }
   TOutlineChar = packed record
     Info: TOutlineCharInfo;
 

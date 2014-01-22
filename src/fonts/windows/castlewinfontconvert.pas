@@ -56,7 +56,6 @@ uses SysUtils, CastleUtils, CastleGenericLists;
   bold/italic or versions not (in the latter case,
   I assume that Windows automatically synthesizes bold/italic versions).
 
-  This is true both for Font2BitmapChar and Font2OutlineChar.
   This is an effect of how Windows.GetGlyphOutline works,
   although it doesn't seem documented anywhere.
 }

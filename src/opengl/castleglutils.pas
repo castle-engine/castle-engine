@@ -385,10 +385,10 @@ procedure GLViewport(const Rect: TRectangle);
 function GetCurrentColor: TCastleColor;
 procedure SetCurrentColor(const Value: TCastleColor);
 
-{ Current color, set by glColorv and used for bitmap font printing
-  (in case you use deprecated TGLBitmapFont.Print overloads without
+{ Current color, set by glColorv and used for TCastleFont font printing
+  (in case you use deprecated TCastleFont.Print overloads without
   explicit colors).
-  You should not depend on this in new programs, rather use TGLBitmapFont.Print
+  You should not depend on this in new programs, rather use TCastleFont.Print
   with explicit Color parameter. }
 property CurrentColor: TCastleColor read GetCurrentColor write SetCurrentColor;
 
@@ -523,7 +523,7 @@ procedure glDrawBox3DSimple(const Box: TBox3D);
 
 { Call glColor, taking Opacity as separate Single argument.
   Deprecated, do not use colors like that, instead pass TCastleColor
-  to appropriate routines like TGLBitmapFont.Print.
+  to appropriate routines like TCastleFont.Print.
   @groupBegin }
 procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single); deprecated;
 procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single); deprecated;
@@ -618,10 +618,10 @@ procedure glFreeBuffer(var Buffer: TGLuint);
   #) }
 procedure glSetDepthAndColorWriteable(Writeable: TGLboolean);
 
-{ Draw the 2D GUI stuff (like following GUI images and bitmap fonts)
+{ Draw the 2D GUI stuff (like following GUI images and TCastleFont)
   with lower-left corner in the X,Y pixel.
   It's not adviced to use this, better use TGLImage.Draw(X,Y)
-  or TGLBitmapFont.Print(X,Y,string) methods.
+  or TCastleFont.Print(X,Y,string) methods.
   @groupBegin }
 procedure SetWindowPos(const X, Y: TGLint);
 procedure SetWindowPos(const Value: TVector2i);

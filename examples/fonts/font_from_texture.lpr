@@ -28,8 +28,8 @@
 
 program font_from_texture;
 
-uses SysUtils, CastleWindow, CastleControls, CastleGLBitmapFonts, CastleImages,
-  CastleColors, CastleVectors, CastleFilesUtils, CastleLog, CastleTextureFont;
+uses SysUtils, CastleWindow, CastleControls, CastleFonts, CastleImages,
+  CastleColors, CastleVectors, CastleFilesUtils, CastleLog;
 
 var
   Window: TCastleWindow;
@@ -47,18 +47,18 @@ begin
   Label2.OwnsCustomFont := true;
   Label2.Color := Red;
 
-  LabelDeja.CustomFont := TTextureFont.Create(ApplicationData('DejaVuSans.ttf'), true, 15);
+  LabelDeja.CustomFont := TTextureFont.Create(ApplicationData('DejaVuSans.ttf'), 15, true);
   LabelDeja.OwnsCustomFont := true;
-  LabelDejaBW.CustomFont := TTextureFont.Create(ApplicationData('DejaVuSans.ttf'), false, 15);
+  LabelDejaBW.CustomFont := TTextureFont.Create(ApplicationData('DejaVuSans.ttf'), 15, false);
   LabelDejaBW.OwnsCustomFont := true;
-  LabelDejaLarge.CustomFont := TTextureFont.Create(ApplicationData('DejaVuSans.ttf'), true, 30);
+  LabelDejaLarge.CustomFont := TTextureFont.Create(ApplicationData('DejaVuSans.ttf'), 30, true);
   LabelDejaLarge.OwnsCustomFont := true;
 
-  LabelStylish.CustomFont := TTextureFont.Create(ApplicationData('PARPG.ttf'), true, 15);
+  LabelStylish.CustomFont := TTextureFont.Create(ApplicationData('PARPG.ttf'), 15, true);
   LabelStylish.OwnsCustomFont := true;
-  LabelStylishBW.CustomFont := TTextureFont.Create(ApplicationData('PARPG.ttf'), false, 15);
+  LabelStylishBW.CustomFont := TTextureFont.Create(ApplicationData('PARPG.ttf'), 15, false);
   LabelStylishBW.OwnsCustomFont := true;
-  LabelStylishLarge.CustomFont := TTextureFont.Create(ApplicationData('PARPG.ttf'), true, 30);
+  LabelStylishLarge.CustomFont := TTextureFont.Create(ApplicationData('PARPG.ttf'), 30, true);
   LabelStylishLarge.OwnsCustomFont := true;
 end;
 

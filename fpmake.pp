@@ -215,7 +215,7 @@ begin
     P.Targets.AddUnit('castledownload.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'opengl');
-    P.Targets.AddUnit('castleglbitmapfonts.pas');
+    P.Targets.AddUnit('castlefonts.pas');
     P.Targets.AddUnit('castlegles20.pas');
     P.Targets.AddUnit('castlegloutlinefonts.pas');
     P.Targets.AddUnit('castleglutils.pas');
@@ -225,7 +225,6 @@ begin
     P.Targets.AddUnit('castleglshaders.pas');
     P.Targets.AddUnit('castleglshadowvolumes.pas');
     P.Targets.AddUnit('castleglversion.pas');
-    P.Targets.AddUnit('castletexturefont.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'ui');
     P.Targets.AddUnit('castlecameras.pas');

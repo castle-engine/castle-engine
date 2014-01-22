@@ -7,8 +7,8 @@
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/base;../src/base/unix;../src/base/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/opengl/glsl;../src/castlescript;../src/3d;../src/x3d/opengl/glsl"/>
-        <OtherUnitFiles Value="../src/base;../src/3d;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/net;../src/castlescript;../src/ui;../src/ui/windows;../src/ui/opengl;../src/game"/>
+        <IncludeFiles Value="../src/base;../src/base/unix;../src/base/windows;../src/opengl;../src/audio;../src/opengl/glsl;../src/castlescript;../src/3d;../src/x3d/opengl/glsl"/>
+        <OtherUnitFiles Value="../src/base;../src/3d;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/opengl;../src/audio;../src/net;../src/castlescript;../src/ui;../src/ui/windows;../src/ui/opengl;../src/game"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -36,7 +36,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="4" Minor="1"/>
-    <Files Count="164">
+    <Files Count="162">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -295,24 +295,24 @@
         <UnitName Value="X3DCastleScript"/>
       </Item64>
       <Item65>
-        <Filename Value="../src/fonts/castlebitmapfont_bvsans.pas"/>
-        <UnitName Value="CastleBitmapFont_BVSans"/>
+        <Filename Value="../src/fonts/castletexturefont_dejavusans_10.pas"/>
+        <UnitName Value="CastleTextureFont_DejaVuSans_10"/>
       </Item65>
       <Item66>
-        <Filename Value="../src/fonts/castlebitmapfont_bvsans_m10.pas"/>
-        <UnitName Value="CastleBitmapFont_BVSans_m10"/>
+        <Filename Value="../src/fonts/castletexturefont_dejavusans_20.pas"/>
+        <UnitName Value="CastleTextureFont_DejaVuSans_20"/>
       </Item66>
       <Item67>
-        <Filename Value="../src/fonts/castlebitmapfont_bvsansmono_bold_m15.pas"/>
-        <UnitName Value="CastleBitmapFont_BVSansMono_Bold_m15"/>
+        <Filename Value="../src/fonts/castletexturefont_dejavusansmonobold_15.pas"/>
+        <UnitName Value="CastleTextureFont_DejaVuSansMonoBold_15"/>
       </Item67>
       <Item68>
-        <Filename Value="../src/fonts/castlebitmapfont_bvsansmono_m18.pas"/>
-        <UnitName Value="CastleBitmapFont_BVSansMono_m18"/>
+        <Filename Value="../src/fonts/castletexturefont_dejavusansmono_18.pas"/>
+        <UnitName Value="CastleTextureFont_DejaVuSansMono_18"/>
       </Item68>
       <Item69>
-        <Filename Value="../src/fonts/castlebitmapfonts.pas"/>
-        <UnitName Value="CastleBitmapFonts"/>
+        <Filename Value="../src/fonts/castletexturefontdata.pas"/>
+        <UnitName Value="CastleTextureFontData"/>
       </Item69>
       <Item70>
         <Filename Value="../src/fonts/castlefont2pascal.pas"/>
@@ -367,8 +367,8 @@
         <UnitName Value="CastleOutlineFont_BVSerif_Italic"/>
       </Item82>
       <Item83>
-        <Filename Value="../src/fonts/castleoutlinefonts.pas"/>
-        <UnitName Value="CastleOutlineFonts"/>
+        <Filename Value="../src/fonts/castleoutlinefontdata.pas"/>
+        <UnitName Value="CastleOutlineFontData"/>
       </Item83>
       <Item84>
         <Filename Value="../src/fonts/windows/castlewindowsfonts.pas"/>
@@ -445,8 +445,8 @@
         <UnitName Value="CastleCurves"/>
       </Item101>
       <Item102>
-        <Filename Value="../src/opengl/castleglbitmapfonts.pas"/>
-        <UnitName Value="CastleGLBitmapFonts"/>
+        <Filename Value="../src/opengl/castlefonts.pas"/>
+        <UnitName Value="CastleFonts"/>
       </Item102>
       <Item103>
         <Filename Value="../src/opengl/castleglcubemaps.pas"/>
@@ -480,15 +480,6 @@
         <Filename Value="../src/opengl/castleglversion.pas"/>
         <UnitName Value="CastleGLVersion"/>
       </Item110>
-      <Item111>
-        <Filename Value="../src/opengl/windows/castleglwindowsfonts.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="CastleGLWindowsFonts"/>
-      </Item111>
-      <Item112>
-        <Filename Value="../src/opengl/windows/castleglwindowsfonts_implement.inc"/>
-        <Type Value="Include"/>
-      </Item112>
       <Item113>
         <Filename Value="../src/ui/castlecameras.pas"/>
         <HasRegisterProc Value="True"/>
@@ -695,14 +686,14 @@
         <Filename Value="../src/x3d/x3dshadowmaps.pas"/>
         <UnitName Value="X3DShadowMaps"/>
       </Item162>
-      <Item163>
+      <Item112>
         <Filename Value="../src/x3d/x3dtime.pas"/>
         <UnitName Value="X3DTime"/>
-      </Item163>
-      <Item164>
+      </Item112>
+      <Item111>
         <Filename Value="../src/x3d/x3dtriangles.pas"/>
         <UnitName Value="X3DTriangles"/>
-      </Item164>
+      </Item111>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">

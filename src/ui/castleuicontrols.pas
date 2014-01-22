@@ -398,8 +398,9 @@ end;
             @itemSpacing Compact
             @item The modelview matrix value.
             @item ds3D controls can also freely change projection matrix value and viewport.
-            @item(The raster position (the only place that uses it in our engine,
-              TGLBitmapFont.Print, always overrides it).)
+            @item(The raster position and WindowPos. The only place in our engine
+              using WindowPos is the deprecated TCastleFont methods (ones without
+              explicit X, Y).)
             @item The color (glColor), material (glMaterial) values.
             @item The line width, point size.
           )

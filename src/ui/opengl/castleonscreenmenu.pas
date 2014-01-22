@@ -20,7 +20,7 @@ unit CastleOnScreenMenu;
 
 interface
 
-uses Classes, CastleVectors, CastleGLBitmapFonts, CastleControls,
+uses Classes, CastleVectors, CastleFonts, CastleControls,
   CastleGLUtils, CastleUIControls, CastleKeysMouse, CastleColors,
   CastleGenericLists, CastleRectangles;
 
@@ -662,8 +662,8 @@ procedure Register;
 
 { @deprecated Deprecated names for UIFont and UIFontSmall in CastleControls unit.
   @groupBegin }
-property MenuFont: TGLBitmapFontAbstract read GetUIFont write SetUIFont;
-property SliderFont: TGLBitmapFontAbstract read GetUIFontSmall write SetUIFontSmall;
+property MenuFont: TCastleFont read GetUIFont write SetUIFont;
+property SliderFont: TCastleFont read GetUIFontSmall write SetUIFontSmall;
 { @groupEnd }
 
 implementation
