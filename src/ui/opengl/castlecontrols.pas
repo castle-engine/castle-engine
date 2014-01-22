@@ -2308,7 +2308,7 @@ end;
 function TCastleTheme.GLMessageFont: TTextureFont;
 begin
   if FGLMessageFont = nil then
-    FGLMessageFont := TTextureFont.Create(FMessageFont, false);
+    FGLMessageFont := TTextureFont.Create(FMessageFont);
   Result := FGLMessageFont;
 end;
 
@@ -2329,7 +2329,7 @@ var
 function GetUIFont: TCastleFont;
 begin
   if FUIFont = nil then
-    FUIFont := TTextureFont.Create(TextureFont_DejaVuSans_20, false);
+    FUIFont := TTextureFont.Create(TextureFont_DejaVuSans_20);
   Result := FUIFont;
 end;
 
@@ -2345,7 +2345,7 @@ end;
 function GetUIFontSmall: TCastleFont;
 begin
   if FUIFontSmall = nil then
-    FUIFontSmall := TTextureFont.Create(TextureFont_DejaVuSans_10, false);
+    FUIFontSmall := TTextureFont.Create(TextureFont_DejaVuSans_10);
   Result := FUIFontSmall;
 end;
 

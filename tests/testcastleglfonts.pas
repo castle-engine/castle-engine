@@ -42,7 +42,7 @@ begin
   try
     Window.Visible := false;
     Window.Open;
-    F := TTextureFont.Create(TextureFont_DejaVuSansMonoBold_15, false);
+    F := TTextureFont.Create(TextureFont_DejaVuSansMonoBold_15);
 
     SList := TStringList.Create;
 
