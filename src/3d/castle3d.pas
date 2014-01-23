@@ -1014,10 +1014,15 @@ type
       prefix, automatically taking into account some knowledge about this
       3D world.
 
-      Outside code should prefer calling MyXxx methods of Colliders,
-      like T3D.MoveAllowed, instead of these WorldXxx methods.
-      Calling these WorldXxx methods directly still makes sense if your query
-      is not initiated by any 3D object that is part of this 3D world.
+      Calling these methods to check collisions makes sense if your
+      collision query is not initiated by any existing T3D instance.
+
+      If your query originates from some existing T3D instance,
+      you usually do not want to call these WorldXxx methods.
+      Instead call T3D.MoveAllowed, T3D.Height methods.
+      Underneath, they still call @code(World.WorldMoveAllowed) and
+      @code(World.WorldHeight),
+      additionally making sure that the 3D object does not collide with itself.
       @groupBegin }
     function WorldMoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
