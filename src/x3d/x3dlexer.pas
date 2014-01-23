@@ -519,12 +519,21 @@ const
   end;
 
   { If Prefix is a prefix of S, then return @true and remove this prefix
-    from S. Otherwise return @false (without modifying S). }
-  function IsPrefixRemove(const Prefix: string; var S: string): boolean;
+    from S. Otherwise return @false (without modifying S).
+    Allows also an UTF-8 BOM before a prefix. }
+  function CheckRemoveHeader(Prefix: string; var S: string): boolean;
+  const
+    Utf8Bom = #$EF + #$BB + #$BF;
   begin
     Result := IsPrefix(Prefix, S);
     if Result then
-      Delete(S, 1, Length(Prefix));
+      Delete(S, 1, Length(Prefix)) else
+    begin
+      Prefix := Utf8Bom + Prefix;
+      Result := IsPrefix(Prefix, S);
+      if Result then
+        Delete(S, 1, Length(Prefix));
+    end;
   end;
 
   { Parse and remove Vmajor.minor version number from VRML header line.
@@ -612,7 +621,7 @@ begin
     For now ParseVersion is used only by X3D. But it could be used
     also by other Inventor / VRML versions. }
 
-  if IsPrefixRemove(InventorHeaderStart, Line) then
+  if CheckRemoveHeader(InventorHeaderStart, Line) then
   begin
     FVersion.Major := 0;
     FVersion.Minor := 0;
@@ -622,7 +631,7 @@ begin
         'Inventor format detected, version "%s", but only Inventor 1.0 ascii files are supported',
         [TrimRight(Line)]));
   end else
-  if IsPrefixRemove(VRML1HeaderStart, Line) then
+  if CheckRemoveHeader(VRML1HeaderStart, Line) then
   begin
     FVersion.Major := 1;
     FVersion.Minor := 0;
@@ -633,14 +642,14 @@ begin
       raise EX3DLexerError.Create(Self, 'Wrong VRML 1.0 signature: '+
         'VRML 1.0 files must have "ascii" encoding');
   end else
-  if IsPrefixRemove(VRML2DraftHeaderStart, Line) or
-     IsPrefixRemove(VRML2HeaderStart, Line) then
+  if CheckRemoveHeader(VRML2DraftHeaderStart, Line) or
+     CheckRemoveHeader(VRML2HeaderStart, Line) then
   begin
     FVersion.Major := 2;
     FVersion.Minor := 0;
     Utf8HeaderReadRest(Line);
   end else
-  if IsPrefixRemove(X3DHeaderStart, Line) then
+  if CheckRemoveHeader(X3DHeaderStart, Line) then
   begin
     ParseVersion(Line, FVersion.Major, FVersion.Minor);
     if FVersion.Major < 3 then
