@@ -28,14 +28,15 @@ uses SysUtils, CastleUtils, CastleImages, ImagesFftw, CastleWindow, CastleGLImag
   CastleParameters, CastleColors;
 
 type
-  TWindowImage = class(TCastleWindowDemo)
+  TWindowImage = class(TCastleWindowCustom)
   public
     Image: TRGBImage;
     GLImage: TGLImage;
     destructor Destroy; override;
     procedure UpdateGLImage;
-    procedure EventDraw; override;
+    procedure EventRender; override;
     procedure EventOpen; override;
+    procedure EventClose; override;
   end;
 
 destructor TWindowImage.Destroy;
@@ -44,7 +45,7 @@ begin
   inherited;
 end;
 
-procedure TWindowImage.EventDraw;
+procedure TWindowImage.EventRender;
 begin
   inherited;
   GLClear([cbColor], Black);
@@ -56,6 +57,12 @@ procedure TWindowImage.EventOpen;
 begin
   inherited;
   UpdateGLImage;
+end;
+
+procedure TWindowImage.EventClose;
+begin
+  FreeAndNil(GLImage);
+  inherited;
 end;
 
 procedure TWindowImage.UpdateGLImage;
