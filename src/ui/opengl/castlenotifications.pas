@@ -88,8 +88,8 @@ type
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
 
-    procedure Draw; override;
-    function DrawStyle: TUIControlDrawStyle; override;
+    procedure Render; override;
+    function GetExists: boolean; override;
 
     { Color used to draw messages. Default value is yellow. }
     property Color: TCastleColor read FColor write FColor;
@@ -243,13 +243,11 @@ begin
   VisibleChange;
 end;
 
-procedure TCastleNotifications.Draw;
+procedure TCastleNotifications.Render;
 var
   i: integer;
   x, y: integer;
 begin
-  if DrawStyle = dsNone then Exit;
-
   for i := 0 to Messages.Count-1 do
   begin
     { calculate x relative to 0..ContainerWidth, then convert to 0..GLMaxX }
@@ -270,11 +268,10 @@ begin
   end;
 end;
 
-function TCastleNotifications.DrawStyle: TUIControlDrawStyle;
+function TCastleNotifications.GetExists: boolean;
 begin
-  if GetExists and (Messages.Count <> 0) then
-    Result := ds2D else
-    Result := dsNone;
+  { optimization, do not even set 2D projection when no messages }
+  Result := (inherited GetExists) and (Messages.Count <> 0);
 end;
 
 procedure TCastleNotifications.Update(const SecondsPassed: Single;

@@ -138,7 +138,7 @@ begin
     Window.AutoRedisplay := true;
     Window.OnPress := @Press;
     Window.OnUpdate := @Update;
-    Window.OnDrawStyle := ds2D;
+    Window.RenderStyle := rs2D;
 
     Window.EventResize;
 

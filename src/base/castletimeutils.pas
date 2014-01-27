@@ -40,7 +40,7 @@ type
         change "on display" time pass back to 1.
         Result: with time as Single, animation becomes jagged.
         Reason: the precision loss of Single time, and the fact that
-        Draw is not called all the time (because AutoRedisplay is false,
+        Render is not called all the time (because AutoRedisplay is false,
         and model is in Examine mode and is still (not rotating)),
         so incrementation steps of AnimationTime are very very small.
 
@@ -253,7 +253,7 @@ type
     procedure _UpdateBegin;
 
     { Rendering speed in frames per second. This tells FPS,
-      if we would only call Draw (EventDraw, OnDraw) all the time.
+      if we would only call Render (EventRender, OnRender) all the time.
       That is, this doesn't take into account time spent on other activities,
       like OnUpdate, and it doesn't take into account that frames are possibly
       not rendered continously (when AutoRedisplay = @false, we may render
@@ -263,9 +263,9 @@ type
     property FrameTime: Double read FFrameTime;
 
     { How many frames per second were rendered. This is a real number
-      of EventDraw (OnDraw) calls per second. This means that it's actual
+      of EventRender (OnRender) calls per second. This means that it's actual
       speed of your program. Anything can slow this down, not only long
-      EventDraw (OnDraw), but also slow processing of other events (like OnUpdate).
+      EventRender (OnRender), but also slow processing of other events (like OnUpdate).
       Also, when AutoRedisplay = @false, this may be very low, since you
       just don't need to render frames continously.
 
@@ -283,8 +283,8 @@ type
 
       This is calculated as a time between
       start of previous Update event and start of current Update event.
-      So this really measures your whole loop time (unlike previous DrawSpeed
-      that measured only EventDraw (OnDraw) speed).
+      So this really measures your whole loop time (unlike previous RenderSpeed
+      that measured only EventRender (OnRender) speed).
 
       You can sanely use this only within EventUpdate (OnUpdate). }
     property UpdateSecondsPassed: Single read FUpdateSecondsPassed;

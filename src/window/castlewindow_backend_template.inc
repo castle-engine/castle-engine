@@ -131,7 +131,7 @@ end;
 procedure TCastleWindowBase.FlushRedisplay;
 begin
   { TODO (redraw *now*, if PostRedisplay pending;
-    it's valid (although non-optimal) to just always call DoDraw here) }
+    it's valid (although non-optimal) to just always call DoRender here) }
 end;
 
 procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);

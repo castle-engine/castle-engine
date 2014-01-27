@@ -43,16 +43,16 @@ var
 
 type
   TStatusText = class(TCastleLabel)
-    procedure Draw; override;
+    procedure Render; override;
   end;
 
-procedure TStatusText.Draw;
+procedure TStatusText.Render;
 var
   Pos, Dir, Up: TVector3Single;
 begin
   if not GetExists then Exit;
 
-  { regenerate Text contents at every Draw call }
+  { regenerate Text contents at every Render call }
   Text.Clear;
   SceneManager.Camera.GetView(Pos, Dir, Up);
   Text.Append(Format('Camera: pos %s, dir %s, up %s',

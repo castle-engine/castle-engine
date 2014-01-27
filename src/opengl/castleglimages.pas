@@ -212,8 +212,8 @@ type
       corner of the image will be placed (from 0 to size - 1).
       The overloaded version without X, Y parameters uses current WindowPos.
 
-      You should only use this inside TUIControl.Draw when TUIControl.DrawStyle
-      returns ds2D. This means that we require that current projection is 2D
+      You should only use this inside TUIControl.Render when TUIControl.RenderStyle
+      returns rs2D. This means that we require that current projection is 2D
       and lighting / depth test and such are off.
 
       The image is drawn in 2D. In normal circumstances

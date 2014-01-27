@@ -207,7 +207,7 @@ end;
 
 procedure TCastleWindowBase.FlushRedisplay;
 begin
-  DoDraw;
+  DoRender;
 end;
 
 procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
@@ -299,7 +299,7 @@ begin
        (NewHeight <> MainWindow.Height) then
       Resize(NewWidth, NewHeight);
 
-    MainWindow.DoDraw;
+    MainWindow.DoRender;
 
     WindowsUpdateAndTimer;
   end;

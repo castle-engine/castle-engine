@@ -34,12 +34,12 @@ type
   public
     Text: string;
     LightColor, DarkColor: TCastleColor;
-    procedure EventDraw; override;
+    procedure EventRender; override;
     procedure EventResize; override;
     procedure EventPress(const Event: TInputPressRelease); override;
   end;
 
-procedure TMyWindow.EventDraw;
+procedure TMyWindow.EventRender;
 begin
   inherited;
   GLClear([cbColor, cbDepth], DarkColor);
@@ -80,7 +80,7 @@ begin
     Windows[I].Text := 'Window ' + IntToStr(I);
     Windows[I].LightColor := Vector4Single(Random*1.5, Random*1.5, Random*1.5, 1);
     Windows[I].DarkColor  := Vector4Single(Random*0.7, Random*0.7, Random*0.7, 1);
-    Windows[I].OnDrawStyle := ds2D;
+    Windows[I].RenderStyle := rs2D;
 
     Windows[I].Caption := 'Window ' + IntToStr(I);
     Windows[I].Width := 200;

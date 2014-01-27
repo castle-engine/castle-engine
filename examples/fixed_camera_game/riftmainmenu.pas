@@ -60,7 +60,7 @@ type
   public
     SubMenuTitle: string;
     constructor Create(AOwner: TComponent); override;
-    procedure Draw; override;
+    procedure Render; override;
   end;
 
   TRiftMainMenu = class(TRiftMenu)
@@ -114,7 +114,7 @@ begin
   OrthoProjection(0, Window.Width, 0, Window.Height);
 end;
 
-procedure Draw(Window: TCastleWindowBase);
+procedure Render(Window: TCastleWindowBase);
 begin
   GLMenuBg.Draw(0, 0);
 end;
@@ -140,13 +140,13 @@ var
   SavedMode: TGLMode;
 begin
   SoundEngine.MusicPlayer.Sound := stMainMenuMusic;
-  SavedMode := TGLMode.CreateReset(Window, @Draw, @Resize, @CloseQuery);
+  SavedMode := TGLMode.CreateReset(Window, @Render, @Resize, @CloseQuery);
   try
     Window.FpsShowOnCaption := DebugMenuFps;
     Window.AutoRedisplay := true;
     Window.OnPress := @Press;
     { actually we draw in 2D, but it's the current projection anyway }
-    Window.OnDrawStyle := ds3D;
+    Window.RenderStyle := rs3D;
 
     Window.EventResize;
 
@@ -228,12 +228,12 @@ begin
   DrawBackgroundRectangle := true;
 end;
 
-procedure TRiftSubMenu.Draw;
+procedure TRiftSubMenu.Render;
 const
   SubMenuTextColor: TCastleColor = (0.7, 0.7, 0.7, 1.0);
 begin
   { background of submenu is mainmenu }
-  MainMenu.Draw;
+  MainMenu.Render;
   inherited;
   UIFont.Print(PositionAbsolute[0],
     PositionAbsolute[1] + AllItemsRectangle.Height - 20, SubMenuTextColor,

@@ -38,7 +38,7 @@ var
     or --no-sound command-line option is used. }
   Sound: TSound;
 
-procedure Draw(Window: TCastleWindowBase);
+procedure Render(Window: TCastleWindowBase);
 
   { Trivial visualization of a point. }
   procedure DrawPoint(const V: TVector3Single; const Color: TCastleColor);
@@ -98,8 +98,8 @@ begin
 
     Application.TimerMilisec := 1000;
     Window.OnTimer := @Timer;
-    Window.OnDraw := @Draw;
-    Window.OnDrawStyle := ds2D;
+    Window.OnRender := @Render;
+    Window.RenderStyle := rs2D;
     Window.OnMouseMove := @MouseMove;
     Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.OpenAndRun;

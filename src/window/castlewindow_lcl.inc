@@ -136,8 +136,8 @@ end;
 procedure TCastleWindowBase.TGoodOpenGLControl.Paint;
 begin
   { We need to set Invalidated := false before OnPaint
-    (that calls TCastleWindow.OnDraw), because TCastleWindow guarantees
-    that calling TCastleWindow.PostRedisplay within OnDraw will cause following
+    (that calls TCastleWindow.OnRender), because TCastleWindow guarantees
+    that calling TCastleWindow.PostRedisplay within OnRender will cause following
     redraw. }
   Invalidated := false;
   inherited;
@@ -562,7 +562,7 @@ end;
 
 procedure TCastleWindowBase.FlushRedisplay;
 begin
-  if OpenGLControl.Invalidated then DoDraw;
+  if OpenGLControl.Invalidated then DoRender;
 end;
 
 procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
@@ -624,7 +624,7 @@ end;
 
 procedure TCastleWindowBase.OpenGLControlPaint(Sender: TObject);
 begin
-  DoDraw;
+  DoRender;
 end;
 
 procedure TCastleWindowBase.OpenGLControlResize(Sender: TObject);

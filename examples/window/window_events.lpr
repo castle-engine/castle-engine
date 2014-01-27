@@ -46,15 +46,15 @@ begin
     [Window.Width, Window.Height, Window.Left, Window.Top]));
 end;
 
-procedure BeforeDraw(Window: TCastleWindowBase);
+procedure BeforeRender(Window: TCastleWindowBase);
 begin
-  { Part of functionality of OnDraw moved to BeforeDraw.
+  { Part of functionality of OnRender moved to BeforeRender.
     In this program there is no point in doing that.
-    But I wanted just to show that BeforeDraw really works. }
+    But I wanted just to show that BeforeRender really works. }
   GLClear([cbColor], Black);
 end;
 
-procedure Draw(Window: TCastleWindowBase);
+procedure Render(Window: TCastleWindowBase);
 var
   C: Char;
   Key: TKey;
@@ -135,8 +135,8 @@ begin
   Window.OnOpen := @Open;
   Window.OnClose := @Close;
   Window.OnResize := @Resize;
-  Window.OnBeforeDraw := @BeforeDraw;
-  Window.OnDraw := @Draw;
+  Window.OnBeforeRender := @BeforeRender;
+  Window.OnRender := @Render;
   Window.OnPress := @Press;
   Window.OnRelease := @Release;
   Window.OnMouseMove := @MouseMove;

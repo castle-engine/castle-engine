@@ -49,7 +49,7 @@ const
 
 { CastleWindow callbacks ------------------------------------------------------- }
 
-procedure Draw(Window: TCastleWindowBase);
+procedure Render(Window: TCastleWindowBase);
 var
   GLImage: TGLImage;
 begin
@@ -141,7 +141,7 @@ begin
   if DoPeano then InitialOrient := false else InitialOrient := true;
 
   { setup Window, Window.Open }
-  Window.OnDraw := @Draw;
+  Window.OnRender := @Render;
   Window.OnResize := @Resize2D;
   Window.DoubleBuffer := true;
   Window.OnCloseQuery := @CloseQueryNotAllowed;

@@ -18,7 +18,7 @@
 {$ifdef read_window_interface}
 private
   { Track if some PostRedisplay was called (and not realized yet by
-    DoDraw call). PostRedisplay only sets this, leaving actually
+    DoRender call). PostRedisplay only sets this, leaving actually
     calling of FlushRedisplay for later.
 
     Note: Xlib program should always wait for the first Expose event before
@@ -94,7 +94,7 @@ begin
   if Result then
   begin
     RedisplayPosted := false;
-    DoDraw;
+    DoRender;
   end;
 end;
 
@@ -240,7 +240,7 @@ function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: bool
   end;
 
 var
-  WasAnyDrawing: boolean;
+  WasAnyRendering: boolean;
   I: integer;
   Window: TCastleWindowBase;
 begin
@@ -254,22 +254,22 @@ begin
            to doprowadzalisbysmy do tego ze np. ruch mysza powoduje
            pozorne przyspieszenie rysowania - bo gdy user rusza mysza
            nasza petla jest zajeta przetwarzaniem messagy i w zwiazku z tym
-           nie wykonuje zadnych OnDraw ktore sa przeciez najbardziej
+           nie wykonuje zadnych OnRender ktore sa przeciez najbardziej
            opozniajaca czescia programu. W rezultacie wykonywanych jest
            mnostwo razy OnUpdate ktore, mimo ze zmieniaja jakas zmienna
            i wywoluja PostRedisplay to jednak czekaja sporo na
            spowodowane przez siebie redisplay (bo ciagle zamiast redisplay'a
            przetwarzamy ruchy myszka). Wiec aby OnUpdate byly wywolywane
-           mniej wiecej z taka sama czestotliwoscia co OnDraw'y
+           mniej wiecej z taka sama czestotliwoscia co OnRender'y
            musimy umiescic wywolanie OnUpdate tutaj - tuz przed wywolywaniem
-           samych OnDraw'ow.
+           samych OnRender'ow.
          - gdybysmy wywolywali OnUpdate dopiero do ponizszych drawach
-           jezeli not WasAnyDrawing to z kolei zdarzenia OnDraw
+           jezeli not WasAnyRendering to z kolei zdarzenia OnRender
            (ktore np. same sobie juz wywoluja PostRedisplay) moglyby
            hamowac wywolywanie zdarzen OnUpdate.
            A tego nie chcemy - patrz komentarze w interfejsie,
            nadrzednym celem jest by OnUpdate bylo wykonywane mniej
-           wiecej tak czesto co OnDraw.  }
+           wiecej tak czesto co OnRender.  }
       DoSelfUpdate;
 
       { redraw some windows; we do it only if our event queue is empty.
@@ -278,9 +278,9 @@ begin
           ciaglego zmieniania aktywnego kontekstu OpenGL'a.
         Ponizszy kod wydaje sie miec paranoje na punkcie zamykania okna - pamietajmy
           ze Closed moze zostac wywolane na oknie w kazdym callbacku, takze w OnUpdate
-          i OnDraw. A Close usuwa to okno z listy OpenWindows, dlatego kopiujemy sobie
+          i OnRender. A Close usuwa to okno z listy OpenWindows, dlatego kopiujemy sobie
           na poczatku OpenWindows[i] do Window. }
-      WasAnyDrawing := false;
+      WasAnyRendering := false;
       I := 0;
       while I < OpenWindowsCount do
       begin
@@ -288,8 +288,8 @@ begin
         Window.DoUpdate;
         if Window.Closed then Continue {don't Inc(I)};
         { Kolejnosc w OR ponizej MA ZNACZENIE : zawsze chemy wywolac
-          FlushRedisplay2, nawet jesli WasAnyDrawing juz jest = true }
-        WasAnyDrawing := Window.FlushRedisplay2 or WasAnyDrawing;
+          FlushRedisplay2, nawet jesli WasAnyRendering juz jest = true }
+        WasAnyRendering := Window.FlushRedisplay2 or WasAnyRendering;
         if Window.Closed then Continue {don't Inc(I)};
         Inc(I);
       end;
@@ -301,7 +301,7 @@ begin
         => then we can wait, giving OS/CPU some rest (as opposed to doing
         "busy waiting"). }
       WaitForMessage := WaitForMessage and Application.AllowSuspendForInput and
-        not (WasAnyDrawing or QuitPosted);
+        not (WasAnyRendering or QuitPosted);
       if WaitForMessage then
         WaitMessage else
         NoMessageProcessed;

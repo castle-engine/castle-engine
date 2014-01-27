@@ -49,7 +49,7 @@ begin
   GLVideo := TGLVideo2D.Create(Video);
 end;
 
-procedure Draw(Window: TCastleWindowBase);
+procedure Render(Window: TCastleWindowBase);
 const
   TimeBarHeight = 10;
   TimeBarMargin = 2;
@@ -323,8 +323,8 @@ begin
     Window.OnMenuClick := @MenuClick;
     Window.OnOpen := @Open;
     Window.OnClose := @Close;
-    Window.OnDraw := @Draw;
-    Window.OnDrawStyle := ds2D;
+    Window.OnRender := @Render;
+    Window.RenderStyle := rs2D;
     Window.OnUpdate := @Update;
     Window.OnResize := @Resize2D;
 

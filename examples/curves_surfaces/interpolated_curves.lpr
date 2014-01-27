@@ -166,14 +166,14 @@ end;
 
 type
   TStatusText = class(TCastleLabel)
-    procedure Draw; override;
+    procedure Render; override;
   end;
 
-procedure TStatusText.Draw;
+procedure TStatusText.Render;
 begin
   if not GetExists then Exit;
 
-  { regenerate Text contents at every Draw call }
+  { regenerate Text contents at every Render call }
   Text.Clear;
 
   { TODO: ToString not implemented yet.

@@ -488,7 +488,7 @@ begin
             user przesuwa to okienko modalne nad naszym oknem.
             Musimy wiec w tym momencie przerysowac sie natychmiast. }
           begin
-            DoDraw;
+            DoRender;
             redisplayPosted := false;
           end;
          result := 1;
@@ -514,7 +514,7 @@ begin
       I don't know why Windows can't handle this itself when the menu is open
       for the first time. So maybe I'm actually fixing a Windows bug by handling
       this WM_ENTERIDLE below ? All of this tested on Windows 2000 Prof. }
-    WM_ENTERIDLE: begin DoDraw; Exit end;
+    WM_ENTERIDLE: begin DoRender; Exit end;
 
     WM_INITMENU:
       begin

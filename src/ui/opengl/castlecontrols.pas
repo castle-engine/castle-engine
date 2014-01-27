@@ -38,17 +38,18 @@ type
     { Font custom to this control. By default this returns UIFont,
       you can override this to return your font.
       It's OK to return here @nil if font is not ready yet,
-      but during Draw (when OpenGL context is available) font must be ready. }
+      but during Render (when OpenGL context is available) font must be ready. }
     function Font: TCastleFont; virtual;
   public
     procedure GLContextClose; override;
-    function TooltipStyle: TUIControlDrawStyle; override;
-    procedure DrawTooltip; override;
+    function TooltipExists: boolean; override;
+    procedure TooltipRender; override;
   published
     { Tooltip string, displayed when user hovers the mouse over a control.
 
-      Note that you can override TUIControl.TooltipStyle and
-      TUIControl.DrawTooltip to customize the tooltip drawing. }
+      Note that you can override TUIControl.TooltipExists and
+      TUIControl.TooltipStyle and TUIControl.TooltipRender
+      to customize the tooltip drawing. }
     property Tooltip: string read FTooltip write FTooltip;
 
     { When non-nil, this font will be used to draw this control.
@@ -111,8 +112,7 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function DrawStyle: TUIControlDrawStyle; override;
-    procedure Draw; override;
+    procedure Render; override;
     function PositionInside(const X, Y: Integer): boolean; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
@@ -216,8 +216,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function DrawStyle: TUIControlDrawStyle; override;
-    procedure Draw; override;
+    procedure Render; override;
     function PositionInside(const X, Y: Integer): boolean; override;
     function Rect: TRectangle; override;
 
@@ -265,8 +264,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function DrawStyle: TUIControlDrawStyle; override;
-    procedure Draw; override;
+    procedure Render; override;
     function PositionInside(const X, Y: Integer): boolean; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
@@ -337,8 +335,7 @@ type
     FSizeScale: single;
   public
     constructor Create(AOwner: TComponent); override;
-    procedure Draw; override;
-    function DrawStyle: TUIControlDrawStyle; override;
+    procedure Render; override;
 
     { Size of this control, ignoring GetExists. }
     function Width: Cardinal;
@@ -371,8 +368,8 @@ type
     FColor: TCastleColor;
   public
     constructor Create(AOwner: TComponent); override;
-    function DrawStyle: TUIControlDrawStyle; override;
-    procedure Draw; override;
+    function RenderStyle: TRenderStyle; override;
+    procedure Render; override;
     { Background color. By default, this is black color with opaque alpha. }
     property Color: TCastleColor read FColor write FColor;
   end;
@@ -474,8 +471,7 @@ type
     function Release(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
-    function DrawStyle: TUIControlDrawStyle; override;
-    procedure Draw; override;
+    procedure Render; override;
     function PositionInside(const X, Y: Integer): boolean; override;
   end;
 
@@ -499,8 +495,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function DrawStyle: TUIControlDrawStyle; override;
-    procedure Draw; override;
+    procedure Render; override;
     function Rect: TRectangle; override;
 
     { Text color. By default it's white. }
@@ -531,8 +526,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function DrawStyle: TUIControlDrawStyle; override;
-    procedure Draw; override;
+    procedure Render; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
     function Rect: TRectangle;
@@ -666,14 +660,12 @@ end;
 
 { TUIControlFont ---------------------------------------------------------- }
 
-function TUIControlFont.TooltipStyle: TUIControlDrawStyle;
+function TUIControlFont.TooltipExists: boolean;
 begin
-  if Tooltip <> '' then
-    Result := ds2D else
-    Result := dsNone;
+  Result := Tooltip <> '';
 end;
 
-procedure TUIControlFont.DrawTooltip;
+procedure TUIControlFont.TooltipRender;
 var
   X, Y: Integer;
   TooltipRect: TRectangle;
@@ -705,8 +697,8 @@ begin
   TooltipLabel.Left := X;
   TooltipLabel.Bottom := Y;
 
-  { just explicitly call Draw method of TooltipLabel }
-  TooltipLabel.Draw;
+  { just explicitly call Render method of TooltipLabel }
+  TooltipLabel.Render;
 end;
 
 procedure TUIControlFont.GLContextClose;
@@ -760,20 +752,11 @@ begin
   inherited;
 end;
 
-function TCastleButton.DrawStyle: TUIControlDrawStyle;
-begin
-  if GetExists then
-    Result := ds2D else
-    Result := dsNone;
-end;
-
-procedure TCastleButton.Draw;
+procedure TCastleButton.Render;
 var
   TextLeft, TextBottom, ImgLeft, ImgBottom: Integer;
   Background: TThemeImage;
 begin
-  if not GetExists then Exit;
-
   if Pressed then
     Background := tiButtonPressed else
   if Focused then
@@ -849,7 +832,7 @@ begin
   Result := ExclusiveEvents;
   if not Toggle then FPressed := true;
   ClickStarted := true;
-  { We base our Draw on Pressed value. }
+  { We base our Render on Pressed value. }
   VisibleChange;
 end;
 
@@ -864,7 +847,7 @@ begin
 
     if not Toggle then FPressed := false;
     ClickStarted := false;
-    { We base our Draw on Pressed value. }
+    { We base our Render on Pressed value. }
     VisibleChange;
 
     { This is normal behavior of buttons: to click them, you have to make
@@ -1009,7 +992,7 @@ begin
       ClickStarted := false;
     end;
 
-    { We base our Draw on Pressed and Focused value. }
+    { We base our Render on Pressed and Focused value. }
     VisibleChange;
   end;
 
@@ -1104,21 +1087,12 @@ begin
   inherited;
 end;
 
-function TCastlePanel.DrawStyle: TUIControlDrawStyle;
-begin
-  if GetExists then
-    Result := ds2D else
-    Result := dsNone;
-end;
-
-procedure TCastlePanel.Draw;
+procedure TCastlePanel.Render;
 const
   SeparatorMargin = 8;
 var
   I: Integer;
 begin
-  if not GetExists then Exit;
-
   Theme.Draw(Rect, tiPanel);
 
   for I := 0 to VerticalSeparators.Count - 1 do
@@ -1207,16 +1181,9 @@ begin
   end;
 end;
 
-function TCastleImageControl.DrawStyle: TUIControlDrawStyle;
+procedure TCastleImageControl.Render;
 begin
-  if GetExists and (FGLImage <> nil) then
-    Result := ds2D else
-    Result := dsNone;
-end;
-
-procedure TCastleImageControl.Draw;
-begin
-  if not (GetExists and (FGLImage <> nil)) then Exit;
+  if FGLImage = nil then Exit;
   FGLImage.Draw(Rect);
 end;
 
@@ -1342,13 +1309,6 @@ begin
     FSizeScale := inContainer.Dpi / 96;
 end;
 
-function TCastleTouchControl.DrawStyle: TUIControlDrawStyle;
-begin
-  if GetExists then
-    Result := ds2D else
-    Result := dsNone;
-end;
-
 function TCastleTouchControl.Width: Cardinal;
 begin
   Result := Theme.Images[tiTouchCtlOuter].Width;
@@ -1378,14 +1338,13 @@ begin
   if FSizeScale>0 then Result := Round(Result*FSizeScale);
 end;
 
-procedure TCastleTouchControl.Draw;
+procedure TCastleTouchControl.Render;
 var
   LevOffsetTrimmedX, LevOffsetTrimmedY, MaxDist: Integer;
   LeverDist: Double;
   InnerRect: TRectangle;
   ImageInner, ImageOuter: TThemeImage;
 begin
-  if not GetExists then Exit;
   if FTouchMode = ctcmFlyUpdown then
   begin
     ImageInner := tiTouchCtlFlyInner;
@@ -1523,17 +1482,14 @@ begin
   FColor := Black;
 end;
 
-function TCastleSimpleBackground.DrawStyle: TUIControlDrawStyle;
+function TCastleSimpleBackground.RenderStyle: TRenderStyle;
 begin
-  if GetExists then
-    { 3D, because we want to be drawn before other 3D objects }
-    Result := ds3D else
-    Result := dsNone;
+  { 3D, because we want to be drawn before other 3D objects }
+  Result := rs3D;
 end;
 
-procedure TCastleSimpleBackground.Draw;
+procedure TCastleSimpleBackground.Render;
 begin
-  if not GetExists then Exit;
   GLClear([cbColor], Color);
 end;
 
@@ -1815,14 +1771,7 @@ begin
   end;
 end;
 
-function TCastleDialog.DrawStyle: TUIControlDrawStyle;
-begin
-  if GetExists then
-    Result := ds2D else
-    Result := dsNone;
-end;
-
-procedure TCastleDialog.Draw;
+procedure TCastleDialog.Render;
 
   { Render a Text line, and move Y up to the line above. }
   procedure DrawString(X: Integer; var Y: Integer; const Color: TCastleColor;
@@ -1865,7 +1814,6 @@ const
   ScrollBarInternalWidth = ScrollBarWholeWidth - ScrollBarMargin * 2;
 begin
   inherited;
-  if not GetExists then Exit;
 
   if Background <> nil then
     Background.Draw(ContainerRect);
@@ -1958,13 +1906,6 @@ begin
   inherited;
 end;
 
-function TCastleLabel.DrawStyle: TUIControlDrawStyle;
-begin
-  if GetExists then
-    Result := ds2D else
-    Result := dsNone;
-end;
-
 function TCastleLabel.Rect: TRectangle;
 begin
   Result := Rectangle(Left, Bottom,
@@ -1972,11 +1913,11 @@ begin
     (Font.RowHeight + LineSpacing) * Text.Count + 2 * Padding + Font.Descend);
 end;
 
-procedure TCastleLabel.Draw;
+procedure TCastleLabel.Render;
 var
   R: TRectangle;
 begin
-  if (not GetExists) or (Text.Count = 0) then Exit;
+  if Text.Count = 0 then Exit;
   R := Rect;
   Theme.Draw(Rect, ImageType);
   Font.PrintStrings(R.Left + Padding,
@@ -2085,14 +2026,7 @@ begin
   Result := Rectangle(XMargin, Bottom, ContainerWidth - 2 * XMargin, Height);
 end;
 
-function TCastleProgressBar.DrawStyle: TUIControlDrawStyle;
-begin
-  if GetExists and (Progress <> nil) then
-    Result := ds2D else
-    Result := dsNone;
-end;
-
-procedure TCastleProgressBar.Draw;
+procedure TCastleProgressBar.Render;
 const
   Padding = 20;
 var
@@ -2101,7 +2035,7 @@ var
   Caption: string;
   BarRect, FillRect: TRectangle;
 begin
-  if not GetExists then Exit;
+  if Progress = nil then Exit;
 
   if FGLBackground <> nil then
     FGLBackground.Draw(ContainerRect);

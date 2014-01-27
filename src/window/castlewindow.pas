@@ -29,7 +29,7 @@
       like @link(TCastleWindow).))
 
     @item(Assign Glw properties and callbacks like
-      @link(TCastleWindowBase.OnDraw OnDraw),
+      @link(TCastleWindowBase.OnRender OnRender),
       @link(TCastleWindowBase.OnResize OnResize),
       @link(TCastleWindowBase.Width Width),
       @link(TCastleWindowBase.Height Height),
@@ -46,7 +46,7 @@
     @item(Call @link(TCastleApplication.Run Application.Run).
       This will enter message loop that will call
       appropriate windows' callbacks at appropriate times
-      (OnDraw, OnPress, OnRelease, OnResize, OnUpdate and many more).
+      (OnRender, OnPress, OnRelease, OnResize, OnUpdate and many more).
       There are also some Application callbacks, like
       @link(TCastleApplication.OnUpdate Application.OnUpdate).
 
@@ -76,7 +76,7 @@
   var
     Window: TCastleWindowCustom;
 
-  procedure Draw(Window: TCastleWindowBase);
+  procedure Render(Window: TCastleWindowBase);
   begin  ...  end;
 
   procedure Resize(Window: TCastleWindowBase);
@@ -85,16 +85,16 @@
   begin
     Window := TCastleWindowCustom.Create(Application);
     Window.OnResize := @Resize;
-    Window.OnDraw := @Draw;
+    Window.OnRender := @Render;
     Window.Caption := 'Simplest CastleWindow example';
     Window.OpenAndRun;
   end.
 #)
 
   @italic(More object-oriented approach):
-  Instead of assigning callbacks (OnDraw, OnResize etc.) you can
+  Instead of assigning callbacks (OnRender, OnResize etc.) you can
   also derive a new class from TCastleWindowBase and override some of virtual
-  methods, like EventDraw, EventResize etc. Every callback OnXxx
+  methods, like EventRender, EventResize etc. Every callback OnXxx
   has a corresponding EventXxx method. In TCastleWindowBase class,
   all EventXxx methods simply call appropriate OnXxx callbacks
   (this way you can use whatever approach you like -- OOP or not-OOP).
@@ -107,11 +107,11 @@
 
   type
     TMyWindow = class(TCastleWindowCustom)
-      procedure EventDraw; override;
+      procedure EventRender; override;
       procedure EventResize; override;
     end;
 
-  procedure TMyWindow.EventDraw;
+  procedure TMyWindow.EventRender;
   begin  ...  end;
 
   procedure TMyWindow.EventResize;
@@ -455,8 +455,8 @@ unit CastleWindow;
 {$endif}
 
 { Define CASTLE_WINDOW_CHECK_GL_ERRORS_AFTER_DRAW to check OpenGL errors
-  after TCastleWindowBase.EventDraw (TCastleWindowBase.OnDraw callback) calls.
-  This is done by DoDraw, that is: when a backend initiates the drawing.
+  after TCastleWindowBase.EventRender (TCastleWindowBase.OnRender callback) calls.
+  This is done by DoRender, that is: when a backend initiates the drawing.
   The check is done by CastleGLUtils.CheckGLErrors, checks glGetError
   and eventually raises an exception. }
 {$ifdef DEBUG}
@@ -610,7 +610,7 @@ type
 
   TUpdateFunc = procedure;
   TWindowFunc = procedure (Window: TCastleWindowBase);
-  TDrawFunc = TWindowFunc;
+  TRenderFunc = TWindowFunc;
   TMouseMoveFunc = procedure (Window: TCastleWindowBase; NewX, NewY: Integer);
   TInputPressReleaseFunc = procedure (Window: TCastleWindowBase; const Event: TInputPressRelease);
   TMenuClickFunc = procedure (Window: TCastleWindowBase; Item: TMenuItem);
@@ -645,7 +645,7 @@ type
     var
     FWidth, FHeight, FLeft, FTop: Integer;
     FOnOpen: TWindowFunc;
-    FOnBeforeDraw, FOnDraw: TDrawFunc;
+    FOnBeforeRender, FOnRender: TRenderFunc;
     FOnResize: TWindowFunc;
     FOnClose: TWindowFunc;
     FOnCloseQuery: TWindowFunc;
@@ -921,7 +921,7 @@ type
 
       Remember: this function does not automatically call PostRedisplay.
       You must make sure that soon after changing size of the window
-      you will call DoDraw (e.g. you can call PostRedisplay after
+      you will call DoRender (e.g. you can call PostRedisplay after
       calling DoResize; but usually (under WinAPI, Xlib, GTK)
       it's not needed, i.e. WinAPI, Xlib, and GTK all take care of this
       automatically). }
@@ -933,8 +933,8 @@ type
     procedure DoCloseQuery;
 
     { Do MakeCurrent,
-         EventBeforeDraw,
-         EventDraw (inside Fps._RenderBegin/End)
+         EventBeforeRender,
+         EventRender (inside Fps._RenderBegin/End)
          flush gl command pipeline (and swap gl buffers if DoubleBuffer)
 
       - Take care of AutoRedisplay, like
@@ -943,7 +943,7 @@ type
 
         So specific CastleWindow backends need not to worry about
         AutoRedisplay. They only have to implement PostRedisplay. }
-    procedure DoDraw;
+    procedure DoRender;
 
     { DoKeyDown/Up: pass here key that is pressed down or released up.
 
@@ -1070,8 +1070,8 @@ type
     procedure EventOpen; virtual;
     procedure EventClose; virtual;
     function EventCloseQuery: boolean; virtual;
-    procedure EventDraw; virtual;
-    procedure EventBeforeDraw; virtual;
+    procedure EventRender; virtual;
+    procedure EventBeforeRender; virtual;
     procedure EventPress(const Event: TInputPressRelease); virtual;
     procedure EventRelease(const Event: TInputPressRelease); virtual;
     procedure EventMouseMove(newX, newY: integer); virtual;
@@ -1545,32 +1545,35 @@ end;
       May be changed even when the window is already open. }
     property Caption: string read GetPublicCaption write SetPublicCaption;
 
-    { Draw your window contents here.
+    { Render window contents here.
 
-      Called when your window contents must be redrawn,
+      Called when window contents must be redrawn,
       e.g. after creating a window, after resizing a window, after uncovering
       the window etc. You can also request yourself a redraw of the window
       by the PostRedisplay method, which will cause this event to be called
       at nearest good time.
 
-      Note that calling PostRedisplay while in EventDraw (OnDraw) is not ignored.
-      It means that in a short time next EventDraw (OnDraw) will be called. }
-    property OnDraw: TDrawFunc read FOnDraw write FOnDraw;
+      Note that calling PostRedisplay while in EventRender (OnRender) is not ignored.
+      It means that in a short time next EventRender (OnRender) will be called. }
+    property OnRender: TRenderFunc read FOnRender write FOnRender;
 
-    { Always called right before EventDraw (OnDraw).
-      These two events, EventBeforeDraw (OnBeforeDraw) and EventDraw (OnDraw),
+    { @deprecated Deprecated name for OnRender. }
+    property OnDraw: TRenderFunc read FOnRender write FOnRender; deprecated;
+
+    { Always called right before EventRender (OnRender).
+      These two events, EventBeforeRender (OnBeforeRender) and EventRender (OnRender),
       will be always called sequentially as a pair.
 
       The only difference between these two events is that
-      time spent in EventBeforeDraw (OnBeforeDraw)
+      time spent in EventBeforeRender (OnBeforeRender)
       is NOT counted as "frame time"
       by Fps.FrameTime. This is useful when you have something that needs
-      to be done from time to time right before OnDraw and that is very
+      to be done from time to time right before OnRender and that is very
       time-consuming. It such cases it is not desirable to put such time-consuming
-      task inside OnDraw because this would cause a sudden big change in
+      task inside OnRender because this would cause a sudden big change in
       Fps.FrameTime value. So you can avoid this by putting
-      this in OnBeforeDraw. }
-    property OnBeforeDraw: TDrawFunc read FOnBeforeDraw write FOnBeforeDraw;
+      this in OnBeforeRender. }
+    property OnBeforeRender: TRenderFunc read FOnBeforeRender write FOnBeforeRender;
 
     { Called when the window size (@link(Width), @link(Height)) changes.
       It's also guaranteed to be called during @link(Open),
@@ -1713,7 +1716,7 @@ end;
     { Should we automatically redraw the window all the time,
       without a need for PostRedisplay call.
       If @true, window will behave like a redraw is always needed,
-      and EventDraw (OnDraw) will be always called as often as posible.
+      and EventRender (OnRender) will be always called as often as posible.
       This may be a waste of OS resources, so don't use it, unless
       you know that you really have some animation displayed
       all the time. }
@@ -1937,8 +1940,8 @@ end;
     { Make contents of OpenGL area of this window
       redrawn, at the nearest good time. The redraw will not happen
       immediately, we will only "make a note" that we should do it soon.
-      Redraw means that we call EventBeforeDraw (OnBeforeDraw), EventDraw
-      (OnDraw), then we flush OpenGL commands, swap buffers etc.
+      Redraw means that we call EventBeforeRender (OnBeforeRender), EventRender
+      (OnRender), then we flush OpenGL commands, swap buffers etc.
 
       Calling this on a closed window is allowed and ignored. }
     procedure PostRedisplay;
@@ -1950,8 +1953,8 @@ end;
       manager just said that window is brought to front of the desktop,
       or because you called PostRedisplay) then we will redraw
       the window @italic(right now). This method will directly
-      call EventBeforeDraw (OnBeforeDraw), EventDraw
-      (OnDraw), flush OpenGL commands, swap buffers and such.
+      call EventBeforeRender (OnBeforeRender), EventRender
+      (OnRender), flush OpenGL commands, swap buffers and such.
 
       You really should not use this method too often. It's best to leave
       to this unit's internals decision when the redraw should happen,
@@ -2017,10 +2020,10 @@ end;
       and Application.Run (run the event loop). }
     procedure OpenAndRun; overload;
 
-    { Shortcut for setting Caption, OnDraw,
+    { Shortcut for setting Caption, OnRender,
       then calling Open (create and show the window with GL contex)
       and Application.Run (run the event loop). }
-    procedure OpenAndRun(const ACaption: string; AOnDraw: TDrawFunc); overload;
+    procedure OpenAndRun(const ACaption: string; AOnRender: TRenderFunc); overload;
 
     { Parsing parameters ------------------------------------------------------- }
 
@@ -2294,7 +2297,7 @@ end;
     EventXxx method, which calls normal window callbacks like OnPress.
 
     We also call other methods on every control,
-    like TUIControl.Update, TUIControl.Draw2D, TUIControl.WindowResize.
+    like TUIControl.Update, TUIControl.Render2D, TUIControl.WindowResize.
 
     We use OnVisibleChange event of our controls to make
     PostRedisplay when something visible changed. If you want to use
@@ -2315,7 +2318,7 @@ end;
   private
     FControls: TUIControlList;
     FUseControls: boolean;
-    FOnDrawStyle: TUIControlDrawStyle;
+    FRenderStyle: TRenderStyle;
     FFocus: TUIControl;
     FCaptureInput: TUIControl;
     FTooltipDelay: TMilisecTime;
@@ -2374,48 +2377,33 @@ end;
       or when UseControls = @false. }
     property Focus: TUIControl read FFocus;
 
-    { How OnDraw callback fits within various Draw methods of our
+    { How OnRender callback fits within various Render methods of our
       @link(Controls).
 
       @unorderedList(
-        @item(dsNone means that OnDraw is called at the end,
-          after all our @link(Controls) are drawn.
+        @item(rs2D means that OnRender is called at the end,
+          after all our @link(Controls) (3D and 2D) are drawn.
+          The 2D orthographic projection is set,
+          along with other parameters suitable for 2D rendering,
+          see the documentation for TUIControl.RenderStyle = rs2D.)
 
-          OpenGL projection matrix is not modified (so projection
-          is whatever you set yourself, by EventResize, OnResize,
-          or whatever TCastleSceneManager set for you).
-
-          Note that the interpretation of dsNone is different than for
-          TUIControl.DrawStyle: for TUIControl.DrawStyle, dsNone
-          means "do not draw". For OnDrawStyle property,
-          dsNone means "draw at the end without any tricks".
-
-          This is suitable if you want to draw something over other
-          controls, and you want to set projection yourself (or use
-          the current projection, whatever it is).)
-
-        @item(ds2D means that OnDraw is also called at the end,
-          after all our @link(Controls) are drawn. But this time
-          we're called within 2D orthographic projection,
-          the same as set for TUIControl.DrawStyle = ds2D.
-
-          This is suitable if you want to draw 2D contents,
-          and our simple 2D orthographic projection suits you.)
-
-        @item(ds3D means that OnDraw is called after all other
-          @link(Controls) with ds3D draw style, but before any 2D
+        @item(rs3D means that OnRender is called after all other
+          @link(Controls) with rs3D draw style, but before any 2D
           controls.
 
           OpenGL projection matrix is not modified (so projection
           is whatever you set yourself, by EventResize, OnResize,
           or whatever TCastleSceneManager set for you).
+          You should set your own projection matrix at the beginning
+          of this (e.g. use @link(PerspectiveProjection)),
+          otherwise rendering results are undefined.
 
           This is suitable if you want to draw something 3D,
           that may be later covered by 2D controls.)
       )
     }
-    property OnDrawStyle: TUIControlDrawStyle
-      read FOnDrawStyle write FOnDrawStyle default dsNone;
+    property RenderStyle: TRenderStyle
+      read FRenderStyle write FRenderStyle default rs2D;
 
     property TooltipDelay: TMilisecTime read FTooltipDelay write FTooltipDelay
       default DefaultTooltipDelay;
@@ -2427,8 +2415,9 @@ end;
       and TooltipX, TooltipY indicate left-bottom suggested position
       of the tooltip.
 
-      The tooltip is only detected when TUIControl.TooltipStyle <> dsNone.
-      See TUIControl.TooltipStyle and TUIControl.DrawTooltip.
+      The tooltip is only detected when TUIControl.TooltipExists.
+      See TUIControl.TooltipExists and TUIControl.TooltipStyle and
+      TUIControl.TooltipRender.
       For simple purposes just set TUIControlFont.Tooltip to something
       non-empty.
       @groupBegin }
@@ -2444,8 +2433,8 @@ end;
     procedure EventUpdate; override;
     procedure EventMouseMove(NewX, NewY: Integer); override;
     function AllowSuspendForInput: boolean; override;
-    procedure EventBeforeDraw; override;
-    procedure EventDraw; override;
+    procedure EventBeforeRender; override;
+    procedure EventRender; override;
     procedure EventResize; override;
   end;
 
@@ -2467,9 +2456,9 @@ end;
     FSceneManager: TGameSceneManager;
 
     function GetShadowVolumes: boolean;
-    function GetShadowVolumesDraw: boolean;
+    function GetShadowVolumesRender: boolean;
     procedure SetShadowVolumes(const Value: boolean);
-    procedure SetShadowVolumesDraw(const Value: boolean);
+    procedure SetShadowVolumesRender(const Value: boolean);
     function GetNavigationType: TNavigationType;
     procedure SetNavigationType(const Value: TNavigationType);
   protected
@@ -2495,9 +2484,9 @@ end;
       read GetShadowVolumes write SetShadowVolumes
       default TCastleAbstractViewport.DefaultShadowVolumes;
 
-    { See TCastleAbstractViewport.ShadowVolumesDraw. }
-    property ShadowVolumesDraw: boolean
-      read GetShadowVolumesDraw write SetShadowVolumesDraw default false;
+    { See TCastleAbstractViewport.ShadowVolumesRender. }
+    property ShadowVolumesRender: boolean
+      read GetShadowVolumesRender write SetShadowVolumesRender default false;
 
     { Navigation type of the main camera associated with the default SceneManager.
       Note that this may not be the only camera used for rendering,
@@ -2736,7 +2725,7 @@ end;
       You have to call this repeatedly to process key presses,
       mouse events, redraws and everything else.
       Messages are processed and appropriate window callbacks are called,
-      like TCastleWindowBase.OnDraw,
+      like TCastleWindowBase.OnRender,
       TCastleWindowBase.OnUpdate,
       TCastleWindowBase.OnKeyPress and many others.
 
@@ -2853,7 +2842,7 @@ end;
 
       To be more precise, this limits the number of TCastleApplication.ProcessMessage
       calls per second, in situations when we do not have to process any user input.
-      So we limit not only rendering (TCastleWindowBase.OnDraw)
+      So we limit not only rendering (TCastleWindowBase.OnRender)
       but also other animation processing (TCastleWindowBase.OnUpdate) calls per second.
       See TCastleApplication.ProcessMessage.
 
@@ -2862,7 +2851,7 @@ end;
       this is also the "desired number of FPS": we make sure that even
       when application is clogged with events (like when dragging with mouse),
       we call update (TCastleWindowBase.OnUpdate) and (if necessary)
-      draw (TCastleWindowBase.OnDraw and related) at least as often.
+      draw (TCastleWindowBase.OnRender and related) at least as often.
       When LimitFPS is used for this purpose ("desired number of FPS"),
       it is also capped (by MaxDesiredFPS = 100.0). }
     property LimitFPS: Single read FLimitFPS write FLimitFPS default DefaultLimitFPS;
@@ -3305,16 +3294,16 @@ begin
   if EventCloseQuery then Close;
 end;
 
-procedure TCastleWindowBase.DoDraw;
+procedure TCastleWindowBase.DoRender;
 begin
   MakeCurrent;
 
-  EventBeforeDraw;
+  EventBeforeRender;
   if Closed then Exit; { check, in case window got closed in the event }
 
   Fps._RenderBegin;
   try
-    EventDraw;
+    EventRender;
     if Closed then Exit; { check, in case window got closed in the event }
 
     if GLVersion.BuggySwapNonStandardViewport then
@@ -3324,7 +3313,7 @@ begin
     if AutoRedisplay then PostRedisplay;
   finally Fps._RenderEnd end;
 
-  {$ifdef CASTLE_WINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors('End of TCastleWindowBase.DoDraw'); {$endif}
+  {$ifdef CASTLE_WINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors('End of TCastleWindowBase.DoRender'); {$endif}
 end;
 
 procedure TCastleWindowBase.DoKeyDown(Key: TKey; CharKey: char);
@@ -3491,8 +3480,8 @@ procedure TCastleWindowBase.EventDropFiles(const FileNames: array of string);  c
   procedure TCastleWindowBase.EventMouseMove(newX, newY: integer);const EventName = 'MouseMove'; begin {$I castlewindow_eventbegin.inc} if Assigned(OnMouseMove) then begin OnMouseMove(Self, newX, newY); end;   {$I castlewindow_eventend.inc} end;
   {$undef BONUS_LOG_STRING}
 
-  procedure TCastleWindowBase.EventBeforeDraw;                    const EventName = 'BeforeDraw';begin {$I castlewindow_eventbegin.inc} if Assigned(OnBeforeDraw)then begin OnBeforeDraw(Self);            end;   {$I castlewindow_eventend.inc} end;
-  procedure TCastleWindowBase.EventDraw;                          const EventName = 'Draw';      begin {$I castlewindow_eventbegin.inc} if Assigned(OnDraw)      then begin OnDraw(Self);                  end;   {$I castlewindow_eventend.inc} end;
+  procedure TCastleWindowBase.EventBeforeRender;                    const EventName = 'BeforeRender';begin {$I castlewindow_eventbegin.inc} if Assigned(OnBeforeRender)then begin OnBeforeRender(Self);            end;   {$I castlewindow_eventend.inc} end;
+  procedure TCastleWindowBase.EventRender;                          const EventName = 'Render';      begin {$I castlewindow_eventbegin.inc} if Assigned(OnRender)      then begin OnRender(Self);                  end;   {$I castlewindow_eventend.inc} end;
   procedure TCastleWindowBase.EventUpdate;                        const EventName = 'Update';    begin {$I castlewindow_eventbegin.inc} if Assigned(OnUpdate)    then begin OnUpdate(Self);                end;   {$I castlewindow_eventend.inc} end;
   procedure TCastleWindowBase.EventTimer;                         const EventName = 'Timer';     begin {$I castlewindow_eventbegin.inc} if Assigned(OnTimer)     then begin OnTimer(Self);                 end;   {$I castlewindow_eventend.inc} end;
 
@@ -3562,8 +3551,8 @@ function TCastleWindowBase.SaveScreen(const SaveRect: TRectangle): TRGBImage;
 begin
   if DoubleBuffer then
   begin
-    EventBeforeDraw;
-    EventDraw;
+    EventBeforeRender;
+    EventRender;
   end else
     FlushRedisplay;
   Result := SaveScreen_NoFlush(SaveRect, SaveScreenBuffer);
@@ -3580,8 +3569,8 @@ function TCastleWindowBase.SaveScreenToGL(
 begin
   if DoubleBuffer then
   begin
-    EventBeforeDraw;
-    EventDraw;
+    EventBeforeRender;
+    EventRender;
   end else
     FlushRedisplay;
   Result := SaveScreenToGL_NoFlush(SaveRect, SaveScreenBuffer, ScalingPossible);
@@ -3647,10 +3636,10 @@ end;
 
 { OpenAndRun ----------------------------------------------------------------- }
 
-procedure TCastleWindowBase.OpenAndRun(const ACaption: string; AOnDraw: TDrawFunc);
+procedure TCastleWindowBase.OpenAndRun(const ACaption: string; AOnRender: TRenderFunc);
 begin
   SetPublicCaption(ACaption);
-  OnDraw := AOnDraw;
+  OnRender := AOnRender;
   OpenAndRun;
 end;
 
@@ -4283,7 +4272,7 @@ begin
   inherited;
   FControls := TControlledUIControlList.Create(false, Self);
   FUseControls := true;
-  FOnDrawStyle := dsNone;
+  FRenderStyle := rs2D;
   FTooltipDelay := DefaultTooltipDelay;
   FTooltipDistance := DefaultTooltipDistance;
 
@@ -4400,7 +4389,7 @@ procedure TCastleWindowCustom.EventUpdate;
           focus. This avoids unnecessary changing of TooltipVisible
           (and related PostRedisplay) when there's no tooltip possible. }
         (Focus <> nil) and
-        (Focus.TooltipStyle <> dsNone) and
+        Focus.TooltipExists and
         ( (1000 * (T - LastPositionForTooltipTime)) div
           TimerFrequency > TooltipDelay );
 
@@ -4601,7 +4590,7 @@ begin
   begin
     { Do not suspend when you're over a control that may have a tooltip,
       as EventUpdate must track and eventually show tooltip. }
-    if (Focus <> nil) and (Focus.TooltipStyle <> dsNone) then
+    if (Focus <> nil) and Focus.TooltipExists then
       Exit(false);
 
     for I := 0 to Controls.Count - 1 do
@@ -4653,27 +4642,27 @@ begin
   PostRedisplay;
 end;
 
-procedure TCastleWindowCustom.EventBeforeDraw;
+procedure TCastleWindowCustom.EventBeforeRender;
 var
   I: Integer;
 begin
   if UseControls then
   begin
     for I := 0 to Controls.Count - 1 do
-      Controls[I].BeforeDraw;
+      Controls[I].BeforeRender;
   end;
 
   inherited;
 end;
 
-procedure TCastleWindowCustom.EventDraw;
+procedure TCastleWindowCustom.EventRender;
 
-  { Call Draw for all controls having DrawStyle = ds3D.
+  { Call Render for all controls having RenderStyle = rs3D.
 
-    Also (since we call DrawStyle for everything anyway)
-    calculates AnythingWants2D = if any control returned DrawStyle = ds2D.
+    Also (since we call RenderStyle for everything anyway)
+    calculates AnythingWants2D = if any control returned RenderStyle = rs2D.
     If not, you can later avoid even changing projection to 2D. }
-  procedure Draw3D(out AnythingWants2D: boolean);
+  procedure Render3D(out AnythingWants2D: boolean);
   var
     I: Integer;
     C: TUIControl;
@@ -4686,35 +4675,36 @@ procedure TCastleWindowCustom.EventDraw;
       for I := Controls.Count - 1 downto 0 do
       begin
         C := Controls[I];
-        case C.DrawStyle of
-          ds2D: AnythingWants2D := true;
-          { Set OpenGL state that may be changed carelessly, and has some
-            guanteed value, for TUIControl.Draw calls.
-            For now, just glLoadIdentity. }
-          ds3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} C.Draw; end;
-        end;
+        if C.GetExists then
+          case C.RenderStyle of
+            rs2D: AnythingWants2D := true;
+            { Set OpenGL state that may be changed carelessly, and has some
+              guanteed value, for TUIControl.Render calls.
+              For now, just glLoadIdentity. }
+            rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} C.Render; end;
+          end;
       end;
 
       if TooltipVisible and (Focus <> nil) then
         case Focus.TooltipStyle of
-          ds2D: AnythingWants2D := true;
-          ds3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} Focus.DrawTooltip; end;
+          rs2D: AnythingWants2D := true;
+          rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} Focus.TooltipRender; end;
         end;
     end;
 
-    case OnDrawStyle of
-      ds2D: AnythingWants2D := true;
-      ds3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} inherited EventDraw; end;
+    case RenderStyle of
+      rs2D: AnythingWants2D := true;
+      rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} inherited EventRender; end;
     end;
   end;
 
-  procedure Draw2D;
+  procedure Render2D;
   var
     C: TUIControl;
     I: Integer;
   begin
-    { Set state that is guaranteed for Draw2D calls,
-      but TUIControl.Draw cannot change it carelessly. }
+    { Set state that is guaranteed for Render2D calls,
+      but TUIControl.Render cannot change it carelessly. }
     {$ifndef OpenGLES}
     glDisable(GL_LIGHTING);
     glDisable(GL_FOG);
@@ -4732,43 +4722,39 @@ procedure TCastleWindowCustom.EventDraw;
       for I := Controls.Count - 1 downto 0 do
       begin
         C := Controls[I];
-
-        if C.DrawStyle = ds2D then
+        if C.GetExists and (C.RenderStyle = rs2D) then
         begin
           { Set OpenGL state that may be changed carelessly, and has some
-            guanteed value, for Draw2d calls. }
+            guanteed value, for Render2d calls. }
           {$ifndef OpenGLES} glLoadIdentity; {$endif}
           CastleGLUtils.WindowPos := Vector2LongInt(0, 0);
-          C.Draw;
+          C.Render;
         end;
       end;
 
-      if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = ds2D) then
+      if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = rs2D) then
       begin
         {$ifndef OpenGLES} glLoadIdentity; {$endif}
         CastleGLUtils.WindowPos := Vector2LongInt(0, 0);
-        Focus.DrawTooltip;
+        Focus.TooltipRender;
       end;
     end;
 
-    if OnDrawStyle = ds2D then
+    if RenderStyle = rs2D then
     begin
       {$ifndef OpenGLES} glLoadIdentity; {$endif}
       CastleGLUtils.WindowPos := Vector2LongInt(0, 0);
-      inherited EventDraw;
+      inherited EventRender;
     end;
   end;
 
 var
   AnythingWants2D: boolean;
 begin
-  Draw3D(AnythingWants2D);
+  Render3D(AnythingWants2D);
 
   if AnythingWants2D then
-    Draw2D;
-
-  if OnDrawStyle = dsNone then
-    inherited;
+    Render2D;
 end;
 
 procedure TCastleWindowCustom.EventResize;
@@ -4853,14 +4839,14 @@ begin
   SceneManager.ShadowVolumes := Value;
 end;
 
-function TCastleWindow.GetShadowVolumesDraw: boolean;
+function TCastleWindow.GetShadowVolumesRender: boolean;
 begin
-  Result := SceneManager.ShadowVolumesDraw;
+  Result := SceneManager.ShadowVolumesRender;
 end;
 
-procedure TCastleWindow.SetShadowVolumesDraw(const Value: boolean);
+procedure TCastleWindow.SetShadowVolumesRender(const Value: boolean);
 begin
-  SceneManager.ShadowVolumesDraw := Value;
+  SceneManager.ShadowVolumesRender := Value;
 end;
 
 function TCastleWindow.GetNavigationType: TNavigationType;

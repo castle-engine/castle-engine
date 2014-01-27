@@ -63,8 +63,8 @@ type
   private
     FMouseX: Integer;
     FMouseY: Integer;
-    FOnBeforeDraw: TNotifyEvent;
-    FOnDraw: TNotifyEvent;
+    FOnBeforeRender: TNotifyEvent;
+    FOnRender: TNotifyEvent;
     FGLInitialized: boolean;
     FPressed: TKeysPressed;
     FMousePressed: CastleKeysMouse.TMouseButtons;
@@ -141,7 +141,7 @@ type
       Note that always after initializing OpenGL context, we also call
       Resize (OnResize event). And we call Invalidate
       (so at the first opportunity, Paint (with OnPaint,
-      DoDraw (OnDraw), DoBeforeDraw (OnBeforeDraw), will also get called). }
+      DoRender (OnRender), DoBeforeRender (OnBeforeRender), will also get called). }
     procedure DoGLContextOpen; virtual;
 
     { In this class this just calls OnGLContextClose. }
@@ -149,8 +149,8 @@ type
 
     property GLInitialized: boolean read FGLInitialized;
 
-    procedure DoBeforeDraw; virtual;
-    procedure DoDraw; virtual;
+    procedure DoBeforeRender; virtual;
+    procedure DoRender; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -205,8 +205,8 @@ type
     property OnGLContextClose: TNotifyEvent
       read FOnGLContextClose write FOnGLContextClose;
 
-    property OnBeforeDraw: TNotifyEvent read FOnBeforeDraw write FOnBeforeDraw;
-    property OnDraw: TNotifyEvent read FOnDraw write FOnDraw;
+    property OnBeforeRender: TNotifyEvent read FOnBeforeRender write FOnBeforeRender;
+    property OnRender: TNotifyEvent read FOnRender write FOnRender;
 
     property TabOrder;
     property TabStop default true;
@@ -222,7 +222,7 @@ type
   private
     FControls: TUIControlList;
     FUseControls: boolean;
-    FOnDrawStyle: TUIControlDrawStyle;
+    FRenderStyle: TRenderStyle;
     FFocus: TUIControl;
     FTooltipDelay: TMilisecTime;
     FTooltipDistance: Cardinal;
@@ -251,8 +251,8 @@ type
     procedure MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer); override;
     function MouseWheelEvent(const Scroll: Single; const Vertical: boolean): boolean; override;
     procedure UpdateEvent; override;
-    procedure DoBeforeDraw; override;
-    procedure DoDraw; override;
+    procedure DoBeforeRender; override;
+    procedure DoRender; override;
     procedure Resize; override;
     procedure DoGLContextOpen; override;
     procedure DoGLContextClose; override;
@@ -292,8 +292,8 @@ type
       and TooltipX, TooltipY indicate left-bottom suggested position
       of the tooltip.
 
-      The tooltip is only detected when TUIControl.TooltipStyle <> dsNone.
-      See TUIControl.TooltipStyle and TUIControl.DrawTooltip.
+      The tooltip is only detected when TUIControl.TooltipExists.
+      See TUIControl.TooltipStyle and TUIControl.TooltipRender.
       For simple purposes just set TUIControlFont.Tooltip to something
       non-empty.
       @groupBegin }
@@ -305,11 +305,10 @@ type
     function Mouse3dLoaded: boolean;
 
   published
-    { How OnDraw callback fits within various Draw methods of our
-      @link(Controls).
-      See TCastleWindowCustom.OnDrawStyle for full description. }
-    property OnDrawStyle: TUIControlDrawStyle
-      read FOnDrawStyle write FOnDrawStyle default dsNone;
+    { When @link(OnRender) callback is called.
+      See TCastleWindowCustom.RenderStyle for full description. }
+    property RenderStyle: TRenderStyle
+      read FRenderStyle write FRenderStyle default rs2D;
 
     { Controls listening for user input (keyboard / mouse) to this window.
 
@@ -339,10 +338,10 @@ type
     FSceneManager: TGameSceneManager;
 
     function GetShadowVolumes: boolean;
-    function GetShadowVolumesDraw: boolean;
+    function GetShadowVolumesRender: boolean;
     function GetOnCameraChanged: TNotifyEvent;
     procedure SetShadowVolumes(const Value: boolean);
-    procedure SetShadowVolumesDraw(const Value: boolean);
+    procedure SetShadowVolumesRender(const Value: boolean);
     procedure SetOnCameraChanged(const Value: TNotifyEvent);
   public
     constructor Create(AOwner :TComponent); override;
@@ -370,9 +369,9 @@ type
       read GetShadowVolumes write SetShadowVolumes
       default TCastleAbstractViewport.DefaultShadowVolumes;
 
-    { See TCastleAbstractViewport.ShadowVolumesDraw. }
-    property ShadowVolumesDraw: boolean
-      read GetShadowVolumesDraw write SetShadowVolumesDraw default false;
+    { See TCastleAbstractViewport.ShadowVolumesRender. }
+    property ShadowVolumesRender: boolean
+      read GetShadowVolumesRender write SetShadowVolumesRender default false;
   end;
 
 procedure Register;
@@ -898,16 +897,16 @@ begin
   ReleaseAllKeysAndMouse;
 end;
 
-procedure TCastleControlBase.DoBeforeDraw;
+procedure TCastleControlBase.DoBeforeRender;
 begin
-  if Assigned(OnBeforeDraw) then
-    OnBeforeDraw(Self);
+  if Assigned(OnBeforeRender) then
+    OnBeforeRender(Self);
 end;
 
-procedure TCastleControlBase.DoDraw;
+procedure TCastleControlBase.DoRender;
 begin
-  if Assigned(OnDraw) then
-    OnDraw(Self);
+  if Assigned(OnRender) then
+    OnRender(Self);
 end;
 
 procedure TCastleControlBase.Paint;
@@ -915,10 +914,10 @@ begin
   { Note that we don't call here inherited, instead doing everything ourselves. }
   if MakeCurrent then
   begin
-    DoBeforeDraw;
+    DoBeforeRender;
     Fps._RenderBegin;
     try
-      DoDraw;
+      DoRender;
       if GLVersion.BuggySwapNonStandardViewport then
         glViewport(Rect);
       SwapBuffers;
@@ -938,8 +937,8 @@ function TCastleControlBase.SaveScreen: TRGBImage;
 begin
   if MakeCurrent then
   begin
-    DoBeforeDraw;
-    DoDraw;
+    DoBeforeRender;
+    DoRender;
   end;
   Result := SaveScreen_NoFlush(Rect, SaveScreenBuffer);
 end;
@@ -1060,7 +1059,7 @@ begin
   TabStop := true;
   FControls := TControlledUIControlList.Create(false, Self);
   FUseControls := true;
-  FOnDrawStyle := dsNone;
+  FRenderStyle := rs2D;
   FTooltipDelay := DefaultTooltipDelay;
   FTooltipDistance := DefaultTooltipDistance;
 
@@ -1187,7 +1186,7 @@ procedure TCastleControlCustom.UpdateEvent;
           focus. This avoids unnecessary changing of TooltipVisible
           (and related PostRedisplay) when there's no tooltip possible. }
         (Focus <> nil) and
-        (Focus.TooltipStyle <> dsNone) and
+        Focus.TooltipExists and
         ( (1000 * (T - LastPositionForTooltipTime)) div
           TimerFrequency > TooltipDelay );
 
@@ -1411,7 +1410,7 @@ begin
   Invalidate;
 end;
 
-procedure TCastleControlCustom.DoBeforeDraw;
+procedure TCastleControlCustom.DoBeforeRender;
 var
   I: Integer;
 begin
@@ -1420,18 +1419,18 @@ begin
   if UseControls then
   begin
     for I := 0 to Controls.Count - 1 do
-      Controls[I].BeforeDraw;
+      Controls[I].BeforeRender;
   end;
 end;
 
-procedure TCastleControlCustom.DoDraw;
+procedure TCastleControlCustom.DoRender;
 
-  { Call Draw for all controls having DrawStyle = ds3D.
+  { Call Render for all controls having RenderStyle = rs3D.
 
-    Also (since we call DrawStyle for everything anyway)
-    calculates AnythingWants2D = if any control returned DrawStyle = ds2D.
+    Also (since we call RenderStyle for everything anyway)
+    calculates AnythingWants2D = if any control returned RenderStyle = rs2D.
     If not, you can later avoid even changing projection to 2D. }
-  procedure Draw3D(out AnythingWants2D: boolean);
+  procedure Render3D(out AnythingWants2D: boolean);
   var
     I: Integer;
     C: TUIControl;
@@ -1444,34 +1443,35 @@ procedure TCastleControlCustom.DoDraw;
       for I := Controls.Count - 1 downto 0 do
       begin
         C := Controls[I];
-        case C.DrawStyle of
-          ds2D: AnythingWants2D := true;
-          { Set OpenGL state that may be changed carelessly, and has some
-            guanteed value, for TUIControl.Draw calls. }
-          ds3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} C.Draw; end;
-        end;
+        if C.GetExists then
+          case C.RenderStyle of
+            rs2D: AnythingWants2D := true;
+            { Set OpenGL state that may be changed carelessly, and has some
+              guanteed value, for TUIControl.Render calls. }
+            rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} C.Render; end;
+          end;
       end;
 
       if TooltipVisible and (Focus <> nil) then
         case Focus.TooltipStyle of
-          ds2D: AnythingWants2D := true;
-          ds3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} Focus.DrawTooltip; end;
+          rs2D: AnythingWants2D := true;
+          rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} Focus.TooltipRender; end;
         end;
     end;
 
-    case OnDrawStyle of
-      ds2D: AnythingWants2D := true;
-      ds3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} inherited DoDraw; end;
+    case RenderStyle of
+      rs2D: AnythingWants2D := true;
+      rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} inherited DoRender; end;
     end;
   end;
 
-  procedure Draw2D;
+  procedure Render2D;
   var
     C: TUIControl;
     I: Integer;
   begin
-    { Set state that is guaranteed for Draw2D calls,
-      but TUIControl.Draw cannot change it carelessly. }
+    { Set state that is guaranteed for Render2D calls,
+      but TUIControl.Render cannot change it carelessly. }
     {$ifndef OpenGLES}
     glDisable(GL_LIGHTING);
     glDisable(GL_FOG);
@@ -1489,43 +1489,39 @@ procedure TCastleControlCustom.DoDraw;
       for I := Controls.Count - 1 downto 0 do
       begin
         C := Controls[I];
-
-        if C.DrawStyle = ds2D then
+        if C.GetExists and (C.RenderStyle = rs2D) then
         begin
           { Set OpenGL state that may be changed carelessly, and has some
-            guanteed value, for Draw2d calls. }
+            guanteed value, for Render2d calls. }
           {$ifndef OpenGLES} glLoadIdentity; {$endif}
           WindowPos := Vector2LongInt(0, 0);
-          C.Draw;
+          C.Render;
         end;
       end;
 
-      if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = ds2D) then
+      if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = rs2D) then
       begin
         {$ifndef OpenGLES} glLoadIdentity; {$endif}
         WindowPos := Vector2LongInt(0, 0);
-        Focus.DrawTooltip;
+        Focus.TooltipRender;
       end;
     end;
 
-    if OnDrawStyle = ds2D then
+    if RenderStyle = rs2D then
     begin
       {$ifndef OpenGLES} glLoadIdentity; {$endif}
       WindowPos := Vector2LongInt(0, 0);
-      inherited DoDraw;
+      inherited DoRender;
     end;
   end;
 
 var
   AnythingWants2D: boolean;
 begin
-  Draw3D(AnythingWants2D);
+  Render3D(AnythingWants2D);
 
   if AnythingWants2D then
-    Draw2D;
-
-  if OnDrawStyle = dsNone then
-    inherited;
+    Render2D;
 end;
 
 procedure TCastleControlCustom.Resize;
@@ -1667,14 +1663,14 @@ begin
   SceneManager.ShadowVolumes := Value;
 end;
 
-function TCastleControl.GetShadowVolumesDraw: boolean;
+function TCastleControl.GetShadowVolumesRender: boolean;
 begin
-  Result := SceneManager.ShadowVolumesDraw;
+  Result := SceneManager.ShadowVolumesRender;
 end;
 
-procedure TCastleControl.SetShadowVolumesDraw(const Value: boolean);
+procedure TCastleControl.SetShadowVolumesRender(const Value: boolean);
 begin
-  SceneManager.ShadowVolumesDraw := Value;
+  SceneManager.ShadowVolumesRender := Value;
 end;
 
 function TCastleControl.GetOnCameraChanged: TNotifyEvent;

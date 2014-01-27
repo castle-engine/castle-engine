@@ -769,7 +769,7 @@ begin
   if RedisplayPosted then
   begin
     RedisplayPosted := false;
-    DoDraw;
+    DoRender;
   end;
 
   { Without our own RedisplayPosted tracking, under GTK 2 we could also easily
@@ -1527,7 +1527,7 @@ procedure TCastleApplication.ProcessUpdates;
 
     Note: Right now we do not use normal GTK mechanism for redraws
     (that is, gtk_widget_queue_draw for posting and handling signal "expose"
-    to call DoDraw). In the past, this caused problems, and in particular
+    to call DoRender). In the past, this caused problems, and in particular
     failed totally when in newer GTK/glib expose signal couldn't be
     delivered when we were already inside one expose signal handler. }
   procedure WindowsFlushRedisplay;
@@ -1685,7 +1685,7 @@ begin
     This is done regardless of WaitForMessage mechanism.
 
     This follows castlewindow_winsystem.inc approach, and works very good
-    to prevent doing Update / Draw when we're clogged with events
+    to prevent doing Update / Render when we're clogged with events
     (typically happens when walking with mouse look, then we're clogged
     with mouse move events). }
   if gtk_events_pending() = 0 then

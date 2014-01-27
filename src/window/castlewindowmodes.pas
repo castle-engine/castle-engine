@@ -41,7 +41,7 @@ type
     { TCastleWindowBase attributes }
     OldMouseMove: TMouseMoveFunc;
     OldPress, OldRelease: TInputPressReleaseFunc;
-    OldBeforeDraw, OldDraw, OldCloseQuery, OldUpdate, OldTimer: TWindowFunc;
+    OldBeforeRender, OldRender, OldCloseQuery, OldUpdate, OldTimer: TWindowFunc;
     OldResize: TWindowFunc;
     OldMenuClick: TMenuClickFunc;
     OldCaption: string;
@@ -61,7 +61,7 @@ type
     { TCastleWindowCustom attributes } { }
     OldControls: TUIControlList;
     { protected now: OldUseControls: boolean; } { }
-    OldOnDrawStyle: TUIControlDrawStyle;
+    OldRenderStyle: TRenderStyle;
 
     { When adding new attributes to TCastleWindowBase that should be saved/restored,
       you must remember to
@@ -122,7 +122,7 @@ type
         @item(TCastleWindowBase.Cursor is reset to mcDefault.)
         @item(TCastleWindowBase.UserData is reset to @nil.)
         @item(TCastleWindowBase.AutoRedisplay is reset to @false.)
-        @item(TCastleWindowBase.OnDrawStyle is reset to dsNone.)
+        @item(TCastleWindowBase.RenderStyle is reset to rs2D.)
         @item(TCastleWindowBase.MainMenu.Enabled will be reset to @false (only if MainMenu <> nil).)
 
         @item(TCastleWindowDemo.SwapFullScreen_Key will be reset to K_None.)
@@ -138,7 +138,7 @@ type
       to close the window by window manager
       (usually using "close" button in some window corner or Alt+F4). }
     class procedure SetStandardState(Window: TCastleWindowBase;
-      NewDraw, NewResize, NewCloseQuery: TWindowFunc);
+      NewRender, NewResize, NewCloseQuery: TWindowFunc);
   end;
 
   { Enter / exit modal box on a TCastleWindowBase. Saves/restores the state
@@ -212,7 +212,7 @@ type
       @link(TWindowState.SetStandardState), see there for explanation
       of parameters. }
     constructor CreateReset(AWindow: TCastleWindowBase;
-      NewDraw, NewResize, NewCloseQuery: TWindowFunc);
+      NewRender, NewResize, NewCloseQuery: TWindowFunc);
 
     destructor Destroy; override;
 
@@ -225,7 +225,7 @@ type
     for some event (like pressing a key), keeping the same screen
     displayed.
 
-    During this lifetime, we set special TCastleWindowBase.OnDraw and TCastleWindowBase.OnResize
+    During this lifetime, we set special TCastleWindowBase.OnRender and TCastleWindowBase.OnResize
     to draw the saved image in a simplest 2D OpenGL projection.
 
     Between creation/destroy, TCastleWindowBase.UserData is used by this function
@@ -238,8 +238,8 @@ type
       private
         Background: TGLImage;
       public
-        function DrawStyle: TUIControlDrawStyle; override;
-        procedure Draw; override;
+        function RenderStyle: TRenderStyle; override;
+        procedure Render; override;
       end;
     var
       Control: TFrozenScreenControl;
@@ -276,8 +276,8 @@ begin
   OldMouseMove := Window.OnMouseMove;
   OldPress := Window.OnPress;
   OldRelease := Window.OnRelease;
-  OldBeforeDraw := Window.OnBeforeDraw;
-  OldDraw := Window.OnDraw;
+  OldBeforeRender := Window.OnBeforeRender;
+  OldRender := Window.OnRender;
   OldCloseQuery := Window.OnCloseQuery;
   OldResize := Window.OnResize;
   OldUpdate := Window.OnUpdate;
@@ -303,7 +303,7 @@ begin
   begin
     OldControls.Assign(TCastleWindowCustom(Window).Controls);
     { protected now OldUseControls := TCastleWindowCustom(Window).UseControls; }
-    OldOnDrawStyle := TCastleWindowCustom(Window).OnDrawStyle;
+    OldRenderStyle := TCastleWindowCustom(Window).RenderStyle;
   end;
 end;
 
@@ -312,8 +312,8 @@ begin
   Window.OnMouseMove := OldMouseMove;
   Window.OnPress := OldPress;
   Window.OnRelease := OldRelease;
-  Window.OnBeforeDraw := OldBeforeDraw;
-  Window.OnDraw := OldDraw;
+  Window.OnBeforeRender := OldBeforeRender;
+  Window.OnRender := OldRender;
   Window.OnCloseQuery := OldCloseQuery;
   Window.OnResize := OldResize;
   Window.OnUpdate := OldUpdate;
@@ -339,24 +339,24 @@ begin
   begin
     TCastleWindowCustom(Window).Controls.Assign(OldControls);
     { protected now TCastleWindowCustom(Window).UseControls := OldUseControls; }
-    TCastleWindowCustom(Window).OnDrawStyle := OldOnDrawStyle;
+    TCastleWindowCustom(Window).RenderStyle := OldRenderStyle;
   end;
 end;
 
 class procedure TWindowState.SetStandardState(Window: TCastleWindowBase;
-  NewDraw, NewResize, NewCloseQuery: TWindowFunc);
+  NewRender, NewResize, NewCloseQuery: TWindowFunc);
 begin
   Window.OnMouseMove := nil;
   Window.OnPress := nil;
   Window.OnRelease := nil;
-  Window.OnBeforeDraw := nil;
-  Window.OnDraw := nil;
+  Window.OnBeforeRender := nil;
+  Window.OnRender := nil;
   Window.OnCloseQuery := nil;
   Window.OnUpdate := nil;
   Window.OnTimer := nil;
   Window.OnResize := nil;
   Window.OnMenuClick := nil;
-  Window.OnDraw := NewDraw;
+  Window.OnRender := NewRender;
   Window.OnResize := NewResize;
   Window.OnCloseQuery := NewCloseQuery;
   {Window.Caption := leave current value}
@@ -378,7 +378,7 @@ begin
   begin
     TCastleWindowCustom(Window).Controls.Clear;
     { protected now TCastleWindowCustom(Window).UseControls := true; }
-    TCastleWindowCustom(Window).OnDrawStyle := dsNone;
+    TCastleWindowCustom(Window).RenderStyle := rs2D;
   end;
 end;
 
@@ -438,10 +438,10 @@ begin
 end;
 
 constructor TGLMode.CreateReset(AWindow: TCastleWindowBase;
-  NewDraw, NewResize, NewCloseQuery: TWindowFunc);
+  NewRender, NewResize, NewCloseQuery: TWindowFunc);
 begin
   Create(AWindow);
-  TWindowState.SetStandardState(AWindow, NewDraw, NewResize, NewCloseQuery);
+  TWindowState.SetStandardState(AWindow, NewRender, NewResize, NewCloseQuery);
 end;
 
 destructor TGLMode.Destroy;
@@ -487,14 +487,12 @@ end;
 
 { TGLModeFrozenScreen ------------------------------------------------------ }
 
-function TGLModeFrozenScreen.TFrozenScreenControl.DrawStyle: TUIControlDrawStyle;
+function TGLModeFrozenScreen.TFrozenScreenControl.RenderStyle: TRenderStyle;
 begin
-  if GetExists then
-    Result := ds2D else
-    Result := dsNone;
+  Result := rs2D;
 end;
 
-procedure TGLModeFrozenScreen.TFrozenScreenControl.Draw;
+procedure TGLModeFrozenScreen.TFrozenScreenControl.Render;
 begin
   inherited;
   if not GetExists then Exit;

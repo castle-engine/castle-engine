@@ -297,7 +297,7 @@ begin
 
       Window.OnPress := @Press;
       Window.OnUpdate := @Update;
-      Window.OnDrawStyle := ds3D;
+      Window.RenderStyle := rs3D;
 
       Window.EventResize;
 

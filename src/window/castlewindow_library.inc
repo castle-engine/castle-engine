@@ -43,7 +43,7 @@ public
   procedure LibraryMouseUp(X, Y: Integer; Btn: CastleKeysMouse.TMouseButton);
   procedure LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
   procedure LibraryResize(AWidth, AHeight: Integer);
-  procedure LibraryDraw;
+  procedure LibraryRender;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -111,7 +111,7 @@ end;
 
 procedure TCastleWindowBase.FlushRedisplay;
 begin
-  DoDraw;
+  DoRender;
 end;
 
 procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
@@ -199,9 +199,9 @@ begin
   DoResize(AWidth, AHeight, false);
 end;
 
-procedure TCastleWindowBase.LibraryDraw;
+procedure TCastleWindowBase.LibraryRender;
 begin
-  DoDraw;
+  DoRender;
 end;
 
 { This method is handled at TCastleApplication, this way we handle

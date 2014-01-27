@@ -21,7 +21,7 @@ begin
   Player.Teleport(Map.PlayerStartX, Map.PlayerStartY, dirSouth);
 end;
 
-procedure Draw(Window: TCastleWindowBase);
+procedure Render(Window: TCastleWindowBase);
 var
   RealViewMoveX, RealViewMoveY: Integer;
 
@@ -265,7 +265,7 @@ procedure Game;
 var
   SavedMode: TGLMode;
 begin
-  SavedMode := TGLMode.CreateReset(Window, @Draw, @Resize2D, nil);
+  SavedMode := TGLMode.CreateReset(Window, @Render, @Resize2D, nil);
   try
     Window.AutoRedisplay := true;
     Window.OnPress := @Press;

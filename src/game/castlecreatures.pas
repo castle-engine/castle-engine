@@ -1071,7 +1071,7 @@ begin
     Note: we experimented with moving this to TCreature.PrepareResource,
     call Resource.Prepare from there. But it just doesn't fully work:
     some creatures really want Resource to be prepared
-    before PrepareResource (from scene manager BeforeDraw) had a chance to work.
+    before PrepareResource (from scene manager BeforeRender) had a chance to work.
     For example, on missiles like thrown web we do Sound3d that uses LerpLegsMiddle.
     Also TCreature.Idle (which definitely needs Resource) may get called before
     PrepareResource. IOW, PrepareResource is just too late. }

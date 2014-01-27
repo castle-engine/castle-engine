@@ -36,7 +36,7 @@ var
 
   MinSHValue, MaxSHValue: Float;
 
-procedure Draw2D(Window: TCastleWindowBase);
+procedure Render(Window: TCastleWindowBase);
 var
   L: Cardinal;
   M: Integer;
@@ -133,7 +133,7 @@ begin
   Window.SceneManager.Items.Add(Window.SceneManager.MainScene);
 
   Window.OnMenuClick := @MenuClick;
-  Window.OnDrawStyle := ds2D;
+  Window.RenderStyle := rs2D;
   Window.SetDemoOptions(K_F11, CharEscape, true);
-  Window.OpenAndRun(ApplicationName, @Draw2D);
+  Window.OpenAndRun(ApplicationName, @Render);
 end.

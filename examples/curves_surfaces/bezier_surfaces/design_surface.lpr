@@ -179,7 +179,7 @@ end;
 
 { CastleWindow callbacks --------------------------------------------------------- }
 
-procedure Draw(Window: TCastleWindowBase);
+procedure Render(Window: TCastleWindowBase);
 var
   Text: TStringList;
 begin
@@ -342,7 +342,7 @@ procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
       or (always equivalent)
         ProjMatrix := T16dArray(Matrix4Double(ProjectionMatrix));
       because the current projection matrix may be set for 2D rendering
-      (for Draw). Only the Camera.ProjectionMatrix is guaranteed now to
+      (for Render). Only the Camera.ProjectionMatrix is guaranteed now to
       contain projection for 3D world in SceneManager. }
     glGetIntegerv(GL_VIEWPORT, @Viewport);
     // Equivalent: Viewport := SceneManager.Rect converted to TViewPortArray
@@ -640,8 +640,8 @@ begin
   Window.OnPress := @Press;
   Window.OnRelease := @Release;
   Window.OnMouseMove := @MouseMove;
-  Window.OnDraw := @Draw;
-  Window.OnDrawStyle := ds2D;
+  Window.OnRender := @Render;
+  Window.RenderStyle := rs2D;
   Window.SetDemoOptions(K_F11, CharEscape, true);
 
   SurfaceNew(4, 4);

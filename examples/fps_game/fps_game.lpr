@@ -205,16 +205,16 @@ var
 type
   TGame2DControls = class(TUIControl)
   public
-    procedure Draw; override;
-    function DrawStyle: TUIControlDrawStyle; override;
+    procedure Render; override;
+    function RenderStyle: TRenderStyle; override;
   end;
 
-function TGame2DControls.DrawStyle: TUIControlDrawStyle;
+function TGame2DControls.RenderStyle: TRenderStyle;
 begin
-  Result := ds2D;
+  Result := rs2D;
 end;
 
-procedure TGame2DControls.Draw;
+procedure TGame2DControls.Render;
 const
   InventoryImageSize = 128;
 var
@@ -228,7 +228,7 @@ begin
 
   { A simple display of current/maximum player life. }
   { Write text in the upper-left corner of the screen.
-    For controls with DrawStyle = ds2D,
+    For controls with RenderStyle = rs2D,
     the (0, 0) position is always bottom-left corner,
     (ContainerWidth, ContainerHeight) position is top-right corner.
     You can take font measurements by UIFont.RowHeight or UIFont.TextWidth

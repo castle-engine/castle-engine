@@ -64,7 +64,7 @@ type
     FRenderParams: TManagerRenderParams;
 
     FShadowVolumes: boolean;
-    FShadowVolumesDraw: boolean;
+    FShadowVolumesRender: boolean;
 
     FBackgroundWireframe: boolean;
     FBackgroundColor: TCastleColor;
@@ -310,7 +310,7 @@ type
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
     function PositionInside(const X, Y: Integer): boolean; override;
-    function DrawStyle: TUIControlDrawStyle; override;
+    function RenderStyle: TRenderStyle; override;
 
     function AllowSuspendForInput: boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
@@ -538,7 +538,7 @@ type
       you can use this to actually see shadow volumes, for debug / demo
       purposes. Shadow volumes will be rendered on top of the scene,
       as yellow blended polygons. }
-    property ShadowVolumesDraw: boolean read FShadowVolumesDraw write FShadowVolumesDraw default false;
+    property ShadowVolumesRender: boolean read FShadowVolumesRender write FShadowVolumesRender default false;
 
     { If yes then the scene background will be rendered wireframe,
       over the background filled with BackgroundColor.
@@ -729,7 +729,7 @@ type
     FOnMoveAllowed: TWorldMoveAllowedEvent;
     LastSoundRefresh: TMilisecTime;
 
-    { Call at the beginning of Draw (from both scene manager and custom viewport),
+    { Call at the beginning of Render (from both scene manager and custom viewport),
       to make sure UpdateGeneratedTextures was done before actual drawing.
       It *can* carelessly change the OpenGL projection matrix (but not viewport). }
     procedure UpdateGeneratedTexturesIfNeeded;
@@ -807,7 +807,7 @@ type
     procedure GLContextClose; override;
     function PositionInside(const X, Y: Integer): boolean; override;
 
-    { Prepare resources, to make various methods (like @link(Draw))
+    { Prepare resources, to make various methods (like @link(Render))
       execute fast.
 
       If DisplayProgressTitle <> '', we will display progress bar during
@@ -816,8 +816,8 @@ type
       linearly increasing progress bar. }
     procedure PrepareResources(const DisplayProgressTitle: string = '');
 
-    procedure BeforeDraw; override;
-    procedure Draw; override;
+    procedure BeforeRender; override;
+    procedure Render; override;
 
     { What changes happen when camera changes.
       You may want to use it when calling Scene.CameraChanged.
@@ -1124,7 +1124,7 @@ type
   public
     destructor Destroy; override;
 
-    procedure Draw; override;
+    procedure Render; override;
 
     function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
   published
@@ -1863,7 +1863,7 @@ procedure TCastleAbstractViewport.RenderFromView3D(const Params: TRenderParams);
   procedure RenderWithShadows(const MainLightPosition: TVector4Single);
   begin
     GetShadowVolumeRenderer.InitFrustumAndLight(RenderingCamera.Frustum, MainLightPosition);
-    GetShadowVolumeRenderer.Render(Params, @Render3D, @RenderShadowVolume, ShadowVolumesDraw);
+    GetShadowVolumeRenderer.Render(Params, @Render3D, @RenderShadowVolume, ShadowVolumesRender);
   end;
 
 var
@@ -2250,9 +2250,9 @@ begin
   end;
 end;
 
-function TCastleAbstractViewport.DrawStyle: TUIControlDrawStyle;
+function TCastleAbstractViewport.RenderStyle: TRenderStyle;
 begin
-  Result := ds3D;
+  Result := rs3D;
 end;
 
 function TCastleAbstractViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
@@ -2837,7 +2837,7 @@ begin
   end;
 end;
 
-procedure TCastleSceneManager.BeforeDraw;
+procedure TCastleSceneManager.BeforeRender;
 begin
   inherited;
   if not GetExists then Exit;
@@ -2857,8 +2857,8 @@ begin
   begin
     NeedsUpdateGeneratedTextures := false;
 
-    { We depend here that right before Draw, BeforeDraw was called.
-      We depend on BeforeDraw (actually PrepareResources) to set
+    { We depend here that right before Render, BeforeRender was called.
+      We depend on BeforeRender (actually PrepareResources) to set
       ChosenViewport and make ChosenViewport.ApplyProjection.
 
       This way below we can use sensible projection near/far calculated
@@ -2873,7 +2873,7 @@ begin
   end;
 end;
 
-procedure TCastleSceneManager.Draw;
+procedure TCastleSceneManager.Render;
 begin
   if not GetExists then Exit;
 
@@ -3312,7 +3312,7 @@ begin
   Result := SceneManager.Player;
 end;
 
-procedure TCastleViewport.Draw;
+procedure TCastleViewport.Render;
 begin
   if not GetExists then Exit;
 

@@ -81,7 +81,7 @@ end;
 procedure CGE_Render; cdecl;
 begin
   try
-    Window.LibraryDraw;
+    Window.LibraryRender;
   except
     //on E: Exception do OutputDebugString(@E.Message[1]);
   end;

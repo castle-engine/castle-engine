@@ -82,9 +82,12 @@ type
     procedure UpdateFocusAndMouseCursor;
   end;
 
-  { In what projection TUIControl.Draw will be called.
-    See TUIControl.Draw, TUIControl.DrawStyle. }
-  TUIControlDrawStyle = (dsNone, ds2D, ds3D);
+  { In what projection TUIControl.Render will be called.
+    See TUIControl.Render, TUIControl.RenderStyle. }
+  TRenderStyle = (rs2D, rs3D);
+
+  { Deprecated name for TRenderStyle. }
+  TUIControlDrawStyle = TRenderStyle deprecated;
 
   { Base class for things that listen to user input: cameras and 2D controls. }
   TInputListener = class(TComponent)
@@ -348,42 +351,40 @@ end;
     FGLInitialized: boolean;
     FExists: boolean;
     procedure SetExists(const Value: boolean);
-  protected
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
     { Return whether item really exists, see @link(Exists).
       It TUIControl class, returns @link(Exists) value.
       May be modified in subclasses, to return something more complicated. }
     function GetExists: boolean; virtual;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
 
     { Is given position inside this control.
       Returns always @false in this class. }
     function PositionInside(const X, Y: Integer): boolean; virtual;
 
     { Prepare your resources, right before drawing. }
-    procedure BeforeDraw; virtual;
+    procedure BeforeRender; virtual;
 
-    { Draw a control. If you want your Draw called automatically by the
-      window, return something <> dsNone from DrawStyle,
-      and draw your control inside Draw.
+    { Render a control. Called only when @link(GetExists).
 
-      Do's and don't's when implementing Draw:
+      Do's and don't's when implementing Render:
 
       @unorderedList(
-        @item(All controls with DrawStyle = ds3D are drawn first.
+        @item(All controls with RenderStyle = rs3D are drawn first.
 
           The state of projection matrix (GL_PROJECTION for fixed-function
           pipeline, and global ProjectionMatrix variable) is undefined for
-          ds3D objects. As is the viewport.
+          rs3D objects. As is the viewport.
           So you should always set the viewport and projection yourself
-          at the beginning of ds3D rendring, usually by
+          at the beginning of rs3D rendring, usually by
           CastleGLUtils.PerspectiveProjection or CastleGLUtils.OrthoProjection.
           Usually you should just use TCastleSceneManager,
           which automatically sets projection to something suitable,
           see TCastleSceneManager.ApplyProjection and TCastleScene.GLProjection.
 
-          Then all the controls with DrawStyle = ds2D are drawn.
+          Then all the controls with RenderStyle = rs2D are drawn.
           For them, OpenGL projection is guaranteed to be set
           to standard 2D that fills the whole screen, like by
 
@@ -397,7 +398,7 @@ end;
           @unorderedList(
             @itemSpacing Compact
             @item The modelview matrix value.
-            @item ds3D controls can also freely change projection matrix value and viewport.
+            @item rs3D controls can also freely change projection matrix value and viewport.
             @item(The raster position and WindowPos. The only place in our engine
               using WindowPos is the deprecated TCastleFont methods (ones without
               explicit X, Y).)
@@ -407,53 +408,46 @@ end;
           Every other change should be secured to go back to original value.
           For older OpenGL, you can use glPushAttrib / glPopAttrib.
           For things that have guaranteed values at the beginning of draw method
-          (e.g. scissor is always off for ds2D controls),
+          (e.g. scissor is always off for rs2D controls),
           you can also just manually set it back to off at the end
           (e.g. if you use scissor, them remember to disable it back
           at the end of draw method.)
         )
 
-        @item(Things that are guaranteed about OpenGL state when Draw is called:
+        @item(Things that are guaranteed about OpenGL state when Render is called:
           @unorderedList(
             @itemSpacing Compact
             @item The current matrix is modelview, and it's value is identity.
-            @item(Only for DrawStyle = ds2D: the WindowPos is at (0, 0).
+            @item(Only for RenderStyle = rs2D: the WindowPos is at (0, 0).
               The projection and viewport is suitable as for 2D, see above.)
-            @item(Only for DrawStyle = ds2D: Texturing, depth test,
+            @item(Only for RenderStyle = rs2D: Texturing, depth test,
               lighting, fog, scissor are turned off.)
           )
           If you require anything else, set this yourself.)
       )
 
-      When @link(GetExists) is @false, remember to do nothing in Draw,
-      and return dsNone in DrawStyle.
+      By default, TUIControl.RenderStyle returns rs2D.
 
       @groupBegin }
-    procedure Draw; virtual;
-    function DrawStyle: TUIControlDrawStyle; virtual;
+    procedure Render; virtual;
+    function RenderStyle: TRenderStyle; virtual;
     { @groupEnd }
 
-    { Draw a tooltip of this control. If you want to have tooltip for
-      this control detected, you have to override TooltipStyle
-      to return something <> dsNone.
+    { Render a tooltip of this control. If you want to have tooltip for
+      this control detected, you have to override TooltipExists.
       Then the TCastleWindowBase.TooltipVisible will be detected,
-      and your DrawTooltip will be called.
+      and your TooltipRender will be called.
 
-      So you can draw your tooltip either in overridden DrawTooltip,
-      and/or somewhere else when you see that TCastleWindowBase.TooltipVisible is @true.
-      (Tooltip is always drawn for TCastleWindowBase.Focus control.)
-      But in both cases, make sure to override TooltipStyle to return
-      something <> dsNone.
-
-      The values of ds2D and ds3D are interpreted in the same way
-      as DrawStyle. And DrawTooltip is called in the same way as @link(Draw),
+      The values of rs2D and rs3D are interpreted in the same way
+      as RenderStyle. And TooltipRender is called in the same way as @link(Render),
       so e.g. you can safely assume that modelview matrix is identity
       and (for 2D) WindowPos is zero.
-      DrawTooltip is always called as a last (front-most) 2D or 3D control.
+      TooltipRender is always called as a last (front-most) 2D or 3D control.
 
       @groupBegin }
-    function TooltipStyle: TUIControlDrawStyle; virtual;
-    procedure DrawTooltip; virtual;
+    function TooltipStyle: TRenderStyle; virtual;
+    function TooltipExists: boolean; virtual;
+    procedure TooltipRender; virtual;
     { @groupEnd }
 
     { Initialize your OpenGL resources.
@@ -645,6 +639,12 @@ function OnGLContextOpen: TGLContextEventList;
 function OnGLContextClose: TGLContextEventList;
 { @groupEnd }
 
+const
+  { Deprecated name for rs2D. }
+  ds2D = rs2D deprecated;
+  { Deprecated name for rs3D. }
+  ds3D = rs3D deprecated;
+
 implementation
 
 { TInputListener ------------------------------------------------------------- }
@@ -744,25 +744,30 @@ begin
   Result := false;
 end;
 
-function TUIControl.DrawStyle: TUIControlDrawStyle;
+function TUIControl.RenderStyle: TRenderStyle;
 begin
-  Result := dsNone;
+  Result := rs2D;
 end;
 
-procedure TUIControl.BeforeDraw;
+function TUIControl.TooltipExists: boolean;
+begin
+  Result := false;
+end;
+
+procedure TUIControl.BeforeRender;
 begin
 end;
 
-procedure TUIControl.Draw;
+procedure TUIControl.Render;
 begin
 end;
 
-function TUIControl.TooltipStyle: TUIControlDrawStyle;
+function TUIControl.TooltipStyle: TRenderStyle;
 begin
-  Result := dsNone;
+  Result := rs2D;
 end;
 
-procedure TUIControl.DrawTooltip;
+procedure TUIControl.TooltipRender;
 begin
 end;
 
@@ -789,7 +794,7 @@ end;
 procedure TUIControl.SetExists(const Value: boolean);
 begin
   { Exists is typically used in PositionInside implementations,
-    so changing it must case UpdateFocusAndMouseCursor. }
+    so changing it must cause UpdateFocusAndMouseCursor. }
   if FExists <> Value then
   begin
     FExists := Value;

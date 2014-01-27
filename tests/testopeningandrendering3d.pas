@@ -84,8 +84,8 @@ begin
 
   { Force preparing and using OpenGL resources for the scene.
     This way we also check that next Load frees them Ok. }
-  Window.EventBeforeDraw;
-  Window.EventDraw;
+  Window.EventBeforeRender;
+  Window.EventRender;
 
   { Check OpenGL errors now, otherwise they could be detected by an unrelated
     CheckGLErrors call later. This way we know what 3D filename caused

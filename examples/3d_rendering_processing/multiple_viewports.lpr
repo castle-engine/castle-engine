@@ -44,7 +44,7 @@ type
 procedure TMyViewport.SetFocused(const Value: boolean);
 begin
   if Value <> Focused then
-    { The TMyViewport2D.Draw is based on Focused value. }
+    { The TMyViewport2D.Render is based on Focused value. }
     VisibleChange;
 
   inherited;
@@ -54,20 +54,20 @@ end;
 
 type
   { 2D controls over the viewport. For this we need TUIControl instance
-    with DrawStyle 2D. }
+    with RenderStyle 2D. }
   TMyViewport2D = class(TUIControl)
   public
     Viewport: TMyViewport;
-    procedure Draw; override;
-    function DrawStyle: TUIControlDrawStyle; override;
+    procedure Render; override;
+    function RenderStyle: TRenderStyle; override;
   end;
 
-function TMyViewport2D.DrawStyle: TUIControlDrawStyle;
+function TMyViewport2D.RenderStyle: TRenderStyle;
 begin
-  Result := ds2D;
+  Result := rs2D;
 end;
 
-procedure TMyViewport2D.Draw;
+procedure TMyViewport2D.Render;
 begin
   if Viewport.Focused then
     Theme.Draw(Viewport.Rect, tiActiveFrame);
@@ -77,10 +77,10 @@ end;
 
 type
   TWireViewport = class(TMyViewport)
-    procedure Draw; override;
+    procedure Render; override;
   end;
 
-procedure TWireViewport.Draw;
+procedure TWireViewport.Render;
 begin
   {$ifndef OpenGLES} //TODO-es
   glPushAttrib(GL_POLYGON_BIT or GL_LINE_BIT);

@@ -639,7 +639,7 @@ begin
   try
     { It's important to do ReleaseCore after Progress.Init.
       That is because Progress.Init may do TCastleWindowBase.SaveScreenToDisplayList,
-      and this may call Window.OnDraw, and this may want to redraw
+      and this may call Window.OnRender, and this may want to redraw
       the object (e.g. if creature of given resource already exists
       on the screen) and this requires Prepare to be already done.
 

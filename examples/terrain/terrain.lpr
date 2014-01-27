@@ -816,7 +816,7 @@ begin
 
     Window.OnOpen := @Open;
     Window.OnClose := @Close;
-    Window.OnDrawStyle := ds3D;
+    Window.RenderStyle := rs3D;
     { Do not enable
       - SwapFullScreen_Key: (which may do Close+Open) is for now broken here
         (we should readd appropriate Controls* and camera to Window.Controls,

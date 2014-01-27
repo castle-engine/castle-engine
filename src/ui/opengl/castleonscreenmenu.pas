@@ -47,7 +47,7 @@ type
       should return here the width of widest possible Value. }
     function GetWidth: Integer; virtual; abstract;
 
-    { Draw yourself. Note that Rectangle.Width is for sure the same
+    { Draw (2D) contents. Note that Rectangle.Width is for sure the same
       as you returned in GetWidth. }
     procedure Draw(const Rectangle: TRectangle); virtual; abstract;
 
@@ -426,11 +426,10 @@ type
       and calling one of the procedures
       @unorderedList(
         @itemSpacing Compact
-        @item Draw
+        @item Render
         @item MouseMove
-        @item MouseDown
-        @item MouseUp
-        @item KeyDown
+        @item Press
+        @item Release
         @item Update
       )
       You can call this only while OpenGL context is initialized.
@@ -457,8 +456,8 @@ type
     property AccessoryRectangles: TRectangleList read FAccessoryRectangles;
     { @groupEnd }
 
-    function DrawStyle: TUIControlDrawStyle; override;
-    procedure Draw; override;
+    function RenderStyle: TRenderStyle; override;
+    procedure Render; override;
 
     property KeyNextItem: TKey read FKeyNextItem write FKeyNextItem
       default DefaultMenuKeyNextItem;
@@ -547,7 +546,7 @@ type
       before setting DesignerMode to @true --- in other words,
       make sure you add this control to something like TCastleWindowCustom.Controls
       first, and only then set DesignedMode := @true.
-      This works assuming that you always call our Draw with identity
+      This works assuming that you always call our Render with identity
       transform matrix (otherwise, this unit is not able to know how to
       calculate mouse position corresponding to given menu PositionAbsolute).
 
@@ -1242,14 +1241,12 @@ begin
   FixItemsRectangles;
 end;
 
-function TCastleOnScreenMenu.DrawStyle: TUIControlDrawStyle;
+function TCastleOnScreenMenu.RenderStyle: TRenderStyle;
 begin
-  if GetExists then
-    Result := ds2D else
-    Result := dsNone;
+  Result := rs2D;
 end;
 
-procedure TCastleOnScreenMenu.Draw;
+procedure TCastleOnScreenMenu.Render;
 
   procedure DrawPositionRelativeLine;
   begin
