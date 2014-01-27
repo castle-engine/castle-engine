@@ -206,73 +206,69 @@ procedure TSurface3D.Render(const Frustum: TFrustum; const Params: TRenderParams
 begin
   if Params.Transparent or (not Params.ShadowVolumesReceivers) then Exit;
 
-  case SurfaceShow of
-    shNone: ;
-    shWire:
-      begin
-        glColorv(White3Single);
-        glPushAttrib(GL_POLYGON_BIT or GL_LIGHTING_BIT);
-          glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
-          glDisable(GL_LIGHTING); { saved by GL_LIGHTING_BIT }
-          Surface.Render(SurfaceXSegments, SurfaceYSegments);
-        glPopAttrib;
-      end;
-    shFill:
-      begin
-        glPushAttrib(GL_LIGHTING_BIT);
-          glShadeModel(GL_FLAT); { saved by GL_LIGHTING_BIT }
+  glPushAttrib(GL_ENABLE_BIT or GL_LIGHTING_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_COLOR_MATERIAL);
+    glPointSize(10);
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+
+    case SurfaceShow of
+      shNone: ;
+      shWire:
+        begin
           glColorv(White3Single);
-          Surface.Render(SurfaceXSegments, SurfaceYSegments);
-        glPopAttrib;
-      end;
-  end;
+          glPushAttrib(GL_POLYGON_BIT or GL_LIGHTING_BIT);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
+            glDisable(GL_LIGHTING); { saved by GL_LIGHTING_BIT }
+            Surface.Render(SurfaceXSegments, SurfaceYSegments);
+          glPopAttrib;
+        end;
+      shFill:
+        begin
+          glPushAttrib(GL_LIGHTING_BIT);
+            glShadeModel(GL_FLAT); { saved by GL_LIGHTING_BIT }
+            glColorv(White3Single);
+            Surface.Render(SurfaceXSegments, SurfaceYSegments);
+          glPopAttrib;
+        end;
+    end;
 
-  case ControlPointsShow of
-    shNone: ;
-    shWire:
-      begin
-        glColorv(Red);
-        glPushAttrib(GL_POLYGON_BIT or GL_LIGHTING_BIT);
-          glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
-          glDisable(GL_LIGHTING); { saved by GL_LIGHTING_BIT }
-          Surface.RenderControlPoints;
-        glPopAttrib;
-      end;
-    shFill:
-      begin
-        glColorv(Red);
-        glPushAttrib(GL_LIGHTING_BIT);
-          glShadeModel(GL_FLAT); { saved by GL_LIGHTING_BIT }
-          Surface.RenderControlPoints;
-        glPopAttrib;
-      end;
-  end;
+    case ControlPointsShow of
+      shNone: ;
+      shWire:
+        begin
+          glColorv(Red);
+          glPushAttrib(GL_POLYGON_BIT or GL_LIGHTING_BIT);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
+            glDisable(GL_LIGHTING); { saved by GL_LIGHTING_BIT }
+            Surface.RenderControlPoints;
+          glPopAttrib;
+        end;
+      shFill:
+        begin
+          glColorv(Red);
+          glPushAttrib(GL_LIGHTING_BIT);
+            glShadeModel(GL_FLAT); { saved by GL_LIGHTING_BIT }
+            Surface.RenderControlPoints;
+          glPopAttrib;
+        end;
+    end;
 
-  if (CurrentCurve <> - 1) and (CurrentPoint <> -1) then
-  begin
-    glColorv(Green);
-    glPushAttrib(GL_ENABLE_BIT);
-      glDisable(GL_LIGHTING); { saved by GL_ENABLE_BIT }
-      glDisable(GL_DEPTH_TEST);
-      glBegin(GL_POINTS);
-        glVertexv(ControlPoints(CurrentCurve).L[CurrentPoint]);
-      glEnd;
-    glPopAttrib;
-  end;
-end;
+    if (CurrentCurve <> - 1) and (CurrentPoint <> -1) then
+    begin
+      glColorv(Green);
+      glPushAttrib(GL_ENABLE_BIT);
+        glDisable(GL_LIGHTING); { saved by GL_ENABLE_BIT }
+        glDisable(GL_DEPTH_TEST);
+        glBegin(GL_POINTS);
+          glVertexv(ControlPoints(CurrentCurve).L[CurrentPoint]);
+        glEnd;
+      glPopAttrib;
+    end;
 
-procedure Open(Window: TCastleWindowBase);
-begin
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-  glEnable(GL_COLOR_MATERIAL);
-  glPointSize(10);
-  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-end;
-
-procedure Close(Window: TCastleWindowBase);
-begin
+  glPopAttrib;
 end;
 
 procedure Update(Window: TCastleWindowBase);
@@ -307,7 +303,25 @@ procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
     procedure Project(const V: TVector3Single; out WinX, WinY: TGLdouble);
     var
       WinZ: TGLdouble;
+      // ProjectResult: TVector3Single;
     begin
+      { Implementing glProject by ourselves is quite trivial,
+        just multiply by modelview, projection,
+        go to clip space then to window space. See e.g.
+        http://www.gamedev.net/topic/436455-gluproject-efficient/ }
+      (*
+      ProjectResult := Vector3SinglePoint(
+        ProjectionMatrix * Camera.Matrix * Vector4Single(V, 1.0));
+      { Map x, y and z to range 0-1 }
+      ProjectResult[0] := ProjectResult[0] * 0.5 + 0.5;
+      ProjectResult[1] := ProjectResult[1] * 0.5 + 0.5;
+      ProjectResult[2] := ProjectResult[2] * 0.5 + 0.5;
+      Writeln('Own projection 1 resulting in ' + VectorToNiceStr(ProjectResult));
+      { Map x,y to viewport }
+      ProjectResult[0] := ProjectResult[0] * Viewport[2] + Viewport[0];
+      ProjectResult[1] := ProjectResult[1] * Viewport[3] + Viewport[1];
+      *)
+
       Check( gluProject(V[0], V[1], V[2],
         ModelMatrix, ProjMatrix, Viewport,
         @WinX, @WinY, @WinZ) = GL_TRUE, 'gluProject');
@@ -322,8 +336,16 @@ procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
   begin
     { Prepare for a series of gluProject calls. }
     ModelMatrix := T16dArray(Matrix4Double(Camera.Matrix));
-    glGetDoublev(GL_PROJECTION_MATRIX, @ProjMatrix);
+    ProjMatrix := T16dArray(Matrix4Double(Camera.ProjectionMatrix));
+    { Note: do not use here
+        glGetDoublev(GL_PROJECTION_MATRIX, @ProjMatrix);
+      or (always equivalent)
+        ProjMatrix := T16dArray(Matrix4Double(ProjectionMatrix));
+      because the current projection matrix may be set for 2D rendering
+      (for Draw). Only the Camera.ProjectionMatrix is guaranteed now to
+      contain projection for 3D world in SceneManager. }
     glGetIntegerv(GL_VIEWPORT, @Viewport);
+    // Equivalent: Viewport := SceneManager.Rect converted to TViewPortArray
 
     BestDistance := MaxSingle;
     for I := 0 to Surface.Curves.Count - 1 do
@@ -391,7 +413,7 @@ begin
   if Dragging then
   begin
     ModelMatrix := T16dArray(Matrix4Double(Camera.Matrix));
-    glGetDoublev(GL_PROJECTION_MATRIX, @ProjMatrix);
+    ProjMatrix := T16dArray(Matrix4Double(Camera.ProjectionMatrix));
     glGetIntegerv(GL_VIEWPORT, @Viewport);
 
     { My first try was to just take
@@ -614,8 +636,6 @@ begin
 
   Window.SceneManager.Items.Add(TSurface3D.Create(Window));
 
-  Window.OnOpen := @Open;
-  Window.OnClose := @Close;
   Window.OnUpdate := @Update;
   Window.OnPress := @Press;
   Window.OnRelease := @Release;
