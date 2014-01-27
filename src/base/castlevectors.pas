@@ -1599,13 +1599,17 @@ function MatrixMultDirection(const m: TMatrix4Double;
   const Dir: TVector3Double): TVector3Double; overload;
 { @groupEnd }
 
+function MatrixMultVector(const m: TMatrix2Single; const v: TVector2Single): TVector2Single; overload;
 function MatrixMultVector(const m: TMatrix3Single; const v: TVector3Single): TVector3Single; overload;
 function MatrixMultVector(const m: TMatrix4Single; const v: TVector4Single): TVector4Single; overload;
+function MatrixMultVector(const m: TMatrix2Double; const v: TVector2Double): TVector2Double; overload;
 function MatrixMultVector(const m: TMatrix3Double; const v: TVector3Double): TVector3Double; overload;
 function MatrixMultVector(const m: TMatrix4Double; const v: TVector4Double): TVector4Double; overload;
 
+function MatrixMult(const m1, m2: TMatrix2Single): TMatrix2Single; overload;
 function MatrixMult(const m1, m2: TMatrix3Single): TMatrix3Single; overload;
 function MatrixMult(const m1, m2: TMatrix4Single): TMatrix4Single; overload;
+function MatrixMult(const m1, m2: TMatrix2Double): TMatrix2Double; overload;
 function MatrixMult(const m1, m2: TMatrix3Double): TMatrix3Double; overload;
 function MatrixMult(const m1, m2: TMatrix4Double): TMatrix4Double; overload;
 

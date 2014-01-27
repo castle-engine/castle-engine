@@ -125,82 +125,54 @@ operator / (const x:Tvector4_extended_data;y:extended) : Tvector4_extended_data;
 
 operator + (const m1,m2:Tmatrix2_single_data) : Tmatrix2_single_data;
 operator + (const m1,m2:Tmatrix2_double_data) : Tmatrix2_double_data;
-operator + (const m1,m2:Tmatrix2_extended_data) : Tmatrix2_extended_data;
 operator + (const m1,m2:Tmatrix3_single_data) : Tmatrix3_single_data;
 operator + (const m1,m2:Tmatrix3_double_data) : Tmatrix3_double_data;
-operator + (const m1,m2:Tmatrix3_extended_data) : Tmatrix3_extended_data;
 operator + (const m1,m2:Tmatrix4_single_data) : Tmatrix4_single_data;
 operator + (const m1,m2:Tmatrix4_double_data) : Tmatrix4_double_data;
-operator + (const m1,m2:Tmatrix4_extended_data) : Tmatrix4_extended_data;
 
 operator - (const m1,m2:Tmatrix2_single_data) : Tmatrix2_single_data;
 operator - (const m1,m2:Tmatrix2_double_data) : Tmatrix2_double_data;
-operator - (const m1,m2:Tmatrix2_extended_data) : Tmatrix2_extended_data;
 operator - (const m1,m2:Tmatrix3_single_data) : Tmatrix3_single_data;
 operator - (const m1,m2:Tmatrix3_double_data) : Tmatrix3_double_data;
-operator - (const m1,m2:Tmatrix3_extended_data) : Tmatrix3_extended_data;
 operator - (const m1,m2:Tmatrix4_single_data) : Tmatrix4_single_data;
 operator - (const m1,m2:Tmatrix4_double_data) : Tmatrix4_double_data;
-operator - (const m1,m2:Tmatrix4_extended_data) : Tmatrix4_extended_data;
 
 operator - (const m1:Tmatrix2_single_data) : Tmatrix2_single_data;
 operator - (const m1:Tmatrix2_double_data) : Tmatrix2_double_data;
-operator - (const m1:Tmatrix2_extended_data) : Tmatrix2_extended_data;
 operator - (const m1:Tmatrix3_single_data) : Tmatrix3_single_data;
 operator - (const m1:Tmatrix3_double_data) : Tmatrix3_double_data;
-operator - (const m1:Tmatrix3_extended_data) : Tmatrix3_extended_data;
 operator - (const m1:Tmatrix4_single_data) : Tmatrix4_single_data;
 operator - (const m1:Tmatrix4_double_data) : Tmatrix4_double_data;
-operator - (const m1:Tmatrix4_extended_data) : Tmatrix4_extended_data;
 
-(* TODO: Fix, FPC matrix was ordered by rows, we should make transpose inside.
 operator * (const m1,m2:Tmatrix2_single_data) : Tmatrix2_single_data;
 operator * (const m1,m2:Tmatrix2_double_data) : Tmatrix2_double_data;
-operator * (const m1,m2:Tmatrix2_extended_data) : Tmatrix2_extended_data;
 operator * (const m1,m2:Tmatrix3_single_data) : Tmatrix3_single_data;
 operator * (const m1,m2:Tmatrix3_double_data) : Tmatrix3_double_data;
-operator * (const m1,m2:Tmatrix3_extended_data) : Tmatrix3_extended_data;
 operator * (const m1,m2:Tmatrix4_single_data) : Tmatrix4_single_data;
 operator * (const m1,m2:Tmatrix4_double_data) : Tmatrix4_double_data;
-operator * (const m1,m2:Tmatrix4_extended_data) : Tmatrix4_extended_data;
 
 {Matrix/vector operations}
 operator * (const m:Tmatrix2_single_data;const v:Tvector2_single_data) : Tvector2_single_data;
 operator * (const m:Tmatrix2_double_data;const v:Tvector2_double_data) : Tvector2_double_data;
-operator * (const m:Tmatrix2_extended_data;const v:Tvector2_extended_data) : Tvector2_extended_data;
 operator * (const m:Tmatrix3_single_data;const v:Tvector3_single_data) : Tvector3_single_data;
 operator * (const m:Tmatrix3_double_data;const v:Tvector3_double_data) : Tvector3_double_data;
-operator * (const m:Tmatrix3_extended_data;const v:Tvector3_extended_data) : Tvector3_extended_data;
 operator * (const m:Tmatrix4_single_data;const v:Tvector4_single_data) : Tvector4_single_data;
 operator * (const m:Tmatrix4_double_data;const v:Tvector4_double_data) : Tvector4_double_data;
-operator * (const m:Tmatrix4_extended_data;const v:Tvector4_extended_data) : Tvector4_extended_data;
-*)
-
-{ }
-operator * (const m1,m2:Tmatrix4_single_data) : Tmatrix4_single_data;
-operator * (const m1,m2:Tmatrix4_double_data) : Tmatrix4_double_data;
-operator * (const m1,m2:Tmatrix4_extended_data) : Tmatrix4_extended_data;
 
 {Matrix/scalar operations}
 operator * (const m:Tmatrix2_single_data;const x:single) : Tmatrix2_single_data;
 operator * (const m:Tmatrix2_double_data;const x:double) : Tmatrix2_double_data;
-operator * (const m:Tmatrix2_extended_data;const x:extended) : Tmatrix2_extended_data;
 operator * (const m:Tmatrix3_single_data;const x:single) : Tmatrix3_single_data;
 operator * (const m:Tmatrix3_double_data;const x:double) : Tmatrix3_double_data;
-operator * (const m:Tmatrix3_extended_data;const x:extended) : Tmatrix3_extended_data;
 operator * (const m:Tmatrix4_single_data;const x:single) : Tmatrix4_single_data;
 operator * (const m:Tmatrix4_double_data;const x:double) : Tmatrix4_double_data;
-operator * (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended_data;
 
 operator / (const m:Tmatrix2_single_data;const x:single) : Tmatrix2_single_data;
 operator / (const m:Tmatrix2_double_data;const x:double) : Tmatrix2_double_data;
-operator / (const m:Tmatrix2_extended_data;const x:extended) : Tmatrix2_extended_data;
 operator / (const m:Tmatrix3_single_data;const x:single) : Tmatrix3_single_data;
 operator / (const m:Tmatrix3_double_data;const x:double) : Tmatrix3_double_data;
-operator / (const m:Tmatrix3_extended_data;const x:extended) : Tmatrix3_extended_data;
 operator / (const m:Tmatrix4_single_data;const x:single) : Tmatrix4_single_data;
 operator / (const m:Tmatrix4_double_data;const x:double) : Tmatrix4_double_data;
-operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended_data;
 
 {$endif read_interface}
 
@@ -371,17 +343,6 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$i castlevectors_operators_matrix_implementation.inc}
 
 {******************************************************************************
-                               Tmatrix2_extended_data
-******************************************************************************}
-
-{$DEFINE datatype:=EXTENDED}
-{$DEFINE objectname:=Tmatrix2_extended_data}
-{$DEFINE vectorcompanion:=Tvector2_extended_data}
-{$DEFINE matsize:=2}
-{.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix2_extended_data}
-{$i castlevectors_operators_matrix_implementation.inc}
-
-{******************************************************************************
                                 Tmatrix3_single_data
 ******************************************************************************}
 
@@ -404,17 +365,6 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$i castlevectors_operators_matrix_implementation.inc}
 
 {******************************************************************************
-                                Tmatrix3_extended_data
-******************************************************************************}
-
-{$DEFINE datatype:=EXTENDED}
-{$DEFINE objectname:=Tmatrix3_extended_data}
-{$DEFINE vectorcompanion:=Tvector3_extended_data}
-{$DEFINE matsize:=3}
-{.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix3_extended_data}
-{$i castlevectors_operators_matrix_implementation.inc}
-
-{******************************************************************************
                                 Tmatrix4_single_data
 ******************************************************************************}
 
@@ -434,17 +384,6 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$DEFINE vectorcompanion:=Tvector4_double_data}
 {$DEFINE matsize:=4}
 {.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix4_double_data}
-{$i castlevectors_operators_matrix_implementation.inc}
-
-{******************************************************************************
-                               Tmatrix4_extended_data
-******************************************************************************}
-
-{$DEFINE datatype:=EXTENDED}
-{$DEFINE objectname:=Tmatrix4_extended_data}
-{$DEFINE vectorcompanion:=Tvector4_extended_data}
-{$DEFINE matsize:=4}
-{.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix4_extended_data}
 {$i castlevectors_operators_matrix_implementation.inc}
 
 {$endif read_implementation}

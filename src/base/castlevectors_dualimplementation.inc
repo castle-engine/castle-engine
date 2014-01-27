@@ -1797,6 +1797,12 @@ begin
   Result[2] := M[0, 2] * V[0] + M[1, 2] * V[1] + M[2, 2] * V[2];
 end;
 
+function MatrixMultVector(const m: TMatrix2; const v: TVector2): TVector2;
+begin
+  Result[0] := M[0, 0] * V[0] + M[1, 0] * V[1];
+  Result[1] := M[0, 1] * V[0] + M[1, 1] * V[1];
+end;
+
 function MatrixMult(const m1, m2: TMatrix4): TMatrix4;
 {var i, j, k: integer;}
 begin
@@ -1839,6 +1845,14 @@ begin
   result[0, 2] := m1[0, 2] * m2[0, 0] + m1[1, 2] * m2[0, 1] + m1[2, 2] * m2[0, 2];
   result[1, 2] := m1[0, 2] * m2[1, 0] + m1[1, 2] * m2[1, 1] + m1[2, 2] * m2[1, 2];
   result[2, 2] := m1[0, 2] * m2[2, 0] + m1[1, 2] * m2[2, 1] + m1[2, 2] * m2[2, 2];
+end;
+
+function MatrixMult(const m1, m2: TMatrix2): TMatrix2;
+begin
+  result[0, 0] := m1[0, 0] * m2[0, 0] + m1[1, 0] * m2[0, 1];
+  result[1, 0] := m1[0, 0] * m2[1, 0] + m1[1, 0] * m2[1, 1];
+  result[0, 1] := m1[0, 1] * m2[0, 0] + m1[1, 1] * m2[0, 1];
+  result[1, 1] := m1[0, 1] * m2[1, 0] + m1[1, 1] * m2[1, 1];
 end;
 
 { matrix transforms for 3D graphics  ----------------------------------------- }
