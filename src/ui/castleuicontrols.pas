@@ -433,6 +433,13 @@ end;
     function RenderStyle: TRenderStyle; virtual;
     { @groupEnd }
 
+    { Deprecated, you should rather override @link(Render) method. }
+    procedure Draw; virtual; deprecated;
+    { Deprecated and ignored,
+      you should rather override @link(RenderStyle) method (but usually
+      you don't have to, it's 2D by default). }
+    function DrawStyle: TUIControlDrawStyle; virtual; deprecated;
+
     { Render a tooltip of this control. If you want to have tooltip for
       this control detected, you have to override TooltipExists.
       Then the TCastleWindowBase.TooltipVisible will be detected,
@@ -812,6 +819,15 @@ begin
   Result := rs2D;
 end;
 
+procedure TUIControl.Draw;
+begin
+end;
+
+function TUIControl.DrawStyle: TUIControlDrawStyle;
+begin
+  Result := rs2D;
+end;
+
 function TUIControl.TooltipExists: boolean;
 begin
   Result := false;
@@ -823,6 +839,9 @@ end;
 
 procedure TUIControl.Render;
 begin
+  {$warnings off}
+  Draw; // call the deprecated Draw method, to keep it working
+  {$warnings on}
 end;
 
 function TUIControl.TooltipStyle: TRenderStyle;
