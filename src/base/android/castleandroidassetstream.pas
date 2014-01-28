@@ -152,7 +152,7 @@ var
 begin
   FillByte(U, SizeOf(U), 0);
   U.Protocol := 'assets';
-  U.Path := '/' + AssetPath; // AssetPath does not start with slasht
+  U.Path := '/' + AssetPath; // AssetPath does not start with slash
   Result := EncodeURI(U);
 end;
 
