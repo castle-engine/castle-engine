@@ -20,7 +20,7 @@
 {$I castlewindow_dialogs_by_messages.inc}
 
 {$ifdef read_interface_uses}
-CastleAndroidNativeAppGlue,
+CastleAndroidNativeAppGlue, CastleGenericLists,
 {$endif}
 
 {$ifdef read_implementation_uses}
@@ -35,9 +35,18 @@ private
 
 {$ifdef read_application_interface}
 private
-  FScreenWidth, FScreenHeight: Integer;
-  LastDoTimerTime: TMilisecTime;
-  AndroidApp: PAndroid_App;
+  type
+    TQueuedEventType = (aeMotionDown, aeMotionUp, aeMotionMove);
+    TQueuedEvent = object
+      EventType: TQueuedEventType;
+      MotionX, MotionY: Integer;
+    end;
+    TQueuedEventList = specialize TGenericStructList<TQueuedEvent>;
+  var
+    FScreenWidth, FScreenHeight: Integer;
+    LastDoTimerTime: TMilisecTime;
+    AndroidApp: PAndroid_App;
+    QEvents: TQueuedEventList;
 {$endif read_application_interface}
 
 {$ifdef read_implementation_uses}
@@ -102,19 +111,46 @@ end;
 
 function HandleInput(App: PAndroid_app; Event: PAInputEvent): boolean;
 var
-  MotionAction, {MotionIndex, }MotionX, MotionY: Integer;
+  MotionAction {, MotionIndex}: Integer;
+  QEvent: TCastleApplication.TQueuedEvent;
 begin
   Result := false;
   if AInputEvent_getType(Event) = AINPUT_EVENT_TYPE_MOTION then
   begin
     MotionAction := AMotionEvent_getAction(Event) and AMOTION_EVENT_ACTION_MASK;
     // MotionIndex := AMotionEvent_getAction(Event) shr AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-    MotionX := Round(AMotionEvent_getX(event, 0));
-    MotionY := Round(AMotionEvent_getY(event, 0));
+    QEvent.MotionX := Round(AMotionEvent_getX(Event, 0));
+    QEvent.MotionY := Round(AMotionEvent_getY(Event, 0));
+
+    { We do *not* call here directly DoMouseDown and such,
+      as we *cannot* block HandleInput for indefinite amount of time
+      (and DoMouseDown may call OnPress which may even do MessageOK
+      that makes a modal dialog calling Application.ProcessMessage inside).
+
+      The API of native_app_glue is somewhat stupid, it allows us to process
+      messages in a loop, but still the HandleInput and HandleCommand
+      cannot block making a modal dialog ---  the process_input and process_cmd
+      implementations in native_app_glue depend on that. }
+
     case MotionAction of
-      AMOTION_EVENT_ACTION_DOWN: begin Application.MainWindow.DoMouseDown(MotionX, MotionY, mbLeft); Result := true; end;
-      AMOTION_EVENT_ACTION_UP  : begin Application.MainWindow.DoMouseUp(MotionX, MotionY, mbLeft);   Result := true; end;
-      AMOTION_EVENT_ACTION_MOVE: begin Application.MainWindow.DoMouseMove(MotionX, MotionY);         Result := true; end;
+      AMOTION_EVENT_ACTION_DOWN:
+        begin
+          QEvent.EventType := aeMotionDown;
+          Application.QEvents.Add(QEvent);
+          Result := true;
+        end;
+      AMOTION_EVENT_ACTION_UP:
+        begin
+          QEvent.EventType := aeMotionUp;
+          Application.QEvents.Add(QEvent);
+          Result := true;
+        end;
+      AMOTION_EVENT_ACTION_MOVE:
+        begin
+          QEvent.EventType := aeMotionMove;
+          Application.QEvents.Add(QEvent);
+          Result := true;
+        end;
     end;
   end;
 end;
@@ -272,6 +308,7 @@ function TCastleApplication.ProcessAllMessages: boolean;
 var
   Ident, Events, NewWidth, NewHeight: Integer;
   Source: Pandroid_poll_source;
+  QEvent: TQueuedEvent;
 begin
   repeat
     Ident := ALooper_pollAll(0, nil, @Events, @Source);
@@ -279,6 +316,20 @@ begin
 
     if Source <> nil then
       Source^.Process(AndroidApp, Source);
+
+    { poll our own events quueue.
+      Yes, we need our own events queue to shield from the native_app_glue
+      weirdness... }
+    while QEvents.Count > 0 do
+    begin
+      QEvent := QEvents.First;
+      QEvents.Delete(0);
+      case QEvent.EventType of
+        aeMotionDown: MainWindow.DoMouseDown(QEvent.MotionX, QEvent.MotionY, mbLeft);
+        aeMotionUp  : MainWindow.DoMouseUp  (QEvent.MotionX, QEvent.MotionY, mbLeft);
+        aeMotionMove: MainWindow.DoMouseMove(QEvent.MotionX, QEvent.MotionY);
+      end;
+    end;
 
     // Check if we are exiting.
     if AndroidApp^.DestroyRequested = 1 then
@@ -312,6 +363,10 @@ begin
   if MainWindow = nil then
     raise Exception.Create('For Android, you have to assign Application.MainWindow');
 
+  if QEvents = nil then
+    QEvents := TQueuedEventList.Create else
+    QEvents.Clear;
+
   { since we have AndroidApp now, prepare it }
   AndroidApp^.OnAppCmd := @HandleCommand;
   AndroidApp^.OnInputEvent := @HandleInput;
@@ -324,6 +379,8 @@ begin
   Initialize;
 
   while ProcessAllMessages do ;
+
+  FreeAndNil(QEvents);
 end;
 
 procedure TCastleApplication.QuitWhenNoOpenWindows;
