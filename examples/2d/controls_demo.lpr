@@ -17,7 +17,8 @@
 program controls_demo;
 
 uses CastleVectors, CastleWindow, CastleControls, CastleOnScreenMenu,
-  CastleControlsImages, CastleImages, CastleFilesUtils, CastleColors;
+  CastleControlsImages, CastleImages, CastleFilesUtils, CastleColors,
+  CastleUIControls;
 var
   Window: TCastleWindowCustom;
   Background: TCastleSimpleBackground;
