@@ -168,10 +168,10 @@ begin
   CurrentItemBorderColor2 := Vector4Single(186/255, 134/255,  88/255, 1.0);
   CurrentItemColor        := Vector4Single(252/255, 253/255, 200/255, 1.0);
   NonCurrentItemColor     := CurrentItemBorderColor2;
-  PositionRelativeScreenX := prHigherBorder;
-  PositionRelativeScreenY := prHigherBorder;
-  PositionRelativeMenuX := prHigherBorder;
-  PositionRelativeMenuY := prHigherBorder;
+  PositionRelativeScreenX := prHigh;
+  PositionRelativeScreenY := prHigh;
+  PositionRelativeMenuX := prHigh;
+  PositionRelativeMenuY := prHigh;
   Position := Vector2Integer(-91, -62);
   DrawBackgroundRectangle := false;
   ExclusiveEvents := false;
@@ -221,10 +221,10 @@ constructor TRiftSubMenu.Create(AOwner: TComponent);
 begin
   inherited;
   Position := Vector2Integer(54, -273);
-  PositionRelativeScreenX := prLowerBorder;
-  PositionRelativeScreenY := prHigherBorder;
-  PositionRelativeMenuX := prLowerBorder;
-  PositionRelativeMenuY := prHigherBorder;
+  PositionRelativeScreenX := prLow;
+  PositionRelativeScreenY := prHigh;
+  PositionRelativeMenuX := prLow;
+  PositionRelativeMenuY := prHigh;
   DrawBackgroundRectangle := true;
 end;
 

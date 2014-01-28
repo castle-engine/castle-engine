@@ -71,7 +71,7 @@ var
   procedure PositionLabel(L: TCastleLabel);
   begin
     Y -= Integer(L.Rect.Height) + Margin;
-    L.CenterHorizontal;
+    L.AlignHorizontal;
     L.Bottom := Y;
   end;
 

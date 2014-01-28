@@ -232,67 +232,6 @@ type
     function ValueToStr(const AValue: Integer): string; virtual;
   end;
 
-  { How TCastleOnScreenMenu.Position will be interpreted.
-
-    This type is used for two cases:
-    @orderedList(
-
-      @item(PositionRelativeMenu: specifies (for X or Y)
-        what point of menu rectangle is affected by Position value.
-        In this case,
-        @unorderedList(
-          @itemSpacing Compact
-          @item(prLowerBorder means that we want to
-            align left (or bottom) border of the menu rectangle,)
-          @item(prMiddle means that we want to align middle of the menu rectangle,)
-          @item(prHigherBorder means that we want to align right
-            (or top) border of the menu rectangle.))
-      )
-
-      @item(PositionRelativeScreen: somewhat analogous.
-        But specifies relative to which @italic(screen edge) we align.
-        So
-        @unorderedList(
-          @itemSpacing Compact
-          @item(prLowerBorder means that we want to
-            align relative to left (or bottom) border of the screen,)
-          @item(prMiddle means that we want to align relative to the middle
-            of the screen,)
-          @item(prHigherBorder means that we want to align relative to the
-            right (or top) border of the screen.))
-      )
-    )
-
-    This may sound complicated, but it gives you complete
-    control over the menu position, so that it will look good on all
-    window sizes. In most common examples, both PositionRelativeMenu
-    and PositionRelativeScreen are equal, so
-
-    @unorderedList(
-      @item(If both are prLowerBorder, then Position specifies position
-        of left/lower menu border relative to left/lower screen border.
-        Position should always be >= 0 is such cases,
-        otherwise there is no way for the menu to be completely visible.)
-      @item(If both are prMiddle, then the Position (most often just 0, 0
-        in this case) specifies the shift between screen middle to
-        menu rectangle middle. If Position is zero, then menu is just in the
-        middle of the screen.)
-      @item(If both are prHigherBorder, then Position specifies position
-        of right/top menu border relative to right/top screen border.
-        Position should always be <= 0 is such cases,
-        otherwise there is no way for the menu to be completely visible.)
-    )
-
-    In TCastleOnScreenMenu.DesignerMode you can see a line connecting the appropriate
-    screen position (from PositionRelativeScreen) to the appropriate
-    menu position (from PositionRelativeMenu) and you can experiment
-    with these settings.
-  }
-  TPositionRelative = (
-    prLowerBorder,
-    prMiddle,
-    prHigherBorder);
-
   { On-screen menu displayed in OpenGL. All the menu items are simply
     displayed on the screen, one after the other. Typical for game menus.
     Normal user programs may prefer to use the menu bar instead of this
@@ -376,10 +315,10 @@ type
     { PositionAbsolute expresses the position of the menu rectangle
       independently from all PositionRelative* properties.
       You can think of it as "What value would Position have
-      if all PositionRelative* were equal prLowerBorder".
+      if all PositionRelative* were equal prLow".
 
       An easy exercise for the reader is to check implementation that when
-      all PositionRelative* are prLowerBorder, PositionAbsolute is indeed
+      all PositionRelative* are prLow, PositionAbsolute is indeed
       always equal to Position :)
 
       This is read-only, is calculated by FixItemsRectangles.
@@ -569,7 +508,10 @@ type
             @item Key CtrlY changes PositionRelativeMenuY values.
           )
           Also, a white line is drawn in designer mode, to indicate
-          the referenced screen and menu positions.)
+          the referenced screen and menu positions.
+          A line connects the appropriate
+          container position (from PositionRelativeScreen) to the appropriate
+          control position (from PositionRelativeMenu).)
         @item(CtrlB toggles DrawBackgroundRectangle.)
         @item(Key CtrlD dumps current properties to StdOut.
           Basically, every property that can be changed from designer mode
@@ -1178,30 +1120,30 @@ begin
     PositionRelative* meaning. }
 
   case PositionRelativeScreenX of
-    prLowerBorder : PositionScreenRelativeMove[0] := 0;
-    prMiddle      : PositionScreenRelativeMove[0] := ContainerWidth div 2;
-    prHigherBorder: PositionScreenRelativeMove[0] := ContainerWidth;
+    prLow   : PositionScreenRelativeMove[0] := 0;
+    prMiddle: PositionScreenRelativeMove[0] := ContainerWidth div 2;
+    prHigh  : PositionScreenRelativeMove[0] := ContainerWidth;
     else raise EInternalError.Create('PositionRelative* = ?');
   end;
 
   case PositionRelativeScreenY of
-    prLowerBorder : PositionScreenRelativeMove[1] := 0;
-    prMiddle      : PositionScreenRelativeMove[1] := ContainerHeight div 2;
-    prHigherBorder: PositionScreenRelativeMove[1] := ContainerHeight;
+    prLow   : PositionScreenRelativeMove[1] := 0;
+    prMiddle: PositionScreenRelativeMove[1] := ContainerHeight div 2;
+    prHigh  : PositionScreenRelativeMove[1] := ContainerHeight;
     else raise EInternalError.Create('PositionRelative* = ?');
   end;
 
   case PositionRelativeMenuX of
-    prLowerBorder : PositionMenuRelativeMove[0] := 0;
-    prMiddle      : PositionMenuRelativeMove[0] := FAllItemsRectangle.Width div 2;
-    prHigherBorder: PositionMenuRelativeMove[0] := FAllItemsRectangle.Width;
+    prLow   : PositionMenuRelativeMove[0] := 0;
+    prMiddle: PositionMenuRelativeMove[0] := FAllItemsRectangle.Width div 2;
+    prHigh  : PositionMenuRelativeMove[0] := FAllItemsRectangle.Width;
     else raise EInternalError.Create('PositionRelative* = ?');
   end;
 
   case PositionRelativeMenuY of
-    prLowerBorder : PositionMenuRelativeMove[1] := 0;
-    prMiddle      : PositionMenuRelativeMove[1] := FAllItemsRectangle.Height div 2;
-    prHigherBorder: PositionMenuRelativeMove[1] := FAllItemsRectangle.Height;
+    prLow   : PositionMenuRelativeMove[1] := 0;
+    prMiddle: PositionMenuRelativeMove[1] := FAllItemsRectangle.Height div 2;
+    prHigh  : PositionMenuRelativeMove[1] := FAllItemsRectangle.Height;
     else raise EInternalError.Create('PositionRelative* = ?');
   end;
 
@@ -1369,9 +1311,9 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
 
   const
     PositionRelativeName: array [TPositionRelative] of string =
-    ( 'prLowerBorder',
+    ( 'prLow',
       'prMiddle',
-      'prHigherBorder' );
+      'prHigh' );
     BooleanToStr: array [boolean] of string=('false','true');
 
   begin

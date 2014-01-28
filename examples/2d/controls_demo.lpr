@@ -56,10 +56,10 @@ begin
   OnScreenMenu.Items.Add('one');
   OnScreenMenu.Items.Add('two');
   OnScreenMenu.Position := Vector2Integer(10, 300);
-  OnScreenMenu.PositionRelativeMenuX := prLowerBorder;
-  OnScreenMenu.PositionRelativeMenuY := prLowerBorder;
-  OnScreenMenu.PositionRelativeScreenX := prLowerBorder;
-  OnScreenMenu.PositionRelativeScreenY := prLowerBorder;
+  OnScreenMenu.PositionRelativeMenuX := prLow;
+  OnScreenMenu.PositionRelativeMenuY := prLow;
+  OnScreenMenu.PositionRelativeScreenX := prLow;
+  OnScreenMenu.PositionRelativeScreenY := prLow;
   Window.Controls.InsertFront(OnScreenMenu);
 
   Touch := TCastleTouchControl.Create(Window);

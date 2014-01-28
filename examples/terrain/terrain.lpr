@@ -333,10 +333,10 @@ begin
   Items.AddObject('Size of the most detailed layer (and export)', BaseSizeSlider);
   Items.AddObject('Layers Count (render farther)', LayersCountSlider);
   Items.AddObject('Image scale (load image first)', ImageHeightScaleSlider);
-  PositionRelativeScreenX := prLowerBorder;
-  PositionRelativeScreenY := prLowerBorder;
-  PositionRelativeMenuX := prLowerBorder;
-  PositionRelativeMenuY := prLowerBorder;
+  PositionRelativeScreenX := prLow;
+  PositionRelativeScreenY := prLow;
+  PositionRelativeMenuX := prLow;
+  PositionRelativeMenuY := prLow;
   Position := Vector2Integer(10, 10);
 end;
 
@@ -373,10 +373,10 @@ begin
   Items.AddObject('Size of the most detailed layer (and export)', BaseSizeSlider);
   Items.AddObject('Layers Count (render farther)', LayersCountSlider);
   Items.AddObject('Image scale (load image first)', ImageHeightScaleSlider);
-  PositionRelativeScreenX := prLowerBorder;
-  PositionRelativeScreenY := prLowerBorder;
-  PositionRelativeMenuX := prLowerBorder;
-  PositionRelativeMenuY := prLowerBorder;
+  PositionRelativeScreenX := prLow;
+  PositionRelativeScreenY := prLow;
+  PositionRelativeMenuX := prLow;
+  PositionRelativeMenuY := prLow;
   Position := Vector2Integer(10, 10);
 end;
 
@@ -399,10 +399,10 @@ begin
   Items.AddObject('Subdivision (render details)', SubdivisionSlider);
   Items.AddObject('Size of the most detailed layer (and export)', BaseSizeSlider);
   Items.AddObject('Layers Count (render farther)', LayersCountSlider);
-  PositionRelativeScreenX := prLowerBorder;
-  PositionRelativeScreenY := prLowerBorder;
-  PositionRelativeMenuX := prLowerBorder;
-  PositionRelativeMenuY := prLowerBorder;
+  PositionRelativeScreenX := prLow;
+  PositionRelativeScreenY := prLow;
+  PositionRelativeMenuX := prLow;
+  PositionRelativeMenuY := prLow;
   Position := Vector2Integer(10, 10);
 end;
 
