@@ -29,7 +29,8 @@ implementation
 
 uses SysUtils, CastleWindow, CastleControls, CastleUIControls, CastleRectangles,
   CastleGLUtils, CastleColors, X3DNodes, CastleFilesUtils, CastleLog,
-  CastleSceneCore, CastleFindFiles, CastleStringUtils;
+  CastleSceneCore, CastleFindFiles, CastleStringUtils, CastleMessages,
+  CastleProgress, CastleWindowProgress;
 
 var
   {$ifdef SOLID_BACKGROUND}
@@ -38,12 +39,16 @@ var
   Image: TCastleImageControl;
   ToggleShaderButton: TCastleButton;
   TouchUIButton: TCastleButton;
+  MessageButton: TCastleButton;
+  ProgressButton: TCastleButton;
   MyShaderEffect: TEffectNode;
 
 type
   TDummy = class
     procedure ToggleShaderClick(Sender: TObject);
     procedure TouchUIClick(Sender: TObject);
+    procedure MessageClick(Sender: TObject);
+    procedure ProgressClick(Sender: TObject);
   end;
 
 procedure TDummy.ToggleShaderClick(Sender: TObject);
@@ -57,6 +62,27 @@ begin
   if Window.TouchInterface = High(TTouchCtlInterface) then
     Window.TouchInterface := Low(TTouchCtlInterface) else
     Window.TouchInterface := Succ(Window.TouchInterface);
+end;
+
+procedure TDummy.MessageClick(Sender: TObject);
+begin
+  if MessageYesNo(Window, 'Test of a yes/no message. Click one of the buttons!') then
+    MessageOK(Window, 'You clicked "Yes".') else
+    MessageOK(Window, 'You clicked "No".');
+end;
+
+procedure TDummy.ProgressClick(Sender: TObject);
+var
+  I: Integer;
+begin
+  Progress.Init(100, 'Please wait...');
+  try
+    for I := 1 to 100 do
+    begin
+      Sleep(100);
+      Progress.Step;
+    end;
+  finally Progress.Fini end;
 end;
 
 procedure FindFilesCallback(const FileInfo: TFileInfo; Data: Pointer);
@@ -81,10 +107,6 @@ begin
 {$endif}
 
   Image := TCastleImageControl.Create(Window);
-  // TODO: png support for Android
-  // TODO: read files using Anroid assets:
-  // http://stackoverflow.com/questions/13317387/how-to-get-file-in-assets-from-android-ndk
-//    Image.Image := TouchCtlOuter.MakeCopy;
   Image.URL := ApplicationData('sample_image_with_alpha.png' {'sample_texture.ppm'});
   Window.Controls.InsertFront(Image);
 
@@ -102,6 +124,16 @@ begin
   TouchUIButton.OnClick := @TDummy(nil).TouchUIClick;
   Window.Controls.InsertFront(TouchUIButton);
 
+  MessageButton := TCastleButton.Create(Window);
+  MessageButton.Caption := 'Test Modal Message';
+  MessageButton.OnClick := @TDummy(nil).MessageClick;
+  Window.Controls.InsertFront(MessageButton);
+
+  ProgressButton := TCastleButton.Create(Window);
+  ProgressButton.Caption := 'Test Progress Bar';
+  ProgressButton.OnClick := @TDummy(nil).ProgressClick;
+  Window.Controls.InsertFront(ProgressButton);
+
   MyShaderEffect := Window.SceneManager.MainScene.RootNode.TryFindNodeByName(
     TEffectNode, 'MyShaderEffect', false) as TEffectNode;
 
@@ -114,18 +146,42 @@ begin
   FindFiles(ApplicationData('') + 'textures/castle/', '*', true, @FindFilesCallback, nil, [ffRecursive]);
 end;
 
+procedure WindowOpen(Sender: TCastleWindowBase);
+begin
+  Progress.UserInterface := WindowProgressInterface;
+  WindowProgressInterface.Window := Window;
+end;
+
+procedure WindowClose(Sender: TCastleWindowBase);
+begin
+  Progress.UserInterface := ProgressNullInterface;
+end;
+
 procedure WindowResize(Sender: TCastleWindowBase);
 const
   Margin = 10;
+var
+  Bottom: Integer;
 begin
-  Image.Left := Margin;
-  Image.Bottom := Window.Height - Image.Height - Margin;
+  Image.AlignHorizontal(prLow, prLow, Margin);
+  Image.AlignVertical(prHigh, prHigh, -Margin);
 
-  ToggleShaderButton.Left := (Window.Width - ToggleShaderButton.Width) div 2;
-  ToggleShaderButton.Bottom := Window.Height - ToggleShaderButton.Height - Margin;
+  ToggleShaderButton.AlignHorizontal(prMiddle, prMiddle);
+  ToggleShaderButton.AlignVertical(prHigh, prHigh, -Margin);
 
-  TouchUIButton.Left := Window.Width - TouchUIButton.Width - Margin;
-  TouchUIButton.Bottom := Window.Height - TouchUIButton.Height - Margin;
+  Bottom := Window.Height;
+
+  Bottom -= TouchUIButton.Height + Margin;
+  TouchUIButton.AlignHorizontal(prHigh, prHigh, -Margin);
+  TouchUIButton.Bottom := Bottom;
+
+  Bottom -= MessageButton.Height + Margin;
+  MessageButton.AlignHorizontal(prHigh, prHigh, -Margin);
+  MessageButton.Bottom := Bottom;
+
+  Bottom -= ProgressButton.Height + Margin;
+  ProgressButton.AlignHorizontal(prHigh, prHigh, -Margin);
+  ProgressButton.Bottom := Bottom;
 end;
 
 function MyGetApplicationName: string;
@@ -143,5 +199,7 @@ initialization
   { create Window and initialize Window callbacks }
   Window := TCastleWindowTouch.Create(Application);
   Application.MainWindow := Window;
+  Window.OnOpen := @WindowOpen;
+  Window.OnClose := @WindowClose;
   Window.OnResize := @WindowResize;
 end.
