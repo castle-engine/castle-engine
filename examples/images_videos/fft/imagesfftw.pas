@@ -102,6 +102,9 @@ implementation
 
 uses CastleVectors, CastleUtils;
 
+procedure fftw_execute_dft(plan:fftw_plan_single; i, o:Pcomplex_single);
+  cdecl; external fftwlib name 'fftwf_execute_dft';
+
 constructor TImageFftw.Create(AImage: TRGBImage);
 var
   Color: Integer;
@@ -173,7 +176,10 @@ begin
 
   { Execute plans to convert ImageComplex to ImageF }
   for Color := 0 to 2 do
-    fftw_execute(PlanDFT[Color]);
+    { TODO: why does simple fftw_execute fail with SIGSEGV?
+      The pointers in FImageComplex and FImageF should be constant?
+    fftw_execute(PlanDFT[Color]); }
+    fftw_execute_dft(PlanDFT[Color], FImageComplex[Color], FImageF[Color]);
 end;
 
 procedure TImageFftw.ComplexToRGB(Complex: TImageComplex;
