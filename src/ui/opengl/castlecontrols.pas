@@ -41,6 +41,7 @@ type
       but during Render (when OpenGL context is available) font must be ready. }
     function Font: TCastleFont; virtual;
   public
+    destructor Destroy; override;
     procedure GLContextClose; override;
     function TooltipExists: boolean; override;
     procedure TooltipRender; override;
@@ -665,6 +666,12 @@ end;
 
 { TUIControlFont ---------------------------------------------------------- }
 
+destructor TUIControlFont.Destroy;
+begin
+  CustomFont := nil; // make sure to free FCustomFont, if necessary
+  inherited;
+end;
+
 function TUIControlFont.TooltipExists: boolean;
 begin
   Result := Tooltip <> '';
@@ -711,7 +718,8 @@ begin
   { make sure to call GLContextClose on TooltipLabel,
     actually we can just free it now }
   FreeAndNil(TooltipLabel);
-  CustomFont := nil; // free CustomFont if necessary
+  if CustomFont <> nil then
+    CustomFont.GLContextClose;
   inherited;
 end;
 
@@ -2306,8 +2314,10 @@ end;
 
 procedure ContextClose;
 begin
-  FreeAndNil(FUIFont);
-  FreeAndNil(FUIFontSmall);
+  if FUIFont <> nil then
+    FUIFont.GLContextClose;
+  if FUIFontSmall <> nil then
+    FUIFontSmall.GLContextClose;
   if FTheme <> nil then
     FTheme.GLContextClose;
 end;
@@ -2317,4 +2327,6 @@ initialization
   FTheme := TCastleTheme.Create;
 finalization
   FreeAndNil(FTheme);
+  FreeAndNil(FUIFont);
+  FreeAndNil(FUIFontSmall);
 end.

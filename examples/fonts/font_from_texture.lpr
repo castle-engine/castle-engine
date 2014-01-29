@@ -37,31 +37,6 @@ var
     LabelDeja, LabelDejaBW, LabelDejaLarge,
     LabelStylish, LabelStylishBW, LabelStylishLarge: TCastleLabel;
 
-procedure Open(Window: TCastleWindowBase);
-begin
-  UIFont := TSimpleTextureFont.Create(
-    LoadImage(ApplicationData('sonic_asalga_0.png')), 8, 12, 2, 2);
-
-  Label2.CustomFont := TSimpleTextureFont.Create(
-    LoadImage(ApplicationData('null_terminator_0.png')), 8, 12, 1, 1);
-  Label2.OwnsCustomFont := true;
-  Label2.Color := Red;
-
-  LabelDeja.CustomFont := TTextureFont.Create(ApplicationData('DejaVuSans.ttf'), 15, true);
-  LabelDeja.OwnsCustomFont := true;
-  LabelDejaBW.CustomFont := TTextureFont.Create(ApplicationData('DejaVuSans.ttf'), 15, false);
-  LabelDejaBW.OwnsCustomFont := true;
-  LabelDejaLarge.CustomFont := TTextureFont.Create(ApplicationData('DejaVuSans.ttf'), 30, true);
-  LabelDejaLarge.OwnsCustomFont := true;
-
-  LabelStylish.CustomFont := TTextureFont.Create(ApplicationData('PARPG.ttf'), 15, true);
-  LabelStylish.OwnsCustomFont := true;
-  LabelStylishBW.CustomFont := TTextureFont.Create(ApplicationData('PARPG.ttf'), 15, false);
-  LabelStylishBW.OwnsCustomFont := true;
-  LabelStylishLarge.CustomFont := TTextureFont.Create(ApplicationData('PARPG.ttf'), 30, true);
-  LabelStylishLarge.OwnsCustomFont := true;
-end;
-
 procedure Resize(Window: TCastleWindowBase);
 const
   Margin = 10;
@@ -99,12 +74,16 @@ begin
   Background.Color := Yellow;
   Window.Controls.InsertFront(Background);
 
+  UIFont := TSimpleTextureFont.Create(
+    LoadImage(ApplicationData('sonic_asalga_0.png')), 8, 12, 2, 2);
+
   Label1 := TCastleLabel.Create(Window);
   Label1.Text.Append('A simple test of a font from an image.');
   Label1.Text.Append('Do cats eat bats?');
   Label1.Text.Append('and sometimes, Do bats eat cats?');
   Label1.Text.Append('1 + 2 + 3 = 6');
   Label1.Padding := 5;
+  // do not assign Label1.CustomFont, so it will use global UIFont
   Window.Controls.InsertFront(Label1);
 
   Label2 := TCastleLabel.Create(Window);
@@ -112,18 +91,26 @@ begin
   Label2.Text.Append('With different font.');
   Label2.Text.Append('Just because we can :)');
   Label2.Padding := 5;
+  Label2.CustomFont := TSimpleTextureFont.Create(
+    LoadImage(ApplicationData('null_terminator_0.png')), 8, 12, 1, 1);
+  Label2.OwnsCustomFont := true;
+  Label2.Color := Red;
   Window.Controls.InsertFront(Label2);
 
   LabelDeja := TCastleLabel.Create(Window);
   LabelDeja.Text.Append('DejaVuSans font');
   LabelDeja.Text.Append('with anti-aliasing.');
   LabelDeja.Padding := 5;
+  LabelDeja.CustomFont := TTextureFont.Create(ApplicationData('DejaVuSans.ttf'), 15, true);
+  LabelDeja.OwnsCustomFont := true;
   Window.Controls.InsertFront(LabelDeja);
 
   LabelDejaBW := TCastleLabel.Create(Window);
   LabelDejaBW.Text.Append('DejaVuSans font');
   LabelDejaBW.Text.Append('without anti-aliasing.');
   LabelDejaBW.Padding := 5;
+  LabelDejaBW.CustomFont := TTextureFont.Create(ApplicationData('DejaVuSans.ttf'), 15, false);
+  LabelDejaBW.OwnsCustomFont := true;
   Window.Controls.InsertFront(LabelDejaBW);
 
   LabelDejaLarge := TCastleLabel.Create(Window);
@@ -132,6 +119,8 @@ begin
   LabelDejaLarge.Text.Append('and larger size.');
   LabelDejaLarge.Color := Blue;
   LabelDejaLarge.Padding := 5;
+  LabelDejaLarge.CustomFont := TTextureFont.Create(ApplicationData('DejaVuSans.ttf'), 30, true);
+  LabelDejaLarge.OwnsCustomFont := true;
   Window.Controls.InsertFront(LabelDejaLarge);
 
   LabelStylish := TCastleLabel.Create(Window);
@@ -139,6 +128,8 @@ begin
     'Stylish "old typewriter" font' +LineEnding+
     'with anti-aliasing.';
   LabelStylish.Padding := 5;
+  LabelStylish.CustomFont := TTextureFont.Create(ApplicationData('PARPG.ttf'), 15, true);
+  LabelStylish.OwnsCustomFont := true;
   Window.Controls.InsertFront(LabelStylish);
 
   LabelStylishBW := TCastleLabel.Create(Window);
@@ -146,6 +137,8 @@ begin
     'Stylish "old typewriter" font' +LineEnding+
     'without anti-aliasing.';
   LabelStylishBW.Padding := 5;
+  LabelStylishBW.CustomFont := TTextureFont.Create(ApplicationData('PARPG.ttf'), 15, false);
+  LabelStylishBW.OwnsCustomFont := true;
   Window.Controls.InsertFront(LabelStylishBW);
 
   LabelStylishLarge := TCastleLabel.Create(Window);
@@ -154,9 +147,10 @@ begin
     'with anti-aliasing' +LineEnding+
     'and larger size.';
   LabelStylishLarge.Padding := 5;
+  LabelStylishLarge.CustomFont := TTextureFont.Create(ApplicationData('PARPG.ttf'), 30, true);
+  LabelStylishLarge.OwnsCustomFont := true;
   Window.Controls.InsertFront(LabelStylishLarge);
 
-  Window.OnOpen := @Open;
   Window.OnResize := @Resize;
   Window.OpenAndRun;
 end.

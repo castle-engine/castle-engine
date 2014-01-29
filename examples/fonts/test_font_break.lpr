@@ -61,12 +61,6 @@ end;
 var
   CustomFont: string;
 
-procedure Open(Window: TCastleWindowBase);
-begin
-  if CustomFont <> '' then
-    UIFont := TTextureFont.Create(CustomFont, 20, true);
-end;
-
 const
   Options: array [0..0] of TOption =
   ( (Short:'c'; Long: 'custom-font'; Argument: oaRequired) );
@@ -87,7 +81,9 @@ begin
 
   Theme.Images[tiActiveFrame] := FrameYellow;
 
-  Window.OnOpen := @Open;
+  if CustomFont <> '' then
+    UIFont := TTextureFont.Create(CustomFont, 20, true);
+
   Window.OnResize := @Resize;
   Window.DepthBits := 0;
   Window.SetDemoOptions(K_F11, CharEscape, true);

@@ -35,6 +35,8 @@ type
       @code(TextHeight('Wy')) and @code(TextHeight('y')). }
     procedure UpdateRowHeight(out ARowHeight, ARowHeightBase: Integer); virtual;
   public
+    destructor Destroy; override;
+
     { Draw text at the current WindowPos, and move
       the WindowPos at the end. This way you can immediately
       call another PrintAndMove again, to add something at the end.
@@ -70,6 +72,33 @@ type
       const S: string); overload;
     procedure Print(const X, Y: Integer; const S: string); overload; deprecated;
     procedure Print(const s: string); overload; deprecated;
+
+    { The font may require some OpenGL resources for drawing.
+      You can explicitly create them using GLContextOpen (although it is never
+      needed) and explicitly destroy them (although it is needed only in some
+      situations).
+
+      You can explicitly create resources using GLContextOpen.
+      It's always optional to call GLContextOpen, resources
+      will be automatically created anyway in the nearest @link(Print) call.
+      Note that only the PrintXxx methods require an OpenGL context,
+      the rest of the methods (like measuring the text sizes)
+      may be used at any time, even before initializing the OpenGL context.
+
+      You can also explicitly release the OpenGL resources using GLContextClose.
+      This is required if you want to keep the TCastleFont instance existing
+      even after OpenGL context is closed.
+      It is automatically done at destruction, so you do not have to worry
+      about it if you want to destroy TCastleFont instance before closing
+      OpenGL context.
+      Calling GLContextClose is also automatically taken care of if
+      you use this font as CastleControls.UIFont, CastleControls.UIFontSmall
+      or @link(TUIControlFont.CustomFont).
+
+      @groupBegin }
+    procedure GLContextOpen; virtual;
+    procedure GLContextClose; virtual;
+    { @groupEnd }
 
     function TextWidth(const S: string): Integer; virtual; abstract;
     function TextHeight(const S: string): Integer; virtual; abstract;
@@ -242,7 +271,7 @@ type
   private
     FFont: TTextureFontData;
     FOwnsFont: boolean;
-    Image: TGLImage;
+    GLImage: TGLImage;
   public
     {$ifdef HAS_FREE_TYPE}
     { Create by reading a FreeType font file, like ttf. }
@@ -261,6 +290,8 @@ type
         the TTextureFontData instance.) }
     constructor Create(const Data: TTextureFontData; const OwnsData: boolean = false);
     destructor Destroy; override;
+    procedure GLContextOpen; override;
+    procedure GLContextClose; override;
     procedure Print(const X, Y: Integer; const Color: TCastleColor;
       const S: string); override;
     function TextWidth(const S: string): Integer; override;
@@ -288,7 +319,8 @@ type
     http://opengameart.org/content/null-terminator. }
   TSimpleTextureFont = class(TCastleFont)
   private
-    Image: TGLImage;
+    GLImage: TGLImage;
+    Image: TCastleImage;
     ImageCols, ImageRows,
       CharMargin, CharDisplayMargin, CharWidth, CharHeight: Integer;
   public
@@ -300,6 +332,8 @@ type
     constructor Create(AImage: TCastleImage;
       const AImageCols, AImageRows, ACharMargin, ACharDisplayMargin: Integer);
     destructor Destroy; override;
+    procedure GLContextOpen; override;
+    procedure GLContextClose; override;
     procedure Print(const X, Y: Integer; const Color: TCastleColor;
       const S: string); override;
     function TextWidth(const S: string): Integer; override;
@@ -387,6 +421,20 @@ begin
 end;
 
 { TCastleFont ------------------------------------------------------}
+
+destructor TCastleFont.Destroy;
+begin
+  GLContextClose;
+  inherited;
+end;
+
+procedure TCastleFont.GLContextOpen;
+begin
+end;
+
+procedure TCastleFont.GLContextClose;
+begin
+end;
 
 procedure TCastleFont.Print(const Pos: TVector2Integer;
   const Color: TCastleColor; const S: string);
@@ -647,15 +695,26 @@ begin
   inherited Create;
   FOwnsFont := OwnsData;
   FFont := Data;
-  Image := TGLImage.Create(FFont.Image, false);
 end;
 
 destructor TTextureFont.Destroy;
 begin
-  FreeAndNil(Image);
   if FOwnsFont then
     FreeAndNil(FFont) else
     FFont := nil;
+  inherited;
+end;
+
+procedure TTextureFont.GLContextOpen;
+begin
+  inherited;
+  if GLImage = nil then
+    GLImage := TGLImage.Create(FFont.Image, false);
+end;
+
+procedure TTextureFont.GLContextClose;
+begin
+  FreeAndNil(GLImage);
   inherited;
 end;
 
@@ -666,7 +725,9 @@ var
   ScreenX, ScreenY: Integer;
   G: TTextureFontData.TGlyph;
 begin
-  Image.Color := Color;
+  GLContextOpen;
+
+  GLImage.Color := Color;
   ScreenX := X;
   ScreenY := Y;
   for C in S do
@@ -675,7 +736,7 @@ begin
     if G <> nil then
     begin
       if (G.Width <> 0) and (G.Height <> 0) then
-        Image.Draw(ScreenX - G.X, ScreenY - G.Y, G.Width, G.Height,
+        GLImage.Draw(ScreenX - G.X, ScreenY - G.Y, G.Width, G.Height,
           G.ImageX, G.ImageY, G.Width, G.Height);
       ScreenX += G.AdvanceX;
       ScreenY += G.AdvanceY;
@@ -757,8 +818,7 @@ constructor TSimpleTextureFont.Create(AImage: TCastleImage;
   const AImageCols, AImageRows, ACharMargin, ACharDisplayMargin: Integer);
 begin
   inherited Create;
-  Image := TGLImage.Create(AImage, false);
-  FreeAndNil(AImage); // not needed anymore
+  Image := AImage;
 
   ImageCols := AImageCols;
   ImageRows := AImageRows;
@@ -774,13 +834,28 @@ begin
   inherited;
 end;
 
+procedure TSimpleTextureFont.GLContextOpen;
+begin
+  inherited;
+  if GLImage = nil then
+    GLImage := TGLImage.Create(Image, false);
+end;
+
+procedure TSimpleTextureFont.GLContextClose;
+begin
+  FreeAndNil(GLImage);
+  inherited;
+end;
+
 procedure TSimpleTextureFont.Print(const X, Y: Integer; const Color: TCastleColor;
   const S: string);
 var
   ImageX, ImageY: Single;
   I, CharIndex, ScreenX, ScreenY: Integer;
 begin
-  Image.Color := Color;
+  GLContextOpen;
+
+  GLImage.Color := Color;
   for I := 1 to Length(S) do
   begin
     CharIndex := Ord(S[I]) - Ord(' ');
@@ -789,10 +864,10 @@ begin
     if ImageY < ImageRows then
     begin
       ImageX := ImageX * (CharWidth + CharMargin);
-      ImageY := Image.Height - (ImageY + 1) * (CharHeight + CharMargin);
+      ImageY := GLImage.Height - (ImageY + 1) * (CharHeight + CharMargin);
       ScreenX := CharDisplayMargin div 2 + X + (I - 1) * (CharWidth + CharDisplayMargin);
       ScreenY := CharDisplayMargin div 2 + Y;
-      Image.Draw(ScreenX, ScreenY, CharWidth, CharHeight,
+      GLImage.Draw(ScreenX, ScreenY, CharWidth, CharHeight,
         ImageX, ImageY, CharWidth, CharHeight);
     end;
   end;
