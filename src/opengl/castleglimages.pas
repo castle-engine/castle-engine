@@ -1273,7 +1273,7 @@ begin
     SizeOf(TPoint), Offset(Point[0].Position, Point[0]));
   AttribEnabled[1] := Prog.VertexAttribPointer('tex_coord', 0, 2, GL_FLOAT, GL_FALSE,
     SizeOf(TPoint), Offset(Point[0].TexCoord, Point[0]));
-  Prog.SetUniform('projection_matrix', ProjectionMatrix);
+  Prog.SetUniform('viewport_size', Viewport2DSize);
   if ColorTreatment <> ctTexture then
     Prog.SetUniform('color', Color);
 

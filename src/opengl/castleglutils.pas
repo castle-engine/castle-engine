@@ -439,6 +439,7 @@ property ProjectionMatrix: TMatrix4Single
   read GetProjectionMatrix write SetProjectionMatrix;
 
 { Set ProjectionMatrix to perspective or orthogonal.
+  OrthoProjection also sets Viewport2DSize.
 
   For PerspectiveProjection, ZFar may have special ZFarInfinity value
   to create a perspective projection with far plane set at infinity.
@@ -449,6 +450,8 @@ function PerspectiveProjection(const fovy, aspect, zNear, zFar: Single): TMatrix
 function OrthoProjection(const left, right, bottom, top: Single;
   const zNear: Single = -1; const zFar: Single = 1): TMatrix4Single;
 { @groupEnd }
+
+function Viewport2DSize: TVector2Single;
 
 { ---------------------------------------------------------------------------- }
 
@@ -1177,10 +1180,20 @@ begin
   ProjectionMatrix := Result;
 end;
 
+var
+  FViewport2DSize: TVector2Single;
+
 function OrthoProjection(const left, right, bottom, top, zNear, zFar: Single): TMatrix4Single;
 begin
   Result := OrthoProjMatrix(left, right, bottom, top, zNear, zFar);
+  FViewport2DSize[0] := Right - Left;
+  FViewport2DSize[1] := Top - Bottom;
   ProjectionMatrix := Result;
+end;
+
+function Viewport2DSize: TVector2Single;
+begin
+  Result := FViewport2DSize;
 end;
 
 { Various helpers ------------------------------------------------------------ }
@@ -1463,7 +1476,7 @@ begin
   GLRectangleProgram.Enable;
   AttribEnabled[0] := GLRectangleProgram.VertexAttribPointer(
     'vertex', 0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), nil);
-  GLRectangleProgram.SetUniform('projection_matrix', ProjectionMatrix);
+  GLRectangleProgram.SetUniform('viewport_size', Viewport2DSize);
   GLRectangleProgram.SetUniform('color', Color);
 
   {$else}
