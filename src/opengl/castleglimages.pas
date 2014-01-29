@@ -105,6 +105,7 @@ type
         Position: TVector2SmallInt;
         TexCoord: TVector2Single;
       end;
+      {$ifdef GLImageUseShaders}
       TColorTreatment = (
         { Use texture color to draw. }
         ctTexture,
@@ -114,6 +115,7 @@ type
           for alpha use constant color.a * texture.
           Useful when texture has no alpha information. }
         ctColorMultipliesTextureAlpha);
+      {$endif}
     var
     { Static OpenGL resources, used by all TGLImage instances. }
     PointVbo: TGLuint; static;
@@ -3037,9 +3039,11 @@ begin
 end;
 
 procedure ContextClose;
+{$ifdef GLImageUseShaders}
 var
   AlphaTestShader: boolean;
   ColorTreatment: TGLImage.TColorTreatment;
+{$endif}
 begin
   glFreeBuffer(TGLImage.PointVbo);
   {$ifdef GLImageUseShaders}
