@@ -6,7 +6,7 @@ CastleMessages,
 function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 begin
-  if not (Self is TCastleWindowCustom) then Exit;
+  if not (Self is TCastleWindowCustom) then Exit(false);
   Result := MessageInputQuery(Self as TCastleWindowCustom, Title, FileName);
 end;
 
@@ -33,7 +33,7 @@ end;
 function TCastleWindowBase.MessageYesNo(const S: string;
   const MessageType: TWindowMessageType): boolean;
 begin
-  if not (Self is TCastleWindowCustom) then Exit;
+  if not (Self is TCastleWindowCustom) then Exit(false);
   Result := CastleMessages.MessageYesNo(Self as TCastleWindowCustom, S);
 end;
 {$endif read_implementation}
