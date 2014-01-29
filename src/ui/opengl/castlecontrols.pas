@@ -614,8 +614,13 @@ type
       left. }
     property Corners[const ImageType: TThemeImage]: TVector4Integer read GetCorners write SetCorners;
 
-    { Draw the selected theme image on screen. }
+    { Draw the selected theme image on screen.
+      If you do not specify a color, white will be used, so image will be displayed
+      as-is. Specifying a color means that image will be multiplied by it,
+      just like for @link(TGLImage.Color). }
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage);
+    procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
+      const Color: TCastleColor);
 
     { Font used by dialogs.
       Note that it doesn't have to be mono-spaced. }
@@ -2227,6 +2232,13 @@ end;
 
 procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage);
 begin
+  Draw(Rect, ImageType, White);
+end;
+
+procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage;
+  const Color: TCastleColor);
+begin
+  GLImages[ImageType].Color := Color;
   GLImages[ImageType].Draw3x3(Rect, Corners[ImageType]);
 end;
 

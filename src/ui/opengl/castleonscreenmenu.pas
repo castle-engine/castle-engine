@@ -1207,7 +1207,7 @@ const
   CurrentItemBorderMargin = 5;
 var
   I: Integer;
-  ItemColor, BgColor: TCastleColor;
+  ItemColor, BgColor, CurrentItemBorderColor: TCastleColor;
 begin
   if not GetExists then Exit;
 
@@ -1219,7 +1219,6 @@ begin
     DrawRectangle(FAllItemsRectangle, BgColor);
   end;
 
-  (* TODO:
   { Calculate CurrentItemBorderColor }
   if MenuAnimation <= 0.5 then
     CurrentItemBorderColor := Lerp(
@@ -1228,17 +1227,16 @@ begin
     CurrentItemBorderColor := Lerp(
       MapRange(MenuAnimation, 0.5, 1, 0, 1),
       CurrentItemBorderColor2, CurrentItemBorderColor1);
-  *)
 
   if Focused and DrawFocusedBorder then
-    Theme.Draw(FAllItemsRectangle, tiActiveFrame);
+    Theme.Draw(FAllItemsRectangle, tiActiveFrame, CurrentItemBorderColor);
 
   for I := 0 to Items.Count - 1 do
   begin
     if I = CurrentItem then
     begin
       Theme.Draw(Rectangles.L[I].Grow(CurrentItemBorderMargin, 0),
-        tiActiveFrame);
+        tiActiveFrame, CurrentItemBorderColor);
       ItemColor := CurrentItemColor;
     end else
       ItemColor := NonCurrentItemColor;
