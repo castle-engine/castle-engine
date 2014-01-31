@@ -117,6 +117,10 @@ To use the engine in your own programs, there are a couple of options:
     Used by CastleWindow on Unix to create a window with OpenGL context.
     There is an alternative CastleWindow backend that doesn't use GtkGLExt
     (uses directly Xlib), although it doesn't show native manu or dialog boxes.)
+
+  @item(@code(FreeType).
+
+    Used by TTextureFont to read font files.)
 )
 
 For Windows, you can get the required DLLs easily
