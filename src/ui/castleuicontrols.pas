@@ -71,11 +71,11 @@ type
       it can remain as private method of actual container class.
 
       This recalculates the focused control and the final cursor of
-      the container, looking at Container's UseControls,
+      the container, looking at Container's Controls,
       testing PositionInside with current mouse position,
       and looking at Cursor property of the focused control.
 
-      When UseControls change, or when you add / remove some control
+      When you add / remove some control
       from the Controls list, or when you move mouse (focused changes)
       this will also be automatically called
       (since focused control or final container cursor may also change then). }

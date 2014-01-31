@@ -133,15 +133,6 @@
   dialog boxes in @link(CastleMessages) and progress bar in @link(CastleWindowProgress).
   These units give you some typical GUI capabilities, and they are in pure OpenGL.
 
-  Using OOP approach (overriding EventXxx methods instead of registering OnXxx
-  callbacks) you can not do such things so easily -- in general, you have
-  to define something to turn off special EventXxx functionality
-  (like SetDemoOptions in TCastleWindowDemo and UseControls in TCastleWindowCustom)
-  and you have to turn them off/on when using CastleWindowModes
-  (mentioned TCastleWindowDemo and TCastleWindowCustom are already handled in
-  CastleWindowModes). TODO: I shall do some virtual methods in TCastleWindowBase
-  to make this easy.
-
   Random features list:
 
   @unorderedList(
@@ -2317,7 +2308,6 @@ end;
   TCastleWindowCustom = class(TCastleWindowDemo, IUIContainer)
   private
     FControls: TUIControlList;
-    FUseControls: boolean;
     FRenderStyle: TRenderStyle;
     FFocus: TUIControl;
     FCaptureInput: TUIControl;
@@ -2331,7 +2321,6 @@ end;
     Mouse3d: T3DConnexionDevice;
     Mouse3dPollTimer: Single;
     procedure ControlsVisibleChange(Sender: TObject);
-    procedure SetUseControls(const Value: boolean);
     procedure UpdateFocusAndMouseCursor;
     function GetTooltipX: Integer;
     function GetTooltipY: Integer;
@@ -2339,20 +2328,6 @@ end;
     procedure DetachNotification(const C: TUIControl);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-
-    { Enable @link(Controls) list processing.
-
-      @italic(Messing with this is very dangerous), that's why it's
-      visibility is only protected (although could be even pubilshed, technically).
-      This makes all controls miss all their events, including some critical
-      notification events like TUIControl.GLContextOpen, TUIControl.GLContextClose,
-      TUIControl.ContainerResize.
-
-      You can reliably only turn this off temporarily, when you know that
-      no events (or at least no meaningful events, like resize or control
-      add/remove) will reach the window during this time. }
-    property UseControls: boolean
-      read FUseControls write SetUseControls default true;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2373,8 +2348,7 @@ end;
     { Returns the control that should receive input events first,
       or @nil if none. More precisely, this is the first on Controls
       list that is enabled and under the mouse cursor.
-      @nil is returned when there's no enabled control under the mouse cursor,
-      or when UseControls = @false. }
+      @nil is returned when there's no enabled control under the mouse cursor. }
     property Focus: TUIControl read FFocus;
 
     { How OnRender callback fits within various Render methods of our
@@ -4271,7 +4245,6 @@ constructor TCastleWindowCustom.Create(AOwner: TComponent);
 begin
   inherited;
   FControls := TControlledUIControlList.Create(false, Self);
-  FUseControls := true;
   FRenderStyle := rs2D;
   FTooltipDelay := DefaultTooltipDelay;
   FTooltipDistance := DefaultTooltipDistance;
@@ -4325,8 +4298,6 @@ procedure TCastleWindowCustom.UpdateFocusAndMouseCursor;
   var
     I: Integer;
   begin
-    if not UseControls then Exit(nil);
-
     for I := 0 to Controls.Count - 1 do
     begin
       Result := Controls[I];
@@ -4353,11 +4324,9 @@ begin
 
   if NewFocus <> Focus then
   begin
-    if (Focus <> nil) and UseControls then Focus.Focused := false;
+    if Focus <> nil then Focus.Focused := false;
     FFocus := NewFocus;
-    { No need to check UseControls above: if Focus <> nil then we know
-      UseControls was true during CalculateFocus. }
-    if (Focus <> nil) then Focus.Focused := true;
+    if Focus <> nil then Focus.Focused := true;
   end;
 
   Cursor := CalculateMouseCursor;
@@ -4426,59 +4395,56 @@ var
 const
   Mouse3dPollDelay = 0.05;
 begin
-  if UseControls then
+  UpdateTooltip;
+
+  { 3D Mouse }
+  if Assigned(Mouse3D) and Mouse3D.Loaded then
   begin
-    UpdateTooltip;
-
-    { 3D Mouse }
-    if Assigned(Mouse3D) and Mouse3D.Loaded then
+    Mouse3dPollTimer -= Fps.UpdateSecondsPassed;
+    if Mouse3dPollTimer < 0 then
     begin
-      Mouse3dPollTimer -= Fps.UpdateSecondsPassed;
-      if Mouse3dPollTimer < 0 then
-      begin
-        { get values from sensor }
-        Mouse3dPollSpeed := -Mouse3dPollTimer + Mouse3dPollDelay;
-        Mouse3D.GetSensorTranslation(Tx, Ty, Tz, TLength);
-        Mouse3D.GetSensorRotation(Rx, Ry, Rz, RAngle);
+      { get values from sensor }
+      Mouse3dPollSpeed := -Mouse3dPollTimer + Mouse3dPollDelay;
+      Mouse3D.GetSensorTranslation(Tx, Ty, Tz, TLength);
+      Mouse3D.GetSensorRotation(Rx, Ry, Rz, RAngle);
 
-        { send to all 2D controls, including viewports }
-        for I := 0 to Controls.Count - 1 do
+      { send to all 2D controls, including viewports }
+      for I := 0 to Controls.Count - 1 do
+      begin
+        C := Controls[I];
+        if C.PositionInside(MouseX, MouseY) then
         begin
-          C := Controls[I];
-          if C.PositionInside(MouseX, MouseY) then
-          begin
-            C.SensorTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
-            C.SensorRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
-          end;
+          C.SensorTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
+          C.SensorRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
         end;
-
-        { set timer.
-          The "repeat ... until" below should not be necessary under normal
-          circumstances, as Mouse3dPollDelay should be much larger than typical
-          frequency of how often this is checked. But we do it for safety
-          (in case something else, like AI or collision detection,
-          slows us down *a lot*). }
-        repeat Mouse3dPollTimer += Mouse3dPollDelay until Mouse3dPollTimer > 0;
       end;
+
+      { set timer.
+        The "repeat ... until" below should not be necessary under normal
+        circumstances, as Mouse3dPollDelay should be much larger than typical
+        frequency of how often this is checked. But we do it for safety
+        (in case something else, like AI or collision detection,
+        slows us down *a lot*). }
+      repeat Mouse3dPollTimer += Mouse3dPollDelay until Mouse3dPollTimer > 0;
     end;
+  end;
 
-    { Although we call Update for all the controls, we look
-      at PositionInside and track HandleInput values.
-      See TUIControl.Update for explanation. }
+  { Although we call Update for all the controls, we look
+    at PositionInside and track HandleInput values.
+    See TUIControl.Update for explanation. }
 
-    HandleInput := true;
+  HandleInput := true;
 
-    for I := 0 to Controls.Count - 1 do
+  for I := 0 to Controls.Count - 1 do
+  begin
+    C := Controls[I];
+    if C.PositionInside(MouseX, MouseY) then
     begin
-      C := Controls[I];
-      if C.PositionInside(MouseX, MouseY) then
-      begin
-        C.Update(Fps.UpdateSecondsPassed, HandleInput);
-      end else
-      begin
-        Dummy := false;
-        C.Update(Fps.UpdateSecondsPassed, Dummy);
-      end;
+      C.Update(Fps.UpdateSecondsPassed, HandleInput);
+    end else
+    begin
+      Dummy := false;
+      C.Update(Fps.UpdateSecondsPassed, Dummy);
     end;
   end;
 
@@ -4490,28 +4456,25 @@ var
   C: TUIControl;
   I: Integer;
 begin
-  if UseControls then
+  for I := 0 to Controls.Count - 1 do
   begin
-    for I := 0 to Controls.Count - 1 do
-    begin
-      C := Controls[I];
-      if C.PositionInside(MouseX, MouseY) then
-        if C.Press(Event) then
-        begin
-          { We have to check whether C.Container = Self. That is because
-            the implementation of control's Press method could remove itself
-            from our Controls list. Consider e.g. TCastleOnScreenMenu.Press
-            that may remove itself from the Window.Controls list when clicking
-            "close menu" item. We cannot, in such case, save a reference to
-            this control in FCaptureInput, because we should not speak with it
-            anymore (we don't know when it's destroyed, we cannot call it's
-            Release method because it has Container = nil, and so on). }
-          if (Event.EventType = itMouseButton) and
-             (C.Container = Self as IUIContainer) then
-            FCaptureInput := C;
-          Exit;
-        end;
-    end;
+    C := Controls[I];
+    if C.PositionInside(MouseX, MouseY) then
+      if C.Press(Event) then
+      begin
+        { We have to check whether C.Container = Self. That is because
+          the implementation of control's Press method could remove itself
+          from our Controls list. Consider e.g. TCastleOnScreenMenu.Press
+          that may remove itself from the Window.Controls list when clicking
+          "close menu" item. We cannot, in such case, save a reference to
+          this control in FCaptureInput, because we should not speak with it
+          anymore (we don't know when it's destroyed, we cannot call it's
+          Release method because it has Container = nil, and so on). }
+        if (Event.EventType = itMouseButton) and
+           (C.Container = Self as IUIContainer) then
+          FCaptureInput := C;
+        Exit;
+      end;
   end;
 
   inherited;
@@ -4526,20 +4489,17 @@ begin
   if FMousePressed = [] then
     FCaptureInput := nil;
 
-  if UseControls then
+  if Capture <> nil then
   begin
-    if Capture <> nil then
-    begin
-      Capture.Release(Event);
-      Exit;
-    end;
+    Capture.Release(Event);
+    Exit;
+  end;
 
-    for I := 0 to Controls.Count - 1 do
-    begin
-      C := Controls[I];
-      if C.PositionInside(MouseX, MouseY) then
-        if C.Release(Event) then Exit;
-    end;
+  for I := 0 to Controls.Count - 1 do
+  begin
+    C := Controls[I];
+    if C.PositionInside(MouseX, MouseY) then
+      if C.Release(Event) then Exit;
   end;
 
   inherited;
@@ -4554,11 +4514,8 @@ begin
     OnGLContextOpen.ExecuteAll;
 
   { call GLContextOpen on controls after inherited (OnOpen). }
-  if UseControls then
-  begin
-    for I := 0 to Controls.Count - 1 do
-      Controls[I].GLContextOpen;
-  end;
+  for I := 0 to Controls.Count - 1 do
+    Controls[I].GLContextOpen;
 end;
 
 procedure TCastleWindowCustom.EventClose;
@@ -4568,7 +4525,7 @@ begin
   { call GLContextClose on controls before inherited (OnClose).
     This may be called from Close, which may be called from TCastleWindowBase destructor,
     so prepare for Controls being possibly nil now. }
-  if UseControls and (Controls <> nil) then
+  if Controls <> nil then
   begin
     for I := 0 to Controls.Count - 1 do
       Controls[I].GLContextClose;
@@ -4586,28 +4543,15 @@ begin
   Result := inherited;
   if not Result then Exit;
 
-  if UseControls then
-  begin
-    { Do not suspend when you're over a control that may have a tooltip,
-      as EventUpdate must track and eventually show tooltip. }
-    if (Focus <> nil) and Focus.TooltipExists then
-      Exit(false);
+  { Do not suspend when you're over a control that may have a tooltip,
+    as EventUpdate must track and eventually show tooltip. }
+  if (Focus <> nil) and Focus.TooltipExists then
+    Exit(false);
 
-    for I := 0 to Controls.Count - 1 do
-    begin
-      Result := Controls[I].AllowSuspendForInput;
-      if not Result then Exit;
-    end;
-  end;
-end;
-
-procedure TCastleWindowCustom.SetUseControls(const Value: boolean);
-begin
-  if Value <> UseControls then
+  for I := 0 to Controls.Count - 1 do
   begin
-    FUseControls := Value;
-    { Focus must always be @nil when UseControls = false }
-    UpdateFocusAndMouseCursor;
+    Result := Controls[I].AllowSuspendForInput;
+    if not Result then Exit;
   end;
 end;
 
@@ -4618,20 +4562,17 @@ var
 begin
   UpdateFocusAndMouseCursor;
 
-  if UseControls then
+  if FCaptureInput <> nil then
   begin
-    if FCaptureInput <> nil then
-    begin
-      FCaptureInput.MouseMove(MouseX, MouseY, NewX, NewY);
-      Exit;
-    end;
+    FCaptureInput.MouseMove(MouseX, MouseY, NewX, NewY);
+    Exit;
+  end;
 
-    for I := 0 to Controls.Count - 1 do
-    begin
-      C := Controls[I];
-      if C.PositionInside(MouseX, MouseY) then
-        if C.MouseMove(MouseX, MouseY, NewX, NewY) then Exit;
-    end;
+  for I := 0 to Controls.Count - 1 do
+  begin
+    C := Controls[I];
+    if C.PositionInside(MouseX, MouseY) then
+      if C.MouseMove(MouseX, MouseY, NewX, NewY) then Exit;
   end;
 
   inherited;
@@ -4646,11 +4587,8 @@ procedure TCastleWindowCustom.EventBeforeRender;
 var
   I: Integer;
 begin
-  if UseControls then
-  begin
-    for I := 0 to Controls.Count - 1 do
-      Controls[I].BeforeRender;
-  end;
+  for I := 0 to Controls.Count - 1 do
+    Controls[I].BeforeRender;
 
   inherited;
 end;
@@ -4669,28 +4607,25 @@ procedure TCastleWindowCustom.EventRender;
   begin
     AnythingWants2D := false;
 
-    if UseControls then
+    { draw controls in "downto" order, back to front }
+    for I := Controls.Count - 1 downto 0 do
     begin
-      { draw controls in "downto" order, back to front }
-      for I := Controls.Count - 1 downto 0 do
-      begin
-        C := Controls[I];
-        if C.GetExists then
-          case C.RenderStyle of
-            rs2D: AnythingWants2D := true;
-            { Set OpenGL state that may be changed carelessly, and has some
-              guanteed value, for TUIControl.Render calls.
-              For now, just glLoadIdentity. }
-            rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} C.Render; end;
-          end;
-      end;
-
-      if TooltipVisible and (Focus <> nil) then
-        case Focus.TooltipStyle of
+      C := Controls[I];
+      if C.GetExists then
+        case C.RenderStyle of
           rs2D: AnythingWants2D := true;
-          rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} Focus.TooltipRender; end;
+          { Set OpenGL state that may be changed carelessly, and has some
+            guanteed value, for TUIControl.Render calls.
+            For now, just glLoadIdentity. }
+          rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} C.Render; end;
         end;
     end;
+
+    if TooltipVisible and (Focus <> nil) then
+      case Focus.TooltipStyle of
+        rs2D: AnythingWants2D := true;
+        rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} Focus.TooltipRender; end;
+      end;
 
     case RenderStyle of
       rs2D: AnythingWants2D := true;
@@ -4716,28 +4651,25 @@ procedure TCastleWindowCustom.EventRender;
 
     OrthoProjection(0, Width, 0, Height);
 
-    if UseControls then
+    { draw controls in "downto" order, back to front }
+    for I := Controls.Count - 1 downto 0 do
     begin
-      { draw controls in "downto" order, back to front }
-      for I := Controls.Count - 1 downto 0 do
+      C := Controls[I];
+      if C.GetExists and (C.RenderStyle = rs2D) then
       begin
-        C := Controls[I];
-        if C.GetExists and (C.RenderStyle = rs2D) then
-        begin
-          { Set OpenGL state that may be changed carelessly, and has some
-            guanteed value, for Render2d calls. }
-          {$ifndef OpenGLES} glLoadIdentity; {$endif}
-          CastleGLUtils.WindowPos := Vector2LongInt(0, 0);
-          C.Render;
-        end;
-      end;
-
-      if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = rs2D) then
-      begin
+        { Set OpenGL state that may be changed carelessly, and has some
+          guanteed value, for Render2d calls. }
         {$ifndef OpenGLES} glLoadIdentity; {$endif}
         CastleGLUtils.WindowPos := Vector2LongInt(0, 0);
-        Focus.TooltipRender;
+        C.Render;
       end;
+    end;
+
+    if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = rs2D) then
+    begin
+      {$ifndef OpenGLES} glLoadIdentity; {$endif}
+      CastleGLUtils.WindowPos := Vector2LongInt(0, 0);
+      Focus.TooltipRender;
     end;
 
     if RenderStyle = rs2D then
@@ -4761,11 +4693,8 @@ procedure TCastleWindowCustom.EventResize;
 var
   I: Integer;
 begin
-  if UseControls then
-  begin
-    for I := 0 to Controls.Count - 1 do
-      Controls[I].ContainerResize(Width, Height);
-  end;
+  for I := 0 to Controls.Count - 1 do
+    Controls[I].ContainerResize(Width, Height);
 
   { This way control's get ContainerResize
     (so have ContainerWidth / ContainerHeight set) before OnResize,

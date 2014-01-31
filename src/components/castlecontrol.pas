@@ -221,7 +221,6 @@ type
   TCastleControlCustom = class(TCastleControlBase, IUIContainer)
   private
     FControls: TUIControlList;
-    FUseControls: boolean;
     FRenderStyle: TRenderStyle;
     FFocus: TUIControl;
     FTooltipDelay: TMilisecTime;
@@ -234,7 +233,6 @@ type
     Mouse3d: T3DConnexionDevice;
     Mouse3dPollTimer: Single;
     procedure ControlsVisibleChange(Sender: TObject);
-    procedure SetUseControls(const Value: boolean);
     procedure UpdateFocusAndMouseCursor;
     function GetTooltipX: Integer;
     function GetTooltipY: Integer;
@@ -258,20 +256,6 @@ type
     procedure DoGLContextClose; override;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-
-    { Enable @link(Controls) list processing.
-
-      @italic(Messing with this is very dangerous), that's why it's
-      visibility is only protected (although could be even pubilshed, technically).
-      This makes all controls miss all their events, including some critical
-      notification events like TUIControl.GLContextOpen, TUIControl.GLContextClose,
-      TUIControl.ContainerResize.
-
-      You can reliably only turn this off temporarily, when you know that
-      no events (or at least no meaningful events, like resize or control
-      add/remove) will reach the window during this time. }
-    property UseControls: boolean
-      read FUseControls write SetUseControls default true;
   public
     const
       DefaultTooltipDelay = 1000;
@@ -283,8 +267,7 @@ type
     { Returns the control that should receive input events first,
       or @nil if none. More precisely, this is the first on Controls
       list that is enabled and under the mouse cursor.
-      @nil is returned when there's no enabled control under the mouse cursor,
-      or when UseControls = @false. }
+      @nil is returned when there's no enabled control under the mouse cursor. }
     property Focus: TUIControl read FFocus;
 
     { When the tooltip should be shown (mouse hovers over a control
@@ -1058,7 +1041,6 @@ begin
   inherited;
   TabStop := true;
   FControls := TControlledUIControlList.Create(false, Self);
-  FUseControls := true;
   FRenderStyle := rs2D;
   FTooltipDelay := DefaultTooltipDelay;
   FTooltipDistance := DefaultTooltipDistance;
@@ -1117,8 +1099,6 @@ procedure TCastleControlCustom.UpdateFocusAndMouseCursor;
   var
     I: Integer;
   begin
-    if not UseControls then Exit(nil);
-
     for I := 0 to Controls.Count - 1 do
     begin
       Result := Controls[I];
@@ -1144,11 +1124,9 @@ begin
 
   if NewFocus <> Focus then
   begin
-    if (Focus <> nil) and UseControls then Focus.Focused := false;
+    if Focus <> nil then Focus.Focused := false;
     FFocus := NewFocus;
-    { No need to check UseControls above: if Focus <> nil then we know
-      UseControls was true during CalculateFocus. }
-    if (Focus <> nil) then Focus.Focused := true;
+    if Focus <> nil then Focus.Focused := true;
   end;
 
   NewCursor := CursorCastleToLCL[CalculateMouseCursor];
@@ -1223,59 +1201,56 @@ var
 const
   Mouse3dPollDelay = 0.05;
 begin
-  if UseControls then
+  UpdateTooltip;
+
+  { 3D Mouse }
+  if Assigned(Mouse3D) and Mouse3D.Loaded then
   begin
-    UpdateTooltip;
-
-    { 3D Mouse }
-    if Assigned(Mouse3D) and Mouse3D.Loaded then
+    Mouse3dPollTimer -= Fps.UpdateSecondsPassed;
+    if Mouse3dPollTimer < 0 then
     begin
-      Mouse3dPollTimer -= Fps.UpdateSecondsPassed;
-      if Mouse3dPollTimer < 0 then
-      begin
-        { get values from sensor }
-        Mouse3dPollSpeed := -Mouse3dPollTimer + Mouse3dPollDelay;
-        Mouse3D.GetSensorTranslation(Tx, Ty, Tz, TLength);
-        Mouse3D.GetSensorRotation(Rx, Ry, Rz, RAngle);
+      { get values from sensor }
+      Mouse3dPollSpeed := -Mouse3dPollTimer + Mouse3dPollDelay;
+      Mouse3D.GetSensorTranslation(Tx, Ty, Tz, TLength);
+      Mouse3D.GetSensorRotation(Rx, Ry, Rz, RAngle);
 
-        { send to all 2D controls, including viewports }
-        for I := 0 to Controls.Count - 1 do
+      { send to all 2D controls, including viewports }
+      for I := 0 to Controls.Count - 1 do
+      begin
+        C := Controls[I];
+        if C.PositionInside(MouseX, MouseY) then
         begin
-          C := Controls[I];
-          if C.PositionInside(MouseX, MouseY) then
-          begin
-            C.SensorTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
-            C.SensorRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
-          end;
+          C.SensorTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
+          C.SensorRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
         end;
-
-        { set timer.
-          The "repeat ... until" below should not be necessary under normal
-          circumstances, as Mouse3dPollDelay should be much larger than typical
-          frequency of how often this is checked. But we do it for safety
-          (in case something else, like AI or collision detection,
-          slows us down *a lot*). }
-        repeat Mouse3dPollTimer += Mouse3dPollDelay until Mouse3dPollTimer > 0;
       end;
+
+      { set timer.
+        The "repeat ... until" below should not be necessary under normal
+        circumstances, as Mouse3dPollDelay should be much larger than typical
+        frequency of how often this is checked. But we do it for safety
+        (in case something else, like AI or collision detection,
+        slows us down *a lot*). }
+      repeat Mouse3dPollTimer += Mouse3dPollDelay until Mouse3dPollTimer > 0;
     end;
+  end;
 
-    { Although we call Update for all the controls, we look
-      at PositionInside and track HandleInput values.
-      See TUIControl.Update for explanation. }
+  { Although we call Update for all the controls, we look
+    at PositionInside and track HandleInput values.
+    See TUIControl.Update for explanation. }
 
-    HandleInput := true;
+  HandleInput := true;
 
-    for I := 0 to Controls.Count - 1 do
+  for I := 0 to Controls.Count - 1 do
+  begin
+    C := Controls[I];
+    if C.PositionInside(MouseX, MouseY) then
     begin
-      C := Controls[I];
-      if C.PositionInside(MouseX, MouseY) then
-      begin
-        C.Update(Fps.UpdateSecondsPassed, HandleInput);
-      end else
-      begin
-        Dummy := false;
-        C.Update(Fps.UpdateSecondsPassed, Dummy);
-      end;
+      C.Update(Fps.UpdateSecondsPassed, HandleInput);
+    end else
+    begin
+      Dummy := false;
+      C.Update(Fps.UpdateSecondsPassed, Dummy);
     end;
   end;
 
@@ -1290,15 +1265,12 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if UseControls then
+  for I := 0 to Controls.Count - 1 do
   begin
-    for I := 0 to Controls.Count - 1 do
-    begin
-      C := Controls[I];
-      if C.PositionInside(MouseX, MouseY) then
-        if C.Press(InputKey(MyKey, Ch)) then
-          Exit(true);
-    end;
+    C := Controls[I];
+    if C.PositionInside(MouseX, MouseY) then
+      if C.Press(InputKey(MyKey, Ch)) then
+        Exit(true);
   end;
 end;
 
@@ -1310,15 +1282,12 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if UseControls then
+  for I := 0 to Controls.Count - 1 do
   begin
-    for I := 0 to Controls.Count - 1 do
-    begin
-      C := Controls[I];
-      if C.PositionInside(MouseX, MouseY) then
-        if C.Release(InputKey(MyKey, Ch)) then
-          Exit(true);
-    end;
+    C := Controls[I];
+    if C.PositionInside(MouseX, MouseY) then
+      if C.Release(InputKey(MyKey, Ch)) then
+        Exit(true);
   end;
 end;
 
@@ -1329,7 +1298,7 @@ var
   C: TUIControl;
   I: Integer;
 begin
-  if MouseButtonLCLToCastle(Button, MyButton) and UseControls then
+  if MouseButtonLCLToCastle(Button, MyButton) then
   begin
     for I := 0 to Controls.Count - 1 do
     begin
@@ -1350,7 +1319,7 @@ var
   C: TUIControl;
   I: Integer;
 begin
-  if MouseButtonLCLToCastle(Button, MyButton) and UseControls then
+  if MouseButtonLCLToCastle(Button, MyButton) then
   begin
     for I := 0 to Controls.Count - 1 do
     begin
@@ -1371,14 +1340,11 @@ var
 begin
   UpdateFocusAndMouseCursor;
 
-  if UseControls then
+  for I := 0 to Controls.Count - 1 do
   begin
-    for I := 0 to Controls.Count - 1 do
-    begin
-      C := Controls[I];
-      if C.PositionInside(MouseX, MouseY) then
-        if C.MouseMove(MouseX, MouseY, NewX, NewY) then Exit;
-    end;
+    C := Controls[I];
+    if C.PositionInside(MouseX, MouseY) then
+      if C.MouseMove(MouseX, MouseY, NewX, NewY) then Exit;
   end;
 
   inherited;
@@ -1389,18 +1355,15 @@ var
   C: TUIControl;
   I: Integer;
 begin
-  if UseControls then
+  for I := 0 to Controls.Count - 1 do
   begin
-    for I := 0 to Controls.Count - 1 do
-    begin
-      C := Controls[I];
-      if C.PositionInside(MouseX, MouseY) then
-        if C.Press(InputMouseWheel(Scroll, true)) then
-        begin
-          Result := true;
-          Exit;
-        end;
-    end;
+    C := Controls[I];
+    if C.PositionInside(MouseX, MouseY) then
+      if C.Press(InputMouseWheel(Scroll, true)) then
+      begin
+        Result := true;
+        Exit;
+      end;
   end;
   Result := false;
 end;
@@ -1416,11 +1379,8 @@ var
 begin
   inherited;
 
-  if UseControls then
-  begin
-    for I := 0 to Controls.Count - 1 do
-      Controls[I].BeforeRender;
-  end;
+  for I := 0 to Controls.Count - 1 do
+    Controls[I].BeforeRender;
 end;
 
 procedure TCastleControlCustom.DoRender;
@@ -1437,27 +1397,24 @@ procedure TCastleControlCustom.DoRender;
   begin
     AnythingWants2D := false;
 
-    if UseControls then
+    { draw controls in "downto" order, back to front }
+    for I := Controls.Count - 1 downto 0 do
     begin
-      { draw controls in "downto" order, back to front }
-      for I := Controls.Count - 1 downto 0 do
-      begin
-        C := Controls[I];
-        if C.GetExists then
-          case C.RenderStyle of
-            rs2D: AnythingWants2D := true;
-            { Set OpenGL state that may be changed carelessly, and has some
-              guanteed value, for TUIControl.Render calls. }
-            rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} C.Render; end;
-          end;
-      end;
-
-      if TooltipVisible and (Focus <> nil) then
-        case Focus.TooltipStyle of
+      C := Controls[I];
+      if C.GetExists then
+        case C.RenderStyle of
           rs2D: AnythingWants2D := true;
-          rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} Focus.TooltipRender; end;
+          { Set OpenGL state that may be changed carelessly, and has some
+            guanteed value, for TUIControl.Render calls. }
+          rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} C.Render; end;
         end;
     end;
+
+    if TooltipVisible and (Focus <> nil) then
+      case Focus.TooltipStyle of
+        rs2D: AnythingWants2D := true;
+        rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} Focus.TooltipRender; end;
+      end;
 
     case RenderStyle of
       rs2D: AnythingWants2D := true;
@@ -1483,28 +1440,25 @@ procedure TCastleControlCustom.DoRender;
 
     OrthoProjection(0, Width, 0, Height);
 
-    if UseControls then
+    { draw controls in "downto" order, back to front }
+    for I := Controls.Count - 1 downto 0 do
     begin
-      { draw controls in "downto" order, back to front }
-      for I := Controls.Count - 1 downto 0 do
+      C := Controls[I];
+      if C.GetExists and (C.RenderStyle = rs2D) then
       begin
-        C := Controls[I];
-        if C.GetExists and (C.RenderStyle = rs2D) then
-        begin
-          { Set OpenGL state that may be changed carelessly, and has some
-            guanteed value, for Render2d calls. }
-          {$ifndef OpenGLES} glLoadIdentity; {$endif}
-          WindowPos := Vector2LongInt(0, 0);
-          C.Render;
-        end;
-      end;
-
-      if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = rs2D) then
-      begin
+        { Set OpenGL state that may be changed carelessly, and has some
+          guanteed value, for Render2d calls. }
         {$ifndef OpenGLES} glLoadIdentity; {$endif}
         WindowPos := Vector2LongInt(0, 0);
-        Focus.TooltipRender;
+        C.Render;
       end;
+    end;
+
+    if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = rs2D) then
+    begin
+      {$ifndef OpenGLES} glLoadIdentity; {$endif}
+      WindowPos := Vector2LongInt(0, 0);
+      Focus.TooltipRender;
     end;
 
     if RenderStyle = rs2D then
@@ -1532,7 +1486,7 @@ begin
 
   { Call MakeCurrent here, to make sure CastleUIControls always get
     ContainerResize with good GL context. }
-  if GLInitialized and UseControls and MakeCurrent then
+  if GLInitialized and MakeCurrent then
   begin
     for I := 0 to Controls.Count - 1 do
       Controls[I].ContainerResize(Width, Height);
@@ -1549,11 +1503,8 @@ begin
     CastleUIControls.OnGLContextOpen.ExecuteAll;
 
   { call GLContextOpen on controls after inherited (OnGLContextOpen). }
-  if UseControls then
-  begin
-    for I := 0 to Controls.Count - 1 do
-      Controls[I].GLContextOpen;
-  end;
+  for I := 0 to Controls.Count - 1 do
+    Controls[I].GLContextOpen;
 end;
 
 
@@ -1564,7 +1515,7 @@ begin
   { call GLContextClose on controls before inherited (OnGLContextClose).
     This may be called from Close, which may be called from TCastleWindowBase destructor,
     so prepare for Controls being possibly nil now. }
-  if UseControls and (Controls <> nil) then
+  if Controls <> nil then
   begin
     for I := 0 to Controls.Count - 1 do
       Controls[I].GLContextClose;
@@ -1574,16 +1525,6 @@ begin
     CastleUIControls.OnGLContextClose.ExecuteAll;
   Dec(ControlsOpen);
   inherited;
-end;
-
-procedure TCastleControlCustom.SetUseControls(const Value: boolean);
-begin
-  if Value <> UseControls then
-  begin
-    FUseControls := Value;
-    { Focus must always be @nil when UseControls = false }
-    UpdateFocusAndMouseCursor;
-  end;
 end;
 
 function TCastleControlCustom.GetTooltipX: Integer;

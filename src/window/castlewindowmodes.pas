@@ -60,7 +60,6 @@ type
     OldFpsShowOnCaption: boolean;
     { TCastleWindowCustom attributes } { }
     OldControls: TUIControlList;
-    { protected now: OldUseControls: boolean; } { }
     OldRenderStyle: TRenderStyle;
 
     { When adding new attributes to TCastleWindowBase that should be saved/restored,
@@ -302,7 +301,6 @@ begin
   if Window is TCastleWindowCustom then
   begin
     OldControls.Assign(TCastleWindowCustom(Window).Controls);
-    { protected now OldUseControls := TCastleWindowCustom(Window).UseControls; }
     OldRenderStyle := TCastleWindowCustom(Window).RenderStyle;
   end;
 end;
@@ -338,7 +336,6 @@ begin
   if Window is TCastleWindowCustom then
   begin
     TCastleWindowCustom(Window).Controls.Assign(OldControls);
-    { protected now TCastleWindowCustom(Window).UseControls := OldUseControls; }
     TCastleWindowCustom(Window).RenderStyle := OldRenderStyle;
   end;
 end;
@@ -377,7 +374,6 @@ begin
   if Window is TCastleWindowCustom then
   begin
     TCastleWindowCustom(Window).Controls.Clear;
-    { protected now TCastleWindowCustom(Window).UseControls := true; }
     TCastleWindowCustom(Window).RenderStyle := rs2D;
   end;
 end;
