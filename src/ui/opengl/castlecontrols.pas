@@ -472,6 +472,7 @@ type
       const ADrawInputText: boolean; const AInputText: string;
       const ABackground: TCastleImage);
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+    procedure GLContextClose; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
@@ -1567,6 +1568,11 @@ destructor TCastleDialog.Destroy;
 begin
   FreeAndNil(Broken_Text);
   FreeAndNil(Broken_InputText);
+  inherited;
+end;
+
+procedure TCastleDialog.GLContextClose;
+begin
   FreeAndNil(Background);
   inherited;
 end;
