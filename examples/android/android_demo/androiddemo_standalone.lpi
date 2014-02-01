@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="9"/>
+    <General>
+      <Flags>
+        <MainUnitHasUsesSectionForAllUnits Value="False"/>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+        <LRSInOutputDirectory Value="False"/>
+      </Flags>
+      <SessionStorage Value="InIDEConfig"/>
+      <MainUnit Value="0"/>
+    </General>
+    <BuildModes Count="1">
+      <Item1 Name="default" Default="True"/>
+    </BuildModes>
+    <RequiredPackages Count="2">
+      <Item1>
+        <PackageName Value="castle_window"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="castle_base"/>
+      </Item2>
+    </RequiredPackages>
+    <Units Count="1">
+      <Unit0>
+        <Filename Value="androiddemo_standalone.lpr"/>
+        <IsPartOfProject Value="True"/>
+      </Unit0>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <Parsing>
+      <SyntaxOptions>
+        <CStyleMacros Value="True"/>
+      </SyntaxOptions>
+    </Parsing>
+    <CodeGeneration>
+      <Checks>
+        <IOChecks Value="True"/>
+      </Checks>
+      <Optimizations>
+        <OptimizationLevel Value="2"/>
+      </Optimizations>
+    </CodeGeneration>
+    <Other>
+      <Verbosity>
+        <ShowHints Value="False"/>
+      </Verbosity>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="6">
+      <Item1>
+        <Name Value="ECodetoolError"/>
+      </Item1>
+      <Item2>
+        <Name Value="EFOpenError"/>
+      </Item2>
+      <Item3>
+        <Name Value="BreakIsNodePresent"/>
+      </Item3>
+      <Item4>
+        <Name Value="BreakTryFindNode"/>
+      </Item4>
+      <Item5>
+        <Name Value="BreakFirstViewpointFound"/>
+      </Item5>
+      <Item6>
+        <Name Value="BreakMainLightForShadows"/>
+      </Item6>
+    </Exceptions>
+  </Debugging>
+</CONFIG>
