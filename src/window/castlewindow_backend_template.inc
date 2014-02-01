@@ -112,7 +112,7 @@ begin
   { TODO (destroy OpenGL context, hide window; counterpart to OpenBackend) }
 end;
 
-procedure TCastleWindowCustom.PostRedisplay;
+procedure TCastleWindowCustom.Invalidate;
 begin
   if not Closed then { TODO };
 end;
@@ -130,7 +130,7 @@ end;
 
 procedure TCastleWindowCustom.FlushRedisplay;
 begin
-  { TODO (redraw *now*, if PostRedisplay pending;
+  { TODO (redraw *now*, if Invalidate pending;
     it's valid (although non-optimal) to just always call DoRender here) }
 end;
 

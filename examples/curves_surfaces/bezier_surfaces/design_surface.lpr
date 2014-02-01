@@ -278,7 +278,7 @@ procedure Update(Container: TUIContainer);
     ControlPoints(CurrentCurve).L[CurrentPoint][Coord] +=
       MoveDir * Window.Fps.UpdateSecondsPassed * 50 * 0.01;
     (Surface.Curves[CurrentCurve] as TControlPointsCurve).UpdateControlPoints;
-    Window.PostRedisplay;
+    Window.Invalidate;
   end;
 
 begin
@@ -364,7 +364,7 @@ procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 
     CurrentCurve := BestCurve;
     CurrentPoint := BestPoint;
-    Window.PostRedisplay;
+    Window.Invalidate;
     Dragging := false;
   end;
 
@@ -444,7 +444,7 @@ begin
       UnProject(Window.MouseX, Window.Height - Window.MouseY, WinZ)));
     VectorAddTo1st(ControlPoints(CurrentCurve).L[CurrentPoint], Move);
     (Surface.Curves[CurrentCurve] as TControlPointsCurve).UpdateControlPoints;
-    Window.PostRedisplay;
+    Window.Invalidate;
   end;
 end;
 
@@ -458,7 +458,7 @@ var
 
 procedure TDummy.VisibleChange(ChangedCamera: TObject);
 begin
-  Window.PostRedisplay;
+  Window.Invalidate;
 
   { Once I thought that I should turn here Dragging off,
     since the selected point moved (and Camera.Matrix changed...)
@@ -561,7 +561,7 @@ begin
     102: SurfaceShow := shFill;
     else Exit;
   end;
-  Window.PostRedisplay;
+  Window.Invalidate;
 end;
 
 function CreateMainMenu: TMenu;

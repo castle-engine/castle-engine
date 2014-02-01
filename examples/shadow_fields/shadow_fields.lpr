@@ -253,12 +253,12 @@ begin
     if mbLeft in Window.MousePressed then
     begin
       NavigatorData[Navigator].Pos := Vector3Single(X, Y, 0);
-      Window.PostRedisplay;
+      Window.Invalidate;
     end else
     if mbRight in Window.MousePressed then
     begin
       NavigatorData[Navigator].Scale := Sqrt(Sqr(X) + Sqr(Y));
-      Window.PostRedisplay;
+      Window.Invalidate;
     end;
   end;
 end;
@@ -552,7 +552,7 @@ begin
     200: Window.Close;
     else Exit;
   end;
-  Window.PostRedisplay;
+  Window.Invalidate;
 end;
 
 var

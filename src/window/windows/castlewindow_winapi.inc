@@ -783,10 +783,10 @@ begin
 
   { robimy OpenWindowsAdd PRZED ShowWindow bo ShowWindow wywoluje WinProc
     z message'm kazacym nam sie odmalowac. Wiec zeby przetworzyc tego messaga
-    (ktory powoduje po prostu PostRedisplay) nasze okienko musi byc
-    zarejestrowane w Application.OpenWindows. Dlaczego nie zrobic po prostu PostRedisplay ?
+    (ktory powoduje po prostu Invalidate) nasze okienko musi byc
+    zarejestrowane w Application.OpenWindows. Dlaczego nie zrobic po prostu Invalidate ?
     Tak jest porzadniej, no i w ten sposob wiem DLACZEGO to dziala, a nie tylko
-    ze "dziala kiedy wywolamy PostRedisplay". }
+    ze "dziala kiedy wywolamy Invalidate". }
   Application.OpenWindowsAdd(Self);
 
   if Visible then

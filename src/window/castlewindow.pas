@@ -893,9 +893,9 @@ type
       =raNotAllowed and FirstTime = false then it's useless to call here
       EventResize).
 
-      Remember: this function does not automatically call PostRedisplay.
+      Remember: this function does not automatically call Invalidate.
       You must make sure that soon after changing size of the window
-      you will call DoRender (e.g. you can call PostRedisplay after
+      you will call DoRender (e.g. you can call Invalidate after
       calling DoResize; but usually (under WinAPI, Xlib, GTK)
       it's not needed, i.e. WinAPI, Xlib, and GTK all take care of this
       automatically). }
@@ -913,10 +913,10 @@ type
 
       - Take care of AutoRedisplay, like
 
-          @code(if AutoRedisplay then PostRedisplay;)
+          @code(if AutoRedisplay then Invalidate;)
 
         So specific CastleWindow backends need not to worry about
-        AutoRedisplay. They only have to implement PostRedisplay. }
+        AutoRedisplay. They only have to implement Invalidate. }
     procedure DoRender;
 
     { DoKeyDown/Up: pass here key that is pressed down or released up.
@@ -1453,10 +1453,10 @@ end;
       Called when window contents must be redrawn,
       e.g. after creating a window, after resizing a window, after uncovering
       the window etc. You can also request yourself a redraw of the window
-      by the PostRedisplay method, which will cause this event to be called
+      by the Invalidate method, which will cause this event to be called
       at nearest good time.
 
-      Note that calling PostRedisplay while in EventRender (OnRender) is not ignored.
+      Note that calling Invalidate while in EventRender (OnRender) is not ignored.
       It means that in a short time next EventRender (OnRender) will be called. }
     property OnRender: TContainerEvent read GetOnRender write SetOnRender;
 
@@ -1617,7 +1617,7 @@ end;
     property OnDropFiles: TDropFilesFunc read FOnDropFiles write FOnDropFiles;
 
     { Should we automatically redraw the window all the time,
-      without a need for PostRedisplay call.
+      without a need for Invalidate call.
       If @true, window will behave like a redraw is always needed,
       and EventRender (OnRender) will be always called as often as posible.
       This may be a waste of OS resources, so don't use it, unless
@@ -1869,12 +1869,10 @@ end;
       Call to Close is ignored if window is already Closed. }
     procedure Close(QuitWhenLastWindowClosed: boolean = true);
 
-    { See TUIContainer.Invalidate. }
-    procedure PostRedisplay;
+    { @deprecated Deprecated name for @link(Invalidate). }
+    procedure PostRedisplay; deprecated;
 
-    { Equivalent to TCastleWindow.PostRedisplay. Defined for consistency
-      with TCastleControl.Invalidate and TUIContainer.Invalidate.
-      TODO: deprecate PostRedisplay name. }
+    { See TUIContainer.Invalidate. }
     procedure Invalidate;
 
     { Force redraw of OpenGL area @italic(right now),
@@ -1882,14 +1880,14 @@ end;
 
       If we know we should redraw a window (for example, because window
       manager just said that window is brought to front of the desktop,
-      or because you called PostRedisplay) then we will redraw
+      or because you called Invalidate) then we will redraw
       the window @italic(right now). This method will directly
       call EventBeforeRender (OnBeforeRender), EventRender
       (OnRender), flush OpenGL commands, swap buffers and such.
 
       You really should not use this method too often. It's best to leave
       to this unit's internals decision when the redraw should happen,
-      and allow us to redraw only once even if you called PostRedisplay
+      and allow us to redraw only once even if you called Invalidate
       many times in a short time.
 
       The one valid reason for using this function is when you need
@@ -2285,8 +2283,8 @@ end;
     procedure DoTimer;
     { @groupEnd }
   public
-    { Simply calls PostRedisplay on all items. }
-    procedure PostRedisplay;
+    { Simply calls Invalidate on all items. }
+    procedure Invalidate;
   end;
 
   { Application, managing all open TCastleWindowCustom (OpenGL windows).
@@ -2538,7 +2536,7 @@ end;
 
       Do not assume too much about message processing internals.
       For example, not all ProcessMessage calls cause redraw, even if redraw
-      is requested by PostRedisplay. When we have messages to process,
+      is requested by Invalidate. When we have messages to process,
       we generally don't call redraw or even OnUpdate.
 
       @param(WaitForMessage If @true (and some other conditions are met,
@@ -3017,7 +3015,7 @@ end;
 procedure TCastleWindowCustom.SetAutoRedisplay(value: boolean);
 begin
   fAutoRedisplay := value;
-  if value and (not Closed) then PostRedisplay;
+  if value and (not Closed) then Invalidate;
 end;
 
 procedure TCastleWindowCustom.ReleaseAllKeysAndMouse;
@@ -3169,7 +3167,7 @@ begin
       glViewport(Rect);
 
     if DoubleBuffer then SwapBuffers else glFlush;
-    if AutoRedisplay then PostRedisplay;
+    if AutoRedisplay then Invalidate;
   finally Fps._RenderEnd end;
 
   {$ifdef CASTLE_WINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors('End of TCastleWindowCustom.DoRender'); {$endif}
@@ -3938,9 +3936,9 @@ begin
   Result := not Closed;
 end;
 
-procedure TCastleWindowCustom.Invalidate;
+procedure TCastleWindowCustom.PostRedisplay;
 begin
-  PostRedisplay;
+  Invalidate;
 end;
 
 function TCastleWindowCustom.GetRenderStyle: TRenderStyle;
@@ -4143,11 +4141,11 @@ end;
 
 { TWindowList ------------------------------------------------------------ }
 
-procedure TWindowList.PostRedisplay;
+procedure TWindowList.Invalidate;
 var
   i: Integer;
 begin
-  for i := 0 to Count - 1 do Items[i].PostRedisplay;
+  for i := 0 to Count - 1 do Items[i].Invalidate;
 end;
 
 procedure TWindowList.DoUpdate;

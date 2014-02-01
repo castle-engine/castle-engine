@@ -92,7 +92,7 @@ begin
   Window.AutoRedisplay := true;
   Window.Cursor := mcWait;
   { To actually draw progress start. }
-  Window.PostRedisplay;
+  Window.Invalidate;
   Window.FlushRedisplay;
   Application.ProcessMessage(false, false);
 end;

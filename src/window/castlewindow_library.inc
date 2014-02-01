@@ -97,7 +97,7 @@ begin
   { Nothing to do. }
 end;
 
-procedure TCastleWindowCustom.PostRedisplay;
+procedure TCastleWindowCustom.Invalidate;
 begin
   if Assigned(LibraryCallbackProc) then  // tell the parent window to repaint
     LibraryCallbackProc(ecgelibNeedsDisplay, 0, 0);

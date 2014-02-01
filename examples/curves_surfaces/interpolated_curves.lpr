@@ -129,7 +129,7 @@ procedure SetApproxCurve; forward;
     releases SceneManager.Camera. This will cause SceneManager to set
     ApplyProjectionNeeded := true, and next ApplyProjection will set
     camera and projection suitable for current BoundingBox.
-  Window.PostRedisplay;
+  Window.Invalidate;
 
   References to NewX/Y/ZFunction will be copied, so do NOT Free
   NewX/Y/ZFunction yourself after calling this procedure. }
@@ -146,12 +146,12 @@ begin
 
   SceneManager.Camera.Free;
 
-  Window.PostRedisplay;
+  Window.Invalidate;
 end;
 
 { Frees ApproxCurve,
   Creates ApproxCurve (based on ApproxCurveXxx variables and PreciseCurve)
-  Window.PostRedisplay; }
+  Window.Invalidate; }
 procedure SetApproxCurve;
 begin
   FreeAndNil(ApproxCurve);
@@ -159,7 +159,7 @@ begin
     PreciseCurve, ApproxCurveControlPointsCount);
   SceneManager.Items.Add(ApproxCurve);
 
-  Window.PostRedisplay;
+  Window.Invalidate;
 end;
 
 { TStatusText ---------------------------------------------------------------- }
@@ -343,7 +343,7 @@ begin
          end;
     else raise EInternalError.Create('not impl menu item');
   end;
-  Window.PostRedisplay;
+  Window.Invalidate;
 end;
 
 function CreateMainMenu: TMenu;

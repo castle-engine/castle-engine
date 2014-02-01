@@ -404,7 +404,7 @@ SIGNAL_GLAREA_BEGIN
     any more expose events.
 
     But: when AutoRedisplay := true (or a similiar situation,
-    we're constantly doing PostRedisplay) it is not so safe to do this
+    we're constantly doing Invalidate) it is not so safe to do this
     because it is possible then that EVERY event will have Event^.Count > 0.
     I.e. we may not process expose events fast enough, and there always
     will be some expose event in queue when another expose event arrives,
@@ -412,7 +412,7 @@ SIGNAL_GLAREA_BEGIN
 
     Actually, GDK does some exposure events compression itself.
     I don't know what exactly this means. But I guess that
-    stupid PostRedisplay calls will be ignored, so new expose events will be
+    stupid Invalidate calls will be ignored, so new expose events will be
     added to queue only when no other expose events exist there.
     So every event will have Event^.Count = 0. But this STILL means that
     checking here is (Event^.Count > 0) is useless !
@@ -422,7 +422,7 @@ SIGNAL_GLAREA_BEGIN
        Writeln('Have Expose event with Event.Count = ', Event.Count);
   }
 
-  PostRedisplay;
+  Invalidate;
 
   Result := g_true;
 SIGNAL_GLAREA_END;
@@ -757,7 +757,7 @@ begin
  gdk_gl_drawable_swap_buffers(GLDrawable);
 end;
 
-procedure TCastleWindowCustom.PostRedisplay;
+procedure TCastleWindowCustom.Invalidate;
 begin
   { We track RedisplayPosted ourselves, without GTK gtk_widget_queue_draw.
     This makes things simpler. }

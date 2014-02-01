@@ -724,7 +724,7 @@ begin
           ExportToX3D(URL, Item.IntData = 1001);
       end;
   end;
-  Window.PostRedisplay;
+  Window.Invalidate;
 end;
 
 function CreateMainMenu: TMenu;

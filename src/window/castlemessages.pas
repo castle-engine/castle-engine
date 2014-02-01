@@ -318,7 +318,7 @@ begin
     for Button in AButtons do
       Window.Controls.InsertFront(Button);
     Window.Controls.InsertBack(Dialog);
-    Window.PostRedisplay;
+    Window.Invalidate;
     { WaitForMessage = false is necessary, otherwise SecondsPassed
       for update would be large. }
     repeat Application.ProcessMessage(false, true) until Dialog.Answered;

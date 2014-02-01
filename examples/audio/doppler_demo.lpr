@@ -70,7 +70,7 @@ begin
     SoundPosition := Vector3Single(NewX, Window.Height - NewY);
     if Sound <> nil then
       Sound.Position := SoundPosition * ALDistanceScaling;
-    Window.PostRedisplay;
+    Window.Invalidate;
   end;
 end;
 

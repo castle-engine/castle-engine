@@ -185,7 +185,7 @@ begin
 
     else Exit;
   end;
-  Window.PostRedisplay;
+  Window.Invalidate;
 end;
 
 var

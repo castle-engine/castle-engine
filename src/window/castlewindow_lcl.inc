@@ -137,7 +137,7 @@ procedure TCastleWindowCustom.TGoodOpenGLControl.Paint;
 begin
   { We need to set Invalidated := false before OnPaint
     (that calls TCastleWindow.OnRender), because TCastleWindow guarantees
-    that calling TCastleWindow.PostRedisplay within OnRender will cause following
+    that calling TCastleWindow.Invalidate within OnRender will cause following
     redraw. }
   Invalidated := false;
   inherited;
@@ -544,7 +544,7 @@ begin
   MenuFinalize;
 end;
 
-procedure TCastleWindowCustom.PostRedisplay;
+procedure TCastleWindowCustom.Invalidate;
 begin
   if not Closed then OpenGLControl.Invalidate;
 end;

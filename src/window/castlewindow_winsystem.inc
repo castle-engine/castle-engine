@@ -17,8 +17,8 @@
 
 {$ifdef read_window_interface}
 private
-  { Track if some PostRedisplay was called (and not realized yet by
-    DoRender call). PostRedisplay only sets this, leaving actually
+  { Track if some Invalidate was called (and not realized yet by
+    DoRender call). Invalidate only sets this, leaving actually
     calling of FlushRedisplay for later.
 
     Note: Xlib program should always wait for the first Expose event before
@@ -32,7 +32,7 @@ private
 
   { FlushRedisplay2 works exactly like FlushRedisplay, but additionally
     it returns czy rzeczywiscie zaszlo odswiezenie (true)
-    czy tez nie wykryto takiej potrzeby (nie bylo zaleglego PostRedisplay
+    czy tez nie wykryto takiej potrzeby (nie bylo zaleglego Invalidate
     ani komunikatu w rodzaju Expose od WindowManagera do wykonania) }
   function FlushRedisplay2: boolean;
 {$endif read_window_interface}
@@ -75,7 +75,7 @@ private
 
 { TCastleWindowCustom ----------------------------------------------------------------- }
 
-procedure TCastleWindowCustom.PostRedisplay;
+procedure TCastleWindowCustom.Invalidate;
 begin
   RedisplayPosted := true;
 end;
@@ -178,7 +178,7 @@ function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: bool
         if Window <> nil then
           case evtype of
             Expose: { XExposeEvent }
-               if event.xexpose.count = 0 then Window.PostRedisplay;
+               if event.xexpose.count = 0 then Window.Invalidate;
             (*MapNotify: needRedisplay := true; { XMapEvent } <- niepotrzebne *)
             KeyPress: Window.X_KeyPress(event.xkey);  { XKeyEvent }
             KeyRelease: Window.X_KeyRelease(event.xkey);
@@ -257,7 +257,7 @@ begin
            nie wykonuje zadnych OnRender ktore sa przeciez najbardziej
            opozniajaca czescia programu. W rezultacie wykonywanych jest
            mnostwo razy OnUpdate ktore, mimo ze zmieniaja jakas zmienna
-           i wywoluja PostRedisplay to jednak czekaja sporo na
+           i wywoluja Invalidate to jednak czekaja sporo na
            spowodowane przez siebie redisplay (bo ciagle zamiast redisplay'a
            przetwarzamy ruchy myszka). Wiec aby OnUpdate byly wywolywane
            mniej wiecej z taka sama czestotliwoscia co OnRender'y
@@ -265,7 +265,7 @@ begin
            samych OnRender'ow.
          - gdybysmy wywolywali OnUpdate dopiero do ponizszych drawach
            jezeli not WasAnyRendering to z kolei zdarzenia OnRender
-           (ktore np. same sobie juz wywoluja PostRedisplay) moglyby
+           (ktore np. same sobie juz wywoluja Invalidate) moglyby
            hamowac wywolywanie zdarzen OnUpdate.
            A tego nie chcemy - patrz komentarze w interfejsie,
            nadrzednym celem jest by OnUpdate bylo wykonywane mniej

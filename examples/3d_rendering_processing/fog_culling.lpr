@@ -99,7 +99,7 @@ begin
         FogNode.FdVisibilityRange.Send(30) else
         FogNode.FdVisibilityRange.Send(0);
 
-    Window.PostRedisplay;
+    Window.Invalidate;
   end;
 end;
 

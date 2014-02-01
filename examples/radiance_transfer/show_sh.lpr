@@ -112,7 +112,7 @@ begin
     20: LM := ChangeIntCycle(LM, +1, MaxSHBasis - 1);
     else Exit;
   end;
-  Window.PostRedisplay;
+  Window.Invalidate;
 end;
 
 var

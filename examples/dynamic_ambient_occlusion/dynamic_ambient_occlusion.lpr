@@ -793,12 +793,12 @@ begin
   if Window.Pressed.Characters['s'] then
   begin
     ShadowScale *= Power(1.1, Window.Fps.UpdateSecondsPassed * 20);
-    Window.PostRedisplay;
+    Window.Invalidate;
   end;
   if Window.Pressed.Characters['S'] then
   begin
     ShadowScale *= Power(1/1.1, Window.Fps.UpdateSecondsPassed * 20);
-    Window.PostRedisplay;
+    Window.Invalidate;
   end;
 end;
 
@@ -873,7 +873,7 @@ begin
     else Exit;
   end;
 
-  Window.PostRedisplay;
+  Window.Invalidate;
 end;
 
 begin

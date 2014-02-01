@@ -229,7 +229,7 @@ begin
   ContextDestroy;
 end;
 
-procedure TCastleWindowCustom.PostRedisplay;
+procedure TCastleWindowCustom.Invalidate;
 begin
   { no point in doing anything here, we redraw every frame }
   // if not Closed then { };

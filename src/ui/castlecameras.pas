@@ -2138,7 +2138,7 @@ begin
 
   { If given RotationsAnim component is zero, no need to change current Rotations.
     What's more important, this avoids the need to call VisibleChange,
-    so things like PostRedisplay will not be continously called when
+    so things like Invalidate will not be continously called when
     model doesn't rotate.
 
     We check using exact equality <> 0, this is Ok since the main point is to
@@ -3874,7 +3874,7 @@ begin
 
           { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
             ScheduleVisibleChange - zmienilismy swoje wlasciwosci, moze sa one np. gdzies
-            wypisywane w oknie na statusie i okno potrzebuje miec PostRedisplay po zmianie
+            wypisywane w oknie na statusie i okno potrzebuje miec Invalidate po zmianie
             Move*Speed ?.
 
             How to apply SecondsPassed here ?

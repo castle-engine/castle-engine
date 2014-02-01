@@ -104,7 +104,7 @@ begin
   Inc(StepNum);
   if StepNum mod StepsToRedisplay = 0 then
   begin
-    Window.PostRedisplay;
+    Window.Invalidate;
     Application.ProcessAllMessages;
     { Since we use TCastleWindowDemo, user is able to close the window by
       pressing Escape. In this case we want to break the curve generation
@@ -171,7 +171,7 @@ begin
       HilbertCurve(InitialOrient, InitialAngle, Level, @Step, nil);
 
     { show the window }
-    Window.PostRedisplay;
+    Window.Invalidate;
     Window.OnCloseQuery := nil;
     Application.Run;
   finally FreeAndNil(CurveImage) end;

@@ -161,7 +161,7 @@ type
         @item(We save/restore TWindowState.)
 
         @item(OpenGL context connected to this window is also made current
-          during constructor and destructor. Also, TCastleWindowCustom.PostRedisplay
+          during constructor and destructor. Also, TCastleWindowCustom.Invalidate
           is called (since new callbacks, as well as original callbacks,
           probably want to redraw window contents.))
 
@@ -393,7 +393,7 @@ begin
 
  SimulateReleaseAll;
 
- Window.PostRedisplay;
+ Window.Invalidate;
 
  if AWindow is TCastleWindowCustom then
  begin
@@ -441,7 +441,7 @@ begin
       for Btn in Window.MousePressed do
         Window.Container.EventPress(InputMouseButton(Btn));
 
-    Window.PostRedisplay;
+    Window.Invalidate;
 
     Window.Fps.ZeroNextSecondsPassed;
   end;
