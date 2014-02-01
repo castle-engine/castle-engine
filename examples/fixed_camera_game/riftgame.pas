@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2013 Michalis Kamburelis.
+  Copyright 2007-2014 Michalis Kamburelis.
 
   This file is part of "the rift".
 

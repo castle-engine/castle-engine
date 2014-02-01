@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2013 Jan Adamec, Michalis Kamburelis.
+  Copyright 2008-2014 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 

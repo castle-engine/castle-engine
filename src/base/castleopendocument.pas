@@ -1,5 +1,5 @@
 {
-  Copyright 2012-2013 Michalis Kamburelis. and Lazarus developers.
+  Copyright 2012-2014 Michalis Kamburelis. and Lazarus developers.
 
   This file is part of "Castle Game Engine".
 
