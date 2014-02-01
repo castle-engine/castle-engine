@@ -33,14 +33,18 @@ const
   DefaultLimitFPS = 100.0;
 
 type
-  { OpenGL control, with a couple of extensions for "Castle Game Engine".
-    In particular it adds @link(TCastleControlCustom.Controls) to manage our
-    controls. A descendant TCastleControl provides ready
+  { OpenGL control, with extensions for "Castle Game Engine", including
+    @link(Controls) list for TUIControl instances.
+    Use a descendant TCastleControl to have a ready
     @link(TCastleControl.SceneManager) for 3D world.
 
-    Extends TOpenGLControl with various utilities:
+    This extends TOpenGLControl, adding various features:
 
     @unorderedList(
+      @item(@link(Controls) list where you can easily add TUIControl instances
+        (like TCastleOnScreenMenu, TCastleButton and more).
+        We will pass events to these controls, draw them etc.)
+
       @item(Continously called @link(DoUpdate) method, that allows to handle
         TUIControl.Update. This is something different than LCL "idle" event,
         as it's guaranteed to be run continously, even when your application
