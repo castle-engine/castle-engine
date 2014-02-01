@@ -562,8 +562,6 @@ begin
           SceneForShadow.Load(Scene.RootNode, false);
 
           SceneURL := S;
-          { refresh projection matrix, since Scene.BoundingBox changed }
-          Window.Container.EventResize;
           { reinit camera, since Scene.BoundingBox changed }
           (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
         end;

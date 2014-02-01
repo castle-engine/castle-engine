@@ -146,8 +146,8 @@ type
   protected
     Window: TCastleWindowCustom;
   private
-    oldWinState: TWindowState;
-    oldWinWidth, oldWinHeight: integer;
+    OldState: TWindowState;
+    OldWidth, OldHeight: integer;
     FFakeMouseDown: boolean;
     DisabledContextOpenClose: boolean;
   public
@@ -237,7 +237,6 @@ type
       private
         Background: TGLImage;
       public
-        function RenderStyle: TRenderStyle; override;
         procedure Render; override;
       end;
     var
@@ -386,9 +385,9 @@ begin
 
  Check(not Window.Closed, 'ModeGLEnter cannot be called on a closed CastleWindow.');
 
- oldWinState := TWindowState.Create(Window);
- oldWinWidth := Window.Width;
- oldWinHeight := Window.Height;
+ OldState := TWindowState.Create(Window);
+ OldWidth := Window.Width;
+ OldHeight := Window.Height;
 
  Window.MakeCurrent;
 
@@ -420,54 +419,41 @@ destructor TGLMode.Destroy;
 var
   btn: TMouseButton;
 begin
- oldWinState.SetState(Window);
- FreeAndNil(oldWinState);
+  OldState.SetState(Window);
+  FreeAndNil(OldState);
 
- if DisabledContextOpenClose then
-   TCastleWindowCustom(Window).Controls.EndDisableContextOpenClose;
+  if DisabledContextOpenClose then
+    TCastleWindowCustom(Window).Controls.EndDisableContextOpenClose;
 
- { Although it's forbidden to use TGLMode on Closed TCastleWindowCustom,
-   in destructor we must take care of every possible situation
-   (because this may be called in finally ... end things when
-   everything should be possible). }
- if not Window.Closed then
- begin
-   Window.MakeCurrent;
+  { Although it's forbidden to use TGLMode on Closed TCastleWindowCustom,
+    in destructor we must take care of every possible situation
+    (because this may be called in finally ... end things when
+    everything should be possible). }
+  if not Window.Closed then
+  begin
+    { fake resize event, and fake mouse presss events.
+      This way original callbacks are notified about current container state. }
+    Window.MakeCurrent;
+    if (OldWidth <> Window.Width) or
+       (OldHeight <> Window.Height) then
+      Window.Container.EventResize;
+    if FakeMouseDown then
+      for Btn in Window.MousePressed do
+        Window.Container.EventPress(InputMouseButton(Btn));
 
-   { (pamietajmy ze przed EventXxx musi byc MakeCurrent) - juz zrobilismy
-     je powyzej }
-   { Gdy byly aktywne nasze callbacki mogly zajsc zdarzenia co do ktorych
-     oryginalne callbacki chcialyby byc poinformowane. Np. OnResize. }
-   if (oldWinWidth <> Window.Width) or
-      (oldWinHeight <> Window.Height) then
-    Window.Container.EventResize;
+    Window.PostRedisplay;
 
-   { udajemy ze wszystkie przyciski myszy jakie sa wcisniete sa wciskane wlasnie
-     teraz }
-   if FakeMouseDown then
-     for btn := Low(btn) to High(btn) do
-       if btn in Window.mousePressed then
-         Window.Container.EventPress(InputMouseButton(btn));
+    Window.Fps.ZeroNextSecondsPassed;
+  end;
 
-   Window.PostRedisplay;
-
-   Window.Fps.ZeroNextSecondsPassed;
- end;
-
- inherited;
+  inherited;
 end;
 
 { TGLModeFrozenScreen ------------------------------------------------------ }
 
-function TGLModeFrozenScreen.TFrozenScreenControl.RenderStyle: TRenderStyle;
-begin
-  Result := rs2D;
-end;
-
 procedure TGLModeFrozenScreen.TFrozenScreenControl.Render;
 begin
   inherited;
-  if not GetExists then Exit;
   Background.Draw(ContainerRect);
 end;
 
@@ -480,7 +466,7 @@ begin
   { save screen, before changing state. }
   Control.Background := Window.SaveScreenToGL(true);
 
-  TWindowState.SetStandardState(AWindow, nil, @Resize2D, @NoClose);
+  TWindowState.SetStandardState(AWindow, nil, nil, @NoClose);
   AWindow.Controls.InsertFront(Control);
 
   { setup our 2d projection }

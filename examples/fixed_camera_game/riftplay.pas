@@ -297,9 +297,6 @@ begin
 
       Window.OnPress := @Press;
       Window.OnUpdate := @Update;
-      Window.RenderStyle := rs3D;
-
-      Window.Container.EventResize;
 
       UserQuit := false;
       repeat
