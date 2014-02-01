@@ -207,7 +207,7 @@ finally Progress.Fini; end;
       operation between Progress.Init and Fini will take only 0.001 of second..
 
       The only downside of DelayUserInterface is that it's not applicable
-      to an operations with very few steps (e.g. 1) that may take a long time.
+      to an operation with very few steps (e.g. 1) that may take a long time.
       If a time between Init and the first Update or Fini is really large,
       the progress bar will not be visible. }
     procedure Init(AMax: Cardinal; const ATitle: string;
