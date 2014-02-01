@@ -248,24 +248,20 @@ type
   TInputListener = class(TComponent)
   private
     FOnVisibleChange: TNotifyEvent;
-    FContainerWidth, FContainerHeight: Cardinal;
-    FContainerRect: TRectangle;
-    FContainerSizeKnown: boolean;
     FContainer: TUIContainer;
     FCursor: TMouseCursor;
     FOnCursorChange: TNotifyEvent;
     FExclusiveEvents: boolean;
     procedure SetCursor(const Value: TMouseCursor);
   protected
-    { Container (window containing the control) size, as known by this control,
-      undefined when ContainerSizeKnown = @false. This is simply collected at
-      ContainerResize calls here.
+    { Container sizes.
       @groupBegin }
-    property ContainerWidth: Cardinal read FContainerWidth;
-    property ContainerHeight: Cardinal read FContainerHeight;
-    property ContainerRect: TRectangle read FContainerRect;
-    property ContainerSizeKnown: boolean read FContainerSizeKnown;
+    function ContainerWidth: Cardinal;
+    function ContainerHeight: Cardinal;
+    function ContainerRect: TRectangle;
+    function ContainerSizeKnown: boolean;
     { @groupEnd }
+
     procedure SetContainer(const Value: TUIContainer); virtual;
     { Called when @link(Cursor) changed.
       In TUIControl class, just calls OnCursorChange. }
@@ -435,10 +431,7 @@ end;
 
       In other words, this is always called to let the control know
       the size of the container, if and only if the OpenGL context is
-      initialized.
-
-      In this class, this sets values of ContainerWidth, ContainerHeight,
-      ContainerRect, ContainerSizeKnown properties. }
+      initialized. }
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); virtual;
 
     { Container of this control. When adding control to container's Controls
@@ -522,7 +515,8 @@ end;
     { Prepare your resources, right before drawing. }
     procedure BeforeRender; virtual;
 
-    { Render a control. Called only when @link(GetExists).
+    { Render a control. Called only when @link(GetExists) and GLInitialized,
+      you can depend on it in the implementation of this method.
 
       Do's and don't's when implementing Render:
 
@@ -1397,10 +1391,46 @@ end;
 
 procedure TInputListener.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
 begin
-  FContainerWidth := AContainerWidth;
-  FContainerHeight := AContainerHeight;
-  FContainerRect := Rectangle(0, 0, AContainerWidth, AContainerHeight);
-  FContainerSizeKnown := true;
+end;
+
+function TInputListener.ContainerWidth: Cardinal;
+begin
+  if ContainerSizeKnown then
+    Result := Container.Width else
+    Result := 0;
+end;
+
+function TInputListener.ContainerHeight: Cardinal;
+begin
+  if ContainerSizeKnown then
+    Result := Container.Height else
+    Result := 0;
+end;
+
+function TInputListener.ContainerRect: TRectangle;
+begin
+  if ContainerSizeKnown then
+    Result := Container.Rect else
+    Result := TRectangle.Empty;
+end;
+
+function TInputListener.ContainerSizeKnown: boolean;
+begin
+  { Note that ContainerSizeKnown is calculated looking at current Container,
+    without waiting for ContainerResize. This way it works even before
+    we receive ContainerResize method, which may happen to be useful:
+    if you insert a SceneManager to a window before it's open (like it happens
+    with standard scene manager in TCastleWindow and TCastleControl),
+    and then you do something inside OnOpen that wants to render
+    this viewport (which may happen if you simply initialize a progress bar
+    without any predefined loading_image). Scene manager did not receive
+    a ContainerResize in this case yet (it will receive it from OnResize,
+    which happens after OnOpen).
+
+    See castle_game_engine/tests/testcontainer.pas for cases
+    when this is really needed. }
+
+  Result := (Container <> nil) and Container.GLInitialized;
 end;
 
 procedure TInputListener.SetCursor(const Value: TMouseCursor);

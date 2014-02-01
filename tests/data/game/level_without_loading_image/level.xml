@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+
+<level
+  name="level_without_loading_image"
+  type="Level"
+  scene="../scene.x3d"
+  title="My Level">
+</level>

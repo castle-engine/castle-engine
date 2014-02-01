@@ -54,7 +54,12 @@ procedure TGLContainer.EventRender;
     for I := Controls.Count - 1 downto 0 do
     begin
       C := Controls[I];
-      if C.GetExists then
+      { We check C.GLInitialized, because it may happen that a control
+        did not receive GLContextOpen yet,
+        in case we initialize some rendering from OnOpen.
+        See castle_game_engine/tests/testcontainer.pas for cases
+        when this is really needed. }
+      if C.GetExists and C.GLInitialized then
         case C.RenderStyle of
           rs2D: AnythingWants2D := true;
           { Set OpenGL state that may be changed carelessly, and has some
@@ -98,7 +103,7 @@ procedure TGLContainer.EventRender;
     for I := Controls.Count - 1 downto 0 do
     begin
       C := Controls[I];
-      if C.GetExists and (C.RenderStyle = rs2D) then
+      if C.GetExists and C.GLInitialized and (C.RenderStyle = rs2D) then
       begin
         { Set OpenGL state that may be changed carelessly, and has some
           guanteed value, for Render2d calls. }
