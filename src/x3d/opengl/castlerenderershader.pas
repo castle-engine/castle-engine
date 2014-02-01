@@ -2066,10 +2066,6 @@ var
   end;
 
   procedure EnableShaderMaterialFromColor;
-  {$ifdef OpenGLES}
-  var
-    I: Integer;
-  {$endif}
   begin
     if MaterialFromColor then
     begin
