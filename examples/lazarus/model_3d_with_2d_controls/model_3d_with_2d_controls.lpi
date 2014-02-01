@@ -7,6 +7,7 @@
       <Flags>
         <LRSInOutputDirectory Value="False"/>
       </Flags>
+      <SessionStorage Value="InIDEConfig"/>
       <MainUnit Value="0"/>
     </General>
     <VersionInfo>
@@ -42,14 +43,11 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="4">
+    <Units Count="2">
       <Unit0>
         <Filename Value="model_3d_with_2d_controls.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="model_3d_with_2d_controls"/>
-        <TopLine Value="1"/>
-        <CursorPos X="39" Y="10"/>
-        <UsageCount Value="35"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -58,28 +56,8 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainF"/>
-        <IsVisibleTab Value="True"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="52"/>
-        <CursorPos X="10" Y="30"/>
-        <UsageCount Value="35"/>
       </Unit1>
-      <Unit2>
-        <Filename Value="..\..\..\src\ui\opengl\castleonscreenmenu.pas"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="931"/>
-        <CursorPos X="54" Y="926"/>
-        <UsageCount Value="10"/>
-      </Unit2>
-      <Unit3>
-        <Filename Value="..\..\..\src\components\castlecontrol.pas"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="24"/>
-        <CursorPos X="1" Y="42"/>
-        <UsageCount Value="10"/>
-      </Unit3>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
@@ -120,5 +98,4 @@
       </Item4>
     </Exceptions>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>
