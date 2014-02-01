@@ -37,7 +37,7 @@ const
 var
   Transform: array [0 .. XCount - 1, 0 .. YCount - 1] of TTransformNode;
 
-procedure Update(Window: TCastleWindowBase);
+procedure Update(Container: TUIContainer);
 var
   I, J: Integer;
 begin

@@ -102,6 +102,10 @@ implementation
 
 uses CastleVectors, CastleUtils;
 
+{ Avoid fftw_execute_dft, fake it by simply copying.
+  This is to avoid mysterious fftw bugs. }
+{ $define FAKE_FFT_EXECUTE}
+
 procedure fftw_execute_dft(plan:fftw_plan_single; i, o:Pcomplex_single);
   cdecl; external fftwlib name 'fftwf_execute_dft';
 
@@ -175,11 +179,16 @@ begin
   end;
 
   { Execute plans to convert ImageComplex to ImageF }
+  {$ifdef FAKE_FFT_EXECUTE}
+  for Color := 0 to 2 do
+    Move(FImageComplex[Color]^, FImageF[Color]^, SizeOf(complex_single) * Size);
+  {$else}
   for Color := 0 to 2 do
     { TODO: why does simple fftw_execute fail with SIGSEGV?
       The pointers in FImageComplex and FImageF should be constant?
     fftw_execute(PlanDFT[Color]); }
     fftw_execute_dft(PlanDFT[Color], FImageComplex[Color], FImageF[Color]);
+  {$endif}
 end;
 
 procedure TImageFftw.ComplexToRGB(Complex: TImageComplex;
@@ -194,7 +203,8 @@ begin
   begin
     for Color := 0 to 2 do
     begin
-      Ptr^[Color] := Clamped(Round(Complex[Color]^.Re * Scale),
+      Ptr^[Color] := Clamped(Round(Complex[Color]^.Re
+        {$ifndef FAKE_FFT_EXECUTE} * Scale {$endif}),
         Low(Byte), High(Byte));
       Inc(Complex[Color]);
     end;
@@ -232,9 +242,14 @@ procedure TImageFftw.IDFT;
 var
   Color: Integer;
 begin
+  {$ifdef FAKE_FFT_EXECUTE}
+  for Color := 0 to 2 do
+    Move(FImageF[Color]^, FImageComplex[Color]^, SizeOf(complex_single) * Size);
+  {$else}
   { Execute plans to convert ImageF to ImageComplex }
   for Color := 0 to 2 do
     fftw_execute(PlanIDFT[Color]);
+  {$endif}
 
   { Copy ImageComplex to Image, also normalizing (dividing by Size)
     by the way. }

@@ -14,7 +14,7 @@
 }
 
 { A simple program using CastleWindow.
-  Demonstrates the use of MainMenu in TCastleWindowBase.
+  Demonstrates the use of MainMenu in TCastleWindowCustom.
 
   Shows
   - menu,
@@ -128,7 +128,7 @@ end;
 var
   ChangeableMenu: TMenu;
 
-procedure MenuClick(Sender: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 
   procedure ChangeChecked(Item: TMenuItemRadio);
   begin

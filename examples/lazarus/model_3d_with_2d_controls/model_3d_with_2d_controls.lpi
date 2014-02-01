@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -8,7 +8,6 @@
         <LRSInOutputDirectory Value="False"/>
       </Flags>
       <MainUnit Value="0"/>
-      <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <VersionInfo>
       <Language Value=""/>
@@ -27,7 +26,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <LaunchingApplication PathPlusParams="\usr\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
+        <LaunchingApplication PathPlusParams="\usr\bin\gnome-terminal -e &quot;$(LazarusDir)\tools\runwait.sh $(TargetCmdLine)&quot;"/>
       </local>
     </RunParams>
     <RequiredPackages Count="3">
@@ -43,7 +42,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="2">
+    <Units Count="4">
       <Unit0>
         <Filename Value="model_3d_with_2d_controls.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -60,73 +59,27 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="MainF"/>
         <IsVisibleTab Value="True"/>
-        <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="42"/>
-        <CursorPos X="47" Y="74"/>
+        <TopLine Value="52"/>
+        <CursorPos X="10" Y="30"/>
         <UsageCount Value="35"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="..\..\..\src\ui\opengl\castleonscreenmenu.pas"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="931"/>
+        <CursorPos X="54" Y="926"/>
+        <UsageCount Value="10"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="..\..\..\src\components\castlecontrol.pas"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="24"/>
+        <CursorPos X="1" Y="42"/>
+        <UsageCount Value="10"/>
+      </Unit3>
     </Units>
-    <JumpHistory Count="14" HistoryIndex="13">
-      <Position1>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="36" Column="18" TopLine="16"/>
-      </Position1>
-      <Position2>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="37" Column="18" TopLine="16"/>
-      </Position2>
-      <Position3>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="38" Column="18" TopLine="16"/>
-      </Position3>
-      <Position4>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="39" Column="18" TopLine="17"/>
-      </Position4>
-      <Position5>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="67" Column="22" TopLine="53"/>
-      </Position5>
-      <Position6>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="63" Column="74" TopLine="51"/>
-      </Position6>
-      <Position7>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="64" Column="74" TopLine="51"/>
-      </Position7>
-      <Position8>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="65" Column="74" TopLine="51"/>
-      </Position8>
-      <Position9>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="66" Column="74" TopLine="51"/>
-      </Position9>
-      <Position10>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="78" Column="29" TopLine="72"/>
-      </Position10>
-      <Position11>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="94" Column="47" TopLine="74"/>
-      </Position11>
-      <Position12>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="95" Column="1" TopLine="80"/>
-      </Position12>
-      <Position13>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="93" Column="1" TopLine="79"/>
-      </Position13>
-      <Position14>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="62" Column="30" TopLine="32"/>
-      </Position14>
-    </JumpHistory>
+    <JumpHistory Count="0" HistoryIndex="-1"/>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>

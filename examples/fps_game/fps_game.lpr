@@ -299,7 +299,7 @@ var
 
 { Window callbacks ----------------------------------------------------------- }
 
-procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
+procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 begin
   { We simulate button presses on some key presses. There is no automatic
     mechanism to assign key shortcut to a TCastleButton right now.
@@ -317,7 +317,7 @@ begin
     Buttons.AddItemButtonClick(nil);
 end;
 
-procedure Resize(Window: TCastleWindowBase);
+procedure Resize(Container: TUIContainer);
 begin
   ExtraViewport.Width := Window.Height div 5;
   ExtraViewport.Height := 3 * ExtraViewport.Width;

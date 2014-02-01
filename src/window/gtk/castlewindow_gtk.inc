@@ -112,7 +112,7 @@ protected
     You can e.g. create in MakeGLAreaContainer some complex container,
     put there many various GTK widgets, connect your signals to them,
     and then put GLArea inside it.
-    This way using this function you can extend window TCastleWindowBase
+    This way using this function you can extend window TCastleWindowCustom
     with whatever GTK GUI you like.
 
     The only requirement is that GLArea widget must be placed
@@ -151,17 +151,17 @@ private
 
   { Find in OpenWindows window with WindowGtk = given seekWindowGtk.
     Return nil if no such window is found. }
-  function TryFindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowBase;
+  function TryFindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowCustom;
   { Find in OpenWindows window with GLAreaGtk = given seekGLAreaGtk.
     Return nil if no such window is found. }
-  function TryFindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowBase;
+  function TryFindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowCustom;
 
   { Same as TryFindWindowGtk, but exception EInternalError when
     no such window is found. }
-  function FindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowBase;
+  function FindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowCustom;
   { Same as TryFindGLAreaGtk, but exception EInternalError when
     no such window is found. }
-  function FindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowBase;
+  function FindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowCustom;
 
   { This must be constantly called.
     We use it for two tasks currently:
@@ -197,8 +197,8 @@ private
   function XScreen: Integer;
   {$endif}
 public
-  { Set XDisplay name, this will be used for all TCastleWindowBase
-    that will be subsequently initialized by TCastleWindowBase.Open.
+  { Set XDisplay name, this will be used for all TCastleWindowCustom
+    that will be subsequently initialized by TCastleWindowCustom.Open.
 
     Note that this is exposed by GTK even for non-XWindows platforms,
     but I don't know what it does there. }
@@ -592,10 +592,10 @@ SIGNAL_GLAREA_END;
 procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
   data: gpointer); cdecl;
 var MenuItem: TMenuItem;
-    Window: TCastleWindowBase;
+    Window: TCastleWindowCustom;
 begin
  MenuItem := MenuItemFromSmallId( PtrInt(Data) );
- Window := TCastleWindowBase( gtk_object_get_user_data(GTK_OBJECT(AMenuItemGtk)) );
+ Window := TCastleWindowCustom( gtk_object_get_user_data(GTK_OBJECT(AMenuItemGtk)) );
 
  if MenuItem is TMenuItemChecked then
  begin
@@ -650,9 +650,9 @@ SIGNAL_WINDOW_BEGIN
   Result := g_false;
 SIGNAL_WINDOW_END;
 
-{ TCastleWindowBase ------------------------------------------------------------ }
+{ TCastleWindowCustom ------------------------------------------------------------ }
 
-procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindowCustom.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -662,13 +662,13 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
+procedure TCastleWindowCustom.SetCustomCursor(const Value: TRGBAlphaImage);
 begin
   FCustomCursor := Value;
   { TODO }
 end;
 
-procedure TCastleWindowBase.UpdateCursor;
+procedure TCastleWindowCustom.UpdateCursor;
 
   function CreateNoneCursor: PGdkCursor;
   const
@@ -726,7 +726,7 @@ procedure gdk_window_get_root_coords(Window: PGdkWindow;
   X, Y: GInt; RootX, RootY: PGInt); cdecl; external gtklib;
 {$endif}
 
-procedure TCastleWindowBase.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+procedure TCastleWindowCustom.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
 { With older GDK/GTK, you had to use XWarpPointer to position mouse.
   We still use it, for now, for GTK under Xlib --- this way we work
@@ -752,19 +752,19 @@ begin
 {$endif}
 end;
 
-procedure TCastleWindowBase.SwapBuffers;
+procedure TCastleWindowCustom.SwapBuffers;
 begin
  gdk_gl_drawable_swap_buffers(GLDrawable);
 end;
 
-procedure TCastleWindowBase.PostRedisplay;
+procedure TCastleWindowCustom.PostRedisplay;
 begin
   { We track RedisplayPosted ourselves, without GTK gtk_widget_queue_draw.
     This makes things simpler. }
   RedisplayPosted := true;
 end;
 
-procedure TCastleWindowBase.FlushRedisplay;
+procedure TCastleWindowCustom.FlushRedisplay;
 begin
   if RedisplayPosted then
   begin
@@ -777,14 +777,14 @@ begin
     gdk_window_process_updates(GTK_WIDGET(WindowGtk)^.Window, g_true); }
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowCustom.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
   if not Closed then
     gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(GetWholeCaption));
 end;
 
-procedure TCastleWindowBase.BackendMakeCurrent;
+procedure TCastleWindowCustom.BackendMakeCurrent;
 begin
  Assert(not Closed);
 
@@ -810,12 +810,12 @@ begin
  gdk_gl_drawable_gl_begin(GLDrawable, GLContext);
 end;
 
-function TCastleWindowBase.MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget;
+function TCastleWindowCustom.MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget;
 begin
  Result := GTK_WIDGET(GLArea);
 end;
 
-procedure TCastleWindowBase.OpenBackend;
+procedure TCastleWindowCustom.OpenBackend;
 
 { Notes about FullScreen implementation for GTK_2:
 
@@ -1096,7 +1096,7 @@ begin
  UpdateCursor;
 end;
 
-procedure TCastleWindowBase.CloseBackend;
+procedure TCastleWindowCustom.CloseBackend;
 begin
  { Do not unref here GLAreaGtk.
    GLAreaGtk is placed inside WindowGtk when we do
@@ -1150,11 +1150,11 @@ begin
  end;
 end;
 
-procedure TCastleWindowBase.CreateBackend;
+procedure TCastleWindowCustom.CreateBackend;
 begin
 end;
 
-{ TCastleWindowBase.*Dialog --------------------------------------------------- }
+{ TCastleWindowCustom.*Dialog --------------------------------------------------- }
 
 type
   { Data type for GtkDialogRun (both variants).
@@ -1202,7 +1202,7 @@ begin
   Data^.Answer := ResponseId;
 end;
 
-function TCastleWindowBase.GtkDialogRun(ADialog: PGtkWindow;
+function TCastleWindowCustom.GtkDialogRun(ADialog: PGtkWindow;
   ok_button, cancel_button: PGtkWidget): boolean;
 var
   Data: TDialogData;
@@ -1221,7 +1221,7 @@ begin
   { prepare Data }
   Data.Answered := false;
 
-  Mode := TGLModeFrozenScreen.Create(Self as TCastleWindowCustom { TODO hack });
+  Mode := TGLModeFrozenScreen.Create(Self);
   try
     gtk_widget_show(GTK_WIDGET(ADialog));
     while not Data.Answered do Application.ProcessMessage(true, true);
@@ -1230,7 +1230,7 @@ begin
   Result := Data.Answer = GTK_RESPONSE_ACCEPT;
 end;
 
-function TCastleWindowBase.GtkDialogRun(ADialog: PGtkDialog): gint;
+function TCastleWindowCustom.GtkDialogRun(ADialog: PGtkDialog): gint;
 var
   Data: TDialogData;
   Mode: TGLModeFrozenScreen;
@@ -1252,7 +1252,7 @@ begin
 
   Data.Answered := false;
 
-  Mode := TGLModeFrozenScreen.Create(Self as TCastleWindowCustom { TODO hack });
+  Mode := TGLModeFrozenScreen.Create(Self);
   try
     gtk_widget_show(GTK_WIDGET(ADialog));
     while not Data.Answered do Application.ProcessMessage(true, true);
@@ -1283,7 +1283,7 @@ begin
          (gtk_micro_version >= Micro) ));
 end;
 
-function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
+function TCastleWindowCustom.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
 { FileChooser is available only in GTK >= 2.4.
@@ -1451,7 +1451,7 @@ begin
   gtk_widget_destroy(GTK_WIDGET(Dialog));
 end;
 
-function TCastleWindowBase.ColorDialog(var Color: TVector3Single): boolean;
+function TCastleWindowCustom.ColorDialog(var Color: TVector3Single): boolean;
 var
   Dialog: PGtkColorSelectionDialog;
   GtkColor: array [0..3] of GDouble;
@@ -1485,7 +1485,7 @@ const
     Ord(GTK_MESSAGE_ERROR),
     { GTK_MESSAGE_OTHER, missing from FPC bindings } 4 );
 
-procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindowCustom.MessageOK(const S: string; const MessageType: TWindowMessageType);
 var
   Dialog: PGtkMessageDialog;
 begin
@@ -1496,7 +1496,7 @@ begin
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 end;
 
-function TCastleWindowBase.MessageYesNo(const S: string; const MessageType: TWindowMessageType): boolean;
+function TCastleWindowCustom.MessageYesNo(const S: string; const MessageType: TWindowMessageType): boolean;
 var
   Dialog: PGtkMessageDialog;
 begin
@@ -1507,7 +1507,7 @@ begin
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 end;
 
-procedure TCastleWindowBase.SetFullScreen(const Value: boolean);
+procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
 begin
   if FFullScreen <> Value then
   begin
@@ -1533,7 +1533,7 @@ procedure TCastleApplication.ProcessUpdates;
   procedure WindowsFlushRedisplay;
   var
     I: Integer;
-    Window: TCastleWindowBase;
+    Window: TCastleWindowCustom;
   begin
     I := 0;
     while I < OpenWindowsCount do
@@ -1566,7 +1566,7 @@ begin
   WindowsUpdateAndTimer;
 end;
 
-function TCastleApplication.TryFindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowBase;
+function TCastleApplication.TryFindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowCustom;
 var
   i: Integer;
 begin
@@ -1576,7 +1576,7 @@ begin
   Result := nil;
 end;
 
-function TCastleApplication.TryFindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowBase;
+function TCastleApplication.TryFindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowCustom;
 var
   i: Integer;
 begin
@@ -1586,14 +1586,14 @@ begin
   Result := nil;
 end;
 
-function TCastleApplication.FindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowBase;
+function TCastleApplication.FindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowCustom;
 begin
  Result := TryFindWindowGtk(seekWindowGtk);
  if Result = nil then raise EInternalError.Create(
    'No open window with such WindowGtk found');
 end;
 
-function TCastleApplication.FindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowBase;
+function TCastleApplication.FindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowCustom;
 begin
  Result := TryFindGLAreaGtk(seekGLAreaGtk);
  if Result = nil then raise EInternalError.Create(

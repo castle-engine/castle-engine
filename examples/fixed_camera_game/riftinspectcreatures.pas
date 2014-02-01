@@ -66,7 +66,7 @@ end;
 var
   StatusText: TStatusText;
 
-procedure Press(Sender: TCastleWindowBase; const Event: TInputPressRelease);
+procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 
   procedure ChangeState(NewState: TCreatureState);
   begin
@@ -93,7 +93,7 @@ begin
     end;
 end;
 
-procedure Update(Window: TCastleWindowBase);
+procedure Update(Container: TUIContainer);
 begin
   WorldTime += Window.Fps.UpdateSecondsPassed;
 end;
@@ -138,8 +138,6 @@ begin
 
       Window.OnPress := @Press;
       Window.OnUpdate := @Update;
-
-      Window.EventResize;
 
       UserQuit := false;
       repeat

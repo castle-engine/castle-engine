@@ -37,7 +37,7 @@ var
     LabelDeja, LabelDejaBW, LabelDejaLarge,
     LabelStylish, LabelStylishBW, LabelStylishLarge: TCastleLabel;
 
-procedure Resize(Window: TCastleWindowBase);
+procedure Resize(Container: TUIContainer);
 const
   Margin = 10;
 var

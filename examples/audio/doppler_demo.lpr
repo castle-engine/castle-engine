@@ -38,7 +38,7 @@ var
     or --no-sound command-line option is used. }
   Sound: TSound;
 
-procedure Render(Window: TCastleWindowBase);
+procedure Render(Container: TUIContainer);
 
   { Trivial visualization of a point. }
   procedure DrawPoint(const V: TVector3Single; const Color: TCastleColor);
@@ -56,14 +56,14 @@ begin
   DrawPoint(SoundPosition, White);
 end;
 
-procedure Timer(Window: TCastleWindowBase);
+procedure Timer(Container: TUIContainer);
 begin
   if Sound <> nil then
     Sound.Velocity := (SoundPosition - PreviousSoundPosition) * ALDistanceScaling;
   PreviousSoundPosition := SoundPosition;
 end;
 
-procedure MouseMove(Window: TCastleWindowBase; NewX, NewY: Integer);
+procedure MouseMove(Container: TUIContainer; NewX, NewY: Integer);
 begin
   if mbLeft in Window.MousePressed then
   begin

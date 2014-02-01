@@ -291,7 +291,7 @@ type
     property AlphaChannel: TAutoAlphaChannel
       read FAlphaChannel write SetAlphaChannel default acAuto;
     { Deprecated, use more flexible AlphaChannel instead. }
-    property Blending: boolean read GetBlending write SetBlending; deprecated;
+    property Blending: boolean read GetBlending write SetBlending stored false; deprecated;
 
     { Size of the image control.
 
@@ -324,6 +324,7 @@ type
 
   TCastleTouchCtlMode = (ctcmWalking, ctcmWalkWithSideRot, ctcmHeadRotation,
                          ctcmFlyUpdown, ctcmPanXY);
+  TCastleTouchPosition = (tpManual, tpLeft, tpRight);
 
   { Control for touch interfaces. Shows one "lever", that can be moved
     up/down/left/right, and controls the movement while Walking or Flying. }
@@ -333,16 +334,19 @@ type
     FLeverOffsetX: Integer;
     FLeverOffsetY: Integer;
     FDragStarted: boolean;
-    FSizeScale: single;
+    FPosition: TCastleTouchPosition;
+    function SizeScale: Single;
+    procedure SetPosition(const Value: TCastleTouchPosition);
+    { Update Left and Bottom based on Position and current Container size. }
+    procedure UpdateLeftBottom;
   public
-    constructor Create(AOwner: TComponent); override;
     procedure Render; override;
+    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
 
     { Size of this control, ignoring GetExists. }
     function Width: Cardinal;
     function Height: Cardinal;
     function Rect: TRectangle; override;
-    procedure SetSizeScale(const inContainer: IUIContainer);
 
     function PositionInside(const X, Y: Integer): boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
@@ -356,8 +360,8 @@ type
   published
     property TouchMode: TCastleTouchCtlMode
       read FTouchMode write SetTouchMode default ctcmWalking;
-    property SizeScale: single
-      read FSizeScale write FSizeScale default 0;
+    property Position: TCastleTouchPosition
+      read FPosition write SetPosition default tpManual;
   end;
 
   { Simple background fill. Using OpenGL GLClear, so unconditionally
@@ -1310,33 +1314,62 @@ end;
 
 { TCastleTouchControl ---------------------------------------------------------------- }
 
-constructor TCastleTouchControl.Create(AOwner: TComponent);
+function TCastleTouchControl.SizeScale: Single;
 begin
-  inherited;
-  FSizeScale := 0;
-end;
-
-procedure TCastleTouchControl.SetSizeScale(const inContainer: IUIContainer);
-begin
-  if inContainer <> nil then
-    FSizeScale := inContainer.Dpi / 96;
+  if Container <> nil then
+    Result := Container.Dpi / 96 else
+    Result := 1;
 end;
 
 function TCastleTouchControl.Width: Cardinal;
 begin
-  Result := Theme.Images[tiTouchCtlOuter].Width;
-  if FSizeScale>0 then Result := Round(Result*FSizeScale);
+  Result := Round(Theme.Images[tiTouchCtlOuter].Width  * SizeScale);
 end;
 
 function TCastleTouchControl.Height: Cardinal;
 begin
-  Result := Theme.Images[tiTouchCtlOuter].Height;
-  if FSizeScale>0 then Result := Round(Result*FSizeScale);
+  Result := Round(Theme.Images[tiTouchCtlOuter].Height * SizeScale);
 end;
 
 function TCastleTouchControl.Rect: TRectangle;
 begin
   Result := Rectangle(Left, Bottom, Width, Height);
+end;
+
+procedure TCastleTouchControl.SetPosition(const Value: TCastleTouchPosition);
+begin
+  if FPosition <> Value then
+  begin
+    FPosition := Value;
+    if GLInitialized then UpdateLeftBottom;
+  end;
+end;
+
+procedure TCastleTouchControl.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+begin
+  inherited;
+  UpdateLeftBottom;
+end;
+
+procedure TCastleTouchControl.UpdateLeftBottom;
+var
+  CtlBorder: Integer;
+begin
+  CtlBorder := Round(24 * Container.Dpi / 96);
+  case Position of
+    tpLeft:
+      begin
+        Left := CtlBorder;
+        Bottom := CtlBorder;
+        VisibleChange;
+      end;
+    tpRight:
+      begin
+        Left := ContainerWidth - Width - CtlBorder;
+        Bottom := CtlBorder;
+        VisibleChange;
+      end;
+  end;
 end;
 
 function TCastleTouchControl.PositionInside(const X, Y: Integer): boolean;
@@ -1346,9 +1379,9 @@ end;
 
 function TCastleTouchControl.MaxOffsetDist: Integer;
 begin
-  Result := (Theme.Images[tiTouchCtlOuter].Width -
-             Theme.Images[tiTouchCtlInner].Width) div 2;
-  if FSizeScale>0 then Result := Round(Result*FSizeScale);
+  Result := Round(SizeScale *
+    (Theme.Images[tiTouchCtlOuter].Width -
+     Theme.Images[tiTouchCtlInner].Width) / 2);
 end;
 
 procedure TCastleTouchControl.Render;
@@ -1386,11 +1419,8 @@ begin
 
   // draw lever
   InnerRect := Theme.Images[ImageInner].Rect; // rectangle at (0,0)
-  if FSizeScale>0 then
-  begin
-    InnerRect.Width := Round(InnerRect.Width*FSizeScale);
-    InnerRect.Height := Round(InnerRect.Height*FSizeScale);
-  end;
+  InnerRect.Width  := Round(InnerRect.Width  * SizeScale);
+  InnerRect.Height := Round(InnerRect.Height * SizeScale);
   InnerRect.Left   := Left   + (Width  - InnerRect.Width ) div 2 + LevOffsetTrimmedX;
   InnerRect.Bottom := Bottom + (Height - InnerRect.Height) div 2 - LevOffsetTrimmedY;
   Theme.Draw(InnerRect, ImageInner);

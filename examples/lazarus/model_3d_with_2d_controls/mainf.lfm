@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 274
+  Left = 235
   Height = 624
-  Top = 124
+  Top = 125
   Width = 1043
   ActiveControl = Browser
   Caption = 'Form1'
@@ -9,7 +9,7 @@ object Form1: TForm1
   ClientWidth = 1043
   OnCreate = FormCreate
   Position = poDesktopCenter
-  LCLVersion = '0.9.30'
+  LCLVersion = '1.1'
   object Browser: TCastleControl
     Left = 0
     Height = 624
@@ -26,8 +26,6 @@ object Form1: TForm1
     AutoSize = False
     OnClick = SampleButtonClick
     Caption = 'Sample clickable button on GL area.'
-    Toggle = False
-    Pressed = False
     ImageLayout = ilTop
     TUIControlPos_RealLeft = 10
     TUIControlPos_Design_Left = 152
@@ -52,8 +50,6 @@ object Form1: TForm1
     Height = 100
     AutoSize = False
     Caption = 'Image top'
-    Toggle = False
-    Pressed = False
     ImageLayout = ilTop
     TUIControlPos_Design_Left = 411
     TUIControlPos_Design_Top = 58
@@ -65,8 +61,6 @@ object Form1: TForm1
     Height = 100
     AutoSize = False
     Caption = 'Image bottom'
-    Toggle = False
-    Pressed = False
     ImageLayout = ilBottom
     TUIControlPos_RealLeft = 250
     TUIControlPos_Design_Left = 411
@@ -79,8 +73,6 @@ object Form1: TForm1
     Height = 100
     AutoSize = False
     Caption = 'Image left'
-    Toggle = False
-    Pressed = False
     TUIControlPos_RealLeft = 500
     TUIControlPos_Design_Left = 411
     TUIControlPos_Design_Top = 200
@@ -92,8 +84,6 @@ object Form1: TForm1
     Height = 100
     AutoSize = False
     Caption = 'Image right'
-    Toggle = False
-    Pressed = False
     ImageLayout = ilRight
     TUIControlPos_RealLeft = 750
     TUIControlPos_Design_Left = 411
@@ -105,8 +95,6 @@ object Form1: TForm1
     Width = 20
     Height = 20
     Caption = 'Image top'
-    Toggle = False
-    Pressed = False
     ImageLayout = ilTop
     TUIControlPos_Design_Left = 696
     TUIControlPos_Design_Top = 58
@@ -117,8 +105,6 @@ object Form1: TForm1
     Width = 20
     Height = 20
     Caption = 'Image bottom'
-    Toggle = False
-    Pressed = False
     ImageLayout = ilBottom
     TUIControlPos_RealLeft = 250
     TUIControlPos_Design_Left = 696
@@ -130,8 +116,6 @@ object Form1: TForm1
     Width = 250
     Height = 100
     Caption = 'Image left'
-    Toggle = False
-    Pressed = False
     TUIControlPos_RealLeft = 500
     TUIControlPos_Design_Left = 696
     TUIControlPos_Design_Top = 200
@@ -142,18 +126,16 @@ object Form1: TForm1
     Width = 20
     Height = 20
     Caption = 'Image right'
-    Toggle = False
-    Pressed = False
     ImageLayout = ilRight
     TUIControlPos_RealLeft = 750
     TUIControlPos_Design_Left = 696
     TUIControlPos_Design_Top = 272
   end
   object OnScreenMenu1: TCastleOnScreenMenu
-    PositionRelativeMenuX = prLowerBorder
-    PositionRelativeMenuY = prLowerBorder
-    PositionRelativeScreenX = prLowerBorder
-    PositionRelativeScreenY = prLowerBorder
+    PositionRelativeMenuX = prLow
+    PositionRelativeMenuY = prLow
+    PositionRelativeScreenX = prLow
+    PositionRelativeScreenY = prLow
     Items.Strings = (
       'one'
       'two'

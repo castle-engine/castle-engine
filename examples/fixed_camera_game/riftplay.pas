@@ -153,7 +153,7 @@ end;
 
 { rest ----------------------------------------------------------------------- }
 
-procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
+procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 var
   URL: string;
   RayOrigin, RayDirection, SelectedPoint: TVector3Single;
@@ -202,7 +202,7 @@ begin
   end;
 end;
 
-procedure Update(Window: TCastleWindowBase);
+procedure Update(Container: TUIContainer);
 var
   Remove: TRemoveType;
 begin
@@ -299,7 +299,7 @@ begin
       Window.OnUpdate := @Update;
       Window.RenderStyle := rs3D;
 
-      Window.EventResize;
+      Window.Container.EventResize;
 
       UserQuit := false;
       repeat

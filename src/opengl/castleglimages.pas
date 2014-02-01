@@ -37,7 +37,7 @@
       See TGLImage class and friends.)
 
     @item(Save the current OpenGL screen contents to our TCastleImage.
-      You usually use this through TCastleWindowBase.SaveScreen
+      You usually use this through TCastleWindowCustom.SaveScreen
       or TCastleControl.SaveScreen,
       based on SaveScreen_NoFlush in this unit.)
 
@@ -334,9 +334,9 @@ type
 
   The suffix "NoFlush" is there to remind you that this
   function grabs the @italic(current) buffer contents. Usually you want to
-  call something like @link(TCastleWindowBase.FlushRedisplay) right before
+  call something like @link(TCastleWindowCustom.FlushRedisplay) right before
   doing this. In practice, usually you don't want to use this function
-  --- instead use safer TCastleWindowBase.SaveScreen.
+  --- instead use safer TCastleWindowCustom.SaveScreen.
 
   Version with ImageClass can save to any image format from PixelsImageClasses.
 
@@ -872,7 +872,7 @@ type
         @item(tbNone: we will not capture screen contents to any texture
           at all. This is useful for rendering a screen that you want
           to manually capture to normal memory with glReadPixels
-          (see also SaveScreen_NoFlush in this unit or TCastleWindowBase.SaveScreen).
+          (see also SaveScreen_NoFlush in this unit or TCastleWindowCustom.SaveScreen).
           Be sure to capture the screen before RenderEnd.)
       )
 

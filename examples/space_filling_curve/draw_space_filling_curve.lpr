@@ -41,7 +41,7 @@ uses SysUtils, CastleWindow, CastleUtils, CastleGLUtils, CastleParameters,
   CastleKeysMouse, CastleColors;
 
 var
-  Window: TCastleWindowDemo;
+  Window: TCastleWindowCustom;
   CurveImage: TRGBImage;
 const
   CurveCol: TVector3Byte = (255, 255, 255);
@@ -49,7 +49,7 @@ const
 
 { CastleWindow callbacks ------------------------------------------------------- }
 
-procedure Render(Window: TCastleWindowBase);
+procedure Render(Container: TUIContainer);
 var
   GLImage: TGLImage;
 begin
@@ -63,7 +63,7 @@ begin
   finally FreeAndNil(GLImage) end;
 end;
 
-procedure CloseQueryNotAllowed(Window: TCastleWindowBase); begin end;
+procedure CloseQueryNotAllowed(Container: TUIContainer); begin end;
 
 { curve generation ------------------------------------------------------------ }
 
@@ -123,7 +123,7 @@ var
   InitialOrient: boolean; { default value depends on DoPeano }
   StepsResolution, AllStepsCount: Cardinal;
 begin
-  Window := TCastleWindowDemo.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   { parse params }
   if Parameters.High >= 1 then

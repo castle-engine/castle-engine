@@ -28,7 +28,7 @@
     procedure MenuFinalize;
   private
     { Stuff internal for proper communication between menu and
-      TCastleWindowBase implementation. }
+      TCastleWindowCustom implementation. }
 
     { ParentWindow to call MenuFinalize, MenuInitialize.
 
@@ -37,7 +37,7 @@
       you should use CorrectParentWindow, that looks for it recursively.
       This way we only have to update it on SetMainMenu (no need to keep
       it recursively updated in all TMenuEntry instances). }
-    ParentWindow: TCastleWindowBase;
+    ParentWindow: TCastleWindowCustom;
 
     { Internal handle of this menu item within CastleWindow backend.
       This is used by CastleWindow backend implementation, to store the
@@ -49,7 +49,7 @@
     FParentMenu: TMenu;
     FParentMenuPosition: Cardinal;
 
-    function CorrectParentWindow: TCastleWindowBase;
+    function CorrectParentWindow: TCastleWindowCustom;
   protected
     { Recursively clear TMenuEntry.Handle values. }
     procedure ClearHandles; virtual;
@@ -196,7 +196,7 @@
     FModifiers: TModifierKeys;
   public
     { An integer value, for any purpose you want. Useful to identify this item in
-      TCastleWindowBase.OnMenuClick callback. }
+      TCastleWindowCustom.OnMenuClick callback. }
     property IntData: Integer read FIntData write FIntData;
 
     { Unique small identifier of this menu item.
@@ -230,14 +230,14 @@
 
       When user presses indicated Key (if it's not K_None)
       or CharKey (if it's not #0) then DoClick will be called
-      (which results in TCastleWindowBase.EventMenuClick,
-      and TCastleWindowBase.OnMenuClick,
+      (which results in TCastleWindowCustom.EventMenuClick,
+      and TCastleWindowCustom.OnMenuClick,
       if DoClick returns false).
 
       Handling of menu key shortcuts is completely within the CastleWindow
       (usually, it's even done by the underlying backend like GTK or WinAPI).
       You will not get EventPress (OnPress) messages for keypresses that translate
-      to menu clicks. Although TCastleWindowBase.Pressed.Keys will be
+      to menu clicks. Although TCastleWindowCustom.Pressed.Keys will be
       still appropriately updated.
 
       Note that Caption of this object should not contain
@@ -429,7 +429,7 @@
     (* procedure DebugWriteln; *)
   end;
 
-  { Menu item that toggles TCastleWindowBase.FullScreen.
+  { Menu item that toggles TCastleWindowCustom.FullScreen.
 
     This already has a nice caption, key shortcut (F11 on most platforms,
     except Mac OS X where it's Command+F11 (on LCL backend) or Ctrl+F11
@@ -483,7 +483,7 @@ function SQuoteMenuEntryCaption(const S: string): string;
 
 { TMenuEntry ------------------------------------------------------------ }
 
-function TMenuEntry.CorrectParentWindow: TCastleWindowBase;
+function TMenuEntry.CorrectParentWindow: TCastleWindowCustom;
 begin
   if ParentMenu = nil then
     Result := ParentWindow else
@@ -492,7 +492,7 @@ end;
 
 procedure TMenuEntry.MenuInitialize;
 var
-  P: TCastleWindowBase;
+  P: TCastleWindowCustom;
 begin
   P := CorrectParentWindow;
   if P <> nil then P.MenuInitialize;
@@ -500,7 +500,7 @@ end;
 
 procedure TMenuEntry.MenuFinalize;
 var
-  P: TCastleWindowBase;
+  P: TCastleWindowCustom;
 begin
   P := CorrectParentWindow;
   if P <> nil then P.MenuFinalize;
@@ -508,7 +508,7 @@ end;
 
 procedure TMenuEntry.MenuUpdateBegin;
 var
-  P: TCastleWindowBase;
+  P: TCastleWindowCustom;
 begin
   P := CorrectParentWindow;
   if P <> nil then P.MenuUpdateBegin;
@@ -516,7 +516,7 @@ end;
 
 procedure TMenuEntry.MenuUpdateEnd;
 var
-  P: TCastleWindowBase;
+  P: TCastleWindowCustom;
 begin
   P := CorrectParentWindow;
   if P <> nil then P.MenuUpdateEnd;
@@ -538,7 +538,7 @@ end;
 
 procedure TMenuEntryWithCaption.SetCaption(const Value: String);
 var
-  P: TCastleWindowBase;
+  P: TCastleWindowCustom;
 begin
   FCaption := Value;
 
@@ -548,7 +548,7 @@ end;
 
 procedure TMenuEntryWithCaption.SetEnabled(Value: boolean);
 var
-  P: TCastleWindowBase;
+  P: TCastleWindowCustom;
 begin
   if FEnabled <> Value then
   begin
@@ -591,7 +591,7 @@ end;
 procedure TMenu.Insert(Index: Integer; Value: TMenuEntry);
 var
   I: Integer;
-  P: TCastleWindowBase;
+  P: TCastleWindowCustom;
 begin
   FEntries.Insert(Index, Value);
 
@@ -621,7 +621,7 @@ procedure TMenu.Delete(Index: Integer);
 var
   I: Integer;
   Entry: TMenuEntry;
-  P: TCastleWindowBase;
+  P: TCastleWindowCustom;
 begin
   { extract Entry from Entries list }
   Entry := FEntries[Index];
@@ -807,7 +807,7 @@ end;
 
 procedure TMenuItemChecked.SetChecked(Value: boolean);
 var
-  P: TCastleWindowBase;
+  P: TCastleWindowCustom;
 begin
  if Value <> Checked then
  begin
@@ -954,7 +954,7 @@ var
   I: Integer;
   Item: TMenuItemRadio;
   CheckedFast, SelectedFound: boolean;
-  P: TCastleWindowBase;
+  P: TCastleWindowCustom;
 begin
   { When count is 0, we have no items belonging to our group.
     So selected may only be nil.

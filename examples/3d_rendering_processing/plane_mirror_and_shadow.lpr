@@ -503,17 +503,17 @@ end;
 var
   SceneManager: TCastleSceneManager;
 
-procedure Open(Window: TCastleWindowBase);
+procedure Open(Container: TUIContainer);
 begin
 end;
 
-procedure Close(Window: TCastleWindowBase);
+procedure Close(Container: TUIContainer);
 begin
   Scene.GLContextClose;
   SceneForShadow.GLContextClose;
 end;
 
-procedure Update(Window: TCastleWindowBase);
+procedure Update(Container: TUIContainer);
 
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin
@@ -545,7 +545,7 @@ end;
 
 { menu ----------------------------------------------------------------------- }
 
-procedure MenuClick(Window: TCastleWindowBase; MenuItem: TMenuItem);
+procedure MenuClick(Container: TUIContainer; MenuItem: TMenuItem);
 var
   S: string;
 begin
@@ -563,7 +563,7 @@ begin
 
           SceneURL := S;
           { refresh projection matrix, since Scene.BoundingBox changed }
-          Window.EventResize;
+          Window.Container.EventResize;
           { reinit camera, since Scene.BoundingBox changed }
           (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
         end;

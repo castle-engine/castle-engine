@@ -54,7 +54,7 @@ var
 
   UserQuit: boolean;
 
-procedure Resize(Window: TCastleWindowBase);
+procedure Resize(Container: TUIContainer);
 begin
   OrthoProjection(0, Window.Width, 0, Window.Height);
 end;
@@ -68,7 +68,7 @@ begin
    UserQuit := true;
 end;
 
-procedure Update(Window: TCastleWindowBase);
+procedure Update(Container: TUIContainer);
 begin
   IntroPartTime := IntroPartTime + Window.Fps.UpdateSecondsPassed;
   if IntroPartTime >
@@ -77,7 +77,7 @@ begin
     NextIntroPart;
 end;
 
-procedure Draw(Window: TCastleWindowBase);
+procedure Draw(Container: TUIContainer);
 var
   Corrosion: Single;
 begin
@@ -108,7 +108,7 @@ begin
   end;
 end;
 
-procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
+procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 begin
   if Event.IsKey(CharEscape) then
     UserQuit := true else
@@ -119,7 +119,7 @@ begin
     NextIntroPart;
 end;
 
-procedure CloseQuery(Window: TCastleWindowBase);
+procedure CloseQuery(Container: TUIContainer);
 begin
   UserQuit := true;
 end;
@@ -139,8 +139,6 @@ begin
     Window.OnPress := @Press;
     Window.OnUpdate := @Update;
     Window.RenderStyle := rs2D;
-
-    Window.EventResize;
 
     UserQuit := false;
 

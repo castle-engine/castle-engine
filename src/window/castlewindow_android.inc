@@ -165,88 +165,88 @@ begin
   end;
 end;
 
-{ TCastleWindowBase ---------------------------------------------------------- }
+{ TCastleWindowCustom ---------------------------------------------------------- }
 
-procedure TCastleWindowBase.CreateBackend;
+procedure TCastleWindowCustom.CreateBackend;
 begin
 end;
 
 // TODO: update Android's app menu based on MainMenu contents?
 
-procedure TCastleWindowBase.BackendMenuInitialize;
+procedure TCastleWindowCustom.BackendMenuInitialize;
 begin
 end;
 
-procedure TCastleWindowBase.BackendMenuFinalize;
+procedure TCastleWindowCustom.BackendMenuFinalize;
 begin
 end;
 
-procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
-begin
-  MenuFinalize;
-  MenuInitialize;
-end;
-
-procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowCustom.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindowCustom.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+procedure TCastleWindowCustom.MenuUpdateChecked(Entry: TMenuItemChecked);
+begin
+  MenuFinalize;
+  MenuInitialize;
+end;
+
+function TCastleWindowCustom.MenuUpdateCheckedFast: boolean;
 begin
   Result := false;
 end;
 
-procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
+procedure TCastleWindowCustom.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
+procedure TCastleWindowCustom.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.OpenBackend;
+procedure TCastleWindowCustom.OpenBackend;
 begin
   ContextCreateEnd(NativeWindow);
   Application.OpenWindowsAdd(Self);
 end;
 
-procedure TCastleWindowBase.CloseBackend;
+procedure TCastleWindowCustom.CloseBackend;
 begin
   ContextDestroy;
 end;
 
-procedure TCastleWindowBase.PostRedisplay;
+procedure TCastleWindowCustom.PostRedisplay;
 begin
   { no point in doing anything here, we redraw every frame }
   // if not Closed then { };
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowCustom.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
   if not Closed then { TODO: use GetWholeCaption };
 end;
 
-procedure TCastleWindowBase.FlushRedisplay;
+procedure TCastleWindowCustom.FlushRedisplay;
 begin
   DoRender;
 end;
 
-procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindowCustom.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -256,24 +256,24 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
+procedure TCastleWindowCustom.SetCustomCursor(const Value: TRGBAlphaImage);
 begin
   { TODO }
   FCustomCursor := Value;
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowCustom.RedirectKeyDownToMenuClick: boolean;
 begin
   Result := { TODO } true;
 end;
 
-procedure TCastleWindowBase.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+procedure TCastleWindowCustom.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
   if not Closed then
     { TODO };
 end;
 
-procedure TCastleWindowBase.SetFullScreen(const Value: boolean);
+procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
 begin
   FFullScreen := Value; //< does nothing on Android
 end;

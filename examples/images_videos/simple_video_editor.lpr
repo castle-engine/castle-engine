@@ -49,7 +49,7 @@ begin
   GLVideo := TGLVideo2D.Create(Video);
 end;
 
-procedure Render(Window: TCastleWindowBase);
+procedure Render(Container: TUIContainer);
 const
   TimeBarHeight = 10;
   TimeBarMargin = 2;
@@ -100,7 +100,7 @@ begin
   DrawStatus;
 end;
 
-procedure Update(Window: TCastleWindowBase);
+procedure Update(Container: TUIContainer);
 begin
   if TimePlaying then
     Time += Window.Fps.UpdateSecondsPassed;
@@ -133,7 +133,7 @@ begin
   end;
 end;
 
-procedure Open(Sender: TCastleWindowBase);
+procedure Open(Container: TUIContainer);
 begin
   WindowProgressInterface.Window := Window;
   Progress.UserInterface := WindowProgressInterface;
@@ -142,12 +142,12 @@ begin
     LoadVideo(Parameters[1]);
 end;
 
-procedure Close(Window: TCastleWindowBase);
+procedure Close(Container: TUIContainer);
 begin
   FreeAndNil(GLVideo);
 end;
 
-procedure MenuClick(Sender: TCastleWindowBase; MenuItem: TMenuItem);
+procedure MenuClick(Container: TUIContainer; MenuItem: TMenuItem);
 var
   S: string;
   I: Integer;

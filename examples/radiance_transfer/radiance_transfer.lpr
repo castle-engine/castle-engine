@@ -123,7 +123,7 @@ var
 
 procedure UpdateViewMode; forward;
 
-procedure Open(Window: TCastleWindowBase);
+procedure Open(Container: TUIContainer);
 begin
   glEnable(GL_LIGHT0);
   UpdateViewMode;
@@ -166,7 +166,7 @@ begin
     Scene.Attributes.OnRadianceTransfer := @THelper(nil).DoRadianceTransfer;
 end;
 
-procedure MenuClick(Window: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 begin
   case Item.IntData of
     10: ViewMode := vmNormal;
@@ -181,7 +181,7 @@ begin
   Window.PostRedisplay;
 end;
 
-procedure Update(Window: TCastleWindowBase);
+procedure Update(Container: TUIContainer);
 
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin

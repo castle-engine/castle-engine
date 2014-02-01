@@ -18,7 +18,7 @@
   - instead of registering OnXxx callbacks overriding EventXxx methods
     (more OOP approach)
   - press c to change cursor in the window that has focus, this is to demo
-    that TCastleWindowBase.Cursor indeed works as appropriate, i.e. changes the cursor
+    that TCastleWindowCustom.Cursor indeed works as appropriate, i.e. changes the cursor
     only for the given window.
 }
 
@@ -30,57 +30,61 @@ uses CastleWindow, SysUtils, CastleUtils, CastleGLUtils, CastleKeysMouse, Castle
   CastleStringUtils, CastleColors, CastleControls, CastleUIControls;
 
 type
-  TMyWindow = class(TCastleWindow)
+  TText = class(TUIControl)
   public
     Text: string;
     LightColor, DarkColor: TCastleColor;
-    procedure EventRender; override;
-    procedure EventResize; override;
-    procedure EventPress(const Event: TInputPressRelease); override;
+    Parent: TCastleWindowCustom;
+    procedure Render; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function PositionInside(const X, Y: Integer): boolean; override;
   end;
 
-procedure TMyWindow.EventRender;
+procedure TText.Render;
 begin
   inherited;
-  GLClear([cbColor, cbDepth], DarkColor);
+  DrawRectangle(ContainerRect, DarkColor);
   UIFont.Print(10, 10, LightColor, Text);
 end;
 
-procedure TMyWindow.EventResize;
-begin
-  inherited;
-  glViewport(Rect);
-  PerspectiveProjection(45.0, Width/Height, 0.1, 100.0);
-end;
-
-procedure TMyWindow.EventPress(const Event: TInputPressRelease);
+function TText.Press(const Event: TInputPressRelease): boolean;
 var
   URL: string;
 begin
-  inherited;
+  Result := inherited;
+  if Result then Exit;
+
   case Event.KeyCharacter of
     'c': if Cursor = High(Cursor) then Cursor := Low(Cursor) else Cursor := Succ(Cursor);
     'o': begin
            URL := '';
            { when file dialog is open, note that the other windows
              are still active as they should. }
-           FileDialog('Test open file dialog', URL, true);
+           Parent.FileDialog('Test open file dialog', URL, true);
          end;
   end;
 end;
 
+function TText.PositionInside(const X, Y: Integer): boolean;
+begin
+  Result := true;
+end;
+
 var
   I: Integer;
-  Windows: array [0..4] of TMyWindow;
+  Windows: array [0..4] of TCastleWindowCustom;
+  Text: TText;
 begin
   for i := 0 to High(Windows) do
   begin
-    Windows[I] := TMyWindow.Create(Application);
+    Windows[I] := TCastleWindowCustom.Create(Application);
 
-    Windows[I].Text := 'Window ' + IntToStr(I);
-    Windows[I].LightColor := Vector4Single(Random*1.5, Random*1.5, Random*1.5, 1);
-    Windows[I].DarkColor  := Vector4Single(Random*0.7, Random*0.7, Random*0.7, 1);
-    Windows[I].RenderStyle := rs2D;
+    Text := TText.Create(Windows[I]);
+    Text.Text := 'Window ' + IntToStr(I);
+    Text.LightColor := Vector4Single(Random*1.5, Random*1.5, Random*1.5, 1);
+    Text.DarkColor  := Vector4Single(Random*0.7, Random*0.7, Random*0.7, 1);
+    Text.Parent := Windows[I];
+    Windows[I].Controls.InsertFront(Text);
 
     Windows[I].Caption := 'Window ' + IntToStr(I);
     Windows[I].Width := 200;

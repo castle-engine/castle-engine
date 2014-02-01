@@ -30,18 +30,14 @@ type
     FTouchInterface: TTouchCtlInterface;
     procedure UpdateTouchController(const LeftSide, CtlVisible: boolean;
       const Mode: TCastleTouchCtlMode = ctcmWalking);
-    procedure UpdateTouchPositions;
     procedure SetTouchInterface(const Value: TTouchCtlInterface);
     { Sets touch controls depending on the current navigation mode.
       Should be called each time after navigation mode changed. }
     procedure UpdateAutomaticTouchInterface;
   protected
     procedure NavigationInfoChanged(Sender: TObject); override;
+    procedure DoUpdate; override;
   public
-    constructor Create(AOwner: TComponent); override;
-    procedure EventUpdate; override;
-    procedure EventResize; override;
-
     { Configure touch controls to be displayed on the window.
       This automatically manages under the hood 0, 1 or 2
       TCastleTouchControl instances, placing them at suitable positions
@@ -65,12 +61,7 @@ implementation
 
 uses SysUtils, CastleUIControls, CastleUtils;
 
-constructor TCastleWindowTouch.Create(AOwner: TComponent);
-begin
-  inherited;
-end;
-
-procedure TCastleWindowTouch.EventUpdate;
+procedure TCastleWindowTouch.DoUpdate;
 var
   I: Integer;
   C: TUIControl;
@@ -108,30 +99,6 @@ begin
   end;
 end;
 
-procedure TCastleWindowTouch.UpdateTouchPositions;
-var
-  CtlBorder: Integer;
-begin
-  CtlBorder := Round(24 * Dpi / 96);
-  if LeftTouchCtl <> nil then
-  begin
-    LeftTouchCtl.Left := CtlBorder;
-    LeftTouchCtl.Bottom := CtlBorder;
-  end;
-  if RightTouchCtl <> nil then
-  begin
-    RightTouchCtl.Left := Width - RightTouchCtl.Width - CtlBorder;
-    RightTouchCtl.Bottom := CtlBorder;
-  end;
-  PostRedisplay;
-end;
-
-procedure TCastleWindowTouch.EventResize;
-begin
-  inherited;
-  UpdateTouchPositions;
-end;
-
 procedure TCastleWindowTouch.UpdateTouchController(
   const LeftSide, CtlVisible: boolean; const Mode: TCastleTouchCtlMode);
 var
@@ -141,11 +108,8 @@ begin
   if LeftSide and (LeftTouchCtl<>nil) then
   begin
     if CtlVisible then
-      LeftTouchCtl.TouchMode := Mode
-    else begin
-      Controls.Remove(LeftTouchCtl);
-      FreeAndNil(LeftTouchCtl);
-    end;
+      LeftTouchCtl.TouchMode := Mode else
+      FreeAndNil(LeftTouchCtl); // this automatically removes LeftTouchCtl from Controls list
     Exit;
   end;
 
@@ -153,11 +117,8 @@ begin
   if (not LeftSide) and (RightTouchCtl<>nil) then
   begin
     if CtlVisible then
-      RightTouchCtl.TouchMode := Mode
-    else begin
-      Controls.Remove(RightTouchCtl);
-      FreeAndNil(RightTouchCtl);
-    end;
+      RightTouchCtl.TouchMode := Mode else
+      FreeAndNil(RightTouchCtl); // this automatically removes RightTouchCtl from Controls list
     Exit;
   end;
 
@@ -165,13 +126,13 @@ begin
 
   aNewCtl := TCastleTouchControl.Create(self);
   aNewCtl.TouchMode := Mode;
-  aNewCtl.SetSizeScale(Self);
+  if LeftSide then
+    aNewCtl.Position := tpLeft else
+    aNewCtl.Position := tpRight;
   Controls.InsertFront(aNewCtl);
   if LeftSide then
-    LeftTouchCtl := aNewCtl
-  else
+    LeftTouchCtl := aNewCtl else
     RightTouchCtl := aNewCtl;
-  UpdateTouchPositions;
 end;
 
 procedure TCastleWindowTouch.SetTouchInterface(const Value: TTouchCtlInterface);
@@ -225,7 +186,6 @@ begin
       if WalkCamera <> nil then
         WalkCamera.MouseDragMode := cwdmDragToWalk;
     end;
-    UpdateTouchPositions;
   end;
 end;
 

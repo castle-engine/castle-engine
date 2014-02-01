@@ -21,7 +21,7 @@ begin
   Player.Teleport(Map.PlayerStartX, Map.PlayerStartY, dirSouth);
 end;
 
-procedure Render(Window: TCastleWindowBase);
+procedure Render(Container: TUIContainer);
 var
   RealViewMoveX, RealViewMoveY: Integer;
 
@@ -118,7 +118,7 @@ begin
   end;
 end;
 
-procedure Press(Sender: TCastleWindowBase; const Event: TInputPressRelease);
+procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 var
   NewViewMoveX, NewViewMoveY: Integer;
 
@@ -224,7 +224,7 @@ begin
   end;
 end;
 
-procedure Update(Window: TCastleWindowBase);
+procedure Update(Container: TUIContainer);
 const
   ViewMoveChangeSpeed = 10.0 * 50.0;
 begin

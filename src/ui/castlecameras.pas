@@ -1524,7 +1524,7 @@ type
       during one second. Assuming "normal circumstances",
       namely that SecondsPassed provided to @link(Update) method
       is expressed in seconds (which is the case, when you use
-      camera with TCastleWindowBase.Controls or TCastleSceneManager.Camera).
+      camera as TCastleSceneManager.Camera).
       So if you leave MoveHorizontalSpeed = MoveVerticalSpeed = 1 (as default),
       MoveSpeed expresses the speed in nice units / per second.
 
@@ -1595,7 +1595,7 @@ type
     procedure SetInput(const Value: TCameraInputs); override;
     procedure SetEnableDragging(const Value: boolean); override;
     procedure SetProjectionMatrix(const Value: TMatrix4Single); override;
-    procedure SetContainer(const Value: IUIContainer); override;
+    procedure SetContainer(const Value: TUIContainer); override;
     procedure SetRadius(const Value: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -4223,7 +4223,7 @@ begin
          - SetMousePosition sets mouse to the Middle,
            but this time no MouseMove is generated
          - player moved mouse to MiddleX+10. Although mouse was
-           positioned on Middle, TCastleWindowBase thinks that the mouse
+           positioned on Middle, TCastleWindowCustom thinks that the mouse
            is still positioned on Middle-10, and I will get "+20" move
            for player (while I should get only "+10")
 
@@ -4245,7 +4245,7 @@ begin
       by subtracing new - old position, knowing that old = middle this
       will always be Ok.
 
-      Later: see TCastleWindowBase.UpdateMouseLook implementation notes,
+      Later: see TCastleWindowCustom.UpdateMouseLook implementation notes,
       we actually depend on the fact that MouseLook checks and works
       only if mouse position is at the middle. }
     if (OldX = MiddleWidth) and
@@ -4253,7 +4253,7 @@ begin
     begin
       { MouseXChange and MouseYChange are differences between current
         and previous window coords
-        (like in TCastleWindowBase.MouseX/MouseY, so 0,0 is top-left corner). }
+        (like in TCastleWindowCustom.MouseX/MouseY, so 0,0 is top-left corner). }
       MouseXChange := NewX - OldX;
       MouseYChange := NewY - OldY;
 
@@ -4604,7 +4604,7 @@ begin
   Result := Current.MouseMove(OldX, OldY, NewX, NewY);
 end;
 
-procedure TUniversalCamera.SetContainer(const Value: IUIContainer);
+procedure TUniversalCamera.SetContainer(const Value: TUIContainer);
 begin
   inherited;
   FWalk.Container := Value;

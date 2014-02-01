@@ -83,7 +83,7 @@ begin
       BoolToStr[FogCulling] ]));
 end;
 
-procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
+procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 var
   FogNode: TFogNode;
 begin

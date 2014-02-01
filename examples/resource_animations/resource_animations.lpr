@@ -70,7 +70,7 @@ type
     ucpActivateLast,
     ucpUpdateOnlyAnimations);
 
-procedure Resize(Window: TCastleWindowBase); forward;
+procedure Resize(Container: TUIContainer); forward;
 procedure UpdateButtons(const UpdateCurrentResource: TUpdateCurrentResource); forward;
 
 type
@@ -197,10 +197,10 @@ begin
     raise Exception.CreateFmt('No (defined) animation found in resource "%s"', [Resource.Name]);
 
   { update buttons sizes and positions using Resize }
-  Resize(Window);
+  Resize(Window.Container);
 end;
 
-procedure Resize(Window: TCastleWindowBase);
+procedure Resize(Container: TUIContainer);
 const
   Margin = 8;
 var

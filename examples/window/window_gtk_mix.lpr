@@ -13,13 +13,13 @@
   ----------------------------------------------------------------------------
 }
 
-{ This is a demo how one can use TCastleWindowBase.MakeGLAreaContainer
+{ This is a demo how one can use TCastleWindowCustom.MakeGLAreaContainer
   to put some GTK widgets in window that is still managed
-  as simple TCastleWindowBase object from CastleWindow unit.
+  as simple TCastleWindowCustom object from CastleWindow unit.
   CastleWindow must be implemented on top of GTK
   (CASTLE_WINDOW_GTK_2) to be able to compile this.
 
-  This demo inserts GtkEntry widget into TCastleWindowBase window.
+  This demo inserts GtkEntry widget into TCastleWindowCustom window.
   When user changes text of this entry, OpenGL area displays it.
 
   This demo also demonstrates some simple use of TGLOutlineFont

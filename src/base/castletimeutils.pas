@@ -226,12 +226,12 @@ function Timer: TTimerResult;
 
 type
   { Utility to measure frames per second, independent of actual
-    rendering API. For example, it can be easily "plugged" into TCastleWindowBase
-    (see TCastleWindowBase.FPS) or Lazarus GL control (see TCastleControlCustom.FPS).
+    rendering API. For example, it can be easily "plugged" into TCastleWindowCustom
+    (see TCastleWindowCustom.FPS) or Lazarus GL control (see TCastleControlCustom.FPS).
 
-    Things named "_" here are supposed to be internal to the TCastleWindowBase /
+    Things named "_" here are supposed to be internal to the TCastleWindowCustom /
     TCastleControlCustom and such implementations. Other properties can be
-    controlled by the user of TCastleWindowBase / TCastleControlCustom. }
+    controlled by the user of TCastleWindowCustom / TCastleControlCustom. }
   TFramesPerSecond = class
   private
     FFrameTime: Double;
@@ -293,7 +293,7 @@ type
       to be zero.
 
       This is useful if you just came back from some lenghty
-      state, like a GUI dialog box (like TCastleWindowBase.FileDialog or modal boxes
+      state, like a GUI dialog box (like TCastleWindowCustom.FileDialog or modal boxes
       in CastleMessages --- but actually all our stuff already calls this
       as needed, TGLMode takes care of this). UpdateSecondsPassed would be ridicoulously
       long in such case (if our loop is totally stopped) or not relevant

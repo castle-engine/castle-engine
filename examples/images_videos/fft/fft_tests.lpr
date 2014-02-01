@@ -23,54 +23,54 @@
   http://www.ii.uni.wroc.pl/~anl/dyd/PO/ }
 program fft_tests;
 
-uses SysUtils, CastleUtils, CastleImages, ImagesFftw, CastleWindow, CastleGLImages,
-  CastleTimeUtils, CastleStringUtils, Fftw_s, CastleGLUtils, Math,
-  CastleParameters, CastleColors;
+uses SysUtils, Classes, CastleUtils, CastleImages, ImagesFftw, CastleWindow,
+  CastleTimeUtils, CastleStringUtils, Fftw_s,
+  Math, CastleParameters, CastleColors, CastleControls;
 
 type
   TWindowImage = class(TCastleWindowCustom)
+  strict private
+    Background: TCastleSimpleBackground;
+    ImageControl: TCastleImageControl;
+    function GetImage: TRGBImage;
+    procedure SetImage(const Value: TRGBImage);
   public
-    Image: TRGBImage;
-    GLImage: TGLImage;
-    destructor Destroy; override;
+    property Image: TRGBImage read GetImage write SetImage;
+    constructor Create(AOwner: TComponent); override;
     procedure UpdateGLImage;
-    procedure EventRender; override;
-    procedure EventOpen; override;
-    procedure EventClose; override;
   end;
 
-destructor TWindowImage.Destroy;
+constructor TWindowImage.Create(AOwner: TComponent);
 begin
-  FreeAndNil(Image);
   inherited;
-end;
 
-procedure TWindowImage.EventRender;
-begin
-  inherited;
-  GLClear([cbColor], Black);
-  if GLImage <> nil then
-    GLImage.Draw;
-end;
+  Background := TCastleSimpleBackground.Create(Self);
+  Controls.InsertFront(Background);
 
-procedure TWindowImage.EventOpen;
-begin
-  inherited;
-  UpdateGLImage;
-end;
-
-procedure TWindowImage.EventClose;
-begin
-  FreeAndNil(GLImage);
-  inherited;
+  ImageControl := TCastleImageControl.Create(Self);
+  Controls.InsertFront(ImageControl);
 end;
 
 procedure TWindowImage.UpdateGLImage;
 begin
-  MakeCurrent;
-  FreeAndNil(GLImage);
-  GLImage := TGLImage.Create(Image);
-  PostRedisplay;
+  if GLInitialized then
+  begin
+    { when Image contents changed, update the TGLImage inside ImageControl }
+    ImageControl.GLContextClose;
+    ImageControl.GLContextOpen;
+    Invalidate;
+  end;
+end;
+
+function TWindowImage.GetImage: TRGBImage;
+begin
+  { as the image can only be set by SetImage, we know it is of TRGBImage class }
+  Result := ImageControl.Image as TRGBImage;
+end;
+
+procedure TWindowImage.SetImage(const Value: TRGBImage);
+begin
+  ImageControl.Image := Value;
 end;
 
 type
@@ -190,7 +190,7 @@ begin
   end;
 
   Fft.ImageFModulusAsRGB(Freq.Image, 0.01);
-  if not Freq.Closed then Freq.UpdateGLImage;
+  Freq.UpdateGLImage;
 
   Fft.Image := Output.Image;
 
@@ -198,10 +198,10 @@ begin
   Fft.IDFT;
   Writeln('Making IDFT: ', ProcessTimerEnd:1:2, ' secs');
 
-  if not Output.Closed then Output.UpdateGLImage;
+  Output.UpdateGLImage;
 end;
 
-procedure MenuClick(Window: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 begin
   case Item.IntData of
     10: Application.Quit;

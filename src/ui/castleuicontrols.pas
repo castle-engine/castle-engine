@@ -19,56 +19,182 @@ unit CastleUIControls;
 interface
 
 uses SysUtils, Classes, CastleKeysMouse, CastleUtils, CastleClassUtils,
-  CastleGenericLists, CastleRectangles;
+  CastleGenericLists, CastleRectangles, CastleTimeUtils, pk3DConnexion,
+  CastleImages;
 
 const
-  { Default value for container's Dpi, as it usually set on desktops. }
+  { Default value for container's Dpi, as is usually set on desktops. }
   DefaultDpi = 96;
+  DefaultTooltipDelay = 1000;
+  DefaultTooltipDistance = 10;
 
 type
-  { Basic user interface container. This may be a window
-    (like TCastleWindowCustom) or some Lazarus control (like TCastleControlCustom
-    component). }
-  IUIContainer = interface
-  ['{0F0BA87D-95C3-4520-B9F9-CDF30015FDB3}']
-    procedure SetMousePosition(const NewMouseX, NewMouseY: Integer);
+  { In what projection TUIControl.Render will be called.
+    See TUIControl.Render, TUIControl.RenderStyle. }
+  TRenderStyle = (rs2D, rs3D);
 
-    function GetMouseX: Integer;
-    function GetMouseY: Integer;
+  TUIControl = class;
+  TUIControlList = class;
+  TUIContainer = class;
 
-    property MouseX: Integer read GetMouseX;
-    property MouseY: Integer read GetMouseY;
+  TContainerEvent = procedure (Container: TUIContainer);
+  TMouseMoveEvent = procedure (Container: TUIContainer; NewX, NewY: Integer);
+  TInputPressReleaseEvent = procedure (Container: TUIContainer; const Event: TInputPressRelease);
 
-    function GetWidth: Integer;
-    function GetHeight: Integer;
+  { Abstract user interface container. Connects OpenGL context management
+    code with Castle Game Engine controls (TUIControl, that is the basis
+    for all our 2D and 3D rendering). When you use TCastleWindowCustom
+    (a window) or TCastleControlCustom (Lazarus component), they provide
+    you a non-abstact implementation of TUIContainer.
 
-    property Width: Integer read GetWidth;
-    property Height: Integer read GetHeight;
-    function Rect: TRectangle;
+    Basically, this class manages a @link(Controls) list.
 
-    function GetDpi: Integer;
-    property Dpi: Integer read GetDpi;
+    We pass our inputs (mouse / key events) to these controls.
+    Input goes to the top-most
+    (that is, first on the @link(Controls) list) control under the current mouse position
+    (we check control's PositionInside method for this).
+    As long as the event is not handled,
+    we look for next controls under the mouse position.
 
-    function GetMousePressed: TMouseButtons;
-    function GetPressed: TKeysPressed;
+    We also call other methods on every control,
+    like TUIControl.Update, TUIControl.Render. }
+  TUIContainer = class abstract(TComponent)
+  private
+    FOnOpen: TContainerEvent;
+    FOnBeforeRender, FOnRender: TContainerEvent;
+    FOnResize: TContainerEvent;
+    FOnClose: TContainerEvent;
+    FOnPress, FOnRelease: TInputPressReleaseEvent;
+    FOnMouseMove: TMouseMoveEvent;
+    FOnUpdate: TContainerEvent;
+    { FControls cannot be declared as TUIControlList to avoid
+      http://bugs.freepascal.org/view.php?id=22495 }
+    FControls: TObject;
+    FRenderStyle: TRenderStyle;
+    FFocus: TUIControl;
+    FCaptureInput: TUIControl;
+    FTooltipDelay: TMilisecTime;
+    FTooltipDistance: Cardinal;
+    FTooltipVisible: boolean;
+    FTooltipX, FTooltipY: Integer;
+    LastPositionForTooltip: boolean;
+    LastPositionForTooltipX, LastPositionForTooltipY: Integer;
+    LastPositionForTooltipTime: TTimerResult;
+    Mouse3d: T3DConnexionDevice;
+    Mouse3dPollTimer: Single;
+    procedure ControlsVisibleChange(Sender: TObject);
+    { Called when the control C is destroyed or just removed from Controls list. }
+    procedure DetachNotification(const C: TUIControl);
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+
+    { These should only be get/set by a container provider,
+      like TCastleWindow or TCastleControl.
+      @groupBegin }
+    property OnOpen: TContainerEvent read FOnOpen write FOnOpen;
+    property OnBeforeRender: TContainerEvent read FOnBeforeRender write FOnBeforeRender;
+    property OnRender: TContainerEvent read FOnRender write FOnRender;
+    property OnResize: TContainerEvent read FOnResize write FOnResize;
+    property OnClose: TContainerEvent read FOnClose write FOnClose;
+    property OnPress: TInputPressReleaseEvent read FOnPress write FOnPress;
+    property OnRelease: TInputPressReleaseEvent read FOnRelease write FOnRelease;
+    property OnMouseMove: TMouseMoveEvent read FOnMouseMove write FOnMouseMove;
+    property OnUpdate: TContainerEvent read FOnUpdate write FOnUpdate;
+    { @groupEnd }
+
+    procedure SetCursor(const Value: TMouseCursor); virtual; abstract;
+    property Cursor: TMouseCursor write SetCursor;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    { Propagate the event to all the @link(Controls) and to our own OnXxx callbacks.
+      Usually these are called by a container provider,
+      like TCastleWindow or TCastleControl. But it is also allowed to call them
+      manually to fake given event.
+      @groupBegin }
+    procedure EventOpen(const OpenWindowsCount: Cardinal);
+    procedure EventClose(const OpenWindowsCount: Cardinal);
+    function EventPress(const Event: TInputPressRelease): boolean;
+    function EventRelease(const Event: TInputPressRelease): boolean;
+    procedure EventUpdate;
+    procedure EventMouseMove(NewX, NewY: Integer);
+    function AllowSuspendForInput: boolean;
+    procedure EventBeforeRender;
+    procedure EventRender; virtual; abstract;
+    procedure EventResize;
+    { @groupEnd }
+
+    { Controls listening for events (user input, resize, and such) of this container.
+
+      Usually you explicitly add / delete controls to this list.
+      Also, freeing the control that is on this list
+      automatically removes it from this list (using the TComponent.Notification
+      mechanism).
+
+      Controls on the list should be specified in front-to-back order.
+      That is, controls at the beginning of this list are first to catch
+      some events, and are rendered as the last ones (to cover controls
+      beneath them). }
+    function Controls: TUIControlList;
+
+    { Returns the control that should receive input events first,
+      or @nil if none. More precisely, this is the first on Controls
+      list that is enabled and under the mouse cursor.
+      @nil is returned when there's no enabled control under the mouse cursor. }
+    property Focus: TUIControl read FFocus;
+
+    { When the tooltip should be shown (mouse hovers over a control
+      with a tooltip) then the TooltipVisible is set to @true,
+      and TooltipX, TooltipY indicate left-bottom suggested position
+      of the tooltip.
+
+      The tooltip is only detected when TUIControl.TooltipExists.
+      See TUIControl.TooltipExists and TUIControl.TooltipStyle and
+      TUIControl.TooltipRender.
+      For simple purposes just set TUIControlFont.Tooltip to something
+      non-empty.
+      @groupBegin }
+    property TooltipVisible: boolean read FTooltipVisible;
+    property TooltipX: Integer read FTooltipX;
+    property TooltipY: Integer read FTooltipY;
+    { @groupEnd }
+
+    { Redraw the contents of of this window, at the nearest good time.
+      The redraw will not happen immediately, we will only "make a note"
+      that we should do it soon.
+      Redraw means that we call EventBeforeRender (OnBeforeRender), EventRender
+      (OnRender), then we flush OpenGL commands, swap buffers etc.
+
+      Calling this on a closed container (with GLInitialized = @false)
+      is allowed and ignored. }
+    procedure Invalidate; virtual; abstract;
+
+    { Is the OpenGL context initialized. }
+    function GLInitialized: boolean; virtual; abstract;
+
+    function Width: Integer; virtual; abstract;
+    function Height: Integer; virtual; abstract;
+    function Rect: TRectangle; virtual; abstract;
+
+    function MouseX: Integer; virtual; abstract;
+    function MouseY: Integer; virtual; abstract;
+    procedure SetMousePosition(const NewMouseX, NewMouseY: Integer); virtual; abstract;
+
+    function Dpi: Integer; virtual; abstract;
 
     { Mouse buttons currently pressed. }
-    property MousePressed: TMouseButtons read GetMousePressed;
+    function MousePressed: TMouseButtons; virtual; abstract;
 
     { Keys currently pressed. }
-    property Pressed: TKeysPressed read GetPressed;
+    function Pressed: TKeysPressed; virtual; abstract;
 
-    function GetTooltipX: Integer;
-    function GetTooltipY: Integer;
-
-    property TooltipX: Integer read GetTooltipX;
-    property TooltipY: Integer read GetTooltipY;
+    function Fps: TFramesPerSecond; virtual; abstract;
 
     { Called by controls within this container when something could
       change the container focused control (or it's cursor).
       In practice, called when TUIControl.Cursor or TUIControl.PositionInside
-      results change. This is called by a IUIContainer interface, that's why
-      it can remain as private method of actual container class.
+      results change.
 
       This recalculates the focused control and the final cursor of
       the container, looking at Container's Controls,
@@ -80,11 +206,40 @@ type
       this will also be automatically called
       (since focused control or final container cursor may also change then). }
     procedure UpdateFocusAndMouseCursor;
-  end;
+  published
+    { How OnRender callback fits within various Render methods of our
+      @link(Controls).
 
-  { In what projection TUIControl.Render will be called.
-    See TUIControl.Render, TUIControl.RenderStyle. }
-  TRenderStyle = (rs2D, rs3D);
+      @unorderedList(
+        @item(rs2D means that OnRender is called at the end,
+          after all our @link(Controls) (3D and 2D) are drawn.
+          The 2D orthographic projection is set,
+          along with other parameters suitable for 2D rendering,
+          see the documentation for TUIControl.RenderStyle = rs2D.)
+
+        @item(rs3D means that OnRender is called after all other
+          @link(Controls) with rs3D draw style, but before any 2D
+          controls.
+
+          OpenGL projection matrix is not modified (so projection
+          is whatever you set yourself, by EventResize, OnResize,
+          or whatever TCastleSceneManager set for you).
+          You should set your own projection matrix at the beginning
+          of this (e.g. use @link(PerspectiveProjection)),
+          otherwise rendering results are undefined.
+
+          This is suitable if you want to draw something 3D,
+          that may be later covered by 2D controls.)
+      )
+    }
+    property RenderStyle: TRenderStyle
+      read FRenderStyle write FRenderStyle default rs2D;
+
+    property TooltipDelay: TMilisecTime read FTooltipDelay write FTooltipDelay
+      default DefaultTooltipDelay;
+    property TooltipDistance: Cardinal read FTooltipDistance write FTooltipDistance
+      default DefaultTooltipDistance;
+  end;
 
   { Deprecated name for TRenderStyle. }
   TUIControlDrawStyle = TRenderStyle deprecated;
@@ -96,7 +251,7 @@ type
     FContainerWidth, FContainerHeight: Cardinal;
     FContainerRect: TRectangle;
     FContainerSizeKnown: boolean;
-    FContainer: IUIContainer;
+    FContainer: TUIContainer;
     FCursor: TMouseCursor;
     FOnCursorChange: TNotifyEvent;
     FExclusiveEvents: boolean;
@@ -111,7 +266,7 @@ type
     property ContainerRect: TRectangle read FContainerRect;
     property ContainerSizeKnown: boolean read FContainerSizeKnown;
     { @groupEnd }
-    procedure SetContainer(const Value: IUIContainer); virtual;
+    procedure SetContainer(const Value: TUIContainer); virtual;
     { Called when @link(Cursor) changed.
       In TUIControl class, just calls OnCursorChange. }
     procedure DoCursorChange; virtual;
@@ -170,7 +325,7 @@ type
       rotating model in Examine mode, and many more.
 
       @param(SecondsPassed Should be calculated like TFramesPerSecond.UpdateSecondsPassed,
-        and usually it's in fact just taken from TCastleWindowBase.Fps.UpdateSecondsPassed.)
+        and usually it's in fact just taken from TCastleWindowCustom.Fps.UpdateSecondsPassed.)
 
       This method may be used, among many other things, to continously
       react to the fact that user pressed some key (or mouse button).
@@ -262,7 +417,7 @@ end;
 
       In this class, this simply returns always @true.
 
-      @seeAlso TCastleWindowBase.AllowSuspendForInput }
+      @seeAlso TCastleWindowCustom.AllowSuspendForInput }
     function AllowSuspendForInput: boolean; virtual;
 
     { Called always when the container (component or window with OpenGL context)
@@ -292,7 +447,7 @@ end;
       back to @nil.
 
       May be @nil if this control is not yet inserted into any container. }
-    property Container: IUIContainer read FContainer write SetContainer;
+    property Container: TUIContainer read FContainer write SetContainer;
 
     { Mouse cursor over this control.
       When user moves mouse over the Container, the currently focused
@@ -442,7 +597,7 @@ end;
 
     { Render a tooltip of this control. If you want to have tooltip for
       this control detected, you have to override TooltipExists.
-      Then the TCastleWindowBase.TooltipVisible will be detected,
+      Then the TCastleWindowCustom.TooltipVisible will be detected,
       and your TooltipRender will be called.
 
       The values of rs2D and rs3D are interpreted in the same way
@@ -717,6 +872,479 @@ const
 
 implementation
 
+uses CastleVectors, CastleLog;
+
+{ TContainerControls --------------------------------------------------------- }
+
+type
+  { List of 2D controls (TContainerControls) to implement containers
+    (like TCastleWindow or TCastleControl). }
+  TContainerControls = class(TUIControlList)
+  private
+    Container: TUIContainer;
+  public
+    constructor Create(const FreeObjects: boolean; const AContainer: TUIContainer);
+    { Takes care to react to add/remove notifications,
+      doing appropriate operations with parent Container. }
+    procedure Notify(Ptr: Pointer; Action: TListNotification); override;
+  end;
+
+constructor TContainerControls.Create(const FreeObjects: boolean;
+  const AContainer: TUIContainer);
+begin
+  inherited Create(FreeObjects);
+  Container := AContainer;
+end;
+
+procedure TContainerControls.Notify(Ptr: Pointer; Action: TListNotification);
+var
+  C: TUIControl absolute Ptr;
+begin
+  inherited;
+
+  C := TUIControl(Ptr);
+  case Action of
+    lnAdded:
+      begin
+        { Make sure Container.ControlsVisibleChange (which in turn calls Invalidate)
+          will be called when a control calls OnVisibleChange.
+
+          We only change OnVisibleChange from @nil to it's own internal callback
+          (when adding a control), and from it's own internal callback to @nil
+          (when removing a control).
+          This means that if user code will assign OnVisibleChange callback to some
+          custom method --- we will not touch it anymore. That's safer.
+          Athough in general user code should not change OnVisibleChange for controls
+          on this list, to keep automatic Invalidate working. }
+        if C.OnVisibleChange = nil then
+          C.OnVisibleChange := @Container.ControlsVisibleChange;
+
+        { Register Container to be notified of control destruction. }
+        C.FreeNotification(Container);
+
+        C.Container := Container;
+
+        if Container.GLInitialized then
+        begin
+          if C.DisableContextOpenClose = 0 then
+            C.GLContextOpen;
+          { Call initial ContainerResize for control.
+            If window OpenGL context is not yet initialized, defer it to
+            the Open time, then our initial EventResize will be called
+            that will do ContainerResize on every control. }
+          C.ContainerResize(Container.Width, Container.Height);
+        end;
+      end;
+    lnExtracted, lnDeleted:
+      begin
+        if Container.GLInitialized and
+           (C.DisableContextOpenClose = 0) then
+          C.GLContextClose;
+
+        if C.OnVisibleChange = @Container.ControlsVisibleChange then
+          C.OnVisibleChange := nil;
+
+        C.RemoveFreeNotification(Container);
+        Container.DetachNotification(C);
+
+        C.Container := nil;
+      end;
+    else raise EInternalError.Create('TContainerControls.Notify action?');
+  end;
+
+  { This notification may get called during FreeAndNil(FControls)
+    in TUIContainer.Destroy. Then FControls is already nil, and we're
+    getting remove notification for all items (as FreeAndNil first sets
+    object to nil). Testcase: lets_take_a_walk exit. }
+  if Container.FControls <> nil then
+    Container.UpdateFocusAndMouseCursor;
+end;
+
+{ TUIContainer --------------------------------------------------------------- }
+
+constructor TUIContainer.Create(AOwner: TComponent);
+begin
+  inherited;
+  FControls := TContainerControls.Create(false, Self);
+  FRenderStyle := rs2D;
+  FTooltipDelay := DefaultTooltipDelay;
+  FTooltipDistance := DefaultTooltipDistance;
+
+  { connect 3D device - 3Dconnexion device }
+  Mouse3dPollTimer := 0;
+  try
+    Mouse3d := T3DConnexionDevice.Create('Castle Control');
+  except
+    on E: Exception do
+      if Log then WritelnLog('3D Mouse', 'Exception %s when initializing T3DConnexionDevice: %s',
+        [E.ClassName, E.Message]);
+  end;
+end;
+
+destructor TUIContainer.Destroy;
+begin
+  FreeAndNil(FControls);
+  FreeAndNil(Mouse3d);
+  inherited;
+end;
+
+procedure TUIContainer.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  { We have to remove a reference to the object from Controls list.
+    This is crucial: TControlledUIControlList.Notify,
+    and some Controls.MakeSingle calls, assume that all objects on
+    the Controls list are always valid objects (no invalid references,
+    even for a short time).
+
+    Check "Controls <> nil" is not needed here, it's just in case
+    this code will be moved to TUIControl.Notification some day.
+    See T3D.Notification for explanation. }
+
+  if (Operation = opRemove) and (AComponent is TUIControl) {and (Controls <> nil)} then
+  begin
+    Controls.DeleteAll(AComponent);
+    DetachNotification(TUIControl(AComponent));
+  end;
+end;
+
+procedure TUIContainer.DetachNotification(const C: TUIControl);
+begin
+  if C = FFocus        then FFocus := nil;
+  if C = FCaptureInput then FCaptureInput := nil;
+end;
+
+procedure TUIContainer.UpdateFocusAndMouseCursor;
+
+  function CalculateFocus: TUIControl;
+  var
+    I: Integer;
+  begin
+    for I := 0 to Controls.Count - 1 do
+    begin
+      Result := Controls[I];
+      if Result.PositionInside(MouseX, MouseY) then
+        Exit;
+    end;
+
+    Result := nil;
+  end;
+
+  function CalculateMouseCursor: TMouseCursor;
+  begin
+    if Focus <> nil then
+      Result := Focus.Cursor else
+      Result := mcDefault;
+  end;
+
+var
+  NewFocus: TUIControl;
+begin
+  if FCaptureInput <> nil then
+    NewFocus := FCaptureInput else
+    NewFocus := CalculateFocus;
+
+  if NewFocus <> Focus then
+  begin
+    if Focus <> nil then Focus.Focused := false;
+    FFocus := NewFocus;
+    if Focus <> nil then Focus.Focused := true;
+  end;
+
+  Cursor := CalculateMouseCursor;
+end;
+
+procedure TUIContainer.EventUpdate;
+
+  procedure UpdateTooltip;
+  var
+    T: TTimerResult;
+    NewTooltipVisible: boolean;
+  begin
+    { Update TooltipVisible and LastPositionForTooltip*.
+      Idea is that user must move the mouse very slowly to activate tooltip. }
+
+    T := Fps.UpdateStartTime;
+    if (not LastPositionForTooltip) or
+       (Sqr(LastPositionForTooltipX - MouseX) +
+        Sqr(LastPositionForTooltipY - MouseY) > Sqr(TooltipDistance)) then
+    begin
+      LastPositionForTooltip := true;
+      LastPositionForTooltipX := MouseX;
+      LastPositionForTooltipY := MouseY;
+      LastPositionForTooltipTime := T;
+      NewTooltipVisible := false;
+    end else
+      NewTooltipVisible :=
+        { make TooltipVisible only when we're over a control that has
+          focus. This avoids unnecessary changing of TooltipVisible
+          (and related Invalidate) when there's no tooltip possible. }
+        (Focus <> nil) and
+        Focus.TooltipExists and
+        ( (1000 * (T - LastPositionForTooltipTime)) div
+          TimerFrequency > TooltipDelay );
+
+    if FTooltipVisible <> NewTooltipVisible then
+    begin
+      FTooltipVisible := NewTooltipVisible;
+
+      if TooltipVisible then
+      begin
+        { when setting TooltipVisible from false to true,
+          update LastPositionForTooltipX/Y. We don't want to hide the tooltip
+          at the slightest jiggle of the mouse :) On the other hand,
+          we don't want to update LastPositionForTooltipX/Y more often,
+          as it would disable the purpose of TooltipDistance: faster
+          mouse movement should hide the tooltip. }
+        LastPositionForTooltipX := MouseX;
+        LastPositionForTooltipY := MouseY;
+        { also update TooltipX/Y }
+        FTooltipX := MouseX;
+        FTooltipY := MouseY;
+      end;
+
+      Invalidate;
+    end;
+  end;
+
+var
+  I: Integer;
+  C: TUIControl;
+  HandleInput: boolean;
+  Dummy: boolean;
+  Tx, Ty, Tz, TLength, Rx, Ry, Rz, RAngle: Double;
+  Mouse3dPollSpeed: Single;
+const
+  Mouse3dPollDelay = 0.05;
+begin
+  UpdateTooltip;
+
+  { 3D Mouse }
+  if Assigned(Mouse3D) and Mouse3D.Loaded then
+  begin
+    Mouse3dPollTimer -= Fps.UpdateSecondsPassed;
+    if Mouse3dPollTimer < 0 then
+    begin
+      { get values from sensor }
+      Mouse3dPollSpeed := -Mouse3dPollTimer + Mouse3dPollDelay;
+      Mouse3D.GetSensorTranslation(Tx, Ty, Tz, TLength);
+      Mouse3D.GetSensorRotation(Rx, Ry, Rz, RAngle);
+
+      { send to all 2D controls, including viewports }
+      for I := 0 to Controls.Count - 1 do
+      begin
+        C := Controls[I];
+        if C.PositionInside(MouseX, MouseY) then
+        begin
+          C.SensorTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
+          C.SensorRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
+        end;
+      end;
+
+      { set timer.
+        The "repeat ... until" below should not be necessary under normal
+        circumstances, as Mouse3dPollDelay should be much larger than typical
+        frequency of how often this is checked. But we do it for safety
+        (in case something else, like AI or collision detection,
+        slows us down *a lot*). }
+      repeat Mouse3dPollTimer += Mouse3dPollDelay until Mouse3dPollTimer > 0;
+    end;
+  end;
+
+  { Although we call Update for all the controls, we look
+    at PositionInside and track HandleInput values.
+    See TUIControl.Update for explanation. }
+
+  HandleInput := true;
+
+  for I := 0 to Controls.Count - 1 do
+  begin
+    C := Controls[I];
+    if C.PositionInside(MouseX, MouseY) then
+    begin
+      C.Update(Fps.UpdateSecondsPassed, HandleInput);
+    end else
+    begin
+      Dummy := false;
+      C.Update(Fps.UpdateSecondsPassed, Dummy);
+    end;
+  end;
+
+  if Assigned(OnUpdate) then OnUpdate(Self);
+end;
+
+function TUIContainer.EventPress(const Event: TInputPressRelease): boolean;
+var
+  C: TUIControl;
+  I: Integer;
+begin
+  Result := false;
+
+  for I := 0 to Controls.Count - 1 do
+  begin
+    C := Controls[I];
+    if C.PositionInside(MouseX, MouseY) then
+      if C.Press(Event) then
+      begin
+        { We have to check whether C.Container = Self. That is because
+          the implementation of control's Press method could remove itself
+          from our Controls list. Consider e.g. TCastleOnScreenMenu.Press
+          that may remove itself from the Window.Controls list when clicking
+          "close menu" item. We cannot, in such case, save a reference to
+          this control in FCaptureInput, because we should not speak with it
+          anymore (we don't know when it's destroyed, we cannot call it's
+          Release method because it has Container = nil, and so on). }
+        if (Event.EventType = itMouseButton) and
+           (C.Container = Self) then
+          FCaptureInput := C;
+        Exit(true);
+      end;
+  end;
+
+  if Assigned(OnPress) then
+  begin
+    OnPress(Self, Event);
+    Result := true;
+  end;
+end;
+
+function TUIContainer.EventRelease(const Event: TInputPressRelease): boolean;
+var
+  C, Capture: TUIControl;
+  I: Integer;
+begin
+  Result := false;
+
+  Capture := FCaptureInput;
+  if MousePressed = [] then
+    FCaptureInput := nil;
+
+  if Capture <> nil then
+  begin
+    Result := Capture.Release(Event);
+    Exit;
+  end;
+
+  for I := 0 to Controls.Count - 1 do
+  begin
+    C := Controls[I];
+    if C.PositionInside(MouseX, MouseY) then
+      if C.Release(Event) then Exit(true);
+  end;
+
+  if Assigned(OnRelease) then
+  begin
+    OnRelease(Self, Event);
+    Result := true;
+  end;
+end;
+
+procedure TUIContainer.EventOpen(const OpenWindowsCount: Cardinal);
+var
+  I: Integer;
+begin
+  if Assigned(OnOpen) then OnOpen(Self);
+
+  if OpenWindowsCount = 1 then
+    OnGLContextOpen.ExecuteAll;
+
+  { call GLContextOpen on controls after OnOpen. }
+  for I := 0 to Controls.Count - 1 do
+    Controls[I].GLContextOpen;
+end;
+
+procedure TUIContainer.EventClose(const OpenWindowsCount: Cardinal);
+var
+  I: Integer;
+begin
+  { call GLContextClose on controls before OnClose.
+    This may be called from Close, which may be called from TCastleWindowCustom destructor,
+    so prepare for Controls being possibly nil now. }
+  if Controls <> nil then
+  begin
+    for I := 0 to Controls.Count - 1 do
+      Controls[I].GLContextClose;
+  end;
+
+  if OpenWindowsCount = 1 then
+    OnGLContextClose.ExecuteAll;
+
+  if Assigned(OnClose) then OnClose(Self);
+end;
+
+function TUIContainer.AllowSuspendForInput: boolean;
+var
+  I: Integer;
+begin
+  Result := true;
+
+  { Do not suspend when you're over a control that may have a tooltip,
+    as EventUpdate must track and eventually show tooltip. }
+  if (Focus <> nil) and Focus.TooltipExists then
+    Exit(false);
+
+  for I := 0 to Controls.Count - 1 do
+  begin
+    Result := Controls[I].AllowSuspendForInput;
+    if not Result then Exit;
+  end;
+end;
+
+procedure TUIContainer.EventMouseMove(NewX, NewY: Integer);
+var
+  C: TUIControl;
+  I: Integer;
+begin
+  UpdateFocusAndMouseCursor;
+
+  if FCaptureInput <> nil then
+  begin
+    FCaptureInput.MouseMove(MouseX, MouseY, NewX, NewY);
+    Exit;
+  end;
+
+  for I := 0 to Controls.Count - 1 do
+  begin
+    C := Controls[I];
+    if C.PositionInside(MouseX, MouseY) then
+      if C.MouseMove(MouseX, MouseY, NewX, NewY) then Exit;
+  end;
+
+  if Assigned(OnMouseMove) then OnMouseMove(Self, NewX, NewY);
+end;
+
+procedure TUIContainer.ControlsVisibleChange(Sender: TObject);
+begin
+  Invalidate;
+end;
+
+procedure TUIContainer.EventBeforeRender;
+var
+  I: Integer;
+begin
+  for I := 0 to Controls.Count - 1 do
+    Controls[I].BeforeRender;
+
+  if Assigned(OnBeforeRender) then OnBeforeRender(Self);
+end;
+
+procedure TUIContainer.EventResize;
+var
+  I: Integer;
+begin
+  for I := 0 to Controls.Count - 1 do
+    Controls[I].ContainerResize(Width, Height);
+
+  { This way control's get ContainerResize
+    (so have ContainerWidth / ContainerHeight set) before OnResize,
+    useful to position them in OnResize. }
+  if Assigned(OnResize) then OnResize(Self);
+end;
+
+function TUIContainer.Controls: TUIControlList;
+begin
+  Result := TUIControlList(FControls);
+end;
+
 { TInputListener ------------------------------------------------------------- }
 
 constructor TInputListener.Create(AOwner: TComponent);
@@ -790,7 +1418,7 @@ begin
   if Assigned(OnCursorChange) then OnCursorChange(Self);
 end;
 
-procedure TInputListener.SetContainer(const Value: IUIContainer);
+procedure TInputListener.SetContainer(const Value: TUIContainer);
 begin
   FContainer := Value;
 end;

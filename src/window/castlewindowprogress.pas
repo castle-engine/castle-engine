@@ -13,9 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Progress bar displayed in a TCastleWindowBase.
+{ Progress bar displayed in a TCastleWindowCustom.
 
-  Simply set @code(WindowProgressInterface.Window) to your TCastleWindowBase
+  Simply set @code(WindowProgressInterface.Window) to your TCastleWindowCustom
   instance, and assign
 
 @longCode(#  Progress.UserInterface := WindowProgressInterface;#)

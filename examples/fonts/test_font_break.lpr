@@ -33,7 +33,7 @@ var
   Window: TCastleWindowCustom;
   BoxWidth: Integer;
 
-procedure Draw(Window: TCastleWindowBase);
+procedure Render(Container: TUIContainer);
 var
   X1: Integer;
 begin
@@ -52,9 +52,8 @@ begin
     false, 0);
 end;
 
-procedure Resize(Window: TCastleWindowBase);
+procedure Resize(Container: TUIContainer);
 begin
-  Resize2D(Window);
   BoxWidth := Window.Width * 2 div 3;
 end;
 
@@ -87,5 +86,7 @@ begin
   Window.OnResize := @Resize;
   Window.DepthBits := 0;
   Window.SetDemoOptions(K_F11, CharEscape, true);
-  Window.OpenAndRun('Font.BreakLines demo', @Draw);
+  Window.Caption := 'Font.BreakLines demo';
+  Window.OnRender := @Render;
+  Window.OpenAndRun;
 end.

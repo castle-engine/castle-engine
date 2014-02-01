@@ -443,7 +443,7 @@ begin
   Writeln(GLSLProgram.DebugInfo);
 end;
 
-procedure Open(Window: TCastleWindowBase);
+procedure Open(Container: TUIContainer);
 
   function LoadTexture(const URL: string): TGLuint;
   begin
@@ -488,7 +488,7 @@ begin
   GLSLProgramRegenerate;
 end;
 
-procedure Close(Window: TCastleWindowBase);
+procedure Close(Container: TUIContainer);
 begin
   FreeAndNil(GLSLProgram);
 
@@ -503,7 +503,7 @@ begin
   RenderElevationsCloseGL;
 end;
 
-procedure MenuClick(Sender: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 
   procedure ExportToX3D(const URL: string;
     const AddShadersTextures: boolean);

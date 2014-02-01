@@ -65,7 +65,7 @@ private
      (wyslany przez WindowManagera kiedy mysmy robili cos innego.
      User szybko zrobil key down, potem up, dopiero potem my zauwazylismy
      ze dostalismy KeyDown, zrobilismy sobie Close (moze nawet
-     zwolnilismy z pamieci obiekt TCastleWindowBase !!) i potem wywolujemy
+     zwolnilismy z pamieci obiekt TCastleWindowCustom !!) i potem wywolujemy
      ProcessMessage (bo np. sa jeszcze jakies inne okienka otwarte)
      i dostajemy messaga KeyUp dla okienka ktore juz jest Closed
      albo moze nawet ktorego juz nie ma w pamieci !!
@@ -73,14 +73,14 @@ private
      Dotyczy to zarowno WinAPI jak i Xlib.
 }
 
-{ TCastleWindowBase ----------------------------------------------------------------- }
+{ TCastleWindowCustom ----------------------------------------------------------------- }
 
-procedure TCastleWindowBase.PostRedisplay;
+procedure TCastleWindowCustom.PostRedisplay;
 begin
   RedisplayPosted := true;
 end;
 
-procedure TCastleWindowBase.OpenBackend;
+procedure TCastleWindowCustom.OpenBackend;
 begin
   { reset some variables common to all _winsystem implementations }
   RedisplayPosted := false;
@@ -88,7 +88,7 @@ begin
   OpenWinSystemDepend;
 end;
 
-function TCastleWindowBase.FlushRedisplay2: boolean;
+function TCastleWindowCustom.FlushRedisplay2: boolean;
 begin
   Result := RedisplayPosted;
   if Result then
@@ -98,7 +98,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.FlushRedisplay;
+procedure TCastleWindowCustom.FlushRedisplay;
 begin
   FlushRedisplay2;
 end;
@@ -150,7 +150,7 @@ function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: bool
   procedure HandleEvent;
   {$ifdef CASTLE_WINDOW_XLIB}
   var
-    Window: TCastleWindowBase;
+    Window: TCastleWindowCustom;
     evtype: longint;
   {$endif}
   begin
@@ -171,9 +171,9 @@ function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: bool
       MappingNotify: XRefreshKeyboardMapping(@event);
       else
       begin
-        { zdarzenia ktore sa skierowane do konkretnego TCastleWindowBase }
+        { zdarzenia ktore sa skierowane do konkretnego TCastleWindowCustom }
         { sprawdzamy czy okienko jest na liscie Application.OpenWindows, przy okazji
-          zamieniajac windowXID na obiekt klasy TCastleWindowBase. }
+          zamieniajac windowXID na obiekt klasy TCastleWindowCustom. }
         Window := Application.FindWindowXID(event.xany.window);
         if Window <> nil then
           case evtype of
@@ -242,7 +242,7 @@ function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: bool
 var
   WasAnyRendering: boolean;
   I: integer;
-  Window: TCastleWindowBase;
+  Window: TCastleWindowCustom;
 begin
   WasAnyMessage := false;
   try

@@ -235,7 +235,7 @@ type
   { On-screen menu displayed in OpenGL. All the menu items are simply
     displayed on the screen, one after the other. Typical for game menus.
     Normal user programs may prefer to use the menu bar instead of this
-    (for example TCastleWindowBase.Menu, or normal Lazarus menu).
+    (for example TCastleWindowCustom.Menu, or normal Lazarus menu).
     Although this still may be useful for displaying things like sliders. }
   TCastleOnScreenMenu = class(TUIControl)
   private

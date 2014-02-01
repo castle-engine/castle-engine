@@ -27,24 +27,24 @@
 
 {$ifdef read_implementation}
 
-{ TCastleWindowBase ------------------------------------------------------------------ }
+{ TCastleWindowCustom ------------------------------------------------------------------ }
 
-procedure TCastleWindowBase.CreateBackend;
+procedure TCastleWindowCustom.CreateBackend;
 begin
   { TODO (initialize backend-specific per-window stuff; may do nothing) }
 end;
 
-procedure TCastleWindowBase.BackendMenuInitialize;
+procedure TCastleWindowCustom.BackendMenuInitialize;
 begin
   { TODO (may do nothing if you do not care about displaying menu) }
 end;
 
-procedure TCastleWindowBase.BackendMenuFinalize;
+procedure TCastleWindowCustom.BackendMenuFinalize;
 begin
   { TODO (may do nothing if you do not care about displaying menu) }
 end;
 
-procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowCustom.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
   { TODO (may do nothing if you do not care about displaying menu;
     may do MenuFinalize + MenuInitialize if you display menu,
@@ -53,7 +53,7 @@ begin
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowCustom.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
   { TODO (may do nothing if you do not care about displaying menu;
     may do MenuFinalize + MenuInitialize if you display menu,
@@ -62,7 +62,7 @@ begin
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindowCustom.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
   { TODO (may do nothing if you do not care about displaying menu;
     may do MenuFinalize + MenuInitialize if you display menu,
@@ -71,12 +71,12 @@ begin
   MenuInitialize;
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindowCustom.MenuUpdateCheckedFast: boolean;
 begin
   Result := false;
 end;
 
-procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
+procedure TCastleWindowCustom.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { TODO (may do nothing if you do not care about displaying menu;
@@ -86,7 +86,7 @@ begin
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
+procedure TCastleWindowCustom.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { TODO (may do nothing if you do not care about displaying menu;
@@ -96,45 +96,45 @@ begin
   MenuInitialize;
 end;
 
-procedure TCastleWindowBase.SwapBuffers;
+procedure TCastleWindowCustom.SwapBuffers;
 begin
   { TODO }
 end;
 
-procedure TCastleWindowBase.OpenBackend;
+procedure TCastleWindowCustom.OpenBackend;
 begin
   { TODO (create OpenGL context, show window with this context) }
   Application.OpenWindowsAdd(Self);
 end;
 
-procedure TCastleWindowBase.CloseBackend;
+procedure TCastleWindowCustom.CloseBackend;
 begin
   { TODO (destroy OpenGL context, hide window; counterpart to OpenBackend) }
 end;
 
-procedure TCastleWindowBase.PostRedisplay;
+procedure TCastleWindowCustom.PostRedisplay;
 begin
   if not Closed then { TODO };
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowCustom.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
   if not Closed then { TODO: use GetWholeCaption };
 end;
 
-procedure TCastleWindowBase.BackendMakeCurrent;
+procedure TCastleWindowCustom.BackendMakeCurrent;
 begin
   { TODO }
 end;
 
-procedure TCastleWindowBase.FlushRedisplay;
+procedure TCastleWindowCustom.FlushRedisplay;
 begin
   { TODO (redraw *now*, if PostRedisplay pending;
     it's valid (although non-optimal) to just always call DoRender here) }
 end;
 
-procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindowCustom.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -144,24 +144,24 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
+procedure TCastleWindowCustom.SetCustomCursor(const Value: TRGBAlphaImage);
 begin
   { TODO }
   FCustomCursor := Value;
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowCustom.RedirectKeyDownToMenuClick: boolean;
 begin
   Result := { TODO } true;
 end;
 
-procedure TCastleWindowBase.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+procedure TCastleWindowCustom.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
   if not Closed then
     { TODO };
 end;
 
-procedure TCastleWindowBase.SetFullScreen(const Value: boolean);
+procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
 begin
   { This is the simplest implementation of this method: }
   SimpleSetFullScreen(Value);
@@ -169,7 +169,7 @@ begin
     Remove the above line then, and put better implementation here. }
 end;
 
-{ TCastleWindowBase dialogs -------------------------------------------------- }
+{ TCastleWindowCustom dialogs -------------------------------------------------- }
 
 { Methods below should make native-looking dialog boxes.
   Alternatively, you can include castlewindow_dialogs_by_messages.inc
@@ -177,23 +177,23 @@ end;
   castlewindow_xxx.inc file), to have simple dialog boxes drawn on
   OpenGL context using our CastleMessages unit. }
 
-function TCastleWindowBase.BackendFileDialog(const Title: string; var FileName: string;
+function TCastleWindowCustom.BackendFileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 begin
   { TODO } Result := false;
 end;
 
-function TCastleWindowBase.ColorDialog(var Color: TVector3Single): boolean;
+function TCastleWindowCustom.ColorDialog(var Color: TVector3Single): boolean;
 begin
   { TODO } Result := false;
 end;
 
-procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
+procedure TCastleWindowCustom.MessageOK(const S: string; const MessageType: TWindowMessageType);
 begin
   { TODO }
 end;
 
-function TCastleWindowBase.MessageYesNo(const S: string;
+function TCastleWindowCustom.MessageYesNo(const S: string;
   const MessageType: TWindowMessageType): boolean;
 begin
   { TODO } Result := true;

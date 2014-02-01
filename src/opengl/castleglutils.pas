@@ -172,7 +172,7 @@ type
       Value = 1 means that no multi-sampling is initialized.
       Values > 1 mean that you have multi-sampling, with given number of samples
       per pixel.
-      Contrast this with TCastleWindowBase.MultiSampling or TOpenGLControl.MultiSampling,
+      Contrast this with TCastleWindowCustom.MultiSampling or TOpenGLControl.MultiSampling,
       that say @italic(how many samples you wanted to get). }
     CurrentMultiSampling: Cardinal;
 

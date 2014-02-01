@@ -715,7 +715,7 @@ end;
 
 { CastleWindow callbacks --------------------------------------------------------- }
 
-procedure Open(Sender: TCastleWindowBase);
+procedure Open(Container: TUIContainer);
 const
   GLSLProgramBaseName = 'dynamic_ambient_occlusion';
 var
@@ -782,13 +782,13 @@ begin
   Writeln('--------------------------------------------------');
 end;
 
-procedure Close(Window: TCastleWindowBase);
+procedure Close(Container: TUIContainer);
 begin
   FreeAndNil(GLSLProgram[0]);
   FreeAndNil(GLSLProgram[1]);
 end;
 
-procedure Update(Window: TCastleWindowBase);
+procedure Update(Container: TUIContainer);
 begin
   if Window.Pressed.Characters['s'] then
   begin
@@ -858,7 +858,7 @@ begin
   end;
 end;
 
-procedure MenuClick(Window: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 begin
   case Item.IntData of
     100: begin DrawType := dtNormalGL; UpdateSceneAttribs; end;

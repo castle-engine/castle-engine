@@ -27,24 +27,21 @@ uses
   CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils, StdCtrls,
   CastleUIControls, CastleCameras, X3DNodes, CastleScene, CastleLevels,
   CastleImages, CastleGLVersion, pk3DConnexion, CastleSceneManager,
-  CastleGLImages;
+  CastleGLImages, CastleGLContainer;
 
 const
   DefaultLimitFPS = 100.0;
 
 type
   { OpenGL control, with a couple of extensions for "Castle Game Engine".
-    You should usually use descendants TCastleControl or
-    (less likely) TCastleControlCustom instead of using directly this class,
-    as the descendants add important features like
-    @link(TCastleControlCustom.Controls) or @link(TCastleControl.SceneManager).
+    In particular it adds @link(TCastleControlCustom.Controls) to manage our
+    controls. A descendant TCastleControl provides ready
+    @link(TCastleControl.SceneManager) for 3D world.
 
     Extends TOpenGLControl with various utilities:
 
     @unorderedList(
-      @item(OnGLContextOpen and OnGLContextClose events and GLInitialized property.)
-
-      @item(Continously called @link(UpdateEvent) method, that allows to handle
+      @item(Continously called @link(DoUpdate) method, that allows to handle
         TUIControl.Update. This is something different than LCL "idle" event,
         as it's guaranteed to be run continously, even when your application
         is clogged with events (like when using TWalkCamera.MouseLook).)
@@ -59,21 +56,41 @@ type
       @item(Tracks pressed keys @link(Pressed) and mouse buttons @link(MousePressed)
         and mouse position (@link(MouseX), @link(MouseY)).)
     ) }
-  TCastleControlBase = class(TOpenGLControl)
+  TCastleControlCustom = class(TOpenGLControl)
   private
+    type
+      { Non-abstact implementation of TUIContainer that cooperates with
+        TCastleControlCustom. }
+      TContainer = class(TGLContainer)
+      private
+        Parent: TCastleControlCustom;
+      public
+        constructor Create(AParent: TCastleControlCustom); reintroduce;
+
+        procedure Invalidate; override;
+        function GLInitialized: boolean; override;
+        function Width: Integer; override;
+        function Height: Integer; override;
+        function Rect: TRectangle; override;
+        function MouseX: Integer; override;
+        function MouseY: Integer; override;
+        procedure SetMousePosition(const NewMouseX, NewMouseY: Integer); override;
+        function Dpi: Integer; override;
+        function MousePressed: TMouseButtons; override;
+        function Pressed: TKeysPressed; override;
+        function Fps: TFramesPerSecond; override;
+        procedure SetCursor(const Value: TMouseCursor); override;
+      end;
+    var
+    FContainer: TContainer;
     FMouseX: Integer;
     FMouseY: Integer;
-    FOnBeforeRender: TNotifyEvent;
-    FOnRender: TNotifyEvent;
     FGLInitialized: boolean;
     FPressed: TKeysPressed;
     FMousePressed: CastleKeysMouse.TMouseButtons;
 
     { manually track when we need to be repainted, useful for AggressiveUpdate }
     Invalidated: boolean;
-
-    FOnGLContextOpen: TNotifyEvent;
-    FOnGLContextClose: TNotifyEvent;
 
     FFps: TFramesPerSecond;
 
@@ -87,19 +104,28 @@ type
       to update Pressed when needed. }
     procedure UpdateShiftState(const Shift: TShiftState);
 
-    { For IUIContainer interface. Private, since when you have a class
-      instance, you just use class properties (that read directly from a field,
-      without the overhead of a function call). }
-    function GetMouseX: Integer;
-    function GetMouseY: Integer;
-    function GetWidth: Integer;
-    function GetHeight: Integer;
-    function GetMousePressed: TMouseButtons;
-    function GetPressed: TKeysPressed;
+    function GetOnOpen: TContainerEvent;
+    procedure SetOnOpen(const Value: TContainerEvent);
+    function GetOnBeforeRender: TContainerEvent;
+    procedure SetOnBeforeRender(const Value: TContainerEvent);
+    function GetOnRender: TContainerEvent;
+    procedure SetOnRender(const Value: TContainerEvent);
+    function GetOnResize: TContainerEvent;
+    procedure SetOnResize(const Value: TContainerEvent);
+    function GetOnClose: TContainerEvent;
+    procedure SetOnClose(const Value: TContainerEvent);
+    function GetOnUpdate: TContainerEvent;
+    procedure SetOnUpdate(const Value: TContainerEvent);
+    function GetOnPress: TInputPressReleaseEvent;
+    procedure SetOnPress(const Value: TInputPressReleaseEvent);
+    function GetOnRelease: TInputPressReleaseEvent;
+    procedure SetOnRelease(const Value: TInputPressReleaseEvent);
+    function GetOnMouseMove: TMouseMoveEvent;
+    procedure SetOnMouseMove(const Value: TMouseMoveEvent);
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
-
+    procedure Resize; override;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyUp(var Key: Word; Shift: TShiftState); override;
     procedure MouseDown(Button: Controls.TMouseButton;
@@ -107,53 +133,16 @@ type
     procedure MouseUp(Button: Controls.TMouseButton;
       Shift:TShiftState; X,Y:Integer); override;
     procedure MouseMove(Shift: TShiftState; NewX, NewY: Integer); override;
-
     function DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean; override;
-    function MouseWheelEvent(const Scroll: Single; const Vertical: boolean): boolean; virtual;
 
-    { Overriden KeyDown, KeyUp methods call some necessary stuff (like inherited,
-      and updating the Pressed, MousePressed values) and call respective
-      *Event method.
-
-      Note that this means that OnKeyDown / OnKeyUp are always fired
-      (this is contrary to the TCastleWindowCustom.OnPress / OnRelease behaviour,
-      that is called only if no TCastleControlCustom.Controls processed
-      this key).
-
-      The cleanest way to react to key / mouse events is to handle it in
-      a specific TUIControl descendant. Overriding methods like KeyDown,
-      KeyDownEvent, or using OnKeyDown event should be a last resort.
-
-      @groupBegin }
-    function KeyDownEvent(const MyKey: TKey; const Ch: char): boolean; virtual;
-    function KeyUpEvent(const MyKey: TKey; const Ch: char): boolean; virtual;
-    procedure MouseDownEvent(Button: Controls.TMouseButton;
-      Shift:TShiftState; X,Y:Integer); virtual;
-    procedure MouseUpEvent(Button: Controls.TMouseButton;
-      Shift:TShiftState; X,Y:Integer); virtual;
-    procedure MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer); virtual;
-    { @groupEnd }
-
-    procedure UpdateEvent; virtual;
-
-    { In this class this just calls OnGLContextOpen.
-
-      Note that always after initializing OpenGL context, we also call
-      Resize (OnResize event). And we call Invalidate
-      (so at the first opportunity, Paint (with OnPaint,
-      DoRender (OnRender), DoBeforeRender (OnBeforeRender), will also get called). }
-    procedure DoGLContextOpen; virtual;
-
-    { In this class this just calls OnGLContextClose. }
-    procedure DoGLContextClose; virtual;
+    procedure DoUpdate; virtual;
 
     property GLInitialized: boolean read FGLInitialized;
-
-    procedure DoBeforeRender; virtual;
-    procedure DoRender; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    function Controls: TUIControlList;
 
     function MakeCurrent(SaveOldToStack: boolean = false): boolean; override;
     procedure Invalidate; override;
@@ -196,115 +185,20 @@ type
       Always (Left,Bottom) are zero, and (Width,Height) correspond to container
       sizes. }
     function Rect: TRectangle;
+
+    property OnOpen: TContainerEvent read GetOnOpen write SetOnOpen;
+    property OnBeforeRender: TContainerEvent read GetOnBeforeRender write SetOnBeforeRender;
+    property OnRender: TContainerEvent read GetOnRender write SetOnRender;
+    property OnResize: TContainerEvent read GetOnResize write SetOnResize;
+    property OnClose: TContainerEvent read GetOnClose write SetOnClose;
+    property OnPress: TInputPressReleaseEvent read GetOnPress write SetOnPress;
+    property OnRelease: TInputPressReleaseEvent read GetOnRelease write SetOnRelease;
+    property OnMouseMove: TMouseMoveEvent read GetOnMouseMove write SetOnMouseMove;
+    property OnUpdate: TContainerEvent read GetOnUpdate write SetOnUpdate;
   published
-    { Called right after OpenGL context is created. }
-    property OnGLContextOpen: TNotifyEvent
-      read FOnGLContextOpen write FOnGLContextOpen;
-
-    { Called right before OpenGL context is destroyed. }
-    property OnGLContextClose: TNotifyEvent
-      read FOnGLContextClose write FOnGLContextClose;
-
-    property OnBeforeRender: TNotifyEvent read FOnBeforeRender write FOnBeforeRender;
-    property OnRender: TNotifyEvent read FOnRender write FOnRender;
-
     property TabOrder;
     property TabStop default true;
-  end;
-
-  { OpenGL control, with extensions for "Castle Game Engine", including
-    @link(Controls) list for TUIControl instances.
-
-    Keeps a @link(Controls) list, so you can easily add TUIControl instances
-    to this window (like TCastleOnScreenMenu, TCastleButton and more).
-    We will pass events to these controls, draw them etc. }
-  TCastleControlCustom = class(TCastleControlBase, IUIContainer)
-  private
-    FControls: TUIControlList;
-    FRenderStyle: TRenderStyle;
-    FFocus: TUIControl;
-    FTooltipDelay: TMilisecTime;
-    FTooltipDistance: Cardinal;
-    FTooltipVisible: boolean;
-    FTooltipX, FTooltipY: Integer;
-    LastPositionForTooltip: boolean;
-    LastPositionForTooltipX, LastPositionForTooltipY: Integer;
-    LastPositionForTooltipTime: TTimerResult;
-    Mouse3d: T3DConnexionDevice;
-    Mouse3dPollTimer: Single;
-    procedure ControlsVisibleChange(Sender: TObject);
-    procedure UpdateFocusAndMouseCursor;
-    function GetTooltipX: Integer;
-    function GetTooltipY: Integer;
-    function GetDpi: Integer;
-    { Called when the control C is destroyed or just removed from Controls list. }
-    procedure DetachNotification(const C: TUIControl);
-  protected
-    function KeyDownEvent(const MyKey: TKey; const Ch: char): boolean; override;
-    function KeyUpEvent(const MyKey: TKey; const Ch: char): boolean; override;
-    procedure MouseDownEvent(Button: Controls.TMouseButton;
-      Shift:TShiftState; X,Y:Integer); override;
-    procedure MouseUpEvent(Button: Controls.TMouseButton;
-      Shift:TShiftState; X,Y:Integer); override;
-    procedure MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer); override;
-    function MouseWheelEvent(const Scroll: Single; const Vertical: boolean): boolean; override;
-    procedure UpdateEvent; override;
-    procedure DoBeforeRender; override;
-    procedure DoRender; override;
-    procedure Resize; override;
-    procedure DoGLContextOpen; override;
-    procedure DoGLContextClose; override;
-
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-  public
-    const
-      DefaultTooltipDelay = 1000;
-      DefaultTooltipDistance = 10;
-
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-
-    { Returns the control that should receive input events first,
-      or @nil if none. More precisely, this is the first on Controls
-      list that is enabled and under the mouse cursor.
-      @nil is returned when there's no enabled control under the mouse cursor. }
-    property Focus: TUIControl read FFocus;
-
-    { When the tooltip should be shown (mouse hovers over a control
-      with a tooltip) then the TooltipVisible is set to @true,
-      and TooltipX, TooltipY indicate left-bottom suggested position
-      of the tooltip.
-
-      The tooltip is only detected when TUIControl.TooltipExists.
-      See TUIControl.TooltipStyle and TUIControl.TooltipRender.
-      For simple purposes just set TUIControlFont.Tooltip to something
-      non-empty.
-      @groupBegin }
-    property TooltipVisible: boolean read FTooltipVisible;
-    property TooltipX: Integer read FTooltipX;
-    property TooltipY: Integer read FTooltipY;
-    { @groupEnd }
-
-    function Mouse3dLoaded: boolean;
-
-  published
-    { When @link(OnRender) callback is called.
-      See TCastleWindowCustom.RenderStyle for full description. }
-    property RenderStyle: TRenderStyle
-      read FRenderStyle write FRenderStyle default rs2D;
-
-    { Controls listening for user input (keyboard / mouse) to this window.
-
-      Usually you explicitly add / delete controls to this list.
-      Also, freeing the control that is on this list
-      automatically removes it from this list (using the TComponent.Notification
-      mechanism). }
-    property Controls: TUIControlList read FControls;
-
-    property TooltipDelay: TMilisecTime read FTooltipDelay write FTooltipDelay
-      default DefaultTooltipDelay;
-    property TooltipDistance: Cardinal read FTooltipDistance write FTooltipDistance
-      default DefaultTooltipDistance;
+    property Container: TContainer read FContainer;
   end;
 
   { Lazarus component with an OpenGL context, most comfortable to render 3D worlds
@@ -376,7 +270,7 @@ var
 
     When we may be clogged with events (like when using mouse look)
     this has an additional meaning:
-    it is then used to force TCastleControl.UpdateEvent and (if needed) repaint
+    it is then used to force TCastleControl.DoUpdate and (if needed) repaint
     at least this often. So it is not only a limit,
     it's more like "the desired number of FPS".
     Although it's capped by MaxDesiredFPS (100), which is applied when
@@ -465,17 +359,17 @@ type
 class procedure TCastleApplicationIdle.ApplicationIdle(Sender: TObject; var Done: Boolean);
 var
   I: Integer;
-  C: TCastleControlBase;
+  C: TCastleControlCustom;
 begin
   { This should never be registered in design mode, to not conflict
     (by DoLimitFPS, or Done setting) with using Lazarus IDE. }
   Assert(not (csDesigning in Application.ComponentState));
 
-  { Call UpdateEvent for all TCastleControl instances. }
+  { Call DoUpdate for all TCastleControl instances. }
   for I := 0 to CastleControls.Count - 1 do
   begin
-    C := CastleControls[I] as TCastleControlBase;
-    C.UpdateEvent;
+    C := CastleControls[I] as TCastleControlCustom;
+    C.DoUpdate;
   end;
 
   DoLimitFPS;
@@ -486,7 +380,7 @@ begin
     demo_models/sensors_pointing_device/touch_sensor_tests.x3dv .
     That's because Done := true allows for WidgetSet.AppWaitMessage
     inside lcl/include/application.inc .
-    We don't want that, we want continous UpdateEvent events.
+    We don't want that, we want continous DoUpdate events.
 
     So we have to use Done := false.
 
@@ -494,7 +388,7 @@ begin
     (other TApplicationProperties.OnIdle) from working.
     See TApplication.Idle and TApplication.NotifyIdleHandler implementation
     in lcl/include/application.inc .
-    To at least allow all TCastleControlBase work, we use a central
+    To at least allow all TCastleControlCustom work, we use a central
     ApplicationIdle callback (we don't use separate TApplicationProperties
     for each TCastleControl; in fact, we don't need TApplicationProperties
     at all). }
@@ -505,13 +399,103 @@ end;
 var
   ApplicationIdleSet: boolean;
 
-{ TCastleControlBaseCore -------------------------------------------------- }
+{ TCastleControlCustom.TContainer ----------------------------------------------------- }
 
-constructor TCastleControlBase.Create(AOwner: TComponent);
+constructor TCastleControlCustom.TContainer.Create(AParent: TCastleControlCustom);
+begin
+  inherited Create(AParent); // AParent must be a component Owner to show published properties of container in LFM
+  Parent := AParent;
+end;
+
+procedure TCastleControlCustom.TContainer.Invalidate;
+begin
+  Parent.Invalidate;
+end;
+
+function TCastleControlCustom.TContainer.GLInitialized: boolean;
+begin
+  Result := Parent.GLInitialized;
+end;
+
+function TCastleControlCustom.TContainer.Width: Integer;
+begin
+  Result := Parent.Width;
+end;
+
+function TCastleControlCustom.TContainer.Height: Integer;
+begin
+  Result := Parent.Height;
+end;
+
+function TCastleControlCustom.TContainer.Rect: TRectangle;
+begin
+  Result := Parent.Rect;
+end;
+
+function TCastleControlCustom.TContainer.MouseX: Integer;
+begin
+  Result := Parent.MouseX;
+end;
+
+function TCastleControlCustom.TContainer.MouseY: Integer;
+begin
+  Result := Parent.MouseY;
+end;
+
+procedure TCastleControlCustom.TContainer.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+begin
+  Parent.SetMousePosition(NewMouseX, NewMouseY);
+end;
+
+function TCastleControlCustom.TContainer.Dpi: Integer;
+begin
+  Result := DefaultDpi; //Parent.Dpi; // for now, TCastleControl doesn't expose any useful Dpi
+end;
+
+function TCastleControlCustom.TContainer.MousePressed: TMouseButtons;
+begin
+  Result := Parent.MousePressed;
+end;
+
+function TCastleControlCustom.TContainer.Pressed: TKeysPressed;
+begin
+  Result := Parent.Pressed;
+end;
+
+function TCastleControlCustom.TContainer.Fps: TFramesPerSecond;
+begin
+  Result := Parent.Fps;
+end;
+
+procedure TCastleControlCustom.TContainer.SetCursor(const Value: TMouseCursor);
+var
+  NewCursor: TCursor;
+begin
+  NewCursor := CursorCastleToLCL[Value];
+
+  { check explicitly "Cursor <> NewCursor" --- we will call UpdateFocusAndMouseCursor
+    very often (in each mouse move), and we don't want to depend on LCL
+    optimizing "Cursor := Cursor" to avoid some potentially expensive window
+    manager call. }
+  if Parent.Cursor <> NewCursor then
+    Parent.Cursor := NewCursor;
+end;
+
+{ TCastleControlCustom -------------------------------------------------- }
+
+constructor TCastleControlCustom.Create(AOwner: TComponent);
 begin
   inherited;
+  TabStop := true;
   FFps := TFramesPerSecond.Create;
   FPressed := TKeysPressed.Create;
+
+  FContainer := TContainer.Create(Self);
+  { SetSubComponent and Name setting (must be unique only within TCastleControl,
+    so no troubles) are necessary to store it in LFM and display in object inspector
+    nicely. }
+  FContainer.SetSubComponent(true);
+  FContainer.Name := 'Container';
 
   if CastleControls.Count <> 0 then
     SharedControl := CastleControls[0] as TCastleControl;
@@ -526,7 +510,7 @@ begin
   end;
 end;
 
-destructor TCastleControlBase.Destroy;
+destructor TCastleControlCustom.Destroy;
 begin
   if ApplicationIdleSet and
      (CastleControls <> nil) and
@@ -545,22 +529,23 @@ begin
 
   FreeAndNil(FPressed);
   FreeAndNil(FFps);
+  FreeAndNil(FContainer);
   inherited;
 end;
 
 { Initial idea was to do
 
-procedure TCastleControlBase.CreateHandle;
+procedure TCastleControlCustom.CreateHandle;
 begin
-  Writeln('TCastleControlBase.CreateHandle ', GLInitialized,
+  Writeln('TCastleControlCustom.CreateHandle ', GLInitialized,
     ' ', OnGLContextOpen <> nil);
   inherited CreateHandle;
   if not GLInitialized then
   begin
     GLInitialized := true;
-    DoGLContextOpen;
+    Container.EventOpen;
   end;
-  Writeln('TCastleControlBase.CreateHandle end');
+  Writeln('TCastleControlCustom.CreateHandle end');
 end;
 
 Reasoning: looking at implementation of OpenGLContext,
@@ -575,93 +560,62 @@ OpenGL context. Looking at implementation of GLGtkGlxContext
 we see that only during MakeCurrent the widget is guaranteed
 to be realized. }
 
-function TCastleControlBase.MakeCurrent(SaveOldToStack: boolean): boolean;
+function TCastleControlCustom.MakeCurrent(SaveOldToStack: boolean): boolean;
 begin
   Result := inherited MakeCurrent(SaveOldToStack);
 
   if not GLInitialized then
   begin
     FGLInitialized := true;
-    DoGLContextOpen;
-
-    Resize;
-    { TODO: why it's not enough to call Resize; here?
-      Long time ago, observed on Windows, later also on GTK 2.
-      Reproducible e.g. with simple_3d_camera Lazarus demo. }
-    if Assigned(OnResize) then OnResize(Self);
-
+    LoadAllExtensions;
+    Inc(ControlsOpen);
+    Container.EventOpen(ControlsOpen);
+    Resize; // will call Container.EventResize
     Invalidate;
   end;
 end;
 
-procedure TCastleControlBase.Invalidate;
-begin
-  Invalidated := true;
-  inherited;
-end;
-
-procedure TCastleControlBase.DestroyHandle;
+procedure TCastleControlCustom.DestroyHandle;
 begin
   if GLInitialized then
   begin
-    DoGLContextClose;
+    Container.EventClose(ControlsOpen);
+    Dec(ControlsOpen);
     FGLInitialized := false;
   end;
   inherited DestroyHandle;
 end;
 
-procedure TCastleControlBase.DoGLContextOpen;
+procedure TCastleControlCustom.Resize;
 begin
-  LoadAllExtensions;
+  inherited;
 
-  if Assigned(OnGLContextOpen) then
-    OnGLContextOpen(Self);
+  { Call MakeCurrent here, to make sure CastleUIControls always get
+    ContainerResize with good GL context. }
+  if GLInitialized and MakeCurrent then
+    Container.EventResize;
 end;
 
-procedure TCastleControlBase.DoGLContextClose;
+procedure TCastleControlCustom.Invalidate;
 begin
-  if Assigned(OnGLContextClose) then
-    OnGLContextClose(Self);
+  Invalidated := true;
+  inherited;
 end;
 
-procedure TCastleControlBase.ReleaseAllKeysAndMouse;
+procedure TCastleControlCustom.ReleaseAllKeysAndMouse;
 begin
   Pressed.Clear;
   FMousePressed := [];
 end;
 
-procedure TCastleControlBase.UpdateShiftState(const Shift: TShiftState);
+procedure TCastleControlCustom.UpdateShiftState(const Shift: TShiftState);
 begin
   Pressed.Keys[K_Shift] := ssShift in Shift;
   Pressed.Keys[K_Alt  ] := ssAlt   in Shift;
   Pressed.Keys[K_Ctrl ] := ssCtrl  in Shift;
 end;
 
-function TCastleControlBase.KeyDownEvent(const MyKey: TKey; const Ch: char): boolean;
-begin
-  Result := false;
-end;
-
-function TCastleControlBase.KeyUpEvent(const MyKey: TKey; const Ch: char): boolean;
-begin
-  Result := false;
-end;
-
-procedure TCastleControlBase.MouseDownEvent(Button: Controls.TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-begin
-end;
-
-procedure TCastleControlBase.MouseUpEvent(Button: Controls.TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-begin
-end;
-
-procedure TCastleControlBase.MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer);
-begin
-end;
-
-procedure TCastleControlBase.KeyDown(var Key: Word; Shift: TShiftState);
+procedure TCastleControlCustom.KeyDown(var Key: Word; Shift: TShiftState);
 var
   MyKey: TKey;
   Ch: char;
@@ -670,7 +624,7 @@ begin
   if (MyKey <> K_None) or (Ch <> #0) then
     Pressed.KeyDown(MyKey, Ch);
 
-  UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
+  UpdateShiftState(Shift); { do this after Pressed update above, and before EventPress }
 
   { Do not change focus by arrow keys, this would breaks our handling of arrows
     over TCastleControl. We can prevent Lazarus from interpreting these
@@ -684,14 +638,14 @@ begin
      (Key = VK_Left) then
     Key := 0;
 
-  inherited KeyDown(Key, Shift);  { OnKeyDown before KeyDownEvent }
+  inherited KeyDown(Key, Shift); { LCL OnKeyDown before our callbacks }
 
   if (MyKey <> K_None) or (Ch <> #0) then
-    if KeyDownEvent(MyKey, Ch) then
+    if Container.EventPress(InputKey(MyKey, Ch)) then
       Key := 0; // handled
 end;
 
-procedure TCastleControlBase.KeyUp(var Key: Word; Shift: TShiftState);
+procedure TCastleControlCustom.KeyUp(var Key: Word; Shift: TShiftState);
 var
   MyKey: TKey;
   Ch: char;
@@ -700,7 +654,7 @@ begin
   if MyKey <> K_None then
     Pressed.KeyUp(MyKey, Ch);
 
-  UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
+  UpdateShiftState(Shift); { do this after Pressed update above, and before EventRelease }
 
   { Do not change focus by arrow keys, this breaks our handling of them.
     See KeyDown for more comments. }
@@ -710,14 +664,14 @@ begin
      (Key = VK_Left) then
     Key := 0;
 
-  inherited KeyUp(Key, Shift); { OnKeyUp before KeyUpEvent }
+  inherited KeyUp(Key, Shift); { LCL OnKeyUp before our callbacks }
 
   if (MyKey <> K_None) or (Ch <> #0) then
-    if KeyUpEvent(MyKey, Ch) then
+    if Container.EventRelease(InputKey(MyKey, Ch)) then
       Key := 0; // handled
 end;
 
-procedure TCastleControlBase.MouseDown(Button: Controls.TMouseButton;
+procedure TCastleControlCustom.MouseDown(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
   MyButton: CastleKeysMouse.TMouseButton;
@@ -730,12 +684,13 @@ begin
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
-  inherited MouseDown(Button, Shift, X, Y); { OnMouseDown before MouseDownEvent }
+  inherited MouseDown(Button, Shift, X, Y); { LCL OnMouseDown before our callbacks }
 
-  MouseDownEvent(Button, Shift, X, Y);
+  if MouseButtonLCLToCastle(Button, MyButton) then
+    Container.EventPress(InputMouseButton(MyButton));
 end;
 
-procedure TCastleControlBase.MouseUp(Button: Controls.TMouseButton;
+procedure TCastleControlCustom.MouseUp(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
   MyButton: CastleKeysMouse.TMouseButton;
@@ -748,14 +703,15 @@ begin
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
-  inherited MouseUp(Button, Shift, X, Y); { OnMouseUp before MouseUpEvent }
+  inherited MouseUp(Button, Shift, X, Y); { LCL OnMouseUp before our callbacks }
 
-  MouseUpEvent(Button, Shift, X, Y);
+  if MouseButtonLCLToCastle(Button, MyButton) then
+    Container.EventRelease(InputMouseButton(MyButton));
 end;
 
-procedure TCastleControlBase.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
+procedure TCastleControlCustom.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
 
-  { Force UpdateEvent and Paint (if invalidated) events to happen,
+  { Force DoUpdate and Paint (if invalidated) events to happen,
     if sufficient time (based on LimitFPS, that in this case acts like
     "desired FPS") passed.
     This is needed when user "clogs" the GTK / WinAPI / Qt etc. event queue.
@@ -766,13 +722,13 @@ procedure TCastleControlBase.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
     are executed only when there are no events left to process.
     This makes sense, and actually follows the docs and the name "idle".
 
-    In contrast, our UpdateEvent expects to be run continously, that is:
+    In contrast, our DoUpdate expects to be run continously, that is:
     about the same number
     of times per second as the screen Redraw (and if the screen doesn't need to
-    be redrawn, our UpdateEvent should still run a sensible number of times
+    be redrawn, our DoUpdate should still run a sensible number of times
     per second --- around the same value as LimitFPS, or (when LimitFPS
     is set to 0, meaning "unused") as many times as possible).
-    For our UpdateEvent, it should not matter whether your event
+    For our DoUpdate, it should not matter whether your event
     loop has something left to process. We need this,
     since typical games / 3D simulations must try to update animations and
     repaint at a constant rate, even when user is moving around.
@@ -807,7 +763,7 @@ procedure TCastleControlBase.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
     So instead we hack it from the inside: from time to time
     (more precisely, LimitFPS times per second),
     when receving an often occuring event (right now: just MouseMove),
-    we'll call the UpdateEvent, and (if pending Invalidate call) Paint methods.
+    we'll call the DoUpdate, and (if pending Invalidate call) Paint methods.
 
     In theory, we could call this on every event (key down, mouse down etc.).
     But in practice:
@@ -835,72 +791,52 @@ procedure TCastleControlBase.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
       DesiredFPS := Min(MaxDesiredFPS, LimitFPS);
     if Timer - Fps.UpdateStartTime > TimerFrequency / DesiredFPS then
     begin
-      UpdateEvent;
+      DoUpdate;
       if Invalidated then Paint;
     end;
   end;
 
 begin
-  MouseMoveEvent(Shift, NewX, NewY);
-
-  { OnMouseMove after MouseMoveEvent (MouseX, MouseY must be old values
-    inside MouseMoveEvent) }
-  FMouseX := NewX;
+  Container.EventMouseMove(NewX, NewY);
+  FMouseX := NewX;  // change FMouseXY *after* EventMouseMove, callbacks may depend on it
   FMouseY := NewY;
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
-
   AggressiveUpdate;
 
   inherited MouseMove(Shift, NewX, NewY);
 end;
 
-function TCastleControlBase.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
+function TCastleControlCustom.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
   MousePos: TPoint): Boolean;
 begin
-  Result := MouseWheelEvent(WheelDelta/120, true);
+  Result := Container.EventPress(InputMouseWheel(WheelDelta/120, true));
   if Result then Exit;
 
   Result := inherited DoMouseWheel(Shift, WheelDelta, MousePos);
 end;
 
-function TCastleControlBase.MouseWheelEvent(const Scroll: Single; const Vertical: boolean): boolean;
-begin
-  Result := false;
-end;
-
-procedure TCastleControlBase.UpdateEvent;
+procedure TCastleControlCustom.DoUpdate;
 begin
   Fps._UpdateBegin;
+  Container.EventUpdate;
 end;
 
-procedure TCastleControlBase.DoExit;
+procedure TCastleControlCustom.DoExit;
 begin
   inherited;
   ReleaseAllKeysAndMouse;
 end;
 
-procedure TCastleControlBase.DoBeforeRender;
-begin
-  if Assigned(OnBeforeRender) then
-    OnBeforeRender(Self);
-end;
-
-procedure TCastleControlBase.DoRender;
-begin
-  if Assigned(OnRender) then
-    OnRender(Self);
-end;
-
-procedure TCastleControlBase.Paint;
+procedure TCastleControlCustom.Paint;
 begin
   { Note that we don't call here inherited, instead doing everything ourselves. }
   if MakeCurrent then
   begin
-    DoBeforeRender;
+    Container.EventBeforeRender;
     Fps._RenderBegin;
     try
-      DoRender;
+      Container.EventRender;
       if GLVersion.BuggySwapNonStandardViewport then
         glViewport(Rect);
       SwapBuffers;
@@ -909,637 +845,126 @@ begin
   end;
 end;
 
-function TCastleControlBase.SaveScreenBuffer: TColorBuffer;
+function TCastleControlCustom.SaveScreenBuffer: TColorBuffer;
 begin
   if DoubleBuffered then
     Result := cbBack else
     Result := cbFront;
 end;
 
-function TCastleControlBase.SaveScreen: TRGBImage;
+function TCastleControlCustom.SaveScreen: TRGBImage;
 begin
   if MakeCurrent then
   begin
-    DoBeforeRender;
-    DoRender;
+    Container.EventBeforeRender;
+    Container.EventRender;
   end;
   Result := SaveScreen_NoFlush(Rect, SaveScreenBuffer);
 end;
 
-procedure TCastleControlBase.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+procedure TCastleControlCustom.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
   Mouse.CursorPos := ControlToScreen(Point(NewMouseX, NewMouseY));
 end;
 
-function TCastleControlBase.GetMouseX: Integer;
-begin
-  Result := FMouseX;
-end;
-
-function TCastleControlBase.GetMouseY: Integer;
-begin
-  Result := FMouseY;
-end;
-
-function TCastleControlBase.GetWidth: Integer;
-begin
-  Result := Width;
-end;
-
-function TCastleControlBase.GetHeight: Integer;
-begin
-  Result := Height;
-end;
-
-function TCastleControlBase.GetMousePressed: TMouseButtons;
-begin
-  Result := FMousePressed;
-end;
-
-function TCastleControlBase.GetPressed: TKeysPressed;
-begin
-  Result := FPressed;
-end;
-
-function TCastleControlBase.Rect: TRectangle;
+function TCastleControlCustom.Rect: TRectangle;
 begin
   Result := Rectangle(0, 0, Width, Height);
 end;
 
-{ TControlledUIControlList ----------------------------------------------------- }
-
-type
-  { TUIControlList descendant that takes care to react to list add/remove
-    notifications, doing appropriate operations with parent Container. }
-  TControlledUIControlList = class(TUIControlList)
-  private
-    Container: TCastleControlCustom;
-  public
-    constructor Create(const FreeObjects: boolean; const AContainer: TCastleControlCustom);
-    procedure Notify(Ptr: Pointer; Action: TListNotification); override;
-  end;
-
-constructor TControlledUIControlList.Create(const FreeObjects: boolean;
-  const AContainer: TCastleControlCustom);
+function TCastleControlCustom.Controls: TUIControlList;
 begin
-  inherited Create(FreeObjects);
-  Container := AContainer;
+  Result := Container.Controls;
 end;
 
-procedure TControlledUIControlList.Notify(Ptr: Pointer; Action: TListNotification);
-var
-  C: TUIControl absolute Ptr;
+function TCastleControlCustom.GetOnOpen: TContainerEvent;
 begin
-  C := TUIControl(Ptr);
-  case Action of
-    lnAdded:
-      begin
-        { Make sure Container.ControlsVisibleChange will be called
-          when a control calls OnVisibleChange. }
-        if C.OnVisibleChange = nil then
-          C.OnVisibleChange := @Container.ControlsVisibleChange;
-
-        { Register Container to be notified of control destruction. }
-        C.FreeNotification(Container);
-
-        C.Container := Container;
-
-        { Call initial ContainerResize for control.
-          If Container OpenGL context is not yet initialized, defer it to
-          the Init time, then our initial EventResize will be called
-          that will do ContainerResize on every control. }
-        if Container.GLInitialized then
-        begin
-          C.GLContextOpen;
-          C.ContainerResize(Container.Width, Container.Height);
-        end;
-      end;
-    lnExtracted, lnDeleted:
-      begin
-        if Container.GLInitialized then
-          C.GLContextClose;
-
-        if C.OnVisibleChange = @Container.ControlsVisibleChange then
-          C.OnVisibleChange := nil;
-
-        C.RemoveFreeNotification(Container);
-        Container.DetachNotification(C);
-
-        C.Container := nil;
-      end;
-    else raise EInternalError.Create('TControlledUIControlList.Notify action?');
-  end;
-
-  if Container.FControls <> nil then
-    Container.UpdateFocusAndMouseCursor;
+  Result := Container.OnOpen;
 end;
 
-{ TCastleControlCustom --------------------------------------------------------- }
-
-constructor TCastleControlCustom.Create(AOwner: TComponent);
+procedure TCastleControlCustom.SetOnOpen(const Value: TContainerEvent);
 begin
-  inherited;
-  TabStop := true;
-  FControls := TControlledUIControlList.Create(false, Self);
-  FRenderStyle := rs2D;
-  FTooltipDelay := DefaultTooltipDelay;
-  FTooltipDistance := DefaultTooltipDistance;
-
-  { connect 3D device - 3Dconnexion device }
-  Mouse3dPollTimer := 0;
-  try
-    Mouse3d := T3DConnexionDevice.Create('Castle Control');
-  except
-    on E: Exception do
-      if Log then WritelnLog('3D Mouse', 'Exception %s when initializing T3DConnexionDevice: %s',
-        [E.ClassName, E.Message]);
-  end;
+  Container.OnOpen := Value;
 end;
 
-destructor TCastleControlCustom.Destroy;
+function TCastleControlCustom.GetOnBeforeRender: TContainerEvent;
 begin
-  FreeAndNil(FControls);
-  FreeAndNil(Mouse3d);
-  inherited;
+  Result := Container.OnBeforeRender;
 end;
 
-function TCastleControlCustom.Mouse3dLoaded: boolean;
+procedure TCastleControlCustom.SetOnBeforeRender(const Value: TContainerEvent);
 begin
-  Result := Assigned(Mouse3d) and Mouse3d.Loaded;
+  Container.OnBeforeRender := Value;
 end;
 
-procedure TCastleControlCustom.Notification(AComponent: TComponent; Operation: TOperation);
+function TCastleControlCustom.GetOnRender: TContainerEvent;
 begin
-  { We have to remove a reference to the object from Controls list.
-    This is crucial: TControlledUIControlList.Notify,
-    and some Controls.MakeSingle calls, assume that all objects on
-    the Controls list are always valid objects (no invalid references,
-    even for a short time).
-
-    Check "Controls <> nil" is not needed here, it's just in case
-    this code will be moved to TUIControl.Notification some day.
-    See T3D.Notification for explanation. }
-
-  if (Operation = opRemove) and (AComponent is TUIControl) {and (Controls <> nil)} then
-  begin
-    Controls.DeleteAll(AComponent);
-    DetachNotification(TUIControl(AComponent));
-  end;
+  Result := Container.OnRender;
 end;
 
-procedure TCastleControlCustom.DetachNotification(const C: TUIControl);
+procedure TCastleControlCustom.SetOnRender(const Value: TContainerEvent);
 begin
-  if C = FFocus        then FFocus := nil;
-  //if C = FCaptureInput then FCaptureInput := nil;
+  Container.OnRender := Value;
 end;
 
-procedure TCastleControlCustom.UpdateFocusAndMouseCursor;
-
-  function CalculateFocus: TUIControl;
-  var
-    I: Integer;
-  begin
-    for I := 0 to Controls.Count - 1 do
-    begin
-      Result := Controls[I];
-      if Result.PositionInside(MouseX, MouseY) then
-        Exit;
-    end;
-
-    Result := nil;
-  end;
-
-  function CalculateMouseCursor: TMouseCursor;
-  begin
-    if Focus <> nil then
-      Result := Focus.Cursor else
-      Result := mcDefault;
-  end;
-
-var
-  NewFocus: TUIControl;
-  NewCursor: TCursor;
+function TCastleControlCustom.GetOnResize: TContainerEvent;
 begin
-  NewFocus := CalculateFocus;
-
-  if NewFocus <> Focus then
-  begin
-    if Focus <> nil then Focus.Focused := false;
-    FFocus := NewFocus;
-    if Focus <> nil then Focus.Focused := true;
-  end;
-
-  NewCursor := CursorCastleToLCL[CalculateMouseCursor];
-  { check explicitly "Cursor <> NewCursor" --- we will call UpdateFocusAndMouseCursor
-    very often (in each mouse move), and we don't want to depend on Lazarus
-    optimizing "Cursor := Cursor" to avoid some potentially expensive window
-    manager call. }
-  if Cursor <> NewCursor then
-    Cursor := NewCursor;
+  Result := Container.OnResize;
 end;
 
-procedure TCastleControlCustom.UpdateEvent;
-
-  procedure UpdateTooltip;
-  var
-    T: TTimerResult;
-    NewTooltipVisible: boolean;
-  begin
-    { Update TooltipVisible and LastPositionForTooltip*.
-      Idea is that user must move the mouse very slowly to activate tooltip. }
-
-    T := Fps.UpdateStartTime;
-    if (not LastPositionForTooltip) or
-       (Sqr(LastPositionForTooltipX - MouseX) +
-        Sqr(LastPositionForTooltipY - MouseY) > Sqr(TooltipDistance)) then
-    begin
-      LastPositionForTooltip := true;
-      LastPositionForTooltipX := MouseX;
-      LastPositionForTooltipY := MouseY;
-      LastPositionForTooltipTime := T;
-      NewTooltipVisible := false;
-    end else
-      NewTooltipVisible :=
-        { make TooltipVisible only when we're over a control that has
-          focus. This avoids unnecessary changing of TooltipVisible
-          (and related PostRedisplay) when there's no tooltip possible. }
-        (Focus <> nil) and
-        Focus.TooltipExists and
-        ( (1000 * (T - LastPositionForTooltipTime)) div
-          TimerFrequency > TooltipDelay );
-
-    if FTooltipVisible <> NewTooltipVisible then
-    begin
-      FTooltipVisible := NewTooltipVisible;
-
-      if TooltipVisible then
-      begin
-        { when setting TooltipVisible from false to true,
-          update LastPositionForTooltipX/Y. We don't want to hide the tooltip
-          at the slightest jiggle of the mouse :) On the other hand,
-          we don't want to update LastPositionForTooltipX/Y more often,
-          as it would disable the purpose of TooltipDistance: faster
-          mouse movement should hide the tooltip. }
-        LastPositionForTooltipX := MouseX;
-        LastPositionForTooltipY := MouseY;
-        { also update TooltipX/Y }
-        FTooltipX := MouseX;
-        FTooltipY := MouseY;
-      end;
-
-      Invalidate;
-    end;
-  end;
-
-var
-  I: Integer;
-  C: TUIControl;
-  HandleInput: boolean;
-  Dummy: boolean;
-  Tx, Ty, Tz, TLength, Rx, Ry, Rz, RAngle: Double;
-  Mouse3dPollSpeed: Single;
-const
-  Mouse3dPollDelay = 0.05;
+procedure TCastleControlCustom.SetOnResize(const Value: TContainerEvent);
 begin
-  UpdateTooltip;
-
-  { 3D Mouse }
-  if Assigned(Mouse3D) and Mouse3D.Loaded then
-  begin
-    Mouse3dPollTimer -= Fps.UpdateSecondsPassed;
-    if Mouse3dPollTimer < 0 then
-    begin
-      { get values from sensor }
-      Mouse3dPollSpeed := -Mouse3dPollTimer + Mouse3dPollDelay;
-      Mouse3D.GetSensorTranslation(Tx, Ty, Tz, TLength);
-      Mouse3D.GetSensorRotation(Rx, Ry, Rz, RAngle);
-
-      { send to all 2D controls, including viewports }
-      for I := 0 to Controls.Count - 1 do
-      begin
-        C := Controls[I];
-        if C.PositionInside(MouseX, MouseY) then
-        begin
-          C.SensorTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
-          C.SensorRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
-        end;
-      end;
-
-      { set timer.
-        The "repeat ... until" below should not be necessary under normal
-        circumstances, as Mouse3dPollDelay should be much larger than typical
-        frequency of how often this is checked. But we do it for safety
-        (in case something else, like AI or collision detection,
-        slows us down *a lot*). }
-      repeat Mouse3dPollTimer += Mouse3dPollDelay until Mouse3dPollTimer > 0;
-    end;
-  end;
-
-  { Although we call Update for all the controls, we look
-    at PositionInside and track HandleInput values.
-    See TUIControl.Update for explanation. }
-
-  HandleInput := true;
-
-  for I := 0 to Controls.Count - 1 do
-  begin
-    C := Controls[I];
-    if C.PositionInside(MouseX, MouseY) then
-    begin
-      C.Update(Fps.UpdateSecondsPassed, HandleInput);
-    end else
-    begin
-      Dummy := false;
-      C.Update(Fps.UpdateSecondsPassed, Dummy);
-    end;
-  end;
-
-  inherited;
+  Container.OnResize := Value;
 end;
 
-function TCastleControlCustom.KeyDownEvent(const MyKey: TKey; const Ch: char): boolean;
-var
-  C: TUIControl;
-  I: Integer;
+function TCastleControlCustom.GetOnClose: TContainerEvent;
 begin
-  Result := inherited;
-  if Result then Exit;
-
-  for I := 0 to Controls.Count - 1 do
-  begin
-    C := Controls[I];
-    if C.PositionInside(MouseX, MouseY) then
-      if C.Press(InputKey(MyKey, Ch)) then
-        Exit(true);
-  end;
+  Result := Container.OnClose;
 end;
 
-function TCastleControlCustom.KeyUpEvent(const MyKey: TKey; const Ch: char): boolean;
-var
-  C: TUIControl;
-  I: Integer;
+procedure TCastleControlCustom.SetOnClose(const Value: TContainerEvent);
 begin
-  Result := inherited;
-  if Result then Exit;
-
-  for I := 0 to Controls.Count - 1 do
-  begin
-    C := Controls[I];
-    if C.PositionInside(MouseX, MouseY) then
-      if C.Release(InputKey(MyKey, Ch)) then
-        Exit(true);
-  end;
+  Container.OnClose := Value;
 end;
 
-procedure TCastleControlCustom.MouseDownEvent(Button: Controls.TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-var
-  MyButton: CastleKeysMouse.TMouseButton;
-  C: TUIControl;
-  I: Integer;
+function TCastleControlCustom.GetOnUpdate: TContainerEvent;
 begin
-  if MouseButtonLCLToCastle(Button, MyButton) then
-  begin
-    for I := 0 to Controls.Count - 1 do
-    begin
-      C := Controls[I];
-      if C.PositionInside(MouseX, MouseY) then
-        if C.Press(InputMouseButton(MyButton)) then
-          Exit;
-    end;
-  end;
-
-  inherited;
+  Result := Container.OnUpdate;
 end;
 
-procedure TCastleControlCustom.MouseUpEvent(Button: Controls.TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-var
-  MyButton: CastleKeysMouse.TMouseButton;
-  C: TUIControl;
-  I: Integer;
+procedure TCastleControlCustom.SetOnUpdate(const Value: TContainerEvent);
 begin
-  if MouseButtonLCLToCastle(Button, MyButton) then
-  begin
-    for I := 0 to Controls.Count - 1 do
-    begin
-      C := Controls[I];
-      if C.PositionInside(MouseX, MouseY) then
-        if C.Release(InputMouseButton(MyButton)) then
-          Exit;
-    end;
-  end;
-
-  inherited;
+  Container.OnUpdate := Value;
 end;
 
-procedure TCastleControlCustom.MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer);
-var
-  C: TUIControl;
-  I: Integer;
+function TCastleControlCustom.GetOnPress: TInputPressReleaseEvent;
 begin
-  UpdateFocusAndMouseCursor;
-
-  for I := 0 to Controls.Count - 1 do
-  begin
-    C := Controls[I];
-    if C.PositionInside(MouseX, MouseY) then
-      if C.MouseMove(MouseX, MouseY, NewX, NewY) then Exit;
-  end;
-
-  inherited;
+  Result := Container.OnPress;
 end;
 
-function TCastleControlCustom.MouseWheelEvent(const Scroll: Single; const Vertical: boolean): boolean;
-var
-  C: TUIControl;
-  I: Integer;
+procedure TCastleControlCustom.SetOnPress(const Value: TInputPressReleaseEvent);
 begin
-  for I := 0 to Controls.Count - 1 do
-  begin
-    C := Controls[I];
-    if C.PositionInside(MouseX, MouseY) then
-      if C.Press(InputMouseWheel(Scroll, true)) then
-      begin
-        Result := true;
-        Exit;
-      end;
-  end;
-  Result := false;
+  Container.OnPress := Value;
 end;
 
-procedure TCastleControlCustom.ControlsVisibleChange(Sender: TObject);
+function TCastleControlCustom.GetOnRelease: TInputPressReleaseEvent;
 begin
-  Invalidate;
+  Result := Container.OnRelease;
 end;
 
-procedure TCastleControlCustom.DoBeforeRender;
-var
-  I: Integer;
+procedure TCastleControlCustom.SetOnRelease(const Value: TInputPressReleaseEvent);
 begin
-  inherited;
-
-  for I := 0 to Controls.Count - 1 do
-    Controls[I].BeforeRender;
+  Container.OnRelease := Value;
 end;
 
-procedure TCastleControlCustom.DoRender;
-
-  { Call Render for all controls having RenderStyle = rs3D.
-
-    Also (since we call RenderStyle for everything anyway)
-    calculates AnythingWants2D = if any control returned RenderStyle = rs2D.
-    If not, you can later avoid even changing projection to 2D. }
-  procedure Render3D(out AnythingWants2D: boolean);
-  var
-    I: Integer;
-    C: TUIControl;
-  begin
-    AnythingWants2D := false;
-
-    { draw controls in "downto" order, back to front }
-    for I := Controls.Count - 1 downto 0 do
-    begin
-      C := Controls[I];
-      if C.GetExists then
-        case C.RenderStyle of
-          rs2D: AnythingWants2D := true;
-          { Set OpenGL state that may be changed carelessly, and has some
-            guanteed value, for TUIControl.Render calls. }
-          rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} C.Render; end;
-        end;
-    end;
-
-    if TooltipVisible and (Focus <> nil) then
-      case Focus.TooltipStyle of
-        rs2D: AnythingWants2D := true;
-        rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} Focus.TooltipRender; end;
-      end;
-
-    case RenderStyle of
-      rs2D: AnythingWants2D := true;
-      rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} inherited DoRender; end;
-    end;
-  end;
-
-  procedure Render2D;
-  var
-    C: TUIControl;
-    I: Integer;
-  begin
-    { Set state that is guaranteed for Render2D calls,
-      but TUIControl.Render cannot change it carelessly. }
-    {$ifndef OpenGLES}
-    glDisable(GL_LIGHTING);
-    glDisable(GL_FOG);
-    {$endif}
-    glDisable(GL_DEPTH_TEST);
-    ScissorDisable;
-    GLEnableTexture(CastleGLUtils.etNone);
-    glViewport(Rect);
-
-    OrthoProjection(0, Width, 0, Height);
-
-    { draw controls in "downto" order, back to front }
-    for I := Controls.Count - 1 downto 0 do
-    begin
-      C := Controls[I];
-      if C.GetExists and (C.RenderStyle = rs2D) then
-      begin
-        { Set OpenGL state that may be changed carelessly, and has some
-          guanteed value, for Render2d calls. }
-        {$ifndef OpenGLES} glLoadIdentity; {$endif}
-        WindowPos := Vector2LongInt(0, 0);
-        C.Render;
-      end;
-    end;
-
-    if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = rs2D) then
-    begin
-      {$ifndef OpenGLES} glLoadIdentity; {$endif}
-      WindowPos := Vector2LongInt(0, 0);
-      Focus.TooltipRender;
-    end;
-
-    if RenderStyle = rs2D then
-    begin
-      {$ifndef OpenGLES} glLoadIdentity; {$endif}
-      WindowPos := Vector2LongInt(0, 0);
-      inherited DoRender;
-    end;
-  end;
-
-var
-  AnythingWants2D: boolean;
+function TCastleControlCustom.GetOnMouseMove: TMouseMoveEvent;
 begin
-  Render3D(AnythingWants2D);
-
-  if AnythingWants2D then
-    Render2D;
+  Result := Container.OnMouseMove;
 end;
 
-procedure TCastleControlCustom.Resize;
-var
-  I: Integer;
+procedure TCastleControlCustom.SetOnMouseMove(const Value: TMouseMoveEvent);
 begin
-  inherited;
-
-  { Call MakeCurrent here, to make sure CastleUIControls always get
-    ContainerResize with good GL context. }
-  if GLInitialized and MakeCurrent then
-  begin
-    for I := 0 to Controls.Count - 1 do
-      Controls[I].ContainerResize(Width, Height);
-  end;
-end;
-
-procedure TCastleControlCustom.DoGLContextOpen;
-var
-  I: Integer;
-begin
-  inherited;
-  Inc(ControlsOpen);
-  if ControlsOpen = 1 then
-    CastleUIControls.OnGLContextOpen.ExecuteAll;
-
-  { call GLContextOpen on controls after inherited (OnGLContextOpen). }
-  for I := 0 to Controls.Count - 1 do
-    Controls[I].GLContextOpen;
-end;
-
-
-procedure TCastleControlCustom.DoGLContextClose;
-var
-  I: Integer;
-begin
-  { call GLContextClose on controls before inherited (OnGLContextClose).
-    This may be called from Close, which may be called from TCastleWindowBase destructor,
-    so prepare for Controls being possibly nil now. }
-  if Controls <> nil then
-  begin
-    for I := 0 to Controls.Count - 1 do
-      Controls[I].GLContextClose;
-  end;
-
-  if ControlsOpen = 1 then
-    CastleUIControls.OnGLContextClose.ExecuteAll;
-  Dec(ControlsOpen);
-  inherited;
-end;
-
-function TCastleControlCustom.GetTooltipX: Integer;
-begin
-  Result := FTooltipX;
-end;
-
-function TCastleControlCustom.GetTooltipY: Integer;
-begin
-  Result := FTooltipY;
-end;
-
-function TCastleControlCustom.GetDpi: Integer;
-begin
-  Result := DefaultDpi;
+  Container.OnMouseMove := Value;
 end;
 
 { TCastleControl ----------------------------------------------------------- }

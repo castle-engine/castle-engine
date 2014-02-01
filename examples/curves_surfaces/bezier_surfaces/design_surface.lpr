@@ -179,7 +179,7 @@ end;
 
 { CastleWindow callbacks --------------------------------------------------------- }
 
-procedure Render(Window: TCastleWindowBase);
+procedure Render(Container: TUIContainer);
 var
   Text: TStringList;
 begin
@@ -271,7 +271,7 @@ begin
   glPopAttrib;
 end;
 
-procedure Update(Window: TCastleWindowBase);
+procedure Update(Container: TUIContainer);
 
   procedure Move(Coord, MoveDir: Integer);
   begin
@@ -293,7 +293,7 @@ begin
   end;
 end;
 
-procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
+procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 
   procedure SelectClosestControlPoint;
   var
@@ -378,13 +378,13 @@ begin
   end;
 end;
 
-procedure Release(Window: TCastleWindowBase; const Event: TInputPressRelease);
+procedure Release(Container: TUIContainer; const Event: TInputPressRelease);
 begin
   if Event.IsMouseButton(mbRight) then
     Dragging := false;
 end;
 
-procedure MouseMove(Window: TCastleWindowBase; NewX, NewY: integer);
+procedure MouseMove(Container: TUIContainer; NewX, NewY: integer);
 var
   ModelMatrix, ProjMatrix: T16dArray;
   Viewport: TViewPortArray;
@@ -470,7 +470,7 @@ end;
 
 { menu ------------------------------------------------------------ }
 
-procedure MenuClick(Sender: TCastleWindowBase; MenuItem: TMenuItem);
+procedure MenuClick(Container: TUIContainer; MenuItem: TMenuItem);
 
   procedure New;
   var

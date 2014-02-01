@@ -146,18 +146,18 @@ begin
   FindFiles(ApplicationData('') + 'textures/castle/', '*', true, @FindFilesCallback, nil, [ffRecursive]);
 end;
 
-procedure WindowOpen(Sender: TCastleWindowBase);
+procedure WindowOpen(Container: TUIContainer);
 begin
   Progress.UserInterface := WindowProgressInterface;
   WindowProgressInterface.Window := Window;
 end;
 
-procedure WindowClose(Sender: TCastleWindowBase);
+procedure WindowClose(Container: TUIContainer);
 begin
   Progress.UserInterface := ProgressNullInterface;
 end;
 
-procedure WindowResize(Sender: TCastleWindowBase);
+procedure WindowResize(Container: TUIContainer);
 const
   Margin = 10;
 var

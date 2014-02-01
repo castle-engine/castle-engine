@@ -17,7 +17,7 @@
 
   You must manually initialize GLVersion and such (this unit doesn't even
   use GL bindings). For my engine, this will happen automatically
-  at LoadAllExtensions call. Which is done during TCastleWindowBase.Open,
+  at LoadAllExtensions call. Which is done during TCastleWindowCustom.Open,
   or TCastleControlCustom on GL context initialization.
 }
 unit CastleGLVersion;

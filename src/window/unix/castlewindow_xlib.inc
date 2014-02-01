@@ -63,7 +63,7 @@ private
   function KeySymToKey(ksym: TKeySym): TKey;
   { Seek on OpenWindows window with WindowXID = seekWindowXID.
     Returns nil if not found. }
-  function FindWindowXID(seekWindowXID: TWindow): TCastleWindowBase;
+  function FindWindowXID(seekWindowXID: TWindow): TCastleWindowCustom;
   procedure SetXDisplayName(const Value: string);
 
   { Check XDisplay. Call this once you're sure that XDisplay is set to
@@ -81,7 +81,7 @@ private
 public
   { XDisplayName uzywane przez wszystkie nastepne wywolania Window.Open.
     Application nie jest przygotowany na zarzadzanie oknami na wielu displayach i
-    implementacja TCastleWindowBase zaklada ze po zrobieniu Open Application.XDisplay bedzie
+    implementacja TCastleWindowCustom zaklada ze po zrobieniu Open Application.XDisplay bedzie
     caly czas takie samo - wiec NIE ZMIENIAJ XDisplayName po zrobieniu jakiegos Open !
     XDisplayName bezposrednio po przypisaniu moze ulec zmianie - bo
     SetXDisplayName powoduje cos jak FXDisplayName := XDisplayName(FDiaplayName),
@@ -104,9 +104,9 @@ const
     ButtonPressMask or ButtonReleaseMask or PointerMotionMask {mouse events} or
     FocusChangeMask;
 
-{ TCastleWindowBase --------------------------------------------------------  }
+{ TCastleWindowCustom --------------------------------------------------------  }
 
-procedure TCastleWindowBase.OpenWinSystemDepend;
+procedure TCastleWindowCustom.OpenWinSystemDepend;
 var
   sizeHints: TXSizeHints;
   AttrValueMask: Cardinal;
@@ -243,7 +243,7 @@ begin
   MakeCurrent;
 end;
 
-procedure TCastleWindowBase.CloseBackend;
+procedure TCastleWindowCustom.CloseBackend;
 var
   dummy_event: TXEvent;
 begin
@@ -275,7 +275,7 @@ begin
   {$endif}
 end;
 
-procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindowCustom.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -285,13 +285,13 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
+procedure TCastleWindowCustom.SetCustomCursor(const Value: TRGBAlphaImage);
 begin
   FCustomCursor := Value;
   { TODO }
 end;
 
-procedure TCastleWindowBase.UpdateCursor;
+procedure TCastleWindowCustom.UpdateCursor;
 
   function CreateNoneCursor: TCursor;
   var
@@ -340,19 +340,19 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+procedure TCastleWindowCustom.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
   if not Closed then
     XWarpPointer(Application.XDisplay, X.None, WindowXID,
       0, 0, 0, 0, NewMouseX, NewMouseY);
 end;
 
-procedure TCastleWindowBase.CreateBackend;
+procedure TCastleWindowCustom.CreateBackend;
 begin
   windowXID := None;
 end;
 
-procedure TCastleWindowBase.SetCaption(const Part: TCaptionPart; const Value: string);
+procedure TCastleWindowCustom.SetCaption(const Part: TCaptionPart; const Value: string);
 var
   PValue: PChar;
   WindTitleProp: TXTextProperty;
@@ -370,54 +370,54 @@ begin
   end;
 end;
 
-function TCastleWindowBase.RedirectKeyDownToMenuClick: boolean;
+function TCastleWindowCustom.RedirectKeyDownToMenuClick: boolean;
 begin
  Result := true;
 end;
 
-procedure TCastleWindowBase.BackendMenuInitialize;
+procedure TCastleWindowCustom.BackendMenuInitialize;
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowBase.BackendMenuFinalize;
+procedure TCastleWindowCustom.BackendMenuFinalize;
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowCustom.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowCustom.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindowCustom.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
   { does nothing }
 end;
 
-function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
+function TCastleWindowCustom.MenuUpdateCheckedFast: boolean;
 begin
   Result := true; // MenuUpdateChecked does nothing, so yes, it's fast :)
 end;
 
-procedure TCastleWindowBase.MenuInsert(const Parent: TMenu;
+procedure TCastleWindowCustom.MenuInsert(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowBase.MenuDelete(const Parent: TMenu;
+procedure TCastleWindowCustom.MenuDelete(const Parent: TMenu;
   const ParentPosition: Integer; const Entry: TMenuEntry);
 begin
   { does nothing }
 end;
 
-procedure TCastleWindowBase.X_KeyPress(const event: TXKeyEvent);
+procedure TCastleWindowCustom.X_KeyPress(const event: TXKeyEvent);
 var
   k: TKeySym;
   CharKey: char;
@@ -442,7 +442,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.X_KeyRelease(const event: TXKeyEvent);
+procedure TCastleWindowCustom.X_KeyRelease(const event: TXKeyEvent);
 var
   k: TKeySym;
   CharKey: char;
@@ -471,7 +471,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.X_ConfigureNotify(const event: TXConfigureEvent);
+procedure TCastleWindowCustom.X_ConfigureNotify(const event: TXConfigureEvent);
 var
   dummy_win: TWindow;
 begin
@@ -504,7 +504,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.X_ButtonPress(const event: TXButtonPressedEvent);
+procedure TCastleWindowCustom.X_ButtonPress(const event: TXButtonPressedEvent);
 var
   btn: TMouseButton;
 begin
@@ -518,7 +518,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.X_ButtonRelease(const event: TXButtonReleasedEvent);
+procedure TCastleWindowCustom.X_ButtonRelease(const event: TXButtonReleasedEvent);
 var
   btn: TMouseButton;
 begin
@@ -526,7 +526,7 @@ begin
     DoMouseUp(event.x, event.y, btn)
 end;
 
-procedure TCastleWindowBase.X_MotionNotify(const event: TXMotionEvent);
+procedure TCastleWindowCustom.X_MotionNotify(const event: TXMotionEvent);
 begin
   { We could refresh MousePressed now. But no need for now?
   mousePressed:=[];
@@ -537,7 +537,7 @@ begin
   DoMouseMove(event.x, event.y);
 end;
 
-procedure TCastleWindowBase.X_FocusOut(const event: TXFocusOutEvent);
+procedure TCastleWindowCustom.X_FocusOut(const event: TXFocusOutEvent);
 begin
   { Clear KeysDown and MousePressed information.
     Otherwise, we could miss the keyup or mouseup event, if user pressed
@@ -546,14 +546,14 @@ begin
   ReleaseAllKeysAndMouse;
 end;
 
-procedure TCastleWindowBase.SetFullScreen(const Value: boolean);
+procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
 begin
   SimpleSetFullScreen(Value);
 end;
 
 { TCastleApplication ------------------------------------------------------- }
 
-function TCastleApplication.FindWindowXID(seekWindowXID: TWindow): TCastleWindowBase;
+function TCastleApplication.FindWindowXID(seekWindowXID: TWindow): TCastleWindowCustom;
 var
   i: integer;
 begin

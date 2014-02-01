@@ -205,7 +205,7 @@ end;
 
 { window callbacks ----------------------------------------------------------- }
 
-procedure Resize(Window: TCastleWindowBase);
+procedure Resize(Container: TUIContainer);
 const
   Margin = 20;
 begin
@@ -213,14 +213,14 @@ begin
   MuteImage.Bottom := Window.Height - MuteImage.Height - Margin;
 end;
 
-procedure Close(Window: TCastleWindowBase);
+procedure Close(Container: TUIContainer);
 begin
   { in case no TNT actually exists in scene at closing time (you managed
     to explode them all), be sure to clean the OpenGL resources inside TntScene. }
   TntScene.GLContextClose;
 end;
 
-procedure Update(Window: TCastleWindowBase);
+procedure Update(Container: TUIContainer);
 begin
   { update rat }
   RatAngle += 0.5 * Window.Fps.UpdateSecondsPassed;
@@ -229,12 +229,12 @@ begin
     RatSound.Position := Rat.Translation;
 end;
 
-procedure Timer(Window: TCastleWindowBase);
+procedure Timer(Container: TUIContainer);
 begin
   while TntsCount < MaxTntsCount do NewTnt(3.0);
 end;
 
-procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
+procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 begin
   if Event.EventType = itKey then
     case Event.Key of
@@ -271,7 +271,7 @@ begin
           VersionOptionHelp +nl+
           SoundEngine.ParseParametersHelp +nl+
           nl+
-          TCastleWindowBase.ParseParametersHelp(StandardParseOptions, true) +nl+
+          TCastleWindowCustom.ParseParametersHelp(StandardParseOptions, true) +nl+
           nl+
           SCastleEngineProgramHelpSuffix(DisplayApplicationName, Version, true));
         ProgramBreak;

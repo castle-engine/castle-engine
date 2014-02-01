@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo numerous TCastleWindowBase events.
+{ Demo numerous TCastleWindowCustom events.
   Displays many OnXxx events as they happen,
   also shows Pressed and Pressed.Characters.
   Also a demo of CastleNotifications unit. }
@@ -30,23 +30,22 @@ var
   Window: TCastleWindowCustom;
   Notifications: TCastleNotifications;
 
-procedure Open(Window: TCastleWindowBase);
+procedure Open(Container: TUIContainer);
 begin
   Notifications.Show('Open message');
 end;
 
-procedure Close(Window: TCastleWindowBase);
+procedure Close(Container: TUIContainer);
 begin
 end;
 
-procedure Resize(Window: TCastleWindowBase);
+procedure Resize(Container: TUIContainer);
 begin
-  Resize2D(Window);
   Notifications.Show(Format('Resize message : new size %d %d (pos %d, %d)',
     [Window.Width, Window.Height, Window.Left, Window.Top]));
 end;
 
-procedure BeforeRender(Window: TCastleWindowBase);
+procedure BeforeRender(Container: TUIContainer);
 begin
   { Part of functionality of OnRender moved to BeforeRender.
     In this program there is no point in doing that.
@@ -54,7 +53,7 @@ begin
   GLClear([cbColor], Black);
 end;
 
-procedure Render(Window: TCastleWindowBase);
+procedure Render(Container: TUIContainer);
 var
   C: Char;
   Key: TKey;
@@ -83,19 +82,19 @@ begin
   UIFont.PrintBrokenString(Margin, 200, Gray, S, Window.Width - Margin * 2, false, 0);
 end;
 
-procedure Update(Window: TCastleWindowBase);
+procedure Update(Container: TUIContainer);
 begin
   if Window.Pressed[K_F12] then
     // MessageOk(Window, 'F12 key pressed. This is just a test that MessageOk works even from callbacks like OnUpdate.');
     Window.MessageOk('F12 key pressed. This is just a test that MessageOk works even from callbacks like OnUpdate.', mtInfo);
 end;
 
-procedure Timer(Window: TCastleWindowBase);
+procedure Timer(Container: TUIContainer);
 begin
   Notifications.Show(Format('Timer message. Time now %s', [FormatDateTime('tt', Time)]));
 end;
 
-procedure Press(Sender: TCastleWindowBase; const Event: TInputPressRelease);
+procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 begin
   Notifications.Show('Press message : ' + Event.Description);
 
@@ -116,12 +115,12 @@ begin
     Window.FullScreen := not Window.FullScreen;
 end;
 
-procedure Release(Window: TCastleWindowBase; const Event: TInputPressRelease);
+procedure Release(Container: TUIContainer; const Event: TInputPressRelease);
 begin
   Notifications.Show('Release message : ' + Event.Description);
 end;
 
-procedure MouseMove(Window: TCastleWindowBase; newX, newY: integer);
+procedure MouseMove(Container: TUIContainer; newX, newY: integer);
 begin
   Notifications.Show(Format('Mouse Move : old pos %d %d, new pos %d %d',
     [Window.MouseX, Window.MouseY, newX, newY]));

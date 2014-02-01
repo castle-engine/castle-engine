@@ -192,7 +192,7 @@ end;
 var
   StatusText: TStatusText;
 
-procedure Open(Window: TCastleWindowBase);
+procedure Open(Container: TUIContainer);
 begin
   glPointSize(10);
 end;
@@ -267,7 +267,7 @@ type
     Result := true;
   end;
 
-procedure MenuClick(Sender: TCastleWindowBase; MenuItem: TMenuItem);
+procedure MenuClick(Container: TUIContainer; MenuItem: TMenuItem);
 
   { Inputs a string from user. User can accept the string or cancel
     operation. If user will cancel operation -- we will return false.

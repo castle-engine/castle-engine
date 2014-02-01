@@ -48,7 +48,7 @@ private
 
 {$ifdef read_implementation}
 
-procedure TCastleWindowBase.ContextCreateBegin(var Attr: TXSetWindowAttributes;
+procedure TCastleWindowCustom.ContextCreateBegin(var Attr: TXSetWindowAttributes;
   var AttrValueMask: Cardinal);
 var
   Attribs: TLongIntList;
@@ -139,7 +139,7 @@ begin
   AttrValueMask := AttrValueMask or CWColormap;
 end;
 
-procedure TCastleWindowBase.ContextCreateEnd(WndPtr: TWindow);
+procedure TCastleWindowCustom.ContextCreateEnd(WndPtr: TWindow);
 var
   ShareContext: GLXContext;
 begin
@@ -169,7 +169,7 @@ begin
   Check(Context <> nil, 'Could not create OpenGL rendering context');
 end;
 
-procedure TCastleWindowBase.ContextDestroy;
+procedure TCastleWindowCustom.ContextDestroy;
 begin
   if Context <> nil then
   begin
@@ -178,13 +178,13 @@ begin
   end;
 end;
 
-procedure TCastleWindowBase.BackendMakeCurrent;
+procedure TCastleWindowCustom.BackendMakeCurrent;
 begin
   Assert(not Closed);
   Check( glXMakeCurrent(Application.XDisplay, WindowXID, Context), 'glXMakeCurrent');
 end;
 
-procedure TCastleWindowBase.SwapBuffers;
+procedure TCastleWindowCustom.SwapBuffers;
 begin
   glXSwapBuffers(Application.XDisplay, windowXID);
 end;

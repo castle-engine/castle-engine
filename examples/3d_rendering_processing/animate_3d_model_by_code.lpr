@@ -52,7 +52,7 @@ var
   TransformBox3: TTransformNode;
   TransformBox4: TTransformNode;
 
-procedure Update(Window: TCastleWindowBase);
+procedure Update(Container: TUIContainer);
 begin
   { We want to keep track of current time here (for calculating rotations
     below). It's most natural to just use Scene.Time property for this.

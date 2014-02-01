@@ -237,7 +237,7 @@ begin
   CustomHeadlight := nil;
 end;
 
-procedure MouseMove(Window: TCastleWindowBase; NewX, NewY: Integer);
+procedure MouseMove(Container: TUIContainer; NewX, NewY: Integer);
 var
   W2, H2: Integer;
   X, Y: Single;
@@ -263,7 +263,7 @@ begin
   end;
 end;
 
-procedure Open(Window: TCastleWindowBase);
+procedure Open(Container: TUIContainer);
 begin
   GLList_EnvLight := glGenListsCheck(1, 'GLList_EnvLight');
   glNewList(GLList_EnvLight, GL_COMPILE);
@@ -271,7 +271,7 @@ begin
   glEndList;
 end;
 
-procedure Close(Window: TCastleWindowBase);
+procedure Close(Container: TUIContainer);
 begin
   SceneCaster.GLContextClose;
   SceneReceiver.GLContextClose;
@@ -503,7 +503,7 @@ begin
     Result.Append(M);
 end;
 
-procedure MenuClick(Sender: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 var
   NewSHCount: Cardinal;
 begin

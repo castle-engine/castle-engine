@@ -36,7 +36,7 @@ var
 
   MinSHValue, MaxSHValue: Float;
 
-procedure Render(Window: TCastleWindowBase);
+procedure Render(Container: TUIContainer);
 var
   L: Cardinal;
   M: Integer;
@@ -105,7 +105,7 @@ begin
   inherited;
 end;
 
-procedure MenuClick(Window: TCastleWindowBase; Item: TMenuItem);
+procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 begin
   case Item.IntData of
     10: LM := ChangeIntCycle(LM, -1, MaxSHBasis - 1);
@@ -134,6 +134,7 @@ begin
 
   Window.OnMenuClick := @MenuClick;
   Window.RenderStyle := rs2D;
+  Window.OnRender := @Render;
   Window.SetDemoOptions(K_F11, CharEscape, true);
-  Window.OpenAndRun(ApplicationName, @Render);
+  Window.OpenAndRun;
 end.

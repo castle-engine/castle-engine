@@ -231,7 +231,7 @@ type
 
     procedure SetCamera(const Value: TCamera); virtual;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    procedure SetContainer(const Value: IUIContainer); override;
+    procedure SetContainer(const Value: TUIContainer); override;
 
     { Information about the 3D world.
       For scene maager, these methods simply return it's own properties.
@@ -419,7 +419,7 @@ type
   published
     { Viewport dimensions where the 3D world will be drawn.
       When FullSize is @true (the default), the viewport always fills
-      the whole container (OpenGL context area, like a window for TCastleWindowBase),
+      the whole container (like TCastleWindow or TCastleControl),
       and the values of Left, Bottom, Width, Height are ignored here.
 
       @seealso Rect
@@ -1303,7 +1303,7 @@ begin
   end;
 end;
 
-procedure TCastleAbstractViewport.SetContainer(const Value: IUIContainer);
+procedure TCastleAbstractViewport.SetContainer(const Value: TUIContainer);
 begin
   inherited;
 
@@ -2957,7 +2957,7 @@ var
     reference. }
   function GetMousePosition: boolean;
   var
-    C: IUIContainer;
+    C: TUIContainer;
   begin
     C := Container;
     Result := C <> nil;

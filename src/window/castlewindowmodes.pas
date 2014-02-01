@@ -14,12 +14,12 @@
 }
 
 { Helpers for making modal boxes (TWindowState, TGLMode, TGLModeFrozenScreen)
-  cooperating with the TCastleWindowBase windows.
-  They allow to easily save/restore TCastleWindowBase attributes.
+  cooperating with the TCastleWindowCustom windows.
+  They allow to easily save/restore TCastleWindowCustom attributes.
 
   This unit is a tool for creating functions like
   @link(CastleMessages.MessageOK). To make nice "modal" box,
-  you want to temporarily replace TCastleWindowBase callbacks with your own,
+  you want to temporarily replace TCastleWindowCustom callbacks with your own,
   call Application.ProcessMessage method in a loop until user gives an answer,
   and restore everything. This way you can implement functions that
   wait for some keypress, or wait until user inputs some
@@ -38,11 +38,11 @@ type
   { }
   TWindowState = class
   private
-    { TCastleWindowBase attributes }
-    OldMouseMove: TMouseMoveFunc;
-    OldPress, OldRelease: TInputPressReleaseFunc;
-    OldBeforeRender, OldRender, OldCloseQuery, OldUpdate, OldTimer: TWindowFunc;
-    OldResize: TWindowFunc;
+    { TCastleWindowCustom attributes }
+    OldMouseMove: TMouseMoveEvent;
+    OldPress, OldRelease: TInputPressReleaseEvent;
+    OldBeforeRender, OldRender, OldCloseQuery, OldUpdate, OldTimer: TContainerEvent;
+    OldResize: TContainerEvent;
     OldMenuClick: TMenuClickFunc;
     OldCaption: string;
     OldUserdata: Pointer;
@@ -62,26 +62,26 @@ type
     OldControls: TUIControlList;
     OldRenderStyle: TRenderStyle;
 
-    { When adding new attributes to TCastleWindowBase that should be saved/restored,
+    { When adding new attributes to TCastleWindowCustom that should be saved/restored,
       you must remember to
       1. expand this record with new fields
       2. expand routines Get, Set and SetStandard below. } { }
   public
     { Constructor. Gets the state of given window (like GetState). }
-    constructor Create(Window: TCastleWindowBase);
+    constructor Create(Window: TCastleWindowCustom);
     destructor Destroy; override;
 
-    { GetState saves the TCastleWindowBase state, SetState applies this state
+    { GetState saves the TCastleWindowCustom state, SetState applies this state
       back to the window (the same window, or other).
-      Every property that can change when TCastleWindowBase is open are saved.
-      This way you can save/restore TCastleWindowBase state, you can also copy
+      Every property that can change when TCastleWindowCustom is open are saved.
+      This way you can save/restore TCastleWindowCustom state, you can also copy
       a state from one window into another.
 
-      Notes about TCastleWindowBase.MainMenu saving: only the reference
+      Notes about TCastleWindowCustom.MainMenu saving: only the reference
       to MainMenu is stored. So:
 
       @unorderedList(
-        @item(If you use TCastleWindowBase.MainMenu,
+        @item(If you use TCastleWindowCustom.MainMenu,
           be careful when copying it to another window (no two windows
           may own the same MainMenu instance at the same time;
           also, you would have to make sure MainMenu instance will not be
@@ -97,8 +97,8 @@ type
       )
 
       @groupBegin }
-    procedure GetState(Window: TCastleWindowBase);
-    procedure SetState(Window: TCastleWindowBase);
+    procedure GetState(Window: TCastleWindowCustom);
+    procedure SetState(Window: TCastleWindowCustom);
     { @groupEnd }
 
     { Resets all window properties (that are get / set by TWindowState).
@@ -117,12 +117,12 @@ type
           will exist during the lifetime of a single TGLMode,
           so it makes no sense to deal with them.
         )
-        @item(TCastleWindowBase.Caption and TCastleWindowBase.MainMenu are left as they were.)
-        @item(TCastleWindowBase.Cursor is reset to mcDefault.)
-        @item(TCastleWindowBase.UserData is reset to @nil.)
-        @item(TCastleWindowBase.AutoRedisplay is reset to @false.)
-        @item(TCastleWindowBase.RenderStyle is reset to rs2D.)
-        @item(TCastleWindowBase.MainMenu.Enabled will be reset to @false (only if MainMenu <> nil).)
+        @item(TCastleWindowCustom.Caption and TCastleWindowCustom.MainMenu are left as they were.)
+        @item(TCastleWindowCustom.Cursor is reset to mcDefault.)
+        @item(TCastleWindowCustom.UserData is reset to @nil.)
+        @item(TCastleWindowCustom.AutoRedisplay is reset to @false.)
+        @item(TCastleWindowCustom.RenderStyle is reset to rs2D.)
+        @item(TCastleWindowCustom.MainMenu.Enabled will be reset to @false (only if MainMenu <> nil).)
 
         @item(TCastleWindowDemo.SwapFullScreen_Key will be reset to K_None.)
         @item(TCastleWindowDemo.Close_charkey will be reset to #0.)
@@ -132,26 +132,26 @@ type
       )
 
       If you're looking for a suitable callback to pass as NewCloseQuery
-      (new TCastleWindowBase.OnCloseQuery), @@NoClose may be suitable:
+      (new TCastleWindowCustom.OnCloseQuery), @@NoClose may be suitable:
       it's an empty callback, thus using it disables the possibility
       to close the window by window manager
       (usually using "close" button in some window corner or Alt+F4). }
-    class procedure SetStandardState(Window: TCastleWindowBase;
-      NewRender, NewResize, NewCloseQuery: TWindowFunc);
+    class procedure SetStandardState(Window: TCastleWindowCustom;
+      NewRender, NewResize, NewCloseQuery: TContainerEvent);
   end;
 
-  { Enter / exit modal box on a TCastleWindowBase. Saves/restores the state
-    of TCastleWindowBase properties (see TWindowState) and various OpenGL state. }
+  { Enter / exit modal box on a TCastleWindowCustom. Saves/restores the state
+    of TCastleWindowCustom properties (see TWindowState) and various OpenGL state. }
   TGLMode = class
   protected
-    Window: TCastleWindowBase;
+    Window: TCastleWindowCustom;
   private
     oldWinState: TWindowState;
     oldWinWidth, oldWinHeight: integer;
     FFakeMouseDown: boolean;
     DisabledContextOpenClose: boolean;
   public
-    { Constructor saves open TCastleWindowBase and OpenGL state.
+    { Constructor saves open TCastleWindowCustom and OpenGL state.
       Destructor will restore them.
 
       Some gory details (that you will usually not care about...
@@ -161,22 +161,22 @@ type
         @item(We save/restore TWindowState.)
 
         @item(OpenGL context connected to this window is also made current
-          during constructor and destructor. Also, TCastleWindowBase.PostRedisplay
+          during constructor and destructor. Also, TCastleWindowCustom.PostRedisplay
           is called (since new callbacks, as well as original callbacks,
           probably want to redraw window contents.))
 
         @item(
           All pressed keys and mouse butons are saved and faked to be released,
-          by calling TCastleWindowBase.EventRelease with original
+          by calling TCastleWindowCustom.EventRelease with original
           callbacks.
           This way, if user releases some keys/mouse inside modal box,
-          your original TCastleWindowBase callbacks will not miss this fact.
+          your original TCastleWindowCustom callbacks will not miss this fact.
           This way e.g. user scripts in VRML/X3D worlds that observe keys
           work fine.
 
           If FakeMouseDown then at destruction (after restoring original
           callbacks) we will also notify your original callbacks that
-          user pressed these buttons (by sending TCastleWindowBase.EventMouseDown).
+          user pressed these buttons (by sending TCastleWindowCustom.EventMouseDown).
           Note that FakeMouseDown feature turned out to be usually more
           troublesome than  usefull --- too often some unwanted MouseDown
           event was caused by this mechanism.
@@ -191,7 +191,7 @@ type
         )
 
         @item(At destructor, we notify original callbacks about size changes
-          by sending TCastleWindowBase.EventResize. This way your original callbacks
+          by sending TCastleWindowCustom.EventResize. This way your original callbacks
           know about size changes, and can set OpenGL projection etc.)
 
         @item(
@@ -202,16 +202,16 @@ type
           reinitializing window TCastleWindowCustom.Controls OpenGL resources,
           see TUIControl.DisableContextOpenClose.)
       ) }
-    constructor Create(AWindow: TCastleWindowBase);
+    constructor Create(AWindow: TCastleWindowCustom);
 
-    { Save OpenGL and TCastleWindowBase state, and then change this to a standard
+    { Save OpenGL and TCastleWindowCustom state, and then change this to a standard
       state. Destructor will restore saved state.
 
       This is a shortcut for @link(Create) followed by
       @link(TWindowState.SetStandardState), see there for explanation
       of parameters. }
-    constructor CreateReset(AWindow: TCastleWindowBase;
-      NewRender, NewResize, NewCloseQuery: TWindowFunc);
+    constructor CreateReset(AWindow: TCastleWindowCustom;
+      NewRender, NewResize, NewCloseQuery: TContainerEvent);
 
     destructor Destroy; override;
 
@@ -219,17 +219,17 @@ type
       read FFakeMouseDown write FFakeMouseDown default false;
   end;
 
-  { Enter / exit modal box on a TCastleWindowBase, additionally saving the screen
+  { Enter / exit modal box on a TCastleWindowCustom, additionally saving the screen
     contents before entering modal box. This is nice if you want to wait
     for some event (like pressing a key), keeping the same screen
     displayed.
 
-    During this lifetime, we set special TCastleWindowBase.OnRender and TCastleWindowBase.OnResize
+    During this lifetime, we set special TCastleWindowCustom.OnRender and TCastleWindowCustom.OnResize
     to draw the saved image in a simplest 2D OpenGL projection.
 
-    Between creation/destroy, TCastleWindowBase.UserData is used by this function
+    Between creation/destroy, TCastleWindowCustom.UserData is used by this function
     for internal purposes. So don't use it yourself.
-    We'll restore initial TCastleWindowBase.UserData at destruction. }
+    We'll restore initial TCastleWindowCustom.UserData at destruction. }
   TGLModeFrozenScreen = class(TGLMode)
   private
     type
@@ -247,9 +247,9 @@ type
     destructor Destroy; override;
   end;
 
-{ Empty TCastleWindowBase callback, useful as TCastleWindowBase.OnCloseQuery
+{ Empty TCastleWindowCustom callback, useful as TCastleWindowCustom.OnCloseQuery
   to disallow closing the window by user. }
-procedure NoClose(Window: TCastleWindowBase);
+procedure NoClose(Container: TUIContainer);
 
 implementation
 
@@ -257,7 +257,7 @@ uses CastleGL, CastleUtils;
 
 { TWindowState -------------------------------------------------------------- }
 
-constructor TWindowState.Create(Window: TCastleWindowBase);
+constructor TWindowState.Create(Window: TCastleWindowCustom);
 begin
   inherited Create;
   OldControls := TUIControlList.Create(false);
@@ -270,7 +270,7 @@ begin
   inherited;
 end;
 
-procedure TWindowState.GetState(Window: TCastleWindowBase);
+procedure TWindowState.GetState(Window: TCastleWindowCustom);
 begin
   OldMouseMove := Window.OnMouseMove;
   OldPress := Window.OnPress;
@@ -290,22 +290,14 @@ begin
     oldMainMenuEnabled := Window.MainMenu.Enabled;
   OldCursor := Window.Cursor;
   OldCustomCursor := Window.CustomCursor;
-
-  if Window is TCastleWindowDemo then
-  begin
-    oldSwapFullScreen_Key := TCastleWindowDemo(Window).SwapFullScreen_Key;
-    oldClose_charkey := TCastleWindowDemo(Window).Close_charkey;
-    oldFpsShowOnCaption := TCastleWindowDemo(Window).FpsShowOnCaption;
-  end;
-
-  if Window is TCastleWindowCustom then
-  begin
-    OldControls.Assign(TCastleWindowCustom(Window).Controls);
-    OldRenderStyle := TCastleWindowCustom(Window).RenderStyle;
-  end;
+  oldSwapFullScreen_Key := Window.SwapFullScreen_Key;
+  oldClose_charkey := Window.Close_charkey;
+  oldFpsShowOnCaption := Window.FpsShowOnCaption;
+  OldControls.Assign(Window.Controls);
+  OldRenderStyle := Window.RenderStyle;
 end;
 
-procedure TWindowState.SetState(Window: TCastleWindowBase);
+procedure TWindowState.SetState(Window: TCastleWindowCustom);
 begin
   Window.OnMouseMove := OldMouseMove;
   Window.OnPress := OldPress;
@@ -325,23 +317,15 @@ begin
     Window.MainMenu.Enabled := OldMainMenuEnabled;
   Window.Cursor := OldCursor;
   Window.CustomCursor := OldCustomCursor;
-
-  if Window is TCastleWindowDemo then
-  begin
-    TCastleWindowDemo(Window).SwapFullScreen_Key := oldSwapFullScreen_Key;
-    TCastleWindowDemo(Window).Close_charkey := oldClose_charkey;
-    TCastleWindowDemo(Window).FpsShowOnCaption := oldFpsShowOnCaption;
-  end;
-
-  if Window is TCastleWindowCustom then
-  begin
-    TCastleWindowCustom(Window).Controls.Assign(OldControls);
-    TCastleWindowCustom(Window).RenderStyle := OldRenderStyle;
-  end;
+  Window.SwapFullScreen_Key := oldSwapFullScreen_Key;
+  Window.Close_charkey := oldClose_charkey;
+  Window.FpsShowOnCaption := oldFpsShowOnCaption;
+  Window.Controls.Assign(OldControls);
+  Window.RenderStyle := OldRenderStyle;
 end;
 
-class procedure TWindowState.SetStandardState(Window: TCastleWindowBase;
-  NewRender, NewResize, NewCloseQuery: TWindowFunc);
+class procedure TWindowState.SetStandardState(Window: TCastleWindowCustom;
+  NewRender, NewResize, NewCloseQuery: TContainerEvent);
 begin
   Window.OnMouseMove := nil;
   Window.OnPress := nil;
@@ -363,24 +347,16 @@ begin
     Window.MainMenu.Enabled := false;
   {Window.MainMenu := leave current value}
   Window.Cursor := mcDefault;
-
-  if Window is TCastleWindowDemo then
-  begin
-    TCastleWindowDemo(Window).SwapFullScreen_Key := K_None;
-    TCastleWindowDemo(Window).Close_charkey := #0;
-    TCastleWindowDemo(Window).FpsShowOnCaption := false;
-  end;
-
-  if Window is TCastleWindowCustom then
-  begin
-    TCastleWindowCustom(Window).Controls.Clear;
-    TCastleWindowCustom(Window).RenderStyle := rs2D;
-  end;
+  Window.SwapFullScreen_Key := K_None;
+  Window.Close_charkey := #0;
+  Window.FpsShowOnCaption := false;
+  Window.Controls.Clear;
+  Window.RenderStyle := rs2D;
 end;
 
 { GL Mode ---------------------------------------------------------------- }
 
-constructor TGLMode.Create(AWindow: TCastleWindowBase);
+constructor TGLMode.Create(AWindow: TCastleWindowCustom);
 
   procedure SimulateReleaseAll;
   var
@@ -392,13 +368,13 @@ constructor TGLMode.Create(AWindow: TCastleWindowBase);
       all mouse buttons and key presses now. }
     for Button := Low(Button) to High(Button) do
       if Button in Window.MousePressed then
-        Window.EventRelease(InputMouseButton(Button));
+        Window.Container.EventRelease(InputMouseButton(Button));
     for Key := Low(Key) to High(Key) do
       if Window.Pressed[Key] then
-        Window.EventRelease(InputKey(Key, #0));
+        Window.Container.EventRelease(InputKey(Key, #0));
     for C := Low(C) to High(C) do
       if Window.Pressed.Characters[C] then
-        Window.EventRelease(InputKey(K_None, C));
+        Window.Container.EventRelease(InputKey(K_None, C));
   end;
 
 begin
@@ -433,8 +409,8 @@ begin
  end;
 end;
 
-constructor TGLMode.CreateReset(AWindow: TCastleWindowBase;
-  NewRender, NewResize, NewCloseQuery: TWindowFunc);
+constructor TGLMode.CreateReset(AWindow: TCastleWindowCustom;
+  NewRender, NewResize, NewCloseQuery: TContainerEvent);
 begin
   Create(AWindow);
   TWindowState.SetStandardState(AWindow, NewRender, NewResize, NewCloseQuery);
@@ -450,7 +426,7 @@ begin
  if DisabledContextOpenClose then
    TCastleWindowCustom(Window).Controls.EndDisableContextOpenClose;
 
- { Although it's forbidden to use TGLMode on Closed TCastleWindowBase,
+ { Although it's forbidden to use TGLMode on Closed TCastleWindowCustom,
    in destructor we must take care of every possible situation
    (because this may be called in finally ... end things when
    everything should be possible). }
@@ -464,14 +440,14 @@ begin
      oryginalne callbacki chcialyby byc poinformowane. Np. OnResize. }
    if (oldWinWidth <> Window.Width) or
       (oldWinHeight <> Window.Height) then
-    Window.EventResize;
+    Window.Container.EventResize;
 
    { udajemy ze wszystkie przyciski myszy jakie sa wcisniete sa wciskane wlasnie
      teraz }
    if FakeMouseDown then
      for btn := Low(btn) to High(btn) do
        if btn in Window.mousePressed then
-         Window.EventPress(InputMouseButton(btn));
+         Window.Container.EventPress(InputMouseButton(btn));
 
    Window.PostRedisplay;
 
@@ -508,7 +484,7 @@ begin
   AWindow.Controls.InsertFront(Control);
 
   { setup our 2d projection }
-  Window.EventResize;
+  Window.Container.EventResize;
 end;
 
 destructor TGLModeFrozenScreen.Destroy;
@@ -521,7 +497,7 @@ end;
 
 { routines ------------------------------------------------------------------- }
 
-procedure NoClose(Window: TCastleWindowBase);
+procedure NoClose(Container: TUIContainer);
 begin
 end;
 

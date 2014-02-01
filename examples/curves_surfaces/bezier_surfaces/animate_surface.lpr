@@ -140,7 +140,7 @@ begin
   finally FreeAndNil(Surface) end;
 end;
 
-procedure Open(Window: TCastleWindowBase);
+procedure Open(Container: TUIContainer);
 begin
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_LIGHTING);
@@ -149,7 +149,7 @@ begin
   glShadeModel(GL_FLAT);
 end;
 
-procedure Update(Window: TCastleWindowBase);
+procedure Update(Container: TUIContainer);
 begin
   if FUp then
   begin
@@ -170,7 +170,7 @@ begin
   end;
 end;
 
-procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
+procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 begin
   if Event.EventType = itKey then
     case Event.KeyCharacter of

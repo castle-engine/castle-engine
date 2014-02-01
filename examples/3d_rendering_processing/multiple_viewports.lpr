@@ -156,7 +156,7 @@ var
   ViewportsLabels: array [0..3] of TCastleLabel;
   OpenButton, QuitButton: TCastleButton;
 
-procedure Resize(Window: TCastleWindowBase);
+procedure Resize(Container: TUIContainer);
 const
   Margin = 5;
 var

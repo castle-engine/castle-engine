@@ -58,13 +58,13 @@ private
 {$ifdef read_implementation}
 
 {$ifdef CASTLE_WINDOW_XLIB}
-procedure TCastleWindowBase.ContextCreateBegin(var Attr: TXSetWindowAttributes;
+procedure TCastleWindowCustom.ContextCreateBegin(var Attr: TXSetWindowAttributes;
   var AttrValueMask: Cardinal);
 begin
 end;
 {$endif}
 
-procedure TCastleWindowBase.ContextCreateEnd(WndPtr: EGLNativeWindowType);
+procedure TCastleWindowCustom.ContextCreateEnd(WndPtr: EGLNativeWindowType);
 
   { EGL error codes and descriptions from
     http://www.khronos.org/registry/egl/sdk/docs/man/xhtml/eglGetError.html }
@@ -139,7 +139,7 @@ begin
     raise EGLContextNotPossible.Create('Cannot create EGL surface');
 end;
 
-procedure TCastleWindowBase.ContextDestroy;
+procedure TCastleWindowCustom.ContextDestroy;
 begin
   if Surface <> EGL_NO_SURFACE { nil } then
     eglDestroySurface(Display, Surface);
@@ -148,18 +148,18 @@ begin
     eglTerminate(Display);
 end;
 
-procedure TCastleWindowBase.BackendMakeCurrent;
+procedure TCastleWindowCustom.BackendMakeCurrent;
 begin
   Assert(not Closed);
   eglMakeCurrent(Display, Surface, Surface, Context);
 end;
 
-procedure TCastleWindowBase.SwapBuffers;
+procedure TCastleWindowCustom.SwapBuffers;
 begin
   eglSwapBuffers(Display, Surface);
 end;
 
-procedure TCastleWindowBase.QuerySize(out AWidth, AHeight: EGLint);
+procedure TCastleWindowCustom.QuerySize(out AWidth, AHeight: EGLint);
 begin
   eglQuerySurface(Display, Surface, EGL_WIDTH, @AWidth);
   eglQuerySurface(Display, Surface, EGL_HEIGHT, @AHeight);

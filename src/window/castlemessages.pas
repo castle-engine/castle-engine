@@ -77,7 +77,7 @@
 
       In particular, remember that you cannot close the Window
       when the message box in running. So do not blindly call
-      TCastleWindowBase.Close from TCastleApplication callbacks. )
+      TCastleWindowCustom.Close from TCastleApplication callbacks. )
 
     @item(Since your normal callbacks
       and controls are not run when message box is running, you usually

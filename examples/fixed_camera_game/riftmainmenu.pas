@@ -109,17 +109,17 @@ begin
   Window.Controls.MakeSingle(TCastleOnScreenMenu, NewValue);
 end;
 
-procedure Resize(Window: TCastleWindowBase);
+procedure Resize(Container: TUIContainer);
 begin
   OrthoProjection(0, Window.Width, 0, Window.Height);
 end;
 
-procedure Render(Window: TCastleWindowBase);
+procedure Render(Container: TUIContainer);
 begin
   GLMenuBg.Draw(0, 0);
 end;
 
-procedure Press(Window: TCastleWindowBase; const Event: TInputPressRelease);
+procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 begin
   if Event.IsKey(CharEscape) then
     SetCurrentMenu(MainMenu);
@@ -130,7 +130,7 @@ begin
   end;
 end;
 
-procedure CloseQuery(Window: TCastleWindowBase);
+procedure CloseQuery(Container: TUIContainer);
 begin
   UserQuit := true;
 end;
@@ -147,8 +147,6 @@ begin
     Window.OnPress := @Press;
     { actually we draw in 2D, but it's the current projection anyway }
     Window.RenderStyle := rs3D;
-
-    Window.EventResize;
 
     SetCurrentMenu(MainMenu);
 
