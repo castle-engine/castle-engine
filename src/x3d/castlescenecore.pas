@@ -4549,7 +4549,6 @@ begin
   try
     Result.Triangles.Capacity := TrianglesCount(false);
     if (ProgressTitle <> '') and
-       (Progress.UserInterface <> nil) and
        (not Progress.Active) then
     begin
       Progress.Init(TrianglesCount(false), ProgressTitle, true);

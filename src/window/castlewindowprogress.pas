@@ -43,16 +43,25 @@ uses CastleWindow, CastleProgress, CastleWindowModes,
   CastleImages, CastleGLImages, CastleUIControls, CastleControls;
 
 type
+  { Progress bar rendered on OpenGL context (TCastleWindow).
+    Uses Application.MainWindow to render the progress bar,
+    so be sure to assign it.
+    If the Application.MainWindow is not assigned, or not open,
+    when progress bar starts --- we gracefully avoid showing any progress. }
   TWindowProgressInterface = class(TProgressUserInterface)
   private
     Bar: TCastleProgressBar;
-    FWindow: TCastleWindowCustom;
-    SavedMode: TGLMode;
-  public
-    { Window used to render the progress bar.
+    { Window used to render the progress bar, or nil if none.
       Assign this before doing Init. Don't change this when we are
       between Init and Fini. }
-    property Window: TCastleWindowCustom read FWindow write FWindow;
+    UsedWindow: TCastleWindowCustom;
+    SavedMode: TGLMode;
+    function GetWindow: TCastleWindowCustom;
+    procedure SetWindow(const Value: TCastleWindowCustom);
+  public
+    { @deprecated Using this is deprecated, you should rather assign to
+      Application.MainWindow. }
+    property Window: TCastleWindowCustom read GetWindow write SetWindow; deprecated;
 
     procedure Init(Progress: TProgress); override;
     procedure Update(Progress: TProgress); override;
@@ -71,41 +80,58 @@ uses SysUtils, CastleUtils, CastleKeysMouse;
 
 { TWindowProgressInterface  ------------------------------------------------ }
 
+function TWindowProgressInterface.GetWindow: TCastleWindowCustom;
+begin
+  Result := Application.MainWindow;
+end;
+
+procedure TWindowProgressInterface.SetWindow(const Value: TCastleWindowCustom);
+begin
+  Application.MainWindow := Value;
+end;
+
 procedure TWindowProgressInterface.Init(Progress: TProgress);
 begin
-  Check(Window <> nil,
-    'TWindowProgressInterface: You must assign Window before doing Init');
+  if (Application.MainWindow <> nil) and
+      Application.MainWindow.GLInitialized then
+    UsedWindow := Application.MainWindow else
+    UsedWindow := nil;
+
+  if UsedWindow = nil then Exit;
 
   Bar := TCastleProgressBar.Create(nil);
   Bar.Progress := Progress;
 
   if Image <> nil then
     Bar.Background := Image.MakeCopy else
-    Bar.Background := Window.SaveScreen;
+    Bar.Background := UsedWindow.SaveScreen;
   Bar.YPosition := BarYPosition;
 
-  SavedMode := TGLMode.CreateReset(Window, nil, nil, @NoClose);
+  SavedMode := TGLMode.CreateReset(UsedWindow, nil, nil, @NoClose);
 
-  Window.Controls.InsertFront(Bar);
+  UsedWindow.Controls.InsertFront(Bar);
 
   { init our window state }
-  Window.AutoRedisplay := true;
-  Window.Cursor := mcWait;
+  UsedWindow.AutoRedisplay := true;
+  UsedWindow.Cursor := mcWait;
   { To actually draw progress start. }
-  Window.Invalidate;
-  Window.FlushRedisplay;
+  UsedWindow.Invalidate;
+  UsedWindow.FlushRedisplay;
   Application.ProcessMessage(false, false);
 end;
 
 procedure TWindowProgressInterface.Update(Progress: TProgress);
 begin
+  if UsedWindow = nil then Exit;
   Application.ProcessAllMessages;
 end;
 
 procedure TWindowProgressInterface.Fini(Progress: TProgress);
 begin
+  if UsedWindow = nil then Exit;
   FreeAndNil(Bar);
   FreeAndNil(SavedMode);
+  UsedWindow := nil;
 end;
 
 initialization

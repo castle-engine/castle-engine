@@ -135,9 +135,6 @@ end;
 
 procedure Open(Container: TUIContainer);
 begin
-  WindowProgressInterface.Window := Window;
-  Progress.UserInterface := WindowProgressInterface;
-
   if Parameters.High = 1 then
     LoadVideo(Parameters[1]);
 end;
@@ -312,6 +309,9 @@ begin
   Window := TCastleWindowCustom.Create(Application);
 
   try
+    Application.MainWindow := Window;
+    Progress.UserInterface := WindowProgressInterface;
+
     Video := TVideo.Create;
 
     { We will actually handle 1st param in Init. }

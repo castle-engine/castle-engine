@@ -2493,8 +2493,10 @@ end;
     property TimerMilisec: Cardinal read FTimerMilisec write FTimerMilisec default 1000;
     { @groupEnd }
 
-    { On targets when only one TCastleWindowCustom instance makes sense
-      (like Android), set this to the reference of that window. }
+    { Main window used for various purposes.
+      On targets when only one TCastleWindowCustom instance makes sense
+      (like Android), set this to the reference of that window.
+      It is also used by TWindowProgressInterface to display progress bar. }
     property MainWindow: TCastleWindowCustom read FMainWindow write SetMainWindow;
 
     { Process messages from the window system.

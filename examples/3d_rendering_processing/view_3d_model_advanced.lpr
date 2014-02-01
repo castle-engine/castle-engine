@@ -78,7 +78,7 @@ begin
   Window.Open;
 
   { Show progress bar in our window }
-  WindowProgressInterface.Window := Window;
+  Application.MainWindow := Window;
   Progress.UserInterface := WindowProgressInterface;
 
   { load a Scene and add it to Window.SceneManager, just like view_3d_model_simple }

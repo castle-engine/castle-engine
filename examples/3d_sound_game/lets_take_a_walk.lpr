@@ -322,8 +322,8 @@ begin
   Window.Open;
 
   { init progress }
+  Application.MainWindow := Window;
   Progress.UserInterface := WindowProgressInterface;
-  WindowProgressInterface.Window := Window;
 
   { init SceneManager }
   SceneManager := Window.SceneManager;

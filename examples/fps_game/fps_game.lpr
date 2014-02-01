@@ -500,8 +500,8 @@ begin
   Window.Open;
 
   { Show progress bars on our Window. }
+  Application.MainWindow := Window;
   Progress.UserInterface := WindowProgressInterface;
-  WindowProgressInterface.Window := Window;
 
   { Allow player to drop items by "R" key. This shortcut is by default inactive
     (no key/mouse button correspond to it), because not all games may want

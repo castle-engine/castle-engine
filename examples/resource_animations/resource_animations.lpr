@@ -244,7 +244,7 @@ end;
 
 begin
   Window := TCastleWindow.Create(Application);
-  WindowProgressInterface.Window := Window;
+  Application.MainWindow := Window;
   Progress.UserInterface := WindowProgressInterface;
 
   { otherwise if you use "Add resource..." button and load a resource

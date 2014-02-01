@@ -198,30 +198,18 @@ begin
   Window.Open;
 
   { init progress }
-  WindowProgressInterface.Window := Window;
+  Application.MainWindow := Window;
   Progress.UserInterface := WindowProgressInterface;
 
-  { open OpenAL (after opening Glw and Progress, because ALContextOpen
+  { open OpenAL (after opening Window, because ALContextOpen
     wants to display progress of "Loading sounds") }
-  {
-  TODO: maybe later. DrawInitialBackground;}
   SoundEngine.ALContextOpen;
-  try
-    DoIntro;
-    DoMainMenu;
 
-    { unload all }
-    CreaturesKinds.UnLoad;
-  finally
-    { Usually Window.Closed = false here.
-      But this is finally...end clause so we try hard to avoid raising
-      another exception here --- so we safeguard and eventually change
-      Progress.UserInterface here. }
-    if Window.Closed then
-      Progress.UserInterface := ProgressNullInterface;
+  DoIntro;
+  DoMainMenu;
 
-    SoundEngine.ALContextClose;
-  end;
+  { unload all }
+  CreaturesKinds.UnLoad;
 
   Config.Save;
 end.

@@ -96,6 +96,8 @@ procedure ApplicationInitialize;
 begin
   InitializeLog('1.0.0');
 
+  Progress.UserInterface := WindowProgressInterface;
+
 {$ifdef SOLID_BACKGROUND}
   { Show other controls under SceneManager, this way our Background
     is visible. Otherwise, Background defined in main 3D scene is used. }
@@ -146,17 +148,6 @@ begin
   FindFiles(ApplicationData('') + 'textures/castle/', '*', true, @FindFilesCallback, nil, [ffRecursive]);
 end;
 
-procedure WindowOpen(Container: TUIContainer);
-begin
-  Progress.UserInterface := WindowProgressInterface;
-  WindowProgressInterface.Window := Window;
-end;
-
-procedure WindowClose(Container: TUIContainer);
-begin
-  Progress.UserInterface := ProgressNullInterface;
-end;
-
 procedure WindowResize(Container: TUIContainer);
 const
   Margin = 10;
@@ -199,7 +190,5 @@ initialization
   { create Window and initialize Window callbacks }
   Window := TCastleWindowTouch.Create(Application);
   Application.MainWindow := Window;
-  Window.OnOpen := @WindowOpen;
-  Window.OnClose := @WindowClose;
   Window.OnResize := @WindowResize;
 end.
