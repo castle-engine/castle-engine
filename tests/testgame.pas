@@ -96,6 +96,10 @@ begin
   Assert(C.RemoveDead = true);
   AssertFloat(C.PreferredDistance, 9.1);
   Assert(C.AlwaysPrepared = true);
+  { change AlwaysPrepared to false,
+    to avoid crashing tests that actually do LoadLevel,
+    since 3D models referenced by this resource do not exist. }
+  C.ConfigAlwaysPrepared := false;
   AssertFloat(C.FallSpeed, 1.2);
   AssertFloat(C.GrowSpeed, 3.4);
   Assert(C.ReceiveShadowVolumes = false);

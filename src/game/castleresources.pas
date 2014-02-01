@@ -114,7 +114,7 @@ type
     FName: string;
     FPrepared: boolean;
     FUsageCount: Cardinal;
-    ConfigAlwaysPrepared: boolean;
+    FConfigAlwaysPrepared: boolean;
     FFallSpeed, FGrowSpeed: Single;
     FAnimations: T3DResourceAnimationList;
     FReceiveShadowVolumes: boolean;
@@ -243,6 +243,9 @@ type
       Descendants may choose to override this, to override value from resource.xml
       file. }
     function AlwaysPrepared: boolean; virtual;
+
+    property ConfigAlwaysPrepared: boolean
+      read FConfigAlwaysPrepared write FConfigAlwaysPrepared;
 
     { The speed (in units per second) of falling down because of gravity.
       Note that the gravity direction is controlled by your level 3D model,
