@@ -1285,19 +1285,20 @@ procedure TPlayer.Render(const Frustum: TFrustum; const Params: TRenderParams);
 begin
   { TODO: This implementation is a quick hack, that depends on the fact
     that TPlayer.Render is the *only* thing in the whole engine currently
-    calling glDepthRange (except shadow maps that require normal glDepthRange).
+    changing DepthRange (except shadow maps that require normal DepthRange,
+    and manually push/pop the DepthRange state).
 
     - The first frame with TPlayer could be incorrect, as 3D objects drawn before
-      will have 0..1 glDepthRange that may overlap with our weapon.
+      will have 0..1 DepthRange that may overlap with our weapon.
       It works now only because default player positions are when
       the weapon doesn't overlap with level in 3D.
-    - We never fix the glDepthRange back to 0..1.
+    - We never fix the DepthRange back to 0..1.
 
-    The idea of using glDepthRange for layers seems quite good, it's
+    The idea of using DepthRange for layers seems quite good, it's
     quite a nice solution,
     - you don't have to split rendering layers in passes, you can render
-      all objects in one pass, just switching glDepthRange as necessary.
-    - you can set glDepthRange for 3D objects inside T3DList,
+      all objects in one pass, just switching DepthRange as necessary.
+    - you can set DepthRange for 3D objects inside T3DList,
       like here TPlayer will just affect every child underneath.
 
     But it has to be implemented in more extensible manner in the future.

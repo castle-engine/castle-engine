@@ -1826,15 +1826,13 @@ procedure SetDepthRange(const Value: TDepthRange);
 begin
   if FDepthRange <> Value then
   begin
+    {$ifdef OpenGLES} {$define glDepthRange := glDepthRangef} {$endif}
     FDepthRange := Value;
-    {$ifndef OpenGLES}
-    // TODO-es How to port it to OpenGL ES? We need it for PlayerOnTop
     case Value of
       drFull: glDepthRange(0  , 1);
       drNear: glDepthRange(0  , 0.1);
       drFar : glDepthRange(0.1, 1);
     end;
-    {$endif}
   end;
 end;
 

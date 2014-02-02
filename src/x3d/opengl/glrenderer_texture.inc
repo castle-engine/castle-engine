@@ -2015,7 +2015,7 @@ begin
     SavedProjectionMatrix := ProjectionMatrix;
     ProjectionMatrix := NewProjectionMatrix;
 
-      { fix glDepthRange in case was changed by TPlayer.RenderOnTop }
+      { fix DepthRange in case was changed by TPlayer.RenderOnTop }
       SavedDepthRange := DepthRange;
       DepthRange := drFull;
 
