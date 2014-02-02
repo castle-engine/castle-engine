@@ -911,6 +911,7 @@ type
       this may happen for textures in ComposedShader custom fields). }
     TexCoordsNeeded: Cardinal;
 
+    {$ifndef OpenGLES}
     { For which texture units we pushed and modified the texture matrix.
       Only inside RenderShape.
       Always <= 1 if not GLFeatures.UseMultiTexturing. }
@@ -921,6 +922,7 @@ type
       Cleared by RenderShapeBegin, added by PushTextureUnit,
       used by RenderShapeEnd. }
     TextureTransformUnitsUsedMore: TLongIntList;
+    {$endif}
 
     FCullFace: TCullFace;
     FSmoothShading: boolean;
@@ -929,7 +931,8 @@ type
     FLineWidth: Single;
     FLineType: TLineType;
 
-    { This calls glPushMatrix, assuming that current matrix mode is GL_TEXTURE
+    {$ifndef OpenGLES}
+    { Call glPushMatrix, assuming that current matrix mode is GL_TEXTURE
       and current tex unit is TexUnit (always make sure this is true when
       calling it!).
 
@@ -937,11 +940,12 @@ type
       make pop texture matrix later.
 
       In fact this optimizes push/pops on texture matrix stack, such that
-      VRML TextureTransform nodes and such together with PushTextureUnit
+      VRML/X3D TextureTransform nodes and such together with PushTextureUnit
       will only use only matrix stack place, even if texture will be
       "pushed" multiple times (both by PushTextureUnit and normal
       VRML TextureTransform realized in RenderShapeBegin.) }
     procedure PushTextureUnit(const TexUnit: Cardinal);
+    {$endif}
 
     { Check Attributes (like Attributes.BumpMapping) and OpenGL
       context capabilities to see if bump mapping can be used. }
@@ -2153,7 +2157,9 @@ begin
   BumpMappingRenderers := TBumpMappingRendererList.Create(false);
   ScreenEffectPrograms := TGLSLProgramList.Create;
 
+  {$ifndef OpenGLES}
   TextureTransformUnitsUsedMore := TLongIntList.Create;
+  {$endif}
 
   PreparedShader := TShader.Create;
 
@@ -2165,7 +2171,9 @@ destructor TGLRenderer.Destroy;
 begin
   UnprepareAll;
 
+  {$ifndef OpenGLES}
   FreeAndNil(TextureTransformUnitsUsedMore);
+  {$endif}
   FreeAndNil(GLTextureNodes);
   FreeAndNil(BumpMappingRenderers);
   FreeAndNil(ScreenEffectPrograms);
@@ -2947,35 +2955,16 @@ procedure TGLRenderer.RenderShapeTextureTransform(Shape: TX3DRendererShape;
   Fog: IAbstractFogObject; Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 
+{$ifndef OpenGLES} // TODO-es
+
   { Pass non-nil TextureTransform that is not a MultiTextureTransform.
     Then this will simply do glMultMatrix (or equivalent) applying
     transformations encoded in this TextureTransform node. }
   procedure TextureMultMatrix(TextureTransform: TAbstractTextureTransformNode);
   begin
-    { Optimized version of
-        glMultMatrix(TextureTransform.TransformMatrix);
-      specially for TTextureTransformNode. Possibly using OpenGL
-      translate etc. commands instead of loading directly 4x4 matrix will
-      result in some performance/precision gain (but, not confirmed in
-      practice).
-    if TextureTransform is TTextureTransformNode then
-    begin
-      with TTextureTransformNode(TextureTransform) do
-      begin
-        glTranslatef(-FdCenter.Value[0], -FdCenter.Value[1], 0);
-        glScalef(FdScale.Value[0], FdScale.Value[1], 1);
-        glRotatef(RadToDeg(FdRotation.Value), 0, 0, 1);
-        glTranslatef(
-          FdTranslation.Value[0] + FdCenter.Value[0],
-          FdTranslation.Value[1] + FdCenter.Value[1], 0);
-      end;
-    end else }
-    {$ifndef OpenGLES} //TODO-es
-      glMultMatrix(TextureTransform.TransformMatrix);
-    {$endif}
+    glMultMatrix(TextureTransform.TransformMatrix);
   end;
 
-{$ifndef OpenGLES} // TODO-es
 var
   TextureTransform: TAbstractTextureTransformNode;
   Child: TX3DNode;
@@ -2984,10 +2973,9 @@ var
   State: TX3DGraphTraverseState;
 {$endif}
 begin
+  {$ifndef OpenGLES} //TODO-es
   TextureTransformUnitsUsed := 0;
   TextureTransformUnitsUsedMore.Count := 0;
-
-  {$ifndef OpenGLES} //TODO-es
 
   State := Shape.State;
 
@@ -3541,6 +3529,7 @@ begin
   {$endif USE_VRML_TRIANGULATION}
 end;
 
+{$ifndef OpenGLES}
 procedure TGLRenderer.PushTextureUnit(const TexUnit: Cardinal);
 begin
   { Only continue if texture unit is not already pushed
@@ -3550,9 +3539,7 @@ begin
   if (TexUnit >= TextureTransformUnitsUsed) and
      (TextureTransformUnitsUsedMore.IndexOf(TexUnit) = -1) then
   begin
-    {$ifndef OpenGLES} //TODO-es
     glPushMatrix;
-    {$endif}
 
     { Simple implementation would just add always TexUnit
       to TextureTransformUnitsUsedMore. But there are optimizations possible,
@@ -3576,6 +3563,7 @@ begin
       TextureTransformUnitsUsedMore.Add(TexUnit);
   end;
 end;
+{$endif}
 
 procedure TGLRenderer.UpdateGeneratedTextures(Shape: TShape;
   TextureNode: TAbstractTextureNode;

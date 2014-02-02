@@ -114,8 +114,10 @@ type
   end;
 
   TTextureCoordinateRenderer = class(TBaseCoordinateRenderer)
+  {$ifndef OpenGLES}
   private
     RestoreDefaultTexCoord: boolean;
+  {$endif}
   protected
     procedure RenderCoordinateBegin; override;
     procedure RenderCoordinateEnd; override;
@@ -435,6 +437,7 @@ end;
 
 { TTextureCoordinateRenderer ----------------------------------------- }
 
+{$ifndef OpenGLES}
 { If multitexturing available, sets texture coordinate for texture
   unit TextureUnit (by appropriate glMultiTexCoord).
   Otherwise (when no multitexturing), sets texture coordinate for
@@ -445,12 +448,11 @@ end;
   available, and shifting TextureUnit by GL_TEXTURE0) is taken care of inside here. }
 procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
 begin
-{$ifndef OpenGLES} // TODO-es
   if GLFeatures.UseMultiTexturing then
     glMultiTexCoord4fv(GL_TEXTURE0 + TextureUnit, @TexCoord) else
     glTexCoord4fv(@TexCoord);
-{$endif}
 end;
+{$endif}
 
 procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
 
@@ -463,6 +465,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       WorldSpaceReflectionVector. }
     procedure TextureTransformToWorldSpace(const SuccessName, FailName: string);
     begin
+      {$ifndef OpenGLES} // TODO-es
       { Set the 4th texture coord component (Q) to 0.0.
         Reason: We use matrix 4x4, so it will transform whole texture
         coordinate (4-valued vector, since we're in homogeneous
@@ -486,7 +489,6 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         you only have 1 or 2 texture units where you generate tex coords. }
       RestoreDefaultTexCoord := true;
 
-      {$ifndef OpenGLES} // TODO-es
       glMatrixMode(GL_TEXTURE);
       Renderer.PushTextureUnit(TexUnit);
       { CameraMatrix transforms from world space to camera space,
@@ -495,7 +497,6 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       RenderingCamera.InverseMatrixNeeded;
       glMultMatrix(RenderingCamera.InverseMatrix);
       glMatrixMode(GL_MODELVIEW);
-      {$endif}
 
       if GLVersion.Mesa and Log then
         { Mesa 7.0.4 makes textures strange (like each cube face was
@@ -505,6 +506,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           Nothing more intelligent now than warning about this is done. }
         WritelnLog('TexCoord', Format('Warning: Transforming tex coords to WORLDSPACE* under Mesa3D may mess up static cube maps (ImageCubeMapTexture and ComposedCubeMapTexture, but not GeneratedCubeMapTexure)',
           [SuccessName, FailName]));
+      {$endif}
     end;
 
   const
@@ -688,8 +690,10 @@ begin
 end;
 
 procedure TTextureCoordinateRenderer.RenderCoordinateEnd;
+{$ifndef OpenGLES}
 const
   DefaultTexCoord: TVector4Single = (0, 0, 0, 1);
+{$endif}
 var
   I: Integer;
 begin
@@ -699,9 +703,11 @@ begin
       { Disable OpenGL GL_TEXTURE_GEN_x, if it was (possibly)
         enabled by RenderCoordinateBegin. }
       Shader.DisableTexGen(I);
+      {$ifndef OpenGLES}
       { DisableTexGen already set glActiveTexture }
       if RestoreDefaultTexCoord then
         MultiTexCoord(I, DefaultTexCoord);
+      {$endif}
     end;
 
   inherited;
