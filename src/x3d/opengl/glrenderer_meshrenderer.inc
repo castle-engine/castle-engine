@@ -577,11 +577,11 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           begin
             OnWarning(wtMajor, 'VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACENORMAL", will do "COORD" instead');
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-            glTexGenv(GL_S, GL_OBJECT_PLANE, Vector4Single(1, 0, 0, 0));
+            glTexGenv(GL_S, GL_OBJECT_PLANE, GenerationVectorsIdentity[0]);
             glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-            glTexGenv(GL_T, GL_OBJECT_PLANE, Vector4Single(0, 1, 0, 0));
+            glTexGenv(GL_T, GL_OBJECT_PLANE, GenerationVectorsIdentity[1]);
             glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-            glTexGenv(GL_R, GL_OBJECT_PLANE, Vector4Single(0, 0, 1, 0));
+            glTexGenv(GL_R, GL_OBJECT_PLANE, GenerationVectorsIdentity[2]);
 
             Shader.EnableTexGen(TexUnit, tgObject, 0);
             Shader.EnableTexGen(TexUnit, tgObject, 1);
@@ -604,11 +604,11 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           begin
             OnWarning(wtMajor, 'VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACEREFLECTIONVECTOR", will do "COORD" instead');
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-            glTexGenv(GL_S, GL_OBJECT_PLANE, Vector4Single(1, 0, 0, 0));
+            glTexGenv(GL_S, GL_OBJECT_PLANE, GenerationVectorsIdentity[0]);
             glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-            glTexGenv(GL_T, GL_OBJECT_PLANE, Vector4Single(0, 1, 0, 0));
+            glTexGenv(GL_T, GL_OBJECT_PLANE, GenerationVectorsIdentity[1]);
             glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-            glTexGenv(GL_R, GL_OBJECT_PLANE, Vector4Single(0, 0, 1, 0));
+            glTexGenv(GL_R, GL_OBJECT_PLANE, GenerationVectorsIdentity[2]);
 
             Shader.EnableTexGen(TexUnit, tgObject, 0);
             Shader.EnableTexGen(TexUnit, tgObject, 1);
