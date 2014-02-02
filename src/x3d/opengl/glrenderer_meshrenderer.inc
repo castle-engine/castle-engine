@@ -507,6 +507,11 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           [SuccessName, FailName]));
     end;
 
+  const
+    GenerationVectorsIdentity: TTextureGenerationVectors =
+    ( (1, 0, 0, 0),
+      (0, 1, 0, 0),
+      (0, 0, 1, 0) );
   {$ifndef OpenGLES} // TODO-es
   const
     ProjectorScalingMatrix: TMatrix4Single =
@@ -524,17 +529,17 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         Shader.EnableTexGen(TexUnit, tgSphere);
       tgCoord:
         begin
-          {$ifndef OpenGLES} // TODO-es
+          {$ifndef OpenGLES}
           glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_S, GL_OBJECT_PLANE, Vector4Single(1, 0, 0, 0));
+          glTexGenv(GL_S, GL_OBJECT_PLANE, GenerationVectorsIdentity[0]);
           glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_T, GL_OBJECT_PLANE, Vector4Single(0, 1, 0, 0));
+          glTexGenv(GL_T, GL_OBJECT_PLANE, GenerationVectorsIdentity[1]);
           glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_R, GL_OBJECT_PLANE, Vector4Single(0, 0, 1, 0));
-          Shader.EnableTexGen(TexUnit, tgObject, 0);
-          Shader.EnableTexGen(TexUnit, tgObject, 1);
-          Shader.EnableTexGen(TexUnit, tgObject, 2);
+          glTexGenv(GL_R, GL_OBJECT_PLANE, GenerationVectorsIdentity[2]);
           {$endif}
+          Shader.EnableTexGen(TexUnit, tgObject, 0 {$ifdef OpenGLES}, GenerationVectorsIdentity[0] {$endif});
+          Shader.EnableTexGen(TexUnit, tgObject, 1 {$ifdef OpenGLES}, GenerationVectorsIdentity[1] {$endif});
+          Shader.EnableTexGen(TexUnit, tgObject, 2 {$ifdef OpenGLES}, GenerationVectorsIdentity[2] {$endif});
         end;
       tgCoordEye:
         begin
@@ -641,29 +646,28 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         end;
       tgBounds2d:
         begin
-          {$ifndef OpenGLES} // TODO-es
-          { Setup OpenGL to generate tex coords automatically }
+          {$ifndef OpenGLES}
           glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
           glTexGenv(GL_S, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[0]);
           glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
           glTexGenv(GL_T, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[1]);
-          Shader.EnableTexGen(TexUnit, tgObject, 0);
-          Shader.EnableTexGen(TexUnit, tgObject, 1);
           {$endif}
+          Shader.EnableTexGen(TexUnit, tgObject, 0 {$ifdef OpenGLES}, TexCoord.GenerationBoundsVector[0] {$endif});
+          Shader.EnableTexGen(TexUnit, tgObject, 1 {$ifdef OpenGLES}, TexCoord.GenerationBoundsVector[1] {$endif});
         end;
       tgBounds3d:
         begin
-          {$ifndef OpenGLES} // TODO-es
+          {$ifndef OpenGLES}
           glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
           glTexGenv(GL_S, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[0]);
           glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
           glTexGenv(GL_T, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[1]);
           glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
           glTexGenv(GL_R, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[2]);
-          Shader.EnableTexGen(TexUnit, tgObject, 0);
-          Shader.EnableTexGen(TexUnit, tgObject, 1);
-          Shader.EnableTexGen(TexUnit, tgObject, 2);
           {$endif}
+          Shader.EnableTexGen(TexUnit, tgObject, 0 {$ifdef OpenGLES}, TexCoord.GenerationBoundsVector[0] {$endif});
+          Shader.EnableTexGen(TexUnit, tgObject, 1 {$ifdef OpenGLES}, TexCoord.GenerationBoundsVector[1] {$endif});
+          Shader.EnableTexGen(TexUnit, tgObject, 2 {$ifdef OpenGLES}, TexCoord.GenerationBoundsVector[2] {$endif});
         end;
       else raise EInternalError.Create('EnableTextureGen - Gen?');
     end;

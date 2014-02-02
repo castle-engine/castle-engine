@@ -22,7 +22,7 @@ unit CastleRendererShader;
 
 interface
 
-uses CastleVectors, CastleGLShaders, FGL,
+uses CastleVectors, CastleGLShaders, FGL, CastleGenericLists,
   X3DShadowMaps, X3DTime, X3DFields, X3DNodes, CastleUtils, CastleBoxes,
   CastleRendererTextureEnv, CastleStringUtils, CastleShaders;
 
@@ -215,6 +215,15 @@ type
 
   TBumpMapping = (bmNone, bmBasic, bmParallax, bmSteepParallax, bmSteepParallaxShadowing);
 
+  TDynamicUniform = object
+    Name: string;
+    { Declaration to put at the top of the shader code.
+      Must end with newline. }
+    Declaration: string;
+    Value: TVector4Single;
+  end;
+  TDynamicUniformList = specialize TGenericStructList<TDynamicUniform>;
+
   { Create appropriate shader and at the same time set OpenGL parameters
     for fixed-function rendering. Once everything is set up,
     you can create TX3DShaderProgram instance
@@ -247,6 +256,7 @@ type
     FFogType: TFogType;
     FFogCoordinateSource: TFogCoordinateSource;
     HasGeometryMain: boolean;
+    DynamicUniforms: TDynamicUniformList;
 
     { We have to optimize the most often case of TShader usage,
       when the shader is not needed or is already prepared.
@@ -358,7 +368,8 @@ type
       const ShadowLight: TAbstractLightNode = nil;
       const ShadowVisualizeDepth: boolean = false);
     procedure EnableTexGen(const TextureUnit: Cardinal;
-      const Generation: TTexGenerationComponent; const Component: TTexComponent);
+      const Generation: TTexGenerationComponent; const Component: TTexComponent
+      {$ifdef OpenGLES} ; const Plane: TVector4Single {$endif});
     procedure EnableTexGen(const TextureUnit: Cardinal;
       const Generation: TTexGenerationComplete);
     { Disable fixed-function texgen of given texture unit.
@@ -1418,6 +1429,7 @@ begin
   LightShaders := TLightShaders.Create;
   TextureShaders := TTextureShaders.Create;
   UniformsNodes := TX3DNodeList.Create(false);
+  DynamicUniforms := TDynamicUniformList.Create;
 
   WarnMissingPlugs := true;
 end;
@@ -1428,6 +1440,7 @@ begin
   FreeAndNil(LightShaders);
   FreeAndNil(TextureShaders);
   FreeAndNil(Source);
+  FreeAndNil(DynamicUniforms);
   inherited;
 end;
 
@@ -1474,6 +1487,7 @@ begin
   MaterialEmission := ZeroVector4Single;
   MaterialShininessExp := 0;
   MaterialUnlit := ZeroVector4Single;
+  DynamicUniforms.Clear;
 end;
 
 procedure TShader.Plug(const EffectPartType: TShaderType; PlugValue: string;
@@ -1772,6 +1786,9 @@ var
      '#define PCF16'         + NL + {$I shadow_map_common.fs.inc},
      {$I variance_shadow_map_common.fs.inc});
   {$endif}
+  var
+    DynamicUniformsDeclare: string;
+    I: Integer;
   begin
     PlugDirectly(Source[stVertex], 0, '/* PLUG: vertex_eye_space',
       TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane, false);
@@ -1783,11 +1800,16 @@ var
     PlugDirectly(Source[stGeometry], 0, '/* PLUG: geometry_vertex_zero', GeometryVertexZero, false);
     PlugDirectly(Source[stGeometry], 0, '/* PLUG: geometry_vertex_add' , GeometryVertexAdd , false);
 
+    DynamicUniformsDeclare := '';
+    for I := 0 to DynamicUniforms.Count - 1 do
+      DynamicUniformsDeclare += DynamicUniforms[I].Declaration;
+
     if not (
       PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */',
         TextureVaryingDeclare + NL + TextureUniformsDeclare
         {$ifndef OpenGLES} + NL + DeclareShadowFunctions {$endif}, false) and
       PlugDirectly(Source[stVertex], 0, '/* PLUG-DECLARATIONS */',
+        DynamicUniformsDeclare +
         TextureAttributeDeclare + NL + TextureVaryingDeclare, false) ) then
     begin
       { When we cannot find /* PLUG-DECLARATIONS */, it also means we have
@@ -2413,13 +2435,17 @@ begin
 end;
 
 procedure TShader.EnableTexGen(const TextureUnit: Cardinal;
-  const Generation: TTexGenerationComponent; const Component: TTexComponent);
+  const Generation: TTexGenerationComponent; const Component: TTexComponent
+  {$ifdef OpenGLES} ; const Plane: TVector4Single {$endif});
 const
   PlaneComponentNames: array [TTexComponent] of char = ('S', 'T', 'R', 'Q');
   { Note: R changes to p ! }
   VectorComponentNames: array [TTexComponent] of char = ('s', 't', 'p', 'q');
 var
   PlaneName, CoordSource, TexCoordName: string;
+  {$ifdef OpenGLES}
+  Uniform: TDynamicUniform;
+  {$endif}
 begin
   { Enable for fixed-function pipeline }
   if GLFeatures.UseMultiTexturing then
@@ -2439,15 +2465,27 @@ begin
     http://www.mail-archive.com/osg-users@lists.openscenegraph.org/msg14238.html }
 
   case Generation of
-    tgEye   : begin PlaneName := 'gl_EyePlane'   ; CoordSource := 'castle_vertex_eye'; end;
-    tgObject: begin PlaneName := 'gl_ObjectPlane'; CoordSource := 'vertex_object' ; end;
+    tgEye   : begin PlaneName := 'EyePlane'   ; CoordSource := 'castle_vertex_eye'; end;
+    tgObject: begin PlaneName := 'ObjectPlane'; CoordSource := 'vertex_object' ; end;
     else raise EInternalError.Create('TShader.EnableTexGen:Generation?');
   end;
 
+  PlaneName := {$ifdef OpenGLES} 'castle_' {$else} 'gl_' {$endif} +
+    PlaneName + PlaneComponentNames[Component] +
+    Format({$ifdef OpenGLES} '%d' {$else} '[%d]' {$endif}, [TextureUnit]);
+
+  {$ifdef OpenGLES}
+  { For OpenGLES, we have to actually pass our own castle_xxx uniform value
+    to shader. For desktop OpenGL, we do it using gl_xxx standard variables. }
+  Uniform.Name := PlaneName;
+  Uniform.Declaration := 'uniform vec4 ' + PlaneName + ';' + NL;
+  Uniform.Value := Plane;
+  DynamicUniforms.Add(Uniform);
+  {$endif}
+
   TexCoordName := TTextureShader.CoordName(TextureUnit);
-  TextureCoordGen += Format('%s.%s = dot(%s, %s%s[%d]);' + NL,
-    [TexCoordName, VectorComponentNames[Component],
-     CoordSource, PlaneName, PlaneComponentNames[Component], TextureUnit]);
+  TextureCoordGen += Format('%s.%s = dot(%s, %s);' + NL,
+    [TexCoordName, VectorComponentNames[Component], CoordSource, PlaneName]);
   FCodeHash.AddInteger(1319 * (TextureUnit + 1) * (Ord(Generation) + 1) * (Component + 1));
 end;
 
@@ -2684,6 +2722,8 @@ var
 begin
   for I := 0 to LightShaders.Count - 1 do
     LightShaders[I].SetDynamicUniforms(AProgram);
+  for I := 0 to DynamicUniforms.Count - 1 do
+    AProgram.SetUniform(DynamicUniforms[I].Name, DynamicUniforms[I].Value);
 end;
 
 end.
