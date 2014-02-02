@@ -191,6 +191,7 @@ type
     ShadowLight: TAbstractLightNode;
     ShadowVisualizeDepth: boolean;
     Shader: TShader;
+    HasMatrix: boolean;
 
     { Uniform to set for this texture. May be empty. }
     UniformName: string;
@@ -202,6 +203,8 @@ type
       const ATextureUnit: Cardinal): string;
     { Name of texture coordinate varying vec4 vector. }
     class function CoordName(const TexUnit: Cardinal): string;
+    { Name of texture matrix mat4 uniform. }
+    class function MatrixName(const TexUnit: Cardinal): string;
   public
     { Update Hash for this light shader. }
     procedure Prepare(var Hash: TShaderCodeHash);
@@ -215,14 +218,28 @@ type
 
   TBumpMapping = (bmNone, bmBasic, bmParallax, bmSteepParallax, bmSteepParallaxShadowing);
 
-  TDynamicUniform = object
+  TDynamicUniform = class abstract
+  public
     Name: string;
     { Declaration to put at the top of the shader code.
       Must end with newline. }
     Declaration: string;
-    Value: TVector4Single;
+    procedure SetUniform(AProgram: TX3DShaderProgram); virtual; abstract;
   end;
-  TDynamicUniformList = specialize TGenericStructList<TDynamicUniform>;
+
+  TDynamicUniformVec4 = class(TDynamicUniform)
+  public
+    Value: TVector4Single;
+    procedure SetUniform(AProgram: TX3DShaderProgram); override;
+  end;
+
+  TDynamicUniformMat4 = class(TDynamicUniform)
+  public
+    Value: TMatrix4Single;
+    procedure SetUniform(AProgram: TX3DShaderProgram); override;
+  end;
+
+  TDynamicUniformList = specialize TFPGObjectList<TDynamicUniform>;
 
   { Create appropriate shader and at the same time set OpenGL parameters
     for fixed-function rendering. Once everything is set up,
@@ -257,6 +274,7 @@ type
     FFogCoordinateSource: TFogCoordinateSource;
     HasGeometryMain: boolean;
     DynamicUniforms: TDynamicUniformList;
+    {$ifdef OpenGLES} TextureMatrix: TCardinalList; {$endif}
 
     { We have to optimize the most often case of TShader usage,
       when the shader is not needed or is already prepared.
@@ -376,6 +394,10 @@ type
       Guarantees to also set active texture unit to TexUnit (if multi-texturing
       available at all). }
     procedure DisableTexGen(const TextureUnit: Cardinal);
+    {$ifdef OpenGLES}
+    procedure EnableTextureTransform(const TextureUnit: Cardinal;
+      const Matrix: TMatrix4Single);
+    {$endif}
     procedure EnableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure EnableAlphaTest;
@@ -1145,12 +1167,16 @@ end;
 
 class function TTextureShader.CoordName(const TexUnit: Cardinal): string;
 begin
-  Result :=
-    {$ifndef OpenGLES}
-    Format('gl_TexCoord[%d]', [TexUnit]);
-    {$else}
-    Format('castle_TexCoord%d', [TexUnit]);
-    {$endif};
+  Result := Format(
+    {$ifndef OpenGLES} 'gl_TexCoord[%d]' {$else} 'castle_TexCoord%d' {$endif},
+    [TexUnit]);
+end;
+
+class function TTextureShader.MatrixName(const TexUnit: Cardinal): string;
+begin
+  Result := Format(
+    {$ifndef OpenGLES} 'gl_TextureMatrix[%d]' {$else} 'castle_TextureMatrix%d' {$endif},
+    [TexUnit]);
 end;
 
 procedure TTextureShader.Prepare(var Hash: TShaderCodeHash);
@@ -1244,7 +1270,7 @@ const
   SamplerFromTextureType: array [TTextureType] of string =
   ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D', '');
 var
-  TextureSampleCall, TexCoordName: string;
+  TextureSampleCall, TexCoordName, TexMatrixName: string;
   ShadowLightShader: TLightShader;
   Code: TShaderSource;
   SamplerType: string;
@@ -1257,19 +1283,22 @@ begin
     UniformName := '';
 
   TexCoordName := CoordName(TextureUnit);
+  TexMatrixName := MatrixName(TextureUnit);
 
   {$ifndef OpenGLES}
   TextureCoordInitialize += Format('%s = gl_MultiTexCoord%d;' + NL,
     [TexCoordName, TextureUnit]);
-  if not (GLVersion.BuggyShaderShadowMap and (TextureType = tt2DShadow)) then
-    TextureCoordMatrix += Format('%s = gl_TextureMatrix[%d] * %0:s;' + NL,
-      [TexCoordName, TextureUnit]);
   {$else}
-  TextureAttributeDeclare += Format('attribute vec4 castle_MultiTexCoord%d;' + NL, [TextureUnit]);
-  TextureVaryingDeclare += Format('varying vec4 %s;' + NL, [TexCoordName]);
   TextureCoordInitialize += Format('%s = castle_MultiTexCoord%d;' + NL,
     [TexCoordName, TextureUnit]);
+  TextureAttributeDeclare += Format('attribute vec4 castle_MultiTexCoord%d;' + NL, [TextureUnit]);
+  TextureVaryingDeclare += Format('varying vec4 %s;' + NL, [TexCoordName]);
   {$endif}
+
+  if HasMatrix and
+    not (GLVersion.BuggyShaderShadowMap and (TextureType = tt2DShadow)) then
+    TextureCoordMatrix += Format('%s = %s * %0:s;' + NL,
+      [TexCoordName, TexMatrixName]);
 
   GeometryVertexSet  += Format('%s  = gl_in[index].%0:s;' + NL, [TexCoordName]);
   GeometryVertexZero += Format('%s  = vec4(0.0);' + NL, [TexCoordName]);
@@ -1384,6 +1413,20 @@ begin
   end;
 end;
 
+{ TDynamicUniformVec4 -------------------------------------------------------- }
+
+procedure TDynamicUniformVec4.SetUniform(AProgram: TX3DShaderProgram);
+begin
+  AProgram.SetUniform(Name, Value);
+end;
+
+{ TDynamicUniformMat4 -------------------------------------------------------- }
+
+procedure TDynamicUniformMat4.SetUniform(AProgram: TX3DShaderProgram);
+begin
+  AProgram.SetUniform(Name, Value);
+end;
+
 { TShader ---------------------------------------------------------------- }
 
 function InsertIntoString(const Base: string; const P: Integer; const S: string): string;
@@ -1429,7 +1472,8 @@ begin
   LightShaders := TLightShaders.Create;
   TextureShaders := TTextureShaders.Create;
   UniformsNodes := TX3DNodeList.Create(false);
-  DynamicUniforms := TDynamicUniformList.Create;
+  DynamicUniforms := TDynamicUniformList.Create(true);
+  {$ifdef OpenGLES} TextureMatrix := TCardinalList.Create; {$endif}
 
   WarnMissingPlugs := true;
 end;
@@ -1441,6 +1485,7 @@ begin
   FreeAndNil(TextureShaders);
   FreeAndNil(Source);
   FreeAndNil(DynamicUniforms);
+  {$ifdef OpenGLES} FreeAndNil(TextureMatrix); {$endif}
   inherited;
 end;
 
@@ -1488,6 +1533,7 @@ begin
   MaterialShininessExp := 0;
   MaterialUnlit := ZeroVector4Single;
   DynamicUniforms.Clear;
+  {$ifdef OpenGLES} TextureMatrix.Clear; {$endif}
 end;
 
 procedure TShader.Plug(const EffectPartType: TShaderType; PlugValue: string;
@@ -2347,6 +2393,8 @@ begin
   { Enable for shader pipeline }
 
   TextureShader := TTextureShader.Create;
+  TextureShader.HasMatrix :=
+    {$ifdef OpenGLES} TextureMatrix.IndexOf(TextureUnit) <> -1 {$else} true {$endif};
   TextureShader.TextureUnit := TextureUnit;
   TextureShader.TextureType := TextureType;
   TextureShader.Node := Node;
@@ -2444,7 +2492,7 @@ const
 var
   PlaneName, CoordSource, TexCoordName: string;
   {$ifdef OpenGLES}
-  Uniform: TDynamicUniform;
+  Uniform: TDynamicUniformVec4;
   {$endif}
 begin
   { Enable for fixed-function pipeline }
@@ -2477,6 +2525,7 @@ begin
   {$ifdef OpenGLES}
   { For OpenGLES, we have to actually pass our own castle_xxx uniform value
     to shader. For desktop OpenGL, we do it using gl_xxx standard variables. }
+  Uniform := TDynamicUniformVec4.Create;
   Uniform.Name := PlaneName;
   Uniform.Declaration := 'uniform vec4 ' + PlaneName + ';' + NL;
   Uniform.Value := Plane;
@@ -2501,6 +2550,26 @@ begin
   glDisable(GL_TEXTURE_GEN_Q);
   {$endif}
 end;
+
+{$ifdef OpenGLES}
+procedure TShader.EnableTextureTransform(const TextureUnit: Cardinal;
+  const Matrix: TMatrix4Single);
+var
+  Uniform: TDynamicUniformMat4;
+begin
+  { pass the uniform value with transformation to shader }
+  Uniform := TDynamicUniformMat4.Create;
+  Uniform.Name := TTextureShader.MatrixName(TextureUnit);
+  Uniform.Declaration := 'uniform mat4 ' + Uniform.Name + ';' + NL;
+  Uniform.Value := Matrix;
+  DynamicUniforms.Add(Uniform);
+
+  { multiply by the uniform value in shader }
+  TextureMatrix.Add(TextureUnit);
+
+  FCodeHash.AddInteger(1973 * (TextureUnit + 1));
+end;
+{$endif}
 
 procedure TShader.EnableClipPlane(const ClipPlaneIndex: Cardinal);
 begin
@@ -2723,7 +2792,7 @@ begin
   for I := 0 to LightShaders.Count - 1 do
     LightShaders[I].SetDynamicUniforms(AProgram);
   for I := 0 to DynamicUniforms.Count - 1 do
-    AProgram.SetUniform(DynamicUniforms[I].Name, DynamicUniforms[I].Value);
+    DynamicUniforms[I].SetUniform(AProgram);
 end;
 
 end.

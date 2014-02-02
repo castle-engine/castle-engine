@@ -911,7 +911,6 @@ type
       this may happen for textures in ComposedShader custom fields). }
     TexCoordsNeeded: Cardinal;
 
-    {$ifndef OpenGLES}
     { For which texture units we pushed and modified the texture matrix.
       Only inside RenderShape.
       Always <= 1 if not GLFeatures.UseMultiTexturing. }
@@ -922,7 +921,6 @@ type
       Cleared by RenderShapeBegin, added by PushTextureUnit,
       used by RenderShapeEnd. }
     TextureTransformUnitsUsedMore: TLongIntList;
-    {$endif}
 
     FCullFace: TCullFace;
     FSmoothShading: boolean;
@@ -2156,10 +2154,7 @@ begin
   GLTextureNodes := TGLTextureNodes.Create(false);
   BumpMappingRenderers := TBumpMappingRendererList.Create(false);
   ScreenEffectPrograms := TGLSLProgramList.Create;
-
-  {$ifndef OpenGLES}
   TextureTransformUnitsUsedMore := TLongIntList.Create;
-  {$endif}
 
   PreparedShader := TShader.Create;
 
@@ -2171,9 +2166,7 @@ destructor TGLRenderer.Destroy;
 begin
   UnprepareAll;
 
-  {$ifndef OpenGLES}
   FreeAndNil(TextureTransformUnitsUsedMore);
-  {$endif}
   FreeAndNil(GLTextureNodes);
   FreeAndNil(BumpMappingRenderers);
   FreeAndNil(ScreenEffectPrograms);
@@ -2954,26 +2947,14 @@ end;
 procedure TGLRenderer.RenderShapeTextureTransform(Shape: TX3DRendererShape;
   Fog: IAbstractFogObject; Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean);
-
-{$ifndef OpenGLES} // TODO-es
-
-  { Pass non-nil TextureTransform that is not a MultiTextureTransform.
-    Then this will simply do glMultMatrix (or equivalent) applying
-    transformations encoded in this TextureTransform node. }
-  procedure TextureMultMatrix(TextureTransform: TAbstractTextureTransformNode);
-  begin
-    glMultMatrix(TextureTransform.TransformMatrix);
-  end;
-
 var
   TextureTransform: TAbstractTextureTransformNode;
   Child: TX3DNode;
   Transforms: TMFNode;
   I: Integer;
   State: TX3DGraphTraverseState;
-{$endif}
+  Matrix: TMatrix4Single;
 begin
-  {$ifndef OpenGLES} //TODO-es
   TextureTransformUnitsUsed := 0;
   TextureTransformUnitsUsedMore.Count := 0;
 
@@ -2982,7 +2963,9 @@ begin
   if (State.ShapeNode = nil { VRML 1.0, always some texture transform }) or
      (State.ShapeNode.TextureTransform <> nil { VRML 2.0 with tex transform }) then
   begin
+    {$ifndef OpenGLES}
     glMatrixMode(GL_TEXTURE);
+    {$endif}
 
     { We work assuming that texture matrix before RenderShape was identity.
       Texture transform encoded in VRML/X3D will be multiplied by this.
@@ -3011,9 +2994,13 @@ begin
     begin
       { No multitexturing in VRML 1.0, just always transform first tex unit. }
       TextureTransformUnitsUsed := 1;
+      {$ifndef OpenGLES}
       ActiveTexture(0);
       glPushMatrix;
       glMultMatrix(State.TextureTransform);
+      {$else}
+      Shader.EnableTextureTransform(0, State.TextureTransform);
+      {$endif}
     end else
     begin
       TextureTransform := State.ShapeNode.TextureTransform;
@@ -3030,15 +3017,24 @@ begin
 
           for I := 0 to TextureTransformUnitsUsed - 1 do
           begin
+            {$ifndef OpenGLES}
             ActiveTexture(I);
             glPushMatrix;
+            {$endif}
             Child := Transforms[I];
             if (Child <> nil) and
                (Child is TAbstractTextureTransformNode) then
             begin
               if Child is TMultiTextureTransformNode then
                 OnWarning(wtMajor, 'VRML/X3D', 'MultiTextureTransform.textureTransform list cannot contain another MultiTextureTransform instance') else
-                TextureMultMatrix(TAbstractTextureTransformNode(Child));
+              begin
+                Matrix := TAbstractTextureTransformNode(Child).TransformMatrix;
+                {$ifndef OpenGLES}
+                glMultMatrix(Matrix);
+                {$else}
+                Shader.EnableTextureTransform(I, Matrix);
+                {$endif}
+              end;
             end;
           end;
         end else
@@ -3053,21 +3049,27 @@ begin
            (not (State.Texture is TMultiTextureNode)) then
         begin
           TextureTransformUnitsUsed := 1;
+          Matrix := TextureTransform.TransformMatrix;
+          {$ifndef OpenGLES}
           ActiveTexture(0);
           glPushMatrix;
-          TextureMultMatrix(TextureTransform);
+          glMultMatrix(Matrix);
+          {$else}
+          Shader.EnableTextureTransform(0, Matrix);
+          {$endif}
         end;
       end;
     end;
 
+    {$ifndef OpenGLES}
     { restore GL_MODELVIEW }
     glMatrixMode(GL_MODELVIEW);
+    {$endif}
   end;
-  {$endif}
 
   RenderShapeClipPlanes(Shape, Fog, Shader, MaterialOpacity, Lighting);
 
-  {$ifndef OpenGLES} //TODO-es
+  {$ifndef OpenGLES}
   if (TextureTransformUnitsUsed <> 0) or
      (TextureTransformUnitsUsedMore.Count <> 0) then
   begin
