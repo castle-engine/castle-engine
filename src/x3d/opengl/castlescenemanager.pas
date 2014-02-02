@@ -1894,7 +1894,7 @@ begin
     UsedBackground := Background;
     if UsedBackground <> nil then
     begin
-      {$ifndef OpenGLES} // TODO-es
+      {$ifndef OpenGLES}
       glLoadMatrix(RenderingCamera.RotationMatrix);
       {$endif}
 
@@ -1926,7 +1926,7 @@ begin
 
   GLClear(ClearBuffers, ClearColor);
 
-  {$ifndef OpenGLES} // TODO-es
+  {$ifndef OpenGLES}
   glLoadMatrix(RenderingCamera.Matrix);
   {$endif}
 

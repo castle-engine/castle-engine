@@ -410,7 +410,7 @@
 
 {$ifdef read_implementation}
 
-{$ifndef OpenGLES} // TODO-es
+{$ifndef OpenGLES}
 const
   CombineGL: array [TCombine] of TGLint = (
     GL_MODULATE, GL_REPLACE, GL_ADD_SIGNED_EXT, GL_ADD, GL_SUBTRACT,
@@ -768,7 +768,7 @@ begin
   if (TextureUnitsCount > 0) and
      Enable(0, Shader, Env) then
   begin
-    {$ifndef OpenGLES} // TODO-es
+    {$ifndef OpenGLES}
     { Here we know that Env was initialized above.
       So we know that mode is simple, the same for rgb and alpha,
       and can be set using GL_TEXTURE_ENV_MODE
@@ -880,7 +880,7 @@ end;
 
 procedure TGLMultiTextureNode.EnableAll(const TextureUnitsCount: Cardinal;
   out TexCoordsNeeded: Cardinal; Shader: TShader);
-{$ifndef OpenGLES} // TODO-es
+{$ifndef OpenGLES}
 const
   ColorSourceGL: array [TColorSource] of TGLint =
   ( GL_PRIMARY_COLOR, GL_TEXTURE, GL_CONSTANT, GL_PREVIOUS );
@@ -935,7 +935,7 @@ begin
           Renderer.DisableCurrentTexture;
         end else
         begin
-          {$ifndef OpenGLES} // TODO-es
+          {$ifndef OpenGLES}
           glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 
           glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, CombineGL[Env.Combine[cRGB]]);
@@ -1848,7 +1848,7 @@ begin
   if not Result then Exit;
 
   Renderer.ActiveTexture(TextureUnit);
-  {$ifndef OpenGLES} // TODO-es
+  {$ifndef OpenGLES} // TODO-OpenGLES3 (3D textures are only available in OpenGLES3)
   glBindTexture(GL_TEXTURE_3D, GLName);
   {$endif}
 end;

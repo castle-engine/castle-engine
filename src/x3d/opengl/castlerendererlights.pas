@@ -197,7 +197,8 @@ begin
   glEnable(glLightNum);
 {$else}
 begin
-  // TODO-es We shave to pass light to shaders in our own vars
+  { We pass light information to shaders in our own uniform variables,
+    this is handled by CastleRendererShader. }
 {$endif}
 end;
 

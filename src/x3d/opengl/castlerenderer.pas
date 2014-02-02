@@ -1571,7 +1571,7 @@ begin
   end;
 
   glGenTextures(1, @Result);
-  {$ifndef OpenGLES} // TODO-es
+  {$ifndef OpenGLES} // TODO-OpenGLES3 (3D textures are only available in OpenGLES3)
   glBindTexture(GL_TEXTURE_3D, Result);
 
   glTextureImage3d(Image, Filter, DDS);
@@ -2581,7 +2581,7 @@ procedure TGLRenderer.RenderCleanState(const Beginning: boolean);
       DisableTexture(I);
   end;
 
-{$ifndef OpenGLES} // TODO-es
+{$ifndef OpenGLES}
 var
   I: Integer;
 {$endif}
@@ -2592,31 +2592,29 @@ begin
   if GLFeatures.UseMultiTexturing then
   begin
     ActiveTexture(0);
-    {$ifndef OpenGLES} // TODO-es
+    {$ifndef OpenGLES}
     glClientActiveTexture(GL_TEXTURE0);
     {$endif}
   end;
 
   { init our OpenGL state }
-  {$ifndef OpenGLES} // TODO-es
+  {$ifndef OpenGLES}
   glMatrixMode(GL_MODELVIEW);
 
-  glPointSize(Attributes.PointSize);
+  glPointSize(Attributes.PointSize); // TODO-es How to achieve glPointSize in OpenGLES?
   {$endif}
 
   if Beginning then
   begin
     FLineWidth := Attributes.LineWidth;
-    {$ifndef OpenGLES} // TODO-es
     glLineWidth(FLineWidth);
-    {$endif}
   end else
     LineWidth := Attributes.LineWidth;
 
   if Beginning then
   begin
     FLineType := ltSolid;
-    {$ifndef OpenGLES} // TODO-es
+    {$ifndef OpenGLES}
     glDisable(GL_LINE_STIPPLE);
     {$endif}
   end else
@@ -2630,7 +2628,7 @@ begin
 
   if Attributes.Mode in [rmDepth, rmFull] then
   begin
-    {$ifndef OpenGLES} // TODO-es
+    {$ifndef OpenGLES}
     glDisable(GL_TEXTURE_GEN_S);
     glDisable(GL_TEXTURE_GEN_T);
     glDisable(GL_TEXTURE_GEN_R);
@@ -2639,13 +2637,13 @@ begin
 
     { Initialize FFixedFunctionAlphaTest, make sure OpenGL state is appropriate }
     FFixedFunctionAlphaTest := false;
-    {$ifndef OpenGLES} // TODO-es
+    {$ifndef OpenGLES}
     glDisable(GL_ALPHA_TEST);
     {$endif}
 
     { We only use glAlphaFunc for textures, and there this value is suitable.
       We never change glAlphaFunc during rendering, so no need to call this in RenderEnd. }
-    {$ifndef OpenGLES} // TODO-es
+    {$ifndef OpenGLES}
     if Beginning then
       glAlphaFunc(GL_GEQUAL, 0.5);
     {$endif}
@@ -2653,7 +2651,7 @@ begin
 
   if Attributes.Mode = rmFull then
   begin
-    {$ifndef OpenGLES} // TODO-es
+    {$ifndef OpenGLES}
     glDisable(GL_COLOR_MATERIAL);
 
     { We don't really need to enable GL_NORMALIZE.
@@ -2679,7 +2677,7 @@ begin
 
     { Initialize FSmoothShading, make sure OpenGL state is appropriate }
     FSmoothShading := true;
-    {$ifndef OpenGLES} // TODO-es
+    {$ifndef OpenGLES}
     glShadeModel(GL_SMOOTH);
     {$endif}
 
@@ -2687,15 +2685,15 @@ begin
     begin
       { Initialize FFixedFunctionLighting, make sure OpenGL state is appropriate }
       FFixedFunctionLighting := Attributes.Lighting;
-      {$ifndef OpenGLES} // TODO-es
+      {$ifndef OpenGLES}
       GLSetEnabled(GL_LIGHTING, FFixedFunctionLighting);
       {$endif}
     end else
-      {$ifndef OpenGLES} // TODO-es
+      {$ifndef OpenGLES}
       glDisable(GL_LIGHTING);
       {$endif}
 
-    {$ifndef OpenGLES} // TODO-es
+    {$ifndef OpenGLES}
 
     { No need to disable lights at the beginning.
       LightsRenderer already assumes that state of lights is initially unknown,
@@ -2728,7 +2726,7 @@ begin
   RenderCleanState(true);
 
   { push matrix after RenderCleanState, to be sure we're in modelview mode }
-  {$ifndef OpenGLES} // TODO-es
+  {$ifndef OpenGLES}
   glPushMatrix;
   {$endif}
 
@@ -2750,7 +2748,7 @@ begin
   FogNode := nil;
   FogEnabled := false;
 
-  {$ifndef OpenGLES} // TODO-es
+  {$ifndef OpenGLES}
   glPopMatrix;
   {$endif}
 
@@ -3170,13 +3168,13 @@ var
 begin
   ClipPlanesBegin(Shape.State.ClipPlanes);
 
-  {$ifndef OpenGLES} // TODO-es
+  {$ifndef OpenGLES}
   glPushMatrix;
     glMultMatrix(Shape.State.Transform);
   {$endif}
     Shape.ModelView := Shape.ModelView * Shape.State.Transform;
     RenderShapeCreateMeshRenderer(Shape, Fog, Shader, MaterialOpacity, Lighting);
-  {$ifndef OpenGLES} // TODO-es
+  {$ifndef OpenGLES}
   glPopMatrix;
   {$endif}
 
@@ -3743,7 +3741,7 @@ begin
   if FFixedFunctionAlphaTest <> Value then
   begin
     FFixedFunctionAlphaTest := Value;
-    {$ifndef OpenGLES} //TODO-es
+    {$ifndef OpenGLES}
     GLSetEnabled(GL_ALPHA_TEST, FixedFunctionAlphaTest);
     {$endif}
   end;
@@ -3763,7 +3761,7 @@ begin
   if FLineType <> Value then
   begin
     FLineType := Value;
-    {$ifndef OpenGLES} //TODO-es
+    {$ifndef OpenGLES}
     case LineType of
       ltSolid: glDisable(GL_LINE_STIPPLE);
       ltDashed      : begin glLineStipple(1, $00FF); glEnable(GL_LINE_STIPPLE); end;

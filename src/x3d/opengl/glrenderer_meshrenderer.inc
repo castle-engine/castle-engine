@@ -221,7 +221,7 @@ var
   var
     I: Integer;
   begin
-    {$ifndef OpenGLES} // TODO-es
+    {$ifndef OpenGLES}
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
 
@@ -792,7 +792,7 @@ end;
 
 procedure TMaterialFromColorCoordinateRenderer.RenderCoordinateEnd;
 begin
-  {$ifndef OpenGLES} // TODO-es
+  {$ifndef OpenGLES}
   if MaterialFromColorEnabled then
     glDisable(GL_COLOR_MATERIAL);
   {$endif}
