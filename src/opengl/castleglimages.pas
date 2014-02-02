@@ -2268,13 +2268,13 @@ procedure glTextureCubeMap(
     {$ifdef OpenGLES}
     OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
     Exit(false);
-    {$endif}
-
+    {$else}
     if not GLFeatures.Version_1_2 then
     begin
       OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
       Exit(false);
     end;
+    {$endif}
   end;
 
   { Load mipmaps from DDS. Assume HasMipmapsFromDDS was true. }
