@@ -36,7 +36,7 @@ private
 {$ifdef read_application_interface}
 private
   type
-    TQueuedEventType = (aeMotionDown, aeMotionUp, aeMotionMove);
+    TQueuedEventType = (aeOpen, aeMotionDown, aeMotionUp, aeMotionMove);
     TQueuedEvent = object
       EventType: TQueuedEventType;
       MotionX, MotionY: Integer;
@@ -56,56 +56,64 @@ private
 
 { Android NDK integration ---------------------------------------------------- }
 
-procedure OpenContext(NativeWindow: PANativeWindow);
+procedure OpenContext;
 var
   Width, Height: Integer;
+  Window: TCastleWindowCustom;
+  NativeWindow: PANativeWindow;
 begin
-  Application.MainWindow.NativeWindow := NativeWindow;
+  Window := Application.MainWindow;
+  NativeWindow := Window.NativeWindow; // NativeWindow was saved here by HandleCommand
+
+  { get window size, use it }
   Width := ANativeWindow_getWidth(NativeWindow);
   Height := ANativeWindow_getHeight(NativeWindow);
-
   AndroidLog(alInfo, 'OpenContext (size: %d %d)', [Width, Height]);
-
   Application.FScreenWidth := Width;
   Application.FScreenHeight := Height;
+  //Window.FullScreen := true; // TODO: setting fullscreen should work like that 2 lines below. Also, should be default?
+  Window.Width := Width;
+  Window.Height := Height;
 
-  //Application.MainWindow.FullScreen := true; // TODO: setting fullscreen should work like that 2 lines below. Also, should be default?
-  Application.MainWindow.Width := Width;
-  Application.MainWindow.Height := Height;
-  Application.MainWindow.Open;
+  { create OpenGL context, run OnOpen events and so on }
+  Window.Open;
 end;
 
+{ Whenever the context is lost, this is called.
+  It's important that we release all OpenGL resources, to recreate them later. }
 procedure CloseContext;
+var
+  Window: TCastleWindowCustom;
 begin
   AndroidLog(alInfo, 'CloseContext');
 
-  { Whenever the context is lost, this is called.
-    It's important that we release all OpenGL resources, to recreate them later
-    (we wil call Window.Open only from onNativeWindowResized, since we don't know
-    the size yet). }
-  if Application.MainWindow <> nil then
-  begin
-    Application.MainWindow.Close;
-    Application.MainWindow.NativeWindow := nil; // make sure to not access the NativeWindow anymore
-  end;
-end;
-
-procedure Resize(Width, Height: Integer);
-begin
-  AndroidLog(alInfo, 'Resize (size: %d %d)', [Width, Height]);
-
-  Application.FScreenWidth := Width;
-  Application.FScreenHeight := Height;
-
-  if not Application.MainWindow.Closed then
-    Application.MainWindow.DoResize(Width, Height, false);
+  Window := Application.MainWindow;
+  if Window <> nil then
+    Window.Close;
 end;
 
 procedure HandleCommand(App: PAndroid_app; Command: Integer);
+var
+  QEvent: TCastleApplication.TQueuedEvent;
 begin
   case Command of
-    APP_CMD_INIT_WINDOW: OpenContext(App^.Window);
-    APP_CMD_TERM_WINDOW: CloseContext;
+    APP_CMD_INIT_WINDOW:
+      begin
+        { We will actually process this event (calling TCastleWindow.Open)
+          later, to avoid ANRs when OnOpen does something time-consuming
+          (like SceneManager.LoadLevel). }
+        Application.MainWindow.NativeWindow := App^.Window;
+        QEvent.EventType := aeOpen;
+        Application.QEvents.Add(QEvent);
+      end;
+    APP_CMD_TERM_WINDOW:
+      begin
+        { Note that we cannot delay processing this event using
+          Application.QEvents. After CloseContext, window is really destroyed,
+          see android_app_post_exec_cmd in native app glue. }
+        Application.QEvents.Clear;
+        CloseContext;
+      end;
   end;
 end;
 
@@ -171,7 +179,9 @@ procedure TCastleWindowCustom.CreateBackend;
 begin
 end;
 
-// TODO: update Android's app menu based on MainMenu contents?
+{ It would be nice to update Android's app menu based on MainMenu contents.
+  But we cannot do this from NDK, it would require implementing Java code
+  connected to us. }
 
 procedure TCastleWindowCustom.BackendMenuInitialize;
 begin
@@ -227,6 +237,7 @@ end;
 procedure TCastleWindowCustom.CloseBackend;
 begin
   ContextDestroy;
+  NativeWindow := nil; // make sure to not access the NativeWindow anymore
 end;
 
 procedure TCastleWindowCustom.Invalidate;
@@ -264,13 +275,23 @@ end;
 
 function TCastleWindowCustom.RedirectKeyDownToMenuClick: boolean;
 begin
-  Result := { TODO } true;
+  { Call menu shortcuts on key presses.
+    Since we don't show MainMenu, this is the only way how we can at least
+    support it's shortcuts. }
+  Result := true;
 end;
 
 procedure TCastleWindowCustom.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
+  { There is no cursor position on Android devices.
+    Just update MouseX,Y properties (although we're not really required to
+    do this, code using SetMousePosition should not depend that
+    it was always successfull). }
   if not Closed then
-    { TODO };
+  begin
+    FMouseX := NewMouseX;
+    FMouseY := NewMouseY;
+  end;
 end;
 
 procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
@@ -291,7 +312,11 @@ end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 begin
-  // TODO: honor WaitForMessage, WaitToLimitFPS
+  { We have no way to honour WaitForMessage or WaitToLimitFPS values
+    on Android.
+    - WaitToLimitFPS is always "on" in the main loop,
+      we don't control it, Android throttles render speed anyway.
+    - WaitForMessage could be possibly implemented, but it's not useful much. }
   Result := ProcessAllMessages;
 end;
 
@@ -303,6 +328,20 @@ function TCastleApplication.ProcessAllMessages: boolean;
     DoSelfUpdate;
     FOpenWindows.DoUpdate;
     MaybeDoTimer(LastDoTimerTime);
+  end;
+
+  procedure Resize(Width, Height: Integer);
+  var
+    Window: TCastleWindowCustom;
+  begin
+    AndroidLog(alInfo, 'Resize (size: %d %d)', [Width, Height]);
+
+    Application.FScreenWidth := Width;
+    Application.FScreenHeight := Height;
+
+    Window := Application.MainWindow;
+    if not Window.Closed then
+      Window.DoResize(Width, Height, false);
   end;
 
 var
@@ -325,6 +364,7 @@ begin
       QEvent := QEvents.First;
       QEvents.Delete(0);
       case QEvent.EventType of
+        aeOpen      : OpenContext;
         aeMotionDown: MainWindow.DoMouseDown(QEvent.MotionX, QEvent.MotionY, mbLeft);
         aeMotionUp  : MainWindow.DoMouseUp  (QEvent.MotionX, QEvent.MotionY, mbLeft);
         aeMotionMove: MainWindow.DoMouseMove(QEvent.MotionX, QEvent.MotionY);
