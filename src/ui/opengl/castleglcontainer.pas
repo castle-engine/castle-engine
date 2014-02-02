@@ -55,10 +55,13 @@ procedure TGLContainer.EventRender;
     begin
       C := Controls[I];
       { We check C.GLInitialized, because it may happen that a control
-        did not receive GLContextOpen yet,
-        in case we initialize some rendering from OnOpen.
+        did not receive GLContextOpen yet, in case we initialize some rendering
+        during TUIContainer.EventOpen.
         See castle_game_engine/tests/testcontainer.pas for cases
-        when this is really needed. }
+        when this is really needed. Although right now the container OnOpen
+        is always after all TUIControl.GLContextOpen, but the problem may
+        still occur if another control does SaveScreen during it's
+        own GLContextOpen. }
       if C.GetExists and C.GLInitialized then
         case C.RenderStyle of
           rs2D: AnythingWants2D := true;

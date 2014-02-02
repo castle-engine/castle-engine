@@ -30,15 +30,33 @@ type
 
 implementation
 
-uses CastleControls, CastleProgress, CastleWindowProgress, CastleImages;
+uses CastleControls, CastleProgress, CastleWindowProgress, CastleImages,
+  CastleUIControls;
+
+type
+  TControl1 = class(TUIControl)
+    procedure GLContextOpen; override;
+  end;
+
+procedure TControl1.GLContextOpen;
+var
+  I: Integer;
+begin
+  { We do a progress bar from GLContextOpen, before all GLContextOpen
+    calls on other controls (Button, SceneManager).
+    And progress will do a SaveScreen, forcing rendering of all controls. }
+  Progress.Init(100, 'Please wait...');
+  try
+    for I := 1 to 100 do
+      Progress.Step;
+  finally Progress.Fini end;
+end;
 
 procedure WindowOpen1(Container: TUIContainer);
 var
   I: Integer;
 begin
-  { Note that we do a progress bar from OnOpen, before Window.SceneManager
-    or Button had a chance to receive ContainerResize or even GLContextOpen
-    calls. And progress will do a SaveScreen. }
+  { We do a progress bar from OnOpen, it will do a SaveScreen. }
   Progress.Init(100, 'Please wait...');
   try
     for I := 1 to 100 do
@@ -48,13 +66,13 @@ end;
 
 procedure TTestContainer.TestProgressFromOpen;
 var
-  Button: TCastleButton;
   Window: TCastleWindow;
 begin
   Window := TCastleWindow.Create(nil);
   try
-    Button := TCastleButton.Create(Window);
-    Window.Controls.InsertFront(Button);
+    Window.Controls.InsertFront(TControl1.Create(Window));
+    Window.Controls.InsertFront(TCastleButton.Create(Window));
+    Window.Controls.InsertFront(TControl1.Create(Window));
     Window.OnOpen := @WindowOpen1;
     Application.MainWindow := Window;
     Progress.UserInterface := WindowProgressInterface;
@@ -68,67 +86,84 @@ begin
   end;
 end;
 
+type
+  TControl2 = class(TUIControl)
+    procedure GLContextOpen; override;
+  end;
+
+procedure TControl2.GLContextOpen;
 var
-  Window2: TCastleWindow;
+  Image: TCastleImage;
+begin
+  Image := Application.MainWindow.SaveScreen;
+  FreeAndNil(Image);
+end;
 
 procedure WindowOpen2(Container: TUIContainer);
 var
   Image: TCastleImage;
 begin
-  Image := Window2.SaveScreen;
+  Image := Application.MainWindow.SaveScreen;
   FreeAndNil(Image);
 end;
 
 procedure TTestContainer.TestSaveScreenFromOpen;
 var
-  Button: TCastleButton;
+  Window: TCastleWindow;
 begin
-  Window2 := TCastleWindow.Create(nil);
+  Window := TCastleWindow.Create(nil);
   try
-    Button := TCastleButton.Create(Window2);
-    Window2.Controls.InsertFront(Button);
-    Window2.OnOpen := @WindowOpen2;
-    Application.MainWindow := Window2;
+    Window.Controls.InsertFront(TControl2.Create(Window));
+    Window.Controls.InsertFront(TCastleButton.Create(Window));
+    Window.Controls.InsertFront(TControl2.Create(Window));
+    Window.OnOpen := @WindowOpen2;
+    Application.MainWindow := Window;
     Progress.UserInterface := WindowProgressInterface;
 
-    Window2.Open;
-    Window2.Close;
+    Window.Open;
+    Window.Close;
   finally
-    FreeAndNil(Window2);
+    FreeAndNil(Window);
     Application.MainWindow := nil;
     Progress.UserInterface := ProgressNullInterface;
   end;
 end;
 
-var
-  Window3: TCastleWindow;
+type
+  TControl3 = class(TUIControl)
+    procedure GLContextOpen; override;
+  end;
+
+procedure TControl3.GLContextOpen;
+begin
+  (Application.MainWindow as TCastleWindow).SceneManager.LoadLevel('level_without_loading_image');
+end;
 
 procedure WindowOpen3(Container: TUIContainer);
 begin
-  Window3.SceneManager.LoadLevel('level_without_loading_image');
+  (Application.MainWindow as TCastleWindow).SceneManager.LoadLevel('level_without_loading_image');
 end;
 
 procedure TTestContainer.TestLoadLevelFromOpen;
 
   procedure DoTest(const WithButton: boolean);
   var
-    Button: TCastleButton;
+    Window: TCastleWindow;
   begin
-    Window3 := TCastleWindow.Create(nil);
+    Window := TCastleWindow.Create(nil);
     try
+      Window.Controls.InsertFront(TControl3.Create(Window));
       if WithButton then
-      begin
-        Button := TCastleButton.Create(Window3);
-        Window3.Controls.InsertFront(Button);
-      end;
-      Window3.OnOpen := @WindowOpen3;
-      Application.MainWindow := Window3;
+        Window.Controls.InsertFront(TCastleButton.Create(Window));
+      Window.Controls.InsertFront(TControl3.Create(Window));
+      Window.OnOpen := @WindowOpen3;
+      Application.MainWindow := Window;
       Progress.UserInterface := WindowProgressInterface;
 
-      Window3.Open;
-      Window3.Close;
+      Window.Open;
+      Window.Close;
     finally
-      FreeAndNil(Window3);
+      FreeAndNil(Window);
       Application.MainWindow := nil;
       Progress.UserInterface := ProgressNullInterface;
     end;

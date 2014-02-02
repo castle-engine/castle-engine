@@ -1236,20 +1236,26 @@ procedure TUIContainer.EventOpen(const OpenWindowsCount: Cardinal);
 var
   I: Integer;
 begin
-  if Assigned(OnOpen) then OnOpen(Self);
-
   if OpenWindowsCount = 1 then
     OnGLContextOpen.ExecuteAll;
 
-  { call GLContextOpen on controls after OnOpen. }
+  { Call GLContextOpen on controls before OnOpen,
+    this way OnOpen has controls with GLInitialized = true,
+    so using SaveScreen etc. makes more sense there. }
   for I := 0 to Controls.Count - 1 do
     Controls[I].GLContextOpen;
+
+  if Assigned(OnOpen) then OnOpen(Self);
 end;
 
 procedure TUIContainer.EventClose(const OpenWindowsCount: Cardinal);
 var
   I: Integer;
 begin
+  { Call GLContextClose on controls after OnClose,
+    consistent with inverse order in OnOpen. }
+  if Assigned(OnClose) then OnClose(Self);
+
   { call GLContextClose on controls before OnClose.
     This may be called from Close, which may be called from TCastleWindowCustom destructor,
     so prepare for Controls being possibly nil now. }
@@ -1261,8 +1267,6 @@ begin
 
   if OpenWindowsCount = 1 then
     OnGLContextClose.ExecuteAll;
-
-  if Assigned(OnClose) then OnClose(Self);
 end;
 
 function TUIContainer.AllowSuspendForInput: boolean;
@@ -1328,9 +1332,8 @@ begin
   for I := 0 to Controls.Count - 1 do
     Controls[I].ContainerResize(Width, Height);
 
-  { This way control's get ContainerResize
-    (so have ContainerWidth / ContainerHeight set) before OnResize,
-    useful to position them in OnResize. }
+  { This way control's get ContainerResize before our OnResize,
+    useful to process them all reliably in OnResize. }
   if Assigned(OnResize) then OnResize(Self);
 end;
 
