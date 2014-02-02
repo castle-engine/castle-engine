@@ -2257,10 +2257,23 @@ procedure glTextureCubeMap(
   function HasMipmapsFromDDS(DDS: TDDSImage): boolean;
   begin
     Result := (DDS <> nil) and DDS.Mipmaps;
-    if Result and (DDS.DDSType <> dtCubeMap) then
+    if not Result then Exit;
+
+    if DDS.DDSType <> dtCubeMap then
     begin
       OnWarning(wtMinor, 'Texture', 'DDS image contains mipmaps, but not for CubeMap texture');
-      Result := false;
+      Exit(false);
+    end;
+
+    {$ifdef OpenGLES}
+    OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
+    Exit(false);
+    {$endif}
+
+    if not GLFeatures.Version_1_2 then
+    begin
+      OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      Exit(false);
     end;
   end;
 
@@ -2277,16 +2290,8 @@ procedure glTextureCubeMap(
 
   begin
     {$ifdef OpenGLES}
-    OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
-    // TODO-es
+    raise EInternalError.Create('HasMipmapsFromDDS should always return false on OpenGLES');
     {$else}
-
-    if not GLFeatures.Version_1_2 then
-    begin
-      OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
-      Exit;
-    end;
-
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
     LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, dcsPositiveX);
     LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, dcsNegativeX);
@@ -2433,7 +2438,9 @@ end;
 {$else}
 
 begin
-  // TODO-es Loading 3D textures on OpenGL ES -- use GL_OES_texture_3D extension
+  { TODO-OpenGLES3:
+    Loading 3D textures on OpenGL ES -- use GL_OES_texture_3D extension,
+    or OpenGLES3 }
 end;
 
 {$endif}
