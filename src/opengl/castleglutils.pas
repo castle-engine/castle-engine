@@ -125,7 +125,6 @@ type
     MaxTextureMaxAnisotropyEXT: Single;
     QueryCounterBits: TGLint;
     MaxRenderbufferSize: TGLuint;
-    MaxRectangleTextureSize: Cardinal;
     MaxClipPlanes: Cardinal;
     { @groupEnd }
 
@@ -152,8 +151,6 @@ type
       so often both Texture3D = gsStandard and Texture3D = gsExtension
       cases may be handled by the same code. }
     Texture3D: TGLSupport;
-
-    TextureRectangle: boolean;
 
     { Is Framebuffer supported. Value gsExtension means that EXT_framebuffer_object
       is used, gsStandard means that ARB_framebuffer_object (which is
@@ -646,7 +643,7 @@ procedure SetDepthRange(const Value: TDepthRange);
 property DepthRange: TDepthRange read GetDepthRange write SetDepthRange;
 
 type
-  TEnableTextureTarget = (etNone, et2D, etCubeMap, et3D, etRectangle);
+  TEnableTextureTarget = (etNone, et2D, etCubeMap, et3D);
 
 { Enable exactly one (or none, for Target=etNone) OpenGL texture target.
   Use this instead of manually calling @code(glDisable(GL_TEXTURE_2D)),
@@ -850,14 +847,6 @@ begin
     end;
   end else
     MaxRenderbufferSize := 0;
-
-  MaxRectangleTextureSize := 0;
-  TextureRectangle := false;
-  {$ifndef OpenGLES}
-  TextureRectangle := Load_GL_ARB_texture_rectangle;
-  if TextureRectangle then
-    MaxRectangleTextureSize := glGetInteger(GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB);
-  {$endif}
 
   { TODO: this should be completely configurable in shader pipeline.
     Make it configurable at Attributes.MaxClipPlanes? }
@@ -1613,13 +1602,6 @@ const
       Result := 'Framebuffer not available';
   end;
 
-  function GetMaxRectangleTextureSize: string;
-  begin
-    if GLFeatures.TextureRectangle then
-      Result := IntToStr(GLFeatures.MaxRectangleTextureSize) else
-      Result := 'Texture rectangle not available';
-  end;
-
 begin
   Result:=
     'OpenGL information (detected by ' + ApplicationName +'):' +nl+
@@ -1728,7 +1710,6 @@ begin
     '  Max texture units: ' + IntToStr(GLFeatures.MaxTextureUnits) +nl+
     '  Max cube map texture size: ' + GetMaxCubeMapTextureSize +nl+
     '  Max 3d texture size: ' + GetMaxTexture3DSize +nl+
-    '  Max rectangle texture size: ' + GetMaxRectangleTextureSize +nl+
     '  Max texture max anisotropy: ' + GetMaxTextureMaxAnisotropy +nl+
     '  Query counter bits (for occlusion query): ' + { for occlusion query  GL_SAMPLES_PASSED_ARB }
       GetQueryCounterBits +nl+
@@ -1847,31 +1828,21 @@ begin
         glDisable(GL_TEXTURE_2D);
         if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
         if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
-        if GLFeatures.TextureRectangle then glDisable(GL_TEXTURE_RECTANGLE_ARB);
       end;
     et2D: begin
         glEnable(GL_TEXTURE_2D);
         if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
         if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
-        if GLFeatures.TextureRectangle then glDisable(GL_TEXTURE_RECTANGLE_ARB);
       end;
     etCubeMap: begin
         glDisable(GL_TEXTURE_2D);
         if GLFeatures.TextureCubeMap <> gsNone then glEnable(GL_TEXTURE_CUBE_MAP) else Result := false;
         if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
-        if GLFeatures.TextureRectangle then glDisable(GL_TEXTURE_RECTANGLE_ARB);
       end;
     et3D: begin
         glDisable(GL_TEXTURE_2D);
         if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
         if GLFeatures.Texture3D <> gsNone then glEnable(GL_TEXTURE_3D) else Result := false;
-        if GLFeatures.TextureRectangle then glDisable(GL_TEXTURE_RECTANGLE_ARB);
-      end;
-    etRectangle: begin
-        glDisable(GL_TEXTURE_2D);
-        if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
-        if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
-        if GLFeatures.TextureRectangle then glEnable(GL_TEXTURE_RECTANGLE_ARB) else Result := false;
       end;
     else raise EInternalError.Create('GLEnableTexture:Target?');
   end;

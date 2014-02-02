@@ -82,13 +82,11 @@ type
     ScreenEffectTextureTarget: TGLenum;
     ScreenEffectTextureDepth: TGLuint;
     ScreenEffectRTT: TGLRenderToTexture;
-    {$ifndef OpenGLES}
     ScreenEffectTextureWidth: Cardinal;
     ScreenEffectTextureHeight: Cardinal;
     { Saved ScreenEffectsCount/NeedDepth result, during rendering. }
     CurrentScreenEffectsCount: Integer;
     CurrentScreenEffectsNeedDepth: boolean;
-    {$endif}
 
     FApproximateActivation: boolean;
     FDefaultVisibilityLimit: Single;
@@ -2013,13 +2011,13 @@ procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
         glViewport that takes care of this. }
 
       glBegin(GL_QUADS);
-        glTexCoord2i(0                       , 0);
+        glTexCoord2i(0, 0);
         glVertex2i(0         , 0);
-        glTexCoord2i(ScreenEffectTextureWidth, 0);
+        glTexCoord2i(1, 0);
         glVertex2i(Rect.Width, 0);
-        glTexCoord2i(ScreenEffectTextureWidth, ScreenEffectTextureHeight);
+        glTexCoord2i(1, 1);
         glVertex2i(Rect.Width, Rect.Height);
-        glTexCoord2i(0                       , ScreenEffectTextureHeight);
+        glTexCoord2i(0, 1);
         glVertex2i(0         , Rect.Height);
       glEnd();
     Shader.Disable;
@@ -2109,7 +2107,11 @@ begin
     ScreenEffects* methods do something weird. }
   CurrentScreenEffectsCount := ScreenEffectsCount;
 
-  Result := GLFeatures.TextureRectangle and GLFeatures.UseMultiTexturing and
+  Result :=
+    { check IsTextureSized, to gracefully work (without screen effects)
+      on old desktop OpenGL that does not support NPOT textures. }
+    IsTextureSized(Rect.Width, Rect.Height, tsAny) and
+    GLFeatures.UseMultiTexturing and
     (CurrentScreenEffectsCount <> 0);
 
   if Result then
@@ -2131,7 +2133,7 @@ begin
 
       if (GLFeatures.CurrentMultiSampling > 1) and GLFeatures.FBOMultiSampling then
         ScreenEffectTextureTarget := GL_TEXTURE_2D_MULTISAMPLE else
-        ScreenEffectTextureTarget := GL_TEXTURE_RECTANGLE_ARB;
+        ScreenEffectTextureTarget := GL_TEXTURE_2D;
 
       ScreenEffectTextureWidth  := Rect.Width;
       ScreenEffectTextureHeight := Rect.Height;
@@ -2290,8 +2292,7 @@ begin
 
   if SSAOShader = nil then
   begin
-    if (TGLSLProgram.ClassSupport <> gsNone) and
-       GLFeatures.TextureRectangle then
+    if TGLSLProgram.ClassSupport <> gsNone then
     begin
       try
         SSAOShader := TGLSLProgram.Create;

@@ -691,7 +691,6 @@ X3DNodes:
   - Remove NodeName from TVRMLNode constructor?
 
 ScreenEffect ideas/TODOs:
-- glDisable(GL_TEXTURE_RECTANGLE_ARB); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
 - test gradient trick from hdr: to increase perceived contrast,
   detect wide edges and make a gradient to lighter the light part,
   and darken the dark part.

@@ -1,5 +1,3 @@
-#extension GL_ARB_texture_rectangle : enable
-
 ivec2 screen_position();
 float screen_get_depth_fast(ivec2 position);
 vec4 screen_get_color(ivec2 position);

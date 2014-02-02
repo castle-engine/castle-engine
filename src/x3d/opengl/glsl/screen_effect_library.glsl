@@ -5,6 +5,9 @@
    multi-sampling.
 */
 
+uniform int screen_height;
+uniform int screen_width;
+
 #ifdef MULTI_SAMPLING
   #extension GL_ARB_texture_multisample : enable
   uniform sampler2DMS screen;
@@ -12,26 +15,27 @@
     uniform sampler2DMS screen_depth;
   #endif
 #else
-  #extension GL_ARB_texture_rectangle : enable
-  uniform sampler2DRect screen;
+  uniform sampler2D screen;
   #ifdef DEPTH
-    uniform sampler2DRect screen_depth;
+    uniform sampler2D screen_depth;
   #endif
 #endif
 
 ivec2 screen_position()
 {
-  return ivec2(int(gl_TexCoord[0].s), int(gl_TexCoord[0].t));
+  return ivec2(
+    int(gl_TexCoord[0].s * screen_width),
+    int(gl_TexCoord[0].t * screen_height));
 }
 
 int screen_x()
 {
-  return int(gl_TexCoord[0].s);
+  return int(gl_TexCoord[0].s * screen_width);
 }
 
 int screen_y()
 {
-  return int(gl_TexCoord[0].t);
+  return int(gl_TexCoord[0].t * screen_height);
 }
 
 vec4 screen_get_color(ivec2 position)
@@ -75,7 +79,12 @@ vec4 screen_get_color(ivec2 position)
   return ( texelFetch(screen, position, 0) +
            texelFetch(screen, position, 1) ) / 2.0;
 #else
-  return texture2DRect(screen, vec2(position)+vec2(0.5));
+  return texture2D(screen,
+    /* Texture coordinates provided in gl_TexCoord are already hitting
+       exactly the middle of the pixel.
+       But functions screen_position, screen_x, screen_y cut off the half pixel
+       size. So we restore it now by "+ vec2(0.5)". */
+    (vec2(position) + vec2(0.5)) / vec2(screen_width, screen_height));
 #endif
 #endif
 #endif
@@ -124,7 +133,8 @@ float screen_get_depth(ivec2 position)
   return ( texelFetch(screen_depth, position, 0).r +
            texelFetch(screen_depth, position, 1).r ) / 2.0;
 #else
-  return texture2DRect(screen_depth, vec2(position)+vec2(0.5)).r;
+  return texture2D(screen_depth,
+    (vec2(position) + vec2(0.5)) / vec2(screen_width, screen_height)).r;
 #endif
 #endif
 #endif
@@ -136,7 +146,8 @@ float screen_get_depth_fast(ivec2 position)
 #ifdef MULTI_SAMPLING
   return texelFetch(screen_depth, position, 0).r;
 #else
-  return texture2DRect(screen_depth, vec2(position)+vec2(0.5)).r;
+  return texture2D(screen_depth,
+    (vec2(position) + vec2(0.5)) / vec2(screen_width, screen_height)).r;
 #endif
 }
 #endif

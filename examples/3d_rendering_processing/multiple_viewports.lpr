@@ -122,16 +122,15 @@ end;
 procedure TScreenEffectDemoViewport.GLContextOpen;
 begin
   inherited;
-  if (TGLSLProgram.ClassSupport <> gsNone) and
-     GLFeatures.TextureRectangle then
+  if TGLSLProgram.ClassSupport <> gsNone then
   begin
     GLSLProgram := TGLSLProgram.Create;
     GLSLProgram.AttachFragmentShader(
-      '#extension GL_ARB_texture_rectangle : enable' +nl+
-      'uniform sampler2DRect screen;' +NL+
+      'uniform sampler2D screen;' +NL+
+      'uniform int screen_width;' +NL+
       'void main (void)' +NL+
       '{' +NL+
-      '  gl_FragColor = ( texture2DRect(screen, vec2(gl_TexCoord[0].s - 1.0, gl_TexCoord[0].t)) - texture2DRect(screen, vec2(gl_TexCoord[0].s + 1.0, gl_TexCoord[0].t)) ) + vec4(1.0) / 2.0;' +NL+
+      '  gl_FragColor = ( texture2D(screen, vec2(gl_TexCoord[0].s - 1.0/float(screen_width), gl_TexCoord[0].t)) - texture2D(screen, vec2(gl_TexCoord[0].s + 1.0/float(screen_width), gl_TexCoord[0].t)) ) + vec4(1.0) / 2.0;' +NL+
       '}');
     { For this test program, we eventually allow shader to run in software }
     GLSLProgram.Link(false);
