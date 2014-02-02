@@ -148,6 +148,15 @@ begin
   FindFiles(ApplicationData('') + 'textures/castle/', '*', true, @FindFilesCallback, nil, [ffRecursive]);
 end;
 
+procedure WindowRender(Container: TUIContainer);
+begin
+  UIFont.Print(10, 10, Yellow, Format('FPS : %f (real : %f). Shapes : %d / %d',
+   [Window.Fps.FrameTime,
+    Window.Fps.RealTime,
+    Window.SceneManager.Statistics.ShapesRendered,
+    Window.SceneManager.Statistics.ShapesVisible]));
+end;
+
 procedure WindowResize(Container: TUIContainer);
 const
   Margin = 10;
@@ -190,5 +199,6 @@ initialization
   { create Window and initialize Window callbacks }
   Window := TCastleWindowTouch.Create(Application);
   Application.MainWindow := Window;
+  Window.OnRender := @WindowRender;
   Window.OnResize := @WindowResize;
 end.
