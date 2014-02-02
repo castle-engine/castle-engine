@@ -34,7 +34,7 @@ DEF OB_Ground_001 Transform {
 								transparency 0.0
 							}
 							texture DEF grassfull_jpg ImageTexture {
-								url "textures/castle/grassfull.ppm"
+								url "textures/castle/grassfull.png"
 							}
 						}
 						geometry IndexedFaceSet {
@@ -81,7 +81,7 @@ children [
 					appearance Appearance {
 						material USE MA_MatOverUVTex
 						texture DEF wood_clear_jpg ImageTexture {
-							url "textures/castle/wood_clear.ppm"
+							url "textures/castle/wood_clear.png"
 						}
 					}
 					geometry IndexedFaceSet {
@@ -461,7 +461,7 @@ Collision {
 				appearance Appearance {
 					material USE MA_MatOverUVTex
 					texture DEF france_housered_j_001 ImageTexture {
-						url "textures/castle/france_housered.ppm"
+						url "textures/castle/france_housered.png"
 					}
 				}
 				geometry IndexedFaceSet {
@@ -713,7 +713,7 @@ Shape {
 appearance Appearance {
 material USE MA_MatOverUVTex
 texture DEF waterwall_jpg ImageTexture {
-	url "textures/castle/waterwall.ppm"
+	url "textures/castle/waterwall.png"
 }
 }
 geometry IndexedFaceSet {
@@ -1762,7 +1762,7 @@ Shape {
 appearance Appearance {
 material USE MA_MatOverUVTex
 texture DEF water2_jpg ImageTexture {
-url "textures/castle/water2.ppm"
+url "textures/castle/water2.png"
 }
 }
 geometry IndexedFaceSet {
@@ -1878,7 +1878,7 @@ Shape {
 appearance Appearance {
 material USE MA_MatOverUVTex
 texture DEF airbase_radar_panel ImageTexture {
-url "textures/castle/airbase_radar_panels.ppm"
+url "textures/castle/airbase_radar_panels.png"
 }
 }
 geometry IndexedFaceSet {
@@ -2057,7 +2057,7 @@ Shape {
 appearance Appearance {
 material USE MA_MatOverUVTex
 texture DEF misslescararm_jpg_002 ImageTexture {
-url "textures/castle/misslescararm.ppm"
+url "textures/castle/misslescararm.png"
 }
 }
 geometry IndexedFaceSet {
@@ -2123,7 +2123,7 @@ Shape {
 appearance Appearance {
 material USE MA_MatOverUVTex
 texture DEF bricksmokesidebot_001 ImageTexture {
-url "textures/castle/bricksmokesidebot.ppm"
+url "textures/castle/bricksmokesidebot.png"
 }
 }
 geometry IndexedFaceSet {
