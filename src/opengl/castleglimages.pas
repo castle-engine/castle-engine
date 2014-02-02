@@ -72,9 +72,6 @@ const
     TGrayscaleImage,
     TGrayscaleAlphaImage);
 
-type
-  EImageClassNotSupportedForOpenGL = class(Exception);
-
 { Return appropriate OpenGL format and type constants
   for given TCastleImage descendant. If you will pass here Img
   that is not a descendant of one of TextureImageClassesAll
@@ -495,6 +492,7 @@ var
 type
   { }
   ETextureLoadError = class(Exception);
+  EImageClassNotSupportedForOpenGL = class(ETextureLoadError);
   ECannotLoadS3TCTexture = class(ETextureLoadError);
   EInvalidImageForOpenGLTexture = class(ETextureLoadError);
 
