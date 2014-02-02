@@ -200,6 +200,8 @@ type
     class function TextureEnvMix(const AEnv: TTextureEnv;
       const FragmentColor, CurrentTexture: string;
       const ATextureUnit: Cardinal): string;
+    { Name of texture coordinate varying vec4 vector. }
+    class function CoordName(const TexUnit: Cardinal): string;
   public
     { Update Hash for this light shader. }
     procedure Prepare(var Hash: TShaderCodeHash);
@@ -1130,6 +1132,16 @@ end;
 
 { TTextureShader ------------------------------------------------------------- }
 
+class function TTextureShader.CoordName(const TexUnit: Cardinal): string;
+begin
+  Result :=
+    {$ifndef OpenGLES}
+    Format('gl_TexCoord[%d]', [TexUnit]);
+    {$else}
+    Format('castle_TexCoord%d', [TexUnit]);
+    {$endif};
+end;
+
 procedure TTextureShader.Prepare(var Hash: TShaderCodeHash);
 var
   IntHash: LongWord;
@@ -1233,20 +1245,19 @@ begin
   end else
     UniformName := '';
 
-  {$ifndef OpenGLES}
-  TexCoordName := Format('gl_TexCoord[%d]', [TextureUnit]);
+  TexCoordName := CoordName(TextureUnit);
 
+  {$ifndef OpenGLES}
   TextureCoordInitialize += Format('%s = gl_MultiTexCoord%d;' + NL,
     [TexCoordName, TextureUnit]);
   if not (GLVersion.BuggyShaderShadowMap and (TextureType = tt2DShadow)) then
     TextureCoordMatrix += Format('%s = gl_TextureMatrix[%d] * %0:s;' + NL,
       [TexCoordName, TextureUnit]);
   {$else}
-  TexCoordName := Format('castle_TexCoord%d', [TextureUnit]);
   TextureAttributeDeclare += Format('attribute vec4 castle_MultiTexCoord%d;' + NL, [TextureUnit]);
-  TextureVaryingDeclare += Format('varying vec4 castle_TexCoord%d;' + NL, [TextureUnit]);
-  TextureCoordInitialize += Format('castle_TexCoord%d = castle_MultiTexCoord%d;' + NL,
-    [TextureUnit, TextureUnit]);
+  TextureVaryingDeclare += Format('varying vec4 %s;' + NL, [TexCoordName]);
+  TextureCoordInitialize += Format('%s = castle_MultiTexCoord%d;' + NL,
+    [TexCoordName, TextureUnit]);
   {$endif}
 
   GeometryVertexSet  += Format('%s  = gl_in[index].%0:s;' + NL, [TexCoordName]);
@@ -2336,17 +2347,24 @@ end;
 
 procedure TShader.EnableTexGen(const TextureUnit: Cardinal;
   const Generation: TTexGenerationComplete);
+var
+  TexCoordName: string;
 begin
   { Enable for fixed-function pipeline }
   if GLFeatures.UseMultiTexturing then
     glActiveTexture(GL_TEXTURE0 + TextureUnit);
-  { glEnable(GL_TEXTURE_GEN_*) below }
+  { Rest of code code fixed-function pipeline
+    (glTexGeni and glEnable(GL_TEXTURE_GEN_*)) is below }
+
+  TexCoordName := TTextureShader.CoordName(TextureUnit);
 
   { Enable for fixed-function and shader pipeline }
   case Generation of
     tgSphere:
       begin
         {$ifndef OpenGLES}
+        glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+        glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
         glEnable(GL_TEXTURE_GEN_S);
         glEnable(GL_TEXTURE_GEN_T);
         {$endif}
@@ -2357,31 +2375,37 @@ begin
           'vec3 r = reflect( normalize(vec3(castle_vertex_eye)), castle_normal_eye );' + NL +
           'float m = 2.0 * sqrt( r.x*r.x + r.y*r.y + (r.z+1.0)*(r.z+1.0) );' + NL +
           '/* Using 1.0 / 2.0 instead of 0.5 to workaround fglrx bugs */' + NL +
-          'gl_TexCoord[%d].st = r.xy / m + vec2(1.0, 1.0) / 2.0;',
-          [TextureUnit]);
+          '%s.st = r.xy / m + vec2(1.0, 1.0) / 2.0;',
+          [TexCoordName]);
         FCodeHash.AddInteger(1301 * (TextureUnit + 1));
       end;
     tgNormal:
       begin
         {$ifndef OpenGLES}
+        glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
+        glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
+        glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
         glEnable(GL_TEXTURE_GEN_S);
         glEnable(GL_TEXTURE_GEN_T);
         glEnable(GL_TEXTURE_GEN_R);
         {$endif}
-        TextureCoordGen += Format('gl_TexCoord[%d].xyz = castle_normal_eye;' + NL,
-          [TextureUnit]);
+        TextureCoordGen += Format('%s.xyz = castle_normal_eye;' + NL,
+          [TexCoordName]);
         FCodeHash.AddInteger(1303 * (TextureUnit + 1));
       end;
     tgReflection:
       begin
         {$ifndef OpenGLES}
+        glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
+        glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
+        glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
         glEnable(GL_TEXTURE_GEN_S);
         glEnable(GL_TEXTURE_GEN_T);
         glEnable(GL_TEXTURE_GEN_R);
         {$endif}
         { Negate reflect result --- just like for demo_models/water/water_reflections_normalmap.fs }
-        TextureCoordGen += Format('gl_TexCoord[%d].xyz = -reflect(-vec3(castle_vertex_eye), castle_normal_eye);' + NL,
-          [TextureUnit]);
+        TextureCoordGen += Format('%s.xyz = -reflect(-vec3(castle_vertex_eye), castle_normal_eye);' + NL,
+          [TexCoordName]);
         FCodeHash.AddInteger(1307 * (TextureUnit + 1));
       end;
     else raise EInternalError.Create('TShader.EnableTexGen:Generation?');
@@ -2395,7 +2419,7 @@ const
   { Note: R changes to p ! }
   VectorComponentNames: array [TTexComponent] of char = ('s', 't', 'p', 'q');
 var
-  PlaneName, CoordSource: string;
+  PlaneName, CoordSource, TexCoordName: string;
 begin
   { Enable for fixed-function pipeline }
   if GLFeatures.UseMultiTexturing then
@@ -2420,9 +2444,10 @@ begin
     else raise EInternalError.Create('TShader.EnableTexGen:Generation?');
   end;
 
-  TextureCoordGen += Format('gl_TexCoord[%d].%s = dot(%s, %s%s[%0:d]);' + NL,
-    [TextureUnit, VectorComponentNames[Component],
-     CoordSource, PlaneName, PlaneComponentNames[Component]]);
+  TexCoordName := TTextureShader.CoordName(TextureUnit);
+  TextureCoordGen += Format('%s.%s = dot(%s, %s%s[%d]);' + NL,
+    [TexCoordName, VectorComponentNames[Component],
+     CoordSource, PlaneName, PlaneComponentNames[Component], TextureUnit]);
   FCodeHash.AddInteger(1319 * (TextureUnit + 1) * (Ord(Generation) + 1) * (Component + 1));
 end;
 

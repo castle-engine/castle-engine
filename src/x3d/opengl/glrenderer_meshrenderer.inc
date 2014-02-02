@@ -459,8 +459,6 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
   procedure EnableTextureGen(const TexUnit: Cardinal;
     TexCoord: TGeometryTexCoord);
 
-  {$ifndef OpenGLES} // TODO-es
-
     { Do the necessary things for WorldSpaceNormal and
       WorldSpaceReflectionVector. }
     procedure TextureTransformToWorldSpace(const SuccessName, FailName: string);
@@ -488,6 +486,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         you only have 1 or 2 texture units where you generate tex coords. }
       RestoreDefaultTexCoord := true;
 
+      {$ifndef OpenGLES} // TODO-es
       glMatrixMode(GL_TEXTURE);
       Renderer.PushTextureUnit(TexUnit);
       { CameraMatrix transforms from world space to camera space,
@@ -496,6 +495,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       RenderingCamera.InverseMatrixNeeded;
       glMultMatrix(RenderingCamera.InverseMatrix);
       glMatrixMode(GL_MODELVIEW);
+      {$endif}
 
       if GLVersion.Mesa and Log then
         { Mesa 7.0.4 makes textures strange (like each cube face was
@@ -507,6 +507,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           [SuccessName, FailName]));
     end;
 
+  {$ifndef OpenGLES} // TODO-es
   const
     ProjectorScalingMatrix: TMatrix4Single =
     ( (0.5,   0,   0, 0),
@@ -515,17 +516,15 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       (0.5, 0.5, 0.5, 1) );
   var
     ProjectorMatrix: TMatrix4Single;
+  {$endif}
   begin
     Renderer.ActiveTexture(TexUnit);
     case TexCoord.Generation of
       tgSphereMap:
-        begin
-          glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-          glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-          Shader.EnableTexGen(TexUnit, tgSphere);
-        end;
+        Shader.EnableTexGen(TexUnit, tgSphere);
       tgCoord:
         begin
+          {$ifndef OpenGLES} // TODO-es
           glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
           glTexGenv(GL_S, GL_OBJECT_PLANE, Vector4Single(1, 0, 0, 0));
           glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -535,6 +534,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           Shader.EnableTexGen(TexUnit, tgObject, 0);
           Shader.EnableTexGen(TexUnit, tgObject, 1);
           Shader.EnableTexGen(TexUnit, tgObject, 2);
+          {$endif}
         end;
       tgCoordEye:
         begin
@@ -542,6 +542,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
             modelview matrix (at the moment of glTexGen call).
             We don't want to transform them, so just temporarily setting
             modelview matrix to identity makes things work Ok. }
+          {$ifndef OpenGLES} // TODO-es
           glPushMatrix;
             glLoadIdentity;
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
@@ -554,10 +555,14 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           Shader.EnableTexGen(TexUnit, tgEye, 0);
           Shader.EnableTexGen(TexUnit, tgEye, 1);
           Shader.EnableTexGen(TexUnit, tgEye, 2);
+          {$endif}
         end;
       tgCameraSpaceNormal,
       tgWorldSpaceNormal:
         begin
+          {$ifdef OpenGLES}
+          Assert(GLFeatures.TextureCubeMap <> gsNone); // on OpenGLES, cubemaps are always supported
+          {$else}
           if GLFeatures.TextureCubeMap = gsNone then
           begin
             OnWarning(wtMajor, 'VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACENORMAL", will do "COORD" instead');
@@ -572,20 +577,19 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
             Shader.EnableTexGen(TexUnit, tgObject, 1);
             Shader.EnableTexGen(TexUnit, tgObject, 2);
           end else
+          {$endif}
           begin
-            glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
-            glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
-            glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
-
             if TexCoord.Generation = tgWorldSpaceNormal then
               TextureTransformToWorldSpace('WORLDSPACENORMAL', 'CAMERASPACENORMAL');
-
             Shader.EnableTexGen(TexUnit, tgNormal);
           end;
         end;
       tgCameraSpaceReflectionVector,
       tgWorldSpaceReflectionVector:
         begin
+          {$ifdef OpenGLES}
+          Assert(GLFeatures.TextureCubeMap <> gsNone); // on OpenGLES, cubemaps are always supported
+          {$else}
           if GLFeatures.TextureCubeMap = gsNone then
           begin
             OnWarning(wtMajor, 'VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACEREFLECTIONVECTOR", will do "COORD" instead');
@@ -600,19 +604,16 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
             Shader.EnableTexGen(TexUnit, tgObject, 1);
             Shader.EnableTexGen(TexUnit, tgObject, 2);
           end else
+          {$endif}
           begin
-            glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
-            glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
-            glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
-
             if TexCoord.Generation = tgWorldSpaceReflectionVector then
               TextureTransformToWorldSpace('WORLDSPACEREFLECTIONVECTOR', 'CAMERASPACEREFLECTIONVECTOR');
-
             Shader.EnableTexGen(TexUnit, tgReflection);
           end;
         end;
       tgProjection:
         begin
+          {$ifndef OpenGLES} // TODO-es
           if Assigned(TexCoord.GenerationProjectorMatrix) then
           begin
             ProjectorMatrix := ProjectorScalingMatrix * TexCoord.GenerationProjectorMatrix();
@@ -636,9 +637,11 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
             Shader.EnableTexGen(TexUnit, tgEye, 2);
             Shader.EnableTexGen(TexUnit, tgEye, 3);
           end;
+          {$endif}
         end;
       tgBounds2d:
         begin
+          {$ifndef OpenGLES} // TODO-es
           { Setup OpenGL to generate tex coords automatically }
           glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
           glTexGenv(GL_S, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[0]);
@@ -646,9 +649,11 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           glTexGenv(GL_T, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[1]);
           Shader.EnableTexGen(TexUnit, tgObject, 0);
           Shader.EnableTexGen(TexUnit, tgObject, 1);
+          {$endif}
         end;
       tgBounds3d:
         begin
+          {$ifndef OpenGLES} // TODO-es
           glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
           glTexGenv(GL_S, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[0]);
           glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -658,12 +663,10 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           Shader.EnableTexGen(TexUnit, tgObject, 0);
           Shader.EnableTexGen(TexUnit, tgObject, 1);
           Shader.EnableTexGen(TexUnit, tgObject, 2);
+          {$endif}
         end;
       else raise EInternalError.Create('EnableTextureGen - Gen?');
     end;
-  {$else}
-  begin
-  {$endif}
   end;
 
 var
