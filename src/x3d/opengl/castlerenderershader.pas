@@ -275,6 +275,7 @@ type
     HasGeometryMain: boolean;
     DynamicUniforms: TDynamicUniformList;
     {$ifdef OpenGLES} TextureMatrix: TCardinalList; {$endif}
+    NeedsCameraInverseMatrix: boolean;
 
     { We have to optimize the most often case of TShader usage,
       when the shader is not needed or is already prepared.
@@ -389,7 +390,8 @@ type
       const Generation: TTexGenerationComponent; const Component: TTexComponent
       {$ifdef OpenGLES} ; const Plane: TVector4Single {$endif});
     procedure EnableTexGen(const TextureUnit: Cardinal;
-      const Generation: TTexGenerationComplete);
+      const Generation: TTexGenerationComplete;
+      const TransformToWorldSpace: boolean = false);
     { Disable fixed-function texgen of given texture unit.
       Guarantees to also set active texture unit to TexUnit (if multi-texturing
       available at all). }
@@ -1534,6 +1536,7 @@ begin
   MaterialUnlit := ZeroVector4Single;
   DynamicUniforms.Clear;
   {$ifdef OpenGLES} TextureMatrix.Clear; {$endif}
+  NeedsCameraInverseMatrix := false;
 end;
 
 procedure TShader.Plug(const EffectPartType: TShaderType; PlugValue: string;
@@ -1833,7 +1836,7 @@ var
      {$I variance_shadow_map_common.fs.inc});
   {$endif}
   var
-    DynamicUniformsDeclare: string;
+    UniformsDeclare: string;
     I: Integer;
   begin
     PlugDirectly(Source[stVertex], 0, '/* PLUG: vertex_eye_space',
@@ -1846,16 +1849,18 @@ var
     PlugDirectly(Source[stGeometry], 0, '/* PLUG: geometry_vertex_zero', GeometryVertexZero, false);
     PlugDirectly(Source[stGeometry], 0, '/* PLUG: geometry_vertex_add' , GeometryVertexAdd , false);
 
-    DynamicUniformsDeclare := '';
+    UniformsDeclare := '';
     for I := 0 to DynamicUniforms.Count - 1 do
-      DynamicUniformsDeclare += DynamicUniforms[I].Declaration;
+      UniformsDeclare += DynamicUniforms[I].Declaration;
+    if NeedsCameraInverseMatrix then
+      UniformsDeclare += 'uniform mat4 castle_CameraInverseMatrix;' + NL;
 
     if not (
       PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */',
         TextureVaryingDeclare + NL + TextureUniformsDeclare
         {$ifndef OpenGLES} + NL + DeclareShadowFunctions {$endif}, false) and
       PlugDirectly(Source[stVertex], 0, '/* PLUG-DECLARATIONS */',
-        DynamicUniformsDeclare +
+        UniformsDeclare +
         TextureAttributeDeclare + NL + TextureVaryingDeclare, false) ) then
     begin
       { When we cannot find /* PLUG-DECLARATIONS */, it also means we have
@@ -2416,7 +2421,8 @@ begin
 end;
 
 procedure TShader.EnableTexGen(const TextureUnit: Cardinal;
-  const Generation: TTexGenerationComplete);
+  const Generation: TTexGenerationComplete;
+  const TransformToWorldSpace: boolean);
 var
   TexCoordName: string;
 begin
@@ -2480,6 +2486,16 @@ begin
       end;
     else raise EInternalError.Create('TShader.EnableTexGen:Generation?');
   end;
+
+  {$ifdef OpenGLES}
+  if TransformToWorldSpace then
+  begin
+    TextureCoordGen += Format('%s.w = 0.0; %0:s = castle_CameraInverseMatrix * %0:s;' + NL,
+      [TexCoordName]);
+    NeedsCameraInverseMatrix := true;
+    FCodeHash.AddInteger(263);
+  end;
+  {$endif}
 end;
 
 procedure TShader.EnableTexGen(const TextureUnit: Cardinal;
@@ -2793,6 +2809,11 @@ begin
     LightShaders[I].SetDynamicUniforms(AProgram);
   for I := 0 to DynamicUniforms.Count - 1 do
     DynamicUniforms[I].SetUniform(AProgram);
+  if NeedsCameraInverseMatrix then
+  begin
+    RenderingCamera.InverseMatrixNeeded;
+    AProgram.SetUniform('castle_CameraInverseMatrix', RenderingCamera.InverseMatrix);
+  end;
 end;
 
 end.

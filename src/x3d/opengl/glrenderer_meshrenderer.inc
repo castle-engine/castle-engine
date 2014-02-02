@@ -461,11 +461,12 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
   procedure EnableTextureGen(const TexUnit: Cardinal;
     TexCoord: TGeometryTexCoord);
 
+    {$ifndef OpenGLES}
     { Do the necessary things for WorldSpaceNormal and
-      WorldSpaceReflectionVector. }
+      WorldSpaceReflectionVector. Note that the OpenGLES counterpart
+      of this is entirely inside EnableTexGen. }
     procedure TextureTransformToWorldSpace(const SuccessName, FailName: string);
     begin
-      {$ifndef OpenGLES} // TODO-es
       { Set the 4th texture coord component (Q) to 0.0.
         Reason: We use matrix 4x4, so it will transform whole texture
         coordinate (4-valued vector, since we're in homogeneous
@@ -506,14 +507,16 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           Nothing more intelligent now than warning about this is done. }
         WritelnLog('TexCoord', Format('Warning: Transforming tex coords to WORLDSPACE* under Mesa3D may mess up static cube maps (ImageCubeMapTexture and ComposedCubeMapTexture, but not GeneratedCubeMapTexure)',
           [SuccessName, FailName]));
-      {$endif}
     end;
+    {$endif}
 
   const
     GenerationVectorsIdentity: TTextureGenerationVectors =
     ( (1, 0, 0, 0),
       (0, 1, 0, 0),
       (0, 0, 1, 0) );
+  var
+    TransformToWorldSpace: boolean;
   {$ifndef OpenGLES} // TODO-es
   const
     ProjectorScalingMatrix: TMatrix4Single =
@@ -525,6 +528,9 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
     ProjectorMatrix: TMatrix4Single;
   {$endif}
   begin
+    TransformToWorldSpace := TexCoord.Generation in
+      [tgWorldSpaceReflectionVector, tgWorldSpaceNormal];
+
     Renderer.ActiveTexture(TexUnit);
     case TexCoord.Generation of
       tgSphereMap:
@@ -591,9 +597,11 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           end else
           {$endif}
           begin
-            if TexCoord.Generation = tgWorldSpaceNormal then
+            {$ifndef OpenGLES}
+            if TransformToWorldSpace then
               TextureTransformToWorldSpace('WORLDSPACENORMAL', 'CAMERASPACENORMAL');
-            Shader.EnableTexGen(TexUnit, tgNormal);
+            {$endif}
+            Shader.EnableTexGen(TexUnit, tgNormal, TransformToWorldSpace);
           end;
         end;
       tgCameraSpaceReflectionVector,
@@ -618,9 +626,11 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           end else
           {$endif}
           begin
-            if TexCoord.Generation = tgWorldSpaceReflectionVector then
+            {$ifndef OpenGLES}
+            if TransformToWorldSpace then
               TextureTransformToWorldSpace('WORLDSPACEREFLECTIONVECTOR', 'CAMERASPACEREFLECTIONVECTOR');
-            Shader.EnableTexGen(TexUnit, tgReflection);
+            {$endif}
+            Shader.EnableTexGen(TexUnit, tgReflection, TransformToWorldSpace);
           end;
         end;
       tgProjection:
