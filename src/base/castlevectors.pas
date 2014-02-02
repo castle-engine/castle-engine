@@ -1645,6 +1645,11 @@ function MatrixInverse(const M: TMatrix4Double; const Determinant: Double): TMat
   @groupBegin }
 procedure MatrixTransposeTo1st(var M: TMatrix3Single); overload;
 procedure MatrixTransposeTo1st(var M: TMatrix3Double); overload;
+
+function MatrixTranspose(const M: TMatrix3Single): TMatrix3Single; overload;
+function MatrixTranspose(const M: TMatrix3Double): TMatrix3Double; overload;
+function MatrixTranspose(const M: TMatrix4Single): TMatrix4Single; overload;
+function MatrixTranspose(const M: TMatrix4Double): TMatrix4Double; overload;
 { @groupEnd }
 
 { Inverse the matrix, trying harder (but possibly slower).

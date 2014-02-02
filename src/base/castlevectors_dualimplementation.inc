@@ -2188,3 +2188,41 @@ begin
   Tmp := M[0, 2]; M[0, 2] := M[2, 0]; M[2, 0] := Tmp;
   Tmp := M[1, 2]; M[1, 2] := M[2, 1]; M[2, 1] := Tmp;
 end;
+
+function MatrixTranspose(const M: TMatrix3): TMatrix3;
+begin
+  Result[0, 0] := M[0, 0];
+  Result[0, 1] := M[1, 0];
+  Result[0, 2] := M[2, 0];
+
+  Result[1, 0] := M[0, 1];
+  Result[1, 1] := M[1, 1];
+  Result[1, 2] := M[2, 1];
+
+  Result[2, 0] := M[0, 2];
+  Result[2, 1] := M[1, 2];
+  Result[2, 2] := M[2, 2];
+end;
+
+function MatrixTranspose(const M: TMatrix4): TMatrix4;
+begin
+  Result[0, 0] := M[0, 0];
+  Result[0, 1] := M[1, 0];
+  Result[0, 2] := M[2, 0];
+  Result[0, 3] := M[3, 0];
+
+  Result[1, 0] := M[0, 1];
+  Result[1, 1] := M[1, 1];
+  Result[1, 2] := M[2, 1];
+  Result[1, 3] := M[3, 1];
+
+  Result[2, 0] := M[0, 2];
+  Result[2, 1] := M[1, 2];
+  Result[2, 2] := M[2, 2];
+  Result[2, 3] := M[3, 2];
+
+  Result[3, 0] := M[0, 3];
+  Result[3, 1] := M[1, 3];
+  Result[3, 2] := M[2, 3];
+  Result[3, 3] := M[3, 3];
+end;
