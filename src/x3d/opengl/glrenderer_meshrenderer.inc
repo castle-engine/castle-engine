@@ -543,24 +543,29 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         end;
       tgCoordEye:
         begin
+          {$ifndef OpenGLES}
           { Vectors given to EYE_PLANE are transformed by inverted
             modelview matrix (at the moment of glTexGen call).
             We don't want to transform them, so just temporarily setting
             modelview matrix to identity makes things work Ok. }
-          {$ifndef OpenGLES} // TODO-es
           glPushMatrix;
             glLoadIdentity;
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-            glTexGenv(GL_S, GL_EYE_PLANE, Vector4Single(1, 0, 0, 0));
+            glTexGenv(GL_S, GL_EYE_PLANE, GenerationVectorsIdentity[0]);
             glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-            glTexGenv(GL_T, GL_EYE_PLANE, Vector4Single(0, 1, 0, 0));
+            glTexGenv(GL_T, GL_EYE_PLANE, GenerationVectorsIdentity[1]);
             glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-            glTexGenv(GL_R, GL_EYE_PLANE, Vector4Single(0, 0, 1, 0));
+            glTexGenv(GL_R, GL_EYE_PLANE, GenerationVectorsIdentity[2]);
           glPopMatrix;
-          Shader.EnableTexGen(TexUnit, tgEye, 0);
-          Shader.EnableTexGen(TexUnit, tgEye, 1);
-          Shader.EnableTexGen(TexUnit, tgEye, 2);
           {$endif}
+          { TODO: the shader version of this is quite unoptimal,
+            we pass 3 uniform vec4 vectors, make 3 dot operations,
+            just to simply copy vertex_eye to texture coordinate.
+            Same for tgCoord. So far, this is not used often enough
+            to bother with optimization. }
+          Shader.EnableTexGen(TexUnit, tgEye, 0 {$ifdef OpenGLES}, GenerationVectorsIdentity[0] {$endif});
+          Shader.EnableTexGen(TexUnit, tgEye, 1 {$ifdef OpenGLES}, GenerationVectorsIdentity[1] {$endif});
+          Shader.EnableTexGen(TexUnit, tgEye, 2 {$ifdef OpenGLES}, GenerationVectorsIdentity[2] {$endif});
         end;
       tgCameraSpaceNormal,
       tgWorldSpaceNormal:
