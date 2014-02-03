@@ -27,7 +27,7 @@
 
 uses SysUtils, CastleGL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleSceneManager,
   CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors,
-  CastleControls, CastleWarnings,
+  CastleControls, CastleWarnings, CastleRendererShader,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,
   CastleStringUtils, CastleKeysMouse, CastleColors, CastleControlsImages;
 
@@ -125,12 +125,15 @@ begin
   if TGLSLProgram.ClassSupport <> gsNone then
   begin
     GLSLProgram := TGLSLProgram.Create;
+    GLSLProgram.AttachVertexShader(ScreenEffectVertexShader);
     GLSLProgram.AttachFragmentShader(
-      'uniform sampler2D screen;' +NL+
-      'uniform int screen_width;' +NL+
+      ScreenEffectLibrary(false) + NL +
       'void main (void)' +NL+
       '{' +NL+
-      '  gl_FragColor = ( texture2D(screen, vec2(gl_TexCoord[0].s - 1.0/float(screen_width), gl_TexCoord[0].t)) - texture2D(screen, vec2(gl_TexCoord[0].s + 1.0/float(screen_width), gl_TexCoord[0].t)) ) + vec4(1.0) / 2.0;' +NL+
+      '  gl_FragColor = (' +NL+
+      '    screen_get_color(ivec2(screen_x() - 1, screen_y())) -' +NL+
+      '    screen_get_color(ivec2(screen_x() + 1, screen_y()))' +NL+
+      '  ) + vec4(1.0) / 2.0;' +NL+
       '}');
     { For this test program, we eventually allow shader to run in software }
     GLSLProgram.Link(false);

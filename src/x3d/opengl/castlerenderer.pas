@@ -1155,12 +1155,6 @@ var
     Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
   LogRenderer: boolean = false;
 
-{ Return GLSL library of functions to link with screen effect code.
-  This looks at current OpenGL context multi-sampling capabilities
-  in GLCurrentMultiSampling (do we have multi-sampling)
-  and GLFBOMultiSampling (can we have multi-sampling for textures rendered in FBO). }
-function ScreenEffectLibrary(const Depth: boolean): string;
-
 {$undef read_interface}
 
 implementation
@@ -2467,7 +2461,7 @@ begin
         if Shader.EnableCustomShaderCode(Node.FdShaders, ShaderNode) then
         try
           ShaderProgram := TX3DGLSLProgram.Create(Self);
-          ShaderProgram.AttachFragmentShader(ScreenEffectLibrary(Node.FdNeedsDepth.Value));
+          Shader.AddScreenEffectCode(Node.FdNeedsDepth.Value);
           Shader.LinkProgram(ShaderProgram);
 
           { We have to ignore invalid uniforms, as it's normal that when
@@ -3772,26 +3766,6 @@ begin
     end;
     {$endif}
   end;
-end;
-
-{ functions ------------------------------------------------------------------ }
-
-function ScreenEffectLibrary(const Depth: boolean): string;
-begin
-  Result := '';
-  if Depth then
-    Result += '#define DEPTH' +NL;
-  if GLFeatures.FBOMultiSampling then
-  begin
-    if GLFeatures.CurrentMultiSampling > 1 then
-      Result +=
-        '#define MULTI_SAMPLING' +NL +
-        '#define MULTI_SAMPLING_' + IntToStr(GLFeatures.CurrentMultiSampling) +NL;
-    if not (GLFeatures.CurrentMultiSampling in [1, 2, 4, 8, 16]) then
-      OnWarning(wtMajor, 'Screen Effects', Format('Our GLSL library for screen effects is not prepared for your number of samples (anti-aliasing): %d. This may indicate that your GPU is very new or very weird. Please submit this as a bug (see http://castle-engine.sourceforge.net/forum.php for links to forum, bug tracker and more), citing this message. For now, screen effects will not work.',
-        [GLFeatures.CurrentMultiSampling]));
-  end;
-  Result += {$I screen_effect_library.glsl.inc};
 end;
 
 end.

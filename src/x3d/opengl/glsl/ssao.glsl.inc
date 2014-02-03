@@ -1,9 +1,7 @@
 { -*- buffer-read-only: t -*- }
 { DON'T EDIT -- this file was automatically generated from "ssao.glsl" }
-'#extension GL_ARB_texture_rectangle : enable' + LineEnding + 
-'' + LineEnding + 
 'ivec2 screen_position();' + LineEnding + 
-'float screen_get_depth_fast(ivec2 position);' + LineEnding +
+'float screen_get_depth_fast(ivec2 position);' + LineEnding + 
 'vec4 screen_get_color(ivec2 position);' + LineEnding + 
 '' + LineEnding + 
 'uniform int screen_width;' + LineEnding + 
@@ -31,7 +29,7 @@
 '' + LineEnding + 
 'float readDepth(const in ivec2 coord)' + LineEnding + 
 '{' + LineEnding + 
-'  return (2.0 * near) / (far + near - screen_get_depth_fast(coord) * (far-near));' + LineEnding +
+'  return (2.0 * near) / (far + near - screen_get_depth_fast(coord) * (far-near));' + LineEnding + 
 '}' + LineEnding + 
 '' + LineEnding + 
 'float compareDepths( in float depth1, in float depth2 )' + LineEnding + 

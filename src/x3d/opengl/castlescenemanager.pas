@@ -119,10 +119,8 @@ type
       And before ApplyProjection you should also call UpdateGeneratedTexturesIfNeeded. }
     procedure RenderOnScreen(ACamera: TCamera);
 
-    {$ifndef OpenGLES}
     procedure RenderWithScreenEffectsCore;
     function RenderWithScreenEffects: boolean;
-    {$endif}
   protected
     { These variables are writeable from overridden ApplyProjection. }
     FPerspectiveView: boolean;
@@ -1163,7 +1161,7 @@ var
 implementation
 
 uses SysUtils, CastleRenderingCamera, CastleGLUtils, CastleProgress, CastleRays,
-  CastleLog, CastleStringUtils, CastleRenderer, CastleSoundEngine, Math,
+  CastleLog, CastleStringUtils, CastleRendererShader, CastleSoundEngine, Math,
   X3DTriangles, CastleGLVersion, CastleShapes;
 
 procedure Register;
@@ -1952,14 +1950,41 @@ begin
   RenderFromView3D(FRenderParams);
 end;
 
-{$ifndef OpenGLES}
+type
+  TScreenPoint = packed record
+    Position: TVector2Single;
+    TexCoord: TVector2Single;
+  end;
+var
+  ScreenPointVbo: TGLuint;
+  ScreenPoint: packed array [0..3] of TScreenPoint;
 
 procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
 
   procedure RenderOneEffect(Shader: TGLSLProgram);
   var
     BoundTextureUnits: Cardinal;
+    AttribEnabled: array [0..1] of TGLuint;
+    AttribLocation: TGLuint;
   begin
+    if ScreenPointVbo = 0 then
+    begin
+      { generate and fill ScreenPointVbo. It's contents are constant. }
+      glGenBuffers(1, @ScreenPointVbo);
+      ScreenPoint[0].TexCoord := Vector2Single(0, 0);
+      ScreenPoint[0].Position := Vector2Single(-1, -1);
+      ScreenPoint[1].TexCoord := Vector2Single(1, 0);
+      ScreenPoint[1].Position := Vector2Single( 1, -1);
+      ScreenPoint[2].TexCoord := Vector2Single(1, 1);
+      ScreenPoint[2].Position := Vector2Single( 1,  1);
+      ScreenPoint[3].TexCoord := Vector2Single(0, 1);
+      ScreenPoint[3].Position := Vector2Single(-1,  1);
+      glBindBuffer(GL_ARRAY_BUFFER, ScreenPointVbo);
+      glBufferData(GL_ARRAY_BUFFER, SizeOf(ScreenPoint), @(ScreenPoint[0]), GL_STATIC_DRAW);
+    end;
+
+    glBindBuffer(GL_ARRAY_BUFFER, ScreenPointVbo);
+
     glActiveTexture(GL_TEXTURE0); // GLFeatures.UseMultiTexturing is already checked
     glBindTexture(ScreenEffectTextureTarget, ScreenEffectTextureSrc);
     BoundTextureUnits := 1;
@@ -1971,12 +1996,6 @@ procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
       Inc(BoundTextureUnits);
     end;
 
-    glLoadIdentity();
-    { Although shaders will typically ignore glColor, for consistency
-      we want to have a fully determined state. That is, this must work
-      reliably even if you comment out ScreenEffects[*].Enable/Disable
-      commands below. }
-    glColorv(White);
     Shader.Enable;
       Shader.SetUniform('screen', 0);
       if CurrentScreenEffectsNeedDepth then
@@ -2010,17 +2029,20 @@ procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
         here or inside RenderWithScreenEffectsCore, because we're already within
         glViewport that takes care of this. }
 
-      glBegin(GL_QUADS);
-        glTexCoord2i(0, 0);
-        glVertex2i(0         , 0);
-        glTexCoord2i(1, 0);
-        glVertex2i(Rect.Width, 0);
-        glTexCoord2i(1, 1);
-        glVertex2i(Rect.Width, Rect.Height);
-        glTexCoord2i(0, 1);
-        glVertex2i(0         , Rect.Height);
-      glEnd();
+      AttribEnabled[0] := Shader.VertexAttribPointer(
+        'vertex'   , 0, 2, GL_FLOAT, GL_FALSE, SizeOf(TScreenPoint),
+        Offset(ScreenPoint[0].Position, ScreenPoint[0]));
+      AttribEnabled[1] := Shader.VertexAttribPointer(
+        'tex_coord', 0, 2, GL_FLOAT, GL_FALSE, SizeOf(TScreenPoint),
+        Offset(ScreenPoint[0].TexCoord, ScreenPoint[0]));
+
+      glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
     Shader.Disable;
+    for AttribLocation in AttribEnabled do
+      TGLSLProgram.DisableVertexAttribArray(AttribLocation);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   end;
 
 var
@@ -2066,11 +2088,13 @@ function TCastleAbstractViewport.RenderWithScreenEffects: boolean;
     procedure TexImage2D(const InternalFormat: TGLint;
       const Format, AType: TGLenum);
     begin
+      {$ifndef OpenGLES}
       if (GLFeatures.CurrentMultiSampling > 1) and GLFeatures.FBOMultiSampling then
         glTexImage2DMultisample(ScreenEffectTextureTarget,
           GLFeatures.CurrentMultiSampling, InternalFormat,
           ScreenEffectTextureWidth,
           ScreenEffectTextureHeight, GL_FALSE { TODO: false or true here? }) else
+      {$endif}
         glTexImage2D(ScreenEffectTextureTarget, 0, InternalFormat,
           ScreenEffectTextureWidth,
           ScreenEffectTextureHeight, 0, Format, AType, nil);
@@ -2079,9 +2103,11 @@ function TCastleAbstractViewport.RenderWithScreenEffects: boolean;
   begin
     glGenTextures(1, @Result);
     glBindTexture(ScreenEffectTextureTarget, Result);
+    {$ifndef OpenGLES}
     { for multisample texture, these cannot be configured (OpenGL makes
       "invalid enumerant" error) }
     if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
+    {$endif}
     begin
       { TODO: NEAREST or LINEAR? Allow to config this and eventually change
         before each screen effect? }
@@ -2091,13 +2117,18 @@ function TCastleAbstractViewport.RenderWithScreenEffects: boolean;
     end;
     if Depth then
     begin
+      {$ifndef OpenGLES}
+      // TODO-es What do we use here? See TGLRenderToTexture TODO at similar place
       if GLFeatures.ShadowVolumesPossible and GLFeatures.PackedDepthStencil then
         TexImage2D(GL_DEPTH24_STENCIL8_EXT, GL_DEPTH_STENCIL_EXT, GL_UNSIGNED_INT_24_8_EXT) else
-        TexImage2D(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE);
+      {$endif}
+        // TODO: Maybe GL_DEPTH_COMPONENT16?
+        TexImage2D({$ifndef OpenGLES} GL_DEPTH_COMPONENT {$else} GL_DEPTH_COMPONENT16 {$endif}, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE);
       //glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
       //glTexParameteri(ScreenEffectTextureTarget, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
     end else
-      TexImage2D(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
+      TexImage2D({$ifdef OpenGLES} GL_RGB {$else} GL_RGB8 {$endif},
+        GL_RGB, GL_UNSIGNED_BYTE);
   end;
 
 begin
@@ -2107,7 +2138,7 @@ begin
     ScreenEffects* methods do something weird. }
   CurrentScreenEffectsCount := ScreenEffectsCount;
 
-  Result :=
+  Result := GLFeatures.VertexBufferObject { for screen quad } and
     { check IsTextureSized, to gracefully work (without screen effects)
       on old desktop OpenGL that does not support NPOT textures. }
     IsTextureSized(Rect.Width, Rect.Height, tsAny) and
@@ -2131,8 +2162,10 @@ begin
       glFreeTexture(ScreenEffectTextureDepth);
       FreeAndNil(ScreenEffectRTT);
 
+      {$ifndef OpenGLES}
       if (GLFeatures.CurrentMultiSampling > 1) and GLFeatures.FBOMultiSampling then
         ScreenEffectTextureTarget := GL_TEXTURE_2D_MULTISAMPLE else
+      {$endif}
         ScreenEffectTextureTarget := GL_TEXTURE_2D;
 
       ScreenEffectTextureWidth  := Rect.Width;
@@ -2189,10 +2222,13 @@ begin
 
     SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
 
+    {$ifndef OpenGLES}
     glPushAttrib(GL_ENABLE_BIT);
       glDisable(GL_LIGHTING);
       glDisable(GL_DEPTH_TEST);
+    {$endif}
 
+      {$ifndef OpenGLES}
       glActiveTexture(GL_TEXTURE0);
       glDisable(GL_TEXTURE_2D);
       if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
@@ -2205,11 +2241,13 @@ begin
         if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
           glEnable(ScreenEffectTextureTarget);
       end;
+      {$endif}
 
       OrthoProjection(0, Rect.Width, 0, Rect.Height);
 
       RenderWithScreenEffectsCore;
 
+      {$ifndef OpenGLES}
       if CurrentScreenEffectsNeedDepth then
       begin
         glActiveTexture(GL_TEXTURE1);
@@ -2220,22 +2258,21 @@ begin
       glActiveTexture(GL_TEXTURE0);
       if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
         glDisable(ScreenEffectTextureTarget); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
+      {$endif}
 
       { at the end, we left active texture as default GL_TEXTURE0 }
+    {$ifndef OpenGLES}
     glPopAttrib;
+    {$endif}
   end;
 end;
-
-{$endif not OpenGLES}
 
 procedure TCastleAbstractViewport.RenderOnScreen(ACamera: TCamera);
 begin
   RenderingCamera.Target := rtScreen;
   RenderingCamera.FromCameraObject(ACamera, nil);
 
-  {$ifndef OpenGLES} // TODO-es
   if not RenderWithScreenEffects then
-  {$endif}
   begin
     { Rendering directly to the screen, when no screen effects are used. }
     if not FullSize then
@@ -2296,8 +2333,12 @@ begin
     begin
       try
         SSAOShader := TGLSLProgram.Create;
-        SSAOShader.AttachFragmentShader({$I ssao.glsl.inc});
-        SSAOShader.AttachFragmentShader(ScreenEffectLibrary(true));
+        SSAOShader.AttachVertexShader(ScreenEffectVertexShader);
+        SSAOShader.AttachFragmentShader(
+          { for OpenGLES, we have to glue all fragment shaders,
+            and ScreenEffectLibrary must be 1st }
+          ScreenEffectLibrary(true) + NL +
+          {$I ssao.glsl.inc});
         SSAOShader.Link(true);
         SSAOShader.UniformNotFoundAction := uaIgnore;
       except

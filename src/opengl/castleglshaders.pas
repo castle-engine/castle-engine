@@ -114,9 +114,11 @@ type
 
     { Create shader from given string, compile it and attach to current program.
 
-      You can attach more than one  shader of given type, just
-      make sure that only one main() function is among each type
+      For desktop OpenGL, you can attach more than one shader of given
+      type, just make sure that only one main() function is among each type
       (otherwise link error will be raised later).
+      For OpenGLES, this is not allowed, so don't use this if you want
+      to work with OpenGLES too.
 
       If you want to explicitly get rid of old shaders, use DetachAllShaders.
 

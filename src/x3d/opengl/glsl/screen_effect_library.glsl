@@ -5,6 +5,12 @@
    multi-sampling.
 */
 
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+varying vec2 tex_coord_frag;
+
 uniform int screen_height;
 uniform int screen_width;
 
@@ -24,18 +30,18 @@ uniform int screen_width;
 ivec2 screen_position()
 {
   return ivec2(
-    int(gl_TexCoord[0].s * screen_width),
-    int(gl_TexCoord[0].t * screen_height));
+    int(tex_coord_frag.s * float(screen_width)),
+    int(tex_coord_frag.t * float(screen_height)));
 }
 
 int screen_x()
 {
-  return int(gl_TexCoord[0].s * screen_width);
+  return int(tex_coord_frag.s * float(screen_width));
 }
 
 int screen_y()
 {
-  return int(gl_TexCoord[0].t * screen_height);
+  return int(tex_coord_frag.t * float(screen_height));
 }
 
 vec4 screen_get_color(ivec2 position)
@@ -80,7 +86,7 @@ vec4 screen_get_color(ivec2 position)
            texelFetch(screen, position, 1) ) / 2.0;
 #else
   return texture2D(screen,
-    /* Texture coordinates provided in gl_TexCoord are already hitting
+    /* Texture coordinates provided in tex_coord_frag are already hitting
        exactly the middle of the pixel.
        But functions screen_position, screen_x, screen_y cut off the half pixel
        size. So we restore it now by "+ vec2(0.5)". */
