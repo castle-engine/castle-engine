@@ -2,9 +2,6 @@ ivec2 screen_position();
 float screen_get_depth_fast(ivec2 position);
 vec4 screen_get_color(ivec2 position);
 
-uniform int screen_width;
-uniform int screen_height;
-
 // shader from http://www.pasteall.org/12282, http://www.youtube.com/watch?v=R_L-_oGTbqw
 
 #define PI    3.14159265
