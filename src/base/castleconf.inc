@@ -146,5 +146,6 @@
 
 {$define HAS_FREE_TYPE}
 {$ifdef ANDROID} {$undef HAS_FREE_TYPE} {$endif}
+{$ifdef iOS} {$undef HAS_FREE_TYPE} {$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}
