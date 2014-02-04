@@ -1867,7 +1867,7 @@ end;
       QuitWhenLastWindowClosed = true.
 
       Call to Close is ignored if window is already Closed. }
-    procedure Close(QuitWhenLastWindowClosed: boolean = true);
+    procedure Close(QuitWhenLastWindowClosed: boolean = true); virtual;
 
     { @deprecated Deprecated name for @link(Invalidate). }
     procedure PostRedisplay; deprecated;
@@ -2241,6 +2241,7 @@ end;
     procedure NavigationInfoChanged(Sender: TObject); virtual;
   public
     constructor Create(AOwner: TComponent); override;
+    procedure Close(QuitWhenLastWindowClosed: boolean = true); override;
 
     { Load a single 3D model to your world
       (removing other models, and resetting the camera).
@@ -4071,6 +4072,13 @@ begin
   FSceneManager.Name := 'SceneManager';
   FSceneManager.OnBoundNavigationInfoChanged := @NavigationInfoChanged;
   Controls.Add(SceneManager);
+end;
+
+procedure TCastleWindow.Close(QuitWhenLastWindowClosed: boolean);
+begin
+  if FSceneManager.OnBoundNavigationInfoChanged = @NavigationInfoChanged then
+    FSceneManager.OnBoundNavigationInfoChanged := nil;
+  inherited;
 end;
 
 procedure TCastleWindow.Load(const SceneURL: string);

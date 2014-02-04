@@ -2795,7 +2795,7 @@ begin
       This allows code that observes Camera.NavigationType to work,
       otherwise OnBoundNavigationInfoChanged may be called only
       when Camera = nil (at loading). }
-    if (Assigned(Value) and Assigned(OnBoundNavigationInfoChanged)) then
+    if Assigned(OnBoundNavigationInfoChanged) then
       OnBoundNavigationInfoChanged(Self);
   end else
     inherited; { not really needed for now, but for safety --- always call inherited }
