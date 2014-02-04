@@ -3623,7 +3623,7 @@ var
 
         PostUpdate;
 
-        if Log then
+        if Log and LogRenderer then
           WritelnLog('CubeMap', TexNode.NiceName + ' texture regenerated');
       end;
     end;
@@ -3647,7 +3647,7 @@ var
 
           PostUpdate;
 
-          if Log then
+          if Log and LogRenderer then
             WritelnLog('GeneratedShadowMap', TexNode.NiceName + ' texture regenerated');
         end;
       end else
@@ -3671,7 +3671,7 @@ var
 
         PostUpdate;
 
-        if Log then
+        if Log and LogRenderer then
           WritelnLog('RenderedTexture', TexNode.NiceName + ' texture regenerated');
       end;
     end;
