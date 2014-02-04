@@ -31,11 +31,12 @@ type
     procedure UpdateTouchController(const LeftSide, CtlVisible: boolean;
       const Mode: TCastleTouchCtlMode = ctcmWalking);
     procedure SetTouchInterface(const Value: TTouchCtlInterface);
+    procedure SetAutomaticTouchInterface(const Value: boolean);
     { Sets touch controls depending on the current navigation mode.
       Should be called each time after navigation mode changed. }
     procedure UpdateAutomaticTouchInterface;
   protected
-    procedure NavigationInfoChanged(Sender: TObject); override;
+    procedure NavigationInfoChanged; override;
     procedure DoUpdate; override;
   public
     { Configure touch controls to be displayed on the window.
@@ -53,7 +54,7 @@ type
       The navigation type is obtained from the camera of the default viewport,
       see TCastleWindow.NavigationType. }
     property AutomaticTouchInterface: boolean
-      read FAutomaticTouchInterface write FAutomaticTouchInterface
+      read FAutomaticTouchInterface write SetAutomaticTouchInterface
       default false;
   end;
 
@@ -204,7 +205,18 @@ begin
   end;
 end;
 
-procedure TCastleWindowTouch.NavigationInfoChanged(Sender: TObject);
+procedure TCastleWindowTouch.SetAutomaticTouchInterface(const Value: boolean);
+begin
+  if FAutomaticTouchInterface <> Value then
+  begin
+    FAutomaticTouchInterface := Value;
+    { change NavigationType immediately, in case we just set
+      AutomaticTouchInterface := true }
+    UpdateAutomaticTouchInterface;
+  end;
+end;
+
+procedure TCastleWindowTouch.NavigationInfoChanged;
 begin
   inherited;
   UpdateAutomaticTouchInterface;

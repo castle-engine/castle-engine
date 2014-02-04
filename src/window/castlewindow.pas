@@ -1867,7 +1867,7 @@ end;
       QuitWhenLastWindowClosed = true.
 
       Call to Close is ignored if window is already Closed. }
-    procedure Close(QuitWhenLastWindowClosed: boolean = true); virtual;
+    procedure Close(QuitWhenLastWindowClosed: boolean = true);
 
     { @deprecated Deprecated name for @link(Invalidate). }
     procedure PostRedisplay; deprecated;
@@ -2238,10 +2238,9 @@ end;
     function GetNavigationType: TNavigationType;
     procedure SetNavigationType(const Value: TNavigationType);
   protected
-    procedure NavigationInfoChanged(Sender: TObject); virtual;
+    procedure NavigationInfoChanged; virtual;
   public
     constructor Create(AOwner: TComponent); override;
-    procedure Close(QuitWhenLastWindowClosed: boolean = true); override;
 
     { Load a single 3D model to your world
       (removing other models, and resetting the camera).
@@ -4058,27 +4057,40 @@ begin
   FpsShowOnCaption := AFpsShowOnCaption;
 end;
 
+{ TWindowSceneManager -------------------------------------------------------- }
+
+type
+  { TGameSceneManager extended to automatically call Owner.NavigationInfoChanged
+    when necessary.
+    Owner must *always* be a TCastleWindow instance (this is guaranteed
+    as this is a private class, only created here). }
+  TWindowSceneManager = class(TGameSceneManager)
+  public
+    procedure BoundNavigationInfoChanged; override;
+  end;
+
+procedure TWindowSceneManager.BoundNavigationInfoChanged;
+begin
+  { Owner will be automatically switched to nil when freeing us
+    by TComponent ownership mechanism (TComponent.Remove). }
+  if Owner <> nil then
+    (Owner as TCastleWindow).NavigationInfoChanged;
+  inherited;
+end;
+
 { TCastleWindow ------------------------------------------------------- }
 
 constructor TCastleWindow.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FSceneManager := TGameSceneManager.Create(Self);
+  FSceneManager := TWindowSceneManager.Create(Self);
   { SetSubComponent and Name setting below are not really necessary,
     but since TCastleWindow is a TComponent descendant, *maybe* in the future
     we'll make use of it. }
   FSceneManager.SetSubComponent(true);
   FSceneManager.Name := 'SceneManager';
-  FSceneManager.OnBoundNavigationInfoChanged := @NavigationInfoChanged;
   Controls.Add(SceneManager);
-end;
-
-procedure TCastleWindow.Close(QuitWhenLastWindowClosed: boolean);
-begin
-  if FSceneManager.OnBoundNavigationInfoChanged = @NavigationInfoChanged then
-    FSceneManager.OnBoundNavigationInfoChanged := nil;
-  inherited;
 end;
 
 procedure TCastleWindow.Load(const SceneURL: string);
@@ -4144,8 +4156,7 @@ begin
      (SceneManager.Camera is TUniversalCamera) then
   begin
     (SceneManager.Camera as TUniversalCamera).NavigationType := Value;
-    if Assigned(SceneManager.OnBoundNavigationInfoChanged) then
-      SceneManager.OnBoundNavigationInfoChanged(SceneManager);
+    NavigationInfoChanged;
   end;
 end;
 

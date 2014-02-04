@@ -795,6 +795,9 @@ type
       property, then calls OnMoveAllowed event. }
     function MoveAllowed(const OldPosition, NewPosition: TVector3Single;
       const BecauseOfGravity: boolean): boolean; virtual;
+
+    procedure BoundNavigationInfoChanged; virtual;
+    procedure BoundViewpointChanged; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2795,8 +2798,7 @@ begin
       This allows code that observes Camera.NavigationType to work,
       otherwise OnBoundNavigationInfoChanged may be called only
       when Camera = nil (at loading). }
-    if Assigned(OnBoundNavigationInfoChanged) then
-      OnBoundNavigationInfoChanged(Self);
+    BoundNavigationInfoChanged;
   end else
     inherited; { not really needed for now, but for safety --- always call inherited }
 end;
@@ -3180,22 +3182,30 @@ begin
     Result := Items.WorldRay(RayOrigin, RayDirection);
 end;
 
+procedure TCastleSceneManager.BoundViewpointChanged;
+begin
+  if Assigned(OnBoundViewpointChanged) then
+    OnBoundViewpointChanged(Self);
+end;
+
+procedure TCastleSceneManager.BoundNavigationInfoChanged;
+begin
+  if Assigned(OnBoundNavigationInfoChanged) then
+    OnBoundNavigationInfoChanged(Self);
+end;
+
 procedure TCastleSceneManager.SceneBoundViewpointChanged(Scene: TCastleSceneCore);
 begin
   if Camera <> nil then
     Scene.CameraFromViewpoint(Camera, false);
-
-  if Assigned(OnBoundViewpointChanged) then
-    OnBoundViewpointChanged(Self);
+  BoundViewpointChanged;
 end;
 
 procedure TCastleSceneManager.SceneBoundNavigationInfoChanged(Scene: TCastleSceneCore);
 begin
   if Camera <> nil then
     Scene.CameraFromNavigationInfo(Camera, Items.BoundingBox);
-
-  if Assigned(OnBoundNavigationInfoChanged) then
-    OnBoundNavigationInfoChanged(Self);
+  BoundNavigationInfoChanged;
 end;
 
 procedure TCastleSceneManager.SceneBoundViewpointVectorsChanged(Scene: TCastleSceneCore);

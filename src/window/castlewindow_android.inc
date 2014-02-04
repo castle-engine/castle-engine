@@ -458,7 +458,7 @@ end;
 
 { TCastleWindow -------------------------------------------------------------- }
 
-procedure TCastleWindow.NavigationInfoChanged(Sender: TObject);
+procedure TCastleWindow.NavigationInfoChanged;
 begin
 end;
 
