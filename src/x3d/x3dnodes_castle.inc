@@ -279,6 +279,8 @@
     FShader: TObject;
     FShaderLoaded: boolean;
     FStateForShaderPrepare: TX3DGraphTraverseState;
+    function GetEnabled: boolean;
+    procedure SetEnabled(const Value: boolean);
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -296,6 +298,8 @@
 
     private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
+
+    property Enabled: boolean read GetEnabled write SetEnabled;
 
     { Shader and ShaderLoaded properties are internally manager by the renderer.
       Right now, this means TCastleScene.
@@ -333,6 +337,9 @@
   end;
 
   TEffectNode = class(TAbstractChildNode)
+  private
+    function GetEnabled: boolean;
+    procedure SetEnabled(const Value: boolean);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -346,6 +353,8 @@
 
     private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
+
+    property Enabled: boolean read GetEnabled write SetEnabled;
   end;
 
   TEffectPartNode = class(TAbstractNode, IAbstractUrlObject)
@@ -905,6 +914,16 @@ begin
   FFdShaders.EnumerateValid(Func);
 end;
 
+function TScreenEffectNode.GetEnabled: boolean;
+begin
+  Result := FdEnabled.Value;
+end;
+
+procedure TScreenEffectNode.SetEnabled(const Value: boolean);
+begin
+  FdEnabled.Send(Value);
+end;
+
 class function TMultiGeneratedTextureCoordinateNode.ClassNodeTypeName: string;
 begin
   Result := 'MultiGeneratedTextureCoordinate';
@@ -946,6 +965,16 @@ class function TEffectNode.URNMatching(const URN: string): boolean;
 begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName) or
     (URN = URNKambiNodes2 + ClassNodeTypeName);
+end;
+
+function TEffectNode.GetEnabled: boolean;
+begin
+  Result := FdEnabled.Value;
+end;
+
+procedure TEffectNode.SetEnabled(const Value: boolean);
+begin
+  FdEnabled.Send(Value);
 end;
 
 procedure TEffectPartNode.CreateNode;

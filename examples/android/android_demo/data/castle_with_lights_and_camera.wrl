@@ -104,4 +104,20 @@ DEF RotatingCubeMap Transform {
 ROUTE Timer.fraction_changed TO Interp.set_fraction
 ROUTE Interp.value_changed TO RotatingCubeMap.set_rotation
 
+DEF MyScreenEffect ScreenEffect { enabled FALSE shaders ComposedShader {
+  language "GLSL"
+  parts ShaderPart { type "FRAGMENT" url "data:text/plain,
+ivec2 screen_position();
+vec4 screen_get_color(ivec2 position);
+void main (void)
+{
+  gl_FragColor = screen_get_color(screen_position());
+  float factor_x = float(screen_x()) / float(screen_width);
+  float factor_y = float(screen_y()) / float(screen_height);
+  float factor = min(min(factor_x, 1.0 - factor_x), min(factor_y, 1.0 - factor_y));
+  factor = pow(factor, 0.2);
+  gl_FragColor.rgb = mix(vec3(0.5, 0.5, 0.0), gl_FragColor.rgb, factor);
+}
+" } } }
+
 Inline { url "castle_with_lights.wrl" }

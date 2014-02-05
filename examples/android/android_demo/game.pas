@@ -38,14 +38,19 @@ var
   {$endif}
   Image: TCastleImageControl;
   ToggleShaderButton: TCastleButton;
+  ToggleScreenEffectButton: TCastleButton;
+  ToggleSSAOButton: TCastleButton;
   TouchUIButton: TCastleButton;
   MessageButton: TCastleButton;
   ProgressButton: TCastleButton;
   MyShaderEffect: TEffectNode;
+  MyScreenEffect: TScreenEffectNode;
 
 type
   TDummy = class
     procedure ToggleShaderClick(Sender: TObject);
+    procedure ToggleScreenEffectClick(Sender: TObject);
+    procedure ToggleSSAOClick(Sender: TObject);
     procedure TouchUIClick(Sender: TObject);
     procedure MessageClick(Sender: TObject);
     procedure ProgressClick(Sender: TObject);
@@ -54,7 +59,26 @@ type
 procedure TDummy.ToggleShaderClick(Sender: TObject);
 begin
   if MyShaderEffect <> nil then
-    MyShaderEffect.FdEnabled.Send(not MyShaderEffect.FdEnabled.Value);
+  begin
+    MyShaderEffect.Enabled := not MyShaderEffect.Enabled;
+    ToggleShaderButton.Pressed := MyShaderEffect.Enabled;
+  end;
+end;
+
+procedure TDummy.ToggleScreenEffectClick(Sender: TObject);
+begin
+  if MyScreenEffect <> nil then
+  begin
+    MyScreenEffect.Enabled := not MyScreenEffect.Enabled;
+    ToggleScreenEffectButton.Pressed := MyScreenEffect.Enabled;
+  end;
+end;
+
+procedure TDummy.ToggleSSAOClick(Sender: TObject);
+begin
+  Window.SceneManager.ScreenSpaceAmbientOcclusion :=
+    not Window.SceneManager.ScreenSpaceAmbientOcclusion;
+  ToggleSSAOButton.Pressed := Window.SceneManager.ScreenSpaceAmbientOcclusion;
 end;
 
 procedure TDummy.TouchUIClick(Sender: TObject);
@@ -119,7 +143,20 @@ begin
   ToggleShaderButton := TCastleButton.Create(Window);
   ToggleShaderButton.Caption := 'Toggle Shader Effect';
   ToggleShaderButton.OnClick := @TDummy(nil).ToggleShaderClick;
+  ToggleShaderButton.Toggle := true;
   Window.Controls.InsertFront(ToggleShaderButton);
+
+  ToggleScreenEffectButton := TCastleButton.Create(Window);
+  ToggleScreenEffectButton.Caption := 'Toggle Screen Effect';
+  ToggleScreenEffectButton.OnClick := @TDummy(nil).ToggleScreenEffectClick;
+  ToggleScreenEffectButton.Toggle := true;
+  Window.Controls.InsertFront(ToggleScreenEffectButton);
+
+  ToggleSSAOButton := TCastleButton.Create(Window);
+  ToggleSSAOButton.Caption := 'Toggle SSAO';
+  ToggleSSAOButton.OnClick := @TDummy(nil).ToggleSSAOClick;
+  ToggleSSAOButton.Toggle := true;
+  Window.Controls.InsertFront(ToggleSSAOButton);
 
   TouchUIButton := TCastleButton.Create(Window);
   TouchUIButton.Caption := 'Next Touch UI';
@@ -138,6 +175,11 @@ begin
 
   MyShaderEffect := Window.SceneManager.MainScene.RootNode.TryFindNodeByName(
     TEffectNode, 'MyShaderEffect', false) as TEffectNode;
+  ToggleShaderButton.Pressed := (MyShaderEffect <> nil) and MyShaderEffect.Enabled;
+
+  MyScreenEffect := Window.SceneManager.MainScene.RootNode.TryFindNodeByName(
+    TScreenEffectNode, 'MyScreenEffect', false) as TScreenEffectNode;
+  ToggleScreenEffectButton.Pressed := (MyScreenEffect <> nil) and MyScreenEffect.Enabled;
 
   Window.TouchInterface := etciCtlWalkDragRotate;
 
@@ -166,8 +208,19 @@ begin
   Image.AlignHorizontal(prLow, prLow, Margin);
   Image.AlignVertical(prHigh, prHigh, -Margin);
 
+  Bottom := Window.Height;
+
+  Bottom -= ToggleShaderButton.Height + Margin;
   ToggleShaderButton.AlignHorizontal(prMiddle, prMiddle);
-  ToggleShaderButton.AlignVertical(prHigh, prHigh, -Margin);
+  ToggleShaderButton.Bottom := Bottom;
+
+  Bottom -= ToggleScreenEffectButton.Height + Margin;
+  ToggleScreenEffectButton.AlignHorizontal(prMiddle, prMiddle);
+  ToggleScreenEffectButton.Bottom := Bottom;
+
+  Bottom -= ToggleSSAOButton.Height + Margin;
+  ToggleSSAOButton.AlignHorizontal(prMiddle, prMiddle);
+  ToggleSSAOButton.Bottom := Bottom;
 
   Bottom := Window.Height;
 
