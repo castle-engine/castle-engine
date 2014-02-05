@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		4D1BD22A187D707D0067AA02 /* cge_library.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D1BD229187D707D0067AA02 /* cge_library.a */; };
 		4D550C8D18A25D1F00C3F173 /* FileOpenController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D550C8C18A25D1F00C3F173 /* FileOpenController.m */; };
+		4D7616CD18A29AFA004BFA46 /* OptionsController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D7616CC18A29AFA004BFA46 /* OptionsController.m */; };
+		4D7616D018A29D9D004BFA46 /* Options.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D7616CF18A29D9D004BFA46 /* Options.m */; };
 		4D9724EB183BD54E000FD3D1 /* ViewInfoController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D9724EA183BD54E000FD3D1 /* ViewInfoController.m */; };
 		4D9724EF183CCC40000FD3D1 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D9724EE183CCC40000FD3D1 /* OpenAL.framework */; };
 		4DCB396E183A2A46001A708D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DCB396D183A2A46001A708D /* Foundation.framework */; };
@@ -32,6 +34,10 @@
 		4D550C8B18A25D1F00C3F173 /* FileOpenController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileOpenController.h; sourceTree = "<group>"; };
 		4D550C8C18A25D1F00C3F173 /* FileOpenController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FileOpenController.m; sourceTree = "<group>"; };
 		4D550C8E18A2703600C3F173 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/Main.storyboard; sourceTree = "<group>"; };
+		4D7616CB18A29AFA004BFA46 /* OptionsController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OptionsController.h; sourceTree = "<group>"; };
+		4D7616CC18A29AFA004BFA46 /* OptionsController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OptionsController.m; sourceTree = "<group>"; };
+		4D7616CE18A29D9D004BFA46 /* Options.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Options.h; sourceTree = "<group>"; };
+		4D7616CF18A29D9D004BFA46 /* Options.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Options.m; sourceTree = "<group>"; };
 		4D9724E9183BD54E000FD3D1 /* ViewInfoController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewInfoController.h; sourceTree = "<group>"; };
 		4D9724EA183BD54E000FD3D1 /* ViewInfoController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewInfoController.m; sourceTree = "<group>"; };
 		4D9724EE183CCC40000FD3D1 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
@@ -113,6 +119,10 @@
 				4DCB39A3183A2B69001A708D /* OpenGLController.m */,
 				4D550C8B18A25D1F00C3F173 /* FileOpenController.h */,
 				4D550C8C18A25D1F00C3F173 /* FileOpenController.m */,
+				4D7616CE18A29D9D004BFA46 /* Options.h */,
+				4D7616CF18A29D9D004BFA46 /* Options.m */,
+				4D7616CB18A29AFA004BFA46 /* OptionsController.h */,
+				4D7616CC18A29AFA004BFA46 /* OptionsController.m */,
 				4DCB39B5183A70F3001A708D /* ViewpointsController.h */,
 				4DCB39B6183A70F3001A708D /* ViewpointsController.m */,
 				4D9724E9183BD54E000FD3D1 /* ViewInfoController.h */,
@@ -211,6 +221,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4D7616D018A29D9D004BFA46 /* Options.m in Sources */,
+				4D7616CD18A29AFA004BFA46 /* OptionsController.m in Sources */,
 				4D9724EB183BD54E000FD3D1 /* ViewInfoController.m in Sources */,
 				4DCB397E183A2A46001A708D /* AppDelegate.m in Sources */,
 				4DCB39A4183A2B69001A708D /* OpenGLController.m in Sources */,

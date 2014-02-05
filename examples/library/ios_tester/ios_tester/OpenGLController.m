@@ -15,6 +15,7 @@
 
 #import "OpenGLController.h"
 #import "ViewInfoController.h"
+#import "Options.h"
 #include "castleengine.h"
 
 @interface OpenGLController ()
@@ -35,7 +36,7 @@
 
 @end
 
-
+//-----------------------------------------------------------------
 @implementation OpenGLController
 
 - (void)viewDidLoad
@@ -71,7 +72,9 @@
     m_btnViewpointPrev = [[UIBarButtonItem alloc] initWithTitle:@" < " style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnViewpointPrev:)];
     m_btnViewpointNext = [[UIBarButtonItem alloc] initWithTitle:@" > " style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnViewpointNext:)];
     UIBarButtonItem *btnViewpointPopup = [[UIBarButtonItem alloc] initWithTitle:@"Viewpoints" style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnViewpointPopup:)];
-    
+
+    UIBarButtonItem *btnOptions = [[UIBarButtonItem alloc] initWithTitle:@"Options" style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnOptions:)];
+
     UIButton *btnInfo = [UIButton buttonWithType:UIButtonTypeInfoLight];
     [btnInfo addTarget:self action:@selector(OnBtnInfo:) forControlEvents:UIControlEventTouchUpInside];
     UIBarButtonItem *btnBarInfo =[[UIBarButtonItem alloc] initWithCustomView:btnInfo];
@@ -79,7 +82,7 @@
     UIBarButtonItem *btnOpenFile = [[UIBarButtonItem alloc] initWithTitle:@"Open File" style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnOpenFile:)];
     
     self.navigationItem.leftBarButtonItem = btnOpenFile;
-    self.navigationItem.rightBarButtonItems = @[btnBarInfo, m_btnViewpointNext, btnViewpointPopup, m_btnViewpointPrev, itemSegm];
+    self.navigationItem.rightBarButtonItems = @[btnBarInfo, btnOptions, m_btnViewpointNext, btnViewpointPopup, m_btnViewpointPrev, itemSegm];
     
     [self setupGL];
 }
@@ -131,13 +134,24 @@
 
     CGE_Open();
     CGE_SetUserInterface(true, 115 * m_fScale);
+    
+    [self LoadSceneFile];
+
+    [self update];
+}
+
+//-----------------------------------------------------------------
+- (void)LoadSceneFile
+{
     CGE_LoadSceneFromFile([self.fileToOpen fileSystemRepresentation]);
     
+    Options *opt = [Options sharedOptions];
+    CGE_SetWalkHeadBobbing(opt.walkHeadBobbing);
+    CGE_SetEffectSsao(opt.ssao);
+
     m_nViewpointCount = CGE_GetViewpointsCount();
     m_nCurrentViewpoint = 0;
     [self updateViewpointButtons];
-
-    [self update];
 }
 
 //-----------------------------------------------------------------
@@ -331,14 +345,14 @@
     
     if (m_fileOpenController!=nil)      // scene file selected
     {
-        self.fileToOpen = m_fileOpenController.selectedFile;
+        NSString *sFile = m_fileOpenController.selectedFile;
         m_fileOpenController = nil;
         
-        CGE_LoadSceneFromFile([self.fileToOpen fileSystemRepresentation]);
-        
-        m_nViewpointCount = CGE_GetViewpointsCount();
-        m_nCurrentViewpoint = 0;
-        [self updateViewpointButtons];
+        if (sFile!=nil && sFile.length > 0)
+        {
+            self.fileToOpen = sFile;
+            [self LoadSceneFile];
+        }
     }
 }
 
@@ -358,6 +372,18 @@
     [m_currentPopover presentPopoverFromBarButtonItem:sender permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
 }
 
+//-----------------------------------------------------------------
+- (void)OnBtnOptions:(id)sender
+{
+    if (m_currentPopover!=nil) return;
+    
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+    UIViewController *viewctl = [storyboard instantiateViewControllerWithIdentifier:@"OptionsPopover"];
+    m_currentPopover = [[UIPopoverController alloc] initWithContentViewController:viewctl];
+    
+    [m_currentPopover setDelegate:self];
+    [m_currentPopover presentPopoverFromBarButtonItem:sender permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
+}
 
 //-----------------------------------------------------------------
 - (void)OnBtnInfo:(id)sender
