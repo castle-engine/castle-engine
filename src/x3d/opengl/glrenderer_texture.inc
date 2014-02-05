@@ -1218,9 +1218,9 @@ begin
 
   if DepthMap then
   begin
-    if not GLFeatures.ARB_depth_texture then
+    if not GLFeatures.TextureDepth then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_depth_texture, cannot use RenderedTexture with depthMap = TRUE');
+      OnWarning(wtMajor, 'VRML/X3D', 'Your graphic card doesn''t support depth textures, cannot use RenderedTexture with depthMap = TRUE');
       Exit;
     end;
 
@@ -1933,9 +1933,9 @@ begin
       TextureNode, Filter, TextureWrap, Size, Size, true);
   end else
   begin
-    if not GLFeatures.ARB_depth_texture then
+    if not GLFeatures.TextureDepth then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_depth_texture, cannot use GeneratedShadowMap nodes');
+      OnWarning(wtMajor, 'VRML/X3D', 'Your graphic card doesn''t support depth textures, cannot use GeneratedShadowMap nodes');
       Exit;
     end;
 

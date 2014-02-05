@@ -747,7 +747,7 @@ type
     procedure TextureCubeMap_DecReference(
       const TextureGLName: TGLuint);
 
-    { Required ARB_depth_texture before calling this.
+    { Required GLFeatures.TextureDepth before calling this.
 
       For interpreating DepthCompareField, ARB_shadow will be needed
       (but we'll make nice warning if it's not available).
@@ -1652,7 +1652,10 @@ begin
     and both internal and external formats to GL_DEPTH_COMPONENT_ARB
     (will match depth buffer precision). }
   glTexImage2d(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-    Width, Height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nil);
+    Width, Height, 0, GL_DEPTH_COMPONENT,
+    { OpenGLES: OES_depth_texture allows only GL_UNSIGNED_SHORT
+      or GL_UNSIGNED_INT for depth textures. }
+    {$ifdef OpenGLES} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_BYTE {$endif}, nil);
 
   {$ifndef OpenGLES} // TODO-es
 

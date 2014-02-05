@@ -2810,7 +2810,7 @@ begin
     // we have GL_DEPTH_STENCIL_OES, but what is the equivalent of GL_DEPTH_STENCIL_ATTACHMENT?
     {$endif}
     begin
-      DepthBufferFormatPacked := {$ifndef OpenGLES} GL_DEPTH_COMPONENT {$else} GL_DEPTH_COMPONENT16 {$endif};
+      DepthBufferFormatPacked := GL_DEPTH_COMPONENT { Needs to use GL_DEPTH_COMPONENT16 on OpenGLES? No. };
       DepthAttachmentPacked := GL_DEPTH_ATTACHMENT;
     end;
 

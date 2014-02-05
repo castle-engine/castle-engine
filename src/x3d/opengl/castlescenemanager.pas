@@ -2125,8 +2125,12 @@ function TCastleAbstractViewport.RenderWithScreenEffects: boolean;
       if GLFeatures.ShadowVolumesPossible and GLFeatures.PackedDepthStencil then
         TexImage2D(GL_DEPTH24_STENCIL8_EXT, GL_DEPTH_STENCIL_EXT, GL_UNSIGNED_INT_24_8_EXT) else
       {$endif}
-        // TODO: Maybe GL_DEPTH_COMPONENT16?
-        TexImage2D({$ifndef OpenGLES} GL_DEPTH_COMPONENT {$else} GL_DEPTH_COMPONENT16 {$endif}, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE);
+        TexImage2D(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT,
+          { On OpenGLES, using GL_UNSIGNED_BYTE will result in FBO failing
+            with INCOMPLETE_ATTACHMENT.
+            http://www.khronos.org/registry/gles/extensions/OES/OES_depth_texture.txt
+            allows only GL_UNSIGNED_SHORT or GL_UNSIGNED_INT for depth textures. }
+          {$ifdef OpenGLES} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_BYTE {$endif});
       //glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
       //glTexParameteri(ScreenEffectTextureTarget, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
     end else
@@ -2151,6 +2155,9 @@ begin
   if Result then
   begin
     CurrentScreenEffectsNeedDepth := ScreenEffectsNeedDepth;
+    if CurrentScreenEffectsNeedDepth and not GLFeatures.TextureDepth then
+      { we support only screen effects that do not require depth }
+      Exit(false);
 
     { We need a temporary texture, for screen effect. }
     if (ScreenEffectTextureDest = 0) or

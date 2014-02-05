@@ -95,7 +95,6 @@ type
       like below.
       Instead most interesting extensions are wrapped in "features"
       like @link(UseMultiTexturing), see lower. }
-    ARB_depth_texture: boolean;
     ARB_shadow: boolean;
     EXT_fog_coord: boolean;
     EXT_texture_filter_anisotropic: boolean;
@@ -220,6 +219,9 @@ type
 
     { Support for float texture formats for glTexImage2d. }
     TextureFloat: boolean;
+
+    { Support for depth texture formats for glTexImage2d. }
+    TextureDepth: boolean;
 
     constructor Create;
   end;
@@ -720,7 +722,51 @@ begin
   GLFeatures := TGLFeatures.Create;
 end;
 
+{$ifdef OpenGLES}
+{ Based on GLExt unit in FPC. This function is missing from GLES header,
+  which does not check for extensions presence at all. }
+function glext_ExtensionSupported(const extension: String;
+  const searchIn: String): Boolean;
+var
+  extensions: PChar;
+  start: PChar;
+  where, terminator: PChar;
+begin
+  if (Pos(' ', extension) <> 0) or (extension = '') then
+  begin
+    Result := FALSE;
+    Exit;
+  end;
+
+  if searchIn = '' then extensions := PChar(glGetString(GL_EXTENSIONS))
+  else extensions := PChar(searchIn);
+  start := extensions;
+  while TRUE do
+  begin
+    where := StrPos(start, PChar(extension));
+    if where = nil then Break;
+    terminator := Pointer(PtrUInt(where) + PtrUInt(Length(extension)));
+    {$warnings off} { Stop warning about unportable PtrUInt convertions }
+    if (where = start) or (PChar(Pointer(PtrUInt(where) - PtrUInt(1)))^ = ' ') then
+    {$warnings on}
+    begin
+      if (terminator^ = ' ') or (terminator^ = #0) then
+      begin
+        Result := TRUE;
+        Exit;
+      end;
+    end;
+    start := terminator;
+  end;
+  Result := FALSE;
+end;
+{$endif}
+
 constructor TGLFeatures.Create;
+{$ifdef OpenGLES}
+var
+  GLESExtensions: string;
+{$endif}
 begin
   inherited;
 
@@ -740,7 +786,6 @@ begin
   ARB_window_pos := Load_GL_ARB_window_pos;
   MESA_window_pos := Load_GL_MESA_window_pos;
 
-  ARB_depth_texture := Load_GL_ARB_depth_texture;
   ARB_shadow := Load_GL_ARB_shadow;
   EXT_fog_coord := Load_GL_EXT_fog_coord;
   NV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
@@ -881,7 +926,14 @@ begin
   end else
     CurrentMultiSampling := 1;
 
-  PackedDepthStencil := {$ifdef OpenGLES} true {TODO?unknown?} {$else} Load_GL_EXT_packed_depth_stencil {$endif};
+  {$ifdef OpenGLES}
+  GLESExtensions := Pchar(glGetString(GL_EXTENSIONS));
+  {$endif}
+
+  PackedDepthStencil :=
+    {$ifdef OpenGLES} glext_ExtensionSupported('GL_OES_packed_depth_stencil', GLESExtensions)
+    {$else} Load_GL_EXT_packed_depth_stencil
+    {$endif};
 
   ShadowVolumesPossible := glGetInteger(GL_STENCIL_BITS) >= 4;
 
@@ -899,8 +951,15 @@ begin
       as standard. glBlendColor is available since 1.2 as standard. }
     ((Version_1_2 and Load_GL_ARB_imaging) or Version_1_4) and not GLVersion.Fglrx {$endif};
 
-  TextureFloat := {$ifdef OpenGLES} false {$else}
-    Load_GL_ATI_texture_float or Load_GL_ARB_texture_float {$endif};
+  TextureFloat :=
+    {$ifdef OpenGLES} false
+    {$else} Load_GL_ATI_texture_float or Load_GL_ARB_texture_float
+    {$endif};
+
+  TextureDepth :=
+    {$ifdef OpenGLES} glext_ExtensionSupported('GL_OES_depth_texture', GLESExtensions)
+    {$else} Load_GL_ARB_depth_texture
+    {$endif};
 end;
 
 { EOpenGLError, CheckGLErrors ------------------------------------------------ }
@@ -1647,6 +1706,8 @@ begin
     '  Textures non-power-of-2: ' + BoolToStr[GLFeatures.TextureNonPowerOfTwo] +nl+
     '  Blend constant parameter: ' + BoolToStr[GLFeatures.BlendConstant] +nl+
     '  Float textures: ' + BoolToStr[GLFeatures.TextureFloat] +nl+
+    '  Depth textures: ' + BoolToStr[GLFeatures.TextureDepth] +nl+
+    '  Packed depth + stencil: ' + BoolToStr[GLFeatures.PackedDepthStencil] +nl+
     nl+
     '  All extensions: ' +PChar(glGetString(GL_EXTENSIONS)) +nl+
     nl+
