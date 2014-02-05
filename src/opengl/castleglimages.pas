@@ -2810,7 +2810,19 @@ begin
     // we have GL_DEPTH_STENCIL_OES, but what is the equivalent of GL_DEPTH_STENCIL_ATTACHMENT?
     {$endif}
     begin
-      DepthBufferFormatPacked := GL_DEPTH_COMPONENT { Needs to use GL_DEPTH_COMPONENT16 on OpenGLES? No. };
+      DepthBufferFormatPacked :=
+        { OpenGLES notes:
+          - When depth is a texture, GL_DEPTH_COMPONENT works just as well
+            as GL_DEPTH_COMPONENT16. Our depth textures use UNSIGNED_SHORT,
+            so they match 16 bits. Although when we use UNSIGNED_INT for
+            depth for screen effects it also works...
+            So it really doesn't seem to matter, at least for Mesa OpenGLES
+            everything works.
+          - For renderbuffer, we really need to use the enum with 16 suffix.
+            Otherwise (on Mesa OpenGLES) we'll get FBO incomplete errors. }
+        {$ifdef OpenGLES} GL_DEPTH_COMPONENT16
+        {$else} GL_DEPTH_COMPONENT
+        {$endif};
       DepthAttachmentPacked := GL_DEPTH_ATTACHMENT;
     end;
 
