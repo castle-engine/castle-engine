@@ -31,6 +31,8 @@ void main(void)
   /* PLUG: steep_parallax_shadow_apply (fragment_color) */
   /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */
 
+#undef normal_eye_fragment
+
   gl_FragColor = fragment_color;
 
   /* PLUG: fragment_end (gl_FragColor) */

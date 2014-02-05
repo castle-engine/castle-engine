@@ -222,9 +222,21 @@ type
   public
     Name: string;
     { Declaration to put at the top of the shader code.
-      Must end with newline. }
+      Must end with newline. May be empty if you do it directly yourself. }
     Declaration: string;
     procedure SetUniform(AProgram: TX3DShaderProgram); virtual; abstract;
+  end;
+
+  TDynamicUniformSingle = class(TDynamicUniform)
+  public
+    Value: Single;
+    procedure SetUniform(AProgram: TX3DShaderProgram); override;
+  end;
+
+  TDynamicUniformVec3 = class(TDynamicUniform)
+  public
+    Value: TVector3Single;
+    procedure SetUniform(AProgram: TX3DShaderProgram); override;
   end;
 
   TDynamicUniformVec4 = class(TDynamicUniform)
@@ -1452,6 +1464,20 @@ begin
   end;
 end;
 
+{ TDynamicUniformSingle ------------------------------------------------------ }
+
+procedure TDynamicUniformSingle.SetUniform(AProgram: TX3DShaderProgram);
+begin
+  AProgram.SetUniform(Name, Value);
+end;
+
+{ TDynamicUniformVec3 -------------------------------------------------------- }
+
+procedure TDynamicUniformVec3.SetUniform(AProgram: TX3DShaderProgram);
+begin
+  AProgram.SetUniform(Name, Value);
+end;
+
 { TDynamicUniformVec4 -------------------------------------------------------- }
 
 procedure TDynamicUniformVec4.SetUniform(AProgram: TX3DShaderProgram);
@@ -2247,33 +2273,73 @@ var
 
   procedure EnableShaderFog;
   var
-    FogFactor, CoordinateSource: string;
+    FogFactor, FogUniforms, CoordinateSource: string;
+    USingle: TDynamicUniformSingle;
+    UColor: TDynamicUniformVec3;
   begin
     if FFogEnabled then
     begin
       case FFogCoordinateSource of
-        fcDepth           : CoordinateSource := 'vertex_eye.z';
-        fcPassedCoordinate: CoordinateSource := 'gl_FogCoord';
+        fcDepth           : CoordinateSource := '-vertex_eye.z';
+        fcPassedCoordinate:
+          {$ifdef OpenGLES}
+          Exit; // not supported on OpenGLES now
+          {$else}
+          CoordinateSource := 'gl_FogCoord';
+          {$endif}
         else raise EInternalError.Create('TShader.EnableShaderFog:FogCoordinateSource?');
       end;
 
       Plug(stVertex,
+        'varying float castle_FogFragCoord;' + NL+
         'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
         '{' +NL+
-        '  gl_FogFragCoord = ' + CoordinateSource + ';' +NL+
+        '  castle_FogFragCoord = ' + CoordinateSource + ';' +NL+
         '}');
 
       case FFogType of
-        ftLinear: FogFactor := '(gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale';
-        ftExp   : FogFactor := 'exp(-gl_Fog.density * gl_FogFragCoord)';
+        ftLinear:
+          begin
+            FogUniforms := 'uniform float castle_FogLinearEnd;';
+            { The normal fog equation multiply by gl_Fog.scale,
+              which is a precomputed 1.0 / (gl_Fog.end - gl_Fog.start),
+              which is just 1.0 / gl_Fog.end for us.
+              So we just divide by castle_FogLinearEnd. }
+            FogFactor := 'castle_FogFragCoord / castle_FogLinearEnd';
+
+            USingle := TDynamicUniformSingle.Create;
+            USingle.Name := 'castle_FogLinearEnd';
+            USingle.Value := FFogLinearEnd;
+            DynamicUniforms.Add(USingle);
+          end;
+        ftExp:
+          begin
+            FogUniforms := 'uniform float castle_FogExpDensity;';
+            FogFactor := '1.0 - exp(-castle_FogExpDensity * castle_FogFragCoord)';
+
+            USingle := TDynamicUniformSingle.Create;
+            USingle.Name := 'castle_FogExpDensity';
+            USingle.Value := FFogExpDensity;
+            DynamicUniforms.Add(USingle);
+          end;
         else raise EInternalError.Create('TShader.EnableShaderFog:FogType?');
       end;
 
+      UColor := TDynamicUniformVec3.Create;
+      UColor.Name := 'castle_FogColor';
+      UColor.Value := FFogColor;
+      { We leave UColor.Declaration empty, just like USingle.Declaration above,
+        because we only declare them inside this plug
+        (which is a separate compilation unit for desktop OpenGL). }
+      DynamicUniforms.Add(UColor);
       Plug(stFragment,
+        'varying float castle_FogFragCoord;' + NL+
+        'uniform vec3 castle_FogColor;' +NL+
+        FogUniforms + NL +
         'void PLUG_fog_apply(inout vec4 fragment_color, const vec3 normal_eye_fragment)' +NL+
         '{' +NL+
-        '  fragment_color.rgb = mix(fragment_color.rgb, gl_Fog.color.rgb,' +NL+
-        '    clamp(1.0 - ' + FogFactor + ', 0.0, 1.0));' +NL+
+        '  fragment_color.rgb = mix(fragment_color.rgb, castle_FogColor,' +NL+
+        '    clamp(' + FogFactor + ', 0.0, 1.0));' +NL+
         '}');
     end;
   end;
@@ -2320,8 +2386,8 @@ begin
   EnableShaderMaterialFromColor;
   {$ifndef OpenGLES} //TODO-es
   EnableShaderBumpMapping;
-  EnableShaderFog;
   {$endif}
+  EnableShaderFog;
   if AppearanceEffects <> nil then
     EnableEffects(AppearanceEffects);
   if GroupEffects <> nil then
