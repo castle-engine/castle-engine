@@ -932,16 +932,6 @@ Various:
   as we save time on avoiding texture lookup in many cases.
   Depends on GPU. Test, see if / where it's worth.
 
-- normal fog doesn't work on kocury nvidia (volumetric and explicit fog is Ok)
-  with shader pipeline.
-  Replacing gl_FogFragCoord with custom kambi_fog_frag_coord doesn't help.
-
-  Weird, as explicit fog shows that fog type linear is Ok...
-  I can also assign kambi_fog_frag_coord to const, like 50.0, and then it works.
-
-  So something must be bad when setting kambi_fog_frag_coord from vertex_eye.z.
-  Defer for later, some driver bug.
-
 - Dynamically changing BaseLights will cause a slowdown, as the new shaders need
   to be prepared. This shouldn't happen in the middle of the game.
   Concerns: lets_take_a_walk and castle thunder effect.
