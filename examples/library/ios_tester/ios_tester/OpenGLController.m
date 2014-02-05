@@ -24,7 +24,6 @@
     CGFloat m_fScale;
     
     UISegmentedControl *m_segmNavigation;
-    UIBarButtonItem *m_btnViewpointPopup;
     UIBarButtonItem *m_btnViewpointPrev;
     UIBarButtonItem *m_btnViewpointNext;
     
@@ -54,9 +53,37 @@
     GLKView *view = (GLKView *)self.view;
     view.context = self.context;
     
+    // setup recognizers
+    [self.view addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(OnTouchGesture:)]];
+    [self.view addGestureRecognizer:[[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(OnPinchGesture:)]];
+    [self.view addGestureRecognizer:[[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(OnPanGesture:)]];
+    
+    // create toolbar controls
+    m_segmNavigation = [[UISegmentedControl alloc] initWithItems:@[@"Walk", @"Fly", @"Examine"]];
+    m_segmNavigation.selectedSegmentIndex = 0;
+    [m_segmNavigation addTarget:self
+                         action:@selector(OnNavigationSegmentChanged:)
+               forControlEvents:UIControlEventValueChanged];
+    
+    UIBarButtonItem *itemSegm = [[UIBarButtonItem alloc] initWithCustomView:m_segmNavigation];
+    
+    m_btnViewpointPrev = [[UIBarButtonItem alloc] initWithTitle:@" < " style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnViewpointPrev:)];
+    m_btnViewpointNext = [[UIBarButtonItem alloc] initWithTitle:@" > " style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnViewpointNext:)];
+    UIBarButtonItem *btnViewpointPopup = [[UIBarButtonItem alloc] initWithTitle:@"Viewpoints" style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnViewpointPopup:)];
+    
+    UIButton *btnInfo = [UIButton buttonWithType:UIButtonTypeInfoLight];
+    [btnInfo addTarget:self action:@selector(OnBtnInfo:) forControlEvents:UIControlEventTouchUpInside];
+    UIBarButtonItem *btnBarInfo =[[UIBarButtonItem alloc] initWithCustomView:btnInfo];
+    
+    UIBarButtonItem *btnOpenFile = [[UIBarButtonItem alloc] initWithTitle:@"Open File" style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnOpenFile:)];
+    
+    self.navigationItem.leftBarButtonItem = btnOpenFile;
+    self.navigationItem.rightBarButtonItems = @[btnBarInfo, m_btnViewpointNext, btnViewpointPopup, m_btnViewpointPrev, itemSegm];
+    
     [self setupGL];
 }
 
+//-----------------------------------------------------------------
 - (void)dealloc
 {
     [self tearDownGL];
@@ -66,6 +93,7 @@
     }
 }
 
+//-----------------------------------------------------------------
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -84,6 +112,7 @@
     // Dispose of any resources that can be recreated.
 }
 
+//-----------------------------------------------------------------
 - (void)setupGL
 {
     [EAGLContext setCurrentContext:self.context];
@@ -96,20 +125,21 @@
     if (self.fileToOpen == nil)
     {
         NSString *sBundlePath = [[NSBundle mainBundle] bundlePath];
-        self.fileToOpen = [sBundlePath stringByAppendingPathComponent:@"sampledata/Image3D.wrl"];
+        self.fileToOpen = [sBundlePath stringByAppendingPathComponent:@"sampledata/castle_with_lights_and_camera.wrl"];
     }
-    
+
     CGE_Open();
     CGE_SetUserInterface(true, 115 * m_fScale);
     CGE_LoadSceneFromFile([self.fileToOpen fileSystemRepresentation]);
     
     m_nViewpointCount = CGE_GetViewpointsCount();
     m_nCurrentViewpoint = 0;
-    [self createViewerControls];
-    
+    [self updateViewpointButtons];
+
     [self update];
 }
 
+//-----------------------------------------------------------------
 - (void)tearDownGL
 {
     [EAGLContext setCurrentContext:self.context];
@@ -118,7 +148,7 @@
 }
 
 #pragma mark - GLKView and GLKViewController delegate methods
-
+//-----------------------------------------------------------------
 - (void)update
 {
     // set and update the geometry
@@ -131,16 +161,18 @@
     CGE_Update();
 }
 
+//-----------------------------------------------------------------
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
     CGE_Render();
 }
 
 #pragma mark - gestures
-// simulate sending PC mouse messages to the engine
-
+//-----------------------------------------------------------------
 - (IBAction)OnPanGesture:(UIPanGestureRecognizer *)sender
 {
+    // simulate sending PC mouse messages to the engine
+    
     CGPoint pt = [sender locationInView:sender.view];
     pt.x*=m_fScale; pt.y*=m_fScale;
     m_ptPanningMousePos = pt;
@@ -162,6 +194,7 @@
     }
 }
 
+//-----------------------------------------------------------------
 - (IBAction)OnTouchGesture:(UITapGestureRecognizer *)sender
 {
     if (sender.state != UIGestureRecognizerStateEnded)
@@ -173,6 +206,7 @@
     CGE_MouseUp(pt.x, pt.y, true);
 }
 
+//-----------------------------------------------------------------
 - (IBAction)OnPinchGesture:(UIPinchGestureRecognizer *)sender
 {
     if (sender.state != UIGestureRecognizerStateChanged)
@@ -191,31 +225,6 @@
 }
 
 #pragma mark - interface
-
-//-----------------------------------------------------------------
-- (void)createViewerControls
-{
-    m_segmNavigation = [[UISegmentedControl alloc] initWithItems:@[@"Walk", @"Fly", @"Examine"]];
-    m_segmNavigation.selectedSegmentIndex = 0;
-    [m_segmNavigation addTarget:self
-                         action:@selector(OnNavigationSegmentChanged:)
-               forControlEvents:UIControlEventValueChanged];
-    
-    UIBarButtonItem *itemSegm = [[UIBarButtonItem alloc] initWithCustomView:m_segmNavigation];
-                             
-    m_btnViewpointPrev = [[UIBarButtonItem alloc] initWithTitle:@" < " style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnViewpointPrev:)];
-    m_btnViewpointNext = [[UIBarButtonItem alloc] initWithTitle:@" > " style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnViewpointNext:)];
-    m_btnViewpointPopup = [[UIBarButtonItem alloc] initWithTitle:@"Viewpoints" style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnViewpointPopup:)];
-    
-    UIButton *btnInfo = [UIButton buttonWithType:UIButtonTypeInfoLight];
-    [btnInfo addTarget:self action:@selector(OnBtnInfo:) forControlEvents:UIControlEventTouchUpInside];
-    UIBarButtonItem *btnBarInfo =[[UIBarButtonItem alloc] initWithCustomView:btnInfo];
-    
-    self.navigationItem.rightBarButtonItems = @[btnBarInfo, m_btnViewpointNext, m_btnViewpointPopup, m_btnViewpointPrev, itemSegm];
-    
-    [self updateViewpointButtons];
-}
-
 //-----------------------------------------------------------------
 - (void)updateViewpointButtons
 {
@@ -303,7 +312,7 @@
         return;
     m_currentPopover = nil;
     
-    if (m_viewpointsController!=nil)
+    if (m_viewpointsController!=nil)    // viewpoint selected
     {
         m_nCurrentViewpoint = m_viewpointsController.selectedViewpoint;
         CGE_MoveToViewpoint(m_nCurrentViewpoint, true);
@@ -311,31 +320,55 @@
         
         m_viewpointsController = nil;
     }
+    
+    if (m_fileOpenController!=nil)      // scene file selected
+    {
+        self.fileToOpen = m_fileOpenController.selectedFile;
+        m_fileOpenController = nil;
+        
+        CGE_LoadSceneFromFile([self.fileToOpen fileSystemRepresentation]);
+        
+        m_nViewpointCount = CGE_GetViewpointsCount();
+        m_nCurrentViewpoint = 0;
+        [self updateViewpointButtons];
+    }
 }
+
+//-----------------------------------------------------------------
+- (void)OnBtnOpenFile:(id)sender
+{
+    if (m_currentPopover!=nil) return;
+    
+    // show popover
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+    m_fileOpenController = [storyboard instantiateViewControllerWithIdentifier:@"FileOpenPopover"];
+    m_currentPopover = [[UIPopoverController alloc] initWithContentViewController:m_fileOpenController];
+    
+    m_fileOpenController.popover = m_currentPopover;
+    
+    [m_currentPopover setDelegate:self];
+    [m_currentPopover presentPopoverFromBarButtonItem:sender permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
+}
+
 
 //-----------------------------------------------------------------
 - (void)OnBtnInfo:(id)sender
 {
-    [self performSegueWithIdentifier:@"SegueOpenGLInfo" sender:self];
-}
-
-//-----------------------------------------------------------------
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
-{
-    if ([segue.identifier isEqualToString:@"SegueOpenGLInfo"])
-    {
-        int nInfoTextMax = 4096;
-        char *szInfo = malloc(nInfoTextMax);
-        szInfo[0] = 0;
-        CGE_GetOpenGLInformation(szInfo, nInfoTextMax);
-        free(szInfo);
-
-        NSString *sInfo = [NSString stringWithUTF8String:szInfo];
-        
-        UINavigationController *destCtl = segue.destinationViewController;
-        ViewInfoController *infoCtl = (ViewInfoController*)destCtl.topViewController;
-        infoCtl.infoText = sInfo;
-    }
+    int nInfoTextMax = 4096;
+    char *szInfo = malloc(nInfoTextMax);
+    szInfo[0] = 0;
+    CGE_GetOpenGLInformation(szInfo, nInfoTextMax);
+    free(szInfo);
+    
+    NSString *sInfo = [NSString stringWithUTF8String:szInfo];
+    
+    UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+    UINavigationController *pNavCtl = [storyboard instantiateViewControllerWithIdentifier:@"OpenGLInfoNav"];
+    ViewInfoController *infoCtl = (ViewInfoController*)[pNavCtl topViewController];
+    infoCtl.infoText = sInfo;
+    pNavCtl.modalPresentationStyle = UIModalPresentationFormSheet;
+    
+    [self presentViewController:pNavCtl animated:YES completion:nil];
 }
 
 @end

@@ -1,38 +1,33 @@
 /*
-  Copyright 2013-2014 Jan Adamec, Michalis Kamburelis.
-
-  This file is part of "Castle Game Engine".
-
-  "Castle Game Engine" is free software; see the file COPYING.txt,
-  included in this distribution, for details about the copyright.
-
-  "Castle Game Engine" is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-  ----------------------------------------------------------------------------
+ Copyright 2013-2014 Jan Adamec, Michalis Kamburelis.
+ 
+ This file is part of "Castle Game Engine".
+ 
+ "Castle Game Engine" is free software; see the file COPYING.txt,
+ included in this distribution, for details about the copyright.
+ 
+ "Castle Game Engine" is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ 
+ ----------------------------------------------------------------------------
 */
 
-#import "ViewController.h"
-#import "OpenGLController.h"
+#import "FileOpenController.h"
 
-@interface ViewController ()
+@interface FileOpenController ()
 {
-    __weak IBOutlet UITableView *m_tableScenes;
-    
-    NSString *m_sSelectedFile;
     NSMutableArray *m_arrayFiles;
 }
 @end
 
 //-----------------------------------------------------------------
-//-----------------------------------------------------------------
-@implementation ViewController
+@implementation FileOpenController
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-
+    
     m_arrayFiles = [[NSMutableArray alloc] init];
     
     // documnets folder
@@ -64,13 +59,6 @@
 }
 
 //-----------------------------------------------------------------
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
-
-//-----------------------------------------------------------------
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
     return 1;
@@ -85,7 +73,7 @@
 //-----------------------------------------------------------------
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    UITableViewCell *cell = [m_tableScenes dequeueReusableCellWithIdentifier:@"SceneFileCell"];
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"FileOpenCell"];
     cell.textLabel.text = [[m_arrayFiles objectAtIndex:indexPath.row] lastPathComponent];
     return cell;
 }
@@ -93,19 +81,9 @@
 //-----------------------------------------------------------------
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    m_sSelectedFile = [m_arrayFiles objectAtIndex:indexPath.row];
-    [m_tableScenes deselectRowAtIndexPath:indexPath animated:NO];
-    [self performSegueWithIdentifier:@"SegueOpen3D" sender:self];   // open 3D view
-}
+    self.selectedFile = [m_arrayFiles objectAtIndex:indexPath.row];
 
-//-----------------------------------------------------------------
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
-{
-    if ([segue.identifier isEqualToString:@"SegueOpen3D"])
-    {
-        OpenGLController *ctl = segue.destinationViewController;
-        ctl.fileToOpen = m_sSelectedFile;
-    }
+    [self.popover dismissPopoverAnimated:YES];
+    [self.popover.delegate popoverControllerDidDismissPopover:self.popover]; // call delegate programatically in order to get the data from here
 }
-
 @end

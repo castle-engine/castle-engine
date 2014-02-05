@@ -16,10 +16,12 @@
 #import <Foundation/Foundation.h>
 #import <GLKit/GLKit.h>
 #import "ViewpointsController.h"
+#import "FileOpenController.h"
 
 @interface OpenGLController : GLKViewController<UIPopoverControllerDelegate>
 {
     ViewpointsController *m_viewpointsController;
+    FileOpenController *m_fileOpenController;
     UIPopoverController *m_currentPopover;
 }
 

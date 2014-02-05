@@ -19,7 +19,8 @@ OUTPUT_ARM="$OBJECT_FILE_DIR_normal/out-armv7"
 #debug
 #FPC_CONFIG="-CirotR -gltw -Sa"
 #release
-FPC_CONFIG="-gw"
+FPC_CONFIG="-O2"
+#FPC_CONFIG="-gw"
 
 # compile for simulator
 if [ $COMPILE_SIM -eq 1 ]

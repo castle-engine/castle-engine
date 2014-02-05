@@ -14,12 +14,30 @@
 */
 
 #import "AppDelegate.h"
+#import "OpenGLController.h"
 
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    // Override point for customization after application launch.
+    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    
+    EAGLContext * context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    GLKView *view = [[GLKView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    view.context = context;
+    view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
+    
+    OpenGLController * viewController = [[OpenGLController alloc] initWithNibName:nil bundle:nil];
+    viewController.view = view;
+    viewController.preferredFramesPerSecond = 60;
+    
+    UINavigationController *navCtl = [[UINavigationController alloc] initWithRootViewController:viewController];
+    self.window.rootViewController = navCtl;
+    
+    [viewController viewDidLoad];
+
+    self.window.backgroundColor = [UIColor whiteColor];
+    [self.window makeKeyAndVisible];
     return YES;
 }
 							

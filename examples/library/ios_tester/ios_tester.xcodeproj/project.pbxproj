@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4D1BD22A187D707D0067AA02 /* cge_library.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D1BD229187D707D0067AA02 /* cge_library.a */; };
+		4D550C8D18A25D1F00C3F173 /* FileOpenController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D550C8C18A25D1F00C3F173 /* FileOpenController.m */; };
 		4D9724EB183BD54E000FD3D1 /* ViewInfoController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D9724EA183BD54E000FD3D1 /* ViewInfoController.m */; };
 		4D9724EF183CCC40000FD3D1 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D9724EE183CCC40000FD3D1 /* OpenAL.framework */; };
 		4DCB396E183A2A46001A708D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DCB396D183A2A46001A708D /* Foundation.framework */; };
@@ -17,7 +18,6 @@
 		4DCB397A183A2A46001A708D /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DCB3979183A2A46001A708D /* main.m */; };
 		4DCB397E183A2A46001A708D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DCB397D183A2A46001A708D /* AppDelegate.m */; };
 		4DCB3981183A2A46001A708D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4DCB397F183A2A46001A708D /* Main.storyboard */; };
-		4DCB3984183A2A46001A708D /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DCB3983183A2A46001A708D /* ViewController.m */; };
 		4DCB3986183A2A46001A708D /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4DCB3985183A2A46001A708D /* Images.xcassets */; };
 		4DCB39A4183A2B69001A708D /* OpenGLController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4DCB39A3183A2B69001A708D /* OpenGLController.m */; };
 		4DCB39AA183A2ECA001A708D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4DCB39A9183A2ECA001A708D /* OpenGLES.framework */; };
@@ -29,6 +29,8 @@
 /* Begin PBXFileReference section */
 		4D1BD228187D70590067AA02 /* castleengine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = castleengine.h; path = ../../../../src/library/castleengine.h; sourceTree = "<group>"; };
 		4D1BD229187D707D0067AA02 /* cge_library.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = cge_library.a; path = ../../../../src/library/cge_library.a; sourceTree = "<group>"; };
+		4D550C8B18A25D1F00C3F173 /* FileOpenController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileOpenController.h; sourceTree = "<group>"; };
+		4D550C8C18A25D1F00C3F173 /* FileOpenController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FileOpenController.m; sourceTree = "<group>"; };
 		4D9724E9183BD54E000FD3D1 /* ViewInfoController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewInfoController.h; sourceTree = "<group>"; };
 		4D9724EA183BD54E000FD3D1 /* ViewInfoController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewInfoController.m; sourceTree = "<group>"; };
 		4D9724EE183CCC40000FD3D1 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
@@ -43,8 +45,6 @@
 		4DCB397C183A2A46001A708D /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		4DCB397D183A2A46001A708D /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		4DCB3980183A2A46001A708D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		4DCB3982183A2A46001A708D /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
-		4DCB3983183A2A46001A708D /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		4DCB3985183A2A46001A708D /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		4DCB39A2183A2B69001A708D /* OpenGLController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenGLController.h; sourceTree = "<group>"; };
 		4DCB39A3183A2B69001A708D /* OpenGLController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OpenGLController.m; sourceTree = "<group>"; };
@@ -109,10 +109,10 @@
 				4DCB397C183A2A46001A708D /* AppDelegate.h */,
 				4DCB397D183A2A46001A708D /* AppDelegate.m */,
 				4DCB397F183A2A46001A708D /* Main.storyboard */,
-				4DCB3982183A2A46001A708D /* ViewController.h */,
-				4DCB3983183A2A46001A708D /* ViewController.m */,
 				4DCB39A2183A2B69001A708D /* OpenGLController.h */,
 				4DCB39A3183A2B69001A708D /* OpenGLController.m */,
+				4D550C8B18A25D1F00C3F173 /* FileOpenController.h */,
+				4D550C8C18A25D1F00C3F173 /* FileOpenController.m */,
 				4DCB39B5183A70F3001A708D /* ViewpointsController.h */,
 				4DCB39B6183A70F3001A708D /* ViewpointsController.m */,
 				4D9724E9183BD54E000FD3D1 /* ViewInfoController.h */,
@@ -212,9 +212,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				4D9724EB183BD54E000FD3D1 /* ViewInfoController.m in Sources */,
-				4DCB3984183A2A46001A708D /* ViewController.m in Sources */,
 				4DCB397E183A2A46001A708D /* AppDelegate.m in Sources */,
 				4DCB39A4183A2B69001A708D /* OpenGLController.m in Sources */,
+				4D550C8D18A25D1F00C3F173 /* FileOpenController.m in Sources */,
 				4DCB39B7183A70F3001A708D /* ViewpointsController.m in Sources */,
 				4DCB397A183A2A46001A708D /* main.m in Sources */,
 			);
@@ -322,15 +322,13 @@
 				ARCHS = armv7;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-				);
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ios_tester/ios_tester-Prefix.pch";
 				INFOPLIST_FILE = "ios_tester/ios_tester-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"../../../src/library",
+					../../../src/library,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
@@ -344,15 +342,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-				);
+				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ios_tester/ios_tester-Prefix.pch";
 				INFOPLIST_FILE = "ios_tester/ios_tester-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"../../../src/library",
+					../../../src/library,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
