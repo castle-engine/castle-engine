@@ -31,6 +31,7 @@
 		4D1BD229187D707D0067AA02 /* cge_library.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = cge_library.a; path = ../../../../src/library/cge_library.a; sourceTree = "<group>"; };
 		4D550C8B18A25D1F00C3F173 /* FileOpenController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileOpenController.h; sourceTree = "<group>"; };
 		4D550C8C18A25D1F00C3F173 /* FileOpenController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FileOpenController.m; sourceTree = "<group>"; };
+		4D550C8E18A2703600C3F173 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/Main.storyboard; sourceTree = "<group>"; };
 		4D9724E9183BD54E000FD3D1 /* ViewInfoController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewInfoController.h; sourceTree = "<group>"; };
 		4D9724EA183BD54E000FD3D1 /* ViewInfoController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewInfoController.m; sourceTree = "<group>"; };
 		4D9724EE183CCC40000FD3D1 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
@@ -44,7 +45,6 @@
 		4DCB397B183A2A46001A708D /* ios_tester-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ios_tester-Prefix.pch"; sourceTree = "<group>"; };
 		4DCB397C183A2A46001A708D /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		4DCB397D183A2A46001A708D /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		4DCB3980183A2A46001A708D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		4DCB3985183A2A46001A708D /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		4DCB39A2183A2B69001A708D /* OpenGLController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenGLController.h; sourceTree = "<group>"; };
 		4DCB39A3183A2B69001A708D /* OpenGLController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OpenGLController.m; sourceTree = "<group>"; };
@@ -234,7 +234,7 @@
 		4DCB397F183A2A46001A708D /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
-				4DCB3980183A2A46001A708D /* Base */,
+				4D550C8E18A2703600C3F173 /* en */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -326,6 +326,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ios_tester/ios_tester-Prefix.pch";
 				INFOPLIST_FILE = "ios_tester/ios_tester-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					../../../src/library,
@@ -346,6 +347,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "ios_tester/ios_tester-Prefix.pch";
 				INFOPLIST_FILE = "ios_tester/ios_tester-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					../../../src/library,

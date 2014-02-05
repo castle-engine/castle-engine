@@ -31,6 +31,11 @@
     m_textView.text = self.infoText;
 }
 
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
+{
+    return YES;
+}
+
 - (IBAction)OnBtnDoneTouched:(id)sender
 {
     [self dismissViewControllerAnimated:YES completion:nil];

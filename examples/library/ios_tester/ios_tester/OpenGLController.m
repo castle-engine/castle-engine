@@ -60,6 +60,7 @@
     
     // create toolbar controls
     m_segmNavigation = [[UISegmentedControl alloc] initWithItems:@[@"Walk", @"Fly", @"Examine"]];
+    m_segmNavigation.segmentedControlStyle = UISegmentedControlStyleBar;
     m_segmNavigation.selectedSegmentIndex = 0;
     [m_segmNavigation addTarget:self
                          action:@selector(OnNavigationSegmentChanged:)
@@ -225,6 +226,13 @@
 }
 
 #pragma mark - interface
+
+//-----------------------------------------------------------------
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
+{
+    return YES;
+}
+
 //-----------------------------------------------------------------
 - (void)updateViewpointButtons
 {
