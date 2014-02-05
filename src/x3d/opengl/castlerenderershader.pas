@@ -271,6 +271,9 @@ type
     FHeightMapScale: Single;
     FFogEnabled: boolean;
     FFogType: TFogType;
+    FFogColor: TVector3Single;
+    FFogLinearEnd: Single;
+    FFogExpDensity: Single;
     FFogCoordinateSource: TFogCoordinateSource;
     HasGeometryMain: boolean;
     DynamicUniforms: TDynamicUniformList;
@@ -412,7 +415,9 @@ type
       the fog settings. TFogCoordinateRenderer.RenderCoordinateBegin for
       direct fog coordinate relies on this. }
     procedure EnableFog(const FogType: TFogType;
-      const FogCoordinateSource: TFogCoordinateSource);
+      const FogCoordinateSource: TFogCoordinateSource;
+      const FogColor: TVector3Single; const FogLinearEnd: Single;
+      const FogExpDensity: Single);
     function EnableCustomShaderCode(Shaders: TMFNodeShaders;
       out Node: TComposedShaderNode): boolean;
     procedure EnableAppearanceEffects(Effects: TMFNode);
@@ -2706,11 +2711,16 @@ begin
 end;
 
 procedure TShader.EnableFog(const FogType: TFogType;
-  const FogCoordinateSource: TFogCoordinateSource);
+  const FogCoordinateSource: TFogCoordinateSource;
+  const FogColor: TVector3Single; const FogLinearEnd: Single;
+  const FogExpDensity: Single);
 begin
   FFogEnabled := true;
   FFogType := FogType;
   FFogCoordinateSource := FogCoordinateSource;
+  FFogColor := FogColor;
+  FFogLinearEnd := FogLinearEnd;
+  FFogExpDensity := FogExpDensity;
   FCodeHash.AddInteger(
     67 * (Ord(FFogType) + 1) +
     709 * (Ord(FFogCoordinateSource) + 1));

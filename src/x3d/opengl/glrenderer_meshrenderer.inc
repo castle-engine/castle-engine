@@ -749,7 +749,9 @@ begin
       by TGLRenderer.RenderShapeFog here. Not a problem
       (TODO: although previous EnableFog added to hash, which may make
       shader programs cache less shared.) }
-    Shader.EnableFog(ftLinear, fcPassedCoordinate);
+    Shader.EnableFog(ftLinear, fcPassedCoordinate,
+      { remaining parameters do not matter for now for EnableFog
+        with fcPassedCoordinate } White3Single, 1, 1);
   end;
 end;
 

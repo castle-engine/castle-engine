@@ -977,6 +977,9 @@ type
     FogNode: IAbstractFogObject;
     FogEnabled: boolean;
     FogType: TFogType;
+    FogColor: TVector3Single;
+    FogLinearEnd: Single;
+    FogExpDensity: Single;
     FogVolumetric: boolean;
     FogVolumetricDirection: TVector3Single;
     FogVolumetricVisibilityStart: Single;
@@ -2862,16 +2865,12 @@ const
     out Volumetric: boolean;
     out VolumetricDirection: TVector3Single;
     out VolumetricVisibilityStart: Single);
-  {$ifndef OpenGLES} // TODO-es
   var
     VisibilityRangeScaled: Single;
-  {$endif}
   const
     FogDensityFactor = 3.0;
   begin
     GetFog(Node, FogEnabled, Volumetric, VolumetricDirection, VolumetricVisibilityStart);
-
-    {$ifndef OpenGLES} // TODO-es
 
     if FogEnabled then
     begin
@@ -2879,6 +2878,7 @@ const
 
       VisibilityRangeScaled := Node.FdVisibilityRange.Value * Node.TransformScale;
 
+      {$ifndef OpenGLES} // TODO-es Not supporting volumetric fog for OpenGLES now
       if Node.FdVolumetric.Value and (not GLFeatures.EXT_fog_coord) then
       begin
         { Try to make normal fog that looks similar. This looks poorly,
@@ -2899,29 +2899,17 @@ const
         if GLFeatures.EXT_fog_coord then
           glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
       end;
+      {$endif}
 
-      glFogv(GL_FOG_COLOR, Vector4Single(Node.FdColor.Value, 1.0));
-
-      { calculate FogType }
+      { calculate FogType and other Fog parameters }
       FogType := Node.FogType;
-
+      FogColor := Node.FdColor.Value;
       case FogType of
-        ftLinear: begin
-            glFogi(GL_FOG_MODE, GL_LINEAR);
-            glFogf(GL_FOG_START, 0);
-            glFogf(GL_FOG_END, VisibilityRangeScaled);
-          end;
-        ftExp: begin
-            glFogi(GL_FOG_MODE, GL_EXP);
-            glFogf(GL_FOG_DENSITY, FogDensityFactor / VisibilityRangeScaled);
-          end;
+        ftLinear: FogLinearEnd := VisibilityRangeScaled;
+        ftExp   : FogExpDensity := FogDensityFactor / VisibilityRangeScaled;
         else raise EInternalError.Create('TGLRenderer.RenderShapeFog:FogType?');
       end;
-
-      glEnable(GL_FOG);
-    end else
-      glDisable(GL_FOG);
-    {$endif}
+    end;
   end;
 
 begin
@@ -2931,11 +2919,35 @@ begin
     FogNode := Fog;
     RenderFog(FogNode, FogVolumetric,
       FogVolumetricDirection, FogVolumetricVisibilityStart);
+
+    {$ifndef OpenGLES}
+    { Set fixed-function fog parameters, also accessed by GLSL using gl_xxx
+      on desktop OpenGL. }
+    if FogEnabled then
+    begin
+      glFogv(GL_FOG_COLOR, Vector4Single(FogColor, 1.0));
+      case FogType of
+        ftLinear:
+          begin
+            glFogi(GL_FOG_MODE, GL_LINEAR);
+            glFogf(GL_FOG_START, 0);
+            glFogf(GL_FOG_END, FogLinearEnd);
+          end;
+        ftExp: begin
+            glFogi(GL_FOG_MODE, GL_EXP);
+            glFogf(GL_FOG_DENSITY, FogExpDensity);
+          end;
+        else raise EInternalError.Create('TGLRenderer.RenderShapeFog:FogType? 2');
+      end;
+      glEnable(GL_FOG);
+    end else
+      glDisable(GL_FOG);
+    {$endif}
   end;
 
   if FogEnabled then
-    Shader.EnableFog(FogType, FogCoordinateSource[FogVolumetric]);
-
+    Shader.EnableFog(FogType, FogCoordinateSource[FogVolumetric],
+      FogColor, FogLinearEnd, FogExpDensity);
   RenderShapeTextureTransform(Shape, Fog, Shader, MaterialOpacity, Lighting);
 end;
 
