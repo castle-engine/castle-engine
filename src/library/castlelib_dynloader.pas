@@ -94,6 +94,8 @@ function CGE_GetNavigationType(): cInt32; cdecl; external 'castleengine';
 procedure CGE_SetNavigationType(NewType: cInt32); cdecl; external 'castleengine';
 procedure CGE_SetTouchInterface(eMode: cInt32); cdecl; external 'castleengine';
 procedure CGE_SetUserInterface(AutomaticTouchInterface: cBool; nDpi: cInt32); cdecl; external 'castleengine';
+procedure CGE_SetWalkHeadBobbing(bOn: cBool); cdecl; external 'castleengine';
+procedure CGE_SetEffectSsao(bOn: cBool); cdecl; external 'castleengine';
 
 implementation
 

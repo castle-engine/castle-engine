@@ -104,6 +104,9 @@ extern void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType);
 
 extern void CGE_SetTouchInterface(int /*ECgeTouchCtlInterface*/ eMode);
 
+extern void CGE_SetWalkHeadBobbing(bool bOn);   // activates the walking effect (default: on)
+extern void CGE_SetEffectSsao(bool bOn);        // activates SSAO (screen space ambient occlusion) effect (default: off)
+
 #ifdef __cplusplus
 }
 #endif

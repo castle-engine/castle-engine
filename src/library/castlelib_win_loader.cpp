@@ -62,6 +62,9 @@ typedef void (__cdecl *PFNRD_CGE_SetNavigationType)(int eNewType);
 typedef void (__cdecl *PFNRD_CGE_SetTouchInterface)(int eMode);
 typedef void (__cdecl *PFNRD_CGE_SetUserInterface)(bool bAutomaticTouchInterface, int nDpi);
 
+typedef void (__cdecl *PFNRD_CGE_SetWalkHeadBobbing)(bool bOn);
+typedef void (__cdecl *PFNRD_CGE_SetEffectSsao)(bool bOn);
+
 
 PFNRD_CGE_Open pfrd_CGE_Open = NULL;
 PFNRD_CGE_Close pfrd_CGE_Close = NULL;
@@ -86,6 +89,8 @@ PFNRD_CGE_GetNavigationType pfrd_CGE_GetNavigationType = NULL;
 PFNRD_CGE_SetNavigationType pfrd_CGE_SetNavigationType = NULL;
 PFNRD_CGE_SetTouchInterface pfrd_CGE_SetTouchInterface = NULL;
 PFNRD_CGE_SetUserInterface pfrd_CGE_SetUserInterface = NULL;
+PFNRD_CGE_SetWalkHeadBobbing pfrd_CGE_SetWalkHeadBobbing = NULL;
+PFNRD_CGE_SetEffectSsao pfrd_CGE_SetEffectSsao = NULL;
 
 //-----------------------------------------------------------------------------
 void CGE_LoadLibrary()
@@ -117,6 +122,8 @@ void CGE_LoadLibrary()
 	pfrd_CGE_SetNavigationType = (PFNRD_CGE_SetNavigationType)GetProcAddress(g_hCgeDll, "CGE_SetNavigationType");
 	pfrd_CGE_SetTouchInterface = (PFNRD_CGE_SetTouchInterface)GetProcAddress(g_hCgeDll, "CGE_SetTouchInterface");
 	pfrd_CGE_SetUserInterface = (PFNRD_CGE_SetUserInterface)GetProcAddress(g_hCgeDll, "CGE_SetUserInterface");
+	pfrd_CGE_SetWalkHeadBobbing = (PFNRD_CGE_SetWalkHeadBobbing)GetProcAddress(g_hCgeDll, "CGE_SetWalkHeadBobbing");
+	pfrd_CGE_SetEffectSsao = (PFNRD_CGE_SetEffectSsao)GetProcAddress(g_hCgeDll, "CGE_SetEffectSsao");
 }
 
 //-----------------------------------------------------------------------------
@@ -284,4 +291,18 @@ void CGE_SetUserInterface(bool bAutomaticTouchInterface, int nDpi)
 {
 	if (pfrd_CGE_SetUserInterface!=NULL)
         (*pfrd_CGE_SetUserInterface)(bAutomaticTouchInterface, nDpi);
+}
+
+//-----------------------------------------------------------------------------
+void CGE_SetWalkHeadBobbing(bool bOn)
+{
+	if (pfrd_CGE_SetWalkHeadBobbing!=NULL)
+        (*pfrd_CGE_SetWalkHeadBobbing)(bOn);
+}
+
+//-----------------------------------------------------------------------------
+void CGE_SetEffectSsao(bool bOn)
+{
+	if (pfrd_CGE_SetEffectSsao!=NULL)
+        (*pfrd_CGE_SetEffectSsao)(bOn);
 }

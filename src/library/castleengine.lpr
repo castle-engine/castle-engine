@@ -294,6 +294,37 @@ begin
   end;
 end;
 
+procedure CGE_SetWalkHeadBobbing(bOn: cBool); cdecl;
+var
+  WalkCamera: TWalkCamera;
+begin
+  try
+    WalkCamera := nil;
+    if Window.SceneManager.Camera <> nil then
+    begin
+      if Window.SceneManager.Camera is TUniversalCamera then
+        WalkCamera := (Window.SceneManager.Camera as TUniversalCamera).Walk else
+      if Window.SceneManager.Camera is TWalkCamera then
+        WalkCamera := Window.SceneManager.Camera as TWalkCamera;
+    end;
+    if WalkCamera <> nil then begin
+      if bOn then
+        WalkCamera.HeadBobbing := 0.015 {DefaultHeadBobbing} else
+        WalkCamera.HeadBobbing := 0.0;
+    end;
+  except
+  end;
+end;
+
+procedure CGE_SetEffectSsao(bOn: cBool); cdecl;
+begin
+  try
+    if Window.SceneManager.ScreenSpaceAmbientOcclusionAvailable then
+      Window.SceneManager.ScreenSpaceAmbientOcclusion := bOn;
+  except
+  end;
+end;
+
 exports
   CGE_Open, CGE_Close, CGE_GetOpenGLInformation,
   CGE_Render, CGE_Resize, CGE_SetLibraryCallbackProc, CGE_Update,
@@ -301,7 +332,8 @@ exports
   CGE_LoadSceneFromFile, CGE_GetNavigationType, CGE_SetNavigationType,
   CGE_GetViewpointsCount, CGE_GetViewpointName, CGE_MoveToViewpoint, CGE_AddViewpointFromCurrentView,
   CGE_GetViewCoords, CGE_MoveViewToCoords, CGE_SaveScreenshotToFile,
-  CGE_SetTouchInterface, CGE_SetUserInterface;
+  CGE_SetTouchInterface, CGE_SetUserInterface,
+  CGE_SetWalkHeadBobbing, CGE_SetEffectSsao;
 
 begin
   {Do not remove the exception masking lines}

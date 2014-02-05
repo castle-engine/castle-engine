@@ -207,6 +207,14 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             CGE_SetNavigationType(ecgenavFly);
             break;
 
+        case 'e':
+            CGE_SetEffectSsao(true);
+            break;
+
+        case 'h':
+            CGE_SetWalkHeadBobbing(false);
+            break;
+
         default:
             break;
         }
