@@ -2156,7 +2156,9 @@ begin
   begin
     CurrentScreenEffectsNeedDepth := ScreenEffectsNeedDepth;
     if CurrentScreenEffectsNeedDepth and not GLFeatures.TextureDepth then
-      { we support only screen effects that do not require depth }
+      { We support only screen effects that do not require depth.
+        TODO: It would be cleaner to still enable screen effects not using
+        depth (and only them), instead of just disabling all screen effects. }
       Exit(false);
 
     { We need a temporary texture, for screen effect. }
