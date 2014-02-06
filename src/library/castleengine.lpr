@@ -36,7 +36,7 @@ library castleengine;
 
 uses CTypes, Math, SysUtils, CastleWindow, CastleWindowTouch, CastleUtils,
   Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils,
-  CastleImages, CastleSceneCore;
+  CastleImages, CastleSceneCore, CastleUIControls;
 
 var
   Window: TCastleWindowTouch;
@@ -90,11 +90,28 @@ end;
 procedure CGE_SaveScreenshotToFile(szFile: pcchar); cdecl;
 var
   Image: TRGBImage;
+  Restore2D: TUIControlList;
+  C: TUIControl;
 begin
   try
-    // TODO: remove touch controls
-    Image := Window.SaveScreen;
-    SaveImage(Image, StrPas(PChar(szFile)));
+    Image := nil;
+    Restore2D := TUIControlList.Create(false);
+    try
+      // hide touch controls
+      for C in Window.Controls do
+        if C.Exists and (C.RenderStyle = rs2D) then
+        begin
+          C.Exists := false;
+          Restore2D.Add(C);
+        end;
+      // make screenshot
+      Image := Window.SaveScreen;
+      // restore hidden controls
+      for C in Restore2D do
+        C.Exists := true;
+    finally FreeAndNil(Restore2D) end;
+    if Image <> nil then
+      SaveImage(Image, StrPas(PChar(szFile)));
   except
   end;
 end;

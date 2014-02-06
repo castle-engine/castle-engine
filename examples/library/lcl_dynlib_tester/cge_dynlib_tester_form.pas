@@ -55,14 +55,16 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, OpenGLContext, Forms, Controls, Graphics,
-  Dialogs, types;
+  Dialogs, StdCtrls, types;
 
 type
 
   { TForm1 }
 
   TForm1 = class(TForm)
+    BtnScreenshot: TButton;
     OpenGLControl1: TOpenGLControl;
+    procedure BtnScreenshotClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure OpenGLControl1KeyDown(Sender: TObject; var Key: Word;
@@ -188,6 +190,16 @@ begin
   OpenGLControl1.MakeCurrent();
   CGE_Render();
   OpenGLControl1.SwapBuffers;
+end;
+
+procedure TForm1.BtnScreenshotClick(Sender: TObject);
+var
+  sFile: string;
+  csFile: array[0..260] of char;
+begin
+  sFile := ExtractFilePath(Application.ExeName) + 'scr.jpg';
+  StrPCopy(csFile, sFile);
+  CGE_SaveScreenshotToFile(@csFile[0]);
 end;
 
 end.
