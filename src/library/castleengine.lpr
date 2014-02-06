@@ -56,7 +56,7 @@ begin
     Window := TCastleWindowTouch.Create(nil);
     Window.Open;
   except
-    on E: Exception do writeln(E.Message);
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -66,7 +66,7 @@ begin
     Window.Close;
     FreeAndNil(Window);
   except
-    on E: Exception do writeln(E.Message);
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -78,7 +78,7 @@ begin
     sText := GLInformationString;
     StrPLCopy(szBuffer, sText, nBufSize-1);
   except
-    on E: Exception do writeln(E.Message);
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -87,7 +87,7 @@ begin
   try
     Window.LibraryResize(uiViewWidth, uiViewHeight);
   except
-    on E: Exception do writeln(E.Message);
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -96,7 +96,7 @@ begin
   try
     Window.LibraryRender;
   except
-    on E: Exception do writeln(E.Message);
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -134,7 +134,7 @@ begin
   try
     Window.LibraryCallbackProc := aProc;
   except
-    on E: Exception do writeln(E.Message);
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -143,7 +143,7 @@ begin
   try
     Application.LibraryUpdate;
   except
-    on E: Exception do writeln(E.Message);
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -192,7 +192,7 @@ begin
     Window.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
     Window.MainScene.ProcessEvents := true;
   except
-    on E: Exception do writeln(E.Message);
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -352,7 +352,7 @@ begin
     if Window.SceneManager.ScreenSpaceAmbientOcclusionAvailable then
       Window.SceneManager.ScreenSpaceAmbientOcclusion := bOn;
   except
-    on E: Exception do writeln(E.Message);
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 

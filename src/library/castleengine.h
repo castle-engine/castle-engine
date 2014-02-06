@@ -33,7 +33,7 @@ extern "C" {
 enum ECgeOpenFlag
 {
     ecgeofSaveMemory = 1,   // memory vs rendering quality (# of triangles)
-    ecgeofLog        = 2,   // enable logging to stdout
+    ecgeofLog        = 2,   // enable logging to stderr
 };
 
 enum ECgeNavigationType
