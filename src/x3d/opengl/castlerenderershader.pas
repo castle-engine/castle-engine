@@ -423,13 +423,16 @@ type
       const HeightMapInAlpha: boolean; const HeightMapScale: Single);
     { Enable light source. Remember to set MaterialXxx before calling this. }
     procedure EnableLight(const Number: Cardinal; Light: PLightInstance);
-    { It is Ok to enable this more than once, last EnableFog determines
-      the fog settings. TFogCoordinateRenderer.RenderCoordinateBegin for
-      direct fog coordinate relies on this. }
     procedure EnableFog(const FogType: TFogType;
       const FogCoordinateSource: TFogCoordinateSource;
       const FogColor: TVector3Single; const FogLinearEnd: Single;
       const FogExpDensity: Single);
+    { Modify some fog parameters, relevant only if fog already enabled.
+      Used by FogCoordinate, that changes some fog settings,
+      but does not change fog color.  }
+    procedure ModifyFog(const FogType: TFogType;
+      const FogCoordinateSource: TFogCoordinateSource;
+      const FogLinearEnd: Single; const FogExpDensity: Single);
     function EnableCustomShaderCode(Shaders: TMFNodeShaders;
       out Node: TComposedShaderNode): boolean;
     procedure EnableAppearanceEffects(Effects: TMFNode);
@@ -2790,6 +2793,21 @@ begin
   FCodeHash.AddInteger(
     67 * (Ord(FFogType) + 1) +
     709 * (Ord(FFogCoordinateSource) + 1));
+end;
+
+procedure TShader.ModifyFog(const FogType: TFogType;
+  const FogCoordinateSource: TFogCoordinateSource;
+  const FogLinearEnd: Single; const FogExpDensity: Single);
+begin
+  { Do not enable fog, or change it's color. Only work if fog already enabled. }
+  FFogType := FogType;
+  FFogCoordinateSource := FogCoordinateSource;
+  FFogLinearEnd := FogLinearEnd;
+  FFogExpDensity := FogExpDensity;
+
+  FCodeHash.AddInteger(
+    431 * (Ord(FFogType) + 1) +
+    433 * (Ord(FFogCoordinateSource) + 1));
 end;
 
 function TShader.EnableCustomShaderCode(Shaders: TMFNodeShaders;

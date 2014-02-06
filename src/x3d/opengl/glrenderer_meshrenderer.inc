@@ -746,12 +746,8 @@ begin
     {$endif}
 
     { We potentially override the fog already set
-      by TGLRenderer.RenderShapeFog here. Not a problem
-      (TODO: although previous EnableFog added to hash, which may make
-      shader programs cache less shared.) }
-    Shader.EnableFog(ftLinear, fcPassedCoordinate,
-      { remaining parameters do not matter for now for EnableFog
-        with fcPassedCoordinate } White3Single, 1, 1);
+      by TGLRenderer.RenderShapeFog here. }
+    Shader.ModifyFog(ftLinear, fcPassedCoordinate, 1, { doesn't matter, it's for ftExp only } 1 );
   end;
 end;
 
