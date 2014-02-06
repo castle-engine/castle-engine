@@ -123,7 +123,7 @@ var
 begin
   OpenGLControl1.MakeCurrent();
   Application.OnIdle := @IdleFunc;
-  CGE_Open();
+  CGE_Open(0);
   CGE_Resize(OpenGLControl1.Width, OpenGLControl1.Height);
   CGE_SetLibraryCallbackProc(@OpenGlLibraryCallback);
   CGE_SetUserInterface(true, 96);

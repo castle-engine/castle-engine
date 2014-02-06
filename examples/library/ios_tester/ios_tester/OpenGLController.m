@@ -132,7 +132,7 @@
         self.fileToOpen = [sBundlePath stringByAppendingPathComponent:@"sampledata/castle_with_lights_and_camera.wrl"];
     }
 
-    CGE_Open();
+    CGE_Open(0);
     CGE_SetUserInterface(true, 115 * m_fScale);
     
     [self LoadSceneFile];

@@ -69,7 +69,7 @@ const
 type
   TLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32):cInt32; cdecl;
 
-procedure CGE_Open(); cdecl; external 'castleengine';
+procedure CGE_Open(flags: cUInt32); cdecl; external 'castleengine';
 procedure CGE_Close(); cdecl; external 'castleengine';
 procedure CGE_GetOpenGLInformation(szBuffer: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
 procedure CGE_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl; external 'castleengine';

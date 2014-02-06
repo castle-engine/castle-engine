@@ -31,7 +31,7 @@
 //-----------------------------------------------------------------------------
 HMODULE g_hCgeDll = NULL;
 
-typedef void (__cdecl *PFNRD_CGE_Open)();
+typedef void (__cdecl *PFNRD_CGE_Open)(unsigned uiFlags);
 typedef void (__cdecl *PFNRD_CGE_Close)();
 typedef void (__cdecl *PFNRD_CGE_GetOpenGLInformation)(char *szBuffer, int nBufSize);
 
@@ -127,10 +127,10 @@ void CGE_LoadLibrary()
 }
 
 //-----------------------------------------------------------------------------
-void CGE_Open()
+void CGE_Open(unsigned uiFlags)
 {
 	if (pfrd_CGE_Open!=NULL)
-		(*pfrd_CGE_Open)();
+		(*pfrd_CGE_Open)(uiFlags);
 }
 
 //-----------------------------------------------------------------------------

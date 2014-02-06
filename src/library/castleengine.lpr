@@ -36,14 +36,20 @@ library castleengine;
 
 uses CTypes, Math, SysUtils, CastleWindow, CastleWindowTouch, CastleUtils,
   Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils,
-  CastleImages, CastleSceneCore, CastleUIControls;
+  CastleImages, CastleSceneCore, CastleUIControls, X3DNodes;
 
 var
   Window: TCastleWindowTouch;
 
-procedure CGE_Open; cdecl;
+procedure CGE_Open(flags: cUInt32); cdecl;
 begin
   try
+    if (flags and 1 {ecgeofSaveMemory}) > 0 then
+    begin
+      Detail_QuadricSlices := 16;
+      Detail_QuadricStacks := 16;
+      Detail_RectDivisions := 0;
+    end;
     Window := TCastleWindowTouch.Create(nil);
     Window.Open;
   except
