@@ -320,8 +320,8 @@ begin
 
       if Arrays.HasFogCoord then
       begin
-        OptionalVertexAttrib('castle_FogColor', 0,
-          3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.FogCoord);
+        OptionalVertexAttrib('castle_FogCoord', 0,
+          1, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.FogCoord);
       end;
 
       for I := 0 to Arrays.TexCoords.Count - 1 do
@@ -736,8 +736,8 @@ begin
   inherited;
 
   if Arrays.HasFogCoord and
-     Arrays.FogDirectValues and
-     GLFeatures.EXT_fog_coord then
+     Arrays.FogDirectValues {$ifndef OpenGLES} and
+     GLFeatures.EXT_fog_coord {$endif} then
   begin
     {$ifndef OpenGLES}
     { This is really not needed for OpenGLES. When we know that rendering

@@ -96,11 +96,11 @@ type
       Instead most interesting extensions are wrapped in "features"
       like @link(UseMultiTexturing), see lower. }
     ARB_shadow: boolean;
-    EXT_fog_coord: boolean;
     EXT_texture_filter_anisotropic: boolean;
     NV_multisample_filter_hint: boolean;
     ARB_occlusion_query: boolean;
     {$ifndef OpenGLES}
+    EXT_fog_coord: boolean;
     ARB_window_pos: boolean;
     MESA_window_pos: boolean;
     {$endif}

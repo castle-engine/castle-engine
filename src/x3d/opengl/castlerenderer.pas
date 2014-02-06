@@ -2556,7 +2556,8 @@ procedure TGLRenderer.GetFog(Node: IAbstractFogObject;
 begin
   Enabled := (Attributes.Mode = rmFull) and
     (Node <> nil) and (Node.FdVisibilityRange.Value <> 0.0);
-  Volumetric := Enabled and Node.FdVolumetric.Value and GLFeatures.EXT_fog_coord;
+  Volumetric := Enabled and Node.FdVolumetric.Value
+    {$ifndef OpenGLES} and GLFeatures.EXT_fog_coord {$endif};
 
   if Volumetric then
   begin

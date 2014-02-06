@@ -2280,6 +2280,10 @@ var
     USingle: TDynamicUniformSingle;
     UColor: TDynamicUniformVec3;
   begin
+    { Both OpenGLES and desktop OpenGL use castle_xxx uniforms and varying
+      to pass fog parameters, not gl_xxx.
+      However, for attribute, desktop OpenGL still uses old gl_FogCoord. }
+
     if FFogEnabled then
     begin
       case FFogCoordinateSource of
@@ -2290,6 +2294,7 @@ var
       end;
 
       Plug(stVertex,
+        {$ifdef OpenGLES} 'attribute float castle_FogCoord;' +NL+ {$endif}
         'varying float castle_FogFragCoord;' + NL+
         'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
         '{' +NL+
