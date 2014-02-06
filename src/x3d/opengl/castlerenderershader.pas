@@ -2284,12 +2284,8 @@ var
     begin
       case FFogCoordinateSource of
         fcDepth           : CoordinateSource := '-vertex_eye.z';
-        fcPassedCoordinate:
-          {$ifdef OpenGLES}
-          Exit; // not supported on OpenGLES now
-          {$else}
-          CoordinateSource := 'gl_FogCoord';
-          {$endif}
+        fcPassedCoordinate: CoordinateSource :=
+          {$ifdef OpenGLES} 'castle_FogCoord' {$else} 'gl_FogCoord' {$endif};
         else raise EInternalError.Create('TShader.EnableShaderFog:FogCoordinateSource?');
       end;
 

@@ -318,6 +318,12 @@ begin
           glColorv(Arrays.DefaultColor); }
       end;
 
+      if Arrays.HasFogCoord then
+      begin
+        OptionalVertexAttrib('castle_FogColor', 0,
+          3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.FogCoord);
+      end;
+
       for I := 0 to Arrays.TexCoords.Count - 1 do
         if (Arrays.TexCoords[I] <> nil) and
            (Arrays.TexCoords[I].Generation = tgExplicit) then
@@ -733,7 +739,10 @@ begin
      Arrays.FogDirectValues and
      GLFeatures.EXT_fog_coord then
   begin
-    {$ifndef OpenGLES} // TODO-es
+    {$ifndef OpenGLES}
+    { This is really not needed for OpenGLES. When we know that rendering
+      is done through shaders, then Shader.ModifyFog does everything necessary. }
+
     { When Renderer.FogVolumetric, GL_FOG_COORDINATE_SOURCE_EXT
       is already set correctly by RenderBegin. }
     if not Renderer.FogVolumetric then
@@ -753,12 +762,14 @@ end;
 
 procedure TFogCoordinateRenderer.RenderCoordinateEnd;
 begin
+  {$ifndef OpenGLES}
+  { This is really not needed for OpenGLES. No need to restore state,
+    as it's reset for every shape. }
   { Restore defaults }
   if Arrays.HasFogCoord and
      Arrays.FogDirectValues and
      GLFeatures.EXT_fog_coord then
   begin
-    {$ifndef OpenGLES} // TODO-es
     glPopAttrib;
 
     { Restore GL_FOG_COORDINATE_SOURCE_EXT. Actually, it seems glPopAttrib
@@ -766,8 +777,8 @@ begin
       on it. }
     if not Renderer.FogVolumetric then
       glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
-    {$endif}
   end;
+  {$endif}
   inherited;
 end;
 

@@ -2878,7 +2878,11 @@ const
 
       VisibilityRangeScaled := Node.FdVisibilityRange.Value * Node.TransformScale;
 
-      {$ifndef OpenGLES} // TODO-es Not supporting volumetric fog for OpenGLES now
+      {$ifndef OpenGLES}
+      { This code really does not need to be executed on OpenGLES at all,
+        where we know that fog coord is possible and will be realized by passing
+        castle_FogCoord to shader. }
+
       if Node.FdVolumetric.Value and (not GLFeatures.EXT_fog_coord) then
       begin
         { Try to make normal fog that looks similar. This looks poorly,
