@@ -36,7 +36,7 @@ library castleengine;
 
 uses CTypes, Math, SysUtils, CastleWindow, CastleWindowTouch, CastleUtils,
   Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils,
-  CastleImages, CastleSceneCore, CastleUIControls, X3DNodes;
+  CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, CastleLog;
 
 var
   Window: TCastleWindowTouch;
@@ -50,9 +50,13 @@ begin
       Detail_QuadricStacks := 16;
       Detail_RectDivisions := 0;
     end;
+    if (flags and 2 {ecgeofLog}) > 0 then
+      InitializeLog;
+    
     Window := TCastleWindowTouch.Create(nil);
     Window.Open;
   except
+    on E: Exception do writeln(E.Message);
   end;
 end;
 
@@ -62,6 +66,7 @@ begin
     Window.Close;
     FreeAndNil(Window);
   except
+    on E: Exception do writeln(E.Message);
   end;
 end;
 
@@ -73,6 +78,7 @@ begin
     sText := GLInformationString;
     StrPLCopy(szBuffer, sText, nBufSize-1);
   except
+    on E: Exception do writeln(E.Message);
   end;
 end;
 
@@ -81,6 +87,7 @@ begin
   try
     Window.LibraryResize(uiViewWidth, uiViewHeight);
   except
+    on E: Exception do writeln(E.Message);
   end;
 end;
 
@@ -89,7 +96,7 @@ begin
   try
     Window.LibraryRender;
   except
-    //on E: Exception do OutputDebugString(@E.Message[1]);
+    on E: Exception do writeln(E.Message);
   end;
 end;
 
@@ -127,7 +134,7 @@ begin
   try
     Window.LibraryCallbackProc := aProc;
   except
-    //on E: Exception do OutputDebugString(@E.Message[1]);
+    on E: Exception do writeln(E.Message);
   end;
 end;
 
@@ -136,7 +143,7 @@ begin
   try
     Application.LibraryUpdate;
   except
-    //on E: Exception do OutputDebugString(@E.Message[1]);
+    on E: Exception do writeln(E.Message);
   end;
 end;
 
@@ -185,7 +192,7 @@ begin
     Window.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
     Window.MainScene.ProcessEvents := true;
   except
-    //on E: Exception do OutputDebugString(@E.Message[1]);
+    on E: Exception do writeln(E.Message);
   end;
 end;
 
@@ -345,6 +352,7 @@ begin
     if Window.SceneManager.ScreenSpaceAmbientOcclusionAvailable then
       Window.SceneManager.ScreenSpaceAmbientOcclusion := bOn;
   except
+    on E: Exception do writeln(E.Message);
   end;
 end;
 

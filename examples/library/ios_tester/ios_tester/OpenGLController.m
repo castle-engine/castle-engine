@@ -60,7 +60,7 @@
     [self.view addGestureRecognizer:[[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(OnPanGesture:)]];
     
     // create toolbar controls
-    m_segmNavigation = [[UISegmentedControl alloc] initWithItems:@[@"Walk", @"Fly", @"Examine"]];
+    m_segmNavigation = [[UISegmentedControl alloc] initWithItems:@[@"Walk", @"Fly", @"Examine", @"Turntable"]];
     m_segmNavigation.segmentedControlStyle = UISegmentedControlStyleBar;
     m_segmNavigation.selectedSegmentIndex = 0;
     [m_segmNavigation addTarget:self
@@ -132,7 +132,7 @@
         self.fileToOpen = [sBundlePath stringByAppendingPathComponent:@"sampledata/castle_with_lights_and_camera.wrl"];
     }
 
-    CGE_Open(0);
+    CGE_Open(ecgeofLog);
     CGE_SetUserInterface(true, 115 * m_fScale);
     
     [self LoadSceneFile];
@@ -258,6 +258,8 @@
     switch (eNav) {
         case ecgenavWalk: nSegment = 0; break;
         case ecgenavFly:  nSegment = 1; break;
+        case ecgenavExamine:  nSegment = 2; break;
+        case ecgenavTurntable:  nSegment = 3; break;
         default:          nSegment = 2; break;
     }
     m_segmNavigation.selectedSegmentIndex = nSegment;
@@ -271,7 +273,9 @@
     switch (nSegment) {
         case 0: eNav = ecgenavWalk; break;
         case 1: eNav = ecgenavFly; break;
-        default: eNav = ecgenavTurntable; break;
+        case 2: eNav = ecgenavExamine; break;
+        case 3: eNav = ecgenavTurntable; break;
+        default: eNav = ecgenavExamine; break;
     }
     CGE_SetNavigationType(eNav);
 }
