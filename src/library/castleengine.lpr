@@ -107,7 +107,6 @@ var
   C: TUIControl;
 begin
   try
-    Image := nil;
     Restore2D := TUIControlList.Create(false);
     try
       // hide touch controls
@@ -119,12 +118,13 @@ begin
         end;
       // make screenshot
       Image := Window.SaveScreen;
+      try
+        SaveImage(Image, StrPas(PChar(szFile)));
+      finally FreeAndNil(Image) end;
       // restore hidden controls
       for C in Restore2D do
         C.Exists := true;
     finally FreeAndNil(Restore2D) end;
-    if Image <> nil then
-      SaveImage(Image, StrPas(PChar(szFile)));
   except
   end;
 end;
