@@ -36,7 +36,8 @@ library castleengine;
 
 uses CTypes, Math, SysUtils, CastleWindow, CastleWindowTouch, CastleUtils,
   Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils,
-  CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, CastleLog;
+  CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, CastleLog,
+  CastleBoxes;
 
 var
   Window: TCastleWindowTouch;
@@ -233,6 +234,19 @@ begin
   end;
 end;
 
+procedure CGE_GetBoundingBox(pfXMin, pfXMax, pfYMin, pfYMax, pfZMin, pfZMax: pcfloat); cdecl;
+var
+  BBox: TBox3D;
+begin
+  try
+    BBox := Window.MainScene.BoundingBox;
+    pfXMin^ := BBox.Data[0, 0]; pfXMax^ := BBox.Data[1, 0];
+    pfYMin^ := BBox.Data[0, 1]; pfYMax^ := BBox.Data[1, 1];
+    pfZMin^ := BBox.Data[0, 2]; pfZMax^ := BBox.Data[1, 2];
+  except
+  end;
+end;
+
 procedure CGE_GetViewCoords(pfPosX, pfPosY, pfPosZ, pfDirX, pfDirY, pfDirZ,
                             pfUpX, pfUpY, pfUpZ, pfGravX, pfGravY, pfGravZ: pcfloat); cdecl;
 var
@@ -312,6 +326,7 @@ begin
     end;
     Window.TouchInterface := aNewMode;
   except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -324,33 +339,65 @@ begin
   end;
 end;
 
-procedure CGE_SetWalkHeadBobbing(bOn: cBool); cdecl;
+function cgehelper_getWalkCamera: TWalkCamera;
+begin
+  Result := nil;
+  if Window.SceneManager.Camera <> nil then
+  begin
+    if Window.SceneManager.Camera is TUniversalCamera then
+      Result := (Window.SceneManager.Camera as TUniversalCamera).Walk else
+    if Window.SceneManager.Camera is TWalkCamera then
+      Result := Window.SceneManager.Camera as TWalkCamera;
+  end;
+end;
+
+procedure CGE_SetVariableInt(eVar: cInt32; nValue: cInt32); cdecl;
 var
   WalkCamera: TWalkCamera;
 begin
   try
-    WalkCamera := nil;
-    if Window.SceneManager.Camera <> nil then
-    begin
-      if Window.SceneManager.Camera is TUniversalCamera then
-        WalkCamera := (Window.SceneManager.Camera as TUniversalCamera).Walk else
-      if Window.SceneManager.Camera is TWalkCamera then
-        WalkCamera := Window.SceneManager.Camera as TWalkCamera;
-    end;
-    if WalkCamera <> nil then begin
-      if bOn then
-        WalkCamera.HeadBobbing := 0.015 {DefaultHeadBobbing} else
-        WalkCamera.HeadBobbing := 0.0;
+    case eVar of
+      0: begin    // ecgevarWalkHeadBobbing
+        WalkCamera := cgehelper_getWalkCamera;
+        if WalkCamera <> nil then begin
+          if nValue>0 then
+            WalkCamera.HeadBobbing := 0.015 {DefaultHeadBobbing} else
+            WalkCamera.HeadBobbing := 0.0;
+        end;
+      end;
+
+      1: begin    // ecgevarEffectSSAO
+        if Window.SceneManager.ScreenSpaceAmbientOcclusionAvailable then
+          Window.SceneManager.ScreenSpaceAmbientOcclusion := (nValue > 0);
+      end;
     end;
   except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
-procedure CGE_SetEffectSsao(bOn: cBool); cdecl;
+function CGE_GetVariableInt(eVar: cInt32): cInt32; cdecl;
+var
+  WalkCamera: TWalkCamera;
 begin
   try
-    if Window.SceneManager.ScreenSpaceAmbientOcclusionAvailable then
-      Window.SceneManager.ScreenSpaceAmbientOcclusion := bOn;
+    case eVar of
+      0: begin    // ecgevarWalkHeadBobbing
+        WalkCamera := cgehelper_getWalkCamera;
+        if (WalkCamera <> nil) and (WalkCamera.HeadBobbing > 0) then
+          Result := 1 else
+          Result := 0;
+      end;
+
+      1: begin    // ecgevarEffectSSAO
+        if Window.SceneManager.ScreenSpaceAmbientOcclusionAvailable and
+            Window.SceneManager.ScreenSpaceAmbientOcclusion then
+          Result := 1 else
+          Result := 0;
+      end;
+
+      else Result := -1; // unsupported variable
+    end;
   except
     on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
@@ -362,9 +409,9 @@ exports
   CGE_MouseDown, CGE_MouseMove, CGE_MouseUp, CGE_MouseWheel,
   CGE_LoadSceneFromFile, CGE_GetNavigationType, CGE_SetNavigationType,
   CGE_GetViewpointsCount, CGE_GetViewpointName, CGE_MoveToViewpoint, CGE_AddViewpointFromCurrentView,
-  CGE_GetViewCoords, CGE_MoveViewToCoords, CGE_SaveScreenshotToFile,
+  CGE_GetBoundingBox, CGE_GetViewCoords, CGE_MoveViewToCoords, CGE_SaveScreenshotToFile,
   CGE_SetTouchInterface, CGE_SetUserInterface,
-  CGE_SetWalkHeadBobbing, CGE_SetEffectSsao;
+  CGE_SetVariableInt, CGE_GetVariableInt;
 
 begin
   {Do not remove the exception masking lines}

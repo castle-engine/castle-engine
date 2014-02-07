@@ -208,11 +208,19 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
             break;
 
         case 'e':
-            CGE_SetEffectSsao(true);
+            {
+                int nVal = CGE_GetVariableInt(ecgevarEffectSSAO);
+                if (nVal < 0) nVal = 0;
+                CGE_SetVariableInt(ecgevarEffectSSAO, 1-nVal);
+            }
             break;
 
         case 'h':
-            CGE_SetWalkHeadBobbing(false);
+            {
+                int nVal = CGE_GetVariableInt(ecgevarWalkHeadBobbing);
+                if (nVal < 0) nVal = 0;
+                CGE_SetVariableInt(ecgevarWalkHeadBobbing, 1-nVal);
+            }
             break;
 
         default:

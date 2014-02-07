@@ -44,6 +44,14 @@ uses
   ctypes;
 
 const
+  // open flags
+  ecgeofSaveMemory = 1;
+  ecgeofLog        = 2;
+
+  // used for quering engine parameters in CGE_Set/GetVariable
+  ecgevarWalkHeadBobbing = 0;   // walking effect (int, 1 = on, 0 = off)
+  ecgevarEffectSSAO      = 1;   // screen space ambient occlusion (int, 1 or 0)
+
   // user interface modes
   ecgeuiDesktop = 0;
   ecgeuiTouch   = 1;
@@ -86,6 +94,7 @@ function CGE_GetViewpointsCount(): cInt32; cdecl; external 'castleengine';
 procedure CGE_GetViewpointName(iViewpointIdx: cInt32; szName: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
 procedure CGE_MoveToViewpoint(iViewpointIdx: cInt32; bAnimated: cBool); cdecl; external 'castleengine';
 procedure CGE_AddViewpointFromCurrentView(szName: pcchar); cdecl; external 'castleengine';
+procedure CGE_GetBoundingBox(pfXMin, pfXMax, pfYMin, pfYMax, pfZMin, pfZMax: pcfloat); cdecl; external 'castleengine';
 procedure CGE_GetViewCoords(pfPosX, pfPosY, pfPosZ, pfDirX, pfDirY, pfDirZ,
                             pfUpX, pfUpY, pfUpZ, pfGravX, pfGravY, pfGravZ: pcfloat); cdecl; external 'castleengine';
 procedure CGE_MoveViewToCoords(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ,
@@ -94,8 +103,9 @@ function CGE_GetNavigationType(): cInt32; cdecl; external 'castleengine';
 procedure CGE_SetNavigationType(NewType: cInt32); cdecl; external 'castleengine';
 procedure CGE_SetTouchInterface(eMode: cInt32); cdecl; external 'castleengine';
 procedure CGE_SetUserInterface(AutomaticTouchInterface: cBool; nDpi: cInt32); cdecl; external 'castleengine';
-procedure CGE_SetWalkHeadBobbing(bOn: cBool); cdecl; external 'castleengine';
-procedure CGE_SetEffectSsao(bOn: cBool); cdecl; external 'castleengine';
+
+procedure CGE_SetVariableInt(eVar: cInt32; nValue: cInt32); cdecl; external 'castleengine';
+function CGE_GetVariableInt(eVar: cInt32): cInt32; cdecl; external 'castleengine';
 
 implementation
 

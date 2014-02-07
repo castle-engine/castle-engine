@@ -36,6 +36,12 @@ enum ECgeOpenFlag
     ecgeofLog        = 2,   // enable logging to stderr
 };
 
+enum ECgeVariable   // used for quering engine parameters in CGE_Set/GetVariable
+{
+    ecgevarWalkHeadBobbing = 0,   // walking effect (int, 1 = on, 0 = off)
+    ecgevarEffectSSAO      = 1,   // screen space ambient occlusion (int, 1 or 0)
+};
+
 enum ECgeNavigationType
 {
     ecgenavWalk      = 0,
@@ -100,6 +106,7 @@ extern void CGE_GetViewpointName(int iViewpointIdx, char *szName, int nBufSize);
 extern void CGE_MoveToViewpoint(int iViewpointIdx, bool bAnimated);
 extern void CGE_AddViewpointFromCurrentView(const char *szName);
 
+extern void CGE_GetBoundingBox(float *pfXMin, float *pfXMax, float *pfYMin, float *pfYMax, float *pfZMin, float *pfZMax);
 extern void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ,
                               float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ);
 extern void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ,
@@ -110,8 +117,8 @@ extern void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType);
 
 extern void CGE_SetTouchInterface(int /*ECgeTouchCtlInterface*/ eMode);
 
-extern void CGE_SetWalkHeadBobbing(bool bOn);   // activates the walking effect (default: on)
-extern void CGE_SetEffectSsao(bool bOn);        // activates SSAO (screen space ambient occlusion) effect (default: off)
+extern void CGE_SetVariableInt(int /*ECgeVariable*/ eVar, int nValue);
+extern int CGE_GetVariableInt(int /*ECgeVariable*/ eVar);
 
 #ifdef __cplusplus
 }

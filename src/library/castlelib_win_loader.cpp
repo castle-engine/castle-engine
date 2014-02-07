@@ -52,6 +52,7 @@ typedef int (__cdecl *PFNRD_CGE_GetViewpointsCount)();
 typedef void (__cdecl *PFNRD_CGE_GetViewpointName)(int iViewpointIdx, char *szName, int nBufSize);
 typedef void (__cdecl *PFNRD_CGE_MoveToViewpoint)(int iViewpointIdx, bool bAnimated);
 typedef void (__cdecl *PFNRD_CGE_AddViewpointFromCurrentView)(const char *szName);
+typedef void (__cdecl *PFNRD_CGE_GetBoundingBox)(float *pfXMin, float *pfXMax, float *pfYMin, float *pfYMax, float *pfZMin, float *pfZMax);
 typedef void (__cdecl *PFNRD_CGE_GetViewCoords)(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ, 
                                                 float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ);
 typedef void (__cdecl *PFNRD_CGE_MoveViewToCoords)(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ, 
@@ -62,8 +63,8 @@ typedef void (__cdecl *PFNRD_CGE_SetNavigationType)(int eNewType);
 typedef void (__cdecl *PFNRD_CGE_SetTouchInterface)(int eMode);
 typedef void (__cdecl *PFNRD_CGE_SetUserInterface)(bool bAutomaticTouchInterface, int nDpi);
 
-typedef void (__cdecl *PFNRD_CGE_SetWalkHeadBobbing)(bool bOn);
-typedef void (__cdecl *PFNRD_CGE_SetEffectSsao)(bool bOn);
+typedef void (__cdecl *PFNRD_CGE_SetVariableInt)(int eVar, int nValue);
+typedef int (__cdecl *PFNRD_CGE_GetVariableInt)(int eVar);
 
 
 PFNRD_CGE_Open pfrd_CGE_Open = NULL;
@@ -83,14 +84,15 @@ PFNRD_CGE_GetViewpointsCount pfrd_CGE_GetViewpointsCount = NULL;
 PFNRD_CGE_GetViewpointName pfrd_CGE_GetViewpointName = NULL;
 PFNRD_CGE_MoveToViewpoint pfrd_CGE_MoveToViewpoint = NULL;
 PFNRD_CGE_AddViewpointFromCurrentView pfrd_CGE_AddViewpointFromCurrentView = NULL;
+PFNRD_CGE_GetBoundingBox pfrd_CGE_GetBoundingBox = NULL;
 PFNRD_CGE_GetViewCoords pfrd_CGE_GetViewCoords = NULL;
 PFNRD_CGE_MoveViewToCoords pfrd_CGE_MoveViewToCoords = NULL;
 PFNRD_CGE_GetNavigationType pfrd_CGE_GetNavigationType = NULL;
 PFNRD_CGE_SetNavigationType pfrd_CGE_SetNavigationType = NULL;
 PFNRD_CGE_SetTouchInterface pfrd_CGE_SetTouchInterface = NULL;
 PFNRD_CGE_SetUserInterface pfrd_CGE_SetUserInterface = NULL;
-PFNRD_CGE_SetWalkHeadBobbing pfrd_CGE_SetWalkHeadBobbing = NULL;
-PFNRD_CGE_SetEffectSsao pfrd_CGE_SetEffectSsao = NULL;
+PFNRD_CGE_SetVariableInt pfrd_CGE_SetVariableInt = NULL;
+PFNRD_CGE_GetVariableInt pfrd_CGE_GetVariableInt = NULL;
 
 //-----------------------------------------------------------------------------
 void CGE_LoadLibrary()
@@ -116,14 +118,15 @@ void CGE_LoadLibrary()
 	pfrd_CGE_GetViewpointName = (PFNRD_CGE_GetViewpointName)GetProcAddress(g_hCgeDll, "CGE_GetViewpointName");
 	pfrd_CGE_MoveToViewpoint = (PFNRD_CGE_MoveToViewpoint)GetProcAddress(g_hCgeDll, "CGE_MoveToViewpoint");
     pfrd_CGE_AddViewpointFromCurrentView = (PFNRD_CGE_AddViewpointFromCurrentView)GetProcAddress(g_hCgeDll, "CGE_AddViewpointFromCurrentView");
+	pfrd_CGE_GetBoundingBox = (PFNRD_CGE_GetBoundingBox)GetProcAddress(g_hCgeDll, "CGE_GetBoundingBox");
 	pfrd_CGE_GetViewCoords = (PFNRD_CGE_GetViewCoords)GetProcAddress(g_hCgeDll, "CGE_GetViewCoords");
 	pfrd_CGE_MoveViewToCoords = (PFNRD_CGE_MoveViewToCoords)GetProcAddress(g_hCgeDll, "CGE_MoveViewToCoords");
 	pfrd_CGE_GetNavigationType = (PFNRD_CGE_GetNavigationType)GetProcAddress(g_hCgeDll, "CGE_GetNavigationType");
 	pfrd_CGE_SetNavigationType = (PFNRD_CGE_SetNavigationType)GetProcAddress(g_hCgeDll, "CGE_SetNavigationType");
 	pfrd_CGE_SetTouchInterface = (PFNRD_CGE_SetTouchInterface)GetProcAddress(g_hCgeDll, "CGE_SetTouchInterface");
 	pfrd_CGE_SetUserInterface = (PFNRD_CGE_SetUserInterface)GetProcAddress(g_hCgeDll, "CGE_SetUserInterface");
-	pfrd_CGE_SetWalkHeadBobbing = (PFNRD_CGE_SetWalkHeadBobbing)GetProcAddress(g_hCgeDll, "CGE_SetWalkHeadBobbing");
-	pfrd_CGE_SetEffectSsao = (PFNRD_CGE_SetEffectSsao)GetProcAddress(g_hCgeDll, "CGE_SetEffectSsao");
+	pfrd_CGE_SetVariableInt = (PFNRD_CGE_SetVariableInt)GetProcAddress(g_hCgeDll, "CGE_SetVariableInt");
+	pfrd_CGE_GetVariableInt = (PFNRD_CGE_GetVariableInt)GetProcAddress(g_hCgeDll, "CGE_GetVariableInt");
 }
 
 //-----------------------------------------------------------------------------
@@ -248,6 +251,13 @@ void CGE_AddViewpointFromCurrentView(const char *szName)
 }
 
 //-----------------------------------------------------------------------------
+void CGE_GetBoundingBox(float *pfXMin, float *pfXMax, float *pfYMin, float *pfYMax, float *pfZMin, float *pfZMax)
+{
+	if (pfrd_CGE_GetBoundingBox!=NULL)
+		(*pfrd_CGE_GetBoundingBox)(pfXMin, pfXMax, pfYMin, pfYMax, pfZMin, pfZMax);
+}
+
+//-----------------------------------------------------------------------------
 void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ, 
                        float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ)
 {
@@ -294,15 +304,17 @@ void CGE_SetUserInterface(bool bAutomaticTouchInterface, int nDpi)
 }
 
 //-----------------------------------------------------------------------------
-void CGE_SetWalkHeadBobbing(bool bOn)
+void CGE_SetVariableInt(int /*ECgeVariable*/ eVar, int nValue)
 {
-	if (pfrd_CGE_SetWalkHeadBobbing!=NULL)
-        (*pfrd_CGE_SetWalkHeadBobbing)(bOn);
+    if (pfrd_CGE_SetVariableInt!=NULL)
+        (*pfrd_CGE_SetVariableInt)(eVar, nValue);
 }
 
 //-----------------------------------------------------------------------------
-void CGE_SetEffectSsao(bool bOn)
+int CGE_GetVariableInt(int /*ECgeVariable*/ eVar)
 {
-	if (pfrd_CGE_SetEffectSsao!=NULL)
-        (*pfrd_CGE_SetEffectSsao)(bOn);
+    if (pfrd_CGE_GetVariableInt!=NULL)
+        return (*pfrd_CGE_GetVariableInt)(eVar);
+    else
+        return -1;
 }
