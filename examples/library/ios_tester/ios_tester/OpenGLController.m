@@ -146,8 +146,8 @@
     CGE_LoadSceneFromFile([self.fileToOpen fileSystemRepresentation]);
     
     Options *opt = [Options sharedOptions];
-    CGE_SetWalkHeadBobbing(opt.walkHeadBobbing);
-    CGE_SetEffectSsao(opt.ssao);
+    CGE_SetVariableInt(ecgevarWalkHeadBobbing, opt.walkHeadBobbing ? 1 : 0);
+    CGE_SetVariableInt(ecgevarEffectSSAO, opt.ssao ? 1 : 0);
 
     m_nViewpointCount = CGE_GetViewpointsCount();
     m_nCurrentViewpoint = 0;

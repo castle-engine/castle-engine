@@ -63,8 +63,8 @@
     Options *opt = [Options sharedOptions];
     switch (nRow)
     {
-        case 0: opt.walkHeadBobbing = bOn; CGE_SetWalkHeadBobbing(bOn); break;
-        case 1: opt.ssao = bOn; CGE_SetEffectSsao(bOn); break;
+        case 0: opt.walkHeadBobbing = bOn; CGE_SetVariableInt(ecgevarWalkHeadBobbing, bOn ? 1 : 0); break;
+        case 1: opt.ssao = bOn; CGE_SetVariableInt(ecgevarEffectSSAO, bOn ? 1 : 0); break;
             
         default:
             break;
