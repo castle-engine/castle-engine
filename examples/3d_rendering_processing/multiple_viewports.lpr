@@ -27,7 +27,7 @@
 
 uses SysUtils, CastleGL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleSceneManager,
   CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors,
-  CastleControls, CastleWarnings, CastleRendererShader,
+  CastleControls, CastleWarnings, CastleScreenEffects,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,
   CastleStringUtils, CastleKeysMouse, CastleColors, CastleControlsImages;
 
@@ -125,9 +125,9 @@ begin
   if TGLSLProgram.ClassSupport <> gsNone then
   begin
     GLSLProgram := TGLSLProgram.Create;
-    GLSLProgram.AttachVertexShader(ScreenEffectVertexShader);
+    GLSLProgram.AttachVertexShader(ScreenEffectVertex);
     GLSLProgram.AttachFragmentShader(
-      ScreenEffectLibrary(false) + NL +
+      ScreenEffectFragment(false) +
       'void main (void)' +NL+
       '{' +NL+
       '  gl_FragColor = (' +NL+

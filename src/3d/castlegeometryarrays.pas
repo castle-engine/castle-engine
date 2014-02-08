@@ -315,7 +315,7 @@ type
 
       Note that we *do not* implement FrontFaceCcw by glFrontFace,
       we do a little more complicated trick,
-      see comments at the beginning of GLRenderer for explanation
+      see comments at the beginning of CastleRenderer for explanation
       (hint: plane mirrors).
 
       @groupBegin }

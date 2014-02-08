@@ -1172,8 +1172,8 @@ var
 implementation
 
 uses SysUtils, CastleRenderingCamera, CastleGLUtils, CastleProgress, CastleRays,
-  CastleLog, CastleStringUtils, CastleRendererShader, CastleSoundEngine, Math,
-  X3DTriangles, CastleGLVersion, CastleShapes;
+  CastleLog, CastleStringUtils, CastleSoundEngine, Math,
+  X3DTriangles, CastleGLVersion, CastleShapes, CastleScreenEffects;
 
 procedure Register;
 begin
@@ -2344,11 +2344,8 @@ begin
     begin
       try
         SSAOShader := TGLSLProgram.Create;
-        SSAOShader.AttachVertexShader(ScreenEffectVertexShader);
-        SSAOShader.AttachFragmentShader(
-          { for OpenGLES, we have to glue all fragment shaders,
-            and ScreenEffectLibrary must be 1st }
-          ScreenEffectLibrary(true) + NL +
+        SSAOShader.AttachVertexShader(ScreenEffectVertex);
+        SSAOShader.AttachFragmentShader(ScreenEffectFragment(true) +
           {$I ssao.glsl.inc});
         SSAOShader.Link(true);
         SSAOShader.UniformNotFoundAction := uaIgnore;

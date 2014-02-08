@@ -817,10 +817,10 @@ type
     procedure Program_DecReference(var ProgramCache: TShaderProgramCache);
   end;
 
-  {$I glrenderer_resource.inc}
-  {$I glrenderer_texture.inc}
-  {$I glrenderer_bumpmapping.inc}
-  {$I glrenderer_glsl.inc}
+  {$I castlerenderer_resource.inc}
+  {$I castlerenderer_texture.inc}
+  {$I castlerenderer_bumpmapping.inc}
+  {$I castlerenderer_glsl.inc}
 
   { Shape that can be rendered. }
   TX3DRendererShape = class(TShape)
@@ -1167,12 +1167,12 @@ uses Math, CastleStringUtils, CastleGLVersion, CastleLog, CastleWarnings,
 
 {$define read_implementation}
 
-{$I glrenderer_meshrenderer.inc}
-{$I glrenderer_textrenderer.inc}
-{$I glrenderer_resource.inc}
-{$I glrenderer_texture.inc}
-{$I glrenderer_bumpmapping.inc}
-{$I glrenderer_glsl.inc}
+{$I castlerenderer_meshrenderer.inc}
+{$I castlerenderer_textrenderer.inc}
+{$I castlerenderer_resource.inc}
+{$I castlerenderer_texture.inc}
+{$I castlerenderer_bumpmapping.inc}
+{$I castlerenderer_glsl.inc}
 
 { TGLRendererContextCache -------------------------------------------- }
 
@@ -2817,7 +2817,7 @@ end;
 procedure TGLRenderer.RenderShapeMaterials(Shape: TX3DRendererShape;
   Fog: IAbstractFogObject; Shader: TShader);
 
-  {$I glrenderer_materials.inc}
+  {$I castlerenderer_materials.inc}
 
 begin
   RenderMaterialsBegin;

@@ -841,7 +841,7 @@ begin
     We cannot look at TextureNode.FdTexture here.
 
     Reason: TextureNode may be already freed at the Unprepare time.
-    GLRenderer explicitly allows to free vrml nodes before
+    CastleRenderer explicitly allows to free vrml nodes before
     unpreparing them. This is used e.g. by doing TCastleSceneCore.Load
     (that calls ChangedAll, that calls Unprepare, only at the end,
     *after* old nodes have been already freed.)

@@ -23,8 +23,7 @@ uses CastleVectors, CastleSceneCore, CastleScene, CastleBoxes, X3DNodes,
   X3DFields, CastleCameras, CastleSectors, CastleUtils, CastleClassUtils,
   CastlePlayer, CastleResources, CastleProgress, CastlePrecalculatedAnimation,
   DOM, CastleSoundEngine, Castle3D, CastleShapes, CastleConfig, CastleImages,
-  Classes, CastleTimeUtils, CastleSceneManager, CastleRendererShader, FGL,
-  CastleFindFiles;
+  Classes, CastleTimeUtils, CastleSceneManager, FGL, CastleFindFiles;
 
 type
   TLevelLogic = class;

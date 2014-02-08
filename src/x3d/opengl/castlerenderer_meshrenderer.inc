@@ -14,23 +14,23 @@
 }
 
 { X3D rendering.
-  This is internal for GLRenderer unit.
+  This is internal for CastleRenderer unit.
 
   Some ideas for implementation:
 
-  - GLRenderer unit, and TGLRenderer class are already
+  - CastleRenderer unit, and TGLRenderer class are already
     large and complicated. The idea of this file is to take some tasks
     from their hands. TMeshRenderer and descendants are created
     only for the time of one RenderShape call, and are used
     to render specific non-trivial X3D mesh nodes.
 
-  - Since all classes within this file and GLRenderer live
+  - Since all classes within this file and CastleRenderer live
     in one Pascal unit, we could break it and access each other's
     private fields etc. We try to not do it. We try to have a clean
     documented interface. Experience with TGeneralIndexedRenderer
     taught me that this has to be really flexible and designed for
     long-term work, to encompass many nodes and features. So, while
-    this is internal for GLRenderer, it still must be implemented
+    this is internal for CastleRenderer, it still must be implemented
     and documented cleanly.
 }
 

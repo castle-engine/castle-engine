@@ -15,7 +15,7 @@
 
 { Setting up OpenGL shading (TShader).
 
-  Internal for GLRenderer. @exclude }
+  Internal for CastleRenderer. @exclude }
 unit CastleRendererShader;
 
 {$I castleconf.inc}
@@ -459,19 +459,11 @@ type
 
 operator = (const A, B: TShaderCodeHash): boolean;
 
-const
-  ScreenEffectVertexShader = {$I screen_effect.vs.inc};
-
-{ Return GLSL library of functions to link with screen effect code.
-  This looks at current OpenGL context multi-sampling capabilities
-  in GLCurrentMultiSampling (do we have multi-sampling)
-  and GLFBOMultiSampling (can we have multi-sampling for textures rendered in FBO). }
-function ScreenEffectLibrary(const Depth: boolean): string;
-
 implementation
 
 uses SysUtils, CastleGL, CastleGLUtils, CastleWarnings,
-  CastleLog, StrUtils, Castle3D, CastleGLVersion, CastleRenderingCamera;
+  CastleLog, StrUtils, Castle3D, CastleGLVersion, CastleRenderingCamera,
+  CastleScreenEffects;
 
 { TODO: a way to turn off using fixed-function pipeline completely
   will be needed some day. Currently, some functions here call
@@ -541,26 +533,6 @@ begin
   if GLVersion.BuggyGLSLConstStruct then
     Result := '' else
     Result := 'const';
-end;
-
-{ Screen effect helpers ------------------------------------------------------ }
-
-function ScreenEffectLibrary(const Depth: boolean): string;
-begin
-  Result := '';
-  if Depth then
-    Result += '#define DEPTH' +NL;
-  if GLFeatures.FBOMultiSampling then
-  begin
-    if GLFeatures.CurrentMultiSampling > 1 then
-      Result +=
-        '#define MULTI_SAMPLING' +NL +
-        '#define MULTI_SAMPLING_' + IntToStr(GLFeatures.CurrentMultiSampling) +NL;
-    if not (GLFeatures.CurrentMultiSampling in [1, 2, 4, 8, 16]) then
-      OnWarning(wtMajor, 'Screen Effects', Format('Our GLSL library for screen effects is not prepared for your number of samples (anti-aliasing): %d. This may indicate that your GPU is very new or very weird. Please submit this as a bug (see http://castle-engine.sourceforge.net/forum.php for links to forum, bug tracker and more), citing this message. For now, screen effects will not work.',
-        [GLFeatures.CurrentMultiSampling]));
-  end;
-  Result += {$I screen_effect_library.glsl.inc};
 end;
 
 { TShaderCodeHash ------------------------------------------------------------ }
@@ -2947,8 +2919,8 @@ procedure TShader.AddScreenEffectCode(const Depth: boolean);
 var
   VS, FS: string;
 begin
-  VS := ScreenEffectVertexShader;
-  FS := ScreenEffectLibrary(Depth);
+  VS := ScreenEffectVertex;
+  FS := ScreenEffectFragment(Depth);
 
   Source[stVertex].Insert(0, VS);
   { For OpenGLES, ScreenEffectLibrary must be 1st shader,
@@ -2956,7 +2928,7 @@ begin
     So we glue it also on desktop OpenGL, for consistency
     (so e.g. you should never repeat "uniform screen_width...").  }
   if Source[stFragment].Count <> 0 then
-    Source[stFragment][0] := FS + NL + Source[stFragment][0] else
+    Source[stFragment][0] := FS + Source[stFragment][0] else
     Source[stFragment].Insert(0, FS);
 end;
 
