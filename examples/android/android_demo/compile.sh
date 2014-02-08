@@ -2,4 +2,4 @@
 set -eu
 
 cd ../../../
-ppcrossarm -Tandroid -CfVFPV3 -dDEBUG ${CASTLE_FPC_OPTIONS:-} @castle-fpc.cfg examples/android/android_demo/androiddemo.lpr
+ppcrossarm -Tandroid -CfVFPV3 "$@" ${CASTLE_FPC_OPTIONS:-} @castle-fpc.cfg examples/android/android_demo/androiddemo.lpr
