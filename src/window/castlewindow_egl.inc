@@ -64,35 +64,34 @@ begin
 end;
 {$endif}
 
-procedure TCastleWindowCustom.ContextCreateEnd(WndPtr: EGLNativeWindowType);
-
-  { EGL error codes and descriptions from
-    http://www.khronos.org/registry/egl/sdk/docs/man/xhtml/eglGetError.html }
-  function EGLError: string;
-  var
-    ErrorCode: EGLint;
-  begin
-    ErrorCode := eglGetError();
-    case ErrorCode of
-      EGL_SUCCESS: Result := 'The last function succeeded without error.';
-      EGL_NOT_INITIALIZED: Result := 'EGL is not initialized, or could not be initialized, for the specified EGL display connection.';
-      EGL_BAD_ACCESS: Result := 'EGL cannot access a requested resource (for example a context is bound in another thread).';
-      EGL_BAD_ALLOC: Result := 'EGL failed to allocate resources for the requested operation.';
-      EGL_BAD_ATTRIBUTE: Result := 'An unrecognized attribute or attribute value was passed in the attribute list.';
-      EGL_BAD_CONTEXT: Result := 'An EGLContext argument does not name a valid EGL rendering context.';
-      EGL_BAD_CONFIG: Result := 'An EGLConfig argument does not name a valid EGL frame buffer configuration.';
-      EGL_BAD_CURRENT_SURFACE: Result := 'The current surface of the calling thread is a window, pixel buffer or pixmap that is no longer valid.';
-      EGL_BAD_DISPLAY: Result := 'An EGLDisplay argument does not name a valid EGL display connection.';
-      EGL_BAD_SURFACE: Result := 'An EGLSurface argument does not name a valid surface (window, pixel buffer or pixmap) configured for GL rendering.';
-      EGL_BAD_MATCH: Result := 'Arguments are inconsistent (for example, a valid context requires buffers not supplied by a valid surface).';
-      EGL_BAD_PARAMETER: Result := 'One or more argument values are invalid.';
-      EGL_BAD_NATIVE_PIXMAP: Result := 'A NativePixmapType argument does not refer to a valid native pixmap.';
-      EGL_BAD_NATIVE_WINDOW: Result := 'A NativeWindowType argument does not refer to a valid native window.';
-      EGL_CONTEXT_LOST: Result := 'A power management event has occurred. The application must destroy all contexts and reinitialise OpenGL ES state and objects to continue rendering.';
-      else Result := Format('EGL error %d', [ErrorCode]);
-    end;
+{ EGL error codes and descriptions from
+  http://www.khronos.org/registry/egl/sdk/docs/man/xhtml/eglGetError.html }
+function EGLError: string;
+var
+  ErrorCode: EGLint;
+begin
+  ErrorCode := eglGetError();
+  case ErrorCode of
+    EGL_SUCCESS: Result := 'The last function succeeded without error.';
+    EGL_NOT_INITIALIZED: Result := 'EGL is not initialized, or could not be initialized, for the specified EGL display connection.';
+    EGL_BAD_ACCESS: Result := 'EGL cannot access a requested resource (for example a context is bound in another thread).';
+    EGL_BAD_ALLOC: Result := 'EGL failed to allocate resources for the requested operation.';
+    EGL_BAD_ATTRIBUTE: Result := 'An unrecognized attribute or attribute value was passed in the attribute list.';
+    EGL_BAD_CONTEXT: Result := 'An EGLContext argument does not name a valid EGL rendering context.';
+    EGL_BAD_CONFIG: Result := 'An EGLConfig argument does not name a valid EGL frame buffer configuration.';
+    EGL_BAD_CURRENT_SURFACE: Result := 'The current surface of the calling thread is a window, pixel buffer or pixmap that is no longer valid.';
+    EGL_BAD_DISPLAY: Result := 'An EGLDisplay argument does not name a valid EGL display connection.';
+    EGL_BAD_SURFACE: Result := 'An EGLSurface argument does not name a valid surface (window, pixel buffer or pixmap) configured for GL rendering.';
+    EGL_BAD_MATCH: Result := 'Arguments are inconsistent (for example, a valid context requires buffers not supplied by a valid surface).';
+    EGL_BAD_PARAMETER: Result := 'One or more argument values are invalid.';
+    EGL_BAD_NATIVE_PIXMAP: Result := 'A NativePixmapType argument does not refer to a valid native pixmap.';
+    EGL_BAD_NATIVE_WINDOW: Result := 'A NativeWindowType argument does not refer to a valid native window.';
+    EGL_CONTEXT_LOST: Result := 'A power management event has occurred. The application must destroy all contexts and reinitialise OpenGL ES state and objects to continue rendering.';
+    else Result := Format('EGL error %d', [ErrorCode]);
   end;
+end;
 
+procedure TCastleWindowCustom.ContextCreateEnd(WndPtr: EGLNativeWindowType);
 var
   Config: EGLConfig;
   ShareContext: EGLContext;
@@ -104,10 +103,11 @@ const
 begin
   Display := eglGetDisplay(EGL_DEFAULT_DISPLAY);
   if Display = EGL_NO_DISPLAY then
-    raise EGLContextNotPossible.Create('Cannot create EGL display');
+    { This does not set eglGetError, so we don't use EGLError in message below. }
+    raise EGLContextNotPossible.Create('EGL: Cannot get display');
 
   if eglInitialize(Display, nil, nil) = EGL_FALSE then
-    raise EGLContextNotPossible.Create('Cannot initialize EGL: ' + EGLError);
+    raise EGLContextNotPossible.Create('EGL: Cannot initialize: ' + EGLError);
 
   Attribs := TLongIntList.Create;
   try
@@ -124,7 +124,7 @@ begin
       EGL_NONE
     ]);
     if eglChooseConfig(Display, PEGLint(Attribs.List), @Config, 1, @NumConfig) = EGL_FALSE then
-      raise EGLContextNotPossible.Create('Cannot choose EGL config: ' + EGLError);
+      raise EGLContextNotPossible.Create('EGL: Cannot choose config: ' + EGLError);
   finally FreeAndNil(Attribs) end;
 
   if Application.FOpenWindows.Count <> 0 then
@@ -132,37 +132,54 @@ begin
     ShareContext := EGL_NO_CONTEXT;
   Context := eglCreateContext(Display, Config, ShareContext, @ContextAttribs);
   if Context = EGL_NO_CONTEXT then
-    raise EGLContextNotPossible.Create('Cannot create EGL context');
+    raise EGLContextNotPossible.Create('EGL: Cannot create context: ' + EGLError);
 
   Surface := eglCreateWindowSurface(Display, Config, WndPtr, nil);
   if Surface = EGL_NO_SURFACE then
-    raise EGLContextNotPossible.Create('Cannot create EGL surface');
+    raise EGLContextNotPossible.Create('EGL: Cannot create surface: ' + EGLError);
 end;
 
 procedure TCastleWindowCustom.ContextDestroy;
 begin
   if Surface <> EGL_NO_SURFACE { nil } then
-    eglDestroySurface(Display, Surface);
+  begin
+    if eglDestroySurface(Display, Surface) = EGL_FALSE then
+      OnWarning(wtMinor, 'EGL', 'Cannot destroy surface: ' + EGLError);
+    Surface := EGL_NO_SURFACE;
+  end;
 
   if Display <> EGL_NO_DISPLAY { nil } then
-    eglTerminate(Display);
+  begin
+    { Release the current context, to allow eglTerminate to release resources.
+      This allows on Android to reopen OpenGL context from the application
+      (like android_demo ReopenContextButton). }
+    if eglMakeCurrent(Display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT) = EGL_FALSE then
+      OnWarning(wtMinor, 'EGL', 'Cannot release current context: ' + EGLError);
+    if eglTerminate(Display) = EGL_FALSE then
+      OnWarning(wtMinor, 'EGL', 'Cannot terminate display connection: ' + EGLError);
+    Display := EGL_NO_DISPLAY;
+  end;
 end;
 
 procedure TCastleWindowCustom.BackendMakeCurrent;
 begin
   Assert(not Closed);
-  eglMakeCurrent(Display, Surface, Surface, Context);
+  if eglMakeCurrent(Display, Surface, Surface, Context) = EGL_FALSE then
+    OnWarning(wtMinor, 'EGL', 'Cannot make context current: ' + EGLError);
 end;
 
 procedure TCastleWindowCustom.SwapBuffers;
 begin
-  eglSwapBuffers(Display, Surface);
+  if eglSwapBuffers(Display, Surface) = EGL_FALSE then
+    OnWarning(wtMinor, 'EGL', 'Cannot swap buffers: ' + EGLError);
 end;
 
 procedure TCastleWindowCustom.QuerySize(out AWidth, AHeight: EGLint);
 begin
-  eglQuerySurface(Display, Surface, EGL_WIDTH, @AWidth);
-  eglQuerySurface(Display, Surface, EGL_HEIGHT, @AHeight);
+  if eglQuerySurface(Display, Surface, EGL_WIDTH, @AWidth) = EGL_FALSE then
+    OnWarning(wtMinor, 'EGL', 'Cannot query surface width: ' + EGLError);
+  if eglQuerySurface(Display, Surface, EGL_HEIGHT, @AHeight) = EGL_FALSE then
+    OnWarning(wtMinor, 'EGL', 'Cannot query surface height: ' + EGLError);
 end;
 
 {$ifdef CASTLE_WINDOW_XLIB}

@@ -37,12 +37,15 @@ var
   Background: TCastleSimpleBackground;
   {$endif}
   Image: TCastleImageControl;
+
   ToggleShaderButton: TCastleButton;
   ToggleScreenEffectButton: TCastleButton;
   ToggleSSAOButton: TCastleButton;
   TouchUIButton: TCastleButton;
   MessageButton: TCastleButton;
   ProgressButton: TCastleButton;
+  ReopenContextButton: TCastleButton;
+
   MyShaderEffect: TEffectNode;
   MyScreenEffect: TScreenEffectNode;
 
@@ -54,6 +57,7 @@ type
     procedure TouchUIClick(Sender: TObject);
     procedure MessageClick(Sender: TObject);
     procedure ProgressClick(Sender: TObject);
+    procedure ReopenContextClick(Sender: TObject);
   end;
 
 procedure TDummy.ToggleShaderClick(Sender: TObject);
@@ -105,8 +109,19 @@ begin
     begin
       Sleep(100);
       Progress.Step;
+      { On Android, it is possible that our window was closed at any time.
+        Prepare for this, to not have progress UI still active when window
+        is open again. }
+      if Window.Closed then
+        Exit;
     end;
   finally Progress.Fini end;
+end;
+
+procedure TDummy.ReopenContextClick(Sender: TObject);
+begin
+  Window.Close(false);
+  Window.Open;
 end;
 
 procedure FindFilesCallback(const FileInfo: TFileInfo; Data: Pointer);
@@ -173,6 +188,11 @@ begin
   ProgressButton.OnClick := @TDummy(nil).ProgressClick;
   Window.Controls.InsertFront(ProgressButton);
 
+  ReopenContextButton := TCastleButton.Create(Window);
+  ReopenContextButton.Caption := 'Test Reopening OpenGL Context';
+  ReopenContextButton.OnClick := @TDummy(nil).ReopenContextClick;
+  Window.Controls.InsertFront(ReopenContextButton);
+
   MyShaderEffect := Window.SceneManager.MainScene.RootNode.TryFindNodeByName(
     TEffectNode, 'MyShaderEffect', false) as TEffectNode;
   ToggleShaderButton.Pressed := (MyShaderEffect <> nil) and MyShaderEffect.Enabled;
@@ -235,6 +255,10 @@ begin
   Bottom -= ProgressButton.Height + Margin;
   ProgressButton.AlignHorizontal(prHigh, prHigh, -Margin);
   ProgressButton.Bottom := Bottom;
+
+  Bottom -= ReopenContextButton.Height + Margin;
+  ReopenContextButton.AlignHorizontal(prHigh, prHigh, -Margin);
+  ReopenContextButton.Bottom := Bottom;
 end;
 
 function MyGetApplicationName: string;

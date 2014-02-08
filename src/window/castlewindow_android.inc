@@ -89,7 +89,10 @@ begin
 
   Window := Application.MainWindow;
   if Window <> nil then
+  begin
     Window.Close;
+    Window.NativeWindow := nil; // make sure to not access the NativeWindow anymore
+  end;
 end;
 
 procedure HandleCommand(App: PAndroid_app; Command: Integer);
@@ -237,7 +240,12 @@ end;
 procedure TCastleWindowCustom.CloseBackend;
 begin
   ContextDestroy;
-  NativeWindow := nil; // make sure to not access the NativeWindow anymore
+  { Note that we do not clear NativeWindow now, because we may need it
+    if window is opened again. Although when Android system opens the window,
+    NativeWindow is set by OpenContext,
+    but when we manually reopen the window from
+    code (like "reopen context" button in android_demo), we need to keep
+    previous NativeWindow value. }
 end;
 
 procedure TCastleWindowCustom.Invalidate;
