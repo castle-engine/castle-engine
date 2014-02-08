@@ -238,6 +238,7 @@ type
         Background: TGLImage;
       public
         procedure Render; override;
+        procedure GLContextClose; override;
       end;
     var
       Control: TFrozenScreenControl;
@@ -457,6 +458,16 @@ begin
   Background.Draw(ContainerRect);
 end;
 
+procedure TGLModeFrozenScreen.TFrozenScreenControl.GLContextClose;
+begin
+  { On Android, it is possible that context will be closed in the middle
+    on TGLModeFrozenScreen. Make sure to release Background then. }
+  FreeAndNil(Background);
+  inherited;
+end;
+
+{ TGLModeFrozenScreen ------------------------------------------------------ }
+
 constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindowCustom);
 begin
   inherited Create(AWindow);
@@ -477,7 +488,6 @@ destructor TGLModeFrozenScreen.Destroy;
 begin
   inherited;
   { it's a little safer to call this after inherited }
-  FreeAndNil(Control.Background);
   FreeAndNil(Control);
 end;
 
