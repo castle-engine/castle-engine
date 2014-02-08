@@ -13,10 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Setting up OpenGL shading (TShader).
-
-  Internal for CastleRenderer. @exclude }
-unit CastleRendererShader;
+{ Setting up OpenGL shaders (TShader).Internal for CastleRenderer. @exclude }
+unit CastleRendererInternalShader;
 
 {$I castleconf.inc}
 
@@ -24,7 +22,7 @@ interface
 
 uses CastleVectors, CastleGLShaders, FGL, CastleGenericLists,
   X3DShadowMaps, X3DTime, X3DFields, X3DNodes, CastleUtils, CastleBoxes,
-  CastleRendererTextureEnv, CastleStringUtils, CastleShaders;
+  CastleRendererInternalTextureEnv, CastleStringUtils, CastleShaders;
 
 type
   TTextureType = (tt2D, tt2DShadow, ttCubeMap, tt3D, ttShader);

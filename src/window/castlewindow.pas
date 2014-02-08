@@ -3075,7 +3075,7 @@ const
     - extend the TAntiAliasing type and related arrays (just recompile to see
       where you need to change),
     - extend the src/x3d/opengl/glsl/screen_effect_library.glsl
-    - extend the check for samples in ScreenEffectLibrary in CastleRenderer
+    - extend the check for samples in ScreenEffectLibrary in CastleScreenEffects
       (this must be synchronized with screen_effect_library.glsl implementation).
   }
 begin

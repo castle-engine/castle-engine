@@ -212,11 +212,11 @@ interface
 uses
   Classes, SysUtils, CastleUtils, CastleVectors, CastleGL,
   X3DFields, X3DNodes, X3DLexer, CastleOutlineFontData, CastleImages,
-  CastleGLUtils, CastleRendererLights, CastleGLOutlineFonts,
+  CastleGLUtils, CastleRendererInternalLights, CastleGLOutlineFonts,
   CastleGLShaders, CastleGLImages, CastleVideos, X3DTime, CastleShapes,
   CastleGLCubeMaps, CastleClassUtils, CastleDDS, Castle3D, FGL,
-  CastleGeometryArrays, CastleArraysGenerator, CastleRendererShader, X3DShadowMaps,
-  CastleRendererTextureEnv;
+  CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader, X3DShadowMaps,
+  CastleRendererInternalTextureEnv;
 
 {$define read_interface}
 
@@ -227,7 +227,8 @@ type
   TShadersRendering = (srDisable, srWhenRequired, srAlways);
   { Faces to cull (make invisible) during VRML/X3D rendering. }
   TCullFace = (cfNone, cfCW, cfCCW);
-  TBumpMapping = CastleRendererShader.TBumpMapping;
+  TBumpMapping = CastleRendererInternalShader.TBumpMapping;
+  TLightRenderEvent = CastleRendererInternalLights.TLightRenderEvent;
 
   { TRenderingAttributes.Mode possible values. }
   TRenderingMode = (

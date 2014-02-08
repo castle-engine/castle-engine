@@ -14,8 +14,8 @@
 }
 
 { Texture environment detection.
-  @exclude Internal unit for CastleRenderer and CastleRendererShader. }
-unit CastleRendererTextureEnv;
+  @exclude Internal unit for CastleRenderer and CastleRendererInternalShader. }
+unit CastleRendererInternalTextureEnv;
 
 interface
 

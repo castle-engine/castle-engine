@@ -225,6 +225,7 @@ begin
     P.Targets.AddUnit('castleglshaders.pas');
     P.Targets.AddUnit('castleglshadowvolumes.pas');
     P.Targets.AddUnit('castleglversion.pas');
+    P.Targets.AddUnit('castlescreeneffects.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'ui');
     P.Targets.AddUnit('castlecameras.pas');
@@ -289,9 +290,9 @@ begin
     P.Targets.AddUnit('castlebackground.pas');
     P.Targets.AddUnit('castlescene.pas');
     P.Targets.AddUnit('castlescenemanager.pas');
-    P.Targets.AddUnit('castlerenderershader.pas');
-    P.Targets.AddUnit('castlerendererlights.pas');
-    P.Targets.AddUnit('castlerenderertextureenv.pas');
+    P.Targets.AddUnit('castlerendererinternalshader.pas');
+    P.Targets.AddUnit('castlerendererinternallights.pas');
+    P.Targets.AddUnit('castlerendererinternaltextureenv.pas');
     P.Targets.AddUnit('castlerenderer.pas');
     P.Targets.AddUnit('castleprecalculatedanimation.pas');
 

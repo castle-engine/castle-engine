@@ -19,7 +19,7 @@ program fps_game;
 uses SysUtils, Classes, CastleWindow, CastleWarnings, CastleConfig, CastleLevels,
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
-  CastleRenderer, Castle3D, CastleFilesUtils, CastleGameNotifications,
+  Castle3D, CastleFilesUtils, CastleGameNotifications,
   CastleSceneManager, CastleVectors, CastleUIControls, CastleGLUtils,
   CastleColors, CastleItems, CastleUtils, CastleCameras, CastleMaterialProperties,
   CastleCreatures, CastleRectangles, CastleImages;

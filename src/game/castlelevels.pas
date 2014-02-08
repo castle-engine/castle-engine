@@ -540,7 +540,7 @@ implementation
 
 uses SysUtils, CastleGLUtils, CastleFilesUtils, CastleStringUtils,
   CastleGLImages, CastleUIControls, XMLRead, CastleInputs, CastleXMLUtils,
-  CastleRenderer, CastleRenderingCamera, Math, CastleWarnings, X3DCameraUtils,
+  CastleRenderingCamera, Math, CastleWarnings, X3DCameraUtils,
   CastleGLVersion, CastleURIUtils, CastleDownload;
 
 { globals -------------------------------------------------------------------- }

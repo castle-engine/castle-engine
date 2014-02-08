@@ -14,13 +14,13 @@
 }
 
 { VRML/X3D lights OpenGL rendering. Internal for CastleRenderer. @exclude }
-unit CastleRendererLights;
+unit CastleRendererInternalLights;
 
 {$I castleconf.inc}
 
 interface
 
-uses CastleVectors, CastleGLUtils, X3DNodes, CastleRendererShader;
+uses CastleVectors, CastleGLUtils, X3DNodes, CastleRendererInternalShader;
 
 type
   { Modify light's properties of the light right before it's rendered.
