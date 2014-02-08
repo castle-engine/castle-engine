@@ -53,7 +53,7 @@ begin
     end;
     if (flags and 2 {ecgeofLog}) > 0 then
       InitializeLog;
-    
+
     Window := TCastleWindowTouch.Create(nil);
     Window.Open;
   except
@@ -127,6 +127,7 @@ begin
         C.Exists := true;
     finally FreeAndNil(Restore2D) end;
   except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -156,6 +157,7 @@ begin
     if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
     Window.LibraryMouseDown(X, Y, MyButton);
   except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -164,6 +166,7 @@ begin
   try
     Window.LibraryMouseMove(X, Y);
   except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -175,6 +178,7 @@ begin
     if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
     Window.LibraryMouseUp(x, y, MyButton);
   except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -183,6 +187,7 @@ begin
   try
     Window.LibraryMouseWheel(zDelta/120, bVertical);
   except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -202,7 +207,11 @@ begin
   try
     Result := Window.MainScene.ViewpointsCount;
   except
-    Result := 0;
+    on E: TObject do
+    begin
+      WritelnLog('Window', ExceptMessage(E));
+      Result := 0;
+    end;
   end;
 end;
 
@@ -214,6 +223,7 @@ begin
     sName := Window.MainScene.GetViewpointName(iViewpointIdx);
     StrPLCopy(szName, sName, nBufSize-1);
   except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -222,6 +232,7 @@ begin
   try
     Window.MainScene.MoveToViewpoint(iViewpointIdx, bAnimated);
   except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -231,6 +242,7 @@ begin
     Window.MainScene.AddViewpointFromCamera(
       Window.SceneManager.Camera, StrPas(PChar(szName)));
   except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -244,6 +256,7 @@ begin
     pfYMin^ := BBox.Data[0, 1]; pfYMax^ := BBox.Data[1, 1];
     pfZMin^ := BBox.Data[0, 2]; pfZMax^ := BBox.Data[1, 2];
   except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -259,6 +272,7 @@ begin
     pfUpX^ := Up[0]; pfUpY^ := Up[1]; pfUpZ^ := Up[2];
     pfGravX^ := GravityUp[0]; pfGravY^ := GravityUp[1]; pfGravZ^ := GravityUp[2];
   except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -274,6 +288,7 @@ begin
     GravityUp[0] := fGravX; GravityUp[1] := fGravY; GravityUp[2] := fGravZ;
     Window.SceneManager.Camera.SetView(Pos, Dir, Up, GravityUp);
   except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -289,7 +304,11 @@ begin
       else raise EInternalError.Create('CGE_GetNavigationType: Unrecognized Window.NavigationType');
     end;
   except
-    Result := -1;
+    on E: TObject do
+    begin
+      WritelnLog('Window', ExceptMessage(E));
+      Result := -1;
+    end;
   end;
 end;
 
@@ -308,6 +327,7 @@ begin
     end;
     Window.NavigationType := aNavType;
   except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
@@ -336,6 +356,7 @@ begin
     Window.AutomaticTouchInterface := bAutomaticTouchInterface;
     Window.Dpi := nDpi;
   except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
