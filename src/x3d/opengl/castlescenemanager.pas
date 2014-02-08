@@ -57,6 +57,12 @@ type
     TCastleSceneManager and TCastleViewport. }
   TCastleAbstractViewport = class(TUIRectangularControl)
   private
+    type
+      TScreenPoint = packed record
+        Position: TVector2Single;
+        TexCoord: TVector2Single;
+      end;
+    var
     FWidth, FHeight: Cardinal;
     FFullSize: boolean;
     FCamera: TCamera;
@@ -87,6 +93,8 @@ type
     { Saved ScreenEffectsCount/NeedDepth result, during rendering. }
     CurrentScreenEffectsCount: Integer;
     CurrentScreenEffectsNeedDepth: boolean;
+    ScreenPointVbo: TGLuint;
+    ScreenPoint: packed array [0..3] of TScreenPoint;
 
     FApproximateActivation: boolean;
     FDefaultVisibilityLimit: Single;
@@ -1953,15 +1961,6 @@ begin
   RenderFromView3D(FRenderParams);
 end;
 
-type
-  TScreenPoint = packed record
-    Position: TVector2Single;
-    TexCoord: TVector2Single;
-  end;
-var
-  ScreenPointVbo: TGLuint;
-  ScreenPoint: packed array [0..3] of TScreenPoint;
-
 procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
 
   procedure RenderOneEffect(Shader: TGLSLProgram);
@@ -2374,6 +2373,7 @@ begin
   ScreenEffectTextureTarget := 0; //< clear, for safety
   FreeAndNil(ScreenEffectRTT);
   FreeAndNil(SSAOShader);
+  glFreeBuffer(ScreenPointVbo);
   inherited;
 end;
 
