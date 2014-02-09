@@ -38,6 +38,7 @@ type
   TUIContainer = class;
 
   TContainerEvent = procedure (Container: TUIContainer);
+  TContainerObjectEvent = procedure (Container: TUIContainer) of object;
   TMouseMoveEvent = procedure (Container: TUIContainer; NewX, NewY: Integer);
   TInputPressReleaseEvent = procedure (Container: TUIContainer; const Event: TInputPressRelease);
 
@@ -60,10 +61,10 @@ type
     like TUIControl.Update, TUIControl.Render. }
   TUIContainer = class abstract(TComponent)
   private
-    FOnOpen: TContainerEvent;
+    FOnOpen, FOnClose: TContainerEvent;
+    FOnOpenObject, FOnCloseObject: TContainerObjectEvent;
     FOnBeforeRender, FOnRender: TContainerEvent;
     FOnResize: TContainerEvent;
-    FOnClose: TContainerEvent;
     FOnPress, FOnRelease: TInputPressReleaseEvent;
     FOnMouseMove: TMouseMoveEvent;
     FOnUpdate: TContainerEvent;
@@ -92,10 +93,12 @@ type
       like TCastleWindow or TCastleControl.
       @groupBegin }
     property OnOpen: TContainerEvent read FOnOpen write FOnOpen;
+    property OnOpenObject: TContainerObjectEvent read FOnOpenObject write FOnOpenObject;
     property OnBeforeRender: TContainerEvent read FOnBeforeRender write FOnBeforeRender;
     property OnRender: TContainerEvent read FOnRender write FOnRender;
     property OnResize: TContainerEvent read FOnResize write FOnResize;
     property OnClose: TContainerEvent read FOnClose write FOnClose;
+    property OnCloseObject: TContainerObjectEvent read FOnCloseObject write FOnCloseObject;
     property OnPress: TInputPressReleaseEvent read FOnPress write FOnPress;
     property OnRelease: TInputPressReleaseEvent read FOnRelease write FOnRelease;
     property OnMouseMove: TMouseMoveEvent read FOnMouseMove write FOnMouseMove;
@@ -495,6 +498,7 @@ end;
     where (0, 0) is left-bottom window corner.) }
   TUIControl = class(TInputListener)
   private
+    FDisableContextOpenClose: Cardinal;
     FFocused: boolean;
     FGLInitialized: boolean;
     FExists: boolean;
@@ -647,7 +651,40 @@ end;
 
     property GLInitialized: boolean read FGLInitialized default false;
 
-    { Called when this control becomes or stops being focused.
+    { When non-zero, control will not receive GLContextOpen and
+      GLContextClose events when it is added/removed from the
+      @link(TUIContainer.Controls) list.
+
+      This can be useful as an optimization, to keep the OpenGL resources
+      created even for controls that are not present on the
+      @link(TUIContainer.Controls) list. @italic(This must used
+      very, very carefully), as bad things will happen if the actual OpenGL
+      context will be destroyed while the control keeps the OpenGL resources
+      (because it had DisableContextOpenClose > 0). The control will then
+      remain having incorrect OpenGL resource handles, and will try to use them,
+      causing OpenGL errors or at least weird display artifacts.
+
+      Most of the time, when you think of using this, you should instead
+      use the @link(TUIControl.Exists) property. This allows you to keep the control
+      of the @link(TUIContainer.Controls) list, and it will be receive
+      GLContextOpen and GLContextClose events as usual, but will not exist
+      for all other purposes.
+
+      Using this mechanism is only sensible if you want to reliably hide a control,
+      but also allow readding it to the @link(TUIContainer.Controls) list,
+      and then you want to show it again. This is useful for CastleWindowModes,
+      that must push (and then pop) the controls, but then allows the caller
+      to modify the controls list. And some games, e.g. castle1, add back
+      some (but not all) of the just-hidden controls. For example the TCastleNotifications
+      instance is added back, to be visible even in the menu mode.
+      This means that CastleWindowModes cannot just modify the TUIContainer.Exists
+      value, leaving the control on the @link(TUIContainer.Controls) list:
+      it would leave the TUIControl existing many times on the @link(TUIContainer.Controls)
+      list, with the undefined TUIContainer.Exists value. }
+    property DisableContextOpenClose: Cardinal
+      read FDisableContextOpenClose write FDisableContextOpenClose;
+
+   { Called when this control becomes or stops being focused.
       In this class, they simply update Focused property. }
     procedure SetFocused(const Value: boolean); virtual;
 
@@ -812,6 +849,17 @@ end;
       to remember that controls at the end of the list are at the back
       (they get key/mouse events last). }
     procedure InsertBack(const NewItem: TUIControl);
+
+    { BeginDisableContextOpenClose disables sending
+      TUIControl.GLContextOpen and TUIControl.GLContextClose to all the controls
+      on the list. EndDisableContextOpenClose ends this.
+      They work by increasing / decreasing the TUIControl.DisableContextOpenClose
+      for all the items on the list.
+
+      @groupBegin }
+    procedure BeginDisableContextOpenClose;
+    procedure EndDisableContextOpenClose;
+    { @groupEnd }
   end;
 
   TGLContextEvent = procedure;
@@ -905,7 +953,8 @@ begin
 
         if Container.GLInitialized then
         begin
-          C.GLContextOpen;
+          if C.DisableContextOpenClose = 0 then
+            C.GLContextOpen;
           { Call initial ContainerResize for control.
             If window OpenGL context is not yet initialized, defer it to
             the Open time, then our initial EventResize will be called
@@ -915,7 +964,8 @@ begin
       end;
     lnExtracted, lnDeleted:
       begin
-        if Container.GLInitialized then
+        if Container.GLInitialized and
+           (C.DisableContextOpenClose = 0) then
           C.GLContextClose;
 
         if C.OnVisibleChange = @Container.ControlsVisibleChange then
@@ -1222,6 +1272,7 @@ begin
     C.GLContextOpen;
 
   if Assigned(OnOpen) then OnOpen(Self);
+  if Assigned(OnOpenObject) then OnOpenObject(Self);
 end;
 
 procedure TUIContainer.EventClose(const OpenWindowsCount: Cardinal);
@@ -1230,6 +1281,7 @@ var
 begin
   { Call GLContextClose on controls after OnClose,
     consistent with inverse order in OnOpen. }
+  if Assigned(OnCloseObject) then OnCloseObject(Self);
   if Assigned(OnClose) then OnClose(Self);
 
   { call GLContextClose on controls before OnClose.
@@ -1680,6 +1732,24 @@ end;
 procedure TUIControlList.Insert(Index: Integer; Item: TUIControl);
 begin
   inherited Insert(Index, Item);
+end;
+
+procedure TUIControlList.BeginDisableContextOpenClose;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    with Items[I] do
+      DisableContextOpenClose := DisableContextOpenClose + 1;
+end;
+
+procedure TUIControlList.EndDisableContextOpenClose;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    with Items[I] do
+      DisableContextOpenClose := DisableContextOpenClose - 1;
 end;
 
 procedure TUIControlList.InsertFront(const NewItem: TUIControl);

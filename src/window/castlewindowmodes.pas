@@ -45,8 +45,10 @@ type
     type
       TWindowState = class
       strict private
+        Window: TCastleWindowCustom;
         OldMouseMove: TMouseMoveEvent;
         OldPress, OldRelease: TInputPressReleaseEvent;
+        OldOpenObject, OldCloseObject: TContainerObjectEvent;
         OldBeforeRender, OldRender, OldCloseQuery, OldUpdate, OldTimer: TContainerEvent;
         OldRenderStyle: TRenderStyle;
         OldResize: TContainerEvent;
@@ -65,41 +67,13 @@ type
         OldClose_charkey: char;
         OldFpsShowOnCaption: boolean;
         OldControls: TUIControlList;
+        procedure WindowOpen(Container: TUIContainer);
+        procedure WindowClose(Container: TUIContainer);
       public
         { When adding new attributes to TCastleWindowCustom that should be saved/restored,
           you must remember to
-          1. expand this record with new fields
-          2. expand routines Get, Set and SetStandard below. } { }
-
-        { GetState saves the TCastleWindowCustom state, SetState applies this state
-          back to the window (the same window, or other).
-          Every property that can change when TCastleWindowCustom is open are saved.
-          This way you can save/restore TCastleWindowCustom state, you can also copy
-          a state from one window into another.
-
-          Notes about TCastleWindowCustom.MainMenu saving: only the reference
-          to MainMenu is stored. So:
-
-          @unorderedList(
-            @item(If you use TCastleWindowCustom.MainMenu,
-              be careful when copying it to another window (no two windows
-              may own the same MainMenu instance at the same time;
-              also, you would have to make sure MainMenu instance will not be
-              freed two times).)
-
-            @item(Do not change the MainMenu contents
-              during TGLMode.Create/Free. Although you can change MainMenu
-              to something completely different. Just keep the assumption
-              that MainMenu stays <> nil.)
-
-            @item(As an exception to the previous point, you can freely
-              change MainMenu.Enabled, that is saved specially for this.)
-          )
-
-          @groupBegin }
-        procedure GetState(Window: TCastleWindowCustom);
-        procedure SetState(Window: TCastleWindowCustom);
-        { @groupEnd }
+          1. expand this class with new fields
+          2. expand constructor, destructor and SetStandardState } { }
 
         { Resets all window properties (that are get / set by GetState / SetState).
           For most properties, we simply reset them to some sensible default
@@ -111,9 +85,13 @@ type
           @unorderedList(
             @item(All callbacks (OnXxx) are set to @nil.
 
-              Except OnOpen and OnClose callbacks, they are not changed.
-              Also global CastleUIControls.OnGLContextOpen, CastleUIControls.OnGLContextClose
-              are untouched.
+              Except the open/close callbacks
+              (OnOpen and OnClose, OnOpenObject and OnCloseObject).
+              Actually, OnOpenObject and OnCloseObject are changed for internal purposes,
+              but, assuming you use SetStandardState, the orignal ones will still happen.
+              Global CastleUIControls.OnGLContextOpen, CastleUIControls.OnGLContextClose
+              are also untouched.
+
               @unorderedList(
                 @item(On standalone, we can expect that the window
                   (and OpenGL context) will stay open during the lifetime of a single
@@ -146,17 +124,41 @@ type
           it's an empty callback, thus using it disables the possibility
           to close the window by window manager
           (usually using "close" button in some window corner or Alt+F4). }
-        class procedure SetStandardState(Window: TCastleWindowCustom;
+        procedure SetStandardState(
           NewRender, NewResize, NewCloseQuery: TContainerEvent);
 
-        { Constructor. Gets the state of given window by GetState,
-          and resets it by SetStandardState. }
-        constructor Create(Window: TCastleWindowCustom);
+        { Constructor saves the TCastleWindowCustom state, destructor applies this state
+          back to the window.
+          Every property that can change when TCastleWindowCustom is open are saved.
+          This way you can save/restore TCastleWindowCustom state, you can also copy
+          a state from one window into another.
+
+          Notes about TCastleWindowCustom.MainMenu saving: only the reference
+          to MainMenu is stored. So:
+
+          @unorderedList(
+            @item(If you use TCastleWindowCustom.MainMenu,
+              be careful when copying it to another window (no two windows
+              may own the same MainMenu instance at the same time;
+              also, you would have to make sure MainMenu instance will not be
+              freed two times).)
+
+            @item(Do not change the MainMenu contents
+              during TGLMode.Create/Free. Although you can change MainMenu
+              to something completely different. Just keep the assumption
+              that MainMenu stays <> nil.)
+
+            @item(As an exception to the previous point, you can freely
+              change MainMenu.Enabled, that is saved specially for this.)
+          )
+        }
+        constructor Create(AWindow: TCastleWindowCustom);
         destructor Destroy; override;
       end;
     var
     OldState: TWindowState;
     Window: TCastleWindowCustom;
+    DisabledContextOpenClose: boolean;
   public
     { Constructor saves open TCastleWindowCustom and OpenGL state.
       Destructor will restore them.
@@ -204,6 +206,10 @@ type
         @item(
           We call ZeroNextSecondsPassed at the end, when closing our mode,
           see TFramesPerSecond.ZeroNextSecondsPassed for comments why this is needed.)
+
+        @item(This also performs important optimization to avoid closing /
+          reinitializing window TCastleWindowCustom.Controls OpenGL resources,
+          see TUIControl.DisableContextOpenClose.)
       ) }
     constructor Create(AWindow: TCastleWindowCustom);
 
@@ -228,11 +234,7 @@ type
     displayed.
 
     During this lifetime, we set special TCastleWindowCustom.OnRender and TCastleWindowCustom.OnResize
-    to draw the saved image in a simplest 2D OpenGL projection.
-
-    Between creation/destroy, TCastleWindowCustom.UserData is used by this function
-    for internal purposes. So don't use it yourself.
-    We'll restore initial TCastleWindowCustom.UserData at destruction. }
+    to draw the saved image in a simplest 2D OpenGL projection. }
   TGLModeFrozenScreen = class(TGLMode)
   private
     Control: TCastleImageControl;
@@ -251,21 +253,15 @@ uses CastleUtils;
 
 { TGLMode.TWindowState -------------------------------------------------------------- }
 
-constructor TGLMode.TWindowState.Create(Window: TCastleWindowCustom);
+constructor TGLMode.TWindowState.Create(AWindow: TCastleWindowCustom);
 begin
   inherited Create;
-  OldControls := TUIControlList.Create(false);
-  GetState(Window);
-end;
+  Window := AWindow;
 
-destructor TGLMode.TWindowState.Destroy;
-begin
-  FreeAndNil(OldControls);
-  inherited;
-end;
-
-procedure TGLMode.TWindowState.GetState(Window: TCastleWindowCustom);
-begin
+  OldOpenObject := Window.OnOpenObject;
+  OldCloseObject := Window.OnCloseObject;
+  { Note that we do not touch OnOpen and OnClose. Let them happen.
+    Our WindowOpen/Close will also call origina OnOpenObject/Close. }
   OldMouseMove := Window.OnMouseMove;
   OldPress := Window.OnPress;
   OldRelease := Window.OnRelease;
@@ -288,11 +284,16 @@ begin
   oldSwapFullScreen_Key := Window.SwapFullScreen_Key;
   oldClose_charkey := Window.Close_charkey;
   oldFpsShowOnCaption := Window.FpsShowOnCaption;
+
+  OldControls := TUIControlList.Create(false);
   OldControls.Assign(Window.Controls);
+  OldControls.BeginDisableContextOpenClose;
 end;
 
-procedure TGLMode.TWindowState.SetState(Window: TCastleWindowCustom);
+destructor TGLMode.TWindowState.Destroy;
 begin
+  Window.OnOpenObject := OldOpenObject;
+  Window.OnCloseObject := OldCloseObject;
   Window.OnMouseMove := OldMouseMove;
   Window.OnPress := OldPress;
   Window.OnRelease := OldRelease;
@@ -315,12 +316,48 @@ begin
   Window.SwapFullScreen_Key := oldSwapFullScreen_Key;
   Window.Close_charkey := oldClose_charkey;
   Window.FpsShowOnCaption := oldFpsShowOnCaption;
-  Window.Controls.Assign(OldControls);
+
+  if OldControls <> nil then
+  begin
+    Window.Controls.Assign(OldControls);
+    OldControls.EndDisableContextOpenClose;
+    FreeAndNil(OldControls);
+  end;
+
+  inherited;
 end;
 
-class procedure TGLMode.TWindowState.SetStandardState(Window: TCastleWindowCustom;
+procedure TGLMode.TWindowState.WindowOpen(Container: TUIContainer);
+var
+  C: TUIControl;
+begin
+  if Assigned(OldOpenObject) then
+    OldOpenObject(Container);
+  { Make sure to call GLContextOpen on OldControls,
+    otherwise they would not initialize OpenGL resources even though OpenGL
+    context was open. }
+  for C in OldControls do
+    C.GLContextOpen;
+end;
+
+procedure TGLMode.TWindowState.WindowClose(Container: TUIContainer);
+var
+  C: TUIControl;
+begin
+  if Assigned(OldCloseObject) then
+    OldCloseObject(Container);
+  { Make sure to call GLContextClose on OldControls,
+    otherwise they would not release OpenGL resources even though OpenGL
+    context was closed. }
+  for C in OldControls do
+    C.GLContextClose;
+end;
+
+procedure TGLMode.TWindowState.SetStandardState(
   NewRender, NewResize, NewCloseQuery: TContainerEvent);
 begin
+  Window.OnOpenObject := @WindowOpen;
+  Window.OnCloseObject := @WindowClose;
   Window.OnMouseMove := nil;
   Window.OnPress := nil;
   Window.OnRelease := nil;
@@ -372,37 +409,36 @@ constructor TGLMode.Create(AWindow: TCastleWindowCustom);
   end;
 
 begin
- inherited Create;
+  inherited Create;
 
- Window := AWindow;
+  Window := AWindow;
 
- FFakeMouseDown := false;
+  FFakeMouseDown := false;
 
- Check(not Window.Closed, 'ModeGLEnter cannot be called on a closed CastleWindow.');
+  Check(not Window.Closed, 'ModeGLEnter cannot be called on a closed CastleWindow.');
 
- OldState := TWindowState.Create(Window);
- OldWidth := Window.Width;
- OldHeight := Window.Height;
+  OldState := TWindowState.Create(Window);
+  OldWidth := Window.Width;
+  OldHeight := Window.Height;
 
- Window.MakeCurrent;
+  Window.MakeCurrent;
 
- SimulateReleaseAll;
+  SimulateReleaseAll;
 
- Window.Invalidate;
+  Window.Invalidate;
 end;
 
 constructor TGLMode.CreateReset(AWindow: TCastleWindowCustom;
   NewRender, NewResize, NewCloseQuery: TContainerEvent);
 begin
   Create(AWindow);
-  TWindowState.SetStandardState(AWindow, NewRender, NewResize, NewCloseQuery);
+  OldState.SetStandardState(NewRender, NewResize, NewCloseQuery);
 end;
 
 destructor TGLMode.Destroy;
 var
   btn: TMouseButton;
 begin
-  OldState.SetState(Window);
   FreeAndNil(OldState);
 
   { Although it's forbidden to use TGLMode on Closed TCastleWindowCustom,
@@ -442,7 +478,7 @@ begin
   { save screen, before changing state. }
   Control.Image := Window.SaveScreen;
 
-  TWindowState.SetStandardState(AWindow, nil, nil, @NoClose);
+  OldState.SetStandardState(nil, nil, @NoClose);
   AWindow.Controls.InsertFront(Control);
 end;
 

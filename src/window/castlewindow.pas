@@ -662,6 +662,8 @@ type
     procedure SetCustomCursor(const Value: TRGBAlphaImage);
     function GetOnOpen: TContainerEvent;
     procedure SetOnOpen(const Value: TContainerEvent);
+    function GetOnOpenObject: TContainerObjectEvent;
+    procedure SetOnOpenObject(const Value: TContainerObjectEvent);
     function GetOnBeforeRender: TContainerEvent;
     procedure SetOnBeforeRender(const Value: TContainerEvent);
     function GetOnRender: TContainerEvent;
@@ -670,6 +672,8 @@ type
     procedure SetOnResize(const Value: TContainerEvent);
     function GetOnClose: TContainerEvent;
     procedure SetOnClose(const Value: TContainerEvent);
+    function GetOnCloseObject: TContainerObjectEvent;
+    procedure SetOnCloseObject(const Value: TContainerObjectEvent);
     function GetOnUpdate: TContainerEvent;
     procedure SetOnUpdate(const Value: TContainerEvent);
     function GetOnPress: TInputPressReleaseEvent;
@@ -1217,6 +1221,7 @@ type
       Width / Height values, that is those values were already adjusted
       if ResizeAllowed <> raNotAllowed. }
     property OnOpen: TContainerEvent read GetOnOpen write SetOnOpen;
+    property OnOpenObject: TContainerObjectEvent read GetOnOpenObject write SetOnOpenObject;
 
     { Minimum and maximum window sizes. Always
 
@@ -1497,6 +1502,7 @@ end;
       like textures, shaders, display lists etc. This is a counterpart
       to OnOpen event. }
     property OnClose: TContainerEvent read GetOnClose write SetOnClose;
+    property OnCloseObject: TContainerObjectEvent read GetOnCloseObject write SetOnCloseObject;
 
     { Called when user presses a key or mouse button or moves mouse wheel. }
     property OnPress: TInputPressReleaseEvent read GetOnPress write SetOnPress;
@@ -3967,6 +3973,16 @@ begin
   Container.OnOpen := Value;
 end;
 
+function TCastleWindowCustom.GetOnOpenObject: TContainerObjectEvent;
+begin
+  Result := Container.OnOpenObject;
+end;
+
+procedure TCastleWindowCustom.SetOnOpenObject(const Value: TContainerObjectEvent);
+begin
+  Container.OnOpenObject := Value;
+end;
+
 function TCastleWindowCustom.GetOnBeforeRender: TContainerEvent;
 begin
   Result := Container.OnBeforeRender;
@@ -4005,6 +4021,16 @@ end;
 procedure TCastleWindowCustom.SetOnClose(const Value: TContainerEvent);
 begin
   Container.OnClose := Value;
+end;
+
+function TCastleWindowCustom.GetOnCloseObject: TContainerObjectEvent;
+begin
+  Result := Container.OnCloseObject;
+end;
+
+procedure TCastleWindowCustom.SetOnCloseObject(const Value: TContainerObjectEvent);
+begin
+  Container.OnCloseObject := Value;
 end;
 
 function TCastleWindowCustom.GetOnUpdate: TContainerEvent;
