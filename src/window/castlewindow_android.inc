@@ -25,7 +25,7 @@ CastleAndroidNativeAppGlue, CastleGenericLists,
 
 {$ifdef read_implementation_uses}
 CastleAndroidNativeWindow, CastleAndroidInput, CastleAndroidLooper,
-CastleAndroidLog, CastleAndroidAssetStream,
+CastleAndroidLog, CastleAndroidAssetStream, CastleConfig,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -98,6 +98,7 @@ end;
 procedure HandleCommand(App: PAndroid_app; Command: Integer);
 var
   QEvent: TCastleApplication.TQueuedEvent;
+  ConfigState: TStringStream;
 begin
   case Command of
     APP_CMD_INIT_WINDOW:
@@ -116,6 +117,23 @@ begin
           see android_app_post_exec_cmd in native app glue. }
         Application.QEvents.Clear;
         CloseContext;
+      end;
+    APP_CMD_SAVE_STATE:
+      begin
+        { We cannot delay processing this, onSaveInstanceState waits for us
+          to fill App^.SavedState. }
+        ConfigState := TStringStream.Create('');
+        try
+          { read Config to ConfigState }
+          Config.Save(ConfigState);
+          ConfigState.Position := 0;
+          { read ConfigState to App^.SavedState }
+          App^.SavedState := AllocateSavedState(ConfigState.Size);
+          ConfigState.ReadBuffer(App^.SavedState^, ConfigState.Size);
+          App^.SavedStateSize := ConfigState.Size;
+          { log }
+          WritelnLogMultiline('Config', 'Saved state:' + NL + ConfigState.DataString);
+        finally FreeAndNil(ConfigState) end;
       end;
   end;
 end;
@@ -167,13 +185,35 @@ begin
 end;
 
 procedure AndroidMainImplementation(App: PAndroid_App);
+var
+  ConfigState: TStringStream;
 begin
-  try
-    Application.AndroidApp := App;
-    Application.Run;
-  except
-    on E: TObject do AndroidLog(E);
-  end;
+  Application.AndroidApp := App;
+
+  { Use SavedState as XML contents that should be loaded to global Config.
+    Note that we directly use AndroidLog below, not WritelnLog or OnWarning,
+    because user code had no chance to call InitializeLog yet. }
+  if App^.SavedState <> nil then
+  begin
+    ConfigState := TStringStream.Create('');
+    try
+      { load ConfigState from App^.SavedState }
+      ConfigState.WriteBuffer(App^.SavedState^, App^.SavedStateSize);
+      ConfigState.Position := 0;
+      { load Config from ConfigState }
+      try
+        Config.Load(ConfigState);
+        { log }
+        AndroidLog(alInfo, 'Config: Loaded state:' + NL + ConfigState.DataString);
+      except
+        on E: TObject do
+          AndroidLog(alWarn, 'Config: Cannot read XML config from Android state: ' + ExceptMessage(E));
+      end;
+    finally FreeAndNil(ConfigState) end;
+  end else
+    AndroidLog(alInfo, 'Config: no saved state');
+
+  Application.Run;
 end;
 
 { TCastleWindowCustom ---------------------------------------------------------- }

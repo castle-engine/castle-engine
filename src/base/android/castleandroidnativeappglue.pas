@@ -304,15 +304,20 @@ var
 
 procedure ANativeActivity_onCreate(activity: PANativeActivity; savedState: Pointer; savedStateSize: csize_t); cdecl;
 
+{ Allocate memory for saved state. }
+function AllocateSavedState(const Size: csize_t): Pointer;
+
 implementation
 
-{ Use Libc memory allocation routines only where needed. }
+uses SysUtils, CastleUtils;
+
+{ Use Libc memory allocation routines where needed. It seems savedState
+  must be managed using them, onSaveInstanceState in CastleAndroidNativeActivity
+  is documented like that. }
 const
   CLibName = 'c';
 Function LibcMalloc (Size : ptruint) : Pointer; cdecl; external CLibName name 'malloc';
 Procedure LibcFree (P : pointer); cdecl; external CLibName name 'free';
-function LibcReAlloc (P : Pointer; Size : ptruint) : pointer; cdecl; external CLibName name 'realloc';
-Function LibcCAlloc (unitSize,UnitCount : ptruint) : pointer; cdecl; external CLibName name 'calloc';
 
 type
  ppthread_t = ^pthread_t;
@@ -365,7 +370,7 @@ begin
         result := cmd;
     end
     else
-        AndroidLog(alError, 'No data on command pipe');
+        AndroidLog(alError, 'NativeAppGlue: No data on command pipe');
 end;
 
 procedure android_app_pre_exec_cmd(android_app: Pandroid_app; cmd: cint8); cdecl;
@@ -373,14 +378,14 @@ begin
     case cmd of
         APP_CMD_INPUT_CHANGED:
             begin
-               AndroidLog(alInfo,'APP_CMD_INPUT_CHANGED');
+               AndroidLog(alInfo,'NativeAppGlue: APP_CMD_INPUT_CHANGED');
                pthread_mutex_lock(@android_app^.mutex);
                if android_app^.inputQueue <> nil then
                    AInputQueue_detachLooper(android_app^.inputQueue);
                android_app^.inputQueue := android_app^.pendingInputQueue;
                if android_app^.inputQueue <> nil then
                begin
-                   AndroidLog(alInfo,'Attaching input queue to looper');
+                   AndroidLog(alInfo,'NativeAppGlue: Attaching input queue to looper');
                    AInputQueue_attachLooper(android_app^.inputQueue,
                            android_app^.looper, LOOPER_ID_INPUT, nil,
                            @android_app^.inputPollSource);
@@ -391,7 +396,7 @@ begin
 
         APP_CMD_INIT_WINDOW:
             begin
-               AndroidLog(alInfo,'APP_CMD_INIT_WINDOW');
+               AndroidLog(alInfo,'NativeAppGlue: APP_CMD_INIT_WINDOW');
                pthread_mutex_lock(@android_app^.mutex);
                android_app^.window := android_app^.pendingWindow;
                pthread_cond_broadcast(@android_app^.cond);
@@ -400,7 +405,7 @@ begin
 
         APP_CMD_TERM_WINDOW:
             begin
-               AndroidLog(alInfo,'APP_CMD_TERM_WINDOW');
+               AndroidLog(alInfo,'NativeAppGlue: APP_CMD_TERM_WINDOW');
                pthread_mutex_lock(@android_app^.mutex);
                android_app^.window := nil;
                pthread_cond_broadcast(@android_app^.cond);
@@ -412,7 +417,7 @@ begin
         APP_CMD_PAUSE,
         APP_CMD_STOP:
             begin
-               // AndroidLog(alInfo,'activityState:=%d', [cmd]);
+               // AndroidLog(alInfo,'NativeAppGlue: activityState:=%d', [cmd]);
                pthread_mutex_lock(@android_app^.mutex);
                android_app^.activityState := cmd;
                pthread_cond_broadcast(@android_app^.cond);
@@ -421,14 +426,14 @@ begin
 
         APP_CMD_CONFIG_CHANGED:
             begin
-               AndroidLog(alInfo,'APP_CMD_CONFIG_CHANGED');
+               AndroidLog(alInfo,'NativeAppGlue: APP_CMD_CONFIG_CHANGED');
                AConfiguration_fromAssetManager(android_app^.config,
                        android_app^.activity^.assetManager);
             end;
 
         APP_CMD_DESTROY:
             begin
-               AndroidLog(alInfo,'APP_CMD_DESTROY');
+               AndroidLog(alInfo,'NativeAppGlue: APP_CMD_DESTROY');
                android_app^.destroyRequested := 1;
             end;
     end;
@@ -439,7 +444,7 @@ begin
     case cmd of
         APP_CMD_TERM_WINDOW:
             begin
-               AndroidLog(alInfo,'APP_CMD_TERM_WINDOW');
+               AndroidLog(alInfo,'NativeAppGlue: APP_CMD_TERM_WINDOW');
                pthread_mutex_lock(@android_app^.mutex);
                android_app^.window := nil;
                pthread_cond_broadcast(@android_app^.cond);
@@ -448,7 +453,7 @@ begin
 
         APP_CMD_SAVE_STATE:
             begin
-               AndroidLog(alInfo,'APP_CMD_SAVE_STATE');
+               AndroidLog(alInfo,'NativeAppGlue: APP_CMD_SAVE_STATE');
                pthread_mutex_lock(@android_app^.mutex);
                android_app^.stateSaved := 1;
                pthread_cond_broadcast(@android_app^.cond);
@@ -462,7 +467,7 @@ end;
 
 procedure android_app_destroy(android_app: Pandroid_app);
 begin
-    AndroidLog(alInfo, 'android_app_destroy');
+    AndroidLog(alInfo, 'NativeAppGlue: android_app_destroy');
     free_saved_state(android_app);
     pthread_mutex_lock(@android_app^.mutex);
     if (android_app^.inputQueue <> nil) then
@@ -486,7 +491,7 @@ begin
   Processed := false;
   while AInputQueue_getEvent(app^.inputQueue, @event) >= 0 do
   begin
-    // AndroidLog(alInfo,'New input event: type:=%d',[AInputEvent_getType(event)]);
+    // AndroidLog(alInfo,'NativeAppGlue: New input event: type:=%d',[AInputEvent_getType(event)]);
     if AInputQueue_preDispatchEvent(app^.inputQueue, event) <> 0 then
       Continue;
     Handled := false;
@@ -496,7 +501,7 @@ begin
     Processed := true;
   end;
   if not Processed then
-    AndroidLog(alError, 'Failure reading next input event');
+    AndroidLog(alError, 'NativeAppGlue: Failure reading next input event');
 end;
 
 procedure process_cmd(app: Pandroid_app; source: Pandroid_poll_source);
@@ -513,7 +518,7 @@ var android_app: Pandroid_app;
     looper: PALooper;
 begin
   try
-    AndroidLog(alInfo, 'android_app_entry');
+    AndroidLog(alInfo, 'NativeAppGlue: android_app_entry');
     android_app := Pandroid_app(param);
 
     android_app^.config := AConfiguration_new();
@@ -541,13 +546,19 @@ begin
     android_app_destroy(android_app);
     result := nil;
   except
-    on E: TObject do AndroidLog(E);
+    on E: TObject do
+      AndroidLog(alError, 'NativeAppGlue: android_app_entry exited with exception: ' + ExceptMessage(E));
   end;
 end;
 
 // --------------------------------------------------------------------
 // Native activity interaction (called from main thread)
 // --------------------------------------------------------------------
+
+function AllocateSavedState(const Size: csize_t): Pointer;
+begin
+  Result := LibcMalloc(Size);
+end;
 
 function android_app_create(activity: PANativeActivity; savedState: Pointer; savedStateSize: csize_t): Pandroid_app;
 var android_app: Pandroid_app;
@@ -563,13 +574,14 @@ begin
 
     if (savedState <> nil) then
     begin
-        android_app^.savedState := LibcMalloc(savedStateSize);
+        AndroidLog(alInfo, Format('NativeAppGlue: Got state to load, size %d', [savedStateSize]));
+        android_app^.savedState := AllocateSavedState(savedStateSize);
         android_app^.savedStateSize := savedStateSize;
         move(pbyte(savedState)^, pbyte(android_app^.savedState)^, savedStateSize);
     end;
 
     if FpPipe(msgpipe) <> 0 then
-        AndroidLog(alError, 'Could not create pipe');
+        AndroidLog(alError, 'NativeAppGlue: Could not create pipe');
 
     android_app^.msgread := msgpipe[0];
     android_app^.msgwrite := msgpipe[1];
@@ -590,7 +602,7 @@ end;
 procedure android_app_write_cmd(android_app: Pandroid_app; cmd: cint8);
 begin
     if fpwrite(android_app^.msgwrite, cmd, sizeof(cmd)) <> sizeof(cmd) then
-        AndroidLog(alError, 'Failure writing android_app cmd');
+        AndroidLog(alError, 'NativeAppGlue: Failure writing android_app cmd');
 end;
 
 procedure android_app_set_input(android_app: Pandroid_app; inputQueue: PAInputQueue);
@@ -621,7 +633,7 @@ end;
 
 procedure android_app_set_activity_state(android_app: Pandroid_app; cmd: cint8);
 begin
-    // AndroidLog(alInfo,' Setting activity state to %d', [cmd]);
+    // AndroidLog(alInfo,' NativeAppGlue: Setting activity state to %d', [cmd]);
     pthread_mutex_lock(@android_app^.mutex);
     android_app_write_cmd(android_app, cmd);
     while (android_app^.activityState <> cmd) do
@@ -648,19 +660,19 @@ end;
 
 procedure onDestroy(activity: PANativeActivity); cdecl;
 begin
-    AndroidLog(alInfo, 'Destroy activity');
+    AndroidLog(alInfo, 'NativeAppGlue: onDestroy');
     android_app_free(Pandroid_app(activity^.instance));
 end;
 
 procedure onStart(activity: PANativeActivity); cdecl;
 begin
-    AndroidLog(alInfo, 'Start activity');
+    AndroidLog(alInfo, 'NativeAppGlue: onStart');
     android_app_set_activity_state(Pandroid_app(activity^.instance), APP_CMD_START);
 end;
 
 procedure onResume(activity: PANativeActivity); cdecl;
 begin
-    AndroidLog(alInfo, 'Resume activity');
+    AndroidLog(alInfo, 'NativeAppGlue: onResume');
     android_app_set_activity_state(Pandroid_app(activity^.instance), APP_CMD_RESUME);
 end;
 
@@ -671,7 +683,7 @@ begin
     android_app := activity^.instance;
     savedState := nil;
 
-    AndroidLog(alInfo, 'SaveInstanceState activity');
+    AndroidLog(alInfo, 'NativeAppGlue: onSaveInstanceState');
     pthread_mutex_lock(@android_app^.mutex);
     android_app^.stateSaved := 0;
     android_app_write_cmd(android_app, APP_CMD_SAVE_STATE);
@@ -684,6 +696,7 @@ begin
         outLen^ := android_app^.savedStateSize;
         android_app^.savedState := nil;
         android_app^.savedStateSize := 0;
+        AndroidLog(alInfo, Format('NativeAppGlue: Got state to save, size %d', [outLen^]));
     end;
 
     pthread_mutex_unlock(@android_app^.mutex);
@@ -693,13 +706,13 @@ end;
 
 procedure onPause(activity: PANativeActivity); cdecl;
 begin
-    AndroidLog(alInfo, 'Pause activity');
+    AndroidLog(alInfo, 'NativeAppGlue: onPause');
     android_app_set_activity_state(Pandroid_app(activity^.instance), APP_CMD_PAUSE);
 end;
 
 procedure onStop(activity: PANativeActivity); cdecl;
 begin
-    AndroidLog(alInfo, 'Stop activity');
+    AndroidLog(alInfo, 'NativeAppGlue: onStop');
     android_app_set_activity_state(Pandroid_app(activity^.instance), APP_CMD_STOP);
 end;
 
@@ -707,7 +720,7 @@ procedure onConfigurationChanged(activity: PANativeActivity); cdecl;
 var android_app: Pandroid_app;
 begin
     android_app := activity^.instance;
-    AndroidLog(alInfo, 'ConfigurationChanged activity');
+    AndroidLog(alInfo, 'NativeAppGlue: onConfigurationChanged');
     android_app_write_cmd(android_app, APP_CMD_CONFIG_CHANGED);
 end;
 
@@ -715,13 +728,13 @@ procedure onLowMemory(activity: PANativeActivity); cdecl;
 var android_app: Pandroid_app;
 begin
     android_app := activity^.instance;
-    AndroidLog(alInfo, 'LowMemory activity');
+    AndroidLog(alInfo, 'NativeAppGlue: onLowMemory');
     android_app_write_cmd(android_app, APP_CMD_LOW_MEMORY);
 end;
 
 procedure onWindowFocusChanged(activity: PANativeActivity; focused: cint); cdecl;
 begin
-    AndroidLog(alInfo, 'WindowFocusChanged');
+    AndroidLog(alInfo, 'NativeAppGlue: onWindowFocusChanged');
 
     if focused <> 0 then
        android_app_write_cmd(activity^.instance, APP_CMD_GAINED_FOCUS)
@@ -731,32 +744,32 @@ end;
 
 procedure onNativeWindowCreated(activity: PANativeActivity; window: PANativeWindow); cdecl;
 begin
-    AndroidLog(alInfo, 'NativeWindowCreated');
+    AndroidLog(alInfo, 'NativeAppGlue: onNativeWindowCreated');
     android_app_set_window(activity^.instance, window);
 end;
 
 procedure onNativeWindowDestroyed(activity: PANativeActivity; window: PANativeWindow); cdecl;
 begin
-    AndroidLog(alInfo, 'NativeWindowDestroyed');
+    AndroidLog(alInfo, 'NativeAppGlue: onNativeWindowDestroyed');
     android_app_set_window(activity^.instance, nil);
 end;
 
 procedure onInputQueueCreated(activity: PANativeActivity; queue: PAInputQueue); cdecl;
 begin
-    AndroidLog(alInfo, 'InputQueueCreated');
+    AndroidLog(alInfo, 'NativeAppGlue: onInputQueueCreated');
     android_app_set_input(activity^.instance, queue);
 end;
 
 procedure onInputQueueDestroyed(activity: PANativeActivity; queue: PAInputQueue); cdecl;
 begin
-    AndroidLog(alInfo, 'InputQueueDestroyed');
+    AndroidLog(alInfo, 'NativeAppGlue: onInputQueueDestroyed');
     android_app_set_input(activity^.instance, nil);
 end;
 
 procedure ANativeActivity_onCreate(activity: PANativeActivity; savedState: Pointer; savedStateSize: csize_t); cdecl;
 begin
   try
-    AndroidLog(alInfo, 'Creating activity');
+    AndroidLog(alInfo, 'NativeAppGlue: ANativeActivity_onCreate called, creating activity');
 
     activity^.callbacks^.onDestroy := @onDestroy;
     activity^.callbacks^.onStart := @onStart;
@@ -776,7 +789,8 @@ begin
 
     activity^.instance := android_app_create(activity, savedState, savedStateSize);
   except
-    on E: TObject do AndroidLog(E);
+    on E: TObject do
+      AndroidLog(alError, 'NativeAppGlue: ANativeActivity_onCreate exited with exception: ' + ExceptMessage(E));
   end;
 end;
 

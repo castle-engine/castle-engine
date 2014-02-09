@@ -22,7 +22,6 @@ type
 
 procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string);
 procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string; const Args: array of const);
-procedure AndroidLog(const Exception: TObject);
 
 implementation
 
@@ -42,11 +41,6 @@ end;
 procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string; const Args: array of const);
 begin
   AndroidLog(Priority, Format(S, Args));
-end;
-
-procedure AndroidLog(const Exception: TObject);
-begin
-  AndroidLog(alError, ExceptMessage(Exception));
 end;
 
 end.

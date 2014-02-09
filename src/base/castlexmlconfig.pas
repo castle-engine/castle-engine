@@ -162,7 +162,7 @@ type
       Accepts URL as parameter, converting it to a local filename
       under the hood.
 
-      The overloaded version without AURL chooses
+      The overloaded parameter-less version chooses
       a suitable filename for storing per-program user preferences.
       It uses ApplicationName to pick a filename that is unique
       to your application (usually you want to assign OnGetApplicationName
@@ -171,17 +171,29 @@ type
       See FPC OnGetApplicationName docs.
       It uses @link(ApplicationConfig) to determine location of this file.
 
+      The overloaded version with TStream parameter loads from a stream.
+      The URL is always set to empty.
+
       @groupBegin }
     procedure Load(const AURL: string);
     procedure Load;
+    procedure Load(const Stream: TStream);
     { @groupEnd }
 
     { Save the configuration of all engine components.
       Calls the OnSave callbacks to allow all engine components
       to store their settings in our properties, and then flushes
       them to disk (using FileName property, synchronized with @link(URL) property)
-      by inherited Flush method. }
+      by inherited Flush method.
+
+      The overloaded version with TStream parameter saves to a stream.
+      If does not use inherited Flush method, instead it always unconditionally
+      dumps contents to stream.
+
+      @groupBegin }
     procedure Save;
+    procedure Save(const Stream: TStream);
+    { @groupEnd }
   end;
 
 procedure Register;
@@ -420,6 +432,20 @@ begin
 
   if Log and (URL <> '') then
     WritelnLog('Config', 'Saving configuration to "%s"', [URL]);
+end;
+
+procedure TCastleConfig.Load(const Stream: TStream);
+begin
+  WritelnLog('Config', 'Loading configuration from stream');
+  LoadFromStream(Stream);
+  OnLoad.ExecuteAll(Self);
+end;
+
+procedure TCastleConfig.Save(const Stream: TStream);
+begin
+  OnSave.ExecuteAll(Self);
+  SaveToStream(Stream);
+  WritelnLog('Config', 'Saving configuration to stream');
 end;
 
 end.

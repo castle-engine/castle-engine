@@ -93,6 +93,16 @@ type
     procedure DeletePath(const APath: string);
     procedure DeleteValue(const APath: string);
     property Modified: Boolean read FModified;
+
+    { Load and save config state to a TStream instance.
+      Loading changes URL to empty, and does Flush before, so it works
+      similarly to setting an URL.
+      Saving does not change any state (it also ignores the @link(Modified)
+      value), it unconditionally dumps the contents to stream.
+      @groupBegin }
+    procedure LoadFromStream(const Stream: TStream);
+    procedure SaveToStream(const Stream: TStream);
+    { @groupEnd }
   published
     property URL: String read FURL write SetURL;
     property StartEmpty: Boolean read FStartEmpty write SetStartEmpty;
@@ -412,6 +422,28 @@ begin
       raise EXMLConfigError.Create('XML file has wrong root element name');
 
   {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('TXMLConfig.SetURL END');{$ENDIF}
+end;
+
+procedure TXMLConfig.LoadFromStream(const Stream: TStream);
+begin
+  Flush;
+  FreeAndNil(Doc);
+  FURL := '';
+
+  ReadXMLFile(Doc, Stream);
+
+  if not Assigned(Doc) then
+    Doc := TXMLDocument.Create;
+
+  if not Assigned(Doc.DocumentElement) then
+    Doc.AppendChild(Doc.CreateElement(RootName)) else
+  if Doc.DocumentElement.NodeName <> RootName then
+    raise EXMLConfigError.Create('XML file has wrong root element name');
+end;
+
+procedure TXMLConfig.SaveToStream(const Stream: TStream);
+begin
+  WriteXMLFile(Doc, Stream);
 end;
 
 procedure TXMLConfig.SetURL(const AURL: String);
