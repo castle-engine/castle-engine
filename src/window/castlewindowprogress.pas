@@ -76,7 +76,7 @@ var
 
 implementation
 
-uses SysUtils, CastleUtils, CastleKeysMouse;
+uses SysUtils, CastleUtils, CastleKeysMouse, CastleRenderingCamera;
 
 { TWindowProgressInterface  ------------------------------------------------ }
 
@@ -93,7 +93,13 @@ end;
 procedure TWindowProgressInterface.Init(Progress: TProgress);
 begin
   if (Application.MainWindow <> nil) and
-      Application.MainWindow.GLInitialized then
+      Application.MainWindow.GLInitialized and
+     { Do not initialize progress if we're in the middle of rendering off-screen.
+       This can happen if you have a GeneratedCubeMapTexure on an animated scene,
+       and progress bar appears because after animating a transform the shape octree
+       needs to be rebuild for frustum culling (which can happen on larger scenes,
+       to easily reproduce use TESTING_PROGRESS_DELAY with android_demo 2 teapots scene). }
+     (RenderingCamera.Target = rtScreen) then
     UsedWindow := Application.MainWindow else
     UsedWindow := nil;
 
