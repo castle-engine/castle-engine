@@ -227,7 +227,7 @@ type
   end;
 
 { Initialize GLVersion and GLUVersion and GLFeatures. }
-procedure LoadAllExtensions;
+procedure GLInformationInitialize;
 
 var
   GLFeatures: TGLFeatures;
@@ -704,7 +704,7 @@ implementation
 uses CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
   CastleGLImages, CastleLog, CastleWarnings, CastleUIControls;
 
-procedure LoadAllExtensions;
+procedure GLInformationInitialize;
 begin
   FreeAndNil(GLVersion);
   GLVersion := TGLVersion.Create(PChar(glGetString(GL_VERSION)),
@@ -1981,10 +1981,20 @@ begin
   {$ifdef GLImageUseShaders}
   FreeAndNil(GLRectangleProgram);
   {$endif}
+
+  { free things created by GLInformationInitialize }
+  FreeAndNil(GLVersion);
+  {$ifndef OpenGLES}
+  FreeAndNil(GLUVersion);
+  {$endif}
+  FreeAndNil(GLFeatures);
 end;
 
 initialization
-  OnGLContextClose.Add(@ContextClose);
-finalization
-  FreeAndNil(GLFeatures);
+  { Our GLVersion, GLFeatures should be freed at the every end,
+    as a lot of code uses them. So place ContextClose to be called last,
+    OnGLContextClose[0].
+    Every other unit initializion does OnGLContextClose.Add,
+    so our initialization will stay as OnGLContextClose[0]. }
+  OnGLContextClose.Insert(0, @ContextClose);
 end.

@@ -50,10 +50,9 @@ type
         as it's guaranteed to be run continously, even when your application
         is clogged with events (like when using TWalkCamera.MouseLook).)
 
-      @item(Automatically calls LoadAllExtensions
-        when OpenGL context is initialized. This will initialize all extensions
-        and set GLVersion variables, describing OpenGL version
-        and available extensions.)
+      @item(Automatically calls GLInformationInitialize
+        when OpenGL context is initialized. This will initialize GLVersion,
+        GLUVersion, GLFeatures.)
 
       @item(FPS (frames per second) counter inside @link(Fps).)
 
@@ -571,7 +570,7 @@ begin
   if not GLInitialized then
   begin
     FGLInitialized := true;
-    LoadAllExtensions;
+    GLInformationInitialize;
     Inc(ControlsOpen);
     Container.EventOpen(ControlsOpen);
     Resize; // will call Container.EventResize

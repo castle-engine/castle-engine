@@ -866,8 +866,10 @@ end;
 
   TGLContextEventList = class(specialize TGenericStructList<TGLContextEvent>)
   public
-    { Call all items. }
-    procedure ExecuteAll;
+    { Call all items, first to last. }
+    procedure ExecuteForward;
+    { Call all items, last to first. }
+    procedure ExecuteBackward;
   end;
 
 { Global callbacks called when OpenGL context (like Lazarus TCastleControl
@@ -885,6 +887,10 @@ end;
   Note that this implies that they may be called many times:
   e.g. if you open one window, then close it, then open another
   window then close it.
+
+  Callbacks on OnGLContextOpen are called from first to last.
+  Callbacks on OnGLContextClose are called in reverse order,
+  so OnGLContextClose[0] is called last.
 
   @groupBegin }
 function OnGLContextOpen: TGLContextEventList;
@@ -1263,7 +1269,7 @@ var
   C: TUIControl;
 begin
   if OpenWindowsCount = 1 then
-    OnGLContextOpen.ExecuteAll;
+    OnGLContextOpen.ExecuteForward;
 
   { Call GLContextOpen on controls before OnOpen,
     this way OnOpen has controls with GLInitialized = true,
@@ -1294,7 +1300,7 @@ begin
   end;
 
   if OpenWindowsCount = 1 then
-    OnGLContextClose.ExecuteAll;
+    OnGLContextClose.ExecuteBackward;
 end;
 
 function TUIContainer.AllowSuspendForInput: boolean;
@@ -1789,11 +1795,19 @@ end;
 
 { TGLContextEventList -------------------------------------------------------- }
 
-procedure TGLContextEventList.ExecuteAll;
+procedure TGLContextEventList.ExecuteForward;
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
+    Items[I]();
+end;
+
+procedure TGLContextEventList.ExecuteBackward;
+var
+  I: Integer;
+begin
+  for I := Count - 1 downto 0 do
     Items[I]();
 end;
 

@@ -1788,10 +1788,8 @@ end;
         @item(Create window, it's OpenGL area, optionally it's menu.)
         @item(Create OpenGL context associated with it's OpenGL area.)
         @item(Show the window.)
-        @item(Call LoadAllExtensions.
-          This way every information initialized by this
-          is ready, like GLVersion, GLUVersion, extensions are checked
-          and initialized.)
+        @item(Call GLInformationInitialize to initialize GLVersion,
+          GLUVersion, GLFeatures.)
 
         @item(Initial events called:
           @unorderedList(
@@ -2856,7 +2854,7 @@ begin
     { Do MakeCurrent before glViewport and EventOpen. }
     MakeCurrent;
 
-    LoadAllExtensions;
+    GLInformationInitialize;
 
     if Log then
       WritelnLogMultiline('OpenGL context initialization', GLInformationString);

@@ -14,11 +14,9 @@
 }
 
 { Checking OpenGL version, vendors and such (GLVersion, GLUVersion).
-
-  You must manually initialize GLVersion and such (this unit doesn't even
-  use GL bindings). For my engine, this will happen automatically
-  at LoadAllExtensions call. Which is done during TCastleWindowCustom.Open,
-  or TCastleControlCustom on GL context initialization.
+  These should be initialized by calling GLInformationInitialize,
+  which is done automatically when opening OpenGL context using
+  TCastleWindowCustom or TCastleControlCustom.
 }
 unit CastleGLVersion;
 
@@ -32,7 +30,7 @@ type
     As obtained from glGetString(GL_VERSION)
     or gluGetString(GLU_VERSION), also by glGetString(GL_VENDOR).
 
-    This is usually created by CastleGLUtils.LoadAllExtensions. }
+    This is usually created by CastleGLUtils.GLInformationInitialize. }
   TGenericGLVersion = class
   public
     constructor Create(const VersionString: string);
@@ -196,12 +194,12 @@ type
 
 var
   { Core OpenGL version information.
-    This is usually created by CastleGLUtils.LoadAllExtensions. }
+    This is usually created by CastleGLUtils.GLInformationInitialize. }
   GLVersion: TGLVersion;
 
   {$ifndef OpenGLES}
   { GLU version information.
-    This is usually created by CastleGLUtils.LoadAllExtensions. }
+    This is usually created by CastleGLUtils.GLInformationInitialize. }
   GLUVersion: TGenericGLVersion;
   {$endif}
 
@@ -524,9 +522,4 @@ begin
     (Vendor = 'VMware, Inc.') and IsPrefix('Gallium 0.4 on llvmpipe', Renderer);
 end;
 
-finalization
-  FreeAndNil(GLVersion);
-  {$ifndef OpenGLES}
-  FreeAndNil(GLUVersion);
-  {$endif}
 end.
