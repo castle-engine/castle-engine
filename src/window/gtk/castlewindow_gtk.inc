@@ -1600,7 +1600,11 @@ begin
 
   while Result and (gtk_events_pending() <> 0) do
   begin
-    Result := ProcessMessage(true, true);
+    { Since we know that gtk_events_pending() <> 0, the 1st parameter WaitForMessage
+      below for ProcessMessage doesn't matter: we know we will never wait for
+      message, since we just made sure that we have some message.
+      Only 2nd parameter WaitToLimitFPS matters. }
+    Result := ProcessMessage(false, false);
   end;
 
   if Result then

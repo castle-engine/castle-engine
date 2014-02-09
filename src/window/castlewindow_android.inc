@@ -309,7 +309,7 @@ end;
 
 function TCastleApplication.ProcessAllMessages: boolean;
 begin
-  Result := ProcessMessage(true, true);
+  Result := ProcessMessage(false, false);
 end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
@@ -342,10 +342,12 @@ var
   QEvent: TQueuedEvent;
 begin
   repeat
-    { TODO: WaitForMessage could be implemented by setting 1st param to -1 here.
-      Make sure to check conditions for WaitForMessage, like
-        WaitForMessage := WaitForMessage and Application.AllowSuspendForInput; }
-    Ident := ALooper_pollAll(0, nil, @Events, @Source);
+    if WaitForMessage and Application.AllowSuspendForInput then
+    begin
+      WritelnLog('Android', 'Waiting for next event without consuming CPU ticks.');
+      Ident := ALooper_pollAll(-1 { wait }, nil, @Events, @Source);
+    end else
+      Ident := ALooper_pollAll(0, nil, @Events, @Source);
     if Ident < 0 then Break;
 
     if Source <> nil then
@@ -391,9 +393,12 @@ begin
     WindowsUpdateAndTimer;
   end;
 
-  { TODO: WaitToLimitFPS implement. When redrawing, it is always "on" in the main loop,
+  { Note that we ignore WaitToLimitFPS here, right now.
+    When redrawing (not MainWindow.Closed), it is always "on" in the main loop,
     we don't control it, Android throttles render speed anyway.
-    But can be handled when not redrawing? }
+    When not redrawing, then there's not much point in WaitToLimitFPS,
+    we should rather let WaitForMessage mechanism work (when all windows are
+    closed, we should usually have WaitForMessage = true). }
 
   Result := true;
 end;
@@ -418,7 +423,7 @@ begin
     mechanism to not call OnInitialize more than once. }
   Initialize;
 
-  while ProcessAllMessages do ;
+  while ProcessMessage(true, true) do ;
 
   FreeAndNil(QEvents);
 end;

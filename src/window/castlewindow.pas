@@ -2568,7 +2568,7 @@ end;
     }
     function ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 
-    { Processes @italic(all) pending messages.
+    { Processes @italic(all) pending messages. Do not wait for anything.
 
       Contrast this with ProcessMessage method, that processes only a single
       event. Or no event at all (when no events were pending and
@@ -2580,9 +2580,9 @@ end;
       and allow user to break the task with Escape key.
 
       ProcessAllMessages is like
-      calling in a loop something like ProcessMessage(false), ends when
-      ProcessMessage didn't process any message (it's internally returned
-      by ProcessMessage2) or when quit was called (or last window closed).
+      calling in a loop ProcessMessage(false, false), ends when
+      ProcessMessage(false, false) didn't process any message
+      or when quit was called (or last window closed).
 
       So ProcessAllMessages makes sure we have processed all pending events,
       thus we are up-to-date with window system requests. }

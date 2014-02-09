@@ -209,6 +209,7 @@ end;
 function TCastleApplication.ProcessAllMessages: boolean;
 begin
   Result := { TODO: should we continue? (no quit requested) } true;
+  // a simplest implementation is just to process 1 message: ProcessMessage(false, false)
 end;
 
 procedure TCastleApplication.Run;

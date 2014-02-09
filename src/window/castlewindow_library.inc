@@ -294,7 +294,7 @@ end;
 
 function TCastleApplication.ProcessAllMessages: boolean;
 begin
-  Result := true;
+  Result := ProcessMessage(false, false);
 end;
 
 procedure TCastleApplication.Run;

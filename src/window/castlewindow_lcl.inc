@@ -881,7 +881,7 @@ function TCastleApplication.ProcessAllMessages: boolean;
 begin
 //  Result := not Forms.Application.Terminated;
 //  while Result do
-    Result := ProcessMessage(true, true);
+    Result := ProcessMessage(false, false);
 end;
 
 procedure TCastleApplication.Run;

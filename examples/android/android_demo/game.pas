@@ -94,30 +94,52 @@ end;
 
 procedure TDummy.MessageClick(Sender: TObject);
 begin
+  { On Android, a nice test is to switch to desktop (home)
+    when one of these modal MessageXxx is working. The application loop
+    (done inside MessageXxx, they call Application.ProcessMessage in a loop)
+    will still work, even though the window is closed.
+    When user gets back to our app, she/he will see the message box again. }
   if MessageYesNo(Window, 'Test of a yes/no message. Click one of the buttons!') then
     MessageOK(Window, 'You clicked "Yes".') else
     MessageOK(Window, 'You clicked "No".');
 end;
 
 procedure TDummy.ProgressClick(Sender: TObject);
+const
+  TestProgressSteps = 100;
 var
   I: Integer;
 begin
-  Progress.Init(100, 'Please wait...');
+  Progress.Init(TestProgressSteps, 'Please wait...');
   try
-    for I := 1 to 100 do
+    for I := 1 to TestProgressSteps do
     begin
       Sleep(100);
       Progress.Step;
-      { On Android, it is possible that our window was closed at any time.
-        Prepare for this, to not have progress UI still active when window
-        is open again. }
-      if Window.Closed then
-        Exit;
+      { Note that on Android, Window may get closed (OpenGL context lost)
+        at any time, also during such progress operation.
+        For example when user switches to desktop (home) on Android.
+
+        Progress.Step processes events (Application.ProcessMessage),
+        so it will correctly react to it, closing the Window.
+        This "for" loop will still continue, even though the window
+        is closed (so no redraw will happen). It will actually get to the end
+        of progress quickier (because without redraw, our speed is not throttled;
+        you can see this by commenting Sleep call above. With window open,
+        we're throttled by redraw speed. With window closed, we're not,
+        and even long progress finishes quickly.)
+        When the progress finishes, the main loop (from Application.Run)
+        will allow to wait for next event (without doing busy waiting and wasting
+        CPU), so we do not drain your battery power at all.
+
+        If user will get back to our application before the progress finished,
+        she/he will even correctly see the progress continuing at correct point.
+        So everything just works. Just do not assume that Window stays
+        open when processing events, and you're fine. }
+      WritelnLog('Progress', 'Step %d', [I]);
     end;
   finally Progress.Fini end;
 end;
-
 procedure TDummy.ReopenContextClick(Sender: TObject);
 begin
   Window.Close(false);
