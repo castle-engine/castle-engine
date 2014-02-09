@@ -450,7 +450,7 @@ type
       for shadow maps. }
     AvoidNonShadowCasterRendering: boolean;
 
-    PreparedShapesResouces, PreparedRender: boolean;
+    PreparedShapesResources, PreparedRender: boolean;
     VarianceShadowMapsProgram: array [boolean] of TGLSLProgram;
 
     { Private things for RenderFrustum --------------------------------------- }
@@ -848,7 +848,7 @@ end;
 
 procedure TGLSceneShape.SchedulePrepareResources;
 begin
-  TCastleScene(ParentScene).PreparedShapesResouces := false;
+  TCastleScene(ParentScene).PreparedShapesResources := false;
 end;
 
 { TBasicRenderParams --------------------------------------------------------- }
@@ -1027,7 +1027,7 @@ var
   Pass: TRenderingPass;
 begin
   PreparedRender := false;
-  PreparedShapesResouces := false;
+  PreparedShapesResources := false;
 
   { Free Arrays and Vbo of all shapes. }
   if (Renderer <> nil) and (Shapes <> nil) then
@@ -1341,7 +1341,7 @@ procedure TCastleScene.PrepareResources(
   Options: TPrepareResourcesOptions; ProgressStep: boolean;
   BaseLights: TAbstractLightInstancesList);
 
-  procedure PrepareShapesResouces;
+  procedure PrepareShapesResources;
   var
     SI: TShapeTreeIterator;
   begin
@@ -1383,6 +1383,12 @@ begin
 
   if Dirty <> 0 then Exit;
 
+  if GLVersion = nil then
+  begin
+    WritelnLog('PrepareResources', 'OpenGL context not available, skipping preparing TCastleScene OpenGL resources');
+    Exit;
+  end;
+
   { When preparing resources, files (like textures) may get loaded,
     causing progress bar (for example from CastleDownload).
     Right now we're not ready to display the (partially loaded) scene
@@ -1404,12 +1410,12 @@ begin
 
   Inc(Dirty);
   try
-    if not PreparedShapesResouces then
+    if not PreparedShapesResources then
     begin
-      { Use PreparedShapesResouces to avoid expensive (for large scenes)
+      { Use PreparedShapesResources to avoid expensive (for large scenes)
         iteration over all shapes in every TCastleScene.PrepareResources call. }
-      PreparedShapesResouces := true;
-      PrepareShapesResouces;
+      PreparedShapesResources := true;
+      PrepareShapesResources;
     end;
 
     if (prRender in Options) and not PreparedRender then
@@ -2682,12 +2688,12 @@ begin
         results from previous query that was done many frames ago. }
       FScenes.ViewChangedSuddenly;
 
-      { Make PrepareShapesResouces again, to cause TGLShape.PrepareResources
+      { Make PrepareShapesResources again, to cause TGLShape.PrepareResources
         that initializes OcclusionQueryId for each shape }
       if TemporaryAttributeChange = 0 then
         for I := 0 to FScenes.Count - 1 do
           if FScenes[I] <> nil then
-            FScenes[I].PreparedShapesResouces := false;
+            FScenes[I].PreparedShapesResources := false;
     end;
   end;
 end;

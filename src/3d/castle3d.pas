@@ -18,8 +18,8 @@ unit Castle3D;
 
 interface
 
-uses Classes, Math, CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils,
-  CastleKeysMouse, CastleRectangles,
+uses SysUtils, Classes, Math, CastleVectors, CastleFrustum,
+  CastleBoxes, CastleClassUtils, CastleKeysMouse, CastleRectangles,
   CastleUtils, FGL, CastleGenericLists, CastleTimeUtils,
   CastleSoundEngine, CastleSectors, CastleCameras, CastleTriangles;
 
@@ -472,6 +472,9 @@ type
 
     { Prepare resources, making various methods (like rendering and such)
       to execute fast.
+
+      This requires OpenGL to be initailized for most 3D objects.
+      If not, some parts of preparations will be aborted.
 
       This makes sure that appropriate methods execute as fast as possible.
       It's never required to call this method
@@ -1827,7 +1830,7 @@ var
 
 implementation
 
-uses SysUtils, CastleWarnings, CastleRenderingCamera;
+uses CastleWarnings, CastleRenderingCamera;
 
 { TRayCollision --------------------------------------------------------------- }
 
