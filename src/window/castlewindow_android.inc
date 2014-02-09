@@ -248,21 +248,10 @@ begin
     previous NativeWindow value. }
 end;
 
-procedure TCastleWindowCustom.Invalidate;
-begin
-  { no point in doing anything here, we redraw every frame }
-  // if not Closed then { };
-end;
-
 procedure TCastleWindowCustom.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
   if not Closed then { TODO: use GetWholeCaption };
-end;
-
-procedure TCastleWindowCustom.FlushRedisplay;
-begin
-  DoRender;
 end;
 
 procedure TCastleWindowCustom.SetCursor(const Value: TMouseCursor);
@@ -318,17 +307,12 @@ procedure TCastleApplication.DestroyBackend;
 begin
 end;
 
-function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
+function TCastleApplication.ProcessAllMessages: boolean;
 begin
-  { We have no way to honour WaitForMessage or WaitToLimitFPS values
-    on Android.
-    - WaitToLimitFPS is always "on" in the main loop,
-      we don't control it, Android throttles render speed anyway.
-    - WaitForMessage could be possibly implemented, but it's not useful much. }
-  Result := ProcessAllMessages;
+  Result := ProcessMessage(true, true);
 end;
 
-function TCastleApplication.ProcessAllMessages: boolean;
+function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 
   { Call Update on Application and all open Windows, call OnTimer on Application }
   procedure WindowsUpdateAndTimer;
@@ -358,6 +342,9 @@ var
   QEvent: TQueuedEvent;
 begin
   repeat
+    { TODO: WaitForMessage could be implemented by setting 1st param to -1 here.
+      Make sure to check conditions for WaitForMessage, like
+        WaitForMessage := WaitForMessage and Application.AllowSuspendForInput; }
     Ident := ALooper_pollAll(0, nil, @Events, @Source);
     if Ident < 0 then Break;
 
@@ -398,10 +385,15 @@ begin
        (NewHeight <> MainWindow.Height) then
       Resize(NewWidth, NewHeight);
 
+    { we do not check Invalidated here, just redraw every frame when window is open }
     MainWindow.DoRender;
 
     WindowsUpdateAndTimer;
   end;
+
+  { TODO: WaitToLimitFPS implement. When redrawing, it is always "on" in the main loop,
+    we don't control it, Android throttles render speed anyway.
+    But can be handled when not redrawing? }
 
   Result := true;
 end;

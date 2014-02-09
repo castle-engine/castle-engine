@@ -467,31 +467,29 @@ begin
         result := WMSizingHandler(lParm, wParm, minWidth, minHeight, maxWidth, maxHeight);
         Exit;
       end;
-     { nie chwytamy WM_PAINTa, pozwalamy aby WM_PAINT przelecial do DefWindowProc.
-       WM_PAINT moze zajsc takze gdy np. trzeba tylko odmalowac ramke okna (a w to
-       ja sie nie mieszam). WM_PAINT przesle (synchronicznie, tzn. praktycznie wprost
-       do WndProc) WM_ERASEBKGND jesli trzeba bedzie odmalowac tlo i to jest to co ja chce
-       chwycic. }
+     { We do not capture WM_PAINT, let WM_PAINT fallback to DefWindowProc.
+       WM_PAINT occurs also when there's a need to redraw window frame
+       (which we don't care about, we don't draw custom window frame).
+
+       If there's a need to actually redraw window contents,
+       then WM_PAINT will cause (immediately, it seems that DefWindowProc
+       will just call WndProc) WM_ERASEBKGND, and we want to capture WM_ERASEBKGND. }
     WM_ERASEBKGND:
       begin
         if IsWindowEnabled(H_Wnd) then
-          redisplayPosted := true else
-          { TODO:  ponizsze ulegnie zmianie jezeli wprowadze wlasne okienka modalne }
-          { jezeli nie jestesmy Enabled to moze znaczyc tylko ze zostalo
-            uruchomione okienko modalne blokujace nasze okienko (np. Windows.MessageBox).
-            W takiej sytuacji nie mozemy polegac na mechanizmie ustawiania
-            redisplayPosted na true bo Application.ProcessMessage moze nie dzialac
-            (byc zawieszone, do czasu az wywolana gdziestam procedura MessageBox
-            powroci). Innymi slowy, jestesmy w WindowProc ale nie na skutek wywolania
-            DispatchMessage z Application.ProcessMessage - lecz Windowsowe okienko modalne
-            sztucznie udaje nasza petle komunikatow abysmy sie odmalowali, bo np.
-            user przesuwa to okienko modalne nad naszym oknem.
-            Musimy wiec w tym momencie przerysowac sie natychmiast. }
-          begin
-            DoRender;
-            redisplayPosted := false;
-          end;
-         result := 1;
+          Invalidate else
+          { If not IsWindowEnabled then we have a modal window blocking our window.
+            Like a Windows.MessageBox. In this case, our Application.ProcessMessage
+            may not be continously called, so we cannot use normal Invalidate
+            and depend that window will be repainted soon.
+
+            IOW, right now we're in WindowProc but not because of calling
+            DispatchMessage from Application.ProcessMessage. Instead Windows
+            modal boxes makes artificial call to cause our redraw,
+            e.g. because user moves the modal window over our window.
+            So just redraw right now. }
+          DoRender;
+        Result := 1;
         Exit;
       end;
 

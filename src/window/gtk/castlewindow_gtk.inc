@@ -43,8 +43,6 @@ CastleWindowModes, CastleFindFiles,
 
 {$ifdef read_window_interface}
 private
-  RedisplayPosted: boolean;
-
   WindowGtk: PGtkWindow;
   GLAreaGtk: PGtkGLArea;
 
@@ -757,26 +755,6 @@ begin
  gdk_gl_drawable_swap_buffers(GLDrawable);
 end;
 
-procedure TCastleWindowCustom.Invalidate;
-begin
-  { We track RedisplayPosted ourselves, without GTK gtk_widget_queue_draw.
-    This makes things simpler. }
-  RedisplayPosted := true;
-end;
-
-procedure TCastleWindowCustom.FlushRedisplay;
-begin
-  if RedisplayPosted then
-  begin
-    RedisplayPosted := false;
-    DoRender;
-  end;
-
-  { Without our own RedisplayPosted tracking, under GTK 2 we could also easily
-    do this by
-    gdk_window_process_updates(GTK_WIDGET(WindowGtk)^.Window, g_true); }
-end;
-
 procedure TCastleWindowCustom.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
@@ -870,8 +848,6 @@ var
   VisualAttr: TLongIntList;
   GLAreaContainer: PGtkWidget;
 begin
- RedisplayPosted := false; { reset to default value }
-
  Application.InitializeXDisplay;
 
  WindowGtk := PGtkWindow(gtk_window_new(GTK_WINDOW_TOPLEVEL));
@@ -1523,14 +1499,14 @@ end;
 
 procedure TCastleApplication.ProcessUpdates;
 
-  { If some window has RedisplayPosted = @true, redraw it.
+  { Render the invalidated windows.
 
     Note: Right now we do not use normal GTK mechanism for redraws
     (that is, gtk_widget_queue_draw for posting and handling signal "expose"
     to call DoRender). In the past, this caused problems, and in particular
     failed totally when in newer GTK/glib expose signal couldn't be
     delivered when we were already inside one expose signal handler. }
-  procedure WindowsFlushRedisplay;
+  procedure WindowsRender;
   var
     I: Integer;
     Window: TCastleWindowCustom;
@@ -1539,7 +1515,7 @@ procedure TCastleApplication.ProcessUpdates;
     while I < OpenWindowsCount do
     begin
       Window := OpenWindows[I];
-      Window.FlushRedisplay;
+      if Window.Invalidated then Window.DoRender;
       if Window.Closed then Continue {don't Inc(I)};
       Inc(I);
     end;
@@ -1562,7 +1538,7 @@ procedure TCastleApplication.ProcessUpdates;
   end;
 
 begin
-  WindowsFlushRedisplay;
+  WindowsRender;
   WindowsUpdateAndTimer;
 end;
 
@@ -1639,17 +1615,6 @@ begin
 end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
-
-  function SomeRedisplayPosted: boolean;
-  var
-    I: Integer;
-  begin
-    for I := 0 to OpenWindowsCount - 1 do
-      if OpenWindows[I].RedisplayPosted then Exit(true);
-
-    Result := false;
-  end;
-
 var
   WasAnyMessage: boolean;
 begin
@@ -1696,8 +1661,7 @@ begin
 
   { Once we had below condition "and (not QuitPosted)",
     but it's pointless, we know QuitPosted is false now. }
-  WaitForMessage := WaitForMessage and Application.AllowSuspendForInput and
-    (not SomeRedisplayPosted);
+  WaitForMessage := WaitForMessage and Application.AllowSuspendForInput;
 
   { we could probably not call gtk_main_iteration_do when WasAnyMessage = false,
     and simplify this code a little. But let's keep it this way, to be similar

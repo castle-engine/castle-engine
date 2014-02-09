@@ -61,12 +61,12 @@ private
       procedure IntfDoSelect; override;
     end;
 
-    { Like TOpenGLControl but tracks Invalidated state. }
+    { Like TOpenGLControl but sets Invalidated:=true on Window,
+      so that Window knows when it's invalidated by the OS. }
     TGoodOpenGLControl = class(TOpenGLControl)
     public
-      Invalidated: boolean;
+      Window: TCastleWindowCustom;
       procedure Invalidate; override;
-      procedure Paint; override;
     end;
 
   var
@@ -129,17 +129,7 @@ end;
 
 procedure TCastleWindowCustom.TGoodOpenGLControl.Invalidate;
 begin
-  Invalidated := true;
-  inherited;
-end;
-
-procedure TCastleWindowCustom.TGoodOpenGLControl.Paint;
-begin
-  { We need to set Invalidated := false before OnPaint
-    (that calls TCastleWindow.OnRender), because TCastleWindow guarantees
-    that calling TCastleWindow.Invalidate within OnRender will cause following
-    redraw. }
-  Invalidated := false;
+  Window.Invalidate;
   inherited;
 end;
 
@@ -451,6 +441,7 @@ begin
   Form.OnDeactivate := @FormDeactivate;
 
   OpenGLControl := TGoodOpenGLControl.Create(Form);
+  OpenGLControl.Window := Self;
   OpenGLControl.Parent := Form;
   OpenGLControl.Align := alClient;
   OpenGLControl.Width := Width;
@@ -544,11 +535,6 @@ begin
   MenuFinalize;
 end;
 
-procedure TCastleWindowCustom.Invalidate;
-begin
-  if not Closed then OpenGLControl.Invalidate;
-end;
-
 procedure TCastleWindowCustom.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
@@ -558,11 +544,6 @@ end;
 procedure TCastleWindowCustom.BackendMakeCurrent;
 begin
   OpenGLControl.MakeCurrent;
-end;
-
-procedure TCastleWindowCustom.FlushRedisplay;
-begin
-  if OpenGLControl.Invalidated then DoRender;
 end;
 
 procedure TCastleWindowCustom.SetCursor(const Value: TMouseCursor);
@@ -698,7 +679,7 @@ begin
         is not taken care of here.
     }
 
-    FlushRedisplay;
+    if Invalidated then DoRender;
   end;
 end;
 

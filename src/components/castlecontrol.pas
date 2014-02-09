@@ -837,6 +837,8 @@ begin
   { Note that we don't call here inherited, instead doing everything ourselves. }
   if MakeCurrent then
   begin
+    { clear Invalidated before rendering, so that calling Invalidate in OnRender works }
+    Invalidated := false;
     Container.EventBeforeRender;
     Fps._RenderBegin;
     try
@@ -845,7 +847,6 @@ begin
         glViewport(Rect);
       SwapBuffers;
     finally Fps._RenderEnd end;
-    Invalidated := false;
   end;
 end;
 

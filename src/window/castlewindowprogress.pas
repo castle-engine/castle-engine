@@ -122,7 +122,6 @@ begin
   UsedWindow.Cursor := mcWait;
   { To actually draw progress start. }
   UsedWindow.Invalidate;
-  UsedWindow.FlushRedisplay;
   Application.ProcessMessage(false, false);
 end;
 

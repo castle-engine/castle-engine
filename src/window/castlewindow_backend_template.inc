@@ -128,12 +128,6 @@ begin
   { TODO }
 end;
 
-procedure TCastleWindowCustom.FlushRedisplay;
-begin
-  { TODO (redraw *now*, if Invalidate pending;
-    it's valid (although non-optimal) to just always call DoRender here) }
-end;
-
 procedure TCastleWindowCustom.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then

@@ -109,11 +109,6 @@ begin
     the current OpenGL context. }
 end;
 
-procedure TCastleWindowCustom.FlushRedisplay;
-begin
-  DoRender;
-end;
-
 procedure TCastleWindowCustom.SetCursor(const Value: TMouseCursor);
 var
   CursorCode: cInt32;

@@ -616,6 +616,13 @@ type
     FCaption: array [TCaptionPart] of string;
     BeforeFullScreenGeometryKnown: boolean;
     BeforeFullScreenLeft, BeforeFullScreenTop, BeforeFullScreenWidth, BeforeFullScreenHeight: Integer;
+    { Track if some Invalidate was called (and not realized yet by
+      DoRender call). Invalidate only sets this, leaving actually
+      calling of DoRender for later. Call DoRender only of Invalidated = @true.
+
+      Note: Xlib program should always wait for the first Expose event before
+      redrawing anything. Similar for WinAPI. }
+    Invalidated: boolean;
 
     { FClosed = are we outside of Open..Close }
     FClosed: boolean;
@@ -920,7 +927,7 @@ type
           @code(if AutoRedisplay then Invalidate;)
 
         So specific CastleWindow backends need not to worry about
-        AutoRedisplay. They only have to implement Invalidate. }
+        AutoRedisplay. They only have to call this when Invalidated = @true. }
     procedure DoRender;
 
     { DoKeyDown/Up: pass here key that is pressed down or released up.
@@ -1881,27 +1888,6 @@ end;
     { See TUIContainer.Invalidate. }
     procedure Invalidate;
 
-    { Force redraw of OpenGL area @italic(right now),
-      only if any redraw is needed.
-
-      If we know we should redraw a window (for example, because window
-      manager just said that window is brought to front of the desktop,
-      or because you called Invalidate) then we will redraw
-      the window @italic(right now). This method will directly
-      call EventBeforeRender (OnBeforeRender), EventRender
-      (OnRender), flush OpenGL commands, swap buffers and such.
-
-      You really should not use this method too often. It's best to leave
-      to this unit's internals decision when the redraw should happen,
-      and allow us to redraw only once even if you called Invalidate
-      many times in a short time.
-
-      The one valid reason for using this function is when you need
-      to read back the drawn window contents (e.g. by glReadPixels).
-      Then you want to make sure first that any pending redraws are
-      actually done --- this method allows you to do this. }
-    procedure FlushRedisplay;
-
     { Make the OpenGL context of this window "current" (following OpenGL
       commands will apply to this). When the window is opened, and right
       before calling any window callback, we always automatically call
@@ -1911,9 +1897,13 @@ end;
 
     { Capture the current window contents to an image (file).
 
-      These functions take care of flushing any pending redraw operations
-      (like FlushRedisplay: they will redraw the window if necessary)
-      and then capture the screen contents correctly.
+      These functions take care of making a redraw before capturing screen
+      contents. That's because you can only reliably capture the screen contents
+      of the back buffer (before swap) using OpenGL. In theory, the single-buffer
+      case could be optimized (do not redraw if not needed, that is:
+      if not invalidated), but it's not worth the complication since noone uses
+      single-buffer for normal applications... And also, there is no reliable
+      way to capture screen contents in case of single-buffer.
 
       Note that only capturing the double-buffered windows (the default)
       is reliable.
@@ -2857,6 +2847,7 @@ begin
       since they can raise exceptions, and in reaction to it we will cleanly
       Close the window. }
     FClosed := false;
+    Invalidated := false;
 
     { Call OpenBackend. Note that OpenBackend can call DoResize,
       it will still be correctly understood. }
@@ -3022,7 +3013,7 @@ end;
 procedure TCastleWindowCustom.SetAutoRedisplay(value: boolean);
 begin
   fAutoRedisplay := value;
-  if value and (not Closed) then Invalidate;
+  if Value then Invalidate;
 end;
 
 procedure TCastleWindowCustom.ReleaseAllKeysAndMouse;
@@ -3160,6 +3151,11 @@ end;
 
 procedure TCastleWindowCustom.DoRender;
 begin
+  { We set Invalidated := false before EventRender (that calls OnRender),
+    because we guarantee that calling Invalidate within OnRender will
+    cause the redraw in next frame. }
+  Invalidated := false;
+
   MakeCurrent;
 
   Container.EventBeforeRender;
@@ -3327,7 +3323,7 @@ end;
 function TCastleWindowCustom.AllowSuspendForInput: boolean;
 begin
   Result := Container.AllowSuspendForInput and
-    not (Assigned(OnUpdate) or Assigned(OnTimer) or FpsShowOnCaption);
+    not (Invalidated or Assigned(OnUpdate) or Assigned(OnTimer) or FpsShowOnCaption);
 end;
 
 { Menu things ------------------------------------------------------------ }
@@ -3356,8 +3352,7 @@ begin
  end;
 end;
 
-{ SaveScreen wykonane na CastleWindow (robimy najpierw FlushRedisplay)
-  -------------------------------------------------------------------------- }
+{ SaveScreenXx --------------------------------------------------------------- }
 
 function TCastleWindowCustom.SaveScreenBuffer: TColorBuffer;
 begin
@@ -3383,12 +3378,8 @@ end;
 
 function TCastleWindowCustom.SaveScreen(const SaveRect: TRectangle): TRGBImage;
 begin
-  if DoubleBuffer then
-  begin
-    Container.EventBeforeRender;
-    Container.EventRender;
-  end else
-    FlushRedisplay;
+  Container.EventBeforeRender;
+  Container.EventRender;
   Result := SaveScreen_NoFlush(SaveRect, SaveScreenBuffer);
 end;
 
@@ -3401,12 +3392,8 @@ function TCastleWindowCustom.SaveScreenToGL(
   const SaveRect: TRectangle;
   const ScalingPossible: boolean): TGLImage;
 begin
-  if DoubleBuffer then
-  begin
-    Container.EventBeforeRender;
-    Container.EventRender;
-  end else
-    FlushRedisplay;
+  Container.EventBeforeRender;
+  Container.EventRender;
   Result := SaveScreenToGL_NoFlush(SaveRect, SaveScreenBuffer, ScalingPossible);
 end;
 
@@ -3946,6 +3933,11 @@ end;
 procedure TCastleWindowCustom.PostRedisplay;
 begin
   Invalidate;
+end;
+
+procedure TCastleWindowCustom.Invalidate;
+begin
+  if not Closed then Invalidated := true;
 end;
 
 function TCastleWindowCustom.GetRenderStyle: TRenderStyle;

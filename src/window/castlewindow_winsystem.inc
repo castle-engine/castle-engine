@@ -17,24 +17,10 @@
 
 {$ifdef read_window_interface}
 private
-  { Track if some Invalidate was called (and not realized yet by
-    DoRender call). Invalidate only sets this, leaving actually
-    calling of FlushRedisplay for later.
-
-    Note: Xlib program should always wait for the first Expose event before
-    redrawing anything. Similar for WinAPI. }
-  RedisplayPosted: boolean;
-
   { w castlewindow_winsystem implementuje sie OpenBackend ktore
     wywoluje swoja inicjalizacje a potem wywoluje OpenWinSystemDepend
     ktore powinno byc zdefiniowane w castlewindow_xlib i _winapi. }
   procedure OpenWinSystemDepend;
-
-  { FlushRedisplay2 works exactly like FlushRedisplay, but additionally
-    it returns czy rzeczywiscie zaszlo odswiezenie (true)
-    czy tez nie wykryto takiej potrzeby (nie bylo zaleglego Invalidate
-    ani komunikatu w rodzaju Expose od WindowManagera do wykonania) }
-  function FlushRedisplay2: boolean;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -75,32 +61,10 @@ private
 
 { TCastleWindowCustom ----------------------------------------------------------------- }
 
-procedure TCastleWindowCustom.Invalidate;
-begin
-  RedisplayPosted := true;
-end;
-
 procedure TCastleWindowCustom.OpenBackend;
 begin
-  { reset some variables common to all _winsystem implementations }
-  RedisplayPosted := false;
   { call specific winsystem impl Open }
   OpenWinSystemDepend;
-end;
-
-function TCastleWindowCustom.FlushRedisplay2: boolean;
-begin
-  Result := RedisplayPosted;
-  if Result then
-  begin
-    RedisplayPosted := false;
-    DoRender;
-  end;
-end;
-
-procedure TCastleWindowCustom.FlushRedisplay;
-begin
-  FlushRedisplay2;
 end;
 
 { TCastleApplication ---------------------------------------------------------- }
@@ -287,9 +251,11 @@ begin
         Window := OpenWindows[I];
         Window.DoUpdate;
         if Window.Closed then Continue {don't Inc(I)};
-        { Kolejnosc w OR ponizej MA ZNACZENIE : zawsze chemy wywolac
-          FlushRedisplay2, nawet jesli WasAnyRendering juz jest = true }
-        WasAnyRendering := Window.FlushRedisplay2 or WasAnyRendering;
+        if Window.Invalidated then
+        begin
+          Window.DoRender;
+          WasAnyRendering := true;
+        end;
         if Window.Closed then Continue {don't Inc(I)};
         Inc(I);
       end;

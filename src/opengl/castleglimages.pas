@@ -331,9 +331,10 @@ type
 
   The suffix "NoFlush" is there to remind you that this
   function grabs the @italic(current) buffer contents. Usually you want to
-  call something like @link(TCastleWindowCustom.FlushRedisplay) right before
-  doing this. In practice, usually you don't want to use this function
-  --- instead use safer TCastleWindowCustom.SaveScreen.
+  redraw the screen to the back buffer, and call this function to capture
+  back buffer @italic(before) swapping, since this is the only reliable
+  way to capture OpenGL screen.
+  Just use TCastleWindowCustom.SaveScreen to do it automatically.
 
   Version with ImageClass can save to any image format from PixelsImageClasses.
 
