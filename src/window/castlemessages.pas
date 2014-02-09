@@ -324,7 +324,6 @@ begin
     repeat Application.ProcessMessage(false, true) until Dialog.Answered;
 
   finally
-    FreeAndNil(Background);
     FreeAndNil(SavedMode);
     AInputText := Dialog.InputText;
   end;

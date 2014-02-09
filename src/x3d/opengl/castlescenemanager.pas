@@ -1548,8 +1548,7 @@ end;
 
 function TCastleAbstractViewport.PositionInside(const X, Y: Integer): boolean;
 begin
-  Result := GetExists and
-   (FullSize or
+  Result := (FullSize or
     ( (X >= Left) and
       (X  < Left + Width) and
       (ContainerHeight - Y >= Bottom) and

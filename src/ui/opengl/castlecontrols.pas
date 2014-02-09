@@ -429,7 +429,8 @@ type
     { Drawn as window background. @nil means there is no background
       (use only if there is always some other 2D control underneath TCastleDialog).
       When assigned, stretched to cover whole screen. }
-    Background: TGLImage;
+    GLBackground: TGLImage;
+    Background: TCastleImage;
     Align: TTextAlign;
     { Should we display InputText }
     DrawInputText: boolean;
@@ -465,13 +466,15 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    { Assign display stuff. Call this before adding control to Controls list. }
+    { Assign display stuff. Call this before adding control to Controls list.
+      ABackground instance becomes owned by this component. }
     procedure Initialize(
       const TextList: TStringList; const ATextAlign: TTextAlign;
       const AButtons: array of TCastleButton;
       const ADrawInputText: boolean; const AInputText: string;
       const ABackground: TCastleImage);
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+    procedure GLContextOpen; override;
     procedure GLContextClose; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
@@ -821,7 +824,7 @@ end;
 
 function TCastleButton.PositionInside(const X, Y: Integer): boolean;
 begin
-  Result := GetExists and
+  Result :=
     (X >= Left) and
     (X  < Left + Width) and
     (ContainerHeight - Y >= Bottom) and
@@ -1122,7 +1125,7 @@ end;
 
 function TCastlePanel.PositionInside(const X, Y: Integer): boolean;
 begin
-  Result := GetExists and
+  Result :=
     (X >= Left) and
     (X  < Left + Width) and
     (ContainerHeight - Y >= Bottom) and
@@ -1210,13 +1213,11 @@ var
   R: TRectangle;
 begin
   R := Rect;
-  Result := GetExists and
-    ( FullSize or
-      ( (X >= R.Left) and
-        (X  < R.Left + R.Width) and
-        (R.Height - Y >= R.Bottom) and
-        (R.Height - Y  < R.Bottom + R.Height)
-      )
+  Result := FullSize or
+    ( (X >= R.Left) and
+      (X  < R.Left + R.Width) and
+      (R.Height - Y >= R.Bottom) and
+      (R.Height - Y  < R.Bottom + R.Height)
     );
 end;
 
@@ -1375,7 +1376,7 @@ end;
 
 function TCastleTouchControl.PositionInside(const X, Y: Integer): boolean;
 begin
-  Result := GetExists and Rect.Contains(X, ContainerHeight - Y);
+  Result := Rect.Contains(X, ContainerHeight - Y);
 end;
 
 function TCastleTouchControl.MaxOffsetDist: Integer;
@@ -1555,7 +1556,9 @@ var
   I: Integer;
 begin
   Text := TextList;
-  Background := TGLImage.Create(ABackground, true);
+  Background := ABackground;
+  if GLInitialized then
+    GLBackground := TGLImage.Create(Background, true);
   Align := ATextAlign;
   DrawInputText := ADrawInputText;
   FInputText := AInputText;
@@ -1568,12 +1571,20 @@ destructor TCastleDialog.Destroy;
 begin
   FreeAndNil(Broken_Text);
   FreeAndNil(Broken_InputText);
+  FreeAndNil(Background);
   inherited;
+end;
+
+procedure TCastleDialog.GLContextOpen;
+begin
+  inherited;
+  if (GLBackground = nil) and (Background <> nil) then
+    GLBackground := TGLImage.Create(Background, true);
 end;
 
 procedure TCastleDialog.GLContextClose;
 begin
-  FreeAndNil(Background);
+  FreeAndNil(GLBackground);
   inherited;
 end;
 
@@ -1864,8 +1875,8 @@ const
 begin
   inherited;
 
-  if Background <> nil then
-    Background.Draw(ContainerRect);
+  if GLBackground <> nil then
+    GLBackground.Draw(ContainerRect);
 
   MessageRect := WholeMessageRect;
   Theme.Draw(MessageRect, tiWindow);

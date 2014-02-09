@@ -2042,9 +2042,8 @@ end;
         callbacks of Application and callbacks of other TCastleWindowCustom MAY be called while
         the dialog is open. Callbacks of THIS object (OnXxx) will not be
         called. You should treat XxxDialog like
-          Mode := TGLMode.Create(Self);
+          Mode := TGLModeFrozenScreen.Create(Self);
           try
-            Mode.SetStandardState(...);
             ....
           finally FreeAndNil(Mode) end;
       - How does these dialogs look like?

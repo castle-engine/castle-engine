@@ -277,7 +277,7 @@ type
 
       @longCode(#
   Result := inherited;
-  if Result or (not GetExists) then Exit;
+  if Result then Exit;
   { ... And do the job here.
     In other words, the handling of events in inherited
     class should have a priority. }
@@ -378,8 +378,9 @@ end;
       This approach is not suitable for Update events. Some controls
       need to do the Update job all the time,
       regardless of whether the control is under the mouse and regardless
-      of what other controls already did. So all controls receive
-      Update calls.
+      of what other controls already did. So all controls (well,
+      all controls that exist, in case of TUIControl,
+      see TUIControl.GetExists) receive Update calls.
 
       So the "handled" status is passed through HandleInput.
       If a control is not under the mouse, it will receive HandleInput
@@ -494,7 +495,6 @@ end;
     where (0, 0) is left-bottom window corner.) }
   TUIControl = class(TInputListener)
   private
-    FDisableContextOpenClose: Cardinal;
     FFocused: boolean;
     FGLInitialized: boolean;
     FExists: boolean;
@@ -504,15 +504,30 @@ end;
     destructor Destroy; override;
 
     { Return whether item really exists, see @link(Exists).
-      It TUIControl class, returns @link(Exists) value.
-      May be modified in subclasses, to return something more complicated. }
+      Non-existing item does not receive any of the render or input or update calls.
+      They only receive @link(GLContextOpen), @link(GLContextClose), @link(ContainerResize)
+      calls.
+
+      It TUIControl class, this returns the value of @link(Exists) property.
+      May be overridden in descendants, to return something more complicated,
+      but it should always be a logical "and" with the inherited @link(GetExists)
+      implementation (so setting the @code(Exists := false) will always work),
+      like
+
+@longCode(#
+  Result := (inherited GetExists) and MyComplicatedConditionForExists;
+#) }
     function GetExists: boolean; virtual;
 
     { Is given position inside this control.
-      Returns always @false in this class. }
+      Returns always @false in this class.
+      Always treated like @false when GetExists returns @false,
+      so the implementation of this method only needs to make checks assuming that
+      GetExists = @true.  }
     function PositionInside(const X, Y: Integer): boolean; virtual;
 
-    { Prepare your resources, right before drawing. }
+    { Prepare your resources, right before drawing.
+      Called only when @link(GetExists) and GLInitialized. }
     procedure BeforeRender; virtual;
 
     { Render a control. Called only when @link(GetExists) and GLInitialized,
@@ -611,7 +626,10 @@ end;
       This is called when OpenGL context of the container is created.
       Also called when the control is added to the already existing context.
       In other words, this is the moment when you can initialize
-      OpenGL resources, like display lists, VBOs, OpenGL texture names, etc. }
+      OpenGL resources, like display lists, VBOs, OpenGL texture names, etc.
+
+      As an exception, this is called regardless of the GetExists value.
+      This way a control can prepare it's resources, regardless if it exists now. }
     procedure GLContextOpen; virtual;
 
     { Destroy your OpenGL resources.
@@ -621,41 +639,19 @@ end;
       @code(Controls) list. Also called from the destructor.
 
       You should release here any resources that are tied to the
-      OpenGL context. In particular, the ones created in GLContextOpen. }
+      OpenGL context. In particular, the ones created in GLContextOpen.
+
+      As an exception, this is called regardless of the GetExists value.
+      This way a control can release it's resources, regardless if it exists now. }
     procedure GLContextClose; virtual;
 
     property GLInitialized: boolean read FGLInitialized default false;
-
-    { When non-zero, container will not call GLContextOpen and
-      GLContextClose (when control is added/removed to/from the
-      @code(Controls) list).
-
-      This is useful, although should be used with much caution:
-      you're expected to call controls GLContextOpen /
-      GLContextClose on your own when this is non-zero. Example usage is
-      when the same control is often added/removed to/from the @code(Controls)
-      list, and the window (with it's OpenGL context) stays open for a longer
-      time. In such case, default (when DisableContextOpenClose = 0) behavior
-      will often release (only to be forced to reinitialize again) OpenGL
-      resources of the control. Some controls have large OpenGL
-      resources (for example TCastleScene keeps display lists, textures etc.,
-      and TCastlePrecalculatedAnimation keeps all the scenes) --- so constantly
-      reinitializing them may eat a noticeable time.
-
-      By using non-zero DisableContextOpenClose you can disable this behavior.
-
-      In particular, TGLMode uses this trick, to avoid releasing and
-      reinitializing OpenGL resources for controls only temporarily
-      removed from the @link(TCastleWindowCustom.Controls) list. }
-    property DisableContextOpenClose: Cardinal
-      read FDisableContextOpenClose write FDisableContextOpenClose;
 
     { Called when this control becomes or stops being focused.
       In this class, they simply update Focused property. }
     procedure SetFocused(const Value: boolean); virtual;
 
     property Focused: boolean read FFocused write SetFocused;
-
   published
     { Not existing control is not visible, it doesn't receive input
       and generally doesn't exist from the point of view of user.
@@ -816,17 +812,6 @@ end;
       to remember that controls at the end of the list are at the back
       (they get key/mouse events last). }
     procedure InsertBack(const NewItem: TUIControl);
-
-    { BeginDisableContextOpenClose disables sending
-      TUIControl.GLContextOpen and TUIControl.GLContextClose to all the controls
-      on the list. EndDisableContextOpenClose ends this.
-      They work by increasing / decreasing the TUIControl.DisableContextOpenClose
-      for all the items on the list.
-
-      @groupBegin }
-    procedure BeginDisableContextOpenClose;
-    procedure EndDisableContextOpenClose;
-    { @groupEnd }
   end;
 
   TGLContextEvent = procedure;
@@ -920,8 +905,7 @@ begin
 
         if Container.GLInitialized then
         begin
-          if C.DisableContextOpenClose = 0 then
-            C.GLContextOpen;
+          C.GLContextOpen;
           { Call initial ContainerResize for control.
             If window OpenGL context is not yet initialized, defer it to
             the Open time, then our initial EventResize will be called
@@ -931,8 +915,7 @@ begin
       end;
     lnExtracted, lnDeleted:
       begin
-        if Container.GLInitialized and
-           (C.DisableContextOpenClose = 0) then
+        if Container.GLInitialized then
           C.GLContextClose;
 
         if C.OnVisibleChange = @Container.ControlsVisibleChange then
@@ -1011,15 +994,11 @@ procedure TUIContainer.UpdateFocusAndMouseCursor;
 
   function CalculateFocus: TUIControl;
   var
-    I: Integer;
+    C: TUIControl;
   begin
-    for I := 0 to Controls.Count - 1 do
-    begin
-      Result := Controls[I];
-      if Result.PositionInside(MouseX, MouseY) then
-        Exit;
-    end;
-
+    for C in Controls do
+      if C.GetExists and C.PositionInside(MouseX, MouseY) then
+        Exit(C);
     Result := nil;
   end;
 
@@ -1101,7 +1080,6 @@ procedure TUIContainer.EventUpdate;
   end;
 
 var
-  I: Integer;
   C: TUIControl;
   HandleInput: boolean;
   Dummy: boolean;
@@ -1124,15 +1102,12 @@ begin
       Mouse3D.GetSensorRotation(Rx, Ry, Rz, RAngle);
 
       { send to all 2D controls, including viewports }
-      for I := 0 to Controls.Count - 1 do
-      begin
-        C := Controls[I];
-        if C.PositionInside(MouseX, MouseY) then
+      for C in Controls do
+        if C.GetExists and C.PositionInside(MouseX, MouseY) then
         begin
           C.SensorTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
           C.SensorRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
         end;
-      end;
 
       { set timer.
         The "repeat ... until" below should not be necessary under normal
@@ -1144,24 +1119,24 @@ begin
     end;
   end;
 
-  { Although we call Update for all the controls, we look
+  { Although we call Update for all the existing controls, we look
     at PositionInside and track HandleInput values.
     See TUIControl.Update for explanation. }
 
   HandleInput := true;
 
-  for I := 0 to Controls.Count - 1 do
-  begin
-    C := Controls[I];
-    if C.PositionInside(MouseX, MouseY) then
+  for C in Controls do
+    if C.GetExists then
     begin
-      C.Update(Fps.UpdateSecondsPassed, HandleInput);
-    end else
-    begin
-      Dummy := false;
-      C.Update(Fps.UpdateSecondsPassed, Dummy);
+      if C.PositionInside(MouseX, MouseY) then
+      begin
+        C.Update(Fps.UpdateSecondsPassed, HandleInput);
+      end else
+      begin
+        Dummy := false;
+        C.Update(Fps.UpdateSecondsPassed, Dummy);
+      end;
     end;
-  end;
 
   if Assigned(OnUpdate) then OnUpdate(Self);
 end;
@@ -1169,14 +1144,12 @@ end;
 function TUIContainer.EventPress(const Event: TInputPressRelease): boolean;
 var
   C: TUIControl;
-  I: Integer;
 begin
   Result := false;
 
-  for I := 0 to Controls.Count - 1 do
+  for C in Controls do
   begin
-    C := Controls[I];
-    if C.PositionInside(MouseX, MouseY) then
+    if C.GetExists and C.PositionInside(MouseX, MouseY) then
       if C.Press(Event) then
       begin
         { We have to check whether C.Container = Self. That is because
@@ -1204,12 +1177,17 @@ end;
 function TUIContainer.EventRelease(const Event: TInputPressRelease): boolean;
 var
   C, Capture: TUIControl;
-  I: Integer;
 begin
   Result := false;
 
+  if (FCaptureInput <> nil) and not FCaptureInput.GetExists then
+    { No longer capturing, since the GetExists returns false now.
+      We do not send any events to non-existing controls. }
+    FCaptureInput := nil;
+
   Capture := FCaptureInput;
   if MousePressed = [] then
+    { No longer capturing, but will receive the Release event. }
     FCaptureInput := nil;
 
   if Capture <> nil then
@@ -1218,12 +1196,10 @@ begin
     Exit;
   end;
 
-  for I := 0 to Controls.Count - 1 do
-  begin
-    C := Controls[I];
-    if C.PositionInside(MouseX, MouseY) then
-      if C.Release(Event) then Exit(true);
-  end;
+  for C in Controls do
+    if C.GetExists and C.PositionInside(MouseX, MouseY) then
+      if C.Release(Event) then
+        Exit(true);
 
   if Assigned(OnRelease) then
   begin
@@ -1234,7 +1210,7 @@ end;
 
 procedure TUIContainer.EventOpen(const OpenWindowsCount: Cardinal);
 var
-  I: Integer;
+  C: TUIControl;
 begin
   if OpenWindowsCount = 1 then
     OnGLContextOpen.ExecuteAll;
@@ -1242,15 +1218,15 @@ begin
   { Call GLContextOpen on controls before OnOpen,
     this way OnOpen has controls with GLInitialized = true,
     so using SaveScreen etc. makes more sense there. }
-  for I := 0 to Controls.Count - 1 do
-    Controls[I].GLContextOpen;
+  for C in Controls do
+    C.GLContextOpen;
 
   if Assigned(OnOpen) then OnOpen(Self);
 end;
 
 procedure TUIContainer.EventClose(const OpenWindowsCount: Cardinal);
 var
-  I: Integer;
+  C: TUIControl;
 begin
   { Call GLContextClose on controls after OnClose,
     consistent with inverse order in OnOpen. }
@@ -1261,8 +1237,8 @@ begin
     so prepare for Controls being possibly nil now. }
   if Controls <> nil then
   begin
-    for I := 0 to Controls.Count - 1 do
-      Controls[I].GLContextClose;
+    for C in Controls do
+      C.GLContextClose;
   end;
 
   if OpenWindowsCount = 1 then
@@ -1271,7 +1247,7 @@ end;
 
 function TUIContainer.AllowSuspendForInput: boolean;
 var
-  I: Integer;
+  C: TUIControl;
 begin
   Result := true;
 
@@ -1280,19 +1256,24 @@ begin
   if (Focus <> nil) and Focus.TooltipExists then
     Exit(false);
 
-  for I := 0 to Controls.Count - 1 do
-  begin
-    Result := Controls[I].AllowSuspendForInput;
-    if not Result then Exit;
-  end;
+  for C in Controls do
+    if C.GetExists then
+    begin
+      Result := C.AllowSuspendForInput;
+      if not Result then Exit;
+    end;
 end;
 
 procedure TUIContainer.EventMouseMove(NewX, NewY: Integer);
 var
   C: TUIControl;
-  I: Integer;
 begin
   UpdateFocusAndMouseCursor;
+
+  if (FCaptureInput <> nil) and not FCaptureInput.GetExists then
+    { No longer capturing, since the GetExists returns false now.
+      We do not send any events to non-existing controls. }
+    FCaptureInput := nil;
 
   if FCaptureInput <> nil then
   begin
@@ -1300,12 +1281,10 @@ begin
     Exit;
   end;
 
-  for I := 0 to Controls.Count - 1 do
-  begin
-    C := Controls[I];
-    if C.PositionInside(MouseX, MouseY) then
-      if C.MouseMove(MouseX, MouseY, NewX, NewY) then Exit;
-  end;
+  for C in Controls do
+    if C.GetExists and C.PositionInside(MouseX, MouseY) then
+      if C.MouseMove(MouseX, MouseY, NewX, NewY) then
+        Exit;
 
   if Assigned(OnMouseMove) then OnMouseMove(Self, NewX, NewY);
 end;
@@ -1317,20 +1296,21 @@ end;
 
 procedure TUIContainer.EventBeforeRender;
 var
-  I: Integer;
+  C: TUIControl;
 begin
-  for I := 0 to Controls.Count - 1 do
-    Controls[I].BeforeRender;
+  for C in Controls do
+    if C.GetExists and C.GLInitialized then
+      C.BeforeRender;
 
   if Assigned(OnBeforeRender) then OnBeforeRender(Self);
 end;
 
 procedure TUIContainer.EventResize;
 var
-  I: Integer;
+  C: TUIControl;
 begin
-  for I := 0 to Controls.Count - 1 do
-    Controls[I].ContainerResize(Width, Height);
+  for C in Controls do
+    C.ContainerResize(Width, Height);
 
   { This way control's get ContainerResize before our OnResize,
     useful to process them all reliably in OnResize. }
@@ -1700,24 +1680,6 @@ end;
 procedure TUIControlList.Insert(Index: Integer; Item: TUIControl);
 begin
   inherited Insert(Index, Item);
-end;
-
-procedure TUIControlList.BeginDisableContextOpenClose;
-var
-  I: Integer;
-begin
- for I := 0 to Count - 1 do
-   with Items[I] do
-     DisableContextOpenClose := DisableContextOpenClose + 1;
-end;
-
-procedure TUIControlList.EndDisableContextOpenClose;
-var
-  I: Integer;
-begin
- for I := 0 to Count - 1 do
-   with Items[I] do
-     DisableContextOpenClose := DisableContextOpenClose - 1;
 end;
 
 procedure TUIControlList.InsertFront(const NewItem: TUIControl);
