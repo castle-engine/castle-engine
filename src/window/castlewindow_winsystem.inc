@@ -319,8 +319,14 @@ begin
 
     Result := true;
   except
-    { call Quit (silencing any further exceptions) + reraise }
-    try Quit; except end;
+    try
+      Quit;
+    except
+      on E: TObject do
+        OnWarning(wtMinor, 'Window', 'Exception when quitting: ' + ExceptMessage(E));
+    end;
+    { Eventual problems encountered during Quit were reported by OnWarning above.
+      But exit the method with the original exception. }
     raise;
   end;
 end;
