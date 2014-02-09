@@ -112,11 +112,6 @@ begin
   { TODO (destroy OpenGL context, hide window; counterpart to OpenBackend) }
 end;
 
-procedure TCastleWindowCustom.Invalidate;
-begin
-  if not Closed then { TODO };
-end;
-
 procedure TCastleWindowCustom.SetCaption(const Part: TCaptionPart; const Value: string);
 begin
   FCaption[Part] := Value;
