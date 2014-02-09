@@ -106,7 +106,7 @@ const
 
 { TCastleWindowCustom --------------------------------------------------------  }
 
-procedure TCastleWindowCustom.OpenWinSystemDepend;
+procedure TCastleWindowCustom.OpenBackend;
 var
   sizeHints: TXSizeHints;
   AttrValueMask: Cardinal;

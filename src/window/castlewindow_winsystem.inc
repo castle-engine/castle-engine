@@ -16,11 +16,6 @@
 { This is the common code for CASTLE_WINDOW_XLIB and CASTLE_WINDOW_WINAPI implementations. }
 
 {$ifdef read_window_interface}
-private
-  { w castlewindow_winsystem implementuje sie OpenBackend ktore
-    wywoluje swoja inicjalizacje a potem wywoluje OpenWinSystemDepend
-    ktore powinno byc zdefiniowane w castlewindow_xlib i _winapi. }
-  procedure OpenWinSystemDepend;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -58,14 +53,6 @@ private
 
      Dotyczy to zarowno WinAPI jak i Xlib.
 }
-
-{ TCastleWindowCustom ----------------------------------------------------------------- }
-
-procedure TCastleWindowCustom.OpenBackend;
-begin
-  { call specific winsystem impl Open }
-  OpenWinSystemDepend;
-end;
 
 { TCastleApplication ---------------------------------------------------------- }
 

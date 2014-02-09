@@ -678,8 +678,7 @@ begin
   MenuInitialize;
 end;
 
-procedure TCastleWindowCustom.OpenWinSystemDepend;
-
+procedure TCastleWindowCustom.OpenBackend;
 var
   dwExStyle, dwStyle: dword;
   WindowRect, ClientRect: TRect;
