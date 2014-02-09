@@ -306,7 +306,13 @@ procedure ANativeActivity_onCreate(activity: PANativeActivity; savedState: Point
 
 implementation
 
-uses CMem;
+{ Use Libc memory allocation routines only where needed. }
+const
+  CLibName = 'c';
+Function LibcMalloc (Size : ptruint) : Pointer; cdecl; external CLibName name 'malloc';
+Procedure LibcFree (P : pointer); cdecl; external CLibName name 'free';
+function LibcReAlloc (P : Pointer; Size : ptruint) : pointer; cdecl; external CLibName name 'realloc';
+Function LibcCAlloc (unitSize,UnitCount : ptruint) : pointer; cdecl; external CLibName name 'calloc';
 
 type
  ppthread_t = ^pthread_t;
@@ -339,7 +345,7 @@ begin
    pthread_mutex_lock(@android_app^.mutex);
    if android_app^.savedState <> Nil then
    begin
-      free(android_app^.savedState);
+      LibcFree(android_app^.savedState);
       android_app^.savedState := nil;
       android_app^.savedStateSize := 0;
    end;
@@ -548,7 +554,7 @@ var android_app: Pandroid_app;
     msgpipe: array[0..1] of cint;
     attr: pthread_attr_t;
 begin
-    android_app := Pandroid_app(malloc(sizeof(Tandroid_app)));
+    android_app := Pandroid_app(LibcMalloc(sizeof(Tandroid_app)));
     fillchar(android_app^, sizeof(tandroid_app), 0);
     android_app^.activity := activity;
 
@@ -557,7 +563,7 @@ begin
 
     if (savedState <> nil) then
     begin
-        android_app^.savedState := malloc(savedStateSize);
+        android_app^.savedState := LibcMalloc(savedStateSize);
         android_app^.savedStateSize := savedStateSize;
         move(pbyte(savedState)^, pbyte(android_app^.savedState)^, savedStateSize);
     end;
@@ -637,7 +643,7 @@ begin
     fpclose(android_app^.msgwrite);
     pthread_cond_destroy(@android_app^.cond);
     pthread_mutex_destroy(@android_app^.mutex);
-    free(android_app);
+    LibcFree(android_app);
 end;
 
 procedure onDestroy(activity: PANativeActivity); cdecl;
