@@ -28,16 +28,24 @@
     @item(Declare and create @link(TCastleWindowCustom) instance. (Or a descendant
       like @link(TCastleWindow).))
 
-    @item(Assign Glw properties and callbacks like
+    @item(Assign Window properties and callbacks like
       @link(TCastleWindowCustom.OnRender OnRender),
       @link(TCastleWindowCustom.OnResize OnResize),
       @link(TCastleWindowCustom.Width Width),
       @link(TCastleWindowCustom.Height Height),
       @link(TCastleWindowCustom.Caption Caption).)
 
+    @item(To initialize your game, you usually want to use
+      @link(Application.OnInitialize). If you only care about
+      standalone programs (for normal OSes like Linux,Windows,MacOSX,
+      but not Android) you may also just initialize your game in the main
+      program block.)
+
     @item(Call @link(TCastleWindowCustom.Open Window.Open),
       this will actually show the window and it's
-      associated OpenGL context. It also calls
+      associated OpenGL context.
+
+      It also calls
       @link(TCastleWindowCustom.EventOpen EventOpen)
       (@link(TCastleWindowCustom.OnOpen OnOpen) callback)
       and @link(TCastleWindowCustom.EventResize EventResize)
@@ -1226,7 +1234,15 @@ type
 
       During EventOpen (OnOpen) you already have valid
       Width / Height values, that is those values were already adjusted
-      if ResizeAllowed <> raNotAllowed. }
+      if ResizeAllowed <> raNotAllowed.
+
+      @bold(Be careful what you do in this callback if you want your game
+      to work on Android or other non-standalone platforms.)
+      On Android, OpenGL context may be closed and opened at any time,
+      as user can switch from/to your application at any time.
+      You should use @link(Application.OnInitialize) to start your game,
+      and use this callback only to create OpenGL resources
+      (destroyed in OnClose). }
     property OnOpen: TContainerEvent read GetOnOpen write SetOnOpen;
     property OnOpenObject: TContainerObjectEvent read GetOnOpenObject write SetOnOpenObject;
 
