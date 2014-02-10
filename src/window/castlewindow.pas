@@ -3949,10 +3949,12 @@ begin
   Invalidate;
 end;
 
+{$ifndef CASTLE_WINDOW_LIBRARY}
 procedure TCastleWindowCustom.Invalidate;
 begin
   if not Closed then Invalidated := true;
 end;
+{$endif}
 
 function TCastleWindowCustom.GetRenderStyle: TRenderStyle;
 begin

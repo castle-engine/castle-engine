@@ -99,6 +99,7 @@ end;
 
 procedure TCastleWindowCustom.Invalidate;
 begin
+  if not Closed then Invalidated := true;
   if Assigned(LibraryCallbackProc) then  // tell the parent window to repaint
     LibraryCallbackProc(ecgelibNeedsDisplay, 0, 0);
 end;
