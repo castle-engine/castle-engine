@@ -37,7 +37,7 @@ type
   public
     property Image: TRGBImage read GetImage write SetImage;
     constructor Create(AOwner: TComponent); override;
-    procedure UpdateGLImage;
+    procedure ImageChanged;
   end;
 
 constructor TWindowImage.Create(AOwner: TComponent);
@@ -51,17 +51,6 @@ begin
   Controls.InsertFront(ImageControl);
 end;
 
-procedure TWindowImage.UpdateGLImage;
-begin
-  if GLInitialized then
-  begin
-    { when Image contents changed, update the TGLImage inside ImageControl }
-    ImageControl.GLContextClose;
-    ImageControl.GLContextOpen;
-    Invalidate;
-  end;
-end;
-
 function TWindowImage.GetImage: TRGBImage;
 begin
   { as the image can only be set by SetImage, we know it is of TRGBImage class }
@@ -71,6 +60,11 @@ end;
 procedure TWindowImage.SetImage(const Value: TRGBImage);
 begin
   ImageControl.Image := Value;
+end;
+
+procedure TWindowImage.ImageChanged;
+begin
+  ImageControl.ImageChanged;
 end;
 
 type
@@ -190,7 +184,7 @@ begin
   end;
 
   Fft.ImageFModulusAsRGB(Freq.Image, 0.01);
-  Freq.UpdateGLImage;
+  Freq.ImageChanged;
 
   Fft.Image := Output.Image;
 
@@ -198,7 +192,7 @@ begin
   Fft.IDFT;
   Writeln('Making IDFT: ', ProcessTimerEnd:1:2, ' secs');
 
-  Output.UpdateGLImage;
+  Output.ImageChanged;
 end;
 
 procedure MenuClick(Container: TUIContainer; Item: TMenuItem);

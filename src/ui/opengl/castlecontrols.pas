@@ -276,8 +276,16 @@ type
       to your custom TCastleImage instance you should
       leave memory management of this instance to this component.
       If necessary, you can always create a copy by TCastleImage.MakeCopy
-      if you want to give here only a copy. }
+      if you want to give here only a copy.
+
+      It is allowed to modify the contents or even size of this image.
+      Just make sure to call ImageChanged after the modifications are done
+      to update the actual rendered image.
+      The control size will be updated immediately (respecing current
+      @link(Stretch) and related properties). }
     property Image: TCastleImage read FImage write SetImage;
+
+    procedure ImageChanged;
   published
     { URL of the image. Setting this also sets @link(Image).
       Set this to '' to clear the image. }
@@ -1191,14 +1199,8 @@ begin
   begin
     FreeAndNil(FImage);
     FreeAndNil(FGLImage);
-
     FImage := Value;
-    if GLInitialized and (FImage <> nil) then
-    begin
-      FGLImage := TGLImage.Create(FImage, true);
-      if AlphaChannel <> acAuto then
-        FGLImage.Alpha := AlphaChannel;
-    end;
+    ImageChanged;
   end;
 end;
 
@@ -1237,18 +1239,26 @@ end;
 procedure TCastleImageControl.GLContextOpen;
 begin
   inherited;
-  if (FGLImage = nil) and (FImage <> nil) then
-  begin
-    FGLImage := TGLImage.Create(FImage, true);
-    if AlphaChannel <> acAuto then
-      FGLImage.Alpha := AlphaChannel;
-  end;
+  if FGLImage = nil then
+    ImageChanged;
 end;
 
 procedure TCastleImageControl.GLContextClose;
 begin
   FreeAndNil(FGLImage);
   inherited;
+end;
+
+procedure TCastleImageControl.ImageChanged;
+begin
+  if GLInitialized and (FImage <> nil) then
+  begin
+    FreeAndNil(FGLImage);
+    FGLImage := TGLImage.Create(FImage, true);
+    if AlphaChannel <> acAuto then
+      FGLImage.Alpha := AlphaChannel;
+    VisibleChange;
+  end;
 end;
 
 procedure TCastleImageControl.SetAlphaChannel(const Value: TAutoAlphaChannel);
