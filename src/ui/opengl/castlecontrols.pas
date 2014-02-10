@@ -1525,7 +1525,7 @@ begin
   begin
     X := -FLeverOffsetX*FxConst;
     Y := FLeverOffsetY*FxConst;
-    Length := 20;
+    Length := 5;
   end;
 end;
 
