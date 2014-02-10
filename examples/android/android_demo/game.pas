@@ -14,7 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Simple 3D game. This unit implements the game logic,
+{ Simple 3D application. This unit implements the application logic,
   actually independent from Android. }
 unit Game;
 
@@ -140,6 +140,7 @@ begin
     end;
   finally Progress.Fini end;
 end;
+
 procedure TDummy.ReopenContextClick(Sender: TObject);
 begin
   Window.Close(false);
