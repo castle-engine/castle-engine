@@ -110,7 +110,7 @@ extern void CGE_GetBoundingBox(float *pfXMin, float *pfXMax, float *pfYMin, floa
 extern void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ,
                               float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ);
 extern void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ,
-                                 float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ);
+                                 float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ, bool bAnimated);
 
 extern int CGE_GetNavigationType();
 extern void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType);

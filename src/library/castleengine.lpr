@@ -277,7 +277,8 @@ begin
 end;
 
 procedure CGE_MoveViewToCoords(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ,
-                               fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ: cFloat); cdecl;
+                               fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ: cFloat;
+                               bAnimated: cBool); cdecl;
 var
   Pos, Dir, Up, GravityUp: TVector3Single;
 begin
@@ -286,7 +287,10 @@ begin
     Dir[0] := fDirX; Dir[1] := fDirY; Dir[2] := fDirZ;
     Up[0] := fUpX; Up[1] := fUpY; Up[2] := fUpZ;
     GravityUp[0] := fGravX; GravityUp[1] := fGravY; GravityUp[2] := fGravZ;
-    Window.SceneManager.Camera.SetView(Pos, Dir, Up, GravityUp);
+    if bAnimated then
+      Window.SceneManager.Camera.AnimateTo(Pos, Dir, Up, 0.5)
+    else  
+      Window.SceneManager.Camera.SetView(Pos, Dir, Up, GravityUp);
   except
     on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;

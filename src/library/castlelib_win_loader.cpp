@@ -56,7 +56,7 @@ typedef void (__cdecl *PFNRD_CGE_GetBoundingBox)(float *pfXMin, float *pfXMax, f
 typedef void (__cdecl *PFNRD_CGE_GetViewCoords)(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ, 
                                                 float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ);
 typedef void (__cdecl *PFNRD_CGE_MoveViewToCoords)(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ, 
-                                                   float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ);
+                                                   float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ, bool bAnimated);
 
 typedef int (__cdecl *PFNRD_CGE_GetNavigationType)();
 typedef void (__cdecl *PFNRD_CGE_SetNavigationType)(int eNewType);
@@ -267,10 +267,10 @@ void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDir
 
 //-----------------------------------------------------------------------------
 void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ, 
-                          float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ)
+                          float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ, bool bAnimated)
 {
 	if (pfrd_CGE_MoveViewToCoords!=NULL)
-		(*pfrd_CGE_MoveViewToCoords)(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ, fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ);
+		(*pfrd_CGE_MoveViewToCoords)(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ, fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ, bAnimated);
 }
 
 //-----------------------------------------------------------------------------

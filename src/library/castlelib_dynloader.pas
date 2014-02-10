@@ -98,7 +98,8 @@ procedure CGE_GetBoundingBox(pfXMin, pfXMax, pfYMin, pfYMax, pfZMin, pfZMax: pcf
 procedure CGE_GetViewCoords(pfPosX, pfPosY, pfPosZ, pfDirX, pfDirY, pfDirZ,
                             pfUpX, pfUpY, pfUpZ, pfGravX, pfGravY, pfGravZ: pcfloat); cdecl; external 'castleengine';
 procedure CGE_MoveViewToCoords(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ,
-                               fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ: cFloat); cdecl; external 'castleengine';
+                               fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ: cFloat;
+                               bAnimated: cBool); cdecl; external 'castleengine';
 function CGE_GetNavigationType(): cInt32; cdecl; external 'castleengine';
 procedure CGE_SetNavigationType(NewType: cInt32); cdecl; external 'castleengine';
 procedure CGE_SetTouchInterface(eMode: cInt32); cdecl; external 'castleengine';
