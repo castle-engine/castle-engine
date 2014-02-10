@@ -329,6 +329,7 @@ end;
 
 procedure TGLMode.TWindowState.WindowOpen(Container: TUIContainer);
 var
+  I: Integer;
   C: TUIControl;
 begin
   if Assigned(OldOpenObject) then
@@ -336,12 +337,16 @@ begin
   { Make sure to call GLContextOpen on OldControls,
     otherwise they would not initialize OpenGL resources even though OpenGL
     context was open. }
-  for C in OldControls do
+  for I := 0 to OldControls.Count - 1 do
+  begin
+    C := OldControls[I];
     C.GLContextOpen;
+  end;
 end;
 
 procedure TGLMode.TWindowState.WindowClose(Container: TUIContainer);
 var
+  I: Integer;
   C: TUIControl;
 begin
   if Assigned(OldCloseObject) then
@@ -349,8 +354,11 @@ begin
   { Make sure to call GLContextClose on OldControls,
     otherwise they would not release OpenGL resources even though OpenGL
     context was closed. }
-  for C in OldControls do
+  for I := 0 to OldControls.Count - 1 do
+  begin
+    C := OldControls[I];
     C.GLContextClose;
+  end;
 end;
 
 procedure TGLMode.TWindowState.SetStandardState(

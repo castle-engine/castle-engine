@@ -817,6 +817,8 @@ end;
 
   TUIControlList = class(TCastleObjectList)
   private
+    {$ifndef VER2_6}
+    { Using this causes random crashes in -dRELEASE with FPC 2.6.x. }
     type
       TEnumerator = class
       private
@@ -828,6 +830,7 @@ end;
         function MoveNext: Boolean;
         property Current: TUIControl read GetCurrent;
       end;
+    {$endif}
 
     function GetItem(const I: Integer): TUIControl;
     procedure SetItem(const I: Integer; const Item: TUIControl);
@@ -836,7 +839,9 @@ end;
     procedure Add(Item: TUIControl);
     procedure Insert(Index: Integer; Item: TUIControl);
 
+    {$ifndef VER2_6}
     function GetEnumerator: TEnumerator;
+    {$endif}
 
     { Add at the beginning of the list.
       This is just a shortcut for @code(Insert(0, NewItem)),
@@ -1050,11 +1055,15 @@ procedure TUIContainer.UpdateFocusAndMouseCursor;
 
   function CalculateFocus: TUIControl;
   var
+    I: Integer;
     C: TUIControl;
   begin
-    for C in Controls do
+    for I := 0 to Controls.Count - 1 do
+    begin
+      C := Controls[I];
       if C.GetExists and C.PositionInside(MouseX, MouseY) then
         Exit(C);
+    end;
     Result := nil;
   end;
 
@@ -1136,6 +1145,7 @@ procedure TUIContainer.EventUpdate;
   end;
 
 var
+  I: Integer;
   C: TUIControl;
   HandleInput: boolean;
   Dummy: boolean;
@@ -1158,12 +1168,15 @@ begin
       Mouse3D.GetSensorRotation(Rx, Ry, Rz, RAngle);
 
       { send to all 2D controls, including viewports }
-      for C in Controls do
+      for I := 0 to Controls.Count - 1 do
+      begin
+        C := Controls[I];
         if C.GetExists and C.PositionInside(MouseX, MouseY) then
         begin
           C.SensorTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
           C.SensorRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
         end;
+      end;
 
       { set timer.
         The "repeat ... until" below should not be necessary under normal
@@ -1181,7 +1194,9 @@ begin
 
   HandleInput := true;
 
-  for C in Controls do
+  for I := 0 to Controls.Count - 1 do
+  begin
+    C := Controls[I];
     if C.GetExists then
     begin
       if C.PositionInside(MouseX, MouseY) then
@@ -1193,18 +1208,21 @@ begin
         C.Update(Fps.UpdateSecondsPassed, Dummy);
       end;
     end;
+  end;
 
   if Assigned(OnUpdate) then OnUpdate(Self);
 end;
 
 function TUIContainer.EventPress(const Event: TInputPressRelease): boolean;
 var
+  I: Integer;
   C: TUIControl;
 begin
   Result := false;
 
-  for C in Controls do
+  for I := 0 to Controls.Count - 1 do
   begin
+    C := Controls[I];
     if C.GetExists and C.PositionInside(MouseX, MouseY) then
       if C.Press(Event) then
       begin
@@ -1232,6 +1250,7 @@ end;
 
 function TUIContainer.EventRelease(const Event: TInputPressRelease): boolean;
 var
+  I: Integer;
   C, Capture: TUIControl;
 begin
   Result := false;
@@ -1252,10 +1271,13 @@ begin
     Exit;
   end;
 
-  for C in Controls do
+  for I := 0 to Controls.Count - 1 do
+  begin
+    C := Controls[I];
     if C.GetExists and C.PositionInside(MouseX, MouseY) then
       if C.Release(Event) then
         Exit(true);
+  end;
 
   if Assigned(OnRelease) then
   begin
@@ -1266,6 +1288,7 @@ end;
 
 procedure TUIContainer.EventOpen(const OpenWindowsCount: Cardinal);
 var
+  I: Integer;
   C: TUIControl;
 begin
   if OpenWindowsCount = 1 then
@@ -1274,8 +1297,11 @@ begin
   { Call GLContextOpen on controls before OnOpen,
     this way OnOpen has controls with GLInitialized = true,
     so using SaveScreen etc. makes more sense there. }
-  for C in Controls do
+  for I := 0 to Controls.Count - 1 do
+  begin
+    C := Controls[I];
     C.GLContextOpen;
+  end;
 
   if Assigned(OnOpen) then OnOpen(Self);
   if Assigned(OnOpenObject) then OnOpenObject(Self);
@@ -1283,6 +1309,7 @@ end;
 
 procedure TUIContainer.EventClose(const OpenWindowsCount: Cardinal);
 var
+  I: Integer;
   C: TUIControl;
 begin
   { Call GLContextClose on controls after OnClose,
@@ -1295,8 +1322,11 @@ begin
     so prepare for Controls being possibly nil now. }
   if Controls <> nil then
   begin
-    for C in Controls do
+    for I := 0 to Controls.Count - 1 do
+    begin
+      C := Controls[I];
       C.GLContextClose;
+    end;
   end;
 
   if OpenWindowsCount = 1 then
@@ -1305,6 +1335,7 @@ end;
 
 function TUIContainer.AllowSuspendForInput: boolean;
 var
+  I: Integer;
   C: TUIControl;
 begin
   Result := true;
@@ -1314,16 +1345,20 @@ begin
   if (Focus <> nil) and Focus.TooltipExists then
     Exit(false);
 
-  for C in Controls do
+  for I := 0 to Controls.Count - 1 do
+  begin
+    C := Controls[I];
     if C.GetExists then
     begin
       Result := C.AllowSuspendForInput;
       if not Result then Exit;
     end;
+  end;
 end;
 
 procedure TUIContainer.EventMouseMove(NewX, NewY: Integer);
 var
+  I: Integer;
   C: TUIControl;
 begin
   UpdateFocusAndMouseCursor;
@@ -1339,10 +1374,13 @@ begin
     Exit;
   end;
 
-  for C in Controls do
+  for I := 0 to Controls.Count - 1 do
+  begin
+    C := Controls[I];
     if C.GetExists and C.PositionInside(MouseX, MouseY) then
       if C.MouseMove(MouseX, MouseY, NewX, NewY) then
         Exit;
+  end;
 
   if Assigned(OnMouseMove) then OnMouseMove(Self, NewX, NewY);
 end;
@@ -1354,21 +1392,29 @@ end;
 
 procedure TUIContainer.EventBeforeRender;
 var
+  I: Integer;
   C: TUIControl;
 begin
-  for C in Controls do
+  for I := 0 to Controls.Count - 1 do
+  begin
+    C := Controls[I];
     if C.GetExists and C.GLInitialized then
       C.BeforeRender;
+  end;
 
   if Assigned(OnBeforeRender) then OnBeforeRender(Self);
 end;
 
 procedure TUIContainer.EventResize;
 var
+  I: Integer;
   C: TUIControl;
 begin
-  for C in Controls do
+  for I := 0 to Controls.Count - 1 do
+  begin
+    C := Controls[I];
     C.ContainerResize(Width, Height);
+  end;
 
   { This way control's get ContainerResize before our OnResize,
     useful to process them all reliably in OnResize. }
@@ -1768,13 +1814,16 @@ begin
   Add(NewItem);
 end;
 
+{$ifndef VER2_6}
 function TUIControlList.GetEnumerator: TEnumerator;
 begin
   Result := TEnumerator.Create(Self);
 end;
+{$endif}
 
 { TUIControlList.TEnumerator ------------------------------------------------- }
 
+{$ifndef VER2_6}
 function TUIControlList.TEnumerator.GetCurrent: TUIControl;
 begin
   Result := FList.Items[FPosition];
@@ -1792,6 +1841,7 @@ begin
   Inc(FPosition);
   Result := FPosition < FList.Count;
 end;
+{$endif}
 
 { TGLContextEventList -------------------------------------------------------- }
 

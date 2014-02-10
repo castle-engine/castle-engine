@@ -105,26 +105,33 @@ procedure CGE_SaveScreenshotToFile(szFile: pcchar); cdecl;
 var
   Image: TRGBImage;
   Restore2D: TUIControlList;
+  I: Integer;
   C: TUIControl;
 begin
   try
     Restore2D := TUIControlList.Create(false);
     try
       // hide touch controls
-      for C in Window.Controls do
+      for I := 0 to Window.Controls.Count - 1 do
+      begin
+        C := Window.Controls[I];
         if C.Exists and (C.RenderStyle = rs2D) then
         begin
           C.Exists := false;
           Restore2D.Add(C);
         end;
+      end;
       // make screenshot
       Image := Window.SaveScreen;
       try
         SaveImage(Image, StrPas(PChar(szFile)));
       finally FreeAndNil(Image) end;
       // restore hidden controls
-      for C in Restore2D do
+      for I := 0 to Restore2D.Count - 1 do
+      begin
+        C := Restore2D[I];
         C.Exists := true;
+      end;
     finally FreeAndNil(Restore2D) end;
   except
     on E: TObject do WritelnLog('Window', ExceptMessage(E));
@@ -289,7 +296,7 @@ begin
     GravityUp[0] := fGravX; GravityUp[1] := fGravY; GravityUp[2] := fGravZ;
     if bAnimated then
       Window.SceneManager.Camera.AnimateTo(Pos, Dir, Up, 0.5)
-    else  
+    else
       Window.SceneManager.Camera.SetView(Pos, Dir, Up, GravityUp);
   except
     on E: TObject do WritelnLog('Window', ExceptMessage(E));
