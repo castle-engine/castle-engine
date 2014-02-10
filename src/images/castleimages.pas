@@ -266,6 +266,12 @@ type
       classes), so this doesn't have to be used by all TRGBImage.LerpWith
       implementations (although it's comfortable for simple implementations). }
     procedure LerpSimpleCheckConditions(SecondImage: TCastleImage);
+
+    { Like DrawFrom, but can assume that all coordinates and sizes are valid.
+      Override this to add copying using some more sophisticated method
+      than just memory copying. }
+    procedure DrawCore(Source: TCastleImage;
+      X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer); virtual;
   public
     { Constructor without parameters creates image with Width = Height = Depth = 0
       and RawPixels = nil, so IsEmpty will return @true.
@@ -426,8 +432,8 @@ type
       In this class this simply raises EInternalError to say 'not implemented'.
       This also means that you must not call inherited in
       descendants when overriding this method. }
-    procedure Clear(const Pixel: TVector4Byte); virtual;
-    procedure Clear(const Pixel: TCastleColor);
+    procedure Clear(const Pixel: TVector4Byte); overload; virtual;
+    procedure Clear(const Pixel: TCastleColor); overload;
 
     { Check do all image pixels have the same value Pixel.
       This is implemented only in descendants that represent a pixel
@@ -554,19 +560,35 @@ type
       Image: TCastleImage): boolean; overload;
     { @groupEnd }
 
-    { These check that Image and Self have equal classes, and then
-      copy Self to Image or Image to Self.
-      X0 and Y0 is each case are the position on the destinantion image.
+    { Draw one image part on another image.
+      X, Y is the lower-left position on the destination image where we draw.
+      Optional SourceX, SourceY, SourceWidth, SourceHeight specify
+      to use only a part of the source image (without them, we take whole source
+      image).
+      The pixel on source image (SourceX, SourceY) will be drawn
+      on destination image on (X, Y).
 
-      Optionally you can specify dimensions of rectangle from source image
-      to use (please note that they are assumed correct here; so you better
-      check them, or risk invalid memory reads).
+      The coordinates and sizes are carefully checked, so that we do not
+      try to take some pixels outside of the source or destination image.
+
+      Note that the default implementation of this function in TCastleImage
+      can only directly copy the pixels, regardless
+      of what information they have. This makes it very fast,
+      but not suitable if the source image has some alpha channel
+      and you want to apply it over a destination image with blending
+      (adding scaled source to a destination color).
+      Descendants with alpha channel should override @link(DrawCore)
+      to handle drawing with blending.
+
+      @raises(Exception When actual source/destination image classes are not equal.
+        In this class, this method can only work when actual image classes
+        are equal (that is because we directly move blocks of bytes).)
 
       @groupBegin }
-    procedure CopyFrom(Image: TCastleImage; const X0, Y0: Cardinal);
-    procedure CopyFrom(Image: TCastleImage; const X0, Y0: Cardinal;
-      const SourceX0, SourceY0, SourceWidth, SourceHeight: Cardinal);
-    procedure CopyTo(Image: TCastleImage; const X0, Y0: Cardinal);
+    procedure DrawFrom(Source: TCastleImage; const X, Y: Integer);
+    procedure DrawFrom(Source: TCastleImage;
+      X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer);
+    procedure DrawTo(Destination: TCastleImage; const X, Y: Integer);
     { @groupEnd }
 
     { Makes linear interpolation of colors from this image and the SecondImage.
@@ -778,6 +800,9 @@ type
   TRGBImage = class(TCastleImage)
   private
     function GetRGBPixels: PVector3Byte;
+  protected
+    procedure DrawCore(Source: TCastleImage;
+      X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer); override;
   public
     { This is the same pointer as RawPixels, only typecasted to PVector3Byte }
     property RGBPixels: PVector3Byte read GetRGBPixels;
@@ -2265,39 +2290,81 @@ begin
     0, 0, Image.Width, Image.Height);
 end;
 
-procedure TCastleImage.CopyFrom(Image: TCastleImage; const X0, Y0: Cardinal;
-  const SourceX0, SourceY0, SourceWidth, SourceHeight: Cardinal);
+procedure TCastleImage.DrawCore(Source: TCastleImage;
+  X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer);
 var
-  Y: Integer;
-  SelfPtr: Pointer;
-  ImagePtr: Pointer;
-  SelfRowByteWidth, ImageRowByteWidth, CopyRowByteWidth: Cardinal;
+  Line: Integer;
+  Ptr, SourcePtr: Pointer;
+  RowWidth, SourceRowWidth, SourceCopyRowWidth: Cardinal;
 begin
-  if Image.ClassType <> ClassType then
-    raise Exception.Create('Cannot copy pixels from one image to another:' +
-      ' different image classes');
+  if Source.ClassType <> ClassType then
+    raise Exception.CreateFmt('Cannot draw pixels from image class %s to %s',
+      [Source.ClassName, ClassName]);
 
-  SelfPtr := PixelPtr(X0, Y0);
-  ImagePtr := Image.PixelPtr(SourceX0, SourceY0);
-  SelfRowByteWidth := Self.Width * PixelSize;
-  ImageRowByteWidth := Image.Width * Image.PixelSize;
-  CopyRowByteWidth := SourceWidth * Image.PixelSize;
-  for Y := 0 to Integer(SourceHeight) - 1 do
+  Ptr := PixelPtr(X, Y);
+  RowWidth := Width * PixelSize;
+
+  SourcePtr := Source.PixelPtr(SourceX, SourceY);
+  SourceRowWidth := Source.Width * Source.PixelSize;
+  SourceCopyRowWidth := SourceWidth * Source.PixelSize;
+
+  for Line := 0 to Integer(SourceHeight) - 1 do
   begin
-    Move(ImagePtr^, SelfPtr^, CopyRowByteWidth);
-    PtrUInt(SelfPtr) := PtrUInt(SelfPtr) + SelfRowByteWidth;
-    PtrUInt(ImagePtr) := PtrUInt(ImagePtr) + ImageRowByteWidth;
+    Move(SourcePtr^, Ptr^, SourceCopyRowWidth);
+    PtrUInt(Ptr) := PtrUInt(Ptr) + RowWidth;
+    PtrUInt(SourcePtr) := PtrUInt(SourcePtr) + SourceRowWidth;
   end;
 end;
 
-procedure TCastleImage.CopyFrom(Image: TCastleImage; const X0, Y0: Cardinal);
+procedure TCastleImage.DrawFrom(Source: TCastleImage;
+  X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer);
 begin
-  CopyFrom(Image, X0, Y0, 0, 0, Image.Width, Image.Height);
+  if X < 0 then
+  begin
+    SourceX += -X;
+    SourceWidth -= -X;
+    X := 0;
+  end;
+
+  if Y < 0 then
+  begin
+    SourceY += -Y;
+    SourceHeight -= -Y;
+    Y := 0;
+  end;
+
+  if SourceX < 0 then
+  begin
+    X += -SourceX;
+    SourceWidth -= -SourceX;
+    SourceX := 0;
+  end;
+
+  if SourceY < 0 then
+  begin
+    Y += -SourceY;
+    SourceHeight -= -SourceY;
+    SourceY := 0;
+  end;
+
+  SourceWidth  := Min(SourceWidth , Width  - 1 - X, Source.Width );
+  SourceHeight := Min(SourceHeight, Height - 1 - Y, Source.Height);
+
+  if (SourceWidth > 0) and
+     (SourceHeight > 0) and
+     (SourceX < Source.Width) and
+     (SourceY < Source.Height) then
+    DrawCore(Source, X, Y, SourceX, SourceY, SourceWidth, SourceHeight);
 end;
 
-procedure TCastleImage.CopyTo(Image: TCastleImage; const X0, Y0: Cardinal);
+procedure TCastleImage.DrawFrom(Source: TCastleImage; const X, Y: Integer);
 begin
-  Image.CopyFrom(Self, X0, Y0);
+  DrawFrom(Source, X, Y, 0, 0, Source.Width, Source.Height);
+end;
+
+procedure TCastleImage.DrawTo(Destination: TCastleImage; const X, Y: Integer);
+begin
+  Destination.DrawFrom(Self, X, Y);
 end;
 
 procedure TCastleImage.LerpSimpleCheckConditions(SecondImage: TCastleImage);
@@ -2646,6 +2713,32 @@ begin
     Inc(pi);
     Inc(pa);
   end;
+end;
+
+procedure TRGBImage.DrawCore(Source: TCastleImage;
+  X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer);
+var
+  PSource: PVector4Byte;
+  PDest: PVector3Byte;
+  DestX, DestY: Integer;
+begin
+  if Source is TRGBAlphaImage then
+  begin
+    for DestY := Y to Y + SourceHeight - 1 do
+    begin
+      PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+      PDest := PixelPtr(X, DestY);
+      for DestX := X to X + SourceWidth - 1 do
+      begin
+        PDest^[0] := Clamped(PDest^[0] + Round(PSource^[0] * PSource^[3] / 255), 0, 255);
+        PDest^[1] := Clamped(PDest^[1] + Round(PSource^[1] * PSource^[3] / 255), 0, 255);
+        PDest^[2] := Clamped(PDest^[2] + Round(PSource^[2] * PSource^[3] / 255), 0, 255);
+        Inc(PSource);
+        Inc(PDest);
+      end;
+    end;
+  end else
+    inherited;
 end;
 
 function TRGBImage.ToRGBAlphaImage_AlphaConst(Alpha: byte): TRGBAlphaImage;
