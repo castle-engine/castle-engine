@@ -2,7 +2,7 @@
 release: data
 	cd ../ && sh compile.sh -dRELEASE
 	mkdir -p libs/armeabi/
-	cp -f ../libandroiddemo.so libs/armeabi/libandroiddemo.so
+	mv -f ../libandroiddemo.so libs/armeabi/libandroiddemo.so
 	ant debug
 	adb install -r bin/AndroidDemo-debug.apk
 	adb shell am start -a android.intent.action.MAIN -n net.sourceforge.castleengine.androiddemo/android.app.NativeActivity
@@ -12,7 +12,7 @@ release: data
 debug: data
 	cd ../ && sh compile.sh -dDEBUG
 	mkdir -p libs/armeabi/
-	cp -f ../libandroiddemo.so jni/libandroiddemo.so
+	mv -f ../libandroiddemo.so jni/libandroiddemo.so
 	export NDK_DEBUG=1 && ndk-build
 	ant debug
 	adb install -r bin/AndroidDemo-debug.apk
@@ -20,7 +20,7 @@ debug: data
 
 .PHONY: clean
 clean:
-	rm -Rf bin/ gen/ libs/ obj/ assets/
+	rm -Rf bin/ gen/ libs/ obj/ assets/ jni/libandroiddemo.so
 
 .PHONY: data
 data:
