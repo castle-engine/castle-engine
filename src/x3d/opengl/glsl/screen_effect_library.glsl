@@ -5,15 +5,6 @@
    multi-sampling.
 */
 
-#ifdef GL_ES
-precision mediump float;
-#endif
-
-varying vec2 tex_coord_frag;
-
-uniform int screen_height;
-uniform int screen_width;
-
 #ifdef MULTI_SAMPLING
   #extension GL_ARB_texture_multisample : enable
   uniform sampler2DMS screen;
@@ -26,6 +17,15 @@ uniform int screen_width;
     uniform sampler2D screen_depth;
   #endif
 #endif
+
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+varying vec2 tex_coord_frag;
+
+uniform int screen_height;
+uniform int screen_width;
 
 ivec2 screen_position()
 {
