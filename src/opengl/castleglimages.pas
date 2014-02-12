@@ -131,6 +131,8 @@ type
     FColor: TCastleColor;
     procedure AlphaBegin;
     procedure AlphaEnd;
+    { Prepare static stuff for rendering. }
+    class procedure PrepareStatic;
   public
     { Prepare image for drawing.
 
@@ -294,6 +296,12 @@ type
       (which means that texture does not contain any RGB information),
       then only this color's RGB values determine the drawn RGB color. }
     property Color: TCastleColor read FColor write FColor;
+
+    { Load the given image contents.
+      Use this to efficiently replace the TGLImage contents on GPU.
+      Updates the @link(Width), @link(Height), @link(Alpha) to correspond
+      to new image. }
+    procedure Load(const Image: TCastleImage);
   end;
 
 { Draw the image on 2D screen. Note that if you want to use this
@@ -1067,27 +1075,7 @@ end;
 constructor TGLImage.Create(const Image: TCastleImage;
   const AScalingPossible: boolean);
 var
-  UnpackData: TUnpackNotAlignedData;
-  NewImage: TCastleImage;
-
-  { Load an image to Texture, knowing that Image has already good sizes for OpenGL. }
-  procedure LoadImage(const Image: TCastleImage);
-  begin
-    BeforeUnpackImage(UnpackData, Image);
-    try
-      glTexImage2D(GL_TEXTURE_2D, 0, ImageGLInternalFormat(Image),
-        Image.Width, Image.Height, 0, ImageGLFormat(Image), ImageGLType(Image),
-        Image.RawPixels);
-    finally AfterUnpackImage(UnpackData, image) end;
-  end;
-
-var
   Filter: TTextureFilter;
-  {$ifdef GLImageUseShaders}
-  AlphaTestShader: boolean;
-  ColorTreatment: TColorTreatment;
-  NewProgram: TGLSLProgram;
-  {$endif}
 begin
   inherited Create;
 
@@ -1097,15 +1085,7 @@ begin
   FColor := White;
 
   glGenTextures(1, @Texture);
-  glBindTexture(GL_TEXTURE_2D, Texture);
-  if not IsTextureSized(Image, tsAny) then
-  begin
-    NewImage := ResizeToTextureSize(Image, tsAny);
-    try
-      LoadImage(NewImage);
-    finally FreeAndNil(NewImage) end;
-  end else
-    LoadImage(Image);
+  Load(Image); // Load will start with proper glBindTexture
   if AScalingPossible then
   begin
     Filter.Minification := minLinear;
@@ -1118,34 +1098,8 @@ begin
   SetTextureFilter(GL_TEXTURE_2D, Filter);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLFeatures.CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLFeatures.CLAMP_TO_EDGE);
-  FWidth := Image.Width;
-  FHeight := Image.Height;
-  FAlpha := Image.AlphaChannel;
 
-  if (PointVbo = 0) and GLFeatures.VertexBufferObject then    //glGenBuffers can be nil on some old Intel gpus :-(
-    glGenBuffers(1, @PointVbo);
-
-  {$ifdef GLImageUseShaders}
-  { calculate TextureHasOnlyAlpha, useful only for GLSL image rendering }
-  TextureHasOnlyAlpha := (Image is TGrayscaleImage) and
-    (TGrayscaleImage(Image).TreatAsAlpha);
-
-  { create GLSLProgram programs }
-  for AlphaTestShader in boolean do
-    for ColorTreatment in TColorTreatment do
-      if GLSLProgram[AlphaTestShader, ColorTreatment] = nil then
-      begin
-        NewProgram := TGLSLProgram.Create;
-        NewProgram.AttachVertexShader({$I image.vs.inc});
-        NewProgram.AttachFragmentShader(
-          Iff(AlphaTestShader, '#define ALPHA_TEST' + NL, '') +
-          Iff(ColorTreatment in [ctColorMultipliesTexture, ctColorMultipliesTextureAlpha], '#define COLOR_UNIFORM' + NL, '') +
-          Iff(ColorTreatment = ctColorMultipliesTextureAlpha, '#define TEXTURE_HAS_ONLY_ALPHA' + NL, '') +
-          {$I image.fs.inc});
-        NewProgram.Link(true);
-        GLSLProgram[AlphaTestShader, ColorTreatment] := NewProgram;
-      end;
-  {$endif}
+  PrepareStatic;
 end;
 
 constructor TGLImage.Create(const URL: string;
@@ -1186,6 +1140,76 @@ destructor TGLImage.Destroy;
 begin
   glFreeTexture(Texture);
   inherited;
+end;
+
+procedure TGLImage.Load(const Image: TCastleImage);
+
+  { Load an image to Texture, knowing that Image has already good sizes for OpenGL. }
+  procedure LoadImage(const Image: TCastleImage);
+  var
+    UnpackData: TUnpackNotAlignedData;
+  begin
+    BeforeUnpackImage(UnpackData, Image);
+    try
+      glTexImage2D(GL_TEXTURE_2D, 0, ImageGLInternalFormat(Image),
+        Image.Width, Image.Height, 0, ImageGLFormat(Image), ImageGLType(Image),
+        Image.RawPixels);
+    finally AfterUnpackImage(UnpackData, image) end;
+  end;
+
+var
+  NewImage: TCastleImage;
+begin
+  glBindTexture(GL_TEXTURE_2D, Texture);
+
+  if not IsTextureSized(Image, tsAny) then
+  begin
+    NewImage := ResizeToTextureSize(Image, tsAny);
+    try
+      LoadImage(NewImage);
+    finally FreeAndNil(NewImage) end;
+  end else
+    LoadImage(Image);
+
+  FWidth := Image.Width;
+  FHeight := Image.Height;
+  FAlpha := Image.AlphaChannel;
+
+  {$ifdef GLImageUseShaders}
+  { calculate TextureHasOnlyAlpha, useful only for GLSL image rendering }
+  TextureHasOnlyAlpha := (Image is TGrayscaleImage) and
+    (TGrayscaleImage(Image).TreatAsAlpha);
+  {$endif}
+end;
+
+class procedure TGLImage.PrepareStatic;
+{$ifdef GLImageUseShaders}
+var
+  AlphaTestShader: boolean;
+  ColorTreatment: TColorTreatment;
+  NewProgram: TGLSLProgram;
+{$endif}
+begin
+  if (PointVbo = 0) and GLFeatures.VertexBufferObject then    //glGenBuffers can be nil on some old Intel gpus :-(
+    glGenBuffers(1, @PointVbo);
+
+  {$ifdef GLImageUseShaders}
+  { create GLSLProgram programs }
+  for AlphaTestShader in boolean do
+    for ColorTreatment in TColorTreatment do
+      if GLSLProgram[AlphaTestShader, ColorTreatment] = nil then
+      begin
+        NewProgram := TGLSLProgram.Create;
+        NewProgram.AttachVertexShader({$I image.vs.inc});
+        NewProgram.AttachFragmentShader(
+          Iff(AlphaTestShader, '#define ALPHA_TEST' + NL, '') +
+          Iff(ColorTreatment in [ctColorMultipliesTexture, ctColorMultipliesTextureAlpha], '#define COLOR_UNIFORM' + NL, '') +
+          Iff(ColorTreatment = ctColorMultipliesTextureAlpha, '#define TEXTURE_HAS_ONLY_ALPHA' + NL, '') +
+          {$I image.fs.inc});
+        NewProgram.Link(true);
+        GLSLProgram[AlphaTestShader, ColorTreatment] := NewProgram;
+      end;
+  {$endif}
 end;
 
 procedure TGLImage.AlphaBegin;

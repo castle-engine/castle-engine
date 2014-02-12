@@ -1198,7 +1198,6 @@ begin
   if FImage <> Value then
   begin
     FreeAndNil(FImage);
-    FreeAndNil(FGLImage);
     FImage := Value;
     ImageChanged;
   end;
@@ -1253,8 +1252,9 @@ procedure TCastleImageControl.ImageChanged;
 begin
   if GLInitialized and (FImage <> nil) then
   begin
-    FreeAndNil(FGLImage);
-    FGLImage := TGLImage.Create(FImage, true);
+    if FGLImage <> nil then
+      FGLImage.Load(FImage) else
+      FGLImage := TGLImage.Create(FImage, true);
     if AlphaChannel <> acAuto then
       FGLImage.Alpha := AlphaChannel;
     VisibleChange;
