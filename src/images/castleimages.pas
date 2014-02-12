@@ -904,6 +904,7 @@ type
 
   TRGBAlphaImage = class(TCastleImage)
   private
+    FPremultipliedAlpha: boolean;
     function GetAlphaPixels: PVector4Byte;
   public
     { This is the same pointer as RawPixels, only typecasted to PVector4Byte }
@@ -953,6 +954,22 @@ type
 
     { Remove alpha channel, creating new TRGBImage. }
     function ToRGBImage: TRGBImage;
+
+    { Premultiply the RGB channel with alpha, to make it faster
+      to use this image as source for TCastleImage.DrawTo and
+      TCastleImage.DrawFrom operations. Changes @link(PremultipliedAlpha)
+      from @false to @true. Unless @link(PremultipliedAlpha) was
+      already @true, in which case this method does nothing --- this way
+      it is safe to call this many times, we will not repeat multiplying.
+
+      @italic(The image with premultiplied alpha can only be used
+      with a subset of image routines that actually support premultiplied alpha.)
+      Right now, these are only TCastleImage.DrawTo and
+      TCastleImage.DrawFrom. Image with PremultipliedAlpha can be used
+      as a source for drawing, and the results will be the same as without
+      premultiplying, but faster. }
+    procedure PremultiplyAlpha;
+    property PremultipliedAlpha: boolean read FPremultipliedAlpha;
   end;
 
   { Image with high-precision RGB colors encoded as 3 floats. }
@@ -2721,20 +2738,44 @@ var
   PSource: PVector4Byte;
   PDest: PVector3Byte;
   DestX, DestY: Integer;
+  SourceAlpha: TRGBAlphaImage;
+  W: Word;
 begin
   if Source is TRGBAlphaImage then
   begin
-    for DestY := Y to Y + SourceHeight - 1 do
+    SourceAlpha := TRGBAlphaImage(Source);
+    if SourceAlpha.PremultipliedAlpha then
     begin
-      PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-      PDest := PixelPtr(X, DestY);
-      for DestX := X to X + SourceWidth - 1 do
+      for DestY := Y to Y + SourceHeight - 1 do
       begin
-        PDest^[0] := Clamped(PDest^[0] + Round(PSource^[0] * PSource^[3] / 255), 0, 255);
-        PDest^[1] := Clamped(PDest^[1] + Round(PSource^[1] * PSource^[3] / 255), 0, 255);
-        PDest^[2] := Clamped(PDest^[2] + Round(PSource^[2] * PSource^[3] / 255), 0, 255);
-        Inc(PSource);
-        Inc(PDest);
+        PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+        PDest := PixelPtr(X, DestY);
+        for DestX := X to X + SourceWidth - 1 do
+        begin
+          W := PDest^[0] + Word(PSource^[0]); if W > 255 then W := 255;
+          PDest^[0] := W;
+          W := PDest^[1] + Word(PSource^[1]); if W > 255 then W := 255;
+          PDest^[1] := W;
+          W := PDest^[2] + Word(PSource^[2]); if W > 255 then W := 255;
+          PDest^[2] := W;
+          Inc(PSource);
+          Inc(PDest);
+        end;
+      end;
+    end else
+    begin
+      for DestY := Y to Y + SourceHeight - 1 do
+      begin
+        PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+        PDest := PixelPtr(X, DestY);
+        for DestX := X to X + SourceWidth - 1 do
+        begin
+          PDest^[0] := Clamped(PDest^[0] + Round(PSource^[0] * PSource^[3] / 255), 0, 255);
+          PDest^[1] := Clamped(PDest^[1] + Round(PSource^[1] * PSource^[3] / 255), 0, 255);
+          PDest^[2] := Clamped(PDest^[2] + Round(PSource^[2] * PSource^[3] / 255), 0, 255);
+          Inc(PSource);
+          Inc(PDest);
+        end;
       end;
     end;
   end else
@@ -3122,6 +3163,25 @@ function TRGBAlphaImage.ToRGBImage: TRGBImage;
 begin
   Result := TRGBImage.Create(0, 0);
   Result.Assign(Self);
+end;
+
+procedure TRGBAlphaImage.PremultiplyAlpha;
+var
+  P: PVector4Byte;
+  I: Integer;
+begin
+  if not FPremultipliedAlpha then
+  begin
+    FPremultipliedAlpha := true;
+    P := AlphaPixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      P^[0] := Clamped(Round(P^[0] * P^[3] / 255), 0, 255);
+      P^[1] := Clamped(Round(P^[1] * P^[3] / 255), 0, 255);
+      P^[2] := Clamped(Round(P^[2] * P^[3] / 255), 0, 255);
+      Inc(P);
+    end;
+  end;
 end;
 
 { TRGBFloatImage ------------------------------------------------------------ }

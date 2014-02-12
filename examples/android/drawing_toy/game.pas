@@ -30,15 +30,17 @@ uses SysUtils, CastleControls, CastleImages, CastleLog, CastleColors,
 
 var
   ImageControl: TCastleImageControl;
-  BrushWhite: TCastleImage;
-  BrushYellow: TCastleImage;
+  BrushWhite: TRGBAlphaImage;
+  BrushYellow: TRGBAlphaImage;
 
 procedure ApplicationInitialize;
 begin
   InitializeLog('1.0.0');
 
-  BrushWhite := LoadImage(ApplicationData('brush_white.png'));
-  BrushYellow := LoadImage(ApplicationData('brush_yellow.png'));
+  BrushWhite := LoadImage(ApplicationData('brush_white.png'), [TRGBAlphaImage]) as TRGBAlphaImage;
+  BrushWhite.PremultiplyAlpha; // makes drawing this image much faster
+  BrushYellow := LoadImage(ApplicationData('brush_yellow.png'), [TRGBAlphaImage]) as TRGBAlphaImage;
+  BrushYellow.PremultiplyAlpha;
 
   ImageControl := TCastleImageControl.Create(Window);
   Window.Controls.InsertFront(ImageControl);
