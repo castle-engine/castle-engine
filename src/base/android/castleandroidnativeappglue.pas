@@ -541,7 +541,16 @@ begin
     pthread_cond_broadcast(@android_app^.cond);
     pthread_mutex_unlock(@android_app^.mutex);
 
-    AndroidMain(android_app);
+    { Looks like this has to be in it's own try..except handler,
+      other a crash can occur when catching exceptions from inside AndroidMain.
+      Not really known why.
+      Reproducible by drawing_toy with deliberately crashing DrawCore. }
+    try
+      AndroidMain(android_app);
+    except
+      on E: TObject do
+        AndroidLog(alError, 'NativeAppGlue: AndroidMain exited with exception: ' + ExceptMessage(E));
+    end;
 
     android_app_destroy(android_app);
     result := nil;
