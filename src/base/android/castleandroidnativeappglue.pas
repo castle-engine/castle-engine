@@ -19,10 +19,32 @@ unit CastleAndroidNativeAppGlue;
 
 interface
 
-uses ctypes,baseunix,unixtype,
-     CastleAndroidConfiguration, CastleAndroidLooper, CastleAndroidLog,
-     CastleAndroidInput, CastleAndroidRect, CastleAndroidNativeWindow,
-     CastleAndroidNativeActivity;
+uses
+  { Using CThreads is necessary, otherwise we cannot use FPC threads
+    (TThread.Create simply terminates the process).
+
+    And we really want to use FPC threads. Do not directly use non-FPC
+    threads, e.g. do not create thread using pthread_create like original
+    native_android_app_glue code from Google says.
+    Weird things can happen
+    if you use external threads (created by pthreads) without any FPC knowledge.
+    See http://wiki.freepascal.org/Multithreaded_Application_Tutorial#External_threads .
+    The symptoms are random segfaults, e.g. after checking MainWindow.Closed
+    the drawing_toy started making segfaults at fpc_popaddrstack is various
+    code places.
+
+    Using CThreads (that actually wraps pthread threads underneath) makes
+    code simple and stable.
+
+    CThreads *must* be the 1st unit on "uses" clause here,
+    and CastleAndroidNativeAppGlue *must* be the 1st unit on
+    "uses" clause of your Android library. }
+  CThreads,
+
+  ctypes,baseunix,unixtype,
+  CastleAndroidConfiguration, CastleAndroidLooper, CastleAndroidLog,
+  CastleAndroidInput, CastleAndroidRect, CastleAndroidNativeWindow,
+  CastleAndroidNativeActivity;
 
 (**
  * The native activity interface provided by <android/native_activity.h>
@@ -149,7 +171,6 @@ type
     cond : pthread_cond_t;
     msgread : cint;
     msgwrite : cint;
-    thread : pthread_t;
     cmdPollSource : android_poll_source;
     inputPollSource : android_poll_source;
     running : cint;
@@ -269,39 +290,18 @@ const
       *)
   APP_CMD_DESTROY = 15;
 
-(**
- * Call when ALooper_pollAll() returns LOOPER_ID_MAIN, reading the next
- * app command message.
-  *)
-
-function android_app_read_cmd(android_app: Pandroid_app): cint8; cdecl;
-
-(**
- * Call with the command returned by android_app_read_cmd() to do the
- * initial pre-processing of the given command.  You can perform your own
- * actions for the command after calling this function.
-  *)
-
-procedure android_app_pre_exec_cmd(android_app: Pandroid_app; cmd: cint8); cdecl;
-
-(**
- * Call with the command returned by android_app_read_cmd() to do the
- * final post-processing of the given command.  You must have done your own
- * actions for the command before calling this function.
-  *)
-
-procedure android_app_post_exec_cmd(android_app: Pandroid_app; cmd: cint8); cdecl;
-
 type
   TAndroidMainFunction = procedure (App: PAndroid_App);
-
-(**
- * This is the function that application code must implement, representing
- * the main entry to the app.
-  *)
 var
   AndroidMain: TAndroidMainFunction;
 
+{ This function is exported from the library. It implements the activity,
+  passing the control to AndroidMain callback.
+
+  Note that this function *can* be called many times.
+  The activity may be destroyed and then created again.
+  The actual process *may* stay running.
+  (to test, try "Developer Options -> Always Destroy Activity"). }
 procedure ANativeActivity_onCreate(activity: PANativeActivity; savedState: Pointer; savedStateSize: csize_t); cdecl;
 
 { Allocate memory for saved state. }
@@ -309,7 +309,7 @@ function AllocateSavedState(const Size: csize_t): Pointer;
 
 implementation
 
-uses SysUtils, CastleUtils;
+uses SysUtils, Classes, CastleUtils;
 
 { Use Libc memory allocation routines where needed. It seems savedState
   must be managed using them, onSaveInstanceState in CastleAndroidNativeActivity
@@ -320,21 +320,12 @@ Function LibcMalloc (Size : ptruint) : Pointer; cdecl; external CLibName name 'm
 Procedure LibcFree (P : pointer); cdecl; external CLibName name 'free';
 
 type
- ppthread_t = ^pthread_t;
- ppthread_attr_t = ^pthread_attr_t;
- ppthread_mutex_t = ^pthread_mutex_t;
- ppthread_cond_t = ^pthread_cond_t;
- ppthread_mutexattr_t = ^pthread_mutexattr_t;
- ppthread_condattr_t = ^pthread_condattr_t;
+  ppthread_t = ^pthread_t;
+  ppthread_mutex_t = ^pthread_mutex_t;
+  ppthread_cond_t = ^pthread_cond_t;
+  ppthread_mutexattr_t = ^pthread_mutexattr_t;
+  ppthread_condattr_t = ^pthread_condattr_t;
 
- __start_routine_t = pointer;
-
-const
- PTHREAD_CREATE_DETACHED = 1;
-
-function pthread_create(__thread:ppthread_t; __attr:ppthread_attr_t;__start_routine: __start_routine_t;__arg:pointer):longint;cdecl;external 'libc.so';
-function pthread_attr_init(__attr:ppthread_attr_t):longint;cdecl;external 'libc.so';
-function pthread_attr_setdetachstate(__attr:ppthread_attr_t; __detachstate:longint):longint;cdecl;external 'libc.so';
 function pthread_mutex_init(__mutex:ppthread_mutex_t; __mutex_attr:ppthread_mutexattr_t):longint;cdecl;external 'libc.so';
 function pthread_mutex_destroy(__mutex:ppthread_mutex_t):longint;cdecl;external 'libc.so';
 function pthread_mutex_lock(__mutex: ppthread_mutex_t):longint;cdecl;external 'libc.so';
@@ -345,7 +336,7 @@ function pthread_cond_signal(__cond:ppthread_cond_t):longint;cdecl;external 'lib
 function pthread_cond_broadcast(__cond:ppthread_cond_t):longint;cdecl;external 'libc.so';
 function pthread_cond_wait(__cond:ppthread_cond_t; __mutex:ppthread_mutex_t):longint;cdecl;external 'libc.so';
 
-procedure free_saved_state(android_app: Pandroid_app);
+procedure FreeSavedState(android_app: Pandroid_app);
 begin
    pthread_mutex_lock(@android_app^.mutex);
    if android_app^.savedState <> Nil then
@@ -357,7 +348,11 @@ begin
    pthread_mutex_unlock(@android_app^.mutex);
 end;
 
-function android_app_read_cmd(android_app: Pandroid_app): cint8; cdecl;
+(**
+ * Call when ALooper_pollAll() returns LOOPER_ID_MAIN, reading the next
+ * app command message.
+  *)
+function android_app_read_cmd(android_app: Pandroid_app): cint8;
 var cmd: cint8;
 begin
     result := -1;
@@ -365,7 +360,7 @@ begin
     begin
         case cmd of
            APP_CMD_SAVE_STATE:
-               free_saved_state(android_app);
+               FreeSavedState(android_app);
         end;
         result := cmd;
     end
@@ -373,7 +368,12 @@ begin
         AndroidLog(alError, 'NativeAppGlue: No data on command pipe');
 end;
 
-procedure android_app_pre_exec_cmd(android_app: Pandroid_app; cmd: cint8); cdecl;
+(**
+ * Call with the command returned by android_app_read_cmd() to do the
+ * initial pre-processing of the given command.  You can perform your own
+ * actions for the command after calling this function.
+  *)
+procedure android_app_pre_exec_cmd(android_app: Pandroid_app; cmd: cint8);
 begin
     case cmd of
         APP_CMD_INPUT_CHANGED:
@@ -439,7 +439,12 @@ begin
     end;
 end;
 
-procedure android_app_post_exec_cmd(android_app: Pandroid_app; cmd: cint8); cdecl;
+(**
+ * Call with the command returned by android_app_read_cmd() to do the
+ * final post-processing of the given command.  You must have done your own
+ * actions for the command before calling this function.
+  *)
+procedure android_app_post_exec_cmd(android_app: Pandroid_app; cmd: cint8);
 begin
     case cmd of
         APP_CMD_TERM_WINDOW:
@@ -461,14 +466,14 @@ begin
             end;
 
         APP_CMD_RESUME:
-            free_saved_state(android_app);
+            FreeSavedState(android_app);
     end;
 end;
 
 procedure android_app_destroy(android_app: Pandroid_app);
 begin
     AndroidLog(alInfo, 'NativeAppGlue: android_app_destroy');
-    free_saved_state(android_app);
+    FreeSavedState(android_app);
     pthread_mutex_lock(@android_app^.mutex);
     if (android_app^.inputQueue <> nil) then
         AInputQueue_detachLooper(android_app^.inputQueue);
@@ -513,13 +518,26 @@ begin
     android_app_post_exec_cmd(app, cmd);
 end;
 
-function android_app_entry(param: pointer): Pointer; cdecl;
-var android_app: Pandroid_app;
-    looper: PALooper;
+type
+  TAndroidAppThread = class(TThread)
+    Android_app: PAndroid_app;
+    constructor Create(AnAndroid_app: PAndroid_app; const CreateSuspended: boolean);
+    procedure Execute; override;
+  end;
+
+constructor TAndroidAppThread.Create(AnAndroid_app: PAndroid_app;
+  const CreateSuspended: boolean);
+begin
+  Android_app := AnAndroid_app;
+  inherited Create(CreateSuspended);
+end;
+
+procedure TAndroidAppThread.Execute;
+var
+  looper: PALooper;
 begin
   try
-    AndroidLog(alInfo, 'NativeAppGlue: android_app_entry');
-    android_app := Pandroid_app(param);
+    AndroidLog(alInfo, 'NativeAppGlue: TAndroidAppThread.Execute');
 
     android_app^.config := AConfiguration_new();
     AConfiguration_fromAssetManager(android_app^.config, android_app^.activity^.assetManager);
@@ -544,7 +562,8 @@ begin
     { Looks like this has to be in it's own try..except handler,
       other a crash can occur when catching exceptions from inside AndroidMain.
       Not really known why.
-      Reproducible by drawing_toy with deliberately crashing DrawCore. }
+      Reproducible by drawing_toy with deliberately crashing DrawCore.
+      (Possibly not needed anymore, since using TAndroidAppThread?). }
     try
       AndroidMain(android_app);
     except
@@ -553,10 +572,9 @@ begin
     end;
 
     android_app_destroy(android_app);
-    result := nil;
   except
     on E: TObject do
-      AndroidLog(alError, 'NativeAppGlue: android_app_entry exited with exception: ' + ExceptMessage(E));
+      AndroidLog(alError, 'NativeAppGlue: TAndroidAppThread.Execute exited with exception: ' + ExceptMessage(E));
   end;
 end;
 
@@ -570,9 +588,10 @@ begin
 end;
 
 function android_app_create(activity: PANativeActivity; savedState: Pointer; savedStateSize: csize_t): Pandroid_app;
-var android_app: Pandroid_app;
+var
     msgpipe: array[0..1] of cint;
-    attr: pthread_attr_t;
+    android_app: Pandroid_app;
+    Thread: TAndroidAppThread;
 begin
     android_app := Pandroid_app(LibcMalloc(sizeof(Tandroid_app)));
     fillchar(android_app^, sizeof(tandroid_app), 0);
@@ -595,9 +614,8 @@ begin
     android_app^.msgread := msgpipe[0];
     android_app^.msgwrite := msgpipe[1];
 
-    pthread_attr_init(@attr);
-    pthread_attr_setdetachstate(@attr, PTHREAD_CREATE_DETACHED);
-    pthread_create(@android_app^.thread, @attr, @android_app_entry, android_app);
+    Thread := TAndroidAppThread.Create(Android_app, false);
+    Thread.FreeOnTerminate := true;
 
     // Wait for thread to start.
     pthread_mutex_lock(@android_app^.mutex);
@@ -669,26 +687,45 @@ end;
 
 procedure onDestroy(activity: PANativeActivity); cdecl;
 begin
+  try
     AndroidLog(alInfo, 'NativeAppGlue: onDestroy');
     android_app_free(Pandroid_app(activity^.instance));
+  except
+    on E: TObject do
+      AndroidLog(alError, 'NativeAppGlue: onDestroy exited with exception: ' + ExceptMessage(E));
+  end;
 end;
 
 procedure onStart(activity: PANativeActivity); cdecl;
 begin
+  try
     AndroidLog(alInfo, 'NativeAppGlue: onStart');
     android_app_set_activity_state(Pandroid_app(activity^.instance), APP_CMD_START);
+  except
+    on E: TObject do
+      AndroidLog(alError, 'NativeAppGlue: onStart exited with exception: ' + ExceptMessage(E));
+  end;
 end;
 
 procedure onResume(activity: PANativeActivity); cdecl;
 begin
+  try
     AndroidLog(alInfo, 'NativeAppGlue: onResume');
     android_app_set_activity_state(Pandroid_app(activity^.instance), APP_CMD_RESUME);
+  except
+    on E: TObject do
+      AndroidLog(alError, 'NativeAppGlue: onResume exited with exception: ' + ExceptMessage(E));
+  end;
 end;
 
 function onSaveInstanceState(activity: PANativeActivity; outLen: pcsize_t): Pointer; cdecl;
 var android_app: Pandroid_app;
     savedState: pointer;
 begin
+  result := nil;
+  outLen^ := 0;
+
+  try
     android_app := activity^.instance;
     savedState := nil;
 
@@ -711,68 +748,117 @@ begin
     pthread_mutex_unlock(@android_app^.mutex);
 
     result := savedState;
+  except
+    on E: TObject do
+      AndroidLog(alError, 'NativeAppGlue: onSaveInstanceState exited with exception: ' + ExceptMessage(E));
+  end;
 end;
 
 procedure onPause(activity: PANativeActivity); cdecl;
 begin
+  try
     AndroidLog(alInfo, 'NativeAppGlue: onPause');
     android_app_set_activity_state(Pandroid_app(activity^.instance), APP_CMD_PAUSE);
+  except
+    on E: TObject do
+      AndroidLog(alError, 'NativeAppGlue: onStop exited with exception: ' + ExceptMessage(E));
+  end;
 end;
 
 procedure onStop(activity: PANativeActivity); cdecl;
 begin
+  try
     AndroidLog(alInfo, 'NativeAppGlue: onStop');
     android_app_set_activity_state(Pandroid_app(activity^.instance), APP_CMD_STOP);
+  except
+    on E: TObject do
+      AndroidLog(alError, 'NativeAppGlue: onStop exited with exception: ' + ExceptMessage(E));
+  end;
 end;
 
 procedure onConfigurationChanged(activity: PANativeActivity); cdecl;
 var android_app: Pandroid_app;
 begin
+  try
     android_app := activity^.instance;
     AndroidLog(alInfo, 'NativeAppGlue: onConfigurationChanged');
     android_app_write_cmd(android_app, APP_CMD_CONFIG_CHANGED);
+  except
+    on E: TObject do
+      AndroidLog(alError, 'NativeAppGlue: onConfigurationChanged exited with exception: ' + ExceptMessage(E));
+  end;
 end;
 
 procedure onLowMemory(activity: PANativeActivity); cdecl;
 var android_app: Pandroid_app;
 begin
+  try
     android_app := activity^.instance;
     AndroidLog(alInfo, 'NativeAppGlue: onLowMemory');
     android_app_write_cmd(android_app, APP_CMD_LOW_MEMORY);
+  except
+    on E: TObject do
+      AndroidLog(alError, 'NativeAppGlue: onLowMemory exited with exception: ' + ExceptMessage(E));
+  end;
 end;
 
 procedure onWindowFocusChanged(activity: PANativeActivity; focused: cint); cdecl;
 begin
+  try
     AndroidLog(alInfo, 'NativeAppGlue: onWindowFocusChanged');
 
     if focused <> 0 then
        android_app_write_cmd(activity^.instance, APP_CMD_GAINED_FOCUS)
     else
        android_app_write_cmd(activity^.instance, APP_CMD_LOST_FOCUS);
+  except
+    on E: TObject do
+      AndroidLog(alError, 'NativeAppGlue: onWindowFocusChanged exited with exception: ' + ExceptMessage(E));
+  end;
 end;
 
 procedure onNativeWindowCreated(activity: PANativeActivity; window: PANativeWindow); cdecl;
 begin
+  try
     AndroidLog(alInfo, 'NativeAppGlue: onNativeWindowCreated');
     android_app_set_window(activity^.instance, window);
+  except
+    on E: TObject do
+      AndroidLog(alError, 'NativeAppGlue: onNativeWindowCreated exited with exception: ' + ExceptMessage(E));
+  end;
 end;
 
 procedure onNativeWindowDestroyed(activity: PANativeActivity; window: PANativeWindow); cdecl;
 begin
+  try
     AndroidLog(alInfo, 'NativeAppGlue: onNativeWindowDestroyed');
     android_app_set_window(activity^.instance, nil);
+  except
+    on E: TObject do
+      AndroidLog(alError, 'NativeAppGlue: onNativeWindowDestroyed exited with exception: ' + ExceptMessage(E));
+  end;
 end;
 
 procedure onInputQueueCreated(activity: PANativeActivity; queue: PAInputQueue); cdecl;
 begin
+  try
     AndroidLog(alInfo, 'NativeAppGlue: onInputQueueCreated');
     android_app_set_input(activity^.instance, queue);
+  except
+    on E: TObject do
+      AndroidLog(alError, 'NativeAppGlue: onInputQueueCreated exited with exception: ' + ExceptMessage(E));
+  end;
 end;
 
 procedure onInputQueueDestroyed(activity: PANativeActivity; queue: PAInputQueue); cdecl;
 begin
+  try
     AndroidLog(alInfo, 'NativeAppGlue: onInputQueueDestroyed');
     android_app_set_input(activity^.instance, nil);
+  except
+    on E: TObject do
+      AndroidLog(alError, 'NativeAppGlue: onInputQueueDestroyed exited with exception: ' + ExceptMessage(E));
+  end;
 end;
 
 procedure ANativeActivity_onCreate(activity: PANativeActivity; savedState: Pointer; savedStateSize: csize_t); cdecl;

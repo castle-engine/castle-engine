@@ -368,12 +368,11 @@ function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boole
   begin
     AndroidLog(alInfo, 'Resize (size: %d %d)', [Width, Height]);
 
-    Application.FScreenWidth := Width;
-    Application.FScreenHeight := Height;
+    FScreenWidth := Width;
+    FScreenHeight := Height;
 
-    Window := Application.MainWindow;
-    if not Window.Closed then
-      Window.DoResize(Width, Height, false);
+    if not MainWindow.Closed then
+      MainWindow.DoResize(Width, Height, false);
   end;
 
 var
@@ -382,7 +381,16 @@ var
   QEvent: TQueuedEvent;
 begin
   repeat
-    if WaitForMessage and Application.AllowSuspendForInput then
+    if WaitForMessage and AllowSuspendForInput and
+      { Unfortunately, we have to be more conservative than
+        AllowSuspendForInput to decide when we can suspend.
+
+        Right now we cannot suspend on non-closed window.
+        Otherwise we do not react to resize events soon enough,
+        since we have to actually do a couple of loop passes until resize
+        reaches us. Reproducible on drawing_toy: without this,
+        we will not receive resize before drawing. }
+      ((MainWindow = nil) or MainWindow.Closed) then
     begin
       WritelnLog('Android', 'Waiting for next event without consuming CPU ticks.');
       Ident := ALooper_pollAll(-1 { wait }, nil, @Events, @Source);
@@ -396,17 +404,24 @@ begin
     { poll our own events quueue.
       Yes, we need our own events queue to shield from the native_app_glue
       weirdness... }
-    while QEvents.Count > 0 do
-    begin
-      QEvent := QEvents.First;
-      QEvents.Delete(0);
-      case QEvent.EventType of
-        aeOpen      : OpenContext;
-        aeMotionDown: MainWindow.DoMouseDown(QEvent.MotionX, QEvent.MotionY, mbLeft);
-        aeMotionUp  : MainWindow.DoMouseUp  (QEvent.MotionX, QEvent.MotionY, mbLeft);
-        aeMotionMove: MainWindow.DoMouseMove(QEvent.MotionX, QEvent.MotionY);
+    if MainWindow <> nil then
+      while QEvents.Count > 0 do
+      begin
+        QEvent := QEvents.First;
+        QEvents.Delete(0);
+        case QEvent.EventType of
+          aeOpen: OpenContext;
+          aeMotionDown:
+            if not MainWindow.Closed then
+              MainWindow.DoMouseDown(QEvent.MotionX, QEvent.MotionY, mbLeft);
+          aeMotionUp  :
+            if not MainWindow.Closed then
+              MainWindow.DoMouseUp  (QEvent.MotionX, QEvent.MotionY, mbLeft);
+          aeMotionMove:
+            if not MainWindow.Closed then
+              MainWindow.DoMouseMove(QEvent.MotionX, QEvent.MotionY);
+        end;
       end;
-    end;
 
     // Check if we are exiting.
     if AndroidApp^.DestroyRequested = 1 then
@@ -416,7 +431,7 @@ begin
     end;
   until false;
 
-  if not MainWindow.Closed then
+  if (MainWindow <> nil) and not MainWindow.Closed then
   begin
     { check for Resize. As there is no reliable event to capture it
       (ANativeWindow_getWidth and ANativeWindow_getheight are immediately
