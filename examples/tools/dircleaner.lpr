@@ -173,6 +173,7 @@ begin
   DefaultFilesToClean.Add('*.rst');     { -'- }
   DefaultFilesToClean.Add('ppas.bat');  { -'- }
   DefaultFilesToClean.Add('ppas.sh');   { -'- }
+  DefaultFilesToClean.Add('*.rsj');     { fpc >= 2.7.1 }
   DefaultFilesToClean.Add('*.compiled');   { Lazarus }
   DefaultFilesToClean.Add('*.or'); { fpc on windows }
   DefaultFilesToClean.Add('fpc-res.res'); { fpc on windows }
