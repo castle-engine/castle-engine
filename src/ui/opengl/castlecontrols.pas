@@ -114,7 +114,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function PositionInside(const X, Y: Integer): boolean; override;
+    function PositionInside(const Position: TVector2Single): boolean; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
     function Press(const Event: TInputPressRelease): boolean; override;
@@ -218,7 +218,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function PositionInside(const X, Y: Integer): boolean; override;
+    function PositionInside(const Position: TVector2Single): boolean; override;
     function Rect: TRectangle; override;
 
     { Separator lines drawn on panel. Useful if you want to visually separate
@@ -266,7 +266,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function PositionInside(const X, Y: Integer): boolean; override;
+    function PositionInside(const Position: TVector2Single): boolean; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
     function Rect: TRectangle; override;
@@ -339,8 +339,7 @@ type
   TCastleTouchControl = class(TUIRectangularControl)
   private
     FTouchMode: TCastleTouchCtlMode;
-    FLeverOffsetX: Integer;
-    FLeverOffsetY: Integer;
+    FLeverOffset: TVector2Single;
     FDragStarted: boolean;
     FPosition: TCastleTouchPosition;
     function SizeScale: Single;
@@ -356,10 +355,10 @@ type
     function Height: Cardinal;
     function Rect: TRectangle; override;
 
-    function PositionInside(const X, Y: Integer): boolean; override;
+    function PositionInside(const Position: TVector2Single): boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
-    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
     procedure SetTouchMode(const Value: TCastleTouchCtlMode);
     procedure GetSensorRotation(var X, Y, Z, Angle: Double);
     procedure GetSensorTranslation(var X, Y, Z, Length: Double);
@@ -486,10 +485,10 @@ type
     procedure GLContextClose; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
-    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
     procedure Render; override;
-    function PositionInside(const X, Y: Integer): boolean; override;
+    function PositionInside(const Position: TVector2Single): boolean; override;
   end;
 
   TThemeImage = (
@@ -713,8 +712,8 @@ begin
   TooltipLabel.Text.Append(Tooltip);
   TooltipRect := TooltipLabel.Rect;
 
-  X := Container.TooltipX;
-  Y := ContainerHeight - Container.TooltipY;
+  X := Round(Container.TooltipPosition[0]);
+  Y := Round(Container.TooltipPosition[1]);
 
   { now try to fix X, Y to make tooltip fit inside a window }
   MinTo1st(X, ContainerWidth - TooltipRect.Width);
@@ -830,13 +829,13 @@ begin
   end;
 end;
 
-function TCastleButton.PositionInside(const X, Y: Integer): boolean;
+function TCastleButton.PositionInside(const Position: TVector2Single): boolean;
 begin
   Result :=
-    (X >= Left) and
-    (X  < Left + Width) and
-    (ContainerHeight - Y >= Bottom) and
-    (ContainerHeight - Y  < Bottom + Height);
+    (Position[0] >= Left) and
+    (Position[0]  < Left + Width) and
+    (Position[1] >= Bottom) and
+    (Position[1]  < Bottom + Height);
 end;
 
 procedure TCastleButton.GLContextOpen;
@@ -1131,13 +1130,13 @@ begin
       tiPanelSeparator);
 end;
 
-function TCastlePanel.PositionInside(const X, Y: Integer): boolean;
+function TCastlePanel.PositionInside(const Position: TVector2Single): boolean;
 begin
   Result :=
-    (X >= Left) and
-    (X  < Left + Width) and
-    (ContainerHeight - Y >= Bottom) and
-    (ContainerHeight - Y  < Bottom + Height);
+    (Position[0] >= Left) and
+    (Position[0]  < Left + Width) and
+    (Position[1] >= Bottom) and
+    (Position[1]  < Bottom + Height);
 end;
 
 class function TCastlePanel.SeparatorSize: Cardinal;
@@ -1209,16 +1208,16 @@ begin
   FGLImage.Draw(Rect);
 end;
 
-function TCastleImageControl.PositionInside(const X, Y: Integer): boolean;
+function TCastleImageControl.PositionInside(const Position: TVector2Single): boolean;
 var
   R: TRectangle;
 begin
   R := Rect;
   Result := FullSize or
-    ( (X >= R.Left) and
-      (X  < R.Left + R.Width) and
-      (R.Height - Y >= R.Bottom) and
-      (R.Height - Y  < R.Bottom + R.Height)
+    ( (Position[0] >= R.Left) and
+      (Position[0]  < R.Left + R.Width) and
+      (Position[1] >= R.Bottom) and
+      (Position[1]  < R.Bottom + R.Height)
     );
 end;
 
@@ -1384,9 +1383,9 @@ begin
   end;
 end;
 
-function TCastleTouchControl.PositionInside(const X, Y: Integer): boolean;
+function TCastleTouchControl.PositionInside(const Position: TVector2Single): boolean;
 begin
-  Result := Rect.Contains(X, ContainerHeight - Y);
+  Result := Rect.Contains(Position);
 end;
 
 function TCastleTouchControl.MaxOffsetDist: Integer;
@@ -1416,16 +1415,16 @@ begin
   Theme.Draw(Rect, ImageOuter);
 
   // compute lever offset (must not move outside outer ring)
-  LeverDist := sqrt(FLeverOffsetX*FLeverOffsetX + FLeverOffsetY*FLeverOffsetY);
+  LeverDist := VectorLen(FLeverOffset);
   MaxDist := MaxOffsetDist();
   if LeverDist <= MaxDist then
   begin
-    LevOffsetTrimmedX := FLeverOffsetX;
-    LevOffsetTrimmedY := FLeverOffsetY;
+    LevOffsetTrimmedX := Round(FLeverOffset[0]);
+    LevOffsetTrimmedY := Round(FLeverOffset[1]);
   end
   else begin
-    LevOffsetTrimmedX := Floor((FLeverOffsetX*MaxDist)/LeverDist);
-    LevOffsetTrimmedY := Floor((FLeverOffsetY*MaxDist)/LeverDist);
+    LevOffsetTrimmedX := Floor((FLeverOffset[0]*MaxDist)/LeverDist);
+    LevOffsetTrimmedY := Floor((FLeverOffset[1]*MaxDist)/LeverDist);
   end;
   if FTouchMode = ctcmFlyUpdown then LevOffsetTrimmedX := 0;
 
@@ -1434,7 +1433,7 @@ begin
   InnerRect.Width  := Round(InnerRect.Width  * SizeScale);
   InnerRect.Height := Round(InnerRect.Height * SizeScale);
   InnerRect.Left   := Left   + (Width  - InnerRect.Width ) div 2 + LevOffsetTrimmedX;
-  InnerRect.Bottom := Bottom + (Height - InnerRect.Height) div 2 - LevOffsetTrimmedY;
+  InnerRect.Bottom := Bottom + (Height - InnerRect.Height) div 2 + LevOffsetTrimmedY;
   Theme.Draw(InnerRect, ImageInner);
 end;
 
@@ -1451,8 +1450,7 @@ begin
 
   Result := ExclusiveEvents;
   FDragStarted := true;
-  FLeverOffsetX := 0;
-  FLeverOffsetY := 0;
+  FLeverOffset := ZeroVector2Single;
 end;
 
 function TCastleTouchControl.Release(const Event: TInputPressRelease): boolean;
@@ -1465,18 +1463,16 @@ begin
     Result := ExclusiveEvents;
 
     FDragStarted := false;
-    FLeverOffsetX := 0;
-    FLeverOffsetY := 0;
+    FLeverOffset := ZeroVector2Single;
     VisibleChange;   { repaint with lever back in the center }
   end;
 end;
 
-function TCastleTouchControl.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+function TCastleTouchControl.Motion(const Event: TInputMotion): boolean;
 begin
   if FDragStarted then
   begin
-    FLeverOffsetX := FLeverOffsetX + NewX - OldX;
-    FLeverOffsetY := FLeverOffsetY + NewY - OldY;
+    FLeverOffset := FLeverOffset + Event.Position - Event.OldPosition;
     VisibleChange;
   end;
   Result := FDragStarted;
@@ -1489,13 +1485,13 @@ begin
   FxConst := 10/MaxOffsetDist();
   if FTouchMode = ctcmHeadRotation then
   begin
-    X := -FLeverOffsetY*FxConst;
-    Y := -FLeverOffsetX*FxConst;
+    X :=  FLeverOffset[1] * FxConst;
+    Y := -FLeverOffset[0] * FxConst;
     Angle := 1;
   end
   else if FTouchMode = ctcmWalkWithSideRot then
   begin
-    Y := -FLeverOffsetX*FxConst;
+    Y := -FLeverOffset[0] * FxConst;
     Angle := 1;
   end;
 end;
@@ -1507,24 +1503,24 @@ begin
   FxConst := 200/MaxOffsetDist();
   if FTouchMode = ctcmWalking then
   begin
-    X := FLeverOffsetX*FxConst/1.5;  { walking to the sides should be slower }
-    Z := FLeverOffsetY*FxConst;
+    X :=  FLeverOffset[0] * FxConst / 1.5;  { walking to the sides should be slower }
+    Z := -FLeverOffset[1] * FxConst;
     Length := 20;
   end
   else if FTouchMode = ctcmWalkWithSideRot then
   begin
-    Z := FLeverOffsetY*FxConst;
+    Z := -FLeverOffset[1] * FxConst;
     Length := 20;
   end
   else if FTouchMode = ctcmFlyUpdown then
   begin
-    Y := -FLeverOffsetY*FxConst;
+    Y := FLeverOffset[1] * FxConst;
     Length := 20;
   end
   else if FTouchMode = ctcmPanXY then
   begin
-    X := -FLeverOffsetX*FxConst;
-    Y := FLeverOffsetY*FxConst;
+    X := -FLeverOffset[0] * FxConst;
+    Y := -FLeverOffset[1] * FxConst;
     Length := 5;
   end;
 end;
@@ -1750,8 +1746,6 @@ begin
 end;
 
 function TCastleDialog.Press(const Event: TInputPressRelease): boolean;
-var
-  MY: Integer;
 begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
@@ -1777,13 +1771,12 @@ begin
         end;
       itMouseButton:
         begin
-          MY := ContainerHeight - Container.MouseY;
           if (Event.MouseButton = mbLeft) and ScrollBarVisible and
-            ScrollbarFrame.Contains(Container.MouseX, MY) then
+            ScrollbarFrame.Contains(Container.MousePosition) then
           begin
-            if MY < ScrollbarSlider.Bottom then
+            if Container.MousePosition[1] < ScrollbarSlider.Bottom then
               ScrollPageDown else
-            if MY >= ScrollbarSlider.Top then
+            if Container.MousePosition[1] >= ScrollbarSlider.Top then
               ScrollPageUp else
               ScrollBarDragging := true;
             Result := true;
@@ -1810,14 +1803,15 @@ begin
   end;
 end;
 
-function TCastleDialog.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+function TCastleDialog.Motion(const Event: TInputMotion): boolean;
 begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
 
   Result := ScrollBarDragging;
   if Result then
-    Scroll := Scroll + (NewY- OldY) / ScrollbarFrame.Height *
+    Scroll := Scroll + (Event.OldPosition[1] - Event.Position[1]) /
+      ScrollbarFrame.Height *
       (ScrollMaxForScrollbar - ScrollMin);
 end;
 
@@ -1936,7 +1930,7 @@ begin
   ScissorDisable;
 end;
 
-function TCastleDialog.PositionInside(const X, Y: Integer): boolean;
+function TCastleDialog.PositionInside(const Position: TVector2Single): boolean;
 begin
   Result := true;
 end;

@@ -601,9 +601,8 @@ type
         function Width: Integer; override;
         function Height: Integer; override;
         function Rect: TRectangle; override;
-        function MouseX: Integer; override;
-        function MouseY: Integer; override;
-        procedure SetMousePosition(const NewMouseX, NewMouseY: Integer); override;
+        function GetMousePosition: TVector2Single; override;
+        procedure SetMousePosition(const Value: TVector2Single); override;
         function Dpi: Integer; override;
         function MousePressed: TMouseButtons; override;
         function Pressed: TKeysPressed; override;
@@ -618,7 +617,7 @@ type
     FFullScreen, FDoubleBuffer: boolean;
     FResizeAllowed: TResizeAllowed;
     FMousePressed: TMouseButtons;
-    FMouseX, FMouseY: integer;
+    FMousePosition: TVector2Single;
     FRedBits, FGreenBits, FBlueBits: Cardinal;
     FAutoRedisplay: boolean;
     FCaption: array [TCaptionPart] of string;
@@ -695,13 +694,15 @@ type
     procedure SetOnPress(const Value: TInputPressReleaseEvent);
     function GetOnRelease: TInputPressReleaseEvent;
     procedure SetOnRelease(const Value: TInputPressReleaseEvent);
-    function GetOnMouseMove: TMouseMoveEvent;
-    procedure SetOnMouseMove(const Value: TMouseMoveEvent);
+    function GetOnMotion: TInputMotionEvent;
+    procedure SetOnMotion(const Value: TInputMotionEvent);
 
     { Set FullScreen value in a dumb (but always reliable) way:
       when it changes, just close, negate FFullScreen and reopen the window.
       This will work, as long as OpenBackend honors the FullScreen setting. }
     procedure SimpleSetFullScreen(const Value: boolean);
+
+    procedure SetMousePosition(const Value: TVector2Single);
 
     { Used in particular backend, open OpenGL context and do
       Application.OpenWindowsAdd(Self) there.
@@ -881,7 +882,7 @@ type
       (these things are fully handled by DoXxx methods):
       - updating state of MousePressed
       - updating state of Pressed (Pressed.Keys, Pressed.Characters etc.)
-      - updating state of MouseX, MouseY
+      - updating state of MousePosition
       - calling MakeCurrent before every EventXxx
       - flushing gl commands (and swapping gl buffers when DoubleBuffer'ing)
       - taking care of AutoRedisplay
@@ -960,17 +961,19 @@ type
     procedure DoKeyDown(Key: TKey; CharKey: char);
     procedure DoKeyUp(key: TKey);
     { Do MakeCurrent,
-         EventMouseMove,
-         update MouseX, Y }
-    procedure DoMouseMove(x, y: integer);
+         EventMotion,
+         update MousePosition }
+    procedure DoMotion(const Event: TInputMotion);
     { DoMouseDown/Up:
-        update FMouseX, FMouseY (so that before EventMouseDown/Up position
+        update MousePosition (so that before EventMouseDown/Up position
           of the mouse is set to the current, precise, position)
         update MousePressed
         MakeCurrent
         EventMouseDown/Up }
-    procedure DoMouseDown(x, y: integer; btn: CastleKeysMouse.TMouseButton);
-    procedure DoMouseUp(x, y: integer; btn: CastleKeysMouse.TMouseButton);
+    procedure DoMouseDown(const Position: TVector2Single;
+      Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex = 0);
+    procedure DoMouseUp(const Position: TVector2Single;
+      Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex = 0);
     procedure DoMouseWheel(const Scroll: Single; const Vertical: boolean);
     procedure DoTimer;
     { Just call it when user presses some MenuItem.
@@ -1151,20 +1154,62 @@ type
     property ColorBits: Cardinal read GetColorBits write SetColorBits stored false default 0;
     { @groupEnd }
 
-    { Place mouse cursor at NewMouseX and NewMouseY.
-      Position is specified relative to this window's upper-top corner
-      (more specifically, OpenGL area upper-top corner),
-      just like MouseX and MouseY properties.
+    { Current mouse position.
+      In case of touch devices, this reports the last known position
+      for FingerIndex = 0, and setting this has no effect.
 
-      Note that the actually set position may be different than requested,
-      for example if part of the window is offscreen then
-      window manager will probably refuse to move mouse cursor offscreen.
+      Position (0, 0) is the window's bottom-left corner.
+      This is consistent with how our 2D controls (TUIControl)
+      treat all positions.
 
-      This @italic(may) generate normal OnMouseMove event, just as if the
-      user moved the mouse. But it's also allowed to not do this.
+      The position is expressed as a float value, to support backends
+      that can report positions with sub-pixel accuracy.
+      For example GTK and Android can do it, although it depends on
+      underlying hardware capabilities as well.
+      The top-right corner or the top-right pixel has the coordinates
+      (Width, Height).
+      Note that if you want to actually draw something at the window's
+      edge (for example, paint the top-right pixel of the window with some
+      color), then the pixel coordinates are (Width - 1, Height - 1).
+      The idea is that the whole top-right pixel is an area starting
+      in (Width - 1, Height - 1) and ending in (Width, Height).
 
-      Ignored when window is closed. }
-    procedure SetMousePosition(const NewMouseX, NewMouseY: Integer);
+      Note that we have mouse capturing (when user presses and holds
+      the mouse button, all the following mouse events are reported to this
+      window, even when user moves the mouse outside of the window).
+      This is typical of all window libraries (GTK, LCL etc.).
+      This implicates that mouse positions are sometimes tracked also
+      when mouse is outside the window, which means that mouse position
+      may be outside the rectangle (0, 0) - (Width, Height),
+      so it may even be negative.
+
+      In all situations the MousePosition is the latest known mouse position.
+      The only exception is within EventMotion (and so, also in OnMotion
+      callback): MousePosition is then the previous known mouse position,
+      while new mouse position is provided as NewMousePosition argument to
+      EventMotion (and OnMotion).
+
+      @italic(About setting the mouse position:)
+
+      @unorderedList(
+        @item(There is no guarantee that the position was set
+          exactly to what was requested. Various backends have their
+          limitations, and position may be rounded, and almost everywhere
+          position will be clamped to the current screen space.)
+
+        @item(It is undefined whether setting mouse position
+          will generate an OnMotion event (just as if the
+          user moved the mouse). Some backends do it, some don't,
+          and there is no way to make it consistent (because
+          backend may report the motion event with delay, so we really
+          don't know whether user moved the mouse or was it caused
+          by code).)
+
+        @item(Setting mouse position is always ignored when
+          the window is closed.)
+      ) }
+    property MousePosition: TVector2Single
+      read FMousePosition write SetMousePosition;
 
     { When (if at all) window size may be changed.
 
@@ -1594,12 +1639,14 @@ end;
       when user tries to close the window. }
     property OnCloseQuery: TContainerEvent read FOnCloseQuery write FOnCloseQuery; { = nil }
 
-    { Called when mouse is moved. Remember you always have the currently
+    { Mouse or a finger on touch device moved.
+
+      For a mouse, remember you always have the currently
       pressed mouse buttons in MousePressed. When this is called,
-      the MouseX, MouseY properties describe the @italic(previous)
-      mouse position, while callback parameters NewX, NewY describe
+      the MousePosition property records the @italic(previous)
+      mouse position, while callback parameter NewMousePosition gives
       the @italic(new) mouse position. }
-    property OnMouseMove: TMouseMoveEvent read GetOnMouseMove write SetOnMouseMove;
+    property OnMotion: TInputMotionEvent read GetOnMotion write SetOnMotion;
 
     { Continously occuring event, called for all open windows.
       This event is called at least as regularly as redraw,
@@ -1732,35 +1779,6 @@ end;
       This value is always current, in particular it's already updated
       when we call events OnMouseDown and OnMouseUp. }
     property MousePressed: TMouseButtons read FMousePressed;
-
-    { Mouse position. This is the mouse position relative to this window,
-      more precisely relative to the OpenGL control of this window.
-
-      Left-top corner is (0, 0), and right-bottom is (Width - 1, Height - 1).
-      This is consistent with most window libraries (GTK, LCL etc.).
-      Plese note that Y coordinate is reversed with respect to the typical OpenGL
-      Ortho2D projection, if needed you'll have to adjust it (by using
-      @code(Height - MouseY)).
-
-      Note that we have mouse capturing (when user presses and holds
-      the mouse button, all the following mouse events are reported to this
-      window, even when user moves the mouse outside of the window).
-      This is typical of all window libraries (GTK, LCL etc.).
-      This implicates that mouse positions are sometimes tracked also
-      when mouse is outside the window, which means that mouse position
-      may be outside the rectangle (0, 0) - (Width - 1, Height - 1),
-      so it may even be negative.
-
-      In all situations the MouseX, MouseY is the latest known mouse position.
-      The only exception is within EventMouseMove (and so, also in OnMouseMove
-      callback): MouseX, MouseY is then the previous known mouse position,
-      while new mouse position is provided as NewX, NewY arguments to
-      EventMouseMove (and OnMouseMove).
-
-      @groupBegin }
-    property MouseX: integer read FMouseX;
-    property MouseY: integer read FMouseY;
-    { @groupEnd }
 
     { Place for your pointer, for any purposes.
       No code in this unit touches the value of this field.
@@ -2740,19 +2758,14 @@ begin
   Result := Parent.Rect;
 end;
 
-function TCastleWindowCustom.TContainer.MouseX: Integer;
+function TCastleWindowCustom.TContainer.GetMousePosition: TVector2Single;
 begin
-  Result := Parent.MouseX;
+  Result := Parent.MousePosition;
 end;
 
-function TCastleWindowCustom.TContainer.MouseY: Integer;
+procedure TCastleWindowCustom.TContainer.SetMousePosition(const Value: TVector2Single);
 begin
-  Result := Parent.MouseY;
-end;
-
-procedure TCastleWindowCustom.TContainer.SetMousePosition(const NewMouseX, NewMouseY: Integer);
-begin
-  Parent.SetMousePosition(NewMouseX, NewMouseY);
+  Parent.MousePosition := Value;
 end;
 
 function TCastleWindowCustom.TContainer.Dpi: Integer;
@@ -3057,7 +3070,7 @@ begin
     if Pressed[k] then DoKeyUp(k);
 
   for mb := Low(mb) to High(mb) do if mb in MousePressed then
-    DoMouseUp(MouseX, MouseY, mb);
+    DoMouseUp(MousePosition, mb);
 end;
 
 function TCastleWindowCustom.GetColorBits: Cardinal;
@@ -3258,30 +3271,37 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.DoMouseMove(x, y: integer);
+procedure TCastleWindowCustom.DoMotion(const Event: TInputMotion);
 begin
   MakeCurrent;
-  Container.EventMouseMove(x, y);
-  FMouseX := x; // change FMouseXY *after* EventMouseMove, callbacks may depend on it
-  FMouseY := y;
+  Container.EventMotion(Event);
+  if Event.FingerIndex = 0 then
+    { change FMousePosition *after* EventMotion, callbacks may depend on it }
+    FMousePosition := Event.Position;
 end;
 
-procedure TCastleWindowCustom.DoMouseDown(x, y: integer; btn: CastleKeysMouse.TMouseButton);
+procedure TCastleWindowCustom.DoMouseDown(const Position: TVector2Single;
+  Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex);
 begin
-  FMouseX := x;
-  FMouseY := y;
-  Include(FMousePressed, btn);
+  if FingerIndex = 0 then
+  begin
+    FMousePosition := Position;
+    Include(FMousePressed, Button);
+  end;
   MakeCurrent;
-  Container.EventPress(InputMouseButton(btn));
+  Container.EventPress(InputMouseButton(Position, Button, FingerIndex));
 end;
 
-procedure TCastleWindowCustom.DoMouseUp(x, y: integer; btn: CastleKeysMouse.TMouseButton);
+procedure TCastleWindowCustom.DoMouseUp(const Position: TVector2Single;
+  Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex);
 begin
-  FMouseX := x;
-  FMouseY := y;
-  Exclude(FMousePressed, btn);
+  if FingerIndex = 0 then
+  begin
+    FMousePosition := Position;
+    Exclude(FMousePressed, Button);
+  end;
   MakeCurrent;
-  Container.EventRelease(InputMouseButton(btn));
+  Container.EventRelease(InputMouseButton(Position, Button, FingerIndex));
 end;
 
 procedure TCastleWindowCustom.DoMouseWheel(const Scroll: Single; const Vertical: boolean);
@@ -4071,14 +4091,14 @@ begin
   Container.OnRelease := Value;
 end;
 
-function TCastleWindowCustom.GetOnMouseMove: TMouseMoveEvent;
+function TCastleWindowCustom.GetOnMotion: TInputMotionEvent;
 begin
-  Result := Container.OnMouseMove;
+  Result := Container.OnMotion;
 end;
 
-procedure TCastleWindowCustom.SetOnMouseMove(const Value: TMouseMoveEvent);
+procedure TCastleWindowCustom.SetOnMotion(const Value: TInputMotionEvent);
 begin
-  Container.OnMouseMove := Value;
+  Container.OnMotion := Value;
 end;
 
 procedure TCastleWindowCustom.SetDemoOptions(ASwapFullScreen_Key: TKey;

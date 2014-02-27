@@ -313,13 +313,13 @@ type
     { @groupEnd }
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
-    function PositionInside(const X, Y: Integer): boolean; override;
+    function PositionInside(const Position: TVector2Single): boolean; override;
     function RenderStyle: TRenderStyle; override;
 
     function AllowSuspendForInput: boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
-    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
     function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
     procedure Update(const SecondsPassed: Single;
@@ -812,7 +812,7 @@ type
 
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
-    function PositionInside(const X, Y: Integer): boolean; override;
+    function PositionInside(const Position: TVector2Single): boolean; override;
 
     { Prepare resources, to make various methods (like @link(Render))
       execute fast.
@@ -1352,7 +1352,6 @@ end;
 function TCastleAbstractViewport.Press(const Event: TInputPressRelease): boolean;
 var
   P: TPlayer;
-  MX, MY: Integer;
 begin
   Result := inherited;
   if Result or Paused or (not GetExists) then Exit;
@@ -1360,11 +1359,9 @@ begin
   { Call PointingDeviceMove, set MouseHitRay and such --- otherwise
     the 1st mouse down event over a 3D object (like a TouchSensor) will be ignored
     if it happens before any mouse move (which is normal on touch devices).
-    OldX,OldY and NewX,NewY are equal for the fake MouseMove call,
+    OldX,OldY and NewX,NewY are equal for the fake Motion call,
     in case a camera would base some movement based on the position delta. }
-  MX := Container.MouseX;
-  MY := Container.MouseY;
-  MouseMove(MX, MY, MX, MY);
+  Motion(InputMotion(Container.MousePosition, Container.MousePosition, Container.MousePressed, 0));
 
   Result := GetItems.Press(Event);
   if Result then Exit;
@@ -1429,7 +1426,7 @@ begin
   end;
 end;
 
-function TCastleAbstractViewport.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+function TCastleAbstractViewport.Motion(const Event: TInputMotion): boolean;
 var
   RayOrigin, RayDirection: TVector3Single;
 begin
@@ -1442,11 +1439,11 @@ begin
       This means that if you drag X3D sensors like TouchSensor, then your
       dragging will not simultaneously also affect the camera (which would be very
       disorienting). }
-    Result := Camera.MouseMove(OldX, OldY, NewX, NewY);
+    Result := Camera.Motion(Event);
     if not Result then
     begin
-      Camera.CustomRay(Rect, ContainerHeight,
-        NewX, NewY, PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
+      Camera.CustomRay(Rect, Event.Position,
+        PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
         RayOrigin, RayDirection);
       { TODO: do Result := PointingDeviceMove below? }
       PointingDeviceMove(RayOrigin, RayDirection);
@@ -1546,13 +1543,13 @@ begin
     Result := Rectangle(Left, Bottom, Width, Height);
 end;
 
-function TCastleAbstractViewport.PositionInside(const X, Y: Integer): boolean;
+function TCastleAbstractViewport.PositionInside(const Position: TVector2Single): boolean;
 begin
   Result := (FullSize or
-    ( (X >= Left) and
-      (X  < Left + Width) and
-      (ContainerHeight - Y >= Bottom) and
-      (ContainerHeight - Y  < Bottom + Height) ));
+    ( (Position[0] >= Left) and
+      (Position[0]  < Left + Width) and
+      (Position[1] >= Bottom) and
+      (Position[1]  < Bottom + Height) ));
 end;
 
 procedure TCastleAbstractViewport.ApplyProjection;
@@ -2829,10 +2826,10 @@ begin
   end;
 end;
 
-function TCastleSceneManager.PositionInside(const X, Y: Integer): boolean;
+function TCastleSceneManager.PositionInside(const Position: TVector2Single): boolean;
 begin
   { When not DefaultViewport, then scene manager is not visible. }
-  Result := DefaultViewport and (inherited PositionInside(X, Y));
+  Result := DefaultViewport and (inherited PositionInside(Position));
 end;
 
 procedure TCastleSceneManager.PrepareResources(const DisplayProgressTitle: string);
@@ -2961,18 +2958,17 @@ function TCastleSceneManager.PointingDeviceActivate(const Active: boolean): bool
   end;
 
 var
-  MouseX, MouseY: Integer;
+  MousePosition: TVector2Single;
 
   { Try PointingDeviceActivate on 3D stuff hit by ray moved by given number
     of screen pixels from current mouse position.
-    Call only if Camera and MouseX, MouseY already assigned. }
-  function TryActivateAround(const XChange, YChange: Integer): boolean;
+    Call only if Camera and MousePosition already assigned. }
+  function TryActivateAround(const Change: TVector2Single): boolean;
   var
     RayOrigin, RayDirection: TVector3Single;
     RayHit: TRayCollision;
   begin
-    Camera.CustomRay(Rect, ContainerHeight,
-      MouseX + XChange, MouseY + YChange,
+    Camera.CustomRay(Rect, MousePosition + Change,
       PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
       RayOrigin, RayDirection);
 
@@ -2989,21 +2985,19 @@ var
     FreeAndNil(RayHit);
   end;
 
-  function TryActivateAroundSquare(const Change: Integer): boolean;
+  function TryActivateAroundSquare(const Change: Single): boolean;
   begin
-    Result := TryActivateAround(-Change, -Change) or
-              TryActivateAround(-Change, +Change) or
-              TryActivateAround(+Change, +Change) or
-              TryActivateAround(+Change, -Change) or
-              TryActivateAround(      0, -Change) or
-              TryActivateAround(      0, +Change) or
-              TryActivateAround(-Change,       0) or
-              TryActivateAround(+Change,       0);
+    Result := TryActivateAround(Vector2Single(-Change, -Change)) or
+              TryActivateAround(Vector2Single(-Change, +Change)) or
+              TryActivateAround(Vector2Single(+Change, +Change)) or
+              TryActivateAround(Vector2Single(+Change, -Change)) or
+              TryActivateAround(Vector2Single(      0, -Change)) or
+              TryActivateAround(Vector2Single(      0, +Change)) or
+              TryActivateAround(Vector2Single(-Change,       0)) or
+              TryActivateAround(Vector2Single(+Change,       0));
   end;
 
-  { If Container assigned, set local MouseX/Y.
-    Using local procedure for this, to avoid long lifetime of Container
-    reference. }
+  { If Container assigned, set local MousePosition. }
   function GetMousePosition: boolean;
   var
     C: TUIContainer;
@@ -3011,10 +3005,7 @@ var
     C := Container;
     Result := C <> nil;
     if Result then
-    begin
-      MouseX := C.MouseX;
-      MouseY := C.MouseY;
-    end;
+      MousePosition := C.MousePosition;
   end;
 
 begin

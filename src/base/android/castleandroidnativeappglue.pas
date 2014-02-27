@@ -129,12 +129,12 @@ type
     // here if it likes.
     userData : Pointer;
     // Fill this in with the function to process main app commands (APP_CMD_*)
-    onAppCmd : procedure(app: Pandroid_app; cmd: Integer);
+    onAppCmd : procedure(app: Pandroid_app; cmd: Integer) of object;
     // Fill this in with the function to process input events.  At this point
     // the event has already been pre-dispatched, and it will be finished upon
     // return. Return if you have handled the event, 0 for any default
     // dispatching.
-    onInputEvent : function(app: Pandroid_app; event: PAInputEvent): boolean;
+    onInputEvent : function(app: Pandroid_app; event: PAInputEvent): boolean of object;
     // The ANativeActivity object instance that this app is running in.
     activity : PANativeActivity;
     // The current configuration the app is running in.

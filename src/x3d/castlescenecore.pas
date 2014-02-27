@@ -5301,7 +5301,7 @@ begin
 
             The latter interpretation:
             - Would be unhandy for implementation, as I would have to call
-              raycollision twice for each MouseMove (to get
+              raycollision twice for each Motion (to get
               OverItemBeforeMove and OverItem).
             - Would be unhandy for users. You want
               to catch isOver changes eventually, right? Otherwise,

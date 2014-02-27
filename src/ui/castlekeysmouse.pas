@@ -20,7 +20,7 @@ unit CastleKeysMouse;
 
 interface
 
-uses CastleUtils, CastleStringUtils;
+uses CastleUtils, CastleStringUtils, CastleVectors;
 
 type
   { Keys on keyboard.
@@ -441,6 +441,8 @@ function StrToKey(const S: string; const DefaultKey: TKey): TKey;
 type
   TInputPressReleaseType = (itKey, itMouseButton, itMouseWheel);
 
+  TFingerIndex = Cardinal;
+
   { Input press or release event.
     Either key press/release (see TUIControl.KeyDown, TUIControl.KeyUp) or
     mouse button press/release (see TUIControl.MouseDown, TUIControl.MouseUp) or
@@ -481,16 +483,32 @@ type
     { @groupEnd }
 
     { When EventType is itMouseButton, this is the mouse button pressed or released.
+      Always mbLeft for touch device press/release events.
 
       CastleWindow notes (but relevant also to other interfaces, like Lazarus
       component, although in that case it's beyond our control):
       When user presses the mouse over
-      our control, mouse is automatically captured, so all further OnMouseMove
+      our control, mouse is automatically captured, so all further OnMotion
       following mouse release will be passed to this control (even if user moves mouse
       outside of this control), until user releases all mouse buttons.
       Note that this means that mouse positions may be outside
       of [0..Width - 1, 0..Height - 1] range. }
     MouseButton: TMouseButton;
+
+    { When EventType is itMouseButton, this is the finger index pressed or
+      released on a touch device. Always 0 for normal mouse events. }
+    FingerIndex: TFingerIndex;
+
+    { When EventType is itMouseButton (in case of mouse press/release),
+      this is the position of the current mouse/finger on the window.
+
+      For normal backends that simply support a single mouse device,
+      this is just equivalent to TCastleWindow.MousePosition
+      and TCastleControl.MousePosition, so it's not really interesting.
+
+      For multi-touch devices, this is more useful, as it describes
+      the position of the current finger (corresponding to FingerIndex). }
+    Position: TVector2Single;
 
     { When EventType is itMouseWheel, this is the mouse wheel action.
       MouseWheel is mwNone if and only if EventType <> itMouseWheel.
@@ -525,12 +543,24 @@ type
     function Description: string;
   end;
 
+  { Motion (movement) of mouse or a finger on a touch device. }
+  TInputMotion = object
+    OldPosition, Position: TVector2Single;
+    Pressed: TMouseButtons;
+    FingerIndex: TFingerIndex;
+  end;
+
 { Construct TInputPressRelease corresponding to given event.
   @groupBegin }
 function InputKey(const Key: TKey; const KeyCharacter: Char): TInputPressRelease;
-function InputMouseButton(const MouseButton: TMouseButton): TInputPressRelease;
+function InputMouseButton(const Position: TVector2Single;
+  const MouseButton: TMouseButton; const FingerIndex: TFingerIndex): TInputPressRelease;
 function InputMouseWheel(const Scroll: Single; const Vertical: boolean): TInputPressRelease;
 { @groupEnd }
+
+{ Construct TInputMotion. }
+function InputMotion(const OldPosition, Position: TVector2Single;
+  const Pressed: TMouseButtons; const FingerIndex: TFingerIndex): TInputMotion;
 
 implementation
 
@@ -949,11 +979,14 @@ begin
   Result.KeyCharacter := KeyCharacter;
 end;
 
-function InputMouseButton(const MouseButton: TMouseButton): TInputPressRelease;
+function InputMouseButton(const Position: TVector2Single;
+  const MouseButton: TMouseButton; const FingerIndex: TFingerIndex): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
+  Result.Position := Position;
   Result.EventType := itMouseButton;
   Result.MouseButton := MouseButton;
+  Result.FingerIndex := FingerIndex;
 end;
 
 function InputMouseWheel(const Scroll: Single; const Vertical: boolean): TInputPressRelease;
@@ -962,6 +995,16 @@ begin
   Result.EventType := itMouseWheel;
   Result.MouseWheelScroll := Scroll;
   Result.MouseWheelVertical := Vertical;
+end;
+
+function InputMotion(const OldPosition, Position: TVector2Single;
+  const Pressed: TMouseButtons; const FingerIndex: TFingerIndex): TInputMotion;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+  Result.OldPosition := OldPosition;
+  Result.Position := Position;
+  Result.Pressed := Pressed;
+  Result.FingerIndex := FingerIndex;
 end;
 
 end.

@@ -105,7 +105,7 @@ type
       Checking MouseDraggingStarted means that we handle only dragging that
       was initialized on viewport (since the viewport passed events to camera). }
     MouseDraggingStarted: boolean;
-    MouseDraggingStart: TVector2Integer;
+    MouseDraggingStart: TVector2Single;
 
     { Mechanism to schedule VisibleChange calls.
 
@@ -247,9 +247,9 @@ type
       See TCastleSceneManager.PerspectiveView for their specification.
       Resulting RayDirection is always normalized.
 
-      WindowX, WindowY are given in the same style as MouseX, MouseY:
-      WindowX = 0 is left, WindowY = 0 is top. }
-    procedure Ray(const WindowX, WindowY: Integer;
+      WindowPosition is given in the same style as TUIContainer.MousePosition:
+      (0, 0) is bottom-left. }
+    procedure Ray(const WindowPosition: TVector2Single;
       const PerspectiveView: boolean;
       const PerspectiveViewAngles: TVector2Single;
       const OrthoViewDimensions: TVector4Single;
@@ -269,7 +269,7 @@ type
       const OrthoViewDimensions: TVector4Single;
       out RayOrigin, RayDirection: TVector3Single);
 
-    { Calculate a ray picked by WindowX, WindowY position on the viewport,
+    { Calculate a ray picked by WindowPosition position on the viewport,
       assuming current viewport dimensions are as given.
       This doesn't look at our container sizes at all.
 
@@ -278,14 +278,11 @@ type
       See TCastleSceneManager.PerspectiveView for their specification.
       Resulting RayDirection is always normalized.
 
-      WindowX, WindowY are given in the same style as MouseX, MouseY:
-      WindowX = 0 is left, WindowY = 0 is top.
-      To understand WindowY (with respect to bottom),
-      we also need separate WindowHeight. }
+      WindowPosition is given in the same style as TUIContainer.MousePosition:
+      (0, 0) is bottom-left. }
     procedure CustomRay(
       const Viewport: TRectangle;
-      const WindowHeight: Cardinal;
-      const WindowX, WindowY: Integer;
+      const WindowPosition: TVector2Single;
       const PerspectiveView: boolean;
       const PerspectiveViewAngles: TVector2Single;
       const OrthoViewDimensions: TVector4Single;
@@ -472,7 +469,7 @@ type
       var HandleInput: boolean); override;
     function AllowSuspendForInput: boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
-    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
 
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
     function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
@@ -1082,8 +1079,7 @@ type
     property MouseLook: boolean read FMouseLook write SetMouseLook default false;
 
     { These control mouse look sensitivity.
-      They say how much angle change is produced by 1 pixel change
-      (for MouseXChange, MouseYChange in MouseMove).
+      They say how much angle change is produced by moving mouse by 1 pixel.
       You can change this, to better adjust to user.
 
       @groupBegin }
@@ -1109,8 +1105,7 @@ type
       read FMouseDragMode write FMouseDragMode
       default cwdmDragToWalk;
 
-    { Call when mouse moves. Must be called to make MouseLook work. }
-    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
 
     { Things related to gravity ---------------------------------------- }
 
@@ -1620,7 +1615,7 @@ type
     function AllowSuspendForInput: boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
-    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
 
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
     function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
@@ -1817,15 +1812,14 @@ begin
   FRadius := Value;
 end;
 
-procedure TCamera.Ray(const WindowX, WindowY: Integer;
+procedure TCamera.Ray(const WindowPosition: TVector2Single;
   const PerspectiveView: boolean;
   const PerspectiveViewAngles: TVector2Single;
   const OrthoViewDimensions: TVector4Single;
   out RayOrigin, RayDirection: TVector3Single);
 begin
   Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCamera.Ray');
-  CustomRay(ContainerRect, ContainerHeight,
-    WindowX, WindowY,
+  CustomRay(ContainerRect, WindowPosition,
     PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions, RayOrigin, RayDirection);
 end;
 
@@ -1836,15 +1830,13 @@ procedure TCamera.MouseRay(
   out RayOrigin, RayDirection: TVector3Single);
 begin
   Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCamera.MouseRay');
-  CustomRay(ContainerRect, ContainerHeight,
-    Container.MouseX, Container.MouseY,
+  CustomRay(ContainerRect, Container.MousePosition,
     PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions, RayOrigin, RayDirection);
 end;
 
 procedure TCamera.CustomRay(
   const Viewport: TRectangle;
-  const WindowHeight: Cardinal;
-  const WindowX, WindowY: Integer;
+  const WindowPosition: TVector2Single;
   const PerspectiveView: boolean;
   const PerspectiveViewAngles: TVector2Single;
   const OrthoViewDimensions: TVector4Single;
@@ -1855,7 +1847,8 @@ begin
   GetView(Pos, Dir, Up);
 
   PrimaryRay(
-    WindowX - Viewport.Left, (WindowHeight - WindowY) - Viewport.Bottom,
+    WindowPosition[0] - Viewport.Left,
+    WindowPosition[1] - Viewport.Bottom,
     Viewport.Width, Viewport.Height,
     Pos, Dir, Up,
     PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
@@ -1988,8 +1981,7 @@ begin
      (ciMouseDragging in Input) and
      EnableDragging then
   begin
-    MouseDraggingStart[0] := Container.MouseX;
-    MouseDraggingStart[1] := Container.MouseY;
+    MouseDraggingStart := Container.MousePosition;
     MouseDraggingStarted := true;
   end;
 end;
@@ -2421,7 +2413,7 @@ begin
   end;
 end;
 
-function TExamineCamera.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+function TExamineCamera.Motion(const Event: TInputMotion): boolean;
 var
   Size: Single;
   ModsDown: TModifierKeys;
@@ -2435,17 +2427,17 @@ var
     begin
       if Turntable then
         Result :=
-          QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (NewY - OldY) / MoveDivConst) *
+          QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (Event.OldPosition[1] - Event.Position[1]) / MoveDivConst) *
           FRotations *
-          QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (NewX - OldX) / MoveDivConst) else
+          QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (Event.Position[0] - Event.OldPosition[0]) / MoveDivConst) else
         Result :=
-          QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (NewY - OldY) / MoveDivConst) *
-          QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (NewX - OldX) / MoveDivConst);
+          QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (Event.OldPosition[1] - Event.Position[1]) / MoveDivConst) *
+          QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (Event.Position[0] - Event.OldPosition[0]) / MoveDivConst);
     end;
 
   var
-    AvgX, AvgY, W2, H2: Cardinal;
-    ZRotAngle, ZRotRatio: Single;
+    W2, H2: Cardinal;
+    AvgX, AvgY, ZRotAngle, ZRotRatio: Single;
   begin
     if (not ContainerSizeKnown) or Turntable then
     begin
@@ -2456,14 +2448,14 @@ var
         This is called "virtual trackball" on
         http://audilab.bme.mcgill.ca/~funnell/graphics/graphics3dview.html . }
       { clamp, since mouse positions may be wild }
-      AvgX := Clamped((NewX + OldX) div 2, 0, ContainerWidth  - 1);
-      AvgY := Clamped((NewY + OldY) div 2, 0, ContainerHeight - 1);
+      AvgX := (Event.Position[0] + Event.OldPosition[0]) / 2;
+      AvgY := (Event.Position[1] + Event.OldPosition[1]) / 2;
       W2 := ContainerWidth  div 2;
       H2 := ContainerHeight div 2;
       { calculate rotation around Z }
       ZRotAngle :=
-        ArcTan2((NewY - H2) / H2, (NewX - W2) / W2) -
-        ArcTan2((OldY - H2) / H2, (OldX - W2) / W2);
+        ArcTan2((Event.OldPosition[1] - H2) / H2, (Event.OldPosition[0] - W2) / W2) -
+        ArcTan2((Event.   Position[1] - H2) / H2, (Event.   Position[0] - W2) / W2);
       { ArcTan2 is in [-pi,pi]. When the mouse passes the border
         of this range, we have to be secure. }
       if ZRotAngle > Pi then
@@ -2535,7 +2527,7 @@ begin
   }
 
   { When dragging should be ignored, or (it's an optimization to check it
-    here early, MouseMove occurs very often) when nothing pressed, do nothing. }
+    here early, Motion occurs very often) when nothing pressed, do nothing. }
   if (Container.MousePressed = []) or
      (not (ciMouseDragging in Input)) or
      (not EnableDragging) or
@@ -2570,7 +2562,7 @@ begin
                  ( (mbLeft in Container.MousePressed) and (ModsDown = [mkCtrl]) );
   if DoZooming then
   begin
-    if Zoom((NewY - OldY) / (2*MoveDivConst)) then
+    if Zoom((Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst)) then
       Result := ExclusiveEvents;
   end;
 
@@ -2584,8 +2576,8 @@ begin
   if DoMoving then
   begin
     Size := FModelBox.AverageSize;
-    FMoveAmount[0] -= Size * (OldX - NewX) / (2*MoveDivConst);
-    FMoveAmount[1] -= Size * (NewY - OldY) / (2*MoveDivConst);
+    FMoveAmount[0] -= Size * (Event.OldPosition[0] - Event.Position[0]) / (2*MoveDivConst);
+    FMoveAmount[1] -= Size * (Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst);
     ScheduleVisibleChange;
     Result := ExclusiveEvents;
   end;
@@ -3729,12 +3721,12 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
 
       2. Later approach: just not reposition mouse at all just
          because MoseLook = true.  Only reposition from
-         TWalkCamera.MouseMove.
+         TWalkCamera.Motion.
 
-         This requires the MouseMove handler to only work when initial
+         This requires the Motion handler to only work when initial
          mouse position is at the screen middle,
          otherwise initial mouse look would generate large move.
-         But in fact TWalkCamera.MouseMove already does this, so it's all Ok.
+         But in fact TWalkCamera.Motion already does this, so it's all Ok.
 
          Unfortunately, this isn't so nice: sometimes you really want your
          mouse repositioned even before you move it:
@@ -3748,15 +3740,15 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
     if MouseLook and
        ContainerSizeKnown and
        (Container <> nil) and
-       { Paranoidally check is position different, to avoid calling
-         SetMousePosition in every Update. SetMousePosition should be optimized
+       { Paranoidally check is position different, to avoid setting
+         MousePosition in every Update. Setting MousePosition should be optimized
          for this case (when position is already set), but let's check anyway. }
-       (Container.MouseX <> ContainerWidth div 2) and
-       (Container.MouseY <> ContainerHeight div 2) then
-      Container.SetMousePosition(ContainerWidth div 2, ContainerHeight div 2);
+       not VectorsPerfectlyEqual(Container.MousePosition,
+         Vector2Single(ContainerWidth / 2, ContainerHeight / 2)) then
+      Container.MousePosition := Vector2Single(ContainerWidth / 2, ContainerHeight / 2);
   end;
 
-  procedure MoveViaMouseDragging(deltaX, deltaY: integer);
+  procedure MoveViaMouseDragging(Delta: TVector2Single);
   var
     MoveSizeX, MoveSizeY: Single;
   const
@@ -3764,50 +3756,50 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
   begin
     MoveSizeX := 0;
     MoveSizeY := 0;
-    if Abs(deltaX) < Tolerance then
-      deltaX := 0
+    if Abs(Delta[0]) < Tolerance then
+      Delta[0] := 0
     else
     begin
-      MoveSizeX := (Abs(deltaX) - Tolerance) / 100;
+      MoveSizeX := (Abs(Delta[0]) - Tolerance) / 100;
       if MoveSizeX > 1.0 then MoveSizeX := 1.0;
     end;
-    if Abs(deltaY) < Tolerance then
-      deltaY := 0
+    if Abs(Delta[1]) < Tolerance then
+      Delta[1] := 0
     else
     begin
-      MoveSizeY := (Abs(deltaY) - Tolerance) / 100;
+      MoveSizeY := (Abs(Delta[1]) - Tolerance) / 100;
       if MoveSizeY > 1.0 then MoveSizeY := 1.0;
     end;
 
     if mbLeft in Container.MousePressed then
     begin
-      if deltaY < -Tolerance then
-        MoveHorizontal(MoveSizeY * SecondsPassed, 1); { forward }
-      if deltaY > Tolerance then
-        MoveHorizontal(MoveSizeY * SecondsPassed, -1); { backward }
+      if Delta[1] < -Tolerance then
+        MoveHorizontal(-MoveSizeY * SecondsPassed, 1); { forward }
+      if Delta[1] > Tolerance then
+        MoveHorizontal(-MoveSizeY * SecondsPassed, -1); { backward }
 
-      if Abs(deltaX) > Tolerance then
-        RotateHorizontal(-deltaX / 4 * SecondsPassed); { rotate }
+      if Abs(Delta[0]) > Tolerance then
+        RotateHorizontal(-Delta[0] / 4 * SecondsPassed); { rotate }
     end
     else if mbRight in Container.MousePressed then
     begin
-      if deltaX < -Tolerance then
+      if Delta[0] < -Tolerance then
       begin
         RotateHorizontalForStrafeMove(90);
         MoveHorizontal(MoveSizeX * SecondsPassed, 1);  { strife left }
         RotateHorizontalForStrafeMove(-90);
       end;
-      if deltaX > Tolerance then
+      if Delta[0] > Tolerance then
       begin
         RotateHorizontalForStrafeMove(-90);
         MoveHorizontal(MoveSizeX * SecondsPassed, 1);  { strife right }
         RotateHorizontalForStrafeMove(90);
       end;
 
-      if deltaY < -5 then
-        MoveVertical(MoveSizeY * SecondsPassed, 1);    { fly up }
-      if deltaY > 5 then
-        MoveVertical(MoveSizeY * SecondsPassed, -1);   { fly down }
+      if Delta[1] < -5 then
+        MoveVertical(-MoveSizeY * SecondsPassed, 1);    { fly up }
+      if Delta[1] > 5 then
+        MoveVertical(-MoveSizeY * SecondsPassed, -1);   { fly down }
     end;
   end;
 
@@ -3928,8 +3920,7 @@ begin
          (not MouseLook) and (MouseDragMode = cwdmDragToWalk) then
       begin
         HandleInput := not ExclusiveEvents;
-        MoveViaMouseDragging(Container.MouseX - MouseDraggingStart[0],
-                             Container.MouseY - MouseDraggingStart[1]);
+        MoveViaMouseDragging(Container.MousePosition - MouseDraggingStart);
       end;
     end;
 
@@ -4197,31 +4188,29 @@ begin
   end;
 end;
 
-function TWalkCamera.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+function TWalkCamera.Motion(const Event: TInputMotion): boolean;
 var
-  MouseXChange, MouseYChange: Single;
-  MiddleWidth: Integer;
-  MiddleHeight: Integer;
+  MouseChange: TVector2Single;
+  Middle: TVector2Single;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or (Event.FingerIndex <> 0) then Exit;
 
   if (ciNormal in Input) and MouseLook and ContainerSizeKnown and
     (not Animation) then
   begin
-    MiddleWidth := ContainerWidth div 2;
-    MiddleHeight := ContainerHeight div 2;
+    Middle := Vector2Single(ContainerWidth div 2, ContainerHeight div 2);
 
-    { Note that SetMousePosition may (but doesn't have to)
-      generate another MouseMove in the container to destination position.
+    { Note that setting MousePosition may (but doesn't have to)
+      generate another Motion in the container to destination position.
       This can cause some problems:
 
       1. Consider this:
 
          - player moves mouse to MiddleX-10
-         - MouseMove is generated, I rotate camera by "-10" horizontally
-         - SetMousePosition sets mouse to the Middle,
-           but this time no MouseMove is generated
+         - Motion is generated, I rotate camera by "-10" horizontally
+         - Setting MousePosition sets mouse to the Middle,
+           but this time no Motion is generated
          - player moved mouse to MiddleX+10. Although mouse was
            positioned on Middle, TCastleWindowCustom thinks that the mouse
            is still positioned on Middle-10, and I will get "+20" move
@@ -4248,46 +4237,41 @@ begin
       Later: see TCastleWindowCustom.UpdateMouseLook implementation notes,
       we actually depend on the fact that MouseLook checks and works
       only if mouse position is at the middle. }
-    if (OldX = MiddleWidth) and
-       (OldY = MiddleHeight) then
+    if VectorsPerfectlyEqual(Middle, Container.MousePosition) then
     begin
-      { MouseXChange and MouseYChange are differences between current
-        and previous window coords
-        (like in TCastleWindowCustom.MouseX/MouseY, so 0,0 is top-left corner). }
-      MouseXChange := NewX - OldX;
-      MouseYChange := NewY - OldY;
+      MouseChange := Event.Position - Container.MousePosition;
 
-      if MouseXChange <> 0 then
-        RotateHorizontal(-MouseXChange * MouseLookHorizontalSensitivity);
-      if MouseYChange <> 0 then
+      if MouseChange[0] <> 0 then
+        RotateHorizontal(-MouseChange[0] * MouseLookHorizontalSensitivity);
+      if MouseChange[1] <> 0 then
       begin
         if InvertVerticalMouseLook then
-          MouseYChange := -MouseYChange;
-        RotateVertical(-MouseYChange * MouseLookVerticalSensitivity);
+          MouseChange[1] := -MouseChange[1];
+        RotateVertical(MouseChange[1] * MouseLookVerticalSensitivity);
       end;
 
       Result := ExclusiveEvents;
     end;
 
-    { I check the condition below to avoid calling SetMousePosition,
-      getting MouseMove event, SetMousePosition, getting MouseMove event... in a loop.
+    { I check the condition below to avoid setting MousePosition,
+      getting Motion event, setting MousePosition, getting Motion event...
+      in a loop.
       Not really likely (as messages will be queued, and some
-      SetMousePosition will finally just not generate event MouseMove),
+      MousePosition setting will finally just not generate event Motion),
       but I want to safeguard anyway. }
-    if (NewX <> MiddleWidth) or (NewY <> MiddleHeight) then
-      Container.SetMousePosition(MiddleWidth, MiddleHeight);
+    if not VectorsPerfectlyEqual(Middle, Event.Position) then
+      Container.MousePosition := Middle;
     Exit;
   end;
 
   if (MouseDraggingStarted) and (MouseDragMode = cwdmDragToRotate) and
     (not Animation) and (not MouseLook) then
   begin
-    MouseXChange := NewX - OldX;
-    MouseYChange := NewY - OldY;
-    if MouseXChange <> 0 then
-      RotateHorizontal(-MouseXChange * MouseDraggingHorizontalRotationSpeed);
-    if MouseYChange <> 0 then
-      RotateVertical(-MouseYChange * MouseDraggingVerticalRotationSpeed);
+    MouseChange := Event.Position - Container.MousePosition;
+    if MouseChange[0] <> 0 then
+      RotateHorizontal(-MouseChange[0] * MouseDraggingHorizontalRotationSpeed);
+    if MouseChange[1] <> 0 then
+      RotateVertical(MouseChange[1] * MouseDraggingVerticalRotationSpeed);
     Result := ExclusiveEvents;
   end;
 end;
@@ -4596,12 +4580,12 @@ begin
   Result := Current.Release(Event);
 end;
 
-function TUniversalCamera.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+function TUniversalCamera.Motion(const Event: TInputMotion): boolean;
 begin
   Result := inherited;
   if Result then Exit;
 
-  Result := Current.MouseMove(OldX, OldY, NewX, NewY);
+  Result := Current.Motion(Event);
 end;
 
 procedure TUniversalCamera.SetContainer(const Value: TUIContainer);

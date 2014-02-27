@@ -20,11 +20,12 @@
 {$I castlewindow_dialogs_by_messages.inc}
 
 {$ifdef read_interface_uses}
+CastleAndroidNativeWindow, CastleAndroidInput,
 CastleAndroidNativeAppGlue, CastleGenericLists,
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleAndroidNativeWindow, CastleAndroidInput, CastleAndroidLooper,
+CastleAndroidLooper,
 CastleAndroidLog, CastleAndroidAssetStream, CastleConfig,
 {$endif}
 
@@ -36,17 +37,30 @@ private
 {$ifdef read_application_interface}
 private
   type
+    TTouch = object
+      OldPosition, Position: TVector2Single;
+    end;
+
     TQueuedEventType = (aeOpen, aeMotionDown, aeMotionUp, aeMotionMove);
     TQueuedEvent = object
       EventType: TQueuedEventType;
-      MotionX, MotionY: Integer;
+      Touch: TTouch;
+      FingerIndex: TFingerIndex;
     end;
     TQueuedEventList = specialize TGenericStructList<TQueuedEvent>;
+
+  const
+    FingerCount = 20;
+
   var
     FScreenWidth, FScreenHeight: Integer;
     LastDoTimerTime: TMilisecTime;
     AndroidApp: PAndroid_App;
     QEvents: TQueuedEventList;
+    Touches: array [0..FingerCount - 1] of TTouch;
+
+  function HandleInput(App: PAndroid_app; Event: PAInputEvent): boolean;
+  procedure HandleCommand(App: PAndroid_app; Command: Integer);
 {$endif read_application_interface}
 
 {$ifdef read_implementation_uses}
@@ -95,9 +109,9 @@ begin
   end;
 end;
 
-procedure HandleCommand(App: PAndroid_app; Command: Integer);
+procedure TCastleApplication.HandleCommand(App: PAndroid_app; Command: Integer);
 var
-  QEvent: TCastleApplication.TQueuedEvent;
+  QEvent: TQueuedEvent;
   ConfigState: TStringStream;
 begin
   case Command of
@@ -106,16 +120,16 @@ begin
         { We will actually process this event (calling TCastleWindow.Open)
           later, to avoid ANRs when OnOpen does something time-consuming
           (like SceneManager.LoadLevel). }
-        Application.MainWindow.NativeWindow := App^.Window;
+        MainWindow.NativeWindow := App^.Window;
         QEvent.EventType := aeOpen;
-        Application.QEvents.Add(QEvent);
+        QEvents.Add(QEvent);
       end;
     APP_CMD_TERM_WINDOW:
       begin
         { Note that we cannot delay processing this event using
-          Application.QEvents. After CloseContext, window is really destroyed,
+          QEvents. After CloseContext, window is really destroyed,
           see android_app_post_exec_cmd in native app glue. }
-        Application.QEvents.Clear;
+        QEvents.Clear;
         CloseContext;
       end;
     APP_CMD_SAVE_STATE:
@@ -138,18 +152,27 @@ begin
   end;
 end;
 
-function HandleInput(App: PAndroid_app; Event: PAInputEvent): boolean;
+function TCastleApplication.HandleInput(App: PAndroid_app; Event: PAInputEvent): boolean;
+
+  function CurrentPosition(PointerIndex: Integer): TVector2Single;
+  begin
+    Result := Vector2Single(
+      AMotionEvent_getX(Event, PointerIndex),
+      ScreenHeight - AMotionEvent_getY(Event, PointerIndex));
+  end;
+
 var
-  MotionAction {, MotionIndex}: Integer;
-  QEvent: TCastleApplication.TQueuedEvent;
+  MotionAction, PointerIndex: Integer;
+  FingerIndex: TFingerIndex;
+  QEvent: TQueuedEvent;
+  NewPosition: TVector2Single;
+const
+  MinDistanceToReportMove = 0.5;
 begin
   Result := false;
   if AInputEvent_getType(Event) = AINPUT_EVENT_TYPE_MOTION then
   begin
     MotionAction := AMotionEvent_getAction(Event) and AMOTION_EVENT_ACTION_MASK;
-    // MotionIndex := AMotionEvent_getAction(Event) shr AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-    QEvent.MotionX := Round(AMotionEvent_getX(Event, 0));
-    QEvent.MotionY := Round(AMotionEvent_getY(Event, 0));
 
     { We do *not* call here directly DoMouseDown and such,
       as we *cannot* block HandleInput for indefinite amount of time
@@ -164,20 +187,58 @@ begin
     case MotionAction of
       AMOTION_EVENT_ACTION_DOWN:
         begin
-          QEvent.EventType := aeMotionDown;
-          Application.QEvents.Add(QEvent);
+          FingerIndex := AMotionEvent_getPointerId(Event, 0);
+          if FingerIndex < FingerCount then
+          begin
+            { update Touches }
+            Touches[FingerIndex].OldPosition := Touches[FingerIndex].Position;
+            Touches[FingerIndex].Position := CurrentPosition(0);
+
+            QEvent.EventType := aeMotionDown;
+            QEvent.FingerIndex := FingerIndex;
+            QEvent.Touch := Touches[FingerIndex];
+            QEvents.Add(QEvent);
+          end;
           Result := true;
         end;
       AMOTION_EVENT_ACTION_UP:
         begin
-          QEvent.EventType := aeMotionUp;
-          Application.QEvents.Add(QEvent);
+          FingerIndex := AMotionEvent_getPointerId(Event, 0);
+          if FingerIndex < FingerCount then
+          begin
+            { update Touches }
+            Touches[FingerIndex].OldPosition := Touches[FingerIndex].Position;
+            Touches[FingerIndex].Position := CurrentPosition(0);
+
+            QEvent.EventType := aeMotionUp;
+            QEvent.FingerIndex := FingerIndex;
+            QEvent.Touch := Touches[FingerIndex];
+            QEvents.Add(QEvent);
+          end;
           Result := true;
         end;
       AMOTION_EVENT_ACTION_MOVE:
         begin
-          QEvent.EventType := aeMotionMove;
-          Application.QEvents.Add(QEvent);
+          for PointerIndex := 0 to AMotionEvent_getPointerCount(Event) - 1 do
+          begin
+            FingerIndex := AMotionEvent_getPointerId(Event, PointerIndex);
+            if FingerIndex < FingerCount then
+            begin
+              NewPosition := CurrentPosition(PointerIndex);
+              if PointsDistanceSqr(NewPosition, Touches[FingerIndex].Position) >
+                 Sqr(MinDistanceToReportMove) then
+              begin
+                { update Touches }
+                Touches[FingerIndex].OldPosition := Touches[FingerIndex].Position;
+                Touches[FingerIndex].Position := NewPosition;
+
+                QEvent.EventType := aeMotionMove;
+                QEvent.FingerIndex := FingerIndex;
+                QEvent.Touch := Touches[FingerIndex];
+                QEvents.Add(QEvent);
+              end;
+            end;
+          end;
           Result := true;
         end;
     end;
@@ -318,17 +379,14 @@ begin
   Result := true;
 end;
 
-procedure TCastleWindowCustom.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2Single);
 begin
   { There is no cursor position on Android devices.
     Just update MouseX,Y properties (although we're not really required to
     do this, code using SetMousePosition should not depend that
     it was always successfull). }
   if not Closed then
-  begin
-    FMouseX := NewMouseX;
-    FMouseY := NewMouseY;
-  end;
+    FMousePosition := Value;
 end;
 
 procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
@@ -379,7 +437,9 @@ var
   Ident, Events, NewWidth, NewHeight: Integer;
   Source: Pandroid_poll_source;
   QEvent: TQueuedEvent;
+  MessageHandlingBegin: TTimerResult;
 begin
+  MessageHandlingBegin := Timer;
   repeat
     if WaitForMessage and AllowSuspendForInput and
       { Unfortunately, we have to be more conservative than
@@ -413,13 +473,13 @@ begin
           aeOpen: OpenContext;
           aeMotionDown:
             if not MainWindow.Closed then
-              MainWindow.DoMouseDown(QEvent.MotionX, QEvent.MotionY, mbLeft);
+              MainWindow.DoMouseDown(QEvent.Touch.Position, mbLeft, QEvent.FingerIndex);
           aeMotionUp  :
             if not MainWindow.Closed then
-              MainWindow.DoMouseUp  (QEvent.MotionX, QEvent.MotionY, mbLeft);
+              MainWindow.DoMouseUp  (QEvent.Touch.Position, mbLeft, QEvent.FingerIndex);
           aeMotionMove:
             if not MainWindow.Closed then
-              MainWindow.DoMouseMove(QEvent.MotionX, QEvent.MotionY);
+              MainWindow.DoMotion   (InputMotion(QEvent.Touch.OldPosition, QEvent.Touch.Position, [mbLeft], QEvent.FingerIndex));
         end;
       end;
 
@@ -429,7 +489,9 @@ begin
       CloseContext;
       Exit(false);
     end;
-  until false;
+
+  // loop condition avoids being clogged with motion events
+  until (Timer - MessageHandlingBegin) / TimerFrequency > 1 / LimitFPS;
 
   if (MainWindow <> nil) and not MainWindow.Closed then
   begin
@@ -466,6 +528,8 @@ begin
   if QEvents = nil then
     QEvents := TQueuedEventList.Create else
     QEvents.Clear;
+
+  FillByte(Touches, SizeOf(Touches), 0);
 
   { since we have AndroidApp now, prepare it }
   AndroidApp^.OnAppCmd := @HandleCommand;

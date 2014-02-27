@@ -26,21 +26,29 @@ var
 implementation
 
 uses SysUtils, CastleControls, CastleImages, CastleLog, CastleColors,
-  CastleFilesUtils, CastleKeysMouse;
+  CastleFilesUtils, CastleKeysMouse, CastleVectors;
 
 var
   ImageControl: TCastleImageControl;
-  BrushWhite: TRGBAlphaImage;
-  BrushYellow: TRGBAlphaImage;
+  Brushes: array [0..6] of TRGBAlphaImage;
 
 procedure ApplicationInitialize;
+
+  function LoadBrush(const Name: string): TRGBAlphaImage;
+  begin
+    Result := LoadImage(ApplicationData('brush_' + Name + '.png'), [TRGBAlphaImage]) as TRGBAlphaImage;
+    Result.PremultiplyAlpha; // makes drawing this image much faster
+  end;
+
 begin
   InitializeLog('1.0.0');
 
-  BrushWhite := LoadImage(ApplicationData('brush_white.png'), [TRGBAlphaImage]) as TRGBAlphaImage;
-  BrushWhite.PremultiplyAlpha; // makes drawing this image much faster
-  BrushYellow := LoadImage(ApplicationData('brush_yellow.png'), [TRGBAlphaImage]) as TRGBAlphaImage;
-  BrushYellow.PremultiplyAlpha;
+  Brushes[0] := LoadBrush('red');
+  Brushes[1] := LoadBrush('green');
+  Brushes[2] := LoadBrush('blue');
+  Brushes[3] := LoadBrush('cross_red');
+  Brushes[4] := LoadBrush('cross_green');
+  Brushes[5] := LoadBrush('cross_blue');
 
   ImageControl := TCastleImageControl.Create(Window);
   Window.Controls.InsertFront(ImageControl);
@@ -78,33 +86,45 @@ begin
   end;
 end;
 
-procedure Draw(X, Y: Integer);
+procedure Draw(const Position: TVector2Single; const BrushIndex: TFingerIndex);
 var
   Brush: TCastleImage;
+  X, Y: Integer;
 begin
-  if mbLeft in Window.MousePressed then
-    Brush := BrushWhite else
-    Brush := BrushYellow;
-  X := X - Brush.Width div 2;
-  Y := Window.Height - Y - Brush.Height div 2;
+  { not enough brushes, this means your touch device supports > High(Brushes) + 1
+    simultaneous touches. }
+  if BrushIndex > High(Brushes) then Exit;
+
+  Brush := Brushes[BrushIndex];
+  X := Round(Position[0]) - Brush.Width div 2;
+  Y := Round(Position[1]) - Brush.Height div 2;
   Brush.DrawTo(ImageControl.Image, X, Y);
   ImageControl.ImageChanged;
 end;
 
-procedure WindowPress(Container: TUIContainer; const Input: TInputPressRelease);
+procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
 begin
-  Draw(Container.MouseX, Container.MouseY);
+  if Event.EventType = itMouseButton then
+    Draw(Event.Position, Event.FingerIndex);
 end;
 
-procedure WindowMouseMove(Container: TUIContainer; NewX, NewY: Integer);
+procedure WindowMotion(Container: TUIContainer; const Event: TInputMotion);
 begin
-  if Window.MousePressed <> [] then
-    Draw(NewX, NewY);
+  if Event.Pressed <> [] then
+    Draw(Event.Position, Event.FingerIndex);
 end;
 
 function MyGetApplicationName: string;
 begin
   Result := 'drawing_toy';
+end;
+
+procedure ApplicationFinalize;
+var
+  I: Integer;
+begin
+  for I := Low(Brushes) to High(Brushes) do
+    FreeAndNil(Brushes[I]);
 end;
 
 initialization
@@ -119,8 +139,7 @@ initialization
   Window.OnRender := @WindowRender;
   Window.OnResize := @WindowResize;
   Window.OnPress := @WindowPress;
-  Window.OnMouseMove := @WindowMouseMove;
+  Window.OnMotion := @WindowMotion;
 finalization
-  FreeAndNil(BrushWhite);
-  FreeAndNil(BrushYellow);
+  ApplicationFinalize;
 end.

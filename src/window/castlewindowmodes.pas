@@ -46,7 +46,7 @@ type
       TWindowState = class
       strict private
         Window: TCastleWindowCustom;
-        OldMouseMove: TMouseMoveEvent;
+        OldMotion: TInputMotionEvent;
         OldPress, OldRelease: TInputPressReleaseEvent;
         OldOpenObject, OldCloseObject: TContainerObjectEvent;
         OldBeforeRender, OldRender, OldCloseQuery, OldUpdate, OldTimer: TContainerEvent;
@@ -262,7 +262,7 @@ begin
   OldCloseObject := Window.OnCloseObject;
   { Note that we do not touch OnOpen and OnClose. Let them happen.
     Our WindowOpen/Close will also call origina OnOpenObject/Close. }
-  OldMouseMove := Window.OnMouseMove;
+  OldMotion := Window.OnMotion;
   OldPress := Window.OnPress;
   OldRelease := Window.OnRelease;
   OldBeforeRender := Window.OnBeforeRender;
@@ -294,7 +294,7 @@ destructor TGLMode.TWindowState.Destroy;
 begin
   Window.OnOpenObject := OldOpenObject;
   Window.OnCloseObject := OldCloseObject;
-  Window.OnMouseMove := OldMouseMove;
+  Window.OnMotion := OldMotion;
   Window.OnPress := OldPress;
   Window.OnRelease := OldRelease;
   Window.OnBeforeRender := OldBeforeRender;
@@ -366,7 +366,7 @@ procedure TGLMode.TWindowState.SetStandardState(
 begin
   Window.OnOpenObject := @WindowOpen;
   Window.OnCloseObject := @WindowClose;
-  Window.OnMouseMove := nil;
+  Window.OnMotion := nil;
   Window.OnPress := nil;
   Window.OnRelease := nil;
   Window.OnBeforeRender := nil;
@@ -407,7 +407,7 @@ constructor TGLMode.Create(AWindow: TCastleWindowCustom);
       all mouse buttons and key presses now. }
     for Button := Low(Button) to High(Button) do
       if Button in Window.MousePressed then
-        Window.Container.EventRelease(InputMouseButton(Button));
+        Window.Container.EventRelease(InputMouseButton(Window.MousePosition, Button, 0));
     for Key := Low(Key) to High(Key) do
       if Window.Pressed[Key] then
         Window.Container.EventRelease(InputKey(Key, #0));
@@ -463,7 +463,7 @@ begin
       Window.Container.EventResize;
     if FakeMouseDown then
       for Btn in Window.MousePressed do
-        Window.Container.EventPress(InputMouseButton(Btn));
+        Window.Container.EventPress(InputMouseButton(Window.MousePosition, Btn, 0));
 
     Window.Invalidate;
 

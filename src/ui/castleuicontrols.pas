@@ -20,7 +20,7 @@ interface
 
 uses SysUtils, Classes, CastleKeysMouse, CastleUtils, CastleClassUtils,
   CastleGenericLists, CastleRectangles, CastleTimeUtils, pk3DConnexion,
-  CastleImages;
+  CastleImages, CastleVectors;
 
 const
   { Default value for container's Dpi, as is usually set on desktops. }
@@ -39,8 +39,8 @@ type
 
   TContainerEvent = procedure (Container: TUIContainer);
   TContainerObjectEvent = procedure (Container: TUIContainer) of object;
-  TMouseMoveEvent = procedure (Container: TUIContainer; NewX, NewY: Integer);
   TInputPressReleaseEvent = procedure (Container: TUIContainer; const Event: TInputPressRelease);
+  TInputMotionEvent = procedure (Container: TUIContainer; const Event: TInputMotion);
 
   { Abstract user interface container. Connects OpenGL context management
     code with Castle Game Engine controls (TUIControl, that is the basis
@@ -66,7 +66,7 @@ type
     FOnBeforeRender, FOnRender: TContainerEvent;
     FOnResize: TContainerEvent;
     FOnPress, FOnRelease: TInputPressReleaseEvent;
-    FOnMouseMove: TMouseMoveEvent;
+    FOnMotion: TInputMotionEvent;
     FOnUpdate: TContainerEvent;
     { FControls cannot be declared as TUIControlList to avoid
       http://bugs.freepascal.org/view.php?id=22495 }
@@ -77,9 +77,9 @@ type
     FTooltipDelay: TMilisecTime;
     FTooltipDistance: Cardinal;
     FTooltipVisible: boolean;
-    FTooltipX, FTooltipY: Integer;
-    LastPositionForTooltip: boolean;
-    LastPositionForTooltipX, LastPositionForTooltipY: Integer;
+    FTooltipPosition: TVector2Single;
+    HasLastPositionForTooltip: boolean;
+    LastPositionForTooltip: TVector2Single;
     LastPositionForTooltipTime: TTimerResult;
     Mouse3d: T3DConnexionDevice;
     Mouse3dPollTimer: Single;
@@ -101,12 +101,15 @@ type
     property OnCloseObject: TContainerObjectEvent read FOnCloseObject write FOnCloseObject;
     property OnPress: TInputPressReleaseEvent read FOnPress write FOnPress;
     property OnRelease: TInputPressReleaseEvent read FOnRelease write FOnRelease;
-    property OnMouseMove: TMouseMoveEvent read FOnMouseMove write FOnMouseMove;
+    property OnMotion: TInputMotionEvent read FOnMotion write FOnMotion;
     property OnUpdate: TContainerEvent read FOnUpdate write FOnUpdate;
     { @groupEnd }
 
     procedure SetCursor(const Value: TMouseCursor); virtual; abstract;
     property Cursor: TMouseCursor write SetCursor;
+
+    function GetMousePosition: TVector2Single; virtual; abstract;
+    procedure SetMousePosition(const Value: TVector2Single); virtual; abstract;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -121,7 +124,7 @@ type
     function EventPress(const Event: TInputPressRelease): boolean;
     function EventRelease(const Event: TInputPressRelease): boolean;
     procedure EventUpdate;
-    procedure EventMouseMove(NewX, NewY: Integer);
+    procedure EventMotion(const Event: TInputMotion);
     function AllowSuspendForInput: boolean;
     procedure EventBeforeRender;
     procedure EventRender; virtual; abstract;
@@ -149,7 +152,7 @@ type
 
     { When the tooltip should be shown (mouse hovers over a control
       with a tooltip) then the TooltipVisible is set to @true,
-      and TooltipX, TooltipY indicate left-bottom suggested position
+      and TooltipPosition indicate left-bottom suggested position
       of the tooltip.
 
       The tooltip is only detected when TUIControl.TooltipExists.
@@ -159,8 +162,7 @@ type
       non-empty.
       @groupBegin }
     property TooltipVisible: boolean read FTooltipVisible;
-    property TooltipX: Integer read FTooltipX;
-    property TooltipY: Integer read FTooltipY;
+    property TooltipPosition: TVector2Single read FTooltipPosition;
     { @groupEnd }
 
     { Redraw the contents of of this window, at the nearest good time.
@@ -180,9 +182,8 @@ type
     function Height: Integer; virtual; abstract;
     function Rect: TRectangle; virtual; abstract;
 
-    function MouseX: Integer; virtual; abstract;
-    function MouseY: Integer; virtual; abstract;
-    procedure SetMousePosition(const NewMouseX, NewMouseY: Integer); virtual; abstract;
+    property MousePosition: TVector2Single
+      read GetMousePosition write SetMousePosition;
 
     function Dpi: Integer; virtual; abstract;
 
@@ -293,7 +294,8 @@ type
     function Release(const Event: TInputPressRelease): boolean; virtual;
     { @groupEnd }
 
-    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; virtual;
+    { Motion of mouse or touch. }
+    function Motion(const Event: TInputMotion): boolean; virtual;
 
     { Rotation detected by sensor.
       Used for example by 3Dconnexion devices or touch controls.
@@ -528,7 +530,7 @@ end;
       Always treated like @false when GetExists returns @false,
       so the implementation of this method only needs to make checks assuming that
       GetExists = @true.  }
-    function PositionInside(const X, Y: Integer): boolean; virtual;
+    function PositionInside(const Position: TVector2Single): boolean; virtual;
 
     { Prepare your resources, right before drawing.
       Called only when @link(GetExists) and GLInitialized. }
@@ -910,7 +912,7 @@ const
 
 implementation
 
-uses CastleVectors, CastleLog;
+uses CastleLog;
 
 { TContainerControls --------------------------------------------------------- }
 
@@ -1061,7 +1063,7 @@ procedure TUIContainer.UpdateFocusAndMouseCursor;
     for I := 0 to Controls.Count - 1 do
     begin
       C := Controls[I];
-      if C.GetExists and C.PositionInside(MouseX, MouseY) then
+      if C.GetExists and C.PositionInside(MousePosition) then
         Exit(C);
     end;
     Result := nil;
@@ -1102,13 +1104,12 @@ procedure TUIContainer.EventUpdate;
       Idea is that user must move the mouse very slowly to activate tooltip. }
 
     T := Fps.UpdateStartTime;
-    if (not LastPositionForTooltip) or
-       (Sqr(LastPositionForTooltipX - MouseX) +
-        Sqr(LastPositionForTooltipY - MouseY) > Sqr(TooltipDistance)) then
+    if (not HasLastPositionForTooltip) or
+       (PointsDistanceSqr(LastPositionForTooltip, MousePosition) >
+        Sqr(TooltipDistance)) then
     begin
-      LastPositionForTooltip := true;
-      LastPositionForTooltipX := MouseX;
-      LastPositionForTooltipY := MouseY;
+      HasLastPositionForTooltip := true;
+      LastPositionForTooltip := MousePosition;
       LastPositionForTooltipTime := T;
       NewTooltipVisible := false;
     end else
@@ -1128,16 +1129,14 @@ procedure TUIContainer.EventUpdate;
       if TooltipVisible then
       begin
         { when setting TooltipVisible from false to true,
-          update LastPositionForTooltipX/Y. We don't want to hide the tooltip
+          update LastPositionForTooltip. We don't want to hide the tooltip
           at the slightest jiggle of the mouse :) On the other hand,
-          we don't want to update LastPositionForTooltipX/Y more often,
+          we don't want to update LastPositionForTooltip more often,
           as it would disable the purpose of TooltipDistance: faster
           mouse movement should hide the tooltip. }
-        LastPositionForTooltipX := MouseX;
-        LastPositionForTooltipY := MouseY;
-        { also update TooltipX/Y }
-        FTooltipX := MouseX;
-        FTooltipY := MouseY;
+        LastPositionForTooltip := MousePosition;
+        { also update TooltipPosition }
+        FTooltipPosition := MousePosition;
       end;
 
       Invalidate;
@@ -1171,7 +1170,7 @@ begin
       for I := 0 to Controls.Count - 1 do
       begin
         C := Controls[I];
-        if C.GetExists and C.PositionInside(MouseX, MouseY) then
+        if C.GetExists and C.PositionInside(MousePosition) then
         begin
           C.SensorTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
           C.SensorRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
@@ -1199,7 +1198,7 @@ begin
     C := Controls[I];
     if C.GetExists then
     begin
-      if C.PositionInside(MouseX, MouseY) then
+      if C.PositionInside(MousePosition) then
       begin
         C.Update(Fps.UpdateSecondsPassed, HandleInput);
       end else
@@ -1223,7 +1222,7 @@ begin
   for I := 0 to Controls.Count - 1 do
   begin
     C := Controls[I];
-    if C.GetExists and C.PositionInside(MouseX, MouseY) then
+    if C.GetExists and C.PositionInside(Event.Position) then
       if C.Press(Event) then
       begin
         { We have to check whether C.Container = Self. That is because
@@ -1274,7 +1273,7 @@ begin
   for I := 0 to Controls.Count - 1 do
   begin
     C := Controls[I];
-    if C.GetExists and C.PositionInside(MouseX, MouseY) then
+    if C.GetExists and C.PositionInside(Event.Position) then
       if C.Release(Event) then
         Exit(true);
   end;
@@ -1356,7 +1355,7 @@ begin
   end;
 end;
 
-procedure TUIContainer.EventMouseMove(NewX, NewY: Integer);
+procedure TUIContainer.EventMotion(const Event: TInputMotion);
 var
   I: Integer;
   C: TUIControl;
@@ -1370,19 +1369,22 @@ begin
 
   if FCaptureInput <> nil then
   begin
-    FCaptureInput.MouseMove(MouseX, MouseY, NewX, NewY);
+    FCaptureInput.Motion(Event);
     Exit;
   end;
 
   for I := 0 to Controls.Count - 1 do
   begin
     C := Controls[I];
-    if C.GetExists and C.PositionInside(MouseX, MouseY) then
-      if C.MouseMove(MouseX, MouseY, NewX, NewY) then
+    if C.GetExists and C.PositionInside(Event.Position) then
+    begin
+      if C.Motion(Event) then
         Exit;
+    end;
   end;
 
-  if Assigned(OnMouseMove) then OnMouseMove(Self, NewX, NewY);
+  if Assigned(OnMotion) then
+    OnMotion(Self, Event);
 end;
 
 procedure TUIContainer.ControlsVisibleChange(Sender: TObject);
@@ -1445,7 +1447,7 @@ begin
   Result := false;
 end;
 
-function TInputListener.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+function TInputListener.Motion(const Event: TInputMotion): boolean;
 begin
   Result := false;
 end;
@@ -1554,7 +1556,7 @@ begin
   inherited;
 end;
 
-function TUIControl.PositionInside(const X, Y: Integer): boolean;
+function TUIControl.PositionInside(const Position: TVector2Single): boolean;
 begin
   Result := false;
 end;

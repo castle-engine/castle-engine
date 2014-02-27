@@ -144,7 +144,7 @@ begin
   Result := { TODO } true;
 end;
 
-procedure TCastleWindowCustom.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2Single);
 begin
   if not Closed then
     { TODO };

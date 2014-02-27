@@ -43,6 +43,7 @@ type
       Empty: TRectangle = (Left: 0; Bottom: 0; Width: 0; Height: 0);
 
     function Contains(const X, Y: Integer): boolean;
+    function Contains(const Point: TVector2Single): boolean;
 
     { Right and Top pixels are 1 pixel *outside* of the rectangle.
       @groupBegin }
@@ -106,6 +107,7 @@ type
     { Index of the first rectangle that contains point (X, Y).
       Returns -1 if not found. }
     function FindRectangle(const X, Y: Integer): Integer;
+    function FindRectangle(const Point: TVector2Single): Integer;
   end;
 
 function Rectangle(const Left, Bottom: Integer;
@@ -141,6 +143,12 @@ function TRectangle.Contains(const X, Y: Integer): boolean;
 begin
   Result := (X >= Left  ) and (X < Left   + Integer(Width)) and
             (Y >= Bottom) and (Y < Bottom + Integer(Height));
+end;
+
+function TRectangle.Contains(const Point: TVector2Single): boolean;
+begin
+  Result := (Point[0] >= Left  ) and (Point[0] < Left   + Integer(Width)) and
+            (Point[1] >= Bottom) and (Point[1] < Bottom + Integer(Height));
 end;
 
 function TRectangle.Center(const W, H: Cardinal): TRectangle;
@@ -293,6 +301,14 @@ function TRectangleList.FindRectangle(const X, Y: Integer): Integer;
 begin
   for Result := 0 to Count - 1 do
     if L[Result].Contains(X, Y) then
+      Exit;
+  Result := -1;
+end;
+
+function TRectangleList.FindRectangle(const Point: TVector2Single): Integer;
+begin
+  for Result := 0 to Count - 1 do
+    if L[Result].Contains(Point) then
       Exit;
   Result := -1;
 end;

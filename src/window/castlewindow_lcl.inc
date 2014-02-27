@@ -569,10 +569,11 @@ begin
   Result := false;
 end;
 
-procedure TCastleWindowCustom.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2Single);
 begin
   if not Closed then
-    Mouse.CursorPos := OpenGLControl.ControlToScreen(Point(NewMouseX, NewMouseY))
+    Mouse.CursorPos := OpenGLControl.ControlToScreen(
+      Point(Round(Value[0]), Height - Round(Value[1])));
 end;
 
 procedure TCastleWindowCustom.MenuItemClick(Sender: TObject);
@@ -641,7 +642,7 @@ var
   MyButton: CastleKeysMouse.TMouseButton;
 begin
   if MouseButtonLCLToCastle(Button, MyButton) then
-    DoMouseDown(X, Y, MyButton);
+    DoMouseDown(X, Height - Y, MyButton);
 end;
 
 procedure TCastleWindowCustom.OpenGLControlMouseUp(Sender: TObject;
@@ -650,7 +651,7 @@ var
   MyButton: CastleKeysMouse.TMouseButton;
 begin
   if MouseButtonLCLToCastle(Button, MyButton) then
-    DoMouseUp(X, Y, MyButton);
+    DoMouseUp(X, Height - Y, MyButton);
 end;
 
 { Since LCL event loop may become clogged when dragging with mouse
@@ -686,7 +687,7 @@ end;
 procedure TCastleWindowCustom.OpenGLControlMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Integer);
 begin
-  DoMouseMove(X, Y);
+  DoMouseMove(X, Height - Y);
   AggressiveUpdate;
 end;
 

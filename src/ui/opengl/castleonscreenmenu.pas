@@ -72,14 +72,14 @@ type
       Note that while the user holds the mouse clicked (MousePressed <> []),
       the mouse is "grabbed" by this accessory, and even when the user
       will move the mouse over other items, they will not receive their
-      MouseDown/MouseMove messages until user will let the mouse go.
+      MouseDown/Motion messages until user will let the mouse go.
       This prevents the bad situation when user does MouseDown e.g.
       on "Sound Volume" slider, slides it to the right and then accidentaly
       moves the mouse also a little down, and suddenly he's over "Music Volume"
       slider and he changed the position of "Music Volume" slider.
 
       You can use ParentMenu to call ParentMenu.AccessoryValueChanged. }
-    function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
+    function MouseDown(const Event: TInputPressRelease;
       const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu): boolean; virtual;
 
     { This will be called if user will move mouse over the currently selected
@@ -88,8 +88,7 @@ type
       Just like with MouseDown: This will be called only if NewX and NewY
       will be within appropriate Rectangle of accessory.
       You can use ParentMenu to call ParentMenu.AccessoryValueChanged. }
-    procedure MouseMove(const NewX, NewY: Integer;
-      const MousePressed: TMouseButtons;
+    procedure Motion(const Event: TInputMotion;
       const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu); virtual;
 
     { Should this accessory be freed when TCastleOnScreenMenu using it is freed.
@@ -189,11 +188,10 @@ type
     function KeyDown(Key: TKey; C: char;
       ParentMenu: TCastleOnScreenMenu): boolean; override;
 
-    function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
+    function MouseDown(const Event: TInputPressRelease;
       const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu): boolean; override;
 
-    procedure MouseMove(const NewX, NewY: Integer;
-      const MousePressed: TMouseButtons;
+    procedure Motion(const Event: TInputMotion;
       const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu); override;
 
     function ValueToStr(const AValue: Single): string; virtual;
@@ -222,11 +220,10 @@ type
     function KeyDown(Key: TKey; C: char;
       ParentMenu: TCastleOnScreenMenu): boolean; override;
 
-    function MouseDown(const MouseX, MouseY: Integer; Button: TMouseButton;
+    function MouseDown(const Event: TInputPressRelease;
       const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu): boolean; override;
 
-    procedure MouseMove(const NewX, NewY: Integer;
-      const MousePressed: TMouseButtons;
+    procedure Motion(const Event: TInputMotion;
       const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu); override;
 
     function ValueToStr(const AValue: Integer): string; virtual;
@@ -344,7 +341,7 @@ type
 
     { These change CurrentItem as appropriate.
       Usually you will just let this class call it internally
-      (from MouseMove, KeyDown etc.) and will not need to call it yourself.
+      (from Motion, KeyDown etc.) and will not need to call it yourself.
 
       @groupBegin }
     procedure NextItem;
@@ -366,7 +363,7 @@ type
       @unorderedList(
         @itemSpacing Compact
         @item Render
-        @item MouseMove
+        @item Motion
         @item Press
         @item Release
         @item Update
@@ -413,10 +410,10 @@ type
 
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
-    function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
-    function PositionInside(const X, Y: Integer): boolean; override;
+    function PositionInside(const Point: TVector2Single): boolean; override;
     function AllowSuspendForInput: boolean; override;
 
     { Called when user will select CurrentItem, either with mouse
@@ -632,16 +629,14 @@ begin
   Result := false;
 end;
 
-function TMenuAccessory.MouseDown(
-  const MouseX, MouseY: Integer; Button: TMouseButton;
+function TMenuAccessory.MouseDown(const Event: TInputPressRelease;
   const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu): boolean;
 begin
   { Nothing to do in this class. }
   Result := false;
 end;
 
-procedure TMenuAccessory.MouseMove(const NewX, NewY: Integer;
-  const MousePressed: TMouseButtons;
+procedure TMenuAccessory.Motion(const Event: TInputMotion;
   const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu);
 begin
   { Nothing to do in this class. }
@@ -798,29 +793,27 @@ begin
   end;
 end;
 
-function TMenuFloatSlider.MouseDown(
-  const MouseX, MouseY: Integer; Button: TMouseButton;
+function TMenuFloatSlider.MouseDown(const Event: TInputPressRelease;
   const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu): boolean;
 begin
   Result := inherited;
   if Result then Exit;
 
-  if Button = mbLeft then
+  if Event.MouseButton = mbLeft then
   begin
-    FValue := MapRange(XCoordToSliderPosition(MouseX, Rectangle), 0, 1,
+    FValue := MapRange(XCoordToSliderPosition(Event.Position[0], Rectangle), 0, 1,
       BeginRange, EndRange);
     ParentMenu.AccessoryValueChanged;
     Result := ParentMenu.ExclusiveEvents;
   end;
 end;
 
-procedure TMenuFloatSlider.MouseMove(const NewX, NewY: Integer;
-  const MousePressed: TMouseButtons;
+procedure TMenuFloatSlider.Motion(const Event: TInputMotion;
   const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu);
 begin
-  if mbLeft in MousePressed then
+  if mbLeft in Event.Pressed then
   begin
-    FValue := MapRange(XCoordToSliderPosition(NewX, Rectangle), 0, 1,
+    FValue := MapRange(XCoordToSliderPosition(Event.Position[0], Rectangle), 0, 1,
       BeginRange, EndRange);
     ParentMenu.AccessoryValueChanged;
   end;
@@ -894,27 +887,26 @@ begin
 end;
 
 function TMenuIntegerSlider.MouseDown(
-  const MouseX, MouseY: Integer; Button: TMouseButton;
+  const Event: TInputPressRelease;
   const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu): boolean;
 begin
   Result := inherited;
   if Result then Exit;
 
-  if Button = mbLeft then
+  if Event.MouseButton = mbLeft then
   begin
-    FValue := XCoordToValue(MouseX, Rectangle);
+    FValue := XCoordToValue(Event.Position[0], Rectangle);
     ParentMenu.AccessoryValueChanged;
     Result := ParentMenu.ExclusiveEvents;
   end;
 end;
 
-procedure TMenuIntegerSlider.MouseMove(const NewX, NewY: Integer;
-  const MousePressed: TMouseButtons;
+procedure TMenuIntegerSlider.Motion(const Event: TInputMotion;
   const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu);
 begin
-  if mbLeft in MousePressed then
+  if mbLeft in Event.Pressed then
   begin
-    FValue := XCoordToValue(NewX, Rectangle);
+    FValue := XCoordToValue(Event.Position[0], Rectangle);
     ParentMenu.AccessoryValueChanged;
   end;
 end;
@@ -1372,28 +1364,23 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
   function MouseDown(const Button: TMouseButton): boolean;
   var
     NewItemIndex: Integer;
-    MX, MY: Integer;
   begin
     Result := false;
 
-    { For TCastleOnScreenMenu, we like MouseY going higher from the bottom to the top. }
-    MX := Container.MouseX;
-    MY := ContainerHeight - Container.MouseY;
-
     if (CurrentItem <> -1) and
        (Items.Objects[CurrentItem] <> nil) and
-       FAccessoryRectangles.L[CurrentItem].Contains(MX, MY) and
+       FAccessoryRectangles.L[CurrentItem].Contains(Container.MousePosition) and
        (Container.MousePressed - [Button] = []) then
     begin
       ItemAccessoryGrabbed := CurrentItem;
       TMenuAccessory(Items.Objects[CurrentItem]).MouseDown(
-        MX, MY, Button, FAccessoryRectangles.L[CurrentItem], Self);
+        Event, FAccessoryRectangles.L[CurrentItem], Self);
       Result := ExclusiveEvents;
     end;
 
-    if Button = mbLeft then
+    if Event.MouseButton = mbLeft then
     begin
-      NewItemIndex := Rectangles.FindRectangle(MX, MY);
+      NewItemIndex := Rectangles.FindRectangle(Container.MousePosition);
       if NewItemIndex <> -1 then
       begin
         CurrentItem := NewItemIndex;
@@ -1412,21 +1399,20 @@ begin
   end;
 end;
 
-function TCastleOnScreenMenu.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
-var
-  MX, MY: Integer;
+function TCastleOnScreenMenu.Motion(const Event: TInputMotion): boolean;
 
   procedure ChangePosition;
   var
-    NewPositionAbsolute: TVector2Integer;
+    NewPositionAbsolute: TVector2Single;
   begin
-    NewPositionAbsolute := Vector2Integer(MX, MY);
-    { I want Position set such that (MX, MY) are lower/left corner
-      of menu rectangle. I know that
+    NewPositionAbsolute := Container.MousePosition;
+    { I want Position set such that Container.MousePosition
+      are lower/left corner of menu rectangle. I know that
         PositionAbsolute = Position + PositionScreenRelativeMove - PositionMenuRelativeMove;
-      (MX, MY) are new PositionAbsolute, so I can calculate from
-      this new desired Position value. }
-    Position := NewPositionAbsolute - PositionScreenRelativeMove + PositionMenuRelativeMove;
+      Container.MousePosition are new PositionAbsolute,
+      so I can calculate from this new desired Position value. }
+    Position[0] := Round(NewPositionAbsolute[0]) - PositionScreenRelativeMove[0] + PositionMenuRelativeMove[0];
+    Position[1] := Round(NewPositionAbsolute[1]) - PositionScreenRelativeMove[1] + PositionMenuRelativeMove[1];
     FixItemsRectangles;
   end;
 
@@ -1436,24 +1422,19 @@ begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
 
-  { For TCastleOnScreenMenu, we like MouseY going higher from the bottom to the top. }
-  MX := NewX;
-  MY := ContainerHeight - NewY;
-
-  NewItemIndex := Rectangles.FindRectangle(MX, MY);
+  NewItemIndex := Rectangles.FindRectangle(Event.Position);
   if NewItemIndex <> -1 then
   begin
     if NewItemIndex <> CurrentItem then
       CurrentItem := NewItemIndex else
     { If NewItemIndex = CurrentItem and NewItemIndex <> -1,
       then user just moves mouse within current item.
-      So maybe we should call TMenuAccessory.MouseMove. }
+      So maybe we should call TMenuAccessory.Motion. }
     if (Items.Objects[CurrentItem] <> nil) and
-       FAccessoryRectangles.L[CurrentItem].Contains(MX, MY) and
+       FAccessoryRectangles.L[CurrentItem].Contains(Event.Position) and
        (ItemAccessoryGrabbed = CurrentItem) then
-      TMenuAccessory(Items.Objects[CurrentItem]).MouseMove(
-        MX, MY, Container.MousePressed,
-        FAccessoryRectangles.L[CurrentItem], Self);
+      TMenuAccessory(Items.Objects[CurrentItem]).Motion(
+        Event, FAccessoryRectangles.L[CurrentItem], Self);
   end;
 
   if DesignerMode then
@@ -1523,19 +1504,15 @@ end;
 procedure TCastleOnScreenMenu.SetDesignerMode(const Value: boolean);
 begin
   if (not FDesignerMode) and Value and (Container <> nil) then
-  begin
-    Container.SetMousePosition(
-      Round(PositionAbsolute[0]),
-      ContainerHeight - Round(PositionAbsolute[1]));
-  end;
+    Container.MousePosition :=
+      Vector2Single(PositionAbsolute[0], PositionAbsolute[1]);
 
   FDesignerMode := Value;
 end;
 
-function TCastleOnScreenMenu.PositionInside(const X, Y: Integer): boolean;
+function TCastleOnScreenMenu.PositionInside(const Point: TVector2Single): boolean;
 begin
-  Result := FullSize or
-    FAllItemsRectangle.Contains(X, ContainerHeight - Y);
+  Result := FullSize or FAllItemsRectangle.Contains(Point);
 end;
 
 procedure TCastleOnScreenMenu.SetItems(const Value: TStringList);

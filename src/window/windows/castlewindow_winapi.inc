@@ -440,13 +440,13 @@ begin
              and read by MouseX, MouseY properties would be slightly different.
              And there are real cases when this is extremely important that they use
              exactly the same coordinate systems --- see e.g. mouse look handling in
-             TCastleWindowCustom.EventMouseMove.
+             TCastleWindowCustom.EventMotion.
 
           So what's the problem ? Well, if the window is not FullScreen, Left and Top
           as recorded in lParm are exactly what I want. But when FullScreen, Left and Top
           are always 0, 0 --- which means that they don't take menu bar height into
           account. The effect: mouse look + menu bar + fullscreen mode don't work
-          (i.e. user is unable to do mouse look, TCastleWindowCustom.EventMouseMove always
+          (i.e. user is unable to do mouse look, TCastleWindowCustom.EventMotion always
           ignores it). Tested on view3dscene.
 
           So I workaround this by adding CYMENU. This is not perfect, as this assumes
@@ -556,15 +556,18 @@ begin
             if (MK_MBUTTON and wParm) <> 0 then Include(fmousePressed, mbMiddle);
             if (MK_RBUTTON and wParm) <> 0 then Include(fmousePressed, mbRight);
           but it's not needed (we keep it current anyway my mousedown/up events). }
-        DoMouseMove( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint);
+        DoMotion(InputMotion(MousePosition, Vector2Single(
+                     TWinParam(lParm).LoSmallint,
+            Height - TWinParam(lParm).HiSmallint),
+          MousePressed, 0));
         exit;
       end;
-    WM_LBUTTONDOWN: begin MaybeCapture; DoMouseDown( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint, mbLeft);   Exit end;
-    WM_MBUTTONDOWN: begin MaybeCapture; DoMouseDown( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint, mbMiddle); Exit end;
-    WM_RBUTTONDOWN: begin MaybeCapture; DoMouseDown( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint, mbRight);  Exit end;
-    WM_LBUTTONUP  : begin DoMouseUp( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint, mbLeft);   MaybeRelease; Exit end;
-    WM_MBUTTONUP  : begin DoMouseUp( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint, mbMiddle); MaybeRelease; Exit end;
-    WM_RBUTTONUP  : begin DoMouseUp( TWinParam(lParm).LoSmallint, TWinParam(lParm).HiSmallint, mbRight);  MaybeRelease; Exit end;
+    WM_LBUTTONDOWN: begin MaybeCapture; DoMouseDown( TWinParam(lParm).LoSmallint, Height - TWinParam(lParm).HiSmallint, mbLeft);   Exit end;
+    WM_MBUTTONDOWN: begin MaybeCapture; DoMouseDown( TWinParam(lParm).LoSmallint, Height - TWinParam(lParm).HiSmallint, mbMiddle); Exit end;
+    WM_RBUTTONDOWN: begin MaybeCapture; DoMouseDown( TWinParam(lParm).LoSmallint, Height - TWinParam(lParm).HiSmallint, mbRight);  Exit end;
+    WM_LBUTTONUP  : begin DoMouseUp( TWinParam(lParm).LoSmallint, Height - TWinParam(lParm).HiSmallint, mbLeft);   MaybeRelease; Exit end;
+    WM_MBUTTONUP  : begin DoMouseUp( TWinParam(lParm).LoSmallint, Height - TWinParam(lParm).HiSmallint, mbMiddle); MaybeRelease; Exit end;
+    WM_RBUTTONUP  : begin DoMouseUp( TWinParam(lParm).LoSmallint, Height - TWinParam(lParm).HiSmallint, mbRight);  MaybeRelease; Exit end;
     WM_COMMAND    :
       { If this comes from a menu item, call DoMenuClick }
       if HiWord(wParm) = 0 then
@@ -835,10 +838,10 @@ begin
   { TODO }
 end;
 
-procedure TCastleWindowCustom.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2Single);
 begin
   if not Closed then
-    SetCursorPos(Left + NewMouseX, Top + NewMouseY);
+    SetCursorPos(Left + Value[0] + NewMouseX, Height - (Top + Value[1] + NewMouseY));
 end;
 
 procedure TCastleWindowCustom.CloseBackend;

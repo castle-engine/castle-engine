@@ -24,7 +24,7 @@ program window_events;
 
 uses SysUtils, CastleUtils, CastleGLUtils, CastleNotifications, CastleWindow,
   CastleKeysMouse, CastleStringUtils, CastleColors, Classes, CastleMessages,
-  CastleControls;
+  CastleControls, CastleVectors;
 
 var
   Window: TCastleWindowCustom;
@@ -103,11 +103,11 @@ begin
     'n': Window.Cursor := mcNone;
     'd': Window.Cursor := mcDefault;
     'w': Window.Cursor := mcWait;
-    '1': Window.SetMousePosition(0           , 0);
-    '2': Window.SetMousePosition(Window.Width, 0);
-    '3': Window.SetMousePosition(Window.Width, Window.Height);
-    '4': Window.SetMousePosition(0           , Window.Height);
-    '5': Window.SetMousePosition(Window.Width div 2, Window.Height div 2);
+    '1': Window.MousePosition := Vector2Single(0           , 0);
+    '2': Window.MousePosition := Vector2Single(Window.Width, 0);
+    '3': Window.MousePosition := Vector2Single(Window.Width, Window.Height);
+    '4': Window.MousePosition := Vector2Single(0           , Window.Height);
+    '5': Window.MousePosition := Vector2Single(Window.Width / 2, Window.Height / 2);
   end;
 
   { Test what messages happen when switching FullScreen }
@@ -120,10 +120,13 @@ begin
   Notifications.Show('Release message : ' + Event.Description);
 end;
 
-procedure MouseMove(Container: TUIContainer; newX, newY: integer);
+procedure Motion(Container: TUIContainer; const Event: TInputMotion);
 begin
-  Notifications.Show(Format('Mouse Move : old pos %d %d, new pos %d %d',
-    [Window.MouseX, Window.MouseY, newX, newY]));
+  Notifications.Show(Format('Motion : old pos %f %f, new pos %f %f',
+    [ Event.OldPosition[0],
+      Event.OldPosition[1],
+      Event.Position[0],
+      Event.Position[1] ]));
 end;
 
 begin
@@ -138,7 +141,7 @@ begin
   Window.OnRender := @Render;
   Window.OnPress := @Press;
   Window.OnRelease := @Release;
-  Window.OnMouseMove := @MouseMove;
+  Window.OnMotion := @Motion;
   Window.SetDemoOptions(K_F11, CharEscape, true);
 
   Window.OnUpdate := @Update;

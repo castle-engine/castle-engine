@@ -554,7 +554,7 @@ SIGNAL_GLAREA_BEGIN
   Result := PasToGbool((Event^._type = GDK_BUTTON_PRESS) and
     ButtonNumberToMouseButton(Event^.button, mb));
   if GboolToPas(Result) then
-    DoMouseDown(Round(Event^.x), Round(Event^.y), mb);
+    DoMouseDown(Vector2Single(Event^.x, Height - Event^.y), mb, 0);
 SIGNAL_GLAREA_END;
 
 function signal_button_release_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButton;
@@ -564,13 +564,14 @@ SIGNAL_GLAREA_BEGIN
   Result := PasToGbool((Event^._type = GDK_BUTTON_RELEASE) and
     ButtonNumberToMouseButton(Event^.button, mb));
   if GboolToPas(Result) then
-    DoMouseUp(Round(Event^.x), Round(Event^.y), mb);
+    DoMouseUp(Vector2Single(Event^.x, Height - Event^.y), mb, 0);
 SIGNAL_GLAREA_END;
 
 function signal_motion_notify_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventMotion;
   data: gpointer): gboolean; cdecl;
 SIGNAL_GLAREA_BEGIN
-  DoMouseMove(Round(Event^.x), Round(Event^.y));
+  DoMotion(InputMotion(MousePosition,
+    Vector2Single(Event^.x, Height - Event^.y), MousePressed, 0));
   Result := g_true;
 SIGNAL_GLAREA_END;
 
@@ -724,7 +725,7 @@ procedure gdk_window_get_root_coords(Window: PGdkWindow;
   X, Y: GInt; RootX, RootY: PGInt); cdecl; external gtklib;
 {$endif}
 
-procedure TCastleWindowCustom.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2Single);
 {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
 { With older GDK/GTK, you had to use XWarpPointer to position mouse.
   We still use it, for now, for GTK under Xlib --- this way we work
@@ -735,7 +736,7 @@ begin
       gdk_x11_drawable_get_xdisplay(GTK_WIDGET(GLAreaGtk)^.Window),
       X.None,
       gdk_x11_drawable_get_xid(GTK_WIDGET(GLAreaGtk)^.Window),
-      0, 0, 0, 0, NewMouseX, NewMouseY);
+      0, 0, 0, 0, Round(Value[0]), Height - Round(Value[1]));
 {$else}
 var
   RootX, RootY: GInt;
@@ -743,7 +744,7 @@ begin
   if not Closed then
   begin
     gdk_window_get_root_coords(GTK_WIDGET(GLAreaGtk)^.Window,
-      NewMouseX, NewMouseY, @RootX, @RootY);
+      Round(Value[0]), Height - Round(Value[1]), @RootX, @RootY);
     gdk_display_warp_pointer(Application.XDisplayGdk,
       Application.XScreenGdk, RootX, RootY);
   end;

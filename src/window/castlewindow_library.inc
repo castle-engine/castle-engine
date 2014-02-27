@@ -146,10 +146,10 @@ begin
   { TODO: call LibraryCallbackProc with custom cursor shape, if you want this }
 end;
 
-procedure TCastleWindowCustom.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2Single);
 begin
   if not Closed then
-    { TODO: call LibraryCallbackProc to move mouse cursor to NewMouseX, NewMouseY };
+    { TODO: call LibraryCallbackProc to move mouse cursor to Value };
 end;
 
 procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
