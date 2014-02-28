@@ -382,7 +382,7 @@ end;
 procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2Single);
 begin
   { There is no cursor position on Android devices.
-    Just update MouseX,Y properties (although we're not really required to
+    Just update MousePosition (although we're not really required to
     do this, code using SetMousePosition should not depend that
     it was always successfull). }
   if not Closed then

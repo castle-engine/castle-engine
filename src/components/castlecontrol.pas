@@ -57,7 +57,7 @@ type
       @item(FPS (frames per second) counter inside @link(Fps).)
 
       @item(Tracks pressed keys @link(Pressed) and mouse buttons @link(MousePressed)
-        and mouse position (@link(MouseX), @link(MouseY)).)
+        and mouse position @link(MousePosition).)
     ) }
   TCastleControlCustom = class(TOpenGLControl)
   private

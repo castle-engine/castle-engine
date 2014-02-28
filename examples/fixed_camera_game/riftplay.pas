@@ -187,8 +187,7 @@ begin
       begin
         if Event.MouseButton = mbLeft then
         begin
-          SceneCamera.CustomRay(Window.Rect, Window.Height,
-            Window.MouseX, Window.MouseY,
+          SceneCamera.CustomRay(Window.Rect, Window.MousePosition,
             { Always uses perspective projection, for now }
             true, Vector2Single(AngleOfViewX, AngleOfViewY), ZeroVector4Single,
             RayOrigin, RayDirection);

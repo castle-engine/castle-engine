@@ -417,8 +417,8 @@ begin
     glGetIntegerv(GL_VIEWPORT, @Viewport);
 
     { My first try was to just take
-        UnProject(NewX         , Window.Height - NewY         , 0),
-        UnProject(Window.MouseX, Window.Height - Window.MouseY, 0)
+        UnProject(Event.   Position[0], Event.   Position[1], 0),
+        UnProject(Event.OldPosition[0], Event.OldPosition[1], 0)
       That is, to set WinZ parameter of UnProject to an arbitrary value.
 
       This was correct assumption

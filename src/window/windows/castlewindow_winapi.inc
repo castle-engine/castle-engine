@@ -453,7 +453,7 @@ begin
 
           1. Left and Top are said in unit's interface to work like that
           2. SetMousePosition requires this. Otherwise positions set by SetMousePosition
-             and read by MouseX, MouseY properties would be slightly different.
+             and read by MousePosition properties would be slightly different.
              And there are real cases when this is extremely important that they use
              exactly the same coordinate systems --- see e.g. mouse look handling in
              TCastleWindowCustom.EventMotion.

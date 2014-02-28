@@ -58,18 +58,16 @@ type
     function KeyDown(Key: TKey; C: char;
       ParentMenu: TCastleOnScreenMenu): boolean; virtual;
 
-    { This will be called if user will click mouse when currently
+    { Called when user clicks the mouse when currently
       selected item has this TMenuAccessory.
 
-      MouseX, Y passed here are in coords where MouseY goes up from the bottom
-      to the top. (This is different than usual window system coords.)
+      Called only if Event.MousePosition is within
+      current Rectangle (place on screen) of this accessory.
+      This Rectangle is also passed here, so you can e.g. calculate mouse position
+      relative to current accessory as (Event.Position[0] - Rectangle.Left,
+      Event.Position[1] - Rectangle.Bottom).
 
-      This will be called only if MouseX and MouseY will be within
-      appropriate Rectangle of this accessory. This Rectangle is also
-      passed here, so you can e.g. calculate mouse position
-      relative to this accessory as (MouseX - Rectangle.Left, MouseY - Rectangle.Bottom).
-
-      Note that while the user holds the mouse clicked (MousePressed <> []),
+      Note that while the user holds the mouse clicked (Event.Pressed <> []),
       the mouse is "grabbed" by this accessory, and even when the user
       will move the mouse over other items, they will not receive their
       MouseDown/Motion messages until user will let the mouse go.
@@ -82,11 +80,11 @@ type
     function MouseDown(const Event: TInputPressRelease;
       const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu): boolean; virtual;
 
-    { This will be called if user will move mouse over the currently selected
-      menu item and menu item will have this accessory.
+    { Called when user moves the mouse over the currently selected
+      menu item and menu item has this accessory.
 
-      Just like with MouseDown: This will be called only if NewX and NewY
-      will be within appropriate Rectangle of accessory.
+      Just like with MouseDown: This will be called only if Event.Position
+      is within appropriate Rectangle of accessory.
       You can use ParentMenu to call ParentMenu.AccessoryValueChanged. }
     procedure Motion(const Event: TInputMotion;
       const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu); virtual;

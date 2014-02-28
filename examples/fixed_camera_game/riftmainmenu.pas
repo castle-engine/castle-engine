@@ -51,7 +51,7 @@ type
     property ExclusiveEvents default false;
     { Always treat like inside --- the menu is the only thing with
       which user interacts. }
-    function PositionInside(const X, Y: Integer): boolean; override;
+    function PositionInside(const Point: TVector2Single): boolean; override;
     { Since PositionInside is always @true, no point in visualizing focused. }
     property DrawFocusedBorder default false;
   end;
@@ -176,7 +176,7 @@ begin
   DrawFocusedBorder := false;
 end;
 
-function TRiftMenu.PositionInside(const X, Y: Integer): boolean;
+function TRiftMenu.PositionInside(const Point: TVector2Single): boolean;
 begin
   Result := true;
 end;
