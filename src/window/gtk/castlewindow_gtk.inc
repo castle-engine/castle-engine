@@ -554,7 +554,7 @@ SIGNAL_GLAREA_BEGIN
   Result := PasToGbool((Event^._type = GDK_BUTTON_PRESS) and
     ButtonNumberToMouseButton(Event^.button, mb));
   if GboolToPas(Result) then
-    DoMouseDown(Vector2Single(Event^.x, Height - Event^.y), mb, 0);
+    DoMouseDown(Vector2Single(Event^.x, Height - 1 - Event^.y), mb, 0);
 SIGNAL_GLAREA_END;
 
 function signal_button_release_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButton;
@@ -564,14 +564,14 @@ SIGNAL_GLAREA_BEGIN
   Result := PasToGbool((Event^._type = GDK_BUTTON_RELEASE) and
     ButtonNumberToMouseButton(Event^.button, mb));
   if GboolToPas(Result) then
-    DoMouseUp(Vector2Single(Event^.x, Height - Event^.y), mb, 0);
+    DoMouseUp(Vector2Single(Event^.x, Height - 1 - Event^.y), mb, 0);
 SIGNAL_GLAREA_END;
 
 function signal_motion_notify_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventMotion;
   data: gpointer): gboolean; cdecl;
 SIGNAL_GLAREA_BEGIN
   DoMotion(InputMotion(MousePosition,
-    Vector2Single(Event^.x, Height - Event^.y), MousePressed, 0));
+    Vector2Single(Event^.x, Height - 1 - Event^.y), MousePressed, 0));
   Result := g_true;
 SIGNAL_GLAREA_END;
 
@@ -736,7 +736,7 @@ begin
       gdk_x11_drawable_get_xdisplay(GTK_WIDGET(GLAreaGtk)^.Window),
       X.None,
       gdk_x11_drawable_get_xid(GTK_WIDGET(GLAreaGtk)^.Window),
-      0, 0, 0, 0, Round(Value[0]), Height - Round(Value[1]));
+      0, 0, 0, 0, Floor(Value[0]), Height - 1 - Floor(Value[1]));
 {$else}
 var
   RootX, RootY: GInt;
@@ -744,7 +744,7 @@ begin
   if not Closed then
   begin
     gdk_window_get_root_coords(GTK_WIDGET(GLAreaGtk)^.Window,
-      Round(Value[0]), Height - Round(Value[1]), @RootX, @RootY);
+      Floor(Value[0]), Height - 1 - Floor(Value[1]), @RootX, @RootY);
     gdk_display_warp_pointer(Application.XDisplayGdk,
       Application.XScreenGdk, RootX, RootY);
   end;

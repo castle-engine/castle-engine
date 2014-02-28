@@ -2718,7 +2718,7 @@ uses CastleParameters, CastleLog, CastleGLVersion, CastleURIUtils, CastleWarning
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
   {$undef read_implementation_uses}
-  X3DLoad;
+  X3DLoad, Math;
 
 {$define read_implementation}
 

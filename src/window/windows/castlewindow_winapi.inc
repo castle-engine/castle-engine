@@ -344,6 +344,22 @@ function TCastleWindowCustom.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM
     if Key <> K_None then DoKeyUp(Key);
   end;
 
+  procedure HandleMouseDown(const Button: TMouseButton);
+  begin
+    MaybeCapture;
+    DoMouseDown(Vector2Single(
+                   TWinParam(lParm).LoSmallint,
+      Height - 1 - TWinParam(lParm).HiSmallint), Button, 0);
+  end;
+
+  procedure HandleMouseUp(const Button: TMouseButton);
+  begin
+    DoMouseUp(Vector2Single(
+                   TWinParam(lParm).LoSmallint,
+      Height - 1 - TWinParam(lParm).HiSmallint), Button, 0);
+    MaybeRelease;
+  end;
+
 { FPC <= 2.2.4 doesn't define WM_MOUSEHWHEEL in rtl/win/wininc/messages.inc }
 {$ifdef VER2_0} const WM_MOUSEHWHEEL= $020E; {$endif}
 {$ifdef VER2_2} const WM_MOUSEHWHEEL= $020E; {$endif}
@@ -555,19 +571,19 @@ begin
             if (MK_LBUTTON and wParm) <> 0 then Include(fmousePressed, mbLeft);
             if (MK_MBUTTON and wParm) <> 0 then Include(fmousePressed, mbMiddle);
             if (MK_RBUTTON and wParm) <> 0 then Include(fmousePressed, mbRight);
-          but it's not needed (we keep it current anyway my mousedown/up events). }
+          but it's not needed (we keep it current anyway in mousedown/up events). }
         DoMotion(InputMotion(MousePosition, Vector2Single(
-                     TWinParam(lParm).LoSmallint,
-            Height - TWinParam(lParm).HiSmallint),
+                         TWinParam(lParm).LoSmallint,
+            Height - 1 - TWinParam(lParm).HiSmallint),
           MousePressed, 0));
-        exit;
+        Exit;
       end;
-    WM_LBUTTONDOWN: begin MaybeCapture; DoMouseDown( TWinParam(lParm).LoSmallint, Height - TWinParam(lParm).HiSmallint, mbLeft);   Exit end;
-    WM_MBUTTONDOWN: begin MaybeCapture; DoMouseDown( TWinParam(lParm).LoSmallint, Height - TWinParam(lParm).HiSmallint, mbMiddle); Exit end;
-    WM_RBUTTONDOWN: begin MaybeCapture; DoMouseDown( TWinParam(lParm).LoSmallint, Height - TWinParam(lParm).HiSmallint, mbRight);  Exit end;
-    WM_LBUTTONUP  : begin DoMouseUp( TWinParam(lParm).LoSmallint, Height - TWinParam(lParm).HiSmallint, mbLeft);   MaybeRelease; Exit end;
-    WM_MBUTTONUP  : begin DoMouseUp( TWinParam(lParm).LoSmallint, Height - TWinParam(lParm).HiSmallint, mbMiddle); MaybeRelease; Exit end;
-    WM_RBUTTONUP  : begin DoMouseUp( TWinParam(lParm).LoSmallint, Height - TWinParam(lParm).HiSmallint, mbRight);  MaybeRelease; Exit end;
+    WM_LBUTTONDOWN: begin HandleMouseDown(mbLeft  ); Exit end;
+    WM_MBUTTONDOWN: begin HandleMouseDown(mbMiddle); Exit end;
+    WM_RBUTTONDOWN: begin HandleMouseDown(mbRight ); Exit end;
+    WM_LBUTTONUP  : begin HandleMouseUp(mbLeft  ); Exit end;
+    WM_MBUTTONUP  : begin HandleMouseUp(mbMiddle); Exit end;
+    WM_RBUTTONUP  : begin HandleMouseUp(mbRight ); Exit end;
     WM_COMMAND    :
       { If this comes from a menu item, call DoMenuClick }
       if HiWord(wParm) = 0 then
@@ -841,7 +857,7 @@ end;
 procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2Single);
 begin
   if not Closed then
-    SetCursorPos(Left + Value[0] + NewMouseX, Height - (Top + Value[1] + NewMouseY));
+    SetCursorPos(Left + Floor(Value[0]), Top + Height - 1 - Floor(Value[1]));
 end;
 
 procedure TCastleWindowCustom.CloseBackend;
