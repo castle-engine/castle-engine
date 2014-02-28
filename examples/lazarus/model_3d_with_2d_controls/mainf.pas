@@ -67,7 +67,8 @@ begin
 
     (Images (TCastleImageControl) actually also obscure scene underneath, but since
     they do not handle any keys or mouse by default, they let themn through
-    to 3d scene. This could be changed by overriding their MouseDown etc.) }
+    to 3d scene. This could be changed by overriding their
+    TCastleImageControl.Press etc.) }
 
   Browser.Controls.InsertFront(SampleButton);
   Browser.Controls.InsertFront(SampleImage);

@@ -965,11 +965,11 @@ type
          update MousePosition }
     procedure DoMotion(const Event: TInputMotion);
     { DoMouseDown/Up:
-        update MousePosition (so that before EventMouseDown/Up position
+        update MousePosition (so that before EventPress/EventRelease position
           of the mouse is set to the current, precise, position)
         update MousePressed
         MakeCurrent
-        EventMouseDown/Up }
+        EventPress/EventRelease }
     procedure DoMouseDown(const Position: TVector2Single;
       Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex = 0);
     procedure DoMouseUp(const Position: TVector2Single;
@@ -1774,10 +1774,10 @@ end;
     { @section(Mouse state) -------------------------------------------------- }
 
     { Currently pressed mouse buttons. When this changes, you're always
-      notified by OnMouseDown or OnMouseUp calls.
+      notified by OnPress or OnRelease calls.
 
       This value is always current, in particular it's already updated
-      when we call events OnMouseDown and OnMouseUp. }
+      before we call events OnPress or OnRelease. }
     property MousePressed: TMouseButtons read FMousePressed;
 
     { Place for your pointer, for any purposes.

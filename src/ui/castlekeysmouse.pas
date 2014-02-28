@@ -444,9 +444,8 @@ type
   TFingerIndex = Cardinal;
 
   { Input press or release event.
-    Either key press/release (see TUIControl.KeyDown, TUIControl.KeyUp) or
-    mouse button press/release (see TUIControl.MouseDown, TUIControl.MouseUp) or
-    mouse wheel action (see TUIControl.MouseWheel).
+    Either key press/release or mouse button press/release or
+    mouse wheel action.
     This is nicely matching with TInputShortcut processing in CastleInputs,
     so it allows to easily store and check for user actions. }
   TInputPressRelease = object
