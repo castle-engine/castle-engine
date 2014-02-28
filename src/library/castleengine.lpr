@@ -156,34 +156,34 @@ begin
   end;
 end;
 
-procedure CGE_MouseDown(X, Y: CInt32; bLeftBtn: cBool); cdecl;
+procedure CGE_MouseDown(X, Y: CInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 var
   MyButton: TMouseButton;
 begin
   try
     if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
-    Window.LibraryMouseDown(X, Y, MyButton);
+    Window.LibraryMouseDown(Vector2Single(X, Y), MyButton, FingerIndex);
   except
     on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
-procedure CGE_MouseMove(X, Y: CInt32); cdecl;
+procedure CGE_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
 begin
   try
-    Window.LibraryMouseMove(X, Y);
+    Window.LibraryMotion(Vector2Single(X, Y), FingerIndex);
   except
     on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
 
-procedure CGE_MouseUp(x, y: cInt32; bLeftBtn: cBool); cdecl;
+procedure CGE_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 var
   MyButton: TMouseButton;
 begin
   try
     if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
-    Window.LibraryMouseUp(x, y, MyButton);
+    Window.LibraryMouseUp(Vector2Single(X, Y), MyButton, FingerIndex);
   except
     on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
@@ -393,7 +393,7 @@ begin
         WalkCamera := cgehelper_getWalkCamera;
         if WalkCamera <> nil then begin
           if nValue>0 then
-            WalkCamera.HeadBobbing := 0.015 {DefaultHeadBobbing} else
+            WalkCamera.HeadBobbing := TWalkCamera.DefaultHeadBobbing else
             WalkCamera.HeadBobbing := 0.0;
         end;
       end;
@@ -438,7 +438,7 @@ end;
 exports
   CGE_Open, CGE_Close, CGE_GetOpenGLInformation,
   CGE_Render, CGE_Resize, CGE_SetLibraryCallbackProc, CGE_Update,
-  CGE_MouseDown, CGE_MouseMove, CGE_MouseUp, CGE_MouseWheel,
+  CGE_MouseDown, CGE_Motion, CGE_MouseUp, CGE_MouseWheel,
   CGE_LoadSceneFromFile, CGE_GetNavigationType, CGE_SetNavigationType,
   CGE_GetViewpointsCount, CGE_GetViewpointName, CGE_MoveToViewpoint, CGE_AddViewpointFromCurrentView,
   CGE_GetBoundingBox, CGE_GetViewCoords, CGE_MoveViewToCoords, CGE_SaveScreenshotToFile,

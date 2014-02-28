@@ -36,13 +36,16 @@ public
 
   { External library code must notify our window instance about various events
     by calling these methods. }
-  procedure LibraryKeyDown(Key: TKey; CharKey: char);
-  procedure LibraryKeyUp(key: TKey);
-  procedure LibraryMouseMove(X, Y: Integer);
-  procedure LibraryMouseDown(X, Y: Integer; Btn: CastleKeysMouse.TMouseButton);
-  procedure LibraryMouseUp(X, Y: Integer; Btn: CastleKeysMouse.TMouseButton);
+  procedure LibraryKeyDown(const Key: TKey; const CharKey: char);
+  procedure LibraryKeyUp(const Key: TKey);
+  procedure LibraryMotion(const Position: TVector2Single;
+    const FingerIndex: TFingerIndex);
+  procedure LibraryMouseDown(const Position: TVector2Single;
+    const Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex);
+  procedure LibraryMouseUp(const Position: TVector2Single;
+    const Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex);
   procedure LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
-  procedure LibraryResize(AWidth, AHeight: Integer);
+  procedure LibraryResize(const AWidth, AHeight: Integer);
   procedure LibraryRender;
 {$endif read_window_interface}
 
@@ -160,29 +163,36 @@ end;
 
 { LibraryXxx methods --------------------------------------------------------- }
 
-procedure TCastleWindowCustom.LibraryKeyDown(Key: TKey; CharKey: char);
+procedure TCastleWindowCustom.LibraryKeyDown(const Key: TKey; const CharKey: char);
 begin
   DoKeyDown(Key, CharKey);
 end;
 
-procedure TCastleWindowCustom.LibraryKeyUp(Key: TKey);
+procedure TCastleWindowCustom.LibraryKeyUp(const Key: TKey);
 begin
   DoKeyUp(Key);
 end;
 
-procedure TCastleWindowCustom.LibraryMouseMove(X, Y: Integer);
+procedure TCastleWindowCustom.LibraryMotion(
+  const Position: TVector2Single; const FingerIndex: TFingerIndex);
 begin
-  DoMouseMove(X, Y);
+  { TODO: MousePosition as OldPosition, and using MousePressed as Pressed,
+    is only OK without multi-touch. }
+  DoMotion(InputMotion(MousePosition, Position, MousePressed, FingerIndex));
 end;
 
-procedure TCastleWindowCustom.LibraryMouseDown(X, Y: Integer; Btn: CastleKeysMouse.TMouseButton);
+procedure TCastleWindowCustom.LibraryMouseDown(
+  const Position: TVector2Single; const Button: CastleKeysMouse.TMouseButton;
+  const FingerIndex: TFingerIndex);
 begin
-  DoMouseDown(X, Y, Btn);
+  DoMouseDown(Position, Button, FingerIndex);
 end;
 
-procedure TCastleWindowCustom.LibraryMouseUp(X, Y: Integer; Btn: CastleKeysMouse.TMouseButton);
+procedure TCastleWindowCustom.LibraryMouseUp(
+  const Position: TVector2Single; const Button: CastleKeysMouse.TMouseButton;
+  const FingerIndex: TFingerIndex);
 begin
-  DoMouseUp(X, Y, Btn);
+  DoMouseUp(Position, Button, FingerIndex);
 end;
 
 procedure TCastleWindowCustom.LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
@@ -190,7 +200,7 @@ begin
   DoMouseWheel(Scroll, Vertical);
 end;
 
-procedure TCastleWindowCustom.LibraryResize(AWidth, AHeight: Integer);
+procedure TCastleWindowCustom.LibraryResize(const AWidth, AHeight: Integer);
 begin
   DoResize(AWidth, AHeight, false);
 end;
