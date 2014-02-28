@@ -129,7 +129,8 @@ end;
 
 procedure TCastleWindowCustom.TGoodOpenGLControl.Invalidate;
 begin
-  Window.Invalidate;
+  // track our own Invalidated state, although still cooperate with LCL invalidate
+  Window.Invalidated := true;
   inherited;
 end;
 
@@ -572,8 +573,8 @@ end;
 procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2Single);
 begin
   if not Closed then
-    Mouse.CursorPos := OpenGLControl.ControlToScreen(
-      Floor(Value[0]), Height - 1 - Floor(Value[1]));
+    Mouse.CursorPos := OpenGLControl.ControlToScreen(Point(
+      Floor(Value[0]), Height - 1 - Floor(Value[1])));
 end;
 
 procedure TCastleWindowCustom.MenuItemClick(Sender: TObject);
@@ -682,6 +683,12 @@ begin
 
     if Invalidated then DoRender;
   end;
+end;
+
+procedure TCastleWindowCustom.Invalidate;
+begin
+  if not Closed then
+    OpenGLControl.Invalidate;
 end;
 
 procedure TCastleWindowCustom.OpenGLControlMouseMove(Sender: TObject;
