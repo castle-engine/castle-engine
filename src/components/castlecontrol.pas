@@ -67,17 +67,16 @@ type
       TContainer = class(TGLContainer)
       private
         Parent: TCastleControlCustom;
+      protected
+        function GetMousePosition: TVector2Single; override;
+        procedure SetMousePosition(const Value: TVector2Single); override;
       public
         constructor Create(AParent: TCastleControlCustom); reintroduce;
-
         procedure Invalidate; override;
         function GLInitialized: boolean; override;
         function Width: Integer; override;
         function Height: Integer; override;
         function Rect: TRectangle; override;
-        function MouseX: Integer; override;
-        function MouseY: Integer; override;
-        procedure SetMousePosition(const NewMouseX, NewMouseY: Integer); override;
         function Dpi: Integer; override;
         function MousePressed: TMouseButtons; override;
         function Pressed: TKeysPressed; override;
@@ -86,8 +85,7 @@ type
       end;
     var
     FContainer: TContainer;
-    FMouseX: Integer;
-    FMouseY: Integer;
+    FMousePosition: TVector2Single;
     FGLInitialized: boolean;
     FPressed: TKeysPressed;
     FMousePressed: CastleKeysMouse.TMouseButtons;
@@ -123,8 +121,9 @@ type
     procedure SetOnPress(const Value: TInputPressReleaseEvent);
     function GetOnRelease: TInputPressReleaseEvent;
     procedure SetOnRelease(const Value: TInputPressReleaseEvent);
-    function GetOnMouseMove: TMouseMoveEvent;
-    procedure SetOnMouseMove(const Value: TMouseMoveEvent);
+    function GetOnMotion: TInputMotionEvent;
+    procedure SetOnMotion(const Value: TInputMotionEvent);
+    procedure SetMousePosition(const Value: TVector2Single);
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
@@ -155,25 +154,9 @@ type
     property MousePressed: CastleKeysMouse.TMouseButtons read FMousePressed;
     procedure ReleaseAllKeysAndMouse;
 
-    property MouseX: Integer read FMouseX;
-    property MouseY: Integer read FMouseY;
+    property MousePosition: TVector2Single read FMousePosition write SetMousePosition;
 
     property Fps: TFramesPerSecond read FFps;
-
-    { Place mouse cursor at NewMouseX and NewMouseY.
-      Position is specified relative to this window's upper-top corner
-      (more specifically, OpenGL area upper-top corner),
-      just like MouseX and MouseY properties.
-
-      Note that the actually set position may be different than requested,
-      for example if part of the window is offscreen then
-      window manager will probably refuse to move mouse cursor offscreen.
-
-      This @italic(may) generate normal OnMouseMove event, just as if the
-      user moved the mouse. But it's also allowed to not do this.
-
-      Ignored when window is closed. }
-    procedure SetMousePosition(const NewMouseX, NewMouseY: Integer);
 
     { Color buffer where we draw, and from which it makes sense to grab pixels.
       Use with SaveScreen_NoFlush. }
@@ -196,7 +179,7 @@ type
     property OnClose: TContainerEvent read GetOnClose write SetOnClose;
     property OnPress: TInputPressReleaseEvent read GetOnPress write SetOnPress;
     property OnRelease: TInputPressReleaseEvent read GetOnRelease write SetOnRelease;
-    property OnMouseMove: TMouseMoveEvent read GetOnMouseMove write SetOnMouseMove;
+    property OnMotion: TInputMotionEvent read GetOnMotion write SetOnMotion;
     property OnUpdate: TContainerEvent read GetOnUpdate write SetOnUpdate;
   published
     property TabOrder;
@@ -282,7 +265,7 @@ var
 
 implementation
 
-uses LCLType, CastleGL, CastleGLUtils, CastleStringUtils, X3DLoad,
+uses LCLType, CastleGL, CastleGLUtils, CastleStringUtils, X3DLoad, Math,
   CastleLog, Contnrs, CastleLCLUtils;
 
 procedure Register;
@@ -435,19 +418,14 @@ begin
   Result := Parent.Rect;
 end;
 
-function TCastleControlCustom.TContainer.MouseX: Integer;
+function TCastleControlCustom.TContainer.GetMousePosition: TVector2Single;
 begin
-  Result := Parent.MouseX;
+  Result := Parent.MousePosition;
 end;
 
-function TCastleControlCustom.TContainer.MouseY: Integer;
+procedure TCastleControlCustom.TContainer.SetMousePosition(const Value: TVector2Single);
 begin
-  Result := Parent.MouseY;
-end;
-
-procedure TCastleControlCustom.TContainer.SetMousePosition(const NewMouseX, NewMouseY: Integer);
-begin
-  Parent.SetMousePosition(NewMouseX, NewMouseY);
+  Parent.MousePosition := Value;
 end;
 
 function TCastleControlCustom.TContainer.Dpi: Integer;
@@ -679,8 +657,7 @@ procedure TCastleControlCustom.MouseDown(Button: Controls.TMouseButton;
 var
   MyButton: CastleKeysMouse.TMouseButton;
 begin
-  FMouseX := X;
-  FMouseY := Y;
+  FMousePosition := Vector2Single(X, Height - 1 - Y);
 
   if MouseButtonLCLToCastle(Button, MyButton) then
     Include(FMousePressed, MyButton);
@@ -690,7 +667,7 @@ begin
   inherited MouseDown(Button, Shift, X, Y); { LCL OnMouseDown before our callbacks }
 
   if MouseButtonLCLToCastle(Button, MyButton) then
-    Container.EventPress(InputMouseButton(MyButton));
+    Container.EventPress(InputMouseButton(MousePosition, MyButton, 0));
 end;
 
 procedure TCastleControlCustom.MouseUp(Button: Controls.TMouseButton;
@@ -698,8 +675,7 @@ procedure TCastleControlCustom.MouseUp(Button: Controls.TMouseButton;
 var
   MyButton: CastleKeysMouse.TMouseButton;
 begin
-  FMouseX := X;
-  FMouseY := Y;
+  FMousePosition := Vector2Single(X, Height - 1 - Y);
 
   if MouseButtonLCLToCastle(Button, MyButton) then
     Exclude(FMousePressed, MyButton);
@@ -709,7 +685,7 @@ begin
   inherited MouseUp(Button, Shift, X, Y); { LCL OnMouseUp before our callbacks }
 
   if MouseButtonLCLToCastle(Button, MyButton) then
-    Container.EventRelease(InputMouseButton(MyButton));
+    Container.EventRelease(InputMouseButton(MousePosition, MyButton, 0));
 end;
 
 procedure TCastleControlCustom.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
@@ -800,9 +776,11 @@ procedure TCastleControlCustom.MouseMove(Shift: TShiftState; NewX, NewY: Integer
   end;
 
 begin
-  Container.EventMouseMove(NewX, NewY);
-  FMouseX := NewX;  // change FMouseXY *after* EventMouseMove, callbacks may depend on it
-  FMouseY := NewY;
+  Container.EventMotion(InputMotion(MousePosition,
+    Vector2Single(NewX, Height - 1 - NewY), MousePressed, 0));
+
+  // change FMousePosition *after* EventMotion, callbacks may depend on it
+  FMousePosition := Vector2Single(NewX, Height - 1 - NewY);
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
   AggressiveUpdate;
@@ -866,9 +844,10 @@ begin
   Result := SaveScreen_NoFlush(Rect, SaveScreenBuffer);
 end;
 
-procedure TCastleControlCustom.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+procedure TCastleControlCustom.SetMousePosition(const Value: TVector2Single);
 begin
-  Mouse.CursorPos := ControlToScreen(Point(NewMouseX, NewMouseY));
+  Mouse.CursorPos := ControlToScreen(Point(
+    Floor(Value[0]), Height - 1 - Floor(Value[1])));
 end;
 
 function TCastleControlCustom.Rect: TRectangle;
@@ -961,14 +940,14 @@ begin
   Container.OnRelease := Value;
 end;
 
-function TCastleControlCustom.GetOnMouseMove: TMouseMoveEvent;
+function TCastleControlCustom.GetOnMotion: TInputMotionEvent;
 begin
-  Result := Container.OnMouseMove;
+  Result := Container.OnMotion;
 end;
 
-procedure TCastleControlCustom.SetOnMouseMove(const Value: TMouseMoveEvent);
+procedure TCastleControlCustom.SetOnMotion(const Value: TInputMotionEvent);
 begin
-  Container.OnMouseMove := Value;
+  Container.OnMotion := Value;
 end;
 
 { TCastleControl ----------------------------------------------------------- }

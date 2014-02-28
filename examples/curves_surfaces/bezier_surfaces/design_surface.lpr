@@ -352,8 +352,8 @@ procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
       for J := 0 to ControlPoints(I).Count - 1 do
       begin
         Project(ControlPoints(I).L[J], WinX, WinY);
-        Distance := Sqr(WinX - Window.MouseX) +
-                    Sqr(WinY - (Window.Height - Window.MouseY));
+        Distance := Sqr(WinX - Event.Position[0]) +
+                    Sqr(WinY - Event.Position[1]);
         if Distance < BestDistance then
         begin
           BestCurve := I;
@@ -384,7 +384,7 @@ begin
     Dragging := false;
 end;
 
-procedure MouseMove(Container: TUIContainer; NewX, NewY: integer);
+procedure Motion(Container: TUIContainer; const Event: TInputMotion);
 var
   ModelMatrix, ProjMatrix: T16dArray;
   Viewport: TViewPortArray;
@@ -440,8 +440,8 @@ begin
     WinZ := ProjectToZ(ControlPoints(CurrentCurve).L[CurrentPoint]);
 
     Move := Vector3Single(VectorSubtract(
-      UnProject(NewX         , Window.Height - NewY         , WinZ),
-      UnProject(Window.MouseX, Window.Height - Window.MouseY, WinZ)));
+      UnProject(Event.   Position[0], Event.   Position[1], WinZ),
+      UnProject(Event.OldPosition[0], Event.OldPosition[1], WinZ)));
     VectorAddTo1st(ControlPoints(CurrentCurve).L[CurrentPoint], Move);
     (Surface.Curves[CurrentCurve] as TControlPointsCurve).UpdateControlPoints;
     Window.Invalidate;
@@ -463,7 +463,7 @@ begin
   { Once I thought that I should turn here Dragging off,
     since the selected point moved (and Camera.Matrix changed...)
     But, thanks to the fact that we actually move the point only
-    inside MouseMove (not e.g. in MouseUp), everything works OK.
+    inside Motion (not e.g. in MouseUp), everything works OK.
   Dragging := false;
   }
 end;
@@ -639,7 +639,7 @@ begin
   Window.OnUpdate := @Update;
   Window.OnPress := @Press;
   Window.OnRelease := @Release;
-  Window.OnMouseMove := @MouseMove;
+  Window.OnMotion := @Motion;
   Window.OnRender := @Render;
   Window.RenderStyle := rs2D;
   Window.SetDemoOptions(K_F11, CharEscape, true);

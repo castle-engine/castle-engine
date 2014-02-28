@@ -63,11 +63,11 @@ begin
   PreviousSoundPosition := SoundPosition;
 end;
 
-procedure MouseMove(Container: TUIContainer; NewX, NewY: Integer);
+procedure Motion(Container: TUIContainer; const Event: TInputMotion);
 begin
-  if mbLeft in Window.MousePressed then
+  if mbLeft in Event.Pressed then
   begin
-    SoundPosition := Vector3Single(NewX, Window.Height - NewY);
+    SoundPosition := Vector3Single(Event.Position[0], Event.Position[1], 0);
     if Sound <> nil then
       Sound.Position := SoundPosition * ALDistanceScaling;
     Window.Invalidate;
@@ -100,7 +100,7 @@ begin
     Window.OnTimer := @Timer;
     Window.OnRender := @Render;
     Window.RenderStyle := rs2D;
-    Window.OnMouseMove := @MouseMove;
+    Window.OnMotion := @Motion;
     Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.OpenAndRun;
   finally

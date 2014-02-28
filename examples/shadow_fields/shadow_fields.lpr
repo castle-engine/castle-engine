@@ -15,7 +15,7 @@
 
 { Shadow fields demo. See README.
 
-  Run with 0 to 3 parameters: URLs (usually filenames) of shadow caster, 
+  Run with 0 to 3 parameters: URLs (usually filenames) of shadow caster,
   shadow receiver,
   light source. All three things must be 3D models understood by my engine
   (X3D, VRML, Collada, etc.), for shadow caster and light source there
@@ -237,7 +237,7 @@ begin
   CustomHeadlight := nil;
 end;
 
-procedure MouseMove(Container: TUIContainer; NewX, NewY: Integer);
+procedure Motion(Container: TUIContainer; const Event: TInputMotion);
 var
   W2, H2: Integer;
   X, Y: Single;
@@ -246,16 +246,16 @@ begin
   begin
     W2 := Window.Width div 2;
     H2 := Window.Height div 2;
-    X := NewX;
-    Y := Window.Height - NewY;
+    X := Event.Position[0];
+    Y := Event.Position[1];
     X := (X - W2) / 100;
     Y := (Y - H2) / 100;
-    if mbLeft in Window.MousePressed then
+    if mbLeft in Event.Pressed then
     begin
       NavigatorData[Navigator].Pos := Vector3Single(X, Y, 0);
       Window.Invalidate;
     end else
-    if mbRight in Window.MousePressed then
+    if mbRight in Event.Pressed then
     begin
       NavigatorData[Navigator].Scale := Sqrt(Sqr(X) + Sqr(Y));
       Window.Invalidate;
@@ -638,7 +638,7 @@ begin
     Window.OnMenuClick := @MenuClick;
     Window.OnOpen := @Open;
     Window.OnClose := @Close;
-    Window.OnMouseMove := @MouseMove;
+    Window.OnMotion := @Motion;
     Window.SetDemoOptions(K_F11, CharEscape, true);
 
     { initialize UseShadowFieldsChanged }
