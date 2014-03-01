@@ -18,13 +18,23 @@ unit CastleTerrain;
 
 interface
 
-uses SysUtils, Classes, CastleScript, CastleImages;
+uses SysUtils, Classes, CastleScript, CastleImages, X3DNodes,
+  CastleVectors;
 
 type
+  TTerrain = class;
+
+  TColorFromHeightFunction =
+    function (Terrain: TTerrain; Height: Single): TVector3Single;
+
   { Terrain (height for each X, Y) data. }
   TTerrain = class
   public
     function Height(const X, Y: Single): Single; virtual; abstract;
+    { Create X3D node with the given terrain. }
+    function CreateNode(const Dimensions: Cardinal;
+      const Size: Single; const XRange, ZRange: TVector2Single;
+      const ColorFromHeight: TColorFromHeightFunction): TShapeNode;
   end;
 
   { Terrain (height for each X, Y) data taken from intensities in an image.
@@ -298,6 +308,50 @@ type
 implementation
 
 uses CastleUtils, CastleScriptParser, CastleNoise, Math, CastleDownload;
+
+{ TTerrain ------------------------------------------------------------------- }
+
+function TTerrain.CreateNode(const Dimensions: Cardinal;
+  const Size: Single; const XRange, ZRange: TVector2Single;
+  const ColorFromHeight: TColorFromHeightFunction): TShapeNode;
+var
+  X, Z: Cardinal;
+  Grid: TElevationGridNode;
+  Appearance: TAppearanceNode;
+  Color: TColorNode;
+begin
+  Result := TShapeNode.Create('', '');
+
+  Grid := TElevationGridNode.Create('', '');
+  Result.FdGeometry.Value := Grid;
+  Grid.FdCreaseAngle.Value := 4; { > pi, to be perfectly smooth }
+  Grid.FdXDimension.Value := Dimensions;
+  Grid.FdZDimension.Value := Dimensions;
+  Grid.FdXSpacing.Value := Size / (Dimensions - 1);
+  Grid.FdZSpacing.Value := Size / (Dimensions - 1);
+  Grid.FdHeight.Items.Count := Dimensions * Dimensions;
+
+  Color := TColorNode.Create('', '');
+  Grid.FdColor.Value := Color;
+  Color.FdColor.Items.Count := Dimensions * Dimensions;
+
+  for X := 0 to Dimensions - 1 do
+    for Z := 0 to Dimensions - 1 do
+    begin
+      Grid.FdHeight.Items.L[X + Z * Dimensions] := Height(
+        MapRange(X, 0, Dimensions, XRange[0], XRange[1]),
+        MapRange(Z, 0, Dimensions, ZRange[0], ZRange[1]));
+
+      Color.FdColor.Items.L[X + Z * Dimensions] :=
+        ColorFromHeight(Self, Grid.FdHeight.Items.L[X + Z * Dimensions]);
+    end;
+
+  Appearance := TAppearanceNode.Create('', '');
+  Result.Appearance := Appearance;
+
+  { add any material, to be lit (even without shaders) }
+  Appearance.FdMaterial.Value := TMaterialNode.Create('', '');
+end;
 
 { TTerrainImage ------------------------------------------------------------ }
 

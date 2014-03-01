@@ -508,9 +508,9 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
   procedure ExportToX3D(const URL: string;
     const AddShadersTextures: boolean);
   var
-    CountSteps, X, Z: Cardinal;
-    Size, MinX, MinZ, MaxX, MaxZ: Extended;
-    Grid: TElevationGridNode;
+    CountSteps: Cardinal;
+    Size: Single;
+    XRange, ZRange: TVector2Single;
     Root: TX3DRootNode;
     Shape: TShapeNode;
     Shader: TComposedShaderNode;
@@ -518,58 +518,27 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
     TexBread: TImageTextureNode;
     TexRock: TImageTextureNode;
     Part: TShaderPartNode;
-    Appearance: TAppearanceNode;
-    Color: TColorNode;
   begin
     CountSteps := 1 shl Subdivision + 1;
     Size := BaseSize * 2;
     { Note about XY (our TTerrain) -> XZ (X3D TerrainNode) conversion:
       we change Y into Z, this also means that Z must go into the other
       direction (when Y increases, Z decreases) to produce the same look. }
-    MinX := WalkCamera.Position[0] - Size/2;
-    MinZ := WalkCamera.Position[1] + Size/2; // Z direction is inverted
-    MaxX := WalkCamera.Position[0] + Size/2;
-    MaxZ := WalkCamera.Position[1] - Size/2; // Z direction is inverted
+    XRange[0] := WalkCamera.Position[0] - Size/2;
+    ZRange[0] := WalkCamera.Position[1] + Size/2; // Z direction is inverted
+    XRange[1] := WalkCamera.Position[0] + Size/2;
+    ZRange[1] := WalkCamera.Position[1] - Size/2; // Z direction is inverted
 
     Root := TX3DRootNode.Create('', '');
     try
-      Shape := TShapeNode.Create('', '');
+      Shape := CurrentTerrain.CreateNode(CountSteps, Size, XRange, ZRange,
+        @ColorFromHeight);
       Root.FdChildren.Add(Shape);
-
-      Grid := TElevationGridNode.Create('', '');
-      Shape.FdGeometry.Value := Grid;
-      Grid.FdCreaseAngle.Value := 4; { > pi, to be perfectly smooth }
-      Grid.FdXDimension.Value := CountSteps;
-      Grid.FdZDimension.Value := CountSteps;
-      Grid.FdXSpacing.Value := Size / (CountSteps - 1);
-      Grid.FdZSpacing.Value := Size / (CountSteps - 1);
-      Grid.FdHeight.Items.Count := CountSteps * CountSteps;
-
-      Color := TColorNode.Create('', '');
-      Grid.FdColor.Value := Color;
-      Color.FdColor.Items.Count := CountSteps * CountSteps;
-
-      for X := 0 to CountSteps - 1 do
-        for Z := 0 to CountSteps - 1 do
-        begin
-          Grid.FdHeight.Items.L[X + Z * CountSteps] := CurrentTerrain.Height(
-            MapRange(X, 0, CountSteps, MinX, MaxX),
-            MapRange(Z, 0, CountSteps, MinZ, MaxZ));
-
-          Color.FdColor.Items.L[X + Z * CountSteps] :=
-            ColorFromHeight(CurrentTerrain, Grid.FdHeight.Items.L[X + Z * CountSteps]);
-        end;
-
-      Appearance := TAppearanceNode.Create('', '');
-      Shape.FdAppearance.Value := Appearance;
-
-      { add any material, to be lit (even without shaders) }
-      Appearance.FdMaterial.Value := TMaterialNode.Create('', '');
 
       if AddShadersTextures then
       begin
         Shader := TComposedShaderNode.Create('', '');
-        Appearance.FdShaders.Add(Shader);
+        Shape.Appearance.FdShaders.Add(Shader);
         Shader.FdLanguage.Value := 'GLSL';
 
         { Add shader. Setup everything, like for rendering (without fog). }
