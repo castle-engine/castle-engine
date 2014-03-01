@@ -13,21 +13,21 @@
   ----------------------------------------------------------------------------
 }
 
-{ Elevation (terrain) implementations. }
-unit Elevations;
+{ Terrain (height map) implementations. }
+unit CastleTerrain;
 
 interface
 
 uses SysUtils, Classes, CastleScript, CastleImages;
 
 type
-  { Elevation (height for each X, Y) data. }
-  TElevation = class
+  { Terrain (height for each X, Y) data. }
+  TTerrain = class
   public
     function Height(const X, Y: Single): Single; virtual; abstract;
   end;
 
-  { Elevation (height for each X, Y) data taken from intensities in an image.
+  { Terrain (height for each X, Y) data taken from intensities in an image.
 
     The image covers (ImageX1, ImageY1) ... (ImageX2, ImageY2)
     area in XY plane. If you ask for Height outside of this range,
@@ -36,7 +36,7 @@ type
     ImageHeightScale).
 
     When image is not loaded, this always returns height = 0. }
-  TElevationImage = class(TElevation)
+  TTerrainImage = class(TTerrain)
   private
     { FImage = nil and FImageURL = '' when not loaded. }
     FImage: TGrayscaleImage;
@@ -66,14 +66,14 @@ type
     property ImageY2: Single read FImageY2 write FImageY2 default 1;
   end;
 
-  { Elevation (height for each X, Y) data calculated from CastleScript
+  { Terrain (height for each X, Y) data calculated from CastleScript
     expression. At construction, pass FunctionExpression,
     that is CastleScript language expression calculating height
     based on X, Y.
 
-    This descends from TElevationImage, so you add an image to
+    This descends from TTerrainImage, so you add an image to
     your function result. }
-  TElevationCasScript = class(TElevationImage)
+  TTerrainCasScript = class(TTerrainImage)
   private
     FXVariable, FYVariable: TCasScriptFloat;
     FFunction: TCasScriptExpression;
@@ -86,7 +86,7 @@ type
   TNoiseInterpolation = (niNone, niLinear, niCosine, niSpline);
   TNoise2DMethod = function (const X, Y: Single; const Seed: Cardinal): Single;
 
-  { Procedural terrain: elevation data from a procedural noise.
+  { Procedural terrain: data from a procedural noise.
 
     "Synthesized noise" means it's not simply something random.
     We take the noise (integer noise, i.e. hash), smooth it
@@ -122,9 +122,9 @@ type
         [http://www.noisemachine.com/talk1/index.html].)
     )
 
-    This descends from TElevationImage, so you add an image to
+    This descends from TTerrainImage, so you add an image to
     your function result. }
-  TElevationNoise = class(TElevationImage)
+  TTerrainNoise = class(TTerrainImage)
   private
     FOctaves: Single;
     FSmoothness: Single;
@@ -237,25 +237,25 @@ type
       read FHeterogeneous write FHeterogeneous default 0.0;
   end;
 
-  { Elevation data from a grid of values with specified width * height.
+  { Terrain data from a grid of values with specified width * height.
     Used when your underlying data is a simple 2D array of
     GridSizeX * GridSizeY heights.
-    The idea is that on such elevation, there are special grid points
+    The idea is that on such terrain, there are special grid points
     where the height data is accurate. Everything else is an interpolation
     derived from this data. }
-  TElevationGrid = class(TElevation)
+  TTerrainGrid = class(TTerrain)
   private
     FGridX1, FGridX2, FGridY1, FGridY2, FGridHeightScale: Single;
   public
     constructor Create;
 
-    { Get height of the elevation at specified 2D point.
+    { Get height of the terrain at specified 2D point.
 
-      This is implemented in TElevationGrid class, using
+      This is implemented in TTerrainGrid class, using
       the data returned by GridHeight. For float X in 0..1 range,
       we return grid values for grid points 0..GridSizeX - 1.
       Outside 0..1 range, we clamp (that is, take nearest value
-      from 0..1 range) --- this way the elevation seemingly continues
+      from 0..1 range) --- this way the terrain seemingly continues
       into the infinity.
 
       In comparison to GridHeight, it's (very slightly) slower,
@@ -284,7 +284,7 @@ type
     { @groupEnd }
   end;
 
-  TElevationSRTM = class(TElevationGrid)
+  TTerrainSRTM = class(TTerrainGrid)
   private
     FData: array [0..1200, 0..1200] of SmallInt;
   public
@@ -299,9 +299,9 @@ implementation
 
 uses CastleUtils, CastleScriptParser, CastleNoise, Math, CastleDownload;
 
-{ TElevationImage ------------------------------------------------------------ }
+{ TTerrainImage ------------------------------------------------------------ }
 
-constructor TElevationImage.Create;
+constructor TTerrainImage.Create;
 begin
   inherited;
   FImageHeightScale := 1.0;
@@ -311,13 +311,13 @@ begin
   FImageY2 :=  1;
 end;
 
-destructor TElevationImage.Destroy;
+destructor TTerrainImage.Destroy;
 begin
   ClearImage;
   inherited;
 end;
 
-procedure TElevationImage.LoadImage(const AImageURL: string);
+procedure TTerrainImage.LoadImage(const AImageURL: string);
 var
   NewImage: TGrayscaleImage;
 begin
@@ -328,13 +328,13 @@ begin
   FImageURL := AImageURL;
 end;
 
-procedure TElevationImage.ClearImage;
+procedure TTerrainImage.ClearImage;
 begin
   FreeAndNil(FImage);
   FImageURL := '';
 end;
 
-function TElevationImage.Height(const X, Y: Single): Single;
+function TTerrainImage.Height(const X, Y: Single): Single;
 var
   PX, PY: Integer;
 begin
@@ -360,9 +360,9 @@ begin
     Result := 0;
 end;
 
-{ TElevationCasScript -------------------------------------------------------- }
+{ TTerrainCasScript -------------------------------------------------------- }
 
-constructor TElevationCasScript.Create(const FunctionExpression: string);
+constructor TTerrainCasScript.Create(const FunctionExpression: string);
 begin
   inherited Create;
 
@@ -377,7 +377,7 @@ begin
   FFunction := ParseFloatExpression(FunctionExpression, [FXVariable, FYVariable]);
 end;
 
-destructor TElevationCasScript.Destroy;
+destructor TTerrainCasScript.Destroy;
 begin
   FFunction.FreeByParentExpression;
   FFunction := nil;
@@ -388,7 +388,7 @@ begin
   inherited;
 end;
 
-function TElevationCasScript.Height(const X, Y: Single): Single;
+function TTerrainCasScript.Height(const X, Y: Single): Single;
 begin
   Result := inherited;
   FXVariable.Value := X;
@@ -396,9 +396,9 @@ begin
   Result += (FFunction.Execute as TCasScriptFloat).Value;
 end;
 
-{ TElevationNoise ------------------------------------------------------------ }
+{ TTerrainNoise ------------------------------------------------------------ }
 
-constructor TElevationNoise.Create;
+constructor TTerrainNoise.Create;
 begin
   inherited Create;
   FOctaves := 4.0;
@@ -410,7 +410,7 @@ begin
   UpdateNoiseMethod;
 end;
 
-procedure TElevationNoise.UpdateNoiseMethod;
+procedure TTerrainNoise.UpdateNoiseMethod;
 begin
   if Blur then
     case Interpolation of
@@ -418,30 +418,30 @@ begin
       niLinear: NoiseMethod := @BlurredInterpolatedNoise2D_Linear;
       niCosine: NoiseMethod := @BlurredInterpolatedNoise2D_Cosine;
       niSpline: NoiseMethod := @BlurredInterpolatedNoise2D_Spline;
-      else raise EInternalError.Create('TElevationNoise.UpdateNoiseMethod(Interpolation?)');
+      else raise EInternalError.Create('TTerrainNoise.UpdateNoiseMethod(Interpolation?)');
     end else
     case Interpolation of
       niNone: NoiseMethod := @InterpolatedNoise2D_None;
       niLinear: NoiseMethod := @InterpolatedNoise2D_Linear;
       niCosine: NoiseMethod := @InterpolatedNoise2D_Cosine;
       niSpline: NoiseMethod := @InterpolatedNoise2D_Spline;
-      else raise EInternalError.Create('TElevationNoise.UpdateNoiseMethod(Interpolation?)');
+      else raise EInternalError.Create('TTerrainNoise.UpdateNoiseMethod(Interpolation?)');
     end
 end;
 
-procedure TElevationNoise.SetInterpolation(const Value: TNoiseInterpolation);
+procedure TTerrainNoise.SetInterpolation(const Value: TNoiseInterpolation);
 begin
   FInterpolation := Value;
   UpdateNoiseMethod;
 end;
 
-procedure TElevationNoise.SetBlur(const Value: boolean);
+procedure TTerrainNoise.SetBlur(const Value: boolean);
 begin
   FBlur := Value;
   UpdateNoiseMethod;
 end;
 
-function TElevationNoise.Height(const X, Y: Single): Single;
+function TTerrainNoise.Height(const X, Y: Single): Single;
 // const
 //   { Idea, maybe useful --- apply heterogeneous only on higher octaves.
 //     Note that 1st octave is anyway always without heterogeneous,
@@ -503,9 +503,9 @@ begin
   Result += Frac(Octaves) * NextOctave(Trunc(Octaves) + 1);
 end;
 
-{ TElevationGrid ------------------------------------------------------------- }
+{ TTerrainGrid ------------------------------------------------------------- }
 
-constructor TElevationGrid.Create;
+constructor TTerrainGrid.Create;
 begin
   inherited;
   FGridX1 := 0;
@@ -515,7 +515,7 @@ begin
   FGridHeightScale := 1;
 end;
 
-function TElevationGrid.Height(const X, Y: Single): Single;
+function TTerrainGrid.Height(const X, Y: Single): Single;
 begin
   { TODO: for now, just take the nearest point, no bilinear filtering. }
   Result := GridHeight(
@@ -523,9 +523,9 @@ begin
     Clamped(Round(MapRange(Y, GridY1, GridY2, 0, GridSizeY - 1)), 0, GridSizeY - 1)) * GridHeightScale;
 end;
 
-{ TElevationSRTM ------------------------------------------------------------- }
+{ TTerrainSRTM ------------------------------------------------------------- }
 
-constructor TElevationSRTM.CreateFromFile(const URL: string);
+constructor TTerrainSRTM.CreateFromFile(const URL: string);
 var
   Stream: TStream;
   P: PSmallInt;
@@ -559,17 +559,17 @@ begin
   end;
 end;
 
-function TElevationSRTM.GridHeight(const X, Y: Cardinal): Single;
+function TTerrainSRTM.GridHeight(const X, Y: Cardinal): Single;
 begin
   Result := FData[X, Y];
 end;
 
-function TElevationSRTM.GridSizeX: Cardinal;
+function TTerrainSRTM.GridSizeX: Cardinal;
 begin
   Result := 1201;
 end;
 
-function TElevationSRTM.GridSizeY: Cardinal;
+function TTerrainSRTM.GridSizeY: Cardinal;
 begin
   Result := 1201;
 end;

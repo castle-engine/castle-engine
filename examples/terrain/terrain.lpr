@@ -56,9 +56,9 @@ program terrain;
 
 uses SysUtils, Classes, CastleBoxes, CastleKeysMouse, CastleColors,
   CastleUtils, CastleWindow, CastleGL, CastleGLUtils, CastleParameters,
-  CastleCameras, CastleVectors, CastleFilesUtils, Elevations, CastleMessages,
+  CastleCameras, CastleVectors, CastleFilesUtils, CastleTerrain, CastleMessages,
   CastleStringUtils, CastleOnScreenMenu, CastleUIControls, CastleImages,
-  RenderElevations, CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,
+  RenderTerrains, CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,
   Castle3D, CastleFrustum, CastleSceneManager, CastleURIUtils;
 
 type
@@ -69,7 +69,7 @@ var
   Window: TCastleWindow;
   ExamineCamera: TExamineCamera;
   WalkCamera: TWalkCamera;
-  Elevation: TElevation;
+  CurrentTerrain: TTerrain;
   TerrainTypeRadio: TMenuItemRadioGroup;
 
   { gl helpers }
@@ -77,7 +77,7 @@ var
   GLTexSand, GLTexBread, GLTexRock: TGLuint;
 
   { settings }
-  TerrainType: TTerrainType = ttNoise; {< this is tied with Elevation class }
+  TerrainType: TTerrainType = ttNoise; {< this is tied with Terrain class }
   Wireframe: boolean = false;
   NoiseInterpolation: TNoiseInterpolation = niCosine;
   NoiseBlur: boolean = false;
@@ -106,15 +106,15 @@ type
     procedure AccessoryValueChanged; override;
   end;
 
-  { For any TElevationImage except
-    TElevationNoise (that has it's own TControlsNoise). }
+  { For any TTerrainImage except
+    TTerrainNoise (that has it's own TControlsNoise). }
   TControlsImage = class(TCastleOnScreenMenu)
   public
     constructor Create(AOwner: TComponent); override;
     procedure AccessoryValueChanged; override;
   end;
 
-  { For any TElevation. }
+  { For any TCurrentTerrain. }
   TControlsGeneral = class(TCastleOnScreenMenu)
   public
     constructor Create(AOwner: TComponent); override;
@@ -132,61 +132,61 @@ var
   ImageHeightScaleSlider: TMenuFloatSlider;
   SceneManager: TCastleSceneManager;
 
-{ Current TCastleOnScreenMenu, or none, based on Elevation class and ControlsVisible. }
+{ Current TCastleOnScreenMenu, or none, based on Terrain class and ControlsVisible. }
 function CurrentControls: TCastleOnScreenMenu;
 begin
   if not ControlsVisible then Exit(nil);
 
-  if Elevation is TElevationNoise then
+  if CurrentTerrain is TTerrainNoise then
     Result := ControlsNoise else
-  if Elevation is TElevationImage then
+  if CurrentTerrain is TTerrainImage then
     Result := ControlsImage else
     Result := ControlsGeneral;
 end;
 
-procedure SetElevation(Value: TElevation);
+procedure SetTerrain(Value: TTerrain);
 begin
-  if Elevation <> Value then
+  if CurrentTerrain <> Value then
   begin
-    FreeAndNil(Elevation);
-    Elevation := Value;
+    FreeAndNil(CurrentTerrain);
+    CurrentTerrain := Value;
 
     Window.Controls.MakeSingle(TCastleOnScreenMenu, CurrentControls, true);
 
-    if Elevation is TElevationImage then
-      TElevationImage(Elevation).ImageHeightScale := ImageHeightScaleSlider.Value;
+    if CurrentTerrain is TTerrainImage then
+      TTerrainImage(CurrentTerrain).ImageHeightScale := ImageHeightScaleSlider.Value;
 
-    if Elevation is TElevationNoise then
+    if CurrentTerrain is TTerrainNoise then
     begin
-      TElevationNoise(Elevation).Octaves := ControlsNoise.OctavesSlider.Value;
-      TElevationNoise(Elevation).Smoothness := ControlsNoise.SmoothnessSlider.Value;
-      TElevationNoise(Elevation).Heterogeneous := ControlsNoise.HeterogeneousSlider.Value;
-      TElevationNoise(Elevation).Amplitude := ControlsNoise.AmplitudeSlider.Value;
-      TElevationNoise(Elevation).Frequency := ControlsNoise.FrequencySlider.Value;
-      TElevationNoise(Elevation).Seed := ControlsNoise.SeedSlider.Value;
-      TElevationNoise(Elevation).Interpolation := NoiseInterpolation;
-      TElevationNoise(Elevation).Blur := NoiseBlur;
+      TTerrainNoise(CurrentTerrain).Octaves := ControlsNoise.OctavesSlider.Value;
+      TTerrainNoise(CurrentTerrain).Smoothness := ControlsNoise.SmoothnessSlider.Value;
+      TTerrainNoise(CurrentTerrain).Heterogeneous := ControlsNoise.HeterogeneousSlider.Value;
+      TTerrainNoise(CurrentTerrain).Amplitude := ControlsNoise.AmplitudeSlider.Value;
+      TTerrainNoise(CurrentTerrain).Frequency := ControlsNoise.FrequencySlider.Value;
+      TTerrainNoise(CurrentTerrain).Seed := ControlsNoise.SeedSlider.Value;
+      TTerrainNoise(CurrentTerrain).Interpolation := NoiseInterpolation;
+      TTerrainNoise(CurrentTerrain).Blur := NoiseBlur;
     end;
 
-    if Elevation is TElevationGrid then
+    if CurrentTerrain is TTerrainGrid then
     begin
-      TElevationGrid(Elevation).GridX1 := GridX1;
-      TElevationGrid(Elevation).GridY1 := GridY1;
-      TElevationGrid(Elevation).GridX2 := GridX2;
-      TElevationGrid(Elevation).GridY2 := GridY2;
-      TElevationGrid(Elevation).GridHeightScale := GridHeightScale;
+      TTerrainGrid(CurrentTerrain).GridX1 := GridX1;
+      TTerrainGrid(CurrentTerrain).GridY1 := GridY1;
+      TTerrainGrid(CurrentTerrain).GridX2 := GridX2;
+      TTerrainGrid(CurrentTerrain).GridY2 := GridY2;
+      TTerrainGrid(CurrentTerrain).GridHeightScale := GridHeightScale;
     end;
 
     { calculate TerrainType }
-    if Elevation is TElevationGrid then
+    if CurrentTerrain is TTerrainGrid then
       TerrainType := ttGrid else
-    if Elevation is TElevationNoise then
+    if CurrentTerrain is TTerrainNoise then
       TerrainType := ttNoise else
-    if Elevation is TElevationCasScript then
+    if CurrentTerrain is TTerrainCasScript then
       TerrainType := ttCasScript else
-    if Elevation is TElevationImage then
+    if CurrentTerrain is TTerrainImage then
       TerrainType := ttImage else
-      raise EInternalError.Create('Unknown TerrainType from Elevation class');
+      raise EInternalError.Create('Unknown TerrainType from Terrain class');
 
     { set TerrainTypeRadio.Selected (since these radios do not have AutoChecked,
       and this is good (because some have Ok/Cancel dialog and user can
@@ -208,7 +208,7 @@ procedure T3DTerrain.Render(const Frustum: TFrustum; const Params: TRenderParams
     P: TVector3Single;
   begin
     P := WalkCamera.Position;
-    P[2] := Elevation.Height(P[0], P[1]) + 0.1;
+    P[2] := CurrentTerrain.Height(P[0], P[1]) + 0.1;
     WalkCamera.Position := P;
   end;
 
@@ -233,11 +233,11 @@ begin
   glPushMatrix;
     glMultMatrix(Params.RenderTransform);
 
-    if (Elevation is TElevationGrid) and
+    if (CurrentTerrain is TTerrainGrid) and
        SpecializedGridRendering then
     begin
       { DrawGrid cannot make normals for now, so no LIGHTING or other stuff }
-      DrawGrid(TElevationGrid(Elevation));
+      DrawGrid(TTerrainGrid(CurrentTerrain));
     end else
     begin
       glPushAttrib(GL_ENABLE_BIT);
@@ -276,7 +276,7 @@ begin
           begin
             { This is the exact visibility end.
               In practice, we may want to make it a litlle smaller
-              (to hide RoundGridCell hack in renderelevations.pas),
+              (to hide RoundGridCell hack in renderterrains.pas),
               or ignore problems and make it a little larger
               (otherwise, we needlessly render corners of terrain squares). }
             VisibilityEnd := BaseSize * (1 shl (LayersCount-1));
@@ -286,7 +286,7 @@ begin
           end;
         end;
 
-        DrawElevation(Elevation, Subdivision,
+        DrawTerrain(CurrentTerrain, Subdivision,
           WalkCamera.Position[0], WalkCamera.Position[1], BaseSize, LayersCount);
 
         if Shader and (GLSLProgram <> nil) then
@@ -342,19 +342,19 @@ end;
 
 procedure TControlsNoise.AccessoryValueChanged;
 begin
-  if not (Elevation is TElevationNoise) then Exit;
+  if not (CurrentTerrain is TTerrainNoise) then Exit;
   if CurrentAccessory = OctavesSlider then
-    (Elevation as TElevationNoise).Octaves := OctavesSlider.Value;
+    (CurrentTerrain as TTerrainNoise).Octaves := OctavesSlider.Value;
   if CurrentAccessory = SmoothnessSlider then
-    (Elevation as TElevationNoise).Smoothness := SmoothnessSlider.Value;
+    (CurrentTerrain as TTerrainNoise).Smoothness := SmoothnessSlider.Value;
   if CurrentAccessory = HeterogeneousSlider then
-    (Elevation as TElevationNoise).Heterogeneous := HeterogeneousSlider.Value;
+    (CurrentTerrain as TTerrainNoise).Heterogeneous := HeterogeneousSlider.Value;
   if CurrentAccessory = AmplitudeSlider then
-    (Elevation as TElevationNoise).Amplitude := AmplitudeSlider.Value;
+    (CurrentTerrain as TTerrainNoise).Amplitude := AmplitudeSlider.Value;
   if CurrentAccessory = FrequencySlider then
-    (Elevation as TElevationNoise).Frequency := FrequencySlider.Value;
+    (CurrentTerrain as TTerrainNoise).Frequency := FrequencySlider.Value;
   if CurrentAccessory = SeedSlider then
-    (Elevation as TElevationNoise).Seed := SeedSlider.Value;
+    (CurrentTerrain as TTerrainNoise).Seed := SeedSlider.Value;
   if CurrentAccessory = SubdivisionSlider then
     Subdivision := SubdivisionSlider.Value;
   if CurrentAccessory = BaseSizeSlider then
@@ -362,7 +362,7 @@ begin
   if CurrentAccessory = LayersCountSlider then
     LayersCount := LayersCountSlider.Value;
   if CurrentAccessory = ImageHeightScaleSlider then
-    (Elevation as TElevationNoise).ImageHeightScale := ImageHeightScaleSlider.Value;
+    (CurrentTerrain as TTerrainNoise).ImageHeightScale := ImageHeightScaleSlider.Value;
   inherited;
 end;
 
@@ -389,7 +389,7 @@ begin
   if CurrentAccessory = LayersCountSlider then
     LayersCount := LayersCountSlider.Value;
   if CurrentAccessory = ImageHeightScaleSlider then
-    (Elevation as TElevationImage).ImageHeightScale := ImageHeightScaleSlider.Value;
+    (CurrentTerrain as TTerrainImage).ImageHeightScale := ImageHeightScaleSlider.Value;
   inherited;
 end;
 
@@ -431,8 +431,8 @@ begin
   GLSLProgram.DetachAllShaders;
   Prefix := '#define HEIGHT_IS_Z' + NL;
   if Fog then Prefix += '#define FOG' + NL;
-  GLSLProgram.AttachVertexShader(Prefix + FileToString('elevation.vs'));
-  GLSLProgram.AttachFragmentShader(Prefix + FileToString('elevation.fs'));
+  GLSLProgram.AttachVertexShader(Prefix + FileToString('terrain.vs'));
+  GLSLProgram.AttachFragmentShader(Prefix + FileToString('terrain.fs'));
   { For this test program, we eventually allow shader to run in software.
     We display debug info, so user should know what's going on. }
   GLSLProgram.Link(false);
@@ -452,7 +452,7 @@ procedure Open(Container: TUIContainer);
   end;
 
 begin
-  RenderElevationsOpenGL;
+  RenderTerrainsOpenGL;
 
   { sliders used by both Controls* }
   SubdivisionSlider := TMenuIntegerSlider.Create(2, 10, Subdivision);
@@ -468,12 +468,12 @@ begin
   ControlsImage := TControlsImage.Create(nil);
   ControlsGeneral := TControlsGeneral.Create(nil);
 
-  if Elevation = nil then
+  if CurrentTerrain = nil then
   begin
     if Parameters.High = 1 then
-      SetElevation(TElevationSRTM.CreateFromFile(Parameters[1])) else
-      { some default elevation }
-      SetElevation(TElevationNoise.Create);
+      SetTerrain(TTerrainSRTM.CreateFromFile(Parameters[1])) else
+      { some default terrain }
+      SetTerrain(TTerrainNoise.Create);
   end;
 
   { load textures }
@@ -500,7 +500,7 @@ begin
   FreeAndNil(LayersCountSlider);
   FreeAndNil(ImageHeightScaleSlider);
 
-  RenderElevationsCloseGL;
+  RenderTerrainsCloseGL;
 end;
 
 procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
@@ -523,7 +523,7 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
   begin
     CountSteps := 1 shl Subdivision + 1;
     Size := BaseSize * 2;
-    { Note about XY (our TElevation) -> XZ (X3D ElevationNode) conversion:
+    { Note about XY (our TTerrain) -> XZ (X3D TerrainNode) conversion:
       we change Y into Z, this also means that Z must go into the other
       direction (when Y increases, Z decreases) to produce the same look. }
     MinX := WalkCamera.Position[0] - Size/2;
@@ -552,12 +552,12 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
       for X := 0 to CountSteps - 1 do
         for Z := 0 to CountSteps - 1 do
         begin
-          Grid.FdHeight.Items.L[X + Z * CountSteps] := Elevation.Height(
+          Grid.FdHeight.Items.L[X + Z * CountSteps] := CurrentTerrain.Height(
             MapRange(X, 0, CountSteps, MinX, MaxX),
             MapRange(Z, 0, CountSteps, MinZ, MaxZ));
 
           Color.FdColor.Items.L[X + Z * CountSteps] :=
-            ColorFromHeight(Elevation, Grid.FdHeight.Items.L[X + Z * CountSteps]);
+            ColorFromHeight(CurrentTerrain, Grid.FdHeight.Items.L[X + Z * CountSteps]);
         end;
 
       Appearance := TAppearanceNode.Create('', '');
@@ -592,12 +592,12 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
         Part := TShaderPartNode.Create('', '');
         Shader.FdParts.Add(Part);
         Part.FdType.Value := 'FRAGMENT';
-        Part.FdUrl.Items.Add('elevation.fs');
+        Part.FdUrl.Items.Add('terrain.fs');
 
         Part := TShaderPartNode.Create('', '');
         Shader.FdParts.Add(Part);
         Part.FdType.Value := 'VERTEX';
-        Part.FdUrl.Items.Add('elevation.vs');
+        Part.FdUrl.Items.Add('terrain.vs');
       end;
 
       Save3D(Root, URL, 'terrain', '', xeClassic);
@@ -607,7 +607,7 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 var
   URL: string;
   Expression: string;
-  NewElevation: TElevation;
+  NewTerrain: TTerrain;
 begin
   case Item.IntData of
     10: Wireframe := not Wireframe;
@@ -618,7 +618,7 @@ begin
             '*SRTM (*.hgt) terrain|*.hgt') then
           begin
             try
-              NewElevation := TElevationSRTM.CreateFromFile(URL);
+              NewTerrain := TTerrainSRTM.CreateFromFile(URL);
             except
               on E: Exception do
               begin
@@ -628,7 +628,7 @@ begin
               end;
             end;
 
-            SetElevation(NewElevation);
+            SetTerrain(NewTerrain);
           end;
         end;
     60: begin
@@ -637,7 +637,7 @@ begin
             '(For example, try "sin(x*2) * sin(y*2)").', Expression) then
           begin
             try
-              NewElevation := TElevationCasScript.Create(Expression);
+              NewTerrain := TTerrainCasScript.Create(Expression);
             except
               on E: Exception do
               begin
@@ -647,17 +647,17 @@ begin
               end;
             end;
 
-            SetElevation(NewElevation);
+            SetTerrain(NewTerrain);
           end;
         end;
-    70: SetElevation(TElevationNoise.Create);
-    80: SetElevation(TElevationImage.Create);
+    70: SetTerrain(TTerrainNoise.Create);
+    80: SetTerrain(TTerrainImage.Create);
     100: Window.Close;
     110:
       begin
         NoiseBlur := not NoiseBlur;
-        if Elevation is TElevationNoise then
-          (Elevation as TElevationNoise).Blur := NoiseBlur;
+        if CurrentTerrain is TTerrainNoise then
+          (CurrentTerrain as TTerrainNoise).Blur := NoiseBlur;
       end;
     120:
       begin
@@ -682,14 +682,14 @@ begin
     147: SpecializedGridRendering := not SpecializedGridRendering;
     150:
       begin
-        if Elevation is TElevationImage then
+        if CurrentTerrain is TTerrainImage then
         begin
-          URL := TElevationImage(Elevation).ImageURL;
+          URL := TTerrainImage(CurrentTerrain).ImageURL;
           if Window.FileDialog('Open image file', URL, true,
             LoadImage_FileFilters) then
           begin
             try
-              TElevationImage(Elevation).LoadImage(URL);
+              TTerrainImage(CurrentTerrain).LoadImage(URL);
             except
               on E: Exception do
               begin
@@ -699,13 +699,13 @@ begin
             end;
           end;
         end else
-          MessageOk(Window, 'Not an image elevation');
+          MessageOk(Window, 'Not an image terrain');
       end;
     160:
       begin
-        if Elevation is TElevationImage then
-          TElevationImage(Elevation).ClearImage else
-          MessageOk(Window, 'Not an image elevation');
+        if CurrentTerrain is TTerrainImage then
+          TTerrainImage(CurrentTerrain).ClearImage else
+          MessageOk(Window, 'Not an image terrain');
       end;
     170:
       if Window.ColorDialog(BackgroundColor) then
@@ -713,8 +713,8 @@ begin
     200..299:
       begin
         NoiseInterpolation := TNoiseInterpolation(Item.IntData - 200);
-        if Elevation is TElevationNoise then
-          (Elevation as TElevationNoise).Interpolation := NoiseInterpolation;
+        if CurrentTerrain is TTerrainNoise then
+          (CurrentTerrain as TTerrainNoise).Interpolation := NoiseInterpolation;
       end;
     1000, 1001:
       begin
@@ -821,11 +821,11 @@ begin
       - SwapFullScreen_Key: (which may do Close+Open) is for now broken here
         (we should readd appropriate Controls* and camera to Window.Controls,
         sliders should be recreated but with default values coming from
-        last values, elevation should be updated with sliders values;
+        last values, terrain should be updated with sliders values;
         This isn't difficult, but would complicate source code for little gain.)
       - Close_CharKey: it would make it too easy to close. }
     Window.FpsShowOnCaption := true;
     Window.Caption := ApplicationName;
     Window.OpenAndRun;
-  finally FreeAndNil(Elevation) end;
+  finally FreeAndNil(CurrentTerrain) end;
 end.

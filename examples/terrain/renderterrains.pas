@@ -13,32 +13,32 @@
   ----------------------------------------------------------------------------
 }
 
-{ Rendering elevations (terrains) in OpenGL. }
-unit RenderElevations;
+{ Specialized terrain rendering in OpenGL. }
+unit RenderTerrains;
 
 {$I castleconf.inc}
 
 interface
 
-uses CastleVectors, Elevations;
+uses CastleVectors, CastleTerrain;
 
-{ Drawing of TElevation (relies only on TElevation.Height method).
+{ Drawing of TTerrain (relies only on TTerrain.Height method).
 
-  When LayersCount > 1, this draws elevation with layers
+  When LayersCount > 1, this draws terrain with layers
   (ultra-simplified geometry clipmaps).
 
   BaseSize * 2 is the size of the first (most detailed) square layer around
   the (MiddleX, MiddleY). Eeach successive layer has the same subdivision
   (although with middle square removed, as it's already done by
   previous layer) and 2 times larger size. }
-procedure DrawElevation(Elevation: TElevation;
+procedure DrawTerrain(Terrain: TTerrain;
   const Subdivision: Cardinal;
   MiddleX, MiddleY: Single; BaseSize: Single;
   const LayersCount: Cardinal);
 
 const
-  { Scale grid coords to nicely fit in similar box like DrawElevation produces.
-    This should be set for TElevationGrid, to affect TElevationGrid.Height.
+  { Scale grid coords to nicely fit in similar box like DrawTerrain produces.
+    This should be set for TTerrainGrid, to affect TTerrainGrid.Height.
     It's also used by DrawGrid, to produce the same sized grid. }
   GridX1 = -1;
   GridY1 = -1;
@@ -46,36 +46,36 @@ const
   GridY2 = 1;
   GridHeightScale = 0.0002;
 
-{ Specialized drawing for TElevationGrid, that displays only the
+{ Specialized drawing for TTerrainGrid, that displays only the
   precise grid points. }
-procedure DrawGrid(Grid: TElevationGrid);
+procedure DrawGrid(Grid: TTerrainGrid);
 
-procedure RenderElevationsOpenGL;
-procedure RenderElevationsCloseGL;
+procedure RenderTerrainsOpenGL;
+procedure RenderTerrainsCloseGL;
 
-{ Returns same colors as used by DrawElevation. }
-function ColorFromHeight(Elevation: TElevation; Height: Single): TVector3Single;
+{ Returns same colors as used by DrawTerrain. }
+function ColorFromHeight(Terrain: TTerrain; Height: Single): TVector3Single;
 
 implementation
 
 uses CastleGL, CastleGLUtils, CastleUtils, SysUtils;
 
 var
-  ElevationVbo: TGLuint;
-  ElevationIndexVbo: TGLuint;
+  TerrainVbo: TGLuint;
+  TerrainIndexVbo: TGLuint;
 
-procedure RenderElevationsOpenGL;
+procedure RenderTerrainsOpenGL;
 begin
   if not GLFeatures.VertexBufferObject then
     raise Exception.Create('VBO support is required');
-  glGenBuffers(1, @ElevationVbo);
-  glGenBuffers(1, @ElevationIndexVbo);
+  glGenBuffers(1, @TerrainVbo);
+  glGenBuffers(1, @TerrainIndexVbo);
 end;
 
-procedure RenderElevationsCloseGL;
+procedure RenderTerrainsCloseGL;
 begin
-  glFreeBuffer(ElevationVbo);
-  glFreeBuffer(ElevationIndexVbo);
+  glFreeBuffer(TerrainVbo);
+  glFreeBuffer(TerrainIndexVbo);
 end;
 
 function ColorFromHeightCore(const H: Single): TVector3Single;
@@ -88,17 +88,17 @@ begin
   else Result := Vector3Single(1, 1, 1);                                 { white }
 end;
 
-function ColorFromHeight(Elevation: TElevation; Height: Single): TVector3Single;
+function ColorFromHeight(Terrain: TTerrain; Height: Single): TVector3Single;
 begin
-  if Elevation is TElevationGrid then
+  if Terrain is TTerrainGrid then
   begin
-    { For TElevationGrid, Height is original GridHeight result. }
+    { For TTerrainGrid, Height is original GridHeight result. }
     Height /= GridHeightScale;
   end else
   begin
     { scale height down by Amplitude, to keep nice colors regardless of Amplitude }
-    if Elevation is TElevationNoise then
-      Height /= TElevationNoise(Elevation).Amplitude;
+    if Terrain is TTerrainNoise then
+      Height /= TTerrainNoise(Terrain).Amplitude;
     { some hacks to hit interesting colors }
     Height := Height  * 2000 - 1000;
   end;
@@ -107,43 +107,43 @@ begin
 end;
 
 type
-  TElevationPoint = packed record
+  TTerrainPoint = packed record
     Position, Normal, Color: TVector3Single;
   end;
-  PElevationPoint = ^TElevationPoint;
+  PTerrainPoint = ^TTerrainPoint;
 
 var
-  { Array for elevation points and indexes.
+  { Array for terrain points and indexes.
 
     Initially, when still using OpenGL immediate mode, this was useful to
-    calculate all elevation points *once* before passing them to OpenGL
+    calculate all terrain points *once* before passing them to OpenGL
     (otherwise quad strips would calculate all twice).
     Then it was also useful to calculate normal vectors based on positions.
 
     Finally, now this is just send into OpenGL VBO. }
-  Points: array of TElevationPoint;
+  Points: array of TTerrainPoint;
   PointsIndex: array of TGLuint;
   TrisIndex: array of TGLuint;
 
-procedure DrawElevationLayer(Elevation: TElevation; const Subdivision: Cardinal;
+procedure DrawTerrainLayer(Terrain: TTerrain; const Subdivision: Cardinal;
   const X1, Y1, X2, Y2: Single; Hole, BorderTriangles: boolean);
 var
   CountSteps, CountSteps1, CountStepsQ: Cardinal;
 
-  procedure CalculatePositionColor(var P: TElevationPoint; const I, J: Cardinal);
+  procedure CalculatePositionColor(var P: TTerrainPoint; const I, J: Cardinal);
   begin
-    { set XY to cover (X1, Y1) ... (X2, Y2) rectangle with our elevation }
+    { set XY to cover (X1, Y1) ... (X2, Y2) rectangle with our terrain }
     P.Position[0] := (X2 - X1) * I / (CountSteps-1) + X1;
     P.Position[1] := (Y2 - Y1) * J / (CountSteps-1) + Y1;
 
-    P.Position[2] := Elevation.Height(P.Position[0], P.Position[1]);
+    P.Position[2] := Terrain.Height(P.Position[0], P.Position[1]);
 
-    P.Color := ColorFromHeight(Elevation, P.Position[2]);
+    P.Color := ColorFromHeight(Terrain, P.Position[2]);
   end;
 
   procedure CalculateNormal(const I, J: Cardinal);
   var
-    P, PX, PY: PElevationPoint;
+    P, PX, PY: PTerrainPoint;
   begin
     P  := @(Points[ I      * CountSteps1 + J]);
     PX := @(Points[(I + 1) * CountSteps1 + J]);
@@ -158,7 +158,7 @@ var
 
 var
   I, J: Cardinal;
-  P: PElevationPoint;
+  P: PTerrainPoint;
   Index: PGLuint;
 begin
   { CountSteps-1 squares (edges) along the way,
@@ -240,7 +240,7 @@ begin
   end else
   begin
     { calculate Points and Colors }
-    P := PElevationPoint(Points);
+    P := PTerrainPoint(Points);
     for I := 0 to CountSteps do
       for J := 0 to CountSteps do
       begin
@@ -267,20 +267,20 @@ begin
 
   { load Points into VBO, render }
 
-  glBindBuffer(GL_ARRAY_BUFFER, ElevationVbo);
-  glBufferData(GL_ARRAY_BUFFER, Length(Points) * SizeOf(TElevationPoint),
+  glBindBuffer(GL_ARRAY_BUFFER, TerrainVbo);
+  glBufferData(GL_ARRAY_BUFFER, Length(Points) * SizeOf(TTerrainPoint),
     Pointer(Points), GL_STREAM_DRAW);
 
   glEnableClientState(GL_VERTEX_ARRAY);
-  glVertexPointer(3, GL_FLOAT, SizeOf(TElevationPoint), Offset(Points[0].Position, Points[0]));
+  glVertexPointer(3, GL_FLOAT, SizeOf(TTerrainPoint), Offset(Points[0].Position, Points[0]));
 
   glEnableClientState(GL_NORMAL_ARRAY);
-  glNormalPointer(GL_FLOAT, SizeOf(TElevationPoint), Offset(Points[0].Normal, Points[0]));
+  glNormalPointer(GL_FLOAT, SizeOf(TTerrainPoint), Offset(Points[0].Normal, Points[0]));
 
   glEnableClientState(GL_COLOR_ARRAY);
-  glColorPointer(3, GL_FLOAT, SizeOf(TElevationPoint), Offset(Points[0].Color, Points[0]));
+  glColorPointer(3, GL_FLOAT, SizeOf(TTerrainPoint), Offset(Points[0].Color, Points[0]));
 
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElevationIndexVbo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, TerrainIndexVbo);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, Length(PointsIndex) * SizeOf(TGLuint),
     Pointer(PointsIndex), GL_STREAM_DRAW);
 
@@ -345,7 +345,7 @@ begin
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 end;
 
-procedure DrawElevation(Elevation: TElevation;
+procedure DrawTerrain(Terrain: TTerrain;
   const Subdivision: Cardinal;
   MiddleX, MiddleY: Single; BaseSize: Single;
   const LayersCount: Cardinal);
@@ -366,7 +366,7 @@ begin
   Y2 := MiddleY + BaseSize;
   for Layer := 0 to LayersCount - 1 do
   begin
-    DrawElevationLayer(Elevation, Subdivision, X1, Y1, X2, Y2,
+    DrawTerrainLayer(Terrain, Subdivision, X1, Y1, X2, Y2,
       Layer <> 0, Layer < LayersCount - 1);
     X1 -= BaseSize;
     Y1 -= BaseSize;
@@ -376,7 +376,7 @@ begin
   end;
 end;
 
-procedure DrawGrid(Grid: TElevationGrid);
+procedure DrawGrid(Grid: TTerrainGrid);
 
   procedure Vertex(I, J: Cardinal);
   var
