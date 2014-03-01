@@ -37,7 +37,7 @@ type
     Parent: TCastleWindowCustom;
     procedure Render; override;
     function Press(const Event: TInputPressRelease): boolean; override;
-    function PositionInside(const X, Y: Integer): boolean; override;
+    function PositionInside(const Position: TVector2Single): boolean; override;
   end;
 
 procedure TText.Render;
@@ -55,17 +55,23 @@ begin
   if Result then Exit;
 
   case Event.KeyCharacter of
-    'c': if Cursor = High(Cursor) then Cursor := Low(Cursor) else Cursor := Succ(Cursor);
-    'o': begin
-           URL := '';
-           { when file dialog is open, note that the other windows
-             are still active as they should. }
-           Parent.FileDialog('Test open file dialog', URL, true);
-         end;
+    'c':
+      begin
+        if Cursor = High(Cursor) then Cursor := Low(Cursor) else Cursor := Succ(Cursor);
+        Result := ExclusiveEvents;
+      end;
+    'o':
+      begin
+        URL := '';
+        { when file dialog is open, note that the other windows
+          are still active as they should. }
+        Parent.FileDialog('Test open file dialog', URL, true);
+        Result := ExclusiveEvents;
+      end;
   end;
 end;
 
-function TText.PositionInside(const X, Y: Integer): boolean;
+function TText.PositionInside(const Position: TVector2Single): boolean;
 begin
   Result := true;
 end;
