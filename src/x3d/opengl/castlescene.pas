@@ -115,6 +115,10 @@ type
     FUseOcclusionQuery: boolean;
     FUseHierarchicalOcclusionQuery: boolean;
     FDebugHierOcclusionQueryResults: boolean;
+    FSolidWireframeScale: Single;
+    FSolidWireframeBias: Single;
+    FSilhouetteScale: Single;
+    FSilhouetteBias: Single;
   protected
     procedure ReleaseCachedResources; override;
 
@@ -158,6 +162,11 @@ type
       DefaultBlendingSort = false;
 
       DefaultWireframeColor: TVector3Single = (0, 0, 0);
+
+      DefaultSolidWireframeScale = 1;
+      DefaultSolidWireframeBias = 1;
+      DefaultSilhouetteScale = 5;
+      DefaultSilhouetteBias = 5;
 
     var
       { Adjust attributes of all loaded resources. }
@@ -223,6 +232,11 @@ type
       See description of TWireframeEffect for what other modes do. }
     property WireframeEffect: TWireframeEffect
       read FWireframeEffect write FWireframeEffect default weNormal;
+
+    property SolidWireframeScale: Single read FSolidWireframeScale write FSolidWireframeScale default DefaultSolidWireframeScale;
+    property SolidWireframeBias: Single read FSolidWireframeBias write FSolidWireframeBias default DefaultSolidWireframeBias;
+    property SilhouetteScale: Single read FSilhouetteScale write FSilhouetteScale default DefaultSilhouetteScale;
+    property SilhouetteBias: Single read FSilhouetteBias write FSilhouetteBias default DefaultSilhouetteBias;
 
     { Wireframe color, used with some WireframeEffect values.
       Default value is DefaultWireframeColor. }
@@ -1492,7 +1506,7 @@ procedure TCastleScene.Render(
             glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
             glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
             glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
-            glPolygonOffset(1, 1); { saved by GL_POLYGON_BIT }
+            glPolygonOffset(Attributes.SolidWireframeScale, Attributes.SolidWireframeBias); { saved by GL_POLYGON_BIT }
             RenderNormal;
           glPopAttrib;
           RenderWireframe(true);
@@ -1502,7 +1516,7 @@ procedure TCastleScene.Render(
           RenderNormal;
           glPushAttrib(GL_POLYGON_BIT);
             glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
-            glPolygonOffset(5, 5); { saved by GL_POLYGON_BIT }
+            glPolygonOffset(Attributes.SilhouetteScale, Attributes.SilhouetteBias); { saved by GL_POLYGON_BIT }
             { rmPureGeometry still does backface culling.
               This is very good in this case. When rmPureGeometry and weSilhouette,
               and objects are solid (so backface culling is used) we can
@@ -2598,7 +2612,10 @@ begin
   FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
   FBlendingSort := DefaultBlendingSort;
   FControlBlending := true;
-
+  FSolidWireframeScale := DefaultSolidWireframeScale;
+  FSolidWireframeBias := DefaultSolidWireframeBias;
+  FSilhouetteScale := DefaultSilhouetteScale;
+  FSilhouetteBias := DefaultSilhouetteBias;
   FWireframeEffect := weNormal;
   FWireframeColor := DefaultWireframeColor;
 
