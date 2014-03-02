@@ -34,7 +34,7 @@ type
     load it's animation by calling Load or LoadFromFile or LoadFromEvents
     etc.
 
-    When loading you must provide one or more VRML models with
+    When loading you must provide one or more X3D models with
     their associated times. Animation will show a transition from the first
     model to the last. If models are "structurally equal" then the transition
     between two successive models will be smooth, otherwise a sudden change
