@@ -466,6 +466,7 @@ type
 
     PreparedShapesResources, PreparedRender: boolean;
     VarianceShadowMapsProgram: array [boolean] of TGLSLProgram;
+    FDistanceCulling: Single;
 
     { Private things for RenderFrustum --------------------------------------- }
 
@@ -473,6 +474,8 @@ type
     function FrustumCulling_Sphere(Shape: TShape): boolean;
     function FrustumCulling_Box(Shape: TShape): boolean;
     function FrustumCulling_Both(Shape: TShape): boolean;
+
+    function DistanceCullingCheck(Shape: TShape): boolean;
   private
           FFrustumCulling: TFrustumCulling;
     FOctreeFrustumCulling: TFrustumCulling;
@@ -792,6 +795,10 @@ type
 
     property ReceiveShadowVolumes: boolean
       read FReceiveShadowVolumes write FReceiveShadowVolumes default true;
+
+    { Cull things farther than this distance. Ignored if <= 0. }
+    property DistanceCulling: Single
+      read FDistanceCulling write FDistanceCulling default 0;
   end;
 
   TCastleSceneList = class(specialize TFPGObjectList<TCastleScene>)
@@ -2272,28 +2279,37 @@ end;
 
 function TCastleScene.FrustumCulling_None(Shape: TShape): boolean;
 begin
-  Result := true;
+  Result := DistanceCullingCheck(Shape);
 end;
 
 function TCastleScene.FrustumCulling_Sphere(Shape: TShape): boolean;
 begin
-  Result := Shape.FrustumBoundingSphereCollisionPossibleSimple(
-    RenderFrustum_Frustum^);
+  Result := DistanceCullingCheck(Shape) and
+    Shape.FrustumBoundingSphereCollisionPossibleSimple(RenderFrustum_Frustum^);
 end;
 
 function TCastleScene.FrustumCulling_Box(Shape: TShape): boolean;
 begin
-  Result := RenderFrustum_Frustum^.Box3DCollisionPossibleSimple(
-    Shape.BoundingBox);
+  Result := DistanceCullingCheck(Shape) and
+    RenderFrustum_Frustum^.Box3DCollisionPossibleSimple(Shape.BoundingBox);
 end;
 
 function TCastleScene.FrustumCulling_Both(Shape: TShape): boolean;
 begin
-  Result :=
+  Result := DistanceCullingCheck(Shape) and
     Shape.FrustumBoundingSphereCollisionPossibleSimple(
       RenderFrustum_Frustum^) and
     RenderFrustum_Frustum^.Box3DCollisionPossibleSimple(
       Shape.BoundingBox);
+end;
+
+function TCastleScene.DistanceCullingCheck(Shape: TShape): boolean;
+begin
+  Result :=
+    (DistanceCulling <= 0) or
+    (not CameraViewKnown) or
+    (PointsDistanceSqr(Shape.BoundingSphereCenter, CameraPosition) <=
+     Sqr(DistanceCulling + Shape.BoundingSphereRadius))
 end;
 
 procedure TCastleScene.SetFrustumCulling(const Value: TFrustumCulling);
@@ -2333,7 +2349,7 @@ function TCastleScene.RenderFrustumOctree_TestShape(
   Shape: TShape): boolean;
 begin
   { We know that all shapes passed here are TGLShape, so we can cast }
-  Result := TGLShape(Shape).RenderFrustumOctree_Visible;
+  Result := TGLShape(Shape).RenderFrustumOctree_Visible and DistanceCullingCheck(Shape);
 end;
 
 procedure TCastleScene.RenderFrustumOctree_EnumerateShapes(

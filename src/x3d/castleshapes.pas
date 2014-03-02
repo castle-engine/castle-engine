@@ -318,6 +318,7 @@ type
       @groupBegin }
     function BoundingSphereCenter: TVector3Single;
     function BoundingSphereRadiusSqr: Single;
+    function BoundingSphereRadius: Single;
     { @groupEnd }
 
     { Exactly equivalent to getting
@@ -1274,39 +1275,44 @@ end;
 
 procedure TShape.ValidateBoundingSphere;
 begin
- if not (svBoundingSphere in Validities) then
- begin
-  BoundingBox.BoundingSphere(FBoundingSphereCenter, FBoundingSphereRadiusSqr);
-  Include(Validities, svBoundingSphere);
- end;
+  if not (svBoundingSphere in Validities) then
+  begin
+    BoundingBox.BoundingSphere(FBoundingSphereCenter, FBoundingSphereRadiusSqr);
+    Include(Validities, svBoundingSphere);
+  end;
 end;
 
 function TShape.BoundingSphereCenter: TVector3Single;
 begin
- ValidateBoundingSphere;
- Result := FBoundingSphereCenter;
+  ValidateBoundingSphere;
+  Result := FBoundingSphereCenter;
 end;
 
 function TShape.BoundingSphereRadiusSqr: Single;
 begin
- ValidateBoundingSphere;
- Result := FBoundingSphereRadiusSqr;
+  ValidateBoundingSphere;
+  Result := FBoundingSphereRadiusSqr;
+end;
+
+function TShape.BoundingSphereRadius: Single;
+begin
+  Result := Sqrt(BoundingSphereRadiusSqr);
 end;
 
 function TShape.FrustumBoundingSphereCollisionPossible(
   const Frustum: TFrustum): TFrustumCollisionPossible;
 begin
- ValidateBoundingSphere;
- Result := Frustum.SphereCollisionPossible(
-   FBoundingSphereCenter, FBoundingSphereRadiusSqr);
+  ValidateBoundingSphere;
+  Result := Frustum.SphereCollisionPossible(
+    FBoundingSphereCenter, FBoundingSphereRadiusSqr);
 end;
 
 function TShape.FrustumBoundingSphereCollisionPossibleSimple(
   const Frustum: TFrustum): boolean;
 begin
- ValidateBoundingSphere;
- Result := Frustum.SphereCollisionPossibleSimple(
-   FBoundingSphereCenter, FBoundingSphereRadiusSqr);
+  ValidateBoundingSphere;
+  Result := Frustum.SphereCollisionPossibleSimple(
+    FBoundingSphereCenter, FBoundingSphereRadiusSqr);
 end;
 
 function TShape.OverrideOctreeLimits(
