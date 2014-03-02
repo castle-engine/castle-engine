@@ -651,6 +651,7 @@ type
     FGravityUp: TVector3Single;
     FMoveHorizontalSpeed, FMoveVerticalSpeed, FMoveSpeed: Single;
     FRotationHorizontalSpeed, FRotationVerticalSpeed: Single;
+    FRotationHorizontalPivot: Single;
     FPreferGravityUpForRotations: boolean;
     FPreferGravityUpForMoving: boolean;
     FIsAbove: boolean;
@@ -739,6 +740,10 @@ type
       If not PreferGravityUpForMoving, then we do all this versus Up.
       And so everything works. }
     procedure RotateHorizontalForStrafeMove(const AngleDeg: Single);
+
+    { Call always after horizontal rotation (but before ScheduleVisibleChange).
+      This will eventually adjust FPosition for RotationHorizontalPivot <> 0. }
+    procedure AdjustForRotationHorizontalPivot(const OldDirection: TVector3Single);
 
     { Jump.
 
@@ -1560,6 +1565,13 @@ type
       read FMouseDraggingVerticalRotationSpeed write FMouseDraggingVerticalRotationSpeed
       default DefaultMouseDraggingVerticalRotationSpeed;
     { @groupEnd }
+
+    { Horizontal rotation can rotate around a vector that is RotationHorizontalPivot units
+      forward before the camera. This is a poor-mans way to implement some 3rd camera game.
+      Note that when non-zero this may (for now) move the camera without actually checking
+      OnMoveAllowed. }
+    property RotationHorizontalPivot: Single
+      read FRotationHorizontalPivot write FRotationHorizontalPivot default 0;
   end;
 
   { Camera that allows any kind of navigation (Examine, Walk).
@@ -2939,38 +2951,67 @@ begin
   Result := RealPreferredHeight * 0.01;
 end;
 
-procedure TWalkCamera.RotateAroundGravityUp(const AngleDeg: Single);
-var Axis: TVector3Single;
+procedure TWalkCamera.AdjustForRotationHorizontalPivot(const OldDirection: TVector3Single);
+var
+  Pivot, OldDirectionInGravityPlane: TVector3Single;
 begin
- { nie obracamy Direction wokol Up, takie obroty w polaczeniu z
-   obrotami vertical moglyby sprawic ze kamera staje sie przechylona w
-   stosunku do plaszczyny poziomu (plaszczyzny dla ktorej wektorem normalnym
-   jest GravityUp) (a my chcemy zeby zawsze plaszczyzna wyznaczana przez
-   wektory Dir i Up byla prostopadla do plaszczyzny poziomu - bo to po prostu
-   daje wygodniejsze sterowanie (chociaz troche bardziej ograniczone -
-   jestesmy wtedy w jakis sposob uwiazani do plaszczyzny poziomu)).
+  if RotationHorizontalPivot <> 0 then
+  begin
+    if PreferGravityUpForRotations then
+    begin
+      Pivot := Position  + OldDirection * RotationHorizontalPivot;
+      FPosition := Pivot -    Direction * RotationHorizontalPivot;
+    end else
+    begin
+      OldDirectionInGravityPlane := Direction;
+      if not VectorsParallel(OldDirectionInGravityPlane, GravityUp) then
+        MakeVectorsOrthoOnTheirPlane(OldDirectionInGravityPlane, GravityUp);
+      Pivot := Position  + OldDirectionInGravityPlane * RotationHorizontalPivot;
+      FPosition := Pivot -    DirectionInGravityPlane * RotationHorizontalPivot;
+    end;
+  end;
+end;
 
-   Acha, i jeszcze jedno : zeby trzymac zawsze obroty w ta sama strone
-   (ze np. strzalka w lewo zawsze powoduje ze swiat ze obraca w prawo
-   wzgledem nas) musze czasami obracac sie wokol GravityUp, a czasem
-   wokol -GravityUp.
- }
- if AngleRadBetweenVectors(Up, GravityUp) > Pi/2 then
-  Axis := VectorNegate(GravityUp) else
-  Axis := GravityUp;
+procedure TWalkCamera.RotateAroundGravityUp(const AngleDeg: Single);
+var
+  Axis, OldDirection: TVector3Single;
+begin
+  { nie obracamy Direction wokol Up, takie obroty w polaczeniu z
+    obrotami vertical moglyby sprawic ze kamera staje sie przechylona w
+    stosunku do plaszczyny poziomu (plaszczyzny dla ktorej wektorem normalnym
+    jest GravityUp) (a my chcemy zeby zawsze plaszczyzna wyznaczana przez
+    wektory Dir i Up byla prostopadla do plaszczyzny poziomu - bo to po prostu
+    daje wygodniejsze sterowanie (chociaz troche bardziej ograniczone -
+    jestesmy wtedy w jakis sposob uwiazani do plaszczyzny poziomu)).
 
- FUp := RotatePointAroundAxisDeg(AngleDeg, Up, Axis);
- FDirection := RotatePointAroundAxisDeg(AngleDeg, Direction, Axis);
+    Acha, i jeszcze jedno : zeby trzymac zawsze obroty w ta sama strone
+    (ze np. strzalka w lewo zawsze powoduje ze swiat ze obraca w prawo
+    wzgledem nas) musze czasami obracac sie wokol GravityUp, a czasem
+    wokol -GravityUp.
+  }
+  if AngleRadBetweenVectors(Up, GravityUp) > Pi/2 then
+    Axis := VectorNegate(GravityUp) else
+    Axis := GravityUp;
 
- ScheduleVisibleChange;
+  FUp := RotatePointAroundAxisDeg(AngleDeg, Up, Axis);
+  OldDirection := Direction;
+  FDirection := RotatePointAroundAxisDeg(AngleDeg, Direction, Axis);
+  AdjustForRotationHorizontalPivot(OldDirection);
+
+  ScheduleVisibleChange;
 end;
 
 procedure TWalkCamera.RotateAroundUp(const AngleDeg: Single);
+var
+  OldDirection: TVector3Single;
 begin
   { We know that RotatePointAroundAxisDeg below doesn't change the length
     of the Direction (so it will remain normalized) and it will keep
     Direction and Up vectors orthogonal. }
+  OldDirection := Direction;
   FDirection := RotatePointAroundAxisDeg(AngleDeg, FDirection, FUp);
+  AdjustForRotationHorizontalPivot(OldDirection);
+
   ScheduleVisibleChange;
 end;
 
