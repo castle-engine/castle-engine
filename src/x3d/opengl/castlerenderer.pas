@@ -1151,6 +1151,10 @@ var
     Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
   LogRenderer: boolean = false;
 
+  { Bias from shape center to the point from which we make GeneratedCubeMapTexture.
+    @deprecated Do not use, this will be replaced by TShapeNode.FdGeneratedCubeMapBias. }
+  GeneratedCubeMapBias: TVector3Single deprecated = (0, 0, 0);
+
 {$undef read_interface}
 
 implementation
@@ -3632,7 +3636,7 @@ var
       if GLNode <> nil then
       begin
         GLNode.Update(Render, ProjectionNear, ProjectionFar,
-          NeedsRestoreViewport, Shape.BoundingBox.Middle);
+          NeedsRestoreViewport, Shape.BoundingBox.Middle + GeneratedCubeMapBias);
 
         PostUpdate;
 
