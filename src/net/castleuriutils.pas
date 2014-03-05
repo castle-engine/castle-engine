@@ -120,6 +120,12 @@ function CombineURI(const Base, Relative: string): string;
   This includes treating empty string as equivalent to current directory. }
 function AbsoluteURI(const URI: string): string;
 
+{ Does URI contain only an absolute filename.
+  Useful for warnings, since you usually do not want to have such paths
+  in your data, as they it impossible to transfer the data (move/copy files)
+  to other system/location. }
+function AbsoluteFileURI(const URI: string): boolean;
+
 { Convert URI (or filename) to a filename.
   This is an improved URIToFilename from URIParser.
   When URI is already a filename, this does a better job than URIToFilename,
@@ -421,6 +427,11 @@ begin
   if URIProtocol(URI) = '' then
     Result := FilenameToURISafe(URI) else
     Result := URI;
+end;
+
+function AbsoluteFileURI(const URI: string): boolean;
+begin
+  Result := (URIProtocol(URI) = '') and IsPathAbsoluteOnDrive(URI);
 end;
 
 function URIToFilenameSafe(const URI: string): string;

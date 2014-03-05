@@ -789,6 +789,9 @@ begin
         FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureDDS,
           FAlphaChannelData);
         WasCacheUsed := true;
+        if WarnAboutAbsoluteFilenames and AbsoluteFileURI(FdUrl.Items[I]) then
+          OnWarning(wtMinor, 'VRML/X3D', Format('Loaded data from an absolute filename "%s", this makes the data possibly unportable (it will probably not work on other systems/locations). Always use relative paths.',
+            [FdUrl.Items[I]]));
         FTextureUsedFullUrl := URIDisplay(FullUrl);
         Break;
       except

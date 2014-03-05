@@ -1912,6 +1912,12 @@ var
     in this unit's initialization / finalization. }
   NodesManager: TNodesManager;
 
+  { Should be make a warning (using OnWarning) when loading data from
+    an URI with absolute path. This is quite useful if you want to
+    be able to move/copy the files to some other system/location,
+    as absolute paths prevent it. }
+  WarnAboutAbsoluteFilenames: boolean = true;
+
 { global procedures ---------------------------------------------------------- }
 
 {$I x3dnodes_encoding_classic.inc}
