@@ -104,6 +104,11 @@
     private FFdTextureProperties: TSFNode;
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
 
+    { Bias from shape center to the point from which we make GeneratedCubeMapTexture.
+      TODO: for now in world space, should be in shape space. }
+    private FFdBias: TSFVec3f;
+    public property FdBias: TSFVec3f read FFdBias;
+
     property GeneratedTextureHandler: TGeneratedTextureHandler
       read FGeneratedTextureHandler;
   end;
@@ -300,6 +305,9 @@ begin
    FdTextureProperties.Exposed := false;
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdTextureProperties);
+
+  FFdBias := TSFVec3f.Create(Self, 'bias', ZeroVector3Single);
+  Fields.Add(FFdBias);
 
   FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
   FGeneratedTextureHandler.FdUpdate := FdUpdate;
