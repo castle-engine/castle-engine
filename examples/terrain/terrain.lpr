@@ -431,8 +431,8 @@ begin
   GLSLProgram.DetachAllShaders;
   Prefix := '#define HEIGHT_IS_Z' + NL;
   if Fog then Prefix += '#define FOG' + NL;
-  GLSLProgram.AttachVertexShader(Prefix + FileToString('terrain.vs'));
-  GLSLProgram.AttachFragmentShader(Prefix + FileToString('terrain.fs'));
+  GLSLProgram.AttachVertexShader(Prefix + FileToString(ApplicationData('terrain.vs')));
+  GLSLProgram.AttachFragmentShader(Prefix + FileToString(ApplicationData('terrain.fs')));
   { For this test program, we eventually allow shader to run in software.
     We display debug info, so user should know what's going on. }
   GLSLProgram.Link(false);
@@ -445,9 +445,9 @@ end;
 
 procedure Open(Container: TUIContainer);
 
-  function LoadTexture(const URL: string): TGLuint;
+  function LoadTexture(const Name: string): TGLuint;
   begin
-    Result := LoadGLTexture('textures/' + URL,
+    Result := LoadGLTexture(ApplicationData('textures/' + Name),
       TextureFilter(minLinearMipmapLinear, magLinear), Texture2DRepeat);
   end;
 
