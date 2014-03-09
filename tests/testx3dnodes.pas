@@ -1286,6 +1286,7 @@ procedure TTestX3DNodes.TestEmptyChanges;
       (Field.ParentNode is TLayer2DNode) or
       (Field.ParentNode is TLayer3DNode) or
       (Field.ParentNode is TKambiHeadLightNode) or
+      FieldIs(Field, TGeneratedCubeMapTextureNode, 'bias') or
       false { just to have nice newlines };
   end;
 
