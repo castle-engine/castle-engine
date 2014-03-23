@@ -1188,6 +1188,7 @@ var
   AlphaTestShader: boolean;
   ColorTreatment: TColorTreatment;
   NewProgram: TGLSLProgram;
+  VS, FS: string;
 {$endif}
 begin
   if (PointVbo = 0) and GLFeatures.VertexBufferObject then    //glGenBuffers can be nil on some old Intel gpus :-(
@@ -1199,13 +1200,20 @@ begin
     for ColorTreatment in TColorTreatment do
       if GLSLProgram[AlphaTestShader, ColorTreatment] = nil then
       begin
+        VS := {$I image.vs.inc};
+        FS := Iff(AlphaTestShader, '#define ALPHA_TEST' + NL, '') +
+              Iff(ColorTreatment in [ctColorMultipliesTexture, ctColorMultipliesTextureAlpha], '#define COLOR_UNIFORM' + NL, '') +
+              Iff(ColorTreatment = ctColorMultipliesTextureAlpha, '#define TEXTURE_HAS_ONLY_ALPHA' + NL, '') +
+              {$I image.fs.inc};
+        if Log and LogShaders then
+        begin
+          WritelnLogMultiline('TGLImage GLSL vertex shader', VS);
+          WritelnLogMultiline('TGLImage GLSL fragment shader', FS);
+        end;
+
         NewProgram := TGLSLProgram.Create;
-        NewProgram.AttachVertexShader({$I image.vs.inc});
-        NewProgram.AttachFragmentShader(
-          Iff(AlphaTestShader, '#define ALPHA_TEST' + NL, '') +
-          Iff(ColorTreatment in [ctColorMultipliesTexture, ctColorMultipliesTextureAlpha], '#define COLOR_UNIFORM' + NL, '') +
-          Iff(ColorTreatment = ctColorMultipliesTextureAlpha, '#define TEXTURE_HAS_ONLY_ALPHA' + NL, '') +
-          {$I image.fs.inc});
+        NewProgram.AttachVertexShader(VS);
+        NewProgram.AttachFragmentShader(FS);
         NewProgram.Link(true);
         GLSLProgram[AlphaTestShader, ColorTreatment] := NewProgram;
       end;

@@ -1,4 +1,6 @@
+#ifdef GL_ES
 precision mediump float;
+#endif
 
 varying vec2 tex_coord_frag;
 uniform sampler2D texture;
