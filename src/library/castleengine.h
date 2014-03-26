@@ -15,7 +15,7 @@
   This include file should be used in C/C++ projects. It contains all
   functions exported from the library.
 
-  Windows: add castlelib_win_loader.cpp file to your project and call
+  Dynamic library: add castlelib_c_loader.cpp file to your project and call
       CGE_LoadLibrary first to enable to Castle Game Engine funtions.
 
   iOS: castlelib will be statically linked to your app, so just include

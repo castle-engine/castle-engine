@@ -1,5 +1,5 @@
 /*
-  Copyright 2013 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2014 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -12,25 +12,31 @@
 
   ----------------------------------------------------------------------------
 
-  This file is here as a wrapper, only to load the CastleLib.dll for you and
-  to call GetProcAddress for all exported functions.
+  This file is here as a wrapper, only to load the castleengine.dll for you and
+  to resolve all exported functions.
+
+  It works for multiplatform projects made in Qt (need to define QT_BUILD macro),
+  or for projects made in WinAPI.
 
   Usage:
-  1. Copy castle_win_loader.cpp and castlelib.h into your project folder and
-     add them to your project workspace.
+  1. Add castle_c_loader.cpp and castlelib.h into your project workspace. You may
+     want to copy them instead in case you don't want to use the latest versions.
 
-  2. Copy castleengine.dll to your project folder (or to Debug and Release folders)
+  2. Copy compiled dynamic library (castleengine.dll/.dylib) to your project
+     folder (or to Debug and Release folders)
 
   3. Include castlelib.h in your source files, call CGE_LoadLibrary at
      the start of your program, and then call CGE_xxx functions as usual.
 */
 
-#include <windows.h>
+#ifdef QT_BUILD
+  #include <QLibrary>
+#else          // suppose Windows build
+  #include <windows.h>
+#endif
 #include "castleengine.h"
 
 //-----------------------------------------------------------------------------
-HMODULE g_hCgeDll = NULL;
-
 typedef void (__cdecl *PFNRD_CGE_Open)(unsigned uiFlags);
 typedef void (__cdecl *PFNRD_CGE_Close)();
 typedef void (__cdecl *PFNRD_CGE_GetOpenGLInformation)(char *szBuffer, int nBufSize);
@@ -94,39 +100,59 @@ PFNRD_CGE_SetUserInterface pfrd_CGE_SetUserInterface = NULL;
 PFNRD_CGE_SetVariableInt pfrd_CGE_SetVariableInt = NULL;
 PFNRD_CGE_GetVariableInt pfrd_CGE_GetVariableInt = NULL;
 
+#ifdef QT_BUILD
+//-----------------------------------------------------------------------------
+QFunctionPointer cge_GetProc(QLibrary &rCgeLib, const char *symbol)
+{
+    return rCgeLib.resolve(symbol);
+}
+#else
+FARPROC WINAPI cge_GetProc(HMODULE hCgeLib, const char *symbol)
+{
+    return GetProcAddress(hCgeLib, symbol);
+}
+#endif
+
 //-----------------------------------------------------------------------------
 void CGE_LoadLibrary()
 {
-	g_hCgeDll = LoadLibrary("castleengine.dll");
-	if (g_hCgeDll==NULL)
+#ifdef QT_BUILD
+    QLibrary hCgeDll("castleengine");
+    hCgeDll.load();
+    if (!hCgeDll.isLoaded())
+        return;
+#else
+    HMODULE hCgeDll = LoadLibrary("castleengine.dll");
+    if (hCgeDll==NULL)
 		return;
+#endif
 
-	pfrd_CGE_Open = (PFNRD_CGE_Open)GetProcAddress(g_hCgeDll, "CGE_Open");
-	pfrd_CGE_Close = (PFNRD_CGE_Close)GetProcAddress(g_hCgeDll, "CGE_Close");
-	pfrd_CGE_GetOpenGLInformation = (PFNRD_CGE_GetOpenGLInformation)GetProcAddress(g_hCgeDll, "CGE_GetOpenGLInformation");
-	pfrd_CGE_Resize = (PFNRD_CGE_Resize)GetProcAddress(g_hCgeDll, "CGE_Resize");
-	pfrd_CGE_Render = (PFNRD_CGE_Render)GetProcAddress(g_hCgeDll, "CGE_Render");
-	pfrd_CGE_SaveScreenshotToFile = (PFNRD_CGE_SaveScreenshotToFile)GetProcAddress(g_hCgeDll, "CGE_SaveScreenshotToFile");
-	pfrd_CGE_SetLibraryCallbackProc = (PFNRD_CGE_SetLibraryCallbackProc)GetProcAddress(g_hCgeDll, "CGE_SetLibraryCallbackProc");
-	pfrd_CGE_Update = (PFNRD_CGE_Update)GetProcAddress(g_hCgeDll, "CGE_Update");
-	pfrd_CGE_MouseDown = (PFNRD_CGE_MouseDown)GetProcAddress(g_hCgeDll, "CGE_MouseDown");
-	pfrd_CGE_Motion = (PFNRD_CGE_Motion)GetProcAddress(g_hCgeDll, "CGE_Motion");
-	pfrd_CGE_MouseUp = (PFNRD_CGE_MouseUp)GetProcAddress(g_hCgeDll, "CGE_MouseUp");
-	pfrd_CGE_MouseWheel =(PFNRD_CGE_MouseWheel) GetProcAddress(g_hCgeDll, "CGE_MouseWheel");
-	pfrd_CGE_LoadSceneFromFile = (PFNRD_CGE_LoadSceneFromFile)GetProcAddress(g_hCgeDll, "CGE_LoadSceneFromFile");
-	pfrd_CGE_GetViewpointsCount = (PFNRD_CGE_GetViewpointsCount)GetProcAddress(g_hCgeDll, "CGE_GetViewpointsCount");
-	pfrd_CGE_GetViewpointName = (PFNRD_CGE_GetViewpointName)GetProcAddress(g_hCgeDll, "CGE_GetViewpointName");
-	pfrd_CGE_MoveToViewpoint = (PFNRD_CGE_MoveToViewpoint)GetProcAddress(g_hCgeDll, "CGE_MoveToViewpoint");
-    pfrd_CGE_AddViewpointFromCurrentView = (PFNRD_CGE_AddViewpointFromCurrentView)GetProcAddress(g_hCgeDll, "CGE_AddViewpointFromCurrentView");
-	pfrd_CGE_GetBoundingBox = (PFNRD_CGE_GetBoundingBox)GetProcAddress(g_hCgeDll, "CGE_GetBoundingBox");
-	pfrd_CGE_GetViewCoords = (PFNRD_CGE_GetViewCoords)GetProcAddress(g_hCgeDll, "CGE_GetViewCoords");
-	pfrd_CGE_MoveViewToCoords = (PFNRD_CGE_MoveViewToCoords)GetProcAddress(g_hCgeDll, "CGE_MoveViewToCoords");
-	pfrd_CGE_GetNavigationType = (PFNRD_CGE_GetNavigationType)GetProcAddress(g_hCgeDll, "CGE_GetNavigationType");
-	pfrd_CGE_SetNavigationType = (PFNRD_CGE_SetNavigationType)GetProcAddress(g_hCgeDll, "CGE_SetNavigationType");
-	pfrd_CGE_SetTouchInterface = (PFNRD_CGE_SetTouchInterface)GetProcAddress(g_hCgeDll, "CGE_SetTouchInterface");
-	pfrd_CGE_SetUserInterface = (PFNRD_CGE_SetUserInterface)GetProcAddress(g_hCgeDll, "CGE_SetUserInterface");
-	pfrd_CGE_SetVariableInt = (PFNRD_CGE_SetVariableInt)GetProcAddress(g_hCgeDll, "CGE_SetVariableInt");
-	pfrd_CGE_GetVariableInt = (PFNRD_CGE_GetVariableInt)GetProcAddress(g_hCgeDll, "CGE_GetVariableInt");
+    pfrd_CGE_Open = (PFNRD_CGE_Open)cge_GetProc(hCgeDll, "CGE_Open");
+    pfrd_CGE_Close = (PFNRD_CGE_Close)cge_GetProc(hCgeDll, "CGE_Close");
+    pfrd_CGE_GetOpenGLInformation = (PFNRD_CGE_GetOpenGLInformation)cge_GetProc(hCgeDll, "CGE_GetOpenGLInformation");
+    pfrd_CGE_Resize = (PFNRD_CGE_Resize)cge_GetProc(hCgeDll, "CGE_Resize");
+    pfrd_CGE_Render = (PFNRD_CGE_Render)cge_GetProc(hCgeDll, "CGE_Render");
+    pfrd_CGE_SaveScreenshotToFile = (PFNRD_CGE_SaveScreenshotToFile)cge_GetProc(hCgeDll, "CGE_SaveScreenshotToFile");
+    pfrd_CGE_SetLibraryCallbackProc = (PFNRD_CGE_SetLibraryCallbackProc)cge_GetProc(hCgeDll, "CGE_SetLibraryCallbackProc");
+    pfrd_CGE_Update = (PFNRD_CGE_Update)cge_GetProc(hCgeDll, "CGE_Update");
+    pfrd_CGE_MouseDown = (PFNRD_CGE_MouseDown)cge_GetProc(hCgeDll, "CGE_MouseDown");
+    pfrd_CGE_Motion = (PFNRD_CGE_Motion)cge_GetProc(hCgeDll, "CGE_Motion");
+    pfrd_CGE_MouseUp = (PFNRD_CGE_MouseUp)cge_GetProc(hCgeDll, "CGE_MouseUp");
+    pfrd_CGE_MouseWheel = (PFNRD_CGE_MouseWheel)cge_GetProc(hCgeDll, "CGE_MouseWheel");
+    pfrd_CGE_LoadSceneFromFile = (PFNRD_CGE_LoadSceneFromFile)cge_GetProc(hCgeDll, "CGE_LoadSceneFromFile");
+    pfrd_CGE_GetViewpointsCount = (PFNRD_CGE_GetViewpointsCount)cge_GetProc(hCgeDll, "CGE_GetViewpointsCount");
+    pfrd_CGE_GetViewpointName = (PFNRD_CGE_GetViewpointName)cge_GetProc(hCgeDll, "CGE_GetViewpointName");
+    pfrd_CGE_MoveToViewpoint = (PFNRD_CGE_MoveToViewpoint)cge_GetProc(hCgeDll, "CGE_MoveToViewpoint");
+    pfrd_CGE_AddViewpointFromCurrentView = (PFNRD_CGE_AddViewpointFromCurrentView)cge_GetProc(hCgeDll, "CGE_AddViewpointFromCurrentView");
+    pfrd_CGE_GetBoundingBox = (PFNRD_CGE_GetBoundingBox)cge_GetProc(hCgeDll, "CGE_GetBoundingBox");
+    pfrd_CGE_GetViewCoords = (PFNRD_CGE_GetViewCoords)cge_GetProc(hCgeDll, "CGE_GetViewCoords");
+    pfrd_CGE_MoveViewToCoords = (PFNRD_CGE_MoveViewToCoords)cge_GetProc(hCgeDll, "CGE_MoveViewToCoords");
+    pfrd_CGE_GetNavigationType = (PFNRD_CGE_GetNavigationType)cge_GetProc(hCgeDll, "CGE_GetNavigationType");
+    pfrd_CGE_SetNavigationType = (PFNRD_CGE_SetNavigationType)cge_GetProc(hCgeDll, "CGE_SetNavigationType");
+    pfrd_CGE_SetTouchInterface = (PFNRD_CGE_SetTouchInterface)cge_GetProc(hCgeDll, "CGE_SetTouchInterface");
+    pfrd_CGE_SetUserInterface = (PFNRD_CGE_SetUserInterface)cge_GetProc(hCgeDll, "CGE_SetUserInterface");
+    pfrd_CGE_SetVariableInt = (PFNRD_CGE_SetVariableInt)cge_GetProc(hCgeDll, "CGE_SetVariableInt");
+    pfrd_CGE_GetVariableInt = (PFNRD_CGE_GetVariableInt)cge_GetProc(hCgeDll, "CGE_GetVariableInt");
 }
 
 //-----------------------------------------------------------------------------
