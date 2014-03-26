@@ -41,9 +41,9 @@ typedef void (__cdecl *PFNRD_CGE_SaveScreenshotToFile)(const char *szFile);
 typedef void (__cdecl *PFNRD_CGE_SetLibraryCallbackProc)(TCgeLibraryCallbackProc pProc);
 typedef void (__cdecl *PFNRD_CGE_Update)();
 
-typedef void (__cdecl *PFNRD_CGE_MouseDown)(int x, int y, bool bLeftBtn);
-typedef void (__cdecl *PFNRD_CGE_MouseMove)(int x, int y);
-typedef void (__cdecl *PFNRD_CGE_MouseUp)(int x, int y, bool bLeftBtn);
+typedef void (__cdecl *PFNRD_CGE_MouseDown)(int x, int y, bool bLeftBtn, int nFingerIdx);
+typedef void (__cdecl *PFNRD_CGE_Motion)(int x, int y, int nFingerIdx);
+typedef void (__cdecl *PFNRD_CGE_MouseUp)(int x, int y, bool bLeftBtn, int nFingerIdx);
 typedef void (__cdecl *PFNRD_CGE_MouseWheel)(float zDelta, bool bVertical);
 
 typedef void (__cdecl *PFNRD_CGE_LoadSceneFromFile)(const char *szFile);
@@ -76,7 +76,7 @@ PFNRD_CGE_SaveScreenshotToFile pfrd_CGE_SaveScreenshotToFile = NULL;
 PFNRD_CGE_SetLibraryCallbackProc pfrd_CGE_SetLibraryCallbackProc = NULL;
 PFNRD_CGE_Update pfrd_CGE_Update = NULL;
 PFNRD_CGE_MouseDown pfrd_CGE_MouseDown = NULL;
-PFNRD_CGE_MouseMove pfrd_CGE_MouseMove = NULL;
+PFNRD_CGE_Motion pfrd_CGE_Motion = NULL;
 PFNRD_CGE_MouseUp pfrd_CGE_MouseUp = NULL;
 PFNRD_CGE_MouseWheel pfrd_CGE_MouseWheel = NULL;
 PFNRD_CGE_LoadSceneFromFile pfrd_CGE_LoadSceneFromFile = NULL;
@@ -110,7 +110,7 @@ void CGE_LoadLibrary()
 	pfrd_CGE_SetLibraryCallbackProc = (PFNRD_CGE_SetLibraryCallbackProc)GetProcAddress(g_hCgeDll, "CGE_SetLibraryCallbackProc");
 	pfrd_CGE_Update = (PFNRD_CGE_Update)GetProcAddress(g_hCgeDll, "CGE_Update");
 	pfrd_CGE_MouseDown = (PFNRD_CGE_MouseDown)GetProcAddress(g_hCgeDll, "CGE_MouseDown");
-	pfrd_CGE_MouseMove = (PFNRD_CGE_MouseMove)GetProcAddress(g_hCgeDll, "CGE_MouseMove");
+	pfrd_CGE_Motion = (PFNRD_CGE_Motion)GetProcAddress(g_hCgeDll, "CGE_Motion");
 	pfrd_CGE_MouseUp = (PFNRD_CGE_MouseUp)GetProcAddress(g_hCgeDll, "CGE_MouseUp");
 	pfrd_CGE_MouseWheel =(PFNRD_CGE_MouseWheel) GetProcAddress(g_hCgeDll, "CGE_MouseWheel");
 	pfrd_CGE_LoadSceneFromFile = (PFNRD_CGE_LoadSceneFromFile)GetProcAddress(g_hCgeDll, "CGE_LoadSceneFromFile");
@@ -186,24 +186,24 @@ void CGE_Update()
 }
 
 //-----------------------------------------------------------------------------
-void CGE_MouseDown(int x, int y, bool bLeftBtn)
+void CGE_MouseDown(int x, int y, bool bLeftBtn, int nFingerIdx)
 {
 	if (pfrd_CGE_MouseDown!=NULL)
-		(*pfrd_CGE_MouseDown)(x, y, bLeftBtn);
+		(*pfrd_CGE_MouseDown)(x, y, bLeftBtn, nFingerIdx);
 }
 
 //-----------------------------------------------------------------------------
-void CGE_MouseMove(int x, int y)
+void CGE_Motion(int x, int y, int nFingerIdx)
 {
-	if (pfrd_CGE_MouseMove!=NULL)
-		(*pfrd_CGE_MouseMove)(x, y);
+	if (pfrd_CGE_Motion!=NULL)
+		(*pfrd_CGE_Motion)(x, y, nFingerIdx);
 }
 
 //-----------------------------------------------------------------------------
-void CGE_MouseUp(int x, int y, bool bLeftBtn)
+void CGE_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx)
 {
 	if (pfrd_CGE_MouseUp!=NULL)
-		(*pfrd_CGE_MouseUp)(x, y, bLeftBtn);
+		(*pfrd_CGE_MouseUp)(x, y, bLeftBtn, nFingerIdx);
 }
 
 //-----------------------------------------------------------------------------

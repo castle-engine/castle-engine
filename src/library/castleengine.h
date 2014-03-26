@@ -94,9 +94,9 @@ extern void CGE_SaveScreenshotToFile(const char *szFile);
 extern void CGE_SetLibraryCallbackProc(TCgeLibraryCallbackProc pProc);     // set callback function
 extern void CGE_Update();                                                  // let the 3d engine perform the animations, etc
 
-extern void CGE_MouseDown(int x, int y, bool bLeftBtn);
-extern void CGE_MouseMove(int x, int y);
-extern void CGE_MouseUp(int x, int y, bool bLeftBtn);
+extern void CGE_MouseDown(int x, int y, bool bLeftBtn, int nFingerIdx);
+extern void CGE_Motion(int x, int y, int nFingerIdx);
+extern void CGE_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx);
 extern void CGE_MouseWheel(float zDelta, bool bVertical);
 
 extern void CGE_LoadSceneFromFile(const char *szFile);                     // name od the file has to be utf-8 encoded

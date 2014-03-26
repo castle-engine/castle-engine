@@ -172,7 +172,7 @@
     
     CGE_Resize(nViewSizeX*m_fScale, nViewSizeY*m_fScale);
     if (m_bIsPanning)
-        CGE_MouseMove(m_ptPanningMousePos.x, m_ptPanningMousePos.y);
+        CGE_Motion(m_ptPanningMousePos.x, m_ptPanningMousePos.y, 0);
     CGE_Update();
 }
 
@@ -195,16 +195,16 @@
     if (sender.state == UIGestureRecognizerStateBegan)
     {
         m_bIsPanning = true;
-        CGE_MouseDown(pt.x, pt.y, true);
+        CGE_MouseDown(pt.x, pt.y, true, 0);
     }
     else if (sender.state == UIGestureRecognizerStateChanged)
     {
         // note: mouse move is called in update function. Calling it too frequently jams the engine.
-        //CGE_MouseMove(pt.x, pt.y);
+        //CGE_Motion(pt.x, pt.y, 0);
     }
     else if (sender.state == UIGestureRecognizerStateEnded)
     {
-        CGE_MouseUp(pt.x, pt.y, true);
+        CGE_MouseUp(pt.x, pt.y, true, 0);
         m_bIsPanning = false;
     }
 }
@@ -217,8 +217,8 @@
     CGPoint pt = [sender locationInView:sender.view];
     pt.x*=m_fScale; pt.y*=m_fScale;
 
-    CGE_MouseDown(pt.x, pt.y, true);
-    CGE_MouseUp(pt.x, pt.y, true);
+    CGE_MouseDown(pt.x, pt.y, true, 0);
+    CGE_MouseUp(pt.x, pt.y, true, 0);
 }
 
 //-----------------------------------------------------------------
