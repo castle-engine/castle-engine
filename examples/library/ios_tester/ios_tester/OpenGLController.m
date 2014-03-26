@@ -190,6 +190,7 @@
     
     CGPoint pt = [sender locationInView:sender.view];
     pt.x*=m_fScale; pt.y*=m_fScale;
+    pt.y = self.view.bounds.size.height*m_fScale - 1 - pt.y; 
     m_ptPanningMousePos = pt;
     
     if (sender.state == UIGestureRecognizerStateBegan)
@@ -216,6 +217,7 @@
         return;
     CGPoint pt = [sender locationInView:sender.view];
     pt.x*=m_fScale; pt.y*=m_fScale;
+    pt.y = self.view.bounds.size.height*m_fScale - 1 - pt.y; 
 
     CGE_MouseDown(pt.x, pt.y, true, 0);
     CGE_MouseUp(pt.x, pt.y, true, 0);

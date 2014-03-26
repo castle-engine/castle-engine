@@ -173,17 +173,17 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:
-        CGE_MouseDown(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), msg==WM_LBUTTONDOWN, 0);
+        CGE_MouseDown(GET_X_LPARAM(lParam), g_windowHeight-1-GET_Y_LPARAM(lParam), msg==WM_LBUTTONDOWN, 0);
         SetCapture(hWnd);
         break;
 
     case WM_MOUSEMOVE:
-        CGE_Motion(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), 0);
+        CGE_Motion(GET_X_LPARAM(lParam), g_windowHeight-1-GET_Y_LPARAM(lParam), 0);
         break;
 
     case WM_LBUTTONUP:
     case WM_RBUTTONUP:
-        CGE_MouseUp(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), msg==WM_LBUTTONUP, 0);
+        CGE_MouseUp(GET_X_LPARAM(lParam), g_windowHeight-1-GET_Y_LPARAM(lParam), msg==WM_LBUTTONUP, 0);
         if (GetCapture()==hWnd)
             ReleaseCapture();
         break;
