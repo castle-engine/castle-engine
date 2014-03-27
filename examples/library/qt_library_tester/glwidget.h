@@ -12,6 +12,10 @@ public:
 
     void OpenScene(QString const &sFilename);
 
+    // helpers
+public:
+    static int QKeyToCgeKey(int qKey);
+
 private:
     QString m_sSceneToOpen;
     bool m_bAfterInit;
@@ -30,6 +34,8 @@ protected:
 #ifndef QT_NO_WHEELEVENT
     virtual void wheelEvent(QWheelEvent *event);
 #endif
+    virtual void keyPressEvent(QKeyEvent *event);
+    virtual void keyReleaseEvent(QKeyEvent *event);
 
 private slots:
     void OnUpdateTimer();

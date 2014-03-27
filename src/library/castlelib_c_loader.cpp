@@ -52,6 +52,9 @@ typedef void (__cdecl *PFNRD_CGE_Motion)(int x, int y, int nFingerIdx);
 typedef void (__cdecl *PFNRD_CGE_MouseUp)(int x, int y, bool bLeftBtn, int nFingerIdx);
 typedef void (__cdecl *PFNRD_CGE_MouseWheel)(float zDelta, bool bVertical);
 
+typedef void (__cdecl *PFNRD_CGE_KeyDown)(int eKey);
+typedef void (__cdecl *PFNRD_CGE_KeyUp)(int eKey);
+
 typedef void (__cdecl *PFNRD_CGE_LoadSceneFromFile)(const char *szFile);
 
 typedef int (__cdecl *PFNRD_CGE_GetViewpointsCount)();
@@ -85,6 +88,8 @@ PFNRD_CGE_MouseDown pfrd_CGE_MouseDown = NULL;
 PFNRD_CGE_Motion pfrd_CGE_Motion = NULL;
 PFNRD_CGE_MouseUp pfrd_CGE_MouseUp = NULL;
 PFNRD_CGE_MouseWheel pfrd_CGE_MouseWheel = NULL;
+PFNRD_CGE_KeyDown pfrd_CGE_KeyDown = NULL;
+PFNRD_CGE_KeyUp pfrd_CGE_KeyUp = NULL;
 PFNRD_CGE_LoadSceneFromFile pfrd_CGE_LoadSceneFromFile = NULL;
 PFNRD_CGE_GetViewpointsCount pfrd_CGE_GetViewpointsCount = NULL;
 PFNRD_CGE_GetViewpointName pfrd_CGE_GetViewpointName = NULL;
@@ -139,6 +144,8 @@ void CGE_LoadLibrary()
     pfrd_CGE_Motion = (PFNRD_CGE_Motion)cge_GetProc(hCgeDll, "CGE_Motion");
     pfrd_CGE_MouseUp = (PFNRD_CGE_MouseUp)cge_GetProc(hCgeDll, "CGE_MouseUp");
     pfrd_CGE_MouseWheel = (PFNRD_CGE_MouseWheel)cge_GetProc(hCgeDll, "CGE_MouseWheel");
+    pfrd_CGE_KeyDown = (PFNRD_CGE_KeyDown)cge_GetProc(hCgeDll, "CGE_KeyDown");
+    pfrd_CGE_KeyUp = (PFNRD_CGE_KeyUp)cge_GetProc(hCgeDll, "CGE_KeyUp");
     pfrd_CGE_LoadSceneFromFile = (PFNRD_CGE_LoadSceneFromFile)cge_GetProc(hCgeDll, "CGE_LoadSceneFromFile");
     pfrd_CGE_GetViewpointsCount = (PFNRD_CGE_GetViewpointsCount)cge_GetProc(hCgeDll, "CGE_GetViewpointsCount");
     pfrd_CGE_GetViewpointName = (PFNRD_CGE_GetViewpointName)cge_GetProc(hCgeDll, "CGE_GetViewpointName");
@@ -237,6 +244,20 @@ void CGE_MouseWheel(float zDelta, bool bVertical)
 {
 	if (pfrd_CGE_MouseWheel!=NULL)
 		(*pfrd_CGE_MouseWheel)(zDelta, bVertical);
+}
+
+//-----------------------------------------------------------------------------
+void CGE_KeyDown(int /*ECgeKey*/ eKey)
+{
+    if (pfrd_CGE_KeyDown!=NULL)
+        (*pfrd_CGE_KeyDown)(eKey);
+}
+
+//-----------------------------------------------------------------------------
+void CGE_KeyUp(int /*ECgeKey*/ eKey)
+{
+    if (pfrd_CGE_KeyUp!=NULL)
+        (*pfrd_CGE_KeyUp)(eKey);
 }
 
 //-----------------------------------------------------------------------------

@@ -28,6 +28,7 @@ GLWidget::GLWidget(QWidget *parent) :
     g_pThis = this;
     m_bAfterInit = false;
     setMouseTracking(true);
+    setFocusPolicy(Qt::StrongFocus);    // accept key strokes
 
     QTimer *pUpdateTimer = new QTimer(this);
     connect(pUpdateTimer, SIGNAL(timeout()), this, SLOT(OnUpdateTimer()));
@@ -139,3 +140,64 @@ void GLWidget::wheelEvent(QWheelEvent *event)
 }
 #endif
 
+void GLWidget::keyPressEvent(QKeyEvent *event)
+{
+    CGE_KeyDown(QKeyToCgeKey(event->key()));
+}
+
+void GLWidget::keyReleaseEvent(QKeyEvent *event)
+{
+    CGE_KeyUp(QKeyToCgeKey(event->key()));
+}
+
+int GLWidget::QKeyToCgeKey(int qKey)
+{
+    if (qKey >= Qt::Key_0 && qKey <= Qt::Key_9)
+        return kcge_0 + qKey - Qt::Key_0;
+    if (qKey >= Qt::Key_A && qKey <= Qt::Key_Z)
+        return kcge_A + qKey - Qt::Key_A;
+    if (qKey >= Qt::Key_F1 && qKey <= Qt::Key_F12)
+        return kcge_F1 + qKey - Qt::Key_F1;
+
+    switch (qKey)
+    {
+    case Qt::Key_Print: return kcge_PrintScreen;
+    case Qt::Key_CapsLock: return kcge_CapsLock;
+    case Qt::Key_ScrollLock: return kcge_ScrollLock;
+    case Qt::Key_NumLock: return kcge_NumLock;
+    case Qt::Key_Pause: return kcge_Pause;
+    case Qt::Key_Apostrophe: return kcge_Apostrophe;
+    case Qt::Key_Semicolon: return kcge_Semicolon;
+    case Qt::Key_Backspace: return kcge_BackSpace;
+    case Qt::Key_Tab: return kcge_Tab;
+    case Qt::Key_Slash: return kcge_Slash;
+    case Qt::Key_QuoteLeft: return kcge_BackQuote;
+    case Qt::Key_Minus: return kcge_Minus;
+    case Qt::Key_Return: return kcge_Enter;
+    case Qt::Key_Equal: return kcge_Equal;
+    case Qt::Key_Backslash: return kcge_BackSlash;
+    case Qt::Key_Shift: return kcge_Shift;
+    case Qt::Key_Control: return kcge_Ctrl;
+    case Qt::Key_Alt: return kcge_Alt;
+    case Qt::Key_Plus: return kcge_Plus;
+    case Qt::Key_Escape: return kcge_Escape;
+    case Qt::Key_Space: return kcge_Space;
+    case Qt::Key_PageUp: return kcge_PageUp;
+    case Qt::Key_PageDown: return kcge_PageDown;
+    case Qt::Key_End: return kcge_End;
+    case Qt::Key_Home: return kcge_Home;
+    case Qt::Key_Left: return kcge_Left;
+    case Qt::Key_Up: return kcge_Up;
+    case Qt::Key_Right: return kcge_Right;
+    case Qt::Key_Down: return kcge_Down;
+    case Qt::Key_Insert: return kcge_Insert;
+    case Qt::Key_Delete: return kcge_Delete;
+    case Qt::Key_BracketLeft: return kcge_LeftBracket;
+    case Qt::Key_BracketRight: return kcge_RightBracket;
+    case Qt::Key_Enter: return kcge_Numpad_Enter;
+    case Qt::Key_Comma: return kcge_Comma;
+    case Qt::Key_Period: return kcge_Period;
+
+    default: return kcge_None;
+    }
+}

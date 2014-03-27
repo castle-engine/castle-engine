@@ -198,6 +198,26 @@ begin
   end;
 end;
 
+procedure CGE_KeyDown(eKey: CInt32); cdecl;
+begin
+  try
+    if TKey(eKey)<>K_None then
+      Window.LibraryKeyDown(TKey(eKey), #0);
+  except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+  end;
+end;
+
+procedure CGE_KeyUp(eKey: CInt32); cdecl;
+begin
+  try
+    if TKey(eKey)<>K_None then
+      Window.LibraryKeyUp(TKey(eKey));
+  except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+  end;
+end;
+
 procedure CGE_LoadSceneFromFile(szFile: pcchar); cdecl;
 begin
   try
@@ -438,7 +458,7 @@ end;
 exports
   CGE_Open, CGE_Close, CGE_GetOpenGLInformation,
   CGE_Render, CGE_Resize, CGE_SetLibraryCallbackProc, CGE_Update,
-  CGE_MouseDown, CGE_Motion, CGE_MouseUp, CGE_MouseWheel,
+  CGE_MouseDown, CGE_Motion, CGE_MouseUp, CGE_MouseWheel, CGE_KeyDown, CGE_KeyUp,
   CGE_LoadSceneFromFile, CGE_GetNavigationType, CGE_SetNavigationType,
   CGE_GetViewpointsCount, CGE_GetViewpointName, CGE_MoveToViewpoint, CGE_AddViewpointFromCurrentView,
   CGE_GetBoundingBox, CGE_GetViewCoords, CGE_MoveViewToCoords, CGE_SaveScreenshotToFile,
