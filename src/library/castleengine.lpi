@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -47,6 +47,7 @@
       <Unit1>
         <Filename Value="..\window\castlewindow.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="CastleWindow"/>
       </Unit1>
       <Unit2>
         <Filename Value="..\window\castlewindowtouch.pas"/>
@@ -108,4 +109,4 @@
       </Item3>
     </Exceptions>
   </Debugging>
-</CONFIG>
+</CONFIG>

@@ -40,6 +40,9 @@ enum ECgeVariable   // used for quering engine parameters in CGE_Set/GetVariable
 {
     ecgevarWalkHeadBobbing = 0,   // walking effect (int, 1 = on, 0 = off)
     ecgevarEffectSSAO      = 1,   // screen space ambient occlusion (int, 1 or 0)
+    ecgevarMouseLook       = 2,   // activate mouse look viewing mode, desktop interface only (int, 1 or 0)
+    ecgevarCrossHair       = 3,   // show crosshair in the center of the screen (int, 1 or 0)
+    ecgevarAnimationRunning = 4,  // (read-only) engine would like to progress with the animation (int, 1 or 0)
 };
 
 enum ECgeNavigationType
@@ -74,6 +77,7 @@ enum ECgeLibCallbackCode
     ecgelibNeedsDisplay          = 0,  // app should repaint the view (content changed)
     ecgelibSetMouseCursor        = 1,  // sends ECgeMouseCursor in iParam1
     ecgelibNavigationTypeChanged = 2,  // sends ECgeNavigationType in iParam1
+    ecgelibSetMousePosition      = 3,  // sends x in iParam1 and y in iParam2
 };
 
 enum ECgeKey    // values for these constants have to be same as in unit CastleKeysMouse (TKey)

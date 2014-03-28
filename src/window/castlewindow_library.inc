@@ -68,6 +68,7 @@ const
   ecgelibNeedsDisplay          = 0;
   ecgelibSetMouseCursor        = 1;  // sends mouse cursor code in iParam1
   ecgelibNavigationTypeChanged = 2;  // sends ECgeNavigationType in iParam1 (see castleengine.h)
+  ecgelibSetMousePosition      = 3;  // sends x in iParam1 and y in iParam2
 
   // mouse cursor codes
   ecgecursorDefault   = 0;
@@ -151,8 +152,8 @@ end;
 
 procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2Single);
 begin
-  if not Closed then
-    { TODO: call LibraryCallbackProc to move mouse cursor to Value };
+  if (not Closed) and Assigned(LibraryCallbackProc) then
+    LibraryCallbackProc(ecgelibSetMousePosition, Floor(Value[0]), Floor(Value[1]));
 end;
 
 procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);

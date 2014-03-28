@@ -79,6 +79,7 @@ int __cdecl OpenGlLibraryCallback(int eCode, int iParam1, int iParam2)
             case ecgecursorWait: aNewCur.setShape(Qt::WaitCursor); break;
             case ecgecursorHand: aNewCur.setShape(Qt::PointingHandCursor); break;
             case ecgecursorText: aNewCur.setShape(Qt::IBeamCursor); break;
+            case ecgecursorNone: aNewCur.setShape(Qt::BlankCursor); break;
             default: aNewCur.setShape(Qt::ArrowCursor);
             }
             g_pThis->setCursor(aNewCur);
@@ -87,6 +88,13 @@ int __cdecl OpenGlLibraryCallback(int eCode, int iParam1, int iParam2)
 
     case ecgelibNavigationTypeChanged:
         ((MainWindow*)g_pThis->parent())->UpdateNavigationButtons();
+        return 1;
+
+    case ecgelibSetMousePosition:
+        {
+            QPoint ptNew = g_pThis->mapToGlobal(QPoint(iParam1, g_pThis->height() - 1 - iParam2));
+            QCursor::setPos(ptNew.x(), ptNew.y());
+        }
         return 1;
     }
     return 0;
@@ -142,6 +150,14 @@ void GLWidget::wheelEvent(QWheelEvent *event)
 
 void GLWidget::keyPressEvent(QKeyEvent *event)
 {
+    if (event->key() == Qt::Key_Escape && CGE_GetVariableInt(ecgevarMouseLook)==1)
+    {
+        CGE_SetVariableInt(ecgevarMouseLook, 0);
+        CGE_SetVariableInt(ecgevarCrossHair, 0);
+        event->accept();
+        return;
+    }
+
     CGE_KeyDown(QKeyToCgeKey(event->key()));
 }
 

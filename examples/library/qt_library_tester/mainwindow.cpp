@@ -17,7 +17,10 @@
 #include "ui_mainwindow.h"
 #include "glwidget.h"
 
+#include <QDialog>
 #include <QFileDialog>
+#include <QPlainTextEdit>
+#include <QVBoxLayout>
 
 #include "../../../src/library/castleengine.h"
 
@@ -39,6 +42,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionTurntable, SIGNAL(triggered()), this, SLOT(OnTurntableClick()));
     connect(ui->actionNextView, SIGNAL(triggered()), this, SLOT(OnNextViewClick()));
     connect(ui->actionPrevView, SIGNAL(triggered()), this, SLOT(OnPrevViewClick()));
+
+    connect(ui->actionSSAO, SIGNAL(triggered()), this, SLOT(MenuSoftShadowsClick()));
+    connect(ui->actionHead_Bobbing, SIGNAL(triggered()), this, SLOT(MenuWalkingEffectClick()));
+    connect(ui->actionMouse_Look, SIGNAL(triggered()), this, SLOT(MenuMouseLookClick()));
+    connect(ui->actionOpenGL_Information, SIGNAL(triggered()), this, SLOT(MenuOpenGLInfoClick()));
+    connect(ui->actionShow_Log, SIGNAL(triggered()), this, SLOT(MenuShowLogClick()));
 
     m_pGlWidget->OpenScene("../../../../demo_models/navigation/type_walk.wrl");
 }
@@ -99,6 +108,9 @@ void MainWindow::UpdateAfterSceneLoaded()
     }
     m_iCurrentViewpoint = 0;
     m_nViewpointCount = nCount;
+
+    ui->actionHead_Bobbing->setChecked(CGE_GetVariableInt(ecgevarWalkHeadBobbing)>0);
+    ui->actionSSAO->setChecked(CGE_GetVariableInt(ecgevarEffectSSAO)>0);
 }
 
 void MainWindow::OnMoveToViewpointClick()
@@ -130,4 +142,54 @@ ActionWithTag::ActionWithTag(QString const& sCaption, int nTag, QObject * parent
     : QAction(parent), m_nTag(nTag)
 {
     setText(sCaption);
+}
+
+void MainWindow::MenuSoftShadowsClick()
+{
+    bool bSwitchOn = ui->actionSSAO->isChecked();
+    CGE_SetVariableInt(ecgevarEffectSSAO, bSwitchOn ? 1 : 0);
+}
+
+void MainWindow::MenuAntiAliasingClick()
+{
+    // TODO
+}
+
+void MainWindow::MenuWalkingEffectClick()
+{
+    bool bSwitchOn = ui->actionHead_Bobbing->isChecked();
+    CGE_SetVariableInt(ecgevarWalkHeadBobbing, bSwitchOn ? 1 : 0);
+}
+
+void MainWindow::MenuMouseLookClick()
+{
+    CGE_SetVariableInt(ecgevarMouseLook, 1);
+    CGE_SetVariableInt(ecgevarCrossHair, 1);
+}
+
+void MainWindow::MenuShowLogClick()
+{
+    // TODO
+}
+
+void MainWindow::MenuOpenGLInfoClick()
+{
+    char szBuf[8192];
+    CGE_GetOpenGLInformation(szBuf, 8192);
+
+    QDialog aDlg(this);
+    aDlg.setWindowTitle("OpenGL Information");
+    aDlg.setWindowFlags(aDlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
+    QPlainTextEdit *pEdit = new QPlainTextEdit(&aDlg);
+    pEdit->setPlainText(QString::fromUtf8(szBuf));
+    pEdit->setMinimumSize(500, 500);
+    pEdit->setReadOnly(true);
+
+    QVBoxLayout *pLayout = new QVBoxLayout(&aDlg);
+    pLayout->setContentsMargins(0, 0, 0, 0);
+    aDlg.setLayout(pLayout);
+    pLayout->insertWidget(0, pEdit);
+    aDlg.resize(aDlg.minimumSize());
+    aDlg.exec();
 }

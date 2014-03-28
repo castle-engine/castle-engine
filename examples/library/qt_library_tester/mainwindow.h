@@ -36,6 +36,12 @@ private slots:
     void OnMoveToViewpointClick();
     void OnNextViewClick();
     void OnPrevViewClick();
+    void MenuSoftShadowsClick();
+    void MenuAntiAliasingClick();
+    void MenuWalkingEffectClick();
+    void MenuMouseLookClick();
+    void MenuShowLogClick();
+    void MenuOpenGLInfoClick();
 };
 
 class ActionWithTag : public QAction

@@ -422,6 +422,17 @@ begin
         if Window.SceneManager.ScreenSpaceAmbientOcclusionAvailable then
           Window.SceneManager.ScreenSpaceAmbientOcclusion := (nValue > 0);
       end;
+
+      2: begin    // ecgevarMouseLook
+        WalkCamera := cgehelper_getWalkCamera;
+        if WalkCamera <> nil then
+            WalkCamera.MouseLook := (nValue > 0);
+      end;
+
+      3: begin    // ecgevarCrossHair
+        { TODO }
+      end;
+
     end;
   except
     on E: TObject do WritelnLog('Window', ExceptMessage(E));
@@ -444,6 +455,23 @@ begin
       1: begin    // ecgevarEffectSSAO
         if Window.SceneManager.ScreenSpaceAmbientOcclusionAvailable and
             Window.SceneManager.ScreenSpaceAmbientOcclusion then
+          Result := 1 else
+          Result := 0;
+      end;
+
+      2: begin    // ecgevarMouseLook
+        WalkCamera := cgehelper_getWalkCamera;
+        if (WalkCamera <> nil) and WalkCamera.MouseLook then
+          Result := 1 else
+          Result := 0;
+      end;
+
+      3: begin    // ecgevarCrossHair
+        { TODO }
+      end;
+
+      4: begin    // ecgevarAnimationRunning
+        if Window.SceneManager.Camera.Animation then
           Result := 1 else
           Result := 0;
       end;
