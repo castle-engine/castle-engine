@@ -1649,6 +1649,40 @@ end;
 
 { shadow quads --------------------------------------------------------------- }
 
+{ Return vertex Original extruded into infinity, as seen from light
+  at position LightPos.
+
+  This is designed to work only with LightPos[3] = 1. In the future, when
+  need arises, this may be improved to work with any LightPos[3] <> 0.
+
+  For LightPos[3] = 0, i.e. directional light,
+  don't use this, and there's no need to do it,
+  since then the extruded point is just LightPos (for any vertex).
+  RenderXxxShadowVolume want to treat it specially anyway (to optimize
+  drawing, since then quads degenerate to triangles).
+
+  Note: this cannot be moved to a local function inside
+  TCastleScene.RenderSilhouetteShadowVolume, as FPC 2.6.4 and 2.6.2 on Win32 (but not on Linux
+  i386) generates then bad code, the loop to ManifoldEdgesNow.Count doesn't finish OK,
+  the index goes beyond ManifoldEdgesNow.Count-1. }
+function ExtrudeVertex(
+  const Original: TVector3Single;
+  const LightPos: TVector4Single): TVector4Single;
+var
+  LightPos3: TVector3Single absolute LightPos;
+begin
+  { Below is the moment when we require that
+    if LightPos[3] <> 0 then LightPos[3] = 1 (not any other non-zero value).
+    Otherwise we would have to divide here LightPos3 by LightPos[3].
+    Maybe in the future this requirement will be removed and we'll work
+    for any LightPos in homogeneous coordinates, for now it's not really
+    needed. }
+  Result[0] := Original[0] -  LightPos3[0];
+  Result[1] := Original[1] -  LightPos3[1];
+  Result[2] := Original[2] -  LightPos3[2];
+  Result[3] := 0;
+end;
+
 procedure TCastleScene.RenderSilhouetteShadowVolume(
   const LightPos: TVector4Single;
   const TransformIsIdentity: boolean;
@@ -1683,35 +1717,6 @@ procedure TCastleScene.RenderSilhouetteShadowVolume(
   that's what ManifoldEdges list is all about. It allows us to
   implement this in time proportional to the number of edges.
 }
-
-  { Return vertex Original extruded into infinity, as seen from light
-    at position LightPos.
-
-    This is designed to work only with LightPos[3] = 1. In the future, when
-    need arises, this may be improved to work with any LightPos[3] <> 0.
-
-    For LightPos[3] = 0, i.e. directional light,
-    don't use this, and there's no need to do it,
-    since then the extruded point is just LightPos (for any vertex).
-    RenderXxxShadowVolume want to treat it specially anyway (to optimize
-    drawing, since then quads degenerate to triangles). }
-  function ExtrudeVertex(
-    const Original: TVector3Single;
-    const LightPos: TVector4Single): TVector4Single;
-  var
-    LightPos3: TVector3Single absolute LightPos;
-  begin
-    { Below is the moment when we require that
-      if LightPos[3] <> 0 then LightPos[3] = 1 (not any other non-zero value).
-      Otherwise we would have to divide here LightPos3 by LightPos[3].
-      Maybe in the future this requirement will be removed and we'll work
-      for any LightPos in homogeneous coordinates, for now it's not really
-      needed. }
-    Result[0] := Original[0] -  LightPos3[0];
-    Result[1] := Original[1] -  LightPos3[1];
-    Result[2] := Original[2] -  LightPos3[2];
-    Result[3] := 0;
-  end;
 
 var
   Triangles: TTrianglesShadowCastersList;
