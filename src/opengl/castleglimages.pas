@@ -2784,13 +2784,21 @@ procedure TGLRenderToTexture.GLContextOpen;
       gsStandard:
         begin
           glGenRenderbuffers(1, @RenderbufferId);
-          glBindRenderbuffer   (GL_RENDERBUFFER    , RenderbufferId);
+          glBindRenderbuffer(GL_RENDERBUFFER, RenderbufferId);
           {$ifndef OpenGLES}
           if (MultiSampling > 1) and GLFeatures.FBOMultiSampling then
             glRenderbufferStorageMultisample(GL_RENDERBUFFER, MultiSampling, InternalFormat, Width, Height) else
           {$endif}
-            glRenderbufferStorage           (GL_RENDERBUFFER,                InternalFormat, Width, Height);
-          glFramebufferRenderbuffer   (GL_FRAMEBUFFER    , Attachment, GL_RENDERBUFFER    , RenderbufferId);
+            glRenderbufferStorage(GL_RENDERBUFFER, InternalFormat, Width, Height);
+          if Attachment = GL_DEPTH_STENCIL_ATTACHMENT then
+          begin
+            WritelnLog('FBO', 'Setting GL_DEPTH_ATTACHMENT and GL_STENCIL_ATTACHMENT to the same texture');
+            { Radeon drivers (ATI Mobility Radeon HD 4330) throw OpenGL error "invalid enum"
+              when trying to use GL_DEPTH_STENCIL_ATTACHMENT. }
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RenderbufferId);
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RenderbufferId);
+          end else
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, Attachment, GL_RENDERBUFFER, RenderbufferId);
         end;
     end;
   end;
