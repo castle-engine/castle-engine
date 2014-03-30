@@ -2768,8 +2768,13 @@ procedure TGLRenderToTexture.GLContextOpen;
     end;
   end;
 
+  { Create and bind and set renderbuffer storage.
+    If AttachmentDepthAndStencil, we attach to both depth/stencil,
+    and provided Attachment value is ignored. Otherwise, we attach to the given
+    Attachment. }
   procedure GenBindRenderbuffer(var RenderbufferId: TGLuint;
-    const InternalFormat: TGLenum; const Attachment: TGLenum);
+    const InternalFormat: TGLenum; const AttachmentDepthAndStencil: boolean;
+    Attachment: TGLenum);
   begin
     case GLFeatures.Framebuffer of
       {$ifndef OpenGLES}
@@ -2778,6 +2783,8 @@ procedure TGLRenderToTexture.GLContextOpen;
           glGenRenderbuffersEXT(1, @RenderbufferId);
           glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, RenderbufferId);
           glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, InternalFormat, Width, Height);
+          if AttachmentDepthAndStencil then
+            Attachment := GL_DEPTH_STENCIL_ATTACHMENT;
           glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, Attachment, GL_RENDERBUFFER_EXT, RenderbufferId);
         end;
       {$endif}
@@ -2790,7 +2797,7 @@ procedure TGLRenderToTexture.GLContextOpen;
             glRenderbufferStorageMultisample(GL_RENDERBUFFER, MultiSampling, InternalFormat, Width, Height) else
           {$endif}
             glRenderbufferStorage(GL_RENDERBUFFER, InternalFormat, Width, Height);
-          if Attachment = GL_DEPTH_STENCIL_ATTACHMENT then
+          if AttachmentDepthAndStencil then
           begin
             WritelnLog('FBO', 'Setting GL_DEPTH_ATTACHMENT and GL_STENCIL_ATTACHMENT to the same texture');
             { Radeon drivers (ATI Mobility Radeon HD 4330) throw OpenGL error "invalid enum"
@@ -2813,6 +2820,7 @@ procedure TGLRenderToTexture.GLContextOpen;
 var
   Status: TGLenum;
   DepthBufferFormatPacked, DepthAttachmentPacked: TGLenum;
+  DepthAttachmentWithStencil: boolean;
   Success: boolean;
   PreviousFboDefaultBuffer: TGLenum;
 begin
@@ -2845,7 +2853,9 @@ begin
     if Stencil and GLFeatures.PackedDepthStencil then
     begin
       DepthBufferFormatPacked := GL_DEPTH_STENCIL;
-      DepthAttachmentPacked := GL_DEPTH_STENCIL_ATTACHMENT;
+      DepthAttachmentWithStencil := true;
+      { DepthAttachmentPacked is ignored when DepthAttachmentWithStencil = true. }
+      DepthAttachmentPacked := 0;
     end else
     // TODO-es This is probably needed on gles too?
     // we have GL_DEPTH_STENCIL_OES, but what is the equivalent of GL_DEPTH_STENCIL_ATTACHMENT?
@@ -2865,13 +2875,14 @@ begin
         {$else} GL_DEPTH_COMPONENT
         {$endif};
       DepthAttachmentPacked := GL_DEPTH_ATTACHMENT;
+      DepthAttachmentWithStencil := false;
     end;
 
     case Buffer of
       tbColor:
         begin
           FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, TextureTarget, Texture, 0);
-          GenBindRenderbuffer(RenderbufferDepth, DepthBufferFormatPacked, DepthAttachmentPacked);
+          GenBindRenderbuffer(RenderbufferDepth, DepthBufferFormatPacked, DepthAttachmentWithStencil, DepthAttachmentPacked);
         end;
       tbDepth:
         begin
@@ -2888,8 +2899,8 @@ begin
         end;
       tbNone:
         begin
-          GenBindRenderbuffer(RenderbufferColor, ColorBufferFormat, GL_COLOR_ATTACHMENT0);
-          GenBindRenderbuffer(RenderbufferDepth, DepthBufferFormatPacked, DepthAttachmentPacked);
+          GenBindRenderbuffer(RenderbufferColor, ColorBufferFormat, false, GL_COLOR_ATTACHMENT0);
+          GenBindRenderbuffer(RenderbufferDepth, DepthBufferFormatPacked, DepthAttachmentWithStencil, DepthAttachmentPacked);
         end;
       else raise EInternalError.Create('Buffer 1?');
     end;
@@ -2897,7 +2908,7 @@ begin
     { setup separate stencil buffer }
     if Stencil and not GLFeatures.PackedDepthStencil then
       { initialize RenderbufferStencil, attach it to FBO stencil }
-      GenBindRenderbuffer(RenderbufferStencil, GL_STENCIL_INDEX, GL_STENCIL_ATTACHMENT);
+      GenBindRenderbuffer(RenderbufferStencil, GL_STENCIL_INDEX, false, GL_STENCIL_ATTACHMENT);
 
     Success := false;
     try
