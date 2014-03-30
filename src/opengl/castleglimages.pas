@@ -1313,9 +1313,6 @@ begin
   {$else}
   glLoadIdentity();
   glColorv(Color);
-  { Reset GL_TEXTURE_ENV, otherwise it may be left GL_COMBINE
-    after rendering X3D model using MultiTexture. }
-  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);

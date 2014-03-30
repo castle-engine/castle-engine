@@ -2596,6 +2596,10 @@ begin
   glMatrixMode(GL_MODELVIEW);
 
   glPointSize(Attributes.PointSize); // TODO-es How to achieve glPointSize in OpenGLES?
+
+  { Reset GL_TEXTURE_ENV, otherwise it may be left GL_COMBINE
+    after rendering X3D model using MultiTexture. }
+  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
   {$endif}
 
   if Beginning then
