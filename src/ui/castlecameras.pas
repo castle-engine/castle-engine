@@ -2621,6 +2621,14 @@ begin
   FDirection := MatrixMultDirection(M, DefaultCameraDirection);
   FUp        := MatrixMultDirection(M, DefaultCameraUp);
 
+  { In case of ScaleFactor, it is possible that M is such that dir/up
+    are not normalized. Fix them now, GetView guarantees normalized vectors. }
+  if ScaleFactor <> 1 then
+  begin
+    NormalizeTo1st(FDirection);
+    NormalizeTo1st(FUp);
+  end;
+
   inherited;
 end;
 
