@@ -25,7 +25,7 @@ var
 
 implementation
 
-uses SysUtils, CastleControls, CastleImages, CastleLog, CastleColors,
+uses SysUtils, Classes, CastleControls, CastleImages, CastleLog, CastleColors,
   CastleFilesUtils, CastleKeysMouse, CastleVectors;
 
 var
@@ -55,12 +55,25 @@ begin
 end;
 
 procedure WindowRender(Container: TUIContainer);
+var
+  S: TStringList;
+  I: Integer;
 begin
-  UIFont.Print(10, 10, Yellow, Format('Image: %d x %d. FPS : %f (real : %f)',
-    [ImageControl.Image.Width,
-     ImageControl.Image.Height,
-     Window.Fps.FrameTime,
-     Window.Fps.RealTime]));
+  { Print text with FPS, Touches and other info useful for debugging }
+  S := TStringList.Create;
+  try
+    S.Append(Format('Image: %d x %d. FPS : %f (real : %f)',
+      [ImageControl.Image.Width,
+       ImageControl.Image.Height,
+       Window.Fps.FrameTime,
+       Window.Fps.RealTime]));
+    S.Append(Format('Touches (%d)', [Container.TouchesCount]));
+    for I := 0 to Container.TouchesCount - 1 do
+      S.Append(Format('Touch %d: FingerIndex %d, Position %s',
+        [I, Container.Touches[I].FingerIndex,
+         VectorToNiceStr(Container.Touches[I].Position) ]));
+    UIFont.PrintStrings(10, 10, Yellow, S, false, 0);
+  finally FreeAndNil(S) end;
 end;
 
 procedure WindowResize(Container: TUIContainer);
@@ -112,6 +125,8 @@ procedure WindowMotion(Container: TUIContainer; const Event: TInputMotion);
 begin
   if Event.Pressed <> [] then
     Draw(Event.Position, Event.FingerIndex);
+  { We show Touches state in every frame, so redraw at every Motion event. }
+  Window.Invalidate;
 end;
 
 function MyGetApplicationName: string;

@@ -82,6 +82,8 @@ type
         function Pressed: TKeysPressed; override;
         function Fps: TFramesPerSecond; override;
         procedure SetCursor(const Value: TMouseCursor); override;
+        function GetTouches(const Index: Integer): TTouch; override;
+        function TouchesCount: Integer; override;
       end;
     var
     FContainer: TContainer;
@@ -154,6 +156,8 @@ type
     property MousePressed: CastleKeysMouse.TMouseButtons read FMousePressed;
     procedure ReleaseAllKeysAndMouse;
 
+    { Current mouse position.
+      See @link(TTouch.Position) for a documentation how this is expressed. }
     property MousePosition: TVector2Single read FMousePosition write SetMousePosition;
 
     property Fps: TFramesPerSecond read FFps;
@@ -460,6 +464,18 @@ begin
     manager call. }
   if Parent.Cursor <> NewCursor then
     Parent.Cursor := NewCursor;
+end;
+
+function TCastleControlCustom.TContainer.GetTouches(const Index: Integer): TTouch;
+begin
+  Assert(Index = 0, 'TCastleControlCustom always has only one item in Touches array, with index 0');
+  Result.FingerIndex := 0;
+  Result.Position := Parent.MousePosition;
+end;
+
+function TCastleControlCustom.TContainer.TouchesCount: Integer;
+begin
+  Result := 1;
 end;
 
 { TCastleControlCustom -------------------------------------------------- }

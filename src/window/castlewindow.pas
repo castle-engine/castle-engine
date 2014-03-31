@@ -608,6 +608,8 @@ type
         function Pressed: TKeysPressed; override;
         function Fps: TFramesPerSecond; override;
         procedure SetCursor(const Value: TMouseCursor); override;
+        function GetTouches(const Index: Integer): TTouch; override;
+        function TouchesCount: Integer; override;
       end;
     var
     FWidth, FHeight, FLeft, FTop: Integer;
@@ -661,6 +663,7 @@ type
     FContainer: TContainer;
     FCursor: TMouseCursor;
     FCustomCursor: TRGBAlphaImage;
+    FTouches: TTouchList;
     function GetColorBits: Cardinal;
     procedure SetColorBits(const Value: Cardinal);
     procedure SetAntiAliasing(const Value: TAntiAliasing);
@@ -696,6 +699,7 @@ type
     procedure SetOnRelease(const Value: TInputPressReleaseEvent);
     function GetOnMotion: TInputMotionEvent;
     procedure SetOnMotion(const Value: TInputMotionEvent);
+    function GetTouches(const Index: Integer): TTouch;
 
     { Set FullScreen value in a dumb (but always reliable) way:
       when it changes, just close, negate FFullScreen and reopen the window.
@@ -973,7 +977,8 @@ type
     procedure DoMouseDown(const Position: TVector2Single;
       Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex = 0);
     procedure DoMouseUp(const Position: TVector2Single;
-      Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex = 0);
+      Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex = 0;
+      const TrackReleased: boolean = true);
     procedure DoMouseWheel(const Scroll: Single; const Vertical: boolean);
     procedure DoTimer;
     { Just call it when user presses some MenuItem.
@@ -1158,30 +1163,7 @@ type
       In case of touch devices, this reports the last known position
       for FingerIndex = 0, and setting this has no effect.
 
-      Position (0, 0) is the window's bottom-left corner.
-      This is consistent with how our 2D controls (TUIControl)
-      treat all positions.
-
-      The position is expressed as a float value, to support backends
-      that can report positions with sub-pixel accuracy.
-      For example GTK and Android can do it, although it depends on
-      underlying hardware capabilities as well.
-      The top-right corner or the top-right pixel has the coordinates
-      (Width, Height).
-      Note that if you want to actually draw something at the window's
-      edge (for example, paint the top-right pixel of the window with some
-      color), then the pixel coordinates are (Width - 1, Height - 1).
-      The idea is that the whole top-right pixel is an area starting
-      in (Width - 1, Height - 1) and ending in (Width, Height).
-
-      Note that we have mouse capturing (when user presses and holds
-      the mouse button, all the following mouse events are reported to this
-      window, even when user moves the mouse outside of the window).
-      This is typical of all window libraries (GTK, LCL etc.).
-      This implicates that mouse positions are sometimes tracked also
-      when mouse is outside the window, which means that mouse position
-      may be outside the rectangle (0, 0) - (Width, Height),
-      so it may even be negative.
+      See @link(TTouch.Position) for a documentaion how this is expressed.
 
       In all situations the MousePosition is the latest known mouse position.
       The only exception is within EventMotion (and so, also in OnMotion
@@ -1210,6 +1192,9 @@ type
       ) }
     property MousePosition: TVector2Single
       read FMousePosition write SetMousePosition;
+
+    property Touches[Index: Integer]: TTouch read GetTouches;
+    function TouchesCount: Integer;
 
     { When (if at all) window size may be changed.
 
@@ -2793,6 +2778,16 @@ begin
   Parent.Cursor := Value;
 end;
 
+function TCastleWindowCustom.TContainer.GetTouches(const Index: Integer): TTouch;
+begin
+  Result := Parent.Touches[Index];
+end;
+
+function TCastleWindowCustom.TContainer.TouchesCount: Integer;
+begin
+  Result := Parent.TouchesCount;
+end;
+
 { TCastleWindowCustom ---------------------------------------------------------- }
 
 constructor TCastleWindowCustom.Create(AOwner: TComponent);
@@ -2822,6 +2817,7 @@ begin
   SwapFullScreen_Key := K_None;
   FpsShowOnCaption := false;
   FFpsCaptionUpdateInterval := DefaultFpsCaptionUpdateInterval;
+  FTouches := TTouchList.Create;
 
   CreateBackend;
 end;
@@ -2841,6 +2837,7 @@ begin
   FreeAndNil(FFps);
   FreeAndNil(FPressed);
   FreeAndNil(FContainer);
+  FreeAndNil(FTouches);
   inherited;
 end;
 
@@ -3278,10 +3275,13 @@ begin
   if Event.FingerIndex = 0 then
     { change FMousePosition *after* EventMotion, callbacks may depend on it }
     FMousePosition := Event.Position;
+  FTouches.SetPosition(Event.FingerIndex, Event.Position);
 end;
 
 procedure TCastleWindowCustom.DoMouseDown(const Position: TVector2Single;
   Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex);
+var
+  Event: TInputPressRelease;
 begin
   if FingerIndex = 0 then
   begin
@@ -3289,11 +3289,16 @@ begin
     Include(FMousePressed, Button);
   end;
   MakeCurrent;
-  Container.EventPress(InputMouseButton(Position, Button, FingerIndex));
+  Event := InputMouseButton(Position, Button, FingerIndex);
+  Container.EventPress(Event);
+  FTouches.SetPosition(Event.FingerIndex, Event.Position);
 end;
 
 procedure TCastleWindowCustom.DoMouseUp(const Position: TVector2Single;
-  Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex);
+  Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex;
+  const TrackReleased: boolean);
+var
+  Event: TInputPressRelease;
 begin
   if FingerIndex = 0 then
   begin
@@ -3301,7 +3306,11 @@ begin
     Exclude(FMousePressed, Button);
   end;
   MakeCurrent;
-  Container.EventRelease(InputMouseButton(Position, Button, FingerIndex));
+  Event := InputMouseButton(Position, Button, FingerIndex);
+  Container.EventRelease(Event);
+  if TrackReleased then
+    FTouches.SetPosition(Event.FingerIndex, Event.Position) else
+    FTouches.RemoveFingerIndex(Event.FingerIndex);
 end;
 
 procedure TCastleWindowCustom.DoMouseWheel(const Scroll: Single; const Vertical: boolean);
@@ -4110,6 +4119,16 @@ begin
   SwapFullScreen_Key := ASwapFullScreen_Key;
   Close_CharKey := AClose_CharKey;
   FpsShowOnCaption := AFpsShowOnCaption;
+end;
+
+function TCastleWindowCustom.GetTouches(const Index: Integer): TTouch;
+begin
+  Result := FTouches[Index];
+end;
+
+function TCastleWindowCustom.TouchesCount: Integer;
+begin
+  Result := FTouches.Count;
 end;
 
 { TWindowSceneManager -------------------------------------------------------- }

@@ -37,14 +37,14 @@ private
 {$ifdef read_application_interface}
 private
   type
-    TTouch = object
+    TTouchChange = object
       OldPosition, Position: TVector2Single;
     end;
 
     TQueuedEventType = (aeOpen, aeMotionDown, aeMotionUp, aeMotionMove);
     TQueuedEvent = object
       EventType: TQueuedEventType;
-      Touch: TTouch;
+      Touch: TTouchChange;
       FingerIndex: TFingerIndex;
     end;
     TQueuedEventList = specialize TGenericStructList<TQueuedEvent>;
@@ -57,7 +57,7 @@ private
     LastDoTimerTime: TMilisecTime;
     AndroidApp: PAndroid_App;
     QEvents: TQueuedEventList;
-    Touches: array [0..FingerCount - 1] of TTouch;
+    TouchChanges: array [0..FingerCount - 1] of TTouchChange;
 
   function HandleInput(App: PAndroid_app; Event: PAInputEvent): boolean;
   procedure HandleCommand(App: PAndroid_app; Command: Integer);
@@ -154,91 +154,116 @@ end;
 
 function TCastleApplication.HandleInput(App: PAndroid_app; Event: PAInputEvent): boolean;
 
-  function CurrentPosition(PointerIndex: Integer): TVector2Single;
+  function CurrentPosition(const PointerIndex: Integer): TVector2Single;
   begin
     Result := Vector2Single(
       AMotionEvent_getX(Event, PointerIndex),
       ScreenHeight - AMotionEvent_getY(Event, PointerIndex));
   end;
 
+  { Note that MotionDown etc. do *not* call directly DoMouseDown and similar,
+    as we *cannot* block HandleInput for indefinite amount of time
+    (and DoMouseDown may call OnPress which may even do MessageOK
+    that makes a modal dialog calling Application.ProcessMessage inside).
+    The API of native_app_glue is somewhat stupid, it allows us to process
+    messages in a loop, but still the HandleInput and HandleCommand
+    cannot block making a modal dialog ---  the process_input and process_cmd
+    implementations in native_app_glue depend on that. }
+
+  procedure MotionDown(const FingerIndex: TFingerIndex; const PointerIndex: Integer);
+  var
+    QEvent: TQueuedEvent;
+  begin
+    if FingerIndex < FingerCount then
+    begin
+      { update TouchChanges }
+      TouchChanges[FingerIndex].OldPosition := TouchChanges[FingerIndex].Position;
+      TouchChanges[FingerIndex].Position := CurrentPosition(PointerIndex);
+
+      QEvent.EventType := aeMotionDown;
+      QEvent.FingerIndex := FingerIndex;
+      QEvent.Touch := TouchChanges[FingerIndex];
+      QEvents.Add(QEvent);
+    end;
+  end;
+
+  procedure MotionUp(const FingerIndex: TFingerIndex; const PointerIndex: Integer);
+  var
+    QEvent: TQueuedEvent;
+  begin
+    if FingerIndex < FingerCount then
+    begin
+      { update TouchChanges }
+      TouchChanges[FingerIndex].OldPosition := TouchChanges[FingerIndex].Position;
+      TouchChanges[FingerIndex].Position := CurrentPosition(PointerIndex);
+
+      QEvent.EventType := aeMotionUp;
+      QEvent.FingerIndex := FingerIndex;
+      QEvent.Touch := TouchChanges[FingerIndex];
+      QEvents.Add(QEvent);
+    end;
+  end;
+
+  procedure MotionMove(const FingerIndex: TFingerIndex; const PointerIndex: Integer);
+  var
+    QEvent: TQueuedEvent;
+    NewPosition: TVector2Single;
+  const
+    MinDistanceToReportMove = 0.5;
+  begin
+    if FingerIndex < FingerCount then
+    begin
+      NewPosition := CurrentPosition(PointerIndex);
+      if PointsDistanceSqr(NewPosition, TouchChanges[FingerIndex].Position) >
+         Sqr(MinDistanceToReportMove) then
+      begin
+        { update TouchChanges }
+        TouchChanges[FingerIndex].OldPosition := TouchChanges[FingerIndex].Position;
+        TouchChanges[FingerIndex].Position := NewPosition;
+
+        QEvent.EventType := aeMotionMove;
+        QEvent.FingerIndex := FingerIndex;
+        QEvent.Touch := TouchChanges[FingerIndex];
+        QEvents.Add(QEvent);
+      end;
+    end;
+  end;
+
 var
-  MotionAction, PointerIndex: Integer;
-  FingerIndex: TFingerIndex;
-  QEvent: TQueuedEvent;
-  NewPosition: TVector2Single;
-const
-  MinDistanceToReportMove = 0.5;
+  MotionAction, PointerIndex, ActionPointerIndex: Integer;
 begin
   Result := false;
   if AInputEvent_getType(Event) = AINPUT_EVENT_TYPE_MOTION then
   begin
     MotionAction := AMotionEvent_getAction(Event) and AMOTION_EVENT_ACTION_MASK;
-
-    { We do *not* call here directly DoMouseDown and such,
-      as we *cannot* block HandleInput for indefinite amount of time
-      (and DoMouseDown may call OnPress which may even do MessageOK
-      that makes a modal dialog calling Application.ProcessMessage inside).
-
-      The API of native_app_glue is somewhat stupid, it allows us to process
-      messages in a loop, but still the HandleInput and HandleCommand
-      cannot block making a modal dialog ---  the process_input and process_cmd
-      implementations in native_app_glue depend on that. }
+    ActionPointerIndex := (AMotionEvent_getAction(Event) and
+      AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) shr
+      AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 
     case MotionAction of
       AMOTION_EVENT_ACTION_DOWN:
         begin
-          FingerIndex := AMotionEvent_getPointerId(Event, 0);
-          if FingerIndex < FingerCount then
-          begin
-            { update Touches }
-            Touches[FingerIndex].OldPosition := Touches[FingerIndex].Position;
-            Touches[FingerIndex].Position := CurrentPosition(0);
-
-            QEvent.EventType := aeMotionDown;
-            QEvent.FingerIndex := FingerIndex;
-            QEvent.Touch := Touches[FingerIndex];
-            QEvents.Add(QEvent);
-          end;
+          for PointerIndex := 0 to AMotionEvent_getPointerCount(Event) - 1 do
+            MotionDown(AMotionEvent_getPointerId(Event, PointerIndex), PointerIndex);
           Result := true;
         end;
       AMOTION_EVENT_ACTION_UP:
         begin
-          FingerIndex := AMotionEvent_getPointerId(Event, 0);
-          if FingerIndex < FingerCount then
-          begin
-            { update Touches }
-            Touches[FingerIndex].OldPosition := Touches[FingerIndex].Position;
-            Touches[FingerIndex].Position := CurrentPosition(0);
-
-            QEvent.EventType := aeMotionUp;
-            QEvent.FingerIndex := FingerIndex;
-            QEvent.Touch := Touches[FingerIndex];
-            QEvents.Add(QEvent);
-          end;
+          for PointerIndex := 0 to AMotionEvent_getPointerCount(Event) - 1 do
+            MotionUp(AMotionEvent_getPointerId(Event, PointerIndex), PointerIndex);
           Result := true;
         end;
+      AMOTION_EVENT_ACTION_CANCEL:
+        WritelnLog('Android', 'Motion cancel event');
+        { TODO: Handle this like AMOTION_EVENT_ACTION_UP? }
+      AMOTION_EVENT_ACTION_POINTER_DOWN:
+        MotionDown(AMotionEvent_getPointerId(Event, ActionPointerIndex), ActionPointerIndex);
+      AMOTION_EVENT_ACTION_POINTER_UP:
+        MotionUp(AMotionEvent_getPointerId(Event, ActionPointerIndex), ActionPointerIndex);
       AMOTION_EVENT_ACTION_MOVE:
         begin
           for PointerIndex := 0 to AMotionEvent_getPointerCount(Event) - 1 do
-          begin
-            FingerIndex := AMotionEvent_getPointerId(Event, PointerIndex);
-            if FingerIndex < FingerCount then
-            begin
-              NewPosition := CurrentPosition(PointerIndex);
-              if PointsDistanceSqr(NewPosition, Touches[FingerIndex].Position) >
-                 Sqr(MinDistanceToReportMove) then
-              begin
-                { update Touches }
-                Touches[FingerIndex].OldPosition := Touches[FingerIndex].Position;
-                Touches[FingerIndex].Position := NewPosition;
-
-                QEvent.EventType := aeMotionMove;
-                QEvent.FingerIndex := FingerIndex;
-                QEvent.Touch := Touches[FingerIndex];
-                QEvents.Add(QEvent);
-              end;
-            end;
-          end;
+            MotionMove(AMotionEvent_getPointerId(Event, PointerIndex), PointerIndex);
           Result := true;
         end;
     end;
@@ -476,7 +501,7 @@ begin
               MainWindow.DoMouseDown(QEvent.Touch.Position, mbLeft, QEvent.FingerIndex);
           aeMotionUp  :
             if not MainWindow.Closed then
-              MainWindow.DoMouseUp  (QEvent.Touch.Position, mbLeft, QEvent.FingerIndex);
+              MainWindow.DoMouseUp  (QEvent.Touch.Position, mbLeft, QEvent.FingerIndex, false);
           aeMotionMove:
             if not MainWindow.Closed then
               MainWindow.DoMotion   (InputMotion(QEvent.Touch.OldPosition, QEvent.Touch.Position, [mbLeft], QEvent.FingerIndex));
@@ -529,7 +554,7 @@ begin
     QEvents := TQueuedEventList.Create else
     QEvents.Clear;
 
-  FillByte(Touches, SizeOf(Touches), 0);
+  FillByte(TouchChanges, SizeOf(TouchChanges), 0);
 
   { since we have AndroidApp now, prepare it }
   AndroidApp^.OnAppCmd := @HandleCommand;

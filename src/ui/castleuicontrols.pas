@@ -42,6 +42,70 @@ type
   TInputPressReleaseEvent = procedure (Container: TUIContainer; const Event: TInputPressRelease);
   TInputMotionEvent = procedure (Container: TUIContainer; const Event: TInputMotion);
 
+  TTouch = object
+  public
+    { Index of the finger/mouse. Always simply zero on traditional desktops with
+      just a single mouse device. For devices with multi-touch
+      (and/or possible multiple mouse pointers) this is actually useful
+      to connect touches from different frames into a single move action.
+      In other words: the FinderIndex stays constant while user moves
+      a finger over a touch device.
+
+      All the touches on a TUIContainer.Touches array always have different
+      FingerIndex value.
+
+      Note that the index of TTouch structure in TUIContainer.Touches array is
+      @italic(not) necessarily equal to the FingerIndex. It cannot be ---
+      imagine you press 1st finger, then press 2nd finger, then let go of
+      the 1st finger. The FingerIndex of the 2nd finger cannot change
+      (to keep events sensibly reporting the same touch),
+      so there has to be a temporary "hole" in FinderIndex numeration. }
+    FingerIndex: TFingerIndex;
+
+    { Position of the touch over a device.
+
+      Position (0, 0) is the window's bottom-left corner.
+      This is consistent with how our 2D controls (TUIControl)
+      treat all positions.
+
+      The position is expressed as a float value, to support backends
+      that can report positions with sub-pixel accuracy.
+      For example GTK and Android can do it, although it depends on
+      underlying hardware capabilities as well.
+      The top-right corner or the top-right pixel has the coordinates
+      (Width, Height).
+      Note that if you want to actually draw something at the window's
+      edge (for example, paint the top-right pixel of the window with some
+      color), then the pixel coordinates are (Width - 1, Height - 1).
+      The idea is that the whole top-right pixel is an area starting
+      in (Width - 1, Height - 1) and ending in (Width, Height).
+
+      Note that we have mouse capturing (when user presses and holds
+      the mouse button, all the following mouse events are reported to this
+      window, even when user moves the mouse outside of the window).
+      This is typical of all window libraries (GTK, LCL etc.).
+      This implicates that mouse positions are sometimes tracked also
+      when mouse is outside the window, which means that mouse position
+      may be outside the rectangle (0, 0) - (Width, Height),
+      so it may even be negative. }
+    Position: TVector2Single;
+  end;
+  PTouch = ^TTouch;
+
+  TTouchList = class(specialize TGenericStructList<TTouch>)
+  private
+    { Find an item with given FingerIndex, or -1 if not found. }
+    function FindFingerIndex(const FingerIndex: TFingerIndex): Integer;
+  public
+    { Sets a Position of given FingerIndex. If there is no information
+      for given FingerIndex on the list, it will be automatically created
+      and added. }
+    procedure SetPosition(const FingerIndex: TFingerIndex;
+      const Position: TVector2Single);
+    { Remove a touch item for given FingerIndex. }
+    procedure RemoveFingerIndex(const FingerIndex: TFingerIndex);
+  end;
+
   { Abstract user interface container. Connects OpenGL context management
     code with Castle Game Engine controls (TUIControl, that is the basis
     for all our 2D and 3D rendering). When you use TCastleWindowCustom
@@ -110,6 +174,7 @@ type
 
     function GetMousePosition: TVector2Single; virtual; abstract;
     procedure SetMousePosition(const Value: TVector2Single); virtual; abstract;
+    function GetTouches(const Index: Integer): TTouch; virtual; abstract;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -194,6 +259,9 @@ type
     function Pressed: TKeysPressed; virtual; abstract;
 
     function Fps: TFramesPerSecond; virtual; abstract;
+
+    property Touches[Index: Integer]: TTouch read GetTouches;
+    function TouchesCount: Integer; virtual; abstract;
 
     { Called by controls within this container when something could
       change the container focused control (or it's cursor).
@@ -913,6 +981,41 @@ const
 implementation
 
 uses CastleLog;
+
+{ TTouchList ----------------------------------------------------------------- }
+
+function TTouchList.FindFingerIndex(const FingerIndex: TFingerIndex): Integer;
+begin
+  for Result := 0 to Count - 1 do
+    if L[Result].FingerIndex = FingerIndex then
+      Exit;
+  Result := -1;
+end;
+
+procedure TTouchList.SetPosition(const FingerIndex: TFingerIndex;
+  const Position: TVector2Single);
+var
+  Index: Integer;
+  NewTouch: PTouch;
+begin
+  Index := FindFingerIndex(FingerIndex);
+  if Index <> -1 then
+    L[Index].Position := Position else
+  begin
+    NewTouch := Add;
+    NewTouch^.FingerIndex := FingerIndex;
+    NewTouch^.Position := Position;
+  end;
+end;
+
+procedure TTouchList.RemoveFingerIndex(const FingerIndex: TFingerIndex);
+var
+  Index: Integer;
+begin
+  Index := FindFingerIndex(FingerIndex);
+  if Index <> -1 then
+    Delete(Index);
+end;
 
 { TContainerControls --------------------------------------------------------- }
 
