@@ -21,10 +21,12 @@ public:
     void UpdateNavigationButtons();
     void UpdateAfterSceneLoaded();
     void MoveToViewpoint(int nView);
+    void AddNewWarning(QString const& sWarning);
 
 private:
     Ui::MainWindow *ui;
     GLWidget *m_pGlWidget;
+    QDialog *m_pConsoleWnd;
     int m_nViewpointCount, m_iCurrentViewpoint;
 
 private slots:

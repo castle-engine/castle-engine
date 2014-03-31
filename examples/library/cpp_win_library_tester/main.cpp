@@ -330,7 +330,7 @@ HWND CreateAppWindow(const WNDCLASSEX &wcl, const char *pszTitle)
 }
 
 //-----------------------------------------------------------------------------
-int __cdecl OpenGlLibraryCallback(int eCode, int iParam1, int iParam2)
+int __cdecl OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, const char *szParam)
 {
     switch (eCode)
     {

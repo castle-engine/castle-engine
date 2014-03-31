@@ -16,6 +16,9 @@ public:
 public:
     static int QKeyToCgeKey(int qKey);
 
+protected:
+    static int __cdecl OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, const char *szParam);
+
 private:
     QString m_sSceneToOpen;
     bool m_bAfterInit;

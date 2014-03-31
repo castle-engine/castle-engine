@@ -31,6 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     m_nViewpointCount = m_iCurrentViewpoint = 0;
+    m_pConsoleWnd = NULL;
 
     m_pGlWidget = new GLWidget(this);
     setCentralWidget(m_pGlWidget);
@@ -167,9 +168,34 @@ void MainWindow::MenuMouseLookClick()
     CGE_SetVariableInt(ecgevarCrossHair, 1);
 }
 
+void MainWindow::AddNewWarning(QString const& sWarning)
+{
+    if (m_pConsoleWnd==NULL)
+        MenuShowLogClick();
+    QPlainTextEdit *pEdit = qobject_cast<QPlainTextEdit*>(m_pConsoleWnd->layout()->itemAt(0)->widget());
+    if (pEdit!=NULL)
+        pEdit->appendPlainText(sWarning);
+}
+
 void MainWindow::MenuShowLogClick()
 {
-    // TODO
+    if (m_pConsoleWnd==NULL)
+    {
+        m_pConsoleWnd = new QDialog(this);
+        m_pConsoleWnd->setWindowTitle(tr("Log - Warnings"));
+        m_pConsoleWnd->setWindowFlags(m_pConsoleWnd->windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
+        QPlainTextEdit *pEdit = new QPlainTextEdit(m_pConsoleWnd);
+        pEdit->setMinimumSize(600, 500);
+        pEdit->setReadOnly(true);
+
+        QVBoxLayout *pLayout = new QVBoxLayout(m_pConsoleWnd);
+        pLayout->setContentsMargins(0, 0, 0, 0);
+        m_pConsoleWnd->setLayout(pLayout);
+        pLayout->insertWidget(0, pEdit);
+        m_pConsoleWnd->resize(m_pConsoleWnd->minimumSize());
+    }
+    m_pConsoleWnd->show();
 }
 
 void MainWindow::MenuOpenGLInfoClick()
@@ -178,7 +204,7 @@ void MainWindow::MenuOpenGLInfoClick()
     CGE_GetOpenGLInformation(szBuf, 8192);
 
     QDialog aDlg(this);
-    aDlg.setWindowTitle("OpenGL Information");
+    aDlg.setWindowTitle(tr("OpenGL Information"));
     aDlg.setWindowFlags(aDlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
     QPlainTextEdit *pEdit = new QPlainTextEdit(&aDlg);

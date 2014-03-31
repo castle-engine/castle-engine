@@ -27,7 +27,7 @@ CTypes,
 {$endif}
 
 {$ifdef read_interface_types}
-  TLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32): cInt32; cdecl;
+  TLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32; szParam: pcchar): cInt32; cdecl;
 {$endif read_interface_types}
 
 {$ifdef read_window_interface}
@@ -69,6 +69,7 @@ const
   ecgelibSetMouseCursor        = 1;  // sends mouse cursor code in iParam1
   ecgelibNavigationTypeChanged = 2;  // sends ECgeNavigationType in iParam1 (see castleengine.h)
   ecgelibSetMousePosition      = 3;  // sends x in iParam1 and y in iParam2
+  ecgelibWarning               = 4;  // sends message in szParam
 
   // mouse cursor codes
   ecgecursorDefault   = 0;
@@ -105,7 +106,7 @@ procedure TCastleWindowCustom.Invalidate;
 begin
   if not Closed then Invalidated := true;
   if Assigned(LibraryCallbackProc) then  // tell the parent window to repaint
-    LibraryCallbackProc(ecgelibNeedsDisplay, 0, 0);
+    LibraryCallbackProc(ecgelibNeedsDisplay, 0, 0, nil);
 end;
 
 procedure TCastleWindowCustom.BackendMakeCurrent;
@@ -132,7 +133,7 @@ begin
         mcText: CursorCode := ecgecursorText;
         else CursorCode := ecgecursorDefault;
       end;
-      LibraryCallbackProc(ecgelibSetMouseCursor, CursorCode, 0);
+      LibraryCallbackProc(ecgelibSetMouseCursor, CursorCode, 0, nil);
     end;
   end;
 end;
@@ -153,7 +154,7 @@ end;
 procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2Single);
 begin
   if (not Closed) and Assigned(LibraryCallbackProc) then
-    LibraryCallbackProc(ecgelibSetMousePosition, Floor(Value[0]), Floor(Value[1]));
+    LibraryCallbackProc(ecgelibSetMousePosition, Floor(Value[0]), Floor(Value[1]), nil);
 end;
 
 procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
@@ -367,7 +368,7 @@ begin
       ntTurntable: NavValue := 3;
       ntNone     : NavValue := 4;
     end;
-    LibraryCallbackProc(ecgelibNavigationTypeChanged, NavValue, 0);
+    LibraryCallbackProc(ecgelibNavigationTypeChanged, NavValue, 0, nil);
   end;
 end;
 

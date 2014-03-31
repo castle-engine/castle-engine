@@ -66,6 +66,9 @@ const
   // library callback codes
   ecgelibNeedsDisplay     = 0;
   ecgelibSetMouseCursor   = 1;   // sends mouse cursor code in iParam1
+  ecgelibNavigationTypeChanged = 2;  // sends ECgeNavigationType in iParam1 (see castleengine.h)
+  ecgelibSetMousePosition      = 3;  // sends x in iParam1 and y in iParam2
+  ecgelibWarning               = 4;  // sends message in szParam
 
   // mouse cursor codes
   ecgecursorDefault   = 0;
@@ -75,7 +78,7 @@ const
   ecgecursorNone      = 4;
 
 type
-  TLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32):cInt32; cdecl;
+  TLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32; szParam: pcchar):cInt32; cdecl;
 
 procedure CGE_Open(flags: cUInt32); cdecl; external 'castleengine';
 procedure CGE_Close(); cdecl; external 'castleengine';

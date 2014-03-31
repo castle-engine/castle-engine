@@ -37,7 +37,7 @@ library castleengine;
 uses CTypes, Math, SysUtils, CastleWindow, CastleWindowTouch, CastleUtils,
   Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils,
   CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, CastleLog,
-  CastleBoxes, CastleControls;
+  CastleBoxes, CastleControls, CastleWarnings;
 
 type
   TCrosshairManager = class(TObject)
@@ -56,6 +56,23 @@ var
   Window: TCastleWindowTouch;
   Crosshair: TCrosshairManager;
 
+procedure cge_OnWarning(const WarningType: TWarningType; const Category, S: string);
+var
+  sMsg: string;
+  szBuffer: PChar;
+  nBufSize: cardinal;
+begin
+  if Assigned(Window.LibraryCallbackProc) and (Category<>'Triangulator') then
+  begin
+    sMsg := Category + ': ' + S;
+    nBufSize := Length(sMsg);
+    szBuffer := StrAlloc(nBufSize+1);
+    StrPLCopy(szBuffer, sMsg, nBufSize);
+    Window.LibraryCallbackProc(4 {ecgelibWarning}, 0, 0, pcchar(szBuffer));
+    StrDispose(szBuffer);
+  end;
+end;
+
 procedure CGE_Open(flags: cUInt32); cdecl;
 begin
   try
@@ -70,6 +87,7 @@ begin
 
     Window := TCastleWindowTouch.Create(nil);
     Window.Open;
+    OnWarning := @cge_OnWarning;
 
     Crosshair := TCrosshairManager.Create;
   except
@@ -547,7 +565,6 @@ begin
     UpdateCrosshairImage;
   end;
 end;
-
 
 exports
   CGE_Open, CGE_Close, CGE_GetOpenGLInformation,

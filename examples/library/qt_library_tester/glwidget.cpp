@@ -63,7 +63,7 @@ QSize GLWidget::sizeHint() const
     return QSize(400, 400);
 }
 
-int __cdecl OpenGlLibraryCallback(int eCode, int iParam1, int iParam2)
+int __cdecl GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, const char *szParam)
 {
     switch (eCode)
     {
@@ -94,6 +94,13 @@ int __cdecl OpenGlLibraryCallback(int eCode, int iParam1, int iParam2)
         {
             QPoint ptNew = g_pThis->mapToGlobal(QPoint(iParam1, g_pThis->height() - 1 - iParam2));
             QCursor::setPos(ptNew.x(), ptNew.y());
+        }
+        return 1;
+
+    case ecgelibWarning:
+        {
+            QString sWarning = QString::fromUtf8(szParam);
+            ((MainWindow*)g_pThis->parent())->AddNewWarning(sWarning);
         }
         return 1;
     }

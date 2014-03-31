@@ -97,7 +97,7 @@ uses
 
 {$R *.lfm}
 
-function OpenGlLibraryCallback(eCode, iParam1, iParam2: cInt32):cInt32; cdecl;
+function OpenGlLibraryCallback(eCode, iParam1, iParam2: cInt32; szParam: pcchar):cInt32; cdecl;
 begin
   case eCode of
     ecgelibNeedsDisplay: Form1.OpenGLControl1.Invalidate;

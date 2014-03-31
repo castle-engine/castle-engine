@@ -78,6 +78,7 @@ enum ECgeLibCallbackCode
     ecgelibSetMouseCursor        = 1,  // sends ECgeMouseCursor in iParam1
     ecgelibNavigationTypeChanged = 2,  // sends ECgeNavigationType in iParam1
     ecgelibSetMousePosition      = 3,  // sends x in iParam1 and y in iParam2
+    ecgelibWarning               = 4,  // sends message in szParam
 };
 
 enum ECgeKey    // values for these constants have to be same as in unit CastleKeysMouse (TKey)
@@ -194,7 +195,7 @@ enum ECgeKey    // values for these constants have to be same as in unit CastleK
   kcge_Period      = 190,
 };
 
-typedef int (__cdecl *TCgeLibraryCallbackProc)(int /*ECgeLibCallbackCode*/eCode, int iParam1, int iParam2);
+typedef int (__cdecl *TCgeLibraryCallbackProc)(int /*ECgeLibCallbackCode*/eCode, int iParam1, int iParam2, const char *szParam);
 
 
 //-----------------------------------------------------------------------------
