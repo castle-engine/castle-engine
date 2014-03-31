@@ -4,6 +4,7 @@ release: data
 	mkdir -p libs/armeabi/
 	mv -f ../libdrawing_toy.so libs/armeabi/libdrawing_toy.so
 	ant debug
+#	adb uninstall net.sourceforge.castleengine.drawingtoy
 	adb install -r bin/DrawingToy-debug.apk
 	adb shell am start -a android.intent.action.MAIN -n net.sourceforge.castleengine.drawingtoy/android.app.NativeActivity
 
@@ -15,6 +16,7 @@ debug: data
 	mv -f ../libdrawing_toy.so jni/libdrawing_toy.so
 	export NDK_DEBUG=1 && ndk-build
 	ant debug
+#	adb uninstall net.sourceforge.castleengine.drawingtoy
 	adb install -r bin/DrawingToy-debug.apk
 	adb shell am start -a android.intent.action.MAIN -n net.sourceforge.castleengine.drawingtoy/android.app.NativeActivity
 
