@@ -37,10 +37,24 @@ library castleengine;
 uses CTypes, Math, SysUtils, CastleWindow, CastleWindowTouch, CastleUtils,
   Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils,
   CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, CastleLog,
-  CastleBoxes;
+  CastleBoxes, CastleControls;
+
+type
+  TCrosshairManager = class(TObject)
+  public
+    CrosshairCtl: TCastleCrosshairControl;
+    CrosshairActive: boolean;
+
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure UpdateCrosshairImage;
+    procedure OnPointingDeviceSensorsChange(Sender: TObject);
+  end;
 
 var
   Window: TCastleWindowTouch;
+  Crosshair: TCrosshairManager;
 
 procedure CGE_Open(flags: cUInt32); cdecl;
 begin
@@ -56,6 +70,8 @@ begin
 
     Window := TCastleWindowTouch.Create(nil);
     Window.Open;
+
+    Crosshair := TCrosshairManager.Create;
   except
     on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
@@ -64,6 +80,7 @@ end;
 procedure CGE_Close; cdecl;
 begin
   try
+    FreeAndNil(Crosshair);
     Window.Close;
     FreeAndNil(Window);
   except
@@ -430,7 +447,11 @@ begin
       end;
 
       3: begin    // ecgevarCrossHair
-        { TODO }
+        Crosshair.CrosshairCtl.Shape := nValue;
+        if nValue > 0 then begin
+          Crosshair.UpdateCrosshairImage;
+          Window.MainScene.OnPointingDeviceSensorsChange := @Crosshair.OnPointingDeviceSensorsChange;
+        end;
       end;
 
     end;
@@ -467,7 +488,7 @@ begin
       end;
 
       3: begin    // ecgevarCrossHair
-        { TODO }
+        Result := Crosshair.CrosshairCtl.Shape;
       end;
 
       4: begin    // ecgevarAnimationRunning
@@ -482,6 +503,51 @@ begin
     on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
 end;
+
+constructor TCrosshairManager.Create;
+begin
+  inherited;
+  CrosshairCtl := TCastleCrosshairControl.Create(Window);
+  CrosshairCtl.Shape := 0;  // start as invisible
+  Window.Controls.InsertFront(CrosshairCtl);
+end;
+
+destructor TCrosshairManager.Destroy;
+begin
+  Window.Controls.Remove(CrosshairCtl);
+  FreeAndNil(CrosshairCtl);
+  inherited;
+end;
+
+procedure TCrosshairManager.UpdateCrosshairImage;
+begin
+  begin
+    if CrosshairCtl.Shape = 0 then Exit;
+
+    if CrosshairActive then
+      CrosshairCtl.Shape := 2 else
+      CrosshairCtl.Shape := 1;
+  end;
+end;
+
+procedure TCrosshairManager.OnPointingDeviceSensorsChange(Sender: TObject);
+var
+  OverSensor: Boolean;
+  SensorList: TPointingDeviceSensorList;
+begin
+  { check if the crosshair (mouse) is over any sensor }
+  OverSensor := false;
+  SensorList := Window.MainScene.PointingDeviceSensors;
+  if (SensorList <> nil) then
+    OverSensor := (SensorList.EnabledCount>0);
+
+  if CrosshairActive <> OverSensor then
+  begin
+    CrosshairActive := OverSensor;
+    UpdateCrosshairImage;
+  end;
+end;
+
 
 exports
   CGE_Open, CGE_Close, CGE_GetOpenGLInformation,

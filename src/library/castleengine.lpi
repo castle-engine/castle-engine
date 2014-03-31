@@ -52,6 +52,7 @@
       <Unit2>
         <Filename Value="..\window\castlewindowtouch.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="CastleWindowTouch"/>
       </Unit2>
     </Units>
   </ProjectOptions>

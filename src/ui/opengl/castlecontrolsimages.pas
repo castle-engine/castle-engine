@@ -87,6 +87,12 @@ var
 var
   SliderPosition: TRGBImage;
 
+var
+  Crosshair1: TRGBAlphaImage;
+
+var
+  Crosshair2: TRGBAlphaImage;
+
 implementation
 
 uses SysUtils;
@@ -149,6 +155,10 @@ initialization
   Move(ScrollbarSliderPixels, ScrollbarSlider.RawPixels^, SizeOf(ScrollbarSliderPixels));
   SliderPosition := TRGBImage.Create(SliderPositionWidth, SliderPositionHeight);
   Move(SliderPositionPixels, SliderPosition.RawPixels^, SizeOf(SliderPositionPixels));
+  Crosshair1 := TRGBAlphaImage.Create(Crosshair1Width, Crosshair1Height);
+  Move(Crosshair1Pixels, Crosshair1.RawPixels^, SizeOf(Crosshair1Pixels));
+  Crosshair2 := TRGBAlphaImage.Create(Crosshair2Width, Crosshair2Height);
+  Move(Crosshair2Pixels, Crosshair2.RawPixels^, SizeOf(Crosshair2Pixels));
 finalization
   FreeAndNil(Panel);
   FreeAndNil(WindowDarkTransparent);
@@ -176,4 +186,6 @@ finalization
   FreeAndNil(ScrollbarFrame);
   FreeAndNil(ScrollbarSlider);
   FreeAndNil(SliderPosition);
+  FreeAndNil(Crosshair1);
+  FreeAndNil(Crosshair2);
 end.

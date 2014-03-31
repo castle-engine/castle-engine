@@ -496,7 +496,8 @@ type
     tiButtonPressed, tiButtonFocused, tiButtonNormal,
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
     tiSlider, tiSliderPosition, tiLabel, tiActiveFrame, tiTooltip,
-    tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter);
+    tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
+    tiCrosshair1, tiCrosshair2);
 
   { Label with possibly multiline text, in a box. }
   TCastleLabel = class(TUIControlFont)
@@ -529,6 +530,28 @@ type
     { Does the text use HTML-like tags. This is very limited for now,
       see TCastleFont.PrintStrings documentation. }
     property Tags: boolean read FTags write FTags default false;
+  end;
+
+  TCastleCrosshairControl = class(TUIRectangularControl)
+  private
+    FShape: Cardinal;
+    procedure SetShape(const Value: Cardinal);
+    function ImageType: TThemeImage;
+    function SizeScale: Single;
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure Render; override;
+    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+
+    { Size of this control, ignoring GetExists. }
+    function Width: Cardinal;
+    function Height: Cardinal;
+    function Rect: TRectangle; override;
+    function PositionInside(const Position: TVector2Single): boolean; override;
+
+  published
+    { 0: invisible, 1: cross, 2: cross with rect }
+    property Shape: Cardinal read FShape write SetShape default 1;
   end;
 
   TCastleProgressBar = class(TUIControl)
@@ -1321,6 +1344,68 @@ begin
     FFullSize := Value;
     VisibleChange;
   end;
+end;
+
+{ TCastleCrosshairControl ---------------------------------------------------- }
+
+constructor TCastleCrosshairControl.Create(AOwner: TComponent);
+begin
+  inherited;
+  FShape := 1;
+end;
+
+procedure TCastleCrosshairControl.SetShape(const Value: Cardinal);
+begin
+  FShape := Value;
+  VisibleChange;
+end;
+
+function TCastleCrosshairControl.ImageType: TThemeImage;
+begin
+  if FShape = 2 then
+    Result := tiCrosshair2 else
+    Result := tiCrosshair1;
+end;
+
+procedure TCastleCrosshairControl.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+begin
+  inherited;
+  Left := (AContainerWidth - Width) div 2;   // keep in the center
+  Bottom := (AContainerHeight - Height) div 2;
+  VisibleChange;
+end;
+
+function TCastleCrosshairControl.SizeScale: Single;
+begin
+  if Container <> nil then
+    Result := Container.Dpi / 96 else
+    Result := 1;
+end;
+
+function TCastleCrosshairControl.Width: Cardinal;
+begin
+  Result := Round(Theme.Images[ImageType].Width  * SizeScale);
+end;
+
+function TCastleCrosshairControl.Height: Cardinal;
+begin
+  Result := Round(Theme.Images[ImageType].Height * SizeScale);
+end;
+
+function TCastleCrosshairControl.Rect: TRectangle;
+begin
+  Result := Rectangle(Left, Bottom, Width, Height);
+end;
+
+function TCastleCrosshairControl.PositionInside(const Position: TVector2Single): boolean;
+begin
+  Result := false; // this control is just passively drawn onto screen
+end;
+
+procedure TCastleCrosshairControl.Render;
+begin
+  if FShape > 0 then
+    Theme.Draw(Rect, ImageType);
 end;
 
 { TCastleTouchControl ---------------------------------------------------------------- }
@@ -2221,6 +2306,10 @@ begin
   FCorners[tiTouchCtlFlyInner] := Vector4Integer(0, 0, 0, 0);
   FImages[tiTouchCtlFlyOuter] := TouchCtlFlyOuter;
   FCorners[tiTouchCtlFlyOuter] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiCrosshair1] := Crosshair1;
+  FCorners[tiCrosshair1] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiCrosshair2] := Crosshair2;
+  FCorners[tiCrosshair2] := Vector4Integer(0, 0, 0, 0);
 end;
 
 destructor TCastleTheme.Destroy;

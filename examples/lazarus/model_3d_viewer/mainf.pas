@@ -23,7 +23,7 @@ interface
 uses Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
   OpenGLContext, Menus, CastleScene, CastleCameras, CastleControl, CastleWarnings,
   CastleLCLRecentFiles, CastleConfig, Buttons, ExtCtrls, StdCtrls, CastleRecentFiles,
-  CastleSceneManager, CastleDialogs;
+  CastleSceneManager, CastleDialogs, CastleControls;
 
 type
   TMain = class(TForm)
@@ -89,8 +89,13 @@ type
     SceneURL: string;
     CameraChanged: boolean;
     ButtonsNavigationType: array [TNavigationType] of TSpeedButton;
+    CrosshairCtl: TCastleCrosshairControl;
+    CrosshairActive: Boolean;    // there is something to touch under the crosshair
+
     procedure OpenScene(const URL: string);
     procedure UpdateCaption;
+    procedure UpdateCrosshairImage;
+    procedure OnPointingDeviceSensorsChange(Sender: TObject);
   public
     { public declarations }
   end;
@@ -129,6 +134,9 @@ begin
     Although during scene loading, OnBoundNavigationInfoChanged was already
     called, but at that time Camera was nil. }
   SceneManagerBoundNavigationInfoChanged(nil);
+
+  { for changing the crosshair shape }
+  Browser.MainScene.OnPointingDeviceSensorsChange := @OnPointingDeviceSensorsChange;
 
   { simple Browser.Load always recreates the Camera each time, which means
     that we have to restore all camera properties that should be
@@ -223,8 +231,47 @@ begin
     Walk := TUniversalCamera(Browser.Camera).Walk else
     Walk := nil;
 
-  if Walk <> nil then
+  if Walk <> nil then begin
     Walk.MouseLook := (Sender as TMenuItem).Checked;
+    UpdateCrosshairImage;
+    Repaint;
+  end;
+end;
+
+procedure TMain.OnPointingDeviceSensorsChange(Sender: TObject);
+var
+  OverSensor: Boolean;
+  SensorList: TPointingDeviceSensorList;
+begin
+  { check if the crosshair (mouse) is over any sensor }
+  OverSensor := false;
+  SensorList := Browser.MainScene.PointingDeviceSensors;
+  if (SensorList <> nil) then
+    OverSensor := (SensorList.EnabledCount>0);
+
+  if CrosshairActive <> OverSensor then
+  begin
+    CrosshairActive := OverSensor;
+    UpdateCrosshairImage;
+  end;
+end;
+
+procedure TMain.UpdateCrosshairImage;
+var
+  Walk: TWalkCamera;
+begin
+  if Browser.Camera is TWalkCamera then
+    Walk := TWalkCamera(Browser.Camera) else
+  if Browser.Camera is TUniversalCamera then
+    Walk := TUniversalCamera(Browser.Camera).Walk else
+    Walk := nil;
+
+  if (Walk = nil) or (not Walk.MouseLook) then
+    CrosshairCtl.Shape := 0
+  else if CrosshairActive then
+    CrosshairCtl.Shape := 2
+  else
+    CrosshairCtl.Shape := 1;
 end;
 
 procedure TMain.MenuAboutOpenGLClick(Sender: TObject);
@@ -269,6 +316,10 @@ begin
   ButtonsNavigationType[ntWalk] := ButtonWalk;
   ButtonsNavigationType[ntFly] := ButtonFly;
   ButtonsNavigationType[ntNone] := ButtonNone;
+
+  CrosshairCtl := TCastleCrosshairControl.Create(Browser);
+  CrosshairCtl.Shape := 0;  // start as invisible
+  Browser.Controls.InsertFront(CrosshairCtl);
 
   if Parameters.High >= 1 then
     OpenScene(Parameters[1]);
