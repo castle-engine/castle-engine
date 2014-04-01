@@ -2684,15 +2684,30 @@ end;
 }
 
 { Wrapper around glFramebufferTexture2D }
-procedure FramebufferTexture2D(const Target, Attachment, TexTarget: TGLenum;
-  const Texture: TGLuint; const Level: TGLint);
+procedure FramebufferTexture2D(const Target: TGLenum;
+  const AttachmentDepthAndStencil: boolean;
+  Attachment, TexTarget: TGLenum; const Texture: TGLuint; const Level: TGLint);
 begin
   Assert(Texture <> 0, 'Texture 0 assigned to framebuffer, FBO will be incomplete');
   case GLFeatures.Framebuffer of
     {$ifndef OpenGLES}
-    gsExtension: glFramebufferTexture2DEXT(Target, Attachment, TexTarget, Texture, Level);
+    gsExtension:
+      begin
+        if AttachmentDepthAndStencil then
+          Attachment := GL_DEPTH_STENCIL_ATTACHMENT;
+        glFramebufferTexture2DEXT(Target, Attachment, TexTarget, Texture, Level);
+      end;
     {$endif}
-    gsStandard : glFramebufferTexture2D   (Target, Attachment, TexTarget, Texture, Level);
+    gsStandard:
+      begin
+        if AttachmentDepthAndStencil then
+        begin
+          WritelnLog('FBO', 'Setting GL_DEPTH_ATTACHMENT and GL_STENCIL_ATTACHMENT to the same texture');
+          glFramebufferTexture2D(Target, GL_DEPTH_ATTACHMENT  , TexTarget, Texture, Level);
+          glFramebufferTexture2D(Target, GL_STENCIL_ATTACHMENT, TexTarget, Texture, Level);
+        end else
+          glFramebufferTexture2D(Target, Attachment, TexTarget, Texture, Level);
+      end;
   end;
 end;
 
@@ -2799,7 +2814,7 @@ procedure TGLRenderToTexture.GLContextOpen;
             glRenderbufferStorage(GL_RENDERBUFFER, InternalFormat, Width, Height);
           if AttachmentDepthAndStencil then
           begin
-            WritelnLog('FBO', 'Setting GL_DEPTH_ATTACHMENT and GL_STENCIL_ATTACHMENT to the same texture');
+            WritelnLog('FBO', 'Setting GL_DEPTH_ATTACHMENT and GL_STENCIL_ATTACHMENT to the same renderbuffer');
             { Radeon drivers (ATI Mobility Radeon HD 4330) throw OpenGL error "invalid enum"
               when trying to use GL_DEPTH_STENCIL_ATTACHMENT. }
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RenderbufferId);
@@ -2858,7 +2873,7 @@ begin
       DepthAttachmentPacked := 0;
     end else
     // TODO-es This is probably needed on gles too?
-    // we have GL_DEPTH_STENCIL_OES, but what is the equivalent of GL_DEPTH_STENCIL_ATTACHMENT?
+    // we have GL_DEPTH_STENCIL_OES.
     {$endif}
     begin
       DepthBufferFormatPacked :=
@@ -2881,7 +2896,7 @@ begin
     case Buffer of
       tbColor:
         begin
-          FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, TextureTarget, Texture, 0);
+          FramebufferTexture2D(GL_FRAMEBUFFER, false, GL_COLOR_ATTACHMENT0, TextureTarget, Texture, 0);
           GenBindRenderbuffer(RenderbufferDepth, DepthBufferFormatPacked, DepthAttachmentWithStencil, DepthAttachmentPacked);
         end;
       tbDepth:
@@ -2890,12 +2905,12 @@ begin
           SetDrawBuffer(GL_NONE);
           SetReadBuffer(GL_NONE);
 
-          FramebufferTexture2D(GL_FRAMEBUFFER, DepthAttachmentPacked, TextureTarget, Texture, 0);
+          FramebufferTexture2D(GL_FRAMEBUFFER, DepthAttachmentWithStencil, DepthAttachmentPacked, TextureTarget, Texture, 0);
         end;
       tbColorAndDepth:
         begin
-          FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, TextureTarget, Texture, 0);
-          FramebufferTexture2D(GL_FRAMEBUFFER, DepthAttachmentPacked, DepthTextureTarget, DepthTexture, 0);
+          FramebufferTexture2D(GL_FRAMEBUFFER, false, GL_COLOR_ATTACHMENT0, TextureTarget, Texture, 0);
+          FramebufferTexture2D(GL_FRAMEBUFFER, DepthAttachmentWithStencil, DepthAttachmentPacked, DepthTextureTarget, DepthTexture, 0);
         end;
       tbNone:
         begin
