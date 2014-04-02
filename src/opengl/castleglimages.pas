@@ -1269,6 +1269,8 @@ var
   Prog: TGLSLProgram;
   {$endif}
 begin
+  if (DrawWidth = 0) or (DrawHeight = 0) then Exit;
+
   if GLFeatures.UseMultiTexturing then glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, Texture);
   GLEnableTexture(et2D);
@@ -1369,6 +1371,7 @@ var
   {$ifdef GLImageUseShaders}
   OptimizeAlpha: boolean;
   {$endif}
+  EpsilonT, EpsilonR, EpsilonB, EpsilonL: Single;
 const
   { We tweak texture coordinates a little, to avoid bilinear filtering
     that would cause border colors to "bleed" over the texture inside.
@@ -1438,8 +1441,13 @@ begin
         XImageRight,  YImageBottom + CornerBottom, CornerRight,  VerticalImageSize);
 
   { inside }
-  Draw(X + CornerLeft          , Y + CornerBottom          , HorizontalScreenSize              , VerticalScreenSize,
-           CornerLeft + Epsilon,     CornerBottom + Epsilon,  HorizontalImageSize - 2 * Epsilon,  VerticalImageSize - 2 * Epsilon);
+  if CornerLeft > 0   then EpsilonL := Epsilon else EpsilonL := 0;
+  if CornerTop > 0    then EpsilonT := Epsilon else EpsilonT := 0;
+  if CornerRight > 0  then EpsilonR := Epsilon else EpsilonR := 0;
+  if CornerBottom > 0 then EpsilonB := Epsilon else EpsilonB := 0;
+
+  Draw(X + CornerLeft           , Y + CornerBottom           , HorizontalScreenSize, VerticalScreenSize,
+           CornerLeft + EpsilonL,     CornerBottom + EpsilonB, HorizontalImageSize - (EpsilonL+EpsilonR), VerticalImageSize - (EpsilonT+EpsilonB));
 
   {$ifdef GLImageUseShaders}
   if OptimizeAlpha then
