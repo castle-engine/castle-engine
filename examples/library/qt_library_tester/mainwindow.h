@@ -10,6 +10,19 @@ namespace Ui {
 class MainWindow;
 }
 
+class NavKeeper
+{
+private:
+    float fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ, fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ;
+    int eNavType;
+    bool bToBeApplied;
+
+public:
+    NavKeeper();
+    void SaveState();
+    bool ApplyState();
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -28,6 +41,7 @@ private:
     GLWidget *m_pGlWidget;
     QDialog *m_pConsoleWnd;
     int m_nViewpointCount, m_iCurrentViewpoint;
+    NavKeeper m_aNavKeeper;
 
 private slots:
     void OnFileOpenClick();

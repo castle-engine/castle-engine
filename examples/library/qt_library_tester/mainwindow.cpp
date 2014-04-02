@@ -33,7 +33,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_nViewpointCount = m_iCurrentViewpoint = 0;
     m_pConsoleWnd = NULL;
 
-    m_pGlWidget = new GLWidget(this);
+    CGE_LoadLibrary();
+    m_pGlWidget = new GLWidget(QGLFormat(QGL::SampleBuffers), this);    // init with multisampling
     setCentralWidget(m_pGlWidget);
 
     connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(OnFileOpenClick()));
@@ -47,8 +48,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionSSAO, SIGNAL(triggered()), this, SLOT(MenuSoftShadowsClick()));
     connect(ui->actionHead_Bobbing, SIGNAL(triggered()), this, SLOT(MenuWalkingEffectClick()));
     connect(ui->actionMouse_Look, SIGNAL(triggered()), this, SLOT(MenuMouseLookClick()));
+    connect(ui->actionMultiSampling, SIGNAL(triggered()), this, SLOT(MenuAntiAliasingClick()));
     connect(ui->actionOpenGL_Information, SIGNAL(triggered()), this, SLOT(MenuOpenGLInfoClick()));
     connect(ui->actionShow_Log, SIGNAL(triggered()), this, SLOT(MenuShowLogClick()));
+
+    ui->actionMultiSampling->setChecked(m_pGlWidget->format().samples()>1);
 
     m_pGlWidget->OpenScene("../../../../demo_models/navigation/type_walk.wrl");
 }
@@ -112,6 +116,9 @@ void MainWindow::UpdateAfterSceneLoaded()
 
     ui->actionHead_Bobbing->setChecked(CGE_GetVariableInt(ecgevarWalkHeadBobbing)>0);
     ui->actionSSAO->setChecked(CGE_GetVariableInt(ecgevarEffectSSAO)>0);
+
+    if (m_aNavKeeper.ApplyState())  // when scene loading was caused by reloading (changing multisampling, etc)
+        UpdateNavigationButtons();
 }
 
 void MainWindow::OnMoveToViewpointClick()
@@ -153,7 +160,20 @@ void MainWindow::MenuSoftShadowsClick()
 
 void MainWindow::MenuAntiAliasingClick()
 {
-    // TODO
+    // keep camera position
+    m_aNavKeeper.SaveState();
+
+    QString sScene = m_pGlWidget->m_sSceneToOpen;
+    takeCentralWidget();
+    delete m_pGlWidget;
+    m_pGlWidget = NULL;
+
+    QGLFormat aFormat;
+    aFormat.setSampleBuffers(ui->actionMultiSampling->isChecked());
+
+    m_pGlWidget = new GLWidget(aFormat, this);    // init with multisampling
+    setCentralWidget(m_pGlWidget);
+    m_pGlWidget->OpenScene(sScene);
 }
 
 void MainWindow::MenuWalkingEffectClick()
@@ -218,4 +238,27 @@ void MainWindow::MenuOpenGLInfoClick()
     pLayout->insertWidget(0, pEdit);
     aDlg.resize(aDlg.minimumSize());
     aDlg.exec();
+}
+
+NavKeeper::NavKeeper()
+{
+    bToBeApplied = false;
+}
+
+void NavKeeper::SaveState()
+{
+    CGE_GetViewCoords(&fPosX, &fPosY, &fPosZ, &fDirX, &fDirY, &fDirZ, &fUpX, &fUpY, &fUpZ, &fGravX, &fGravY, &fGravZ);
+    eNavType = CGE_GetNavigationType();
+    bToBeApplied = true;
+}
+
+bool NavKeeper::ApplyState()
+{
+    if (!bToBeApplied) return false;
+
+    CGE_MoveViewToCoords(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ, fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ, false);
+    CGE_SetNavigationType(eNavType);
+
+    bToBeApplied = false;
+    return true;
 }

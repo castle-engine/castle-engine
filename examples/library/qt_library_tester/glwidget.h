@@ -7,9 +7,10 @@ class GLWidget : public QGLWidget
 {
     Q_OBJECT
 public:
-    explicit GLWidget(QWidget *parent = 0);
+    explicit GLWidget(const QGLFormat &format, QWidget *parent = 0);
     ~GLWidget();
 
+    QString m_sSceneToOpen;
     void OpenScene(QString const &sFilename);
 
     // helpers
@@ -20,7 +21,6 @@ protected:
     static int __cdecl OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, const char *szParam);
 
 private:
-    QString m_sSceneToOpen;
     bool m_bAfterInit;
 
 public:

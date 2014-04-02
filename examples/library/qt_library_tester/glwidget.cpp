@@ -22,8 +22,8 @@
 
 GLWidget *g_pThis = NULL;
 
-GLWidget::GLWidget(QWidget *parent) :
-    QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
+GLWidget::GLWidget(const QGLFormat &format, QWidget *parent) :
+    QGLWidget(format, parent)
 {
     g_pThis = this;
     m_bAfterInit = false;
@@ -43,11 +43,9 @@ GLWidget::~GLWidget()
 
 void GLWidget::OpenScene(QString const &sFilename)
 {
+    m_sSceneToOpen = sFilename;
     if (!m_bAfterInit)
-    {
-        m_sSceneToOpen = sFilename;
         return;
-    }
 
     CGE_LoadSceneFromFile(sFilename.toUtf8());
     ((MainWindow*)g_pThis->parent())->UpdateAfterSceneLoaded();
@@ -65,6 +63,8 @@ QSize GLWidget::sizeHint() const
 
 int __cdecl GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, const char *szParam)
 {
+    if (g_pThis == NULL || !g_pThis->m_bAfterInit) return 0;
+
     switch (eCode)
     {
     case ecgelibNeedsDisplay:
@@ -109,7 +109,6 @@ int __cdecl GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2,
 
 void GLWidget::initializeGL()
 {
-    CGE_LoadLibrary();
     CGE_Open(ecgeofLog);
     CGE_SetUserInterface(false, 96);
     CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);

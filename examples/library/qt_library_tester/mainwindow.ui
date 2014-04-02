@@ -50,6 +50,7 @@
     <addaction name="actionSSAO"/>
     <addaction name="actionHead_Bobbing"/>
     <addaction name="actionMouse_Look"/>
+    <addaction name="actionMultiSampling"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuViewpoints"/>
@@ -162,6 +163,14 @@
    </property>
    <property name="shortcut">
     <string>M</string>
+   </property>
+  </action>
+  <action name="actionMultiSampling">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>MultiSampling</string>
    </property>
   </action>
  </widget>
