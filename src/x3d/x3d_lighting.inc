@@ -38,7 +38,7 @@
   private
     FTransform: TMatrix4Single;
     SavedDefaultShadowMap: boolean;
-    SavedDefaultShadowMapUpdate: string;
+    SavedDefaultShadowMapUpdate: TTextureUpdate;
     SavedDefaultShadowMapSize: Integer;
     SavedDefaultShadowMapScale: Single;
     SavedDefaultShadowMapBias: Single;

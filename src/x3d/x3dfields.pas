@@ -636,8 +636,7 @@ type
       You can override this to return some ancestor (from which, and to which,
       you can assign) if your TX3DField descendant
       doesn't change how the @code(Assign) method works.
-      E.g. TSFStringUpdate class, that is defined only to override
-      @link(ExecuteChanges) method and wants to be fully compatible with normal
+      E.g. TSFTextureUpdate class, that wants to be fully compatible with normal
       TSFString. }
     class function ExposedEventsFieldClass: TX3DFieldClass; virtual;
 
@@ -1683,13 +1682,14 @@ type
   end;
 
   TSFString = class(TX3DSingleField)
+  private
+    FValue: string;
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    Value: string;
-
     DefaultValue: string;
     DefaultValueExists: boolean;
+    property Value: string read FValue write FValue;
 
     constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: string);

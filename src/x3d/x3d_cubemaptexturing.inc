@@ -63,31 +63,11 @@
     function LoadSides: boolean;
   end;
 
-  { Helper for all VRML/X3D generated texture nodes. }
-  TGeneratedTextureHandler = class
-  private
-    FUpdateNeeded: boolean;
-  public
-    constructor Create;
-
-    { When update contains "ALWAYS", you can check this to know if really
-      something visible changed since last update.
-      If not, then you do not have to update the texture --- no point, since
-      it would look exactly like the current one.
-
-      Scene classes (TCastleSceneCore, TCastleScene, TGLRenderer)
-      take care to set this field. After each actual update of the texture,
-      it's set to @false. Each time something visible affecting the look
-      of this texture possibly changed, it's set to @true. }
-    property UpdateNeeded: boolean read FUpdateNeeded write FUpdateNeeded
-      default true;
-  public
-    FdUpdate: TSFString;
-  end;
-
   TGeneratedCubeMapTextureNode = class(TAbstractEnvironmentTextureNode)
   private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
+    function GetUpdate: TTextureUpdate;
+    procedure SetUpdate(const Value: TTextureUpdate);
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -95,8 +75,12 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdUpdate: TSFString;
-    public property FdUpdate: TSFString read FFdUpdate;
+    private FFdUpdate: TSFTextureUpdate;
+    public property FdUpdate: TSFTextureUpdate read FFdUpdate;
+
+    { When to update the texture.
+      Changing this automatically marks the field as changed. }
+    public property Update: TTextureUpdate read GetUpdate write SetUpdate;
 
     private FFdSize: TSFInt32;
     public property FdSize: TSFInt32 read FFdSize;
@@ -244,54 +228,11 @@ begin
   Result := FAlphaChannelData;
 end;
 
-constructor TGeneratedTextureHandler.Create;
-begin
-  inherited;
-  FUpdateNeeded := true;
-end;
-
-type
-  { SFString for "update" field on rendered textures
-    (like GeneratedCubeMapTexture).
-
-    This causes appropriate @link(Changes): [chRedisplay] if value <> 'NONE'.
-    Then necessary things will be done automatically
-    at next UpdateGeneratedTextures call, so nothing besides chRedisplay
-    is required.
-
-    Note we do not pass chVisibleGeometry, chVisibleNonGeometry, or such.
-    So VisibleChangeHere will be called with [].
-    That's logical --- only the change of "update" field doesn't visibly
-    change anything on the scene. This means that if you change "update"
-    to "ALWAYS", but no visible change was registered since last update
-    of the texture, the texture will not be actually immediately
-    regenerated --- correct optimization!
-
-    If value is 'NONE', nothing needs to be done. }
-  TSFStringUpdate = class(TSFString)
-  protected
-    class function ExposedEventsFieldClass: TX3DFieldClass; override;
-  public
-    function ExecuteChanges: TX3DChanges; override;
-  end;
-
-class function TSFStringUpdate.ExposedEventsFieldClass: TX3DFieldClass;
-begin
-  Result := TSFString;
-end;
-
-function TSFStringUpdate.ExecuteChanges: TX3DChanges;
-begin
-  if Value <> 'NONE' then
-    Result := [chRedisplay] else
-    Result := [];
-end;
-
 procedure TGeneratedCubeMapTextureNode.CreateNode;
 begin
   inherited;
 
-  FFdUpdate := TSFStringUpdate.Create(Self, 'update', 'NONE');
+  FFdUpdate := TSFTextureUpdate.Create(Self, 'update', upNone);
   Fields.Add(FFdUpdate);
   { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
 
@@ -310,7 +251,7 @@ begin
   Fields.Add(FFdBias);
 
   FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
-  FGeneratedTextureHandler.FdUpdate := FdUpdate;
+  FGeneratedTextureHandler.FUpdate := FdUpdate;
 end;
 
 destructor TGeneratedCubeMapTextureNode.Destroy;
@@ -328,6 +269,16 @@ class function TGeneratedCubeMapTextureNode.URNMatching(const URN: string): bool
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TGeneratedCubeMapTextureNode.GetUpdate: TTextureUpdate;
+begin
+  Result := FdUpdate.Value;
+end;
+
+procedure TGeneratedCubeMapTextureNode.SetUpdate(const Value: TTextureUpdate);
+begin
+  FdUpdate.Send(Value);
 end;
 
 procedure TImageCubeMapTextureNode.CreateNode;

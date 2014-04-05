@@ -45,6 +45,7 @@ var
   MessageButton: TCastleButton;
   ProgressButton: TCastleButton;
   ReopenContextButton: TCastleButton;
+  ToggleTextureUpdatesButton: TCastleButton;
 
   MyShaderEffect: TEffectNode;
   MyScreenEffect: TScreenEffectNode;
@@ -58,6 +59,8 @@ type
     procedure MessageClick(Sender: TObject);
     procedure ProgressClick(Sender: TObject);
     procedure ReopenContextClick(Sender: TObject);
+    procedure ToggleTextureUpdates(Sender: TObject);
+    procedure ToggleTextureUpdatesCallback(Node: TX3DNode);
   end;
 
 procedure TDummy.ToggleShaderClick(Sender: TObject);
@@ -147,6 +150,23 @@ begin
   Window.Open;
 end;
 
+procedure TDummy.ToggleTextureUpdatesCallback(Node: TX3DNode);
+var
+  CubeMap: TGeneratedCubeMapTextureNode;
+begin
+  CubeMap := Node as TGeneratedCubeMapTextureNode;
+  if CubeMap.Update = upNone then
+    CubeMap.Update := upAlways else
+    CubeMap.Update := upNone;
+  WritelnLog('CubeMap', 'Toggled updates on ' + CubeMap.NiceName);
+end;
+
+procedure TDummy.ToggleTextureUpdates(Sender: TObject);
+begin
+  Window.SceneManager.MainScene.RootNode.EnumerateNodes(
+    TGeneratedCubeMapTextureNode, @ToggleTextureUpdatesCallback, false);
+end;
+
 procedure FindFilesCallback(const FileInfo: TFileInfo; Data: Pointer);
 begin
   WritelnLog('FindFiles', 'Found URL:%s, Name:%s, AbsoluteName:%s, Directory:%s',
@@ -216,6 +236,11 @@ begin
   ReopenContextButton.OnClick := @TDummy(nil).ReopenContextClick;
   Window.Controls.InsertFront(ReopenContextButton);
 
+  ToggleTextureUpdatesButton := TCastleButton.Create(Window);
+  ToggleTextureUpdatesButton.Caption := 'Toggle CubeMap Texture Updates';
+  ToggleTextureUpdatesButton.OnClick := @TDummy(nil).ToggleTextureUpdates;
+  Window.Controls.InsertFront(ToggleTextureUpdatesButton);
+
   MyShaderEffect := Window.SceneManager.MainScene.RootNode.TryFindNodeByName(
     TEffectNode, 'MyShaderEffect', false) as TEffectNode;
   ToggleShaderButton.Pressed := (MyShaderEffect <> nil) and MyShaderEffect.Enabled;
@@ -282,6 +307,10 @@ begin
   Bottom -= ReopenContextButton.Height + Margin;
   ReopenContextButton.AlignHorizontal(prHigh, prHigh, -Margin);
   ReopenContextButton.Bottom := Bottom;
+
+  Bottom -= ToggleTextureUpdatesButton.Height + Margin;
+  ToggleTextureUpdatesButton.AlignHorizontal(prHigh, prHigh, -Margin);
+  ToggleTextureUpdatesButton.Bottom := Bottom;
 end;
 
 function MyGetApplicationName: string;

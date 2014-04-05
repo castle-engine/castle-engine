@@ -242,8 +242,8 @@
     property GeneratedTextureHandler: TGeneratedTextureHandler
       read FGeneratedTextureHandler;
 
-    private FFdUpdate: TSFString;
-    public property FdUpdate: TSFString read FFdUpdate;
+    private FFdUpdate: TSFTextureUpdate;
+    public property FdUpdate: TSFTextureUpdate read FFdUpdate;
 
     private FFdSize: TSFInt32;
     public property FdSize: TSFInt32 read FFdSize;
@@ -782,7 +782,7 @@ procedure TGeneratedShadowMapNode.CreateNode;
 begin
   inherited;
 
-  FFdUpdate := TSFStringUpdate.Create(Self, 'update', 'NONE');
+  FFdUpdate := TSFTextureUpdate.Create(Self, 'update', upNone);
   Fields.Add(FFdUpdate);
   { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
 
@@ -814,7 +814,7 @@ begin
   Fields.Add(FFdCompareMode);
 
   FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
-  FGeneratedTextureHandler.FdUpdate := FdUpdate;
+  FGeneratedTextureHandler.FUpdate := FdUpdate;
 end;
 
 destructor TGeneratedShadowMapNode.Destroy;

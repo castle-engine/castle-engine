@@ -3584,30 +3584,21 @@ procedure TGLRenderer.UpdateGeneratedTextures(Shape: TShape;
   CurrentViewpoint: TAbstractViewpointNode;
   CameraViewKnown: boolean;
   const CameraPosition, CameraDirection, CameraUp: TVector3Single);
-
 var
   { Only for CheckUpdateField and PostUpdateField }
-  UpdateIndex: Integer;
   SavedHandler: TGeneratedTextureHandler;
 
   { Look at the "update" field's value, decide whether we need updating.
     Will take care of making warning on incorrect "update". }
   function CheckUpdate(Handler: TGeneratedTextureHandler): boolean;
+  var
+    Update: TTextureUpdate;
   begin
     SavedHandler := Handler; { for PostUpdateField }
-
-    UpdateIndex := ArrayPosStr(LowerCase(Handler.FdUpdate.Value),
-      { Names below must be lowercase }
-      ['none', 'next_frame_only', 'always']);
-
-    { Only if update = 'NEXT_FRAME_ONLY',
-      or 'ALWAYS' (and UpdateNeeded) remake the texture. }
-    Result := (UpdateIndex = 1) or
-      ( (UpdateIndex = 2) and Handler.UpdateNeeded );
-
-    if UpdateIndex = -1 then
-      OnWarning(wtMajor, 'VRML/X3D', Format('%s.update invalid field value "%s", will be treated like "NONE"',
-        [TextureNode.NodeTypeName, Handler.FdUpdate.Value]));
+    Update := Handler.Update.Value;
+    Result :=
+        (Update = upNextFrameOnly) or
+      ( (Update = upAlways) and Handler.UpdateNeeded );
   end;
 
   { Call this after CheckUpdateField returned @true and you updated
@@ -3615,10 +3606,8 @@ var
     Will take care of sending "NONE" after "NEXT_FRAME_ONLY". }
   procedure PostUpdate;
   begin
-    { If update = 'NEXT_FRAME_ONLY', change it to 'NONE' now }
-    if UpdateIndex = 1 then
-      SavedHandler.FdUpdate.Send('NONE');
-
+    if SavedHandler.Update.Value = upNextFrameOnly then
+      SavedHandler.Update.Send(upNone);
     SavedHandler.UpdateNeeded := false;
   end;
 

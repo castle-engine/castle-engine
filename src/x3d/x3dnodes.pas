@@ -779,6 +779,7 @@ type
   end;
 
 {$I x3dnodes_node.inc}
+{$I x3dnodes_generatedtextures.inc}
 
   TX3DNodeClassesList = class(TList)
   private
@@ -1088,7 +1089,7 @@ type
     procedure EnumerateValid(Func: TEnumerateChildrenFunction);
   end;
 
-{ Specific VRML nodes -------------------------------------------------------- }
+{ Specific VRML/X3D nodes ---------------------------------------------------- }
 
 {$I x3d_core.inc}
 {$I x3d_time.inc}
@@ -2217,6 +2218,7 @@ resourcestring
 {$I x3dnodes_load.inc}
 {$I x3dnodes_encoding_classic.inc}
 {$I x3dnodes_encoding_xml.inc}
+{$I x3dnodes_generatedtextures.inc}
 
 {$I x3d_core.inc}
 {$I x3d_time.inc}

@@ -168,8 +168,8 @@
     private FEventProjection: TSFMatrix4fEvent;
     public property EventProjection: TSFMatrix4fEvent read FEventProjection;
 
-    private FFdUpdate: TSFString;
-    public property FdUpdate: TSFString read FFdUpdate;
+    private FFdUpdate: TSFTextureUpdate;
+    public property FdUpdate: TSFTextureUpdate read FFdUpdate;
 
     private FFdFrameBufferMode: TSFString;
     public property FdFrameBufferMode: TSFString read FFdFrameBufferMode;
@@ -684,7 +684,7 @@ begin
   FEventProjection := TSFMatrix4fEvent.Create(Self, 'projection', false);
   Events.Add(FEventProjection);
 
-  FFdUpdate := TSFStringUpdate.Create(Self, 'update', 'NONE');
+  FFdUpdate := TSFTextureUpdate.Create(Self, 'update', upNone);
   Fields.Add(FFdUpdate);
 
   FFdFrameBufferMode := TSFString.Create(Self, 'frameBufferMode', 'auto');
@@ -730,7 +730,7 @@ begin
   Events.Add(FEventRendering);
 
   FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
-  FGeneratedTextureHandler.FdUpdate := FdUpdate;
+  FGeneratedTextureHandler.FUpdate := FdUpdate;
 end;
 
 destructor TRenderedTextureNode.Destroy;

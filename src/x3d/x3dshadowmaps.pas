@@ -158,7 +158,7 @@ begin
     Result^.ShadowMap := TGeneratedShadowMapNode.Create('', '');
     if not Light.DefaultShadowMapLoad(Result^.ShadowMap) then
     begin
-      Result^.ShadowMap.FdUpdate.Value := 'ALWAYS';
+      Result^.ShadowMap.FdUpdate.Value := upAlways;
       Result^.ShadowMap.FdSize.Value := DefaultShadowMapSize;
     end;
   end;
