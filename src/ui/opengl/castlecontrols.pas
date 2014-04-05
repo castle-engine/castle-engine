@@ -18,10 +18,9 @@ unit CastleControls;
 
 interface
 
-uses Classes, CastleVectors, CastleUIControls, CastleFonts,
-  CastleTextureFontData,
-  CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages,
-  CastleRectangles, CastleColors, CastleProgress;
+uses Classes, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
+  CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
+  CastleColors, CastleProgress;
 
 type
   TCastleLabel = class;
@@ -340,7 +339,7 @@ type
   private
     FTouchMode: TCastleTouchCtlMode;
     FLeverOffset: TVector2Single;
-    FDragStarted: boolean;
+    FDragging: Integer; //< finger index that started drag, -1 if none
     FPosition: TCastleTouchPosition;
     function SizeScale: Single;
     procedure SetPosition(const Value: TCastleTouchPosition);
@@ -1491,8 +1490,7 @@ begin
   begin
     ImageInner := tiTouchCtlFlyInner;
     ImageOuter := tiTouchCtlFlyOuter;
-  end
-  else
+  end else
   begin
     ImageInner := tiTouchCtlInner;
     ImageOuter := tiTouchCtlOuter;
@@ -1501,13 +1499,13 @@ begin
 
   // compute lever offset (must not move outside outer ring)
   LeverDist := VectorLen(FLeverOffset);
-  MaxDist := MaxOffsetDist();
+  MaxDist := MaxOffsetDist;
   if LeverDist <= MaxDist then
   begin
     LevOffsetTrimmedX := Round(FLeverOffset[0]);
     LevOffsetTrimmedY := Round(FLeverOffset[1]);
-  end
-  else begin
+  end else
+  begin
     LevOffsetTrimmedX := Floor((FLeverOffset[0]*MaxDist)/LeverDist);
     LevOffsetTrimmedY := Floor((FLeverOffset[1]*MaxDist)/LeverDist);
   end;
@@ -1519,6 +1517,7 @@ begin
   InnerRect.Height := Round(InnerRect.Height * SizeScale);
   InnerRect.Left   := Left   + (Width  - InnerRect.Width ) div 2 + LevOffsetTrimmedX;
   InnerRect.Bottom := Bottom + (Height - InnerRect.Height) div 2 + LevOffsetTrimmedY;
+
   Theme.Draw(InnerRect, ImageInner);
 end;
 
@@ -1534,7 +1533,7 @@ begin
   if Result or (not GetExists) or (Event.EventType <> itMouseButton) then Exit;
 
   Result := ExclusiveEvents;
-  FDragStarted := true;
+  FDragging := Event.FingerIndex;
   FLeverOffset := ZeroVector2Single;
 end;
 
@@ -1543,38 +1542,40 @@ begin
   Result := inherited;
   if Result or (not GetExists) or (Event.EventType <> itMouseButton) then Exit;
 
-  if FDragStarted then
+  if FDragging = Event.FingerIndex then
   begin
     Result := ExclusiveEvents;
 
-    FDragStarted := false;
+    FDragging := -1;
     FLeverOffset := ZeroVector2Single;
-    VisibleChange;   { repaint with lever back in the center }
+    VisibleChange; { repaint with lever back in the center }
   end;
 end;
 
 function TCastleTouchControl.Motion(const Event: TInputMotion): boolean;
 begin
-  if FDragStarted then
+  Result := inherited;
+
+  if (not Result) and (FDragging = Event.FingerIndex) then
   begin
     FLeverOffset := FLeverOffset + Event.Position - Event.OldPosition;
     VisibleChange;
+    Result := ExclusiveEvents;
   end;
-  Result := FDragStarted;
 end;
 
 procedure TCastleTouchControl.GetSensorRotation(var X, Y, Z, Angle: Double);
 var
   FxConst: Double;
 begin
-  FxConst := 10/MaxOffsetDist();
+  FxConst := 10/MaxOffsetDist;
   if FTouchMode = ctcmHeadRotation then
   begin
     X :=  FLeverOffset[1] * FxConst;
     Y := -FLeverOffset[0] * FxConst;
     Angle := 1;
-  end
-  else if FTouchMode = ctcmWalkWithSideRot then
+  end else
+  if FTouchMode = ctcmWalkWithSideRot then
   begin
     Y := -FLeverOffset[0] * FxConst;
     Angle := 1;
@@ -1585,28 +1586,30 @@ procedure TCastleTouchControl.GetSensorTranslation(var X, Y, Z, Length: Double);
 var
   FxConst: Double;
 begin
-  FxConst := 200/MaxOffsetDist();
-  if FTouchMode = ctcmWalking then
-  begin
-    X :=  FLeverOffset[0] * FxConst / 1.5;  { walking to the sides should be slower }
-    Z := -FLeverOffset[1] * FxConst;
-    Length := 20;
-  end
-  else if FTouchMode = ctcmWalkWithSideRot then
-  begin
-    Z := -FLeverOffset[1] * FxConst;
-    Length := 20;
-  end
-  else if FTouchMode = ctcmFlyUpdown then
-  begin
-    Y := FLeverOffset[1] * FxConst;
-    Length := 20;
-  end
-  else if FTouchMode = ctcmPanXY then
-  begin
-    X := -FLeverOffset[0] * FxConst;
-    Y := -FLeverOffset[1] * FxConst;
-    Length := 5;
+  FxConst := 200/MaxOffsetDist;
+  case FTouchMode of
+    ctcmWalking:
+      begin
+        X :=  FLeverOffset[0] * FxConst / 1.5;  { walking to the sides should be slower }
+        Z := -FLeverOffset[1] * FxConst;
+        Length := 20;
+      end;
+    ctcmWalkWithSideRot:
+      begin
+        Z := -FLeverOffset[1] * FxConst;
+        Length := 20;
+      end;
+    ctcmFlyUpdown:
+      begin
+        Y := FLeverOffset[1] * FxConst;
+        Length := 20;
+      end;
+    ctcmPanXY:
+      begin
+        X := -FLeverOffset[0] * FxConst;
+        Y := -FLeverOffset[1] * FxConst;
+        Length := 5;
+      end;
   end;
 end;
 

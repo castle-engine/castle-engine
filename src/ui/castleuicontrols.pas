@@ -20,7 +20,7 @@ interface
 
 uses SysUtils, Classes, CastleKeysMouse, CastleUtils, CastleClassUtils,
   CastleGenericLists, CastleRectangles, CastleTimeUtils, pk3DConnexion,
-  CastleImages, CastleVectors;
+  CastleImages, CastleVectors, FGL;
 
 const
   { Default value for container's Dpi, as is usually set on desktops. }
@@ -125,6 +125,9 @@ type
     like TUIControl.Update, TUIControl.Render. }
   TUIContainer = class abstract(TComponent)
   private
+    type
+      TFingerIndexCaptureMap = specialize TFPGMap<TFingerIndex, TUIControl>;
+    var
     FOnOpen, FOnClose: TContainerEvent;
     FOnOpenObject, FOnCloseObject: TContainerObjectEvent;
     FOnBeforeRender, FOnRender: TContainerEvent;
@@ -137,7 +140,9 @@ type
     FControls: TObject;
     FRenderStyle: TRenderStyle;
     FFocus: TUIControl;
-    FCaptureInput: TUIControl;
+    { Capture controls, for each FingerIndex.
+      The values in this map are never nil. }
+    FCaptureInput: TFingerIndexCaptureMap;
     FTooltipDelay: TMilisecTime;
     FTooltipDistance: Cardinal;
     FTooltipVisible: boolean;
@@ -1112,6 +1117,7 @@ begin
   FRenderStyle := rs2D;
   FTooltipDelay := DefaultTooltipDelay;
   FTooltipDistance := DefaultTooltipDistance;
+  FCaptureInput := TFingerIndexCaptureMap.Create;
 
   { connect 3D device - 3Dconnexion device }
   Mouse3dPollTimer := 0;
@@ -1128,6 +1134,7 @@ destructor TUIContainer.Destroy;
 begin
   FreeAndNil(FControls);
   FreeAndNil(Mouse3d);
+  FreeAndNil(FCaptureInput);
   inherited;
 end;
 
@@ -1151,9 +1158,14 @@ begin
 end;
 
 procedure TUIContainer.DetachNotification(const C: TUIControl);
+var
+  CaptureIndex: Integer;
 begin
-  if C = FFocus        then FFocus := nil;
-  if C = FCaptureInput then FCaptureInput := nil;
+  if C = FFocus then FFocus := nil;
+
+  CaptureIndex := FCaptureInput.IndexOfData(C);
+  if CaptureIndex <> -1 then
+    FCaptureInput.Delete(CaptureIndex);
 end;
 
 procedure TUIContainer.UpdateFocusAndMouseCursor;
@@ -1182,8 +1194,8 @@ procedure TUIContainer.UpdateFocusAndMouseCursor;
 var
   NewFocus: TUIControl;
 begin
-  if FCaptureInput <> nil then
-    NewFocus := FCaptureInput else
+  if FCaptureInput.IndexOf(0) <> -1 then
+    NewFocus := FCaptureInput[0] else
     NewFocus := CalculateFocus;
 
   if NewFocus <> Focus then
@@ -1338,7 +1350,7 @@ begin
           Release method because it has Container = nil, and so on). }
         if (Event.EventType = itMouseButton) and
            (C.Container = Self) then
-          FCaptureInput := C;
+          FCaptureInput[Event.FingerIndex] := C;
         Exit(true);
       end;
   end;
@@ -1352,20 +1364,29 @@ end;
 
 function TUIContainer.EventRelease(const Event: TInputPressRelease): boolean;
 var
-  I: Integer;
+  I, CaptureIndex: Integer;
   C, Capture: TUIControl;
 begin
   Result := false;
+  CaptureIndex := FCaptureInput.IndexOf(Event.FingerIndex);
 
-  if (FCaptureInput <> nil) and not FCaptureInput.GetExists then
+  if (CaptureIndex <> -1) and
+     not FCaptureInput.Data[CaptureIndex].GetExists then
+  begin
     { No longer capturing, since the GetExists returns false now.
       We do not send any events to non-existing controls. }
-    FCaptureInput := nil;
+    FCaptureInput.Delete(CaptureIndex);
+    CaptureIndex := -1;
+  end;
 
-  Capture := FCaptureInput;
-  if MousePressed = [] then
+  if CaptureIndex <> -1 then
+    Capture := FCaptureInput.Data[CaptureIndex] else
+    Capture := nil;
+  if (CaptureIndex <> -1) and (MousePressed = []) then
+  begin
     { No longer capturing, but will receive the Release event. }
-    FCaptureInput := nil;
+    FCaptureInput.Delete(CaptureIndex);
+  end;
 
   if Capture <> nil then
   begin
@@ -1460,19 +1481,24 @@ end;
 
 procedure TUIContainer.EventMotion(const Event: TInputMotion);
 var
-  I: Integer;
+  I, CaptureIndex: Integer;
   C: TUIControl;
 begin
   UpdateFocusAndMouseCursor;
+  CaptureIndex := FCaptureInput.IndexOf(Event.FingerIndex);
 
-  if (FCaptureInput <> nil) and not FCaptureInput.GetExists then
+  if (CaptureIndex <> -1) and 
+     not FCaptureInput.Data[CaptureIndex].GetExists then
+  begin
     { No longer capturing, since the GetExists returns false now.
       We do not send any events to non-existing controls. }
-    FCaptureInput := nil;
+    FCaptureInput.Delete(CaptureIndex);
+    CaptureIndex := -1;
+  end;
 
-  if FCaptureInput <> nil then
+  if CaptureIndex <> -1 then
   begin
-    FCaptureInput.Motion(Event);
+    FCaptureInput.Data[CaptureIndex].Motion(Event);
     Exit;
   end;
 

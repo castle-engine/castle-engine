@@ -35,7 +35,7 @@ type
       shortcuts. }
     ciNormal,
 
-    { Mouse dragging. Both TExamineCamera and TWalkCamera implement their own,
+    { Mouse and touch dragging. Both TExamineCamera and TWalkCamera implement their own,
       special reactions to mouse dragging, that allows to navigate / rotate
       while pressing specific mouse buttons. }
     ciMouseDragging,
@@ -103,8 +103,10 @@ type
   protected
     { Needed for ciMouseDragging navigation.
       Checking MouseDraggingStarted means that we handle only dragging that
-      was initialized on viewport (since the viewport passed events to camera). }
-    MouseDraggingStarted: boolean;
+      was initialized on viewport (since the viewport passed events to camera).
+      MouseDraggingStarted -1 means none, otherwise it's the finder index
+      (to support multitouch). }
+    MouseDraggingStarted: Integer;
     MouseDraggingStart: TVector2Single;
 
     { Mechanism to schedule VisibleChange calls.
@@ -1994,14 +1996,14 @@ begin
      EnableDragging then
   begin
     MouseDraggingStart := Container.MousePosition;
-    MouseDraggingStarted := true;
+    MouseDraggingStarted := Event.FingerIndex;
   end;
 end;
 
 function TCamera.Release(const Event: TInputPressRelease): boolean;
 begin
   if Event.EventType = itMouseButton then
-    MouseDraggingStarted := false;
+    MouseDraggingStarted := -1;
   Result := inherited;
 end;
 
@@ -2543,7 +2545,7 @@ begin
   if (Container.MousePressed = []) or
      (not (ciMouseDragging in Input)) or
      (not EnableDragging) or
-     (not MouseDraggingStarted) or
+     (MouseDraggingStarted <> Event.FingerIndex) or
      Animation then
     Exit;
 
@@ -3958,7 +3960,7 @@ begin
       end;
 
       { mouse dragging navigation }
-      if MouseDraggingStarted and
+      if (MouseDraggingStarted <> -1) and
          (ciMouseDragging in Input) and EnableDragging and
          ((mbLeft in Container.MousePressed) or (mbRight in Container.MousePressed)) and
          { Enable dragging only when no modifiers (except Input_Run,
@@ -4031,7 +4033,7 @@ begin
      (ciMouseDragging in Input) and
      (MouseDragMode = cwdmNone) then
   begin
-    MouseDraggingStarted := false;
+    MouseDraggingStarted := -1;
     Result := false;
     Exit;
   end;
@@ -4313,8 +4315,10 @@ begin
     Exit;
   end;
 
-  if (MouseDraggingStarted) and (MouseDragMode = cwdmDragToRotate) and
-    (not Animation) and (not MouseLook) then
+  if (MouseDraggingStarted <> -1) and
+    (MouseDragMode = cwdmDragToRotate) and
+    (not Animation) and
+    (not MouseLook) then
   begin
     MouseChange := Event.Position - Container.MousePosition;
     if MouseChange[0] <> 0 then
