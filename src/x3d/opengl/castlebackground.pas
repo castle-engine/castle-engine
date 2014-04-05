@@ -284,8 +284,8 @@ const
   function StackTipCalc(const Angle: Single): TVector3Single;
   begin
     // Result := Vector3Single(0, Cos(Angle) * SkySphereRadius, 0);
-    { simpler are more accurate version, since StackTipCalc is only called with
-      these argument 0 or Pi }
+    { simpler and more accurate version, since StackTipCalc is only called with
+      Angle = 0 or Pi }
     if Angle = 0 then
       Result := Vector3Single(0,  SkySphereRadius, 0) else
     begin
@@ -404,7 +404,9 @@ const
     for I := 0 to Slices - 1 do
     begin
       SphereCoordIndex.Items.L[NextIndex    ] := Start;
-      SphereCoordIndex.Items.L[NextIndex + 1] := Start - Slices + I + 1;
+      if I <> Slices - 1 then
+        SphereCoordIndex.Items.L[NextIndex + 1] := Start - Slices + I + 1 else
+        SphereCoordIndex.Items.L[NextIndex + 1] := Start - Slices;
       SphereCoordIndex.Items.L[NextIndex + 2] := Start - Slices + I;
       SphereCoordIndex.Items.L[NextIndex + 3] := -1;
       NextIndex += 4;
