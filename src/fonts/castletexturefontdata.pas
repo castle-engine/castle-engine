@@ -77,7 +77,7 @@ type
 
 implementation
 
-uses SysUtils, {$ifdef HAS_FREE_TYPE} FreeType, FtFont, {$endif}
+uses SysUtils, {$ifdef HAS_FREE_TYPE} CastleFreeType, CastleFtFont, {$endif}
   CastleLog, CastleUtils, CastleURIUtils, CastleWarnings;
 
 { TTextureFontData ----------------------------------------------------------------- }
@@ -202,7 +202,7 @@ begin
   FSize := ASize;
   FAntiAliased := AnAntiAliased;
 
-  FtFont.InitEngine;
+  CastleFtFont.InitEngine;
   { By default TFontManager uses DefaultResolution that is OS-dependent
     and does not really have any good reasoninig?
     We set 0, letting FreeType library use good default,

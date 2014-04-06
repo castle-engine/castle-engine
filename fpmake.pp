@@ -167,6 +167,9 @@ begin
     P.Targets.AddUnit('x3dcastlescript.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'fonts');
+    P.Targets.AddUnit('castlefreetypeh.pas');
+    P.Targets.AddUnit('castlefreetype.pas');
+    P.Targets.AddUnit('castleftfont.pas');
     P.Targets.AddUnit('castletexturefont_dejavusans_10.pas');
     P.Targets.AddUnit('castletexturefont_dejavusans_20.pas');
     P.Targets.AddUnit('castletexturefont_dejavusansmono_18.pas');
