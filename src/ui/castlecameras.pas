@@ -1762,6 +1762,7 @@ begin
   FInitialUp        := DefaultCameraUp;
   FRadius := DefaultRadius;
   FInput  := DefaultInput;
+  MouseDraggingStarted := -1;
 end;
 
 procedure TCamera.VisibleChange;

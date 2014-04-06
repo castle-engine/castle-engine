@@ -346,6 +346,7 @@ type
     { Update Left and Bottom based on Position and current Container size. }
     procedure UpdateLeftBottom;
   public
+    constructor Create(AOwner: TComponent); override;
     procedure Render; override;
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
 
@@ -1408,6 +1409,12 @@ begin
 end;
 
 { TCastleTouchControl ---------------------------------------------------------------- }
+
+constructor TCastleTouchControl.Create(AOwner: TComponent);
+begin
+  inherited;
+  FDragging := -1;
+end;
 
 function TCastleTouchControl.SizeScale: Single;
 begin
