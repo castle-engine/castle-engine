@@ -42,7 +42,7 @@ uses CTypes, Math, SysUtils, CastleWindow, CastleWindowTouch, CastleUtils,
 type
   TCrosshairManager = class(TObject)
   public
-    CrosshairCtl: TCastleCrosshairControl;
+    CrosshairCtl: TCastleCrosshair;
     CrosshairActive: boolean;
 
     constructor Create;
@@ -62,7 +62,7 @@ var
   szBuffer: PChar;
   nBufSize: cardinal;
 begin
-  if Assigned(Window.LibraryCallbackProc) and (Category<>'Triangulator') then
+  if Assigned(Window.LibraryCallbackProc) then
   begin
     sMsg := Category + ': ' + S;
     nBufSize := Length(sMsg);
@@ -465,11 +465,15 @@ begin
       end;
 
       3: begin    // ecgevarCrossHair
-        Crosshair.CrosshairCtl.Shape := nValue;
+        Crosshair.CrosshairCtl.Exists := (nValue > 0);
         if nValue > 0 then begin
+          if nValue = 2 then
+            Crosshair.CrosshairCtl.Shape := csCrossRect else
+            Crosshair.CrosshairCtl.Shape := csCross;
           Crosshair.UpdateCrosshairImage;
           Window.MainScene.OnPointingDeviceSensorsChange := @Crosshair.OnPointingDeviceSensorsChange;
-        end;
+        end else
+          Crosshair.CrosshairCtl.VisibleChange;
       end;
 
     end;
@@ -506,7 +510,14 @@ begin
       end;
 
       3: begin    // ecgevarCrossHair
-        Result := Crosshair.CrosshairCtl.Shape;
+        if not Crosshair.CrosshairCtl.Exists then
+          Result := 0
+        else if Crosshair.CrosshairCtl.Shape = csCross then
+          Result := 1
+        else if Crosshair.CrosshairCtl.Shape = csCrossRect then
+          Result := 2
+        else
+          Result := 1;
       end;
 
       4: begin    // ecgevarAnimationRunning
@@ -525,8 +536,8 @@ end;
 constructor TCrosshairManager.Create;
 begin
   inherited;
-  CrosshairCtl := TCastleCrosshairControl.Create(Window);
-  CrosshairCtl.Shape := 0;  // start as invisible
+  CrosshairCtl := TCastleCrosshair.Create(Window);
+  CrosshairCtl.Exists := false;  // start as invisible
   Window.Controls.InsertFront(CrosshairCtl);
 end;
 
@@ -540,11 +551,11 @@ end;
 procedure TCrosshairManager.UpdateCrosshairImage;
 begin
   begin
-    if CrosshairCtl.Shape = 0 then Exit;
+    if not CrosshairCtl.Exists then Exit;
 
     if CrosshairActive then
-      CrosshairCtl.Shape := 2 else
-      CrosshairCtl.Shape := 1;
+      CrosshairCtl.Shape := csCrossRect else
+      CrosshairCtl.Shape := csCross;
   end;
 end;
 

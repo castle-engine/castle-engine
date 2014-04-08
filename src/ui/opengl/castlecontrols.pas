@@ -532,10 +532,12 @@ type
     property Tags: boolean read FTags write FTags default false;
   end;
 
-  TCastleCrosshairControl = class(TUIRectangularControl)
+  TCastleCrosshairShape = (csCross, csCrossRect);
+
+  TCastleCrosshair = class(TUIRectangularControl)
   private
-    FShape: Cardinal;
-    procedure SetShape(const Value: Cardinal);
+    FShape: TCastleCrosshairShape;
+    procedure SetShape(const Value: TCastleCrosshairShape);
     function ImageType: TThemeImage;
     function SizeScale: Single;
   public
@@ -551,7 +553,7 @@ type
 
   published
     { 0: invisible, 1: cross, 2: cross with rect }
-    property Shape: Cardinal read FShape write SetShape default 1;
+    property Shape: TCastleCrosshairShape read FShape write SetShape default csCross;
   end;
 
   TCastleProgressBar = class(TUIControl)
@@ -1346,28 +1348,28 @@ begin
   end;
 end;
 
-{ TCastleCrosshairControl ---------------------------------------------------- }
+{ TCastleCrosshair ---------------------------------------------------- }
 
-constructor TCastleCrosshairControl.Create(AOwner: TComponent);
+constructor TCastleCrosshair.Create(AOwner: TComponent);
 begin
   inherited;
-  FShape := 1;
+  FShape := csCross;
 end;
 
-procedure TCastleCrosshairControl.SetShape(const Value: Cardinal);
+procedure TCastleCrosshair.SetShape(const Value: TCastleCrosshairShape);
 begin
   FShape := Value;
   VisibleChange;
 end;
 
-function TCastleCrosshairControl.ImageType: TThemeImage;
+function TCastleCrosshair.ImageType: TThemeImage;
 begin
-  if FShape = 2 then
+  if FShape = csCrossRect then
     Result := tiCrosshair2 else
     Result := tiCrosshair1;
 end;
 
-procedure TCastleCrosshairControl.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+procedure TCastleCrosshair.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
 begin
   inherited;
   Left := (AContainerWidth - Width) div 2;   // keep in the center
@@ -1375,37 +1377,36 @@ begin
   VisibleChange;
 end;
 
-function TCastleCrosshairControl.SizeScale: Single;
+function TCastleCrosshair.SizeScale: Single;
 begin
   if Container <> nil then
     Result := Container.Dpi / 96 else
     Result := 1;
 end;
 
-function TCastleCrosshairControl.Width: Cardinal;
+function TCastleCrosshair.Width: Cardinal;
 begin
   Result := Round(Theme.Images[ImageType].Width  * SizeScale);
 end;
 
-function TCastleCrosshairControl.Height: Cardinal;
+function TCastleCrosshair.Height: Cardinal;
 begin
   Result := Round(Theme.Images[ImageType].Height * SizeScale);
 end;
 
-function TCastleCrosshairControl.Rect: TRectangle;
+function TCastleCrosshair.Rect: TRectangle;
 begin
   Result := Rectangle(Left, Bottom, Width, Height);
 end;
 
-function TCastleCrosshairControl.PositionInside(const Position: TVector2Single): boolean;
+function TCastleCrosshair.PositionInside(const Position: TVector2Single): boolean;
 begin
   Result := false; // this control is just passively drawn onto screen
 end;
 
-procedure TCastleCrosshairControl.Render;
+procedure TCastleCrosshair.Render;
 begin
-  if FShape > 0 then
-    Theme.Draw(Rect, ImageType);
+  Theme.Draw(Rect, ImageType);
 end;
 
 { TCastleTouchControl ---------------------------------------------------------------- }
