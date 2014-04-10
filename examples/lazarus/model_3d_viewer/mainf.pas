@@ -89,7 +89,7 @@ type
     SceneURL: string;
     CameraChanged: boolean;
     ButtonsNavigationType: array [TNavigationType] of TSpeedButton;
-    CrosshairCtl: TCastleCrosshairControl;
+    CrosshairCtl: TCastleCrosshair;
     CrosshairActive: Boolean;    // there is something to touch under the crosshair
 
     procedure OpenScene(const URL: string);
@@ -266,12 +266,12 @@ begin
     Walk := TUniversalCamera(Browser.Camera).Walk else
     Walk := nil;
 
-  if (Walk = nil) or (not Walk.MouseLook) then
-    CrosshairCtl.Shape := 0
-  else if CrosshairActive then
-    CrosshairCtl.Shape := 2
+  CrosshairCtl.Exists := ((Walk <> nil) and Walk.MouseLook);
+
+  if CrosshairActive then
+    CrosshairCtl.Shape := csCrossRect
   else
-    CrosshairCtl.Shape := 1;
+    CrosshairCtl.Shape := csCross;
 end;
 
 procedure TMain.MenuAboutOpenGLClick(Sender: TObject);
@@ -317,8 +317,8 @@ begin
   ButtonsNavigationType[ntFly] := ButtonFly;
   ButtonsNavigationType[ntNone] := ButtonNone;
 
-  CrosshairCtl := TCastleCrosshairControl.Create(Browser);
-  CrosshairCtl.Shape := 0;  // start as invisible
+  CrosshairCtl := TCastleCrosshair.Create(Browser);
+  CrosshairCtl.Exists := false;  // start as invisible
   Browser.Controls.InsertFront(CrosshairCtl);
 
   if Parameters.High >= 1 then
