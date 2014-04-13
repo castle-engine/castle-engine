@@ -263,13 +263,35 @@ type
 { OpenGL error checking ------------------------------------------------------ }
 
 type
-  { }
+  { OpenGL error. Usually indicates a bug in your code (or shader code,
+    depending on TUniformNotFoundAction and TUniformTypeMismatchAction;
+    by default, they do not cause errors).
+
+    When programming for platforms with limited GPU memory (Android, iOS...)
+    you should prepare to handle EOpenGLOutOfMemoryError (corresponding to
+    GL_OUT_OF_MEMORY). This can always happen for large GPU data,
+    and you should be prepared to capture it (at least around TGameSceneManager.LoadLevel)
+    and display some nice information for user.
+    Alternatively, you can leave GLOutOfMemoryError = @false,
+    and then EOpenGLOutOfMemoryError will not happen, but you risk all kinds
+    of rendering artifacts. }
   EOpenGLError = class(Exception)
   public
     ErrorCode: TGLenum;
-    constructor Create(const AErrorCode: TGLenum;
-      const AdditionalComment: string = '');
+    constructor Create(const AErrorCode: TGLenum; const AdditionalComment: string = '');
   end;
+
+  EOpenGLOutOfMemoryError = class(EOpenGLError)
+  end;
+
+var
+  { When GPU runs out of memory, raise exception (EOpenGLOutOfMemoryError)
+    or merely make a warning. Merely making a warning is very risky (you risk all kinds
+    of rendering artifacts), but sometimes the rendering is actually smooth
+    even though GPU complains. }
+  GLOutOfMemoryError: boolean = false;
+
+procedure GLOutOfMemory(const AdditionalComment: string = '');
 
 function GLErrorString(const ErrorCode: TGLenum; const AdditionalComment: string = ''): string;
 
@@ -277,6 +299,11 @@ function GLErrorString(const ErrorCode: TGLenum; const AdditionalComment: string
   If there are errors, our behavior depends on whether we were compiled
   with -dRELEASE. With -dRELEASE, we make OnWarning. This way eventual
   errors in release builds don't completely abort your program.
+
+  Note that the behavior on GL_OUT_OF_MEMORY is different.
+  -dRELEASE does not matter here. Only GLOutOfMemoryError boolean dictates
+  if we should raise an exception or merely make warning, regardless of -dRELEASE
+  state.
 
   Without -dRELEASE, we raise EOpenGLError. So a developer is strongly
   suggested to fix the code to not produce OpenGL errors, never ever.
@@ -993,24 +1020,39 @@ begin
   inherited Create(GLErrorString(ErrorCode, AdditionalComment));
 end;
 
+procedure GLOutOfMemory(const AdditionalComment: string);
+const
+  ErrorCode = GL_OUT_OF_MEMORY;
+begin
+  if GLOutOfMemoryError then
+    raise EOpenGLOutOfMemoryError.Create(ErrorCode, AdditionalComment) else
+    OnWarning(wtMajor, 'OpenGL', GLErrorString(ErrorCode, AdditionalComment));
+end;
+
 procedure CheckGLErrors(const AdditionalComment: string);
 var
   ErrorCode: TGLenum;
 begin
   ErrorCode := glGetError();
   if ErrorCode <> GL_NO_ERROR then
-    {$ifdef RELEASE}
-    OnWarning(wtMajor, 'OpenGL', GLErrorString(ErrorCode, AdditionalComment));
-    {$else}
-    raise EOpenGLError.Create(ErrorCode, AdditionalComment);
-    {$endif}
+  begin
+    if ErrorCode = GL_OUT_OF_MEMORY then
+      GLOutOfMemory(AdditionalComment) else
+      {$ifdef RELEASE}
+      OnWarning(wtMajor, 'OpenGL', GLErrorString(ErrorCode, AdditionalComment));
+      {$else}
+      raise EOpenGLError.Create(ErrorCode, AdditionalComment);
+      {$endif}
+  end;
 end;
 
 procedure GLErrorRaise(ErrorCode: TGLenum);
   {$ifdef OPENGL_CALLBACK_CDECL} cdecl; {$endif}
   {$ifdef OPENGL_CALLBACK_STDCALL} stdcall; {$endif}
 begin
-  raise EOpenGLError.Create(ErrorCode);
+  if ErrorCode = GL_OUT_OF_MEMORY then
+    GLOutOfMemory else
+    raise EOpenGLError.Create(ErrorCode);
 end;
 
 { usprawnienia glGet ---------------------------------------------------------------------}

@@ -1107,6 +1107,10 @@ begin
     ErrorCode := glGetError();
     if ErrorCode <> GL_NO_ERROR then
     begin
+      { GL_OUT_OF_MEMORY has it's special treatment, to honour GLOutOfMemoryError. }
+      if ErrorCode = GL_OUT_OF_MEMORY then
+        GLOutOfMemory(Format('GPU out of memory. Detected when setting GLSL uniform variable "%s"',
+          [UniformName])) else
       if ForceException or (UniformTypeMismatchAction = utException) then
         raise EGLSLUniformNotFound.Create(ErrMessage) else
         OnWarning(wtMinor, 'GLSL', ErrMessage);
