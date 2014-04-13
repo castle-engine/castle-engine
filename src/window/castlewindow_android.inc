@@ -27,6 +27,7 @@ CastleAndroidNativeAppGlue, CastleGenericLists,
 {$ifdef read_implementation_uses}
 CastleAndroidLooper,
 CastleAndroidLog, CastleAndroidAssetStream, CastleConfig,
+CastleOpenAL, CastleVorbisFile, CastleFreeTypeH, CastleZLib,
 {$endif}
 
 {$ifdef read_window_interface}
@@ -560,6 +561,24 @@ begin
   AndroidApp^.OnAppCmd := @HandleCommand;
   AndroidApp^.OnInputEvent := @HandleInput;
   AssetManager := AndroidApp^.Activity^.AssetManager;
+
+  { We could not do dlopen on Android before AndroidMain is called.
+    Load necessary libraries now. Some of the below libraries are not really
+    available on Android anyway, but we keep the list below for completeness
+    (engine gracefully handles lack of most libraries, only OpenGLES
+    is really required). }
+  GLES20Initialization;
+  OpenALInitialization;
+  VorbisFileInitialization;
+  LoadFreeTypeLibrary;
+  {$ifndef CASTLE_PNG_USING_FCL_IMAGE}
+  {$ifndef CASTLE_PNG_STATIC}
+  PngInitialization;
+  {$endif}
+  {$endif}
+  {$ifndef CASTLE_ZLIB_USING_PASZLIB}
+  ZLibInitialization;
+  {$endif}
 
   { Note that this may be called many times, because AndroidMainImplementation
     may be called many times, because ANativeActivity_onCreate may be called

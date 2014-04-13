@@ -6,6 +6,7 @@ unit CastleVorbisFile;
 
 {$packrecords C}
 
+{$i castleconf.inc}
 {$I vorbisfile_conf.inc}
 
 interface
@@ -118,9 +119,11 @@ var
   //ov_halfrate: function (Vf: POggVorbis_File,int flag): CInt; libvorbisfile_decl;
   //ov_halfrate_p: function (Vf: POggVorbis_File): CInt; libvorbisfile_decl;
 
-  { This is set at initialization to @true if vorbisfile shared library
-    (SO or DLL) was available, and library symbols were loaded. }
-  VorbisFileInited: boolean;
+
+{ Is the vorbisfile shared library (with all necessary symbols) available. }
+function VorbisFileInited: boolean;
+
+procedure VorbisFileInitialization;
 
 implementation
 
@@ -128,7 +131,16 @@ uses SysUtils, CastleUtils, CastleDynLib, CastleFilesUtils;
 
 var
   VorbisFileLibrary: TDynLib;
-initialization
+
+function VorbisFileInited: boolean;
+begin
+  Result := VorbisFileLibrary <> nil;
+end;
+
+procedure VorbisFileInitialization;
+begin
+  FreeAndNil(VorbisFileLibrary);
+
   VorbisFileLibrary :=
 
     {$ifdef UNIX}
@@ -151,8 +163,7 @@ initialization
     TDynLib.Load('vorbisfile.dll', false);
     {$endif}
 
-  VorbisFileInited := VorbisFileLibrary <> nil;
-  if VorbisFileInited then
+  if VorbisFileLibrary <> nil then
   begin
     Pointer(ov_clear) := VorbisFileLibrary.Symbol('ov_clear');
     //Pointer(ov_open) := VorbisFileLibrary.Symbol('ov_open');
@@ -198,7 +209,12 @@ initialization
     //Pointer(ov_halfrate) := VorbisFileLibrary.Symbol('ov_halfrate');
     //Pointer(ov_halfrate_p) := VorbisFileLibrary.Symbol('ov_halfrate_p');
   end;
+end;
+
+initialization
+  {$ifdef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
+  VorbisFileInitialization;
+  {$endif}
 finalization
-  VorbisFileInited := false;
   FreeAndNil(VorbisFileLibrary);
 end.

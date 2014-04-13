@@ -51,6 +51,8 @@ unit CastleOpenAL;
   See http://opensource.creative.com/pipermail/openal-devel/2005-April/002985.html . }
 { $define OPENAL_DEPRECATED}
 
+{$i castleconf.inc}
+
 interface
 
 uses SysUtils, CastleVectors, CTypes;
@@ -93,13 +95,12 @@ type
 
 { ---------------------------------------------------------------------------- }
 
-var
-  { Is OpenAL library loaded.
-    This means that functions alXxx and alcXxx are loaded (not @nil).
-    When OpenAL is not available, alXxx and alcXxx are @nil,
-    and this variable is @false, and you can gracefully handle it in your programs
-    (for example, continue normal game, just with sound turned off). }
-  ALInited: boolean = false;
+{ Is OpenAL library loaded.
+  This means that functions alXxx and alcXxx are loaded (not @nil).
+  When OpenAL is not available, alXxx and alcXxx are @nil,
+  and this variable is @false, and you can gracefully handle it in your programs
+  (for example, continue normal game, just with sound turned off). }
+function ALInited: boolean;
 
 const
   OpenALDLL =
@@ -159,6 +160,8 @@ procedure OpenALRestart;
   Use this only when ALInited, since this is just a call to some alcGetString. }
 function OpenALSampleImplementation: boolean;
 
+procedure OpenALInitialization;
+
 implementation
 
 uses CastleUtils, CastleDynLib;
@@ -170,7 +173,6 @@ end;
 
 { unit init/fini ------------------------------------------------------------ }
 
-procedure OpenALInitialization; forward;
 procedure OpenALFinalization; forward;
 
 procedure OpenALRestart;
@@ -183,19 +185,23 @@ end;
 var
   ALLibrary: TDynLib;
 
+function ALInited: boolean;
+begin
+  Result := ALLibrary <> nil;
+end;
+
 procedure OpenALInitialization;
 begin
-  { Just to be sure to start with a "clean" state. }
+  { Be sure to start with a "clean" state. }
   OpenALFinalization;
 
   ALLibrary := TDynLib.Load(OpenALDLL, false);
   if (ALLibrary = nil) and (OpenALDLLAlt <> '') then
     ALLibrary := TDynLib.Load(OpenALDLLAlt, false);
-  ALInited := ALLibrary <> nil;
 
-  if ALInited then
+  if ALLibrary <> nil then
   begin
-    { alXxx functions ---------------------------------------- }
+    { alXxx functions -------------------------------------------------------- }
     Pointer({$ifndef FPC_OBJFPC} @ {$endif} alEnable) := ALLibrary.Symbol('alEnable');
     Pointer({$ifndef FPC_OBJFPC} @ {$endif} alDisable) := ALLibrary.Symbol('alDisable');
     Pointer({$ifndef FPC_OBJFPC} @ {$endif} alIsEnabled) := ALLibrary.Symbol('alIsEnabled');
@@ -320,12 +326,13 @@ end;
 
 procedure OpenALFinalization;
 begin
-  ALInited := false;
   FreeAndNil(ALLibrary);
 end;
 
 initialization
+  {$ifdef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
   OpenALInitialization;
+  {$endif}
 finalization
   OpenALFinalization;
 end.

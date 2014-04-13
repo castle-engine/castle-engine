@@ -85,6 +85,14 @@
   {$endif}
 {$endif}
 
+{ On some Android versions, you cannot call dlopen (load dynamic libraries)
+  from the initialization section of units. You have to wait for
+  AndroidMain to be called by NDK, otherwise we get a crash at initialization. }
+{$define ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
+{$ifdef ANDROID}
+  {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
+{$endif}
+
 { OpenGL ES ------------------------------------------------------------------ }
 
 { Whether we use OpenGL ES or normal OpenGL.

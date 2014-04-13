@@ -1372,6 +1372,8 @@ type
 
 function glGetProcAddress(ahlib:tlibhandle;ProcName:pchar):pointer;
 
+procedure GLES20Initialization;
+
 implementation
 
   function glGetProcAddress(ahlib:tlibhandle;ProcName:pchar):pointer;
@@ -1878,14 +1880,22 @@ implementation
       pointer(glGetPerfMonitorCounterDataAMD):=glGetProcAddress(GLESv2Lib,'glGetPerfMonitorCounterDataAMD');
     end;
 
+procedure GLES20Initialization;
+begin
+  {$ifdef EGL}
+  LoadEGL({$ifdef windows}'libEGL.dll'{$else}'libEGL.so'{$endif});
+  {$endif}
+  LoadGLESv2({$ifdef darwin}'/System/Library/Frameworks/OpenGLES.framework/OpenGLES'{$else}{$ifdef windows}'libGLESv2.dll'{$else}'libGLESv2.so'{$endif}{$endif});
+end;
 
 initialization
-{$ifdef EGL}
+  {$ifdef EGL}
   EGLLib:=0;
-  LoadEGL({$ifdef windows}'libEGL.dll'{$else}'libEGL.so'{$endif});
-{$endif}
+  {$endif}
   GLESv2Lib:=0;
-  LoadGLESv2({$ifdef darwin}'/System/Library/Frameworks/OpenGLES.framework/OpenGLES'{$else}{$ifdef windows}'libGLESv2.dll'{$else}'libGLESv2.so'{$endif}{$endif});
+  {$ifdef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
+  GLES20Initialization;
+  {$endif}
 finalization
   FreeGLESv2;
 {$ifdef EGL}

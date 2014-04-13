@@ -923,20 +923,24 @@ var
   and you can't use them. }
 function CastlePngInited: boolean;
 
+procedure PngInitialization;
+
 implementation
 
 uses SysUtils, CastleUtils, CastleDynLib, CastleFilesUtils;
 
 var
   PngLibrary: TDynLib;
-  FCastlePngInited: boolean;
 
 function CastlePngInited: boolean;
 begin
- Result := FCastlePngInited;
+  Result := PngLibrary <> nil;
 end;
 
-initialization
+procedure PngInitialization;
+begin
+  FreeAndNil(PngLibrary);
+
   {$ifdef MSWINDOWS}
   { libpng distributed by gnuwin32.sourceforge.net }
   PngLibrary := TDynLib.Load('libpng12.dll', false);
@@ -971,9 +975,7 @@ initialization
 
   {$endif UNIX}
 
-  FCastlePngInited := PngLibrary <> nil;
-
-  if FCastlePngInited then
+  if PngLibrary <> nil then
   begin
     Pointer(png_access_version_number) := PngLibrary.Symbol('png_access_version_number');
     Pointer(png_set_sig_bytes) := PngLibrary.Symbol('png_set_sig_bytes');
@@ -1154,7 +1156,12 @@ initialization
     Pointer(png_set_dither) := PngLibrary.Symbol('png_set_dither');
     {$endif LIBPNG_DEPRECATED}
   end;
+end;
+
+initialization
+  {$ifdef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
+  PngInitialization;
+  {$endif}
 finalization
-  FCastlePngInited := false;
   FreeAndNil(PngLibrary);
 end.

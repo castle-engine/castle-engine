@@ -1,10 +1,11 @@
 { Copied to Castle Game Engine from FPC RTL (FPC RTL uses the same license
   as Castle Game Engine, so no problem).
   Adjusted to
-  - load library using TDynLib, and merely expose 
+  - load library using TDynLib, and merely expose
     FreeTypeLibraryInitialized = false when library not found.
     TFontManager.Create will raise an exception if freetype library is not
     installed, and it can be handled gracefully.
+  - Honor ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION symbol.
 }
 {
     This file is part of the Free Pascal run time library.
@@ -26,6 +27,7 @@ unit CastleFreeTypeH;
 
 { Note that these are not all the availlable calls from the dll yet.
   This unit is used by TStringBitMaps and FTFont }
+{$i castleconf.inc}
 
 interface
 
@@ -367,6 +369,8 @@ var
   FT_Done_Glyph: procedure(glyph: PFT_Glyph); cdecl;
   FT_Glyph_Get_CBox: procedure(glyph: PFT_Glyph; bbox_mode: FT_UInt; var acbox: FT_BBox); cdecl;
 
+procedure LoadFreeTypeLibrary;
+
 { Did we found FreeType library and loaded it's symbols.
   When this is @false, do not use any functions from this unit, they are @nil. }
 function FreeTypeLibraryInitialized: boolean;
@@ -441,7 +445,9 @@ begin
 end;
 
 initialization
+  {$ifdef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
   LoadFreeTypeLibrary;
+  {$endif}
 finalization
   FreeAndNil(FreeTypeLibrary);
 end.
