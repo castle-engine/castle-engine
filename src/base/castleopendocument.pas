@@ -187,7 +187,7 @@ begin
   end;
 end;
 
-  {$if defined(darwin) and not defined(iOS)}
+  {$if defined(darwin) and not defined(iOS) and not defined(CPUX86_64)}
 
 { lcl/include/sysenvapis_mac.inc --------------------------------------------- }
 
@@ -211,6 +211,7 @@ begin
     Exit(False);
   url := CFURLCreateWithString(nil, cf, nil);
   Result := LSOpenCFURLRef(url, nil) = 0;
+
   CFRelease(url);
   CFRelease(cf);
 end;
