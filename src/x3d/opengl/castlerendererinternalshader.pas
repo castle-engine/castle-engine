@@ -384,6 +384,12 @@ type
       @raises EGLSLError In case of troubles with linking. }
     procedure LinkProgram(AProgram: TX3DShaderProgram);
 
+    { Add a fallback vertex + fragment shader code and link.
+      Use this when normal LinkProgram failed, but you want to have
+      *any* shader anyway.
+      @raises EGLSLError In case of troubles with linking. }
+    procedure LinkFallbackProgram(AProgram: TX3DShaderProgram);
+
     { Calculate the hash of all the current TShader settings,
       that is the hash of GLSL program code initialized by this shader
       LinkProgram. You should use this only when the GLSL program source
@@ -2430,6 +2436,23 @@ begin
 
   { set uniforms that will not need to be updated at each SetupUniforms call }
   SetupUniformsOnce;
+end;
+
+procedure TShader.LinkFallbackProgram(AProgram: TX3DShaderProgram);
+const
+  VS = {$I fallback.vs.inc};
+  FS = {$I fallback.fs.inc};
+begin
+  if Log and LogShaders then
+    WritelnLogMultiline('Using Fallback GLSL shaders',
+      'Fallback vertex shader:' + NL +  VS + NL +
+      'Fallback fragment shader:' + NL + FS);
+  AProgram.AttachShader(stVertex, VS);
+  AProgram.AttachShader(stFragment, FS);
+  AProgram.Link(true);
+
+  AProgram.UniformNotFoundAction := uaIgnore;
+  AProgram.UniformTypeMismatchAction := utGLError;
 end;
 
 function TShader.CodeHash: TShaderCodeHash;

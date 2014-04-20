@@ -1951,6 +1951,25 @@ begin
     end;
   end;
 
+  { We *must* have some GLSL shader on OpenGLES }
+  {$ifdef OpenGLES}
+  if Result.ShaderProgram = nil then
+  begin
+    try
+      Result.ShaderProgram := TX3DGLSLProgram.Create(ARenderer);
+      Shader.LinkFallbackProgram(Result.ShaderProgram);
+    except on E: EGLSLError do
+      begin
+        { We try to behave nicely when LinkFallbackProgram fails, although in practice
+          Android's OpenGLES implementation may just crash... }
+        FreeAndNil(Result.ShaderProgram);
+        OnWarning(wtMinor, 'VRML/X3D', Format('Cannot use even fallback GLSL shader for shape "%s": %s',
+          [ShapeNiceName, E.Message]));
+      end;
+    end;
+  end;
+  {$endif}
+
   if LogRendererCache and Log then
     WritelnLog('++', 'Shader program (hash %s): %d', [Result.Hash.ToString, Result.References]);
 end;
