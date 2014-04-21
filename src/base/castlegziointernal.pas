@@ -681,7 +681,14 @@ begin
 
     end; {WHILE}
 
-    s^.crc := crc32(s^.crc, buf, len);
+    { Kambi: The test for "buf <> nil" below is needed, as caller
+      may use buf=nil (with len=0) and it should be simply ignored
+      (it should not reset the crc).
+      Otherwise using TGZFileStream.WriteBuffer with nil data (0 length)
+      would accidentally reset the crc, since crc32() call returns always
+      0 for buf = nil. }
+    if buf <> nil then
+      s^.crc := crc32(s^.crc, buf, len);
     gzwrite := integer(len - s^.stream.avail_in);
 
 end;
