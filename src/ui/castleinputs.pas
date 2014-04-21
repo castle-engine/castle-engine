@@ -194,7 +194,7 @@ type
     { Make this input impossible to activate by the user.
       This sets both keys to K_None, Character to #0, MouseButtonUse
       to @false, and MouseWheel to mwNone. }
-    procedure MakeClear;
+    procedure MakeClear(const ClearAlsoDefaultState: boolean = false);
 
     { Given a set of currently pressed keys and mouse buttons,
       decide whether this input is currently pressed. }
@@ -408,8 +408,8 @@ begin
   FMouseButton := Source.DefaultMouseButton;
   FMouseWheel := Source.DefaultMouseWheel;
 
-  { I don't set here properties, but directly set FXxx fields,
-    so that I can call Changed only once. }
+  { we don't set here properties, but directly set FXxx fields,
+    so that we can call Changed only once. }
   Changed;
 end;
 
@@ -448,12 +448,12 @@ begin
   FMouseButton := Source.MouseButton;
   FMouseWheel := Source.MouseWheel;
 
-  { I don't set here properties, but directly set FXxx fields,
-    so that I can call Changed only once. }
+  { we don't set here properties, but directly set FXxx fields,
+    so that we can call Changed only once. }
   Changed;
 end;
 
-procedure TInputShortcut.MakeClear;
+procedure TInputShortcut.MakeClear(const ClearAlsoDefaultState: boolean);
 begin
   FKey1 := K_None;
   FKey2 := K_None;
@@ -461,8 +461,17 @@ begin
   FMouseButtonUse := false;
   FMouseWheel := mwNone;
 
-  { I don't set here properties, but directly set FXxx fields,
-    so that I can call Changed only once. }
+  if ClearAlsoDefaultState then
+  begin
+    FDefaultKey1 := K_None;
+    FDefaultKey2 := K_None;
+    FDefaultCharacter := #0;
+    FDefaultMouseButtonUse := false;
+    FDefaultMouseWheel := mwNone;
+  end;
+
+  { we don't set here properties, but directly set FXxx fields,
+    so that we can call Changed only once. }
   Changed;
 end;
 
