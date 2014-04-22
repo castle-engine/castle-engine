@@ -11,6 +11,7 @@ public:
     ~GLWidget();
 
     QString m_sSceneToOpen;
+    bool m_bLimitFPS;
     void OpenScene(QString const &sFilename);
 
     // helpers
@@ -22,6 +23,7 @@ protected:
 
 private:
     bool m_bAfterInit;
+    bool m_bNeedsDisplayAfterUpdate;
 
 public:
     virtual QSize minimumSizeHint() const;
