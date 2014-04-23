@@ -23,7 +23,7 @@ protected:
 
 private:
     bool m_bAfterInit;
-    bool m_bNeedsDisplayAfterUpdate;
+    bool m_bNeedsDisplay;
 
 public:
     virtual QSize minimumSizeHint() const;

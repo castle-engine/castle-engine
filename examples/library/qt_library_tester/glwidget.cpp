@@ -28,6 +28,7 @@ GLWidget::GLWidget(const QGLFormat &format, QWidget *parent) :
     g_pThis = this;
     m_bAfterInit = false;
     m_bLimitFPS = true;
+    m_bNeedsDisplay = false;
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);    // accept key strokes
 
@@ -69,7 +70,7 @@ int __cdecl GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2,
     switch (eCode)
     {
     case ecgelibNeedsDisplay:
-        g_pThis->m_bNeedsDisplayAfterUpdate = true;
+        g_pThis->m_bNeedsDisplay = true;
         return 1;
 
     case ecgelibSetMouseCursor:
@@ -121,11 +122,13 @@ void GLWidget::initializeGL()
 void GLWidget::OnUpdateTimer()
 {
     if (!m_bAfterInit) return;
-    m_bNeedsDisplayAfterUpdate = false;
 
     CGE_Update();
-    if (!m_bLimitFPS || m_bNeedsDisplayAfterUpdate)
+    if (!m_bLimitFPS || m_bNeedsDisplay)
+    {
+        m_bNeedsDisplay = false;
         updateGL();
+    }
 }
 
 void GLWidget::paintGL()
@@ -157,6 +160,12 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 void GLWidget::wheelEvent(QWheelEvent *event)
 {
     CGE_MouseWheel(event->delta(), event->orientation()==Qt::Vertical);
+
+    if (m_bNeedsDisplay)
+    {
+        m_bNeedsDisplay = false;
+        updateGL();
+    }
 }
 #endif
 
