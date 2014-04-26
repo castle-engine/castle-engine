@@ -103,6 +103,10 @@ end;
 function TReadAssetStream.GetSize: Int64;
 begin
   Result := AAsset_getLength(Asset);
+  { Take only the least-significant 32 bits of result, because
+    on some Androids the higher 32-bits are nonsense (Sony Ericsson,
+    Android 2.3.4, WT191l). }
+  Result := Result and Int64(High(LongWord));
 end;
 
 function TReadAssetStream.GetPosition: Int64;
