@@ -320,17 +320,19 @@ type
 
         @item(Otherwise, if Stretch = @true and Proportional = @true,
           then the image will be proportionally scaled to fit within
-          the requested Width and Height.)
+          the requested Width and Height. If the aspect ratio of image
+          will be different than aspect ratio of Width/Height, the scaled image
+          will be centered inside the Width/Height.)
 
         @item(Otherwise, if Stretch = @true but no other condition
           (so FullSize = @false and Proportional = @false)
-          then the image will be scaled to exactly fit within
+          then the image will be scaled to exactly fill
           the requested Width and Height
           (without paying attention to the aspect ratio of the image).
 
-          This is the case when you have full control over the control
-          size and position, and image size does not matter at all --- it will
-          always fill the requested area.
+          This is the case when you fully force the displayed size
+          and position, regardless of image size. Displayed image will
+          always exactly fill the requested area.
         )
       )
 
