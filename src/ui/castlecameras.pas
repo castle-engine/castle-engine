@@ -4251,6 +4251,11 @@ begin
   if (ciNormal in Input) and MouseLook and ContainerSizeKnown and
     (not Animation) then
   begin
+    { Note: setting to float position (ContainerWidth/2, ContainerHeight/2)
+      seems simpler, but is risky: if the backend doesn't support sub-pixel accuracy,
+      the check VectorsPerfectlyEqual(Middle, Container.MousePosition)
+      may never activate for odd width/height (since requested position will be n+0.5).
+      It is safer to use int positions to be sure that we hit them. }
     Middle := Vector2Single(ContainerWidth div 2, ContainerHeight div 2);
 
     { Note that setting MousePosition may (but doesn't have to)
