@@ -1274,13 +1274,17 @@ end;
 
 procedure TCastleImageControl.ImageChanged;
 begin
-  if GLInitialized and (FImage <> nil) then
+  if GLInitialized then
   begin
-    if FGLImage <> nil then
-      FGLImage.Load(FImage) else
-      FGLImage := TGLImage.Create(FImage, true);
-    if AlphaChannel <> acAuto then
-      FGLImage.Alpha := AlphaChannel;
+    if FImage <> nil then
+    begin
+      if FGLImage <> nil then
+        FGLImage.Load(FImage) else
+        FGLImage := TGLImage.Create(FImage, true);
+      if AlphaChannel <> acAuto then
+        FGLImage.Alpha := AlphaChannel;
+    end else
+      FreeAndNil(FGLImage); // make sure to free FGLImage when FImage is nil
     VisibleChange;
   end;
 end;
