@@ -998,11 +998,13 @@ begin
    MinWidth, MinHeight, Width, Height, ResizeAllowed }
  if FullScreen then
  begin
-  { Applying FullScreen changed the Width / Height.
+  { Applying FullScreen changes to the Left / Top / Width / Height.
     Call DoResize (not perfect, since it doesn't account for menu bar
     height, but better than nothing), in case GTK will not send
     us proper resize event (but it will send up proper resize event,
     tests show). }
+  FLeft := 0;
+  FTop := 0;
   DoResize(Application.ScreenWidth, Application.ScreenHeight, false);
 
   { When in FullScreen we set whole window size, not just GLArea size, to screen size.

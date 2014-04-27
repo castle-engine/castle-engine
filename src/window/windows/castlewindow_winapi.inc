@@ -822,6 +822,8 @@ begin
     (we don't care here about ResizeAllowed, DoResize will take care of averything). }
   if FullScreen then
   begin
+    FLeft := 0; // correct Left and Top are required e.g. by SetCursorPos
+    FTop := 0;
     OSCheck( GetClientRect(h_Wnd, ClientRect), 'GetClientRect');
     DoResize(ClientRect.Right - ClientRect.Left, ClientRect.Bottom - ClientRect.Top, false);
   end;

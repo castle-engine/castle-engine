@@ -2861,20 +2861,20 @@ begin
 
   try
     { Adjust Left/Top/Width/Height as needed.
+
       Note: calculations below try to correct window geometry but they
       can fail to foresee some things. In particular, they do not take
       into account a potential menu bar that may be visible when MainMenu <> nil.
       E.g., when MainMenu <> nil and implementation supports MainMenu as
       menu bar (GTK and WINAPI implementations) and FullScreen then
       the actual OpenGL window size will NOT match ScreenWidth/Height,
-      it will be slightly smaller (menu bar takes some space).
-    }
+      it will be slightly smaller (menu bar takes some space). }
     if Width  = WindowDefaultSize then FWidth  := Application.ScreenWidth  * 4 div 5;
     if Height = WindowDefaultSize then FHeight := Application.ScreenHeight * 4 div 5;
-    Clamp(fwidth, minWidth, maxWidth);
-    Clamp(fheight, minHeight, maxHeight);
-    if left = WindowPositionCenter then fleft := (Application.ScreenWidth-width) div 2;
-    if top  = WindowPositionCenter then ftop := (Application.ScreenHeight-height) div 2;
+    Clamp(FWidth , MinWidth , MaxWidth);
+    Clamp(FHeight, MinHeight, MaxHeight);
+    if Left = WindowPositionCenter then FLeft := (Application.ScreenWidth  - Width ) div 2;
+    if Top  = WindowPositionCenter then FTop  := (Application.ScreenHeight - Height) div 2;
 
     { reset some window state variables }
     Pressed.Clear;
@@ -4165,6 +4165,15 @@ begin
     Not really likely (as messages will be queued, and some
     MousePosition setting will finally just not generate event Motion),
     but I want to safeguard anyway. }
+
+{
+  WritelnLog('ml', Format('Mouse Position is %f,%f. Good for mouse look? %s. Setting pos to %f,%f if needed',
+    [MousePosition[0],
+     MousePosition[1],
+     BoolToStr[IsMousePositionForMouseLook],
+     Single(Width div 2),
+     Single(Height div 2)]));
+}
 
   if (not IsMousePositionForMouseLook) and (not Closed) then
     { Note: setting to float position (ContainerWidth/2, ContainerHeight/2)

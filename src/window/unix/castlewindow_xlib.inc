@@ -232,9 +232,13 @@ begin
 
   ContextCreateEnd(windowXID);
 
-  { applying FullScreen changed the Width / Height }
+  { applying FullScreen changes to the Left / Top / Width / Height }
   if FullScreen then
+  begin
+    FLeft := 0;
+    FTop := 0;
     DoResize(Application.ScreenWidth, Application.ScreenHeight, false);
+  end;
 
   UpdateCursor;
 

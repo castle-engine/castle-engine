@@ -86,7 +86,9 @@ begin
   AndroidLog(alInfo, 'OpenContext (size: %d %d)', [Width, Height]);
   Application.FScreenWidth := Width;
   Application.FScreenHeight := Height;
-  //Window.FullScreen := true; // TODO: setting fullscreen should work like that 2 lines below. Also, should be default?
+  //Window.FullScreen := true; // TODO: setting fullscreen should work like that 4 lines below. Also, should be default?
+  Window.Left := 0;
+  Window.Top := 0;
   Window.Width := Width;
   Window.Height := Height;
 

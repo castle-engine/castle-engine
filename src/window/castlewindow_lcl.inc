@@ -470,6 +470,12 @@ begin
 
   Form.Visible := Visible;
 
+  if FullScreen then
+  begin
+    FLeft := 0;
+    FTop := 0;
+  end;
+
   { pass the actual OpenGLControl sizes (e.g. after accounting for MainMenu size
     under GTK2 widgetset, actually under all widgetsets that do not have global
     menu (like Mac OS X), and after accounting for FullScreen).
