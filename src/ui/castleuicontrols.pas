@@ -285,9 +285,9 @@ type
     procedure UpdateFocusAndMouseCursor;
 
     { Internal for implmenting mouse look in cameras. }
-    function IsMousePositionForMouseLook: boolean; virtual; abstract;
+    function IsMousePositionForMouseLook: boolean;
     { Internal for implmenting mouse look in cameras. }
-    procedure MakeMousePositionForMouseLook; virtual; abstract;
+    procedure MakeMousePositionForMouseLook;
   published
     { How OnRender callback fits within various Render methods of our
       @link(Controls).
@@ -1560,6 +1560,43 @@ end;
 function TUIContainer.Controls: TUIControlList;
 begin
   Result := TUIControlList(FControls);
+end;
+
+function TUIContainer.IsMousePositionForMouseLook: boolean;
+var
+  P: TVector2Single;
+begin
+  P := MousePosition;
+  Result := (P[0] = Width div 2) and (P[1] = Height div 2);
+end;
+
+procedure TUIContainer.MakeMousePositionForMouseLook;
+begin
+  { Paranoidally check is position different, to avoid setting
+    MousePosition in every Update. Setting MousePosition should be optimized
+    for this case (when position is already set), but let's check anyway.
+
+    This also avoids infinite loop, when setting MousePosition,
+    getting Motion event, setting MousePosition, getting Motion event...
+    in a loop.
+    Not really likely (as messages will be queued, and some
+    MousePosition setting will finally just not generate event Motion),
+    but I want to safeguard anyway. }
+
+{
+  WritelnLog('ml', Format('Mouse Position is %f,%f. Good for mouse look? %s. Setting pos to %f,%f if needed',
+    [MousePosition[0],
+     MousePosition[1],
+     BoolToStr[IsMousePositionForMouseLook],
+     Single(Width div 2),
+     Single(Height div 2)]));
+}
+
+  if not IsMousePositionForMouseLook then
+    { Note: setting to float position (ContainerWidth/2, ContainerHeight/2)
+      seems simpler, but is risky: we if the backend doesn't support sub-pixel accuracy,
+      we will never be able to position mouse exactly at half pixel. }
+    MousePosition := Vector2Single(Width div 2, Height div 2);
 end;
 
 { TInputListener ------------------------------------------------------------- }

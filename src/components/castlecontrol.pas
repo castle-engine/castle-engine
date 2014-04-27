@@ -84,8 +84,6 @@ type
         procedure SetCursor(const Value: TMouseCursor); override;
         function GetTouches(const Index: Integer): TTouch; override;
         function TouchesCount: Integer; override;
-        function IsMousePositionForMouseLook: boolean; override;
-        procedure MakeMousePositionForMouseLook; override;
       end;
     var
     FContainer: TContainer;
@@ -128,8 +126,6 @@ type
     function GetOnMotion: TInputMotionEvent;
     procedure SetOnMotion(const Value: TInputMotionEvent);
     procedure SetMousePosition(const Value: TVector2Single);
-    function IsMousePositionForMouseLook: boolean;
-    procedure MakeMousePositionForMouseLook;
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
@@ -480,16 +476,6 @@ end;
 function TCastleControlCustom.TContainer.TouchesCount: Integer;
 begin
   Result := 1;
-end;
-
-function TCastleControlCustom.TContainer.IsMousePositionForMouseLook: boolean;
-begin
-  Result := Parent.IsMousePositionForMouseLook;
-end;
-
-procedure TCastleControlCustom.TContainer.MakeMousePositionForMouseLook;
-begin
-  Parent.MakeMousePositionForMouseLook;
 end;
 
 { TCastleControlCustom -------------------------------------------------- }
@@ -978,22 +964,6 @@ end;
 procedure TCastleControlCustom.SetOnMotion(const Value: TInputMotionEvent);
 begin
   Container.OnMotion := Value;
-end;
-
-function TCastleControlCustom.IsMousePositionForMouseLook: boolean;
-var
-  P: TVector2Single;
-begin
-  P := MousePosition;
-  Result := (P[0] = Width div 2) and (P[1] = Height div 2);
-end;
-
-procedure TCastleControlCustom.MakeMousePositionForMouseLook;
-begin
-  { See TCastleWindowCustom.MakeMousePositionForMouseLook for comments. }
-
-  if (not IsMousePositionForMouseLook) and (not Closed) then
-    MousePosition := Vector2Single(Width div 2, Height div 2);
 end;
 
 { TCastleControl ----------------------------------------------------------- }
