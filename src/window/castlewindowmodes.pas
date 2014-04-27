@@ -75,55 +75,6 @@ type
           1. expand this class with new fields
           2. expand constructor, destructor and SetStandardState } { }
 
-        { Resets all window properties (that are get / set by GetState / SetState).
-          For most properties, we simply reset them to some sensible default
-          values. For some important properties, we take their value
-          explicitly by parameter.
-
-          Window properties resetted:
-
-          @unorderedList(
-            @item(All callbacks (OnXxx) are set to @nil.
-
-              Except the open/close callbacks
-              (OnOpen and OnClose, OnOpenObject and OnCloseObject).
-              Actually, OnOpenObject and OnCloseObject are changed for internal purposes,
-              but, assuming you use SetStandardState, the orignal ones will still happen.
-              Global CastleUIControls.OnGLContextOpen, CastleUIControls.OnGLContextClose
-              are also untouched.
-
-              @unorderedList(
-                @item(On standalone, we can expect that the window
-                  (and OpenGL context) will stay open during the lifetime of a single
-                  TGLMode. So it doesn't really matter what we do with callbacks
-                  OnOpen / OnClose.)
-                @item(On mobiles (Android) this is not necessarily true.
-                  Window may get closed at any time.
-                  So be extra careful when implementing OnOpen / OnClose callbacks,
-                  remember that they may happen when we're inside a mode (for example
-                  inside a modal message in CastleMessages or a progress bar).)
-              )
-            )
-            @item(TCastleWindowCustom.Caption and TCastleWindowCustom.MainMenu are left as they were.)
-            @item(TCastleWindowCustom.Cursor is reset to mcDefault.)
-            @item(TCastleWindowCustom.UserData is reset to @nil.)
-            @item(TCastleWindowCustom.AutoRedisplay is reset to @false.)
-            @item(TCastleWindowCustom.RenderStyle is reset to rs2D.)
-            @item(TCastleWindowCustom.MainMenu.Enabled will be reset to @false (only if MainMenu <> nil).)
-
-            @item(TCastleWindowDemo.SwapFullScreen_Key will be reset to K_None.)
-            @item(TCastleWindowDemo.Close_charkey will be reset to #0.)
-            @item(TCastleWindowDemo.FpsShowOnCaption will be reset to false.)
-
-            @item(Existing TCastleWindowCustom.Controls are set to non-existing.
-              That is, their TUIControl.Exists is adjusted.)
-          )
-
-          If you're looking for a suitable callback to pass as NewCloseQuery
-          (new TCastleWindowCustom.OnCloseQuery), @@NoClose may be suitable:
-          it's an empty callback, thus using it disables the possibility
-          to close the window by window manager
-          (usually using "close" button in some window corner or Alt+F4). }
         procedure SetStandardState(
           NewRender, NewResize, NewCloseQuery: TContainerEvent);
 
@@ -216,9 +167,54 @@ type
     { Save TCastleWindowCustom state, and then change it to a standard
       state. Destructor will restore saved state.
 
-      This is a shortcut for @link(Create) followed by
-      @link(TWindowState.SetStandardState), see there for explanation
-      of parameters. }
+      For most properties, we simply reset them to some sensible default
+      values. For some important properties, we take their value
+      explicitly by parameter.
+
+      Window properties resetted:
+
+      @unorderedList(
+        @item(All callbacks (OnXxx) are set to @nil.
+
+          Except the open/close callbacks
+          (OnOpen and OnClose, OnOpenObject and OnCloseObject).
+          Actually, OnOpenObject and OnCloseObject are changed for internal purposes,
+          but, assuming you use SetStandardState, the orignal ones will still happen.
+          Global CastleUIControls.OnGLContextOpen, CastleUIControls.OnGLContextClose
+          are also untouched.
+
+          @unorderedList(
+            @item(On standalone, we can expect that the window
+              (and OpenGL context) will stay open during the lifetime of a single
+              TGLMode. So it doesn't really matter what we do with callbacks
+              OnOpen / OnClose.)
+            @item(On mobiles (Android) this is not necessarily true.
+              Window may get closed at any time.
+              So be extra careful when implementing OnOpen / OnClose callbacks,
+              remember that they may happen when we're inside a mode (for example
+              inside a modal message in CastleMessages or a progress bar).)
+          )
+        )
+        @item(TCastleWindowCustom.Caption and TCastleWindowCustom.MainMenu are left as they were.)
+        @item(TCastleWindowCustom.Cursor is reset to mcDefault.)
+        @item(TCastleWindowCustom.UserData is reset to @nil.)
+        @item(TCastleWindowCustom.AutoRedisplay is reset to @false.)
+        @item(TCastleWindowCustom.RenderStyle is reset to rs2D.)
+        @item(TCastleWindowCustom.MainMenu.Enabled will be reset to @false (only if MainMenu <> nil).)
+
+        @item(TCastleWindowDemo.SwapFullScreen_Key will be reset to K_None.)
+        @item(TCastleWindowDemo.Close_charkey will be reset to #0.)
+        @item(TCastleWindowDemo.FpsShowOnCaption will be reset to false.)
+
+        @item(Existing TCastleWindowCustom.Controls are set to non-existing.
+          That is, their TUIControl.Exists is adjusted.)
+      )
+
+      If you're looking for a suitable callback to pass as NewCloseQuery
+      (new TCastleWindowCustom.OnCloseQuery), @@NoClose may be suitable:
+      it's an empty callback, thus using it disables the possibility
+      to close the window by window manager
+      (usually using "close" button in some window corner or Alt+F4). }
     constructor CreateReset(AWindow: TCastleWindowCustom;
       NewRender, NewResize, NewCloseQuery: TContainerEvent);
 

@@ -117,19 +117,10 @@ type
       @item(Blender's source code is informative, interesting file
         is blender/source/blender/blenlib/intern/noise.c)
 
-      @item(
-        The simplest practical introduction to the idea I found is on
+      @item(The simplest practical introduction to the idea is on
         [http://freespace.virgin.net/hugo.elias/models/m_perlin.htm].
         It describes how to get nice noise very easily, and my approach follows
-        theirs.
-
-        The article isn't perfect, for starters --- it doesn't actually
-        describe Perlin noise as far as I understand :) (Perlin noise
-        is "gradient noise" with some implementation hints; article describes
-        "value noise"; the idea of cubic interpolation doesn't come from
-        Perlin, AFAIK. Things specific about Perlin noise:
-        [http://web.archive.org/web/20070706003038/http://www.cs.cmu.edu/~mzucker/code/perlin-noise-math-faq.html],
-        [http://www.noisemachine.com/talk1/index.html].)
+        theirs.)
     )
 
     This descends from TTerrainImage, so you add an image to

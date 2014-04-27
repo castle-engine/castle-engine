@@ -36,7 +36,7 @@
       @link(TCastleWindowCustom.Caption Caption).)
 
     @item(To initialize your game, you usually want to use
-      @link(Application.OnInitialize). If you only care about
+      @link(TCastleApplication.OnInitialize Application.OnInitialize). If you only care about
       standalone programs (for normal OSes like Linux,Windows,MacOSX,
       but not Android) you may also just initialize your game in the main
       program block.)
@@ -46,10 +46,8 @@
       associated OpenGL context.
 
       It also calls
-      @link(TCastleWindowCustom.EventOpen EventOpen)
-      (@link(TCastleWindowCustom.OnOpen OnOpen) callback)
-      and @link(TCastleWindowCustom.EventResize EventResize)
-      (@link(TCastleWindowCustom.OnResize OnResize) callback).)
+      @link(TCastleWindowCustom.OnOpen OnOpen) and
+      @link(TCastleWindowCustom.OnResize OnResize) callbacks.)
 
     @item(Call @link(TCastleApplication.Run Application.Run).
       This will enter message loop that will call
@@ -103,7 +101,7 @@
   For larger programs, it makes more sense to divide functionality into
   controls, which are classes descending from TUIControl.
   You can override TUIControl methods to render, capture input and so on
-  (see e.g. @link(TUIControl.Render), @link(TUIControl.Press), @link(TUIControl.Update).)
+  (see e.g. @link(TUIControl.Render), @link(TInputListener.Press), @link(TInputListener.Update).)
   You can then add your control to the TCastleWindowCustom.Controls list.
 
   Some features list:
@@ -1270,7 +1268,9 @@ type
       to work on Android or other non-standalone platforms.)
       On Android, OpenGL context may be closed and opened at any time,
       as user can switch from/to your application at any time.
-      You should use @link(Application.OnInitialize) to start your game,
+      You should use
+      @link(TCastleApplication.OnInitialize Application.OnInitialize)
+      to start your game,
       and use this callback only to create OpenGL resources
       (destroyed in OnClose). }
     property OnOpen: TContainerEvent read GetOnOpen write SetOnOpen;
