@@ -249,6 +249,7 @@ type
     FGLImage: TGLImage;
     FAlphaChannel: TAutoAlphaChannel;
     FStretch: boolean;
+    FProportional: boolean;
     FFullSize: boolean;
     FWidth: Cardinal;
     FHeight: Cardinal;
@@ -261,6 +262,7 @@ type
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
     procedure SetFullSize(const Value: boolean);
+    procedure SetProportional(const Value: boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -302,21 +304,35 @@ type
 
     { Size of the image control.
 
-      If Stretch = @false, then values you manually set for Width, Height, FullSize
-      properties do not matter (they are still remembered though,
+      If Stretch = @false, then values you set for Width, Height, FullSize,
+      Proportional properties do not matter (they are still remembered though,
       so you can set properties in any order).
       The displayed size (you can check it through @link(Rect) function)
       always corresponds to the underlying image size.
       The Left and Bottom properties work as usual, they allow you to move the control.
 
-      If Stretch = @true, then the image will be stretched
-      (without paying attention to the aspect ratio) to fill the requested area.
-      If Stretch = @true and FullSize = @true then values of Width,
-      Height, Left, Bottom do not matter:
-      image always fills the whole container
-      (@link(Rect) corresponds to the container area).
-      If Stretch = @true and FullSize = @false,
-      you have full manual control over the image size and position.
+      If Stretch = @true, then the image will be stretched to fill the requested area.
+      @unorderedList(
+        @item(If Stretch = @true and FullSize = @true then values of Width,
+          Height, Left, Bottom do not matter:
+          image always fills the whole container
+          (@link(Rect) corresponds to the container area).)
+
+        @item(Otherwise, if Stretch = @true and Proportional = @true,
+          then the image will be proportionally scaled to fit within
+          the requested Width and Height.)
+
+        @item(Otherwise, if Stretch = @true but no other condition
+          (so FullSize = @false and Proportional = @false)
+          then the image will be scaled to exactly fit within
+          the requested Width and Height
+          (without paying attention to the aspect ratio of the image).
+
+          This is the case when you have full control over the control
+          size and position, and image size does not matter at all --- it will
+          always fill the requested area.
+        )
+      )
 
       Note that you can always look at @link(Rect) value to know
       the current calculated size and position of the image control on screen.
@@ -326,6 +342,7 @@ type
     property Width: Cardinal read FWidth write SetWidth default 0;
     property Height: Cardinal read FHeight write SetHeight default 0;
     property FullSize: boolean read FFullSize write SetFullSize default false;
+    property Proportional: boolean read FProportional write SetProportional default false;
     { @groupEnd }
   end;
 
@@ -1231,6 +1248,9 @@ procedure TCastleImageControl.Render;
 begin
   if FGLImage = nil then Exit;
   FGLImage.Draw(Rect);
+  { Useful to debug that Proportional works.
+  if Stretch and not FullSize then
+    Theme.Draw(Rectangle(Left, Bottom, Width, Height), tiActiveFrame); }
 end;
 
 function TCastleImageControl.PositionInside(const Position: TVector2Single): boolean;
@@ -1247,6 +1267,8 @@ begin
 end;
 
 function TCastleImageControl.Rect: TRectangle;
+var
+  NewWidth, NewHeight, NewLeft, NewBottom: Integer;
 begin
   if not Stretch then
   begin
@@ -1254,9 +1276,25 @@ begin
       Result := Rectangle(Left, Bottom, FImage.Width, FImage.Height) else
       Result := Rectangle(Left, Bottom, 0, 0);
   end else
-  if FullSize then
-    Result := ContainerRect else
-    Result := Rectangle(Left, Bottom, Width, Height);
+  begin
+    if FullSize then
+      Result := ContainerRect else
+    if Proportional and (FImage <> nil) then
+    begin
+      if Width / Height > FImage.Width / FImage.Height then
+      begin
+        NewWidth := FImage.Width * Height div FImage.Height;
+        NewLeft := Left + (Width - NewWidth) div 2;
+        Result := Rectangle(NewLeft, Bottom, NewWidth, Height);
+      end else
+      begin
+        NewHeight := FImage.Height * Width div FImage.Width;
+        NewBottom := Bottom + (Height - NewHeight) div 2;
+        Result := Rectangle(Left, NewBottom, Width, NewHeight);
+      end;
+    end else
+      Result := Rectangle(Left, Bottom, Width, Height);
+  end;
 end;
 
 procedure TCastleImageControl.GLContextOpen;
@@ -1321,6 +1359,15 @@ begin
   if FStretch <> Value then
   begin
     FStretch := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleImageControl.SetProportional(const Value: boolean);
+begin
+  if FProportional <> Value then
+  begin
+    FProportional := Value;
     VisibleChange;
   end;
 end;
