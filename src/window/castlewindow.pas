@@ -610,6 +610,8 @@ type
         procedure SetCursor(const Value: TMouseCursor); override;
         function GetTouches(const Index: Integer): TTouch; override;
         function TouchesCount: Integer; override;
+        function IsMousePositionForMouseLook: boolean; override;
+        procedure MakeMousePositionForMouseLook; override;
       end;
     var
     FWidth, FHeight, FLeft, FTop: Integer;
@@ -700,6 +702,8 @@ type
     function GetOnMotion: TInputMotionEvent;
     procedure SetOnMotion(const Value: TInputMotionEvent);
     function GetTouches(const Index: Integer): TTouch;
+    function IsMousePositionForMouseLook: boolean;
+    procedure MakeMousePositionForMouseLook;
 
     { Set FullScreen value in a dumb (but always reliable) way:
       when it changes, just close, negate FFullScreen and reopen the window.
@@ -2788,6 +2792,16 @@ begin
   Result := Parent.TouchesCount;
 end;
 
+function TCastleWindowCustom.TContainer.IsMousePositionForMouseLook: boolean;
+begin
+  Result := Parent.IsMousePositionForMouseLook;
+end;
+
+procedure TCastleWindowCustom.TContainer.MakeMousePositionForMouseLook;
+begin
+  Parent.MakeMousePositionForMouseLook;
+end;
+
 { TCastleWindowCustom ---------------------------------------------------------- }
 
 constructor TCastleWindowCustom.Create(AOwner: TComponent);
@@ -4129,6 +4143,34 @@ end;
 function TCastleWindowCustom.TouchesCount: Integer;
 begin
   Result := FTouches.Count;
+end;
+
+function TCastleWindowCustom.IsMousePositionForMouseLook: boolean;
+var
+  P: TVector2Single;
+begin
+  P := MousePosition;
+  Result := (P[0] = Width div 2) and (P[1] = Height div 2);
+end;
+
+procedure TCastleWindowCustom.MakeMousePositionForMouseLook;
+begin
+  { Paranoidally check is position different, to avoid setting
+    MousePosition in every Update. Setting MousePosition should be optimized
+    for this case (when position is already set), but let's check anyway.
+
+    This also avoids infinite loop, when setting MousePosition,
+    getting Motion event, setting MousePosition, getting Motion event...
+    in a loop.
+    Not really likely (as messages will be queued, and some
+    MousePosition setting will finally just not generate event Motion),
+    but I want to safeguard anyway. }
+
+  if (not IsMousePositionForMouseLook) and (not Closed) then
+    { Note: setting to float position (ContainerWidth/2, ContainerHeight/2)
+      seems simpler, but is risky: we if the backend doesn't support sub-pixel accuracy,
+      we will never be able to position mouse exactly at half pixel. }
+    MousePosition := Vector2Single(Width div 2, Height div 2);
 end;
 
 { TWindowSceneManager -------------------------------------------------------- }

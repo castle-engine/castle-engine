@@ -283,6 +283,11 @@ type
       this will also be automatically called
       (since focused control or final container cursor may also change then). }
     procedure UpdateFocusAndMouseCursor;
+
+    { Internal for implmenting mouse look in cameras. }
+    function IsMousePositionForMouseLook: boolean; virtual; abstract;
+    { Internal for implmenting mouse look in cameras. }
+    procedure MakeMousePositionForMouseLook; virtual; abstract;
   published
     { How OnRender callback fits within various Render methods of our
       @link(Controls).
@@ -1487,7 +1492,7 @@ begin
   UpdateFocusAndMouseCursor;
   CaptureIndex := FCaptureInput.IndexOf(Event.FingerIndex);
 
-  if (CaptureIndex <> -1) and 
+  if (CaptureIndex <> -1) and
      not FCaptureInput.Data[CaptureIndex].GetExists then
   begin
     { No longer capturing, since the GetExists returns false now.

@@ -3789,15 +3789,8 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
 
       So we have to reposition the mouse, but not too eagerly.
       Update seems a good moment. }
-    if MouseLook and
-       ContainerSizeKnown and
-       (Container <> nil) and
-       { Paranoidally check is position different, to avoid setting
-         MousePosition in every Update. Setting MousePosition should be optimized
-         for this case (when position is already set), but let's check anyway. }
-       not VectorsPerfectlyEqual(Container.MousePosition,
-         Vector2Single(ContainerWidth / 2, ContainerHeight / 2)) then
-      Container.MousePosition := Vector2Single(ContainerWidth / 2, ContainerHeight / 2);
+    if MouseLook and (Container <> nil) then
+      Container.MakeMousePositionForMouseLook;
   end;
 
   procedure MoveViaMouseDragging(Delta: TVector2Single);
@@ -4243,7 +4236,6 @@ end;
 function TWalkCamera.Motion(const Event: TInputMotion): boolean;
 var
   MouseChange: TVector2Single;
-  Middle: TVector2Single;
 begin
   Result := inherited;
   if Result or (Event.FingerIndex <> 0) then Exit;
@@ -4251,13 +4243,6 @@ begin
   if (ciNormal in Input) and MouseLook and ContainerSizeKnown and
     (not Animation) then
   begin
-    { Note: setting to float position (ContainerWidth/2, ContainerHeight/2)
-      seems simpler, but is risky: if the backend doesn't support sub-pixel accuracy,
-      the check VectorsPerfectlyEqual(Middle, Container.MousePosition)
-      may never activate for odd width/height (since requested position will be n+0.5).
-      It is safer to use int positions to be sure that we hit them. }
-    Middle := Vector2Single(ContainerWidth div 2, ContainerHeight div 2);
-
     { Note that setting MousePosition may (but doesn't have to)
       generate another Motion in the container to destination position.
       This can cause some problems:
@@ -4294,7 +4279,7 @@ begin
       Later: see TCastleWindowCustom.UpdateMouseLook implementation notes,
       we actually depend on the fact that MouseLook checks and works
       only if mouse position is at the middle. }
-    if VectorsPerfectlyEqual(Middle, Container.MousePosition) then
+    if Container.IsMousePositionForMouseLook then
     begin
       MouseChange := Event.Position - Container.MousePosition;
 
@@ -4310,14 +4295,7 @@ begin
       Result := ExclusiveEvents;
     end;
 
-    { I check the condition below to avoid setting MousePosition,
-      getting Motion event, setting MousePosition, getting Motion event...
-      in a loop.
-      Not really likely (as messages will be queued, and some
-      MousePosition setting will finally just not generate event Motion),
-      but I want to safeguard anyway. }
-    if not VectorsPerfectlyEqual(Middle, Event.Position) then
-      Container.MousePosition := Middle;
+    Container.MakeMousePositionForMouseLook;
     Exit;
   end;
 
