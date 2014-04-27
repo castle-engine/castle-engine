@@ -782,6 +782,12 @@ begin
     nil { don't pass anything to WM_CREATE } );
   Check( h_Wnd <> 0, 'CreateWindowEx failed');
 
+  { calculate correct Left and Top, required e.g. by SetCursorPos }
+  if FullScreen then
+  begin
+    FLeft := 0;
+    FTop := 0;
+  end;
   { See WM_MOVE handling comments why this is needed to make Top correct. }
   if FullScreen and (MainMenu <> nil) and MainMenuVisible then
     FTop += GetSystemMetrics(SM_CYMENU);
@@ -822,8 +828,6 @@ begin
     (we don't care here about ResizeAllowed, DoResize will take care of averything). }
   if FullScreen then
   begin
-    FLeft := 0; // correct Left and Top are required e.g. by SetCursorPos
-    FTop := 0;
     OSCheck( GetClientRect(h_Wnd, ClientRect), 'GetClientRect');
     DoResize(ClientRect.Right - ClientRect.Left, ClientRect.Bottom - ClientRect.Top, false);
   end;
