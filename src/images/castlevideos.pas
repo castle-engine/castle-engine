@@ -172,6 +172,9 @@ type
       we need ffmpeg on $PATH to save to any single-file movie format. }
     procedure SaveToFile(const URL: string);
 
+    procedure Resize(const ResizeToX, ResizeToY: Cardinal;
+      const Interpolation: TResizeInterpolation = riNearest);
+
     { This releases all resources allocared by Load (or LoadFromFile).
       @link(Loaded) property changes to @false after calling this.
 
@@ -483,6 +486,15 @@ begin
     FreeAndNil(FItems[I]);
   SetLength(FItems, 0);
   FLoaded := false;
+end;
+
+procedure TVideo.Resize(const ResizeToX, ResizeToY: Cardinal;
+  const Interpolation: TResizeInterpolation = riNearest);
+var
+  I: Integer;
+begin
+  for I := 0 to High(FItems) do
+    FItems[I].Resize(ResizeToX, ResizeToY, Interpolation);
 end;
 
 procedure TVideo.LoadFromFile(const URL: string;
