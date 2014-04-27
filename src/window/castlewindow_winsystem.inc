@@ -122,22 +122,22 @@ function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: bool
       MappingNotify: XRefreshKeyboardMapping(@event);
       else
       begin
-        { zdarzenia ktore sa skierowane do konkretnego TCastleWindowCustom }
-        { sprawdzamy czy okienko jest na liscie Application.OpenWindows, przy okazji
-          zamieniajac windowXID na obiekt klasy TCastleWindowCustom. }
+        { Events for a particular window.
+          We check is the window present on Application.OpenWindows,
+          finding window instance based on windowXID }
         Window := Application.FindWindowXID(event.xany.window);
         if Window <> nil then
           case evtype of
             Expose: { XExposeEvent }
                if event.xexpose.count = 0 then Window.Invalidate;
-            (*MapNotify: needRedisplay := true; { XMapEvent } <- niepotrzebne *)
+            (*MapNotify: needRedisplay := true; { XMapEvent } <- unused *)
             KeyPress: Window.X_KeyPress(event.xkey);  { XKeyEvent }
             KeyRelease: Window.X_KeyRelease(event.xkey);
             ButtonPress: Window.X_ButtonPress(event.xbutton); { XButtonPressEvent }
             ButtonRelease: Window.X_ButtonRelease(event.xbutton); { XButtonReleaseEvent }
             MotionNotify: Window.X_MotionNotify(event.xmotion); { XPointerMovedEvent }
             ConfigureNotify: Window.X_ConfigureNotify(event.xconfigure); { XConfigureEvent }
-            ClientMessage : { XClientMessageEvent - nie ma na to maski }
+            ClientMessage : { XClientMessageEvent - no corresponding XXxxEvent mask }
               if (event.xclient.data.l[0] = Integer(wmDeleteWindow)) then
                Window.DoCloseQuery;
             ReparentNotify : Window.parentwinXID := event.xreparent.parent;
