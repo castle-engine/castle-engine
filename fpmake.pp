@@ -51,6 +51,7 @@ begin
     P.Dependencies.Add('fcl-image');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-process');
+    P.Dependencies.Add('hash'); { CRC unit used by CastleGzioInternal }
     {$ifdef ANDROID_POSSIBLE} if Defaults.OS <> Android then {$endif}
       P.Dependencies.Add('fcl-web');
     P.Dependencies.Add('pasjpeg');
