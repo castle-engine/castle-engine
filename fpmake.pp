@@ -79,7 +79,7 @@ begin
     P.HomepageURL
     {$endif} := 'http://castle-engine.sourceforge.net/';
     P.Email := 'michalis.kambi' + '@gmail.com'; { at least protect sources from spammers }
-    P.Version := '4.1.0';
+    P.Version := '5.0.0';
 
     P.SourcePath.Add('src' + PathDelim + '3d');
     P.Targets.AddUnit('castle3d.pas');

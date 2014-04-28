@@ -6,7 +6,7 @@
       <Version Value="11"/>
       <SearchPaths>
         <OtherUnitFiles Value="../src/base/android"/>
-        <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)/"/>
+        <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
         <SyntaxOptions>
@@ -23,6 +23,7 @@
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
+    <Version Major="5" Minor="0"/>
     <Files Count="1">
       <Item1>
         <Filename Value="../src/base/android/castleandroidlog.pas"/>
