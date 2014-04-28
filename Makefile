@@ -188,6 +188,7 @@ clean: cleanexamples
 # lazarus produces lib/ subdirectories during compilation
 	find examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
 	$(MAKE) clean -C examples/android/android_demo/android/
+	$(MAKE) clean -C examples/android/drawing_toy/android/
 
 cleanmore: clean
 	find . -type f '(' -iname '*~' -or \
