@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -95,7 +95,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="7">
+    <Exceptions Count="8">
       <Item1>
         <Name Value="ECodetoolError"/>
       </Item1>
@@ -117,6 +117,9 @@
       <Item7>
         <Name Value="BreakUsesTexture"/>
       </Item7>
+      <Item8>
+        <Name Value="EInvalidGLVersionString"/>
+      </Item8>
     </Exceptions>
   </Debugging>
 </CONFIG>
