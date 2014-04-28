@@ -65,6 +65,8 @@ begin
     end else
     if Defaults.OS in AllWindowsOSes then
     begin
+      P.Dependencies.Add('winunits-base');
+      P.Dependencies.Add('fcl-registry');
     end;
 
     { Some general variables, visible only (as far as I can see) when
