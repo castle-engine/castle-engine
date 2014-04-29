@@ -31,6 +31,18 @@ CTypes,
 {$endif read_interface_types}
 
 {$ifdef read_window_interface}
+private
+  type
+    TTouchChange = object
+      OldPosition, Position: TVector2Single;
+    end;
+
+  const
+    FingerCount = 20;
+
+  var
+    TouchChanges: array [0..FingerCount - 1] of TTouchChange;
+
 public
   LibraryCallbackProc: TLibraryCallbackProc;
 
@@ -52,6 +64,7 @@ public
 {$ifdef read_application_interface}
 private
   LastDoTimerTime: TMilisecTime;
+  
 public
   procedure LibraryUpdate;
 {$endif read_application_interface}
@@ -178,15 +191,29 @@ end;
 procedure TCastleWindowCustom.LibraryMotion(
   const Position: TVector2Single; const FingerIndex: TFingerIndex);
 begin
-  { TODO: MousePosition as OldPosition, and using MousePressed as Pressed,
-    is only OK without multi-touch. }
-  DoMotion(InputMotion(MousePosition, Position, MousePressed, FingerIndex));
+  if (FingerIndex > 0) and (FingerIndex < FingerCount) then
+  begin
+      TouchChanges[FingerIndex].OldPosition := TouchChanges[FingerIndex].Position;
+      TouchChanges[FingerIndex].Position := Position;
+      
+      DoMotion(InputMotion(TouchChanges[FingerIndex].OldPosition, Position, MousePressed, FingerIndex));
+  end
+  else
+    { TODO: MousePosition as OldPosition, and using MousePressed as Pressed,
+      is only OK without multi-touch. }
+    DoMotion(InputMotion(MousePosition, Position, MousePressed, FingerIndex));
 end;
 
 procedure TCastleWindowCustom.LibraryMouseDown(
   const Position: TVector2Single; const Button: CastleKeysMouse.TMouseButton;
   const FingerIndex: TFingerIndex);
 begin
+  if (FingerIndex > 0) and (FingerIndex < FingerCount) then
+  begin
+      TouchChanges[FingerIndex].OldPosition := Position;
+      TouchChanges[FingerIndex].Position := Position;
+  end;
+
   DoMouseDown(Position, Button, FingerIndex);
 end;
 

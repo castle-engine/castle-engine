@@ -18,11 +18,17 @@
 #import "Options.h"
 #include "castleengine.h"
 
+#define MAX_TOUCHES 12
+
+//#define USE_GESTURE_RECOGNIZERS
+
 @interface OpenGLController ()
 {
     bool m_bIsPanning;
     CGPoint m_ptPanningMousePos;
     CGFloat m_fScale;
+    
+    UITouch* m_arrTouches[MAX_TOUCHES];
     
     UISegmentedControl *m_segmNavigation;
     UIBarButtonItem *m_btnViewpointPrev;
@@ -44,6 +50,7 @@
     [super viewDidLoad];
     
     m_nViewpointCount = 0;
+    m_bIsPanning = false;
     
     self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     
@@ -55,9 +62,14 @@
     view.context = self.context;
     
     // setup recognizers
+#ifdef USE_GESTURE_RECOGNIZERS
     [self.view addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(OnTouchGesture:)]];
     [self.view addGestureRecognizer:[[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(OnPinchGesture:)]];
     [self.view addGestureRecognizer:[[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(OnPanGesture:)]];
+#else
+    self.view.multipleTouchEnabled = YES;
+    for (int i = 0; i < MAX_TOUCHES; i++) m_arrTouches[i] = nil;
+#endif
     
     // create toolbar controls
     m_segmNavigation = [[UISegmentedControl alloc] initWithItems:@[@"Walk", @"Fly", @"Examine", @"Turntable"]];
@@ -183,14 +195,21 @@
 }
 
 #pragma mark - gestures
+
+//-----------------------------------------------------------------
+- (void)RecalcTouchPosForCGE:(CGPoint *)pt
+{
+    pt->x*=m_fScale; pt->y*=m_fScale;
+    pt->y = self.view.bounds.size.height*m_fScale - 1 - pt->y;
+}
+
 //-----------------------------------------------------------------
 - (IBAction)OnPanGesture:(UIPanGestureRecognizer *)sender
 {
     // simulate sending PC mouse messages to the engine
     
     CGPoint pt = [sender locationInView:sender.view];
-    pt.x*=m_fScale; pt.y*=m_fScale;
-    pt.y = self.view.bounds.size.height*m_fScale - 1 - pt.y; 
+    [self RecalcTouchPosForCGE:&pt];
     m_ptPanningMousePos = pt;
     
     if (sender.state == UIGestureRecognizerStateBegan)
@@ -216,8 +235,7 @@
     if (sender.state != UIGestureRecognizerStateEnded)
         return;
     CGPoint pt = [sender locationInView:sender.view];
-    pt.x*=m_fScale; pt.y*=m_fScale;
-    pt.y = self.view.bounds.size.height*m_fScale - 1 - pt.y; 
+    [self RecalcTouchPosForCGE:&pt];
 
     CGE_MouseDown(pt.x, pt.y, true, 0);
     CGE_MouseUp(pt.x, pt.y, true, 0);
@@ -240,6 +258,95 @@
     
     CGE_MouseWheel(fZDelta*20, true);
 }
+
+#ifndef USE_GESTURE_RECOGNIZERS
+//-----------------------------------------------------------------
+- (NSInteger)IndexOfTouch:(UITouch*)touch
+{
+    for (NSInteger i = 0; i < MAX_TOUCHES; i++)
+        if (m_arrTouches[i] == touch) return i;
+    return -1;
+}
+
+//-----------------------------------------------------------------
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    for (UITouch *touch in touches)
+    {
+        NSInteger nFingerIdx = [self IndexOfTouch:touch];
+        if (nFingerIdx != -1) continue; // we already have it (should not happen)
+        
+        for (NSInteger i = 0; i < MAX_TOUCHES; i++)
+        {
+            if (m_arrTouches[i]==nil)    // find empty place
+            {
+                nFingerIdx = i;
+                m_arrTouches[i] = touch;
+                break;
+            }
+        }
+        if (nFingerIdx==-1) continue;   // array full, should not happen
+        
+        CGPoint pt = [touch locationInView:self.view];
+        [self RecalcTouchPosForCGE:&pt];
+        CGE_MouseDown(pt.x, pt.y, true, nFingerIdx);
+    }
+    
+    [super touchesBegan:touches withEvent:event];
+}
+
+//-----------------------------------------------------------------
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    for (UITouch *touch in touches)
+    {
+        NSInteger nFingerIdx = [self IndexOfTouch:touch];
+        if (nFingerIdx == -1) continue;
+        
+        m_arrTouches[nFingerIdx] = nil;
+        
+        CGPoint pt = [touch locationInView:self.view];
+        [self RecalcTouchPosForCGE:&pt];
+        CGE_MouseUp(pt.x, pt.y, true, nFingerIdx);
+    }
+
+    [super touchesEnded:touches withEvent:event];
+}
+
+//-----------------------------------------------------------------
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    for (UITouch *touch in touches)
+    {
+        NSInteger nFingerIdx = [self IndexOfTouch:touch];
+        if (nFingerIdx == -1) continue;
+        
+        m_arrTouches[nFingerIdx] = nil;
+        
+        CGPoint pt = [touch locationInView:self.view];
+        [self RecalcTouchPosForCGE:&pt];
+        CGE_MouseUp(pt.x, pt.y, true, nFingerIdx);
+    }
+    
+    [super touchesCancelled:touches withEvent:event];
+}
+
+//-----------------------------------------------------------------
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    for (UITouch *touch in touches)
+    {
+        NSInteger nFingerIdx = [self IndexOfTouch:touch];
+        if (nFingerIdx == -1) continue;
+        
+        CGPoint pt = [touch locationInView:self.view];
+        [self RecalcTouchPosForCGE:&pt];
+        CGE_Motion(pt.x, pt.y, nFingerIdx);
+    }
+    
+    [super touchesMoved:touches withEvent:event];
+}
+#endif  // USE_GESTURE_RECOGNIZERS
 
 #pragma mark - interface
 
@@ -265,6 +372,9 @@
         default:          nSegment = 2; break;
     }
     m_segmNavigation.selectedSegmentIndex = nSegment;
+    
+    if (eNav == ecgenavWalk)
+        CGE_SetTouchInterface(ecgetciCtlWalkCtlRotate);  // for two controls
 }
 
 //-----------------------------------------------------------------
@@ -280,6 +390,9 @@
         default: eNav = ecgenavExamine; break;
     }
     CGE_SetNavigationType(eNav);
+    
+    if (eNav == ecgenavWalk)
+        CGE_SetTouchInterface(ecgetciCtlWalkCtlRotate);
 }
 
 //-----------------------------------------------------------------
