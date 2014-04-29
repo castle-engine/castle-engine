@@ -96,12 +96,16 @@ type
   private
     { Find an item with given FingerIndex, or -1 if not found. }
     function FindFingerIndex(const FingerIndex: TFingerIndex): Integer;
+    function GetFingerIndexPosition(const FingerIndex: TFingerIndex): TVector2Single;
+    procedure SetFingerIndexPosition(const FingerIndex: TFingerIndex;
+      const Value: TVector2Single);
   public
-    { Sets a Position of given FingerIndex. If there is no information
-      for given FingerIndex on the list, it will be automatically created
-      and added. }
-    procedure SetPosition(const FingerIndex: TFingerIndex;
-      const Position: TVector2Single);
+    { Gets or sets a position corresponding to given FingerIndex.
+      If there is no information for given FingerIndex on the list,
+      the getter will return zero, and the setter will automatically create
+      and add appropriate information. }
+    property FingerIndexPosition[const FingerIndex: TFingerIndex]: TVector2Single
+      read GetFingerIndexPosition write SetFingerIndexPosition;
     { Remove a touch item for given FingerIndex. }
     procedure RemoveFingerIndex(const FingerIndex: TFingerIndex);
   end;
@@ -1002,19 +1006,29 @@ begin
   Result := -1;
 end;
 
-procedure TTouchList.SetPosition(const FingerIndex: TFingerIndex;
-  const Position: TVector2Single);
+function TTouchList.GetFingerIndexPosition(const FingerIndex: TFingerIndex): TVector2Single;
+var
+  Index: Integer;
+begin
+  Index := FindFingerIndex(FingerIndex);
+  if Index <> -1 then
+    Result := L[Index].Position else
+    Result := ZeroVector2Single;
+end;
+
+procedure TTouchList.SetFingerIndexPosition(const FingerIndex: TFingerIndex;
+  const Value: TVector2Single);
 var
   Index: Integer;
   NewTouch: PTouch;
 begin
   Index := FindFingerIndex(FingerIndex);
   if Index <> -1 then
-    L[Index].Position := Position else
+    L[Index].Position := Value else
   begin
     NewTouch := Add;
     NewTouch^.FingerIndex := FingerIndex;
-    NewTouch^.Position := Position;
+    NewTouch^.Position := Value;
   end;
 end;
 

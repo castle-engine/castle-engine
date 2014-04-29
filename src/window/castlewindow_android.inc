@@ -38,6 +38,18 @@ private
 {$ifdef read_application_interface}
 private
   type
+    { On Android, we have to track previous touch positions using our
+      own structure, instead of relying on
+      MainWindow.FTouches.FingerIndexPosition[FingerIndex].
+
+      Reason: DoMotion is not immediately called when
+      receiving AMOTION_EVENT_ACTION_MOVE. That is bacause we have to do
+      our own event loop, that is emptied after native_app_glue is emptied,
+      so we may process many AMOTION_EVENT_ACTION_MOVE before calling
+      DoMotion for them.
+      This is a consequence of native_app_glue weirdness, that forces us to process
+      AMOTION_EVENT_ACTION_MOVE immediately, while calling DoMotion may take a while
+      (esp. if it calls Application.ProcessMessage). }
     TTouchChange = object
       OldPosition, Position: TVector2Single;
     end;

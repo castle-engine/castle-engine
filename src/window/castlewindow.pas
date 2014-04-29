@@ -3275,7 +3275,7 @@ begin
   if Event.FingerIndex = 0 then
     { change FMousePosition *after* EventMotion, callbacks may depend on it }
     FMousePosition := Event.Position;
-  FTouches.SetPosition(Event.FingerIndex, Event.Position);
+  FTouches.FingerIndexPosition[Event.FingerIndex] := Event.Position;
 end;
 
 procedure TCastleWindowCustom.DoMouseDown(const Position: TVector2Single;
@@ -3291,7 +3291,7 @@ begin
   MakeCurrent;
   Event := InputMouseButton(Position, Button, FingerIndex);
   Container.EventPress(Event);
-  FTouches.SetPosition(Event.FingerIndex, Event.Position);
+  FTouches.FingerIndexPosition[Event.FingerIndex] := Event.Position;
 end;
 
 procedure TCastleWindowCustom.DoMouseUp(const Position: TVector2Single;
@@ -3309,7 +3309,7 @@ begin
   Event := InputMouseButton(Position, Button, FingerIndex);
   Container.EventRelease(Event);
   if TrackReleased then
-    FTouches.SetPosition(Event.FingerIndex, Event.Position) else
+    FTouches.FingerIndexPosition[Event.FingerIndex] := Event.Position else
     FTouches.RemoveFingerIndex(Event.FingerIndex);
 end;
 
