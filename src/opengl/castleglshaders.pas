@@ -89,8 +89,12 @@ type
   private
     FSupport: TGLSupport;
 
-    { Actually, this should be TGLhandleARB for gsExtension version.
-      But TGLhandleARB = TGLuint in practice, so this is not a problem. }
+    { Note that for GLSL using ARB extension, the right type is GLhandleARB
+      that is a Pointer (not int) *only since FPC 2.6.4 and only for Darwin*...
+      To confuse matters more, some GLExt functions do not take GLhandleARB as they should,
+      for example glGetProgramivARB (that takes GLEnum).
+      It's simplest to leave ProgramId and ShaderIds as ints, and eventually
+      typecast them where necessary. }
     ProgramId: TGLuint;
     ShaderIds: TGLuintList;
 
@@ -249,7 +253,7 @@ type
           So call @link(Enable) before doing SetUniform calls.
 
           This is required by OpenGL glUniform*
-          commands. glGetUniformLocation take ProgramId as parameter, so they
+          commands. glGetUniformLocation take program id as parameter, so they
           can operate on any program. But glUniform* operate only on
           active program.)
 
@@ -417,12 +421,12 @@ function GetInfoLogARB(ObjectId: TGLuint): String;
 var
   Len, Len2: TGLint;
 begin
-  glGetObjectParameterivARB(ObjectId, GL_OBJECT_INFO_LOG_LENGTH_ARB, @Len);
+  glGetObjectParameterivARB(GLhandleARB(ObjectId), GL_OBJECT_INFO_LOG_LENGTH_ARB, @Len);
 
   if Len <> 0 then
   begin
     SetLength(Result, Len);
-    glGetInfoLogARB(ObjectId, Len, @Len2, PChar(Result));
+    glGetInfoLogARB(GLhandleARB(ObjectId), Len, @Len2, PChar(Result));
     StringReplaceAllTo1st(Result, #0, NL);
   end else
     Result := '';
@@ -447,7 +451,7 @@ begin
     begin
       case TGLSLProgram.ClassSupport of
         {$ifndef OpenGLES}
-        gsExtension: glUseProgramObjectARB(Value.ProgramId);
+        gsExtension: glUseProgramObjectARB(GLhandleARB(Value.ProgramId));
         {$endif}
         gsStandard : glUseProgram         (Value.ProgramId);
       end;
@@ -457,7 +461,7 @@ begin
         {$ifndef OpenGLES}
         gsExtension:
           begin
-            glUseProgramObjectARB(0);
+            glUseProgramObjectARB(GLhandleARB(0));
             { Workaround for fglrx bug (Radeon X1600 (chantal)).
               Reproduce: open demo_models/x3d/anchor_test.x3dv,
               and switch in view3dscene "Shaders -> Enable For Everything".
@@ -465,7 +469,7 @@ begin
               (we cannot currently render text through shaders).
               Without the hack below, the shader from sphere would remain
               active and text would look black. }
-            if GLVersion.Fglrx then glUseProgramObjectARB(0);
+            if GLVersion.Fglrx then glUseProgramObjectARB(GLhandleARB(0));
           end;
         {$endif}
         gsStandard    : glUseProgram         (0);
@@ -484,12 +488,12 @@ begin
 
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: ProgramId := glCreateProgramObjectARB();
+    gsExtension: GLhandleARB(ProgramId) := glCreateProgramObjectARB();
     {$endif}
-    gsStandard : ProgramId := glCreateProgram         ();
+    gsStandard :             ProgramId  := glCreateProgram         ();
   end;
 
-  { ProgramId = 0 means that an error occurred. Citing GL documentation:
+  { Program id = 0 means that an error occurred. Citing GL documentation:
 
     gsExtension: ARB_shader_objects spec says about
       CreateProgramObjectARB(void): "If the program object
@@ -524,7 +528,7 @@ begin
 
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: glDeleteObjectARB(ProgramId);
+    gsExtension: glDeleteObjectARB(GLhandleARB(ProgramId));
     {$endif}
     gsStandard : glDeleteProgram  (ProgramId);
   end;
@@ -654,7 +658,7 @@ function TGLSLProgram.DebugInfo: string;
           for I := 0 to UniformsCount - 1 do
           begin
             SetLength(Name, UniformMaxLength);
-            glGetActiveUniformARB(ProgramId, I, UniformMaxLength, @ReturnedLength,
+            glGetActiveUniformARB(GLhandleARB(ProgramId), I, UniformMaxLength, @ReturnedLength,
               @Size, @AType, PCharOrNil(Name));
 
             SetLength(Name, ReturnedLength);
@@ -722,7 +726,7 @@ function TGLSLProgram.DebugInfo: string;
           for I := 0 to AttribsCount - 1 do
           begin
             SetLength(Name, AttribMaxLength);
-            glGetActiveAttribARB(ProgramId, I, AttribMaxLength, @ReturnedLength,
+            glGetActiveAttribARB(GLhandleARB(ProgramId), I, AttribMaxLength, @ReturnedLength,
               @Size, @AType, PCharOrNil(Name));
             SetLength(Name, ReturnedLength);
             AttribNames.Append(Format('  Name: %s, type: %s, size: %d',
@@ -827,16 +831,16 @@ var
     SrcLength: Cardinal;
     Compiled: TGLint;
   begin
-    Result := glCreateShaderObjectARB(AType);
+    GLhandleARB(Result) := glCreateShaderObjectARB(AType);
     SrcPtr := PChar(S);
     SrcLength := Length(S);
-    glShaderSourceARB(Result, 1, @SrcPtr, @SrcLength);
+    glShaderSourceARB(GLhandleARB(Result), 1, @SrcPtr, @SrcLength);
     try
-      glCompileShaderARB(Result);
+      glCompileShaderARB(GLhandleARB(Result));
     except
       on E: EAccessViolation do ReportBuggyCompileShader;
     end;
-    glGetObjectParameterivARB(Result, GL_OBJECT_COMPILE_STATUS_ARB, @Compiled);
+    glGetObjectParameterivARB(GLhandleARB(Result), GL_OBJECT_COMPILE_STATUS_ARB, @Compiled);
     if Compiled <> 1 then
       raise EGLSLShaderCompileError.CreateFmt('%s shader not compiled:' + NL + '%s',
         [ShaderTypeName[ShaderType], GetInfoLogARB(Result)]);
@@ -909,7 +913,7 @@ begin
     gsExtension:
       begin
         ShaderId := CreateShaderARB(S);
-        glAttachObjectARB(ProgramId, ShaderId);
+        glAttachObjectARB(GLhandleARB(ProgramId), GLhandleARB(ShaderId));
         ShaderIds.Add(ShaderId);
       end;
     {$endif}
@@ -966,8 +970,8 @@ begin
     gsExtension:
       for I := 0 to ShaderIds.Count - 1 do
       begin
-        glDetachObjectARB(ProgramId, ShaderIds[I]);
-        glDeleteObjectARB(ShaderIds[I]);
+        glDetachObjectARB(GLhandleARB(ProgramId), GLhandleARB(ShaderIds[I]));
+        glDeleteObjectARB(GLhandleARB(ShaderIds[I]));
       end;
     {$endif}
     gsStandard    :
@@ -988,8 +992,8 @@ begin
     {$ifndef OpenGLES}
     gsExtension:
       begin
-        glLinkProgramARB(ProgramId);
-        glGetObjectParameterivARB(ProgramId, GL_OBJECT_LINK_STATUS_ARB, @Linked);
+        glLinkProgramARB(GLhandleARB(ProgramId));
+        glGetObjectParameterivARB(GLhandleARB(ProgramId), GL_OBJECT_LINK_STATUS_ARB, @Linked);
         if Linked <> 1 then
           raise EGLSLProgramLinkError.Create('GLSL program not linked' + NL +
             GetInfoLogARB(ProgramId));
@@ -1058,7 +1062,7 @@ end;
 { Wrapper over glGetUniformLocationARB (use only if gsExtension) }
 {$define GetLocationCheckARB :=
 
-  Location := glGetUniformLocationARB(ProgramId, PCharOrNil(Name));
+  Location := glGetUniformLocationARB(GLhandleARB(ProgramId), PCharOrNil(Name));
   if Location = -1 then
   begin
     UniformNotFound(Name, ForceException);
@@ -1385,7 +1389,7 @@ end;
 {$ifndef OpenGLES}
 function TGLSLProgram.GetAttribLocationARB(const Name: string): TGLint;
 begin
-  Result := glGetAttribLocationARB(ProgramId, PCharOrNil(Name));
+  Result := glGetAttribLocationARB(GLhandleARB(ProgramId), PCharOrNil(Name));
   if Result = -1 then
     raise EGLSLAttributeNotFound.CreateFmt('Attribute variable "%s" not found', [Name]);
 end;
