@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -65,7 +65,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="4">
+    <Exceptions Count="5">
       <Item1>
         <Name Value="ECodetoolError"/>
       </Item1>
@@ -78,6 +78,9 @@
       <Item4>
         <Name Value="BreakIsNodePresent"/>
       </Item4>
+      <Item5>
+        <Name Value="EInvalidGLVersionString"/>
+      </Item5>
     </Exceptions>
   </Debugging>
 </CONFIG>
