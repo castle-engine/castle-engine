@@ -112,8 +112,8 @@ function ColorToVector3Byte(const Color: TColor): TVector3Byte;
 
 implementation
 
-uses SysUtils, LCLType, CastleClassUtils, CastleStringUtils, CastleURIUtils,
-  FileUtil;
+uses SysUtils, FileUtil, LCLType, LCLProc,
+  CastleClassUtils, CastleStringUtils, CastleURIUtils, CastleLog;
 
 procedure FileFiltersToDialog(const FileFilters: string;
   Dialog: TFileDialog; const AllFields: boolean);
@@ -268,7 +268,14 @@ begin
     VK_MULTIPLY:   begin MyKey := K_Numpad_Multiply; MyCharKey := '*'; end;
     VK_DIVIDE:     begin MyKey := K_Numpad_Divide;   MyCharKey := '/'; end;
     VK_OEM_MINUS:  begin MyKey := K_Minus;           MyCharKey := '-'; end;
-    VK_OEM_PLUS:   begin MyKey := K_Equal;           MyCharKey := '='; end;
+    VK_OEM_PLUS:
+      if ssShift in Shift then
+      begin
+        MyKey := K_Plus ; MyCharKey := '+';
+      end else
+      begin
+        MyKey := K_Equal; MyCharKey := '=';
+      end;
 
     Ord('0') .. Ord('9'):
       begin
@@ -290,6 +297,10 @@ begin
 
     VK_F1 .. VK_F12  : MyKey := TKey(Ord(K_F1) + Ord(Key) - VK_F1);
   end;
+
+  if (MyKey = K_None) and (MyCharKey = #0) then
+    WritelnLog('LCL', 'Cannot translate LCL VK_xxx key %s with shift %s to Castle Game Engine key',
+      [DbgsVKCode(Key), DbgS(Shift)]);
 end;
 
 procedure KeyCastleToLCL(const Key: TKey; const CharKey: char;
