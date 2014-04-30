@@ -10,4 +10,5 @@ ssh "$SF_USERNAME",castle-engine@shell.sourceforge.net <<EOF
 cd "$SF_PATH"
 rm -Rf old/ new/ html/
 tar xzvf html.tar.gz
+chmod -R a+rX html/
 EOF
