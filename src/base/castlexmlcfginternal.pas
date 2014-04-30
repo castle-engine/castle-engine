@@ -36,6 +36,7 @@
 {$ifdef fpc}{$MODE objfpc}{$endif}
 {$H+}
 
+{ @exclude Not ready for PasDoc, also internal. }
 unit CastleXMLCfgInternal;
 
 interface
