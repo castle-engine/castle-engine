@@ -47,7 +47,7 @@ const
   Gray   : TCastleColor = ( 0.5 , 0.5 , 0.5 , 1.0);
   { @groupEnd }
 
-  { Additional color constants. }
+  { Additional color constants. } { }
   LightGreen: TCastleColor = ( 0.33, 1.0 , 0.33, 1.0);
   LightBlue : TCastleColor = ( 0.33, 0.33, 1.0 , 1.0);
 
@@ -57,7 +57,7 @@ const
   Green3Single  : TVector3Single = ( 0.0 , 0.5 , 0.0);
   Blue3Single   : TVector3Single = ( 0.0 , 0.0 , 1.0);
 
-{ Calculate color intensity, as for converting color to grayscale.
+{ Calculate color intensity, for converting color to grayscale.
   @groupBegin }
 function GrayscaleValue(const v: TVector3Single): Single; overload;
 function GrayscaleValue(const v: TVector3Byte): Byte; overload;
