@@ -43,6 +43,7 @@ enum ECgeVariable   // used for quering engine parameters in CGE_Set/GetVariable
     ecgevarMouseLook       = 2,   // activate mouse look viewing mode, desktop interface only (int, 1 or 0)
     ecgevarCrossHair       = 3,   // show crosshair in the center of the screen (int, 1 or 0)
     ecgevarAnimationRunning = 4,  // (read-only) engine would like to progress with the animation (int, 1 or 0)
+    ecgevarWalkTouchCtl    = 5,   // walking touch control (int, one of ECgeTouchCtlInterface values)
 };
 
 enum ECgeNavigationType

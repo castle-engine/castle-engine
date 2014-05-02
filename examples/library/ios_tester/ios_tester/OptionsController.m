@@ -20,7 +20,7 @@
 //-----------------------------------------------------------------
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return 2;
+    return 3;
 }
 
 //-----------------------------------------------------------------
@@ -34,10 +34,13 @@
     bool bSwitchOn = false;
     switch (indexPath.row)
     {
-        case 0: sText = @"Walk Head Bobbing";
+        case 0: sText = @"Two Touch Controls";  // also called twin stick
+            bSwitchOn = opt.walkTwoControls;
+            break;
+        case 1: sText = @"Walk Head Bobbing";
             bSwitchOn = opt.walkHeadBobbing;
             break;
-        case 1: sText = @"SSAO";
+        case 2: sText = @"SSAO";
             bSwitchOn = opt.ssao;
             break;
             
@@ -63,8 +66,12 @@
     Options *opt = [Options sharedOptions];
     switch (nRow)
     {
-        case 0: opt.walkHeadBobbing = bOn; CGE_SetVariableInt(ecgevarWalkHeadBobbing, bOn ? 1 : 0); break;
-        case 1: opt.ssao = bOn; CGE_SetVariableInt(ecgevarEffectSSAO, bOn ? 1 : 0); break;
+        case 0:
+            opt.walkTwoControls = bOn;
+            CGE_SetVariableInt(ecgevarWalkTouchCtl, bOn ? ecgetciCtlWalkCtlRotate : ecgetciCtlWalkDragRotate);
+            break;
+        case 1: opt.walkHeadBobbing = bOn; CGE_SetVariableInt(ecgevarWalkHeadBobbing, bOn ? 1 : 0); break;
+        case 2: opt.ssao = bOn; CGE_SetVariableInt(ecgevarEffectSSAO, bOn ? 1 : 0); break;
             
         default:
             break;

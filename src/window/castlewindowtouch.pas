@@ -28,13 +28,17 @@ type
     FAutomaticTouchInterface: boolean;
     LeftTouchCtl, RightTouchCtl: TCastleTouchControl;
     FTouchInterface: TTouchCtlInterface;
+    FAutomaticWalkTouchCtl: TTouchCtlInterface;
     procedure UpdateTouchController(const LeftSide, CtlVisible: boolean;
       const Mode: TCastleTouchCtlMode = ctcmWalking);
     procedure SetTouchInterface(const Value: TTouchCtlInterface);
     procedure SetAutomaticTouchInterface(const Value: boolean);
+    procedure SetAutomaticWalkTouchCtl(const Value: TTouchCtlInterface);
     { Sets touch controls depending on the current navigation mode.
       Should be called each time after navigation mode changed. }
     procedure UpdateAutomaticTouchInterface;
+  public
+    constructor Create(AOwner: TComponent); override;
   protected
     procedure NavigationInfoChanged; override;
     procedure DoUpdate; override;
@@ -56,11 +60,22 @@ type
     property AutomaticTouchInterface: boolean
       read FAutomaticTouchInterface write SetAutomaticTouchInterface
       default false;
+    { Which touch interface should be used when walking. Select between
+      etciCtlWalkCtlRotate or etciCtlWalkDragRotate (default).}
+    property AutomaticWalkTouchCtl: TTouchCtlInterface
+      read FAutomaticWalkTouchCtl write SetAutomaticWalkTouchCtl
+      default etciCtlWalkDragRotate;
   end;
 
 implementation
 
 uses SysUtils, CastleUIControls, CastleUtils;
+
+constructor TCastleWindowTouch.Create(AOwner: TComponent);
+begin
+  inherited;
+  FAutomaticWalkTouchCtl := etciCtlWalkDragRotate;
+end;
 
 procedure TCastleWindowTouch.DoUpdate;
 var
@@ -196,7 +211,7 @@ begin
   begin
     case NavigationType of
       ntNone:      TouchInterface := etciNone;
-      ntWalk:      TouchInterface := etciCtlWalkDragRotate;
+      ntWalk:      TouchInterface := FAutomaticWalkTouchCtl;
       ntFly:       TouchInterface := etciCtlFlyCtlWalkDragRotate;
       ntExamine:   TouchInterface := etciCtlPanXYDragRotate;
       ntTurntable: TouchInterface := etciCtlPanXYDragRotate;
@@ -212,6 +227,15 @@ begin
     FAutomaticTouchInterface := Value;
     { change NavigationType immediately, in case we just set
       AutomaticTouchInterface := true }
+    UpdateAutomaticTouchInterface;
+  end;
+end;
+
+procedure TCastleWindowTouch.SetAutomaticWalkTouchCtl(const Value: TTouchCtlInterface);
+begin
+  if FAutomaticWalkTouchCtl <> Value then
+  begin
+    FAutomaticWalkTouchCtl := Value;
     UpdateAutomaticTouchInterface;
   end;
 end;

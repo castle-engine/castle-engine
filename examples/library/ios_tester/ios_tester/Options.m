@@ -27,6 +27,7 @@
     Options *pThis = [super init];
     if (pThis!=nil)
     {
+        pThis.walkTwoControls = YES;
         pThis.walkHeadBobbing = YES;
         pThis.ssao = NO;
     }

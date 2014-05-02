@@ -181,7 +181,7 @@
 		4DCB3962183A2A46001A708D /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0500;
+				LastUpgradeCheck = 0510;
 				ORGANIZATIONNAME = "Jan Adamec";
 			};
 			buildConfigurationList = 4DCB3965183A2A46001A708D /* Build configuration list for PBXProject "ios_tester" */;

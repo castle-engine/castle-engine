@@ -397,20 +397,33 @@ begin
   end;
 end;
 
+function cgehelper_TouchInterfaceFromConst(eMode: cInt32): TTouchCtlInterface;
+begin
+  case eMode of
+    0: Result := etciNone;
+    1: Result := etciCtlWalkCtlRotate;
+    2: Result := etciCtlWalkDragRotate;
+    3: Result := etciCtlFlyCtlWalkDragRotate;
+    4: Result := etciCtlPanXYDragRotate;
+    else raise EInternalError.CreateFmt('cgehelper_TouchInterfaceFromConst: Invalid touch interface mode %d', [eMode]);
+  end;
+end;
+
+function cgehelper_ConstFromTouchInterface(eMode: TTouchCtlInterface): cInt32;
+begin
+  Result := 0;
+  case eMode of
+    etciCtlWalkCtlRotate: Result := 1;
+    etciCtlWalkDragRotate: Result := 2;
+    etciCtlFlyCtlWalkDragRotate: Result := 3;
+    etciCtlPanXYDragRotate: Result := 4;
+  end;
+end;
+
 procedure CGE_SetTouchInterface(eMode: cInt32); cdecl;
-var
-  aNewMode: TTouchCtlInterface;
 begin
   try
-    case eMode of
-      0: aNewMode := etciNone;
-      1: aNewMode := etciCtlWalkCtlRotate;
-      2: aNewMode := etciCtlWalkDragRotate;
-      3: aNewMode := etciCtlFlyCtlWalkDragRotate;
-      4: aNewMode := etciCtlPanXYDragRotate;
-      else raise EInternalError.CreateFmt('CGE_SetTouchInterface: Invalid touch interface mode %d', [eMode]);
-    end;
-    Window.TouchInterface := aNewMode;
+    Window.TouchInterface := cgehelper_TouchInterfaceFromConst(eMode);
   except
     on E: TObject do WritelnLog('Window', ExceptMessage(E));
   end;
@@ -476,6 +489,10 @@ begin
           Crosshair.CrosshairCtl.VisibleChange;
       end;
 
+      5: begin    // ecgevarWalkTouchCtl
+        Window.AutomaticWalkTouchCtl := cgehelper_TouchInterfaceFromConst(nValue);
+      end;
+
     end;
   except
     on E: TObject do WritelnLog('Window', ExceptMessage(E));
@@ -524,6 +541,10 @@ begin
         if Window.SceneManager.Camera.Animation then
           Result := 1 else
           Result := 0;
+      end;
+      
+      5: begin    // ecgevarWalkTouchCtl
+        Result := cgehelper_ConstFromTouchInterface(Window.AutomaticWalkTouchCtl);
       end;
 
       else Result := -1; // unsupported variable

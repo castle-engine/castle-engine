@@ -147,6 +147,9 @@
     CGE_Open(ecgeofLog);
     CGE_SetUserInterface(true, 115 * m_fScale);
     
+    Options *opt = [Options sharedOptions];
+    CGE_SetVariableInt(ecgevarWalkTouchCtl, opt.walkTwoControls ? ecgetciCtlWalkCtlRotate : ecgetciCtlWalkDragRotate);
+    
     [self LoadSceneFile];
 
     [self update];
@@ -183,8 +186,23 @@
     int nViewSizeY = self.view.bounds.size.height;
     
     CGE_Resize(nViewSizeX*m_fScale, nViewSizeY*m_fScale);
+    
+    // send accumulated touch positions (sending them right away jams the engine)
+#ifdef USE_GESTURE_RECOGNIZERS
     if (m_bIsPanning)
         CGE_Motion(m_ptPanningMousePos.x, m_ptPanningMousePos.y, 0);
+#else
+    for (NSInteger i = 0; i < MAX_TOUCHES; i++)
+    {
+        if (m_arrTouches[i] == nil) continue;
+        
+        CGPoint pt = [m_arrTouches[i] locationInView:self.view];
+        [self RecalcTouchPosForCGE:&pt];
+        CGE_Motion(pt.x, pt.y, i);
+    }
+
+#endif
+    
     CGE_Update();
 }
 
@@ -334,6 +352,8 @@
 //-----------------------------------------------------------------
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    // note: motions are called in update function. Calling it too frequently jams the engine.
+    /*
     for (UITouch *touch in touches)
     {
         NSInteger nFingerIdx = [self IndexOfTouch:touch];
@@ -342,11 +362,11 @@
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
         CGE_Motion(pt.x, pt.y, nFingerIdx);
-    }
+    }*/
     
     [super touchesMoved:touches withEvent:event];
 }
-#endif  // USE_GESTURE_RECOGNIZERS
+#endif  // not USE_GESTURE_RECOGNIZERS
 
 #pragma mark - interface
 
@@ -372,9 +392,6 @@
         default:          nSegment = 2; break;
     }
     m_segmNavigation.selectedSegmentIndex = nSegment;
-    
-    if (eNav == ecgenavWalk)
-        CGE_SetTouchInterface(ecgetciCtlWalkCtlRotate);  // for two controls
 }
 
 //-----------------------------------------------------------------
@@ -390,9 +407,6 @@
         default: eNav = ecgenavExamine; break;
     }
     CGE_SetNavigationType(eNav);
-    
-    if (eNav == ecgenavWalk)
-        CGE_SetTouchInterface(ecgetciCtlWalkCtlRotate);
 }
 
 //-----------------------------------------------------------------

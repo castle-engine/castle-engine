@@ -10,6 +10,7 @@
 
 @interface Options : NSObject
 
+@property (nonatomic, assign) BOOL walkTwoControls;
 @property (nonatomic, assign) BOOL walkHeadBobbing;
 @property (nonatomic, assign) BOOL ssao;
 
