@@ -457,7 +457,11 @@ begin
     {$ifdef DARWIN}
     if BundlePath <> '' then
     begin
+      {$ifdef IOS}
+      Result := BundlePath;
+      {$else}
       Result := BundlePath + 'Contents/Resources/data/';
+      {$endif}
       if DirectoryExists(Result) then Exit;
     end;
     {$endif}
