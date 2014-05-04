@@ -1,3 +1,18 @@
+{
+  Copyright 2012-2014 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
 { Various XML and DOM utilities. }
 unit CastleXMLUtils;
 
@@ -95,7 +110,7 @@ function DOMGetChildElement(const Element: TDOMElement;
   some elements, or inserted some text nodes, then I think it's possible
   that you will have more than one text node within this element.
   So this procedure should still work OK in this case. }
-function DOMGetTextData(const Element: TDOMElement): string;
+function DOMGetTextData(const Element: TDOMElement): DOMString;
 
 { Gets a child of Element named ChildName, and gets text data within
   this child.
@@ -357,7 +372,7 @@ begin
       'Child "%s" not found', [ChildName])
 end;
 
-function DOMGetTextData(const Element: TDOMElement): string;
+function DOMGetTextData(const Element: TDOMElement): DOMString;
 var
   Children: TDOMNodeList;
   Node: TDOMNode;
