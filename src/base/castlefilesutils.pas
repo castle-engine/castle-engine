@@ -458,7 +458,7 @@ begin
     if BundlePath <> '' then
     begin
       {$ifdef IOS}
-      Result := BundlePath + 'assets/';
+      Result := BundlePath + 'data/';
       {$else}
       Result := BundlePath + 'Contents/Resources/data/';
       {$endif}
