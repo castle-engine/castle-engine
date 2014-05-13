@@ -480,7 +480,7 @@ type
     function WholeMessageRect: TRectangle;
     { If ScrollBarVisible, ScrollBarWholeWidth. Else 0. }
     function RealScrollBarWholeWidth: Integer;
-    function Font: TTextureFont;
+    function Font: TCastleFont;
   public
     { Set this to @true to signal that modal dialog window should be closed.
       This is not magically handled --- if you implement a modal dialog box,
@@ -623,8 +623,8 @@ type
     FCorners: array [TThemeImage] of TVector4Integer;
     FGLImages: array [TThemeImage] of TGLImage;
     FOwnsImages: array [TThemeImage] of boolean;
-    FMessageFont: TTextureFontData;
-    FGLMessageFont: TTextureFont;
+    FMessageFont: TCastleFont;
+    FOwnsMessageFont: boolean;
     function GetImages(const ImageType: TThemeImage): TCastleImage;
     procedure SetImages(const ImageType: TThemeImage; const Value: TCastleImage);
     function GetOwnsImages(const ImageType: TThemeImage): boolean;
@@ -639,7 +639,7 @@ type
       Changing the TCastleImage instance will automatically free (and recreate
       at next access) the corresponding TGLImage instance. }
     property GLImages[const ImageType: TThemeImage]: TGLImage read GetGLImages;
-    procedure SetMessageFont(const Value: TTextureFontData);
+    procedure SetMessageFont(const Value: TCastleFont);
   public
     TooltipTextColor: TCastleColor;
     TextColor: TCastleColor;
@@ -682,10 +682,10 @@ type
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
       const Color: TCastleColor);
 
-    { Font used by dialogs.
-      Note that it doesn't have to be mono-spaced. }
-    property MessageFont: TTextureFontData read FMessageFont write SetMessageFont;
-    function GLMessageFont: TTextureFont;
+    { Font used by dialogs. Leave @nil to use UIFont. }
+    property MessageFont: TCastleFont read FMessageFont write SetMessageFont;
+    property OwnsMessageFont: boolean
+      read FOwnsMessageFont write FOwnsMessageFont default true;
   end;
 
 { The 2D fonts used throughout UI interface.
@@ -715,8 +715,7 @@ procedure Register;
 implementation
 
 uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DejaVuSans_20,
-  CastleTextureFont_DejaVuSans_10, CastleTextureFont_DejaVuSansMono_18,
-  CastleGLUtils;
+  CastleTextureFont_DejaVuSans_10, CastleGLUtils;
 
 procedure Register;
 begin
@@ -2098,9 +2097,11 @@ begin
       ContainerHeight - WindowMargin * 2));
 end;
 
-function TCastleDialog.Font: TTextureFont;
+function TCastleDialog.Font: TCastleFont;
 begin
-  Result := Theme.GLMessageFont;
+  if Theme.MessageFont <> nil then
+    Result := Theme.MessageFont else
+    Result := UIFont;
 end;
 
 { TCastleLabel --------------------------------------------------------------- }
@@ -2330,7 +2331,7 @@ begin
   MessageInputTextColor := Vector4Single(0.33, 1, 1, 1);
   MessageTextColor      := Vector4Single(1   , 1, 1, 1);
 
-  MessageFont := TextureFont_DejaVuSansMono_18;
+  FOwnsMessageFont := true;
 
   FImages[tiPanel] := Panel;
   FCorners[tiPanel] := Vector4Integer(0, 0, 0, 0);
@@ -2384,6 +2385,9 @@ begin
     if FOwnsImages[I] then
       FreeAndNil(FImages[I]) else
       FImages[I] := nil;
+  if OwnsMessageFont then
+    FreeAndNil(FMessageFont) else
+    FMessageFont := nil;
   inherited;
 end;
 
@@ -2439,7 +2443,8 @@ var
 begin
   for ImageType in TThemeImage do
     FreeAndNil(FGLImages[ImageType]);
-  FreeAndNil(FGLMessageFont);
+  if FMessageFont <> nil then
+    FMessageFont.GLContextClose;
 end;
 
 procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage);
@@ -2454,20 +2459,14 @@ begin
   GLImages[ImageType].Draw3x3(Rect, Corners[ImageType]);
 end;
 
-procedure TCastleTheme.SetMessageFont(const Value: TTextureFontData);
+procedure TCastleTheme.SetMessageFont(const Value: TCastleFont);
 begin
   if FMessageFont <> Value then
   begin
+    if OwnsMessageFont then
+      FreeAndNil(FMessageFont);
     FMessageFont := Value;
-    FreeAndNil(FGLMessageFont);
   end;
-end;
-
-function TCastleTheme.GLMessageFont: TTextureFont;
-begin
-  if FGLMessageFont = nil then
-    FGLMessageFont := TTextureFont.Create(FMessageFont);
-  Result := FGLMessageFont;
 end;
 
 var

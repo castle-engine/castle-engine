@@ -93,7 +93,7 @@ type
       OpenGL context.
       Calling GLContextClose is also automatically taken care of if
       you use this font as CastleControls.UIFont, CastleControls.UIFontSmall
-      or @link(TUIControlFont.CustomFont).
+      or @link(TUIControlFont.CustomFont) or @link(TCastleTheme.MessageFont).
 
       @groupBegin }
     procedure GLContextOpen; virtual;
