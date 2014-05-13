@@ -20,7 +20,8 @@ unit CastleTextureFontData;
 
 interface
 
-uses CastleStringUtils, CastleImages;
+uses FGL,
+  CastleUnicode, CastleStringUtils, CastleImages;
 
 type
   { Data for a 2D font initialized from a FreeType font file, like ttf. }
@@ -43,23 +44,43 @@ type
         { Position of the glyph on the image in TTextureFontData.Image. }
         ImageX, ImageY: Cardinal;
       end;
-      TGlyphDictionary = array [char] of TGlyph;
+      { Map Unicode code to a TGlyph representation. }
+      TGlyphDictionary = class(specialize TFPGMap<TUnicodeChar, TGlyph>)
+      private
+        FOwnsGlyphs: boolean;
+      public
+        property OwnsGlyphs: boolean read FOwnsGlyphs write FOwnsGlyphs default true;
+        constructor Create;
+        destructor Destroy; override;
+      end;
   private
+    type
+      TGlyphCharDictionary = array [Byte] of TGlyph;
+    var
     FAntiAliased: boolean;
     FSize: Integer;
+    { For optimization of rendering normal 8-bit fonts (like standard ASCII
+      text), we keep glyphs with index < 256 listed in TGlyphCharDictionary.
+      Only the glyphs with index >= 256 are kept on extra TGlyphDictionary. }
     { Non-nil only for filled glyphs. }
-    FGlyphs: TGlyphDictionary;
+    FGlyphsByte: TGlyphCharDictionary;
+    FGlyphsExtra: TGlyphDictionary;
     FImage: TGrayscaleImage;
   public
     {$ifdef HAS_FREE_TYPE}
-    { Create by reading a FreeType font file, like ttf. }
+    { Create by reading a FreeType font file, like ttf.
+
+      Providing charaters list as @nil means that we only create glyphs
+      for SimpleAsciiCharacters, which includes only the basic ASCII characters.
+      The ACharacters instance @italic(does not) become owned by this object,
+      so remember to free it after calling this constructor. }
     constructor Create(const URL: string;
       const ASize: Integer; const AnAntiAliased: boolean;
-      const ACharacters: TSetOfChars = SimpleAsciiCharacters);
+      ACharacters: TUnicodeCharList = nil);
     {$endif}
     { Create from a ready data for glyphs and image.
       Useful when font data is embedded inside the Pascal source code.
-      AGlyphs contents, and AImage instance, become owned by this class. }
+      AGlyphs instance, and AImage instance, become owned by this class. }
     constructor CreateFromData(const AGlyphs: TGlyphDictionary;
       const AImage: TGrayscaleImage;
       const ASize: Integer; const AnAntiAliased: boolean);
@@ -71,8 +92,13 @@ type
     { Read-only information about a glyph for given character.
       @nil if given glyph not loaded (because was not requested at constructor,
       or because it doesn't exist in the font). }
-    function Glyph(const C: char): TGlyph;
+    function Glyph(const C: TUnicodeChar): TGlyph;
     property Image: TGrayscaleImage read FImage;
+
+    { List all characters for which glyphs are actually loaded.
+      @link(Glyph) will answer non-nil exactly for these characters.
+      The resulting list instance is owned by caller, so take care to free it. }
+    function LoadedGlyphs: TUnicodeCharList;
   end;
 
 implementation
@@ -80,24 +106,43 @@ implementation
 uses SysUtils, {$ifdef HAS_FREE_TYPE} CastleFreeType, CastleFtFont, {$endif}
   CastleLog, CastleUtils, CastleURIUtils, CastleWarnings;
 
+{ TTextureFontData.TGlyphDictionary ------------------------------------------ }
+
+constructor TTextureFontData.TGlyphDictionary.Create;
+begin
+  inherited;
+  FOwnsGlyphs := true;
+end;
+
+destructor TTextureFontData.TGlyphDictionary.Destroy;
+var
+  I: Integer;
+begin
+  if OwnsGlyphs then
+    for I := 0 to Count - 1 do
+      Data[I].Free;
+  Clear;
+  inherited;
+end;
+
 { TTextureFontData ----------------------------------------------------------------- }
 
 {$ifdef HAS_FREE_TYPE}
 
 constructor TTextureFontData.Create(const URL: string;
   const ASize: Integer; const AnAntiAliased: boolean;
-  const ACharacters: TSetOfChars = SimpleAsciiCharacters);
+  ACharacters: TUnicodeCharList);
 var
   FontId: Integer;
 
-  function GetGlyphInfo(const C: char): TGlyph;
+  function GetGlyphInfo(const C: TUnicodeChar): TGlyph;
   var
     Bitmaps: TStringBitmaps;
     Bitmap: PFontBitmap;
   begin
     if AntiAliased then
-      Bitmaps := FontMgr.GetStringGray(FontId, C, Size) else
-      Bitmaps := FontMgr.GetString(FontId, C, Size);
+      Bitmaps := FontMgr.GetStringGray(FontId, UnicodeToUTF8(C), Size) else
+      Bitmaps := FontMgr.GetString(FontId, UnicodeToUTF8(C), Size);
 
     try
       if Bitmaps.Count = 0 then
@@ -130,7 +175,7 @@ var
 
   { Copy glyph data for character C (assuming it is Ok, that is GetGlyphInfo
     returned non-nil for this) to the Image (at position ImageX, ImageY). }
-  procedure GetGlyphData(const C: char; const ImageX, ImageY: Cardinal);
+  procedure GetGlyphData(const C: TUnicodeChar; const ImageX, ImageY: Cardinal);
   var
     Bitmaps: TStringBitmaps;
     Bitmap: PFontBitmap;
@@ -175,8 +220,8 @@ var
 
   begin
     if AntiAliased then
-      Bitmaps := FontMgr.GetStringGray(FontId, C, Size) else
-      Bitmaps := FontMgr.GetString(FontId, C, Size);
+      Bitmaps := FontMgr.GetStringGray(FontId, UnicodeToUTF8(C), Size) else
+      Bitmaps := FontMgr.GetString(FontId, UnicodeToUTF8(C), Size);
     try
       Bitmap := Bitmaps.Bitmaps[0];
       if (Bitmap^.Pitch < 0) then
@@ -193,10 +238,11 @@ var
 
 var
   FileName: string;
-  C: char;
   GlyphInfo: TGlyph;
   GlyphsCount, ImageSize: Cardinal;
   MaxWidth, MaxHeight, ImageX, ImageY: Cardinal;
+  C: TUnicodeChar;
+  TemporaryCharacters: boolean;
 begin
   inherited Create;
   FSize := ASize;
@@ -214,59 +260,78 @@ begin
     raise Exception.CreateFmt('Cannot read font from URL "%s". Note that right now only local file URLs are supported', [URL]);
   FontId := FontMgr.RequestFont(FileName);
 
-  GlyphsCount := 0;
-  MaxWidth    := 0;
-  MaxHeight   := 0;
-  for C in ACharacters do
+  TemporaryCharacters := ACharacters = nil;
+  if TemporaryCharacters then
   begin
-    GlyphInfo := GetGlyphInfo(C);
-    FGlyphs[C] := GlyphInfo;
-    if GlyphInfo <> nil then
-    begin
-      Inc(GlyphsCount);
-      MaxTo1st(MaxWidth , GlyphInfo.Width);
-      MaxTo1st(MaxHeight, GlyphInfo.Height);
-    end;
+    ACharacters := TUnicodeCharList.Create;
+    ACharacters.Add(SimpleAsciiCharacters);
   end;
 
-  if GlyphsCount <> 0 then
-  begin
-    { Increase the glyph by 1 pixel for safety, to avoid pulling in colors
-      from neighboring letters when drawing (floating point errors could in theory
-      make small errors moving us outside of the desired pixel). }
-    Inc(MaxWidth);
-    Inc(MaxHeight);
+  try
+    FGlyphsExtra := TGlyphDictionary.Create;
 
-    ImageSize := 8;
-    while (ImageSize div MaxHeight) * (ImageSize div MaxWidth) < GlyphsCount do
-      ImageSize *= 2;
-
-    WritelnLog('Font', 'Creating image %dx%d to store glyphs of font "%s" (%d glyphs, max glyph size (with 1 pixel margin) %dx%d)',
-      [ImageSize, ImageSize, URL, GlyphsCount, MaxWidth, MaxHeight]);
-
-    FImage := TGrayscaleImage.Create(ImageSize, ImageSize);
-    Image.Clear(0);
-    Image.TreatAsAlpha := true;
-
-    ImageX := 0;
-    ImageY := 0;
+    GlyphsCount := 0;
+    MaxWidth    := 0;
+    MaxHeight   := 0;
     for C in ACharacters do
-      if FGlyphs[C] <> nil then
+    begin
+      GlyphInfo := GetGlyphInfo(C);
+      if C <= High(FGlyphsByte) then
+        FGlyphsByte[C] := GlyphInfo else
+        FGlyphsExtra.KeyData[C] := GlyphInfo;
+      if GlyphInfo <> nil then
       begin
-        FGlyphs[C].ImageX := ImageX;
-        FGlyphs[C].ImageY := ImageY;
+        Inc(GlyphsCount);
+        MaxTo1st(MaxWidth , GlyphInfo.Width);
+        MaxTo1st(MaxHeight, GlyphInfo.Height);
+      end;
+    end;
 
-        GetGlyphData(C, ImageX, ImageY);
+    if GlyphsCount <> 0 then
+    begin
+      { Increase the glyph by 1 pixel for safety, to avoid pulling in colors
+        from neighboring letters when drawing (floating point errors could in theory
+        make small errors moving us outside of the desired pixel). }
+      Inc(MaxWidth);
+      Inc(MaxHeight);
 
-        ImageX += MaxWidth;
-        if ImageX + MaxWidth >= ImageSize then
+      ImageSize := 8;
+      while (ImageSize div MaxHeight) * (ImageSize div MaxWidth) < GlyphsCount do
+        ImageSize *= 2;
+
+      WritelnLog('Font', 'Creating image %dx%d to store glyphs of font "%s" (%d glyphs, max glyph size (with 1 pixel margin) %dx%d)',
+        [ImageSize, ImageSize, URL, GlyphsCount, MaxWidth, MaxHeight]);
+
+      FImage := TGrayscaleImage.Create(ImageSize, ImageSize);
+      Image.Clear(0);
+      Image.TreatAsAlpha := true;
+
+      ImageX := 0;
+      ImageY := 0;
+      for C in ACharacters do
+      begin
+        GlyphInfo := Glyph(C);
+        if GlyphInfo <> nil then
         begin
-          ImageX := 0;
-          ImageY += MaxHeight;
+          GlyphInfo.ImageX := ImageX;
+          GlyphInfo.ImageY := ImageY;
+
+          GetGlyphData(C, ImageX, ImageY);
+
+          ImageX += MaxWidth;
+          if ImageX + MaxWidth >= ImageSize then
+          begin
+            ImageX := 0;
+            ImageY += MaxHeight;
+          end;
         end;
       end;
 
-    // Debug: SaveImage(Image, '/tmp/a.png');
+      // Debug: SaveImage(Image, '/tmp/a.png');
+    end;
+  finally
+    if TemporaryCharacters then
+      FreeAndNil(ACharacters);
   end;
 end;
 
@@ -275,27 +340,65 @@ end;
 constructor TTextureFontData.CreateFromData(const AGlyphs: TGlyphDictionary;
   const AImage: TGrayscaleImage;
   const ASize: Integer; const AnAntiAliased: boolean);
+var
+  I: Integer;
+  C: TUnicodeChar;
 begin
   inherited Create;
   FSize := ASize;
   FAntiAliased := AnAntiAliased;
-  FGlyphs := AGlyphs;
+
+  { split AGlyphs into FGlyphsByte and FGlyphsExtra }
+  FGlyphsExtra := TGlyphDictionary.Create;
+  for I := 0 to AGlyphs.Count - 1 do
+  begin
+    C := AGlyphs.Keys[I];
+    if C <= High(FGlyphsByte) then
+      FGlyphsByte[C] := AGlyphs.Data[I] else
+      FGlyphsExtra.KeyData[C] := AGlyphs.Data[I];
+  end;
+  AGlyphs.OwnsGlyphs := false;
+  AGlyphs.Free; // we own AGlyphs, for now we just free them
+
   FImage := AImage;
 end;
 
 destructor TTextureFontData.Destroy;
 var
-  C: char;
+  C: Byte;
 begin
-  for C in char do
-    FreeAndNil(FGlyphs[C]);
+  FreeAndNil(FGlyphsExtra);
+  for C in Byte do
+    FreeAndNil(FGlyphsByte[C]);
   FreeAndNil(FImage);
   inherited;
 end;
 
-function TTextureFontData.Glyph(const C: char): TGlyph;
+function TTextureFontData.Glyph(const C: TUnicodeChar): TGlyph;
+var
+  I: Integer;
 begin
-  Result := FGlyphs[C];
+  if C <= High(FGlyphsByte) then
+    Result := FGlyphsByte[C] else
+  begin
+    I := FGlyphsExtra.IndexOf(C);
+    if I <> -1 then
+      Result := FGlyphsExtra.Data[I] else
+      Result := nil;
+  end;
+end;
+
+function TTextureFontData.LoadedGlyphs: TUnicodeCharList;
+var
+  I: Integer;
+  C: TUnicodeChar;
+begin
+  Result := TUnicodeCharList.Create;
+  for C := 0 to High(FGlyphsByte) do
+    if FGlyphsByte[C] <> nil then
+      Result.Add(C);
+  for I := 0 to FGlyphsExtra.Count - 1 do
+    Result.Add(FGlyphsExtra.Keys[I]);
 end;
 
 end.

@@ -21,7 +21,7 @@ unit CastleFonts;
 interface
 
 uses Classes, CastleGLImages, CastleStringUtils, CastleColors,
-  CastleVectors, CastleTextureFontData, CastleImages;
+  CastleVectors, CastleTextureFontData, CastleImages, CastleUnicode;
 
 type
   { Abstract class for 2D font. }
@@ -155,9 +155,9 @@ type
       (from the line FirstToBreak).
 
       @groupBegin }
-    procedure BreakLines(const unbroken: string; broken: TStrings; maxLineWidth: integer); overload;
-    procedure BreakLines(unbroken, broken: TStrings; maxLineWidth: integer); overload;
-    procedure BreakLines(broken: TStrings; maxLineWidth: Integer; FirstToBreak: integer); overload;
+    procedure BreakLines(const unbroken: string; broken: TStrings; MaxLineWidth: integer); overload;
+    procedure BreakLines(unbroken, broken: TStrings; MaxLineWidth: integer); overload;
+    procedure BreakLines(broken: TStrings; MaxLineWidth: Integer; FirstToBreak: integer); overload;
     { @groupEnd }
 
     { Largest width of the line of text in given list.
@@ -274,11 +274,21 @@ type
     GLImage: TGLImage;
   public
     {$ifdef HAS_FREE_TYPE}
-    { Create by reading a FreeType font file, like ttf. }
+    { Create by reading a FreeType font file, like ttf.
+
+      Providing charaters list as @nil means that we only create glyphs
+      for SimpleAsciiCharacters, which includes only the basic ASCII characters.
+      The ACharacters instance @italic(does not) become owned by this object,
+      so remember to free it after calling this constructor. }
     constructor Create(const URL: string;
       const ASize: Integer; const AnAntiAliased: boolean;
-      const ACharacters: TSetOfChars = SimpleAsciiCharacters);
+      const ACharacters: TUnicodeCharList = nil);
     {$endif}
+
+    constructor Create(const URL: string;
+      const ASize: Integer; const AnAntiAliased: boolean;
+      const ACharacters: TSetOfChars); deprecated;
+
     { Create from a ready TTextureFontData instance.
       @param(Data TTextureFontData instance containing loaded image
         and glyphs parameters.)
@@ -467,95 +477,99 @@ begin
 end;
 
 procedure TCastleFont.BreakLines(const unbroken: string;
-  broken: TStrings; maxLineWidth: integer);
+  broken: TStrings; MaxLineWidth: integer);
 var
   unbrokenlist: TStringList;
 begin
   unbrokenlist := TStringList.Create;
   try
     Strings_SetText(unbrokenlist, unbroken);
-    BreakLines(unbrokenlist, broken, maxLineWidth);
+    BreakLines(unbrokenlist, broken, MaxLineWidth);
   finally unbrokenlist.Free end;
 end;
 
 procedure TCastleFont.BreakLines(unbroken, broken: TStrings;
-  maxLineWidth: integer);
+  MaxLineWidth: integer);
 var
   i, FirstToBreak: Integer;
 begin
   FirstToBreak := broken.count;
   for I := 0 to unbroken.count-1 do broken.Append(unbroken[i]);
-  BreakLines(broken, maxLineWidth, FirstToBreak);
+  BreakLines(broken, MaxLineWidth, FirstToBreak);
 end;
 
 procedure TCastleFont.BreakLines(broken: TStrings;
-  maxLineWidth: Integer; FirstToBreak: integer);
+  MaxLineWidth: Integer; FirstToBreak: integer);
 var
-  i, j: Integer;
-  linew: Integer;
-  p: Integer;
-  break1, break2: string;
+  I: Integer;
+  LineWidth, LineWidthBytes: Integer;
+  P: Integer;
+  BreakInput, BreakOutput1, BreakOutput2, HardBreakOutput: string;
+  C: TUnicodeChar;
+  BreakInputPtr: PChar;
+  CharLen: Integer;
 begin
-  { ponizej lamiemy stringi unbroken.
-    Lamanie to nie jest takie proste bo my nie mamy czegos takiego jak
-    MaxCol - ilosc znakow w linii, bo kazdy znak moze miec inna szerokosc -
-    font nie musi byc monospaced ! Gdyby byl - no coz, to robota bylaby prosta :
-     broken.text := WrapText(broken.text, maxLineWidth div font.TextWidth('w'));
-     (no, zakladajac ze FirstToBreak = 0)
-    i juz. A tak - musimy po kolei badac kazdy string szukajac w nim literki
-    ktora sprawia ze nie miesci sie w maxLineWidth i wtedy obcinac.
-  }
+  { break the strings on Broken list.
+    We look at MaxLineWidth in pixels, taking into account that font
+    does not have to be mono-spaced.  }
 
-  i := FirstToBreak;
-  { instead of "for" use "while" because broken.count will be changing }
-  while i < broken.count do
+  I := FirstToBreak;
+  { instead of "for" use "while" because Broken.Count will be changing }
+  while I < Broken.Count do
   begin
-    { zobacz czy nie trzeba zlamac linii nr i.
-      Linii '' z pewnoscia nie trzeba lamac. }
-    if broken[i] <> '' then
+    BreakInput := Broken[I];
+
+    { Try breaking line number I. If it's empty, there's no need to break it. }
+    BreakInputPtr := PChar(BreakInput);
+
+    C := UTF8CharacterToUnicode(BreakInputPtr, CharLen);
+    if (C > 0) and (CharLen > 0) then
     begin
-      { ponizsze dwie linijki implikuja ze do zlamanej linii ZAWSZE trafia
-        pierwszy znak z linii niezlamanej, NAWET jesli ten pierwszy znak
-        jest szerszy niz maxLineWidth. No bo jezeli ten znak jest szerszy
-        od maxLineWidth to przeciez nie moglby trafic do ZADNEJ linii,
-        prawda ? Jedyna alternatywa byloby rzucenie w takim wypadku
-        wyjatku z komunikatem ze "maxLineWidth" jest za male zeby w pelni
-        poprawnie polamac string. }
-      linew := TextWidth(broken[i][1]);
-      j := 2;
-      while (j <= Length(broken[i])) and
-            (linew + TextWidth(broken[i][j]) <= maxLineWidth) do
+      { the first character C is always considered to fit into BreakOutput1,
+        regardless of MaxLineWidth --- after all, we have to place this character
+        somewhere (otherwise we would have to reject this character
+        or raise an error). }
+      Inc(BreakInputPtr, CharLen);
+      LineWidthBytes := CharLen;
+      LineWidth := TextWidth(UnicodeToUTF8(C));
+
+      C := UTF8CharacterToUnicode(BreakInputPtr, CharLen);
+      while (C > 0) and (CharLen > 0) and
+            (LineWidth + TextWidth(UnicodeToUTF8(C)) <= MaxLineWidth) do
       begin
-        linew := linew + TextWidth(broken[i][j]);
-        Inc(j);
+        Inc(BreakInputPtr, CharLen);
+        LineWidthBytes += CharLen;
+        LineWidth += TextWidth(UnicodeToUTF8(C));
+
+        C := UTF8CharacterToUnicode(BreakInputPtr, CharLen);
       end;
-      if j <= Length(broken[i]) then
+
+      if (C > 0) and (CharLen > 0) then // then above loop stopped because we have to break
       begin
-        { oho ! ta linie trzeba zlamac przed znakiem j, bo linia jest za dluga kiedy
-          ma j znakow. Efekt breaka bedzie tez taki ze broken.count sie zwiekszy wiec
-          w nastepnym obrocie petli bedziemy lamali dalsza czesc tej linii - i o to
-          chodzi. }
-        p := BackCharsPos(WhiteSpaces, Copy(broken[i], 1,j));
-        if p > 0 then
+        { HardBreakOutput is BreakOutput1 in case we don't find a whitespace
+          on which to break }
+        HardBreakOutput := Copy(BreakInput, 1, LineWidthBytes);
+        { We have to break this line now. }
+        P := BackCharsPos(WhiteSpaces, HardBreakOutput);
+        if P > 0 then
         begin
-          break1 := Copy(broken[i], 1,p-1);
-          break2 := SEnding(broken[i], p+1) { break at pos p, delete p-th char }
+          BreakOutput1 := Copy(BreakInput, 1, P - 1);
+          BreakOutput2 := SEnding(BreakInput, P + 1) { break at pos p, delete p-th char }
         end else
         begin
-          break1 := Copy(broken[i], 1,j-1);
-          break2 := SEnding(broken[i], j);  { break at pos j-1 }
+          BreakOutput1 := HardBreakOutput;
+          BreakOutput2 := SEnding(BreakInput, Length(HardBreakOutput) + 1);
         end;
-        broken[i] := break1;
-        broken.Insert(i+1, break2);
+        Broken[I] := BreakOutput1;
+        Broken.Insert(I + 1, BreakOutput2); // next iteration will break BreakOutput2
       end;
     end;
 
-    Inc(i);
+    Inc(I);
   end;
 end;
 
-function TCastleFont.MaxTextWidth(SList: TStrings;
-  const Tags: boolean): Integer;
+function TCastleFont.MaxTextWidth(SList: TStrings; const Tags: boolean): Integer;
 var
   I, LineW: Integer;
   DummyColorChange: boolean;
@@ -646,7 +660,7 @@ function TCastleFont.PrintBrokenString(const S: string;
   const PositionsFirst: boolean;
   const BonusVerticalSpace: Integer): Integer; deprecated;
 begin
-  Result := PrintBrokenString(X0, Y0, CurrentColor, S, maxLineWidth,
+  Result := PrintBrokenString(X0, Y0, CurrentColor, S, MaxLineWidth,
     PositionsFirst, BonusVerticalSpace);
 end;
 
@@ -684,9 +698,24 @@ end;
 {$ifdef HAS_FREE_TYPE}
 constructor TTextureFont.Create(const URL: string;
   const ASize: Integer; const AnAntiAliased: boolean;
-  const ACharacters: TSetOfChars);
+  const ACharacters: TUnicodeCharList);
 begin
   Create(TTextureFontData.Create(URL, ASize, AnAntiAliased, ACharacters), true);
+end;
+
+constructor TTextureFont.Create(const URL: string;
+  const ASize: Integer; const AnAntiAliased: boolean;
+  const ACharacters: TSetOfChars);
+var
+  Chars: TUnicodeCharList;
+  C: char;
+begin
+  Chars := TUnicodeCharList.Create;
+  try
+    for C in ACharacters do
+      Chars.Add(Ord(C));
+    Create(URL, ASize, AnAntiAliased, Chars);
+  finally FreeAndNil(Chars) end;
 end;
 {$endif}
 
@@ -721,7 +750,9 @@ end;
 procedure TTextureFont.Print(const X, Y: Integer; const Color: TCastleColor;
   const S: string);
 var
-  C: char;
+  C: TUnicodeChar;
+  TextPtr: PChar;
+  CharLen: Integer;
   ScreenX, ScreenY: Integer;
   G: TTextureFontData.TGlyph;
 begin
@@ -730,8 +761,13 @@ begin
   GLImage.Color := Color;
   ScreenX := X;
   ScreenY := Y;
-  for C in S do
+
+  TextPtr := PChar(S);
+  C := UTF8CharacterToUnicode(TextPtr, CharLen);
+  while (C > 0) and (CharLen > 0) do
   begin
+    Inc(TextPtr, CharLen);
+
     G := FFont.Glyph(C);
     if G <> nil then
     begin
@@ -741,33 +777,51 @@ begin
       ScreenX += G.AdvanceX;
       ScreenY += G.AdvanceY;
     end;
+
+    C := UTF8CharacterToUnicode(TextPtr, CharLen);
   end;
 end;
 
 function TTextureFont.TextWidth(const S: string): Integer;
 var
-  C: char;
+  C: TUnicodeChar;
+  TextPtr: PChar;
+  CharLen: Integer;
   G: TTextureFontData.TGlyph;
 begin
   Result := 0;
-  for C in S do
+
+  TextPtr := PChar(S);
+  C := UTF8CharacterToUnicode(TextPtr, CharLen);
+  while (C > 0) and (CharLen > 0) do
   begin
+    Inc(TextPtr, CharLen);
+
     G := FFont.Glyph(C);
     if G <> nil then
       Result += G.AdvanceX;
+
+    C := UTF8CharacterToUnicode(TextPtr, CharLen);
   end;
 end;
 
 function TTextureFont.TextHeight(const S: string): Integer;
 var
-  C: char;
+  C: TUnicodeChar;
+  TextPtr: PChar;
+  CharLen: Integer;
   MinY, MaxY, YOrigin: Integer;
   G: TTextureFontData.TGlyph;
 begin
   MinY := 0;
   MaxY := 0;
-  for C in S do
+
+  TextPtr := PChar(S);
+  C := UTF8CharacterToUnicode(TextPtr, CharLen);
+  while (C > 0) and (CharLen > 0) do
   begin
+    Inc(TextPtr, CharLen);
+
     G := FFont.Glyph(C);
     if G <> nil then
     begin
@@ -775,40 +829,60 @@ begin
       MinTo1st(MinY, -YOrigin);
       MaxTo1st(MaxY, G.Height - YOrigin);
     end;
+
+    C := UTF8CharacterToUnicode(TextPtr, CharLen);
   end;
   Result := MaxY - MinY;
 end;
 
 function TTextureFont.TextHeightBase(const S: string): Integer;
 var
-  C: char;
+  C: TUnicodeChar;
+  TextPtr: PChar;
+  CharLen: Integer;
   G: TTextureFontData.TGlyph;
 begin
   Result := 0;
   { This is just like TextHeight implementation, except we only
     calculate (as Result) the MaxY value (assuming that MinY is zero). }
-  for C in S do
+
+  TextPtr := PChar(S);
+  C := UTF8CharacterToUnicode(TextPtr, CharLen);
+  while (C > 0) and (CharLen > 0) do
   begin
+    Inc(TextPtr, CharLen);
+
     G := FFont.Glyph(C);
     if G <> nil then
       MaxTo1st(Result, G.Height - G.Y);
+
+    C := UTF8CharacterToUnicode(TextPtr, CharLen);
   end;
 end;
 
 function TTextureFont.TextMove(const S: string): TVector2Integer;
 var
-  C: char;
+  C: TUnicodeChar;
+  TextPtr: PChar;
+  CharLen: Integer;
   G: TTextureFontData.TGlyph;
 begin
   Result := ZeroVector2Integer;
-  for C in S do
+
+  TextPtr := PChar(S);
+  C := UTF8CharacterToUnicode(TextPtr, CharLen);
+  while (C > 0) and (CharLen > 0) do
   begin
+    Inc(TextPtr, CharLen);
+
     G := FFont.Glyph(C);
     if G <> nil then
     begin
       Result[0] += G.AdvanceX;
       Result[1] += G.AdvanceY;
     end;
+
+    C := UTF8CharacterToUnicode(TextPtr, CharLen);
   end;
 end;
 
@@ -892,7 +966,5 @@ function TSimpleTextureFont.TextMove(const S: string): TVector2Integer;
 begin
   Result := Vector2Integer(TextWidth(S), TextHeight(S));
 end;
-
-end.
 
 end.

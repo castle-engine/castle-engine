@@ -3,6 +3,10 @@
   Adjusted to
   - use CastleFreeTypeH
   - raise exception from TFontManager.Create when FreeType library not found
+  - Use UTF-8 encoding for string and Cardinal for character type,
+    following David Emerson patch from
+    http://free-pascal-general.1045716.n5.nabble.com/freetype-unit-unicode-td4866273.html
+    adjusted to use our CastleUnicode unit.
 }
 {
     This file is part of the Free Pascal run time library.
@@ -24,7 +28,7 @@ unit CastleFreeType;
 
 interface
 
-uses sysutils, classes, CastleFreeTypeH, FPImgCmn;
+uses sysutils, classes, CastleFreeTypeH, FPImgCmn, CastleUnicode;
 
 { TODO : take resolution in account to find the size }
 { TODO : speed optimization: search glyphs with a hash-function/tree/binary search/... }
@@ -79,7 +83,7 @@ type
 
   PMgrGlyph = ^TMgrGlyph;
   TMgrGlyph = record
-    Character : char;
+    Character : TUnicodeChar;
     GlyphIndex : FT_UInt;
     Glyph : PFT_Glyph;
   end;
@@ -125,8 +129,8 @@ type
       procedure GetSize (aSize, aResolution : integer);
       function CreateSize (aSize, aResolution : integer) : PMgrSize;
       procedure SetPixelSize (aSize, aResolution : integer);
-      function GetGlyph (c : char) : PMgrGlyph;
-      function CreateGlyph (c : char) : PMgrGlyph;
+      function GetGlyph (c : TUnicodeChar) : PMgrGlyph;
+      function CreateGlyph (c : TUnicodeChar) : PMgrGlyph;
       procedure MakeTransformation (angle:real; out Transformation:FT_Matrix);
       procedure InitMakeString (FontID, Size:integer);
       function MakeString (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps;
@@ -538,13 +542,13 @@ begin
     end;
 end;
 
-function TFontManager.CreateGlyph (c : char) : PMgrGlyph;
+function TFontManager.CreateGlyph (c : TUnicodeChar) : PMgrGlyph;
 var e : integer;
 begin
   new (result);
   FillByte(Result^,SizeOf(Result),0);
   result^.character := c;
-  result^.GlyphIndex := FT_Get_Char_Index (CurFont.font, ord(c));
+  result^.GlyphIndex := FT_Get_Char_Index (CurFont.font, c);
   //WriteFT_Face(CurFont.Font);
   e := FT_Load_Glyph (CurFont.font, result^.GlyphIndex, FT_Load_Default);
   if e <> 0 then
@@ -559,7 +563,7 @@ begin
   CurSize^.Glyphs.Add (result);
 end;
 
-function TFontManager.GetGlyph (c : char) : PMgrGlyph;
+function TFontManager.GetGlyph (c : TUnicodeChar) : PMgrGlyph;
 var r : integer;
 begin
   With CurSize^ do
@@ -585,7 +589,9 @@ function TFontManager.MakeString (FontId:integer; Text:string; size:integer; ang
 var g : PMgrGlyph;
     bm : PFT_BitmapGlyph;
     gl : PFT_Glyph;
-    prevIndex, prevx, c, r, rx : integer;
+    prevIndex, prevx, c, r, rx, cl : integer;
+    uc : TUnicodeChar;
+    pc : pchar;
     pre, adv, pos, kern : FT_Vector;
     buf : PByteArray;
     reverse : boolean;
@@ -598,7 +604,7 @@ begin
   else
     begin
     InitMakeString (FontID, Size);
-    c := length(text);
+    c := UTF8Length(text);
     result := TStringBitmaps.Create(c);
     if (CurRenderMode = FT_RENDER_MODE_MONO) then
       result.FMode := btBlackWhite
@@ -611,10 +617,17 @@ begin
     pos.y := 0;
     pre.x := 0;
     pre.y := 0;
-    for r := 0 to c-1 do
-      begin
+    pc := pchar(text);
+    r := -1;
+    // get the unicode for the character. Also performed at the end of the while loop.
+    uc := UTF8CharacterToUnicode (pc, cl);
+    while (uc>0) and (cl>0) do
+    begin
       // retrieve loaded glyph
-      g := GetGlyph (Text[r+1]);
+      g := GetGlyph (uc);
+      // increment pchar by character length
+      inc (pc, cl);
+      inc (r);
       // check kerning
       if UseKerning and (g^.glyphindex <>0) and (PrevIndex <> 0) then
         begin
@@ -677,7 +690,9 @@ begin
         pre.x := prevx;
       // finish rendered glyph
       FT_Done_Glyph (gl);
-      end;
+      // Get the next unicode
+      uc := UTF8CharacterToUnicode (pc, cl);
+    end;
     result.FText := Text;
     result.CalculateGlobals;
     end;
@@ -687,15 +702,16 @@ function TFontManager.MakeString (FontId:integer; Text:string; Size:integer) : T
 var g : PMgrGlyph;
     bm : PFT_BitmapGlyph;
     gl : PFT_Glyph;
-    e, prevIndex, prevx, c, r, rx : integer;
+    e, prevIndex, prevx, r, rx, cl : integer;
+    uc : TUnicodeChar;
+    pc : pchar;
     pos, kern : FT_Vector;
     buf : PByteArray;
     reverse : boolean;
 begin
   CurFont := GetFont(FontID);
   InitMakeString (FontID, Size);
-  c := length(text);
-  result := TStringBitmaps.Create(c);
+  result := TStringBitmaps.Create(UTF8Length(Text));
   if (CurRenderMode = FT_RENDER_MODE_MONO) then
     result.FMode := btBlackWhite
   else
@@ -704,10 +720,17 @@ begin
   prevx := 0;
   pos.x := 0;
   pos.y := 0;
-  for r := 0 to c-1 do
-    begin
+  pc := pchar(text);
+  r := -1;
+  // get the unicode for the character. Also performed at the end of the while loop.
+  uc := UTF8CharacterToUnicode (pc, cl);
+  while (cl>0) and (uc>0) do
+  begin
     // retrieve loaded glyph
-    g := GetGlyph (Text[r+1]);
+    g := GetGlyph (uc);
+    // increment pchar by character length
+    inc (pc, cl);
+    inc (r);
     // check kerning
     if UseKerning and (g^.glyphindex <>0) and (PrevIndex <> 0) then
       begin
@@ -763,7 +786,9 @@ begin
       pos.x := prevx;
     // finish rendered glyph
     FT_Done_Glyph (gl);
-    end;
+    // Get the next unicode
+    uc := UTF8CharacterToUnicode (pc, cl);
+  end;  // while
   result.FText := Text;
   result.CalculateGlobals;
 end;

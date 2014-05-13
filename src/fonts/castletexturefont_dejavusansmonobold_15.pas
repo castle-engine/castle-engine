@@ -1413,7 +1413,7 @@ begin
   Move(FontImagePixels, FontImage.RawPixels^, SizeOf(FontImagePixels));
   FontImage.TreatAsAlpha := true;
 
-  FillByte(Glyphs, SizeOf(Glyphs), 0);
+  Glyphs := TTextureFontData.TGlyphDictionary.Create;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := 0;
@@ -1424,7 +1424,7 @@ begin
   G.Height := 0;
   G.ImageX := 0;
   G.ImageY := 0;
-  Glyphs[Chr(32)] := G;
+  Glyphs[32] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -4;
@@ -1435,7 +1435,7 @@ begin
   G.Height := 11;
   G.ImageX := 10;
   G.ImageY := 0;
-  Glyphs[Chr(33)] := G;
+  Glyphs[33] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -2;
@@ -1446,7 +1446,7 @@ begin
   G.Height := 4;
   G.ImageX := 20;
   G.ImageY := 0;
-  Glyphs[Chr(34)] := G;
+  Glyphs[34] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := 0;
@@ -1457,7 +1457,7 @@ begin
   G.Height := 11;
   G.ImageX := 30;
   G.ImageY := 0;
-  Glyphs[Chr(35)] := G;
+  Glyphs[35] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1468,7 +1468,7 @@ begin
   G.Height := 14;
   G.ImageX := 40;
   G.ImageY := 0;
-  Glyphs[Chr(36)] := G;
+  Glyphs[36] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := 0;
@@ -1479,7 +1479,7 @@ begin
   G.Height := 11;
   G.ImageX := 50;
   G.ImageY := 0;
-  Glyphs[Chr(37)] := G;
+  Glyphs[37] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1490,7 +1490,7 @@ begin
   G.Height := 12;
   G.ImageX := 60;
   G.ImageY := 0;
-  Glyphs[Chr(38)] := G;
+  Glyphs[38] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -4;
@@ -1501,7 +1501,7 @@ begin
   G.Height := 4;
   G.ImageX := 70;
   G.ImageY := 0;
-  Glyphs[Chr(39)] := G;
+  Glyphs[39] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -3;
@@ -1512,7 +1512,7 @@ begin
   G.Height := 13;
   G.ImageX := 80;
   G.ImageY := 0;
-  Glyphs[Chr(40)] := G;
+  Glyphs[40] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -2;
@@ -1523,7 +1523,7 @@ begin
   G.Height := 13;
   G.ImageX := 90;
   G.ImageY := 0;
-  Glyphs[Chr(41)] := G;
+  Glyphs[41] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1534,7 +1534,7 @@ begin
   G.Height := 6;
   G.ImageX := 100;
   G.ImageY := 0;
-  Glyphs[Chr(42)] := G;
+  Glyphs[42] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1545,7 +1545,7 @@ begin
   G.Height := 8;
   G.ImageX := 110;
   G.ImageY := 0;
-  Glyphs[Chr(43)] := G;
+  Glyphs[43] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -2;
@@ -1556,7 +1556,7 @@ begin
   G.Height := 5;
   G.ImageX := 0;
   G.ImageY := 16;
-  Glyphs[Chr(44)] := G;
+  Glyphs[44] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -2;
@@ -1567,7 +1567,7 @@ begin
   G.Height := 2;
   G.ImageX := 10;
   G.ImageY := 16;
-  Glyphs[Chr(45)] := G;
+  Glyphs[45] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -3;
@@ -1578,7 +1578,7 @@ begin
   G.Height := 3;
   G.ImageX := 20;
   G.ImageY := 16;
-  Glyphs[Chr(46)] := G;
+  Glyphs[46] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1589,7 +1589,7 @@ begin
   G.Height := 12;
   G.ImageX := 30;
   G.ImageY := 16;
-  Glyphs[Chr(47)] := G;
+  Glyphs[47] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1600,7 +1600,7 @@ begin
   G.Height := 11;
   G.ImageX := 40;
   G.ImageY := 16;
-  Glyphs[Chr(48)] := G;
+  Glyphs[48] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -2;
@@ -1611,7 +1611,7 @@ begin
   G.Height := 11;
   G.ImageX := 50;
   G.ImageY := 16;
-  Glyphs[Chr(49)] := G;
+  Glyphs[49] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1622,7 +1622,7 @@ begin
   G.Height := 11;
   G.ImageX := 60;
   G.ImageY := 16;
-  Glyphs[Chr(50)] := G;
+  Glyphs[50] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1633,7 +1633,7 @@ begin
   G.Height := 11;
   G.ImageX := 70;
   G.ImageY := 16;
-  Glyphs[Chr(51)] := G;
+  Glyphs[51] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1644,7 +1644,7 @@ begin
   G.Height := 11;
   G.ImageX := 80;
   G.ImageY := 16;
-  Glyphs[Chr(52)] := G;
+  Glyphs[52] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1655,7 +1655,7 @@ begin
   G.Height := 11;
   G.ImageX := 90;
   G.ImageY := 16;
-  Glyphs[Chr(53)] := G;
+  Glyphs[53] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1666,7 +1666,7 @@ begin
   G.Height := 11;
   G.ImageX := 100;
   G.ImageY := 16;
-  Glyphs[Chr(54)] := G;
+  Glyphs[54] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1677,7 +1677,7 @@ begin
   G.Height := 11;
   G.ImageX := 110;
   G.ImageY := 16;
-  Glyphs[Chr(55)] := G;
+  Glyphs[55] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1688,7 +1688,7 @@ begin
   G.Height := 11;
   G.ImageX := 0;
   G.ImageY := 32;
-  Glyphs[Chr(56)] := G;
+  Glyphs[56] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1699,7 +1699,7 @@ begin
   G.Height := 11;
   G.ImageX := 10;
   G.ImageY := 32;
-  Glyphs[Chr(57)] := G;
+  Glyphs[57] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -3;
@@ -1710,7 +1710,7 @@ begin
   G.Height := 8;
   G.ImageX := 20;
   G.ImageY := 32;
-  Glyphs[Chr(58)] := G;
+  Glyphs[58] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -2;
@@ -1721,7 +1721,7 @@ begin
   G.Height := 10;
   G.ImageX := 30;
   G.ImageY := 32;
-  Glyphs[Chr(59)] := G;
+  Glyphs[59] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1732,7 +1732,7 @@ begin
   G.Height := 8;
   G.ImageX := 40;
   G.ImageY := 32;
-  Glyphs[Chr(60)] := G;
+  Glyphs[60] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1743,7 +1743,7 @@ begin
   G.Height := 6;
   G.ImageX := 50;
   G.ImageY := 32;
-  Glyphs[Chr(61)] := G;
+  Glyphs[61] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1754,7 +1754,7 @@ begin
   G.Height := 8;
   G.ImageX := 60;
   G.ImageY := 32;
-  Glyphs[Chr(62)] := G;
+  Glyphs[62] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1765,7 +1765,7 @@ begin
   G.Height := 11;
   G.ImageX := 70;
   G.ImageY := 32;
-  Glyphs[Chr(63)] := G;
+  Glyphs[63] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := 0;
@@ -1776,7 +1776,7 @@ begin
   G.Height := 13;
   G.ImageX := 80;
   G.ImageY := 32;
-  Glyphs[Chr(64)] := G;
+  Glyphs[64] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1787,7 +1787,7 @@ begin
   G.Height := 11;
   G.ImageX := 90;
   G.ImageY := 32;
-  Glyphs[Chr(65)] := G;
+  Glyphs[65] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1798,7 +1798,7 @@ begin
   G.Height := 11;
   G.ImageX := 100;
   G.ImageY := 32;
-  Glyphs[Chr(66)] := G;
+  Glyphs[66] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1809,7 +1809,7 @@ begin
   G.Height := 11;
   G.ImageX := 110;
   G.ImageY := 32;
-  Glyphs[Chr(67)] := G;
+  Glyphs[67] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1820,7 +1820,7 @@ begin
   G.Height := 11;
   G.ImageX := 0;
   G.ImageY := 48;
-  Glyphs[Chr(68)] := G;
+  Glyphs[68] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1831,7 +1831,7 @@ begin
   G.Height := 11;
   G.ImageX := 10;
   G.ImageY := 48;
-  Glyphs[Chr(69)] := G;
+  Glyphs[69] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1842,7 +1842,7 @@ begin
   G.Height := 11;
   G.ImageX := 20;
   G.ImageY := 48;
-  Glyphs[Chr(70)] := G;
+  Glyphs[70] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1853,7 +1853,7 @@ begin
   G.Height := 11;
   G.ImageX := 30;
   G.ImageY := 48;
-  Glyphs[Chr(71)] := G;
+  Glyphs[71] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1864,7 +1864,7 @@ begin
   G.Height := 11;
   G.ImageX := 40;
   G.ImageY := 48;
-  Glyphs[Chr(72)] := G;
+  Glyphs[72] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1875,7 +1875,7 @@ begin
   G.Height := 11;
   G.ImageX := 50;
   G.ImageY := 48;
-  Glyphs[Chr(73)] := G;
+  Glyphs[73] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1886,7 +1886,7 @@ begin
   G.Height := 11;
   G.ImageX := 60;
   G.ImageY := 48;
-  Glyphs[Chr(74)] := G;
+  Glyphs[74] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1897,7 +1897,7 @@ begin
   G.Height := 11;
   G.ImageX := 70;
   G.ImageY := 48;
-  Glyphs[Chr(75)] := G;
+  Glyphs[75] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1908,7 +1908,7 @@ begin
   G.Height := 11;
   G.ImageX := 80;
   G.ImageY := 48;
-  Glyphs[Chr(76)] := G;
+  Glyphs[76] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1919,7 +1919,7 @@ begin
   G.Height := 11;
   G.ImageX := 90;
   G.ImageY := 48;
-  Glyphs[Chr(77)] := G;
+  Glyphs[77] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1930,7 +1930,7 @@ begin
   G.Height := 11;
   G.ImageX := 100;
   G.ImageY := 48;
-  Glyphs[Chr(78)] := G;
+  Glyphs[78] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1941,7 +1941,7 @@ begin
   G.Height := 11;
   G.ImageX := 110;
   G.ImageY := 48;
-  Glyphs[Chr(79)] := G;
+  Glyphs[79] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1952,7 +1952,7 @@ begin
   G.Height := 11;
   G.ImageX := 0;
   G.ImageY := 64;
-  Glyphs[Chr(80)] := G;
+  Glyphs[80] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1963,7 +1963,7 @@ begin
   G.Height := 13;
   G.ImageX := 10;
   G.ImageY := 64;
-  Glyphs[Chr(81)] := G;
+  Glyphs[81] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1974,7 +1974,7 @@ begin
   G.Height := 11;
   G.ImageX := 20;
   G.ImageY := 64;
-  Glyphs[Chr(82)] := G;
+  Glyphs[82] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -1985,7 +1985,7 @@ begin
   G.Height := 11;
   G.ImageX := 30;
   G.ImageY := 64;
-  Glyphs[Chr(83)] := G;
+  Glyphs[83] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := 0;
@@ -1996,7 +1996,7 @@ begin
   G.Height := 11;
   G.ImageX := 40;
   G.ImageY := 64;
-  Glyphs[Chr(84)] := G;
+  Glyphs[84] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2007,7 +2007,7 @@ begin
   G.Height := 11;
   G.ImageX := 50;
   G.ImageY := 64;
-  Glyphs[Chr(85)] := G;
+  Glyphs[85] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2018,7 +2018,7 @@ begin
   G.Height := 11;
   G.ImageX := 60;
   G.ImageY := 64;
-  Glyphs[Chr(86)] := G;
+  Glyphs[86] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := 0;
@@ -2029,7 +2029,7 @@ begin
   G.Height := 11;
   G.ImageX := 70;
   G.ImageY := 64;
-  Glyphs[Chr(87)] := G;
+  Glyphs[87] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2040,7 +2040,7 @@ begin
   G.Height := 11;
   G.ImageX := 80;
   G.ImageY := 64;
-  Glyphs[Chr(88)] := G;
+  Glyphs[88] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := 0;
@@ -2051,7 +2051,7 @@ begin
   G.Height := 11;
   G.ImageX := 90;
   G.ImageY := 64;
-  Glyphs[Chr(89)] := G;
+  Glyphs[89] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2062,7 +2062,7 @@ begin
   G.Height := 11;
   G.ImageX := 100;
   G.ImageY := 64;
-  Glyphs[Chr(90)] := G;
+  Glyphs[90] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -3;
@@ -2073,7 +2073,7 @@ begin
   G.Height := 13;
   G.ImageX := 110;
   G.ImageY := 64;
-  Glyphs[Chr(91)] := G;
+  Glyphs[91] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2084,7 +2084,7 @@ begin
   G.Height := 12;
   G.ImageX := 0;
   G.ImageY := 80;
-  Glyphs[Chr(92)] := G;
+  Glyphs[92] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -2;
@@ -2095,7 +2095,7 @@ begin
   G.Height := 13;
   G.ImageX := 10;
   G.ImageY := 80;
-  Glyphs[Chr(93)] := G;
+  Glyphs[93] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := 0;
@@ -2106,7 +2106,7 @@ begin
   G.Height := 4;
   G.ImageX := 20;
   G.ImageY := 80;
-  Glyphs[Chr(94)] := G;
+  Glyphs[94] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := 0;
@@ -2117,7 +2117,7 @@ begin
   G.Height := 1;
   G.ImageX := 30;
   G.ImageY := 80;
-  Glyphs[Chr(95)] := G;
+  Glyphs[95] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2128,7 +2128,7 @@ begin
   G.Height := 3;
   G.ImageX := 40;
   G.ImageY := 80;
-  Glyphs[Chr(96)] := G;
+  Glyphs[96] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2139,7 +2139,7 @@ begin
   G.Height := 8;
   G.ImageX := 50;
   G.ImageY := 80;
-  Glyphs[Chr(97)] := G;
+  Glyphs[97] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2150,7 +2150,7 @@ begin
   G.Height := 11;
   G.ImageX := 60;
   G.ImageY := 80;
-  Glyphs[Chr(98)] := G;
+  Glyphs[98] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2161,7 +2161,7 @@ begin
   G.Height := 8;
   G.ImageX := 70;
   G.ImageY := 80;
-  Glyphs[Chr(99)] := G;
+  Glyphs[99] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2172,7 +2172,7 @@ begin
   G.Height := 11;
   G.ImageX := 80;
   G.ImageY := 80;
-  Glyphs[Chr(100)] := G;
+  Glyphs[100] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2183,7 +2183,7 @@ begin
   G.Height := 8;
   G.ImageX := 90;
   G.ImageY := 80;
-  Glyphs[Chr(101)] := G;
+  Glyphs[101] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2194,7 +2194,7 @@ begin
   G.Height := 11;
   G.ImageX := 100;
   G.ImageY := 80;
-  Glyphs[Chr(102)] := G;
+  Glyphs[102] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2205,7 +2205,7 @@ begin
   G.Height := 11;
   G.ImageX := 110;
   G.ImageY := 80;
-  Glyphs[Chr(103)] := G;
+  Glyphs[103] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2216,7 +2216,7 @@ begin
   G.Height := 11;
   G.ImageX := 0;
   G.ImageY := 96;
-  Glyphs[Chr(104)] := G;
+  Glyphs[104] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2227,7 +2227,7 @@ begin
   G.Height := 12;
   G.ImageX := 10;
   G.ImageY := 96;
-  Glyphs[Chr(105)] := G;
+  Glyphs[105] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2238,7 +2238,7 @@ begin
   G.Height := 15;
   G.ImageX := 20;
   G.ImageY := 96;
-  Glyphs[Chr(106)] := G;
+  Glyphs[106] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2249,7 +2249,7 @@ begin
   G.Height := 11;
   G.ImageX := 30;
   G.ImageY := 96;
-  Glyphs[Chr(107)] := G;
+  Glyphs[107] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2260,7 +2260,7 @@ begin
   G.Height := 11;
   G.ImageX := 40;
   G.ImageY := 96;
-  Glyphs[Chr(108)] := G;
+  Glyphs[108] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2271,7 +2271,7 @@ begin
   G.Height := 8;
   G.ImageX := 50;
   G.ImageY := 96;
-  Glyphs[Chr(109)] := G;
+  Glyphs[109] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2282,7 +2282,7 @@ begin
   G.Height := 8;
   G.ImageX := 60;
   G.ImageY := 96;
-  Glyphs[Chr(110)] := G;
+  Glyphs[110] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2293,7 +2293,7 @@ begin
   G.Height := 8;
   G.ImageX := 70;
   G.ImageY := 96;
-  Glyphs[Chr(111)] := G;
+  Glyphs[111] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2304,7 +2304,7 @@ begin
   G.Height := 11;
   G.ImageX := 80;
   G.ImageY := 96;
-  Glyphs[Chr(112)] := G;
+  Glyphs[112] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2315,7 +2315,7 @@ begin
   G.Height := 11;
   G.ImageX := 90;
   G.ImageY := 96;
-  Glyphs[Chr(113)] := G;
+  Glyphs[113] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -2;
@@ -2326,7 +2326,7 @@ begin
   G.Height := 8;
   G.ImageX := 100;
   G.ImageY := 96;
-  Glyphs[Chr(114)] := G;
+  Glyphs[114] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2337,7 +2337,7 @@ begin
   G.Height := 8;
   G.ImageX := 110;
   G.ImageY := 96;
-  Glyphs[Chr(115)] := G;
+  Glyphs[115] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2348,7 +2348,7 @@ begin
   G.Height := 10;
   G.ImageX := 0;
   G.ImageY := 112;
-  Glyphs[Chr(116)] := G;
+  Glyphs[116] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2359,7 +2359,7 @@ begin
   G.Height := 8;
   G.ImageX := 10;
   G.ImageY := 112;
-  Glyphs[Chr(117)] := G;
+  Glyphs[117] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2370,7 +2370,7 @@ begin
   G.Height := 8;
   G.ImageX := 20;
   G.ImageY := 112;
-  Glyphs[Chr(118)] := G;
+  Glyphs[118] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := 0;
@@ -2381,7 +2381,7 @@ begin
   G.Height := 8;
   G.ImageX := 30;
   G.ImageY := 112;
-  Glyphs[Chr(119)] := G;
+  Glyphs[119] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2392,7 +2392,7 @@ begin
   G.Height := 8;
   G.ImageX := 40;
   G.ImageY := 112;
-  Glyphs[Chr(120)] := G;
+  Glyphs[120] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2403,7 +2403,7 @@ begin
   G.Height := 11;
   G.ImageX := 50;
   G.ImageY := 112;
-  Glyphs[Chr(121)] := G;
+  Glyphs[121] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2414,7 +2414,7 @@ begin
   G.Height := 8;
   G.ImageX := 60;
   G.ImageY := 112;
-  Glyphs[Chr(122)] := G;
+  Glyphs[122] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -2;
@@ -2425,7 +2425,7 @@ begin
   G.Height := 14;
   G.ImageX := 70;
   G.ImageY := 112;
-  Glyphs[Chr(123)] := G;
+  Glyphs[123] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -4;
@@ -2436,7 +2436,7 @@ begin
   G.Height := 15;
   G.ImageX := 80;
   G.ImageY := 112;
-  Glyphs[Chr(124)] := G;
+  Glyphs[124] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -2;
@@ -2447,7 +2447,7 @@ begin
   G.Height := 14;
   G.ImageX := 90;
   G.ImageY := 112;
-  Glyphs[Chr(125)] := G;
+  Glyphs[125] := G;
 
   G := TTextureFontData.TGlyph.Create;
   G.X := -1;
@@ -2458,7 +2458,7 @@ begin
   G.Height := 4;
   G.ImageX := 100;
   G.ImageY := 112;
-  Glyphs[Chr(126)] := G;
+  Glyphs[126] := G;
 
   FFont := TTextureFontData.CreateFromData(Glyphs, FontImage, 15, true);
 end;

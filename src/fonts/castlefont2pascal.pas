@@ -42,7 +42,8 @@ procedure Font2Pascal(const Font: TTextureFontData;
 
 implementation
 
-uses SysUtils, CastleUtils, CastleStringUtils, CastleClassUtils, CastleDownload;
+uses SysUtils, CastleUtils, CastleStringUtils, CastleClassUtils, CastleDownload,
+  CastleUnicode;
 
 { WriteUnit* ---------------------------------------------------------- }
 
@@ -203,9 +204,10 @@ end;
 procedure Font2Pascal(const Font: TTextureFontData;
   const UnitName, PrecedingComment, FontFunctionName: string; Stream: TStream);
 var
-  C: char;
+  C: TUnicodeChar;
   G: TTextureFontData.TGlyph;
   ImageInterface, ImageImplementation, ImageInitialization, ImageFinalization: string;
+  LoadedGlyphs: TUnicodeCharList;
 begin
   WriteUnitBegin(Stream, UnitName, PrecedingComment,
     'CastleTextureFontData', FontFunctionName, 'TTextureFontData');
@@ -228,28 +230,31 @@ begin
     ImageInitialization +
     '  FontImage.TreatAsAlpha := true;' +NL+
     NL+
-    '  FillByte(Glyphs, SizeOf(Glyphs), 0);' +NL+
+    '  Glyphs := TTextureFontData.TGlyphDictionary.Create;' +NL+
     NL);
 
-  for C in char do
-  begin
-    G := Font.Glyph(C);
-    if G <> nil then
+  LoadedGlyphs := Font.LoadedGlyphs;
+  try
+    for C in LoadedGlyphs do
     begin
-      WriteStr(Stream,
-        '  G := TTextureFontData.TGlyph.Create;' +NL+
-        '  G.X := ' + IntToStr(G.X) + ';' +NL+
-        '  G.Y := ' + IntToStr(G.Y) + ';' +NL+
-        '  G.AdvanceX := ' + IntToStr(G.AdvanceX) + ';' +NL+
-        '  G.AdvanceY := ' + IntToStr(G.AdvanceY) + ';' +NL+
-        '  G.Width := ' + IntToStr(G.Width) + ';' +NL+
-        '  G.Height := ' + IntToStr(G.Height) + ';' +NL+
-        '  G.ImageX := ' + IntToStr(G.ImageX) + ';' +NL+
-        '  G.ImageY := ' + IntToStr(G.ImageY) + ';' +NL+
-        '  Glyphs[Chr(' + IntToStr(Ord(C)) + ')] := G;' +NL+
-        NL);
+      G := Font.Glyph(C);
+      if G <> nil then
+      begin
+        WriteStr(Stream,
+          '  G := TTextureFontData.TGlyph.Create;' +NL+
+          '  G.X := ' + IntToStr(G.X) + ';' +NL+
+          '  G.Y := ' + IntToStr(G.Y) + ';' +NL+
+          '  G.AdvanceX := ' + IntToStr(G.AdvanceX) + ';' +NL+
+          '  G.AdvanceY := ' + IntToStr(G.AdvanceY) + ';' +NL+
+          '  G.Width := ' + IntToStr(G.Width) + ';' +NL+
+          '  G.Height := ' + IntToStr(G.Height) + ';' +NL+
+          '  G.ImageX := ' + IntToStr(G.ImageX) + ';' +NL+
+          '  G.ImageY := ' + IntToStr(G.ImageY) + ';' +NL+
+          '  Glyphs[' + IntToStr(Ord(C)) + '] := G;' +NL+
+          NL);
+      end;
     end;
-  end;
+  finally FreeAndNil(LoadedGlyphs) end;
 
   WriteStr(Stream,
     '  FFont := TTextureFontData.CreateFromData(Glyphs, FontImage, ' +
