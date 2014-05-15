@@ -387,7 +387,8 @@ begin
       case Node.NodeType of
         TEXT_NODE: Result += (Node as TDOMText).Data;
         ELEMENT_NODE: raise Exception.CreateFmt(
-          'Child elements not allowed within element <%s>', [Element.TagName]);
+          'Child elements not allowed within element <%s>, but found %s',
+            [Element.TagName, (Node as TDOMElement).TagName]);
       end;
     end;
   finally FreeChildNodes(Children) end;
