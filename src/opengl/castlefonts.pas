@@ -283,11 +283,11 @@ type
     constructor Create(const URL: string;
       const ASize: Integer; const AnAntiAliased: boolean;
       const ACharacters: TUnicodeCharList = nil);
-    {$endif}
 
     constructor Create(const URL: string;
       const ASize: Integer; const AnAntiAliased: boolean;
       const ACharacters: TSetOfChars); deprecated;
+    {$endif}
 
     { Create from a ready TTextureFontData instance.
       @param(Data TTextureFontData instance containing loaded image
