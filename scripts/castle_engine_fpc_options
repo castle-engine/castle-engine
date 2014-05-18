@@ -1,0 +1,66 @@
+#!/bin/bash
+set -eu
+
+# Define $CASTLE_ENGINE_PATH environment variable as the directory
+# (may be absolute) containing castle_game_engine as subdirectory.
+# Then this script outputs all -Fu and -Fi options for FPC to include
+# Castle Game Engine sources.
+#
+# We also output -dCASTLE_ENGINE_PATHS_ALREADY_DEFINED,
+# and @.../castle-fpc.cfg, to add castle-fpc.cfg with the rest of
+# proper Castle Game Engine compilation options.
+#
+# This script is useful to compile programs using Castle Game Engine
+# from any directory (otherwise, you have to call FPC from the directory
+# where castle-fpc.cfg exists). You just have to
+# set $CASTLE_ENGINE_PATH environment variable before calling.
+
+CASTLE_ENGINE_SRC_PATH="$CASTLE_ENGINE_PATH"castle_game_engine/src
+
+echo -n \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/base/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/base/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/base/android/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/base/android/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/base/windows/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/base/windows/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/base/unix/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/base/unix/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/fonts/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/fonts/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/fonts/windows/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/opengl/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/opengl/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/opengl/glsl/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/window/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/window/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/window/gtk/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/window/windows/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/window/windows/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/window/unix/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/window/unix/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/images/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/images/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/3d/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/3d/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/3d/opengl/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/3d/opengl/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/x3d/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/x3d/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/x3d/opengl/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/x3d/opengl/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/x3d/opengl/glsl/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/audio/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/audio/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/net/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/net/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/castlescript/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/castlescript/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/ui/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/ui/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/ui/opengl/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/ui/opengl/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/game/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/game/ \
+  -dCASTLE_ENGINE_PATHS_ALREADY_DEFINED \
+  @"$CASTLE_ENGINE_PATH"castle_game_engine/castle-fpc.cfg
