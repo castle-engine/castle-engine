@@ -461,8 +461,6 @@ function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boole
   end;
 
   procedure Resize(Width, Height: Integer);
-  var
-    Window: TCastleWindowCustom;
   begin
     AndroidLog(alInfo, 'Resize (size: %d %d)', [Width, Height]);
 
