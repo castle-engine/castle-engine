@@ -25,7 +25,7 @@ CastleAndroidNativeAppGlue, CastleGenericLists,
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleAndroidLooper,
+CastleAndroidCWString, CastleAndroidLooper,
 CastleAndroidLog, CastleAndroidAssetStream, CastleConfig,
 CastleOpenAL, CastleVorbisFile, CastleFreeTypeH, CastleZLib,
 {$endif}
@@ -582,6 +582,7 @@ begin
   GLES20Initialization;
   OpenALInitialization;
   VorbisFileInitialization;
+  InitializeAndroidCWString;
   LoadFreeTypeLibrary;
   {$ifndef CASTLE_PNG_USING_FCL_IMAGE}
   {$ifndef CASTLE_PNG_STATIC}
