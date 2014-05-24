@@ -1,27 +1,42 @@
-This is the "Castle Game Engine",
-webpage http://castle-engine.sourceforge.net/. It's focus is on 3D games
-and applications, in particular using VRML/X3D scene format
-(although other 3D formats are supported as well).
-http://castle-engine.sourceforge.net/engine.php
-contains a list of features and useful notes for developers.
+"Castle Game Engine" ( http://castle-engine.sourceforge.net/ )
+is an open-source 3D and 2D engine for games and other applications.
+We have many graphic features (shaders, shadows, screen effects...)
+and support many 3D formats (most notably VRML/X3D). We have a flexible
+manager of 3D objects, including ready creatures with AI.
+See http://castle-engine.sourceforge.net/engine.php
+for a list of features and documentation for developers.
 
-The API documentation is available online on
-http://castle-engine.sourceforge.net/reference.php,
-it is also available offline in doc/pasdoc/html/ subdirectory of this archive
-(just open doc/pasdoc/html/index.html in your WWW browser).
+- Tutorial: See http://castle-engine.sourceforge.net/tutorial_intro.php .
+- Examples: See examples/ subdirectory. In particular take a look at
+  simple FPS game example in castle_game_engine/examples/fps_game/ .
+- API documentation:
+  Online on http://castle-engine.sourceforge.net/reference.php .
+  Offline in doc/pasdoc/html/ subdirectory of this archive
+  (just open doc/pasdoc/html/index.html in your WWW browser).
 
-You can compile the engine and examples by various methods.
-For example, you can compile all examples by simple "make examples"
-executed in this directory.
+Questions? Ask on our forum or mailing list,
+see http://castle-engine.sourceforge.net/forum.php .
 
-If you want to use Lazarus (http://www.lazarus.freepascal.org/),
+Compiling
+=========
+
+Use xxx_compile.sh scripts to compile particular examples using FPC.
+Use "make examples" in this directory to simply compile all examples.
+
+If you use Lazarus (http://www.lazarus.freepascal.org/),
 you'll be interested in installing in Lazarus
 packages/castle_base.lpk and packages/castle_components.lpk
 (see packages/README.txt for more info).
 Then you can compile all the examples by opening their .lpi files
 and running them as usual from Lazarus.
 
-In case of any questions, ask on our forum or mailing list,
-see http://castle-engine.sourceforge.net/forum.php .
+License
+=======
 
+The engine is available on the terms of LGPL >= 2 license
+with static linking exception. This is the same license
+as used by FPC RTL and Lazarus LCL.
+See COPYING.txt for details.
+
+Have fun!
 Michalis Kamburelis, aka Kambi.
