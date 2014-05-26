@@ -366,10 +366,10 @@ type
     { Change Width and Height and appropriately stretch
       image contents.
 
-      If ResizeToX or ResizeToY is 0 then it means to take
+      If ResizeWidth or ResizeHeight is 0 then it means to take
       Width or Height, respectively.
-      So e.g. using ResizeToX = ResizeToY = 0 is the same thing
-      as using ResizeToX = Width and ResizeToY = Height and this is NOP.
+      So e.g. using ResizeWidth = ResizeHeight = 0 is the same thing
+      as using ResizeWidth = Width and ResizeHeight = Height and this is NOP.
 
       Remember that resizing may change RawPixels pointer, so all pointers
       that you aquired using functions like
@@ -378,11 +378,26 @@ type
 
       If ProgressTitle <> '' this will call Progress.Init/Step/Fini
       from CastleProgress to indicate progress of operation. }
-    procedure Resize(ResizeToX, ResizeToY: Cardinal;
+    procedure Resize(ResizeWidth, ResizeHeight: Cardinal;
       const Interpolation: TResizeInterpolation = riNearest;
       const ProgressTitle: string = '');
 
-    { Create a new TCastleImage instance with size ResizeToX, ResizeToY
+    { Change Width and Height and appropriately stretch
+      image contents.
+
+      Preserves corners (provided in the same clockwise way
+      as TGLImage.Draw3x3: top, right, bottom, left), scaling the Corners
+      parameter (proportially to image scaling), and making sure that filtering
+      (especially bilinear) does not "leak" colors from one image area to another.
+      Effectively, the image is scaled like a 9 separate parts,
+      and colors cannot bleed from part to another.
+
+      Both ResizeWidth, ResizeHeight parameters must be provided and non-zero. }
+    procedure Resize3x3(const ResizeWidth, ResizeHeight: Cardinal;
+      var Corners: TVector4Integer;
+      const Interpolation: TResizeInterpolation);
+
+    { Create a new TCastleImage instance with size ResizeWidth, ResizeHeight
       and pixels copied from us and appropriately stretched.
       Class of new instance is the same as our class.
 
@@ -392,7 +407,7 @@ type
       As with @link(Resize),
       if ProgressTitle <> '' this will call Progress.Init/Step/Fini
       from CastleProgress to indicate progress of operation. }
-    function MakeResized(ResizeToX, ResizeToY: Cardinal;
+    function MakeResized(ResizeWidth, ResizeHeight: Cardinal;
       const Interpolation: TResizeInterpolation = riNearest;
       const ProgressTitle: string = ''): TCastleImage;
 
@@ -1655,7 +1670,7 @@ function LoadImage(const URL: string;
   :TCastleImage; overload;
 function LoadImage(const URL: string;
   const AllowedImageClasses: array of TCastleImageClass;
-  const ResizeToX, ResizeToY: Cardinal;
+  const ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation = riNearest): TCastleImage; overload;
 { @groupEnd }
 
@@ -1927,29 +1942,30 @@ type
   It assumes that SourceData and DestinData pointers are already allocated.
   DestinWidth, DestinHeight must not be 0. }
 procedure InternalResize(PixelSize: Cardinal;
-  SourceData: Pointer; SourceWidth, SourceHeight: Cardinal;
-  DestinData: Pointer; DestinWidth, DestinHeight: Cardinal;
+  const SourceData: Pointer; const SourceRect: TRectangle; const SourceImageWidth: Cardinal;
+  const DestinData: Pointer; const DestinRect: TRectangle; const DestinImageWidth: Cardinal;
   const Interpolation: TResizeInterpolation;
   const MixColors: TMixColorsFunction;
   const ProgressTitle: string);
 var
-  DestinY: Cardinal;
+  SourceWidth, SourceHeight, DestinWidth, DestinHeight: Cardinal;
+  DestinY: Integer;
 
   procedure MakeLineNearest;
   { write row DestinY of DestinData }
   var
-    DestinX, SourceX, SourceY: Cardinal;
+    DestinX, SourceX, SourceY: Integer;
     SourceRow, DestinRow: PtrUInt;
   begin
-    SourceY := DestinY * SourceHeight div DestinHeight;
-    SourceRow := PtrUInt(SourceData) + SourceWidth * SourceY * PixelSize;
-    DestinRow := PtrUInt(DestinData) + DestinWidth * DestinY * PixelSize;
+    SourceY := SourceRect.ClampY(DestinY * SourceHeight div DestinHeight);
+    SourceRow := PtrUInt(SourceData) + SourceImageWidth * SourceY * PixelSize;
+    DestinRow := PtrUInt(DestinData) + DestinImageWidth * DestinY * PixelSize;
 
-    for DestinX := 0 to DestinWidth - 1 do
+    for DestinX := DestinRect.Left to DestinRect.Right - 1 do
     begin
-      SourceX := DestinX * SourceWidth div DestinWidth;
-      Move(Pointer(SourceRow + SourceX * PixelSize)^,
-           Pointer(DestinRow + DestinX * PixelSize)^,
+      SourceX := SourceRect.ClampX(DestinX * SourceWidth div DestinWidth);
+      Move(Pointer(PtrUInt(SourceRow + SourceX * PixelSize))^,
+           Pointer(PtrUInt(DestinRow + DestinX * PixelSize))^,
            PixelSize);
     end;
   end;
@@ -1962,35 +1978,35 @@ var
       - SourceXFrac / SourceYFrac are fractional parts (in [0..1])
         that say how close our perfect point (from which we should take
         destination color) is to 4 neighbor pixels. }
-    DestinX, SourceX1, SourceX2, SourceY1, SourceY2: Cardinal;
+    DestinX, SourceX1, SourceX2, SourceY1, SourceY2: Integer;
     Source1Row, Source2Row, DestinRow: PtrUInt;
     SourceXFrac, SourceYFrac: Single;
     Weights: TVector4Single;
     Colors: TVector4Pointer;
   begin
     SourceYFrac := DestinY * SourceHeight / DestinHeight;
-    SourceY1 := Max(Trunc(SourceYFrac), 0);
-    SourceY2 := Min(SourceY1 + 1, SourceHeight - 1);
+    SourceY1 := Max(Trunc(SourceYFrac), SourceRect.Bottom);
+    SourceY2 := Min(SourceY1 + 1, SourceRect.Top - 1);
     SourceYFrac := Frac(SourceYFrac);
-    Source1Row := PtrUInt(SourceData) + SourceWidth * SourceY1 * PixelSize;
-    Source2Row := PtrUInt(SourceData) + SourceWidth * SourceY2 * PixelSize;
-    DestinRow := PtrUInt(DestinData) + DestinWidth * DestinY * PixelSize;
+    Source1Row := PtrUInt(SourceData) + SourceImageWidth * SourceY1 * PixelSize;
+    Source2Row := PtrUInt(SourceData) + SourceImageWidth * SourceY2 * PixelSize;
+    DestinRow  := PtrUInt(DestinData) + DestinImageWidth * DestinY  * PixelSize;
 
-    for DestinX := 0 to DestinWidth - 1 do
+    for DestinX := DestinRect.Left to DestinRect.Right - 1 do
     begin
       SourceXFrac := DestinX * SourceWidth / DestinWidth;
-      SourceX1 := Max(Trunc(SourceXFrac), 0);
-      SourceX2 := Min(SourceX1 + 1, SourceWidth - 1);
+      SourceX1 := Max(Trunc(SourceXFrac), SourceRect.Left);
+      SourceX2 := Min(SourceX1 + 1, SourceRect.Right - 1);
       SourceXFrac := Frac(SourceXFrac);
       Weights[0] := SourceXFrac * SourceYFrac;
-      Colors[0] := Pointer(Source2Row + SourceX2 * PixelSize);
+      Colors[0] := Pointer(PtrUInt(Source2Row + SourceX2 * PixelSize));
       Weights[1] := (1 - SourceXFrac) * SourceYFrac;
-      Colors[1] := Pointer(Source2Row + SourceX1 * PixelSize);
+      Colors[1] := Pointer(PtrUInt(Source2Row + SourceX1 * PixelSize));
       Weights[2] := (1 - SourceXFrac) * (1 - SourceYFrac);
-      Colors[2] := Pointer(Source1Row + SourceX1 * PixelSize);
+      Colors[2] := Pointer(PtrUInt(Source1Row + SourceX1 * PixelSize));
       Weights[3] :=  SourceXFrac * (1 - SourceYFrac);
-      Colors[3] := Pointer(Source1Row + SourceX2 * PixelSize);
-      MixColors(Pointer(DestinRow + DestinX * PixelSize), Weights, Colors);
+      Colors[3] := Pointer(PtrUInt(Source1Row + SourceX2 * PixelSize));
+      MixColors(Pointer(PtrUInt(DestinRow + DestinX * PixelSize)), Weights, Colors);
     end;
   end;
 
@@ -1999,6 +2015,11 @@ type
 var
   MakeLine: TMakeLineFunction;
 begin
+  SourceWidth  := SourceRect.Width;
+  SourceHeight := SourceRect.Height;
+  DestinWidth  := DestinRect.Width;
+  DestinHeight := DestinRect.Height;
+
   case Interpolation of
     riNearest : MakeLine := @MakeLineNearest;
     riBilinear: MakeLine := @MakeLineBilinear;
@@ -2007,12 +2028,13 @@ begin
 
   if ProgressTitle = '' then
   begin
-    for DestinY := 0 to DestinHeight - 1 do MakeLine;
+    for DestinY := DestinRect.Bottom to DestinRect.Top - 1 do
+      MakeLine;
   end else
   begin
     Progress.Init(DestinHeight, ProgressTitle);
     try
-      for DestinY := 0 to DestinHeight - 1 do
+      for DestinY := DestinRect.Bottom to DestinRect.Top - 1 do
       begin
         MakeLine;
         Progress.Step;
@@ -2021,46 +2043,126 @@ begin
   end;
 end;
 
-procedure TCastleImage.Resize(ResizeToX, ResizeToY: Cardinal;
+procedure TCastleImage.Resize(ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation;
   const ProgressTitle: string);
 var
   NewPixels: Pointer;
 begin
-  if ((ResizeToX <> 0) and (ResizeToX <> Width)) or
-     ((ResizeToY <> 0) and (ResizeToY <> Height)) then
+  if ((ResizeWidth <> 0) and (ResizeWidth <> Width)) or
+     ((ResizeHeight <> 0) and (ResizeHeight <> Height)) then
   begin
     { Make both ResizeTo* non-zero. }
-    if ResizeToX = 0 then ResizeToX := Width;
-    if ResizeToY = 0 then ResizeToY := Height;
+    if ResizeWidth = 0 then ResizeWidth := Width;
+    if ResizeHeight = 0 then ResizeHeight := Height;
 
-    NewPixels := GetMem(ResizeToX * ResizeToY * PixelSize);
-    InternalResize(PixelSize, RawPixels, Width, Height,
-      NewPixels, ResizeToX, ResizeToY, Interpolation, @MixColors, ProgressTitle);
+    NewPixels := GetMem(ResizeWidth * ResizeHeight * PixelSize);
+    InternalResize(PixelSize,
+      RawPixels, Rect, Width,
+      NewPixels, Rectangle(0, 0, ResizeWidth, ResizeHeight), ResizeWidth,
+      Interpolation, @MixColors, ProgressTitle);
     FreeMemNiling(FRawPixels);
 
     FRawPixels := NewPixels;
-    FWidth := ResizeToX;
-    FHeight := ResizeToY;
+    FWidth := ResizeWidth;
+    FHeight := ResizeHeight;
   end;
 end;
 
-function TCastleImage.MakeResized(ResizeToX, ResizeToY: Cardinal;
+function TCastleImage.MakeResized(ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation;
   const ProgressTitle: string): TCastleImage;
 begin
   { Make both ResizeTo* non-zero. }
-  if ResizeToX = 0 then ResizeToX := Width;
-  if ResizeToY = 0 then ResizeToY := Height;
+  if ResizeWidth = 0 then ResizeWidth := Width;
+  if ResizeHeight = 0 then ResizeHeight := Height;
 
-  Result := TCastleImageClass(ClassType).Create(ResizeToX, ResizeToY);
+  Result := TCastleImageClass(ClassType).Create(ResizeWidth, ResizeHeight);
   try
     if not IsEmpty then
       InternalResize(PixelSize,
-               RawPixels,        Width,        Height,
-        Result.RawPixels, Result.Width, Result.Height,
+               RawPixels,        Rect,        Width,
+        Result.RawPixels, Result.Rect, Result.Width,
         Interpolation, @MixColors, ProgressTitle);
   except Result.Free; raise end;
+end;
+
+procedure TCastleImage.Resize3x3(const ResizeWidth, ResizeHeight: Cardinal;
+  var Corners: TVector4Integer;
+  const Interpolation: TResizeInterpolation);
+var
+  NewPixels: Pointer;
+  NewCorners: TVector4Integer;
+  { Position that delimit parts along X or Y, for source and destination images. }
+  SourceXs, SourceYs, DestXs, DestYs: TVector4Integer;
+type
+  TPart = 0..2;
+
+  procedure ResizePart(const X, Y: TPart);
+  var
+    SourceRect, DestRect: TRectangle;
+  begin
+    SourceRect := Rectangle(SourceXs[X], SourceYs[Y],
+      SourceXs[Integer(X) + 1] - SourceXs[X],
+      SourceYs[Integer(Y) + 1] - SourceYs[Y]);
+    DestRect := Rectangle(DestXs[X], DestYs[Y],
+      DestXs[Integer(X) + 1] - DestXs[X],
+      DestYs[Integer(Y) + 1] - DestYs[Y]);
+    InternalResize(PixelSize,
+      RawPixels, SourceRect, Width,
+      NewPixels, DestRect, ResizeWidth,
+      Interpolation, @MixColors, '');
+  end;
+
+var
+  X, Y: TPart;
+begin
+  if (ResizeWidth <> Width) or (ResizeHeight <> Height) then
+  begin
+    NewCorners[0] := Corners[0] * ResizeWidth div Width;
+    NewCorners[1] := Corners[1] * ResizeHeight div Height;
+    NewCorners[2] := Corners[2] * ResizeWidth div Width;
+    NewCorners[3] := Corners[3] * ResizeHeight div Height;
+
+    if not ( (Corners[3] + Corners[1] < Width) and
+             (Corners[2] + Corners[0] < Height) and
+             (NewCorners[3] + NewCorners[1] < ResizeWidth) and
+             (NewCorners[2] + NewCorners[0] < ResizeHeight) ) then
+      raise Exception.CreateFmt('TCastleImage.Resize3x3: Cannot resize image with corners because corners are larger then image size. Source corners: %s, source size: %dx%d, destination corners: %s, destination size: %dx%d',
+        [VectorToNiceStr(Corners), Width, Height,
+         VectorToNiceStr(NewCorners), ResizeWidth, ResizeHeight]);
+
+    SourceXs[0] := 0;
+    SourceXs[1] := Corners[3];
+    SourceXs[2] := Width - Corners[1];
+    SourceXs[3] := Width;
+
+    SourceYs[0] := 0;
+    SourceYs[1] := Corners[2];
+    SourceYs[2] := Height - Corners[0];
+    SourceYs[3] := Height;
+
+    DestXs[0] := 0;
+    DestXs[1] := NewCorners[3];
+    DestXs[2] := ResizeWidth - NewCorners[1];
+    DestXs[3] := ResizeWidth;
+
+    DestYs[0] := 0;
+    DestYs[1] := NewCorners[2];
+    DestYs[2] := ResizeHeight - NewCorners[0];
+    DestYs[3] := ResizeHeight;
+
+    NewPixels := GetMem(ResizeWidth * ResizeHeight * PixelSize);
+    for X in TPart do
+      for Y in TPart do
+        ResizePart(X, Y);
+    FreeMemNiling(FRawPixels);
+
+    FRawPixels := NewPixels;
+    FWidth := ResizeWidth;
+    FHeight := ResizeHeight;
+    Corners := NewCorners;
+  end;
 end;
 
 function TCastleImage.MakeRotated(Angle: Integer): TCastleImage;
@@ -3945,11 +4047,11 @@ end;
 
 function LoadImage(const URL: string;
   const AllowedImageClasses: array of TCastleImageClass;
-  const ResizeToX, ResizeToY: Cardinal;
+  const ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation): TCastleImage;
 begin
-  result := LoadImage(URL, AllowedImageClasses);
-  Result.Resize(ResizeToX, ResizeToY, Interpolation);
+  Result := LoadImage(URL, AllowedImageClasses);
+  Result.Resize(ResizeWidth, ResizeHeight, Interpolation);
 end;
 
 { SaveImage na TCastleImage ---------------------------------------------------- }

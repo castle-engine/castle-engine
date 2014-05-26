@@ -100,6 +100,16 @@ type
     { @groupEnd }
 
     property LeftBottom: TVector2Integer read GetLeftBottom write SetLeftBottom;
+
+    { Clamp value to be within allowed horizontal range.
+      That is, clamp to @code([Left, Right - 1]). }
+    function ClampX(const X: Integer): Integer;
+
+    { Clamp value to be within allowed vertical range.
+      That is, clamp to @code([Bottom, Top - 1]). }
+    function ClampY(const Y: Integer): Integer;
+
+    function ToString: string;
   end;
 
   TRectangleList = class(specialize TGenericStructList<TRectangle>)
@@ -117,7 +127,8 @@ function Rectangle(const LeftBottom: TVector2Integer;
 
 implementation
 
-uses CastleUtils;
+uses SysUtils,
+  CastleUtils;
 
 { TRectangle ----------------------------------------------------------------- }
 
@@ -293,6 +304,29 @@ procedure TRectangle.SetLeftBottom(const Value: TVector2Integer);
 begin
   Left := Value[0];
   Bottom := Value[1];
+end;
+
+function TRectangle.ClampX(const X: Integer): Integer;
+begin
+  if X <  Left then
+    Result := Left else
+  if X >= Left + Width then
+    Result := Left + Width - 1 else
+    Result := X;
+end;
+
+function TRectangle.ClampY(const Y: Integer): Integer;
+begin
+  if Y <  Bottom then
+    Result := Bottom else
+  if Y >= Bottom + Height then
+    Result := Bottom + Height - 1 else
+    Result := Y;
+end;
+
+function TRectangle.ToString: string;
+begin
+  Result := Format('TRectangle: %dx%d %dx%d', [Left, Bottom, Width, Height]);
 end;
 
 { TRectangleList -------------------------------------------------------------- }

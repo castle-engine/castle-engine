@@ -1519,6 +1519,7 @@ function FloatToNiceStr(f: Double): string; overload;
 function VectorToNiceStr(const v: array of Byte): string; overload;
 function VectorToNiceStr(const v: array of Single): string; overload;
 function VectorToNiceStr(const v: array of Double): string; overload;
+function VectorToNiceStr(const v: array of Integer): string; overload;
 function MatrixToNiceStr(const v: TMatrix4Single; const LineIndent: string): string; overload;
 function MatrixToNiceStr(const v: TMatrix4Double; const LineIndent: string): string; overload;
 
@@ -3044,6 +3045,15 @@ begin
 end;
 
 function VectorToNiceStr(const v: array of Byte): string; overload;
+var
+  i: Integer;
+begin
+  result := '(';
+  for i := 0 to High(v)-1 do result := result +IntToStr(v[i]) +', ';
+  if High(v) >= 0 then result := result +IntToStr(v[High(v)]) +')';
+end;
+
+function VectorToNiceStr(const v: array of Integer): string; overload;
 var
   i: Integer;
 begin
