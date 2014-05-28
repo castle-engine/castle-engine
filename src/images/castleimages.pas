@@ -1942,13 +1942,12 @@ type
   It assumes that SourceData and DestinData pointers are already allocated.
   DestinWidth, DestinHeight must not be 0. }
 procedure InternalResize(PixelSize: Cardinal;
-  const SourceData: Pointer; const SourceRect: TRectangle; const SourceImageWidth: Cardinal;
-  const DestinData: Pointer; const DestinRect: TRectangle; const DestinImageWidth: Cardinal;
+  const SourceData: Pointer; const SourceRect: TRectangle; const SourceWidth, SourceHeight: Cardinal;
+  const DestinData: Pointer; const DestinRect: TRectangle; const DestinWidth, DestinHeight: Cardinal;
   const Interpolation: TResizeInterpolation;
   const MixColors: TMixColorsFunction;
   const ProgressTitle: string);
 var
-  SourceWidth, SourceHeight, DestinWidth, DestinHeight: Cardinal;
   DestinY: Integer;
 
   procedure MakeLineNearest;
@@ -1958,8 +1957,8 @@ var
     SourceRow, DestinRow: PtrUInt;
   begin
     SourceY := SourceRect.ClampY(DestinY * SourceHeight div DestinHeight);
-    SourceRow := PtrUInt(SourceData) + SourceImageWidth * SourceY * PixelSize;
-    DestinRow := PtrUInt(DestinData) + DestinImageWidth * DestinY * PixelSize;
+    SourceRow := PtrUInt(SourceData) + SourceWidth * SourceY * PixelSize;
+    DestinRow := PtrUInt(DestinData) + DestinWidth * DestinY * PixelSize;
 
     for DestinX := DestinRect.Left to DestinRect.Right - 1 do
     begin
@@ -1988,9 +1987,9 @@ var
     SourceY1 := Max(Trunc(SourceYFrac), SourceRect.Bottom);
     SourceY2 := Min(SourceY1 + 1, SourceRect.Top - 1);
     SourceYFrac := Frac(SourceYFrac);
-    Source1Row := PtrUInt(SourceData) + SourceImageWidth * SourceY1 * PixelSize;
-    Source2Row := PtrUInt(SourceData) + SourceImageWidth * SourceY2 * PixelSize;
-    DestinRow  := PtrUInt(DestinData) + DestinImageWidth * DestinY  * PixelSize;
+    Source1Row := PtrUInt(SourceData) + SourceWidth * SourceY1 * PixelSize;
+    Source2Row := PtrUInt(SourceData) + SourceWidth * SourceY2 * PixelSize;
+    DestinRow  := PtrUInt(DestinData) + DestinWidth * DestinY  * PixelSize;
 
     for DestinX := DestinRect.Left to DestinRect.Right - 1 do
     begin
@@ -2015,11 +2014,6 @@ type
 var
   MakeLine: TMakeLineFunction;
 begin
-  SourceWidth  := SourceRect.Width;
-  SourceHeight := SourceRect.Height;
-  DestinWidth  := DestinRect.Width;
-  DestinHeight := DestinRect.Height;
-
   case Interpolation of
     riNearest : MakeLine := @MakeLineNearest;
     riBilinear: MakeLine := @MakeLineBilinear;
@@ -2058,8 +2052,8 @@ begin
 
     NewPixels := GetMem(ResizeWidth * ResizeHeight * PixelSize);
     InternalResize(PixelSize,
-      RawPixels, Rect, Width,
-      NewPixels, Rectangle(0, 0, ResizeWidth, ResizeHeight), ResizeWidth,
+      RawPixels, Rect, Width, Height,
+      NewPixels, Rectangle(0, 0, ResizeWidth, ResizeHeight), ResizeWidth, ResizeHeight,
       Interpolation, @MixColors, ProgressTitle);
     FreeMemNiling(FRawPixels);
 
@@ -2081,8 +2075,8 @@ begin
   try
     if not IsEmpty then
       InternalResize(PixelSize,
-               RawPixels,        Rect,        Width,
-        Result.RawPixels, Result.Rect, Result.Width,
+               RawPixels,        Rect,        Width,        Height,
+        Result.RawPixels, Result.Rect, Result.Width, Result.Height,
         Interpolation, @MixColors, ProgressTitle);
   except Result.Free; raise end;
 end;
@@ -2109,8 +2103,8 @@ type
       DestXs[Integer(X) + 1] - DestXs[X],
       DestYs[Integer(Y) + 1] - DestYs[Y]);
     InternalResize(PixelSize,
-      RawPixels, SourceRect, Width,
-      NewPixels, DestRect, ResizeWidth,
+      RawPixels, SourceRect, Width, Height,
+      NewPixels, DestRect, ResizeWidth, ResizeHeight,
       Interpolation, @MixColors, '');
   end;
 
