@@ -811,6 +811,9 @@ end;
       @item(prHigh refers to the right (or top) border.)
     )
 
+    You can use constants prLeft, prRight, prTop, prBottom instead
+    of prLow and prHight to cleanly indicate the meaning.
+
     In most cases you use equal both control and container borders.
     For example, both OurBorder and ContainerBorder are equal for
     TUIControlPos.AlignHorizontal call.
@@ -991,6 +994,11 @@ const
   ds2D = rs2D deprecated;
   { Deprecated name for rs3D. }
   ds3D = rs3D deprecated;
+
+  prLeft = prLow;
+  prRight = prHigh;
+  prBottom = prLow;
+  prTop = prHigh;
 
 implementation
 

@@ -21,7 +21,8 @@ unit CastleFonts;
 interface
 
 uses Classes, CastleGLImages, CastleStringUtils, CastleColors,
-  CastleVectors, CastleTextureFontData, CastleImages, CastleUnicode;
+  CastleVectors, CastleTextureFontData, CastleImages, CastleUnicode,
+  CastleRectangles, CastleUIControls;
 
 type
   { Abstract class for 2D font. }
@@ -180,7 +181,7 @@ type
 
       Note that BonusVerticalSpace can be < 0 (as well as > 0),
       this may be sometimes useful if you really want to squeeze
-      more text into some size. Still, make sure that
+      more text into the available space. Still, make sure that
       (RowHeight + BonusVerticalSpace) is > 0.
 
       May require 1 free slot on the attributes stack.
@@ -246,7 +247,14 @@ type
       Overloaded and deprecated version without
       explicit Color parameter uses CurrentColor.
 
+      Overloaded version that takes rectangle as a parameter can
+      align the resulting string box within the rectangle.
+
       @groupBegin }
+    function PrintBrokenString(const Rect: TRectangle; const Color: TCastleColor;
+      const S: string;
+      const BonusVerticalSpace: Integer;
+      const AlignHorizontal, AlignVertical: TPositionRelative): Integer;
     function PrintBrokenString(X0, Y0: Integer; const Color: TCastleColor;
       const S: string; const MaxLineWidth: Integer;
       const PositionsFirst: boolean;
@@ -643,16 +651,58 @@ function TCastleFont.PrintBrokenString(
   const PositionsFirst: boolean;
   const BonusVerticalSpace: Integer): Integer;
 var
-  broken: TStringList;
+  Broken: TStringList;
 begin
-  broken := TStringList.Create;
+  Broken := TStringList.Create;
   try
-    BreakLines(s, broken, MaxLineWidth);
+    BreakLines(s, Broken, MaxLineWidth);
     if PositionsFirst then
-      Y0 -= (broken.Count-1)*(RowHeight + BonusVerticalSpace);
-    PrintStrings(X0, Y0, Color, broken, false, BonusVerticalSpace);
-    result := broken.Count;
-  finally broken.Free end;
+      Y0 -= (broken.Count-1) * (RowHeight + BonusVerticalSpace);
+    PrintStrings(X0, Y0, Color, Broken, false, BonusVerticalSpace);
+    Result := Broken.Count;
+  finally FreeAndNil(Broken) end;
+end;
+
+function TCastleFont.PrintBrokenString(const Rect: TRectangle;
+  const Color: TCastleColor; const S: string;
+  const BonusVerticalSpace: Integer;
+  const AlignHorizontal, AlignVertical: TPositionRelative): Integer;
+const
+  Tags = false; // fow now always false, because BreakLines cannot handle tags
+var
+  Broken: TStringList;
+
+  { TODO: we could also extract this information, at zero cost, from
+    BreakLines method. }
+  function BrokenWidth: Integer;
+  begin
+    Result := MaxTextWidth(Broken, Tags);
+  end;
+
+var
+  X0, Y0, BrokenHeight: Integer;
+begin
+  Broken := TStringList.Create;
+  try
+    BreakLines(S, Broken, Rect.Width);
+    { calculate X0 based on Rect and BrokenWidth }
+    case AlignHorizontal of
+      prLow   : X0 := Rect.Left;
+      prMiddle: X0 := Rect.Left + (Rect.Width - BrokenWidth) div 2;
+      prHigh  : X0 := Rect.Right - BrokenWidth;
+      else raise EInternalError.Create('PrintBrokenString.AlignHorizontal?');
+    end;
+    { calculate Y0 based on Rect and BrokenHeight }
+    BrokenHeight := Broken.Count * (BonusVerticalSpace + RowHeight);
+    case AlignVertical of
+      prLow   : Y0 := Rect.Bottom;
+      prMiddle: Y0 := Rect.Bottom + (Rect.Height - BrokenHeight) div 2;
+      prHigh  : Y0 := Rect.Top - BrokenHeight;
+      else raise EInternalError.Create('PrintBrokenString.AlignVertical?');
+    end;
+    PrintStrings(X0, Y0, Color, Broken, Tags, BonusVerticalSpace);
+    Result := Broken.Count;
+  finally FreeAndNil(Broken) end;
 end;
 
 function TCastleFont.PrintBrokenString(const S: string;
