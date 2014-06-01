@@ -32,6 +32,7 @@ type
     TooltipLabel: TCastleLabel;
     FCustomFont: TCastleFont;
     FOwnsCustomFont: boolean;
+    FLastSeenUIFont: TCastleFont; //< remembered only to call FontChanged
     procedure SetCustomFont(const Value: TCastleFont);
   protected
     { Font custom to this control. By default this returns UIFont,
@@ -39,11 +40,24 @@ type
       It's OK to return here @nil if font is not ready yet,
       but during Render (when OpenGL context is available) font must be ready. }
     function Font: TCastleFont; virtual;
+    { Called when Font result changed, either by setting CustomFont or when
+      UIFont assigned changed. }
+    procedure FontChanged; virtual;
   public
     destructor Destroy; override;
     procedure GLContextClose; override;
     function TooltipExists: boolean; override;
     procedure TooltipRender; override;
+    procedure Render; override;
+    { Check does currently used font (see CustomFont) changed,
+      and eventually call FontChanged method @italic(now).
+
+      You only need to explicitly call this is very specific circumstances,
+      when you just changed UIFont (changing CustomFont automatically
+      immediately calls FontChanged) and you want control size to be updated
+      immediately (for example, you need TCastleButton.Height to be immediately
+      valid). Without calling this, it could be updated only at next Render call. }
+    procedure CheckFontChanged;
   published
     { Tooltip string, displayed when user hovers the mouse over a control.
 
@@ -106,6 +120,8 @@ type
     procedure SetMinWidth(const Value: Cardinal);
     procedure SetMinHeight(const Value: Cardinal);
     procedure SetImageMargin(const Value: Cardinal);
+  protected
+    procedure FontChanged; override;
   public
     const
       DefaultImageMargin = 10;
@@ -722,6 +738,44 @@ begin
   RegisterComponents('Castle', [TCastleButton, TCastleImageControl]);
 end;
 
+{ UIFont --------------------------------------------------------------------- }
+
+var
+  FUIFont: TCastleFont;
+  FUIFontSmall: TCastleFont;
+
+function GetUIFont: TCastleFont;
+begin
+  if FUIFont = nil then
+    FUIFont := TTextureFont.Create(TextureFont_DejaVuSans_20);
+  Result := FUIFont;
+end;
+
+procedure SetUIFont(const Value: TCastleFont);
+begin
+  if FUIFont <> Value then
+  begin
+    FreeAndNil(FUIFont);
+    FUIFont := Value;
+  end;
+end;
+
+function GetUIFontSmall: TCastleFont;
+begin
+  if FUIFontSmall = nil then
+    FUIFontSmall := TTextureFont.Create(TextureFont_DejaVuSans_10);
+  Result := FUIFontSmall;
+end;
+
+procedure SetUIFontSmall(const Value: TCastleFont);
+begin
+  if FUIFontSmall <> Value then
+  begin
+    FreeAndNil(FUIFontSmall);
+    FUIFontSmall := Value;
+  end;
+end;
+
 { TUIControlFont ---------------------------------------------------------- }
 
 destructor TUIControlFont.Destroy;
@@ -800,7 +854,25 @@ begin
       FreeAndNil(FCustomFont) else
       FCustomFont := nil;
     FCustomFont := Value;
+    FontChanged;
   end;
+end;
+
+procedure TUIControlFont.FontChanged;
+begin
+end;
+
+procedure TUIControlFont.Render;
+begin
+  inherited;
+  CheckFontChanged;
+end;
+
+procedure TUIControlFont.CheckFontChanged;
+begin
+  if (CustomFont = nil) and (FLastSeenUIFont <> FUIFont) then
+    FontChanged;
+  FLastSeenUIFont := FUIFont; // do not use UIFont to not create font without need
 end;
 
 { TCastleButton --------------------------------------------------------------- }
@@ -828,6 +900,8 @@ var
   TextLeft, TextBottom, ImgLeft, ImgBottom: Integer;
   Background: TThemeImage;
 begin
+  inherited;
+
   if Pressed then
     Background := tiButtonPressed else
   if Focused then
@@ -974,6 +1048,12 @@ begin
     FAutoSizeHeight := Value;
     UpdateTextSize;
   end;
+end;
+
+procedure TCastleButton.FontChanged;
+begin
+  inherited;
+  UpdateTextSize;
 end;
 
 procedure TCastleButton.UpdateTextSize;
@@ -1164,6 +1244,7 @@ const
 var
   I: Integer;
 begin
+  inherited;
   Theme.Draw(Rect, tiPanel);
 
   for I := 0 to VerticalSeparators.Count - 1 do
@@ -1247,6 +1328,7 @@ end;
 
 procedure TCastleImageControl.Render;
 begin
+  inherited;
   if FGLImage = nil then Exit;
   FGLImage.Draw(Rect);
   { Useful to debug that Proportional works.
@@ -1458,6 +1540,7 @@ end;
 
 procedure TCastleCrosshair.Render;
 begin
+  inherited;
   Theme.Draw(Rect, ImageType);
 end;
 
@@ -1546,6 +1629,7 @@ var
   InnerRect: TRectangle;
   ImageInner, ImageOuter: TThemeImage;
 begin
+  inherited;
   if FTouchMode = ctcmFlyUpdown then
   begin
     ImageInner := tiTouchCtlFlyInner;
@@ -1689,6 +1773,7 @@ end;
 
 procedure TCastleSimpleBackground.Render;
 begin
+  inherited;
   GLClear([cbColor], Color);
 end;
 
@@ -2131,6 +2216,7 @@ procedure TCastleLabel.Render;
 var
   R: TRectangle;
 begin
+  inherited;
   if Text.Count = 0 then Exit;
   R := Rect;
   Theme.Draw(Rect, ImageType);
@@ -2249,6 +2335,8 @@ var
   Caption: string;
   BarRect, FillRect: TRectangle;
 begin
+  inherited;
+
   if Progress = nil then Exit;
 
   if FGLBackground <> nil then
@@ -2475,44 +2563,6 @@ var
 function Theme: TCastleTheme;
 begin
   Result := FTheme;
-end;
-
-{ UIFont --------------------------------------------------------------------- }
-
-var
-  FUIFont: TCastleFont;
-  FUIFontSmall: TCastleFont;
-
-function GetUIFont: TCastleFont;
-begin
-  if FUIFont = nil then
-    FUIFont := TTextureFont.Create(TextureFont_DejaVuSans_20);
-  Result := FUIFont;
-end;
-
-procedure SetUIFont(const Value: TCastleFont);
-begin
-  if FUIFont <> Value then
-  begin
-    FreeAndNil(FUIFont);
-    FUIFont := Value;
-  end;
-end;
-
-function GetUIFontSmall: TCastleFont;
-begin
-  if FUIFontSmall = nil then
-    FUIFontSmall := TTextureFont.Create(TextureFont_DejaVuSans_10);
-  Result := FUIFontSmall;
-end;
-
-procedure SetUIFontSmall(const Value: TCastleFont);
-begin
-  if FUIFontSmall <> Value then
-  begin
-    FreeAndNil(FUIFontSmall);
-    FUIFontSmall := Value;
-  end;
 end;
 
 procedure ContextClose;
