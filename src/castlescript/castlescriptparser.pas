@@ -35,7 +35,8 @@ type
   ECasScriptSyntaxError = CastleScriptLexer.ECasScriptSyntaxError;
 
 { Creates and returns instance of TCasScriptExpression,
-  that represents parsed tree of expression in S.
+  that represents parsed tree of expression in S,
+  casted to float.
 
   This parses a subset of CastleScript language, that allows you
   to define only one expression without any assignments.
@@ -62,6 +63,15 @@ type
 
   @raises(ECasScriptSyntaxError in case of error when parsing expression.) }
 function ParseFloatExpression(const S: string;
+  const Variables: array of TCasScriptValue): TCasScriptExpression;
+
+{ Creates and returns instance of TCasScriptExpression,
+  that represents parsed tree of expression in S.
+  @param(Variables contains a list of named values you want
+    to allow in this expression.
+    See ParseFloatExpression for description.)
+  @raises(ECasScriptSyntaxError in case of error when parsing expression.) }
+function ParseExpression(const S: string;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 
 { Parse constant float expression.
@@ -478,6 +488,34 @@ begin
 
       { At the end, wrap Result in float() cast. }
       Result := TCasScriptFloatFun.Create([Result]);
+    except Result.FreeByParentExpression; raise end;
+  finally Lexer.Free end;
+end;
+
+function ParseExpression(const S: string;
+  const Variables: array of TCasScriptValue): TCasScriptExpression;
+var
+  Lexer: TCasScriptLexer;
+  I: Integer;
+begin
+  for I := 0 to Length(Variables) - 1 do
+    Variables[I].OwnedByParentExpression := false;
+
+  Lexer := TCasScriptLexer.Create(s);
+  try
+    Result := nil;
+    try
+      try
+        Result := Expression(Lexer, nil { no Environment }, Variables);
+        Lexer.CheckTokenIs(tokEnd);
+      except
+        { Change ECasScriptFunctionArgumentsError (raised when
+          creating functions) to ECasScriptParserError.
+          This allows the caller to catch only ECasScriptSyntaxError,
+          and adds position information to error message. }
+        on E: ECasScriptFunctionArgumentsError do
+          raise ECasScriptParserError.Create(Lexer, E.Message);
+      end;
     except Result.FreeByParentExpression; raise end;
   finally Lexer.Free end;
 end;
