@@ -44,6 +44,7 @@ type
 
     function Contains(const X, Y: Integer): boolean;
     function Contains(const Point: TVector2Single): boolean;
+    function Contains(const Point: TVector2Integer): boolean;
 
     { Right and Top pixels are 1 pixel *outside* of the rectangle.
       @groupBegin }
@@ -157,6 +158,12 @@ begin
 end;
 
 function TRectangle.Contains(const Point: TVector2Single): boolean;
+begin
+  Result := (Point[0] >= Left  ) and (Point[0] < Left   + Integer(Width)) and
+            (Point[1] >= Bottom) and (Point[1] < Bottom + Integer(Height));
+end;
+
+function TRectangle.Contains(const Point: TVector2Integer): boolean;
 begin
   Result := (Point[0] >= Left  ) and (Point[0] < Left   + Integer(Width)) and
             (Point[1] >= Bottom) and (Point[1] < Bottom + Integer(Height));
