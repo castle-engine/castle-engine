@@ -115,7 +115,9 @@ type
       as a separator, so a path like @code(/some////path/) is equivalent
       to a path like (some/path). But don't depend on this behavior.
 
-      Returns nil if there is no such element.
+      If there is no such element:
+      when RaiseExceptionWhenMissing=@true, raises exception.
+      when RaiseExceptionWhenMissing=@false, returns @nil.
 
       Remember that XMLConfig idea of XML document is limited.
       That's intentional (XMLConfig is supposed to offer only a simple limited
@@ -125,7 +127,33 @@ type
       the second one. Which means that if you use this method to change
       some XML content, you should be careful when accessing this content
       from regular XMLConfig Get/SetValue methods. }
-    function PathElement(const APath: string): TDOMElement;
+    function PathElement(const APath: string;
+      const RaiseExceptionWhenMissing: boolean = false): TDOMElement;
+
+    { For a given path, return corresponding children elements of a given
+      DOM element of XML tree. For example, you have an XML like this:
+
+@preformatted(
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <game_configuration>
+    <locations>
+      <location name="location_1st">...</location>
+      <location name="location_2nd">...</location>
+    </locations>
+  </game_configuration>
+</CONFIG>
+)
+
+      You could use @code(PathElement('game_configuration/locations'))
+      to get the @code(<locations>) DOM element.
+      Or you could use this method @code(PathChildren('game_configuration/locations',
+        'location')) to get a list of <location> elements.
+
+      Raises exception if element indicated by APath does not exist.
+      (But it is OK if it is empty.)
+      Never returns @nil. }
+    function PathChildren(const APath: string; const ChildName: string): TDOMNodeList;
 
     { Read an URL from an XML attribute.
       The attribute in an XML file may be an absolute or relative URL,
@@ -172,7 +200,7 @@ type
       It uses @link(ApplicationConfig) to determine location of this file.
 
       The overloaded version with TStream parameter loads from a stream.
-      The URL is always set to empty.
+      URL is set to empty.
 
       @groupBegin }
     procedure Load(const AURL: string);
@@ -357,7 +385,8 @@ begin
   SetDeleteValue(APath, KeyToStr(AValue), KeyToStr(ADefaultValue));
 end;
 
-function TCastleConfig.PathElement(const APath: string): TDOMElement;
+function TCastleConfig.PathElement(const APath: string;
+  const RaiseExceptionWhenMissing: boolean): TDOMElement;
 
   { Find a children element, nil if not found. }
   function FindElementChildren(Element: TDOMElement;
@@ -383,6 +412,15 @@ begin
     if PathComponent = '' then break;
     Result := FindElementChildren(Result, PathComponent);
   end;
+
+  if (Result = nil) and RaiseExceptionWhenMissing then
+    raise Exception.CreateFmt('Missing element "%s" in file "%s"', [APath, URL]);
+end;
+
+function TCastleConfig.PathChildren(const APath: string;
+  const ChildName: string): TDOMNodeList;
+begin
+  Result := PathElement(APath, true).GetElementsByTagName(ChildName);
 end;
 
 function TCastleConfig.GetURL(const APath: string;

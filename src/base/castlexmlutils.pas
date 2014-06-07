@@ -24,25 +24,35 @@ uses SysUtils, DOM, CastleUtils;
   or (of there is no such attribute) returns @false
   and does not modify Value. Value is a "var", not "out" param,
   because in the latter case it's guaranteed that the old Value
-  will not be cleared. }
+  will not be cleared.
+
+  @deprecated Deprecated, use Element.AttributeString instead. }
 function DOMGetAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: string): boolean;
+  const AttrName: string; var Value: string): boolean; deprecated;
 
-{ Like DOMGetAttribute, but reads Cardinal value. }
+{ Like DOMGetAttribute, but reads Cardinal value.
+
+  @deprecated Deprecated, use Element.AttributeCardinal instead. }
 function DOMGetCardinalAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Cardinal): boolean;
+  const AttrName: string; var Value: Cardinal): boolean; deprecated;
 
-{ Like DOMGetAttribute, but reads Integer value. }
+{ Like DOMGetAttribute, but reads Integer value.
+
+  @deprecated Deprecated, use Element.AttributeInteger instead. }
 function DOMGetIntegerAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Integer): boolean;
+  const AttrName: string; var Value: Integer): boolean; deprecated;
 
-{ Like DOMGetAttribute, but reads Single value. }
+{ Like DOMGetAttribute, but reads Single value.
+
+  @deprecated Deprecated, use Element.AttributeSingle instead. }
 function DOMGetSingleAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Single): boolean;
+  const AttrName: string; var Value: Single): boolean; deprecated;
 
-{ Like DOMGetAttribute, but reads Float value. }
+{ Like DOMGetAttribute, but reads Float value.
+
+  @deprecated Deprecated, use Element.AttributeFloat instead. }
 function DOMGetFloatAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Float): boolean;
+  const AttrName: string; var Value: Float): boolean; deprecated;
 
 { Like DOMGetAttribute, but reads Boolean value.
   A boolean value is interpreted just like FPC's TXMLConfig
@@ -51,9 +61,124 @@ function DOMGetFloatAttribute(const Element: TDOMElement;
 
   If attribute exists but it's value
   is not @code(true) or @code(false), then returns @false and doesn't
-  modify Value paramater. So behaves just like the attribute didn't exist. }
+  modify Value paramater. So behaves just like the attribute didn't exist.
+
+  @deprecated Deprecated, use Element.AttributeBoolean instead. }
 function DOMGetBooleanAttribute(const Element: TDOMElement;
   const AttrName: string; var Value: boolean): boolean;
+
+type
+  EDOMAttributeMissing = class(Exception);
+
+  TDOMElementHelper = class helper for TDOMElement
+    { Read from Element attribute value and returns @true,
+      or (of there is no such attribute) returns @false
+      and does not modify Value. Value is a "var", not "out" param,
+      because in the latter case it's guaranteed that the old Value
+      will not be cleared. }
+    function AttributeString(const AttrName: string; var Value: string): boolean;
+
+    { Read from Element attribute value as URL and returns @true,
+      or (of there is no such attribute) returns @false
+      and does not modify Value.
+
+      Returned URL is always absolute. The value in file may be a relative URL,
+      it is resolved with respect to BaseUrl, that must be absolute. }
+    function AttributeURL(const AttrName: string; const BaseUrl: string; var URL: string): boolean;
+
+    { Read from Element attribute value as Cardinal and returns @true,
+      or (of there is no such attribute) returns @false
+      and does not modify Value. }
+    function AttributeCardinal(const AttrName: string; var Value: Cardinal): boolean;
+
+    { Read from Element attribute value as Integer and returns @true,
+      or (of there is no such attribute) returns @false
+      and does not modify Value. }
+    function AttributeInteger(const AttrName: string; var Value: Integer): boolean;
+
+    { Read from Element attribute value as Single and returns @true,
+      or (of there is no such attribute) returns @false
+      and does not modify Value. }
+    function AttributeSingle(const AttrName: string; var Value: Single): boolean;
+
+    { Read from Element attribute value as Float and returns @true,
+      or (of there is no such attribute) returns @false
+      and does not modify Value. }
+    function AttributeFloat(const AttrName: string; var Value: Float): boolean;
+
+    { Read from Element attribute value as Boolean and returns @true,
+      or (of there is no such attribute) returns @false
+      and does not modify Value.
+
+      A boolean value is interpreted just like FPC's TXMLConfig
+      objects: true is designated by word @code(true), false by word
+      @code(false), case is ignored.
+      If attribute exists but it's value
+      is not @code(true) or @code(false), then returns @false and doesn't
+      modify Value paramater. So behaves just like the attribute didn't exist. }
+    function AttributeBoolean(const AttrName: string; var Value: boolean): boolean;
+
+    { Retrieves from Element given attribute as a string,
+      raises EDOMAttributeMissing if missing.
+      @raises EDOMAttributeMissing }
+    function AttributeString(const AttrName: string): string;
+
+    { Retrieves from Element given attribute as an absolute URL,
+      raises EDOMAttributeMissing if missing.
+      Returns URL is always absolute. The value in file may be a relative URL,
+      it is resolved with respect to BaseUrl, that must be absolute.
+      @raises EDOMAttributeMissing }
+    function AttributeURL(const AttrName: string; const BaseUrl: string): string;
+
+    { Retrieves from Element given attribute as a Cardinal,
+      raises EDOMAttributeMissing if missing.
+      @raises EDOMAttributeMissing }
+    function AttributeCardinal(const AttrName: string): Cardinal;
+
+    { Retrieves from Element given attribute as an Integer,
+      raises EDOMAttributeMissing if missing.
+      @raises EDOMAttributeMissing }
+    function AttributeInteger(const AttrName: string): Integer;
+
+    { Retrieves from Element given attribute as a Single,
+      raises EDOMAttributeMissing if missing.
+      @raises EDOMAttributeMissing }
+    function AttributeSingle(const AttrName: string): Single;
+
+    { Retrieves from Element given attribute as a Float,
+      raises EDOMAttributeMissing if missing.
+      @raises EDOMAttributeMissing }
+    function AttributeFloat(const AttrName: string): Float;
+
+    { Retrieves from Element given attribute as a boolean,
+      raises EDOMAttributeMissing if missing or has invalid value.
+      A boolean value is interpreted just like FPC's TXMLConfig
+      objects: true is designated by word @code(true), false by word
+      @code(false), case is ignored.
+
+      If attribute exists but it's value
+      is not @code(true) or @code(false), then raises EDOMAttributeMissing.
+      So behaves just like the attribute didn't exist.
+
+      @raises EDOMAttributeMissing }
+    function AttributeBoolean(const AttrName: string): boolean;
+
+    { Retrieves from Element given attribute as a string, or a default value. }
+    function AttributeStringDef(const AttrName: string; const DefaultValue: string): string;
+
+    { Retrieves from Element given attribute as an Integer, or a default value. }
+    function AttributeIntegerDef(const AttrName: string; const DefaultValue: Integer): Integer;
+
+    { Retrieves from Element given attribute as a Single, or a default value. }
+    function AttributeSingleDef(const AttrName: string; const DefaultValue: Single): Single;
+
+    { Retrieves from Element given attribute as a Float, or a default value. }
+    function AttributeFloatDef(const AttrName: string; const DefaultValue: Float): Float;
+
+    { Retrieves from Element given attribute as a boolean,
+      returns a default value if missing or has invalid value. }
+    function AttributeBooleanDef(const AttrName: string; const DefaultValue: boolean): boolean;
+  end;
 
 { This returns the @italic(one and only) child element of this Element.
   If given Element has none or more than one child elements,
@@ -240,14 +365,16 @@ procedure URLWriteXML(Doc: TXMLDocument; const URL: String);
 
 implementation
 
-uses Classes, CastleDownload, XMLRead, XMLWrite;
+uses Classes, XMLRead, XMLWrite,
+  CastleDownload, CastleURIUtils;
 
-function DOMGetAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: string): boolean;
+{ TDOMElementHelper ---------------------------------------------------------- }
+
+function TDOMElementHelper.AttributeString(const AttrName: string; var Value: string): boolean;
 var
   AttrNode: TDOMNode;
 begin
-  AttrNode := Element.Attributes.GetNamedItem(AttrName);
+  AttrNode := Attributes.GetNamedItem(AttrName);
   Result := AttrNode <> nil;
   if Result then
   begin
@@ -257,52 +384,60 @@ begin
   end;
 end;
 
-function DOMGetCardinalAttribute(const Element: TDOMElement;
+function TDOMElementHelper.AttributeURL(
+  const AttrName: string; const BaseUrl: string; var URL: string): boolean;
+begin
+  Result := AttributeString(AttrName, URL);
+  if Result then
+    URL := CombineURI(BaseUrl, URL);
+end;
+
+function TDOMElementHelper.AttributeCardinal(
   const AttrName: string; var Value: Cardinal): boolean;
 var
   ValueStr: string;
 begin
-  Result := DOMGetAttribute(Element, AttrName, ValueStr);
+  Result := AttributeString(AttrName, ValueStr);
   if Result then
     Value := StrToInt(ValueStr);
 end;
 
-function DOMGetIntegerAttribute(const Element: TDOMElement;
+function TDOMElementHelper.AttributeInteger(
   const AttrName: string; var Value: Integer): boolean;
 var
   ValueStr: string;
 begin
-  Result := DOMGetAttribute(Element, AttrName, ValueStr);
+  Result := AttributeString(AttrName, ValueStr);
   if Result then
     Value := StrToInt(ValueStr);
 end;
 
-function DOMGetSingleAttribute(const Element: TDOMElement;
+function TDOMElementHelper.AttributeSingle(
   const AttrName: string; var Value: Single): boolean;
 var
   ValueStr: string;
 begin
-  Result := DOMGetAttribute(Element, AttrName, ValueStr);
+  Result := AttributeString(AttrName, ValueStr);
   if Result then
     Value := StrToFloat(ValueStr);
 end;
 
-function DOMGetFloatAttribute(const Element: TDOMElement;
+function TDOMElementHelper.AttributeFloat(
   const AttrName: string; var Value: Float): boolean;
 var
   ValueStr: string;
 begin
-  Result := DOMGetAttribute(Element, AttrName, ValueStr);
+  Result := AttributeString(AttrName, ValueStr);
   if Result then
     Value := StrToFloat(ValueStr);
 end;
 
-function DOMGetBooleanAttribute(const Element: TDOMElement;
+function TDOMElementHelper.AttributeBoolean(
   const AttrName: string; var Value: boolean): boolean;
 var
   ValueStr: string;
 begin
-  Result := DOMGetAttribute(Element, AttrName, ValueStr);
+  Result := AttributeString(AttrName, ValueStr);
   if Result then
   begin
     if AnsiCompareText(ValueStr, 'TRUE') = 0 then
@@ -311,6 +446,116 @@ begin
       Value := false else
       Result := false;
   end;
+end;
+
+function TDOMElementHelper.AttributeString(const AttrName: string): string;
+begin
+  if not AttributeString(AttrName, Result) then
+    raise EDOMAttributeMissing.CreateFmt('Missing required (string) attribute "%s" on element "%s"', [AttrName, TagName]);
+end;
+
+function TDOMElementHelper.AttributeURL(const AttrName: string; const BaseUrl: string): string;
+begin
+  if not AttributeURL(AttrName, BaseUrl, Result) then
+    raise EDOMAttributeMissing.CreateFmt('Missing required (URL) attribute "%s" on element "%s"', [AttrName, TagName]);
+end;
+
+function TDOMElementHelper.AttributeCardinal(const AttrName: string): Cardinal;
+begin
+  if not AttributeCardinal(AttrName, Result) then
+    raise EDOMAttributeMissing.CreateFmt('Missing required (unsigned integer) attribute "%s" on element "%s"', [AttrName, TagName]);
+end;
+
+function TDOMElementHelper.AttributeInteger(const AttrName: string): Integer;
+begin
+  if not AttributeInteger(AttrName, Result) then
+    raise EDOMAttributeMissing.CreateFmt('Missing required (integer) attribute "%s" on element "%s"', [AttrName, TagName]);
+end;
+
+function TDOMElementHelper.AttributeSingle(const AttrName: string): Single;
+begin
+  if not AttributeSingle(AttrName, Result) then
+    raise EDOMAttributeMissing.CreateFmt('Missing required (float) attribute "%s" on element "%s"', [AttrName, TagName]);
+end;
+
+function TDOMElementHelper.AttributeFloat(const AttrName: string): Float;
+begin
+  if not AttributeFloat(AttrName, Result) then
+    raise EDOMAttributeMissing.CreateFmt('Missing required (float) attribute "%s" on element "%s"', [AttrName, TagName]);
+end;
+
+function TDOMElementHelper.AttributeBoolean(const AttrName: string): boolean;
+begin
+  if not AttributeBoolean(AttrName, Result) then
+    raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (boolean) attribute "%s" on element "%s"', [AttrName, TagName]);
+end;
+
+function TDOMElementHelper.AttributeStringDef(const AttrName: string; const DefaultValue: string): string;
+begin
+  if not AttributeString(AttrName, Result) then
+    Result := DefaultValue;
+end;
+
+function TDOMElementHelper.AttributeIntegerDef(const AttrName: string; const DefaultValue: Integer): Integer;
+begin
+  if not AttributeInteger(AttrName, Result) then
+    Result := DefaultValue;
+end;
+
+function TDOMElementHelper.AttributeSingleDef(const AttrName: string; const DefaultValue: Single): Single;
+begin
+  if not AttributeSingle(AttrName, Result) then
+    Result := DefaultValue;
+end;
+
+function TDOMElementHelper.AttributeFloatDef(const AttrName: string; const DefaultValue: Float): Float;
+begin
+  if not AttributeFloat(AttrName, Result) then
+    Result := DefaultValue;
+end;
+
+function TDOMElementHelper.AttributeBooleanDef(const AttrName: string; const DefaultValue: boolean): boolean;
+begin
+  if not AttributeBoolean(AttrName, Result) then
+    Result := DefaultValue;
+end;
+
+{ globals -------------------------------------------------------------------- }
+
+function DOMGetAttribute(const Element: TDOMElement;
+  const AttrName: string; var Value: string): boolean;
+begin
+  Result := Element.AttributeString(AttrName, Value);
+end;
+
+function DOMGetCardinalAttribute(const Element: TDOMElement;
+  const AttrName: string; var Value: Cardinal): boolean;
+begin
+  Result := Element.AttributeCardinal(AttrName, Value);
+end;
+
+function DOMGetIntegerAttribute(const Element: TDOMElement;
+  const AttrName: string; var Value: Integer): boolean;
+begin
+  Result := Element.AttributeInteger(AttrName, Value);
+end;
+
+function DOMGetSingleAttribute(const Element: TDOMElement;
+  const AttrName: string; var Value: Single): boolean;
+begin
+  Result := Element.AttributeSingle(AttrName, Value);
+end;
+
+function DOMGetFloatAttribute(const Element: TDOMElement;
+  const AttrName: string; var Value: Float): boolean;
+begin
+  Result := Element.AttributeFloat(AttrName, Value);
+end;
+
+function DOMGetBooleanAttribute(const Element: TDOMElement;
+  const AttrName: string; var Value: boolean): boolean;
+begin
+  Result := Element.AttributeBoolean(AttrName, Value);
 end;
 
 function DOMGetOneChildElement(const Element: TDOMElement): TDOMElement;

@@ -495,11 +495,11 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
         however you want, to handle additional attributes in level.xml.
         You can use standard FPC DOM unit and classes,
         and add a handful of simple comfortable routines in CastleXMLUtils unit,
-        for example you can use this to read a boolean attribute "my_attribute":
+        for example you can use this to read a string attribute:
 
 @longCode(#
-  if not DOMGetBooleanAttribute(DOMElement, 'my_attribute', MyAttribute) then
-    MyAttribute := false; // default value, if not specified in level.xml
+  MyAttribute := DOMElement.AttributeStringDef('my_attribute', 'default value');
+  MyRequiredAttribute := DOMElement.AttributeString('my_required_attribute');
 #)
       )
     }
@@ -1158,7 +1158,7 @@ procedure TLevelInfo.LoadFromDocument;
     ValueStr: string;
     LevelClassIndex: Integer;
   begin
-    Result := DOMGetAttribute(Element, AttrName, ValueStr);
+    Result := Element.AttributeString(AttrName, ValueStr);
     LevelClassIndex := LevelLogicClasses.IndexOf(ValueStr);
     if LevelClassIndex <> -1 then
       Value := LevelLogicClasses.Data[LevelClassIndex] else
@@ -1192,60 +1192,59 @@ begin
 
   { Required atttributes }
 
-  if not DOMGetAttribute(Element, 'name', FName) then
+  if not Element.AttributeString('name', FName) then
     MissingRequiredAttribute('name');
 
-  if not DOMGetAttribute(Element, 'scene', FSceneURL) then
+  if not Element.AttributeString('scene', FSceneURL) then
     MissingRequiredAttribute('scene');
   SceneURL := CombineURI(DocumentBaseURL, SceneURL);
 
-  if not DOMGetAttribute(Element, 'title', FTitle) then
+  if not Element.AttributeString('title', FTitle) then
     MissingRequiredAttribute('title');
 
   { Optional attributes }
 
-  if not DOMGetIntegerAttribute(Element, 'number', FNumber) then
+  if not Element.AttributeInteger('number', FNumber) then
     Number := 0;
 
-  if not DOMGetBooleanAttribute(Element, 'demo', FDemo) then
+  if not Element.AttributeBoolean('demo', FDemo) then
     Demo := false;
 
-  if not DOMGetAttribute(Element, 'title_hint', FTitleHint) then
+  if not Element.AttributeString('title_hint', FTitleHint) then
     TitleHint := '';
 
-  if not DOMGetBooleanAttribute(Element, 'default_played',
-    FDefaultPlayed) then
+  if not Element.AttributeBoolean('default_played', FDefaultPlayed) then
     DefaultPlayed := false;
 
   if not DOMGetLevelLogicClassAttribute(Element, 'type', FLogicClass) then
     LogicClass := TLevelLogic;
 
   PlaceholderName := PlaceholderNames['x3dshape'];
-  if DOMGetAttribute(Element, 'placeholders', PlaceholdersKey) then
+  if Element.AttributeString('placeholders', PlaceholdersKey) then
     PlaceholderName := PlaceholderNames[PlaceholdersKey];
 
   FreeAndNil(FLoadingImage); { make sure LoadingImage is clear first }
-  if DOMGetAttribute(Element, 'loading_image', LoadingImageURL) then
+  if Element.AttributeString('loading_image', LoadingImageURL) then
   begin
     LoadingImageURL := CombineURI(DocumentBaseURL, LoadingImageURL);
     LoadingImage := LoadImage(LoadingImageURL, [TRGBImage]) as TRGBImage;
   end;
 
-  if (not DOMGetSingleAttribute(Element, 'loading_bar_y_position',
+  if (not Element.AttributeSingle('loading_bar_y_position',
        FLoadingBarYPosition)) and
      { handle loading_image_bar_y_position for backward compatibility }
-     (not DOMGetSingleAttribute(Element, 'loading_image_bar_y_position',
+     (not Element.AttributeSingle('loading_image_bar_y_position',
        FLoadingBarYPosition)) then
     LoadingBarYPosition := TProgressUserInterface.DefaultBarYPosition;
 
-  if DOMGetAttribute(Element, 'placeholder_reference_direction', S) then
+  if Element.AttributeString('placeholder_reference_direction', S) then
     PlaceholderReferenceDirection := Vector3SingleFromStr(S) else
     PlaceholderReferenceDirection := DefaultPlaceholderReferenceDirection;
 
   LevelResources.LoadResources(Element);
   AddAlwaysPreparedResources;
 
-  if DOMGetAttribute(Element, 'music_sound', SoundName) then
+  if Element.AttributeString('music_sound', SoundName) then
     MusicSound := SoundEngine.SoundFromName(SoundName) else
     MusicSound := stNone;
 end;

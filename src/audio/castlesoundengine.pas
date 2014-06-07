@@ -1657,23 +1657,23 @@ begin
 
         Sounds.Add(S);
 
-        { retrieve URL using DOMGetAttribute
+        { retrieve URL using AttributeString
           (that internally uses I.Current.Attributes.GetNamedItem),
           because we have to distinguish between the case when url/file_name
           attribute is not present (in this case S.URL is left as it was)
           and when it's present and set to empty string
           (in this case S.URL must also be set to empty string).
           Standard I.Current.GetAttribute wouldn't allow me this. }
-        if (DOMGetAttribute(I.Current, 'url', S.URL) or
-            DOMGetAttribute(I.Current, 'file_name', S.URL)) and
+        if (I.Current.AttributeString('url', S.URL) or
+            I.Current.AttributeString('file_name', S.URL)) and
           (S.URL <> '') then
           { Make URL absolute, using RepositoryURLAbsolute, if non-empty URL
             was specified in XML file. }
           S.URL := CombineURI(RepositoryURLAbsolute, S.URL);
 
-        DOMGetSingleAttribute(I.Current, 'gain', S.Gain);
-        DOMGetSingleAttribute(I.Current, 'min_gain', S.MinGain);
-        DOMGetSingleAttribute(I.Current, 'max_gain', S.MaxGain);
+        I.Current.AttributeSingle('gain', S.Gain);
+        I.Current.AttributeSingle('min_gain', S.MinGain);
+        I.Current.AttributeSingle('max_gain', S.MaxGain);
 
         { MaxGain is max 1. Although some OpenAL implementations allow > 1,
           Windows impl (from Creative) doesn't. For consistent results,
@@ -1681,7 +1681,7 @@ begin
         if S.MaxGain > 1 then
           S.MaxGain := 1;
 
-        if DOMGetAttribute(I.Current, 'default_importance', ImportanceStr) then
+        if I.Current.AttributeString('default_importance', ImportanceStr) then
         begin
           SoundImportanceIndex := SoundImportanceNames.IndexOf(ImportanceStr);
           if SoundImportanceIndex = -1 then

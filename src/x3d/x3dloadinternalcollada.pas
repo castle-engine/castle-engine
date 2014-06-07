@@ -656,8 +656,8 @@ var
       Child := DOMGetChildElement(Element, 'texture', false);
       if Child <> nil then
       begin
-        DOMGetAttribute(Child, 'texture', TextureName);
-        DOMGetAttribute(Child, 'texcoord', TexCoordName);
+        Child.AttributeString('texture', TextureName);
+        Child.AttributeString('texcoord', TexCoordName);
       end;
     end;
   end;
@@ -870,7 +870,7 @@ var
       Name, RefersTo: string;
       Image: TAbstractTextureNode;
     begin
-      if DOMGetAttribute(Element, 'sid', Name) then
+      if Element.AttributeString('sid', Name) then
       begin
         Child := DOMGetChildElement(Element, 'surface', false);
         if Child <> nil then
@@ -904,7 +904,7 @@ var
     I: TXMLElementIterator;
     ProfileElement: TDOMElement;
   begin
-    if not DOMGetAttribute(EffectElement, 'id', Id) then
+    if not EffectElement.AttributeString('id', Id) then
       Id := '';
 
     Effect := TColladaEffect.Create;
@@ -960,7 +960,7 @@ var
     var
       AType: string;
     begin
-      if not DOMGetAttribute(Element, 'type', AType) then
+      if not Element.AttributeString('type', AType) then
       begin
         OnWarning(wtMinor, 'Collada', '<param> has no type attribute');
         Result := ZeroVector3Single;
@@ -977,7 +977,7 @@ var
     var
       AType: string;
     begin
-      if not DOMGetAttribute(Element, 'type', AType) then
+      if not Element.AttributeString('type', AType) then
       begin
         OnWarning(wtMinor, 'Collada', '<param> has no type attribute');
         Result := 0;
@@ -1032,7 +1032,7 @@ var
                I := TXMLElementFilteringIterator.Create(ProgramElement, 'param');
                try
                  while I.GetNext do
-                   if DOMGetAttribute(I.Current, 'name', ParamName) then
+                   if I.Current.AttributeString('name', ParamName) then
                    begin
                      if ParamName = 'EMISSION' then
                        Mat.FdEmissiveColor.Value := ReadParamAsVector3(I.Current) else
@@ -1088,7 +1088,7 @@ var
       InstanceEffect := DOMGetChildElement(MatElement, 'instance_effect', false);
       if InstanceEffect <> nil then
       begin
-        if DOMGetAttribute(InstanceEffect, 'url', EffectId) and
+        if InstanceEffect.AttributeString('url', EffectId) and
            SCharIs(EffectId, 1, '#') then
         begin
           Delete(EffectId, 1, 1); { delete initial '#' char }
@@ -1102,7 +1102,7 @@ var
     end;
 
   begin
-    if not DOMGetAttribute(MatElement, 'id', MatId) then
+    if not MatElement.AttributeString('id', MatId) then
       MatId := '';
 
     if Version14 then
@@ -1151,7 +1151,7 @@ var
       Child := DOMGetChildElement(Child, 'technique', false);
       if Child = nil then Exit;
 
-      if not (DOMGetAttribute(Child, 'profile', Profile) and
+      if not (Child.AttributeString('profile', Profile) and
               (Profile = 'MAYA')) then
         Exit;
 
@@ -1173,19 +1173,19 @@ var
       Source := TColladaSource.Create;
       Sources.Add(Source);
 
-      if not DOMGetAttribute(SourceElement, 'id', Source.Name) then
+      if not SourceElement.AttributeString('id', Source.Name) then
         Source.Name := '';
 
       FloatArray := DOMGetChildElement(SourceElement, 'float_array', false);
       if FloatArray <> nil then
       begin
-        if not DOMGetIntegerAttribute(FloatArray, 'count', FloatArrayCount) then
+        if not FloatArray.AttributeInteger('count', FloatArrayCount) then
         begin
           FloatArrayCount := 0;
           OnWarning(wtMinor, 'Collada', '<float_array> without a count attribute');
         end;
 
-        if not DOMGetAttribute(FloatArray, 'id', FloatArrayId) then
+        if not FloatArray.AttributeString('id', FloatArrayId) then
           FloatArrayId := '';
 
         Source.Floats.Count := FloatArrayCount;
@@ -1218,21 +1218,21 @@ var
 
           { read <accessor> attributes }
 
-          if not DOMGetIntegerAttribute(Accessor, 'count', Source.Count) then
+          if not Accessor.AttributeInteger('count', Source.Count) then
           begin
             OnWarning(wtMinor, 'Collada', '<accessor> has no count attribute');
             Source.Count := 0;
           end;
 
-          if not DOMGetIntegerAttribute(Accessor, 'stride', Source.Stride) then
+          if not Accessor.AttributeInteger('stride', Source.Stride) then
             { default, according to Collada spec }
             Source.Stride := 1;
 
-          if not DOMGetIntegerAttribute(Accessor, 'offset', Source.Offset) then
+          if not Accessor.AttributeInteger('offset', Source.Offset) then
             { default, according to Collada spec }
             Source.Offset := 0;
 
-          if not DOMGetAttribute(Accessor, 'source', AccessorSource) then
+          if not Accessor.AttributeString('source', AccessorSource) then
           begin
             OnWarning(wtMinor, 'Collada', '<accessor> has no source attribute');
             AccessorSource := '';
@@ -1246,14 +1246,14 @@ var
           try
             while It.GetNext do
             begin
-              if not DOMGetAttribute(It.Current, 'name', ParamName) then
+              if not It.Current.AttributeString('name', ParamName) then
               begin
                 OnWarning(wtMajor, 'Collada', 'Missing "name" of <param>');
                 { TODO: this should not be required? }
                 Continue;
               end;
 
-              if not DOMGetAttribute(It.Current, 'type', ParamType) then
+              if not It.Current.AttributeString('type', ParamType) then
               begin
                 OnWarning(wtMajor, 'Collada', 'Missing "type" of <param>');
                 Continue;
@@ -1312,7 +1312,7 @@ var
         FreeIfUnusedAndNil(Coord);
       end;
 
-      if not DOMGetAttribute(VerticesElement, 'id', Id) then
+      if not VerticesElement.AttributeString('id', Id) then
         Id := '';
 
       Coord := TCoordinateNode.Create(Id, BaseUrl);
@@ -1321,9 +1321,9 @@ var
       I := TXMLElementFilteringIterator.Create(VerticesElement, 'input');
       try
         while I.GetNext do
-          if DOMGetAttribute(I.Current, 'semantic', InputSemantic) and
+          if I.Current.AttributeString('semantic', InputSemantic) and
              (InputSemantic = 'POSITION') and
-             DOMGetAttribute(I.Current, 'source', InputSourceName) and
+             I.Current.AttributeString('source', InputSourceName) and
              SCharIs(InputSourceName, 1, '#') then
           begin
             Delete(InputSourceName, 1, 1); { delete leading '#' char }
@@ -1392,7 +1392,7 @@ var
         Primitive.X3DGeometry := IndexedFaceSet;
       end;
 
-      if DOMGetAttribute(PrimitiveE, 'material', Primitive.Material) then
+      if PrimitiveE.AttributeString('material', Primitive.Material) then
       begin
         { Collada 1.4.1 spec says that this is just material name.
           Collada 1.3.1 spec says that this is URL. }
@@ -1409,29 +1409,29 @@ var
           { we must count all inputs, since parsing <p> elements depends
             on InputsCount }
           Inc(InputsCount);
-          if DOMGetAttribute(I.Current, 'semantic', InputSemantic) then
+          if I.Current.AttributeString('semantic', InputSemantic) then
           begin
             if InputSemantic = 'VERTEX' then
             begin
-              if not (DOMGetAttribute(I.Current, 'source', InputSourceId) and
+              if not (I.Current.AttributeString('source', InputSourceId) and
                       (Coord <> nil) and
                       (InputSourceId = '#' + Coord.NodeName))  then
                 OnWarning(wtMinor, 'Collada', '<input> with semantic="VERTEX" (of primitive element within <mesh>) does not reference <vertices> element within the same <mesh>');
 
               { Collada requires offset in this case.
                 For us, if there's no offset, just leave CoordIndexOffset default. }
-              DOMGetIntegerAttribute(I.Current, 'offset', CoordIndexOffset);
+              I.Current.AttributeInteger('offset', CoordIndexOffset);
             end else
             if InputSemantic = 'TEXCOORD' then
             begin
-              DOMGetIntegerAttribute(I.Current, 'offset', TexCoordIndexOffset);
+              I.Current.AttributeInteger('offset', TexCoordIndexOffset);
 
               { Only for IndexedFaceSet.
                 In case of trouble with coordinates, don't use texCoord,
                 they may be invalid (this is for invalid Blender 1.3 exporter) }
               if (IndexedFaceSet = nil) or (not CoordCorrect) then Continue;
 
-              if DOMGetAttribute(I.Current, 'source', InputSourceId) then
+              if I.Current.AttributeString('source', InputSourceId) then
               begin
                 if SCharIs(InputSourceId, 1, '#') then
                   Delete(InputSourceId, 1, 1);
@@ -1457,14 +1457,14 @@ var
             end else
             if InputSemantic = 'NORMAL' then
             begin
-              DOMGetIntegerAttribute(I.Current, 'offset', NormalIndexOffset);
+              I.Current.AttributeInteger('offset', NormalIndexOffset);
 
               { Only for IndexedFaceSet.
                 In case of trouble with coordinates, don't use normals,
                 they may be invalid (this is for invalid Blender 1.3 exporter) }
               if (IndexedFaceSet = nil) or (not CoordCorrect) then Continue;
 
-              if DOMGetAttribute(I.Current, 'source', InputSourceId) then
+              if I.Current.AttributeString('source', InputSourceId) then
               begin
                 if SCharIs(InputSourceId, 1, '#') then
                   Delete(InputSourceId, 1, 1);
@@ -1696,7 +1696,7 @@ var
     I: TXMLElementIterator;
     GeometryId: string;
   begin
-    if not DOMGetAttribute(GeometryElement, 'id', GeometryId) then
+    if not GeometryElement.AttributeString('id', GeometryId) then
       GeometryId := '';
 
     DoubleSided := ReadDoubleSided(GeometryElement);
@@ -1767,7 +1767,7 @@ var
   var
     LibraryType: string;
   begin
-    if DOMGetAttribute(LibraryElement, 'type', LibraryType) then
+    if LibraryElement.AttributeString('type', LibraryType) then
     begin
       if LibraryType = 'MATERIAL' then
         ReadLibraryMaterials(LibraryElement) else
@@ -1873,9 +1873,9 @@ var
           I := TXMLElementFilteringIterator.Create(Technique, 'instance_material');
           try
             while I.GetNext do
-              if DOMGetAttribute(I.Current, 'symbol', InstanceMaterialSymbol) and
+              if I.Current.AttributeString('symbol', InstanceMaterialSymbol) and
                  (InstanceMaterialSymbol = MaterialId) and
-                 DOMGetAttribute(I.Current, 'target', InstanceMaterialTarget) then
+                 I.Current.AttributeString('target', InstanceMaterialTarget) then
               begin
                 { this should be true, target is URL }
                 if SCharIs(InstanceMaterialTarget, 1, '#') then
@@ -1927,7 +1927,7 @@ var
       GeometryId: string;
       Geometry: TColladaGeometry;
     begin
-      if DOMGetAttribute(InstantiatingElement, 'url', GeometryId) and
+      if InstantiatingElement.AttributeString('url', GeometryId) and
          SCharIs(GeometryId, 1, '#') then
       begin
         Delete(GeometryId, 1, 1);
@@ -1948,7 +1948,7 @@ var
       Id: string;
       Node: TX3DNode;
     begin
-      if DOMGetAttribute(InstantiatingElement, 'url', Id) and
+      if InstantiatingElement.AttributeString('url', Id) and
          SCharIs(Id, 1, '#') then
       begin
         Delete(Id, 1, 1);
@@ -1972,7 +1972,7 @@ var
       Group: TAbstractX3DGroupingNode;
       Geometry: TColladaGeometry;
     begin
-      if DOMGetAttribute(InstantiatingElement, 'url', ControllerId) and
+      if InstantiatingElement.AttributeString('url', ControllerId) and
          SCharIs(ControllerId, 1, '#') then
       begin
         Delete(ControllerId, 1, 1);
@@ -2048,7 +2048,7 @@ var
     V3: TVector3Single;
     V4: TVector4Single;
   begin
-    if not DOMGetAttribute(NodeElement, 'id', NodeId) then
+    if not NodeElement.AttributeString('id', NodeId) then
       NodeId := '';
 
     NodeTransform := TTransformNode.Create(NodeId, BaseUrl);
@@ -2159,7 +2159,7 @@ var
         'instance_visual_scene', false);
       if InstanceVisualScene <> nil then
       begin
-        if DOMGetAttribute(InstanceVisualScene, 'url', VisualSceneId) and
+        if InstanceVisualScene.AttributeString('url', VisualSceneId) and
            SCharIs(VisualSceneId, 1, '#') then
         begin
           Delete(VisualSceneId, 1, 1);
@@ -2183,7 +2183,7 @@ var
     end;
 
   begin
-    if not DOMGetAttribute(SceneElement, 'id', SceneId) then
+    if not SceneElement.AttributeString('id', SceneId) then
       SceneId := '';
 
     { <scene> element is different in two Collada versions, it's most clear
@@ -2202,7 +2202,7 @@ var
     VisualSceneId: string;
     Group: TGroupNode;
   begin
-    if not DOMGetAttribute(VisualSceneElement, 'id', VisualSceneId) then
+    if not VisualSceneElement.AttributeString('id', VisualSceneId) then
       VisualSceneId := '';
 
     Group := TGroupNode.Create(VisualSceneId, BaseUrl);
@@ -2219,7 +2219,7 @@ var
     LibraryId: string;
     VisualScenesSwitch: TSwitchNode;
   begin
-    if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
+    if not LibraryElement.AttributeString('id', LibraryId) then
       LibraryId := '';
 
     { Library of visual scenes is simply a VRML Switch, with each
@@ -2249,13 +2249,13 @@ var
     Controllers.Add(Controller);
     Controller.BoundShapeMatrixIdentity := true;
 
-    if not DOMGetAttribute(ControllerElement, 'id', Controller.Name) then
+    if not ControllerElement.AttributeString('id', Controller.Name) then
       Controller.Name := '';
 
     Skin := DOMGetChildElement(ControllerElement, 'skin', false);
     if Skin <> nil then
     begin
-      if DOMGetAttribute(Skin, 'source', Controller.Source) then
+      if Skin.AttributeString('source', Controller.Source) then
       begin
         { this should be true, controller.source is URL }
         if SCharIs(Controller.Source, 1, '#') then
@@ -2281,7 +2281,7 @@ var
     I := TXMLElementFilteringIterator.Create(LibraryElement, 'image');
     try
       while I.GetNext do
-        if DOMGetAttribute(I.Current, 'id', ImageId) then
+        if I.Current.AttributeString('id', ImageId) then
         begin
           Image := TImageTextureNode.Create(ImageId, BaseUrl);
           Images.Add(Image);
@@ -2336,7 +2336,7 @@ var
     I := TXMLElementFilteringIterator.Create(LibraryE, 'camera');
     try
       while I.GetNext do
-        if DOMGetAttribute(I.Current, 'id', Id) then
+        if I.Current.AttributeString('id', Id) then
         begin
           CameraGroup := TGroupNode.Create(Id, BaseUrl);
           Cameras.Add(CameraGroup);
@@ -2438,7 +2438,7 @@ var
     I := TXMLElementFilteringIterator.Create(LibraryE, 'light');
     try
       while I.GetNext do
-        if DOMGetAttribute(I.Current, 'id', Id) then
+        if I.Current.AttributeString('id', Id) then
         begin
           Light := nil;
 
@@ -2506,7 +2506,7 @@ var
               begin
                 TechniqueE := DOMGetChildElement(ExtraE, 'technique', false);
                 if (TechniqueE <> nil) and
-                   DOMGetAttribute(TechniqueE, 'profile', Profile) and
+                   TechniqueE.AttributeString('profile', Profile) and
                    (Profile = 'blender') then
                   ReadChildFloat(TechniqueE, 'dist', Radius);
               end;
@@ -2545,7 +2545,7 @@ begin
       Check(Doc.DocumentElement.TagName = 'COLLADA',
         'Root node of Collada file must be <COLLADA>');
 
-      if not DOMGetAttribute(Doc.DocumentElement, 'version', Version) then
+      if not Doc.DocumentElement.AttributeString('version', Version) then
       begin
         Version := '';
         Version14 := false;
@@ -2559,7 +2559,7 @@ begin
 
       { honour COLLADA.base (exactly for the same purpose as our BaseUrl),
         but only if it's absolute }
-      if not (DOMGetAttribute(Doc.DocumentElement, 'base', BaseUrl) and
+      if not (Doc.DocumentElement.AttributeString('base', BaseUrl) and
               IsAbsoluteURI(BaseUrl)) then
         BaseUrl := AbsoluteURI(URL);
 

@@ -3790,7 +3790,7 @@ begin
   FieldOrEvent := nil;
 
   { calculate Access }
-  if DOMGetAttribute(Element, 'accessType', AccessName) then
+  if Element.AttributeString('accessType', AccessName) then
   begin
     AccessIndex := ArrayPosStr(AccessName,
       ['inputOnly', 'outputOnly', 'initializeOnly', 'inputOutput']);
@@ -3801,7 +3801,7 @@ begin
     raise EX3DXmlError.Create('Missing access type in X3D interface declaration');
 
   { calculate FieldType }
-  if DOMGetAttribute(Element, 'type', FieldTypeName) then
+  if Element.AttributeString('type', FieldTypeName) then
   begin
     FieldType := X3DFieldsManager.FieldTypeNameToClass(FieldTypeName);
     if FieldType = nil then
@@ -3809,7 +3809,7 @@ begin
   end else
     raise EX3DXmlError.Create('Missing field type in X3D interface declaration');
 
-  if not DOMGetAttribute(Element, 'name', Name) then
+  if not Element.AttributeString('name', Name) then
     raise EX3DXmlError.Create('Missing name in X3D interface declaration');
 
   { we know everything now to create Event/Field instance }
@@ -3830,7 +3830,7 @@ begin
   begin
     if FieldValue then
     begin
-      if DOMGetAttribute(Element, 'value', FieldActualValue) then
+      if Element.AttributeString('value', FieldActualValue) then
         Field.ParseXMLAttribute(FieldActualValue, Reader) else
         Field.ParseXMLElement(Element, Reader);
     end;
@@ -4738,7 +4738,7 @@ var
 begin
   BaseUrl := Reader.BaseUrl;
 
-  if DOMGetAttribute(Element, 'name', NewName) then
+  if Element.AttributeString('name', NewName) then
     Name := NewName else
     raise EX3DXmlError.Create('Missing "name" for <ProtoDeclare> element');
 
@@ -4872,13 +4872,13 @@ var
 begin
   BaseUrl := Reader.BaseUrl;
 
-  if DOMGetAttribute(Element, 'name', NewName) then
+  if Element.AttributeString('name', NewName) then
     Name := NewName else
     raise EX3DXmlError.Create('Missing "name" for <ExternProtoDeclare> element');
 
   ParseInterfaceDeclarationsXML(true, Element, Reader);
 
-  if DOMGetAttribute(Element, 'url', URLListValue) then
+  if Element.AttributeString('url', URLListValue) then
     URLList.ParseXMLAttribute(URLListValue, Reader) else
     raise EX3DXmlError.Create('Missing "url" for <ExternProtoDeclare> element');
 
@@ -5206,7 +5206,7 @@ procedure TX3DRoute.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 
   function RequiredAttrib(const AttrName: string): string;
   begin
-    if not DOMGetAttribute(Element, AttrName, Result) then
+    if not Element.AttributeString(AttrName, Result) then
     begin
       OnWarning(wtMajor, 'VRML/X3D', 'Missing ROUTE ' + AttrName + ' attribute');
       Result := '';
@@ -5581,23 +5581,23 @@ end;
 
 procedure TX3DImport.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 begin
-  if not DOMGetAttribute(Element, 'inlineDEF', InlineNodeName) then
+  if not Element.AttributeString('inlineDEF', InlineNodeName) then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Missing IMPORT "inlineDEF" attribute');
     Exit;
   end;
 
-  if not DOMGetAttribute(Element, 'importedDEF', ImportedNodeName) then
+  if not Element.AttributeString('importedDEF', ImportedNodeName) then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Missing IMPORT "importedDEF" attribute, looking for older "exportedDEF"');
-    if not DOMGetAttribute(Element, 'exportedDEF', ImportedNodeName) then
+    if not Element.AttributeString('exportedDEF', ImportedNodeName) then
     begin
       OnWarning(wtMajor, 'VRML/X3D', 'Missing IMPORT attribute: neighter "importedDEF" nor older "exportedDEF" found');
       Exit;
     end;
   end;
 
-  if not DOMGetAttribute(Element, 'AS', ImportedNodeAlias) then
+  if not Element.AttributeString('AS', ImportedNodeAlias) then
     ImportedNodeAlias := ImportedNodeName;
 
   Reader.DoImport(Self);
@@ -5658,13 +5658,13 @@ end;
 
 procedure TX3DExport.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 begin
-  if not DOMGetAttribute(Element, 'localDEF', ExportedNodeName) then
+  if not Element.AttributeString('localDEF', ExportedNodeName) then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Missing EXPORT "localDEF" attribute');
     Exit;
   end;
 
-  if not DOMGetAttribute(Element, 'AS', ExportedNodeAlias) then
+  if not Element.AttributeString('AS', ExportedNodeAlias) then
     ExportedNodeAlias := ExportedNodeName;
 
   Reader.DoExport(Self);

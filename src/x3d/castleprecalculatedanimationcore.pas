@@ -165,11 +165,11 @@ begin
         Check(FrameElement.TagName = 'frame',
           'Each child of <animation> element must be a <frame> element');
 
-        if not DOMGetSingleAttribute(FrameElement, 'time', FrameTime) then
+        if not FrameElement.AttributeSingle('time', FrameTime) then
           raise Exception.Create('<frame> element must have a "time" attribute');
 
-        if not DOMGetAttribute(FrameElement, 'url', FrameURL) then
-          if not DOMGetAttribute(FrameElement, 'file_name', FrameURL) then
+        if not FrameElement.AttributeString('url', FrameURL) then
+          if not FrameElement.AttributeString('file_name', FrameURL) then
             raise Exception.Create('<frame> element must have an "url" (or deprecated "file_name") attribute');
 
         { Make FrameURL absolute, treating it as relative vs

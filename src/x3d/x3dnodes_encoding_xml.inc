@@ -68,13 +68,13 @@ begin
     Exit;
   end;
 
-  if not DOMGetAttribute(Element, 'nodeField', NodeField) then
+  if not Element.AttributeString('nodeField', NodeField) then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Missing "nodeField" inside <connect> element');
     Exit;
   end;
 
-  if not DOMGetAttribute(Element, 'protoField', ProtoField) then
+  if not Element.AttributeString('protoField', ProtoField) then
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Missing "protoField" inside <connect> element');
     Exit;
@@ -152,7 +152,7 @@ function ParseXMLNode(Element: TDOMElement;
 
     if NodeTypeName = 'ProtoInstance' then
     begin
-      if not DOMGetAttribute(Element, 'name', ProtoName) then
+      if not Element.AttributeString('name', ProtoName) then
         raise EX3DXmlError.Create('<ProtoInstance> doesn''t specify "name" of the prototype');
 
       Proto := Reader.Prototypes.Bound(ProtoName);
@@ -175,7 +175,7 @@ function ParseXMLNode(Element: TDOMElement;
         begin
           if ProtoIter.Current.TagName = 'fieldValue' then
           begin
-            if not DOMGetAttribute(ProtoIter.Current, 'name', FieldName) then
+            if not ProtoIter.Current.AttributeString('name', FieldName) then
             begin
               OnWarning(wtMajor, 'VRML/X3D', 'X3D XML: missing "name" attribute for <fieldValue> element');
               Continue;
@@ -188,7 +188,7 @@ function ParseXMLNode(Element: TDOMElement;
               Continue;
             end;
 
-            if DOMGetAttribute(ProtoIter.Current, 'value', FieldActualValue) then
+            if ProtoIter.Current.AttributeString('value', FieldActualValue) then
               Result.Fields[FieldIndex].ParseXMLAttribute(FieldActualValue, Reader) else
               Result.Fields[FieldIndex].ParseXMLElement(ProtoIter.Current, Reader);
 
@@ -249,7 +249,7 @@ var
 begin
   Result := nil;
   try
-    if DOMGetAttribute(Element, 'USE', NodeName) then
+    if Element.AttributeString('USE', NodeName) then
     begin
       { get appropriate node }
       Result := Reader.Nodes.Bound(NodeName, UsedNodeFinished);
@@ -267,7 +267,7 @@ begin
       end;
     end else
     begin
-      if DOMGetAttribute(Element, SAttrDEF, NodeName) then
+      if Element.AttributeString(SAttrDEF, NodeName) then
         ParseNamedNode(NodeName) else
         ParseNamedNode('');
     end;
@@ -286,7 +286,7 @@ begin
     if Result <> nil then
       ContainerField := Result.DefaultContainerField else
       ContainerField := ''; { will not be used anyway }
-    DOMGetAttribute(Element, SAttrContainerField, ContainerField);
+    Element.AttributeString(SAttrContainerField, ContainerField);
 
   except FreeAndNil(Result); raise end;
 end;
@@ -318,7 +318,7 @@ var
     Profile: string;
   begin
     { parse "profile" attribute }
-    if DOMGetAttribute(X3DHeaderElement, 'profile', Profile) then
+    if X3DHeaderElement.AttributeString('profile', Profile) then
     begin
       Result.Profile := Profile;
     end else
@@ -335,8 +335,8 @@ var
     begin
       MetaName := '';
       MetaContent := '';
-      DOMGetAttribute(Element, 'name', MetaName);
-      DOMGetAttribute(Element, 'content', MetaContent);
+      Element.AttributeString('name', MetaName);
+      Element.AttributeString('content', MetaContent);
       Result.Meta[MetaName] := MetaContent;
     end;
 
@@ -345,9 +345,9 @@ var
       ComponentName: string;
       ComponentLevel: Integer;
     begin
-      if DOMGetAttribute(Element, 'name', ComponentName) then
+      if Element.AttributeString('name', ComponentName) then
       begin
-        if not DOMGetIntegerAttribute(Element, 'level', ComponentLevel) then
+        if not Element.AttributeInteger('level', ComponentLevel) then
           ComponentLevel := 1;
         Result.Components[ComponentName] := ComponentLevel;
       end else
@@ -360,19 +360,19 @@ var
       Category, Name: string;
       ConversionFactor: Float;
     begin
-      if not DOMGetAttribute(Element, 'category', Category) then
+      if not Element.AttributeString('category', Category) then
       begin
         OnWarning(wtMajor, 'X3D', 'Missing <unit> category');
         Exit;
       end;
 
-      if not DOMGetAttribute(Element, 'name', Name) then
+      if not Element.AttributeString('name', Name) then
       begin
         OnWarning(wtMajor, 'X3D', 'Missing <unit> category');
         Exit;
       end;
 
-      if not DOMGetFloatAttribute(Element, 'conversionFactor', ConversionFactor) then
+      if not Element.AttributeFloat('conversionFactor', ConversionFactor) then
       begin
         OnWarning(wtMajor, 'X3D', 'Missing <unit> category');
         Exit;
@@ -541,7 +541,7 @@ begin
       'Root element of X3D file must be <X3D>');
 
     { parse "version" attribute }
-    if DOMGetAttribute(Doc.DocumentElement, 'version', VersionStr) then
+    if Doc.DocumentElement.AttributeString('version', VersionStr) then
     begin
       DeFormat(VersionStr, '%d.%d', [@Version.Major, @Version.Minor]);
       if Version.Major < 3 then

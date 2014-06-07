@@ -126,20 +126,20 @@ var
   ToxicDamage: TDOMElement;
   I: TXMLElementIterator;
 begin
-  if not DOMGetAttribute(Element, 'texture_base_name', FTextureBaseName) then
+  if not Element.AttributeString('texture_base_name', FTextureBaseName) then
     raise Exception.Create('<properties> element must have "texture_base_name" attribute');
 
   FootstepsSoundName := '';
-  if DOMGetAttribute(Element, 'footsteps_sound', FootstepsSoundName) and
+  if Element.AttributeString('footsteps_sound', FootstepsSoundName) and
      (FootstepsSoundName <> '') then
     FFootstepsSound := SoundEngine.SoundFromName(FootstepsSoundName) else
     FFootstepsSound := stNone;
 
-  if DOMGetAttribute(Element, 'normal_map', FNormalMap) and (FNormalMap <> '') then
+  if Element.AttributeString('normal_map', FNormalMap) and (FNormalMap <> '') then
     FNormalMap := CombineURI(BaseUrl, FNormalMap) else
     FNormalMap := '';
 
-  if not DOMGetAttribute(Element, 'alpha_channel', FAlphaChannel) then
+  if not Element.AttributeString('alpha_channel', FAlphaChannel) then
     FAlphaChannel := '';
 
   I := TXMLElementIterator.Create(Element);
@@ -151,11 +151,11 @@ begin
         ToxicDamage := DOMGetOneChildElement(I.Current);
         if (ToxicDamage = nil) or (ToxicDamage.TagName <> 'damage') then
           raise Exception.Create('Missing <damage> inside <toxic> element');
-        if not DOMGetSingleAttribute(ToxicDamage, 'const', FToxicDamageConst) then
+        if not ToxicDamage.AttributeSingle('const', FToxicDamageConst) then
           FToxicDamageConst := 0;
-        if not DOMGetSingleAttribute(ToxicDamage, 'random', FToxicDamageRandom) then
+        if not ToxicDamage.AttributeSingle('random', FToxicDamageRandom) then
           FToxicDamageRandom := 0;
-        if not DOMGetSingleAttribute(ToxicDamage, 'time', FToxicDamageTime) then
+        if not ToxicDamage.AttributeSingle('time', FToxicDamageTime) then
           FToxicDamageTime := 0;
       end else
         raise Exception.CreateFmt('Unknown element inside <property>: "%s"',

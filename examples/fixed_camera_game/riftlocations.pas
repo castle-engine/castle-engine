@@ -171,7 +171,7 @@ begin
   if LocationsElement = nil then
     raise Exception.Create('Unable to find XML <locations> element');
 
-  if not DOMGetAttribute(LocationsElement, 'start_name', StartLocationName) then
+  if not LocationsElement.AttributeString('start_name', StartLocationName) then
     raise Exception.CreateFmt(
       '<locations> doesn''t have a required attribute "start_name"', []);
 
@@ -182,35 +182,35 @@ begin
       Location := TLocation.Create;
       Locations.Add(Location);
 
-      if not DOMGetAttribute(I.Current, 'name', Location.FName) then
+      if not I.Current.AttributeString('name', Location.FName) then
         MissingLocationAttribute('name');
       if Location.Name = StartLocationName then
         StartLocation := Location;
 
-      if not DOMGetAttribute(I.Current, 'image_url', Location.FImageURL) then
+      if not I.Current.AttributeString('image_url', Location.FImageURL) then
         MissingLocationAttribute('image_url');
       Location.FImageURL := DataURLFromConfig(Location.FImageURL);
 
-      if not DOMGetAttribute(I.Current, 'shadowed_image_url', Location.FShadowedImageURL) then
+      if not I.Current.AttributeString('shadowed_image_url', Location.FShadowedImageURL) then
         MissingLocationAttribute('shadowed_image_url');
       Location.FShadowedImageURL := DataURLFromConfig(Location.FShadowedImageURL);
 
-      if not DOMGetAttribute(I.Current, 'scene_url', Location.FSceneURL) then
+      if not I.Current.AttributeString('scene_url', Location.FSceneURL) then
         MissingLocationAttribute('scene_url');
       Location.FSceneURL := DataURLFromConfig(Location.FSceneURL);
 
-      DOMGetAttribute(I.Current, 'scene_camera_description',
+      I.Current.AttributeString('scene_camera_description',
         Location.FSceneCameraDescription);
 
-      if DOMGetAttribute(I.Current, 'initial_position', V) then
+      if I.Current.AttributeString('initial_position', V) then
         Location.FInitialPosition := Vector3SingleFromStr(V) else
         Location.FInitialPosition := Vector3Single(0, 0, 0);
 
-      if DOMGetAttribute(I.Current, 'initial_direction', V) then
+      if I.Current.AttributeString('initial_direction', V) then
         Location.FInitialDirection := Vector3SingleFromStr(V) else
         Location.FInitialDirection := Vector3Single(1, 0, 0);
 
-      if DOMGetAttribute(I.Current, 'initial_up', V) then
+      if I.Current.AttributeString('initial_up', V) then
         Location.FInitialUp := Vector3SingleFromStr(V) else
         Location.FInitialUp := Vector3Single(0, 0, 1);
     end;

@@ -804,7 +804,7 @@ begin
           raise Exception.CreateFmt(
             'Element "%s" is not allowed in <prepare_resources>',
             [I.Current.TagName]);
-        if not DOMGetAttribute(I.Current, 'name', ResourceName) then
+        if not I.Current.AttributeString('name', ResourceName) then
           raise Exception.Create('<resource> must have a "name" attribute');
         Add(Resources.FindName(ResourceName));
       end;
