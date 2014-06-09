@@ -29,8 +29,6 @@ uses
 
 type
   TTestOSSpecific = class(TTestCase)
-  private
-    SymlinkName, SymlinkFullName, SymlinkTarget: string;
   published
     procedure TestPathDelim;
     procedure TestExeName;

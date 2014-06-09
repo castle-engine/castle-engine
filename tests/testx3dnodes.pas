@@ -236,8 +236,6 @@ var
     Result := TX3DLexer.Create(TBufferedReadStream.Create(Stream, true), true);
   end;
 
-var
-  I: Integer;
 begin
   Count := 0;
   Lexer := LexerFromFile(FileName);
@@ -257,8 +255,6 @@ procedure TTestX3DNodes.TestParseSaveToFile;
   var
     First, Second: TX3DTokenInfoList;
     Node: TX3DNode;
-    S: TMemoryStream;
-    SPeek: TPeekCharStream;
     NewFile: string;
   begin
     First := nil;

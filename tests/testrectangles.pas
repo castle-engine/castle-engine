@@ -30,7 +30,7 @@ implementation
 
 procedure TTestRectangles.TestRectangles;
 var
-  R, R1: TRectangle;
+  R: TRectangle;
 begin
   R := Rectangle(-100, -200, 20, 30);
   Assert(R.Contains(-100, -200));
