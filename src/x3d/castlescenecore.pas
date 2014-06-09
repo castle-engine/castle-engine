@@ -6657,15 +6657,9 @@ begin
       ForceTeleportTransitions := true;
     end;
 
-    if FViewpointsArray[Idx] <> FViewpointStack.Top then
-      FViewpointsArray[Idx].EventSet_Bind.Send(true, Time)
-    else begin
-      //CameraFromViewpoint(ACamera, false, Animated); // this does not to re-bind the navigation node!
-
-      // rebind the viewpoint
-      FViewpointStack.SendIsBound(FViewpointStack.Top, false);
-      FViewpointStack.SendIsBound(FViewpointStack.Top, true);
-    end;
+    if FViewpointsArray[Idx] = FViewpointStack.Top then
+      FViewpointsArray[Idx].EventSet_Bind.Send(false, Time);
+    FViewpointsArray[Idx].EventSet_Bind.Send(true, Time);
 
     if not Animated then
       ForceTeleportTransitions := OldForceTeleport;
