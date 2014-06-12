@@ -148,9 +148,8 @@ var
   var
     face: TWavefrontFace;
 
-    { Zainicjuj indeksy numer indiceNum face na podstawie VertexStr }
-    procedure ReadIndices(const VertexStr: string;
-      IndiceNum: integer);
+    { Initialize indexes of IndiceNum face based on VertexStr. }
+    procedure ReadIndices(const VertexStr: string; IndiceNum: integer);
     var
       VertexSeekPos: Integer;
 
@@ -163,10 +162,11 @@ var
         Remember that empty indice may be followed by non-empty,
         e.g. VectorStr = '2//3' is allowed, and means that vertex
         index is 2, there's no texCoord index, and normal index is 3. }
-      procedure NextIndice(out IndiceExists: boolean;
-        out IndiceValue: Cardinal);
+      procedure ReadIndex(out IndiceExists: boolean; out IndiceValue: Cardinal;
+        const Count: Cardinal);
       var
         NewVertexSeekPos: Integer;
+        Index: Integer;
       begin
         NewVertexSeekPos := VertexSeekPos;
 
@@ -176,10 +176,21 @@ var
 
         IndiceExists := NewVertexSeekPos > VertexSeekPos;
         if IndiceExists then
-          { we subtract 1, because indexed in OBJ are 1-based and we
-            prefer 0-based }
-          IndiceValue := StrToInt(CopyPos(
-            VertexStr, VertexSeekPos, NewVertexSeekPos - 1)) - 1;
+        begin
+          { get signed Index }
+          Index := StrToInt(CopyPos(VertexStr, VertexSeekPos, NewVertexSeekPos - 1));
+          if Index > 0 then
+            { we subtract 1, because indexed in OBJ are 1-based and we prefer 0-based }
+            IndiceValue := Index - 1 else
+          if Index < 0 then
+          begin
+            Index += Integer(Count);
+            if Index < 0 then
+              raise EInvalidOBJFile.Create('Invalid OBJ: Index is < 0 after summing with current count');
+            IndiceValue := Index;
+          end else
+            raise EInvalidOBJFile.Create('Invalid OBJ: Index is 0 (should be < 0 for relative and > 0 for absolute index)');
+        end;
 
         { We add +1 to skip our ending '/' char.
           Note that we add this even if VertexSeekPos was already
@@ -193,16 +204,16 @@ var
       VertexSeekPos := 1;
 
       { read vertex index }
-      NextIndice(IndiceHasVertex, Face.VertIndices[IndiceNum]);
+      ReadIndex(IndiceHasVertex, Face.VertIndices[IndiceNum], Verts.Count);
       if not IndiceHasVertex then
         raise EInvalidOBJFile.CreateFmt(
           'Invalid OBJ vertex indexes "%s"', [VertexStr]);
 
       { read texCoord index }
-      NextIndice(IndiceHasTexCoord, Face.TexCoordIndices[IndiceNum]);
+      ReadIndex(IndiceHasTexCoord, Face.TexCoordIndices[IndiceNum], TexCoords.Count);
 
       { read normal index }
-      NextIndice(IndiceHasNormal, Face.NormalIndices[IndiceNum]);
+      ReadIndex(IndiceHasNormal, Face.NormalIndices[IndiceNum], Normals.Count);
 
       { update Face.HasXxx using IndiceHasXxx }
       Face.HasTexCoords := Face.HasTexCoords and IndiceHasTexCoord;
@@ -565,6 +576,9 @@ begin
         Faces := TIndexedFaceSetNode.Create('', BaseUrl);
         Shape.FdGeometry.Value := Faces;
         Faces.FdCreaseAngle.Value := NiceCreaseAngle;
+        { faces may be concave, see https://sourceforge.net/p/castle-engine/tickets/20
+          and https://sourceforge.net/p/castle-engine/tickets/19/ }
+        Faces.FdConvex.Value := false;
         Faces.FdSolid.Value := false;
         Faces.FdCoord.Value := Coord;
         Faces.FdCoordIndex.Items.Clear;
