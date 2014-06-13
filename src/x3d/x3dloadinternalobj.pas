@@ -68,28 +68,22 @@ type
 
   { 3D model in OBJ file format. }
   TObject3DOBJ = class
-  private
-    FVerts: TVector3SingleList;
-    FTexCoords: TVector2SingleList;
-    FNormals: TVector3SingleList;
+  strict private
+    { Lists to fill with vertex, tex coord and normal data }
+    Verts: TVector3SingleList;
+    TexCoords: TVector2SingleList;
+    Normals: TVector3SingleList;
+
     FFaces: TWavefrontFaceList;
     FMaterials: TWavefrontMaterialList;
   public
-    constructor Create(const URL: string);
+    constructor Create(const URL: string;
+      const AVerts: TVector3SingleList;
+      const ATexCoords: TVector2SingleList;
+      const ANormals: TVector3SingleList);
     destructor Destroy; override;
 
-    { @groupBegin
-
-      Model data.
-
-      Contents of Verts, TexCoords, Normals and Faces are read-only
-      for users of this class. }
-    property Verts: TVector3SingleList read FVerts;
-    property TexCoords: TVector2SingleList read FTexCoords;
-    property Normals: TVector3SingleList read FNormals;
     property Faces: TWavefrontFaceList read FFaces;
-    { @groupEnd }
-
     property Materials: TWavefrontMaterialList read FMaterials;
   end;
 
@@ -140,7 +134,10 @@ end;
 
 { TObject3DOBJ --------------------------------------------------------------- }
 
-constructor TObject3DOBJ.Create(const URL: string);
+constructor TObject3DOBJ.Create(const URL: string;
+  const AVerts: TVector3SingleList;
+  const ATexCoords: TVector2SingleList;
+  const ANormals: TVector3SingleList);
 var
   BasePath: string;
 
@@ -412,9 +409,10 @@ begin
 
   BasePath := AbsoluteURI(URL);
 
-  FVerts := TVector3SingleList.Create;
-  FTexCoords := TVector2SingleList.Create;
-  FNormals := TVector3SingleList.Create;
+  Verts := AVerts;
+  TexCoords := ATexCoords;
+  Normals := ANormals;
+
   FFaces := TWavefrontFaceList.Create;
   FMaterials := TWavefrontMaterialList.Create(true);
 
@@ -455,9 +453,6 @@ end;
 
 destructor TObject3DOBJ.Destroy;
 begin
-  FreeAndNil(FVerts);
-  FreeAndNil(FTexCoords);
-  FreeAndNil(FNormals);
   FreeAndNil(FFaces);
   FreeAndNil(FMaterials);
   inherited;
@@ -479,7 +474,7 @@ var
     Result := 'Material_' + ToX3DName(MatOBJName);
   end;
 
-  function MaterialToVRML(const Material: TWavefrontMaterial): TAppearanceNode;
+  function MaterialToX3D(const Material: TWavefrontMaterial): TAppearanceNode;
   var
     Mat: TMaterialNode;
     Texture: TImageTextureNode;
@@ -516,7 +511,7 @@ var
   Coord: TCoordinateNode;
   Faces: TIndexedFaceSetNode;
   TexCoord: TTextureCoordinateNode;
-  i: integer;
+  I: integer;
   FacesWithTexCoord, FacesWithNormal: boolean;
   Normal: TNormalNode;
   FacesWithMaterial: TWavefrontMaterial;
@@ -525,26 +520,25 @@ var
 begin
   BaseUrl := AbsoluteURI(URL);
   Appearances := nil;
-  Obj := TObject3DOBJ.Create(URL);
-  try
-    result := TX3DRootNode.Create('', BaseUrl);
-    try
-      Result.HasForceVersion := true;
-      Result.ForceVersion := X3DVersion;
 
+  Result := TX3DRootNode.Create('', BaseUrl);
+  try
+    Result.HasForceVersion := true;
+    Result.ForceVersion := X3DVersion;
+
+    Coord := TCoordinateNode.Create('ObjCoordinates',BaseUrl);
+    TexCoord := TTextureCoordinateNode.Create('ObjTextureCoordinates', BaseUrl);
+    Normal := TNormalNode.Create('ObjNormals', BaseUrl);
+
+    Obj := TObject3DOBJ.Create(URL,
+      Coord.FdPoint.Items,
+      TexCoord.FdPoint.Items,
+      Normal.FdVector.Items);
+    try
       Appearances := TX3DNodeList.Create(false);
       Appearances.Count := Obj.Materials.Count;
       for I := 0 to Obj.Materials.Count - 1 do
-        Appearances[I] := MaterialToVRML(Obj.Materials[I]);
-
-      Coord := TCoordinateNode.Create('ObjCoordinates',BaseUrl);
-      Coord.FdPoint.Items.Assign(obj.Verts);
-
-      TexCoord := TTextureCoordinateNode.Create('ObjTextureCoordinates', BaseUrl);
-      TexCoord.FdPoint.Items.Assign(obj.TexCoords);
-
-      Normal := TNormalNode.Create('ObjNormals', BaseUrl);
-      Normal.FdVector.Items.Assign(Obj.Normals);
+        Appearances[I] := MaterialToX3D(Obj.Materials[I]);
 
       i := 0;
       while i < obj.Faces.Count do
@@ -623,31 +617,17 @@ begin
           (FacesWithMaterial <> obj.Faces.L[i].Material);
       end;
 
-      if Coord <> nil then
-      begin
-        Coord.FreeIfUnused;
-        Coord := nil;
-      end;
-
-      if TexCoord <> nil then
-      begin
-        TexCoord.FreeIfUnused;
-        TexCoord := nil;
-      end;
-
-      if Normal <> nil then
-      begin
-        Normal.FreeIfUnused;
-        Normal := nil;
-      end;
+      FreeIfUnusedAndNil(Coord);
+      FreeIfUnusedAndNil(TexCoord);
+      FreeIfUnusedAndNil(Normal);
 
       for I := 0 to Appearances.Count - 1 do
         Appearances[I].FreeIfUnused;
-    except FreeAndNil(result); raise end;
-  finally
-    FreeAndNil(obj);
-    FreeAndNil(Appearances);
-  end;
+    finally
+      FreeAndNil(Obj);
+      FreeAndNil(Appearances);
+    end;
+  except FreeAndNil(result); raise end;
 end;
 
 end.
