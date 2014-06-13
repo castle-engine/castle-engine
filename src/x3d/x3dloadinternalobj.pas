@@ -54,17 +54,19 @@ type
     function TryFindName(const Name: string): TWavefrontMaterial;
   end;
 
-  TWavefrontFace = record
-    VertIndices, TexCoordIndices, NormalIndices: TVector3Cardinal;
+  TWavefrontFace = class
+    VertIndices, TexCoordIndices, NormalIndices: TLongIntList;
     HasTexCoords: boolean;
     HasNormals: boolean;
 
     { Material assigned to this face. @nil means that no material was assigned. }
     Material: TWavefrontMaterial;
-  end;
-  PWavefrontFace = ^TWavefrontFace;
 
-  TWavefrontFaceList = specialize TGenericStructList<TWavefrontFace>;
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
+  TWavefrontFaceList = specialize TFPGObjectList<TWavefrontFace>;
 
   { 3D model in OBJ file format. }
   TObject3DOBJ = class
@@ -132,6 +134,24 @@ begin
   Result := nil;
 end;
 
+{ TWavefrontFace ------------------------------------------------------------- }
+
+constructor TWavefrontFace.Create;
+begin
+  inherited;
+  VertIndices := TLongIntList.Create;
+  TexCoordIndices := TLongIntList.Create;
+  NormalIndices := TLongIntList.Create;
+end;
+
+destructor TWavefrontFace.Destroy;
+begin
+  FreeAndNil(VertIndices);
+  FreeAndNil(TexCoordIndices);
+  FreeAndNil(NormalIndices);
+  inherited;
+end;
+
 { TObject3DOBJ --------------------------------------------------------------- }
 
 constructor TObject3DOBJ.Create(const URL: string;
@@ -143,15 +163,15 @@ var
 
   procedure ReadFacesFromOBJLine(const line: string; Material: TWavefrontMaterial);
   var
-    face: TWavefrontFace;
+    Face: TWavefrontFace;
 
-    { Initialize indexes of IndiceNum face based on VertexStr. }
-    procedure ReadIndices(const VertexStr: string; IndiceNum: integer);
+    { Add indexes of next face vertex based on VertexStr. }
+    procedure ReadIndices(const VertexStr: string);
     var
       VertexSeekPos: Integer;
 
       { Reads and updates VertexStr and VertexSeekPos, and sets
-        IndiceExists and IndiceValue. IndiceExists is set to @false
+        IndiceExists and adds to IndexList. IndiceExists is set to @false
         if next indice is indeed empty,
         or if we're standing at the end of VertexStr string.
 
@@ -159,11 +179,12 @@ var
         Remember that empty indice may be followed by non-empty,
         e.g. VectorStr = '2//3' is allowed, and means that vertex
         index is 2, there's no texCoord index, and normal index is 3. }
-      procedure ReadIndex(out IndiceExists: boolean; out IndiceValue: Cardinal;
-        const Count: Cardinal);
+      procedure ReadIndex(out IndiceExists: boolean;
+        const IndexList: TLongIntList; const Count: Cardinal);
       var
         NewVertexSeekPos: Integer;
         Index: Integer;
+
       begin
         NewVertexSeekPos := VertexSeekPos;
 
@@ -178,13 +199,13 @@ var
           Index := StrToInt(CopyPos(VertexStr, VertexSeekPos, NewVertexSeekPos - 1));
           if Index > 0 then
             { we subtract 1, because indexed in OBJ are 1-based and we prefer 0-based }
-            IndiceValue := Index - 1 else
+            IndexList.Add(Index - 1) else
           if Index < 0 then
           begin
             Index += Integer(Count);
             if Index < 0 then
               raise EInvalidOBJFile.Create('Invalid OBJ: Index is < 0 after summing with current count');
-            IndiceValue := Index;
+            IndexList.Add(Index);
           end else
             raise EInvalidOBJFile.Create('Invalid OBJ: Index is 0 (should be < 0 for relative and > 0 for absolute index)');
         end;
@@ -201,16 +222,16 @@ var
       VertexSeekPos := 1;
 
       { read vertex index }
-      ReadIndex(IndiceHasVertex, Face.VertIndices[IndiceNum], Verts.Count);
+      ReadIndex(IndiceHasVertex, Face.VertIndices, Verts.Count);
       if not IndiceHasVertex then
         raise EInvalidOBJFile.CreateFmt(
           'Invalid OBJ vertex indexes "%s"', [VertexStr]);
 
       { read texCoord index }
-      ReadIndex(IndiceHasTexCoord, Face.TexCoordIndices[IndiceNum], TexCoords.Count);
+      ReadIndex(IndiceHasTexCoord, Face.TexCoordIndices, TexCoords.Count);
 
       { read normal index }
-      ReadIndex(IndiceHasNormal, Face.NormalIndices[IndiceNum], Normals.Count);
+      ReadIndex(IndiceHasNormal, Face.NormalIndices, Normals.Count);
 
       { update Face.HasXxx using IndiceHasXxx }
       Face.HasTexCoords := Face.HasTexCoords and IndiceHasTexCoord;
@@ -232,37 +253,15 @@ var
   begin
     { ReadIndices will eventually change this to @false, if for any
       vertex normal or texCoord will not be present. }
+    Face := TWavefrontFace.Create;
     Face.HasTexCoords := true;
     Face.HasNormals := true;
     Face.Material := Material;
-
-    SeekPos := 1;
-
-    ReadIndices(NextVertex, 0);
-
-    { we check this, and eventually exit (without generating any face),
-      because blender exporter writes 2-item faces when the mesh is
-      edges-only. TODO: we should hadle 2-item faces as edges
-      (and probably 1-item faces as single points?). }
-    if SeekPos > Length(Line) then Exit;
-
-    ReadIndices(NextVertex, 1);
-    if SeekPos > Length(Line) then Exit;
-
-    ReadIndices(NextVertex, 2);
-
     Faces.Add(Face);
 
+    SeekPos := 1;
     while SeekPos <= Length(Line) do
-    begin
-      Face.VertIndices[1] := Face.VertIndices[2];
-      Face.TexCoordIndices[1] := Face.TexCoordIndices[2];
-      Face.NormalIndices[1] := Face.NormalIndices[2];
-
-      ReadIndices(NextVertex, 2);
-
-      Faces.Add(Face);
-    end;
+      ReadIndices(NextVertex);
   end;
 
   function ReadTexCoordFromOBJLine(const line: string): TVector2Single;
@@ -413,7 +412,7 @@ begin
   TexCoords := ATexCoords;
   Normals := ANormals;
 
-  FFaces := TWavefrontFaceList.Create;
+  FFaces := TWavefrontFaceList.Create(true);
   FMaterials := TWavefrontMaterialList.Create(true);
 
   UsedMaterial := nil;
@@ -540,12 +539,12 @@ begin
       for I := 0 to Obj.Materials.Count - 1 do
         Appearances[I] := MaterialToX3D(Obj.Materials[I]);
 
-      i := 0;
-      while i < obj.Faces.Count do
+      I := 0;
+      while I < Obj.Faces.Count do
       begin
-        FacesWithTexCoord := Obj.Faces.L[i].HasTexCoords;
-        FacesWithNormal := Obj.Faces.L[i].HasNormals;
-        FacesWithMaterial := Obj.Faces.L[i].Material;
+        FacesWithTexCoord := Obj.Faces[I].HasTexCoords;
+        FacesWithNormal := Obj.Faces[I].HasNormals;
+        FacesWithMaterial := Obj.Faces[I].Material;
 
         Shape := TShapeNode.Create('', BaseUrl);
         Result.FdChildren.Add(Shape);
@@ -593,28 +592,26 @@ begin
         { We add Faces as long as FacesWithXxx parameters stay the same.
           We know that at least the next face is Ok. }
         repeat
-          Faces.FdCoordIndex.Items.AddArray(
-            [obj.Faces.L[i].VertIndices[0],
-             obj.Faces.L[i].VertIndices[1],
-             obj.Faces.L[i].VertIndices[2], -1]);
+          Faces.FdCoordIndex.Items.AddList(Obj.Faces[I].VertIndices);
+          Faces.FdCoordIndex.Items.Add(-1);
 
           if FacesWithTexCoord then
-            Faces.FdTexCoordIndex.Items.AddArray(
-              [obj.Faces.L[i].TexCoordIndices[0],
-               obj.Faces.L[i].TexCoordIndices[1],
-               obj.Faces.L[i].TexCoordIndices[2], -1]);
+          begin
+            Faces.FdTexCoordIndex.Items.AddList(Obj.Faces[I].TexCoordIndices);
+            Faces.FdTexCoordIndex.Items.Add(-1);
+          end;
 
           if FacesWithNormal then
-            Faces.FdNormalIndex.Items.AddArray(
-              [obj.Faces.L[i].NormalIndices[0],
-               obj.Faces.L[i].NormalIndices[1],
-               obj.Faces.L[i].NormalIndices[2], -1]);
+          begin
+            Faces.FdNormalIndex.Items.AddList(Obj.Faces[I].NormalIndices);
+            Faces.FdNormalIndex.Items.Add(-1);
+          end;
 
-          Inc(i);
-        until (i >= obj.Faces.Count) or
-          (FacesWithTexCoord <> obj.Faces.L[i].HasTexCoords) or
-          (FacesWithNormal   <> obj.Faces.L[i].HasNormals) or
-          (FacesWithMaterial <> obj.Faces.L[i].Material);
+          Inc(I);
+        until (I >= Obj.Faces.Count) or
+          (FacesWithTexCoord <> Obj.Faces[I].HasTexCoords) or
+          (FacesWithNormal   <> Obj.Faces[I].HasNormals) or
+          (FacesWithMaterial <> Obj.Faces[I].Material);
       end;
 
       FreeIfUnusedAndNil(Coord);
