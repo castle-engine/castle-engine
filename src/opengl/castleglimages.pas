@@ -646,8 +646,6 @@ type
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
       const Interpolation: TResizeInterpolation = riBilinear);
-    constructor CreateScale(const URL: string;
-      const Scale: Single; const Interpolation: TResizeInterpolation = riBilinear);
     destructor Destroy; override;
 
     function GLImageFromTime(const Time: Single): TGLImage;
@@ -2127,19 +2125,6 @@ begin
   Video := TVideo.Create;
   try
     Video.LoadFromFile(URL, ResizeToX, ResizeToY, Interpolation);
-    Create(Video);
-  finally FreeAndNil(Video) end;
-end;
-
-constructor TGLVideo2D.CreateScale(const URL: string;
-  const Scale: Single; const Interpolation: TResizeInterpolation);
-var
-  Video: TVideo;
-begin
-  Video := TVideo.Create;
-  try
-    Video.LoadFromFile(URL);
-    Video.Resize(Round(Video.Width * Scale), Round(Video.Height * Scale), Interpolation);
     Create(Video);
   finally FreeAndNil(Video) end;
 end;

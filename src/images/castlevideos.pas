@@ -276,6 +276,9 @@ type
     function AlphaChannel(
       const AlphaTolerance: Byte = DefaultAlphaTolerance;
       const WrongPixelsTolerance: Single = DefaultAlphaWrongPixelsTolerance): TAlphaChannel;
+
+    procedure FlipHorizontal;
+    procedure FlipVertical;
   end;
 
   { A cache of loaded videos.
@@ -809,6 +812,22 @@ function TVideo.AlphaChannel(
 begin
   Assert(Loaded);
   Result := Items[0].AlphaChannel(AlphaTolerance, WrongPixelsTolerance);
+end;
+
+procedure TVideo.FlipHorizontal;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    Items[I].FlipHorizontal;
+end;
+
+procedure TVideo.FlipVertical;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    Items[I].FlipVertical;
 end;
 
 { TVideosCache --------------------------------------------------------------- }

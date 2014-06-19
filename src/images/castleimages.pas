@@ -411,8 +411,11 @@ type
       const Interpolation: TResizeInterpolation = riNearest;
       const ProgressTitle: string = ''): TCastleImage;
 
-    { Mirror image horizotally (i.e. right edge is swapped with left edge) }
+    { Mirror image horizotally (that is right edge is swapped with left edge). }
     procedure FlipHorizontal;
+
+    { Mirror image vertically. }
+    procedure FlipVertical;
 
     { Make rotated version of the image.
       See @link(Rotate) for description of parameters. }
@@ -2221,7 +2224,7 @@ var
 begin
   TmpPixel := GetMem(PixelSize);
   try
-    for y := 0 to Height-1 do
+    for Y := 0 to Height-1 do
     begin
       ImageRow := RowPtr(y);
       for x := 0 to (Width-1) div 2 do
@@ -2234,6 +2237,25 @@ begin
       end;
     end;
   finally FreeMem(TmpPixel) end;
+end;
+
+procedure TCastleImage.FlipVertical;
+var
+  TmpRow, Row1, Row2: Pointer;
+  Y, RowSize: Integer;
+begin
+  RowSize := PixelSize * Width;
+  TmpRow := GetMem(RowSize);
+  try
+    for Y := 0 to Height div 2 - 1 do
+    begin
+      Row1 := RowPtr(Y);
+      Row2 := RowPtr(Height - Y - 1);
+      Move(Row1^, TmpRow^, RowSize);
+      Move(Row2^, Row1^, RowSize);
+      Move(TmpRow^, Row2^, RowSize);
+    end;
+  finally FreeMem(TmpRow) end;
 end;
 
 function TCastleImage.MakeTiled(TileX, TileY: Cardinal): TCastleImage;
@@ -2271,7 +2293,7 @@ begin
 
   Result := TCastleImageClass(ClassType).Create(ExtractWidth, ExtractHeight);
   try
-    for y := 0 to ExtractHeight - 1 do
+    for Y := 0 to ExtractHeight - 1 do
       Move(PixelPtr(x0, y + y0)^, Result.RowPtr(y)^, PixelSize * ExtractWidth);
   except Result.Free; raise end;
 end;
