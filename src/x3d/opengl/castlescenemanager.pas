@@ -2331,6 +2331,8 @@ begin
 end;
 
 procedure TCastleAbstractViewport.GLContextOpen;
+var
+  VS, FS: string;
 begin
   inherited;
 
@@ -2340,9 +2342,14 @@ begin
     begin
       try
         SSAOShader := TGLSLProgram.Create;
-        SSAOShader.AttachVertexShader(ScreenEffectVertex);
-        SSAOShader.AttachFragmentShader(ScreenEffectFragment(true) +
-          {$I ssao.glsl.inc});
+        VS := ScreenEffectVertex;
+        FS := ScreenEffectFragment(true) + {$I ssao.glsl.inc};
+        if Log and LogShaders then
+          WritelnLogMultiline('GLSL SSAO shader',
+            'SSAO vertex shader:' + NL +  VS + NL +
+            'SSAO fragment shader:' + NL + FS);
+        SSAOShader.AttachVertexShader(VS);
+        SSAOShader.AttachFragmentShader(FS);
         SSAOShader.Link(true);
         SSAOShader.UniformNotFoundAction := uaIgnore;
       except

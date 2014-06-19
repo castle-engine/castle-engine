@@ -4,16 +4,16 @@ vec4 screen_get_color(ivec2 position);
 
 // shader from http://www.pasteall.org/12282, http://www.youtube.com/watch?v=R_L-_oGTbqw
 
-#define PI    3.14159265
-
-float width = float(screen_width);
-float height = float(screen_height);
-
 uniform float near; //Z-near
 uniform float far; //Z-far
 
-int samples = 6;//8; //samples on the first ring
-int rings = 3;//6; //ring count
+#define PI 3.14159265
+
+//samples on the first ring (was 8)
+#define SSAO_SAMPLES 6
+
+//ring count (was 6)
+#define SSAO_RINGS 3
 
 vec2 rand(in vec2 coord) //generating random noise
 {
@@ -44,6 +44,9 @@ void main(void)
   float depth = readDepth(current_pos);
   float d;
 
+  float width = float(screen_width);
+  float height = float(screen_height);
+
   float aspect = width/height;
   vec2 noise = rand(vec2(current_pos));
 
@@ -59,12 +62,12 @@ void main(void)
   float s = 0.0;
   float fade = 1.0;
 
-  for (int i = 0 ; i < rings; i += 1)
+  for (int i = 0 ; i < SSAO_RINGS; i += 1)
   {
     fade *= 0.5;
-    for (int j = 0 ; j < samples*i; j += 1)
+    for (int j = 0 ; j < SSAO_SAMPLES*i; j += 1)
     {
-      float step = PI*2.0 / float(samples*i);
+      float step = PI*2.0 / float(SSAO_SAMPLES*i);
       pw = (cos(float(j)*step)*float(i));
       ph = (sin(float(j)*step)*float(i));
       d = readDepth(current_pos + ivec2(int(pw * w), int(ph * h)));

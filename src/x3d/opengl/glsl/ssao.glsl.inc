@@ -6,16 +6,16 @@
 '' + LineEnding +
 '// shader from http://www.pasteall.org/12282, http://www.youtube.com/watch?v=R_L-_oGTbqw' + LineEnding +
 '' + LineEnding +
-'#define PI    3.14159265' + LineEnding +
-'' + LineEnding +
-'float width = float(screen_width);' + LineEnding +
-'float height = float(screen_height);' + LineEnding +
-'' + LineEnding +
 'uniform float near; //Z-near' + LineEnding +
 'uniform float far; //Z-far' + LineEnding +
 '' + LineEnding +
-'int samples = 6;//8; //samples on the first ring' + LineEnding +
-'int rings = 3;//6; //ring count' + LineEnding +
+'#define PI 3.14159265' + LineEnding +
+'' + LineEnding +
+'//samples on the first ring (was 8)' + LineEnding +
+'#define SSAO_SAMPLES 6' + LineEnding +
+'' + LineEnding +
+'//ring count (was 6)' + LineEnding +
+'#define SSAO_RINGS 3' + LineEnding +
 '' + LineEnding +
 'vec2 rand(in vec2 coord) //generating random noise' + LineEnding +
 '{' + LineEnding +
@@ -46,6 +46,9 @@
 '  float depth = readDepth(current_pos);' + LineEnding +
 '  float d;' + LineEnding +
 '' + LineEnding +
+'  float width = float(screen_width);' + LineEnding +
+'  float height = float(screen_height);' + LineEnding +
+'' + LineEnding +
 '  float aspect = width/height;' + LineEnding +
 '  vec2 noise = rand(vec2(current_pos));' + LineEnding +
 '' + LineEnding +
@@ -61,12 +64,12 @@
 '  float s = 0.0;' + LineEnding +
 '  float fade = 1.0;' + LineEnding +
 '' + LineEnding +
-'  for (int i = 0 ; i < rings; i += 1)' + LineEnding +
+'  for (int i = 0 ; i < SSAO_RINGS; i += 1)' + LineEnding +
 '  {' + LineEnding +
 '    fade *= 0.5;' + LineEnding +
-'    for (int j = 0 ; j < samples*i; j += 1)' + LineEnding +
+'    for (int j = 0 ; j < SSAO_SAMPLES*i; j += 1)' + LineEnding +
 '    {' + LineEnding +
-'      float step = PI*2.0 / float(samples*i);' + LineEnding +
+'      float step = PI*2.0 / float(SSAO_SAMPLES*i);' + LineEnding +
 '      pw = (cos(float(j)*step)*float(i));' + LineEnding +
 '      ph = (sin(float(j)*step)*float(i));' + LineEnding +
 '      d = readDepth(current_pos + ivec2(int(pw * w), int(ph * h)));' + LineEnding +
