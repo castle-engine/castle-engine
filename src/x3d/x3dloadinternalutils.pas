@@ -36,10 +36,19 @@ function AmbientIntensity(const AmbientColor, DiffuseColor: TVector4Single): Sin
   BaseUrl must be an absolute URL, we will extract path from it.
   Returns URL relative to BaseUrl.
 
+  Automatically uses FixRelativeUrl on Base, fixing backslashes to slashes,
+  so assuming that this is an old 3D format and backslash should be interpreted
+  as directory separator (like on Windows).
+
   We prefer to return just Base, if it exists, or when no alternative exists.
   When Base doesn't exist but some likely alternative exists (e.g. with
   different case), we return it. }
-function SearchTextureFile(const BaseUrl, Base: string): string;
+function SearchTextureFile(const BaseUrl: string; Base: string): string;
+
+{ Convert backslashes to slashes. Use for formats where this interpretation
+  of backslash (instead of %-encoding actual backslash, see
+  https://sourceforge.net/p/castle-engine/tickets/21/ ) seems more common. }
+function FixRelativeUrl(const URL: string): string;
 
 implementation
 
@@ -74,12 +83,13 @@ begin
     Vector3SingleCut(DiffuseColor));
 end;
 
-function SearchTextureFile(const BaseUrl, Base: string): string;
+function SearchTextureFile(const BaseUrl: string; Base: string): string;
 var
   SomePathDelim: Integer;
   BaseShort, Path: string;
 begin
   Path := ExtractURIPath(BaseUrl);
+  Base := FixRelativeUrl(Base);
 
   try
     if SearchFileHard(Path, Base, Result) then
@@ -131,6 +141,11 @@ begin
 
   { default result if nowhere found }
   Result := Base;
+end;
+
+function FixRelativeUrl(const URL: string): string;
+begin
+  Result := SReplaceChars(URL, '\', '/');
 end;
 
 end.
