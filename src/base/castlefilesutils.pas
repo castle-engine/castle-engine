@@ -130,7 +130,7 @@ function UserConfigPath: string; deprecated;
   )
 
   @deprecated Deprecated,
-  use ApplicationConfig(ApplicatioName + Extension) instead. }
+  use ApplicationConfig(ApplicationName + Extension) instead. }
 function UserConfigFile(const Extension: string): string; deprecated;
 
 { Path to access installed data files.
