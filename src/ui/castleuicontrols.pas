@@ -147,6 +147,7 @@ type
     { Capture controls, for each FingerIndex.
       The values in this map are never nil. }
     FCaptureInput: TFingerIndexCaptureMap;
+    FForceCaptureInput: TUIControl;
     FTooltipDelay: TMilisecTime;
     FTooltipDistance: Cardinal;
     FTooltipVisible: boolean;
@@ -159,6 +160,7 @@ type
     procedure ControlsVisibleChange(Sender: TObject);
     { Called when the control C is destroyed or just removed from Controls list. }
     procedure DetachNotification(const C: TUIControl);
+    function UseForceCaptureInput: boolean;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -288,10 +290,27 @@ type
       (since focused control or final container cursor may also change then). }
     procedure UpdateFocusAndMouseCursor;
 
-    { Internal for implmenting mouse look in cameras. }
+    { Internal for implementing mouse look in cameras. }
     function IsMousePositionForMouseLook: boolean;
-    { Internal for implmenting mouse look in cameras. }
+    { Internal for implementing mouse look in cameras. }
     procedure MakeMousePositionForMouseLook;
+
+    { Force passing events to given control first, regardless if this control is under mouse cursor.
+      This control also always has focus.
+
+      An example when this is useful is when you use camera MouseLook,
+      and the associated viewport does not fill the full window
+      (TCastleAbstractViewport.FullSize is @false, and actual sizes are smaller
+      than window, and may not include window center). In this case you want
+      to make sure that motion events get passed to this control,
+      and that this control has focus (to keep mouse cursor hidden).
+
+      This is used only if it is also present on our @link(Controls) list,
+      as it doesn't make sense otherwise.
+      We also cannot reliably track it's existence when it's outside our @link(Controls) list
+      (and we don't want to eagerly @nil this property automatically). }
+    property ForceCaptureInput: TUIControl
+      read FForceCaptureInput write FForceCaptureInput;
   published
     { How OnRender callback fits within various Render methods of our
       @link(Controls).
@@ -1195,6 +1214,16 @@ begin
     FCaptureInput.Delete(CaptureIndex);
 end;
 
+function TUIContainer.UseForceCaptureInput: boolean;
+begin
+  Result :=
+    (ForceCaptureInput <> nil) and
+    (Controls.IndexOf(ForceCaptureInput) <> -1) and
+    { note that before we checked "Controls.IndexOf(ForceCaptureInput) <> -1", we cannot
+      even assume that ForceCaptureInput is a valid (not freed yet) reference. }
+    ForceCaptureInput.GetExists;
+end;
+
 procedure TUIContainer.UpdateFocusAndMouseCursor;
 
   function CalculateFocus: TUIControl;
@@ -1221,6 +1250,8 @@ procedure TUIContainer.UpdateFocusAndMouseCursor;
 var
   NewFocus: TUIControl;
 begin
+  if UseForceCaptureInput then
+    NewFocus := ForceCaptureInput else
   if FCaptureInput.IndexOf(0) <> -1 then
     NewFocus := FCaptureInput[0] else
     NewFocus := CalculateFocus;
@@ -1335,10 +1366,14 @@ begin
 
   HandleInput := true;
 
+  { ForceCaptureInput has the 1st chance to process inputs }
+  if UseForceCaptureInput then
+    ForceCaptureInput.Update(Fps.UpdateSecondsPassed, HandleInput);
+
   for I := 0 to Controls.Count - 1 do
   begin
     C := Controls[I];
-    if C.GetExists then
+    if C.GetExists and (C <> ForceCaptureInput) then
     begin
       if C.PositionInside(MousePosition) then
       begin
@@ -1361,10 +1396,18 @@ var
 begin
   Result := false;
 
+  { pass to ForceCaptureInput }
+  if UseForceCaptureInput then
+  begin
+    if ForceCaptureInput.Press(Event) then
+      Exit(true);
+  end;
+
+  { pass to all Controls }
   for I := 0 to Controls.Count - 1 do
   begin
     C := Controls[I];
-    if C.GetExists and C.PositionInside(Event.Position) then
+    if C.GetExists and C.PositionInside(Event.Position) and (C <> ForceCaptureInput) then
       if C.Press(Event) then
       begin
         { We have to check whether C.Container = Self. That is because
@@ -1382,6 +1425,7 @@ begin
       end;
   end;
 
+  { pass to container event }
   if Assigned(OnPress) then
   begin
     OnPress(Self, Event);
@@ -1395,6 +1439,16 @@ var
   C, Capture: TUIControl;
 begin
   Result := false;
+
+  { pass to ForceCaptureInput }
+  if UseForceCaptureInput then
+  begin
+    if ForceCaptureInput.Release(Event) then
+      Exit(true);
+  end;
+
+  { pass to control holding capture }
+
   CaptureIndex := FCaptureInput.IndexOf(Event.FingerIndex);
 
   if (CaptureIndex <> -1) and
@@ -1415,20 +1469,22 @@ begin
     FCaptureInput.Delete(CaptureIndex);
   end;
 
-  if Capture <> nil then
+  if (Capture <> nil) and (Capture <> ForceCaptureInput) then
   begin
     Result := Capture.Release(Event);
     Exit;
   end;
 
+  { pass to all Controls }
   for I := 0 to Controls.Count - 1 do
   begin
     C := Controls[I];
-    if C.GetExists and C.PositionInside(Event.Position) then
+    if C.GetExists and C.PositionInside(Event.Position) and (C <> ForceCaptureInput) then
       if C.Release(Event) then
         Exit(true);
   end;
 
+  { pass to container event }
   if Assigned(OnRelease) then
   begin
     OnRelease(Self, Event);
@@ -1512,6 +1568,16 @@ var
   C: TUIControl;
 begin
   UpdateFocusAndMouseCursor;
+
+  { pass to ForceCaptureInput }
+  if UseForceCaptureInput then
+  begin
+    if ForceCaptureInput.Motion(Event) then
+      Exit;
+  end;
+
+  { pass to control holding capture }
+
   CaptureIndex := FCaptureInput.IndexOf(Event.FingerIndex);
 
   if (CaptureIndex <> -1) and
@@ -1523,22 +1589,24 @@ begin
     CaptureIndex := -1;
   end;
 
-  if CaptureIndex <> -1 then
+  if (CaptureIndex <> -1) and (FCaptureInput.Data[CaptureIndex] <> ForceCaptureInput) then
   begin
     FCaptureInput.Data[CaptureIndex].Motion(Event);
     Exit;
   end;
 
+  { pass to all Controls }
   for I := 0 to Controls.Count - 1 do
   begin
     C := Controls[I];
-    if C.GetExists and C.PositionInside(Event.Position) then
+    if C.GetExists and C.PositionInside(Event.Position) and (C <> ForceCaptureInput) then
     begin
       if C.Motion(Event) then
         Exit;
     end;
   end;
 
+  { pass to container event }
   if Assigned(OnMotion) then
     OnMotion(Self, Event);
 end;
