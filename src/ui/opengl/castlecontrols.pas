@@ -542,6 +542,7 @@ type
     FLineSpacing: Integer;
     FColor: TCastleColor;
     FTags: boolean;
+    FFrame: boolean;
   protected
     ImageType: TThemeImage;
   public
@@ -565,6 +566,9 @@ type
     { Does the text use HTML-like tags. This is very limited for now,
       see TCastleFont.PrintStrings documentation. }
     property Tags: boolean read FTags write FTags default false;
+
+    { Draw frame with (using theme image tiLabel) around text. }
+    property Frame: boolean read FFrame write FFrame default true;
   end;
 
   TCastleCrosshairShape = (csCross, csCrossRect);
@@ -2196,6 +2200,7 @@ begin
   inherited;
   FText := TStringList.Create;
   FColor := White;
+  FFrame := true;
   ImageType := tiLabel;
 end;
 
@@ -2219,7 +2224,8 @@ begin
   inherited;
   if Text.Count = 0 then Exit;
   R := Rect;
-  Theme.Draw(Rect, ImageType);
+  if Frame then
+    Theme.Draw(R, ImageType);
   Font.PrintStrings(R.Left + Padding,
     R.Bottom + Padding + Font.Descend, Color, Text, Tags, LineSpacing);
 end;
