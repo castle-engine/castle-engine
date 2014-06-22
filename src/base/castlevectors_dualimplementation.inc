@@ -835,6 +835,12 @@ begin
     result := PlaneDir;
 end;
 
+function PointsDistance(const V1, V2: TVector2): TScalar;
+begin
+  { Result := Sqrt(PointsDistanceSqr(V1, V2));, expanded for speed }
+  result := Sqrt( Sqr(V2[0]-V1[0]) + Sqr(V2[1]-V1[1]) );
+end;
+
 function PointsDistance(const V1, V2: TVector3): TScalar;
 begin
   { Result := Sqrt(PointsDistanceSqr(V1, V2));, expanded for speed }

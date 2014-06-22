@@ -1121,6 +1121,8 @@ function PointsSamePlaneSides(const p1, p2: TVector3Single; const Plane: TVector
 function PointsSamePlaneSides(const p1, p2: TVector3Double; const Plane: TVector4Double): boolean; overload;
 { @groupEnd }
 
+function PointsDistance(const V1, V2: TVector2Single): Single; overload;
+function PointsDistance(const V1, V2: TVector2Double): Double; overload;
 function PointsDistance(const V1, V2: TVector3Single): Single; overload;
 function PointsDistance(const V1, V2: TVector3Double): Double; overload;
 function PointsDistanceSqr(const V1, V2: TVector3Single): Single; overload;
