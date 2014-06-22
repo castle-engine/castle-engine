@@ -758,20 +758,32 @@ begin
 end;
 
 function TAppearanceNode.MaterialProperty: TMaterialProperty;
-var
-  TextureUrl: string;
+
+  function TryUrl(const Url: TMFString): TMaterialProperty;
+  var
+    TextureUrl: string;
+  begin
+    Result := nil;
+    if Url.Count <> 0 then
+    begin
+      TextureUrl := Url.Items[0];
+      if TextureUrl <> '' then
+        Result := MaterialProperties.FindTextureBaseName(
+          DeleteURIExt(ExtractURIName(TextureUrl)));
+    end;
+  end;
+
 begin
   Result := nil;
 
   if (Texture <> nil) and
-     (Texture is TImageTextureNode) and
-     (TImageTextureNode(Texture).FdUrl.Count <> 0) then
-  begin
-    TextureUrl := TImageTextureNode(Texture).FdUrl.Items[0];
-    if TextureUrl <> '' then
-      Result := MaterialProperties.FindTextureBaseName(
-        DeleteURIExt(ExtractURIName(TextureUrl)));
-  end;
+     (Texture is TImageTextureNode) then
+    Result := TryUrl(TImageTextureNode(Texture).FdUrl);
+
+  if (Texture <> nil) and
+     (Texture is TMovieTextureNode) then
+    Result := TryUrl(TMovieTextureNode(Texture).FdUrl);
+
 end;
 
 procedure TAppearanceNode.ParseAfter(Reader: TX3DReaderNames);
