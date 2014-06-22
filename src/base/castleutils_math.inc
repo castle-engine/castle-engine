@@ -318,6 +318,10 @@ function CastleCoTan(const Value: Float): Float;
 { Floor from Sqrt(Value). }
 function IntSqrt(const Value: Cardinal): Cardinal;
 
+{ Hermite interpolation between two values.
+  Just like GLSL smoothstep:
+  http://www.khronos.org/opengles/sdk/docs/manglsl/xhtml/smoothstep.xml }
+function SmoothStep(const Edge0, Edge1, X: Single): Single;
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -848,4 +852,9 @@ begin
   Result := Trunc(Sqrt(Value));
 end;
 
+function SmoothStep(const Edge0, Edge1, X: Single): Single;
+begin
+  Result := Clamped((X - Edge0) / (Edge1 - Edge0), 0.0, 1.0);
+  Result := Result * Result * (3.0 - 2.0 * Result);
+end;
 {$endif read_implementation}
