@@ -713,6 +713,8 @@ type
       horizontal move was done. }
     MoveHorizontalDone: boolean;
 
+    FMoveForward, FMoveBackward: boolean;
+
     procedure RotateAroundGravityUp(const AngleDeg: Single);
     procedure RotateAroundUp(const AngleDeg: Single);
     procedure RotateHorizontal(const AngleDeg: Single);
@@ -1488,6 +1490,11 @@ type
     property Input_Jump: TInputShortcut read FInput_Jump;
     property Input_Crouch: TInputShortcut read FInput_Crouch;
     { @groupEnd }
+
+    { Move forward, just like Input_Forward would be pressed. }
+    property MoveForward: boolean read FMoveForward write FMoveForward;
+    { Move backward, just like Input_Backward would be pressed. }
+    property MoveBackward: boolean read FMoveBackward write FMoveBackward;
   published
     { If @true then all rotation keys
       (Input_RightRot, Input_LeftRot, Input_UpRotate, Input_DownRotate)
@@ -3877,9 +3884,9 @@ begin
         begin
           CheckRotates(1.0);
 
-          if Input_Forward.IsPressed(Container) then
+          if Input_Forward.IsPressed(Container) or MoveForward then
             MoveHorizontal(SecondsPassed, 1);
-          if Input_Backward.IsPressed(Container) then
+          if Input_Backward.IsPressed(Container) or MoveBackward then
             MoveHorizontal(SecondsPassed, -1);
 
           if Input_RightStrafe.IsPressed(Container) then
