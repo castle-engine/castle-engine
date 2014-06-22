@@ -122,7 +122,7 @@ begin
   UsedWindow.Cursor := mcWait;
   { To actually draw progress start. }
   UsedWindow.Invalidate;
-  Application.ProcessMessage(false, false);
+  Application.ProcessAllMessages;
 end;
 
 procedure TWindowProgressInterface.Update(Progress: TProgress);
