@@ -58,6 +58,8 @@ echo -n \
   -Fi"$CASTLE_ENGINE_SRC_PATH"/castlescript/ \
   -Fu"$CASTLE_ENGINE_SRC_PATH"/ui/ \
   -Fi"$CASTLE_ENGINE_SRC_PATH"/ui/ \
+  -Fu"$CASTLE_ENGINE_SRC_PATH"/ui/windows/ \
+  -Fi"$CASTLE_ENGINE_SRC_PATH"/ui/windows/ \
   -Fu"$CASTLE_ENGINE_SRC_PATH"/ui/opengl/ \
   -Fi"$CASTLE_ENGINE_SRC_PATH"/ui/opengl/ \
   -Fu"$CASTLE_ENGINE_SRC_PATH"/game/ \
