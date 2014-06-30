@@ -1997,17 +1997,27 @@ var
     for DestinX := DestinRect.Left to DestinRect.Right - 1 do
     begin
       SourceXFrac := DestinX * SourceWidth / DestinWidth;
-      SourceX1 := Max(Trunc(SourceXFrac), SourceRect.Left);
-      SourceX2 := Min(SourceX1 + 1, SourceRect.Right - 1);
+
+      SourceX1 := Trunc(SourceXFrac);
+      if SourceX1 < SourceRect.Left then
+        SourceX1 := SourceRect.Left;
+
+      SourceX2 := SourceX1 + 1;
+      if SourceX2 >= SourceRect.Right then
+        SourceX2 := SourceRect.Right - 1;
+
+      SourceX1 *= PixelSize;
+      SourceX2 *= PixelSize;
+
       SourceXFrac := Frac(SourceXFrac);
       Weights[0] := SourceXFrac * SourceYFrac;
-      Colors[0] := Pointer(PtrUInt(Source2Row + SourceX2 * PixelSize));
+      Colors[0] := Pointer(PtrUInt(Source2Row + SourceX2));
       Weights[1] := (1 - SourceXFrac) * SourceYFrac;
-      Colors[1] := Pointer(PtrUInt(Source2Row + SourceX1 * PixelSize));
+      Colors[1] := Pointer(PtrUInt(Source2Row + SourceX1));
       Weights[2] := (1 - SourceXFrac) * (1 - SourceYFrac);
-      Colors[2] := Pointer(PtrUInt(Source1Row + SourceX1 * PixelSize));
+      Colors[2] := Pointer(PtrUInt(Source1Row + SourceX1));
       Weights[3] :=  SourceXFrac * (1 - SourceYFrac);
-      Colors[3] := Pointer(PtrUInt(Source1Row + SourceX2 * PixelSize));
+      Colors[3] := Pointer(PtrUInt(Source1Row + SourceX2));
       MixColors(Pointer(PtrUInt(DestinRow + DestinX * PixelSize)), Weights, Colors);
     end;
   end;
@@ -3021,15 +3031,19 @@ begin
   end;
 end;
 
+{$define FAST_UNSAFE_MIX_COLORS}
+
 class procedure TRGBImage.MixColors(const OutputColor: Pointer;
   const Weights: TVector4Single; const Colors: TVector4Pointer);
 var
   OutputCol: PVector3Byte absolute OutputColor;
   Cols: array [0..3] of PVector3Byte absolute Colors;
 begin
-  OutputCol^[0] := Clamped(Round(Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0]), 0, High(Byte));
-  OutputCol^[1] := Clamped(Round(Weights[0] * Cols[0]^[1] + Weights[1] * Cols[1]^[1] + Weights[2] * Cols[2]^[1] + Weights[3] * Cols[3]^[1]), 0, High(Byte));
-  OutputCol^[2] := Clamped(Round(Weights[0] * Cols[0]^[2] + Weights[1] * Cols[1]^[2] + Weights[2] * Cols[2]^[2] + Weights[3] * Cols[3]^[2]), 0, High(Byte));
+  {$I norqcheckbegin.inc}
+  OutputCol^[0] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  OutputCol^[1] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^[1] + Weights[1] * Cols[1]^[1] + Weights[2] * Cols[2]^[1] + Weights[3] * Cols[3]^[1]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  OutputCol^[2] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^[2] + Weights[1] * Cols[1]^[2] + Weights[2] * Cols[2]^[2] + Weights[3] * Cols[3]^[2]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  {$I norqcheckend.inc}
 end;
 
 procedure TRGBImage.Assign(const Source: TCastleImage);
@@ -3271,10 +3285,12 @@ var
   OutputCol: PVector4Byte absolute OutputColor;
   Cols: array [0..3] of PVector4Byte absolute Colors;
 begin
-  OutputCol^[0] := Clamped(Round(Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0]), 0, High(Byte));
-  OutputCol^[1] := Clamped(Round(Weights[0] * Cols[0]^[1] + Weights[1] * Cols[1]^[1] + Weights[2] * Cols[2]^[1] + Weights[3] * Cols[3]^[1]), 0, High(Byte));
-  OutputCol^[2] := Clamped(Round(Weights[0] * Cols[0]^[2] + Weights[1] * Cols[1]^[2] + Weights[2] * Cols[2]^[2] + Weights[3] * Cols[3]^[2]), 0, High(Byte));
-  OutputCol^[3] := Clamped(Round(Weights[0] * Cols[0]^[3] + Weights[1] * Cols[1]^[3] + Weights[2] * Cols[2]^[3] + Weights[3] * Cols[3]^[3]), 0, High(Byte));
+  {$I norqcheckbegin.inc}
+  OutputCol^[0] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  OutputCol^[1] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^[1] + Weights[1] * Cols[1]^[1] + Weights[2] * Cols[2]^[1] + Weights[3] * Cols[3]^[1]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  OutputCol^[2] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^[2] + Weights[1] * Cols[1]^[2] + Weights[2] * Cols[2]^[2] + Weights[3] * Cols[3]^[2]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  OutputCol^[3] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^[3] + Weights[1] * Cols[1]^[3] + Weights[2] * Cols[2]^[3] + Weights[3] * Cols[3]^[3]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  {$I norqcheckend.inc}
 end;
 
 function TRGBAlphaImage.ToRGBImage: TRGBImage;
@@ -3500,7 +3516,9 @@ var
   OutputCol: PByte absolute OutputColor;
   Cols: array [0..3] of PByte absolute Colors;
 begin
-  OutputCol^ := Clamped(Round(Weights[0] * Cols[0]^ + Weights[1] * Cols[1]^ + Weights[2] * Cols[2]^ + Weights[3] * Cols[3]^), 0, High(Byte));
+  {$I norqcheckbegin.inc}
+  OutputCol^ := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^ + Weights[1] * Cols[1]^ + Weights[2] * Cols[2]^ + Weights[3] * Cols[3]^) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  {$I norqcheckend.inc}
 end;
 
 function TGrayscaleImage.ToGrayscaleAlphaImage_AlphaConst(Alpha: byte): TGrayscaleAlphaImage;
@@ -3713,8 +3731,10 @@ var
   OutputCol: PVector2Byte absolute OutputColor;
   Cols: array [0..3] of PVector2Byte absolute Colors;
 begin
-  OutputCol^[0] := Clamped(Round(Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0]), 0, High(Byte));
-  OutputCol^[1] := Clamped(Round(Weights[0] * Cols[0]^[1] + Weights[1] * Cols[1]^[1] + Weights[2] * Cols[2]^[1] + Weights[3] * Cols[3]^[1]), 0, High(Byte));
+  {$I norqcheckbegin.inc}
+  OutputCol^[0] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  OutputCol^[1] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^[1] + Weights[1] * Cols[1]^[1] + Weights[2] * Cols[2]^[1] + Weights[3] * Cols[3]^[1]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
+  {$I norqcheckend.inc}
 end;
 
 { RGBE <-> 3 Single color convertion --------------------------------- }
