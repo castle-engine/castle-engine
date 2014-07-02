@@ -3031,7 +3031,7 @@ begin
   end;
 end;
 
-{$define FAST_UNSAFE_MIX_COLORS}
+{ $define FAST_UNSAFE_MIX_COLORS}
 
 class procedure TRGBImage.MixColors(const OutputColor: Pointer;
   const Weights: TVector4Single; const Colors: TVector4Pointer);
