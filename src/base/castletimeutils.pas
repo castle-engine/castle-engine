@@ -171,6 +171,9 @@ function ProcessTimerNow: TProcessTimerResult;
   taking into account that time could wrap (see TimeTickDiff). }
 function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
 
+{ Subtract two timer values, result is in seconds. }
+function ProcessTimerSeconds(const a, b: TProcessTimerResult): TFloatTime;
+
 { Simple measure of process CPU time. Call ProcessTimerBegin at the beginning
   of your calculation, call ProcessTimerEnd at the end. ProcessTimerEnd
   returns a float number, with 1.0 being one second.
@@ -417,6 +420,11 @@ begin
 end;
 {$endif MSWINDOWS}
 
+function ProcessTimerSeconds(const a, b: TProcessTimerResult): TFloatTime;
+begin
+  Result := ProcessTimerDiff(A, B) / ProcessTimersPerSec;
+end;
+
 var
   LastProcessTimerBegin: TProcessTimerResult;
 
@@ -427,8 +435,7 @@ end;
 
 function ProcessTimerEnd: Double;
 begin
-  Result := ProcessTimerDiff(ProcessTimerNow, LastProcessTimerBegin)
-    / ProcessTimersPerSec;
+  Result := ProcessTimerSeconds(ProcessTimerNow, LastProcessTimerBegin);
 end;
 
 { timer ---------------------------------------------------------- }
