@@ -112,7 +112,9 @@ type
     (reported by FileProc). Note that this is completely independent
     from whether we work recursively (ffRecursive in Options).)
 
-  @param(FileProc Called on each file found.)
+  @param(FileProc Called on each file found.
+    May be @nil (useful if you are only interested in the number of files found,
+    returned by this function).)
 
   @param(Options A set of options. See TFindFilesOption for meaning
     of each option.)
@@ -213,7 +215,8 @@ function FindFiles_NonRecursive(const Path, Mask: string;
         FileInfo.Directory := (FileRec.Attr and faDirectory) <> 0;
         FileInfo.Size := FileRec.Size;
         FileInfo.URL := FilenameToURISafe(AbsoluteName);
-        FileProc(FileInfo, FileProcData);
+        if Assigned(FileProc) then
+          FileProc(FileInfo, FileProcData);
 
         SearchError := FindNext(FileRec);
       end;
@@ -250,7 +253,8 @@ function FindFiles_NonRecursive(const Path, Mask: string;
         FileInfo.URL := AssetPathToURI(FileInfo.AbsoluteName);
         if IsWild(FileInfo.Name, Mask, false) then
         begin
-          FileProc(FileInfo, FileProcData);
+          if Assigned(FileProc) then
+            FileProc(FileInfo, FileProcData);
           Inc(Result);
         end;
       until false;
@@ -366,8 +370,9 @@ begin
         @FileProc_AddToFileInfos, FileInfos,
         ffRecursive in Options,
         ffDirContentsLast in Options);
-      for i := 0 to FileInfos.Count - 1 do
-        FileProc(FileInfos.L[i], FileProcData);
+      if Assigned(FileProc) then
+        for i := 0 to FileInfos.Count - 1 do
+          FileProc(FileInfos.L[i], FileProcData);
     finally FileInfos.Free end;
   end else
   begin
