@@ -118,8 +118,8 @@
 { There are 3 ways to read/write the PNG format:
   - By default, we use libpng from a dynamic library (.so or .dll).
     On Linux and other desktop Unixes, this is pretty much standard.
-    On Windows, see trunk/www/pack/win32_dlls/ and
-    trunk/www/pack/win64_dlls/ .
+    On Windows, see
+    http://svn.code.sf.net/p/castle-engine/code/trunk/external_libraries/ .
 
   - If CASTLE_PNG_USING_FCL_IMAGE is defined, then we use
     PNG implementation inside fcl-image, that does not depend on libpng API.

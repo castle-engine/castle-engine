@@ -124,9 +124,10 @@ To use the engine in your own programs, there are a couple of options:
 )
 
 For Windows, you can get the required DLLs easily
-from [http://castle-engine.sourceforge.net/miscella/win32_dlls.zip].
-Inside this archive there are also pointers where the "upstream" versions
-of these DLLs can be found on WWW.
+from [http://svn.code.sf.net/p/castle-engine/code/trunk/external_libraries/].
+Be sure to get DLLs matching your architecture ---
+32-bit (i386-win32) libraries only work with 32-bit binaries,
+64-bit (x86_64-win64) libraries only work with 64-bit binaries.
 
 On Mac OS X there are some additional requirements.
 See [http://castle-engine.sourceforge.net/macosx_requirements.php]
