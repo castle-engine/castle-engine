@@ -119,7 +119,7 @@ begin
     raise EInvalidParams.Create(S);
   end;
 
-  Project := TCastleProject.Create(GetCurrentDir);
+  Project := TCastleProject.Create;
   try
     if Command = 'create-manifest' then
       Project.DoCreateManifest else

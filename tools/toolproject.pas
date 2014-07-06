@@ -51,6 +51,7 @@ type
       Relative to ProjectPath. }
     function AndroidLibraryFile: string;
   public
+    constructor Create;
     constructor Create(const Path: string);
     destructor Destroy; override;
 
@@ -78,6 +79,31 @@ uses SysUtils, StrUtils, DOM, Process, Classes,
 
 { TCastleProject ------------------------------------------------------------- }
 
+const
+  ManifestName = 'CastleEngineManifest.xml';
+
+constructor TCastleProject.Create;
+var
+  { look for CastleEngineManifest.xml in this dir, or parents }
+  Dir, ParentDir: string;
+begin
+  Dir := GetCurrentDir;
+  while not FileExists(InclPathDelim(Dir) + ManifestName) do
+  begin
+    ParentDir := ExtractFileDir(ExclPathDelim(Dir));
+    if (ParentDir = '') or (ParentDir = Dir) then
+    begin
+      { no parent directory, give up, assume auto-guessed values in current dir }
+      Create(GetCurrentDir);
+      Exit;
+    end;
+    {if Verbose then
+      Writeln('Manifest not found, looking in parent directory: ', ParentDir);}
+    Dir := ParentDir;
+  end;
+  Create(Dir);
+end;
+
 constructor TCastleProject.Create(const Path: string);
 
   procedure ReadManifest;
@@ -96,7 +122,7 @@ constructor TCastleProject.Create(const Path: string);
     Element, ChildElement: TDOMElement;
     I: Integer;
   begin
-    ManifestFile := ProjectPath + 'CastleEngineManifest.xml';
+    ManifestFile := ProjectPath + ManifestName;
     if not FileExists(ManifestFile) then
       AutoGuessManifest else
     begin
