@@ -116,7 +116,8 @@ EXAMPLES_BASE_NAMES := \
   examples/resource_animations/resource_animations \
   examples/fps_game/fps_game \
   examples/2d/controls_demo \
-  examples/android/android_demo/androiddemo_standalone
+  examples/android/android_demo/androiddemo_standalone \
+  tools/castle-engine
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \

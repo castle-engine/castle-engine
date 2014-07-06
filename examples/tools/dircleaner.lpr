@@ -36,27 +36,6 @@
 uses SysUtils, CastleUtils, CastleParameters, CastleFindFiles,
   CastleFilesUtils, CastleStringUtils;
 
-{ RemoveNonEmptyDir utility -------------------------------------------------- }
-
-procedure RemoveNonEmptyDir_Internal(const FileInfo: TFileInfo; Data: Pointer);
-begin
-  if SpecialDirName(FileInfo.Name) then exit;
-
-  if FileInfo.Directory then
-    CheckRemoveDir(FileInfo.AbsoluteName) else
-    CheckDeleteFile(FileInfo.AbsoluteName);
-end;
-
-{ Remove the directory DirName, @italic(recursively, unconditionally,
-  with all the files and subdirectories inside).
-  DirName may but doesn't have to end with PathDelim. }
-procedure RemoveNonEmptyDir(const DirName: string);
-begin
-  FindFiles(DirName, '*', true,
-    @RemoveNonEmptyDir_Internal, nil, [ffRecursive, ffDirContentsLast]);
-  CheckRemoveDir(Dirname);
-end;
-
 { Action ------------------------------------------------------------ }
 
 type TAction=(aNothing, aPrint, aClean);

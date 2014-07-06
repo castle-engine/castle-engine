@@ -277,6 +277,16 @@ procedure CheckDeleteFile(const FileName: string; const Warn: boolean = false);
   @raises Exception If delete failed. }
 procedure CheckRemoveDir(const DirFileName: string);
 
+{ Make sure directory exists, eventually creating it, recursively, checking result. }
+procedure CheckForceDirectories(const Dir: string);
+
+procedure CheckRenameFile(const Source, Dest: string);
+
+{ Remove the directory DirName, @italic(recursively, unconditionally,
+  with all the files and subdirectories inside).
+  DirName may but doesn't have to end with PathDelim. }
+procedure RemoveNonEmptyDir(const DirName: string);
+
 { Substitute %d in given filename pattern with successive numbers,
   until the filename doesn't exist.
 
@@ -579,6 +589,34 @@ procedure CheckRemoveDir(const DirFileName:  string);
 begin
   if not RemoveDir(DirFileName) then
     raise Exception.Create('Cannot remove directory "' +DirFileName+ '"');
+end;
+
+procedure CheckForceDirectories(const Dir: string);
+begin
+  if not ForceDirectories(Dir) then
+    raise Exception.CreateFmt('Cannot create directory "%s"', [Dir]);
+end;
+
+procedure CheckRenameFile(const Source, Dest: string);
+begin
+  if not RenameFile(Source, Dest) then
+    raise Exception.CreateFmt('Cannot rename/move from "%s" to "%s"', [Source, Dest]);
+end;
+
+procedure RemoveNonEmptyDir_Internal(const FileInfo: TFileInfo; Data: Pointer);
+begin
+  if SpecialDirName(FileInfo.Name) then exit;
+
+  if FileInfo.Directory then
+    CheckRemoveDir(FileInfo.AbsoluteName) else
+    CheckDeleteFile(FileInfo.AbsoluteName);
+end;
+
+procedure RemoveNonEmptyDir(const DirName: string);
+begin
+  FindFiles(DirName, '*', true,
+    @RemoveNonEmptyDir_Internal, nil, [ffRecursive, ffDirContentsLast]);
+  CheckRemoveDir(Dirname);
 end;
 
 { dir handling -------------------------------------------------------- }
