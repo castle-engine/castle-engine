@@ -47,15 +47,21 @@ begin
           'Call with the current directory set to your project, like this:' +NL+
           '  castle-engine [OPTIONS]... COMMAND' +NL+
           NL+
-          'Right now, the only possible COMMAND is:' +NL+
+          'Possible COMMANDs:' +NL+
+          NL +
+          '- "create-manifest" :' +NL+
+          '  Creates simple CastleEngineManifest.xml with guesses values.' +NL+
           NL+
           '- "package" :' +NL+
-          NL+
           '  Package the application into the best archive format for given' +NL+
           '  operating system (OS) / processor (CPU).' +NL+
           '  By default uses current OS / CPU (' + OSToString(DefaultOS) + ' / ' + CPUToString(DefaultCPU) + ').' +NL+
           '  You can also use --cpu or --os options to affect it.' +NL+
           NL +
+          '- "clean" :' +NL+
+          '  Clean leftover files from compilation and packaging.' +NL+
+          '  Does not remove final packaging output.' +NL+
+          NL+
           'Available options are:' +NL+
           HelpOptionHelp +NL+
           VersionOptionHelp +NL+
@@ -78,20 +84,12 @@ begin
 end;
 
 procedure DoPackage;
-var
-  Project: TCastleProject;
 begin
-  Writeln(Format('Creating package for OS "%s" and CPU "%s"',
-    [OSToString(OS), CPUToString(CPU)]));
-
-  Project := TCastleProject.Create(GetCurrentDir);
-  try
-    Project.DoPackage(OS, CPU);
-  finally FreeAndNil(Project) end;
 end;
 
 var
   Command, S: string;
+  Project: TCastleProject;
 begin
   OnWarning := @OnWarningWrite;
 
@@ -114,7 +112,17 @@ begin
     raise EInvalidParams.Create(S);
   end;
 
-  if Command = 'package' then
-    DoPackage else
-    raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
+  Writeln(Format('Processing project for OS "%s" and CPU "%s"',
+    [OSToString(OS), CPUToString(CPU)]));
+
+  Project := TCastleProject.Create(GetCurrentDir);
+  try
+    if Command = 'create-manifest' then
+      Project.DoCreateManifest else
+    if Command = 'package' then
+      Project.DoPackage(OS, CPU) else
+    if Command = 'clean' then
+      Project.DoClean else
+      raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
+  finally FreeAndNil(Project) end;
 end.

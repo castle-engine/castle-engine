@@ -30,8 +30,10 @@ type
     FDependencies: TDependencies;
     FName, FExecutableName: string;
     GatheringFiles: TCastleStringList; //< only for GatherFile
-    ProjectPath, DataPath: string;
+    ManifestFile, ProjectPath, DataPath: string;
     IncludePaths, ExcludePaths: TCastleStringList;
+    FStandaloneSource, FAndroidSource: string;
+    DeletedFiles: Cardinal; //< only for DeleteFoundFile
     procedure GatherFile(const FileInfo: TFileInfo);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
     procedure FoundTtf(const FileInfo: TFileInfo);
@@ -39,13 +41,21 @@ type
     procedure FoundPng(const FileInfo: TFileInfo);
     procedure FoundWav(const FileInfo: TFileInfo);
     procedure FoundOgg(const FileInfo: TFileInfo);
+    procedure DeleteFoundFile(const FileInfo: TFileInfo);
+    function PackageName(const OS: TOS; const CPU: TCPU): string;
   public
     constructor Create(const Path: string);
     destructor Destroy; override;
+
     property Dependencies: TDependencies read FDependencies;
     property Name: string read FName;
     property ExecutableName: string read FExecutableName;
+    property StandaloneSource: string read FStandaloneSource;
+    property AndroidSource: string read FAndroidSource;
+
+    procedure DoCreateManifest;
     procedure DoPackage(const OS: TOS; const CPU: TCPU);
+    procedure DoClean;
   end;
 
 function DependencyToString(const D: TDependency): string;
@@ -95,19 +105,12 @@ end;
 constructor TCastleProject.Create(const Path: string);
 
   procedure ReadManifest;
-  var
-    ManifestFile: string;
 
     procedure AutoGuessManifest;
-    var
-      Contents, AutoName: string;
     begin
-      Writeln('Manifest file not found, creating: ' + ManifestFile);
-      AutoName := ExtractFileName(ExtractFileDir(ManifestFile));
-      Contents := '<?xml version="1.0" encoding="utf-8"?>' +NL+
-'<project name="' + AutoName + '">' +NL+
-'</project>' + NL;
-      StringToFile(ManifestFile, Contents);
+      Writeln('Manifest file not found: ' + ManifestFile);
+      Writeln('Guessing project values. Use create-manifest command to write these guesses into new CastleEngineManifest.xml');
+      FName := ExtractFileName(ExtractFileDir(ManifestFile));
     end;
 
   var
@@ -120,46 +123,50 @@ constructor TCastleProject.Create(const Path: string);
     ManifestFile := ProjectPath + 'CastleEngineManifest.xml';
     if not FileExists(ManifestFile) then
       AutoGuessManifest else
+    begin
       Writeln('Manifest file found: ' + ManifestFile);
-    ManifestURL := FilenameToURISafe(ManifestFile);
+      ManifestURL := FilenameToURISafe(ManifestFile);
 
-    try
-      URLReadXML(Doc, ManifestURL);
-      Check(Doc.DocumentElement.TagName = 'project',
-        'Root node of CastleEngineManifest.xml must be <project>');
-      FName := Doc.DocumentElement.AttributeString('name');
-      FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
+      try
+        URLReadXML(Doc, ManifestURL);
+        Check(Doc.DocumentElement.TagName = 'project',
+          'Root node of CastleEngineManifest.xml must be <project>');
+        FName := Doc.DocumentElement.AttributeString('name');
+        FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
+        FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
+        FAndroidSource := Doc.DocumentElement.AttributeStringDef('android_source', '');
 
-      Element := DOMGetChildElement(Doc.DocumentElement, 'dependencies', false);
-      if Element <> nil then
-      begin
-        ChildElements := Element.GetElementsByTagName('dependency');
-        for I := 0 to ChildElements.Count - 1 do
+        Element := DOMGetChildElement(Doc.DocumentElement, 'dependencies', false);
+        if Element <> nil then
         begin
-          ChildElement := ChildElements[I] as TDOMElement;
-          Include(FDependencies,
-            StringToDependency(ChildElement.AttributeString('name')));
-        end;
-      end;
-
-      Element := DOMGetChildElement(Doc.DocumentElement, 'package', false);
-      if Element <> nil then
-      begin
-        ChildElements := Element.GetElementsByTagName('include');
-        for I := 0 to ChildElements.Count - 1 do
-        begin
-          ChildElement := ChildElements[I] as TDOMElement;
-          IncludePaths.Add(ChildElement.AttributeString('path'));
+          ChildElements := Element.GetElementsByTagName('dependency');
+          for I := 0 to ChildElements.Count - 1 do
+          begin
+            ChildElement := ChildElements[I] as TDOMElement;
+            Include(FDependencies,
+              StringToDependency(ChildElement.AttributeString('name')));
+          end;
         end;
 
-        ChildElements := Element.GetElementsByTagName('exclude');
-        for I := 0 to ChildElements.Count - 1 do
+        Element := DOMGetChildElement(Doc.DocumentElement, 'package', false);
+        if Element <> nil then
         begin
-          ChildElement := ChildElements[I] as TDOMElement;
-          ExcludePaths.Add(ChildElement.AttributeString('path'));
+          ChildElements := Element.GetElementsByTagName('include');
+          for I := 0 to ChildElements.Count - 1 do
+          begin
+            ChildElement := ChildElements[I] as TDOMElement;
+            IncludePaths.Add(ChildElement.AttributeString('path'));
+          end;
+
+          ChildElements := Element.GetElementsByTagName('exclude');
+          for I := 0 to ChildElements.Count - 1 do
+          begin
+            ChildElement := ChildElements[I] as TDOMElement;
+            ExcludePaths.Add(ChildElement.AttributeString('path'));
+          end;
         end;
-      end;
-    finally FreeAndNil(Doc) end;
+      finally FreeAndNil(Doc) end;
+    end;
   end;
 
   procedure GuessDependencies;
@@ -259,6 +266,20 @@ end;
 procedure TCastleProject.GatherFile(const FileInfo: TFileInfo);
 begin
   GatheringFiles.Add(ExtractRelativePath(ProjectPath, FileInfo.AbsoluteName));
+end;
+
+procedure TCastleProject.DoCreateManifest;
+var
+  Contents: string;
+begin
+  if FileExists(ManifestFile) then
+    raise Exception.CreateFmt('Manifest file "%s" already exists, refusing to overwrite it',
+      [ManifestFile]);
+  Contents := '<?xml version="1.0" encoding="utf-8"?>' +NL+
+'<project name="' + Name + '">' +NL+
+'</project>' + NL;
+  StringToFile(ManifestFile, Contents);
+  Writeln('Created manifest ' + ManifestFile);
 end;
 
 procedure TCastleProject.DoPackage(const OS: TOS; const CPU: TCPU);
@@ -383,10 +404,7 @@ begin
         end;
     end;
 
-    PackageFileName := Name + '-' + OSToString(OS) + '-' + CPUToString(CPU);
-    if OS in AllWindowsOSes then
-      PackageFileName += '.zip' else
-      PackageFileName += '.tar.gz';
+    PackageFileName := PackageName(OS, CPU);
 
     if OS in AllWindowsOSes then
       RunCommandIndir(TemporaryDir, 'zip', ['-q', '-r', PackageFileName, Name], ProcessOutput, ProcessExitStatus) else
@@ -407,6 +425,80 @@ begin
     Writeln('Created package ' + PackageFileName + ', size: ',
       (FileSize(FullPackageFileName) / (1024 * 1024)):0:2, ' MB');
   finally RemoveNonEmptyDir(TemporaryDir) end;
+end;
+
+function TCastleProject.PackageName(const OS: TOS; const CPU: TCPU): string;
+begin
+  Result := Name + '-' + OSToString(OS) + '-' + CPUToString(CPU);
+  if OS in AllWindowsOSes then
+    Result += '.zip' else
+    Result += '.tar.gz';
+end;
+
+procedure TCastleProject.DeleteFoundFile(const FileInfo: TFileInfo);
+begin
+  if Verbose then
+    Writeln('Deleting ' + FileInfo.AbsoluteName);
+  CheckDeleteFile(FileInfo.AbsoluteName);
+  Inc(DeletedFiles);
+end;
+
+procedure TCastleProject.DoClean;
+
+  procedure TryDeleteFile(const FileName: string);
+  begin
+    if FileExists(FileName) then
+    begin
+      if Verbose then
+        Writeln('Deleting ' + FileName);
+      CheckDeleteFile(FileName);
+      Inc(DeletedFiles);
+    end;
+  end;
+
+  procedure DeleteFilesRecursive(const Mask: string);
+  begin
+    FindFiles(ProjectPath, Mask, false, @DeleteFoundFile, [ffRecursive]);
+  end;
+
+begin
+  if StandaloneSource <> '' then
+  begin
+    TryDeleteFile(ChangeFileExt(StandaloneSource, ''));
+    TryDeleteFile(ChangeFileExt(StandaloneSource, '.exe'));
+    { Make sure to also remove executable in main directory, in case
+      source is in code/ subdirectory. It is paranoid to remove it from both
+      places, but this way we know we're clean before packaging etc. }
+    if ExtractFileName(StandaloneSource) <> StandaloneSource then
+    begin
+      TryDeleteFile(ChangeFileExt(ExtractFileName(StandaloneSource), ''));
+      TryDeleteFile(ChangeFileExt(ExtractFileName(StandaloneSource), '.exe'));
+    end;
+  end;
+
+  if AndroidSource <> '' then
+  begin
+    TryDeleteFile(ExtractFilePath(AndroidSource) + 'lib' +
+      ExtractFileName(AndroidSource) + '.so');
+  end;
+
+  { packages created by DoPackage? Or not, it's safer to not remove them. }
+  {
+  for OS in TOS do
+    for CPU in TCPU do
+      if OSCPUSupported[OS, CPU] then
+        TryDeleteFile(PackageName(OS, CPU));
+  }
+
+  { compilation and editor backups }
+  DeleteFilesRecursive('*~'); // editor backup, e.g. Emacs
+  DeleteFilesRecursive('*.ppu'); // compilation
+  DeleteFilesRecursive('*.o'); // compilation
+  DeleteFilesRecursive('*.compiled'); // Lazarus compilation
+  DeleteFilesRecursive('*.rst'); // resource strings
+  DeleteFilesRecursive('*.rsj'); // resource strings
+
+  Writeln('Deleted ', DeletedFiles, ' files');
 end;
 
 { globals -------------------------------------------------------------------- }
