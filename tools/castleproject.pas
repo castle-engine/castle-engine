@@ -47,6 +47,10 @@ type
     procedure DeleteFoundFile(const FileInfo: TFileInfo);
     function PackageName(const Version: string;
       const OS: TOS; const CPU: TCPU): string;
+    { Output Android library resulting from compilation.
+      Use only if AndroidSource <> ''.
+      Relative to ProjectPath. }
+    function AndroidLibraryFile: string;
   public
     constructor Create(const Path: string);
     destructor Destroy; override;
@@ -291,8 +295,18 @@ begin
 
   FpcOptions := TCastleStringList.Create;
   try
-    if StandaloneSource = '' then
-      raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
+    case OS of
+      Android:
+        begin
+          if AndroidSource = '' then
+            raise Exception.Create('android_source property for project not defined, cannot compile Android version');
+        end;
+      else
+        begin
+          if StandaloneSource = '' then
+            raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
+        end;
+    end;
 
     CastleEnginePath := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
     if CastleEnginePath = '' then
@@ -349,16 +363,16 @@ begin
 
       { Do not add castle-fpc.cfg.
         Instead, rely on code below duplicating castle-fpc.cfg logic.
-        This way, it's at least tested.
+        This way, it's tested.
       FpcOptions.Add('-dCASTLE_ENGINE_PATHS_ALREADY_DEFINED');
       FpcOptions.Add('@' + InclPathDelim(CastleEnginePath) + 'castle_game_engine/castle-fpc.cfg');
       }
     end;
 
-    { Engine sources may be possibly not available,
-      so we also cannot depen on castle-fpc.cfg defining all options.
-      So specify the compilation options explicitly here,
-      duplicating logic from ../castle-fpc.cfg . }
+    { Specify the compilation options explicitly,
+      duplicating logic from ../castle-fpc.cfg .
+      (Engine sources may be possibly not available,
+      so we also cannot depend on castle-fpc.cfg being available.) }
     FpcOptions.Add('-l');
     FpcOptions.Add('-vwn');
     FpcOptions.Add('-Ci');
@@ -368,12 +382,15 @@ begin
     FpcOptions.Add('-Sg');
     FpcOptions.Add('-Si');
     FpcOptions.Add('-Sh');
+    FpcOptions.Add('-T' + OSToString(OS));
+    FpcOptions.Add('-P' + CPUToString(CPU));
 
     case Mode of
       cmRelease:
         begin
           FpcOptions.Add('-O2');
           FpcOptions.Add('-Xs');
+          FpcOptions.Add('-dRELEASE');
         end;
       cmDebug:
         begin
@@ -383,14 +400,23 @@ begin
           FpcOptions.Add('-CR');
           FpcOptions.Add('-g');
           FpcOptions.Add('-gl');
+          FpcOptions.Add('-dDEBUG');
         end;
       else raise EInternalError.Create('DoCompile: Mode?');
     end;
 
-    FpcOptions.Add('-T' + OSToString(OS));
-    FpcOptions.Add('-P' + CPUToString(CPU));
-
-    FpcOptions.Add(StandaloneSource);
+    case OS of
+      Android:
+        begin
+          { See https://sourceforge.net/p/castle-engine/wiki/Android%20development/#notes-about-compiling-with-hard-floats-cfvfpv3 }
+          FpcOptions.Add('-CfVFPV3');
+          FpcOptions.Add(AndroidSource);
+        end;
+      else
+        begin
+          FpcOptions.Add(StandaloneSource);
+        end;
+    end;
 
     if Verbose then
     begin
@@ -402,16 +428,23 @@ begin
     RunCommandIndirPassthrough(ProjectPath, 'fpc', FpcOptions.ToArray, FpcOutput, FpcExitStatus);
     if FpcExitStatus <> 0 then
       raise Exception.Create('Failed to compile') else
-    begin
-      SourceExe := ChangeFileExt(StandaloneSource, ExeExtensionOS(OS));
-      DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
-      if not AnsiSameText(SourceExe, DestExe) then
-      begin
-        { move exe to top-level (in case StandaloneSource is in subdirectory
-          like code/) and eventually rename to follow ExecutableName }
-        Writeln('Moving ', SourceExe, ' to ', DestExe);
-        CheckRenameFile(ProjectPath + SourceExe, ProjectPath + DestExe);
-      end;
+    case OS of
+      Android:
+        begin
+          Writeln('Compiled library for Android in ', AndroidLibraryFile);
+        end;
+      else
+        begin
+          SourceExe := ChangeFileExt(StandaloneSource, ExeExtensionOS(OS));
+          DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+          if not AnsiSameText(SourceExe, DestExe) then
+          begin
+            { move exe to top-level (in case StandaloneSource is in subdirectory
+              like code/) and eventually rename to follow ExecutableName }
+            Writeln('Moving ', SourceExe, ' to ', DestExe);
+            CheckRenameFile(ProjectPath + SourceExe, ProjectPath + DestExe);
+          end;
+        end;
     end;
   finally FreeAndNil(FpcOptions) end;
 end;
@@ -636,10 +669,17 @@ begin
   Inc(DeletedFiles);
 end;
 
+function TCastleProject.AndroidLibraryFile: string;
+begin
+  Result := ExtractFilePath(AndroidSource) + 'lib' +
+    ChangeFileExt(ExtractFileName(AndroidSource), '.so');
+end;
+
 procedure TCastleProject.DoClean;
 
-  procedure TryDeleteFile(const FileName: string);
+  procedure TryDeleteFile(FileName: string);
   begin
+    FileName := ProjectPath + FileName;
     if FileExists(FileName) then
     begin
       if Verbose then
@@ -670,10 +710,7 @@ begin
   end;
 
   if AndroidSource <> '' then
-  begin
-    TryDeleteFile(ExtractFilePath(AndroidSource) + 'lib' +
-      ExtractFileName(AndroidSource) + '.so');
-  end;
+    TryDeleteFile(AndroidLibraryFile);
 
   { packages created by DoPackage? Or not, it's safer to not remove them. }
   {
