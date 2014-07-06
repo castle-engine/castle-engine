@@ -85,6 +85,7 @@ begin
     2:OS := StringToOS(Argument);
     3:CPU := StringToCPU(Argument);
     4:Verbose := true;
+    5:Mode := StringToMode(Argument);
     else raise EInternalError.Create('OptionProc');
   end;
 end;
