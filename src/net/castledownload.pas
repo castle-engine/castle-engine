@@ -356,7 +356,9 @@ function Download(const URL: string; const Options: TStreamOptions;
   out MimeType: string): TStream;
 var
   P, FileName, S: string;
+  {$ifdef HAS_FP_HTTP_CLIENT}
   NetworkResult: TMemoryStream;
+  {$endif}
   FileStream: TFileStream;
   DataURI: TDataURI;
   {$ifdef ANDROID}
