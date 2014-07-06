@@ -113,6 +113,7 @@ constructor TCastleProject.Create(const Path: string);
       Writeln('Manifest file not found: ' + ManifestFile);
       Writeln('Guessing project values. Use create-manifest command to write these guesses into new CastleEngineManifest.xml');
       FName := ExtractFileName(ExtractFileDir(ManifestFile));
+      FStandaloneSource := FName + '.lpr';
     end;
 
   var
@@ -288,7 +289,7 @@ begin
     raise Exception.CreateFmt('Manifest file "%s" already exists, refusing to overwrite it',
       [ManifestFile]);
   Contents := '<?xml version="1.0" encoding="utf-8"?>' +NL+
-'<project name="' + Name + '">' +NL+
+'<project name="' + Name + '" standalone_source="' + StandaloneSource + '">' +NL+
 '</project>' + NL;
   StringToFile(ManifestFile, Contents);
   Writeln('Created manifest ' + ManifestFile);
