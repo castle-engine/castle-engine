@@ -36,6 +36,7 @@ type
     IncludePaths, ExcludePaths: TCastleStringList;
     FStandaloneSource, FAndroidSource: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
+    FVersionExecutableOption: string;
     procedure GatherFile(const FileInfo: TFileInfo);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
     procedure FoundTtf(const FileInfo: TFileInfo);
@@ -44,7 +45,8 @@ type
     procedure FoundWav(const FileInfo: TFileInfo);
     procedure FoundOgg(const FileInfo: TFileInfo);
     procedure DeleteFoundFile(const FileInfo: TFileInfo);
-    function PackageName(const OS: TOS; const CPU: TCPU): string;
+    function PackageName(const Version: string;
+      const OS: TOS; const CPU: TCPU): string;
   public
     constructor Create(const Path: string);
     destructor Destroy; override;
@@ -54,6 +56,7 @@ type
     property ExecutableName: string read FExecutableName;
     property StandaloneSource: string read FStandaloneSource;
     property AndroidSource: string read FAndroidSource;
+    property VersionExecutableOption: string read FVersionExecutableOption;
 
     procedure DoCreateManifest;
     procedure DoCompile(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
@@ -72,7 +75,7 @@ var
 
 implementation
 
-uses SysUtils, StrUtils, DOM, Process, Classes,
+uses SysUtils, StrUtils, DOM, Process, Classes, {$ifdef UNIX} BaseUnix, {$endif}
   CastleUtils, CastleURIUtils, CastleXMLUtils, CastleWarnings,
   CastleFilesUtils, CastleProjectUtils;
 
@@ -112,6 +115,12 @@ constructor TCastleProject.Create(const Path: string);
         FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
         FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
         FAndroidSource := Doc.DocumentElement.AttributeStringDef('android_source', '');
+
+        Element := DOMGetChildElement(Doc.DocumentElement, 'version', false);
+        if Element <> nil then
+        begin
+          FVersionExecutableOption := Element.AttributeString('executable_option');
+        end;
 
         Element := DOMGetChildElement(Doc.DocumentElement, 'dependencies', false);
         if Element <> nil then
@@ -417,18 +426,12 @@ var
   begin
     CastleEnginePath := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
     if CastleEnginePath = '' then
-    begin
-      OnWarning(wtMajor, 'Library', 'CASTLE_ENGINE_PATH environment variable not defined, we cannot find required library ' + LibraryName);
-      Exit;
-    end;
+      raise Exception.Create('CASTLE_ENGINE_PATH environment variable not defined, we cannot find required library ' + LibraryName);
     LibraryPath := InclPathDelim(CastleEnginePath) +
       'external_libraries' + PathDelim +
       CPUToString(CPU) + '-' + OSToString(OS) + PathDelim + LibraryName;
     if not FileExists(LibraryPath) then
-    begin
-      OnWarning(wtMajor, 'Library', 'Dependency library not found in ' + LibraryPath);
-      Exit;
-    end;
+      raise Exception.Create('Dependency library not found in ' + LibraryPath);
     SmartCopyFile(LibraryPath, PackagePath + LibraryName);
   end;
 
@@ -449,11 +452,31 @@ var
     end;
   end;
 
+  function GetVersionByRunning(const ExecutableNameExt: string;
+    const VersionOption: string): string;
+  var
+    ProcessOutput: string;
+    ProcessExitStatus: Integer;
+  begin
+    { get version by running ExecutableNameExt in main ProjectPath,
+      not in temporary path (to avoid polluting temporary path for packaging
+      with anything) }
+    RunCommandIndir(ProjectPath, ExecutableNameExt, [VersionOption],
+      ProcessOutput, ProcessExitStatus);
+    if ProcessExitStatus <> 0 then
+      raise Exception.CreateFmt('Process exited with error, status %d', [ProcessExitStatus]);
+    Result := Trim(ProcessOutput);
+    Writeln(Format('Version detected as "%s" (by running executable with "%s")',
+      [Result, VersionOption]));
+  end;
+
 var
   Files: TCastleStringList;
   I: Integer;
-  PackageFileName, TemporaryDir, ProcessOutput, FullPackageFileName: string;
+  PackageFileName, TemporaryDir, ProcessOutput,
+    FullPackageFileName, ExecutableNameExt, Version: string;
   ProcessExitStatus: Integer;
+  UnixPermissionsMatter: boolean;
 begin
   Writeln(Format('Packaging project "%s" for OS "%s" and CPU "%s".',
     [Name, OSToString(OS), CPUToString(CPU)]));
@@ -468,6 +491,11 @@ begin
   CheckForceDirectories(PackagePath);
   PackagePath += PathDelim;
 
+  ExecutableNameExt := '';
+
+  { packaging for OS where permissions matter }
+  UnixPermissionsMatter := not (OS in AllWindowsOSes);
+
   try
     Files := TCastleStringList.Create;
     try
@@ -478,12 +506,18 @@ begin
                 palmos, macos, darwin, emx, watcom, morphos, netwlibc,
                 win64, wince, gba,nds, embedded, symbian, haiku, {iphonesim,}
                 aix, java, {android,} nativent, msdos, wii] then
-        Files.Add(ExecutableName + ExeExtensionOS(OS));
+      begin
+        ExecutableNameExt := ExecutableName + ExeExtensionOS(OS);
+        Files.Add(ExecutableNameExt);
+      end;
 
       GatheringFiles := Files;
       FindFiles(DataPath, '*', false, @GatherFile, [ffRecursive]);
       for I := 0 to IncludePaths.Count - 1 do
-        FindFiles(ProjectPath + IncludePaths[I], false, @GatherFile, [ffRecursive]);
+        { not recursive, so that e.g. <include path="README.txt" />
+          or <include path="docs/README.txt" />
+          should not include *all* README.txt files inside. }
+        FindFiles(ProjectPath + IncludePaths[I], false, @GatherFile, []);
       GatheringFiles := nil;
 
       Exclude('*.xcf', Files);
@@ -499,6 +533,19 @@ begin
           Writeln('Package file: ' + Files[I]);
       end;
     finally FreeAndNil(Files) end;
+
+    { For OSes where chmod matters, make sure to set it before packing }
+    if UnixPermissionsMatter then
+    begin
+      {$ifdef UNIX}
+      FpChmod(PackagePath + ExecutableNameExt,
+        S_IRUSR or S_IWUSR or S_IXUSR or
+        S_IRGRP or            S_IXGRP or
+        S_IROTH or            S_IXOTH);
+      {$else}
+      OnWarning(wtMajor, 'Package', 'Packaging for a platform where UNIX permissions matter, but we cannot set "chmod" on this platform. This usually means that you package for Unix from Windows, and means that "executable" bit inside binary in tar.gz archive may not be set --- archive');
+      {$endif}
+    end;
 
     case OS of
       win32:
@@ -538,7 +585,15 @@ begin
         end;
     end;
 
-    PackageFileName := PackageName(OS, CPU);
+    Version := '';
+    if VersionExecutableOption <> '' then
+    begin
+      if ExecutableNameExt <> '' then
+        Version := GetVersionByRunning(ExecutableNameExt, FVersionExecutableOption) else
+        raise Exception.Create('Specified <version executable_option="..."/>, but the executable is not defined. Cannot detect version.');
+    end;
+
+    PackageFileName := PackageName(Version, OS, CPU);
 
     if OS in AllWindowsOSes then
       RunCommandIndir(TemporaryDir, 'zip', ['-q', '-r', PackageFileName, Name], ProcessOutput, ProcessExitStatus) else
@@ -561,9 +616,13 @@ begin
   finally RemoveNonEmptyDir(TemporaryDir) end;
 end;
 
-function TCastleProject.PackageName(const OS: TOS; const CPU: TCPU): string;
+function TCastleProject.PackageName(const Version: string;
+  const OS: TOS; const CPU: TCPU): string;
 begin
-  Result := Name + '-' + OSToString(OS) + '-' + CPUToString(CPU);
+  Result := Name;
+  if Version <> '' then
+    Result += '-' + Version;
+  Result += '-' + OSToString(OS) + '-' + CPUToString(CPU);
   if OS in AllWindowsOSes then
     Result += '.zip' else
     Result += '.tar.gz';
