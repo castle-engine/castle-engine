@@ -44,6 +44,8 @@ interface
 uses SysUtils, CastleUtils, Classes;
 
 type
+  TDynamicStringArray = array of string;
+
   { List of strings. This is a slightly extended version of standard TStringList.
     The default CaseSensitive value is @true. }
   TCastleStringList = class(TStringList)
@@ -70,6 +72,8 @@ type
       TStringList.Strings property, and is useful only for implementing macros
       to work for both TGenericStructList and for TCastleStringList. }
     property L[Index: Integer]: string read GetL write SetL;
+
+    function ToArray: TDynamicStringArray;
   end;
 
 type
@@ -908,6 +912,15 @@ end;
 procedure TCastleStringList.SetL(const Index: Integer; const S: string);
 begin
   Strings[Index] := S;
+end;
+
+function TCastleStringList.ToArray: TDynamicStringArray;
+var
+  I: Integer;
+begin
+  SetLength(Result, Count);
+  for I := 0 to Count - 1 do
+    Result[I] := Strings[I];
 end;
 
 { routines ------------------------------------------------------------------- }

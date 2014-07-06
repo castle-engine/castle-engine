@@ -24,16 +24,18 @@ uses SysUtils,
 var
   OS: TOS;
   CPU: TCPU;
+  Mode: TCompilationMode = cmRelease;
 
 const
   Version = '5.0.0'; //< When updating this, remember to also update version in ../fpmake.pp
-  Options: array [0..4] of TOption =
+  Options: array [0..5] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
-    (Short: #0; Long: 'os'; Argument: oaRequired),
-    (Short: #0; Long: 'cpu'; Argument: oaRequired),
-    (Short: 'V'; Long: 'verbose'; Argument: oaNone)
+    (Short: #0 ; Long: 'os'; Argument: oaRequired),
+    (Short: #0 ; Long: 'cpu'; Argument: oaRequired),
+    (Short: 'V'; Long: 'verbose'; Argument: oaNone),
+    (Short: #0 ; Long: 'mode'; Argument: oaRequired)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -50,7 +52,10 @@ begin
           'Possible COMMANDs:' +NL+
           NL +
           '- "create-manifest" :' +NL+
-          '  Creates simple CastleEngineManifest.xml with guesses values.' +NL+
+          '  Creates simple CastleEngineManifest.xml with guessed values.' +NL+
+          NL+
+          '- "compile" :' +NL+
+          '  Compile project.' +NL+
           NL+
           '- "package" :' +NL+
           '  Package the application into the best archive format for given' +NL+
@@ -66,6 +71,7 @@ begin
           HelpOptionHelp +NL+
           VersionOptionHelp +NL+
           '  -V / --verbose        Verbose mode, output contains e.g. list of packaged files.' +NL+
+          '  --mode=debug|release  Compilation mode, used by "compile" command.' +NL+
           OSOptionHelp +
           CPUOptionHelp +
           NL+
@@ -112,13 +118,12 @@ begin
     raise EInvalidParams.Create(S);
   end;
 
-  Writeln(Format('Processing project for OS "%s" and CPU "%s"',
-    [OSToString(OS), CPUToString(CPU)]));
-
   Project := TCastleProject.Create(GetCurrentDir);
   try
     if Command = 'create-manifest' then
       Project.DoCreateManifest else
+    if Command = 'compile' then
+      Project.DoCompile(OS, CPU, Mode) else
     if Command = 'package' then
       Project.DoPackage(OS, CPU) else
     if Command = 'clean' then

@@ -162,7 +162,7 @@ const
 function OSOptionHelp: string;
 function CPUOptionHelp: string;
 
-function ExeExtension(const OS: TOS): string;
+function ExeExtensionOS(const OS: TOS): string;
 
 implementation
 
@@ -225,7 +225,7 @@ begin
       Result += '             ' + OSToString(OS) + NL;
 end;
 
-function ExeExtension(const OS: TOS): string;
+function ExeExtensionOS(const OS: TOS): string;
 begin
   if OS in AllWindowsOSes then
     Result :=  '.exe' else

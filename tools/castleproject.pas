@@ -24,6 +24,8 @@ type
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis);
   TDependencies = set of TDependency;
 
+  TCompilationMode = (cmRelease, cmDebug);
+
 type
   TCastleProject = class
   private
@@ -54,12 +56,16 @@ type
     property AndroidSource: string read FAndroidSource;
 
     procedure DoCreateManifest;
+    procedure DoCompile(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
     procedure DoPackage(const OS: TOS; const CPU: TCPU);
     procedure DoClean;
   end;
 
 function DependencyToString(const D: TDependency): string;
 function StringToDependency(const S: string): TDependency;
+
+function ModeToString(const M: TCompilationMode): string;
+function StringToMode(const S: string): TCompilationMode;
 
 var
   Verbose: boolean;
@@ -68,37 +74,7 @@ implementation
 
 uses SysUtils, StrUtils, DOM, Process, Classes,
   CastleUtils, CastleURIUtils, CastleXMLUtils, CastleWarnings,
-  CastleFilesUtils;
-
-{ Copy file, making sure the destination directory exists
-  (eventually creating it), and checking result. }
-procedure SmartCopyFile(const Source, Dest: string);
-var
-  SourceFile, DestFile: TFileStream;
-begin
-  CheckForceDirectories(ExtractFileDir(Dest));
-
-  SourceFile := TFileStream.Create(Source, fmOpenRead);
-  try
-    DestFile := TFileStream.Create(Dest, fmCreate);
-    try
-      DestFile.CopyFrom(SourceFile, SourceFile.Size);
-    finally FreeAndNil(SourceFile) end;
-  finally FreeAndNil(DestFile) end;
-
-{  if not CopyFile(Source, Dest) then
-    raise Exception.CreateFmt('Cannot copy file from "%s" to "%s"', [Source, Dest]);}
-end;
-
-function FileSize(const FileName: string): Int64;
-var
-  SourceFile: TFileStream;
-begin
-  SourceFile := TFileStream.Create(FileName, fmOpenRead);
-  try
-    Result := SourceFile.Size;
-  finally FreeAndNil(SourceFile) end;
-end;
+  CastleFilesUtils, CastleProjectUtils;
 
 { TCastleProject ------------------------------------------------------------- }
 
@@ -282,6 +258,154 @@ begin
   Writeln('Created manifest ' + ManifestFile);
 end;
 
+procedure TCastleProject.DoCompile(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
+var
+  CastleEnginePath, CastleEngineSrc: string;
+  FpcOptions: TCastleStringList;
+
+  procedure AddEnginePath(Path: string);
+  begin
+    Path := CastleEngineSrc + Path;
+    if not DirectoryExists(Path) then
+      OnWarning(wtMajor, 'Path', Format('Path "%s" does not exist. Make sure that $CASTLE_ENGINE_PATH points to the directory containing Castle Game Engine sources (in castle_game_engine subdirectory)', [Path]));
+    FpcOptions.Add('-Fu' + Path);
+    FpcOptions.Add('-Fi' + Path);
+  end;
+
+var
+  FpcOutput, SourceExe, DestExe: string;
+  FpcExitStatus: Integer;
+begin
+  Writeln(Format('Compiling project "%s" for OS "%s" and CPU "%s" in mode "%s".',
+    [Name, OSToString(OS), CPUToString(CPU), ModeToString(Mode)]));
+
+  FpcOptions := TCastleStringList.Create;
+  try
+    if StandaloneSource = '' then
+      raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
+
+    CastleEnginePath := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
+    if CastleEnginePath = '' then
+    begin
+      Writeln('CASTLE_ENGINE_PATH environment variable not defined, so we assume that engine unit paths are already specified within fpc.cfg file');
+    end else
+    begin
+      { Use  $CASTLE_ENGINE_PATH environment variable as the directory
+        containing castle_game_engine as subdirectory.
+        Then this script outputs all -Fu and -Fi options for FPC to include
+        Castle Game Engine sources.
+
+        We also output -dCASTLE_ENGINE_PATHS_ALREADY_DEFINED,
+        and @.../castle-fpc.cfg, to add castle-fpc.cfg with the rest of
+        proper Castle Game Engine compilation options.
+
+        This script is useful to compile programs using Castle Game Engine
+        from any directory. You just have to
+        set $CASTLE_ENGINE_PATH environment variable before calling
+        (or make sure that units paths are in fpc.cfg). }
+
+      CastleEngineSrc := InclPathDelim(CastleEnginePath) +
+        'castle_game_engine' + PathDelim + 'src' + PathDelim;
+
+      { Note that we add OS-specific paths (windows, android, unix)
+        regardless of the target OS. There is no point in filtering them
+        only for specific OS, since all file names must be different anyway,
+        as Lazarus packages could not compile otherwise. }
+
+      AddEnginePath('base');
+      AddEnginePath('base/android');
+      AddEnginePath('base/windows');
+      AddEnginePath('base/unix');
+      AddEnginePath('fonts');
+      AddEnginePath('fonts/windows');
+      AddEnginePath('opengl');
+      AddEnginePath('opengl/glsl');
+      AddEnginePath('window');
+      AddEnginePath('window/gtk');
+      AddEnginePath('window/windows');
+      AddEnginePath('window/unix');
+      AddEnginePath('images');
+      AddEnginePath('3d');
+      AddEnginePath('x3d');
+      AddEnginePath('x3d/opengl');
+      AddEnginePath('x3d/opengl/glsl');
+      AddEnginePath('audio');
+      AddEnginePath('net');
+      AddEnginePath('castlescript');
+      AddEnginePath('ui');
+      AddEnginePath('ui/windows');
+      AddEnginePath('ui/opengl');
+      AddEnginePath('game');
+
+      { Do not add castle-fpc.cfg.
+        Instead, rely on code below duplicating castle-fpc.cfg logic.
+        This way, it's at least tested.
+      FpcOptions.Add('-dCASTLE_ENGINE_PATHS_ALREADY_DEFINED');
+      FpcOptions.Add('@' + InclPathDelim(CastleEnginePath) + 'castle_game_engine/castle-fpc.cfg');
+      }
+    end;
+
+    { Engine sources may be possibly not available,
+      so we also cannot depen on castle-fpc.cfg defining all options.
+      So specify the compilation options explicitly here,
+      duplicating logic from ../castle-fpc.cfg . }
+    FpcOptions.Add('-l');
+    FpcOptions.Add('-vwni');
+    FpcOptions.Add('-Ci');
+    FpcOptions.Add('-Mobjfpc');
+    FpcOptions.Add('-Sm');
+    FpcOptions.Add('-Sc');
+    FpcOptions.Add('-Sg');
+    FpcOptions.Add('-Si');
+    FpcOptions.Add('-Sh');
+
+    case Mode of
+      cmRelease:
+        begin
+          FpcOptions.Add('-O2');
+          FpcOptions.Add('-Xs');
+        end;
+      cmDebug:
+        begin
+          FpcOptions.Add('-Cr');
+          FpcOptions.Add('-Co');
+          FpcOptions.Add('-Sa');
+          FpcOptions.Add('-CR');
+          FpcOptions.Add('-g');
+          FpcOptions.Add('-gl');
+        end;
+      else raise EInternalError.Create('DoCompile: Mode?');
+    end;
+
+    FpcOptions.Add('-T' + OSToString(OS));
+    FpcOptions.Add('-P' + CPUToString(CPU));
+
+    FpcOptions.Add(StandaloneSource);
+
+    if Verbose then
+    begin
+      Writeln('FPC compilation options:');
+      Writeln(FpcOptions.Text);
+    end;
+
+    Writeln('FPC executing...');
+    RunCommandIndirPassthrough(ProjectPath, 'fpc', FpcOptions.ToArray, FpcOutput, FpcExitStatus);
+    if FpcExitStatus <> 0 then
+      raise Exception.Create('Failed to compile') else
+    begin
+      SourceExe := ChangeFileExt(StandaloneSource, ExeExtensionOS(OS));
+      DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+      if not AnsiSameText(SourceExe, DestExe) then
+      begin
+        { move exe to top-level (in case StandaloneSource is in subdirectory
+          like code/) and eventually rename to follow ExecutableName }
+        Writeln('Moving ', SourceExe, ' to ', DestExe);
+        CheckRenameFile(ProjectPath + SourceExe, ProjectPath + DestExe);
+      end;
+    end;
+  finally FreeAndNil(FpcOptions) end;
+end;
+
 procedure TCastleProject.DoPackage(const OS: TOS; const CPU: TCPU);
 var
   PackagePath: string;
@@ -292,12 +416,18 @@ var
   begin
     CastleEnginePath := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
     if CastleEnginePath = '' then
-      OnWarning(wtMajor, 'Library', 'CASTLE_ENGINE_PATH environment library not defined, we cannot find required library ' + LibraryName);
+    begin
+      OnWarning(wtMajor, 'Library', 'CASTLE_ENGINE_PATH environment variable not defined, we cannot find required library ' + LibraryName);
+      Exit;
+    end;
     LibraryPath := InclPathDelim(CastleEnginePath) +
       'external_libraries' + PathDelim +
       CPUToString(CPU) + '-' + OSToString(OS) + PathDelim + LibraryName;
     if not FileExists(LibraryPath) then
+    begin
       OnWarning(wtMajor, 'Library', 'Dependency library not found in ' + LibraryPath);
+      Exit;
+    end;
     SmartCopyFile(LibraryPath, PackagePath + LibraryName);
   end;
 
@@ -324,6 +454,9 @@ var
   PackageFileName, TemporaryDir, ProcessOutput, FullPackageFileName: string;
   ProcessExitStatus: Integer;
 begin
+  Writeln(Format('Packaging project "%s" for OS "%s" and CPU "%s".',
+    [Name, OSToString(OS), CPUToString(CPU)]));
+
   TemporaryDir := InclPathDelim(GetTempDir(false)) +
     ApplicationName + IntToStr(Random(1000000));
   CheckForceDirectories(TemporaryDir);
@@ -344,7 +477,7 @@ begin
                 palmos, macos, darwin, emx, watcom, morphos, netwlibc,
                 win64, wince, gba,nds, embedded, symbian, haiku, {iphonesim,}
                 aix, java, {android,} nativent, msdos, wii] then
-        Files.Add(ExecutableName + CastleArchitectures.ExeExtension(OS));
+        Files.Add(ExecutableName + ExeExtensionOS(OS));
 
       GatheringFiles := Files;
       FindFiles(DataPath, '*', false, @GatherFile, [ffRecursive]);
@@ -518,6 +651,23 @@ begin
     if AnsiSameText(DependencyNames[Result], S) then
       Exit;
   raise Exception.CreateFmt('Invalid dependency name "%s"', [S]);
+end;
+
+const
+  CompilationModeNames: array [TCompilationMode] of string =
+  ('release', 'debug');
+
+function ModeToString(const M: TCompilationMode): string;
+begin
+  Result := CompilationModeNames[M];
+end;
+
+function StringToMode(const S: string): TCompilationMode;
+begin
+  for Result in TCompilationMode do
+    if AnsiSameText(CompilationModeNames[Result], S) then
+      Exit;
+  raise Exception.CreateFmt('Invalid compilation mode name "%s"', [S]);
 end;
 
 end.
