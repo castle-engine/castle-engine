@@ -18,8 +18,8 @@
 }
 
 uses SysUtils,
-  CastleUtils, CastleParameters, CastleFindFiles, CastleArchitectures,
-  CastleProject, CastleWarnings;
+  CastleUtils, CastleParameters, CastleFindFiles, CastleWarnings,
+  ToolArchitectures, ToolProject, ToolCompile, ToolUtils;
 
 var
   OS: TOS;

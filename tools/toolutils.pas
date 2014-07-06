@@ -15,8 +15,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Utilities for CastleProject operations. }
-unit CastleProjectUtils;
+{ Utilities. }
+unit ToolUtils;
 
 interface
 
@@ -33,6 +33,10 @@ function RunCommandIndirPassthrough(
   const curdir:string; const exename:string;
   const commands:array of string;
   var outputstring:string; var exitstatus:integer): integer;
+
+var
+  { Trivial verbosity global setting. }
+  Verbose: boolean;
 
 implementation
 

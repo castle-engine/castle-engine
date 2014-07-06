@@ -13,20 +13,18 @@
   ----------------------------------------------------------------------------
 }
 
-{ Castle Game Engine project information. }
-unit CastleProject;
+{ Project information (from CastleEngineManifest.xml) and operations. }
+unit ToolProject;
 
 interface
 
-uses CastleFindFiles, CastleArchitectures, CastleStringUtils, CastleUtils;
+uses CastleFindFiles, CastleStringUtils, CastleUtils,
+  ToolArchitectures, ToolCompile;
 
 type
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis);
   TDependencies = set of TDependency;
 
-  TCompilationMode = (cmRelease, cmDebug);
-
-type
   TCastleProject = class
   private
     FDependencies: TDependencies;
@@ -72,17 +70,11 @@ type
 function DependencyToString(const D: TDependency): string;
 function StringToDependency(const S: string): TDependency;
 
-function ModeToString(const M: TCompilationMode): string;
-function StringToMode(const S: string): TCompilationMode;
-
-var
-  Verbose: boolean;
-
 implementation
 
 uses SysUtils, StrUtils, DOM, Process, Classes,
   CastleURIUtils, CastleXMLUtils, CastleWarnings, CastleFilesUtils,
-  CastleProjectUtils, CastlePackage;
+  ToolUtils, ToolPackage;
 
 { TCastleProject ------------------------------------------------------------- }
 
@@ -278,179 +270,36 @@ end;
 
 procedure TCastleProject.DoCompile(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
 var
-  CastleEnginePath, CastleEngineSrc: string;
-  FpcOptions: TCastleStringList;
-
-  procedure AddEnginePath(Path: string);
-  begin
-    Path := CastleEngineSrc + Path;
-    if not DirectoryExists(Path) then
-      OnWarning(wtMajor, 'Path', Format('Path "%s" does not exist. Make sure that $CASTLE_ENGINE_PATH points to the directory containing Castle Game Engine sources (in castle_game_engine subdirectory)', [Path]));
-    FpcOptions.Add('-Fu' + Path);
-    FpcOptions.Add('-Fi' + Path);
-  end;
-
-var
-  FpcOutput, SourceExe, DestExe: string;
-  FpcExitStatus: Integer;
+  SourceExe, DestExe: string;
 begin
   Writeln(Format('Compiling project "%s" for OS "%s" and CPU "%s" in mode "%s".',
     [Name, OSToString(OS), CPUToString(CPU), ModeToString(Mode)]));
 
-  FpcOptions := TCastleStringList.Create;
-  try
-    case OS of
-      Android:
+  case OS of
+    Android:
+      begin
+        if AndroidSource = '' then
+          raise Exception.Create('android_source property for project not defined, cannot compile Android version');
+        Compile(OS, CPU, Mode, ProjectPath, AndroidSource);
+        Writeln('Compiled library for Android in ', AndroidLibraryFile);
+      end;
+    else
+      begin
+        if StandaloneSource = '' then
+          raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
+        Compile(OS, CPU, Mode, ProjectPath, StandaloneSource);
+
+        SourceExe := ChangeFileExt(StandaloneSource, ExeExtensionOS(OS));
+        DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+        if not AnsiSameText(SourceExe, DestExe) then
         begin
-          if AndroidSource = '' then
-            raise Exception.Create('android_source property for project not defined, cannot compile Android version');
+          { move exe to top-level (in case StandaloneSource is in subdirectory
+            like code/) and eventually rename to follow ExecutableName }
+          Writeln('Moving ', SourceExe, ' to ', DestExe);
+          CheckRenameFile(ProjectPath + SourceExe, ProjectPath + DestExe);
         end;
-      else
-        begin
-          if StandaloneSource = '' then
-            raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
-        end;
-    end;
-
-    CastleEnginePath := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
-    if CastleEnginePath = '' then
-    begin
-      Writeln('CASTLE_ENGINE_PATH environment variable not defined, so we assume that engine unit paths are already specified within fpc.cfg file');
-    end else
-    begin
-      { Use  $CASTLE_ENGINE_PATH environment variable as the directory
-        containing castle_game_engine as subdirectory.
-        Then this script outputs all -Fu and -Fi options for FPC to include
-        Castle Game Engine sources.
-
-        We also output -dCASTLE_ENGINE_PATHS_ALREADY_DEFINED,
-        and @.../castle-fpc.cfg, to add castle-fpc.cfg with the rest of
-        proper Castle Game Engine compilation options.
-
-        This script is useful to compile programs using Castle Game Engine
-        from any directory. You just have to
-        set $CASTLE_ENGINE_PATH environment variable before calling
-        (or make sure that units paths are in fpc.cfg). }
-
-      CastleEngineSrc := InclPathDelim(CastleEnginePath) +
-        'castle_game_engine' + PathDelim + 'src' + PathDelim;
-
-      { Note that we add OS-specific paths (windows, android, unix)
-        regardless of the target OS. There is no point in filtering them
-        only for specific OS, since all file names must be different anyway,
-        as Lazarus packages could not compile otherwise. }
-
-      AddEnginePath('base');
-      AddEnginePath('base/android');
-      AddEnginePath('base/windows');
-      AddEnginePath('base/unix');
-      AddEnginePath('fonts');
-      AddEnginePath('fonts/windows');
-      AddEnginePath('opengl');
-      AddEnginePath('opengl/glsl');
-      AddEnginePath('window');
-      AddEnginePath('window/gtk');
-      AddEnginePath('window/windows');
-      AddEnginePath('window/unix');
-      AddEnginePath('images');
-      AddEnginePath('3d');
-      AddEnginePath('x3d');
-      AddEnginePath('x3d/opengl');
-      AddEnginePath('x3d/opengl/glsl');
-      AddEnginePath('audio');
-      AddEnginePath('net');
-      AddEnginePath('castlescript');
-      AddEnginePath('ui');
-      AddEnginePath('ui/windows');
-      AddEnginePath('ui/opengl');
-      AddEnginePath('game');
-
-      { Do not add castle-fpc.cfg.
-        Instead, rely on code below duplicating castle-fpc.cfg logic.
-        This way, it's tested.
-      FpcOptions.Add('-dCASTLE_ENGINE_PATHS_ALREADY_DEFINED');
-      FpcOptions.Add('@' + InclPathDelim(CastleEnginePath) + 'castle_game_engine/castle-fpc.cfg');
-      }
-    end;
-
-    { Specify the compilation options explicitly,
-      duplicating logic from ../castle-fpc.cfg .
-      (Engine sources may be possibly not available,
-      so we also cannot depend on castle-fpc.cfg being available.) }
-    FpcOptions.Add('-l');
-    FpcOptions.Add('-vwn');
-    FpcOptions.Add('-Ci');
-    FpcOptions.Add('-Mobjfpc');
-    FpcOptions.Add('-Sm');
-    FpcOptions.Add('-Sc');
-    FpcOptions.Add('-Sg');
-    FpcOptions.Add('-Si');
-    FpcOptions.Add('-Sh');
-    FpcOptions.Add('-T' + OSToString(OS));
-    FpcOptions.Add('-P' + CPUToString(CPU));
-
-    case Mode of
-      cmRelease:
-        begin
-          FpcOptions.Add('-O2');
-          FpcOptions.Add('-Xs');
-          FpcOptions.Add('-dRELEASE');
-        end;
-      cmDebug:
-        begin
-          FpcOptions.Add('-Cr');
-          FpcOptions.Add('-Co');
-          FpcOptions.Add('-Sa');
-          FpcOptions.Add('-CR');
-          FpcOptions.Add('-g');
-          FpcOptions.Add('-gl');
-          FpcOptions.Add('-dDEBUG');
-        end;
-      else raise EInternalError.Create('DoCompile: Mode?');
-    end;
-
-    case OS of
-      Android:
-        begin
-          { See https://sourceforge.net/p/castle-engine/wiki/Android%20development/#notes-about-compiling-with-hard-floats-cfvfpv3 }
-          FpcOptions.Add('-CfVFPV3');
-          FpcOptions.Add(AndroidSource);
-        end;
-      else
-        begin
-          FpcOptions.Add(StandaloneSource);
-        end;
-    end;
-
-    if Verbose then
-    begin
-      Writeln('FPC compilation options:');
-      Writeln(FpcOptions.Text);
-    end;
-
-    Writeln('FPC executing...');
-    RunCommandIndirPassthrough(ProjectPath, 'fpc', FpcOptions.ToArray, FpcOutput, FpcExitStatus);
-    if FpcExitStatus <> 0 then
-      raise Exception.Create('Failed to compile') else
-    case OS of
-      Android:
-        begin
-          Writeln('Compiled library for Android in ', AndroidLibraryFile);
-        end;
-      else
-        begin
-          SourceExe := ChangeFileExt(StandaloneSource, ExeExtensionOS(OS));
-          DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
-          if not AnsiSameText(SourceExe, DestExe) then
-          begin
-            { move exe to top-level (in case StandaloneSource is in subdirectory
-              like code/) and eventually rename to follow ExecutableName }
-            Writeln('Moving ', SourceExe, ' to ', DestExe);
-            CheckRenameFile(ProjectPath + SourceExe, ProjectPath + DestExe);
-          end;
-        end;
-    end;
-  finally FreeAndNil(FpcOptions) end;
+      end;
+  end;
 end;
 
 procedure TCastleProject.DoPackage(const OS: TOS; const CPU: TCPU);
@@ -719,23 +568,6 @@ begin
     if AnsiSameText(DependencyNames[Result], S) then
       Exit;
   raise Exception.CreateFmt('Invalid dependency name "%s"', [S]);
-end;
-
-const
-  CompilationModeNames: array [TCompilationMode] of string =
-  ('release', 'debug');
-
-function ModeToString(const M: TCompilationMode): string;
-begin
-  Result := CompilationModeNames[M];
-end;
-
-function StringToMode(const S: string): TCompilationMode;
-begin
-  for Result in TCompilationMode do
-    if AnsiSameText(CompilationModeNames[Result], S) then
-      Exit;
-  raise Exception.CreateFmt('Invalid compilation mode name "%s"', [S]);
 end;
 
 end.

@@ -15,10 +15,10 @@
   ----------------------------------------------------------------------------
 }
 
-{ Architectures (OS and CPU) definitions, useful for castle-engine.lpr tool.
+{ Architectures (OS and CPU) definitions.
   Parts of this are based on FPMkUnit code, this way we use the same names
   as FPMkUnit, so we're consistent with FPC and fpmake command-line options. }
-unit CastleArchitectures;
+unit ToolArchitectures;
 
 interface
 

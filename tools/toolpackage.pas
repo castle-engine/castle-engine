@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Packaging data wrapper. }
-unit CastlePackage;
+{ Packaging data in archives. }
+unit ToolPackage;
 
 interface
 
@@ -53,7 +53,8 @@ type
 implementation
 
 uses SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
-  CastleProject, CastleUtils, CastleFilesUtils, CastleProjectUtils;
+  CastleUtils, CastleFilesUtils,
+  ToolUtils;
 
 constructor TPackageDirectory.Create(const ATopDirectoryName: string);
 begin
