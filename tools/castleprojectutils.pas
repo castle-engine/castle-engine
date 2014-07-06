@@ -39,8 +39,6 @@ implementation
 uses Classes, Process, SysUtils,
   CastleFilesUtils;
 
-{ Copy file, making sure the destination directory exists
-  (eventually creating it), and checking result. }
 procedure SmartCopyFile(const Source, Dest: string);
 var
   SourceFile, DestFile: TFileStream;

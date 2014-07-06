@@ -126,7 +126,11 @@ begin
     if Command = 'compile' then
       Project.DoCompile(OS, CPU, Mode) else
     if Command = 'package' then
-      Project.DoPackage(OS, CPU) else
+    begin
+      Project.DoClean;
+      Project.DoCompile(OS, CPU, Mode);
+      Project.DoPackage(OS, CPU);
+    end else
     if Command = 'clean' then
       Project.DoClean else
       raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);

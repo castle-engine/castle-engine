@@ -80,9 +80,9 @@ var
 
 implementation
 
-uses SysUtils, StrUtils, DOM, Process, Classes, {$ifdef UNIX} BaseUnix, {$endif}
-  CastleURIUtils, CastleXMLUtils, CastleWarnings,
-  CastleFilesUtils, CastleProjectUtils;
+uses SysUtils, StrUtils, DOM, Process, Classes,
+  CastleURIUtils, CastleXMLUtils, CastleWarnings, CastleFilesUtils,
+  CastleProjectUtils, CastlePackage;
 
 { TCastleProject ------------------------------------------------------------- }
 
@@ -455,7 +455,7 @@ end;
 
 procedure TCastleProject.DoPackage(const OS: TOS; const CPU: TCPU);
 var
-  PackagePath: string;
+  Pack: TPackageDirectory;
 
   procedure AddExternalLibrary(const LibraryName: string);
   var
@@ -469,7 +469,7 @@ var
       CPUToString(CPU) + '-' + OSToString(OS) + PathDelim + LibraryName;
     if not FileExists(LibraryPath) then
       raise Exception.Create('Dependency library not found in ' + LibraryPath);
-    SmartCopyFile(LibraryPath, PackagePath + LibraryName);
+    Pack.Add(LibraryPath, LibraryName);
   end;
 
   procedure Exclude(const PathMask: string; const Files: TCastleStringList);
@@ -510,30 +510,19 @@ var
 var
   Files: TCastleStringList;
   I: Integer;
-  PackageFileName, TemporaryDir, ProcessOutput,
-    FullPackageFileName, ExecutableNameExt, Version: string;
-  ProcessExitStatus: Integer;
+  PackageFileName, ExecutableNameExt, Version: string;
   UnixPermissionsMatter: boolean;
   FindOptions: TFindFilesOptions;
 begin
   Writeln(Format('Packaging project "%s" for OS "%s" and CPU "%s".',
     [Name, OSToString(OS), CPUToString(CPU)]));
 
-  TemporaryDir := InclPathDelim(GetTempDir(false)) +
-    ApplicationName + IntToStr(Random(1000000));
-  CheckForceDirectories(TemporaryDir);
-  if Verbose then
-    Writeln('Created temporary dir for package: ' + TemporaryDir);
-
-  PackagePath := InclPathDelim(TemporaryDir) + Name;
-  CheckForceDirectories(PackagePath);
-  PackagePath += PathDelim;
-
   ExecutableNameExt := '';
 
   { packaging for OS where permissions matter }
   UnixPermissionsMatter := not (OS in AllWindowsOSes);
 
+  Pack := TPackageDirectory.Create(Name);
   try
     Files := TCastleStringList.Create;
     try
@@ -570,25 +559,12 @@ begin
         Exclude(ExcludePaths[I], Files);
 
       for I := 0 to Files.Count - 1 do
-      begin
-        SmartCopyFile(ProjectPath + Files[I], PackagePath + Files[I]);
-        if Verbose then
-          Writeln('Package file: ' + Files[I]);
-      end;
+        Pack.Add(ProjectPath + Files[I], Files[I]);
     finally FreeAndNil(Files) end;
 
     { For OSes where chmod matters, make sure to set it before packing }
     if UnixPermissionsMatter then
-    begin
-      {$ifdef UNIX}
-      FpChmod(PackagePath + ExecutableNameExt,
-        S_IRUSR or S_IWUSR or S_IXUSR or
-        S_IRGRP or            S_IXGRP or
-        S_IROTH or            S_IXOTH);
-      {$else}
-      OnWarning(wtMajor, 'Package', 'Packaging for a platform where UNIX permissions matter, but we cannot set "chmod" on this platform. This usually means that you package for Unix from Windows, and means that "executable" bit inside binary in tar.gz archive may not be set --- archive');
-      {$endif}
-    end;
+      Pack.MakeExecutable(ExecutableNameExt);
 
     case OS of
       win32:
@@ -639,24 +615,9 @@ begin
     PackageFileName := PackageName(Version, OS, CPU);
 
     if OS in AllWindowsOSes then
-      RunCommandIndir(TemporaryDir, 'zip', ['-q', '-r', PackageFileName, Name], ProcessOutput, ProcessExitStatus) else
-      RunCommandIndir(TemporaryDir, 'tar', ['czf', PackageFileName, Name], ProcessOutput, ProcessExitStatus);
-
-    if Verbose then
-    begin
-      Writeln('Executed package process, output:');
-      Writeln(ProcessOutput);
-    end;
-
-    if ProcessExitStatus <> 0 then
-      raise Exception.CreateFmt('Package process exited with error, status %d', [ProcessExitStatus]);
-
-    FullPackageFileName := ProjectPath + PackageFileName;
-    DeleteFile(FullPackageFileName);
-    CheckRenameFile(InclPathDelim(TemporaryDir) + PackageFileName, FullPackageFileName);
-    Writeln('Created package ' + PackageFileName + ', size: ',
-      (FileSize(FullPackageFileName) / (1024 * 1024)):0:2, ' MB');
-  finally RemoveNonEmptyDir(TemporaryDir) end;
+      Pack.Make(ProjectPath, PackageFileName, ptZip) else
+      Pack.Make(ProjectPath, PackageFileName, ptTarGz);
+  finally FreeAndNil(Pack) end;
 end;
 
 function TCastleProject.PackageName(const Version: string;
