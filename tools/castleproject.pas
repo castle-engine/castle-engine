@@ -100,7 +100,8 @@ constructor TCastleProject.Create(const Path: string);
     if not FileExists(ManifestFile) then
       AutoGuessManifest else
     begin
-      Writeln('Manifest file found: ' + ManifestFile);
+      if Verbose then
+        Writeln('Manifest file found: ' + ManifestFile);
       ManifestURL := FilenameToURISafe(ManifestFile);
 
       try
@@ -350,7 +351,7 @@ begin
       So specify the compilation options explicitly here,
       duplicating logic from ../castle-fpc.cfg . }
     FpcOptions.Add('-l');
-    FpcOptions.Add('-vwni');
+    FpcOptions.Add('-vwn');
     FpcOptions.Add('-Ci');
     FpcOptions.Add('-Mobjfpc');
     FpcOptions.Add('-Sm');
