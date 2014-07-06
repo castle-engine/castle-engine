@@ -18,7 +18,7 @@ unit CastleProject;
 
 interface
 
-uses CastleFindFiles, CastleArchitectures, CastleStringUtils;
+uses CastleFindFiles, CastleArchitectures, CastleStringUtils, CastleUtils;
 
 type
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis);
@@ -34,6 +34,7 @@ type
     GatheringFiles: TCastleStringList; //< only for GatherFile
     ManifestFile, ProjectPath, DataPath: string;
     IncludePaths, ExcludePaths: TCastleStringList;
+    IncludePathsRecursive: TBooleanList;
     FStandaloneSource, FAndroidSource: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
     FVersionExecutableOption: string;
@@ -80,7 +81,7 @@ var
 implementation
 
 uses SysUtils, StrUtils, DOM, Process, Classes, {$ifdef UNIX} BaseUnix, {$endif}
-  CastleUtils, CastleURIUtils, CastleXMLUtils, CastleWarnings,
+  CastleURIUtils, CastleXMLUtils, CastleWarnings,
   CastleFilesUtils, CastleProjectUtils;
 
 { TCastleProject ------------------------------------------------------------- }
@@ -146,6 +147,7 @@ constructor TCastleProject.Create(const Path: string);
           begin
             ChildElement := ChildElements[I] as TDOMElement;
             IncludePaths.Add(ChildElement.AttributeString('path'));
+            IncludePathsRecursive.Add(ChildElement.AttributeBooleanDef('recursive', false));
           end;
 
           ChildElements := Element.GetElementsByTagName('exclude');
@@ -200,6 +202,7 @@ begin
 
   { empty initial state }
   IncludePaths := TCastleStringList.Create;
+  IncludePathsRecursive := TBooleanList.Create;
   ExcludePaths := TCastleStringList.Create;
   FDependencies := [];
 
@@ -214,6 +217,7 @@ end;
 destructor TCastleProject.Destroy;
 begin
   FreeAndNil(IncludePaths);
+  FreeAndNil(IncludePathsRecursive);
   FreeAndNil(ExcludePaths);
   inherited;
 end;
@@ -510,6 +514,7 @@ var
     FullPackageFileName, ExecutableNameExt, Version: string;
   ProcessExitStatus: Integer;
   UnixPermissionsMatter: boolean;
+  FindOptions: TFindFilesOptions;
 begin
   Writeln(Format('Packaging project "%s" for OS "%s" and CPU "%s".',
     [Name, OSToString(OS), CPUToString(CPU)]));
@@ -547,10 +552,15 @@ begin
       GatheringFiles := Files;
       FindFiles(DataPath, '*', false, @GatherFile, [ffRecursive]);
       for I := 0 to IncludePaths.Count - 1 do
-        { not recursive, so that e.g. <include path="README.txt" />
-          or <include path="docs/README.txt" />
-          should not include *all* README.txt files inside. }
-        FindFiles(ProjectPath + IncludePaths[I], false, @GatherFile, []);
+      begin
+        if IncludePathsRecursive[I] then
+          FindOptions := [ffRecursive] else
+          { not recursive, so that e.g. <include path="README.txt" />
+            or <include path="docs/README.txt" />
+            should not include *all* README.txt files inside. }
+          FindOptions := [];
+        FindFiles(ProjectPath + IncludePaths[I], false, @GatherFile, FindOptions);
+      end;
       GatheringFiles := nil;
 
       Exclude('*.xcf', Files);
