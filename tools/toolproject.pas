@@ -210,6 +210,7 @@ constructor TCastleProject.Create(const Path: string);
 
   begin
     DependenciesClosure(depPng, depZlib);
+    DependenciesClosure(depFreetype, depZlib);
     DependenciesClosure(depOggVorbis, depSound);
   end;
 
