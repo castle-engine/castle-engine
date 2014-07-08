@@ -474,9 +474,17 @@ begin
           if depPng in Dependencies then
             AddExternalLibrary('libpng14-14.dll');
           if depSound in Dependencies then
-            OnWarning(wtMajor, 'Libraries', 'We do not know how to satisfy OpenAL dependency on win64');
+          begin
+            AddExternalLibrary('OpenAL32.dll');
+            AddExternalLibrary('wrap_oal.dll');
+          end;
           if depOggVorbis in Dependencies then
-            OnWarning(wtMajor, 'Libraries', 'We do not know how to satisfy OggVorbis dependency on win64');
+          begin
+            AddExternalLibrary('libogg.dll');
+            AddExternalLibrary('libvorbis.dll');
+            { AddExternalLibrary('vorbisenc.dll'); not present? }
+            AddExternalLibrary('vorbisfile.dll');
+          end;
         end;
     end;
 
