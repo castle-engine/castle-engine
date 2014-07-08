@@ -25,17 +25,19 @@ var
   OS: TOS;
   CPU: TCPU;
   Mode: TCompilationMode = cmRelease;
+  AssumeCompiled: boolean = false;
 
 const
   Version = '5.0.0'; //< When updating this, remember to also update version in ../fpmake.pp
-  Options: array [0..5] of TOption =
+  Options: array [0..6] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
     (Short: #0 ; Long: 'os'; Argument: oaRequired),
     (Short: #0 ; Long: 'cpu'; Argument: oaRequired),
     (Short: 'V'; Long: 'verbose'; Argument: oaNone),
-    (Short: #0 ; Long: 'mode'; Argument: oaRequired)
+    (Short: #0 ; Long: 'mode'; Argument: oaRequired),
+    (Short: #0 ; Long: 'assume-compiled'; Argument: oaNone)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -72,6 +74,10 @@ begin
           VersionOptionHelp +NL+
           '  -V / --verbose        Verbose mode, output contains e.g. list of packaged files.' +NL+
           '  --mode=debug|release  Compilation mode, used by "compile" command.' +NL+
+          '  --assume-compiled     Do not automatically do "clean" and "compile"' +NL+
+          '                        before "package". Instead assume that compiled' +NL+
+          '                        executable for given OS/CPU/mode' +NL+
+          '                        is already present in the package directory.' +NL+
           OSOptionHelp +
           CPUOptionHelp +
           NL+
@@ -86,6 +92,7 @@ begin
     3:CPU := StringToCPU(Argument);
     4:Verbose := true;
     5:Mode := StringToMode(Argument);
+    6:AssumeCompiled := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
@@ -127,8 +134,11 @@ begin
       Project.DoCompile(OS, CPU, Mode) else
     if Command = 'package' then
     begin
-      Project.DoClean;
-      Project.DoCompile(OS, CPU, Mode);
+      if not AssumeCompiled then
+      begin
+        Project.DoClean;
+        Project.DoCompile(OS, CPU, Mode);
+      end;
       Project.DoPackage(OS, CPU);
     end else
     if Command = 'clean' then
