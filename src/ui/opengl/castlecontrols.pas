@@ -543,8 +543,13 @@ type
     FColor: TCastleColor;
     FTags: boolean;
     FFrame: boolean;
-  protected
+    FMaxWidth: Integer;
+    { For internal use by tooltip rendering. In normal circumstances,
+      leave this at tiLabel. }
     ImageType: TThemeImage;
+    { Calculate surrounding rectangle, like for @link(Rect),
+      also calculating TextBroken (in case MaxWidth <> 0) along they way. }
+    function RectCore(out TextBroken: TStrings): TRectangle;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -567,8 +572,14 @@ type
       see TCastleFont.PrintStrings documentation. }
     property Tags: boolean read FTags write FTags default false;
 
-    { Draw frame with (using theme image tiLabel) around text. }
+    { Draw frame around the text. Frame uses theme image tiLabel,
+      see TCastleTheme.Images if you want to customize it. }
     property Frame: boolean read FFrame write FFrame default true;
+
+    { If non-zero, limit the width of resulting label.
+      The text will be broken in the middle of lines, to make it fit
+      (together with @link(Padding)) inside MaxWidth. }
+    property MaxWidth: Integer read FMaxWidth write FMaxWidth;
   end;
 
   TCastleCrosshairShape = (csCross, csCrossRect);
@@ -2210,24 +2221,57 @@ begin
   inherited;
 end;
 
-function TCastleLabel.Rect: TRectangle;
+function TCastleLabel.RectCore(out TextBroken: TStrings): TRectangle;
+var
+  TextToRender: TStrings;
 begin
+  TextBroken := nil;
+  if MaxWidth = 0 then
+    TextToRender := Text else
+  begin
+    TextBroken := TStringList.Create;
+    TextToRender := TextBroken;
+    { TODO: this breaks not taking Tags property into account.
+      When Tags=@true and some tags are actually used,
+      the text may not be broken optimally (as BreakLines will think
+      that invisible tags actually take space). }
+    Font.BreakLines(Text, TextBroken, MaxWidth - 2 * Padding);
+  end;
+
   Result := Rectangle(Left, Bottom,
-    Font.MaxTextWidth(Text, Tags) + 2 * Padding,
-    (Font.RowHeight + LineSpacing) * Text.Count + 2 * Padding + Font.Descend);
+    Font.MaxTextWidth(TextToRender, Tags) + 2 * Padding,
+    (Font.RowHeight + LineSpacing) * TextToRender.Count + 2 * Padding + Font.Descend);
+end;
+
+function TCastleLabel.Rect: TRectangle;
+var
+  TextBroken: TStrings;
+begin
+  TextBroken := nil;
+  try
+    Result := RectCore(TextBroken);
+  finally FreeAndNil(TextBroken) end;
 end;
 
 procedure TCastleLabel.Render;
 var
   R: TRectangle;
+  TextBroken, TextToRender: TStrings;
 begin
   inherited;
   if Text.Count = 0 then Exit;
-  R := Rect;
-  if Frame then
-    Theme.Draw(R, ImageType);
-  Font.PrintStrings(R.Left + Padding,
-    R.Bottom + Padding + Font.Descend, Color, Text, Tags, LineSpacing);
+
+  TextToRender := Text;
+  TextBroken := nil;
+  try
+    R := RectCore(TextBroken);
+    if TextBroken <> nil then
+      TextToRender := TextBroken;
+    if Frame then
+      Theme.Draw(R, ImageType);
+    Font.PrintStrings(R.Left + Padding,
+      R.Bottom + Padding + Font.Descend, Color, TextToRender, Tags, LineSpacing);
+  finally FreeAndNil(TextBroken) end;
 end;
 
 { TCastleProgressBar --------------------------------------------------------- }
