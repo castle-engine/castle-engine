@@ -113,6 +113,7 @@ constructor TCastleProject.Create(const Path: string);
       Writeln('Manifest file not found: ' + ManifestFile);
       Writeln('Guessing project values. Use create-manifest command to write these guesses into new CastleEngineManifest.xml');
       FName := ExtractFileName(ExtractFileDir(ManifestFile));
+      FExecutableName := FName;
       FStandaloneSource := FName + '.lpr';
     end;
 
