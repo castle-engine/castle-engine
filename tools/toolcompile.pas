@@ -60,7 +60,7 @@ begin
     CastleEnginePath := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
     if CastleEnginePath = '' then
     begin
-      Writeln('CASTLE_ENGINE_PATH environment variable not defined, so we assume that engine unit paths are already specified within fpc.cfg file');
+      Writeln('CASTLE_ENGINE_PATH environment variable not defined, so we assume that engine unit paths are already specified within fpc.cfg file.');
     end else
     begin
       { Use  $CASTLE_ENGINE_PATH environment variable as the directory
@@ -80,42 +80,48 @@ begin
       CastleEngineSrc := InclPathDelim(CastleEnginePath) +
         'castle_game_engine' + PathDelim + 'src' + PathDelim;
 
-      { Note that we add OS-specific paths (windows, android, unix)
-        regardless of the target OS. There is no point in filtering them
-        only for specific OS, since all file names must be different anyway,
-        as Lazarus packages could not compile otherwise. }
+      if not DirectoryExists(CastleEngineSrc) then
+      begin
+        Writeln('CASTLE_ENGINE_PATH environment variable defined, but we cannot find Castle Game Engine sources inside (looking in "' + CastleEngineSrc + '"). So we compile assuming that engine unit paths are already specified within fpc.cfg file.');
+      end else
+      begin
+        { Note that we add OS-specific paths (windows, android, unix)
+          regardless of the target OS. There is no point in filtering them
+          only for specific OS, since all file names must be different anyway,
+          as Lazarus packages could not compile otherwise. }
 
-      AddEnginePath('base');
-      AddEnginePath('base/android');
-      AddEnginePath('base/windows');
-      AddEnginePath('base/unix');
-      AddEnginePath('fonts');
-      AddEnginePath('fonts/windows');
-      AddEnginePath('opengl');
-      AddEnginePath('opengl/glsl');
-      AddEnginePath('window');
-      AddEnginePath('window/gtk');
-      AddEnginePath('window/windows');
-      AddEnginePath('window/unix');
-      AddEnginePath('images');
-      AddEnginePath('3d');
-      AddEnginePath('x3d');
-      AddEnginePath('x3d/opengl');
-      AddEnginePath('x3d/opengl/glsl');
-      AddEnginePath('audio');
-      AddEnginePath('net');
-      AddEnginePath('castlescript');
-      AddEnginePath('ui');
-      AddEnginePath('ui/windows');
-      AddEnginePath('ui/opengl');
-      AddEnginePath('game');
+        AddEnginePath('base');
+        AddEnginePath('base/android');
+        AddEnginePath('base/windows');
+        AddEnginePath('base/unix');
+        AddEnginePath('fonts');
+        AddEnginePath('fonts/windows');
+        AddEnginePath('opengl');
+        AddEnginePath('opengl/glsl');
+        AddEnginePath('window');
+        AddEnginePath('window/gtk');
+        AddEnginePath('window/windows');
+        AddEnginePath('window/unix');
+        AddEnginePath('images');
+        AddEnginePath('3d');
+        AddEnginePath('x3d');
+        AddEnginePath('x3d/opengl');
+        AddEnginePath('x3d/opengl/glsl');
+        AddEnginePath('audio');
+        AddEnginePath('net');
+        AddEnginePath('castlescript');
+        AddEnginePath('ui');
+        AddEnginePath('ui/windows');
+        AddEnginePath('ui/opengl');
+        AddEnginePath('game');
 
-      { Do not add castle-fpc.cfg.
-        Instead, rely on code below duplicating castle-fpc.cfg logic.
-        This way, it's tested.
-      FpcOptions.Add('-dCASTLE_ENGINE_PATHS_ALREADY_DEFINED');
-      FpcOptions.Add('@' + InclPathDelim(CastleEnginePath) + 'castle_game_engine/castle-fpc.cfg');
-      }
+        { Do not add castle-fpc.cfg.
+          Instead, rely on code below duplicating castle-fpc.cfg logic.
+          This way, it's tested.
+        FpcOptions.Add('-dCASTLE_ENGINE_PATHS_ALREADY_DEFINED');
+        FpcOptions.Add('@' + InclPathDelim(CastleEnginePath) + 'castle_game_engine/castle-fpc.cfg');
+        }
+      end;
     end;
 
     { Specify the compilation options explicitly,
