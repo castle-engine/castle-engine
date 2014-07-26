@@ -116,6 +116,7 @@ EXAMPLES_BASE_NAMES := \
   examples/resource_animations/resource_animations \
   examples/fps_game/fps_game \
   examples/2d/controls_demo \
+  examples/spine/spine_integration \
   examples/android/android_demo/androiddemo_standalone \
   tools/castle-engine
 
