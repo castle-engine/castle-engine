@@ -1475,11 +1475,13 @@ implementation
     end;
 
 
-  procedure LoadEGL(lib : pchar);
+  procedure LoadEGL(const Lib: string; const AltLibName: string = '');
     begin
       FreeEGL;
 {$ifdef OpenGLES}
-      EGLLib:=dynlibs.LoadLibrary(lib);
+      EGLLib:=dynlibs.LoadLibrary(Lib);
+      if (EGLLib=0) and (AltLibName <> '') then
+        EGLLib:=dynlibs.LoadLibrary(AltLibName);
       if EGLLib=0 then
         raise Exception.Create(format('Could not load library: %s',[lib]));
 {$else}
@@ -1701,13 +1703,15 @@ implementation
     end;
 
 
-  procedure LoadGLESv2(lib : pchar);
+  procedure LoadGLESv2(const Lib: string; const AltLibName: string = '');
     begin
       FreeGLESv2;
 {$ifdef OpenGLES}
-      GLESv2Lib:=dynlibs.LoadLibrary(lib);
+      GLESv2Lib:=dynlibs.LoadLibrary(Lib);
+      if (GLESv2Lib=0) and (AltLibName <> '') then
+        GLESv2Lib:=dynlibs.LoadLibrary(AltLibName);
       if GLESv2Lib=0 then
-        raise Exception.Create(format('Could not load library: %s',[lib]));
+        raise Exception.Create(format('Could not load library: %s',[Lib]));
 {$else}
       Exit;
 {$endif}
@@ -1883,9 +1887,23 @@ implementation
 procedure GLES20Initialization;
 begin
   {$ifdef EGL}
-  LoadEGL({$ifdef windows}'libEGL.dll'{$else}'libEGL.so'{$endif});
+  LoadEGL(
+    {$ifdef windows} 'libEGL.dll'
+    { First try to access libEGL.so.1 (from libegl1-mesa package on Debian).
+      The name libEGL.so is only available in -dev package. }
+    {$else} 'libEGL.so.1', 'libEGL.so'
+    {$endif});
   {$endif}
-  LoadGLESv2({$ifdef darwin}'/System/Library/Frameworks/OpenGLES.framework/OpenGLES'{$else}{$ifdef windows}'libGLESv2.dll'{$else}'libGLESv2.so'{$endif}{$endif});
+
+  LoadGLESv2(
+    {$ifdef darwin} '/System/Library/Frameworks/OpenGLES.framework/OpenGLES'
+    {$else}
+      {$ifdef windows} 'libGLESv2.dll'
+      { First try to access libGLESv2.so.2 (from libgles2-mesa package on Debian).
+        The name libGLESv2.so is only available in -dev package. }
+      {$else} 'libGLESv2.so.2', 'libGLESv2.so'
+      {$endif}
+    {$endif});
 end;
 
 initialization
