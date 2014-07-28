@@ -28,6 +28,8 @@
 'void main(void)' + LineEnding +
 '{' + LineEnding +
 '  vec3 normal_eye_fragment = normalize(castle_normal_eye);' + LineEnding +
+'' + LineEnding +
+'#ifndef CASTLE_BUGGY_FRONT_FACING' + LineEnding +
 '  if (gl_FrontFacing)' + LineEnding +
 '    /* Avoid AMD bug http://forums.amd.com/devforum/messageview.cfm?catid=392&threadid=148827&enterthread=y' + LineEnding +
 '       Observed on fglrx (proprietary ATI Linux driver),' + LineEnding +
@@ -39,14 +41,17 @@
 '       only "if (gl_FrontFacing)".' + LineEnding +
 '    */ ; else' + LineEnding +
 '    normal_eye_fragment = -normal_eye_fragment;' + LineEnding +
+'#endif' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: fragment_eye_space (castle_vertex_eye, normal_eye_fragment) */' + LineEnding +
 '' + LineEnding +
 '#ifdef LIT' + LineEnding +
 '  vec4 fragment_color;' + LineEnding +
 '' + LineEnding +
+'#ifndef CASTLE_BUGGY_FRONT_FACING' + LineEnding +
 '  if (gl_FrontFacing)' + LineEnding +
 '  {' + LineEnding +
+'#endif' + LineEnding +
 '    fragment_color = gl_FrontLightModelProduct.sceneColor;' + LineEnding +
 '    /* PLUG: add_light_contribution_front (fragment_color, castle_vertex_eye, normal_eye_fragment, gl_FrontMaterial) */' + LineEnding +
 '' + LineEnding +
@@ -55,12 +60,14 @@
 '       Using diffuse.a is actually exactly what fixed-function pipeline does' + LineEnding +
 '       too, according to http://www.sjbaker.org/steve/omniv/opengl_lighting.html */' + LineEnding +
 '    fragment_color.a = gl_FrontMaterial.diffuse.a;' + LineEnding +
+'#ifndef CASTLE_BUGGY_FRONT_FACING' + LineEnding +
 '  } else' + LineEnding +
 '  {' + LineEnding +
 '    fragment_color = gl_BackLightModelProduct.sceneColor;' + LineEnding +
 '    /* PLUG: add_light_contribution_back (fragment_color, castle_vertex_eye, normal_eye_fragment, gl_BackMaterial) */' + LineEnding +
 '    fragment_color.a = gl_BackMaterial.diffuse.a;' + LineEnding +
 '  }' + LineEnding +
+'#endif' + LineEnding +
 '' + LineEnding +
 '  /* Clamp sum of lights colors to be <= 1. Fixed-function OpenGL does it too.' + LineEnding +
 '     This isn''t really mandatory, but scenes with many lights could easily' + LineEnding +

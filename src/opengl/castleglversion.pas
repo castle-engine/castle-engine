@@ -80,6 +80,7 @@ type
     FBuggyFBOMultiSampling: boolean;
     FBuggySwapNonStandardViewport: boolean;
     FBuggyDepth32: boolean;
+    FBuggyGLSLFrontFacing: boolean;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
 
@@ -190,6 +191,23 @@ type
     { Buggy 32-bit depth buffer, 24-bit depth buffer works Ok
       (Mesa on ATI (Linux) bug). }
     property BuggyDepth32: boolean read FBuggyDepth32;
+
+    { Buggy gl_FrontFacing in GLSL. Observed on:
+      @unorderedList(
+        @item Version string: 3.0 Mesa 10.2.2
+        @item Vendor: nouveau
+        @item Renderer: Gallium 0.4 on NVC3
+      )
+
+      Note that avoiding gl_FrontFacing (that seems to always has inverted value?)
+      is only a part of the workaround for these GPUs.
+      The other is to not render back faces, since it seems
+      that normals are *always* oriented to point to the light
+      (so, if you don't look at gl_FrontFacing, you are lit from *both* sides).
+      So enable backface culling, or just be prepared that backfaces may be
+      incorrectly light.
+    }
+    property BuggyGLSLFrontFacing: boolean read FBuggyGLSLFrontFacing;
   end;
 
 var
@@ -520,6 +538,14 @@ begin
   }
   FBuggyDepth32 := Mesa and (VendorMajor = 8) and (VendorMinor = 0) and
     (Vendor = 'VMware, Inc.') and IsPrefix('Gallium 0.4 on llvmpipe', Renderer);
+
+  { Observed on (system "river" owned by Michalis):
+
+      Version string: 3.0 Mesa 10.2.2
+      Vendor: nouveau
+      Renderer: Gallium 0.4 on NVC3
+  }
+  FBuggyGLSLFrontFacing := Mesa and (VendorMajor = 10);
 end;
 
 end.

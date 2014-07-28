@@ -1648,7 +1648,8 @@ const
         '  Buggy FBO rendering to multi-sampling texture: %s' +nl+
         '  Buggy FBO rendering to cube map texture: %s' +nl+
         '  Buggy swap buffers with non-standard glViewport: %s' +nl+
-        '  Buggy 32-bit depth buffer: %s',
+        '  Buggy 32-bit depth buffer: %s' +nl+
+        '  Buggy GLSL gl_FrontFacing: %s',
         [ Version.VendorMajor, Version.VendorMinor, Version.VendorRelease,
           BoolToStr[Version.VendorNVidia],
           BoolToStr[Version.VendorATI],
@@ -1664,7 +1665,8 @@ const
           BoolToStr[Version.BuggyFBOMultiSampling],
           BoolToStr[Version.BuggyFBOCubeMap],
           BoolToStr[Version.BuggySwapNonStandardViewport],
-          BoolToStr[Version.BuggyDepth32]
+          BoolToStr[Version.BuggyDepth32],
+          BoolToStr[Version.BuggyGLSLFrontFacing]
         ]);
   end;
 

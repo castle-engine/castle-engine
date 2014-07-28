@@ -26,6 +26,8 @@ vec2 texture_coord_shifted(in vec2 tex_coord)
 void main(void)
 {
   vec3 normal_eye_fragment = normalize(castle_normal_eye);
+
+#ifndef CASTLE_BUGGY_FRONT_FACING
   if (gl_FrontFacing)
     /* Avoid AMD bug http://forums.amd.com/devforum/messageview.cfm?catid=392&threadid=148827&enterthread=y
        Observed on fglrx (proprietary ATI Linux driver),
@@ -37,14 +39,17 @@ void main(void)
        only "if (gl_FrontFacing)".
     */ ; else
     normal_eye_fragment = -normal_eye_fragment;
+#endif
 
   /* PLUG: fragment_eye_space (castle_vertex_eye, normal_eye_fragment) */
 
 #ifdef LIT
   vec4 fragment_color;
 
+#ifndef CASTLE_BUGGY_FRONT_FACING
   if (gl_FrontFacing)
   {
+#endif
     fragment_color = gl_FrontLightModelProduct.sceneColor;
     /* PLUG: add_light_contribution_front (fragment_color, castle_vertex_eye, normal_eye_fragment, gl_FrontMaterial) */
 
@@ -53,12 +58,14 @@ void main(void)
        Using diffuse.a is actually exactly what fixed-function pipeline does
        too, according to http://www.sjbaker.org/steve/omniv/opengl_lighting.html */
     fragment_color.a = gl_FrontMaterial.diffuse.a;
+#ifndef CASTLE_BUGGY_FRONT_FACING
   } else
   {
     fragment_color = gl_BackLightModelProduct.sceneColor;
     /* PLUG: add_light_contribution_back (fragment_color, castle_vertex_eye, normal_eye_fragment, gl_BackMaterial) */
     fragment_color.a = gl_BackMaterial.diffuse.a;
   }
+#endif
 
   /* Clamp sum of lights colors to be <= 1. Fixed-function OpenGL does it too.
      This isn't really mandatory, but scenes with many lights could easily

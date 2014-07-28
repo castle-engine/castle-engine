@@ -2387,6 +2387,10 @@ begin
   end else
     Source[stGeometry].Clear;
 
+  if GLVersion.BuggyGLSLFrontFacing then
+    for I := 0 to Source[stFragment].Count - 1 do
+      PlugDirectly(Source[stFragment], I, '/* PLUG-DECLARATIONS */', '#define CASTLE_BUGGY_FRONT_FACING', true);
+
   if Log and LogShaders then
   begin
     for ShaderType := Low(ShaderType) to High(ShaderType) do
