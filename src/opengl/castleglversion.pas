@@ -539,11 +539,17 @@ begin
   FBuggyDepth32 := Mesa and (VendorMajor = 8) and (VendorMinor = 0) and
     (Vendor = 'VMware, Inc.') and IsPrefix('Gallium 0.4 on llvmpipe', Renderer);
 
-  { Observed on (system "river" owned by Michalis):
+  { Observed on (system "river" owned by Michalis, Linux):
 
       Version string: 3.0 Mesa 10.2.2
       Vendor: nouveau
       Renderer: Gallium 0.4 on NVC3
+
+    Not observed on (system "chantal" owned by Michalis, Linux):
+
+      Version string: 2.1 Mesa 10.2.1
+      Vendor: X.Org R300 Project
+      Renderer: Gallium 0.4 on ATI RV530
   }
   FBuggyGLSLFrontFacing := Mesa and (VendorMajor = 10);
 end;
