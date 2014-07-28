@@ -599,6 +599,11 @@ end;
 
 procedure CheckRenameFile(const Source, Dest: string);
 begin
+  {$ifdef MSWINDOWS}
+  { On Windows, we have to remove Dest explicitly, otherwise RenameFile will fail
+    when Dest exists }
+  SysUtils.DeleteFile(Dest);
+  {$endif}
   if not RenameFile(Source, Dest) then
     raise Exception.CreateFmt('Cannot rename/move from "%s" to "%s"', [Source, Dest]);
 end;
