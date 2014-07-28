@@ -1,8 +1,8 @@
 { -*- buffer-read-only: t -*- }
 { DON'T EDIT -- this file was automatically generated from "fallback.fs" }
 '/* Fallback GLSL shader, used for OpenGL ES, when normal shader did not compile.' + LineEnding +
-' * This is merely used to avoid crashing the application (you cannot leave' + LineEnding +
-' * the shader empty). */' + LineEnding +
+'   This is merely used to avoid crashing the application (you cannot leave' + LineEnding +
+'   the shader empty). */' + LineEnding +
 '' + LineEnding +
 'precision mediump float;' + LineEnding +
 '' + LineEnding +

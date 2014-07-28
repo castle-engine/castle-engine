@@ -1,3 +1,5 @@
+/* Shadow map functions. */
+
 /* Define exactly one of PCF* symbols, or none (to not use any PCF).
    This is defined (or not) when including this shader in Pascal code,
    automatically. */
