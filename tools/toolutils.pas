@@ -27,6 +27,14 @@ procedure SmartCopyFile(const Source, Dest: string);
 function FileSize(const FileName: string): Int64;
 
 { Run command in given directory with given arguments,
+  gathering output and status to string.
+  Like Process.RunCommandIndir in FPC >= 2.6.4. }
+function MyRunCommandIndir(
+  const curdir:string; const exename:string;
+  const commands:array of string;
+  var outputstring:string; var exitstatus:integer): integer;
+
+{ Run command in given directory with given arguments,
   gathering output and status to string, and also letting output
   to go to our output. }
 function RunCommandIndirPassthrough(
@@ -69,6 +77,56 @@ begin
   try
     Result := SourceFile.Size;
   finally FreeAndNil(SourceFile) end;
+end;
+
+function MyRunCommandIndir(const curdir:string;const exename:string;const commands:array of string;var outputstring:string;var exitstatus:integer):integer;
+{ Adjusted from fpc/trunk/packages/fcl-process/src/process.pp }
+Const
+  READ_BYTES = 65536; // not too small to avoid fragmentation when reading large files.
+var
+  p : TProcess;
+  i : integer;
+  numbytes,bytesread : integer;
+begin
+  p:=TProcess.create(nil);
+  p.Executable:=exename;
+  if curdir<>'' then
+    p.CurrentDirectory:=curdir;
+  if high(commands)>=0 then
+   for i:=low(commands) to high(commands) do
+     p.Parameters.add(commands[i]);
+
+  result:=-1;
+  try
+    try
+      p.Options := [poUsePipes];
+      bytesread := 0;
+      p.Execute;
+      while p.Running do
+      begin
+        Setlength(outputstring,BytesRead + READ_BYTES);
+        NumBytes := p.Output.Read(outputstring[1+bytesread], READ_BYTES);
+        if NumBytes > 0 then
+          Inc(BytesRead, NumBytes) else
+          Sleep(100);
+      end;
+      repeat
+        Setlength(outputstring,BytesRead + READ_BYTES);
+        NumBytes := p.Output.Read(outputstring[1+bytesread], READ_BYTES);
+        if NumBytes > 0 then
+          Inc(BytesRead, NumBytes);
+      until NumBytes <= 0;
+      setlength(outputstring,BytesRead);
+      exitstatus:=p.exitstatus;
+      result:=0; // we came to here, document that.
+    except
+      on e : Exception do
+      begin
+        result:=1;
+        setlength(outputstring,BytesRead);
+      end;
+    end;
+  finally p.free end;
 end;
 
 function RunCommandIndirPassthrough(const curdir:string;const exename:string;const commands:array of string;var outputstring:string;var exitstatus:integer):integer;

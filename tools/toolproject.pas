@@ -376,7 +376,7 @@ var
     { get version by running ExecutableNameExt in main ProjectPath,
       not in temporary path (to avoid polluting temporary path for packaging
       with anything) }
-    RunCommandIndir(ProjectPath, ExecutableNameExt, [VersionOption],
+    MyRunCommandIndir(ProjectPath, ExecutableNameExt, [VersionOption],
       ProcessOutput, ProcessExitStatus);
     if ProcessExitStatus <> 0 then
       raise Exception.CreateFmt('Process exited with error, status %d', [ProcessExitStatus]);
