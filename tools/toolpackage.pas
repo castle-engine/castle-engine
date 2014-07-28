@@ -53,7 +53,7 @@ type
 implementation
 
 uses SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
-  CastleUtils, CastleFilesUtils,
+  CastleUtils, CastleFilesUtils, CastleWarnings,
   ToolUtils;
 
 constructor TPackageDirectory.Create(const ATopDirectoryName: string);
