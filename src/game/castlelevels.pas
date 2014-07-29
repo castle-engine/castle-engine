@@ -970,14 +970,19 @@ procedure TGameSceneManager.LoadLevel(const AInfo: TLevelInfo);
 var
   SavedImage: TRGBImage;
   SavedBarYPosition: Single;
+  SavedOwnsImage: boolean;
 begin
+  SavedOwnsImage := Progress.UserInterface.OwnsImage;
   SavedImage := Progress.UserInterface.Image;
   SavedBarYPosition := Progress.UserInterface.BarYPosition;
   try
+    Progress.UserInterface.OwnsImage := false; // never free Image at next assignment
     Progress.UserInterface.Image := AInfo.LoadingImage;
     Progress.UserInterface.BarYPosition := AInfo.LoadingBarYPosition;
     LoadLevelCore(AInfo);
   finally
+    Progress.UserInterface.Image := nil; // unassign AInfo.LoadingImage, while OwnsImage = false
+    Progress.UserInterface.OwnsImage := SavedOwnsImage;
     Progress.UserInterface.Image := SavedImage;
     Progress.UserInterface.BarYPosition := SavedBarYPosition;
   end;

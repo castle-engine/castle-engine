@@ -31,23 +31,28 @@ type
   TProgressUserInterface = class
   private
     FImage: TRGBImage;
+    FOwnsImage: boolean;
     FBarYPosition: Single;
+    procedure SetImage(const Value: TRGBImage);
   public
     const
       DefaultBarYPosition = 0.5;
 
     constructor Create;
+    destructor Destroy; override;
 
     { Image displayed as a background of the progress bar.
       Not all progress bar interfaces support it, some simply ignore it.
       You can leave it @nil, then we will simply capture screen contents
       each time the progress bar starts.
 
-      The image assigned here does @italic(not) become owned by
-      the TProgressUserInterface instance. We don't modify it (if we need
-      to resize it to fit the screen size, we do it on a temporary copy).
-      And we don't free it. }
-    property Image: TRGBImage read FImage write FImage;
+      Whether the image assigned here is "owned" (that is, "automatically
+      freed") by TProgressUserInterface instance depends on OwnsImage.
+      In any case, we don't modify the image
+      (if we need to resize it to fit the screen size,
+      we do it on a temporary copy). }
+    property Image: TRGBImage read FImage write SetImage;
+    property OwnsImage: boolean read FOwnsImage write FOwnsImage default false;
 
     { Vertical position of the displayed progress bar.
       This feature is supposed to indicate a suitable free space on the
@@ -272,6 +277,24 @@ constructor TProgressUserInterface.Create;
 begin
   inherited;
   FBarYPosition := DefaultBarYPosition;
+end;
+
+destructor TProgressUserInterface.Destroy;
+begin
+  if OwnsImage then
+    FreeAndNil(FImage) else
+    FImage := nil;
+  inherited;
+end;
+
+procedure TProgressUserInterface.SetImage(const Value: TRGBImage);
+begin
+  if FImage <> Value then
+  begin
+    if OwnsImage then
+      FreeAndNil(FImage);
+    FImage := Value;
+  end;
 end;
 
 { TProgress ------------------------------------------------------------------ }
