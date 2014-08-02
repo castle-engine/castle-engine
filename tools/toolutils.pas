@@ -29,18 +29,18 @@ function FileSize(const FileName: string): Int64;
 { Run command in given directory with given arguments,
   gathering output and status to string.
   Like Process.RunCommandIndir in FPC >= 2.6.4. }
-function MyRunCommandIndir(
+procedure MyRunCommandIndir(
   const curdir:string; const exename:string;
   const commands:array of string;
-  var outputstring:string; var exitstatus:integer): integer;
+  var outputstring:string; var exitstatus:integer);
 
 { Run command in given directory with given arguments,
   gathering output and status to string, and also letting output
   to go to our output. }
-function RunCommandIndirPassthrough(
+procedure RunCommandIndirPassthrough(
   const curdir:string; const exename:string;
   const commands:array of string;
-  var outputstring:string; var exitstatus:integer): integer;
+  var outputstring:string; var exitstatus:integer);
 
 var
   { Trivial verbosity global setting. }
@@ -79,7 +79,7 @@ begin
   finally FreeAndNil(SourceFile) end;
 end;
 
-function MyRunCommandIndir(const curdir:string;const exename:string;const commands:array of string;var outputstring:string;var exitstatus:integer):integer;
+procedure MyRunCommandIndir(const curdir:string;const exename:string;const commands:array of string;var outputstring:string;var exitstatus:integer);
 { Adjusted from fpc/trunk/packages/fcl-process/src/process.pp }
 Const
   READ_BYTES = 65536; // not too small to avoid fragmentation when reading large files.
@@ -96,7 +96,6 @@ begin
    for i:=low(commands) to high(commands) do
      p.Parameters.add(commands[i]);
 
-  result:=-1;
   try
     try
       p.Options := [poUsePipes];
@@ -118,18 +117,17 @@ begin
       until NumBytes <= 0;
       setlength(outputstring,BytesRead);
       exitstatus:=p.exitstatus;
-      result:=0; // we came to here, document that.
     except
       on e : Exception do
       begin
-        result:=1;
         setlength(outputstring,BytesRead);
+        raise;
       end;
     end;
   finally p.free end;
 end;
 
-function RunCommandIndirPassthrough(const curdir:string;const exename:string;const commands:array of string;var outputstring:string;var exitstatus:integer):integer;
+procedure RunCommandIndirPassthrough(const curdir:string;const exename:string;const commands:array of string;var outputstring:string;var exitstatus:integer);
 { Adjusted from fpc/trunk/packages/fcl-process/src/process.pp }
 Const
   READ_BYTES = 65536; // not too small to avoid fragmentation when reading large files.
@@ -146,7 +144,6 @@ begin
    for i:=low(commands) to high(commands) do
      p.Parameters.add(commands[i]);
 
-  result:=-1;
   try
     try
       p.Options := [poUsePipes];
@@ -170,12 +167,11 @@ begin
       until NumBytes <= 0;
       setlength(outputstring,BytesRead);
       exitstatus:=p.exitstatus;
-      result:=0; // we came to here, document that.
     except
       on e : Exception do
       begin
-        result:=1;
         setlength(outputstring,BytesRead);
+        raise;
       end;
     end;
   finally p.free end;

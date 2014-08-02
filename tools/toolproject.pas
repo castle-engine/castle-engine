@@ -46,6 +46,7 @@ type
     procedure DeleteFoundFile(const FileInfo: TFileInfo);
     function PackageName(const Version: string;
       const OS: TOS; const CPU: TCPU): string;
+    function SourcePackageName(const Version: string): string;
     { Output Android library resulting from compilation.
       Use only if AndroidSource <> ''.
       Relative to ProjectPath. }
@@ -65,7 +66,11 @@ type
     procedure DoCreateManifest;
     procedure DoCompile(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
     procedure DoPackage(const OS: TOS; const CPU: TCPU);
+    procedure DoPackageSource(const Version: string);
     procedure DoClean;
+
+    { Project version, or '' if unknown. }
+    function GetVersion: string;
   end;
 
 function DependencyToString(const D: TDependency): string;
@@ -367,24 +372,6 @@ var
     end;
   end;
 
-  function GetVersionByRunning(const ExecutableNameExt: string;
-    const VersionOption: string): string;
-  var
-    ProcessOutput: string;
-    ProcessExitStatus: Integer;
-  begin
-    { get version by running ExecutableNameExt in main ProjectPath,
-      not in temporary path (to avoid polluting temporary path for packaging
-      with anything) }
-    MyRunCommandIndir(ProjectPath, ExecutableNameExt, [VersionOption],
-      ProcessOutput, ProcessExitStatus);
-    if ProcessExitStatus <> 0 then
-      raise Exception.CreateFmt('Process exited with error, status %d', [ProcessExitStatus]);
-    Result := Trim(ProcessOutput);
-    Writeln(Format('Version detected as "%s" (by running executable with "%s")',
-      [Result, VersionOption]));
-  end;
-
 var
   Files: TCastleStringList;
   I: Integer;
@@ -490,20 +477,69 @@ begin
         end;
     end;
 
-    Version := '';
-    if VersionExecutableOption <> '' then
-    begin
-      if ExecutableNameExt <> '' then
-        Version := GetVersionByRunning(ExecutableNameExt, FVersionExecutableOption) else
-        raise Exception.Create('Specified <version executable_option="..."/>, but the executable is not defined. Cannot detect version.');
-    end;
-
+    Version := GetVersion;
     PackageFileName := PackageName(Version, OS, CPU);
 
     if OS in AllWindowsOSes then
       Pack.Make(ProjectPath, PackageFileName, ptZip) else
       Pack.Make(ProjectPath, PackageFileName, ptTarGz);
   finally FreeAndNil(Pack) end;
+end;
+
+procedure TCastleProject.DoPackageSource(const Version: string);
+var
+  Pack: TPackageDirectory;
+  Files: TCastleStringList;
+  I: Integer;
+  PackageFileName: string;
+begin
+  Writeln(Format('Packaging source code of project "%s".', [Name]));
+
+  Pack := TPackageDirectory.Create(Name);
+  try
+    Files := TCastleStringList.Create;
+    try
+      GatheringFiles := Files;
+      FindFiles(ProjectPath, '*', false, @GatherFile, [ffRecursive]);
+      GatheringFiles := nil;
+      for I := 0 to Files.Count - 1 do
+        Pack.Add(ProjectPath + Files[I], Files[I]);
+    finally FreeAndNil(Files) end;
+
+    PackageFileName := SourcePackageName(Version);
+    Pack.Make(ProjectPath, PackageFileName, ptTarGz);
+  finally FreeAndNil(Pack) end;
+end;
+
+function TCastleProject.GetVersion: string;
+
+  function GetVersionByRunning(const ExecutableNameExt: string;
+    const VersionOption: string): string;
+  var
+    ProcessOutput: string;
+    ProcessExitStatus: Integer;
+  begin
+    { get version by running ExecutableNameExt in main ProjectPath,
+      not in temporary path (to avoid polluting temporary path for packaging
+      with anything) }
+    MyRunCommandIndir(ProjectPath, ExecutableNameExt, [VersionOption],
+      ProcessOutput, ProcessExitStatus);
+    if ProcessExitStatus <> 0 then
+      raise Exception.CreateFmt('Process "%s" exited with error, status %d',
+        [ExecutableNameExt, ProcessExitStatus]);
+    Result := Trim(ProcessOutput);
+    Writeln(Format('Version detected as "%s" (by running executable with "%s")',
+      [Result, VersionOption]));
+  end;
+
+begin
+  Result := '';
+  if VersionExecutableOption <> '' then
+  begin
+    if ExecutableName <> '' then
+      Result := GetVersionByRunning(ExecutableName + ExeExtensionOS(DefaultOS), VersionExecutableOption) else
+      raise Exception.Create('Specified <version executable_option="..."/>, but the executable is not defined. Cannot detect version.');
+  end;
 end;
 
 function TCastleProject.PackageName(const Version: string;
@@ -516,6 +552,15 @@ begin
   if OS in AllWindowsOSes then
     Result += '.zip' else
     Result += '.tar.gz';
+end;
+
+function TCastleProject.SourcePackageName(const Version: string): string;
+begin
+  Result := Name;
+  if Version <> '' then
+    Result += '-' + Version;
+  Result += '-src';
+  Result += '.tar.gz';
 end;
 
 procedure TCastleProject.DeleteFoundFile(const FileInfo: TFileInfo);

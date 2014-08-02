@@ -64,6 +64,9 @@ begin
           '  operating system (OS) / processor (CPU).' +NL+
           '  By default uses current OS / CPU (' + OSToString(DefaultOS) + ' / ' + CPUToString(DefaultCPU) + ').' +NL+
           '  You can also use --cpu or --os options to affect it.' +NL+
+          NL+
+          '- "package-source" :' +NL+
+          '  Package the source code of the application.' +NL+
           NL +
           '- "clean" :' +NL+
           '  Clean leftover files from compilation and packaging.' +NL+
@@ -102,7 +105,7 @@ begin
 end;
 
 var
-  Command, S: string;
+  Command, S, ProjectVersion: string;
   Project: TCastleProject;
 begin
   OnWarning := @OnWarningWrite;
@@ -140,6 +143,16 @@ begin
         Project.DoCompile(OS, CPU, Mode);
       end;
       Project.DoPackage(OS, CPU);
+    end else
+    if Command = 'package-source' then
+    begin
+      { compile and run to get version }
+      Project.DoClean;
+      Project.DoCompile(DefaultOS, DefaultCPU, cmRelease);
+      ProjectVersion := Project.GetVersion;
+
+      Project.DoClean;
+      Project.DoPackageSource(ProjectVersion);
     end else
     if Command = 'clean' then
       Project.DoClean else
