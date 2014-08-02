@@ -1558,9 +1558,12 @@ begin
   RectanglePoint[2] := Vector2SmallInt(R.Left + R.Width, R.Bottom + R.Height);
   RectanglePoint[3] := Vector2SmallInt(R.Left          , R.Bottom + R.Height);
 
-  glBindBuffer(GL_ARRAY_BUFFER, RectanglePointVbo);
-  glBufferData(GL_ARRAY_BUFFER, SizeOf(RectanglePoint),
-    @(RectanglePoint[0]), GL_STREAM_DRAW);
+  if GLFeatures.VertexBufferObject then
+  begin
+    glBindBuffer(GL_ARRAY_BUFFER, RectanglePointVbo);
+    glBufferData(GL_ARRAY_BUFFER, SizeOf(RectanglePoint),
+      @(RectanglePoint[0]), GL_STREAM_DRAW);
+  end;
 
   {$ifdef GLImageUseShaders}
   GLRectangleProgram.Enable;
@@ -1574,7 +1577,9 @@ begin
   glColorv(Color);
 
   glEnableClientState(GL_VERTEX_ARRAY);
-  glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), nil);
+  if GLFeatures.VertexBufferObject then
+    glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), nil) else
+    glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), @(RectanglePoint[0]));
   {$endif}
 
   glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -1589,8 +1594,11 @@ begin
   glDisableClientState(GL_VERTEX_ARRAY);
   {$endif}
 
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  if GLFeatures.VertexBufferObject then
+  begin
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  end;
 
   if Blending then
     glDisable(GL_BLEND);

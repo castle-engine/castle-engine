@@ -1192,7 +1192,8 @@ var
   VS, FS: string;
 {$endif}
 begin
-  if (PointVbo = 0) and GLFeatures.VertexBufferObject then    //glGenBuffers can be nil on some old Intel gpus :-(
+  // Some Intel GPUs may not support VBO
+  if (PointVbo = 0) and GLFeatures.VertexBufferObject then
     glGenBuffers(1, @PointVbo);
 
   {$ifdef GLImageUseShaders}
@@ -1305,9 +1306,12 @@ begin
   Point[3].TexCoord := Vector2Single(TexX0, TexY1);
   Point[3].Position := Vector2SmallInt(X            , Y + DrawHeight);
 
-  glBindBuffer(GL_ARRAY_BUFFER, PointVbo);
-  glBufferData(GL_ARRAY_BUFFER, PointCount * SizeOf(TPoint),
-    @Point[0], GL_STREAM_DRAW);
+  if GLFeatures.VertexBufferObject then
+  begin
+    glBindBuffer(GL_ARRAY_BUFFER, PointVbo);
+    glBufferData(GL_ARRAY_BUFFER, PointCount * SizeOf(TPoint),
+      @Point[0], GL_STREAM_DRAW);
+  end;
 
   AlphaBegin;
 
@@ -1334,10 +1338,17 @@ begin
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-  glVertexPointer(2, GL_SHORT,
-    SizeOf(TPoint), Offset(Point[0].Position, Point[0]));
-  glTexCoordPointer(2, GL_FLOAT,
-    SizeOf(TPoint), Offset(Point[0].TexCoord, Point[0]));
+  if GLFeatures.VertexBufferObject then
+  begin
+    glVertexPointer(2, GL_SHORT,
+      SizeOf(TPoint), Offset(Point[0].Position, Point[0]));
+    glTexCoordPointer(2, GL_FLOAT,
+      SizeOf(TPoint), Offset(Point[0].TexCoord, Point[0]));
+  end else
+  begin
+    glVertexPointer  (2, GL_SHORT, SizeOf(TPoint), @(Point[0].Position));
+    glTexCoordPointer(2, GL_FLOAT, SizeOf(TPoint), @(Point[0].TexCoord));
+  end;
   {$endif}
 
   glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -1355,8 +1366,11 @@ begin
 
   AlphaEnd;
 
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  if GLFeatures.VertexBufferObject then
+  begin
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  end;
 
   GLEnableTexture(etNone);
 end;
