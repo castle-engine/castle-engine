@@ -492,6 +492,9 @@ var
   Files: TCastleStringList;
   I: Integer;
   PackageFileName: string;
+  IsPackageName: boolean;
+  OS: TOS;
+  CPU: TCPU;
 begin
   Writeln(Format('Packaging source code of project "%s".', [Name]));
 
@@ -503,7 +506,22 @@ begin
       FindFiles(ProjectPath, '*', false, @GatherFile, [ffRecursive]);
       GatheringFiles := nil;
       for I := 0 to Files.Count - 1 do
-        Pack.Add(ProjectPath + Files[I], Files[I]);
+      begin
+        { Do not pack packages (binary or source) into the source package.
+          The packages are not cleaned by DoClean, so they could otherwise
+          be packed by accident. }
+        IsPackageName := false;
+        for OS in TOS do
+          for CPU in TCPU do
+            if OSCPUSupported[OS, CPU] then
+              if AnsiCompareFileName(Files[I], PackageName(Version, OS, CPU)) = 0 then
+                IsPackageName := true;
+        if AnsiCompareFileName(Files[I], SourcePackageName(Version)) = 0 then
+          IsPackageName := true;
+
+        if not IsPackageName then
+          Pack.Add(ProjectPath + Files[I], Files[I]);
+      end;
     finally FreeAndNil(Files) end;
 
     PackageFileName := SourcePackageName(Version);
