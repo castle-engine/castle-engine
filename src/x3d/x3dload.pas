@@ -53,7 +53,7 @@
       so that GNOME nautilus thumbnailers for this MIME types can be installed.)
 
     @item(You probably also want to extend documentation.
-      At least view3dscene.php, it has a "Features" section that lists
+      At least ../../../www/htdocs/view3dscene.php, it has a "Features" section that lists
       all supported 3D formats.)
   )
 }
@@ -85,7 +85,7 @@ const
     for TFileFilterList.AddFiltersFromString and TCastleWindowCustom.FileDialog. }
   Load3D_FileFilters =
   'All Files|*|' +
-  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
+  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json|' +
   'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
   { TODO:
     and X3D binary (*.x3db;*.x3db.gz)
@@ -97,7 +97,8 @@ const
   '3D Studio (*.3ds)|*.3ds|' +
   'Quake 3 engine models (*.md3)|*.md3|' +
   'Wavefront (*.obj)|*.obj|' +
-  'Videoscape (*.geo)|*.geo';
+  'Videoscape (*.geo)|*.geo|' +
+  'Spine animation (*.json)|*.json';
 
 { Load various model formats as animation expressed by VRML/X3D sequence.
 
@@ -138,7 +139,7 @@ const
     for TFileFilterList.AddFiltersFromString and TCastleWindowCustom.FileDialog. }
   Load3DSequence_FileFilters =
   'All Files|*|' +
-  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
+  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json|' +
   'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
   { TODO:
     X3D binary (*.x3db;*.x3db.gz)
@@ -151,13 +152,14 @@ const
   '3D Studio (*.3ds)|*.3ds|' +
   'Quake 3 engine models (*.md3)|*.md3|' +
   'Wavefront (*.obj)|*.obj|' +
-  'Videoscape (*.geo)|*.geo';
+  'Videoscape (*.geo)|*.geo|' +
+  'Spine animation (*.json)|*.json';
 
 implementation
 
 uses CastlePrecalculatedAnimationCore, CastleClassUtils, CastleURIUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
-  X3DLoadInternalCollada;
+  X3DLoadInternalCollada, X3DLoadInternalSpine;
 
 function Load3D(const URL: string;
   AllowStdIn, NilOnUnrecognizedFormat: boolean): TX3DRootNode;
@@ -192,6 +194,9 @@ begin
 
     if MimeType = 'model/vnd.collada+xml' then
       Result := LoadCollada(URL) else
+
+    if MimeType = 'application/json' then
+      Result := LoadSpine(URL) else
 
     if NilOnUnrecognizedFormat then
       Result := nil else

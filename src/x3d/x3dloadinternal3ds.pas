@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ 3DS loader (TScene3DS). }
+{ 3DS loader (Load3DS procedure). }
 
 unit X3DLoadInternal3DS;
 

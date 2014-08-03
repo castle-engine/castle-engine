@@ -591,6 +591,7 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.obj' then Result := 'application/x-wavefront-obj' else
     if Ext = '.geo' then Result := 'application/x-geo' else
     if Ext = '.kanim' then Result := 'application/x-kanim' else
+    if Ext = '.json' then Result := 'application/json' else
     // Images.
     { Only images that we cannot handle in CastleImages unit are listed below.
       For handled images, their extensions are mime types are recorded
