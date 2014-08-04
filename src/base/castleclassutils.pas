@@ -720,7 +720,11 @@ begin
       { If this is followed by 2nd newline character, we want to consume it.
         To do this, we may have to increase ReadBuf. }
       if ( (I < Length(ReadBuf)) or IncreaseReadBuf ) and
-         (ReadBuf[I + 1] in [#10, #13]) then
+         { check we have #13 followed by #10 or #10 followed by #13.
+           Be careful to *not* eat #10 followed by #10, as that would
+           make us silently consume empty lines in files with Unix line ending. }
+         ( ( (ReadBuf[I] = #10) and (ReadBuf[I + 1] = #13) ) or
+           ( (ReadBuf[I] = #13) and (ReadBuf[I + 1] = #10) ) ) then
         Inc(DeleteCount);
 
       Delete(ReadBuf, 1, DeleteCount);

@@ -31,7 +31,7 @@ uses SysUtils, Classes, FGL, FpJson, JSONParser,
 type
   ESpineReadError = class(Exception);
 
-  TAttachment = class
+  TAtlasRegion = class
   public
     Name: string;
     Rotate: boolean;
@@ -39,205 +39,231 @@ type
     Index: Integer;
   end;
 
-  TAttachmentList = specialize TFPGObjectList<TAttachment>;
+  TAtlasRegionList = specialize TFPGObjectList<TAtlasRegion>;
 
-  TAtlas = class
+  TAtlasPage = class
   public
     TextureURL: string;
     Format: string;
     Filter: string; //< a value allowed by TextureProperties.MinificationFilter and MagnificationFilter
     IsRepeat: boolean;
-    Attachments: TAttachmentList;
+    Regions: TAtlasRegionList;
     constructor Create;
     destructor Destroy; override;
   end;
 
+  TAtlasPageList = specialize TFPGObjectList<TAtlasPage>;
+
+  TAtlas = class
+    Pages: TAtlasPageList;
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
+constructor TAtlasPage.Create;
+begin
+  inherited;
+  Regions := TAtlasRegionList.Create;
+end;
+
+destructor TAtlasPage.Destroy;
+begin
+  FreeAndNil(Regions);
+  inherited;
+end;
+
 constructor TAtlas.Create;
 begin
   inherited;
-  Attachments := TAttachmentList.Create;
+  Pages := TAtlasPageList.Create;
 end;
 
 destructor TAtlas.Destroy;
 begin
-  FreeAndNil(Attachments);
+  FreeAndNil(Pages);
   inherited;
 end;
 
-function LoadSpine(const URL: string): TX3DRootNode;
+{ Read .atlas file as produced by Spine, in format of libgdx, see
+  https://github.com/libgdx/libgdx/wiki/Texture-packer }
+function ReadAtlas(const AtlasURL: string): TAtlas;
 
-  { Read .atlas file as produced by Spine, in format of libgdx, see
-    https://github.com/libgdx/libgdx/wiki/Texture-packer }
-  function ReadAtlas(const AtlasURL: string): TAtlas;
-
-    { Split a Line divided by character Separator into two strings.
-      Assumes that whitespace doesn't matter (so we trim it),
-      and Name must not be empty. }
-    function Split(const Line: string; const Separator: char;
-      out Name, Value: string): boolean;
-    var
-      Index: Integer;
-    begin
-      Result := false;
-      Index := Pos(Separator, Line);
-      if Index <> 0 then
-      begin
-        Name := Trim(Copy(Line, 1, Index - 1));
-        Value := Trim(SEnding(Line, Index + 1));
-        if Name <> '' then
-          Result := true;
-      end;
-    end;
-
-    function IsNameValueString(const Line, Name: string; out Value: string): boolean;
-    var
-      N, V: string;
-    begin
-      Result := Split(Line, ':', N, V) and (N = Name);
-      if Result then
-        Value := V;
-    end;
-
-    function IsNameValueBoolean(const Line, Name: string; out Value: boolean): boolean;
-    var
-      ValueStr: string;
-    begin
-      Result := IsNameValueString(Line, Name, ValueStr);
-      if Result then
-      begin
-        if ValueStr = 'false' then
-          Value := false else
-        if ValueStr = 'true' then
-          Value := true else
-          raise ESpineReadError.CreateFmt('Invalid boolean value "%s"', [ValueStr]);
-      end;
-    end;
-
-    function IsNameValueInteger(const Line, Name: string; out Value: Integer): boolean;
-    var
-      ValueStr: string;
-    begin
-      Result := IsNameValueString(Line, Name, ValueStr);
-      if Result then
-      begin
-        try
-          Value := StrToInt(ValueStr);
-        except
-          on E: EConvertError do
-            raise ESpineReadError.CreateFmt('Invalid integer value "%s": %s', [ValueStr, E.Message]);
-        end;
-      end;
-    end;
-
-    function IsNameValueVector2Integer(const Line, Name: string; out Vector: TVector2Integer): boolean;
-    var
-      ValueStr, ValueStr0, ValueStr1: string;
-    begin
-      Result := IsNameValueString(Line, Name, ValueStr);
-      if Result then
-      begin
-        if Split(ValueStr, ',', ValueStr0, ValueStr1) then
-        try
-          Vector[0] := StrToInt(ValueStr0);
-          Vector[1] := StrToInt(ValueStr1);
-        except
-          on E: EConvertError do
-            raise ESpineReadError.CreateFmt('Invalid integer value in vector of 2 integers "%s": %s', [ValueStr, E.Message]);
-        end else
-          raise ESpineReadError.CreateFmt('Cannot split a vector of 2 integers "%s" by a comma', [ValueStr]);
-      end;
-    end;
-
-    function IsNameValueFilter(const Line, Name: string; out Filter: string): boolean;
-    var
-      ValueStr: string;
-    begin
-      Result := IsNameValueString(Line, Name, ValueStr);
-      if Result then
-      begin
-        if ValueStr = 'Linear,Linear' then
-          Filter := 'AVG_PIXEL' else
-        if ValueStr = 'Nearest,Nearest' then
-          Filter := 'NEAREST_PIXEL' else
-          raise ESpineReadError.CreateFmt('Unsupported filter mode "%s"', [ValueStr]);
-      end;
-    end;
-
-    function IsNameValueRepeat(const Line, Name: string; out IsRepeat: boolean): boolean;
-    var
-      ValueStr: string;
-    begin
-      Result := IsNameValueString(Line, Name, ValueStr);
-      if Result then
-      begin
-        if ValueStr = 'none' then
-          IsRepeat := false else
-          { is there anything else allowed for repeat: field ? }
-          raise ESpineReadError.CreateFmt('Unsupported repeat mode "%s"', [ValueStr]);
-      end;
-    end;
-
+  { Split a Line divided by character Separator into two strings.
+    Assumes that whitespace doesn't matter (so we trim it),
+    and Name must not be empty. }
+  function Split(const Line: string; const Separator: char;
+    out Name, Value: string): boolean;
   var
-    AtlasReader: TTextReader;
-    Attachment: TAttachment;
-    Line: string;
+    Index: Integer;
   begin
-    AtlasReader := TTextReader.Create(AtlasURL);
-    try
-      Result := TAtlas.Create;
-      try
-        { TODO: support > 1 texture in atlas, separated by newline.
-          No need to omit empty lines, they should not occur,
-          except to separate texture in atlas. }
-        repeat
-          Result.TextureURL := AtlasReader.Readln;
-        until AtlasReader.Eof or (Trim(Result.TextureURL) <> '');
-
-        if AtlasReader.Eof then
-          raise ESpineReadError.Create('Unexpected end of atlas file');
-
-        while not AtlasReader.Eof do
-        begin
-          Line := AtlasReader.Readln;
-          if Trim(Line) <> '' then
-          begin
-            if Line[1] <> ' ' then
-            begin
-              Attachment := nil;
-              if IsNameValueString(Line, 'format', Result.Format) then else
-              if IsNameValueFilter(Line, 'filter', Result.Filter) then else
-              if IsNameValueRepeat(Line, 'repeat', Result.IsRepeat) then else
-              if Pos(':', Line) <> 0 then
-                raise ESpineReadError.CreateFmt('Unhandled name:value pair "%s"', [Line]) else
-              begin
-                Attachment := TAttachment.Create;
-                Attachment.Name := Line;
-                Result.Attachments.Add(Attachment);
-                WritelnLog('Spine', 'Added attachment ' + Attachment.Name);
-              end;
-            end else
-            if Attachment <> nil then
-            begin
-              if IsNameValueBoolean(Line, 'rotate', Attachment.Rotate) then else
-              if IsNameValueVector2Integer(Line, 'xy', Attachment.XY) then else
-              if IsNameValueVector2Integer(Line, 'size', Attachment.Size) then else
-              if IsNameValueVector2Integer(Line, 'orig', Attachment.Orig) then else
-              if IsNameValueVector2Integer(Line, 'offset', Attachment.Offset) then else
-              if IsNameValueInteger(Line, 'index', Attachment.Index) then else
-                raise ESpineReadError.CreateFmt('Unhandled name:value pair "%s"', [Line]);
-            end else
-              raise ESpineReadError.Create('Atlas file contains indented line, but no attachment name specified');
-          end;
-        end;
-      except FreeAndNil(Result); raise end;
-    finally FreeAndNil(AtlasReader) end;
+    Result := false;
+    Index := Pos(Separator, Line);
+    if Index <> 0 then
+    begin
+      Name := Trim(Copy(Line, 1, Index - 1));
+      Value := Trim(SEnding(Line, Index + 1));
+      if Name <> '' then
+        Result := true;
+    end;
   end;
 
+  function IsNameValueString(const Line, Name: string; out Value: string): boolean;
+  var
+    N, V: string;
+  begin
+    Result := Split(Line, ':', N, V) and (N = Name);
+    if Result then
+      Value := V;
+  end;
+
+  function IsNameValueBoolean(const Line, Name: string; out Value: boolean): boolean;
+  var
+    ValueStr: string;
+  begin
+    Result := IsNameValueString(Line, Name, ValueStr);
+    if Result then
+    begin
+      if ValueStr = 'false' then
+        Value := false else
+      if ValueStr = 'true' then
+        Value := true else
+        raise ESpineReadError.CreateFmt('Invalid boolean value "%s"', [ValueStr]);
+    end;
+  end;
+
+  function IsNameValueInteger(const Line, Name: string; out Value: Integer): boolean;
+  var
+    ValueStr: string;
+  begin
+    Result := IsNameValueString(Line, Name, ValueStr);
+    if Result then
+    begin
+      try
+        Value := StrToInt(ValueStr);
+      except
+        on E: EConvertError do
+          raise ESpineReadError.CreateFmt('Invalid integer value "%s": %s', [ValueStr, E.Message]);
+      end;
+    end;
+  end;
+
+  function IsNameValueVector2Integer(const Line, Name: string; out Vector: TVector2Integer): boolean;
+  var
+    ValueStr, ValueStr0, ValueStr1: string;
+  begin
+    Result := IsNameValueString(Line, Name, ValueStr);
+    if Result then
+    begin
+      if Split(ValueStr, ',', ValueStr0, ValueStr1) then
+      try
+        Vector[0] := StrToInt(ValueStr0);
+        Vector[1] := StrToInt(ValueStr1);
+      except
+        on E: EConvertError do
+          raise ESpineReadError.CreateFmt('Invalid integer value in vector of 2 integers "%s": %s', [ValueStr, E.Message]);
+      end else
+        raise ESpineReadError.CreateFmt('Cannot split a vector of 2 integers "%s" by a comma', [ValueStr]);
+    end;
+  end;
+
+  function IsNameValueFilter(const Line, Name: string; out Filter: string): boolean;
+  var
+    ValueStr: string;
+  begin
+    Result := IsNameValueString(Line, Name, ValueStr);
+    if Result then
+    begin
+      if ValueStr = 'Linear,Linear' then
+        Filter := 'AVG_PIXEL' else
+      if ValueStr = 'Nearest,Nearest' then
+        Filter := 'NEAREST_PIXEL' else
+        raise ESpineReadError.CreateFmt('Unsupported filter mode "%s"', [ValueStr]);
+    end;
+  end;
+
+  function IsNameValueRepeat(const Line, Name: string; out IsRepeat: boolean): boolean;
+  var
+    ValueStr: string;
+  begin
+    Result := IsNameValueString(Line, Name, ValueStr);
+    if Result then
+    begin
+      if ValueStr = 'none' then
+        IsRepeat := false else
+        { is there anything else allowed for repeat: field ? }
+        raise ESpineReadError.CreateFmt('Unsupported repeat mode "%s"', [ValueStr]);
+    end;
+  end;
+
+var
+  Reader: TTextReader;
+  Page: TAtlasPage;
+  Region: TAtlasRegion;
+  Line: string;
+begin
+  Page := nil;
+  Region := nil;
+  Reader := TTextReader.Create(AtlasURL);
+  try
+    Result := TAtlas.Create;
+    try
+      while not Reader.Eof do
+      begin
+        Line := Reader.Readln;
+        if Page = nil then
+        begin
+          { start atlas page }
+          if Trim(Line) <> '' then
+          begin
+            Page := TAtlasPage.Create;
+            Page.TextureURL := Trim(Line);
+            Result.Pages.Add(Page);
+          end;
+        end else
+        if Trim(Line) = '' then
+          { end atlas page }
+          Page := nil else
+        if Line[1] <> ' ' then
+        begin
+          { read per-page (but not per-region) info }
+          Region := nil;
+          if IsNameValueString(Line, 'format', Page.Format) then else
+          if IsNameValueFilter(Line, 'filter', Page.Filter) then else
+          if IsNameValueRepeat(Line, 'repeat', Page.IsRepeat) then else
+          if Pos(':', Line) <> 0 then
+            raise ESpineReadError.CreateFmt('Unhandled name:value pair "%s"', [Line]) else
+          begin
+            { new region }
+            Region := TAtlasRegion.Create;
+            Region.Name := Line;
+            Page.Regions.Add(Region);
+            WritelnLog('Spine', 'Added region ' + Region.Name);
+          end;
+        end else
+        if Region <> nil then
+        begin
+          { read per-region info }
+          if IsNameValueBoolean(Line, 'rotate', Region.Rotate) then else
+          if IsNameValueVector2Integer(Line, 'xy', Region.XY) then else
+          if IsNameValueVector2Integer(Line, 'size', Region.Size) then else
+          if IsNameValueVector2Integer(Line, 'orig', Region.Orig) then else
+          if IsNameValueVector2Integer(Line, 'offset', Region.Offset) then else
+          if IsNameValueInteger(Line, 'index', Region.Index) then else
+            raise ESpineReadError.CreateFmt('Unhandled name:value pair "%s"', [Line]);
+        end else
+          raise ESpineReadError.Create('Atlas file contains indented line, but no region name specified');
+      end;
+    except FreeAndNil(Result); raise end;
+  finally FreeAndNil(Reader) end;
+end;
+
+function LoadSpine(const URL: string): TX3DRootNode;
 var
   Json: TJSONData;
   P: TJSONParser;
   S: TStream;
   AtlasURL: string;
+  Atlas: TAtlas;
 begin
   S := Download(URL);
   try
@@ -253,7 +279,12 @@ begin
 
           AtlasURL := ChangeURIExt(URL, '.atlas');
           if URIFileExists(AtlasURL) then
-            ReadAtlas(AtlasURL);
+          begin
+            Atlas := ReadAtlas(AtlasURL);
+            try
+              WritelnLog('Spine', Format('Atlas read, pages: %d', [Atlas.Pages.Count]));
+            finally FreeAndNil(Atlas) end;
+          end;
         except FreeAndNil(Result); raise end;
       finally FreeAndNil(Json) end;
     finally FreeAndNil(P) end;
