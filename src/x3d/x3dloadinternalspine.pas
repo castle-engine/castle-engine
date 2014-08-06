@@ -40,9 +40,9 @@ type
     Name: string;
     Rotate: boolean;
     XY, Size, Orig, Offset: TVector2Integer;
-    { Like XY and Size, but scaled to be within [0..1] range of the texture }
-    TextureXY, TextureSize: TVector2Single;
+    TexCoord: array [0..3] of TVector2Single;
     Index: Integer;
+    procedure CalculateTexCoord(const ImageWidth, ImageHeight: Integer);
   end;
 
   TAtlasRegionList = specialize TFPGObjectList<TAtlasRegion>;
@@ -76,6 +76,54 @@ type
     procedure Find(const RegionName: string; out Page: TAtlasPage; out Region: TAtlasRegion);
   end;
 
+procedure TAtlasRegion.CalculateTexCoord(const ImageWidth, ImageHeight: Integer);
+var
+  TextureXY, TextureSize: TVector2Single;
+  I: Integer;
+begin
+  TextureXY := Vector2Single(
+    XY[0] / ImageWidth,
+    XY[1] / ImageHeight);
+  if Rotate then
+  begin
+    TextureSize := Vector2Single(
+      Size[0] / ImageHeight,
+      Size[1] / ImageWidth);
+    TextureXY[1] :=
+      { flip top-bottom }
+      1 - TextureXY[1]
+      { move corner to bottom }
+      - TextureSize[0];
+  end else
+  begin
+    TextureSize := Vector2Single(
+      Size[0] / ImageWidth,
+      Size[1] / ImageHeight);
+    TextureXY[1] :=
+      { flip top-bottom }
+      1 - TextureXY[1]
+      { move corner to bottom }
+      - TextureSize[1];
+  end;
+
+  if Rotate then
+  begin
+    TexCoord[0] := Vector2Single(TextureSize[1],              0);
+    TexCoord[1] := Vector2Single(TextureSize[1], TextureSize[0]);
+    TexCoord[2] := Vector2Single(             0, TextureSize[0]);
+    TexCoord[3] := Vector2Single(             0,              0);
+  end else
+  begin
+    TexCoord[0] := Vector2Single(             0,              0);
+    TexCoord[1] := Vector2Single(TextureSize[0],              0);
+    TexCoord[2] := Vector2Single(TextureSize[0], TextureSize[1]);
+    TexCoord[3] := Vector2Single(             0, TextureSize[1]);
+  end;
+
+  for I := 0 to 3 do
+    TexCoord[I] := TexCoord[I] + TextureXY;
+end;
+
 constructor TAtlasPage.Create;
 begin
   inherited;
@@ -97,7 +145,6 @@ end;
 procedure TAtlasPage.BuildNodes(const BaseUrl: string);
 var
   Texture: TImageTextureNode;
-  Region: TAtlasRegion;
   I: Integer;
 begin
   { Create Appearance, with Texture child.
@@ -118,20 +165,7 @@ begin
   if Texture.IsTextureImage then
   begin
     for I := 0 to Regions.Count - 1 do
-    begin
-      Region := Regions[I];
-      Region.TextureXY := Vector2Single(
-        Region.XY[0] / Texture.TextureImage.Width,
-        Region.XY[1] / Texture.TextureImage.Height);
-      Region.TextureSize := Vector2Single(
-        Region.Size[0] / Texture.TextureImage.Width,
-        Region.Size[1] / Texture.TextureImage.Height);
-      Region.TextureXY[1] :=
-        { flip top-bottom }
-        1 - Region.TextureXY[1]
-        { move corner to bottom }
-        - Region.TextureSize[1];
-    end;
+      Regions[I].CalculateTexCoord(Texture.TextureImage.Width, Texture.TextureImage.Height);
   end else
     OnWarning(wtMajor, 'Spine', SysUtils.Format('Cannot load texture "%s", texture coordinates cannot be correctly calculated based on Spine atlas information',
       [TextureURL]));
@@ -297,8 +331,6 @@ begin
           { new region }
           Region := TAtlasRegion.Create;
           Region.Name := Line;
-          Region.TextureXY := Vector2Single(0, 0);
-          Region.TextureSize := Vector2Single(1, 1); // more sensible default than just (0,0)
           Page.Regions.Add(Region);
         end;
       end else
@@ -596,6 +628,7 @@ var
   Faces: TIndexedFaceSetNode;
   TexCoord: TTextureCoordinateNode;
   Shape: TShapeNode;
+  I: Integer;
 begin
   Node := TTransformNode.Create('Attachment_' + ToX3DName(Name), BaseUrl);
   Node.FdTranslation.Value := Vector3Single(XY[0], XY[1], 0);
@@ -627,10 +660,8 @@ begin
   Faces.FdCoord.Value := Coord;
 
   TexCoord := TTextureCoordinateNode.Create('', BaseUrl);
-  TexCoord.FdPoint.Items.Add(Vector2Single(AtlasRegion.TextureXY[0]                             , AtlasRegion.TextureXY[1]                             ));
-  TexCoord.FdPoint.Items.Add(Vector2Single(AtlasRegion.TextureXY[0] + AtlasRegion.TextureSize[0], AtlasRegion.TextureXY[1]                             ));
-  TexCoord.FdPoint.Items.Add(Vector2Single(AtlasRegion.TextureXY[0] + AtlasRegion.TextureSize[0], AtlasRegion.TextureXY[1] + AtlasRegion.TextureSize[1]));
-  TexCoord.FdPoint.Items.Add(Vector2Single(AtlasRegion.TextureXY[0]                             , AtlasRegion.TextureXY[1] + AtlasRegion.TextureSize[1]));
+  for I := 0 to 3 do
+    TexCoord.FdPoint.Items.Add(AtlasRegion.TexCoord[I]);
   Faces.FdTexCoord.Value := TexCoord;
 end;
 
