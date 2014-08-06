@@ -831,8 +831,13 @@ type
     { Sort shapes by distance to given Position point, closest first. }
     procedure SortFrontToBack(const Position: TVector3Single);
 
-    { Sort shapes by distance to given Position point, farthest first. }
-    procedure SortBackToFront(const Position: TVector3Single);
+    { Sort shapes by distance to given Position point, farthest first.
+
+      If Distance3D than we use real distance in 3D.
+      Otherwise we use only the distance in Z coordinate (suitable for
+      rendering things that pretent to be 2D, like Spine slots). }
+    procedure SortBackToFront(const Position: TVector3Single;
+      const Distance3D: boolean);
   end;
 
 var
@@ -2640,7 +2645,7 @@ begin
     Result :=  0;
 end;
 
-function IsSmallerBackToFront(const A, B: TShape): Integer;
+function IsSmallerBackToFront3D(const A, B: TShape): Integer;
 begin
   if (not A.BoundingBox.IsEmpty) and
     ( B.BoundingBox.IsEmpty or
@@ -2655,16 +2660,38 @@ begin
     Result :=  0;
 end;
 
+function IsSmallerBackToFront2D(const A, B: TShape): Integer;
+begin
+  { Note that we ignore SortPosition, we do not look at distance between
+    SortPosition and A.BoundingBox, we merely look at A.BoundingBox.
+    This way looking at 2D Spine scene from the other side is also Ok.
+
+    For speed, we don't look at bounding box Middle, only at it's min point. }
+
+  if (not A.BoundingBox.IsEmpty) and
+    ( B.BoundingBox.IsEmpty or
+      ( A.BoundingBox.Data[0][2] < B.BoundingBox.Data[0][2] )) then
+    Result := -1 else
+  if (not B.BoundingBox.IsEmpty) and
+    ( A.BoundingBox.IsEmpty or
+      ( B.BoundingBox.Data[0][2] < A.BoundingBox.Data[0][2] )) then
+    Result :=  1 else
+    Result :=  0;
+end;
+
 procedure TShapeList.SortFrontToBack(const Position: TVector3Single);
 begin
   SortPosition := Position;
   Sort(@IsSmallerFrontToBack);
 end;
 
-procedure TShapeList.SortBackToFront(const Position: TVector3Single);
+procedure TShapeList.SortBackToFront(const Position: TVector3Single;
+  const Distance3D: boolean);
 begin
   SortPosition := Position;
-  Sort(@IsSmallerBackToFront);
+  if Distance3D then
+    Sort(@IsSmallerBackToFront3D) else
+    Sort(@IsSmallerBackToFront2D);
 end;
 
 { TPlaceholderNames ------------------------------------------------------- }

@@ -410,6 +410,14 @@ type
     Bone: TBone;
     Color: TCastleColor;
     Attachment: string;
+    { Draw order, from 1st (most background) to last (most foreground).
+      Initially derived looking at slots order, this is what determines
+      drawing order for spine, see
+      http://esotericsoftware.com/spine-using-runtimes }
+    DrawOrder: Integer;
+    Node: TTransformNode;
+    NodeUsedAsChild: boolean;
+    destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList);
     procedure BuildNodes(const BaseUrl: string;
       const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
@@ -548,6 +556,8 @@ end;
 
 procedure TSlot.BuildNodes(const BaseUrl: string;
   const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
+const
+  DrawOrderZ = 0.01;
 var
   A: TAttachment;
 begin
@@ -555,12 +565,25 @@ begin
     says explicitly "Assume no attachment for the setup pose if omitted." }
   if Attachment <> '' then
   begin
+    Node := TTransformNode.Create('Slot_' + ToX3DName(Name), BaseUrl);
+    Node.FdTranslation.Value := Vector3Single(0, 0, DrawOrder * DrawOrderZ);
+    NodeUsedAsChild := true;
+    Bone.Node.FdChildren.Add(Node);
+
     if AttachmentsPreferred <> AttachmentsDefault then
       A := AttachmentsPreferred.Find(Name, Attachment, AttachmentsDefault) else
       A := AttachmentsPreferred.Find(Name, Attachment, nil);
     A.NodeUsedAsChild := true;
-    Bone.Node.FdChildren.Add(A.Node);
+    Node.FdChildren.Add(A.Node);
   end;
+end;
+
+destructor TSlot.Destroy;
+begin
+  if NodeUsedAsChild then
+    Node := nil else
+    FreeIfUnusedAndNil(Node);
+  inherited;
 end;
 
 function TAttachmentList.Find(const SlotName, AttachmentName: string;
@@ -781,6 +804,7 @@ var
       if ChildArray[I] is TJSONObject then
       begin
         Slot := TSlot.Create;
+        Slot.DrawOrder := Slots.Count;
         Slots.Add(Slot);
         Slot.Parse(TJSONObject(ChildArray[I]), Bones);
       end;

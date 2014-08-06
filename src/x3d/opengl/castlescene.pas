@@ -100,6 +100,8 @@ type
 
   TRenderingAttributesEvent = procedure (Attributes: TSceneRenderingAttributes) of object;
 
+  TBlendingSort = (bsNone, bs2D, bs3D);
+
   TSceneRenderingAttributes = class(TRenderingAttributes)
   private
     { Scenes that use Renderer with this TSceneRenderingAttributes instance. }
@@ -108,7 +110,7 @@ type
     FBlending: boolean;
     FBlendingSourceFactor: TGLenum;
     FBlendingDestinationFactor: TGLenum;
-    FBlendingSort: boolean;
+    FBlendingSort: TBlendingSort;
     FControlBlending: boolean;
     FWireframeColor: TVector3Single;
     FWireframeEffect: TWireframeEffect;
@@ -125,7 +127,7 @@ type
     procedure SetBlending(const Value: boolean); virtual;
     procedure SetBlendingSourceFactor(const Value: TGLenum); virtual;
     procedure SetBlendingDestinationFactor(const Value: TGLenum); virtual;
-    procedure SetBlendingSort(const Value: boolean); virtual;
+    procedure SetBlendingSort(const Value: TBlendingSort); virtual;
     procedure SetControlBlending(const Value: boolean); virtual;
     procedure SetUseOcclusionQuery(const Value: boolean); virtual;
 
@@ -159,7 +161,7 @@ type
       DefaultBlendingDestinationFactor = GL_ONE_MINUS_SRC_ALPHA;
 
       { }
-      DefaultBlendingSort = false;
+      DefaultBlendingSort = bsNone;
 
       DefaultWireframeColor: TVector3Single = (0, 0, 0);
 
@@ -205,7 +207,7 @@ type
     property BlendingDestinationFactor: TGLenum
       read FBlendingDestinationFactor write SetBlendingDestinationFactor
       default DefaultBlendingDestinationFactor;
-    property BlendingSort: boolean
+    property BlendingSort: TBlendingSort
       read FBlendingSort write SetBlendingSort
       default DefaultBlendingSort;
     { @groupEnd }
@@ -1322,11 +1324,11 @@ begin
 
           BlendingRenderer.RenderBegin;
 
-          if CameraViewKnown and Attributes.BlendingSort then
+          if CameraViewKnown and (Attributes.BlendingSort <> bsNone) then
           begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, true);
-            FilteredShapes.SortBackToFront(CameraPosition);
+            FilteredShapes.SortBackToFront(CameraPosition, Attributes.BlendingSort = bs3D);
             for I := 0 to FilteredShapes.Count - 1 do
             begin
               BlendingRenderer.BeforeRenderShape(FilteredShapes[I]);
@@ -2701,7 +2703,7 @@ begin
   FBlendingDestinationFactor := Value;
 end;
 
-procedure TSceneRenderingAttributes.SetBlendingSort(const Value: boolean);
+procedure TSceneRenderingAttributes.SetBlendingSort(const Value: TBlendingSort);
 begin
   FBlendingSort := Value;
 end;
