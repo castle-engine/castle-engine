@@ -620,10 +620,10 @@ begin
   Shape.FdGeometry.Value := Faces;
 
   Coord := TCoordinateNode.Create('', BaseUrl);
-  Coord.FdPoint.Items.Add(Vector3Single(    0,      0, 0));
-  Coord.FdPoint.Items.Add(Vector3Single(Width,      0, 0));
-  Coord.FdPoint.Items.Add(Vector3Single(Width, Height, 0));
-  Coord.FdPoint.Items.Add(Vector3Single(    0, Height, 0));
+  Coord.FdPoint.Items.Add(Vector3Single(-Width / 2,-Height / 2, 0));
+  Coord.FdPoint.Items.Add(Vector3Single( Width / 2,-Height / 2, 0));
+  Coord.FdPoint.Items.Add(Vector3Single( Width / 2, Height / 2, 0));
+  Coord.FdPoint.Items.Add(Vector3Single(-Width / 2, Height / 2, 0));
   Faces.FdCoord.Value := Coord;
 
   TexCoord := TTextureCoordinateNode.Create('', BaseUrl);
