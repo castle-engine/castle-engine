@@ -379,7 +379,8 @@ type
     Color: TCastleColor;
     Attachment: string;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList);
-    procedure BuildNodes(const BaseUrl: string; const Attachments: TAttachmentList);
+    procedure BuildNodes(const BaseUrl: string;
+      const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
   end;
 
   TSlotList = specialize TFPGObjectList<TSlot>;
@@ -412,7 +413,8 @@ type
   TAttachmentList = class(specialize TFPGObjectList<TAttachment>)
     { Find by slot+attachment name.
       @raises ESpineReadError If does not exist. }
-    function Find(const SlotName, AttachmentName: string): TAttachment;
+    function Find(const SlotName, AttachmentName: string;
+      const FallbackList: TAttachmentList): TAttachment;
   end;
 
   TSkin = class
@@ -512,7 +514,8 @@ begin
   // TODO: Color :=
 end;
 
-procedure TSlot.BuildNodes(const BaseUrl: string; const Attachments: TAttachmentList);
+procedure TSlot.BuildNodes(const BaseUrl: string;
+  const AttachmentsPreferred, AttachmentsDefault: TAttachmentList);
 var
   A: TAttachment;
 begin
@@ -520,13 +523,16 @@ begin
     says explicitly "Assume no attachment for the setup pose if omitted." }
   if Attachment <> '' then
   begin
-    A := Attachments.Find(Name, Attachment);
+    if AttachmentsPreferred <> AttachmentsDefault then
+      A := AttachmentsPreferred.Find(Name, Attachment, AttachmentsDefault) else
+      A := AttachmentsPreferred.Find(Name, Attachment, nil);
     A.NodeUsedAsChild := true;
     Bone.Node.FdChildren.Add(A.Node);
   end;
 end;
 
-function TAttachmentList.Find(const SlotName, AttachmentName: string): TAttachment;
+function TAttachmentList.Find(const SlotName, AttachmentName: string;
+  const FallbackList: TAttachmentList): TAttachment;
 var
   I: Integer;
 begin
@@ -534,8 +540,11 @@ begin
     if (Items[I].SlotName = SlotName) and
        (Items[I].AttachmentName = AttachmentName) then
       Exit(Items[I]);
-  raise ESpineReadError.CreateFmt('Attachment values for slot "%s" and attachment name "%s" not found',
-    [SlotName, AttachmentName]);
+
+  if FallbackList <> nil then
+    Result := FallbackList.Find(SlotName, AttachmentName, nil) else
+    raise ESpineReadError.CreateFmt('Attachment values for slot "%s" and attachment name "%s" not found',
+      [SlotName, AttachmentName]);
 end;
 
 class function TAttachment.CreateAndParse(const Json: TJSONObject;
@@ -789,14 +798,22 @@ end;
 procedure TSkeleton.BuildNodes(const BaseUrl: string; const Atlas: TAtlas);
 var
   I: Integer;
+  CurrentSkin: TSkin;
 begin
   for I := 0 to Bones.Count - 1 do
     Bones[I].BuildNodes(BaseUrl);
   for I := 0 to Skins.Count - 1 do
     Skins[I].BuildNodes(BaseUrl, Atlas);
-  { TODO: support non-default skins. Slots should look into the current skin first. }
+
+  { prefer non-default skin, if exists, since default skin may miss some
+    attachments, see goblins.json example }
+  if Skins.Count > 1 then
+    CurrentSkin := Skins[1] else
+    CurrentSkin := DefaultSkin;
+  WritelnLog('Spine', 'Using skin "%s"', [CurrentSkin.Name]);
+
   for I := 0 to Slots.Count - 1 do
-    Slots[I].BuildNodes(BaseUrl, DefaultSkin.Attachments);
+    Slots[I].BuildNodes(BaseUrl, CurrentSkin.Attachments, DefaultSkin.Attachments);
 end;
 
 { Main loading function ------------------------------------------------------ }
