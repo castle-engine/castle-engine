@@ -55,6 +55,7 @@ type
     IsRepeat: boolean;
     Regions: TAtlasRegionList;
     Node: TAppearanceNode;
+    NodeUsedAsChild: boolean;
     constructor Create;
     destructor Destroy; override;
     procedure BuildNodes(const BaseUrl: string);
@@ -84,8 +85,12 @@ end;
 destructor TAtlasPage.Destroy;
 begin
   FreeAndNil(Regions);
-  // TODO: try to free only if not used as child elsewhere, otherwise it may already be freed and we have dangling reference
-  // FreeIfUnusedAndNil(Node);
+  if NodeUsedAsChild then
+    { in case NodeUsedAsChild, don't even try FreeIfUnusedAndNil,
+      as the check "is it unused" may already cause access violation
+      since it may be already freed by freeing parent. }
+    Node := nil else
+    FreeIfUnusedAndNil(Node);
   inherited;
 end;
 
@@ -355,6 +360,7 @@ type
     Rotation: Single;
     Parent: TBone;
     Node: TTransformNode;
+    NodeUsedAsChild: boolean;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject;
       const PossibleParents: TBoneList; const ExpectedParent: boolean);
@@ -385,6 +391,7 @@ type
       this refers to atlas region name. }
     Name: string;
     Node: TTransformNode;
+    NodeUsedAsChild: boolean;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject); virtual;
     { Create and parse correct TAttachment descendant. }
@@ -468,8 +475,9 @@ end;
 
 destructor TBone.Destroy;
 begin
-  // TODO: try to free only if not used as child elsewhere, otherwise it may already be freed and we have dangling reference
-  // FreeIfUnusedAndNil(Node);
+  if NodeUsedAsChild then
+    Node := nil else
+    FreeIfUnusedAndNil(Node);
   inherited;
 end;
 
@@ -480,7 +488,10 @@ begin
   Node.FdScale.Value := Vector3Single(Scale[0], Scale[1], 1);
   Node.FdRotation.Value := Vector4Single(0, 0, 1, DegToRad(Rotation));
   if Parent <> nil then
+  begin
+    NodeUsedAsChild := true;
     Parent.Node.FdChildren.Add(Node);
+  end;
 end;
 
 function TBoneList.Find(const BoneName: string): TBone;
@@ -510,6 +521,7 @@ begin
   if Attachment <> '' then
   begin
     A := Attachments.Find(Name, Attachment);
+    A.NodeUsedAsChild := true;
     Bone.Node.FdChildren.Add(A.Node);
   end;
 end;
@@ -549,8 +561,9 @@ end;
 
 destructor TAttachment.Destroy;
 begin
-  // TODO: try to free only if not used as child elsewhere, otherwise it may already be freed and we have dangling reference
-  // FreeIfUnusedAndNil(Node);
+  if NodeUsedAsChild then
+    Node := nil else
+    FreeIfUnusedAndNil(Node);
   inherited;
 end;
 
@@ -585,6 +598,7 @@ begin
 
   Atlas.Find(Name, AtlasPage, AtlasRegion);
   Shape.Appearance := AtlasPage.Node;
+  AtlasPage.NodeUsedAsChild := true;
 
   Faces := TIndexedFaceSetNode.Create('', BaseUrl);
   Faces.FdCreaseAngle.Value := 0; // optimization: do not try to smooth normals, no point
