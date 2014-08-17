@@ -7,11 +7,13 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f castleengine.lpr ]; then cd ../../; fi
 
-# To make sure that CastleWindow unit is compiled with LIBRARY backend.
-make clean-window
+# We clean first, to
+# 1. make sure that CastleWindow unit is compiled with LIBRARY backend.
+# 2. make sure that every unit is recompiled with -fPIC (necessary for .so on x86_64)
+make --quiet clean
 
-fpc -dRELEASE @castle-fpc.cfg -dCASTLE_WINDOW_LIBRARY src/library/castleengine.lpr
+fpc -fPIC -dRELEASE @castle-fpc.cfg -dCASTLE_WINDOW_LIBRARY src/library/castleengine.lpr "$@"
 
 # Avoid other programs to be accidentally compiled
-# with CastleWindow with LIBRARY backend.
-make clean-window
+# with CastleWindow with LIBRARY backend, or -fPIC.
+make --quiet clean
