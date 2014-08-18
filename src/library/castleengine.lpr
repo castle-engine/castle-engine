@@ -98,6 +98,7 @@ end;
 procedure CGE_Close; cdecl;
 begin
   try
+    Window.MainScene.OnPointingDeviceSensorsChange := nil;
     FreeAndNil(Crosshair);
     Window.Close;
     FreeAndNil(Window);
