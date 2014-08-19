@@ -22,6 +22,8 @@
     // TODO: curve not supported yet
     constructor Create;
     destructor Destroy; override;
+    procedure Parse(const Json: TJSONArray); virtual;
+    procedure ParseSingleValue(const Json: TJSONObject); virtual; abstract;
   end;
 
   TBoneTimelineVector2 = class(TBoneTimeline)
@@ -32,12 +34,21 @@
     destructor Destroy; override;
   end;
 
+  TBoneTimelineTranslate = class(TBoneTimelineVector2)
+    procedure ParseSingleValue(const Json: TJSONObject); override;
+  end;
+
+  TBoneTimelineScale = class(TBoneTimelineVector2)
+    procedure ParseSingleValue(const Json: TJSONObject); override;
+  end;
+
   TBoneTimelineRotate = class(TBoneTimeline)
     { Angle values on the timeline.
       This always has the same length as @link(Time) list. }
     Angles: TSingleList;
     constructor Create;
     destructor Destroy; override;
+    procedure ParseSingleValue(const Json: TJSONObject); override;
   end;
 
   TBoneTimelineList = class(specialize TFPGObjectList<TBoneTimeline>)
@@ -45,6 +56,9 @@
 {$endif}
 
 {$ifdef read_implementation}
+
+{ TBoneTimeline -------------------------------------------------------------- }
+
 constructor TBoneTimeline.Create;
 begin
   inherited;
@@ -57,9 +71,26 @@ begin
   inherited;
 end;
 
+procedure TBoneTimeline.Parse(const Json: TJSONArray);
+var
+  I: Integer;
+  O: TJSONObject;
+begin
+  for I := 0 to Json.Count - 1 do
+    if Json[I] is TJSONObject then
+    begin
+      O := TJSONObject(Json[I]);
+      Time.Add(O.Get('time', 0.0));
+      ParseSingleValue(O);
+    end;
+  //Writeln('got timeline for bone ', Bone.Name, ' with ', Time.Count, ' items');
+end;
+
+{ TBoneTimelineVector2 ------------------------------------------------------- }
+
 constructor TBoneTimelineVector2.Create;
 begin
-  inherited;
+  inherited Create;
   Vectors := TVector2SingleList.Create;
 end;
 
@@ -68,6 +99,26 @@ begin
   FreeAndNil(Vectors);
   inherited;
 end;
+
+{ TBoneTimelineTranslate ----------------------------------------------------- }
+
+procedure TBoneTimelineTranslate.ParseSingleValue(const Json: TJSONObject);
+begin
+  Vectors.Add(Vector2Single(
+    Json.Get('x', 0),
+    Json.Get('y', 0)));
+end;
+
+{ TBoneTimelineScale --------------------------------------------------------- }
+
+procedure TBoneTimelineScale.ParseSingleValue(const Json: TJSONObject);
+begin
+  Vectors.Add(Vector2Single(
+    Json.Get('x', 1),
+    Json.Get('y', 1)));
+end;
+
+{ TBoneTimelineRotate -------------------------------------------------------- }
 
 constructor TBoneTimelineRotate.Create;
 begin
@@ -80,4 +131,10 @@ begin
   FreeAndNil(Angles);
   inherited;
 end;
+
+procedure TBoneTimelineRotate.ParseSingleValue(const Json: TJSONObject);
+begin
+  Angles.Add(Json.Get('angle', 0.0));
+end;
+
 {$endif}

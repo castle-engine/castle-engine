@@ -24,6 +24,7 @@
     Bones: TBoneList;
     Slots: TSlotList;
     Skins: TSkinList;
+    Animations: TAnimationList;
     DefaultSkin: TSkin;
     constructor Create;
     destructor Destroy; override;
@@ -39,6 +40,7 @@ begin
   Bones := TBoneList.Create;
   Slots := TSlotList.Create;
   Skins := TSkinList.Create;
+  Animations := TAnimationList.Create;
 end;
 
 destructor TSkeleton.Destroy;
@@ -48,6 +50,7 @@ begin
   FreeAndNil(Slots);
   Root := nil;
   FreeAndNil(Bones);
+  FreeAndNil(Animations);
   inherited;
 end;
 
@@ -62,9 +65,10 @@ begin
   Bones.Parse(O, Root);
   Slots.Parse(O, Bones);
   Skins.Parse(O, DefaultSkin);
+  Animations.Parse(O, Bones);
 
-  WritelnLog('Spine', Format('Skeleton read, bones: %d, slots: %d, skins: %d',
-    [Bones.Count, Slots.Count, Skins.Count]));
+  WritelnLog('Spine', Format('Skeleton read, bones: %d, slots: %d, skins: %d, animations: %d',
+    [Bones.Count, Slots.Count, Skins.Count, Animations.Count]));
 end;
 
 procedure TSkeleton.BuildNodes(const BaseUrl: string; const Atlas: TAtlas);
@@ -82,5 +86,6 @@ begin
   WritelnLog('Spine', 'Using skin "%s"', [CurrentSkin.Name]);
 
   Slots.BuildNodes(BaseUrl, CurrentSkin.Attachments, DefaultSkin.Attachments);
+  Animations.BuildNodes(BaseUrl);
 end;
 {$endif}
