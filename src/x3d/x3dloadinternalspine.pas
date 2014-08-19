@@ -126,8 +126,7 @@ begin
               Skeleton := TSkeleton.Create;
               try
                 Skeleton.Parse(Json);
-                Skeleton.BuildNodes(URL, Atlas);
-                Result.FdChildren.Add(Skeleton.Root.Node);
+                Skeleton.BuildNodes(URL, Atlas, Result);
               finally FreeAndNil(Skeleton) end;
             end;
           except FreeAndNil(Result); raise end;

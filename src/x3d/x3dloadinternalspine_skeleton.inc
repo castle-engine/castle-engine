@@ -29,7 +29,8 @@
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONData);
-    procedure BuildNodes(const BaseUrl: string; const Atlas: TAtlas);
+    procedure BuildNodes(const BaseUrl: string; const Atlas: TAtlas;
+      const Container: TX3DRootNode);
   end;
 {$endif}
 
@@ -71,11 +72,15 @@ begin
     [Bones.Count, Slots.Count, Skins.Count, Animations.Count]));
 end;
 
-procedure TSkeleton.BuildNodes(const BaseUrl: string; const Atlas: TAtlas);
+procedure TSkeleton.BuildNodes(const BaseUrl: string; const Atlas: TAtlas;
+  const Container: TX3DRootNode);
 var
   CurrentSkin: TSkin;
 begin
   Bones.BuildNodes(BaseUrl);
+  Root.NodeUsedAsChild := true;
+  Container.FdChildren.Add(Root.Node);
+  
   Skins.BuildNodes(BaseUrl, Atlas);
 
   { prefer non-default skin, if exists, since default skin may miss some
@@ -86,6 +91,6 @@ begin
   WritelnLog('Spine', 'Using skin "%s"', [CurrentSkin.Name]);
 
   Slots.BuildNodes(BaseUrl, CurrentSkin.Attachments, DefaultSkin.Attachments);
-  Animations.BuildNodes(BaseUrl);
+  Animations.BuildNodes(BaseUrl, Container);
 end;
 {$endif}

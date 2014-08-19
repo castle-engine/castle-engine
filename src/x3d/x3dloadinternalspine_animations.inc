@@ -19,15 +19,17 @@
   TAnimation = class
     Name: string;
     BoneTimelines: TBoneTimelineList;
+    Node: TTimeSensorNode;
+    NodeUsedAsChild: boolean;
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList);
-    procedure BuildNodes(const BaseUrl: string);
+    procedure BuildNodes(const BaseUrl: string; const Container: TX3DRootNode);
   end;
 
   TAnimationList = class(specialize TFPGObjectList<TAnimation>)
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList);
-    procedure BuildNodes(const BaseUrl: string);
+    procedure BuildNodes(const BaseUrl: string; const Container: TX3DRootNode);
   end;
 {$endif}
 
@@ -43,6 +45,9 @@ end;
 
 destructor TAnimation.Destroy;
 begin
+  if NodeUsedAsChild then
+    Node := nil else
+    FreeIfUnusedAndNil(Node);
   FreeAndNil(BoneTimelines);
   inherited;
 end;
@@ -101,9 +106,34 @@ begin
   { TODO: support other timelines, like slots, here }
 end;
 
-procedure TAnimation.BuildNodes(const BaseUrl: string);
+procedure TAnimation.BuildNodes(const BaseUrl: string; const Container: TX3DRootNode);
+var
+  MaxTime: Single;
+  I: Integer;
+  Route: TX3DRoute;
 begin
-  { TODO }
+  Node := TTimeSensorNode.Create('Animation_' + ToX3DName(Name), BaseUrl);
+
+  MaxTime := 0;
+  for I := 0 to BoneTimelines.Count - 1 do
+    MaxTo1st(MaxTime, BoneTimelines[I].MaxTime);
+  Node.FdCycleInterval.Value := MaxTime;
+
+  NodeUsedAsChild := true;
+  Container.FdChildren.Add(Node);
+
+  for I := 0 to BoneTimelines.Count - 1 do
+  begin
+    BoneTimelines[I].BuildNodes(BaseUrl, MaxTime, Container);
+    { add animation name to bone timeline, to make it unique in case
+      we have many animations }
+    BoneTimelines[I].Node.NodeName := Node.NodeName + '_' + BoneTimelines[I].Node.NodeName;
+
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(Node.EventFraction_changed);
+    Route.SetDestinationDirectly(BoneTimelines[I].Node.EventSet_fraction);
+    Container.Routes.Add(Route);
+  end;
 end;
 
 { TAnimationList ------------------------------------------------------------- }
@@ -132,12 +162,16 @@ begin
   end;
 end;
 
-procedure TAnimationList.BuildNodes(const BaseUrl: string);
+procedure TAnimationList.BuildNodes(const BaseUrl: string; const Container: TX3DRootNode);
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I].BuildNodes(BaseUrl);
+    Items[I].BuildNodes(BaseUrl, Container);
+
+  if Count <> 0 then
+    { for now, run the 1st animation in a loop, automatically }
+    First.Node.FdLoop.Value := true;
 end;
 
 {$endif}

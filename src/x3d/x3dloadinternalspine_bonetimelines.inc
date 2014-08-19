@@ -17,13 +17,21 @@
 
 {$ifdef read_interface}
   TBoneTimeline = class abstract
+  private
+    FMaxTime: Single;
+  public
     Bone: TBone;
     Time: TSingleList;
+    Node: TAbstractInterpolatorNode;
+    NodeUsedAsChild: boolean;
+    property MaxTime: Single read FMaxTime;
     // TODO: curve not supported yet
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONArray); virtual;
     procedure ParseSingleValue(const Json: TJSONObject); virtual; abstract;
+    procedure BuildNodes(const BaseUrl: string;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode); virtual;
   end;
 
   TBoneTimelineVector2 = class(TBoneTimeline)
@@ -36,10 +44,14 @@
 
   TBoneTimelineTranslate = class(TBoneTimelineVector2)
     procedure ParseSingleValue(const Json: TJSONObject); override;
+    procedure BuildNodes(const BaseUrl: string;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
   end;
 
   TBoneTimelineScale = class(TBoneTimelineVector2)
     procedure ParseSingleValue(const Json: TJSONObject); override;
+    procedure BuildNodes(const BaseUrl: string;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
   end;
 
   TBoneTimelineRotate = class(TBoneTimeline)
@@ -49,6 +61,8 @@
     constructor Create;
     destructor Destroy; override;
     procedure ParseSingleValue(const Json: TJSONObject); override;
+    procedure BuildNodes(const BaseUrl: string;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
   end;
 
   TBoneTimelineList = class(specialize TFPGObjectList<TBoneTimeline>)
@@ -75,15 +89,36 @@ procedure TBoneTimeline.Parse(const Json: TJSONArray);
 var
   I: Integer;
   O: TJSONObject;
+  NextTime: Single;
 begin
   for I := 0 to Json.Count - 1 do
     if Json[I] is TJSONObject then
     begin
       O := TJSONObject(Json[I]);
-      Time.Add(O.Get('time', 0.0));
+
+      NextTime := O.Get('time', 0.0);
+      if (Time.Count <> 0) and (Time.Last > NextTime) then
+        raise ESpineReadError.Create('Timeline must have increasing time values');
+      Time.Add(NextTime);
+      FMaxTime := NextTime;
+
       ParseSingleValue(O);
     end;
   //Writeln('got timeline for bone ', Bone.Name, ' with ', Time.Count, ' items');
+end;
+
+procedure TBoneTimeline.BuildNodes(const BaseUrl: string;
+  const MaxAnimationTime: Single; const Container: TX3DRootNode);
+var
+  I: Integer;
+begin
+  { We assume that descendant already created Node in overridden BuildNodes }
+  Node.FdKey.Items.Clear;
+  for I := 0 to Time.Count - 1 do
+    Node.FdKey.Items.Add(Time[I] / MaxAnimationTime);
+
+  NodeUsedAsChild := true;
+  Container.FdChildren.Add(Node);
 end;
 
 { TBoneTimelineVector2 ------------------------------------------------------- }
@@ -109,6 +144,30 @@ begin
     Json.Get('y', 0)));
 end;
 
+procedure TBoneTimelineTranslate.BuildNodes(const BaseUrl: string;
+  const MaxAnimationTime: Single; const Container: TX3DRootNode);
+var
+  I: Integer;
+  N: TPositionInterpolatorNode;
+  Route: TX3DRoute;
+begin
+  N := TPositionInterpolatorNode.Create('BoneTimeline_translate_' + ToX3DName(Bone.Name));
+  N.FdKeyValue.Items.Clear;
+  for I := 0 to Vectors.Count - 1 do
+    N.FdKeyValue.Items.Add(Vector3Single(
+      { add setup pose transform, as bone timeline is relative to setup pose }
+      Bone.Node.FdTranslation.Value[0] + Vectors[I][0],
+      Bone.Node.FdTranslation.Value[1] + Vectors[I][1], 0));
+
+  Node := N;
+  inherited;
+
+  Route := TX3DRoute.Create;
+  Route.SetSourceDirectly(N.EventValue_changed);
+  Route.SetDestinationDirectly(Bone.Node.FdTranslation.EventIn);
+  Container.Routes.Add(Route);
+end;
+
 { TBoneTimelineScale --------------------------------------------------------- }
 
 procedure TBoneTimelineScale.ParseSingleValue(const Json: TJSONObject);
@@ -116,6 +175,30 @@ begin
   Vectors.Add(Vector2Single(
     Json.Get('x', 1),
     Json.Get('y', 1)));
+end;
+
+procedure TBoneTimelineScale.BuildNodes(const BaseUrl: string;
+  const MaxAnimationTime: Single; const Container: TX3DRootNode);
+var
+  I: Integer;
+  N: TPositionInterpolatorNode;
+  Route: TX3DRoute;
+begin
+  N := TPositionInterpolatorNode.Create('BoneTimeline_scale_' + ToX3DName(Bone.Name));
+  N.FdKeyValue.Items.Clear;
+  for I := 0 to Vectors.Count - 1 do
+    N.FdKeyValue.Items.Add(Vector3Single(
+      { multiple setup pose transform, as bone timeline is relative to setup pose }
+      Bone.Node.FdScale.Value[0] * Vectors[I][0],
+      Bone.Node.FdScale.Value[1] * Vectors[I][1], 1));
+
+  Node := N;
+  inherited;
+
+  Route := TX3DRoute.Create;
+  Route.SetSourceDirectly(N.EventValue_changed);
+  Route.SetDestinationDirectly(Bone.Node.FdScale.EventIn);
+  Container.Routes.Add(Route);
 end;
 
 { TBoneTimelineRotate -------------------------------------------------------- }
@@ -135,6 +218,30 @@ end;
 procedure TBoneTimelineRotate.ParseSingleValue(const Json: TJSONObject);
 begin
   Angles.Add(Json.Get('angle', 0.0));
+end;
+
+procedure TBoneTimelineRotate.BuildNodes(const BaseUrl: string;
+  const MaxAnimationTime: Single; const Container: TX3DRootNode);
+var
+  I: Integer;
+  N: TOrientationInterpolatorNode;
+  Route: TX3DRoute;
+begin
+  N := TOrientationInterpolatorNode.Create('BoneTimeline_rotate_' + ToX3DName(Bone.Name));
+  N.FdKeyValue.Items.Clear;
+  for I := 0 to Angles.Count - 1 do
+    N.FdKeyValue.Items.Add(Vector4Single(0, 0, 1,
+      { add setup pose transform, as bone timeline is relative to setup pose }
+      Bone.Node.FdRotation.Value[3] +
+      DegToRad(Angles[I])));
+
+  Node := N;
+  inherited;
+
+  Route := TX3DRoute.Create;
+  Route.SetSourceDirectly(N.EventValue_changed);
+  Route.SetDestinationDirectly(Bone.Node.FdRotation.EventIn);
+  Container.Routes.Add(Route);
 end;
 
 {$endif}
