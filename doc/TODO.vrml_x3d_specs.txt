@@ -61,22 +61,7 @@ test implemented events:
 - Extrusion:  set_crossSection, set_orientation, set_scale, set_spine
 - IndexedFaceSet: set_colorIndex, set_coordIndex, set_normalIndex, set_texCoordIndex
 ------------------------------------------------------------------------------
-The way of rendering Background and TextureBackground by TBackground
-is bad. It's not intergrated with rest of rendering, so it cannot
-render arbitrary VRML textures, it depends on static TImage instances
-at creation time. Also it cannot use VRML renderer cache (which would
-at least speed up TBackgroundGL recreation, although this recreation
-should also be less often needed).
-Also, it's static after creation. Any change to
-transformation causes costly recalculation of display list.
-
-This prevents clean TextureBackground implementation (that would support
-MovieTexture to animate sky).
-------------------------------------------------------------------------------
 LoadSensor - not so trivial, delaying for the future.
-
-Also auto-turn off boundingbox calculation? this also can hurt us now...
-Seems to not be needed now, delaying for the future.
 
 Anchor finishing touches:
 - Anchor.paramater handle?

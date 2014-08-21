@@ -2,16 +2,6 @@ The central TODO file. There are also some TODOs scattered elsewhere,
 do "find -iname TODO*" to find them.
 
 ------------------------------------------------------------------------------
-Next release plans:
-
-------------------------------------------------------------------------------
-Next next release plans:
-
-Definitely:
-- Blender exporter fixes.
-- Make CastleMessages buttons clickable, reported for castle many times.
-  In fact, use there our buttons in CastleControls, this would be best.
-------------------------------------------------------------------------------
 WWW:
 - Maybe change demo_models webpage to show screenshots and links to everything,
   like a gallery?
@@ -132,20 +122,6 @@ Scene manager / controls / better Lazarus integration:
 
 - Also use TButton in terrain to place "open image" near the slider?
 
-- For later, something like KeyPreview for viewport would be useful
-  to split-screen games, to catch keys (but not mouse clicks) regardless
-  of mouse position (to handle keys from both players at once, assuming
-  not conflicting). So, actually (since TCastleViewport will decide about it)
-  TCastleViewport.KeyPreview is needed.
-  Maybe just make TUIControl.KeyPreview property?
-
-  Note: normal handling of keys in OnKeyDown would not be enough here,
-  since keys could be catched earlier by any TUIControl?
-
-  Maybe TUIControl.KeyPreview simply changes KeyDown/Up interpretation:
-  when KeyPreview = true, then control gets key events regardless of mouse
-  positions. This is trivial to implement and should be enough?
-
 - Make XML .x3d format, loaded to any T3D (list, translated, anim, scene...)
   Make a load method to load this.
     It should also be capable of loading any TCastleScene, TCastlePrecalculatedAnimation
@@ -179,11 +155,6 @@ Scene manager / controls / better Lazarus integration:
 - Make TCastleControlCustom.Controls list settable from the IDE,
   to allow visually adding new TUIControls there.
 
-  At designtime, warn on error: do not put > 1 camera in Controls list,
-  while it works it's usually nonsense.
-  Or not: old shadow_volume_test showed that it's possible to have two cameras,
-  and things work smoothly. You just have to assign non-conflicting keys.
-
   Started in kambipropsedit. Need to figure out and debug how to
   correctly deal with TListPropertyEditor, or eventually write your
   own property editor for this.
@@ -215,9 +186,6 @@ Scene manager / controls / better Lazarus integration:
 
 * TCastleSceneCore (no GL) on a Lazarus palette? Confusing with TCastleScene, but is also useful.
 ------------------------------------------------------------------------------
-- basic networking support
-(I want to have full coverage of X3D "Interactive" with some release).
-
 - Improve EditableTransform proto:
 
   A 2nd plane sensor would be useful? At some angles, plane sensor behaves bad.
@@ -231,15 +199,7 @@ view3dscene 4.0:
 
 - Maybe Python or Lua scripting too?
 
-- OpenGL ES, Android? (This would also suggest engine 3.0.0 bump.)
-  With complete shaders pipeline of course.
-
-- Mac OS X dependencies and packaging fixes
-  - bundle doesn't run, why? (we attach to running x now)
-  - add to bundle that we handle x3dv / wrl etc (see Linux mime list?), with our icon
-  Rest from http://castle-engine.sourceforge.net/macosx_requirements.php#section_help_wanted
-
-- networking (at least http URLs) support
+- view3dscene for Android
 
 ------------------------------------------------------------------------------
 Shadow maps todos:
@@ -289,13 +249,10 @@ Various ideas:
   is too minor usage.
 
 - http://www.web3d.org/x3d/specifications/spec_feedback/ - wait for ack
-  6 times nurbs,
-  2 times import/export.
+  2 times import/export,
+  multi-texture horrible design,
+  many others....
   Hastened by email, still no ack.
-
-* Use http://wiki.lazarus.freepascal.org/class_extensions_examples .
-  We already depend on FPC >= 2.6.0, so should be fine now?
-  This will be greatly useful :)
 
 * Remove ScheduleChangesAll.
   Just like DoGeometryChanged: everything should be automatically generated,
@@ -415,29 +372,27 @@ TGLTextureStorage
   Possibly helpful for DDS mipmaps/compression impl?
   This would mean TGLTextureStorage is in GLImages, not only for GLRenderer.
 
-- multitex:
-  - remaining MultiTexture.mode ("MODULATE*_ADD*"),
-  - MultiTexture.function field
+- multitex: remaining MultiTexture.modes ("MODULATE*_ADD*"),
 
-Because of caching AlphaChannelType inside renderer, and using Renderer.PreparedTextureAlphaChannelType for calculating UseBlending, this means that if the same tex filename occurs in various ImageTexture nodes, and in one case we force it to have alpha different the auto-detection says (e.g. using alphaChannel "FULL_RANGE" to force full range on texture without alpha channel), then all texture occurences have the same alpha channel treatment. (alphaChannel field doesn't work correctly).
+- bug: Because of caching AlphaChannelType inside renderer, and using Renderer.PreparedTextureAlphaChannelType for calculating UseBlending, this means that if the same tex filename occurs in various ImageTexture nodes, and in one case we force it to have alpha different the auto-detection says (e.g. using alphaChannel "FULL_RANGE" to force full range on texture without alpha channel), then all texture occurences have the same alpha channel treatment. (alphaChannel field doesn't work correctly).
 
-sk±d kreski na water w water_reflections_normalmap (both nvidia and radeon show this). Any relation to steep parallax mapping aliasing?
+- sk±d kreski na water w water_reflections_normalmap (both nvidia and radeon show this). Any relation to steep parallax mapping aliasing?
 
-ImageGLInternalFormat should use symbolic names, not numbers!
-(Check, since which OpenGL version?)
+- ImageGLInternalFormat should use symbolic names, not numbers!
+  (Check, since which OpenGL version?)
 
-Dynamically changing camera radius may be implemented (along with decreasing camerapreferredheight, decrease cam radius?)
+- Dynamically changing camera radius may be implemented (along with decreasing camerapreferredheight, decrease cam radius?)
 
-OpenEXR notes:
+- OpenEXR notes:
 http://http.developer.nvidia.com/GPUGems/gpugems_ch26.html
 
 - why on cubemap_generated_recursive.x3dv the reflections between two cubes
   have some pink color left when cube faces are exactly opposite each other?
   See TODO in cubemap_generated_recursive.x3dv
 
-Zaimplementuj streaming dla OggVorbis.
+- Zaimplementuj streaming dla OggVorbis.
 
-There are still some rough situations when camera "shakes" when going around the corners with wall-sliding on castle_hall. Seems wall-sliding is done, but with somewhat bad direction?
+- There are still some rough situations when camera "shakes" when going around the corners with wall-sliding on castle_hall. Seems wall-sliding is done, but with somewhat bad direction?
 
 - dyn ao:
   - use float textures
@@ -499,8 +454,6 @@ large TODOs:
 - Plane mirror support in OpenGL for Material.mirror field (porting to
 general renderer the code from
 castle_game_engine/examples/plane_mirror_and_shadow)
-
-- Simple networking (support for http:// and such in view3dscene)
 
 - Scripting in JavaScript (using spidermonkey after fixing
 http://delphi.mozdev.org/ for recent fpc)
@@ -737,9 +690,6 @@ Renderer:
   But is it useful? ElevationGrid uses smart triangles.
   Restore quads in ElevationGrid, and then check speedup.
   If large -> make ElevationGrid use quads back.
-
-- Make bitmap font rendering faster, and modern: use textures,
-  not glBitmap.
 
 - on Windows (czarny) Radeon, some problems with
   view3dscen --screenshot 0 a.png chess.x3dv
@@ -1153,9 +1103,6 @@ Various:
 - make gamma correction.
     Windows: http://www.delphi3d.net/articles/viewarticle.php?article=gamma.htm
 
-- Messages: mouse over yes/no message boxes should work (reported by many
-  usability tests on castle1 --- rudy, Kasia, Eric, Circular (laz forum)).
-
 - (kasia usability test on castle1) items should automatically hide if they were uncovered by automatic show ?
   Users usually don't know immediately how to close them, and play
   with items list visible for a long the time, cluttering the screen.
@@ -1269,8 +1216,6 @@ T3D improvements possibly postponed for later releases:
 
 (These are things not necessarily planned for 3.1 release, unless something else
 will turn out to need them.)
-
-- We lost --debug-no-creatures feature of castle1.
 
 - Add inventory to T3DAlive some day, to allow creature to carry items.
 
