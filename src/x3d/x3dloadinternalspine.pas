@@ -47,10 +47,7 @@ uses SysUtils, Classes, FGL, FpJson, JSONParser, Math,
       what to do with it depends on user code, boundingbox doesn't do anything
       by itself)
 
-    - mesh and skinnedmesh (middle; we already render attachment as quads,
-      so this just needs to read from spine the mesh coords;
-      skinnedmesh requires animating mesh coordinates, also perfectly
-      possible in X3D;
+    - skinnedmesh (requires animating mesh coordinates;
       note: what is "hull" parameter?)
 
   - Slot Timelines (easy;
