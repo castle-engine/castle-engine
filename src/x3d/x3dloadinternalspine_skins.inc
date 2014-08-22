@@ -62,7 +62,8 @@ procedure TSkin.Parse(const Json: TJSONObject);
       begin
         Attachment := TAttachment.CreateAndParse(
           TJSONObject(Json.Items[I]), SlotName, Json.Names[I]);
-        Attachments.Add(Attachment);
+        if Attachment <> nil then
+          Attachments.Add(Attachment);
       end;
   end;
 

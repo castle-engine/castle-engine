@@ -26,7 +26,8 @@
     NodeUsedAsChild: boolean;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject); virtual;
-    { Create and parse correct TAttachment descendant. }
+    { Create and parse correct TAttachment descendant.
+      May return @nil if none possible. }
     class function CreateAndParse(const Json: TJSONObject;
       const ASlotName, AnAttachmentName: string): TAttachment;
     procedure BuildNodes(const BaseUrl: string; const Atlas: TAtlas); virtual; abstract;
@@ -37,6 +38,18 @@
     Scale: TVector2Single;
     Rotation: Single;
     Width, Height: Integer;
+    procedure Parse(const Json: TJSONObject); override;
+    procedure BuildNodes(const BaseUrl: string; const Atlas: TAtlas); override;
+  end;
+
+  TMeshAttachment = class(TRegionAttachment)
+    UVs: TVector2SingleList;
+    Triangles: TLongIntList;
+    Vertices: TVector3SingleList;
+    Edges: TLongIntList; //< unused for now
+    Hull: Integer; //< unused for now
+    constructor Create;
+    destructor Destroy; override;
     procedure Parse(const Json: TJSONObject); override;
     procedure BuildNodes(const BaseUrl: string; const Atlas: TAtlas); override;
   end;
@@ -56,12 +69,29 @@ var
   TypeName: string;
 begin
   TypeName := Json.Get('type', 'region');
-  if TypeName = 'region' then
+  if (TypeName = 'mesh') or
+     (TypeName = 'skinnedmesh') then
   begin
+    if TypeName = 'regionsequence' then
+      OnWarning(wtMinor, 'Spine', 'Spine region type "skinnedmesh" is for now rendered just like normal "mesh"');
+    Result := TMeshAttachment.Create;
+    Result.SlotName := ASlotName;
+    Result.AttachmentName := AnAttachmentName;
+    Result.Parse(Json);
+  end else
+  if (TypeName = 'region') or
+     (TypeName = 'regionsequence') then
+  begin
+    if TypeName = 'regionsequence' then
+      OnWarning(wtMinor, 'Spine', 'Spine region type "regionsequence" is for now rendered just like normal "region"');
     Result := TRegionAttachment.Create;
     Result.SlotName := ASlotName;
     Result.AttachmentName := AnAttachmentName;
     Result.Parse(Json);
+  end else
+  if TypeName = 'boundingbox' then
+  begin
+    OnWarning(wtMinor, 'Spine', 'Spine region type "boundingbox" is ignored for now');
   end else
     raise ESpineReadError.Create('Only attachment type "region" supported now');
 end;
@@ -135,6 +165,38 @@ begin
     TexCoord.FdPoint.Items.Add(AtlasRegion.TexCoord[I]);
   Faces.FdTexCoord.Value := TexCoord;
 end;
+
+{ TMeshAttachment ------------------------------------------------------------ }
+
+constructor TMeshAttachment.Create;
+begin
+  inherited;
+  UVs := TVector2SingleList.Create;
+  Triangles := TLongIntList.Create;
+  Vertices := TVector3SingleList.Create;
+  Edges := TLongIntList.Create;
+end;
+
+destructor TMeshAttachment.Destroy;
+begin
+  FreeAndNil(UVs);
+  FreeAndNil(Triangles);
+  FreeAndNil(Vertices);
+  FreeAndNil(Edges);
+  inherited;
+end;
+
+procedure TMeshAttachment.Parse(const Json: TJSONObject);
+begin
+  inherited;
+end;
+
+procedure TMeshAttachment.BuildNodes(const BaseUrl: string; const Atlas: TAtlas);
+begin
+  inherited;
+end;
+
+{ TAttachmentList ------------------------------------------------------------ }
 
 function TAttachmentList.Find(const SlotName, AttachmentName: string;
   const FallbackList: TAttachmentList): TAttachment;
