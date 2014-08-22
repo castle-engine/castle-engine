@@ -206,13 +206,7 @@ type
   TGame2DControls = class(TUIControl)
   public
     procedure Render; override;
-    function RenderStyle: TRenderStyle; override;
   end;
-
-function TGame2DControls.RenderStyle: TRenderStyle;
-begin
-  Result := rs2D;
-end;
 
 procedure TGame2DControls.Render;
 const

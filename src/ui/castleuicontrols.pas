@@ -29,7 +29,8 @@ const
   DefaultTooltipDistance = 10;
 
 type
-  { In what projection TUIControl.Render will be called.
+  { Determines the order in which TUIControl.Render is called.
+    All 3D controls are always under all 2D controls.
     See TUIControl.Render, TUIControl.RenderStyle. }
   TRenderStyle = (rs2D, rs3D);
 
@@ -317,21 +318,11 @@ type
 
       @unorderedList(
         @item(rs2D means that OnRender is called at the end,
-          after all our @link(Controls) (3D and 2D) are drawn.
-          The 2D orthographic projection is set,
-          along with other parameters suitable for 2D rendering,
-          see the documentation for TUIControl.RenderStyle = rs2D.)
+          after all our @link(Controls) (3D and 2D) are drawn.)
 
         @item(rs3D means that OnRender is called after all other
           @link(Controls) with rs3D draw style, but before any 2D
           controls.
-
-          OpenGL projection matrix is not modified (so projection
-          is whatever you set yourself, by EventResize, OnResize,
-          or whatever TCastleSceneManager set for you).
-          You should set your own projection matrix at the beginning
-          of this (e.g. use @link(PerspectiveProjection)),
-          otherwise rendering results are undefined.
 
           This is suitable if you want to draw something 3D,
           that may be later covered by 2D controls.)
@@ -345,9 +336,6 @@ type
     property TooltipDistance: Cardinal read FTooltipDistance write FTooltipDistance
       default DefaultTooltipDistance;
   end;
-
-  { Deprecated name for TRenderStyle. }
-  TUIControlDrawStyle = TRenderStyle deprecated;
 
   { Base class for things that listen to user input: cameras and 2D controls. }
   TInputListener = class(TComponent)
@@ -605,6 +593,7 @@ end;
     FFocused: boolean;
     FGLInitialized: boolean;
     FExists: boolean;
+    FRenderStyle: TRenderStyle;
     procedure SetExists(const Value: boolean);
   public
     constructor Create(AOwner: TComponent); override;
@@ -640,76 +629,47 @@ end;
     { Render a control. Called only when @link(GetExists) and GLInitialized,
       you can depend on it in the implementation of this method.
 
-      Do's and don't's when implementing Render:
+      Before calling this method we always set some OpenGL state,
+      and you can depend on it (and you can carelessly change it,
+      as it will be reset again before rendering other control).
+      (In Castle Game Engine < 5.1.0, the rules were more complicated
+      and depending on RenderStyle. This is no longer the case,
+      RenderStyle now determines only the render order,
+      allowing TCastleSceneManager to be used in the middle of 2D controls.)
+
+      OpenGL state always set:
 
       @unorderedList(
-        @item(All controls with RenderStyle = rs3D are drawn first.
+        @item(@italic((For fixed-function pipeline.))
+          The 2D orthographic projection is always set at the beginning.
+          Useful for 2D controls, 3D controls can just override projection
+          matrix, e.g. use @link(PerspectiveProjection).)
 
-          The state of projection matrix (GL_PROJECTION for fixed-function
-          pipeline, and global ProjectionMatrix variable) is undefined for
-          rs3D objects. As is the viewport.
-          So you should always set the viewport and projection yourself
-          at the beginning of rs3D rendring, usually by
-          CastleGLUtils.PerspectiveProjection or CastleGLUtils.OrthoProjection.
-          Usually you should just use TCastleSceneManager,
-          which automatically sets projection to something suitable,
-          see TCastleSceneManager.ApplyProjection and TCastleScene.GLProjection.
+        @item(glViewport is set to include whole container.)
 
-          Then all the controls with RenderStyle = rs2D are drawn.
-          For them, OpenGL projection is guaranteed to be set
-          to standard 2D that fills the whole screen, like by
+        @item(@italic((For fixed-function pipeline.))
+          The modelview matrix is set to identity. The matrix mode
+          is always identity.)
 
-@longCode(#
-  glViewport(0, Container.Width, 0, Container.Height);
-  OrthoProjection(0, Container.Width, 0, Container.Height);
-#)
-        )
+        @item(The raster position @italic((for fixed-function pipeline.))
+          and (deprecated) WindowPos are set to 0,0.)
 
-        @item(The only OpenGL state you can change carelessly is:
-          @unorderedList(
-            @itemSpacing Compact
-            @item The modelview matrix value.
-            @item rs3D controls can also freely change projection matrix value and viewport.
-            @item(The raster position and WindowPos. The only place in our engine
-              using WindowPos is the deprecated TCastleFont methods (ones without
-              explicit X, Y).)
-            @item The color (glColor), material (glMaterial) values.
-            @item The line width, point size.
-          )
-          Every other change should be secured to go back to original value.
-          For older OpenGL, you can use glPushAttrib / glPopAttrib.
-          For things that have guaranteed values at the beginning of draw method
-          (e.g. scissor is always off for rs2D controls),
-          you can also just manually set it back to off at the end
-          (e.g. if you use scissor, them remember to disable it back
-          at the end of draw method.)
-        )
+        @item(Scissor is off, depth test is off.)
 
-        @item(Things that are guaranteed about OpenGL state when Render is called:
-          @unorderedList(
-            @itemSpacing Compact
-            @item The current matrix is modelview, and it's value is identity.
-            @item(Only for RenderStyle = rs2D: the WindowPos is at (0, 0).
-              The projection and viewport is suitable as for 2D, see above.)
-            @item(Only for RenderStyle = rs2D: Texturing, depth test,
-              lighting, fog, scissor are turned off.)
-          )
-          If you require anything else, set this yourself.)
-      )
-
-      By default, TUIControl.RenderStyle returns rs2D.
-
-      @groupBegin }
+        @item(@italic((For fixed-function pipeline.))
+          Texturing, lighting, fog is off.)
+      ) }
     procedure Render; virtual;
-    function RenderStyle: TRenderStyle; virtual;
-    { @groupEnd }
+
+    { Determines the rendering order.
+      All controls with RenderStyle = rs3D are drawn first.
+      Then all the controls with RenderStyle = rs2D are drawn.
+      Among the controls with equal RenderStyle, their order
+      on TUIContainer.Controls list determines the rendering order. }
+    property RenderStyle: TRenderStyle read FRenderStyle write FRenderStyle default rs2D;
 
     { Deprecated, you should rather override @link(Render) method. }
     procedure Draw; virtual; deprecated;
-    { Deprecated and ignored,
-      you should rather override @link(RenderStyle) method (but usually
-      you don't have to, it's 2D by default). }
-    function DrawStyle: TUIControlDrawStyle; virtual; deprecated;
 
     { Render a tooltip of this control. If you want to have tooltip for
       this control detected, you have to override TooltipExists.
@@ -1822,18 +1782,8 @@ begin
   Result := false;
 end;
 
-function TUIControl.RenderStyle: TRenderStyle;
-begin
-  Result := rs2D;
-end;
-
 procedure TUIControl.Draw;
 begin
-end;
-
-function TUIControl.DrawStyle: TUIControlDrawStyle;
-begin
-  Result := rs2D;
 end;
 
 function TUIControl.TooltipExists: boolean;

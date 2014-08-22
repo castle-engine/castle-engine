@@ -314,7 +314,7 @@ type
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
     function PositionInside(const Position: TVector2Single): boolean; override;
-    function RenderStyle: TRenderStyle; override;
+    property RenderStyle default rs3D;
 
     function AllowSuspendForInput: boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
@@ -1225,6 +1225,7 @@ begin
   FShadowVolumes := DefaultShadowVolumes;
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
+  RenderStyle := rs3D;
 end;
 
 destructor TCastleAbstractViewport.Destroy;
@@ -2291,11 +2292,6 @@ begin
     if not FullSize then
       ScissorDisable;
   end;
-end;
-
-function TCastleAbstractViewport.RenderStyle: TRenderStyle;
-begin
-  Result := rs3D;
 end;
 
 function TCastleAbstractViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;

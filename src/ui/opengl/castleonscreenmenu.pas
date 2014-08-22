@@ -390,7 +390,6 @@ type
     property AccessoryRectangles: TRectangleList read FAccessoryRectangles;
     { @groupEnd }
 
-    function RenderStyle: TRenderStyle; override;
     procedure Render; override;
 
     property KeyNextItem: TKey read FKeyNextItem write FKeyNextItem
@@ -1171,11 +1170,6 @@ procedure TCastleOnScreenMenu.ContainerResize(const AContainerWidth, AContainerH
 begin
   inherited;
   FixItemsRectangles;
-end;
-
-function TCastleOnScreenMenu.RenderStyle: TRenderStyle;
-begin
-  Result := rs2D;
 end;
 
 procedure TCastleOnScreenMenu.Render;

@@ -38,6 +38,26 @@ uses CastleVectors, CastleGL, CastleGLUtils;
 
 procedure TGLContainer.EventRender;
 
+  procedure ControlRenderBegin;
+  begin
+    { Set state that is guaranteed for Render2D calls,
+      but TUIControl.Render cannot change it carelessly. }
+    {$ifndef OpenGLES}
+    glDisable(GL_LIGHTING);
+    glDisable(GL_FOG);
+    {$endif}
+    glDisable(GL_DEPTH_TEST);
+    ScissorDisable;
+    GLEnableTexture(CastleGLUtils.etNone);
+    glViewport(Rect);
+    OrthoProjection(0, Width, 0, Height);
+
+    { Set OpenGL state that may be changed carelessly, and has some
+      guaranteed value, for Render2d calls. }
+    {$ifndef OpenGLES} glLoadIdentity; {$endif}
+    CastleGLUtils.WindowPos := Vector2LongInt(0, 0);
+  end;
+
   { Call Render for all controls having RenderStyle = rs3D.
 
     Also (since we call RenderStyle for everything anyway)
@@ -68,19 +88,19 @@ procedure TGLContainer.EventRender;
           { Set OpenGL state that may be changed carelessly, and has some
             guanteed value, for TUIControl.Render calls.
             For now, just glLoadIdentity. }
-          rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} C.Render; end;
+          rs3D: begin ControlRenderBegin; C.Render; end;
         end;
     end;
 
     if TooltipVisible and (Focus <> nil) then
       case Focus.TooltipStyle of
         rs2D: AnythingWants2D := true;
-        rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} Focus.TooltipRender; end;
+        rs3D: begin ControlRenderBegin; Focus.TooltipRender; end;
       end;
 
     case RenderStyle of
       rs2D: AnythingWants2D := true;
-      rs3D: begin {$ifndef OpenGLES} glLoadIdentity; {$endif} if Assigned(OnRender) then OnRender(Self); end;
+      rs3D: begin ControlRenderBegin; if Assigned(OnRender) then OnRender(Self); end;
     end;
   end;
 
@@ -89,44 +109,26 @@ procedure TGLContainer.EventRender;
     C: TUIControl;
     I: Integer;
   begin
-    { Set state that is guaranteed for Render2D calls,
-      but TUIControl.Render cannot change it carelessly. }
-    {$ifndef OpenGLES}
-    glDisable(GL_LIGHTING);
-    glDisable(GL_FOG);
-    {$endif}
-    glDisable(GL_DEPTH_TEST);
-    ScissorDisable;
-    GLEnableTexture(CastleGLUtils.etNone);
-    glViewport(Rect);
-
-    OrthoProjection(0, Width, 0, Height);
-
     { draw controls in "downto" order, back to front }
     for I := Controls.Count - 1 downto 0 do
     begin
       C := Controls[I];
       if C.GetExists and C.GLInitialized and (C.RenderStyle = rs2D) then
       begin
-        { Set OpenGL state that may be changed carelessly, and has some
-          guanteed value, for Render2d calls. }
-        {$ifndef OpenGLES} glLoadIdentity; {$endif}
-        CastleGLUtils.WindowPos := Vector2LongInt(0, 0);
+        ControlRenderBegin;
         C.Render;
       end;
     end;
 
     if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = rs2D) then
     begin
-      {$ifndef OpenGLES} glLoadIdentity; {$endif}
-      CastleGLUtils.WindowPos := Vector2LongInt(0, 0);
+      ControlRenderBegin;
       Focus.TooltipRender;
     end;
 
     if RenderStyle = rs2D then
     begin
-      {$ifndef OpenGLES} glLoadIdentity; {$endif}
-      CastleGLUtils.WindowPos := Vector2LongInt(0, 0);
+      ControlRenderBegin;
       if Assigned(OnRender) then OnRender(Self);
     end;
   end;

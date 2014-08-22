@@ -59,13 +59,7 @@ type
   public
     Viewport: TMyViewport;
     procedure Render; override;
-    function RenderStyle: TRenderStyle; override;
   end;
-
-function TMyViewport2D.RenderStyle: TRenderStyle;
-begin
-  Result := rs2D;
-end;
 
 procedure TMyViewport2D.Render;
 begin

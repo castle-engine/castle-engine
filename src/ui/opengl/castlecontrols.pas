@@ -415,7 +415,7 @@ type
     FColor: TCastleColor;
   public
     constructor Create(AOwner: TComponent); override;
-    function RenderStyle: TRenderStyle; override;
+    property RenderStyle default rs3D;
     procedure Render; override;
     { Background color. By default, this is black color with opaque alpha. }
     property Color: TCastleColor read FColor write FColor;
@@ -1778,12 +1778,8 @@ constructor TCastleSimpleBackground.Create(AOwner: TComponent);
 begin
   inherited;
   FColor := Black;
-end;
-
-function TCastleSimpleBackground.RenderStyle: TRenderStyle;
-begin
   { 3D, because we want to be drawn before other 3D objects }
-  Result := rs3D;
+  RenderStyle := rs3D;
 end;
 
 procedure TCastleSimpleBackground.Render;
