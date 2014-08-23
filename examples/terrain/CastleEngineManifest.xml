@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="terrain" standalone_source="terrain.lpr">
+  <package>
+    <include path="textures/*" />
+    <include path="dump.png" />
+    <include path="hill.png" />
+  </package>
+</project>

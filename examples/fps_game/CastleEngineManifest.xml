@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="fps_game" standalone_source="fps_game.lpr">
+  <package>
+    <include path="README.txt" />
+  </package>
+</project>
