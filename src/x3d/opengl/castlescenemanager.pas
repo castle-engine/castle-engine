@@ -1565,15 +1565,11 @@ begin
   { Calculate BackgroundSkySphereRadius here,
     using ProjectionFar that is *not* ZFarInfinity }
   if GetMainScene <> nil then
-  begin
     GetMainScene.BackgroundSkySphereRadius :=
       TBackground.NearFarToSkySphereRadius(
         FProjection.ProjectionNear,
         FProjection.ProjectionFarFinite,
         GetMainScene.BackgroundSkySphereRadius);
-    writeln('GetMainScene.BackgroundSkySphereRadius : ',
-      GetMainScene.BackgroundSkySphereRadius:1:10);
-  end;
 end;
 
 function TCastleAbstractViewport.CalculateProjection: TProjection;
