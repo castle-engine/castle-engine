@@ -65,8 +65,7 @@ var
   UCamera: TUniversalCamera;
 begin
   UCamera := TUniversalCamera.Create(AOwner);
-  UCamera.Input := [];
-  UCamera.NavigationType := ntExamine;
+  UCamera.NavigationType := ntNone;
   UCamera.SetInitialView({ pos } Vector3Single(0, 0, 0),
     { dir } Vector3Single(0, 0, -1), { up } Vector3Single(0, 1, 0), false);
   UCamera.GoToInitial;
