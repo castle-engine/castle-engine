@@ -408,7 +408,7 @@ type
 
       Every ChangedAll call does this.
       ChangedAll must take into account that everything could change.
-      Note that ChangedAll traverses the VRML graph again,
+      Note that ChangedAll traverses the VRML/X3D graph again,
       recalculating State values... so the old States are not
       correct anymore. You have to rebuild the octree or your pointers
       will be bad.
@@ -446,7 +446,18 @@ type
       change. }
     gcActiveShapesChanged);
 
-  { 3D scene, 3D model handling (except rendering, for which see TCastleScene).
+  { Looping mode to use with TCastleSceneCore.PlayAnimation. }
+  TPlayAnimationLooping = (
+    { Use current TimeSensor.FdLoop value to determine whether animation
+      should loop. Suitable when X3D model already has sensible "TimeSensor.loop"
+      values. }
+    paDefault,
+    { Force TimeSensor.FdLoop to be @true, to force looping. }
+    paForceLooping,
+    { Force TimeSensor.FdLoop to be @false, to force not looping. }
+    paForceNotLooping);
+
+  { 3D scene processing (except rendering, for which see TCastleScene).
     Provides a lot of useful functionality. Simple loading of the scene (@link(Load)
     method), calculating various things (like @link(BoundingBox) method).
 
@@ -456,7 +467,7 @@ type
     of the scene (in @link(RootNode)) and a simple view of the same scene
     (in @link(Shapes)).
 
-    VRML scene also takes care of initiating and managing VRML events
+    VRML/X3D scene also takes care of initiating and managing VRML/X3D events
     and routes mechanism (see ProcessEvents).
 
     The actual VRML/X3D nodes graph is stored in the RootNode property.
@@ -466,7 +477,7 @@ type
     the fields' values. Or you can call TX3DField.Changed after each change.
     Or you will have to call ChangedField or ChangedAll method
     of this class.
-    If the scene is changed by VRML events, all changes are automagically
+    If the scene is changed by VRML/X3D events, all changes are automagically
     acted upon, so you don't have to do anything.
 
     For more-or-less static scenes,
@@ -504,6 +515,8 @@ type
       when many joints are changed at once (e.g. many joints, and each one
       animated with it's own OrientationInterpolator). }
     ScheduledHumanoidAnimateSkin: TX3DNodeList;
+
+    PlayingAnimationNode: TTimeSensorNode;
 
     { This always holds pointers to all TShapeTreeLOD instances in Shapes
       tree. }
@@ -667,7 +680,7 @@ type
       then it uses @link(Progress) while building octree.
 
       Remember that triangle octree has references to Shape nodes
-      inside RootNode vrml tree and to State objects inside
+      inside RootNode VRML/X3D tree and to State objects inside
       our @link(Shapes) tree.
       And shape octree has references to our @link(Shapes) tree.
       So you must rebuild such octree when this object changes.
@@ -812,7 +825,7 @@ type
 
     constructor Create(AOwner: TComponent); override;
 
-    { Load new 3D model (from VRML node tree).
+    { Load new 3D model (from VRML/X3D node tree).
       This replaces RootNode with new value.
 
       If AResetTime, we will also do ResetTimeAtLoad,
@@ -841,7 +854,7 @@ type
 
     destructor Destroy; override;
 
-    { Simple (usually very flat) tree of shapes within this VRML scene.
+    { Simple (usually very flat) tree of shapes within this VRML/X3D scene.
 
       Contents of this tree are read-only from outside.
 
@@ -887,7 +900,7 @@ type
       graph. Since this class caches some things, it has to be notified
       when you manually change something within RootNode graph. }
 
-    { Release all internal associations with your VRML nodes.
+    { Release all internal associations with your VRML/X3D nodes.
       In particular, this will release OpenGL resources connected to your nodes.
       You should always call this @italic(before) you (may) free some nodes in
       @link(RootNode).
@@ -904,7 +917,7 @@ type
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
 
     { Call Node.FreeRemovingFromAllParents, making sure that changes
-      to our VRML node graph are allowed. This makes sure we call
+      to our VRML/X3D node graph are allowed. This makes sure we call
       BeforeNodesFree befor freeing, and ChangedAll afterwards.
 
       This avoids a common pitfall with relying on TShape or such
@@ -921,7 +934,7 @@ type
     procedure RemoveShape(Shape: TShape);
 
     { Notify scene that potentially everything changed
-      in the VRML graph. This includes adding/removal of some nodes within
+      in the VRML/X3D graph. This includes adding/removal of some nodes within
       RootNode graph and changing their fields' values.
       (Before freeing the nodes, remember to also call BeforeNodesFree
       earlier.)
@@ -956,7 +969,7 @@ type
       In fact, you can even notify this scene about changes to fields
       that don't belong to our RootNode --- nothing bad will happen.
       We always try to intelligently
-      detect what this change implicates for this VRML scene. }
+      detect what this change implicates for this VRML/X3D scene. }
     procedure ChangedField(Field: TX3DField); override;
 
     { Notification when geometry changed.
@@ -1105,14 +1118,14 @@ type
       Add ssRendering to @link(Spatial) property to have this available,
       otherwise it's @nil.
 
-      Note that when VRML scene contains Collision nodes, this octree
+      Note that when VRML/X3D scene contains Collision nodes, this octree
       contains the @italic(visible (not necessarily collidable)) objects.  }
     function OctreeRendering: TShapeOctree;
 
     { The dynamic octree containing all collidable items.
 
       This is actually a hierarchy of octrees: scene is partitioned
-      first into Shapes (each instance of VRML geometry node),
+      first into Shapes (each instance of VRML/X3D geometry node),
       and then each Shape has an octree of triangles inside.
 
       This octree is useful for all kinds of collision detection.
@@ -1129,7 +1142,7 @@ type
       Add ssDynamicCollisions to @link(Spatial) property to have this available,
       otherwise it's @nil.
 
-      Note that when VRML scene contains Collision nodes, this octree
+      Note that when VRML/X3D scene contains Collision nodes, this octree
       contains the @italic(collidable (not necessarily rendered)) objects.
 
       TODO: Temporarily, this is updated simply by rebuilding.
@@ -1147,7 +1160,7 @@ type
       Add ssVisibleTriangles to @link(Spatial) property to have this available,
       otherwise it's @nil.
 
-      Note that when VRML scene contains Collision nodes, this octree
+      Note that when VRML/X3D scene contains Collision nodes, this octree
       contains the @italic(visible (not necessarily collidable)) objects.  }
     function OctreeVisibleTriangles: TTriangleOctree;
 
@@ -1170,7 +1183,7 @@ type
       Add ssCollidableTriangles to @link(Spatial) property to have this available,
       otherwise it's @nil.
 
-      Note that when VRML scene contains Collision nodes, this octree
+      Note that when VRML/X3D scene contains Collision nodes, this octree
       contains the @italic(collidable (not necessarily rendered)) objects.  }
     function OctreeCollidableTriangles: TTriangleOctree;
 
@@ -1356,7 +1369,7 @@ type
       However, if you process RootNode graph
       and extract some node from it (that is, delete node from our
       RootNode graph, but instead of freeing it you insert it
-      into some other VRML graph) you must call it to manually
+      into some other VRML/X3D graph) you must call it to manually
       "untie" this node (and all it's children) from this TCastleSceneCore instance. }
     procedure UnregisterScene(Node: TX3DNode);
 
@@ -1495,7 +1508,7 @@ type
 
     { Set @link(Time) to arbitrary value.
 
-      You should only use this when you loaded new VRML model.
+      You should only use this when you loaded new VRML/X3D model.
 
       Unlike SetTime and IncreaseTime, this doesn't require that
       @link(Time) grows. It still does some time-dependent events work,
@@ -1509,7 +1522,7 @@ type
 
     { Set @link(Time) to suitable initial value after loading a world.
 
-      This honours VRML specification about VRML time origin,
+      This honours VRML/X3D specification about VRML/X3D time origin,
       and our extension
       [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_time_origin_at_load]. }
     procedure ResetTimeAtLoad;
@@ -1568,12 +1581,12 @@ type
         avatar.) }
     procedure CameraChanged(ACamera: TCamera; const Changes: TVisibleChanges);
 
-    { List of handlers for VRML Script node with "compiled:" protocol.
+    { List of handlers for VRML/X3D Script node with "compiled:" protocol.
       This is read-only, change this only by RegisterCompiledScript. }
     property CompiledScriptHandlers: TCompiledScriptHandlerInfoList
       read FCompiledScriptHandlers;
 
-    { Register compiled script handler, for VRML Script node with
+    { Register compiled script handler, for VRML/X3D Script node with
       "compiled:" protocol.
       See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_script_compiled]. }
     procedure RegisterCompiledScript(const HandlerName: string;
@@ -1754,7 +1767,7 @@ type
     { Static scene will not be automatically notified about the changes
       to the field values. This means that TX3DField.Send and
       TX3DField.Changed will not notify this scene. This makes a
-      small optimization when you know you will not modify scene's VRML graph
+      small optimization when you know you will not modify scene's VRML/X3D graph
       besides loading (or you're prepared to do it by manually calling
       Scene.ChangedField etc.).
 
@@ -1790,6 +1803,22 @@ type
     function Field(const NodeName, FieldName: string): TX3DField;
     function Event(const NodeName, EventName: string): TX3DEvent;
     { @groupEnd }
+
+    { List the names of available animations in this file.
+      Detected in VRML/X3D models as simply TimeSensor nodes with node name
+      starting with "Animation_Xxx".
+      Called is responsible to free resulting TStringList instance.
+
+      Note that the list of animations may change it you rebuild the underlying
+      X3D nodes graph, for example if you start to delete / add some TimeSensor
+      nodes.  }
+    function Animations: TStringList;
+
+    { Play a named animation (like detected by @link(Animations) method).
+      Also stops previously playing named animation, if any.
+      Returns whether animation (corresponding TimeSensor node) was found. }
+    function PlayAnimation(const AnimationName: string;
+      const Looping: TPlayAnimationLooping): boolean;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Update) will take care of increasing @link(Time).
@@ -1864,7 +1893,7 @@ type
       and it makes "receiveShadows" field automatically handled.
 
       Note that this is not the only way to make shadow maps.
-      VRML author can always make shadow maps by using lower-level nodes, see
+      VRML/X3D author can always make shadow maps by using lower-level nodes, see
       [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadow_maps].
       When using these lower-level nodes, this property does not matter
       This property (and related ones
@@ -1878,7 +1907,7 @@ type
       field.  This is taken into account at the scene @link(Load) time,
       and only if @link(ShadowMaps) is @true.
 
-      VRML author can always override this by placing a @code(GeneratedShadowMap)
+      VRML/X3D author can always override this by placing a @code(GeneratedShadowMap)
       node inside light's @code(defaultShadowMap) field. In this case,
       @code(GeneratedShadowMap.size) determines shadow map size. }
     property ShadowMapsDefaultSize: Cardinal
@@ -1928,7 +1957,7 @@ var
 implementation
 
 uses X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils, CastleWarnings,
-  X3DLoad, CastleURIUtils;
+  X3DLoad, CastleURIUtils, X3DLoadInternalUtils;
 
 { TX3DBindableStack ----------------------------------------------------- }
 
@@ -2910,6 +2939,7 @@ begin
   ScheduledHumanoidAnimateSkin.Count := 0;
   KeyDeviceSensorNodes.Clear;
   TimeDependentHandlers.Clear;
+  PlayingAnimationNode := nil;
 
   if not InternalChangedAll then
   begin
@@ -6762,6 +6792,76 @@ begin
     But RootNode.FdChildren.Changed is a little costly, it processes the whole
     scene again, so it's faster to directly add to FViewpointsArray. }
   FViewpointsArray.Add(NewViewpointNode);
+end;
+
+type
+  TAnimationsEnumerator = class
+    List: TStringList;
+    procedure Enumerate(Node: TX3DNode);
+  end;
+
+procedure TAnimationsEnumerator.Enumerate(Node: TX3DNode);
+var
+  AnimationName: string;
+begin
+  if IsPrefix(AnimationPrefix, Node.NodeName, false) then
+  begin
+    AnimationName := PrefixRemove(AnimationPrefix, Node.NodeName, false);
+    if AnimationName = '' then
+    begin
+      OnWarning(wtMinor, 'Named Animations', Format('TimeSensor node name is exactly "%s", this indicates named animation with empty name, ignoring',
+        [AnimationName]));
+      Exit;
+    end;
+    if List.IndexOf(AnimationName) <> -1 then
+    begin
+      OnWarning(wtMinor, 'Named Animations', Format('Animation name "%s" occurs multiple times in scene',
+        [AnimationName]));
+      Exit;
+    end;
+    List.Add(AnimationName);
+  end;
+end;
+
+function TCastleSceneCore.Animations: TStringList;
+var
+  Enum: TAnimationsEnumerator;
+begin
+  Result := TStringList.Create;
+  if RootNode <> nil then
+  begin
+    Enum := TAnimationsEnumerator.Create;
+    try
+      Enum.List := Result;
+      RootNode.EnumerateNodes(TTimeSensorNode, @Enum.Enumerate, true);
+    finally FreeAndNil(Enum) end;
+  end;
+end;
+
+function TCastleSceneCore.PlayAnimation(const AnimationName: string;
+  const Looping: TPlayAnimationLooping): boolean;
+var
+  TimeNode: TTimeSensorNode;
+begin
+  if RootNode <> nil then
+    TimeNode := RootNode.TryFindNodeByName(TTimeSensorNode,
+      AnimationPrefix + AnimationName, true) as TTimeSensorNode else
+    TimeNode := nil;
+  Result := TimeNode <> nil;
+  if Result then
+  begin
+    if PlayingAnimationNode <> nil then
+    begin
+      PlayingAnimationNode.FdStopTime.Send(Time.Seconds);
+      PlayingAnimationNode := nil;
+    end;
+    case Looping of
+      paForceLooping   : TimeNode.FdLoop.Send(true);
+      paForceNotLooping: TimeNode.FdLoop.Send(false);
+    end;
+    TimeNode.FdStartTime.Send(Time.Seconds);
+    PlayingAnimationNode := TimeNode;
+  end;
 end;
 
 end.

@@ -112,7 +112,7 @@ var
   I: Integer;
   Route: TX3DRoute;
 begin
-  Node := TTimeSensorNode.Create('Animation_' + ToX3DName(Name), BaseUrl);
+  Node := TTimeSensorNode.Create(AnimationPrefix + ToX3DName(Name), BaseUrl);
 
   MaxTime := 0;
   for I := 0 to BoneTimelines.Count - 1 do
@@ -168,10 +168,6 @@ var
 begin
   for I := 0 to Count - 1 do
     Items[I].BuildNodes(BaseUrl, Container);
-
-  if Count <> 0 then
-    { for now, run the 1st animation in a loop, automatically }
-    First.Node.FdLoop.Value := true;
 end;
 
 {$endif}

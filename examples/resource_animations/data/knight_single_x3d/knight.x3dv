@@ -58877,23 +58877,22 @@ DEF WalkInterpolator CoordinateInterpolator {
 
 # Make the animation
 
-DEF AttackTimeSensor TimeSensor { cycleInterval 1.200000048 }
-ROUTE AttackTimeSensor.fraction_changed TO AttackInterpolator.set_fraction
+DEF Animation_Attack TimeSensor { cycleInterval 1.200000048 }
+ROUTE Animation_Attack.fraction_changed TO AttackInterpolator.set_fraction
 ROUTE AttackInterpolator.value_changed TO coords_ME_Knight.point
 
-DEF DieTimeSensor TimeSensor { cycleInterval 1.279999971 }
-ROUTE DieTimeSensor.fraction_changed TO DieInterpolator.set_fraction
+DEF Animation_Die TimeSensor { cycleInterval 1.279999971 }
+ROUTE Animation_Die.fraction_changed TO DieInterpolator.set_fraction
 ROUTE DieInterpolator.value_changed TO coords_ME_Knight.point
 
-DEF HurtTimeSensor TimeSensor { cycleInterval 0.6000000238 }
-ROUTE HurtTimeSensor.fraction_changed TO HurtInterpolator.set_fraction
+DEF Animation_Hurt TimeSensor { cycleInterval 0.6000000238 }
+ROUTE Animation_Hurt.fraction_changed TO HurtInterpolator.set_fraction
 ROUTE HurtInterpolator.value_changed TO coords_ME_Knight.point
 
-DEF IdleTimeSensor TimeSensor { cycleInterval 0.8000000119 }
-ROUTE IdleTimeSensor.fraction_changed TO IdleInterpolator.set_fraction
+DEF Animation_Idle TimeSensor { cycleInterval 0.8000000119 }
+ROUTE Animation_Idle.fraction_changed TO IdleInterpolator.set_fraction
 ROUTE IdleInterpolator.value_changed TO coords_ME_Knight.point
 
-DEF WalkTimeSensor TimeSensor { cycleInterval 1.279999971 }
-ROUTE WalkTimeSensor.fraction_changed TO WalkInterpolator.set_fraction
+DEF Animation_Walk TimeSensor { cycleInterval 1.279999971 }
+ROUTE Animation_Walk.fraction_changed TO WalkInterpolator.set_fraction
 ROUTE WalkInterpolator.value_changed TO coords_ME_Knight.point
-

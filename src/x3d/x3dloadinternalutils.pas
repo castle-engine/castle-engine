@@ -50,6 +50,9 @@ function SearchTextureFile(const BaseUrl: string; Base: string): string;
   https://sourceforge.net/p/castle-engine/tickets/21/ ) seems more common. }
 function FixRelativeUrl(const URL: string): string;
 
+const
+  AnimationPrefix = 'Animation_';
+
 implementation
 
 uses SysUtils, CastleStringUtils, CastleFindFiles, CastleWarnings,

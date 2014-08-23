@@ -126,6 +126,9 @@
   protected
     procedure ClearHandles; override;
   public
+    constructor Create(const ACaption: String);
+    destructor Destroy; override;
+
     { Items (entries) on the menu. Items are owned by this menu instance
       (are automatically freed at destruction, at @link(Delete) and such). }
     property Entries [Index: Integer]: TMenuEntry read GetEntries; default;
@@ -134,16 +137,16 @@
     { Add at the end. Same as Insert(@link(Count), Value). }
     procedure Append(Value: TMenuEntry);
     procedure Delete(Index: Integer);
-    procedure DeleteAll;
-    constructor Create(const ACaption: String);
-    destructor Destroy; override;
+    procedure Clear;
 
     { @deprecated Deprecated name for @link(Count). }
     function EntriesCount: Integer; deprecated;
     { @deprecated Deprecated name for @link(Delete). }
     procedure EntryDelete(Index: Integer); deprecated;
-    { @deprecated Deprecated name for DeleteAll. }
+    { @deprecated Deprecated name for @link(Clear). }
     procedure EntriesDeleteAll; deprecated;
+    { @deprecated Deprecated name for @link(Clear). }
+    procedure DeleteAll;
 
     { Append a number of radio menu items.
       This is a comfortable shortcut for an often task of adding
@@ -293,9 +296,9 @@
       appended. }
     function CaptionWithKey: string;
 
-    constructor Create(const ACaption: String; AIntData: Integer); overload;
-    constructor Create(const ACaption: String; AIntData: Integer; ACharKey: char); overload;
-    constructor Create(const ACaption: String; AIntData: Integer; AKey: TKey); overload;
+    constructor Create(const ACaption: String; AIntData: Integer);
+    constructor Create(const ACaption: String; AIntData: Integer; ACharKey: char);
+    constructor Create(const ACaption: String; AIntData: Integer; AKey: TKey);
 
     destructor Destroy; override;
   end;
@@ -335,11 +338,11 @@
     function DoClick: boolean; override;
 
     constructor Create(const ACaption: String; AIntData: Integer;
-      AChecked, AAutoCheckedToggle: boolean); overload;
+      AChecked, AAutoCheckedToggle: boolean);
     constructor Create(const ACaption: String; AIntData: Integer; ACharKey: char;
-      AChecked, AAutoCheckedToggle: boolean); overload;
+      AChecked, AAutoCheckedToggle: boolean);
     constructor Create(const ACaption: String; AIntData: Integer; AKey: TKey;
-      AChecked, AAutoCheckedToggle: boolean); overload;
+      AChecked, AAutoCheckedToggle: boolean);
   end;
 
   { Menu radio item. Similar to TMenuItemChecked, but it belongs to a group and
@@ -362,11 +365,11 @@
     procedure DoAutoCheckedToggle; override;
   public
     constructor Create(const ACaption: String; AIntData: Integer;
-      AChecked, AAutoCheckedToggle: boolean); overload;
+      AChecked, AAutoCheckedToggle: boolean);
     constructor Create(const ACaption: String; AIntData: Integer; ACharKey: char;
-      AChecked, AAutoCheckedToggle: boolean); overload;
+      AChecked, AAutoCheckedToggle: boolean);
     constructor Create(const ACaption: String; AIntData: Integer; AKey: TKey;
-      AChecked, AAutoCheckedToggle: boolean); overload;
+      AChecked, AAutoCheckedToggle: boolean);
 
     destructor Destroy; override;
 
@@ -641,10 +644,15 @@ end;
 
 procedure TMenu.EntriesDeleteAll;
 begin
-  DeleteAll;
+  Clear;
 end;
 
 procedure TMenu.DeleteAll;
+begin
+  Clear;
+end;
+
+procedure TMenu.Clear;
 var
   I: Integer;
 begin

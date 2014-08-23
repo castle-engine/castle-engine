@@ -5,10 +5,10 @@
   type="WalkAttack"
 >
   <model url="knight.x3dv">
-    <idle   time_sensor="IdleTimeSensor"/>
-    <walk   time_sensor="WalkTimeSensor"/>
-    <attack time_sensor="AttackTimeSensor"/>
-    <die    time_sensor="DieTimeSensor"/>
-    <hurt   time_sensor="HurtTimeSensor"/>
+    <idle   time_sensor="Animation_Idle"/>
+    <walk   time_sensor="Animation_Walk"/>
+    <attack time_sensor="Animation_Attack"/>
+    <die    time_sensor="Animation_Die"/>
+    <hurt   time_sensor="Animation_Hurt"/>
   </model>
 </resource>

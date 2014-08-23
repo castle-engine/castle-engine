@@ -1395,6 +1395,7 @@ type
   public
     class function TypeName: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    procedure Send(const AValue: Double); overload;
   end;
 
   TSFImage = class(TX3DSingleField)
@@ -4084,6 +4085,16 @@ end;
 class function TSFTime.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TSFTimeEvent.Create(AParentNode, AName, AInEvent);
+end;
+
+procedure TSFTime.Send(const AValue: Double);
+var
+  FieldValue: TX3DField;
+begin
+  FieldValue := TSFTime.Create(ParentNode, Name, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
 end;
 
 { TSFImage ------------------------------------------------------------------- }
