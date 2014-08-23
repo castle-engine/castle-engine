@@ -23,12 +23,25 @@ uses Classes,
 
 type
   { Scene manager best suited for 2D worlds.
+
     Features:
     @unorderedList(
-      @item(By default creates camera looking down in -Z, good when your world spans in XY plane.)
+      @item(By default creates camera looks down in -Z,
+        good when your world spans in XY plane.
+        And TUniversalCamera.NavigationType is ntNone, which means that no
+        automatic way to move camera in the world is possible,
+        you want to program your own movement for 2D.)
+
       @item(Sets 2D projection (regardless of viewpoints defined in MainScene).)
-      @item(Sets RenderStyle = rs2D by default, which makes it possible to place the scene manager rendering in the middle of other 2D controls (for example, over some 2D background and before some 2D buttons.))
-      @item(Sets Tranparennt = @true by default, which means that background underneath will be visible. Useful for 2D games where you usually have an image or another background underneath, like TCastleImage or TCastleSimpleBackground.)
+
+      @item(Sets RenderStyle = rs2D by default, which makes it possible
+        to place the scene manager rendering in the middle of other 2D controls
+        (for example, over some 2D background and before some 2D buttons.))
+
+      @item(Sets Tranparennt = @true by default, which means that
+        background underneath will be visible. Useful for 2D games
+        where you usually have an image or another background underneath,
+        like TCastleImage or TCastleSimpleBackground.)
     ) }
   T2DSceneManager = class(TCastleSceneManager)
   protected
