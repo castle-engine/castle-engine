@@ -244,17 +244,14 @@ type
       to TCastleWindowCustom.Controls or TCastleControlCustom.Controls before
       using this method.
 
-      PerspectiveView, PerspectiveViewAngles and OrthoViewDimensions
-      describe your projection, required for calculating the ray properly.
-      See TCastleSceneManager.PerspectiveView for their specification.
+      Projection (read-only here) describe your projection,
+      required for calculating the ray properly.
       Resulting RayDirection is always normalized.
 
       WindowPosition is given in the same style as TUIContainer.MousePosition:
       (0, 0) is bottom-left. }
     procedure Ray(const WindowPosition: TVector2Single;
-      const PerspectiveView: boolean;
-      const PerspectiveViewAngles: TVector2Single;
-      const OrthoViewDimensions: TVector4Single;
+      const Projection: TProjection;
       out RayOrigin, RayDirection: TVector3Single);
 
     { Calculate a ray picked by current mouse position on the window.
@@ -266,18 +263,16 @@ type
       @seealso Ray
       @seealso CustomRay }
     procedure MouseRay(
-      const PerspectiveView: boolean;
-      const PerspectiveViewAngles: TVector2Single;
-      const OrthoViewDimensions: TVector4Single;
+      const Projection: TProjection;
       out RayOrigin, RayDirection: TVector3Single);
 
     { Calculate a ray picked by WindowPosition position on the viewport,
       assuming current viewport dimensions are as given.
       This doesn't look at our container sizes at all.
 
-      PerspectiveView, PerspectiveViewAngles and OrthoViewDimensions
-      describe your projection, required for calculating the ray properly.
-      See TCastleSceneManager.PerspectiveView for their specification.
+      Projection (read-only here) describe projection,
+      required for calculating the ray properly.
+
       Resulting RayDirection is always normalized.
 
       WindowPosition is given in the same style as TUIContainer.MousePosition:
@@ -285,9 +280,7 @@ type
     procedure CustomRay(
       const Viewport: TRectangle;
       const WindowPosition: TVector2Single;
-      const PerspectiveView: boolean;
-      const PerspectiveViewAngles: TVector2Single;
-      const OrthoViewDimensions: TVector4Single;
+      const Projection: TProjection;
       out RayOrigin, RayDirection: TVector3Single);
 
     procedure Update(const SecondsPassed: Single;
@@ -1835,33 +1828,25 @@ begin
 end;
 
 procedure TCamera.Ray(const WindowPosition: TVector2Single;
-  const PerspectiveView: boolean;
-  const PerspectiveViewAngles: TVector2Single;
-  const OrthoViewDimensions: TVector4Single;
+  const Projection: TProjection;
   out RayOrigin, RayDirection: TVector3Single);
 begin
   Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCamera.Ray');
-  CustomRay(ContainerRect, WindowPosition,
-    PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions, RayOrigin, RayDirection);
+  CustomRay(ContainerRect, WindowPosition, Projection, RayOrigin, RayDirection);
 end;
 
 procedure TCamera.MouseRay(
-  const PerspectiveView: boolean;
-  const PerspectiveViewAngles: TVector2Single;
-  const OrthoViewDimensions: TVector4Single;
+  const Projection: TProjection;
   out RayOrigin, RayDirection: TVector3Single);
 begin
   Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCamera.MouseRay');
-  CustomRay(ContainerRect, Container.MousePosition,
-    PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions, RayOrigin, RayDirection);
+  CustomRay(ContainerRect, Container.MousePosition, Projection, RayOrigin, RayDirection);
 end;
 
 procedure TCamera.CustomRay(
   const Viewport: TRectangle;
   const WindowPosition: TVector2Single;
-  const PerspectiveView: boolean;
-  const PerspectiveViewAngles: TVector2Single;
-  const OrthoViewDimensions: TVector4Single;
+  const Projection: TProjection;
   out RayOrigin, RayDirection: TVector3Single);
 var
   Pos, Dir, Up: TVector3Single;
@@ -1873,7 +1858,7 @@ begin
     WindowPosition[1] - Viewport.Bottom,
     Viewport.Width, Viewport.Height,
     Pos, Dir, Up,
-    PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
+    Projection,
     RayOrigin, RayDirection);
 end;
 

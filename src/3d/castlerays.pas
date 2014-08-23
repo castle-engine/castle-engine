@@ -43,6 +43,43 @@ function AdjustViewAngleRadToAspectRatio(const FirstViewAngleRad,
 { @groupEnd }
 
 type
+  TProjectionType = (ptOrthographic, ptPerspective);
+
+  { Projection parameters.
+    This is calculated when calling @link(TCastleAbstractViewport.Projection). }
+  TProjection = object
+    { Perspective / orthogonal projection properties.
+
+      When ProjectionType = ptPerspective, then PerspectiveAngles
+      specify angles of view (horizontal and vertical), in degrees.
+      When ProjectionType = ptOrthographic, then OrthoDimensions
+      specify dimensions of ortho window (in the order: -X, -Y, +X, +Y,
+      just like X3D OrthoViewpoint.fieldOfView).
+
+      @groupBegin }
+    ProjectionType: TProjectionType;
+    PerspectiveAngles: TVector2Single;
+    OrthoDimensions: TVector4Single;
+    { @groupEnd }
+
+    { Projection near/far values.
+
+      Note that ProjectionFar may be ZFarInfinity, which means that no far
+      clipping plane is used. For example, shadow volumes require this.
+
+      If you really need to know "what would be projection far,
+      if it could not be infinite" look at ProjectionFarFinite.
+      ProjectionFarFinite is calculated just like ProjectionFar
+      (looking at scene size, NavigationInfo.visibilityLimit and such),
+      except it's never changed to be ZFarInfinity.
+
+      @groupBegin }
+    ProjectionNear: Single;
+    ProjectionFar : Single;
+    ProjectionFarFinite: Single;
+    { @groupEnd }
+  end;
+
   { Calculate primary rays for given camera settings and screen size. }
   TRaysWindow = class
   private
@@ -67,12 +104,10 @@ type
 
     { Create appropriate TRaysWindow instance.
       Constructs non-abstract descendant (TPerspectiveRaysWindow or
-      TOrthographicRaysWindow, depending on APerspectiveView). }
+      TOrthographicRaysWindow, depending on Projection.ProjectionType). }
     class function CreateDescendant(
       const ACamPosition, ACamDirection, ACamUp: TVector3Single;
-      const APerspectiveView: boolean;
-      const APerspectiveViewAngles: TVector2Single;
-      const AOrthoViewDimensions: TVector4Single): TRaysWindow;
+      const Projection: TProjection): TRaysWindow;
 
     { Calculate position and direction of the primary ray cast from CamPosition,
       going through the pixel X, Y.
@@ -97,10 +132,10 @@ type
   TPerspectiveRaysWindow = class(TRaysWindow)
   private
     WindowWidth, WindowHeight: Single;
-    PerspectiveViewAngles: TVector2Single;
+    PerspectiveAngles: TVector2Single;
   public
     constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
-      const APerspectiveViewAngles: TVector2Single);
+      const APerspectiveAngles: TVector2Single);
 
     procedure PrimaryRay(const x, y: Single;
       const ScreenWidth, ScreenHeight: Integer;
@@ -109,10 +144,10 @@ type
 
   TOrthographicRaysWindow = class(TRaysWindow)
   private
-    OrthoViewDimensions: TVector4Single;
+    OrthoDimensions: TVector4Single;
   public
     constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
-      const AOrthoViewDimensions: TVector4Single);
+      const AOrthoDimensions: TVector4Single);
 
     procedure PrimaryRay(const x, y: Single;
       const ScreenWidth, ScreenHeight: Integer;
@@ -124,17 +159,12 @@ type
   Takes into account camera 3D settings and screen sizes.
   RayDirection will always be normalized, just like from TRaysWindow.PrimaryRay.
 
-  See TCastleSceneManager.PerspectiveView for specification
-  of projection properties PerspectiveView etc.
-
   If you want to call this many times for the same camera settings,
   it may be more optimal to create TRaysWindow instance first
   and call it's TRaysWindow.PrimaryRay method. }
 procedure PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Integer;
   const CamPosition, CamDirection, CamUp: TVector3Single;
-  const PerspectiveView: boolean;
-  const PerspectiveViewAngles: TVector2Single;
-  const OrthoViewDimensions: TVector4Single;
+  const Projection: TProjection;
   out RayOrigin, RayDirection: TVector3Single);
 
 implementation
@@ -185,26 +215,28 @@ end;
 
 class function TRaysWindow.CreateDescendant(
   const ACamPosition, ACamDirection, ACamUp: TVector3Single;
-  const APerspectiveView: boolean;
-  const APerspectiveViewAngles: TVector2Single;
-  const AOrthoViewDimensions: TVector4Single): TRaysWindow;
+  const Projection: TProjection): TRaysWindow;
 begin
-  if APerspectiveView then
-    Result := TPerspectiveRaysWindow.Create(
-      ACamPosition, ACamDirection, ACamUp, APerspectiveViewAngles) else
-    Result := TOrthographicRaysWindow.Create(
-      ACamPosition, ACamDirection, ACamUp, AOrthoViewDimensions);
+  case Projection.ProjectionType of
+    ptPerspective:
+      Result := TPerspectiveRaysWindow.Create(
+        ACamPosition, ACamDirection, ACamUp, Projection.PerspectiveAngles);
+    ptOrthographic:
+      Result := TOrthographicRaysWindow.Create(
+        ACamPosition, ACamDirection, ACamUp, Projection.OrthoDimensions);
+    else raise EInternalError.Create('TRaysWindow.CreateDescendant:ProjectionType?');
+  end;
 end;
 
 { TPerspectiveRaysWindow ----------------------------------------------------- }
 
 constructor TPerspectiveRaysWindow.Create(
   const ACamPosition, ACamDirection, ACamUp: TVector3Single;
-  const APerspectiveViewAngles: TVector2Single);
+  const APerspectiveAngles: TVector2Single);
 begin
   inherited Create(ACamPosition, ACamDirection, ACamUp);
 
-  PerspectiveViewAngles := APerspectiveViewAngles;
+  PerspectiveAngles := APerspectiveAngles;
 
   { calculate window parameters, ignoring camera settings.
     We assume distance to projection plane is 1 (this simplifies some calculations,
@@ -212,8 +244,8 @@ begin
     of this class).
     We know that WindowWidth / 2 = Tan(ViewAngleX / 2).
     From this, equations below follow. }
-  WindowWidth  := Tan(DegToRad(PerspectiveViewAngles[0]) / 2) * 2;
-  WindowHeight := Tan(DegToRad(PerspectiveViewAngles[1]) / 2) * 2;
+  WindowWidth  := Tan(DegToRad(PerspectiveAngles[0]) / 2) * 2;
+  WindowHeight := Tan(DegToRad(PerspectiveAngles[1]) / 2) * 2;
 end;
 
 procedure TPerspectiveRaysWindow.PrimaryRay(const x, y: Single;
@@ -240,10 +272,10 @@ end;
 
 constructor TOrthographicRaysWindow.Create(
   const ACamPosition, ACamDirection, ACamUp: TVector3Single;
-  const AOrthoViewDimensions: TVector4Single);
+  const AOrthoDimensions: TVector4Single);
 begin
   inherited Create(ACamPosition, ACamDirection, ACamUp);
-  OrthoViewDimensions := AOrthoViewDimensions;
+  OrthoDimensions := AOrthoDimensions;
 end;
 
 procedure TOrthographicRaysWindow.PrimaryRay(const x, y: Single;
@@ -252,9 +284,9 @@ procedure TOrthographicRaysWindow.PrimaryRay(const x, y: Single;
 begin
   RayOrigin := CamPosition;
   RayOrigin += VectorScale(CamSide, MapRange(X + 0.5, 0, ScreenWidth,
-    OrthoViewDimensions[0], OrthoViewDimensions[2]));
+    OrthoDimensions[0], OrthoDimensions[2]));
   RayOrigin += VectorScale(CamUp, MapRange(Y + 0.5, 0, ScreenHeight,
-    OrthoViewDimensions[1], OrthoViewDimensions[3]));
+    OrthoDimensions[1], OrthoDimensions[3]));
 
   { CamDirection must already be normalized, so RayDirection is normalized too }
   RayDirection := CamDirection;
@@ -264,15 +296,13 @@ end;
 
 procedure PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Integer;
   const CamPosition, CamDirection, CamUp: TVector3Single;
-  const PerspectiveView: boolean;
-  const PerspectiveViewAngles: TVector2Single;
-  const OrthoViewDimensions: TVector4Single;
+  const Projection: TProjection;
   out RayOrigin, RayDirection: TVector3Single);
 var
   RaysWindow: TRaysWindow;
 begin
   RaysWindow := TRaysWindow.CreateDescendant(CamPosition, CamDirection, CamUp,
-    PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions);
+    Projection);
   try
     RaysWindow.PrimaryRay(x, y, ScreenWidth, ScreenHeight, RayOrigin, RayDirection);
   finally RaysWindow.Free end;

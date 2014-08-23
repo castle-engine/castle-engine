@@ -26,7 +26,8 @@ uses
   X3DFields, X3DNodes, CastleClassUtils, CastleUtils,
   CastleShapes, CastleTriangleOctree, CastleProgress, CastleOctree, CastleShapeOctree,
   CastleKeysMouse, X3DTime, CastleCameras, X3DTriangles, Contnrs,
-  CastleRenderingCamera, Castle3D, X3DShadowMaps, FGL, CastleGenericLists;
+  CastleRenderingCamera, Castle3D, X3DShadowMaps, FGL, CastleGenericLists,
+  CastleRays;
 
 type
   TTriangle3SingleList = specialize TGenericStructList<TTriangle3Single>;

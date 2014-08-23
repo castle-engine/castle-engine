@@ -536,7 +536,7 @@ begin
 
     Note that usually there's no need to initialize TCastleViewport
     or TCastleSceneManager.Camera: they are initialized automatically
-    at first ApplyProjection (before rendering) or LoadLevel,
+    when needed (usually at first render) or at LoadLevel,
     using camera properties from level 3D file (TCastleSceneManager.MainScene). }
   if ExtraViewport.Camera = nil then
     ExtraViewport.Camera := SceneManager.CreateDefaultCamera(ExtraViewport);

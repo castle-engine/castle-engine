@@ -303,8 +303,8 @@ function T3DTerrain.BoundingBox: TBox3D;
 { Instead of trying to figure out what is a suitable bounding box,
   just assume we fill the whole 3D space.
   It must be large to always consider terrain within frustum,
-  and to force TCastleSceneManager.ApplyProjection to have sufficiently
-  large ProjectionFar. }
+  and to force TCastleSceneManager.Projection implementation
+  to calculate sufficiently large ProjectionFar. }
 const
   M = 10000;
   InfiniteBox: TBox3D = (Data:((-M, -M, -M), (M, M, M)));
@@ -630,7 +630,6 @@ begin
       end;
     120:
       begin
-        { updating SceneManager.Camera will cause ApplyProjection automatically }
         if SceneManager.Camera = ExamineCamera then
           SceneManager.Camera := WalkCamera else
           SceneManager.Camera := ExamineCamera;

@@ -136,6 +136,10 @@ procedure TGLContainer.EventRender;
 var
   AnythingWants2D: boolean;
 begin
+  { Required to make DrawRectangle and TGLImage.Draw correct. }
+  Viewport2DSize[0] := Width;
+  Viewport2DSize[1] := Height;
+
   Render3D(AnythingWants2D);
 
   if AnythingWants2D then

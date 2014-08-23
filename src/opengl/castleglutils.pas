@@ -465,7 +465,6 @@ property ProjectionMatrix: TMatrix4Single
   read GetProjectionMatrix write SetProjectionMatrix;
 
 { Set ProjectionMatrix to perspective or orthogonal.
-  OrthoProjection also sets Viewport2DSize.
 
   For PerspectiveProjection, ZFar may have special ZFarInfinity value
   to create a perspective projection with far plane set at infinity.
@@ -477,7 +476,11 @@ function OrthoProjection(const left, right, bottom, top: Single;
   const zNear: Single = -1; const zFar: Single = 1): TMatrix4Single;
 { @groupEnd }
 
-function Viewport2DSize: TVector2Single;
+var
+  { Viewport size for 2D rendering functions: DrawRectangle and TGLImage.Draw.
+    UI container (like TCastleWindowCustom or TCastleControlCustom)
+    must take care to set this before rendering. }
+  Viewport2DSize: TVector2Single;
 
 { ---------------------------------------------------------------------------- }
 
@@ -1269,20 +1272,10 @@ begin
   ProjectionMatrix := Result;
 end;
 
-var
-  FViewport2DSize: TVector2Single;
-
 function OrthoProjection(const left, right, bottom, top, zNear, zFar: Single): TMatrix4Single;
 begin
   Result := OrthoProjMatrix(left, right, bottom, top, zNear, zFar);
-  FViewport2DSize[0] := Right - Left;
-  FViewport2DSize[1] := Top - Bottom;
   ProjectionMatrix := Result;
-end;
-
-function Viewport2DSize: TVector2Single;
-begin
-  Result := FViewport2DSize;
 end;
 
 { Various helpers ------------------------------------------------------------ }

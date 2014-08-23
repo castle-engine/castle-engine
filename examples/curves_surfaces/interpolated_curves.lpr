@@ -125,9 +125,8 @@ procedure SetApproxCurve; forward;
   Frees ApproxCurve,
   Creates new PreciseCurve,
   does SetApproxCurve,
-  then (because PreciseCurve.BoundingBox changed)
-    releases SceneManager.Camera. This will cause SceneManager to set
-    ApplyProjectionNeeded := true, and next ApplyProjection will set
+  then (because PreciseCurve.BoundingBox changed) releases SceneManager.Camera.
+    This will cause SceneManager to recreate
     camera and projection suitable for current BoundingBox.
   Window.Invalidate;
 

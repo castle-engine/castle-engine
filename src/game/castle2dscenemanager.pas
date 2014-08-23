@@ -19,7 +19,7 @@ unit Castle2DSceneManager;
 interface
 
 uses Classes,
-  CastleScene, CastleSceneManager, CastleUIControls, CastleCameras;
+  CastleScene, CastleSceneManager, CastleUIControls, CastleCameras, CastleRays;
 
 type
   { Scene manager best suited for 2D worlds.
@@ -45,7 +45,7 @@ type
     ) }
   T2DSceneManager = class(TCastleSceneManager)
   protected
-    procedure ApplyProjection; override;
+    function CalculateProjection: TProjection; override;
   public
     property RenderStyle default rs2D;
     constructor Create(AOwner: TComponent); override;
@@ -86,29 +86,16 @@ begin
   Result := UCamera;
 end;
 
-procedure T2DSceneManager.ApplyProjection;
+function T2DSceneManager.CalculateProjection: TProjection;
 begin
-  if Camera = nil then
-    Camera := CreateDefaultCamera(Self);
-
-  FPerspectiveView := false;
-  { default FOrthoViewDimensions, when not OrthoViewpoint }
-  FOrthoViewDimensions[0] := 0;
-  FOrthoViewDimensions[1] := 0;
-  FOrthoViewDimensions[2] := ContainerWidth;
-  FOrthoViewDimensions[3] := ContainerHeight;
-  FProjectionNear := -1;
-  FProjectionFar := 1;
-  FProjectionFarFinite := FProjectionFar;
-
-  Camera.ProjectionMatrix := OrthoProjection(
-    { Beware: order of OrthoViewpoint.fieldOfView and FOrthoViewDimensions
-      is different than typical OpenGL and our OrthoProjection params. }
-    FOrthoViewDimensions[0],
-    FOrthoViewDimensions[2],
-    FOrthoViewDimensions[1],
-    FOrthoViewDimensions[3],
-    FProjectionNear, FProjectionFar);
+  Result.ProjectionType := ptOrthographic;
+  Result.OrthoDimensions[0] := 0;
+  Result.OrthoDimensions[1] := 0;
+  Result.OrthoDimensions[2] := ContainerWidth;
+  Result.OrthoDimensions[3] := ContainerHeight;
+  Result.ProjectionNear := -1;
+  Result.ProjectionFar := 1;
+  Result.ProjectionFarFinite := Result.ProjectionFar;
 end;
 
 { T2DScene --------------------------------------------------------------- }

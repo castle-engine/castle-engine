@@ -52,7 +52,7 @@ var
 
 type
   TGameSceneManager = class(TRiftSceneManager)
-    procedure ApplyProjection; override;
+    function CalculateProjection: TProjection; override;
     procedure Render3D(const Params: TRenderParams); override;
     procedure RenderShadowVolume; override;
     function MainLightForShadows(out AMainLightPosition: TVector4Single): boolean; override;
@@ -61,6 +61,7 @@ type
 procedure TGameSceneManager.Render3D(const Params: TRenderParams);
 var
   H: TLightInstance;
+  SavedProjectionMatrix: TMatrix4Single;
 begin
   { This whole rendering is considered as opaque
     (CurrentLocation is rendered only to depth buffer,
@@ -86,6 +87,7 @@ begin
     {$ifndef OpenGLES} //TODO-es
     if DebugScene3DDisplay <> 2 then
     begin
+      SavedProjectionMatrix := ProjectionMatrix;
       OrthoProjection(0, Window.Width, 0, Window.Height); // need 2D projection
       glPushMatrix; // TGLImage.Draw will reset matrix, so save it
         glPushAttrib(GL_ENABLE_BIT);
@@ -104,7 +106,7 @@ begin
             CurrentLocation.GLImage.Draw(0, 0);
         glPopAttrib;
       glPopMatrix;
-      ApplyProjection; // restore 3D projection
+      ProjectionMatrix := SavedProjectionMatrix; // restore 3D projection
     end;
     {$endif}
 
@@ -139,19 +141,22 @@ begin
   Result := true;
 end;
 
-procedure TGameSceneManager.ApplyProjection;
-var
-  ZFar: TGLfloat;
+function TGameSceneManager.CalculateProjection: TProjection;
 begin
+  Result.ProjectionType := ptPerspective;
+  Result.PerspectiveAngles[0] := AngleOfViewX;
+  Result.PerspectiveAngles[1] := AngleOfViewY;
+  Result.ProjectionNear := 0.01;
+  Result.ProjectionFarFinite := 100;
   if GLFeatures.ShadowVolumesPossible and ShadowVolumes then
-    ZFar := ZFarInfinity else
-    ZFar := 100;
-
-  SceneCamera.ProjectionMatrix := PerspectiveProjection(
-    AngleOfViewY, Window.Width / Window.Height, 0.01, ZFar);
+    Result.ProjectionFar := ZFarInfinity else
+    Result.ProjectionFar := Result.ProjectionFarFinite;
 end;
 
 { rest ----------------------------------------------------------------------- }
+
+var
+  SceneManager: TGameSceneManager;
 
 procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 var
@@ -188,9 +193,7 @@ begin
         if Event.MouseButton = mbLeft then
         begin
           SceneCamera.CustomRay(Window.Rect, Window.MousePosition,
-            { Always uses perspective projection, for now }
-            true, Vector2Single(AngleOfViewX, AngleOfViewY), ZeroVector4Single,
-            RayOrigin, RayDirection);
+            SceneManager.Projection, RayOrigin, RayDirection);
           if CurrentLocation.Scene.OctreeCollisions.RayCollision(
                SelectedPoint, RayOrigin, RayDirection, true, nil, false, nil) <> nil then
           begin
@@ -260,7 +263,6 @@ end;
 procedure Play;
 var
   SavedMode: TGLMode;
-  SceneManager: TGameSceneManager;
 begin
   Notifications.Clear;
 

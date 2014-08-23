@@ -14,9 +14,6 @@
 }
 
 {$ifdef read_interface}
-  { }
-  TProjectionType = (ptOrthographic, ptPerspective);
-
   { Common ancestor for both VRML 1.0 camera nodes and VRML/X3D >= 2.0 viewpoint
     nodes. }
   TAbstractViewpointNode = class(TAbstractBindableNode)
@@ -896,30 +893,30 @@ end;
 
 function TOrthoViewpointNode.ProjectionMatrix: TMatrix4Single;
 var
-  OrthoViewDimensions: TVector4Single;
+  OrthoDimensions: TVector4Single;
 begin
-  { default OrthoViewDimensions, for OrthoViewpoint }
-  OrthoViewDimensions[0] := -1;
-  OrthoViewDimensions[1] := -1;
-  OrthoViewDimensions[2] :=  1;
-  OrthoViewDimensions[3] :=  1;
+  { default OrthoDimensions, for OrthoViewpoint }
+  OrthoDimensions[0] := -1;
+  OrthoDimensions[1] := -1;
+  OrthoDimensions[2] :=  1;
+  OrthoDimensions[3] :=  1;
 
-  if FdFieldOfView.Items.Count > 0 then OrthoViewDimensions[0] := FdFieldOfView.Items[0];
-  if FdFieldOfView.Items.Count > 1 then OrthoViewDimensions[1] := FdFieldOfView.Items[1];
-  if FdFieldOfView.Items.Count > 2 then OrthoViewDimensions[2] := FdFieldOfView.Items[2];
-  if FdFieldOfView.Items.Count > 3 then OrthoViewDimensions[3] := FdFieldOfView.Items[3];
+  if FdFieldOfView.Items.Count > 0 then OrthoDimensions[0] := FdFieldOfView.Items[0];
+  if FdFieldOfView.Items.Count > 1 then OrthoDimensions[1] := FdFieldOfView.Items[1];
+  if FdFieldOfView.Items.Count > 2 then OrthoDimensions[2] := FdFieldOfView.Items[2];
+  if FdFieldOfView.Items.Count > 3 then OrthoDimensions[3] := FdFieldOfView.Items[3];
 
   { TODO: for currently bound viewpoint, we should honour
     fieldOfView and aspect ratio of current window,
     by calling AspectFieldOfView. }
 
   Result := OrthoProjMatrix(
-    { Beware: order of OrthoViewpoint.fieldOfView and OrthoViewDimensions
+    { Beware: order of OrthoViewpoint.fieldOfView and OrthoDimensions
       is different than typical OpenGL and our OrthoProjMatrix params. }
-    OrthoViewDimensions[0],
-    OrthoViewDimensions[2],
-    OrthoViewDimensions[1],
-    OrthoViewDimensions[3],
+    OrthoDimensions[0],
+    OrthoDimensions[2],
+    OrthoDimensions[1],
+    OrthoDimensions[3],
     1, 100); { TODO: near, far projection testing values }
 end;
 

@@ -24,7 +24,8 @@ uses Classes, CastleVectors, X3DNodes, CastleScene, CastleSceneCore, CastleCamer
   CastleGLShadowVolumes, CastleUIControls, Castle3D, CastleTriangles,
   CastleKeysMouse, CastleBoxes, CastleBackground, CastleUtils, CastleClassUtils,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, FGL, CastleSectors,
-  CastleInputs, CastlePlayer, CastleRectangles, CastleColors, CastleGL;
+  CastleInputs, CastlePlayer, CastleRectangles, CastleColors, CastleGL,
+  CastleRays;
 
 type
   TCastleAbstractViewport = class;
@@ -105,10 +106,11 @@ type
 
     { Set these to non-1 to deliberately distort field of view / aspect ratio.
       This is useful for special effects when you want to create unrealistic
-      projection. Used only by ApplyProjection. For now, used only in perspective
-      projection. }
+      projection. Used by ApplyProjection. }
     DistortFieldOfViewY, DistortViewAspect: Single;
     SickProjectionTime: TFloatTime;
+
+    FProjection: TProjection;
 
     procedure ItemsAndCameraCursorChange(Sender: TObject);
     function PlayerNotBlocked: boolean;
@@ -123,38 +125,36 @@ type
       before we render to the actual screen,
       we may render a couple times to a texture by a framebuffer.
 
-      Always call ApplyProjection right before this, to set correct projection matrix.
-      And before ApplyProjection you should also call UpdateGeneratedTexturesIfNeeded. }
+      Always call ApplyProjection right before this, to set correct
+      projection matrix. And before ApplyProjection you should also
+      call UpdateGeneratedTexturesIfNeeded. }
     procedure RenderOnScreen(ACamera: TCamera);
 
     procedure RenderWithScreenEffectsCore;
     function RenderWithScreenEffects: boolean;
-  protected
-    { These variables are writeable from overridden ApplyProjection. }
-    FPerspectiveView: boolean;
-    FPerspectiveViewAngles: TVector2Single;
-    FOrthoViewDimensions: TVector4Single;
-    FProjectionNear: Single;
-    FProjectionFar : Single;
-    FProjectionFarFinite: Single;
 
-    { Sets OpenGL projection matrix, based on MainScene's
-      currently bound Viewpoint, NavigationInfo and used @link(Camera).
+    { Set the projection parameters and matrix.
+      Used by our Render method.
+
+      This cooperates closely with current @link(Camera) definition.
       Viewport's @link(Camera), if not assigned, is automatically created here,
       see @link(Camera) and CreateDefaultCamera.
+      This takes care to always update Camera.ProjectionMatrix,
+      Projection, GetMainScene.BackgroundSkySphereRadius.
+      In turn, this expects Camera.Radius to be already properly set
+      (usually by CreateDefaultCamera). }
+    procedure ApplyProjection;
+  protected
+    { The projection parameters. Determines if the view is perspective
+      or orthogonal and exact field of view parameters.
+      Used by our Render method.
+
+      The default implementation is TCastleAbstractViewport
+      calculates projection based on MainScene currently bound Viewpoint,
+      NavigationInfo and used @link(Camera).
       If scene manager's MainScene is not assigned, we use some default
-      sensible perspective projection.
-
-      Takes care of updating Camera.ProjectionMatrix,
-      PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
-      ProjectionNear, ProjectionFar, ProjectionFarFinite,
-      GetMainScene.BackgroundSkySphereRadius.
-
-      This is automatically called at the beginning of our Render method,
-      if it's needed.
-
-      Requires Camera.Radius to be already properly set. }
-    procedure ApplyProjection; virtual;
+      sensible perspective projection. }
+    function CalculateProjection: TProjection; virtual;
 
     { Render one pass, with current camera and parameters.
       All current camera settings are saved in RenderingCamera,
@@ -279,39 +279,6 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { Camera projection properties.
-
-      When PerspectiveView is @true, then PerspectiveViewAngles
-      specify angles of view (horizontal and vertical), in degrees.
-      When PerspectiveView is @false, then OrthoViewDimensions
-      specify dimensions of ortho window (in the order: -X, -Y, +X, +Y,
-      just like X3D OrthoViewpoint.fieldOfView).
-
-      Set by every ApplyProjection call.
-
-      @groupBegin }
-    property PerspectiveView: boolean read FPerspectiveView write FPerspectiveView;
-    property PerspectiveViewAngles: TVector2Single read FPerspectiveViewAngles write FPerspectiveViewAngles;
-    property OrthoViewDimensions: TVector4Single read FOrthoViewDimensions write FOrthoViewDimensions;
-    { @groupEnd }
-
-    { Projection near/far values. ApplyProjection calculates it.
-
-      Note that ProjectionFar may be ZFarInfinity, which means that no far
-      clipping plane is used. For example, shadow volumes require this.
-
-      If you really need to know "what would be projection far,
-      if it could not be infinite" look at ProjectionFarFinite.
-      ProjectionFarFinite is calculated just like ProjectionFar
-      (looking at scene size, NavigationInfo.visibilityLimit and such),
-      except it's never changed to be ZFarInfinity.
-
-      @groupBegin }
-    property ProjectionNear: Single read FProjectionNear;
-    property ProjectionFar : Single read FProjectionFar ;
-    property ProjectionFarFinite: Single read FProjectionFarFinite;
-    { @groupEnd }
-
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
     function PositionInside(const Position: TVector2Single): boolean; override;
     property RenderStyle default rs3D;
@@ -324,6 +291,11 @@ type
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
+
+    { Current projection parameters,
+      calculated by last @link(CalculateProjection) call.
+      @bold(Read only), change these parameters only by overriding CalculateProjection. }
+    property Projection: TProjection read FProjection;
 
     { Position and size of the viewport, assuming it exists.
 
@@ -636,7 +608,9 @@ type
     { Visibility limit of your 3D world. This is the distance the far projection
       clipping plane.
 
-      Our @link(ApplyProjection) calculates the final visibility limit as follows:
+      The default @link(CalculateProjection) implementation
+      calculates the final visibility limit as follows:
+
       @unorderedList(
         @item(First of all, if (GLFeatures.ShadowVolumesPossible and ShadowVolumes),
           then it's infinity.)
@@ -945,7 +919,8 @@ type
           @italic(Notes for implementing descendants of this class:)
           You can change this by overriding MainLightForShadows method.)
 
-        @item Determines OpenGL projection for the scene, see ApplyProjection.
+        @item(Determines projection for viewing (if you use
+          default @link(CalculateProjection) implementation).)
 
         @item(Synchronizes our @link(Camera) with VRML/X3D viewpoints
           and navigation info.
@@ -1171,7 +1146,7 @@ var
 
 implementation
 
-uses SysUtils, CastleRenderingCamera, CastleGLUtils, CastleProgress, CastleRays,
+uses SysUtils, CastleRenderingCamera, CastleGLUtils, CastleProgress,
   CastleLog, CastleStringUtils, CastleSoundEngine, Math,
   X3DTriangles, CastleGLVersion, CastleShapes, CastleScreenEffects;
 
@@ -1443,9 +1418,7 @@ begin
     Result := Camera.Motion(Event);
     if not Result then
     begin
-      Camera.CustomRay(Rect, Event.Position,
-        PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
-        RayOrigin, RayDirection);
+      Camera.CustomRay(Rect, Event.Position, FProjection, RayOrigin, RayDirection);
       { TODO: do Result := PointingDeviceMove below? }
       PointingDeviceMove(RayOrigin, RayDirection);
     end;
@@ -1555,6 +1528,56 @@ end;
 
 procedure TCastleAbstractViewport.ApplyProjection;
 var
+  Viewport: TRectangle;
+begin
+  if Camera = nil then
+    Camera := CreateDefaultCamera(Self);
+  { We need to know container size now. }
+  Assert(ContainerSizeKnown, ClassName + ' did not receive ContainerResize event yet, cannnot apply OpenGL projection');
+
+  Viewport := Rect;
+  glViewport(Viewport);
+
+  FProjection := CalculateProjection;
+
+  { Apply new FProjection values }
+
+  case FProjection.ProjectionType of
+    ptPerspective:
+      Camera.ProjectionMatrix := PerspectiveProjection(
+        DistortFieldOfViewY * FProjection.PerspectiveAngles[1],
+        DistortViewAspect * Viewport.Width / Viewport.Height,
+        FProjection.ProjectionNear,
+        FProjection.ProjectionFar);
+    ptOrthographic:
+      Camera.ProjectionMatrix := OrthoProjection(
+        { Beware: order of OrthoViewpoint.fieldOfView and OrthoDimensions
+          is different than typical OpenGL and our OrthoProjection params. }
+        FProjection.OrthoDimensions[0],
+        FProjection.OrthoDimensions[2],
+        FProjection.OrthoDimensions[1],
+        FProjection.OrthoDimensions[3],
+        FProjection.ProjectionNear,
+        FProjection.ProjectionFarFinite);
+    else raise EInternalError.Create('TCastleAbstractViewport.ApplyProjection:ProjectionType?');
+  end;
+
+  { Calculate BackgroundSkySphereRadius here,
+    using ProjectionFar that is *not* ZFarInfinity }
+  if GetMainScene <> nil then
+  begin
+    GetMainScene.BackgroundSkySphereRadius :=
+      TBackground.NearFarToSkySphereRadius(
+        FProjection.ProjectionNear,
+        FProjection.ProjectionFarFinite,
+        GetMainScene.BackgroundSkySphereRadius);
+    writeln('GetMainScene.BackgroundSkySphereRadius : ',
+      GetMainScene.BackgroundSkySphereRadius:1:10);
+  end;
+end;
+
+function TCastleAbstractViewport.CalculateProjection: TProjection;
+var
   Box: TBox3D;
   Viewport: TRectangle;
   ViewpointNode: TAbstractViewpointNode;
@@ -1564,17 +1587,11 @@ var
   begin
     { Only perspective projection supports z far in infinity. }
     if GLFeatures.ShadowVolumesPossible and ShadowVolumes then
-      FProjectionFar := ZFarInfinity;
+      Result.ProjectionFar := ZFarInfinity;
 
-    FPerspectiveView := true;
-    { PerspectiveViewAngles is already calculated here.
-      For now, we calculate correct PerspectiveViewAngles regardless
+    { Note that Result.PerspectiveAngles is already calculated here,
+      because we calculate correct PerspectiveAngles regardless
       of whether we actually apply perspective or orthogonal projection. }
-
-    Camera.ProjectionMatrix := PerspectiveProjection(
-      DistortFieldOfViewY * PerspectiveViewAngles[1],
-      DistortViewAspect * Viewport.Width / Viewport.Height,
-      ProjectionNear, ProjectionFar);
   end;
 
   procedure DoOrthographic;
@@ -1584,64 +1601,46 @@ var
   begin
     MaxSize := Box.MaxSize(false, { any dummy value } 1.0);
 
-    FPerspectiveView := false;
+    { default Result.OrthoDimensions, when not OrthoViewpoint }
+    Result.OrthoDimensions[0] := -MaxSize / 2;
+    Result.OrthoDimensions[1] := -MaxSize / 2;
+    Result.OrthoDimensions[2] :=  MaxSize / 2;
+    Result.OrthoDimensions[3] :=  MaxSize / 2;
 
-    { default FOrthoViewDimensions, when not OrthoViewpoint }
-    FOrthoViewDimensions[0] := -MaxSize / 2;
-    FOrthoViewDimensions[1] := -MaxSize / 2;
-    FOrthoViewDimensions[2] :=  MaxSize / 2;
-    FOrthoViewDimensions[3] :=  MaxSize / 2;
-
-    { update FOrthoViewDimensions using OrthoViewpoint.fieldOfView }
+    { update OrthoDimensions using OrthoViewpoint.fieldOfView }
     if (ViewpointNode <> nil) and
        (ViewpointNode is TOrthoViewpointNode) then
     begin
-      { default FOrthoViewDimensions, for OrthoViewpoint }
-      FOrthoViewDimensions[0] := -1;
-      FOrthoViewDimensions[1] := -1;
-      FOrthoViewDimensions[2] :=  1;
-      FOrthoViewDimensions[3] :=  1;
+      { default OrthoDimensions, for OrthoViewpoint }
+      Result.OrthoDimensions[0] := -1;
+      Result.OrthoDimensions[1] := -1;
+      Result.OrthoDimensions[2] :=  1;
+      Result.OrthoDimensions[3] :=  1;
 
       FieldOfView := TOrthoViewpointNode(ViewpointNode).FdFieldOfView.Items;
-      if FieldOfView.Count > 0 then FOrthoViewDimensions[0] := FieldOfView.Items[0];
-      if FieldOfView.Count > 1 then FOrthoViewDimensions[1] := FieldOfView.Items[1];
-      if FieldOfView.Count > 2 then FOrthoViewDimensions[2] := FieldOfView.Items[2];
-      if FieldOfView.Count > 3 then FOrthoViewDimensions[3] := FieldOfView.Items[3];
+      if FieldOfView.Count > 0 then Result.OrthoDimensions[0] := FieldOfView.Items[0];
+      if FieldOfView.Count > 1 then Result.OrthoDimensions[1] := FieldOfView.Items[1];
+      if FieldOfView.Count > 2 then Result.OrthoDimensions[2] := FieldOfView.Items[2];
+      if FieldOfView.Count > 3 then Result.OrthoDimensions[3] := FieldOfView.Items[3];
     end else
     if (ViewpointNode <> nil) and
        (ViewpointNode is TOrthographicCameraNode_1) then
     begin
-      FOrthoViewDimensions[0] := -TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
-      FOrthoViewDimensions[1] := -TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
-      FOrthoViewDimensions[2] :=  TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
-      FOrthoViewDimensions[3] :=  TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
+      Result.OrthoDimensions[0] := -TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
+      Result.OrthoDimensions[1] := -TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
+      Result.OrthoDimensions[2] :=  TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
+      Result.OrthoDimensions[3] :=  TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
     end;
 
-    TOrthoViewpointNode.AspectFieldOfView(FOrthoViewDimensions,
+    TOrthoViewpointNode.AspectFieldOfView(Result.OrthoDimensions,
       Viewport.Width / Viewport.Height);
-
-    Camera.ProjectionMatrix := OrthoProjection(
-      { Beware: order of OrthoViewpoint.fieldOfView and FOrthoViewDimensions
-        is different than typical OpenGL and our OrthoProjection params. }
-      FOrthoViewDimensions[0],
-      FOrthoViewDimensions[2],
-      FOrthoViewDimensions[1],
-      FOrthoViewDimensions[3],
-      FProjectionNear, FProjectionFar);
   end;
 
 var
   ProjectionType: TProjectionType;
 begin
-  if Camera = nil then
-    Camera := CreateDefaultCamera(Self);
-
-  { We need to know container size now. }
-  Assert(ContainerSizeKnown, ClassName + ' did not receive ContainerResize event yet, cannnot apply OpenGL projection');
-
   Box := GetItems.BoundingBox;
   Viewport := Rect;
-  glViewport(Viewport);
 
   { calculate ViewpointNode }
   if GetMainScene <> nil then
@@ -1656,31 +1655,31 @@ begin
     PerspectiveFieldOfView := TPerspectiveCameraNode_1(ViewpointNode).FdHeightAngle.Value else
     PerspectiveFieldOfView := DefaultViewpointFieldOfView;
 
-  FPerspectiveViewAngles[0] := RadToDeg(TViewpointNode.ViewpointAngleOfView(
+  Result.PerspectiveAngles[0] := RadToDeg(TViewpointNode.ViewpointAngleOfView(
     PerspectiveFieldOfView, Viewport.Width / Viewport.Height));
 
-  FPerspectiveViewAngles[1] := AdjustViewAngleDegToAspectRatio(
-    PerspectiveViewAngles[0], Viewport.Height / Viewport.Width);
+  Result.PerspectiveAngles[1] := AdjustViewAngleDegToAspectRatio(
+    Result.PerspectiveAngles[0], Viewport.Height / Viewport.Width);
 
   { Tests:
-    Writeln(Format('Angle of view: x %f, y %f', [PerspectiveViewAngles[0], PerspectiveViewAngles[1]])); }
+    Writeln(Format('Angle of view: x %f, y %f', [PerspectiveAngles[0], PerspectiveAngles[1]])); }
 
   Assert(Camera.Radius > 0, 'Camera.Radius must be > 0 when using TCastleAbstractViewport.ApplyProjection');
-  FProjectionNear := Camera.Radius * 0.6;
+  Result.ProjectionNear := Camera.Radius * 0.6;
 
-  { calculate FProjectionFar, algorithm documented at DefaultVisibilityLimit }
-  FProjectionFar := 0;
+  { calculate Result.ProjectionFar, algorithm documented at DefaultVisibilityLimit }
+  Result.ProjectionFar := 0;
   if (GetMainScene <> nil) and
      (GetMainScene.NavigationInfoStack.Top <> nil) then
-    FProjectionFar := GetMainScene.NavigationInfoStack.Top.FdVisibilityLimit.Value;
-  if FProjectionFar <= 0 then
-    FProjectionFar := DefaultVisibilityLimit;
-  if FProjectionFar <= 0 then
-    FProjectionFar := Box.AverageSize(false,
+    Result.ProjectionFar := GetMainScene.NavigationInfoStack.Top.FdVisibilityLimit.Value;
+  if Result.ProjectionFar <= 0 then
+    Result.ProjectionFar := DefaultVisibilityLimit;
+  if Result.ProjectionFar <= 0 then
+    Result.ProjectionFar := Box.AverageSize(false,
       { When box is empty (or has 0 sizes), ProjectionFar is not simply "any dummy value".
         It must be appropriately larger than ProjectionNear
         to provide sufficient space for rendering Background node. }
-      FProjectionNear) * 20.0;
+      Result.ProjectionNear) * 20.0;
 
   { At some point, I was using here larger projection near when
     (ACamera is TExamineCamera). Reasoning: you do not get so close
@@ -1693,21 +1692,16 @@ begin
     ProjectionType := ViewpointNode.ProjectionType else
     ProjectionType := ptPerspective;
 
-  { Calculate BackgroundSkySphereRadius here,
-    using ProjectionFar that is *not* ZFarInfinity }
-  if GetMainScene <> nil then
-    GetMainScene.BackgroundSkySphereRadius :=
-      TBackground.NearFarToSkySphereRadius(FProjectionNear, FProjectionFar,
-        GetMainScene.BackgroundSkySphereRadius);
-
   { update ProjectionFarFinite.
     ProjectionFar may be later changed to ZFarInfinity. }
-  FProjectionFarFinite := FProjectionFar;
+  Result.ProjectionFarFinite := Result.ProjectionFar;
+
+  Result.ProjectionType := ProjectionType;
 
   case ProjectionType of
     ptPerspective: DoPerspective;
     ptOrthographic: DoOrthographic;
-    else EInternalError.Create('TCastleScene.GLProjectionCore-ProjectionType?');
+    else EInternalError.Create('TCastleAbstractViewport.Projection-ProjectionType?');
   end;
 end;
 
@@ -1902,19 +1896,21 @@ begin
       glLoadMatrix(RenderingCamera.RotationMatrix);
       {$endif}
 
-      { The background rendering doesn't like custom OrthoViewDimensions.
+      { The background rendering doesn't like custom OrthoDimensions.
         They could make the background sky box very small, such that it
         doesn't fill the screen. See e.g. x3d/empty_with_background_ortho.x3dv
         testcase. So temporary set good perspective projection. }
-      if not PerspectiveView then
+      if FProjection.ProjectionType = ptOrthographic then
       begin
         SavedProjectionMatrix := ProjectionMatrix;
-        PerspectiveProjection(45, Rect.Width / Rect.Height, ProjectionNear, ProjectionFar);
+        PerspectiveProjection(45, Rect.Width / Rect.Height,
+          FProjection.ProjectionNear,
+          FProjection.ProjectionFar);
       end;
 
       UsedBackground.Render(BackgroundWireframe, RenderingCamera.Frustum);
 
-      if not PerspectiveView then
+      if FProjection.ProjectionType = ptOrthographic then
         ProjectionMatrix := SavedProjectionMatrix;
     end else
     begin
@@ -2914,8 +2910,9 @@ begin
       This could be moved to PrepareResources without problems, but we want
       time needed to render textures be summed into "FPS frame time". }
     Items.UpdateGeneratedTextures(@RenderFromViewEverything,
-      ChosenViewport.ProjectionNear,
-      ChosenViewport.ProjectionFar, ChosenViewport.Rect);
+      ChosenViewport.FProjection.ProjectionNear,
+      ChosenViewport.FProjection.ProjectionFar,
+      ChosenViewport.Rect);
   end;
 end;
 
@@ -2972,8 +2969,7 @@ var
     RayHit: TRayCollision;
   begin
     Camera.CustomRay(Rect, MousePosition + Change,
-      PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
-      RayOrigin, RayDirection);
+      FProjection, RayOrigin, RayDirection);
 
     RayHit := CameraRayCollision(RayOrigin, RayDirection);
 

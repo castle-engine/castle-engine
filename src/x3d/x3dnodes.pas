@@ -177,7 +177,7 @@ uses CastleVectors, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
   CastleVideos, X3DTime, Castle3D, CastleMaterialProperties,
   CastleScript, X3DCastleScript, CastleOctree, CastleDDS, CastleTextureImages,
   XMLRead, DOM, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
-  FGL, CastleGenericLists, CastleShaders;
+  FGL, CastleGenericLists, CastleShaders, CastleRays;
 
 {$define read_interface}
 
@@ -2170,7 +2170,7 @@ uses
   CastleOutlineFont_BVSerif_Bold_Italic,
 
   Math, X3DLoad, CastleZStream, X3DCameraUtils, CastleWarnings, CastleColors,
-  CastleFilesUtils, CastleRays, StrUtils, CastleURIUtils,
+  CastleFilesUtils, StrUtils, CastleURIUtils,
   CastleLog, CastleScriptParser, CastleDataURI, URIParser, CastleDownload,
   CastleNURBS, CastleQuaternions, CastleCameras, CastleXMLUtils, CastleOpenDocument;
 

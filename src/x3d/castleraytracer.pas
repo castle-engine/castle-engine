@@ -77,13 +77,8 @@ type
       to CamDirection. }
     CamPosition, CamDirection, CamUp: TVector3Single;
 
-    { Camera projection properties.
-      See TCastleSceneManager.PerspectiveView for specification.
-      @groupBegin }
-    PerspectiveView: boolean;
-    PerspectiveViewAngles: TVector2Single;
-    OrthoViewDimensions: TVector4Single;
-    { @groupEnd }
+    { Camera projection properties. }
+    Projection: TProjection;
 
     SceneBGColor: TVector3Single;
 
@@ -530,8 +525,7 @@ begin
   SFCurve := nil;
   try
     RaysWindow := TRaysWindow.CreateDescendant(CamPosition,
-      Normalized(CamDirection), Normalized(CamUp),
-      PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions);
+      Normalized(CamDirection), Normalized(CamUp), Projection);
 
     { Using any other kind of space filling curve doesn't have any
       noticeable impact right now for classic ray tracer, since
@@ -1160,8 +1154,7 @@ begin
 
     { calculate RaysWindow }
     RaysWindow := TRaysWindow.CreateDescendant(CamPosition,
-      Normalized(CamDirection), Normalized(CamUp),
-      PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions);
+      Normalized(CamDirection), Normalized(CamUp), Projection);
 
     { calculate SFCurve }
     SFCurve := SFCurveClass.Create(Image.Width, Image.Height);
