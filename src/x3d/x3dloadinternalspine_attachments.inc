@@ -40,21 +40,21 @@
     Width, Height: Integer;
     procedure Parse(const Json: TJSONObject); override;
     procedure BuildNodes(const BaseUrl: string; const Atlas: TAtlas); override;
-    procedure BuildIndexedFaceSet(const Faces: TIndexedFaceSetNode;
-      const AtlasRegion: TAtlasRegion); virtual;
+    function BuildGeometry(const BaseUrl: string;
+      const AtlasRegion: TAtlasRegion): TAbstractGeometryNode; virtual;
   end;
 
   TMeshAttachment = class(TRegionAttachment)
     UVs: TVector2SingleList;
-    Triangles: TLongIntList; //< triangles separated by -1, to be ready for X3D IndexedFaceSet.coordIndex
+    Triangles: TLongIntList;
     Vertices: TVector2SingleList;
-    //Edges: TLongIntList; //< unused for now
-    //Hull: Integer; //< unused for now
+    Edges: TLongIntList; //< unused for now
+    Hull: Integer; //< unused for now
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject); override;
-    procedure BuildIndexedFaceSet(const Faces: TIndexedFaceSetNode;
-      const AtlasRegion: TAtlasRegion); override;
+    function BuildGeometry(const BaseUrl: string;
+      const AtlasRegion: TAtlasRegion): TAbstractGeometryNode; override;
   end;
 
   TAttachmentList = class(specialize TFPGObjectList<TAttachment>)
@@ -133,7 +133,6 @@ procedure TRegionAttachment.BuildNodes(const BaseUrl: string; const Atlas: TAtla
 var
   AtlasPage: TAtlasPage;
   AtlasRegion: TAtlasRegion;
-  Faces: TIndexedFaceSetNode;
   Shape: TShapeNode;
 begin
   Node := TTransformNode.Create('Attachment_' + ToX3DName(Name), BaseUrl);
@@ -148,22 +147,24 @@ begin
   Shape.Appearance := AtlasPage.Node;
   AtlasPage.NodeUsedAsChild := true;
 
-  Faces := TIndexedFaceSetNode.Create('', BaseUrl);
-  Faces.FdCreaseAngle.Value := 0; // optimization: do not try to smooth normals, no point
-  Faces.FdSolid.Value := false;
-  Faces.FdCoordIndex.Items.Clear;
-  Shape.FdGeometry.Value := Faces;
-
-  BuildIndexedFaceSet(Faces, AtlasRegion);
+  Shape.FdGeometry.Value := BuildGeometry(BaseUrl, AtlasRegion);
 end;
 
-procedure TRegionAttachment.BuildIndexedFaceSet(const Faces: TIndexedFaceSetNode;
-  const AtlasRegion: TAtlasRegion);
+function TRegionAttachment.BuildGeometry(const BaseUrl: string;
+  const AtlasRegion: TAtlasRegion): TAbstractGeometryNode;
 var
   Coord: TCoordinateNode;
   TexCoord: TTextureCoordinateNode;
   I: Integer;
+  Faces: TIndexedFaceSetNode;
 begin
+  Faces := TIndexedFaceSetNode.Create('', BaseUrl);
+  Result := Faces;
+
+  Faces.FdCreaseAngle.Value := 0; // optimization: do not try to smooth normals, no point
+  Faces.FdSolid.Value := false;
+  Faces.FdCoordIndex.Items.Clear;
+
   Faces.FdCoordIndex.Items.Add(0);
   Faces.FdCoordIndex.Items.Add(1);
   Faces.FdCoordIndex.Items.Add(2);
@@ -190,7 +191,7 @@ begin
   UVs := TVector2SingleList.Create;
   Triangles := TLongIntList.Create;
   Vertices := TVector2SingleList.Create;
-  //Edges := TLongIntList.Create;
+  Edges := TLongIntList.Create;
 end;
 
 destructor TMeshAttachment.Destroy;
@@ -198,7 +199,7 @@ begin
   FreeAndNil(UVs);
   FreeAndNil(Triangles);
   FreeAndNil(Vertices);
-  //FreeAndNil(Edges);
+  FreeAndNil(Edges);
   inherited;
 end;
 
@@ -231,28 +232,21 @@ procedure TMeshAttachment.Parse(const Json: TJSONObject);
     end;
   end;
 
-  procedure ReadTrianglesList(const Name: string; const List: TLongIntList);
+  procedure ReadLongIntList(const Name: string; const List: TLongIntList);
   var
     JsonArray: TJSONArray;
     I: Integer;
   begin
     JsonArray := Json.Find(Name, jtArray) as TJSONArray;
     if JsonArray <> nil then
-    begin
       for I := 0 to JsonArray.Count - 1 do
         if JsonArray[I] is TJSONIntegerNumber then
-        begin
           List.Add(JsonArray[I].AsInteger);
-          if (List.Count + 1) mod 4 = 0 then
-            List.Add(-1); // separate triangles by -1, for IndexedFaceSet.coordIndex
-        end;
-      if List.Count mod 4 <> 0 then
-        OnWarning(wtMajor, 'Spine', 'Triangles list ends in the middle of the triangle');
-    end;
   end;
 
 begin
   inherited;
+
   ReadVector2SingleList('uvs', UVs);
   ReadVector2SingleList('vertices', Vertices);
   if UVs.Count <> Vertices.Count then
@@ -263,18 +257,32 @@ begin
       although it seems incorrect? Or maybe it's ok for dagger? }
     Vertices.Count := UVs.Count;
   end;
-  ReadTrianglesList('triangles', Triangles);
+
+  ReadLongIntList('triangles', Triangles);
+  if Triangles.Count mod 3 <> 0 then
+    OnWarning(wtMajor, 'Spine', 'Triangles list ends in the middle of the triangle');
+
+  ReadLongIntList('edges', Edges);
+  Hull := Json.Get('hull', 0);
 end;
 
-procedure TMeshAttachment.BuildIndexedFaceSet(const Faces: TIndexedFaceSetNode;
-  const AtlasRegion: TAtlasRegion);
+function TMeshAttachment.BuildGeometry(const BaseUrl: string;
+  const AtlasRegion: TAtlasRegion): TAbstractGeometryNode;
 var
   Coord: TCoordinateNode;
   TexCoord: TTextureCoordinateNode;
   I: Integer;
   UVRangeX, UVRangeY: TVector2Single;
+  Faces: TIndexedTriangleSetNode;
 begin
-  Faces.FdCoordIndex.Items.Assign(Triangles);
+  Faces := TIndexedTriangleSetNode.Create('', BaseUrl);
+  Result := Faces;
+
+  Faces.FdNormalPerVertex.Value := false; // optimization: do not try to smooth normals, no point
+  Faces.FdSolid.Value := false;
+  Faces.FdIndex.Items.Clear;
+
+  Faces.FdIndex.Items.Assign(Triangles);
 
   Coord := TCoordinateNode.Create('', Faces.BaseUrl);
   for I := 0 to Vertices.Count - 1 do
