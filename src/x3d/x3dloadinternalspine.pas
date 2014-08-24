@@ -20,7 +20,7 @@ interface
 
 uses X3DNodes;
 
-function LoadSpine(const URL: string): TX3DRootNode;
+function LoadSpine(URL: string): TX3DRootNode;
 
 implementation
 
@@ -97,14 +97,18 @@ type
 
 { Main loading function ------------------------------------------------------ }
 
-function LoadSpine(const URL: string): TX3DRootNode;
+function LoadSpine(URL: string): TX3DRootNode;
 var
   Json: TJSONData;
   P: TJSONParser;
   S: TStream;
   Atlas: TAtlas;
   Skeleton: TSkeleton;
+  SkinName: string;
 begin
+  { Strip SkinName from URL anchor. }
+  URIExtractAnchor(URL, SkinName, true);
+
   Atlas := TAtlas.Create;
   try
     Atlas.Parse(ChangeURIExt(URL, '.atlas'));
@@ -123,7 +127,7 @@ begin
               Skeleton := TSkeleton.Create;
               try
                 Skeleton.Parse(Json);
-                Skeleton.BuildNodes(URL, Atlas, Result);
+                Skeleton.BuildNodes(URL, Atlas, Result, SkinName);
               finally FreeAndNil(Skeleton) end;
             end;
           except FreeAndNil(Result); raise end;

@@ -195,7 +195,14 @@ begin
     if MimeType = 'model/vnd.collada+xml' then
       Result := LoadCollada(URL) else
 
-    if MimeType = 'application/json' then
+    if (MimeType = 'application/json') or
+       { For Spine, we will strip anchor in LoadSpine, so we can guess MIME
+         based on URL without anchor too. Otherwise xxx.json#skinname
+         would not be detected as Spine JSON.
+         Note that we should not do this in URIMimeType implementation,
+         as it depends on reader implementation whether anchor is understood
+         (and stripped). }
+       (URIMimeType(URIDeleteAnchor(URL, true), Gzipped) = 'application/json') then
       Result := LoadSpine(URL) else
 
     if NilOnUnrecognizedFormat then

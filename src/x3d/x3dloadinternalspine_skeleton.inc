@@ -30,7 +30,7 @@
     destructor Destroy; override;
     procedure Parse(const Json: TJSONData);
     procedure BuildNodes(const BaseUrl: string; const Atlas: TAtlas;
-      const Container: TX3DRootNode);
+      const Container: TX3DRootNode; const SkinName: string);
   end;
 {$endif}
 
@@ -73,21 +73,27 @@ begin
 end;
 
 procedure TSkeleton.BuildNodes(const BaseUrl: string; const Atlas: TAtlas;
-  const Container: TX3DRootNode);
+  const Container: TX3DRootNode; const SkinName: string);
 var
   CurrentSkin: TSkin;
 begin
   Bones.BuildNodes(BaseUrl);
   Root.NodeUsedAsChild := true;
   Container.FdChildren.Add(Root.Node);
-  
+
   Skins.BuildNodes(BaseUrl, Atlas);
 
-  { prefer non-default skin, if exists, since default skin may miss some
-    attachments, see goblins.json example }
-  if Skins.Count > 1 then
-    CurrentSkin := Skins[1] else
-    CurrentSkin := DefaultSkin;
+  CurrentSkin := nil;
+  if SkinName <> '' then
+    CurrentSkin := Skins.Find(SkinName, true);
+  if CurrentSkin = nil then
+  begin
+    { prefer non-default skin, if exists, since default skin may miss some
+      attachments, see goblins.json example }
+    if Skins.Count > 1 then
+      CurrentSkin := Skins[1] else
+      CurrentSkin := DefaultSkin;
+  end;
   WritelnLog('Spine', 'Using skin "%s"', [CurrentSkin.Name]);
 
   Slots.BuildNodes(BaseUrl, CurrentSkin.Attachments, DefaultSkin.Attachments);

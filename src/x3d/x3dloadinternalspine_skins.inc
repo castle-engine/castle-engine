@@ -27,8 +27,8 @@
 
   TSkinList = class(specialize TFPGObjectList<TSkin>)
     { Find by name.
-      @raises ESpineReadError If does not exist. }
-    function Find(const Name: string): TSkin;
+      @raises ESpineReadError If does not exist and NilOnError = @false. }
+    function Find(const Name: string; const NilOnError: boolean): TSkin;
     procedure Parse(const Json: TJSONObject; var DefaultSkin: TSkin);
     procedure BuildNodes(const BaseUrl: string; const Atlas: TAtlas);
   end;
@@ -85,14 +85,19 @@ end;
 
 { TSkinList ------------------------------------------------------------------ }
 
-function TSkinList.Find(const Name: string): TSkin;
+function TSkinList.Find(const Name: string; const NilOnError: boolean): TSkin;
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
     if Items[I].Name = Name then
       Exit(Items[I]);
-  raise ESpineReadError.CreateFmt('Skin name "%s" not found', [Name]);
+  if NilOnError then
+  begin
+    OnWarning(wtMinor, 'Spine', Format('Skin name "%s" not found', [Name]));
+    Result := nil;
+  end else
+    raise ESpineReadError.CreateFmt('Skin name "%s" not found', [Name]);
 end;
 
 procedure TSkinList.Parse(const Json: TJSONObject; var DefaultSkin: TSkin);
@@ -128,5 +133,4 @@ begin
   for I := 0 to Count - 1 do
     Items[I].BuildNodes(BaseUrl, Atlas);
 end;
-
 {$endif}

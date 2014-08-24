@@ -22,8 +22,19 @@ uses Classes;
 
 { Extracts #anchor from URI. On input, URI contains full URI.
   On output, Anchor is removed from URI and saved in Anchor.
-  If no #anchor existed, Anchor is set to ''. }
-procedure URIExtractAnchor(var URI: string; out Anchor: string);
+  If no #anchor existed, Anchor is set to ''.
+
+  When RecognizeEvenEscapedHash, we also recognize as a delimiter
+  escaped hash, %23. This is a hack and should not be used (prevents
+  from using actual filename with hash, thus making the escaping process
+  useless). Unless there's no other sensible way --- e.g. specify
+  Spine skin name when opening Spine json file... }
+procedure URIExtractAnchor(var URI: string; out Anchor: string;
+  const RecognizeEvenEscapedHash: boolean = false);
+
+{ Return URI with anchor (if was any) stripped. }
+function URIDeleteAnchor(const URI: string;
+  const RecognizeEvenEscapedHash: boolean = false): string;
 
 { Replace all sequences like %xx with their actual 8-bit characters.
 
@@ -231,7 +242,8 @@ implementation
 uses SysUtils, CastleStringUtils, CastleWarnings, CastleFilesUtils,
   URIParser, CastleUtils, CastleDataURI, CastleImages;
 
-procedure URIExtractAnchor(var URI: string; out Anchor: string);
+procedure URIExtractAnchor(var URI: string; out Anchor: string;
+  const RecognizeEvenEscapedHash: boolean);
 var
   HashPos: Integer;
 begin
@@ -251,7 +263,25 @@ begin
   begin
     Anchor := SEnding(URI, HashPos + 1);
     SetLength(URI, HashPos - 1);
+  end else
+  if RecognizeEvenEscapedHash then
+  begin
+    HashPos := BackPos('%23', URI);
+    if HashPos <> 0 then
+    begin
+      Anchor := SEnding(URI, HashPos + 3);
+      SetLength(URI, HashPos - 1);
+    end;
   end;
+end;
+
+function URIDeleteAnchor(const URI: string;
+  const RecognizeEvenEscapedHash: boolean): string;
+var
+  Anchor: string;
+begin
+  Result := URI;
+  URIExtractAnchor(Result, Anchor, RecognizeEvenEscapedHash);
 end;
 
 function RawURIDecode(const S: string): string;
