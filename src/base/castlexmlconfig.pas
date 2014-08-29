@@ -183,7 +183,7 @@ type
     property OnSave: TCastleConfigEventList read FOnSave;
 
     { Load the current configuration of the engine components.
-      Sets @link(URL) and FileName, loading the appropriate file to our properties,
+      Sets @link(TXMLConfig.URL), loading the appropriate file to our properties,
       and then calls the OnLoad callbacks to allow all engine components
       read their settings.
 
@@ -211,7 +211,7 @@ type
     { Save the configuration of all engine components.
       Calls the OnSave callbacks to allow all engine components
       to store their settings in our properties, and then flushes
-      them to disk (using FileName property, synchronized with @link(URL) property)
+      them to disk (using @link(TXMLConfig.URL) property)
       by inherited Flush method.
 
       The overloaded version with TStream parameter saves to a stream.
