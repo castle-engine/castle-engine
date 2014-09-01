@@ -140,8 +140,8 @@ end;
 procedure TBoneTimelineTranslate.ParseSingleValue(const Json: TJSONObject);
 begin
   Vectors.Add(Vector2Single(
-    Json.Get('x', 0),
-    Json.Get('y', 0)));
+    Json.Get('x', 0.0),
+    Json.Get('y', 0.0)));
 end;
 
 procedure TBoneTimelineTranslate.BuildNodes(const BaseUrl: string;
@@ -162,10 +162,17 @@ begin
   Node := N;
   inherited;
 
-  Route := TX3DRoute.Create;
-  Route.SetSourceDirectly(N.EventValue_changed);
-  Route.SetDestinationDirectly(Bone.Node.FdTranslation.EventIn);
-  Container.Routes.Add(Route);
+  { When there's only 1 keyframe, Spine does something weird: instead of smooth
+    interpolation, animation suddenly jumps from setup pose to given keyframe pose
+    at given key time (unless animation is looping and it's the last frame,
+    then it's visibly ignored). We just ignore (do not route) such weird animations for now. }
+  if Time.Count > 1 then
+  begin
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(N.EventValue_changed);
+    Route.SetDestinationDirectly(Bone.Node.FdTranslation.EventIn);
+    Container.Routes.Add(Route);
+  end;
 end;
 
 { TBoneTimelineScale --------------------------------------------------------- }
@@ -173,8 +180,8 @@ end;
 procedure TBoneTimelineScale.ParseSingleValue(const Json: TJSONObject);
 begin
   Vectors.Add(Vector2Single(
-    Json.Get('x', 1),
-    Json.Get('y', 1)));
+    Json.Get('x', 1.0),
+    Json.Get('y', 1.0)));
 end;
 
 procedure TBoneTimelineScale.BuildNodes(const BaseUrl: string;
@@ -195,10 +202,13 @@ begin
   Node := N;
   inherited;
 
-  Route := TX3DRoute.Create;
-  Route.SetSourceDirectly(N.EventValue_changed);
-  Route.SetDestinationDirectly(Bone.Node.FdScale.EventIn);
-  Container.Routes.Add(Route);
+  if Time.Count > 1 then
+  begin
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(N.EventValue_changed);
+    Route.SetDestinationDirectly(Bone.Node.FdScale.EventIn);
+    Container.Routes.Add(Route);
+  end;
 end;
 
 { TBoneTimelineRotate -------------------------------------------------------- }
@@ -238,10 +248,13 @@ begin
   Node := N;
   inherited;
 
-  Route := TX3DRoute.Create;
-  Route.SetSourceDirectly(N.EventValue_changed);
-  Route.SetDestinationDirectly(Bone.Node.FdRotation.EventIn);
-  Container.Routes.Add(Route);
+  if Time.Count > 1 then
+  begin
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(N.EventValue_changed);
+    Route.SetDestinationDirectly(Bone.Node.FdRotation.EventIn);
+    Container.Routes.Add(Route);
+  end;
 end;
 
 {$endif}
