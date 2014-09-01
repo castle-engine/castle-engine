@@ -9,7 +9,14 @@ default: html
 
 html:
 	./mk_docs.sh html
-	cp $(CASTLE_ENGINE_PATH)www/htdocs/images/castle_game_engine_icon.png html/
+	if which inkscape > /dev/null; then \
+	  inkscape ../logo/castle_game_engine_icon.svg \
+	           --export-width=256 \
+		   --export-height=256 \
+		   --export-background=white \
+		   --export-background-opacity=255 \
+		   --export-png=html/castle_game_engine_icon.png \
+		   ; else cp $(CASTLE_ENGINE_PATH)www/htdocs/images/castle_game_engine_icon.png html/; fi
 
 # Just some shortcuts to "Helpful targets" below
 pdf: latex/docs.pdf
