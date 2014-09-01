@@ -70,10 +70,13 @@ begin
     Bone.Node.FdChildren.Add(Node);
 
     if AttachmentsPreferred <> AttachmentsDefault then
-      A := AttachmentsPreferred.Find(Name, Attachment, AttachmentsDefault) else
-      A := AttachmentsPreferred.Find(Name, Attachment, nil);
-    A.NodeUsedAsChild := true;
-    Node.FdChildren.Add(A.Node);
+      A := AttachmentsPreferred.Find(Name, Attachment, AttachmentsDefault, true) else
+      A := AttachmentsPreferred.Find(Name, Attachment, nil, true);
+    if A <> nil then
+    begin
+      A.NodeUsedAsChild := true;
+      Node.FdChildren.Add(A.Node);
+    end;
   end;
 end;
 

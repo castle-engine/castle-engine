@@ -61,7 +61,8 @@
     { Find by slot+attachment name.
       @raises ESpineReadError If does not exist. }
     function Find(const SlotName, AttachmentName: string;
-      const FallbackList: TAttachmentList): TAttachment;
+      const FallbackList: TAttachmentList;
+      const NilWhenNotFound: boolean): TAttachment;
   end;
 {$endif}
 
@@ -305,9 +306,11 @@ end;
 { TAttachmentList ------------------------------------------------------------ }
 
 function TAttachmentList.Find(const SlotName, AttachmentName: string;
-  const FallbackList: TAttachmentList): TAttachment;
+  const FallbackList: TAttachmentList;
+  const NilWhenNotFound: boolean): TAttachment;
 var
   I: Integer;
+  Err: string;
 begin
   for I := 0 to Count - 1 do
     if (Items[I].SlotName = SlotName) and
@@ -315,8 +318,16 @@ begin
       Exit(Items[I]);
 
   if FallbackList <> nil then
-    Result := FallbackList.Find(SlotName, AttachmentName, nil) else
-    raise ESpineReadError.CreateFmt('Attachment values for slot "%s" and attachment name "%s" not found',
+    Result := FallbackList.Find(SlotName, AttachmentName, nil, NilWhenNotFound) else
+  begin
+    Err := Format('Attachment values for slot "%s" and attachment name "%s" not found',
       [SlotName, AttachmentName]);
+    if NilWhenNotFound then
+    begin
+      OnWarning(wtMinor, 'Spine', Err);
+      Result := nil;
+    end else
+      raise ESpineReadError.Create(Err);
+  end;
 end;
 {$endif}
