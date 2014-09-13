@@ -1925,7 +1925,7 @@ end;
       Note that only capturing the double-buffered windows (the default)
       is reliable.
       @groupBegin }
-    procedure SaveScreen(const fname: string); overload;
+    procedure SaveScreen(const URL: string); overload;
     function SaveScreen: TRGBImage; overload;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload;
     function SaveScreenToGL(const ScalingPossible: boolean = false): TGLImage; overload;
@@ -3404,13 +3404,14 @@ begin
     Result := cbFront;
 end;
 
-procedure TCastleWindowCustom.SaveScreen(const fname: string);
+procedure TCastleWindowCustom.SaveScreen(const URL: string);
 var
   Image: TRGBImage;
 begin
   Image := SaveScreen;
   try
-    SaveImage(Image, fname);
+    WritelnLog('SaveScreen', 'Screen saved to ' + URL);
+    SaveImage(Image, URL);
   finally FreeAndNil(Image) end;
 end;
 
