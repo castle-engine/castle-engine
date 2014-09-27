@@ -680,6 +680,11 @@ type
     BarEmptyColor: TVector3Byte;
     BarFilledColor: TVector3Byte;
 
+    { Tint of background image under TCastleDialog.
+      Default is (0.25, 0.25, 0.25, 1), which makes background darker,
+      which helps dialog to stand out. }
+    BackgroundTint: TCastleColor;
+
     constructor Create;
     destructor Destroy; override;
 
@@ -2124,7 +2129,10 @@ begin
   inherited;
 
   if GLBackground <> nil then
+  begin
+    GLBackground.Color := Theme.BackgroundTint;
     GLBackground.Draw(ContainerRect);
+  end;
 
   MessageRect := WholeMessageRect;
   Theme.Draw(MessageRect, tiWindow);
@@ -2464,6 +2472,7 @@ begin
   TextColor             := Vector4Single(0   , 0, 0, 1);
   MessageInputTextColor := Vector4Single(0.33, 1, 1, 1);
   MessageTextColor      := Vector4Single(1   , 1, 1, 1);
+  BackgroundTint        := Vector4Single(0.25, 0.25, 0.25, 1);
 
   FOwnsMessageFont := true;
 
