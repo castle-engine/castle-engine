@@ -337,7 +337,7 @@ begin
       [SlotName, AttachmentName]);
     if NilWhenNotFound then
     begin
-      OnWarning(wtMinor, 'Spine', Err);
+      WritelnLog('Spine', Err); // this is actually normal, as tested on Venice models, so only log, no warning
       Result := nil;
     end else
       raise ESpineReadError.Create(Err);
