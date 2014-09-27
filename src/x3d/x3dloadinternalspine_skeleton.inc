@@ -76,6 +76,19 @@ procedure TSkeleton.BuildNodes(const BaseUrl: string; const Atlas: TAtlas;
   const Container: TX3DRootNode; const SkinName: string);
 var
   CurrentSkin: TSkin;
+
+  procedure SkinLog;
+  var
+    S: string;
+    I: Integer;
+  begin
+    S := Format('Available skins count: %d', [Skins.Count]) + NL;
+    for I := 0 to Skins.Count - 1 do
+      S += Format('  Available skin %d: %s', [I, Skins[I].Name]) + NL;
+    S += Format('Using skin: %s', [CurrentSkin.Name]);
+    WritelnLogMultiline('Spine', S);
+  end;
+
 begin
   Bones.BuildNodes(BaseUrl);
   Root.NodeUsedAsChild := true;
@@ -94,7 +107,8 @@ begin
       CurrentSkin := Skins[1] else
       CurrentSkin := DefaultSkin;
   end;
-  WritelnLog('Spine', 'Using skin "%s"', [CurrentSkin.Name]);
+  if Log then
+    SkinLog;
 
   Slots.BuildNodes(BaseUrl, CurrentSkin.Attachments, DefaultSkin.Attachments);
   Animations.BuildNodes(BaseUrl, Container);
