@@ -79,7 +79,6 @@ const
   { Default parameters for TEncodedImage.AlphaChannel,
     decide how to detect textures alpha channel. }
   DefaultAlphaTolerance = 5;
-  DefaultAlphaWrongPixelsTolerance = 0.01;
 
 { Colors ------------------------------------------------------------ }
 
@@ -159,34 +158,20 @@ type
       Z-buffer. That's why we try to detect simple yes/no alpha textures,
       so that we're able to use simpler alpha test for them.
 
-      This method analyzes every pixel. It's alpha is considered "simple"
-      if it's <= AlphaTolerance, or >= 255 - AlphaTolerance.
-      So for the default AlphaTolerance, "simple" alpha means only exactly
-      0 or 255 (maximum Byte values).
-      The method returns true if the ratio of non-simple pixels is
-      WrongPixelsTolerance. For example, default WrongPixelsTolerance = 0
-      means that every pixel must have "simple" alpha channel.
-      Greated WrongPixelsTolerance values may allow some tolerance,
-      for example WrongPixelsTolerance = 0.01 allows 1 percent of pixels
-      to fail the "simple alpha" test and the image can still be considered
-      "simple yes/no alpha channel".
-
-      In summary, default Tolerance values are 0, so exactly all pixels
-      must have exactly full or exactly none alpha. Increasing
-      tolerance values (for example, AlphaTolerance = 5
-      and WrongPixelsTolerance = 0.01 may be good start --- still conservative
-      enough, and tolerate small deviations) allows you to accept
-      more images as simple yes/no alpha. Of course too large tolerance
-      values have no sense --- AlphaTolerance >= 128, or WrongPixelsTolerance >= 1.0
-      will cause all images to be accepted as "simple yes/no alpha".
+      We return "simple yes/no alpha channel" is all the alpha values
+      (for every pixel) are 0, or 255, or (when AlphaTolerance <> 0)
+      are close to them by AlphaTolerance. So, to be precise,
+      alpha value must be <= AlphaTolerance, or >= 255 - AlphaTolerance.
+      If any alpha value is between [AlphaTolerance + 1, 255 - AlphaTolerance - 1]
+      then we return "full range alpha channel".
+      Note that for AlphaTolerance >= 128, all images are treated as
+      "simple yes/no alpha". Usually, you want to keep AlphaTolerance small.
 
       @italic(Descendants implementors notes:) in this class, this simply
       always returns atNone. For descendants that have alpha channel,
-      implement it, honouring AlphaTolerance and WrongPixelsTolerance as
-      described. }
+      implement it, honouring AlphaTolerance as described. }
     function AlphaChannel(
-      const AlphaTolerance: Byte = DefaultAlphaTolerance;
-      const WrongPixelsTolerance: Single = DefaultAlphaWrongPixelsTolerance):
+      const AlphaTolerance: Byte = DefaultAlphaTolerance):
       TAlphaChannel; virtual;
 
     { Rectangle representing the inside of this image.
@@ -710,8 +695,7 @@ type
 
     function HasAlpha: boolean; override;
     function AlphaChannel(
-      const AlphaTolerance: Byte;
-      const WrongPixelsTolerance: Single): TAlphaChannel; override;
+      const AlphaTolerance: Byte): TAlphaChannel; override;
 
     { Flip compressed image vertically, losslessly.
 
@@ -963,8 +947,7 @@ type
     function HasAlpha: boolean; override;
 
     function AlphaChannel(
-      const AlphaTolerance: Byte;
-      const WrongPixelsTolerance: Single): TAlphaChannel; override;
+      const AlphaTolerance: Byte): TAlphaChannel; override;
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
@@ -1075,8 +1058,7 @@ type
       read FTreatAsAlpha write FTreatAsAlpha;
 
     function AlphaChannel(
-      const AlphaTolerance: Byte;
-      const WrongPixelsTolerance: Single): TAlphaChannel; override;
+      const AlphaTolerance: Byte): TAlphaChannel; override;
   end;
 
   { Grayscale image with an alpha channel.
@@ -1100,8 +1082,7 @@ type
     function HasAlpha: boolean; override;
 
     function AlphaChannel(
-      const AlphaTolerance: Byte;
-      const WrongPixelsTolerance: Single): TAlphaChannel; override;
+      const AlphaTolerance: Byte): TAlphaChannel; override;
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
@@ -1844,8 +1825,7 @@ begin
 end;
 
 function TEncodedImage.AlphaChannel(
-  const AlphaTolerance: Byte;
-  const WrongPixelsTolerance: Single): TAlphaChannel;
+  const AlphaTolerance: Byte): TAlphaChannel;
 begin
   Result := acNone;
 end;
@@ -2646,8 +2626,7 @@ begin
 end;
 
 function TS3TCImage.AlphaChannel(
-  const AlphaTolerance: Byte;
-  const WrongPixelsTolerance: Single): TAlphaChannel;
+  const AlphaTolerance: Byte): TAlphaChannel;
 begin
   { S3TCImage doesn't analyze for alpha channel, instead simply assumes
     image is always full-range alpha it if has alpha channel. }
@@ -3211,51 +3190,19 @@ begin
 end;
 
 function TRGBAlphaImage.AlphaChannel(
-  const AlphaTolerance: Byte;
-  const WrongPixelsTolerance: Single): TAlphaChannel;
+  const AlphaTolerance: Byte): TAlphaChannel;
 var
   PtrAlpha: PVector4Byte;
-  I, WrongPixels, AllPixels: Cardinal;
+  I: Cardinal;
 begin
-  WrongPixels := 0;
-  AllPixels := Width * Height * Depth;
-
   PtrAlpha := AlphaPixels;
 
-  if WrongPixelsTolerance = 0 then
+  for I := 1 to Width * Height * Depth do
   begin
-    for I := 1 to AllPixels do
-    begin
-      if (PtrAlpha^[3] > AlphaTolerance) and
-         (PtrAlpha^[3] < 255 - AlphaTolerance) then
-        { Special case for WrongPixelsTolerance = exactly 0.
-          Avoids the cases when float "WrongPixels / AllPixels"
-          may be so small that it's equal to 0, which would
-          cause some wrong pixels to "slip" even with
-          WrongPixelsTolerance = 0. }
-        Exit(acFullRange);
-      Inc(PtrAlpha);
-    end;
-  end else
-  begin
-    for I := 1 to AllPixels do
-    begin
-      if (PtrAlpha^[3] > AlphaTolerance) and
-         (PtrAlpha^[3] < 255 - AlphaTolerance) then
-      begin
-        Inc(WrongPixels);
-        { From the speed point of view, is it sensible to test
-          WrongPixelsTolerance at each WrongPixels increment?
-          On one hand, we can Exit with false faster.
-          On the other hand, we lose time for checking it many times,
-          if WrongPixelsTolerance is larger.
-          Well, sensible WrongPixelsTolerance are very small --- so I
-          think this is Ok to check this every time. }
-        if WrongPixels / AllPixels > WrongPixelsTolerance then
-          Exit(acFullRange);
-      end;
-      Inc(PtrAlpha);
-    end;
+    if (PtrAlpha^[3] > AlphaTolerance) and
+       (PtrAlpha^[3] < 255 - AlphaTolerance) then
+      Exit(acFullRange);
+    Inc(PtrAlpha);
   end;
 
   Result := acSimpleYesNo;
@@ -3540,54 +3487,22 @@ begin
 end;
 
 function TGrayscaleImage.AlphaChannel(
-  const AlphaTolerance: Byte;
-  const WrongPixelsTolerance: Single): TAlphaChannel;
+  const AlphaTolerance: Byte): TAlphaChannel;
 var
   PtrAlpha: PByte;
-  I, WrongPixels, AllPixels: Cardinal;
+  I: Cardinal;
 begin
   if not TreatAsAlpha then
-    Exit(inherited AlphaChannel(AlphaTolerance, WrongPixelsTolerance));
-
-  WrongPixels := 0;
-  AllPixels := Width * Height * Depth;
+    Exit(inherited AlphaChannel(AlphaTolerance));
 
   PtrAlpha := GrayscalePixels;
 
-  if WrongPixelsTolerance = 0 then
+  for I := 1 to Width * Height * Depth do
   begin
-    for I := 1 to AllPixels do
-    begin
-      if (PtrAlpha^ > AlphaTolerance) and
-         (PtrAlpha^ < 255 - AlphaTolerance) then
-        { Special case for WrongPixelsTolerance = exactly 0.
-          Avoids the cases when float "WrongPixels / AllPixels"
-          may be so small that it's equal to 0, which would
-          cause some wrong pixels to "slip" even with
-          WrongPixelsTolerance = 0. }
-        Exit(acFullRange);
-      Inc(PtrAlpha);
-    end;
-  end else
-  begin
-    for I := 1 to AllPixels do
-    begin
-      if (PtrAlpha^ > AlphaTolerance) and
-         (PtrAlpha^ < 255 - AlphaTolerance) then
-      begin
-        Inc(WrongPixels);
-        { From the speed point of view, is it sensible to test
-          WrongPixelsTolerance at each WrongPixels increment?
-          On one hand, we can Exit with false faster.
-          On the other hand, we lose time for checking it many times,
-          if WrongPixelsTolerance is larger.
-          Well, sensible WrongPixelsTolerance are very small --- so I
-          think this is Ok to check this every time. }
-        if WrongPixels / AllPixels > WrongPixelsTolerance then
-          Exit(acFullRange);
-      end;
-      Inc(PtrAlpha);
-    end;
+    if (PtrAlpha^ > AlphaTolerance) and
+       (PtrAlpha^ < 255 - AlphaTolerance) then
+      Exit(acFullRange);
+    Inc(PtrAlpha);
   end;
 
   Result := acSimpleYesNo;
@@ -3657,51 +3572,19 @@ begin
 end;
 
 function TGrayscaleAlphaImage.AlphaChannel(
-  const AlphaTolerance: Byte;
-  const WrongPixelsTolerance: Single): TAlphaChannel;
+  const AlphaTolerance: Byte): TAlphaChannel;
 var
   PtrAlpha: PVector2Byte;
-  I, WrongPixels, AllPixels: Cardinal;
+  I: Cardinal;
 begin
-  WrongPixels := 0;
-  AllPixels := Width * Height * Depth;
-
   PtrAlpha := GrayscaleAlphaPixels;
 
-  if WrongPixelsTolerance = 0 then
+  for I := 1 to Width * Height * Depth do
   begin
-    for I := 1 to AllPixels do
-    begin
-      if (PtrAlpha^[1] > AlphaTolerance) and
-         (PtrAlpha^[1] < 255 - AlphaTolerance) then
-        { Special case for WrongPixelsTolerance = exactly 0.
-          Avoids the cases when float "WrongPixels / AllPixels"
-          may be so small that it's equal to 0, which would
-          cause some wrong pixels to "slip" even with
-          WrongPixelsTolerance = 0. }
-        Exit(acFullRange);
-      Inc(PtrAlpha);
-    end;
-  end else
-  begin
-    for I := 1 to AllPixels do
-    begin
-      if (PtrAlpha^[1] > AlphaTolerance) and
-         (PtrAlpha^[1] < 255 - AlphaTolerance) then
-      begin
-        Inc(WrongPixels);
-        { From the speed point of view, is it sensible to test
-          WrongPixelsTolerance at each WrongPixels increment?
-          On one hand, we can Exit with false faster.
-          On the other hand, we lose time for checking it many times,
-          if WrongPixelsTolerance is larger.
-          Well, sensible WrongPixelsTolerance are very small --- so I
-          think this is Ok to check this every time. }
-        if WrongPixels / AllPixels > WrongPixelsTolerance then
-          Exit(acFullRange);
-      end;
-      Inc(PtrAlpha);
-    end;
+    if (PtrAlpha^[1] > AlphaTolerance) and
+       (PtrAlpha^[1] < 255 - AlphaTolerance) then
+      Exit(acFullRange);
+    Inc(PtrAlpha);
   end;
 
   Result := acSimpleYesNo;

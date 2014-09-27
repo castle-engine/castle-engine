@@ -274,8 +274,7 @@ type
       Currently based on the first video image, so it's fast although
       in some cases possibly inaccurate. }
     function AlphaChannel(
-      const AlphaTolerance: Byte = DefaultAlphaTolerance;
-      const WrongPixelsTolerance: Single = DefaultAlphaWrongPixelsTolerance): TAlphaChannel;
+      const AlphaTolerance: Byte = DefaultAlphaTolerance): TAlphaChannel;
 
     procedure FlipHorizontal;
     procedure FlipVertical;
@@ -807,11 +806,10 @@ begin
 end;
 
 function TVideo.AlphaChannel(
-  const AlphaTolerance: Byte;
-  const WrongPixelsTolerance: Single): TAlphaChannel;
+  const AlphaTolerance: Byte): TAlphaChannel;
 begin
   Assert(Loaded);
-  Result := Items[0].AlphaChannel(AlphaTolerance, WrongPixelsTolerance);
+  Result := Items[0].AlphaChannel(AlphaTolerance);
 end;
 
 procedure TVideo.FlipHorizontal;
