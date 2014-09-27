@@ -158,6 +158,7 @@ var
   TexCoord: TTextureCoordinateNode;
   I: Integer;
   Faces: TIndexedFaceSetNode;
+  Rect: array [0..1] of TVector2Single;
 begin
   Faces := TIndexedFaceSetNode.Create('', BaseUrl);
   Result := Faces;
@@ -172,10 +173,14 @@ begin
   Faces.FdCoordIndex.Items.Add(3);
 
   Coord := TCoordinateNode.Create('', Faces.BaseUrl);
-  Coord.FdPoint.Items.Add(Vector3Single(-Width / 2,-Height / 2, 0));
-  Coord.FdPoint.Items.Add(Vector3Single( Width / 2,-Height / 2, 0));
-  Coord.FdPoint.Items.Add(Vector3Single( Width / 2, Height / 2, 0));
-  Coord.FdPoint.Items.Add(Vector3Single(-Width / 2, Height / 2, 0));
+  Rect[0][0] := MapRange(AtlasRegion.TexRect[0][0], 0, 1, -Width / 2, Width / 2);
+  Rect[1][0] := MapRange(AtlasRegion.TexRect[1][0], 0, 1, -Width / 2, Width / 2);
+  Rect[0][1] := MapRange(AtlasRegion.TexRect[0][1], 0, 1, -Height / 2, Height / 2);
+  Rect[1][1] := MapRange(AtlasRegion.TexRect[1][1], 0, 1, -Height / 2, Height / 2);
+  Coord.FdPoint.Items.Add(Vector3Single(Rect[0][0], Rect[0][1], 0));
+  Coord.FdPoint.Items.Add(Vector3Single(Rect[1][0], Rect[0][1], 0));
+  Coord.FdPoint.Items.Add(Vector3Single(Rect[1][0], Rect[1][1], 0));
+  Coord.FdPoint.Items.Add(Vector3Single(Rect[0][0], Rect[1][1], 0));
   Faces.FdCoord.Value := Coord;
 
   TexCoord := TTextureCoordinateNode.Create('', Faces.BaseUrl);
@@ -291,6 +296,14 @@ begin
   Faces.FdCoord.Value := Coord;
 
   TexCoord := TTextureCoordinateNode.Create('', Faces.BaseUrl);
+  { TODO: this does not support atlas whitespace compression performed by Spine,
+    as it does not look at AtlasRegion.TexRect.
+    Fixing it should be easy, submit simple testcases to test it fully! }
+  if (AtlasRegion.TexRect[0][0] <> 0) or
+     (AtlasRegion.TexRect[1][0] <> 0) or
+     (AtlasRegion.TexRect[0][1] <> 1) or
+     (AtlasRegion.TexRect[1][1] <> 1) then
+    OnWarning(wtMinor, 'Spine', 'Used "mesh" attachment together with "compress whitespace" at Atlas generation, this is not 100% supported yet, rendering artifacts may occur. Please submit a testcase to allow us to fix it!');
   UVRangeX[0] := Min(AtlasRegion.TexCoord[0][0], AtlasRegion.TexCoord[2][0]);
   UVRangeX[1] := Max(AtlasRegion.TexCoord[0][0], AtlasRegion.TexCoord[2][0]);
   UVRangeY[0] := Min(AtlasRegion.TexCoord[0][1], AtlasRegion.TexCoord[2][1]);

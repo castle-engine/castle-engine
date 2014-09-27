@@ -22,6 +22,11 @@ type
     Rotate: boolean;
     XY, Size, Orig, Offset: TVector2Integer;
     TexCoord: array [0..3] of TVector2Single;
+    { When Spine atlas creator uses whitespace compression for texture,
+      the actual 3D points need to be squeezed a little to show smaller
+      part of the texture. Without compression, is starts at (0,0)
+      and ends at (1,1), with compression it is a little smaller. }
+    TexRect: array [0..1] of TVector2Single;
     Index: Integer;
     procedure CalculateTexCoord(const ImageWidth, ImageHeight: Integer);
   end;
@@ -65,6 +70,10 @@ begin
   TextureXY := Vector2Single(
     XY[0] / ImageWidth,
     XY[1] / ImageHeight);
+  TexRect[0][0] := Offset[0] / Orig[0];
+  TexRect[0][1] := Offset[1] / Orig[1];
+  TexRect[1][0] := (Offset[0] + Size[0]) / Orig[0];
+  TexRect[1][1] := (Offset[1] + Size[1]) / Orig[1];
   if Rotate then
   begin
     TextureSize := Vector2Single(
