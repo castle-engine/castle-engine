@@ -534,6 +534,10 @@ procedure CastleGluSphere(
   no normal vectors, no texture coords, nothing. }
 procedure glDrawAxisWire(const Position: TVector3Single; Size: Single);
 
+{ Draw corner markers (3 lines) at the 8 corners of the box.
+  Proportion is the fraction of the box length, the marker extends too. }
+procedure glDrawCornerMarkers(const Box: TBox3D; const Proportion: Single = 0.1);
+
 { Draw the wireframe box.
   Nothing is generated besides vertex positions ---
   no normal vectors, no texture coords, nothing. }
@@ -1364,40 +1368,73 @@ begin
   glEnd;
 end;
 
-procedure glDrawBox3DWire(const Box: TBox3D);
+procedure glDrawCornerMarkers(const Box: TBox3D; const Proportion: Single);
 
-  { BoxVertex(0..3, 0) are the four vertexes of front face,
-    BoxVertex(0..3, 1) are the four vertexes of back face
-    (ordered in the same order, suitable for GL_LINE_LOOP). }
-  procedure BoxVertex(Index: Integer; Z: Integer);
-  const
-    X: array [0..3] of Integer = (0, 1, 1, 0);
-    Y: array [0..3] of Integer = (0, 0, 1, 1);
+  procedure glDrawCorners(const minx, miny, minz, maxx, maxy, maxz: Single);
+
+    procedure glDrawCornerLines(const x, y, z, dx, dy, dz: Single);
+    begin
+      glVertex3f(x, y, z);
+      glVertex3f(x+dx, y, z);
+      glVertex3f(x, y, z);
+      glVertex3f(x, y+dy, z);
+      glVertex3f(x, y, z);
+      glVertex3f(x, y, z+dz);
+    end;
+
+  var
+    Xlength, Ylength, Zlength: Single;
   begin
-    glVertex3f(Box.Data[X[Index], 0], Box.Data[Y[Index], 1], Box.Data[Z, 2]);
+    Xlength := (maxx - minx) * Proportion;
+    Ylength := (maxy - miny) * Proportion;
+    Zlength := (maxz - minz) * Proportion;
+    glBegin(GL_LINES);
+      glDrawCornerLines(minx,miny,minz,Xlength,Ylength,Zlength);
+      glDrawCornerLines(minx,miny,maxz,Xlength,Ylength,-Zlength);
+      glDrawCornerLines(minx,maxy,minz,Xlength,-Ylength,Zlength);
+      glDrawCornerLines(minx,maxy,maxz,Xlength,-Ylength,-Zlength);
+      glDrawCornerLines(maxx,miny,minz,-Xlength,Ylength,Zlength);
+      glDrawCornerLines(maxx,miny,maxz,-Xlength,Ylength,-Zlength);
+      glDrawCornerLines(maxx,maxy,minz,-Xlength,-Ylength,Zlength);
+      glDrawCornerLines(maxx,maxy,maxz,-Xlength,-Ylength,-Zlength);
+    glEnd;
   end;
 
 begin
-  glBegin(GL_LINE_LOOP);
-    BoxVertex(0, 0);
-    BoxVertex(1, 0);
-    BoxVertex(2, 0);
-    BoxVertex(3, 0);
-  glEnd;
+  glDrawCorners(Box.Data[0,0], Box.Data[0,1], Box.Data[0,2],
+                Box.Data[1,0], Box.Data[1,1], Box.Data[1,2]);
+end;
 
-  glBegin(GL_LINE_LOOP);
-    BoxVertex(0, 1);
-    BoxVertex(1, 1);
-    BoxVertex(2, 1);
-    BoxVertex(3, 1);
-  glEnd;
+procedure glDrawBox3DWire(const Box: TBox3D);
 
-  glBegin(GL_LINES);
-    BoxVertex(0, 0); BoxVertex(0, 1);
-    BoxVertex(1, 0); BoxVertex(1, 1);
-    BoxVertex(2, 0); BoxVertex(2, 1);
-    BoxVertex(3, 0); BoxVertex(3, 1);
-  glEnd;
+  procedure glDrawRaw(const minx, miny, minz, maxx, maxy, maxz: Single);
+  begin
+    glBegin(GL_LINE_LOOP);
+      glVertex3f(minx, miny, minz);
+      glVertex3f(maxx, miny, minz);
+      glVertex3f(maxx, maxy, minz);
+      glVertex3f(minx, maxy, minz);
+      glVertex3f(minx, maxy, maxz);
+      glVertex3f(maxx, maxy, maxz);
+      glVertex3f(maxx, miny, maxz);
+      glVertex3f(minx, miny, maxz);
+    glEnd;
+
+    glBegin(GL_LINES);
+      glVertex3f(minx, miny, minz);
+      glVertex3f(minx, maxy, minz);
+      glVertex3f(minx, miny, maxz);
+      glVertex3f(minx, maxy, maxz);
+      glVertex3f(maxx, miny, minz);
+      glVertex3f(maxx, miny, maxz);
+      glVertex3f(maxx, maxy, minz);
+      glVertex3f(maxx, maxy, maxz);
+    glEnd;
+  end;
+
+begin
+  glDrawRaw(Box.Data[0,0], Box.Data[0,1], Box.Data[0,2],
+            Box.Data[1,0], Box.Data[1,1], Box.Data[1,2])
 end;
 
 procedure glDrawBox3DSimple(const Box: TBox3D);
