@@ -388,6 +388,13 @@ var
     Even this can eat 2 GB for 640 x 350 resolution. }
   MaximumVideoLength: Cardinal = 1 * 60 * 25;
 
+  { Log video cache events. Allows to see how the cache performs,
+    and also how long it takes to load videos (useful, as some videos may
+    be already lengthy).
+
+    Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
+  LogVideosCache: boolean = false;
+
 const
   DefaultFramesPerSecond = 25.0;
 
@@ -395,7 +402,7 @@ implementation
 
 uses Classes, CastleClassUtils, CastleUtils, Math, CastleStringUtils,
   CastleWarnings, CastleFilesUtils, CastleProgress, CastleTextureImages,
-  CastleLog, CastleDownload, CastleURIUtils, CastleFindFiles;
+  CastleLog, CastleDownload, CastleURIUtils, CastleFindFiles, CastleTimeUtils;
 
 { TVideo --------------------------------------------------------------------- }
 
@@ -830,8 +837,6 @@ end;
 
 { TVideosCache --------------------------------------------------------------- }
 
-{ $define DEBUG_CACHE}
-
 constructor TVideosCache.Create;
 begin
   inherited;
@@ -854,6 +859,8 @@ function TVideosCache.Video_IncReference(const URL: string;
 var
   I: Integer;
   C: TCachedVideo;
+  Start: TProcessTimerResult;
+  S: string;
 begin
   for I := 0 to CachedVideos.Count - 1 do
   begin
@@ -863,9 +870,8 @@ begin
       Inc(C.References);
       AlphaChannel := C.AlphaChannel;
 
-      {$ifdef DEBUG_CACHE}
-      Writeln('++ : video ', URL, ' : ', C.References);
-      {$endif}
+      if LogVideosCache and Log then
+        WritelnLog('++', 'Video %s : %d', [URL, C.References]);
 
       Exit(C.Video);
     end;
@@ -875,6 +881,9 @@ begin
     That's because in case TVideo.LoadFromFile raises exception,
     we don't want to add video to cache (because caller would have
     no way to call Video_DecReference later). }
+
+  if LogVideosCache and Log then
+    Start := ProcessTimerNow;
 
   Result := TVideo.Create;
   try
@@ -892,12 +901,14 @@ begin
   C.AlphaChannel := Result.AlphaChannel;
   AlphaChannel := C.AlphaChannel;
 
-  {$ifdef DEBUG_CACHE}
-  Writeln('++ : video ', URL, ' : ', 1);
-  {$endif}
-  if Log and (AlphaChannel <> acNone) then
-    WritelnLog('Alpha Detection', 'Video ' + URL +
-      ' detected as simple yes/no alpha channel: ' + BoolToStr[AlphaChannel = acSimpleYesNo]);
+  if LogVideosCache and Log then
+  begin
+    S := Format('Video %s : 1. Loading time: %f',
+      [URL, ProcessTimerSeconds(ProcessTimerNow, Start)]);
+    if AlphaChannel <> acNone then
+      S += '. Detected as simple yes/no alpha channel: ' + BoolToStr[AlphaChannel = acSimpleYesNo];
+    WritelnLog('++', S);
+  end;
 end;
 
 procedure TVideosCache.Video_DecReference(var Video: TVideo);
@@ -910,9 +921,8 @@ begin
     C := CachedVideos[I];
     if C.Video = Video then
     begin
-      {$ifdef DEBUG_CACHE}
-      Writeln('-- : video ', C.URL, ' : ', C.References - 1);
-      {$endif}
+      if LogVideosCache and Log then
+        WritelnLog('--', 'Video %s : %d', [C.URL, C.References - 1]);
 
       Video := nil;
 
