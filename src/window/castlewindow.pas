@@ -3244,7 +3244,7 @@ begin
   end else
   begin
     MakeCurrent;
-    Event := InputKey(Key, CharKey);
+    Event := InputKey(MousePosition, Key, CharKey);
     Container.EventPress(Event);
 
     if Event.IsKey(Close_CharKey) then
@@ -3254,7 +3254,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.DoKeyUp(key: TKey);
+procedure TCastleWindowCustom.DoKeyUp(Key: TKey);
 var
   C: char;
 begin
@@ -3264,7 +3264,7 @@ begin
     Assert(Key <> K_None);
     Pressed.KeyUp(Key, C);
     MakeCurrent;
-    Container.EventRelease(InputKey(key, C));
+    Container.EventRelease(InputKey(MousePosition, Key, C));
   end;
 end;
 
@@ -3316,7 +3316,7 @@ end;
 procedure TCastleWindowCustom.DoMouseWheel(const Scroll: Single; const Vertical: boolean);
 begin
   MakeCurrent;
-  Container.EventPress(InputMouseWheel(Scroll, Vertical));
+  Container.EventPress(InputMouseWheel(MousePosition, Scroll, Vertical));
 end;
 
 procedure TCastleWindowCustom.DoUpdate;

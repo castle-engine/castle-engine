@@ -519,13 +519,13 @@ type
 procedure TInputDialogOKButton.DoClick;
 begin
   inherited;
-  Dialog.Press(InputKey(K_Enter, CharEnter));
+  Dialog.Press(InputKey(Container.MousePosition, K_Enter, CharEnter));
 end;
 
 procedure TInputDialogCancelButton.DoClick;
 begin
   inherited;
-  Dialog.Press(InputKey(K_Escape, CharEscape));
+  Dialog.Press(InputKey(Container.MousePosition, K_Escape, CharEscape));
 end;
 
 function TCastleInputDialog.Press(const Event: TInputPressRelease): boolean;

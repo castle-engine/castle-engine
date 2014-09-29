@@ -638,7 +638,7 @@ begin
   inherited KeyDown(Key, Shift); { LCL OnKeyDown before our callbacks }
 
   if (MyKey <> K_None) or (Ch <> #0) then
-    if Container.EventPress(InputKey(MyKey, Ch)) then
+    if Container.EventPress(InputKey(MousePosition, MyKey, Ch)) then
       Key := 0; // handled
 end;
 
@@ -664,7 +664,7 @@ begin
   inherited KeyUp(Key, Shift); { LCL OnKeyUp before our callbacks }
 
   if (MyKey <> K_None) or (Ch <> #0) then
-    if Container.EventRelease(InputKey(MyKey, Ch)) then
+    if Container.EventRelease(InputKey(MousePosition, MyKey, Ch)) then
       Key := 0; // handled
 end;
 
@@ -807,7 +807,7 @@ end;
 function TCastleControlCustom.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
   MousePos: TPoint): Boolean;
 begin
-  Result := Container.EventPress(InputMouseWheel(WheelDelta/120, true));
+  Result := Container.EventPress(InputMouseWheel(MousePosition, WheelDelta/120, true));
   if Result then Exit;
 
   Result := inherited DoMouseWheel(Shift, WheelDelta, MousePos);
