@@ -99,6 +99,7 @@ begin
   if TypeName = 'boundingbox' then
   begin
     OnWarning(wtMinor, 'Spine', 'Spine region type "boundingbox" is ignored for now');
+    Result := nil;
   end else
     raise ESpineReadError.Create('Only attachment type "region" supported now');
 end;
