@@ -101,7 +101,7 @@ begin
     OnWarning(wtMinor, 'Spine', 'Spine region type "boundingbox" is ignored for now');
     Result := nil;
   end else
-    raise ESpineReadError.Create('Only attachment type "region" supported now');
+    raise ESpineReadError.CreateFmt('Attachment type "%s" not supported', [TypeName]);
 end;
 
 procedure TAttachment.Parse(const Json: TJSONObject);
