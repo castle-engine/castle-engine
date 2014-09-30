@@ -79,8 +79,10 @@ var
 begin
   UCamera := TUniversalCamera.Create(AOwner);
   UCamera.NavigationType := ntNone;
-  UCamera.SetInitialView({ pos } Vector3Single(0, 0, 0),
-    { dir } Vector3Single(0, 0, -1), { up } Vector3Single(0, 1, 0), false);
+  UCamera.SetInitialView(
+    { pos } Vector3Single(0, 0, 0),
+    { dir } Vector3Single(0, 0, -1),
+    { up } Vector3Single(0, 1, 0), false);
   UCamera.GoToInitial;
   UCamera.Radius := 0.01; { will not be used for anything, but set to something sensible just in case }
   Result := UCamera;
@@ -91,10 +93,10 @@ begin
   Result.ProjectionType := ptOrthographic;
   Result.OrthoDimensions[0] := 0;
   Result.OrthoDimensions[1] := 0;
-  Result.OrthoDimensions[2] := ContainerWidth;
-  Result.OrthoDimensions[3] := ContainerHeight;
-  Result.ProjectionNear := -1;
-  Result.ProjectionFar := 1;
+  Result.OrthoDimensions[2] := Rect.Width;
+  Result.OrthoDimensions[3] := Rect.Height;
+  Result.ProjectionNear := -1000;
+  Result.ProjectionFar := 1000;
   Result.ProjectionFarFinite := Result.ProjectionFar;
 end;
 
