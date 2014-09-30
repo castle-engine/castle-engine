@@ -1324,7 +1324,11 @@ begin
 
           BlendingRenderer.RenderBegin;
 
-          if CameraViewKnown and (Attributes.BlendingSort <> bsNone) then
+          { sort for blending, if BlendingSort not bsNone.
+            Note that bs2D does not require knowledge of the camera,
+            CameraPosition is unused in this case by FilteredShapes.SortBackToFront }
+          if ((Attributes.BlendingSort = bs3D) and CameraViewKnown) or
+              (Attributes.BlendingSort = bs2D) then
           begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, true);
