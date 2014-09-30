@@ -1807,7 +1807,7 @@ type
     { List the names of available animations in this file.
       Detected in VRML/X3D models as simply TimeSensor nodes with node name
       starting with "Animation_Xxx".
-      Called is responsible to free resulting TStringList instance.
+      Caller is responsible for freeing resulting TStringList instance.
 
       Note that the list of animations may change it you rebuild the underlying
       X3D nodes graph, for example if you start to delete / add some TimeSensor
