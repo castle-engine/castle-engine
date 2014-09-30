@@ -835,7 +835,7 @@ type
 
       If Distance3D than we use real distance in 3D.
       Otherwise we use only the distance in Z coordinate (suitable for
-      rendering things that pretent to be 2D, like Spine slots). }
+      rendering things that pretend to be 2D, like Spine slots). }
     procedure SortBackToFront(const Position: TVector3Single;
       const Distance3D: boolean);
   end;
