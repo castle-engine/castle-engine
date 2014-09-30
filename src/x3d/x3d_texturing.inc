@@ -485,6 +485,9 @@
 
     private FFdGenerateMipMaps: TSFBool;
     public property FdGenerateMipMaps: TSFBool read FFdGenerateMipMaps;
+
+    private FFdGUITexture: TSFBool;
+    public property FdGUITexture: TSFBool read FFdGUITexture;
   end;
 
   TTextureTransformNode = class(TAbstractTextureTransformNode)
@@ -1207,6 +1210,11 @@ begin
    FdGenerateMipMaps.Exposed := false;
    FdGenerateMipMaps.ChangesAlways := [chTexturePropertiesNode];
   Fields.Add(FFdGenerateMipMaps);
+
+  FFdGUITexture := TSFBool.Create(Self, 'guiTexture', false);
+   FdGUITexture.Exposed := false;
+   FdGUITexture.ChangesAlways := [chTexturePropertiesNode];
+  Fields.Add(FFdGUITexture);
 
   { X3D XML spec (edition 2) mistakenly claims it should be
     "lineProperties", which is nonsense... I set this to "textureProperties". }

@@ -462,6 +462,7 @@ type
     Magnification: TMagnificationFilter;
     Minification: TMinificationFilter;
     function NeedsMipmaps: boolean;
+    procedure DisableMipmaps;
   end;
 
 operator = (const V1, V2: TTextureFilter): boolean;
@@ -534,6 +535,12 @@ type
       minLinear and make OnWarning.)
   )
 
+  @param(GUITexture If @true, the texture is not forced to have sizes
+    as power-of-two. For TTextureSizing, it is like tsAny instead
+    of tsScalablePowerOf2.
+    Also, mipmaps are always disabled, regardless of requested
+    Filter value, since mipmaps cannot work without power-of-two.)
+
   @raises(ETextureLoadError If texture cannot be loaded for whatever reason.
     This includes ECannotLoadS3TCTexture if the S3TC texture cannot be
     loaded for whatever reason.
@@ -547,12 +554,14 @@ type
 function LoadGLTexture(const image: TEncodedImage;
   const Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
-  DDSForMipmaps: TDDSImage = nil): TGLuint; overload;
+  const DDSForMipmaps: TDDSImage = nil;
+  const GUITexture: boolean = false): TGLuint; overload;
 
 function LoadGLTexture(const URL: string;
   const Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
-  DDSForMipmaps: TDDSImage = nil): TGLuint; overload;
+  const DDSForMipmaps: TDDSImage = nil;
+  const GUITexture: boolean = false): TGLuint; overload;
 { @groupEnd }
 
 { Load OpenGL texture into already reserved texture number.
@@ -569,9 +578,10 @@ function LoadGLTexture(const URL: string;
 
   @groupBegin }
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
-  const Filter: TTextureFilter;
+  Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
-  DDSForMipmaps: TDDSImage = nil); overload;
+  const DDSForMipmaps: TDDSImage = nil;
+  const GUITexture: boolean = false); overload;
 { @groupEnd }
 
 type
@@ -627,7 +637,8 @@ type
     constructor Create(Video: TVideo;
       const Filter: TTextureFilter;
       const Anisotropy: TGLfloat;
-      const Wrap: TTextureWrap2D);
+      const Wrap: TTextureWrap2D;
+      const GUITexture:  boolean);
     destructor Destroy; override;
 
     function GLTextureFromTime(const Time: Single): TGLuint;
@@ -1801,6 +1812,15 @@ begin
       minLinearMipmapLinear ];
 end;
 
+procedure TTextureFilter.DisableMipmaps;
+begin
+  if NeedsMipmaps then
+  begin
+    Minification := minLinear;
+    Assert(not NeedsMipmaps);
+  end;
+end;
+
 operator = (const V1, V2: TTextureFilter): boolean;
 begin
   Result :=
@@ -1819,21 +1839,21 @@ end;
 
 function LoadGLTexture(const image: TEncodedImage;
   const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
-  DDSForMipmaps: TDDSImage): TGLuint;
+  const DDSForMipmaps: TDDSImage; const GUITexture: boolean): TGLuint;
 begin
   glGenTextures(1, @result);
-  LoadGLGeneratedTexture(result, image, Filter, Wrap, DDSForMipmaps);
+  LoadGLGeneratedTexture(result, image, Filter, Wrap, DDSForMipmaps, GUITexture);
 end;
 
 function LoadGLTexture(const URL: string;
   const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
-  DDSForMipmaps: TDDSImage): TGLuint;
+  const DDSForMipmaps: TDDSImage; const GUITexture: boolean): TGLuint;
 var
   Image: TEncodedImage;
 begin
   Image := LoadTextureImage(URL);
   try
-    Result := LoadGLTexture(Image, Filter, Wrap, DDSForMipmaps);
+    Result := LoadGLTexture(Image, Filter, Wrap, DDSForMipmaps, GUITexture);
   finally Image.Free end;
 end;
 
@@ -1867,8 +1887,8 @@ end;
 {$endif}
 
 procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
-  const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
-  DDSForMipmaps: TDDSImage);
+  Filter: TTextureFilter; const Wrap: TTextureWrap2D;
+  const DDSForMipmaps: TDDSImage; const GUITexture: boolean);
 var
   ImageInternalFormat: TGLuint;
   ImageFormat: TGLuint;
@@ -1913,11 +1933,15 @@ var
 
   var
     ImgGood: TCastleImage;
+    Sizing: TTextureSizing;
   begin
-    if IsTextureSized(Image, tsScalablePowerOf2) then
+    if GUITexture then
+      Sizing := tsAny else
+      Sizing := tsScalablePowerOf2;
+    if IsTextureSized(Image, Sizing) then
       Core(Image) else
     begin
-      ImgGood := ResizeToTextureSize(Image, tsScalablePowerOf2);
+      ImgGood := ResizeToTextureSize(Image, Sizing);
       try
         Core(ImgGood);
       finally ImgGood.Free end;
@@ -2011,6 +2035,9 @@ var
   end;
 
 begin
+  if GUITexture then
+    Filter.DisableMipmaps;
+
   { bind the texture, set min, mag filters and wrap parameters }
   glBindTexture(GL_TEXTURE_2D, texnum);
   SetTextureFilter(GL_TEXTURE_2D, Filter);
@@ -2077,7 +2104,7 @@ end;
 
 constructor TGLVideo3D.Create(Video: TVideo;
   const Filter: TTextureFilter; const Anisotropy: TGLfloat;
-  const Wrap: TTextureWrap2D);
+  const Wrap: TTextureWrap2D; const GUITexture: boolean);
 var
   I: Integer;
 begin
@@ -2086,7 +2113,7 @@ begin
   SetLength(FItems, Count);
   for I := 0 to High(FItems) do
   begin
-    FItems[I] := LoadGLTexture(Video.Items[I], Filter, Wrap);
+    FItems[I] := LoadGLTexture(Video.Items[I], Filter, Wrap, nil, GUITexture);
     TexParameterMaxAnisotropy(GL_TEXTURE_2D, Anisotropy);
   end;
 end;

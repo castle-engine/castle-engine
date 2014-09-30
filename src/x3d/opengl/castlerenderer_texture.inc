@@ -13,7 +13,7 @@
       (possibly in Attributes). }
     procedure HandleTexturePropertiesCore(
       TextureProperties: TTexturePropertiesNode;
-      out Filter: TTextureFilter; out Anisotropy: TGLfloat);
+      out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean);
 
     { Calculate things from TextureProperties node.
       If TextureProperties = @nil or not of TTexturePropertiesNode class,
@@ -24,7 +24,7 @@
       in "textureProperties" field. }
     procedure HandleTextureProperties(
       TextureProperties: TX3DNode;
-      out Filter: TTextureFilter; out Anisotropy: TGLfloat);
+      out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean);
 
     { Decide if this class can handle given texture Node. }
     class function IsClassForTextureNode(
@@ -440,7 +440,7 @@ end;
 
 procedure TGLTextureNode.HandleTexturePropertiesCore(
   TextureProperties: TTexturePropertiesNode;
-  out Filter: TTextureFilter; out Anisotropy: TGLfloat);
+  out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean);
 
   function StrToMinFilter(S: string): TMinificationFilter;
   begin
@@ -512,22 +512,24 @@ begin { HandleTextureProperties }
     Filter.Minification := StrToMinFilter(TextureProperties.FdMinificationFilter.Value);
     Filter.Magnification := StrToMagFilter(TextureProperties.FdMagnificationFilter.Value);
     Anisotropy := TextureProperties.FdAnisotropicDegree.Value;
+    GUITexture := TextureProperties.FdGUITexture.Value;
   end else
   begin
     Filter := Renderer.Attributes.TextureFilter;
     Anisotropy := 1;
+    GUITexture := false;
   end;
 end { HandleTextureProperties };
 
 procedure TGLTextureNode.HandleTextureProperties(
   TextureProperties: TX3DNode;
-  out Filter: TTextureFilter; out Anisotropy: TGLfloat);
+  out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean);
 begin
   if (TextureProperties = nil) or
      not (TextureProperties is TTexturePropertiesNode) then
-    HandleTexturePropertiesCore(nil, Filter, Anisotropy) else
+    HandleTexturePropertiesCore(nil, Filter, Anisotropy, GUITexture) else
     HandleTexturePropertiesCore(TTexturePropertiesNode(TextureProperties),
-      Filter, Anisotropy);
+      Filter, Anisotropy, GUITexture);
 end;
 
 class function TGLTextureNode.ClassForTextureNode(
@@ -1015,11 +1017,12 @@ var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
   TextureWrap: TTextureWrap2D;
+  GUITexture: boolean;
 begin
   { HandledNode already made sure IsTextureImage = @true }
 
   HandleTexturePropertiesCore(TextureNode.TextureProperties,
-    Filter, Anisotropy);
+    Filter, Anisotropy, GUITexture);
 
   TextureWrap[0] := TextureRepeatToGL(TextureNode.RepeatS);
   TextureWrap[1] := TextureRepeatToGL(TextureNode.RepeatT);
@@ -1033,7 +1036,8 @@ begin
     Filter,
     Anisotropy,
     TextureWrap,
-    TextureNode.TextureDDS);
+    TextureNode.TextureDDS,
+    GUITexture);
 end;
 
 procedure TGLImageTextureNode.Unprepare;
@@ -1090,11 +1094,12 @@ var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
   TextureWrap: TTextureWrap2D;
+  GUITexture: boolean;
 begin
   { HandledNode already made sure IsTextureVideo = @true }
 
   HandleTexturePropertiesCore(TextureNode.TextureProperties,
-    Filter, Anisotropy);
+    Filter, Anisotropy, GUITexture);
 
   TextureWrap[0] := TextureRepeatToGL(TextureNode.RepeatS);
   TextureWrap[1] := TextureRepeatToGL(TextureNode.RepeatT);
@@ -1107,7 +1112,8 @@ begin
     TextureNode,
     Filter,
     Anisotropy,
-    TextureWrap);
+    TextureWrap,
+    GUITexture);
 end;
 
 procedure TGLMovieTextureNode.Unprepare;
@@ -1170,9 +1176,11 @@ var
   Anisotropy: TGLfloat;
   TextureWrap: TTextureWrap2D;
   NodeWidth, NodeHeight: Cardinal;
+  GUITexture: boolean;
+  Sizing: TTextureSizing;
 begin
   HandleTextureProperties(TextureNode.FdTextureProperties.Value,
-    Filter, Anisotropy);
+    Filter, Anisotropy, GUITexture);
 
   { calculate Filter, Anisotropy, NeedsMipmaps }
   NeedsMipmaps := Filter.NeedsMipmaps;
@@ -1198,10 +1206,13 @@ begin
     NodeHeight := DefaultRenderedTextureHeight;
   Width  := NodeWidth ;
   Height := NodeHeight;
-  if not IsTextureSized(Width, Height, tsScalablePowerOf2) then
+  if GUITexture then
+    Sizing := tsAny else
+    Sizing := tsScalablePowerOf2;
+  if not IsTextureSized(Width, Height, Sizing) then
   begin
-    Width  := ResizeToTextureSize(Width , tsScalablePowerOf2);
-    Height := ResizeToTextureSize(Height, tsScalablePowerOf2);
+    Width  := ResizeToTextureSize(Width , Sizing);
+    Height := ResizeToTextureSize(Height, Sizing);
     OnWarning(wtMinor, 'VRML/X3D' { This may be caused by OpenGL implementation
       limits, so it may be impossible to predict by VRML author,
       so it's "ignorable" warning. },
@@ -1244,7 +1255,8 @@ begin
         Filter,
         Anisotropy,
         TextureWrap,
-        nil);
+        nil,
+        GUITexture);
 
       { RenderedTexture never has any normal / height map
         (Hm, although it would be possible to generate some in theory
@@ -1553,6 +1565,7 @@ var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
   BackRot, FrontRot, LeftRot, RightRot: TCastleImage;
+  GUITexture: boolean;
 begin
   if GLFeatures.TextureCubeMap = gsNone then
   begin
@@ -1567,7 +1580,7 @@ begin
   end;
 
   HandleTextureProperties(TextureNode.FdTextureProperties.Value,
-    Filter, Anisotropy);
+    Filter, Anisotropy, GUITexture);
 
   try
     { To match expected orientation for OpenGL, we have to rotate images.
@@ -1616,6 +1629,7 @@ procedure TGLImageCubeMapTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
+  GUITexture: boolean;
   DDS: TDDSImage;
 begin
   if GLFeatures.TextureCubeMap = gsNone then
@@ -1632,7 +1646,7 @@ begin
   try
 
     HandleTextureProperties(TextureNode.FdTextureProperties.Value,
-      Filter, Anisotropy);
+      Filter, Anisotropy, GUITexture);
 
     { TODO: this is a quick and dirty method:
       - We call LoadImage each time, while load calls should
@@ -1676,6 +1690,7 @@ procedure TGLGeneratedCubeMapTextureNode.PrepareCore(State: TX3DGraphTraverseSta
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
+  GUITexture: boolean;
   InitialImage: TCastleImage;
 begin
   if GLFeatures.TextureCubeMap = gsNone then
@@ -1685,7 +1700,7 @@ begin
   end;
 
   HandleTextureProperties(TextureNode.FdTextureProperties.Value,
-    Filter, Anisotropy);
+    Filter, Anisotropy, GUITexture);
 
   { calculate Filter, Anisotropy, NeedsMipmaps }
   NeedsMipmaps := Filter.NeedsMipmaps;
@@ -1807,6 +1822,7 @@ procedure TGL3DTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
+  GUITexture: boolean;
   TextureWrap: TTextureWrap3D;
 begin
   if GLFeatures.Texture3D = gsNone then
@@ -1822,7 +1838,7 @@ begin
   if TextureNode.TextureImage = nil then Exit;
 
   HandleTextureProperties(TextureNode.FdTextureProperties.Value,
-    Filter, Anisotropy);
+    Filter, Anisotropy, GUITexture);
 
   { calculate TextureWrap }
   TextureWrap[0] := TextureRepeatToGL(TextureNode.FdRepeatS.Value);

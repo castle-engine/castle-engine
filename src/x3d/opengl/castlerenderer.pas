@@ -553,6 +553,7 @@ type
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap2D;
+    GUITexture: boolean;
     References: Cardinal;
     GLName: TGLuint;
   end;
@@ -574,6 +575,7 @@ type
     Filter: TTextureFilter;
     Anisotropy: TGLfloat;
     Wrap: TTextureWrap2D;
+    GUITexture: boolean;
     References: Cardinal;
     GLVideo: TGLVideo3D;
   end;
@@ -708,7 +710,8 @@ type
       const Filter: TTextureFilter;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
-      const DDSForMipmaps: TDDSImage): TGLuint;
+      const DDSForMipmaps: TDDSImage;
+      const GUITexture: boolean): TGLuint;
 
     procedure TextureImage_DecReference(
       const TextureGLName: TGLuint);
@@ -719,7 +722,8 @@ type
       const TextureNode: TMovieTextureNode;
       const Filter: TTextureFilter;
       const TextureAnisotropy: TGLfloat;
-      const TextureWrap: TTextureWrap2D): TGLVideo3D;
+      const TextureWrap: TTextureWrap2D;
+      const GUITexture: boolean): TGLVideo3D;
 
     procedure TextureVideo_DecReference(
       const TextureVideo: TGLVideo3D);
@@ -1290,7 +1294,8 @@ function TGLRendererContextCache.TextureImage_IncReference(
   const Filter: TTextureFilter;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
-  const DDSForMipmaps: TDDSImage): TGLuint;
+  const DDSForMipmaps: TDDSImage;
+  const GUITexture: boolean): TGLuint;
 var
   I: Integer;
   TextureCached: TTextureImageCache;
@@ -1325,7 +1330,8 @@ begin
          (TextureCached.InitialNode = TextureNode) ) and
        (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = TextureAnisotropy) and
-       (TextureCached.Wrap = TextureWrap) then
+       (TextureCached.Wrap = TextureWrap) and
+       (TextureCached.GUITexture = GUITexture) then
     begin
       Inc(TextureCached.References);
       if LogRendererCache and Log then
@@ -1338,7 +1344,7 @@ begin
     That's because in case LoadGLTexture raises exception,
     we don't want to add texture to cache (because caller would have
     no way to call TextureImage_DecReference later). }
-  Result := LoadGLTexture(TextureImage, Filter, TextureWrap, DDSForMipmaps);
+  Result := LoadGLTexture(TextureImage, Filter, TextureWrap, DDSForMipmaps, GUITexture);
 
   TexParameterMaxAnisotropy(GL_TEXTURE_2D, TextureAnisotropy);
 
@@ -1349,6 +1355,7 @@ begin
   TextureCached.Filter := Filter;
   TextureCached.Anisotropy := TextureAnisotropy;
   TextureCached.Wrap := TextureWrap;
+  TextureCached.GUITexture := GUITexture;
   TextureCached.References := 1;
   TextureCached.GLName := Result;
 
@@ -1387,7 +1394,8 @@ function TGLRendererContextCache.TextureVideo_IncReference(
   const TextureNode: TMovieTextureNode;
   const Filter: TTextureFilter;
   const TextureAnisotropy: TGLfloat;
-  const TextureWrap: TTextureWrap2D): TGLVideo3D;
+  const TextureWrap: TTextureWrap2D;
+  const GUITexture: boolean): TGLVideo3D;
 var
   I: Integer;
   TextureCached: TTextureVideoCache;
@@ -1401,7 +1409,8 @@ begin
          (TextureCached.InitialNode = TextureNode) ) and
        (TextureCached.Filter = Filter) and
        (TextureCached.Anisotropy = TextureAnisotropy) and
-       (TextureCached.Wrap = TextureWrap) then
+       (TextureCached.Wrap = TextureWrap) and
+       (TextureCached.GUITexture = GUITexture) then
     begin
       Inc(TextureCached.References);
       if LogRendererCache and Log then
@@ -1414,7 +1423,7 @@ begin
     That's because in case TGLVideo3D.Create raises exception,
     we don't want to add texture to cache (because caller would have
     no way to call TextureVideo_DecReference later). }
-  Result := TGLVideo3D.Create(TextureVideo, Filter, TextureAnisotropy, TextureWrap);
+  Result := TGLVideo3D.Create(TextureVideo, Filter, TextureAnisotropy, TextureWrap, GUITexture);
 
   TextureCached := TTextureVideoCache.Create;
   TextureVideoCaches.Add(TextureCached);
@@ -1423,6 +1432,7 @@ begin
   TextureCached.Filter := Filter;
   TextureCached.Anisotropy := TextureAnisotropy;
   TextureCached.Wrap := TextureWrap;
+  TextureCached.GUITexture := GUITexture;
   TextureCached.References := 1;
   TextureCached.GLVideo := Result;
 
