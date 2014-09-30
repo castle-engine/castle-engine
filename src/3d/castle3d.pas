@@ -957,6 +957,11 @@ type
     procedure Clear;
     { @groupEnd }
 
+    { Sort based on average Z of 3D item bounding box.
+      Useful when multiple 3D scenes use blending, and they are ordered in Z
+      (like in most 2D scenes). }
+    procedure SortZ;
+
     function BoundingBox: TBox3D; override;
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
     procedure RenderShadowVolume(
@@ -2415,6 +2420,28 @@ end;
 procedure T3DList.Clear;
 begin
   List.Clear;
+end;
+
+function CompareZ(A, B: Pointer): Integer;
+var
+  BoxA, BoxB: TBox3D;
+begin
+  BoxA := T3D(A).BoundingBox;
+  BoxB := T3D(B).BoundingBox;
+  if BoxA.IsEmpty and BoxB.IsEmpty then
+    Result := 0 else
+  if BoxA.IsEmpty then
+    Result := -1 else
+  if BoxB.IsEmpty then
+    Result := 1 else
+    Result := Sign(
+      (BoxA.Data[0][2] + BoxA.Data[0][2]) -
+      (BoxB.Data[0][2] + BoxB.Data[0][2]));
+end;
+
+procedure T3DList.SortZ;
+begin
+  List.Sort(@CompareZ);
 end;
 
 function T3DList.BoundingBox: TBox3D;
