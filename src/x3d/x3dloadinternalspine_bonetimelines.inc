@@ -31,7 +31,8 @@
     procedure Parse(const Json: TJSONArray); virtual;
     procedure ParseSingleValue(const Json: TJSONObject); virtual; abstract;
     procedure BuildNodes(const BaseUrl: string;
-      const MaxAnimationTime: Single; const Container: TX3DRootNode); virtual;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode;
+      const BonesToReset: TBonesAnimated); virtual;
   end;
 
   TBoneTimelineVector2 = class(TBoneTimeline)
@@ -45,13 +46,15 @@
   TBoneTimelineTranslate = class(TBoneTimelineVector2)
     procedure ParseSingleValue(const Json: TJSONObject); override;
     procedure BuildNodes(const BaseUrl: string;
-      const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode;
+      const BonesToReset: TBonesAnimated); override;
   end;
 
   TBoneTimelineScale = class(TBoneTimelineVector2)
     procedure ParseSingleValue(const Json: TJSONObject); override;
     procedure BuildNodes(const BaseUrl: string;
-      const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode;
+      const BonesToReset: TBonesAnimated); override;
   end;
 
   TBoneTimelineRotate = class(TBoneTimeline)
@@ -62,7 +65,8 @@
     destructor Destroy; override;
     procedure ParseSingleValue(const Json: TJSONObject); override;
     procedure BuildNodes(const BaseUrl: string;
-      const MaxAnimationTime: Single; const Container: TX3DRootNode); override;
+      const MaxAnimationTime: Single; const Container: TX3DRootNode;
+      const BonesToReset: TBonesAnimated); override;
   end;
 
   TBoneTimelineList = class(specialize TFPGObjectList<TBoneTimeline>)
@@ -108,7 +112,8 @@ begin
 end;
 
 procedure TBoneTimeline.BuildNodes(const BaseUrl: string;
-  const MaxAnimationTime: Single; const Container: TX3DRootNode);
+  const MaxAnimationTime: Single; const Container: TX3DRootNode;
+  const BonesToReset: TBonesAnimated);
 var
   I: Integer;
 begin
@@ -145,7 +150,8 @@ begin
 end;
 
 procedure TBoneTimelineTranslate.BuildNodes(const BaseUrl: string;
-  const MaxAnimationTime: Single; const Container: TX3DRootNode);
+  const MaxAnimationTime: Single; const Container: TX3DRootNode;
+  const BonesToReset: TBonesAnimated);
 var
   I: Integer;
   N: TPositionInterpolatorNode;
@@ -172,6 +178,9 @@ begin
     Route.SetSourceDirectly(N.EventValue_changed);
     Route.SetDestinationDirectly(Bone.Node.FdTranslation.EventIn);
     Container.Routes.Add(Route);
+
+    if BonesToReset.Translation.Remove(Bone) = -1 then
+      OnWarning(wtMajor, 'Spine', 'Multiple bone timelines affect bone translation: bone ' + Bone.Name);
   end;
 end;
 
@@ -185,7 +194,8 @@ begin
 end;
 
 procedure TBoneTimelineScale.BuildNodes(const BaseUrl: string;
-  const MaxAnimationTime: Single; const Container: TX3DRootNode);
+  const MaxAnimationTime: Single; const Container: TX3DRootNode;
+  const BonesToReset: TBonesAnimated);
 var
   I: Integer;
   N: TPositionInterpolatorNode;
@@ -208,6 +218,9 @@ begin
     Route.SetSourceDirectly(N.EventValue_changed);
     Route.SetDestinationDirectly(Bone.Node.FdScale.EventIn);
     Container.Routes.Add(Route);
+
+    if BonesToReset.Scale.Remove(Bone) = -1 then
+      OnWarning(wtMajor, 'Spine', 'Multiple bone timelines affect bone scale: bone ' + Bone.Name);
   end;
 end;
 
@@ -231,7 +244,8 @@ begin
 end;
 
 procedure TBoneTimelineRotate.BuildNodes(const BaseUrl: string;
-  const MaxAnimationTime: Single; const Container: TX3DRootNode);
+  const MaxAnimationTime: Single; const Container: TX3DRootNode;
+  const BonesToReset: TBonesAnimated);
 var
   I: Integer;
   N: TOrientationInterpolatorNode;
@@ -254,6 +268,9 @@ begin
     Route.SetSourceDirectly(N.EventValue_changed);
     Route.SetDestinationDirectly(Bone.Node.FdRotation.EventIn);
     Container.Routes.Add(Route);
+
+    if BonesToReset.Rotation.Remove(Bone) = -1 then
+      OnWarning(wtMajor, 'Spine', 'Multiple bone timelines affect bone rotation: bone ' + Bone.Name);
   end;
 end;
 

@@ -16,6 +16,15 @@
 { Spine bones. }
 
 {$ifdef read_interface}
+  TBonesAnimated = class
+    Translation: TBoneList;
+    Scale: TBoneList;
+    Rotation: TBoneList;
+    constructor Create;
+    destructor Destroy; override;
+    procedure Assign(const Source: TBonesAnimated);
+  end;
+
   TBone = class
     Name: string;
     Length: Single;
@@ -24,11 +33,15 @@
     Rotation: Single;
     Parent: TBone;
     Node: TTransformNode;
+    ResetTranslation: TPositionInterpolatorNode;
+    ResetScale: TPositionInterpolatorNode;
+    ResetRotation: TOrientationInterpolatorNode;
     NodeUsedAsChild: boolean;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject;
       const PossibleParents: TBoneList; const ExpectedParent: boolean);
-    procedure BuildNodes(const BaseUrl: string);
+    procedure BuildNodes(const BaseUrl: string;
+      const BonesAnimated: TBonesAnimated);
   end;
 
   TBoneList = class(specialize TFPGObjectList<TBone>)
@@ -36,11 +49,37 @@
       @raises ESpineReadError If bone does not exist. }
     function Find(const BoneName: string): TBone;
     procedure Parse(const Json: TJSONObject; var Root: TBone);
-    procedure BuildNodes(const BaseUrl: string);
+    procedure BuildNodes(const BaseUrl: string;
+      const BonesAnimated: TBonesAnimated);
   end;
 {$endif}
 
 {$ifdef read_implementation}
+
+{ TBonesAnimated ------------------------------------------------------------- }
+
+constructor TBonesAnimated.Create;
+begin
+  inherited;
+  Translation := TBoneList.Create(false);
+  Scale := TBoneList.Create(false);
+  Rotation := TBoneList.Create(false);
+end;
+
+destructor TBonesAnimated.Destroy;
+begin
+  FreeAndNil(Translation);
+  FreeAndNil(Scale);
+  FreeAndNil(Rotation);
+  inherited;
+end;
+
+procedure TBonesAnimated.Assign(const Source: TBonesAnimated);
+begin
+  Translation.Assign(Source.Translation);
+  Scale.Assign(Source.Scale);
+  Rotation.Assign(Source.Rotation);
+end;
 
 { TBone ---------------------------------------------------------------------- }
 
@@ -80,7 +119,63 @@ begin
   inherited;
 end;
 
-procedure TBone.BuildNodes(const BaseUrl: string);
+procedure TBone.BuildNodes(const BaseUrl: string;
+  const BonesAnimated: TBonesAnimated);
+
+  { Prepare interpolators that allow to reset bone to initial transformation
+    after some animations. }
+
+  procedure AddResetTranslation;
+  var
+    Route: TX3DRoute;
+  begin
+    if BonesAnimated.Translation.IndexOf(Self) = -1 then Exit;
+
+    ResetTranslation := TPositionInterpolatorNode.Create('BoneReset_translate_' + ToX3DName(Name));
+    ResetTranslation.FdKey.Items.Add(0);
+    ResetTranslation.FdKeyValue.Items.Add(Node.FdTranslation.Value);
+    Node.FdChildren.Add(ResetTranslation);
+
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(ResetTranslation.EventValue_changed);
+    Route.SetDestinationDirectly(Node.FdTranslation.EventIn);
+    Node.Routes.Add(Route);
+  end;
+
+  procedure AddResetScale;
+  var
+    Route: TX3DRoute;
+  begin
+    if BonesAnimated.Scale.IndexOf(Self) = -1 then Exit;
+
+    ResetScale := TPositionInterpolatorNode.Create('BoneReset_scale_' + ToX3DName(Name));
+    ResetScale.FdKey.Items.Add(0);
+    ResetScale.FdKeyValue.Items.Add(Node.FdScale.Value);
+    Node.FdChildren.Add(ResetScale);
+
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(ResetScale.EventValue_changed);
+    Route.SetDestinationDirectly(Node.FdScale.EventIn);
+    Node.Routes.Add(Route);
+  end;
+
+  procedure AddResetRotation;
+  var
+    Route: TX3DRoute;
+  begin
+    if BonesAnimated.Rotation.IndexOf(Self) = -1 then Exit;
+
+    ResetRotation := TOrientationInterpolatorNode.Create('BoneReset_rotate_' + ToX3DName(Name));
+    ResetRotation.FdKey.Items.Add(0);
+    ResetRotation.FdKeyValue.Items.Add(Node.FdRotation.Value);
+    Node.FdChildren.Add(ResetRotation);
+
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(ResetRotation.EventValue_changed);
+    Route.SetDestinationDirectly(Node.FdRotation.EventIn);
+    Node.Routes.Add(Route);
+  end;
+
 begin
   Node := TTransformNode.Create('Bone_' + ToX3DName(Name), BaseUrl);
   Node.FdTranslation.Value := Vector3Single(XY[0], XY[1], 0);
@@ -91,6 +186,10 @@ begin
     NodeUsedAsChild := true;
     Parent.Node.FdChildren.Add(Node);
   end;
+
+  AddResetTranslation;
+  AddResetScale;
+  AddResetRotation;
 end;
 
 { TBoneList ------------------------------------------------------------------ }
@@ -131,11 +230,12 @@ begin
     end;
 end;
 
-procedure TBoneList.BuildNodes(const BaseUrl: string);
+procedure TBoneList.BuildNodes(const BaseUrl: string;
+  const BonesAnimated: TBonesAnimated);
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I].BuildNodes(BaseUrl);
+    Items[I].BuildNodes(BaseUrl, BonesAnimated);
 end;
 {$endif}

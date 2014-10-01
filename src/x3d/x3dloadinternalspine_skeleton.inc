@@ -26,6 +26,12 @@
     Skins: TSkinList;
     Animations: TAnimationList;
     DefaultSkin: TSkin;
+    { List of bones (all present also on TSkeleton.Bones list) that have their
+      translation/rotation/scale modified by @italic(any) animation.
+      This is useful to gather, as this is the minimal set of things
+      reset to bring back model to initial (pose) state.
+      Calculated during TSkeleton.Parse, used during TSkeleton.BuildNodes. }
+    BonesAnimated: TBonesAnimated;
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONData);
@@ -42,6 +48,7 @@ begin
   Slots := TSlotList.Create;
   Skins := TSkinList.Create;
   Animations := TAnimationList.Create;
+  BonesAnimated := TBonesAnimated.Create;
 end;
 
 destructor TSkeleton.Destroy;
@@ -52,6 +59,7 @@ begin
   Root := nil;
   FreeAndNil(Bones);
   FreeAndNil(Animations);
+  FreeAndNil(BonesAnimated);
   inherited;
 end;
 
@@ -66,7 +74,7 @@ begin
   Bones.Parse(O, Root);
   Slots.Parse(O, Bones);
   Skins.Parse(O, DefaultSkin);
-  Animations.Parse(O, Bones);
+  Animations.Parse(O, Bones, BonesAnimated);
 
   WritelnLog('Spine', Format('Skeleton read, bones: %d, slots: %d, skins: %d, animations: %d',
     [Bones.Count, Slots.Count, Skins.Count, Animations.Count]));
@@ -90,7 +98,7 @@ var
   end;
 
 begin
-  Bones.BuildNodes(BaseUrl);
+  Bones.BuildNodes(BaseUrl, BonesAnimated);
   Root.NodeUsedAsChild := true;
   Container.FdChildren.Add(Root.Node);
 
@@ -111,6 +119,6 @@ begin
     SkinLog;
 
   Slots.BuildNodes(BaseUrl, CurrentSkin.Attachments, DefaultSkin.Attachments);
-  Animations.BuildNodes(BaseUrl, Container);
+  Animations.BuildNodes(BaseUrl, Container, BonesAnimated);
 end;
 {$endif}
