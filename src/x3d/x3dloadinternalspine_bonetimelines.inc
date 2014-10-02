@@ -22,10 +22,11 @@
   public
     Bone: TBone;
     Time: TSingleList;
+    Curve: boolean;
+    CurveControlPoints: TVector4SingleList;
     Node: TAbstractInterpolatorNode;
     NodeUsedAsChild: boolean;
     property MaxTime: Single read FMaxTime;
-    // TODO: curve not supported yet
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONArray); virtual;
@@ -81,11 +82,13 @@ constructor TBoneTimeline.Create;
 begin
   inherited;
   Time := TSingleList.Create;
+  CurveControlPoints := TVector4SingleList.Create;
 end;
 
 destructor TBoneTimeline.Destroy;
 begin
   FreeAndNil(Time);
+  FreeAndNil(CurveControlPoints);
   inherited;
 end;
 
@@ -94,7 +97,11 @@ var
   I: Integer;
   O: TJSONObject;
   NextTime: Single;
+  ControlPoints: TVector4Single;
+  CurveTypeJson: TJSONData;
 begin
+  Curve := false;
+
   for I := 0 to Json.Count - 1 do
     if Json[I] is TJSONObject then
     begin
@@ -105,6 +112,35 @@ begin
         raise ESpineReadError.Create('Timeline must have increasing time values');
       Time.Add(NextTime);
       FMaxTime := NextTime;
+
+      ControlPoints := Vector4Single(0, 0, 1, 1); // default value, in case curve is later changed from linear to curve
+      CurveTypeJson := O.Find('curve');
+      if CurveTypeJson <> nil then
+      begin
+        if CurveTypeJson is TJSONArray then
+        begin
+          if TJSONArray(CurveTypeJson).Count <> 4 then
+            OnWarning(wtMinor, 'Spine', 'Curve type interpolation is an array, but does not have 4 elements (required for Bezier curve array)') else
+          begin
+            Curve := true;
+            ControlPoints[0] := TJSONArray(CurveTypeJson).Floats[0];
+            ControlPoints[1] := TJSONArray(CurveTypeJson).Floats[1];
+            ControlPoints[2] := TJSONArray(CurveTypeJson).Floats[2];
+            ControlPoints[3] := TJSONArray(CurveTypeJson).Floats[3];
+          end;
+        end;
+
+        { For now, silently ignore warning that we don't handle curve type
+          'stepped'. Spine optimizes it's curves by using 'stepped' where
+          previous and next values are equal, so this is common, and we would
+          flood the warnings console for many models because of this (while in fact
+          models are handled Ok since 'stepped' is only for optimization). }
+        { else
+        if CurveTypeJson.AsString <> 'linear' then
+          OnWarning(wtMinor, 'Spine', 'Found "' + CurveTypeJson.AsString + '" interpolation type on bone timeline of bone ' + Bone.Name + ', we do not support this interpolation type');
+        }
+      end;
+      CurveControlPoints.Add(ControlPoints);
 
       ParseSingleValue(O);
     end;
@@ -155,17 +191,36 @@ procedure TBoneTimelineTranslate.BuildNodes(const BaseUrl: string;
 var
   I: Integer;
   N: TPositionInterpolatorNode;
+  NC: TCubicBezierPositionInterpolatorNode;
+  EventValueChanged: TX3DEvent;
   Route: TX3DRoute;
 begin
-  N := TPositionInterpolatorNode.Create('BoneTimeline_translate_' + ToX3DName(Bone.Name));
-  N.FdKeyValue.Items.Clear;
-  for I := 0 to Vectors.Count - 1 do
-    N.FdKeyValue.Items.Add(Vector3Single(
-      { add setup pose transform, as bone timeline is relative to setup pose }
-      Bone.Node.FdTranslation.Value[0] + Vectors[I][0],
-      Bone.Node.FdTranslation.Value[1] + Vectors[I][1], 0));
+  if Curve then
+  begin
+    NC := TCubicBezierPositionInterpolatorNode.Create('BoneTimeline_translate_' + ToX3DName(Bone.Name));
+    for I := 0 to Vectors.Count - 1 do
+    begin
+      NC.FdKeyValue.Items.Add(Vector3Single(
+        { add setup pose transform, as bone timeline is relative to setup pose }
+        Bone.Node.FdTranslation.Value[0] + Vectors[I][0],
+        Bone.Node.FdTranslation.Value[1] + Vectors[I][1], 0));
+      NC.FdControlPoints.Items.Add(CurveControlPoints[I]);
+    end;
+    EventValueChanged := NC.EventValue_changed;
+    Node := NC;
+    //WritelnLog('Spine', 'Using curve for translation on bone ' + Bone.Name);
+  end else
+  begin
+    N := TPositionInterpolatorNode.Create('BoneTimeline_translate_' + ToX3DName(Bone.Name));
+    for I := 0 to Vectors.Count - 1 do
+      N.FdKeyValue.Items.Add(Vector3Single(
+        { add setup pose transform, as bone timeline is relative to setup pose }
+        Bone.Node.FdTranslation.Value[0] + Vectors[I][0],
+        Bone.Node.FdTranslation.Value[1] + Vectors[I][1], 0));
+    EventValueChanged := N.EventValue_changed;
+    Node := N;
+  end;
 
-  Node := N;
   inherited;
 
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
@@ -175,7 +230,7 @@ begin
   if Time.Count > 1 then
   begin
     Route := TX3DRoute.Create;
-    Route.SetSourceDirectly(N.EventValue_changed);
+    Route.SetSourceDirectly(EventValueChanged);
     Route.SetDestinationDirectly(Bone.Node.FdTranslation.EventIn);
     Container.Routes.Add(Route);
 
@@ -199,23 +254,41 @@ procedure TBoneTimelineScale.BuildNodes(const BaseUrl: string;
 var
   I: Integer;
   N: TPositionInterpolatorNode;
+  NC: TCubicBezierPositionInterpolatorNode;
+  EventValueChanged: TX3DEvent;
   Route: TX3DRoute;
 begin
-  N := TPositionInterpolatorNode.Create('BoneTimeline_scale_' + ToX3DName(Bone.Name));
-  N.FdKeyValue.Items.Clear;
-  for I := 0 to Vectors.Count - 1 do
-    N.FdKeyValue.Items.Add(Vector3Single(
-      { multiple setup pose transform, as bone timeline is relative to setup pose }
-      Bone.Node.FdScale.Value[0] * Vectors[I][0],
-      Bone.Node.FdScale.Value[1] * Vectors[I][1], 1));
-
-  Node := N;
+  if Curve then
+  begin
+    NC := TCubicBezierPositionInterpolatorNode.Create('BoneTimeline_scale_' + ToX3DName(Bone.Name));
+    for I := 0 to Vectors.Count - 1 do
+    begin
+      NC.FdKeyValue.Items.Add(Vector3Single(
+        { multiple setup pose transform, as bone timeline is relative to setup pose }
+        Bone.Node.FdScale.Value[0] * Vectors[I][0],
+        Bone.Node.FdScale.Value[1] * Vectors[I][1], 1));
+      NC.FdControlPoints.Items.Add(CurveControlPoints[I]);
+    end;
+    EventValueChanged := NC.EventValue_changed;
+    Node := NC;
+    //WritelnLog('Spine', 'Using curve for scale on bone ' + Bone.Name);
+  end else
+  begin
+    N := TPositionInterpolatorNode.Create('BoneTimeline_scale_' + ToX3DName(Bone.Name));
+    for I := 0 to Vectors.Count - 1 do
+      N.FdKeyValue.Items.Add(Vector3Single(
+        { multiple setup pose transform, as bone timeline is relative to setup pose }
+        Bone.Node.FdScale.Value[0] * Vectors[I][0],
+        Bone.Node.FdScale.Value[1] * Vectors[I][1], 1));
+    EventValueChanged := N.EventValue_changed;
+    Node := N;
+  end;
   inherited;
 
   if Time.Count > 1 then
   begin
     Route := TX3DRoute.Create;
-    Route.SetSourceDirectly(N.EventValue_changed);
+    Route.SetSourceDirectly(EventValueChanged);
     Route.SetDestinationDirectly(Bone.Node.FdScale.EventIn);
     Container.Routes.Add(Route);
 
@@ -249,23 +322,42 @@ procedure TBoneTimelineRotate.BuildNodes(const BaseUrl: string;
 var
   I: Integer;
   N: TOrientationInterpolatorNode;
+  NC: TCubicBezier2DOrientationInterpolatorNode;
+  EventValueChanged: TX3DEvent;
   Route: TX3DRoute;
 begin
-  N := TOrientationInterpolatorNode.Create('BoneTimeline_rotate_' + ToX3DName(Bone.Name));
-  N.FdKeyValue.Items.Clear;
-  for I := 0 to Angles.Count - 1 do
-    N.FdKeyValue.Items.Add(Vector4Single(0, 0, 1,
-      { add setup pose transform, as bone timeline is relative to setup pose }
-      Bone.Node.FdRotation.Value[3] +
-      DegToRad(Angles[I])));
+  if Curve then
+  begin
+    NC := TCubicBezier2DOrientationInterpolatorNode.Create('BoneTimeline_rotate_' + ToX3DName(Bone.Name));
+    NC.FdAxis.Value := Vector3Single(0, 0, 1);
+    for I := 0 to Angles.Count - 1 do
+    begin
+      NC.FdKeyValue.Items.Add(
+        { add setup pose transform, as bone timeline is relative to setup pose }
+        Bone.Node.FdRotation.Value[3] + DegToRad(Angles[I]));
+      NC.FdControlPoints.Items.Add(CurveControlPoints[I]);
+    end;
+    EventValueChanged := NC.EventValue_changed;
+    Node := NC;
+    //WritelnLog('Spine', 'Using curve for rotation on bone ' + Bone.Name);
+  end else
+  begin
+    N := TOrientationInterpolatorNode.Create('BoneTimeline_rotate_' + ToX3DName(Bone.Name));
+    for I := 0 to Angles.Count - 1 do
+      N.FdKeyValue.Items.Add(Vector4Single(0, 0, 1,
+        { add setup pose transform, as bone timeline is relative to setup pose }
+        Bone.Node.FdRotation.Value[3] +
+        DegToRad(Angles[I])));
+    EventValueChanged := N.EventValue_changed;
+    Node := N;
+  end;
 
-  Node := N;
   inherited;
 
   if Time.Count > 1 then
   begin
     Route := TX3DRoute.Create;
-    Route.SetSourceDirectly(N.EventValue_changed);
+    Route.SetSourceDirectly(EventValueChanged);
     Route.SetDestinationDirectly(Bone.Node.FdRotation.EventIn);
     Container.Routes.Add(Route);
 

@@ -1104,6 +1104,7 @@ type
 {$I x3d_lighting.inc}
 {$I x3d_texturing.inc}
 {$I x3d_interpolation.inc}
+{$I x3d_interpolation_cubic_bezier.inc}
 {$I x3d_pointingdevicesensor.inc}
 {$I x3d_keydevicesensor.inc}
 {$I x3d_environmentalsensor.inc}
@@ -2233,6 +2234,7 @@ resourcestring
 {$I x3d_lighting.inc}
 {$I x3d_texturing.inc}
 {$I x3d_interpolation.inc}
+{$I x3d_interpolation_cubic_bezier.inc}
 {$I x3d_pointingdevicesensor.inc}
 {$I x3d_keydevicesensor.inc}
 {$I x3d_environmentalsensor.inc}
@@ -5966,6 +5968,7 @@ initialization
   RegisterLightingNodes;
   RegisterTexturingNodes;
   RegisterInterpolationNodes;
+  RegisterInterpolationCubicBezierNodes;
   RegisterPointingDeviceSensorNodes;
   RegisterKeyDeviceSensorNodes;
   RegisterEnvironmentalSensorNodes;
@@ -6002,4 +6005,3 @@ finalization
     X3DNodesFinalization else
     X3DCache.OnEmpty := @X3DNodesFinalization;
 end.
-
