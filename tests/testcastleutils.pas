@@ -41,6 +41,7 @@ type
     //procedure TestStableSort;
     procedure TestSort;
     procedure TestFileExt;
+    procedure TestFloatModulo;
   end;
 
 implementation
@@ -441,6 +442,16 @@ begin
   AssertEquals('.bar.wrl', ExtractFileDoubleExt('blah.blah.blah' + PathDelim + 'foo.bar.wrl'));
   AssertEquals('blah.blah.blah' + PathDelim + 'foo', DeleteFileExt('blah.blah.blah' + PathDelim + 'foo.wrl'));
   AssertEquals('blah.blah.blah' + PathDelim + 'foo.bar', DeleteFileExt('blah.blah.blah' + PathDelim + 'foo.bar.wrl'));
+end;
+
+procedure TTestCastleUtils.TestFloatModulo;
+begin
+  Assert(FloatsEqual(FloatModulo(0.5, 2), 0.5));
+  Assert(FloatsEqual(FloatModulo(2.5, 2), 0.5));
+  Assert(FloatsEqual(FloatModulo(3.5, 2), 1.5));
+  Assert(FloatsEqual(FloatModulo(-0.5, 2), 1.5));
+  Assert(FloatsEqual(FloatModulo(-2.5, 2), 1.5));
+  Assert(FloatsEqual(FloatModulo(-3.5, 2), 0.5));
 end;
 
 initialization

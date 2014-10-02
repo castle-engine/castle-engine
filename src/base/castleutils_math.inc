@@ -295,8 +295,7 @@ procedure DivUnsignedMod(Dividend: Integer; Divisor: Word;
 function CeilDiv(const A, B: Cardinal): Cardinal;
 
 { Calculate integer division and modulo on two float arguments.
-  Current implementation assumes that A >= 0 and B > 0
-  (so Result is always >= 0).
+  Requires that A >= 0 and B > 0, and the Result is always >= 0.
 
   Tries to secure against floating point imprecision.
   It's always guaranteed that Remainder >= 0 and <= B (and usually should be
@@ -305,7 +304,11 @@ procedure FloatDivMod(const A, B: Double;
   out DivResult: Int64; out Remainder: Double);
 
 { Calculate float modulo of division on two float arguments.
-  See FloatDivMod for more comments. }
+  Works for any A (lesser than zero too). Assumes that B > 0.
+
+  Tries to secure against floating point imprecision.
+  It's always guaranteed that Remainder >= 0 and <= B (and usually should be
+  < B, but this cannot be guaranteed). }
 function FloatModulo(const A, B: Double): Double;
 
 procedure MinMax(const x0, x1, x2: Double; out min, max: Double); overload;
@@ -790,7 +793,13 @@ function FloatModulo(const A, B: Double): Double;
 var
   DivResult: Int64;
 begin
-  FloatDivMod(A, B, DivResult, Result);
+  if A < 0 then
+  begin
+    { FloatDivMod requires that 1st param be >= 0. }
+    FloatDivMod(-A, B, DivResult, Result);
+    Result := Clamped(B - Result, 0, B);
+  end else
+    FloatDivMod(A, B, DivResult, Result);
 end;
 
 procedure MinMax(const x0, x1, x2: Double; out min, max: Double);
