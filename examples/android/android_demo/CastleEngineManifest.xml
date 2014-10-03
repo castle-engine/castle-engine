@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="androiddemo"
+  standalone_source="androiddemo_standalone.lpr"
+  android_source="androiddemo.lpr">
+  <package>
+    <include path="README.txt" />
+  </package>
+</project>

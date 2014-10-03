@@ -1,11 +1,19 @@
-FPC_OPTIONS:=-CfVFPV3
+# To release run like
+#   make BUILD=release
+# to build in release mode. Make sure ant.properties contains lines like
+#   key.store=.../michalis.keystore
+#   key.alias=michalis
+# (where "michalis" is my own nick, use your own :)
+# See http://developer.android.com/tools/publishing/app-signing.html
+
+BUILD=debug
 
 .PHONY: release
 release: data
-	cd ../../../../ && ppcrossarm -Tandroid $(FPC_OPTIONS) -dRELEASE ${CASTLE_FPC_OPTIONS:-} @castle-fpc.cfg examples/android/drawing_toy/drawing_toy.lpr
+	cd ../ && castle-engine compile --mode=release --os=android --cpu=arm
 	mkdir -p libs/armeabi/
 	mv -f ../libdrawing_toy.so libs/armeabi/libdrawing_toy.so
-	ant debug
+	ant $(BUILD)
 #	adb uninstall net.sourceforge.castleengine.drawingtoy
 	adb install -r bin/DrawingToy-debug.apk
 	adb shell am start -a android.intent.action.MAIN -n net.sourceforge.castleengine.drawingtoy/android.app.NativeActivity
@@ -13,7 +21,7 @@ release: data
 # Debug version of the app with debug information
 .PHONY: debug
 debug: data
-	cd ../../../../ && ppcrossarm -Tandroid $(FPC_OPTIONS) -dDEBUG ${CASTLE_FPC_OPTIONS:-} @castle-fpc.cfg examples/android/drawing_toy/drawing_toy.lpr
+	cd ../ && castle-engine compile --mode=debug --os=android --cpu=arm
 	mkdir -p libs/armeabi/
 	mv -f ../libdrawing_toy.so jni/libdrawing_toy.so
 	export NDK_DEBUG=1 && ndk-build
