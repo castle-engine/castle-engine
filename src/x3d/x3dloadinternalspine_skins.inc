@@ -22,7 +22,7 @@
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject);
-    procedure BuildNodes(const BaseUrl: string; const Atlas: TAtlas);
+    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
   end;
 
   TSkinList = class(specialize TFPGObjectList<TSkin>)
@@ -30,7 +30,7 @@
       @raises ESpineReadError If does not exist and NilOnError = @false. }
     function Find(const Name: string; const NilOnError: boolean): TSkin;
     procedure Parse(const Json: TJSONObject; var DefaultSkin: TSkin);
-    procedure BuildNodes(const BaseUrl: string; const Atlas: TAtlas);
+    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
   end;
 {$endif}
 
@@ -75,12 +75,12 @@ begin
       ParseSlotMap(TJSONObject(Json.Items[I]), Json.Names[I]);
 end;
 
-procedure TSkin.BuildNodes(const BaseUrl: string; const Atlas: TAtlas);
+procedure TSkin.BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
 var
   I: Integer;
 begin
   for I := 0 to Attachments.Count - 1 do
-    Attachments[I].BuildNodes(BaseUrl, Atlas);
+    Attachments[I].BuildNodes(BaseUrl, TextureLoader);
 end;
 
 { TSkinList ------------------------------------------------------------------ }
@@ -126,11 +126,11 @@ begin
     raise ESpineReadError.Create('Spine JSON skeleton: Missing "default" skin definition');
 end;
 
-procedure TSkinList.BuildNodes(const BaseUrl: string; const Atlas: TAtlas);
+procedure TSkinList.BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I].BuildNodes(BaseUrl, Atlas);
+    Items[I].BuildNodes(BaseUrl, TextureLoader);
 end;
 {$endif}

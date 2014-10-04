@@ -35,7 +35,7 @@
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONData);
-    procedure BuildNodes(const BaseUrl: string; const Atlas: TAtlas;
+    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader;
       const Container: TX3DRootNode; const SkinName: string);
   end;
 {$endif}
@@ -80,7 +80,7 @@ begin
     [Bones.Count, Slots.Count, Skins.Count, Animations.Count]));
 end;
 
-procedure TSkeleton.BuildNodes(const BaseUrl: string; const Atlas: TAtlas;
+procedure TSkeleton.BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader;
   const Container: TX3DRootNode; const SkinName: string);
 var
   CurrentSkin: TSkin;
@@ -102,7 +102,7 @@ begin
   Root.NodeUsedAsChild := true;
   Container.FdChildren.Add(Root.Node);
 
-  Skins.BuildNodes(BaseUrl, Atlas);
+  Skins.BuildNodes(BaseUrl, TextureLoader);
 
   CurrentSkin := nil;
   if SkinName <> '' then

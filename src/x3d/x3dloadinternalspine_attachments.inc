@@ -20,7 +20,7 @@
     { SlotName and AttachmentName are map keys, to detect which TAttachment to use. }
     SlotName, AttachmentName: string;
     { The real attachment name, unique for a skeleton, for image attachment
-      this refers to atlas region name. }
+      this refers to texture loader (e.g. atlas) region name. }
     Name: string;
     Node: TTransformNode;
     NodeUsedAsChild: boolean;
@@ -30,7 +30,7 @@
       May return @nil if none possible. }
     class function CreateAndParse(const Json: TJSONObject;
       const ASlotName, AnAttachmentName: string): TAttachment;
-    procedure BuildNodes(const BaseUrl: string; const Atlas: TAtlas); virtual; abstract;
+    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); virtual; abstract;
   end;
 
   TRegionAttachment = class(TAttachment)
@@ -39,9 +39,9 @@
     Rotation: Single;
     Width, Height: Integer;
     procedure Parse(const Json: TJSONObject); override;
-    procedure BuildNodes(const BaseUrl: string; const Atlas: TAtlas); override;
+    procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
     function BuildGeometry(const BaseUrl: string;
-      const AtlasRegion: TAtlasRegion): TAbstractGeometryNode; virtual;
+      const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect): TAbstractGeometryNode; virtual;
   end;
 
   TMeshAttachment = class(TRegionAttachment)
@@ -54,7 +54,7 @@
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject); override;
     function BuildGeometry(const BaseUrl: string;
-      const AtlasRegion: TAtlasRegion): TAbstractGeometryNode; override;
+      const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect): TAbstractGeometryNode; override;
   end;
 
   TAttachmentList = class(specialize TFPGObjectList<TAttachment>)
@@ -131,10 +131,10 @@ begin
   Height := Json.Get('height', 0);
 end;
 
-procedure TRegionAttachment.BuildNodes(const BaseUrl: string; const Atlas: TAtlas);
+procedure TRegionAttachment.BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
 var
-  AtlasPage: TAtlasPage;
-  AtlasRegion: TAtlasRegion;
+  TexRect: TQuadTexRect;
+  TexCoord: TQuadTexCoord;
   Shape: TShapeNode;
 begin
   Node := TTransformNode.Create('Attachment_' + ToX3DName(Name), BaseUrl);
@@ -144,19 +144,15 @@ begin
 
   Shape := TShapeNode.Create('', BaseUrl);
   Node.FdChildren.Add(Shape);
-
-  Atlas.Find(Name, AtlasPage, AtlasRegion);
-  Shape.Appearance := AtlasPage.Node;
-  AtlasPage.NodeUsedAsChild := true;
-
-  Shape.FdGeometry.Value := BuildGeometry(BaseUrl, AtlasRegion);
+  Shape.Appearance := TextureLoader.UseNode(Name, TexCoord, TexRect);
+  Shape.FdGeometry.Value := BuildGeometry(BaseUrl, TexCoord, TexRect);
 end;
 
 function TRegionAttachment.BuildGeometry(const BaseUrl: string;
-  const AtlasRegion: TAtlasRegion): TAbstractGeometryNode;
+  const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect): TAbstractGeometryNode;
 var
   Coord: TCoordinateNode;
-  TexCoord: TTextureCoordinateNode;
+  TexCoordNode: TTextureCoordinateNode;
   I: Integer;
   Faces: TIndexedFaceSetNode;
   Rect: array [0..1] of TVector2Single;
@@ -174,20 +170,20 @@ begin
   Faces.FdCoordIndex.Items.Add(3);
 
   Coord := TCoordinateNode.Create('', Faces.BaseUrl);
-  Rect[0][0] := MapRange(AtlasRegion.TexRect[0][0], 0, 1, -Width / 2, Width / 2);
-  Rect[1][0] := MapRange(AtlasRegion.TexRect[1][0], 0, 1, -Width / 2, Width / 2);
-  Rect[0][1] := MapRange(AtlasRegion.TexRect[0][1], 0, 1, -Height / 2, Height / 2);
-  Rect[1][1] := MapRange(AtlasRegion.TexRect[1][1], 0, 1, -Height / 2, Height / 2);
+  Rect[0][0] := MapRange(TexRect[0][0], 0, 1, -Width / 2, Width / 2);
+  Rect[1][0] := MapRange(TexRect[1][0], 0, 1, -Width / 2, Width / 2);
+  Rect[0][1] := MapRange(TexRect[0][1], 0, 1, -Height / 2, Height / 2);
+  Rect[1][1] := MapRange(TexRect[1][1], 0, 1, -Height / 2, Height / 2);
   Coord.FdPoint.Items.Add(Vector3Single(Rect[0][0], Rect[0][1], 0));
   Coord.FdPoint.Items.Add(Vector3Single(Rect[1][0], Rect[0][1], 0));
   Coord.FdPoint.Items.Add(Vector3Single(Rect[1][0], Rect[1][1], 0));
   Coord.FdPoint.Items.Add(Vector3Single(Rect[0][0], Rect[1][1], 0));
   Faces.FdCoord.Value := Coord;
 
-  TexCoord := TTextureCoordinateNode.Create('', Faces.BaseUrl);
+  TexCoordNode := TTextureCoordinateNode.Create('', Faces.BaseUrl);
   for I := 0 to 3 do
-    TexCoord.FdPoint.Items.Add(AtlasRegion.TexCoord[I]);
-  Faces.FdTexCoord.Value := TexCoord;
+    TexCoordNode.FdPoint.Items.Add(TexCoord[I]);
+  Faces.FdTexCoord.Value := TexCoordNode;
 end;
 
 { TMeshAttachment ------------------------------------------------------------ }
@@ -274,10 +270,10 @@ begin
 end;
 
 function TMeshAttachment.BuildGeometry(const BaseUrl: string;
-  const AtlasRegion: TAtlasRegion): TAbstractGeometryNode;
+  const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect): TAbstractGeometryNode;
 var
   Coord: TCoordinateNode;
-  TexCoord: TTextureCoordinateNode;
+  TexCoordNode: TTextureCoordinateNode;
   I: Integer;
   UVRangeX, UVRangeY: TVector2Single;
   Faces: TIndexedTriangleSetNode;
@@ -306,27 +302,27 @@ begin
     TODO: see how other runtimes handle it?
 
     The rendering will be Ok only if the mesh faces used only the texture
-    parts within the non-whitespace region (AtlasRegion.TexRect). Which is true
+    parts within the non-whitespace region (TexRect). Which is true
     in practice in all the examples. }
 
-  if (AtlasRegion.TexRect[0][0] <> 0) or
-     (AtlasRegion.TexRect[1][0] <> 0) or
-     (AtlasRegion.TexRect[0][1] <> 1) or
-     (AtlasRegion.TexRect[1][1] <> 1) then
+  if (TexRect[0][0] <> 0) or
+     (TexRect[1][0] <> 0) or
+     (TexRect[0][1] <> 1) or
+     (TexRect[1][1] <> 1) then
     WritelnLog('Spine', Format('Slot "%s" with attachment "%s" uses "mesh" attachment type, and you exported atlas with "compress whitespace" option selected. Rendering artifacts may occur if mesh faces use the texture in "whitespace" region --- in such case, export again with "compress whitespace" turned off at atlas generation.',
       [SlotName, Name]));
 
-  TexCoord := TTextureCoordinateNode.Create('', Faces.BaseUrl);
-  UVRangeX[0] := Min(AtlasRegion.TexCoord[0][0], AtlasRegion.TexCoord[2][0]);
-  UVRangeX[1] := Max(AtlasRegion.TexCoord[0][0], AtlasRegion.TexCoord[2][0]);
-  UVRangeY[0] := Min(AtlasRegion.TexCoord[0][1], AtlasRegion.TexCoord[2][1]);
-  UVRangeY[1] := Max(AtlasRegion.TexCoord[0][1], AtlasRegion.TexCoord[2][1]);
+  TexCoordNode := TTextureCoordinateNode.Create('', Faces.BaseUrl);
+  UVRangeX[0] := Min(TexCoord[0][0], TexCoord[2][0]);
+  UVRangeX[1] := Max(TexCoord[0][0], TexCoord[2][0]);
+  UVRangeY[0] := Min(TexCoord[0][1], TexCoord[2][1]);
+  UVRangeY[1] := Max(TexCoord[0][1], TexCoord[2][1]);
   for I := 0 to UVs.Count - 1 do
-    TexCoord.FdPoint.Items.Add(Vector2Single(
+    TexCoordNode.FdPoint.Items.Add(Vector2Single(
       MapRange(UVs[I][0], 0, 1, UVRangeX[0], UVRangeX[1]),
       MapRange(UVs[I][1], 1, 0, UVRangeY[0], UVRangeY[1])
     ));
-  Faces.FdTexCoord.Value := TexCoord;
+  Faces.FdTexCoord.Value := TexCoordNode;
 end;
 
 { TAttachmentList ------------------------------------------------------------ }

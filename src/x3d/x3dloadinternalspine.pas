@@ -66,6 +66,8 @@ uses SysUtils, Classes, FGL, FpJson, JSONParser, Math,
 type
   ESpineReadError = class(Exception);
 
+{$I x3dloadinternalspine_textureloader.inc}
+{$I x3dloadinternalspine_simpletextureloader.inc}
 {$I x3dloadinternalspine_atlas.inc}
 
 { JSON skeleton -------------------------------------------------------------- }
@@ -98,22 +100,41 @@ type
 { Main loading function ------------------------------------------------------ }
 
 function LoadSpine(URL: string): TX3DRootNode;
+
+  function CreateTextureLoader: TTextureLoader;
+  var
+    AtlasURL: string;
+    Atlas: TAtlas;
+  begin
+    AtlasURL := ChangeURIExt(URL, '.atlas');
+    if URIFileExists(AtlasURL) then
+    begin
+      Atlas := TAtlas.Create;
+      try
+        Atlas.Parse(AtlasURL);
+        Atlas.BuildNodes(URL);
+        Result := Atlas;
+      except FreeAndNil(Atlas); raise end;
+    end else
+    begin
+      WritelnLog('Spine', 'Atlas not found under URL "' + AtlasURL + '", will directly load images using "images/xxx.png" filenames');
+      Result := TSimpleTextureLoader.Create(URL);
+    end;
+  end;
+
 var
   Json: TJSONData;
   P: TJSONParser;
   S: TStream;
-  Atlas: TAtlas;
   Skeleton: TSkeleton;
   SkinName: string;
+  TextureLoader: TTextureLoader;
 begin
   { Strip SkinName from URL anchor. }
   URIExtractAnchor(URL, SkinName, true);
 
-  Atlas := TAtlas.Create;
+  TextureLoader := CreateTextureLoader;
   try
-    Atlas.Parse(ChangeURIExt(URL, '.atlas'));
-    Atlas.BuildNodes(URL);
-
     S := Download(URL);
     try
       P := TJSONParser.Create(S);
@@ -127,14 +148,14 @@ begin
               Skeleton := TSkeleton.Create;
               try
                 Skeleton.Parse(Json);
-                Skeleton.BuildNodes(URL, Atlas, Result, SkinName);
+                Skeleton.BuildNodes(URL, TextureLoader, Result, SkinName);
               finally FreeAndNil(Skeleton) end;
             end;
           except FreeAndNil(Result); raise end;
         finally FreeAndNil(Json) end;
       finally FreeAndNil(P) end;
     finally FreeAndNil(S) end;
-  finally FreeAndNil(Atlas) end;
+  finally FreeAndNil(TextureLoader) end;
 end;
 
 end.

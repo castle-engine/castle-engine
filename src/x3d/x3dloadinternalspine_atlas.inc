@@ -21,12 +21,12 @@ type
     Name: string;
     Rotate: boolean;
     XY, Size, Orig, Offset: TVector2Integer;
-    TexCoord: array [0..3] of TVector2Single;
+    TexCoord: TQuadTexCoord;
     { When Spine atlas creator uses whitespace compression for texture,
       the actual 3D points need to be squeezed a little to show smaller
       part of the texture. Without compression, is starts at (0,0)
       and ends at (1,1), with compression it is a little smaller. }
-    TexRect: array [0..1] of TVector2Single;
+    TexRect: TQuadTexRect;
     Index: Integer;
     procedure CalculateTexCoord(const ImageWidth, ImageHeight: Integer);
   end;
@@ -49,7 +49,7 @@ type
 
   TAtlasPageList = specialize TFPGObjectList<TAtlasPage>;
 
-  TAtlas = class
+  TAtlas = class(TTextureLoader)
     Pages: TAtlasPageList;
     constructor Create;
     destructor Destroy; override;
@@ -60,6 +60,9 @@ type
     { Find atlas page and region corresponding to given region name.
       @raises ESpineReadError If bone does not exist. }
     procedure Find(const RegionName: string; out Page: TAtlasPage; out Region: TAtlasRegion);
+
+    function UseNode(const AttachmentName: string;
+      out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TAppearanceNode; override;
   end;
 
 procedure TAtlasRegion.CalculateTexCoord(const ImageWidth, ImageHeight: Integer);
@@ -366,4 +369,17 @@ begin
     end;
   end;
   raise ESpineReadError.CreateFmt('Region name "%s" not found in atlas', [RegionName]);
+end;
+
+function TAtlas.UseNode(const AttachmentName: string;
+  out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TAppearanceNode;
+var
+  AtlasPage: TAtlasPage;
+  AtlasRegion: TAtlasRegion;
+begin
+  Find(AttachmentName, AtlasPage, AtlasRegion);
+  Result := AtlasPage.Node;
+  AtlasPage.NodeUsedAsChild := true;
+  TexRect := AtlasRegion.TexRect;
+  TexCoord := AtlasRegion.TexCoord;
 end;
