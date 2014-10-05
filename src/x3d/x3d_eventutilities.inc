@@ -35,7 +35,8 @@
       We have to keep track of this information, per each node,
       as specification clearly says that value_changed should not be
       generated continously on each set_fraction, but only when value
-      actually changes.
+      actually changes. (Although we make an exception for this
+      with our extension FdForceContinousValue_Changed).
 
       Valid values here are between -1 and FdKey.Count - 1.
       Values between 0 and FdKey.Count - 1 indicate which keyValue was
@@ -69,6 +70,9 @@
 
     private FFdKey: TMFFloat;
     public property FdKey: TMFFloat read FFdKey;
+
+    private FFdForceContinousValue_Changed: TSFBool;
+    public property FdForceContinousValue_Changed: TSFBool read FFdForceContinousValue_Changed;
   end;
 
   TAbstractTriggerNode = class(TAbstractChildNode)
@@ -235,6 +239,9 @@ begin
   Fields.Add(FFdKey);
   { X3D specification comment: (-Inf,Inf) }
 
+  FFdForceContinousValue_Changed := TSFBool.Create(Self, 'forceContinousValue_changed', false);
+  Fields.Add(FFdForceContinousValue_Changed);
+
   DefaultContainerField := 'children';
 end;
 
@@ -253,7 +260,7 @@ end;
 procedure TAbstractSequencerNode.SetCurrentKeyRange(const Value: Integer;
   const Time: TX3DTime);
 begin
-  if FCurrentKeyRange <> Value then
+  if (FCurrentKeyRange <> Value) or FdForceContinousValue_Changed.Value then
   begin
     Assert(Value >= -1);
     Assert(Value < FdKey.Count);
