@@ -6855,10 +6855,14 @@ begin
       PlayingAnimationNode.FdStopTime.Send(Time.Seconds);
       PlayingAnimationNode := nil;
     end;
+    Inc(FTime.PlusTicks);
     case Looping of
       paForceLooping   : TimeNode.FdLoop.Send(true);
       paForceNotLooping: TimeNode.FdLoop.Send(false);
     end;
+    { sending stopTime and startTime may affect the same routes,
+      so avoid accidentally triggering the loop detection mechanism by increasing time }
+    Inc(FTime.PlusTicks);
     TimeNode.FdStartTime.Send(Time.Seconds);
     PlayingAnimationNode := TimeNode;
   end;
