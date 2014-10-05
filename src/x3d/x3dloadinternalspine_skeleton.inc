@@ -25,13 +25,24 @@
     Slots: TSlotList;
     Skins: TSkinList;
     Animations: TAnimationList;
+    { After parsing skins, we calculate default and current skin
+      (used to search for attachments). They cannot be @nil.
+      It is possible that CurrentSkin = DefaultSkin.
+      For now, CurrentSkin remains local in BuildNodes, no need to make
+      it public.
+      @groupBegin }
     DefaultSkin: TSkin;
-    { List of bones (all present also on TSkeleton.Bones list) that have their
-      translation/rotation/scale modified by @italic(any) animation.
+    { @groupEnd }
+    { List of bones/slots (all present also on TSkeleton.Bones/Slots list)
+      that have their translation/rotation/scale (in case of bones)
+      or attachment/color (in case of slots) modified by @italic(any) animation.
       This is useful to gather, as this is the minimal set of things
       reset to bring back model to initial (pose) state.
-      Calculated during TSkeleton.Parse, used during TSkeleton.BuildNodes. }
+      Calculated during TSkeleton.Parse, used during TSkeleton.BuildNodes.
+      @groupBegin }
     BonesAnimated: TBonesAnimated;
+    SlotsAnimated: TSlotsAnimated;
+    { @groupEnd }
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONData);
@@ -49,6 +60,7 @@ begin
   Skins := TSkinList.Create;
   Animations := TAnimationList.Create;
   BonesAnimated := TBonesAnimated.Create;
+  SlotsAnimated := TSlotsAnimated.Create;
 end;
 
 destructor TSkeleton.Destroy;
@@ -60,6 +72,7 @@ begin
   FreeAndNil(Bones);
   FreeAndNil(Animations);
   FreeAndNil(BonesAnimated);
+  FreeAndNil(SlotsAnimated);
   inherited;
 end;
 
@@ -74,7 +87,7 @@ begin
   Bones.Parse(O, Root);
   Slots.Parse(O, Bones);
   Skins.Parse(O, DefaultSkin);
-  Animations.Parse(O, Bones, BonesAnimated);
+  Animations.Parse(O, Bones, BonesAnimated, Slots, SlotsAnimated);
 
   WritelnLog('Spine', Format('Skeleton read, bones: %d, slots: %d, skins: %d, animations: %d',
     [Bones.Count, Slots.Count, Skins.Count, Animations.Count]));
@@ -101,7 +114,6 @@ begin
   Bones.BuildNodes(BaseUrl, BonesAnimated);
   Root.NodeUsedAsChild := true;
   Container.FdChildren.Add(Root.Node);
-
   Skins.BuildNodes(BaseUrl, TextureLoader);
 
   CurrentSkin := nil;
@@ -118,7 +130,7 @@ begin
   if Log then
     SkinLog;
 
-  Slots.BuildNodes(BaseUrl, CurrentSkin.Attachments, DefaultSkin.Attachments);
-  Animations.BuildNodes(BaseUrl, Container, BonesAnimated);
+  Slots.BuildNodes(BaseUrl, SlotsAnimated, CurrentSkin.Attachments, DefaultSkin.Attachments, Container);
+  Animations.BuildNodes(BaseUrl, Container, BonesAnimated, SlotsAnimated);
 end;
 {$endif}

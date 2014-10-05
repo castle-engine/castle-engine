@@ -19,21 +19,24 @@
   TAnimation = class
     Name: string;
     BoneTimelines: TBoneTimelineList;
+    SlotTimelines: TSlotTimelineList;
     Node: TTimeSensorNode;
     NodeUsedAsChild: boolean;
     constructor Create;
     destructor Destroy; override;
-    procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
-      const BonesAnimated: TBonesAnimated);
+    procedure Parse(const Json: TJSONObject;
+      const Bones: TBoneList; const BonesAnimated: TBonesAnimated;
+      const Slots: TSlotList; const SlotsAnimated: TSlotsAnimated);
     procedure BuildNodes(const BaseUrl: string; const Container: TX3DRootNode;
-      const BonesAnimated: TBonesAnimated);
+      const BonesAnimated: TBonesAnimated; const SlotsAnimated: TSlotsAnimated);
   end;
 
   TAnimationList = class(specialize TFPGObjectList<TAnimation>)
-    procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
-      const BonesAnimated: TBonesAnimated);
+    procedure Parse(const Json: TJSONObject;
+      const Bones: TBoneList; const BonesAnimated: TBonesAnimated;
+      const Slots: TSlotList; const SlotsAnimated: TSlotsAnimated);
     procedure BuildNodes(const BaseUrl: string; const Container: TX3DRootNode;
-      const BonesAnimated: TBonesAnimated);
+      const BonesAnimated: TBonesAnimated; const SlotsAnimated: TSlotsAnimated);
   end;
 {$endif}
 
@@ -45,6 +48,7 @@ constructor TAnimation.Create;
 begin
   inherited;
   BoneTimelines := TBoneTimelineList.Create;
+  SlotTimelines := TSlotTimelineList.Create;
 end;
 
 destructor TAnimation.Destroy;
@@ -53,11 +57,13 @@ begin
     Node := nil else
     FreeIfUnusedAndNil(Node);
   FreeAndNil(BoneTimelines);
+  FreeAndNil(SlotTimelines);
   inherited;
 end;
 
-procedure TAnimation.Parse(const Json: TJSONObject; const Bones: TBoneList;
-  const BonesAnimated: TBonesAnimated);
+procedure TAnimation.Parse(const Json: TJSONObject;
+  const Bones: TBoneList; const BonesAnimated: TBonesAnimated;
+  const Slots: TSlotList; const SlotsAnimated: TSlotsAnimated);
 
   procedure ReadBoneTimelines(const Bone: TBone; const Json: TJSONObject);
   var
@@ -104,9 +110,41 @@ procedure TAnimation.Parse(const Json: TJSONObject; const Bones: TBoneList;
     end;
   end;
 
+  procedure ReadSlotTimelines(const Slot: TSlot; const Json: TJSONObject);
+  var
+    SlotTimeline: TSlotTimeline;
+    ChildArray: TJSONArray;
+  begin
+    ChildArray := Json.Find('attachment', jtArray) as TJSONArray;
+    if ChildArray <> nil then
+    begin
+      SlotTimeline := TSlotTimelineAttachment.Create;
+      SlotTimeline.Slot := Slot;
+      SlotTimeline.Parse(ChildArray);
+      SlotTimelines.Add(SlotTimeline);
+      if SlotsAnimated.Attachment.IndexOf(Slot) = -1 then
+        SlotsAnimated.Attachment.Add(Slot);
+    end;
+
+    ChildArray := Json.Find('color', jtArray) as TJSONArray;
+    if ChildArray <> nil then
+    begin
+    (* TODO: TSlotTimelineColor is not ready now
+      SlotTimeline := TSlotTimelineColor.Create;
+      SlotTimeline.Slot := Slot;
+      SlotTimeline.Parse(ChildArray);
+      SlotTimelines.Add(SlotTimeline);
+      if SlotsAnimated.Color.IndexOf(Slot) = -1 then
+        SlotsAnimated.Color.Add(Slot);
+    *)
+      OnWarning(wtMinor, 'Spine', 'Slot ' + Slot.Name + ' uses color animation, this is not supported yet. Please submit a testcase so we can improve it!');
+    end;
+  end;
+
 var
   I: Integer;
   Bone: TBone;
+  Slot: TSlot;
   ChildObj: TJSONObject;
 begin
   ChildObj := Json.Find('bones', jtObject) as TJSONObject;
@@ -120,34 +158,47 @@ begin
       end;
   end;
 
-  { TODO: support other timelines, like slots, here }
+  ChildObj := Json.Find('slots', jtObject) as TJSONObject;
+  if ChildObj <> nil then
+  begin
+    for I := 0 to ChildObj.Count - 1 do
+      if ChildObj.Items[I] is TJSONObject then
+      begin
+        Slot := Slots.Find(ChildObj.Names[I]);
+        ReadSlotTimelines(Slot, TJSONObject(ChildObj.Items[I]));
+      end;
+  end;
 end;
 
 procedure TAnimation.BuildNodes(const BaseUrl: string;
-  const Container: TX3DRootNode; const BonesAnimated: TBonesAnimated);
+  const Container: TX3DRootNode;
+  const BonesAnimated: TBonesAnimated; const SlotsAnimated: TSlotsAnimated);
 var
   MaxTime: Single;
   I: Integer;
   Route: TX3DRoute;
-  ToReset: TBonesAnimated;
+  BonesToReset: TBonesAnimated;
+  SlotsToReset: TSlotsAnimated;
 begin
   Node := TTimeSensorNode.Create(AnimationPrefix + ToX3DName(Name), BaseUrl);
 
   MaxTime := 0;
   for I := 0 to BoneTimelines.Count - 1 do
     MaxTo1st(MaxTime, BoneTimelines[I].MaxTime);
+  for I := 0 to SlotTimelines.Count - 1 do
+    MaxTo1st(MaxTime, SlotTimelines[I].MaxTime);
   Node.FdCycleInterval.Value := MaxTime;
 
   NodeUsedAsChild := true;
   Container.FdChildren.Add(Node);
 
-  ToReset := TBonesAnimated.Create;
+  BonesToReset := TBonesAnimated.Create;
   try
-    ToReset.Assign(BonesAnimated);
+    BonesToReset.Assign(BonesAnimated);
 
     for I := 0 to BoneTimelines.Count - 1 do
     begin
-      BoneTimelines[I].BuildNodes(BaseUrl, MaxTime, Container, ToReset);
+      BoneTimelines[I].BuildNodes(BaseUrl, MaxTime, Container, BonesToReset);
       { add animation name to bone timeline, to make it unique in case
         we have many animations }
       BoneTimelines[I].Node.NodeName := Node.NodeName + '_' + BoneTimelines[I].Node.NodeName;
@@ -158,36 +209,73 @@ begin
       Container.Routes.Add(Route);
     end;
 
-    for I := 0 to ToReset.Translation.Count - 1 do
+    for I := 0 to BonesToReset.Translation.Count - 1 do
     begin
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Node.EventFraction_changed);
-      Route.SetDestinationDirectly(ToReset.Translation[I].ResetTranslation.EventSet_fraction);
+      Route.SetDestinationDirectly(BonesToReset.Translation[I].ResetTranslation.EventSet_fraction);
       Container.Routes.Add(Route);
     end;
 
-    for I := 0 to ToReset.Scale.Count - 1 do
+    for I := 0 to BonesToReset.Scale.Count - 1 do
     begin
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Node.EventFraction_changed);
-      Route.SetDestinationDirectly(ToReset.Scale[I].ResetScale.EventSet_fraction);
+      Route.SetDestinationDirectly(BonesToReset.Scale[I].ResetScale.EventSet_fraction);
       Container.Routes.Add(Route);
     end;
 
-    for I := 0 to ToReset.Rotation.Count - 1 do
+    for I := 0 to BonesToReset.Rotation.Count - 1 do
     begin
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Node.EventFraction_changed);
-      Route.SetDestinationDirectly(ToReset.Rotation[I].ResetRotation.EventSet_fraction);
+      Route.SetDestinationDirectly(BonesToReset.Rotation[I].ResetRotation.EventSet_fraction);
       Container.Routes.Add(Route);
     end;
-  finally FreeAndNil(ToReset) end;
+  finally FreeAndNil(BonesToReset) end;
+
+  SlotsToReset := TSlotsAnimated.Create;
+  try
+    SlotsToReset.Assign(SlotsAnimated);
+
+    for I := 0 to SlotTimelines.Count - 1 do
+    begin
+      SlotTimelines[I].BuildNodes(BaseUrl, MaxTime, Container, SlotsToReset);
+      { add animation name to slot timeline, to make it unique in case
+        we have many animations }
+      SlotTimelines[I].Node.NodeName := Node.NodeName + '_' + SlotTimelines[I].Node.NodeName;
+
+      Route := TX3DRoute.Create;
+      Route.SetSourceDirectly(Node.EventFraction_changed);
+      Route.SetDestinationDirectly(SlotTimelines[I].Node.EventSet_fraction);
+      Container.Routes.Add(Route);
+    end;
+
+    for I := 0 to SlotsToReset.Attachment.Count - 1 do
+    begin
+      Route := TX3DRoute.Create;
+      Route.SetSourceDirectly(Node.EventFraction_changed);
+      Route.SetDestinationDirectly(SlotsToReset.Attachment[I].ResetAttachment.EventSet_fraction);
+      Container.Routes.Add(Route);
+    end;
+
+    (* TODO:
+    for I := 0 to SlotsToReset.Color.Count - 1 do
+    begin
+      Route := TX3DRoute.Create;
+      Route.SetSourceDirectly(Node.EventFraction_changed);
+      Route.SetDestinationDirectly(SlotsToReset.Color[I].ResetColor.EventSet_fraction);
+      Container.Routes.Add(Route);
+    end;
+    *)
+  finally FreeAndNil(SlotsToReset) end;
 end;
 
 { TAnimationList ------------------------------------------------------------- }
 
-procedure TAnimationList.Parse(const Json: TJSONObject; const Bones: TBoneList;
-  const BonesAnimated: TBonesAnimated);
+procedure TAnimationList.Parse(const Json: TJSONObject;
+  const Bones: TBoneList; const BonesAnimated: TBonesAnimated;
+  const Slots: TSlotList; const SlotsAnimated: TSlotsAnimated);
 var
   I: Integer;
   Animation: TAnimation;
@@ -206,18 +294,20 @@ begin
         Animation := TAnimation.Create;
         Add(Animation);
         Animation.Name := ChildObj.Names[I];
-        Animation.Parse(TJSONObject(ChildObj.Items[I]), Bones, BonesAnimated);
+        Animation.Parse(TJSONObject(ChildObj.Items[I]), Bones, BonesAnimated,
+          Slots, SlotsAnimated);
       end;
   end;
 end;
 
 procedure TAnimationList.BuildNodes(const BaseUrl: string;
-  const Container: TX3DRootNode; const BonesAnimated: TBonesAnimated);
+  const Container: TX3DRootNode;
+  const BonesAnimated: TBonesAnimated; const SlotsAnimated: TSlotsAnimated);
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I].BuildNodes(BaseUrl, Container, BonesAnimated);
+    Items[I].BuildNodes(BaseUrl, Container, BonesAnimated, SlotsAnimated);
 end;
 
 {$endif}

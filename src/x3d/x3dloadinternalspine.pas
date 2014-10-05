@@ -50,9 +50,7 @@ uses SysUtils, Classes, FGL, FpJson, JSONParser, Math,
     - skinnedmesh (requires animating mesh coordinates;
       note: what is "hull" parameter?)
 
-  - Slot Timelines (easy;
-    slot attachment should be animated using X3D Switch.choice;
-    slot color should be animated using X3D Material color interpolator).
+  - Slot Timelines of type color (easy, started already, see comments)
 
   - Events and Event Timeline (easy; note that events don't do anything
     by themself, they just allow animator to "name" some events on the timeline;
@@ -83,6 +81,7 @@ type
   {$I x3dloadinternalspine_attachments.inc}
   {$I x3dloadinternalspine_skins.inc}
   {$I x3dloadinternalspine_bonetimelines.inc}
+  {$I x3dloadinternalspine_slottimelines.inc}
   {$I x3dloadinternalspine_animations.inc}
   {$I x3dloadinternalspine_skeleton.inc}
   {$undef read_interface}
@@ -93,6 +92,7 @@ type
   {$I x3dloadinternalspine_attachments.inc}
   {$I x3dloadinternalspine_skins.inc}
   {$I x3dloadinternalspine_bonetimelines.inc}
+  {$I x3dloadinternalspine_slottimelines.inc}
   {$I x3dloadinternalspine_animations.inc}
   {$I x3dloadinternalspine_skeleton.inc}
   {$undef read_implementation}
