@@ -47,6 +47,8 @@ type
   protected
     function CalculateProjection: TProjection; override;
   public
+    const
+      ProjectionSpan = 1000.0;
     property RenderStyle default rs2D;
     constructor Create(AOwner: TComponent); override;
     function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
@@ -95,8 +97,8 @@ begin
   Result.OrthoDimensions[1] := 0;
   Result.OrthoDimensions[2] := Rect.Width;
   Result.OrthoDimensions[3] := Rect.Height;
-  Result.ProjectionNear := -1000;
-  Result.ProjectionFar := 1000;
+  Result.ProjectionNear := -ProjectionSpan;
+  Result.ProjectionFar := ProjectionSpan;
   Result.ProjectionFarFinite := Result.ProjectionFar;
 end;
 
