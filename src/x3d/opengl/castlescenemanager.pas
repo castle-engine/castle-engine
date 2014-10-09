@@ -247,6 +247,7 @@ type
     function GetMouseRayHit: TRayCollision; virtual; abstract;
     function GetHeadlightCamera: TCamera; virtual; abstract;
     function GetPlayer: TPlayer; virtual; abstract;
+    function GetTimeScale: Single; virtual; abstract;
     { @groupEnd }
 
     { Pass pointing device (mouse) move event to 3D world. }
@@ -689,6 +690,7 @@ type
     FItems: T3DWorld;
     FDefaultViewport: boolean;
     FViewports: TCastleAbstractViewportList;
+    FTimeScale: Single;
 
     FOnCameraChanged: TNotifyEvent;
     FOnBoundViewpointChanged, FOnBoundNavigationInfoChanged: TNotifyEvent;
@@ -754,6 +756,7 @@ type
     function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCamera; override;
     function GetPlayer: TPlayer; override;
+    function GetTimeScale: Single; override;
     function PointingDeviceActivate(const Active: boolean): boolean; override;
     function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
     { Called when PointingDeviceActivate was not handled by any 3D object.
@@ -893,6 +896,9 @@ type
       Empty initially. Initialize it however you want. }
     property Water: TBox3D read FWater write FWater;
   published
+    { Time scale used when not @link(Paused). }
+    property TimeScale: Single read FTimeScale write FTimeScale default 1;
+
     { Tree of 3D objects within your world. This is the place where you should
       add your scenes to have them handled by scene manager.
       You may also set your main TCastleScene (if you have any) as MainScene.
@@ -1093,6 +1099,7 @@ type
     function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCamera; override;
     function GetPlayer: TPlayer; override;
+    function GetTimeScale: Single; override;
     function PointingDeviceActivate(const Active: boolean): boolean; override;
     function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
 
@@ -1467,11 +1474,14 @@ procedure TCastleAbstractViewport.Update(const SecondsPassed: Single;
 var
   P: TPlayer;
   S, C: Extended;
+  SecondsPassedScaled: Single;
 begin
   inherited;
 
   if Paused or (not GetExists) then
     Exit;
+
+  SecondsPassedScaled := SecondsPassed * GetTimeScale;
 
   { As for HandleInput: let Camera decide.
     By default, camera (like all TUIControl) has ExclusiveEvents = true
@@ -1491,14 +1501,14 @@ begin
     so they could not process keys/mouse anyway. }
 
   if Camera <> nil then
-    Camera.Update(SecondsPassed, HandleInput);
+    Camera.Update(SecondsPassedScaled, HandleInput);
 
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
   P := GetPlayer;
   if (P <> nil) and (P.Swimming = psUnderWater) then
   begin
-    SickProjectionTime += SecondsPassed;
+    SickProjectionTime += SecondsPassedScaled;
     SinCos(SickProjectionTime * P.SickProjectionSpeed, S, C);
     DistortFieldOfViewY += C * 0.03;
     DistortViewAspect += S * 0.03;
@@ -2405,12 +2415,12 @@ end;
 
 function TCastleAbstractViewport.SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
 begin
-  Result := (Camera <> nil) and Camera.SensorRotation(X, Y, Z, Angle, SecondsPassed);
+  Result := (Camera <> nil) and Camera.SensorRotation(X, Y, Z, Angle, SecondsPassed * GetTimeScale);
 end;
 
 function TCastleAbstractViewport.SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
 begin
-  Result := (Camera <> nil) and Camera.SensorTranslation(X, Y, Z, Length, SecondsPassed);
+  Result := (Camera <> nil) and Camera.SensorTranslation(X, Y, Z, Length, SecondsPassed * GetTimeScale);
 end;
 
 { TCastleAbstractViewportList -------------------------------------------------- }
@@ -2576,6 +2586,7 @@ begin
 
   FMoveLimit := EmptyBox3D;
   FWater := EmptyBox3D;
+  FTimeScale := 1;
 
   FDefaultViewport := true;
 
@@ -3084,13 +3095,16 @@ const
 var
   RemoveItem: TRemoveType;
   TimeNow: TMilisecTime;
+  SecondsPassedScaled: Single;
 begin
   inherited;
+
+  SecondsPassedScaled := SecondsPassed * TimeScale;
 
   if (not Paused) and GetExists then
   begin
     RemoveItem := rtNone;
-    Items.Update(SecondsPassed, RemoveItem);
+    Items.Update(SecondsPassedScaled, RemoveItem);
     { we ignore RemoveItem --- main Items list cannot be removed }
 
     { Calling SoundEngine.Refresh relatively often is important,
@@ -3235,6 +3249,11 @@ begin
   Result := Player;
 end;
 
+function TCastleSceneManager.GetTimeScale: Single;
+begin
+  Result := TimeScale;
+end;
+
 procedure TCastleSceneManager.SetDefaultViewport(const Value: boolean);
 begin
   if Value <> FDefaultViewport then
@@ -3350,6 +3369,11 @@ end;
 function TCastleViewport.GetPlayer: TPlayer;
 begin
   Result := SceneManager.Player;
+end;
+
+function TCastleViewport.GetTimeScale: Single;
+begin
+  Result := SceneManager.TimeScale;
 end;
 
 procedure TCastleViewport.Render;
