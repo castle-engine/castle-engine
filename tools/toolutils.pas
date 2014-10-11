@@ -28,7 +28,8 @@ function FileSize(const FileName: string): Int64;
 
 { Run command in given directory with given arguments,
   gathering output and status to string.
-  Like Process.RunCommandIndir in FPC >= 2.6.4. }
+  Also gathers error output to the same string.
+  Like Process.RunCommandIndir in FPC >= 2.6.4, but also captures error output. }
 procedure MyRunCommandIndir(
   const curdir:string; const exename:string;
   const commands:array of string;
@@ -98,7 +99,7 @@ begin
 
   try
     try
-      p.Options := [poUsePipes];
+      p.Options := [poUsePipes, poStderrToOutPut];
       bytesread := 0;
       p.Execute;
       while p.Running do
@@ -146,7 +147,7 @@ begin
 
   try
     try
-      p.Options := [poUsePipes];
+      p.Options := [poUsePipes, poStderrToOutPut];
       bytesread := 0;
       p.Execute;
       while p.Running do
