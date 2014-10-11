@@ -267,6 +267,10 @@ type
     { Mouse buttons currently pressed. }
     function MousePressed: TMouseButtons; virtual; abstract;
 
+    { Is the window focused now, which means that keys/mouse events
+      are directed to this window. }
+    function Focused: boolean; virtual; abstract;
+
     { Keys currently pressed. }
     function Pressed: TKeysPressed; virtual; abstract;
 
@@ -276,7 +280,7 @@ type
     function TouchesCount: Integer; virtual; abstract;
 
     { Called by controls within this container when something could
-      change the container focused control (or it's cursor).
+      change the container focused control (or it's cursor) or Focused or MouseLook.
       In practice, called when TUIControl.Cursor or TUIControl.PositionInside
       results change.
 
@@ -1203,7 +1207,13 @@ procedure TUIContainer.UpdateFocusAndMouseCursor;
   function CalculateMouseCursor: TMouseCursor;
   begin
     if Focus <> nil then
-      Result := Focus.Cursor else
+    begin
+      Result := Focus.Cursor;
+      { do not hide when container is not focused (mouse look doesn't work
+        then too, so better to hide mouse) }
+      if (not Focused) and (Result = mcNone) then
+        Result := mcDefault;
+    end else
       Result := mcDefault;
   end;
 
@@ -1642,7 +1652,7 @@ begin
      Single(Height div 2)]));
 }
 
-  if not IsMousePositionForMouseLook then
+  if (not IsMousePositionForMouseLook) and Focused then
     { Note: setting to float position (ContainerWidth/2, ContainerHeight/2)
       seems simpler, but is risky: we if the backend doesn't support sub-pixel accuracy,
       we will never be able to position mouse exactly at half pixel. }

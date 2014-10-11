@@ -4232,8 +4232,8 @@ begin
   Result := inherited;
   if Result or (Event.FingerIndex <> 0) then Exit;
 
-  if (ciNormal in Input) and MouseLook and ContainerSizeKnown and
-    (not Animation) then
+  if (ciNormal in Input) and MouseLook and Container.Focused and
+    ContainerSizeKnown and (not Animation) then
   begin
     { Note that setting MousePosition may (but doesn't have to)
       generate another Motion in the container to destination position.

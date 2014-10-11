@@ -603,6 +603,7 @@ type
         procedure SetMousePosition(const Value: TVector2Single); override;
         function Dpi: Integer; override;
         function MousePressed: TMouseButtons; override;
+        function Focused: boolean; override;
         function Pressed: TKeysPressed; override;
         function Fps: TFramesPerSecond; override;
         procedure SetCursor(const Value: TMouseCursor); override;
@@ -617,6 +618,7 @@ type
     FFullScreen, FDoubleBuffer: boolean;
     FResizeAllowed: TResizeAllowed;
     FMousePressed: TMouseButtons;
+    FFocused: boolean;
     FMousePosition: TVector2Single;
     FRedBits, FGreenBits, FBlueBits: Cardinal;
     FAutoRedisplay: boolean;
@@ -1765,6 +1767,10 @@ end;
       before we call events OnPress or OnRelease. }
     property MousePressed: TMouseButtons read FMousePressed;
 
+    { Is the window focused now, which means that keys/mouse events
+      are directed to this window. }
+    property Focused: boolean read FFocused;
+
     { Place for your pointer, for any purposes.
       No code in this unit touches the value of this field.
       This is similar to TComponent.Tag property. }
@@ -2763,6 +2769,11 @@ begin
   Result := Parent.MousePressed;
 end;
 
+function TCastleWindowCustom.TContainer.Focused: boolean;
+begin
+  Result := Parent.Focused;
+end;
+
 function TCastleWindowCustom.TContainer.Pressed: TKeysPressed;
 begin
   Result := Parent.Pressed;
@@ -2818,6 +2829,7 @@ begin
   FpsShowOnCaption := false;
   FFpsCaptionUpdateInterval := DefaultFpsCaptionUpdateInterval;
   FTouches := TTouchList.Create;
+  FFocused := true;
 
   CreateBackend;
 end;

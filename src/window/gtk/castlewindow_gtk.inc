@@ -646,6 +646,17 @@ function signal_window_focus_out_event(AWindowGtk: PGtkWindow;
 SIGNAL_WINDOW_BEGIN
   ReleaseAllKeysAndMouse;
   { for the sake of gtk, I can't tell that I "handled" this in any way }
+  FFocused := false;
+  Result := g_false;
+SIGNAL_WINDOW_END;
+
+function signal_window_focus_in_event(AWindowGtk: PGtkWindow;
+  Event: PGdkEventfocus; data: gpointer): gboolean; cdecl;
+SIGNAL_WINDOW_BEGIN
+  { reset FMousePosition, since mouse position is unknown now,
+    and do not activate mouse look at next frame (IsMousePositionForMouseLook should be false). }
+  FMousePosition := Vector2Single(-1, -1);
+  FFocused := true;
   Result := g_false;
 SIGNAL_WINDOW_END;
 
@@ -970,6 +981,8 @@ begin
    GTK_SIGNAL_FUNC(@signal_key_release_event), nil);
  gtk_signal_connect(GTK_OBJECT(WindowGtk), 'focus_out_event',
    GTK_SIGNAL_FUNC(@signal_window_focus_out_event), nil);
+ gtk_signal_connect(GTK_OBJECT(WindowGtk), 'focus_in_event',
+   GTK_SIGNAL_FUNC(@signal_window_focus_in_event), nil);
 
  { Add us to OpenWindows windows to ensure that all callbacks that are
    eventually called by procedures below will be able to use

@@ -79,6 +79,7 @@ type
         function Rect: TRectangle; override;
         function Dpi: Integer; override;
         function MousePressed: TMouseButtons; override;
+        function Focused: boolean; override;
         function Pressed: TKeysPressed; override;
         function Fps: TFramesPerSecond; override;
         procedure SetCursor(const Value: TMouseCursor); override;
@@ -440,6 +441,11 @@ end;
 function TCastleControlCustom.TContainer.MousePressed: TMouseButtons;
 begin
   Result := Parent.MousePressed;
+end;
+
+function TCastleWindowCustom.TContainer.Focused: boolean;
+begin
+  Result := true; // TODO: for now, TCastleControl always pretends to be focused
 end;
 
 function TCastleControlCustom.TContainer.Pressed: TKeysPressed;
