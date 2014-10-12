@@ -1192,7 +1192,7 @@ begin
 
     Testcase: demo_models/kanim/raptor.kanim, without this fix
     the lights woud be duplicated on non-first animation scene. }
-  Result := FBaseLights[Scene.Shared = MainScene];
+  Result := FBaseLights[(Scene.Shared = MainScene) or Scene.ExcludeFromGlobalLights];
 end;
 
 { TCastleAbstractViewport ------------------------------------------------------- }

@@ -243,6 +243,7 @@ type
     FCursor: TMouseCursor;
     FCollidesWithMoving: boolean;
     Disabled: Cardinal;
+    FExcludeFromGlobalLights: boolean;
     procedure SetCursor(const Value: TMouseCursor);
   protected
     { In T3D class, just calls Parent.CursorChange. }
@@ -868,6 +869,17 @@ type
       In case of scenes that are children of TCastlePrecalculatedAnimation,
       their Shared methods all point to the 1st animation scene. }
     function Shared: T3D; virtual;
+  published
+    { If this 3D object is rendered as part of TCastleSceneManager,
+      and TCastleSceneManager.UseGlobalLights is @true, then this property allows
+      to make an exception for this 3D object: even though TCastleSceneManager.UseGlobalLights is @true,
+      do not use global lights @italic(for this 3D object).
+
+      Note that this is not applied recursively. Instead, it is checked at each T3D instance
+      that checks TRenderParams.BaseLights. In practice, it is only checked at TCastleScene,
+      unless you do custom rendering on your own. }
+    property ExcludeFromGlobalLights: boolean
+      read FExcludeFromGlobalLights write FExcludeFromGlobalLights default false;
   end;
 
   { List of 3D objects (T3D instances).
