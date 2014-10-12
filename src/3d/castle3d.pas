@@ -1186,6 +1186,14 @@ type
     function Middle: TVector3Single; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
+    { Convert position between local and outside coordinate system.
+      This is called OutsideToLocal, not WorldToLocal, because it only handles transformation
+      defined in this item --- it does not recursively apply all transform on the way to root
+      @groupBegin. }
+    function OutsideToLocal(const Pos: TVector3Single): TVector3Single;
+    function LocalToOutside(const Pos: TVector3Single): TVector3Single;
+    { @groupEnd }
+
     { Gravity may make this object fall down (see FallSpeed)
       or grow up (see GrowSpeed). See also PreferredHeight.
 
@@ -3323,6 +3331,20 @@ begin
       Box.AntiTranslate(GetTranslation), TrianglesToIgnoreFunc) else
     Result := inherited BoxCollision(
       Box.Transform(TransformInverse), TrianglesToIgnoreFunc);
+end;
+
+function T3DCustomTransform.OutsideToLocal(const Pos: TVector3Single): TVector3Single;
+begin
+  if OnlyTranslation then
+    Result := Pos - GetTranslation else
+    Result := MatrixMultPoint(TransformInverse, Pos);
+end;
+
+function T3DCustomTransform.LocalToOutside(const Pos: TVector3Single): TVector3Single;
+begin
+  if OnlyTranslation then
+    Result := Pos + GetTranslation else
+    Result := MatrixMultPoint(Transform, Pos);
 end;
 
 function T3DCustomTransform.RayCollision(const RayOrigin, RayDirection: TVector3Single;
