@@ -61,6 +61,8 @@ type
     FHorizontalMargin, FVerticalMargin: Integer;
     FHistory: TCastleStringList;
     FCollectHistory: boolean;
+    FPositionX: Integer;
+    FPositionY: Integer;
   public
     const
       DefaultMaxMessages = 4;
@@ -97,6 +99,12 @@ type
     { All the messages passed to @link(Show), collected only if CollectHistory.
       May be @nil when not CollectHistory. }
     property History: TCastleStringList read FHistory;
+
+    { Position shift, relative to position set by HorizontalPosition and VerticalPosition.
+      TODO: we should make positioning common for all controls, using Left, Bottom, or some Autoxxx
+      spec. }
+    property PositionX: Integer read FPositionX write FPositionX;
+    property PositionY: Integer read FPositionY write FPositionY;
   published
     { How many message lines should be visible on the screen, at maximum.  }
     property MaxMessages: integer
@@ -264,7 +272,7 @@ begin
       vpUp   :  y :=  ContainerHeight-(i+1)*UIFont.RowHeight - VerticalMargin;
     end;
 
-    UIFont.Print(x, y, Color, Messages[i].Text);
+    UIFont.Print(PositionX + x, PositionY + y, Color, Messages[i].Text);
   end;
 end;
 
