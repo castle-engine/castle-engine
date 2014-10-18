@@ -756,7 +756,6 @@ type
     procedure SoundRelease(Sender: TSound);
   protected
     procedure SetLife(const Value: Single); override;
-    function GetExists: boolean; override;
     procedure Fall(const FallHeight: Single); override;
 
     { Current scene to be rendered.
@@ -774,8 +773,8 @@ type
     function DebugCaption: TCastleStringList; virtual;
   public
     constructor Create(AOwner: TComponent; const AMaxLife: Single); virtual; reintroduce;
-
     destructor Destroy; override;
+    function GetExists: boolean; override;
 
     property Resource: TCreatureResource read FResource;
 

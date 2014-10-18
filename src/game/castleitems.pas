@@ -473,7 +473,6 @@ var
     FItem: TInventoryItem;
     Rotation, LifeTime: Single;
   protected
-    function GetExists: boolean; override;
     function GetChild: T3D; override;
   public
     { Speed of the rotation of 3D item on world.
@@ -499,6 +498,7 @@ var
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function GetExists: boolean; override;
 
     { The Item owned by this TItemOnWorld instance. Never @nil. }
     property Item: TInventoryItem read FItem;

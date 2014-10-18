@@ -249,17 +249,6 @@ type
     { In T3D class, just calls Parent.CursorChange. }
     procedure CursorChange; virtual;
 
-    { Does item really exist, see @link(Exists) and @link(Enable),
-      @link(Disable).
-      It T3D class, returns @true if @link(Exists) and not disabled.
-      May be modified in subclasses, to return something more complicated. }
-    function GetExists: boolean; virtual;
-
-    { Does item really collide, see @link(Collides).
-      It T3D class, returns @link(Collides) and @link(GetExists).
-      May be modified in subclasses, to return something more complicated. }
-    function GetCollides: boolean; virtual;
-
     { Height of a point above the 3D model.
       This checks ray collision, from Position along the negated GravityUp vector.
       Measures distance to the nearest scene item (called "ground" here).
@@ -354,6 +343,17 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    { Does item really exist, see @link(Exists) and @link(Enable),
+      @link(Disable).
+      It T3D class, returns @true if @link(Exists) and not disabled.
+      May be modified in subclasses, to return something more complicated. }
+    function GetExists: boolean; virtual;
+
+    { Does item really collide, see @link(Collides).
+      It T3D class, returns @link(Collides) and @link(GetExists).
+      May be modified in subclasses, to return something more complicated. }
+    function GetCollides: boolean; virtual;
 
     { Is this object visible and colliding.
 
