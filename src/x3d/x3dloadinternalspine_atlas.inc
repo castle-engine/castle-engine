@@ -40,7 +40,7 @@ type
     Filter: string; //< a value allowed by TextureProperties.MinificationFilter and MagnificationFilter
     IsRepeat: boolean;
     Regions: TAtlasRegionList;
-    Node: TAppearanceNode;
+    Node: TImageTextureNode;
     NodeUsedAsChild: boolean;
     constructor Create;
     destructor Destroy; override;
@@ -62,7 +62,7 @@ type
     procedure Find(const RegionName: string; out Page: TAtlasPage; out Region: TAtlasRegion);
 
     function UseNode(const AttachmentName: string;
-      out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TAppearanceNode; override;
+      out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TImageTextureNode; override;
   end;
 
 procedure TAtlasRegion.CalculateTexCoord(const ImageWidth, ImageHeight: Integer);
@@ -137,28 +137,21 @@ end;
 
 procedure TAtlasPage.BuildNodes(const BaseUrl: string);
 var
-  Texture: TImageTextureNode;
   I: Integer;
 begin
-  { Create Appearance, with Texture child.
-    Leave Appearance.material empty, to display unlit. }
-
-  Node := TAppearanceNode.Create('Page_' + ToX3DName(TextureURL), BaseUrl);
-
-  Texture := TImageTextureNode.Create('', BaseUrl);
-  Texture.FdUrl.Items.Add(TextureURL);
-  Texture.RepeatS := IsRepeat;
-  Texture.RepeatT := IsRepeat;
-  Node.FdTexture.Value := Texture;
+  Node := TImageTextureNode.Create('Page_' + ToX3DName(TextureURL), BaseUrl);
+  Node.FdUrl.Items.Add(TextureURL);
+  Node.RepeatS := IsRepeat;
+  Node.RepeatT := IsRepeat;
 
   { The only way to calculate TextureXY and TextureSize is to actually load the texture.
-    We use the Texture node for this, this way loaded texture will be reused for
+    We use the texture Node for this, this way loaded texture will be reused for
     actual model rendering. }
-  Texture.IsTextureLoaded := true;
-  if Texture.IsTextureImage then
+  Node.IsTextureLoaded := true;
+  if Node.IsTextureImage then
   begin
     for I := 0 to Regions.Count - 1 do
-      Regions[I].CalculateTexCoord(Texture.TextureImage.Width, Texture.TextureImage.Height);
+      Regions[I].CalculateTexCoord(Node.TextureImage.Width, Node.TextureImage.Height);
   end else
     OnWarning(wtMajor, 'Spine', SysUtils.Format('Cannot load texture "%s", texture coordinates cannot be correctly calculated based on Spine atlas information',
       [TextureURL]));
@@ -372,7 +365,7 @@ begin
 end;
 
 function TAtlas.UseNode(const AttachmentName: string;
-  out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TAppearanceNode;
+  out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TImageTextureNode;
 var
   AtlasPage: TAtlasPage;
   AtlasRegion: TAtlasRegion;

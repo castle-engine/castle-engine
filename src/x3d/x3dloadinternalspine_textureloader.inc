@@ -23,5 +23,5 @@ type
   TTextureLoader = class abstract
   public
     function UseNode(const AttachmentName: string;
-      out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TAppearanceNode; virtual; abstract;
+      out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TImageTextureNode; virtual; abstract;
   end;

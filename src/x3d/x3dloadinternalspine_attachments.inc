@@ -145,11 +145,14 @@ begin
 
   Shape := TShapeNode.Create('', BaseUrl);
   Node.FdChildren.Add(Shape);
-  Shape.Appearance := TextureLoader.UseNode(Name, TexCoord, TexRect);
+
+  Shape.Appearance := TAppearanceNode.Create('', BaseUrl);
+  Shape.Appearance.FdTexture.Value := TextureLoader.UseNode(Name, TexCoord, TexRect);
   Shape.FdGeometry.Value := BuildGeometry(BaseUrl, TexCoord, TexRect);
 
-  Shape.Material := TMaterialNode.Create('', BaseUrl);
-  Shape.Material.FdDiffuseColor.Value := Vector3Single(1, 1, 1);
+  Shape.Material := TMaterialNode.Create('Material_' + ToX3DName(Name), BaseUrl);
+  Shape.Material.FdDiffuseColor.Value := ZeroVector3Single;
+  Shape.Material.FdEmissiveColor.Value := Vector3Single(1, 1, 1);
   Material := Shape.Material;
 end;
 

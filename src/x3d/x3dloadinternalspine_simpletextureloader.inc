@@ -14,7 +14,7 @@
 }
 
 type
-  TAppearanceNodeList = specialize TFPGObjectList<TAppearanceNode>;
+  TImageTextureNodeList = specialize TFPGObjectList<TImageTextureNode>;
 
   { Spine simple texture loader (without atlas).
     Reads each region attachment as a single texture file,
@@ -23,13 +23,13 @@ type
   strict private
     { TODO: use TFPGMap.}
     NodeAttachmentNames: TStringList;
-    Nodes: TAppearanceNodeList;
+    Nodes: TImageTextureNodeList;
     BaseUrl: string;
   public
     constructor Create(const ABaseUrl: string);
     destructor Destroy; override;
     function UseNode(const AttachmentName: string;
-      out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TAppearanceNode; override;
+      out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TImageTextureNode; override;
   end;
 
 constructor TSimpleTextureLoader.Create(const ABaseUrl: string);
@@ -37,7 +37,7 @@ begin
   inherited Create;
   BaseUrl := ABaseUrl;
   NodeAttachmentNames := TStringList.Create;
-  Nodes := TAppearanceNodeList.Create(false);
+  Nodes := TImageTextureNodeList.Create(false);
 end;
 
 destructor TSimpleTextureLoader.Destroy;
@@ -48,22 +48,18 @@ begin
 end;
 
 function TSimpleTextureLoader.UseNode(const AttachmentName: string;
-  out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TAppearanceNode;
+  out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TImageTextureNode;
 var
   Index: Integer;
-  Texture: TImageTextureNode;
 begin
   Index := NodeAttachmentNames.IndexOf(AttachmentName);
   if Index <> -1 then
     Result := Nodes[Index] else
   begin
-    Result := TAppearanceNode.Create('SimpleTexture_' + ToX3DName(AttachmentName), BaseUrl);
-
-    Texture := TImageTextureNode.Create('', BaseUrl);
-    Texture.FdUrl.Items.Add('images/' + AttachmentName + '.png');
-    Texture.RepeatS := false;
-    Texture.RepeatT := false;
-    Result.FdTexture.Value := Texture;
+    Result := TImageTextureNode.Create('SimpleTexture_' + ToX3DName(AttachmentName), BaseUrl);
+    Result.FdUrl.Items.Add('images/' + AttachmentName + '.png');
+    Result.RepeatS := false;
+    Result.RepeatT := false;
 
     NodeAttachmentNames.Add(AttachmentName);
     Nodes.Add(Result);

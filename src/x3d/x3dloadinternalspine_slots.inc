@@ -164,7 +164,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
 
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(ResetColor1.EventValue_changed);
-      Route.SetDestinationDirectly(Materials[I].FdDiffuseColor);
+      Route.SetDestinationDirectly(Materials[I].FdEmissiveColor);
       ContainerForResetNode.Routes.Add(Route);
 
       ResetColor2 := TScalarInterpolatorNode.Create('SlotReset_alpha_' + ToX3DName(Name));

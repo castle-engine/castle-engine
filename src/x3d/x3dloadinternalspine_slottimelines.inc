@@ -294,7 +294,7 @@ begin
     begin
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(EventValueChanged1);
-      Route.SetDestinationDirectly(Slot.Materials[I].FdDiffuseColor);
+      Route.SetDestinationDirectly(Slot.Materials[I].FdEmissiveColor);
       Container.Routes.Add(Route);
 
       Route := TX3DRoute.Create;
