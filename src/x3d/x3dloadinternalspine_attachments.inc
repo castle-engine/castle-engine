@@ -24,6 +24,7 @@
     Name: string;
     Node: TTransformNode;
     NodeUsedAsChild: boolean;
+    Material: TMaterialNode; //< initialized together with Node, always inside
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject); virtual;
     { Create and parse correct TAttachment descendant.
@@ -146,6 +147,10 @@ begin
   Node.FdChildren.Add(Shape);
   Shape.Appearance := TextureLoader.UseNode(Name, TexCoord, TexRect);
   Shape.FdGeometry.Value := BuildGeometry(BaseUrl, TexCoord, TexRect);
+
+  Shape.Material := TMaterialNode.Create('', BaseUrl);
+  Shape.Material.FdDiffuseColor.Value := Vector3Single(1, 1, 1);
+  Material := Shape.Material;
 end;
 
 function TRegionAttachment.BuildGeometry(const BaseUrl: string;

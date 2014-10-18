@@ -18,6 +18,8 @@
 {$ifdef read_interface}
   TSlotList = class;
 
+  TMaterialNodeList = specialize TFPGObjectList<TMaterialNode>;
+
   TSlotsAnimated = class
     Attachment: TSlotList;
     Color: TSlotList;
@@ -45,6 +47,9 @@
     Node: TSwitchNode;
     NodeUsedAsChild: boolean;
     ResetAttachment: TIntegerSequencerNode;
+    ResetColor1: TColorInterpolatorNode;
+    ResetColor2: TScalarInterpolatorNode;
+    Materials: TMaterialNodeList;
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList);
@@ -96,6 +101,7 @@ constructor TSlot.Create;
 begin
   inherited;
   AttachmentNames := TStringList.Create;
+  Materials := TMaterialNodeList.Create(false);
 end;
 
 destructor TSlot.Destroy;
@@ -104,6 +110,7 @@ begin
     Node := nil else
     FreeIfUnusedAndNil(Node);
   FreeAndNil(AttachmentNames);
+  FreeAndNil(Materials);
   inherited;
 end;
 
@@ -112,8 +119,7 @@ begin
   Name := Json.Get('name', '');
   Bone := Bones.Find(Json.Get('bone', ''));
   AttachmentNames.Add(Json.Get('attachment', ''));
-
-  // TODO: Color :=
+  Color := HexToColor(Json.Get('color', 'ffffffff'));
 end;
 
 procedure TSlot.BuildNodes(const BaseUrl: string;
@@ -142,6 +148,37 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
     ContainerForResetNode.Routes.Add(Route);
   end;
 
+  procedure AddResetColor;
+  var
+    Route: TX3DRoute;
+    I: Integer;
+  begin
+    if SlotsAnimated.Color.IndexOf(Self) = -1 then Exit;
+
+    for I := 0 to Materials.Count - 1 do
+    begin
+      ResetColor1 := TColorInterpolatorNode.Create('SlotReset_color_' + ToX3DName(Name));
+      ResetColor1.FdKey.Items.Add(0);
+      ResetColor1.FdKeyValue.Items.Add(Vector3SingleCut(Color));
+      ContainerForResetNode.FdChildren.Add(ResetColor1);
+
+      Route := TX3DRoute.Create;
+      Route.SetSourceDirectly(ResetColor1.EventValue_changed);
+      Route.SetDestinationDirectly(Materials[I].FdDiffuseColor);
+      ContainerForResetNode.Routes.Add(Route);
+
+      ResetColor2 := TScalarInterpolatorNode.Create('SlotReset_alpha_' + ToX3DName(Name));
+      ResetColor2.FdKey.Items.Add(0);
+      ResetColor2.FdKeyValue.Items.Add(1 - Color[3]);
+      ContainerForResetNode.FdChildren.Add(ResetColor2);
+
+      Route := TX3DRoute.Create;
+      Route.SetSourceDirectly(ResetColor2.EventValue_changed);
+      Route.SetDestinationDirectly(Materials[I].FdTransparency);
+      ContainerForResetNode.Routes.Add(Route);
+    end;
+  end;
+
   { TransformNode for a single AttachmentName. }
   function NodeTransform(const AttachmentName: string): TTransformNode;
   const
@@ -163,6 +200,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
       begin
         A.NodeUsedAsChild := true;
         Result.FdChildren.Add(A.Node);
+        Materials.Add(A.Material);
       end;
     end;
   end;
@@ -175,10 +213,13 @@ begin
   NodeUsedAsChild := true;
   Bone.Node.FdChildren.Add(Node);
 
+  Materials.Clear;
+
   for I := 0 to AttachmentNames.Count - 1 do
     Node.FdChildren.Add(NodeTransform(AttachmentNames[I]));
 
   AddResetAttachment;
+  AddResetColor;
 end;
 
 { TSlotList ------------------------------------------------------------------ }

@@ -114,13 +114,19 @@ function HsvToRgbByte(const Value: TVector3Single): TVector3Byte;
 function LerpRgbInHsv(const A: Single; const V1, V2: TVector3Single): TVector3Single;
 
 { Change color into a hexadecimal notation of it (like in HTML).
-  Note that version that takes 4-component vector adds the alpha too
+  Note that version it takes 4-component vector and adds the alpha too
   at the end. }
 function ColorToHex(const V: TCastleColor): string;
 
+{ Convert hexadecimal color notation (like in HTML) into an RGBA color.
+  Handles 8 or 6 digit color (RGB or RGBA with 2 letters per component;
+  for 6 digits, alpha is assumed to be 1.0 (opaque)).
+  @raises EConvertError In case of invalid color as string. }
+function HexToColor(const S: string): TCastleColor;
+
 implementation
 
-uses SysUtils, CastleUtils;
+uses SysUtils, CastleUtils, CastleStringUtils;
 
 { grayscale ------------------------------------------------------------------ }
 
@@ -373,6 +379,23 @@ begin
             IntToHex(RoundClamp255(V[1] * 255), 2) +
             IntToHex(RoundClamp255(V[2] * 255), 2) +
             IntToHex(RoundClamp255(V[3] * 255), 2);
+end;
+
+function HexToColor(const S: string): TCastleColor;
+begin
+  if Length(S) = 8 then
+    Result := Vector4Single(
+      StrHexToInt(Copy(S, 1, 2)) / 255,
+      StrHexToInt(Copy(S, 3, 2)) / 255,
+      StrHexToInt(Copy(S, 5, 2)) / 255,
+      StrHexToInt(Copy(S, 7, 2)) / 255) else
+  if Length(S) = 6 then
+    Result := Vector4Single(
+      StrHexToInt(Copy(S, 1, 2)) / 255,
+      StrHexToInt(Copy(S, 3, 2)) / 255,
+      StrHexToInt(Copy(S, 5, 2)) / 255,
+      1.0) else
+    raise EConvertError.CreateFmt('Invalid color hex string: "%s"', [S]);
 end;
 
 end.

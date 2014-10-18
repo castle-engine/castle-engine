@@ -16,14 +16,23 @@
 { Spine slot timelines. }
 
 {$ifdef read_interface}
+  { Node with key field and set_fraction event. Like interpolators,
+    but not only (e.g. IntegerSequencer). }
+  TKeyedNode = object
+    EventSet_Fraction: TSFFloatEvent;
+    Key: TMFFloat;
+    Node: TX3DNode;
+    UsedAsChild: boolean;
+  end;
+
   TSlotTimeline = class
   private
     FMaxTime: Single;
   public
     Slot: TSlot;
     Time: TSingleList;
-    Node: TIntegerSequencerNode; // actually, anything with FdKey
-    NodeUsedAsChild: boolean;
+    Node1, Node2: TKeyedNode;
+    HasNode2: boolean;
     property MaxTime: Single read FMaxTime;
     constructor Create;
     destructor Destroy; override;
@@ -100,16 +109,23 @@ end;
 procedure TSlotTimeline.BuildNodes(const BaseUrl: string;
   const MaxAnimationTime: Single; const Container: TX3DRootNode;
   const SlotsToReset: TSlotsAnimated);
-var
-  I: Integer;
-begin
-  { We assume that descendant already created Node in overridden BuildNodes }
-  Node.FdKey.Items.Clear;
-  for I := 0 to Time.Count - 1 do
-    Node.FdKey.Items.Add(Time[I] / MaxAnimationTime);
 
-  NodeUsedAsChild := true;
-  Container.FdChildren.Add(Node);
+  procedure FillKeys(var Node: TKeyedNode);
+  var
+    I: Integer;
+  begin
+    Node.Key.Items.Clear;
+    for I := 0 to Time.Count - 1 do
+      Node.Key.Items.Add(Time[I] / MaxAnimationTime);
+    Node.UsedAsChild := true;
+    Container.FdChildren.Add(Node.Node);
+  end;
+
+begin
+  { We assume that descendant already created Node1/2 in overridden BuildNodes }
+  FillKeys(Node1);
+  if HasNode2 then
+    FillKeys(Node2);
 end;
 
 { TSlotTimelineAttachment ------------------------------------------------------- }
@@ -149,7 +165,9 @@ begin
   for I := 0 to Attachments.Count - 1 do
     N.FdKeyValue.Items.Add(Slot.AttachmentNames.IndexOf(Attachments[I]));
   EventValueChanged := N.EventValue_changed;
-  Node := N;
+  Node1.EventSet_Fraction := N.EventSet_Fraction;
+  Node1.Key := N.FdKey;
+  Node1.Node := N;
 
   inherited;
 
@@ -219,22 +237,20 @@ begin
   end;
   CurveControlPoints.Add(ControlPoints);
 
-  // TODO: Colors.Add(Json.Get('color', xxx))
+  Colors.Add(HexToColor(Json.Get('color', 'ffffffff')));
 end;
 
 procedure TSlotTimelineColor.BuildNodes(const BaseUrl: string;
   const MaxAnimationTime: Single; const Container: TX3DRootNode;
   const SlotsToReset: TSlotsAnimated);
-(* TODO:
 var
   I: Integer;
   N: TColorInterpolatorNode;
-  NC: TCubicBezierColorInterpolatorNode;
-  EventValueChanged: TX3DEvent;
+  NA: TScalarInterpolatorNode;
+  EventValueChanged1, EventValueChanged2: TX3DEvent;
   Route: TX3DRoute;
-  *)
 begin
-(* TODO:
+(* TODO: colors on curve:
   if Curve then
   begin
     NC := TCubicBezierColorInterpolatorNode.Create('SlotTimeline_color_' + ToX3DName(Slot.Name));
@@ -246,35 +262,50 @@ begin
     EventValueChanged := NC.EventValue_changed;
     Node := NC;
   end else
+  *)
   begin
-    // TODO: we will need interpolator like TColorRGBAInterpolatorNode,
-    // that outputs both RGB for Material.diffuse and Material.transparency
     N := TColorInterpolatorNode.Create('SlotTimeline_color_' + ToX3DName(Slot.Name));
     for I := 0 to Colors.Count - 1 do
-      N.FdKeyValue.Items.Add(Colors[I]);
-    EventValueChanged := N.EventValue_changed;
-    Node := N;
+      N.FdKeyValue.Items.Add(Vector3SingleCut(Colors[I]));
+    EventValueChanged1 := N.EventValue_changed;
+    Node1.EventSet_Fraction := N.EventSet_Fraction;
+    Node1.Node := N;
+    Node1.Key := N.FdKey;
+
+    NA := TScalarInterpolatorNode.Create('SlotTimeline_alpha_' + ToX3DName(Slot.Name));
+    for I := 0 to Colors.Count - 1 do
+      NA.FdKeyValue.Items.Add(1 - Colors[I][3]);
+    EventValueChanged2 := NA.EventValue_changed;
+    Node2.EventSet_Fraction := NA.EventSet_Fraction;
+    Node2.Node := NA;
+    Node2.Key := NA.FdKey;
+    HasNode2 := true;
   end;
-  *)
 
   inherited;
 
-(* TODO:
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe pose
     at given key time (unless animation is looping and it's the last frame,
     then it's visibly ignored). We just ignore (do not route) such weird animations for now. }
   if Time.Count > 1 then
   begin
-    Route := TX3DRoute.Create;
-    Route.SetSourceDirectly(EventValueChanged);
-    Route.SetDestinationDirectly(Slot.Node.FdTranslation.EventIn);
-    Container.Routes.Add(Route);
+    for I := 0 to Slot.Materials.Count - 1 do
+    begin
+      Route := TX3DRoute.Create;
+      Route.SetSourceDirectly(EventValueChanged1);
+      Route.SetDestinationDirectly(Slot.Materials[I].FdDiffuseColor);
+      Container.Routes.Add(Route);
 
-    if SlotsToReset.Translation.Remove(Slot) = -1 then
+      Route := TX3DRoute.Create;
+      Route.SetSourceDirectly(EventValueChanged2);
+      Route.SetDestinationDirectly(Slot.Materials[I].FdTransparency);
+      Container.Routes.Add(Route);
+    end;
+
+    if SlotsToReset.Color.Remove(Slot) = -1 then
       OnWarning(wtMajor, 'Spine', 'Multiple slot timelines affect slot color: slot ' + Slot.Name);
   end;
-  *)
 end;
 
 {$endif}

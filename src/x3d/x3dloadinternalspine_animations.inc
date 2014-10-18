@@ -129,15 +129,12 @@ procedure TAnimation.Parse(const Json: TJSONObject;
     ChildArray := Json.Find('color', jtArray) as TJSONArray;
     if ChildArray <> nil then
     begin
-    (* TODO: TSlotTimelineColor is not ready now
       SlotTimeline := TSlotTimelineColor.Create;
       SlotTimeline.Slot := Slot;
       SlotTimeline.Parse(ChildArray);
       SlotTimelines.Add(SlotTimeline);
       if SlotsAnimated.Color.IndexOf(Slot) = -1 then
         SlotsAnimated.Color.Add(Slot);
-    *)
-      OnWarning(wtMinor, 'Spine', 'Slot ' + Slot.Name + ' uses color animation, this is not supported yet. Please submit a testcase so we can improve it!');
     end;
   end;
 
@@ -243,12 +240,22 @@ begin
       SlotTimelines[I].BuildNodes(BaseUrl, MaxTime, Container, SlotsToReset);
       { add animation name to slot timeline, to make it unique in case
         we have many animations }
-      SlotTimelines[I].Node.NodeName := Node.NodeName + '_' + SlotTimelines[I].Node.NodeName;
-
+      SlotTimelines[I].Node1.Node.NodeName := Node.NodeName + '_' +
+        SlotTimelines[I].Node1.Node.NodeName;
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Node.EventFraction_changed);
-      Route.SetDestinationDirectly(SlotTimelines[I].Node.EventSet_fraction);
+      Route.SetDestinationDirectly(SlotTimelines[I].Node1.EventSet_fraction);
       Container.Routes.Add(Route);
+
+      if SlotTimelines[I].HasNode2 then
+      begin
+        SlotTimelines[I].Node2.Node.NodeName := Node.NodeName + '_' +
+          SlotTimelines[I].Node2.Node.NodeName;
+        Route := TX3DRoute.Create;
+        Route.SetSourceDirectly(Node.EventFraction_changed);
+        Route.SetDestinationDirectly(SlotTimelines[I].Node2.EventSet_fraction);
+        Container.Routes.Add(Route);
+      end;
     end;
 
     for I := 0 to SlotsToReset.Attachment.Count - 1 do
@@ -259,15 +266,18 @@ begin
       Container.Routes.Add(Route);
     end;
 
-    (* TODO:
     for I := 0 to SlotsToReset.Color.Count - 1 do
     begin
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Node.EventFraction_changed);
-      Route.SetDestinationDirectly(SlotsToReset.Color[I].ResetColor.EventSet_fraction);
+      Route.SetDestinationDirectly(SlotsToReset.Color[I].ResetColor1.EventSet_fraction);
+      Container.Routes.Add(Route);
+
+      Route := TX3DRoute.Create;
+      Route.SetSourceDirectly(Node.EventFraction_changed);
+      Route.SetDestinationDirectly(SlotsToReset.Color[I].ResetColor2.EventSet_fraction);
       Container.Routes.Add(Route);
     end;
-    *)
   finally FreeAndNil(SlotsToReset) end;
 end;
 
