@@ -440,6 +440,19 @@ begin
   end;
 end;
 
+procedure CGE_IncreaseSceneTime(fTimeS: cFloat); cdecl;
+var
+  bHandleControls: boolean;
+begin
+  bHandleControls := true;
+  try
+    Window.MainScene.IncreaseTime(fTimeS);
+    Window.SceneManager.Camera.Update(fTimeS, bHandleControls);
+  except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+  end;
+end;
+
 function cgehelper_getWalkCamera: TWalkCamera;
 begin
   Result := nil;
@@ -492,6 +505,10 @@ begin
 
       5: begin    // ecgevarWalkTouchCtl
         Window.AutomaticWalkTouchCtl := cgehelper_TouchInterfaceFromConst(nValue);
+      end;
+
+      6: begin    // ecgevarScenePaused
+        Window.SceneManager.Paused := (nValue > 0);
       end;
 
     end;
@@ -606,7 +623,7 @@ exports
   CGE_LoadSceneFromFile, CGE_GetNavigationType, CGE_SetNavigationType,
   CGE_GetViewpointsCount, CGE_GetViewpointName, CGE_MoveToViewpoint, CGE_AddViewpointFromCurrentView,
   CGE_GetBoundingBox, CGE_GetViewCoords, CGE_MoveViewToCoords, CGE_SaveScreenshotToFile,
-  CGE_SetTouchInterface, CGE_SetUserInterface,
+  CGE_SetTouchInterface, CGE_SetUserInterface, CGE_IncreaseSceneTime,
   CGE_SetVariableInt, CGE_GetVariableInt;
 
 begin

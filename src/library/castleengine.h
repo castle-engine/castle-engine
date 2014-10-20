@@ -44,6 +44,7 @@ enum ECgeVariable   // used for quering engine parameters in CGE_Set/GetVariable
     ecgevarCrossHair       = 3,   // show crosshair in the center of the screen (int, 1 or 0)
     ecgevarAnimationRunning = 4,  // (read-only) engine would like to progress with the animation (int, 1 or 0)
     ecgevarWalkTouchCtl    = 5,   // walking touch control (int, one of ECgeTouchCtlInterface values)
+    ecgevarScenePaused     = 6,   // pause SceneManager (int, 1 = on, 0 = off)
 };
 
 enum ECgeNavigationType
@@ -242,6 +243,8 @@ extern void CGE_SetTouchInterface(int /*ECgeTouchCtlInterface*/ eMode);
 
 extern void CGE_SetVariableInt(int /*ECgeVariable*/ eVar, int nValue);
 extern int CGE_GetVariableInt(int /*ECgeVariable*/ eVar);
+
+extern void CGE_IncreaseSceneTime(float fTimeS);    // set time in the scene, useful when sceneManager paused
 
 #ifdef __cplusplus
 }
