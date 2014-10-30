@@ -282,6 +282,15 @@
       Returned TX3DMaterialInfo is valid only as long as this node instance. }
     function MaterialInfo: TX3DMaterialInfo;
 
+    { Only emissiveColor is non-zero, which means that the material behaves like unlit.
+      When ambient and diffuse and specular colors are all zero, then this material
+      is similar to unlit material (in X3D: "Appearance.material=NULL" case),
+      but it's color/transparency is still
+      configurable (using FdEmissiveColor and FdTransparency fields).
+
+      We can optimize this case when rendering. }
+    function OnlyEmissiveMaterial: boolean;
+
     private FFdReflSpecular: TMFColor;
     public property FdReflSpecular: TMFColor read FFdReflSpecular;
 
@@ -965,6 +974,13 @@ end;
 function TMaterialNode.MaterialInfo: TX3DMaterialInfo;
 begin
   Result := TX3DMaterialInfo.Create(Self);
+end;
+
+function TMaterialNode.OnlyEmissiveMaterial: boolean;
+begin
+  Result := (FdAmbientIntensity.Value = 0) and
+            PerfectlyZeroVector(FdDiffuseColor.Value) and
+            PerfectlyZeroVector(FdSpecularColor.Value);
 end;
 
 { TX3DMaterialInfoAbstract ---------------------------------------------------------- }

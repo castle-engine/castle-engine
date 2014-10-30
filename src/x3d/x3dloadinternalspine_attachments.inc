@@ -152,6 +152,9 @@ begin
 
   Shape.Material := TMaterialNode.Create('Material_' + ToX3DName(Name), BaseUrl);
   Shape.Material.FdDiffuseColor.Value := ZeroVector3Single;
+  Shape.Material.FdSpecularColor.Value := ZeroVector3Single;
+  Shape.Material.FdAmbientIntensity.Value := 0;
+  Assert(Shape.Material.OnlyEmissiveMaterial);
   Shape.Material.FdEmissiveColor.Value := Vector3Single(1, 1, 1);
   Material := Shape.Material;
 end;

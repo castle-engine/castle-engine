@@ -1467,9 +1467,9 @@ end;
 
 function TMaterialNode_1.OnlyEmissiveMaterial: boolean;
 begin
-  result:=(FdAmbientColor.Count = 0) and
-          (FdDiffuseColor.Count = 0) and
-          (FdSpecularColor.Count = 0);
+  Result := (FdAmbientColor.Count = 0) and
+            (FdDiffuseColor.Count = 0) and
+            (FdSpecularColor.Count = 0);
 end;
 
 function TMaterialNode_1.AllMaterialsTransparent: boolean;

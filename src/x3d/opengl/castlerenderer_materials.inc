@@ -43,7 +43,8 @@ procedure RenderMaterialsBegin;
         Otherwise most of normal VRML 1.0 scenes would have black shapes
         (as that's the default emissive color, usually used for unlit)
         and all VRML 2.0 scenes would have white shapes (as that's
-        the unlit color).
+        the unlit color) or shapes with emissiveColor (as we optimize
+        case when only emissiveColor is non-zero, using then unlit color := emissiveColor).
 
         VRML/X3D spec doesn't say anything about this,
         as they are written like Attributes.Lighting = always @true.
@@ -109,7 +110,7 @@ procedure RenderMaterialsBegin;
     Material may be nil. }
   procedure Material_2(Material: TMaterialNode);
   begin
-    if Material <> nil then
+    if (Material <> nil) and not Material.OnlyEmissiveMaterial then
     begin
       RenderMaterial(
         VectorScale(Material.FdDiffuseColor.Value,
@@ -118,6 +119,16 @@ procedure RenderMaterialsBegin;
         Material.FdSpecularColor.Value,
         Material.FdEmissiveColor.Value,
         White3Single,
+        Material.ShininessExp,
+        Material.Opacity);
+    end else
+    if Material <> nil then
+    begin
+      { in this case we know that Material.OnlyEmissiveMaterial = true,
+        so this can be rendered like unlit material with color = emissiveColor. }
+      RenderMaterial(
+        White3Single, White3Single, White3Single, White3Single,
+        Material.FdEmissiveColor.Value,
         Material.ShininessExp,
         Material.Opacity);
     end else
@@ -156,7 +167,7 @@ begin
       OnWarning(wtMajor, 'VRML/X3D', 'VRML node "' + Shape.Geometry.NodeTypeName +
         '" can be specified only in a "geometry" field of "Shape" node');
     { VRML 2.0 spec says that when Material is not assigned, shape is unlit. }
-    MaterialLit := M2 <> nil;
+    MaterialLit := (M2 <> nil) and not M2.OnlyEmissiveMaterial;
   end;
 
   { calculate MaterialAndShapeLit (like Lighting, but ignores things

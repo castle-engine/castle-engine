@@ -3793,7 +3793,7 @@ var
   procedure HandleChangeSwitch2;
   begin
     { Changing Switch.whichChoice changes the shapes that are considered
-      active (in VRML graph, and in Shapes tree).
+      active (in VRML/X3D graph, and in Shapes tree).
       This means that things calculated based
       on traverse/iterator over Shapes with "OnlyActive = true"
       are invalid now.
