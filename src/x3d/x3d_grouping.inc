@@ -286,6 +286,8 @@
   end;
 
   TTransformNode = class(TAbstractX3DGroupingNode, ITransformNode)
+  private
+    WarningNegativeScaleDone: boolean;
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -903,6 +905,13 @@ begin
   inherited;
   TransformState(State, Fdcenter.Value, Fdrotation.Value,
     Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
+  if ((Fdscale.Value[0] < 0) or
+      (Fdscale.Value[1] < 0) or
+      (Fdscale.Value[2] < 0)) and not WarningNegativeScaleDone then
+  begin
+    WarningNegativeScaleDone := true;
+    OnWarning(wtMajor, 'VRML/X3D', 'Transform.scale has negative component. While it allows some tricks, it makes lighting act weird in some cases, and is discouraged.');
+  end;
 end;
 
 procedure RegisterGroupingNodes;
