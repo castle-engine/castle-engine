@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ CastleScript utilities for usage as VRML scripts. }
+{ CastleScript utilities for usage as VRML/X3D scripts. }
 unit X3DCastleScript;
 
 interface
@@ -101,7 +101,7 @@ uses SysUtils, X3DNodes, CastleLog, CastleScriptVectors, CastleWarnings,
 {$define read_implementation}
 
 type
-  { We use TCasScriptVec4f to represent VRML rotations.
+  { We use TCasScriptVec4f to represent VRML/X3D rotations.
     TCasScriptRotation is just for notation convenience. }
   TCasScriptRotation = TCasScriptVec4f;
   TCasScriptRotationArray = TCasScriptVec4fArray;
@@ -194,7 +194,7 @@ end;
 procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
   FieldOrEvent: TX3DFieldOrEvent);
 
-  procedure AssignVRMLFieldValue(Field: TX3DField);
+  procedure AssignX3DFieldValue(Field: TX3DField);
   begin
     if Field is TSFEnum then
       TCasScriptInteger(Value).Value := TSFEnum(Field).Value else
@@ -288,7 +288,7 @@ procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
 
 begin
   if FieldOrEvent is TX3DField then
-    AssignVRMLFieldValue(TX3DField(FieldOrEvent));
+    AssignX3DFieldValue(TX3DField(FieldOrEvent));
 
   Value.ValueAssigned := false;
 end;
@@ -470,7 +470,7 @@ begin
           SendToEvent.Send(Field, Time);
         end else
         if Log then
-          WritelnLog('VRML Script', Format(
+          WritelnLog('X3D Script', Format(
             'Sending event %s from Script ignored at <= timestamp (%f, while last event was on %f). Potential loop avoided',
             [ SendToEvent.Name, Time.Seconds, LastEventTime.Seconds ]));
       end;
@@ -543,7 +543,7 @@ begin
       So we have to secure against this. We don't want to allow
       resetting of ValueAssigned at the beginning of recursive script calls.
       Actually, we also don't want to reinitialize the CastleScript field
-      from VRML field value, to not lose new value.
+      from VRML/X3D field value, to not lose new value.
       What to do about changed values? If recursive script execution
       will change again the same field, we lose the old value, but that's
       somewhat Ok.

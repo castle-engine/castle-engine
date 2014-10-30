@@ -441,7 +441,7 @@ function CalculateBoundingBox(
   returns an index. If this index is >= 0 then it's used to query
   GetVertex function to get actual vertex position.
 
-  Indexes < 0 are ignored, this is sometimes comfortable. E.g. for VRML models,
+  Indexes < 0 are ignored, this is sometimes comfortable. E.g. for X3D models,
   you often have a list of indexes with -1 in between marking end of faces.
 
   Returns smallest box enclosing all vertexes.

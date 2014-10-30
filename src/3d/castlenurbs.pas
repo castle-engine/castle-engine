@@ -503,7 +503,7 @@ var
   WeightDouble: TDoubleList;
 begin
   { Direct implementation using single would be much faster...
-    But not important, this is only for VRML 2.0. }
+    But not important, this is only for old VRML 2.0, not for X3D. }
   WeightDouble := Weight.ToDouble;
   try
     Result := NurbsBoundingBox(Point, WeightDouble);
@@ -555,7 +555,7 @@ var
   WeightDouble: TDoubleList;
 begin
   { Direct implementation using single would be much faster...
-    But not important, this is only for VRML 2.0. }
+    But not important, this is only for old VRML 2.0, not for X3D. }
   WeightDouble := Weight.ToDouble;
   try
     Result := NurbsBoundingBox(Point, WeightDouble, Transform);

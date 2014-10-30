@@ -2983,7 +2983,7 @@ begin
 
     { For scaling, we explicitly request that if ScalingFactor contains
       zero, IM will be forced to be identity (the 2nd param to ScalingMatrices
-      is "true"). That's because VRML allows
+      is "true"). That's because X3D allows
       scaling factor to have 0 components (we need TransformInverse only
       for special tricks). }
 

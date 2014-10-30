@@ -223,7 +223,7 @@ type
       assigned during script execution, which is useful if changes to
       CastleScript variables should be propagated to some other things
       after the script finished execution. This is essential for behavior
-      in VRML Script node.
+      in VRML/X3D Script node.
 
       Descendants note: you have to set this to @true in SetValue. }
     property ValueAssigned: boolean read FValueAssigned write FValueAssigned

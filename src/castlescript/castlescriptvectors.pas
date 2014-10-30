@@ -484,7 +484,7 @@ begin
   begin
     { Safeguard against rotation around zero vector, which produces unpredictable
       results (actually, Result would be filled with Nan values).
-      VRML spec says that SFRotation should always specify a normalized vector. }
+      VRML/X3D specs says that SFRotation should always specify a normalized vector. }
     TCasScriptVec3f(AResult).Value := Point;
     OnWarning(wtMajor, 'CastleScript', 'Rotation around zero vector');
   end;

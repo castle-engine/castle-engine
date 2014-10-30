@@ -1008,7 +1008,7 @@ begin
       OverrideOctreeLimits(FTriangleOctreeLimits),
       TriangleOctreeProgressTitle);
     if Log and LogChanges then
-      WritelnLog('VRML changes (octree)', Format(
+      WritelnLog('X3D changes (octree)', Format(
         'Shape(%s).OctreeTriangles updated', [PointerToStr(Self)]));
   end;
 
@@ -1209,7 +1209,7 @@ begin
     ( (FState[false] <> OriginalState) and (FState[false] <> nil) ) or
     ( (FState[true ] <> OriginalState) and (FState[true ] <> nil) )
     ) then
-    WritelnLog('VRML changes', 'Releasing the Proxy geometry of ' + OriginalGeometry.ClassName);
+    WritelnLog('X3D changes', 'Releasing the Proxy geometry of ' + OriginalGeometry.ClassName);
 
   if FGeometry[false] <> OriginalGeometry then
   begin

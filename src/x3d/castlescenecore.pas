@@ -3072,7 +3072,7 @@ begin
   try
 
   if Log and LogChanges then
-    WritelnLog('VRML changes', 'ChangedAll');
+    WritelnLog('X3D changes', 'ChangedAll');
 
   BeforeNodesFree(true);
 
@@ -3549,7 +3549,7 @@ begin
   }
 
   if Log and LogChanges then
-    WritelnLog('VRML changes', Format('Transform node %s change: %d instances',
+    WritelnLog('X3D changes', Format('Transform node %s change: %d instances',
       [TransformNode.NodeTypeName, Instances.Count]));
 
   try
@@ -3615,7 +3615,7 @@ begin
     on B: BreakTransformChangeFailed do
     begin
       if Log and LogChanges then
-        WritelnLog('VRML changes', 'Transform change (because of child: ' + B.Reason + ') causes ChangedAll (no optimized action)');
+        WritelnLog('X3D changes', 'Transform change (because of child: ' + B.Reason + ') causes ChangedAll (no optimized action)');
       ScheduleChangedAll;
       Exit;
     end;
@@ -3638,7 +3638,7 @@ var
       S += Format(', field %s (%s)', [ Field.Name, Field.TypeName ]);
     if Additional <> '' then
       S += '. ' + Additional;
-    WritelnLog('VRML changes', S);
+    WritelnLog('X3D changes', S);
   end;
 
   { Handle VRML >= 2.0 transformation changes. }
@@ -3653,7 +3653,7 @@ var
     if Instances = nil then
     begin
       if Log and LogChanges then
-        WritelnLog('VRML changes', Format('Transform node "%s" has no information, assuming does not exist in our VRML graph',
+        WritelnLog('X3D changes', Format('Transform node "%s" has no information, assuming does not exist in our VRML graph',
           [ANode.NodeTypeName]));
       Exit;
     end;
@@ -4504,7 +4504,7 @@ begin
       ShapeOctreeProgressTitle,
       false);
     if Log and LogChanges then
-      WritelnLog('VRML changes (octree)', 'OctreeRendering updated');
+      WritelnLog('X3D changes (octree)', 'OctreeRendering updated');
   end;
 
   Result := FOctreeRendering;
@@ -4519,7 +4519,7 @@ begin
       ShapeOctreeProgressTitle,
       true);
     if Log and LogChanges then
-      WritelnLog('VRML changes (octree)', 'OctreeDynamicCollisions updated');
+      WritelnLog('X3D changes (octree)', 'OctreeDynamicCollisions updated');
   end;
 
   Result := FOctreeDynamicCollisions;
