@@ -29,6 +29,10 @@
   end;
 
   TSlot = class
+  public
+  const
+    DrawOrderZ = 0.01;
+  var
     Name: string;
     Bone: TBone;
     Color: TCastleColor;
@@ -44,7 +48,8 @@
       drawing order for spine, see
       http://esotericsoftware.com/spine-using-runtimes }
     DrawOrder: Integer;
-    Node: TSwitchNode;
+    Node: TTransformNode;
+    SwitchNode: TSwitchNode;
     NodeUsedAsChild: boolean;
     ResetAttachment: TIntegerSequencerNode;
     ResetColor1: TColorInterpolatorNode;
@@ -139,12 +144,12 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
     ResetAttachment := TIntegerSequencerNode.Create('SlotReset_attachment_' + ToX3DName(Name));
     ResetAttachment.FdForceContinousValue_Changed.Value := true;
     ResetAttachment.FdKey.Items.Add(0);
-    ResetAttachment.FdKeyValue.Items.Add(Node.FdWhichChoice.Value);
+    ResetAttachment.FdKeyValue.Items.Add(SwitchNode.FdWhichChoice.Value);
     ContainerForResetNode.FdChildren.Add(ResetAttachment);
 
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(ResetAttachment.EventValue_changed);
-    Route.SetDestinationDirectly(Node.FdWhichChoice.EventIn);
+    Route.SetDestinationDirectly(SwitchNode.FdWhichChoice.EventIn);
     ContainerForResetNode.Routes.Add(Route);
   end;
 
@@ -179,15 +184,12 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
     end;
   end;
 
-  { TransformNode for a single AttachmentName. }
-  function NodeTransform(const AttachmentName: string): TTransformNode;
-  const
-    DrawOrderZ = 0.01;
+  { Node for a single AttachmentName. Never @nil. }
+  function AttachmentNode(const AttachmentName: string): TX3DNode;
   var
     A: TAttachment;
   begin
-    Result := TTransformNode.Create('SlotAttachment_' + ToX3DName(Name) + '_' + ToX3DName(AttachmentName), BaseUrl);
-    Result.FdTranslation.Value := Vector3Single(0, 0, DrawOrder * DrawOrderZ);
+    Result := nil;
 
     { ignore empty attachment names, as http://esotericsoftware.com/spine-json-format
       says explicitly "Assume no attachment for the setup pose if omitted." }
@@ -199,24 +201,34 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
       if A <> nil then
       begin
         A.NodeUsedAsChild := true;
-        Result.FdChildren.Add(A.Node);
+        Result := A.Node;
         Materials.Add(A.Material);
       end;
     end;
+
+    { the caller needs non-nil result, to have 1 node for every AttachmentName,
+      so that Switch.whichChoice can work reliably.
+      So create an empty node if needed. }
+    if Result = nil then
+      Result := TStaticGroupNode.Create('', BaseUrl);
   end;
 
 var
   I: Integer;
 begin
-  Node := TSwitchNode.Create('Slot_' + ToX3DName(Name), BaseUrl);
-  Node.FdWhichChoice.Value := 0;
-  NodeUsedAsChild := true;
+  Node := TTransformNode.Create('SlotTransform_' + ToX3DName(Name), BaseUrl);
+  Node.FdTranslation.Value := Vector3Single(0, 0, DrawOrder * DrawOrderZ);
   Bone.Node.FdChildren.Add(Node);
+  NodeUsedAsChild := true;
+
+  SwitchNode := TSwitchNode.Create('SlotSwitch_' + ToX3DName(Name), BaseUrl);
+  SwitchNode.FdWhichChoice.Value := 0;
+  Node.FdChildren.Add(SwitchNode);
 
   Materials.Clear;
 
   for I := 0 to AttachmentNames.Count - 1 do
-    Node.FdChildren.Add(NodeTransform(AttachmentNames[I]));
+    SwitchNode.FdChildren.Add(AttachmentNode(AttachmentNames[I]));
 
   AddResetAttachment;
   AddResetColor;

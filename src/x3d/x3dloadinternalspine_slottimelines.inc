@@ -179,7 +179,7 @@ begin
   begin
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(EventValueChanged);
-    Route.SetDestinationDirectly(Slot.Node.FdWhichChoice.EventIn);
+    Route.SetDestinationDirectly(Slot.SwitchNode.FdWhichChoice.EventIn);
     Container.Routes.Add(Route);
 
     if SlotsToReset.Attachment.Remove(Slot) = -1 then
