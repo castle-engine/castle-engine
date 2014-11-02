@@ -14,16 +14,15 @@
 }
 
 type
-  TImageTextureNodeList = specialize TFPGObjectList<TImageTextureNode>;
+  { Texture nodes, indexed by attachment name. }
+  TImageTextureNodeMap = specialize TFPGMap<string, TImageTextureNode>;
 
   { Spine simple texture loader (without atlas).
     Reads each region attachment as a single texture file,
     from a filename 'images/' + AttachmentName + '.png'. }
   TSimpleTextureLoader = class(TTextureLoader)
   strict private
-    { TODO: use TFPGMap.}
-    NodeAttachmentNames: TStringList;
-    Nodes: TImageTextureNodeList;
+    Nodes: TImageTextureNodeMap;
     BaseUrl: string;
   public
     constructor Create(const ABaseUrl: string);
@@ -36,13 +35,11 @@ constructor TSimpleTextureLoader.Create(const ABaseUrl: string);
 begin
   inherited Create;
   BaseUrl := ABaseUrl;
-  NodeAttachmentNames := TStringList.Create;
-  Nodes := TImageTextureNodeList.Create(false);
+  Nodes := TImageTextureNodeMap.Create;
 end;
 
 destructor TSimpleTextureLoader.Destroy;
 begin
-  FreeAndNil(NodeAttachmentNames);
   FreeAndNil(Nodes);
   inherited;
 end;
@@ -52,17 +49,16 @@ function TSimpleTextureLoader.UseNode(const AttachmentName: string;
 var
   Index: Integer;
 begin
-  Index := NodeAttachmentNames.IndexOf(AttachmentName);
+  Index := Nodes.IndexOf(AttachmentName);
   if Index <> -1 then
-    Result := Nodes[Index] else
+    Result := Nodes.Data[Index] else
   begin
     Result := TImageTextureNode.Create('SimpleTexture_' + ToX3DName(AttachmentName), BaseUrl);
     Result.FdUrl.Items.Add('images/' + AttachmentName + '.png');
     Result.RepeatS := false;
     Result.RepeatT := false;
 
-    NodeAttachmentNames.Add(AttachmentName);
-    Nodes.Add(Result);
+    Nodes[AttachmentName] := Result;
   end;
 
   TexCoord[0] := Vector2Single(0, 0);
