@@ -191,7 +191,7 @@ begin
       if MimeType = 'audio/ogg'   then C := TSoundOggVorbis else
       if MimeType = 'audio/mpeg'  then C := TSoundMP3 else
       begin
-        OnWarning(wtMinor, 'Audio', Format('Not recognized MIME type for sound file "%s", trying to load it as wav', [MimeType]));
+        OnWarning(wtMinor, 'Audio', Format('Not recognized MIME type "%s" for sound file "%s", trying to load it as wav', [MimeType, URL]));
         C := TSoundWAV;
       end;
 

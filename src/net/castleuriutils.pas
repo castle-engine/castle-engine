@@ -661,6 +661,7 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.midi' then Result := 'audio/midi' else
     if Ext = '.au' then Result := 'audio/basic' else
     if Ext = '.snd' then Result := 'audio/basic' else
+    if Ext = '.mp2' then Result := 'audio/mpeg' else
     // Documents
     if Ext = '.rtf' then Result := 'text/rtf' else
     if Ext = '.eps' then Result := 'application/postscript' else
