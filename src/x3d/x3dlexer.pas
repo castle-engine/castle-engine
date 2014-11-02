@@ -40,7 +40,8 @@ type
 
 const
   VRML10Keywords = [vkDEF, vkUSE, vkFALSE, vkTRUE];
-  VRML20Keywords = [vkDEF .. vkIMPORT];
+  VRML20Keywords = [vkDEF .. vkIMPORT] +
+    { META accepted as Titania demos use it } [vkMETA];
   X3DKeywords = [Low(TX3DKeyword) .. High(TX3DKeyword)] -
     [vkEventIn, vkEventOut, vkExposedField, vkField];
 

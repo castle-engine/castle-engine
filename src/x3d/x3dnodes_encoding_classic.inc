@@ -372,6 +372,10 @@ var
   var
     Key, Value: string;
   begin
+    if Lexer.TokenIsKeyword(vkMETA) and
+       (Reader.Version.Major < 3) then
+      OnWarning(wtMinor, 'VRML/X3D', 'META is not allowed in VRML, you should use X3D instead');
+
     while Lexer.TokenIsKeyword(vkMETA) do
     begin
       Lexer.NextToken;
@@ -509,8 +513,9 @@ begin
       ParseProfile;
       ParseComponents;
       ParseUnits;
-      ParseMetas;
     end;
+    if FileTopLevel then { META is not part of VRML 2.0, but Titania uses it }
+      ParseMetas;
 
     PositionInParent := 0;
 
