@@ -23,6 +23,7 @@
   TSlotsAnimated = class
     Attachment: TSlotList;
     Color: TSlotList;
+    DrawOrder: TSlotList;
     constructor Create;
     destructor Destroy; override;
     procedure Assign(const Source: TSlotsAnimated);
@@ -54,6 +55,7 @@
     ResetAttachment: TIntegerSequencerNode;
     ResetColor1: TColorInterpolatorNode;
     ResetColor2: TScalarInterpolatorNode;
+    ResetDrawOrder: TPositionInterpolatorNode;
     Materials: TMaterialNodeList;
     constructor Create;
     destructor Destroy; override;
@@ -85,12 +87,14 @@ begin
   inherited;
   Attachment := TSlotList.Create(false);
   Color := TSlotList.Create(false);
+  DrawOrder := TSlotList.Create(false);
 end;
 
 destructor TSlotsAnimated.Destroy;
 begin
   FreeAndNil(Attachment);
   FreeAndNil(Color);
+  FreeAndNil(DrawOrder);
   inherited;
 end;
 
@@ -98,6 +102,7 @@ procedure TSlotsAnimated.Assign(const Source: TSlotsAnimated);
 begin
   Attachment.Assign(Source.Attachment);
   Color.Assign(Source.Color);
+  DrawOrder.Assign(Source.DrawOrder);
 end;
 
 { TSlot ---------------------------------------------------------------------- }
@@ -184,6 +189,23 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
     end;
   end;
 
+  procedure AddResetDrawOrder;
+  var
+    Route: TX3DRoute;
+  begin
+    if SlotsAnimated.DrawOrder.IndexOf(Self) = -1 then Exit;
+
+    ResetDrawOrder := TPositionInterpolatorNode.Create('SlotReset_draworder_' + ToX3DName(Name));
+    ResetDrawOrder.FdKey.Items.Add(0);
+    ResetDrawOrder.FdKeyValue.Items.Add(Node.FdTranslation.Value);
+    ContainerForResetNode.FdChildren.Add(ResetDrawOrder);
+
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(ResetDrawOrder.EventValue_changed);
+    Route.SetDestinationDirectly(Node.FdTranslation.EventIn);
+    ContainerForResetNode.Routes.Add(Route);
+  end;
+
   { Node for a single AttachmentName. Never @nil. }
   function AttachmentNode(const AttachmentName: string): TX3DNode;
   var
@@ -232,6 +254,7 @@ begin
 
   AddResetAttachment;
   AddResetColor;
+  AddResetDrawOrder;
 end;
 
 { TSlotList ------------------------------------------------------------------ }

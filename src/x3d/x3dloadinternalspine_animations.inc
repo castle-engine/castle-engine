@@ -20,6 +20,7 @@
     Name: string;
     BoneTimelines: TBoneTimelineList;
     SlotTimelines: TSlotTimelineList;
+    DrawOrderTimelines: TDrawOrderTimelineList;
     Node: TTimeSensorNode;
     NodeUsedAsChild: boolean;
     constructor Create;
@@ -49,6 +50,7 @@ begin
   inherited;
   BoneTimelines := TBoneTimelineList.Create;
   SlotTimelines := TSlotTimelineList.Create;
+  DrawOrderTimelines := TDrawOrderTimelineList.Create;
 end;
 
 destructor TAnimation.Destroy;
@@ -58,6 +60,7 @@ begin
     FreeIfUnusedAndNil(Node);
   FreeAndNil(BoneTimelines);
   FreeAndNil(SlotTimelines);
+  FreeAndNil(DrawOrderTimelines);
   inherited;
 end;
 
@@ -143,6 +146,7 @@ var
   Bone: TBone;
   Slot: TSlot;
   ChildObj: TJSONObject;
+  ChildArray: TJSONArray;
 begin
   ChildObj := Json.Find('bones', jtObject) as TJSONObject;
   if ChildObj <> nil then
@@ -165,6 +169,10 @@ begin
         ReadSlotTimelines(Slot, TJSONObject(ChildObj.Items[I]));
       end;
   end;
+
+  ChildArray := Json.Find('draworder', jtArray) as TJSONArray;
+  if ChildArray <> nil then
+    DrawOrderTimelines.Parse(ChildArray, Slots, SlotsAnimated);
 end;
 
 procedure TAnimation.BuildNodes(const BaseUrl: string;
@@ -184,6 +192,7 @@ begin
     MaxTo1st(MaxTime, BoneTimelines[I].MaxTime);
   for I := 0 to SlotTimelines.Count - 1 do
     MaxTo1st(MaxTime, SlotTimelines[I].MaxTime);
+  MaxTo1st(MaxTime, DrawOrderTimelines.MaxTime);
   Node.FdCycleInterval.Value := MaxTime;
 
   NodeUsedAsChild := true;
@@ -258,6 +267,20 @@ begin
       end;
     end;
 
+    for I := 0 to DrawOrderTimelines.Count - 1 do
+    begin
+      DrawOrderTimelines[I].BuildNodes(BaseUrl, DrawOrderTimelines.Time,
+        MaxTime, Container, SlotsToReset);
+      { add animation name to draworder timeline, to make it unique in case
+        we have many animations }
+      DrawOrderTimelines[I].Node.NodeName := Node.NodeName + '_' +
+        DrawOrderTimelines[I].Node.NodeName;
+      Route := TX3DRoute.Create;
+      Route.SetSourceDirectly(Node.EventFraction_changed);
+      Route.SetDestinationDirectly(DrawOrderTimelines[I].Node.EventSet_fraction);
+      Container.Routes.Add(Route);
+    end;
+
     for I := 0 to SlotsToReset.Attachment.Count - 1 do
     begin
       Route := TX3DRoute.Create;
@@ -276,6 +299,14 @@ begin
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Node.EventFraction_changed);
       Route.SetDestinationDirectly(SlotsToReset.Color[I].ResetColor2.EventSet_fraction);
+      Container.Routes.Add(Route);
+    end;
+
+    for I := 0 to SlotsToReset.DrawOrder.Count - 1 do
+    begin
+      Route := TX3DRoute.Create;
+      Route.SetSourceDirectly(Node.EventFraction_changed);
+      Route.SetDestinationDirectly(SlotsToReset.DrawOrder[I].ResetDrawOrder.EventSet_fraction);
       Container.Routes.Add(Route);
     end;
   finally FreeAndNil(SlotsToReset) end;

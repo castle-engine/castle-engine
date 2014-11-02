@@ -80,6 +80,7 @@ type
   {$I x3dloadinternalspine_skins.inc}
   {$I x3dloadinternalspine_bonetimelines.inc}
   {$I x3dloadinternalspine_slottimelines.inc}
+  {$I x3dloadinternalspine_drawordertimelines.inc}
   {$I x3dloadinternalspine_animations.inc}
   {$I x3dloadinternalspine_skeleton.inc}
   {$undef read_interface}
@@ -91,6 +92,7 @@ type
   {$I x3dloadinternalspine_skins.inc}
   {$I x3dloadinternalspine_bonetimelines.inc}
   {$I x3dloadinternalspine_slottimelines.inc}
+  {$I x3dloadinternalspine_drawordertimelines.inc}
   {$I x3dloadinternalspine_animations.inc}
   {$I x3dloadinternalspine_skeleton.inc}
   {$undef read_implementation}
