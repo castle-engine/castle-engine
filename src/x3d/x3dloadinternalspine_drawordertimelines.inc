@@ -190,7 +190,6 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray;
                 JsonOffset := TJSONObject(JsonOffsets[J]);
                 SlotName := JsonOffset.Get('slot', '');
                 Offset := JsonOffset.Get('offset', 0);
-                writeln('got offset ', Offset);
                 Slot := Slots.Find(SlotName);
                 Timeline := FindSlot(Slot);
                 Assert(Timeline <> nil, 'We failed to add slot timeline in AddTimelines');
