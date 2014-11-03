@@ -27,7 +27,7 @@ implementation
 uses SysUtils, Classes, FGL, FpJson, JSONParser, Math,
   CastleVectors, CastleUtils, CastleLog, CastleURIUtils, CastleDownload,
   CastleStringUtils, CastleClassUtils, CastleColors,
-  X3DLoadInternalUtils, CastleWarnings, X3DFields;
+  X3DLoadInternalUtils, CastleWarnings, X3DFields, CastleGenericLists;
 
 { TODO:
   Some more exotic Spine animation features are not implemented (yet!).

@@ -120,6 +120,9 @@ begin
   inherited;
 end;
 
+type
+  TSlotToDrawOrder = specialize TGenericStructMap<TSlot, Integer>;
+
 procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray;
   const Slots: TSlotList; const SlotsAnimated: TSlotsAnimated);
 
@@ -163,13 +166,12 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray;
     I, J: Integer;
     JsonOffsets: TJSONArray;
     JsonOffset, O: TJSONObject;
-    SlotsSet: TSlotList;
+    SlotsSet: TSlotToDrawOrder;
     Timeline: TDrawOrderTimeline;
     SlotName: string;
     Slot: TSlot;
-    DrawOrder: Single;
   begin
-    SlotsSet := TSlotList.Create(false);
+    SlotsSet := TSlotToDrawOrder.Create;
     try
       for I := 0 to Json.Count - 1 do
         if Json[I] is TJSONObject then
@@ -187,23 +189,32 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray;
           JsonOffsets := O.Find('offsets', jtArray) as TJSONArray;
           if JsonOffsets <> nil then
           begin
-            for J := 0 to JsonOffsets.Count - 1 do
-              if JsonOffsets[J] is TJSONObject then
-              begin
-                JsonOffset := TJSONObject(JsonOffsets[J]);
-                SlotName := JsonOffset.Get('slot', '');
-                Slot := Slots.Find(SlotName);
-                { We do not store just offset, we store calculated DrawOrder
-                  in a timeline. This way timeline can be exported without
-                  the knowledge of other draw order timelines. }
-                DrawOrder := Slot.DrawOrder + JsonOffset.Get('offset', 0);
-                Timeline := FindSlot(Slot);
-                Assert(Timeline <> nil, 'We failed to add slot timeline in AddTimelines');
-                if Timeline.DrawOrder.Count <> Time.Count - 1 then
-                  OnWarning(wtMajor, 'Spine', 'draworder timeline count incorrect, it seems that the same slot name was specified multiple times for an offset during the same time for slot: ' + Slot.Name);
-                Timeline.DrawOrder.Add(DrawOrder);
-                SlotsSet.Add(Slot);
-              end;
+            SlotsSet.Count := JsonOffsets.Count;
+            for J := 0 to SlotsSet.Count - 1 do
+            begin
+              { cast checking is it TJSONObject }
+              JsonOffset := JsonOffsets[J] as TJSONObject;
+              SlotName := JsonOffset.Get('slot', '');
+              Slot := Slots.Find(SlotName);
+              SlotsSet.Keys[J] := Slot;
+              SlotsSet.Data[J] := Slot.DrawOrder + JsonOffset.Get('offset', 0);
+            end;
+
+            // here calculate real DrawOrder squeezed
+
+            for J := 0 to SlotsSet.Count - 1 do
+            begin
+              Slot := SlotsSet.Keys[J];
+              { We do not store just offset, we store calculated DrawOrder
+                in a timeline. This way timeline can be exported without
+                the knowledge of other draw order timelines. }
+              Timeline := FindSlot(Slot);
+              Assert(Timeline <> nil, 'We failed to add slot timeline in AddTimelines');
+              if Timeline.DrawOrder.Count <> Time.Count - 1 then
+                OnWarning(wtMajor, 'Spine', 'draworder timeline count incorrect, it seems that the same slot name was specified multiple times for an offset during the same time for slot: ' +
+                  Slot.Name);
+              Timeline.DrawOrder.Add(SlotsSet.Data[J]);
+            end;
           end;
 
           { add offset = 0 for slots not specified here }
