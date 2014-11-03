@@ -24,7 +24,7 @@
   TDrawOrderTimeline = class
   public
     Slot: TSlot;
-    Offset: TLongIntList;
+    DrawOrder: TSingleList;
     Node: TPositionInterpolatorNode;
     NodeUsedAsChild: boolean;
     constructor Create;
@@ -56,12 +56,12 @@
 constructor TDrawOrderTimeline.Create;
 begin
   inherited;
-  Offset := TLongIntList.Create;
+  DrawOrder := TSingleList.Create;
 end;
 
 destructor TDrawOrderTimeline.Destroy;
 begin
-  FreeAndNil(Offset);
+  FreeAndNil(DrawOrder);
   inherited;
 end;
 
@@ -81,11 +81,13 @@ begin
     if Time[I] <> 0 then
     begin
       Node.FdKey.Items.Add(Time[I] / MaxAnimationTime);
-      Node.FdKeyValue.Items.Add(Node.FdKeyValue.Items.Last);
+      if I = 0 then
+        Node.FdKeyValue.Items.Add(Slot.Node.FdTranslation.Value) else
+        Node.FdKeyValue.Items.Add(Node.FdKeyValue.Items.Last);
     end;
 
     Node.FdKey.Items.Add(Time[I] / MaxAnimationTime);
-    Node.FdKeyValue.Items.Add(Vector3Single(0, 0, (Slot.DrawOrder + Offset[I] - 0.5) * TSlot.DrawOrderZ));
+    Node.FdKeyValue.Items.Add(Vector3Single(0, 0, (DrawOrder[I] - 0.5) * TSlot.DrawOrderZ));
   end;
 
   NodeUsedAsChild := true;
@@ -165,7 +167,7 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray;
     Timeline: TDrawOrderTimeline;
     SlotName: string;
     Slot: TSlot;
-    Offset: Integer;
+    DrawOrder: Single;
   begin
     SlotsSet := TSlotList.Create(false);
     try
@@ -190,13 +192,16 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray;
               begin
                 JsonOffset := TJSONObject(JsonOffsets[J]);
                 SlotName := JsonOffset.Get('slot', '');
-                Offset := JsonOffset.Get('offset', 0);
                 Slot := Slots.Find(SlotName);
+                { We do not store just offset, we store calculated DrawOrder
+                  in a timeline. This way timeline can be exported without
+                  the knowledge of other draw order timelines. }
+                DrawOrder := Slot.DrawOrder + JsonOffset.Get('offset', 0);
                 Timeline := FindSlot(Slot);
                 Assert(Timeline <> nil, 'We failed to add slot timeline in AddTimelines');
-                if Timeline.Offset.Count <> Time.Count - 1 then
+                if Timeline.DrawOrder.Count <> Time.Count - 1 then
                   OnWarning(wtMajor, 'Spine', 'draworder timeline count incorrect, it seems that the same slot name was specified multiple times for an offset during the same time for slot: ' + Slot.Name);
-                Timeline.Offset.Add(Offset);
+                Timeline.DrawOrder.Add(DrawOrder);
                 SlotsSet.Add(Slot);
               end;
           end;
@@ -206,7 +211,7 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray;
           begin
             Timeline := Items[J];
             if SlotsSet.IndexOf(Timeline.Slot) = -1 then
-              Timeline.Offset.Add(0);
+              Timeline.DrawOrder.Add(Timeline.Slot.DrawOrder);
           end;
         end;
     finally FreeAndNil(SlotsSet) end;

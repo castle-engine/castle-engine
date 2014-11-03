@@ -261,11 +261,11 @@ end;
 
 function TSlotList.Find(const SlotName: string): TSlot;
 var
-  I: Integer;
+  Index: Integer;
 begin
-  for I := 0 to Count - 1 do
-    if Items[I].Name = SlotName then
-      Exit(Items[I]);
+  for Index := 0 to Count - 1 do
+    if Items[Index].Name = SlotName then
+      Exit(Items[Index]);
   raise ESpineReadError.CreateFmt('Slot name "%s" not found', [SlotName]);
 end;
 
