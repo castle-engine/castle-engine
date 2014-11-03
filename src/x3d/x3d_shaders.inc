@@ -110,21 +110,14 @@
     public property FdPrograms: TMFNode read FFdPrograms;
   end;
 
-  TSFStringShaderType = class(TSFString)
-  private
-    UpperCaseChecked, WarningInvalidValueDone: boolean;
-  protected
-    class function ExposedEventsFieldClass: TX3DFieldClass; override;
-  public
-    function GetValue(out AValue: TShaderType): boolean;
-  end;
-
   TShaderPartNode = class(TAbstractNode, IAbstractUrlObject)
   private
     ContentsCached: boolean;
     ContentsCache: string;
     procedure EventUrlReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+    function GetShaderType: TShaderType;
+    procedure SetShaderType(const Value: TShaderType);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -133,8 +126,11 @@
     private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
-    private FFdType: TSFStringShaderType;
-    public property FdType: TSFStringShaderType read FFdType;
+    private FFdType: TSFStringEnum;
+    public property FdType: TSFStringEnum read FFdType;
+
+    { Shader type. }
+    property ShaderType: TShaderType read GetShaderType write SetShaderType;
 
     { Load shader code from node's URLs.
       In X3D XML encoding, also loads node's XML CDATA as a last resort.
@@ -152,8 +148,8 @@
     private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
-    private FFdType: TSFStringShaderType;
-    public property FdType: TSFStringShaderType read FFdType;
+    private FFdType: TSFStringEnum;
+    public property FdType: TSFStringEnum read FFdType;
   end;
 {$endif read_interface}
 
@@ -331,49 +327,6 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TSFStringShaderType.ExposedEventsFieldClass: TX3DFieldClass;
-begin
-  Result := TSFString;
-end;
-
-function TSFStringShaderType.GetValue(out AValue: TShaderType): boolean;
-var
-  UpperValue: string;
-begin
-  UpperValue := UpperCase(Value);
-
-  if (not UpperCaseChecked) and (UpperValue <> Value) then
-  begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Shader "type" should be uppercase, but is not: "%s"',
-      [Value]));
-    UpperCaseChecked := true;
-  end;
-
-  if UpperValue = 'VERTEX' then
-  begin
-    AValue := stVertex;
-    Result := true;
-  end else
-  if UpperValue = 'GEOMETRY' then
-  begin
-    AValue := stGeometry;
-    Result := true;
-  end else
-  if UpperValue = 'FRAGMENT' then
-  begin
-    AValue := stFragment;
-    Result := true;
-  end else
-  begin
-    Result := false;
-    if not WarningInvalidValueDone then
-    begin
-      OnWarning(wtMajor, 'VRML/X3D', Format('Unknown "type" for shader: "%s"', [Value]));
-      WarningInvalidValueDone := true;
-    end;
-  end;
-end;
-
 procedure TShaderPartNode.CreateNode;
 begin
   inherited;
@@ -384,7 +337,7 @@ begin
   Fields.Add(FFdUrl);
   { X3D specification comment: [URI] }
 
-  FFdType := TSFStringShaderType.Create(Self, 'type', 'VERTEX');
+  FFdType := TSFStringEnum.Create(Self, 'type', ShaderTypeNameX3D, Ord(stVertex));
    FdType.Exposed := false;
    FdType.ChangesAlways := [chEverything];
   Fields.Add(FFdType);
@@ -463,6 +416,16 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+function TShaderPartNode.GetShaderType: TShaderType;
+begin
+  Result := TShaderType(FdType.EnumValue);
+end;
+
+procedure TShaderPartNode.SetShaderType(const Value: TShaderType);
+begin
+  FdType.SendEnumValue(Ord(Value));
+end;
+
 procedure TShaderProgramNode.CreateNode;
 begin
   inherited;
@@ -471,7 +434,7 @@ begin
   Fields.Add(FFdUrl);
   { X3D specification comment: [URI] }
 
-  FFdType := TSFStringShaderType.Create(Self, 'type', 'VERTEX');
+  FFdType := TSFStringEnum.Create(Self, 'type', ShaderTypeNameX3D, Ord(stVertex));
   FFdType.Exposed := false;
   Fields.Add(FFdType);
   { X3D specification comment: ["VERTEX"|"FRAGMENT"] }

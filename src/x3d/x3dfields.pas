@@ -1267,7 +1267,7 @@ type
     EnumNames will be left undefined. }
   TSFEnum = class(TX3DSingleField)
   private
-    fEnumNames: TStringList;
+    FEnumNames: TStringList;
     function GetEnumNames(i: integer): string;
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
@@ -1685,11 +1685,14 @@ type
   TSFString = class(TX3DSingleField)
   private
     FValue: string;
+    FDefaultValue: string;
+    FDefaultValueExists: boolean;
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    DefaultValue: string;
-    DefaultValueExists: boolean;
+    property DefaultValue: string read FDefaultValue write FDefaultValue;
+    property DefaultValueExists: boolean
+      read FDefaultValueExists write FDefaultValueExists;
     property Value: string read FValue write FValue;
 
     constructor Create(AParentNode: TX3DFileItem;
@@ -1713,6 +1716,36 @@ type
     function SaveToXmlValue: TSaveToXmlMethod; override;
 
     procedure Send(const AValue: string); overload;
+  end;
+
+  { String field that contains a value from a specified set.
+    This wraps a commonly used VRML/X3D construct where SFString field
+    is used to hold values from some limited set, thus emulating
+    an "enumerated" field.
+
+    Access the EnumValue to get / set the field value as an integer,
+    which is an index to ValueNames array. }
+  TSFStringEnum = class(TSFString)
+  private
+    FEnumNames: TStringList;
+    WarningUpperCaseDone, WarningInvalidValueDone: boolean;
+    WarningDefaultUpperCaseDone, WarningInvalidDefaultValueDone: boolean;
+    function GetEnumValue: Integer;
+    procedure SetEnumValue(const NewValue: Integer);
+    function GetDefaultEnumValue: Integer;
+    procedure SetDefaultEnumValue(const NewDefaultValue: Integer);
+  protected
+    class function ExposedEventsFieldClass: TX3DFieldClass; override;
+  public
+    constructor Create(AParentNode: TX3DFileItem;
+      const AName: string;
+      const AEnumNames: array of string; const AValue: Integer);
+    destructor Destroy; override;
+    property EnumValue: Integer
+      read GetEnumValue write SetEnumValue;
+    property DefaultEnumValue: Integer
+      read GetDefaultEnumValue write SetDefaultEnumValue;
+    procedure SendEnumValue(const NewValue: Integer);
   end;
 
   TSFVec2f = class(TX3DSingleField)
@@ -4980,6 +5013,97 @@ begin
   Result := TSFStringEvent.Create(AParentNode, AName, AInEvent);
 end;
 
+{ TSFStringEnum -------------------------------------------------------------- }
+
+constructor TSFStringEnum.Create(AParentNode: TX3DFileItem;
+  const AName: string; const AEnumNames: array of string; const AValue: integer);
+begin
+  FEnumNames := TStringListCaseSens.Create;
+  AddStrArrayToStrings(AEnumNames, FEnumNames);
+
+  inherited Create(AParentNode, AName, FEnumNames[AValue]);
+end;
+
+destructor TSFStringEnum.Destroy;
+begin
+  FreeAndNil(FEnumNames);
+  inherited;
+end;
+
+class function TSFStringEnum.ExposedEventsFieldClass: TX3DFieldClass;
+begin
+  Result := TSFString;
+end;
+
+function TSFStringEnum.GetEnumValue: Integer;
+var
+  UpperValue: string;
+begin
+  UpperValue := UpperCase(inherited Value);
+
+  if (not WarningUpperCaseDone) and (UpperValue <> (inherited Value)) then
+  begin
+    OnWarning(wtMajor, 'VRML/X3D', Format('Field "%s" should be uppercase, but is not: "%s"',
+      [Name, inherited Value]));
+    WarningUpperCaseDone := true;
+  end;
+
+  Result := FEnumNames.IndexOf(UpperValue);
+
+  if Result = -1 then
+  begin
+    Result := DefaultEnumValue;
+    if not WarningInvalidValueDone then
+    begin
+      OnWarning(wtMajor, 'VRML/X3D', Format('Unknown "%s" field value: "%s"',
+        [Name, inherited Value]));
+      WarningInvalidValueDone := true;
+    end;
+  end;
+end;
+
+procedure TSFStringEnum.SetEnumValue(const NewValue: Integer);
+begin
+  inherited Value := FEnumNames[NewValue];
+end;
+
+procedure TSFStringEnum.SendEnumValue(const NewValue: Integer);
+begin
+  inherited Send(FEnumNames[NewValue]);
+end;
+
+function TSFStringEnum.GetDefaultEnumValue: Integer;
+var
+  UpperDefaultValue: string;
+begin
+  UpperDefaultValue := UpperCase(inherited DefaultValue);
+
+  if (not WarningDefaultUpperCaseDone) and (UpperDefaultValue <> (inherited DefaultValue)) then
+  begin
+    OnWarning(wtMajor, 'VRML/X3D', Format('Field default value "%s" should be uppercase, but is not: "%s"',
+      [Name, inherited DefaultValue]));
+    WarningDefaultUpperCaseDone := true;
+  end;
+
+  Result := FEnumNames.IndexOf(UpperDefaultValue);
+
+  if Result = -1 then
+  begin
+    Result := 0;
+    if not WarningInvalidDefaultValueDone then
+    begin
+      OnWarning(wtMajor, 'VRML/X3D', Format('Unknown "%s" field default value: "%s"',
+        [Name, inherited DefaultValue]));
+      WarningInvalidDefaultValueDone := true;
+    end;
+  end;
+end;
+
+procedure TSFStringEnum.SetDefaultEnumValue(const NewDefaultValue: Integer);
+begin
+  inherited DefaultValue := FEnumNames[NewDefaultValue];
+end;
+
 { ----------------------------------------------------------------------------
   Common SF fields based on vectors implementation }
 
@@ -5374,26 +5498,26 @@ constructor TSFEnum.Create(AParentNode: TX3DFileItem;
 begin
   inherited Create(AParentNode, AName);
 
-  fEnumNames := TStringListCaseSens.Create;
-  AddStrArrayToStrings(AEnumNames, fEnumNames);
+  FEnumNames := TStringListCaseSens.Create;
+  AddStrArrayToStrings(AEnumNames, FEnumNames);
   Value := AValue;
   AssignDefaultValueFromValue;
 end;
 
 destructor TSFEnum.Destroy;
 begin
-  fEnumNames.Free;
+  FreeAndNil(FEnumNames);
   inherited;
 end;
 
 function TSFEnum.GetEnumNames(i: integer): string;
 begin
-  result := fEnumNames[i]
+  result := FEnumNames[i]
 end;
 
 function TSFEnum.EnumNamesCount: integer;
 begin
-  result := fEnumNames.Count
+  result := FEnumNames.Count
 end;
 
 procedure TSFEnum.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
@@ -5401,7 +5525,7 @@ var
   val: integer;
 begin
   Lexer.CheckTokenIs(vtName, 'enumerated type constant');
-  val := fEnumNames.IndexOf(Lexer.TokenName);
+  val := FEnumNames.IndexOf(Lexer.TokenName);
   if val = -1 then
    raise EX3DParserError.Create(Lexer,
      'Expected enumerated type constant, got '+Lexer.DescribeToken);

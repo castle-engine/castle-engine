@@ -10,6 +10,9 @@ const
   ShaderTypeName: array [TShaderType] of string =
   ( 'Vertex', 'Geometry', 'Fragment' );
 
+  ShaderTypeNameX3D: array [TShaderType] of string =
+  ( 'VERTEX', 'GEOMETRY', 'FRAGMENT' );
+
 implementation
 
 end.

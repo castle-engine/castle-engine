@@ -363,13 +363,18 @@
     ContentsCache: string;
     procedure EventUrlReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+    function GetShaderType: TShaderType;
+    procedure SetShaderType(const Value: TShaderType);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdType: TSFStringShaderType;
-    public property FdType: TSFStringShaderType read FFdType;
+    private FFdType: TSFStringEnum;
+    public property FdType: TSFStringEnum read FFdType;
+
+    { Shader type. }
+    property ShaderType: TShaderType read GetShaderType write SetShaderType;
 
     private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
@@ -981,7 +986,7 @@ procedure TEffectPartNode.CreateNode;
 begin
   inherited;
 
-  FFdType := TSFStringShaderType.Create(Self, 'type', 'VERTEX');
+  FFdType := TSFStringEnum.Create(Self, 'type', ShaderTypeNameX3D, Ord(stVertex));
    FdType.Exposed := false;
    FdType.ChangesAlways := [chEverything];
   Fields.Add(FFdType);
@@ -1019,6 +1024,16 @@ procedure TEffectPartNode.EventUrlReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   ContentsCached := false;
+end;
+
+function TEffectPartNode.GetShaderType: TShaderType;
+begin
+  Result := TShaderType(FdType.EnumValue);
+end;
+
+procedure TEffectPartNode.SetShaderType(const Value: TShaderType);
+begin
+  FdType.SendEnumValue(Ord(Value));
 end;
 
 procedure TShaderTextureNode.CreateNode;

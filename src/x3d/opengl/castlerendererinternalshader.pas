@@ -1795,12 +1795,11 @@ procedure TShader.EnableEffects(Effects: TX3DNodeList;
     procedure EnableEffectPart(Part: TEffectPartNode);
     var
       Contents: string;
-      PartType: TShaderType;
     begin
       Contents := Part.Contents;
-      if (Contents <> '') and Part.FdType.GetValue(PartType) then
+      if Contents <> '' then
       begin
-        Plug(PartType, Contents, Code, ForwardDeclareInFinalShader);
+        Plug(Part.ShaderType, Contents, Code, ForwardDeclareInFinalShader);
         { Right now, for speed, we do not call EnableEffects, or even Plug,
           before LinkProgram. At which point ShapeRequiresShaders
           is already known true. }
@@ -2836,8 +2835,9 @@ begin
         begin
           Part := TShaderPartNode(Node.FdParts[J]);
           PartSource := Part.Contents;
-          if (PartSource <> '') and Part.FdType.GetValue(PartType) then
+          if PartSource <> '' then
           begin
+            PartType := Part.ShaderType;
             Source[PartType].Add(PartSource);
             if PartType = stGeometry then
               HasGeometryMain := true;
