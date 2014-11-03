@@ -69,22 +69,23 @@ procedure TDrawOrderTimeline.BuildNodes(const BaseUrl: string;
   const Time: TSingleList; const MaxAnimationTime: Single;
   const Container: TX3DRootNode; const SlotsToReset: TSlotsAnimated);
 var
-  I, PreviousOffset: Integer;
+  I: Integer;
   Route: TX3DRoute;
 begin
   Node := TPositionInterpolatorNode.Create('DrawOrderTimeline_' + ToX3DName(Slot.Name));
 
-  PreviousOffset := 0;
   for I := 0 to Time.Count - 1 do
   begin
+    { Write the previous value at the same time. This forces "stepped"
+      interpolation instead of linear for draw order. }
+    if Time[I] <> 0 then
+    begin
+      Node.FdKey.Items.Add(Time[I] / MaxAnimationTime);
+      Node.FdKeyValue.Items.Add(Node.FdKeyValue.Items.Last);
+    end;
+
     Node.FdKey.Items.Add(Time[I] / MaxAnimationTime);
-    Node.FdKey.Items.Add(Time[I] / MaxAnimationTime);
-    { TODO: this -0,5 seems like just a hack?
-      We should recalculate the order of all slots and then shift them,
-      but it means that offsets must be applied in order? }
-    Node.FdKeyValue.Items.Add(Vector3Single(0, 0, (Slot.DrawOrder + PreviousOffset - 0.5) * TSlot.DrawOrderZ));
     Node.FdKeyValue.Items.Add(Vector3Single(0, 0, (Slot.DrawOrder + Offset[I] - 0.5) * TSlot.DrawOrderZ));
-    PreviousOffset := Offset[I];
   end;
 
   NodeUsedAsChild := true;
