@@ -166,6 +166,9 @@ type
     { Retrieves from Element given attribute as a string, or a default value. }
     function AttributeStringDef(const AttrName: string; const DefaultValue: string): string;
 
+    { Retrieves from Element given attribute as a Cardinal, or a default value. }
+    function AttributeCardinalDef(const AttrName: string; const DefaultValue: Cardinal): Cardinal;
+
     { Retrieves from Element given attribute as an Integer, or a default value. }
     function AttributeIntegerDef(const AttrName: string; const DefaultValue: Integer): Integer;
 
@@ -499,6 +502,12 @@ end;
 function TDOMElementHelper.AttributeIntegerDef(const AttrName: string; const DefaultValue: Integer): Integer;
 begin
   if not AttributeInteger(AttrName, Result) then
+    Result := DefaultValue;
+end;
+
+function TDOMElementHelper.AttributeCardinalDef(const AttrName: string; const DefaultValue: Cardinal): Cardinal;
+begin
+  if not AttributeCardinal(AttrName, Result) then
     Result := DefaultValue;
 end;
 
