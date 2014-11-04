@@ -443,7 +443,7 @@ begin
   Result := Parent.MousePressed;
 end;
 
-function TCastleWindowCustom.TContainer.Focused: boolean;
+function TCastleControlCustom.TContainer.Focused: boolean;
 begin
   Result := true; // TODO: for now, TCastleControl always pretends to be focused
 end;
