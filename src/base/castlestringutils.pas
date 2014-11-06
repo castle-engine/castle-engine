@@ -329,7 +329,7 @@ function CreateTokens(const s: string;
     )
   ) }
 function FindPos(const SubText, Text: string; StartPosition, Count: integer;
-  Options: TSearchOptions;
+  const Options: TSearchOptions;
   const WordBorders: TSetOfChars = DefaultWordBorders): integer; overload;
 
 { Return rightmost RPart characters from S.
@@ -508,7 +508,8 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
   That's why you should instead use this function for such situations.
 
   Options cannot contain soBackwards flag. }
-function SReplacePatterns(const s: string; const patterns, values: array of string; Options: TSearchOptions): string;
+function SReplacePatterns(const s: string; const patterns, values: array of string; const Options: TSearchOptions): string;
+function SReplacePatterns(const s: string; const patterns, values: TStrings; const Options: TSearchOptions): string;
 
 function SCharsCount(const s: string; c: char): Cardinal; overload;
 function SCharsCount(const s: string; const Chars: TSetOfChars): Cardinal; overload;
@@ -1233,7 +1234,7 @@ begin
  except Result.Free; raise end;
 end;
 
-function FindPos(const SubText, Text: string; StartPosition, Count: integer; Options: TSearchOptions; const WordBorders: TSetOfChars): integer;
+function FindPos(const SubText, Text: string; StartPosition, Count: integer; const Options: TSearchOptions; const WordBorders: TSetOfChars): integer;
 var S, SubS: string;
 
   function MatchingPos(i: integer): boolean;
@@ -1608,41 +1609,59 @@ begin
   result := '';
 end;
 
-function SReplacePatterns(const s: string;
-  const patterns, values: array of string; Options: TSearchOptions): string;
-var i, poz, minpoz, minind, sinresult: integer;
+function SReplacePatterns(const S: string;
+  const Patterns, Values: array of string; const Options: TSearchOptions): string;
+var
+  PatternsList, ValuesList: TStringList;
 begin
- Result := '';
-
- Assert(High(patterns) = High(values));
- Assert(not (soBackwards in Options));
- sinresult := 0; { ile znakow z s zostalo juz przekopiowanych do result ? (lub, w przypadku
-   wystapien pattern, ominietych) }
-
- repeat
-  {licz najwczesniejsza pozycje patterns w pozostalej czesci s}
-  minind := -1;
-  minpoz := 0;
-  for i := 0 to High(patterns) do
-  begin
-   poz := FindPos(patterns[i], s, sinresult+1, Length(s), Options);
-   if (poz > 0) and ((minind = -1) or (poz < minpoz)) then
-   begin
-    minind := i;
-    minpoz := poz;
-   end;
+  PatternsList := nil;
+  ValuesList := nil;
+  try
+    PatternsList := TStringList.Create;
+    ValuesList := TStringList.Create;
+    Result := SReplacePatterns(S, PatternsList, ValuesList, Options);
+  finally
+    FreeAndNil(PatternsList);
+    FreeAndNil(ValuesList);
   end;
-  if minind = -1 then break; { wszystkie poz sa rowne 0, a wiec wszystko zamienione }
+end;
 
-  {skopiuj do result wszystko z s przed wystapieniem pattern}
-  result := result + CopyPos(s, sinresult+1, minpoz-1);
-  sinresult := minpoz-1;
-  {omin pattern[] w s, dolacz value[] do result}
-  sinresult := sinresult + Length(patterns[minind]);
-  result := result + values[minind];
- until false;
+function SReplacePatterns(const S: string;
+  const Patterns, Values: TStrings; const Options: TSearchOptions): string;
+var
+  i, poz, minpoz, minind, Processed: integer;
+begin
+  Result := '';
 
- result := result + SEnding(s, sinresult+1);
+  Assert(Patterns.Count = Values.Count);
+  Assert(not (soBackwards in Options));
+  Processed := 0; { how many characters from S was already processed, and are in
+    Result? }
+
+  repeat
+    { calculate earliest occurence of some pattern within the remaining of S }
+    minind := -1;
+    minpoz := 0;
+    for i := 0 to Patterns.Count - 1 do
+    begin
+      poz := FindPos(patterns[i], s, Processed+1, Length(s), Options);
+      if (poz > 0) and ((minind = -1) or (poz < minpoz)) then
+      begin
+        minind := i;
+        minpoz := poz;
+      end;
+    end;
+    if minind = -1 then break; { all poz = 0, so everything is already done }
+
+    { copy to Result everything from S before a pattern occurence }
+    result := result + CopyPos(s, Processed+1, minpoz-1);
+    Processed := minpoz-1;
+    { omit pattern[] in S, append corresponding value[] to Result }
+    Processed := Processed + Length(patterns[minind]);
+    result := result + values[minind];
+  until false;
+
+  result := result + SEnding(s, Processed+1);
 end;
 
 function SCharsCount(const S: string; C: char): Cardinal;

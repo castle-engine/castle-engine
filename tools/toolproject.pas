@@ -18,20 +18,23 @@ unit ToolProject;
 
 interface
 
-uses CastleFindFiles, CastleStringUtils, CastleUtils,
+uses SysUtils,
+  CastleFindFiles, CastleStringUtils, CastleUtils,
   ToolArchitectures, ToolCompile;
 
 type
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis);
   TDependencies = set of TDependency;
 
+  EExecutableNotPresentToGetVersion = class(Exception);
+
   TCastleProject = class
   private
     FDependencies: TDependencies;
-    FName, FExecutableName: string;
+    FName, FExecutableName, FAuthor: string;
     GatheringFiles: TCastleStringList; //< only for GatherFile
     ManifestFile, ProjectPath, DataPath: string;
-    IncludePaths, ExcludePaths: TCastleStringList;
+    IncludePaths, ExcludePaths, Icons: TCastleStringList;
     IncludePathsRecursive: TBooleanList;
     FStandaloneSource, FAndroidSource: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
@@ -58,6 +61,7 @@ type
 
     property Dependencies: TDependencies read FDependencies;
     property Name: string read FName;
+    property Author: string read FAuthor;
     property ExecutableName: string read FExecutableName;
     property StandaloneSource: string read FStandaloneSource;
     property AndroidSource: string read FAndroidSource;
@@ -78,9 +82,9 @@ function StringToDependency(const S: string): TDependency;
 
 implementation
 
-uses SysUtils, StrUtils, DOM, Process, Classes,
+uses StrUtils, DOM, Process, Classes,
   CastleURIUtils, CastleXMLUtils, CastleWarnings, CastleFilesUtils,
-  ToolUtils, ToolPackage;
+  ToolUtils, ToolPackage, ToolWindowsResources;
 
 { TCastleProject ------------------------------------------------------------- }
 
@@ -145,6 +149,7 @@ constructor TCastleProject.Create(const Path: string);
         FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
         FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
         FAndroidSource := Doc.DocumentElement.AttributeStringDef('android_source', '');
+        FAuthor := Doc.DocumentElement.AttributeStringDef('author', '');
 
         Element := DOMGetChildElement(Doc.DocumentElement, 'version', false);
         if Element <> nil then
@@ -180,6 +185,17 @@ constructor TCastleProject.Create(const Path: string);
           begin
             ChildElement := ChildElements[I] as TDOMElement;
             ExcludePaths.Add(ChildElement.AttributeString('path'));
+          end;
+        end;
+
+        Element := DOMGetChildElement(Doc.DocumentElement, 'icons', false);
+        if Element <> nil then
+        begin
+          ChildElements := Element.GetElementsByTagName('icon');
+          for I := 0 to ChildElements.Count - 1 do
+          begin
+            ChildElement := ChildElements[I] as TDOMElement;
+            Icons.Add(ChildElement.AttributeString('path'));
           end;
         end;
       finally FreeAndNil(Doc) end;
@@ -231,6 +247,7 @@ begin
   IncludePathsRecursive := TBooleanList.Create;
   ExcludePaths := TCastleStringList.Create;
   FDependencies := [];
+  Icons := TCastleStringList.Create;
 
   ProjectPath := InclPathDelim(Path);
   DataPath := InclPathDelim(ProjectPath + DataName);
@@ -245,6 +262,7 @@ begin
   FreeAndNil(IncludePaths);
   FreeAndNil(IncludePathsRecursive);
   FreeAndNil(ExcludePaths);
+  FreeAndNil(Icons);
   inherited;
 end;
 
@@ -304,7 +322,7 @@ end;
 
 procedure TCastleProject.DoCompile(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
 var
-  SourceExe, DestExe: string;
+  SourceExe, DestExe, NewVersion, OldVersion: string;
 begin
   Writeln(Format('Compiling project "%s" for OS "%s" and CPU "%s" in mode "%s".',
     [Name, OSToString(OS), CPUToString(CPU), ModeToString(Mode)]));
@@ -321,7 +339,36 @@ begin
       begin
         if StandaloneSource = '' then
           raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
+
+        if OS in AllWindowsOSes then
+        begin
+          { need to get version and call GenerateWindowsResources }
+          try
+            OldVersion := GetVersion;
+          except
+            on E: EExecutableNotPresentToGetVersion do
+            begin
+              OldVersion := '0.0.0';
+              OnWarning(wtMinor, 'Windows Resources', E.Message + '. The version information stored in exe file will be incorrect. Simply recompile to fix it.');
+            end;
+          end;
+          GenerateWindowsResources(ProjectPath, Name,
+            ExecutableName, Author, OldVersion, Icons);
+        end;
+
         Compile(OS, CPU, Mode, ProjectPath, StandaloneSource);
+
+        if OS in AllWindowsOSes then
+        begin
+          try
+            NewVersion := GetVersion;
+            if OldVersion <> NewVersion then
+              OnWarning(wtMinor, 'Windows Resources', 'Version changed from "' + OldVersion + '" (before compilation) to "' + NewVersion + '" (after compilation). The version information in exe file is outdated. Simply recompile to fix it.');
+          except
+            on E: EExecutableNotPresentToGetVersion do
+              OnWarning(wtMinor, 'Windows Resources', 'Exe file disappeared after compilation, weird: ' + E.Message);
+          end;
+        end;
 
         SourceExe := ChangeFileExt(StandaloneSource, ExeExtensionOS(OS));
         DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
@@ -534,9 +581,14 @@ function TCastleProject.GetVersion: string;
   function GetVersionByRunning(const ExecutableNameExt: string;
     const VersionOption: string): string;
   var
-    ProcessOutput: string;
+    ProcessOutput, ExcutablePathNameExt: string;
     ProcessExitStatus: Integer;
   begin
+    ExcutablePathNameExt := InclPathDelim(ProjectPath) + ExecutableNameExt;
+    if not FileExists(ExcutablePathNameExt) then
+      raise EExecutableNotPresentToGetVersion.CreateFmt('Executable "%s" not present to get version (by running it with --version command-line paramater)',
+        [ExcutablePathNameExt]);
+
     { get version by running ExecutableNameExt in main ProjectPath,
       not in temporary path (to avoid polluting temporary path for packaging
       with anything) }
@@ -647,6 +699,11 @@ begin
   DeleteFilesRecursive('*.compiled'); // Lazarus compilation
   DeleteFilesRecursive('*.rst'); // resource strings
   DeleteFilesRecursive('*.rsj'); // resource strings
+
+  { our own trash. Note that we do not remove .res file, it can be committed,
+    otherwise compilation without using castle-engine tool will not be easily possible. }
+  TryDeleteFile('automatic-windows-resources.rc');
+  TryDeleteFile('automatic-windows.manifest');
 
   Writeln('Deleted ', DeletedFiles, ' files');
 end;

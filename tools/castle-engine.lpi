@@ -23,6 +23,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
+        <CommandLineParams Value="compile"/>
       </local>
     </RunParams>
     <RequiredPackages Count="1">
@@ -30,11 +31,39 @@
         <PackageName Value="castle_base"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="1">
+    <Units Count="7">
       <Unit0>
         <Filename Value="castle-engine.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
+      <Unit1>
+        <Filename Value="toolwindowsresources.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolWindowsResources"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="toolarchitectures.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="toolcompile.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolCompile"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="toolpackage.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="toolproject.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolProject"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="toolutils.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ToolUtils"/>
+      </Unit6>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

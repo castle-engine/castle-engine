@@ -17,6 +17,10 @@
   Call with --help for detailed usage instructions.
 }
 
+{$ifdef MSWINDOWS}
+  {$R automatic-windows-resources.res}
+{$endif MSWINDOWS}
+
 uses SysUtils,
   CastleUtils, CastleParameters, CastleFindFiles, CastleWarnings,
   ToolArchitectures, ToolProject, ToolCompile, ToolUtils;
@@ -98,10 +102,6 @@ begin
     6:AssumeCompiled := true;
     else raise EInternalError.Create('OptionProc');
   end;
-end;
-
-procedure DoPackage;
-begin
 end;
 
 var

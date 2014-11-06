@@ -164,6 +164,10 @@ begin
   DefaultFilesToClean.Add('*.cmo');  { -'- }
   DefaultFilesToClean.Add('*.cmx');  { -'- }
   DefaultFilesToClean.Add('.DS_Store'); { Mac OS X (Finder?) }
+  DefaultFilesToClean.Add('automatic-windows-resources.rc');  { castle-engine tool }
+  DefaultFilesToClean.Add('automatic-windows.manifest'); { -'- }
+  // Note: do not remove automatic-windows-resources.res, 
+  // it would prevent compiling without castle-engine tool
 end;
 
 procedure DefaultDirsToCleanInit;
