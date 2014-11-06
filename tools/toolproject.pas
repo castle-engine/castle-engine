@@ -358,6 +358,16 @@ begin
 
         Compile(OS, CPU, Mode, ProjectPath, StandaloneSource);
 
+        SourceExe := ChangeFileExt(StandaloneSource, ExeExtensionOS(OS));
+        DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+        if not AnsiSameText(SourceExe, DestExe) then
+        begin
+          { move exe to top-level (in case StandaloneSource is in subdirectory
+            like code/) and eventually rename to follow ExecutableName }
+          Writeln('Moving ', SourceExe, ' to ', DestExe);
+          CheckRenameFile(ProjectPath + SourceExe, ProjectPath + DestExe);
+        end;
+
         if OS in AllWindowsOSes then
         begin
           try
@@ -368,16 +378,6 @@ begin
             on E: EExecutableNotPresentToGetVersion do
               OnWarning(wtMinor, 'Windows Resources', 'Exe file disappeared after compilation, weird: ' + E.Message);
           end;
-        end;
-
-        SourceExe := ChangeFileExt(StandaloneSource, ExeExtensionOS(OS));
-        DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
-        if not AnsiSameText(SourceExe, DestExe) then
-        begin
-          { move exe to top-level (in case StandaloneSource is in subdirectory
-            like code/) and eventually rename to follow ExecutableName }
-          Writeln('Moving ', SourceExe, ' to ', DestExe);
-          CheckRenameFile(ProjectPath + SourceExe, ProjectPath + DestExe);
         end;
       end;
   end;
@@ -696,6 +696,7 @@ begin
   DeleteFilesRecursive('*~'); // editor backup, e.g. Emacs
   DeleteFilesRecursive('*.ppu'); // compilation
   DeleteFilesRecursive('*.o'); // compilation
+  DeleteFilesRecursive('*.or'); // compilation
   DeleteFilesRecursive('*.compiled'); // Lazarus compilation
   DeleteFilesRecursive('*.rst'); // resource strings
   DeleteFilesRecursive('*.rsj'); // resource strings
