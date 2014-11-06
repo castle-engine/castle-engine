@@ -4,5 +4,5 @@
   <icons>
     <icon path="icon.ico"/>
   </icons>
-  <version executable_option="--version" />
+  <version value="5.0.0" />
 </project>

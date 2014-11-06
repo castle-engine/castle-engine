@@ -38,6 +38,7 @@ type
     IncludePathsRecursive: TBooleanList;
     FStandaloneSource, FAndroidSource: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
+    FVersionExplicit: string;
     FVersionExecutableOption: string;
     procedure GatherFile(const FileInfo: TFileInfo);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
@@ -54,6 +55,8 @@ type
       Use only if AndroidSource <> ''.
       Relative to ProjectPath. }
     function AndroidLibraryFile: string;
+    property VersionExecutableOption: string read FVersionExecutableOption;
+    property VersionExplicit: string read FVersionExplicit;
   public
     constructor Create;
     constructor Create(const Path: string);
@@ -65,7 +68,6 @@ type
     property ExecutableName: string read FExecutableName;
     property StandaloneSource: string read FStandaloneSource;
     property AndroidSource: string read FAndroidSource;
-    property VersionExecutableOption: string read FVersionExecutableOption;
 
     procedure DoCreateManifest;
     procedure DoCompile(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
@@ -154,7 +156,8 @@ constructor TCastleProject.Create(const Path: string);
         Element := DOMGetChildElement(Doc.DocumentElement, 'version', false);
         if Element <> nil then
         begin
-          FVersionExecutableOption := Element.AttributeString('executable_option');
+          FVersionExplicit := Element.AttributeStringDef('value', '');
+          FVersionExecutableOption := Element.AttributeStringDef('executable_option', '');
         end;
 
         Element := DOMGetChildElement(Doc.DocumentElement, 'dependencies', false);
@@ -604,6 +607,8 @@ function TCastleProject.GetVersion: string;
 
 begin
   Result := '';
+  if VersionExplicit <> '' then
+    Exit(VersionExplicit);
   if VersionExecutableOption <> '' then
   begin
     if ExecutableName <> '' then
