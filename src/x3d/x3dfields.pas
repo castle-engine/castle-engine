@@ -1688,12 +1688,14 @@ type
     FDefaultValue: string;
     FDefaultValueExists: boolean;
   protected
+    procedure SetValue(const NewValue: string); virtual;
+    procedure SetDefaultValue(const NewDefaultValue: string); virtual;
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    property DefaultValue: string read FDefaultValue write FDefaultValue;
+    property DefaultValue: string read FDefaultValue write SetDefaultValue;
     property DefaultValueExists: boolean
       read FDefaultValueExists write FDefaultValueExists;
-    property Value: string read FValue write FValue;
+    property Value: string read FValue write SetValue;
 
     constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: string);
@@ -1728,13 +1730,13 @@ type
   TSFStringEnum = class(TSFString)
   private
     FEnumNames: TStringList;
-    WarningUpperCaseDone, WarningInvalidValueDone: boolean;
-    WarningDefaultUpperCaseDone, WarningInvalidDefaultValueDone: boolean;
-    function GetEnumValue: Integer;
-    procedure SetEnumValue(const NewValue: Integer);
-    function GetDefaultEnumValue: Integer;
-    procedure SetDefaultEnumValue(const NewDefaultValue: Integer);
+    FEnumValue: Integer;
+    FDefaultEnumValue: Integer;
+    procedure SetEnumValue(const NewEnumValue: Integer);
+    procedure SetDefaultEnumValue(const NewDefaultEnumValue: Integer);
   protected
+    procedure SetValue(const NewValue: string); override;
+    procedure SetDefaultValue(const NewDefaultValue: string); override;
     class function ExposedEventsFieldClass: TX3DFieldClass; override;
   public
     constructor Create(AParentNode: TX3DFileItem;
@@ -1742,9 +1744,9 @@ type
       const AEnumNames: array of string; const AValue: Integer);
     destructor Destroy; override;
     property EnumValue: Integer
-      read GetEnumValue write SetEnumValue;
+      read FEnumValue write SetEnumValue;
     property DefaultEnumValue: Integer
-      read GetDefaultEnumValue write SetDefaultEnumValue;
+      read FDefaultEnumValue write SetDefaultEnumValue;
     procedure SendEnumValue(const NewValue: Integer);
   end;
 
@@ -5013,6 +5015,16 @@ begin
   Result := TSFStringEvent.Create(AParentNode, AName, AInEvent);
 end;
 
+procedure TSFString.SetValue(const NewValue: string);
+begin
+  FValue := NewValue;
+end;
+
+procedure TSFString.SetDefaultValue(const NewDefaultValue: string);
+begin
+  FDefaultValue := NewDefaultValue;
+end;
+
 { TSFStringEnum -------------------------------------------------------------- }
 
 constructor TSFStringEnum.Create(AParentNode: TX3DFileItem;
@@ -5022,6 +5034,9 @@ begin
   AddStrArrayToStrings(AEnumNames, FEnumNames);
 
   inherited Create(AParentNode, AName, FEnumNames[AValue]);
+  { inherited Create will assign Value, and in SetValue should cause setting
+    our FEnumValue }
+  Assert(AValue = FEnumValue);
 end;
 
 destructor TSFStringEnum.Destroy;
@@ -5035,36 +5050,33 @@ begin
   Result := TSFString;
 end;
 
-function TSFStringEnum.GetEnumValue: Integer;
+procedure TSFStringEnum.SetValue(const NewValue: string);
 var
   UpperValue: string;
 begin
-  UpperValue := UpperCase(inherited Value);
+  inherited SetValue(NewValue);
 
-  if (not WarningUpperCaseDone) and (UpperValue <> (inherited Value)) then
-  begin
+  { calculate new FEnumValue, IOW convert string NewValue to integer }
+
+  UpperValue := UpperCase(NewValue);
+  if UpperValue <> NewValue then
     OnWarning(wtMajor, 'VRML/X3D', Format('Field "%s" should be uppercase, but is not: "%s"',
-      [Name, inherited Value]));
-    WarningUpperCaseDone := true;
-  end;
+      [Name, NewValue]));
 
-  Result := FEnumNames.IndexOf(UpperValue);
-
-  if Result = -1 then
+  FEnumValue := FEnumNames.IndexOf(UpperValue);
+  if FEnumValue = -1 then
   begin
-    Result := DefaultEnumValue;
-    if not WarningInvalidValueDone then
-    begin
-      OnWarning(wtMajor, 'VRML/X3D', Format('Unknown "%s" field value: "%s"',
-        [Name, inherited Value]));
-      WarningInvalidValueDone := true;
-    end;
+    FEnumValue := DefaultEnumValue;
+    OnWarning(wtMajor, 'VRML/X3D', Format('Unknown "%s" field value: "%s"',
+      [Name, NewValue]));
   end;
 end;
 
-procedure TSFStringEnum.SetEnumValue(const NewValue: Integer);
+procedure TSFStringEnum.SetEnumValue(const NewEnumValue: Integer);
 begin
-  inherited Value := FEnumNames[NewValue];
+  inherited SetValue(FEnumNames[NewEnumValue]);
+
+  FEnumValue := NewEnumValue;
 end;
 
 procedure TSFStringEnum.SendEnumValue(const NewValue: Integer);
@@ -5072,36 +5084,31 @@ begin
   inherited Send(FEnumNames[NewValue]);
 end;
 
-function TSFStringEnum.GetDefaultEnumValue: Integer;
+procedure TSFStringEnum.SetDefaultValue(const NewDefaultValue: string);
 var
   UpperDefaultValue: string;
 begin
-  UpperDefaultValue := UpperCase(inherited DefaultValue);
+  inherited SetDefaultValue(NewDefaultValue);
 
-  if (not WarningDefaultUpperCaseDone) and (UpperDefaultValue <> (inherited DefaultValue)) then
-  begin
+  UpperDefaultValue := UpperCase(NewDefaultValue);
+  if UpperDefaultValue <> NewDefaultValue then
     OnWarning(wtMajor, 'VRML/X3D', Format('Field default value "%s" should be uppercase, but is not: "%s"',
-      [Name, inherited DefaultValue]));
-    WarningDefaultUpperCaseDone := true;
-  end;
+      [Name, NewDefaultValue]));
 
-  Result := FEnumNames.IndexOf(UpperDefaultValue);
-
-  if Result = -1 then
+  FDefaultEnumValue := FEnumNames.IndexOf(UpperDefaultValue);
+  if FDefaultEnumValue = -1 then
   begin
-    Result := 0;
-    if not WarningInvalidDefaultValueDone then
-    begin
-      OnWarning(wtMajor, 'VRML/X3D', Format('Unknown "%s" field default value: "%s"',
-        [Name, inherited DefaultValue]));
-      WarningInvalidDefaultValueDone := true;
-    end;
+    FDefaultEnumValue := 0;
+    OnWarning(wtMajor, 'VRML/X3D', Format('Unknown "%s" field default value: "%s"',
+      [Name, NewDefaultValue]));
   end;
 end;
 
-procedure TSFStringEnum.SetDefaultEnumValue(const NewDefaultValue: Integer);
+procedure TSFStringEnum.SetDefaultEnumValue(const NewDefaultEnumValue: Integer);
 begin
-  inherited DefaultValue := FEnumNames[NewDefaultValue];
+  inherited SetDefaultValue(FEnumNames[NewDefaultEnumValue]);
+
+  FDefaultEnumValue := NewDefaultEnumValue;
 end;
 
 { ----------------------------------------------------------------------------

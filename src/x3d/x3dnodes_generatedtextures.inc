@@ -21,11 +21,10 @@
   TTextureUpdate = (upNone, upNextFrameOnly, upAlways);
 
   { Update field for rendered textures (like TGeneratedCubeMapTextureNode). }
-  TSFTextureUpdate = class(TSFString)
+  TSFTextureUpdate = class(TSFStringEnum)
   private
-    WarningDone: boolean;
     function GetValue: TTextureUpdate;
-    procedure SetValue(const AValue: TTextureUpdate);
+    procedure SetValue(const AValue: TTextureUpdate); reintroduce;
   protected
     class function ExposedEventsFieldClass: TX3DFieldClass; override;
   public
@@ -37,7 +36,6 @@
       Takes care of doing warning if the underlying string value (in VRML/X3D)
       is invalid. }
     property Value: TTextureUpdate read GetValue write SetValue;
-
     procedure Send(const AValue: TTextureUpdate);
   end;
 
@@ -69,42 +67,27 @@
 {$ifdef read_implementation}
 const
   UpdateNames: array [TTextureUpdate] of string =
-  { Names below must be lowercase }
-  ('none', 'next_frame_only', 'always');
+  ('NONE', 'NEXT_FRAME_ONLY', 'ALWAYS');
 
 constructor TSFTextureUpdate.Create(AParentNode: TX3DFileItem;
   const AName: string; const AValue: TTextureUpdate);
 begin
-  inherited Create(AParentNode, AName, UpdateNames[AValue]);
+  inherited Create(AParentNode, AName, UpdateNames, Ord(AValue));
 end;
 
 function TSFTextureUpdate.GetValue: TTextureUpdate;
-var
-  S: string;
-  Index: Integer;
 begin
-  S := inherited Value;
-  Index := ArrayPosStr(LowerCase(S), UpdateNames);
-
-  if Index = -1 then
-  begin
-    if not WarningDone then
-      OnWarning(wtMajor, 'VRML/X3D', Format('update field has invalid value "%s", will be treated like "NONE"',
-        [S]));
-    WarningDone := true;
-    Result := upNone;
-  end else
-    Result := TTextureUpdate(Index);
+  Result := TTextureUpdate(EnumValue);
 end;
 
 procedure TSFTextureUpdate.SetValue(const AValue: TTextureUpdate);
 begin
-  inherited Value := UpdateNames[AValue];
+  EnumValue := Ord(AValue);
 end;
 
 procedure TSFTextureUpdate.Send(const AValue: TTextureUpdate);
 begin
-  inherited Send(UpdateNames[AValue]);
+  inherited SendEnumValue(Ord(AValue));
 end;
 
 class function TSFTextureUpdate.ExposedEventsFieldClass: TX3DFieldClass;
