@@ -584,13 +584,13 @@ function TCastleProject.GetVersion: string;
   function GetVersionByRunning(const ExecutableNameExt: string;
     const VersionOption: string): string;
   var
-    ProcessOutput, ExcutablePathNameExt: string;
+    ProcessOutput, ExecutablePathNameExt: string;
     ProcessExitStatus: Integer;
   begin
-    ExcutablePathNameExt := InclPathDelim(ProjectPath) + ExecutableNameExt;
-    if not FileExists(ExcutablePathNameExt) then
+    ExecutablePathNameExt := InclPathDelim(ProjectPath) + ExecutableNameExt;
+    if not FileExists(ExecutablePathNameExt) then
       raise EExecutableNotPresentToGetVersion.CreateFmt('Executable "%s" not present to get version (by running it with --version command-line paramater)',
-        [ExcutablePathNameExt]);
+        [ExecutablePathNameExt]);
 
     { get version by running ExecutableNameExt in main ProjectPath,
       not in temporary path (to avoid polluting temporary path for packaging
@@ -598,8 +598,8 @@ function TCastleProject.GetVersion: string;
     MyRunCommandIndir(ProjectPath, ExecutableNameExt, [VersionOption],
       ProcessOutput, ProcessExitStatus);
     if ProcessExitStatus <> 0 then
-      raise Exception.CreateFmt('Process "%s" exited with error, status %d',
-        [ExecutableNameExt, ProcessExitStatus]);
+      raise Exception.CreateFmt('Process "%s" exited with error, status %d, output:' + NL + '%s',
+        [ExecutableNameExt, ProcessExitStatus, ProcessOutput]);
     Result := Trim(ProcessOutput);
     Writeln(Format('Version detected as "%s" (by running executable with "%s")',
       [Result, VersionOption]));
