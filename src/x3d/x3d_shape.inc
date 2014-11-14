@@ -32,14 +32,7 @@
   TComposedShaderNode = class;
   TLinePropertiesNode = class;
 
-  TSFStringShading = class(TSFString)
-  private
-    WarningDone: boolean;
-  protected
-    class function ExposedEventsFieldClass: TX3DFieldClass; override;
-  public
-    function RequiresShaders: boolean;
-  end;
+  TShading = (shDefault, shPhong);
 
   TAbstractShapeNode = class(TAbstractChildNode, IAbstractBoundedObject)
   private
@@ -53,6 +46,8 @@
     procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
     function GetLineProperties: TLinePropertiesNode;
     procedure SetLineProperties(const Value: TLinePropertiesNode);
+    function GetShading: TShading;
+    procedure SetShading(const Value: TShading);
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -71,8 +66,9 @@
     private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
-    private FFdShading: TSFStringShading;
-    public property FdShading: TSFStringShading read FFdShading;
+    private FFdShading: TSFStringEnum;
+    public property FdShading: TSFStringEnum read FFdShading;
+    property Shading: TShading read GetShading write SetShading;
 
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -439,28 +435,9 @@ begin
   DefaultContainerField := 'material';
 end;
 
-class function TSFStringShading.ExposedEventsFieldClass: TX3DFieldClass;
-begin
-  Result := TSFString;
-end;
-
-function TSFStringShading.RequiresShaders: boolean;
-begin
-  if Value = 'DEFAULT' then
-    Result := false else
-  if Value = 'PHONG' then
-    Result := true else
-  begin
-    Result := false;
-    if not WarningDone then
-    begin
-      OnWarning(wtMajor, 'VRML/X3D', Format('Unknown "shading" value: "%s"', [Value]));
-      WarningDone := true;
-    end;
-  end;
-end;
-
 procedure TAbstractShapeNode.CreateNode;
+const
+  ShadingNames: array [TShading] of string = ('DEFAULT', 'PHONG');
 begin
   inherited;
 
@@ -482,7 +459,7 @@ begin
   Fields.Add(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
-  FFdShading := TSFStringShading.Create(Self, 'shading', 'DEFAULT');
+  FFdShading := TSFStringEnum.Create(Self, 'shading', ShadingNames, Ord(shDefault));
    FdShading.ChangesAlways := [chVisibleNonGeometry];
   Fields.Add(FFdShading);
 
@@ -646,6 +623,16 @@ begin
     Appearance := App;
     App.FdLineProperties.Value := Value;
   end;
+end;
+
+function TAbstractShapeNode.GetShading: TShading;
+begin
+  Result := TShading(FdShading.EnumValue);
+end;
+
+procedure TAbstractShapeNode.SetShading(const Value: TShading);
+begin
+  FdShading.SendEnumValue(Ord(Value));
 end;
 
 procedure TAppearanceNode.CreateNode;

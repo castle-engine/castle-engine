@@ -2813,7 +2813,7 @@ begin
   Shader.ShapeBoundingBox := Shape.BoundingBox;
   Shader.ShadowSampling := Attributes.ShadowSampling;
   if (Shape.Node <> nil) and
-      Shape.Node.FdShading.RequiresShaders then
+     (Shape.Node.Shading = shPhong) then
     Shader.ShapeRequiresShaders := true;
   RenderShapeLineProperties(Shape, Fog, Shader);
 end;

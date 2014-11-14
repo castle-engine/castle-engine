@@ -65,12 +65,11 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+constructor TSFTextureUpdate.Create(AParentNode: TX3DFileItem;
+  const AName: string; const AValue: TTextureUpdate);
 const
   UpdateNames: array [TTextureUpdate] of string =
   ('NONE', 'NEXT_FRAME_ONLY', 'ALWAYS');
-
-constructor TSFTextureUpdate.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AValue: TTextureUpdate);
 begin
   inherited Create(AParentNode, AName, UpdateNames, Ord(AValue));
 end;
