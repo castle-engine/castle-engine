@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="rift"
   standalone_source="rift.lpr">
-  <version executable_option="--version" />
+  <version name="0.1.0" />
   <package>
     <include path="README.txt" />
     <include path="COPYING.GPL2.txt" />

@@ -105,7 +105,7 @@ begin
 end;
 
 var
-  Command, S, ProjectVersion: string;
+  Command, S: string;
   Project: TCastleProject;
 begin
   OnWarning := @OnWarningWrite;
@@ -146,13 +146,8 @@ begin
     end else
     if Command = 'package-source' then
     begin
-      { compile and run to get version }
       Project.DoClean;
-      Project.DoCompile(DefaultOS, DefaultCPU, cmRelease);
-      ProjectVersion := Project.GetVersion;
-
-      Project.DoClean;
-      Project.DoPackageSource(ProjectVersion);
+      Project.DoPackageSource;
     end else
     if Command = 'clean' then
       Project.DoClean else

@@ -26,8 +26,6 @@ type
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis);
   TDependencies = set of TDependency;
 
-  EExecutableNotPresentToGetVersion = class(Exception);
-
   TCastleProject = class
   private
     FDependencies: TDependencies;
@@ -38,8 +36,7 @@ type
     IncludePathsRecursive: TBooleanList;
     FStandaloneSource, FAndroidSource: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
-    FVersionExplicit: string;
-    FVersionExecutableOption: string;
+    FVersion: string;
     procedure GatherFile(const FileInfo: TFileInfo);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
     procedure FoundTtf(const FileInfo: TFileInfo);
@@ -48,15 +45,13 @@ type
     procedure FoundWav(const FileInfo: TFileInfo);
     procedure FoundOgg(const FileInfo: TFileInfo);
     procedure DeleteFoundFile(const FileInfo: TFileInfo);
-    function PackageName(const Version: string;
-      const OS: TOS; const CPU: TCPU): string;
-    function SourcePackageName(const Version: string): string;
+    function PackageName(const OS: TOS; const CPU: TCPU): string;
+    function SourcePackageName: string;
     { Output Android library resulting from compilation.
       Use only if AndroidSource <> ''.
       Relative to ProjectPath. }
     function AndroidLibraryFile: string;
-    property VersionExecutableOption: string read FVersionExecutableOption;
-    property VersionExplicit: string read FVersionExplicit;
+    property Version: string read FVersion;
   public
     constructor Create;
     constructor Create(const Path: string);
@@ -72,11 +67,8 @@ type
     procedure DoCreateManifest;
     procedure DoCompile(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
     procedure DoPackage(const OS: TOS; const CPU: TCPU);
-    procedure DoPackageSource(const Version: string);
+    procedure DoPackageSource;
     procedure DoClean;
-
-    { Project version, or '' if unknown. }
-    function GetVersion: string;
   end;
 
 function DependencyToString(const D: TDependency): string;
@@ -155,10 +147,7 @@ constructor TCastleProject.Create(const Path: string);
 
         Element := DOMGetChildElement(Doc.DocumentElement, 'version', false);
         if Element <> nil then
-        begin
-          FVersionExplicit := Element.AttributeStringDef('value', '');
-          FVersionExecutableOption := Element.AttributeStringDef('executable_option', '');
-        end;
+          FVersion := Element.AttributeString('name');
 
         Element := DOMGetChildElement(Doc.DocumentElement, 'dependencies', false);
         if Element <> nil then
@@ -325,7 +314,7 @@ end;
 
 procedure TCastleProject.DoCompile(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
 var
-  SourceExe, DestExe, NewVersion, OldVersion: string;
+  SourceExe, DestExe: string;
 begin
   Writeln(Format('Compiling project "%s" for OS "%s" and CPU "%s" in mode "%s".',
     [Name, OSToString(OS), CPUToString(CPU), ModeToString(Mode)]));
@@ -344,20 +333,8 @@ begin
           raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
 
         if OS in AllWindowsOSes then
-        begin
-          { need to get version and call GenerateWindowsResources }
-          try
-            OldVersion := GetVersion;
-          except
-            on E: EExecutableNotPresentToGetVersion do
-            begin
-              OldVersion := '0.0.0';
-              OnWarning(wtMinor, 'Windows Resources', E.Message + '. The version information stored in exe file will be incorrect. Simply recompile to fix it.');
-            end;
-          end;
           GenerateWindowsResources(ProjectPath, Name,
-            ExecutableName, Author, OldVersion, Icons);
-        end;
+            ExecutableName, Author, Version, Icons);
 
         Compile(OS, CPU, Mode, ProjectPath, StandaloneSource);
 
@@ -369,18 +346,6 @@ begin
             like code/) and eventually rename to follow ExecutableName }
           Writeln('Moving ', SourceExe, ' to ', DestExe);
           CheckRenameFile(ProjectPath + SourceExe, ProjectPath + DestExe);
-        end;
-
-        if OS in AllWindowsOSes then
-        begin
-          try
-            NewVersion := GetVersion;
-            if OldVersion <> NewVersion then
-              OnWarning(wtMinor, 'Windows Resources', 'Version changed from "' + OldVersion + '" (before compilation) to "' + NewVersion + '" (after compilation). The version information in exe file is outdated. Simply recompile to fix it.');
-          except
-            on E: EExecutableNotPresentToGetVersion do
-              OnWarning(wtMinor, 'Windows Resources', 'Exe file disappeared after compilation, weird: ' + E.Message);
-          end;
         end;
       end;
   end;
@@ -425,7 +390,7 @@ var
 var
   Files: TCastleStringList;
   I: Integer;
-  PackageFileName, ExecutableNameExt, Version: string;
+  PackageFileName, ExecutableNameExt: string;
   UnixPermissionsMatter: boolean;
   FindOptions: TFindFilesOptions;
 begin
@@ -527,8 +492,7 @@ begin
         end;
     end;
 
-    Version := GetVersion;
-    PackageFileName := PackageName(Version, OS, CPU);
+    PackageFileName := PackageName(OS, CPU);
 
     if OS in AllWindowsOSes then
       Pack.Make(ProjectPath, PackageFileName, ptZip) else
@@ -536,7 +500,7 @@ begin
   finally FreeAndNil(Pack) end;
 end;
 
-procedure TCastleProject.DoPackageSource(const Version: string);
+procedure TCastleProject.DoPackageSource;
 var
   Pack: TPackageDirectory;
   Files: TCastleStringList;
@@ -564,9 +528,9 @@ begin
         for OS in TOS do
           for CPU in TCPU do
             if OSCPUSupported[OS, CPU] then
-              if AnsiCompareFileName(Files[I], PackageName(Version, OS, CPU)) = 0 then
+              if AnsiCompareFileName(Files[I], PackageName(OS, CPU)) = 0 then
                 IsPackageName := true;
-        if AnsiCompareFileName(Files[I], SourcePackageName(Version)) = 0 then
+        if AnsiCompareFileName(Files[I], SourcePackageName) = 0 then
           IsPackageName := true;
 
         if not IsPackageName then
@@ -574,50 +538,12 @@ begin
       end;
     finally FreeAndNil(Files) end;
 
-    PackageFileName := SourcePackageName(Version);
+    PackageFileName := SourcePackageName;
     Pack.Make(ProjectPath, PackageFileName, ptTarGz);
   finally FreeAndNil(Pack) end;
 end;
 
-function TCastleProject.GetVersion: string;
-
-  function GetVersionByRunning(const ExecutableNameExt: string;
-    const VersionOption: string): string;
-  var
-    ProcessOutput, ExecutablePathNameExt: string;
-    ProcessExitStatus: Integer;
-  begin
-    ExecutablePathNameExt := InclPathDelim(ProjectPath) + ExecutableNameExt;
-    if not FileExists(ExecutablePathNameExt) then
-      raise EExecutableNotPresentToGetVersion.CreateFmt('Executable "%s" not present to get version (by running it with --version command-line paramater)',
-        [ExecutablePathNameExt]);
-
-    { get version by running ExecutableNameExt in main ProjectPath,
-      not in temporary path (to avoid polluting temporary path for packaging
-      with anything) }
-    MyRunCommandIndir(ProjectPath, ExecutableNameExt, [VersionOption],
-      ProcessOutput, ProcessExitStatus);
-    if ProcessExitStatus <> 0 then
-      raise Exception.CreateFmt('Process "%s" exited with error, status %d, output:' + NL + '%s',
-        [ExecutableNameExt, ProcessExitStatus, ProcessOutput]);
-    Result := Trim(ProcessOutput);
-    Writeln(Format('Version detected as "%s" (by running executable with "%s")',
-      [Result, VersionOption]));
-  end;
-
-begin
-  Result := '';
-  if VersionExplicit <> '' then
-    Exit(VersionExplicit);
-  if VersionExecutableOption <> '' then
-  begin
-    if ExecutableName <> '' then
-      Result := GetVersionByRunning(ExecutableName + ExeExtensionOS(DefaultOS), VersionExecutableOption) else
-      raise Exception.Create('Specified <version executable_option="..."/>, but the executable is not defined. Cannot detect version.');
-  end;
-end;
-
-function TCastleProject.PackageName(const Version: string;
+function TCastleProject.PackageName(
   const OS: TOS; const CPU: TCPU): string;
 begin
   Result := Name;
@@ -629,7 +555,7 @@ begin
     Result += '.tar.gz';
 end;
 
-function TCastleProject.SourcePackageName(const Version: string): string;
+function TCastleProject.SourcePackageName: string;
 begin
   Result := Name;
   if Version <> '' then
