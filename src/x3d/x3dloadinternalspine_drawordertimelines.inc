@@ -87,7 +87,7 @@ begin
     end;
 
     Node.FdKey.Items.Add(Time[I] / MaxAnimationTime);
-    Node.FdKeyValue.Items.Add(Vector3Single(0, 0, (DrawOrder[I] - 0.5) * TSlot.DrawOrderZ));
+    Node.FdKeyValue.Items.Add(Vector3Single(0, 0, DrawOrder[I] * TSlot.DrawOrderZ));
   end;
 
   NodeUsedAsChild := true;
@@ -121,7 +121,8 @@ begin
 end;
 
 type
-  TSlotToDrawOrder = specialize TGenericStructMap<TSlot, Integer>;
+  TSlotsByDrawOrder = specialize TGenericStructMap<Integer, TSlot>;
+  TSlotsToFloatDrawOrder = specialize TGenericStructMap<TSlot, Single>;
 
 procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray;
   const Slots: TSlotList; const SlotsAnimated: TSlotsAnimated);
@@ -160,19 +161,92 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray;
       end;
   end;
 
+  { For a subset of slots, we have an integer draw order where they should be.
+    Now we want to calculate for them float draw order where they should be,
+    squeezing them between ranges of unchanged slots.
+
+    This way we avoid animating draw order of unchanged slots (no need
+    to shift them, just because other slots order changed),
+    by utilizing the fact that our draw order is in fact float.
+
+    @param SlotsByDrawOrder Input to our algorithm.
+    @param SlotsToFloatDrawOrder Output of our algorithm.
+  }
+  procedure SqueezeSlotDrawOrder(
+    const SlotsByDrawOrder: TSlotsByDrawOrder;
+    const SlotsToFloatDrawOrder: TSlotsToFloatDrawOrder);
+  var
+    I, J, LastUnchangedDrawOrder, FollowingUnchangedDrawOrder,
+      FirstChanged, LastChanged, NextUnchangedSlot: Integer;
+    SlotsOrdered, SlotsUnchanged: TSlotList;
+  begin
+    SlotsOrdered := nil;
+    SlotsUnchanged := nil;
+    try
+      SlotsOrdered := TSlotList.Create(false);
+      SlotsUnchanged := TSlotList.Create(false);
+
+      { SlotsUnchanged is kept in draw order order, it contains only slots
+        where draw order remains unchanged }
+      SlotsUnchanged.Assign(Slots);
+      { SlotsOrdered contains only slots where draw order changes or nil values,
+        it is indexed by setup pose draw order. }
+      SlotsOrdered.Count := Slots.Count;
+
+      for I := 0 to SlotsByDrawOrder.Count - 1 do
+      begin
+        SlotsOrdered[SlotsByDrawOrder.Keys[I]] := SlotsByDrawOrder.Data[I];
+        SlotsUnchanged.Remove(SlotsByDrawOrder.Data[I]);
+      end;
+
+      I := 0;
+      LastUnchangedDrawOrder := -1;
+      NextUnchangedSlot := 0;
+      while I < SlotsOrdered.Count do
+      begin
+        { look for next block of changed slots }
+        while (I < SlotsOrdered.Count) and (SlotsOrdered[I] = nil) do
+        begin
+          { skip over next unchanged slot }
+          LastUnchangedDrawOrder := SlotsUnchanged[NextUnchangedSlot].DrawOrder;
+          Inc(NextUnchangedSlot);
+          Inc(I);
+        end;
+        FirstChanged := I;
+        while (I < SlotsOrdered.Count) and (SlotsOrdered[I] <> nil) do
+          Inc(I);
+        if NextUnchangedSlot >= SlotsUnchanged.Count then
+          FollowingUnchangedDrawOrder := Slots.Count else
+          FollowingUnchangedDrawOrder := SlotsUnchanged[NextUnchangedSlot].DrawOrder;
+        LastChanged := I - 1;
+        for J := FirstChanged to LastChanged do
+          SlotsToFloatDrawOrder[SlotsOrdered[J]] := MapRange(J, FirstChanged - 1, LastChanged + 1,
+            LastUnchangedDrawOrder, FollowingUnchangedDrawOrder);
+      end;
+    finally
+      FreeAndNil(SlotsOrdered);
+      FreeAndNil(SlotsUnchanged);
+    end;
+  end;
+
   procedure ReadTimelines;
   var
     NextTime: Single;
-    I, J: Integer;
+    I, J, DrawOrder: Integer;
     JsonOffsets: TJSONArray;
     JsonOffset, O: TJSONObject;
-    SlotsSet: TSlotToDrawOrder;
+    SlotsByDrawOrder: TSlotsByDrawOrder;
+    SlotsToFloatDrawOrder: TSlotsToFloatDrawOrder;
     Timeline: TDrawOrderTimeline;
     SlotName: string;
     Slot: TSlot;
   begin
-    SlotsSet := TSlotToDrawOrder.Create;
+    SlotsByDrawOrder := nil;
+    SlotsToFloatDrawOrder := nil;
     try
+      SlotsByDrawOrder := TSlotsByDrawOrder.Create;
+      SlotsToFloatDrawOrder := TSlotsToFloatDrawOrder.Create;
+
       for I := 0 to Json.Count - 1 do
         if Json[I] is TJSONObject then
         begin
@@ -184,27 +258,40 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray;
           Time.Add(NextTime);
           FMaxTime := NextTime;
 
-          SlotsSet.Clear;
+          SlotsByDrawOrder.Clear;
+          SlotsToFloatDrawOrder.Clear;
 
           JsonOffsets := O.Find('offsets', jtArray) as TJSONArray;
           if JsonOffsets <> nil then
           begin
-            SlotsSet.Count := JsonOffsets.Count;
-            for J := 0 to SlotsSet.Count - 1 do
+            for J := 0 to JsonOffsets.Count - 1 do
             begin
               { cast checking is it TJSONObject }
               JsonOffset := JsonOffsets[J] as TJSONObject;
               SlotName := JsonOffset.Get('slot', '');
               Slot := Slots.Find(SlotName);
-              SlotsSet.Keys[J] := Slot;
-              SlotsSet.Data[J] := Slot.DrawOrder + JsonOffset.Get('offset', 0);
+              DrawOrder := Slot.DrawOrder + JsonOffset.Get('offset', 0);
+              if (DrawOrder < 0) or
+                 (DrawOrder >= Slots.Count) then
+              begin
+                OnWarning(wtMajor, 'Spine', Format('Animated draworder offset incorrect, goes outside draw order range: slot "%s" with draw order %d',
+                  [Slot.Name, DrawOrder]));
+                Continue;
+              end;
+              if SlotsByDrawOrder.IndexOf(DrawOrder) <> -1 then
+                OnWarning(wtMajor, 'Spine', Format('Animated draworder offset incorrect, multiple slots try to take the same draw order: "%s" and "%s"',
+                  [SlotsByDrawOrder[DrawOrder].Name, Slot.Name]));
+
+              { in case of warning above, just overwrite previous slot
+                that landed on the same draw order }
+              SlotsByDrawOrder[DrawOrder] := Slot;
             end;
 
-            // here calculate real DrawOrder squeezed
+            SqueezeSlotDrawOrder(SlotsByDrawOrder, SlotsToFloatDrawOrder);
 
-            for J := 0 to SlotsSet.Count - 1 do
+            for J := 0 to SlotsToFloatDrawOrder.Count - 1 do
             begin
-              Slot := SlotsSet.Keys[J];
+              Slot := SlotsToFloatDrawOrder.Keys[J];
               { We do not store just offset, we store calculated DrawOrder
                 in a timeline. This way timeline can be exported without
                 the knowledge of other draw order timelines. }
@@ -213,7 +300,7 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray;
               if Timeline.DrawOrder.Count <> Time.Count - 1 then
                 OnWarning(wtMajor, 'Spine', 'draworder timeline count incorrect, it seems that the same slot name was specified multiple times for an offset during the same time for slot: ' +
                   Slot.Name);
-              Timeline.DrawOrder.Add(SlotsSet.Data[J]);
+              Timeline.DrawOrder.Add(SlotsToFloatDrawOrder.Data[J]);
             end;
           end;
 
@@ -221,11 +308,14 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray;
           for J := 0 to Count - 1 do
           begin
             Timeline := Items[J];
-            if SlotsSet.IndexOf(Timeline.Slot) = -1 then
+            if SlotsToFloatDrawOrder.IndexOf(Timeline.Slot) = -1 then
               Timeline.DrawOrder.Add(Timeline.Slot.DrawOrder);
           end;
         end;
-    finally FreeAndNil(SlotsSet) end;
+    finally
+      FreeAndNil(SlotsByDrawOrder);
+      FreeAndNil(SlotsToFloatDrawOrder);
+    end;
   end;
 
 begin
