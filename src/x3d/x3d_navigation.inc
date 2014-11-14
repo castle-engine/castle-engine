@@ -234,10 +234,14 @@
   end;
   TLODNode_3 = TLODNode;
 
+  TOptionalBlendingSort = (obsDefault, obsNone, obs2D, obs3D);
+
   TNavigationInfoNode = class(TAbstractBindableNode)
   private
     procedure EventSet_BindReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+    function GetBlendingSort: TOptionalBlendingSort;
+    procedure SetBlendingSort(const Value: TOptionalBlendingSort);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -263,6 +267,11 @@
 
     private FFdVisibilityLimit: TSFFloat;
     public property FdVisibilityLimit: TSFFloat read FFdVisibilityLimit;
+
+    private FFdBlendingSort: TSFStringEnum;
+    public property FdBlendingSort: TSFStringEnum read FFdBlendingSort;
+    property BlendingSort: TOptionalBlendingSort
+      read GetBlendingSort write SetBlendingSort;
 
     { Event out } { }
     private FEventTransitionComplete: TSFBoolEvent;
@@ -790,6 +799,9 @@ begin
 end;
 
 procedure TNavigationInfoNode.CreateNode;
+const
+  BlendingSortNames: array [TOptionalBlendingSort] of string =
+  ('DEFAULT', 'NONE', '2D', '3D');
 begin
   inherited;
 
@@ -829,6 +841,10 @@ begin
   FEventTransitionComplete := TSFBoolEvent.Create(Self, 'transitionComplete', false);
   Events.Add(FEventTransitionComplete);
 
+  FFdBlendingSort := TSFStringEnum.Create(Self, 'blendingSort', BlendingSortNames, Ord(obsDefault));
+   FdBlendingSort.ChangesAlways := [];
+  Fields.Add(FFdBlendingSort);
+
   DefaultContainerField := 'children';
 
   Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
@@ -851,6 +867,16 @@ procedure TNavigationInfoNode.EventSet_BindReceive(
 begin
   if Scene <> nil then
     Scene.GetNavigationInfoStack.Set_Bind(Self, (Value as TSFBool).Value);
+end;
+
+function TNavigationInfoNode.GetBlendingSort: TOptionalBlendingSort;
+begin
+  Result := TOptionalBlendingSort(FdBlendingSort.EnumValue);
+end;
+
+procedure TNavigationInfoNode.SetBlendingSort(const Value: TOptionalBlendingSort);
+begin
+  FdBlendingSort.SendEnumValue(Ord(Value));
 end;
 
 procedure TOrthoViewpointNode.CreateNode;

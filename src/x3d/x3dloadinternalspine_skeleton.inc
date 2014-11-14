@@ -110,7 +110,14 @@ var
     WritelnLogMultiline('Spine', S);
   end;
 
+var
+  NavigationInfo: TNavigationInfoNode;
 begin
+  { add NavigationInfo indicating blendingSort = 2D }
+  NavigationInfo := TNavigationInfoNode.Create('', BaseUrl);
+  NavigationInfo.BlendingSort := obs2D;
+  Container.FdChildren.Add(NavigationInfo);
+
   Bones.BuildNodes(BaseUrl, BonesAnimated);
   Root.NodeUsedAsChild := true;
   Container.FdChildren.Add(Root.Node);

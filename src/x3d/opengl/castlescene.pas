@@ -200,6 +200,10 @@ type
       for specific shapes by using our extension BlendMode node.
       See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_blending].
 
+      Note that BlendingSort may be overridden is a specific 3D models
+      by using NavigationInfo node with blendingSort field,
+      see TNavigationInfoNode.BlendingSort.
+
       @groupBegin }
     property BlendingSourceFactor: TGLenum
       read FBlendingSourceFactor write SetBlendingSourceFactor
@@ -455,6 +459,7 @@ type
 
     { Fog for this shape. @nil if none. }
     function ShapeFog(Shape: TShape): IAbstractFogObject;
+    function EffectiveBlendingSort: TBlendingSort;
   private
     { Used by UpdateGeneratedTextures, to prevent rendering the shape
       for which reflection texture is generated. (This wouldn't cause
@@ -1111,6 +1116,21 @@ begin
     Result := FogStack.Top;
 end;
 
+function TCastleScene.EffectiveBlendingSort: TBlendingSort;
+begin
+  if (NavigationInfoStack.Top <> nil) and
+     (NavigationInfoStack.Top.BlendingSort <> obsDefault) then
+  begin
+    case NavigationInfoStack.Top.BlendingSort of
+      obsNone: Result := bsNone;
+      obs2D  : Result := bs2D;
+      obs3D  : Result := bs3D;
+      else raise EInternalError.Create('TCastleScene.EffectiveBlendingSort:NavigationInfoStack.Top.BlendingSort?');
+    end;
+  end else
+    Result := Attributes.BlendingSort;
+end;
+
 procedure TCastleScene.RenderScene(
   TestShapeVisibility: TTestShapeVisibility;
   const Frustum: TFrustum; const Params: TRenderParams);
@@ -1327,12 +1347,12 @@ begin
           { sort for blending, if BlendingSort not bsNone.
             Note that bs2D does not require knowledge of the camera,
             CameraPosition is unused in this case by FilteredShapes.SortBackToFront }
-          if ((Attributes.BlendingSort = bs3D) and CameraViewKnown) or
-              (Attributes.BlendingSort = bs2D) then
+          if ((EffectiveBlendingSort = bs3D) and CameraViewKnown) or
+              (EffectiveBlendingSort = bs2D) then
           begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, true);
-            FilteredShapes.SortBackToFront(CameraPosition, Attributes.BlendingSort = bs3D);
+            FilteredShapes.SortBackToFront(CameraPosition, EffectiveBlendingSort = bs3D);
             for I := 0 to FilteredShapes.Count - 1 do
             begin
               BlendingRenderer.BeforeRenderShape(FilteredShapes[I]);
