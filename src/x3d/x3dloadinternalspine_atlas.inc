@@ -39,6 +39,7 @@ type
     Format: string;
     Filter: string; //< a value allowed by TextureProperties.MinificationFilter and MagnificationFilter
     IsRepeat: boolean;
+    Size: TVector2Integer; //< atlas may (but does not have to) contain this
     Regions: TAtlasRegionList;
     Node: TImageTextureNode;
     NodeUsedAsChild: boolean;
@@ -311,6 +312,7 @@ begin
         if IsNameValueString(Line, 'format', Page.Format) then else
         if IsNameValueFilter(Line, 'filter', Page.Filter) then else
         if IsNameValueRepeat(Line, 'repeat', Page.IsRepeat) then else
+        if IsNameValueVector2Integer(Line, 'size', Page.Size) then else
         if Pos(':', Line) <> 0 then
           raise ESpineReadError.CreateFmt('Unhandled name:value pair "%s"', [Line]) else
         begin
