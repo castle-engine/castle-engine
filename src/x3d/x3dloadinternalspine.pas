@@ -74,6 +74,7 @@ type
   TAttachmentList = class;
 
   {$define read_interface}
+  {$I x3dloadinternalspine_json.inc}
   {$I x3dloadinternalspine_bones.inc}
   {$I x3dloadinternalspine_slots.inc}
   {$I x3dloadinternalspine_attachments.inc}
@@ -86,6 +87,7 @@ type
   {$undef read_interface}
 
   {$define read_implementation}
+  {$I x3dloadinternalspine_json.inc}
   {$I x3dloadinternalspine_bones.inc}
   {$I x3dloadinternalspine_slots.inc}
   {$I x3dloadinternalspine_attachments.inc}

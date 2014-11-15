@@ -222,6 +222,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
         A := AttachmentsPreferred.Find(Name, AttachmentName, nil, true);
       if A <> nil then
       begin
+        A.TransformToBoneSpace(Bone); // transform skinnedmesh into local space
         A.NodeUsedAsChild := true;
         Result := A.Node;
         Materials.Add(A.Material);

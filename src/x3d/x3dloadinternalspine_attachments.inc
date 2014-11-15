@@ -26,12 +26,15 @@
     NodeUsedAsChild: boolean;
     Material: TMaterialNode; //< initialized together with Node, always inside
     destructor Destroy; override;
-    procedure Parse(const Json: TJSONObject); virtual;
+    procedure Parse(const Json: TJSONObject; const Bones: TBoneList); virtual;
     { Create and parse correct TAttachment descendant.
       May return @nil if none possible. }
     class function CreateAndParse(const Json: TJSONObject;
-      const ASlotName, AnAttachmentName: string): TAttachment;
+      const ASlotName, AnAttachmentName: string; const Bones: TBoneList): TAttachment;
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); virtual; abstract;
+    { Some attachments (skinnedmesh) can be attached only to a single bone
+      at a time, and must be transfomed from world to bone space. }
+    procedure TransformToBoneSpace(const Bone: TBone); virtual;
   end;
 
   TRegionAttachment = class(TAttachment)
@@ -39,23 +42,60 @@
     Scale: TVector2Single;
     Rotation: Single;
     Width, Height: Integer;
-    procedure Parse(const Json: TJSONObject); override;
+    procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
     function BuildGeometry(const BaseUrl: string;
       const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect): TAbstractGeometryNode; virtual;
   end;
 
-  TMeshAttachment = class(TRegionAttachment)
+  TAbstractMeshAttachment = class(TRegionAttachment)
+  strict protected
+    Coord: TCoordinateNode;
+  public
     UVs: TVector2SingleList;
     Triangles: TLongIntList;
     Vertices: TVector2SingleList;
     Edges: TLongIntList; //< unused for now
-    Hull: Integer; //< unused for now
+    { Unused for now.
+      Looking as official Spine runtime in spine-csharp and spine-unity,
+      it is also unused there. }
+    Hull: Integer;
     constructor Create;
     destructor Destroy; override;
-    procedure Parse(const Json: TJSONObject); override;
+    procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
     function BuildGeometry(const BaseUrl: string;
       const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect): TAbstractGeometryNode; override;
+  end;
+
+  TMeshAttachment = class(TAbstractMeshAttachment)
+    procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
+  end;
+
+  TSkinnedMeshVertexBone = class
+    Bone: TBone;
+    V: TVector2Single; //< vertex position in local Bone coordinate system
+    Weight: Single;
+  end;
+  TSkinnedMeshVertexBoneList = specialize TFPGObjectList<TSkinnedMeshVertexBone>;
+
+  TSkinnedMeshVertex = class
+    Bones: TSkinnedMeshVertexBoneList;
+    constructor Create;
+    destructor Destroy; override;
+    procedure Parse(const JsonArray: TJSONArray;
+      Index: Integer; const BonesCount: Cardinal; const AllBones: TBoneList);
+  end;
+
+  TSkinnedMeshVertexList = class(specialize TFPGObjectList<TSkinnedMeshVertex>)
+    procedure Parse(const JsonArray: TJSONArray; const Bones: TBoneList);
+  end;
+
+  TSkinnedMeshAttachment = class(TAbstractMeshAttachment)
+    Weights: TSkinnedMeshVertexList;
+    constructor Create;
+    destructor Destroy; override;
+    procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
+    procedure TransformToBoneSpace(const Bone: TBone); override;
   end;
 
   TAttachmentList = class(specialize TFPGObjectList<TAttachment>)
@@ -72,20 +112,25 @@
 { TAttachment ---------------------------------------------------------------- }
 
 class function TAttachment.CreateAndParse(const Json: TJSONObject;
-  const ASlotName, AnAttachmentName: string): TAttachment;
+  const ASlotName, AnAttachmentName: string; const Bones: TBoneList): TAttachment;
 var
   TypeName: string;
 begin
   TypeName := Json.Get('type', 'region');
-  if (TypeName = 'mesh') or
-     (TypeName = 'skinnedmesh') then
+  if TypeName = 'mesh' then
   begin
-    if TypeName = 'regionsequence' then
-      OnWarning(wtMinor, 'Spine', 'Spine region type "skinnedmesh" is for now rendered just like normal "mesh"');
     Result := TMeshAttachment.Create;
     Result.SlotName := ASlotName;
     Result.AttachmentName := AnAttachmentName;
-    Result.Parse(Json);
+    Result.Parse(Json, Bones);
+  end else
+  if TypeName = 'skinnedmesh' then
+  begin
+    OnWarning(wtMinor, 'Spine', 'Spine region type "skinnedmesh" is for now not animated');
+    Result := TSkinnedMeshAttachment.Create;
+    Result.SlotName := ASlotName;
+    Result.AttachmentName := AnAttachmentName;
+    Result.Parse(Json, Bones);
   end else
   if (TypeName = 'region') or
      (TypeName = 'regionsequence') then
@@ -95,7 +140,7 @@ begin
     Result := TRegionAttachment.Create;
     Result.SlotName := ASlotName;
     Result.AttachmentName := AnAttachmentName;
-    Result.Parse(Json);
+    Result.Parse(Json, Bones);
   end else
   if TypeName = 'boundingbox' then
   begin
@@ -105,7 +150,7 @@ begin
     raise ESpineReadError.CreateFmt('Attachment type "%s" not supported', [TypeName]);
 end;
 
-procedure TAttachment.Parse(const Json: TJSONObject);
+procedure TAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList);
 begin
   Name := Json.Get('name', AttachmentName);
 end;
@@ -118,9 +163,13 @@ begin
   inherited;
 end;
 
+procedure TAttachment.TransformToBoneSpace(const Bone: TBone);
+begin
+end;
+
 { TRegionAttachment ---------------------------------------------------------- }
 
-procedure TRegionAttachment.Parse(const Json: TJSONObject);
+procedure TRegionAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList);
 begin
   inherited;
   XY[0] := Json.Get('x', 0.0);
@@ -197,9 +246,9 @@ begin
   Faces.FdTexCoord.Value := TexCoordNode;
 end;
 
-{ TMeshAttachment ------------------------------------------------------------ }
+{ TAbstractMeshAttachment ---------------------------------------------------- }
 
-constructor TMeshAttachment.Create;
+constructor TAbstractMeshAttachment.Create;
 begin
   inherited;
   UVs := TVector2SingleList.Create;
@@ -208,7 +257,7 @@ begin
   Edges := TLongIntList.Create;
 end;
 
-destructor TMeshAttachment.Destroy;
+destructor TAbstractMeshAttachment.Destroy;
 begin
   FreeAndNil(UVs);
   FreeAndNil(Triangles);
@@ -217,73 +266,22 @@ begin
   inherited;
 end;
 
-procedure TMeshAttachment.Parse(const Json: TJSONObject);
-
-  procedure ReadVector2SingleList(const Name: string; const List: TVector2SingleList);
-  var
-    JsonArray: TJSONArray;
-    I: Integer;
-    Vec2: TVector2Single;
-    Vec2Index: Integer;
-  begin
-    JsonArray := Json.Find(Name, jtArray) as TJSONArray;
-    if JsonArray <> nil then
-    begin
-      Vec2Index := 0;
-      for I := 0 to JsonArray.Count - 1 do
-        if JsonArray[I] is TJSONNumber then
-        begin
-          Vec2[Vec2Index] := JsonArray[I].AsFloat;
-          Inc(Vec2Index);
-          if Vec2Index = 2 then
-          begin
-            List.Add(Vec2);
-            Vec2Index := 0;
-          end;
-        end;
-      if Vec2Index <> 0 then
-        OnWarning(wtMajor, 'Spine', 'Vector2 list (like uvs or vertices) ends in the middle of the vector');
-    end;
-  end;
-
-  procedure ReadLongIntList(const Name: string; const List: TLongIntList);
-  var
-    JsonArray: TJSONArray;
-    I: Integer;
-  begin
-    JsonArray := Json.Find(Name, jtArray) as TJSONArray;
-    if JsonArray <> nil then
-      for I := 0 to JsonArray.Count - 1 do
-        if JsonArray[I] is TJSONIntegerNumber then
-          List.Add(JsonArray[I].AsInteger);
-  end;
-
+procedure TAbstractMeshAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList);
 begin
   inherited;
+  ReadVector2SingleList(Json, 'uvs', UVs);
 
-  ReadVector2SingleList('uvs', UVs);
-  ReadVector2SingleList('vertices', Vertices);
-  if UVs.Count <> Vertices.Count then
-  begin
-    OnWarning(wtMajor, 'Spine', Format('uvs and vertices lists have different number of items, respectively %d and %d, for attachment %s',
-      [UVs.Count, Vertices.Count, Name]));
-    { TODO: it is also normal for skinnedmesh... For now, cut down,
-      although it seems incorrect? Or maybe it's ok for dagger? }
-    Vertices.Count := UVs.Count;
-  end;
-
-  ReadLongIntList('triangles', Triangles);
+  ReadLongIntList(Json, 'triangles', Triangles);
   if Triangles.Count mod 3 <> 0 then
     OnWarning(wtMajor, 'Spine', 'Triangles list ends in the middle of the triangle');
 
-  ReadLongIntList('edges', Edges);
+  ReadLongIntList(Json, 'edges', Edges);
   Hull := Json.Get('hull', 0);
 end;
 
-function TMeshAttachment.BuildGeometry(const BaseUrl: string;
+function TAbstractMeshAttachment.BuildGeometry(const BaseUrl: string;
   const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect): TAbstractGeometryNode;
 var
-  Coord: TCoordinateNode;
   TexCoordNode: TTextureCoordinateNode;
   I: Integer;
   UVRangeX, UVRangeY: TVector2Single;
@@ -310,7 +308,8 @@ begin
     may need to be cut in half, and need to be changed to quads with new vertexes,
     to avoid rendering the atlas part where there should be whitespace.
     So supporting this would be crazy difficult.
-    TODO: see how other runtimes handle it?
+
+    I don't see official spine runtimes having any code to deal with it either.
 
     The rendering will be Ok only if the mesh faces used only the texture
     parts within the non-whitespace region (TexRect). Which is true
@@ -334,6 +333,144 @@ begin
       MapRange(UVs[I][1], 1, 0, UVRangeY[0], UVRangeY[1])
     ));
   Faces.FdTexCoord.Value := TexCoordNode;
+end;
+
+{ TMeshAttachment ------------------------------------------------------------ }
+
+procedure TMeshAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList);
+begin
+  inherited;
+  ReadVector2SingleList(Json, 'vertices', Vertices);
+  if UVs.Count <> Vertices.Count then
+  begin
+    OnWarning(wtMajor, 'Spine', Format('uvs and vertices lists have different number of items, respectively %d and %d, for mesh attachment %s',
+      [UVs.Count, Vertices.Count, Name]));
+    Vertices.Count := UVs.Count;
+  end;
+end;
+
+{ TSkinnedMeshVertex --------------------------------------------------------- }
+
+constructor TSkinnedMeshVertex.Create;
+begin
+  inherited;
+  Bones := TSkinnedMeshVertexBoneList.Create;
+end;
+
+destructor TSkinnedMeshVertex.Destroy;
+begin
+  FreeAndNil(Bones);
+  inherited;
+end;
+
+procedure TSkinnedMeshVertex.Parse(const JsonArray: TJSONArray;
+  Index: Integer; const BonesCount: Cardinal; const AllBones: TBoneList);
+var
+  I, BoneIndex: Integer;
+  B: TSkinnedMeshVertexBone;
+begin
+  for I := 0 to Integer(BonesCount) - 1 do
+  begin
+    BoneIndex := JsonArray[Index].AsInteger; Inc(Index);
+    if not Between(BoneIndex, 0, AllBones.Count - 1) then
+      raise Exception.CreateFmt('Invalid bone index in skinnedmesh.vertices: %d', [BoneIndex]);
+    B := TSkinnedMeshVertexBone.Create;
+    Bones.Add(B);
+    B.Bone := AllBones[BoneIndex];
+    B.V[0] := JsonArray[Index].AsFloat; Inc(Index);
+    B.V[1] := JsonArray[Index].AsFloat; Inc(Index);
+    B.Weight := JsonArray[Index].AsFloat; Inc(Index);
+  end;
+end;
+
+{ TSkinnedMeshVertexList ----------------------------------------------------- }
+
+procedure TSkinnedMeshVertexList.Parse(const JsonArray: TJSONArray; const Bones: TBoneList);
+var
+  BonesCount: Cardinal;
+  V: TSkinnedMeshVertex;
+  I: Integer;
+begin
+  I := 0;
+  while I < JsonArray.Count do
+  begin
+    BonesCount := Max(0, JsonArray[I].AsInteger);
+    if I + BonesCount * 4 < JsonArray.Count then
+    begin
+      if BonesCount = 0 then
+        OnWarning(wtMajor, 'Spine', 'skinnedmesh bonesCount is <= 0');
+      V := TSkinnedMeshVertex.Create;
+      V.Parse(JsonArray, I + 1, BonesCount, Bones);
+      Add(V);
+    end else
+    begin
+      OnWarning(wtMajor, 'Spine', Format('skinnedmesh weights (called "vertices" in JSON) do not have enough items (last bonesCount = %d, but array does not have enough floats)',
+        [BonesCount]));
+      Break;
+    end;
+
+    I += 1 + BonesCount * 4;
+  end;
+end;
+
+{ TSkinnedMeshAttachment ----------------------------------------------------- }
+
+constructor TSkinnedMeshAttachment.Create;
+begin
+  inherited;
+  Weights := TSkinnedMeshVertexList.Create;
+end;
+
+destructor TSkinnedMeshAttachment.Destroy;
+begin
+  FreeAndNil(Weights);
+  inherited;
+end;
+
+procedure TSkinnedMeshAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList);
+var
+  JsonArray: TJSONArray;
+  I, J: Integer;
+  VB: TSkinnedMeshVertexBone;
+  V: TVector2Single;
+begin
+  inherited;
+  JsonArray := Json.Find('vertices', jtArray) as TJSONArray;
+  if JsonArray <> nil then
+    Weights.Parse(JsonArray, Bones);
+
+  if UVs.Count <> Weights.Count then
+  begin
+    OnWarning(wtMajor, 'Spine', Format('skinnedmesh weights (called "vertices" in JSON) and uvs have different number of items, respectively %d and %d, for skinnedmesh attachment %s',
+      [UVs.Count, Vertices.Count, Name]));
+    Exit;
+  end;
+
+  { calculate initial Vertices from Weights.
+    Similar to ComputeWorldVertices in spine-runtimes/spine-csharp/src/Attachments/SkinnedMeshAttachment.cs }
+  Vertices.Count := Weights.Count;
+  for I := 0 to Weights.Count - 1 do
+  begin
+    V := ZeroVector2Single;
+    for J := 0 to Weights[I].Bones.Count - 1 do
+    begin
+      VB := Weights[I].Bones[J];
+      V += VB.Bone.ToWorldSpace(VB.V) * VB.Weight;
+    end;
+    Vertices[I] := V;
+  end;
+end;
+
+procedure TSkinnedMeshAttachment.TransformToBoneSpace(const Bone: TBone);
+var
+  List: TVector3SingleList;
+  I: Integer;
+begin
+  inherited;
+
+  List := Coord.FdPoint.Items;
+  for I := 0 to List.Count - 1 do
+    List.L[I] := Bone.ToLocalSpace(List.L[I]);
 end;
 
 { TAttachmentList ------------------------------------------------------------ }

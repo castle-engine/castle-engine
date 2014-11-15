@@ -26,11 +26,27 @@
   end;
 
   TBone = class
+  strict private
+    { World-space bone transformation, necessary for skinnedmesh calculations.
+      WorldMatrix includes rotation and scale, from WorldRotation and WorldScale.
+      @groupBegin }
+    WorldXY: TVector2Single;
+    WorldScale: TVector2Single;
+    WorldRotation: Single;
+    WorldMatrix, WorldMatrixInverse: TMatrix2Single;
+    { @groupEnd }
+
+    { Calculate world-space (well, at least in the space of whole JSON file)
+      bone parameters.
+      Similar to UpdateWorldTransform in spine-runtimes/spine-csharp/src/Bone.cs }
+    procedure UpdateWorldTransform;
+  public
     Name: string;
     Length: Single;
     XY: TVector2Single;
     Scale: TVector2Single;
     Rotation: Single;
+    InheritScale, InheritRotation: boolean;
     Parent: TBone;
     Node: TTransformNode;
     ResetTranslation: TPositionInterpolatorNode;
@@ -42,6 +58,9 @@
       const PossibleParents: TBoneList; const ExpectedParent: boolean);
     procedure BuildNodes(const BaseUrl: string;
       const BonesAnimated: TBonesAnimated);
+    function ToWorldSpace(const V: TVector2Single): TVector2Single;
+    function ToLocalSpace(V: TVector2Single): TVector2Single;
+    function ToLocalSpace(const V: TVector3Single): TVector3Single;
   end;
 
   TBoneList = class(specialize TFPGObjectList<TBone>)
@@ -95,6 +114,11 @@ begin
   Scale[0] := Json.Get('scaleX', 1.0);
   Scale[1] := Json.Get('scaleY', 1.0);
   Rotation := Json.Get('rotation', 0.0);
+  InheritScale := Json.Get('inheritScale', true);
+  InheritRotation := Json.Get('inheritRotation', true);
+
+  if (not InheritScale) or (not InheritRotation) then
+    OnWarning(wtMinor, 'Spine', 'bone inheritRotation=false or inheritScale=false is only partially supported');
 
   ParentName := Json.Get('parent', '');
   if ParentName <> '' then
@@ -109,6 +133,8 @@ begin
     if Parent <> nil then
       raise ESpineReadError.CreateFmt('Parent for bone "%s" not expected, but specified', [Name]);
   end;
+
+  UpdateWorldTransform;
 end;
 
 destructor TBone.Destroy;
@@ -190,6 +216,63 @@ begin
   AddResetTranslation;
   AddResetScale;
   AddResetRotation;
+end;
+
+procedure TBone.UpdateWorldTransform;
+var
+  C, S: Float;
+begin
+  WorldXY := XY;
+  WorldScale := Scale;
+  WorldRotation := Rotation;
+
+  if Parent <> nil then
+  begin
+    WorldXY := Vector2Single(
+      WorldXY[0] * Parent.WorldMatrix[0][0] + WorldXY[1] * Parent.WorldMatrix[0][1],
+      WorldXY[0] * Parent.WorldMatrix[1][0] + WorldXY[1] * Parent.WorldMatrix[1][1]);
+    WorldXY += Parent.WorldXY;
+    if InheritScale then
+      WorldScale := WorldScale * Parent.WorldScale;
+    if InheritRotation then
+      WorldRotation += Parent.WorldRotation;
+  end;
+
+  SinCos(DegToRad(WorldRotation), C, S);
+  WorldMatrix[0][0] :=  C * WorldScale[0];
+  WorldMatrix[0][1] := -S * WorldScale[1];
+  WorldMatrix[1][0] :=  S * WorldScale[0];
+  WorldMatrix[1][1] :=  C * WorldScale[1];
+
+  { inverse of 2D rotation matrix is it's transposition. Also, invert scale }
+  WorldMatrixInverse[0][0] :=  C / WorldScale[0];
+  WorldMatrixInverse[1][0] := -S / WorldScale[1];
+  WorldMatrixInverse[0][1] :=  S / WorldScale[0];
+  WorldMatrixInverse[1][1] :=  C / WorldScale[1];
+end;
+
+function TBone.ToWorldSpace(const V: TVector2Single): TVector2Single;
+begin
+  Result := Vector2Single(
+    V[0] * WorldMatrix[0][0] + V[1] * WorldMatrix[0][1],
+    V[0] * WorldMatrix[1][0] + V[1] * WorldMatrix[1][1]);
+  Result += WorldXY;
+end;
+
+function TBone.ToLocalSpace(V: TVector2Single): TVector2Single;
+begin
+  V -= WorldXY;
+  Result := Vector2Single(
+    V[0] * WorldMatrixInverse[0][0] + V[1] * WorldMatrixInverse[0][1],
+    V[0] * WorldMatrixInverse[1][0] + V[1] * WorldMatrixInverse[1][1]);
+end;
+
+function TBone.ToLocalSpace(const V: TVector3Single): TVector3Single;
+var
+  Result2: TVector2Single absolute Result;
+begin
+  Result := V;
+  Result2 := ToLocalSpace(Result2);
 end;
 
 { TBoneList ------------------------------------------------------------------ }

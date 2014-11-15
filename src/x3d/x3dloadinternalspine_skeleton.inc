@@ -86,7 +86,7 @@ begin
 
   Bones.Parse(O, Root);
   Slots.Parse(O, Bones);
-  Skins.Parse(O, DefaultSkin);
+  Skins.Parse(O, DefaultSkin, Bones);
   Animations.Parse(O, Bones, BonesAnimated, Slots, SlotsAnimated);
 
   WritelnLog('Spine', Format('Skeleton read, bones: %d, slots: %d, skins: %d, animations: %d',

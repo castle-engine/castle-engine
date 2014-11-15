@@ -21,7 +21,7 @@
     Name: string;
     constructor Create;
     destructor Destroy; override;
-    procedure Parse(const Json: TJSONObject);
+    procedure Parse(const Json: TJSONObject; const Bones: TBoneList);
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
   end;
 
@@ -29,7 +29,7 @@
     { Find by name.
       @raises ESpineReadError If does not exist and NilOnError = @false. }
     function Find(const Name: string; const NilOnError: boolean): TSkin;
-    procedure Parse(const Json: TJSONObject; var DefaultSkin: TSkin);
+    procedure Parse(const Json: TJSONObject; var DefaultSkin: TSkin; const Bones: TBoneList);
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
   end;
 {$endif}
@@ -50,7 +50,7 @@ begin
   inherited;
 end;
 
-procedure TSkin.Parse(const Json: TJSONObject);
+procedure TSkin.Parse(const Json: TJSONObject; const Bones: TBoneList);
 
   procedure ParseSlotMap(const Json: TJSONObject; const SlotName: string);
   var
@@ -61,7 +61,7 @@ procedure TSkin.Parse(const Json: TJSONObject);
       if Json.Items[I] is TJSONObject then
       begin
         Attachment := TAttachment.CreateAndParse(
-          TJSONObject(Json.Items[I]), SlotName, Json.Names[I]);
+          TJSONObject(Json.Items[I]), SlotName, Json.Names[I], Bones);
         if Attachment <> nil then
           Attachments.Add(Attachment);
       end;
@@ -100,7 +100,7 @@ begin
     raise ESpineReadError.CreateFmt('Skin name "%s" not found', [Name]);
 end;
 
-procedure TSkinList.Parse(const Json: TJSONObject; var DefaultSkin: TSkin);
+procedure TSkinList.Parse(const Json: TJSONObject; var DefaultSkin: TSkin; const Bones: TBoneList);
 var
   I: Integer;
   Skin: TSkin;
@@ -116,7 +116,7 @@ begin
       Skin := TSkin.Create;
       Add(Skin);
       Skin.Name := ChildObj.Names[I];
-      Skin.Parse(TJSONObject(ChildObj.Items[I]));
+      Skin.Parse(TJSONObject(ChildObj.Items[I]), Bones);
 
       if Skin.Name = 'default' then
         DefaultSkin := Skin;
