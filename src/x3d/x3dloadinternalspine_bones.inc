@@ -238,7 +238,7 @@ begin
       WorldRotation += Parent.WorldRotation;
   end;
 
-  SinCos(DegToRad(WorldRotation), C, S);
+  SinCos(DegToRad(WorldRotation), S, C);
   WorldMatrix[0][0] :=  C * WorldScale[0];
   WorldMatrix[0][1] := -S * WorldScale[1];
   WorldMatrix[1][0] :=  S * WorldScale[0];
