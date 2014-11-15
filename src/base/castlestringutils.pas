@@ -1612,13 +1612,15 @@ end;
 function SReplacePatterns(const S: string;
   const Patterns, Values: array of string; const Options: TSearchOptions): string;
 var
-  PatternsList, ValuesList: TStringList;
+  PatternsList, ValuesList: TCastleStringList;
 begin
   PatternsList := nil;
   ValuesList := nil;
   try
-    PatternsList := TStringList.Create;
-    ValuesList := TStringList.Create;
+    PatternsList := TCastleStringList.Create;
+    PatternsList.AssignArray(Patterns);
+    ValuesList := TCastleStringList.Create;
+    ValuesList.AssignArray(Values);
     Result := SReplacePatterns(S, PatternsList, ValuesList, Options);
   finally
     FreeAndNil(PatternsList);
