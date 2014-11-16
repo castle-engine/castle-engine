@@ -26,16 +26,68 @@ var
 implementation
 
 uses SysUtils,
-  CastleKeysMouse, CastleFilesUtils, Castle2DSceneManager;
+  CastleControls, CastleKeysMouse, CastleFilesUtils, Castle2DSceneManager,
+  CastleVectors;
 
 var
   SceneManager: T2DSceneManager;
+  BackgroundScene: T2DScene;
+  ToggleCameraView: TCastleButton;
+  CameraViewStraight: boolean = true;
+
+type
+  TButtonsHandler = class
+    procedure ToggleCameraViewClick(Sender: TObject);
+  end;
+
+procedure TButtonsHandler.ToggleCameraViewClick(Sender: TObject);
+const
+  AnimateTime = 1.0;
+begin
+  { since this is really 3D, show alternative camera view where is clearly visible }
+  CameraViewStraight := not CameraViewStraight;
+  if CameraViewStraight then
+    SceneManager.Camera.AnimateTo(
+      { camera values like initialized by T2DSceneManager }
+      { pos } Vector3Single(0, 0, 0),
+      { dir } Vector3Single(0, 0, -1),
+      { up } Vector3Single(0, 1, 0),
+      AnimateTime) else
+    SceneManager.Camera.AnimateTo(
+      { hint: to pick camera values experimentally, use view3dscene
+        and Console->Print Current Camera.. menu item }
+      { pos } Vector3Single(8.8673858642578125, 1.2955703735351563, -19.951961517333984),
+      { dir } Vector3Single(0.6533171534538269, -0.13534677028656006, -0.7448880672454834),
+      { up } Vector3Single(0.10390207171440125, 0.99060958623886108, -0.088865458965301514),
+      AnimateTime);
+end;
 
 { One-time initialization. }
 procedure ApplicationInitialize;
 begin
   SceneManager := T2DSceneManager.Create(Application);
+  SceneManager.Transparent := false; // show background color underneath scene manager
   Window.Controls.InsertFront(SceneManager);
+
+  BackgroundScene := T2DScene.Create(Application);
+  SceneManager.Items.Add(BackgroundScene);
+  SceneManager.MainScene := BackgroundScene;
+  BackgroundScene.Load(ApplicationData('background.x3dv'));
+
+  { We always want to see full height of background.x3dv,
+    we know it starts from bottom = 0.
+    BoudingBox.Data[1][1] is the maximum Y value, i.e. our height.
+    So projection height should adjust to background.x3dv height. }
+  SceneManager.ProjectionAutoSize := false;
+  SceneManager.ProjectionHeight := BackgroundScene.BoundingBox.Data[1][1];
+
+  ToggleCameraView := TCastleButton.Create(Window);
+  ToggleCameraView.Caption := 'Toggle Camera View';
+  ToggleCameraView.OnClick := @TButtonsHandler(nil).ToggleCameraViewClick;
+  ToggleCameraView.Toggle := true;
+  ToggleCameraView.Left := 10;
+  ToggleCameraView.Bottom := 10;
+  Window.Controls.InsertFront(ToggleCameraView);
 end;
 
 procedure WindowOpen(Container: TUIContainer);

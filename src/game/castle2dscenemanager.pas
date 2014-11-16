@@ -38,18 +38,30 @@ type
         to place the scene manager rendering in the middle of other 2D controls
         (for example, over some 2D background and before some 2D buttons.))
 
-      @item(Sets Tranparennt = @true by default, which means that
+      @item(Sets Transparent = @true by default, which means that
         background underneath will be visible. Useful for 2D games
         where you usually have an image or another background underneath,
         like TCastleImage or TCastleSimpleBackground.)
     ) }
   T2DSceneManager = class(TCastleSceneManager)
+  private
+    FProjectionAutoSize: boolean;
+    FProjectionHeight: Single;
   protected
     function CalculateProjection: TProjection; override;
   public
     const
       ProjectionSpan = 1000.0;
     property RenderStyle default rs2D;
+    { When @true, the size of the world visible in our viewport will depend
+      on scene manager size. ProjectionHeight is ignored then.
+      When @false, ProjectionHeight is used to determine the height
+      of world visible in our viewport (width is automatically adjusted
+      to follow aspect ratio of viewport size). }
+    property ProjectionAutoSize: boolean
+      read FProjectionAutoSize write FProjectionAutoSize default true;
+    property ProjectionHeight: Single
+      read FProjectionHeight write FProjectionHeight default 1;
     constructor Create(AOwner: TComponent); override;
     function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
   end;
@@ -95,8 +107,15 @@ begin
   Result.ProjectionType := ptOrthographic;
   Result.OrthoDimensions[0] := 0;
   Result.OrthoDimensions[1] := 0;
-  Result.OrthoDimensions[2] := Rect.Width;
-  Result.OrthoDimensions[3] := Rect.Height;
+  if ProjectionAutoSize then
+  begin
+    Result.OrthoDimensions[2] := Rect.Width;
+    Result.OrthoDimensions[3] := Rect.Height;
+  end else
+  begin
+    Result.OrthoDimensions[2] := ProjectionHeight * Rect.Width / Rect.Height;
+    Result.OrthoDimensions[3] := ProjectionHeight;
+  end;
   Result.ProjectionNear := -ProjectionSpan;
   Result.ProjectionFar := ProjectionSpan;
   Result.ProjectionFarFinite := Result.ProjectionFar;

@@ -27,7 +27,9 @@ uses CastleWindow, CastleConfig, CastleParameters, CastleLog, CastleUtils,
   Game;
 
 begin
-  Window.FullScreen := true;
+  { do not set FullScreen, only to easily test that resizing the window
+    still looks Ok }
+//  Window.FullScreen := true;
   Window.ParseParameters;
 
   Application.Initialize;
