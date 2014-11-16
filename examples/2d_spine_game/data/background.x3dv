@@ -1,15 +1,17 @@
 #X3D V3.2 utf8
 PROFILE Interchange
 
-# This is not necessary for actual game,
+# This camera is not used for actual game,
 # but it is useful to have OrthoViewpoint to simulate a view similar to the game
 # inside view3dscene.
-#
-# OrthoViewpoint {
-#   fieldOfView [ 0 0 100 70 ]
-#   # zNear -1000
-#   # zFar 1000
-# }
+OrthoViewpoint {
+  fieldOfView [ 0 0 100 70 ]
+  # zNear -1000
+  # zFar 1000
+}
+NavigationInfo {
+  visibilityLimit 1000
+}
 
 Shape {
   appearance Appearance {
