@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="castle_spine"
+  standalone_source="code/castle_spine.lpr"
+  android_source="code/castle_spine_android.lpr"
+  author="Michalis Kamburelis">
+</project>
