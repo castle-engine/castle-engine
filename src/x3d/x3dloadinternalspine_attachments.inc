@@ -126,7 +126,8 @@ begin
   end else
   if TypeName = 'skinnedmesh' then
   begin
-    OnWarning(wtMinor, 'Spine', 'Spine region type "skinnedmesh" is for now not animated');
+    OnWarning(wtMinor, 'Spine', Format('Spine region type "skinnedmesh" is for now not deformed during animation, for attachment "%s"',
+      [AnAttachmentName]));
     Result := TSkinnedMeshAttachment.Create;
     Result.SlotName := ASlotName;
     Result.AttachmentName := AnAttachmentName;
