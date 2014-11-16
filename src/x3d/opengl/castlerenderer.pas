@@ -677,17 +677,16 @@ type
 
   TGLRenderer = class;
 
-  { A cache that may be used by many TGLRenderer
-    instances to share some common OpenGL resources.
+  { Cache used by TGLRenderer instances to share OpenGL resources,
+    like textures. This may save a lot of OpenGL memory when you
+    use multiple renderers (for example, multiple TCastleScene instances).
 
-    For examples, texture names. Such things can usually be shared by all
-    TGLRenderer instances used within the same OpenGL context.
-    And this may save a lot of memory if you use many TGLRenderer
-    instances in your program.
-
-    Instance of this class is tied to particular OpenGL context if and only if
-    there are some TGLRenderer instances using this cache and
-    tied to that OpenGL context. }
+    The cache can only be shared by renderers in the same OpenGL context,
+    or in shared OpenGL contexts. It cannot be reused
+    in totally alien OpenGL contexts, as the OpenGL identifiers will simply
+    not exist there. In practice, this should not be a problem, as our OpenGL
+    contexts always share resources, and you will almost always just use
+    a single instance of this cache inside @link(GLContextCache). }
   TGLRendererContextCache = class
   private
     Fonts: array[TX3DFontFamily, boolean, boolean] of TGLOutlineFontCache;
