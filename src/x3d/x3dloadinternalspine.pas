@@ -29,36 +29,6 @@ uses SysUtils, Classes, FGL, FpJson, JSONParser, Math,
   CastleStringUtils, CastleClassUtils, CastleColors,
   X3DLoadInternalUtils, CastleWarnings, X3DFields, CastleGenericLists;
 
-{ TODO:
-  Some more exotic Spine animation features are not implemented (yet!).
-  If you would like to see support for them, please submit
-  a feature request, or ask on Castle Game Engine forum
-  (or submit a patch yourself :). Many of the below features are really
-  simple to implement (it is only a matter
-  of adding simple reading and convertion to this file).
-
-  - Attachment types:
-
-    - regionsequence (easy, but unsure how exactly the images are described
-      in json; in principle, this is exactly how you can use things
-      like "xxx@counter(4).png" in X3D MovieTexture with our engine)
-
-    - boundingbox (easy, convert to X3D TransformSensor;
-      what to do with it depends on user code, boundingbox doesn't do anything
-      by itself)
-
-    - skinnedmesh (requires animating mesh coordinates;
-      note: what is "hull" parameter?)
-
-  - Events and Event Timeline (easy; note that events don't do anything
-    by themself, they just allow animator to "name" some events on the timeline;
-    we would convert them to some sensor that can be watched
-    (using X3D ROUTE) by user code).
-
-  - Draw Order Timeline (easy; you need to animate Z coordinate of
-    TSlot node transform).
-}
-
 type
   ESpineReadError = class(Exception);
 
