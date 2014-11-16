@@ -32,21 +32,20 @@ uses SysUtils,
 var
   SceneManager: T2DSceneManager;
   BackgroundScene: T2DScene;
-  ToggleCameraView: TCastleButton;
-  CameraViewStraight: boolean = true;
+  CameraView3D: TCastleButton;
 
 type
   TButtonsHandler = class
-    procedure ToggleCameraViewClick(Sender: TObject);
+    procedure CameraView3DClick(Sender: TObject);
   end;
 
-procedure TButtonsHandler.ToggleCameraViewClick(Sender: TObject);
+procedure TButtonsHandler.CameraView3DClick(Sender: TObject);
 const
   AnimateTime = 1.0;
 begin
   { since this is really 3D, show alternative camera view where is clearly visible }
-  CameraViewStraight := not CameraViewStraight;
-  if CameraViewStraight then
+  CameraView3D.Pressed := not CameraView3D.Pressed;
+  if not CameraView3D.Pressed then
     SceneManager.Camera.AnimateTo(
       { camera values like initialized by T2DSceneManager }
       { pos } Vector3Single(0, 0, 0),
@@ -81,13 +80,13 @@ begin
   SceneManager.ProjectionAutoSize := false;
   SceneManager.ProjectionHeight := BackgroundScene.BoundingBox.Data[1][1];
 
-  ToggleCameraView := TCastleButton.Create(Window);
-  ToggleCameraView.Caption := 'Toggle Camera View';
-  ToggleCameraView.OnClick := @TButtonsHandler(nil).ToggleCameraViewClick;
-  ToggleCameraView.Toggle := true;
-  ToggleCameraView.Left := 10;
-  ToggleCameraView.Bottom := 10;
-  Window.Controls.InsertFront(ToggleCameraView);
+  CameraView3D := TCastleButton.Create(Window);
+  CameraView3D.Caption := '3D Camera View';
+  CameraView3D.OnClick := @TButtonsHandler(nil).CameraView3DClick;
+  CameraView3D.Toggle := true;
+  CameraView3D.Left := 10;
+  CameraView3D.Bottom := 10;
+  Window.Controls.InsertFront(CameraView3D);
 end;
 
 procedure WindowOpen(Container: TUIContainer);
