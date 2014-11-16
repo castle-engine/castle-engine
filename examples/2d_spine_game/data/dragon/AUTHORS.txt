@@ -1,0 +1,2 @@
+dragon Spine animation from http://esotericsoftware.com/ examples installed
+with Spine. TODO: replace this with our own animation.

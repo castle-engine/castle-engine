@@ -15,13 +15,33 @@ NavigationInfo {
 
 Shape {
   appearance Appearance {
-    texture ImageTexture { url "textures/wizardtower.png" }
+    texture ImageTexture {
+      url "textures/wizardtower_tiling.png"
+      repeatS TRUE
+      repeatT TRUE
+    }
   }
-  geometry IndexedQuadSet {
-    coord Coordinate { point [ 0 0 0, 100 0 0, 100 70 0, 0 70 0 ] }
-    index [ 0 1 2 3 ]
+  geometry QuadSet {
+    coord Coordinate {
+      point [
+        # The sizes are set to keep image aspect ratio of 1672 x 700.
+        #
+        # We also make the size 100 x longer (in positive and negative X),
+        # to simulate infinite background for player (this is accompanied
+        # with using tiling background image in wizardtower_tiling).
+        -16720 0 0,
+         16720 0 0,
+         16720 70 0,
+        -16720 70 0
+      ]
+    }
     texCoord TextureCoordinate {
-      point [ 0 0, 1 0, 1 1, 0 1, ]
+      point [
+        -100 0,
+         100 0,
+         100 1,
+        -100 1,
+      ]
     }
   }
 }
@@ -36,9 +56,8 @@ Transform {
         appearance Appearance {
           texture ImageTexture { url "textures/tree.png" }
         }
-        geometry IndexedQuadSet {
+        geometry QuadSet {
           coord Coordinate { point [ 0 0 0, 20 0 0, 20 20 0, 0 20 0 ] }
-          index [ 0 1 2 3 ]
           texCoord TextureCoordinate {
             point [ 0 0, 1 0, 1 1, 0 1, ]
           }

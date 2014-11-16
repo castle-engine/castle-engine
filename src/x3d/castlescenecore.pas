@@ -6843,6 +6843,15 @@ function TCastleSceneCore.PlayAnimation(const AnimationName: string;
 var
   TimeNode: TTimeSensorNode;
 begin
+  { stop previous animation, if any. Even when new AnimationName not found,
+    useful to run animations from code before they are ready in assets. }
+  if PlayingAnimationNode <> nil then
+  begin
+    PlayingAnimationNode.FdStopTime.Send(Time.Seconds);
+    PlayingAnimationNode := nil;
+  end;
+  Inc(FTime.PlusTicks);
+
   if RootNode <> nil then
     TimeNode := RootNode.TryFindNodeByName(TTimeSensorNode,
       AnimationPrefix + AnimationName, true) as TTimeSensorNode else
@@ -6850,12 +6859,6 @@ begin
   Result := TimeNode <> nil;
   if Result then
   begin
-    if PlayingAnimationNode <> nil then
-    begin
-      PlayingAnimationNode.FdStopTime.Send(Time.Seconds);
-      PlayingAnimationNode := nil;
-    end;
-    Inc(FTime.PlusTicks);
     case Looping of
       paForceLooping   : TimeNode.FdLoop.Send(true);
       paForceNotLooping: TimeNode.FdLoop.Send(false);
