@@ -35,35 +35,15 @@ var
   DragonTransform: T3DTransform;
   Dragon: T2DScene;
   CameraView3D: TCastleButton;
+  CameraFollowsDragon: TCastleButton;
   DragonFlying: boolean;
   DragonFlyingTarget: TVector2Single;
 
 type
   TButtonsHandler = class
     procedure CameraView3DClick(Sender: TObject);
+    procedure CameraFollowsDragonClick(Sender: TObject);
   end;
-
-procedure TButtonsHandler.CameraView3DClick(Sender: TObject);
-const
-  AnimateTime = 1.0;
-begin
-  { since this is really 3D, show alternative camera view where is clearly visible }
-  CameraView3D.Pressed := not CameraView3D.Pressed;
-  if not CameraView3D.Pressed then
-    SceneManager.Camera.AnimateTo(
-      { camera values like initialized by T2DSceneManager }
-      { pos } Vector3Single(0, 0, 0),
-      { dir } Vector3Single(0, 0, -1),
-      { up } Vector3Single(0, 1, 0),
-      AnimateTime) else
-    SceneManager.Camera.AnimateTo(
-      { hint: to pick camera values experimentally, use view3dscene
-        and Console->Print Current Camera.. menu item }
-      { pos } Vector3Single(8.8673858642578125, 1.2955703735351563, -19.951961517333984),
-      { dir } Vector3Single(0.6533171534538269, -0.13534677028656006, -0.7448880672454834),
-      { up } Vector3Single(0.10390207171440125, 0.99060958623886108, -0.088865458965301514),
-      AnimateTime);
-end;
 
 { One-time initialization. }
 procedure ApplicationInitialize;
@@ -79,7 +59,7 @@ begin
     See data/background.x3dv (go ahead, open it in a text editor --- X3D files
     can be easily created and edited as normal text files) for what it does.
 
-    This is just one way to create a background, out of many!
+    This is just one way to create a background for 2D game, there are many others!
     Some alternatives: you could use a normal 2D UI for a background,
     like TCastleSimpleBackground or TCastleImageControl instead of X3D model.
     Or you could load a scene from any format --- e.g. your background
@@ -91,6 +71,9 @@ begin
   { not really necessary now, but in case some animations will appear
     on Background }
   Background.ProcessEvents := true;
+  { this is useful to have precise collisions (not just with bounding box),
+    which in turn is useful here for Background.PointingDeviceOverPoint value }
+  Background.Spatial := [ssRendering, ssDynamicCollisions];
 
   { We always want to see full height of background.x3dv,
     we know it starts from bottom = 0.
@@ -120,24 +103,100 @@ begin
   CameraView3D.Left := 10;
   CameraView3D.Bottom := 10;
   Window.Controls.InsertFront(CameraView3D);
+
+  CameraFollowsDragon := TCastleButton.Create(Window);
+  CameraFollowsDragon.Caption := 'Camera Follows Dragon';
+  CameraFollowsDragon.OnClick := @TButtonsHandler(nil).CameraFollowsDragonClick;
+  CameraFollowsDragon.Toggle := true;
+  CameraFollowsDragon.Left := 10;
+  CameraFollowsDragon.Bottom := 60;
+  Window.Controls.InsertFront(CameraFollowsDragon);
+end;
+
+{ Looking at current state of CameraView3D.Pressed
+  and CameraFollowsDragon.Pressed, calculate camera vectors. }
+procedure CalculateCamera(out Pos, Dir, Up: TVector3Single);
+begin
+  if not CameraView3D.Pressed then
+  begin
+    { camera values like initialized by T2DSceneManager }
+    Pos := Vector3Single(0, 0, 0);
+    Dir := Vector3Single(0, 0, -1);
+    Up  := Vector3Single(0, 1, 0);
+  end else
+  begin
+    { show alternative camera view where it is clearly visible we are in 3D :) }
+    { hint: to pick camera values experimentally, use view3dscene
+      and Console->Print Current Camera.. menu item }
+    Pos := Vector3Single(8.8673858642578125, 1.2955703735351563, -19.951961517333984);
+    Dir := Vector3Single(0.6533171534538269, -0.13534677028656006, -0.7448880672454834);
+    Up  := Vector3Single(0.10390207171440125, 0.99060958623886108, -0.088865458965301514);
+  end;
+  if CameraFollowsDragon.Pressed then
+    Pos[0] += DragonTransform.Translation[0] - 40;
 end;
 
 procedure WindowUpdate(Container: TUIContainer);
-
-  procedure ProcessInputs;
+const
+  SpeedX = 50.0;
+  SpeedY = 25.0;
+var
+  SecondsPassed: Single;
+  T: TVector3Single;
+  Pos, Dir, Up: TVector3Single;
+begin
+  if DragonFlying and not SceneManager.Camera.Animation then
   begin
-    { capture input by looking at Background.PointingDeviceActive.
-      They are other ways to detect clicks, for example checking
-      Event.IsMouseButton(mbLeft) inside WindowPress callback.
-      Other ways are overriding TCastleSceneManager.PointingDeviceActivate.
+    { update DragonTransform.Translation to reach DragonFlyingTarget.
+      Be careful to not overshoot, and to set DragonFlying to false when
+      necessary. }
+    T := DragonTransform.Translation;
+    SecondsPassed := Container.Fps.UpdateSecondsPassed;
+    if T[0] < DragonFlyingTarget[0] then
+      T[0] := Min(DragonFlyingTarget[0], T[0] + SpeedX * SecondsPassed) else
+      T[0] := Max(DragonFlyingTarget[0], T[0] - SpeedX * SecondsPassed);
+    if T[1] < DragonFlyingTarget[1] then
+      T[1] := Min(DragonFlyingTarget[1], T[1] + SpeedY * SecondsPassed) else
+      T[1] := Max(DragonFlyingTarget[1], T[1] - SpeedY * SecondsPassed);
+    DragonTransform.Translation := T;
 
-      Using Background.PointingDeviceActive is comfortable for us here,
-      as Background.PointingDeviceOverItem and
-      Background.PointingDeviceOverPoint give us ready positions in our
-      world. We do not have to care of translating mouse positions
+    { move camera, in case CameraFollowsDragon.Pressed }
+    CalculateCamera(Pos, Dir, Up);
+    SceneManager.Camera.SetView(Pos, Dir, Up);
+
+    { check did we reach the target. Note that we can compare floats
+      using exact "=" operator (no need to use FloatsEqual), because
+      our Min/Maxes above make sure that we will reach the *exact* target
+      at some point. }
+    if (T[0] = DragonFlyingTarget[0]) and
+       (T[1] = DragonFlyingTarget[1]) then
+    begin
+      DragonFlying := false;
+      Dragon.PlayAnimation('idle', paForceLooping);
+    end;
+  end;
+end;
+
+procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+begin
+  if Event.IsKey(K_F5) then
+    Window.SaveScreen(FileNameAutoInc(ApplicationName + '_screen_%d.png'));
+  if Event.IsKey(K_Escape) then
+    Application.Quit;
+
+  if Event.IsMouseButton(mbLeft) then
+  begin
+    { The mouse click position is in Event.Position,
+      but instead we look at Background.PointingDeviceOverPoint that
+      contains a ready position in our world coordinates.
+      So we do not have to care about translating mouse positions
       into world positions (in case camera moves over the world),
       it is already done for us. }
-    if Background.PointingDeviceActive then
+    if { check "PointingDeviceOverItem <> nil" before accessing
+         Background.PointingDeviceOverPoint, because when we're in 3D-like view
+         (when CameraView3D.Pressed) then user can press on empty black space
+         outside of our space. }
+       (Background.PointingDeviceOverItem <> nil) then
     begin
       if not DragonFlying then
         Dragon.PlayAnimation('flying', paForceLooping);
@@ -148,54 +207,30 @@ procedure WindowUpdate(Container: TUIContainer);
         Background.PointingDeviceOverPoint[1]);
     end;
   end;
-
-  procedure Fly;
-  const
-    SpeedX = 50.0;
-    SpeedY = 25.0;
-  var
-    SecondsPassed: Single;
-    T: TVector3Single;
-  begin
-    if DragonFlying then
-    begin
-      { update DragonTransform.Translation to reach DragonFlyingTarget.
-        Be careful to not overshoot, and to set DragonFlying to false when
-        necessary. }
-      T := DragonTransform.Translation;
-      SecondsPassed := Container.Fps.UpdateSecondsPassed;
-      if T[0] < DragonFlyingTarget[0] then
-        T[0] := Min(DragonFlyingTarget[0], T[0] + SpeedX * SecondsPassed) else
-        T[0] := Max(DragonFlyingTarget[0], T[0] - SpeedX * SecondsPassed);
-      if T[1] < DragonFlyingTarget[1] then
-        T[1] := Min(DragonFlyingTarget[1], T[1] + SpeedY * SecondsPassed) else
-        T[1] := Max(DragonFlyingTarget[1], T[1] - SpeedY * SecondsPassed);
-      DragonTransform.Translation := T;
-
-      { check did we reach the target. Note that we can compare floats
-        using exact "=" operator (no need to use FloatsEqual), because
-        our Min/Maxes above make sure that we will reach the *exact* target
-        at some point. }
-      if (T[0] = DragonFlyingTarget[0]) and
-         (T[1] = DragonFlyingTarget[1]) then
-      begin
-        DragonFlying := false;
-        Dragon.PlayAnimation('idle', paForceLooping);
-      end;
-    end;
-  end;
-
-begin
-  ProcessInputs;
-  Fly;
 end;
 
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+procedure TButtonsHandler.CameraView3DClick(Sender: TObject);
+var
+  Pos, Dir, Up: TVector3Single;
 begin
-  if Event.IsKey(K_F5) then
-    Window.SaveScreen(FileNameAutoInc(ApplicationName + '_screen_%d.png'));
-  if Event.IsKey(K_Escape) then
-    Application.Quit;
+  if not SceneManager.Camera.Animation then { do not mess when Camera.AnimateTo is in progress }
+  begin
+    CameraView3D.Pressed := not CameraView3D.Pressed;
+    CalculateCamera(Pos, Dir, Up);
+    SceneManager.Camera.AnimateTo(Pos, Dir, Up, 1.0);
+  end;
+end;
+
+procedure TButtonsHandler.CameraFollowsDragonClick(Sender: TObject);
+var
+  Pos, Dir, Up: TVector3Single;
+begin
+  if not SceneManager.Camera.Animation then { do not mess when Camera.AnimateTo is in progress }
+  begin
+    CameraFollowsDragon.Pressed := not CameraFollowsDragon.Pressed;
+    CalculateCamera(Pos, Dir, Up);
+    SceneManager.Camera.AnimateTo(Pos, Dir, Up, 1.0);
+  end;
 end;
 
 function MyGetApplicationName: string;

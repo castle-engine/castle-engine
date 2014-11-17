@@ -52,7 +52,7 @@ type
     { Check does currently used font (see CustomFont) changed,
       and eventually call FontChanged method @italic(now).
 
-      You only need to explicitly call this is very specific circumstances,
+      You only need to explicitly call this in very specific circumstances,
       when you just changed UIFont (changing CustomFont automatically
       immediately calls FontChanged) and you want control size to be updated
       immediately (for example, you need TCastleButton.Height to be immediately
