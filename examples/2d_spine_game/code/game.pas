@@ -133,7 +133,11 @@ begin
     Up  := Vector3Single(0.10390207171440125, 0.99060958623886108, -0.088865458965301514);
   end;
   if CameraFollowsDragon.Pressed then
-    Pos[0] += DragonTransform.Translation[0] - 40;
+    Pos[0] += DragonTransform.Translation[0] -
+      { half of the screen, taking into account what T2DSceneManager does
+        with ProjectionHeight when ProjectionAutoSize = @false. }
+      0.5 * SceneManager.ProjectionHeight *
+      SceneManager.Rect.Width / SceneManager.Rect.Height;
 end;
 
 procedure WindowUpdate(Container: TUIContainer);
@@ -145,7 +149,12 @@ var
   T: TVector3Single;
   Pos, Dir, Up: TVector3Single;
 begin
-  if DragonFlying and not SceneManager.Camera.Animation then
+  { do not mess Camera.AnimateTo by changing DragonTransform now,
+    or by calling Camera.SetView directly }
+  if SceneManager.Camera.Animation then
+    Exit;
+
+  if DragonFlying then
   begin
     { update DragonTransform.Translation to reach DragonFlyingTarget.
       Be careful to not overshoot, and to set DragonFlying to false when
@@ -160,10 +169,6 @@ begin
       T[1] := Max(DragonFlyingTarget[1], T[1] - SpeedY * SecondsPassed);
     DragonTransform.Translation := T;
 
-    { move camera, in case CameraFollowsDragon.Pressed }
-    CalculateCamera(Pos, Dir, Up);
-    SceneManager.Camera.SetView(Pos, Dir, Up);
-
     { check did we reach the target. Note that we can compare floats
       using exact "=" operator (no need to use FloatsEqual), because
       our Min/Maxes above make sure that we will reach the *exact* target
@@ -175,6 +180,12 @@ begin
       Dragon.PlayAnimation('idle', paForceLooping);
     end;
   end;
+
+  { move camera, in case CameraFollowsDragon.Pressed.
+    Do it in every update, to react to window resize and to DragonTransform
+    changes. }
+  CalculateCamera(Pos, Dir, Up);
+  SceneManager.Camera.SetView(Pos, Dir, Up);
 end;
 
 procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
