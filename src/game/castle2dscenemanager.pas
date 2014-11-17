@@ -85,6 +85,7 @@ begin
   inherited;
   RenderStyle := rs2D;
   Transparent := true;
+  ProjectionAutoSize := true;
 end;
 
 function T2DSceneManager.CreateDefaultCamera(AOwner: TComponent): TCamera;
