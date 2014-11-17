@@ -189,6 +189,8 @@ begin
 end;
 
 procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+var
+  S: TVector3Single;
 begin
   if Event.IsKey(K_F5) then
     Window.SaveScreen(FileNameAutoInc(ApplicationName + '_screen_%d.png'));
@@ -216,6 +218,14 @@ begin
         { ignore 3rd dimension from Background.PointingDeviceOverPoint }
         Background.PointingDeviceOverPoint[0],
         Background.PointingDeviceOverPoint[1]);
+
+      { force scale in X to be negative or positive, to easily make
+        flying left/right animations from single "flying" animation. }
+      S := DragonTransform.Scale;
+      if DragonFlyingTarget[0] > DragonTransform.Translation[0] then
+        S[0] := Abs(S[0]) else
+        S[0] := -Abs(S[0]);
+      DragonTransform.Scale := S;
     end;
   end;
 end;
