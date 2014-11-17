@@ -1,11 +1,24 @@
 #X3D V3.2 utf8
 PROFILE Interchange
 
-# This camera is not used for actual game,
-# but it is useful to have OrthoViewpoint to simulate a view similar to the game
-# inside view3dscene.
+# This camera (OrthoViewpoint) and NavigationInfo are not used in the actual game
+# (because in ../code/game.pas we use T2DSceneManager that overrides projection
+# parameters and camera, to set them to somethng suitable for 2D games
+# regardless of what's in the scene).
+#
+# But it is useful to have OrthoViewpoint to simulate a view equal to the game
+# inside view3dscene (after pressing "Camera View 3D").
+# This way you can check some stuff (like picking with Ctrl + right click)
+# in view3dscene.
+#
+# Camera settings "encoded" in the VRML/X3D declaration below :
+# direction 0.65331709384918213 -0.13534675538539886 -0.74488800764083862
+# up 0.10390201956033707 0.99060958623886108 -0.088865414261817932
+# gravityUp 0 1 0
 OrthoViewpoint {
   fieldOfView [ 0 0 100 70 ]
+  position -56.464332580566406 14.83024787902832 54.536846160888672
+  orientation -0.16741843521595001 -0.98158168792724609 -0.092024557292461395 0.73368912935256958
   # zNear -1000
   # zFar 1000
 }

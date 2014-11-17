@@ -128,7 +128,7 @@ begin
     { show alternative camera view where it is clearly visible we are in 3D :) }
     { hint: to pick camera values experimentally, use view3dscene
       and Console->Print Current Camera.. menu item }
-    Pos := Vector3Single(8.8673858642578125, 1.2955703735351563, -19.951961517333984);
+    Pos := Vector3Single(-56.464332580566406, 14.83024787902832, 54.536846160888672);
     Dir := Vector3Single(0.6533171534538269, -0.13534677028656006, -0.7448880672454834);
     Up  := Vector3Single(0.10390207171440125, 0.99060958623886108, -0.088865458965301514);
   end;
