@@ -8,7 +8,7 @@
 BUILD=debug
 
 .PHONY: default
-default: data icons
+default: data
 	cd ../ && castle-engine compile --mode=release --os=android --cpu=arm
 	mkdir -p libs/armeabi/
 	cp -f ../code/libcastle_spine_android.so libs/armeabi/libcastle_spine_android.so
@@ -30,18 +30,3 @@ data:
 .PHONY: clean
 clean:
 	rm -Rf bin/ gen/ libs/ obj/ assets/ ../code/libcastle_spine_android.so
-
-# Autogenerate ic_launcher based on ../store-graphics/icon.png
-ICON_SOURCE:=../store-graphics/icon.png
-.PHONY: icons
-icons:
-	mkdir -p res/drawable-ldpi/ \
-	         res/drawable-mdpi/ \
-		 res/drawable-hdpi/ \
-		 res/drawable-xhdpi/ \
-		 res/drawable-xxhdpi/
-	convert $(ICON_SOURCE) -geometry 36x36   res/drawable-ldpi/ic_launcher.png
-	convert $(ICON_SOURCE) -geometry 48x48   res/drawable-mdpi/ic_launcher.png
-	convert $(ICON_SOURCE) -geometry 72x72   res/drawable-hdpi/ic_launcher.png
-	convert $(ICON_SOURCE) -geometry 96x96   res/drawable-xhdpi/ic_launcher.png
-	convert $(ICON_SOURCE) -geometry 144x144 res/drawable-xxhdpi/ic_launcher.png
