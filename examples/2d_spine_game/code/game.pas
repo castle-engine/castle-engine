@@ -149,9 +149,17 @@ var
   T: TVector3Single;
   Pos, Dir, Up: TVector3Single;
 begin
-  { do not mess Camera.AnimateTo by changing DragonTransform now,
-    or by calling Camera.SetView directly }
-  if SceneManager.Camera.Animation then
+  if { check SceneManager.Camera existence, because in this game
+       we just depend on SceneManager creating camera automatically,
+       so we should not depend that it exists early, like at 1st OnUpdate.
+       Alternatively, we could assign camera, e.g.
+       SceneManager.Camera := SceneManager.CreateDefaultCamera,
+       it ApplicationInitialize. }
+     (SceneManager.Camera = nil) or
+     { check SceneManager.Camera.Animation, to not mess in the middle
+       of Camera.AnimateTo (we could mess it by changing DragonTransform now
+       or by calling Camera.SetView directly) }
+     SceneManager.Camera.Animation then
     Exit;
 
   if DragonFlying then
