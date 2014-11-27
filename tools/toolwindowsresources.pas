@@ -20,93 +20,28 @@ unit ToolWindowsResources;
 
 interface
 
-uses CastleUtils, CastleStringUtils;
+uses CastleUtils, CastleStringUtils,
+  ToolUtils, ToolArchitectures;
 
-procedure GenerateWindowsResources(
-  const Path, Name, ExecutableName: string; Author: string; const Version: string;
-  const Icons: TCastleStringList);
+procedure GenerateWindowsResources(const ReplaceMacros: TReplaceMacros;
+  const Path: string; const Icons: TCastleStringList; const CPU: TCpu);
 
 implementation
 
 uses SysUtils,
-  CastleURIUtils, CastleWarnings,
-  ToolUtils;
+  CastleURIUtils, CastleWarnings, CastleFilesUtils;
 
-{ Make CamelCase with only safe characters (digits and letters). }
-function MakeCamelCase(S: string): string;
-var
-  I: Integer;
-begin
-  S := SReplaceChars(S, AllChars - ['a'..'z', 'A'..'Z', '0'..'9'], ' ');
-  Result := '';
-  for I := 1 to Length(S) do
-    if S[I] <> ' ' then
-      if (I > 1) and (S[I - 1] <> ' ') then
-        Result += S[I] else
-        Result += UpCase(S[I]);
-end;
-
-procedure GenerateWindowsResources(
-  const Path, Name, ExecutableName: string; Author: string; const Version: string;
-  const Icons: TCastleStringList);
-var
-  VersionComponents: array [0..3] of Cardinal;
-
-  function ReplaceMacros(const Source: string): string;
-  var
-    Patterns, Values: TCastleStringList;
-    I: Integer;
-    P: string;
-  begin
-    Patterns := nil;
-    Values := nil;
-    try
-      Patterns := TCastleStringList.Create;
-      Values := TCastleStringList.Create;
-      Patterns.Add('VERSION_MAJOR');   Values.Add(IntToStr(VersionComponents[0]));
-      Patterns.Add('VERSION_MINOR');   Values.Add(IntToStr(VersionComponents[1]));
-      Patterns.Add('VERSION_RELEASE'); Values.Add(IntToStr(VersionComponents[2]));
-      Patterns.Add('VERSION_BUILD');   Values.Add(IntToStr(VersionComponents[3]));
-      Patterns.Add('NAME');            Values.Add(Name);
-      Patterns.Add('AUTHOR');          Values.Add(Author);
-      Patterns.Add('EXECUTABLE_NAME'); Values.Add(ExecutableName);
-      // add CamelCase() replacements, add ${} around
-      for I := 0 to Patterns.Count - 1 do
-      begin
-        P := Patterns[I];
-        Patterns[I] := '${' + P + '}';
-        Patterns.Add('${CamelCase(' + P + ')}');
-        Values.Add(MakeCamelCase(Values[I]));
-      end;
-      Result := SReplacePatterns(Source, Patterns, Values, []);
-    finally
-      FreeAndNil(Patterns);
-      FreeAndNil(Values);
-    end;
-  end;
-
+procedure GenerateWindowsResources(const ReplaceMacros: TReplaceMacros;
+  const Path: string; const Icons: TCastleStringList; const CPU: TCpu);
 const
   RcTemplate = {$I templates/automatic-windows-resources.rc.inc};
   ManifestTemplate = {$I templates/automatic-windows.manifest.inc};
 var
   IcoPath, OutputRc, OutputManifest: string;
-  VersionComponentsString: TCastleStringList;
   I: Integer;
-  WindresOutput: string;
+  WindresOutput, WindresExe: string;
   WindresStatus: Integer;
 begin
-  { calculate version as 4 numbers, Windows resource/manifest stuff expect this }
-  VersionComponentsString := CreateTokens(Version, ['.']);
-  try
-    for I := 0 to High(VersionComponents) do
-      if I < VersionComponentsString.Count then
-        VersionComponents[I] := StrToIntDef(Trim(VersionComponentsString[I]), 0) else
-        VersionComponents[I] := 0;
-  finally FreeAndNil(VersionComponentsString) end;
-
-  if Author = '' then
-    Author := 'Unknown Author';
-
   OutputRc := ReplaceMacros(RcTemplate);
 
   IcoPath := '';
@@ -125,7 +60,16 @@ begin
   OutputManifest := ReplaceMacros(ManifestTemplate);
   StringToFile(InclPathDelim(Path) + 'automatic-windows.manifest', OutputManifest);
 
-  RunCommandIndirPassthrough(Path, 'windres',
+  WindresExe := PathFileSearch('windres');
+  if WindresExe = '' then
+    case CPU of
+      i386  : WindresExe := PathFileSearch('i586-mingw32msvc-windres');
+      x86_64: WindresExe := PathFileSearch('amd64-mingw32msvc-windres');
+    end;
+  if WindresExe = '' then
+    raise Exception.Create('Cannot find "windres" executable on $PATH. On Windows, it should be installed along with FPC (Free Pascal Compiler), so just make sure FPC is installed and available on $PATH. On Linux, "windres" is usually available as part of MinGW, so install the package named like "mingw*-binutils".');
+
+  RunCommandIndirPassthrough(Path, WindresExe,
     ['-i', 'automatic-windows-resources.rc', '-o', 'automatic-windows-resources.res'],
     WindresOutput, WindresStatus);
   if WindresStatus <> 0 then
@@ -133,4 +77,3 @@ begin
 end;
 
 end.
-

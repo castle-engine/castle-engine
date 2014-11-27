@@ -52,6 +52,7 @@ type
       Relative to ProjectPath. }
     function AndroidLibraryFile: string;
     property Version: string read FVersion;
+    function ReplaceMacros(const Source: string): string;
   public
     constructor Create;
     constructor Create(const Path: string);
@@ -333,8 +334,7 @@ begin
           raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
 
         if OS in AllWindowsOSes then
-          GenerateWindowsResources(ProjectPath, Name,
-            ExecutableName, Author, Version, Icons);
+          GenerateWindowsResources(@ReplaceMacros, ProjectPath, Icons, CPU);
 
         Compile(OS, CPU, Mode, ProjectPath, StandaloneSource);
 
@@ -638,6 +638,69 @@ begin
   TryDeleteFile('automatic-windows.manifest');
 
   Writeln('Deleted ', DeletedFiles, ' files');
+end;
+
+function TCastleProject.ReplaceMacros(const Source: string): string;
+
+  { Make CamelCase with only safe characters (digits and letters). }
+  function MakeCamelCase(S: string): string;
+  var
+    I: Integer;
+  begin
+    S := SReplaceChars(S, AllChars - ['a'..'z', 'A'..'Z', '0'..'9'], ' ');
+    Result := '';
+    for I := 1 to Length(S) do
+      if S[I] <> ' ' then
+        if (I > 1) and (S[I - 1] <> ' ') then
+          Result += S[I] else
+          Result += UpCase(S[I]);
+  end;
+
+var
+  Patterns, Values: TCastleStringList;
+  I: Integer;
+  P, NonEmptyAuthor: string;
+  VersionComponents: array [0..3] of Cardinal;
+  VersionComponentsString: TCastleStringList;
+begin
+  { calculate version as 4 numbers, Windows resource/manifest stuff expect this }
+  VersionComponentsString := CreateTokens(Version, ['.']);
+  try
+    for I := 0 to High(VersionComponents) do
+      if I < VersionComponentsString.Count then
+        VersionComponents[I] := StrToIntDef(Trim(VersionComponentsString[I]), 0) else
+        VersionComponents[I] := 0;
+  finally FreeAndNil(VersionComponentsString) end;
+
+  if Author = '' then
+    NonEmptyAuthor := 'Unknown Author' else
+    NonEmptyAuthor := Author;
+
+  Patterns := nil;
+  Values := nil;
+  try
+    Patterns := TCastleStringList.Create;
+    Values := TCastleStringList.Create;
+    Patterns.Add('VERSION_MAJOR');   Values.Add(IntToStr(VersionComponents[0]));
+    Patterns.Add('VERSION_MINOR');   Values.Add(IntToStr(VersionComponents[1]));
+    Patterns.Add('VERSION_RELEASE'); Values.Add(IntToStr(VersionComponents[2]));
+    Patterns.Add('VERSION_BUILD');   Values.Add(IntToStr(VersionComponents[3]));
+    Patterns.Add('NAME');            Values.Add(Name);
+    Patterns.Add('AUTHOR');          Values.Add(NonEmptyAuthor);
+    Patterns.Add('EXECUTABLE_NAME'); Values.Add(ExecutableName);
+    // add CamelCase() replacements, add ${} around
+    for I := 0 to Patterns.Count - 1 do
+    begin
+      P := Patterns[I];
+      Patterns[I] := '${' + P + '}';
+      Patterns.Add('${CamelCase(' + P + ')}');
+      Values.Add(MakeCamelCase(Values[I]));
+    end;
+    Result := SReplacePatterns(Source, Patterns, Values, []);
+  finally
+    FreeAndNil(Patterns);
+    FreeAndNil(Values);
+  end;
 end;
 
 { globals -------------------------------------------------------------------- }

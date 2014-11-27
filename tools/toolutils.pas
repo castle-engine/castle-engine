@@ -47,6 +47,9 @@ var
   { Trivial verbosity global setting. }
   Verbose: boolean;
 
+type
+  TReplaceMacros = function (const Source: string): string of object;
+
 implementation
 
 uses Classes, Process, SysUtils,
