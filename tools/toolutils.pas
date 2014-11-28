@@ -50,10 +50,12 @@ var
 type
   TReplaceMacros = function (const Source: string): string of object;
 
+function CreateTemporaryDir: string;
+
 implementation
 
 uses Classes, Process, SysUtils,
-  CastleFilesUtils;
+  CastleFilesUtils, CastleUtils;
 
 procedure SmartCopyFile(const Source, Dest: string);
 var
@@ -179,6 +181,15 @@ begin
       end;
     end;
   finally p.free end;
+end;
+
+function CreateTemporaryDir: string;
+begin
+  Result := InclPathDelim(GetTempDir(false)) +
+    ApplicationName + IntToStr(Random(1000000));
+  CheckForceDirectories(Result);
+  if Verbose then
+    Writeln('Created temporary dir for package: ' + Result);
 end;
 
 end.

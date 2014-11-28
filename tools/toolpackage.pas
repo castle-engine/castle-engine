@@ -59,14 +59,9 @@ uses SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
 constructor TPackageDirectory.Create(const ATopDirectoryName: string);
 begin
   inherited Create;
-
   FTopDirectoryName := ATopDirectoryName;
 
-  TemporaryDir := InclPathDelim(GetTempDir(false)) +
-    ApplicationName + IntToStr(Random(1000000));
-  CheckForceDirectories(TemporaryDir);
-  if Verbose then
-    Writeln('Created temporary dir for package: ' + TemporaryDir);
+  TemporaryDir := CreateTemporaryDir;
 
   FPath := InclPathDelim(TemporaryDir) + TopDirectoryName;
   CheckForceDirectories(FPath);
@@ -128,7 +123,7 @@ begin
     S_IRGRP or            S_IXGRP or
     S_IROTH or            S_IXOTH);
   {$else}
-  OnWarning(wtMajor, 'Package', 'Packaging for a platform where UNIX permissions matter, but we cannot set "chmod" on this platform. This usually means that you package for Unix from Windows, and means that "executable" bit inside binary in tar.gz archive may not be set --- archive');
+  OnWarning(wtMajor, 'Package', 'Packaging for a platform where UNIX permissions matter, but we cannot set "chmod" on this platform. This usually means that you package for Unix from Windows, and means that "executable" bit inside binary in tar.gz archive may not be set --- archive may not be 100% comfortable for Unix users');
   {$endif}
 end;
 

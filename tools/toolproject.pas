@@ -79,7 +79,7 @@ implementation
 
 uses StrUtils, DOM, Process, Classes,
   CastleURIUtils, CastleXMLUtils, CastleWarnings, CastleFilesUtils,
-  ToolUtils, ToolPackage, ToolWindowsResources;
+  ToolUtils, ToolPackage, ToolWindowsResources, ToolAndroidPackage;
 
 { TCastleProject ------------------------------------------------------------- }
 
@@ -396,6 +396,13 @@ var
 begin
   Writeln(Format('Packaging project "%s" for OS "%s" and CPU "%s".',
     [Name, OSToString(OS), CPUToString(CPU)]));
+
+  { for Android, the packaging process is special }
+  if OS = Android then
+  begin
+    CreateAndroidPackage(@ReplaceMacros{, Path, Icons});
+    Exit;
+  end;
 
   ExecutableNameExt := '';
 

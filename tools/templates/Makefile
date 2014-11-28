@@ -2,14 +2,16 @@
 # that I made for pasdoc [http://pasdoc.sf.net/] project, see
 # [https://pasdoc.svn.sourceforge.net/svnroot/pasdoc/trunk/source/tools/file_to_pascal_string.dpr]
 
-ALL_TARGETS := automatic-windows-resources.rc.inc automatic-windows.manifest.inc
+ALL_TARGETS := \
+  windows/automatic-windows-resources.rc.inc \
+  windows/automatic-windows.manifest.inc \
+  android/AndroidManifest.xml.inc \
+  android/res/values/strings.xml.inc
 
 default: $(ALL_TARGETS)
 
 clean:
 	rm -f $(ALL_TARGETS)
 
-automatic-windows-resources.rc.inc: automatic-windows-resources.rc
-	file_to_pascal_string $< $@
-automatic-windows.manifest.inc: automatic-windows.manifest
+%.inc: %
 	file_to_pascal_string $< $@

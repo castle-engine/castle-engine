@@ -34,8 +34,8 @@ uses SysUtils,
 procedure GenerateWindowsResources(const ReplaceMacros: TReplaceMacros;
   const Path: string; const Icons: TCastleStringList; const CPU: TCpu);
 const
-  RcTemplate = {$I templates/automatic-windows-resources.rc.inc};
-  ManifestTemplate = {$I templates/automatic-windows.manifest.inc};
+  RcTemplate = {$I templates/windows/automatic-windows-resources.rc.inc};
+  ManifestTemplate = {$I templates/windows/automatic-windows.manifest.inc};
 var
   IcoPath, OutputRc, OutputManifest: string;
   I: Integer;
@@ -60,11 +60,11 @@ begin
   OutputManifest := ReplaceMacros(ManifestTemplate);
   StringToFile(InclPathDelim(Path) + 'automatic-windows.manifest', OutputManifest);
 
-  WindresExe := PathFileSearch('windres');
+  WindresExe := PathFileSearch('windres' + ExeExtension);
   if WindresExe = '' then
     case CPU of
-      i386  : WindresExe := PathFileSearch('i586-mingw32msvc-windres');
-      x86_64: WindresExe := PathFileSearch('amd64-mingw32msvc-windres');
+      i386  : WindresExe := PathFileSearch('i586-mingw32msvc-windres' + ExeExtension);
+      x86_64: WindresExe := PathFileSearch('amd64-mingw32msvc-windres' + ExeExtension);
     end;
   if WindresExe = '' then
     raise Exception.Create('Cannot find "windres" executable on $PATH. On Windows, it should be installed along with FPC (Free Pascal Compiler), so just make sure FPC is installed and available on $PATH. On Linux, "windres" is usually available as part of MinGW, so install the package named like "mingw*-binutils".');
