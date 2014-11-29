@@ -63,7 +63,8 @@ begin
   if AndroidStatus <> 0 then
     raise Exception.Create('"android" call failed, cannot create Android apk. Inspect above error messages, and make sure Android SDK is installed correctly. Make sure that target "android-8" (Android 2.2., API 8) is installed.');
 
-  // TODO: RemoveNonEmptyDir(AndroidProjectPath);
+  if not LeaveTemp then
+    RemoveNonEmptyDir(AndroidProjectPath);
 end;
 
 end.

@@ -39,7 +39,7 @@ const
 var
   IcoPath, OutputRc, OutputManifest: string;
   I: Integer;
-  WindresOutput, WindresExe: string;
+  WindresOutput, WindresExe, RcFilename, ManifestFilename: string;
   WindresStatus: Integer;
 begin
   OutputRc := ReplaceMacros(RcTemplate);
@@ -55,10 +55,12 @@ begin
     OutputRc := 'MainIcon ICON "' + IcoPath + '"' + NL + OutputRc else
     OnWarning(wtMinor, 'Windows Resources', 'Icon in format suitable for Windows (.ico) not found. Exe file will not have icon.');
 
-  StringToFile(InclPathDelim(Path) + 'automatic-windows-resources.rc', OutputRc);
+  RcFilename := InclPathDelim(Path) + 'automatic-windows-resources.rc';
+  StringToFile(RcFilename, OutputRc);
 
+  ManifestFilename := InclPathDelim(Path) + 'automatic-windows.manifest';
   OutputManifest := ReplaceMacros(ManifestTemplate);
-  StringToFile(InclPathDelim(Path) + 'automatic-windows.manifest', OutputManifest);
+  StringToFile(ManifestFilename, OutputManifest);
 
   WindresExe := PathFileSearch('windres' + ExeExtension);
   if WindresExe = '' then
@@ -74,6 +76,12 @@ begin
     WindresOutput, WindresStatus);
   if WindresStatus <> 0 then
     raise Exception.Create('windres failed, cannot create Windows resource');
+
+  if not LeaveTemp then
+  begin
+    CheckDeleteFile(RcFilename);
+    CheckDeleteFile(ManifestFilename);
+  end;
 end;
 
 end.

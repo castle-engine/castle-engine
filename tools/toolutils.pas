@@ -45,7 +45,9 @@ procedure RunCommandIndirPassthrough(
 
 var
   { Trivial verbosity global setting. }
-  Verbose: boolean;
+  Verbose: boolean = false;
+  { Leave created temporary files. }
+  LeaveTemp: boolean = false;
 
 type
   TReplaceMacros = function (const Source: string): string of object;

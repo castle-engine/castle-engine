@@ -33,7 +33,7 @@ var
 
 const
   Version = '5.0.0'; //< When updating this, remember to also update version in ../fpmake.pp
-  Options: array [0..6] of TOption =
+  Options: array [0..7] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -41,7 +41,8 @@ const
     (Short: #0 ; Long: 'cpu'; Argument: oaRequired),
     (Short: 'V'; Long: 'verbose'; Argument: oaNone),
     (Short: #0 ; Long: 'mode'; Argument: oaRequired),
-    (Short: #0 ; Long: 'assume-compiled'; Argument: oaNone)
+    (Short: #0 ; Long: 'assume-compiled'; Argument: oaNone),
+    (Short: #0 ; Long: 'leave-temp'; Argument: oaNone)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -85,6 +86,9 @@ begin
           '                        before "package". Instead assume that compiled' +NL+
           '                        executable for given OS/CPU/mode' +NL+
           '                        is already present in the package directory.' +NL+
+          '  --leave-temp          Do not remove temporary files,' +NL+
+          '                        e.g. temporary Android package or Windows rc/manifest files.' +NL+
+          '                        Useful if you want to use them as basis for your customizations.' +NL+
           OSOptionHelp +
           CPUOptionHelp +
           NL+
@@ -100,6 +104,7 @@ begin
     4:Verbose := true;
     5:Mode := StringToMode(Argument);
     6:AssumeCompiled := true;
+    7:LeaveTemp := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
