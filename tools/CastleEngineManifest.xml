@@ -4,5 +4,5 @@
   <icons>
     <icon path="icon.ico"/>
   </icons>
-  <version name="5.0.0" />
+  <version value="5.0.0" code="1" />
 </project>

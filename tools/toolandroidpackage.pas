@@ -24,7 +24,7 @@ uses CastleUtils, CastleStringUtils,
 procedure CreateAndroidPackage(const ReplaceMacros: TReplaceMacros;
   const Icons: TIconFileNames; const DataPath: string;
   const Files: TCastleStringList;
-  const AndroidLibrarySubdir, AndroidLibrary: string);
+  const AndroidLibrarySubdir, AndroidLibrary, OutputPath: string);
 
 implementation
 
@@ -35,15 +35,16 @@ uses SysUtils,
 procedure CreateAndroidPackage(const ReplaceMacros: TReplaceMacros;
   const Icons: TIconFileNames; const DataPath: string;
   const Files: TCastleStringList;
-  const AndroidLibrarySubdir, AndroidLibrary: string);
+  const AndroidLibrarySubdir, AndroidLibrary, OutputPath: string);
 var
   AndroidProjectPath: string;
 
-  { Generate simple XML stuff for Android project. }
-  procedure GenerateXML;
+  { Generate simple text stuff for Android project from templates. }
+  procedure GenerateFromTemplates;
   const
     AndroidManifestTemplate = {$I templates/android/AndroidManifest.xml.inc};
     StringsTemplate = {$I templates/android/res/values/strings.xml.inc};
+    AndroidMkTemplate = {$I templates/android/jni/Android.mk.inc};
   begin
     StringToFile(AndroidProjectPath + 'AndroidManifest.xml',
       ReplaceMacros(AndroidManifestTemplate));
@@ -52,6 +53,10 @@ var
     StringToFile(AndroidProjectPath +
       'res' + PathDelim + 'values' + PathDelim + 'strings.xml',
       ReplaceMacros(StringsTemplate));
+
+    CheckForceDirectories(AndroidProjectPath + 'jni');
+    StringToFile(AndroidProjectPath + 'jni' + PathDelim + 'Android.mk',
+      ReplaceMacros(AndroidMkTemplate));
   end;
 
   procedure GenerateIcons;
@@ -113,13 +118,15 @@ var
       AndroidProjectPath + 'jni' + PathDelim + AndroidLibrary);
   end;
 
+const
+  AndroidTarget = 'android-19';
 var
-  AndroidOutput, AndroidExe: string;
-  AndroidStatus: Integer;
+  ProcessOutput, AndroidExe: string;
+  ProcessStatus: Integer;
 begin
   AndroidProjectPath := InclPathDelim(CreateTemporaryDir);
 
-  GenerateXML;
+  GenerateFromTemplates;
   GenerateIcons;
   GenerateAssets;
   GenerateLibrary;
@@ -132,12 +139,25 @@ begin
     AndroidExe := PathFileSearch('android'  + ExeExtension, false);
   if AndroidExe = '' then
     raise Exception.Create('Cannot find "android" executable on $PATH, or within $ANDROID_HOME. Install Android SDK and make sure that "android" executable is on $PATH, or that $ANDROID_HOME environment variable is set correctly.');
-
   RunCommandIndirPassthrough(AndroidProjectPath, AndroidExe,
-    ['update', 'lib-project', '--path', '.', '--target', 'android-8'],
-    AndroidOutput, AndroidStatus);
-  if AndroidStatus <> 0 then
-    raise Exception.Create('"android" call failed, cannot create Android apk. Inspect above error messages, and make sure Android SDK is installed correctly. Make sure that target "android-8" (Android 2.2., API 8) is installed.');
+    ['update', 'lib-project', '--path', '.', '--target', AndroidTarget],
+    ProcessOutput, ProcessStatus);
+  if ProcessStatus <> 0 then
+    raise Exception.Create('"android" call failed, cannot create Android apk. Inspect above error messages, and make sure Android SDK is installed correctly. Make sure that target "' + AndroidTarget + '" is installed.');
+
+  RunCommandIndirPassthrough(AndroidProjectPath, 'ndk-build', [],
+    ProcessOutput, ProcessStatus, 'NDK_DEBUG', '1');
+  if ProcessStatus <> 0 then
+    raise Exception.Create('"ndk-build" call failed, cannot create Android apk');
+
+  RunCommandIndirPassthrough(AndroidProjectPath, 'ant', ['debug'],
+    ProcessOutput, ProcessStatus);
+  if ProcessStatus <> 0 then
+    raise Exception.Create('"ant" call failed, cannot create Android apk');
+
+  CheckRenameFile(AndroidProjectPath +
+    'bin' + PathDelim + 'NativeActivity-debug.apk',
+    OutputPath + PathDelim + 'NativeActivity-debug.apk');
 
   if not LeaveTemp then
     RemoveNonEmptyDir(AndroidProjectPath);

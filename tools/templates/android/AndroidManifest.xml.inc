@@ -4,7 +4,7 @@
 '<manifest xmlns:android="http://schemas.android.com/apk/res/android"' + LineEnding +
 '    package="${QUALIFIED_NAME}"' + LineEnding +
 '    android:versionCode="${VERSION_CODE}"' + LineEnding +
-'    android:versionName="${VERSION_NAME}">' + LineEnding +
+'    android:versionName="${VERSION}">' + LineEnding +
 '' + LineEnding +
 '    <!-- See http://developer.android.com/reference/android/app/NativeActivity.html' + LineEnding +
 '      for example manifest using NativeActivity.' + LineEnding +

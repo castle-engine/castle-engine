@@ -39,11 +39,16 @@ procedure MyRunCommandIndir(
 
 { Run command in given directory with given arguments,
   gathering output and status to string, and also letting output
-  to go to our output. }
+  to go to our output.
+
+  It also allows to override a specific environment variable,
+  when OverrideEnvironmentName not empty. }
 procedure RunCommandIndirPassthrough(
   const curdir:string; const exename:string;
   const commands:array of string;
-  var outputstring:string; var exitstatus:integer);
+  var outputstring:string; var exitstatus:integer;
+  const OverrideEnvironmentName: string = '';
+  const OverrideEnvironmentValue: string = '');
 
 var
   { Trivial verbosity global setting. }
@@ -150,7 +155,9 @@ begin
   finally p.free end;
 end;
 
-procedure RunCommandIndirPassthrough(const curdir:string;const exename:string;const commands:array of string;var outputstring:string;var exitstatus:integer);
+procedure RunCommandIndirPassthrough(const curdir:string;const exename:string;const commands:array of string;var outputstring:string;var exitstatus:integer;
+  const OverrideEnvironmentName: string = '';
+  const OverrideEnvironmentValue: string = '');
 { Adjusted from fpc/trunk/packages/fcl-process/src/process.pp }
 Const
   READ_BYTES = 65536; // not too small to avoid fragmentation when reading large files.
@@ -158,6 +165,7 @@ var
   p : TProcess;
   i : integer;
   numbytes,bytesread : integer;
+  NewEnvironment: TStringList;
 begin
   p:=TProcess.create(nil);
   p.Executable:=exename;
@@ -167,7 +175,18 @@ begin
    for i:=low(commands) to high(commands) do
      p.Parameters.add(commands[i]);
 
+  NewEnvironment := nil;
   try
+    if OverrideEnvironmentName <> '' then
+    begin
+      NewEnvironment := TStringList.Create;
+      for I := 1 to GetEnvironmentVariableCount do
+        NewEnvironment.Values[GetEnvironmentString(I)] :=
+          GetEnvironmentVariable(GetEnvironmentString(I));
+      NewEnvironment.Values[OverrideEnvironmentName] := OverrideEnvironmentValue;
+      P.Environment := NewEnvironment;
+    end;
+
     try
       p.Options := [poUsePipes, poStderrToOutPut];
       bytesread := 0;
@@ -197,7 +216,10 @@ begin
         raise;
       end;
     end;
-  finally p.free end;
+  finally
+    FreeAndNil(p);
+    FreeAndNil(NewEnvironment);
+  end;
 end;
 
 function CreateTemporaryDir: string;

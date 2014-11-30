@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="${QUALIFIED_NAME}"
     android:versionCode="${VERSION_CODE}"
-    android:versionName="${VERSION_NAME}">
+    android:versionName="${VERSION}">
 
     <!-- See http://developer.android.com/reference/android/app/NativeActivity.html
       for example manifest using NativeActivity.

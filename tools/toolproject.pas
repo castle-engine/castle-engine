@@ -29,7 +29,7 @@ type
   TCastleProject = class
   private
     FDependencies: TDependencies;
-    FName, FExecutableName, FAuthor: string;
+    FName, FExecutableName, FQualifiedName, FAuthor, FCaption: string;
     GatheringFilesVsData: boolean; //< only for GatherFile
     GatheringFiles: TCastleStringList; //< only for GatherFile
     ManifestFile, ProjectPath, DataPath: string;
@@ -39,6 +39,8 @@ type
     FStandaloneSource, FAndroidSource: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
     FVersion: string;
+    FVersionCode: Cardinal;
+
     procedure GatherFile(const FileInfo: TFileInfo);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
     procedure FoundTtf(const FileInfo: TFileInfo);
@@ -54,7 +56,6 @@ type
       Relative to ProjectPath if Subdir = true, otherwise this is only
       a name without any directory part. }
     function AndroidLibraryFile(const Subdir: boolean): string;
-    property Version: string read FVersion;
     function ReplaceMacros(const Source: string): string;
     { Add platform-independent files that should be included in package,
       remove files that should be excluded.
@@ -63,17 +64,20 @@ type
       Otherwise, takes more files,
       and assumes that Files are (and will be) URLs relative to ProjectPath. }
     procedure PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
-  public
-    constructor Create;
-    constructor Create(const Path: string);
-    destructor Destroy; override;
 
+    property Version: string read FVersion;
+    property QualifiedName: string read FQualifiedName;
     property Dependencies: TDependencies read FDependencies;
     property Name: string read FName;
+    property Caption: string read FCaption;
     property Author: string read FAuthor;
     property ExecutableName: string read FExecutableName;
     property StandaloneSource: string read FStandaloneSource;
     property AndroidSource: string read FAndroidSource;
+  public
+    constructor Create;
+    constructor Create(const Path: string);
+    destructor Destroy; override;
 
     procedure DoCreateManifest;
     procedure DoCompile(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
@@ -127,6 +131,8 @@ constructor TCastleProject.Create(const Path: string);
       Writeln('Manifest file not found: ' + ManifestFile);
       Writeln('Guessing project values. Use create-manifest command to write these guesses into new CastleEngineManifest.xml');
       FName := ExtractFileName(ExtractFileDir(ManifestFile));
+      FCaption := FName;
+      FQualifiedName := FName;
       FExecutableName := FName;
       FStandaloneSource := FName + '.lpr';
       Icons.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
@@ -153,6 +159,8 @@ constructor TCastleProject.Create(const Path: string);
         Check(Doc.DocumentElement.TagName = 'project',
           'Root node of CastleEngineManifest.xml must be <project>');
         FName := Doc.DocumentElement.AttributeString('name');
+        FCaption := Doc.DocumentElement.AttributeStringDef('caption', FName);
+        FQualifiedName := Doc.DocumentElement.AttributeStringDef('qualified_name', FName);
         FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
         FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
         FAndroidSource := Doc.DocumentElement.AttributeStringDef('android_source', '');
@@ -160,7 +168,10 @@ constructor TCastleProject.Create(const Path: string);
 
         Element := DOMGetChildElement(Doc.DocumentElement, 'version', false);
         if Element <> nil then
-          FVersion := Element.AttributeString('name');
+        begin
+          FVersion := Element.AttributeString('value');
+          FVersionCode := Element.AttributeCardinalDef('code', 0);
+        end;
 
         Element := DOMGetChildElement(Doc.DocumentElement, 'dependencies', false);
         if Element <> nil then
@@ -453,7 +464,7 @@ begin
       PackageFiles(Files, true);
       CreateAndroidPackage(@ReplaceMacros, Icons, DataPath, Files,
         ProjectPath + AndroidLibraryFile(true),
-        AndroidLibraryFile(false));
+        AndroidLibraryFile(false), ProjectPath);
     finally FreeAndNil(Files) end;
     Exit;
   end;
@@ -730,7 +741,11 @@ begin
     Patterns.Add('VERSION_MINOR');   Values.Add(IntToStr(VersionComponents[1]));
     Patterns.Add('VERSION_RELEASE'); Values.Add(IntToStr(VersionComponents[2]));
     Patterns.Add('VERSION_BUILD');   Values.Add(IntToStr(VersionComponents[3]));
+    Patterns.Add('VERSION');         Values.Add(Version);
+    Patterns.Add('VERSION_CODE');    Values.Add(IntToStr(FVersionCode));
     Patterns.Add('NAME');            Values.Add(Name);
+    Patterns.Add('QUALIFIED_NAME');  Values.Add(QualifiedName);
+    Patterns.Add('CAPTION');         Values.Add(Caption);
     Patterns.Add('AUTHOR');          Values.Add(NonEmptyAuthor);
     Patterns.Add('EXECUTABLE_NAME'); Values.Add(ExecutableName);
     Patterns.Add('ANDROID_LIBRARY_NAME'); Values.Add(ChangeFileExt(ExtractFileName(AndroidSource), ''));
