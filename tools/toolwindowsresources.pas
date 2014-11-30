@@ -24,7 +24,7 @@ uses CastleUtils, CastleStringUtils,
   ToolUtils, ToolArchitectures;
 
 procedure GenerateWindowsResources(const ReplaceMacros: TReplaceMacros;
-  const Path: string; const Icons: TCastleStringList; const CPU: TCpu);
+  const Path: string; const Icons: TIconFileNames; const CPU: TCpu);
 
 implementation
 
@@ -32,25 +32,18 @@ uses SysUtils,
   CastleURIUtils, CastleWarnings, CastleFilesUtils;
 
 procedure GenerateWindowsResources(const ReplaceMacros: TReplaceMacros;
-  const Path: string; const Icons: TCastleStringList; const CPU: TCpu);
+  const Path: string; const Icons: TIconFileNames; const CPU: TCpu);
 const
   RcTemplate = {$I templates/windows/automatic-windows-resources.rc.inc};
   ManifestTemplate = {$I templates/windows/automatic-windows.manifest.inc};
 var
   IcoPath, OutputRc, OutputManifest: string;
-  I: Integer;
   WindresOutput, WindresExe, RcFilename, ManifestFilename: string;
   WindresStatus: Integer;
 begin
   OutputRc := ReplaceMacros(RcTemplate);
 
-  IcoPath := '';
-  for I := 0 to Icons.Count - 1 do
-    if ExtractFileExt(Icons[I]) = '.ico' then
-    begin
-      IcoPath := Icons[I];
-      Break;
-    end;
+  IcoPath := Icons.FindExtension(['.ico']);
   if IcoPath <> '' then
     OutputRc := 'MainIcon ICON "' + IcoPath + '"' + NL + OutputRc else
     OnWarning(wtMinor, 'Windows Resources', 'Icon in format suitable for Windows (.ico) not found. Exe file will not have icon.');

@@ -21,24 +21,67 @@ interface
 uses CastleUtils, CastleStringUtils,
   ToolUtils, ToolArchitectures;
 
-procedure CreateAndroidPackage(const ReplaceMacros: TReplaceMacros{;
-  const Path: string; const Icons: TCastleStringList});
+procedure CreateAndroidPackage(const ReplaceMacros: TReplaceMacros;
+  const Icons: TIconFileNames);
 
 implementation
 
 uses SysUtils,
-  CastleURIUtils, CastleWarnings, CastleFilesUtils;
+  CastleURIUtils, CastleWarnings, CastleFilesUtils, CastleImages,
+  ToolEmbeddedImages;
 
-procedure CreateAndroidPackage(const ReplaceMacros: TReplaceMacros{;
-  const Path: string; const Icons: TCastleStringList});
+procedure CreateAndroidPackage(const ReplaceMacros: TReplaceMacros;
+  const Icons: TIconFileNames);
+var
+  AndroidProjectPath: string;
+
+  procedure GenerateIcons;
+  var
+    Icon: TCastleImage;
+
+    procedure SaveResized(const Size: Integer; const S: string);
+    var
+      R: TCastleImage;
+      Dir: string;
+    begin
+      R := Icon.MakeResized(Size, Size, riBilinear);
+      try
+        Dir := AndroidProjectPath + 'res' + PathDelim + 'drawable-' + S + 'dpi';
+        CheckForceDirectories(Dir);
+        SaveImage(R, FilenameToURISafe(Dir + PathDelim + 'ic_launcher.png'));
+      finally FreeAndNil(R) end;
+    end;
+
+  begin
+    Icon := Icons.FindReadable;
+    if Icon = nil then
+    begin
+      OnWarning(wtMinor, 'Icon', 'No icon in a format readable by our engine (for example, png or jpg) is specified in CastleEngineManifest.xml. Using default icon.');
+      Icon := DefaultIcon;
+    end;
+    try
+      SaveResized(36, 'l');
+      SaveResized(48, 'm');
+      SaveResized(72, 'h');
+      SaveResized(96, 'xh');
+      SaveResized(144, 'xxh');
+    finally
+      if Icon = DefaultIcon then
+        Icon := nil else
+        FreeAndNil(Icon);
+    end;
+  end;
+
 const
   AndroidManifestTemplate = {$I templates/android/AndroidManifest.xml.inc};
   StringsTemplate = {$I templates/android/res/values/strings.xml.inc};
 var
-  AndroidOutput, AndroidExe, AndroidProjectPath: string;
+  AndroidOutput, AndroidExe: string;
   AndroidStatus: Integer;
 begin
   AndroidProjectPath := InclPathDelim(CreateTemporaryDir);
+
+  GenerateIcons;
 
   StringToFile(InclPathDelim(AndroidProjectPath) + 'AndroidManifest.xml',
     ReplaceMacros(AndroidManifestTemplate));

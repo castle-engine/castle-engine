@@ -20,6 +20,8 @@ unit ToolUtils;
 
 interface
 
+uses CastleImages, CastleStringUtils;
+
 { Copy file, making sure the destination directory exists
   (eventually creating it), and checking result. }
 procedure SmartCopyFile(const Source, Dest: string);
@@ -54,10 +56,23 @@ type
 
 function CreateTemporaryDir: string;
 
+type
+  TIconFileNames = class(TCastleStringList)
+  private
+    FBaseUrl: string;
+  public
+    property BaseUrl: string read FBaseUrl write FBaseUrl;
+    { Find image with given extension, or '' if not found. }
+    function FindExtension(const Extensions: array of string): string;
+    { Find and read an image format that we can process with our CastleImages.
+      @nil if not found. }
+    function FindReadable: TCastleImage;
+  end;
+
 implementation
 
 uses Classes, Process, SysUtils,
-  CastleFilesUtils, CastleUtils;
+  CastleFilesUtils, CastleUtils, CastleURIUtils;
 
 procedure SmartCopyFile(const Source, Dest: string);
 var
@@ -192,6 +207,35 @@ begin
   CheckForceDirectories(Result);
   if Verbose then
     Writeln('Created temporary dir for package: ' + Result);
+end;
+
+{ TIconFileNames ------------------------------------------------------------- }
+
+function TIconFileNames.FindExtension(const Extensions: array of string): string;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := 0 to Count - 1 do
+    if AnsiSameText(ExtractFileExt(Strings[I]), '.ico') then
+      Exit(Strings[I]);
+end;
+
+function TIconFileNames.FindReadable: TCastleImage;
+var
+  I: Integer;
+  MimeType, URL: string;
+  ImageFormat: TImageFormat;
+begin
+  for I := 0 to Count - 1 do
+  begin
+    URL := CombineURI(BaseUrl, Strings[I]);
+    MimeType := URIMimeType(URL);
+    if (MimeType <> '') and
+       MimeTypeToImageFormat(MimeType, true, false, ImageFormat) then
+      Exit(LoadImage(URL));
+  end;
+  Result := nil;
 end;
 
 end.

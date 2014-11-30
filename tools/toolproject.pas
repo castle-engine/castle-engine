@@ -20,7 +20,7 @@ interface
 
 uses SysUtils,
   CastleFindFiles, CastleStringUtils, CastleUtils,
-  ToolArchitectures, ToolCompile;
+  ToolArchitectures, ToolCompile, ToolUtils;
 
 type
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis);
@@ -32,7 +32,8 @@ type
     FName, FExecutableName, FAuthor: string;
     GatheringFiles: TCastleStringList; //< only for GatherFile
     ManifestFile, ProjectPath, DataPath: string;
-    IncludePaths, ExcludePaths, Icons: TCastleStringList;
+    IncludePaths, ExcludePaths: TCastleStringList;
+    Icons: TIconFileNames;
     IncludePathsRecursive: TBooleanList;
     FStandaloneSource, FAndroidSource: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
@@ -79,7 +80,7 @@ implementation
 
 uses StrUtils, DOM, Process, Classes,
   CastleURIUtils, CastleXMLUtils, CastleWarnings, CastleFilesUtils,
-  ToolUtils, ToolPackage, ToolWindowsResources, ToolAndroidPackage;
+  ToolPackage, ToolWindowsResources, ToolAndroidPackage;
 
 { TCastleProject ------------------------------------------------------------- }
 
@@ -119,6 +120,7 @@ constructor TCastleProject.Create(const Path: string);
       FName := ExtractFileName(ExtractFileDir(ManifestFile));
       FExecutableName := FName;
       FStandaloneSource := FName + '.lpr';
+      Icons.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
     end;
 
   var
@@ -135,6 +137,7 @@ constructor TCastleProject.Create(const Path: string);
       if Verbose then
         Writeln('Manifest file found: ' + ManifestFile);
       ManifestURL := FilenameToURISafe(ManifestFile);
+      Icons.BaseUrl := ManifestURL;
 
       try
         URLReadXML(Doc, ManifestURL);
@@ -240,7 +243,7 @@ begin
   IncludePathsRecursive := TBooleanList.Create;
   ExcludePaths := TCastleStringList.Create;
   FDependencies := [];
-  Icons := TCastleStringList.Create;
+  Icons := TIconFileNames.Create;
 
   ProjectPath := InclPathDelim(Path);
   DataPath := InclPathDelim(ProjectPath + DataName);
@@ -400,7 +403,7 @@ begin
   { for Android, the packaging process is special }
   if OS = Android then
   begin
-    CreateAndroidPackage(@ReplaceMacros{, Path, Icons});
+    CreateAndroidPackage(@ReplaceMacros, Icons);
     Exit;
   end;
 
