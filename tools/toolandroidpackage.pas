@@ -22,7 +22,9 @@ uses CastleUtils, CastleStringUtils,
   ToolUtils, ToolArchitectures;
 
 procedure CreateAndroidPackage(const ReplaceMacros: TReplaceMacros;
-  const Icons: TIconFileNames);
+  const Icons: TIconFileNames; const DataPath: string;
+  const Files: TCastleStringList;
+  const AndroidLibrarySubdir, AndroidLibrary: string);
 
 implementation
 
@@ -31,9 +33,26 @@ uses SysUtils,
   ToolEmbeddedImages;
 
 procedure CreateAndroidPackage(const ReplaceMacros: TReplaceMacros;
-  const Icons: TIconFileNames);
+  const Icons: TIconFileNames; const DataPath: string;
+  const Files: TCastleStringList;
+  const AndroidLibrarySubdir, AndroidLibrary: string);
 var
   AndroidProjectPath: string;
+
+  { Generate simple XML stuff for Android project. }
+  procedure GenerateXML;
+  const
+    AndroidManifestTemplate = {$I templates/android/AndroidManifest.xml.inc};
+    StringsTemplate = {$I templates/android/res/values/strings.xml.inc};
+  begin
+    StringToFile(AndroidProjectPath + 'AndroidManifest.xml',
+      ReplaceMacros(AndroidManifestTemplate));
+
+    CheckForceDirectories(AndroidProjectPath + 'res' + PathDelim + 'values');
+    StringToFile(AndroidProjectPath +
+      'res' + PathDelim + 'values' + PathDelim + 'strings.xml',
+      ReplaceMacros(StringsTemplate));
+  end;
 
   procedure GenerateIcons;
   var
@@ -72,24 +91,38 @@ var
     end;
   end;
 
-const
-  AndroidManifestTemplate = {$I templates/android/AndroidManifest.xml.inc};
-  StringsTemplate = {$I templates/android/res/values/strings.xml.inc};
+  procedure GenerateAssets;
+  var
+    I: Integer;
+    FileFrom, FileTo: string;
+  begin
+    CheckForceDirectories(AndroidProjectPath + 'assets');
+    for I := 0 to Files.Count - 1 do
+    begin
+      FileFrom := DataPath + Files[I];
+      FileTo := AndroidProjectPath + 'assets' + PathDelim + Files[I];
+      SmartCopyFile(FileFrom, FileTo);
+      if Verbose then
+        Writeln('Package file: ' + Files[I]);
+    end;
+  end;
+
+  procedure GenerateLibrary;
+  begin
+    SmartCopyFile(AndroidLibrarySubdir,
+      AndroidProjectPath + 'jni' + PathDelim + AndroidLibrary);
+  end;
+
 var
   AndroidOutput, AndroidExe: string;
   AndroidStatus: Integer;
 begin
   AndroidProjectPath := InclPathDelim(CreateTemporaryDir);
 
+  GenerateXML;
   GenerateIcons;
-
-  StringToFile(InclPathDelim(AndroidProjectPath) + 'AndroidManifest.xml',
-    ReplaceMacros(AndroidManifestTemplate));
-
-  CheckForceDirectories(AndroidProjectPath + 'res' + PathDelim + 'values');
-  StringToFile(InclPathDelim(AndroidProjectPath) +
-    'res' + PathDelim + 'values' + PathDelim + 'strings.xml',
-    ReplaceMacros(StringsTemplate));
+  GenerateAssets;
+  GenerateLibrary;
 
   { try to find "android" tool in $ANDROID_HOME }
   AndroidExe := InclPathDelim(GetEnvironmentVariable('ANDROID_HOME')) +

@@ -30,6 +30,7 @@ type
   private
     FDependencies: TDependencies;
     FName, FExecutableName, FAuthor: string;
+    GatheringFilesVsData: boolean; //< only for GatherFile
     GatheringFiles: TCastleStringList; //< only for GatherFile
     ManifestFile, ProjectPath, DataPath: string;
     IncludePaths, ExcludePaths: TCastleStringList;
@@ -50,10 +51,18 @@ type
     function SourcePackageName: string;
     { Output Android library resulting from compilation.
       Use only if AndroidSource <> ''.
-      Relative to ProjectPath. }
-    function AndroidLibraryFile: string;
+      Relative to ProjectPath if Subdir = true, otherwise this is only
+      a name without any directory part. }
+    function AndroidLibraryFile(const Subdir: boolean): string;
     property Version: string read FVersion;
     function ReplaceMacros(const Source: string): string;
+    { Add platform-independent files that should be included in package,
+      remove files that should be excluded.
+      If OnlyData, then only takes stuff inside DataPath,
+      and assumes that Files are (and will be) URLs relative to DataPath.
+      Otherwise, takes more files,
+      and assumes that Files are (and will be) URLs relative to ProjectPath. }
+    procedure PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
   public
     constructor Create;
     constructor Create(const Path: string);
@@ -298,8 +307,13 @@ begin
 end;
 
 procedure TCastleProject.GatherFile(const FileInfo: TFileInfo);
+var
+  RelativeVs: string;
 begin
-  GatheringFiles.Add(ExtractRelativePath(ProjectPath, FileInfo.AbsoluteName));
+  if GatheringFilesVsData then
+    RelativeVs := DataPath else
+    RelativeVs := ProjectPath;
+  GatheringFiles.Add(ExtractRelativePath(RelativeVs, FileInfo.AbsoluteName));
 end;
 
 procedure TCastleProject.DoCreateManifest;
@@ -329,7 +343,7 @@ begin
         if AndroidSource = '' then
           raise Exception.Create('android_source property for project not defined, cannot compile Android version');
         Compile(OS, CPU, Mode, ProjectPath, AndroidSource);
-        Writeln('Compiled library for Android in ', AndroidLibraryFile);
+        Writeln('Compiled library for Android in ', AndroidLibraryFile(true));
       end;
     else
       begin
@@ -354,24 +368,7 @@ begin
   end;
 end;
 
-procedure TCastleProject.DoPackage(const OS: TOS; const CPU: TCPU);
-var
-  Pack: TPackageDirectory;
-
-  procedure AddExternalLibrary(const LibraryName: string);
-  var
-    CastleEnginePath, LibraryPath: string;
-  begin
-    CastleEnginePath := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
-    if CastleEnginePath = '' then
-      raise Exception.Create('CASTLE_ENGINE_PATH environment variable not defined, we cannot find required library ' + LibraryName);
-    LibraryPath := InclPathDelim(CastleEnginePath) +
-      'external_libraries' + PathDelim +
-      CPUToString(CPU) + '-' + OSToString(OS) + PathDelim + LibraryName;
-    if not FileExists(LibraryPath) then
-      raise Exception.Create('Dependency library not found in ' + LibraryPath);
-    Pack.Add(LibraryPath, LibraryName);
-  end;
+procedure TCastleProject.PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
 
   procedure Exclude(const PathMask: string; const Files: TCastleStringList);
   var
@@ -391,11 +388,57 @@ var
   end;
 
 var
+  I: Integer;
+  FindOptions: TFindFilesOptions;
+begin
+  GatheringFiles := Files;
+  GatheringFilesVsData := OnlyData;
+  FindFiles(DataPath, '*', false, @GatherFile, [ffRecursive]);
+
+  if not OnlyData then
+    for I := 0 to IncludePaths.Count - 1 do
+    begin
+      if IncludePathsRecursive[I] then
+        FindOptions := [ffRecursive] else
+        { not recursive, so that e.g. <include path="README.txt" />
+          or <include path="docs/README.txt" />
+          should not include *all* README.txt files inside. }
+        FindOptions := [];
+      FindFiles(ProjectPath + IncludePaths[I], false, @GatherFile, FindOptions);
+    end;
+  GatheringFiles := nil;
+
+  Exclude('*.xcf', Files);
+  Exclude('*.blend*', Files);
+  Exclude('*~', Files);
+  for I := 0 to ExcludePaths.Count - 1 do
+    Exclude(ExcludePaths[I], Files);
+end;
+
+procedure TCastleProject.DoPackage(const OS: TOS; const CPU: TCPU);
+var
+  Pack: TPackageDirectory;
+
+  procedure AddExternalLibrary(const LibraryName: string);
+  var
+    CastleEnginePath, LibraryPath: string;
+  begin
+    CastleEnginePath := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
+    if CastleEnginePath = '' then
+      raise Exception.Create('CASTLE_ENGINE_PATH environment variable not defined, we cannot find required library ' + LibraryName);
+    LibraryPath := InclPathDelim(CastleEnginePath) +
+      'external_libraries' + PathDelim +
+      CPUToString(CPU) + '-' + OSToString(OS) + PathDelim + LibraryName;
+    if not FileExists(LibraryPath) then
+      raise Exception.Create('Dependency library not found in ' + LibraryPath);
+    Pack.Add(LibraryPath, LibraryName);
+  end;
+
+var
   Files: TCastleStringList;
   I: Integer;
   PackageFileName, ExecutableNameExt: string;
   UnixPermissionsMatter: boolean;
-  FindOptions: TFindFilesOptions;
 begin
   Writeln(Format('Packaging project "%s" for OS "%s" and CPU "%s".',
     [Name, OSToString(OS), CPUToString(CPU)]));
@@ -403,7 +446,15 @@ begin
   { for Android, the packaging process is special }
   if OS = Android then
   begin
-    CreateAndroidPackage(@ReplaceMacros, Icons);
+    if AndroidSource = '' then
+      raise Exception.Create('Cannot create Android package, because Android library source (android_source) is not set in CastleEngineManifest.xml');
+    Files := TCastleStringList.Create;
+    try
+      PackageFiles(Files, true);
+      CreateAndroidPackage(@ReplaceMacros, Icons, DataPath, Files,
+        ProjectPath + AndroidLibraryFile(true),
+        AndroidLibraryFile(false));
+    finally FreeAndNil(Files) end;
     Exit;
   end;
 
@@ -428,25 +479,7 @@ begin
         Files.Add(ExecutableNameExt);
       end;
 
-      GatheringFiles := Files;
-      FindFiles(DataPath, '*', false, @GatherFile, [ffRecursive]);
-      for I := 0 to IncludePaths.Count - 1 do
-      begin
-        if IncludePathsRecursive[I] then
-          FindOptions := [ffRecursive] else
-          { not recursive, so that e.g. <include path="README.txt" />
-            or <include path="docs/README.txt" />
-            should not include *all* README.txt files inside. }
-          FindOptions := [];
-        FindFiles(ProjectPath + IncludePaths[I], false, @GatherFile, FindOptions);
-      end;
-      GatheringFiles := nil;
-
-      Exclude('*.xcf', Files);
-      Exclude('*.blend*', Files);
-      Exclude('*~', Files);
-      for I := 0 to ExcludePaths.Count - 1 do
-        Exclude(ExcludePaths[I], Files);
+      PackageFiles(Files, false);
 
       for I := 0 to Files.Count - 1 do
         Pack.Add(ProjectPath + Files[I], Files[I]);
@@ -582,10 +615,12 @@ begin
   Inc(DeletedFiles);
 end;
 
-function TCastleProject.AndroidLibraryFile: string;
+function TCastleProject.AndroidLibraryFile(const Subdir: boolean): string;
 begin
-  Result := ExtractFilePath(AndroidSource) + 'lib' +
-    ChangeFileExt(ExtractFileName(AndroidSource), '.so');
+  Result := '';
+  if Subdir then
+    Result += ExtractFilePath(AndroidSource);
+  Result += 'lib' + ChangeFileExt(ExtractFileName(AndroidSource), '.so');
 end;
 
 procedure TCastleProject.DoClean;
@@ -623,7 +658,7 @@ begin
   end;
 
   if AndroidSource <> '' then
-    TryDeleteFile(AndroidLibraryFile);
+    TryDeleteFile(AndroidLibraryFile(true));
 
   { packages created by DoPackage? Or not, it's safer to not remove them. }
   {
@@ -698,6 +733,7 @@ begin
     Patterns.Add('NAME');            Values.Add(Name);
     Patterns.Add('AUTHOR');          Values.Add(NonEmptyAuthor);
     Patterns.Add('EXECUTABLE_NAME'); Values.Add(ExecutableName);
+    Patterns.Add('ANDROID_LIBRARY_NAME'); Values.Add(ChangeFileExt(ExtractFileName(AndroidSource), ''));
     // add CamelCase() replacements, add ${} around
     for I := 0 to Patterns.Count - 1 do
     begin
