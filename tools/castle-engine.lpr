@@ -70,6 +70,13 @@ begin
           '  By default uses current OS / CPU (' + OSToString(DefaultOS) + ' / ' + CPUToString(DefaultCPU) + ').' +NL+
           '  You can also use --cpu or --os options to affect it.' +NL+
           NL+
+          '- "install" :' +NL+
+          '  Install the application created by previous "package" call.' +NL+
+          '  Right now this is only useful when OS is "android", it installs' +NL+
+          '  and runs the apk package created by previous "package" call' +NL+
+          '  for Android. Useful for quick testing of your app on a device' +NL+
+          '  connected through USB.' +NL+
+          NL+
           '- "package-source" :' +NL+
           '  Package the source code of the application.' +NL+
           NL +
@@ -149,6 +156,8 @@ begin
       end;
       Project.DoPackage(OS, CPU);
     end else
+    if Command = 'install' then
+      Project.DoInstall(OS, CPU) else
     if Command = 'package-source' then
     begin
       Project.DoClean;

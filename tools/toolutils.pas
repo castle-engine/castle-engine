@@ -50,6 +50,12 @@ procedure RunCommandIndirPassthrough(
   const OverrideEnvironmentName: string = '';
   const OverrideEnvironmentValue: string = '');
 
+{ Run command in current directory with given arguments,
+  letting output (stdout and stderr) to go to our stdout.
+  Raises exception if command fails (detected by exit code <> 0). }
+procedure RunCommandSimple(
+  const exename:string; const commands:array of string);
+
 var
   { Trivial verbosity global setting. }
   Verbose: boolean = false;
@@ -181,10 +187,10 @@ begin
     begin
       NewEnvironment := TStringList.Create;
       for I := 1 to GetEnvironmentVariableCount do
-        NewEnvironment.Values[GetEnvironmentString(I)] :=
-          GetEnvironmentVariable(GetEnvironmentString(I));
+        NewEnvironment.Add(GetEnvironmentString(I));
       NewEnvironment.Values[OverrideEnvironmentName] := OverrideEnvironmentValue;
       P.Environment := NewEnvironment;
+      // Writeln('Environment: ' + P.Environment.Text);
     end;
 
     try
@@ -220,6 +226,18 @@ begin
     FreeAndNil(p);
     FreeAndNil(NewEnvironment);
   end;
+end;
+
+procedure RunCommandSimple(
+  const exename:string; const commands:array of string);
+var
+  ProcessOutput: string;
+  ProcessStatus: Integer;
+begin
+  RunCommandIndirPassthrough(GetCurrentDir, ExeName, Commands,
+    ProcessOutput, ProcessStatus);
+  if ProcessStatus <> 0 then
+    raise Exception.Create('"' + ExeName + '" call failed');
 end;
 
 function CreateTemporaryDir: string;

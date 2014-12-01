@@ -82,6 +82,7 @@ type
     procedure DoCreateManifest;
     procedure DoCompile(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
     procedure DoPackage(const OS: TOS; const CPU: TCPU);
+    procedure DoInstall(const OS: TOS; const CPU: TCPU);
     procedure DoPackageSource;
     procedure DoClean;
   end;
@@ -132,7 +133,7 @@ constructor TCastleProject.Create(const Path: string);
       Writeln('Guessing project values. Use create-manifest command to write these guesses into new CastleEngineManifest.xml');
       FName := ExtractFileName(ExtractFileDir(ManifestFile));
       FCaption := FName;
-      FQualifiedName := FName;
+      FQualifiedName := 'unknown.' + FName;
       FExecutableName := FName;
       FStandaloneSource := FName + '.lpr';
       Icons.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
@@ -160,7 +161,7 @@ constructor TCastleProject.Create(const Path: string);
           'Root node of CastleEngineManifest.xml must be <project>');
         FName := Doc.DocumentElement.AttributeString('name');
         FCaption := Doc.DocumentElement.AttributeStringDef('caption', FName);
-        FQualifiedName := Doc.DocumentElement.AttributeStringDef('qualified_name', FName);
+        FQualifiedName := Doc.DocumentElement.AttributeStringDef('qualified_name', 'unknown.' + FName);
         FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
         FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
         FAndroidSource := Doc.DocumentElement.AttributeStringDef('android_source', '');
@@ -552,6 +553,16 @@ begin
       Pack.Make(ProjectPath, PackageFileName, ptZip) else
       Pack.Make(ProjectPath, PackageFileName, ptTarGz);
   finally FreeAndNil(Pack) end;
+end;
+
+procedure TCastleProject.DoInstall(const OS: TOS; const CPU: TCPU);
+begin
+  Writeln(Format('Installing project "%s" for OS "%s" and CPU "%s".',
+    [Name, OSToString(OS), CPUToString(CPU)]));
+
+  if OS = Android then
+    InstallAndroidPackage(Name, QualifiedName) else
+    raise Exception.Create('The "install" command is useful only with --os=android right now.');
 end;
 
 procedure TCastleProject.DoPackageSource;

@@ -27,6 +27,8 @@ procedure CreateAndroidPackage(const ProjectName: string;
   const Files: TCastleStringList;
   const AndroidLibrarySubdir, AndroidLibrary, OutputPath: string);
 
+procedure InstallAndroidPackage(const Name, QualifiedName: string);
+
 implementation
 
 uses SysUtils,
@@ -123,7 +125,7 @@ var
 const
   AndroidTarget = 'android-19';
 var
-  ProcessOutput, AndroidExe: string;
+  ProcessOutput, AndroidExe, ApkName: string;
   ProcessStatus: Integer;
 begin
   AndroidProjectPath := InclPathDelim(CreateTemporaryDir);
@@ -157,12 +159,40 @@ begin
   if ProcessStatus <> 0 then
     raise Exception.Create('"ant" call failed, cannot create Android apk');
 
-  CheckRenameFile(AndroidProjectPath +
-    'bin' + PathDelim + 'NativeActivity-debug.apk',
-    OutputPath + PathDelim + 'NativeActivity-debug.apk');
+  ApkName := ProjectName + '-debug.apk';
+  CheckRenameFile(AndroidProjectPath + 'bin' + PathDelim + ApkName,
+    OutputPath + PathDelim + ApkName);
 
   if not LeaveTemp then
     RemoveNonEmptyDir(AndroidProjectPath);
+end;
+
+procedure InstallAndroidPackage(const Name, QualifiedName: string);
+var
+  ApkDebugName, ApkReleaseName, ApkName: string;
+begin
+  ApkDebugName := Name + '-debug.apk';
+  ApkReleaseName := Name + '-release.apk';
+  if FileExists(ApkDebugName) and FileExists(ApkReleaseName) then
+    raise Exception.CreateFmt('Both debug and release apk files exist in this directory: "%s" and "%s". We do not know which to install --- resigning. Simply rename or delete one the apk files.',
+      [ApkDebugName, ApkReleaseName]);
+  if FileExists(ApkDebugName) then
+    ApkName := ApkDebugName else
+  if FileExists(ApkReleaseName) then
+    ApkName := ApkReleaseName else
+    raise Exception.CreateFmt('No Android apk found in this directory: "%s" or "%s"',
+      [ApkDebugName, ApkReleaseName]);
+
+  { Uninstall and then install, instead of calling "install -r",
+    to avoid failures because apk signed with different keys (debug vs release). }
+
+  RunCommandSimple('adb', ['uninstall', QualifiedName]);
+  RunCommandSimple('adb', ['install', ApkName]);
+  RunCommandSimple('adb', ['shell', 'am', 'start',
+    '-a', 'android.intent.action.MAIN',
+    '-n', QualifiedName + '/android.app.NativeActivity']);
+
+  Writeln('Install and run successfull. Run "adb logcat | grep ' + Name + '" (assuming that your OnGetApplicationName returns ' + Name + ') to see log output from your application.');
 end;
 
 end.
