@@ -462,7 +462,7 @@ begin
     Files := TCastleStringList.Create;
     try
       PackageFiles(Files, true);
-      CreateAndroidPackage(@ReplaceMacros, Icons, DataPath, Files,
+      CreateAndroidPackage(Name, @ReplaceMacros, Icons, DataPath, Files,
         ProjectPath + AndroidLibraryFile(true),
         AndroidLibraryFile(false), ProjectPath);
     finally FreeAndNil(Files) end;

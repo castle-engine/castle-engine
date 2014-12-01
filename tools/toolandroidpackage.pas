@@ -21,7 +21,8 @@ interface
 uses CastleUtils, CastleStringUtils,
   ToolUtils, ToolArchitectures;
 
-procedure CreateAndroidPackage(const ReplaceMacros: TReplaceMacros;
+procedure CreateAndroidPackage(const ProjectName: string;
+  const ReplaceMacros: TReplaceMacros;
   const Icons: TIconFileNames; const DataPath: string;
   const Files: TCastleStringList;
   const AndroidLibrarySubdir, AndroidLibrary, OutputPath: string);
@@ -32,7 +33,8 @@ uses SysUtils,
   CastleURIUtils, CastleWarnings, CastleFilesUtils, CastleImages,
   ToolEmbeddedImages;
 
-procedure CreateAndroidPackage(const ReplaceMacros: TReplaceMacros;
+procedure CreateAndroidPackage(const ProjectName: string;
+  const ReplaceMacros: TReplaceMacros;
   const Icons: TIconFileNames; const DataPath: string;
   const Files: TCastleStringList;
   const AndroidLibrarySubdir, AndroidLibrary, OutputPath: string);
@@ -140,7 +142,7 @@ begin
   if AndroidExe = '' then
     raise Exception.Create('Cannot find "android" executable on $PATH, or within $ANDROID_HOME. Install Android SDK and make sure that "android" executable is on $PATH, or that $ANDROID_HOME environment variable is set correctly.');
   RunCommandIndirPassthrough(AndroidProjectPath, AndroidExe,
-    ['update', 'lib-project', '--path', '.', '--target', AndroidTarget],
+    ['update', 'project', '--name', ProjectName, '--path', '.', '--target', AndroidTarget],
     ProcessOutput, ProcessStatus);
   if ProcessStatus <> 0 then
     raise Exception.Create('"android" call failed, cannot create Android apk. Inspect above error messages, and make sure Android SDK is installed correctly. Make sure that target "' + AndroidTarget + '" is installed.');
