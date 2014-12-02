@@ -188,8 +188,8 @@ clean: cleanexamples
 	rm -Rf fpmake fpmake.exe units/
 # lazarus produces lib/ subdirectories during compilation
 	find examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
-	$(MAKE) clean -C examples/android/android_demo/android/
-	$(MAKE) clean -C examples/android/drawing_toy/android/
+	cd examples/android/android_demo/ && castle-engine clean
+	cd examples/android/drawing_toy/ && castle-engine clean
 
 cleanmore: clean
 	find . -type f '(' -iname '*~' -or \
