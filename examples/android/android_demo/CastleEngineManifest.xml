@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="androiddemo"
+  caption="Castle Game Engine Android Test"
   standalone_source="androiddemo_standalone.lpr"
   android_source="androiddemo.lpr">
+  <version value="1.0" code="1" />
   <package>
     <include path="README.txt" />
   </package>

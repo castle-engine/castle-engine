@@ -8,7 +8,6 @@ standalone:
 .PHONY: clean
 clean:
 	castle-engine clean
-	$(MAKE) -C android/ clean
 
 .PHONY: release-win32
 release-win32:
@@ -21,3 +20,8 @@ release-linux:
 .PHONY: release-src
 release-src:
 	castle-engine package-source
+
+.PHONY: release-android
+release-android:
+	castle-engine package --os=android --cpu=arm
+	castle-engine install --os=android --cpu=arm

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="drawing_toy"
+  caption="Drawing Toy"
   standalone_source="drawing_toy_standalone.lpr"
   android_source="drawing_toy.lpr">
   <package>
