@@ -81,7 +81,7 @@ type
 
     procedure DoCreateManifest;
     procedure DoCompile(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
-    procedure DoPackage(const OS: TOS; const CPU: TCPU);
+    procedure DoPackage(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
     procedure DoInstall(const OS: TOS; const CPU: TCPU);
     procedure DoPackageSource;
     procedure DoClean;
@@ -427,7 +427,7 @@ begin
     Exclude(ExcludePaths[I], Files);
 end;
 
-procedure TCastleProject.DoPackage(const OS: TOS; const CPU: TCPU);
+procedure TCastleProject.DoPackage(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
 var
   Pack: TPackageDirectory;
 
@@ -463,7 +463,7 @@ begin
     Files := TCastleStringList.Create;
     try
       PackageFiles(Files, true);
-      CreateAndroidPackage(Name, @ReplaceMacros, Icons, DataPath, Files,
+      CreateAndroidPackage(Mode, Name, @ReplaceMacros, Icons, DataPath, Files,
         ProjectPath + AndroidLibraryFile(true),
         AndroidLibraryFile(false), ProjectPath);
     finally FreeAndNil(Files) end;
@@ -595,10 +595,15 @@ begin
             if OSCPUSupported[OS, CPU] then
               if AnsiCompareFileName(Files[I], PackageName(OS, CPU)) = 0 then
                 IsPackageName := true;
-        if AnsiCompareFileName(Files[I], SourcePackageName) = 0 then
+        if (AnsiCompareFileName(Files[I], SourcePackageName) = 0) or
+           { avoid Android packages }
+           (AnsiCompareFileName(Files[I], Name + '-debug.apk') = 0) or
+           (AnsiCompareFileName(Files[I], Name + '-release.apk') = 0) then
           IsPackageName := true;
 
-        if not IsPackageName then
+        if (not IsPackageName) and
+           { do not pack AndroidAntProperties.txt with private stuff }
+           (Files[I] <> 'AndroidAntProperties.txt') then
           Pack.Add(ProjectPath + Files[I], Files[I]);
       end;
     finally FreeAndNil(Files) end;

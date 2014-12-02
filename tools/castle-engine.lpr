@@ -89,6 +89,8 @@ begin
           VersionOptionHelp +NL+
           '  -V / --verbose        Verbose mode, output contains e.g. list of packaged files.' +NL+
           '  --mode=debug|release  Compilation mode, used by "compile" command.' +NL+
+          '                        Also packaging mode for some platforms (right now, Android).' +NL+
+          '                        By default "release".' +NL+
           '  --assume-compiled     Do not automatically do "clean" and "compile"' +NL+
           '                        before "package". Instead assume that compiled' +NL+
           '                        executable for given OS/CPU/mode' +NL+
@@ -154,7 +156,7 @@ begin
         Project.DoClean;
         Project.DoCompile(OS, CPU, Mode);
       end;
-      Project.DoPackage(OS, CPU);
+      Project.DoPackage(OS, CPU, Mode);
     end else
     if Command = 'install' then
       Project.DoInstall(OS, CPU) else

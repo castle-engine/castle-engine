@@ -19,27 +19,32 @@ unit ToolAndroidPackage;
 interface
 
 uses CastleUtils, CastleStringUtils,
-  ToolUtils, ToolArchitectures;
+  ToolUtils, ToolArchitectures, ToolCompile;
 
-procedure CreateAndroidPackage(const ProjectName: string;
+procedure CreateAndroidPackage(const SuggestedPackageMode: TCompilationMode;
+  const ProjectName: string;
   const ReplaceMacros: TReplaceMacros;
   const Icons: TIconFileNames; const DataPath: string;
   const Files: TCastleStringList;
-  const AndroidLibrarySubdir, AndroidLibrary, OutputPath: string);
+  const AndroidLibrarySubdir, AndroidLibrary, PackagePath: string);
 
 procedure InstallAndroidPackage(const Name, QualifiedName: string);
 
 implementation
 
-uses SysUtils,
+uses SysUtils, Classes,
   CastleURIUtils, CastleWarnings, CastleFilesUtils, CastleImages,
   ToolEmbeddedImages;
 
-procedure CreateAndroidPackage(const ProjectName: string;
+const
+  PackageModeToName: array [TCompilationMode] of string = ('release', 'debug');
+
+procedure CreateAndroidPackage(const SuggestedPackageMode: TCompilationMode;
+  const ProjectName: string;
   const ReplaceMacros: TReplaceMacros;
   const Icons: TIconFileNames; const DataPath: string;
   const Files: TCastleStringList;
-  const AndroidLibrarySubdir, AndroidLibrary, OutputPath: string);
+  const AndroidLibrarySubdir, AndroidLibrary, PackagePath: string);
 var
   AndroidProjectPath: string;
 
@@ -122,46 +127,112 @@ var
       AndroidProjectPath + 'jni' + PathDelim + AndroidLibrary);
   end;
 
-const
-  AndroidTarget = 'android-19';
+  procedure GenerateAntProperties(var PackageMode: TCompilationMode);
+  const
+    SourceAntProperties = 'AndroidAntProperties.txt';
+    WWW = 'https://sourceforge.net/p/castle-engine/wiki/Android%20development/';
+  var
+    S: TStringList;
+  begin
+    if FileExists(PackagePath + SourceAntProperties) then
+    begin
+      S := TStringList.Create;
+      try
+        S.LoadFromFile(PackagePath + SourceAntProperties);
+        if (PackageMode <> cmDebug) and (
+            (S.IndexOfName('key.store') = -1) or
+            (S.IndexOfName('key.alias') = -1) or
+            (S.IndexOfName('key.store.password') = -1) or
+            (S.IndexOfName('key.alias.password') = -1)) then
+        if PackageMode <> cmDebug then
+        begin
+          OnWarning(wtMajor, 'Android', 'Key information (key.store, key.alias, key.store.password, key.alias.password) to sign release Android package not found inside ' + SourceAntProperties + ' file. See ' + WWW + ' for documentation how to create and use keys to sign release Android apk. Falling back to creating debug apk.');
+          PackageMode := cmDebug;
+        end;
+      finally FreeAndNil(S) end;
+
+      SmartCopyFile(PackagePath + SourceAntProperties, AndroidProjectPath + 'ant.properties');
+    end else
+    begin
+      if PackageMode <> cmDebug then
+      begin
+        OnWarning(wtMajor, 'Android', 'Key to sign release Android package not found, because ' + SourceAntProperties + ' not found. See ' + WWW + ' for documentation how to create and use keys to sign release Android apk. Falling back to creating debug apk.');
+        PackageMode := cmDebug;
+      end;
+    end;
+  end;
+
+  procedure RunAndroidUpdateProject;
+  const
+    AndroidTarget = 'android-19';
+  var
+    ProcessOutput, AndroidExe: string;
+    ProcessStatus: Integer;
+  begin
+    { try to find "android" tool in $ANDROID_HOME }
+    AndroidExe := InclPathDelim(GetEnvironmentVariable('ANDROID_HOME')) +
+      'tools' + PathDelim + 'android'  + ExeExtension;
+    { try to find "android" tool on $PATH }
+    if not FileExists(AndroidExe) then
+      AndroidExe := PathFileSearch('android'  + ExeExtension, false);
+    if AndroidExe = '' then
+      raise Exception.Create('Cannot find "android" executable on $PATH, or within $ANDROID_HOME. Install Android SDK and make sure that "android" executable is on $PATH, or that $ANDROID_HOME environment variable is set correctly.');
+    RunCommandIndirPassthrough(AndroidProjectPath, AndroidExe,
+      ['update', 'project', '--name', ProjectName, '--path', '.', '--target', AndroidTarget],
+      ProcessOutput, ProcessStatus);
+    if ProcessStatus <> 0 then
+      raise Exception.Create('"android" call failed, cannot create Android apk. Inspect above error messages, and make sure Android SDK is installed correctly. Make sure that target "' + AndroidTarget + '" is installed.');
+  end;
+
+  procedure RunNdkBuild(const PackageMode: TCompilationMode);
+  var
+    ProcessOutput, NdkOverrideName, NdkOverrideValue: string;
+    ProcessStatus: Integer;
+  begin
+    NdkOverrideName := '';
+    NdkOverrideValue := '';
+    if PackageMode = cmDebug then
+    begin
+      NdkOverrideName := 'NDK_DEBUG';
+      NdkOverrideValue := '1';
+    end;
+    RunCommandIndirPassthrough(AndroidProjectPath, 'ndk-build', [],
+      ProcessOutput, ProcessStatus, NdkOverrideName, NdkOverrideValue);
+    if ProcessStatus <> 0 then
+      raise Exception.Create('"ndk-build" call failed, cannot create Android apk');
+  end;
+
+  procedure RunAnt(const PackageMode: TCompilationMode);
+  var
+    ProcessOutput: string;
+    ProcessStatus: Integer;
+  begin
+    RunCommandIndirPassthrough(AndroidProjectPath, 'ant', [PackageModeToName[PackageMode], '-noinput'],
+      ProcessOutput, ProcessStatus);
+    if ProcessStatus <> 0 then
+      raise Exception.Create('"ant" call failed, cannot create Android apk');
+  end;
+
 var
-  ProcessOutput, AndroidExe, ApkName: string;
-  ProcessStatus: Integer;
+  ApkName: string;
+  PackageMode: TCompilationMode;
 begin
   AndroidProjectPath := InclPathDelim(CreateTemporaryDir);
+  PackageMode := SuggestedPackageMode;
 
   GenerateFromTemplates;
   GenerateIcons;
   GenerateAssets;
   GenerateLibrary;
+  GenerateAntProperties(PackageMode);
 
-  { try to find "android" tool in $ANDROID_HOME }
-  AndroidExe := InclPathDelim(GetEnvironmentVariable('ANDROID_HOME')) +
-    'tools' + PathDelim + 'android'  + ExeExtension;
-  { try to find "android" tool on $PATH }
-  if not FileExists(AndroidExe) then
-    AndroidExe := PathFileSearch('android'  + ExeExtension, false);
-  if AndroidExe = '' then
-    raise Exception.Create('Cannot find "android" executable on $PATH, or within $ANDROID_HOME. Install Android SDK and make sure that "android" executable is on $PATH, or that $ANDROID_HOME environment variable is set correctly.');
-  RunCommandIndirPassthrough(AndroidProjectPath, AndroidExe,
-    ['update', 'project', '--name', ProjectName, '--path', '.', '--target', AndroidTarget],
-    ProcessOutput, ProcessStatus);
-  if ProcessStatus <> 0 then
-    raise Exception.Create('"android" call failed, cannot create Android apk. Inspect above error messages, and make sure Android SDK is installed correctly. Make sure that target "' + AndroidTarget + '" is installed.');
+  RunAndroidUpdateProject;
+  RunNdkBuild(PackageMode);
+  RunAnt(PackageMode);
 
-  RunCommandIndirPassthrough(AndroidProjectPath, 'ndk-build', [],
-    ProcessOutput, ProcessStatus, 'NDK_DEBUG', '1');
-  if ProcessStatus <> 0 then
-    raise Exception.Create('"ndk-build" call failed, cannot create Android apk');
-
-  RunCommandIndirPassthrough(AndroidProjectPath, 'ant', ['debug'],
-    ProcessOutput, ProcessStatus);
-  if ProcessStatus <> 0 then
-    raise Exception.Create('"ant" call failed, cannot create Android apk');
-
-  ApkName := ProjectName + '-debug.apk';
+  ApkName := ProjectName + '-' + PackageModeToName[PackageMode] + '.apk';
   CheckRenameFile(AndroidProjectPath + 'bin' + PathDelim + ApkName,
-    OutputPath + PathDelim + ApkName);
+    PackagePath + ApkName);
 
   if not LeaveTemp then
     RemoveNonEmptyDir(AndroidProjectPath);
@@ -171,10 +242,10 @@ procedure InstallAndroidPackage(const Name, QualifiedName: string);
 var
   ApkDebugName, ApkReleaseName, ApkName: string;
 begin
-  ApkDebugName := Name + '-debug.apk';
-  ApkReleaseName := Name + '-release.apk';
+  ApkReleaseName := Name + '-' + PackageModeToName[cmRelease] + '.apk';
+  ApkDebugName   := Name + '-' + PackageModeToName[cmDebug  ] + '.apk';
   if FileExists(ApkDebugName) and FileExists(ApkReleaseName) then
-    raise Exception.CreateFmt('Both debug and release apk files exist in this directory: "%s" and "%s". We do not know which to install --- resigning. Simply rename or delete one the apk files.',
+    raise Exception.CreateFmt('Both debug and release apk files exist in this directory: "%s" and "%s". We do not know which to install --- resigning. Simply rename or delete one of the apk files.',
       [ApkDebugName, ApkReleaseName]);
   if FileExists(ApkDebugName) then
     ApkName := ApkDebugName else
