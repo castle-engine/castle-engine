@@ -2,7 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="${QUALIFIED_NAME}"
     android:versionCode="${VERSION_CODE}"
-    android:versionName="${VERSION}">
+    android:versionName="${VERSION}"
+    android:installLocation="auto">
 
     <!-- See http://developer.android.com/reference/android/app/NativeActivity.html
       for example manifest using NativeActivity.
@@ -15,8 +16,7 @@
                 android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             	android:launchMode="singleTask"
             	android:configChanges="orientation|keyboardHidden"
-		android:screenOrientation="sensorLandscape"
-		android:installLocation="auto">
+		android:screenOrientation="sensorLandscape">
 	    <!-- NativeActivity must know the name of our library with JNI callbacks. -->
             <meta-data android:name="android.app.lib_name"
                        android:value="${ANDROID_LIBRARY_NAME}" />
