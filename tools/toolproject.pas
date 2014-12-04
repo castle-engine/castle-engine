@@ -123,6 +123,9 @@ begin
   Create(Dir);
 end;
 
+const
+  DataName = 'data';
+
 constructor TCastleProject.Create(const Path: string);
 
   procedure ReadManifest;
@@ -253,9 +256,6 @@ constructor TCastleProject.Create(const Path: string);
     DependenciesClosure(depOggVorbis, depSound);
   end;
 
-
-const
-  DataName = 'data';
 begin
   inherited Create;
 
@@ -383,17 +383,25 @@ end;
 procedure TCastleProject.PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
 
   procedure Exclude(const PathMask: string; const Files: TCastleStringList);
+  const
+    IgnoreCase = true;
   var
     I: Integer;
     PathMaskSlashes, ItemSlashes: string;
   begin
     { replace all backslashes with slashes, so that they are equal for comparison }
     PathMaskSlashes := StringReplace(PathMask, '\', '/', [rfReplaceAll]);
+    { Files are relative to data/ in case of OnlyData.
+      So make sure that PathMaskSlashes is also relative to data/,
+      otherwise stuff like exclude="data/blahblah/*" would not work
+      for things that se OnlyData=true, e.g. for Android packaging. }
+    if OnlyData then
+      PathMaskSlashes := PrefixRemove(DataName + '/', PathMaskSlashes, IgnoreCase);
     I := 0;
     while I < Files.Count do
     begin
       ItemSlashes := StringReplace(Files[I], '\', '/', [rfReplaceAll]);
-      if IsWild(ItemSlashes, PathMaskSlashes, true) then
+      if IsWild(ItemSlashes, PathMaskSlashes, IgnoreCase) then
         Files.Delete(I) else
         Inc(I);
     end;
