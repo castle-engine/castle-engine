@@ -31,10 +31,14 @@ function FileSize(const FileName: string): Int64;
 { Run command in given directory with given arguments,
   gathering output and status to string.
   Also gathers error output to the same string.
-  Like Process.RunCommandIndir in FPC >= 2.6.4, but also captures error output. }
+  Like Process.RunCommandIndir in FPC >= 2.6.4, but also captures error output.
+
+  Note that you should always pass here absolute filename, e.g. found by FindExe,
+  to avoid FPC errors (the default FPC algorithm searching $PATH may mistake binary
+  for a directory with the same name). }
 procedure MyRunCommandIndir(
-  const curdir:string; const exename:string;
-  const commands:array of string;
+  const CurDir: string; const ExeName: string;
+  const Commands: array of string;
   var outputstring:string; var exitstatus:integer);
 
 { Run command in given directory with given arguments,
@@ -44,17 +48,22 @@ procedure MyRunCommandIndir(
   It also allows to override a specific environment variable,
   when OverrideEnvironmentName not empty. }
 procedure RunCommandIndirPassthrough(
-  const curdir:string; const exename:string;
-  const commands:array of string;
+  const CurDir: string; const ExeName: string;
+  const Commands: array of string;
   var outputstring:string; var exitstatus:integer;
   const OverrideEnvironmentName: string = '';
   const OverrideEnvironmentValue: string = '');
 
-{ Run command in current directory with given arguments,
+{ Run command in given (or current) directory with given arguments,
   letting output (stdout and stderr) to go to our stdout.
+  Command is searched on $PATH following standard OS conventions.
   Raises exception if command fails (detected by exit code <> 0). }
 procedure RunCommandSimple(
-  const exename:string; const commands:array of string);
+  const ExeName: string; const Commands: array of string);
+procedure RunCommandSimple(
+  const CurDir: string; const ExeName: string; const Commands: array of string;
+  const OverrideEnvironmentName: string = '';
+  const OverrideEnvironmentValue: string = '');
 
 var
   { Trivial verbosity global setting. }
@@ -113,7 +122,7 @@ begin
   finally FreeAndNil(SourceFile) end;
 end;
 
-procedure MyRunCommandIndir(const curdir:string;const exename:string;const commands:array of string;var outputstring:string;var exitstatus:integer);
+procedure MyRunCommandIndir(const CurDir: string;const ExeName: string;const Commands: array of string;var outputstring:string;var exitstatus:integer);
 { Adjusted from fpc/trunk/packages/fcl-process/src/process.pp }
 Const
   READ_BYTES = 65536; // not too small to avoid fragmentation when reading large files.
@@ -161,7 +170,7 @@ begin
   finally p.free end;
 end;
 
-procedure RunCommandIndirPassthrough(const curdir:string;const exename:string;const commands:array of string;var outputstring:string;var exitstatus:integer;
+procedure RunCommandIndirPassthrough(const CurDir: string;const ExeName: string;const Commands: array of string;var outputstring:string;var exitstatus:integer;
   const OverrideEnvironmentName: string = '';
   const OverrideEnvironmentValue: string = '');
 { Adjusted from fpc/trunk/packages/fcl-process/src/process.pp }
@@ -229,15 +238,34 @@ begin
 end;
 
 procedure RunCommandSimple(
-  const exename:string; const commands:array of string);
+  const ExeName: string; const Commands: array of string);
+begin
+  RunCommandSimple(GetCurrentDir, ExeName, Commands);
+end;
+
+procedure RunCommandSimple(
+  const CurDir: string; const ExeName: string; const Commands: array of string;
+  const OverrideEnvironmentName: string = '';
+  const OverrideEnvironmentValue: string = '');
 var
   ProcessOutput: string;
   ProcessStatus: Integer;
+  AbsoluteExeName: string;
 begin
-  RunCommandIndirPassthrough(GetCurrentDir, ExeName, Commands,
-    ProcessOutput, ProcessStatus);
+  { use FindExe to use our fixed PathFileSearch that does not accidentaly find
+    "ant" directory as "ant" executable }
+  AbsoluteExeName := FindExe(ExeName);
+  if AbsoluteExeName = '' then
+    raise Exception.CreateFmt('Cannot find "%s" on environment variable $PATH. Make sure "%s" is installed and $PATH is configured correctly',
+      [ExeName, ExeName]);
+  if Verbose then
+    Writeln('Calling ', AbsoluteExeName);
+
+  RunCommandIndirPassthrough(CurDir, AbsoluteExeName, Commands,
+    ProcessOutput, ProcessStatus, OverrideEnvironmentName, OverrideEnvironmentValue);
   if ProcessStatus <> 0 then
-    raise Exception.Create('"' + ExeName + '" call failed');
+    raise Exception.CreateFmt('"%s" (on $PATH as "%s") call failed with exit status %d',
+      [ExeName, AbsoluteExeName, ProcessStatus]);
 end;
 
 function CreateTemporaryDir: string;

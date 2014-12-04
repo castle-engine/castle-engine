@@ -33,7 +33,7 @@ function StringToMode(const S: string): TCompilationMode;
 implementation
 
 uses SysUtils, Process,
-  CastleUtils, CastleStringUtils, CastleWarnings,
+  CastleUtils, CastleStringUtils, CastleWarnings, CastleFilesUtils,
   ToolUtils;
 
 procedure Compile(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode;
@@ -175,7 +175,7 @@ begin
     end;
 
     Writeln('FPC executing...');
-    RunCommandIndirPassthrough(WorkingDirectory, 'fpc', FpcOptions.ToArray, FpcOutput, FpcExitStatus);
+    RunCommandIndirPassthrough(WorkingDirectory, FindExe('fpc'), FpcOptions.ToArray, FpcOutput, FpcExitStatus);
     if FpcExitStatus <> 0 then
       raise Exception.Create('Failed to compile');
   finally FreeAndNil(FpcOptions) end;

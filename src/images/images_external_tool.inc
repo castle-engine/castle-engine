@@ -37,7 +37,7 @@ begin
          Linux installation on kangury.
          It happened when we used TProcess, and we let it search for
          `convert' utility on it's own (instead of searching
-         $PATH by PathFileSearch on our own). When no convert was
+         $PATH by FindExe on our own). When no convert was
          available then
 
          - It seems that TProcess.Execute wasn't exiting with
@@ -82,7 +82,7 @@ begin
           Process.Execute;
         finally FreeAndNil(Process) end;
 
-      We use PathFileSearch because:
+      We use FindExe because:
       Under Windows it seems that we *have* to manually search $PATH
       variable for convert.exe executable. Otherwise when trying to run
       just 'convert' (either by TProcess or ExecuteProcess) we always
@@ -91,7 +91,7 @@ begin
       even when the path to ImageMagick is first on $PATH (before
       the path to windows/system32/). }
 
-    ConvertExecutable := PathFileSearch('convert' + ExeExtension);
+    ConvertExecutable := FindExe('convert');
 
     if ConvertExecutable = '' then
       raise EImageLoadError.CreateFmt('You must have "convert" program from ' +

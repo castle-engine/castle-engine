@@ -174,7 +174,7 @@ var
       'tools' + PathDelim + 'android'  + ExeExtension;
     { try to find "android" tool on $PATH }
     if not FileExists(AndroidExe) then
-      AndroidExe := PathFileSearch('android'  + ExeExtension, false);
+      AndroidExe := FindExe('android');
     if AndroidExe = '' then
       raise Exception.Create('Cannot find "android" executable on $PATH, or within $ANDROID_HOME. Install Android SDK and make sure that "android" executable is on $PATH, or that $ANDROID_HOME environment variable is set correctly.');
     RunCommandIndirPassthrough(AndroidProjectPath, AndroidExe,
@@ -186,8 +186,7 @@ var
 
   procedure RunNdkBuild(const PackageMode: TCompilationMode);
   var
-    ProcessOutput, NdkOverrideName, NdkOverrideValue: string;
-    ProcessStatus: Integer;
+    NdkOverrideName, NdkOverrideValue: string;
   begin
     NdkOverrideName := '';
     NdkOverrideValue := '';
@@ -196,21 +195,12 @@ var
       NdkOverrideName := 'NDK_DEBUG';
       NdkOverrideValue := '1';
     end;
-    RunCommandIndirPassthrough(AndroidProjectPath, 'ndk-build', [],
-      ProcessOutput, ProcessStatus, NdkOverrideName, NdkOverrideValue);
-    if ProcessStatus <> 0 then
-      raise Exception.Create('"ndk-build" call failed, cannot create Android apk');
+    RunCommandSimple(AndroidProjectPath, 'ndk-build', [], NdkOverrideName, NdkOverrideValue);
   end;
 
   procedure RunAnt(const PackageMode: TCompilationMode);
-  var
-    ProcessOutput: string;
-    ProcessStatus: Integer;
   begin
-    RunCommandIndirPassthrough(AndroidProjectPath, 'ant', [PackageModeToName[PackageMode], '-noinput'],
-      ProcessOutput, ProcessStatus);
-    if ProcessStatus <> 0 then
-      raise Exception.Create('"ant" call failed, cannot create Android apk');
+    RunCommandSimple(AndroidProjectPath, 'ant', [PackageModeToName[PackageMode], '-noinput']);
   end;
 
 var

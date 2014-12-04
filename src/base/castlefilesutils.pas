@@ -346,6 +346,12 @@ function CombinePaths(BasePath, RelPath: string): string; deprecated;
   fix on http://svn.freepascal.org/cgi-bin/viewvc.cgi?view=rev&revision=17717 . }
 Function PathFileSearch(Const Name : String; ImplicitCurrentDir : Boolean = True) : String;
 
+{ Find program on $PATH. Automatically adds ExeExtension, so don't add it yourself.
+  Searches in $PATH (and, if OS does this, in current directory --- this is standard
+  on Windows but not on Unix).
+  Returns '' (if not found) or absolute filename. }
+function FindExe(const ExeName: string): string;
+
 { Get temporary filename, suitable for ApplicationName, checking that
   it doesn't exist. }
 function GetTempFileNameCheck: string;
@@ -695,7 +701,10 @@ end;
 Function PathFileSearch(Const Name : String; ImplicitCurrentDir : Boolean = True) : String;
 
 { This is identical to FileSearch, except on Windows each $PATH component
-  is stripped from surrounding double quotes. }
+  is stripped from surrounding double quotes.
+  Added also "not DirectoryExists(Result)" check, to avoid accidentaly finding
+  a directory named like file (esp. easy on Unix without '.exe' extension),
+  at least with FPC 2.6.4 and 2.7.1 FileExists is true for directories. }
 
 Var
   I : longint;
@@ -705,7 +714,7 @@ begin
   Result:=Name;
   temp:=SetDirSeparators(GetEnvironmentVariable('PATH'));
   // Start with checking the file in the current directory
-  If ImplicitCurrentDir and (Result <> '') and FileExists(Result) Then
+  If ImplicitCurrentDir and (Result <> '') and FileExists(Result) and not DirectoryExists(Result) Then
     exit;
   while True do begin
     If Temp = '' then
@@ -732,10 +741,15 @@ begin
       {$endif}
       Result:=IncludeTrailingPathDelimiter(Result)+name;
     end;
-    If (Result <> '') and FileExists(Result) Then
+    If (Result <> '') and FileExists(Result) and not DirectoryExists(Result) Then
       exit;
   end;
   result:='';
+end;
+
+function FindExe(const ExeName: string): string;
+begin
+  Result := PathFileSearch(ExeName + ExeExtension, {$ifdef MSWINDOWS} true {$else} false {$endif});
 end;
 
 procedure DoInitialization;

@@ -82,11 +82,11 @@ var
 begin
   case PackageType of
     ptZip:
-      MyRunCommandIndir(TemporaryDir, 'zip',
+      MyRunCommandIndir(TemporaryDir, FindExe('zip'),
         ['-q', '-r', PackageFileName, TopDirectoryName],
         ProcessOutput, ProcessExitStatus);
     ptTarGz:
-      MyRunCommandIndir(TemporaryDir, 'tar',
+      MyRunCommandIndir(TemporaryDir, FindExe('tar'),
         ['czf', PackageFileName, TopDirectoryName],
         ProcessOutput, ProcessExitStatus);
     else raise EInternalError.Create('TPackageDirectory.Make PackageType?');

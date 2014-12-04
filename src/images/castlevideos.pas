@@ -696,9 +696,7 @@ procedure TVideo.SaveToFile(const URL: string);
     TemporaryImagesPrefix, TemporaryImagesPattern: string;
     Executable: string;
   begin
-    Executable := PathFileSearch(
-      {$ifdef MSWINDOWS} 'ffmpeg.exe' {$endif}
-      {$ifdef UNIX} 'ffmpeg' {$endif});
+    Executable := FindExe('ffmpeg');
 
     if Executable = '' then
     begin
@@ -981,9 +979,9 @@ const
     '(or "avconv" from [http://www.libav.org/]) ' +
     'installed and available on $PATH to be able to load movie files';
 begin
-  Result := PathFileSearch('ffmpeg'  + ExeExtension);
+  Result := FindExe('ffmpeg');
   if Result = '' then
-    Result := PathFileSearch('avconv'  + ExeExtension);
+    Result := FindExe('avconv');
   if (Result = '') and ExceptionOnError then
     raise Exception.Create(SFfmpegNotFound);
 end;

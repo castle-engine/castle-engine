@@ -55,11 +55,11 @@ begin
   OutputManifest := ReplaceMacros(ManifestTemplate);
   StringToFile(ManifestFilename, OutputManifest);
 
-  WindresExe := PathFileSearch('windres' + ExeExtension);
+  WindresExe := FindExe('windres');
   if WindresExe = '' then
     case CPU of
-      i386  : WindresExe := PathFileSearch('i586-mingw32msvc-windres' + ExeExtension);
-      x86_64: WindresExe := PathFileSearch('amd64-mingw32msvc-windres' + ExeExtension);
+      i386  : WindresExe := FindExe('i586-mingw32msvc-windres');
+      x86_64: WindresExe := FindExe('amd64-mingw32msvc-windres');
     end;
   if WindresExe = '' then
     raise Exception.Create('Cannot find "windres" executable on $PATH. On Windows, it should be installed along with FPC (Free Pascal Compiler), so just make sure FPC is installed and available on $PATH. On Linux, "windres" is usually available as part of MinGW, so install the package named like "mingw*-binutils".');

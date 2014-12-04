@@ -61,11 +61,11 @@ implementation
   - TrimFilename => no need to
   - GetExeExt => ExeExtension
   - GetEnvironmentVariableUTF8 => GetEnvironmentVariable
-  - FindFilenameOfCmd => PathFileSearch
+  - FindFilenameOfCmd => PathFileSearch or FindExe
   - FindDefaultBrowser => simplified and folded inside OpenURL for Unix,
     LCL implementation was cross-platform but was used only on
     Unix (except Darwin) (for these OpenXxx routines).
-  - SearchFileInPath => PathFileSearch (it's only used by Unix)
+  - SearchFileInPath => PathFileSearch (it's only used by Unix) or FindExe
 }
 
 uses
