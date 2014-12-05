@@ -129,6 +129,9 @@ const
 constructor TCastleProject.Create(const Path: string);
 
   procedure ReadManifest;
+  const
+    { Google Play requires version code to be >= 1 }
+    DefautVersionCode = 1;
 
     procedure AutoGuessManifest;
     begin
@@ -139,6 +142,7 @@ constructor TCastleProject.Create(const Path: string);
       FQualifiedName := 'unknown.' + FName;
       FExecutableName := FName;
       FStandaloneSource := FName + '.lpr';
+      FVersionCode := DefautVersionCode;
       Icons.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
     end;
 
@@ -171,10 +175,11 @@ constructor TCastleProject.Create(const Path: string);
         FAuthor := Doc.DocumentElement.AttributeStringDef('author', '');
 
         Element := DOMGetChildElement(Doc.DocumentElement, 'version', false);
+        FVersionCode := DefautVersionCode;
         if Element <> nil then
         begin
           FVersion := Element.AttributeString('value');
-          FVersionCode := Element.AttributeCardinalDef('code', 0);
+          FVersionCode := Element.AttributeCardinalDef('code', DefautVersionCode);
         end;
 
         Element := DOMGetChildElement(Doc.DocumentElement, 'dependencies', false);
