@@ -27,12 +27,53 @@
   /usr/share/pixmaps/flamerobin.xpm
 }
 
-function LoadFpImage(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  Reader: TFPCustomImageReader;
-  const AllowPalette: boolean = false): TCastleImage;
+{ TFPMemoryImage -> TCastleImage --------------------------------------------- }
+
+class function TRGBImage.FromFpImage(const FPImage: TFPMemoryImage): TRGBImage;
 var
-  FPImage: TFPMemoryImage;
+  X, Y: Integer;
+  ResultPixels: PVector3Byte;
+  Color: TFPColor;
+begin
+  Result := TRGBImage.Create(FPImage.Width, FPImage.Height);
+  try
+    ResultPixels := Result.RGBPixels;
+    for Y := FPImage.Height - 1 downto 0 do
+      for X := 0 to FPImage.Width - 1 do
+      begin
+        Color := FPImage.Colors[X, Y];
+        ResultPixels^[0] := Color.Red shr 8;
+        ResultPixels^[1] := Color.Green shr 8;
+        ResultPixels^[2] := Color.Blue shr 8;
+        Inc(ResultPixels);
+      end;
+  except FreeAndNil(Result); raise end;
+end;
+
+class function TRGBAlphaImage.FromFpImage(const FPImage: TFPMemoryImage): TRGBAlphaImage;
+var
+  X, Y: Integer;
+  ResultPixels: PVector4Byte;
+  Color: TFPColor;
+begin
+  Result := TRGBAlphaImage.Create(FPImage.Width, FPImage.Height);
+  try
+    ResultPixels := Result.AlphaPixels;
+    for Y := FPImage.Height - 1 downto 0 do
+      for X := 0 to FPImage.Width - 1 do
+      begin
+        Color := FPImage.Colors[X, Y];
+        ResultPixels^[0] := Color.Red shr 8;
+        ResultPixels^[1] := Color.Green shr 8;
+        ResultPixels^[2] := Color.Blue shr 8;
+        ResultPixels^[3] := Color.Alpha shr 8;
+        Inc(ResultPixels);
+      end;
+  except FreeAndNil(Result); raise end;
+end;
+
+function FromFpImage(const FPImage: TFPMemoryImage;
+  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
   { FPImage doesn't provide us any information does the image contain useful
     alpha channel. So just iterate over pixels, and check it ourselves. }
@@ -47,126 +88,106 @@ var
     Result := false;
   end;
 
-  procedure ReadRGB;
-  var
-    X, Y: Integer;
-    ResultPixels: PVector3Byte;
-    Color: TFPColor;
-  begin
-    Result := TRGBImage.Create(FPImage.Width, FPImage.Height);
-    try
-      ResultPixels := TRGBImage(Result).RGBPixels;
-      for Y := FPImage.Height - 1 downto 0 do
-        for X := 0 to FPImage.Width - 1 do
-        begin
-          Color := FPImage.Colors[X, Y];
-          ResultPixels^[0] := Color.Red shr 8;
-          ResultPixels^[1] := Color.Green shr 8;
-          ResultPixels^[2] := Color.Blue shr 8;
-          Inc(ResultPixels);
-        end;
-    except FreeAndNil(Result) end;
-  end;
+begin
+  if ClassAllowed(TRGBAlphaImage, AllowedImageClasses) and DetectAlpha then
+    Result := TRGBAlphaImage.FromFpImage(FPImage) else
+    Result := TRGBImage.FromFpImage(FPImage);
+end;
 
-  procedure ReadRGBA;
-  var
-    X, Y: Integer;
-    ResultPixels: PVector4Byte;
-    Color: TFPColor;
-  begin
-    Result := TRGBAlphaImage.Create(FPImage.Width, FPImage.Height);
-    try
-      ResultPixels := TRGBAlphaImage(Result).AlphaPixels;
-      for Y := FPImage.Height - 1 downto 0 do
-        for X := 0 to FPImage.Width - 1 do
-        begin
-          Color := FPImage.Colors[X, Y];
-          ResultPixels^[0] := Color.Red shr 8;
-          ResultPixels^[1] := Color.Green shr 8;
-          ResultPixels^[2] := Color.Blue shr 8;
-          ResultPixels^[3] := Color.Alpha shr 8;
-          Inc(ResultPixels);
-        end;
-    except FreeAndNil(Result) end;
-  end;
+function LoadFpImage(Stream: TStream;
+  const AllowedImageClasses: array of TCastleImageClass;
+  Reader: TFPCustomImageReader): TCastleImage;
+var
+  FPImage: TFPMemoryImage;
 
 begin
   FPImage := TFPMemoryImage.Create(0, 0);
   try
-    FPImage.UsePalette := AllowPalette;
+    FPImage.UsePalette := false;
     try
       FPImage.LoadFromStream(Stream, Reader);
       { FPImage.LoadFromStream may raise any kind of Exception (for example,
         in case of invalid JPEG header it just raises generic Exception class).
         Catch it and convert to our EImageLoadError. }
     except on E: Exception do raise EImageLoadError.Create(E.Message) end;
-    if ClassAllowed(TRGBAlphaImage, AllowedImageClasses) and DetectAlpha then
-      ReadRGBA else
-      ReadRGB;
+    Result := FromFpImage(FPImage, AllowedImageClasses);
   finally
     FreeAndNil(FPImage);
     FreeAndNil(Reader);
   end;
 end;
 
+{ TCastleImage -> TFPMemoryImage --------------------------------------------- }
+
+function TCastleImage.ToFpImage: TFPMemoryImage;
+begin
+  raise EImageCannotConvertFpImage.Create('Cannot convert to FPImage, and cannot use resize with TResizeNiceInterpolation mode, on images of class ' + ClassName);
+  Result := nil; // avoid warning
+end;
+
+function TRGBImage.ToFpImage: TFPMemoryImage;
+var
+  X, Y: Integer;
+  P: PVector3Byte;
+  Color: TFPColor;
+begin
+  Result := TFPMemoryImage.Create(Width, Height);
+  try
+    Result.UsePalette := false;
+    P := RGBPixels;
+    for Y := Result.Height - 1 downto 0 do
+      for X := 0 to Result.Width - 1 do
+      begin
+        { It doesn't matter what you put in least-significat
+          byte of color component, FPWriteJPEG will do "shr 8" on these values
+          anyway (JPEG can only save 8-bit RGB). }
+        Color.Red   := Word(P^[0]) shl 8;
+        Color.Green := Word(P^[1]) shl 8;
+        Color.Blue  := Word(P^[2]) shl 8;
+        Color.Alpha := $FFFF;
+        Result.Colors[X, Y] := Color;
+        Inc(P);
+      end;
+  except FreeAndNil(Result); raise end;
+end;
+
+function TRGBAlphaImage.ToFpImage: TFPMemoryImage;
+var
+  X, Y: Integer;
+  P: PVector4Byte;
+  Color: TFPColor;
+begin
+  Result := TFPMemoryImage.Create(Width, Height);
+  try
+    Result.UsePalette := false;
+    P := AlphaPixels;
+    for Y := Result.Height - 1 downto 0 do
+      for X := 0 to Result.Width - 1 do
+      begin
+        { It doesn't matter what you put in least-significat
+          byte of color component, FPWriteJPEG will do "shr 8" on these values
+          anyway (JPEG can only save 8-bit RGB). }
+        Color.Red   := Word(P^[0]) shl 8;
+        Color.Green := Word(P^[1]) shl 8;
+        Color.Blue  := Word(P^[2]) shl 8;
+        Color.Alpha := Word(P^[3]) shl 8;
+        Result.Colors[X, Y] := Color;
+        Inc(P);
+      end;
+  except FreeAndNil(Result); raise end;
+end;
+
 procedure SaveFpImage(Img: TCastleImage; Stream: TStream;
-  Writer: TFPCustomImageWriter;
-  const AllowPalette: boolean = false);
+  Writer: TFPCustomImageWriter);
 var
   FPImage: TFPMemoryImage;
-
-  procedure WriteRGB;
-  var
-    X, Y: Integer;
-    ImgPixels: PVector3Byte;
-    Color: TFPColor;
-  begin
-    ImgPixels := TRGBImage(Img).RGBPixels;
-    for Y := FPImage.Height - 1 downto 0 do
-      for X := 0 to FPImage.Width - 1 do
-      begin
-        { It doesn't matter what you put in least-significat
-          byte of color component, FPWriteJPEG will do "shr 8" on these values
-          anyway (JPEG can only save 8-bit RGB). }
-        Color.Red   := Word(ImgPixels^[0]) shl 8;
-        Color.Green := Word(ImgPixels^[1]) shl 8;
-        Color.Blue  := Word(ImgPixels^[2]) shl 8;
-        Color.Alpha := $FFFF;
-        FPImage.Colors[X, Y] := Color;
-        Inc(ImgPixels);
-      end;
-  end;
-
-  procedure WriteRGBA;
-  var
-    X, Y: Integer;
-    ImgPixels: PVector4Byte;
-    Color: TFPColor;
-  begin
-    ImgPixels := TRGBAlphaImage(Img).AlphaPixels;
-    for Y := FPImage.Height - 1 downto 0 do
-      for X := 0 to FPImage.Width - 1 do
-      begin
-        { It doesn't matter what you put in least-significat
-          byte of color component, FPWriteJPEG will do "shr 8" on these values
-          anyway (JPEG can only save 8-bit RGB). }
-        Color.Red   := Word(ImgPixels^[0]) shl 8;
-        Color.Green := Word(ImgPixels^[1]) shl 8;
-        Color.Blue  := Word(ImgPixels^[2]) shl 8;
-        Color.Alpha := Word(ImgPixels^[3]) shl 8;
-        FPImage.Colors[X, Y] := Color;
-        Inc(ImgPixels);
-      end;
-  end;
-
 begin
-  FPImage := TFPMemoryImage.Create(Img.Width, Img.Height);
+  FPImage := nil;
   try
-    FPImage.UsePalette := AllowPalette;
     if Img is TRGBAlphaImage then
-      WriteRGBA else
+      FPImage := TRGBAlphaImage(Img).ToFpImage else
     if Img is TRGBImage then
-      WriteRGB else
+      FPImage := TRGBImage(Img).ToFpImage else
       raise EImageSaveError.Create('Cannot save non-RGB image');
     try
       FPImage.SaveToStream(Stream, Writer);
@@ -198,19 +219,18 @@ end;
 {
 TIFF reader from FPReadTiff fails on ~/images/test_images/lena.tif
 with "missing RowsPerStrip.."
-AllowPalette = true or false, doesn't matter.
 
 function LoadTIFF(Stream: TStream;
   const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTIFF.Create, true);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTIFF.Create);
 end;
 }
 
 function LoadXPM(Stream: TStream;
   const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 begin
-  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create, true);
+  Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create);
 end;
 
 function LoadPSD(Stream: TStream;
@@ -260,3 +280,55 @@ begin
   SaveFpImage(Img, Stream, TFPWriterPNG.Create);
 end;
 {$endif}
+
+{ resizing ------------------------------------------------------------------- }
+
+function TCastleImage.MakeResized(ResizeWidth, ResizeHeight: Cardinal;
+  const Interpolation: TResizeNiceInterpolation): TCastleImage;
+
+  function CreateInterpolation(const I: TResizeNiceInterpolation): TFPBaseInterpolation;
+  begin
+    case I of
+      rniNearest        : Result := TBoxInterpolation.Create;
+      rniBilinear       : Result := TBilineairInterpolation.Create;
+      rniMitchel        : Result := TMitchelInterpolation.Create;
+      rniBlackman       : Result := TBlackmanInterpolation.Create;
+      rniBlackmanSinc   : Result := TBlackmanSincInterpolation.Create;
+      rniBlackmanBessel : Result := TBlackmanBesselInterpolation.Create;
+      rniGaussian       : Result := TGaussianInterpolation.Create;
+      rniHermite        : Result := THermiteInterpolation.Create;
+      rniLanczos        : Result := TLanczosInterpolation.Create;
+      rniQuadratic      : Result := TQuadraticInterpolation.Create;
+      rniCubic          : Result := TCubicInterpolation.Create;
+      rniCatrom         : Result := TCatromInterpolation.Create;
+      rniHanning        : Result := THanningInterpolation.Create;
+      rniHamming        : Result := THammingInterpolation.Create;
+      else EInternalError.Create('CreateInterpolation:I?');
+    end;
+  end;
+
+var
+  Interpolator: TFPBaseInterpolation;
+  FPImageSource, FPImageDestination: TFPMemoryImage;
+  CanvasDestination: TFPImageCanvas;
+begin
+  if ResizeWidth = 0 then ResizeWidth := Width;
+  if ResizeHeight = 0 then ResizeHeight := Height;
+
+  FPImageSource := ToFpImage;
+  try
+    Interpolator := CreateInterpolation(Interpolation);
+    try
+      FPImageDestination := TFPMemoryImage.Create(ResizeWidth, ResizeHeight);
+      try
+        {$warnings off} // contains some abstract methods (FCL bug?)
+        CanvasDestination := TFPImageCanvas.Create(FPImageDestination);
+        {$warnings on}
+        try
+          CanvasDestination.StretchDraw(0, 0, ResizeWidth, ResizeHeight, FPImageSource);
+        finally FreeAndNil(CanvasDestination) end;
+        Result := FromFpImage(FPImageDestination, [TCastleImageClass(ClassType)]);
+      finally FreeAndNil(FPImageDestination) end;
+    finally FreeAndNil(Interpolator) end;
+  finally FreeAndNil(FPImageSource) end;
+end;

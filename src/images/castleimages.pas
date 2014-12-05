@@ -101,6 +101,8 @@ type
 
   EImageAssignmentError = class(Exception);
 
+  EImageCannotConvertFpImage = class(Exception);
+
   { Abstract class for an image with unspecified, possibly compressed,
     memory format. The idea is that both uncompressed images (TCastleImage)
     and compressed images (TS3TCImage) are derived from this class. }
@@ -180,7 +182,29 @@ type
     function Rect: TRectangle;
   end;
 
+  { Basic resize interpolation modes, fast and available for all image types. }
   TResizeInterpolation = (riNearest, riBilinear);
+
+  { Resize interpolation modes for MakeResized with TResizeNiceInterpolation
+    parameters. These are much slower than our TResizeInterpolation,
+    as they are implemented by conversion to FpImage.
+    However, they offer some extra quality. }
+  TResizeNiceInterpolation = (
+    rniNearest,
+    rniBilinear,
+    rniMitchel,
+    rniBlackman,
+    rniBlackmanSinc,
+    rniBlackmanBessel,
+    rniGaussian,
+    rniHermite,
+    rniLanczos,
+    rniQuadratic,
+    rniCubic,
+    rniCatrom,
+    rniHanning,
+    rniHamming
+  );
 
   { An abstract class representing image as a simple array of pixels.
     RawPixels is a pointer to Width * Height * Depth of pixels.
@@ -241,6 +265,7 @@ type
   TCastleImage = class(TEncodedImage)
   private
     procedure NotImplemented(const AMethodName: string);
+    function ToFpImage: TFPMemoryImage; virtual;
   protected
     { Check that both images have the same sizes and Second image class
       descends from First image class. If not, raise appropriate ELerpXxx
@@ -395,6 +420,19 @@ type
     function MakeResized(ResizeWidth, ResizeHeight: Cardinal;
       const Interpolation: TResizeInterpolation = riNearest;
       const ProgressTitle: string = ''): TCastleImage;
+
+    { Create a new TCastleImage instance with size ResizeWidth, ResizeHeight
+      and pixels copied from us and appropriately stretched.
+      It is not guaranteed that class of new instance is the same as our class.
+
+      As with @link(Resize), ResizeTo* = 0 means to use current Width/Height.
+
+      This uses slow but (potentially) pretty interpolation mode
+      expressed as TResizeNiceInterpolation.
+      It is implemented only for some descendants --- currently, TRGBImage
+      and TRGBAlphaImage. }
+    function MakeResized(ResizeWidth, ResizeHeight: Cardinal;
+      const Interpolation: TResizeNiceInterpolation): TCastleImage;
 
     { Mirror image horizotally (that is right edge is swapped with left edge). }
     procedure FlipHorizontal;
@@ -802,6 +840,8 @@ type
   TRGBImage = class(TCastleImage)
   private
     function GetRGBPixels: PVector3Byte;
+    class function FromFpImage(const FPImage: TFPMemoryImage): TRGBImage;
+    function ToFpImage: TFPMemoryImage; override;
   protected
     procedure DrawCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer); override;
@@ -908,6 +948,8 @@ type
   private
     FPremultipliedAlpha: boolean;
     function GetAlphaPixels: PVector4Byte;
+    class function FromFpImage(const FPImage: TFPMemoryImage): TRGBAlphaImage;
+    function ToFpImage: TFPMemoryImage; override;
   public
     { This is the same pointer as RawPixels, only typecasted to PVector4Byte }
     property AlphaPixels: PVector4Byte read GetAlphaPixels;
@@ -1747,7 +1789,8 @@ const
 
 implementation
 
-uses CastleProgress, CastleStringUtils, CastleFilesUtils, CastleWarnings,
+uses ExtInterpolation, FPCanvas, FPImgCanv,
+  CastleProgress, CastleStringUtils, CastleFilesUtils, CastleWarnings,
   CastleDDS, CastleDownload, CastleURIUtils;
 
 { image loading utilities --------------------------------------------------- }

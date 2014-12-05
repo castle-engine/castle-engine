@@ -34,7 +34,7 @@ implementation
 
 uses SysUtils, Classes,
   CastleURIUtils, CastleWarnings, CastleFilesUtils, CastleImages,
-  ToolEmbeddedImages;
+  ToolEmbeddedImages, ExtInterpolation;
 
 const
   PackageModeToName: array [TCompilationMode] of string = ('release', 'debug');
@@ -77,7 +77,7 @@ var
       R: TCastleImage;
       Dir: string;
     begin
-      R := Icon.MakeResized(Size, Size, riBilinear);
+      R := Icon.MakeResized(Size, Size, rniLanczos);
       try
         Dir := AndroidProjectPath + 'res' + PathDelim + 'drawable-' + S + 'dpi';
         CheckForceDirectories(Dir);
