@@ -38,7 +38,7 @@ function FileSize(const FileName: string): Int64;
   for a directory with the same name). }
 procedure MyRunCommandIndir(
   const CurDir: string; const ExeName: string;
-  const Commands: array of string;
+  const Options: array of string;
   var outputstring:string; var exitstatus:integer);
 
 { Run command in given directory with given arguments,
@@ -49,7 +49,7 @@ procedure MyRunCommandIndir(
   when OverrideEnvironmentName not empty. }
 procedure RunCommandIndirPassthrough(
   const CurDir: string; const ExeName: string;
-  const Commands: array of string;
+  const Options: array of string;
   var outputstring:string; var exitstatus:integer;
   const OverrideEnvironmentName: string = '';
   const OverrideEnvironmentValue: string = '');
@@ -59,9 +59,9 @@ procedure RunCommandIndirPassthrough(
   Command is searched on $PATH following standard OS conventions.
   Raises exception if command fails (detected by exit code <> 0). }
 procedure RunCommandSimple(
-  const ExeName: string; const Commands: array of string);
+  const ExeName: string; const Options: array of string);
 procedure RunCommandSimple(
-  const CurDir: string; const ExeName: string; const Commands: array of string;
+  const CurDir: string; const ExeName: string; const Options: array of string;
   const OverrideEnvironmentName: string = '';
   const OverrideEnvironmentValue: string = '');
 
@@ -124,7 +124,7 @@ begin
   finally FreeAndNil(SourceFile) end;
 end;
 
-procedure MyRunCommandIndir(const CurDir: string;const ExeName: string;const Commands: array of string;var outputstring:string;var exitstatus:integer);
+procedure MyRunCommandIndir(const CurDir: string;const ExeName: string;const Options: array of string;var outputstring:string;var exitstatus:integer);
 { Adjusted from fpc/trunk/packages/fcl-process/src/process.pp }
 Const
   READ_BYTES = 65536; // not too small to avoid fragmentation when reading large files.
@@ -137,9 +137,14 @@ begin
   p.Executable:=exename;
   if curdir<>'' then
     p.CurrentDirectory:=curdir;
-  if high(commands)>=0 then
-   for i:=low(commands) to high(commands) do
-     p.Parameters.add(commands[i]);
+  if high(Options)>=0 then
+   for i:=low(Options) to high(Options) do
+     p.Parameters.add(Options[i]);
+  if Verbose then
+  begin
+    Writeln('Calling ' + ExeName);
+    Writeln(P.Parameters.Text);
+  end;
 
   try
     try
@@ -172,7 +177,7 @@ begin
   finally p.free end;
 end;
 
-procedure RunCommandIndirPassthrough(const CurDir: string;const ExeName: string;const Commands: array of string;var outputstring:string;var exitstatus:integer;
+procedure RunCommandIndirPassthrough(const CurDir: string;const ExeName: string;const Options: array of string;var outputstring:string;var exitstatus:integer;
   const OverrideEnvironmentName: string = '';
   const OverrideEnvironmentValue: string = '');
 { Adjusted from fpc/trunk/packages/fcl-process/src/process.pp }
@@ -188,9 +193,14 @@ begin
   p.Executable:=exename;
   if curdir<>'' then
     p.CurrentDirectory:=curdir;
-  if high(commands)>=0 then
-   for i:=low(commands) to high(commands) do
-     p.Parameters.add(commands[i]);
+  if high(Options)>=0 then
+   for i:=low(Options) to high(Options) do
+     p.Parameters.add(Options[i]);
+  if Verbose then
+  begin
+    Writeln('Calling ' + ExeName);
+    Writeln(P.Parameters.Text);
+  end;
 
   NewEnvironment := nil;
   try
@@ -240,13 +250,13 @@ begin
 end;
 
 procedure RunCommandSimple(
-  const ExeName: string; const Commands: array of string);
+  const ExeName: string; const Options: array of string);
 begin
-  RunCommandSimple(GetCurrentDir, ExeName, Commands);
+  RunCommandSimple(GetCurrentDir, ExeName, Options);
 end;
 
 procedure RunCommandSimple(
-  const CurDir: string; const ExeName: string; const Commands: array of string;
+  const CurDir: string; const ExeName: string; const Options: array of string;
   const OverrideEnvironmentName: string = '';
   const OverrideEnvironmentValue: string = '');
 var
@@ -260,10 +270,8 @@ begin
   if AbsoluteExeName = '' then
     raise Exception.CreateFmt('Cannot find "%s" on environment variable $PATH. Make sure "%s" is installed and $PATH is configured correctly',
       [ExeName, ExeName]);
-  if Verbose then
-    Writeln('Calling ', AbsoluteExeName);
 
-  RunCommandIndirPassthrough(CurDir, AbsoluteExeName, Commands,
+  RunCommandIndirPassthrough(CurDir, AbsoluteExeName, Options,
     ProcessOutput, ProcessStatus, OverrideEnvironmentName, OverrideEnvironmentValue);
   if ProcessStatus <> 0 then
     raise Exception.CreateFmt('"%s" (on $PATH as "%s") call failed with exit status %d',

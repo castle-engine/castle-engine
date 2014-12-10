@@ -168,12 +168,6 @@ begin
 
     FpcOptions.Add(CompileFile);
 
-    if Verbose then
-    begin
-      Writeln('FPC compilation options:');
-      Writeln(FpcOptions.Text);
-    end;
-
     Writeln('FPC executing...');
     RunCommandIndirPassthrough(WorkingDirectory, FindExe('fpc'), FpcOptions.ToArray, FpcOutput, FpcExitStatus);
     if FpcExitStatus <> 0 then

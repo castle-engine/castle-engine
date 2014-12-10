@@ -195,12 +195,12 @@ var
       NdkOverrideName := 'NDK_DEBUG';
       NdkOverrideValue := '1';
     end;
-    RunCommandSimple(AndroidProjectPath, 'ndk-build', [], NdkOverrideName, NdkOverrideValue);
+    RunCommandSimple(AndroidProjectPath, 'ndk-build', ['--silent'], NdkOverrideName, NdkOverrideValue);
   end;
 
   procedure RunAnt(const PackageMode: TCompilationMode);
   begin
-    RunCommandSimple(AndroidProjectPath, 'ant', [PackageModeToName[PackageMode], '-noinput']);
+    RunCommandSimple(AndroidProjectPath, 'ant', [PackageModeToName[PackageMode], '-noinput', '-silent']);
   end;
 
 var
@@ -224,6 +224,8 @@ begin
   CheckRenameFile(AndroidProjectPath + 'bin' + PathDelim + ApkName,
     PackagePath + ApkName);
 
+  Writeln('Build ' + ApkName);
+
   if not LeaveTemp then
     RemoveNonEmptyDir(AndroidProjectPath);
 end;
@@ -246,6 +248,8 @@ begin
 
   { Uninstall and then install, instead of calling "install -r",
     to avoid failures because apk signed with different keys (debug vs release). }
+
+  Writeln('Uninstalling, then installing again and running application identified as "' + QualifiedName + '"');
 
   RunCommandSimple('adb', ['uninstall', QualifiedName]);
   RunCommandSimple('adb', ['install', ApkName]);
