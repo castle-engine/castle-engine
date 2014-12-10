@@ -26,6 +26,8 @@ type
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis);
   TDependencies = set of TDependency;
 
+  TScreenOrientation = (soAny, soLandscape, soPortrait);
+
   TCastleProject = class
   private
     FDependencies: TDependencies;
@@ -40,7 +42,7 @@ type
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
     FVersion: string;
     FVersionCode: Cardinal;
-
+    FScreenOrientation: TScreenOrientation;
     procedure GatherFile(const FileInfo: TFileInfo);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
     procedure FoundTtf(const FileInfo: TFileInfo);
@@ -74,6 +76,7 @@ type
     property ExecutableName: string read FExecutableName;
     property StandaloneSource: string read FStandaloneSource;
     property AndroidSource: string read FAndroidSource;
+    property ScreenOrientation: TScreenOrientation read FScreenOrientation;
   public
     constructor Create;
     constructor Create(const Path: string);
@@ -89,6 +92,9 @@ type
 
 function DependencyToString(const D: TDependency): string;
 function StringToDependency(const S: string): TDependency;
+
+function ScreenOrientationToString(const O: TScreenOrientation): string;
+function StringToScreenOrientation(const S: string): TScreenOrientation;
 
 implementation
 
@@ -173,6 +179,8 @@ constructor TCastleProject.Create(const Path: string);
         FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
         FAndroidSource := Doc.DocumentElement.AttributeStringDef('android_source', '');
         FAuthor := Doc.DocumentElement.AttributeStringDef('author', '');
+        FScreenOrientation := StringToScreenOrientation(
+          Doc.DocumentElement.AttributeStringDef('screen_orientation', 'any'));
 
         Element := DOMGetChildElement(Doc.DocumentElement, 'version', false);
         FVersionCode := DefautVersionCode;
@@ -741,6 +749,14 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
           Result += UpCase(S[I]);
   end;
 
+const
+  AndroidScreenOrientation: array [TScreenOrientation] of string =
+  ('unspecified', 'sensorLandscape', 'sensorPortrait');
+  AndroidScreenOrientationFeature: array [TScreenOrientation] of string =
+  ('',
+   '<uses-feature android:name="android.hardware.screen.landscape"/>',
+   '<uses-feature android:name="android.hardware.screen.portrait"/>');
+
 var
   Patterns, Values: TCastleStringList;
   I: Integer;
@@ -778,6 +794,8 @@ begin
     Patterns.Add('AUTHOR');          Values.Add(NonEmptyAuthor);
     Patterns.Add('EXECUTABLE_NAME'); Values.Add(ExecutableName);
     Patterns.Add('ANDROID_LIBRARY_NAME'); Values.Add(ChangeFileExt(ExtractFileName(AndroidSource), ''));
+    Patterns.Add('ANDROID_SCREEN_ORIENTATION'); Values.Add(AndroidScreenOrientation[ScreenOrientation]);
+    Patterns.Add('ANDROID_SCREEN_ORIENTATION_FEATURE'); Values.Add(AndroidScreenOrientationFeature[ScreenOrientation]);
     // add CamelCase() replacements, add ${} around
     for I := 0 to Patterns.Count - 1 do
     begin
@@ -810,6 +828,23 @@ begin
     if AnsiSameText(DependencyNames[Result], S) then
       Exit;
   raise Exception.CreateFmt('Invalid dependency name "%s"', [S]);
+end;
+
+const
+  ScreenOrientationNames: array [TScreenOrientation] of string =
+  ('any', 'landscape', 'portrait');
+
+function ScreenOrientationToString(const O: TScreenOrientation): string;
+begin
+  Result := ScreenOrientationNames[O];
+end;
+
+function StringToScreenOrientation(const S: string): TScreenOrientation;
+begin
+  for Result in TScreenOrientation do
+    if AnsiSameText(ScreenOrientationNames[Result], S) then
+      Exit;
+  raise Exception.CreateFmt('Invalid orientation name "%s"', [S]);
 end;
 
 end.

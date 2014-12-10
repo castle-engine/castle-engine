@@ -16,7 +16,7 @@
                 android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             	android:launchMode="singleTask"
             	android:configChanges="orientation|keyboardHidden"
-		android:screenOrientation="sensorLandscape">
+		android:screenOrientation="${ANDROID_SCREEN_ORIENTATION}">
 	    <!-- NativeActivity must know the name of our library with JNI callbacks. -->
             <meta-data android:name="android.app.lib_name"
                        android:value="${ANDROID_LIBRARY_NAME}" />
@@ -41,5 +41,5 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     -->
 
-    <uses-feature android:name="android.hardware.screen.landscape"/>
+    ${ANDROID_SCREEN_ORIENTATION_FEATURE}
 </manifest>

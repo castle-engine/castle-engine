@@ -18,7 +18,7 @@
 '                android:theme="@android:style/Theme.NoTitleBar.Fullscreen"' + LineEnding +
 '            	android:launchMode="singleTask"' + LineEnding +
 '            	android:configChanges="orientation|keyboardHidden"' + LineEnding +
-'		android:screenOrientation="sensorLandscape">' + LineEnding +
+'		android:screenOrientation="${ANDROID_SCREEN_ORIENTATION}">' + LineEnding +
 '	    <!-- NativeActivity must know the name of our library with JNI callbacks. -->' + LineEnding +
 '            <meta-data android:name="android.app.lib_name"' + LineEnding +
 '                       android:value="${ANDROID_LIBRARY_NAME}" />' + LineEnding +
@@ -43,6 +43,6 @@
 '    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>' + LineEnding +
 '    -->' + LineEnding +
 '' + LineEnding +
-'    <uses-feature android:name="android.hardware.screen.landscape"/>' + LineEnding +
+'    ${ANDROID_SCREEN_ORIENTATION_FEATURE}' + LineEnding +
 '</manifest>' + LineEnding +
 ''
