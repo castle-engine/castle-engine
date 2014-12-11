@@ -10,4 +10,9 @@
   <icons>
     <icon path="promo-graphics/icon.png" />
   </icons>
+  <package>
+    <include path="AUTHORS.txt" />
+    <exclude path="data/background/trees.png" />
+    <exclude path="data/background/background.png" />
+  </package>
 </project>
