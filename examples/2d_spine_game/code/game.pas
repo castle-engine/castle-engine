@@ -46,19 +46,16 @@ type
   end;
 
 const
-  DragonInitialPosition: TVector3Single = (3800, 1000, 400);
+  DragonInitialPosition: TVector3Single = (4800, 600, 400);
   DragonSpeedX = 1000.0;
-  DragonSpeedY = 500.0;
+  DragonSpeedY =  500.0;
 
 procedure AddBackgroundItems;
 
   { Easily add a Spine animation, translated and scaled,
     and run it's animation. Path is processed by ApplicationData,
     so it used slahes and is relative to application data directory. }
-  procedure AddItem(const X, Y, Scale: Single; const Path: string);
-  const
-    // Move the tree layer in Z, just to make them really closer to camera
-    Z = 200;
+  procedure AddItem(const X, Y, Z, Scale: Single; const Path: string);
   var
     Transform: T3DTransform;
     Scene: T2DScene;
@@ -76,9 +73,13 @@ procedure AddBackgroundItems;
   end;
 
 begin
-  AddItem(3700, 0, 1      , 'trees/tree1.json');
-  AddItem(3700, 0, 1.2, 'trees/tree2.json');
-  AddItem(3700, 0, 0.9, 'trees/tree3.json');
+  { z = 200 to place in front, only behind dragon }
+  AddItem(3700, 0, 200, 1  , 'trees/tree1.json');
+  AddItem(3700, 0, 200, 1.2, 'trees/tree2.json');
+  AddItem(3700, 0, 200, 0.9, 'trees/tree3.json');
+  { z = 50 to place between background tower and background trees }
+  AddItem(0,    0,  50, 1, 'background/smoktlo2.json');
+  SceneManager.Items.SortZ;
 end;
 
 { One-time initialization. }
@@ -157,8 +158,8 @@ end;
 procedure CalculateCamera(out Pos, Dir, Up: TVector3Single);
 const
   { camera X position limits, just to avoid showing blackness underneath }
-  MinX = 113.1572800000;
-  MaxX = 4991.8037110000;
+  MinX = 113;
+  MaxX = 4980;
 begin
   if not CameraView3D.Pressed then
   begin
@@ -178,12 +179,7 @@ begin
     Up  := Vector3Single(0.10390279442071915, 0.99060952663421631, -0.088864780962467194);
   end;
   if CameraFollowsDragon.Pressed then
-    Pos[0] += (DragonTransform.Translation[0] - DragonInitialPosition[0]) -
-      { half of the screen, taking into account what T2DSceneManager does
-        with ProjectionHeight when ProjectionAutoSize = @false. }
-      0.5 * SceneManager.ProjectionHeight *
-      SceneManager.Rect.Width / SceneManager.Rect.Height;
-
+    Pos[0] += (DragonTransform.Translation[0] - DragonInitialPosition[0]);
   if not CameraView3D.Pressed then
     Pos[0] := Clamped(Pos[0], MinX, MaxX);
   //Writeln(Pos[0]:1:10);
