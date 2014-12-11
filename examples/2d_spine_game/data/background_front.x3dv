@@ -7,18 +7,18 @@ Transform {
       appearance Appearance {
         texture ImageTexture {
           url "background/trees_smaller.png"
-          repeatS TRUE
-          repeatT TRUE
+          repeatS FALSE
+          repeatT FALSE
         }
       }
       geometry QuadSet {
         coord Coordinate {
           point [
             # The sizes are set to keep image aspect ratio of background image.
-            0     20 0,
-            7669  20 0,
-            7669 664 0,
-            0    664 0
+            0      0 0,
+            7669   0 0,
+            7669 644 0,
+            0    644 0
           ]
         }
         texCoord TextureCoordinate {

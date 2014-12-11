@@ -32,8 +32,8 @@ Transform {
       appearance Appearance {
         texture ImageTexture {
           url "background/background_smaller.png"
-          repeatS TRUE
-          repeatT TRUE
+          repeatS FALSE
+          repeatT FALSE
         }
       }
       geometry QuadSet {

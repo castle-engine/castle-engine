@@ -81,7 +81,7 @@ begin
   { z = TreeZ to place in front, only behind dragon }
   AddItem(3400, 50, TreeZ, 0.55, 'trees/tree1.json');
   AddItem(3400, 0, TreeZ, 0.6, 'trees/tree2.json');
-  AddItem(1900, 40, TreeZ, 0.55, 'trees/tree2.json');
+  AddItem(1900, 10, TreeZ, 0.55, 'trees/tree2.json');
   AddItem(3100, 30, TreeZ, 0.66, 'trees/tree1.json');
   {
   for I := 0 to 1 do
@@ -89,10 +89,10 @@ begin
   for I := 0 to 1 do
     AddItem(Random * 4500, Random * 20 + 20, TreeZ + Random * 10, 0.6 + Random * 0.1, 'trees/tree2.json');
   }
-  AddItem(1000, 30, TreeZ, 0.65, 'trees/tree2.json');
+  AddItem(1000, 10, TreeZ, 0.65, 'trees/tree2.json');
   AddItem(1000, 30, TreeZ, 0.61, 'trees/tree1.json');
   AddItem(4300, 30, TreeZ, 0.7, 'trees/tree1.json');
-  AddItem(4600, 30, TreeZ, 0.7, 'trees/tree2.json');
+  AddItem(4600, 10, TreeZ, 0.7, 'trees/tree2.json');
   { z = 50 to place between background tower and background trees }
   AddItem(0,    0,  50, 1, 'background/smoktlo2.json');
   AddItem(0,    0, 100, 1, 'background_front.x3dv', false);
