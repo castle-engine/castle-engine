@@ -47,11 +47,12 @@ type
   private
     FProjectionAutoSize: boolean;
     FProjectionHeight: Single;
+    FProjectionSpan: Single;
   protected
     function CalculateProjection: TProjection; override;
   public
     const
-      ProjectionSpan = 1000.0;
+      DefaultProjectionSpan = 1000.0;
     property RenderStyle default rs2D;
     { When @true, the size of the world visible in our viewport will depend
       on scene manager size. ProjectionHeight is ignored then.
@@ -62,6 +63,8 @@ type
       read FProjectionAutoSize write FProjectionAutoSize default true;
     property ProjectionHeight: Single
       read FProjectionHeight write FProjectionHeight default 1;
+    property ProjectionSpan: Single
+      read FProjectionSpan write FProjectionSpan default DefaultProjectionSpan;
     constructor Create(AOwner: TComponent); override;
     function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
   end;
@@ -86,6 +89,7 @@ begin
   RenderStyle := rs2D;
   Transparent := true;
   ProjectionAutoSize := true;
+  FProjectionSpan := DefaultProjectionSpan;
 end;
 
 function T2DSceneManager.CreateDefaultCamera(AOwner: TComponent): TCamera;
