@@ -49,6 +49,7 @@ const
   DragonInitialPosition: TVector3Single = (4800, 600, 400);
   DragonSpeedX = 1000.0;
   DragonSpeedY =  500.0;
+  DragonScale = 0.5;
 
 procedure AddBackgroundItems;
 
@@ -74,9 +75,9 @@ procedure AddBackgroundItems;
 
 begin
   { z = 200 to place in front, only behind dragon }
-  AddItem(3700, 0, 200, 1  , 'trees/tree1.json');
-  AddItem(3700, 0, 200, 1.2, 'trees/tree2.json');
-  AddItem(3700, 0, 200, 0.9, 'trees/tree3.json');
+  AddItem(3700, 0, 200, 0.75, 'trees/tree1.json');
+  AddItem(3700, 0, 200, 0.78, 'trees/tree2.json');
+  AddItem(3700, 0, 200, 0.71, 'trees/tree3.json');
   { z = 50 to place between background tower and background trees }
   AddItem(0,    0,  50, 1, 'background/smoktlo2.json');
   SceneManager.Items.SortZ;
@@ -84,8 +85,6 @@ end;
 
 { One-time initialization. }
 procedure ApplicationInitialize;
-const
-  DragonScale = 1;
 begin
   SceneManager := T2DSceneManager.Create(Application);
   { show SceneManager.BackgroundColor underneath scene manager }
@@ -174,7 +173,7 @@ begin
     { show alternative camera view where it is clearly visible we are in 3D :) }
     { hint: to pick camera values experimentally, use view3dscene
       and Console->Print Current Camera.. menu item. }
-    Pos := Vector3Single(1985.1982421875, 238.34184265136719, 834.82659912109375);
+    Pos := Vector3Single(329.62554931640625, 581.32476806640625, 2722.44921875);
     Dir := Vector3Single(0.6533169150352478, -0.13534674048423767, -0.7448880672454834);
     Up  := Vector3Single(0.10390279442071915, 0.99060952663421631, -0.088864780962467194);
   end;
