@@ -1,0 +1,20 @@
+
+smoktlo2.png
+size: 4096,1024
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+cloud1
+  rotate: false
+  xy: 2175, 317
+  size: 1599, 526
+  orig: 1599, 526
+  offset: 0, 0
+  index: -1
+clouds_bg
+  rotate: false
+  xy: 2, 2
+  size: 2171, 841
+  orig: 2171, 841
+  offset: 0, 0
+  index: -1

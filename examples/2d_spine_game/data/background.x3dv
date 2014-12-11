@@ -69,10 +69,10 @@ Transform {
         coord Coordinate {
           point [
             # The sizes are set to keep image aspect ratio of background image.
-            0     20 10,
-            7669  20 10,
-            7669 664 10,
-            0    664 10
+            0     20 100,
+            7669  20 100,
+            7669 664 100,
+            0    664 100
           ]
         }
         texCoord TextureCoordinate {
