@@ -12,48 +12,79 @@ PROFILE Interchange
 # in view3dscene.
 #
 # Camera settings "encoded" in the VRML/X3D declaration below :
-# direction 0.65331709384918213 -0.13534675538539886 -0.74488800764083862
-# up 0.10390201956033707 0.99060958623886108 -0.088865414261817932
+# direction 0.6533169150352478 -0.13534674048423767 -0.7448880672454834
+# up 0.10390279442071915 0.99060952663421631 -0.088864780962467194
 # gravityUp 0 1 0
 OrthoViewpoint {
-  fieldOfView [ 0 0 100 70 ]
-  position -56.464332580566406 14.83024787902832 54.536846160888672
-  orientation -0.16741843521595001 -0.98158168792724609 -0.092024557292461395 0.73368912935256958
+  fieldOfView [ 0 0 1442 1442 ]
+  position 1985.1982421875 238.34184265136719 834.82659912109375
+  orientation -0.16741795837879181 -0.98158109188079834 -0.092025592923164368 0.73368948698043823
   # zNear -1000
   # zFar 1000
 }
 NavigationInfo {
-  visibilityLimit 1000
+  visibilityLimit 100000
+  blendingSort "2D"
 }
 
 Transform {
-  translation -265 0 0
-  children Shape {
-    appearance Appearance {
-      texture ImageTexture {
-        url "textures/background_smaller.png"
-        repeatS TRUE
-        repeatT TRUE
+  children [
+    Shape {
+      appearance Appearance {
+        texture ImageTexture {
+          url "background/background_smaller.png"
+          repeatS TRUE
+          repeatT TRUE
+        }
+      }
+      geometry QuadSet {
+        coord Coordinate {
+          point [
+            # The sizes are set to keep image aspect ratio of background image.
+            0       0 0,
+            7667    0 0,
+            7667 1442 0,
+            0    1442 0,
+          ]
+        }
+        texCoord TextureCoordinate {
+          point [
+            0 0,
+            1 0,
+            1 1,
+            0 1,
+          ]
+        }
       }
     }
-    geometry QuadSet {
-      coord Coordinate {
-        point [
-          # The sizes are set to keep image aspect ratio of background image.
-          0 0 0,
-          531.6920943 0 0,
-          531.6920943 100 0,
-          0 100 0
-        ]
+    Shape {
+      appearance Appearance {
+        texture ImageTexture {
+          url "background/trees_smaller.png"
+          repeatS TRUE
+          repeatT TRUE
+        }
       }
-      texCoord TextureCoordinate {
-        point [
-          0 0,
-          1 0,
-          1 1,
-          0 1,
-        ]
+      geometry QuadSet {
+        coord Coordinate {
+          point [
+            # The sizes are set to keep image aspect ratio of background image.
+            0     20 10,
+            7669  20 10,
+            7669 664 10,
+            0    664 10
+          ]
+        }
+        texCoord TextureCoordinate {
+          point [
+            0 0,
+            1 0,
+            1 1,
+            0 1,
+          ]
+        }
       }
     }
-  }
+  ]
 }
+

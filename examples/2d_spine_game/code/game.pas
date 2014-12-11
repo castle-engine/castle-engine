@@ -45,6 +45,11 @@ type
     procedure CameraFollowsDragonClick(Sender: TObject);
   end;
 
+const
+  DragonInitialPosition: TVector3Single = (3800, 1000, 400);
+  DragonSpeedX = 1000.0;
+  DragonSpeedY = 500.0;
+
 procedure AddBackgroundItems;
 
   { Easily add a Spine animation, translated and scaled,
@@ -53,7 +58,7 @@ procedure AddBackgroundItems;
   procedure AddItem(const X, Y, Scale: Single; const Path: string);
   const
     // Move the tree layer in Z, just to make them really closer to camera
-    Z = 20;
+    Z = 200;
   var
     Transform: T3DTransform;
     Scene: T2DScene;
@@ -71,15 +76,15 @@ procedure AddBackgroundItems;
   end;
 
 begin
-  AddItem(10, 0, 0.03      , 'tree/tree1.json');
-  AddItem(20, 0, 0.03 * 1.2, 'tree/tree2.json');
-  AddItem(40, 0, 0.03 * 0.9, 'tree/tree3.json');
+  AddItem(3700, 0, 1      , 'trees/tree1.json');
+  AddItem(3700, 0, 1.2, 'trees/tree2.json');
+  AddItem(3700, 0, 0.9, 'trees/tree3.json');
 end;
 
 { One-time initialization. }
 procedure ApplicationInitialize;
 const
-  DragonScale = 0.025;
+  DragonScale = 1;
 begin
   SceneManager := T2DSceneManager.Create(Application);
   { show SceneManager.BackgroundColor underneath scene manager }
@@ -114,13 +119,14 @@ begin
     So projection height should adjust to background.x3dv height. }
   SceneManager.ProjectionAutoSize := false;
   SceneManager.ProjectionHeight := Background.BoundingBox.Data[1][1];
+  SceneManager.ProjectionSpan := 10000.0;
 
   DragonTransform := T3DTransform.Create(Application);
   DragonTransform.Scale := Vector3Single(DragonScale, DragonScale, DragonScale);
   { translate in XY to set initial position in the middle of the screen.
     translate in Z to push dragon in front of trees
     (on Z = 20, see data/background.x3dv) }
-  DragonTransform.Translation := Vector3Single(60, 40, 40);
+  DragonTransform.Translation := DragonInitialPosition;
   SceneManager.Items.Add(DragonTransform);
 
   Dragon := T2DScene.Create(Application);
@@ -151,39 +157,39 @@ end;
 procedure CalculateCamera(out Pos, Dir, Up: TVector3Single);
 const
   { camera X position limits, just to avoid showing blackness underneath }
-  MinX = -258.6187439000;
-  MaxX = 86.8355407700;
+  MinX = 113.1572800000;
+  MaxX = 4991.8037110000;
 begin
   if not CameraView3D.Pressed then
   begin
-    { camera values like initialized by T2DSceneManager }
-    Pos := Vector3Single(0, 0, 0);
+    { initial camera, like initialized by T2DSceneManager,
+      but shifted to see the middle of the background scene,
+      to see dragon at initial position }
+    Pos := Vector3Single(3800, 0, 0);
     Dir := Vector3Single(0, 0, -1);
     Up  := Vector3Single(0, 1, 0);
   end else
   begin
     { show alternative camera view where it is clearly visible we are in 3D :) }
     { hint: to pick camera values experimentally, use view3dscene
-      and Console->Print Current Camera.. menu item }
-    Pos := Vector3Single(-56.464332580566406, 14.83024787902832, 54.536846160888672);
-    Dir := Vector3Single(0.6533171534538269, -0.13534677028656006, -0.7448880672454834);
-    Up  := Vector3Single(0.10390207171440125, 0.99060958623886108, -0.088865458965301514);
+      and Console->Print Current Camera.. menu item. }
+    Pos := Vector3Single(1985.1982421875, 238.34184265136719, 834.82659912109375);
+    Dir := Vector3Single(0.6533169150352478, -0.13534674048423767, -0.7448880672454834);
+    Up  := Vector3Single(0.10390279442071915, 0.99060952663421631, -0.088864780962467194);
   end;
   if CameraFollowsDragon.Pressed then
-    Pos[0] += DragonTransform.Translation[0] -
+    Pos[0] += (DragonTransform.Translation[0] - DragonInitialPosition[0]) -
       { half of the screen, taking into account what T2DSceneManager does
         with ProjectionHeight when ProjectionAutoSize = @false. }
       0.5 * SceneManager.ProjectionHeight *
       SceneManager.Rect.Width / SceneManager.Rect.Height;
 
-  Pos[0] := Clamped(Pos[0], MinX, MaxX);
+  if not CameraView3D.Pressed then
+    Pos[0] := Clamped(Pos[0], MinX, MaxX);
   //Writeln(Pos[0]:1:10);
 end;
 
 procedure WindowUpdate(Container: TUIContainer);
-const
-  SpeedX = 50.0;
-  SpeedY = 25.0;
 var
   SecondsPassed: Single;
   T: TVector3Single;
@@ -210,11 +216,11 @@ begin
     T := DragonTransform.Translation;
     SecondsPassed := Container.Fps.UpdateSecondsPassed;
     if T[0] < DragonFlyingTarget[0] then
-      T[0] := Min(DragonFlyingTarget[0], T[0] + SpeedX * SecondsPassed) else
-      T[0] := Max(DragonFlyingTarget[0], T[0] - SpeedX * SecondsPassed);
+      T[0] := Min(DragonFlyingTarget[0], T[0] + DragonSpeedX * SecondsPassed) else
+      T[0] := Max(DragonFlyingTarget[0], T[0] - DragonSpeedX * SecondsPassed);
     if T[1] < DragonFlyingTarget[1] then
-      T[1] := Min(DragonFlyingTarget[1], T[1] + SpeedY * SecondsPassed) else
-      T[1] := Max(DragonFlyingTarget[1], T[1] - SpeedY * SecondsPassed);
+      T[1] := Min(DragonFlyingTarget[1], T[1] + DragonSpeedY * SecondsPassed) else
+      T[1] := Max(DragonFlyingTarget[1], T[1] - DragonSpeedY * SecondsPassed);
     DragonTransform.Translation := T;
 
     { check did we reach the target. Note that we can compare floats
