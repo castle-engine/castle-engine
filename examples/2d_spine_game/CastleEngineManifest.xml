@@ -4,9 +4,9 @@
   qualified_name="net.sourceforge.castleengine.castlespine"
   standalone_source="code/castle_spine.lpr"
   android_source="code/castle_spine_android.lpr"
-  author="Michalis Kamburelis"
+  author="Michalis Kamburelis and Paweł Wojciechowicz"
   screen_orientation="landscape">
-  <version value="0.4" code="4" />
+  <version value="0.5" code="5" />
   <icons>
     <icon path="promo-graphics/icon.png" />
   </icons>
