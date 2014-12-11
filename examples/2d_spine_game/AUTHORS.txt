@@ -1,8 +1,10 @@
 Paweł Wojciechowicz did all the fantastic graphic work for this demo!
 Dragon with animations, background with castle and clouds,
-all tree variations with animations.
+all tree variations with animations, icon.
 Paweł is also the author of the "Venice" comics and game
 ( https://www.facebook.com/Venicethegame ) and many other great projects.
+He's also a teacher in Soda Studio ( http://studiosoda.pl/ ),
+Polish art school.
 Thanks!
 
 All the animation/image data is licensed on the GNU GPL >= 2 terms,

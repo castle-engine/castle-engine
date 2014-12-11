@@ -7,4 +7,7 @@
   author="Michalis Kamburelis"
   screen_orientation="landscape">
   <version value="0.4" code="4" />
+  <icons>
+    <icon path="promo-graphics/icon.png" />
+  </icons>
 </project>
