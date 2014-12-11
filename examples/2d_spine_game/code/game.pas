@@ -48,7 +48,7 @@ type
 { One-time initialization. }
 procedure ApplicationInitialize;
 const
-  DragonScale = 0.05;
+  DragonScale = 0.025;
 begin
   SceneManager := T2DSceneManager.Create(Application);
   { show SceneManager.BackgroundColor underneath scene manager }
@@ -231,8 +231,8 @@ begin
         flying left/right animations from single "flying" animation. }
       S := DragonTransform.Scale;
       if DragonFlyingTarget[0] > DragonTransform.Translation[0] then
-        S[0] := Abs(S[0]) else
-        S[0] := -Abs(S[0]);
+        S[0] := -Abs(S[0]) else
+        S[0] := Abs(S[0]);
       DragonTransform.Scale := S;
     end;
   end;
