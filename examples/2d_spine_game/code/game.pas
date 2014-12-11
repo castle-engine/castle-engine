@@ -46,7 +46,7 @@ type
   end;
 
 const
-  DragonInitialPosition: TVector3Single = (4800, 600, 400);
+  DragonInitialPosition: TVector3Single = (2800, 800, 400);
   DragonSpeedX = 1000.0;
   DragonSpeedY =  500.0;
   DragonScale = 0.5;
@@ -158,14 +158,14 @@ procedure CalculateCamera(out Pos, Dir, Up: TVector3Single);
 const
   { camera X position limits, just to avoid showing blackness underneath }
   MinX = 113;
-  MaxX = 4980;
+  MaxX = 3408;
 begin
   if not CameraView3D.Pressed then
   begin
     { initial camera, like initialized by T2DSceneManager,
       but shifted to see the middle of the background scene,
       to see dragon at initial position }
-    Pos := Vector3Single(3800, 0, 0);
+    Pos := Vector3Single(2100, 0, 0);
     Dir := Vector3Single(0, 0, -1);
     Up  := Vector3Single(0, 1, 0);
   end else
@@ -178,7 +178,13 @@ begin
     Up  := Vector3Single(0.10390279442071915, 0.99060952663421631, -0.088864780962467194);
   end;
   if CameraFollowsDragon.Pressed then
-    Pos[0] += (DragonTransform.Translation[0] - DragonInitialPosition[0]);
+    Pos[0] += (DragonTransform.Translation[0] - DragonInitialPosition[0]) -
+      { part of the screen (approximately where is the dragon
+        at DragonInitialPosition with respect to default camera view),
+        taking into account what T2DSceneManager does
+        with ProjectionHeight when ProjectionAutoSize = @false. }
+      0.25 * SceneManager.ProjectionHeight *
+      SceneManager.Rect.Width / SceneManager.Rect.Height;
   if not CameraView3D.Pressed then
     Pos[0] := Clamped(Pos[0], MinX, MaxX);
   //Writeln(Pos[0]:1:10);
