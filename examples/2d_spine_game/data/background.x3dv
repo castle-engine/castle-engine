@@ -26,35 +26,34 @@ NavigationInfo {
   visibilityLimit 1000
 }
 
-Shape {
-  appearance Appearance {
-    texture ImageTexture {
-      url "textures/wizardtower_tiling.png"
-      repeatS TRUE
-      repeatT TRUE
+Transform {
+  translation -265 0 0
+  children Shape {
+    appearance Appearance {
+      texture ImageTexture {
+        url "textures/background_smaller.png"
+        repeatS TRUE
+        repeatT TRUE
+      }
     }
-  }
-  geometry QuadSet {
-    coord Coordinate {
-      point [
-        # The sizes are set to keep image aspect ratio of 1672 x 700.
-        #
-        # We also make the size 100 x longer (in positive and negative X),
-        # to simulate infinite background for player (this is accompanied
-        # with using tiling background image in wizardtower_tiling).
-        -16720 0 0,
-         16720 0 0,
-         16720 70 0,
-        -16720 70 0
-      ]
-    }
-    texCoord TextureCoordinate {
-      point [
-        -100 0,
-         100 0,
-         100 1,
-        -100 1,
-      ]
+    geometry QuadSet {
+      coord Coordinate {
+        point [
+          # The sizes are set to keep image aspect ratio of background image.
+          0 0 0,
+          531.6920943 0 0,
+          531.6920943 100 0,
+          0 100 0
+        ]
+      }
+      texCoord TextureCoordinate {
+        point [
+          0 0,
+          1 0,
+          1 1,
+          0 1,
+        ]
+      }
     }
   }
 }

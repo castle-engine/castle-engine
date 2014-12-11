@@ -149,6 +149,10 @@ end;
 { Looking at current state of CameraView3D.Pressed
   and CameraFollowsDragon.Pressed, calculate camera vectors. }
 procedure CalculateCamera(out Pos, Dir, Up: TVector3Single);
+const
+  { camera X position limits, just to avoid showing blackness underneath }
+  MinX = -258.6187439000;
+  MaxX = 86.8355407700;
 begin
   if not CameraView3D.Pressed then
   begin
@@ -171,6 +175,9 @@ begin
         with ProjectionHeight when ProjectionAutoSize = @false. }
       0.5 * SceneManager.ProjectionHeight *
       SceneManager.Rect.Width / SceneManager.Rect.Height;
+
+  Pos[0] := Clamped(Pos[0], MinX, MaxX);
+  //Writeln(Pos[0]:1:10);
 end;
 
 procedure WindowUpdate(Container: TUIContainer);
