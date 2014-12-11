@@ -27,7 +27,7 @@ implementation
 
 uses SysUtils,
   CastleControls, CastleKeysMouse, CastleFilesUtils, Castle2DSceneManager,
-  CastleVectors, Castle3D, CastleSceneCore, CastleUtils;
+  CastleVectors, Castle3D, CastleSceneCore, CastleUtils, CastleColors;
 
 var
   SceneManager: T2DSceneManager;
@@ -38,6 +38,7 @@ var
   CameraFollowsDragon: TCastleButton;
   DragonFlying: boolean;
   DragonFlyingTarget: TVector2Single;
+  Status: TCastleLabel;
 
 type
   TButtonsHandler = class
@@ -89,10 +90,10 @@ begin
   for I := 0 to 1 do
     AddItem(Random * 4500, Random * 20 + 20, TreeZ + Random * 10, 0.6 + Random * 0.1, 'trees/tree2.json');
   }
-  AddItem(1000, 10, TreeZ, 0.65, 'trees/tree2.json');
-  AddItem(1000, 30, TreeZ, 0.61, 'trees/tree1.json');
-  AddItem(4300, 30, TreeZ, 0.7, 'trees/tree1.json');
-  AddItem(4600, 10, TreeZ, 0.7, 'trees/tree2.json');
+  // AddItem(1000, 10, TreeZ, 0.65, 'trees/tree2.json');
+  // AddItem(1000, 30, TreeZ, 0.61, 'trees/tree1.json');
+  // AddItem(4300, 30, TreeZ, 0.7, 'trees/tree1.json');
+  // AddItem(4600, 10, TreeZ, 0.7, 'trees/tree2.json');
   { z = 50 to place between background tower and background trees }
   AddItem(0,    0,  50, 1, 'background/smoktlo2.json');
   AddItem(0,    0, 100, 1, 'background_front.x3dv', false);
@@ -166,6 +167,15 @@ begin
   CameraFollowsDragon.Left := 10;
   CameraFollowsDragon.Bottom := 60;
   Window.Controls.InsertFront(CameraFollowsDragon);
+
+  Status := TCastleLabel.Create(Window);
+  Status.Padding := 5;
+  Status.Text.Append('FPS: ...');
+  Status.Color := Red;
+  Status.Left := 10;
+  Status.Bottom := 100;
+  Status.Frame := false;
+  Window.Controls.InsertFront(Status);
 end;
 
 { Looking at current state of CameraView3D.Pressed
@@ -212,6 +222,9 @@ var
   T: TVector3Single;
   Pos, Dir, Up: TVector3Single;
 begin
+  Status.Text[Status.Text.Count - 1] := Format('FPS: %f (real : %f)',
+    [Window.Fps.FrameTime, Window.Fps.RealTime]);
+
   if { check SceneManager.Camera existence, because in this game
        we just depend on SceneManager creating camera automatically,
        so we should not depend that it exists early, like at 1st OnUpdate.
