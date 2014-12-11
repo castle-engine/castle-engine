@@ -59,7 +59,7 @@ procedure AddBackgroundItems;
     Scene: T2DScene;
   begin
     Transform := T3DTransform.Create(Application);
-    Transform.Scale := Vector3Single(Scale, Scale, 1);
+    Transform.Scale := Vector3Single(Scale, Scale, Scale);
     Transform.Translation := Vector3Single(X, Y, Z);
     SceneManager.Items.Add(Transform);
 
