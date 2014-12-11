@@ -56,7 +56,8 @@ procedure AddBackgroundItems;
   { Easily add a Spine animation, translated and scaled,
     and run it's animation. Path is processed by ApplicationData,
     so it used slahes and is relative to application data directory. }
-  procedure AddItem(const X, Y, Z, Scale: Single; const Path: string);
+  procedure AddItem(const X, Y, Z, Scale: Single; const Path: string;
+    const RunAnimation: boolean = true);
   var
     Transform: T3DTransform;
     Scene: T2DScene;
@@ -70,16 +71,31 @@ procedure AddBackgroundItems;
     Transform.Add(Scene);
     Scene.Load(ApplicationData(Path));
     Scene.ProcessEvents := true;
-    Scene.PlayAnimation('animation', paForceLooping);
+    if RunAnimation then
+      Scene.PlayAnimation('animation', paForceLooping);
   end;
 
+const
+  TreeZ = 200;
 begin
-  { z = 200 to place in front, only behind dragon }
-  AddItem(3700, 0, 200, 0.75, 'trees/tree1.json');
-  AddItem(3700, 0, 200, 0.78, 'trees/tree2.json');
-  AddItem(3700, 0, 200, 0.71, 'trees/tree3.json');
+  { z = TreeZ to place in front, only behind dragon }
+  AddItem(3400, 50, TreeZ, 0.55, 'trees/tree1.json');
+  AddItem(3400, 0, TreeZ, 0.6, 'trees/tree2.json');
+  AddItem(1900, 40, TreeZ, 0.55, 'trees/tree2.json');
+  AddItem(3100, 30, TreeZ, 0.66, 'trees/tree1.json');
+  {
+  for I := 0 to 1 do
+    AddItem(Random * 4500, Random * 20 + 20, TreeZ + Random * 10, 0.6 + Random * 0.1, 'trees/tree1.json');
+  for I := 0 to 1 do
+    AddItem(Random * 4500, Random * 20 + 20, TreeZ + Random * 10, 0.6 + Random * 0.1, 'trees/tree2.json');
+  }
+  AddItem(1000, 30, TreeZ, 0.65, 'trees/tree2.json');
+  AddItem(1000, 30, TreeZ, 0.61, 'trees/tree1.json');
+  AddItem(4300, 30, TreeZ, 0.7, 'trees/tree1.json');
+  AddItem(4600, 30, TreeZ, 0.7, 'trees/tree2.json');
   { z = 50 to place between background tower and background trees }
   AddItem(0,    0,  50, 1, 'background/smoktlo2.json');
+  AddItem(0,    0, 100, 1, 'background_front.x3dv', false);
   SceneManager.Items.SortZ;
 end;
 

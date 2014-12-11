@@ -24,7 +24,6 @@ OrthoViewpoint {
 }
 NavigationInfo {
   visibilityLimit 100000
-  blendingSort "2D"
 }
 
 Transform {
@@ -45,34 +44,6 @@ Transform {
             7667    0 0,
             7667 1442 0,
             0    1442 0,
-          ]
-        }
-        texCoord TextureCoordinate {
-          point [
-            0 0,
-            1 0,
-            1 1,
-            0 1,
-          ]
-        }
-      }
-    }
-    Shape {
-      appearance Appearance {
-        texture ImageTexture {
-          url "background/trees_smaller.png"
-          repeatS TRUE
-          repeatT TRUE
-        }
-      }
-      geometry QuadSet {
-        coord Coordinate {
-          point [
-            # The sizes are set to keep image aspect ratio of background image.
-            0     20 100,
-            7669  20 100,
-            7669 664 100,
-            0    664 100
           ]
         }
         texCoord TextureCoordinate {
