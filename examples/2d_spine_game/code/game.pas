@@ -45,6 +45,37 @@ type
     procedure CameraFollowsDragonClick(Sender: TObject);
   end;
 
+procedure AddBackgroundItems;
+
+  { Easily add a Spine animation, translated and scaled,
+    and run it's animation. Path is processed by ApplicationData,
+    so it used slahes and is relative to application data directory. }
+  procedure AddItem(const X, Y, Scale: Single; const Path: string);
+  const
+    // Move the tree layer in Z, just to make them really closer to camera
+    Z = 20;
+  var
+    Transform: T3DTransform;
+    Scene: T2DScene;
+  begin
+    Transform := T3DTransform.Create(Application);
+    Transform.Scale := Vector3Single(Scale, Scale, 1);
+    Transform.Translation := Vector3Single(X, Y, Z);
+    SceneManager.Items.Add(Transform);
+
+    Scene := T2DScene.Create(Application);
+    Transform.Add(Scene);
+    Scene.Load(ApplicationData(Path));
+    Scene.ProcessEvents := true;
+    Scene.PlayAnimation('animation', paForceLooping);
+  end;
+
+begin
+  AddItem(10, 0, 0.03      , 'tree/tree1.json');
+  AddItem(20, 0, 0.03 * 1.2, 'tree/tree2.json');
+  AddItem(40, 0, 0.03 * 0.9, 'tree/tree3.json');
+end;
+
 { One-time initialization. }
 procedure ApplicationInitialize;
 const
@@ -74,6 +105,8 @@ begin
   { this is useful to have precise collisions (not just with bounding box),
     which in turn is useful here for Background.PointingDeviceOverPoint value }
   Background.Spatial := [ssRendering, ssDynamicCollisions];
+
+  AddBackgroundItems;
 
   { We always want to see full height of background.x3dv,
     we know it starts from bottom = 0.
