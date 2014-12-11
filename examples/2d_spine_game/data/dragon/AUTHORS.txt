@@ -1,2 +1,6 @@
-dragon Spine animation from http://esotericsoftware.com/ examples installed
-with Spine. TODO: replace this with our own animation.
+Dragon animation done in Spine by fantastic Paweł Wojciechowicz.
+Paweł is also the author of the "Venice" comics and game
+( https://www.facebook.com/Venicethegame ) and many other great projects.
+Thanks!
+
+The animation is licensed on the GNU GPL >= 2 terms.
