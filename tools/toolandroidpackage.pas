@@ -200,7 +200,7 @@ var
 
   procedure RunAnt(const PackageMode: TCompilationMode);
   begin
-    RunCommandSimple(AndroidProjectPath, 'ant', [PackageModeToName[PackageMode], '-noinput', '-silent']);
+    RunCommandSimple(AndroidProjectPath, 'ant', [PackageModeToName[PackageMode], '-noinput', '-quiet']);
   end;
 
 var
