@@ -103,6 +103,7 @@ type
     FImageAlphaTest: boolean;
     FMinWidth, FMinHeight: Cardinal;
     FImageMargin: Cardinal;
+    FPaddingHorizontal, FPaddingVertical: Cardinal;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
@@ -125,6 +126,8 @@ type
   public
     const
       DefaultImageMargin = 10;
+      DefaultPaddingHorizontal = 10;
+      DefaultPaddingVertical = 10;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -156,6 +159,11 @@ type
   published
     property Width: Cardinal read FWidth write SetWidth default 0;
     property Height: Cardinal read FHeight write SetHeight default 0;
+
+    property PaddingHorizontal: Cardinal
+      read FPaddingHorizontal write FPaddingHorizontal default DefaultPaddingHorizontal;
+    property PaddingVertical: Cardinal
+      read FPaddingVertical write FPaddingVertical default DefaultPaddingVertical;
 
     { When AutoSize is @true (the default) then Width/Height are automatically
       adjusted when you change the Caption and @link(Image).
@@ -905,6 +913,8 @@ begin
   FAutoSizeHeight := true;
   FImageLayout := ilLeft;
   FImageMargin := DefaultImageMargin;
+  FPaddingHorizontal := DefaultPaddingHorizontal;
+  FPaddingVertical := DefaultPaddingVertical;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
 end;
 
@@ -1087,9 +1097,6 @@ begin
 end;
 
 procedure TCastleButton.UpdateSize;
-const
-  HorizontalMargin = 10;
-  VerticalMargin = 10;
 var
   ImgSize: Cardinal;
 begin
@@ -1098,8 +1105,8 @@ begin
     { We modify FWidth, FHeight directly,
       to avoid causing UpdateFocusAndMouseCursor too many times.
       We'll call it at the end explicitly. }
-    if AutoSizeWidth then FWidth := TextWidth + HorizontalMargin * 2;
-    if AutoSizeHeight then FHeight := TextHeight + VerticalMargin * 2;
+    if AutoSizeWidth then FWidth := TextWidth + PaddingHorizontal * 2;
+    if AutoSizeHeight then FHeight := TextHeight + PaddingVertical * 2;
     if (FImage <> nil) or
        (MinImageWidth <> 0) or
        (MinImageHeight <> 0) then
@@ -1111,7 +1118,7 @@ begin
           ImgSize := MinImageWidth;
         case ImageLayout of
           ilLeft, ilRight: FWidth := Width + ImgSize + ImageMargin;
-          ilTop, ilBottom: FWidth := Max(Width, ImgSize + HorizontalMargin * 2);
+          ilTop, ilBottom: FWidth := Max(Width, ImgSize + PaddingHorizontal * 2);
         end;
       end;
       if AutoSizeHeight then
@@ -1120,7 +1127,7 @@ begin
           ImgSize := Max(FImage.Height, MinImageHeight) else
           ImgSize := MinImageHeight;
         case ImageLayout of
-          ilLeft, ilRight: FHeight := Max(Height, ImgSize + VerticalMargin * 2);
+          ilLeft, ilRight: FHeight := Max(Height, ImgSize + PaddingVertical * 2);
           ilTop, ilBottom: FHeight := Height + ImgSize + ImageMargin;
         end;
       end;

@@ -27,7 +27,8 @@ implementation
 
 uses SysUtils,
   CastleControls, CastleKeysMouse, CastleFilesUtils, Castle2DSceneManager,
-  CastleVectors, Castle3D, CastleSceneCore, CastleUtils, CastleColors;
+  CastleVectors, Castle3D, CastleSceneCore, CastleUtils, CastleColors,
+  CastleUIControls;
 
 var
   SceneManager: T2DSceneManager;
@@ -102,6 +103,8 @@ end;
 
 { One-time initialization. }
 procedure ApplicationInitialize;
+const
+  ButtonPadding = 30;
 begin
   SceneManager := T2DSceneManager.Create(Application);
   { show SceneManager.BackgroundColor underneath scene manager }
@@ -158,6 +161,8 @@ begin
   CameraView3D.Toggle := true;
   CameraView3D.Left := 10;
   CameraView3D.Bottom := 10;
+  CameraView3D.PaddingHorizontal := ButtonPadding;
+  CameraView3D.PaddingVertical := ButtonPadding;
   Window.Controls.InsertFront(CameraView3D);
 
   CameraFollowsDragon := TCastleButton.Create(Window);
@@ -165,7 +170,9 @@ begin
   CameraFollowsDragon.OnClick := @TButtonsHandler(nil).CameraFollowsDragonClick;
   CameraFollowsDragon.Toggle := true;
   CameraFollowsDragon.Left := 10;
-  CameraFollowsDragon.Bottom := 60;
+  CameraFollowsDragon.Bottom := 100;
+  CameraFollowsDragon.PaddingHorizontal := ButtonPadding;
+  CameraFollowsDragon.PaddingVertical := ButtonPadding;
   Window.Controls.InsertFront(CameraFollowsDragon);
 
   Status := TCastleLabel.Create(Window);
@@ -173,7 +180,7 @@ begin
   Status.Text.Append('FPS: ...');
   Status.Color := Red;
   Status.Left := 10;
-  Status.Bottom := 100;
+  // Status.Bottom := ...; // vertical Status position will be adjusted in WindowResize
   Status.Frame := false;
   Window.Controls.InsertFront(Status);
 end;
@@ -314,6 +321,11 @@ begin
   end;
 end;
 
+procedure WindowResize(Container: TUIContainer);
+begin
+  Status.AlignVertical(prTop, prTop, -10);
+end;
+
 procedure TButtonsHandler.CameraView3DClick(Sender: TObject);
 var
   Pos, Dir, Up: TVector3Single;
@@ -354,6 +366,7 @@ initialization
   Window := TCastleWindowCustom.Create(Application);
   Window.OnPress := @WindowPress;
   Window.OnUpdate := @WindowUpdate;
+  Window.OnResize := @WindowResize;
   Window.FpsShowOnCaption := true;
   Application.MainWindow := Window;
 end.
