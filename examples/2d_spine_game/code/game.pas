@@ -188,10 +188,6 @@ end;
 { Looking at current state of CameraView3D.Pressed
   and CameraFollowsDragon.Pressed, calculate camera vectors. }
 procedure CalculateCamera(out Pos, Dir, Up: TVector3Single);
-const
-  { camera X position limits, just to avoid showing blackness underneath }
-  MinX = 113;
-  MaxX = 3408;
 begin
   if not CameraView3D.Pressed then
   begin
@@ -213,14 +209,16 @@ begin
   if CameraFollowsDragon.Pressed then
     Pos[0] += (DragonTransform.Translation[0] - DragonInitialPosition[0]) -
       { part of the screen (approximately where is the dragon
-        at DragonInitialPosition with respect to default camera view),
-        taking into account what T2DSceneManager does
-        with ProjectionHeight when ProjectionAutoSize = @false. }
-      0.25 * SceneManager.ProjectionHeight *
-      SceneManager.Rect.Width / SceneManager.Rect.Height;
+        at DragonInitialPosition with respect to default camera view). }
+      0.25 * SceneManager.CurrentProjectionWidth;
+  { Limit camera span, to not show blackness to the left or right.
+    Note that for default 2D projection, camera is at the left corner,
+    so while calculating minimum X is easy, calculating maximum X must take
+    into account screen width.  }
   if not CameraView3D.Pressed then
-    Pos[0] := Clamped(Pos[0], MinX, MaxX);
-  //Writeln(Pos[0]:1:10);
+    Pos[0] := Clamped(Pos[0],
+      Background.BoundingBox.Data[0][0],
+      Background.BoundingBox.Data[1][0] - SceneManager.CurrentProjectionWidth);
 end;
 
 procedure WindowUpdate(Container: TUIContainer);

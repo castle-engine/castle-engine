@@ -47,6 +47,7 @@ type
   private
     FProjectionAutoSize: boolean;
     FProjectionHeight: Single;
+    FCurrentProjectionWidth, FCurrentProjectionHeight: Single;
     FProjectionSpan: Single;
   protected
     function CalculateProjection: TProjection; override;
@@ -58,11 +59,21 @@ type
       on scene manager size. ProjectionHeight is ignored then.
       When @false, ProjectionHeight is used to determine the height
       of world visible in our viewport (width is automatically adjusted
-      to follow aspect ratio of viewport size). }
+      to follow aspect ratio of viewport size).
+
+      In all cases, CurrentProjectionWidth and CurrentProjectionHeight
+      must be checked to see actual projection dimensions.
+      When this is @true, then CurrentProjectionWidth and CurrentProjectionHeight
+      are determined by the scene manager size (which is also available using
+      @link(TUIRectangularControl.Rect) method). When this is @false,
+      then CurrentProjectionHeight is equal to ProjectionHeight,
+      and CurrentProjectionWidth is adjusted to follow aspect ratio. }
     property ProjectionAutoSize: boolean
       read FProjectionAutoSize write FProjectionAutoSize default true;
     property ProjectionHeight: Single
       read FProjectionHeight write FProjectionHeight default 1;
+    property CurrentProjectionWidth: Single read FCurrentProjectionWidth;
+    property CurrentProjectionHeight: Single read FCurrentProjectionHeight;
     property ProjectionSpan: Single
       read FProjectionSpan write FProjectionSpan default DefaultProjectionSpan;
     constructor Create(AOwner: TComponent); override;
@@ -114,13 +125,15 @@ begin
   Result.OrthoDimensions[1] := 0;
   if ProjectionAutoSize then
   begin
-    Result.OrthoDimensions[2] := Rect.Width;
-    Result.OrthoDimensions[3] := Rect.Height;
+    FCurrentProjectionWidth := Rect.Width;
+    FCurrentProjectionHeight := Rect.Height;
   end else
   begin
-    Result.OrthoDimensions[2] := ProjectionHeight * Rect.Width / Rect.Height;
-    Result.OrthoDimensions[3] := ProjectionHeight;
+    FCurrentProjectionWidth := ProjectionHeight * Rect.Width / Rect.Height;
+    FCurrentProjectionHeight := ProjectionHeight;
   end;
+  Result.OrthoDimensions[2] := FCurrentProjectionWidth;
+  Result.OrthoDimensions[3] := FCurrentProjectionHeight;
   Result.ProjectionNear := -ProjectionSpan;
   Result.ProjectionFar := ProjectionSpan;
   Result.ProjectionFarFinite := Result.ProjectionFar;
