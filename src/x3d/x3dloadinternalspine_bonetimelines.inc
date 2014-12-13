@@ -35,7 +35,6 @@
       const MaxAnimationTime: Single; const Container: TX3DRootNode;
       const BonesToReset: TBonesAnimated); virtual;
     function DoingSomething: boolean; virtual; abstract;
-    function Simplify: boolean; virtual; abstract;
   end;
 
   TBoneTimelineVector2 = class(TBoneTimeline)
@@ -44,7 +43,6 @@
     Vectors: TVector2SingleList;
     constructor Create;
     destructor Destroy; override;
-    function Simplify: boolean; override;
   end;
 
   TBoneTimelineTranslate = class(TBoneTimelineVector2)
@@ -73,7 +71,6 @@
     procedure BuildNodes(const BaseUrl: string;
       const MaxAnimationTime: Single; const Container: TX3DRootNode;
       const BonesToReset: TBonesAnimated); override;
-    function Simplify: boolean; override;
     function DoingSomething: boolean; override;
   end;
 
@@ -181,26 +178,6 @@ destructor TBoneTimelineVector2.Destroy;
 begin
   FreeAndNil(Vectors);
   inherited;
-end;
-
-function TBoneTimelineVector2.Simplify: boolean;
-var
-  I: Integer;
-begin
-  Result := false;
-  if Vectors.Count > 1 then
-  begin
-    { if some value diferent than 1st, do not optimize }
-    for I := 1 to Vectors.Count - 1 do
-      if not VectorsPerfectlyEqual(Vectors[I], Vectors[0]) then
-        Exit;
-
-    { optimize }
-    Vectors.Count := 1;
-    Time.Count := Min(Time.Count, 1);
-    CurveControlPoints.Count := Min(CurveControlPoints.Count, 1);
-    Result := true;
-  end;
 end;
 
 { TBoneTimelineTranslate ----------------------------------------------------- }
@@ -411,26 +388,6 @@ begin
 
     if BonesToReset.Rotation.Remove(Bone) = -1 then
       OnWarning(wtMajor, 'Spine', 'Multiple bone timelines affect bone rotation: bone ' + Bone.Name);
-  end;
-end;
-
-function TBoneTimelineRotate.Simplify: boolean;
-var
-  I: Integer;
-begin
-  Result := false;
-  if Angles.Count > 1 then
-  begin
-    { if some value diferent than 1st, do not optimize }
-    for I := 1 to Angles.Count - 1 do
-      if Angles[I] <> Angles[0] then
-        Exit;
-
-    { optimize }
-    Angles.Count := 1;
-    Time.Count := Min(Time.Count, 1);
-    CurveControlPoints.Count := Min(CurveControlPoints.Count, 1);
-    Result := true;
   end;
 end;
 

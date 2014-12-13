@@ -28,7 +28,7 @@
     procedure Parse(const Json: TJSONObject;
       const Bones: TBoneList; const BonesAnimated: TBonesAnimated;
       const Slots: TSlotList; const SlotsAnimated: TSlotsAnimated;
-      var CurvesRemoved, CurvesSimplified: Cardinal);
+      var CurvesRemoved: Cardinal);
     procedure BuildNodes(const BaseUrl: string; const Container: TX3DRootNode;
       const BonesAnimated: TBonesAnimated; const SlotsAnimated: TSlotsAnimated);
   end;
@@ -68,7 +68,7 @@ end;
 procedure TAnimation.Parse(const Json: TJSONObject;
   const Bones: TBoneList; const BonesAnimated: TBonesAnimated;
   const Slots: TSlotList; const SlotsAnimated: TSlotsAnimated;
-  var CurvesRemoved, CurvesSimplified: Cardinal);
+  var CurvesRemoved: Cardinal);
 
   procedure ReadBoneTimelines(const Bone: TBone; const Json: TJSONObject);
   var
@@ -83,8 +83,6 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       BoneTimeline.Parse(ChildArray);
       if BoneTimeline.DoingSomething then
       begin
-        if BoneTimeline.Simplify then
-          Inc(CurvesSimplified);
         BoneTimelines.Add(BoneTimeline);
         { Note: avoid duplicates on BonesAnimated. Our ToReset mechanism
           (used when building nodes) depends that there are no duplicates on
@@ -109,8 +107,6 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       BoneTimeline.Parse(ChildArray);
       if BoneTimeline.DoingSomething then
       begin
-        if BoneTimeline.Simplify then
-          Inc(CurvesSimplified);
         BoneTimelines.Add(BoneTimeline);
         if BonesAnimated.Scale.IndexOf(Bone) = -1 then
           BonesAnimated.Scale.Add(Bone);
@@ -129,8 +125,6 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       BoneTimeline.Parse(ChildArray);
       if BoneTimeline.DoingSomething then
       begin
-        if BoneTimeline.Simplify then
-          Inc(CurvesSimplified);
         BoneTimelines.Add(BoneTimeline);
         if BonesAnimated.Rotation.IndexOf(Bone) = -1 then
           BonesAnimated.Rotation.Add(Bone);
@@ -350,7 +344,7 @@ var
   I: Integer;
   Animation: TAnimation;
   ChildObj: TJSONObject;
-  CurvesRemoved, CurvesSimplified: Cardinal;
+  CurvesRemoved: Cardinal;
 begin
   ChildObj := Json.Find('animations', jtObject) as TJSONObject;
   if ChildObj <> nil then
@@ -360,7 +354,6 @@ begin
       Not sure whether Spine can actually output such file, though. }
 
     CurvesRemoved := 0;
-    CurvesSimplified := 0;
 
     for I := 0 to ChildObj.Count - 1 do
       if ChildObj.Items[I] is TJSONObject then
@@ -369,11 +362,11 @@ begin
         Add(Animation);
         Animation.Name := ChildObj.Names[I];
         Animation.Parse(TJSONObject(ChildObj.Items[I]), Bones, BonesAnimated,
-          Slots, SlotsAnimated, CurvesRemoved, CurvesSimplified);
+          Slots, SlotsAnimated, CurvesRemoved);
       end;
 
-    WritelnLog('Spine', 'Spine animations curves parsed, optimization: empty curves removed: %d, dummy curves simplified: %d',
-      [CurvesRemoved, CurvesSimplified]);
+    WritelnLog('Spine', 'Spine animations curves parsed, empty curves removed: %d',
+      [CurvesRemoved]);
   end;
 end;
 
