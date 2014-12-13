@@ -12,7 +12,10 @@
   </icons>
   <package>
     <include path="AUTHORS.txt" />
+    <!-- These large images are unused, we use their xxx_smaller variants -->
     <exclude path="data/background/trees.png" />
     <exclude path="data/background/background.png" />
+    <!-- These debug images are unused -->
+    <exclude path="data/background/background_smaller_debug_limits.*" />
   </package>
 </project>
