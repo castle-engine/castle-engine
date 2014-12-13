@@ -79,15 +79,19 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       BoneTimeline := TBoneTimelineTranslate.Create;
       BoneTimeline.Bone := Bone;
       BoneTimeline.Parse(ChildArray);
-      BoneTimelines.Add(BoneTimeline);
-      { Note: avoid duplicates on BonesAnimated. Our ToReset mechanism
-        (used when building nodes) depends that there are no duplicates on
-        these lists.
-        And we can have multiple animations affecting the same bone,
-        so without explicitly checking below to avoid duplicates,
-        we would have trouble. }
-      if BonesAnimated.Translation.IndexOf(Bone) = -1 then
-        BonesAnimated.Translation.Add(Bone);
+      if BoneTimeline.DoingSomething then
+      begin
+        BoneTimelines.Add(BoneTimeline);
+        { Note: avoid duplicates on BonesAnimated. Our ToReset mechanism
+          (used when building nodes) depends that there are no duplicates on
+          these lists.
+          And we can have multiple animations affecting the same bone,
+          so without explicitly checking below to avoid duplicates,
+          we would have trouble. }
+        if BonesAnimated.Translation.IndexOf(Bone) = -1 then
+          BonesAnimated.Translation.Add(Bone);
+      end else
+        FreeAndNil(BoneTimeline);
     end;
 
     ChildArray := Json.Find('scale', jtArray) as TJSONArray;
@@ -96,9 +100,13 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       BoneTimeline := TBoneTimelineScale.Create;
       BoneTimeline.Bone := Bone;
       BoneTimeline.Parse(ChildArray);
-      BoneTimelines.Add(BoneTimeline);
-      if BonesAnimated.Scale.IndexOf(Bone) = -1 then
-        BonesAnimated.Scale.Add(Bone);
+      if BoneTimeline.DoingSomething then
+      begin
+        BoneTimelines.Add(BoneTimeline);
+        if BonesAnimated.Scale.IndexOf(Bone) = -1 then
+          BonesAnimated.Scale.Add(Bone);
+      end else
+        FreeAndNil(BoneTimeline);
     end;
 
     ChildArray := Json.Find('rotate', jtArray) as TJSONArray;
@@ -107,9 +115,13 @@ procedure TAnimation.Parse(const Json: TJSONObject;
       BoneTimeline := TBoneTimelineRotate.Create;
       BoneTimeline.Bone := Bone;
       BoneTimeline.Parse(ChildArray);
-      BoneTimelines.Add(BoneTimeline);
-      if BonesAnimated.Rotation.IndexOf(Bone) = -1 then
-        BonesAnimated.Rotation.Add(Bone);
+      if BoneTimeline.DoingSomething then
+      begin
+        BoneTimelines.Add(BoneTimeline);
+        if BonesAnimated.Rotation.IndexOf(Bone) = -1 then
+          BonesAnimated.Rotation.Add(Bone);
+      end else
+        FreeAndNil(BoneTimeline);
     end;
   end;
 

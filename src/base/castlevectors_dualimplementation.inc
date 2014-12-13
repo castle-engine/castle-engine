@@ -350,6 +350,11 @@ begin
             (Abs(V[3]) < EqualityEpsilon);
 end;
 
+function PerfectlyZeroVector(const V: TVector2): boolean;
+begin
+  Result := IsMemCharFilled(v, SizeOf(v), #0);
+end;
+
 function PerfectlyZeroVector(const V: TVector3): boolean;
 begin
   Result := IsMemCharFilled(v, SizeOf(v), #0);

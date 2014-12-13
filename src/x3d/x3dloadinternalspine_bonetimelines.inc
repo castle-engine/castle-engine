@@ -34,6 +34,7 @@
     procedure BuildNodes(const BaseUrl: string;
       const MaxAnimationTime: Single; const Container: TX3DRootNode;
       const BonesToReset: TBonesAnimated); virtual;
+    function DoingSomething: boolean; virtual; abstract;
   end;
 
   TBoneTimelineVector2 = class(TBoneTimeline)
@@ -42,6 +43,7 @@
     Vectors: TVector2SingleList;
     constructor Create;
     destructor Destroy; override;
+    procedure Optimize;
   end;
 
   TBoneTimelineTranslate = class(TBoneTimelineVector2)
@@ -49,6 +51,7 @@
     procedure BuildNodes(const BaseUrl: string;
       const MaxAnimationTime: Single; const Container: TX3DRootNode;
       const BonesToReset: TBonesAnimated); override;
+    function DoingSomething: boolean; override;
   end;
 
   TBoneTimelineScale = class(TBoneTimelineVector2)
@@ -56,6 +59,7 @@
     procedure BuildNodes(const BaseUrl: string;
       const MaxAnimationTime: Single; const Container: TX3DRootNode;
       const BonesToReset: TBonesAnimated); override;
+    function DoingSomething: boolean; override;
   end;
 
   TBoneTimelineRotate = class(TBoneTimeline)
@@ -68,6 +72,8 @@
     procedure BuildNodes(const BaseUrl: string;
       const MaxAnimationTime: Single; const Container: TX3DRootNode;
       const BonesToReset: TBonesAnimated); override;
+    procedure Optimize;
+    function DoingSomething: boolean; override;
   end;
 
   TBoneTimelineList = class(specialize TFPGObjectList<TBoneTimeline>)
@@ -176,6 +182,24 @@ begin
   inherited;
 end;
 
+procedure TBoneTimelineVector2.Optimize;
+var
+  I: Integer;
+begin
+  if Vectors.Count > 1 then
+  begin
+    { if some value diferent than 1st, do not optimize }
+    for I := 1 to Vectors.Count - 1 do
+      if not VectorsPerfectlyEqual(Vectors[I], Vectors[0]) then
+        Exit;
+
+    { optimize }
+    Vectors.Count := 1;
+    Time.Count := Min(Time.Count, 1);
+    CurveControlPoints.Count := Min(CurveControlPoints.Count, 1);
+  end;
+end;
+
 { TBoneTimelineTranslate ----------------------------------------------------- }
 
 procedure TBoneTimelineTranslate.ParseSingleValue(const Json: TJSONObject);
@@ -195,6 +219,8 @@ var
   EventValueChanged: TX3DEvent;
   Route: TX3DRoute;
 begin
+  Optimize;
+
   if Curve then
   begin
     NC := TCubicBezierPositionInterpolatorNode.Create('BoneTimeline_translate_' + ToX3DName(Bone.Name));
@@ -239,6 +265,16 @@ begin
   end;
 end;
 
+function TBoneTimelineTranslate.DoingSomething: boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to Vectors.Count - 1 do
+    if not PerfectlyZeroVector(Vectors[I]) then
+      Exit(true);
+  Result := false;
+end;
+
 { TBoneTimelineScale --------------------------------------------------------- }
 
 procedure TBoneTimelineScale.ParseSingleValue(const Json: TJSONObject);
@@ -258,6 +294,8 @@ var
   EventValueChanged: TX3DEvent;
   Route: TX3DRoute;
 begin
+  Optimize;
+
   if Curve then
   begin
     NC := TCubicBezierPositionInterpolatorNode.Create('BoneTimeline_scale_' + ToX3DName(Bone.Name));
@@ -297,6 +335,17 @@ begin
   end;
 end;
 
+function TBoneTimelineScale.DoingSomething: boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to Vectors.Count - 1 do
+    if (Vectors[I][0] <> 1) or
+       (Vectors[I][1] <> 1) then
+      Exit(true);
+  Result := false;
+end;
+
 { TBoneTimelineRotate -------------------------------------------------------- }
 
 constructor TBoneTimelineRotate.Create;
@@ -326,6 +375,8 @@ var
   EventValueChanged: TX3DEvent;
   Route: TX3DRoute;
 begin
+  Optimize;
+  
   if Curve then
   begin
     NC := TCubicBezier2DOrientationInterpolatorNode.Create('BoneTimeline_rotate_' + ToX3DName(Bone.Name));
@@ -364,6 +415,34 @@ begin
     if BonesToReset.Rotation.Remove(Bone) = -1 then
       OnWarning(wtMajor, 'Spine', 'Multiple bone timelines affect bone rotation: bone ' + Bone.Name);
   end;
+end;
+
+procedure TBoneTimelineRotate.Optimize;
+var
+  I: Integer;
+begin
+  if Angles.Count > 1 then
+  begin
+    { if some value diferent than 1st, do not optimize }
+    for I := 1 to Angles.Count - 1 do
+      if Angles[I] <> Angles[0] then
+        Exit;
+
+    { optimize }
+    Angles.Count := 1;
+    Time.Count := Min(Time.Count, 1);
+    CurveControlPoints.Count := Min(CurveControlPoints.Count, 1);
+  end;
+end;
+
+function TBoneTimelineRotate.DoingSomething: boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to Angles.Count - 1 do
+    if Angles[I] <> 0 then
+      Exit(true);
+  Result := false;
 end;
 
 {$endif}

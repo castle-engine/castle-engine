@@ -730,6 +730,8 @@ function ZeroVector(const v: TVector4Double; const EqualityEpsilon: Double): boo
 
 function ZeroVector(const v: TVector4Cardinal): boolean; overload;
 
+function PerfectlyZeroVector(const v: TVector2Single): boolean; overload;
+function PerfectlyZeroVector(const v: TVector2Double): boolean; overload;
 function PerfectlyZeroVector(const v: TVector3Single): boolean; overload;
 function PerfectlyZeroVector(const v: TVector3Double): boolean; overload;
 function PerfectlyZeroVector(const v: TVector4Single): boolean; overload;

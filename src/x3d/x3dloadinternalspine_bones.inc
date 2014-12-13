@@ -51,7 +51,7 @@
     Node: TTransformNode;
     ResetTranslation: TPositionInterpolatorNode;
     ResetScale: TPositionInterpolatorNode;
-    ResetRotation: TOrientationInterpolatorNode;
+    ResetRotation: TCubicBezier2DOrientationInterpolatorNode;
     NodeUsedAsChild: boolean;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject;
@@ -191,9 +191,9 @@ procedure TBone.BuildNodes(const BaseUrl: string;
   begin
     if BonesAnimated.Rotation.IndexOf(Self) = -1 then Exit;
 
-    ResetRotation := TOrientationInterpolatorNode.Create('BoneReset_rotate_' + ToX3DName(Name));
+    ResetRotation := TCubicBezier2DOrientationInterpolatorNode.Create('BoneReset_rotate_' + ToX3DName(Name));
     ResetRotation.FdKey.Items.Add(0);
-    ResetRotation.FdKeyValue.Items.Add(Node.FdRotation.Value);
+    ResetRotation.FdKeyValue.Items.Add(Node.FdRotation.Value[3]);
     Node.FdChildren.Add(ResetRotation);
 
     Route := TX3DRoute.Create;
