@@ -67,6 +67,11 @@ procedure AddBackgroundItems;
     Transform := T3DTransform.Create(Application);
     Transform.Scale := Vector3Single(Scale, Scale, Scale);
     Transform.Translation := Vector3Single(X, Y, Z);
+    { do not capture mouse picking on this item,
+      otherwise Background.PointingDeviceOverItem in WindoPress would not work
+      as we want, because items in front of the background would "hijack"
+      mouse picks. }
+    Transform.Pickable := false;
     SceneManager.Items.Add(Transform);
 
     Scene := T2DScene.Create(Application);
@@ -130,6 +135,7 @@ begin
   { this is useful to have precise collisions (not just with bounding box),
     which in turn is useful here for Background.PointingDeviceOverPoint value }
   Background.Spatial := [ssRendering, ssDynamicCollisions];
+  Background.Name := 'Background'; // Name is useful for debugging
 
   AddBackgroundItems;
 
@@ -142,17 +148,20 @@ begin
   SceneManager.ProjectionSpan := 10000.0;
 
   DragonTransform := T3DTransform.Create(Application);
+  DragonTransform.Pickable := false;
   DragonTransform.Scale := Vector3Single(DragonScale, DragonScale, DragonScale);
   { translate in XY to set initial position in the middle of the screen.
     translate in Z to push dragon in front of trees
     (on Z = 20, see data/background.x3dv) }
   DragonTransform.Translation := DragonInitialPosition;
+  DragonTransform.Name := 'DragonTransform'; // Name is useful for debugging
   SceneManager.Items.Add(DragonTransform);
 
   Dragon := T2DScene.Create(Application);
   DragonTransform.Add(Dragon);
   Dragon.Load(ApplicationData('dragon/dragon.json'));
   Dragon.ProcessEvents := true;
+  Dragon.Name := 'Dragon'; // Name is useful for debugging
   Dragon.PlayAnimation('idle', paForceLooping);
 
   CameraView3D := TCastleButton.Create(Window);

@@ -239,6 +239,7 @@ type
     FCastShadowVolumes: boolean;
     FExists: boolean;
     FCollides: boolean;
+    FPickable: boolean;
     FParent: T3DList;
     FCursor: TMouseCursor;
     FCollidesWithMoving: boolean;
@@ -332,7 +333,8 @@ type
       the @link(Collides) property). The @link(Collides) property
       specifies whether item collides with camera. And this method is used
       for picking (pointing) 3D stuff --- everything visible can be picked,
-      collidable or not.
+      collidable or not. Instead, this looks at @link(Pickable) property
+      (actually, at @link(GetPickable) method result).
 
       This always returns the first collision with the 3D world, that is
       the one with smallest TRayCollision.Distance. For example, when
@@ -354,6 +356,11 @@ type
       It T3D class, returns @link(Collides) and @link(GetExists).
       May be modified in subclasses, to return something more complicated. }
     function GetCollides: boolean; virtual;
+
+    { Is item really pickable, see @link(Pickable).
+      It T3D class, returns @link(Pickable) and @link(GetExists).
+      May be modified in subclasses, to return something more complicated. }
+    function GetPickable: boolean; virtual;
 
     { Is this object visible and colliding.
 
@@ -411,6 +418,18 @@ type
 
       @noAutoLinkHere }
     property Collides: boolean read FCollides write FCollides default true;
+
+    { Is item pickable by @link(RayCollision) method.
+      Note that if not @link(Exists) then this doesn't matter
+      (not existing objects are never pickable).
+      This is independent from @link(Collides), as @link(RayCollision)
+      does not look at @link(Collides), it only looks at @link(Pickable).
+
+      Descendants may also override GetPickable method. Sometimes it's more
+      comfortable than changing the property value.
+
+      @noAutoLinkHere }
+    property Pickable: boolean read FPickable write FPickable default true;
 
     { Bounding box of the 3D object.
 
@@ -1890,6 +1909,7 @@ begin
   FCastShadowVolumes := true;
   FExists := true;
   FCollides := true;
+  FPickable := true;
   FCursor := mcDefault;
 end;
 
@@ -2138,7 +2158,7 @@ var
   IntersectionDistance: Single;
   NewNode: PRayCollisionNode;
 begin
-  if GetExists and
+  if GetPickable and
     BoundingBox.TryRayEntrance(Intersection, IntersectionDistance, RayOrigin, RayDirection) then
   begin
     Result := TRayCollision.Create;
@@ -2176,6 +2196,11 @@ end;
 function T3D.GetCollides: boolean;
 begin
   Result := FCollides and GetExists;
+end;
+
+function T3D.GetPickable: boolean;
+begin
+  Result := FPickable and GetExists;
 end;
 
 procedure T3D.Translate(const T: TVector3Single);
@@ -2873,7 +2898,7 @@ var
 begin
   Result := nil;
 
-  if GetExists then
+  if GetPickable then
   begin
     if GetChild <> nil then
       AddNewResult(GetChild.RayCollision(RayOrigin, RayDirection, TrianglesToIgnoreFunc));
@@ -3356,7 +3381,7 @@ var
 begin
   { inherited will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not GetExists then Exit(nil);
+  if not GetPickable then Exit(nil);
 
   if OnlyTranslation then
   begin
