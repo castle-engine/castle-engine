@@ -35,6 +35,7 @@
       const MaxAnimationTime: Single; const Container: TX3DRootNode;
       const BonesToReset: TBonesAnimated); virtual;
     function DoingSomething: boolean; virtual; abstract;
+    function Simplify: boolean; virtual; abstract;
   end;
 
   TBoneTimelineVector2 = class(TBoneTimeline)
@@ -43,7 +44,7 @@
     Vectors: TVector2SingleList;
     constructor Create;
     destructor Destroy; override;
-    procedure Optimize;
+    function Simplify: boolean; override;
   end;
 
   TBoneTimelineTranslate = class(TBoneTimelineVector2)
@@ -72,7 +73,7 @@
     procedure BuildNodes(const BaseUrl: string;
       const MaxAnimationTime: Single; const Container: TX3DRootNode;
       const BonesToReset: TBonesAnimated); override;
-    procedure Optimize;
+    function Simplify: boolean; override;
     function DoingSomething: boolean; override;
   end;
 
@@ -182,10 +183,11 @@ begin
   inherited;
 end;
 
-procedure TBoneTimelineVector2.Optimize;
+function TBoneTimelineVector2.Simplify: boolean;
 var
   I: Integer;
 begin
+  Result := false;
   if Vectors.Count > 1 then
   begin
     { if some value diferent than 1st, do not optimize }
@@ -197,6 +199,7 @@ begin
     Vectors.Count := 1;
     Time.Count := Min(Time.Count, 1);
     CurveControlPoints.Count := Min(CurveControlPoints.Count, 1);
+    Result := true;
   end;
 end;
 
@@ -219,8 +222,6 @@ var
   EventValueChanged: TX3DEvent;
   Route: TX3DRoute;
 begin
-  Optimize;
-
   if Curve then
   begin
     NC := TCubicBezierPositionInterpolatorNode.Create('BoneTimeline_translate_' + ToX3DName(Bone.Name));
@@ -294,8 +295,6 @@ var
   EventValueChanged: TX3DEvent;
   Route: TX3DRoute;
 begin
-  Optimize;
-
   if Curve then
   begin
     NC := TCubicBezierPositionInterpolatorNode.Create('BoneTimeline_scale_' + ToX3DName(Bone.Name));
@@ -375,8 +374,6 @@ var
   EventValueChanged: TX3DEvent;
   Route: TX3DRoute;
 begin
-  Optimize;
-  
   if Curve then
   begin
     NC := TCubicBezier2DOrientationInterpolatorNode.Create('BoneTimeline_rotate_' + ToX3DName(Bone.Name));
@@ -417,10 +414,11 @@ begin
   end;
 end;
 
-procedure TBoneTimelineRotate.Optimize;
+function TBoneTimelineRotate.Simplify: boolean;
 var
   I: Integer;
 begin
+  Result := false;
   if Angles.Count > 1 then
   begin
     { if some value diferent than 1st, do not optimize }
@@ -432,6 +430,7 @@ begin
     Angles.Count := 1;
     Time.Count := Min(Time.Count, 1);
     CurveControlPoints.Count := Min(CurveControlPoints.Count, 1);
+    Result := true;
   end;
 end;
 
