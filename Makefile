@@ -173,6 +173,7 @@ clean: cleanexamples
 			   -iname '*.rsj' -or \
 			   -iname '*.compiled' -or \
 			   -iname '*.libimp*.a' -or \
+			   -iname '*.apk' -or \
 	                   -iname '*.dcu' -or -iname '*.dpu' -or \
 			   -iname 'castleengine.dll' -or -iname 'libcastleengine.so' ')' \
 	     -print \
@@ -188,8 +189,8 @@ clean: cleanexamples
 	rm -Rf fpmake fpmake.exe units/
 # lazarus produces lib/ subdirectories during compilation
 	find examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
-	cd examples/android/android_demo/ && castle-engine clean
-	cd examples/android/drawing_toy/ && castle-engine clean
+# clean every project with CastleEngineManifest.xml
+	find -iname CastleEngineManifest.xml -execdir castle-engine clean ';'
 
 cleanmore: clean
 	find . -type f '(' -iname '*~' -or \
