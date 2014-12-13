@@ -188,29 +188,48 @@ end;
 { Looking at current state of CameraView3D.Pressed
   and CameraFollowsDragon.Pressed, calculate camera vectors. }
 procedure CalculateCamera(out Pos, Dir, Up: TVector3Single);
+const
+  { Initial camera. Like initialized by T2DSceneManager,
+    but shifted to the right, to see the middle of the background scene
+    where we can see the castle and dragon at initial position. }
+  Camera2DPos: TVector3Single = (2100, 0, 0);
+  Camera2DDir: TVector3Single = (0, 0, -1);
+  Camera2DUp : TVector3Single = (0, 1, 0);
+
+  { Alternative camera view where it is clearly visible we are in 3D :).
+    This corresponds to the initial camera 2D view above, so it is also shited
+    as necessary to see the castle and dragon at initial position.
+    Hint: to pick camera values experimentally, use view3dscene
+    and Console->Print Current Camera.. menu item. }
+  Camera3DPos: TVector3Single = (329.62554931640625, 581.32476806640625, 2722.44921875);
+  Camera3DDir: TVector3Single = (0.6533169150352478, -0.13534674048423767, -0.7448880672454834);
+  Camera3DUp : TVector3Single = (0.10390279442071915, 0.99060952663421631, -0.088864780962467194);
 begin
   if not CameraView3D.Pressed then
   begin
-    { initial camera, like initialized by T2DSceneManager,
-      but shifted to see the middle of the background scene,
-      to see dragon at initial position }
-    Pos := Vector3Single(2100, 0, 0);
-    Dir := Vector3Single(0, 0, -1);
-    Up  := Vector3Single(0, 1, 0);
+    Pos := Camera2DPos;
+    Dir := Camera2DDir;
+    Up  := Camera2DUp;
   end else
   begin
-    { show alternative camera view where it is clearly visible we are in 3D :) }
-    { hint: to pick camera values experimentally, use view3dscene
-      and Console->Print Current Camera.. menu item. }
-    Pos := Vector3Single(329.62554931640625, 581.32476806640625, 2722.44921875);
-    Dir := Vector3Single(0.6533169150352478, -0.13534674048423767, -0.7448880672454834);
-    Up  := Vector3Single(0.10390279442071915, 0.99060952663421631, -0.088864780962467194);
+    Pos := Camera3DPos;
+    Dir := Camera3DDir;
+    Up  := Camera3DUp;
   end;
+
+  { Apply "Camera Follows Dragon" }
   if CameraFollowsDragon.Pressed then
-    Pos[0] += (DragonTransform.Translation[0] - DragonInitialPosition[0]) -
-      { part of the screen (approximately where is the dragon
-        at DragonInitialPosition with respect to default camera view). }
-      0.25 * SceneManager.CurrentProjectionWidth;
+  begin
+    Pos[0] := DragonTransform.Translation[0]
+      { subtract half of the screen, because camera is at the left screen corner
+        when using default 2D projection of T2DSceneManager. }
+      - 0.5 * SceneManager.CurrentProjectionWidth;
+    { when both "Camera Follows Dragon" and "Camera 3D View" are pressed,
+      we need to offset the above calculation }
+    if CameraView3D.Pressed then
+      Pos[0] += Camera3DPos[0] - Camera2DPos[0];
+  end;
+
   { Limit camera span, to not show blackness to the left or right.
     Note that for default 2D projection, camera is at the left corner,
     so while calculating minimum X is easy, calculating maximum X must take
