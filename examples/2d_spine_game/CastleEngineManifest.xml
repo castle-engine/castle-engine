@@ -6,11 +6,12 @@
   android_source="code/castle_spine_android.lpr"
   author="Michalis Kamburelis and Paweł Wojciechowicz"
   screen_orientation="landscape">
-  <version value="0.5" code="5" />
+  <version value="0.6" code="6" />
   <icons>
     <icon path="promo-graphics/icon.png" />
   </icons>
   <package>
+    <include path="COPYING.GPL2.txt" />
     <include path="AUTHORS.txt" />
     <!-- These large images are unused, we use their xxx_smaller variants -->
     <exclude path="data/background/trees.png" />
