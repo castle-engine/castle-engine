@@ -264,7 +264,7 @@ begin
      if (Result is TRGBImage) and
         (not ClassAllowed(TRGBImage)) then
      begin
-       NewResult := TRGBImage(Result).ToRGBAlphaImage_AlphaConst(255);
+       NewResult := TRGBImage(Result).ToRGBAlphaImage;
        FreeAndNil(Result);
        Result := NewResult;
      end;

@@ -865,23 +865,9 @@ type
     procedure TransformRGB(const Matrix: TMatrix3Single); override;
     procedure ModulateRGB(const ColorModulator: TColorModulatorByteFunc); override;
 
-    { Create a new TRGBAlphaImage object with RGB colors
-      copied from this object, but alpha of each pixel is set
-      to some random value (whatever was at that particular memory
-      place at that time). }
-    function ToRGBAlphaImage_AlphaDontCare: TRGBAlphaImage;
-
-    { Like @link(ToRGBAlphaImage_AlphaDontCare), but alpha of every
-      pixel is set to given Alpha. }
-    function ToRGBAlphaImage_AlphaConst(Alpha: byte): TRGBAlphaImage;
-
-    { Like @link(ToRGBAlphaImage_AlphaDontCare), but alpha of every
-      pixel is set to either AlphaOnColor (when color of pixel
-      is equal to AlphaColor with Tolerance, see @link(EqualRGB))
-      or AlphaOnNoColor. }
-    function ToRGBAlphaImage_AlphaDecide(
-      const AlphaColor: TVector3Byte; Tolerance: Byte;
-      AlphaOnColor: Byte; AlphaOnNoColor: Byte): TRGBAlphaImage;
+    { Create a new TRGBAlphaImage instance with RGB contents copied from this
+      image, and alpha fully opaque. }
+    function ToRGBAlphaImage: TRGBAlphaImage;
 
     { Convert image to an TRGBFloatImage format.
 
@@ -1078,9 +1064,11 @@ type
       components are < 2^7 after this. }
     procedure HalfColors;
 
-    { Create new TGrayscaleAlphaImage with grayscale channel copied
-      from this object, and alpha channel filled with constant Alpha value. }
-    function ToGrayscaleAlphaImage_AlphaConst(Alpha: byte): TGrayscaleAlphaImage;
+    { Add an alpha channel.
+      The newly created alpha channel will have constant opaque alpha,
+      except in the special case of TGrayscaleImage.TreatAsAlpha = @true
+      (where the contents will be copied to alpha, and intensity set to white). }
+    function ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
@@ -1743,12 +1731,6 @@ procedure SaveImage(const Img: TCastleImage; const URL: string); overload;
 { @groupEnd }
 
 { Other TCastleImage processing ---------------------------------------------------- }
-
-{ Add and set constant alpha channel of given image.
-  If image doesn't have alpha channel, we will create new Img instance
-  (old instance will be freed) with colors copy.
-  Alpha channel is then filled with AlphaConst }
-procedure ImageAlphaConstTo1st(var Img: TCastleImage; const AlphaConst: byte);
 
 { Choose TCastleImage descendant best matching for this image file format.
   The only purpose of this for now is to pick TRGBFloatImage for RGBE files,
@@ -2864,24 +2846,6 @@ procedure TRGBImage.ModulateRGB(const ColorModulator: TColorModulatorByteFunc);
 type PPixel = PVector3Byte;
 {$I images_modulatergb_implement.inc}
 
-function TRGBImage.ToRGBAlphaImage_AlphaDontCare: TRGBAlphaImage;
-var
-  pi: PVector3Byte;
-  pa: PVector4Byte;
-  i: Cardinal;
-begin
-  Result := TRGBAlphaImage.Create(Width, Height);
-  pi := RGBPixels;
-  pa := Result.AlphaPixels;
-  for i := 1 to Width * Height * Depth do
-  begin
-    Move(pi^, pa^, SizeOf(TVector3Byte));
-    {pa^[3] := <dont_care_about_this_value>}
-    Inc(pi);
-    Inc(pa);
-  end;
-end;
-
 procedure TRGBImage.DrawCore(Source: TCastleImage;
   X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer);
 var
@@ -2932,34 +2896,22 @@ begin
     inherited;
 end;
 
-function TRGBImage.ToRGBAlphaImage_AlphaConst(Alpha: byte): TRGBAlphaImage;
-
-{ Note: implementation of this *could* use ToRGBAlphaImage_AlphaDontCare,
-  but doesn't, to be faster. }
-
+function TRGBImage.ToRGBAlphaImage: TRGBAlphaImage;
 var
   pi: PVector3Byte;
   pa: PVector4Byte;
   i: Cardinal;
 begin
-  Result := TRGBAlphaImage.Create(Width, Height);
+  Result := TRGBAlphaImage.Create(Width, Height, Depth);
   pi := RGBPixels;
   pa := Result.AlphaPixels;
   for i := 1 to Width * Height * Depth do
   begin
     Move(pi^, pa^, SizeOf(TVector3Byte));
-    pa^[3] := Alpha;
+    pa^[3] := High(Byte);
     Inc(pi);
     Inc(pa);
   end;
-end;
-
-function TRGBImage.ToRGBAlphaImage_AlphaDecide(
-  const AlphaColor: TVector3Byte;
-  Tolerance: byte; AlphaOnColor: byte; AlphaOnNoColor: byte): TRGBAlphaImage;
-begin
-  Result := ToRGBAlphaImage_AlphaDontCare;
-  Result.AlphaDecide(AlphaColor, Tolerance, AlphaOnColor, AlphaOnNoColor);
 end;
 
 function TRGBImage.ToRGBFloat: TRGBFloatImage;
@@ -2968,7 +2920,7 @@ var
   PByte: PVector3Byte;
   i: Cardinal;
 begin
-  result := TRGBFloatImage.Create(Width, Height);
+  result := TRGBFloatImage.Create(Width, Height, Depth);
   try
     PByte := RGBPixels;
     PFloat := Result.RGBFloatPixels;
@@ -2987,7 +2939,7 @@ var
   pGrayscale: PByte;
   I: Cardinal;
 begin
-  Result := TGrayscaleImage.Create(Width, Height);
+  Result := TGrayscaleImage.Create(Width, Height, Depth);
   try
     pRGB := RGBPixels;
     pGrayscale := Result.GrayscalePixels;
@@ -3511,21 +3463,34 @@ begin
   {$I norqcheckend.inc}
 end;
 
-function TGrayscaleImage.ToGrayscaleAlphaImage_AlphaConst(Alpha: byte): TGrayscaleAlphaImage;
+function TGrayscaleImage.ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
 var
   pg: PByte;
   pa: PVector2Byte;
   I: Cardinal;
 begin
-  Result := TGrayscaleAlphaImage.Create(Width, Height);
+  Result := TGrayscaleAlphaImage.Create(Width, Height, Depth);
   pg := GrayscalePixels;
   pa := Result.GrayscaleAlphaPixels;
-  for i := 1 to Width * Height * Depth do
+
+  if TreatAsAlpha then
   begin
-    pa^[0] := pg^;
-    pa^[1] := Alpha;
-    Inc(pg);
-    Inc(pa);
+    for i := 1 to Width * Height * Depth do
+    begin
+      pa^[0] := High(Byte);
+      pa^[1] := pg^;
+      Inc(pg);
+      Inc(pa);
+    end;
+  end else
+  begin
+    for i := 1 to Width * Height * Depth do
+    begin
+      pa^[0] := pg^;
+      pa^[1] := High(Byte);
+      Inc(pg);
+      Inc(pa);
+    end;
   end;
 end;
 
@@ -3830,6 +3795,37 @@ end;
 
 { LoadImage --------------------------------------------------------------- }
 
+{ Make sure the image has an alpha channel.
+  If image doesn't have an alpha channel (it is TRGBImage or TGrayscaleImage),
+  we will create new image instance (respectively, TRGBAlphaImage or TGrayscaleAlphaImage)
+  that adds an alpha channel. The newly created alpha channel will have constant opaque alpha,
+  except in the special case of TGrayscaleImage with TGrayscaleImage.TreatAsAlpha = @true
+  (where the contents will be copied to alpha, and intensity set to white).
+
+  If the image already had an alpha channel, then just return it. }
+procedure ImageAddAlphaTo1st(var Img: TCastleImage);
+var
+  NewImg: TCastleImage;
+begin
+  if Img is TRGBImage then
+  begin
+    NewImg := TRGBImage(Img).ToRGBAlphaImage;
+    FreeAndNil(Img);
+    Img := NewImg;
+  end else
+  if Img is TGrayscaleImage then
+  begin
+    NewImg := TGrayscaleImage(Img).ToGrayscaleAlphaImage;
+    FreeAndNil(Img);
+    Img := NewImg;
+  end;
+
+  if not ((Img is TRGBAlphaImage) or
+          (Img is TGrayscaleAlphaImage)) then
+    raise EInternalError.Create(
+      'ImageAddAlphaTo1st not possible for this TCastleImage descendant: ' + Img.ClassName);
+end;
+
 function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
   const AllowedImageClasses: array of TCastleImageClass)
   :TCastleImage;
@@ -3859,8 +3855,6 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
     Image := NewResult;
   end;
 
-const
-  DummyDefaultAlpha = High(Byte);
 var
   Load: TImageLoadFunc;
 begin
@@ -3907,7 +3901,7 @@ begin
             begin
               if ClassAllowed(TRGBAlphaImage) then
               begin
-                ImageAlphaConstTo1st(Result, DummyDefaultAlpha);
+                ImageAddAlphaTo1st(Result);
               end else
               if ClassAllowed(TGrayscaleImage) then
               begin
@@ -3916,7 +3910,7 @@ begin
               { TODO:
               if ClassAllowed(TGrayscaleAlphaImage) then
               begin
-                ImageAlphaConstTo1st(Result, DummyDefaultAlpha);
+                ImageAddAlphaTo1st(Result);
                 ImageGrayscaleAlphaTo1st(Result);
               end else }
               if ClassAllowed(TRGBFloatImage) then
@@ -3935,7 +3929,7 @@ begin
               Result := LoadRGBE(Stream, [TRGBImage]);
               if ClassAllowed(TRGBAlphaImage) then
               begin
-                ImageAlphaConstTo1st(result, DummyDefaultAlpha);
+                ImageAddAlphaTo1st(result);
               end else
               if ClassAllowed(TGrayscaleImage) then
               begin
@@ -3944,7 +3938,7 @@ begin
               if ClassAllowed(TGrayscaleAlphaImage) then
               begin
                 ImageGrayscaleTo1st(Result);
-                ImageAlphaConstTo1st(result, DummyDefaultAlpha);
+                ImageAddAlphaTo1st(Result);
               end else
                 raise EUnableToLoadImage.CreateFmt('LoadImage: RGBE format cannot be loaded to %s', [LoadImageParams(AllowedImageClasses)]);
             end;
@@ -4099,29 +4093,6 @@ begin
 end;
 
 { other image processing ------------------------------------------- }
-
-procedure ImageAlphaConstTo1st(var Img: TCastleImage; const AlphaConst: byte);
-var
-  NewImg: TCastleImage;
-begin
-  if Img is TRGBImage then
-  begin
-    NewImg := TRGBImage(Img).ToRGBAlphaImage_AlphaConst(AlphaConst);
-    FreeAndNil(Img);
-    Img := NewImg;
-  end else
-  if Img is TGrayscaleImage then
-  begin
-    NewImg := TGrayscaleImage(Img).ToGrayscaleAlphaImage_AlphaConst(AlphaConst);
-    FreeAndNil(Img);
-    Img := NewImg;
-  end;
-
-  if not ((Img is TRGBAlphaImage) or
-          (Img is TGrayscaleAlphaImage)) then
-    raise EInternalError.Create(
-      'ImageAlphaConstTo1st not possible for this TCastleImage descendant: ' + Img.ClassName);
-end;
 
 function ImageClassBestForSavingToFormat(const URL: string): TCastleImageClass;
 var
