@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="sandbox"
+  caption="Isometric Sandbox"
+  qualified_name="net.sourceforge.castleengine.sandbox"
+  standalone_source="sandbox.lpr"
+  author="Michalis Kamburelis">
+</project>
