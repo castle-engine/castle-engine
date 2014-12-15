@@ -103,12 +103,11 @@ type
 
     function TextWidth(const S: string): Integer; virtual; abstract;
     function TextHeight(const S: string): Integer; virtual; abstract;
-    function TextMove(const S: string): TVector2Integer; virtual; abstract;
-
     { The height (above the baseline) of the text.
       This doesn't take into account height of the text below the baseline
       (for example letter "y" has the tail below the baseline in most fonts). }
     function TextHeightBase(const S: string): Integer; virtual; abstract;
+    function TextMove(const S: string): TVector2Integer; virtual; abstract;
 
     { Height of a row of text in this font.
       This may be calculated as simply @code(TextHeight('Wy')) for most
@@ -314,8 +313,8 @@ type
       const S: string); override;
     function TextWidth(const S: string): Integer; override;
     function TextHeight(const S: string): Integer; override;
-    function TextMove(const S: string): TVector2Integer; override;
     function TextHeightBase(const S: string): Integer; override;
+    function TextMove(const S: string): TVector2Integer; override;
   end;
 
   { @deprecated Deprecated name, use TTextureFont now. }
@@ -356,8 +355,8 @@ type
       const S: string); override;
     function TextWidth(const S: string): Integer; override;
     function TextHeight(const S: string): Integer; override;
-    function TextMove(const S: string): TVector2Integer; override;
     function TextHeightBase(const S: string): Integer; override;
+    function TextMove(const S: string): TVector2Integer; override;
   end;
 
 implementation
@@ -833,107 +832,23 @@ begin
 end;
 
 function TTextureFont.TextWidth(const S: string): Integer;
-var
-  C: TUnicodeChar;
-  TextPtr: PChar;
-  CharLen: Integer;
-  G: TTextureFontData.TGlyph;
 begin
-  Result := 0;
-
-  TextPtr := PChar(S);
-  C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  while (C > 0) and (CharLen > 0) do
-  begin
-    Inc(TextPtr, CharLen);
-
-    G := FFont.Glyph(C);
-    if G <> nil then
-      Result += G.AdvanceX;
-
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  end;
+  Result := FFont.TextWidth(S);
 end;
 
 function TTextureFont.TextHeight(const S: string): Integer;
-var
-  C: TUnicodeChar;
-  TextPtr: PChar;
-  CharLen: Integer;
-  MinY, MaxY, YOrigin: Integer;
-  G: TTextureFontData.TGlyph;
 begin
-  MinY := 0;
-  MaxY := 0;
-
-  TextPtr := PChar(S);
-  C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  while (C > 0) and (CharLen > 0) do
-  begin
-    Inc(TextPtr, CharLen);
-
-    G := FFont.Glyph(C);
-    if G <> nil then
-    begin
-      YOrigin := G.Y;
-      MinTo1st(MinY, -YOrigin);
-      MaxTo1st(MaxY, G.Height - YOrigin);
-    end;
-
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  end;
-  Result := MaxY - MinY;
+  Result := FFont.TextHeight(S);
 end;
 
 function TTextureFont.TextHeightBase(const S: string): Integer;
-var
-  C: TUnicodeChar;
-  TextPtr: PChar;
-  CharLen: Integer;
-  G: TTextureFontData.TGlyph;
 begin
-  Result := 0;
-  { This is just like TextHeight implementation, except we only
-    calculate (as Result) the MaxY value (assuming that MinY is zero). }
-
-  TextPtr := PChar(S);
-  C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  while (C > 0) and (CharLen > 0) do
-  begin
-    Inc(TextPtr, CharLen);
-
-    G := FFont.Glyph(C);
-    if G <> nil then
-      MaxTo1st(Result, G.Height - G.Y);
-
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  end;
+  Result := FFont.TextHeightBase(S);
 end;
 
 function TTextureFont.TextMove(const S: string): TVector2Integer;
-var
-  C: TUnicodeChar;
-  TextPtr: PChar;
-  CharLen: Integer;
-  G: TTextureFontData.TGlyph;
 begin
-  Result := ZeroVector2Integer;
-
-  TextPtr := PChar(S);
-  C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  while (C > 0) and (CharLen > 0) do
-  begin
-    Inc(TextPtr, CharLen);
-
-    G := FFont.Glyph(C);
-    if G <> nil then
-    begin
-      Result[0] += G.AdvanceX;
-      Result[1] += G.AdvanceY;
-    end;
-
-    C := UTF8CharacterToUnicode(TextPtr, CharLen);
-  end;
+  Result := FFont.TextMove(S);
 end;
 
 { TSimpleTextureFont --------------------------------------------------------- }

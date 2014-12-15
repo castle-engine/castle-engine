@@ -21,7 +21,7 @@ unit CastleTextureFontData;
 interface
 
 uses FGL,
-  CastleUnicode, CastleStringUtils, CastleImages;
+  CastleVectors, CastleUnicode, CastleStringUtils, CastleImages;
 
 type
   { Data for a 2D font initialized from a FreeType font file, like ttf. }
@@ -66,6 +66,11 @@ type
     FGlyphsByte: TGlyphCharDictionary;
     FGlyphsExtra: TGlyphDictionary;
     FImage: TGrayscaleImage;
+  private
+    CalculatedRowHeight: boolean;
+    FRowHeight, FRowHeightBase: Integer;
+    { Calculate suitable values for RowHeight and RowHeightBase. }
+    procedure UpdateRowHeight(out ARowHeight, ARowHeightBase: Integer); virtual;
   public
     {$ifdef HAS_FREE_TYPE}
     { Create by reading a FreeType font file, like ttf.
@@ -99,6 +104,26 @@ type
       @link(Glyph) will answer non-nil exactly for these characters.
       The resulting list instance is owned by caller, so take care to free it. }
     function LoadedGlyphs: TUnicodeCharList;
+
+    function TextWidth(const S: string): Integer;
+    function TextHeight(const S: string): Integer;
+    { The height (above the baseline) of the text.
+      This doesn't take into account height of the text below the baseline
+      (for example letter "y" has the tail below the baseline in most fonts). }
+    function TextHeightBase(const S: string): Integer;
+    function TextMove(const S: string): TVector2Integer;
+
+    { Height of a row of text in this font.
+      This may be calculated as simply @code(TextHeight('Wy')) for most
+      normal fonts. }
+    function RowHeight: Integer;
+
+    { Height (above the baseline) of a row of text in this font.
+      Similar to TextHeightBase and TextHeight,
+      note that RowHeightBase is generally smaller than RowHeight,
+      because RowHeightBase doesn't care how low the letter may go below
+      the baseline. }
+    function RowHeightBase: Integer;
   end;
 
 implementation
@@ -399,6 +424,139 @@ begin
       Result.Add(C);
   for I := 0 to FGlyphsExtra.Count - 1 do
     Result.Add(FGlyphsExtra.Keys[I]);
+end;
+
+function TTextureFontData.TextWidth(const S: string): Integer;
+var
+  C: TUnicodeChar;
+  TextPtr: PChar;
+  CharLen: Integer;
+  G: TTextureFontData.TGlyph;
+begin
+  Result := 0;
+
+  TextPtr := PChar(S);
+  C := UTF8CharacterToUnicode(TextPtr, CharLen);
+  while (C > 0) and (CharLen > 0) do
+  begin
+    Inc(TextPtr, CharLen);
+
+    G := Glyph(C);
+    if G <> nil then
+      Result += G.AdvanceX;
+
+    C := UTF8CharacterToUnicode(TextPtr, CharLen);
+  end;
+end;
+
+function TTextureFontData.TextHeight(const S: string): Integer;
+var
+  C: TUnicodeChar;
+  TextPtr: PChar;
+  CharLen: Integer;
+  MinY, MaxY, YOrigin: Integer;
+  G: TTextureFontData.TGlyph;
+begin
+  MinY := 0;
+  MaxY := 0;
+
+  TextPtr := PChar(S);
+  C := UTF8CharacterToUnicode(TextPtr, CharLen);
+  while (C > 0) and (CharLen > 0) do
+  begin
+    Inc(TextPtr, CharLen);
+
+    G := Glyph(C);
+    if G <> nil then
+    begin
+      YOrigin := G.Y;
+      MinTo1st(MinY, -YOrigin);
+      MaxTo1st(MaxY, G.Height - YOrigin);
+    end;
+
+    C := UTF8CharacterToUnicode(TextPtr, CharLen);
+  end;
+  Result := MaxY - MinY;
+end;
+
+function TTextureFontData.TextMove(const S: string): TVector2Integer;
+var
+  C: TUnicodeChar;
+  TextPtr: PChar;
+  CharLen: Integer;
+  G: TTextureFontData.TGlyph;
+begin
+  Result := ZeroVector2Integer;
+
+  TextPtr := PChar(S);
+  C := UTF8CharacterToUnicode(TextPtr, CharLen);
+  while (C > 0) and (CharLen > 0) do
+  begin
+    Inc(TextPtr, CharLen);
+
+    G := Glyph(C);
+    if G <> nil then
+    begin
+      Result[0] += G.AdvanceX;
+      Result[1] += G.AdvanceY;
+    end;
+
+    C := UTF8CharacterToUnicode(TextPtr, CharLen);
+  end;
+end;
+
+function TTextureFontData.TextHeightBase(const S: string): Integer;
+var
+  C: TUnicodeChar;
+  TextPtr: PChar;
+  CharLen: Integer;
+  G: TTextureFontData.TGlyph;
+begin
+  Result := 0;
+  { This is just like TextHeight implementation, except we only
+    calculate (as Result) the MaxY value (assuming that MinY is zero). }
+
+  TextPtr := PChar(S);
+  C := UTF8CharacterToUnicode(TextPtr, CharLen);
+  while (C > 0) and (CharLen > 0) do
+  begin
+    Inc(TextPtr, CharLen);
+
+    G := Glyph(C);
+    if G <> nil then
+      MaxTo1st(Result, G.Height - G.Y);
+
+    C := UTF8CharacterToUnicode(TextPtr, CharLen);
+  end;
+end;
+
+procedure TTextureFontData.UpdateRowHeight(out ARowHeight, ARowHeightBase: Integer);
+begin
+  ARowHeight := TextHeight('Wy') + 2;
+  { RowHeight zwiekszylem o +2 zeby byl odstep miedzy liniami.
+    TODO: this +2 is actually a bad idea, but can't remove now without careful testing. }
+  { For RowHeightBase, I do not use +2. }
+  ARowHeightBase := TextHeightBase('W');
+end;
+
+function TTextureFontData.RowHeight: Integer;
+begin
+  if not CalculatedRowHeight then
+  begin
+    UpdateRowHeight(FRowHeight, FRowHeightBase);
+    CalculatedRowHeight := true;
+  end;
+  Result := FRowHeight;
+end;
+
+function TTextureFontData.RowHeightBase: Integer;
+begin
+  if not CalculatedRowHeight then
+  begin
+    UpdateRowHeight(FRowHeight, FRowHeightBase);
+    CalculatedRowHeight := true;
+  end;
+  Result := FRowHeightBase;
 end;
 
 end.
