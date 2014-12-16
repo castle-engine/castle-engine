@@ -559,6 +559,9 @@ type
       also calculating TextBroken (in case MaxWidth <> 0) along they way. }
     function RectCore(out TextBroken: TStrings): TRectangle;
   public
+    const
+      DefaultLineSpacing = 2;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
@@ -574,7 +577,7 @@ type
 
     { Extra spacing between lines (may also be negative to squeeze lines
       tighter). }
-    property LineSpacing: Integer read FLineSpacing write FLineSpacing default 0;
+    property LineSpacing: Integer read FLineSpacing write FLineSpacing default DefaultLineSpacing;
 
     { Does the text use HTML-like tags. This is very limited for now,
       see TCastleFont.PrintStrings documentation. }
@@ -2223,6 +2226,7 @@ begin
   FText := TStringList.Create;
   FColor := White;
   FFrame := true;
+  FLineSpacing := DefaultLineSpacing;
   ImageType := tiLabel;
 end;
 

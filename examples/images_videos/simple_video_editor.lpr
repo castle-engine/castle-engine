@@ -77,7 +77,7 @@ const
 
       UIFont.PrintStrings(15,
         Window.Height - UIFont.RowHeight * Strs.Count - TimeBarHeight, Yellow,
-        Strs, false, 0);
+        Strs, false, 2);
     finally FreeAndNil(Strs) end;
   end;
 

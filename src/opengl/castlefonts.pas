@@ -28,13 +28,13 @@ type
   { Abstract class for 2D font. }
   TCastleFont = class abstract
   private
-    CalculatedRowHeight: boolean;
-    FRowHeight, FRowHeightBase: Integer;
+    MeasureDone: boolean;
+    FRowHeight, FRowHeightBase, FDescend: Integer;
   protected
-    { Calculate suitable values for RowHeight and RowHeightBase.
-      The default implementation in TCastleFont looks at
-      @code(TextHeight('Wy')) and @code(TextHeight('y')). }
-    procedure UpdateRowHeight(out ARowHeight, ARowHeightBase: Integer); virtual;
+    { Calculate properties based on measuring the font.
+      The default implementation in TCastleFont looks at TextHeight of sample texts
+      to determine the parameter values. }
+    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer); virtual;
   public
     destructor Destroy; override;
 
@@ -121,10 +121,8 @@ type
       the baseline. }
     function RowHeightBase: Integer;
 
-    { How low the text may go below the baseline.
-      By default this returns @code(TextHeight('y')-TextHeight('a')),
-      which is suitable for normal fonts. }
-    function Descend: Integer; virtual;
+    { How low the text may go below the baseline. }
+    function Descend: Integer;
 
     { Break lines (possibly break one long string into more strings)
       to fit the text with given MaxLineWidth.
@@ -176,12 +174,12 @@ type
 
       X0, Y0 is the bottom-left position of the whole text block
       (that is, it is the bottom-left position of the last string).
-      Distance between each line is (RowHeight + BonusVerticalSpace) pixels.
+      Distance between each line is (RowHeight + LineSpacing) pixels.
 
-      Note that BonusVerticalSpace can be < 0 (as well as > 0),
+      Note that LineSpacing can be < 0 (as well as > 0),
       this may be sometimes useful if you really want to squeeze
       more text into the available space. Still, make sure that
-      (RowHeight + BonusVerticalSpace) is > 0.
+      (RowHeight + LineSpacing) is > 0.
 
       May require 1 free slot on the attributes stack.
       May only be called when current matrix is modelview.
@@ -209,12 +207,12 @@ type
       @groupBegin }
     procedure PrintStrings(const X0, Y0: Integer; const Color: TCastleColor;
       const Strs: TStrings; const Tags: boolean;
-      const BonusVerticalSpace: Integer); overload;
+      const LineSpacing: Integer); overload;
     procedure PrintStrings(const Strs: TStrings;
-      const Tags: boolean; const BonusVerticalSpace: Integer;
+      const Tags: boolean; const LineSpacing: Integer;
       const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated;
     procedure PrintStrings(const Strs: array of string;
-      const Tags: boolean; const BonusVerticalSpace: Integer;
+      const Tags: boolean; const LineSpacing: Integer;
       const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated;
     { @groupEnd }
 
@@ -230,10 +228,10 @@ type
       the position of the first (top) line, otherwise they determine
       the position of the last (bottom) line.
 
-      BonusVerticalSpace has the same meaning as for PrintStrings:
+      LineSpacing has the same meaning as for PrintStrings:
       it adds an additional space between lines (if positive) or forces
       the lines to be more tightly squeezed (if negative). Always make
-      sure that (RowHeight + BonusVerticalSpace) > 0.
+      sure that (RowHeight + LineSpacing) > 0.
 
       Returns the number of lines printed, that is the number of lines
       after breaking the text into lines. This may be useful e.g. to calculate
@@ -252,16 +250,16 @@ type
       @groupBegin }
     function PrintBrokenString(const Rect: TRectangle; const Color: TCastleColor;
       const S: string;
-      const BonusVerticalSpace: Integer;
+      const LineSpacing: Integer;
       const AlignHorizontal, AlignVertical: TPositionRelative): Integer;
     function PrintBrokenString(X0, Y0: Integer; const Color: TCastleColor;
       const S: string; const MaxLineWidth: Integer;
       const PositionsFirst: boolean;
-      const BonusVerticalSpace: Integer): Integer;
+      const LineSpacing: Integer): Integer;
     function PrintBrokenString(const S: string;
       const MaxLineWidth, X0, Y0: Integer;
       const PositionsFirst: boolean;
-      const BonusVerticalSpace: Integer): Integer; deprecated;
+      const LineSpacing: Integer): Integer; deprecated;
     { @groupEnd }
   end;
 
@@ -478,11 +476,6 @@ begin
   Print(X, Y, CurrentColor, S);
 end;
 
-function TCastleFont.Descend: Integer;
-begin
-  Result := TextHeight('y') - TextHeight('a');
-end;
-
 procedure TCastleFont.BreakLines(const unbroken: string;
   broken: TStrings; MaxLineWidth: integer);
 var
@@ -596,13 +589,13 @@ end;
 
 procedure TCastleFont.PrintStrings(const X0, Y0: Integer;
   const Color: TCastleColor; const Strs: TStrings;
-  const Tags: boolean; const BonusVerticalSpace: Integer);
+  const Tags: boolean; const LineSpacing: Integer);
 var
   Line: Integer;
 
   function YPos: Integer;
   begin
-    Result := (Strs.Count - 1 - Line) * (RowHeight + BonusVerticalSpace) + Y0;
+    Result := (Strs.Count - 1 - Line) * (RowHeight + LineSpacing) + Y0;
   end;
 
 var
@@ -625,14 +618,14 @@ begin
 end;
 
 procedure TCastleFont.PrintStrings(const Strs: TStrings;
-  const Tags: boolean; const BonusVerticalSpace: Integer;
+  const Tags: boolean; const LineSpacing: Integer;
   const X0: Integer; const Y0: Integer);
 begin
-  PrintStrings(X0, Y0, CurrentColor, Strs, Tags, BonusVerticalSpace);
+  PrintStrings(X0, Y0, CurrentColor, Strs, Tags, LineSpacing);
 end;
 
 procedure TCastleFont.PrintStrings(const Strs: array of string;
-  const Tags: boolean; const BonusVerticalSpace: Integer;
+  const Tags: boolean; const LineSpacing: Integer;
   const X0, Y0: Integer);
 var
   SList: TStringList;
@@ -640,7 +633,7 @@ begin
   SList := TStringList.Create;
   try
     AddStrArrayToStrings(Strs, SList);
-    PrintStrings(X0, Y0, CurrentColor, SList, Tags, BonusVerticalSpace);
+    PrintStrings(X0, Y0, CurrentColor, SList, Tags, LineSpacing);
   finally SList.Free end;
 end;
 
@@ -648,7 +641,7 @@ function TCastleFont.PrintBrokenString(
   X0, Y0: Integer; const Color: TCastleColor; const s: string;
   const MaxLineWidth: Integer;
   const PositionsFirst: boolean;
-  const BonusVerticalSpace: Integer): Integer;
+  const LineSpacing: Integer): Integer;
 var
   Broken: TStringList;
 begin
@@ -656,15 +649,15 @@ begin
   try
     BreakLines(s, Broken, MaxLineWidth);
     if PositionsFirst then
-      Y0 -= (broken.Count-1) * (RowHeight + BonusVerticalSpace);
-    PrintStrings(X0, Y0, Color, Broken, false, BonusVerticalSpace);
+      Y0 -= (broken.Count-1) * (RowHeight + LineSpacing);
+    PrintStrings(X0, Y0, Color, Broken, false, LineSpacing);
     Result := Broken.Count;
   finally FreeAndNil(Broken) end;
 end;
 
 function TCastleFont.PrintBrokenString(const Rect: TRectangle;
   const Color: TCastleColor; const S: string;
-  const BonusVerticalSpace: Integer;
+  const LineSpacing: Integer;
   const AlignHorizontal, AlignVertical: TPositionRelative): Integer;
 const
   Tags = false; // fow now always false, because BreakLines cannot handle tags
@@ -692,14 +685,14 @@ begin
       else raise EInternalError.Create('PrintBrokenString.AlignHorizontal?');
     end;
     { calculate Y0 based on Rect and BrokenHeight }
-    BrokenHeight := Broken.Count * (BonusVerticalSpace + RowHeight);
+    BrokenHeight := Broken.Count * (LineSpacing + RowHeight);
     case AlignVertical of
       prLow   : Y0 := Rect.Bottom;
       prMiddle: Y0 := Rect.Bottom + (Rect.Height - BrokenHeight) div 2;
       prHigh  : Y0 := Rect.Top - BrokenHeight;
       else raise EInternalError.Create('PrintBrokenString.AlignVertical?');
     end;
-    PrintStrings(X0, Y0, Color, Broken, Tags, BonusVerticalSpace);
+    PrintStrings(X0, Y0, Color, Broken, Tags, LineSpacing);
     Result := Broken.Count;
   finally FreeAndNil(Broken) end;
 end;
@@ -707,39 +700,47 @@ end;
 function TCastleFont.PrintBrokenString(const S: string;
   const MaxLineWidth, X0, Y0: Integer;
   const PositionsFirst: boolean;
-  const BonusVerticalSpace: Integer): Integer; deprecated;
+  const LineSpacing: Integer): Integer; deprecated;
 begin
   Result := PrintBrokenString(X0, Y0, CurrentColor, S, MaxLineWidth,
-    PositionsFirst, BonusVerticalSpace);
+    PositionsFirst, LineSpacing);
 end;
 
-procedure TCastleFont.UpdateRowHeight(out ARowHeight, ARowHeightBase: Integer);
+procedure TCastleFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
 begin
-  ARowHeight := TextHeight('Wy') + 2;
-  { RowHeight zwiekszylem o +2 zeby byl odstep miedzy liniami.
-    TODO: this +2 is actually a bad idea, but can't remove now without careful testing. }
-  { For RowHeightBase, I do not use +2. }
+  ARowHeight := TextHeight('Wy');
   ARowHeightBase := TextHeightBase('W');
+  ADescend := TextHeight('y') - TextHeight('a');
 end;
 
 function TCastleFont.RowHeight: Integer;
 begin
-  if not CalculatedRowHeight then
+  if not MeasureDone then
   begin
-    UpdateRowHeight(FRowHeight, FRowHeightBase);
-    CalculatedRowHeight := true;
+    Measure(FRowHeight, FRowHeightBase, FDescend);
+    MeasureDone := true;
   end;
   Result := FRowHeight;
 end;
 
 function TCastleFont.RowHeightBase: Integer;
 begin
-  if not CalculatedRowHeight then
+  if not MeasureDone then
   begin
-    UpdateRowHeight(FRowHeight, FRowHeightBase);
-    CalculatedRowHeight := true;
+    Measure(FRowHeight, FRowHeightBase, FDescend);
+    MeasureDone := true;
   end;
   Result := FRowHeightBase;
+end;
+
+function TCastleFont.Descend: Integer;
+begin
+  if not MeasureDone then
+  begin
+    Measure(FRowHeight, FRowHeightBase, FDescend);
+    MeasureDone := true;
+  end;
+  Result := FDescend;
 end;
 
 { TTextureFont --------------------------------------------------------------- }

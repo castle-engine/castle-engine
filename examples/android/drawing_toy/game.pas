@@ -72,7 +72,7 @@ begin
       S.Append(Format('Touch %d: FingerIndex %d, Position %s',
         [I, Container.Touches[I].FingerIndex,
          VectorToNiceStr(Container.Touches[I].Position) ]));
-    UIFont.PrintStrings(10, 10, Yellow, S, false, 0);
+    UIFont.PrintStrings(10, 10, Yellow, S, false, 2);
   finally FreeAndNil(S) end;
 end;
 

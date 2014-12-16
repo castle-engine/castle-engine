@@ -187,7 +187,7 @@ begin
   try
     Text.Append(Format('Surface X segments: %d', [SurfaceXSegments]));
     Text.Append(Format('Surface Y segments: %d', [SurfaceYSegments]));
-    UIFont.PrintStrings(10, 10, Yellow, Text, false, 5);
+    UIFont.PrintStrings(10, 10, Yellow, Text, false, 2);
   finally FreeAndNil(Text) end;
 end;
 

@@ -66,11 +66,9 @@ type
     FGlyphsByte: TGlyphCharDictionary;
     FGlyphsExtra: TGlyphDictionary;
     FImage: TGrayscaleImage;
-  private
-    CalculatedRowHeight: boolean;
-    FRowHeight, FRowHeightBase: Integer;
-    { Calculate suitable values for RowHeight and RowHeightBase. }
-    procedure UpdateRowHeight(out ARowHeight, ARowHeightBase: Integer); virtual;
+    MeasureDone: boolean;
+    FRowHeight, FRowHeightBase, FDescend: Integer;
+    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
   public
     {$ifdef HAS_FREE_TYPE}
     { Create by reading a FreeType font file, like ttf.
@@ -533,38 +531,41 @@ begin
   end;
 end;
 
-procedure TTextureFontData.UpdateRowHeight(out ARowHeight, ARowHeightBase: Integer);
+procedure TTextureFontData.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
 begin
-  ARowHeight := TextHeight('Wy') + 2;
-  { RowHeight zwiekszylem o +2 zeby byl odstep miedzy liniami.
-    TODO: this +2 is actually a bad idea, but can't remove now without careful testing. }
-  { For RowHeightBase, I do not use +2. }
+  ARowHeight := TextHeight('Wy');
   ARowHeightBase := TextHeightBase('W');
+  ADescend := TextHeight('y') - TextHeight('a');
 end;
 
 function TTextureFontData.RowHeight: Integer;
 begin
-  if not CalculatedRowHeight then
+  if not MeasureDone then
   begin
-    UpdateRowHeight(FRowHeight, FRowHeightBase);
-    CalculatedRowHeight := true;
+    Measure(FRowHeight, FRowHeightBase, FDescend);
+    MeasureDone := true;
   end;
   Result := FRowHeight;
 end;
 
 function TTextureFontData.RowHeightBase: Integer;
 begin
-  if not CalculatedRowHeight then
+  if not MeasureDone then
   begin
-    UpdateRowHeight(FRowHeight, FRowHeightBase);
-    CalculatedRowHeight := true;
+    Measure(FRowHeight, FRowHeightBase, FDescend);
+    MeasureDone := true;
   end;
   Result := FRowHeightBase;
 end;
 
 function TTextureFontData.Descend: Integer;
 begin
-  Result := TextHeight('y') - TextHeight('a');
+  if not MeasureDone then
+  begin
+    Measure(FRowHeight, FRowHeightBase, FDescend);
+    MeasureDone := true;
+  end;
+  Result := FDescend;
 end;
 
 end.
