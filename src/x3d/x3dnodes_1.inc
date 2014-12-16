@@ -937,7 +937,6 @@ begin
     Result := FaceSet;
   except FreeAndNil(FaceSet); raise end;
 
-  { TODO: recreate this when font parameters changed }
   if FFontTextureNode = nil then
     FFontTextureNode := CreateFontTextureNode(State.LastNodes.FontStyle.Font);
 end;
@@ -1360,14 +1359,8 @@ end;
 
 procedure TLODNode_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
-  { TODO: powinnismy tu uzywac odleglosci od camery ? Problem.
-    dla renderowania jest problem z wrzucaniem tego na display liste.
-    dla boundingBoxa
-      Wybrac ostatnie SubNode bo bedzie je nalatwiej obliczac ?
-      Pierwsze, bo jest dokladne ? To ktore renderujemy ?
-      W ostatnim przypadku, ladujemy z tym samym klopotem co RenderNKSpecific :
-      zapamietywanie takiego BoundingBoxa nie jest poprawne.
-  }
+  { TODO: we should use here the LOD matching camera distance.
+    For now, just like TAbstractLODNode.DirectEnumerateActive, we ignore the issue. }
   if VRML1ChildrenCount = 0 then
     raise EX3DError.Create('LOD node must have at least one child');
 

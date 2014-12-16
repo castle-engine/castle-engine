@@ -651,7 +651,6 @@ var
   CoordNode: TCoordinateNode;
   TexCoordNode: TTextureCoordinateNode;
 begin
-  { TODO: recreate this when font parameters changed }
   if FontStyle = nil then
   begin
     Size := TFontStyleNode.DefaultSize;
@@ -748,7 +747,14 @@ end;
 
 function TTextNode.FontTextureNode: TAbstractTexture2DNode;
 begin
-  { TODO: recreate this when font parameters changed }
+  { For now, we assume that font value never changes,
+    and so FFontTextureNode is neved changed once it's initially
+    created. This is correct for normal X3D usage, since FontStyle
+    fields, like family and style, are initializeOnly.
+
+    In the future, if we want to handle FontStyle field changes,
+    then chFontStyle should provoke recreating proxy (just like
+    chGeometry does now) and it should provoke recreating FontTextureNode. }
   if FFontTextureNode = nil then
     FFontTextureNode := CreateFontTextureNode(Font);
   Result := FFontTextureNode;
