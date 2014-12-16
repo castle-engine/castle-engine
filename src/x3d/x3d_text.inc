@@ -459,7 +459,7 @@ procedure TextProxy(const OriginalNode: TX3DNode;
   const EventLineBounds: TMFVec2fEvent;
   const EventOrigin: TSFVec3fEvent;
   const EventTextBounds: TSFVec2fEvent;
-  const OutCoord: TMFVec3f; const OutTexCoord: TMFVec2f);
+  const OutCoord: TMFVec3f; const OutTexCoord, OutExtraTexCoord: TMFVec2f);
 var
   TextWidths: TSingleList;
 
@@ -482,6 +482,7 @@ var
 
 var
   YScale, XScale, MaxTextWidth: Single;
+  ExtraTexOrigin: TVector2Single;
 
   procedure SendEvents;
   var
@@ -549,12 +550,23 @@ var
     This is somewhat analogous to printing straight in 2D done
     by TCastleFont.Print and TGLImage.Draw. }
   procedure Print(X, Y: Single; const S: string; const XScale, YScale: Single);
+
+    function ConvertCoordToExtraTex(const CoordIndex: Integer; const Coord: Single): Single;
+    begin
+      Result := MapRange(Coord,
+        ExtraTexOrigin[CoordIndex],
+        ExtraTexOrigin[CoordIndex] + Font.RowHeight * Spacing * YScale,
+        0, 1);
+    end;
+
   var
     C: TUnicodeChar;
     TextPtr: PChar;
     CharLen: Integer;
     G: TTextureFontData.TGlyph;
-    CoordX0, CoordX1, CoordY0, CoordY1, TexX0, TexX1, TexY0, TexY1: Single;
+    CoordX0, CoordX1, CoordY0, CoordY1,
+      TexX0, TexX1, TexY0, TexY1,
+      ExtraTexX0, ExtraTexX1, ExtraTexY0, ExtraTexY1: Single;
   begin
     TextPtr := PChar(S);
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
@@ -599,6 +611,28 @@ var
           OutTexCoord.Items.Add(Vector2Single(TexX1, TexY0));
           OutTexCoord.Items.Add(Vector2Single(TexX1, TexY1));
           OutTexCoord.Items.Add(Vector2Single(TexX0, TexY1));
+
+          { if we want extra texture coordinates, generate them knowing
+            ExtraTexOrigin and current Coord* values. This is enough,
+            see the specification:
+
+              The texture origin is at the origin of the first string,
+              as determined by the justification. The texture is scaled
+              equally in both S and T dimensions, with the font height
+              representing 1 unit. S increases to the right, and T increases up. }
+
+          if OutExtraTexCoord <> nil then
+          begin
+            ExtraTexX0 := ConvertCoordToExtraTex(0, CoordX0);
+            ExtraTexY0 := ConvertCoordToExtraTex(1, CoordY0);
+            ExtraTexX1 := ConvertCoordToExtraTex(0, CoordX1);
+            ExtraTexY1 := ConvertCoordToExtraTex(1, CoordY1);
+
+            OutExtraTexCoord.Items.Add(Vector2Single(ExtraTexX0, ExtraTexY0));
+            OutExtraTexCoord.Items.Add(Vector2Single(ExtraTexX1, ExtraTexY0));
+            OutExtraTexCoord.Items.Add(Vector2Single(ExtraTexX1, ExtraTexY1));
+            OutExtraTexCoord.Items.Add(Vector2Single(ExtraTexX0, ExtraTexY1));
+          end;
         end;
         X += G.AdvanceX;
         Y += G.AdvanceY;
@@ -626,12 +660,16 @@ begin
       MaxTo1st(MaxTextWidth, TextWidths.L[I]);
     end;
 
-    for I := 0 to Strings.Count - 1 do
+    if Strings.Count <> 0 then
     begin
-      { TODO: when using Justify <> fjBegin I should also
-        change texOriginX here, at least for VRML 1.0 --- check
-        for VRML 2.0. }
-      Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale);
+      ExtraTexOrigin := Vector2Single(StringPosX(0) * XScale, StringPosY(0) * YScale);
+      for I := 0 to Strings.Count - 1 do
+      begin
+        { TODO: when using Justify <> fjBegin I should also
+          change texOriginX here, at least for VRML 1.0 --- check
+          for VRML 2.0. }
+        Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale);
+      end;
     end;
 
     { These events should be generated only when
@@ -649,7 +687,8 @@ var
   Justify: TX3DFontJustify;
   QuadSet: TQuadSetNode;
   CoordNode: TCoordinateNode;
-  TexCoordNode: TTextureCoordinateNode;
+  MultiTexCoordNode: TMultiTextureCoordinateNode;
+  TexCoordNode, ExtraTexCoordNode: TTextureCoordinateNode;
 begin
   if FontStyle = nil then
   begin
@@ -668,16 +707,23 @@ begin
 
   QuadSet := TQuadSetNode.Create(NodeName, BaseUrl);
   try
+    QuadSet.Solid := Solid;
+
     CoordNode := TCoordinateNode.Create('', BaseUrl);
     QuadSet.FdCoord.Value := CoordNode;
 
+    MultiTexCoordNode := TMultiTextureCoordinateNode.Create('', BaseUrl);
+    QuadSet.FdTexCoord.Value := MultiTexCoordNode;
+
     TexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
-    QuadSet.FdTexCoord.Value := TexCoordNode;
-    QuadSet.Solid := Solid;
+    MultiTexCoordNode.FdTexCoord.Add(TexCoordNode);
+
+    ExtraTexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
+    MultiTexCoordNode.FdTexCoord.Add(ExtraTexCoordNode);
 
     TextProxy(Self, Size, Spacing, Justify, FdString.Items, Font,
       Solid, EventLineBounds, EventOrigin, EventTextBounds,
-      CoordNode.FdPoint, TexCoordNode.FdPoint);
+      CoordNode.FdPoint, TexCoordNode.FdPoint, ExtraTexCoordNode.FdPoint);
 
     Result := QuadSet;
   except FreeAndNil(QuadSet); raise end;

@@ -919,7 +919,7 @@ begin
       State.LastNodes.FontStyle.FdSize.Value, FdSpacing.Value, Justify,
       FdString.Items, State.LastNodes.FontStyle.Font,
       false, nil, nil, nil,
-      CoordNode.FdPoint, TexCoordNode.FdPoint);
+      CoordNode.FdPoint, TexCoordNode.FdPoint, nil);
 
     { calculate FaceSet.FdCoordIndex, just include all quads from CoordNode }
     FaceSet.FdCoordIndex.Items.Clear;
