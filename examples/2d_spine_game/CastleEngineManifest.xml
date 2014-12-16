@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="castle_spine"
-  caption="Castle Spine"
+  caption="Dragon Spine"
   qualified_name="net.sourceforge.castleengine.castlespine"
   standalone_source="code/castle_spine.lpr"
   android_source="code/castle_spine_android.lpr"
