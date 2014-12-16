@@ -583,9 +583,9 @@ var
           CoordY1 *= YScale;
 
           Coord.FdPoint.Items.Add(Vector3Single(CoordX0, CoordY0, 0));
-          Coord.FdPoint.Items.Add(Vector3Single(CoordX0, CoordY1, 0));
-          Coord.FdPoint.Items.Add(Vector3Single(CoordX1, CoordY1, 0));
           Coord.FdPoint.Items.Add(Vector3Single(CoordX1, CoordY0, 0));
+          Coord.FdPoint.Items.Add(Vector3Single(CoordX1, CoordY1, 0));
+          Coord.FdPoint.Items.Add(Vector3Single(CoordX0, CoordY1, 0));
 
           TexX0 := (G.ImageX {$ifdef EXTRA_GLYPH_SPACE} - 1 {$endif}) / Font.Image.Width;
           TexY0 := (G.ImageY {$ifdef EXTRA_GLYPH_SPACE} - 1 {$endif}) / Font.Image.Height;
@@ -593,9 +593,9 @@ var
           TexY1 := (G.ImageY + G.Height {$ifdef EXTRA_GLYPH_SPACE} + 2 {$endif}) / Font.Image.Height;
 
           TexCoordNode.FdPoint.Items.Add(Vector2Single(TexX0, TexY0));
-          TexCoordNode.FdPoint.Items.Add(Vector2Single(TexX0, TexY1));
-          TexCoordNode.FdPoint.Items.Add(Vector2Single(TexX1, TexY1));
           TexCoordNode.FdPoint.Items.Add(Vector2Single(TexX1, TexY0));
+          TexCoordNode.FdPoint.Items.Add(Vector2Single(TexX1, TexY1));
+          TexCoordNode.FdPoint.Items.Add(Vector2Single(TexX0, TexY1));
         end;
         X += G.AdvanceX;
         Y += G.AdvanceY;
