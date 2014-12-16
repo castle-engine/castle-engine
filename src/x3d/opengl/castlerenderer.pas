@@ -2862,12 +2862,18 @@ var
   TextureTransform: TAbstractTextureTransformNode;
   Child: TX3DNode;
   Transforms: TMFNode;
-  I: Integer;
+  I, FirstTexUnit: Integer;
   State: TX3DGraphTraverseState;
   Matrix: TMatrix4Single;
 begin
   TextureTransformUnitsUsed := 0;
   TextureTransformUnitsUsedMore.Count := 0;
+
+  { in case of FontTextureNode <> nil, 1 less texture unit is available.
+    Everything we do, must be shifted by 1 texture unit. }
+  if Shape.OriginalGeometry.FontTextureNode <> nil then
+    FirstTexUnit := 1 else
+    FirstTexUnit := 0;
 
   State := Shape.State;
 
@@ -2904,14 +2910,17 @@ begin
     if State.ShapeNode = nil then
     begin
       { No multitexturing in VRML 1.0, just always transform first tex unit. }
-      TextureTransformUnitsUsed := 1;
-      {$ifndef OpenGLES}
-      ActiveTexture(0);
-      glPushMatrix;
-      glMultMatrix(State.TextureTransform);
-      {$else}
-      Shader.EnableTextureTransform(0, State.TextureTransform);
-      {$endif}
+      if FirstTexUnit < GLFeatures.MaxTextureUnits then
+      begin
+        TextureTransformUnitsUsed := 1;
+        {$ifndef OpenGLES}
+        ActiveTexture(FirstTexUnit);
+        glPushMatrix;
+        glMultMatrix(State.TextureTransform);
+        {$else}
+        Shader.EnableTextureTransform(FirstTexUnit, State.TextureTransform);
+        {$endif}
+      end;
     end else
     begin
       TextureTransform := State.ShapeNode.TextureTransform;
@@ -2924,12 +2933,13 @@ begin
           { Multitexturing, so use as many texture units as there are children in
             MultiTextureTransform.textureTransform.
             Cap by available texture units. }
-          TextureTransformUnitsUsed := Min(Transforms.Count, GLFeatures.MaxTextureUnits);
+          TextureTransformUnitsUsed := Min(Transforms.Count,
+            GLFeatures.MaxTextureUnits - FirstTexUnit);
 
           for I := 0 to TextureTransformUnitsUsed - 1 do
           begin
             {$ifndef OpenGLES}
-            ActiveTexture(I);
+            ActiveTexture(FirstTexUnit + I);
             glPushMatrix;
             {$endif}
             Child := Transforms[I];
@@ -2943,7 +2953,7 @@ begin
                 {$ifndef OpenGLES}
                 glMultMatrix(Matrix);
                 {$else}
-                Shader.EnableTextureTransform(I, Matrix);
+                Shader.EnableTextureTransform(FirstTexUnit + I, Matrix);
                 {$endif}
               end;
             end;
@@ -2959,15 +2969,18 @@ begin
         if (State.Texture <> nil) and
            (not (State.Texture is TMultiTextureNode)) then
         begin
-          TextureTransformUnitsUsed := 1;
-          Matrix := TextureTransform.TransformMatrix;
-          {$ifndef OpenGLES}
-          ActiveTexture(0);
-          glPushMatrix;
-          glMultMatrix(Matrix);
-          {$else}
-          Shader.EnableTextureTransform(0, Matrix);
-          {$endif}
+          if FirstTexUnit < GLFeatures.MaxTextureUnits then
+          begin
+            TextureTransformUnitsUsed := 1;
+            Matrix := TextureTransform.TransformMatrix;
+            {$ifndef OpenGLES}
+            ActiveTexture(FirstTexUnit);
+            glPushMatrix;
+            glMultMatrix(Matrix);
+            {$else}
+            Shader.EnableTextureTransform(FirstTexUnit, Matrix);
+            {$endif}
+          end;
         end;
       end;
     end;
@@ -2991,7 +3004,7 @@ begin
       { This code is Ok also when not GLFeatures.UseMultiTexturing: then
         TextureTransformUnitsUsed for sure is <= 1 and ActiveTexture
         will be simply ignored. }
-      ActiveTexture(I);
+      ActiveTexture(FirstTexUnit + I);
       glPopMatrix;
     end;
 
