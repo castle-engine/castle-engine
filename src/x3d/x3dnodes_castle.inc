@@ -74,22 +74,10 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TText3DNode = class(TAbstractX3DGeometryNode)
+  TText3DNode = class(TTextNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
-
-    private FFdString: TMFString;
-    public property FdString: TMFString read FFdString;
-
-    private FFdFontStyle: TSFNode;
-    public property FdFontStyle: TSFNode read FFdFontStyle;
-
-    private FFdLength: TMFFloat;
-    public property FdLength: TMFFloat read FFdLength;
-
-    private FFdMaxExtent: TSFFloat;
-    public property FdMaxExtent: TSFFloat read FFdMaxExtent;
 
     { Fields added compared to normal Text node: }
 
@@ -97,22 +85,7 @@
     private FFdDepth: TSFFloat;
     public property FdDepth: TSFFloat read FFdDepth;
 
-    private FFdSolid: TSFBool;
-    public property FdSolid: TSFBool read FFdSolid;
-
     class function URNMatching(const URN: string): boolean; override;
-
-    function LocalBoundingBox(State: TX3DGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-
-    { This returns FdFontStyle.Value. Returns nil if FdFontStyle.Value
-      is nil or if it's not TFontStyleNode. }
-    function FontStyle: TFontStyleNode;
-    function SolidField: TSFBool; override;
   end;
 
   { BlendMode node.
@@ -514,7 +487,8 @@ end;
 
 class function TText3DNode.URNMatching(const URN: string): boolean;
 begin
-  Result := (inherited URNMatching(URN)) or
+  Result :=
+    { do not call (inherited URNMatching(URN)), since we don't match Text node rules }
     (URN = URNKambiNodes + ClassNodeTypeName) or
     (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
@@ -523,42 +497,9 @@ procedure TText3DNode.CreateNode;
 begin
   inherited;
 
-  FFdString := TMFString.Create(Self, 'string', []);
-   FdString.ChangesAlways := [chGeometry];
-  Fields.Add(FFdString);
-
-  FFdFontStyle := TSFNode.Create(Self, 'fontStyle', [TFontStyleNode]);
-   FdFontStyle.ChangesAlways := [chGeometry];
-  Fields.Add(FFdFontStyle);
-
-  FFdLength := TMFFloat.Create(Self, 'length', []);
-   FdLength.ChangesAlways := [chGeometry];
-  Fields.Add(FFdLength);
-
-  FFdMaxExtent := TSFFloat.Create(Self, 'maxExtent', 0.0);
-   FdMaxExtent.ChangesAlways := [chGeometry];
-  Fields.Add(FFdMaxExtent);
-
   FFdDepth := TSFFloat.Create(Self, 'depth', 0.1, true);
    FdDepth.ChangesAlways := [chGeometry];
   Fields.Add(FFdDepth);
-
-  FFdSolid := TSFBool.Create(Self, 'solid', true);
-   FdSolid.ChangesAlways := [chGeometry];
-  Fields.Add(FFdSolid);
-end;
-
-function TText3DNode.FontStyle: TFontStyleNode;
-begin
-  if (FdFontStyle.Value <> nil) and
-     (FdFontStyle.Value is TFontStyleNode) then
-    Result := TFontStyleNode(FdFontStyle.Value) else
-    Result := nil;
-end;
-
-function TText3DNode.SolidField: TSFBool;
-begin
-  Result := FdSolid;
 end;
 
 { TBlendModeNode ------------------------------------------------------------- }

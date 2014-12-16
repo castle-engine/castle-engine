@@ -101,28 +101,29 @@
       (still, remember to honour TextureUnitsCount = 0 case in your implementation,
       even when GLFeatures.UseMultiTexturing = @true).
 
-      You have to set TexCoordsNeeded, this is the count of texture units
+      You have to update TextureSlotsUsed, this is the count of texture units
       where some texture coordinates should be generated.
-      This means that all texture units above TexCoordsNeeded
+      It's initial value may be > 0, in case some texture slots are already taken.
+      This means that all texture units above TextureSlotsUsed
       (to TextureUnitsCount - 1) should be disabled by the caller (no need to
       do this in EnableAll),
       and there's no need to generated texture coords for them.
 
       (
       Yes, there is some small optimization missed in the definition
-      of TexCoordsNeeded: if some textures in the middle of
+      of TextureSlotsUsed: if some textures in the middle of
       multitexture children list failed to load, but some following children
       succeded, we'll generate tex coords even for the useless texture units
       in the middle. We could avoid generating texture coords for them,
-      by changing TexCoordsNeeded into bool array.
+      by changing TextureSlotsUsed into bool array.
       This optimization is not considered worthy implementing for now.
       )
 
-      You have to set texture state of all texture units < TexCoordsNeeded,
+      You have to set texture state of all texture units < TextureSlotsUsed,
       and only on them. }
     procedure EnableAll(
       const TextureUnitsCount: Cardinal;
-      out TexCoordsNeeded: Cardinal;
+      var TextureSlotsUsed: Cardinal;
       Shader: TShader); virtual; abstract;
   end;
 
@@ -191,7 +192,7 @@
     procedure SetTextureRGBFromImage(Image: TEncodedImage);
   public
     procedure EnableAll(const TextureUnitsCount: Cardinal;
-      out TexCoordsNeeded: Cardinal; Shader: TShader); override;
+      var TextureSlotsUsed: Cardinal; Shader: TShader); override;
   end;
 
   { Handler for TMultiTextureNode.
@@ -217,7 +218,7 @@
     function Enable(const TextureUnit: Cardinal;
       Shader: TShader; const Env: TTextureEnv): boolean; override;
     procedure EnableAll(const TextureUnitsCount: Cardinal;
-      out TexCoordsNeeded: Cardinal; Shader: TShader); override;
+      var TextureSlotsUsed: Cardinal; Shader: TShader); override;
   end;
 
   { Handler for TAbstractTexture2DNode with image (not a video). }
@@ -733,7 +734,7 @@ begin
 end;
 
 procedure TGLSingleTextureNode.EnableAll(const TextureUnitsCount: Cardinal;
-  out TexCoordsNeeded: Cardinal; Shader: TShader);
+  var TextureSlotsUsed: Cardinal; Shader: TShader);
 
 { Default texture mode for single texturing.
   For X3D MultiTexture nodes, they are always explicitly given
@@ -756,19 +757,16 @@ procedure TGLSingleTextureNode.EnableAll(const TextureUnitsCount: Cardinal;
 const
   TextureModeGrayscale = coModulate;
   TextureModeRGB = coModulate;
-
 var
   Env: TTextureEnv;
 begin
-  TexCoordsNeeded := 0;
-
   { initialize Env using TextureModeRGB/Grayscale }
   if TextureRGB then
     Env.Init(TextureModeRGB) else
     Env.Init(TextureModeGrayscale);
 
   if (TextureUnitsCount > 0) and
-     Enable(0, Shader, Env) then
+     Enable(TextureSlotsUsed, Shader, Env) then
   begin
     {$ifndef OpenGLES}
     { Here we know that Env was initialized above.
@@ -777,7 +775,7 @@ begin
       (doesn't require using GL_COMBINE). }
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, CombineGL[Env.Combine[cRGB]]);
     {$endif}
-    TexCoordsNeeded := 1;
+    Inc(TextureSlotsUsed);
   end;
 end;
 
@@ -881,7 +879,7 @@ begin
 end;
 
 procedure TGLMultiTextureNode.EnableAll(const TextureUnitsCount: Cardinal;
-  out TexCoordsNeeded: Cardinal; Shader: TShader);
+  var TextureSlotsUsed: Cardinal; Shader: TShader);
 {$ifndef OpenGLES}
 const
   ColorSourceGL: array [TColorSource] of TGLint =
@@ -889,18 +887,21 @@ const
   Argument: array [ta0..ta1] of Integer = ( 0, 1 );
 {$endif}
 var
+  InitialTextureSlotsUsed: Cardinal;
   ChildTex: TX3DNode;
   I: Integer;
   Success: boolean;
   Env: TTextureEnv;
   ModeStr, SourceStr, FunctionStr: string;
 begin
-  { calculate TexCoordsNeeded }
-  TexCoordsNeeded := Min(TextureUnitsCount, TextureNode.FdTexture.Count);
+  { calculate TextureSlotsUsed }
+  InitialTextureSlotsUsed := TextureSlotsUsed;
+  TextureSlotsUsed += TextureNode.FdTexture.Count;
+  MinTo1st(TextureSlotsUsed, TextureUnitsCount);
   if not GLFeatures.UseMultiTexturing then
-    MinTo1st(TexCoordsNeeded, 1);
+    MinTo1st(TextureSlotsUsed, 1);
 
-  for I := 0 to TexCoordsNeeded - 1 do
+  for I := 0 to TextureSlotsUsed - InitialTextureSlotsUsed - 1 do
   begin
     ChildTex := TextureNode.FdTexture[I];
     Success := false;

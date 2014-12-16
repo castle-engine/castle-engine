@@ -1076,7 +1076,10 @@ begin
   WasCacheUsed := false;
 
   if not FdImage.Value.IsEmpty then
+  begin
     FTextureImage := FdImage.Value.MakeCopy;
+    FAlphaChannelData := FdImage.Value.AlphaChannel;
+  end;
 end;
 
 function TPixelTextureNode.TextureDescription: string;

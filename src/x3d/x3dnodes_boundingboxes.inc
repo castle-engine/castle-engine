@@ -192,7 +192,7 @@ end;
 function Text_LocalBoundingBox(State: TX3DGraphTraverseState;
   const Size, Spacing: Single;
   const Justify: TX3DFontJustify;
-  const Font: TOutlineFontData;
+  const Font: TTextureFontData;
   const Strings: TCastleStringList;
   const Depth: Single): TBox3D;
 var
@@ -244,49 +244,21 @@ function TTextNode.LocalBoundingBox(State: TX3DGraphTraverseState;
 var
   Size, Spacing: Single;
   Justify: TX3DFontJustify;
-  Font: TOutlineFontData;
 begin
   if FontStyle = nil then
   begin
     Size := TFontStyleNode.DefaultSize;
     Spacing := TFontStyleNode.DefaultSpacing;
     Justify := TFontStyleNode.DefaultJustify;
-    Font := TFontStyleNode.DefaultFont;
   end else
   begin
     Size := FontStyle.FdSize.Value;
     Spacing := FontStyle.FdSpacing.Value;
     Justify := FontStyle.Justify;
-    Font := FontStyle.Font;
   end;
 
   Result := Text_LocalBoundingBox(State,
     Size, Spacing, Justify, Font, FdString.Items, 0);
-end;
-
-function TText3DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
-  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
-var
-  Size, Spacing: Single;
-  Justify: TX3DFontJustify;
-  Font: TOutlineFontData;
-begin
-  if FontStyle = nil then
-  begin
-    Size := TFontStyleNode.DefaultSize;
-    Spacing := TFontStyleNode.DefaultSpacing;
-    Justify := TFontStyleNode.DefaultJustify;
-    Font := TFontStyleNode.DefaultFont;
-  end else
-  begin
-    Size := FontStyle.FdSize.Value;
-    Spacing := FontStyle.FdSpacing.Value;
-    Justify := FontStyle.Justify;
-    Font := FontStyle.Font;
-  end;
-
-  Result := Text_LocalBoundingBox(State,
-    Size, Spacing, Justify, Font, FdString.Items, FdDepth.Value);
 end;
 
 function Cone_BoundingBox(State: TX3DGraphTraverseState;

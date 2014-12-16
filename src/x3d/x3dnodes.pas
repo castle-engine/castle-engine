@@ -172,12 +172,13 @@ unit X3DNodes;
 
 interface
 
-uses CastleVectors, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
-  X3DFields, CastleBoxes, CastleImages, CastleOutlineFontData,
+uses SysUtils, FGL, Classes, XMLRead, DOM,
+  CastleVectors, X3DLexer, CastleUtils, CastleClassUtils,
+  X3DFields, CastleBoxes, CastleImages,
   CastleVideos, X3DTime, Castle3D, CastleMaterialProperties,
   CastleScript, X3DCastleScript, CastleOctree, CastleDDS, CastleTextureImages,
-  XMLRead, DOM, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
-  FGL, CastleGenericLists, CastleShaders, CastleRays;
+  CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
+  CastleTextureFontData, CastleGenericLists, CastleShaders, CastleRays;
 
 {$define read_interface}
 
@@ -2154,24 +2155,23 @@ implementation
 
 uses
   { Fonts for Text, FontStyle, AsciiText nodes }
-  { Bitstream Vera Sans }
-  CastleOutlineFont_BVSans,
-  CastleOutlineFont_BVSans_Bold,
-  CastleOutlineFont_BVSans_Italic,
-  CastleOutlineFont_BVSans_Bold_Italic,
-  { Bitstream Vera Sans Mono }
-  CastleOutlineFont_BVSansMono,
-  CastleOutlineFont_BVSansMono_Bold,
-  CastleOutlineFont_BVSansMono_Italic,
-  CastleOutlineFont_BVSansMono_Bold_Italic,
-  { Bitstream Vera Serif }
-  CastleOutlineFont_BVSerif,
-  CastleOutlineFont_BVSerif_Bold,
-  CastleOutlineFont_BVSerif_Italic,
-  CastleOutlineFont_BVSerif_Bold_Italic,
+  CastleTextureFont_DjvSans_20,
+  CastleTextureFont_DjvSansB_20,
+  CastleTextureFont_DjvSansO_20,
+  CastleTextureFont_DjvSansBO_20,
+
+  CastleTextureFont_DjvMono_20,
+  CastleTextureFont_DjvMonoB_20,
+  CastleTextureFont_DjvMonoO_20,
+  CastleTextureFont_DjvMonoBO_20,
+
+  CastleTextureFont_DjvSerif_20,
+  CastleTextureFont_DjvSerifB_20,
+  CastleTextureFont_DjvSerifI_20,
+  CastleTextureFont_DjvSerifBI_20,
 
   Math, X3DLoad, CastleZStream, X3DCameraUtils, CastleWarnings, CastleColors,
-  CastleFilesUtils, StrUtils, CastleURIUtils,
+  CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode,
   CastleLog, CastleScriptParser, CastleDataURI, URIParser, CastleDownload,
   CastleNURBS, CastleQuaternions, CastleCameras, CastleXMLUtils, CastleOpenDocument;
 

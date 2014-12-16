@@ -203,8 +203,8 @@ interface
 
 uses
   Classes, SysUtils, CastleUtils, CastleVectors, CastleGL,
-  X3DFields, X3DNodes, X3DLexer, CastleOutlineFontData, CastleImages,
-  CastleGLUtils, CastleRendererInternalLights, CastleGLOutlineFonts,
+  X3DFields, X3DNodes, X3DLexer, CastleImages,
+  CastleGLUtils, CastleRendererInternalLights,
   CastleGLShaders, CastleGLImages, CastleVideos, X3DTime, CastleShapes,
   CastleGLCubeMaps, CastleClassUtils, CastleDDS, Castle3D, FGL,
   CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader, X3DShadowMaps,
@@ -529,11 +529,6 @@ type
 
   TRenderingAttributesClass = class of TRenderingAttributes;
 
-  TGLOutlineFontCache = record
-    References: Cardinal;
-    Instance: TGLOutlineFont;
-  end;
-
   TTextureImageCache = class
     { Full URL of used texture image. Empty ('') if not known
       (or maybe this texture didn't come from any URL, e.g. it's generated). }
@@ -689,7 +684,6 @@ type
     a single instance of this cache inside @link(GLContextCache). }
   TGLRendererContextCache = class
   private
-    Fonts: array[TX3DFontFamily, boolean, boolean] of TGLOutlineFontCache;
     TextureImageCaches: TTextureImageCacheList;
     TextureVideoCaches: TTextureVideoCacheList;
     TextureCubeMapCaches: TTextureCubeMapCacheList;
@@ -787,13 +781,6 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function Fonts_IncReference(
-      fsfam: TX3DFontFamily; fsbold: boolean; fsitalic: boolean;
-      Font: TOutlineFontData): TGLOutlineFont;
-
-    procedure Fonts_DecReference(
-      fsfam: TX3DFontFamily; fsbold: boolean; fsitalic: boolean);
-
     { Shape cache. We return TShapeCache, either taking an existing
       instance from cache or creating and adding a new one.
       Caller is responsible for checking are Arrays / Vbo zero and
@@ -866,9 +853,6 @@ type
     GLTextureNodes: TGLTextureNodes;
     BumpMappingRenderers: TBumpMappingRendererList;
     ScreenEffectPrograms: TGLSLProgramList;
-
-    { To which fonts we made a reference in the cache ? }
-    FontsReferences: array [TX3DFontFamily, boolean, boolean] of boolean;
 
     { ------------------------------------------------------------------------ }
 
@@ -1079,10 +1063,10 @@ type
 
     property Cache: TGLRendererContextCache read FCache;
 
-    { Prepare given State, to be able to render shapes with it.
+    { Prepare given Shape for rendering.
       Between preparing and unpreparing, nodes passed here are "frozen":
       do not change, do not free them. }
-    procedure Prepare(State: TX3DGraphTraverseState);
+    procedure Prepare(Shape: TX3DRendererShape);
 
     { Release resources for this texture. }
     procedure UnprepareTexture(Node: TAbstractTextureNode);
@@ -1164,7 +1148,6 @@ uses Math, CastleStringUtils, CastleGLVersion, CastleLog, CastleWarnings,
 {$define read_implementation}
 
 {$I castlerenderer_meshrenderer.inc}
-{$I castlerenderer_textrenderer.inc}
 {$I castlerenderer_resource.inc}
 {$I castlerenderer_texture.inc}
 {$I castlerenderer_bumpmapping.inc}
@@ -1196,22 +1179,7 @@ destructor TGLRendererContextCache.Destroy;
   end;
 {$endif}
 
-var
-  fsfam: TX3DFontFamily;
-  fsbold , fsitalic: boolean;
 begin
-  for fsfam := Low(fsfam) to High(fsfam) do
-    for fsbold := Low(boolean) to High(boolean) do
-      for fsitalic := Low(boolean) to High(boolean) do
-      begin
-        Assert(
-          (Fonts[fsfam, fsbold, fsitalic].Instance = nil) =
-          (Fonts[fsfam, fsbold, fsitalic].References = 0));
-        Assert(Fonts[fsfam, fsbold, fsitalic].Instance = nil,
-          'Some references to fonts still exist' +
-          ' when freeing TGLRendererContextCache');
-      end;
-
   if TextureImageCaches <> nil then
   begin
     Assert(TextureImageCaches.Count = 0, 'Some references to texture images still exist' +
@@ -1262,28 +1230,6 @@ begin
   end;
 
   inherited;
-end;
-
-function TGLRendererContextCache.Fonts_IncReference(
-  fsfam: TX3DFontFamily; fsbold: boolean; fsitalic: boolean;
-  Font: TOutlineFontData): TGLOutlineFont;
-begin
-  Inc(Fonts[fsfam, fsbold, fsitalic].References);
-  if Fonts[fsfam, fsbold, fsitalic].Instance = nil then
-    Fonts[fsfam, fsbold, fsitalic].Instance := TGLOutlineFont.Create(Font);
-  Result := Fonts[fsfam, fsbold, fsitalic].Instance;
-  if LogRendererCache and Log then
-    WritelnLog('++', 'Font: %d', [Fonts[fsfam, fsbold, fsitalic].References]);
-end;
-
-procedure TGLRendererContextCache.Fonts_DecReference(
-  fsfam: TX3DFontFamily; fsbold: boolean; fsitalic: boolean);
-begin
-  Dec(Fonts[fsfam, fsbold, fsitalic].References);
-  if Fonts[fsfam, fsbold, fsitalic].References = 0 then
-    FreeAndNil(Fonts[fsfam, fsbold, fsitalic].Instance);
-  if LogRendererCache and Log then
-    WritelnLog('--', 'Font: %d', [Fonts[fsfam, fsbold, fsitalic].References]);
 end;
 
 function TGLRendererContextCache.TextureImage_IncReference(
@@ -2365,104 +2311,45 @@ begin
     GLTextureNodes.PrepareInterfaceDeclarationsTextures(Nodes[I], State, Self);
 end;
 
-procedure TGLRenderer.Prepare(State: TX3DGraphTraverseState);
-
-  procedure PrepareFont(
-    fsfam: TX3DFontFamily;
-    fsbold, fsitalic: boolean;
-    Font: TOutlineFontData);
-  begin
-    if not FontsReferences[fsfam, fsbold, fsitalic] then
-    begin
-      Cache.Fonts_IncReference(fsfam, fsbold, fsitalic, Font);
-      FontsReferences[fsfam, fsbold, fsitalic] := true;
-    end;
-  end;
-
+procedure TGLRenderer.Prepare(Shape: TX3DRendererShape);
 var
-  FontStyle: TFontStyleNode;
   I: Integer;
   Lights: TLightInstancesList;
   Texture: TAbstractTextureNode;
+  FontTexture: TAbstractTexture2DNode;
 begin
-  { przygotuj font }
-  if State.ShapeNode = nil then
-    PrepareFont(
-      State.LastNodes.FontStyle.Family,
-      State.LastNodes.FontStyle.Bold,
-      State.LastNodes.FontStyle.Italic,
-      State.LastNodes.FontStyle.Font) else
-  if (State.ShapeNode.FdGeometry.Value <> nil) and
-     (State.ShapeNode.FdGeometry.Value is TTextNode) then
+  GLTextureNodes.Prepare(Shape.State, Shape.State.Texture, Self);
+
+  FontTexture := Shape.OriginalGeometry.FontTextureNode;
+  if FontTexture <> nil then
+    GLTextureNodes.Prepare(Shape.State, FontTexture, Self);
+
+  BumpMappingRenderers.Prepare(Shape.State, Self);
+
+  if (Shape.State.ShapeNode <> nil) and
+     (Shape.State.ShapeNode.Appearance <> nil) then
   begin
-    { We know that TTextNode(State.ShapeNode.FdGeometry.Value)
-      will be the shape node rendered along with this State.
-      That's how it works in VRML 2.0: State actually contains
-      reference to Shape that contains reference to geometry node,
-      which means that actually State contains rendered node too. }
-    FontStyle := TTextNode(State.ShapeNode.FdGeometry.Value).FontStyle;
-    if FontStyle = nil then
-      PrepareFont(
-        TFontStyleNode.DefaultFamily,
-        TFontStyleNode.DefaultBold,
-        TFontStyleNode.DefaultItalic,
-        TFontStyleNode.DefaultFont) else
-      PrepareFont(
-        FontStyle.Family,
-        FontStyle.Bold,
-        FontStyle.Italic,
-        FontStyle.Font);
-  end else
-  if (State.ShapeNode.FdGeometry.Value <> nil) and
-     (State.ShapeNode.FdGeometry.Value is TText3DNode) then
-  begin
-    { We know that TText3DNode(State.ShapeNode.FdGeometry.Value)
-      will be the shape node rendered along with this State.
-      That's how it works in VRML 2.0: State actually contains
-      reference to Shape that contains reference to geometry node,
-      which means that actually State contains rendered node too. }
-    FontStyle := TText3DNode(State.ShapeNode.FdGeometry.Value).FontStyle;
-    if FontStyle = nil then
-      PrepareFont(
-        TFontStyleNode.DefaultFamily,
-        TFontStyleNode.DefaultBold,
-        TFontStyleNode.DefaultItalic,
-        TFontStyleNode.DefaultFont) else
-      PrepareFont(
-        FontStyle.Family,
-        FontStyle.Bold,
-        FontStyle.Italic,
-        FontStyle.Font);
+    PrepareIDecls(Shape.State.ShapeNode.Appearance.FdEffects, Shape.State);
+    PrepareIDecls(Shape.State.ShapeNode.Appearance.FdShaders, Shape.State);
   end;
 
-  GLTextureNodes.Prepare(State, State.Texture, Self);
+  if Shape.State.Effects <> nil then
+    PrepareIDecls(Shape.State.Effects, Shape.State);
 
-  BumpMappingRenderers.Prepare(State, Self);
-
-  if (State.ShapeNode <> nil) and
-     (State.ShapeNode.Appearance <> nil) then
-  begin
-    PrepareIDecls(State.ShapeNode.Appearance.FdEffects, State);
-    PrepareIDecls(State.ShapeNode.Appearance.FdShaders, State);
-  end;
-
-  if State.Effects <> nil then
-    PrepareIDecls(State.Effects, State);
-
-  Lights := State.Lights;
+  Lights := Shape.State.Lights;
   if Lights <> nil then
     for I := 0 to Lights.Count - 1 do
-      PrepareIDecls(Lights.L[I].Node.FdEffects, State);
+      PrepareIDecls(Lights.L[I].Node.FdEffects, Shape.State);
 
-  Texture := State.Texture;
+  Texture := Shape.State.Texture;
   if Texture <> nil then
   begin
-    PrepareIDecls(Texture.FdEffects, State);
+    PrepareIDecls(Texture.FdEffects, Shape.State);
     if Texture is TMultiTextureNode then
       for I := 0 to TMultiTextureNode(Texture).FdTexture.Count - 1 do
         if TMultiTextureNode(Texture).FdTexture[I] is TAbstractTextureNode then
           PrepareIDecls(TAbstractTextureNode(TMultiTextureNode(Texture).
-            FdTexture[I]).FdEffects, State);
+            FdTexture[I]).FdEffects, Shape.State);
   end;
 end;
 
@@ -2516,20 +2403,7 @@ begin
 end;
 
 procedure TGLRenderer.UnprepareAll;
-var
-  fsfam: TX3DFontFamily;
-  fsbold , fsitalic: boolean;
 begin
-  { release fonts }
-  for fsfam := Low(fsfam) to High(fsfam) do
-    for fsbold := Low(boolean) to High(boolean) do
-      for fsitalic := Low(boolean) to High(boolean) do
-        if FontsReferences[fsfam, fsbold, fsitalic] then
-        begin
-          FontsReferences[fsfam, fsbold, fsitalic] := false;
-          Cache.Fonts_DecReference(fsfam, fsbold, fsitalic);
-        end;
-
   GLTextureNodes.UnprepareAll;
   BumpMappingRenderers.UnprepareAll;
   ScreenEffectPrograms.Count := 0; { this will free programs inside }
@@ -3235,20 +3109,9 @@ var
     MeshRenderer.Render. }
   function InitMeshRenderer: boolean;
   begin
-    Result := true;
-
     GeneratorClass := GetArraysGenerator(Shape.Geometry);
-
-    if GeneratorClass = nil then
-    begin
-      if Shape.Geometry is TAsciiTextNode_1 then
-        MeshRenderer := TAsciiTextRenderer.Create(Self, Shape) else
-      if Shape.Geometry is TTextNode then
-        MeshRenderer := TTextRenderer.Create(Self, Shape) else
-      if Shape.Geometry is TText3DNode then
-        MeshRenderer := TText3DRenderer.Create(Self, Shape) else
-        Result := false;
-    end else
+    Result := GeneratorClass <> nil;
+    if Result then
     begin
       { If we have GeneratorClass, create TCompleteCoordinateRenderer.
         We'll initialize TCompleteCoordinateRenderer.Arrays later. }
@@ -3400,6 +3263,9 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
     TextureNode: TAbstractTextureNode;
     GLTextureNode: TGLTextureNode;
     AlphaTest: boolean;
+    FontTextureNode: TAbstractTexture2DNode;
+    GLFontTextureNode: TGLTextureNode;
+    TexturesAlphaChannel: TAlphaChannel;
   begin
     TexCoordsNeeded := 0;
     BoundTextureUnits := 0;
@@ -3408,8 +3274,16 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
       Exit;
 
     AlphaTest := false;
+
     TextureNode := Shape.State.Texture;
     GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
+    { assert we never have non-nil GLFontTextureNode and nil FontTextureNode }
+    Assert((GLTextureNode = nil) or (TextureNode <> nil));
+
+    FontTextureNode := Shape.OriginalGeometry.FontTextureNode;
+    GLFontTextureNode := GLTextureNodes.TextureNode(FontTextureNode);
+    { assert we never have non-nil GLFontTextureNode and nil FontTextureNode }
+    Assert((GLFontTextureNode = nil) or (FontTextureNode <> nil));
 
     if UsedGLSLTexCoordsNeeded > 0 then
     begin
@@ -3419,16 +3293,23 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
         later when shader actually binds texture uniform values). }
       TexCoordsNeeded := UsedGLSLTexCoordsNeeded;
     end else
-    if (TextureNode <> nil) and
+    if ( (GLTextureNode <> nil) or (GLFontTextureNode <> nil) ) and
        Attributes.EnableTextures and
-       NodeTextured(Shape.Geometry) and
-       (GLTextureNode <> nil) then
+       NodeTextured(Shape.Geometry) then
     begin
       { This works also for TextureNode being TMultiTextureNode,
         since it has smartly calculated AlphaChannel based on children. }
-      AlphaTest := TextureNode.AlphaChannel = acSimpleYesNo;
+      TexturesAlphaChannel := acNone;
+      if TextureNode <> nil then
+        AlphaMaxTo1st(TexturesAlphaChannel, TextureNode.AlphaChannel);
+      if FontTextureNode <> nil then
+        AlphaMaxTo1st(TexturesAlphaChannel, FontTextureNode.AlphaChannel);
+      AlphaTest := TexturesAlphaChannel = acSimpleYesNo;
 
-      GLTextureNode.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
+      if GLFontTextureNode <> nil then
+        GLFontTextureNode.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
+      if GLTextureNode <> nil then
+        GLTextureNode.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
       BoundTextureUnits := TexCoordsNeeded;
 
       { If there is any texture, and we have room for one more texture,

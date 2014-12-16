@@ -105,7 +105,7 @@ procedure TGLShape.PrepareResources;
 begin
   if not PreparedForRenderer then
   begin
-    Renderer.Prepare(State);
+    Renderer.Prepare(Self);
     PreparedForRenderer := true;
   end;
 

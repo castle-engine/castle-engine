@@ -73,7 +73,6 @@
     function Bold: boolean;
     function Italic: boolean;
     function Justify: TX3DFontJustify;
-    function Font: TOutlineFontData;
 
     class function DefaultSize: Single;
     class function DefaultSpacing: Single;
@@ -81,16 +80,18 @@
     class function DefaultBold: boolean;
     class function DefaultItalic: boolean;
     class function DefaultJustify: TX3DFontJustify;
-    class function DefaultFont: TOutlineFontData;
-
-    class function ClassFont(AFamily: TX3DFontFamily;
-      const ABold, AItalic: boolean): TOutlineFontData;
   end;
   TFontStyleNode_2 = TFontStyleNode;
 
+  TPixelTextureNode = class;
+
   TTextNode = class(TAbstractX3DGeometryNode)
+  strict private
+    FFontTextureNode: TPixelTextureNode;
+    function Font: TTextureFontData;
   public
     procedure CreateNode; override;
+    destructor Destroy; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
@@ -121,17 +122,17 @@
     private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
+    function Proxy(var State: TX3DGraphTraverseState;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: boolean; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     { This returns FdFontStyle.Value. Returns nil if FdFontStyle.Value
       is nil or if it's not TFontStyleNode. }
     function FontStyle: TFontStyleNode;
     function SolidField: TSFBool; override;
+    function FontTextureNode: TAbstractTexture2DNode; override;
   end;
 
 {$endif read_interface}
@@ -213,48 +214,6 @@ end;
 class function TFontStyleNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
-end;
-
-function TFontStyleNode.Font: TOutlineFontData;
-begin
-  Result := ClassFont(Family, Bold, Italic);
-end;
-
-class function TFontStyleNode.ClassFont(
-  AFamily: TX3DFontFamily; const ABold, AItalic: boolean): TOutlineFontData;
-begin
-  case AFamily of
-    ffSerif     : case ABold of
-                    false: case AItalic of
-                             false: Result := OutlineFont_BVSerif;
-                             true : Result := OutlineFont_BVSerif_Italic;
-                           end;
-                    true : case AItalic of
-                             false: Result := OutlineFont_BVSerif_Bold;
-                             true : Result := OutlineFont_BVSerif_Bold_Italic;
-                           end;
-                  end;
-    ffSans      : case ABold of
-                    false: case AItalic of
-                             false: Result := OutlineFont_BVSans;
-                             true : Result := OutlineFont_BVSans_Italic;
-                           end;
-                    true : case AItalic of
-                             false: Result := OutlineFont_BVSans_Bold;
-                             true : Result := OutlineFont_BVSans_Bold_Italic;
-                           end;
-                  end;
-    ffTypeWriter: case ABold of
-                    false: case AItalic of
-                             false: Result := OutlineFont_BVSansMono;
-                             true : Result := OutlineFont_BVSansMono_Italic;
-                           end;
-                    true : case AItalic of
-                             false: Result := OutlineFont_BVSansMono_Bold;
-                             true : Result := OutlineFont_BVSansMono_Bold_Italic;
-                           end;
-                  end;
-  end;
 end;
 
 function TFontStyleNode.Family: TX3DFontFamily;
@@ -417,11 +376,6 @@ begin
   Result := fjBegin;
 end;
 
-class function TFontStyleNode.DefaultFont: TOutlineFontData;
-begin
-  Result := ClassFont(DefaultFamily, DefaultBold, DefaultItalic);
-end;
-
 procedure TTextNode.CreateNode;
 begin
   inherited;
@@ -459,6 +413,14 @@ begin
   Fields.Add(FFdSolid);
 end;
 
+destructor TTextNode.Destroy;
+begin
+  { actually FreeAndNil would also be OK, as this is never
+    a child of another node. But for safety... }
+  FreeIfUnusedAndNil(FFontTextureNode);
+  inherited;
+end;
+
 class function TTextNode.ClassNodeTypeName: string;
 begin
   Result := 'Text';
@@ -482,6 +444,304 @@ end;
 function TTextNode.SolidField: TSFBool;
 begin
   Result := FdSolid;
+end;
+
+function TextProxy(const OriginalNode: TX3DNode;
+  const Size, Spacing: Single;
+  const Justify: TX3DFontJustify;
+  const Strings: TCastleStringList;
+  const Font: TTextureFontData;
+  const Solid: boolean;
+  const EventLineBounds: TMFVec2fEvent;
+  const EventOrigin: TSFVec3fEvent;
+  const EventTextBounds: TSFVec2fEvent): TQuadSetNode;
+var
+  Coord: TCoordinateNode;
+  TexCoordNode: TTextureCoordinateNode;
+  TextWidths: TSingleList;
+
+  { StringPos* calculate position to start the given line of text.
+    They ignore Size parameter, just assume that Font has right size. }
+  function StringPosX(I: Integer): Single;
+  begin
+    case Justify of
+      fjBegin : Result := 0;
+      fjMiddle: Result := - TextWidths.Items[I] / 2;
+      fjEnd   : Result := - TextWidths.Items[I];
+      else raise EInternalError.Create('Invalid font justify value');
+    end;
+  end;
+
+  function StringPosY(I: Integer): Single;
+  begin
+    Result := - I * Font.RowHeight * Spacing;
+  end;
+
+var
+  YScale, XScale, MaxTextWidth: Single;
+
+  procedure SendEvents;
+  var
+    LineBounds: TMFVec2f;
+    Time: TX3DTime;
+    FinalRowHeight: Single;
+    I: Integer;
+  begin
+    if (EventOrigin <> nil) and
+       (OriginalNode.Scene <> nil) then
+    begin
+      { This is all simple, since we ignore topToBottom, leftToRight.
+        Also, we don't honour the rule that the upper line of the text
+        is exactly on Y = 0 (instead, our *row* (which is slightly higher
+        than the upper text line) is on Y = 0, this is documented
+        on [http://castle-engine.sourceforge.net/x3d_implementation_status.php]
+        by failed NIST test about it.
+
+        So the lacks of current Text rendering implementation
+        make this somewhat simple :) }
+
+      Time := OriginalNode.Scene.GetTime;
+
+      FinalRowHeight := Font.RowHeight * Spacing * YScale;
+
+      case Justify of
+        fjBegin : EventOrigin.Send(Vector3Single(0                         , -FinalRowHeight, 0), Time);
+        fjMiddle: EventOrigin.Send(Vector3Single(-MaxTextWidth * XScale / 2, -FinalRowHeight, 0), Time);
+        fjEnd   : EventOrigin.Send(Vector3Single(-MaxTextWidth * XScale    , -FinalRowHeight, 0), Time);
+        else raise EInternalError.Create('Invalid font justify value');
+      end;
+
+      if EventLineBounds.SendNeeded then
+      begin
+        LineBounds := TMFVec2f.CreateUndefined(OriginalNode, EventLineBounds.Name, false);
+        try
+          LineBounds.Items.Count := TextWidths.Count;
+
+          case Justify of
+            fjBegin :
+              for I := 0 to TextWidths.Count - 1 do
+                LineBounds.Items.L[I] := Vector2Single(
+                  TextWidths[I] * XScale, FinalRowHeight);
+            fjMiddle:
+              for I := 0 to TextWidths.Count - 1 do
+                LineBounds.Items.L[I] := Vector2Single(
+                  (MaxTextWidth + TextWidths[I]) * XScale / 2, FinalRowHeight);
+            fjEnd   :
+              for I := 0 to TextWidths.Count - 1 do
+                LineBounds.Items.L[I] := Vector2Single(
+                  MaxTextWidth * XScale, FinalRowHeight);
+            else raise EInternalError.Create('Invalid font justify value');
+          end;
+
+          EventLineBounds.Send(LineBounds, Time);
+        finally FreeAndNil(LineBounds) end;
+      end;
+
+      EventTextBounds.Send(Vector2Single(
+        MaxTextWidth * XScale, FinalRowHeight * Strings.Count), Time);
+    end;
+  end;
+
+  { Print the string, by adding rectangles to current QuadSet.
+    This is somewhat analogous to printing straight in 2D done
+    by TCastleFont.Print and TGLImage.Draw. }
+  procedure Print(X, Y: Single; const S: string; const XScale, YScale: Single);
+  var
+    C: TUnicodeChar;
+    TextPtr: PChar;
+    CharLen: Integer;
+    G: TTextureFontData.TGlyph;
+    CoordX0, CoordX1, CoordY0, CoordY1, TexX0, TexX1, TexY0, TexY1: Single;
+  begin
+    TextPtr := PChar(S);
+    C := UTF8CharacterToUnicode(TextPtr, CharLen);
+    while (C > 0) and (CharLen > 0) do
+    begin
+      Inc(TextPtr, CharLen);
+
+      G := Font.Glyph(C);
+      if G <> nil then
+      begin
+        if (G.Width <> 0) and (G.Height <> 0) then
+        begin
+          { Assumes 1 pixel transparent border around every glyph
+            (as it happens, TTextureFontData.Create creates such).
+            Makes the letter shape more smooth,
+            visibly better in the case of blending.
+
+            TODO: needs 1 pixel border to the left / right too. }
+          { $define EXTRA_GLYPH_SPACE}
+
+          CoordX0 := X - G.X {$ifdef EXTRA_GLYPH_SPACE} - 1 {$endif};
+          CoordY0 := Y - G.Y {$ifdef EXTRA_GLYPH_SPACE} - 1 {$endif};
+          CoordX1 := CoordX0 + G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 2 {$endif};
+          CoordY1 := CoordY0 + G.Height {$ifdef EXTRA_GLYPH_SPACE} + 2 {$endif};
+
+          CoordX0 *= XScale;
+          CoordX1 *= XScale;
+          CoordY0 *= YScale;
+          CoordY1 *= YScale;
+
+          Coord.FdPoint.Items.Add(Vector3Single(CoordX0, CoordY0, 0));
+          Coord.FdPoint.Items.Add(Vector3Single(CoordX0, CoordY1, 0));
+          Coord.FdPoint.Items.Add(Vector3Single(CoordX1, CoordY1, 0));
+          Coord.FdPoint.Items.Add(Vector3Single(CoordX1, CoordY0, 0));
+
+          TexX0 := (G.ImageX {$ifdef EXTRA_GLYPH_SPACE} - 1 {$endif}) / Font.Image.Width;
+          TexY0 := (G.ImageY {$ifdef EXTRA_GLYPH_SPACE} - 1 {$endif}) / Font.Image.Height;
+          TexX1 := (G.ImageX + G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 2 {$endif}) / Font.Image.Width;
+          TexY1 := (G.ImageY + G.Height {$ifdef EXTRA_GLYPH_SPACE} + 2 {$endif}) / Font.Image.Height;
+
+          TexCoordNode.FdPoint.Items.Add(Vector2Single(TexX0, TexY0));
+          TexCoordNode.FdPoint.Items.Add(Vector2Single(TexX0, TexY1));
+          TexCoordNode.FdPoint.Items.Add(Vector2Single(TexX1, TexY1));
+          TexCoordNode.FdPoint.Items.Add(Vector2Single(TexX1, TexY0));
+        end;
+        X += G.AdvanceX;
+        Y += G.AdvanceY;
+      end;
+
+      C := UTF8CharacterToUnicode(TextPtr, CharLen);
+    end;
+  end;
+
+var
+  I: Integer;
+begin
+  Result := TQuadSetNode.Create(OriginalNode.NodeName, OriginalNode.BaseUrl);
+  try
+    { make Coordinate node }
+    Coord := TCoordinateNode.Create('', OriginalNode.BaseUrl);
+    Result.FdCoord.Value := Coord;
+
+    TexCoordNode := TTextureCoordinateNode.Create('', OriginalNode.BaseUrl);
+    Result.FdTexCoord.Value := TexCoordNode;
+    Result.Solid := Solid;
+
+    YScale := Size / Font.RowHeight;
+    { TODO: Use maxEntent, length for VRML 2.0.
+      Use width for VRML 1.0. }
+    XScale := YScale;
+
+    TextWidths := TSingleList.Create;
+    try
+      TextWidths.Count := Strings.Count;
+      MaxTextWidth := 0;
+      for I := 0 to TextWidths.Count - 1 do
+      begin
+        TextWidths.L[I] := Font.TextWidth(Strings[I]);
+        MaxTo1st(MaxTextWidth, TextWidths.L[I]);
+      end;
+
+      for I := 0 to Strings.Count - 1 do
+      begin
+        { TODO: when using Justify <> fjBegin I should also
+          change texOriginX here, at least for VRML 1.0 --- check
+          for VRML 2.0. }
+        Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale);
+      end;
+
+      { These events should be generated only when
+        the default values of length and maxExtent are used.
+        For now, we ignore length and maxExtent, so these events are
+        simply always generated. }
+      SendEvents;
+    finally FreeAndNil(TextWidths) end;
+  except FreeAndNil(Result); raise end;
+end;
+
+function TTextNode.Proxy(var State: TX3DGraphTraverseState;
+  const OverTriangulate: boolean): TAbstractGeometryNode;
+var
+  Size, Spacing: Single;
+  Justify: TX3DFontJustify;
+begin
+  { TODO: recreate this when font parameters changed }
+  if FontStyle = nil then
+  begin
+    Size := TFontStyleNode.DefaultSize;
+    Spacing := TFontStyleNode.DefaultSpacing;
+    Justify := TFontStyleNode.DefaultJustify;
+  end else
+  begin
+    Size := FontStyle.FdSize.Value;
+    Spacing := FontStyle.FdSpacing.Value;
+    Justify := FontStyle.Justify;
+  end;
+
+  { TODO: test "solid" field working }
+  { TODO: allow Text node to have texCoord, for shadow maps etc.
+    TODO: use the Text node texCoord as extra texCoord when generating proxy }
+
+  Result := TextProxy(Self, Size, Spacing, Justify, FdString.Items, Font,
+    Solid, EventLineBounds, EventOrigin, EventTextBounds);
+end;
+
+function TTextNode.ProxyUsesOverTriangulate: boolean;
+begin
+  Result := false;
+end;
+
+function TTextNode.Font: TTextureFontData;
+
+  function GetFont(const Family: TX3DFontFamily; const Bold, Italic: boolean): TTextureFontData;
+  begin
+    case Family of
+      ffSerif:
+        if Bold and Italic then
+          Result := TextureFont_DejaVuSerifBoldItalic_20 else
+        if Bold then
+          Result := TextureFont_DejaVuSerifBold_20 else
+        if Italic then
+          Result := TextureFont_DejaVuSerifItalic_20 else
+          Result := TextureFont_DejaVuSerif_20;
+      ffSans:
+        if Bold and Italic then
+          Result := TextureFont_DejaVuSansBoldOblique_20 else
+        if Bold then
+          Result := TextureFont_DejaVuSansBold_20 else
+        if Italic then
+          Result := TextureFont_DejaVuSansOblique_20 else
+          Result := TextureFont_DejaVuSans_20;
+      ffTypeWriter:
+        if Bold and Italic then
+          Result := TextureFont_DejaVuSansMonoBoldOblique_20 else
+        if Bold then
+          Result := TextureFont_DejaVuSansMonoBold_20 else
+        if Italic then
+          Result := TextureFont_DejaVuSansMonoOblique_20 else
+          Result := TextureFont_DejaVuSansMono_20;
+      else raise EInternalError.Create('GetFont:Family?');
+    end;
+  end;
+
+begin
+  if FontStyle <> nil then
+    Result := GetFont(
+      FontStyle.Family,
+      FontStyle.Bold,
+      FontStyle.Italic) else
+    Result := GetFont(
+      TFontStyleNode.DefaultFamily,
+      TFontStyleNode.DefaultBold,
+      TFontStyleNode.DefaultItalic);
+end;
+
+function TTextNode.FontTextureNode: TAbstractTexture2DNode;
+begin
+  { TODO: recreate this when font parameters changed }
+  if FFontTextureNode = nil then
+  begin
+    FFontTextureNode := TPixelTextureNode.Create('', BaseUrl);
+    FreeAndNil(FFontTextureNode.FdImage.Value);
+    FFontTextureNode.FdRepeatS.Value := false;
+    FFontTextureNode.FdRepeatT.Value := false;
+    { convert grayscale image with TreatAsAlpha to TGrayscaleAlphaImage }
+    FFontTextureNode.FdImage.Value := Font.Image.ToGrayscaleAlphaImage;
+    { TODO: allow configuring this on Text node, whether we use blendinf or not. }
+    //FFontTextureNode.FdAlphaChannel.Value := 'SIMPLE_YES_NO';
+  end;
+  Result := FFontTextureNode;
 end;
 
 procedure RegisterTextNodes;

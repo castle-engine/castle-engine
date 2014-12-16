@@ -61,12 +61,11 @@
     private FFdWidth: TMFFloat;
     public property FdWidth: TMFFloat read FFdWidth;
 
+    function Proxy(var State: TX3DGraphTraverseState;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
+    function ProxyUsesOverTriangulate: boolean; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     function Justify: TX3DFontJustify;
   end;
@@ -280,7 +279,7 @@
     function Family: TX3DFontFamily;
     function Bold: boolean;
     function Italic: boolean;
-    function Font: TOutlineFontData;
+    function Font: TTextureFontData;
   end;
 
   TInfoNode_1 = class(TAbstractChildNode)
@@ -884,6 +883,21 @@ begin
   Result := TX3DFontJustify(FdJustification.Value);
 end;
 
+function TAsciiTextNode_1.Proxy(var State: TX3DGraphTraverseState;
+  const OverTriangulate: boolean): TAbstractGeometryNode;
+begin
+  { TODO: not Ok that we return here vrml 2 IFS node, it cannot be used like this. }
+  Result := TextProxy(Self,
+    State.LastNodes.FontStyle.FdSize.Value, FdSpacing.Value, Justify,
+    FdString.Items, State.LastNodes.FontStyle.Font,
+    false, nil, nil, nil);
+end;
+
+function TAsciiTextNode_1.ProxyUsesOverTriangulate: boolean;
+begin
+  Result := false;
+end;
+
 procedure TConeNode_1.CreateNode;
 begin
   inherited;
@@ -1197,11 +1211,6 @@ begin
   result := 'FontStyle';
 end;
 
-function TFontStyleNode_1.Font: TOutlineFontData;
-begin
-  Result := TFontStyleNode.ClassFont(Family, Bold, Italic);
-end;
-
 function TFontStyleNode_1.Family: TX3DFontFamily;
 begin
   Result := TX3DFontFamily(FdFamily.Value);
@@ -1220,6 +1229,47 @@ end;
 class function TFontStyleNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major <= 1;
+end;
+
+function TFontStyleNode_1.Font: TTextureFontData;
+
+  { Copied from TTextNode.Font }
+  function GetFont(const Family: TX3DFontFamily; const Bold, Italic: boolean): TTextureFontData;
+  begin
+    case Family of
+      ffSerif:
+        if Bold and Italic then
+          Result := TextureFont_DejaVuSerifBoldItalic_20 else
+        if Bold then
+          Result := TextureFont_DejaVuSerifBold_20 else
+        if Italic then
+          Result := TextureFont_DejaVuSerifItalic_20 else
+          Result := TextureFont_DejaVuSerif_20;
+      ffSans:
+        if Bold and Italic then
+          Result := TextureFont_DejaVuSansBoldOblique_20 else
+        if Bold then
+          Result := TextureFont_DejaVuSansBold_20 else
+        if Italic then
+          Result := TextureFont_DejaVuSansOblique_20 else
+          Result := TextureFont_DejaVuSans_20;
+      ffTypeWriter:
+        if Bold and Italic then
+          Result := TextureFont_DejaVuSansMonoBoldOblique_20 else
+        if Bold then
+          Result := TextureFont_DejaVuSansMonoBold_20 else
+        if Italic then
+          Result := TextureFont_DejaVuSansMonoOblique_20 else
+          Result := TextureFont_DejaVuSansMono_20;
+      else raise EInternalError.Create('GetFont:Family?');
+    end;
+  end;
+
+begin
+  Result := GetFont(
+    Family,
+    Bold,
+    Italic);
 end;
 
 procedure TInfoNode_1.CreateNode;

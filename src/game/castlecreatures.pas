@@ -950,13 +950,10 @@ var
 implementation
 
 uses SysUtils, DOM, CastleGL, CastleFilesUtils, CastleGLUtils,
-  CastleProgress, CastleGameNotifications, CastleGLOutlineFonts, CastleUIControls;
+  CastleProgress, CastleGameNotifications, CastleUIControls;
 
 var
   DisableCreatures: Cardinal;
-
-  { OpenGL outline (3D) font for DebugCaption. }
-  Font3d: TGLOutlineFont;
 
 { TCreatureResource -------------------------------------------------------------- }
 
@@ -1426,9 +1423,11 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
 
   procedure DebugCaptions;
   var
-    H, FontSize: Single;
+    H{, FontSize}: Single;
+    {
     S: TCastleStringList;
     I: Integer;
+    }
   begin
     glPushMatrix;
       glMultMatrix(Transform);
@@ -1443,6 +1442,7 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
         UpFromOrientation[Orientation],
         DirectionFromOrientation[Orientation]));
 
+      { TODO: font should be output using X3D Text now.
       FontSize := H / 8;
       glScalef(FontSize / Font3d.RowHeight, FontSize / Font3d.RowHeight, 1);
 
@@ -1455,6 +1455,7 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
           glTranslatef(0, Font3d.RowHeight, 0);
         end;
       finally FreeAndNil(S) end;
+      }
     glPopMatrix;
   end;
   {$endif}
@@ -2688,31 +2689,7 @@ end;
 
 { initialization / finalization ---------------------------------------------- }
 
-const
-  Font3dFamily = ffSans;
-  Font3dBold = false;
-  Font3dItalic = false;
-
-procedure ContextOpen;
-begin
-  Font3d := GLContextCache.Fonts_IncReference(
-    Font3dFamily, Font3dBold, Font3dItalic,
-    TFontStyleNode.ClassFont(Font3dFamily, Font3dBold, Font3dItalic));
-end;
-
-procedure ContextClose;
-begin
-  if Font3d <> nil then
-  begin
-    GLContextCache.Fonts_DecReference(Font3dFamily, Font3dBold, Font3dItalic);
-    Font3d := nil;
-  end;
-end;
-
 initialization
-  OnGLContextOpen.Add(@ContextOpen);
-  OnGLContextClose.Add(@ContextClose);
-
   RegisterResourceClass(TWalkAttackCreatureResource, 'WalkAttack');
   RegisterResourceClass(TMissileCreatureResource, 'Missile');
   RegisterResourceClass(TStillCreatureResource, 'Still');

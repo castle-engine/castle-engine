@@ -1512,6 +1512,10 @@ begin
   Tex := State.Texture;
   if (Tex <> nil) and (Tex.AlphaChannel = acFullRange) then
     Result := true;
+
+  Tex := OriginalGeometry.FontTextureNode;
+  if (Tex <> nil) and (Tex.AlphaChannel = acFullRange) then
+    Result := true;
 end;
 
 procedure TShape.Traverse(Func: TShapeTraverseFunc;

@@ -758,7 +758,7 @@ procedure Register;
 
 implementation
 
-uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DejaVuSans_20,
+uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
   CastleTextureFont_DejaVuSans_10, CastleGLUtils;
 
 procedure Register;

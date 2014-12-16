@@ -124,6 +124,9 @@ type
       because RowHeightBase doesn't care how low the letter may go below
       the baseline. }
     function RowHeightBase: Integer;
+
+    { How low the text may go below the baseline. }
+    function Descend: Integer;
   end;
 
 implementation
@@ -557,6 +560,11 @@ begin
     CalculatedRowHeight := true;
   end;
   Result := FRowHeightBase;
+end;
+
+function TTextureFontData.Descend: Integer;
+begin
+  Result := TextHeight('y') - TextHeight('a');
 end;
 
 end.

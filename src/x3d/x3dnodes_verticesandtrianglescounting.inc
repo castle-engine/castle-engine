@@ -63,30 +63,6 @@ end;
 {$define QUADRIC_STACKS:=(State.LastNodes.KambiTriangulation.QuadricStacks)}
 {$define RECT_DIVISIONS:=(State.LastNodes.KambiTriangulation.RectDivisions)}
 
-function TAsciiTextNode_1.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
-begin result := 0;{TODO} end;
-
-function TAsciiTextNode_1.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
-begin result := 0;{TODO} end;
-
-function TTextNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
-begin result := 0;{TODO} end;
-
-function TTextNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
-begin result := 0;{TODO} end;
-
-function TText3DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
-begin result := 0;{TODO} end;
-
-function TText3DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
-begin result := 0;{TODO} end;
-
 function Cone_TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
   const Sides, Bottom: boolean): Cardinal;
 begin

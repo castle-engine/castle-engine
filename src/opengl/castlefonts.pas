@@ -480,7 +480,7 @@ end;
 
 function TCastleFont.Descend: Integer;
 begin
-  result := TextHeight('y')-TextHeight('a');
+  Result := TextHeight('y') - TextHeight('a');
 end;
 
 procedure TCastleFont.BreakLines(const unbroken: string;

@@ -403,6 +403,13 @@
       Default implementation in TAbstractGeometryNode says @true. }
     function Lit(State: TX3DGraphTraverseState): boolean; virtual;
 
+    { Should renderer setup an extra texture slot with font texture
+      when rendering this node. This is useful for rendering Text nodes,
+      that want to cooperate with normal texturing and shading,
+      and additionally they want to use extra texture determined by font
+      (not by Appearance node). }
+    function FontTextureNode: TAbstractTexture2DNode; virtual;
+
     { Are faces convex. This knowledge is used when calculating normal vectors
       by CastleNormals. }
     property Convex: boolean read GetConvex write SetConvex;
@@ -1083,6 +1090,11 @@ begin
      (F.Value is TColorRGBANode) then
     Result := TColorRGBANode(F.Value).FdColor else
     Result := nil;
+end;
+
+function TAbstractGeometryNode.FontTextureNode: TAbstractTexture2DNode;
+begin
+  Result := nil;
 end;
 
 { Normal X3D spec nodes ------------------------------------------------------ }
