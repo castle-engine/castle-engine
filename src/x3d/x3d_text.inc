@@ -446,7 +446,11 @@ begin
   Result := FdSolid;
 end;
 
-function TextProxy(const OriginalNode: TX3DNode;
+{ Create a simple mesh (filling OutCoords, OutTexCoords fields
+  to initialize X3D node like QuadSet) that represents input Text node.
+  The interface is suitable for both VRML 2.0 / X3D Text node,
+  as well as VRML 1.0 AsciiText node. }
+procedure TextProxy(const OriginalNode: TX3DNode;
   const Size, Spacing: Single;
   const Justify: TX3DFontJustify;
   const Strings: TCastleStringList;
@@ -454,10 +458,9 @@ function TextProxy(const OriginalNode: TX3DNode;
   const Solid: boolean;
   const EventLineBounds: TMFVec2fEvent;
   const EventOrigin: TSFVec3fEvent;
-  const EventTextBounds: TSFVec2fEvent): TQuadSetNode;
+  const EventTextBounds: TSFVec2fEvent;
+  const OutCoord: TMFVec3f; const OutTexCoord: TMFVec2f);
 var
-  Coord: TCoordinateNode;
-  TexCoordNode: TTextureCoordinateNode;
   TextWidths: TSingleList;
 
   { StringPos* calculate position to start the given line of text.
@@ -582,20 +585,20 @@ var
           CoordY0 *= YScale;
           CoordY1 *= YScale;
 
-          Coord.FdPoint.Items.Add(Vector3Single(CoordX0, CoordY0, 0));
-          Coord.FdPoint.Items.Add(Vector3Single(CoordX1, CoordY0, 0));
-          Coord.FdPoint.Items.Add(Vector3Single(CoordX1, CoordY1, 0));
-          Coord.FdPoint.Items.Add(Vector3Single(CoordX0, CoordY1, 0));
+          OutCoord.Items.Add(Vector3Single(CoordX0, CoordY0, 0));
+          OutCoord.Items.Add(Vector3Single(CoordX1, CoordY0, 0));
+          OutCoord.Items.Add(Vector3Single(CoordX1, CoordY1, 0));
+          OutCoord.Items.Add(Vector3Single(CoordX0, CoordY1, 0));
 
           TexX0 := (G.ImageX {$ifdef EXTRA_GLYPH_SPACE} - 1 {$endif}) / Font.Image.Width;
           TexY0 := (G.ImageY {$ifdef EXTRA_GLYPH_SPACE} - 1 {$endif}) / Font.Image.Height;
           TexX1 := (G.ImageX + G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 2 {$endif}) / Font.Image.Width;
           TexY1 := (G.ImageY + G.Height {$ifdef EXTRA_GLYPH_SPACE} + 2 {$endif}) / Font.Image.Height;
 
-          TexCoordNode.FdPoint.Items.Add(Vector2Single(TexX0, TexY0));
-          TexCoordNode.FdPoint.Items.Add(Vector2Single(TexX1, TexY0));
-          TexCoordNode.FdPoint.Items.Add(Vector2Single(TexX1, TexY1));
-          TexCoordNode.FdPoint.Items.Add(Vector2Single(TexX0, TexY1));
+          OutTexCoord.Items.Add(Vector2Single(TexX0, TexY0));
+          OutTexCoord.Items.Add(Vector2Single(TexX1, TexY0));
+          OutTexCoord.Items.Add(Vector2Single(TexX1, TexY1));
+          OutTexCoord.Items.Add(Vector2Single(TexX0, TexY1));
         end;
         X += G.AdvanceX;
         Y += G.AdvanceY;
@@ -608,46 +611,35 @@ var
 var
   I: Integer;
 begin
-  Result := TQuadSetNode.Create(OriginalNode.NodeName, OriginalNode.BaseUrl);
+  YScale := Size / Font.RowHeight;
+  { TODO: Use maxEntent, length for VRML 2.0.
+    Use width for VRML 1.0. }
+  XScale := YScale;
+
+  TextWidths := TSingleList.Create;
   try
-    { make Coordinate node }
-    Coord := TCoordinateNode.Create('', OriginalNode.BaseUrl);
-    Result.FdCoord.Value := Coord;
+    TextWidths.Count := Strings.Count;
+    MaxTextWidth := 0;
+    for I := 0 to TextWidths.Count - 1 do
+    begin
+      TextWidths.L[I] := Font.TextWidth(Strings[I]);
+      MaxTo1st(MaxTextWidth, TextWidths.L[I]);
+    end;
 
-    TexCoordNode := TTextureCoordinateNode.Create('', OriginalNode.BaseUrl);
-    Result.FdTexCoord.Value := TexCoordNode;
-    Result.Solid := Solid;
+    for I := 0 to Strings.Count - 1 do
+    begin
+      { TODO: when using Justify <> fjBegin I should also
+        change texOriginX here, at least for VRML 1.0 --- check
+        for VRML 2.0. }
+      Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale);
+    end;
 
-    YScale := Size / Font.RowHeight;
-    { TODO: Use maxEntent, length for VRML 2.0.
-      Use width for VRML 1.0. }
-    XScale := YScale;
-
-    TextWidths := TSingleList.Create;
-    try
-      TextWidths.Count := Strings.Count;
-      MaxTextWidth := 0;
-      for I := 0 to TextWidths.Count - 1 do
-      begin
-        TextWidths.L[I] := Font.TextWidth(Strings[I]);
-        MaxTo1st(MaxTextWidth, TextWidths.L[I]);
-      end;
-
-      for I := 0 to Strings.Count - 1 do
-      begin
-        { TODO: when using Justify <> fjBegin I should also
-          change texOriginX here, at least for VRML 1.0 --- check
-          for VRML 2.0. }
-        Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale);
-      end;
-
-      { These events should be generated only when
-        the default values of length and maxExtent are used.
-        For now, we ignore length and maxExtent, so these events are
-        simply always generated. }
-      SendEvents;
-    finally FreeAndNil(TextWidths) end;
-  except FreeAndNil(Result); raise end;
+    { These events should be generated only when
+      the default values of length and maxExtent are used.
+      For now, we ignore length and maxExtent, so these events are
+      simply always generated. }
+    SendEvents;
+  finally FreeAndNil(TextWidths) end;
 end;
 
 function TTextNode.Proxy(var State: TX3DGraphTraverseState;
@@ -655,6 +647,9 @@ function TTextNode.Proxy(var State: TX3DGraphTraverseState;
 var
   Size, Spacing: Single;
   Justify: TX3DFontJustify;
+  QuadSet: TQuadSetNode;
+  CoordNode: TCoordinateNode;
+  TexCoordNode: TTextureCoordinateNode;
 begin
   { TODO: recreate this when font parameters changed }
   if FontStyle = nil then
@@ -669,12 +664,24 @@ begin
     Justify := FontStyle.Justify;
   end;
 
-  { TODO: test "solid" field working }
   { TODO: allow Text node to have texCoord, for shadow maps etc.
     TODO: use the Text node texCoord as extra texCoord when generating proxy }
 
-  Result := TextProxy(Self, Size, Spacing, Justify, FdString.Items, Font,
-    Solid, EventLineBounds, EventOrigin, EventTextBounds);
+  QuadSet := TQuadSetNode.Create(NodeName, BaseUrl);
+  try
+    CoordNode := TCoordinateNode.Create('', BaseUrl);
+    QuadSet.FdCoord.Value := CoordNode;
+
+    TexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
+    QuadSet.FdTexCoord.Value := TexCoordNode;
+    QuadSet.Solid := Solid;
+
+    TextProxy(Self, Size, Spacing, Justify, FdString.Items, Font,
+      Solid, EventLineBounds, EventOrigin, EventTextBounds,
+      CoordNode.FdPoint, TexCoordNode.FdPoint);
+
+    Result := QuadSet;
+  except FreeAndNil(QuadSet); raise end;
 end;
 
 function TTextNode.ProxyUsesOverTriangulate: boolean;
@@ -727,20 +734,23 @@ begin
       TFontStyleNode.DefaultItalic);
 end;
 
+function CreateFontTextureNode(const Font: TTextureFontData): TPixelTextureNode;
+begin
+  Result := TPixelTextureNode.Create('', '');
+  FreeAndNil(Result.FdImage.Value);
+  Result.FdRepeatS.Value := false;
+  Result.FdRepeatT.Value := false;
+  { convert grayscale image with TreatAsAlpha to TGrayscaleAlphaImage }
+  Result.FdImage.Value := Font.Image.ToGrayscaleAlphaImage;
+  { TODO: allow configuring this on Text node, whether we use blendinf or not. }
+  //Result.FdAlphaChannel.Value := 'SIMPLE_YES_NO';
+end;
+
 function TTextNode.FontTextureNode: TAbstractTexture2DNode;
 begin
   { TODO: recreate this when font parameters changed }
   if FFontTextureNode = nil then
-  begin
-    FFontTextureNode := TPixelTextureNode.Create('', BaseUrl);
-    FreeAndNil(FFontTextureNode.FdImage.Value);
-    FFontTextureNode.FdRepeatS.Value := false;
-    FFontTextureNode.FdRepeatT.Value := false;
-    { convert grayscale image with TreatAsAlpha to TGrayscaleAlphaImage }
-    FFontTextureNode.FdImage.Value := Font.Image.ToGrayscaleAlphaImage;
-    { TODO: allow configuring this on Text node, whether we use blendinf or not. }
-    //FFontTextureNode.FdAlphaChannel.Value := 'SIMPLE_YES_NO';
-  end;
+    FFontTextureNode := CreateFontTextureNode(Font);
   Result := FFontTextureNode;
 end;
 

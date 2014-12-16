@@ -44,7 +44,11 @@
   end;
 
   TAsciiTextNode_1 = class(TAbstractGeometryNode_1)
+  strict private
+    FFontTextureNode: TPixelTextureNode;
+  public
     procedure CreateNode; override;
+    destructor Destroy; override;
     class function ClassNodeTypeName: string; override;
 
     private FFdString: TMFString;
@@ -66,6 +70,7 @@
     function ProxyUsesOverTriangulate: boolean; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function FontTextureNode: TAbstractTexture2DNode; override;
 
     function Justify: TX3DFontJustify;
   end;
@@ -873,6 +878,14 @@ begin
   Fields.Add(FFdWidth);
 end;
 
+destructor TAsciiTextNode_1.Destroy;
+begin
+  { actually FreeAndNil would also be OK, as this is never
+    a child of another node. But for safety... }
+  FreeIfUnusedAndNil(FFontTextureNode);
+  inherited;
+end;
+
 class function TAsciiTextNode_1.ClassNodeTypeName: string;
 begin
   result := 'AsciiText';
@@ -885,17 +898,58 @@ end;
 
 function TAsciiTextNode_1.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
+var
+  FaceSet: TIndexedFaceSetNode_1;
+  CoordNode: TCoordinate3Node_1;
+  TexCoordNode: TTextureCoordinate2Node_1;
+  I: Integer;
 begin
-  { TODO: not Ok that we return here vrml 2 IFS node, it cannot be used like this. }
-  Result := TextProxy(Self,
-    State.LastNodes.FontStyle.FdSize.Value, FdSpacing.Value, Justify,
-    FdString.Items, State.LastNodes.FontStyle.Font,
-    false, nil, nil, nil);
+  FaceSet := TIndexedFaceSetNode_1.Create(NodeName, BaseUrl);
+  try
+    { we have to modify State, so make a copy of it }
+    State := TX3DGraphTraverseState.CreateCopy(State);
+
+    CoordNode := TCoordinate3Node_1.Create('', BaseUrl);
+    State.SetLastNodes(vsCoordinate3, CoordNode, true);
+
+    TexCoordNode := TTextureCoordinate2Node_1.Create('', BaseUrl);
+    State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
+
+    TextProxy(Self,
+      State.LastNodes.FontStyle.FdSize.Value, FdSpacing.Value, Justify,
+      FdString.Items, State.LastNodes.FontStyle.Font,
+      false, nil, nil, nil,
+      CoordNode.FdPoint, TexCoordNode.FdPoint);
+
+    { calculate FaceSet.FdCoordIndex, just include all quads from CoordNode }
+    FaceSet.FdCoordIndex.Items.Clear;
+    for I := 0 to CoordNode.FdPoint.Count - 1 do
+    begin
+      FaceSet.FdCoordIndex.Items.Add(I);
+      if I mod 4 = 0 then
+        FaceSet.FdCoordIndex.Items.Add(-1);
+    end;
+
+    { For VRML 1.0, unfortunately textureCoordIndex must be set
+      (even though it's exactly equivalent to coordIndex). }
+    FaceSet.FdTextureCoordIndex.Items.Assign(FaceSet.FdCoordIndex.Items);
+
+    Result := FaceSet;
+  except FreeAndNil(FaceSet); raise end;
+
+  { TODO: recreate this when font parameters changed }
+  if FFontTextureNode = nil then
+    FFontTextureNode := CreateFontTextureNode(State.LastNodes.FontStyle.Font);
 end;
 
 function TAsciiTextNode_1.ProxyUsesOverTriangulate: boolean;
 begin
   Result := false;
+end;
+
+function TAsciiTextNode_1.FontTextureNode: TAbstractTexture2DNode;
+begin
+  Result := FFontTextureNode;
 end;
 
 procedure TConeNode_1.CreateNode;
