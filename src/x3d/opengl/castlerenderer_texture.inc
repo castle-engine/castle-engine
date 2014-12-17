@@ -923,7 +923,8 @@ begin
       if ChildTex is TMultiTextureNode then
         OnWarning(wtMajor, 'VRML/X3D', 'Child of MultiTexture node cannot be another MultiTexture node') else
         Success := Renderer.GLTextureNodes.Enable(
-          TAbstractTextureNode(ChildTex), I, Shader, Env);
+          TAbstractTextureNode(ChildTex),
+          InitialTextureSlotsUsed + I, Shader, Env);
 
       { Apply Env for fixed-function pipeline. }
       if Success and GLFeatures.UseMultiTexturing { needed OpenGL exts available } then

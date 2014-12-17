@@ -122,6 +122,10 @@
     private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
+    private FFdTexCoord: TSFNode;
+    public property FdTexCoord: TSFNode read FFdTexCoord;
+    function TexCoordField: TSFNode; override;
+
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
@@ -411,6 +415,10 @@ begin
    FdSolid.Exposed := false;
    FdSolid.ChangesAlways := [chGeometry];
   Fields.Add(FFdSolid);
+
+  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
+   FdTexCoord.ChangesAlways := [chGeometry];
+  Fields.Add(FFdTexCoord);
 end;
 
 destructor TTextNode.Destroy;
@@ -431,6 +439,11 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TTextNode.TexCoordField: TSFNode;
+begin
+  Result := FdTexCoord;
 end;
 
 function TTextNode.FontStyle: TFontStyleNode;
@@ -689,6 +702,8 @@ var
   CoordNode: TCoordinateNode;
   MultiTexCoordNode: TMultiTextureCoordinateNode;
   TexCoordNode, ExtraTexCoordNode: TTextureCoordinateNode;
+  I: Integer;
+  ExtraTexCoordField: TMFVec2f;
 begin
   if FontStyle = nil then
   begin
@@ -701,9 +716,6 @@ begin
     Spacing := FontStyle.FdSpacing.Value;
     Justify := FontStyle.Justify;
   end;
-
-  { TODO: allow Text node to have texCoord, for shadow maps etc.
-    TODO: use the Text node texCoord as extra texCoord when generating proxy }
 
   QuadSet := TQuadSetNode.Create(NodeName, BaseUrl);
   try
@@ -718,12 +730,29 @@ begin
     TexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
     MultiTexCoordNode.FdTexCoord.Add(TexCoordNode);
 
-    ExtraTexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
-    MultiTexCoordNode.FdTexCoord.Add(ExtraTexCoordNode);
+    if (FdTexCoord.Value <> nil) and FdTexCoord.CurrentChildAllowed then
+    begin
+      ExtraTexCoordNode := nil;
+      { No need for ExtraTexCoordNode, instead insert specified tex coords. }
+      if FdTexCoord.Value is TMultiTextureCoordinateNode then
+      begin
+        for I := 0 to TMultiTextureCoordinateNode(FdTexCoord.Value).FdTexCoord.Count - 1 do
+          MultiTexCoordNode.FdTexCoord.Add(
+            TMultiTextureCoordinateNode(FdTexCoord.Value).FdTexCoord.Items[I]);
+      end else
+        MultiTexCoordNode.FdTexCoord.Add(FdTexCoord.Value);
+    end else
+    begin
+      ExtraTexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
+      MultiTexCoordNode.FdTexCoord.Add(ExtraTexCoordNode);
+    end;
+    if ExtraTexCoordNode <> nil then
+      ExtraTexCoordField := ExtraTexCoordNode.FdPoint else
+      ExtraTexCoordField := nil;
 
     TextProxy(Self, Size, Spacing, Justify, FdString.Items, Font,
       Solid, EventLineBounds, EventOrigin, EventTextBounds,
-      CoordNode.FdPoint, TexCoordNode.FdPoint, ExtraTexCoordNode.FdPoint);
+      CoordNode.FdPoint, TexCoordNode.FdPoint, ExtraTexCoordField);
 
     Result := QuadSet;
   except FreeAndNil(QuadSet); raise end;
