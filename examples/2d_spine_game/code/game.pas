@@ -395,4 +395,6 @@ initialization
   Window.OnResize := @WindowResize;
   Window.FpsShowOnCaption := true;
   Application.MainWindow := Window;
+
+  OptimizeExtensiveTransformations := true;
 end.

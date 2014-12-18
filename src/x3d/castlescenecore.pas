@@ -518,6 +518,13 @@ type
 
     PlayingAnimationNode: TTimeSensorNode;
 
+    { When this is non-empty, then the transformation change happened,
+      and should be processed (for the whole X3D graph inside RootNode).
+      This must include then chTransform field, may also include other changes
+      (this will be passed to shapes affected).
+      Used only when OptimizeExtensiveTransformations. }
+    TransformationDirty: TX3DChanges;
+
     { This always holds pointers to all TShapeTreeLOD instances in Shapes
       tree. }
     ShapeLODs: TObjectList;
@@ -531,11 +538,13 @@ type
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
 
     { Handle change of transformation of ITransformNode node.
-      TransformNode and TransformNode must not be @nil here.
+      TransformNode must not be @nil here.
       Changes must include chTransform, may also include other changes
       (this will be passed to shapes affected). }
     procedure TransformationChanged(TransformNode: TX3DNode;
       Instances: TShapeTreeList; const Changes: TX3DChanges);
+    { Like TransformationChanged, but specialized for TransformNode = RootNode. }
+    procedure RootTransformationChanged(const Changes: TX3DChanges);
   private
     { For all ITransformNode, except Billboard nodes }
     TransformInstancesList: TTransformInstancesList;
@@ -1953,6 +1962,12 @@ var
 
     Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
   LogChanges: boolean = false;
+
+  { Set this to optimize animating transformations for scenes where you
+    have many transformations (many Transform nodes), and many of them
+    are animated at the same time. Often particularly effective for
+    skeletal animations of characters, 3D and 2D (e.g. from Spine). }
+  OptimizeExtensiveTransformations: boolean = false;
 
 implementation
 
@@ -3622,6 +3637,87 @@ begin
   end;
 end;
 
+procedure TCastleSceneCore.RootTransformationChanged(const Changes: TX3DChanges);
+var
+  TransformChangeHelper: TTransformChangeHelper;
+  TransformShapesParentInfo: TShapesParentInfo;
+  TraverseStack: TX3DGraphTraverseStateStack;
+  DoVisibleChanged: boolean;
+begin
+  if Log and LogChanges then
+    WritelnLog('X3D changes', 'Transform root node change');
+
+  if RootNode = nil then Exit;
+  if not (Shapes is TShapeTreeGroup) then
+  begin
+    OnWarning(wtMajor, 'X3D changes', 'Root node did not create corresponding TShapeTreeGroup, transformation will not be applied correctly. Submit a bug');
+    Exit;
+  end;
+
+  try
+    DoVisibleChanged := false;
+
+    TraverseStack := nil;
+    TransformChangeHelper := nil;
+    try
+      TraverseStack := TX3DGraphTraverseStateStack.Create;
+
+      { initialize TransformChangeHelper, set before the loop properties
+        that cannot change }
+      TransformChangeHelper := TTransformChangeHelper.Create;
+      TransformChangeHelper.ParentScene := Self;
+      TransformChangeHelper.ChangingNode := RootNode;
+      TransformChangeHelper.Changes := Changes;
+
+      TransformShapesParentInfo.Group := Shapes as TShapeTreeGroup;
+      TransformShapesParentInfo.Index := 0;
+
+      { initialize TransformChangeHelper properties that may be changed
+        during Node.Traverse later }
+      TransformChangeHelper.Shapes := @TransformShapesParentInfo;
+      TransformChangeHelper.AnythingChanged := false;
+      TransformChangeHelper.Inside := false;
+      TransformChangeHelper.Inactive := 0;
+
+      try
+        RootNode.Traverse(TX3DNode, @TransformChangeHelper.TransformChangeTraverse);
+      except
+        on BreakTransformChangeSuccess do
+          { BreakTransformChangeSuccess is equivalent with normal finish
+            of Traverse. So do nothing, just silence exception. }
+      end;
+
+      if TransformChangeHelper.AnythingChanged then
+        DoVisibleChanged := true;
+
+      { take care of calling THAnimHumanoidNode.AnimateSkin when joint is
+        animated. Secure from Humanoid = nil (may happen if Joint
+        is outside Humanoid node, see VRML 97 test
+        ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl)  }
+      { TODO:
+      if (RootNode is THAnimJointNode) and
+         (TransformShapeTree.TransformState.Humanoid <> nil) then
+        ScheduledHumanoidAnimateSkin.AddIfNotExists(
+          TransformShapeTree.TransformState.Humanoid);
+      }
+    finally
+      FreeAndNil(TraverseStack);
+      FreeAndNil(TransformChangeHelper);
+    end;
+
+    if DoVisibleChanged then
+      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+  except
+    on B: BreakTransformChangeFailed do
+    begin
+      if Log and LogChanges then
+        WritelnLog('X3D changes', 'Transform change (because of child: ' + B.Reason + ') causes ChangedAll (no optimized action)');
+      ScheduleChangedAll;
+      Exit;
+    end;
+  end;
+end;
+
 procedure TCastleSceneCore.ChangedField(Field: TX3DField);
 var
   ANode: TX3DNode;
@@ -3646,19 +3742,23 @@ var
   var
     Instances: TShapeTreeList;
   begin
-    Check(Supports(ANode, ITransformNode),
-      'chTransform flag may be set only for ITransformNode');
-
-    Instances := TransformInstancesList.Instances(ANode, false);
-    if Instances = nil then
+    if OptimizeExtensiveTransformations then
+      TransformationDirty := TransformationDirty + Changes else
     begin
-      if Log and LogChanges then
-        WritelnLog('X3D changes', Format('Transform node "%s" has no information, assuming does not exist in our VRML graph',
-          [ANode.NodeTypeName]));
-      Exit;
-    end;
+      Check(Supports(ANode, ITransformNode),
+        'chTransform flag may be set only for ITransformNode');
 
-    TransformationChanged(ANode, Instances, Changes);
+      Instances := TransformInstancesList.Instances(ANode, false);
+      if Instances = nil then
+      begin
+        if Log and LogChanges then
+          WritelnLog('X3D changes', Format('Transform node "%s" has no information, assuming does not exist in our VRML graph',
+            [ANode.NodeTypeName]));
+        Exit;
+      end;
+
+      TransformationChanged(ANode, Instances, Changes);
+    end;
   end;
 
   procedure HandleChangeCoordinate;
@@ -5760,6 +5860,12 @@ procedure TCastleSceneCore.Update(const SecondsPassed: Single; var RemoveMe: TRe
 begin
   inherited;
   if not GetExists then Exit;
+
+  if TransformationDirty <> [] then
+  begin
+    RootTransformationChanged(TransformationDirty);
+    TransformationDirty := [];
+  end;
 
   { Ignore Update calls when SecondsPassed is precisely zero
     (this may happen, and is correct, see TFramesPerSecond.ZeroNextSecondsPassed).
